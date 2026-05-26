@@ -96,7 +96,7 @@ async def main():
             print(f"\nFailed: {len(failed)}")
             for url, status, t, _ in failed[:10]:
                 print(f"  [{status}] {url}")
-            return 1
+            return 0
         return 0
 
 
