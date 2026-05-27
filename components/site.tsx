@@ -14,13 +14,25 @@ const HEADER_NAV = [
 export function Social({ className }: { className?: string }) {
   return (
     <span className={`social ${className || ""}`}>
-      <a href="https://www.instagram.com/fyndplats/" target="_blank" rel="noopener noreferrer" aria-label="Fyndplats på Instagram">
+      <a className="soc-ig" href="https://www.instagram.com/fyndplats/" target="_blank" rel="noopener noreferrer" aria-label="Fyndplats på Instagram">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.8" /><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" /><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" /></svg>
       </a>
-      <a href="https://www.facebook.com/profile.php?id=100089607278056" target="_blank" rel="noopener noreferrer" aria-label="Fyndplats på Facebook">
+      <a className="soc-fb" href="https://www.facebook.com/profile.php?id=100089607278056" target="_blank" rel="noopener noreferrer" aria-label="Fyndplats på Facebook">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H9v3h2v6h3v-6h2.5l.5-3H14V9.5c0-.3.2-.5.5-.5Z" /></svg>
       </a>
     </span>
+  );
+}
+
+export function PaymentMarks() {
+  return (
+    <div className="paymarks" aria-label="Betalsätt vi accepterar">
+      <span className="pay pay-klarna" title="Klarna">Klarna</span>
+      <span className="pay pay-visa" title="Visa">VISA</span>
+      <span className="pay pay-mc" role="img" aria-label="Mastercard" title="Mastercard"><i /><i /></span>
+      <span className="pay pay-amex" title="American Express">AMEX</span>
+      <span className="pay pay-apay" title="Apple Pay"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden><path d="M17.05 12.54c-.03-2.43 1.99-3.6 2.08-3.66-1.13-1.66-2.89-1.89-3.52-1.91-1.5-.15-2.93.88-3.69.88-.76 0-1.93-.86-3.18-.84-1.64.02-3.15.95-3.99 2.42-1.7 2.95-.43 7.32 1.22 9.72.81 1.18 1.77 2.5 3.03 2.45 1.22-.05 1.68-.79 3.15-.79 1.47 0 1.88.79 3.17.76 1.31-.02 2.14-1.2 2.94-2.38.93-1.37 1.31-2.7 1.33-2.77-.03-.01-2.55-.98-2.58-3.88M14.6 5.5c.67-.82 1.13-1.95 1-3.09-.97.04-2.15.65-2.85 1.46-.62.72-1.17 1.88-1.02 2.99 1.08.08 2.19-.55 2.87-1.36" /></svg>Pay</span>
+    </div>
   );
 }
 
@@ -69,12 +81,12 @@ export function SiteFooter() {
         <div>
           <div className="fbrand"><Mark size={30} />Fyndplats</div>
           <p style={{ fontSize: 13.5, color: "#a39c93", maxWidth: "30ch" }}>Trygg svensk e-handel med ett brett sortiment till låga priser.</p>
-          <div className="grat">Google – 4,9 <span className="star">★★★★★</span> (20 omdömen)</div>
+          <div className="grat"><span className="glogo"><b style={{ color: "#4285F4" }}>G</b><b style={{ color: "#EA4335" }}>o</b><b style={{ color: "#FBBC05" }}>o</b><b style={{ color: "#4285F4" }}>g</b><b style={{ color: "#34A853" }}>l</b><b style={{ color: "#EA4335" }}>e</b></span> 4,9 <span className="star">★★★★★</span> (20 omdömen)</div>
           <Social className="footer-social" />
         </div>
-        <div className="fcol"><h4>Handla</h4><a href="/butik">Butik</a><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a><a href="/blogg">Blogg</a></div>
-        <div className="fcol"><h4>Kundservice</h4><a href="/vanliga-fragor">Vanliga frågor</a><a href="/returer">Returer &amp; ångerrätt</a><a href="/sparning">Spåra paket</a><a href="/kontaktaoss">Kontakta oss</a><a href="/kundtjanst">Kundtjänst</a></div>
-        <div className="fcol"><h4>Kontakt &amp; betalning</h4><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><a href="tel:+46736630990">+46 (0) 736 630 990</a><div className="pills"><span>Klarna</span><span>VISA</span><span>MC</span><span>Amex</span></div></div>
+        <div className="fcol"><div className="fhead">Handla</div><a href="/butik">Butik</a><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a><a href="/blogg">Blogg</a></div>
+        <div className="fcol"><div className="fhead">Kundservice</div><a href="/vanliga-fragor">Vanliga frågor</a><a href="/returer">Returer &amp; ångerrätt</a><a href="/sparning">Spåra paket</a><a href="/kontaktaoss">Kontakta oss</a><a href="/kundtjanst">Kundtjänst</a></div>
+        <div className="fcol"><div className="fhead">Kontakt &amp; betalning</div><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><a href="tel:+46736630990">+46 (0) 736 630 990</a><PaymentMarks /></div>
       </div>
       <div className="fbar">©2021–2026 Fyndplats · Trygg svensk e-handel · <a href="/sekretesspolicy">Sekretesspolicy</a> · <a href="/vara-butikspolicyer">Butikspolicyer</a></div>
     </footer>

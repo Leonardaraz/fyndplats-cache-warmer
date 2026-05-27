@@ -1,9 +1,38 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Fraunces } from "next/font/google";
 import "./globals.css";
 import { CartProvider, CartDrawer } from "../components/cart";
+import { SiteHeader, SiteFooter } from "../components/site";
+import { CookieConsent } from "../components/cookieconsent";
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
+const fraunces = Fraunces({
+  variable: "--font-display",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Fyndplats",
+  url: "https://www.fyndplats.se",
+  logo: "https://www.fyndplats.se/logo.svg",
+  email: "info@fyndplats.com",
+  telephone: "+46736630990",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Bergviksgatan 10",
+    postalCode: "152 44",
+    addressLocality: "Södertälje",
+    addressCountry: "SE",
+  },
+  sameAs: [
+    "https://www.instagram.com/fyndplats/",
+    "https://www.facebook.com/profile.php?id=100089607278056",
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyndplats.se"),
@@ -31,12 +60,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="sv" className={geist.variable}>
+    <html lang="sv" className={`${geist.variable} ${fraunces.variable}`}>
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <CartProvider>
-          {children}
+          <SiteHeader />
+          <main>{children}</main>
+          <SiteFooter />
           <CartDrawer />
         </CartProvider>
+        <CookieConsent />
       </body>
     </html>
   );

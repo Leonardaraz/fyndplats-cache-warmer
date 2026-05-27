@@ -1,5 +1,3 @@
-import { SiteHeader, SiteFooter } from "./site";
-
 export function ContentPage({
   eyebrow,
   title,
@@ -13,7 +11,6 @@ export function ContentPage({
 }) {
   return (
     <>
-      <SiteHeader />
       <div className="pagehero">
         <div className="container">
           {eyebrow && <div className="eyebrow">{eyebrow}</div>}
@@ -24,7 +21,6 @@ export function ContentPage({
       <article className="prose">
         <div className="container-narrow">{children}</div>
       </article>
-      <SiteFooter />
     </>
   );
 }

@@ -1,24 +1,22 @@
-import type { Metadata } from "next";
 import Image from "next/image";
-import { SiteHeader, SiteFooter } from "../../components/site";
 import { getPosts, fmtDate } from "../../lib/blog";
+import { pageMeta } from "../../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Blogg",
-  description: "Tips, guider och nyheter från Fyndplats – inspiration för dina nästa fynd.",
-  alternates: { canonical: "https://www.fyndplats.se/blogg" },
-};
+export const metadata = pageMeta(
+  "Blogg",
+  "Tips, guider och nyheter från Fyndplats – inspiration för dina nästa fynd.",
+  "/blogg"
+);
 
 export default async function Blogg() {
   const posts = await getPosts();
   return (
     <>
-      <SiteHeader />
       <section className="sec">
         <div className="container">
           <div className="sechead">
             <div className="eyebrow">Blogg</div>
-            <h2>Tips, guider &amp; nyheter</h2>
+            <h1>Tips, guider &amp; nyheter</h1>
             <p>Inspiration för dina nästa fynd.</p>
           </div>
 
@@ -44,7 +42,6 @@ export default async function Blogg() {
           )}
         </div>
       </section>
-      <SiteFooter />
     </>
   );
 }

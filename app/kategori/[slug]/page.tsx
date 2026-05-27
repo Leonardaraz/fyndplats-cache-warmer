@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SiteHeader, SiteFooter } from "../../../components/site";
 import { getProducts, getCollections } from "../../../lib/products";
 import { ProductCard } from "../../../components/productcard";
+import { pageMeta } from "../../../lib/seo";
 
 export async function generateStaticParams() {
   const cols = await getCollections();
@@ -14,11 +14,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const cols = await getCollections();
   const c = cols.find((x) => x.slug === slug);
   if (!c) return { title: "Kategori" };
-  return {
-    title: c.name,
-    description: `Handla ${c.name} hos Fyndplats – kvalitetsprodukter till låga priser. Fri frakt över 499 kr.`,
-    alternates: { canonical: `https://www.fyndplats.se/kategori/${c.slug}` },
-  };
+  return pageMeta(
+    c.name,
+    `Handla ${c.name} hos Fyndplats – kvalitetsprodukter till låga priser. Fri frakt över 499 kr.`,
+    `/kategori/${c.slug}`
+  );
 }
 
 export default async function Kategori({ params }: { params: Promise<{ slug: string }> }) {
@@ -28,14 +28,25 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   if (!active) notFound();
   const list = products.filter((p) => p.collectionIds?.includes(active.id));
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
+      { "@type": "ListItem", position: 2, name: "Butik", item: "https://www.fyndplats.se/butik" },
+      { "@type": "ListItem", position: 3, name: active.name, item: `https://www.fyndplats.se/kategori/${active.slug}` },
+    ],
+  };
+
   return (
     <>
-      <SiteHeader />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <section className="sec">
         <div className="container">
+          <nav className="crumbs"><a href="/">Hem</a> <span>/</span> <a href="/butik">Butik</a> <span>/</span> <em>{active.name}</em></nav>
           <div className="sechead">
             <div className="eyebrow">Kategori</div>
-            <h2>{active.name}</h2>
+            <h1>{active.name}</h1>
             <p>{list.length} {list.length === 1 ? "produkt" : "produkter"}</p>
           </div>
 
@@ -53,7 +64,6 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
           </div>
         </div>
       </section>
-      <SiteFooter />
     </>
   );
 }

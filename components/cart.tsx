@@ -22,7 +22,7 @@ function makeClient() {
   return createClient({
     modules: { currentCart, redirects },
     auth: OAuthStrategy({
-      clientId: process.env.NEXT_PUBLIC_WIX_CLIENT_ID || "",
+      clientId: process.env.NEXT_PUBLIC_WIX_CLIENT_ID || "f463b067-a1ab-4e6d-92c5-444c588e28d8",
       tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
     }),
   });
@@ -35,6 +35,7 @@ type Ctx = {
   setOpen: (b: boolean) => void;
   add: (id: string, variantId?: string) => Promise<void>;
   remove: (lineId: string) => Promise<void>;
+  updateQty: (lineId: string, quantity: number) => Promise<void>;
   checkout: () => Promise<void>;
   busy: boolean;
 };
@@ -59,7 +60,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refresh = useCallback(async () => {
-    try { setCart(await client.currentCart.getCurrentCart()); } catch { setCart(null); }
+    try { setCart(await client.currentCart.getCurrentCart()); }
+    catch { setCart(null); Cookies.remove("fp_cart"); }
   }, [client]);
 
   useEffect(() => {
@@ -70,7 +72,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           Cookies.set("session", JSON.stringify(t), { expires: 30 });
         }
       } catch {}
-      refresh();
+      // Only fetch the cart if this visitor has created one — avoids a 404 on the
+      // empty-cart endpoint for first-time visitors (keeps the console clean).
+      if (Cookies.get("fp_cart")) refresh();
     })();
   }, [client, refresh]);
 
@@ -81,6 +85,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (variantId) ref.options = { variantId };
       const res: any = await client.currentCart.addToCurrentCart({ lineItems: [{ catalogReference: ref, quantity: 1 }] });
       setCart(res.cart); persist(); setOpen(true);
+      Cookies.set("fp_cart", "1", { expires: 30 });
     } finally { setBusy(false); }
   }, [client]);
 
@@ -88,6 +93,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const res: any = await client.currentCart.removeLineItemsFromCurrentCart([lineId]);
     setCart(res.cart);
   }, [client]);
+
+  const updateQty = useCallback(async (lineId: string, quantity: number) => {
+    if (quantity < 1) { await remove(lineId); return; }
+    setBusy(true);
+    try {
+      const res: any = await client.currentCart.updateCurrentCartLineItemQuantity([{ _id: lineId, quantity }]);
+      setCart(res.cart);
+    } finally { setBusy(false); }
+  }, [client, remove]);
 
   const checkout = useCallback(async () => {
     setBusy(true);
@@ -104,14 +118,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const count = (cart?.lineItems || []).reduce((n: number, li: any) => n + (li.quantity || 0), 0);
 
-  return <CartCtx.Provider value={{ cart, count, open, setOpen, add, remove, checkout, busy }}>{children}</CartCtx.Provider>;
+  return <CartCtx.Provider value={{ cart, count, open, setOpen, add, remove, updateQty, checkout, busy }}>{children}</CartCtx.Provider>;
 }
 
 export function CartButton() {
   const { count, setOpen } = useCart();
   return (
-    <button className="cartbtn" onClick={() => setOpen(true)} aria-label="Öppna varukorg">
-      🛒 <span className="cartcount">{count}</span>
+    <button className="cartbtn" onClick={() => setOpen(true)} aria-label={count > 0 ? `Öppna varukorg, ${count} varor` : "Öppna varukorg"}>
+      <span aria-hidden="true">🛒 <span className="cartcount">{count}</span></span>
     </button>
   );
 }
@@ -144,17 +158,31 @@ export function BuyBox({ id, variants }: { id: string; variants?: { id: string; 
 }
 
 export function CartDrawer() {
-  const { cart, open, setOpen, remove, checkout, busy, count } = useCart();
+  const { cart, open, setOpen, remove, updateQty, checkout, busy, count } = useCart();
   const items: any[] = cart?.lineItems || [];
   const subtotal = cart?.subtotal?.formattedAmount || cart?.priceSummary?.subtotal?.formattedAmount || "";
+  const FREE_SHIP = 499;
+  const subNum = parseFloat(cart?.priceSummary?.subtotal?.amount ?? cart?.subtotal?.amount ?? "0") || 0;
+  const remaining = Math.max(0, FREE_SHIP - subNum);
+  const shipPct = Math.min(100, Math.round((subNum / FREE_SHIP) * 100));
   return (
     <>
       <div className={`drawer-ov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
-      <aside className={`drawer ${open ? "show" : ""}`} aria-hidden={!open}>
+      <aside className={`drawer ${open ? "show" : ""}`} aria-hidden={!open} inert={!open}>
         <div className="drawer-head">
           <strong>Varukorg ({count})</strong>
           <button className="drawer-x" onClick={() => setOpen(false)} aria-label="Stäng">✕</button>
         </div>
+        {items.length > 0 && (
+          <div className="freeship">
+            {remaining > 0 ? (
+              <p>Du är <b>{Math.round(remaining)} kr</b> från fri frakt!</p>
+            ) : (
+              <p className="reached">🎉 Du har fri frakt!</p>
+            )}
+            <div className={`fsbar ${remaining === 0 ? "done" : ""}`}><span style={{ width: `${shipPct}%` }} /></div>
+          </div>
+        )}
         <div className="drawer-body">
           {items.length === 0 ? (
             <p className="empty">Din varukorg är tom.</p>
@@ -168,9 +196,14 @@ export function CartDrawer() {
                   {img ? <img className="li-img" src={img} alt={name} loading="lazy" /> : <div className="li-img" />}
                   <div className="li-info">
                     <div className="li-name">{name}</div>
-                    <div className="li-meta">{li.quantity} × {li.price?.formattedAmount || ""}</div>
+                    <div className="li-meta">{li.price?.formattedAmount || ""}</div>
+                    <div className="li-qty">
+                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity - 1)} disabled={busy} aria-label="Minska antal">−</button>
+                      <span className="qnum">{li.quantity}</span>
+                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity + 1)} disabled={busy} aria-label="Öka antal">+</button>
+                    </div>
                   </div>
-                  <button className="li-x" onClick={() => remove(li._id)}>Ta bort</button>
+                  <button className="li-x" onClick={() => remove(li._id)} aria-label="Ta bort">Ta bort</button>
                 </div>
               );
             })

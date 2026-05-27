@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { SiteHeader, SiteFooter } from "../../components/site";
 import { getProducts } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
 
@@ -16,12 +15,11 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
 
   return (
     <>
-      <SiteHeader />
       <section className="sec">
         <div className="container">
           <div className="sechead">
             <div className="eyebrow">Sök</div>
-            <h2>{q ? `Sökresultat för “${q}”` : "Sök i butiken"}</h2>
+            <h1>{q ? `Sökresultat för “${q}”` : "Sök i butiken"}</h1>
             <p>{q ? `${results.length} ${results.length === 1 ? "produkt" : "produkter"} hittades` : "Skriv i sökrutan ovan för att hitta produkter."}</p>
           </div>
           {results.length > 0 && (
@@ -38,7 +36,6 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
           )}
         </div>
       </section>
-      <SiteFooter />
     </>
   );
 }

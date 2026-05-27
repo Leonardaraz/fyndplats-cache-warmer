@@ -12,6 +12,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: p.title,
     description: p.excerpt || p.title,
     alternates: { canonical: `https://www.fyndplats.se/blogg/${p.slug}` },
+    openGraph: {
+      type: "article",
+      locale: "sv_SE",
+      siteName: "Fyndplats",
+      url: `https://www.fyndplats.se/blogg/${p.slug}`,
+      title: p.title,
+      description: p.excerpt || p.title,
+      images: p.cover ? [p.cover] : undefined,
+    },
   };
 }
 

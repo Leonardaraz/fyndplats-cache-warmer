@@ -5,6 +5,7 @@ export function ProductCard({ p }: { p: Product }) {
   return (
     <a className="prod" href={`/produkt/${p.slug}`}>
       <div className="pimg">
+        {p.onSale && <span className="sale-badge">Rea</span>}
         {p.img && (
           <Image
             src={p.img}
@@ -18,7 +19,10 @@ export function ProductCard({ p }: { p: Product }) {
       <div className="pbody">
         <div className="pname">{p.name}</div>
         <div className="prow">
-          <span className="pprice">{p.price}</span>
+          <span className="pprice">
+            {p.price}
+            {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
+          </span>
           <span className="pbtn">Köp</span>
         </div>
       </div>

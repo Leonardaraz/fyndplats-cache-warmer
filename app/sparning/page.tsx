@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { SiteHeader, SiteFooter } from "../../components/site";
 import { TrackingWidget } from "../../components/tracking";
 
 export const metadata: Metadata = {
@@ -12,7 +11,6 @@ export const metadata: Metadata = {
 export default function Sparning() {
   return (
     <>
-      <SiteHeader />
       <div className="pagehero">
         <div className="container">
           <div className="eyebrow">Spårning</div>
@@ -28,7 +26,6 @@ export default function Sparning() {
           </div>
         </div>
       </section>
-      <SiteFooter />
     </>
   );
 }

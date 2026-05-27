@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import { SiteHeader, SiteFooter } from "../../../components/site";
-import { BuyBox } from "../../../components/cart";
-import { getProduct, getProductSlugs } from "../../../lib/products";
+import { ProductView } from "../../../components/productview";
+import { ProductCard } from "../../../components/productcard";
+import { getProduct, getProductSlugs, getProducts } from "../../../lib/products";
 
 export async function generateStaticParams() {
   const slugs = await getProductSlugs();
@@ -55,51 +54,53 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   };
 
   const specLines = p.specs ? p.specs.split(/(?=[A-ZÅÄÖ][a-zåäö]+:)/).map((s) => s.trim()).filter(Boolean) : [];
+  const images = Array.from(new Set([p.img, ...p.gallery].filter(Boolean)));
+
+  // "Liknande produkter" – ranked by how many collections they share with this product
+  // (most relevant first). No random global filler — only genuinely related products.
+  const all = await getProducts();
+  const related = all
+    .filter((x) => x.slug !== p.slug)
+    .map((x) => ({ x, shared: (x.collectionIds || []).filter((c) => (p.collectionIds || []).includes(c)).length }))
+    .filter((s) => s.shared > 0)
+    .sort((a, b) => b.shared - a.shared)
+    .slice(0, 4)
+    .map((s) => s.x);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <SiteHeader />
 
       <div className="container">
         <nav className="crumbs"><a href="/">Hem</a> <span>/</span> <a href="/butik">Butik</a> <span>/</span> <em>{p.name}</em></nav>
 
-        <div className="pdp">
-          <div className="gallery">
-            <div className="gmain"><Image src={p.img} alt={p.name} width={800} height={800} priority sizes="(max-width:760px) 100vw, 45vw" style={{ width: "100%", height: "auto" }} /></div>
-            {p.gallery.length > 1 && (
-              <div className="gthumbs">
-                {p.gallery.slice(0, 5).map((g, i) => (
-                  <div className="gthumb" key={i}><Image src={g} alt="" fill sizes="72px" style={{ objectFit: "cover" }} /></div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="pinfo">
-            <div className="eyebrow" style={{ marginBottom: 10 }}>Fyndplats</div>
-            <h1>{p.name}</h1>
-            <div className="pdp-price">{p.price}</div>
-            <div className={`stock ${p.inStock ? "in" : "out"}`}>{p.inStock ? "✓ I lager – skickas inom 1–2 dagar" : "Tillfälligt slut"}</div>
-            <p className="pdp-blurb">{p.blurb}</p>
-            <BuyBox id={p.id} variants={p.variants} />
-            <div className="pdp-trust">
-              <span>🚚 Fri frakt över 499 kr</span>
-              <span>↩ 14 dagars ångerrätt</span>
-              <span>🔒 Trygg betalning med Klarna</span>
-            </div>
-            {specLines.length > 0 && (
-              <div className="specbox">
-                <h3>Specifikationer</h3>
-                <ul>{specLines.map((s, i) => <li key={i}>{s}</li>)}</ul>
-              </div>
-            )}
-          </div>
-        </div>
+        <ProductView
+          productId={p.id}
+          name={p.name}
+          price={p.price}
+          inStock={p.inStock}
+          blurb={p.blurb}
+          descriptionHtml={p.descriptionHtml}
+          originalPrice={p.originalPrice}
+          onSale={p.onSale}
+          specLines={specLines}
+          images={images}
+          variants={p.variants}
+          options={p.options}
+        />
       </div>
 
-      <SiteFooter />
+      {related.length >= 2 && (
+        <section className="sec relsec">
+          <div className="container">
+            <div className="sechead"><div className="eyebrow">Upptäck mer</div><h2>Liknande produkter</h2></div>
+            <div className="prodgrid">
+              {related.map((rp) => <ProductCard p={rp} key={rp.slug} />)}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

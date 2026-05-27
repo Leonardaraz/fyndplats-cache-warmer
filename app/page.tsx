@@ -1,6 +1,5 @@
 import Image from "next/image";
-import { getProducts, getCollections } from "../lib/products";
-import { SiteHeader, SiteFooter } from "../components/site";
+import { getProducts, getCollections, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 
 const categories = [
@@ -11,8 +10,6 @@ const categories = [
   { label: "Husdjur", slug: "husdjur", img: "https://static.wixstatic.com/media/11062b_55e976feb9ef42ae87ff8eef2269e582~mv2.jpg/v1/fill/w_471,h_315,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/Hund%20och%20katt%20i%20kontakt.jpg" },
   { label: "Barn & Familj", slug: "barn-och-familj", img: "https://static.wixstatic.com/media/11062b_568ec9bc56854149aa93379800659d18~mv2.jpeg/v1/fill/w_487,h_325,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/F%C3%A4rgglada%20leksaker.jpeg" },
 ];
-
-const HERO = "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1600,h_353,al_c,q_85,enc_avif,quality_auto/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -27,7 +24,23 @@ const jsonLd = {
 
 export default async function Home() {
   const [allProducts, cols] = await Promise.all([getProducts(), getCollections()]);
-  const products = allProducts.slice(0, 8);
+  // Curate the hero from FOUR DIFFERENT categories so it shows the catalog's
+  // breadth (tech, home, kitchen, beauty…) instead of whatever happens to be first.
+  const HERO_CATS = ["Elektronik", "Hem & Inredning", "Kök & Matlagning", "Hudvård & Ansikte", "Mode & Accessoarer", "Husdjur", "Ljud & Hörlurar", "Dator & Gaming"];
+  const heroProducts: typeof allProducts = [];
+  const usedHero = new Set<string>();
+  for (const name of HERO_CATS) {
+    if (heroProducts.length >= 4) break;
+    const col = cols.find((c) => c.name === name);
+    if (!col) continue;
+    const prod = allProducts.find((p) => !usedHero.has(p.slug) && p.img && (p.collectionIds || []).includes(col.id));
+    if (prod) { heroProducts.push(prod); usedHero.add(prod.slug); }
+  }
+  for (const p of allProducts) {
+    if (heroProducts.length >= 4) break;
+    if (!usedHero.has(p.slug) && p.img) { heroProducts.push(p); usedHero.add(p.slug); }
+  }
+  const products = mixByCategory(allProducts.filter((p) => !usedHero.has(p.slug)), cols).slice(0, 8);
   const catHref = (label: string) => {
     const c = cols.find((x) => x.name.toLowerCase() === label.toLowerCase());
     return c ? `/kategori/${c.slug}` : "/butik";
@@ -36,23 +49,40 @@ export default async function Home() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <SiteHeader />
-
       <section className="hero">
-        <Image src={HERO} alt="" fill priority sizes="100vw" style={{ objectFit: "cover", zIndex: 0 }} />
         <div className="container">
-          <div className="heroinner">
-            <span className="badge">✦ Nyheter varje vecka</span>
-            <h1>Fynda allt – till <em>låga priser</em></h1>
-            <p>Hem, mode, teknik och fritid för hela familjen. Skickas snabbt och tryggt – hela vägen hem till din dörr.</p>
-            <div className="btns">
-              <a className="btn btn-primary" href="#produkter">Handla nu →</a>
-              <a className="btn btn-ghost" href="#kategorier">Se alla kategorier</a>
+          <div className="herogrid">
+            <div className="heroinner">
+              <span className="badge">✦ Noga utvalda fynd · Nytt varje vecka</span>
+              <h1>Fynda allt – till <em>låga priser</em></h1>
+              <p>Hem, mode, teknik och fritid för hela familjen. Skickas snabbt och tryggt – hela vägen hem till din dörr.</p>
+              <div className="btns">
+                <a className="btn btn-primary" href="#produkter">Handla nu →</a>
+                <a className="btn btn-ghost" href="#kategorier">Se alla kategorier</a>
+              </div>
+              <div className="herotrust">
+                <span><i className="dot" /> Fri frakt över 499 kr</span>
+                <span><i className="dot" /> 14 dagars ångerrätt</span>
+                <span><i className="dot" /> Google 4,9★</span>
+              </div>
             </div>
-            <div className="herotrust">
-              <span><i className="dot" /> Fri frakt över 499 kr</span>
-              <span><i className="dot" /> 14 dagars ångerrätt</span>
-              <span><i className="dot" /> Google 4,9★</span>
+            <div className="heromosaic">
+              <div className="mcol">
+                {heroProducts.slice(0, 2).map((p, i) => (
+                  <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
+                    <Image src={p.img} alt={p.name} fill priority={i === 0} sizes="(max-width:880px) 42vw, 22vw" />
+                    {p.price && <span className="htag">{p.price}</span>}
+                  </a>
+                ))}
+              </div>
+              <div className="mcol mcol-offset">
+                {heroProducts.slice(2, 4).map((p) => (
+                  <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
+                    <Image src={p.img} alt={p.name} fill sizes="(max-width:880px) 42vw, 22vw" />
+                    {p.price && <span className="htag">{p.price}</span>}
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -125,8 +155,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      <SiteFooter />
     </>
   );
 }

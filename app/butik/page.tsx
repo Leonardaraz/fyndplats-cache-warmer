@@ -1,29 +1,27 @@
-import type { Metadata } from "next";
-import { SiteHeader, SiteFooter } from "../../components/site";
-import { getProducts, getCollections } from "../../lib/products";
-import { ProductCard } from "../../components/productcard";
+import { getProducts, getCollections, mixByCategory } from "../../lib/products";
+import { ShopBrowser } from "../../components/shopbrowser";
+import { pageMeta } from "../../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Butik – hela sortimentet",
-  description: "Handla i Fyndplats webbutik – kvalitetsprodukter till låga priser. Fri frakt över 499 kr, trygg betalning med Klarna.",
-  alternates: { canonical: "https://www.fyndplats.se/butik" },
-};
+export const metadata = pageMeta(
+  "Butik – hela sortimentet",
+  "Handla i Fyndplats webbutik – kvalitetsprodukter till låga priser. Fri frakt över 499 kr, trygg betalning med Klarna.",
+  "/butik"
+);
 
 export default async function Butik({ searchParams }: { searchParams: Promise<{ kategori?: string }> }) {
   const { kategori } = await searchParams;
   const [products, collections] = await Promise.all([getProducts(), getCollections()]);
   const active = collections.find((c) => c.slug === kategori);
-  const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : products;
+  const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : mixByCategory(products, collections);
 
   return (
     <>
-      <SiteHeader />
       <section className="sec">
         <div className="container">
           <div className="sechead">
             <div className="eyebrow">Butik</div>
-            <h2>{active ? active.name : "Hela sortimentet"}</h2>
-            <p>{list.length} {list.length === 1 ? "produkt" : "produkter"}{active ? "" : " · fler läggs till varje vecka"}</p>
+            <h1>{active ? active.name : "Hela sortimentet"}</h1>
+            <p>{active ? `Allt inom ${active.name}` : "Filtrera på pris och sortera – fler fynd varje vecka."}</p>
           </div>
 
           {collections.length > 0 && (
@@ -35,14 +33,9 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
             </div>
           )}
 
-          <div className="prodgrid">
-            {list.map((p) => (
-              <ProductCard p={p} key={p.slug} />
-            ))}
-          </div>
+          <ShopBrowser products={list} />
         </div>
       </section>
-      <SiteFooter />
     </>
   );
 }
