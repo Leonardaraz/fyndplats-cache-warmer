@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Magnetiska Örhängen – Clips utan Hål med Zirkonia",
+    "slug": "magnetiska-orhangen-clips-utan-hal-zirkonia",
+    "price": "44,99kr",
+    "currency": "SEK",
+    "priceNum": 44.99,
+    "img": "https://static.wixstatic.com/media/b379ce_9da6fae3311e45b788eb64a61b60cb0e~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg",
+    "gallery": [
+      "https://static.wixstatic.com/media/b379ce_9da6fae3311e45b788eb64a61b60cb0e~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_990264c030274b729da6a77cc9231779~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_c7593038af8444ef8df55213c3a732df~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_f5b8f29b795d40abb34faa0fdd35fe18~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_17029c73a9524227b8d55da0da3272be~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg"
+    ],
+    "blurb": "Snygga clip-örhängen utan att behöva piercing. Magnetiska zirkonia-örhängen som ser ut som äkta piercing-örhängen. Perfekt för dig som inte har hål eller vill prova en ny look utan permanenta hål.",
+    "specs": "Typ: Magnetiska clip-örhängen Sten: Zirkonia Storlek: Cirka 4–8 mm diameter Material metall: Nickelfri legering Fäste: Magnetiskt I förpackningen: Ett par örhängen",
+    "inStock": true
+  },
+  {
+    "name": "Svamphållare för Diskho – Självhäftande Rostfritt Stål",
+    "slug": "svamphallare-diskho-sjalvhaftande-rostfritt-stal",
+    "price": "47,99kr",
+    "currency": "SEK",
+    "priceNum": 47.99,
+    "img": "https://static.wixstatic.com/media/b379ce_3f1906ce86ff4e969627abed8884da12~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg",
+    "gallery": [
+      "https://static.wixstatic.com/media/b379ce_3f1906ce86ff4e969627abed8884da12~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_7c4ed0e506694ba19deb31c6e1cb81b1~mv2.png/v1/fit/w_900,h_900,q_90/file.png",
+      "https://static.wixstatic.com/media/b379ce_c3f351ac030a453b9a423a5d3b3e939b~mv2.png/v1/fit/w_900,h_900,q_90/file.png",
+      "https://static.wixstatic.com/media/b379ce_01110344dd9a4e2591cc46e4aee8072f~mv2.png/v1/fit/w_900,h_900,q_90/file.png",
+      "https://static.wixstatic.com/media/b379ce_c46013ece5fc42278c9f1433fc57b166~mv2.png/v1/fit/w_900,h_900,q_90/file.png"
+    ],
+    "blurb": "Självhäftande svamphållare i rostfritt stål. Slipp diskbänken som ständigt är blöt under svampen. Smart liten hållare som klistras på diskhon och håller svampen luftad och torr.",
+    "specs": "Material: Rostfritt stål Yta: Borstad / matt finish Fäste: Stark självhäftande tape Storlek: Cirka 12 × 8 cm (varierar) Maxbelastning: Cirka 500 g Vattenavrinning: Designad med spår för dropp",
+    "inStock": true
+  },
+  {
+    "name": "Korshalsband med krucifix – guld eller silver",
+    "slug": "korshalsband-krucifix-guld-eller-silver",
+    "price": "49,99kr",
+    "currency": "SEK",
+    "priceNum": 49.99,
+    "img": "https://static.wixstatic.com/media/b379ce_e03ed409c80c4aaaaee6376c93ea2f46~mv2.jpg/v1/fit/w_1200,h_1200,q_90/file.jpg",
+    "gallery": [
+      "https://static.wixstatic.com/media/b379ce_e03ed409c80c4aaaaee6376c93ea2f46~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_893c3291c9fc41a9814bc94bfd24a04c~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_145cf974fb9d435c929a6303e0e22e16~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_aa3c970eb7734d1ca7a585f4049ed812~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_d56ad56b150d4995aee707fa0793ccba~mv2.jpg/v1/fit/w_900,h_900,q_90/file.jpg"
+    ],
+    "blurb": "Korshalsband med krucifix i guld eller silver. Klassiskt religiöst smycke med modern design. Två färgalternativ för att matcha resten av din smyckeshelt. Perfekt för dagligt bärande eller speciella tillfällen.",
+    "specs": "Typ: Korshalsband med krucifix-hänge Material: Legering med guld- eller silverfärgad beläggning Kedjelängd: Cirka 45–55 cm Hängens storlek: Cirka 2–4 cm Stängning: Karbinhake Färgalternativ: Guld eller silver",
+    "inStock": true
+  }
+]
