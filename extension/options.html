@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 480px; margin: 24px auto; padding: 0 16px; }
+      label { display: block; margin: 12px 0 4px; font-size: 13px; }
+      input { width: 100%; padding: 6px; font-size: 13px; box-sizing: border-box; }
+      button { margin-top: 16px; padding: 8px 14px; cursor: pointer; }
+      #saved { color: #1a7f37; font-size: 13px; margin-left: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>Fyndplats Import — inställningar</h1>
+    <label for="apiBase">API-URL (din Vercel-deploy)</label>
+    <input id="apiBase" placeholder="https://fyndplats-dropship.vercel.app" />
+    <label for="apiToken">API-token (EXTENSION_API_TOKEN)</label>
+    <input id="apiToken" type="password" placeholder="samma som i serverns miljö" />
+    <div>
+      <button id="save">Spara</button>
+      <span id="saved"></span>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>
