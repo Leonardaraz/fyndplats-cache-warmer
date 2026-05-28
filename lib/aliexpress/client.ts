@@ -19,6 +19,7 @@
 //   ALIEXPRESS_REFRESH_TOKEN — (sätts automatiskt via OAuth-callback)
 
 import { createHmac } from "node:crypto";
+import { getStore } from "../store/factory";
 import type {
     AliExpressDsProduct,
     AliExpressDsVariant,
@@ -69,20 +70,37 @@ function buildParams(
     return new URLSearchParams(base);
 }
 
+/**
+ * Hämtar gällande access_token: persisterad i store först (källa-av-sanning
+ * efter Task C-deploy), fallback till env-var för cold bootstrap eller om
+ * STORE_BACKEND=memory. Kastar tydligt fel om båda saknas.
+ *
+ * Exporterad för enhetstester. Produktionskod använder via callApi().
+ */
+export async function resolveAccessToken(): Promise<string> {
+    const stored = await getStore().getAliExpressTokens();
+    if (stored?.accessToken) return stored.accessToken;
+    const envToken = process.env.ALIEXPRESS_ACCESS_TOKEN;
+    if (envToken) return envToken;
+    throw new Error(
+            "AliExpress access_token saknas (varken i store eller ALIEXPRESS_ACCESS_TOKEN env-var).",
+          );
+}
+
 async function callApi<T>(
     method: string,
     bizParams: Record<string, string>,
   ): Promise<T> {
     const appKey = process.env.ALIEXPRESS_APP_KEY;
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
-    const accessToken = process.env.ALIEXPRESS_ACCESS_TOKEN;
 
-  if (!appKey || !appSecret || !accessToken) {
+  if (!appKey || !appSecret) {
         throw new Error(
-                "ALIEXPRESS_APP_KEY, ALIEXPRESS_APP_SECRET och ALIEXPRESS_ACCESS_TOKEN måste vara satta.",
+                "ALIEXPRESS_APP_KEY och ALIEXPRESS_APP_SECRET måste vara satta.",
               );
   }
 
+  const accessToken = await resolveAccessToken();
   const params = buildParams(method, bizParams, appKey, appSecret, accessToken);
 
   const res = await fetch(`${API_BASE}?${params.toString()}`, { method: "POST" });

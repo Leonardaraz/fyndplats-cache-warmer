@@ -22,6 +22,17 @@ export interface AuditEntry {
   detail?: string;
 }
 
+/**
+ * Persisterad AliExpress OAuth-state. expiresAt är när access_token slutar
+ * gälla (absolut timestamp, inte sekunder kvar) så Task B kan schemalägga
+ * refresh utan att behöva känna till när den persisterades.
+ */
+export interface AliExpressTokenRecord {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: Date;
+}
+
 export interface Store {
   // --- Idempotens för webhooks ---
   hasSeenEvent(eventId: string): Promise<boolean>;
@@ -44,4 +55,10 @@ export interface Store {
   // --- Audit-logg (spårbarhet) ---
   appendAudit(entry: AuditEntry): Promise<void>;
   listAudit(limit?: number): Promise<AuditEntry[]>;
+
+  // --- AliExpress OAuth-tokens ---
+  /** Returnerar persisterade tokens, eller null om inga finns än (cold bootstrap). */
+  getAliExpressTokens(): Promise<AliExpressTokenRecord | null>;
+  /** Skriver tokens (overwrite). Last-write-wins; concurrency-lock är Task B:s ansvar. */
+  saveAliExpressTokens(record: AliExpressTokenRecord): Promise<void>;
 }

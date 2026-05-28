@@ -1,5 +1,5 @@
 import type { FulfillmentTask, TaskStatus } from "../orders/types";
-import type { AuditEntry, ProductMappingRecord, Store } from "./index";
+import type { AliExpressTokenRecord, AuditEntry, ProductMappingRecord, Store } from "./index";
 
 // WixDataStore: persisterar mappningar, tasks, webhook-event och audit-rader
 // i Wix Data-collections (CMS). Använd via STORE_BACKEND=wix-data i env.
@@ -21,7 +21,12 @@ const COL = {
   events: process.env.WIX_DATA_COL_EVENTS ?? "FyndplatsWebhookEvents",
   tasks: process.env.WIX_DATA_COL_TASKS ?? "FyndplatsTasks",
   audit: process.env.WIX_DATA_COL_AUDIT ?? "FyndplatsAudit",
+  tokens: process.env.WIX_DATA_COL_TOKENS ?? "FyndplatsAliExpressTokens",
 };
+
+// Singleton-id för AliExpress-token-raden. En enda rad per Wix-site eftersom
+// vi bara har en AliExpress-app per Fyndplats-konto.
+const ALIEXPRESS_TOKEN_ID = "aliexpress-main";
 
 async function save(dataCollectionId: string, id: string, data: Record<string, unknown>): Promise<void> {
   const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
@@ -126,5 +131,29 @@ export class WixDataStore implements Store {
 
   async listAudit(limit = 100): Promise<AuditEntry[]> {
     return query<AuditEntry>(COL.audit, undefined, [{ fieldName: "at", order: "DESC" }], limit);
+  }
+
+  async getAliExpressTokens(): Promise<AliExpressTokenRecord | null> {
+    const raw = await get<{
+      accessToken?: string;
+      refreshToken?: string;
+      expiresAt?: string;
+    }>(COL.tokens, ALIEXPRESS_TOKEN_ID);
+    if (!raw?.accessToken || !raw?.refreshToken || !raw?.expiresAt) return null;
+    return {
+      accessToken: raw.accessToken,
+      refreshToken: raw.refreshToken,
+      expiresAt: new Date(raw.expiresAt),
+    };
+  }
+
+  async saveAliExpressTokens(record: AliExpressTokenRecord): Promise<void> {
+    await save(COL.tokens, ALIEXPRESS_TOKEN_ID, {
+      _id: ALIEXPRESS_TOKEN_ID,
+      accessToken: record.accessToken,
+      refreshToken: record.refreshToken,
+      expiresAt: record.expiresAt.toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
   }
 }
