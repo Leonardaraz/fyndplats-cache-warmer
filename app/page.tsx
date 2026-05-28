@@ -15,23 +15,21 @@ const jsonLd = {
 
 export default async function Home() {
   const [allProducts, cols] = await Promise.all([getProducts(), getCollections()]);
-  // Curate the hero from FOUR DIFFERENT categories so it shows the catalog's
-  // breadth (tech, home, kitchen, beauty…) instead of whatever happens to be first.
+
+  // Hero-mosaik: curated premium-bilder per kategori efter visuell granskning.
+  // Helt skild logik från CATEGORY-mosaiken nedan — denna visar bara 4 stora
+  // bilder överst på sidan ("breadth"-shot av sortimentet).
   const HERO_CATS = ["Elektronik", "Hem & Inredning", "Kök & Matlagning", "Hudvård & Ansikte", "Mode & Accessoarer", "Husdjur", "Ljud & Hörlurar", "Dator & Gaming"];
-  const heroProducts: typeof allProducts = [];
-  const usedHero = new Set<string>();
-  for (const name of HERO_CATS) {
-    if (heroProducts.length >= 4) break;
-    const col = cols.find((c) => c.name === name);
-    if (!col) continue;
-    const prod = allProducts.find((p) => !usedHero.has(p.slug) && p.img && (p.collectionIds || []).includes(col.id));
-    if (prod) { heroProducts.push(prod); usedHero.add(prod.slug); }
-  }
-  for (const p of allProducts) {
-    if (heroProducts.length >= 4) break;
-    if (!usedHero.has(p.slug) && p.img) { heroProducts.push(p); usedHero.add(p.slug); }
-  }
-  const products = mixByCategory(allProducts.filter((p) => !usedHero.has(p.slug)), cols).slice(0, 8);
+  const HERO_CURATION: Record<string, string[]> = {
+    "Elektronik": ["elektrisk-mjolkskummare", "elektrisk-vinoppnare", "mini-luftfuktare", "usb-koppvarmare"],
+    "Hem & Inredning": ["12-pack-hjarteballonger-roda-och-peach", "astronaut-stjarnprojektor", "manuell-mathackare", "knivslip-4-steg"],
+    "Kök & Matlagning": ["keramisk-kaffekopp-stilren-handgjord-vintagekopp", "vinkylare-med-luftare-och-upphallare-rostfritt", "manuell-mathackare"],
+    "Hudvård & Ansikte": ["gua-sha-massagesten-i-akta-jade", "ansiktsroller-massageverktyg-for-ansikte-och-ogon", "ultratunna-foundationborstar-2-pack-precisionsborste"],
+    "Mode & Accessoarer": [],
+    "Husdjur": [],
+    "Ljud & Hörlurar": [],
+    "Dator & Gaming": [],
+  };
 
   // Premium kategori-mosaik: auto-väljer topp-6 kategorier från faktiska produktantal,
   // men bildvalen är HANDPLOCKADE (PREMIUM_CURATION) efter visuell granskning — inga
@@ -86,7 +84,45 @@ export default async function Home() {
     "whiskey-stenar-i-rostfritt-stal-4", "oljesprayer-glas-2-i-1",
     "arcade-basketbollspel-for-hemmet-justerbart-stabil",
     "barnens-bilformade-lektalt-inomhus-playhouse-hopfallbart",
+    // Hudvård/Hem — mått-overlays och text-overlays
+    "svart-multifunktionell-makeupborste",  // "19.0cm/7.4in" mått
+    "uppvarmd-ogonmask",                     // "28cm/11.02inch" mått
+    "roterande-sminkforvaring-360",          // "360° rotating" text
   ]);
+
+  // Bygg hero-mosaikens 4 produkter — curation först, sen denylist-filter,
+  // sen vad som finns. Samma logik som CATEGORY-mosaiken men för enskilda
+  // produkter per HERO_CATS-kategori (visar bredd i sortimentet).
+  const heroProducts: typeof allProducts = [];
+  const usedHero = new Set<string>();
+  for (const name of HERO_CATS) {
+    if (heroProducts.length >= 4) break;
+    const col = cols.find((c) => c.name === name);
+    if (!col) continue;
+    const inCat = allProducts.filter((p) => p.img && (p.collectionIds || []).includes(col.id));
+    const slugMap = new Map(inCat.map((p) => [p.slug, p]));
+    // 1. Försök curated
+    let picked: (typeof allProducts)[number] | undefined;
+    for (const slug of HERO_CURATION[name] || []) {
+      const p = slugMap.get(slug);
+      if (p && !usedHero.has(slug)) { picked = p; break; }
+    }
+    // 2. Annars första non-denylisted
+    if (!picked) picked = inCat.find((p) => !usedHero.has(p.slug) && !MOSAIC_DENYLIST.has(p.slug));
+    // 3. Sista utvägen
+    if (!picked) picked = inCat.find((p) => !usedHero.has(p.slug));
+    if (picked) { heroProducts.push(picked); usedHero.add(picked.slug); }
+  }
+  // Sista fyllning över alla kategorier om vi inte fick 4
+  for (const p of allProducts) {
+    if (heroProducts.length >= 4) break;
+    if (!usedHero.has(p.slug) && p.img && !MOSAIC_DENYLIST.has(p.slug)) {
+      heroProducts.push(p); usedHero.add(p.slug);
+    }
+  }
+
+  const products = mixByCategory(allProducts.filter((p) => !usedHero.has(p.slug)), cols).slice(0, 8);
+
   const catCounts = new Map<string, number>();
   for (const p of allProducts) for (const cid of (p.collectionIds || [])) catCounts.set(cid, (catCounts.get(cid) || 0) + 1);
   const catTiles = cols
