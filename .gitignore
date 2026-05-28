@@ -51,3 +51,7 @@ out/
 .env.local
 .env*.local
 *.log
+
+# Lighthouse + screenshots (ad-hoc analys, ej källkod)
+lhr*.json
+store-*.jpg
