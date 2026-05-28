@@ -1,6 +1,7 @@
 // Tunn klient mot Wix Stores Catalog V3.
 // Endpoint verifierad mot docs: POST https://www.wixapis.com/stores/v3/products
 // https://dev.wix.com/docs/api-reference/business-solutions/stores/catalog-v3/products-v3/create-product
+import { isDryRun } from "../audit";
 
 const WIX_BASE = "https://www.wixapis.com";
 
@@ -135,6 +136,7 @@ export interface InventoryQuantityUpdate {
 /** Sätter absoluta lagersaldon för flera varianter i en request. */
 export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUpdate[]): Promise<void> {
   if (updates.length === 0) return;
+  if (isDryRun()) return;
   const res = await fetch(`${WIX_BASE}/stores/v3/bulk/inventory-items/update`, {
     method: "POST",
     headers: wixHeaders(),
@@ -165,6 +167,7 @@ export interface FulfillmentInput {
 
 /** Skapar en fulfillment på en Wix-order med spårningsinfo. */
 export async function createFulfillment(input: FulfillmentInput): Promise<{ fulfillmentId: string }> {
+  if (isDryRun()) return { fulfillmentId: `dry-${input.orderId}` };
   const res = await fetch(
     `${WIX_BASE}/ecom/v1/fulfillments/orders/${encodeURIComponent(input.orderId)}/create-fulfillment`,
     {
@@ -191,6 +194,14 @@ export async function createFulfillment(input: FulfillmentInput): Promise<{ fulf
 }
 
 export async function createProduct(input: WixProductInput): Promise<WixCreateProductResult> {
+  if (isDryRun()) {
+    return {
+      id: `dry-${Date.now()}`,
+      slug: input.slug ?? "dry-run",
+      revision: "1",
+      variants: input.variants.map((v, i) => ({ id: `dry-var-${i}`, sku: v.sku })),
+    };
+  }
   const res = await fetch(`${WIX_BASE}/stores/v3/products`, {
     method: "POST",
     headers: wixHeaders(),

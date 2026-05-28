@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { parseWebhookBody } from "@/lib/orders/webhook";
 import { deriveTasks, normalizeOrderEvent } from "@/lib/orders/tasks";
 import { getMemoryStore } from "@/lib/store/memory";
+import { audit } from "@/lib/audit";
 
 // Wix eCom Order-webhook. Verifierar signatur (om publik nyckel finns),
 // avduplicerar på event-id (idempotens) och skapar en fulfillment-task per
@@ -35,5 +36,6 @@ export async function POST(req: Request) {
     if (await store.createTaskIfAbsent(task)) created++;
   }
 
+  await audit("order", event.orderId, `${created} tasks skapade`);
   return NextResponse.json({ ok: true, orderId: event.orderId, tasksCreated: created });
 }

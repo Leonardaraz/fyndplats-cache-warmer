@@ -1,5 +1,5 @@
 import type { FulfillmentTask, TaskStatus } from "../orders/types";
-import type { ProductMappingRecord, Store } from "./index";
+import type { AuditEntry, ProductMappingRecord, Store } from "./index";
 
 // In-memory-implementation. Bra för tester och lokal utveckling; byt mot en
 // Wix Data-/DB-backad implementation innan produktion (se store/index.ts).
@@ -8,6 +8,7 @@ export class MemoryStore implements Store {
   private seenEvents = new Set<string>();
   private mappings = new Map<string, ProductMappingRecord>();
   private tasks = new Map<string, FulfillmentTask>();
+  private audit: AuditEntry[] = [];
 
   async hasSeenEvent(eventId: string): Promise<boolean> {
     return this.seenEvents.has(eventId);
@@ -43,6 +44,14 @@ export class MemoryStore implements Store {
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
     const task = this.tasks.get(taskId);
     if (task) this.tasks.set(taskId, { ...task, status });
+  }
+
+  async appendAudit(entry: AuditEntry): Promise<void> {
+    this.audit.push(entry);
+  }
+
+  async listAudit(limit = 100): Promise<AuditEntry[]> {
+    return this.audit.slice(-limit).reverse();
   }
 }
 

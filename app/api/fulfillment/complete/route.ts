@@ -4,6 +4,7 @@ import { isAuthorized } from "@/lib/auth";
 import { assertTransition } from "@/lib/orders/status";
 import { getMemoryStore } from "@/lib/store/memory";
 import { createFulfillment } from "@/lib/wix/client";
+import { audit } from "@/lib/audit";
 
 const Schema = z.object({
   taskId: z.string().min(1),
@@ -57,5 +58,6 @@ export async function POST(req: Request) {
   }
 
   await store.setTaskStatus(task.taskId, "shipped");
+  await audit("ship", task.taskId, parsed.data.trackingNumber);
   return NextResponse.json({ ok: true, taskId: task.taskId, status: "shipped" });
 }

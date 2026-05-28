@@ -16,7 +16,10 @@ function envStatus() {
 
 export default async function AdminPage() {
   const status = envStatus();
-  const tasks = await getMemoryStore().listTasks();
+  const store = getMemoryStore();
+  const tasks = await store.listTasks();
+  const auditLog = await store.listAudit(15);
+  const dryRun = process.env.DRY_RUN === "1";
   const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s).length;
   const pending = tasks.filter((t) => t.status === "pending");
 
@@ -24,6 +27,11 @@ export default async function AdminPage() {
     <main style={{ maxWidth: 720, margin: "40px auto", padding: "0 16px" }}>
       <h1>Fyndplats — Import & Sync</h1>
       <p>Internt verktyg för produktimport, lagersync och orderhantering (DSers-ersättning).</p>
+      {dryRun ? (
+        <p style={{ background: "#fff4e5", padding: "6px 10px", borderRadius: 6, fontSize: 13 }}>
+          Testläge aktivt (DRY_RUN=1) — inga skrivningar görs mot Wix.
+        </p>
+      ) : null}
 
       <h2>Konfiguration</h2>
       <ul>
@@ -60,6 +68,21 @@ export default async function AdminPage() {
         <li><code>GET /api/tasks</code> — lista tasks</li>
         <li><code>POST /api/fulfillment/mark-ordered</code> · <code>/complete</code> · <code>/api/orders/cancel</code></li>
       </ul>
+
+      <h2>Senaste händelser (audit)</h2>
+      {auditLog.length > 0 ? (
+        <ul style={{ fontSize: 13 }}>
+          {auditLog.map((e, i) => (
+            <li key={i}>
+              <code>{e.at.slice(0, 19).replace("T", " ")}</code> · <b>{e.kind}</b>
+              {e.ref ? ` · ${e.ref}` : ""}
+              {e.detail ? ` — ${e.detail}` : ""}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p style={{ color: "#888" }}>Inga händelser loggade än.</p>
+      )}
     </main>
   );
 }

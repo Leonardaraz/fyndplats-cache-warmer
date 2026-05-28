@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isAuthorized } from "@/lib/auth";
 import { assertTransition } from "@/lib/orders/status";
 import { getMemoryStore } from "@/lib/store/memory";
+import { audit } from "@/lib/audit";
 
 const Schema = z.object({ taskId: z.string().min(1) });
 
@@ -36,5 +37,6 @@ export async function POST(req: Request) {
   }
 
   await store.setTaskStatus(task.taskId, "ordered");
+  await audit("ordered", task.taskId);
   return NextResponse.json({ ok: true, taskId: task.taskId, status: "ordered" });
 }

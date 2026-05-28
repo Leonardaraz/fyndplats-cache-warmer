@@ -13,6 +13,15 @@ export interface ProductMappingRecord {
   variants: VariantMapping[];
 }
 
+export interface AuditEntry {
+  at: string;
+  /** Typ av händelse, t.ex. "import", "price-alert", "stock", "order", "ship", "cancel". */
+  kind: string;
+  /** Referens (produkt-/order-/task-id). */
+  ref?: string;
+  detail?: string;
+}
+
 export interface Store {
   // --- Idempotens för webhooks ---
   hasSeenEvent(eventId: string): Promise<boolean>;
@@ -28,4 +37,8 @@ export interface Store {
   createTaskIfAbsent(task: FulfillmentTask): Promise<boolean>;
   listTasks(status?: TaskStatus): Promise<FulfillmentTask[]>;
   setTaskStatus(taskId: string, status: TaskStatus): Promise<void>;
+
+  // --- Audit-logg (spårbarhet) ---
+  appendAudit(entry: AuditEntry): Promise<void>;
+  listAudit(limit?: number): Promise<AuditEntry[]>;
 }

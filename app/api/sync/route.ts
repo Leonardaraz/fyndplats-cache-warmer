@@ -4,6 +4,7 @@ import { isAuthorized } from "@/lib/auth";
 import { pricingConfigFromEnv } from "@/lib/config";
 import { evaluatePriceChange } from "@/lib/sync/price-watch";
 import { syncProductStock, type DesiredStock } from "@/lib/sync/inventory";
+import { audit } from "@/lib/audit";
 
 const ItemSchema = z.object({
   wixVariantId: z.string().min(1),
@@ -49,6 +50,12 @@ export async function POST(req: Request) {
       wixVariantId: i.wixVariantId,
       ...evaluatePriceChange(i.oldCostUsd!, i.newCostUsd!, pricing, watch),
     }));
+
+  // Logga prishöjningar som flaggats eller auto-justerats.
+  for (const a of priceAlerts) {
+    if (a.flagged) await audit("price-alert", a.wixVariantId, `+${a.percentChange}% inköpspris — kräver åtgärd`);
+    else if (a.newGrossSek !== undefined) await audit("price-adjust", a.wixVariantId, `nytt pris ${a.newGrossSek} kr`);
+  }
 
   // Lageruppdatering mot Wix (best-effort; rapporterar omatchade varianter).
   const desired: DesiredStock[] = items.map((i) => ({ wixVariantId: i.wixVariantId, quantity: i.stock }));
