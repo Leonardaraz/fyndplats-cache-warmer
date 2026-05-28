@@ -22,7 +22,7 @@ function makeClient() {
   return createClient({
     modules: { currentCart, redirects },
     auth: OAuthStrategy({
-      clientId: process.env.NEXT_PUBLIC_WIX_CLIENT_ID || "f463b067-a1ab-4e6d-92c5-444c588e28d8",
+      clientId: process.env.NEXT_PUBLIC_WIX_CLIENT_ID || "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153",
       tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
     }),
   });

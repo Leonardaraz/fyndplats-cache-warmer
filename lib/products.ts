@@ -1,5 +1,6 @@
 import { createClient, OAuthStrategy } from "@wix/sdk";
-import { products as wixProducts, collections as wixCollections } from "@wix/stores";
+import { products as wixProducts } from "@wix/stores";
+import { categories as wixCategories } from "@wix/categories";
 import local from "../products.json";
 
 export type Product = {
@@ -16,6 +17,8 @@ export type Product = {
   blurb: string;
   specs: string;
   inStock: boolean;
+  stockQuantity?: number;
+  ribbon?: string;
   originalPrice?: string;
   onSale?: boolean;
   descriptionHtml?: string;
@@ -25,10 +28,10 @@ export type Product = {
 // Public Wix Headless OAuth client ID (anonymous visitor; also shipped client-side via
 // NEXT_PUBLIC_ — not a secret). Hardcoded fallback so every environment (incl. Vercel
 // Preview) loads the live catalog even when the env var isn't configured there.
-const CLIENT_ID = process.env.WIX_CLIENT_ID || process.env.NEXT_PUBLIC_WIX_CLIENT_ID || "f463b067-a1ab-4e6d-92c5-444c588e28d8";
+const CLIENT_ID = process.env.WIX_CLIENT_ID || process.env.NEXT_PUBLIC_WIX_CLIENT_ID || "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 
 const wix = CLIENT_ID
-  ? createClient({ modules: { products: wixProducts, collections: wixCollections }, auth: OAuthStrategy({ clientId: CLIENT_ID }) })
+  ? createClient({ modules: { products: wixProducts, categories: wixCategories }, auth: OAuthStrategy({ clientId: CLIENT_ID }) })
   : null;
 
 function stripHtml(h: string): string {
@@ -61,6 +64,8 @@ function mapProduct(p: any): Product {
     blurb: stripHtml(firstP ? firstP[1] : p.description || "").slice(0, 220),
     specs: stripHtml(specsSection ? specsSection.description : "").slice(0, 400),
     inStock: !!(p.stock && p.stock.inStock),
+    stockQuantity: (p.stock && typeof p.stock.quantity === "number") ? p.stock.quantity : undefined,
+    ribbon: (p.ribbon && (typeof p.ribbon === "string" ? p.ribbon : p.ribbon.name)) || undefined,
   };
 }
 
@@ -192,8 +197,14 @@ function asciiSlug(s: string): string {
 async function fetchCollections(): Promise<Collection[]> {
   if (!wix) return [];
   try {
+    // V3 Categories API (the new site is on Catalog V3). The query requires at
+    // least one filter clause, so we use an always-true ne() against a fake id.
     const [res, products] = await Promise.all([
-      (wix as any).collections.queryCollections().limit(100).find(),
+      (wix as any).categories
+        .queryCategories({ treeReference: { appNamespace: "@wix/stores" } })
+        .ne("_id", "00000000-0000-0000-0000-000000000000")
+        .limit(100)
+        .find(),
       getProducts(),
     ]);
     // Collection ids that actually contain ≥1 product (drop empty categories entirely).
@@ -211,21 +222,4 @@ async function fetchCollections(): Promise<Collection[]> {
         return { id: c.id, name: c.name, slug };
       });
     list.sort((a, b) => {
-      const ia = MAIN_ORDER.indexOf(a.name), ib = MAIN_ORDER.indexOf(b.name);
-      if (ia !== -1 && ib !== -1) return ia - ib;
-      if (ia !== -1) return -1;
-      if (ib !== -1) return 1;
-      return a.name.localeCompare(b.name, "sv");
-    });
-    return list;
-  } catch (e) {
-    console.error("[wix] getCollections failed:", (e as Error).message);
-    collectionsPromise = null; // allow retry on a later request
-    return [];
-  }
-}
-
-export function getCollections(): Promise<Collection[]> {
-  if (!collectionsPromise) collectionsPromise = fetchCollections();
-  return collectionsPromise;
-}
+      const ia = MAIN_ORDER.indexOf(
