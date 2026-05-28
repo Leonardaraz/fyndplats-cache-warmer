@@ -41,6 +41,24 @@ function sign(params: Record<string, string>, appSecret: string): string {
     return createHmac("sha256", appSecret).update(sorted).digest("hex").toUpperCase();
 }
 
+/**
+ * GOP-protokollets signering (IOP-SDK-konvention): signature base är
+ * `apiPath + sorted_concat_params`. Används för /rest/auth/token/* endpoints.
+ * Skiljer sig från `sign()` (utan path) som används för /sync business-API.
+ */
+function signWithPath(apiPath: string, params: Record<string, string>, appSecret: string): string {
+    const sortedConcat = Object.keys(params)
+      .sort()
+      .map((k) => `${k}${params[k]}`)
+      .join("");
+    const baseString = apiPath + sortedConcat;
+    return createHmac("sha256", appSecret).update(baseString).digest("hex").toUpperCase();
+}
+
+// partner_id är ett SDK-identifierande fält som IOP-SDK alltid skickar.
+// Utan det avvisar AliExpress signed-RPC-anrop som "IncompleteSignature".
+const PARTNER_ID = "fyndplats-nextjs-1.0";
+
 function buildParams(
     method: string,
     bizParams: Record<string, string>,
@@ -109,8 +127,12 @@ async function callApi<T>(
 export function buildAuthUrl(redirectUri: string, state?: string): string {
     const appKey = process.env.ALIEXPRESS_APP_KEY;
     if (!appKey) throw new Error("ALIEXPRESS_APP_KEY saknas");
+    // force_auth=true tvingar fram fullständig OAuth-login varje gång (per
+    // officiell docs). Utan denna kan AliExpress strunta i att leverera en
+    // ny code vid re-auth.
     const p = new URLSearchParams({
           response_type: "code",
+          force_auth: "true",
           client_id: appKey,
           redirect_uri: redirectUri,
           ...(state ? { state } : {}),
@@ -149,22 +171,22 @@ export async function exchangeCode(code: string, _redirectUri: string): Promise<
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
     if (!appKey || !appSecret) throw new Error("App-nycklar saknas");
 
-  // AliExpress system-interface: använd /sync med method=/auth/token/create som
-  // regular param (samma pattern som callApi för business-API-anrop, fast
-  // utan session/access_token eftersom det är just det vi försöker hämta).
-  // Tidigare försök: POST /oauth/token → 405, POST /rest/auth/token/create
-  // med signed-RPC → IncompleteSignature.
+  // GOP-protokoll per officiell AliExpress-spec (IopClient + Protocol.GOP):
+  //   - URL: ${REST_BASE}/auth/token/create
+  //   - Signature base: "/auth/token/create" + sorted_concat(params)
+  //   - partner_id krävs (utan det avvisar AliExpress som IncompleteSignature)
+  const apiPath = "/auth/token/create";
   const params: Record<string, string> = {
-        method: "/auth/token/create",
         app_key: appKey,
         code,
+        partner_id: PARTNER_ID,
         sign_method: "sha256",
         timestamp: String(Date.now()),
   };
-    const signature = sign(params, appSecret);
+    const signature = signWithPath(apiPath, params, appSecret);
     const query = new URLSearchParams({ ...params, sign: signature }).toString();
 
-  const res = await fetch(`${API_BASE}?${query}`, { method: "POST" });
+  const res = await fetch(`${REST_BASE}${apiPath}?${query}`, { method: "POST" });
     if (!res.ok) {
         const text = await res.text();
         throw new Error(`Token-utbyte misslyckades (${res.status}): ${text.slice(0, 300)}`);
@@ -177,17 +199,18 @@ export async function refreshAccessToken(refreshToken: string): Promise<DsTokenR
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
     if (!appKey || !appSecret) throw new Error("App-nycklar saknas");
 
+  const apiPath = "/auth/token/refresh";
   const params: Record<string, string> = {
-        method: "/auth/token/refresh",
         app_key: appKey,
+        partner_id: PARTNER_ID,
         refresh_token: refreshToken,
         sign_method: "sha256",
         timestamp: String(Date.now()),
   };
-    const signature = sign(params, appSecret);
+    const signature = signWithPath(apiPath, params, appSecret);
     const query = new URLSearchParams({ ...params, sign: signature }).toString();
 
-  const res = await fetch(`${API_BASE}?${query}`, { method: "POST" });
+  const res = await fetch(`${REST_BASE}${apiPath}?${query}`, { method: "POST" });
     if (!res.ok) {
         const text = await res.text();
         throw new Error(`Token-refresh misslyckades (${res.status}): ${text.slice(0, 300)}`);

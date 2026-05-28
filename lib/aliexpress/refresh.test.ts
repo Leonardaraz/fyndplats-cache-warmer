@@ -168,4 +168,42 @@ describe("exchangeCode/refreshAccessToken — AliExpress response unwrapping", (
     const result = await refreshAccessToken("old-refresh-token");
     expect(result.access_token).toBe("refreshed-access");
   });
+
+  it("exchangeCode skickar request mot /rest/auth/token/create med partner_id i query", async () => {
+    const fetchMock = mockFetch({
+      json: { access_token: "x", refresh_token: "y", expires_in: 172800 },
+    });
+    const { exchangeCode } = await import("./client");
+    await exchangeCode("test-code", "https://example.com/cb");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toMatch(/^https:\/\/api-sg\.aliexpress\.com\/rest\/auth\/token\/create\?/);
+    expect(init.method).toBe("POST");
+    expect(url).toContain("partner_id=");
+    expect(url).toContain("sign_method=sha256");
+    expect(url).toContain("code=test-code");
+    expect(url).toContain("sign=");
+  });
+
+  it("refreshAccessToken skickar request mot /rest/auth/token/refresh med partner_id", async () => {
+    const fetchMock = mockFetch({
+      json: { access_token: "x", refresh_token: "y", expires_in: 172800 },
+    });
+    const { refreshAccessToken } = await import("./client");
+    await refreshAccessToken("old-refresh");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toMatch(/^https:\/\/api-sg\.aliexpress\.com\/rest\/auth\/token\/refresh\?/);
+    expect(url).toContain("partner_id=");
+    expect(url).toContain("refresh_token=old-refresh");
+  });
+
+  it("buildAuthUrl inkluderar force_auth=true enligt officiell spec", async () => {
+    const { buildAuthUrl } = await import("./client");
+    const url = buildAuthUrl("https://example.com/cb");
+    expect(url).toContain("force_auth=true");
+    expect(url).toContain("response_type=code");
+    expect(url).toContain("client_id=test-app-key");
+  });
 });
