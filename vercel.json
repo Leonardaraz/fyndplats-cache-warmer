@@ -3,9 +3,6 @@
   "functions": {
     "app/api/aliexpress/sync-all/route.ts": {
       "maxDuration": 300
-    },
-    "migration/**": {
-      "maxDuration": 300
     }
   }
 }
