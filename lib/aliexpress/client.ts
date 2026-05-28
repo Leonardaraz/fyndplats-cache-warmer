@@ -144,28 +144,27 @@ function unwrapAliExpressResponse(raw: unknown, opName: string): Record<string, 
     return data;
 }
 
-export async function exchangeCode(code: string, redirectUri: string): Promise<DsTokenResponse> {
+export async function exchangeCode(code: string, _redirectUri: string): Promise<DsTokenResponse> {
     const appKey = process.env.ALIEXPRESS_APP_KEY;
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
     if (!appKey || !appSecret) throw new Error("App-nycklar saknas");
 
-  // Standard OAuth2 token-exchange: POST /oauth/token med x-www-form-urlencoded.
-  // Tidigare försök med signed-RPC /rest/auth/token/create gav IncompleteSignature
-  // oavsett om path-prefix användes eller inte — AliExpress använder vanlig
-  // OAuth2 för token-utbyte på Singapore-regionen (api-sg.aliexpress.com).
-  const body = new URLSearchParams({
-        grant_type: "authorization_code",
-        client_id: appKey,
-        client_secret: appSecret,
+  // AliExpress system-interface: använd /sync med method=/auth/token/create som
+  // regular param (samma pattern som callApi för business-API-anrop, fast
+  // utan session/access_token eftersom det är just det vi försöker hämta).
+  // Tidigare försök: POST /oauth/token → 405, POST /rest/auth/token/create
+  // med signed-RPC → IncompleteSignature.
+  const params: Record<string, string> = {
+        method: "/auth/token/create",
+        app_key: appKey,
         code,
-        redirect_uri: redirectUri,
-  });
+        sign_method: "sha256",
+        timestamp: String(Date.now()),
+  };
+    const signature = sign(params, appSecret);
+    const query = new URLSearchParams({ ...params, sign: signature }).toString();
 
-  const res = await fetch(`${AUTH_BASE}/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString(),
-  });
+  const res = await fetch(`${API_BASE}?${query}`, { method: "POST" });
     if (!res.ok) {
         const text = await res.text();
         throw new Error(`Token-utbyte misslyckades (${res.status}): ${text.slice(0, 300)}`);
@@ -178,18 +177,17 @@ export async function refreshAccessToken(refreshToken: string): Promise<DsTokenR
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
     if (!appKey || !appSecret) throw new Error("App-nycklar saknas");
 
-  const body = new URLSearchParams({
-        grant_type: "refresh_token",
-        client_id: appKey,
-        client_secret: appSecret,
+  const params: Record<string, string> = {
+        method: "/auth/token/refresh",
+        app_key: appKey,
         refresh_token: refreshToken,
-  });
+        sign_method: "sha256",
+        timestamp: String(Date.now()),
+  };
+    const signature = sign(params, appSecret);
+    const query = new URLSearchParams({ ...params, sign: signature }).toString();
 
-  const res = await fetch(`${AUTH_BASE}/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString(),
-  });
+  const res = await fetch(`${API_BASE}?${query}`, { method: "POST" });
     if (!res.ok) {
         const text = await res.text();
         throw new Error(`Token-refresh misslyckades (${res.status}): ${text.slice(0, 300)}`);
