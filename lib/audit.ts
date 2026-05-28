@@ -1,9 +1,9 @@
-import { getMemoryStore } from "./store/memory";
+import { getStore } from "./store/factory";
 
 /** Bekvämlighetsfunktion för att skriva en audit-rad (sväljer fel — loggning ska aldrig fälla en request). */
 export async function audit(kind: string, ref?: string, detail?: string): Promise<void> {
   try {
-    await getMemoryStore().appendAudit({ at: new Date().toISOString(), kind, ref, detail });
+    await getStore().appendAudit({ at: new Date().toISOString(), kind, ref, detail });
   } catch {
     // ignore
   }

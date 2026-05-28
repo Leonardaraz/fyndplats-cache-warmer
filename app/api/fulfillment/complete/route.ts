@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthorized } from "@/lib/auth";
 import { assertTransition } from "@/lib/orders/status";
-import { getMemoryStore } from "@/lib/store/memory";
+import { getStore } from "@/lib/store/factory";
 import { createFulfillment } from "@/lib/wix/client";
 import { audit } from "@/lib/audit";
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Valideringsfel", details: parsed.error.flatten() }, { status: 422 });
   }
 
-  const store = getMemoryStore();
+  const store = getStore();
   const tasks = await store.listTasks();
   const task = tasks.find((t) => t.taskId === parsed.data.taskId);
   if (!task) {

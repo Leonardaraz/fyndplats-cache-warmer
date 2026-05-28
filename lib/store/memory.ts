@@ -26,6 +26,10 @@ export class MemoryStore implements Store {
     return this.mappings.get(wixProductId) ?? null;
   }
 
+  async listMappings(): Promise<ProductMappingRecord[]> {
+    return [...this.mappings.values()];
+  }
+
   async upsertTask(task: FulfillmentTask): Promise<void> {
     this.tasks.set(task.taskId, task);
   }

@@ -2,6 +2,7 @@ import { computePrice } from "./pricing";
 import { generateSeo, type SeoResult } from "./seo";
 import type { AliExpressProduct, PricingConfig } from "./types";
 import { createProduct, type WixProductInput, type WixVariantInput } from "../wix/client";
+import { importMediaUrls } from "../wix/media";
 
 export interface VariantMapping {
   supplierVariantId: string;
@@ -9,6 +10,10 @@ export interface VariantMapping {
   /** Wix-tilldelat variant-id (sätts efter att produkten skapats). */
   wixVariantId?: string;
   choices: Record<string, string>;
+  // Sparat vid import — används av lönsamhetsöversikten och prisbevakningen.
+  costUsd: number;
+  landedCostSek: number;
+  grossSek: number;
 }
 
 export interface ImportResult {
@@ -73,6 +78,11 @@ export async function importProduct(
 
   const seo = await generateSeo(product);
 
+  // Ladda upp bilder till Wix Media Manager parallellt med variant-/options-bygget.
+  const mediaPromise = importMediaUrls(
+    product.imageUrls.map((url, i) => ({ url, displayName: `${seo.slug || "produkt"}-${i + 1}` })),
+  );
+
   // Options härleds från ALLA varianter; avbockade varianter skapas men döljs
   // (visible: false) så att Wix får en komplett variantuppsättning.
   const options = deriveOptions(product.variants, colorCodes);
@@ -81,7 +91,14 @@ export async function importProduct(
     const sku = makeSku(product.supplierProductId, v.supplierVariantId);
     const price = computePrice(v.costUsd, config);
     if (v.included) {
-      variantMappings.push({ supplierVariantId: v.supplierVariantId, sku, choices: v.options });
+      variantMappings.push({
+        supplierVariantId: v.supplierVariantId,
+        sku,
+        choices: v.options,
+        costUsd: v.costUsd,
+        landedCostSek: price.costSek,
+        grossSek: price.grossSek,
+      });
     }
     return {
       sku,
@@ -91,6 +108,14 @@ export async function importProduct(
     };
   });
 
+  // Vänta in bilduppladdningarna och koppla alt-text per bild (faller tillbaka
+  // på titeln om SEO-pipelinen inte producerade en alt för just den bilden).
+  const uploadedMedia = await mediaPromise;
+  const mediaItems = uploadedMedia.map((m, i) => ({
+    url: m.url,
+    altText: seo.imageAltTexts[i] ?? seo.title,
+  }));
+
   const wixInput: WixProductInput = {
     name: seo.title,
     slug: seo.slug,
@@ -98,6 +123,7 @@ export async function importProduct(
     seo: { title: seo.title, description: seo.metaDescription },
     options: options.length ? options : undefined,
     variants: wixVariants,
+    mediaItems: mediaItems.length ? mediaItems : undefined,
   };
 
   const created = await createProduct(wixInput);

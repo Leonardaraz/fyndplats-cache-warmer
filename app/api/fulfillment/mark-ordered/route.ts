@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthorized } from "@/lib/auth";
 import { assertTransition } from "@/lib/orders/status";
-import { getMemoryStore } from "@/lib/store/memory";
+import { getStore } from "@/lib/store/factory";
 import { audit } from "@/lib/audit";
 
 const Schema = z.object({ taskId: z.string().min(1) });
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Valideringsfel", details: parsed.error.flatten() }, { status: 422 });
   }
 
-  const store = getMemoryStore();
+  const store = getStore();
   const task = (await store.listTasks()).find((t) => t.taskId === parsed.data.taskId);
   if (!task) return NextResponse.json({ error: "Task hittades inte" }, { status: 404 });
 

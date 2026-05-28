@@ -30,6 +30,7 @@ export interface Store {
   // --- Produktmappningar ---
   saveMapping(record: ProductMappingRecord): Promise<void>;
   getMappingByWixProductId(wixProductId: string): Promise<ProductMappingRecord | null>;
+  listMappings(): Promise<ProductMappingRecord[]>;
 
   // --- Fulfillment-tasks ---
   upsertTask(task: FulfillmentTask): Promise<void>;

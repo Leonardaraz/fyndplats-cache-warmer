@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseWebhookBody } from "@/lib/orders/webhook";
 import { deriveTasks, normalizeOrderEvent } from "@/lib/orders/tasks";
-import { getMemoryStore } from "@/lib/store/memory";
+import { getStore } from "@/lib/store/factory";
 import { audit } from "@/lib/audit";
 
 // Wix eCom Order-webhook. Verifierar signatur (om publik nyckel finns),
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Kunde inte tolka orderhändelse" }, { status: 422 });
   }
 
-  const store = getMemoryStore();
+  const store = getStore();
 
   // Idempotens: samma event-id kan levereras flera gånger.
   if (await store.hasSeenEvent(event.eventId)) {

@@ -4,7 +4,7 @@ import { isAuthorized } from "@/lib/auth";
 import { pricingConfigFromEnv } from "@/lib/config";
 import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
-import { getMemoryStore } from "@/lib/store/memory";
+import { getStore } from "@/lib/store/factory";
 import { audit } from "@/lib/audit";
 
 const VariantSchema = z.object({
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
   try {
     const result = await importProduct(product as AliExpressProduct, pricingConfigFromEnv(), optionColorCodes);
-    await getMemoryStore().saveMapping({
+    await getStore().saveMapping({
       supplierProductId: result.supplierProductId,
       wixProductId: result.wixProductId,
       variants: result.variantMappings,

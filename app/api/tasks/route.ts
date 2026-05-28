@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
-import { getMemoryStore } from "@/lib/store/memory";
+import { getStore } from "@/lib/store/factory";
 import type { TaskStatus } from "@/lib/orders/types";
 
 const VALID: TaskStatus[] = ["pending", "ordered", "shipped", "cancelled"];
@@ -15,6 +15,6 @@ export async function GET(req: Request) {
   const statusParam = url.searchParams.get("status");
   const status = statusParam && VALID.includes(statusParam as TaskStatus) ? (statusParam as TaskStatus) : undefined;
 
-  const tasks = await getMemoryStore().listTasks(status);
+  const tasks = await getStore().listTasks(status);
   return NextResponse.json({ ok: true, tasks });
 }

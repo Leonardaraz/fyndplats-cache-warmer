@@ -22,8 +22,8 @@ export interface WixProductInput {
   brandName?: string;
   ribbonName?: string;
   seo?: { title?: string; description?: string };
-  /** Redan uppladdade media-uploadId:n (se image-pipelinen). */
-  mediaUploadIds?: { uploadId: string; altText?: string }[];
+  /** wixstatic-URL:er till bilder (från media.ts/importMediaByUrl) + alt-text. */
+  mediaItems?: { url: string; altText?: string }[];
   /**
    * Optionsdefinitioner. Ett val kan ha `colorCode` (hex) → renderas som
    * färg-swatch (bubbla). Har alla val i en option en colorCode blir hela
@@ -119,14 +119,14 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
       };
     });
   }
-  if (input.mediaUploadIds?.length) {
+  if (input.mediaItems?.length) {
+    const items = input.mediaItems.map((m) => ({
+      url: m.url,
+      ...(m.altText ? { altText: m.altText } : {}),
+    }));
     product.media = {
-      itemsInfo: {
-        items: input.mediaUploadIds.map((m) => ({
-          uploadId: m.uploadId,
-          ...(m.altText ? { altText: m.altText } : {}),
-        })),
-      },
+      main: items[0],
+      itemsInfo: { items },
     };
   }
 

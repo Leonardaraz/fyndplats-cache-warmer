@@ -1,7 +1,9 @@
 // Admin-vy: konfigurationsstatus + översikt av fulfillment-tasks.
 // Läser lagringen direkt server-side (ingen HTTP/token behövs här).
-import { getMemoryStore } from "@/lib/store/memory";
+import { getStore } from "@/lib/store/factory";
 import type { TaskStatus } from "@/lib/orders/types";
+import { paymentFeeFromEnv, pricingConfigFromEnv } from "@/lib/config";
+import { summarizeProductProfit } from "@/lib/analytics/profit";
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +18,17 @@ function envStatus() {
 
 export default async function AdminPage() {
   const status = envStatus();
-  const store = getMemoryStore();
+  const store = getStore();
   const tasks = await store.listTasks();
   const auditLog = await store.listAudit(15);
   const dryRun = process.env.DRY_RUN === "1";
+  const pricing = pricingConfigFromEnv();
+  const fee = paymentFeeFromEnv();
+  const mappings = await store.listMappings();
+  const profits = mappings
+    .map((m) => summarizeProductProfit(m, pricing.vatRatePercent, fee))
+    .filter((p): p is NonNullable<typeof p> => p !== null)
+    .sort((a, b) => b.minProfit - a.minProfit);
   const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s).length;
   const pending = tasks.filter((t) => t.status === "pending");
 
@@ -68,6 +77,36 @@ export default async function AdminPage() {
         <li><code>GET /api/tasks</code> — lista tasks</li>
         <li><code>POST /api/fulfillment/mark-ordered</code> · <code>/complete</code> · <code>/api/orders/cancel</code></li>
       </ul>
+
+      <h2>Lönsamhet per produkt</h2>
+      <p style={{ fontSize: 12, color: "#666" }}>
+        Vinst = intäkt exkl. moms − landad inköpskostnad − Klarna-avgift ({fee.percent}% + {fee.fixedSek} kr).
+        Sorterat på lägsta vinst per produkt (det som blöder överst).
+      </p>
+      {profits.length > 0 ? (
+        <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ textAlign: "left", borderBottom: "1px solid #ddd" }}>
+              <th>Produkt</th>
+              <th>Varianter</th>
+              <th>Vinst (min–max kr)</th>
+              <th>Marginal (min–max %)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {profits.map((p) => (
+              <tr key={p.wixProductId} style={{ borderBottom: "1px solid #f1f1f1" }}>
+                <td><code>{p.wixProductId}</code></td>
+                <td>{p.variantCount}</td>
+                <td>{p.minProfit} – {p.maxProfit}</td>
+                <td>{p.minMargin} – {p.maxMargin}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p style={{ color: "#888" }}>Inga produkter importerade än.</p>
+      )}
 
       <h2>Senaste händelser (audit)</h2>
       {auditLog.length > 0 ? (
