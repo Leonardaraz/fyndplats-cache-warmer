@@ -28,6 +28,25 @@ const COL = {
 // vi bara har en AliExpress-app per Fyndplats-konto.
 const ALIEXPRESS_TOKEN_ID = "aliexpress-main";
 
+/**
+ * Wix Data error-body kan i värsta fall innehålla request-body-fält i
+ * valideringsfel. För token-collectionen MÅSTE vi inte logga den raden eftersom
+ * den skulle läcka access/refresh-tokens till Vercel-loggarna.
+ */
+function isSensitiveCollection(dataCollectionId: string): boolean {
+  return dataCollectionId === COL.tokens;
+}
+
+function wixErrorMessage(
+  op: string,
+  dataCollectionId: string,
+  status: number,
+  body: string,
+): string {
+  const safe = isSensitiveCollection(dataCollectionId) ? "[redacted]" : body.slice(0, 300);
+  return `Wix Data ${op} ${dataCollectionId} (${status}): ${safe}`;
+}
+
 async function save(dataCollectionId: string, id: string, data: Record<string, unknown>): Promise<void> {
   const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
     method: "POST",
@@ -35,8 +54,7 @@ async function save(dataCollectionId: string, id: string, data: Record<string, u
     body: JSON.stringify({ dataCollectionId, dataItem: { id, dataCollectionId, data } }),
   });
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix Data save ${dataCollectionId} (${res.status}): ${text.slice(0, 300)}`);
+    throw new Error(wixErrorMessage("save", dataCollectionId, res.status, await res.text()));
   }
 }
 
@@ -45,8 +63,9 @@ async function get<T>(dataCollectionId: string, id: string): Promise<T | null> {
   const res = await fetch(url, { method: "GET", headers: headers() });
   if (res.status === 404) return null;
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix Data get ${dataCollectionId}/${id} (${res.status}): ${text.slice(0, 300)}`);
+    throw new Error(
+      wixErrorMessage(`get/${id}`, dataCollectionId, res.status, await res.text()),
+    );
   }
   const body = (await res.json()) as { dataItem?: { data?: T } };
   return body.dataItem?.data ?? null;
@@ -67,8 +86,7 @@ async function query<T>(
     }),
   });
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix Data query ${dataCollectionId} (${res.status}): ${text.slice(0, 300)}`);
+    throw new Error(wixErrorMessage("query", dataCollectionId, res.status, await res.text()));
   }
   const body = (await res.json()) as { dataItems?: { data?: T }[] };
   return (body.dataItems ?? []).map((d) => d.data).filter((d): d is T => Boolean(d));
@@ -139,15 +157,37 @@ export class WixDataStore implements Store {
       refreshToken?: string;
       expiresAt?: string;
     }>(COL.tokens, ALIEXPRESS_TOKEN_ID);
-    if (!raw?.accessToken || !raw?.refreshToken || !raw?.expiresAt) return null;
+    if (!raw) return null;
+    if (!raw.accessToken || !raw.refreshToken || !raw.expiresAt) {
+      // Korrupt/partiell rad — varna operatorn istället för att tysta failas
+      // tillbaka till env-fallback utan signal.
+      console.warn(
+        `[wix-data] ${COL.tokens}/${ALIEXPRESS_TOKEN_ID} har partiell token-data ` +
+          `(accessToken=${Boolean(raw.accessToken)}, refreshToken=${Boolean(raw.refreshToken)}, ` +
+          `expiresAt=${Boolean(raw.expiresAt)}). Behandlas som null.`,
+      );
+      return null;
+    }
+    const expiresAt = new Date(raw.expiresAt);
+    if (Number.isNaN(expiresAt.getTime())) {
+      console.warn(
+        `[wix-data] ${COL.tokens}/${ALIEXPRESS_TOKEN_ID} har ogiltig expiresAt="${raw.expiresAt}". Behandlas som null.`,
+      );
+      return null;
+    }
     return {
       accessToken: raw.accessToken,
       refreshToken: raw.refreshToken,
-      expiresAt: new Date(raw.expiresAt),
+      expiresAt,
     };
   }
 
   async saveAliExpressTokens(record: AliExpressTokenRecord): Promise<void> {
+    if (Number.isNaN(record.expiresAt.getTime())) {
+      throw new Error(
+        "saveAliExpressTokens: ogiltig expiresAt. Skickar inte till Wix — caller måste validera tokens.expires_in före anrop.",
+      );
+    }
     await save(COL.tokens, ALIEXPRESS_TOKEN_ID, {
       _id: ALIEXPRESS_TOKEN_ID,
       accessToken: record.accessToken,

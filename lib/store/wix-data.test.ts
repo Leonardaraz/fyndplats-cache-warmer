@@ -36,12 +36,48 @@ describe("WixDataStore — AliExpress-tokens", () => {
     expect(await s.getAliExpressTokens()).toBeNull();
   });
 
-  it("returnerar null när dataItem saknar något kritiskt fält", async () => {
+  it("returnerar null OCH varnar när dataItem saknar något kritiskt fält", async () => {
     mockFetch({
       json: { dataItem: { data: { accessToken: "x", expiresAt: "2026-01-01T00:00:00Z" } } },
     });
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const s = new WixDataStore();
     expect(await s.getAliExpressTokens()).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/partiell token-data/));
+  });
+
+  it("returnerar null OCH varnar när expiresAt är ogiltig", async () => {
+    mockFetch({
+      json: {
+        dataItem: {
+          data: { accessToken: "x", refreshToken: "y", expiresAt: "not-a-date" },
+        },
+      },
+    });
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const s = new WixDataStore();
+    expect(await s.getAliExpressTokens()).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/ogiltig expiresAt/));
+  });
+
+  it("saveAliExpressTokens kastar om expiresAt är Invalid Date", async () => {
+    mockFetch({ json: {} });
+    const s = new WixDataStore();
+    await expect(s.saveAliExpressTokens({
+      accessToken: "x",
+      refreshToken: "y",
+      expiresAt: new Date("garbage"),
+    })).rejects.toThrow(/ogiltig expiresAt/);
+  });
+
+  it("redactar response-body i error-meddelandet för token-collection", async () => {
+    mockFetch({ status: 500, json: { details: "should-not-leak-token-payload-secret" } });
+    const s = new WixDataStore();
+    await expect(s.saveAliExpressTokens({
+      accessToken: "real-token",
+      refreshToken: "real-refresh",
+      expiresAt: new Date("2026-06-01T00:00:00Z"),
+    })).rejects.toThrow(/\[redacted\]/);
   });
 
   it("parsar Wix Data-svaret korrekt (ISO → Date vid boundary)", async () => {
