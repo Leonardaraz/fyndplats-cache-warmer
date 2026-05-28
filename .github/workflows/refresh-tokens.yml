@@ -1,0 +1,37 @@
+name: Refresh AliExpress tokens
+
+# Pingar /api/aliexpress/refresh var 12:e timme så access_token byts ut
+# innan det expirerar (~48h livstid). Endpoint skippar self om token har
+# >2h kvar, så schedule kan vara konservativ utan att slösa AliExpress
+# API-anrop.
+#
+# Använder GitHub Actions istället för Vercel Cron eftersom Vercel Hobby
+# bara tillåter daglig schemaläggning. Samma pattern som poll-tracking.yml.
+#
+# Krävs som repository secrets (Settings → Secrets and variables → Actions):
+#   REFRESH_TOKEN_URL — fullständig URL, t.ex.
+#       https://fyndplats-cache-warmer.vercel.app/api/aliexpress/refresh
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger refresh endpoint
+        run: |
+          response=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.REFRESH_TOKEN_URL }}")
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "$body"
+          if [ "$status" != "200" ]; then
+            echo "::error::Refresh endpoint returned non-200 status"
+            exit 1
+          fi
