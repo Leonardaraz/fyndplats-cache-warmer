@@ -22,8 +22,46 @@ export type Product = {
   originalPrice?: string;
   onSale?: boolean;
   descriptionHtml?: string;
-  options?: { name: string; choices: { label: string; image: string; variantId: string; price: string; originalPrice: string }[] } | null;
+  options?: { name: string; choices: { label: string; image: string; color: string; variantId: string; price: string; originalPrice: string }[] } | null;
 };
+
+// Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas.
+// V3-migrationen tappade bilder per ch.media på många produkter; vi visar då
+// färgade cirklar baserat på chovärdets namn istället för fula text-pills.
+const COLOR_HEX: Record<string, string> = {
+  vit: "#FFFFFF", white: "#FFFFFF",
+  svart: "#1c1c1c", black: "#1c1c1c",
+  grå: "#9ca3af", grey: "#9ca3af", gray: "#9ca3af",
+  röd: "#dc2626", red: "#dc2626",
+  blå: "#2563eb", blue: "#2563eb",
+  grön: "#16804a", green: "#16804a",
+  gul: "#fbbc05", yellow: "#fbbc05",
+  orange: "#f47a35",
+  rosa: "#fbcfe8", pink: "#fbcfe8",
+  lila: "#a855f7", purple: "#a855f7", violett: "#a855f7",
+  beige: "#e8d4b3", khaki: "#c3b091",
+  brun: "#92400e", brown: "#92400e", tan: "#d2b48c",
+  guld: "#d4af37", gold: "#d4af37",
+  silver: "#c0c0c0",
+  turkos: "#06b6d4", turquoise: "#06b6d4", teal: "#0d9488",
+  petrol: "#005f73",
+  natur: "#e0d3c1", naturlig: "#e0d3c1",
+  marin: "#1e3a8a", navy: "#1e3a8a",
+  vinröd: "#7f1d1d", burgundy: "#7f1d1d", bordeaux: "#7f1d1d",
+  champagne: "#f7e7ce",
+  cream: "#fefce8", creme: "#fefce8",
+  ko: "#fefce8", cow: "#fefce8",
+  tiger: "#f59e0b",
+};
+
+function colorOf(name: string): string {
+  const k = (name || "").toLowerCase().trim();
+  if (COLOR_HEX[k]) return COLOR_HEX[k];
+  for (const [key, hex] of Object.entries(COLOR_HEX)) {
+    if (k.includes(key)) return hex;
+  }
+  return "";
+}
 
 // Public Wix Headless OAuth client ID for wix-vibe-site-u4lp (V3 catalog).
 // NOT a secret — it ships client-side via NEXT_PUBLIC_ and is visible to every
@@ -71,11 +109,15 @@ function mapProduct(p: any): Product {
   };
 }
 
-// Per-choice variant images (powers the gallery ↔ variant ↔ cart sync on the product page).
-// Only returned when an option has ≥2 choices that each carry their own image.
+// Per-choice variant data för premium variant-picker. Tre rendering-lägen i productview:
+//   1. Bild-cirklar — när varje choice har ch.media (V1-style produkter)
+//   2. Färg-swatcher — när option-namnet är "Färg" och värdena är kända färger
+//      (V3-migration förlorade per-choice bilder för många produkter)
+//   3. Text-pills — sista fallback för storlek/material/etc utan färg-match
 function extractOptions(raw: any): Product["options"] {
   const opt = (raw.productOptions || [])[0];
   if (!opt || (opt.choices || []).length < 2) return null;
+  const isColor = /färg|color|kulör/i.test(opt.name || "");
   const variants = raw.variants || [];
   const choices = (opt.choices || []).map((ch: any) => {
     const v = variants.find((vv: any) => vv.choices?.[opt.name] === ch.value);
@@ -84,11 +126,12 @@ function extractOptions(raw: any): Product["options"] {
     return {
       label: ch.value,
       image: ch.media?.mainMedia?.image?.url || "",
+      color: isColor ? colorOf(ch.value) : "",
       variantId: v?._id || "",
       price: pd?.formatted?.discountedPrice || pd?.formatted?.price || "",
       originalPrice: onSale ? (pd.formatted?.price || "") : "",
     };
-  }).filter((c: any) => c.variantId && c.image);
+  }).filter((c: any) => c.variantId); // kräver inte längre image — kan vara color eller text
   return choices.length >= 2 ? { name: opt.name, choices } : null;
 }
 

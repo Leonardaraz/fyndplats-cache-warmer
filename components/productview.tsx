@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useCart } from "./cart";
 import { Gallery } from "./gallery";
 
-type Choice = { label: string; image: string; variantId: string; price: string; originalPrice: string };
+type Choice = { label: string; image: string; color?: string; variantId: string; price: string; originalPrice: string };
 
 export function ProductView({
   productId,
@@ -40,8 +40,14 @@ export function ProductView({
 
   const imageChoices = options?.choices || [];
   const hasImageVariants = imageChoices.length >= 2;
+  // Rendering-läge för variant-pickern: bild > färg-swatch > text-pill.
+  // V3-migration tappade ch.media på många produkter; vi visar då färgade
+  // cirklar baserat på choice-namnet (Färg=Beige → beige swatch).
+  const allHaveImage = hasImageVariants && imageChoices.every((c) => c.image);
+  const someHaveColor = hasImageVariants && imageChoices.some((c) => c.color);
+  const variantMode: "image" | "color" | "text" = allHaveImage ? "image" : someHaveColor ? "color" : "text";
 
-  const galleryImages = hasImageVariants ? imageChoices.map((c) => c.image) : images;
+  const galleryImages = allHaveImage ? imageChoices.map((c) => c.image) : images;
   const variantId = hasImageVariants
     ? imageChoices[sel]?.variantId
     : variants.length > 1
@@ -63,8 +69,8 @@ export function ProductView({
       <Gallery
         images={galleryImages}
         alt={name}
-        active={hasImageVariants ? sel : undefined}
-        onActiveChange={hasImageVariants ? setSel : undefined}
+        active={allHaveImage ? sel : undefined}
+        onActiveChange={allHaveImage ? setSel : undefined}
       />
 
       <div className="pinfo">
@@ -90,20 +96,28 @@ export function ProductView({
                 <strong>{imageChoices[sel]?.label}</strong>
               </div>
               <div className="varbubbles-row">
-                {imageChoices.map((c, i) => (
-                  <button
-                    key={c.variantId}
-                    type="button"
-                    className={`varbubble ${sel === i ? "active" : ""}`}
-                    onClick={() => setSel(i)}
-                    aria-label={c.label}
-                    aria-pressed={sel === i}
-                    title={c.label}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={c.image} alt={c.label} loading="lazy" />
-                  </button>
-                ))}
+                {imageChoices.map((c, i) => {
+                  const cls = `${variantMode === "image" || variantMode === "color" ? "varbubble" : "varpill"} ${variantMode === "color" ? "varcolor" : ""} ${sel === i ? "active" : ""}`;
+                  return (
+                    <button
+                      key={c.variantId}
+                      type="button"
+                      className={cls.trim()}
+                      onClick={() => setSel(i)}
+                      aria-label={c.label}
+                      aria-pressed={sel === i}
+                      title={c.label}
+                      style={variantMode === "color" ? { background: c.color || "#e5e7eb" } : undefined}
+                    >
+                      {variantMode === "image" ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={c.image} alt={c.label} loading="lazy" />
+                      ) : variantMode === "color" ? null : (
+                        c.label
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : variants.length > 1 ? (
