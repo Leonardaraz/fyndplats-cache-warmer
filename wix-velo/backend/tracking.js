@@ -215,3 +215,54 @@ export async function forceRefresh(trackingNumber) {
   const data = await callApi("/gettrackinfo", [{ number: trackingNumber }]);
   return applyWebhookPayload(data);
 }
+
+// ---------------------------------------------------------------------------
+// Lazy-fetch fallback för stale records
+// ---------------------------------------------------------------------------
+
+const LAZY_FETCH_COOLDOWN_MS = 30 * 60 * 1000;
+
+/**
+ * Anropas av GET /_functions/track när cachen har tom events-array. Om sista
+ * fetch är äldre än 30 min kör en /gettrackinfo direkt — annars throttlas
+ * för att skydda 17TRACK rate limit. På fel bumpas lastFetchedAt så vi inte
+ * hammrar 17TRACK var minut för en TN som genuint saknar data hos dem.
+ *
+ * Returnerar { fetched, throttled?, eventCount?, error? } för debugging.
+ */
+export async function lazyFetchAndApply(trackingNumber, existingRecord) {
+  const now = Date.now();
+  const lastFetched = existingRecord?.lastFetchedAt
+    ? new Date(existingRecord.lastFetchedAt).getTime()
+    : 0;
+  const ageMs = now - lastFetched;
+
+  if (ageMs < LAZY_FETCH_COOLDOWN_MS) {
+    console.log(`[lazy-fetch] throttled tn=${trackingNumber} ageSec=${Math.round(ageMs / 1000)}`);
+    return { fetched: false, throttled: true };
+  }
+
+  console.log(`[lazy-fetch] start tn=${trackingNumber} cachedEvents=0 ageMs=${ageMs}`);
+  try {
+    const result = await forceRefresh(trackingNumber);
+    console.log(
+      `[lazy-fetch] ok tn=${trackingNumber} status=${result.status} events=${result.eventCount}`,
+    );
+    return { fetched: true, ...result };
+  } catch (err) {
+    console.error(`[lazy-fetch] FEL tn=${trackingNumber}: ${err.message || err}`);
+    // Bumpa lastFetchedAt även vid fel så cooldown håller.
+    if (existingRecord) {
+      try {
+        await wixData.update(
+          COLLECTION,
+          { ...existingRecord, lastFetchedAt: new Date() },
+          { suppressAuth: true },
+        );
+      } catch (e) {
+        console.warn(`[lazy-fetch] kunde inte bumpa lastFetchedAt: ${e.message || e}`);
+      }
+    }
+    return { fetched: false, error: err.message || String(err) };
+  }
+}

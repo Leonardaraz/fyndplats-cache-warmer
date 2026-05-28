@@ -20,7 +20,12 @@ import { ok, badRequest, forbidden, serverError } from "wix-http-functions";
 import { getSecret } from "wix-secrets-backend";
 import wixData from "wix-data";
 import { sendDeliveredEmail } from "backend/events";
-import { applyWebhookPayload, getTrackingData, forceRefresh } from "backend/tracking";
+import {
+  applyWebhookPayload,
+  getTrackingData,
+  forceRefresh,
+  lazyFetchAndApply,
+} from "backend/tracking";
 
 // ---------------------------------------------------------------------------
 // 1) Webhook från 17TRACK med signaturverifiering
@@ -122,7 +127,21 @@ export async function get_track(request) {
   if (!tn) return badRequest({ headers: CORS, body: { error: "tn (trackingNumber) krävs" } });
 
   try {
-    const data = await getTrackingData(tn);
+    let data = await getTrackingData(tn);
+
+    // Lazy-fetch fallback: när webhook-pushen failade eller aldrig kom har
+    // vi en placeholder med events=[]. Fråga 17TRACK direkt (throttlat).
+    if (
+      data
+      && (!data.events || data.events.length === 0)
+      && data.status !== "Delivered"
+    ) {
+      const lazy = await lazyFetchAndApply(tn, data);
+      if (lazy.fetched) {
+        data = await getTrackingData(tn);
+      }
+    }
+
     if (!data) {
       return ok({ headers: CORS, body: {
         trackingNumber: tn,
