@@ -35,8 +35,13 @@ export default function Butikspolicyer() {
         </p>
       </div>
 
+      <h2>Tvistelösning</h2>
+      <p>Vid en tvist som vi inte lyckas lösa följer vi <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Du kan kostnadsfritt vända dig till ARN för opartisk prövning: <a href="https://www.arn.se" target="_blank" rel="noopener noreferrer">www.arn.se</a> (Box 174, 101 23 Stockholm).</p>
+      <p>Som konsument i EU har du också rätt att använda EU-kommissionens onlineplattform för tvistelösning (ODR) vid köp gjorda online: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>.</p>
+
       <h2>Relaterade sidor</h2>
       <ul>
+        <li><a href="/kopvillkor">Köpvillkor</a></li>
         <li><a href="/returer">Returer &amp; ångerrätt</a></li>
         <li><a href="/sekretesspolicy">Sekretesspolicy</a></li>
         <li><a href="/vanliga-fragor">Vanliga frågor</a></li>

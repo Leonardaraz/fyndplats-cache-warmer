@@ -149,9 +149,12 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pay-mc i:first-child{background:#EB001B}
 .pay-mc i:last-child{background:#FF9F00;margin-left:-8px;mix-blend-mode:multiply}
 .pay-apay{gap:3px;color:#000;font-weight:600}
-.grat{margin-top:14px;font-size:13px}
-.grat .star{color:#FFC857}
-.glogo{font-weight:800;letter-spacing:-.01em}
+.grat{margin-top:14px;font-size:13px;display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;color:#cfcac3}
+.grat .star{color:#FFC857;letter-spacing:1px}
+.g-badge{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#3c4043;padding:4px 9px 4px 8px;border-radius:999px;font-weight:500;font-size:12.5px;letter-spacing:.1px;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.g-icon{display:block}
+.g-score{font-weight:700;color:#fff;font-size:14px}
+.g-count{color:#9a948c;font-size:12.5px}
 .fbar{border-top:1px solid #3a382f;text-align:center;font-size:12.5px;color:#9a948c;padding:16px}
 .fbar a{color:#cfcac3;text-decoration:underline}
 .fbar a:hover{color:#fff}

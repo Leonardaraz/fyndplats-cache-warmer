@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages = [
     "", "/butik", "/blogg", "/omoss", "/omdomen", "/kundtjanst",
-    "/kontaktaoss", "/vanliga-fragor", "/returer", "/sekretesspolicy", "/vara-butikspolicyer",
+    "/kontaktaoss", "/vanliga-fragor", "/returer", "/kopvillkor", "/sekretesspolicy", "/vara-butikspolicyer",
   ].map((path) => ({
     url: `${BASE}${path}`,
     lastModified: new Date(),

@@ -29,6 +29,13 @@ export default function Kundtjanst() {
         <li><strong>Ångerrätt:</strong> 14 dagar enligt distansavtalslagen.</li>
       </ul>
 
+      <h2>Mer information</h2>
+      <ul>
+        <li><a href="/kopvillkor">Köpvillkor</a> – fullständiga villkor för köp hos Fyndplats</li>
+        <li><a href="/sekretesspolicy">Sekretesspolicy</a> – så hanterar vi dina personuppgifter</li>
+        <li><a href="/vara-butikspolicyer">Våra butikspolicyer</a> – företagsuppgifter och impressum</li>
+      </ul>
+
       <div className="callout">
         <p>Når du oss inte direkt? Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> eller ring <a href="tel:+46736630990">073-663 09 90</a> (vardagar 09–17).</p>
       </div>
