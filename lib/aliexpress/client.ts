@@ -158,14 +158,16 @@ export async function exchangeCode(code: string, _redirectUri: string): Promise<
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
     if (!appKey || !appSecret) throw new Error("App-nycklar saknas");
 
+  // AliExpress signed-RPC: signaturen är HMAC-SHA256 över sorted+concat(key+value)
+  // av alla request-params UTAN path-prefix. (Tidigare antagande att REST-endpoints
+  // krävde path-prefix gav IncompleteSignature-fel från AliExpress.)
   const params: Record<string, string> = {
         app_key: appKey,
         code,
         sign_method: "sha256",
-        simplify: "true",
         timestamp: String(Date.now()),
   };
-    const signature = signRestRequest("/auth/token/create", params, appSecret);
+    const signature = sign(params, appSecret);
     const query = new URLSearchParams({ ...params, sign: signature }).toString();
 
   const res = await fetch(`${REST_BASE}/auth/token/create?${query}`, { method: "POST" });
@@ -182,10 +184,9 @@ export async function refreshAccessToken(refreshToken: string): Promise<DsTokenR
         app_key: appKey,
         refresh_token: refreshToken,
         sign_method: "sha256",
-        simplify: "true",
         timestamp: String(Date.now()),
   };
-    const signature = signRestRequest("/auth/token/refresh", params, appSecret);
+    const signature = sign(params, appSecret);
     const query = new URLSearchParams({ ...params, sign: signature }).toString();
 
   const res = await fetch(`${REST_BASE}/auth/token/refresh?${query}`, { method: "POST" });
