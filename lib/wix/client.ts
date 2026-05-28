@@ -32,6 +32,8 @@ export interface WixCreateProductResult {
   id: string;
   slug: string;
   revision: string;
+  /** Wix-tilldelade variant-id:n kopplade till våra SKU:er (för lager-/orderkoppling). */
+  variants: { id: string; sku: string }[];
 }
 
 function wixHeaders(): Record<string, string> {
@@ -101,6 +103,58 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
   return { product, fields };
 }
 
+export interface WixInventoryItem {
+  id: string;
+  revision: string;
+  variantId: string;
+  productId: string;
+}
+
+/** Hämtar lagerposter för en produkt (en post per variant + lager). */
+export async function queryInventoryItemsByProductId(productId: string): Promise<WixInventoryItem[]> {
+  const res = await fetch(`${WIX_BASE}/stores/v3/inventory-items/query`, {
+    method: "POST",
+    headers: wixHeaders(),
+    body: JSON.stringify({ query: { filter: { productId } } }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix query-inventory misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as { inventoryItems?: WixInventoryItem[] };
+  return data.inventoryItems ?? [];
+}
+
+export interface InventoryQuantityUpdate {
+  id: string;
+  revision: string;
+  /** Absolut lagersaldo. */
+  quantity: number;
+}
+
+/** Sätter absoluta lagersaldon för flera varianter i en request. */
+export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUpdate[]): Promise<void> {
+  if (updates.length === 0) return;
+  const res = await fetch(`${WIX_BASE}/stores/v3/bulk/inventory-items/update`, {
+    method: "POST",
+    headers: wixHeaders(),
+    body: JSON.stringify({
+      inventoryItems: updates.map((u) => ({
+        inventoryItem: {
+          id: u.id,
+          revision: u.revision,
+          trackQuantity: true,
+          trackingMethod: { quantity: u.quantity },
+        },
+      })),
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix bulk-update-inventory misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+}
+
 export async function createProduct(input: WixProductInput): Promise<WixCreateProductResult> {
   const res = await fetch(`${WIX_BASE}/stores/v3/products`, {
     method: "POST",
@@ -113,6 +167,17 @@ export async function createProduct(input: WixProductInput): Promise<WixCreatePr
     throw new Error(`Wix create-product misslyckades (${res.status}): ${text.slice(0, 500)}`);
   }
 
-  const data = (await res.json()) as { product: { id: string; slug: string; revision: string } };
-  return { id: data.product.id, slug: data.product.slug, revision: data.product.revision };
+  const data = (await res.json()) as {
+    product: {
+      id: string;
+      slug: string;
+      revision: string;
+      variantsInfo?: { variants?: { id: string; sku?: string }[] };
+    };
+  };
+  const variants = (data.product.variantsInfo?.variants ?? []).map((v) => ({
+    id: v.id,
+    sku: v.sku ?? "",
+  }));
+  return { id: data.product.id, slug: data.product.slug, revision: data.product.revision, variants };
 }

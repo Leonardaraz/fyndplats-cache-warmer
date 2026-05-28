@@ -6,6 +6,8 @@ import { createProduct, type WixProductInput, type WixVariantInput } from "../wi
 export interface VariantMapping {
   supplierVariantId: string;
   sku: string;
+  /** Wix-tilldelat variant-id (sätts efter att produkten skapats). */
+  wixVariantId?: string;
   choices: Record<string, string>;
 }
 
@@ -73,6 +75,12 @@ export async function importProduct(
   };
 
   const created = await createProduct(wixInput);
+
+  // Koppla Wix-tilldelade variant-id:n till våra mappningar via SKU.
+  const skuToWixId = new Map(created.variants.map((v) => [v.sku, v.id]));
+  for (const m of variantMappings) {
+    m.wixVariantId = skuToWixId.get(m.sku);
+  }
 
   return {
     wixProductId: created.id,
