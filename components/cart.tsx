@@ -22,7 +22,7 @@ function makeClient() {
   return createClient({
     modules: { currentCart, redirects },
     auth: OAuthStrategy({
-      clientId: process.env.NEXT_PUBLIC_WIX_CLIENT_ID || "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153",
+      clientId: "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153", // hardcoded for wix-vibe-site-u4lp; bypasses stale Vercel env vars
       tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
     }),
   });

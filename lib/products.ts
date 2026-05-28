@@ -25,10 +25,12 @@ export type Product = {
   options?: { name: string; choices: { label: string; image: string; variantId: string; price: string; originalPrice: string }[] } | null;
 };
 
-// Public Wix Headless OAuth client ID (anonymous visitor; also shipped client-side via
-// NEXT_PUBLIC_ — not a secret). Hardcoded fallback so every environment (incl. Vercel
-// Preview) loads the live catalog even when the env var isn't configured there.
-const CLIENT_ID = process.env.WIX_CLIENT_ID || process.env.NEXT_PUBLIC_WIX_CLIENT_ID || "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
+// Public Wix Headless OAuth client ID for wix-vibe-site-u4lp (V3 catalog).
+// NOT a secret — it ships client-side via NEXT_PUBLIC_ and is visible to every
+// browser visitor. Hardcoded directly (instead of reading process.env) because
+// stale Vercel env vars on production pointed at the old Fyndplats V1 site and
+// would break the V3 categories API on the new site.
+const CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 
 const wix = CLIENT_ID
   ? createClient({ modules: { products: wixProducts, categories: wixCategories }, auth: OAuthStrategy({ clientId: CLIENT_ID }) })
@@ -222,4 +224,21 @@ async function fetchCollections(): Promise<Collection[]> {
         return { id: c.id, name: c.name, slug };
       });
     list.sort((a, b) => {
-      const ia = MAIN_ORDER.indexOf(
+      const ia = MAIN_ORDER.indexOf(a.name), ib = MAIN_ORDER.indexOf(b.name);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.name.localeCompare(b.name, "sv");
+    });
+    return list;
+  } catch (e) {
+    console.error("[wix] getCollections failed:", (e as Error).message);
+    collectionsPromise = null; // allow retry on a later request
+    return [];
+  }
+}
+
+export function getCollections(): Promise<Collection[]> {
+  if (!collectionsPromise) collectionsPromise = fetchCollections();
+  return collectionsPromise;
+}
