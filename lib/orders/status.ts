@@ -7,7 +7,8 @@ import type { TaskStatus } from "./types";
 // cancelled-> (terminal)
 
 const ALLOWED: Record<TaskStatus, TaskStatus[]> = {
-  pending: ["ordered", "cancelled"],
+  pending: ["pending_payment", "ordered", "cancelled"],
+  pending_payment: ["ordered", "cancelled"],
   ordered: ["shipped", "cancelled"],
   shipped: [],
   cancelled: [],
