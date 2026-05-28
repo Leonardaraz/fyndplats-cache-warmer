@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; }
+      h1 { font-size: 18px; }
+      .bar { font-size: 13px; color: #444; margin: 8px 0 16px; }
+      .task { border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+      .task.active { border-color: #1a73e8; background: #f5f9ff; }
+      .task.done { opacity: 0.55; }
+      .task.error { border-color: #b00020; background: #fff5f6; }
+      .meta { font-size: 12px; color: #666; }
+      .row { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+      button { padding: 6px 10px; font-size: 12px; cursor: pointer; }
+      .state { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; }
+    </style>
+  </head>
+  <body>
+    <h1>Orderläge — beställ hos leverantör</h1>
+    <p class="meta">
+      Kön går en order i taget i mänsklig takt. Öppna leverantörssidan, lägg beställningen manuellt med
+      kundens adress, och markera sedan som beställd. Kön är återupptagbar om du stänger fönstret.
+    </p>
+    <div class="bar" id="bar">Laddar tasks…</div>
+    <div id="list"></div>
+    <button id="reload">Ladda om kön</button>
+    <script src="orders.js"></script>
+  </body>
+</html>

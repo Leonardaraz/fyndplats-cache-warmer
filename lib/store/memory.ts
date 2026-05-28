@@ -1,0 +1,72 @@
+import type { FulfillmentTask, TaskStatus } from "../orders/types";
+import type { AuditEntry, ProductMappingRecord, Store } from "./index";
+
+// In-memory-implementation. Bra för tester och lokal utveckling; byt mot en
+// Wix Data-/DB-backad implementation innan produktion (se store/index.ts).
+
+export class MemoryStore implements Store {
+  private seenEvents = new Set<string>();
+  private mappings = new Map<string, ProductMappingRecord>();
+  private tasks = new Map<string, FulfillmentTask>();
+  private audit: AuditEntry[] = [];
+
+  async hasSeenEvent(eventId: string): Promise<boolean> {
+    return this.seenEvents.has(eventId);
+  }
+
+  async markEventSeen(eventId: string): Promise<void> {
+    this.seenEvents.add(eventId);
+  }
+
+  async saveMapping(record: ProductMappingRecord): Promise<void> {
+    this.mappings.set(record.wixProductId, record);
+  }
+
+  async getMappingByWixProductId(wixProductId: string): Promise<ProductMappingRecord | null> {
+    return this.mappings.get(wixProductId) ?? null;
+  }
+
+  async listMappings(): Promise<ProductMappingRecord[]> {
+    return [...this.mappings.values()];
+  }
+
+  async upsertTask(task: FulfillmentTask): Promise<void> {
+    this.tasks.set(task.taskId, task);
+  }
+
+  async createTaskIfAbsent(task: FulfillmentTask): Promise<boolean> {
+    if (this.tasks.has(task.taskId)) return false;
+    this.tasks.set(task.taskId, task);
+    return true;
+  }
+
+  async listTasks(status?: TaskStatus): Promise<FulfillmentTask[]> {
+    const all = [...this.tasks.values()];
+    return status ? all.filter((t) => t.status === status) : all;
+  }
+
+  async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
+    const task = this.tasks.get(taskId);
+    if (task) this.tasks.set(taskId, { ...task, status });
+  }
+
+  async updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void> {
+    const task = this.tasks.get(taskId);
+    if (task) this.tasks.set(taskId, { ...task, ...patch });
+  }
+
+  async appendAudit(entry: AuditEntry): Promise<void> {
+    this.audit.push(entry);
+  }
+
+  async listAudit(limit = 100): Promise<AuditEntry[]> {
+    return this.audit.slice(-limit).reverse();
+  }
+}
+
+// Singleton för utveckling (delas mellan route-anrop i samma process).
+let singleton: MemoryStore | null = null;
+export function getMemoryStore(): MemoryStore {
+  if (!singleton) singleton = new MemoryStore();
+  return singleton;
+}

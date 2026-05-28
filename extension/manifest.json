@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Fyndplats Import",
+  "version": "0.1.0",
+  "description": "Importerar AliExpress-produkter till Fyndplats (Wix) med svensk SEO och påslag.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "optional_host_permissions": ["https://*/*"],
+  "host_permissions": [
+    "https://*.aliexpress.com/*",
+    "https://*.aliexpress.us/*",
+    "https://*.alicdn.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Fyndplats Import"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.aliexpress.com/item/*", "https://*.aliexpress.us/item/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

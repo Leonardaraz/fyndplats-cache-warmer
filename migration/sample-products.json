@@ -1,0 +1,69 @@
+{
+  "_note": "Sample of first 3 products from Fyndplats (v1 catalog). These are the slimmed objects the migration script will produce. Inspect to verify field structure matches expectations before running full migration.",
+  "exportedAt": "2026-05-28",
+  "sourceSite": "Fyndplats (8c62127f-c07a-4596-86b8-4e88b5cc502d)",
+  "sourceCatalogVersion": "V1_CATALOG",
+  "totalProductsInSource": 207,
+  "samples": [
+    {
+      "name": "Magnetiska Örhängen – Clips utan Hål med Zirkonia",
+      "slug": "magnetiska-orhangen-clips-utan-hal-zirkonia",
+      "visible": true,
+      "productType": "physical",
+      "brand": "Fyndplats",
+      "ribbon": null,
+      "description": "<p style=\"font-size:1.05em;line-height:1.6\"><strong>Snygga clip-örhängen utan att behöva piercing.</strong> Magnetiska zirkonia-örhängen som ser ut som äkta piercing-örhängen. Perfekt för dig som inte har hål eller vill prova en ny look utan permanenta hål.</p>\n\n<img src=\"https://static.wixstatic.com/media/b379ce_c7593038af8444ef8df55213c3a732df~mv2.jpg/v1/fit/w_1000,h_1000,q_85/file.jpg\" alt=\"Magnetiska zirkonia-örhängen\" width=\"100%\">\n\n<h2>Varför magnetiska örhängen</h2>\n<p>💎 <strong>Zirkonia-stenar</strong> – glittrar som diamanter utan diamant-priset.</p>\n<p>🧲 <strong>Stark magnet</strong> – håller säkert hela dagen utan att lossna.</p>\n<p>🩹 <strong>Inga hål</strong> – perfekt för dig utan piercing eller med läkta hål.</p>\n<p>💼 <strong>Nickelfri</strong> – ingen risk för hudirritation.</p>\n<p>🎁 <strong>Universalstorlek</strong> – passar alla.</p>\n\n<img src=\"https://static.wixstatic.com/media/b379ce_f5b8f29b795d40abb34faa0fdd35fe18~mv2.jpg/v1/fit/w_1000,h_1000,q_85/file.jpg\" alt=\"Detalj av örhängenas zirkonia-stenar\" width=\"100%\">\n\n<h2>Perfekt för dig som...</h2>\n<ul>\n<li>...inte har piercade öron men vill ha snygga örhängen</li>\n<li>...har låtit gamla piercinghål växa ihop</li>\n<li>...vill testa ett par snygga örhängen innan du tar piercing</li>\n<li>...har känslig hud som inte tål vanliga metallörhängen</li>\n<li>...letar present till barn eller någon utan hål</li>\n</ul>\n\n<p style=\"background:#FFF4ED;border-left:4px solid #FF6B35;padding:14px 18px;margin:20px 0;border-radius:4px\">💳 <strong>Trygg betalning:</strong> Betala enkelt med Klarna – välj mellan att betala direkt, dela upp eller faktura. Svensk kundservice på info@fyndplats.com.</p>\n\n<p style=\"font-size:0.95em;color:#666;text-align:center;margin-top:24px\">Se mer detaljerad information i flikarna nedanför – specifikationer, användning och vanliga frågor.</p>",
+      "additionalInfoSections": [
+        { "title": "Tekniska specifikationer", "description": "<p><strong>Typ:</strong> Magnetiska clip-örhängen</p> \n<p><strong>Sten:</strong> Zirkonia</p> \n<p><strong>Storlek:</strong> Cirka 4–8 mm diameter</p> \n<p><strong>Material metall:</strong> Nickelfri legering</p> \n<p><strong>Fäste:</strong> Magnetiskt</p> \n<p><strong>I förpackningen:</strong> Ett par örhängen</p>" },
+        { "title": "Användning och skötsel", "description": "<p><strong>Fäst:</strong> Placera framsidan på örat och magnetkulan på baksidan – magneten håller stadigt.</p> \n<p><strong>Ta av:</strong> Dra försiktigt isär framsida och baksida.</p> \n<p><strong>Skötsel:</strong> Torka av med mjuk torr trasa. Använd inte rengöringsmedel på zirkonia.</p> \n<p><strong>Förvaring:</strong> Förvara separat i smyckeskrin så magneterna inte drar till sig damm.</p> \n<p><strong>Undvik:</strong> Bada eller duscha med dem – magneter kan korrodera.</p>" },
+        { "title": "Vanliga frågor", "description": "<p><strong>Håller magneten hela dagen?</strong><br>Ja, magnetstyrkan är dimensionerad för att hålla även under aktivitet.</p> \n<p><strong>Gör det ont?</strong><br>Nej, magnetfästet är skonsamt. Lätt tryckkänsla första timmarna men inget besvär.</p> \n<p><strong>Är det riktiga diamanter?</strong><br>Nej, zirkonia. Optiskt mycket lika diamanter men cirka 1/100 av priset.</p> \n<p><strong>Funkar de för känslig hud?</strong><br>Ja, nickelfri legering. Bra för känslig hud.</p>" },
+        { "title": "Kontakta oss", "description": "<p>Har du frågor om produkten? Vi hjälper gärna till.</p> \n<p>📧 <strong>E-post:</strong> info@fyndplats.com</p> \n<p>📞 <strong>Telefon:</strong> +46 (0) 736 630 990</p>" }
+      ],
+      "currency": "SEK",
+      "price": 44.99,
+      "discountedPrice": 44.99,
+      "stock": { "trackInventory": true, "quantity": 7206, "inventoryStatus": "IN_STOCK" },
+      "mediaMainUrl": "https://static.wixstatic.com/media/b379ce_9da6fae3311e45b788eb64a61b60cb0e~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg",
+      "mediaItems": [
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_9da6fae3311e45b788eb64a61b60cb0e~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_990264c030274b729da6a77cc9231779~mv2.jpg/v1/fit/w_1500,h_1500,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_c7593038af8444ef8df55213c3a732df~mv2.jpg/v1/fit/w_1500,h_1500,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_f5b8f29b795d40abb34faa0fdd35fe18~mv2.jpg/v1/fit/w_1200,h_1200,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_17029c73a9524227b8d55da0da3272be~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_5eedfcc927414029921b8a4e227ac4ad~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_75244311b5cd45158dabf0bb9826659d~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_735bdeb890bc43868ac8f58b0f482867~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_b5e0b23081884aa8a8fc01a3a0f362a9~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_564bb0d85d544a42b8decd915193e110~mv2.jpg/v1/fit/w_800,h_800,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_fc73f1ca1dc24027a80ffe871f7653e4~mv2.jpg/v1/fit/w_1500,h_1500,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_26dcf37e3f4d422e8a1b966796b1be16~mv2.jpg/v1/fit/w_1200,h_1200,q_90/file.jpg"},
+        {"type":"image","url":"https://static.wixstatic.com/media/b379ce_38e5c1316bdb43d283b5fbe377d4adf5~mv2.jpg/v1/fit/w_1200,h_1200,q_90/file.jpg"}
+      ],
+      "manageVariants": true,
+      "productOptions": [
+        {
+          "optionType": "drop_down",
+          "name": "Metallfärg",
+          "choices": [
+            { "value": "6mm Stil D", "description": "6mm Stil D", "visible": true, "inStock": true },
+            { "value": "6mm Stil B", "description": "6mm Stil B", "visible": true, "inStock": true },
+            { "value": "6mm Stil C", "description": "6mm Stil C", "visible": true, "inStock": true },
+            { "value": "6mm Stil A", "description": "6mm Stil A", "visible": true, "inStock": true }
+          ]
+        }
+      ],
+      "variants": [
+        { "choices": {"Metallfärg":"6mm Stil D"}, "sku": "FYND-SMY-002-01", "price": 42.99, "discountedPrice": 42.99, "weight": 0, "visible": true, "quantity": 6970, "trackQuantity": true },
+        { "choices": {"Metallfärg":"6mm Stil B"}, "sku": "FYND-SMY-002-02", "price": 28.99, "discountedPrice": 28.99, "weight": 0, "visible": true, "quantity": 121, "trackQuantity": true },
+        { "choices": {"Metallfärg":"6mm Stil C"}, "sku": "FYND-SMY-002-03", "price": 44.99, "discountedPrice": 44.99, "weight": 0, "visible": true, "quantity": 99, "trackQuantity": true },
+        { "choices": {"Metallfärg":"6mm Stil A"}, "sku": "FYND-SMY-002-04", "price": 28.99, "discountedPrice": 28.99, "weight": 0, "visible": true, "quantity": 16, "trackQuantity": true }
+      ],
+      "collectionIds": [
+        "423b892f-ac55-a13e-e296-4561f6914c36",
+        "6b5926fc-4c43-1121-71c7-8a1f25ddf9c3",
+        "a7e9dfa4-eb25-7841-a08c-b682b6cf3776",
+        "00000000-000000-000000-000000000001"
+      ]
+    }
+  ]
+}

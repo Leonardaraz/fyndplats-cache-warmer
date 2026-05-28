@@ -1,0 +1,55 @@
+import { generateKeyPairSync, createSign } from "node:crypto";
+import { describe, expect, it } from "vitest";
+import { parseWebhookBody, verifyJwtRs256 } from "./webhook";
+
+const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+const publicPem = publicKey.export({ type: "spki", format: "pem" }).toString();
+
+function b64url(input: string | Buffer): string {
+  return Buffer.from(input).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function signJwt(payload: Record<string, unknown>): string {
+  const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const body = b64url(JSON.stringify(payload));
+  const signer = createSign("RSA-SHA256");
+  signer.update(`${header}.${body}`);
+  signer.end();
+  const sig = b64url(signer.sign(privateKey));
+  return `${header}.${body}.${sig}`;
+}
+
+describe("verifyJwtRs256", () => {
+  it("verifies a correctly signed token", () => {
+    const token = signJwt({ hello: "world" });
+    expect(verifyJwtRs256(token, publicPem)).toEqual({ hello: "world" });
+  });
+
+  it("rejects a tampered token", () => {
+    const token = signJwt({ hello: "world" });
+    const tampered = token.slice(0, -4) + "AAAA";
+    expect(verifyJwtRs256(tampered, publicPem)).toBeNull();
+  });
+
+  it("rejects malformed tokens", () => {
+    expect(verifyJwtRs256("not.a.jwt", publicPem)).toBeNull();
+    expect(verifyJwtRs256("onlyonepart", publicPem)).toBeNull();
+  });
+});
+
+describe("parseWebhookBody", () => {
+  it("verifies + unwraps a Wix-style JWT with embedded data string", () => {
+    const inner = { id: "evt-1", slug: "created" };
+    const token = signJwt({ data: JSON.stringify(inner) });
+    expect(parseWebhookBody(token, publicPem)).toEqual(inner);
+  });
+
+  it("returns null when signature is invalid and a key is configured", () => {
+    const token = signJwt({ data: "{}" }).slice(0, -4) + "AAAA";
+    expect(parseWebhookBody(token, publicPem)).toBeNull();
+  });
+
+  it("parses raw JSON when no public key is configured (dev/test)", () => {
+    expect(parseWebhookBody(JSON.stringify({ id: "evt-2" }))).toEqual({ id: "evt-2" });
+  });
+});
