@@ -2,6 +2,7 @@ import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
 import local from "../products.json";
+import variantImages from "../data/variant-images.json";
 
 export type Product = {
   id: string;
@@ -115,10 +116,12 @@ function mapProduct(p: any): Product {
 //   3. Text-pills — sista fallback (storlek/material/etc).
 //
 // OBS: Wix V1-katalogen HAR per-choice-bilder för i stort sett alla produkter,
-// men @wix/stores-SDK:ns listfråga (queryProducts) släpper choice.media. Därför
-// hydrerar getProduct() options från reader-REST där bilderna följer med
-// (se fetchOptionsWithToken). Funktionen accepterar både SDK-shape (variant._id)
-// och REST-shape (variant.id) så den fungerar för båda källorna.
+// men @wix/stores-SDK:ns listfråga (queryProducts) släpper choice.media (och det
+// anonyma/publika API:t exponerar inte kopplingen variant→bild). Därför hydrerar
+// getProduct() bilderna från en statisk fil (data/variant-images.json) som är
+// exporterad en gång via autentiserat admin-API — ingen WIX_API_TOKEN behövs i
+// storefronten (se optionsForProduct). Funktionen accepterar både SDK-shape
+// (variant._id) och REST-shape (variant.id) så den fungerar för båda källorna.
 function extractOptions(raw: any): Product["options"] {
   const opt = (raw.productOptions || [])[0];
   if (!opt || (opt.choices || []).length < 2) return null;
@@ -140,43 +143,40 @@ function extractOptions(raw: any): Product["options"] {
   return choices.length >= 2 ? { name: opt.name, choices } : null;
 }
 
-// Site-id för Fyndplats V1-katalogen. Inte hemligt (publik site). Hårdkodad
-// fallback eftersom stale Vercel-env tidigare pekat fel (samma skäl som CLIENT_ID).
-const WIX_SITE_ID = process.env.WIX_SITE_ID || "8c62127f-c07a-4596-86b8-4e88b5cc502d";
-
-// Visitor-token (SDK) returnerar choice-objekt UTAN media → pickern faller då till
-// färg-swatch. Vi läser därför produkten server-side med en autentiserad
-// WIX_API_TOKEN (site API-key). Den körs bara i RSC/build och når ALDRIG
-// webbläsaren. Strikt additivt: saknas token, eller vid fel, faller vi tillbaka
-// på SDK-objektets options (färg-swatch-läget) → ingen regression.
-async function fetchOptionsWithToken(slug: string, sdkItem: any): Promise<Product["options"]> {
-  const token = process.env.WIX_API_TOKEN;
-  if (!token) return extractOptions(sdkItem);
-  try {
-    const resp = await fetch("https://www.wixapis.com/stores-reader/v1/products/query", {
-      method: "POST",
-      headers: {
-        Authorization: token,
-        "wix-site-id": WIX_SITE_ID,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: { filter: JSON.stringify({ slug }), paging: { limit: 1 } },
-        includeVariants: true,
-      }),
-    });
-    if (resp.ok) {
-      const data: any = await resp.json();
-      const full = (data.products || [])[0];
-      const opts = full ? extractOptions(full) : null;
-      if (opts) return opts;
-    } else {
-      console.warn("[wix] admin reader-query svarade", resp.status);
+// Statisk variant→bild-mappning (data/variant-images.json), exporterad en gång via
+// autentiserat Wix-admin-API. Förberäknas till slug → (choice-värde → bild-URL).
+type VariantImageFile = {
+  products: Record<string, { options: { name: string; choices: { value: string; image: string | null }[] }[] }>;
+};
+const variantImageBySlug: Record<string, Record<string, string>> = (() => {
+  const out: Record<string, Record<string, string>> = {};
+  const all = (variantImages as VariantImageFile).products || {};
+  for (const [slug, entry] of Object.entries(all)) {
+    const m: Record<string, string> = {};
+    for (const o of entry.options || []) {
+      for (const c of o.choices || []) {
+        if (c.image && !m[c.value]) m[c.value] = c.image;
+      }
     }
-  } catch (e) {
-    console.warn("[wix] admin-hydrering av options misslyckades:", (e as Error).message);
+    out[slug] = m;
   }
-  return extractOptions(sdkItem);
+  return out;
+})();
+
+// Hydrerar per-choice-bilder från den statiska mappningen så variant-pickern kan
+// köra bild-läge utan WIX_API_TOKEN. Strikt additivt: saknas produkten i mappen
+// (eller ett choice-värde), faller vi tillbaka på SDK-objektets options
+// (färg-swatch-/text-läget) → ingen regression.
+function optionsForProduct(slug: string, sdkItem: any): Product["options"] {
+  const opts = extractOptions(sdkItem);
+  if (!opts) return null;
+  const imgByValue = variantImageBySlug[slug];
+  if (imgByValue) {
+    for (const ch of opts.choices) {
+      if (!ch.image && imgByValue[ch.label]) ch.image = imgByValue[ch.label];
+    }
+  }
+  return opts;
 }
 
 let productsPromise: Promise<Product[]> | null = null;
@@ -216,7 +216,7 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
       const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
       if (res.items?.[0]) {
         const prod = mapProduct(res.items[0]);
-        prod.options = await fetchOptionsWithToken(slug, res.items[0]);
+        prod.options = optionsForProduct(slug, res.items[0]);
         prod.descriptionHtml = res.items[0].description || "";
         return prod;
       }
