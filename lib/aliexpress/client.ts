@@ -41,15 +41,6 @@ function sign(params: Record<string, string>, appSecret: string): string {
     return createHmac("sha256", appSecret).update(sorted).digest("hex").toUpperCase();
 }
 
-function signRestRequest(methodPath: string, params: Record<string, string>, appSecret: string): string {
-    let basestring = methodPath;
-    basestring += Object.keys(params)
-      .sort()
-      .map((k) => `${k}${params[k]}`)
-      .join("");
-    return createHmac("sha256", appSecret).update(basestring).digest("hex").toUpperCase();
-}
-
 function buildParams(
     method: string,
     bizParams: Record<string, string>,
@@ -153,25 +144,32 @@ function unwrapAliExpressResponse(raw: unknown, opName: string): Record<string, 
     return data;
 }
 
-export async function exchangeCode(code: string, _redirectUri: string): Promise<DsTokenResponse> {
+export async function exchangeCode(code: string, redirectUri: string): Promise<DsTokenResponse> {
     const appKey = process.env.ALIEXPRESS_APP_KEY;
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
     if (!appKey || !appSecret) throw new Error("App-nycklar saknas");
 
-  // AliExpress signed-RPC: signaturen är HMAC-SHA256 över sorted+concat(key+value)
-  // av alla request-params UTAN path-prefix. (Tidigare antagande att REST-endpoints
-  // krävde path-prefix gav IncompleteSignature-fel från AliExpress.)
-  const params: Record<string, string> = {
-        app_key: appKey,
+  // Standard OAuth2 token-exchange: POST /oauth/token med x-www-form-urlencoded.
+  // Tidigare försök med signed-RPC /rest/auth/token/create gav IncompleteSignature
+  // oavsett om path-prefix användes eller inte — AliExpress använder vanlig
+  // OAuth2 för token-utbyte på Singapore-regionen (api-sg.aliexpress.com).
+  const body = new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: appKey,
+        client_secret: appSecret,
         code,
-        sign_method: "sha256",
-        timestamp: String(Date.now()),
-  };
-    const signature = sign(params, appSecret);
-    const query = new URLSearchParams({ ...params, sign: signature }).toString();
+        redirect_uri: redirectUri,
+  });
 
-  const res = await fetch(`${REST_BASE}/auth/token/create?${query}`, { method: "POST" });
-    if (!res.ok) throw new Error(`Token-utbyte misslyckades: ${res.status}`);
+  const res = await fetch(`${AUTH_BASE}/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString(),
+  });
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Token-utbyte misslyckades (${res.status}): ${text.slice(0, 300)}`);
+    }
     return unwrapAliExpressResponse(await res.json(), "exchangeCode") as unknown as DsTokenResponse;
 }
 
@@ -180,17 +178,22 @@ export async function refreshAccessToken(refreshToken: string): Promise<DsTokenR
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
     if (!appKey || !appSecret) throw new Error("App-nycklar saknas");
 
-  const params: Record<string, string> = {
-        app_key: appKey,
+  const body = new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: appKey,
+        client_secret: appSecret,
         refresh_token: refreshToken,
-        sign_method: "sha256",
-        timestamp: String(Date.now()),
-  };
-    const signature = sign(params, appSecret);
-    const query = new URLSearchParams({ ...params, sign: signature }).toString();
+  });
 
-  const res = await fetch(`${REST_BASE}/auth/token/refresh?${query}`, { method: "POST" });
-    if (!res.ok) throw new Error(`Token-refresh misslyckades: ${res.status}`);
+  const res = await fetch(`${AUTH_BASE}/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString(),
+  });
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Token-refresh misslyckades (${res.status}): ${text.slice(0, 300)}`);
+    }
     return unwrapAliExpressResponse(await res.json(), "refreshAccessToken") as unknown as DsTokenResponse;
 }
 
