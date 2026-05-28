@@ -1,17 +1,17 @@
 // Wix Velo backend - händelsehanterare för Wix Stores.
 // Triggar "Ditt paket är på väg!"-mejlet automatiskt när du markerar en order
-// som skickad i Wix Stores (med eller utan spårningsnummer).
+// som skickad i Wix Stores, OCH registrerar tracking-numret hos 17TRACK så att
+// /sparning-sidan kan visa carrier-events direkt när 17TRACK plockat upp dem.
 //
 // === INSTALLATION ===
-// 1. Öppna Fyndplats i Wix Editor / Studio (https://manage.wix.com/dashboard/<siteId>/edit)
+// 1. Öppna Fyndplats i Wix Editor / Studio
 // 2. Aktivera Velo om det inte är på (Dev Mode → Enable Velo)
-// 3. I vänster meny: Code Files → backend → events.js (skapa filen om den inte finns)
+// 3. I vänster meny: Code Files → backend → events.js
 // 4. Klistra in HELA innehållet i den här filen
 // 5. Save → Publish
-//
-// När du nästa gång markerar en order som skickad i Wix Stores → automatiskt mejl.
 
 import { triggeredEmails } from "wix-crm-backend";
+import { registerTracking } from "backend/tracking";
 
 const TEMPLATE_ON_THE_WAY = "VKnRVoH";   // "Ditt paket är på väg!"
 const TEMPLATE_DELIVERED  = "VKnSIqs";   // "Ditt paket är framme!"
@@ -34,37 +34,46 @@ export async function wixStores_onFulfillmentCreated(event) {
   }
 
   const tracking = event?.fulfillment?.trackingInfo ?? {};
+  const trackingNumber = tracking.trackingNumber || "";
 
   const variables = {
     orderNumber: String(order.number ?? order._id ?? ""),
     customerName: order.buyerInfo.firstName || "",
-    trackingNumber: tracking.trackingNumber || "",
+    trackingNumber,
     trackingLink: tracking.trackingLink || "",
     shippingProvider: tracking.shippingProvider || "",
   };
 
+  // 1. Skicka "På väg"-mejlet.
   try {
     await triggeredEmails.emailContact(TEMPLATE_ON_THE_WAY, contactId, { variables });
     console.log(`[on-the-way] OK order #${variables.orderNumber} -> ${contactId}`);
   } catch (err) {
     console.error(`[on-the-way] FEL order #${variables.orderNumber}:`, err);
   }
+
+  // 2. Registrera hos 17TRACK så carrier-events börjar pollas/pushas.
+  if (trackingNumber) {
+    try {
+      await registerTracking(trackingNumber, order._id, tracking.shippingProvider);
+      console.log(`[17track] registrerad ${trackingNumber} för order ${order.number}`);
+    } catch (err) {
+      console.error(`[17track] kunde inte registrera ${trackingNumber}:`, err);
+    }
+  }
 }
 
 /**
  * Frivilligt: avfyras när en fulfillment uppdateras (t.ex. om du lägger till
- * eller ändrar spårningsnumret efteråt). Kommentera bort om du inte vill
- * att kunden får ett nytt mejl vid spårningsändring.
+ * eller ändrar spårningsnumret efteråt).
  */
 // export async function wixStores_onFulfillmentUpdated(event) {
 //   await wixStores_onFulfillmentCreated(event);
 // }
 
 /**
- * "Ditt paket är framme!" — Wix har INGEN inbyggd trigger för "delivered"
- * eftersom Wix inte vet när 17TRACK har sett att paketet kommit fram.
- * Den här hjälpfunktionen exporteras så att en HTTP-endpoint (se
- * http-functions.js) kan anropa den från en 17TRACK-webhook.
+ * "Ditt paket är framme!" — exporteras så att 17TRACK-webhooken
+ * (se http-functions.js) kan trigga mejlet när status = DELIVERED.
  */
 export async function sendDeliveredEmail(contactId, orderNumber, customerName) {
   if (!contactId) throw new Error("contactId krävs");
