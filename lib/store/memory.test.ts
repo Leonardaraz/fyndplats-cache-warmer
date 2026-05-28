@@ -47,4 +47,35 @@ describe("MemoryStore", () => {
     expect(log[0].kind).toBe("order");
     expect(log[1].kind).toBe("import");
   });
+
+  it("returns null AliExpress tokens before any save", async () => {
+    const s = new MemoryStore();
+    expect(await s.getAliExpressTokens()).toBeNull();
+  });
+
+  it("round-trips AliExpress tokens (last-write-wins)", async () => {
+    const s = new MemoryStore();
+    const expiresAt = new Date("2026-06-01T12:00:00Z");
+    await s.saveAliExpressTokens({
+      accessToken: "test-access-1",
+      refreshToken: "test-refresh-1",
+      expiresAt,
+    });
+    expect(await s.getAliExpressTokens()).toEqual({
+      accessToken: "test-access-1",
+      refreshToken: "test-refresh-1",
+      expiresAt,
+    });
+
+    // Overwrite-semantik (Task B kommer skriva nya tokens efter refresh).
+    const newExpiry = new Date("2026-06-02T12:00:00Z");
+    await s.saveAliExpressTokens({
+      accessToken: "test-access-2",
+      refreshToken: "test-refresh-2",
+      expiresAt: newExpiry,
+    });
+    const got = await s.getAliExpressTokens();
+    expect(got?.accessToken).toBe("test-access-2");
+    expect(got?.expiresAt).toEqual(newExpiry);
+  });
 });
