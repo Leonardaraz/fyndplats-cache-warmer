@@ -167,6 +167,52 @@ export async function refreshAccessToken(refreshToken: string): Promise<DsTokenR
     return (await res.json()) as DsTokenResponse;
 }
 
+/**
+ * Refreshar access_token via AliExpress signed-RPC och persisterar resultatet
+ * i store. Validerar svar-shape så vi inte sparar Invalid Date eller tomma
+ * fält. Behåller gammal refresh_token om svaret inte innehåller en ny
+ * (vissa AliExpress-flöden roterar inte refresh_token vid varje anrop).
+ *
+ * Returnerar de färska tokensen så caller kan använda dem direkt utan att
+ * läsa från store igen (snabbare + ingen eventual-consistency-risk).
+ */
+export async function refreshAndPersist(): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: Date;
+}> {
+    const store = getStore();
+    const current = await store.getAliExpressTokens();
+    if (!current) {
+        throw new Error("Inga AliExpress-tokens i store. Initial OAuth via /api/aliexpress/auth krävs.");
+    }
+
+    const fresh = await refreshAccessToken(current.refreshToken);
+
+    if (
+        typeof fresh.access_token !== "string"
+        || !fresh.access_token
+        || typeof fresh.expires_in !== "number"
+        || !Number.isFinite(fresh.expires_in)
+        || fresh.expires_in <= 0
+    ) {
+        throw new Error(
+            "AliExpress refresh returnerade ofullständigt svar (saknar access_token eller giltig expires_in).",
+        );
+    }
+
+    const expiresAt = new Date(Date.now() + fresh.expires_in * 1000);
+    const refreshToken = fresh.refresh_token || current.refreshToken;
+
+    await store.saveAliExpressTokens({
+        accessToken: fresh.access_token,
+        refreshToken,
+        expiresAt,
+    });
+
+    return { accessToken: fresh.access_token, refreshToken, expiresAt };
+}
+
 interface RawProduct {
     product?: {
           product_id?: number;
