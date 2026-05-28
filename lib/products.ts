@@ -117,7 +117,7 @@ function mapProduct(p: any): Product {
 // OBS: Wix V1-katalogen HAR per-choice-bilder för i stort sett alla produkter,
 // men @wix/stores-SDK:ns listfråga (queryProducts) släpper choice.media. Därför
 // hydrerar getProduct() options från reader-REST där bilderna följer med
-// (se fetchOptionsFromReader). Funktionen accepterar både SDK-shape (variant._id)
+// (se fetchOptionsWithToken). Funktionen accepterar både SDK-shape (variant._id)
 // och REST-shape (variant.id) så den fungerar för båda källorna.
 function extractOptions(raw: any): Product["options"] {
   const opt = (raw.productOptions || [])[0];
@@ -140,30 +140,41 @@ function extractOptions(raw: any): Product["options"] {
   return choices.length >= 2 ? { name: opt.name, choices } : null;
 }
 
-// Hämtar full produkt från Wix V1 reader-REST där per-choice-media följer med
-// (SDK:ns listobjekt saknar choice.media → annars faller pickern till färgcirklar).
-// Strikt additivt: vid fel/avsaknad faller vi tillbaka på SDK-objektets options.
-async function fetchOptionsFromReader(slug: string, sdkItem: any): Promise<Product["options"]> {
+// Site-id för Fyndplats V1-katalogen. Inte hemligt (publik site). Hårdkodad
+// fallback eftersom stale Vercel-env tidigare pekat fel (samma skäl som CLIENT_ID).
+const WIX_SITE_ID = process.env.WIX_SITE_ID || "8c62127f-c07a-4596-86b8-4e88b5cc502d";
+
+// Visitor-token (SDK) returnerar choice-objekt UTAN media → pickern faller då till
+// färg-swatch. Vi läser därför produkten server-side med en autentiserad
+// WIX_API_TOKEN (site API-key). Den körs bara i RSC/build och når ALDRIG
+// webbläsaren. Strikt additivt: saknas token, eller vid fel, faller vi tillbaka
+// på SDK-objektets options (färg-swatch-läget) → ingen regression.
+async function fetchOptionsWithToken(slug: string, sdkItem: any): Promise<Product["options"]> {
+  const token = process.env.WIX_API_TOKEN;
+  if (!token) return extractOptions(sdkItem);
   try {
-    const resp: Response = await (wix as any).fetchWithAuth(
-      "https://www.wixapis.com/stores-reader/v1/products/query",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: { filter: JSON.stringify({ slug }), paging: { limit: 1 } },
-          includeVariants: true,
-        }),
+    const resp = await fetch("https://www.wixapis.com/stores-reader/v1/products/query", {
+      method: "POST",
+      headers: {
+        Authorization: token,
+        "wix-site-id": WIX_SITE_ID,
+        "Content-Type": "application/json",
       },
-    );
-    if (resp?.ok) {
+      body: JSON.stringify({
+        query: { filter: JSON.stringify({ slug }), paging: { limit: 1 } },
+        includeVariants: true,
+      }),
+    });
+    if (resp.ok) {
       const data: any = await resp.json();
       const full = (data.products || [])[0];
       const opts = full ? extractOptions(full) : null;
       if (opts) return opts;
+    } else {
+      console.warn("[wix] admin reader-query svarade", resp.status);
     }
   } catch (e) {
-    console.warn("[wix] reader-hydrering av options misslyckades:", (e as Error).message);
+    console.warn("[wix] admin-hydrering av options misslyckades:", (e as Error).message);
   }
   return extractOptions(sdkItem);
 }
@@ -205,7 +216,7 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
       const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
       if (res.items?.[0]) {
         const prod = mapProduct(res.items[0]);
-        prod.options = await fetchOptionsFromReader(slug, res.items[0]);
+        prod.options = await fetchOptionsWithToken(slug, res.items[0]);
         prod.descriptionHtml = res.items[0].description || "";
         return prod;
       }
