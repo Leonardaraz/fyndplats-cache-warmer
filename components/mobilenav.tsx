@@ -12,7 +12,7 @@ const links = [
   { href: "/kundtjanst", label: "Kundtjänst" },
 ];
 
-export function MobileNav() {
+export function MobileNav({ collections = [] }: { collections?: { name: string; slug: string }[] }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -36,11 +36,23 @@ export function MobileNav() {
           <button onClick={() => setOpen(false)} aria-label="Stäng">✕</button>
         </div>
         <SearchBox />
-        <nav className="mm-links">
-          {links.map((l) => (
-            <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
-          ))}
-        </nav>
+        <div className="mm-scroll">
+          <nav className="mm-links">
+            {links.map((l) => (
+              <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
+            ))}
+          </nav>
+          {collections.length > 0 && (
+            <div className="mm-cats">
+              <div className="mm-cats-head">Kategorier</div>
+              {collections.slice(0, 10).map((c) => (
+                <a key={c.slug} href={`/kategori/${c.slug}`} onClick={() => setOpen(false)}>
+                  {c.name}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="mm-social">
           <a className="soc-ig" href="https://www.instagram.com/fyndplats/" target="_blank" rel="noopener noreferrer" aria-label="Fyndplats på Instagram">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.8" /><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" /><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" /></svg>

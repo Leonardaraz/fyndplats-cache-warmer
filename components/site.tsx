@@ -1,4 +1,5 @@
 import { CartButton } from "./cart";
+import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
 import { MobileNav } from "./mobilenav";
 import { getCollections } from "../lib/products";
@@ -66,8 +67,9 @@ export async function SiteHeader() {
             <a href="/butik">Butik</a>
             {HEADER_NAV.map((n) => <a key={n.label} href={catHref(n.match)}>{n.label}</a>)}
           </nav>
+          <WishlistButton />
           <CartButton />
-          <MobileNav />
+          <MobileNav collections={cats} />
         </div>
       </header>
     </>

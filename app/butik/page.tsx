@@ -1,5 +1,6 @@
 import { getProducts, getCollections, mixByCategory } from "../../lib/products";
 import { ShopBrowser } from "../../components/shopbrowser";
+import { CatNav } from "../../components/catnav";
 import { pageMeta } from "../../lib/seo";
 
 export const metadata = pageMeta(
@@ -14,6 +15,10 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
   const active = collections.find((c) => c.slug === kategori);
   const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : mixByCategory(products, collections);
 
+  // Räkna produkter per kategori (för CatNav-badges)
+  const counts = new Map<string, number>();
+  for (const p of products) for (const cid of (p.collectionIds || [])) counts.set(cid, (counts.get(cid) || 0) + 1);
+
   return (
     <>
       <section className="sec">
@@ -24,14 +29,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
             <p>{active ? `Allt inom ${active.name}` : "Filtrera på pris och sortera – fler fynd varje vecka."}</p>
           </div>
 
-          {collections.length > 0 && (
-            <div className="catbar">
-              <a className={`chip ${!active ? "active" : ""}`} href="/butik">Alla</a>
-              {collections.map((c) => (
-                <a key={c.id} className={`chip ${active?.id === c.id ? "active" : ""}`} href={`/kategori/${c.slug}`}>{c.name}</a>
-              ))}
-            </div>
-          )}
+          <CatNav collections={collections} productCounts={counts} totalProducts={products.length} activeSlug={active?.slug} />
 
           <ShopBrowser products={list} />
         </div>

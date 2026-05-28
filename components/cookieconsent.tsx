@@ -21,9 +21,13 @@ export function CookieConsent() {
 
   return (
     <div className="cookiebar" role="dialog" aria-label="Cookie-samtycke" aria-live="polite">
+      <div className="cookiehead">
+        <span className="cookie-icon" aria-hidden>🍪</span>
+        <strong>Cookies på Fyndplats</strong>
+      </div>
       <p className="cookietext">
-        Vi använder cookies för att ge dig en bättre upplevelse och en fungerande varukorg. Du väljer
-        själv vad du godkänner – läs mer i vår <a href="/sekretesspolicy">sekretesspolicy</a>.
+        Vi använder cookies för varukorg, önskelista och statistik. Du väljer vad du godkänner – läs mer i vår{" "}
+        <a href="/sekretesspolicy">sekretesspolicy</a>.
       </p>
       <div className="cookiebtns">
         <button className="ck-ghost" onClick={() => choose("necessary")}>Endast nödvändiga</button>

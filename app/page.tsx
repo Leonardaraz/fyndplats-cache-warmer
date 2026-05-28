@@ -2,15 +2,6 @@ import Image from "next/image";
 import { getProducts, getCollections, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 
-const categories = [
-  { label: "Elektronik", slug: "elektronik", img: "https://static.wixstatic.com/media/nsplsh_677a396e6a64307a596251~mv2_d_4543_2927_s_4_2.jpg/v1/fill/w_487,h_315,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/Image%20by%20Davide%20Boscolo.jpg" },
-  { label: "Skönhet & Hälsa", slug: "skonhet-och-halsa", img: "https://static.wixstatic.com/media/11062b_e28b14eefbfe42da87f53f3c36946e1d~mv2.jpg/v1/fill/w_471,h_315,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/yoga.jpg" },
-  { label: "Mode & Accessoarer", slug: "mode-och-accessoarer", img: "https://static.wixstatic.com/media/11062b_367cd9d02f1f411e9e87707d9cb5a4fa~mv2_d_2717_1811_s_2.jpg/v1/fill/w_487,h_325,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/Modern%20Watch.jpg" },
-  { label: "Hem & Inredning", slug: "hem-och-inredning", img: "https://static.wixstatic.com/media/7e702b9782b74bd0a817aa0ef9c17a67.jpg/v1/fill/w_476,h_315,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/Vardagsrum.jpg" },
-  { label: "Husdjur", slug: "husdjur", img: "https://static.wixstatic.com/media/11062b_55e976feb9ef42ae87ff8eef2269e582~mv2.jpg/v1/fill/w_471,h_315,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/Hund%20och%20katt%20i%20kontakt.jpg" },
-  { label: "Barn & Familj", slug: "barn-och-familj", img: "https://static.wixstatic.com/media/11062b_568ec9bc56854149aa93379800659d18~mv2.jpeg/v1/fill/w_487,h_325,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/F%C3%A4rgglada%20leksaker.jpeg" },
-];
-
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "OnlineStore",
@@ -41,10 +32,93 @@ export default async function Home() {
     if (!usedHero.has(p.slug) && p.img) { heroProducts.push(p); usedHero.add(p.slug); }
   }
   const products = mixByCategory(allProducts.filter((p) => !usedHero.has(p.slug)), cols).slice(0, 8);
-  const catHref = (label: string) => {
-    const c = cols.find((x) => x.name.toLowerCase() === label.toLowerCase());
-    return c ? `/kategori/${c.slug}` : "/butik";
+
+  // Premium kategori-mosaik: auto-väljer topp-6 kategorier från faktiska produktantal,
+  // men bildvalen är HANDPLOCKADE (PREMIUM_CURATION) efter visuell granskning — inga
+  // produktbilder med text-overlays, brand-loggor eller plastförpackningar.
+  // Fallback-logik om en kategori saknar curated picks: hoppa över denylist,
+  // sedan ta första bästa, sist allt.
+  const PREMIUM_CURATION: Record<string, string[]> = {
+    "Hem & Inredning": [
+      "12-pack-hjarteballonger-roda-och-peach",
+      "manuell-mathackare",
+      "astronaut-stjarnprojektor",
+      "knivslip-4-steg",
+    ],
+    "Elektronik": [
+      "elektrisk-mjolkskummare",
+      "elektrisk-vinoppnare",
+      "mini-luftfuktare",
+      "usb-koppvarmare",
+    ],
+    "Lek, Bädd & Tillbehör": [
+      "napphallare-i-silikon-och-tra-saker",
+      "traleksak-med-bondgardsdjur-stapel-och-balansleksak",
+      "handgjord-napphallare-i-tra-virkad-kanin",
+      "montessori-koksleksak-i-tra-pedagogiskt-kokset",
+    ],
+    "Barn & Familj": [
+      "montessori-musikset-i-tra-5-delars",
+      "babygym-i-tra-stabil-aktivitetsstallning",
+      "montessori-musikleksaker-i-tra-pedagogiskt-instrumentset",
+      "kaffemaskin-i-tra-leksaksset-for-barn",
+    ],
+    "Kropp & Välbefinnande": [
+      "hallningskorrigerare-ryggstod",
+      "elektrisk-fotfil",
+      "elektrisk-munduschare",
+      "spikmatta-akupressurmatta-kudde-rygg-nacke",
+    ],
+    "Köksredskap & Tillbehör": [
+      "manuell-mathackare",
+      "knivslip-4-steg",
+      "keramisk-kaffekopp-stilren-handgjord-vintagekopp",
+      "vinkylare-med-luftare-och-upphallare-rostfritt",
+    ],
   };
+  const MOSAIC_DENYLIST = new Set<string>([
+    "sladdlos-handdammsugare-bil", "rgb-led-slinga", "digital-stektermometer",
+    "tradlos-ergonomisk-mus-4000-dpi-99", "automatisk-tvaldispenser-touchless-sensor-skum",
+    "doktorsset-i-silikon-pedagogisk-leksak", "tragavobox-for-bebis-handgjort-presentset",
+    "massagepistol-led-skarm", "elektrisk-sonisk-tandborste",
+    "tandgnisselskena-for-nattbruk-och-tandskydd",
+    "tandblekningsremsor-effektiv-hemmablekning-med-mintsmak",
+    "whiskey-stenar-i-rostfritt-stal-4", "oljesprayer-glas-2-i-1",
+    "arcade-basketbollspel-for-hemmet-justerbart-stabil",
+    "barnens-bilformade-lektalt-inomhus-playhouse-hopfallbart",
+  ]);
+  const catCounts = new Map<string, number>();
+  for (const p of allProducts) for (const cid of (p.collectionIds || [])) catCounts.set(cid, (catCounts.get(cid) || 0) + 1);
+  const catTiles = cols
+    .map((c) => ({ ...c, count: catCounts.get(c.id) || 0 }))
+    .filter((c) => c.count >= 4)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6)
+    .map((c) => {
+      const inCat = allProducts.filter((p) => p.img && (p.collectionIds || []).includes(c.id));
+      const slugMap = new Map(inCat.map((p) => [p.slug, p]));
+      const mosaic: typeof inCat = [];
+      const used = new Set<string>();
+      // 1. Curated picks
+      for (const slug of PREMIUM_CURATION[c.name] || []) {
+        const p = slugMap.get(slug);
+        if (p && !used.has(slug)) { mosaic.push(p); used.add(slug); if (mosaic.length >= 4) break; }
+      }
+      // 2. Fill with non-denylisted
+      if (mosaic.length < 4) for (const p of inCat) {
+        if (used.has(p.slug) || MOSAIC_DENYLIST.has(p.slug)) continue;
+        mosaic.push(p); used.add(p.slug);
+        if (mosaic.length >= 4) break;
+      }
+      // 3. Last resort
+      if (mosaic.length < 4) for (const p of inCat) {
+        if (used.has(p.slug)) continue;
+        mosaic.push(p); used.add(p.slug);
+        if (mosaic.length >= 4) break;
+      }
+      return { ...c, mosaic };
+    });
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -97,23 +171,35 @@ export default async function Home() {
         </div>
       </div>
 
-      <section className="sec" id="kategorier">
-        <div className="container">
-          <div className="sechead">
-            <div className="eyebrow">Utforska</div>
-            <h2>Handla efter kategori</h2>
-            <p>Hitta dina fynd snabbt – sex populära kategorier.</p>
+      {catTiles.length > 0 && (
+        <section className="sec" id="kategorier">
+          <div className="container">
+            <div className="sechead">
+              <div className="eyebrow">Utforska</div>
+              <h2>Handla efter kategori</h2>
+              <p>Hitta dina fynd snabbt – sortimentets största kategorier.</p>
+            </div>
+            <div className="catmosaic-grid">
+              {catTiles.map((c) => (
+                <a className="catmtile" key={c.id} href={`/kategori/${c.slug}`} aria-label={`${c.name}, ${c.count} produkter`}>
+                  <div className="catmtile-grid">
+                    {c.mosaic.map((p, i) => (
+                      <div className="catmtile-cell" key={p.slug + i}>
+                        <Image src={p.img} alt="" fill sizes="(max-width:540px) 50vw, (max-width:880px) 25vw, 17vw" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="catmtile-meta">
+                    <span className="catmtile-name">{c.name}</span>
+                    <span className="catmtile-count">{c.count} produkter</span>
+                    <span className="catmtile-arr" aria-hidden>→</span>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-          <div className="catgrid">
-            {categories.map((c) => (
-              <a className="cat" key={c.slug} href={catHref(c.label)}>
-                <Image className="catimg" src={c.img} alt={c.label} fill sizes="(max-width:540px) 100vw, (max-width:880px) 50vw, 33vw" />
-                <div className="lbl">{c.label}<span className="arr">→</span></div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="sec" id="produkter" style={{ paddingTop: 0 }}>
         <div className="container">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProducts, getCollections } from "../../../lib/products";
 import { ProductCard } from "../../../components/productcard";
+import { CatNav } from "../../../components/catnav";
 import { pageMeta } from "../../../lib/seo";
 
 export async function generateStaticParams() {
@@ -11,14 +12,20 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const cols = await getCollections();
+  const [cols, products] = await Promise.all([getCollections(), getProducts()]);
   const c = cols.find((x) => x.slug === slug);
   if (!c) return { title: "Kategori" };
-  return pageMeta(
+  const base = pageMeta(
     c.name,
     `Handla ${c.name} hos Fyndplats – kvalitetsprodukter till låga priser. Fri frakt över 499 kr.`,
     `/kategori/${c.slug}`
   );
+  // Per-kategori Open Graph-bild: första produktens bild i kategorin
+  const firstImg = products.find((p) => (p.collectionIds || []).includes(c.id))?.img;
+  if (firstImg) {
+    return { ...base, openGraph: { ...(base.openGraph as object), images: [firstImg] } };
+  }
+  return base;
 }
 
 export default async function Kategori({ params }: { params: Promise<{ slug: string }> }) {
@@ -27,6 +34,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   const active = collections.find((c) => c.slug === slug);
   if (!active) notFound();
   const list = products.filter((p) => p.collectionIds?.includes(active.id));
+
+  // Räkna produkter per kategori (för CatNav-badges)
+  const counts = new Map<string, number>();
+  for (const p of products) for (const cid of (p.collectionIds || [])) counts.set(cid, (counts.get(cid) || 0) + 1);
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -50,12 +61,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
             <p>{list.length} {list.length === 1 ? "produkt" : "produkter"}</p>
           </div>
 
-          <div className="catbar">
-            <a className="chip" href="/butik">Alla</a>
-            {collections.map((c) => (
-              <a key={c.id} className={`chip ${active.id === c.id ? "active" : ""}`} href={`/kategori/${c.slug}`}>{c.name}</a>
-            ))}
-          </div>
+          <CatNav collections={collections} productCounts={counts} totalProducts={products.length} activeSlug={active.slug} />
 
           <div className="prodgrid">
             {list.map((p) => (
