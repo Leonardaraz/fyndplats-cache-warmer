@@ -22,7 +22,7 @@ export default async function Home() {
   const HERO_CATS = ["Elektronik", "Hem & Inredning", "Kök & Matlagning", "Hudvård & Ansikte", "Mode & Accessoarer", "Husdjur", "Ljud & Hörlurar", "Dator & Gaming"];
   const HERO_CURATION: Record<string, string[]> = {
     "Elektronik": ["elektrisk-mjolkskummare", "elektrisk-vinoppnare", "mini-luftfuktare", "usb-koppvarmare"],
-    "Hem & Inredning": ["12-pack-hjarteballonger-roda-och-peach", "astronaut-stjarnprojektor", "manuell-mathackare", "knivslip-4-steg"],
+    "Hem & Inredning": ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design", "astronaut-stjarnprojektor", "manuell-mathackare"],
     "Kök & Matlagning": ["keramisk-kaffekopp-stilren-handgjord-vintagekopp", "vinkylare-med-luftare-och-upphallare-rostfritt", "manuell-mathackare"],
     "Hudvård & Ansikte": ["gua-sha-massagesten-i-akta-jade", "ansiktsroller-massageverktyg-for-ansikte-och-ogon", "ultratunna-foundationborstar-2-pack-precisionsborste"],
     "Mode & Accessoarer": [],
@@ -38,7 +38,7 @@ export default async function Home() {
   // sedan ta första bästa, sist allt.
   const PREMIUM_CURATION: Record<string, string[]> = {
     "Hem & Inredning": [
-      "12-pack-hjarteballonger-roda-och-peach",
+      "magnetisk-knivhallare-akacia-vaggmonterad-knivlist",
       "manuell-mathackare",
       "astronaut-stjarnprojektor",
       "knivslip-4-steg",
