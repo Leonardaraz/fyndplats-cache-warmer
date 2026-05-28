@@ -22,3 +22,6 @@ next-env.d.ts
 # misc
 .DS_Store
 *.log
+
+# migration progress-filer (genereras lokalt, ej i repo)
+/migration/_work/

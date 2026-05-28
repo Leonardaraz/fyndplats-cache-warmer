@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "migrate:dry": "node --experimental-strip-types --no-warnings=ExperimentalWarning migration/scripts/dry-run.ts"
+    "migrate:dry": "node --experimental-strip-types --no-warnings=ExperimentalWarning migration/scripts/dry-run.ts",
+    "migrate:dry-live": "node --experimental-strip-types --no-warnings=ExperimentalWarning migration/scripts/orchestrator.ts --dry-run",
+    "migrate:run": "node --experimental-strip-types --no-warnings=ExperimentalWarning migration/scripts/orchestrator.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
