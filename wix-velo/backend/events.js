@@ -55,7 +55,7 @@ export async function wixStores_onFulfillmentCreated(event) {
   // 2. Registrera hos 17TRACK så carrier-events börjar pollas/pushas.
   if (trackingNumber) {
     try {
-      await registerTracking(trackingNumber, order._id, tracking.shippingProvider);
+      await registerTracking(trackingNumber, order._id);
       console.log(`[17track] registrerad ${trackingNumber} för order ${order.number}`);
     } catch (err) {
       console.error(`[17track] kunde inte registrera ${trackingNumber}:`, err);

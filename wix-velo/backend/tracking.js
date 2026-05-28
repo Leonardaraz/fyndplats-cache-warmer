@@ -1,52 +1,40 @@
-// Wix Velo backend — 17TRACK-integration
-// Auto-registrerar tracking-nummer hos 17TRACK och cachar carrier-events i
-// Wix Data så att /sparning-sidan kan visa dem instant.
+// Wix Velo backend — 17TRACK v2.4-integration
+// Auto-registrerar tracking-nummer hos 17TRACK med svenska översättningar,
+// cachar carrier-events i Wix Data så att /sparning-sidan kan visa dem
+// instant och med komplett dropship-anonymisering.
 //
 // === FÖRBEREDELSE ===
-// 1) I Wix Editor: skapa Wix Data-collection "TrackingEvents" med fälten:
+// 1) I Wix Editor: skapa Wix Data-collection "TrackingEvents":
 //    - trackingNumber (Text, indexerad, unik)
 //    - orderId        (Text, indexerad)
-//    - status         (Text)            // "registered"|"in_transit"|"out_for_delivery"|"delivered"|"alert"|"undelivered"
-//    - statusCode     (Number)          // 17TRACK numerisk kod (10/20/30/35/40/50)
-//    - carrier        (Text)
-//    - events         (Object)          // array [{time, description, location}]
+//    - status         (Text)         // 17TRACK string enum
+//    - subStatus      (Text)
+//    - carrier        (Text)         // alltid "Fyndplats Frakt"
+//    - events         (Object)       // array
+//    - milestone      (Object)       // array av key_stage + time_iso
 //    - lastFetchedAt  (Date)
 //    - deliveredAt    (Date) (kan vara tom)
-// 2) Sätt collection-permissions: Read = Anyone, Write = Admin (vi skriver
-//    bara från Velo-backend som har full access).
-// 3) Lägg till `SEVENTEEN_TRACK_API_KEY` i Wix Secrets Manager.
+// 2) Permissions: Read=Anyone, Write=Admin
+// 3) Wix Secrets Manager: lägg SEVENTEEN_TRACK_API_KEY
 
 import { fetch } from "wix-fetch";
 import wixData from "wix-data";
 import { getSecret } from "wix-secrets-backend";
 
 const COLLECTION = "TrackingEvents";
-const API_BASE = "https://api.17track.net/track/v2.2";
+const API_BASE = "https://api.17track.net/track/v2.4";
 
-// Vi visar ALDRIG ursprungslandet eller leverantörens carrier-namn för
-// kunden — paketet ska se ut att komma från "Fyndplats Frakt". Den här listan
-// matchar mot 17TRACK:s providers[].provider.country och events[].location för
-// att filtrera bort allt utländskt tills paketet är i destinationslandet.
+// Dropship-anonymisering — provider[address.country] mot dessa = filtrera bort
 const ORIGIN_COUNTRIES = ["CN", "HK", "TW", "SG", "JP", "KR", "VN", "TH", "MY", "ID"];
 const DESTINATION_COUNTRY = "SE";
 const PUBLIC_CARRIER_NAME = "Fyndplats Frakt";
 
-// Heuristik: dölj events vars beskrivning eller plats nämner ursprungsland/
-// känsliga ortsnamn. Vid minsta osäkerhet → dölj. Hellre färre rader än läckor.
-const LEAKY_PATTERN = /\b(china|chinese|hong\s?kong|cainiao|shenzhen|guangzhou|shanghai|beijing|shantou|shatian|yiwu|aliexpress|asia|asian|origin\s+country|country\s+of\s+origin|departed\s+from\s+(?:origin|country)|outbound|inbound\s+at\s+(?:origin|sorting))\b/i;
+// Backup-regex för rader som råkar slinka igenom country-filtret
+const LEAKY_PATTERN = /\b(china|chinese|hong\s?kong|cainiao|shenzhen|guangzhou|shanghai|beijing|shantou|shatian|yiwu|aliexpress)\b/i;
 
-// 17TRACK status-kod → vårt internformat (matchar stegindikatorn på sidan).
-function mapStatus(code) {
-  switch (Number(code)) {
-    case 10: return { status: "in_transit",       step: "shipped"        };
-    case 20: return { status: "pickup",           step: "shipped"        };
-    case 30: return { status: "undelivered",      step: "out_for_delivery" };
-    case 35: return { status: "alert",            step: "out_for_delivery" };
-    case 40: return { status: "delivered",        step: "delivered"      };
-    case 50: return { status: "expired",          step: "alert"          };
-    default: return { status: "registered",       step: "packed"         };
-  }
-}
+// ---------------------------------------------------------------------------
+// API-anrop
+// ---------------------------------------------------------------------------
 
 async function callApi(path, body) {
   const apiKey = await getSecret("SEVENTEEN_TRACK_API_KEY");
@@ -62,95 +50,130 @@ async function callApi(path, body) {
   return res.json();
 }
 
-/**
- * Registrerar ett tracking-nummer hos 17TRACK och sparar en placeholder i
- * Wix Data så att sidan kan visa "Registrerad" omedelbart. Idempotent —
- * registreras redan numret blir det en no-op, och vi crashar inte.
- */
-export async function registerTracking(trackingNumber, orderId, carrier) {
+// ---------------------------------------------------------------------------
+// Registrering — med svenska översättningar
+// ---------------------------------------------------------------------------
+
+export async function registerTracking(trackingNumber, orderId) {
   if (!trackingNumber) return;
 
-  // 1. Placeholder i Wix Data (visas direkt på /sparning).
+  // 1. Placeholder i Wix Data så /sparning visar något direkt.
   const existing = await wixData.query(COLLECTION)
     .eq("trackingNumber", trackingNumber)
     .find({ suppressAuth: true });
 
-  const placeholder = {
-    trackingNumber,
-    orderId,
-    carrier: PUBLIC_CARRIER_NAME,
-    status: "registered",
-    statusCode: 0,
-    events: [],
-    lastFetchedAt: new Date(),
-  };
-
   if (existing.items.length === 0) {
-    await wixData.insert(COLLECTION, placeholder, { suppressAuth: true });
+    await wixData.insert(COLLECTION, {
+      trackingNumber,
+      orderId,
+      carrier: PUBLIC_CARRIER_NAME,
+      status: "InfoReceived",
+      subStatus: "InfoReceived",
+      events: [],
+      milestone: [],
+      lastFetchedAt: new Date(),
+    }, { suppressAuth: true });
   } else if (!existing.items[0].orderId && orderId) {
-    // Komplettera orderId om det saknas (t.ex. webhook hann först).
     await wixData.update(COLLECTION, { ...existing.items[0], orderId }, { suppressAuth: true });
   }
 
-  // 2. Skicka till 17TRACK.
+  // 2. Registrera hos 17TRACK med svenska översättningar + Sverige som dest.
   try {
-    await callApi("/register", [{ number: trackingNumber }]);
+    const result = await callApi("/register", [{
+      number: trackingNumber,
+      lang: "sv",
+      translation_mode: "UseThirdPartyServices",
+      destination_country: DESTINATION_COUNTRY,
+      order_no: orderId || undefined,
+    }]);
+    // -18019901 = redan registrerat — det är ok, vi gör inget av det.
+    const rejected = result?.data?.rejected || [];
+    for (const r of rejected) {
+      if (r?.error?.code !== -18019901) {
+        console.warn(`[17track] rejected ${trackingNumber}:`, r.error);
+      }
+    }
   } catch (err) {
     console.warn(`[17track] register ${trackingNumber}:`, err.message);
   }
 }
 
+// ---------------------------------------------------------------------------
+// Sanitering — filtrera bort ursprungsland & känsligt språk
+// ---------------------------------------------------------------------------
+
 /**
- * Plockar ut "destinations-providern" (svensk fraktbolag) ur 17TRACK-svaret
- * och kastar ursprungslandets provider (Kina/Cainiao). Om destinationen ännu
- * inte finns returneras tom array — sidan visar då "Spårningen aktiveras
- * inom kort" tills paketet faktiskt nått Sverige.
+ * Plockar ut destination-providern (providers[0] enligt 17TRACK-doc) eller
+ * filtrerar bort kända ursprungsländer. Om destinationen inte finns ännu
+ * returneras tom array → sidan visar "Spårningen aktiveras inom kort".
  */
 function sanitizeProviders(providers) {
-  if (!Array.isArray(providers)) return [];
-  // Föredra explicit destinationsprovider (country = SE).
+  if (!Array.isArray(providers) || providers.length === 0) return [];
+  // 17TRACK v2.4: providers[0] = destinationsbolaget för postförsändelser.
+  const first = providers[0];
+  if (first?.provider?.country?.toUpperCase() === DESTINATION_COUNTRY) return [first];
+  // Annars: explicit sök efter Sverige.
   const dest = providers.find((p) => p?.provider?.country?.toUpperCase() === DESTINATION_COUNTRY);
   if (dest) return [dest];
-  // Annars: filtrera bort kända ursprungsländer.
+  // Sista utvägen: filtrera bort kända ursprungsländer.
   return providers.filter(
     (p) => !ORIGIN_COUNTRIES.includes(String(p?.provider?.country || "").toUpperCase()),
   );
 }
 
+function isLeakyEvent(e) {
+  const country = String(e?.address?.country || "").toUpperCase();
+  if (ORIGIN_COUNTRIES.includes(country)) return true;
+  const text = `${e?.description || ""} ${e?.location || ""}`;
+  return LEAKY_PATTERN.test(text);
+}
+
 function sanitizeEvents(rawEvents) {
   return (rawEvents || [])
-    .filter((e) => {
-      const text = `${e.description || ""} ${e.location || ""} ${e.stage || ""}`;
-      return !LEAKY_PATTERN.test(text);
+    .filter((e) => !isLeakyEvent(e))
+    .map((e) => {
+      // Använd svensk översättning om 17TRACK lyckades översätta.
+      const translated = e.description_translation?.lang === "sv"
+        ? e.description_translation.description
+        : null;
+      return {
+        time: e.time_iso || e.time_utc || "",
+        // status = 17TRACK stage enum (page använder via translateStatus).
+        status: e.stage || e.sub_status || "",
+        description: (translated || e.description || e.stage || "Uppdatering")
+          .replace(LEAKY_PATTERN, "").trim() || "Uppdatering",
+        location: LEAKY_PATTERN.test(e.location || "") ? "" : (e.location || ""),
+        subStatus: e.sub_status || "",
+      };
     })
-    .map((e) => ({
-      // ISO 8601 — fungerar i alla browsers utan parse-strul.
-      time: e.time_iso || e.time_utc || e.time_raw || "",
-      // `status` är det engelska 17TRACK-stage-namnet (sidan översätter via
-      // translateStatus). `description` är den anonymiserade fritext-raden.
-      status: e.stage || e.sub_status || "",
-      description: (e.description || e.stage || "").replace(LEAKY_PATTERN, "").trim() || "Uppdatering",
-      location: LEAKY_PATTERN.test(e.location || "") ? "" : (e.location || ""),
-    }))
-    // Säkerställ kronologisk ordning (äldst först) — sidan reverserar själv.
+    // Kronologisk ordning (äldst först) — sidan reverserar själv för att visa
+    // senaste överst.
     .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
 }
 
 /**
- * Uppdaterar events i Wix Data utifrån 17TRACK webhook-payload.
- * 17TRACK skickar en JSON med `event` och `data.track_info` när status ändras.
+ * Tar emot 17TRACK v2.4 webhook-payload (TRACKING_UPDATED) eller svar från
+ * /gettrackinfo och uppdaterar TrackingEvents-collectionen.
  */
 export async function applyWebhookPayload(payload) {
-  const info = payload?.data?.track_info || payload?.data || {};
-  const trackingNumber = info.number || payload?.data?.number;
-  if (!trackingNumber) throw new Error("trackingNumber saknas i payloaden");
+  // Payloaden är {event, data} för webhook eller {data:{accepted:[...]}} från API.
+  const root = payload?.data?.accepted?.[0] || payload?.data || payload;
+  const trackingNumber = root?.number;
+  if (!trackingNumber) throw new Error("number saknas i payloaden");
 
-  const tracking = info.latest_status || {};
+  const info = root.track_info || {};
+  const latest = info.latest_status || {};
   const safeProviders = sanitizeProviders(info.tracking?.providers);
   const rawEvents = safeProviders.flatMap((p) => p.events || []);
   const events = sanitizeEvents(rawEvents);
-  const statusCode = Number(tracking.status_code ?? tracking.status ?? 0);
-  const { status, step } = mapStatus(statusCode);
+
+  // Milestones — filtrera ut ursprungs-events och konvertera till enklare form.
+  const milestone = (info.milestone || [])
+    .filter((m) => m.time_iso || m.time_utc)
+    .map((m) => ({ key_stage: m.key_stage, time: m.time_iso || m.time_utc }));
+
+  const status = latest.status || "InfoReceived";
+  const subStatus = latest.sub_status || "";
 
   const existing = await wixData.query(COLLECTION)
     .eq("trackingNumber", trackingNumber)
@@ -159,13 +182,13 @@ export async function applyWebhookPayload(payload) {
   const record = {
     trackingNumber,
     orderId: existing.items[0]?.orderId || "",
-    // ALDRIG fraktbolagets riktiga namn — alltid generisk Fyndplats-branding.
     carrier: PUBLIC_CARRIER_NAME,
     status,
-    statusCode,
+    subStatus,
     events,
+    milestone,
     lastFetchedAt: new Date(),
-    deliveredAt: status === "delivered" ? new Date() : existing.items[0]?.deliveredAt,
+    deliveredAt: status === "Delivered" ? new Date() : (existing.items[0]?.deliveredAt || null),
   };
 
   if (existing.items.length === 0) {
@@ -174,10 +197,13 @@ export async function applyWebhookPayload(payload) {
     await wixData.update(COLLECTION, { ...existing.items[0], ...record }, { suppressAuth: true });
   }
 
-  return { trackingNumber, status, step, statusCode, eventCount: events.length };
+  return { trackingNumber, status, subStatus, eventCount: events.length };
 }
 
-/** Läser cachen — används av sidan via http-function. */
+// ---------------------------------------------------------------------------
+// Läs- och refresh-helpers
+// ---------------------------------------------------------------------------
+
 export async function getTrackingData(trackingNumber) {
   const result = await wixData.query(COLLECTION)
     .eq("trackingNumber", trackingNumber)
@@ -185,13 +211,7 @@ export async function getTrackingData(trackingNumber) {
   return result.items[0] || null;
 }
 
-/**
- * Forced re-fetch direkt från 17TRACK (om webhooken har missats).
- * Anropas av sidan om cachen är äldre än X timmar.
- */
 export async function forceRefresh(trackingNumber) {
   const data = await callApi("/gettrackinfo", [{ number: trackingNumber }]);
-  const accepted = data?.data?.accepted?.[0];
-  if (!accepted) return null;
-  return applyWebhookPayload({ data: accepted });
+  return applyWebhookPayload(data);
 }

@@ -1,60 +1,78 @@
 // Wix Velo backend HTTP-funktioner
 //
-// 1) /_functions/track_webhook — tar emot push-uppdateringar från 17TRACK varje
-//    gång ett paket byter status (in transit / out for delivery / delivered).
-//    Lagrar events i Wix Data-collection TrackingEvents och triggar
-//    "Ditt paket är framme!"-mejlet när status = DELIVERED.
+// 1) POST /_functions/track_webhook — 17TRACK v2.4 push (TRACKING_UPDATED).
+//    Verifierar SHA256-signaturen i `sign`-headern enligt 17TRACK-doc:
+//    SHA256(`<raw body>/<api_key>`) → jämför med headerns sign.
 //
-// 2) /_functions/track?tn=... — läs-endpoint som sidan /sparning kallar för
-//    att hämta cached carrier-events. Snabb (ingen 17TRACK-roundtrip).
+// 2) GET /_functions/track?tn=... — publik läs-endpoint som /sparning-sidan
+//    anropar för carrier-events. Snabb (ingen 17TRACK-roundtrip).
 //
-// 3) /_functions/track_refresh?tn=...&secret=... — manuell re-fetch direkt från
-//    17TRACK (om webhooken har missat något). Skyddad av samma secret.
+// 3) GET /_functions/track_refresh?tn=... — manuell re-fetch via /gettrackinfo.
+//    Skyddad med `?secret=...` query (DELIVERED_WEBHOOK_SECRET).
 //
 // === 17TRACK-KONFIGURATION ===
-// Settings → Notifications → Webhook
-//   URL:    https://www.fyndplats.se/_functions/track_webhook?secret=<DIN_HEMLIGHET>
-//   Method: POST
-//   Trigger on: ALLA status (inte bara DELIVERED — vi vill rita tidslinjen)
-//
-// === HEMLIGHETER ===
-// I Wix Secrets Manager:
-//   - DELIVERED_WEBHOOK_SECRET  (samma värde som ?secret=... i webhook-URL)
-//   - SEVENTEEN_TRACK_API_KEY   (din 17TRACK API-nyckel)
+// https://api.17track.net/admin/settings → Settings → klistra in
+//   https://www.fyndplats.se/_functions/track_webhook
+// (Ingen ?secret=... behövs — vi verifierar via SHA256-sign).
 
+import crypto from "crypto";
 import { ok, badRequest, forbidden, serverError } from "wix-http-functions";
 import { getSecret } from "wix-secrets-backend";
 import wixData from "wix-data";
 import { sendDeliveredEmail } from "backend/events";
 import { applyWebhookPayload, getTrackingData, forceRefresh } from "backend/tracking";
 
-async function checkSecret(request) {
-  const expected = await getSecret("DELIVERED_WEBHOOK_SECRET");
-  const provided = request.query?.secret ?? "";
-  return Boolean(expected && provided === expected);
+// ---------------------------------------------------------------------------
+// 1) Webhook från 17TRACK med signaturverifiering
+// ---------------------------------------------------------------------------
+
+async function verifySignature(rawBody, providedSign) {
+  if (!providedSign) return false;
+  const apiKey = await getSecret("SEVENTEEN_TRACK_API_KEY");
+  const expected = crypto
+    .createHash("sha256")
+    .update(`${rawBody}/${apiKey}`)
+    .digest("hex");
+  // Timing-säker jämförelse.
+  try {
+    const a = Buffer.from(expected);
+    const b = Buffer.from(providedSign);
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }
 
-// ---------------------------------------------------------------------------
-// 1) Webhook från 17TRACK — alla statusändringar
-// ---------------------------------------------------------------------------
-
 export async function post_track_webhook(request) {
-  if (!await checkSecret(request)) {
-    return forbidden({ body: { error: "Otillåten" } });
+  // Måste läsa råtexten för att kunna verifiera signaturen.
+  const rawBody = await request.body.text();
+  const sign = request.headers?.sign || request.headers?.Sign || "";
+
+  if (!await verifySignature(rawBody, sign)) {
+    console.warn("[track_webhook] signatur invalid eller saknas");
+    return forbidden({ body: { error: "Invalid signature" } });
   }
 
-  let body;
+  let payload;
   try {
-    body = await request.body.json();
+    payload = JSON.parse(rawBody);
   } catch {
     return badRequest({ body: { error: "Ogiltig JSON" } });
   }
 
-  try {
-    const result = await applyWebhookPayload(body);
+  // Stopp-event har bara minimaldata — uppdatera bara status.
+  if (payload?.event === "TRACKING_STOPPED") {
+    console.log(`[track_webhook] STOPPED ${payload.data?.number}`);
+    return ok({ body: { ok: true, stopped: true } });
+  }
 
-    // Vid DELIVERED — slå upp ordern och trigga mejlet.
-    if (result.status === "delivered") {
+  // TRACKING_UPDATED (eller annat — behandlas likvärdigt).
+  try {
+    const result = await applyWebhookPayload(payload);
+
+    // Vid Delivered: slå upp ordern och trigga mejl.
+    if (result.status === "Delivered") {
       const cached = await getTrackingData(result.trackingNumber);
       if (cached?.orderId) {
         try {
@@ -70,7 +88,7 @@ export async function post_track_webhook(request) {
             );
           }
         } catch (err) {
-          console.error(`[delivered] kunde inte trigga mejl för ${cached.orderId}:`, err);
+          console.error(`[delivered] mejlfel ${cached.orderId}:`, err);
         }
       }
     }
@@ -83,7 +101,7 @@ export async function post_track_webhook(request) {
 }
 
 // ---------------------------------------------------------------------------
-// 2) Läs-endpoint för /sparning-sidan — INGEN secret (publik, read-only)
+// 2) Publik läs-endpoint för /sparning-iframen
 // ---------------------------------------------------------------------------
 
 export async function get_track(request) {
@@ -98,8 +116,7 @@ export async function get_track(request) {
         delivered: false,
         carrier: "Fyndplats Frakt",
         eta: "5–15 arbetsdagar",
-        status: "registered",
-        statusCode: 0,
+        status: "InfoReceived",
         events: [],
       } });
     }
@@ -107,14 +124,13 @@ export async function get_track(request) {
       body: {
         trackingNumber: tn,
         orderId: data.orderId || "",
-        // Boolean — sidan kollar !!raw.delivered.
-        delivered: data.status === "delivered",
-        // Wix Stores ETA kan fyllas i framöver — fallback nu.
-        eta: data.status === "delivered" ? null : "5–15 arbetsdagar",
+        delivered: data.status === "Delivered",
+        eta: data.status === "Delivered" ? null : "5–15 arbetsdagar",
         status: data.status,
-        statusCode: data.statusCode,
+        subStatus: data.subStatus,
         carrier: data.carrier || "Fyndplats Frakt",
         events: data.events || [],
+        milestone: data.milestone || [],
         deliveredAt: data.deliveredAt || null,
         lastFetchedAt: data.lastFetchedAt,
       },
@@ -125,11 +141,17 @@ export async function get_track(request) {
 }
 
 // ---------------------------------------------------------------------------
-// 3) Forced re-fetch — användarvänlig "uppdatera"-knapp om webhooken missat
+// 3) Forced re-fetch via /gettrackinfo (manuell uppdatera-knapp)
 // ---------------------------------------------------------------------------
 
+async function checkRefreshSecret(request) {
+  const expected = await getSecret("DELIVERED_WEBHOOK_SECRET");
+  const provided = request.query?.secret ?? "";
+  return Boolean(expected && provided === expected);
+}
+
 export async function get_track_refresh(request) {
-  if (!await checkSecret(request)) {
+  if (!await checkRefreshSecret(request)) {
     return forbidden({ body: { error: "Otillåten" } });
   }
   const tn = request.query?.tn;
@@ -144,11 +166,12 @@ export async function get_track_refresh(request) {
 }
 
 // ---------------------------------------------------------------------------
-// 4) Bakåtkompatibilitet — gamla delivered-webhooken (om 17TRACK redan pekar dit)
+// 4) Bakåtkompatibilitet — den gamla delivered-webhooken (?secret=...)
+//    Användbar om du redan kopplat 17TRACK eller AfterShip dit.
 // ---------------------------------------------------------------------------
 
 export async function post_delivered(request) {
-  if (!await checkSecret(request)) {
+  if (!await checkRefreshSecret(request)) {
     return forbidden({ body: { error: "Otillåten" } });
   }
 
@@ -174,7 +197,7 @@ export async function post_delivered(request) {
 }
 
 export async function get_deliveredTest(request) {
-  if (!await checkSecret(request)) {
+  if (!await checkRefreshSecret(request)) {
     return forbidden({ body: { error: "Otillåten" } });
   }
   const { contactId, orderNumber, customerName } = request.query;
