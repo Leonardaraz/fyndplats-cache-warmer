@@ -8,15 +8,19 @@ name: Refresh AliExpress tokens
 # Använder GitHub Actions istället för Vercel Cron eftersom Vercel Hobby
 # bara tillåter daglig schemaläggning. Samma pattern som poll-tracking.yml.
 #
-# Krävs som repository secrets (Settings → Secrets and variables → Actions):
-#   REFRESH_TOKEN_URL — fullständig URL, t.ex.
-#       https://fyndplats-cache-warmer.vercel.app/api/aliexpress/refresh
+# Krävs som repository secret (Settings → Secrets and variables → Actions):
 #   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+#
+# URL:en är hardcoded eftersom den inte är secret (bara Vercel-deploy-URL).
+# Vill du peka mot en custom domain, ändra REFRESH_URL nedan.
 
 on:
   schedule:
     - cron: "0 */12 * * *"
   workflow_dispatch:
+
+env:
+  REFRESH_URL: https://fyndplats-cache-warmer.vercel.app/api/aliexpress/refresh
 
 jobs:
   refresh:
@@ -26,7 +30,7 @@ jobs:
         run: |
           response=$(curl -sS -w "\n%{http_code}" -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.REFRESH_TOKEN_URL }}")
+            "$REFRESH_URL")
           body=$(echo "$response" | sed '$d')
           status=$(echo "$response" | tail -n1)
           echo "HTTP $status"
