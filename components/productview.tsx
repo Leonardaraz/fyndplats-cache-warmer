@@ -10,6 +10,7 @@ export function ProductView({
   name,
   price,
   inStock,
+  stockQuantity,
   blurb,
   descriptionHtml,
   originalPrice,
@@ -23,6 +24,7 @@ export function ProductView({
   name: string;
   price: string;
   inStock: boolean;
+  stockQuantity?: number;
   blurb: string;
   descriptionHtml?: string;
   originalPrice?: string;
@@ -56,6 +58,7 @@ export function ProductView({
   };
 
   return (
+    <>
     <div className="pdp">
       <Gallery
         images={galleryImages}
@@ -75,22 +78,54 @@ export function ProductView({
         <div className={`stock ${inStock ? "in" : "out"}`}>
           {inStock ? "✓ I lager – skickas inom 1–2 dagar" : "Tillfälligt slut"}
         </div>
+        {inStock && typeof stockQuantity === "number" && stockQuantity > 0 && stockQuantity <= 5 && (
+          <div className="low-stock-warn">🔥 Endast <strong>{stockQuantity}</strong> kvar i lager</div>
+        )}
 
         <div className="buybox">
           {hasImageVariants ? (
-            <label className="varpick">
-              <span>{options?.name || "Variant"}</span>
-              <select value={sel} onChange={(e) => setSel(Number(e.target.value))}>
-                {imageChoices.map((c, i) => <option key={c.variantId} value={i}>{c.label}</option>)}
-              </select>
-            </label>
+            <div className="varbubbles">
+              <div className="varbubbles-label">
+                <span>{options?.name || "Variant"}:</span>
+                <strong>{imageChoices[sel]?.label}</strong>
+              </div>
+              <div className="varbubbles-row">
+                {imageChoices.map((c, i) => (
+                  <button
+                    key={c.variantId}
+                    type="button"
+                    className={`varbubble ${sel === i ? "active" : ""}`}
+                    onClick={() => setSel(i)}
+                    aria-label={c.label}
+                    aria-pressed={sel === i}
+                    title={c.label}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={c.image} alt={c.label} loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : variants.length > 1 ? (
-            <label className="varpick">
-              <span>Variant</span>
-              <select value={sel} onChange={(e) => setSel(Number(e.target.value))}>
-                {variants.map((v, i) => <option key={v.id} value={i}>{v.label}</option>)}
-              </select>
-            </label>
+            <div className="varbubbles">
+              <div className="varbubbles-label">
+                <span>Variant:</span>
+                <strong>{variants[sel]?.label}</strong>
+              </div>
+              <div className="varbubbles-row">
+                {variants.map((v, i) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    className={`varpill ${sel === i ? "active" : ""}`}
+                    onClick={() => setSel(i)}
+                    aria-pressed={sel === i}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : null}
 
           <button
@@ -125,5 +160,22 @@ export function ProductView({
         )}
       </div>
     </div>
+    {/* Sticky köp-knapp på mobil — visas bara på små skärmar (CSS) */}
+    <div className="sticky-buy-mobile" aria-hidden={!inStock}>
+      <div className="sticky-buy-inner">
+        <div className="sticky-buy-info">
+          <div className="sticky-buy-price">{displayPrice}</div>
+          <div className="sticky-buy-name">{name}</div>
+        </div>
+        <button
+          className="buy sticky-buy-btn"
+          disabled={busy || !productId || !inStock || (needsVariant && !variantId)}
+          onClick={onAdd}
+        >
+          {!inStock ? "Slut" : busy ? "..." : added ? "✓" : "Lägg i kundvagn"}
+        </button>
+      </div>
+    </div>
+    </>
   );
 }

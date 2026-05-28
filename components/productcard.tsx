@@ -1,15 +1,33 @@
 import Image from "next/image";
 import type { Product } from "../lib/products";
+import { WishlistHeart } from "./wishlist";
 
 export function ProductCard({ p }: { p: Product }) {
+  // Hover-alt-image: använd andra bilden i galleriet (om finns) som "swap"-bild
+  const altImg = p.gallery.find((g) => g !== p.img);
+  const lowStock = p.inStock && typeof p.stockQuantity === "number" && p.stockQuantity > 0 && p.stockQuantity <= 5;
   return (
     <a className="prod" href={`/produkt/${p.slug}`}>
       <div className="pimg">
         {p.onSale && <span className="sale-badge">Rea</span>}
+        {!p.onSale && p.ribbon === "Bestseller" && <span className="ribbon-badge ribbon-bestseller">Bestseller</span>}
+        {lowStock && <span className="low-stock-badge">Endast {p.stockQuantity} kvar</span>}
+        <WishlistHeart slug={p.slug} />
         {p.img && (
           <Image
+            className="pimg-main"
             src={p.img}
             alt={p.name}
+            fill
+            sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
+            style={{ objectFit: "cover" }}
+          />
+        )}
+        {altImg && (
+          <Image
+            className="pimg-alt"
+            src={altImg}
+            alt=""
             fill
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
             style={{ objectFit: "cover" }}

@@ -4,6 +4,8 @@ import "./globals.css";
 import { CartProvider, CartDrawer } from "../components/cart";
 import { SiteHeader, SiteFooter } from "../components/site";
 import { CookieConsent } from "../components/cookieconsent";
+import { WishlistProvider, WishlistDrawer } from "../components/wishlist";
+import { ScrollIndicator } from "../components/scrollindicator";
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const fraunces = Fraunces({
@@ -64,10 +66,14 @@ export default function RootLayout({
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <CartProvider>
-          <SiteHeader />
-          <main>{children}</main>
-          <SiteFooter />
-          <CartDrawer />
+          <WishlistProvider>
+            <ScrollIndicator />
+            <SiteHeader />
+            <main>{children}</main>
+            <SiteFooter />
+            <CartDrawer />
+            <WishlistDrawer />
+          </WishlistProvider>
         </CartProvider>
         <CookieConsent />
       </body>
