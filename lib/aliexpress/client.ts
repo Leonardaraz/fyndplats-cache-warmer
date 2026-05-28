@@ -55,10 +55,6 @@ function signWithPath(apiPath: string, params: Record<string, string>, appSecret
     return createHmac("sha256", appSecret).update(baseString).digest("hex").toUpperCase();
 }
 
-// partner_id är ett SDK-identifierande fält som IOP-SDK alltid skickar.
-// Utan det avvisar AliExpress signed-RPC-anrop som "IncompleteSignature".
-const PARTNER_ID = "fyndplats-nextjs-1.0";
-
 function buildParams(
     method: string,
     bizParams: Record<string, string>,
@@ -166,27 +162,28 @@ function unwrapAliExpressResponse(raw: unknown, opName: string): Record<string, 
     return data;
 }
 
-export async function exchangeCode(code: string, _redirectUri: string): Promise<DsTokenResponse> {
+export async function exchangeCode(code: string, redirectUri: string): Promise<DsTokenResponse> {
     const appKey = process.env.ALIEXPRESS_APP_KEY;
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
     if (!appKey || !appSecret) throw new Error("App-nycklar saknas");
 
-  // GOP-protokoll per officiell AliExpress-spec (IopClient + Protocol.GOP):
-  //   - URL: ${REST_BASE}/auth/token/create
+  // AliExpress /rest/auth/token/create — verifierat working pattern
+  // (källa: bivex/aliexpress-product-search GitHub-repo):
+  //   - HTTP method: GET (inte POST — POST var roten till alla IncompleteSignature-fel)
+  //   - Params: app_key, code, redirect_uri, sign_method, timestamp (INTE partner_id)
   //   - Signature base: "/auth/token/create" + sorted_concat(params)
-  //   - partner_id krävs (utan det avvisar AliExpress som IncompleteSignature)
   const apiPath = "/auth/token/create";
   const params: Record<string, string> = {
         app_key: appKey,
         code,
-        partner_id: PARTNER_ID,
+        redirect_uri: redirectUri,
         sign_method: "sha256",
         timestamp: String(Date.now()),
   };
     const signature = signWithPath(apiPath, params, appSecret);
     const query = new URLSearchParams({ ...params, sign: signature }).toString();
 
-  const res = await fetch(`${REST_BASE}${apiPath}?${query}`, { method: "POST" });
+  const res = await fetch(`${REST_BASE}${apiPath}?${query}`, { method: "GET" });
     if (!res.ok) {
         const text = await res.text();
         throw new Error(`Token-utbyte misslyckades (${res.status}): ${text.slice(0, 300)}`);
@@ -202,7 +199,6 @@ export async function refreshAccessToken(refreshToken: string): Promise<DsTokenR
   const apiPath = "/auth/token/refresh";
   const params: Record<string, string> = {
         app_key: appKey,
-        partner_id: PARTNER_ID,
         refresh_token: refreshToken,
         sign_method: "sha256",
         timestamp: String(Date.now()),
@@ -210,7 +206,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<DsTokenR
     const signature = signWithPath(apiPath, params, appSecret);
     const query = new URLSearchParams({ ...params, sign: signature }).toString();
 
-  const res = await fetch(`${REST_BASE}${apiPath}?${query}`, { method: "POST" });
+  const res = await fetch(`${REST_BASE}${apiPath}?${query}`, { method: "GET" });
     if (!res.ok) {
         const text = await res.text();
         throw new Error(`Token-refresh misslyckades (${res.status}): ${text.slice(0, 300)}`);

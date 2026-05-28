@@ -169,7 +169,7 @@ describe("exchangeCode/refreshAccessToken — AliExpress response unwrapping", (
     expect(result.access_token).toBe("refreshed-access");
   });
 
-  it("exchangeCode skickar request mot /rest/auth/token/create med partner_id i query", async () => {
+  it("exchangeCode skickar GET-request mot /rest/auth/token/create med rätt params", async () => {
     const fetchMock = mockFetch({
       json: { access_token: "x", refresh_token: "y", expires_in: 172800 },
     });
@@ -179,23 +179,26 @@ describe("exchangeCode/refreshAccessToken — AliExpress response unwrapping", (
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toMatch(/^https:\/\/api-sg\.aliexpress\.com\/rest\/auth\/token\/create\?/);
-    expect(init.method).toBe("POST");
-    expect(url).toContain("partner_id=");
+    expect(init.method).toBe("GET");
+    // partner_id ska INTE finnas (det var roten till IncompleteSignature)
+    expect(url).not.toContain("partner_id");
     expect(url).toContain("sign_method=sha256");
     expect(url).toContain("code=test-code");
+    expect(url).toContain("redirect_uri=");
     expect(url).toContain("sign=");
   });
 
-  it("refreshAccessToken skickar request mot /rest/auth/token/refresh med partner_id", async () => {
+  it("refreshAccessToken skickar GET-request mot /rest/auth/token/refresh", async () => {
     const fetchMock = mockFetch({
       json: { access_token: "x", refresh_token: "y", expires_in: 172800 },
     });
     const { refreshAccessToken } = await import("./client");
     await refreshAccessToken("old-refresh");
 
-    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toMatch(/^https:\/\/api-sg\.aliexpress\.com\/rest\/auth\/token\/refresh\?/);
-    expect(url).toContain("partner_id=");
+    expect(init.method).toBe("GET");
+    expect(url).not.toContain("partner_id");
     expect(url).toContain("refresh_token=old-refresh");
   });
 
