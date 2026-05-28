@@ -47,8 +47,11 @@ Wix Editor → **Dev Mode → Code Files**
 - `backend/tracking.js`         ← från `wix-velo/backend/tracking.js`
 - `backend/events.js`           ← från `wix-velo/backend/events.js`
 - `backend/http-functions.js`   ← från `wix-velo/backend/http-functions.js`
-- `Pages → Sparning → Code (</>)` ← från `wix-velo/pages/sparning.js`
-   (se element-ID:n överst i filen — mappa mot din sidas element)
+
+> **OBS:** `/sparning`-sidan är en **HTML Embed-widget** (iframe) och behöver
+> ingen Velo page-code. Den anropar redan `/_functions/track?tn=...` som
+> exponeras av `http-functions.js`. Om du vill stänga fyra små säkerhets-/
+> robusthetshål i HTML-koden, se `sparning-html-patches.md`.
 
 ### 4. Publish
 

@@ -124,11 +124,16 @@ function sanitizeEvents(rawEvents) {
       return !LEAKY_PATTERN.test(text);
     })
     .map((e) => ({
-      time: e.time_iso || e.time_utc || "",
-      // Strippa platsen helt om den ändå råkade slinka igenom filtret.
+      // ISO 8601 — fungerar i alla browsers utan parse-strul.
+      time: e.time_iso || e.time_utc || e.time_raw || "",
+      // `status` är det engelska 17TRACK-stage-namnet (sidan översätter via
+      // translateStatus). `description` är den anonymiserade fritext-raden.
+      status: e.stage || e.sub_status || "",
       description: (e.description || e.stage || "").replace(LEAKY_PATTERN, "").trim() || "Uppdatering",
       location: LEAKY_PATTERN.test(e.location || "") ? "" : (e.location || ""),
-    }));
+    }))
+    // Säkerställ kronologisk ordning (äldst först) — sidan reverserar själv.
+    .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
 }
 
 /**

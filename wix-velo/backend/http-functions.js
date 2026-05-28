@@ -93,15 +93,27 @@ export async function get_track(request) {
   try {
     const data = await getTrackingData(tn);
     if (!data) {
-      return ok({ body: { trackingNumber: tn, status: "registered", events: [], step: "ordered" } });
+      return ok({ body: {
+        trackingNumber: tn,
+        delivered: false,
+        carrier: "Fyndplats Frakt",
+        eta: "5–15 arbetsdagar",
+        status: "registered",
+        statusCode: 0,
+        events: [],
+      } });
     }
     return ok({
       body: {
         trackingNumber: tn,
         orderId: data.orderId || "",
+        // Boolean — sidan kollar !!raw.delivered.
+        delivered: data.status === "delivered",
+        // Wix Stores ETA kan fyllas i framöver — fallback nu.
+        eta: data.status === "delivered" ? null : "5–15 arbetsdagar",
         status: data.status,
         statusCode: data.statusCode,
-        carrier: data.carrier,
+        carrier: data.carrier || "Fyndplats Frakt",
         events: data.events || [],
         deliveredAt: data.deliveredAt || null,
         lastFetchedAt: data.lastFetchedAt,
