@@ -4,6 +4,7 @@ import { getStore } from "@/lib/store/factory";
 import type { TaskStatus } from "@/lib/orders/types";
 import { paymentFeeFromEnv, pricingConfigFromEnv } from "@/lib/config";
 import { summarizeProductProfit } from "@/lib/analytics/profit";
+import { placeAliExpressOrderAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,9 @@ export default async function AdminPage() {
     .sort((a, b) => b.minProfit - a.minProfit);
   const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s).length;
   const pending = tasks.filter((t) => t.status === "pending");
+  const orderedWaitingTracking = tasks.filter(
+    (t) => t.status === "ordered" && t.aliexpressOrderId && !t.sku?.startsWith("shipped"),
+  );
 
   return (
     <main style={{ maxWidth: 720, margin: "40px auto", padding: "0 16px" }}>
@@ -57,17 +61,68 @@ export default async function AdminPage() {
         <b>{byStatus("shipped")}</b> · Avbrutna: <b>{byStatus("cancelled")}</b>
       </p>
       {pending.length > 0 ? (
-        <ul>
-          {pending.map((t) => (
-            <li key={t.taskId}>
-              #{t.orderNumber} — {t.productName} ×{t.quantity}{" "}
-              {t.sku ? <code>({t.sku})</code> : null}
-            </li>
-          ))}
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {pending.map((t) => {
+            const placeAction = placeAliExpressOrderAction.bind(null, t.taskId);
+            const a = t.shippingAddress;
+            return (
+              <li key={t.taskId} style={{ padding: "12px 0", borderBottom: "1px solid #eee" }}>
+                <div>
+                  <b>#{t.orderNumber}</b> — {t.productName} ×{t.quantity}{" "}
+                  {t.sku ? <code style={{ fontSize: 12 }}>({t.sku})</code> : null}
+                </div>
+                {Object.keys(t.variantChoices).length > 0 ? (
+                  <div style={{ fontSize: 13, color: "#666" }}>
+                    Variant: {Object.entries(t.variantChoices).map(([k, v]) => `${k}: ${v}`).join(", ")}
+                  </div>
+                ) : null}
+                {a ? (
+                  <div style={{ fontSize: 13, color: "#666" }}>
+                    Skickas till: {a.fullName}, {a.addressLine1}
+                    {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.country}
+                  </div>
+                ) : null}
+                <form action={placeAction} style={{ marginTop: 6 }}>
+                  <button
+                    type="submit"
+                    style={{
+                      background: "#F47A35",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 12px",
+                      borderRadius: 6,
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Lägg AliExpress-order
+                  </button>
+                </form>
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p style={{ color: "#888" }}>Inga väntande tasks.</p>
       )}
+
+      {orderedWaitingTracking.length > 0 ? (
+        <>
+          <h3 style={{ fontSize: 16, marginTop: 18 }}>Väntar på spårningsnummer från AliExpress</h3>
+          <p style={{ fontSize: 13, color: "#666" }}>
+            Cron-jobbet (var 3:e timme) hämtar spårningsnummer från AliExpress DS API och pushar dem
+            till Wix Stores — då skickas "På väg"-mejlet automatiskt.
+          </p>
+          <ul style={{ fontSize: 13 }}>
+            {orderedWaitingTracking.map((t) => (
+              <li key={t.taskId}>
+                #{t.orderNumber} — AliExpress: <code>{t.aliexpressOrderId}</code>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
 
       <h2>Endpoints</h2>
       <ul style={{ fontSize: 14 }}>
@@ -76,6 +131,8 @@ export default async function AdminPage() {
         <li><code>POST /api/wix-order</code> — order-webhook → tasks</li>
         <li><code>GET /api/tasks</code> — lista tasks</li>
         <li><code>POST /api/fulfillment/mark-ordered</code> · <code>/complete</code> · <code>/api/orders/cancel</code></li>
+        <li><code>POST /api/aliexpress/order</code> · <code>GET /api/aliexpress/tracking</code></li>
+        <li><code>GET /api/cron/poll-tracking</code> — körs var 3:e h via Vercel Cron</li>
       </ul>
 
       <h2>Lönsamhet per produkt</h2>

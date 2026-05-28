@@ -1,0 +1,37 @@
+name: Poll AliExpress tracking
+
+# Pingar /api/cron/poll-tracking var 3:e timme så Next.js-appen kan hämta
+# spårningsnummer från AliExpress DS API och pusha dem till Wix Stores.
+#
+# Använder GitHub Actions istället för Vercel Cron eftersom Vercel Hobby
+# bara tillåter daglig schemaläggning. GitHub Actions är gratis och stödjer
+# valfri cron-frekvens.
+#
+# Krävs som repository secret (Settings → Secrets and variables → Actions):
+#   POLL_TRACKING_URL — fullständig URL, t.ex.
+#       https://fyndplats-cache-warmer.vercel.app/api/cron/poll-tracking
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+#                 (genereras med `openssl rand -hex 32`)
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger poll-tracking endpoint
+        run: |
+          response=$(curl -sS -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.POLL_TRACKING_URL }}")
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "$body"
+          if [ "$status" != "200" ]; then
+            echo "::error::Endpoint returned non-200 status"
+            exit 1
+          fi
