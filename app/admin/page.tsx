@@ -1,5 +1,9 @@
-// Admin-skelett. Fylls i kommande faser (produktlista, lönsamhetsöversikt,
-// order-/sync-köer). Just nu en statusöversikt över vad som är konfigurerat.
+// Admin-vy: konfigurationsstatus + översikt av fulfillment-tasks.
+// Läser lagringen direkt server-side (ingen HTTP/token behövs här).
+import { getMemoryStore } from "@/lib/store/memory";
+import type { TaskStatus } from "@/lib/orders/types";
+
+export const dynamic = "force-dynamic";
 
 function envStatus() {
   return [
@@ -10,8 +14,12 @@ function envStatus() {
   ].map((e) => ({ ...e, set: Boolean(process.env[e.key]) }));
 }
 
-export default function AdminPage() {
+export default async function AdminPage() {
   const status = envStatus();
+  const tasks = await getMemoryStore().listTasks();
+  const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s).length;
+  const pending = tasks.filter((t) => t.status === "pending");
+
   return (
     <main style={{ maxWidth: 720, margin: "40px auto", padding: "0 16px" }}>
       <h1>Fyndplats — Import & Sync</h1>
@@ -26,12 +34,32 @@ export default function AdminPage() {
         ))}
       </ul>
 
-      <h2>Fas 1: Import</h2>
+      <h2>Fulfillment-tasks</h2>
       <p>
-        Endpoint <code>POST /api/import</code> är aktiv och skyddad med{" "}
-        <code>x-fyndplats-token</code>. Browser-tillägget i <code>/extension</code> postar hit
-        produktdata från en AliExpress-sida.
+        Väntar: <b>{byStatus("pending")}</b> · Beställda: <b>{byStatus("ordered")}</b> · Skickade:{" "}
+        <b>{byStatus("shipped")}</b> · Avbrutna: <b>{byStatus("cancelled")}</b>
       </p>
+      {pending.length > 0 ? (
+        <ul>
+          {pending.map((t) => (
+            <li key={t.taskId}>
+              #{t.orderNumber} — {t.productName} ×{t.quantity}{" "}
+              {t.sku ? <code>({t.sku})</code> : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p style={{ color: "#888" }}>Inga väntande tasks.</p>
+      )}
+
+      <h2>Endpoints</h2>
+      <ul style={{ fontSize: 14 }}>
+        <li><code>POST /api/import</code> — skapa Wix-produkt från AliExpress</li>
+        <li><code>POST /api/sync</code> — lager + prisbevakning</li>
+        <li><code>POST /api/wix-order</code> — order-webhook → tasks</li>
+        <li><code>GET /api/tasks</code> — lista tasks</li>
+        <li><code>POST /api/fulfillment/mark-ordered</code> · <code>/complete</code> · <code>/api/orders/cancel</code></li>
+      </ul>
     </main>
   );
 }

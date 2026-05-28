@@ -155,6 +155,41 @@ export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUp
   }
 }
 
+export interface FulfillmentInput {
+  orderId: string;
+  lineItems: { id: string; quantity: number }[];
+  trackingNumber: string;
+  shippingProvider?: string;
+  trackingLink?: string;
+}
+
+/** Skapar en fulfillment på en Wix-order med spårningsinfo. */
+export async function createFulfillment(input: FulfillmentInput): Promise<{ fulfillmentId: string }> {
+  const res = await fetch(
+    `${WIX_BASE}/ecom/v1/fulfillments/orders/${encodeURIComponent(input.orderId)}/create-fulfillment`,
+    {
+      method: "POST",
+      headers: wixHeaders(),
+      body: JSON.stringify({
+        fulfillment: {
+          lineItems: input.lineItems,
+          trackingInfo: {
+            trackingNumber: input.trackingNumber,
+            ...(input.shippingProvider ? { shippingProvider: input.shippingProvider } : {}),
+            ...(input.trackingLink ? { trackingLink: input.trackingLink } : {}),
+          },
+        },
+      }),
+    },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix create-fulfillment misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as { fulfillment?: { id?: string } };
+  return { fulfillmentId: data.fulfillment?.id ?? "" };
+}
+
 export async function createProduct(input: WixProductInput): Promise<WixCreateProductResult> {
   const res = await fetch(`${WIX_BASE}/stores/v3/products`, {
     method: "POST",

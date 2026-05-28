@@ -55,9 +55,44 @@ async function importProduct(product) {
   }
 }
 
+// Generisk autentiserad request mot API:t (för order-läget).
+async function apiCall(path, options) {
+  const { apiBase, apiToken } = await getConfig();
+  if (!apiBase || !apiToken) {
+    return { ok: false, error: "Konfigurera API-URL och token i inställningarna." };
+  }
+  try {
+    await ensureHostPermission(apiBase);
+  } catch (_) {}
+  try {
+    const res = await fetch(`${apiBase.replace(/\/$/, "")}${path}`, {
+      ...options,
+      headers: { "Content-Type": "application/json", "x-fyndplats-token": apiToken, ...(options?.headers || {}) },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: data.message || data.error || `HTTP ${res.status}` };
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg && msg.type === "IMPORT_PRODUCT") {
-    importProduct(msg.product).then(sendResponse);
-    return true; // async
+  if (!msg) return;
+  switch (msg.type) {
+    case "IMPORT_PRODUCT":
+      importProduct(msg.product).then(sendResponse);
+      return true;
+    case "FETCH_TASKS":
+      apiCall("/api/tasks?status=pending", { method: "GET" }).then(sendResponse);
+      return true;
+    case "MARK_ORDERED":
+      apiCall("/api/fulfillment/mark-ordered", {
+        method: "POST",
+        body: JSON.stringify({ taskId: msg.taskId }),
+      }).then(sendResponse);
+      return true;
+    default:
+      return;
   }
 });

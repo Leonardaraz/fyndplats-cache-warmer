@@ -84,4 +84,8 @@ $import.addEventListener("click", async () => {
   });
 });
 
+document.getElementById("orders").addEventListener("click", () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("orders.html") });
+});
+
 load();
