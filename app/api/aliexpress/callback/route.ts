@@ -53,30 +53,52 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Validera shape — AliExpress är notoriskt löst typat och kan returnera
-  // felaktiga shapes som annars cascadar till Invalid Date / RangeError.
-  if (
-    typeof tokens.access_token !== "string"
-    || typeof tokens.refresh_token !== "string"
-    || typeof tokens.expires_in !== "number"
-    || !Number.isFinite(tokens.expires_in)
-    || tokens.expires_in <= 0
-  ) {
+  // AliExpress kan returnera fel-payload (kod brand, signature, rate-limit)
+  // eller wrappad payload — visa den i klartext (utan tokens) för debugging.
+  const rawTokens = tokens as unknown as Record<string, unknown>;
+  const aliexpressError = rawTokens.code ?? rawTokens.error_code ?? rawTokens.error;
+  if (aliexpressError) {
     return NextResponse.json(
       {
-        error:
-          "AliExpress returnerade ofullständigt token-svar. Kontakta support eller upprepa OAuth.",
+        error: "AliExpress avvisade token-exchange.",
+        aliexpress_code: aliexpressError,
+        aliexpress_message: rawTokens.message ?? rawTokens.error_description ?? rawTokens.msg,
+        responseKeys: Object.keys(rawTokens),
       },
       { status: 502 },
     );
   }
 
-  const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
+  // Acceptera expires_in som number ELLER numerisk sträng (vissa
+  // AliExpress-flöden returnerar som sträng trots simplify=true).
+  const expiresInRaw = (rawTokens.expires_in ?? rawTokens.expiresIn) as unknown;
+  const expiresInNum = typeof expiresInRaw === "number"
+    ? expiresInRaw
+    : typeof expiresInRaw === "string" ? Number.parseInt(expiresInRaw, 10) : NaN;
+
+  const accessToken = typeof tokens.access_token === "string" ? tokens.access_token : "";
+  const refreshToken = typeof tokens.refresh_token === "string" ? tokens.refresh_token : "";
+
+  if (!accessToken || !refreshToken || !Number.isFinite(expiresInNum) || expiresInNum <= 0) {
+    return NextResponse.json(
+      {
+        error: "AliExpress returnerade ofullständigt token-svar.",
+        hint: "Upprepa OAuth-flowet via /api/aliexpress/auth eller kontrollera redirect_uri-konfigurationen i AliExpress Open Platform.",
+        responseKeys: Object.keys(rawTokens),
+        hasAccessToken: Boolean(accessToken),
+        hasRefreshToken: Boolean(refreshToken),
+        expiresInRaw,
+      },
+      { status: 502 },
+    );
+  }
+
+  const expiresAt = new Date(Date.now() + expiresInNum * 1000);
 
   try {
     await getStore().saveAliExpressTokens({
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
+      accessToken,
+      refreshToken,
       expiresAt,
     });
     // Rensa state-cookie efter lyckad användning (single-use).
@@ -97,7 +119,7 @@ export async function GET(req: NextRequest) {
     // Tokens visas BARA i HTTP-body (med Cache-Control: no-store) — aldrig
     // i loggar.
     console.error(
-      `[callback] saveAliExpressTokens failed (access=${mask(tokens.access_token)}, refresh=${mask(tokens.refresh_token)}):`,
+      `[callback] saveAliExpressTokens failed (access=${mask(accessToken)}, refresh=${mask(refreshToken)}):`,
       persistErr instanceof Error ? persistErr.message : "persist-fel",
     );
     return NextResponse.json(
@@ -107,8 +129,8 @@ export async function GET(req: NextRequest) {
         warning:
           "Token-exchange lyckades men persistens failade. KOPIERA nedan värden OMEDELBART och seeda manuellt i Vercel env eller Wix CMS — koden är single-use och kan inte upprepas.",
         details: persistErr instanceof Error ? persistErr.message : "persist-fel",
-        ALIEXPRESS_ACCESS_TOKEN: tokens.access_token,
-        ALIEXPRESS_REFRESH_TOKEN: tokens.refresh_token,
+        ALIEXPRESS_ACCESS_TOKEN: accessToken,
+        ALIEXPRESS_REFRESH_TOKEN: refreshToken,
         expiresAt: expiresAt.toISOString(),
         refresh_expires_in_seconds: tokens.refresh_expires_in,
         account: tokens.account,
