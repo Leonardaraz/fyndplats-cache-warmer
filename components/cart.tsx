@@ -107,7 +107,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setBusy(true);
     try {
       const { checkoutId }: any = await client.currentCart.createCheckoutFromCurrentCart({ channelType: (currentCart as any).ChannelType.WEB });
-      const redirect: any = await client.redirects.createRedirectSession({ ecomCheckout: { checkoutId }, callbacks: { postFlowUrl: window.location.href } });
+      // postFlowUrl = vart Wix skickar kunden EFTER lyckad checkout.
+      // /tack är vår premium confirmation-sida med order-info + nästa steg.
+      const redirect: any = await client.redirects.createRedirectSession({ ecomCheckout: { checkoutId }, callbacks: { postFlowUrl: window.location.origin + "/tack" } });
       const url = redirect?.redirectSession?.fullUrl;
       if (url) window.location.href = url;
       else alert("Kunde inte starta kassan. Är redirect-domänen godkänd i Wix Headless-inställningarna?");

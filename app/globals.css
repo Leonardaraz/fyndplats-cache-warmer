@@ -562,6 +562,43 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 @media(max-width:880px){.catmosaic-grid{grid-template-columns:repeat(2,1fr);gap:16px}.catmtile-meta{padding:14px 16px}.catmtile-name{font-size:17px}}
 @media(max-width:540px){.catmosaic-grid{grid-template-columns:1fr;gap:14px}}
 
+/* Premium /tack confirmation-sida */
+.tack-sec{padding:60px 0 90px}
+.tack-loading{text-align:center;color:var(--soft);padding:60px 0}
+.tack-wrap{text-align:center;max-width:680px;margin:0 auto}
+.tack-check{display:flex;justify-content:center;margin-bottom:22px}
+.tack-circle{animation:tackCircle .65s cubic-bezier(.4,.0,.2,1) forwards}
+.tack-tick{animation:tackTick .45s cubic-bezier(.4,.0,.2,1) .55s forwards}
+@keyframes tackCircle{to{stroke-dashoffset:0}}
+@keyframes tackTick{to{stroke-dashoffset:0}}
+.tack-title{font-family:var(--font-display,Georgia,serif);font-size:clamp(38px,6vw,56px);font-weight:600;margin:6px 0 22px;letter-spacing:-.024em;line-height:1.08;color:var(--ink)}
+.tack-orderno{display:inline-flex;flex-direction:column;gap:3px;background:var(--warm);padding:12px 24px;border-radius:14px;margin-bottom:26px;border:1px solid var(--line)}
+.tack-orderno-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--soft);font-weight:700}
+.tack-orderno-val{font-size:19px;font-weight:800;letter-spacing:.04em;color:var(--ink)}
+.tack-lede{font-size:17px;line-height:1.6;color:#5c544c;margin-bottom:40px;max-width:520px;margin-left:auto;margin-right:auto}
+.tack-next{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:34px}
+.tack-step{display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 14px;background:#fff;border:1px solid var(--line);border-radius:16px;transition:border-color .2s,box-shadow .2s}
+.tack-step.done{border-color:#16804a55;background:#F5FAF7}
+.tack-step-icon{font-size:34px;line-height:1}
+.tack-step-text{display:flex;flex-direction:column;gap:2px;text-align:center}
+.tack-step-text strong{font-size:14px;font-weight:700;color:var(--ink)}
+.tack-step-text span{font-size:12.5px;color:var(--soft);line-height:1.4}
+.tack-trust{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-bottom:36px;font-size:13.5px;color:var(--soft)}
+.tack-trust span{display:inline-flex;align-items:center;gap:7px}
+.tack-trust .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#C2410C}
+.tack-actions{display:flex;gap:12px;justify-content:center;margin-bottom:42px;flex-wrap:wrap}
+.tack-help{font-size:14px;color:var(--soft);line-height:1.55;padding-top:28px;border-top:1px solid var(--line)}
+.tack-help a{color:#C2410C;font-weight:600;text-decoration:none}
+.tack-help a:hover{text-decoration:underline}
+@media(max-width:600px){
+  .tack-sec{padding:40px 0 60px}
+  .tack-next{grid-template-columns:1fr;gap:10px}
+  .tack-step{flex-direction:row;text-align:left;padding:16px 20px;gap:14px}
+  .tack-step-icon{font-size:28px}
+  .tack-step-text{text-align:left}
+  .tack-trust{gap:14px;font-size:12.5px}
+}
+
 /* Premium two-tier category nav (Butik + kategori-sidor) */
 .catnav{display:flex;flex-direction:column;margin:8px 0 32px}
 .catnav-main{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
