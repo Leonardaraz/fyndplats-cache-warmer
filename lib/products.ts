@@ -109,11 +109,16 @@ function mapProduct(p: any): Product {
   };
 }
 
-// Per-choice variant data för premium variant-picker. Tre rendering-lägen i productview:
-//   1. Bild-cirklar — när varje choice har ch.media (V1-style produkter)
-//   2. Färg-swatcher — när option-namnet är "Färg" och värdena är kända färger
-//      (V3-migration förlorade per-choice bilder för många produkter)
-//   3. Text-pills — sista fallback för storlek/material/etc utan färg-match
+// Per-choice variant data för variant-pickern. Tre rendering-lägen i productview:
+//   1. Bild-cirklar — när varje choice har en bild (ch.media). Föredraget.
+//   2. Färg-swatcher — fallback när option heter "Färg"/"Color" men bild saknas.
+//   3. Text-pills — sista fallback (storlek/material/etc).
+//
+// OBS: Wix V1-katalogen HAR per-choice-bilder för i stort sett alla produkter,
+// men @wix/stores-SDK:ns listfråga (queryProducts) släpper choice.media. Därför
+// hydrerar getProduct() options från reader-REST där bilderna följer med
+// (se fetchOptionsFromReader). Funktionen accepterar både SDK-shape (variant._id)
+// och REST-shape (variant.id) så den fungerar för båda källorna.
 function extractOptions(raw: any): Product["options"] {
   const opt = (raw.productOptions || [])[0];
   if (!opt || (opt.choices || []).length < 2) return null;
@@ -125,14 +130,42 @@ function extractOptions(raw: any): Product["options"] {
     const onSale = pd && pd.discountedPrice != null && pd.discountedPrice < pd.price;
     return {
       label: ch.value,
-      image: ch.media?.mainMedia?.image?.url || "",
+      image: ch.media?.mainMedia?.image?.url || ch.media?.items?.[0]?.image?.url || "",
       color: isColor ? colorOf(ch.value) : "",
-      variantId: v?._id || "",
+      variantId: v?._id || v?.id || "",
       price: pd?.formatted?.discountedPrice || pd?.formatted?.price || "",
       originalPrice: onSale ? (pd.formatted?.price || "") : "",
     };
   }).filter((c: any) => c.variantId); // kräver inte längre image — kan vara color eller text
   return choices.length >= 2 ? { name: opt.name, choices } : null;
+}
+
+// Hämtar full produkt från Wix V1 reader-REST där per-choice-media följer med
+// (SDK:ns listobjekt saknar choice.media → annars faller pickern till färgcirklar).
+// Strikt additivt: vid fel/avsaknad faller vi tillbaka på SDK-objektets options.
+async function fetchOptionsFromReader(slug: string, sdkItem: any): Promise<Product["options"]> {
+  try {
+    const resp: Response = await (wix as any).fetchWithAuth(
+      "https://www.wixapis.com/stores-reader/v1/products/query",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: { filter: JSON.stringify({ slug }), paging: { limit: 1 } },
+          includeVariants: true,
+        }),
+      },
+    );
+    if (resp?.ok) {
+      const data: any = await resp.json();
+      const full = (data.products || [])[0];
+      const opts = full ? extractOptions(full) : null;
+      if (opts) return opts;
+    }
+  } catch (e) {
+    console.warn("[wix] reader-hydrering av options misslyckades:", (e as Error).message);
+  }
+  return extractOptions(sdkItem);
 }
 
 let productsPromise: Promise<Product[]> | null = null;
@@ -172,7 +205,7 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
       const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
       if (res.items?.[0]) {
         const prod = mapProduct(res.items[0]);
-        prod.options = extractOptions(res.items[0]);
+        prod.options = await fetchOptionsFromReader(slug, res.items[0]);
         prod.descriptionHtml = res.items[0].description || "";
         return prod;
       }
