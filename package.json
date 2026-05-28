@@ -9,7 +9,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "migrate:dry": "node --experimental-strip-types --no-warnings=ExperimentalWarning migration/scripts/dry-run.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
