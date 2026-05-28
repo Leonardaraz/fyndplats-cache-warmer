@@ -3,6 +3,15 @@
   "functions": {
     "app/api/aliexpress/sync-all/route.ts": {
       "maxDuration": 300
+    },
+    "app/api/cron/poll-tracking/route.ts": {
+      "maxDuration": 300
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/poll-tracking",
+      "schedule": "0 */3 * * *"
+    }
+  ]
 }
