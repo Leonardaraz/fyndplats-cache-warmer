@@ -26,7 +26,7 @@ import type {
 } from "./types";
 
 const API_BASE = "https://api-sg.aliexpress.com/sync";
-const AUTH_BASE = "https://oauth.aliexpress.com";
+const AUTH_BASE = "https://api-sg.aliexpress.com/oauth";
 
 // ---------------------------------------------------------------------------
 // Signering
