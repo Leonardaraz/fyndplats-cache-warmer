@@ -8,7 +8,7 @@ export interface ShippingAddress {
   phone?: string;
 }
 
-export type TaskStatus = "pending" | "ordered" | "shipped" | "cancelled";
+export type TaskStatus = "pending" | "pending_payment" | "ordered" | "shipped" | "cancelled";
 
 export interface FulfillmentTask {
   /** Stabil nyckel per orderrad: `${orderId}:${lineItemId}`. */
@@ -25,6 +25,8 @@ export interface FulfillmentTask {
   status: TaskStatus;
   shippingAddress?: ShippingAddress;
   createdAt: string;
+  /** AliExpress trade order id (sätts efter DS API-order). */
+  aliexpressOrderId?: string;
 }
 
 /** Normaliserad orderhändelse oavsett om den kom som JWT eller rå JSON. */

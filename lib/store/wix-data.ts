@@ -113,6 +113,12 @@ export class WixDataStore implements Store {
     await this.upsertTask({ ...existing, status });
   }
 
+  async updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void> {
+    const existing = await get<FulfillmentTask>(COL.tasks, taskId);
+    if (!existing) return;
+    await this.upsertTask({ ...existing, ...patch });
+  }
+
   async appendAudit(entry: AuditEntry): Promise<void> {
     const id = `${entry.at}-${entry.kind}-${entry.ref ?? "_"}`;
     await save(COL.audit, id, { _id: id, ...entry });

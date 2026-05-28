@@ -50,6 +50,11 @@ export class MemoryStore implements Store {
     if (task) this.tasks.set(taskId, { ...task, status });
   }
 
+  async updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void> {
+    const task = this.tasks.get(taskId);
+    if (task) this.tasks.set(taskId, { ...task, ...patch });
+  }
+
   async appendAudit(entry: AuditEntry): Promise<void> {
     this.audit.push(entry);
   }

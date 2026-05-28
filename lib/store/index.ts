@@ -38,6 +38,8 @@ export interface Store {
   createTaskIfAbsent(task: FulfillmentTask): Promise<boolean>;
   listTasks(status?: TaskStatus): Promise<FulfillmentTask[]>;
   setTaskStatus(taskId: string, status: TaskStatus): Promise<void>;
+  /** Uppdaterar delmängd av en task (merge). */
+  updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void>;
 
   // --- Audit-logg (spårbarhet) ---
   appendAudit(entry: AuditEntry): Promise<void>;
