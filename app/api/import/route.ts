@@ -4,6 +4,7 @@ import { isAuthorized } from "@/lib/auth";
 import { pricingConfigFromEnv } from "@/lib/config";
 import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
+import { getMemoryStore } from "@/lib/store/memory";
 
 const VariantSchema = z.object({
   supplierVariantId: z.string().min(1),
@@ -43,6 +44,11 @@ export async function POST(req: Request) {
 
   try {
     const result = await importProduct(product, pricingConfigFromEnv());
+    await getMemoryStore().saveMapping({
+      supplierProductId: result.supplierProductId,
+      wixProductId: result.wixProductId,
+      variants: result.variantMappings,
+    });
     return NextResponse.json({ ok: true, result }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Okänt fel";
