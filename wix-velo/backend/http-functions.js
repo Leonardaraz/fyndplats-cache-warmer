@@ -104,14 +104,27 @@ export async function post_track_webhook(request) {
 // 2) Publik läs-endpoint för /sparning-iframen
 // ---------------------------------------------------------------------------
 
+// CORS-headers — iframen på /sparning körs i sandboxat origin och måste få
+// läsa svaret från www.fyndplats.se.
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+// Preflight för OPTIONS (cachad i 24 h så det inte triggas på varje GET).
+export function options_track() {
+  return ok({ headers: { ...CORS, "Access-Control-Max-Age": "86400" }, body: "" });
+}
+
 export async function get_track(request) {
   const tn = request.query?.tn;
-  if (!tn) return badRequest({ body: { error: "tn (trackingNumber) krävs" } });
+  if (!tn) return badRequest({ headers: CORS, body: { error: "tn (trackingNumber) krävs" } });
 
   try {
     const data = await getTrackingData(tn);
     if (!data) {
-      return ok({ body: {
+      return ok({ headers: CORS, body: {
         trackingNumber: tn,
         delivered: false,
         carrier: "Fyndplats Frakt",
@@ -121,6 +134,7 @@ export async function get_track(request) {
       } });
     }
     return ok({
+      headers: CORS,
       body: {
         trackingNumber: tn,
         orderId: data.orderId || "",
@@ -136,7 +150,7 @@ export async function get_track(request) {
       },
     });
   } catch (err) {
-    return serverError({ body: { error: String(err) } });
+    return serverError({ headers: CORS, body: { error: String(err) } });
   }
 }
 
