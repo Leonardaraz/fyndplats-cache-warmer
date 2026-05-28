@@ -107,3 +107,65 @@ describe("refreshAndPersist", () => {
     await expect(refreshAndPersist()).rejects.toThrow(/ofullständigt svar/);
   });
 });
+
+describe("exchangeCode/refreshAccessToken — AliExpress response unwrapping", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+    vi.stubEnv("ALIEXPRESS_APP_KEY", "test-app-key");
+    vi.stubEnv("ALIEXPRESS_APP_SECRET", "test-app-secret");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    global.fetch = ORIGINAL_FETCH;
+    vi.restoreAllMocks();
+  });
+
+  it("exchangeCode unpackar wrapped *_response-shape", async () => {
+    mockFetch({
+      json: {
+        aliexpress_auth_token_create_response: {
+          access_token: "wrapped-access",
+          refresh_token: "wrapped-refresh",
+          expires_in: 172800,
+        },
+      },
+    });
+    const { exchangeCode } = await import("./client");
+    const result = await exchangeCode("test-code", "https://example.com/cb");
+    expect(result.access_token).toBe("wrapped-access");
+  });
+
+  it("exchangeCode hanterar flat shape", async () => {
+    mockFetch({
+      json: { access_token: "flat-access", refresh_token: "flat-refresh", expires_in: 172800 },
+    });
+    const { exchangeCode } = await import("./client");
+    const result = await exchangeCode("test-code", "https://example.com/cb");
+    expect(result.access_token).toBe("flat-access");
+  });
+
+  it("exchangeCode kastar med AliExpress-felmeddelandet om response har error-kod", async () => {
+    mockFetch({
+      json: { code: "27", message: "code already used" },
+    });
+    const { exchangeCode } = await import("./client");
+    await expect(exchangeCode("burnt-code", "https://example.com/cb"))
+      .rejects.toThrow(/code already used/);
+  });
+
+  it("refreshAccessToken unpackar wrapped *_response-shape", async () => {
+    mockFetch({
+      json: {
+        aliexpress_auth_token_refresh_response: {
+          access_token: "refreshed-access",
+          refresh_token: "refreshed-refresh",
+          expires_in: 172800,
+        },
+      },
+    });
+    const { refreshAccessToken } = await import("./client");
+    const result = await refreshAccessToken("old-refresh-token");
+    expect(result.access_token).toBe("refreshed-access");
+  });
+});

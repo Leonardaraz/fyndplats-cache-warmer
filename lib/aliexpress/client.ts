@@ -127,6 +127,32 @@ export function buildAuthUrl(redirectUri: string, state?: string): string {
     return `${AUTH_BASE}/authorize?${p.toString()}`;
 }
 
+/**
+ * AliExpress signed-RPC svar kan vara antingen flat ({access_token, ...})
+ * eller wrapped i en namespace-key ({aliexpress_auth_token_create_response: {...}})
+ * beroende på app-konfiguration och simplify-flaggan. Den här helpern
+ * detekterar wrapper-keyn, plockar ut innehållet, OCH kastar ett tydligt
+ * fel om svaret innehåller ett AliExpress error-code-fält.
+ */
+function unwrapAliExpressResponse(raw: unknown, opName: string): Record<string, unknown> {
+    if (raw == null || typeof raw !== "object") {
+        throw new Error(`${opName}: ogiltigt svar från AliExpress: ${JSON.stringify(raw)}`);
+    }
+    const obj = raw as Record<string, unknown>;
+
+    // Detektera wrapper-key (slutar på "_response") och packa upp.
+    const wrapperKey = Object.keys(obj).find((k) => k.endsWith("_response"));
+    const data = (wrapperKey ? obj[wrapperKey] : obj) as Record<string, unknown>;
+
+    // Kontrollera AliExpress error-shape (code som inte är 0/200 eller error_code/error)
+    const codeRaw = data.code ?? data.error_code ?? data.error;
+    if (codeRaw !== undefined && codeRaw !== null && codeRaw !== 0 && codeRaw !== "0" && codeRaw !== 200 && codeRaw !== "200") {
+        const message = data.message ?? data.error_description ?? data.msg ?? "okänt AliExpress-fel";
+        throw new Error(`${opName}: AliExpress fel ${codeRaw}: ${message}`);
+    }
+    return data;
+}
+
 export async function exchangeCode(code: string, _redirectUri: string): Promise<DsTokenResponse> {
     const appKey = process.env.ALIEXPRESS_APP_KEY;
     const appSecret = process.env.ALIEXPRESS_APP_SECRET;
@@ -144,7 +170,7 @@ export async function exchangeCode(code: string, _redirectUri: string): Promise<
 
   const res = await fetch(`${REST_BASE}/auth/token/create?${query}`, { method: "POST" });
     if (!res.ok) throw new Error(`Token-utbyte misslyckades: ${res.status}`);
-    return (await res.json()) as DsTokenResponse;
+    return unwrapAliExpressResponse(await res.json(), "exchangeCode") as unknown as DsTokenResponse;
 }
 
 export async function refreshAccessToken(refreshToken: string): Promise<DsTokenResponse> {
@@ -164,7 +190,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<DsTokenR
 
   const res = await fetch(`${REST_BASE}/auth/token/refresh?${query}`, { method: "POST" });
     if (!res.ok) throw new Error(`Token-refresh misslyckades: ${res.status}`);
-    return (await res.json()) as DsTokenResponse;
+    return unwrapAliExpressResponse(await res.json(), "refreshAccessToken") as unknown as DsTokenResponse;
 }
 
 /**
