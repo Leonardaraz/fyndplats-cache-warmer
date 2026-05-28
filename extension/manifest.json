@@ -5,7 +5,11 @@
   "description": "Importerar AliExpress-produkter till Fyndplats (Wix) med svensk SEO och påslag.",
   "permissions": ["storage", "activeTab", "scripting"],
   "optional_host_permissions": ["https://*/*"],
-  "host_permissions": ["https://*.aliexpress.com/*", "https://*.aliexpress.us/*"],
+  "host_permissions": [
+    "https://*.aliexpress.com/*",
+    "https://*.aliexpress.us/*",
+    "https://*.alicdn.com/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Fyndplats Import"

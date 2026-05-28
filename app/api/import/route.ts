@@ -22,6 +22,8 @@ const ProductSchema = z.object({
   rawDescription: z.string(),
   imageUrls: z.array(z.string().url()),
   variants: z.array(VariantSchema).min(1),
+  // Färgkoder samplade från produktbilden: { [optionName]: { [choiceName]: "#hex" } }.
+  optionColorCodes: z.record(z.record(z.string())).optional(),
 });
 
 export async function POST(req: Request) {
@@ -41,10 +43,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Valideringsfel", details: parsed.error.flatten() }, { status: 422 });
   }
 
-  const product: AliExpressProduct = parsed.data;
+  const { optionColorCodes, ...product } = parsed.data;
 
   try {
-    const result = await importProduct(product, pricingConfigFromEnv());
+    const result = await importProduct(product as AliExpressProduct, pricingConfigFromEnv(), optionColorCodes);
     await getMemoryStore().saveMapping({
       supplierProductId: result.supplierProductId,
       wixProductId: result.wixProductId,

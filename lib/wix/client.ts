@@ -24,8 +24,12 @@ export interface WixProductInput {
   seo?: { title?: string; description?: string };
   /** Redan uppladdade media-uploadId:n (se image-pipelinen). */
   mediaUploadIds?: { uploadId: string; altText?: string }[];
-  /** Optionsdefinitioner: namn -> lista av val. Tom = enkel produkt utan varianter. */
-  options?: { name: string; choices: string[] }[];
+  /**
+   * Optionsdefinitioner. Ett val kan ha `colorCode` (hex) → renderas som
+   * färg-swatch (bubbla). Har alla val i en option en colorCode blir hela
+   * optionen en swatch; annars text. Tom = enkel produkt utan varianter.
+   */
+  options?: { name: string; choices: { name: string; colorCode?: string }[] }[];
   variants: WixVariantInput[];
 }
 
@@ -49,11 +53,23 @@ function wixHeaders(): Record<string, string> {
   return headers;
 }
 
+/** En option blir färg-swatch om alla dess val har en colorCode. */
+function isSwatchOption(o: { choices: { colorCode?: string }[] }): boolean {
+  return o.choices.length > 0 && o.choices.every((c) => Boolean(c.colorCode));
+}
+
 /** Bygger V3-request-body från vårt interna produktformat. */
 export function buildCreateProductBody(input: WixProductInput): Record<string, unknown> {
+  // Render-typ per option (behövs i variants optionChoiceNames.renderType).
+  const renderTypeByOption = new Map<string, "SWATCH_CHOICES" | "TEXT_CHOICES">();
+  for (const o of input.options ?? []) {
+    renderTypeByOption.set(o.name, isSwatchOption(o) ? "SWATCH_CHOICES" : "TEXT_CHOICES");
+  }
+
   const product: Record<string, unknown> = {
     name: input.name,
     productType: "PHYSICAL",
+    physicalProperties: {},
     variantsInfo: {
       variants: input.variants.map((v) => ({
         sku: v.sku,
@@ -63,7 +79,11 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
           ...(v.compareAtPrice ? { compareAtPrice: { amount: v.compareAtPrice } } : {}),
         },
         choices: Object.entries(v.choices).map(([optionName, choiceName]) => ({
-          optionChoiceNames: { optionName, choiceName },
+          optionChoiceNames: {
+            optionName,
+            choiceName,
+            renderType: renderTypeByOption.get(optionName) ?? "TEXT_CHOICES",
+          },
         })),
       })),
     },
@@ -84,10 +104,20 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
     };
   }
   if (input.options?.length) {
-    product.options = input.options.map((o) => ({
-      name: o.name,
-      choicesSettings: { choices: o.choices.map((c) => ({ name: c })) },
-    }));
+    product.options = input.options.map((o) => {
+      const swatch = isSwatchOption(o);
+      return {
+        name: o.name,
+        optionRenderType: swatch ? "SWATCH_CHOICES" : "TEXT_CHOICES",
+        choicesSettings: {
+          choices: o.choices.map((c) =>
+            swatch
+              ? { choiceType: "ONE_COLOR", name: c.name, colorCode: c.colorCode }
+              : { choiceType: "CHOICE_TEXT", name: c.name },
+          ),
+        },
+      };
+    });
   }
   if (input.mediaUploadIds?.length) {
     product.media = {

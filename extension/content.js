@@ -38,6 +38,8 @@ function extract() {
     rawDescription: "",
     imageUrls: [],
     variants: [],
+    // { [optionName]: { [choiceName]: swatchImageUrl } } för options med bild (färg).
+    swatchImages: {},
     _warnings: [],
   };
 
@@ -52,6 +54,19 @@ function extract() {
 
     const skuPriceList = skuModule.skuPriceList || [];
     const props = skuModule.productSKUPropertyList || [];
+
+    // Fånga bild per val för options som har swatch-bilder (typiskt färg).
+    for (const prop of props) {
+      const optionName = prop.skuPropertyName || String(prop.skuPropertyId);
+      const values = prop.skuPropertyValues || [];
+      const withImg = values.filter((v) => v.skuPropertyImagePath);
+      if (withImg.length === 0) continue;
+      result.swatchImages[optionName] = {};
+      for (const v of withImg) {
+        const choiceName = v.propertyValueDisplayName || v.propertyValueName;
+        result.swatchImages[optionName][choiceName] = v.skuPropertyImagePath;
+      }
+    }
     result.variants = skuPriceList.map((sku, i) => ({
       supplierVariantId: String(sku.skuId || sku.skuIdStr || i),
       options: decodeSkuProps(sku.skuPropIds, props),

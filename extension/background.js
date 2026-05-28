@@ -39,6 +39,7 @@ async function importProduct(product) {
       stock: v.stock,
       included: Boolean(v.included),
     })),
+    ...(product.optionColorCodes ? { optionColorCodes: product.optionColorCodes } : {}),
   };
 
   try {
@@ -77,11 +78,55 @@ async function apiCall(path, options) {
   }
 }
 
+// Samplar dominerande färg från en bild-URL via OffscreenCanvas (i service
+// workern, så vi slipper canvas-tainting/CORS). Returnerar hex eller null.
+async function sampleColor(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const bitmap = await createImageBitmap(blob);
+    // Skala ner till en liten yta och medelvärdesbilda pixlarna.
+    const size = 16;
+    const canvas = new OffscreenCanvas(size, size);
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0, size, size);
+    const { data } = ctx.getImageData(0, 0, size, size);
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 128) continue; // hoppa över transparenta pixlar
+      r += data[i]; g += data[i + 1]; b += data[i + 2]; n++;
+    }
+    if (n === 0) return null;
+    const hex = (x) => Math.round(x / n).toString(16).padStart(2, "0");
+    return `#${hex(r)}${hex(g)}${hex(b)}`;
+  } catch (_) {
+    return null;
+  }
+}
+
+// Samplar färger för alla swatch-bilder och bygger { [option]: { [choice]: hex } }.
+async function sampleSwatchColors(swatchImages) {
+  const out = {};
+  for (const [optionName, choices] of Object.entries(swatchImages || {})) {
+    const codes = {};
+    for (const [choiceName, url] of Object.entries(choices)) {
+      const hex = await sampleColor(url);
+      if (hex) codes[choiceName] = hex;
+    }
+    if (Object.keys(codes).length) out[optionName] = codes;
+  }
+  return { ok: true, optionColorCodes: out };
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (!msg) return;
   switch (msg.type) {
     case "IMPORT_PRODUCT":
       importProduct(msg.product).then(sendResponse);
+      return true;
+    case "SAMPLE_COLORS":
+      sampleSwatchColors(msg.swatchImages).then(sendResponse);
       return true;
     case "FETCH_TASKS":
       apiCall("/api/tasks?status=pending", { method: "GET" }).then(sendResponse);

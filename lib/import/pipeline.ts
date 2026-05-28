@@ -24,8 +24,22 @@ export function makeSku(supplierProductId: string, supplierVariantId: string): s
   return `AE-${supplierProductId}-${supplierVariantId}`;
 }
 
-/** Härleder Wix-optionsdefinitioner från de inkluderade varianternas optionsvärden. */
-export function deriveOptions(variants: AliExpressProduct["variants"]): { name: string; choices: string[] }[] {
+/** Färgkoder per option och val: { [optionName]: { [choiceName]: "#hex" } }. */
+export type OptionColorCodes = Record<string, Record<string, string>>;
+
+export interface DerivedOption {
+  name: string;
+  choices: { name: string; colorCode?: string }[];
+}
+
+/**
+ * Härleder Wix-optionsdefinitioner från variantvärdena. Om en colorCode finns
+ * för ett val (samplad från produktbilden) följer den med → färg-swatch i Wix.
+ */
+export function deriveOptions(
+  variants: AliExpressProduct["variants"],
+  colorCodes?: OptionColorCodes,
+): DerivedOption[] {
   const map = new Map<string, Set<string>>();
   for (const v of variants) {
     for (const [name, value] of Object.entries(v.options)) {
@@ -33,7 +47,13 @@ export function deriveOptions(variants: AliExpressProduct["variants"]): { name: 
       map.get(name)!.add(value);
     }
   }
-  return [...map.entries()].map(([name, set]) => ({ name, choices: [...set] }));
+  return [...map.entries()].map(([name, set]) => ({
+    name,
+    choices: [...set].map((choiceName) => ({
+      name: choiceName,
+      colorCode: colorCodes?.[name]?.[choiceName],
+    })),
+  }));
 }
 
 /**
@@ -44,6 +64,7 @@ export function deriveOptions(variants: AliExpressProduct["variants"]): { name: 
 export async function importProduct(
   product: AliExpressProduct,
   config: PricingConfig,
+  colorCodes?: OptionColorCodes,
 ): Promise<ImportResult> {
   const included = product.variants.filter((v) => v.included);
   if (included.length === 0) {
@@ -52,16 +73,21 @@ export async function importProduct(
 
   const seo = await generateSeo(product);
 
-  const options = deriveOptions(included);
+  // Options härleds från ALLA varianter; avbockade varianter skapas men döljs
+  // (visible: false) så att Wix får en komplett variantuppsättning.
+  const options = deriveOptions(product.variants, colorCodes);
   const variantMappings: VariantMapping[] = [];
-  const wixVariants: WixVariantInput[] = included.map((v) => {
+  const wixVariants: WixVariantInput[] = product.variants.map((v) => {
     const sku = makeSku(product.supplierProductId, v.supplierVariantId);
     const price = computePrice(v.costUsd, config);
-    variantMappings.push({ supplierVariantId: v.supplierVariantId, sku, choices: v.options });
+    if (v.included) {
+      variantMappings.push({ supplierVariantId: v.supplierVariantId, sku, choices: v.options });
+    }
     return {
       sku,
       actualPrice: price.grossSek.toFixed(2),
       choices: v.options,
+      visible: v.included,
     };
   });
 

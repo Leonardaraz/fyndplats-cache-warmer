@@ -32,6 +32,19 @@ async function load() {
     }
     product = res.product;
     render();
+    sampleColors();
+  });
+}
+
+// Samplar färg från AliExpress swatch-bilder så färgvarianter blir färgbubblor i Wix.
+function sampleColors() {
+  if (!product.swatchImages || Object.keys(product.swatchImages).length === 0) return;
+  chrome.runtime.sendMessage({ type: "SAMPLE_COLORS", swatchImages: product.swatchImages }, (res) => {
+    if (res && res.ok && Object.keys(res.optionColorCodes).length) {
+      product.optionColorCodes = res.optionColorCodes;
+      const n = Object.values(res.optionColorCodes).reduce((a, c) => a + Object.keys(c).length, 0);
+      setStatus(`${n} färgvarianter blir färgbubblor (samplade från bilden).`, "ok");
+    }
   });
 }
 
