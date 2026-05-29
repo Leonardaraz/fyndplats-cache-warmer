@@ -50,13 +50,13 @@ export interface WixV3Variant {
 export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
   const all: WixV3ProductSummary[] = [];
   let cursor: string | undefined;
-  for (let page = 0; page < 20; page++) {
-    const body: Record<string, unknown> = {
-      query: {
-        paging: { limit: 100 },
-      },
-    };
-    if (cursor) body.query = { ...(body.query as object), cursor };
+  for (let page = 0; page < 50; page++) {
+    // V3 använder cursorPaging (inte paging). Cursor måste ligga INUTI
+    // cursorPaging-objektet, annars ignoreras den och samma första 100
+    // produkter returneras om och om igen (vilket buggade hela /admin/seo).
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    const body = { query: { cursorPaging } };
 
     const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
       method: "POST",
@@ -77,7 +77,7 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         variantsInfo?: { variants?: unknown[] };
         seoData?: { tags?: Array<{ type?: string; props?: { name?: string; property?: string }; children?: string }> };
       }>;
-      pagingMetadata?: { cursors?: { next?: string } };
+      pagingMetadata?: { count?: number; cursors?: { next?: string }; hasNext?: boolean };
     };
 
     for (const p of data.products ?? []) {
@@ -100,7 +100,8 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
     }
 
     cursor = data.pagingMetadata?.cursors?.next;
-    if (!cursor || (data.products ?? []).length === 0) break;
+    const got = data.products?.length ?? 0;
+    if (got === 0 || !cursor || data.pagingMetadata?.hasNext === false) break;
   }
   return all;
 }
