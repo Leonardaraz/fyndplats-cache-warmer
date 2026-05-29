@@ -460,6 +460,13 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .scroll-ind{position:fixed;top:0;left:0;right:0;height:3px;background:transparent;z-index:120;pointer-events:none}
 .scroll-ind span{display:block;height:100%;background:linear-gradient(90deg,#C2410C,#F47A35);transition:width .12s ease-out;will-change:width}
 
+/* Flytande "till toppen"-knapp — dold tills man scrollat ner */
+.backtotop{position:fixed;right:22px;bottom:26px;z-index:70;width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.94);backdrop-filter:blur(8px);color:#C2410C;font-size:21px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px -10px rgba(28,28,28,.4);opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .25s,transform .25s,visibility .25s,background .2s,border-color .2s}
+.backtotop.show{opacity:1;visibility:visible;transform:translateY(0)}
+.backtotop:hover{background:#C2410C;color:#fff;border-color:#C2410C}
+@media(max-width:768px){.backtotop{right:16px;bottom:84px;width:44px;height:44px;font-size:19px}}
+@media(prefers-reduced-motion:reduce){.backtotop{transition:opacity .2s,visibility .2s}}
+
 /* #6 Hover-alt-image on product cards */
 .pimg-main,.pimg-alt{transition:opacity .35s ease}
 .pimg-alt{opacity:0}

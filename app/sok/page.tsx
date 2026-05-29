@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getProducts } from "../../lib/products";
-import { ProductCard } from "../../components/productcard";
+import { ShopBrowser } from "../../components/shopbrowser";
 
 export const metadata: Metadata = {
   title: "Sök",
@@ -22,13 +22,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
             <h1>{q ? `Sökresultat för “${q}”` : "Sök i butiken"}</h1>
             <p>{q ? `${results.length} ${results.length === 1 ? "produkt" : "produkter"} hittades` : "Skriv i sökrutan ovan för att hitta produkter."}</p>
           </div>
-          {results.length > 0 && (
-            <div className="prodgrid">
-              {results.map((p) => (
-                <ProductCard p={p} key={p.slug} />
-              ))}
-            </div>
-          )}
+          {results.length > 0 && <ShopBrowser products={results} />}
           {q && results.length === 0 && (
             <p className="empty" style={{ textAlign: "center", color: "var(--soft)" }}>
               Inga produkter matchade “{q}”. Prova ett annat sökord eller <a href="/butik" style={{ color: "var(--orange)", fontWeight: 600 }}>se hela sortimentet</a>.
