@@ -1,5 +1,5 @@
 import type { Collection } from "../lib/products";
-import { CatNavCenter } from "./catnav-center";
+import { CatNavRow } from "./catnav-row";
 
 // Kategorinavigering — EN svepbar rad (scroll i sidled) i stället för en vägg
 // av knappar som tryckte ner produkterna. Auto-detekterar kategorier från
@@ -30,7 +30,7 @@ export function CatNav({ collections, productCounts, totalProducts, activeSlug }
 
   return (
     <div className="catnav">
-      <div className="catnav-main" role="navigation" aria-label="Kategorier">
+      <CatNavRow>
         <a className={`catchip ${!activeSlug ? "active" : ""}`} href="/butik">
           Alla
           <span className="cc-count">{totalProducts}</span>
@@ -45,8 +45,7 @@ export function CatNav({ collections, productCounts, totalProducts, activeSlug }
             <span className="cc-count">{c.count}</span>
           </a>
         ))}
-      </div>
-      <CatNavCenter />
+      </CatNavRow>
     </div>
   );
 }
