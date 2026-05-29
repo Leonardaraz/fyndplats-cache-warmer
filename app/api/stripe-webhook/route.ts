@@ -5,6 +5,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { verifyStripeSignature } from "@/lib/payments/stripe-webhook";
+import { notifyOrder } from "@/lib/email/notify";
 
 export const runtime = "nodejs";
 
@@ -40,7 +41,16 @@ export async function POST(req: NextRequest) {
         amount != null ? amount / 100 : "?"
       } kr · scan: ${meta.scanned_url ?? "-"}`,
     );
-    // Här kopplar du senare på: skicka audit-rapporten, lägg order i din pipeline, osv.
+    // Skicka bekräftelse till kund + säljnotis till ägaren (best-effort, env-styrt).
+    if (email !== "okänd") {
+      await notifyOrder({
+        email,
+        plan: meta.plan ?? "audit",
+        amountSek: amount != null ? amount / 100 : undefined,
+        scannedUrl: meta.scanned_url,
+        baseUrl: req.nextUrl.origin,
+      });
+    }
   }
 
   return NextResponse.json({ received: true });

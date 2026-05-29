@@ -33,6 +33,7 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 | `STRIPE_PRICE_MONITORING` | Monitoring | `price_…` (recurring) |
 | `STRIPE_WEBHOOK_SECRET` | Betalningsverifiering | `whsec_…` — krävs för skarp drift |
 | `LEAD_WEBHOOK_URL` | Lead-lagring | Valfri (Zapier/Make/egen) |
+| `RESEND_API_KEY` / `EMAIL_FROM` / `EMAIL_OWNER` | Mejl vid köp | Valfria — utan dem skickas inga mejl |
 
 ## Köra lokalt
 ```bash
