@@ -101,7 +101,7 @@ export async function SiteFooter() {
         <div>
           <div className="fbrand"><Mark size={30} />Fyndplats</div>
           <p style={{ fontSize: 13.5, color: "#a39c93", maxWidth: "30ch" }}>Trygg svensk e-handel med ett brett sortiment till låga priser.</p>
-          <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">4,9</b> <span className="star">★★★★★</span> <span className="g-count">(20 omdömen)</span></div>
+          <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">4,9</b> <span className="star">★★★★★</span> <span className="g-count">(21 omdömen)</span></div>
           <Social className="footer-social" />
         </div>
         <div className="fcol"><div className="fhead">Handla</div><a href="/butik">Butik</a><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a>{hasBlog && <a href="/blogg">Blogg</a>}</div>

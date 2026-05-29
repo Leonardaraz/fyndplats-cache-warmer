@@ -10,7 +10,7 @@ const jsonLd = {
   description: "Svensk webbutik för kvalitetsprodukter till låga priser.",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
-  aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "20" },
+  aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "21" },
 };
 
 export default async function Home() {
@@ -203,7 +203,7 @@ export default async function Home() {
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg>Snabb leverans</span>
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>Trygg Klarna-betalning</span>
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>14 dagars ångerrätt</span>
-          <span className="uspitem">⭐ Google 4,9 (20 omdömen)</span>
+          <span className="uspitem">⭐ Google 4,9 (21 omdömen)</span>
         </div>
       </div>
 
