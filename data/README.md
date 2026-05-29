@@ -57,6 +57,13 @@ på färg-swatch/text precis som förut (ingen regression).
 
 ### Uppdatera
 
-Filen är en ögonblicksbild. Kör om exporten (paginerat `POST /stores/v1/products/query`
-mot källsajten via admin-API, plocka `productOptions[].choices[].media.mainMedia.image.url`)
-när katalogens varianter eller variantbilder ändras.
+Filen är en ögonblicksbild. Återskapa den med exportskriptet när katalogens varianter
+eller variantbilder ändras:
+
+```bash
+WIX_API_TOKEN=<admin/site-API-key med Stores-läsbehörighet> \
+  node scripts/export-variant-images.mjs
+```
+
+Token behövs **endast** för exporten — storefronten kräver ingen token (den läser den
+färdiga filen). Transformlogiken kan testas utan nätverk: `node scripts/export-variant-images.mjs --selftest`.
