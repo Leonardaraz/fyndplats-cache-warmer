@@ -35,10 +35,6 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   if (!active) notFound();
   const list = products.filter((p) => p.collectionIds?.includes(active.id));
 
-  // Räkna produkter per kategori (för CatNav-badges)
-  const counts = new Map<string, number>();
-  for (const p of products) for (const cid of (p.collectionIds || [])) counts.set(cid, (counts.get(cid) || 0) + 1);
-
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -61,7 +57,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
             <p>{list.length} {list.length === 1 ? "produkt" : "produkter"}</p>
           </div>
 
-          <CatNav collections={collections} productCounts={counts} totalProducts={products.length} activeSlug={active.slug} />
+          <CatNav products={products} collections={collections} activeSlug={active.slug} />
 
           <div className="prodgrid">
             {list.map((p) => (

@@ -15,10 +15,6 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
   const active = collections.find((c) => c.slug === kategori);
   const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : mixByCategory(products, collections);
 
-  // Räkna produkter per kategori (för CatNav-badges)
-  const counts = new Map<string, number>();
-  for (const p of products) for (const cid of (p.collectionIds || [])) counts.set(cid, (counts.get(cid) || 0) + 1);
-
   return (
     <>
       <section className="sec">
@@ -29,7 +25,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
             <p>{active ? `Allt inom ${active.name}` : "Filtrera på pris och sortera – fler fynd varje vecka."}</p>
           </div>
 
-          <CatNav collections={collections} productCounts={counts} totalProducts={products.length} activeSlug={active?.slug} />
+          <CatNav products={products} collections={collections} activeSlug={active?.slug} />
 
           <ShopBrowser products={list} />
         </div>
