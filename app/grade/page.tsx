@@ -117,6 +117,11 @@ export default function GradePage() {
           Ingen overlay-widget, ingen falsk ”100 % compliant”-stämpel — bara en ärlig
           koll på riktiga WCAG-fel.
         </p>
+        <div style={S.trust}>
+          <span>✓ WCAG 2.1 AA</span>
+          <span>✓ Resultat på sekunder</span>
+          <span>✓ Gratis & utan konto</span>
+        </div>
       </section>
 
       {payback === "klar" && (
@@ -201,6 +206,50 @@ export default function GradePage() {
           </div>
         </section>
       )}
+
+      <section style={S.steps}>
+        <h2 style={S.sectionH2}>Så funkar det</h2>
+        <div style={S.stepRow}>
+          {[
+            { n: "1", t: "Klistra in din URL", d: "Vi hämtar din sida och granskar den mot WCAG 2.1 AA." },
+            { n: "2", t: "Se betyg & fel direkt", d: "Du får ett betyg och de vanligaste tillgänglighetsfelen på sekunder." },
+            { n: "3", t: "Få en åtgärdsplan", d: "Beställ den fullständiga rapporten med prioriterad fixlista för din butik." },
+          ].map((s) => (
+            <div key={s.n} style={S.step}>
+              <div style={S.stepNum}>{s.n}</div>
+              <strong>{s.t}</strong>
+              <p style={S.stepText}>{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={S.faq}>
+        <h2 style={S.sectionH2}>Vanliga frågor om EAA</h2>
+        {[
+          {
+            q: "Vad är European Accessibility Act?",
+            a: "Ett EU-direktiv som ställer krav på att bl.a. e-handel ska vara tillgänglig för personer med funktionsnedsättning. Det gäller för nya tjänster sedan 28 juni 2025, med en övergångsperiod för befintliga tjänster fram till 2030.",
+          },
+          {
+            q: "Gäller det min webbutik?",
+            a: "E-handel pekas särskilt ut. Mycket små företag (under 10 anställda och under 2 M€ omsättning) kan vara undantagna från tjänstekraven — men många butiker ligger över tröskeln, och tillgänglighet är ändå bra för försäljning och kundnöjdhet.",
+          },
+          {
+            q: "Vad kan det kosta att inte följa lagen?",
+            a: "Sanktionerna sätts per EU-land och kan vara kännbara — i vissa länder upp till 100 000 € per överträdelse. Tillsyn pågår. Vi ger en åtgärdsplan, inte juridisk rådgivning.",
+          },
+          {
+            q: "Är det här en sådan där overlay-widget?",
+            a: "Nej. Overlay-widgets har både kritiserats hårt och lett till stämningar. Vi gör en ärlig granskning av riktiga WCAG-fel och ger dig konkreta åtgärder — ingen kod som låtsas lösa allt.",
+          },
+        ].map((f) => (
+          <details key={f.q} style={S.faqItem}>
+            <summary style={S.faqQ}>{f.q}</summary>
+            <p style={S.faqA}>{f.a}</p>
+          </details>
+        ))}
+      </section>
 
       <footer style={S.footer}>
         Fyndplats · Tillgänglighetskoll. Resultatet är vägledande och utgör inte
@@ -344,4 +393,35 @@ const S: Record<string, React.CSSProperties> = {
   ctaText: { fontSize: 15, color: "#374151", margin: "0 0 16px" },
   emailForm: { display: "flex", gap: 8 },
   footer: { marginTop: 48, fontSize: 12, color: "#9ca3af", textAlign: "center" },
+  trust: {
+    display: "flex",
+    gap: 16,
+    justifyContent: "center",
+    flexWrap: "wrap",
+    marginTop: 16,
+    fontSize: 13,
+    color: "#15803d",
+    fontWeight: 600,
+  },
+  steps: { marginTop: 56 },
+  sectionH2: { fontSize: 22, textAlign: "center", margin: "0 0 24px" },
+  stepRow: { display: "flex", gap: 16, flexWrap: "wrap" },
+  step: { flex: "1 1 180px", textAlign: "center" },
+  stepNum: {
+    width: 36,
+    height: 36,
+    borderRadius: "50%",
+    background: "#2563eb",
+    color: "#fff",
+    fontWeight: 700,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 10px",
+  },
+  stepText: { fontSize: 14, color: "#6b7280", marginTop: 4 },
+  faq: { marginTop: 56 },
+  faqItem: { borderTop: "1px solid #e5e7eb", padding: "12px 0" },
+  faqQ: { fontSize: 16, fontWeight: 600, cursor: "pointer" },
+  faqA: { fontSize: 15, color: "#374151", margin: "8px 0 0" },
 };
