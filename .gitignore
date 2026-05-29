@@ -23,5 +23,8 @@ next-env.d.ts
 .DS_Store
 *.log
 
+# pnpm genererar denna mall vid ignorerade build-skript (ej källkod)
+/pnpm-workspace.yaml
+
 # migration progress-filer (genereras lokalt, ej i repo)
 /migration/_work/
