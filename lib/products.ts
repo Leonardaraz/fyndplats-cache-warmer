@@ -13,6 +13,8 @@ export type Product = {
   price: string;
   currency: string;
   priceNum: number;
+  priceFrom?: string;
+  hasRange?: boolean;
   img: string;
   gallery: string[];
   blurb: string;
@@ -23,7 +25,7 @@ export type Product = {
   originalPrice?: string;
   onSale?: boolean;
   descriptionHtml?: string;
-  options?: { name: string; choices: { label: string; image: string; color: string; variantId: string; price: string; originalPrice: string }[] } | null;
+  options?: { name: string; choices: { label: string; image: string; color: string; variantId: string; price: string; priceNum: number; originalPrice: string }[] } | null;
 };
 
 // Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas.
@@ -89,6 +91,12 @@ function mapProduct(p: any): Product {
   const variants = ((p.variants) || [])
     .map((v: any) => ({ id: v._id, label: Object.values(v.choices || {}).join(" / ") || "Standard" }))
     .filter((v: any) => v.id);
+  // Pris-spann (Wix priceRange) → "Från X kr" på kort/listor när varianter har olika pris.
+  // Annars (min === max eller saknas) visas det vanliga priset. Defensivt: degraderar utan fel.
+  const pr = p.priceRange || {};
+  const minV = typeof pr.minValue === "number" ? pr.minValue : null;
+  const maxV = typeof pr.maxValue === "number" ? pr.maxValue : null;
+  const hasRange = minV != null && maxV != null && minV < maxV;
   return {
     id: p._id || p.id || "",
     variants,
@@ -100,6 +108,8 @@ function mapProduct(p: any): Product {
     priceNum: (p.price && (p.price.discountedPrice ?? p.price.price)) || 0,
     originalPrice: (p.price && p.price.discountedPrice != null && p.price.discountedPrice < p.price.price) ? (p.price.formatted?.price || "") : "",
     onSale: !!(p.price && p.price.discountedPrice != null && p.price.discountedPrice < p.price.price),
+    priceFrom: hasRange && minV != null ? minV.toFixed(2).replace(".", ",") + "kr" : "",
+    hasRange,
     img: (p.media && p.media.mainMedia && p.media.mainMedia.image && p.media.mainMedia.image.url) || gallery[0] || "",
     gallery: gallery.slice(0, 6),
     blurb: stripHtml(firstP ? firstP[1] : p.description || "").slice(0, 220),
@@ -137,6 +147,7 @@ function extractOptions(raw: any): Product["options"] {
       color: isColor ? colorOf(ch.value) : "",
       variantId: v?._id || v?.id || "",
       price: pd?.formatted?.discountedPrice || pd?.formatted?.price || "",
+      priceNum: (pd && (pd.discountedPrice ?? pd.price)) || 0,
       originalPrice: onSale ? (pd.formatted?.price || "") : "",
     };
   }).filter((c: any) => c.variantId); // kräver inte längre image — kan vara color eller text

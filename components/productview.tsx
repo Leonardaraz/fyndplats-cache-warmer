@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useCart } from "./cart";
 import { Gallery } from "./gallery";
 
-type Choice = { label: string; image: string; color?: string; variantId: string; price: string; originalPrice: string };
+type Choice = { label: string; image: string; color?: string; variantId: string; price: string; priceNum: number; originalPrice: string };
 
 // Wixstatic-bilder har samma fil-id men olika transform-params (w_400 vs w_800).
 // Dedup:a på fil-id:t så variantbilden inte dyker upp dubbelt i galleriet.
@@ -51,7 +51,14 @@ export function ProductView({
   options?: { name: string; choices: Choice[] } | null;
 }) {
   const { add, busy } = useCart();
-  const [sel, setSel] = useState(0);              // vald variant
+  // Förvälj billigaste varianten så att produktsidans pris matchar "Från X kr" på
+  // kort/listor (annars hoppade priset eftersom variant 0 inte är billigast).
+  const [sel, setSel] = useState(() => {
+    const cs = options?.choices || [];
+    let bi = 0, bv = Infinity;
+    cs.forEach((c, i) => { if (c.priceNum > 0 && c.priceNum < bv) { bv = c.priceNum; bi = i; } });
+    return bi;
+  });
   const [galleryIdx, setGalleryIdx] = useState(0); // aktiv galleribild
   const [added, setAdded] = useState(false);
 
