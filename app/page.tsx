@@ -121,7 +121,32 @@ export default async function Home() {
     }
   }
 
-  const products = mixByCategory(allProducts.filter((p) => !usedHero.has(p.slug)), cols).slice(0, 8);
+  // "Veckans fynd": fyll i FÖRSTA HAND med redan visuellt granskade, proffsiga
+  // produkter (samma kurerade slugs som hero/kategori-mosaikerna använder — inga
+  // text-/mått-overlays, loggor eller plastförpackningar). Backfilla sedan med
+  // mixByCategory MEN exkludera MOSAIC_DENYLIST så kända dåliga bilder inte
+  // slinker in (tidigare gjorde slice(0,8) det utan filter).
+  const VETTED_SLUGS = Array.from(new Set([
+    ...Object.values(PREMIUM_CURATION).flat(),
+    ...Object.values(HERO_CURATION).flat(),
+  ]));
+  const bySlug = new Map(allProducts.map((p) => [p.slug, p] as const));
+  const weekly: typeof allProducts = [];
+  const usedWeekly = new Set<string>(usedHero); // återanvänd inte hero-produkterna
+  for (const slug of VETTED_SLUGS) {
+    if (weekly.length >= 8) break;
+    const p = bySlug.get(slug);
+    if (p && p.img && !usedWeekly.has(slug)) { weekly.push(p); usedWeekly.add(slug); }
+  }
+  // Backfill: varierad mix, men hoppa över denylistade (dåliga bilder) och redan valda.
+  if (weekly.length < 8) {
+    for (const p of mixByCategory(allProducts, cols)) {
+      if (weekly.length >= 8) break;
+      if (!p.img || usedWeekly.has(p.slug) || MOSAIC_DENYLIST.has(p.slug)) continue;
+      weekly.push(p); usedWeekly.add(p.slug);
+    }
+  }
+  const products = weekly;
 
   const catCounts = new Map<string, number>();
   for (const p of allProducts) for (const cid of (p.collectionIds || [])) catCounts.set(cid, (catCounts.get(cid) || 0) + 1);
