@@ -124,6 +124,11 @@ export default async function AdminPage() {
         </>
       ) : null}
 
+      <h2>Verktyg</h2>
+      <ul style={{ fontSize: 14 }}>
+        <li><a href="/admin/mappings"><b>AliExpress-mappning</b></a> — länka existerande Wix-produkter till AliExpress-källor (krävs för auto-pipelinen)</li>
+      </ul>
+
       <h2>Endpoints</h2>
       <ul style={{ fontSize: 14 }}>
         <li><code>POST /api/import</code> — skapa Wix-produkt från AliExpress</li>
