@@ -98,6 +98,30 @@ export const REMEDIATION: Record<string, Remediation> = {
     effort: "låg",
   },
 
+  "duplicate-ids": {
+    why: "Samma id på flera ställen bryter kopplingen mellan etiketter och fält och kan " +
+      "förvirra skärmläsare och ankarlänkar.",
+    fix: "Se till att varje id är unikt på sidan.",
+    effort: "medel",
+  },
+  "heading-skip": {
+    why: "När rubriknivåer hoppar (t.ex. H1 direkt till H3) blir strukturen otydlig för " +
+      "skärmläsaranvändare som navigerar via rubriker.",
+    fix: "Använd rubriknivåer i ordning (H1 → H2 → H3) utan att hoppa över steg.",
+    effort: "låg",
+  },
+  "table-no-headers": {
+    why: "Datatabeller utan <th> går inte att tolka för skärmläsare – kolumn/rad-samband går förlorade.",
+    fix: "Märk rubrikcellerna med <th> och koppla med scope (col/row) vid behov.",
+    effort: "medel",
+  },
+  "video-no-captions": {
+    why: "Utan undertexter stängs döva och hörselskadade ute från videoinnehållet (och de " +
+      "som tittar utan ljud).",
+    fix: 'Lägg ett textspår: `<track kind="captions" src="..." srclang="sv">`.',
+    effort: "hög",
+  },
+
   // --- SEO & teknik ---
   "no-https": {
     why: "Utan HTTPS varnar webbläsare för osäker sida, kunder tappar förtroende och " +

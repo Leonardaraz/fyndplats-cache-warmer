@@ -334,6 +334,75 @@ const RULES: Rule[] = [
       examples: h1.slice(0, 3).map((t) => t.slice(0, 80)),
     };
   },
+
+  // 4.1.1 — Dubbletter av id-attribut (bryter koppling label/aria)
+  (html) => {
+    const counts = new Map<string, number>();
+    for (const m of html.matchAll(/\bid\s*=\s*("([^"]*)"|'([^']*)')/gi)) {
+      const id = (m[2] ?? m[3] ?? "").trim();
+      if (id) counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    const dups = [...counts.entries()].filter(([, n]) => n > 1);
+    if (dups.length === 0) return null;
+    return {
+      id: "duplicate-ids",
+      title: "Dubbletter av id på sidan (kan bryta etiketter och ankare)",
+      severity: "moderate",
+      wcag: "4.1.1",
+      count: dups.length,
+      examples: dups.slice(0, 3).map(([id, n]) => `id="${id}" (${n}x)`),
+    };
+  },
+
+  // 1.3.1 — Hoppande rubriknivåer (t.ex. h1 direkt till h3)
+  (html) => {
+    const levels = [...html.matchAll(/<h([1-6])\b/gi)].map((m) => Number(m[1]));
+    let skips = 0;
+    for (let i = 1; i < levels.length; i++) {
+      if (levels[i] - levels[i - 1] > 1) skips++;
+    }
+    if (skips === 0) return null;
+    return {
+      id: "heading-skip",
+      title: "Rubriknivåer hoppar över steg (t.ex. H1 direkt till H3)",
+      severity: "moderate",
+      wcag: "1.3.1",
+      count: skips,
+      examples: [`rubrikordning: ${levels.map((l) => `H${l}`).join(" → ").slice(0, 100)}`],
+    };
+  },
+
+  // 1.3.1 — Datatabeller utan rubrikceller (<th>)
+  (html) => {
+    const tables = [...html.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
+    const bad = tables.filter((m) => /<td\b/i.test(m[1]) && !/<th\b/i.test(m[1]));
+    if (bad.length === 0) return null;
+    return {
+      id: "table-no-headers",
+      title: "Tabell saknar rubrikceller (<th>) – svår att tolka för skärmläsare",
+      severity: "moderate",
+      wcag: "1.3.1",
+      count: bad.length,
+      examples: bad.slice(0, 2).map((m) => `<table>…${m[1].slice(0, 60)}…`),
+    };
+  },
+
+  // 1.2.2 — Video utan textspår (undertexter)
+  (html) => {
+    const videos = [...html.matchAll(/<video\b[^>]*>([\s\S]*?)<\/video>/gi)];
+    const noCaptions = videos.filter(
+      (m) => !/<track\b[^>]*\bkind\s*=\s*["'](captions|subtitles)["']/i.test(m[1]),
+    );
+    if (noCaptions.length === 0) return null;
+    return {
+      id: "video-no-captions",
+      title: "Video saknar undertexter (<track kind=\"captions\">)",
+      severity: "serious",
+      wcag: "1.2.2",
+      count: noCaptions.length,
+      examples: noCaptions.slice(0, 2).map((m) => m[0].slice(0, 100)),
+    };
+  },
 ];
 
 function scoreToGrade(score: number): string {

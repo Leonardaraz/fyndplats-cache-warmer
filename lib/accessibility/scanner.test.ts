@@ -112,6 +112,31 @@ describe("evaluateHtml", () => {
     expect(ids).not.toContain("button-name");
   });
 
+  it("detects duplicate ids, heading skips, headerless tables and uncaptioned video", () => {
+    const html = `<html lang="sv"><head><title>x</title></head><body>
+      <h1>A</h1><h3>Hopp</h3>
+      <div id="dup"></div><div id="dup"></div>
+      <table><tr><td>1</td></tr></table>
+      <video src="v.mp4"></video></body></html>`;
+    const ids = evaluateHtml("https://x.se", html).issues.map((i) => i.id);
+    expect(ids).toContain("duplicate-ids");
+    expect(ids).toContain("heading-skip");
+    expect(ids).toContain("table-no-headers");
+    expect(ids).toContain("video-no-captions");
+  });
+
+  it("does not flag a clean heading order, th table or captioned video", () => {
+    const html = `<html lang="sv"><head><title>x</title></head><body>
+      <h1>A</h1><h2>B</h2>
+      <table><tr><th>H</th></tr><tr><td>1</td></tr></table>
+      <video src="v.mp4"><track kind="captions" src="c.vtt"></video></body></html>`;
+    const ids = evaluateHtml("https://x.se", html).issues.map((i) => i.id);
+    expect(ids).not.toContain("duplicate-ids");
+    expect(ids).not.toContain("heading-skip");
+    expect(ids).not.toContain("table-no-headers");
+    expect(ids).not.toContain("video-no-captions");
+  });
+
   it("stripNonContent removes script/style/comments", () => {
     const out = stripNonContent(`a<script>X</script>b<style>Y</style>c<!--Z-->d`);
     expect(out).not.toMatch(/X|Y|Z/);

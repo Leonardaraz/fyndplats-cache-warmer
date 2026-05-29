@@ -17,7 +17,7 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 ## Filer
 | Fil | Roll |
 |-----|------|
-| `lib/accessibility/scanner.ts` | Hämtar HTML, WCAG-regelmotor (13 kontroller), poäng A–F |
+| `lib/accessibility/scanner.ts` | Hämtar HTML, WCAG-regelmotor (17 kontroller), poäng A–F |
 | `lib/accessibility/remediation.ts` | Åtgärdsförklaringar per feltyp (svenska) |
 | `lib/seo/analyzer.ts` | SEO/teknik-kontroller (gratis värde-höjare) |
 | `lib/aeo/analyzer.ts` | AI-synlighet/AEO-signaler (gratis värde-höjare) |

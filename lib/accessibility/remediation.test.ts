@@ -7,6 +7,7 @@ const RULE_IDS = [
   "img-alt", "html-lang", "doc-title", "link-text", "button-name",
   "meta-viewport", "page-h1", "input-label", "iframe-title", "empty-link",
   "media-autoplay", "positive-tabindex", "multiple-h1",
+  "duplicate-ids", "heading-skip", "table-no-headers", "video-no-captions",
   // seo
   "no-https", "meta-description", "title-length", "no-canonical",
   "no-opengraph", "robots-noindex", "no-favicon",
