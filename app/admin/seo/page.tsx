@@ -9,6 +9,7 @@ import { buildMigrationReport, toNextRedirectsConfig } from "@/lib/seo/migration
 import { SeoTools } from "./tools";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 const DEFAULT_NEW_PREFIX = "/products/";
 const DEFAULT_BASE_URL = "https://www.fyndplats.se";
