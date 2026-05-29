@@ -97,6 +97,81 @@ export const REMEDIATION: Record<string, Remediation> = {
     fix: "Behåll en enda <h1> och gör övriga till <h2>/<h3> enligt hierarkin.",
     effort: "låg",
   },
+
+  // --- SEO & teknik ---
+  "no-https": {
+    why: "Utan HTTPS varnar webbläsare för osäker sida, kunder tappar förtroende och " +
+      "Google rankar ner sidan.",
+    fix: "Aktivera SSL/TLS (oftast ett klick hos din webbhotell-/plattformsleverantör) " +
+      "och tvinga omdirigering från http till https.",
+    effort: "låg",
+  },
+  "meta-description": {
+    why: "Meta-description är texten som visas under rubriken i Googles sökresultat. " +
+      "Saknas den skriver Google något eget — ofta sämre — vilket sänker klick.",
+    fix: "Lägg en unik description på 50–160 tecken per sida som sammanfattar innehållet " +
+      "och lockar till klick.",
+    effort: "låg",
+  },
+  "title-length": {
+    why: "För långa titlar kapas i sökresultaten; för korta utnyttjar inte utrymmet och " +
+      "missar sökord.",
+    fix: "Sikta på cirka 30–60 tecken med det viktigaste sökordet först.",
+    effort: "låg",
+  },
+  "no-canonical": {
+    why: "Utan canonical kan Google se flera varianter av samma sida som dubbletter, " +
+      "vilket splittrar rankingen.",
+    fix: 'Lägg `<link rel="canonical" href="...">` i <head> som pekar på sidans rätta adress.',
+    effort: "låg",
+  },
+  "no-opengraph": {
+    why: "Utan Open Graph-taggar blir delningar i sociala medier och chattar fula — ingen " +
+      "bild eller rubrik — vilket sänker klick.",
+    fix: 'Lägg `og:title`, `og:description` och `og:image` i <head>.',
+    effort: "låg",
+  },
+  "robots-noindex": {
+    why: "noindex säger åt Google att INTE visa sidan i sökresultaten alls — ofta ett " +
+      "misstag som gör att sidan blir helt osynlig.",
+    fix: "Ta bort noindex ur robots-metataggen om sidan ska synas i Google.",
+    effort: "låg",
+  },
+  "no-favicon": {
+    why: "Favicon (den lilla ikonen i webbläsarfliken) stärker varumärket och gör fliken " +
+      "lättare att hitta bland många.",
+    fix: 'Lägg en favicon och referera den med `<link rel="icon" href="/favicon.ico">`.',
+    effort: "låg",
+  },
+
+  // --- AI-synlighet (AEO) ---
+  "no-structured-data": {
+    why: "Strukturerad data (schema.org) hjälper både Google och AI-svarsmotorer att förstå " +
+      "vad sidan handlar om — produkter, priser, recensioner — och citera den korrekt.",
+    fix: "Lägg JSON-LD med relevant schema (t.ex. Product, Organization, BreadcrumbList) i sidan.",
+    effort: "medel",
+  },
+  "no-semantic-html": {
+    why: "Semantiska element (main, article, nav) gör sidans delar tydliga för AI och " +
+      "skärmläsare, så rätt innehåll kan extraheras.",
+    fix: "Bygg upp sidan med <header>, <nav>, <main> och <article> i stället för enbart <div>.",
+    effort: "medel",
+  },
+  "thin-content": {
+    why: "AI-svarsmotorer behöver text att citera. Tunna sidor blir sällan källa i ett AI-svar.",
+    fix: "Lägg beskrivande, hjälpsam text — t.ex. utförliga produkt- och kategoritexter samt en om-sida.",
+    effort: "medel",
+  },
+  "weak-headings": {
+    why: "Tydliga underrubriker (H2) gör att AI lättare hittar svar på specifika frågor i texten.",
+    fix: "Dela upp innehållet med beskrivande H2-rubriker, gärna formulerade som frågor kunder ställer.",
+    effort: "låg",
+  },
+  "no-faq": {
+    why: "FAQ-innehåll med FAQPage-schema är ett format AI-svarsmotorer ofta plockar upp och citerar.",
+    fix: "Lägg en FAQ-sektion med vanliga frågor och märk upp den med FAQPage-schema (JSON-LD).",
+    effort: "medel",
+  },
 };
 
 /** Slår upp åtgärdsinfo för ett fel-id; faller tillbaka på en generisk text. */

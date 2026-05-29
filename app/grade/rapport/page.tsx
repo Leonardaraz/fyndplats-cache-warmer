@@ -7,26 +7,33 @@
 import { useEffect, useState } from "react";
 import { REMEDIATION, remediationFor, type Effort } from "@/lib/accessibility/remediation";
 
-interface Issue {
+type Severity = "critical" | "serious" | "moderate" | "minor";
+interface Finding {
   id: string;
   title: string;
-  severity: "critical" | "serious" | "moderate" | "minor";
-  wcag: string;
+  severity: Severity;
+  ref?: string;
   count: number;
   examples: string[];
 }
-interface GradeResponse {
-  url: string;
+interface CategoryResult {
+  category: string;
+  label: string;
   score: number;
   grade: string;
-  issues: Issue[];
+  findings: Finding[];
   checksRun: number;
+}
+interface GradeResponse {
+  url: string;
+  overall: number;
+  categories: CategoryResult[];
   summary: string | null;
   scannedAt: string;
   error?: string;
 }
 
-const SEV: Record<Issue["severity"], { text: string; color: string }> = {
+const SEV: Record<Severity, { text: string; color: string }> = {
   critical: { text: "Kritiskt", color: "#b91c1c" },
   serious: { text: "Allvarligt", color: "#c2410c" },
   moderate: { text: "Måttligt", color: "#a16207" },
@@ -63,6 +70,8 @@ export default function ReportPage() {
   if (!result) return <main style={S.main}><p style={S.muted}>Skapar rapport för {url}…</p></main>;
 
   const date = new Date(result.scannedAt).toLocaleDateString("sv-SE");
+  const checksTotal = result.categories.reduce((s, c) => s + c.checksRun, 0);
+  const findingsTotal = result.categories.reduce((s, c) => s + c.findings.length, 0);
 
   return (
     <main style={S.main}>
@@ -73,21 +82,23 @@ export default function ReportPage() {
       </div>
 
       <header style={S.header}>
-        <p style={S.eyebrow}>EAA-tillgänglighetsrapport · WCAG 2.1 AA</p>
+        <p style={S.eyebrow}>Webbgranskning · EAA · SEO · AI-synlighet</p>
         <h1 style={S.h1}>{result.url}</h1>
-        <p style={S.muted}>Granskad {date} · {result.checksRun} kontroller</p>
+        <p style={S.muted}>Granskad {date} · {checksTotal} kontroller</p>
         <div style={S.scoreBox}>
-          <span style={{ ...S.grade, color: gradeColor(result.grade) }}>{result.grade}</span>
-          <span style={S.score}>{result.score}/100</span>
+          <span style={{ ...S.grade, color: gradeColor(overallGrade(result.overall)) }}>
+            {overallGrade(result.overall)}
+          </span>
+          <span style={S.score}>{result.overall}/100 totalt</span>
         </div>
       </header>
 
       <section style={S.intro}>
         <p>
-          Den här rapporten sammanfattar tillgänglighetsbrister på sidan i förhållande
-          till WCAG 2.1 AA — den standard som ligger till grund för EU:s tillgänglighets-
-          direktiv (European Accessibility Act, skarpt sedan 28 juni 2025). Varje punkt
-          beskriver varför felet drabbar riktiga användare och hur det åtgärdas.
+          Den här rapporten granskar sidan ur tre perspektiv: <strong>tillgänglighet</strong>
+          {" "}(WCAG 2.1 AA, grunden för EU:s tillgänglighetsdirektiv EAA, skarpt sedan
+          28 juni 2025), <strong>SEO & teknik</strong> och <strong>AI-synlighet</strong>.
+          Varje punkt beskriver varför det spelar roll och hur det åtgärdas.
         </p>
         {result.summary && <p style={S.summary}>{result.summary}</p>}
         <p style={S.disclaimer}>
@@ -96,45 +107,54 @@ export default function ReportPage() {
         </p>
       </section>
 
-      {result.issues.length === 0 ? (
+      {findingsTotal === 0 ? (
         <p style={S.clean}>Inga av kontrollerna slog larm. En full manuell granskning
           (kontrast, fokusordning m.m.) rekommenderas ändå för full trygghet.</p>
       ) : (
-        <section>
-          <h2 style={S.h2}>Åtgärdslista ({result.issues.length} punkter)</h2>
-          <ol style={S.list}>
-            {result.issues.map((i, n) => {
-              const rem = REMEDIATION[i.id] ?? remediationFor(i.id);
-              return (
-                <li key={i.id} style={S.item}>
-                  <div style={S.itemHead}>
-                    <span style={{ ...S.sev, background: SEV[i.severity].color }}>
-                      {SEV[i.severity].text}
-                    </span>
-                    <strong style={S.itemTitle}>{n + 1}. {i.title}</strong>
-                  </div>
-                  <p style={S.meta}>
-                    {i.count} förekomst(er) · WCAG {i.wcag} · {EFFORT_LABEL[rem.effort]}
-                  </p>
-                  <p><strong>Varför:</strong> {rem.why}</p>
-                  <p><strong>Åtgärd:</strong> {rem.fix}</p>
-                  {i.examples.length > 0 && (
-                    <details style={S.examples}>
-                      <summary>Exempel från sidan</summary>
-                      {i.examples.map((ex, k) => (
-                        <pre key={k} style={S.code}>{ex}</pre>
-                      ))}
-                    </details>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </section>
+        result.categories.map((cat) => (
+          <section key={cat.category}>
+            <h2 style={S.h2}>
+              <span style={{ color: gradeColor(cat.grade) }}>{cat.grade}</span> {cat.label}
+              {" "}<span style={S.catScore}>({cat.score}/100 · {cat.findings.length} punkter)</span>
+            </h2>
+            {cat.findings.length === 0 ? (
+              <p style={S.clean}>Inga fel hittade i denna kategori.</p>
+            ) : (
+              <ol style={S.list}>
+                {cat.findings.map((f, n) => {
+                  const rem = REMEDIATION[f.id] ?? remediationFor(f.id);
+                  return (
+                    <li key={f.id} style={S.item}>
+                      <div style={S.itemHead}>
+                        <span style={{ ...S.sev, background: SEV[f.severity].color }}>
+                          {SEV[f.severity].text}
+                        </span>
+                        <strong style={S.itemTitle}>{n + 1}. {f.title}</strong>
+                      </div>
+                      <p style={S.meta}>
+                        {f.count} förekomst(er){f.ref ? ` · ${f.ref}` : ""} · {EFFORT_LABEL[rem.effort]}
+                      </p>
+                      <p><strong>Varför:</strong> {rem.why}</p>
+                      <p><strong>Åtgärd:</strong> {rem.fix}</p>
+                      {f.examples.length > 0 && (
+                        <details style={S.examples}>
+                          <summary>Exempel från sidan</summary>
+                          {f.examples.map((ex, k) => (
+                            <pre key={k} style={S.code}>{ex}</pre>
+                          ))}
+                        </details>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </section>
+        ))
       )}
 
       <footer style={S.footer}>
-        Fyndplats · Tillgänglighetsrapport genererad {date}.
+        Fyndplats · Webbgranskning genererad {date}.
       </footer>
 
       <style>{`@media print {
@@ -152,6 +172,15 @@ function gradeColor(g: string): string {
   return "#b91c1c";
 }
 
+function overallGrade(score: number): string {
+  if (score >= 90) return "A";
+  if (score >= 80) return "B";
+  if (score >= 70) return "C";
+  if (score >= 60) return "D";
+  if (score >= 50) return "E";
+  return "F";
+}
+
 const S: Record<string, React.CSSProperties> = {
   main: { fontFamily: "system-ui, sans-serif", maxWidth: 760, margin: "0 auto", padding: "32px 20px 80px", color: "#111827", lineHeight: 1.5 },
   toolbar: { textAlign: "right", marginBottom: 16 },
@@ -166,7 +195,8 @@ const S: Record<string, React.CSSProperties> = {
   summary: { background: "#f9fafb", padding: "12px 14px", borderRadius: 8 },
   disclaimer: { fontSize: 13, color: "#6b7280" },
   clean: { color: "#15803d" },
-  h2: { fontSize: 20, margin: "24px 0 12px" },
+  h2: { fontSize: 20, margin: "28px 0 12px" },
+  catScore: { fontSize: 14, fontWeight: 400, color: "#6b7280" },
   list: { paddingLeft: 0, listStyle: "none", margin: 0 },
   item: { borderTop: "1px solid #e5e7eb", padding: "16px 0" },
   itemHead: { display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" },

@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { REMEDIATION, remediationFor } from "./remediation";
 
-// Alla regel-id som scannern kan returnera. Håll i synk med scanner.ts RULES.
+// Alla regel-id som scannern/analysmodulerna kan returnera.
 const RULE_IDS = [
+  // accessibility
   "img-alt", "html-lang", "doc-title", "link-text", "button-name",
   "meta-viewport", "page-h1", "input-label", "iframe-title", "empty-link",
   "media-autoplay", "positive-tabindex", "multiple-h1",
+  // seo
+  "no-https", "meta-description", "title-length", "no-canonical",
+  "no-opengraph", "robots-noindex", "no-favicon",
+  // aeo
+  "no-structured-data", "no-semantic-html", "thin-content", "weak-headings", "no-faq",
 ];
 
 describe("remediation knowledge base", () => {
