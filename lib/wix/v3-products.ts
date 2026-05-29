@@ -54,7 +54,6 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
     const body: Record<string, unknown> = {
       query: {
         paging: { limit: 100 },
-        sort: [{ fieldName: "name", order: "ASC" }],
       },
     };
     if (cursor) body.query = { ...(body.query as object), cursor };
