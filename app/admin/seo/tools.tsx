@@ -24,23 +24,8 @@ export function SeoTools({
   function runEnrich(dryRun: boolean) {
     setEnrichResult(null);
     startTransition(async () => {
-      let prev:
-        | { patched: number; skipped: number; failed: number; firstErrors: string[] }
-        | undefined;
-      let cursor = 0;
-      // Loop chunks tills isDone — varje chunk ~10s, ryms i alla Vercel-tier.
-      for (let i = 0; i < 50; i++) {
-        const res = await enrichAllV3Action(dryRun, baseUrl, prefix, cursor, prev);
-        setEnrichResult(res);
-        if (!res.ok || res.isDone || !res.stats) break;
-        prev = {
-          patched: res.stats.patched,
-          skipped: res.stats.skipped,
-          failed: res.stats.failed,
-          firstErrors: res.firstErrors ?? [],
-        };
-        cursor = res.cursor ?? 0;
-      }
+      const res = await enrichAllV3Action(dryRun, baseUrl, prefix);
+      setEnrichResult(res);
     });
   }
 

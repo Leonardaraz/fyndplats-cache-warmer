@@ -34,6 +34,16 @@ export interface WixV3ProductSummary {
   hasOgTags: boolean;
   hasImage: boolean;
   hasDescription: boolean;
+  // Fält som behövs för SEO-enrichment (bulk update) — populeras direkt
+  // från query-respons så vi slipper N+1 GETs.
+  revision?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  priceMin?: string;
+  brandName?: string;
+  inStock?: boolean;
+  handle?: string;
+  existingTags?: Array<Record<string, unknown>>;
 }
 
 export interface WixV3Variant {
@@ -70,12 +80,19 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
     const data = (await res.json()) as {
       products?: Array<{
         id: string;
+        revision?: string;
         name: string;
         slug: string;
         description?: string;
         media?: { main?: { image?: { url?: string } } };
         variantsInfo?: { variants?: unknown[] };
-        seoData?: { tags?: Array<{ type?: string; props?: { name?: string; property?: string }; children?: string }> };
+        seoData?: { tags?: Array<{ type?: string; props?: { name?: string; property?: string; content?: string }; children?: string }> };
+        seoTitle?: string;
+        seoDescription?: string;
+        brand?: { name?: string };
+        actualPriceRange?: { minValue?: { amount?: string } };
+        inventory?: { availabilityStatus?: string };
+        handle?: string;
       }>;
       pagingMetadata?: { count?: number; cursors?: { next?: string }; hasNext?: boolean };
     };
@@ -88,14 +105,26 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         slug: p.slug,
         imageUrl: p.media?.main?.image?.url,
         variantCount: p.variantsInfo?.variants?.length ?? 0,
+        // Audit-flaggor — använd props.content för meta-tags (fixar tidigare bug
+        // där description rapporterades saknas trots att den fanns i props).
         hasSeoTitle: tags.some((t) => t.type === "title" && Boolean(t.children?.trim())),
         hasSeoDescription: tags.some(
-          (t) => t.type === "meta" && t.props?.name === "description" && Boolean(t.children?.length),
+          (t) => t.type === "meta" && t.props?.name === "description"
+            && Boolean(t.props?.content?.length || t.children?.length),
         ),
         hasJsonLd: tags.some((t) => t.type === "script" && Boolean(t.children?.includes("@type"))),
         hasOgTags: tags.some((t) => t.type === "meta" && t.props?.property?.startsWith("og:")),
         hasImage: Boolean(p.media?.main?.image?.url),
         hasDescription: Boolean(p.description?.trim()),
+        // Fält för bulk-enrichment
+        revision: p.revision,
+        seoTitle: p.seoTitle,
+        seoDescription: p.seoDescription,
+        priceMin: p.actualPriceRange?.minValue?.amount,
+        brandName: p.brand?.name,
+        inStock: p.inventory?.availabilityStatus === "IN_STOCK",
+        handle: p.handle,
+        existingTags: tags as Array<Record<string, unknown>>,
       });
     }
 
@@ -162,6 +191,53 @@ export async function patchV3ProductSeo(
     const text = await res.text();
     throw new Error(`patchV3ProductSeo(${productId}) ${res.status}: ${text.slice(0, 300)}`);
   }
+}
+
+/**
+ * Bulk-updaterar upp till 100 V3-produkter i ett anrop. Används av SEO-
+ * enrichment för att batcha PATCH:ar (dramatiskt snabbare än individuella).
+ * @param updates  Array av {id, revision, seoData.tags} per produkt
+ */
+export async function bulkUpdateV3ProductSeo(
+  updates: Array<{ id: string; revision: string; tags: Array<Record<string, unknown>> }>,
+): Promise<{ successes: number; failures: number; firstErrors: string[] }> {
+  if (updates.length === 0) return { successes: 0, failures: 0, firstErrors: [] };
+  if (updates.length > 100) {
+    throw new Error(`bulkUpdateV3ProductSeo: max 100 per batch, fick ${updates.length}`);
+  }
+  const body = {
+    products: updates.map((u) => ({
+      product: {
+        id: u.id,
+        revision: u.revision,
+        seoData: { tags: u.tags },
+      },
+    })),
+    returnEntity: false,
+  };
+  const res = await fetch(`${WIX_BASE}/stores/v3/bulk/products/update`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`bulk update failed (${res.status}): ${text.slice(0, 300)}`);
+  }
+  const data = (await res.json()) as {
+    results?: Array<{ itemMetadata?: { id?: string; success?: boolean; error?: { message?: string } } }>;
+    bulkActionMetadata?: { totalSuccesses?: number; totalFailures?: number };
+  };
+  const successes = data.bulkActionMetadata?.totalSuccesses ?? 0;
+  const failures = data.bulkActionMetadata?.totalFailures ?? 0;
+  const firstErrors: string[] = [];
+  for (const r of data.results ?? []) {
+    if (r.itemMetadata?.success === false) {
+      firstErrors.push(`${r.itemMetadata.id?.slice(0, 8)}: ${r.itemMetadata.error?.message ?? "fel"}`);
+      if (firstErrors.length >= 5) break;
+    }
+  }
+  return { successes, failures, firstErrors };
 }
 
 /** Hämtar fullständig variant-data för en produkt (för positionsmappning). */

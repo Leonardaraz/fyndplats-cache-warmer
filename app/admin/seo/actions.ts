@@ -1,41 +1,35 @@
 "use server";
 
-import { listAllV3Products, getV3ProductFull, patchV3ProductSeo } from "@/lib/wix/v3-products";
+import { listAllV3Products, bulkUpdateV3ProductSeo, type WixV3ProductSummary } from "@/lib/wix/v3-products";
 import { generateMissingSeoTags, type V3ProductForEnrich } from "@/lib/seo/enrich";
 
 export interface EnrichActionResult {
   ok: boolean;
   dryRun: boolean;
-  /** ID:n som processats hittills (för fortsättningsläge). */
-  cursor?: number;
   isDone?: boolean;
   stats?: {
     total: number;
     patched: number;
     skipped: number;
     failed: number;
-    /** Hur långt vi nått i listan (1-indexerat). */
     processedSoFar: number;
   };
   firstErrors?: string[];
   error?: string;
 }
 
-const CHUNK_SIZE = 25;
-const CONCURRENCY = 10;
-
 /**
- * Chunkad enrichment: processar CHUNK_SIZE produkter per anrop, startar från
- * fromIndex (0 = början). Returnerar nästa cursor + isDone så UI kan auto-
- * progressa via repeterade anrop. Detta kringgår Vercel-timeout för stora
- * kataloger (varje chunk på ~10s passar i alla tier).
+ * Bulk-enricha alla V3-produkter med saknade SEO-taggar (JSON-LD + OG + canonical).
+ * Använder Wix V3 bulk-update endpoint (upp till 100 produkter per call) — 207
+ * produkter blir 3 API-calls totalt = ~5-10s, väl inom Vercel-timeout.
+ *
+ * Idempotent: produkter som redan har og:title hoppas över. listAllV3Products
+ * returnerar nu all enrichment-data direkt så vi slipper N+1 GETs.
  */
 export async function enrichAllV3Action(
   dryRun: boolean,
   baseUrl: string,
   newPathPrefix: string,
-  fromIndex = 0,
-  prevStats?: { patched: number; skipped: number; failed: number; firstErrors: string[] },
 ): Promise<EnrichActionResult> {
   try {
     const cfg = {
@@ -44,61 +38,95 @@ export async function enrichAllV3Action(
     };
 
     const all = await listAllV3Products();
-    const chunk = all.slice(fromIndex, fromIndex + CHUNK_SIZE);
+    const total = all.length;
 
-    let patched = prevStats?.patched ?? 0;
-    let skipped = prevStats?.skipped ?? 0;
-    let failed = prevStats?.failed ?? 0;
-    const firstErrors: string[] = [...(prevStats?.firstErrors ?? [])];
+    // Bygg enrich-payloads för produkter som behöver det
+    const toUpdate: Array<{ id: string; revision: string; tags: Array<Record<string, unknown>>; name: string }> = [];
+    let skipped = 0;
 
-    for (let i = 0; i < chunk.length; i += CONCURRENCY) {
-      const slice = chunk.slice(i, i + CONCURRENCY);
-      await Promise.all(
-        slice.map(async (summary) => {
-          try {
-            const product = await getV3ProductFull(summary.id);
-            const newTags = generateMissingSeoTags(product as V3ProductForEnrich, cfg);
-
-            if (newTags.length === 0) {
-              skipped++;
-              return;
-            }
-
-            if (dryRun) {
-              patched++;
-              return;
-            }
-
-            const existing = product.seoData?.tags ?? [];
-            const merged = [...existing, ...(newTags as unknown as Array<Record<string, unknown>>)];
-            await patchV3ProductSeo(product.id, product.revision, merged);
-            patched++;
-          } catch (err) {
-            failed++;
-            if (firstErrors.length < 10) {
-              firstErrors.push(
-                `${summary.name.slice(0, 50)}: ${err instanceof Error ? err.message.slice(0, 120) : "fel"}`,
-              );
-            }
-          }
-        }),
-      );
+    for (const summary of all) {
+      if (!summary.revision) {
+        // Produkt utan revision kan inte updateras — Wix kräver det för opt. concurrency
+        skipped++;
+        continue;
+      }
+      // Skapa V3-product-objekt för generateMissingSeoTags
+      const productForEnrich: V3ProductForEnrich = {
+        id: summary.id,
+        name: summary.name,
+        slug: summary.slug,
+        brand: summary.brandName ? { name: summary.brandName } : undefined,
+        media: summary.imageUrl ? { main: { image: { url: summary.imageUrl } } } : undefined,
+        actualPriceRange: summary.priceMin ? { minValue: { amount: summary.priceMin } } : undefined,
+        inventory: { availabilityStatus: summary.inStock ? "IN_STOCK" : "OUT_OF_STOCK" },
+        seoTitle: summary.seoTitle,
+        seoDescription: summary.seoDescription,
+        seoData: { tags: summary.existingTags as never },
+        handle: summary.handle,
+      };
+      const newTags = generateMissingSeoTags(productForEnrich, cfg);
+      if (newTags.length === 0) {
+        skipped++;
+        continue;
+      }
+      const merged = [
+        ...(summary.existingTags ?? []),
+        ...(newTags as unknown as Array<Record<string, unknown>>),
+      ];
+      toUpdate.push({
+        id: summary.id,
+        revision: summary.revision,
+        tags: merged,
+        name: summary.name,
+      });
     }
 
-    const nextIndex = fromIndex + chunk.length;
-    const isDone = nextIndex >= all.length;
+    if (dryRun) {
+      return {
+        ok: true,
+        dryRun: true,
+        isDone: true,
+        stats: {
+          total,
+          patched: toUpdate.length,
+          skipped,
+          failed: 0,
+          processedSoFar: total,
+        },
+      };
+    }
+
+    // Bulka i grupper om 100
+    let patched = 0;
+    let failed = 0;
+    const firstErrors: string[] = [];
+    for (let i = 0; i < toUpdate.length; i += 100) {
+      const batch = toUpdate.slice(i, i + 100);
+      try {
+        const result = await bulkUpdateV3ProductSeo(batch);
+        patched += result.successes;
+        failed += result.failures;
+        for (const e of result.firstErrors) {
+          if (firstErrors.length < 5) firstErrors.push(e);
+        }
+      } catch (err) {
+        failed += batch.length;
+        if (firstErrors.length < 5) {
+          firstErrors.push(`batch ${i / 100 + 1}: ${err instanceof Error ? err.message.slice(0, 120) : "fel"}`);
+        }
+      }
+    }
 
     return {
       ok: true,
-      dryRun,
-      cursor: nextIndex,
-      isDone,
+      dryRun: false,
+      isDone: true,
       stats: {
-        total: all.length,
+        total,
         patched,
         skipped,
         failed,
-        processedSoFar: nextIndex,
+        processedSoFar: total,
       },
       firstErrors,
     };
