@@ -82,6 +82,10 @@ export async function SiteHeader() {
           <CartButton />
           <MobileNav collections={cats} />
         </div>
+        {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
+        <div className="hsearch-mobile">
+          <div className="container"><SearchBox /></div>
+        </div>
       </header>
     </>
   );
