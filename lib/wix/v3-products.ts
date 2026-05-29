@@ -106,6 +106,64 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
   return all;
 }
 
+/**
+ * Hämtar fullständig V3-produkt med seoData, brand, media, price, inventory —
+ * allt som SEO-enrichment behöver för att generera taggar.
+ */
+export async function getV3ProductFull(productId: string): Promise<{
+  id: string;
+  revision: string;
+  name: string;
+  slug: string;
+  description?: string;
+  brand?: { name?: string };
+  media?: { main?: { image?: { url?: string }; altText?: string } };
+  actualPriceRange?: { minValue?: { amount?: string } };
+  inventory?: { availabilityStatus?: string };
+  seoTitle?: string;
+  seoDescription?: string;
+  seoData?: { tags?: Array<Record<string, unknown>> };
+  handle?: string;
+}> {
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
+    method: "GET",
+    headers: headers(),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`getV3ProductFull(${productId}) ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { product?: Record<string, unknown> };
+  if (!data.product) throw new Error(`getV3ProductFull(${productId}): tom payload`);
+  return data.product as never;
+}
+
+/**
+ * PATCH:ar en V3-produkt med nya seoData.tags. Använder product-revision för
+ * optimistisk samtidighetskontroll. Skickar HELA tags-arrayen (Wix ersätter
+ * inte mergar) — call-site ansvarar för att merga med befintliga.
+ */
+export async function patchV3ProductSeo(
+  productId: string,
+  revision: string,
+  tags: Array<Record<string, unknown>>,
+): Promise<void> {
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({
+      product: {
+        revision,
+        seoData: { tags },
+      },
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`patchV3ProductSeo(${productId}) ${res.status}: ${text.slice(0, 300)}`);
+  }
+}
+
 /** Hämtar fullständig variant-data för en produkt (för positionsmappning). */
 export async function getV3ProductVariants(productId: string): Promise<WixV3Variant[]> {
   const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {

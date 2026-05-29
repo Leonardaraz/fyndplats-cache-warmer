@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 interface Props {
   defaultPrefix: string;
   defaultBaseUrl: string;
   nextRedirectsSample: string;
   nextRedirectsCount: number;
+}
+
+interface EnrichStats {
+  total: number;
+  patched: number;
+  skipped: number;
+  failed: number;
 }
 
 export function SeoTools({
@@ -17,6 +24,34 @@ export function SeoTools({
 }: Props) {
   const [prefix, setPrefix] = useState(defaultPrefix);
   const [baseUrl, setBaseUrl] = useState(defaultBaseUrl);
+  const [pending, startTransition] = useTransition();
+  const [enrichResult, setEnrichResult] = useState<
+    { ok: boolean; dryRun: boolean; stats?: EnrichStats; error?: string } | null
+  >(null);
+
+  async function runEnrich(dryRun: boolean) {
+    setEnrichResult(null);
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/seo/enrich", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dryRun, baseUrl, newPathPrefix: prefix }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setEnrichResult({ ok: true, dryRun, stats: data.stats });
+        } else {
+          setEnrichResult({ ok: false, dryRun, error: data.error || "Fel" });
+        }
+      } catch (err) {
+        setEnrichResult({
+          ok: false, dryRun,
+          error: err instanceof Error ? err.message : "Nätverksfel",
+        });
+      }
+    });
+  }
 
   const csvUrl = `/api/seo/redirects-csv?newPrefix=${encodeURIComponent(prefix)}`;
   const sitemapUrl = `/api/seo/sitemap?baseUrl=${encodeURIComponent(baseUrl)}&newPrefix=${encodeURIComponent(prefix)}`;
@@ -49,6 +84,42 @@ export function SeoTools({
           style={btn}>📥 Ladda ner sitemap.xml</a>
         <a href={fullConfigUrl} target="_blank" rel="noreferrer"
           style={btnSecondary}>🔍 Full rapport (JSON)</a>
+      </div>
+
+      <h3 style={{ marginTop: 24, fontSize: 16 }}>Enricha V3-katalogen med saknade SEO-taggar</h3>
+      <p style={{ fontSize: 13, color: "#666" }}>
+        Genererar Product/BreadcrumbList JSON-LD, alla OG-taggar och canonical
+        för varje V3-produkt — idempotent (kan köras flera gånger utan dubletter).
+        Patchar produkterna direkt via Wix V3 API. Förhandsgranska först med dry-run.
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => runEnrich(true)} disabled={pending}
+          style={btnSecondary}>
+          {pending ? "Kör..." : "🧪 Dry-run (förhandsgranska)"}
+        </button>
+        <button onClick={() => runEnrich(false)}
+          disabled={pending}
+          onMouseDown={(e) => {
+            if (!confirm("Detta PATCH:ar alla V3-produkter med saknade SEO-taggar. Fortsätt?")) {
+              e.preventDefault();
+            }
+          }}
+          style={btn}>
+          {pending ? "Patchar..." : "⚡ Enricha alla nu"}
+        </button>
+        {enrichResult ? (
+          <span style={{
+            fontSize: 13,
+            padding: "4px 10px",
+            borderRadius: 4,
+            background: enrichResult.ok ? "#e7fde7" : "#fde7e7",
+            color: enrichResult.ok ? "#070" : "#a00",
+          }}>
+            {enrichResult.ok && enrichResult.stats
+              ? `${enrichResult.dryRun ? "DRY-RUN" : "PATCHED"}: ${enrichResult.stats.patched + (enrichResult.dryRun ? 0 : 0)} processade, ${enrichResult.stats.skipped} hoppade (redan kompletta), ${enrichResult.stats.failed} fel av ${enrichResult.stats.total} totalt`
+              : `Fel: ${enrichResult.error}`}
+          </span>
+        ) : null}
       </div>
 
       <h3 style={{ marginTop: 20, fontSize: 16 }}>För headless-repots <code>next.config.js</code></h3>
