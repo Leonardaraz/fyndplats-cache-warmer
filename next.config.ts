@@ -13,15 +13,14 @@ const nextConfig: NextConfig = {
       // Headless serverar produkterna på /produkt/[slug]. 204 av 207 produkter
       // har identisk slug → wildcard nedan tar dem. 301 (permanent) för att
       // föra över länkstyrka.
-      //
-      // OBS: 3 produkter fick ny slug vid V1→V3-migrationen. Lägg deras
-      // explicita redirects HÄR (före wildcard — Next matchar i ordning,
-      // första träff vinner). Hämta de 3 paren från /admin/seo →
-      // "Full rapport (JSON)" → report.pairs där slugChanged === true:
-      //
-      //   { source: "/product-page/GAMMAL-SLUG", destination: "/produkt/NY-SLUG", permanent: true },
-      //   { source: "/product-page/GAMMAL-SLUG", destination: "/produkt/NY-SLUG", permanent: true },
-      //   { source: "/product-page/GAMMAL-SLUG", destination: "/produkt/NY-SLUG", permanent: true },
+
+      // 3 produkter fick ny slug vid V1→V3-migrationen — explicita redirects
+      // måste ligga FÖRE wildcarden (Next matchar i ordning, första träff vinner).
+      // De gamla slugsen innehåller åäö; Next.js matchar mot decoded pathname
+      // så UTF-8-tecken funkar direkt utan extra encoding.
+      { source: "/product-page/äppelskalare-3-i-1-skalar-kärnar-ur-och-skivar", destination: "/produkt/appelskalare-3-i-1-skalar-karnar-skivar", permanent: true },
+      { source: "/product-page/mini-soptunna-för-bilen-550-ml-med-smart-trycklock", destination: "/produkt/mini-soptunna-bil-550-ml-trycklock", permanent: true },
+      { source: "/product-page/vaggmonterad-solcellsdriven-uv-tandborststerilisator-automatisk-tankramspress", destination: "/produkt/vaggmonterad-uv-tandborststerilisator-solcell", permanent: true },
 
       // Wildcard: täcker de 204 produkter vars slug är oförändrad.
       { source: "/product-page/:slug", destination: "/produkt/:slug", permanent: true },
