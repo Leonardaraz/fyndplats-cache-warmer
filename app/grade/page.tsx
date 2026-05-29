@@ -5,24 +5,34 @@
 
 import { useState } from "react";
 
-interface Issue {
+type Severity = "critical" | "serious" | "moderate" | "minor";
+
+interface Finding {
   id: string;
   title: string;
-  severity: "critical" | "serious" | "moderate" | "minor";
-  wcag: string;
+  severity: Severity;
+  ref?: string;
   count: number;
+}
+
+interface CategoryResult {
+  category: "accessibility" | "seo" | "aeo";
+  label: string;
+  score: number;
+  grade: string;
+  findings: Finding[];
+  checksRun: number;
 }
 
 interface GradeResponse {
   url: string;
-  score: number;
-  grade: string;
-  issues: Issue[];
   summary: string | null;
+  overall: number;
+  categories: CategoryResult[];
   error?: string;
 }
 
-const SEVERITY_LABEL: Record<Issue["severity"], { text: string; color: string }> = {
+const SEVERITY_LABEL: Record<Severity, { text: string; color: string }> = {
   critical: { text: "Kritiskt", color: "#b91c1c" },
   serious: { text: "Allvarligt", color: "#c2410c" },
   moderate: { text: "Måttligt", color: "#a16207" },
@@ -33,6 +43,15 @@ function gradeColor(grade: string): string {
   if (grade === "A" || grade === "B") return "#15803d";
   if (grade === "C" || grade === "D") return "#a16207";
   return "#b91c1c";
+}
+
+function overallGrade(score: number): string {
+  if (score >= 90) return "A";
+  if (score >= 80) return "B";
+  if (score >= 70) return "C";
+  if (score >= 60) return "D";
+  if (score >= 50) return "E";
+  return "F";
 }
 
 export default function GradePage() {
@@ -118,9 +137,9 @@ export default function GradePage() {
           koll på riktiga WCAG-fel.
         </p>
         <div style={S.trust}>
-          <span>✓ WCAG 2.1 AA</span>
-          <span>✓ Resultat på sekunder</span>
-          <span>✓ Gratis & utan konto</span>
+          <span>✓ Tillgänglighet (EAA)</span>
+          <span>✓ SEO & teknik</span>
+          <span>✓ AI-synlighet</span>
         </div>
       </section>
 
@@ -137,35 +156,43 @@ export default function GradePage() {
       {result && (
         <section style={S.card}>
           <div style={S.scoreRow}>
-            <div style={{ ...S.gradeBadge, background: gradeColor(result.grade) }}>
-              {result.grade}
+            <div style={{ ...S.gradeBadge, background: gradeColor(overallGrade(result.overall)) }}>
+              {overallGrade(result.overall)}
             </div>
             <div>
-              <div style={S.scoreNum}>{result.score}/100</div>
+              <div style={S.scoreNum}>{result.overall}/100 totalt</div>
               <div style={S.scoreUrl}>{result.url}</div>
             </div>
           </div>
 
           {result.summary && <p style={S.summary}>{result.summary}</p>}
 
-          {result.issues.length === 0 ? (
-            <p style={S.clean}>Inga av våra snabbkontroller slog larm. Snyggt! En full
-              audit täcker fler kriterier (kontrast, fokusordning m.m.).</p>
-          ) : (
-            <ul style={S.issueList}>
-              {result.issues.map((i) => (
-                <li key={i.id} style={S.issueItem}>
-                  <span style={{ ...S.sevTag, color: SEVERITY_LABEL[i.severity].color }}>
-                    {SEVERITY_LABEL[i.severity].text}
-                  </span>
-                  <span style={S.issueTitle}>{i.title}</span>
-                  <span style={S.issueMeta}>
-                    {i.count} st · WCAG {i.wcag}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          {result.categories.map((cat) => (
+            <div key={cat.category} style={S.catBlock}>
+              <div style={S.catHead}>
+                <span style={{ ...S.catGrade, color: gradeColor(cat.grade) }}>{cat.grade}</span>
+                <span style={S.catLabel}>{cat.label}</span>
+                <span style={S.catScore}>{cat.score}/100</span>
+              </div>
+              {cat.findings.length === 0 ? (
+                <p style={S.clean}>Inga fel hittade i denna kategori. 👍</p>
+              ) : (
+                <ul style={S.issueList}>
+                  {cat.findings.map((f) => (
+                    <li key={f.id} style={S.issueItem}>
+                      <span style={{ ...S.sevTag, color: SEVERITY_LABEL[f.severity].color }}>
+                        {SEVERITY_LABEL[f.severity].text}
+                      </span>
+                      <span style={S.issueTitle}>{f.title}</span>
+                      <span style={S.issueMeta}>
+                        {f.count} st{f.ref ? ` · ${f.ref}` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
 
           <div style={S.cta}>
             <h2 style={S.ctaH2}>Vill du ha hela bilden + en åtgärdsplan?</h2>
@@ -371,8 +398,13 @@ const S: Record<string, React.CSSProperties> = {
     padding: "12px 14px",
     borderRadius: 8,
   },
-  clean: { marginTop: 16, color: "#15803d" },
-  issueList: { listStyle: "none", padding: 0, margin: "20px 0 0" },
+  clean: { marginTop: 10, color: "#15803d" },
+  catBlock: { marginTop: 24, paddingTop: 16, borderTop: "1px solid #f3f4f6" },
+  catHead: { display: "flex", alignItems: "baseline", gap: 10 },
+  catGrade: { fontSize: 24, fontWeight: 800, minWidth: 24 },
+  catLabel: { flex: 1, fontSize: 17, fontWeight: 600 },
+  catScore: { fontSize: 14, color: "#6b7280" },
+  issueList: { listStyle: "none", padding: 0, margin: "12px 0 0" },
   issueItem: {
     display: "flex",
     alignItems: "baseline",

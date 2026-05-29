@@ -5,7 +5,10 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { scanUrl, type ScanResult } from "@/lib/accessibility/scanner";
+import { evaluateHtml, fetchPageHtml, type ScanResult } from "@/lib/accessibility/scanner";
+import { analyzeSeo } from "@/lib/seo/analyzer";
+import { analyzeAeo } from "@/lib/aeo/analyzer";
+import { buildCategory, type CategoryResult, type Finding } from "@/lib/scan/types";
 import { completeJson } from "@/lib/ai/claude";
 
 export const runtime = "nodejs";
@@ -26,14 +29,27 @@ export async function POST(req: NextRequest) {
   }
 
   let result: ScanResult;
+  let seo: CategoryResult;
+  let aeo: CategoryResult;
   try {
-    result = await scanUrl(parsed.url);
+    // Hämta HTML en gång och kör alla tre analyserna på samma sida.
+    const { url, html } = await fetchPageHtml(parsed.url);
+    result = evaluateHtml(url, html);
+    seo = analyzeSeo(html, url);
+    aeo = analyzeAeo(html);
   } catch (err) {
     return NextResponse.json(
       { error: `Kunde inte analysera sidan: ${err instanceof Error ? err.message : String(err)}` },
       { status: 422 },
     );
   }
+
+  // Tillgänglighet är huvudkategorin (och det betalda erbjudandet); SEO + AEO är
+  // gratis värde-höjare. Tillgänglighetsfälten ligger kvar på toppnivå för bakåt-
+  // kompatibilitet (rapportsidan), och alla tre finns i categories.
+  const accessibilityCat = accessibilityToCategory(result);
+  const categories = [accessibilityCat, seo, aeo];
+  const overall = Math.round(categories.reduce((s, c) => s + c.score, 0) / categories.length);
 
   // Lead-capture. Loggas alltid; skickas dessutom till en valfri webhook
   // (LEAD_WEBHOOK_URL, t.ex. Zapier/Make/egen endpoint) så leads inte tappas i
@@ -45,7 +61,20 @@ export async function POST(req: NextRequest) {
 
   const summary = await maybeSummarize(result);
 
-  return NextResponse.json({ ...result, summary });
+  return NextResponse.json({ ...result, summary, categories, overall });
+}
+
+/** Mappar tillgänglighetsresultatet till det gemensamma kategori-formatet. */
+function accessibilityToCategory(r: ScanResult): CategoryResult {
+  const findings: Finding[] = r.issues.map((i) => ({
+    id: i.id,
+    title: i.title,
+    severity: i.severity,
+    ref: `WCAG ${i.wcag}`,
+    count: i.count,
+    examples: i.examples,
+  }));
+  return buildCategory("accessibility", "Tillgänglighet (EAA)", findings, r.checksRun);
 }
 
 /** Skickar leadet till LEAD_WEBHOOK_URL om satt. Sväljer alla fel (best-effort). */

@@ -5,16 +5,21 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 
 ## Flöde
 1. Besökare klistrar in URL på `/grade`.
-2. `POST /api/grade` hämtar sidans HTML och kör en statisk WCAG 2.1 AA-scan.
-3. Resultat (betyg + topp-fel + valfri svensk AI-förklaring) visas direkt.
+2. `POST /api/grade` hämtar sidans HTML **en gång** och kör tre analyser på den:
+   tillgänglighet (EAA/WCAG, huvudkategori + betald audit), SEO/teknik och
+   AI-synlighet (AEO). De två senare är gratis värde-höjare i lead-magneten.
+3. Resultat (totalbetyg + per kategori + valfri svensk AI-förklaring) visas direkt.
 4. Köp-CTA → `POST /api/checkout` → Stripe Checkout (engångs-audit eller monitoring).
 5. Efter köp genererar du leveransen på `/grade/rapport?url=...` (utskrift/PDF).
 
 ## Filer
 | Fil | Roll |
 |-----|------|
-| `lib/accessibility/scanner.ts` | Hämtar HTML, regelmotor (13 kontroller), poäng A–F |
+| `lib/accessibility/scanner.ts` | Hämtar HTML, WCAG-regelmotor (13 kontroller), poäng A–F |
 | `lib/accessibility/remediation.ts` | Åtgärdsförklaringar per feltyp (svenska) |
+| `lib/seo/analyzer.ts` | SEO/teknik-kontroller (gratis värde-höjare) |
+| `lib/aeo/analyzer.ts` | AI-synlighet/AEO-signaler (gratis värde-höjare) |
+| `lib/scan/types.ts` | Gemensamma typer + poängsättning för alla kategorier |
 | `lib/payments/stripe.ts` | Checkout Session via Stripe REST (beroendefri) |
 | `app/grade/page.tsx` | Publik landningssida + grader |
 | `app/grade/layout.tsx` | SEO/OG-metadata |

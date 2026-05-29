@@ -395,7 +395,13 @@ export function evaluateHtml(url: string, rawHtml: string): ScanResult {
 
 /** Hämtar och analyserar en URL. Kastar vid hämtningsfel. */
 export async function scanUrl(rawUrl: string): Promise<ScanResult> {
+  const { url, html } = await fetchPageHtml(rawUrl);
+  return evaluateHtml(url, html);
+}
+
+/** Hämtar HTML en gång så flera analyser (a11y/SEO/AEO) kan dela på den. */
+export async function fetchPageHtml(rawUrl: string): Promise<{ url: string; html: string }> {
   const url = normalizeUrl(rawUrl);
   const html = await fetchHtml(url);
-  return evaluateHtml(url, html);
+  return { url, html };
 }
