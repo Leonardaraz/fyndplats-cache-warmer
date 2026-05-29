@@ -11,6 +11,7 @@ import { analyzeAeo } from "@/lib/aeo/analyzer";
 import { analyzePerformance } from "@/lib/perf/analyzer";
 import { extractInternalLinks } from "@/lib/scan/crawl";
 import { mergeCategoryPages } from "@/lib/scan/aggregate";
+import { fetchSiteFiles } from "@/lib/scan/site-files";
 import { analyzeRobotsAndFiles } from "@/lib/aeo/robots";
 import { buildCategory, type CategoryResult, type Finding } from "@/lib/scan/types";
 import { completeJson } from "@/lib/ai/claude";
@@ -98,30 +99,6 @@ export async function POST(req: NextRequest) {
   const summary = await maybeSummarize(result);
 
   return NextResponse.json({ ...result, summary, categories, overall, pagesScanned });
-}
-
-/** Hämtar robots.txt och llms.txt från domänroten (best-effort, null vid fel/404). */
-async function fetchSiteFiles(pageUrl: string): Promise<{ robotsTxt: string | null; llmsTxt: string | null }> {
-  let origin: string;
-  try {
-    origin = new URL(pageUrl).origin;
-  } catch {
-    return { robotsTxt: null, llmsTxt: null };
-  }
-  const get = async (path: string): Promise<string | null> => {
-    try {
-      const res = await fetch(`${origin}${path}`, {
-        signal: AbortSignal.timeout(8000),
-        headers: { "User-Agent": "FyndplatsAccessibilityBot/0.1 (+https://fyndplats.com)" },
-      });
-      if (!res.ok) return null;
-      return await res.text();
-    } catch {
-      return null;
-    }
-  };
-  const [robotsTxt, llmsTxt] = await Promise.all([get("/robots.txt"), get("/llms.txt")]);
-  return { robotsTxt, llmsTxt };
 }
 
 /** Mappar tillgänglighetsresultatet till det gemensamma kategori-formatet. */
