@@ -55,9 +55,18 @@ export async function GET(req: NextRequest) {
 
   // AliExpress kan returnera fel-payload (kod brand, signature, rate-limit)
   // eller wrappad payload — visa den i klartext (utan tokens) för debugging.
+  // VIKTIGT: AliExpress returnerar code="0" (string) vid SUCCESS — behandla
+  // det som icke-fel. Truthy-check på string "0" är true i JS → måste
+  // explicit kolla mot 0/"0".
   const rawTokens = tokens as unknown as Record<string, unknown>;
   const aliexpressError = rawTokens.code ?? rawTokens.error_code ?? rawTokens.error;
-  if (aliexpressError) {
+  const isSuccessCode = aliexpressError === undefined
+    || aliexpressError === null
+    || aliexpressError === 0
+    || aliexpressError === "0"
+    || aliexpressError === 200
+    || aliexpressError === "200";
+  if (!isSuccessCode) {
     return NextResponse.json(
       {
         error: "AliExpress avvisade token-exchange.",
