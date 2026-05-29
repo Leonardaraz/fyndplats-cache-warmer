@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
-import { RecentlyViewed, RecentlyViewedTracker } from "../../../components/recentlyviewed";
 import { getProduct, getProductSlugs, getProducts } from "../../../lib/products";
 
 export async function generateStaticParams() {
@@ -91,10 +90,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           variants={p.variants}
           options={p.options}
         />
-        <RecentlyViewedTracker slug={p.slug} name={p.name} price={p.price} img={p.img} />
       </div>
-
-      <RecentlyViewed excludeSlug={p.slug} />
 
       {related.length >= 2 && (
         <section className="sec relsec">
