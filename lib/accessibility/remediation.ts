@@ -1,0 +1,111 @@
+// Åtgärds-kunskapsbas för tillgänglighetsrapporten.
+//
+// Per feltyp (samma id som scannerns regler): varför det spelar roll för riktiga
+// användare, hur man fixar det konkret, och en grov arbetsinsats. Detta är "köttet"
+// i den betalda rapporten — helt självständigt, ingen extern data.
+
+export type Effort = "låg" | "medel" | "hög";
+
+export interface Remediation {
+  /** Varför felet drabbar riktiga användare. */
+  why: string;
+  /** Konkret hur man åtgärdar. */
+  fix: string;
+  effort: Effort;
+}
+
+export const REMEDIATION: Record<string, Remediation> = {
+  "img-alt": {
+    why: "Skärmläsare läser upp alt-texten i stället för bilden. Utan den hör en " +
+      "synskadad besökare ingenting, eller bara filnamnet — produktbilder blir osynliga.",
+    fix: 'Lägg till ett beskrivande alt-attribut på varje <img>, t.ex. ' +
+      '`alt="Blå bomullströja, framifrån"`. Rent dekorativa bilder ska ha tomt `alt=""`.',
+    effort: "låg",
+  },
+  "html-lang": {
+    why: "Utan språkdeklaration vet skärmläsaren inte vilket uttal som gäller och " +
+      "kan läsa svensk text med engelskt uttal — svårbegripligt.",
+    fix: 'Sätt språk på rot-elementet: `<html lang="sv">`.',
+    effort: "låg",
+  },
+  "doc-title": {
+    why: "Sidtiteln läses upp först av skärmläsare och visas i webbläsarflikar och " +
+      "sökresultat. Saknas den blir sidan svår att identifiera.",
+    fix: "Ge varje sida en unik, beskrivande <title>, t.ex. ”Herrtröjor – Min Butik”.",
+    effort: "låg",
+  },
+  "link-text": {
+    why: "Skärmläsaranvändare bläddrar ofta länk för länk. ”Klicka här” utan kontext " +
+      "säger ingenting om vart länken leder.",
+    fix: "Skriv ut länkmålet i texten, t.ex. ”Läs mer om våra fraktvillkor” i stället " +
+      "för ”läs mer”.",
+    effort: "låg",
+  },
+  "button-name": {
+    why: "En knapp utan text eller etikett annonseras bara som ”knapp” — användaren " +
+      "vet inte vad den gör (köp? ta bort? stäng?).",
+    fix: 'Lägg text i knappen, eller ett `aria-label` om den bara har en ikon, t.ex. ' +
+      '`<button aria-label="Stäng">`.',
+    effort: "låg",
+  },
+  "meta-viewport": {
+    why: "Att blockera zoom stänger ute personer med nedsatt syn som behöver förstora " +
+      "texten. WCAG kräver att sidan går att zooma till minst 200 %.",
+    fix: "Ta bort `user-scalable=no` och `maximum-scale=1` ur viewport-metataggen.",
+    effort: "låg",
+  },
+  "page-h1": {
+    why: "En tydlig huvudrubrik (H1) hjälper skärmläsaranvändare att förstå vad sidan " +
+      "handlar om och är en viktig orienteringspunkt.",
+    fix: "Lägg en enda beskrivande <h1> överst i sidans huvudinnehåll.",
+    effort: "låg",
+  },
+  "input-label": {
+    why: "Ett formulärfält utan etikett läses upp som bara ”textfält” — användaren vet " +
+      "inte vad som ska fyllas i (namn? e-post? sökord?).",
+    fix: 'Koppla en <label> till fältet med `for`/`id`, eller använd `aria-label`. ' +
+      "Placeholder-text räcker inte.",
+    effort: "medel",
+  },
+  "iframe-title": {
+    why: "Inbäddat innehåll (karta, video, formulär) utan title annonseras som en " +
+      "anonym ram — användaren vet inte vad den innehåller.",
+    fix: 'Lägg ett beskrivande `title` på varje <iframe>, t.ex. `title="Karta till butiken"`.',
+    effort: "låg",
+  },
+  "empty-link": {
+    why: "Ikon- och bildlänkar utan text eller alt blir tomma för skärmläsare — ofta " +
+      "drabbar det viktiga länkar som varukorg och sociala ikoner.",
+    fix: "Ge bilden i länken en alt-text, eller sätt `aria-label` på själva länken.",
+    effort: "låg",
+  },
+  "media-autoplay": {
+    why: "Ljud/video som startar automatiskt stör skärmläsare och kan vara " +
+      "desorienterande för personer med kognitiva funktionsnedsättningar.",
+    fix: "Ta bort `autoplay`, eller starta utan ljud och ge tydliga play/paus-kontroller.",
+    effort: "medel",
+  },
+  "positive-tabindex": {
+    why: "Positivt tabindex tvingar en egen tab-ordning som sällan matchar den visuella " +
+      "— tangentbordsanvändare hoppar oförutsägbart runt på sidan.",
+    fix: "Använd `tabindex=\"0\"` eller `-1` och låt DOM-ordningen styra fokus; undvik " +
+      "positiva värden.",
+    effort: "medel",
+  },
+  "multiple-h1": {
+    why: "Flera H1 gör sidans struktur otydlig för skärmläsare som navigerar via rubriker.",
+    fix: "Behåll en enda <h1> och gör övriga till <h2>/<h3> enligt hierarkin.",
+    effort: "låg",
+  },
+};
+
+/** Slår upp åtgärdsinfo för ett fel-id; faller tillbaka på en generisk text. */
+export function remediationFor(id: string): Remediation {
+  return (
+    REMEDIATION[id] ?? {
+      why: "Detta påverkar hur väl personer med funktionsnedsättning kan använda sidan.",
+      fix: "Se WCAG-kriteriet för vägledning.",
+      effort: "medel",
+    }
+  );
+}
