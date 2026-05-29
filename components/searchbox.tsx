@@ -19,7 +19,7 @@ function loadIndex(): Promise<Hit[]> {
   return inflight;
 }
 
-export function SearchBox() {
+export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
@@ -45,11 +45,13 @@ export function SearchBox() {
     setOpen(true);
   };
 
-  const goProduct = (slug: string) => { setOpen(false); setQ(""); router.push(`/produkt/${slug}`); };
+  // onNavigate stänger ev. förälder (mobilmenyn) när vi navigerar bort.
+  const goProduct = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
   const goSearch = () => {
     const t = q.trim();
     if (!t) return;
     setOpen(false);
+    onNavigate?.();
     router.push(`/sok?q=${encodeURIComponent(t)}`);
   };
 

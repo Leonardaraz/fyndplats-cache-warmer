@@ -37,7 +37,7 @@ export function MobileNav({ collections = [] }: { collections?: { name: string; 
           <strong>Meny</strong>
           <button onClick={() => setOpen(false)} aria-label="Stäng">✕</button>
         </div>
-        <SearchBox />
+        <SearchBox onNavigate={() => setOpen(false)} />
         <div className="mm-scroll">
           <nav className="mm-links">
             <a href={shopLink.href} onClick={() => setOpen(false)}>{shopLink.label}</a>
