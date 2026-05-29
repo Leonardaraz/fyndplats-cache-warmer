@@ -4,8 +4,10 @@ import { useState, useTransition } from "react";
 import {
   enrichAllV3Action,
   migrateDescriptionsAction,
+  migrateInfoSectionsAction,
   type EnrichActionResult,
   type MigrateDescriptionsResult,
+  type MigrateInfoSectionsResult,
 } from "./actions";
 
 interface Props {
@@ -27,6 +29,8 @@ export function SeoTools({
   const [enrichResult, setEnrichResult] = useState<EnrichActionResult | null>(null);
   const [descPending, startDescTransition] = useTransition();
   const [descResult, setDescResult] = useState<MigrateDescriptionsResult | null>(null);
+  const [infoPending, startInfoTransition] = useTransition();
+  const [infoResult, setInfoResult] = useState<MigrateInfoSectionsResult | null>(null);
 
   function runEnrich(dryRun: boolean) {
     setEnrichResult(null);
@@ -41,6 +45,14 @@ export function SeoTools({
     startDescTransition(async () => {
       const res = await migrateDescriptionsAction(dryRun);
       setDescResult(res);
+    });
+  }
+
+  function runMigrateInfo(dryRun: boolean) {
+    setInfoResult(null);
+    startInfoTransition(async () => {
+      const res = await migrateInfoSectionsAction(dryRun);
+      setInfoResult(res);
     });
   }
 
@@ -174,6 +186,59 @@ export function SeoTools({
               </>
             ) : (
               <>Fel: {descResult.error}</>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      <h3 style={{ marginTop: 24, fontSize: 16 }}>Migrera V1-flikar (Specs/FAQ/Användning) till V3</h3>
+      <p style={{ fontSize: 13, color: "#666" }}>
+        Gamla Wix-sajten hade fyra flikar under produktbeskrivningen: Tekniska
+        specifikationer, Användning och skötsel, Vanliga frågor, Kontakta oss.
+        V3 har ett tak på 400 sektioner per site → 207 produkter × 4 sektioner
+        passar inte. Lägger istället till dem som <code>&lt;h2&gt;</code>-block
+        i slutet av <code>plainDescription</code>. Idempotent (skippar
+        produkter där H2-sektionerna redan finns).
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => runMigrateInfo(true)} disabled={infoPending}
+          style={btnSecondary}>
+          {infoPending ? "Kör..." : "🧪 Dry-run (förhandsgranska)"}
+        </button>
+        <button
+          onClick={() => {
+            if (!confirm("Lägger till V1-flikar (specs/FAQ/användning/kontakt) i V3-beskrivningar. Fortsätt?")) {
+              return;
+            }
+            runMigrateInfo(false);
+          }}
+          disabled={infoPending}
+          style={btn}>
+          {infoPending ? "Migrerar..." : "📑 Migrera flikar"}
+        </button>
+        {infoResult ? (
+          <div style={{
+            fontSize: 13, padding: "8px 12px", borderRadius: 4, flexBasis: "100%",
+            background: infoResult.ok ? "#e7fde7" : "#fde7e7",
+            color: infoResult.ok ? "#070" : "#a00",
+          }}>
+            {infoResult.ok && infoResult.stats ? (
+              <>
+                <b>{infoResult.dryRun ? "DRY-RUN" : "MIGRERAT ✅"}:</b>{" "}
+                {infoResult.dryRun ? infoResult.stats.toMigrate : infoResult.stats.migrated} av{" "}
+                {infoResult.stats.v3Total} produkter ·{" "}
+                {infoResult.stats.alreadyHad} hade redan flikar ·{" "}
+                {infoResult.stats.noV1Sections} saknar V1-flikar ·{" "}
+                {infoResult.stats.unmatched} omatchade ·{" "}
+                {infoResult.stats.failed} fel
+                {infoResult.firstErrors && infoResult.firstErrors.length > 0 ? (
+                  <ul style={{ marginTop: 6, fontSize: 12 }}>
+                    {infoResult.firstErrors.map((e, i) => (<li key={i}>{e}</li>))}
+                  </ul>
+                ) : null}
+              </>
+            ) : (
+              <>Fel: {infoResult.error}</>
             )}
           </div>
         ) : null}
