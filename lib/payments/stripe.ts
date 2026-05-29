@@ -35,16 +35,20 @@ function readConfig(): StripeConfig {
   return { secretKey, priceAudit, priceMonitoring };
 }
 
-/** Plattar ut nästlade params till Stripes form-kodade format (a[b][c]=v). */
-function encodeForm(obj: Record<string, unknown>, prefix = ""): string {
+/**
+ * Plattar ut nästlade params till Stripes form-kodade format (a[b][c]=v).
+ * Hakparenteserna i nyckeln hålls literala (Stripes format) medan varje
+ * nyckelsegment och värde URL-kodas. Exporterad för test.
+ */
+export function encodeForm(obj: Record<string, unknown>, prefix = ""): string {
   const parts: string[] = [];
   for (const [key, value] of Object.entries(obj)) {
     if (value === undefined || value === null) continue;
-    const name = prefix ? `${prefix}[${key}]` : key;
+    const name = prefix ? `${prefix}[${encodeURIComponent(key)}]` : encodeURIComponent(key);
     if (typeof value === "object") {
       parts.push(encodeForm(value as Record<string, unknown>, name));
     } else {
-      parts.push(`${encodeURIComponent(name)}=${encodeURIComponent(String(value))}`);
+      parts.push(`${name}=${encodeURIComponent(String(value))}`);
     }
   }
   return parts.filter(Boolean).join("&");
