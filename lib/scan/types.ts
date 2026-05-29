@@ -15,6 +15,8 @@ export interface Finding {
   count: number;
   /** Upp till några exempel (HTML-utdrag) för kontext. */
   examples: string[];
+  /** Sidor där felet förekommer (sätts vid flersidig granskning). */
+  pages?: string[];
 }
 
 export type Category = "accessibility" | "seo" | "aeo" | "performance";

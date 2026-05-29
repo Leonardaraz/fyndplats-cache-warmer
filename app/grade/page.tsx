@@ -24,12 +24,25 @@ interface CategoryResult {
   checksRun: number;
 }
 
+interface QuickWin {
+  finding: { id: string; title: string; severity: Severity };
+  categoryLabel: string;
+}
+
 interface GradeResponse {
   url: string;
   summary: string | null;
   overall: number;
   categories: CategoryResult[];
+  eaaRisk?: "Låg" | "Medel" | "Hög";
+  quickWins?: QuickWin[];
   error?: string;
+}
+
+function riskColor(risk?: string): string {
+  if (risk === "Låg") return "#15803d";
+  if (risk === "Medel") return "#a16207";
+  return "#b91c1c";
 }
 
 const SEVERITY_LABEL: Record<Severity, { text: string; color: string }> = {
@@ -166,7 +179,33 @@ export default function GradePage() {
             </div>
           </div>
 
+          {result.eaaRisk && (
+            <div style={{ ...S.riskBanner, borderColor: riskColor(result.eaaRisk) }}>
+              <strong style={{ color: riskColor(result.eaaRisk) }}>EAA-risk: {result.eaaRisk}</strong>
+              <span style={S.riskText}>
+                {result.eaaRisk === "Hög"
+                  ? "Sidan har flera tillgänglighetsbrister som kan strida mot lagen."
+                  : result.eaaRisk === "Medel"
+                    ? "Sidan har en del brister värda att åtgärda."
+                    : "Sidan ser hyfsat bra ut – men dubbelkolla med en full granskning."}
+              </span>
+            </div>
+          )}
+
           {result.summary && <p style={S.summary}>{result.summary}</p>}
+
+          {result.quickWins && result.quickWins.length > 0 && (
+            <div style={S.wins}>
+              <strong>Börja med dessa (snabba vinster):</strong>
+              <ol style={S.winList}>
+                {result.quickWins.map((w) => (
+                  <li key={w.finding.id}>
+                    {w.finding.title} <span style={S.winCat}>· {w.categoryLabel}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
           {result.categories.map((cat) => (
             <div key={cat.category} style={S.catBlock}>
@@ -400,6 +439,25 @@ const S: Record<string, React.CSSProperties> = {
     borderRadius: 8,
   },
   clean: { marginTop: 10, color: "#15803d" },
+  riskBanner: {
+    marginTop: 16,
+    padding: "12px 14px",
+    border: "2px solid",
+    borderRadius: 8,
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  riskText: { fontSize: 14, color: "#374151" },
+  wins: {
+    marginTop: 16,
+    padding: "12px 14px",
+    background: "#eff6ff",
+    borderRadius: 8,
+    fontSize: 15,
+  },
+  winList: { margin: "8px 0 0", paddingLeft: 20 },
+  winCat: { color: "#6b7280", fontSize: 13 },
   catBlock: { marginTop: 24, paddingTop: 16, borderTop: "1px solid #f3f4f6" },
   catHead: { display: "flex", alignItems: "baseline", gap: 10 },
   catGrade: { fontSize: 24, fontWeight: 800, minWidth: 24 },

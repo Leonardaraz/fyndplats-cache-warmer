@@ -12,6 +12,7 @@ import { analyzePerformance } from "@/lib/perf/analyzer";
 import { extractInternalLinks } from "@/lib/scan/crawl";
 import { mergeCategoryPages } from "@/lib/scan/aggregate";
 import { fetchSiteFiles } from "@/lib/scan/site-files";
+import { quickWins, eaaRisk } from "@/lib/scan/prioritize";
 import { analyzeRobotsAndFiles } from "@/lib/aeo/robots";
 import { buildCategory, type CategoryResult, type Finding } from "@/lib/scan/types";
 import { completeJson } from "@/lib/ai/claude";
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
         ...settled.flatMap((r) => (r.status === "fulfilled" ? [r.value] : [])),
       ];
       pagesScanned = pages.length;
-      categories = mergeCategoryPages(pages.map((p) => analyzePage(p.url, p.html)));
+      categories = mergeCategoryPages(pages.map((p) => ({ url: p.url, categories: analyzePage(p.url, p.html) })));
     } else {
       categories = analyzePage(url, html);
     }
@@ -87,6 +88,9 @@ export async function POST(req: NextRequest) {
   // gratis värde-höjare. Tillgänglighetsfälten ligger kvar på toppnivå för bakåt-
   // kompatibilitet, och alla kategorier finns i categories.
   const overall = Math.round(categories.reduce((s, c) => s + c.score, 0) / categories.length);
+  const accessibilityScore = categories.find((c) => c.category === "accessibility")?.score ?? overall;
+  const risk = eaaRisk(accessibilityScore);
+  const wins = quickWins(categories, 3);
 
   // Lead-capture. Loggas alltid; skickas dessutom till en valfri webhook
   // (LEAD_WEBHOOK_URL, t.ex. Zapier/Make/egen endpoint) så leads inte tappas i
@@ -98,7 +102,7 @@ export async function POST(req: NextRequest) {
 
   const summary = await maybeSummarize(result);
 
-  return NextResponse.json({ ...result, summary, categories, overall, pagesScanned });
+  return NextResponse.json({ ...result, summary, categories, overall, pagesScanned, eaaRisk: risk, quickWins: wins });
 }
 
 /** Mappar tillgänglighetsresultatet till det gemensamma kategori-formatet. */

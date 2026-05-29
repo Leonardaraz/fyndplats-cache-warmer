@@ -88,7 +88,7 @@ describe("deep scan över riktig HTTP (loopback)", () => {
     const pages = [{ url, html }, ...settled.flatMap((s) => (s.status === "fulfilled" ? [s.value] : []))];
     expect(pages.length).toBeGreaterThanOrEqual(3);
 
-    const merged = mergeCategoryPages(pages.map((p) => analyzePage(p.url, p.html)));
+    const merged = mergeCategoryPages(pages.map((p) => ({ url: p.url, categories: analyzePage(p.url, p.html) })));
     const a11y = merged.find((c) => c.category === "accessibility")!;
     const imgAlt = a11y.findings.find((f) => f.id === "img-alt")!;
     // startsidan har 2 saknade alt + minst 1 per undersida → summerat > 2

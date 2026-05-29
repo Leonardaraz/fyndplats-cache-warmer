@@ -15,6 +15,11 @@ interface Finding {
   ref?: string;
   count: number;
   examples: string[];
+  pages?: string[];
+}
+interface QuickWin {
+  finding: { id: string; title: string };
+  categoryLabel: string;
 }
 interface CategoryResult {
   category: string;
@@ -31,7 +36,15 @@ interface GradeResponse {
   summary: string | null;
   scannedAt: string;
   pagesScanned?: number;
+  eaaRisk?: "Låg" | "Medel" | "Hög";
+  quickWins?: QuickWin[];
   error?: string;
+}
+
+function riskColor(risk?: string): string {
+  if (risk === "Låg") return "#15803d";
+  if (risk === "Medel") return "#a16207";
+  return "#b91c1c";
 }
 
 const SEV: Record<Severity, { text: string; color: string }> = {
@@ -104,12 +117,30 @@ export default function ReportPage() {
           28 juni 2025), <strong>SEO & teknik</strong> och <strong>AI-synlighet</strong>.
           Varje punkt beskriver varför det spelar roll och hur det åtgärdas.
         </p>
+        {result.eaaRisk && (
+          <p style={{ ...S.risk, color: riskColor(result.eaaRisk) }}>
+            Bedömd EAA-risk: <strong>{result.eaaRisk}</strong>
+          </p>
+        )}
         {result.summary && <p style={S.summary}>{result.summary}</p>}
         <p style={S.disclaimer}>
           Rapporten är vägledande och bygger på automatiserade kontroller av sidans HTML.
           Den ersätter inte en fullständig manuell granskning och utgör inte juridisk rådgivning.
         </p>
       </section>
+
+      {result.quickWins && result.quickWins.length > 0 && (
+        <section style={S.winsBox}>
+          <h2 style={S.h2}>Börja här – snabba vinster</h2>
+          <ol style={S.winList}>
+            {result.quickWins.map((w) => (
+              <li key={w.finding.id}>
+                {w.finding.title} <span style={S.muted}>({w.categoryLabel})</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {findingsTotal === 0 ? (
         <p style={S.clean}>Inga av kontrollerna slog larm. En full manuell granskning
@@ -140,6 +171,11 @@ export default function ReportPage() {
                       </p>
                       <p><strong>Varför:</strong> {rem.why}</p>
                       <p><strong>Åtgärd:</strong> {rem.fix}</p>
+                      {f.pages && f.pages.length > 0 && (
+                        <p style={S.pages}>
+                          Förekommer på: {f.pages.map((p) => relPath(p)).join(", ")}
+                        </p>
+                      )}
                       {f.examples.length > 0 && (
                         <details style={S.examples}>
                           <summary>Exempel från sidan</summary>
@@ -176,6 +212,16 @@ function gradeColor(g: string): string {
   return "#b91c1c";
 }
 
+/** Kortar ner en absolut URL till sökväg (för läsbar sidlista i rapporten). */
+function relPath(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.pathname === "/" || u.pathname === "" ? "startsidan" : u.pathname;
+  } catch {
+    return url;
+  }
+}
+
 function overallGrade(score: number): string {
   if (score >= 90) return "A";
   if (score >= 80) return "B";
@@ -201,6 +247,10 @@ const S: Record<string, React.CSSProperties> = {
   clean: { color: "#15803d" },
   h2: { fontSize: 20, margin: "28px 0 12px" },
   catScore: { fontSize: 14, fontWeight: 400, color: "#6b7280" },
+  risk: { fontSize: 16, margin: "4px 0" },
+  winsBox: { background: "#eff6ff", borderRadius: 8, padding: "12px 16px", margin: "8px 0 8px" },
+  winList: { margin: "8px 0 0", paddingLeft: 20 },
+  pages: { fontSize: 13, color: "#6b7280", margin: "4px 0 0" },
   list: { paddingLeft: 0, listStyle: "none", margin: 0 },
   item: { borderTop: "1px solid #e5e7eb", padding: "16px 0" },
   itemHead: { display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" },
