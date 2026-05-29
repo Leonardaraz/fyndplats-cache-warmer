@@ -59,4 +59,52 @@ describe("evaluateHtml", () => {
     const r = evaluateHtml("https://x.se", BAD);
     expect(r.issues[0].severity).toBe("critical");
   });
+
+  it("flags iframes without a title", () => {
+    const html = `<html lang="sv"><head><title>x</title></head><body><h1>x</h1>
+      <iframe src="https://maps.example"></iframe></body></html>`;
+    const r = evaluateHtml("https://x.se", html);
+    expect(r.issues.map((i) => i.id)).toContain("iframe-title");
+  });
+
+  it("accepts an iframe that has a title", () => {
+    const html = `<html lang="sv"><head><title>x</title></head><body><h1>x</h1>
+      <iframe src="https://maps.example" title="Karta"></iframe></body></html>`;
+    const r = evaluateHtml("https://x.se", html);
+    expect(r.issues.map((i) => i.id)).not.toContain("iframe-title");
+  });
+
+  it("flags an icon link with no discernible text", () => {
+    const html = `<html lang="sv"><head><title>x</title></head><body><h1>x</h1>
+      <a href="/cart"><img src="cart.svg"></a></body></html>`;
+    const r = evaluateHtml("https://x.se", html);
+    const ids = r.issues.map((i) => i.id);
+    // img saknar alt -> img-alt; länken saknar urskiljbar text -> empty-link
+    expect(ids).toContain("empty-link");
+  });
+
+  it("does not flag an icon link whose image has alt text", () => {
+    const html = `<html lang="sv"><head><title>x</title></head><body><h1>x</h1>
+      <a href="/cart"><img src="cart.svg" alt="Varukorg"></a></body></html>`;
+    const r = evaluateHtml("https://x.se", html);
+    expect(r.issues.map((i) => i.id)).not.toContain("empty-link");
+  });
+
+  it("flags autoplay media and positive tabindex", () => {
+    const html = `<html lang="sv"><head><title>x</title></head><body><h1>x</h1>
+      <video src="v.mp4" autoplay></video>
+      <div tabindex="3">x</div></body></html>`;
+    const ids = evaluateHtml("https://x.se", html).issues.map((i) => i.id);
+    expect(ids).toContain("media-autoplay");
+    expect(ids).toContain("positive-tabindex");
+  });
+
+  it("flags multiple h1 but allows tabindex=0 and -1", () => {
+    const html = `<html lang="sv"><head><title>x</title></head><body>
+      <h1>A</h1><h1>B</h1>
+      <div tabindex="0">x</div><div tabindex="-1">y</div></body></html>`;
+    const ids = evaluateHtml("https://x.se", html).issues.map((i) => i.id);
+    expect(ids).toContain("multiple-h1");
+    expect(ids).not.toContain("positive-tabindex");
+  });
 });

@@ -243,6 +243,97 @@ const RULES: Rule[] = [
       examples: unlabeled.slice(0, 3).map((t) => t.slice(0, 120)),
     };
   },
+
+  // 4.1.2 — iframe utan title (skärmläsare kan inte beskriva innehållet)
+  (html) => {
+    const iframes = matchTags(html, "iframe").filter((t) => {
+      const title = getAttr(t, "title");
+      return !(title && title.trim().length > 0) && !hasAttr(t, "aria-label");
+    });
+    if (iframes.length === 0) return null;
+    return {
+      id: "iframe-title",
+      title: "iframe saknar title (t.ex. inbäddad karta eller video)",
+      severity: "serious",
+      wcag: "4.1.2",
+      count: iframes.length,
+      examples: iframes.slice(0, 3).map((t) => t.slice(0, 120)),
+    };
+  },
+
+  // 2.4.4 / 4.1.2 — Länkar helt utan urskiljbar text (ingen text, ingen bild-alt, ingen aria)
+  (html) => {
+    const links = [...html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)];
+    const empty = links.filter((m) => {
+      const attrs = m[1];
+      // Hoppa över ankare som inte är riktiga länkar (saknar href).
+      if (!/\bhref\s*=/.test(attrs)) return false;
+      const text = m[2].replace(/<[^>]*>/g, "").trim();
+      if (text.length > 0) return false;
+      // En bild med alt-text inuti gör länken urskiljbar.
+      const imgInside = m[2].match(/<img\b[^>]*>/i)?.[0] ?? "";
+      const imgAlt = imgInside ? getAttr(imgInside, "alt") : null;
+      if (imgAlt && imgAlt.trim().length > 0) return false;
+      return !/\baria-label\b/i.test(attrs);
+    });
+    if (empty.length === 0) return null;
+    return {
+      id: "empty-link",
+      title: "Länkar utan urskiljbar text (vanligt på ikon-/bildlänkar)",
+      severity: "serious",
+      wcag: "2.4.4",
+      count: empty.length,
+      examples: empty.slice(0, 3).map((m) => m[0].slice(0, 120)),
+    };
+  },
+
+  // 1.4.2 — Media som spelar automatiskt
+  (html) => {
+    const media = [...matchTags(html, "video"), ...matchTags(html, "audio")].filter((t) =>
+      hasAttr(t, "autoplay"),
+    );
+    if (media.length === 0) return null;
+    return {
+      id: "media-autoplay",
+      title: "Video/ljud spelar automatiskt (autoplay)",
+      severity: "moderate",
+      wcag: "1.4.2",
+      count: media.length,
+      examples: media.slice(0, 3).map((t) => t.slice(0, 120)),
+    };
+  },
+
+  // 2.4.3 — Positivt tabindex stör fokusordningen
+  (html) => {
+    const all = html.match(/<[a-z][^>]*\btabindex\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)[^>]*>/gi) ?? [];
+    const positive = all.filter((t) => {
+      const val = Number((getAttr(t, "tabindex") ?? "").replace(/["']/g, ""));
+      return Number.isFinite(val) && val > 0;
+    });
+    if (positive.length === 0) return null;
+    return {
+      id: "positive-tabindex",
+      title: "Positivt tabindex stör tangentbordsnavigeringens ordning",
+      severity: "moderate",
+      wcag: "2.4.3",
+      count: positive.length,
+      examples: positive.slice(0, 3).map((t) => t.slice(0, 120)),
+    };
+  },
+
+  // 1.3.1 — Flera <h1> på samma sida (otydlig struktur)
+  (html) => {
+    const h1 = matchTags(html, "h1");
+    if (h1.length <= 1) return null;
+    return {
+      id: "multiple-h1",
+      title: "Sidan har flera <h1> (otydlig rubrikstruktur)",
+      severity: "minor",
+      wcag: "1.3.1",
+      count: h1.length,
+      examples: h1.slice(0, 3).map((t) => t.slice(0, 80)),
+    };
+  },
 ];
 
 function scoreToGrade(score: number): string {
