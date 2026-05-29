@@ -86,7 +86,16 @@ async function query<T>(
     }),
   });
   if (!res.ok) {
-    throw new Error(wixErrorMessage("query", dataCollectionId, res.status, await res.text()));
+    // Saknad kollektion (404) eller "inte ännu skapad" på siten (vissa 400)
+    // ska tolereras tyst — semantiskt detsamma som tom kollektion. Annars
+    // crashar t.ex. poll-tracking-cronen i evighet innan FyndplatsTasks
+    // ens har skapats av första fulfillment-flödet.
+    if (res.status === 404) return [];
+    const text = await res.text();
+    if (res.status === 400 && /not found|does not exist|unknown collection/i.test(text)) {
+      return [];
+    }
+    throw new Error(wixErrorMessage("query", dataCollectionId, res.status, text));
   }
   const body = (await res.json()) as { dataItems?: { data?: T }[] };
   return (body.dataItems ?? []).map((d) => d.data).filter((d): d is T => Boolean(d));
