@@ -3,6 +3,36 @@ import { useState } from "react";
 import { useCart } from "./cart";
 import { Gallery } from "./gallery";
 
+// V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
+// under produktbeskrivningen. Migrationen fogade in dem som H2-block i
+// plainDescription → vi splittar och renderar dem som <details> så UX:n
+// matchar V1 (klickbart, kollapsat by default). Toleranta mot åäö-variationer
+// + valfri "Ofta ställda frågor"-formulering.
+const FLIK_TITLE_PATTERNS = [
+  /Tekniska\s+[Ss]pecifikationer/,
+  /Anv[äa]ndning\s+och\s+sk[öo]tsel/,
+  /(Vanliga\s+fr[åa]gor|Ofta\s+st[äa]llda\s+fr[åa]gor)/,
+  /Kontakta\s+oss/,
+];
+
+function splitFlikar(html: string): { mainHtml: string; flikar: { title: string; contentHtml: string }[] } {
+  const combined = FLIK_TITLE_PATTERNS.map((p) => p.source).join("|");
+  const regex = new RegExp(`<h2[^>]*>\\s*(${combined})\\s*</h2>`, "gi");
+  const matches: { idx: number; len: number; title: string }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(html)) !== null) {
+    matches.push({ idx: m.index, len: m[0].length, title: m[1] });
+  }
+  if (matches.length === 0) return { mainHtml: html, flikar: [] };
+  const mainHtml = html.substring(0, matches[0].idx);
+  const flikar = matches.map((mm, i) => {
+    const contentStart = mm.idx + mm.len;
+    const contentEnd = i + 1 < matches.length ? matches[i + 1].idx : html.length;
+    return { title: mm.title, contentHtml: html.substring(contentStart, contentEnd) };
+  });
+  return { mainHtml, flikar };
+}
+
 type Choice = { label: string; image: string; color?: string; variantId: string; price: string; priceNum: number; originalPrice: string };
 
 // Wixstatic-bilder har samma fil-id men olika transform-params (w_400 vs w_800).
@@ -191,9 +221,24 @@ export function ProductView({
         {(descriptionHtml || blurb) && (
           <div className="pdp-section">
             <h2>Beskrivning</h2>
-            {descriptionHtml
-              ? <div className="pdp-desc" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
-              : <p className="pdp-blurb">{blurb}</p>}
+            {descriptionHtml ? (() => {
+              const { mainHtml, flikar } = splitFlikar(descriptionHtml);
+              return (
+                <>
+                  <div className="pdp-desc" dangerouslySetInnerHTML={{ __html: mainHtml }} />
+                  {flikar.length > 0 && (
+                    <div className="pdp-flikar">
+                      {flikar.map((f, i) => (
+                        <details key={i} className="pdp-flik">
+                          <summary>{f.title}</summary>
+                          <div className="pdp-flik-body" dangerouslySetInnerHTML={{ __html: f.contentHtml }} />
+                        </details>
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })() : <p className="pdp-blurb">{blurb}</p>}
           </div>
         )}
 
