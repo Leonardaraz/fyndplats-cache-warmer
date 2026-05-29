@@ -414,3 +414,83 @@ export async function getInventory(
           stock: v.stock ?? 0,
     }));
 }
+
+export interface AliExpressSearchResult {
+  productId: string;
+  title: string;
+  imageUrl?: string;
+  priceUsd?: number;
+  productUrl?: string;
+}
+
+interface RawSearchResponse {
+  products?: {
+    traffic_image_product_d_t_o?: Array<{
+      product_id?: string;
+      subject?: string;
+      product_main_image_url?: string;
+      app_sale_price?: string;
+      target_app_sale_price?: string;
+      product_detail_url?: string;
+    }>;
+  };
+  result_list?: {
+    traffic_image_product_d_t_o?: Array<{
+      product_id?: string;
+      subject?: string;
+      product_main_image_url?: string;
+      app_sale_price?: string;
+      product_detail_url?: string;
+    }>;
+  };
+}
+
+/**
+ * Söker AliExpress-produkter via text. Använder aliexpress.ds.text.search-
+ * metoden. Om appens permission-grupp inte har sök-tillgång kastar callApi
+ * med tydligt felmeddelande (caller fångar och visar paste-URL-fallback).
+ */
+export async function searchAliExpressByText(query: string): Promise<AliExpressSearchResult[]> {
+    const raw = await callApi<RawSearchResponse>("aliexpress.ds.text.search", {
+          keyWord: query,
+          local: "en_US",
+          countryCode: "SE",
+          currency: "USD",
+          searchExtend: "{\"sortBy\":\"orders,desc\"}",
+          pageSize: "10",
+          pageIndex: "1",
+    });
+
+  const list = raw.products?.traffic_image_product_d_t_o
+      ?? raw.result_list?.traffic_image_product_d_t_o
+      ?? [];
+
+  return list.slice(0, 10).map((p) => ({
+        productId: String(p.product_id ?? ""),
+        title: p.subject ?? "",
+        imageUrl: p.product_main_image_url,
+        priceUsd: p.app_sale_price ? parseFloat(p.app_sale_price) : undefined,
+        productUrl: p.product_detail_url,
+  })).filter((p) => p.productId);
+}
+
+/**
+ * Extraherar AliExpress productId från en URL eller returnerar input om det
+ * redan ser ut som ett produkt-id (12-13 siffror).
+ */
+export function extractAliExpressProductId(input: string): string | null {
+    const trimmed = input.trim();
+    if (/^\d{10,16}$/.test(trimmed)) return trimmed;
+    // Matchar /item/1234567890.html, /1234567890.html, ?productId=1234567890
+    const patterns = [
+        /\/item\/(\d{10,16})/,
+        /\/(\d{10,16})\.html/,
+        /[?&]productId=(\d{10,16})/,
+        /[?&]product_id=(\d{10,16})/,
+    ];
+    for (const re of patterns) {
+        const m = trimmed.match(re);
+        if (m) return m[1];
+    }
+    return null;
+}
