@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { SearchBox } from "./searchbox";
 
-const links = [
-  { href: "/butik", label: "Butik" },
+// Kategorierna ligger högt upp (direkt efter "Butik"), före info-sidorna —
+// det är produktnavigeringen folk vill åt först i en butik.
+const shopLink = { href: "/butik", label: "Butik" };
+const infoLinks = [
   { href: "/blogg", label: "Blogg" },
   { href: "/omoss", label: "Om oss" },
   { href: "/vanliga-fragor", label: "Vanliga frågor" },
@@ -38,9 +40,7 @@ export function MobileNav({ collections = [] }: { collections?: { name: string; 
         <SearchBox />
         <div className="mm-scroll">
           <nav className="mm-links">
-            {links.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
-            ))}
+            <a href={shopLink.href} onClick={() => setOpen(false)}>{shopLink.label}</a>
           </nav>
           {collections.length > 0 && (
             <div className="mm-cats">
@@ -52,6 +52,11 @@ export function MobileNav({ collections = [] }: { collections?: { name: string; 
               ))}
             </div>
           )}
+          <nav className="mm-links">
+            {infoLinks.map((l) => (
+              <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
+            ))}
+          </nav>
         </div>
         <div className="mm-social">
           <a className="soc-ig" href="https://www.instagram.com/fyndplats/" target="_blank" rel="noopener noreferrer" aria-label="Fyndplats på Instagram">
