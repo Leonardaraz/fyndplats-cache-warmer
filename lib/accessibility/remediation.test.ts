@@ -12,6 +12,7 @@ const RULE_IDS = [
   "no-opengraph", "robots-noindex", "no-favicon",
   // aeo
   "no-structured-data", "no-semantic-html", "thin-content", "weak-headings", "no-faq",
+  "no-robots", "blocks-ai-crawlers", "no-sitemap", "no-llms-txt",
   // performance
   "img-no-dimensions", "img-no-lazy", "render-blocking-js", "large-dom", "no-charset",
 ];

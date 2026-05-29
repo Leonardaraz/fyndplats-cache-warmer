@@ -172,6 +172,31 @@ export const REMEDIATION: Record<string, Remediation> = {
     fix: "Lägg en FAQ-sektion med vanliga frågor och märk upp den med FAQPage-schema (JSON-LD).",
     effort: "medel",
   },
+  "no-robots": {
+    why: "robots.txt vägleder sökmotorer om vad de får hämta. Saknas den tappar du " +
+      "kontroll och kan inte peka ut din sitemap.",
+    fix: "Lägg en robots.txt i roten med en Sitemap-rad och rimliga regler.",
+    effort: "låg",
+  },
+  "blocks-ai-crawlers": {
+    why: "Om robots.txt blockerar AI-crawlers (GPTBot, ClaudeBot, PerplexityBot, " +
+      "Google-Extended) kan din butik inte synas eller citeras i AI-svar – en växande " +
+      "trafikkälla stängs ute.",
+    fix: "Ta bort Disallow: / för de AI-crawlers du vill vara synlig för i robots.txt.",
+    effort: "låg",
+  },
+  "no-sitemap": {
+    why: "En sitemap hjälper sök- och AI-motorer att hitta alla dina sidor. Utan referens " +
+      "i robots.txt kan de missa innehåll.",
+    fix: "Skapa en sitemap.xml och lägg `Sitemap: https://dindomän/sitemap.xml` i robots.txt.",
+    effort: "låg",
+  },
+  "no-llms-txt": {
+    why: "llms.txt är en framväxande standard för att vägleda AI-modeller till ditt " +
+      "viktigaste innehåll. Tidiga användare kan få ett försprång i AI-synlighet.",
+    fix: "Lägg en llms.txt i roten som pekar ut dina viktigaste sidor i klartext.",
+    effort: "låg",
+  },
 
   // --- Prestanda & best practices ---
   "img-no-dimensions": {
