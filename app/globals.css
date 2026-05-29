@@ -322,6 +322,22 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pdp-desc strong{color:var(--ink)}
 .pdp-desc a{color:#C2410C;text-decoration:underline}
 .pdp-desc:last-child{margin-bottom:0}
+/* Flikar (Specs/Användning/FAQ/Kontakt) — V1-sajten visade dem som expanderbara
+   accordions med +/− vid sidan av rubriken. Native <details> + custom marker. */
+.pdp-flikar{margin-top:8px;border-top:1px solid var(--line)}
+.pdp-flik{border-bottom:1px solid var(--line)}
+.pdp-flik summary{font-size:15px;font-weight:700;color:var(--ink);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;padding:14px 4px;user-select:none}
+.pdp-flik summary::-webkit-details-marker{display:none}
+.pdp-flik summary::after{content:"+";font-size:22px;font-weight:400;color:#C2410C;line-height:1;transition:transform .15s}
+.pdp-flik[open] summary::after{content:"−"}
+.pdp-flik summary:hover{color:#C2410C}
+.pdp-flik-body{padding:0 4px 16px;font-size:14.5px;color:#4a443d;line-height:1.65;overflow-wrap:break-word}
+.pdp-flik-body img,.pdp-flik-body video,.pdp-flik-body iframe{max-width:100%;height:auto}
+.pdp-flik-body p{margin-bottom:10px}
+.pdp-flik-body ul,.pdp-flik-body ol{margin:6px 0 12px;padding-left:20px}
+.pdp-flik-body li{margin:4px 0}
+.pdp-flik-body strong{color:var(--ink)}
+.pdp-flik-body a{color:#C2410C;text-decoration:underline}
 .pdp-section{margin-top:26px;border-top:1px solid var(--line);padding-top:22px}
 .pdp-section h2{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:12px}
 .stock{display:inline-block;font-size:13px;font-weight:600;border-radius:999px;padding:6px 12px;margin-bottom:18px}
