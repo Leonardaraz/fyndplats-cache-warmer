@@ -44,6 +44,8 @@ export interface WixV3ProductSummary {
   inStock?: boolean;
   handle?: string;
   existingTags?: Array<Record<string, unknown>>;
+  /** HTML-brödtext (PLAIN_DESCRIPTION-fältet) — tomt = saknar beskrivning. */
+  plainDescription?: string;
 }
 
 export interface WixV3Variant {
@@ -66,7 +68,9 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
     // produkter returneras om och om igen (vilket buggade hela /admin/seo).
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
-    const body = { query: { cursorPaging } };
+    // PLAIN_DESCRIPTION är ett tungt fält som inte returneras by default —
+    // begär det explicit så vi kan se vilka produkter som saknar beskrivning.
+    const body = { fields: ["PLAIN_DESCRIPTION"], query: { cursorPaging } };
 
     const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
       method: "POST",
@@ -84,6 +88,7 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         name: string;
         slug: string;
         description?: string;
+        plainDescription?: string;
         media?: { main?: { image?: { url?: string } } };
         variantsInfo?: { variants?: unknown[] };
         seoData?: { tags?: Array<{ type?: string; props?: { name?: string; property?: string; content?: string }; children?: string }> };
@@ -115,7 +120,8 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         hasJsonLd: tags.some((t) => t.type === "script" && Boolean(t.children?.includes("@type"))),
         hasOgTags: tags.some((t) => t.type === "meta" && t.props?.property?.startsWith("og:")),
         hasImage: Boolean(p.media?.main?.image?.url),
-        hasDescription: Boolean(p.description?.trim()),
+        hasDescription: Boolean(p.plainDescription?.trim() || p.description),
+        plainDescription: p.plainDescription,
         // Fält för bulk-enrichment
         revision: p.revision,
         seoTitle: p.seoTitle,
@@ -223,6 +229,53 @@ export async function bulkUpdateV3ProductSeo(
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`bulk update failed (${res.status}): ${text.slice(0, 300)}`);
+  }
+  const data = (await res.json()) as {
+    results?: Array<{ itemMetadata?: { id?: string; success?: boolean; error?: { message?: string } } }>;
+    bulkActionMetadata?: { totalSuccesses?: number; totalFailures?: number };
+  };
+  const successes = data.bulkActionMetadata?.totalSuccesses ?? 0;
+  const failures = data.bulkActionMetadata?.totalFailures ?? 0;
+  const firstErrors: string[] = [];
+  for (const r of data.results ?? []) {
+    if (r.itemMetadata?.success === false) {
+      firstErrors.push(`${r.itemMetadata.id?.slice(0, 8)}: ${r.itemMetadata.error?.message ?? "fel"}`);
+      if (firstErrors.length >= 5) break;
+    }
+  }
+  return { successes, failures, firstErrors };
+}
+
+/**
+ * Bulk-updaterar upp till 100 V3-produkters plainDescription (HTML). Wix
+ * genererar automatiskt Ricos-`description` för storefronten. Används av
+ * beskrivnings-migreringen V1 → V3.
+ */
+export async function bulkUpdateV3ProductDescriptions(
+  updates: Array<{ id: string; revision: string; plainDescription: string }>,
+): Promise<{ successes: number; failures: number; firstErrors: string[] }> {
+  if (updates.length === 0) return { successes: 0, failures: 0, firstErrors: [] };
+  if (updates.length > 100) {
+    throw new Error(`bulkUpdateV3ProductDescriptions: max 100 per batch, fick ${updates.length}`);
+  }
+  const body = {
+    products: updates.map((u) => ({
+      product: {
+        id: u.id,
+        revision: u.revision,
+        plainDescription: u.plainDescription,
+      },
+    })),
+    returnEntity: false,
+  };
+  const res = await fetch(`${WIX_BASE}/stores/v3/bulk/products/update`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`bulk description update failed (${res.status}): ${text.slice(0, 300)}`);
   }
   const data = (await res.json()) as {
     results?: Array<{ itemMetadata?: { id?: string; success?: boolean; error?: { message?: string } } }>;
