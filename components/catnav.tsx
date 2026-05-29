@@ -1,11 +1,12 @@
 import type { Collection } from "../lib/products";
+import { CatNavCenter } from "./catnav-center";
 
-// Två-stegs kategorinavigering — auto-detekterar topp-kategorier från faktiska
-// produktantal istället för hårdkodad lista (så det följer Wix-katalogen).
+// Kategorinavigering — EN svepbar rad (scroll i sidled) i stället för en vägg
+// av knappar som tryckte ner produkterna. Auto-detekterar kategorier från
+// faktiska produktantal (följer Wix-katalogen), sorterade störst först.
 //
-// Toppraden: de N största kategorierna som stora fyllda chips med antal.
-// Underraden: övriga kategorier med ≥3 produkter som små text-länkar.
-// Kategorier med <3 produkter göms helt (förorenar utseendet).
+// Topp-kategorierna visas alltid; svansen tas med om den har ≥3 produkter
+// (kategorier med <3 göms — förorenar raden). Allt i samma swipe-rad.
 //
 // "Alla"-chippet visar totalProducts (unika produkter), INTE summan av
 // kategoriantal — produkter kan ligga i flera kategorier samtidigt så summan
@@ -25,15 +26,16 @@ export function CatNav({ collections, productCounts, totalProducts, activeSlug }
 
   const main = counted.slice(0, MAIN_LIMIT);
   const subs = counted.slice(MAIN_LIMIT).filter((c) => c.count >= 3);
+  const chips = [...main, ...subs];
 
   return (
     <div className="catnav">
-      <div className="catnav-main" role="navigation" aria-label="Huvudkategorier">
+      <div className="catnav-main" role="navigation" aria-label="Kategorier">
         <a className={`catchip ${!activeSlug ? "active" : ""}`} href="/butik">
           Alla
           <span className="cc-count">{totalProducts}</span>
         </a>
-        {main.map((c) => (
+        {chips.map((c) => (
           <a
             key={c.id}
             className={`catchip ${activeSlug === c.slug ? "active" : ""}`}
@@ -44,21 +46,7 @@ export function CatNav({ collections, productCounts, totalProducts, activeSlug }
           </a>
         ))}
       </div>
-      {subs.length > 0 && (
-        <div className="catnav-sub" aria-label="Fler kategorier">
-          <span className="catnav-sub-label">Fler kategorier</span>
-          {subs.map((c) => (
-            <a
-              key={c.id}
-              className={`catlink ${activeSlug === c.slug ? "active" : ""}`}
-              href={`/kategori/${c.slug}`}
-            >
-              {c.name}
-              <span className="cl-count">{c.count}</span>
-            </a>
-          ))}
-        </div>
-      )}
+      <CatNavCenter />
     </div>
   );
 }

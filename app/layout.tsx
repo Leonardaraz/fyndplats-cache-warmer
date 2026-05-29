@@ -6,6 +6,7 @@ import { SiteHeader, SiteFooter } from "../components/site";
 import { CookieConsent } from "../components/cookieconsent";
 import { WishlistProvider, WishlistDrawer } from "../components/wishlist";
 import { ScrollIndicator } from "../components/scrollindicator";
+import { BackToTop } from "../components/backtotop";
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const fraunces = Fraunces({
@@ -73,6 +74,7 @@ export default function RootLayout({
             <SiteFooter />
             <CartDrawer />
             <WishlistDrawer />
+            <BackToTop />
           </WishlistProvider>
         </CartProvider>
         <CookieConsent />
