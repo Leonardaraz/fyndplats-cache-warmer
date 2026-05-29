@@ -1,7 +1,10 @@
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { posts as wixPosts } from "@wix/blog";
 
-const CLIENT_ID = process.env.WIX_CLIENT_ID || "";
+// Faller tillbaka på samma publika storefront-klient (samma Wix-site) så bloggen
+// kan läsa inlägg utan en separat WIX_CLIENT_ID-env. Saknas blogg-appen/inlägg
+// returnerar queryPosts tomt → footern/menyn döljer blogg-länken (se SiteHeader).
+const CLIENT_ID = process.env.WIX_CLIENT_ID || "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 const wix = CLIENT_ID ? createClient({ modules: { posts: wixPosts }, auth: OAuthStrategy({ clientId: CLIENT_ID }) }) : null;
 
 export type Post = { title: string; slug: string; excerpt: string; date: string; cover: string; alt: string };
@@ -31,12 +34,21 @@ function mapPost(p: any): Post {
   };
 }
 
-export async function getPosts(): Promise<Post[]> {
+// Modul-cache (samma mönster som getCollections) så header + footer + sitemap
+// delar EN hämtning i stället för tre per sidladdning.
+let postsPromise: Promise<Post[]> | null = null;
+export function getPosts(): Promise<Post[]> {
+  if (!postsPromise) postsPromise = fetchPosts();
+  return postsPromise;
+}
+async function fetchPosts(): Promise<Post[]> {
   if (!wix) return [];
   try {
     const r: any = await (wix as any).posts.queryPosts().limit(30).find();
     return (r.items || []).map(mapPost);
   } catch (e) {
+    // Cacha tomt även vid fel (t.ex. blogg-appen ej installerad) så vi inte
+    // hamrar Wix vid varje render. Blogg-länkarna hålls dolda tills redeploy.
     console.error("[wix] getPosts failed:", (e as Error).message);
     return [];
   }
