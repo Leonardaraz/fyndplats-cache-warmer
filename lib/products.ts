@@ -2,6 +2,7 @@ import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
 import local from "../products.json";
+import variantImages from "../data/variant-images.json";
 
 export type Product = {
   id: string;
@@ -109,11 +110,18 @@ function mapProduct(p: any): Product {
   };
 }
 
-// Per-choice variant data för premium variant-picker. Tre rendering-lägen i productview:
-//   1. Bild-cirklar — när varje choice har ch.media (V1-style produkter)
-//   2. Färg-swatcher — när option-namnet är "Färg" och värdena är kända färger
-//      (V3-migration förlorade per-choice bilder för många produkter)
-//   3. Text-pills — sista fallback för storlek/material/etc utan färg-match
+// Per-choice variant data för variant-pickern. Tre rendering-lägen i productview:
+//   1. Bild-cirklar — när varje choice har en bild (ch.media). Föredraget.
+//   2. Färg-swatcher — fallback när option heter "Färg"/"Color" men bild saknas.
+//   3. Text-pills — sista fallback (storlek/material/etc).
+//
+// OBS: Wix V1-katalogen HAR per-choice-bilder för i stort sett alla produkter,
+// men @wix/stores-SDK:ns listfråga (queryProducts) släpper choice.media (och det
+// anonyma/publika API:t exponerar inte kopplingen variant→bild). Därför hydrerar
+// getProduct() bilderna från en statisk fil (data/variant-images.json) som är
+// exporterad en gång via autentiserat admin-API — ingen WIX_API_TOKEN behövs i
+// storefronten (se optionsForProduct). Funktionen accepterar både SDK-shape
+// (variant._id) och REST-shape (variant.id) så den fungerar för båda källorna.
 function extractOptions(raw: any): Product["options"] {
   const opt = (raw.productOptions || [])[0];
   if (!opt || (opt.choices || []).length < 2) return null;
@@ -125,14 +133,50 @@ function extractOptions(raw: any): Product["options"] {
     const onSale = pd && pd.discountedPrice != null && pd.discountedPrice < pd.price;
     return {
       label: ch.value,
-      image: ch.media?.mainMedia?.image?.url || "",
+      image: ch.media?.mainMedia?.image?.url || ch.media?.items?.[0]?.image?.url || "",
       color: isColor ? colorOf(ch.value) : "",
-      variantId: v?._id || "",
+      variantId: v?._id || v?.id || "",
       price: pd?.formatted?.discountedPrice || pd?.formatted?.price || "",
       originalPrice: onSale ? (pd.formatted?.price || "") : "",
     };
   }).filter((c: any) => c.variantId); // kräver inte längre image — kan vara color eller text
   return choices.length >= 2 ? { name: opt.name, choices } : null;
+}
+
+// Statisk variant→bild-mappning (data/variant-images.json), exporterad en gång via
+// autentiserat Wix-admin-API. Förberäknas till slug → (choice-värde → bild-URL).
+type VariantImageFile = {
+  products: Record<string, { options: { name: string; choices: { value: string; image: string | null }[] }[] }>;
+};
+const variantImageBySlug: Record<string, Record<string, string>> = (() => {
+  const out: Record<string, Record<string, string>> = {};
+  const all = (variantImages as VariantImageFile).products || {};
+  for (const [slug, entry] of Object.entries(all)) {
+    const m: Record<string, string> = {};
+    for (const o of entry.options || []) {
+      for (const c of o.choices || []) {
+        if (c.image && !m[c.value]) m[c.value] = c.image;
+      }
+    }
+    out[slug] = m;
+  }
+  return out;
+})();
+
+// Hydrerar per-choice-bilder från den statiska mappningen så variant-pickern kan
+// köra bild-läge utan WIX_API_TOKEN. Strikt additivt: saknas produkten i mappen
+// (eller ett choice-värde), faller vi tillbaka på SDK-objektets options
+// (färg-swatch-/text-läget) → ingen regression.
+function optionsForProduct(slug: string, sdkItem: any): Product["options"] {
+  const opts = extractOptions(sdkItem);
+  if (!opts) return null;
+  const imgByValue = variantImageBySlug[slug];
+  if (imgByValue) {
+    for (const ch of opts.choices) {
+      if (!ch.image && imgByValue[ch.label]) ch.image = imgByValue[ch.label];
+    }
+  }
+  return opts;
 }
 
 let productsPromise: Promise<Product[]> | null = null;
@@ -172,7 +216,7 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
       const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
       if (res.items?.[0]) {
         const prod = mapProduct(res.items[0]);
-        prod.options = extractOptions(res.items[0]);
+        prod.options = optionsForProduct(slug, res.items[0]);
         prod.descriptionHtml = res.items[0].description || "";
         return prod;
       }

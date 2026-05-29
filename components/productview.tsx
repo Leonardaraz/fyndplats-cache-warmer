@@ -5,6 +5,22 @@ import { Gallery } from "./gallery";
 
 type Choice = { label: string; image: string; color?: string; variantId: string; price: string; originalPrice: string };
 
+// Wixstatic-bilder har samma fil-id men olika transform-params (w_400 vs w_800).
+// Dedup:a på fil-id:t så variantbilden inte dyker upp dubbelt i galleriet.
+function mediaKey(url: string): string {
+  const m = (url || "").match(/\/media\/([^/]+)/);
+  return m ? m[1] : url || "";
+}
+
+// Variantbilderna först (index = variant-index), sedan övriga galleribilder
+// (instruktioner etc.) som inte redan är en variantbild.
+function mergeGallery(choices: Choice[], images: string[]): string[] {
+  const variantImgs = choices.map((c) => c.image);
+  const seen = new Set(variantImgs.map(mediaKey));
+  const extras = images.filter((img) => !seen.has(mediaKey(img)));
+  return [...variantImgs, ...extras];
+}
+
 export function ProductView({
   productId,
   name,
@@ -35,19 +51,27 @@ export function ProductView({
   options?: { name: string; choices: Choice[] } | null;
 }) {
   const { add, busy } = useCart();
-  const [sel, setSel] = useState(0);
+  const [sel, setSel] = useState(0);              // vald variant
+  const [galleryIdx, setGalleryIdx] = useState(0); // aktiv galleribild
   const [added, setAdded] = useState(false);
 
   const imageChoices = options?.choices || [];
   const hasImageVariants = imageChoices.length >= 2;
   // Rendering-läge för variant-pickern: bild > färg-swatch > text-pill.
-  // V3-migration tappade ch.media på många produkter; vi visar då färgade
-  // cirklar baserat på choice-namnet (Färg=Beige → beige swatch).
+  // Färg-swatch är fallback när per-choice-bild saknas (colorOf på namnet).
   const allHaveImage = hasImageVariants && imageChoices.every((c) => c.image);
   const someHaveColor = hasImageVariants && imageChoices.some((c) => c.color);
   const variantMode: "image" | "color" | "text" = allHaveImage ? "image" : someHaveColor ? "color" : "text";
 
-  const galleryImages = allHaveImage ? imageChoices.map((c) => c.image) : images;
+  // I bild-läge behåller vi HELA bildserien men lägger variantbilderna först
+  // (index 0..n-1 = variant 0..n-1), så val av variant hoppar till rätt bild
+  // utan att övriga galleribilder (instruktioner etc.) försvinner.
+  const galleryImages = allHaveImage ? mergeGallery(imageChoices, images) : images;
+
+  // Pickern väljer variant + hoppar galleriet dit. Galleribyte speglar tillbaka
+  // till pickern bara om bilden är en av variantbilderna (de n första).
+  const pickVariant = (i: number) => { setSel(i); setGalleryIdx(i); };
+  const onGalleryActive = (j: number) => { setGalleryIdx(j); if (j < imageChoices.length) setSel(j); };
   const variantId = hasImageVariants
     ? imageChoices[sel]?.variantId
     : variants.length > 1
@@ -69,8 +93,8 @@ export function ProductView({
       <Gallery
         images={galleryImages}
         alt={name}
-        active={allHaveImage ? sel : undefined}
-        onActiveChange={allHaveImage ? setSel : undefined}
+        active={allHaveImage ? galleryIdx : undefined}
+        onActiveChange={allHaveImage ? onGalleryActive : undefined}
       />
 
       <div className="pinfo">
@@ -103,7 +127,7 @@ export function ProductView({
                       key={c.variantId}
                       type="button"
                       className={cls.trim()}
-                      onClick={() => setSel(i)}
+                      onClick={() => pickVariant(i)}
                       aria-label={c.label}
                       aria-pressed={sel === i}
                       title={c.label}
