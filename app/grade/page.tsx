@@ -39,8 +39,33 @@ export default function GradePage() {
   const [url, setUrl] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<"audit" | "monitoring" | null>(null);
   const [result, setResult] = useState<GradeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Visa kvitto/avbrutet-meddelande när Stripe skickar tillbaka kunden.
+  const payback =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("betalning")
+      : null;
+
+  async function startCheckout(plan: "audit" | "monitoring") {
+    setCheckoutLoading(plan);
+    setError(null);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, email: email || undefined, url: result?.url }),
+      });
+      const data: { url?: string; error?: string } = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error ?? "Kunde inte starta betalningen.");
+      window.location.href = data.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setCheckoutLoading(null);
+    }
+  }
 
   async function runScan(e: React.FormEvent) {
     e.preventDefault();
@@ -94,6 +119,14 @@ export default function GradePage() {
         </p>
       </section>
 
+      {payback === "klar" && (
+        <p style={S.success}>Tack! Din beställning är mottagen — vi hör av oss med
+          rapporten.</p>
+      )}
+      {payback === "avbruten" && (
+        <p style={S.notice}>Betalningen avbröts. Du kan starta om när du vill.</p>
+      )}
+
       {error && <p style={S.error}>{error}</p>}
 
       {result && (
@@ -133,22 +166,38 @@ export default function GradePage() {
             <h2 style={S.ctaH2}>Vill du ha hela bilden + en åtgärdsplan?</h2>
             <p style={S.ctaText}>
               Den fullständiga EAA-rapporten täcker alla WCAG 2.1 AA-kriterier med en
-              prioriterad fixlista för din butik. Lämna din e-post så hör vi av oss.
+              prioriterad fixlista för just din butik — levererad inom 5 dagar.
             </p>
-            <form onSubmit={runScan} style={S.emailForm}>
-              <input
-                type="email"
-                placeholder="din@epost.se"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={S.input}
-                aria-label="Din e-postadress"
-              />
-              <button type="submit" disabled={loading} style={S.button}>
-                Skicka mig rapporten
+
+            <input
+              type="email"
+              placeholder="din@epost.se (för rapporten)"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{ ...S.input, width: "100%", marginBottom: 12, boxSizing: "border-box" }}
+              aria-label="Din e-postadress"
+            />
+
+            <div style={S.planRow}>
+              <button
+                type="button"
+                onClick={() => startCheckout("audit")}
+                disabled={checkoutLoading !== null}
+                style={S.buttonPrimary}
+              >
+                {checkoutLoading === "audit" ? "Öppnar betalning…" : "Beställ EAA-audit – 1 495 kr"}
               </button>
-            </form>
+              <button
+                type="button"
+                onClick={() => startCheckout("monitoring")}
+                disabled={checkoutLoading !== null}
+                style={S.buttonSecondary}
+              >
+                {checkoutLoading === "monitoring" ? "Öppnar…" : "Löpande bevakning – 299 kr/mån"}
+              </button>
+            </div>
+            <p style={S.fineprint}>Säker betalning via Stripe. Engångs-audit eller
+              månadsvis bevakning — du väljer.</p>
           </div>
         </section>
       )}
@@ -206,6 +255,43 @@ const S: Record<string, React.CSSProperties> = {
     padding: "12px 16px",
     borderRadius: 8,
     marginTop: 24,
+  },
+  success: {
+    background: "#f0fdf4",
+    color: "#15803d",
+    padding: "12px 16px",
+    borderRadius: 8,
+    marginTop: 24,
+  },
+  notice: {
+    background: "#fffbeb",
+    color: "#a16207",
+    padding: "12px 16px",
+    borderRadius: 8,
+    marginTop: 24,
+  },
+  planRow: { display: "flex", gap: 10, flexWrap: "wrap" },
+  buttonPrimary: {
+    flex: "1 1 240px",
+    padding: "14px 20px",
+    fontSize: 16,
+    fontWeight: 700,
+    color: "#fff",
+    background: "#15803d",
+    border: "none",
+    borderRadius: 8,
+    cursor: "pointer",
+  },
+  buttonSecondary: {
+    flex: "1 1 200px",
+    padding: "14px 20px",
+    fontSize: 15,
+    fontWeight: 600,
+    color: "#15803d",
+    background: "#fff",
+    border: "1.5px solid #15803d",
+    borderRadius: 8,
+    cursor: "pointer",
   },
   card: {
     marginTop: 32,
