@@ -33,6 +33,10 @@ export interface WixV1ProductSummary {
   hasSeoDescription: boolean;
   hasJsonLd: boolean;
   hasOgTags: boolean;
+  /** Rik HTML-brödtext från V1 (migreras till V3 plainDescription). */
+  description?: string;
+  /** V1-flikar (Specifikationer, FAQ etc.) — titel + HTML. */
+  infoSections?: Array<{ title: string; description: string }>;
 }
 
 /**
@@ -64,6 +68,8 @@ export async function listAllV1Products(): Promise<WixV1ProductSummary[]> {
         numericId?: string;
         sku?: string;
         visible?: boolean;
+        description?: string;
+        additionalInfoSections?: Array<{ title?: string; description?: string }>;
         productPageUrl?: { base?: string; path?: string };
         seoData?: { tags?: Array<{ type?: string; props?: { name?: string; property?: string }; children?: string }> };
       }>;
@@ -92,6 +98,10 @@ export async function listAllV1Products(): Promise<WixV1ProductSummary[]> {
         hasSeoDescription: hasDesc,
         hasJsonLd,
         hasOgTags: hasOg,
+        description: p.description,
+        infoSections: (p.additionalInfoSections ?? [])
+          .filter((s) => s.title && s.description)
+          .map((s) => ({ title: s.title as string, description: s.description as string })),
       });
     }
 

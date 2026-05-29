@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { enrichAllV3Action, type EnrichActionResult } from "./actions";
+import {
+  enrichAllV3Action,
+  migrateDescriptionsAction,
+  type EnrichActionResult,
+  type MigrateDescriptionsResult,
+} from "./actions";
 
 interface Props {
   defaultPrefix: string;
@@ -20,12 +25,22 @@ export function SeoTools({
   const [baseUrl, setBaseUrl] = useState(defaultBaseUrl);
   const [pending, startTransition] = useTransition();
   const [enrichResult, setEnrichResult] = useState<EnrichActionResult | null>(null);
+  const [descPending, startDescTransition] = useTransition();
+  const [descResult, setDescResult] = useState<MigrateDescriptionsResult | null>(null);
 
   function runEnrich(dryRun: boolean) {
     setEnrichResult(null);
     startTransition(async () => {
       const res = await enrichAllV3Action(dryRun, baseUrl, prefix);
       setEnrichResult(res);
+    });
+  }
+
+  function runMigrateDesc(dryRun: boolean) {
+    setDescResult(null);
+    startDescTransition(async () => {
+      const res = await migrateDescriptionsAction(dryRun);
+      setDescResult(res);
     });
   }
 
@@ -108,6 +123,57 @@ export function SeoTools({
               </>
             ) : (
               <>Fel: {enrichResult.error}</>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      <h3 style={{ marginTop: 24, fontSize: 16 }}>Migrera produktbeskrivningar V1 → V3</h3>
+      <p style={{ fontSize: 13, color: "#666" }}>
+        Kopierar den rika HTML-brödtexten (rubriker, listor, bilder) från gamla
+        Wix-sajten till nya V3-katalogen. Matchar på produktnamn, sätter
+        <code> plainDescription</code> — Wix genererar Ricos automatiskt för
+        storefronten. Idempotent: produkter som redan har beskrivning hoppas över.
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => runMigrateDesc(true)} disabled={descPending}
+          style={btnSecondary}>
+          {descPending ? "Kör..." : "🧪 Dry-run (förhandsgranska)"}
+        </button>
+        <button
+          onClick={() => {
+            if (!confirm("Detta migrerar produktbeskrivningar från V1 → V3. Fortsätt?")) {
+              return;
+            }
+            runMigrateDesc(false);
+          }}
+          disabled={descPending}
+          style={btn}>
+          {descPending ? "Migrerar..." : "📝 Migrera alla beskrivningar"}
+        </button>
+        {descResult ? (
+          <div style={{
+            fontSize: 13, padding: "8px 12px", borderRadius: 4, flexBasis: "100%",
+            background: descResult.ok ? "#e7fde7" : "#fde7e7",
+            color: descResult.ok ? "#070" : "#a00",
+          }}>
+            {descResult.ok && descResult.stats ? (
+              <>
+                <b>{descResult.dryRun ? "DRY-RUN" : "MIGRERAT ✅"}:</b>{" "}
+                {descResult.dryRun ? descResult.stats.toMigrate : descResult.stats.migrated} av{" "}
+                {descResult.stats.v3Total} produkter ·{" "}
+                {descResult.stats.alreadyHad} hade redan ·{" "}
+                {descResult.stats.noV1Source} saknar V1-källa ·{" "}
+                {descResult.stats.unmatched} omatchade ·{" "}
+                {descResult.stats.failed} fel
+                {descResult.firstErrors && descResult.firstErrors.length > 0 ? (
+                  <ul style={{ marginTop: 6, fontSize: 12 }}>
+                    {descResult.firstErrors.map((e, i) => (<li key={i}>{e}</li>))}
+                  </ul>
+                ) : null}
+              </>
+            ) : (
+              <>Fel: {descResult.error}</>
             )}
           </div>
         ) : null}
