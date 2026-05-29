@@ -1,19 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { enrichAllV3Action, type EnrichActionResult } from "./actions";
 
 interface Props {
   defaultPrefix: string;
   defaultBaseUrl: string;
   nextRedirectsSample: string;
   nextRedirectsCount: number;
-}
-
-interface EnrichStats {
-  total: number;
-  patched: number;
-  skipped: number;
-  failed: number;
 }
 
 export function SeoTools({
@@ -25,31 +19,13 @@ export function SeoTools({
   const [prefix, setPrefix] = useState(defaultPrefix);
   const [baseUrl, setBaseUrl] = useState(defaultBaseUrl);
   const [pending, startTransition] = useTransition();
-  const [enrichResult, setEnrichResult] = useState<
-    { ok: boolean; dryRun: boolean; stats?: EnrichStats; error?: string } | null
-  >(null);
+  const [enrichResult, setEnrichResult] = useState<EnrichActionResult | null>(null);
 
-  async function runEnrich(dryRun: boolean) {
+  function runEnrich(dryRun: boolean) {
     setEnrichResult(null);
     startTransition(async () => {
-      try {
-        const res = await fetch("/api/seo/enrich", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dryRun, baseUrl, newPathPrefix: prefix }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setEnrichResult({ ok: true, dryRun, stats: data.stats });
-        } else {
-          setEnrichResult({ ok: false, dryRun, error: data.error || "Fel" });
-        }
-      } catch (err) {
-        setEnrichResult({
-          ok: false, dryRun,
-          error: err instanceof Error ? err.message : "Nätverksfel",
-        });
-      }
+      const res = await enrichAllV3Action(dryRun, baseUrl, prefix);
+      setEnrichResult(res);
     });
   }
 
@@ -108,17 +84,30 @@ export function SeoTools({
           {pending ? "Patchar..." : "⚡ Enricha alla nu"}
         </button>
         {enrichResult ? (
-          <span style={{
+          <div style={{
             fontSize: 13,
-            padding: "4px 10px",
+            padding: "8px 12px",
             borderRadius: 4,
             background: enrichResult.ok ? "#e7fde7" : "#fde7e7",
             color: enrichResult.ok ? "#070" : "#a00",
+            flexBasis: "100%",
           }}>
-            {enrichResult.ok && enrichResult.stats
-              ? `${enrichResult.dryRun ? "DRY-RUN" : "PATCHED"}: ${enrichResult.stats.patched + (enrichResult.dryRun ? 0 : 0)} processade, ${enrichResult.stats.skipped} hoppade (redan kompletta), ${enrichResult.stats.failed} fel av ${enrichResult.stats.total} totalt`
-              : `Fel: ${enrichResult.error}`}
-          </span>
+            {enrichResult.ok && enrichResult.stats ? (
+              <>
+                <b>{enrichResult.dryRun ? "DRY-RUN" : "PATCHED"}:</b>{" "}
+                {enrichResult.stats.patched} processade,{" "}
+                {enrichResult.stats.skipped} hoppade (redan kompletta),{" "}
+                {enrichResult.stats.failed} fel av {enrichResult.stats.total} totalt
+                {enrichResult.firstErrors && enrichResult.firstErrors.length > 0 ? (
+                  <ul style={{ marginTop: 6, fontSize: 12 }}>
+                    {enrichResult.firstErrors.map((e, i) => (<li key={i}>{e}</li>))}
+                  </ul>
+                ) : null}
+              </>
+            ) : (
+              <>Fel: {enrichResult.error}</>
+            )}
+          </div>
         ) : null}
       </div>
 
