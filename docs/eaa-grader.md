@@ -10,7 +10,9 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
    AI-synlighet (AEO) och prestanda. De tre senare är gratis värde-höjare.
 3. Resultat (totalbetyg + per kategori + valfri svensk AI-förklaring) visas direkt.
 4. Köp-CTA → `POST /api/checkout` → Stripe Checkout (engångs-audit eller monitoring).
-5. Efter köp genererar du leveransen på `/grade/rapport?url=...` (utskrift/PDF).
+5. Efter köp genererar du leveransen på `/grade/rapport?url=...` — denna kör i
+   **djup-läge** (`deep:true`): startsidan + upp till 3 viktiga undersidor,
+   sammanslaget. Gratis-gradern på `/grade` kör snabbt enkel-sid.
 
 ## Filer
 | Fil | Roll |
@@ -21,6 +23,8 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 | `lib/aeo/analyzer.ts` | AI-synlighet/AEO-signaler (gratis värde-höjare) |
 | `lib/perf/analyzer.ts` | Prestanda & best practices (gratis värde-höjare) |
 | `lib/scan/types.ts` | Gemensamma typer + poängsättning för alla kategorier |
+| `lib/scan/crawl.ts` | Hittar viktiga undersidor (djup granskning) |
+| `lib/scan/aggregate.ts` | Slår ihop flersidiga resultat |
 | `lib/payments/stripe.ts` | Checkout Session via Stripe REST (beroendefri) |
 | `app/grade/page.tsx` | Publik landningssida + grader |
 | `app/grade/layout.tsx` | SEO/OG-metadata |

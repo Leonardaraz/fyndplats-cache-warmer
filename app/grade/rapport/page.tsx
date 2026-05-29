@@ -30,6 +30,7 @@ interface GradeResponse {
   categories: CategoryResult[];
   summary: string | null;
   scannedAt: string;
+  pagesScanned?: number;
   error?: string;
 }
 
@@ -56,7 +57,7 @@ export default function ReportPage() {
     fetch("/api/grade", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: q }),
+      body: JSON.stringify({ url: q, deep: true }),
     })
       .then(async (res) => {
         const data: GradeResponse = await res.json();
@@ -84,7 +85,10 @@ export default function ReportPage() {
       <header style={S.header}>
         <p style={S.eyebrow}>Webbgranskning · EAA · SEO · AI-synlighet</p>
         <h1 style={S.h1}>{result.url}</h1>
-        <p style={S.muted}>Granskad {date} · {checksTotal} kontroller</p>
+        <p style={S.muted}>
+          Granskad {date} · {checksTotal} kontroller
+          {result.pagesScanned && result.pagesScanned > 1 ? ` · ${result.pagesScanned} sidor` : ""}
+        </p>
         <div style={S.scoreBox}>
           <span style={{ ...S.grade, color: gradeColor(overallGrade(result.overall)) }}>
             {overallGrade(result.overall)}

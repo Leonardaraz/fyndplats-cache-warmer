@@ -9,16 +9,30 @@ import { evaluateHtml, fetchPageHtml, type ScanResult } from "@/lib/accessibilit
 import { analyzeSeo } from "@/lib/seo/analyzer";
 import { analyzeAeo } from "@/lib/aeo/analyzer";
 import { analyzePerformance } from "@/lib/perf/analyzer";
+import { extractInternalLinks } from "@/lib/scan/crawl";
+import { mergeCategoryPages } from "@/lib/scan/aggregate";
 import { buildCategory, type CategoryResult, type Finding } from "@/lib/scan/types";
 import { completeJson } from "@/lib/ai/claude";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const Body = z.object({
   url: z.string().min(3, "Ange en webbadress."),
   email: z.string().email().optional(),
+  // Djup-läge: granska även några viktiga undersidor och slå ihop resultatet.
+  deep: z.boolean().optional(),
 });
+
+/** Kör alla kategori-analyser på en redan hämtad sida. */
+function analyzePage(url: string, html: string): CategoryResult[] {
+  return [
+    accessibilityToCategory(evaluateHtml(url, html)),
+    analyzeSeo(html, url),
+    analyzeAeo(html),
+    analyzePerformance(html),
+  ];
+}
 
 export async function POST(req: NextRequest) {
   let parsed: z.infer<typeof Body>;
@@ -30,16 +44,26 @@ export async function POST(req: NextRequest) {
   }
 
   let result: ScanResult;
-  let seo: CategoryResult;
-  let aeo: CategoryResult;
-  let perf: CategoryResult;
+  let categories: CategoryResult[];
+  let pagesScanned = 1;
   try {
-    // Hämta HTML en gång och kör alla analyserna på samma sida.
+    // Hämta startsidan en gång; kör alla kategori-analyser på den.
     const { url, html } = await fetchPageHtml(parsed.url);
-    result = evaluateHtml(url, html);
-    seo = analyzeSeo(html, url);
-    aeo = analyzeAeo(html);
-    perf = analyzePerformance(html);
+    result = evaluateHtml(url, html); // för lead/summary (huvudsidan, tillgänglighet)
+
+    if (parsed.deep) {
+      // Djup-läge: hämta även några viktiga undersidor (parallellt) och slå ihop.
+      const links = extractInternalLinks(html, url, 3);
+      const settled = await Promise.allSettled(links.map((l) => fetchPageHtml(l)));
+      const pages = [
+        { url, html },
+        ...settled.flatMap((r) => (r.status === "fulfilled" ? [r.value] : [])),
+      ];
+      pagesScanned = pages.length;
+      categories = mergeCategoryPages(pages.map((p) => analyzePage(p.url, p.html)));
+    } else {
+      categories = analyzePage(url, html);
+    }
   } catch (err) {
     return NextResponse.json(
       { error: `Kunde inte analysera sidan: ${err instanceof Error ? err.message : String(err)}` },
@@ -47,11 +71,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Tillgänglighet är huvudkategorin (och det betalda erbjudandet); SEO + AEO är
+  // Tillgänglighet är huvudkategorin (och det betalda erbjudandet); övriga är
   // gratis värde-höjare. Tillgänglighetsfälten ligger kvar på toppnivå för bakåt-
-  // kompatibilitet (rapportsidan), och alla tre finns i categories.
-  const accessibilityCat = accessibilityToCategory(result);
-  const categories = [accessibilityCat, seo, aeo, perf];
+  // kompatibilitet, och alla kategorier finns i categories.
   const overall = Math.round(categories.reduce((s, c) => s + c.score, 0) / categories.length);
 
   // Lead-capture. Loggas alltid; skickas dessutom till en valfri webhook
@@ -64,7 +86,7 @@ export async function POST(req: NextRequest) {
 
   const summary = await maybeSummarize(result);
 
-  return NextResponse.json({ ...result, summary, categories, overall });
+  return NextResponse.json({ ...result, summary, categories, overall, pagesScanned });
 }
 
 /** Mappar tillgänglighetsresultatet till det gemensamma kategori-formatet. */
