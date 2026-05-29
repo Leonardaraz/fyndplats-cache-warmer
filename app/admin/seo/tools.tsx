@@ -73,13 +73,14 @@ export function SeoTools({
           style={btnSecondary}>
           {pending ? "Kör..." : "🧪 Dry-run (förhandsgranska)"}
         </button>
-        <button onClick={() => runEnrich(false)}
-          disabled={pending}
-          onMouseDown={(e) => {
+        <button
+          onClick={() => {
             if (!confirm("Detta PATCH:ar alla V3-produkter med saknade SEO-taggar. Fortsätt?")) {
-              e.preventDefault();
+              return;
             }
+            runEnrich(false);
           }}
+          disabled={pending}
           style={btn}>
           {pending ? "Patchar..." : "⚡ Enricha alla nu"}
         </button>
