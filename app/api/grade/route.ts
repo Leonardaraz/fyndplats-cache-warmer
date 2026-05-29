@@ -35,14 +35,39 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Lead-capture (MVP). I produktion: spara till DB/CRM + maila full rapport.
+  // Lead-capture. Loggas alltid; skickas dessutom till en valfri webhook
+  // (LEAD_WEBHOOK_URL, t.ex. Zapier/Make/egen endpoint) så leads inte tappas i
+  // produktion. Webhooken är av som default och får aldrig blockera svaret.
   if (parsed.email) {
     console.log(`[grade] lead: ${parsed.email} -> ${result.url} (score ${result.score})`);
+    void forwardLead(parsed.email, result);
   }
 
   const summary = await maybeSummarize(result);
 
   return NextResponse.json({ ...result, summary });
+}
+
+/** Skickar leadet till LEAD_WEBHOOK_URL om satt. Sväljer alla fel (best-effort). */
+async function forwardLead(email: string, result: ScanResult): Promise<void> {
+  const webhook = process.env.LEAD_WEBHOOK_URL;
+  if (!webhook) return;
+  try {
+    await fetch(webhook, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        url: result.url,
+        score: result.score,
+        grade: result.grade,
+        issueCount: result.issues.length,
+        scannedAt: result.scannedAt,
+      }),
+    });
+  } catch (err) {
+    console.error(`[grade] webhook-fel: ${err instanceof Error ? err.message : err}`);
+  }
 }
 
 /** Ber Claude förklara resultatet kort på svenska. Returnerar null om AI saknas/fel. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateHtml, normalizeUrl } from "./scanner";
+import { evaluateHtml, normalizeUrl, stripNonContent } from "./scanner";
 
 const GOOD = `<!doctype html><html lang="sv"><head><title>Min butik</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"></head>
@@ -97,6 +97,25 @@ describe("evaluateHtml", () => {
     const ids = evaluateHtml("https://x.se", html).issues.map((i) => i.id);
     expect(ids).toContain("media-autoplay");
     expect(ids).toContain("positive-tabindex");
+  });
+
+  it("ignores markup inside <script>, <style> and comments (no false positives)", () => {
+    const html = `<html lang="sv"><head><title>x</title>
+      <style>a::before{content:"klicka här"}</style>
+      <script>const html='<img src=x>'; const t='<a href=#>klicka här</a>';</script>
+      </head><body><h1>x</h1>
+      <!-- <img src="ignored.jpg"> <button></button> -->
+      <p>Riktigt innehåll</p></body></html>`;
+    const ids = evaluateHtml("https://x.se", html).issues.map((i) => i.id);
+    expect(ids).not.toContain("img-alt");
+    expect(ids).not.toContain("link-text");
+    expect(ids).not.toContain("button-name");
+  });
+
+  it("stripNonContent removes script/style/comments", () => {
+    const out = stripNonContent(`a<script>X</script>b<style>Y</style>c<!--Z-->d`);
+    expect(out).not.toMatch(/X|Y|Z/);
+    expect(out).toMatch(/a.*b.*c.*d/s);
   });
 
   it("flags multiple h1 but allows tabindex=0 and -1", () => {

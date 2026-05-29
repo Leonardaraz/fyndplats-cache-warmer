@@ -345,8 +345,21 @@ function scoreToGrade(score: number): string {
   return "F";
 }
 
+/**
+ * Tar bort innehåll som inte är synlig markup men som annars ger falska larm:
+ * <script>- och <style>-block samt HTML-kommentarer. Exporterad för test.
+ */
+export function stripNonContent(html: string): string {
+  return html
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ");
+}
+
 /** Kör alla regler mot HTML och räknar fram poäng. Exponerad för enhetstester. */
-export function evaluateHtml(url: string, html: string): ScanResult {
+export function evaluateHtml(url: string, rawHtml: string): ScanResult {
+  // Rensa bort script/style/kommentarer först — annars kan kod ge falska larm.
+  const html = stripNonContent(rawHtml);
   const issues: Issue[] = [];
   for (const rule of RULES) {
     const result = rule(html);
