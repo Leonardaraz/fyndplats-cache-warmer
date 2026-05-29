@@ -541,16 +541,6 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .filter-group{align-items:flex-start}
 }
 
-/* #5 Recently viewed strip */
-.recent-sec{padding-top:0;padding-bottom:48px}
-.recent-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
-.recent-card{display:block;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .2s,box-shadow .2s,border-color .2s}
-.recent-card:hover{transform:translateY(-3px);box-shadow:0 14px 32px -16px rgba(0,0,0,.25);border-color:#C2410C66}
-.recent-img{position:relative;aspect-ratio:1;background:#f6f1ec}
-.recent-img img{object-fit:cover}
-.recent-name{font-size:12.5px;color:var(--ink);padding:10px 12px 2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
-.recent-price{font-size:13.5px;font-weight:800;color:#C2410C;padding:0 12px 12px}
-
 /* #7 Branded 404 */
 .nf-wrap{padding:80px 0 100px;text-align:center}
 .nf{max-width:640px;margin:0 auto}
