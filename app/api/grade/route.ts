@@ -6,15 +6,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { evaluateHtml, fetchPageHtml, type ScanResult } from "@/lib/accessibility/scanner";
-import { analyzeSeo } from "@/lib/seo/analyzer";
-import { analyzeAeo } from "@/lib/aeo/analyzer";
-import { analyzePerformance } from "@/lib/perf/analyzer";
 import { extractInternalLinks } from "@/lib/scan/crawl";
 import { mergeCategoryPages } from "@/lib/scan/aggregate";
 import { fetchSiteFiles } from "@/lib/scan/site-files";
 import { quickWins, eaaRisk } from "@/lib/scan/prioritize";
+import { analyzePage, overallScore } from "@/lib/scan/analyze-page";
+import { getSnapshotStore, toSnapshot } from "@/lib/scan/history";
 import { analyzeRobotsAndFiles } from "@/lib/aeo/robots";
-import { buildCategory, type CategoryResult, type Finding } from "@/lib/scan/types";
+import { buildCategory, type CategoryResult } from "@/lib/scan/types";
 import { completeJson } from "@/lib/ai/claude";
 
 export const runtime = "nodejs";
@@ -26,16 +25,6 @@ const Body = z.object({
   // Djup-läge: granska även några viktiga undersidor och slå ihop resultatet.
   deep: z.boolean().optional(),
 });
-
-/** Kör alla kategori-analyser på en redan hämtad sida. */
-function analyzePage(url: string, html: string): CategoryResult[] {
-  return [
-    accessibilityToCategory(evaluateHtml(url, html)),
-    analyzeSeo(html, url),
-    analyzeAeo(html),
-    analyzePerformance(html),
-  ];
-}
 
 export async function POST(req: NextRequest) {
   let parsed: z.infer<typeof Body>;
@@ -87,10 +76,13 @@ export async function POST(req: NextRequest) {
   // Tillgänglighet är huvudkategorin (och det betalda erbjudandet); övriga är
   // gratis värde-höjare. Tillgänglighetsfälten ligger kvar på toppnivå för bakåt-
   // kompatibilitet, och alla kategorier finns i categories.
-  const overall = Math.round(categories.reduce((s, c) => s + c.score, 0) / categories.length);
+  const overall = overallScore(categories);
   const accessibilityScore = categories.find((c) => c.category === "accessibility")?.score ?? overall;
   const risk = eaaRisk(accessibilityScore);
   const wins = quickWins(categories, 3);
+
+  // Spara en snapshot för historik/övervakning (best-effort, blockerar aldrig).
+  void getSnapshotStore().record(toSnapshot(result.url, overall, risk, categories));
 
   // Lead-capture. Loggas alltid; skickas dessutom till en valfri webhook
   // (LEAD_WEBHOOK_URL, t.ex. Zapier/Make/egen endpoint) så leads inte tappas i
@@ -103,19 +95,6 @@ export async function POST(req: NextRequest) {
   const summary = await maybeSummarize(result);
 
   return NextResponse.json({ ...result, summary, categories, overall, pagesScanned, eaaRisk: risk, quickWins: wins });
-}
-
-/** Mappar tillgänglighetsresultatet till det gemensamma kategori-formatet. */
-function accessibilityToCategory(r: ScanResult): CategoryResult {
-  const findings: Finding[] = r.issues.map((i) => ({
-    id: i.id,
-    title: i.title,
-    severity: i.severity,
-    ref: `WCAG ${i.wcag}`,
-    count: i.count,
-    examples: i.examples,
-  }));
-  return buildCategory("accessibility", "Tillgänglighet (EAA)", findings, r.checksRun);
 }
 
 /** Skickar leadet till LEAD_WEBHOOK_URL om satt. Sväljer alla fel (best-effort). */

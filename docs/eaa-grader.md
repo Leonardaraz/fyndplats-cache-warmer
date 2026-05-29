@@ -33,6 +33,12 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 | `app/api/grade/route.ts` | Scan-endpoint + lead-fångst |
 | `app/api/checkout/route.ts` | Skapar Stripe-betalning |
 | `app/api/stripe-webhook/route.ts` | Verifierar betalningar (signaturkollad) |
+| `app/api/compare/route.ts` | Jämför din butik mot konkurrenter |
+| `app/api/history/route.ts` | Skanningshistorik + förändring över tid |
+| `app/api/cron/rescan/route.ts` | Övervakning: re-skannar bevakade URL:er + larmar |
+| `lib/scan/history.ts` | Snapshot-lagring, diff, regressionsdetektering |
+| `lib/scan/compare.ts` | Jämförelselogik (rangordning, vinnare per kategori) |
+| `lib/scan/prioritize.ts` | Snabba vinster + EAA-risknivå |
 
 ## Miljövariabler (se `.env.example`)
 | Variabel | Krävs för | Notis |
@@ -57,6 +63,12 @@ pnpm test         # enhetstester (scanner, remediation, stripe-kodning)
   titel, generiska/ tomma länkar, etiketter, iframe-titlar, autoplay, tabindex,
   rubriker. Den fångar **inte** kontrast, fokusordning eller JS-renderat innehåll
   — det kräver en uppgradering till `axe-core` med renderad DOM (headless-browser).
+- **Historik & övervakning** sparas via en snapshot-lagring som default är
+  **in-memory** (försvinner vid serverless-omstart). För varaktig historik/övervakning
+  i produktion: backa `getSnapshotStore()` med en databas/Wix Data. Cron-jobbet
+  `/api/cron/rescan` (dagligen, se vercel.json) kräver `CRON_SECRET` och larmar
+  ägaren (`EMAIL_OWNER`) vid försämring.
+- **Konkurrentjämförelse** (`/api/compare`) är helt stateless.
 - Lead-fångst loggar + skickar valfri webhook; ingen inbyggd DB.
 - Betalningar verifieras via `/api/stripe-webhook` (signaturkollad). Koppla på
   leverans-/orderlogik i händelsehanteraren `checkout.session.completed` innan
