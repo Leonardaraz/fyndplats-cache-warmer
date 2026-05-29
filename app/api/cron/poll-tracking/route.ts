@@ -36,59 +36,88 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Otillåten" }, { status: 401 });
   }
 
-  const store = getStore();
-  const ordered = await store.listTasks("ordered");
-
-  const results: Record<string, unknown> = {
-    checked: 0,
-    shipped: 0,
-    stillWaiting: 0,
-    errors: [] as string[],
-  };
-
-  for (const task of ordered) {
-    if (!task.aliexpressOrderId) continue;
-    results.checked = (results.checked as number) + 1;
-
-    try {
-      const tracking = await getTracking(task.aliexpressOrderId);
-      if (!tracking.trackingNumber) {
-        results.stillWaiting = (results.stillWaiting as number) + 1;
-        continue;
-      }
-
-      // Skicka trackingnumret till Wix Stores → fyrar Velo-eventet →
-      // "På väg!"-mejlet + 17TRACK-registrering sker automatiskt.
-      await createFulfillment({
-        orderId: task.orderId,
-        lineItems: [{ id: task.lineItemId, quantity: task.quantity }],
-        trackingNumber: tracking.trackingNumber,
-        shippingProvider: tracking.shippingProvider,
-      });
-
-      await store.updateTask(task.taskId, { status: "shipped" });
-      await store.appendAudit({
-        at: new Date().toISOString(),
-        kind: "wix-fulfillment-created",
-        ref: task.taskId,
-        detail: JSON.stringify({
-          orderId: task.orderId,
-          trackingNumber: tracking.trackingNumber,
-          tradeOrderId: task.aliexpressOrderId,
-        }),
-      });
-      results.shipped = (results.shipped as number) + 1;
-    } catch (err) {
-      const msg = `${task.taskId}: ${err instanceof Error ? err.message : String(err)}`;
-      (results.errors as string[]).push(msg);
-      await store.appendAudit({
-        at: new Date().toISOString(),
-        kind: "poll-tracking-error",
-        ref: task.taskId,
-        detail: msg.slice(0, 300),
+  // Yttre try/catch: tidigare returnerades tyst 500 utan body när getStore()
+  // eller listTasks() throwade, vilket gjorde GitHub Actions-loggen omöjlig
+  // att felsöka. Nu serialiseras felet alltid till responsen.
+  try {
+    // No-op-fallback: om STORE_BACKEND inte är konfigurerat (default = memory)
+    // är cronen meningslös eftersom serverless inte har persistens mellan
+    // anrop — det finns inga ordered tasks att kolla. Returnera 200 så
+    // workflow:n inte alarmerar var 3:e timme i onödan.
+    const backend = process.env.STORE_BACKEND ?? "memory";
+    if (backend === "memory") {
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: "STORE_BACKEND=memory (default) — cron är no-op utan persistent store",
+        checked: 0,
+        shipped: 0,
+        stillWaiting: 0,
+        errors: [],
       });
     }
-  }
 
-  return NextResponse.json(results);
+    const store = getStore();
+    const ordered = await store.listTasks("ordered");
+
+    const results: Record<string, unknown> = {
+      checked: 0,
+      shipped: 0,
+      stillWaiting: 0,
+      errors: [] as string[],
+    };
+
+    for (const task of ordered) {
+      if (!task.aliexpressOrderId) continue;
+      results.checked = (results.checked as number) + 1;
+
+      try {
+        const tracking = await getTracking(task.aliexpressOrderId);
+        if (!tracking.trackingNumber) {
+          results.stillWaiting = (results.stillWaiting as number) + 1;
+          continue;
+        }
+
+        // Skicka trackingnumret till Wix Stores → fyrar Velo-eventet →
+        // "På väg!"-mejlet + 17TRACK-registrering sker automatiskt.
+        await createFulfillment({
+          orderId: task.orderId,
+          lineItems: [{ id: task.lineItemId, quantity: task.quantity }],
+          trackingNumber: tracking.trackingNumber,
+          shippingProvider: tracking.shippingProvider,
+        });
+
+        await store.updateTask(task.taskId, { status: "shipped" });
+        await store.appendAudit({
+          at: new Date().toISOString(),
+          kind: "wix-fulfillment-created",
+          ref: task.taskId,
+          detail: JSON.stringify({
+            orderId: task.orderId,
+            trackingNumber: tracking.trackingNumber,
+            tradeOrderId: task.aliexpressOrderId,
+          }),
+        });
+        results.shipped = (results.shipped as number) + 1;
+      } catch (err) {
+        const msg = `${task.taskId}: ${err instanceof Error ? err.message : String(err)}`;
+        (results.errors as string[]).push(msg);
+        await store.appendAudit({
+          at: new Date().toISOString(),
+          kind: "poll-tracking-error",
+          ref: task.taskId,
+          detail: msg.slice(0, 300),
+        });
+      }
+    }
+
+    return NextResponse.json(results);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const name = err instanceof Error ? err.name : "Error";
+    return NextResponse.json(
+      { ok: false, error: `${name}: ${msg}` },
+      { status: 500 },
+    );
+  }
 }
