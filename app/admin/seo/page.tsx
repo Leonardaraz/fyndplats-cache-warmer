@@ -33,6 +33,10 @@ export default async function SeoMigrationPage() {
     (p) => !p.hasSeoTitle || !p.hasSeoDescription || !p.hasImage || !p.hasDescription,
   );
 
+  // Produkter vars slug ändrades V1→V3 — behöver explicita redirects (wildcard
+  // skickar annars deras gamla URL till en 404 på headless).
+  const changedPairs = report.pairs.filter((p) => p.slugChanged);
+
   return (
     <main style={{ maxWidth: 1100, margin: "20px auto", padding: "0 16px" }}>
       <h1>SEO-migration: Wix → Headless</h1>
@@ -64,6 +68,28 @@ export default async function SeoMigrationPage() {
           color={report.v1Orphans.length > 0 ? "#a00" : "#070"} />
         <Stat label="V3 utan match (nya)" value={report.v3Orphans.length} />
       </div>
+
+      {changedPairs.length > 0 ? (
+        <div style={{
+          marginBottom: 16, padding: 14, background: "#FFF4ED",
+          border: "1px solid #F47A35", borderRadius: 8,
+        }}>
+          <h3 style={{ marginTop: 0, fontSize: 15 }}>
+            🔗 {changedPairs.length} produkter med ändrad slug — explicita 301-redirects
+          </h3>
+          <p style={{ fontSize: 13, color: "#666", marginTop: 4 }}>
+            Wildcard <code>/product-page/:slug → /produkt/:slug</code> i headless
+            <code> next.config.ts</code> täcker resten. Dessa fick ny slug vid
+            migrationen och behöver egna rader <b>före</b> wildcard:
+          </p>
+          <pre style={{
+            background: "#1e1e1e", color: "#eee", padding: 12, borderRadius: 6,
+            fontSize: 12, overflow: "auto", userSelect: "all",
+          }}>{changedPairs.map((p) =>
+  `      { source: "/product-page/${p.v1.slug}", destination: "/produkt/${p.v3.slug}", permanent: true },`,
+).join("\n")}</pre>
+        </div>
+      ) : null}
 
       <h2>SEO-completeness i nya V3-katalogen</h2>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
