@@ -90,9 +90,10 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .usprow{display:flex;justify-content:center;flex-wrap:wrap;padding:14px 0}
 .uspitem{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;padding:0 22px}
 .uspitem svg{width:18px;height:18px;color:var(--orange);flex:0 0 auto}
-/* Mobil: jämnt 2×2-rutnät i stället för ojämn 2+1+1-wrap */
+/* Mobil: jämnt 2×2-rutnät, centrerat som block (kolumnerna är innehållsbreda
+   och gruppen centreras) i stället för ojämn 2+1+1-wrap eller vänsterhäng */
 @media(max-width:600px){
-  .usprow{display:grid;grid-template-columns:1fr 1fr;gap:14px 14px;padding:16px 4px}
+  .usprow{display:grid;grid-template-columns:auto auto;justify-content:center;gap:14px 24px;padding:16px 4px}
   .uspitem{padding:0;font-size:12.5px;gap:8px;align-items:center;justify-content:flex-start;line-height:1.25}
 }
 
@@ -281,6 +282,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .crumbs em{color:var(--ink);font-style:normal;font-weight:600}
 .crumbs span{margin:0 6px;opacity:.5}
 .pdp{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:20px 0 64px;align-items:start}
+.pdp>*{min-width:0}/* låt grid-barnen krympa → inget vågrätt spill på mobil */
 .gallery .gmain{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#f6f1ec;position:relative;cursor:zoom-in}
 .gmain-zoom{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px -4px rgba(0,0,0,.35);opacity:0;transition:opacity .2s;pointer-events:none}
 .gallery .gmain:hover .gmain-zoom{opacity:1}
@@ -309,7 +311,10 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pdp-price{font-size:30px;font-weight:800;color:#C2410C;margin-bottom:10px}
 .pdp-price-old{font-size:18px;font-weight:600;color:#a39c93;text-decoration:line-through;margin-left:10px;vertical-align:middle}
 .pdp-sale{display:inline-block;vertical-align:middle;margin-left:10px;background:#F84848;color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:7px}
-.pdp-desc{font-size:15px;color:#4a443d;line-height:1.7;margin-bottom:24px}
+.pdp-desc{font-size:15px;color:#4a443d;line-height:1.7;margin-bottom:24px;overflow-wrap:break-word}
+/* Wix-beskrivningen är rå HTML → tämja innehåll som annars spiller över skärmbredden */
+.pdp-desc img,.pdp-desc video,.pdp-desc iframe{max-width:100%;height:auto}
+.pdp-desc table{display:block;max-width:100%;overflow-x:auto}
 .pdp-desc p{margin-bottom:12px}
 .pdp-desc h2,.pdp-desc h3,.pdp-desc h4{font-weight:700;color:var(--ink);margin:16px 0 8px;font-size:16px}
 .pdp-desc ul,.pdp-desc ol{margin:8px 0 14px;padding-left:20px}
