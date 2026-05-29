@@ -7,10 +7,14 @@ const BASE = "https://www.fyndplats.se";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [slugs, collections, posts] = await Promise.all([getProductSlugs(), getCollections(), getPosts()]);
 
-  const staticPages = [
-    "", "/butik", "/blogg", "/omoss", "/omdomen", "/kundtjanst",
+  const staticPaths = [
+    "", "/butik", "/omoss", "/omdomen", "/kundtjanst",
     "/kontaktaoss", "/vanliga-fragor", "/returer", "/kopvillkor", "/sekretesspolicy", "/vara-butikspolicyer",
-  ].map((path) => ({
+  ];
+  // /blogg är noindex tills det finns inlägg → lista bloggindex i sitemap först då
+  // (annars flaggar Search Console "URL i sitemap men noindex").
+  if (posts.length > 0) staticPaths.splice(1, 0, "/blogg");
+  const staticPages = staticPaths.map((path) => ({
     url: `${BASE}${path}`,
     lastModified: new Date(),
     changeFrequency: (path === "" || path === "/butik" ? "daily" : "monthly") as "daily" | "monthly",
