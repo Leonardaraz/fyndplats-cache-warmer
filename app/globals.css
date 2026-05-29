@@ -266,9 +266,16 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 }
 @media(max-width:540px){
   .catgrid,.cards,.prodgrid{grid-template-columns:1fr}
-  .fgrid{grid-template-columns:1fr 1fr;text-align:left;gap:30px 18px}
-  .fgrid>div:first-child{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start}
-  .grat{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+  /* Footer: en centrerad kolumn på mobil i stället för vänsterhängd 2-koll */
+  .fgrid{grid-template-columns:1fr;text-align:center;gap:34px 0;justify-items:center}
+  .fgrid>div:first-child{display:flex;flex-direction:column;align-items:center}
+  .fbrand{justify-content:center}
+  .fgrid>div:first-child p{max-width:34ch}
+  .grat{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px}
+  .footer-social{display:flex;justify-content:center}
+  .fcol{width:100%}
+  .fcol a{margin:10px 0}
+  .paymarks{justify-content:center}
   .herogrid{padding:40px 0 48px}
 }
 @media(prefers-reduced-motion:reduce){
