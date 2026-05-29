@@ -22,6 +22,7 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 | `app/grade/rapport/page.tsx` | Utskriftsvänlig rapport (den betalda leveransen) |
 | `app/api/grade/route.ts` | Scan-endpoint + lead-fångst |
 | `app/api/checkout/route.ts` | Skapar Stripe-betalning |
+| `app/api/stripe-webhook/route.ts` | Verifierar betalningar (signaturkollad) |
 
 ## Miljövariabler (se `.env.example`)
 | Variabel | Krävs för | Notis |
@@ -30,6 +31,7 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 | `STRIPE_SECRET_KEY` | Checkout | `sk_test_…` först, sen `sk_live_…` |
 | `STRIPE_PRICE_AUDIT` | Engångs-audit | `price_…` från Stripe Dashboard |
 | `STRIPE_PRICE_MONITORING` | Monitoring | `price_…` (recurring) |
+| `STRIPE_WEBHOOK_SECRET` | Betalningsverifiering | `whsec_…` — krävs för skarp drift |
 | `LEAD_WEBHOOK_URL` | Lead-lagring | Valfri (Zapier/Make/egen) |
 
 ## Köra lokalt
@@ -45,5 +47,6 @@ pnpm test         # enhetstester (scanner, remediation, stripe-kodning)
   rubriker. Den fångar **inte** kontrast, fokusordning eller JS-renderat innehåll
   — det kräver en uppgradering till `axe-core` med renderad DOM (headless-browser).
 - Lead-fångst loggar + skickar valfri webhook; ingen inbyggd DB.
-- Betalningen verifieras inte via Stripe-webhook ännu (success-sidan litar på
-  redirect); lägg till en webhook-bekräftelse innan skarp drift med riktiga pengar.
+- Betalningar verifieras via `/api/stripe-webhook` (signaturkollad). Koppla på
+  leverans-/orderlogik i händelsehanteraren `checkout.session.completed` innan
+  skarp drift — just nu loggas bara köpet.
