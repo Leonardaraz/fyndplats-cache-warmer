@@ -173,7 +173,10 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .footer-social{margin-top:16px;gap:11px}
 .footer-social a{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);opacity:1}
 .footer-social a:hover{background:var(--orange);border-color:var(--orange);color:#fff;transform:translateY(-2px)}
-.promo-social a{color:#fff}
+.promo-social{gap:8px}
+.promo-social a{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;opacity:1}
+.promo-social .soc-ig:hover{background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);border-color:transparent;transform:translateY(-1px)}
+.promo-social .soc-fb:hover{background:#1877F2;border-color:transparent;transform:translateY(-1px)}
 .footer-social{margin-top:14px}
 .footer-social a{color:#cfcac3}
 .footer-social a:hover{color:#fff}
@@ -240,10 +243,11 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 @media(max-width:900px){
   .hamburger{display:inline-flex}
   .hrow .cartbtn{margin-left:auto}
-  .promo{font-size:11.5px;padding:8px 12px}
-  .promo-social{display:none}
-  .promotext{flex:1;text-align:center;line-height:1.4}
-  .promorow{gap:0}
+  .promo{font-size:11.5px;padding:7px 0}
+  .promo-social{display:inline-flex;flex:0 0 auto;gap:7px}
+  .promo-social a{width:28px;height:28px}
+  .promotext{flex:1;text-align:left;line-height:1.35}
+  .promorow{gap:10px;justify-content:space-between}
 }
 
 @media(max-width:900px){
