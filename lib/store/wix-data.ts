@@ -1,5 +1,5 @@
 import type { FulfillmentTask, TaskStatus } from "../orders/types";
-import type { AliExpressTokenRecord, AuditEntry, ProductMappingRecord, Store } from "./index";
+import type { AliExpressTokenRecord, AuditEntry, MappingSuggestion, ProductMappingRecord, Store } from "./index";
 
 // WixDataStore: persisterar mappningar, tasks, webhook-event och audit-rader
 // i Wix Data-collections (CMS). Använd via STORE_BACKEND=wix-data i env.
@@ -22,6 +22,7 @@ const COL = {
   tasks: process.env.WIX_DATA_COL_TASKS ?? "FyndplatsTasks",
   audit: process.env.WIX_DATA_COL_AUDIT ?? "FyndplatsAudit",
   tokens: process.env.WIX_DATA_COL_TOKENS ?? "FyndplatsAliExpressTokens",
+  suggestions: process.env.WIX_DATA_COL_SUGGESTIONS ?? "FyndplatsMappingSuggestions",
 };
 
 // Singleton-id för AliExpress-token-raden. En enda rad per Wix-site eftersom
@@ -69,6 +70,15 @@ async function get<T>(dataCollectionId: string, id: string): Promise<T | null> {
   }
   const body = (await res.json()) as { dataItem?: { data?: T } };
   return body.dataItem?.data ?? null;
+}
+
+async function remove(dataCollectionId: string, id: string): Promise<void> {
+  const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(dataCollectionId)}`;
+  const res = await fetch(url, { method: "DELETE", headers: headers() });
+  // 404 = redan borta, behandlas som lyckad (idempotent).
+  if (!res.ok && res.status !== 404) {
+    throw new Error(wixErrorMessage(`delete/${id}`, dataCollectionId, res.status, await res.text()));
+  }
 }
 
 async function query<T>(
@@ -121,6 +131,18 @@ export class WixDataStore implements Store {
 
   async listMappings(): Promise<ProductMappingRecord[]> {
     return query<ProductMappingRecord>(COL.mappings);
+  }
+
+  async saveSuggestion(suggestion: MappingSuggestion): Promise<void> {
+    await save(COL.suggestions, suggestion.wixProductId, { _id: suggestion.wixProductId, ...suggestion });
+  }
+
+  async listSuggestions(): Promise<MappingSuggestion[]> {
+    return query<MappingSuggestion>(COL.suggestions);
+  }
+
+  async deleteSuggestion(wixProductId: string): Promise<void> {
+    await remove(COL.suggestions, wixProductId);
   }
 
   async upsertTask(task: FulfillmentTask): Promise<void> {

@@ -1,5 +1,5 @@
 import type { FulfillmentTask, TaskStatus } from "../orders/types";
-import type { AliExpressTokenRecord, AuditEntry, ProductMappingRecord, Store } from "./index";
+import type { AliExpressTokenRecord, AuditEntry, MappingSuggestion, ProductMappingRecord, Store } from "./index";
 
 // In-memory-implementation. Bra för tester och lokal utveckling; byt mot en
 // Wix Data-/DB-backad implementation innan produktion (se store/index.ts).
@@ -7,6 +7,7 @@ import type { AliExpressTokenRecord, AuditEntry, ProductMappingRecord, Store } f
 export class MemoryStore implements Store {
   private seenEvents = new Set<string>();
   private mappings = new Map<string, ProductMappingRecord>();
+  private suggestions = new Map<string, MappingSuggestion>();
   private tasks = new Map<string, FulfillmentTask>();
   private audit: AuditEntry[] = [];
   private aliExpressTokens: AliExpressTokenRecord | null = null;
@@ -29,6 +30,18 @@ export class MemoryStore implements Store {
 
   async listMappings(): Promise<ProductMappingRecord[]> {
     return [...this.mappings.values()];
+  }
+
+  async saveSuggestion(suggestion: MappingSuggestion): Promise<void> {
+    this.suggestions.set(suggestion.wixProductId, suggestion);
+  }
+
+  async listSuggestions(): Promise<MappingSuggestion[]> {
+    return [...this.suggestions.values()];
+  }
+
+  async deleteSuggestion(wixProductId: string): Promise<void> {
+    this.suggestions.delete(wixProductId);
   }
 
   async upsertTask(task: FulfillmentTask): Promise<void> {

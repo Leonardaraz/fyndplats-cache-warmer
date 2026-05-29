@@ -6,6 +6,7 @@ import { getV3ProductVariants } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
 import { pricingConfigFromEnv } from "@/lib/config";
 import { computePrice } from "@/lib/import/pricing";
+import { autoMapUnmapped, confirmSuggestion, dismissSuggestion, type AutoMapSummary } from "@/lib/aliexpress/auto-map-run";
 
 export type MappingActionResult =
   | { ok: true; message: string }
@@ -65,6 +66,57 @@ export async function createMappingAction(
           : ""
       })`,
     };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Okänt fel" };
+  }
+}
+
+/**
+ * Kör AI-auto-mappning för omappade produkter. Begränsa med `limit` för att
+ * hålla körningen under tidsgränsen (kör flera gånger för resten).
+ */
+export async function runAutoMapAction(
+  limit?: number,
+): Promise<{ ok: true; summary: AutoMapSummary } | { ok: false; error: string }> {
+  try {
+    const summary = await autoMapUnmapped({ limit });
+    revalidatePath("/admin/mappings");
+    return { ok: true, summary };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Okänt fel" };
+  }
+}
+
+/** Bekräftar ett förslag: skapar mappningen mot vald AliExpress-produkt. */
+export async function confirmSuggestionAction(
+  wixProductId: string,
+  supplierProductId: string,
+): Promise<MappingActionResult> {
+  if (!wixProductId || !supplierProductId) {
+    return { ok: false, error: "wixProductId och supplierProductId krävs" };
+  }
+  try {
+    const res = await confirmSuggestion(wixProductId, supplierProductId);
+    revalidatePath("/admin/mappings");
+    return {
+      ok: true,
+      message: `Mappad ✓ (${res.pairedVariants} varianter${
+        res.wixVariantCount !== res.aeVariantCount
+          ? `, varning: Wix har ${res.wixVariantCount}, AE har ${res.aeVariantCount}`
+          : ""
+      })`,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Okänt fel" };
+  }
+}
+
+/** Avfärdar ett förslag utan att mappa. */
+export async function dismissSuggestionAction(wixProductId: string): Promise<MappingActionResult> {
+  try {
+    await dismissSuggestion(wixProductId);
+    revalidatePath("/admin/mappings");
+    return { ok: true, message: "Förslag borttaget" };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Okänt fel" };
   }

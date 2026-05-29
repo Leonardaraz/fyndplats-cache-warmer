@@ -8,29 +8,37 @@
 
 import { listAllV3Products, type WixV3ProductSummary } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
+import type { MappingSuggestion } from "@/lib/store";
 import { MappingsList } from "./mappings-list";
+import { AutoMapPanel } from "./auto-map-panel";
+import { SuggestionsList } from "./suggestions";
 
 export const dynamic = "force-dynamic";
 
 export default async function MappingsAdminPage() {
   let allProducts: WixV3ProductSummary[];
   let mappedSet: Set<string>;
+  let suggestions: MappingSuggestion[] = [];
   let loadError: string | null = null;
 
   try {
-    const [products, mappings] = await Promise.all([
+    const [products, mappings, sugg] = await Promise.all([
       listAllV3Products(),
       getStore().listMappings(),
+      getStore().listSuggestions(),
     ]);
     allProducts = products;
     mappedSet = new Set(mappings.map((m) => m.wixProductId));
+    suggestions = sugg;
   } catch (err) {
     loadError = err instanceof Error ? err.message : "Okänt laddningsfel";
     allProducts = [];
     mappedSet = new Set();
   }
 
-  const unmapped = allProducts.filter((p) => !mappedSet.has(p.id));
+  const suggestedSet = new Set(suggestions.map((s) => s.wixProductId));
+  // "Att mappa" = varken mappad eller redan i förslags-kön.
+  const unmapped = allProducts.filter((p) => !mappedSet.has(p.id) && !suggestedSet.has(p.id));
 
   return (
     <main style={{ maxWidth: 920, margin: "20px auto", padding: "0 16px" }}>
@@ -57,10 +65,27 @@ export default async function MappingsAdminPage() {
       <div style={{ marginBottom: 16, display: "flex", gap: 16, flexWrap: "wrap" }}>
         <Stat label="Totalt på V3-headless" value={allProducts.length} />
         <Stat label="Redan mappade" value={mappedSet.size} color="#070" />
-        <Stat label="Att mappa" value={unmapped.length} color={unmapped.length > 0 ? "#F47A35" : "#070"} />
+        <Stat label="Förslag att bekräfta" value={suggestions.length} color={suggestions.length > 0 ? "#0a58ca" : "#070"} />
+        <Stat label="Kvar att mappa" value={unmapped.length} color={unmapped.length > 0 ? "#F47A35" : "#070"} />
       </div>
 
-      <MappingsList initialProducts={unmapped} />
+      <AutoMapPanel unmappedCount={unmapped.length} />
+
+      {suggestions.length > 0 ? (
+        <section style={{ marginTop: 24 }}>
+          <h2 style={{ fontSize: 18 }}>Förslag att bekräfta ({suggestions.length})</h2>
+          <p style={{ color: "#666", fontSize: 13 }}>
+            AI-matchningen var inte säker nog för att auto-mappa dessa. Välj rätt
+            AliExpress-träff och bekräfta, eller avfärda för att mappa manuellt nedan.
+          </p>
+          <SuggestionsList suggestions={suggestions} />
+        </section>
+      ) : null}
+
+      <section style={{ marginTop: 24 }}>
+        <h2 style={{ fontSize: 18 }}>Mappa manuellt ({unmapped.length})</h2>
+        <MappingsList initialProducts={unmapped} />
+      </section>
     </main>
   );
 }

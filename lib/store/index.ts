@@ -13,6 +13,28 @@ export interface ProductMappingRecord {
   variants: VariantMapping[];
 }
 
+/**
+ * En auto-mappnings-kandidat som väntar på manuell bekräftelse. Sparas när
+ * AI-matchningen inte är säker nog att auto-mappa (medium/low confidence) så
+ * operatorn kan välja rätt AliExpress-källa med ett klick i /admin/mappings.
+ */
+export interface MappingSuggestion {
+  wixProductId: string;
+  wixProductName: string;
+  /** Engelska sökord som användes mot AliExpress. */
+  searchQuery: string;
+  confidence: "high" | "medium" | "low";
+  candidates: Array<{
+    productId: string;
+    title: string;
+    imageUrl?: string;
+    priceUsd?: number;
+    productUrl?: string;
+    score: number;
+  }>;
+  createdAt: string;
+}
+
 export interface AuditEntry {
   at: string;
   /** Typ av händelse, t.ex. "import", "price-alert", "stock", "order", "ship", "cancel". */
@@ -42,6 +64,11 @@ export interface Store {
   saveMapping(record: ProductMappingRecord): Promise<void>;
   getMappingByWixProductId(wixProductId: string): Promise<ProductMappingRecord | null>;
   listMappings(): Promise<ProductMappingRecord[]>;
+
+  // --- Auto-mappnings-förslag (väntar på bekräftelse) ---
+  saveSuggestion(suggestion: MappingSuggestion): Promise<void>;
+  listSuggestions(): Promise<MappingSuggestion[]>;
+  deleteSuggestion(wixProductId: string): Promise<void>;
 
   // --- Fulfillment-tasks ---
   upsertTask(task: FulfillmentTask): Promise<void>;

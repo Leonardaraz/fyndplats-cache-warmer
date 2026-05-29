@@ -45,3 +45,26 @@ function stripCodeFence(text: string): string {
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   return fence ? fence[1].trim() : text;
 }
+
+/**
+ * Anropar Claude och returnerar ren text (ingen JSON-parsing). Används där vi
+ * bara vill ha en kort textsträng tillbaka, t.ex. översatta sökord.
+ */
+export async function runClaude(
+  user: string,
+  opts: { system: string; maxTokens?: number; temperature?: number },
+): Promise<string> {
+  const claude = getClaude();
+  const msg = await claude.messages.create({
+    model: SEO_MODEL,
+    max_tokens: opts.maxTokens ?? 256,
+    ...(opts.temperature !== undefined ? { temperature: opts.temperature } : {}),
+    system: opts.system,
+    messages: [{ role: "user", content: user }],
+  });
+  return msg.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+}
