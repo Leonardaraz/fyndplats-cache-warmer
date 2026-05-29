@@ -38,8 +38,14 @@ export function ProductCard({ p }: { p: Product }) {
         <div className="pname">{p.name}</div>
         <div className="prow">
           <span className="pprice">
-            {p.price}
-            {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
+            {p.hasRange ? (
+              <>Från {p.priceFrom}</>
+            ) : (
+              <>
+                {p.price}
+                {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
+              </>
+            )}
           </span>
           <span className="pbtn">Köp</span>
         </div>

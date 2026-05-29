@@ -1,12 +1,20 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { getPosts, fmtDate } from "../../lib/blog";
 import { pageMeta } from "../../lib/seo";
 
-export const metadata = pageMeta(
-  "Blogg",
-  "Tips, guider och nyheter från Fyndplats – inspiration för dina nästa fynd.",
-  "/blogg"
-);
+export async function generateMetadata(): Promise<Metadata> {
+  const meta = pageMeta(
+    "Blogg",
+    "Tips, guider och nyheter från Fyndplats – inspiration för dina nästa fynd.",
+    "/blogg"
+  );
+  // Undvik thin-content-flaggning: noindex så länge inga inlägg finns.
+  // Auto-läker — sidan indexeras igen så snart första inlägget publiceras.
+  const posts = await getPosts();
+  if (posts.length === 0) meta.robots = { index: false, follow: true };
+  return meta;
+}
 
 export default async function Blogg() {
   const posts = await getPosts();

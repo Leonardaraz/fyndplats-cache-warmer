@@ -19,7 +19,7 @@ export function pageMeta(title: string, description: string, path: string): Meta
       url,
       title,
       description,
-      images: [OG_IMAGE],
+      images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
     },
   };
 }
