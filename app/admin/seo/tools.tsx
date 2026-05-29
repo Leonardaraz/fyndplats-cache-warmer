@@ -24,8 +24,23 @@ export function SeoTools({
   function runEnrich(dryRun: boolean) {
     setEnrichResult(null);
     startTransition(async () => {
-      const res = await enrichAllV3Action(dryRun, baseUrl, prefix);
-      setEnrichResult(res);
+      let prev:
+        | { patched: number; skipped: number; failed: number; firstErrors: string[] }
+        | undefined;
+      let cursor = 0;
+      // Loop chunks tills isDone — varje chunk ~10s, ryms i alla Vercel-tier.
+      for (let i = 0; i < 50; i++) {
+        const res = await enrichAllV3Action(dryRun, baseUrl, prefix, cursor, prev);
+        setEnrichResult(res);
+        if (!res.ok || res.isDone || !res.stats) break;
+        prev = {
+          patched: res.stats.patched,
+          skipped: res.stats.skipped,
+          failed: res.stats.failed,
+          firstErrors: res.firstErrors ?? [],
+        };
+        cursor = res.cursor ?? 0;
+      }
     });
   }
 
@@ -94,10 +109,11 @@ export function SeoTools({
           }}>
             {enrichResult.ok && enrichResult.stats ? (
               <>
-                <b>{enrichResult.dryRun ? "DRY-RUN" : "PATCHED"}:</b>{" "}
-                {enrichResult.stats.patched} processade,{" "}
-                {enrichResult.stats.skipped} hoppade (redan kompletta),{" "}
-                {enrichResult.stats.failed} fel av {enrichResult.stats.total} totalt
+                <b>{enrichResult.dryRun ? "DRY-RUN" : "PATCHED"}{enrichResult.isDone ? " ✅" : "..."}:</b>{" "}
+                {enrichResult.stats.processedSoFar}/{enrichResult.stats.total} processade ·{" "}
+                {enrichResult.stats.patched} patchade ·{" "}
+                {enrichResult.stats.skipped} hoppade ·{" "}
+                {enrichResult.stats.failed} fel
                 {enrichResult.firstErrors && enrichResult.firstErrors.length > 0 ? (
                   <ul style={{ marginTop: 6, fontSize: 12 }}>
                     {enrichResult.firstErrors.map((e, i) => (<li key={i}>{e}</li>))}
