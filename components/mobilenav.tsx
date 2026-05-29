@@ -7,14 +7,13 @@ import { SearchBox } from "./searchbox";
 // det är produktnavigeringen folk vill åt först i en butik.
 const shopLink = { href: "/butik", label: "Butik" };
 const infoLinks = [
-  { href: "/blogg", label: "Blogg" },
   { href: "/omoss", label: "Om oss" },
   { href: "/vanliga-fragor", label: "Vanliga frågor" },
   { href: "/kontaktaoss", label: "Kontakta oss" },
   { href: "/kundtjanst", label: "Kundtjänst" },
 ];
 
-export function MobileNav({ collections = [] }: { collections?: { name: string; slug: string }[] }) {
+export function MobileNav({ collections = [], hasBlog = false }: { collections?: { name: string; slug: string }[]; hasBlog?: boolean }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -53,6 +52,7 @@ export function MobileNav({ collections = [] }: { collections?: { name: string; 
             </div>
           )}
           <nav className="mm-links">
+            {hasBlog && <a href="/blogg" onClick={() => setOpen(false)}>Blogg</a>}
             {infoLinks.map((l) => (
               <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
             ))}

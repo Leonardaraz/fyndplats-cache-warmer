@@ -3,6 +3,7 @@ import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
 import { MobileNav } from "./mobilenav";
 import { getCollections } from "../lib/products";
+import { getPosts } from "../lib/blog";
 
 const HEADER_NAV = [
   { label: "Elektronik", match: "Elektronik" },
@@ -58,6 +59,7 @@ export const Mark = ({ size = 34 }: { size?: number }) => (
 
 export async function SiteHeader() {
   const cats = await getCollections();
+  const hasBlog = (await getPosts()).length > 0; // dölj blogg-länk tills det finns inlägg
   const catHref = (m: string) => {
     const c = cats.find((x) => x.name === m);
     return c ? `/kategori/${c.slug}` : "/butik";
@@ -80,7 +82,7 @@ export async function SiteHeader() {
           </nav>
           <WishlistButton />
           <CartButton />
-          <MobileNav collections={cats} />
+          <MobileNav collections={cats} hasBlog={hasBlog} />
         </div>
         {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
         <div className="hsearch-mobile">
@@ -91,7 +93,8 @@ export async function SiteHeader() {
   );
 }
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const hasBlog = (await getPosts()).length > 0;
   return (
     <footer>
       <div className="container fgrid">
@@ -101,7 +104,7 @@ export function SiteFooter() {
           <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">4,9</b> <span className="star">★★★★★</span> <span className="g-count">(20 omdömen)</span></div>
           <Social className="footer-social" />
         </div>
-        <div className="fcol"><div className="fhead">Handla</div><a href="/butik">Butik</a><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a><a href="/blogg">Blogg</a></div>
+        <div className="fcol"><div className="fhead">Handla</div><a href="/butik">Butik</a><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a>{hasBlog && <a href="/blogg">Blogg</a>}</div>
         <div className="fcol"><div className="fhead">Kundservice</div><a href="/vanliga-fragor">Vanliga frågor</a><a href="/returer">Returer &amp; ångerrätt</a><a href="/kopvillkor">Köpvillkor</a><a href="/sparning">Spåra paket</a><a href="/kontaktaoss">Kontakta oss</a><a href="/kundtjanst">Kundtjänst</a></div>
         <div className="fcol"><div className="fhead">Kontakt &amp; betalning</div><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><a href="tel:+46736630990">+46 (0) 736 630 990</a><PaymentMarks /></div>
       </div>
