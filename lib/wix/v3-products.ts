@@ -28,6 +28,12 @@ export interface WixV3ProductSummary {
   slug: string;
   imageUrl?: string;
   variantCount: number;
+  hasSeoTitle: boolean;
+  hasSeoDescription: boolean;
+  hasJsonLd: boolean;
+  hasOgTags: boolean;
+  hasImage: boolean;
+  hasDescription: boolean;
 }
 
 export interface WixV3Variant {
@@ -67,19 +73,30 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         id: string;
         name: string;
         slug: string;
+        description?: string;
         media?: { main?: { image?: { url?: string } } };
         variantsInfo?: { variants?: unknown[] };
+        seoData?: { tags?: Array<{ type?: string; props?: { name?: string; property?: string }; children?: string }> };
       }>;
       pagingMetadata?: { cursors?: { next?: string } };
     };
 
     for (const p of data.products ?? []) {
+      const tags = p.seoData?.tags ?? [];
       all.push({
         id: p.id,
         name: p.name,
         slug: p.slug,
         imageUrl: p.media?.main?.image?.url,
         variantCount: p.variantsInfo?.variants?.length ?? 0,
+        hasSeoTitle: tags.some((t) => t.type === "title" && Boolean(t.children?.trim())),
+        hasSeoDescription: tags.some(
+          (t) => t.type === "meta" && t.props?.name === "description" && Boolean(t.children?.length),
+        ),
+        hasJsonLd: tags.some((t) => t.type === "script" && Boolean(t.children?.includes("@type"))),
+        hasOgTags: tags.some((t) => t.type === "meta" && t.props?.property?.startsWith("og:")),
+        hasImage: Boolean(p.media?.main?.image?.url),
+        hasDescription: Boolean(p.description?.trim()),
       });
     }
 
