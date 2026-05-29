@@ -140,6 +140,7 @@ export default function GradePage() {
           <span>✓ Tillgänglighet (EAA)</span>
           <span>✓ SEO & teknik</span>
           <span>✓ AI-synlighet</span>
+          <span>✓ Prestanda</span>
         </div>
       </section>
 

@@ -17,7 +17,7 @@ export interface Finding {
   examples: string[];
 }
 
-export type Category = "accessibility" | "seo" | "aeo";
+export type Category = "accessibility" | "seo" | "aeo" | "performance";
 
 export interface CategoryResult {
   category: Category;

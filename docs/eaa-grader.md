@@ -5,9 +5,9 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 
 ## Flöde
 1. Besökare klistrar in URL på `/grade`.
-2. `POST /api/grade` hämtar sidans HTML **en gång** och kör tre analyser på den:
-   tillgänglighet (EAA/WCAG, huvudkategori + betald audit), SEO/teknik och
-   AI-synlighet (AEO). De två senare är gratis värde-höjare i lead-magneten.
+2. `POST /api/grade` hämtar sidans HTML **en gång** och kör fyra analyser på den:
+   tillgänglighet (EAA/WCAG, huvudkategori + betald audit), SEO/teknik,
+   AI-synlighet (AEO) och prestanda. De tre senare är gratis värde-höjare.
 3. Resultat (totalbetyg + per kategori + valfri svensk AI-förklaring) visas direkt.
 4. Köp-CTA → `POST /api/checkout` → Stripe Checkout (engångs-audit eller monitoring).
 5. Efter köp genererar du leveransen på `/grade/rapport?url=...` (utskrift/PDF).
@@ -19,6 +19,7 @@ Kör-checklista för en skarp vecka finns i `validering-vecka.md`.
 | `lib/accessibility/remediation.ts` | Åtgärdsförklaringar per feltyp (svenska) |
 | `lib/seo/analyzer.ts` | SEO/teknik-kontroller (gratis värde-höjare) |
 | `lib/aeo/analyzer.ts` | AI-synlighet/AEO-signaler (gratis värde-höjare) |
+| `lib/perf/analyzer.ts` | Prestanda & best practices (gratis värde-höjare) |
 | `lib/scan/types.ts` | Gemensamma typer + poängsättning för alla kategorier |
 | `lib/payments/stripe.ts` | Checkout Session via Stripe REST (beroendefri) |
 | `app/grade/page.tsx` | Publik landningssida + grader |

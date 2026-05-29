@@ -8,6 +8,7 @@ import { z } from "zod";
 import { evaluateHtml, fetchPageHtml, type ScanResult } from "@/lib/accessibility/scanner";
 import { analyzeSeo } from "@/lib/seo/analyzer";
 import { analyzeAeo } from "@/lib/aeo/analyzer";
+import { analyzePerformance } from "@/lib/perf/analyzer";
 import { buildCategory, type CategoryResult, type Finding } from "@/lib/scan/types";
 import { completeJson } from "@/lib/ai/claude";
 
@@ -31,12 +32,14 @@ export async function POST(req: NextRequest) {
   let result: ScanResult;
   let seo: CategoryResult;
   let aeo: CategoryResult;
+  let perf: CategoryResult;
   try {
-    // Hämta HTML en gång och kör alla tre analyserna på samma sida.
+    // Hämta HTML en gång och kör alla analyserna på samma sida.
     const { url, html } = await fetchPageHtml(parsed.url);
     result = evaluateHtml(url, html);
     seo = analyzeSeo(html, url);
     aeo = analyzeAeo(html);
+    perf = analyzePerformance(html);
   } catch (err) {
     return NextResponse.json(
       { error: `Kunde inte analysera sidan: ${err instanceof Error ? err.message : String(err)}` },
@@ -48,7 +51,7 @@ export async function POST(req: NextRequest) {
   // gratis värde-höjare. Tillgänglighetsfälten ligger kvar på toppnivå för bakåt-
   // kompatibilitet (rapportsidan), och alla tre finns i categories.
   const accessibilityCat = accessibilityToCategory(result);
-  const categories = [accessibilityCat, seo, aeo];
+  const categories = [accessibilityCat, seo, aeo, perf];
   const overall = Math.round(categories.reduce((s, c) => s + c.score, 0) / categories.length);
 
   // Lead-capture. Loggas alltid; skickas dessutom till en valfri webhook

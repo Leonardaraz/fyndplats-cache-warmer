@@ -172,6 +172,36 @@ export const REMEDIATION: Record<string, Remediation> = {
     fix: "Lägg en FAQ-sektion med vanliga frågor och märk upp den med FAQPage-schema (JSON-LD).",
     effort: "medel",
   },
+
+  // --- Prestanda & best practices ---
+  "img-no-dimensions": {
+    why: "Utan width/height vet webbläsaren inte hur mycket plats bilden tar – sidan " +
+      "hoppar när bilden laddas (dålig CLS), vilket stör besökaren och sänker Google-ranking.",
+    fix: "Ange width och height (eller CSS aspect-ratio) på bilderna.",
+    effort: "låg",
+  },
+  "img-no-lazy": {
+    why: "Utan lazy-loading laddas alla bilder direkt, även de långt ner – långsammare " +
+      "första intryck, särskilt på mobil.",
+    fix: 'Lägg `loading="lazy"` på bilder under första vyn.',
+    effort: "låg",
+  },
+  "render-blocking-js": {
+    why: "Skript i <head> utan async/defer pausar visningen tills de laddats – sidan " +
+      "känns långsam att öppna.",
+    fix: "Lägg `defer` (eller `async`) på script-taggarna, eller flytta dem sist i <body>.",
+    effort: "låg",
+  },
+  "large-dom": {
+    why: "Tunga sidor tar längre tid att ladda och tolka, särskilt på mobil och svagare nät.",
+    fix: "Minska sidvikt: färre/komprimerade element, ladda sektioner vid behov, rensa onödig markup.",
+    effort: "medel",
+  },
+  "no-charset": {
+    why: "Utan teckenkodning kan å, ä och ö visas fel, och webbläsaren måste gissa kodningen.",
+    fix: 'Lägg `<meta charset="utf-8">` högst upp i <head>.',
+    effort: "låg",
+  },
 };
 
 /** Slår upp åtgärdsinfo för ett fel-id; faller tillbaka på en generisk text. */

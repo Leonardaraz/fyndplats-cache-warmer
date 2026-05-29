@@ -12,6 +12,8 @@ const RULE_IDS = [
   "no-opengraph", "robots-noindex", "no-favicon",
   // aeo
   "no-structured-data", "no-semantic-html", "thin-content", "weak-headings", "no-faq",
+  // performance
+  "img-no-dimensions", "img-no-lazy", "render-blocking-js", "large-dom", "no-charset",
 ];
 
 describe("remediation knowledge base", () => {
