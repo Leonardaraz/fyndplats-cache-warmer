@@ -1,16 +1,15 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 
-// Hämtar live spårningsdata från Velo-backenden på fyndplats.se.
-// Endpointen är CORS-enabled (krävdes för HTML Embed-iframen på gamla sidan)
-// så vi kan fetch:a direkt från browsern utan Next.js-proxy.
+// Anropar /api/track i headless (Next.js API-route) som proxar till 17TRACK
+// API och bevarar anonymisering (CN/HK/TW/SG/MY-events strippade, kinesiska
+// transportörer maskeras till "Transportör"). Tidigare gick anropet mot
+// Wix Velo `_functions/track` på V1-sajten, men efter DNS-cutover ärver
+// headless fyndplats.se och Velo är inte längre nåbar.
 //
-// API:t förväntar query-param `?tn=<trackingNumber>` (verifierat live —
-// {"error":"tn (trackingNumber) krävs"} om man skickar fel param).
-//
-// All anonymisering av carrier + CN/HK/TW/SG/MY-events sker server-side i
-// wix-velo/backend/tracking.js → filterEvents(). Vi RENDERAR bara det vi får.
-const TRACK_API = "https://www.fyndplats.se/_functions/track";
+// API:t förväntar query-param `?tn=<trackingNumber>` och returnerar samma
+// JSON-format som Velo-funktionen så UI-logiken nedan inte behöver ändras.
+const TRACK_API = "/api/track";
 
 const STAGES = ["Beställd", "Skickad", "På väg", "Nära dig", "Levererad"];
 
