@@ -4,7 +4,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import Cookies from "js-cookie";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { currentCart } from "@wix/ecom";
-import { redirects } from "@wix/redirects";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 
@@ -20,7 +19,7 @@ function liImageUrl(x: any): string {
 
 function makeClient() {
   return createClient({
-    modules: { currentCart, redirects },
+    modules: { currentCart },
     auth: OAuthStrategy({
       clientId: "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153", // hardcoded for wix-vibe-site-u4lp; bypasses stale Vercel env vars
       tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
@@ -107,14 +106,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setBusy(true);
     try {
       const { checkoutId }: any = await client.currentCart.createCheckoutFromCurrentCart({ channelType: (currentCart as any).ChannelType.WEB });
-      // postFlowUrl = vart Wix skickar kunden EFTER lyckad checkout.
-      // /tack är vår premium confirmation-sida med order-info + nästa steg.
-      const redirect: any = await client.redirects.createRedirectSession({ ecomCheckout: { checkoutId }, callbacks: { postFlowUrl: window.location.origin + "/tack" } });
-      const url = redirect?.redirectSession?.fullUrl;
-      if (url) window.location.href = url;
-      else alert("Kunde inte starta kassan. Är redirect-domänen godkänd i Wix Headless-inställningarna?");
+      // Bypass IAM cookie hop (createSessionCookie 404s on primary domain checkout.fyndplats.se).
+      // Navigate directly to the Wix-hosted checkout app with the headless client id.
+      const thankYouUrl = `${window.location.origin}/tack`;
+      const checkoutUrl = `https://checkout.fyndplats.se/__ecom/checkout?checkoutId=${encodeURIComponent(checkoutId)}&origin=${encodeURIComponent(thankYouUrl)}&headlessClientId=3d8fdd09-3b3c-475f-aac2-b6bfa9e05153`;
+      window.location.href = checkoutUrl;
     } catch (e: any) {
-      alert("Kassan kunde inte öppnas: " + (e?.message || "okänt fel") + "\nKontrollera att din domän är godkänd i Wix Headless-inställningarna.");
+      alert("Kassan kunde inte öppnas: " + (e?.message || "okänt fel"));
     } finally { setBusy(false); }
   }, [client]);
 
