@@ -13,6 +13,39 @@ const jsonLd = {
   aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "21" },
 };
 
+const localBusinessJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": "https://www.fyndplats.se/#localbusiness",
+  name: "Fyndplats",
+  url: "https://www.fyndplats.se",
+  telephone: "+46-736-630-990",
+  email: "info@fyndplats.com",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Bergviksgatan 10",
+    addressLocality: "Södertälje",
+    postalCode: "152 44",
+    addressCountry: "SE",
+  },
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "09:00",
+      closes: "17:00",
+    },
+  ],
+  sameAs: [
+    "https://www.instagram.com/fyndplats/",
+    "https://www.facebook.com/profile.php?id=100089607278056",
+  ],
+  areaServed: "SE",
+  currenciesAccepted: "SEK",
+  paymentAccepted: "Credit Card, Klarna",
+  priceRange: "$$",
+};
+
 export default async function Home() {
   const [allProducts, cols] = await Promise.all([getProducts(), getCollections()]);
 
@@ -189,6 +222,7 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }} />
 
       <section className="hero">
         <div className="container">
