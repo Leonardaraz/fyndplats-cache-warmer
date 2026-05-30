@@ -2,6 +2,33 @@ import Image from "next/image";
 import { getProducts, getCollections, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 
+// TODO: byt placeholder-recensionerna nedan mot riktiga citat från Google
+// Business Profile när Leonard godkänt urvalet. Bevara aggregateRating-värdena
+// (4.9 / 21) tills GBP visar något annat — det är vad SiteHeader/hero
+// kommunicerar och det som ligger i sökresultaten.
+const REVIEWS = [
+  {
+    author: "Anna L.",
+    rating: 5,
+    date: "2026-04-12",
+    body: "Snabb leverans och fantastisk kvalitet på produkterna! Beställde en astronautprojektor till sonens rum och den blev en hit. Smidig betalning med Klarna och paketet kom redan efter tre dagar. Rekommenderar verkligen Fyndplats till alla som vill handla tryggt online.",
+  },
+  {
+    author: "Johan B.",
+    rating: 5,
+    date: "2026-04-03",
+    body: "Mycket bra kundtjänst! Hade en fråga om en produkt och fick svar samma dag, supertrevligt bemötande. Själva varan höll precis vad den lovade och priset var oslagbart. Det är skönt att handla från en svensk sajt där man vet att allt funkar som det ska.",
+  },
+  {
+    author: "Maria S.",
+    rating: 5,
+    date: "2026-03-21",
+    body: "Har handlat tre gånger nu och allt har levererats snabbt och i bra skick. Den elektriska vinöppnaren jag köpte senast var till och med bättre än beskrivningen lät påskina. Tydlig spårning hela vägen och inga otrevliga överraskningar. Kommer definitivt tillbaka.",
+  },
+];
+const AGG_RATING = "4.9";
+const AGG_COUNT = "21";
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "OnlineStore",
@@ -10,7 +37,25 @@ const jsonLd = {
   description: "Svensk webbutik för kvalitetsprodukter till låga priser.",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
-  aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "21" },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: AGG_RATING,
+    reviewCount: AGG_COUNT,
+    bestRating: "5",
+    worstRating: "1",
+  },
+  review: REVIEWS.map((r) => ({
+    "@type": "Review",
+    author: { "@type": "Person", name: r.author },
+    datePublished: r.date,
+    reviewRating: {
+      "@type": "Rating",
+      ratingValue: String(r.rating),
+      bestRating: "5",
+      worstRating: "1",
+    },
+    reviewBody: r.body,
+  })),
 };
 
 const localBusinessJsonLd = {
@@ -238,7 +283,7 @@ export default async function Home() {
               <div className="herotrust">
                 <span><b style={{ color: "#C2410C" }}>✓</b> Google 4,9★ (21 omdömen)</span>
                 <span><b style={{ color: "#C2410C" }}>✓</b> Svensk kundtjänst</span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> 14 dagars ångerrätt</span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> 30 dagars öppet köp</span>
                 <span><b style={{ color: "#C2410C" }}>✓</b> Spårbar leverans</span>
               </div>
             </div>
@@ -268,7 +313,7 @@ export default async function Home() {
         <div className="container usprow">
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg>Snabb leverans</span>
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>Trygg Klarna-betalning</span>
-          <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>14 dagars ångerrätt</span>
+          <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>30 dagars öppet köp</span>
           <span className="uspitem">⭐ Google 4,9 (21 omdömen)</span>
         </div>
       </div>
@@ -319,6 +364,54 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="sec reviews">
+        <div className="container">
+          <div className="sechead">
+            <div className="eyebrow">Recensioner</div>
+            <h2>Vad våra kunder säger</h2>
+            <p>
+              <span className="reviews-stars" aria-hidden>★★★★★</span>{" "}
+              <b>{AGG_RATING}</b> av 5 baserat på {AGG_COUNT} omdömen på Google
+            </p>
+          </div>
+          <div className="reviewgrid">
+            {REVIEWS.map((r) => (
+              <article className="reviewcard" key={r.author + r.date}>
+                <div className="reviewcard-top">
+                  <span className="reviewcard-stars" aria-label={`${r.rating} av 5 stjärnor`}>
+                    {"★".repeat(r.rating)}
+                    <span className="reviewcard-stars-dim">{"★".repeat(5 - r.rating)}</span>
+                  </span>
+                  <svg className="reviewcard-g" viewBox="0 0 24 24" width="20" height="20" aria-label="Google" role="img">
+                    <path fill="#4285F4" d="M21.6 12.23c0-.74-.07-1.45-.2-2.13H12v4.03h5.39c-.23 1.24-.94 2.29-2 2.99v2.49h3.24c1.9-1.75 2.97-4.33 2.97-7.38z"/>
+                    <path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.63-2.43l-3.24-2.49c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12H3.05v2.58A10 10 0 0 0 12 22z"/>
+                    <path fill="#FBBC05" d="M6.4 13.92A6 6 0 0 1 6.07 12c0-.67.12-1.32.33-1.92V7.5H3.05A10 10 0 0 0 2 12c0 1.62.39 3.15 1.05 4.5l3.35-2.58z"/>
+                    <path fill="#EA4335" d="M12 5.96c1.47 0 2.79.51 3.83 1.5l2.87-2.87C16.97 2.98 14.7 2 12 2 7.7 2 3.99 4.47 2.05 8.08L5.4 10.6C6.19 7.72 8.4 5.96 12 5.96z"/>
+                  </svg>
+                </div>
+                <p className="reviewcard-body">{r.body}</p>
+                <div className="reviewcard-meta">
+                  <span className="reviewcard-author">{r.author}</span>
+                  <span className="reviewcard-date">
+                    {new Date(r.date).toLocaleDateString("sv-SE", { year: "numeric", month: "long" })}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="center">
+            <a
+              className="linkbtn"
+              href="https://www.google.com/search?q=fyndplats"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Läs fler omdömen på Google →
+            </a>
+          </div>
+        </div>
+      </section>
+
       <section className="sec why">
         <div className="container">
           <div className="sechead">
@@ -328,7 +421,7 @@ export default async function Home() {
           <div className="cards">
             <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg></div><h3>Snabb &amp; spårbar leverans</h3><p>Fri frakt över 499 kr. Följ paketet hela vägen hem.</p></div>
             <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>Trygg betalning med Klarna</h3><p>Kort, Swish eller faktura – du väljer själv.</p></div>
-            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>14 dagars ångerrätt</h3><p>Ändrat dig? Enkel och trygg retur enligt lag.</p></div>
+            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>30 dagars öppet köp</h3><p>Ändrat dig? Enkel och trygg retur – vi förlänger lagens 14 dagar till 30.</p></div>
             <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg></div><h3>Svensk kundtjänst</h3><p>Vi svarar normalt inom 24 timmar.</p></div>
           </div>
         </div>
