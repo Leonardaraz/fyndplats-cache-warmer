@@ -26,10 +26,6 @@ export const dynamic = "force-dynamic";
 const GETINFO_URL = "https://api.17track.net/track/v2.2/gettrackinfo";
 const REGISTER_URL = "https://api.17track.net/track/v2.2/register";
 
-// 17TRACK rejected.error.code = -18019901 betyder "tracking number not
-// registered". Andra koder är permanenta fel (ogiltigt format, system etc).
-const NOT_REGISTERED_CODE = -18019901;
-
 // Asiatiska transitländer som ska döljas för kunden — paketet "syns inte"
 // förrän det landar i Sverige eller annat destinationsland.
 const HIDDEN_COUNTRIES = new Set(["CN", "HK", "TW", "SG", "MY", "JP", "KR"]);
@@ -144,16 +140,21 @@ async function gettrackinfo(tn: string, apiKey: string): Promise<Track17Response
   return (await res.json()) as Track17Response;
 }
 
-async function register(tn: string, apiKey: string): Promise<void> {
-  // Fire-and-check — vi bryr oss inte om response-body, bara om HTTP-statusen
-  // var rimlig. Eventuella registreringsfel manifesterar sig som "not yet
-  // tracked" på nästa gettrackinfo, vilket är okänt från användarens perspektiv.
-  await fetch(REGISTER_URL, {
+async function register(tn: string, apiKey: string): Promise<unknown> {
+  // Returnerar parsad body för debug-läget. I normalflödet bryr vi oss inte
+  // om resultatet — eventuella registreringsfel manifesterar sig som tomma
+  // events på nästa gettrackinfo (→ 202 pending).
+  const res = await fetch(REGISTER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", "17token": apiKey },
     body: JSON.stringify([{ number: tn }]),
     cache: "no-store",
   });
+  try {
+    return await res.json();
+  } catch {
+    return { status: res.status };
+  }
 }
 
 function buildResponse(json: Track17Response, tn: string): { body: unknown; status: number } {
@@ -222,9 +223,17 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // Debug-läge: ?debug=<TRACK17_API_KEY> returnerar RÅ 17TRACK-respons
+  // (både gettrackinfo + register) så vi kan se exakt struktur/felkoder.
+  // Gated bakom API-keyn så endast vi kan trigga det. Tas bort när tracking
+  // är verifierat stabilt.
+  const debug = req.nextUrl.searchParams.get("debug") === apiKey;
+  const debugDump: Record<string, unknown> = {};
+
   let json: Track17Response;
   try {
     json = await gettrackinfo(tn, apiKey);
+    if (debug) debugDump.firstGetinfo = json;
   } catch {
     return NextResponse.json(
       { error: "Anslutningen till spårningen fungerade inte. Försök igen om en stund." },
@@ -232,51 +241,67 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Lager 3: auto-register, men BARA vid "not registered" — inte vid andra fel
-  // (ogiltigt format, system error, quota-limit) som skulle slösa quota.
+  function hasRealEvents(j: Track17Response): boolean {
+    const a = j.data?.accepted?.[0]?.track_info;
+    return Boolean(
+      a?.destination_info?.trackinfo?.length
+      || a?.origin_info?.trackinfo?.length
+      || a?.events?.length,
+    );
+  }
+
+  // Lager 3: auto-register. Om gettrackinfo INTE gav riktiga events (oavsett
+  // om numret hamnade i rejected ELLER accepted-utan-events) → registrera och
+  // försök igen. Bredare än tidigare (som bara kollade en specifik felkod) —
+  // vilket var buggen: 17TRACK svarar med olika koder/strukturer beroende på
+  // carrier, och paket som PostNord pre-registrerar hamnar i "accepted" utan
+  // events istället för "rejected". Format-filtret (VALID_TN) + cache skyddar
+  // quota; en enstaka register på ett format-giltigt men okänt nummer är OK.
   let justRegistered = false;
-  const rejectedCode = json.data?.rejected?.[0]?.error?.code;
-  if (rejectedCode === NOT_REGISTERED_CODE) {
+  if (!hasRealEvents(json)) {
     try {
-      await register(tn, apiKey);
+      const reg = await register(tn, apiKey);
+      if (debug) debugDump.register = reg;
       justRegistered = true;
       // 17TRACK behöver tid att hämta data från carriern (PostNord, DHL etc.)
-      // — typiskt 30 sek till 2 min. En kort delay här (3s) räcker oftast
-      // för att första gettrackinfo ska ge "registered, waiting for data"
-      // istället för "not registered" igen.
+      // — typiskt 30 sek till 2 min. Kort delay (3s) ger oftast första-status.
       await new Promise((r) => setTimeout(r, 3000));
       json = await gettrackinfo(tn, apiKey);
+      if (debug) debugDump.secondGetinfo = json;
     } catch {
-      // Tystna — fallback till "in progress"-meddelande nedan.
+      // Tystna — fallback till pending-meddelande nedan.
     }
   }
 
-  // Specialfall: paketet är registrerat men 17TRACK har inte fått data från
-  // carriern ännu. Returnera 202 (Accepted) med tydligt meddelande istället
-  // för 404 → UI:n kan visa "aktiveras inom några minuter" istället för
-  // "vi hittar inte numret".
-  const accepted0 = json.data?.accepted?.[0];
-  const hasEvents = Boolean(
-    accepted0?.track_info?.destination_info?.trackinfo?.length
-    || accepted0?.track_info?.origin_info?.trackinfo?.length
-    || accepted0?.track_info?.events?.length,
-  );
-  if (justRegistered && !hasEvents) {
-    return NextResponse.json(
-      {
-        pending: true,
-        message: "Paketet är registrerat. Första spårningsdata aktiveras inom några minuter — uppdatera sidan om en stund.",
-        trackingNumber: tn,
-      },
-      { status: 202 },
-    );
+  if (debug) {
+    return NextResponse.json({ tn, justRegistered, hasRealEvents: hasRealEvents(json), ...debugDump });
+  }
+
+  // Om vi fortfarande inte har riktiga events men numret är känt/registrerat
+  // → 202 pending ("aktiveras snart") istället för rött 404-fel. Detta täcker
+  // både PostNord "Vi väntar på ditt paket" (pre-registrerat, inga scans än)
+  // och paket vi precis registrerade.
+  if (!hasRealEvents(json)) {
+    const accepted0 = json.data?.accepted?.[0];
+    // Numret är "känt" om det ligger i accepted (även utan events) eller om
+    // vi precis registrerade det utan hårt fel.
+    const known = Boolean(accepted0) || justRegistered;
+    if (known) {
+      return NextResponse.json(
+        {
+          pending: true,
+          message: "Paketet är registrerat men transportören har inte skannat det ännu. Spårningen uppdateras automatiskt — kika tillbaka om en stund.",
+          trackingNumber: tn,
+        },
+        { status: 202 },
+      );
+    }
   }
 
   const { body, status } = buildResponse(json, tn);
   // Cache:a träffar (200) i 5 min för att skydda quota mot refresh-spam.
-  // 404 cacha:s INTE — paketet kan vara registrerat sen och vi vill att
-  // kunden ska kunna retry:a snabbt utan att stå fast i cached 404.
-  // 5xx cacha:s aldrig (transienta).
+  // 404/202 cacha:s INTE — paketet kan få data när som helst och vi vill att
+  // kunden ska kunna retry:a snabbt. 5xx cacha:s aldrig (transienta).
   if (status === 200) cacheSet(tn, body, status);
   return NextResponse.json(body, { status });
 }
