@@ -228,17 +228,18 @@ export default async function Home() {
         <div className="container">
           <div className="herogrid">
             <div className="heroinner">
-              <span className="badge">✦ Noga utvalda fynd · Nytt varje vecka</span>
-              <h1>Fynda allt – till <em>låga priser</em></h1>
-              <p>Hem, mode, teknik och fritid för hela familjen. Skickas snabbt och tryggt – hela vägen hem till din dörr.</p>
+              <span className="badge">✦ Trygg svensk e-handel · Nya fynd varje vecka</span>
+              <h1>Noga utvalda fynd – <em>tryggt och svenskt</em></h1>
+              <p>Handla kvalitetsprodukter inom hem, kök, sport och elektronik. Fri frakt över 499 kr. Svensk kundtjänst som svarar inom 24 timmar.</p>
               <div className="btns">
                 <a className="btn btn-primary" href="#produkter">Handla nu →</a>
                 <a className="btn btn-ghost" href="#kategorier">Se alla kategorier</a>
               </div>
               <div className="herotrust">
-                <span><i className="dot" /> Fri frakt över 499 kr</span>
-                <span><i className="dot" /> 14 dagars ångerrätt</span>
-                <span><i className="dot" /> Google 4,9★</span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> Google 4,9★ (21 omdömen)</span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> Svensk kundtjänst</span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> 14 dagars ångerrätt</span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> Spårbar leverans</span>
               </div>
             </div>
             <div className="heromosaic">
