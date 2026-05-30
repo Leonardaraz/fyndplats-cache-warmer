@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
+import { trackPurchase } from "../lib/analytics";
 
 // Post-checkout "tack"-sida. Wix Ecom redirectar hit efter completed checkout
 // (via postFlowUrl satt i cart.tsx). Wix kan appenda ?orderId= eller liknande
@@ -23,9 +24,14 @@ export function ThankYou() {
   // (Wix tömmer cart server-side när checkout completes, men vår client-state
   // kan hänga kvar på gammal data tills nästa refresh.)
   useEffect(() => {
+    // GA4 purchase — kritisk för Google Ads konvertering. Läser
+    // fp_purchase_pending-snapshoten som cart.tsx stashar innan kassan öppnas
+    // (Wix redirectar tillbaka utan items i URL:en). Dedupar internt på
+    // transaction_id så att F5 inte rapporterar dubbla konverteringar.
+    trackPurchase(orderId);
     Cookies.remove("fp_cart");
     Cookies.remove("session"); // tvingar ny visitor-session vid nästa /butik-besök
-  }, []);
+  }, [orderId]);
 
   return (
     <div className="tack-wrap">
@@ -89,7 +95,7 @@ export function ThankYou() {
 
       <div className="tack-trust">
         <span><i className="dot" /> Fri frakt över 499 kr</span>
-        <span><i className="dot" /> 14 dagars ångerrätt</span>
+        <span><i className="dot" /> 30 dagars öppet köp</span>
         <span><i className="dot" /> Trygg Klarna-betalning</span>
       </div>
 

@@ -1,9 +1,14 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import Cookies from "js-cookie";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { currentCart } from "@wix/ecom";
+import {
+  stashPurchaseSnapshot,
+  trackBeginCheckout,
+  trackViewCart,
+} from "../lib/analytics";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 
@@ -50,6 +55,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // GA4 view_cart — fires varje gång drawern går från stängd till öppen.
+  // Cart-state läses via ref (inte i deps) så vi inte spam:ar view_cart vid
+  // quantity-ändringar i öppen drawer, men ändå ser senaste cart efter `add()`
+  // som triggar setOpen(true) direkt efter setCart.
+  const cartRef = useRef<any>(null);
+  useEffect(() => { cartRef.current = cart; }, [cart]);
+  useEffect(() => {
+    if (open) trackViewCart(cartRef.current);
+  }, [open]);
 
   const persist = () => {
     try {
@@ -105,6 +120,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const checkout = useCallback(async () => {
     setBusy(true);
     try {
+      // Stasha cart-snapshot + fyra GA4 begin_checkout INNAN redirect. Wix
+      // routar tillbaka till /tack utan items — purchase-eventet behöver det.
+      trackBeginCheckout(cart);
+      stashPurchaseSnapshot(cart);
       const { checkoutId }: any = await client.currentCart.createCheckoutFromCurrentCart({ channelType: (currentCart as any).ChannelType.WEB });
       // Bypass IAM cookie hop (createSessionCookie 404s on primary domain checkout.fyndplats.se).
       // Navigate directly to the Wix-hosted checkout app with the headless client id.
@@ -114,7 +133,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch (e: any) {
       alert("Kassan kunde inte öppnas: " + (e?.message || "okänt fel"));
     } finally { setBusy(false); }
-  }, [client]);
+  }, [client, cart]);
 
   const count = (cart?.lineItems || []).reduce((n: number, li: any) => n + (li.quantity || 0), 0);
 

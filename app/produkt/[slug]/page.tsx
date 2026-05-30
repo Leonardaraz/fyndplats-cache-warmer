@@ -44,6 +44,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       availability: p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       url: `https://www.fyndplats.se/produkt/${p.slug}`,
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "SE",
+        returnPolicyCountry: "SE",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 30,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/ReturnShippingFees",
+      },
     },
     aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "20" },
   };
@@ -89,6 +98,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           productId={p.id}
           name={p.name}
           price={p.price}
+          priceNum={p.priceNum}
           inStock={p.inStock}
           stockQuantity={p.stockQuantity}
           blurb={p.blurb}
@@ -99,6 +109,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           images={images}
           variants={p.variants}
           options={p.options}
+          category={primaryCol?.name}
         />
       </div>
 

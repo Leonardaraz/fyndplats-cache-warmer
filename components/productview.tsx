@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "./cart";
 import { Gallery } from "./gallery";
+import { trackAddToCart, trackViewItem } from "../lib/analytics";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -65,6 +66,8 @@ export function ProductView({
   images,
   variants,
   options,
+  category,
+  priceNum,
 }: {
   productId: string;
   name: string;
@@ -79,6 +82,8 @@ export function ProductView({
   images: string[];
   variants: { id: string; label: string }[];
   options?: { name: string; choices: Choice[] } | null;
+  category?: string;
+  priceNum: number;
 }) {
   const { add, busy } = useCart();
   // Förvälj billigaste varianten så att produktsidans pris matchar "Från X kr" på
@@ -91,6 +96,13 @@ export function ProductView({
   });
   const [galleryIdx, setGalleryIdx] = useState(0); // aktiv galleribild
   const [added, setAdded] = useState(false);
+
+  // GA4 view_item — fires once per produkt-sidvisning. productId i dep-arrayen
+  // gör att events skickas korrekt vid client-side route mellan produkter.
+  useEffect(() => {
+    if (!productId) return;
+    trackViewItem({ id: productId, name, priceNum, category });
+  }, [productId, name, priceNum, category]);
 
   const imageChoices = options?.choices || [];
   const hasImageVariants = imageChoices.length >= 2;
@@ -119,6 +131,11 @@ export function ProductView({
   const needsVariant = hasImageVariants || variants.length > 0;
 
   const onAdd = async () => {
+    // GA4: skicka add_to_cart med variantens pris om det finns, annars listpris.
+    const itemPrice = hasImageVariants && imageChoices[sel]?.priceNum
+      ? imageChoices[sel].priceNum
+      : priceNum;
+    trackAddToCart({ id: productId, name, priceNum: itemPrice, category });
     await add(productId, variantId || undefined);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -214,7 +231,7 @@ export function ProductView({
 
         <div className="pdp-trust">
           <span>🚚 Fri frakt över 499 kr</span>
-          <span>↩ 14 dagars ångerrätt</span>
+          <span>↩ 30 dagars öppet köp</span>
           <span>🔒 Trygg betalning med Klarna</span>
         </div>
 

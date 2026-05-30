@@ -99,18 +99,23 @@ export default function RootLayout({
           </WishlistProvider>
         </CartProvider>
         <CookieConsent />
+        {/*
+          GA4 stub måste vara definierad SYNKRONT så att klient-eventer (view_item,
+          add_to_cart, purchase) som fyras i React-useEffects hittar window.gtag.
+          next/script "afterInteractive" laddar efter hydration → eventer som
+          körs tidigare hamnar i tomma intet. Inline-stuben här pushar till
+          dataLayer; GTM-libben (lazy afterInteractive nedan) plockar upp kön
+          när den initierar.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};gtag('js',new Date());gtag('config','${GA_MEASUREMENT_ID}');`,
+          }}
+        />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
         />
-        <Script id="ga4-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
-          `}
-        </Script>
       </body>
     </html>
   );
