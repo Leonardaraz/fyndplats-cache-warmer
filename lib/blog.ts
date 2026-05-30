@@ -25,11 +25,15 @@ function mapPost(p: any): Post {
     wixImageToUrl(p?.media?.wixMedia?.image) ||
     wixImageToUrl(p?.heroImage) ||
     wixImageToUrl(p?.coverMedia?.image?.url);
+  // Wix returnerar firstPublishedDate som ett Date-objekt vid lyckad call —
+  // tvinga string så att Sort/fmtDate fungerar oavsett källa.
+  const rawDate = p?.firstPublishedDate || p?.lastPublishedDate || "";
+  const date = rawDate instanceof Date ? rawDate.toISOString() : String(rawDate);
   return {
     title: p?.title || "",
     slug: p?.slug || "",
     excerpt: p?.excerpt || "",
-    date: p?.firstPublishedDate || p?.lastPublishedDate || "",
+    date,
     cover,
     alt: p?.media?.altText || p?.title || "",
   };
