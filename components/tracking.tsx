@@ -28,6 +28,11 @@ const STAGES = ["Beställd", "Skickad", "På väg", "Nära dig", "Levererad"];
 function computeStage(status: string, evCount: number, delivered: boolean): number {
   if (delivered || status === "Delivered") return 4;
   if (status === "OutForDelivery" || status === "AvailableForPickup") return 3;
+  if (status === "InTransit") return 2;
+  // InfoReceived = avsändaren har skapat fraktsedel men paketet är inte
+  // inlämnat hos transportören ännu → "Beställd", inte "Skickad" (även om det
+  // finns 1 InfoReceived-event).
+  if (status === "InfoReceived") return 0;
   if (evCount >= 3) return 2;
   if (evCount >= 1) return 1;
   return 0;
