@@ -119,16 +119,22 @@ const PHRASE_SV: Array<[RegExp, string]> = [
   [/exception|delay/i, "Det har uppstått en avvikelse i leveransen."],
 ];
 
-// Svensk fallback per stage om ingen frasträff.
+// Svensk fallback per stage om ingen frasträff. Täcker ALLA 17TRACK-stages
+// (latest_status.status + milestone.key_stage + event.stage) så ingen väg kan
+// läcka rå engelsk enum till kunden.
 const STAGE_SV: Record<string, string> = {
   InfoReceived: "Fraktsedel skapad – paketet förbereds.",
   PickedUp: "Paketet har hämtats av transportören.",
   Departure: "Paketet har lämnat avsändarorten.",
   Arrival: "Paketet har anlänt till en terminal.",
   InTransit: "Paketet är på väg.",
-  AvailableForPickup: "Paketet finns för upphämtning.",
+  AvailableForPickup: "Paketet finns för upphämtning hos ditt ombud.",
   OutForDelivery: "Paketet är ute för leverans.",
   Delivered: "Paketet är levererat.",
+  DeliveryFailure: "Leveransförsök misslyckades – ny leverans planeras.",
+  Exception: "Det har uppstått en avvikelse i leveransen.",
+  Expired: "Spårningen har inte uppdaterats på länge.",
+  NotFound: "Ingen spårningsinformation tillgänglig ännu.",
   Returning: "Paketet är på väg tillbaka till avsändaren.",
   Returned: "Paketet har returnerats.",
 };
@@ -151,10 +157,33 @@ const STAGE_LABEL_SV: Record<string, string> = {
   AvailableForPickup: "Finns för upphämtning",
   OutForDelivery: "Ute för leverans",
   Delivered: "Levererad",
+  DeliveryFailure: "Leveransförsök misslyckades",
   Returning: "Returneras",
   Returned: "Returnerad",
   Exception: "Avvikelse",
+  Expired: "Ej uppdaterad",
+  NotFound: "Ingen information",
 };
+
+// Maskerar kinesiska transportörer + städar redundanta landssuffix
+// ("PostNord Sweden" → "PostNord"). Tomt → generiskt "Fyndplats Frakt".
+function cleanCarrier(name: string): string {
+  if (!name) return "";
+  if (/\b(china|chinese|cn|sf express|yto|sto|yunda|cainiao|aliexpress)\b/i.test(name)) {
+    return "Fraktpartner";
+  }
+  return name.replace(/\s+(Sweden|Sverige)$/i, "").trim();
+}
+
+// 17TRACK ger ETA som datum-sträng ("2026-06-10"). Formatera till svensk
+// läsbar form ("10 juni 2026"). Returnerar null om saknas/ogiltigt → UI:n
+// faller då tillbaka på "5–15 arbetsdagar".
+function fmtEtaSv(s: string | null | undefined): string | null {
+  if (!s) return null;
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("sv-SE", { day: "numeric", month: "long", year: "numeric" });
+}
 
 // Samlar alla events från alla providers (oftast en) till en platt, kronologisk lista.
 function allEventsOf(ti: Track17Track): Track17Event[] {
@@ -185,13 +214,16 @@ function mapEvent(ev: Track17Event): {
   const loc = ev.location
     || [ev.address?.city, ev.address?.state].filter(Boolean).join(", ")
     || "";
+  // 17TRACK sub_status kan ha suffix (t.ex. "InTransit_PickedUp") — slå upp
+  // exakt, annars på bas-stagen före "_". Garanterar svensk etikett.
   const stage = ev.stage || ev.sub_status || "";
+  const base = stage.split("_")[0];
+  const label = STAGE_LABEL_SV[stage] || STAGE_LABEL_SV[base] || STAGE_SV[base] || base;
   return {
     time: ev.time_iso || ev.time_utc || "",
-    description: toSwedish(ev.description || ev.sub_status || "", ev.stage),
+    description: toSwedish(ev.description || ev.sub_status || "", base),
     location: loc,
-    // Svensk rubrik (t.ex. "Registrerad" istället för "InfoReceived").
-    status: STAGE_LABEL_SV[stage] || stage,
+    status: label,
   };
 }
 
@@ -260,11 +292,12 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
   const rawStatus = ti.latest_status?.status;
   const status = mapStatus(rawStatus);
   const provider = ti.tracking?.providers?.[0]?.provider;
-  const carrier = provider?.name || "";
-  const safeCarrier = /\b(china|chinese|cn|sf express|yto|sto|yunda)\b/i.test(carrier) ? "Transportör" : carrier;
-  const eta = ti.time_metrics?.estimated_delivery_date?.to
+  const carrier = cleanCarrier(provider?.name || "");
+  const eta = fmtEtaSv(
+    ti.time_metrics?.estimated_delivery_date?.to
     || ti.time_metrics?.estimated_delivery_date?.from
-    || null;
+    || null,
+  );
   const latestTime = ti.latest_event?.time_iso || ti.latest_event?.time_utc;
 
   return {
@@ -273,7 +306,7 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
       status,
       delivered: status === "Delivered",
       eta,
-      carrier: safeCarrier,
+      carrier,
       trackingNumber: accepted.number || tn,
       updatedAt: latestTime || new Date().toISOString(),
     },
