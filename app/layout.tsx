@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { CartProvider, CartDrawer } from "../components/cart";
 import { SiteHeader, SiteFooter } from "../components/site";
@@ -7,6 +8,8 @@ import { CookieConsent } from "../components/cookieconsent";
 import { WishlistProvider, WishlistDrawer } from "../components/wishlist";
 import { ScrollIndicator } from "../components/scrollindicator";
 import { BackToTop } from "../components/backtotop";
+
+const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const fraunces = Fraunces({
@@ -96,6 +99,18 @@ export default function RootLayout({
           </WishlistProvider>
         </CartProvider>
         <CookieConsent />
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
       </body>
     </html>
   );
