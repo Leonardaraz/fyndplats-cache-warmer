@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
@@ -216,12 +217,16 @@ async function fetchProducts(): Promise<Product[]> {
 }
 
 // Promise-cached so concurrent callers (page + header) share ONE request, not parallel ones.
-export function getProducts(): Promise<Product[]> {
+// React cache() adds per-request memoisation on top of the module-level promise — harmless
+// here (the module cache short-circuits the body) but makes the dedupe semantics explicit.
+export const getProducts = cache((): Promise<Product[]> => {
   if (!productsPromise) productsPromise = fetchProducts();
   return productsPromise;
-}
+});
 
-export async function getProduct(slug: string): Promise<Product | undefined> {
+// Per-request dedup: if two RSCs on the same product page both call getProduct(slug),
+// React reuses the in-flight Promise instead of round-tripping to Wix twice.
+export const getProduct = cache(async (slug: string): Promise<Product | undefined> => {
   if (wix) {
     try {
       const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
@@ -235,7 +240,7 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
   }
   const list = await getProducts();
   return list.find((p) => p.slug === slug);
-}
+});
 
 export async function getProductSlugs(): Promise<string[]> {
   const list = await getProducts();
@@ -356,7 +361,7 @@ async function fetchCollections(): Promise<Collection[]> {
   }
 }
 
-export function getCollections(): Promise<Collection[]> {
+export const getCollections = cache((): Promise<Collection[]> => {
   if (!collectionsPromise) collectionsPromise = fetchCollections();
   return collectionsPromise;
-}
+});

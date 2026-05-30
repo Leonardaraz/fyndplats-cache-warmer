@@ -63,7 +63,7 @@ export function Gallery({
   return (
     <div className="gallery">
       <button type="button" className="gmain" onClick={() => { setZoom(false); setLightbox(true); }} aria-label="Förstora bilden">
-        {main && <Image key={main} src={main} alt={alt} width={800} height={800} priority sizes="(max-width:760px) 100vw, 45vw" />}
+        {main && <Image key={main} src={main} alt={alt} width={800} height={800} priority fetchPriority="high" sizes="(max-width:760px) 100vw, 45vw" />}
         <span className="gmain-zoom" aria-hidden>⤢</span>
       </button>
 

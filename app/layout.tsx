@@ -35,6 +35,8 @@ const orgJsonLd = {
     addressCountry: "SE",
   },
   sameAs: [
+    // Google Business Profile — kritisk bidirektionell länk för Knowledge Graph
+    "https://maps.google.com/?cid=13527624431203349873",
     "https://www.instagram.com/fyndplats/",
     "https://www.facebook.com/profile.php?id=100089607278056",
   ],
@@ -84,6 +86,14 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="sv" className={`${geist.variable} ${fraunces.variable}`}>
+      <head>
+        {/* Hint browsers to open the TLS connection to Wix's image CDN early —
+            every product image (hero, mosaic, PDP) is hosted at static.wixstatic.com,
+            and the LCP is one of those images. preconnect saves the ~300ms
+            DNS+TCP+TLS handshake on the first image fetch. */}
+        <link rel="preconnect" href="https://static.wixstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://static.wixstatic.com" />
+      </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         <CartProvider>

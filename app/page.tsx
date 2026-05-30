@@ -263,7 +263,14 @@ export default async function Home() {
               <div className="mcol">
                 {heroProducts.slice(0, 2).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
-                    <Image src={p.img} alt={p.name} fill priority={i === 0} sizes="(max-width:880px) 42vw, 22vw" />
+                    <Image
+                      src={p.img}
+                      alt={p.name}
+                      fill
+                      priority={i === 0}
+                      fetchPriority={i === 0 ? "high" : undefined}
+                      sizes="(max-width:880px) 42vw, 22vw"
+                    />
                     {p.price && <span className="htag">{p.price}</span>}
                   </a>
                 ))}
