@@ -7,10 +7,26 @@ import type { VariantMapping } from "../import/pipeline";
 // serverless-omstart. För produktion ska detta backas av en Wix Data-collection
 // eller en databas. Interfacet hålls litet så bytet blir enkelt.
 
+export type DraftStatus = "pending_review" | "published" | "rejected";
+
 export interface ProductMappingRecord {
   supplierProductId: string;
   wixProductId: string;
   variants: VariantMapping[];
+  /**
+   * Review-status. Nyimporterade produkter får "pending_review" och
+   * visible:false i Wix tills Leonard publicerar via /admin/queue.
+   * Saknar default = behandlas som "published" (back-compat med äldre rader).
+   */
+  draftStatus?: DraftStatus;
+  /** ISO-tid när posten skapades. */
+  createdAt?: string;
+  /** ISO-tid när status-ändringen skedde (publish/reject). */
+  reviewedAt?: string;
+  /** SEO-title som genererats vid import (visas i kön). */
+  seoTitle?: string;
+  /** Källadress till AliExpress-produkten — visas i kön. */
+  sourceUrl?: string;
 }
 
 export interface AuditEntry {

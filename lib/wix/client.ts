@@ -31,6 +31,11 @@ export interface WixProductInput {
    */
   options?: { name: string; choices: { name: string; colorCode?: string }[] }[];
   variants: WixVariantInput[];
+  /**
+   * Initial synlighet i butiken. Default true. När review-kön används
+   * (draft-imports) sätts den till false fram tills Leonard publicerar.
+   */
+  visible?: boolean;
 }
 
 export interface WixCreateProductResult {
@@ -70,6 +75,7 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
     name: input.name,
     productType: "PHYSICAL",
     physicalProperties: {},
+    ...(input.visible === false ? { visible: false } : {}),
     variantsInfo: {
       variants: input.variants.map((v) => ({
         sku: v.sku,
@@ -256,4 +262,70 @@ export async function createProduct(input: WixProductInput): Promise<WixCreatePr
     sku: v.sku ?? "",
   }));
   return { id: data.product.id, slug: data.product.slug, revision: data.product.revision, variants };
+}
+
+export interface WixProductSnapshot {
+  id: string;
+  revision: string;
+  name: string;
+  visible: boolean;
+  variants: { id: string; sku: string; actualPriceAmount: string }[];
+}
+
+/** Hämtar en produkt från V3-katalogen (används av review-kön för publish). */
+export async function getProduct(productId: string): Promise<WixProductSnapshot | null> {
+  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=PLAIN_DESCRIPTION`;
+  const res = await fetch(url, { method: "GET", headers: wixHeaders() });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix get-product misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as {
+    product: {
+      id: string;
+      revision: string;
+      name: string;
+      visible?: boolean;
+      variantsInfo?: {
+        variants?: { id: string; sku?: string; price?: { actualPrice?: { amount?: string } } }[];
+      };
+    };
+  };
+  const p = data.product;
+  return {
+    id: p.id,
+    revision: p.revision,
+    name: p.name,
+    visible: p.visible ?? true,
+    variants: (p.variantsInfo?.variants ?? []).map((v) => ({
+      id: v.id,
+      sku: v.sku ?? "",
+      actualPriceAmount: v.price?.actualPrice?.amount ?? "0",
+    })),
+  };
+}
+
+/** Sätter visible på en produkt (true = synlig, false = dold i butiken). */
+export async function setProductVisibility(
+  productId: string,
+  revision: string,
+  visible: boolean,
+): Promise<{ revision: string }> {
+  if (isDryRun()) return { revision };
+  const body = {
+    product: { revision, visible },
+    fieldMask: { paths: ["visible"] },
+  };
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
+    method: "PATCH",
+    headers: wixHeaders(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix set-visibility misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as { product?: { revision?: string } };
+  return { revision: data.product?.revision ?? revision };
 }

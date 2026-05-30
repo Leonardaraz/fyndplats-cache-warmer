@@ -124,6 +124,9 @@ export async function importProduct(
     options: options.length ? options : undefined,
     variants: wixVariants,
     mediaItems: mediaItems.length ? mediaItems : undefined,
+    // Standard: nya produkter göms tills publish via /admin/queue.
+    // IMPORT_DRAFT_DEFAULT=false hoppar över granskningen.
+    visible: process.env.IMPORT_DRAFT_DEFAULT === "false",
   };
 
   const created = await createProduct(wixInput);

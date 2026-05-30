@@ -26,6 +26,9 @@ export default async function AdminPage() {
   const pricing = pricingConfigFromEnv();
   const fee = paymentFeeFromEnv();
   const mappings = await store.listMappings();
+  const pendingReview = mappings.filter(
+    (m) => (m.draftStatus ?? "published") === "pending_review",
+  );
   const profits = mappings
     .map((m) => summarizeProductProfit(m, pricing.vatRatePercent, fee))
     .filter((p): p is NonNullable<typeof p> => p !== null)
@@ -126,6 +129,9 @@ export default async function AdminPage() {
 
       <h2>Verktyg</h2>
       <ul style={{ fontSize: 14 }}>
+        <li>
+          <a href="/admin/queue"><b>Granskningskö</b></a> — {pendingReview.length > 0 ? `${pendingReview.length} produkter väntar på publicering` : "publicera nyimporterade utkast (för närvarande tomt)"}
+        </li>
         <li><a href="/admin/mappings"><b>AliExpress-mappning</b></a> — länka existerande Wix-produkter till AliExpress-källor (krävs för auto-pipelinen)</li>
         <li><a href="/admin/seo"><b>SEO-migration</b></a> — V1↔V3-matchning, 301-redirects, sitemap, SEO-audit inför headless-cutover</li>
       </ul>

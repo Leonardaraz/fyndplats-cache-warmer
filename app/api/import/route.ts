@@ -47,13 +47,22 @@ export async function POST(req: Request) {
 
   try {
     const result = await importProduct(product as AliExpressProduct, pricingConfigFromEnv(), optionColorCodes);
+    const draftStatus = process.env.IMPORT_DRAFT_DEFAULT === "false" ? "published" : "pending_review";
     await getStore().saveMapping({
       supplierProductId: result.supplierProductId,
       wixProductId: result.wixProductId,
       variants: result.variantMappings,
+      draftStatus,
+      createdAt: new Date().toISOString(),
+      seoTitle: result.seo.title,
+      sourceUrl: parsed.data.sourceUrl,
     });
-    await audit("import", result.wixProductId, result.seo.title);
-    return NextResponse.json({ ok: true, result }, { status: 201 });
+    await audit(
+      draftStatus === "pending_review" ? "import-pending" : "import",
+      result.wixProductId,
+      result.seo.title,
+    );
+    return NextResponse.json({ ok: true, result, draftStatus }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Okänt fel";
     return NextResponse.json({ error: "Import misslyckades", message }, { status: 500 });
