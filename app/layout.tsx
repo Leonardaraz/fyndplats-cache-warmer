@@ -23,7 +23,7 @@ const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Fyndplats",
-  url: "https://www.fyndplats.se",
+  url: "https://www.fyndplats.se/",
   logo: "https://www.fyndplats.se/logo.svg",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
@@ -63,10 +63,9 @@ export const metadata: Metadata = {
     title: "Fyndplats | Noga utvalda fynd till smarta priser",
     description:
       "Svensk webbutik med noga utvalda fynd till smarta priser. Klarna och fri frakt över 499 kr.",
-    images: [{ url: "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg", width: 1200, height: 630 }],
   },
   robots: { index: true, follow: true },
-  alternates: { canonical: "https://www.fyndplats.se" },
+  alternates: { canonical: "https://www.fyndplats.se/" },
   verification: {
     // Replace these with actual tokens from each dashboard:
     // - Google Search Console (search.google.com/search-console)

@@ -6,11 +6,27 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "OnlineStore",
   name: "Fyndplats",
-  url: "https://fyndplats.se",
+  url: "https://www.fyndplats.se/",
   description: "Svensk webbutik med noga utvalda fynd till smarta priser.",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
   aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "21" },
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Fyndplats",
+  alternateName: "Fyndplats.se",
+  url: "https://www.fyndplats.se/",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://www.fyndplats.se/sok?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
 };
 
 const localBusinessJsonLd = {
@@ -18,7 +34,7 @@ const localBusinessJsonLd = {
   "@type": "LocalBusiness",
   "@id": "https://www.fyndplats.se/#localbusiness",
   name: "Fyndplats",
-  url: "https://www.fyndplats.se",
+  url: "https://www.fyndplats.se/",
   telephone: "+46-736-630-990",
   email: "info@fyndplats.com",
   address: {
@@ -222,6 +238,7 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }} />
 
       <section className="hero">
@@ -229,7 +246,7 @@ export default async function Home() {
           <div className="herogrid">
             <div className="heroinner">
               <span className="badge">✦ Trygg svensk e-handel · Nya fynd varje vecka</span>
-              <h1>Noga utvalda fynd – <em>tryggt köp</em></h1>
+              <h1>Fyndplats — Noga utvalda fynd, <em>tryggt köp</em></h1>
               <p>Handplockade fynd inom hem, kök, sport och elektronik – noga utvalda för svenska hem. Fri frakt över 499 kr. Svensk kundtjänst som svarar inom 24 timmar.</p>
               <div className="btns">
                 <a className="btn btn-primary" href="#produkter">Handla nu →</a>
