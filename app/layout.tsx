@@ -35,6 +35,13 @@ const orgJsonLd = {
     "https://www.instagram.com/fyndplats/",
     "https://www.facebook.com/profile.php?id=100089607278056",
   ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+46-736-630-990",
+    contactType: "customer service",
+    areaServed: "SE",
+    availableLanguage: "Swedish",
+  },
 };
 
 export const metadata: Metadata = {

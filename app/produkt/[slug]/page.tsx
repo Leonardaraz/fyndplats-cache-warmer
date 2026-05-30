@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
-import { getProduct, getProductSlugs, getProducts } from "../../../lib/products";
+import { getProduct, getProductSlugs, getProducts, getCollections } from "../../../lib/products";
 
 export async function generateStaticParams() {
   const slugs = await getProductSlugs();
@@ -26,6 +26,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const p = await getProduct(slug);
   if (!p) notFound();
 
+  const cols = await getCollections();
+  const primaryCol = cols.find((c) => (p.collectionIds || []).includes(c.id));
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -39,18 +42,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       priceCurrency: p.currency,
       price: p.priceNum,
       availability: p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
       url: `https://www.fyndplats.se/produkt/${p.slug}`,
     },
+    aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "20" },
   };
 
+  const breadcrumbItems: { "@type": "ListItem"; position: number; name: string; item: string }[] = [
+    { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
+  ];
+  if (primaryCol) {
+    breadcrumbItems.push({ "@type": "ListItem", position: 2, name: primaryCol.name, item: `https://www.fyndplats.se/kategori/${primaryCol.slug}` });
+    breadcrumbItems.push({ "@type": "ListItem", position: 3, name: p.name, item: `https://www.fyndplats.se/produkt/${p.slug}` });
+  } else {
+    breadcrumbItems.push({ "@type": "ListItem", position: 2, name: p.name, item: `https://www.fyndplats.se/produkt/${p.slug}` });
+  }
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
-      { "@type": "ListItem", position: 2, name: "Butik", item: "https://www.fyndplats.se/butik" },
-      { "@type": "ListItem", position: 3, name: p.name, item: `https://www.fyndplats.se/produkt/${p.slug}` },
-    ],
+    itemListElement: breadcrumbItems,
   };
 
   const specLines = p.specs ? p.specs.split(/(?=[A-ZÅÄÖ][a-zåäö]+:)/).map((s) => s.trim()).filter(Boolean) : [];

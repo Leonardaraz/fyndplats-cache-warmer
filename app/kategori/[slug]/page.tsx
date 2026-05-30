@@ -40,8 +40,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
-      { "@type": "ListItem", position: 2, name: "Butik", item: "https://www.fyndplats.se/butik" },
-      { "@type": "ListItem", position: 3, name: active.name, item: `https://www.fyndplats.se/kategori/${active.slug}` },
+      { "@type": "ListItem", position: 2, name: active.name, item: `https://www.fyndplats.se/kategori/${active.slug}` },
     ],
   };
 
