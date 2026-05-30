@@ -50,19 +50,19 @@ const orgJsonLd = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyndplats.se"),
   title: {
-    default: "Fyndplats | Kvalitetsprodukter till låga priser online",
+    default: "Fyndplats | Noga utvalda fynd till smarta priser",
     template: "%s | Fyndplats",
   },
   description:
-    "Fyndplats – din svenska webbutik för kvalitetsprodukter till låga priser. Fynda inom hem, mode, teknik och fritid för hela familjen. Fri frakt över 499 kr.",
-  keywords: ["fyndplats", "webbutik", "billiga produkter", "fynd", "svensk e-handel"],
+    "Fyndplats – svensk webbutik med noga utvalda fynd inom hem, mode, teknik och fritid. Smarta priser, Klarna och fri frakt över 499 kr.",
+  keywords: ["fyndplats", "webbutik", "fynd", "smarta priser", "svensk e-handel"],
   openGraph: {
     type: "website",
     locale: "sv_SE",
     siteName: "Fyndplats",
-    title: "Fyndplats | Kvalitetsprodukter till låga priser online",
+    title: "Fyndplats | Noga utvalda fynd till smarta priser",
     description:
-      "Din svenska webbutik för kvalitetsprodukter till låga priser. Fri frakt över 499 kr.",
+      "Svensk webbutik med noga utvalda fynd till smarta priser. Klarna och fri frakt över 499 kr.",
     images: [{ url: "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg", width: 1200, height: 630 }],
   },
   robots: { index: true, follow: true },

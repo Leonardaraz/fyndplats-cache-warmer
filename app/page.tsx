@@ -7,7 +7,7 @@ const jsonLd = {
   "@type": "OnlineStore",
   name: "Fyndplats",
   url: "https://fyndplats.se",
-  description: "Svensk webbutik för kvalitetsprodukter till låga priser.",
+  description: "Svensk webbutik med noga utvalda fynd till smarta priser.",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
   aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "21" },
@@ -229,8 +229,8 @@ export default async function Home() {
           <div className="herogrid">
             <div className="heroinner">
               <span className="badge">✦ Trygg svensk e-handel · Nya fynd varje vecka</span>
-              <h1>Noga utvalda fynd – <em>tryggt och svenskt</em></h1>
-              <p>Handla kvalitetsprodukter inom hem, kök, sport och elektronik. Fri frakt över 499 kr. Svensk kundtjänst som svarar inom 24 timmar.</p>
+              <h1>Noga utvalda fynd – <em>tryggt köp</em></h1>
+              <p>Handplockade fynd inom hem, kök, sport och elektronik – noga utvalda för svenska hem. Fri frakt över 499 kr. Svensk kundtjänst som svarar inom 24 timmar.</p>
               <div className="btns">
                 <a className="btn btn-primary" href="#produkter">Handla nu →</a>
                 <a className="btn btn-ghost" href="#kategorier">Se alla kategorier</a>
@@ -266,7 +266,7 @@ export default async function Home() {
 
       <div className="usp">
         <div className="container usprow">
-          <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg>Snabb leverans</span>
+          <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg>Fri frakt över 499 kr</span>
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>Trygg Klarna-betalning</span>
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>30 dagars öppet köp</span>
           <span className="uspitem">⭐ Google 4,9 (21 omdömen)</span>
@@ -326,7 +326,7 @@ export default async function Home() {
             <h2>Därför handlar du hos Fyndplats</h2>
           </div>
           <div className="cards">
-            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg></div><h3>Snabb &amp; spårbar leverans</h3><p>Fri frakt över 499 kr. Följ paketet hela vägen hem.</p></div>
+            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg></div><h3>Spårbar leverans</h3><p>Fri frakt över 499 kr. Följ paketet hela vägen hem.</p></div>
             <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>Trygg betalning med Klarna</h3><p>Kort, Swish eller faktura – du väljer själv.</p></div>
             <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>30 dagars öppet köp</h3><p>Ändrat dig? Enkel och trygg retur – vi förlänger lagens 14 dagar till 30.</p></div>
             <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg></div><h3>Svensk kundtjänst</h3><p>Vi svarar normalt inom 24 timmar.</p></div>

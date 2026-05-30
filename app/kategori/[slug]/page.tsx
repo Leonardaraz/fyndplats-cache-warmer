@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!c) return { title: "Kategori" };
   const base = pageMeta(
     c.name,
-    `Handla ${c.name} hos Fyndplats – kvalitetsprodukter till låga priser. Fri frakt över 499 kr.`,
+    `Handla ${c.name} hos Fyndplats – noga utvalda fynd till smarta priser. Fri frakt över 499 kr.`,
     `/kategori/${c.slug}`
   );
   // Per-kategori Open Graph-bild: första produktens bild i kategorin

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 const faqs: { q: string; a: string }[] = [
-  { q: "Vad kostar frakten?", a: "Standardfrakt är 19 kr inom Sverige. Vid köp över 499 kr är frakten helt fri. Vi skickar med utvald leverantör för snabb och trygg leverans." },
+  { q: "Vad kostar frakten?", a: "Standardfrakt är 19 kr inom Sverige. Vid köp över 499 kr är frakten helt fri. Vi skickar med spårbar leverans hela vägen hem." },
   { q: "Hur lång är leveranstiden?", a: "Vanlig leveranstid är 5–15 arbetsdagar från beställning. Du får en spårningskod via mejl så snart paketet lämnar vårt lager. Under storhelger kan det ta något längre." },
   { q: "Vilka betalningsmetoder accepterar ni?", a: "Vi använder Klarna för alla betalningar – betala direkt (kort, Swish, autogiro, banköverföring), faktura 14 dagar eller dela upp betalningen." },
   { q: "Kan jag ångra mitt köp?", a: "Ja, du har 30 dagars öppet köp hos Fyndplats. Svensk distansavtalslag ger 14 dagars ångerrätt – vi förlänger frivilligt till 30 dagar. Kontakta info@fyndplats.com eller fyll i kontaktformuläret med ditt ordernummer så skickar vi en retursedel. Returkostnaden är 41–167 kr beroende på produktens vikt." },

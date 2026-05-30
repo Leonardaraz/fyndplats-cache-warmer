@@ -160,7 +160,7 @@ export function ProductView({
           {displayOriginal && <span className="pdp-sale">Rea</span>}
         </div>
         <div className={`stock ${inStock ? "in" : "out"}`}>
-          {inStock ? "✓ I lager – skickas inom 1–2 dagar" : "Tillfälligt slut"}
+          {inStock ? "✓ I lager" : "Tillfälligt slut"}
         </div>
         {inStock && typeof stockQuantity === "number" && stockQuantity > 0 && stockQuantity <= 5 && (
           <div className="low-stock-warn">🔥 Endast <strong>{stockQuantity}</strong> kvar i lager</div>

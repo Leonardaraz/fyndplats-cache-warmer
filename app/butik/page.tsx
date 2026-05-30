@@ -5,7 +5,7 @@ import { pageMeta } from "../../lib/seo";
 
 export const metadata = pageMeta(
   "Butik – hela sortimentet",
-  "Handla i Fyndplats webbutik – kvalitetsprodukter till låga priser. Fri frakt över 499 kr, trygg betalning med Klarna.",
+  "Handla i Fyndplats webbutik – noga utvalda fynd till smarta priser. Fri frakt över 499 kr, trygga betalningar med Klarna.",
   "/butik"
 );
 

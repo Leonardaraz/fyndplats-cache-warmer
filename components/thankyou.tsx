@@ -65,8 +65,7 @@ export function ThankYou() {
 
       <p className="tack-lede">
         Vi har skickat en orderbekräftelse till din e-post med alla detaljer.
-        Du får ett nytt mejl med spårningsnummer när paketet är på väg
-        – brukar ta <b>1–3 arbetsdagar</b>.
+        Vi mejlar dig så snart paketet är på väg.
       </p>
 
       <div className="tack-next">
@@ -81,14 +80,14 @@ export function ThankYou() {
           <div className="tack-step-icon" aria-hidden>📦</div>
           <div className="tack-step-text">
             <strong>Förbereds & skickas</strong>
-            <span>Inom 1–3 arbetsdagar</span>
+            <span>Spårningsnummer via mejl</span>
           </div>
         </div>
         <div className="tack-step">
           <div className="tack-step-icon" aria-hidden>🚚</div>
           <div className="tack-step-text">
-            <strong>Beräknad leverans</strong>
-            <span>5–15 arbetsdagar</span>
+            <strong>Levereras</strong>
+            <span>Följ paketet hela vägen hem</span>
           </div>
         </div>
       </div>
