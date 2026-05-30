@@ -3,9 +3,9 @@ import { ContentPage } from "../../components/content";
 
 export const metadata: Metadata = {
   title: "Returer & ångerrätt",
-  description: "14 dagars ångerrätt enligt distansavtalslagen. Så här gör du en retur hos Fyndplats – steg för steg.",
+  description: "30 dagars öppet köp hos Fyndplats (svensk lag ger 14 dagars ångerrätt – vi förlänger till 30). Så här gör du en retur, steg för steg.",
   alternates: { canonical: "https://www.fyndplats.se/returer" },
-  openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/returer", title: "Returer & ångerrätt", description: "14 dagars ångerrätt enligt distansavtalslagen. Så här gör du en retur hos Fyndplats – steg för steg.", images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg"] },
+  openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/returer", title: "Returer & ångerrätt", description: "30 dagars öppet köp hos Fyndplats (svensk lag ger 14 dagars ångerrätt – vi förlänger till 30). Så här gör du en retur, steg för steg.", images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg"] },
 };
 
 export default function Returer() {
@@ -13,7 +13,7 @@ export default function Returer() {
     <ContentPage
       eyebrow="Kundservice"
       title="Returer & ångerrätt"
-      lead="Enligt EU:s konsumentskyddslagstiftning har du rätt att ångra ditt köp inom 14 dagar från den dag produkten tagits emot. Vid vissa högtider och kampanjer kan ångerrätten förlängas – det visas då på hemsidan innan köp."
+      lead="Du har 30 dagars öppet köp på alla produkter hos Fyndplats. Svensk konsumentlagstiftning (distansavtalslagen) ger 14 dagars ångerrätt från den dag produkten tagits emot – vi förlänger frivilligt till 30 dagar. Vid vissa högtider och kampanjer kan returtiden förlängas ytterligare – det visas då på hemsidan innan köp."
     >
       <h2>Så här gör du en retur</h2>
       <ol>

@@ -31,7 +31,7 @@ export default function OmOss() {
 
       <h2>Så fungerar det</h2>
       <p><strong>Trygga betalningar med Klarna.</strong> Du betalar med Klarna och kan välja mellan att betala direkt, betala senare eller dela upp köpet. Återbetalningar går alltid tillbaka till samma betalsätt du använde.</p>
-      <p><strong>14 dagars ångerrätt.</strong> Som svensk e-handlare följer vi distansavtalslagen och du har 14 dagars ångerrätt på alla köp. Vid ånger står du för returfrakten, som beror på produktens vikt – exakt kostnad framgår på retursedeln.</p>
+      <p><strong>30 dagars öppet köp.</strong> Som svensk e-handlare följer vi distansavtalslagen som ger dig 14 dagars ångerrätt – men vi förlänger frivilligt till 30 dagars öppet köp på alla produkter. Vid retur står du för returfrakten, som beror på produktens vikt – exakt kostnad framgår på retursedeln.</p>
       <p><strong>Frakt och leverans.</strong> Standardfrakt är 19 kr inom Sverige, och fri frakt över 499 kr. Leveranstiden är normalt 5–15 vardagar – när din beställning skickas får du en spårningskod via mejl.</p>
       <p><strong>Kundservice på svenska och engelska.</strong> Vi finns här när du behöver oss. Hör av dig på <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> eller <a href="tel:+46736630990">073-663 09 90</a>.</p>
 

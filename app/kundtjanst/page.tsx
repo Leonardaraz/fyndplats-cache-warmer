@@ -17,7 +17,7 @@ export default function Kundtjanst() {
     >
       <div className="cards3">
         <div className="cc"><h4>Vanliga frågor</h4><p>Svar om frakt, betalning och leverans.</p><p><a href="/vanliga-fragor">Till FAQ →</a></p></div>
-        <div className="cc"><h4>Returer &amp; ångerrätt</h4><p>14 dagars ångerrätt – så gör du.</p><p><a href="/returer">Läs om returer →</a></p></div>
+        <div className="cc"><h4>Returer &amp; ångerrätt</h4><p>30 dagars öppet köp – så gör du.</p><p><a href="/returer">Läs om returer →</a></p></div>
         <div className="cc"><h4>Kontakta oss</h4><p>Mejl, telefon och formulär.</p><p><a href="/kontaktaoss">Hör av dig →</a></p></div>
       </div>
 
@@ -26,7 +26,7 @@ export default function Kundtjanst() {
         <li><strong>Frakt:</strong> 19 kr inom Sverige, fri frakt över 499 kr.</li>
         <li><strong>Leveranstid:</strong> normalt 5–15 arbetsdagar, med spårning via mejl.</li>
         <li><strong>Betalning:</strong> tryggt med Klarna – direkt, faktura eller delbetalning.</li>
-        <li><strong>Ångerrätt:</strong> 14 dagar enligt distansavtalslagen.</li>
+        <li><strong>Öppet köp:</strong> 30 dagar (lagens 14 dagars ångerrätt förlängd av oss).</li>
       </ul>
 
       <h2>Mer information</h2>
