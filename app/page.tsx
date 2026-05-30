@@ -6,7 +6,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "OnlineStore",
   name: "Fyndplats",
-  url: "https://www.fyndplats.se",
+  url: "https://fyndplats.se",
   description: "Svensk webbutik för kvalitetsprodukter till låga priser.",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
@@ -121,7 +121,38 @@ export default async function Home() {
     }
   }
 
-  const products = mixByCategory(allProducts.filter((p) => !usedHero.has(p.slug)), cols).slice(0, 8);
+  // Pinned 8-slug curation för "Veckans fynd" — handplockade clean-bilder.
+  // Speglar HERO_CURATION/PREMIUM_CURATION-mönstret: utan curation gav
+  // mixByCategory().slice(0, 8) ett shufflande urval där bl.a. mus, makeupborste
+  // och massagepistol (alla i MOSAIC_DENYLIST p.g.a. logga/text-overlays) kunde
+  // dyka upp. Fallback faller tillbaka på MOSAIC_DENYLIST-filtrerad round-robin
+  // om en curated slug saknas i katalogen (defensivt mot katalog-ändringar).
+  const VECKANS_CURATION = [
+    "gamewave-x-handhallen-spelkonsol-med-64gb",          // Dator & Gaming
+    "trendigt-snake-chain-kedjehalsband-slat",            // Smycken
+    "mjuk-huva-handduk-i-coral-fleece",                   // Barn & Familj
+    "12-pack-hjarteballonger-roda-och-peach",             // Hem / fest
+    "digital-bagagevag",                                   // Friluftsliv & Resa
+    "elektrisk-vinoppnare",                                // Elektronik / Kök
+    "astronaut-stjarnprojektor",                           // Hem & Inredning
+    "ansiktsroller-massageverktyg-for-ansikte-och-ogon",  // Hudvård
+  ];
+  const veckansPool = allProducts.filter((p) => !usedHero.has(p.slug));
+  const veckansSlugMap = new Map(veckansPool.map((p) => [p.slug, p]));
+  const veckansPicks: typeof allProducts = [];
+  const veckansUsed = new Set<string>();
+  for (const slug of VECKANS_CURATION) {
+    const p = veckansSlugMap.get(slug);
+    if (p && !veckansUsed.has(slug)) { veckansPicks.push(p); veckansUsed.add(slug); }
+  }
+  if (veckansPicks.length < 8) {
+    for (const p of mixByCategory(veckansPool, cols)) {
+      if (veckansPicks.length >= 8) break;
+      if (veckansUsed.has(p.slug) || MOSAIC_DENYLIST.has(p.slug)) continue;
+      veckansPicks.push(p); veckansUsed.add(p.slug);
+    }
+  }
+  const products = veckansPicks.slice(0, 8);
 
   const catCounts = new Map<string, number>();
   for (const p of allProducts) for (const cid of (p.collectionIds || [])) catCounts.set(cid, (catCounts.get(cid) || 0) + 1);
@@ -260,23 +291,4 @@ export default async function Home() {
             <h2>Därför handlar du hos Fyndplats</h2>
           </div>
           <div className="cards">
-            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg></div><h3>Snabb &amp; spårbar leverans</h3><p>Fri frakt över 499 kr. Följ paketet hela vägen hem.</p></div>
-            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>Trygg betalning med Klarna</h3><p>Kort, Swish eller faktura – du väljer själv.</p></div>
-            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>14 dagars ångerrätt</h3><p>Ändrat dig? Enkel och trygg retur enligt lag.</p></div>
-            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg></div><h3>Svensk kundtjänst</h3><p>Vi svarar normalt inom 24 timmar.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="sec" style={{ paddingTop: 0 }}>
-        <div className="bandwrap">
-          <div className="band">
-            <h2>Bli först att fynda nyheterna</h2>
-            <p>Få våra bästa fynd och erbjudanden direkt i inkorgen – varje vecka.</p>
-            <a className="btn-white" href="/butik">Utforska butiken →</a>
-          </div>
-        </div>
-      </section>
-    </>
-  );
-}
+            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg></div><h3>Snabb &amp; spårb
