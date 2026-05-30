@@ -67,14 +67,14 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: "https://www.fyndplats.se/" },
   verification: {
-    // Replace these with actual tokens from each dashboard:
-    // - Google Search Console (search.google.com/search-console)
-    // - Bing Webmaster Tools (bing.com/webmasters)
-    // - Facebook Business (business.facebook.com)
-    google: 'REPLACE_WITH_GOOGLE_SEARCH_CONSOLE_TOKEN',
+    ...(process.env.GOOGLE_SEARCH_CONSOLE_TOKEN && {
+      google: process.env.GOOGLE_SEARCH_CONSOLE_TOKEN,
+    }),
     other: {
-      'msvalidate.01': 'REPLACE_WITH_BING_TOKEN',
       'facebook-domain-verification': '8xp88bilq389lzbfgavv60cijsx2mr',
+      ...(process.env.BING_VERIFICATION_TOKEN && {
+        'msvalidate.01': process.env.BING_VERIFICATION_TOKEN,
+      }),
     },
   },
 };
