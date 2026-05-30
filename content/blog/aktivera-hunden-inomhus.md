@@ -11,6 +11,8 @@ secondary_keywords:
   - hundleksaker aktivering
 category: Hundtillbehör
 publish_date: 2026-05-30
+cover: https://static.wixstatic.com/media/b379ce_52e9d5dd43304ec795fd168a621cd4b4~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Mjuk gul anka-formad plysch-tuggleksak för hund
 ---
 
 # Aktivera hunden inomhus: 12 enkla övningar för regniga dagar
@@ -28,6 +30,9 @@ En snuffelmatta är en matta med tygsnuttar där du gömmer torrfoder eller godb
 Tips: börja med synliga godbitar så att hunden förstår spelet. Öka svårighetsgraden efter några gånger.
 
 Vi har flera varianter i kategorin [Hundtillbehör](https://www.fyndplats.se/kategori/husdjur) om du vill kika på alternativ.
+
+[![Långsam hundskål i plast med roterande boll i mitten för snabbätande hundar](https://static.wixstatic.com/media/b379ce_13da577746334207afb632856523ff2c~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/langsam-hundskal-roterande-boll "Se i butiken →")
+
 
 ## 2. Aktiveringsleksaker — godis som måste förtjänas
 
@@ -47,6 +52,9 @@ Variation: stoppa rullen i en kartong med fler rullar och tomma toarullar, och l
 Hallen är ofta lägenhetens längsta sträcka. Sätt hunden i sitt, kasta en boll, säg "hämta" och sen "släpp". Det här är fysisk aktivering plus lydnad i ett — och bra för hundar som behöver springa men inte kan ut.
 
 Funkar bäst med mjuka bollar så att grannarna under inte vill flytta.
+
+[![Hundsele i vest-stil med matchande koppel](https://static.wixstatic.com/media/b379ce_8e38b063dbd04e7fa7e4e55c2438e825~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/hundsele-med-koppel-bekvam-vastsele "Se i butiken →")
+
 
 ## 5. Dölj och hitta-leken (favorit hos de flesta hundar)
 
@@ -71,6 +79,9 @@ För större hundar: använd soffan som hopp, kuddar som slalom och mattan som "
 En aktiv hund som tuggar är en hund som varvar ner. Långsam tuggning sänker pulsen och frigör endorfiner. Investera i ett par bra tuggleksaker eller naturliga tuggben (ox-senor, hjorthorn, fyllda kongs i frysen).
 
 En fryst kong med våtfoder håller en hund sysselsatt i 20–40 minuter. Det är ofta nog för att du själv ska få äta lunch i lugn och ro.
+
+[![Reflekterande hundkoppel med bungee-stötdämpare](https://static.wixstatic.com/media/b379ce_b762d7e13114410ba7fbe8bdd4c4e857~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/reflekterande-hundkoppel-med-stotdampning-slitstarkt-taktiskt "Se i butiken →")
+
 
 ## 9. Spel med två koppar
 

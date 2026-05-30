@@ -466,6 +466,11 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .prose a{color:var(--orange);font-weight:600;text-decoration:none}
 .prose a:hover{text-decoration:underline}
 .prose strong{color:var(--ink);font-weight:700}
+.prose figure.blog-product-img{margin:28px 0;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.prose figure.blog-product-img a{display:block;font-weight:400}
+.prose figure.blog-product-img img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;transition:transform .35s ease}
+.prose figure.blog-product-img a:hover img{transform:scale(1.02)}
+.prose figure.blog-product-img figcaption{padding:10px 14px;font-size:13px;color:var(--soft);background:var(--warm);border-top:1px solid var(--line);text-align:center}
 .callout{background:var(--warm);border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:12px;padding:18px 20px;margin:22px 0}
 .callout p:last-child{margin:0}
 .cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:26px 0}

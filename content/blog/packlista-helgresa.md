@@ -11,6 +11,8 @@ secondary_keywords:
   - resepacklista
 category: Resor
 publish_date: 2026-05-30
+cover: https://static.wixstatic.com/media/b379ce_999120d428b743d7bef2903a034299f0~mv2.png/v1/fit/w_1600,h_1600,q_85/file.png
+cover_alt: 550 ml reseflaska i härdat glas med svart bärrem
 ---
 
 # Packlistan för en helgresa: så packar du smart för 2–3 dagar
@@ -24,6 +26,9 @@ Den här guiden löser det. Du får en komplett, kategori-uppdelad packlista fö
 Det vanligaste packningsmisstaget är att packa för det väder man *hoppas* på. Kolla väderprognosen för resmålet två-tre dagar innan och *packa för det väder du ser*, inte för det väder som "brukar vara" på den platsen.
 
 Lägg också alltid till ett extra lager för plötsligt väderomslag — i Sverige (och stora delar av Europa) kan det bli 8 grader kallare på en eftermiddag.
+
+[![Vit handhållen klädångare som ångar en upphängd skjorta](https://static.wixstatic.com/media/b379ce_71122455df444f378ac70187740bdd62~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/handhallen-kladangare "Se i butiken →")
+
 
 ## Den kompletta packlistan för 2–3 dagar
 
@@ -94,6 +99,9 @@ Schampoflaskor och hudvård lever ibland sina egna liv i bagaget. Packa allt vå
 ### 5. Den största tröjan på flygplatsen
 Om handbagaget är fullt och du har två tröjor: bär den största. Flygbolagen väger sällan det du har på dig, och det funkar dessutom som värmeplagg på ett kallt flyg.
 
+[![Grå bagageorganiserare i filt med fack i bagageutrymmet på en bil](https://static.wixstatic.com/media/b379ce_2ce62fd9e00b473a9aa1e43a954d5285~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/bagageorganiserare-bil-filt "Se i butiken →")
+
+
 ## Handbagage eller incheckad väska?
 
 För en helgresa går nästan alltid handbagaget. Två fördelar:
@@ -114,6 +122,9 @@ Vill du klämma in mer i handbagaget: använd en packbar väska som komprimerar 
 **Glasögon eller linser** — extra par alltid värt vikten.
 
 Det här är inte alla, men det är de fem som folk glömmer oftast. Tre minuter att kolla av innan dörren stängs.
+
+[![Stor vattentålig necessär uppfälld med organiserade fack](https://static.wixstatic.com/media/b379ce_41c20d63121c429296035b19f8d33dd1~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/resenacessar-vattentalig-och-rymlig-necessar "Se i butiken →")
+
 
 ## Special-fall
 

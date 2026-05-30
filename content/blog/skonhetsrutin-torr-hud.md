@@ -11,6 +11,8 @@ secondary_keywords:
   - torr hud ansikte
 category: Skönhet & hälsa
 publish_date: 2026-05-30
+cover: https://static.wixstatic.com/media/b379ce_2f4eb3d44446490cb0cb758d215a05ab~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Ansiktsmaskborstar-set med skål, spatlar och rosa penslar
 ---
 
 # Skönhetsrutin för torr hud: morgon och kväll, steg för steg
@@ -29,6 +31,9 @@ Innan vi går in på rutinen — det är bra att veta att "torr hud" kan betyda 
 - **Tillfälligt uttorkad hud** (klimat, vatten, produkter, stress) — huden tappar fukt
 
 De flesta svenskar har en blandning under vintern: tillfälligt uttorkad hud överlagrad på en kanske helt normal sommarhud. Båda gynnas av samma typ av rutin: mild rengöring, mycket återfuktning, och en barriär som håller fukten kvar.
+
+[![Elektrisk porrensare i vit design med utbytbara munstycken](https://static.wixstatic.com/media/b379ce_722c374c5a1a41ff9bc530763466c92a~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/elektrisk-porrensare "Se i butiken →")
+
 
 ## Morgonrutinen (4 steg, 3–4 minuter)
 
@@ -100,6 +105,9 @@ Tips: Klassiska oljor som jojoba, marula och avokado funkar utmärkt för torr h
 > **Bildförslag:** Person använder serum i kvällsbelysning på badrum.
 > **Alt-text:** Kvällsrutin hudvård: serum för torr hud.
 
+[![Röd LED infraröd terapi-pad applicerad på skuldra](https://static.wixstatic.com/media/b379ce_b1677f32b68148f3b329538ebcaaa495~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/infrarod-led-terapi-pad-rodljus "Se i butiken →")
+
+
 ## En gång i veckan: ansiktsmask
 
 Lägg in en återfuktande ansiktsmask en kväll i veckan — söndagar funkar bra. Välj en kräm- eller sleeping mask, inte en clayb (lermask), som drar ut fukt.
@@ -115,6 +123,9 @@ En enkel rutin: applicera ett tjockt lager hydrerande mask, vänta 15 minuter, k
 - **Heta duschar i ansiktet** — temperaturchock
 
 Det här betyder inte att de här produkterna är dåliga — bara att de inte passar när huden är i akut behov av återfuktning.
+
+[![Gua Sha massagesten i grön jade och rosa rosenkvarts](https://static.wixstatic.com/media/b379ce_0840f2946dae4aca93a7fc4133788de0~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/gua-sha-massagesten-i-akta-jade "Se i butiken →")
+
 
 ## Livsstilsfaktorer som gör större skillnad än de flesta produkter
 

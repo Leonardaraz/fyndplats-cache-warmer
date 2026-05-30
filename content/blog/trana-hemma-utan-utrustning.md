@@ -11,6 +11,8 @@ secondary_keywords:
   - hemmagym billigt
 category: Träning
 publish_date: 2026-05-30
+cover: https://static.wixstatic.com/media/b379ce_10626c7d858a4bd0a6425fe6d1cfe728~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Magtränare AB-hjul i svart med handtag på trägolv
 ---
 
 # Träna hemma utan utrustning: nybörjarguiden som funkar
@@ -27,6 +29,9 @@ Två saker gör hemmaträning *bättre* än ett gym för många nybörjare:
 2. **Konstant kontext.** När träningen finns i samma rum som du lever ditt liv, blir den en del av rutinen. Forskning på vanor visar att det är avgörande.
 
 Nackdelen är att utvecklingen i ren styrka stannar av efter några månader om du bara använder kroppsvikten. Men för de första 4–6 månaderna är det inte ett problem — då bygger kroppen muskler från i princip nollnivå.
+
+[![Motståndsband 11-delars set med band i olika färger och tillbehör](https://static.wixstatic.com/media/b379ce_1abd3f8210514bbd9e65750381c63c38~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/motstandsband-11-delars-set "Se i butiken →")
+
 
 ## De tio basövningarna du behöver kunna
 
@@ -128,6 +133,9 @@ Vila 60 sekunder mellan set. Värm upp 2 minuter med jumping jacks innan.
 
 Upprepa vecka 3 men öka antingen reps med 2 eller vilan minskar med 10 sekunder. När det känns lättare: lägg till ett set.
 
+[![Svart digital hopprep med räknare-display och skumhandtag](https://static.wixstatic.com/media/b379ce_3231e7347ddb4042833add3621aeb792~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/digital-hopprep "Se i butiken →")
+
+
 ## De vanligaste misstagen
 
 **Att börja för hårt.** Om du inte tränat på ett halvår och börjar med 50 burpees är du borta i tre dagar och slutar. Bygg gradvis.
@@ -147,6 +155,9 @@ Det blir det. Efter 6–8 veckor kommer många övningar att kännas hanterbara.
 3. **Lägg till lätt utrustning** — ett par enkla hantlar, ett gummiband eller en kettlebell ger nytt liv åt programmet utan att kosta mycket.
 
 Vi har ett urval av enkel hemmaträning-utrustning i kategorin [Träning](https://www.fyndplats.se/kategori/traning-gym) — bra fynd för dig som vill ta steget från ren kroppsviktsträning till lätt motstånd.
+
+[![Lila akupressurmatta med matchande nackkudde och tusentals plast-spikar](https://static.wixstatic.com/media/b379ce_e0b84013d7e8421facceec7045a5ae99~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/spikmatta-akupressurmatta-kudde-rygg-nacke "Se i butiken →")
+
 
 ## Vad du *faktiskt* behöver — om du vill köpa något
 

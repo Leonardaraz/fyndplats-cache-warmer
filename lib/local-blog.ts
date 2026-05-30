@@ -79,6 +79,21 @@ function renderInline(s: string): string {
   return out;
 }
 
+// Block-level produktbild: standalone-rad med
+//   [![alt](image-url)](product-url "valfri caption")
+// renderas som <figure> med länkad <img> + valfri caption. Används av blogg-
+// inläggen för att länka in produktbilder från Wix CDN.
+function renderProductImage(line: string): string | null {
+  const m = line.match(/^\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^\s)]+)(?:\s+"([^"]*)")?\)$/);
+  if (!m) return null;
+  const [, alt, src, href, caption] = m;
+  const safeAlt = escapeHtml(alt);
+  const safeSrc = escapeHtml(src);
+  const safeHref = escapeHtml(href);
+  const cap = caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : "";
+  return `<figure class="blog-product-img"><a href="${safeHref}"><img src="${safeSrc}" alt="${safeAlt}" loading="lazy" /></a>${cap}</figure>`;
+}
+
 function renderMarkdown(md: string): string {
   const lines = md.split(/\r?\n/);
   const out: string[] = [];
@@ -135,6 +150,15 @@ function renderMarkdown(md: string): string {
     if (/^---\s*$/.test(trimmed)) {
       flushAll();
       break;
+    }
+
+    // Produktbild på egen rad: [![alt](img)](href "caption")
+    const prodImg = renderProductImage(trimmed);
+    if (prodImg) {
+      flushAll();
+      out.push(prodImg);
+      i++;
+      continue;
     }
 
     // H1 droppas — titeln renderas via ContentPage.
@@ -221,6 +245,10 @@ function deriveExcerpt(md: string): string {
 let cache: Promise<LocalPost[]> | null = null;
 
 export function getLocalPosts(): Promise<LocalPost[]> {
+  // I dev (NODE_ENV !== "production") läser vi alltid om — annars håller
+  // modul-cachen kvar gamla .md-innehåll genom Fast Refresh och vi ser inte
+  // ändringar i innehåll/frontmatter förrän servern startas om manuellt.
+  if (process.env.NODE_ENV !== "production") return readAllPosts();
   if (!cache) cache = readAllPosts();
   return cache;
 }

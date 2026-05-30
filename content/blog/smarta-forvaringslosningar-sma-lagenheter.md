@@ -11,6 +11,8 @@ secondary_keywords:
   - förvaringsidéer hemmet
 category: Hem & inredning
 publish_date: 2026-05-30
+cover: https://static.wixstatic.com/media/b379ce_4edec22273ee47659532d1414e077f13~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Vit 2-vånings utdragbar förvaringshylla under diskbänk
 ---
 
 # Smarta förvaringslösningar för små lägenheter — 12 idéer som faktiskt funkar
@@ -28,6 +30,9 @@ Tips: en enkel hylla 25 cm under taket runt hela rummet kan rymma allt från res
 > **Bildförslag:** Vitt vardagsrum med bokhylla från golv till tak.
 > **Alt-text:** Smart förvaring i liten lägenhet med bokhylla som utnyttjar takhöjden.
 
+[![Grå bagageorganiserare i filt med fack i bagageutrymmet på en bil](https://static.wixstatic.com/media/b379ce_2ce62fd9e00b473a9aa1e43a954d5285~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/bagageorganiserare-bil-filt "Se i butiken →")
+
+
 ## 2. Möbler med dolt utrymme
 
 Soffor med förvaringslåda, sängar med lyftbar madrassbotten, pallar med lock och soffbord med hyllor under skivan — alla löser samma problem: de stjäl ingen extra kvadratmeter, men ger dig dolt utrymme för sängkläder, böcker eller filtar.
@@ -38,6 +43,9 @@ Vill du komma åt fler såna lösningar samlade på ett ställe kan du kika i Fy
 
 En oorganiserad köksdel är ofta inte en yta-fråga utan ett kaos-fråga. Lägg några timmar på att tömma alla kökslådor, slänga sånt du inte använt på ett år och sedan dela in lådorna med justerbara lådorganiserare. Plötsligt rymmer en standardlåda dubbelt så mycket som tidigare, och du hittar köksredskapen på två sekunder.
 
+[![Väggmonterad magnetisk knivlist i akaciaträ med flera knivar](https://static.wixstatic.com/media/b379ce_481e2cfe833748eab9a80a3b69a56beb~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/magnetisk-knivhallare-akacia-vaggmonterad-knivlist "Se i butiken →")
+
+
 ## 4. Magnetlist på insidan av skåpsdörren
 
 En enkel magnetlist på insidan av köksskåpsdörren håller ordning på saxar, nyckelringar, smala verktyg och kryddburkar med metallock. Det är några minuters jobb att installera och ger dig en helt ny förvaringsyta som du inte visste att du hade.
@@ -45,6 +53,9 @@ En enkel magnetlist på insidan av köksskåpsdörren håller ordning på saxar,
 ## 5. Tänk vertikalt i hallen — det är där allt börjar krocka
 
 Hallen är där små lägenheter brukar haverera först: jackor, skor, nycklar, paket, mössor, hundkoppel. En väggmonterad krokstång med 5–8 krokar tar fyra centimeter på djupet och löser hälften av problemen direkt. Komplettera med ett smalt skoställ och en bricka för nycklar på en hylla, så har du en hall som klarar tre människor utan att man behöver kliva över saker.
+
+[![Genomskinlig roterande sminkförvaring med 5 fack fylld med smink](https://static.wixstatic.com/media/b379ce_5e6a2f05e24b44239bb57a243fc0f3d2~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/roterande-sminkforvaring-360 "Se i butiken →")
+
 
 ## 6. Under sängen är guldgruva-yta
 

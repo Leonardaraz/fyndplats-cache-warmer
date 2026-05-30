@@ -11,6 +11,8 @@ secondary_keywords:
   - basverktyg hemmet
 category: Verktyg
 publish_date: 2026-05-30
+cover: https://static.wixstatic.com/media/b379ce_3ce29e97fa494403a9f70dd70795927e~mv2.png/v1/fit/w_1600,h_1600,q_85/file.png
+cover_alt: Digitalt skjutmått i rostfritt stål med stor LCD-display
 ---
 
 # DIY-verktyg för nybörjare: grundutrustningen varje hem behöver
@@ -26,6 +28,9 @@ Den här guiden är skriven för dig. En lista över de 14 verktyg som löser 90
 **2. Köp lagom kvalitet.** Billigaste verktygen håller inte. Dyraste behövs inte. Mellanklass håller i decennier för ett vanligt hem.
 
 **3. Köp i ordning, inte allt på en gång.** Det du behöver i månad ett är inte samma som månad sex. Vi har graderat listan nedan.
+
+[![Mini elektrisk precisionsskruvdragare med bituppsättning i etui](https://static.wixstatic.com/media/b379ce_875f56e5ad4f4f2fa4f91387d6d1e318~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/elektrisk-precisionsskruvdragare "Se i butiken →")
+
 
 ## De första 5 — det absoluta minimumet
 
@@ -94,6 +99,9 @@ Tre lim täcker det mesta:
 - Trälim (PVA) för möbler
 - Monteringslim ("no more nails") för speglar eller hyllor man inte vill borra för
 
+[![Taktisk LED-ficklampa i svart aluminium med USB-laddning och zoom](https://static.wixstatic.com/media/b379ce_a9abd47dbd9f4ae6a99203f073b786c8~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/taktisk-led-ficklampa-2000lm-usb-laddbar "Se i butiken →")
+
+
 ## De sista 4 — när du tar steget till "riktig DIY"
 
 Det här är när det börjar bli kul.
@@ -139,6 +147,9 @@ Det är lätt att hamna i fällan att köpa varje cool gadget på köpfest:
 - En **laser-vattenpass** är fantastisk men en 200-kronors klassiker räcker för det mesta.
 
 Köp specialverktyg när du har en *specifik* uppgift — inte i förebyggande syfte.
+
+[![Mandolinskärare i rostfritt stål med säkerhetsskydd och skivad grönsak](https://static.wixstatic.com/media/b379ce_8b8a5823be4b45cea8ae3c1a4922bf2a~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/mandolinskarare-rostfritt-stal "Se i butiken →")
+
 
 ## Hur du faktiskt börjar använda dem
 
