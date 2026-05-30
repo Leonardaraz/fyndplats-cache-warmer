@@ -50,7 +50,7 @@ export function ProductCard({ p }: { p: Product }) {
               </>
             )}
           </span>
-          <span className="pbtn">Köp</span>
+          <span className="pbtn" style={{ background: "#C2410C" }}>Köp</span>
         </div>
       </div>
     </a>
