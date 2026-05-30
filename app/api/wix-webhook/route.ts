@@ -30,6 +30,8 @@ import ShippingConfirmationEmail, {
 import RefundConfirmationEmail, {
   type RefundConfirmationProps,
 } from "@/emails/refund-confirmation";
+import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
+import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -399,6 +401,26 @@ export async function POST(req: NextRequest) {
   }
 
   const { eventType, entity } = unwrap(payload);
+
+  // Abandoned checkout (wix.ecom.v1.abandoned_checkout, slug=created) — enqueue
+  // the cart for the 3-email recovery flow. Slug guard means we only act on
+  // creations; updates/deletes are ack:ed below as "unknown".
+  if (eventType.includes("abandoned_checkout") || entity.abandonedCheckout) {
+    const slug = typeof (payload as { slug?: unknown }).slug === "string"
+      ? (payload as { slug: string }).slug
+      : undefined;
+    try {
+      const result = await handleAbandonedCheckoutCreated({
+        slug,
+        abandonedCheckout: (entity.abandonedCheckout as Record<string, unknown> | undefined) ?? entity,
+      } as Parameters<typeof handleAbandonedCheckoutCreated>[0]);
+      return NextResponse.json({ received: true, abandonedCart: result }, { status: 200 });
+    } catch (err) {
+      console.error("[wix-webhook] abandoned_checkout fel", err);
+      return NextResponse.json({ error: "abandoned-cart handler failed" }, { status: 500 });
+    }
+  }
+
   const kind = classify(eventType, entity);
 
   if (kind === "unknown") {
@@ -411,6 +433,14 @@ export async function POST(req: NextRequest) {
 
   try {
     if (kind === "order_created") {
+      // Cancel any in-flight abandoned-cart sequence for this checkout + seed
+      // used_addresses with the buyer so the 5% code doesn't go out next time.
+      // Best-effort: a failure here must not block the order-confirmation email.
+      try {
+        await onWixOrderCreatedForAbandonedCart(entity as Parameters<typeof onWixOrderCreatedForAbandonedCart>[0]);
+      } catch (err) {
+        console.error("[wix-webhook] onWixOrderCreatedForAbandonedCart fel (ignorerar)", err);
+      }
       const props = buildOrderConfirmationProps(entity);
       if (!props) {
         console.warn("[wix-webhook] order_created: kunde inte extrahera kund — skippar");
