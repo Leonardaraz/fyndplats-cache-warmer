@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     google: 'REPLACE_WITH_GOOGLE_SEARCH_CONSOLE_TOKEN',
     other: {
       'msvalidate.01': 'REPLACE_WITH_BING_TOKEN',
-      'facebook-domain-verification': 'REPLACE_WITH_FACEBOOK_TOKEN',
+      'facebook-domain-verification': '8xp88bilq389lzbfgavv60cijsx2mr',
     },
   },
 };
