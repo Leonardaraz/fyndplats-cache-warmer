@@ -28,6 +28,21 @@ const nextConfig: NextConfig = {
 
       // Wildcard: täcker de 204 produkter vars slug är oförändrad.
       { source: "/product-page/:slug", destination: "/produkt/:slug", permanent: true },
+
+      // Gamla Wix-kategori-URL:er → headless /kategori/[slug].
+      // "Sport & Fritid" och "Skönhet & Hälsa" finns inte som egna kategorier
+      // i V3-katalogen — närmaste matchning är Friluftsliv & Resa resp. Hudvård & Ansikte.
+      { source: "/elektronik", destination: "/kategori/elektronik", permanent: true },
+      { source: "/hem-och-inredning", destination: "/kategori/hem-inredning", permanent: true },
+      { source: "/kok-och-matlagning", destination: "/kategori/kok-matlagning", permanent: true },
+      { source: "/sport-och-fritid", destination: "/kategori/friluftsliv-resa", permanent: true },
+      { source: "/skonhet-och-halsa", destination: "/kategori/hudvard-ansikte", permanent: true },
+      { source: "/mode-och-accessoarer", destination: "/kategori/mode-accessoarer", permanent: true },
+      { source: "/smycken", destination: "/kategori/smycken", permanent: true },
+      { source: "/husdjur", destination: "/kategori/husdjur", permanent: true },
+
+      // Wix-sajtens "blank-7"-sida var omdömessidan.
+      { source: "/blank-7", destination: "/omdomen", permanent: true },
     ];
   },
 };
