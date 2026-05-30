@@ -137,7 +137,8 @@ export function TrackingWidget() {
   // ——— rendering ———
   const status = data?.status || "";
   const delivered = !!data?.delivered || status === "Delivered";
-  const isException = status === "Exception" || status === "Expired" || status === "Undelivered";
+  const isException = status === "Exception" || status === "Expired"
+    || status === "DeliveryFailure" || status === "Undelivered";
   const carrier = data?.carrier || "Fyndplats Frakt";
   const events = (data?.events || []).map((ev) => ({
     time: fmtTime(pick(ev as Record<string, unknown>, "time", "time_iso", "time_raw", "date")),
