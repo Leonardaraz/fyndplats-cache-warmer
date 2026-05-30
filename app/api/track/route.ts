@@ -63,24 +63,31 @@ interface Track17Event {
   time_iso?: string;
   time_utc?: string;
   description?: string;
-  description_translation?: { description?: string };
   location?: string;
   stage?: string;
   sub_status?: string;
-  source_data?: { country?: string; country_iso?: string };
-  address?: { country?: string; country_iso?: string };
+  // 17TRACK v2.2: event-adress med country (ISO eller namn), city etc.
+  address?: { country?: string; state?: string; city?: string };
 }
 
+// 17TRACK v2.2 faktisk struktur (verifierad mot live debug-svar):
+// track_info.tracking.providers[].events[] = själva händelserna
+// track_info.latest_status.status = övergripande status
+// track_info.time_metrics.estimated_delivery_date = ETA
 interface Track17Track {
-  delivery_status?: string;
-  is_delivered?: boolean;
-  est_delivery_date?: string;
-  carrier?: { name?: string };
-  providers?: Array<{ provider?: { name?: string } }>;
-  origin_info?: { trackinfo?: Track17Event[] };
-  destination_info?: { trackinfo?: Track17Event[] };
-  events?: Track17Event[];
-  latest_event_time?: string;
+  latest_status?: { status?: string; sub_status?: string };
+  latest_event?: Track17Event;
+  time_metrics?: {
+    estimated_delivery_date?: { from?: string | null; to?: string | null };
+  };
+  misc_info?: { service_type?: string };
+  tracking?: {
+    providers?: Array<{
+      provider?: { name?: string; country?: string };
+      service_type?: string;
+      events?: Track17Event[];
+    }>;
+  };
 }
 
 interface Track17Response {
@@ -91,11 +98,21 @@ interface Track17Response {
   };
 }
 
+// Samlar alla events från alla providers (oftast en) till en platt, kronologisk lista.
+function allEventsOf(ti: Track17Track): Track17Event[] {
+  const evs: Track17Event[] = [];
+  for (const p of ti.tracking?.providers ?? []) {
+    for (const e of p.events ?? []) evs.push(e);
+  }
+  return evs;
+}
+
 function isHiddenLocation(ev: Track17Event): boolean {
-  const c1 = (ev.source_data?.country_iso || "").toUpperCase();
-  const c2 = (ev.address?.country_iso || "").toUpperCase();
-  if (c1 && HIDDEN_COUNTRIES.has(c1)) return true;
-  if (c2 && HIDDEN_COUNTRIES.has(c2)) return true;
+  const country = (ev.address?.country || "").toUpperCase();
+  if (country && (HIDDEN_COUNTRIES.has(country)
+    || /\b(CHINA|KINA|HONG\s*KONG|TAIWAN|SINGAPORE|MALAYSIA|JAPAN|KOREA)\b/.test(country))) return true;
+  const city = (ev.address?.city || "").toUpperCase();
+  if (/\b(SHENZHEN|GUANGZHOU|HONGKONG|HONG\s*KONG|SHANGHAI|YIWU)\b/.test(city)) return true;
   const loc = (ev.location || "").toUpperCase();
   if (/\b(CN|CHINA|KINA|SHENZHEN|HONGKONG|HONG\s*KONG|TAIWAN|SINGAPORE|MALAYSIA)\b/.test(loc)) return true;
   return false;
@@ -107,26 +124,31 @@ function mapEvent(ev: Track17Event): {
   location: string;
   status: string;
 } {
+  const loc = ev.location
+    || [ev.address?.city, ev.address?.state].filter(Boolean).join(", ")
+    || "";
   return {
     time: ev.time_iso || ev.time_utc || "",
-    description: ev.description_translation?.description || ev.description || ev.sub_status || "",
-    location: ev.location || "",
+    description: ev.description || ev.sub_status || "",
+    location: loc,
     status: ev.stage || ev.sub_status || "",
   };
 }
 
-function mapStatus(deliveryStatus: string | undefined, isDelivered: boolean | undefined): string {
-  if (isDelivered || deliveryStatus === "Delivered") return "Delivered";
-  switch (deliveryStatus) {
+function mapStatus(status: string | undefined): string {
+  switch (status) {
+    case "Delivered": return "Delivered";
     case "OutForDelivery": return "OutForDelivery";
     case "AvailableForPickup": return "AvailableForPickup";
-    case "Transit":
-    case "InTransit": return "InTransit";
+    case "InTransit":
+    case "Transit": return "InTransit";
+    case "PickedUp":
     case "Pickup": return "Pickup";
     case "Exception": return "Exception";
     case "Expired": return "Expired";
     case "NotFound": return "NotFound";
-    default: return deliveryStatus || "InfoReceived";
+    case "InfoReceived": return "InfoReceived";
+    default: return status || "InfoReceived";
   }
 }
 
@@ -161,41 +183,39 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
   const accepted = json.data?.accepted?.[0];
   const rejected = json.data?.rejected?.[0];
 
-  if (rejected?.error) {
-    return {
-      body: { error: rejected.error.message || "Spårningen hittades inte än" },
-      status: 404,
-    };
-  }
-
   if (!accepted?.track_info) {
     return {
-      body: { error: "Inget spårningsresultat hittades än. Försök igen senare." },
+      body: { error: rejected?.error?.message || "Inget spårningsresultat hittades än." },
       status: 404,
     };
   }
 
   const ti = accepted.track_info;
-  const allEvents: Track17Event[] = [
-    ...(ti.destination_info?.trackinfo ?? []),
-    ...(ti.origin_info?.trackinfo ?? []),
-    ...(ti.events ?? []),
-  ];
-  const visibleEvents = allEvents.filter((ev) => !isHiddenLocation(ev)).map(mapEvent);
+  // Events ligger i tracking.providers[].events[] (17TRACK v2.2). Filtrera bort
+  // asiatiska transit-events, kronologisk ordning (nyast först som 17TRACK ger).
+  const visibleEvents = allEventsOf(ti)
+    .filter((ev) => !isHiddenLocation(ev))
+    .map(mapEvent);
 
-  const status = mapStatus(ti.delivery_status, ti.is_delivered);
-  const carrier = ti.carrier?.name || ti.providers?.[0]?.provider?.name || "";
+  const rawStatus = ti.latest_status?.status;
+  const status = mapStatus(rawStatus);
+  const provider = ti.tracking?.providers?.[0]?.provider;
+  const carrier = provider?.name || "";
   const safeCarrier = /\b(china|chinese|cn|sf express|yto|sto|yunda)\b/i.test(carrier) ? "Transportör" : carrier;
+  const eta = ti.time_metrics?.estimated_delivery_date?.to
+    || ti.time_metrics?.estimated_delivery_date?.from
+    || null;
+  const latestTime = ti.latest_event?.time_iso || ti.latest_event?.time_utc;
 
   return {
     body: {
       events: visibleEvents,
       status,
-      delivered: Boolean(ti.is_delivered || status === "Delivered"),
-      eta: ti.est_delivery_date || null,
+      delivered: status === "Delivered",
+      eta,
       carrier: safeCarrier,
       trackingNumber: accepted.number || tn,
-      updatedAt: ti.latest_event_time || new Date().toISOString(),
+      updatedAt: latestTime || new Date().toISOString(),
     },
     status: 200,
   };
@@ -243,11 +263,9 @@ export async function GET(req: NextRequest) {
 
   function hasRealEvents(j: Track17Response): boolean {
     const a = j.data?.accepted?.[0]?.track_info;
-    return Boolean(
-      a?.destination_info?.trackinfo?.length
-      || a?.origin_info?.trackinfo?.length
-      || a?.events?.length,
-    );
+    if (!a) return false;
+    // Events i 17TRACK v2.2 ligger i tracking.providers[].events[].
+    return allEventsOf(a).length > 0 || Boolean(a.latest_event?.time_iso);
   }
 
   // Lager 3: auto-register. Om gettrackinfo INTE gav riktiga events (oavsett
