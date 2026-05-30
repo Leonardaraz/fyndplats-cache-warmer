@@ -60,6 +60,8 @@ export default function Kopvillkor() {
       <h2>7. Ångerrätt och öppet köp</h2>
       <p>Du har <strong>14 dagars ångerrätt</strong> enligt lag om distansavtal (2005:59), räknat från den dag du tog emot produkten. Vill du ångra ditt köp meddelar du oss inom 14 dagar och returnerar varan inom ytterligare 14 dagar.</p>
       <p>Utöver den lagstadgade ångerrätten erbjuder Fyndplats frivilligt <strong>30 dagars öppet köp</strong> på alla produkter, räknat från den dag du tog emot leveransen. Det innebär att du har 30 dagar på dig att meddela oss att du vill returnera varan – samma villkor och undantag som för ångerrätten gäller (se sidan Returer).</p>
+      <p><strong>Returfrakten betalas av kunden.</strong> Du anmäler returen via mejl till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> och får då returadressen samt instruktioner i bekräftelsemejlet. Du väljer själv leveranstjänst (vi rekommenderar spårbar leverans). Fyndplats ansvarar inte för returpaket som försvinner i transporten. Vid <strong>felaktig eller skadad produkt vid leverans</strong> står Fyndplats för returkostnaden – kontakta oss inom 14 dagar så löser vi det.</p>
+      <p>Återbetalning sker till ursprungligt betalmedel inom 5–10 bankdagar efter att vi tagit emot och kontrollerat returen.</p>
       <p>Fullständig information om hur du genomför en retur, vilka villkor som gäller och eventuella undantag (till exempel hygienprodukter) hittar du på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
 
       <h2>8. Reklamation och garanti</h2>
@@ -98,7 +100,7 @@ export default function Kopvillkor() {
         <li><a href="/kontaktaoss">Kontakta oss</a></li>
       </ul>
 
-      <p style={{ fontSize: 13, color: "#7a7268", marginTop: 24 }}>Senast uppdaterad: 28 maj 2026</p>
+      <p style={{ fontSize: 13, color: "#7a7268", marginTop: 24 }}>Senast uppdaterad: 30 maj 2026</p>
     </ContentPage>
   );
 }
