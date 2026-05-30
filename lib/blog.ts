@@ -1,5 +1,6 @@
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { posts as wixPosts } from "@wix/blog";
+import { getLocalPosts, getLocalPost } from "./local-blog";
 
 // Faller tillbaka på samma publika storefront-klient (samma Wix-site) så bloggen
 // kan läsa inlägg utan en separat WIX_CLIENT_ID-env. Saknas blogg-appen/inlägg
@@ -35,26 +36,67 @@ function mapPost(p: any): Post {
 }
 
 // Modul-cache (samma mönster som getCollections) så header + footer + sitemap
-// delar EN hämtning i stället för tre per sidladdning.
+// delar EN hämtning i stället för tre per sidladdning. I dev nollställs cachen
+// via Fast Refresh när någon av blog-filerna ändras.
 let postsPromise: Promise<Post[]> | null = null;
 export function getPosts(): Promise<Post[]> {
   if (!postsPromise) postsPromise = fetchPosts();
   return postsPromise;
 }
 async function fetchPosts(): Promise<Post[]> {
-  if (!wix) return [];
-  try {
-    const r: any = await (wix as any).posts.queryPosts().limit(30).find();
-    return (r.items || []).map(mapPost);
-  } catch (e) {
-    // Cacha tomt även vid fel (t.ex. blogg-appen ej installerad) så vi inte
-    // hamrar Wix vid varje render. Blogg-länkarna hålls dolda tills redeploy.
-    console.error("[wix] getPosts failed:", (e as Error).message);
-    return [];
+  // Lokala markdown-inlägg (content/blog/*.md) ligger först och vinner över
+  // ev. Wix-inlägg med samma slug. Wix Blog finns kvar för historiskt innehåll
+  // när det publiceras via Wix-dashboarden.
+  const local = await getLocalPosts();
+  const localList: Post[] = local.map((p) => ({
+    title: p.title,
+    slug: p.slug,
+    excerpt: p.excerpt,
+    date: p.date,
+    cover: p.cover,
+    alt: p.alt,
+  }));
+  const seen = new Set(localList.map((p) => p.slug));
+  let wixList: Post[] = [];
+  if (wix) {
+    try {
+      const r: any = await (wix as any).posts.queryPosts().limit(30).find();
+      wixList = (r.items || []).map(mapPost).filter((p: Post) => p.slug && !seen.has(p.slug));
+    } catch (e) {
+      // Cacha tomt även vid fel (t.ex. blogg-appen ej installerad) så vi inte
+      // hamrar Wix vid varje render.
+      console.error("[wix] getPosts failed:", (e as Error).message);
+    }
   }
+  const all = [...localList, ...wixList];
+  all.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  return all;
 }
 
-export async function getPost(slug: string): Promise<(Post & { contentText: string }) | null> {
+export type FullPost = Post & {
+  contentText: string;
+  contentHtml?: string;     // satt för lokala inlägg
+  primaryKeyword?: string;
+  category?: string;
+};
+
+export async function getPost(slug: string): Promise<FullPost | null> {
+  // Lokal markdown vinner. Wix används som fallback för historiska Wix-inlägg.
+  const local = await getLocalPost(slug);
+  if (local) {
+    return {
+      title: local.title,
+      slug: local.slug,
+      excerpt: local.excerpt,
+      date: local.date,
+      cover: local.cover,
+      alt: local.alt,
+      contentText: local.contentText,
+      contentHtml: local.contentHtml,
+      primaryKeyword: local.primaryKeyword,
+      category: local.category,
+    };
+  }
   if (!wix) return null;
   try {
     const r: any = await (wix as any).posts.queryPosts().eq("slug", slug).find();
