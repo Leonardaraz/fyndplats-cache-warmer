@@ -7,9 +7,18 @@ const jsonLd = {
   "@type": "OnlineStore",
   name: "Fyndplats",
   url: "https://www.fyndplats.se/",
-  description: "Svensk webbutik med noga utvalda fynd till smarta priser.",
+  description: "Fyndplats är en svensk e-handelsbutik som levererar i hela Sverige. Noga utvalda fynd, fri frakt över 499 kr, 30 dagars öppet köp.",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
+  areaServed: "SE",
+  currenciesAccepted: "SEK",
+  paymentAccepted: "Credit Card, Klarna",
+  sameAs: [
+    // Google Business Profile — bidirektionell länk för entity-koppling
+    "https://maps.google.com/?cid=13527624431203349873",
+    "https://www.instagram.com/fyndplats/",
+    "https://www.facebook.com/profile.php?id=100089607278056",
+  ],
   aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "21" },
 };
 
@@ -27,39 +36,6 @@ const websiteJsonLd = {
     },
     "query-input": "required name=search_term_string",
   },
-};
-
-const localBusinessJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "@id": "https://www.fyndplats.se/#localbusiness",
-  name: "Fyndplats",
-  url: "https://www.fyndplats.se/",
-  telephone: "+46-736-630-990",
-  email: "info@fyndplats.com",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "Bergviksgatan 10",
-    addressLocality: "Södertälje",
-    postalCode: "152 44",
-    addressCountry: "SE",
-  },
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      opens: "09:00",
-      closes: "17:00",
-    },
-  ],
-  sameAs: [
-    "https://www.instagram.com/fyndplats/",
-    "https://www.facebook.com/profile.php?id=100089607278056",
-  ],
-  areaServed: "SE",
-  currenciesAccepted: "SEK",
-  paymentAccepted: "Credit Card, Klarna",
-  priceRange: "$$",
 };
 
 export default async function Home() {
@@ -239,7 +215,6 @@ export default async function Home() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }} />
 
       <section className="hero">
         <div className="container">

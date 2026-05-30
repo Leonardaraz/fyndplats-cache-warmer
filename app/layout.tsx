@@ -27,13 +27,6 @@ const orgJsonLd = {
   logo: "https://www.fyndplats.se/logo.svg",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "Bergviksgatan 10",
-    postalCode: "152 44",
-    addressLocality: "Södertälje",
-    addressCountry: "SE",
-  },
   sameAs: [
     // Google Business Profile — kritisk bidirektionell länk för Knowledge Graph
     "https://maps.google.com/?cid=13527624431203349873",
