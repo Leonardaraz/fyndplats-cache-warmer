@@ -54,5 +54,54 @@ export async function runMigration(): Promise<{ ok: true }> {
   `;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS used_addresses_phone_idx ON used_addresses(phone) WHERE phone IS NOT NULL;`;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS used_addresses_email_idx ON used_addresses(email) WHERE email IS NOT NULL;`;
+
+  // SMS-forwarding tables (migrations/002_sms_forwarding.sql). Inlined so any
+  // Vercel runtime can apply them without reading the .sql file.
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS tracking_mapping (
+      tracking_number TEXT PRIMARY KEY,
+      order_id        TEXT,
+      customer_email  TEXT NOT NULL,
+      customer_name   TEXT,
+      customer_phone  TEXT,
+      status          TEXT NOT NULL DEFAULT 'pending',
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS tracking_mapping_email_idx ON tracking_mapping(customer_email);`;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS tracking_mapping_order_idx ON tracking_mapping(order_id);`;
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS sms_audit (
+      id              BIGSERIAL PRIMARY KEY,
+      received_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      raw_from        TEXT NOT NULL,
+      raw_text        TEXT NOT NULL,
+      carrier         TEXT,
+      status          TEXT,
+      pickup_location TEXT,
+      pickup_code     TEXT,
+      tracking_number TEXT,
+      matched         BOOLEAN NOT NULL DEFAULT FALSE,
+      email_sent      BOOLEAN NOT NULL DEFAULT FALSE,
+      resend_id       TEXT,
+      error           TEXT
+    );
+  `;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS sms_audit_received_idx ON sms_audit(received_at DESC);`;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS sms_audit_tracking_idx ON sms_audit(tracking_number) WHERE tracking_number IS NOT NULL;`;
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS sms_unmatched (
+      id              BIGSERIAL PRIMARY KEY,
+      audit_id        BIGINT REFERENCES sms_audit(id) ON DELETE CASCADE,
+      received_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      raw_from        TEXT NOT NULL,
+      raw_text        TEXT NOT NULL,
+      tracking_number TEXT,
+      reason          TEXT NOT NULL
+    );
+  `;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS sms_unmatched_received_idx ON sms_unmatched(received_at DESC);`;
+
   return { ok: true };
 }
