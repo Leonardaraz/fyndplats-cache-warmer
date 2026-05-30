@@ -273,11 +273,13 @@ async function register(tn: string, apiKey: string): Promise<unknown> {
 
 function buildResponse(json: Track17Response, tn: string): { body: unknown; status: number } {
   const accepted = json.data?.accepted?.[0];
-  const rejected = json.data?.rejected?.[0];
 
   if (!accepted?.track_info) {
+    // ALDRIG returnera 17TRACK:s råa engelska felmeddelande till kunden — alltid
+    // ett eget svenskt. (rejected.error.message är t.ex. "The tracking number
+    // does not register, please register first.")
     return {
-      body: { error: rejected?.error?.message || "Inget spårningsresultat hittades än." },
+      body: { error: "Vi hittar ingen spårning för det numret än. Kontrollera siffrorna eller försök igen om en stund – det tar ibland 1–2 dagar innan spårningen aktiveras." },
       status: 404,
     };
   }
