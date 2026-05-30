@@ -28,7 +28,11 @@ export const BRAND = {
   ink: "#1a1a1a",
   line: "#e7e2da",
   muted: "#6b6b6b",
-  logoUrl: "https://www.fyndplats.se/logo.svg",
+  // Email-only logo. PNG (not SVG — Apple Mail mobile won't render SVG) with
+  // the wordmark already in white on the same dark background as headerBar,
+  // so no CSS filter is needed (most email clients strip `filter:` anyway).
+  // Served from app/email-logo/route.tsx via next/og ImageResponse.
+  logoUrl: "https://www.fyndplats.se/email-logo",
   siteUrl: "https://www.fyndplats.se",
   supportEmail: "info@fyndplats.com",
   supportPhone: "+46 73 663 09 90",
@@ -71,10 +75,13 @@ const baseStyles = {
     display: "inline-block" as const,
   },
   logo: {
-    height: "36px",
+    height: "44px",
     width: "auto",
     display: "block" as const,
     margin: "0 auto",
+    border: 0,
+    outline: "none",
+    textDecoration: "none" as const,
   },
   content: {
     padding: "32px 28px 8px 28px",
@@ -119,7 +126,9 @@ export function EmailShell({
               <Img
                 src={BRAND.logoUrl}
                 alt="Fyndplats"
-                style={{ ...baseStyles.logo, filter: "brightness(0) invert(1)" }}
+                width="220"
+                height="44"
+                style={baseStyles.logo}
               />
             </Section>
             <div style={baseStyles.brandAccent} />

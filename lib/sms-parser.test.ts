@@ -17,6 +17,11 @@ test("PostNord — AliExpress C/o levererat (original incident SMS)", () => {
   });
   assert.equal(r.carrier, "PostNord");
   assert.equal(r.status, "delivered");
+  // Precondition for the FIFO fallback in app/api/sms-inbound/route.ts: this
+  // exact SMS contains no tracking number, so without FIFO no customer email
+  // can be sent. If a parser change starts pulling a number out of this text,
+  // the FIFO branch will silently stop being exercised.
+  assert.equal(r.tracking_number, undefined);
 });
 
 test("PostNord — available at ICA Maxi with pickup code", () => {

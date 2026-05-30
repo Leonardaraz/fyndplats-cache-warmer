@@ -43,6 +43,9 @@ CREATE TABLE IF NOT EXISTS sms_audit (
 
 CREATE INDEX IF NOT EXISTS sms_audit_received_idx ON sms_audit(received_at DESC);
 CREATE INDEX IF NOT EXISTS sms_audit_tracking_idx ON sms_audit(tracking_number) WHERE tracking_number IS NOT NULL;
+-- match_strategy: 'tracking_number' | 'fifo' | NULL (no match).
+-- Added so we can throttle the FIFO fallback (escalate if used too often).
+ALTER TABLE sms_audit ADD COLUMN IF NOT EXISTS match_strategy TEXT;
 
 -- Subset of sms_audit: rows where we couldn't match a tracking number to a
 -- customer. Kept separate so it's trivial to monitor & purge after fix-up.

@@ -90,6 +90,11 @@ export async function runMigration(): Promise<{ ok: true }> {
   `;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS sms_audit_received_idx ON sms_audit(received_at DESC);`;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS sms_audit_tracking_idx ON sms_audit(tracking_number) WHERE tracking_number IS NOT NULL;`;
+  // Added 2026-05-30 — records how an SMS was matched to a tracking row.
+  // Values: 'tracking_number' (parser found the code in the SMS) | 'fifo'
+  // (no code in SMS but exactly one or two in-transit packages, oldest picked)
+  // | NULL (no match). Used by sms-inbound to throttle the FIFO fallback.
+  await sql/*sql*/`ALTER TABLE sms_audit ADD COLUMN IF NOT EXISTS match_strategy TEXT;`;
   await sql/*sql*/`
     CREATE TABLE IF NOT EXISTS sms_unmatched (
       id              BIGSERIAL PRIMARY KEY,

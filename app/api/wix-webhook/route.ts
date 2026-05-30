@@ -32,6 +32,7 @@ import RefundConfirmationEmail, {
 } from "@/emails/refund-confirmation";
 import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
+import { sql } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -171,6 +172,20 @@ function extractCustomer(order: Record<string, unknown>): { firstName: string; e
 
 function extractOrderNumber(order: Record<string, unknown>): string {
   return firstStr(order.number, order.orderNumber, order._id, order.id) ?? "—";
+}
+
+function extractCustomerPhone(order: Record<string, unknown>): string | undefined {
+  const buyer = (order.buyerInfo ?? order.buyer) as Record<string, unknown> | undefined;
+  const billing = (order.billingInfo ?? order.billing) as Record<string, unknown> | undefined;
+  const recipient = (order.recipientInfo ?? order.recipient) as Record<string, unknown> | undefined;
+  const billingContact = (billing as { contactDetails?: Record<string, unknown> } | undefined)?.contactDetails;
+  const recipientContact = (recipient as { contactDetails?: Record<string, unknown> } | undefined)?.contactDetails;
+  return firstStr(
+    (buyer as { contactDetails?: { phone?: string } } | undefined)?.contactDetails?.phone,
+    buyer?.phone,
+    (billingContact as { phone?: string } | undefined)?.phone,
+    (recipientContact as { phone?: string } | undefined)?.phone,
+  );
 }
 
 function extractItems(order: Record<string, unknown>): OrderLineItem[] {
@@ -322,6 +337,38 @@ function buildRefundProps(payload: Record<string, unknown>): { props: RefundConf
   };
 }
 
+// Persist (tracking_number → customer) for the SMS-forwarding flow. The
+// /api/sms-inbound handler reads from this table to map an incoming carrier
+// SMS back to the real customer's email. Idempotent via ON CONFLICT — Wix
+// can fire fulfillments_updated multiple times for the same shipment.
+async function upsertTrackingMapping(opts: {
+  trackingNumber: string;
+  orderId: string | null;
+  customerEmail: string;
+  customerName: string | null;
+  customerPhone: string | null;
+}): Promise<boolean> {
+  try {
+    await sql/*sql*/`
+      INSERT INTO tracking_mapping (
+        tracking_number, order_id, customer_email, customer_name, customer_phone, status
+      ) VALUES (
+        ${opts.trackingNumber},
+        ${opts.orderId},
+        ${opts.customerEmail},
+        ${opts.customerName},
+        ${opts.customerPhone},
+        'in_transit'
+      )
+      ON CONFLICT (tracking_number) DO NOTHING
+    `;
+    return true;
+  } catch (err) {
+    console.error("[wix-webhook] tracking_mapping insert failed", err);
+    return false;
+  }
+}
+
 // Klassificera event-typ. Wix har flera möjliga slugs och har bytt namn
 // mellan v1/v2/v3 — vi matchar liberalt på substring.
 type EventKind = "order_created" | "order_shipped" | "refund" | "unknown";
@@ -468,6 +515,24 @@ export async function POST(req: NextRequest) {
         console.warn("[wix-webhook] order_shipped: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
       }
+
+      // Populate tracking_mapping so /api/sms-inbound can match the
+      // forwarded carrier SMS back to this customer. Best-effort: a DB
+      // failure here must not block the shipping email.
+      let trackingMapped = false;
+      if (built.props.trackingNumber) {
+        const orderForCustomer = (entity.order ?? entity) as Record<string, unknown>;
+        trackingMapped = await upsertTrackingMapping({
+          trackingNumber: built.props.trackingNumber,
+          orderId: built.props.orderNumber === "—" ? null : built.props.orderNumber,
+          customerEmail: built.email,
+          customerName: built.props.firstName === "kund" ? null : built.props.firstName,
+          customerPhone: extractCustomerPhone(orderForCustomer) ?? null,
+        });
+      } else {
+        console.warn("[wix-webhook] order_shipped: ingen tracking_number — hoppar tracking_mapping");
+      }
+
       const html = await render(ShippingConfirmationEmail(built.props));
       const sent = await resend.emails.send({
         from: FROM,
@@ -480,7 +545,7 @@ export async function POST(req: NextRequest) {
         console.error("[wix-webhook] Resend order_shipped fel", sent.error);
         return NextResponse.json({ error: "Email send failed" }, { status: 500 });
       }
-      return NextResponse.json({ received: true, sent: sent.data?.id }, { status: 200 });
+      return NextResponse.json({ received: true, sent: sent.data?.id, trackingMapped }, { status: 200 });
     }
 
     if (kind === "refund") {

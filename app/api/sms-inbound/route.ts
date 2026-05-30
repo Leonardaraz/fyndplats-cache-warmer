@@ -19,6 +19,7 @@
 //                                          coincides with a parser regression.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { sql } from "@/lib/db";
@@ -33,6 +34,33 @@ export const dynamic = "force-dynamic";
 
 const FROM = "Fyndplats <orders@fyndplats.se>";
 const REPLY_TO = "info@fyndplats.com";
+
+// Ops alert email — where we route SMSes that can't be safely matched
+// (no tracking number AND too many pending packages, or the FIFO fallback
+// has been triggered too many times in a row). Defaults to support inbox so
+// alerts surface even before OPS_ALERT_EMAIL is set in Vercel.
+const OPS_ALERT_EMAIL = process.env.OPS_ALERT_EMAIL ?? "info@fyndplats.com";
+
+// FIFO fallback thresholds.
+//  - MAX_PENDING_FOR_FIFO: at most this many in_transit rows; above this the
+//    odds of picking the wrong customer are too high — escalate instead.
+//  - MAX_FIFO_PER_WINDOW / FIFO_WINDOW_HOURS: if FIFO has already been used
+//    this many times in the rolling window, stop auto-matching and escalate.
+//    Stops a parser regression (or a sudden volume spike) from quietly
+//    sending the wrong customer notifications all day.
+const MAX_PENDING_FOR_FIFO = 2;
+const MAX_FIFO_PER_WINDOW = 3;
+const FIFO_WINDOW_HOURS = 24;
+
+// Constant-time string compare for the inbound secret. Plain `===` leaks the
+// length of the matching prefix via timing on a sufficiently determined
+// attacker — `timingSafeEqual` is the canonical fix and the cost is trivial.
+function safeCompare(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
 
 interface InboundBody {
   from?: unknown;
@@ -50,17 +78,33 @@ function safeParseBody(raw: string): { from: string; text: string } | null {
   }
 }
 
-async function logAudit(parsed: ParsedSms, matched: boolean, opts: { emailSent?: boolean; resendId?: string; error?: string } = {}): Promise<number | null> {
+type MatchStrategy = "tracking_number" | "fifo";
+
+async function logAudit(
+  parsed: ParsedSms,
+  matched: boolean,
+  opts: {
+    emailSent?: boolean;
+    resendId?: string;
+    error?: string;
+    matchStrategy?: MatchStrategy;
+    // Override tracking_number on the audit row — used when FIFO fills in a
+    // tracking number from tracking_mapping that wasn't in the SMS text.
+    trackingNumberOverride?: string;
+  } = {},
+): Promise<number | null> {
   try {
     const r = await sql/*sql*/`
       INSERT INTO sms_audit (
         raw_from, raw_text, carrier, status, pickup_location, pickup_code,
-        tracking_number, matched, email_sent, resend_id, error
+        tracking_number, matched, email_sent, resend_id, error, match_strategy
       ) VALUES (
         ${parsed.raw_from}, ${parsed.raw_text}, ${parsed.carrier}, ${parsed.status},
         ${parsed.pickup_location ?? null}, ${parsed.pickup_code ?? null},
-        ${parsed.tracking_number ?? null}, ${matched}, ${opts.emailSent ?? false},
-        ${opts.resendId ?? null}, ${opts.error ?? null}
+        ${opts.trackingNumberOverride ?? parsed.tracking_number ?? null},
+        ${matched}, ${opts.emailSent ?? false},
+        ${opts.resendId ?? null}, ${opts.error ?? null},
+        ${opts.matchStrategy ?? null}
       )
       RETURNING id
     `;
@@ -106,6 +150,86 @@ async function findMapping(trackingNumber: string): Promise<TrackingMappingRow |
   }
 }
 
+// FIFO fallback. The exact SMS that motivated this whole flow ("Ditt paket
+// från AliExpress C/o är nu levererat vid din dörr") contains NO tracking
+// number — so if we don't guess, we never notify the customer. At low volume
+// this is safe; we only do it when there are 1–2 packages still in_transit.
+//
+// Returns the candidate row (oldest in_transit), the total pending count,
+// or null on DB failure. The caller decides whether to act on it based on
+// count + recent-fallback-throttle.
+async function findFifoCandidate(): Promise<{ candidate: TrackingMappingRow | null; pendingCount: number }> {
+  try {
+    const r = await sql<TrackingMappingRow>/*sql*/`
+      SELECT tracking_number, order_id, customer_email, customer_name, customer_phone, status
+        FROM tracking_mapping
+       WHERE status = 'in_transit'
+       ORDER BY created_at ASC
+       LIMIT 5
+    `;
+    return { candidate: r.rows[0] ?? null, pendingCount: r.rows.length };
+  } catch (err) {
+    console.error("[sms-inbound] FIFO candidate lookup failed", err);
+    return { candidate: null, pendingCount: 0 };
+  }
+}
+
+async function recentFifoCount(hours: number): Promise<number> {
+  try {
+    const r = await sql<{ n: number }>/*sql*/`
+      SELECT COUNT(*)::int AS n
+        FROM sms_audit
+       WHERE match_strategy = 'fifo'
+         AND received_at >= NOW() - (${hours} || ' hours')::interval
+    `;
+    return r.rows[0]?.n ?? 0;
+  } catch (err) {
+    console.error("[sms-inbound] recentFifoCount failed", err);
+    // On DB failure: be conservative — assume the safety budget is spent so we
+    // escalate to manual rather than risk a wrong-customer email.
+    return Number.POSITIVE_INFINITY;
+  }
+}
+
+// Email Leonard so he can resolve a stuck SMS by hand. Plain text — these
+// alerts are infrequent and a designed template would just delay delivery
+// of the bad news. Best-effort: a Resend failure is logged, not propagated.
+async function sendOpsAlertEmail(
+  resend: Resend,
+  reason: string,
+  parsed: ParsedSms,
+  details: { pendingCount?: number; recentFifo?: number } = {},
+): Promise<void> {
+  try {
+    const lines = [
+      `Reason: ${reason}`,
+      `From: ${parsed.raw_from}`,
+      `Carrier: ${parsed.carrier}`,
+      `Detected status: ${parsed.status}`,
+      `Pickup location: ${parsed.pickup_location ?? "(none)"}`,
+      `Pickup code: ${parsed.pickup_code ?? "(none)"}`,
+      `Tracking number in SMS: ${parsed.tracking_number ?? "(none)"}`,
+      details.pendingCount !== undefined ? `Packages in transit right now: ${details.pendingCount}` : null,
+      details.recentFifo !== undefined ? `FIFO fallbacks in last ${FIFO_WINDOW_HOURS}h: ${details.recentFifo}` : null,
+      "",
+      "Raw SMS text:",
+      parsed.raw_text,
+      "",
+      "Open Wix admin to find the right order and reply to the customer manually.",
+    ].filter(Boolean) as string[];
+
+    await resend.emails.send({
+      from: FROM,
+      to: OPS_ALERT_EMAIL,
+      replyTo: REPLY_TO,
+      subject: `[SMS-forwarding] Behöver manuell hantering: ${reason}`,
+      text: lines.join("\n"),
+    });
+  } catch (err) {
+    console.error("[sms-inbound] ops alert email failed", err);
+  }
+}
+
 async function updateMappingStatus(trackingNumber: string, status: string): Promise<void> {
   try {
     await sql/*sql*/`
@@ -148,8 +272,8 @@ export async function POST(req: NextRequest) {
     console.error("[sms-inbound] SMS_INBOUND_SECRET saknas i miljön");
     return NextResponse.json({ error: "Endpoint not configured" }, { status: 500 });
   }
-  const got = req.headers.get("x-sms-secret");
-  if (got !== secret) {
+  const got = req.headers.get("x-sms-secret") ?? "";
+  if (!safeCompare(got, secret)) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
 
@@ -167,45 +291,83 @@ export async function POST(req: NextRequest) {
   }
 
   const parsed = parseSms(body);
+  const resendKey = process.env.RESEND_API_KEY;
+  const resend = resendKey ? new Resend(resendKey) : null;
 
-  // No tracking number → we can't find an order. Log to unmatched and ack 200.
-  if (!parsed.tracking_number) {
-    const auditId = await logAudit(parsed, false);
-    await logUnmatched(parsed, auditId, "no_tracking");
-    return NextResponse.json({ received: true, matched: false, reason: "no_tracking", parsed }, { status: 200 });
-  }
+  // Resolve the customer either via the tracking number in the SMS (preferred)
+  // or — when the SMS has none, e.g. "Ditt paket från AliExpress C/o är nu
+  // levererat vid din dörr" — via the FIFO fallback.
+  let mapping: TrackingMappingRow | null = null;
+  let matchStrategy: MatchStrategy = "tracking_number";
+  // Effective tracking number we'll persist in the audit/mapping update —
+  // when FIFO supplies it, parsed.tracking_number is empty.
+  let effectiveTracking: string | undefined = parsed.tracking_number;
 
-  const mapping = await findMapping(parsed.tracking_number);
-  if (!mapping) {
-    const auditId = await logAudit(parsed, false);
-    await logUnmatched(parsed, auditId, "no_mapping");
-    return NextResponse.json({ received: true, matched: false, reason: "no_mapping", parsed }, { status: 200 });
+  if (parsed.tracking_number) {
+    mapping = await findMapping(parsed.tracking_number);
+    if (!mapping) {
+      const auditId = await logAudit(parsed, false);
+      await logUnmatched(parsed, auditId, "no_mapping");
+      return NextResponse.json({ received: true, matched: false, reason: "no_mapping", parsed }, { status: 200 });
+    }
+  } else {
+    // FIFO fallback path.
+    const { candidate, pendingCount } = await findFifoCandidate();
+
+    if (!candidate || pendingCount === 0) {
+      const auditId = await logAudit(parsed, false);
+      await logUnmatched(parsed, auditId, "no_tracking");
+      return NextResponse.json({ received: true, matched: false, reason: "no_tracking_no_pending", parsed }, { status: 200 });
+    }
+
+    if (pendingCount > MAX_PENDING_FOR_FIFO) {
+      // Too many in-flight packages to guess safely — escalate.
+      const auditId = await logAudit(parsed, false);
+      await logUnmatched(parsed, auditId, `fifo_too_many_pending:${pendingCount}`);
+      if (resend) await sendOpsAlertEmail(resend, "no_tracking_in_sms_and_too_many_pending", parsed, { pendingCount });
+      return NextResponse.json({ received: true, matched: false, reason: "fifo_too_many_pending", pendingCount, parsed }, { status: 200 });
+    }
+
+    const fifoUsedRecently = await recentFifoCount(FIFO_WINDOW_HOURS);
+    if (fifoUsedRecently >= MAX_FIFO_PER_WINDOW) {
+      // Throttle — repeatedly falling back suggests carriers stopped putting
+      // tracking numbers in SMS (parser regression) or volume grew past the
+      // point where FIFO is safe. Stop guessing until a human investigates.
+      const auditId = await logAudit(parsed, false);
+      await logUnmatched(parsed, auditId, `fifo_throttled:${fifoUsedRecently}_in_${FIFO_WINDOW_HOURS}h`);
+      if (resend) await sendOpsAlertEmail(resend, "fifo_fallback_used_too_often", parsed, { pendingCount, recentFifo: fifoUsedRecently });
+      return NextResponse.json({ received: true, matched: false, reason: "fifo_throttled", recentFifo: fifoUsedRecently, parsed }, { status: 200 });
+    }
+
+    mapping = candidate;
+    matchStrategy = "fifo";
+    effectiveTracking = candidate.tracking_number;
+    console.warn(
+      `[sms-inbound] FIFO fallback used: matched to ${candidate.tracking_number} (${pendingCount} in_transit, ${fifoUsedRecently} prior FIFO matches in last ${FIFO_WINDOW_HOURS}h)`,
+    );
   }
 
   const deliveryStatus = asDeliveryStatus(parsed.status);
   if (!deliveryStatus || !SENDABLE_STATUSES.has(deliveryStatus)) {
     // We have a mapping but no actionable status — still update the row so
     // we know the parcel is moving, but don't email.
-    if (deliveryStatus) await updateMappingStatus(parsed.tracking_number, deliveryStatus);
-    await logAudit(parsed, true, { emailSent: false });
-    return NextResponse.json({ received: true, matched: true, sent: false, reason: "non_sendable_status", parsed }, { status: 200 });
+    if (deliveryStatus && effectiveTracking) await updateMappingStatus(effectiveTracking, deliveryStatus);
+    await logAudit(parsed, true, { emailSent: false, matchStrategy, trackingNumberOverride: effectiveTracking });
+    return NextResponse.json({ received: true, matched: true, sent: false, reason: "non_sendable_status", matchStrategy, parsed }, { status: 200 });
   }
 
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
+  if (!resend) {
     console.error("[sms-inbound] RESEND_API_KEY saknas — kan inte skicka mejl");
-    await logAudit(parsed, true, { emailSent: false, error: "resend_key_missing" });
+    await logAudit(parsed, true, { emailSent: false, error: "resend_key_missing", matchStrategy, trackingNumberOverride: effectiveTracking });
     return NextResponse.json({ received: true, matched: true, sent: false, error: "resend_not_configured" }, { status: 200 });
   }
-
-  const resend = new Resend(resendKey);
 
   const props = {
     firstName: firstName(mapping.customer_name),
     status: deliveryStatus,
     pickupLocation: parsed.pickup_location,
     pickupCode: parsed.pickup_code,
-    trackingNumber: parsed.tracking_number,
+    trackingNumber: effectiveTracking,
     carrier: parsed.carrier === "Unknown" ? undefined : parsed.carrier,
   };
 
@@ -221,12 +383,22 @@ export async function POST(req: NextRequest) {
     });
     if (sent.error) {
       console.error("[sms-inbound] Resend-fel", sent.error);
-      await logAudit(parsed, true, { emailSent: false, error: JSON.stringify(sent.error).slice(0, 500) });
+      await logAudit(parsed, true, {
+        emailSent: false,
+        error: JSON.stringify(sent.error).slice(0, 500),
+        matchStrategy,
+        trackingNumberOverride: effectiveTracking,
+      });
       // 200 — don't let iOS Shortcut retry. We already logged the failure.
       return NextResponse.json({ received: true, matched: true, sent: false, error: "resend_failed" }, { status: 200 });
     }
-    await updateMappingStatus(parsed.tracking_number, deliveryStatus);
-    await logAudit(parsed, true, { emailSent: true, resendId: sent.data?.id });
+    if (effectiveTracking) await updateMappingStatus(effectiveTracking, deliveryStatus);
+    await logAudit(parsed, true, {
+      emailSent: true,
+      resendId: sent.data?.id,
+      matchStrategy,
+      trackingNumberOverride: effectiveTracking,
+    });
     return NextResponse.json({
       received: true,
       matched: true,
@@ -234,10 +406,16 @@ export async function POST(req: NextRequest) {
       resendId: sent.data?.id,
       to: mapping.customer_email,
       status: deliveryStatus,
+      matchStrategy,
     }, { status: 200 });
   } catch (err) {
     console.error("[sms-inbound] oväntat fel under email-send", err);
-    await logAudit(parsed, true, { emailSent: false, error: (err as Error).message?.slice(0, 500) });
+    await logAudit(parsed, true, {
+      emailSent: false,
+      error: (err as Error).message?.slice(0, 500),
+      matchStrategy,
+      trackingNumberOverride: effectiveTracking,
+    });
     // Same reasoning: 200 keeps Shortcut quiet.
     return NextResponse.json({ received: true, matched: true, sent: false, error: "internal_error" }, { status: 200 });
   }

@@ -14,16 +14,26 @@
 // so this never accidentally ships open in production.
 
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { sql, runMigration } from "@/lib/db";
 import { parseSms } from "@/lib/sms-parser";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Constant-time comparison — see app/api/sms-inbound/route.ts for the
+// rationale (plain `===` leaks the matching-prefix length via timing).
+function safeCompare(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
+
 function authorised(req: Request): boolean {
   const secret = process.env.DEV_ENDPOINT_SECRET;
   if (!secret) return false;
-  return req.headers.get("x-dev-secret") === secret;
+  return safeCompare(req.headers.get("x-dev-secret") ?? "", secret);
 }
 
 interface InsertBody {
