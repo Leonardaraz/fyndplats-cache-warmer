@@ -234,21 +234,49 @@ export async function GET(req: NextRequest) {
 
   // Lager 3: auto-register, men BARA vid "not registered" — inte vid andra fel
   // (ogiltigt format, system error, quota-limit) som skulle slösa quota.
+  let justRegistered = false;
   const rejectedCode = json.data?.rejected?.[0]?.error?.code;
   if (rejectedCode === NOT_REGISTERED_CODE) {
     try {
       await register(tn, apiKey);
-      // Re-fetch — registrering kan ta några sekunder att propagera men oftast
-      // finns första-status (RegistrationReceived) direkt.
+      justRegistered = true;
+      // 17TRACK behöver tid att hämta data från carriern (PostNord, DHL etc.)
+      // — typiskt 30 sek till 2 min. En kort delay här (3s) räcker oftast
+      // för att första gettrackinfo ska ge "registered, waiting for data"
+      // istället för "not registered" igen.
+      await new Promise((r) => setTimeout(r, 3000));
       json = await gettrackinfo(tn, apiKey);
     } catch {
-      // Tystna — vi returnerar samma "not found" som om register inte hade hänt.
+      // Tystna — fallback till "in progress"-meddelande nedan.
     }
   }
 
+  // Specialfall: paketet är registrerat men 17TRACK har inte fått data från
+  // carriern ännu. Returnera 202 (Accepted) med tydligt meddelande istället
+  // för 404 → UI:n kan visa "aktiveras inom några minuter" istället för
+  // "vi hittar inte numret".
+  const accepted0 = json.data?.accepted?.[0];
+  const hasEvents = Boolean(
+    accepted0?.track_info?.destination_info?.trackinfo?.length
+    || accepted0?.track_info?.origin_info?.trackinfo?.length
+    || accepted0?.track_info?.events?.length,
+  );
+  if (justRegistered && !hasEvents) {
+    return NextResponse.json(
+      {
+        pending: true,
+        message: "Paketet är registrerat. Första spårningsdata aktiveras inom några minuter — uppdatera sidan om en stund.",
+        trackingNumber: tn,
+      },
+      { status: 202 },
+    );
+  }
+
   const { body, status } = buildResponse(json, tn);
-  // Cache:a både träffar (200) och permanenta fel (404). Inte 5xx — de
-  // kan vara transienta och vi vill gärna retry:a.
-  if (status === 200 || status === 404) cacheSet(tn, body, status);
+  // Cache:a träffar (200) i 5 min för att skydda quota mot refresh-spam.
+  // 404 cacha:s INTE — paketet kan vara registrerat sen och vi vill att
+  // kunden ska kunna retry:a snabbt utan att stå fast i cached 404.
+  // 5xx cacha:s aldrig (transienta).
+  if (status === 200) cacheSet(tn, body, status);
   return NextResponse.json(body, { status });
 }

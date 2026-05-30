@@ -81,12 +81,13 @@ export function TrackingWidget() {
   const [tn, setTn] = useState("");
   const [data, setData] = useState<TrackResp | null>(null);
   const [err, setErr] = useState("");
+  const [pending, setPending] = useState("");
   const [loading, setLoading] = useState(false);
 
   const track = useCallback(async (id: string) => {
     const clean = id.replace(/\s+/g, "").replace(/^#/, "").toUpperCase();
     if (clean.length < 5) { setErr("Skriv in ditt spårningsnummer."); setData(null); return; }
-    setErr(""); setLoading(true); setData(null);
+    setErr(""); setPending(""); setLoading(true); setData(null);
     try {
       const res = await fetch(`${TRACK_API}?tn=${encodeURIComponent(clean)}`, {
         method: "GET",
@@ -99,6 +100,13 @@ export function TrackingWidget() {
         setLoading(false); return;
       }
       const json: TrackResp = await res.json();
+      // 202 Accepted = paketet är registrerat hos 17TRACK men data har inte
+      // kommit från carriern ännu. Visa info-meddelande istället för rött fel.
+      if (res.status === 202 || (json as TrackResp & { pending?: boolean }).pending) {
+        setPending(json.message || "Spårningen aktiveras inom några minuter. Uppdatera sidan om en stund.");
+        setLoading(false);
+        return;
+      }
       if (json.error || json.message) { setErr(json.error || json.message || "Något gick fel."); setLoading(false); return; }
       setData(json);
     } catch {
@@ -150,6 +158,7 @@ export function TrackingWidget() {
       </form>
       <p className="track-hint">Numret hittar du i leveransbekräftelsen vi mejlade dig när paketet skickades.</p>
       {err && <p className="track-err">{err}</p>}
+      {pending && <p className="track-pending">{pending}</p>}
 
       {data && !err && (
         <div className="track-result">
