@@ -20,6 +20,12 @@
 
 import { createHmac } from "node:crypto";
 import { getStore } from "../store/factory";
+import {
+    classifyWarehouses,
+    hasAnyEuWarehouse,
+    normalizeShipFromCode,
+    uniqueShipFromCodes,
+} from "./eu-countries";
 import type {
     AliExpressDsProduct,
     AliExpressDsVariant,
@@ -121,7 +127,7 @@ async function callApi<T>(
     const data = (json[responseKey] ?? json) as Record<string, unknown>;
     // Både `code` (legacy /sync) och `rsp_code` (DS API) kan signalera fel.
     // OBS: vissa AliExpress-endpoints (text.search, recommend.feed) returnerar
-    // "00" som success-kod — så vi tillåter både "0"/0/"00"/200/"200".
+    // "00" som success-kod — så vi tillåter både 0/"0"/"00"/200/"200".
     const codeRaw = data.code ?? data.rsp_code;
     const isSuccessCode =
       codeRaw === undefined
@@ -302,6 +308,12 @@ interface RawSku {
     | { ae_sku_property_d_t_o?: RawSkuProp[] }
     | RawSkuProp[];
   aeop_s_k_u_propertys?: RawSkuProp[];
+  // AliExpress använder flera olika fältnamn för shipFrom per SKU
+  // beroende på app-version och simplify-flagga.
+  ship_from?: string;
+  ship_from_code?: string;
+  shipFromCode?: string;
+  warehouse_code?: string;
 }
 interface RawProduct {
   result?: {
@@ -315,6 +327,10 @@ interface RawProduct {
     ae_item_sku_info_dtos?:
       | { ae_item_sku_info_d_t_o?: RawSku[] }
       | RawSku[];
+    // Produkt-nivå shipFrom (default när varianten inte överstyr).
+    logistics_info_dto?: { ship_from?: string; ship_from_code?: string };
+    package_info_dto?: { ship_from?: string };
+    ship_from?: string;
   };
 }
 
@@ -351,6 +367,15 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
 
   const skuDtos = unwrapArray<RawSku>(r.ae_item_sku_info_dtos, "ae_item_sku_info_d_t_o");
 
+  // Produkt-default shipFrom — används om varianten inte har egen.
+  const productDefaultShipFrom = normalizeShipFromCode(
+    r.logistics_info_dto?.ship_from_code
+      ?? r.logistics_info_dto?.ship_from
+      ?? r.package_info_dto?.ship_from
+      ?? r.ship_from
+      ?? "",
+  );
+
   const variants: AliExpressDsVariant[] = skuDtos.map((sku) => {
         const props: Record<string, string> = {};
         let imageUrl: string | undefined;
@@ -366,14 +391,30 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         const stock = sku.sku_available_stock
           ?? sku.s_k_u_available_stock
           ?? (sku.sku_stock ? 999 : 0);
+        const variantShipFromRaw = sku.ship_from_code
+          ?? sku.shipFromCode
+          ?? sku.ship_from
+          ?? sku.warehouse_code
+          ?? "";
+        const variantShipFrom = normalizeShipFromCode(variantShipFromRaw)
+          || productDefaultShipFrom;
         return {
                 skuId: String(sku.id ?? ""),
                 skuProps: props,
                 imageUrl,
                 price,
                 stock,
+                shipFrom: variantShipFrom || undefined,
         };
   });
+
+  // Aggregera unika shipFrom-koder över varianter + produkt-default.
+  const allCodes: string[] = [];
+  for (const v of variants) {
+    if (v.shipFrom) allCodes.push(v.shipFrom);
+  }
+  if (productDefaultShipFrom) allCodes.push(productDefaultShipFrom);
+  const shipsFromCountries = uniqueShipFromCodes(allCodes);
 
   return {
         productId: String(base.product_id ?? productId),
@@ -381,6 +422,9 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         description: base.detail ?? base.mobile_detail ?? "",
         images,
         variants,
+        shipFrom: productDefaultShipFrom || undefined,
+        shipsFromCountries,
+        hasEuWarehouse: hasAnyEuWarehouse(shipsFromCountries),
   };
 }
 
@@ -479,25 +523,44 @@ export interface AliExpressSearchResult {
   /** Rabattprocent (0–100). */
   discountPct?: number;
   productUrl?: string;
+  /** Antal ordrar (popularitetssignal, om AliExpress returnerar det). */
+  orders?: number;
+  /** Snittbetyg 0–5. */
+  rating?: number;
+  /**
+   * Warehouse-koder för listade SKU:er om search-svar ger det
+   * (varierar mellan endpoints). Tom = okänt → måste hämta produkt-detail.
+   */
+  shipsFromCountries?: string[];
+  hasEuWarehouse?: boolean;
+  warehouseClass?: "EU" | "CN" | "MIXED" | "UNKNOWN";
 }
 
-interface LegacyRawProduct {
+interface RawSearchProduct {
   product_id?: string;
   subject?: string;
   product_main_image_url?: string;
   app_sale_price?: string;
   target_app_sale_price?: string;
   original_price?: string;
-  discount?: string;
+  discount?: string | number;
   product_detail_url?: string;
+  // Optional fields returned by some AliExpress search endpoints:
+  lastest_volume?: number | string;
+  orders_count?: number | string;
+  evaluate_rate?: string;
+  average_star?: string;
+  ship_to_days?: string;
+  ship_from?: string;
+  ship_from_country?: string;
 }
 
 /**
- * Nyare AliExpress-search-shape (kombinerar text.search v2 + recommend.feed.get).
- * Fältnamnen varierar mellan endpoints och simplify-flaggor — vi plockar alla
- * vanliga varianter defensivt.
+ * Nyare search-shape (text.search v2 / recommend.feed.get). Fältnamn
+ * camelCase istället för snake_case, och payload ligger under `data.products`
+ * (eller `data.products[].selection_search_product`).
  */
-interface NewRawProduct {
+interface NewSearchProduct {
   itemId?: string | number;
   productId?: string | number;
   product_id?: string | number;
@@ -516,23 +579,54 @@ interface NewRawProduct {
   itemUrl?: string;
   productDetailUrl?: string;
   product_detail_url?: string;
+  ship_from?: string;
+  ship_from_country?: string;
   /** Wrapper-shape: data.products[].selection_search_product */
-  selection_search_product?: NewRawProduct;
+  selection_search_product?: NewSearchProduct;
 }
 
 interface RawSearchResponse {
   products?:
-    | { traffic_image_product_d_t_o?: LegacyRawProduct[] }
-    | NewRawProduct[];
-  result_list?: { traffic_image_product_d_t_o?: LegacyRawProduct[] };
+    | { traffic_image_product_d_t_o?: RawSearchProduct[] }
+    | NewSearchProduct[];
+  result_list?: { traffic_image_product_d_t_o?: RawSearchProduct[] };
+  /** Total träffar (för pagineringskontroll). */
+  total_record_count?: number | string;
   /** Nyare svar lägger payload under `data` med code "00" på top-level. */
   data?: {
     pageIndex?: number;
     pageSize?: number;
     totalCount?: number | string;
-    products?: NewRawProduct[] | Record<string, never>;
+    products?: NewSearchProduct[] | Record<string, never>;
   };
   totalCount?: number | string;
+}
+
+export type AliExpressSortBy = "orders,desc" | "price,asc" | "price,desc" | "evaluate,desc";
+
+export interface AliExpressSearchOptions {
+  /** Sortering, default "orders,desc". */
+  sortBy?: AliExpressSortBy;
+  /** Sida (1-baserad), default 1. */
+  page?: number;
+  /** Sidstorlek, default 20, max 50. */
+  pageSize?: number;
+  /** Max-pris i USD (filtreras klient-sidigt om API:t inte stöder det). */
+  maxPriceUsd?: number;
+  /** Kategori-id om vi vill begränsa. */
+  categoryId?: string;
+}
+
+function parseFloatSafe(s: unknown): number | undefined {
+  if (s == null || s === "") return undefined;
+  const n = parseFloat(String(s));
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function parseIntSafe(s: unknown): number | undefined {
+  if (s == null || s === "") return undefined;
+  const n = parseInt(String(s), 10);
+  return Number.isFinite(n) ? n : undefined;
 }
 
 function parseAmount(v: unknown): number | undefined {
@@ -549,10 +643,13 @@ function parseAmount(v: unknown): number | undefined {
   return undefined;
 }
 
-function mapLegacy(p: LegacyRawProduct): AliExpressSearchResult {
-  const priceUsd = parseAmount(p.target_app_sale_price ?? p.app_sale_price);
-  const originalPriceUsd = parseAmount(p.original_price);
-  const discountPct = parseAmount(p.discount);
+function mapSearchProduct(p: RawSearchProduct): AliExpressSearchResult {
+  const shipFromRaw = p.ship_from_country ?? p.ship_from ?? "";
+  const shipsFromCountries = shipFromRaw
+    ? uniqueShipFromCodes([shipFromRaw])
+    : [];
+  const priceUsd = parseFloatSafe(p.target_app_sale_price ?? p.app_sale_price);
+  const originalPriceUsd = parseFloatSafe(p.original_price);
   return {
     productId: String(p.product_id ?? ""),
     title: p.subject ?? "",
@@ -562,14 +659,23 @@ function mapLegacy(p: LegacyRawProduct): AliExpressSearchResult {
       originalPriceUsd && priceUsd && originalPriceUsd > priceUsd
         ? originalPriceUsd
         : undefined,
-    discountPct,
+    discountPct: parseFloatSafe(p.discount),
     productUrl: p.product_detail_url,
+    orders: parseIntSafe(p.lastest_volume ?? p.orders_count),
+    rating: parseFloatSafe(p.average_star ?? p.evaluate_rate),
+    shipsFromCountries,
+    hasEuWarehouse: hasAnyEuWarehouse(shipsFromCountries),
+    warehouseClass: classifyWarehouses(shipsFromCountries),
   };
 }
 
-function mapNew(raw: NewRawProduct): AliExpressSearchResult {
-  // Vissa svar wrapaer varje träff i { selection_search_product: {...} }.
+/** Mappar nyare search-shape (itemMainPic, salePrice, etc) till resultat. */
+function mapNewSearchProduct(raw: NewSearchProduct): AliExpressSearchResult {
   const p = raw.selection_search_product ?? raw;
+  const shipFromRaw = p.ship_from_country ?? p.ship_from ?? "";
+  const shipsFromCountries = shipFromRaw
+    ? uniqueShipFromCodes([shipFromRaw])
+    : [];
   const priceUsd = parseAmount(p.salePrice ?? p.target_app_sale_price ?? p.app_sale_price);
   const originalPriceUsd = parseAmount(p.originalPrice);
   const discountPct = parseAmount(p.discountPercent ?? p.discount);
@@ -584,6 +690,9 @@ function mapNew(raw: NewRawProduct): AliExpressSearchResult {
         : undefined,
     discountPct,
     productUrl: p.itemUrl ?? p.productDetailUrl ?? p.product_detail_url,
+    shipsFromCountries,
+    hasEuWarehouse: hasAnyEuWarehouse(shipsFromCountries),
+    warehouseClass: classifyWarehouses(shipsFromCountries),
   };
 }
 
@@ -592,44 +701,65 @@ function mapNew(raw: NewRawProduct): AliExpressSearchResult {
  * metoden. Om appens permission-grupp inte har sök-tillgång kastar callApi
  * med tydligt felmeddelande (caller fångar och visar paste-URL-fallback).
  *
- * Hanterar flera response-shapes:
- *   1) Legacy: { products: { traffic_image_product_d_t_o: [{subject,...}] } }
- *   2) Nyare:  { code:"00", data: { products: [{itemMainPic, itemTitle,...}] } }
- *   3) Wrapper: data.products[].selection_search_product
+ * shipFrom på listsidan är inte garanterat — för säkra EU-flaggor krävs
+ * en separat produkt-get per träff (gör i UI:t bara för synliga träffar).
  */
-export async function searchAliExpressByText(query: string): Promise<AliExpressSearchResult[]> {
-    const raw = await callApi<RawSearchResponse>("aliexpress.ds.text.search", {
-          keyWord: query,
-          local: "en_US",
-          countryCode: "SE",
-          currency: "USD",
-          searchExtend: "{\"sortBy\":\"orders,desc\"}",
-          pageSize: "10",
-          pageIndex: "1",
-    });
+export async function searchAliExpressByText(
+    query: string,
+    options: AliExpressSearchOptions = {},
+): Promise<AliExpressSearchResult[]> {
+    const sortBy = options.sortBy ?? "orders,desc";
+    const page = Math.max(1, options.page ?? 1);
+    const pageSize = Math.min(50, Math.max(1, options.pageSize ?? 20));
 
-  // 1) Legacy: products.traffic_image_product_d_t_o eller result_list.traffic_…
+    const bizParams: Record<string, string> = {
+      keyWord: query,
+      local: "en_US",
+      countryCode: "SE",
+      currency: "USD",
+      searchExtend: JSON.stringify({ sortBy }),
+      pageSize: String(pageSize),
+      pageIndex: String(page),
+    };
+    if (options.categoryId) bizParams.categoryId = options.categoryId;
+    if (options.maxPriceUsd !== undefined) {
+      // AliExpress text-search stöder maxPrice i vissa app-grupper.
+      // Skicka som extra param; om API:t ignorerar det filtrerar vi nedan.
+      bizParams.maxSalePrice = String(options.maxPriceUsd);
+    }
+
+    const raw = await callApi<RawSearchResponse>("aliexpress.ds.text.search", bizParams);
+
+  // 1) Legacy: { products: { traffic_image_product_d_t_o: [...] } }
   const legacyList =
     (raw.products && !Array.isArray(raw.products)
       ? raw.products.traffic_image_product_d_t_o
       : undefined)
     ?? raw.result_list?.traffic_image_product_d_t_o;
+
+  let results: AliExpressSearchResult[] = [];
   if (legacyList && legacyList.length > 0) {
-    return legacyList.slice(0, 10).map(mapLegacy).filter((p) => p.productId);
+    results = legacyList.map(mapSearchProduct).filter((p) => p.productId);
+  } else {
+    // 2/3) Nyare shape: { code:"00", data: { products: [...] } }
+    //      eller     : { products: [...] } direkt (utan wrapper)
+    const newList = Array.isArray(raw.data?.products)
+      ? raw.data!.products
+      : Array.isArray(raw.products)
+      ? raw.products
+      : undefined;
+    if (newList && newList.length > 0) {
+      results = newList.map(mapNewSearchProduct).filter((p) => p.productId);
+    }
   }
 
-  // 2/3) Nyare shape — data.products som array (eller {} när inga träffar).
-  const dataProducts = raw.data?.products;
-  if (Array.isArray(dataProducts) && dataProducts.length > 0) {
-    return dataProducts.slice(0, 10).map(mapNew).filter((p) => p.productId);
+  // Klient-side maxPris-filter som backup om API:t inte respekterade det.
+  if (options.maxPriceUsd !== undefined) {
+    results = results.filter(
+      (r) => r.priceUsd === undefined || r.priceUsd <= options.maxPriceUsd!,
+    );
   }
-
-  // 4) Defensiv fallback: products som direkt array
-  if (Array.isArray(raw.products) && raw.products.length > 0) {
-    return raw.products.slice(0, 10).map(mapNew).filter((p) => p.productId);
-  }
-
-  return [];
+  return results;
 }
 
 /**
