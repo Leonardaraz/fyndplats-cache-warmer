@@ -42,6 +42,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .sugg-all{display:block;width:100%;text-align:left;padding:12px;margin-top:4px;border-top:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);background:none;cursor:pointer}
 .sugg-all:hover{color:#C2410C}
 .sugg-empty{padding:18px 12px;font-size:14px;color:var(--soft);text-align:center}
+.sugg-head{padding:8px 10px 6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
 .nav{display:flex;gap:20px;font-size:14px;font-weight:500;color:#3a352f;margin-left:auto}
 .nav a:hover{color:var(--orange)}
 .cart{font-size:14px;font-weight:600}
@@ -164,6 +165,10 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .center{text-align:center;margin-top:34px}
 .linkbtn{display:inline-block;border:1.5px solid var(--ink);border-radius:12px;padding:13px 28px;font-weight:700;font-size:14.5px;transition:background .2s,color .2s}
 .linkbtn:hover{background:var(--ink);color:#fff}
+.loadmore-wrap{display:flex;justify-content:center;margin-top:32px}
+.loadmore{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--ink);border-radius:12px;padding:13px 30px;font:inherit;font-weight:700;font-size:14.5px;color:var(--ink);background:none;cursor:pointer;transition:background .2s,color .2s}
+.loadmore:hover{background:var(--ink);color:#fff}
+.loadmore-rem{font-weight:500;opacity:.7}
 
 .why{background:var(--warm)}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}

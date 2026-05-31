@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { nameScore } from "../lib/search";
 
 type Hit = { n: string; s: string; i: string; p: string };
 
@@ -19,9 +20,13 @@ function loadIndex(): Promise<Hit[]> {
   return inflight;
 }
 
+// Hur många populära produkter vi visar i tomt-fält-läget.
+const POPULAR_COUNT = 8;
+
 export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
+  const [popular, setPopular] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const router = useRouter();
@@ -32,18 +37,48 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
   }, []);
 
+  // Tokeniserad, stam-medveten matchning (lib/search): "knivset" → knivhållare,
+  // "halsband" → kedjehalsband. Sorteras på relevans (namn-score), inte katalogordning.
   const onType = async (val: string) => {
     setQ(val);
     setActive(-1);
-    const term = val.trim().toLowerCase();
-    if (!term) { setHits([]); setOpen(false); return; }
+    const term = val.trim();
+    if (term.length < 2) {
+      // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
+      const idx = await loadIndex();
+      setPopular(idx.slice(0, POPULAR_COUNT));
+      setHits([]);
+      setOpen(true);
+      return;
+    }
     const idx = await loadIndex();
-    setHits(idx.filter((h) => h.n.toLowerCase().includes(term)).slice(0, 6));
+    const ranked = idx
+      .map((h) => ({ h, score: nameScore(h.n, term) }))
+      .filter((r) => r.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map((r) => r.h);
+    setHits(ranked);
     setOpen(true);
   };
+
+  // Fokus med tomt fält → ladda index + visa populära produkter som förslag.
+  const onFocus = async () => {
+    const idx = await loadIndex();
+    if (q.trim().length >= 2) { setOpen(true); return; }
+    setPopular(idx.slice(0, POPULAR_COUNT));
+    setOpen(true);
+  };
+
+  // Det som faktiskt renderas i listan: sökträffar om man skrivit ≥2 tecken,
+  // annars populära produkter.
+  const showing: Hit[] = q.trim().length >= 2 ? hits : popular;
+  const isPopular = q.trim().length < 2;
 
   // onNavigate stänger ev. förälder (mobilmenyn) när vi navigerar bort.
   const goProduct = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
@@ -57,15 +92,15 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (open && active >= 0 && hits[active]) goProduct(hits[active].s);
+    if (open && active >= 0 && showing[active]) goProduct(showing[active].s);
     else goSearch();
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (!open || hits.length === 0) return;
-    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, hits.length - 1)); }
+    if (e.key === "Escape") { setOpen(false); return; }
+    if (!open || showing.length === 0) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, showing.length - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, -1)); }
-    else if (e.key === "Escape") { setOpen(false); }
   };
 
   // Bold the matched substring in a suggestion's name.
@@ -90,7 +125,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           name="q"
           value={q}
           onChange={(e) => onType(e.target.value)}
-          onFocus={() => { loadIndex(); if (hits.length) setOpen(true); }}
+          onFocus={onFocus}
           onKeyDown={onKeyDown}
           placeholder="Sök efter produkter…"
           aria-label="Sök efter produkter"
@@ -101,9 +136,12 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
         />
       </form>
 
-      {open && (hits.length > 0 || q.trim()) && (
+      {open && (showing.length > 0 || q.trim().length >= 2) && (
         <div className="sugg" id="search-suggestions" role="listbox">
-          {hits.map((h, i) => (
+          {isPopular && showing.length > 0 && (
+            <div className="sugg-head">Populära produkter</div>
+          )}
+          {showing.map((h, i) => (
             <a
               key={h.s}
               href={`/produkt/${h.s}`}
@@ -120,13 +158,13 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               {h.p && <span className="sugg-price">{h.p}</span>}
             </a>
           ))}
-          {hits.length > 0 ? (
+          {!isPopular && (showing.length > 0 ? (
             <button type="button" className="sugg-all" onClick={goSearch}>
               Visa alla resultat för “{q.trim()}” →
             </button>
           ) : (
             <div className="sugg-empty">Inga produkter matchade “{q.trim()}”.</div>
-          )}
+          ))}
         </div>
       )}
     </div>

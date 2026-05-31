@@ -1,7 +1,13 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ProductCard } from "./productcard";
 import type { Product } from "../lib/products";
+
+// Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
+// (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
+// gång → layout-arbete för hundratals kort frös scrollen. Vi paginerar till en
+// hanterbar batch och håller DOM:en liten tills användaren ber om mer.
+const PAGE_SIZE = 24;
 
 const BRACKETS = [
   { label: "Alla priser", min: 0, max: Infinity },
@@ -41,6 +47,14 @@ export function ShopBrowser({ products }: { products: Product[] }) {
 
   const activeFilters = (bi > 0 ? 1 : 0) + (onlyInStock ? 1 : 0) + (onlyOnSale ? 1 : 0);
   const reset = () => { setBi(0); setOnlyInStock(false); setOnlyOnSale(false); };
+
+  // Paginering: visa PAGE_SIZE kort, "Visa fler" laddar nästa batch. Återställs
+  // till första sidan när filter/sortering/produktlista ändras (annars skulle en
+  // ny lista ärva ett stort "shown"-värde och rendera allt på en gång igen).
+  const [shown, setShown] = useState(PAGE_SIZE);
+  useEffect(() => { setShown(PAGE_SIZE); }, [sort, bi, onlyInStock, onlyOnSale, products]);
+  const visible = list.slice(0, shown);
+  const remaining = list.length - visible.length;
 
   return (
     <>
@@ -101,7 +115,16 @@ export function ShopBrowser({ products }: { products: Product[] }) {
       </div>
 
       {list.length ? (
-        <div className="prodgrid">{list.map((p) => <ProductCard p={p} key={p.slug} />)}</div>
+        <>
+          <div className="prodgrid">{visible.map((p) => <ProductCard p={p} key={p.slug} />)}</div>
+          {remaining > 0 && (
+            <div className="loadmore-wrap">
+              <button type="button" className="loadmore" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+                Visa fler <span className="loadmore-rem">({remaining} kvar)</span>
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <p className="empty" style={{ textAlign: "center", padding: "36px 0", color: "var(--soft)" }}>
           Inga produkter matchade dina filter. <button type="button" onClick={reset} style={{ background: "none", border: "none", color: "#C2410C", cursor: "pointer", textDecoration: "underline", padding: 0, font: "inherit" }}>Rensa filter</button>

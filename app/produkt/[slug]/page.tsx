@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
 import { getProduct, getProductSlugs, getProducts, getCollections } from "../../../lib/products";
+import { getBlurDataURL } from "../../../lib/lqip";
 
 export async function generateStaticParams() {
   const slugs = await getProductSlugs();
@@ -74,6 +75,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const specLines = p.specs ? p.specs.split(/(?=[A-ZÅÄÖ][a-zåäö]+:)/).map((s) => s.trim()).filter(Boolean) : [];
   const images = Array.from(new Set([p.img, ...p.gallery].filter(Boolean)));
+  // Äkta low-res blur (16×16 webp från Wix-CDN) för galleriets HUVUDbild. Den
+  // är LCP-elementet och optimerades tidigare med en generisk shimmer som såg
+  // tom ut medan Vercel-bildoptimeraren kallstartade (1–3 s, Leonards rapport).
+  // En riktig blur av produktbilden visar en igenkännbar förhandsbild direkt.
+  const mainBlur = await getBlurDataURL(images[0] || "");
 
   // "Liknande produkter" – ranked by how many collections they share with this product
   // (most relevant first). No random global filler — only genuinely related products.
@@ -107,6 +113,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           onSale={p.onSale}
           specLines={specLines}
           images={images}
+          mainBlur={mainBlur}
           variants={p.variants}
           options={p.options}
           category={primaryCol?.name}

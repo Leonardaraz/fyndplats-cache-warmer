@@ -221,6 +221,23 @@ export function buildGroupCards(products: Product[], collections: Collection[]):
   const collByName = new Map<string, Collection>();
   for (const c of collections) collByName.set(c.name, c);
 
+  // Huvudkategorins antal MÅSTE räknas på samma sätt som buildCategoryTree (och
+  // /kategori-sidan): distinkta produkter i huvudkategorin ELLER någon underkategori
+  // (via Wix parentId), inte bara de som ligger direkt i huvud-kollektionen. Annars
+  // driftar siffran (startsida/butik visade 55 = enbart direkt, medan mega-nav och
+  // /kategori visade 56 = huvud+sub). Re-audit 2026-05-31, fix #6.
+  const childrenByParent = new Map<string, Collection[]>();
+  for (const c of collections) {
+    if (!c.parentId) continue;
+    const arr = childrenByParent.get(c.parentId) || [];
+    arr.push(c);
+    childrenByParent.set(c.parentId, arr);
+  }
+  const mainCount = (mainId: string): number => {
+    const ids = new Set([mainId, ...(childrenByParent.get(mainId) || []).map((c) => c.id)]);
+    return products.filter((p) => (p.collectionIds || []).some((cid) => ids.has(cid))).length;
+  };
+
   const usedImg = new Set<string>(); // product slug → redan visad någonstans i mosaiken
   const cards: GroupCard[] = [];
   for (const g of MAIN_GROUPS) {
@@ -301,7 +318,7 @@ export function buildGroupCards(products: Product[], collections: Collection[]):
     cards.push({
       main: mainCol,
       tag: g.tag,
-      count: counts.get(mainCol.id) || 0,
+      count: mainCount(mainCol.id),
       heroImg,
       thumbs,
       subs,

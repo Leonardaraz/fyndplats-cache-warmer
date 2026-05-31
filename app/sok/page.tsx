@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getProducts } from "../../lib/products";
 import { ShopBrowser } from "../../components/shopbrowser";
+import { nameScore, normalize } from "../../lib/search";
 
 export const metadata: Metadata = {
   title: "Sök",
@@ -9,17 +10,28 @@ export const metadata: Metadata = {
 
 export default async function Sok({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
-  const term = q.trim().toLowerCase();
+  const term = q.trim();
   const all = await getProducts();
-  // Matcha på namn ELLER beskrivning/specs så sökningen hittar produkter även
-  // när termen (t.ex. ett varumärke eller materialord) bara nämns i texten.
-  const results = term
-    ? all.filter((p) =>
-        p.name.toLowerCase().includes(term) ||
-        (p.blurb || "").toLowerCase().includes(term) ||
-        (p.specs || "").toLowerCase().includes(term)
-      )
-    : [];
+  // Tokeniserad, stam-medveten matchning (lib/search) — samma som autocomplete:
+  // 1) NAMN-träffar först, rankade på relevans-score ("knivset" → knivhållare,
+  //    "halsband" → kedjehalsband). 2) Sedan produkter där HELA söksträngen finns
+  //    i beskrivning/specs men inte i namnet (så varumärkes-/materialsök funkar)
+  //    — men bara som exakt fras, så "halsband" inte drar in en kattdräkt vars
+  //    beskrivning råkar nämna ordet löst. Namn-träffar slår alltid text-träffar.
+  let results: typeof all = [];
+  if (term) {
+    const scored = all
+      .map((p) => ({ p, score: nameScore(p.name, term) }))
+      .filter((r) => r.score > 0)
+      .sort((a, b) => b.score - a.score);
+    const nameHitIds = new Set(scored.map((r) => r.p.id));
+    const phrase = normalize(term);
+    const textHits = all.filter(
+      (p) => !nameHitIds.has(p.id) &&
+        (normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase))
+    );
+    results = [...scored.map((r) => r.p), ...textHits];
+  }
 
   return (
     <>

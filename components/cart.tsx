@@ -28,12 +28,13 @@ let clientPromise: Promise<{ client: any; currentCart: any }> | null = null;
 function getClient() {
   if (!clientPromise) {
     clientPromise = (async () => {
-      const [sdk, ecom] = await Promise.all([
+      const [sdk, ecom, redir] = await Promise.all([
         import("@wix/sdk"),
         import("@wix/ecom"),
+        import("@wix/redirects"),
       ]);
       const client = sdk.createClient({
-        modules: { currentCart: ecom.currentCart },
+        modules: { currentCart: ecom.currentCart, redirects: redir.redirects },
         auth: sdk.OAuthStrategy({
           clientId: HEADLESS_CLIENT_ID,
           tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
@@ -143,11 +144,38 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       stashPurchaseSnapshot(cart);
       const { client, currentCart: cc } = await getClient();
       const { checkoutId }: any = await client.currentCart.createCheckoutFromCurrentCart({ channelType: cc.ChannelType.WEB });
-      // Bypass IAM cookie hop (createSessionCookie 404s on primary domain checkout.fyndplats.se).
-      // Navigate directly to the Wix-hosted checkout app with the headless client id.
-      const thankYouUrl = `${window.location.origin}/tack`;
-      const checkoutUrl = `https://checkout.fyndplats.se/__ecom/checkout?checkoutId=${encodeURIComponent(checkoutId)}&origin=${encodeURIComponent(thankYouUrl)}&headlessClientId=${HEADLESS_CLIENT_ID}`;
-      window.location.href = checkoutUrl;
+      const origin = window.location.origin;
+      const thankYouUrl = `${origin}/tack`;
+      const shopUrl = `${origin}/butik`;
+
+      // createRedirectSession bygger den kanoniska checkout-URL:en med rätt
+      // `headlessExternalUrls`. Callbacks → checkout-appens externa länkar:
+      //   thankYouPageUrl → `ecom-typ`  = dit kunden skickas EFTER lyckat köp
+      //                                   (med ?orderId — /tack spårar GA4 purchase)
+      //   postFlowUrl     → `home`      = loggans länk + dit vid avbrutet köp (startsidan)
+      //   cartPageUrl     → `ecom-cart` = dit "Fortsätt handla"-knappen går (butiken)
+      // Den returnerade fullUrl pekar på IAM-cookie-endpointen som 404:ar på
+      // primärdomänen — så vi plockar ut den INRE `redirectUrl` (den riktiga
+      // __ecom/checkout-länken) och navigerar dit direkt. Behåller IAM-bypassen
+      // men kopplar äntligen loggan + "Fortsätt handla" rätt (re-audit #2/#3).
+      let target = "";
+      try {
+        const redirect: any = await client.redirects.createRedirectSession({
+          ecomCheckout: { checkoutId },
+          callbacks: { thankYouPageUrl: thankYouUrl, postFlowUrl: origin, cartPageUrl: shopUrl },
+        });
+        const fullUrl: string = redirect?.redirectSession?.fullUrl || "";
+        const inner = fullUrl ? new URL(fullUrl).searchParams.get("redirectUrl") : null;
+        // Använd den inre URL:en bara om den faktiskt är checkout-appen (inte IAM).
+        if (inner && inner.includes("/__ecom/checkout")) target = inner;
+      } catch { /* faller igenom till den manuella URL:en nedan */ }
+
+      // Fallback: den beprövade direkt-URL:en (utan continue-shopping-koppling) om
+      // redirect-sessionen strular — checkout fungerar fortfarande, oförändrat.
+      if (!target) {
+        target = `https://checkout.fyndplats.se/__ecom/checkout?checkoutId=${encodeURIComponent(checkoutId)}&origin=${encodeURIComponent(thankYouUrl)}&headlessClientId=${HEADLESS_CLIENT_ID}`;
+      }
+      window.location.href = target;
     } catch (e: any) {
       alert("Kassan kunde inte öppnas: " + (e?.message || "okänt fel"));
     } finally { setBusy(false); }

@@ -65,6 +65,7 @@ export function ProductView({
   onSale,
   specLines,
   images,
+  mainBlur,
   variants,
   options,
   category,
@@ -81,6 +82,7 @@ export function ProductView({
   onSale?: boolean;
   specLines: string[];
   images: string[];
+  mainBlur?: string;
   variants: { id: string; label: string }[];
   options?: { name: string; choices: Choice[] } | null;
   category?: string;
@@ -148,6 +150,7 @@ export function ProductView({
       <Gallery
         images={galleryImages}
         alt={name}
+        mainBlur={mainBlur}
         active={allHaveImage ? galleryIdx : undefined}
         onActiveChange={allHaveImage ? onGalleryActive : undefined}
       />
