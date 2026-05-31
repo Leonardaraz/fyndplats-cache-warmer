@@ -1,0 +1,537 @@
+// Daglig AliExpress-sync — kärnlogik.
+//
+// Designprinciper:
+//   - Ren beslutsfunktion (decideSyncOutcome) som tar tidigare snapshot +
+//     AliExpress-data + pricing-config → planerad åtgärd. Inga sidoeffekter,
+//     fullt testbar utan att mocka Wix eller AliExpress.
+//   - Orchestrator (runDailySync) gör batchningen: chunkar API-anrop,
+//     respekterar rate-limit (default 100/körning), gör sidoeffekterna
+//     (Wix update, alert-skrivning, log-rad) och bygger ihop sammanfattningen
+//     som email-helpern sedan kan rendera.
+//   - SYNC_DRY_RUN=true: kör allt utom Wix-skrivningar. Loggas som
+//     action_taken="dry_run" så att Leonard kan diffa nästa-dags-resultat.
+//
+// Skiljer sig från befintliga /api/aliexpress/sync-all (som gör lager + pris-
+// adjust direkt på alla produkter): denna lägger fokus på listing-status,
+// content-drift och alert-handoff till Leonard. Båda kan samexistera.
+
+import { computePrice } from "../import/pricing";
+import type { PricingConfig } from "../import/types";
+import { getProduct as getAliExpressProduct } from "../aliexpress/client";
+import {
+  getProduct as getWixProduct,
+  queryInventoryItemsByProductId,
+  setProductVisibility,
+  bulkUpdateInventoryQuantities,
+  type WixInventoryItem,
+} from "../wix/client";
+import { getStore } from "../store/factory";
+import type { ProductMappingRecord } from "../store/index";
+import {
+  getSyncStore,
+  hashImageList,
+  hashString,
+  type AlertSeverity,
+  type AlertType,
+  type ListingStatus,
+  type SyncAction,
+  type SyncAlert,
+  type SyncLogEntry,
+  type SyncStateEntry,
+} from "./sync-log";
+
+export const DEFAULT_MARGIN_FLOOR_PERCENT = 20;
+export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
+
+export interface SyncInputs {
+  /** Vad vi sparade förra gången vi körde syncen (null = första körningen). */
+  prevState: SyncStateEntry | null;
+  /** Nuvarande svar från AliExpress eller null om listningen inte längre finns. */
+  aliExpress: {
+    title: string;
+    images: string[];
+    /** Lägsta tillgängliga inköpspris i USD bland aktiva varianter (eller 0 om alla slut). */
+    minCostUsd: number;
+    /** Summan av tillgängligt lager över alla varianter. */
+    totalStock: number;
+    /** True om hela produkten är borta/banned (404 eller error_code för "not found"). */
+    listingRemoved: boolean;
+  } | null;
+  /** Wix-produktens nuvarande synlighet. */
+  wixVisible: boolean;
+  /** Wix-produktens nuvarande primärpris i SEK (sätts via mapping.variants[0].grossSek). */
+  currentPriceSek: number;
+  /** Hash av nuvarande titel och bild-set. */
+  newTitleHash: string;
+  newImageHash: string;
+  /** Prissättningskonfig (för marginal-/rekommendationsräkning). */
+  pricing: PricingConfig;
+  /** Tröskel under vilken en prishöjning ska flaggas (marginal i %). */
+  marginFloorPercent: number;
+}
+
+export interface SyncDecision {
+  listingStatus: ListingStatus;
+  actionTaken: SyncAction;
+  /** Sätts till true om Wix-produkten ska göras osynlig. */
+  shouldHide: boolean;
+  /** Sätts till true om Wix-produkten ska göras synlig igen (efter återställning). */
+  shouldRestore: boolean;
+  /** Lagersaldo att skriva till Wix (null = ändra inte). */
+  inventoryTarget: number | null;
+  /** Eventuell alert som ska upserts. */
+  alert: Omit<SyncAlert, "id" | "wixProductId" | "aliexpressId" | "createdAt"> | null;
+  /** Mänskligt läsbar notering till sync-loggen. */
+  notes: string;
+  /** Nuvarande landade kostnad i SEK (för logg + state). */
+  newCostSek: number | null;
+}
+
+/**
+ * Ren beslutsfunktion. Givet snapshot + AliExpress-data, returnera planerade
+ * sidoeffekter. Sidoeffekterna utförs i runDailySync.
+ */
+export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
+  const { prevState, aliExpress, currentPriceSek, pricing, marginFloorPercent } = inputs;
+
+  // 1) Listningen är borta — dölj produkten i Wix.
+  if (!aliExpress || aliExpress.listingRemoved) {
+    return {
+      listingStatus: "removed",
+      actionTaken: inputs.wixVisible ? "hidden" : "none",
+      shouldHide: inputs.wixVisible,
+      shouldRestore: false,
+      inventoryTarget: null,
+      alert: null,
+      newCostSek: null,
+      notes: "AliExpress-listning borttagen — produkten döljs i butiken.",
+    };
+  }
+
+  const newCostSek = round2(aliExpress.minCostUsd * pricing.usdToSek);
+  const prevCostSek = prevState?.currentCostSek ?? null;
+
+  // 2) Slut i lager — markera oos men dölj inte.
+  if (aliExpress.totalStock <= 0) {
+    return {
+      listingStatus: "out_of_stock",
+      actionTaken: "marked_oos",
+      shouldHide: false,
+      shouldRestore: false,
+      inventoryTarget: 0,
+      alert: null,
+      newCostSek,
+      notes: "Slut i lager hos AliExpress — Wix-lager sätts till 0.",
+    };
+  }
+
+  // 3) Listningen är aktiv. Behandla detta som "active" oavsett prev.
+  const decision: SyncDecision = {
+    listingStatus: "active",
+    actionTaken: "none",
+    shouldHide: false,
+    // Om föregående status var removed och vi nu ser aktiv listning → restore
+    // (men ENDAST om Wix-produkten själv är synlig så vi inte överröstar en
+    // manuell unpublish från Leonard).
+    shouldRestore: prevState?.listingStatus === "removed" && inputs.wixVisible,
+    inventoryTarget: aliExpress.totalStock,
+    alert: null,
+    newCostSek,
+    notes: "",
+  };
+
+  // 4) Prishöjning som hotar marginalen? → flagga.
+  if (prevState?.currentCostUsd && prevState.currentCostUsd > 0) {
+    const costUp = aliExpress.minCostUsd > prevState.currentCostUsd;
+    if (costUp) {
+      const projectedMargin = projectedMarginAtPrice(
+        currentPriceSek,
+        newCostSek,
+        pricing.vatRatePercent,
+      );
+      if (projectedMargin < marginFloorPercent) {
+        const recommended = computePrice(aliExpress.minCostUsd, pricing).grossSek;
+        const severity: AlertSeverity =
+          projectedMargin < 0 ? "high" : projectedMargin < marginFloorPercent / 2 ? "medium" : "low";
+        decision.actionTaken = "flagged_price";
+        decision.notes = `Prishöjning: marginal ${projectedMargin.toFixed(1)}% < golvet ${marginFloorPercent}%`;
+        decision.alert = {
+          alertType: "price_increase",
+          severity,
+          status: "open",
+          currentPriceSek,
+          prevCostUsd: prevState.currentCostUsd,
+          newCostUsd: aliExpress.minCostUsd,
+          recommendedPriceSek: recommended,
+          projectedMarginPct: round2(projectedMargin),
+        };
+      }
+    }
+  }
+
+  // 5) Innehållsändring (titel eller bilder)? → flagga (om vi inte redan
+  // flaggat pris — pris-alert vinner eftersom den är mer akut).
+  if (decision.alert === null && prevState) {
+    const titleChanged = Boolean(prevState.titleHash) && prevState.titleHash !== inputs.newTitleHash;
+    const imageChanged = Boolean(prevState.imageHash) && prevState.imageHash !== inputs.newImageHash;
+    if (titleChanged || imageChanged) {
+      decision.actionTaken = "flagged_content";
+      decision.notes = "Innehåll ändrat hos leverantör.";
+      decision.alert = {
+        alertType: "content_change",
+        severity: "low",
+        status: "open",
+        titleChanged,
+        imageChanged,
+        newTitle: titleChanged ? aliExpress.title : undefined,
+      };
+    }
+  }
+
+  // 6) Tillbaka i lager efter att ha varit oos? → ingen alert behövs, bara
+  // notera i loggen. shouldRestore är false (vi rörde inte visibility) men
+  // inventoryTarget är satt så lagret återställs.
+  if (prevState?.listingStatus === "out_of_stock" && aliExpress.totalStock > 0) {
+    decision.actionTaken = decision.actionTaken === "none" ? "restored" : decision.actionTaken;
+    if (!decision.notes) decision.notes = "Tillbaka i lager hos AliExpress.";
+  }
+
+  return decision;
+}
+
+/**
+ * Marginal vid givet salespris (inkl. moms) och landad kostnad.
+ * Försimplad: ignorerar Klarna-fee i alert-räknaren (lägger tröskeln lite konservativt).
+ */
+export function projectedMarginAtPrice(
+  grossSek: number,
+  landedCostSek: number,
+  vatRatePercent: number,
+): number {
+  if (grossSek <= 0) return 0;
+  const netRevenue = grossSek / (1 + vatRatePercent / 100);
+  if (netRevenue <= 0) return 0;
+  return ((netRevenue - landedCostSek) / netRevenue) * 100;
+}
+
+function round2(n: number): number {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
+// =====================================================================
+// Orkestreringen — det här är vad cron-rutten anropar.
+// =====================================================================
+
+export interface RunDailySyncOptions {
+  pricing: PricingConfig;
+  /** Default true (säker). Sätt SYNC_DRY_RUN=false i Vercel för live-läge. */
+  dryRun: boolean;
+  /** Maxantal AliExpress-API-anrop per körning (rate-limit-skydd). */
+  maxApiCalls: number;
+  /** Mappnings-id:er att hoppa över (för åter-körning av en partiell körning). */
+  skipIds?: Set<string>;
+  /** Marginal-golv för pris-alert. */
+  marginFloorPercent: number;
+}
+
+export interface SyncSummary {
+  /** Antal mappade produkter totalt. */
+  total: number;
+  /** Antal som faktiskt synkades i denna körning (efter rate-limit). */
+  checked: number;
+  /** Hoppade pga rate-limit eller skipIds. */
+  skipped: number;
+  /** Antal som blev hidden pga listning borttagen. */
+  hidden: number;
+  /** Antal som markerades som slut-i-lager. */
+  markedOos: number;
+  /** Antal som återställdes från oos. */
+  restored: number;
+  /** Antal pris-alerts som skapades/uppdaterades. */
+  flaggedPrice: number;
+  /** Antal content-change-alerts. */
+  flaggedContent: number;
+  /** Antal som inte hade någon ändring att göra. */
+  unchanged: number;
+  /** Per-produkt-fel som inte avbröt körningen. */
+  errors: { productId: string; aliexpressId: string; error: string }[];
+  /** True om körningen var dry-run. */
+  dryRun: boolean;
+  /** Körningens början/slut i ISO. */
+  startedAt: string;
+  finishedAt: string;
+}
+
+export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSummary> {
+  const startedAt = new Date().toISOString();
+  const store = getStore();
+  const syncStore = getSyncStore();
+  const mappings = await store.listMappings();
+
+  const summary: SyncSummary = {
+    total: mappings.length,
+    checked: 0,
+    skipped: 0,
+    hidden: 0,
+    markedOos: 0,
+    restored: 0,
+    flaggedPrice: 0,
+    flaggedContent: 0,
+    unchanged: 0,
+    errors: [],
+    dryRun: opts.dryRun,
+    startedAt,
+    finishedAt: startedAt,
+  };
+
+  // Sortera så att produkter med äldsta lastCheckedAt synkas först — så vi
+  // hinner runt även när rate-limit gör att vi inte täcker allt på en körning.
+  const states = await Promise.all(
+    mappings.map((m) => syncStore.getState(m.wixProductId).then((s) => ({ mapping: m, state: s }))),
+  );
+  states.sort((a, b) => {
+    const aTime = a.state?.lastCheckedAt ?? "0";
+    const bTime = b.state?.lastCheckedAt ?? "0";
+    return aTime.localeCompare(bTime);
+  });
+
+  let apiCallsUsed = 0;
+
+  for (const { mapping, state } of states) {
+    if (apiCallsUsed >= opts.maxApiCalls) {
+      summary.skipped++;
+      continue;
+    }
+    if (opts.skipIds?.has(mapping.wixProductId)) {
+      summary.skipped++;
+      continue;
+    }
+    if (!mapping.supplierProductId) {
+      summary.skipped++;
+      continue;
+    }
+    // Bara aktivt publicerade produkter — pending_review-kön granskar Leonard manuellt.
+    if (mapping.draftStatus === "rejected") {
+      summary.skipped++;
+      continue;
+    }
+
+    try {
+      apiCallsUsed++;
+      const result = await syncOneProduct({
+        mapping,
+        state,
+        pricing: opts.pricing,
+        dryRun: opts.dryRun,
+        marginFloorPercent: opts.marginFloorPercent,
+      });
+      summary.checked++;
+      switch (result.actionTaken) {
+        case "hidden": summary.hidden++; break;
+        case "marked_oos": summary.markedOos++; break;
+        case "restored": summary.restored++; break;
+        case "flagged_price": summary.flaggedPrice++; break;
+        case "flagged_content": summary.flaggedContent++; break;
+        case "none":
+        case "dry_run":
+          summary.unchanged++; break;
+      }
+    } catch (err) {
+      summary.errors.push({
+        productId: mapping.wixProductId,
+        aliexpressId: mapping.supplierProductId,
+        error: err instanceof Error ? err.message.slice(0, 300) : String(err),
+      });
+    }
+  }
+
+  summary.finishedAt = new Date().toISOString();
+  return summary;
+}
+
+interface SyncOneOpts {
+  mapping: ProductMappingRecord;
+  state: SyncStateEntry | null;
+  pricing: PricingConfig;
+  dryRun: boolean;
+  marginFloorPercent: number;
+}
+
+interface SyncOneResult {
+  actionTaken: SyncAction;
+}
+
+async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
+  const { mapping, state, pricing, dryRun, marginFloorPercent } = opts;
+  const checkedAt = new Date().toISOString();
+
+  // 1) Hämta AliExpress-data. Två anrop räcker (product.get inkluderar redan
+  // varianterna), men vi separerar för tydlighet och felisolering.
+  let aliExpress: SyncInputs["aliExpress"] = null;
+  try {
+    const product = await getAliExpressProduct(mapping.supplierProductId);
+    const minCostUsd = product.variants
+      .filter((v) => (v.stock ?? 0) > 0 && v.price > 0)
+      .reduce((min, v) => (min === 0 ? v.price : Math.min(min, v.price)), 0);
+    const totalStock = product.variants.reduce((s, v) => s + (v.stock ?? 0), 0);
+    aliExpress = {
+      title: product.title,
+      images: product.images,
+      minCostUsd: minCostUsd > 0 ? minCostUsd : product.variants[0]?.price ?? 0,
+      totalStock,
+      listingRemoved: false,
+    };
+  } catch (err) {
+    // Klassisk "produkt finns inte"-respons från AliExpress: error_response
+    // med code som t.ex. 7001020 eller text som innehåller "not found" /
+    // "product offline". Vi tolkar dem som listing_removed. Andra fel — re-throwa.
+    const msg = err instanceof Error ? err.message.toLowerCase() : "";
+    if (
+      msg.includes("not found")
+      || msg.includes("offline")
+      || msg.includes("not exist")
+      || msg.includes("invalid product")
+      || /code\s*7001\d{3}/.test(msg)
+    ) {
+      aliExpress = {
+        title: "",
+        images: [],
+        minCostUsd: 0,
+        totalStock: 0,
+        listingRemoved: true,
+      };
+    } else {
+      throw err;
+    }
+  }
+
+  // 2) Hämta Wix-snapshot (för visibility + nuvarande pris).
+  const wixSnapshot = await getWixProduct(mapping.wixProductId);
+  if (!wixSnapshot) {
+    // Wix-produkten är redan borttagen → bara logga och rensa state.
+    await getSyncStore().appendLog({
+      id: `${mapping.wixProductId}-${checkedAt}`,
+      productId: mapping.wixProductId,
+      aliexpressId: mapping.supplierProductId,
+      checkedAt,
+      prevCostSek: state?.currentCostSek ?? null,
+      newCostSek: null,
+      prevStock: state?.currentStock ?? null,
+      newStock: null,
+      listingStatus: "unknown",
+      actionTaken: "none",
+      notes: "Wix-produkten hittades inte — hoppar över.",
+    });
+    return { actionTaken: "none" };
+  }
+
+  const currentPriceSek = Number.parseFloat(
+    wixSnapshot.variants[0]?.actualPriceAmount ?? "0",
+  );
+
+  const newTitleHash = aliExpress ? await hashString(aliExpress.title) : "";
+  const newImageHash = aliExpress ? await hashImageList(aliExpress.images) : "";
+
+  // 3) Beslut.
+  const decision = decideSyncOutcome({
+    prevState: state,
+    aliExpress,
+    wixVisible: wixSnapshot.visible,
+    currentPriceSek,
+    newTitleHash,
+    newImageHash,
+    pricing,
+    marginFloorPercent,
+  });
+
+  // 4) Sidoeffekter — Wix-skrivningar.
+  if (!dryRun) {
+    if (decision.shouldHide) {
+      await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, false);
+    } else if (decision.shouldRestore) {
+      // Bara om vi inte redan döljer pga annan policy.
+      await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, true);
+    }
+    if (decision.inventoryTarget !== null) {
+      await applyInventoryTarget(mapping, decision.inventoryTarget);
+    }
+  }
+
+  // 5) Sidoeffekter — alerts.
+  const syncStore = getSyncStore();
+  if (decision.alert) {
+    const id = `${mapping.wixProductId}-${decision.alert.alertType}`;
+    await syncStore.upsertAlert({
+      id,
+      wixProductId: mapping.wixProductId,
+      aliexpressId: mapping.supplierProductId,
+      createdAt: checkedAt,
+      productName: mapping.seoTitle ?? wixSnapshot.name,
+      imageUrl: mapping.imageAnalysis?.find((i) => i.verdict === "ok")?.url,
+      ...decision.alert,
+    });
+  } else {
+    // Auto-stäng ev. tidigare prishöjnings-alert om priset nu är OK,
+    // resp. content-alert om det inte längre detekteras.
+    await syncStore.closeAlertIfOpen(`${mapping.wixProductId}-price_increase`);
+    await syncStore.closeAlertIfOpen(`${mapping.wixProductId}-content_change`);
+  }
+
+  // 6) Sidoeffekter — state + log.
+  const newState: SyncStateEntry = {
+    wixProductId: mapping.wixProductId,
+    aliexpressId: mapping.supplierProductId,
+    currentCostSek: decision.newCostSek,
+    currentCostUsd: aliExpress?.minCostUsd ?? null,
+    currentStock: aliExpress?.totalStock ?? null,
+    listingStatus: decision.listingStatus,
+    titleHash: newTitleHash || null,
+    imageHash: newImageHash || null,
+    lastCheckedAt: checkedAt,
+  };
+  await syncStore.saveState(newState);
+
+  const logEntry: SyncLogEntry = {
+    id: `${mapping.wixProductId}-${checkedAt}`,
+    productId: mapping.wixProductId,
+    aliexpressId: mapping.supplierProductId,
+    checkedAt,
+    prevCostSek: state?.currentCostSek ?? null,
+    newCostSek: decision.newCostSek,
+    prevStock: state?.currentStock ?? null,
+    newStock: aliExpress?.totalStock ?? null,
+    listingStatus: decision.listingStatus,
+    actionTaken: dryRun && decision.actionTaken !== "none" ? "dry_run" : decision.actionTaken,
+    notes: decision.notes || undefined,
+  };
+  await syncStore.appendLog(logEntry);
+
+  return { actionTaken: logEntry.actionTaken };
+}
+
+/**
+ * Skriver lager-target till alla varianter (samma värde — vi vet inte vilken
+ * variant som har lager kvar utan ytterligare anrop, och spec:en frågar bara
+ * efter aggregerat lager: 0 vid oos, annars återställning).
+ *
+ * NOTE: getInventory är onödig om vi redan har data, men vi har den nu från
+ * AliExpress så vi gör inte ett extra anrop.
+ */
+async function applyInventoryTarget(
+  mapping: ProductMappingRecord,
+  target: number,
+): Promise<void> {
+  const items: WixInventoryItem[] = await queryInventoryItemsByProductId(mapping.wixProductId);
+  if (items.length === 0) return;
+  const updates = items.map((it) => ({
+    id: it.id,
+    revision: it.revision,
+    quantity: Math.max(0, Math.trunc(target / Math.max(1, items.length))),
+  }));
+  // Om target är 0 vill vi sätta 0 över hela linjen, inte dela med n.
+  if (target === 0) {
+    for (const u of updates) u.quantity = 0;
+  }
+  await bulkUpdateInventoryQuantities(updates);
+}
+
