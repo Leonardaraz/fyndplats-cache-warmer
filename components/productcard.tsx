@@ -10,8 +10,11 @@ export function ProductCard({ p }: { p: Product }) {
   return (
     <a className="prod" href={`/produkt/${p.slug}`}>
       <div className="pimg">
-        {p.onSale && <span className="sale-badge">Rea</span>}
-        {!p.onSale && p.ribbon === "Bestseller" && <span className="ribbon-badge ribbon-bestseller">Bestseller</span>}
+        {/* Slutsåld-badge: OOS-produkter göms inte från listningarna (default) utan
+            visas med badge + dämpad bild så kunden ser dem och kan bevaka. */}
+        {!p.inStock && <span className="oos-badge">Slutsåld</span>}
+        {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
+        {!p.onSale && p.inStock && p.ribbon === "Bestseller" && <span className="ribbon-badge ribbon-bestseller">Bestseller</span>}
         {lowStock && <span className="low-stock-badge">Endast {p.stockQuantity} kvar</span>}
         <WishlistHeart slug={p.slug} />
         {p.img && (
