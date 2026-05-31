@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getProducts, getCollections } from "../lib/products";
+import { getProducts, getCollections, forListings } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
@@ -43,7 +43,10 @@ const websiteJsonLd = {
 };
 
 export default async function Home() {
-  const [allProducts, cols] = await Promise.all([getProducts(), getCollections()]);
+  const [allProductsRaw, cols] = await Promise.all([getProducts(), getCollections()]);
+  // Dölj ev. slutsålda från alla kund-ytor på startsidan (hero + Veckans fynd)
+  // när HIDE_OOS_FROM_LISTINGS är på. Default av → oförändrat.
+  const allProducts = forListings(allProductsRaw);
 
   // Hero-mosaik: curated premium-bilder per kategori efter visuell granskning.
   // Helt skild logik från CATEGORY-mosaiken nedan — denna visar bara 4 stora
