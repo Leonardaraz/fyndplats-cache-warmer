@@ -53,6 +53,11 @@ export interface ImportResult {
   hasEuWarehouse: boolean;
   /** "EU" | "CN" | "MIXED" | "UNKNOWN" — för Wix custom-field / ribbon. */
   warehouseClass: WarehouseClass;
+  /**
+   * Sätts om Wix gav DUPLICATE_SLUG_ERROR och vi lade på ett suffix (-2..-10 / -xxxx).
+   * /admin/queue använder detta för att visa "Slug auto-justerad"-badge.
+   */
+  slugSuffix?: string;
 }
 
 /** Stabil SKU per leverantörsvariant — används senare för lager-/orderkoppling. */
@@ -243,6 +248,17 @@ export async function importProduct(
     );
   }
 
+  // Logga slug-kollision i audit så Leonard kan spåra varför ett produkt-URL
+  // skiljer sig från seo.slug. createProduct loggar redan console.warn — detta
+  // gör det synligt i /admin/audit också.
+  if (created.slugSuffix) {
+    await audit(
+      "slug-collision",
+      created.id,
+      `${seo.slug} -> ${created.slug} (suffix: ${created.slugSuffix})`,
+    );
+  }
+
   return {
     wixProductId: created.id,
     slug: created.slug,
@@ -254,6 +270,7 @@ export async function importProduct(
     shipsFromCountries,
     hasEuWarehouse,
     warehouseClass,
+    ...(created.slugSuffix ? { slugSuffix: created.slugSuffix } : {}),
   };
 }
 

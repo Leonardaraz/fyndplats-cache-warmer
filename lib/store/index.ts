@@ -67,6 +67,11 @@ export interface ProductMappingRecord {
    * några varianter EU och några inte; "UNKNOWN" = saknar data.
    */
   warehouseClass?: "EU" | "CN" | "MIXED" | "UNKNOWN";
+  /**
+   * Sätts om Wix gav DUPLICATE_SLUG_ERROR och importen lade på ett suffix.
+   * /admin/queue visar "Slug auto-justerad"-badge när detta är satt.
+   */
+  slugSuffix?: string;
 }
 
 export interface AuditEntry {

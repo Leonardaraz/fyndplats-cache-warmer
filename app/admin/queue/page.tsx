@@ -274,6 +274,23 @@ function QueueCard({ product: p }: { product: ProductMappingRecord }) {
               {badge.label}
               {codes.length ? ` (${codes.join(", ")})` : ""}
             </span>
+            {p.slugSuffix ? (
+              <span
+                title={`Wix returnerade DUPLICATE_SLUG_ERROR — suffix "${p.slugSuffix}" lades på automatiskt.`}
+                style={{
+                  display: "inline-block",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "#e0e7ff",
+                  color: "#3730a3",
+                  border: "1px solid #a5b4fc",
+                }}
+              >
+                Slug auto-justerad ({p.slugSuffix})
+              </span>
+            ) : null}
           </div>
           <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
             {p.variants.length} varianter · importerad{" "}

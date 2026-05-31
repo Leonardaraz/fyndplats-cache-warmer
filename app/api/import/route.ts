@@ -67,6 +67,8 @@ export async function POST(req: Request) {
     if (resultAny.shipsFromCountries !== undefined) mappingExtras.shipsFromCountries = resultAny.shipsFromCountries;
     if (resultAny.hasEuWarehouse !== undefined) mappingExtras.hasEuWarehouse = resultAny.hasEuWarehouse;
     if (resultAny.warehouseClass !== undefined) mappingExtras.warehouseClass = resultAny.warehouseClass;
+    // Persistera slug-kollision-suffix på mapping så /admin/queue kan visa badge.
+    if (resultAny.slugSuffix !== undefined) mappingExtras.slugSuffix = resultAny.slugSuffix;
 
     await getStore().saveMapping({
       supplierProductId: result.supplierProductId,
@@ -121,6 +123,9 @@ export async function POST(req: Request) {
         // pipelinen producerade dem — annars undefined).
         image_analysis: resultAny.imageAnalysis,
         suggested_category: resultAny.categorySuggestion,
+        // Sätts bara när Wix gav DUPLICATE_SLUG_ERROR och vi lade på ett
+        // suffix. Extension-popupen kan visa "Slug auto-justerad: foo-2".
+        slug_suffix: resultAny.slugSuffix,
       },
       { status: 201 },
     );

@@ -44,6 +44,12 @@ export interface WixCreateProductResult {
   revision: string;
   /** Wix-tilldelade variant-id:n kopplade till våra SKU:er (för lager-/orderkoppling). */
   variants: { id: string; sku: string }[];
+  /**
+   * Sätts om Wix svarade DUPLICATE_SLUG_ERROR och vi fick lägga på ett suffix.
+   * T.ex. "-2" eller "-a7c2". Tomt/saknas = originalslug:en accepterades.
+   * Används av /admin/queue för att visa "Slug auto-justerad"-badge.
+   */
+  slugSuffix?: string;
 }
 
 function wixHeaders(): Record<string, string> {
@@ -229,6 +235,50 @@ export async function createFulfillment(input: FulfillmentInput): Promise<{ fulf
   return { fulfillmentId: data.fulfillment?.id ?? "" };
 }
 
+interface CreateProductRaw {
+  product: {
+    id: string;
+    slug: string;
+    revision: string;
+    variantsInfo?: { variants?: { id: string; sku?: string }[] };
+  };
+}
+
+type CreateProductAttempt =
+  | { ok: true; data: CreateProductRaw }
+  | { ok: false; status: number; body: string; errorCode?: string };
+
+async function attemptCreateProduct(input: WixProductInput): Promise<CreateProductAttempt> {
+  const res = await fetch(`${WIX_BASE}/stores/v3/products`, {
+    method: "POST",
+    headers: wixHeaders(),
+    body: JSON.stringify(buildCreateProductBody(input)),
+  });
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as CreateProductRaw };
+  }
+  const body = await res.text();
+  let errorCode: string | undefined;
+  try {
+    const parsed = JSON.parse(body) as {
+      details?: { applicationError?: { code?: string } };
+    };
+    errorCode = parsed?.details?.applicationError?.code;
+  } catch {
+    // icke-JSON-body — errorCode lämnas undefined
+  }
+  return { ok: false, status: res.status, body, errorCode };
+}
+
+function isSlugCollision(attempt: CreateProductAttempt): boolean {
+  return !attempt.ok && attempt.status === 409 && attempt.errorCode === "DUPLICATE_SLUG_ERROR";
+}
+
+/** 4 tecken base36 — räcker för att undvika kollision när -2..-10 också är tagna. */
+function randomSlugSuffix(): string {
+  return Math.random().toString(36).slice(2, 6).padEnd(4, "0");
+}
+
 export async function createProduct(input: WixProductInput): Promise<WixCreateProductResult> {
   if (isDryRun()) {
     return {
@@ -238,30 +288,65 @@ export async function createProduct(input: WixProductInput): Promise<WixCreatePr
       variants: input.variants.map((v, i) => ({ id: `dry-var-${i}`, sku: v.sku })),
     };
   }
-  const res = await fetch(`${WIX_BASE}/stores/v3/products`, {
-    method: "POST",
-    headers: wixHeaders(),
-    body: JSON.stringify(buildCreateProductBody(input)),
-  });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix create-product misslyckades (${res.status}): ${text.slice(0, 500)}`);
+  let attempt = await attemptCreateProduct(input);
+  let slugSuffix: string | undefined;
+
+  // Slug-kollision: Wix V3 returnerar 409 DUPLICATE_SLUG_ERROR när någon
+  // annan produkt redan tagit slug:en. Vi vill INTE skriva över existerande
+  // produkt — istället lägger vi på ett suffix (-2..-10, sen slumpat).
+  // Produktens namn ändras inte; endast URL-slug:en.
+  if (isSlugCollision(attempt) && input.slug) {
+    const baseSlug = input.slug;
+    for (let i = 2; i <= 10; i++) {
+      const suffix = `-${i}`;
+      const retry = await attemptCreateProduct({ ...input, slug: baseSlug + suffix });
+      if (retry.ok) {
+        slugSuffix = suffix;
+        attempt = retry;
+        console.warn(
+          `[wix.createProduct] DUPLICATE_SLUG_ERROR: "${baseSlug}" upptagen, använder "${baseSlug + suffix}".`,
+        );
+        break;
+      }
+      if (!isSlugCollision(retry)) {
+        attempt = retry;
+        break;
+      }
+      attempt = retry;
+    }
+
+    if (isSlugCollision(attempt)) {
+      const suffix = `-${randomSlugSuffix()}`;
+      const retry = await attemptCreateProduct({ ...input, slug: baseSlug + suffix });
+      if (retry.ok) {
+        slugSuffix = suffix;
+        attempt = retry;
+        console.warn(
+          `[wix.createProduct] DUPLICATE_SLUG_ERROR: numeriska suffix uttömda, använder slumpad "${baseSlug + suffix}".`,
+        );
+      } else {
+        attempt = retry;
+      }
+    }
   }
 
-  const data = (await res.json()) as {
-    product: {
-      id: string;
-      slug: string;
-      revision: string;
-      variantsInfo?: { variants?: { id: string; sku?: string }[] };
-    };
-  };
+  if (!attempt.ok) {
+    throw new Error(`Wix create-product misslyckades (${attempt.status}): ${attempt.body.slice(0, 500)}`);
+  }
+
+  const data = attempt.data;
   const variants = (data.product.variantsInfo?.variants ?? []).map((v) => ({
     id: v.id,
     sku: v.sku ?? "",
   }));
-  return { id: data.product.id, slug: data.product.slug, revision: data.product.revision, variants };
+  return {
+    id: data.product.id,
+    slug: data.product.slug,
+    revision: data.product.revision,
+    variants,
+    ...(slugSuffix ? { slugSuffix } : {}),
+  };
 }
 
 export interface WixProductSnapshot {
