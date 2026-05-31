@@ -134,6 +134,7 @@ export default async function AdminPage() {
         </li>
         <li><a href="/admin/mappings"><b>AliExpress-mappning</b></a> — länka existerande Wix-produkter till AliExpress-källor (krävs för auto-pipelinen)</li>
         <li><a href="/admin/seo"><b>SEO-migration</b></a> — V1↔V3-matchning, 301-redirects, sitemap, SEO-audit inför headless-cutover</li>
+        <li><a href="/admin/profitability"><b>Lönsamhet per produkt</b></a> — sortbar tabell över intäkt/inköp/marginal/sålda enheter (90 dagar default) + CSV-export</li>
       </ul>
 
       <h2>Endpoints</h2>

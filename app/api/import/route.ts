@@ -5,6 +5,7 @@ import { pricingConfigFromEnv } from "@/lib/config";
 import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
+import { getImportCostStore } from "@/lib/store/import-costs";
 import { audit } from "@/lib/audit";
 
 const VariantSchema = z.object({
@@ -56,13 +57,54 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
       seoTitle: result.seo.title,
       sourceUrl: parsed.data.sourceUrl,
+      imageAnalysis: result.imageAnalysis,
+      categorySuggestion: result.categorySuggestion,
     });
+    // Skriv även en cost-rad till FyndplatsImportCosts så /admin/profitability
+    // har en kanonisk inköpsdata-källa (utöver mappnings-tabellen). Best-effort
+    // — om kollektionen inte finns ännu eller skrivningen failar ska importen
+    // inte avbrytas; logga bara och fortsätt.
+    try {
+      const variants = result.variantMappings;
+      const avgCostSek = variants.length > 0
+        ? variants.reduce((s, v) => s + (v.landedCostSek ?? 0), 0) / variants.length
+        : 0;
+      const avgCostUsd = variants.length > 0
+        ? variants.reduce((s, v) => s + (v.costUsd ?? 0), 0) / variants.length
+        : 0;
+      if (avgCostSek > 0) {
+        await getImportCostStore().upsert({
+          productId: result.wixProductId,
+          costSek: Math.round(avgCostSek * 100) / 100,
+          costUsd: avgCostUsd || undefined,
+          currency: "SEK",
+          importedAt: new Date().toISOString(),
+          source: "aliexpress",
+        });
+      }
+    } catch (costErr) {
+      console.warn(
+        "[import] FyndplatsImportCosts.upsert failade (icke-fatalt):",
+        costErr instanceof Error ? costErr.message : costErr,
+      );
+    }
+
     await audit(
       draftStatus === "pending_review" ? "import-pending" : "import",
       result.wixProductId,
       result.seo.title,
     );
-    return NextResponse.json({ ok: true, result, draftStatus }, { status: 201 });
+    return NextResponse.json(
+      {
+        ok: true,
+        result,
+        draftStatus,
+        // Bekvämligheter på toppnivå för smoke-tester och extension-UI.
+        image_analysis: result.imageAnalysis,
+        suggested_category: result.categorySuggestion,
+      },
+      { status: 201 },
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Okänt fel";
     return NextResponse.json({ error: "Import misslyckades", message }, { status: 500 });
