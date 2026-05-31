@@ -170,8 +170,8 @@ function Tools({
   onRefresh,
   settings,
 }: {
-  onUpload: (formData: FormData) => Promise<{ saved: number; failed: number; errors: string[] }>;
-  onRefresh: () => Promise<void>;
+  onUpload: (formData: FormData) => void | Promise<void>;
+  onRefresh: () => void | Promise<void>;
   settings: { shippingCostSek: number; fallbackCostFractionOfNet: number };
 }) {
   return (

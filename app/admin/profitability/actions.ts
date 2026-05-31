@@ -20,19 +20,22 @@ export async function refreshProfitability(): Promise<void> {
  * (collection skapas inte automatiskt — operatorn måste lägga upp den i Wix
  * Data CMS, se docs).
  */
-export async function uploadImportCostsCsv(formData: FormData): Promise<{
-  saved: number;
-  failed: number;
-  errors: string[];
-}> {
+/**
+ * Form action — Next 16 kräver void/Promise<void> som retur-typ för <form action>.
+ * Resultatet skrivs istället till audit-loggen (synlig på /admin) och sidan
+ * revalideras så att nya rader syns omedelbart.
+ */
+export async function uploadImportCostsCsv(formData: FormData): Promise<void> {
   const file = formData.get("file");
   if (!(file instanceof File)) {
-    return { saved: 0, failed: 0, errors: ["Ingen fil mottagen."] };
+    await audit("profitability-cost-upload", undefined, "ingen fil mottagen");
+    return;
   }
   const text = await file.text();
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   if (lines.length === 0) {
-    return { saved: 0, failed: 0, errors: ["CSV är tom."] };
+    await audit("profitability-cost-upload", undefined, "csv tom");
+    return;
   }
   // Stöd både header och header-lös; identifiera om första raden ser ut som header.
   const looksLikeHeader = /productid/i.test(lines[0]);
@@ -65,16 +68,21 @@ export async function uploadImportCostsCsv(formData: FormData): Promise<{
   }
 
   if (records.length === 0) {
-    return { saved: 0, failed: 0, errors: ["Inga giltiga rader hittades.", ...errors].slice(0, 10) };
+    await audit(
+      "profitability-cost-upload",
+      undefined,
+      `inga giltiga rader (${errors.slice(0, 3).join("; ")})`,
+    );
+    return;
   }
 
   const result = await getImportCostStore().upsertMany(records);
-  await audit("profitability-cost-upload", undefined, `saved=${result.saved} failed=${result.failed}`);
+  await audit(
+    "profitability-cost-upload",
+    undefined,
+    `saved=${result.saved} failed=${result.failed + errors.length}` +
+      (result.errors.length ? ` (${result.errors.slice(0, 2).join("; ")})` : ""),
+  );
   revalidateTag("admin-profitability", "max");
   revalidatePath("/admin/profitability");
-  return {
-    saved: result.saved,
-    failed: result.failed + errors.length,
-    errors: [...result.errors, ...errors].slice(0, 10),
-  };
 }
