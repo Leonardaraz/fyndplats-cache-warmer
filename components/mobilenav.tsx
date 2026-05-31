@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { SearchBox } from "./searchbox";
+import type { CategoryNode } from "../lib/category-groups";
 
 // Kategorierna ligger högt upp (direkt efter "Butik"), före info-sidorna —
 // det är produktnavigeringen folk vill åt först i en butik.
@@ -9,13 +10,17 @@ const shopLink = { href: "/butik", label: "Butik" };
 const infoLinks = [
   { href: "/omoss", label: "Om oss" },
   { href: "/vanliga-fragor", label: "Vanliga frågor" },
+  { href: "/returer", label: "Returer & ångerrätt" },
   { href: "/kontaktaoss", label: "Kontakta oss" },
   { href: "/kundtjanst", label: "Kundtjänst" },
 ];
 
-export function MobileNav({ collections = [], hasBlog = false }: { collections?: { name: string; slug: string }[]; hasBlog?: boolean }) {
+export function MobileNav({ tree = [], hasBlog = false }: { tree?: CategoryNode[]; hasBlog?: boolean }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // Vilka huvudkategorier som är utfällda (accordion). Set → flera kan vara
+  // öppna samtidigt; tapp på namnet navigerar, tapp på chevron fäller ut.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   // Render the overlay + drawer via a portal on <body>. The <header> uses
   // backdrop-filter, which makes it a containing block for fixed-position
@@ -28,33 +33,72 @@ export function MobileNav({ collections = [], hasBlog = false }: { collections?:
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
+  const closeMenu = () => setOpen(false);
+  const toggle = (id: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
   const menu = (
     <>
-      <div className={`mobileov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
+      <div className={`mobileov ${open ? "show" : ""}`} onClick={closeMenu} />
       <aside className={`mobilemenu ${open ? "open" : ""}`} aria-hidden={!open} inert={!open}>
         <div className="mm-head">
           <strong>Meny</strong>
-          <button onClick={() => setOpen(false)} aria-label="Stäng">✕</button>
+          <button onClick={closeMenu} aria-label="Stäng">✕</button>
         </div>
-        <SearchBox onNavigate={() => setOpen(false)} />
+        <SearchBox onNavigate={closeMenu} />
         <div className="mm-scroll">
           <nav className="mm-links">
-            <a href={shopLink.href} onClick={() => setOpen(false)}>{shopLink.label}</a>
+            <a href={shopLink.href} onClick={closeMenu}>{shopLink.label}</a>
           </nav>
-          {collections.length > 0 && (
+          {tree.length > 0 && (
             <div className="mm-cats">
               <div className="mm-cats-head">Kategorier</div>
-              {collections.slice(0, 10).map((c) => (
-                <a key={c.slug} href={`/kategori/${c.slug}`} onClick={() => setOpen(false)}>
-                  {c.name}
-                </a>
-              ))}
+              {tree.map((m) => {
+                const isOpen = expanded.has(m.id);
+                const hasSubs = m.subs.length > 0;
+                return (
+                  <div className={`mm-cat ${isOpen ? "open" : ""}`} key={m.id}>
+                    <div className="mm-cat-row">
+                      <a className="mm-cat-name" href={`/kategori/${m.slug}`} onClick={closeMenu}>
+                        {m.name}
+                      </a>
+                      {hasSubs && (
+                        <button
+                          type="button"
+                          className="mm-cat-toggle"
+                          aria-label={isOpen ? `Dölj ${m.name}` : `Visa ${m.name}`}
+                          aria-expanded={isOpen}
+                          onClick={() => toggle(m.id)}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                            <path d="M8 10l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {hasSubs && isOpen && (
+                      <div className="mm-subs">
+                        {m.subs.map((s) => (
+                          <a key={s.id} className="mm-sub" href={`/kategori/${s.slug}`} onClick={closeMenu}>
+                            <span>{s.name}</span>
+                            <span className="mm-sub-count">{s.count}</span>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
           <nav className="mm-links">
-            {hasBlog && <a href="/blogg" onClick={() => setOpen(false)}>Blogg</a>}
+            {hasBlog && <a href="/blogg" onClick={closeMenu}>Blogg</a>}
             {infoLinks.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
+              <a key={l.href} href={l.href} onClick={closeMenu}>{l.label}</a>
             ))}
           </nav>
         </div>

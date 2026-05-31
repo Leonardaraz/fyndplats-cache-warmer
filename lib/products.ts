@@ -275,35 +275,18 @@ export function mixByCategory(products: Product[], collections: Collection[]): P
   return out;
 }
 
-export type Collection = { id: string; name: string; slug: string };
+// `parentId` mirrors Wix V3 `parentCategory._id` (null for the 8 top-level
+// categories); `index` is the merchant-defined sibling order within the parent.
+// These let lib/category-groups#buildCategoryTree reconstruct the real two-level
+// hierarchy straight from the catalog instead of a hardcoded name map.
+export type Collection = { id: string; name: string; slug: string; parentId: string | null; index: number };
 
-// For each collection, the other collections its products most often ALSO belong to,
-// ranked by co-occurrence (most shared products first). Lets the catnav derive a
-// data-driven "subcategory" row — we have no real category hierarchy in Wix.
-export function relatedCollections(products: Product[]): Map<string, string[]> {
-  const co = new Map<string, Map<string, number>>();
-  for (const p of products) {
-    const ids = p.collectionIds || [];
-    for (const a of ids) {
-      let m = co.get(a);
-      if (!m) { m = new Map(); co.set(a, m); }
-      for (const b of ids) if (b !== a) m.set(b, (m.get(b) || 0) + 1);
-    }
-  }
-  const out = new Map<string, string[]>();
-  for (const [a, m] of co) {
-    out.set(a, [...m.entries()].sort((x, y) => y[1] - x[1]).map(([id]) => id));
-  }
-  return out;
-}
-
-// Main categories shown first (in this order); everything else follows alphabetically.
+// Top-level (parentless) categories shown first; everything else follows. The
+// Wix V3 restructure (2026-05-31) made the 8 mains exactly the parentless
+// categories, ordered here by catalog size (largest first).
 const MAIN_ORDER = [
-  "Elektronik", "Mobil & Surfplatta", "Ljud & Hörlurar", "Dator & Gaming",
-  "Hem & Inredning", "Kök & Matlagning", "Köksredskap & Tillbehör", "Hemtextil & Badrum",
-  "Mode & Accessoarer", "Kläder & Skor", "Smycken",
-  "Hudvård & Ansikte", "Kropp & Välbefinnande",
-  "Husdjur", "Barn & Familj", "Leksaker & Spel", "Friluftsliv & Resa",
+  "Elektronik & Tillbehör", "Hem & Inredning", "Kök & Husgeråd", "Barn & Familj",
+  "Skönhet & Hälsa", "Husdjur", "Sport & Fritid", "Mode & Accessoarer",
 ];
 
 let collectionsPromise: Promise<Collection[]> | null = null;
@@ -338,13 +321,18 @@ async function fetchCollections(): Promise<Collection[]> {
 
     const seen = new Set<string>();
     const list: Collection[] = (res.items || [])
-      .map((c: any) => ({ id: c._id || c.id, name: c.name }))
+      .map((c: any) => ({
+        id: c._id || c.id,
+        name: c.name,
+        parentId: (c.parentCategory && c.parentCategory._id) || null,
+        index: (c.parentCategory && typeof c.parentCategory.index === "number") ? c.parentCategory.index : 0,
+      }))
       .filter((c: { id: string; name: string }) => c.id && c.name && !/all products/i.test(c.name) && used.has(c.id))
-      .map((c: { id: string; name: string }) => {
+      .map((c: { id: string; name: string; parentId: string | null; index: number }) => {
         let slug = asciiSlug(c.name);
         while (!slug || seen.has(slug)) slug = (slug || "kategori") + "-" + c.id.slice(-4);
         seen.add(slug);
-        return { id: c.id, name: c.name, slug };
+        return { id: c.id, name: c.name, slug, parentId: c.parentId, index: c.index };
       });
     list.sort((a, b) => {
       const ia = MAIN_ORDER.indexOf(a.name), ib = MAIN_ORDER.indexOf(b.name);

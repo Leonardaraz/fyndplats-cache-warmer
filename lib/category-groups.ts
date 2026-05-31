@@ -4,6 +4,8 @@
 // upplevelsen själva: 1) väl handplockade hero-produkter (clean, ingen text-overlay),
 // 2) en kort tagline per kategori, 3) en uttalad underkategori-grupp.
 
+import { cache } from "react";
+import { getProducts, getCollections } from "./products";
 import type { Product, Collection } from "./products";
 
 export type MainGroup = {
@@ -13,66 +15,59 @@ export type MainGroup = {
   heroPicks: string[];   // Curated produkt-slugs för hero-bild (clean, premium)
 };
 
+// Curated huvudgrupper för /butik- och hemsidans kategorisektioner. Sub-namnen
+// MÅSTE matcha Wix V3-katalogens kategorinamn exakt (uppdaterat efter
+// omstruktureringen 2026-05-31: 8 huvud + 34 sub). heroPicks är valfria — saknas
+// en curated slug i kategorin faller buildGroupCards tillbaka på första rena
+// (non-denylisted) produktbilden, så listan behöver inte vara komplett.
 export const MAIN_GROUPS: MainGroup[] = [
+  {
+    main: "Elektronik & Tillbehör",
+    tag: "Smart teknik för vardagen",
+    subs: ["Mobiltillbehör", "Laddare & Kablar", "Dator & Gaming", "Hörlurar & Ljud"],
+    heroPicks: ["mini-luftfuktare"],
+  },
   {
     main: "Hem & Inredning",
     tag: "Detaljer som lyfter ditt hem",
-    subs: ["Kök & Matlagning", "Köksredskap & Tillbehör", "Hemtextil & Badrum"],
-    heroPicks: [
-      "magnetisk-knivhallare-akacia-vaggmonterad-knivlist",
-      "astronaut-stjarnprojektor",
-      "4-pack-glas-ribbad-design",
-    ],
+    subs: ["Hushållsapparater", "Belysning", "Förvaring & Organisering", "Badrum & Hemtextil", "Verktyg & Hemmafix", "Kalas & Fest", "Dekoration & Prydnad"],
+    heroPicks: ["astronaut-stjarnprojektor"],
   },
   {
-    main: "Elektronik",
-    tag: "Smart teknik för vardagen",
-    subs: ["Mobil & Surfplatta", "Ljud & Hörlurar", "Dator & Gaming"],
-    heroPicks: [
-      "elektrisk-mjolkskummare",
-      "elektrisk-vinoppnare",
-      "mini-luftfuktare",
-    ],
-  },
-  {
-    main: "Hudvård & Ansikte",
-    tag: "Egentid för hud och välmående",
-    subs: ["Kropp & Välbefinnande"],
-    heroPicks: [
-      "gua-sha-massagesten-i-akta-jade",
-      "ansiktsroller-massageverktyg-for-ansikte-och-ogon",
-      "ultratunna-foundationborstar-2-pack-precisionsborste",
-    ],
-  },
-  {
-    main: "Mode & Accessoarer",
-    tag: "Tidlösa stilval och accessoarer",
-    subs: ["Kläder & Skor", "Smycken"],
-    heroPicks: [
-      "trendigt-snake-chain-kedjehalsband-slat",
-    ],
+    main: "Kök & Husgeråd",
+    tag: "Allt för matlagning och dukning",
+    subs: ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas"],
+    heroPicks: ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design"],
   },
   {
     main: "Barn & Familj",
     tag: "Genomtänkta favoriter för familjen",
-    subs: ["Leksaker & Spel"],
-    heroPicks: [
-      "montessori-musikset-i-tra-5-delars",
-      "babygym-i-tra-stabil-aktivitetsstallning",
-      "mjuk-huva-handduk-i-coral-fleece",
-    ],
+    subs: ["Baby & Småbarn", "Leksaker & Spel"],
+    heroPicks: ["montessori-musikset-i-tra-5-delars", "babygym-i-tra-stabil-aktivitetsstallning"],
+  },
+  {
+    main: "Skönhet & Hälsa",
+    tag: "Egentid för hud och välmående",
+    subs: ["Hudvård & Ansikte", "Massage & Återhämtning", "Kropp & Välbefinnande", "Hår & Rakning"],
+    heroPicks: ["gua-sha-massagesten-i-akta-jade", "ansiktsroller-massageverktyg-for-ansikte-och-ogon"],
   },
   {
     main: "Husdjur",
     tag: "Det bästa för dina fyrbenta vänner",
-    subs: [],
+    subs: ["Lek & Tillbehör för husdjur", "Selar, Koppel & Transport", "Pälsvård & Skötsel", "Burar, Kläder & Tillbehör", "Mat & Vattenskålar"],
     heroPicks: [],
   },
   {
-    main: "Friluftsliv & Resa",
-    tag: "Smart utrustning för utomhusliv och resa",
-    subs: [],
+    main: "Sport & Fritid",
+    tag: "Smart utrustning för träning, resa och uteliv",
+    subs: ["Bil & Cykel", "Friluftsliv & Resa", "Träning & Gym"],
     heroPicks: ["digital-bagagevag"],
+  },
+  {
+    main: "Mode & Accessoarer",
+    tag: "Tidlösa stilval och accessoarer",
+    subs: ["Smycken", "Klockor & Solglasögon", "Väskor & Necessärer", "Skor"],
+    heroPicks: ["trendigt-snake-chain-kedjehalsband-slat"],
   },
 ];
 
@@ -99,16 +94,87 @@ export type GroupCard = {
   subs: { id: string; name: string; slug: string; count: number; img: string }[];
 };
 
+// 2-nivå kategori-träd för navigerings-dropdown:n. Bygger på MAIN_GROUPS-
+// hierarkin (samma som /butik), så användaren ser samma struktur överallt.
+// Kategorier som finns i katalogen men inte i MAIN_GROUPS hamnar som extra
+// rötter utan subs (defensivt mot katalog-ändringar — inga produkter "tappas").
+export type CategoryNode = {
+  id: string;
+  name: string;
+  slug: string;
+  count: number;
+  subs: { id: string; name: string; slug: string; count: number }[];
+};
+
+// Marknadsförings-kollektioner som finns i katalogen men inte hör hemma i
+// kategori-navigeringen (de är "rea/populärt"-urval, inte en avdelning).
+// Varje produkt ligger även i sin riktiga huvudkategori, så inget tappas.
+export const NAV_EXCLUDED = new Set<string>(["Populära", "REA", "Sale", "All Products"]);
+
+// Bygger 2-nivå-trädet direkt ur Wix V3-hierarkin (collection.parentId/index)
+// i stället för en hårdkodad namn-mappning — så navet följer katalogen
+// automatiskt när butiken omstruktureras. Räknar produkter per kategori via
+// collectionIds (exakt det /kategori-sidan filtrerar på, så count = vad sidan visar).
+//   • roots  = parentlösa kategorier (de 8 huvudkategorierna), promo-urval bortfiltrerade
+//   • subs   = barn vars parentId pekar på huvudkategorin, sorterade på Wix-index
+//   • ordning: huvudkategorier efter antal (störst först), tom kategori utesluts
+export function buildCategoryTree(products: Product[], collections: Collection[]): CategoryNode[] {
+  const counts = new Map<string, number>();
+  for (const p of products) for (const cid of (p.collectionIds || [])) counts.set(cid, (counts.get(cid) || 0) + 1);
+
+  const childrenByParent = new Map<string, Collection[]>();
+  for (const c of collections) {
+    if (!c.parentId) continue;
+    const arr = childrenByParent.get(c.parentId) || [];
+    arr.push(c);
+    childrenByParent.set(c.parentId, arr);
+  }
+
+  const roots = collections
+    .filter((c) => !c.parentId && !NAV_EXCLUDED.has(c.name) && (counts.get(c.id) || 0) > 0)
+    .map((mainCol) => {
+      const children = childrenByParent.get(mainCol.id) || [];
+      const subs = children
+        .filter((sc) => (counts.get(sc.id) || 0) > 0)
+        .sort((a, b) => a.index - b.index)
+        .map((sc) => ({ id: sc.id, name: sc.name, slug: sc.slug, count: counts.get(sc.id) || 0 }));
+      // Huvudkategorins antal = distinkta produkter i kategorin ELLER någon
+      // underkategori (samma mängd som /kategori/<huvud-slug>-sidan visar), så
+      // nav-siffran matchar sidan exakt.
+      const ids = new Set([mainCol.id, ...children.map((c) => c.id)]);
+      const count = products.filter((p) => (p.collectionIds || []).some((cid) => ids.has(cid))).length;
+      return { id: mainCol.id, name: mainCol.name, slug: mainCol.slug, count, subs };
+    })
+    .sort((a, b) => b.count - a.count);
+
+  return roots;
+}
+
+// Cachad hierarki för site-headern (mega-meny + mobil-drawer) och kategori-
+// sidorna. getProducts/getCollections är redan promise-cachade, så detta
+// round-trippar aldrig Wix mer än en gång per render; React cache() memoiserar
+// dessutom själva träd-bygget per request.
+export const getCategoryTree = cache(async (): Promise<CategoryNode[]> => {
+  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  return buildCategoryTree(products, collections);
+});
+
 // Bygger upp alla huvudgrupper med hero-bild + sub-kategorier från live-katalogen.
 // Resilient mot katalog-ändringar: hoppar över saknade kategorier, faller tillbaka
 // på första non-denylisted produkten om curated hero saknas.
+//
+// PAGE-WIDE DEDUP: efter omklassningen ligger 207 produkter i BÅDE en huvud-
+// kategori OCH 1–3 subkategorier. Utan dedup skulle samma produktbild kunna
+// dyka upp som hero i en huvudkategori och som thumb i en sub i samma kort
+// (eller som thumb i två olika sub-chips). Vi spårar därför använda product-
+// slugs över HELA utdata och hoppar över redan-använda när vi väljer bilder.
 export function buildGroupCards(products: Product[], collections: Collection[]): GroupCard[] {
   const counts = new Map<string, number>();
   for (const p of products) for (const cid of (p.collectionIds || [])) counts.set(cid, (counts.get(cid) || 0) + 1);
-  const collBySlug = new Map<string, Collection>();
   const collByName = new Map<string, Collection>();
-  for (const c of collections) { collBySlug.set(c.slug, c); collByName.set(c.name, c); }
+  for (const c of collections) collByName.set(c.name, c);
 
+  const usedImg = new Set<string>(); // product slug → redan visad någonstans i mosaiken
   const cards: GroupCard[] = [];
   for (const g of MAIN_GROUPS) {
     const mainCol = collByName.get(g.main);
@@ -117,16 +183,23 @@ export function buildGroupCards(products: Product[], collections: Collection[]):
     if (inCat.length === 0) continue;
     const slugMap = new Map(inCat.map((p) => [p.slug, p]));
 
-    // Hero: curated → non-denylisted → any
+    // Hero: curated (oanvänd) → non-denylisted oanvänd → oanvänd → non-denylisted → any
     let heroImg = "";
+    let heroSlug = "";
     for (const slug of g.heroPicks) {
       const p = slugMap.get(slug);
-      if (p) { heroImg = p.img; break; }
+      if (p && !usedImg.has(slug)) { heroImg = p.img; heroSlug = slug; break; }
     }
     if (!heroImg) {
-      const p = inCat.find((x) => !MOSAIC_DENYLIST.has(x.slug)) || inCat[0];
-      heroImg = p?.img || "";
+      const pick =
+        inCat.find((x) => !MOSAIC_DENYLIST.has(x.slug) && !usedImg.has(x.slug)) ||
+        inCat.find((x) => !usedImg.has(x.slug)) ||
+        inCat.find((x) => !MOSAIC_DENYLIST.has(x.slug)) ||
+        inCat[0];
+      heroImg = pick?.img || "";
+      heroSlug = pick?.slug || "";
     }
+    if (heroSlug) usedImg.add(heroSlug);
 
     const subs = g.subs
       .map((subName) => {
@@ -134,8 +207,13 @@ export function buildGroupCards(products: Product[], collections: Collection[]):
         if (!sc) return null;
         const subProducts = products.filter((p) => p.img && (p.collectionIds || []).includes(sc.id));
         if (subProducts.length === 0) return null;
-        // Sub-thumb: första non-denylisted produkt
-        const thumb = subProducts.find((p) => !MOSAIC_DENYLIST.has(p.slug)) || subProducts[0];
+        // Sub-thumb: non-denylisted oanvänd → oanvänd → non-denylisted → any
+        const thumb =
+          subProducts.find((p) => !MOSAIC_DENYLIST.has(p.slug) && !usedImg.has(p.slug)) ||
+          subProducts.find((p) => !usedImg.has(p.slug)) ||
+          subProducts.find((p) => !MOSAIC_DENYLIST.has(p.slug)) ||
+          subProducts[0];
+        if (thumb) usedImg.add(thumb.slug);
         return {
           id: sc.id,
           name: sc.name,

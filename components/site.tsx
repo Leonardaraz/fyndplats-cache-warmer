@@ -2,16 +2,9 @@ import { CartButton } from "./cart";
 import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
 import { MobileNav } from "./mobilenav";
-import { getCollections } from "../lib/products";
+import { MegaNav } from "./meganav";
+import { getCategoryTree } from "../lib/category-groups";
 import { getPosts } from "../lib/blog";
-
-const HEADER_NAV = [
-  { label: "Elektronik", match: "Elektronik" },
-  { label: "Hem", match: "Hem & Inredning" },
-  { label: "Skönhet", match: "Hudvård & Ansikte" },
-  { label: "Mode", match: "Mode & Accessoarer" },
-  { label: "Husdjur", match: "Husdjur" },
-];
 
 export function GoogleG({ size = 16 }: { size?: number }) {
   return (
@@ -58,12 +51,8 @@ export const Mark = ({ size = 34 }: { size?: number }) => (
 );
 
 export async function SiteHeader() {
-  const cats = await getCollections();
+  const tree = await getCategoryTree();
   const hasBlog = (await getPosts()).length > 0; // dölj blogg-länk tills det finns inlägg
-  const catHref = (m: string) => {
-    const c = cats.find((x) => x.name === m);
-    return c ? `/kategori/${c.slug}` : "/butik";
-  };
   return (
     <>
       <div className="promo">
@@ -76,13 +65,10 @@ export async function SiteHeader() {
         <div className="container hrow">
           <a className="brand" href="/"><Mark />Fyndplats</a>
           <SearchBox />
-          <nav className="nav">
-            <a href="/butik">Butik</a>
-            {HEADER_NAV.map((n) => <a key={n.label} href={catHref(n.match)}>{n.label}</a>)}
-          </nav>
+          <MegaNav tree={tree} />
           <WishlistButton />
           <CartButton />
-          <MobileNav collections={cats} hasBlog={hasBlog} />
+          <MobileNav tree={tree} hasBlog={hasBlog} />
         </div>
         {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
         <div className="hsearch-mobile">

@@ -1,6 +1,6 @@
 import { getProducts, getCollections, mixByCategory } from "../../lib/products";
 import { ShopBrowser } from "../../components/shopbrowser";
-import { CatNav } from "../../components/catnav";
+import { CategoryDropdown } from "../../components/categorydropdown";
 import { pageMeta } from "../../lib/seo";
 
 export const metadata = pageMeta(
@@ -42,7 +42,7 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
 
       <section className="alla-prod-body">
         <div className="container">
-          <CatNav products={products} collections={collections} activeSlug={active?.slug} />
+          <CategoryDropdown products={products} collections={collections} activeSlug={active?.slug} />
 
           <ShopBrowser products={list} />
         </div>
