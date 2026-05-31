@@ -9,7 +9,8 @@ import { getImportCostStore, type ImportCostRecord } from "@/lib/store/import-co
  * fyllt på inköpsdata i Wix Data).
  */
 export async function refreshProfitability(): Promise<void> {
-  revalidateTag("admin-profitability");
+  // Next 16: revalidateTag har bytt signatur — andra arget anger profil.
+  revalidateTag("admin-profitability", "max");
   revalidatePath("/admin/profitability");
 }
 
@@ -69,7 +70,7 @@ export async function uploadImportCostsCsv(formData: FormData): Promise<{
 
   const result = await getImportCostStore().upsertMany(records);
   await audit("profitability-cost-upload", undefined, `saved=${result.saved} failed=${result.failed}`);
-  revalidateTag("admin-profitability");
+  revalidateTag("admin-profitability", "max");
   revalidatePath("/admin/profitability");
   return {
     saved: result.saved,
