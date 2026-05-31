@@ -450,6 +450,66 @@ export async function getProduct(productId: string): Promise<WixProductSnapshot 
   };
 }
 
+export interface WixProductEnrichInfo {
+  id: string;
+  revision: string;
+  name: string;
+  /** Rik beskrivnings-HTML (PLAIN_DESCRIPTION) — källan för flik-back-fill. */
+  plainDescription: string;
+}
+
+/**
+ * Hämtar en produkts beskrivning + revision för flik-back-fill
+ * (/admin/enrich-products). Returnerar null vid 404.
+ */
+export async function getProductForEnrich(productId: string): Promise<WixProductEnrichInfo | null> {
+  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=PLAIN_DESCRIPTION`;
+  const res = await fetch(url, { method: "GET", headers: wixHeaders() });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix get-product (enrich) misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as {
+    product: { id: string; revision: string; name?: string; plainDescription?: string };
+  };
+  const p = data.product;
+  return {
+    id: p.id,
+    revision: p.revision,
+    name: p.name ?? "",
+    plainDescription: p.plainDescription ?? "",
+  };
+}
+
+/**
+ * Skriver om produktens beskrivning (plainDescription) — används av flik-back-fill
+ * för att foga in de genererade <h2>-flikblocken. PATCH med fieldMask så endast
+ * beskrivningen rörs. Returnerar nya revisionen.
+ */
+export async function updateProductDescription(
+  productId: string,
+  revision: string,
+  plainDescription: string,
+): Promise<{ revision: string }> {
+  if (isDryRun()) return { revision };
+  const body = {
+    product: { revision, plainDescription },
+    fieldMask: { paths: ["plainDescription"] },
+  };
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
+    method: "PATCH",
+    headers: wixHeaders(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix update-description misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as { product?: { revision?: string } };
+  return { revision: data.product?.revision ?? revision };
+}
+
 /** Sätter visible på en produkt (true = synlig, false = dold i butiken). */
 export async function setProductVisibility(
   productId: string,

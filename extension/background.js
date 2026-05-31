@@ -46,6 +46,18 @@ async function importProduct(product, featureFlags) {
       included: Boolean(v.included),
     })),
     ...(product.optionColorCodes ? { optionColorCodes: product.optionColorCodes } : {}),
+    // Strukturerad produktinfo för de tabbade PDP-sektionerna (Tekniska
+    // specifikationer / Vanliga frågor / Användning och skötsel). Skickas bara
+    // när skrapan faktiskt hittade något så att tomma fält inte når servern.
+    ...(product.specifications && Object.keys(product.specifications).length
+      ? { specifications: product.specifications }
+      : {}),
+    ...(Array.isArray(product.features) && product.features.length
+      ? { features: product.features }
+      : {}),
+    ...(Array.isArray(product.packageContents) && product.packageContents.length
+      ? { packageContents: product.packageContents }
+      : {}),
     // AI-funktionsväljare från popupen. Saknas = backend kör allt (default på).
     ...(featureFlags ? { featureFlags } : {}),
   };

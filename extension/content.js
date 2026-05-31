@@ -346,6 +346,139 @@ function decodeSkuProps(skuPropIds, props) {
   return options;
 }
 
+// --- Strukturerad produktinfo (data till de tabbade PDP-sektionerna) ------
+// Tre fält som backaren översätter/berikar till svenska flikar:
+//   specifications  → "Tekniska specifikationer"
+//   features        → säljpunkter (vävs in i beskrivningen / FAQ-underlag)
+//   packageContents → "Vad som ingår" (del av specifikationer)
+// AE är klient-renderad (runParams=null) så DOM är huvudkälla; embedded
+// specsModule (när den finns) är dock renast och hanteras i extract() nedan.
+
+function cleanLabel(s) {
+  return String(s || "").replace(/\s+/g, " ").trim().replace(/[:：]\s*$/, "");
+}
+function cleanValue(s) {
+  return String(s || "").replace(/\s+/g, " ").trim();
+}
+
+// Specifikationstabell → { [label]: value }. Försöker flera kända AE-strukturer:
+// dl/dt/dd, två-cells-rader (li/tr med titel+värde), samt "Label: Value"-rader.
+function extractSpecifications() {
+  const specs = {};
+  const add = (label, value) => {
+    const l = cleanLabel(label);
+    const v = cleanValue(value);
+    // Filtrera bort skräp: label/värde måste vara rimligt korta och icke-tomma,
+    // och värdet får inte vara identiskt med labeln (mis-parsade celler).
+    if (!l || !v || l.length > 60 || v.length > 300 || l.toLowerCase() === v.toLowerCase()) return;
+    if (!(l in specs)) specs[l] = v;
+  };
+
+  const containers = document.querySelectorAll(
+    '[class*="specification"], [class*="product-specs"], [class*="productSpec"], ' +
+      '[class*="prop-list"], [class*="product-prop"], [class*="extend-info"], [id*="specification" i]',
+  );
+  for (const c of containers) {
+    // a) Definition lists.
+    for (const dt of c.querySelectorAll("dt")) {
+      if (dt.nextElementSibling) add(dt.textContent, dt.nextElementSibling.textContent);
+    }
+    // b) Rader med separata titel-/värde-celler.
+    for (const row of c.querySelectorAll(
+      'li, tr, [class*="prop-item"], [class*="specification-item"], [class*="property-item"]',
+    )) {
+      const key = row.querySelector(
+        '[class*="prop-title"], [class*="propertyTitle"], [class*="title"], [class*="name"], [class*="key"], dt, th',
+      );
+      const val = row.querySelector(
+        '[class*="prop-value"], [class*="propertyValue"], [class*="value"], [class*="desc"], dd, td',
+      );
+      if (key && val && key !== val) {
+        add(key.textContent, val.textContent);
+        continue;
+      }
+      // c) "Label: Value" i en enda cell.
+      const m = (row.textContent || "").match(/^\s*([^:：\n]{2,40})[:：]\s*(.+)$/);
+      if (m) add(m[1], m[2]);
+    }
+  }
+  return specs;
+}
+
+// Säljpunkter/funktioner → array av strängar. AE visar dem som "key-features"-
+// listor eller sales-bullets nära beskrivningen.
+function extractFeatures() {
+  const out = [];
+  const seen = new Set();
+  const push = (s) => {
+    const t = cleanValue(s);
+    // Bullets är typ 3–160 tecken; filtrera bort rubriker/skräp.
+    if (t.length < 3 || t.length > 200) return;
+    const key = t.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(t);
+  };
+  const containers = document.querySelectorAll(
+    '[class*="product-feature"], [class*="key-features"], [class*="keyFeatures"], ' +
+      '[class*="sales-bullet"], [class*="bullet-point"], [class*="highlight"]',
+  );
+  for (const c of containers) {
+    const items = c.querySelectorAll("li");
+    if (items.length) {
+      for (const li of items) push(li.textContent);
+    } else {
+      push(c.textContent);
+    }
+    if (out.length >= 12) break;
+  }
+  return out.slice(0, 12);
+}
+
+// "What's in the box" / "Package includes" → array, t.ex. ["1 x Kabel", ...].
+// Källor: dedikerade DOM-block ELLER en mening i beskrivningstexten.
+function extractPackageContents() {
+  const out = [];
+  const seen = new Set();
+  const push = (s) => {
+    let t = cleanValue(s).replace(/^[•\-*·]\s*/, "");
+    if (t.length < 2 || t.length > 160) return;
+    const key = t.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(t);
+  };
+
+  const PKG_RE = /package\s*(includes|contents|list)|what'?s\s+in\s+the\s+box|in\s+the\s+box|package\s+included/i;
+
+  // 1. Dedikerat DOM-block vars rubrik nämner paketinnehåll.
+  for (const el of document.querySelectorAll("h1,h2,h3,h4,strong,b,p,div,span")) {
+    const txt = el.textContent || "";
+    if (txt.length < 200 && PKG_RE.test(txt)) {
+      // Leta listposter i samma eller nästkommande element.
+      const scope = el.closest("section, div, li, td") || el.parentElement || el;
+      const lis = scope.querySelectorAll("li");
+      if (lis.length) {
+        for (const li of lis) push(li.textContent);
+      }
+      if (out.length) return out.slice(0, 20);
+    }
+  }
+
+  // 2. Fallback: parsa beskrivningstexten efter en "Package includes:"-mening.
+  const bodyText = (document.body && document.body.innerText) || "";
+  const m = bodyText.match(new RegExp(`(?:${PKG_RE.source})\\s*[:：]?\\s*([\\s\\S]{0,400})`, "i"));
+  if (m && m[1]) {
+    // Dela på "N x ...", radbrytningar, semikolon eller bullets.
+    const parts = m[1]
+      .split(/\n|;|·|•|(?=\d+\s*[x×*]\s)/i)
+      .map((s) => s.trim())
+      .filter((s) => /\d+\s*[x×*]\s*\S|^\d+\s+\S/i.test(s) || /^[A-Za-zÅÄÖåäö]/.test(s));
+    for (const p of parts.slice(0, 12)) push(p);
+  }
+  return out.slice(0, 20);
+}
+
 function extract() {
   const data = readEmbeddedData();
   const supplierProductId =
@@ -359,6 +492,10 @@ function extract() {
     imageUrls: [],
     variants: [],
     swatchImages: {},
+    // Strukturerad produktinfo → tabbade PDP-sektioner (server översätter/berikar).
+    specifications: {},
+    features: [],
+    packageContents: [],
     shipsFrom: [],
     // Lagerstatus — default i lager (sätts nedan via detectInStock + ev. SKU-saldo).
     inStock: true,
@@ -389,6 +526,12 @@ function extract() {
       .map((p) => {
         const name = p.attrName || p.name;
         const val = p.attrValue || p.value;
+        // Embedded specs är renaste källan → fyll även den strukturerade mappen.
+        if (name && val) {
+          const l = cleanLabel(name);
+          const v = cleanValue(val);
+          if (l && v && !(l in result.specifications)) result.specifications[l] = v;
+        }
         return name && val ? `${name}: ${val}` : "";
       })
       .filter(Boolean);
@@ -499,6 +642,19 @@ function extract() {
       .filter((u) => (seen.has(u) ? false : (seen.add(u), true)))
       .slice(0, 12);
   }
+
+  // --- Backfill strukturerad info från DOM -------------------------------
+  // specsModule (embedded) är renast men finns sällan på nya PC-sidan → komplettera
+  // alltid ur DOM. specifications backfillas bara om embedded inte gav något.
+  if (Object.keys(result.specifications).length === 0) {
+    result.specifications = extractSpecifications();
+  } else {
+    for (const [k, v] of Object.entries(extractSpecifications())) {
+      if (!(k in result.specifications)) result.specifications[k] = v;
+    }
+  }
+  result.features = extractFeatures();
+  result.packageContents = extractPackageContents();
 
   // --- Variant-fallback från DOM (när inbäddad SKU-data saknas) -----------
   // Nya PC-sidan saknar inbäddad SKU-JSON. Bygg varianter ur SKU-rutorna.

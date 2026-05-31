@@ -37,6 +37,11 @@ const ProductSchema = z.object({
   shipsFrom: z.array(z.string().max(8)).optional(),
   // Lagerstatus från skrapan. Saknas = i lager (default-antagande).
   inStock: z.boolean().optional(),
+  // Strukturerad produktinfo för de tabbade PDP-sektionerna. Alla valfria —
+  // pipelinen översätter/berikar dem till svenska flikar (lib/import/tabs.ts).
+  specifications: z.record(z.string()).optional(),
+  features: z.array(z.string()).optional(),
+  packageContents: z.array(z.string()).optional(),
   // Färgkoder samplade från produktbilden: { [optionName]: { [choiceName]: "#hex" } }.
   optionColorCodes: z.record(z.record(z.string())).optional(),
   // AI-funktionsväljare från extension-popupen. Saknas = allt på (default).

@@ -1,5 +1,6 @@
 import { computePriceWithRules } from "./pricing";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
+import { appendTabSections, buildTabSections, generateTabs } from "./tabs";
 import type { AliExpressProduct, FeatureFlags, PricingRules } from "./types";
 import {
   addProductToCollection,
@@ -141,6 +142,23 @@ export async function importProduct(
   const categorySuggestion = await suggestCategoryRecord(seo, product, collections);
   const categoryName = categorySuggestion.collectionName ?? null;
 
+  // Strukturerade PDP-flikar (Tekniska specifikationer / Vanliga frågor /
+  // Användning och skötsel) → svenska, via Haiku. Fogas in i beskrivningen som
+  // <h2>-block som storefronten splittar till flikar. Fail-open inuti generateTabs
+  // (oöversatta specs vid fel) så importen aldrig faller på detta.
+  const generatedTabs = await generateTabs({
+    productId: product.supplierProductId,
+    name: seo.title || product.rawTitle,
+    categoryName,
+    specifications: product.specifications,
+    features: product.features,
+    packageContents: product.packageContents,
+  });
+  const enrichedDescriptionHtml = appendTabSections(
+    seo.descriptionHtml,
+    buildTabSections(generatedTabs),
+  ).html;
+
   // Initialt lagersaldo per variant. quantity>0 → availabilityStatus=IN_STOCK.
   // Default IN_STOCK (AE-produkter säljer aktivt); explicit OOS från skrapan → 0.
   const stockQty = product.inStock === false ? 0 : defaultStockQty();
@@ -214,7 +232,7 @@ export async function importProduct(
   const wixInput: WixProductInput = {
     name: seo.title,
     slug: seo.slug,
-    plainDescription: seo.descriptionHtml,
+    plainDescription: enrichedDescriptionHtml,
     seo: { title: seo.title, description: seo.metaDescription },
     options: options.length ? options : undefined,
     variants: wixVariants,

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Fyndplats Import",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "Importerar AliExpress-produkter till Fyndplats (Wix) med svensk SEO och påslag.",
   "permissions": ["storage", "activeTab", "scripting"],
   "optional_host_permissions": ["https://*/*"],

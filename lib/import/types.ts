@@ -36,6 +36,16 @@ export interface AliExpressProduct {
    * AE-produkter säljer aktivt). Styr initialt Wix-lagersaldo vid import.
    */
   inStock?: boolean;
+  /**
+   * Specifikationstabell från AliExpress (engelska/kinesiska labels+värden),
+   * t.ex. { Material: "Stainless Steel", Color: "Black" }. Översätts till svenska
+   * och blir fliken "Tekniska specifikationer".
+   */
+  specifications?: Record<string, string>;
+  /** Säljpunkter/funktioner (råtext) — underlag för beskrivning + FAQ. */
+  features?: string[];
+  /** "Vad som ingår i paketet" (råtext), t.ex. ["1 x Kabel", "1 x Manual"]. */
+  packageContents?: string[];
 }
 
 /**
