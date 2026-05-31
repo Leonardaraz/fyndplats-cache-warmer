@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Product } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
+import { SHIMMER_BLUR } from "../lib/lqip";
 
 export function ProductCard({ p }: { p: Product }) {
   // Hover-alt-image: använd andra bilden i galleriet (om finns) som "swap"-bild
@@ -20,6 +21,8 @@ export function ProductCard({ p }: { p: Product }) {
             alt={p.name}
             fill
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
+            placeholder="blur"
+            blurDataURL={SHIMMER_BLUR}
             style={{ objectFit: "cover" }}
           />
         )}

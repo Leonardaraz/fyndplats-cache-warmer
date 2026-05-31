@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
+import { SHIMMER_BLUR } from "../lib/lqip";
 
 export function Gallery({
   images,
@@ -63,7 +64,7 @@ export function Gallery({
   return (
     <div className="gallery">
       <button type="button" className="gmain" onClick={() => { setZoom(false); setLightbox(true); }} aria-label="Förstora bilden">
-        {main && <Image key={main} src={main} alt={alt} width={800} height={800} priority fetchPriority="high" sizes="(max-width:760px) 100vw, 45vw" />}
+        {main && <Image key={main} src={main} alt={alt} width={800} height={800} preload fetchPriority="high" placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="(max-width:760px) 100vw, 45vw" />}
         <span className="gmain-zoom" aria-hidden>⤢</span>
       </button>
 
@@ -79,7 +80,7 @@ export function Gallery({
               aria-selected={i === active}
               aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 8)}`}
             >
-              <Image src={g} alt="" fill sizes="76px" style={{ objectFit: "cover" }} />
+              <Image src={g} alt="" fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
             </button>
           ))}
         </div>
@@ -93,7 +94,7 @@ export function Gallery({
           )}
           <div className={`lb-stage ${zoom ? "zoomed" : ""}`} onClick={onStageClick}>
             <div className="lb-imgwrap" style={{ transform: zoom ? "scale(2.2)" : "scale(1)", transformOrigin: origin }}>
-              <Image key={main} src={main} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} priority />
+              <Image key={main} src={main} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} preload />
             </div>
           </div>
           {imgs.length > 1 && (

@@ -43,11 +43,7 @@ Vi har skrivit hela [Aktivera hunden inomhus](https://www.fyndplats.se/blogg/akt
 
 **Prisklass:** 250–600 kr.
 
-> **Bildförslag:** Hund som tittar koncentrerat på aktiveringsleksak omslagen som present.
-> **Alt-text:** Present hundägare: aktiveringsleksak som julklapp.
-
 [![Långsam hundskål i plast med roterande boll i mitten för snabbätande hundar](https://static.wixstatic.com/media/b379ce_13da577746334207afb632856523ff2c~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/langsam-hundskal-roterande-boll "Se i butiken →")
-
 
 ## För den långvariga hundägaren — det de inte unnar sig själva
 
@@ -95,7 +91,6 @@ Hundlitteratur har varit hett de senaste åren. Böcker som *Tassar utan tabu*, 
 
 [![Elektrisk nagelfil för hund och katt med slipande huvud](https://static.wixstatic.com/media/b379ce_4bd2d3c1ba5e400d86893f6efaa489b3~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/elektrisk-klovard-husdjur "Se i butiken →")
 
-
 ## För matte och husse — inte hunden
 
 Många av de bästa presenterna till en hundälskare är faktiskt inte till hunden.
@@ -120,9 +115,6 @@ Något av de mest underskattade hundägar-presenterna i Sverige. Halva året gå
 
 **Prisklass:** 200–500 kr.
 
-> **Bildförslag:** Person med pannlampa och hund i mörkt skogsbryn.
-> **Alt-text:** Julklapp hundälskare: pannlampa för mörka promenader.
-
 ## Roligt-och-användbart
 
 ### 13. Personligt hundkoppel-armband
@@ -138,7 +130,6 @@ Ja, det finns. Ett ljus som doftar nybadad hund eller "hundpäls efter regnig pr
 **Prisklass:** 150–350 kr.
 
 [![Mjuk gul anka-formad plysch-tuggleksak för hund](https://static.wixstatic.com/media/b379ce_52e9d5dd43304ec795fd168a621cd4b4~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/mjuk-anka-leksak-for-hund-plysch "Se i butiken →")
-
 
 ## Hur du paketerar presenten
 

@@ -108,5 +108,19 @@ export async function runMigration(): Promise<{ ok: true }> {
   `;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS sms_unmatched_received_idx ON sms_unmatched(received_at DESC);`;
 
+  // Newsletter-prenumeranter (lib/newsletter.ts). Kolumnerna speglar de fält som
+  // ursprungligen var tänkta för Wix Data-collection FyndplatsNewsletterSubscribers.
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      email          TEXT PRIMARY KEY,
+      subscribed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      source         TEXT,
+      status         TEXT NOT NULL DEFAULT 'subscribed',
+      consent        BOOLEAN NOT NULL DEFAULT TRUE,
+      updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS newsletter_status_idx ON newsletter_subscribers(status);`;
+
   return { ok: true };
 }

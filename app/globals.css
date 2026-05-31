@@ -180,6 +180,28 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .band p{opacity:.92;font-size:16px;margin-bottom:24px}
 .band .btn-white{background:#fff;color:#C2410C;font-weight:700;padding:14px 30px;border-radius:13px;display:inline-block}
 
+/* ── Nyhetsbrev — varm premium-card med äkta e-postfält + GDPR-samtycke ── */
+.nl{position:relative;background:var(--warm);border:1px solid var(--line);border-radius:24px;padding:46px 40px;text-align:center;overflow:hidden;box-shadow:0 30px 60px -38px rgba(28,28,28,.3)}
+.nl::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:linear-gradient(90deg,#F47A35,#C2410C)}
+.nl-eyebrow{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#C2410C;margin-bottom:12px}
+.nl h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(26px,3.4vw,38px);font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:10px}
+.nl-sub{font-size:15.5px;color:var(--soft);max-width:520px;margin:0 auto 26px;line-height:1.55}
+.nl-form{max-width:540px;margin:0 auto}
+.nl-row{display:flex;gap:10px;flex-wrap:wrap}
+.nl-input{flex:1;min-width:200px;height:52px;padding:0 18px;border:1px solid var(--line);border-radius:13px;background:#fff;font-size:15.5px;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
+.nl-input::placeholder{color:#a59b8f}
+.nl-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,122,53,.16)}
+.nl-btn{height:52px;padding:0 26px;border:none;border-radius:13px;background:#C2410C;color:#fff;font-weight:700;font-size:15.5px;cursor:pointer;white-space:nowrap;box-shadow:0 14px 28px -12px rgba(194,65,12,.5);transition:transform .2s,box-shadow .2s,opacity .2s}
+.nl-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 18px 34px -12px rgba(194,65,12,.55)}
+.nl-btn:disabled{opacity:.65;cursor:default}
+.nl-consent{display:flex;align-items:flex-start;gap:9px;margin-top:16px;text-align:left;font-size:12.5px;color:var(--soft);line-height:1.45}
+.nl-consent input{margin-top:2px;width:16px;height:16px;flex:0 0 auto;accent-color:#C2410C;cursor:pointer}
+.nl-err{margin-top:12px;color:#b42318;font-size:13px;font-weight:600}
+.nl-done{display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px 0 4px}
+.nl-done-ic{width:54px;height:54px;border-radius:50%;background:#0B6B3A;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 26px -12px rgba(11,107,58,.5)}
+.nl-done p{font-size:16px;font-weight:600;color:var(--ink)}
+@media (max-width:560px){.nl{padding:36px 22px}.nl-btn{width:100%}}
+
 footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:30px;padding:48px 0 30px}
 .fbrand{display:flex;align-items:center;gap:10px;font-weight:800;color:#fff;font-size:20px;margin-bottom:12px}
@@ -421,6 +443,31 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .fsbar.done span{background:linear-gradient(90deg,#1E9E57,#0B6B3A)}
 .drawer-body{flex:1;overflow-y:auto;padding:14px 22px}
 .empty{color:var(--soft);font-size:14px;padding:30px 0;text-align:center}
+/* empty cart — premium recovery state */
+.cart-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:44px 20px 36px;margin:10px 4px;background:var(--warm);border:1px solid var(--line);border-radius:18px}
+.cart-empty-ic{width:62px;height:62px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:#C2410C;box-shadow:0 10px 24px -16px rgba(28,28,28,.4)}
+.cart-empty-title{font-family:var(--font-display),Georgia,serif;font-size:20px;font-weight:600;color:var(--ink);margin:18px 0 0}
+.cart-empty-sub{font-size:13.5px;color:var(--soft);margin:6px 0 0;max-width:240px;line-height:1.5}
+.cart-empty-cta{margin-top:20px;display:inline-block;background:#C2410C;color:#fff;font-weight:700;font-size:14.5px;padding:12px 24px;border-radius:12px;box-shadow:0 12px 26px -12px rgba(194,65,12,.5);transition:transform .2s,box-shadow .2s}
+.cart-empty-cta:hover{transform:translateY(-2px);box-shadow:0 16px 32px -12px rgba(194,65,12,.55)}
+
+/* ── Loading skeleton (pulsande shimmer bakom bilder tills de laddat) ──
+   Bild-containrarna har redan en solid varm bakgrund; ::before lägger en
+   shimmer ovanpå den men UNDER bilden. Animationen är ändlig (~5.5 s) och
+   tonar ut, så den blir aldrig en evigt-körande animation (batteri/CPU) och
+   stör inte transparenta produktbilder efter att de laddat. Kombineras med
+   next/image placeholder="blur" (blur-up) som tar bort den tomma rutan helt. */
+@media (prefers-reduced-motion: no-preference){
+  .herotile::before,.prod .pimg::before,.homecat-thumb::before,.kat-hero-img::before,
+  .gallery .gmain::before,.gthumb::before{
+    content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:linear-gradient(100deg,#efe7dd 25%,#f8f3ec 50%,#efe7dd 75%);
+    background-size:200% 100%;
+    animation:skelShimmer 1.4s linear 4, skelFade .5s ease 5s forwards;
+  }
+}
+@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes skelFade{to{opacity:0}}
 .li{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .li-img{width:56px;height:56px;border-radius:10px;background:#f1ece6 center/cover no-repeat;flex:0 0 auto;object-fit:cover;display:block}
 .li-info{flex:1;min-width:0}

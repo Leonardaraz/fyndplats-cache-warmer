@@ -27,11 +27,7 @@ Den vanligaste missen i en liten lägenhet är att man möblerar i ögonhöjd oc
 
 Tips: en enkel hylla 25 cm under taket runt hela rummet kan rymma allt från reseväskor till säsongskläder och syns knappt visuellt.
 
-> **Bildförslag:** Vitt vardagsrum med bokhylla från golv till tak.
-> **Alt-text:** Smart förvaring i liten lägenhet med bokhylla som utnyttjar takhöjden.
-
 [![Grå bagageorganiserare i filt med fack i bagageutrymmet på en bil](https://static.wixstatic.com/media/b379ce_2ce62fd9e00b473a9aa1e43a954d5285~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/bagageorganiserare-bil-filt "Se i butiken →")
-
 
 ## 2. Möbler med dolt utrymme
 
@@ -45,7 +41,6 @@ En oorganiserad köksdel är ofta inte en yta-fråga utan ett kaos-fråga. Lägg
 
 [![Väggmonterad magnetisk knivlist i akaciaträ med flera knivar](https://static.wixstatic.com/media/b379ce_481e2cfe833748eab9a80a3b69a56beb~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/magnetisk-knivhallare-akacia-vaggmonterad-knivlist "Se i butiken →")
 
-
 ## 4. Magnetlist på insidan av skåpsdörren
 
 En enkel magnetlist på insidan av köksskåpsdörren håller ordning på saxar, nyckelringar, smala verktyg och kryddburkar med metallock. Det är några minuters jobb att installera och ger dig en helt ny förvaringsyta som du inte visste att du hade.
@@ -56,13 +51,9 @@ Hallen är där små lägenheter brukar haverera först: jackor, skor, nycklar, 
 
 [![Genomskinlig roterande sminkförvaring med 5 fack fylld med smink](https://static.wixstatic.com/media/b379ce_5e6a2f05e24b44239bb57a243fc0f3d2~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/roterande-sminkforvaring-360 "Se i butiken →")
 
-
 ## 6. Under sängen är guldgruva-yta
 
 Under sängen är förmodligen den mest underutnyttjade ytan i Sverige. Med flata förvaringslådor på hjul får du plats med säsongskläder, extra påslakan, presentpapper och allt annat som inte behöver vara åtkomligt varje dag. Välj lådor med lock som dammar ihop sig så slipper du obehagliga överraskningar i mars.
-
-> **Bildförslag:** Säng underifrån med två platta förvaringslådor på hjul.
-> **Alt-text:** Förvaringsidéer för sovrum: platta lådor under sängen.
 
 ## 7. Dörrhängare — billigaste förvaringslösningen som finns
 
@@ -91,9 +82,6 @@ Modulär förvaring betyder att du kan börja smått och bygga ut: en hylla i ta
 ## 12. Rensa först, förvara sedan
 
 Det är frestande att lösa allt med ny förvaring — men sanningen är att de flesta av oss har 20–30 % saker i hemmet vi aldrig använder. Innan du köper en ny hylla: gå igenom skåp för skåp och slå dig själv på fingrarna när du tänker "kan vara bra att ha". Det är nästan aldrig bra att ha. Tomma hyllor är gratis förvaring.
-
-> **Bildförslag:** Två öppna garderobsdörrar med ordnade staplade kläder och korgar.
-> **Alt-text:** Förvaringslösningar för små utrymmen: garderob ordnad med staplingsbara korgar.
 
 ## Lite extra: var börjar man om man är överväldigad?
 

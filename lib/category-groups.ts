@@ -71,6 +71,52 @@ export const MAIN_GROUPS: MainGroup[] = [
   },
 ];
 
+// ── Kategori-hero-bilder (Unsplash) ───────────────────────────────────────
+// Curated lifestyle-hero per huvudkategori, så /kategori/<huvud>-sidan får en
+// vacker, on-brand hjältebild i stället för "första produktbilden" (som för
+// Hem & Inredning blev en bukett hjärtballonger — granskningens #1 kategori-fel).
+// Subkategorier behåller produktbild-fallbacken (categoryHero returnerar "").
+//
+// Alla bilder är Unsplash License (fri kommersiell användning, ingen attribution
+// krävs). Varje rad dokumenterar foto-sidans URL för spårbarhet/attribution.
+// Bilderna är visuellt granskade (rätt motiv, inga konkurrent-varumärken) innan
+// hårdkodning. images.unsplash.com är whitelistad i next.config.ts.
+const UNSPLASH = (id: string) =>
+  `https://images.unsplash.com/photo-${id}?q=80&w=1600&auto=format&fit=crop`;
+
+export const CATEGORY_HERO_IMAGES: Record<string, string> = {
+  // Skandinavisk vardagsrumsscen, gul fåtölj, mässingslampa, solljus — lugn & premium.
+  // https://unsplash.com/photos/1586023492125-27b2c045efd7
+  "Hem & Inredning": UNSPLASH("1586023492125-27b2c045efd7"),
+  // Laptop, hörlurar, telefon på rent vitt skrivbord — minimal teknik.
+  // https://unsplash.com/photos/1498049794561-7780e7231661
+  "Elektronik & Tillbehör": UNSPLASH("1498049794561-7780e7231661"),
+  // Ljust vitt kök med marmorbänk, citroner, blommor — varmt & inbjudande.
+  // https://unsplash.com/photos/1556911220-bff31c812dba
+  "Kök & Husgeråd": UNSPLASH("1556911220-bff31c812dba"),
+  // Bebis som leker med träleksaker, flat-lay ovanifrån — genomtänkt & mjukt.
+  // https://unsplash.com/photos/1515488042361-ee00e0ddd4e4
+  "Barn & Familj": UNSPLASH("1515488042361-ee00e0ddd4e4"),
+  // Ansiktsbehandling/spa — hud & välmående, varma toner, inget varumärke.
+  // https://unsplash.com/photos/1570172619644-dfd03ed5d881
+  "Skönhet & Hälsa": UNSPLASH("1570172619644-dfd03ed5d881"),
+  // Katt och hund som myser i gräset — varmt & hjärtligt.
+  // https://unsplash.com/photos/1450778869180-41d0601e046e
+  "Husdjur": UNSPLASH("1450778869180-41d0601e046e"),
+  // Vandrare på väg mot snöklädda berg — friluftsliv & äventyr.
+  // https://unsplash.com/photos/1551632811-561732d1e306
+  "Sport & Fritid": UNSPLASH("1551632811-561732d1e306"),
+  // Stilfull kvinna i vinröd kappa med kassar — mode & accessoarer.
+  // https://unsplash.com/photos/1483985988355-763728e1935b
+  "Mode & Accessoarer": UNSPLASH("1483985988355-763728e1935b"),
+};
+
+// Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan
+// faller tillbaka på första rena produktbilden, oförändrat beteende för subs).
+export function categoryHero(name: string): string {
+  return CATEGORY_HERO_IMAGES[name] || "";
+}
+
 // Produkter med text-overlays, brand-loggor eller plastförpackningar — undvik som hero.
 export const MOSAIC_DENYLIST = new Set<string>([
   "sladdlos-handdammsugare-bil", "rgb-led-slinga", "digital-stektermometer",

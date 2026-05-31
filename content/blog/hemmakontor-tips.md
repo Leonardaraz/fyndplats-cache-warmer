@@ -31,15 +31,11 @@ Vill du inte köpa ny stol direkt: skaffa ett **svankstöd** att placera bakom r
 
 [![Slimmat trådlöst tangentbord och ergonomisk mus i vit Bluetooth-set](https://static.wixstatic.com/media/b379ce_6b83ae7a7bcd40ab9bc5929e6b8769fe~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/tradlost-tangentbord-mus-kompakt-bluetooth-set "Se i butiken →")
 
-
 ## 2. Skärmen i ögonhöjd, inte 30 cm ned
 
 Den enskilt vanligaste anledningen till nackvärk vid hemarbete är att människor sitter och tittar nedåt på en laptopskärm hela dagen. Det är ungefär samma rörelse som att läsa en bok hela dagen, fast på en sex timmar lång arbetsdag.
 
 Lösningen är enkel: höj upp skärmen så att toppkanten är i ögonhöjd. Tre tjocka böcker funkar. Bättre funkar en laptophållare eller en extern skärm med justerbart stativ. Det här tipset ensamt skiljer en hållbar hemmaarbetsplats från en som ger dig huvudvärk varje fredag.
-
-> **Bildförslag:** Skrivbord med laptop på laptophållare, extern tangentbord och mus.
-> **Alt-text:** Ergonomiskt hemmakontor med laptophållare i ögonhöjd.
 
 ## 3. Externt tangentbord och mus — alltid
 
@@ -48,7 +44,6 @@ När skärmen är i ögonhöjd kan du inte längre använda laptopens tangentbor
 Trådlösa varianter är bekvämare och ger ett renare skrivbord. Behöver du inspiration finns flera prisvärda alternativ i kategorin [Kontor & arbetsplats](https://www.fyndplats.se/kategori/hem-inredning).
 
 [![Svart trådlös ergonomisk mus i sidvy](https://static.wixstatic.com/media/b379ce_0c0ea92191df4125bdf50d02248fb889~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/tradlos-ergonomisk-mus-4000-dpi-99 "Se i butiken →")
-
 
 ## 4. Belysning är halva känslan
 
@@ -63,7 +58,6 @@ Det här är det enklaste hälsotipset i världen och det som alla glömmer. Sä
 Det här ensamt minskar risken för långsiktig värk i nacke och axlar mer än någon ny stol kan göra.
 
 [![USB-C till USB-C snabbladdningskabel i svart flätad design](https://static.wixstatic.com/media/b379ce_2cef8868da974b7ab9cf77546952d4ae~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/c-till-usb-c-snabbladdningskabel "Se i butiken →")
-
 
 ## 6. Avgränsa arbetsytan från resten av hemmet
 
@@ -84,9 +78,6 @@ Om du bor med någon eller har grannar är bra hörlurar livräddare. Behöver i
 Inte ergonomi i strikt mening, men forskning visar konsekvent att människor som har växter på arbetsplatsen rapporterar bättre koncentration och mindre stress. En enkel pilea eller monstera tar ingen plats och kräver minimal skötsel.
 
 Det är en av de billigaste investeringarna i välmående man kan göra.
-
-> **Bildförslag:** Skrivbord med en liten grön växt vid sidan av skärmen.
-> **Alt-text:** Tips för hemmakontor: liten växt på skrivbordet för bättre fokus.
 
 ## 10. Värm händerna under vinterhalvåret
 

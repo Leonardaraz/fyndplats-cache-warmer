@@ -5,7 +5,8 @@ import { getProducts, getCollections } from "../../../lib/products";
 import { ProductCard } from "../../../components/productcard";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { pageMeta } from "../../../lib/seo";
-import { MOSAIC_DENYLIST } from "../../../lib/category-groups";
+import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
+import { getBlurDataURL } from "../../../lib/lqip";
 
 export async function generateStaticParams() {
   const cols = await getCollections();
@@ -43,11 +44,14 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // Förälder (om detta är en subkategori) → för brödsmulor.
   const parent = active.parentId ? collections.find((c) => c.id === active.parentId) : undefined;
 
-  // Hero-bild: första non-denylisted produktbild i kategorin (clean, ingen text-overlay)
+  // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
+  // första non-denylisted produktbild i kategorin (clean, ingen text-overlay).
   const heroImg =
+    categoryHero(active.name) ||
     list.find((p) => p.img && !MOSAIC_DENYLIST.has(p.slug))?.img ||
     list.find((p) => p.img)?.img ||
     "";
+  const heroBlur = heroImg ? await getBlurDataURL(heroImg) : "";
 
   const crumbItems = [
     { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
@@ -84,8 +88,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
                   src={heroImg}
                   alt=""
                   fill
-                  priority
+                  preload
                   fetchPriority="high"
+                  placeholder="blur"
+                  blurDataURL={heroBlur}
                   sizes="(max-width:760px) 100vw, 480px"
                 />
               </div>

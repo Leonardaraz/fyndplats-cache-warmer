@@ -32,7 +32,6 @@ Nackdelen är att utvecklingen i ren styrka stannar av efter några månader om 
 
 [![Motståndsband 11-delars set med band i olika färger och tillbehör](https://static.wixstatic.com/media/b379ce_1abd3f8210514bbd9e65750381c63c38~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/motstandsband-11-delars-set "Se i butiken →")
 
-
 ## De tio basövningarna du behöver kunna
 
 Lär dig de här tio rörelserna ordentligt. Det är 95 % av allt du någonsin behöver kunna för att hålla dig stark hemma.
@@ -87,9 +86,6 @@ Den mest hatade och mest effektiva. Stå rakt, ner i armhävningsläge, gör en 
 
 Tränar: precis allt.
 
-> **Bildförslag:** Person som gör utfallssteg i ett ljust vardagsrum.
-> **Alt-text:** Kroppsviktsövningar hemma: utfallssteg i vardagsrummet.
-
 ## 4-veckorsprogram — träna 3 gånger i veckan
 
 Det här är ett program du faktiskt kan hålla. Ingen utrustning, 25–35 minuter per pass, tre dagar i veckan med vila emellan.
@@ -135,7 +131,6 @@ Upprepa vecka 3 men öka antingen reps med 2 eller vilan minskar med 10 sekunder
 
 [![Svart digital hopprep med räknare-display och skumhandtag](https://static.wixstatic.com/media/b379ce_3231e7347ddb4042833add3621aeb792~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/digital-hopprep "Se i butiken →")
 
-
 ## De vanligaste misstagen
 
 **Att börja för hårt.** Om du inte tränat på ett halvår och börjar med 50 burpees är du borta i tre dagar och slutar. Bygg gradvis.
@@ -158,7 +153,6 @@ Vi har ett urval av enkel hemmaträning-utrustning i kategorin [Träning](https:
 
 [![Lila akupressurmatta med matchande nackkudde och tusentals plast-spikar](https://static.wixstatic.com/media/b379ce_e0b84013d7e8421facceec7045a5ae99~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/spikmatta-akupressurmatta-kudde-rygg-nacke "Se i butiken →")
 
-
 ## Vad du *faktiskt* behöver — om du vill köpa något
 
 Du behöver inget. Men de här tre sakerna har bäst effekt-per-krona:
@@ -168,9 +162,6 @@ Du behöver inget. Men de här tre sakerna har bäst effekt-per-krona:
 - En **dörrkrok för dragövningar** om du vill kunna träna dragstyrka utan stång.
 
 Sammanlagt under 500 kronor och du har ett komplett mini-hemmagym.
-
-> **Bildförslag:** Yogamatta utrullad i vardagsrum med vattenflaska bredvid.
-> **Alt-text:** Träna hemma utan utrustning på yogamatta i vardagsrum.
 
 ## Sammanfattning
 

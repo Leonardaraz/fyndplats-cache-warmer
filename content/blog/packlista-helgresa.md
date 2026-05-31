@@ -29,7 +29,6 @@ Lägg också alltid till ett extra lager för plötsligt väderomslag — i Sver
 
 [![Vit handhållen klädångare som ångar en upphängd skjorta](https://static.wixstatic.com/media/b379ce_71122455df444f378ac70187740bdd62~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/handhallen-kladangare "Se i butiken →")
 
-
 ## Den kompletta packlistan för 2–3 dagar
 
 Här är en lista som täcker det mesta. Använd den som checklista — kryssa av och välj bort det som inte gäller för just din resa.
@@ -79,9 +78,6 @@ Här är en lista som täcker det mesta. Använd den som checklista — kryssa a
 
 Många av dessa hittar du i kategorin [Resor](https://www.fyndplats.se/kategori/friluftsliv-resa) — packkuber är troligen det första du borde investera i om du reser mer än två gånger om året.
 
-> **Bildförslag:** Öppen resväska med kläder rullade och packade i packkuber.
-> **Alt-text:** Smart packlista handbagage med packkuber och rullade kläder.
-
 ## Smart packning — fem regler som gör skillnad
 
 ### 1. Rulla, vik inte
@@ -100,7 +96,6 @@ Schampoflaskor och hudvård lever ibland sina egna liv i bagaget. Packa allt vå
 Om handbagaget är fullt och du har två tröjor: bär den största. Flygbolagen väger sällan det du har på dig, och det funkar dessutom som värmeplagg på ett kallt flyg.
 
 [![Grå bagageorganiserare i filt med fack i bagageutrymmet på en bil](https://static.wixstatic.com/media/b379ce_2ce62fd9e00b473a9aa1e43a954d5285~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/bagageorganiserare-bil-filt "Se i butiken →")
-
 
 ## Handbagage eller incheckad väska?
 
@@ -125,7 +120,6 @@ Det här är inte alla, men det är de fem som folk glömmer oftast. Tre minuter
 
 [![Stor vattentålig necessär uppfälld med organiserade fack](https://static.wixstatic.com/media/b379ce_41c20d63121c429296035b19f8d33dd1~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/resenacessar-vattentalig-och-rymlig-necessar "Se i butiken →")
 
-
 ## Special-fall
 
 **Reser du med barn?** Lägg på snacks, ombyte i handbagage och en favoritleksak. Räkna också med 30 % mer tid till allt.
@@ -135,9 +129,6 @@ Det här är inte alla, men det är de fem som folk glömmer oftast. Tre minuter
 **Reser du på vandring?** Lägg på första hjälpen-kit, regnskydd och dubbla strumpor — det är ofta strumpor som avgör om dagen blir bra eller hemsk.
 
 **Vinterresa i Sverige?** Lägg på mössa, vantar och en bra termos. Tre saker som ändrar allt.
-
-> **Bildförslag:** Resväska, en kopp kaffe och pass på köksbordet inför avresan.
-> **Alt-text:** Förbered weekendresa packning med checklista på köksbordet.
 
 ## En sista grej: packa kvällen innan
 

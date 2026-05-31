@@ -2,6 +2,8 @@ import Image from "next/image";
 import { getProducts, getCollections, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 import { buildGroupCards } from "../lib/category-groups";
+import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
+import { Newsletter } from "../components/newsletter";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -107,6 +109,11 @@ export default async function Home() {
     }
   }
 
+  // Äkta blur-up (8×8 webp från Wix-CDN, base64-cachad) för hjälte-mosaikens 4
+  // bilder. Above-the-fold → litet antal, så server-fetchen är billig och tar
+  // bort den tomma vita rutan på first paint som granskningen flaggade.
+  const heroBlur = await getBlurDataURLs(heroProducts.map((p) => p.img));
+
   // Pinned 8-slug curation för "Veckans fynd" — handplockade clean-bilder.
   // Speglar HERO_CURATION/PREMIUM_CURATION-mönstret: utan curation gav
   // mixByCategory().slice(0, 8) ett shufflande urval där bl.a. mus, makeupborste
@@ -177,9 +184,10 @@ export default async function Home() {
                       src={p.img}
                       alt={p.name}
                       fill
-                      priority={i === 0}
+                      preload
                       fetchPriority={i === 0 ? "high" : undefined}
-                      loading={i === 0 ? undefined : "eager"}
+                      placeholder="blur"
+                      blurDataURL={heroBlur[i]}
                       sizes="(max-width:880px) 42vw, 22vw"
                     />
                     {p.price && <span className="htag">{p.price}</span>}
@@ -187,9 +195,9 @@ export default async function Home() {
                 ))}
               </div>
               <div className="mcol mcol-offset">
-                {heroProducts.slice(2, 4).map((p) => (
+                {heroProducts.slice(2, 4).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
-                    <Image src={p.img} alt={p.name} fill loading="eager" sizes="(max-width:880px) 42vw, 22vw" />
+                    <Image src={p.img} alt={p.name} fill preload placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
                     {p.price && <span className="htag">{p.price}</span>}
                   </a>
                 ))}
@@ -229,6 +237,8 @@ export default async function Home() {
                             src={c.thumbs[i]}
                             alt=""
                             fill
+                            placeholder="blur"
+                            blurDataURL={SHIMMER_BLUR}
                             sizes="(max-width:380px) 25vw, (max-width:880px) 12vw, 140px"
                           />
                         </span>
@@ -283,15 +293,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="sec" style={{ paddingTop: 0 }}>
-        <div className="bandwrap">
-          <div className="band">
-            <h2>Bli först att fynda nyheterna</h2>
-            <p>Få våra bästa fynd och erbjudanden direkt i inkorgen – varje vecka.</p>
-            <a className="btn-white" href="/butik">Utforska butiken →</a>
-          </div>
-        </div>
-      </section>
+      <Newsletter />
     </>
   );
 }

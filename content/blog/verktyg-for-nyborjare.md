@@ -31,7 +31,6 @@ Den här guiden är skriven för dig. En lista över de 14 verktyg som löser 90
 
 [![Mini elektrisk precisionsskruvdragare med bituppsättning i etui](https://static.wixstatic.com/media/b379ce_875f56e5ad4f4f2fa4f91387d6d1e318~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/elektrisk-precisionsskruvdragare "Se i butiken →")
 
-
 ## De första 5 — det absoluta minimumet
 
 Det här är vad du behöver för att klara dig genom första halvåret i en ny lägenhet.
@@ -66,9 +65,6 @@ En enkel universaltång med plana käftar och en avbitardel. Den hanterar allt f
 
 **Använder den till:** kabelhantering, kläder med fel knapp, alla "jag når inte"-situationer.
 
-> **Bildförslag:** Fem grundverktyg på köksbord: hammare, skruvmejsel, måttband, vattenpass, tång.
-> **Alt-text:** Grundverktyg hemmet: hammare, skruvmejsel, mått, vattenpass, tång.
-
 ## De nästa 5 — när du börjar bli mer praktisk
 
 När du klarat första halvåret och vill kunna lite mer.
@@ -100,7 +96,6 @@ Tre lim täcker det mesta:
 - Monteringslim ("no more nails") för speglar eller hyllor man inte vill borra för
 
 [![Taktisk LED-ficklampa i svart aluminium med USB-laddning och zoom](https://static.wixstatic.com/media/b379ce_a9abd47dbd9f4ae6a99203f073b786c8~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/taktisk-led-ficklampa-2000lm-usb-laddbar "Se i butiken →")
-
 
 ## De sista 4 — när du tar steget till "riktig DIY"
 
@@ -134,9 +129,6 @@ När du börjar göra fler projekt — speciellt med trä — är en hopfällbar
 
 Sist men viktigast: skyddsglasögon, arbetshandskar (lädervariant) och dammask. Det är 200 kronor för all tre, och du tackar dig själv den dagen en träflisa kommer flygande.
 
-> **Bildförslag:** Verktygsväska med borrmaskin, borrar, hammare och skyddsglasögon.
-> **Alt-text:** DIY verktyg lista för nybörjare: komplett grundutrustning.
-
 ## Vad du *inte* behöver första året
 
 Det är lätt att hamna i fällan att köpa varje cool gadget på köpfest:
@@ -149,7 +141,6 @@ Det är lätt att hamna i fällan att köpa varje cool gadget på köpfest:
 Köp specialverktyg när du har en *specifik* uppgift — inte i förebyggande syfte.
 
 [![Mandolinskärare i rostfritt stål med säkerhetsskydd och skivad grönsak](https://static.wixstatic.com/media/b379ce_8b8a5823be4b45cea8ae3c1a4922bf2a~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/mandolinskarare-rostfritt-stal "Se i butiken →")
-
 
 ## Hur du faktiskt börjar använda dem
 

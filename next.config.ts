@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "static.wixstatic.com" },
+      // Curated kategori-hero-bilder (lib/category-groups.ts → CATEGORY_HERO_IMAGES).
+      { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
   async redirects() {

@@ -33,13 +33,9 @@ Vi har flera varianter i kategorin [Hundtillbehör](https://www.fyndplats.se/kat
 
 [![Långsam hundskål i plast med roterande boll i mitten för snabbätande hundar](https://static.wixstatic.com/media/b379ce_13da577746334207afb632856523ff2c~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/langsam-hundskal-roterande-boll "Se i butiken →")
 
-
 ## 2. Aktiveringsleksaker — godis som måste förtjänas
 
 Aktiveringsleksaker i hård plast där hunden måste flytta luckor, vrida på reglage eller välta över delar för att komma åt godbitar är fantastiska för hundar som lär sig snabbt. Skaffa två-tre olika så att hunden inte memorerar lösningen för fort.
-
-> **Bildförslag:** Liten hund som koncentrerat skjuter på en aktiveringsleksak med tassen.
-> **Alt-text:** Hund som löser aktiveringsleksak inomhus.
 
 ## 3. Gömma godis i tomma rullar
 
@@ -54,7 +50,6 @@ Hallen är ofta lägenhetens längsta sträcka. Sätt hunden i sitt, kasta en bo
 Funkar bäst med mjuka bollar så att grannarna under inte vill flytta.
 
 [![Hundsele i vest-stil med matchande koppel](https://static.wixstatic.com/media/b379ce_8e38b063dbd04e7fa7e4e55c2438e825~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/hundsele-med-koppel-bekvam-vastsele "Se i butiken →")
-
 
 ## 5. Dölj och hitta-leken (favorit hos de flesta hundar)
 
@@ -82,7 +77,6 @@ En fryst kong med våtfoder håller en hund sysselsatt i 20–40 minuter. Det ä
 
 [![Reflekterande hundkoppel med bungee-stötdämpare](https://static.wixstatic.com/media/b379ce_b762d7e13114410ba7fbe8bdd4c4e857~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/reflekterande-hundkoppel-med-stotdampning-slitstarkt-taktiskt "Se i butiken →")
 
-
 ## 9. Spel med två koppar
 
 Visa hunden en godbit. Lägg den under en av två koppar. Flytta runt kopparna. Låt hunden välja. Det är samma princip som streetmagikern — men hunden klarar det förvånansvärt bra. När den knäcker spelet, öka till tre koppar.
@@ -100,9 +94,6 @@ De flesta hundar gillar att apportera bollen. Försök byta upp till en sock, en
 ## 12. Lugn promenad … inomhus
 
 Om hunden är stressad eller överskruvad: ta en lugn promenad genom lägenheten med kort koppel och *lågt tempo*. Stanna ofta, låt hunden snusa på saker, byt riktning. Det här "promenadtempot" lugnar ner systemet och simulerar en kort utomhusrunda.
-
-> **Bildförslag:** Hund som sitter med kopplet på i hall och tittar uppåt mot ägaren.
-> **Alt-text:** Inomhus aktivering av hund: lugn promenad med koppel i hallen.
 
 ## Hur länge ska man aktivera?
 

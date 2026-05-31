@@ -35,7 +35,6 @@ Med det sagt — här kommer femton kandidater.
 
 [![Svart GameWave X handhållen spelkonsol med retro-spel på skärmen](https://static.wixstatic.com/media/b379ce_ed12a3b28ccc4896a9e4f1aeed99c3ff~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/gamewave-x-handhallen-spelkonsol-med-64gb "Se i butiken →")
 
-
 ## 1. Pyssel med akvarell
 
 **Kostnad att börja:** 200–400 kr
@@ -52,16 +51,12 @@ Sticka är en av få aktiviteter som faktiskt utförs framför TV utan att det �
 
 [![Stilren keramisk handgjord vintagekopp för kaffe på fat](https://static.wixstatic.com/media/b379ce_39f637df5ecd4080ac9822e340bcc5e2~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/keramisk-kaffekopp-stilren-handgjord-vintagekopp "Se i butiken →")
 
-
 ## 3. Pottplantor och inomhusträdgård
 
 **Kostnad:** Från 100 kr per planta.
 **Plats:** Fönsterbräda.
 
 En bra växt-hobby börjar med 2–3 enkla växter (pilea, monstera, sansevieria) och växer organiskt. Efter ett år har du tjugo, du pratar med dem, och du är tillbaks från jobbet med en blick mot fönstret. Ren glädje.
-
-> **Bildförslag:** Fönsterbräda med 4–5 olika krukväxter i vita krukor.
-> **Alt-text:** Kreativ hobby hemma: inomhusträdgård på fönsterbrädan.
 
 ## 4. Bakning av surdegsbröd
 
@@ -71,7 +66,6 @@ En bra växt-hobby börjar med 2–3 enkla växter (pilea, monstera, sansevieria
 Surdeg är inte en eftermiddag — det är en relation. Du matar den, du planerar runt den, och en gång i veckan bakas ett bröd som ingen butik kommer i närheten av. Kräver tålamod men det är en del av charmen.
 
 [![StarBeat samlardockor i K-pop-inspirerade outfits](https://static.wixstatic.com/media/b379ce_52506b0bbc544fe08046a36006706b6f~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/starbeat-fashion-dolls-k-pop-inspirerade "Se i butiken →")
-
 
 ## 5. Bygga lego (på riktigt, vuxen-set)
 
@@ -149,9 +143,6 @@ Att göra sin egen kimchi, syltad lök eller barbecuesås är en hobby som matar
 **Plats:** En låda.
 
 Hobbyn att samla på något — vad som helst — har ett djupt rykte i Sverige. Filatelister, klocksamlare, vinylsamlare. Det viktigaste är att samlingen har ett tema och en gräns. Det är intagandet i jakten på nästa pjäs som ger glädjen, inte storleken på samlingen.
-
-> **Bildförslag:** Närbild på akvarell-måleri på köksbord, med kopp kaffe bredvid.
-> **Alt-text:** Hobby för vuxna: akvarellmålning hemma vid köksbordet.
 
 ## Hur väljer du?
 

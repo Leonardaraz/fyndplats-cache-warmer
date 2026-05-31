@@ -11,7 +11,15 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   const { q = "" } = await searchParams;
   const term = q.trim().toLowerCase();
   const all = await getProducts();
-  const results = term ? all.filter((p) => p.name.toLowerCase().includes(term)) : [];
+  // Matcha på namn ELLER beskrivning/specs så sökningen hittar produkter även
+  // när termen (t.ex. ett varumärke eller materialord) bara nämns i texten.
+  const results = term
+    ? all.filter((p) =>
+        p.name.toLowerCase().includes(term) ||
+        (p.blurb || "").toLowerCase().includes(term) ||
+        (p.specs || "").toLowerCase().includes(term)
+      )
+    : [];
 
   return (
     <>
@@ -25,7 +33,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
           {results.length > 0 && <ShopBrowser products={results} />}
           {q && results.length === 0 && (
             <p className="empty" style={{ textAlign: "center", color: "var(--soft)" }}>
-              Inga produkter matchade “{q}”. Prova ett annat sökord eller <a href="/butik" style={{ color: "var(--orange)", fontWeight: 600 }}>se hela sortimentet</a>.
+              Inga resultat för “{q}”. Prova att söka på kategori eller varumärke — eller <a href="/butik" style={{ color: "var(--orange)", fontWeight: 600 }}>se hela sortimentet</a>.
             </p>
           )}
         </div>
