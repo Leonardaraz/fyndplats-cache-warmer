@@ -6,6 +6,7 @@ import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
+import { isAliExpressSourceUrl, looksLikeStoreCopy } from "@/lib/import/guard";
 import { audit } from "@/lib/audit";
 
 const VariantSchema = z.object({
@@ -50,6 +51,32 @@ export async function POST(req: Request) {
   }
 
   const { optionColorCodes, ...product } = parsed.data;
+
+  // Skydd: källan MÅSTE vara en AliExpress-produkt-URL. Hindrar att en
+  // felskrapad sida (t.ex. fyndplats.se i en annan flik) importeras.
+  const urlCheck = isAliExpressSourceUrl(product.sourceUrl);
+  if (!urlCheck.ok) {
+    return NextResponse.json(
+      { error: "Ogiltig källa", message: `sourceUrl är inte en AliExpress-produkt-URL: ${urlCheck.reason}` },
+      { status: 422 },
+    );
+  }
+
+  // Skydd: avvisa payload som redan innehåller Fyndplats butiks-/startsidescopy
+  // i titel eller beskrivning. Det betyder att fel sida skrapats (eller att en
+  // tidigare kontaminerad import re-postats) — importera inte skräpet.
+  if (looksLikeStoreCopy(product.rawTitle) || looksLikeStoreCopy(product.rawDescription)) {
+    await audit("import-rejected-contaminated", product.supplierProductId, product.rawTitle.slice(0, 120));
+    return NextResponse.json(
+      {
+        error: "Kontaminerad produktdata",
+        message:
+          "Titel/beskrivning ser ut som Fyndplats startsida, inte en AliExpress-produkt. " +
+          "Ladda om AliExpress-produktsidan och försök igen.",
+      },
+      { status: 422 },
+    );
+  }
 
   try {
     const result = await importProduct(product as AliExpressProduct, pricingConfigFromEnv(), optionColorCodes);

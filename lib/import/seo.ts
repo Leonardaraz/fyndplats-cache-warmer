@@ -1,5 +1,6 @@
 import { completeJson } from "../ai/claude";
 import { makeCacheKey } from "../llm/cache";
+import { isThinProductInput, looksLikeStoreCopy } from "./guard";
 import type { AliExpressProduct } from "./types";
 
 export interface SeoResult {
@@ -17,10 +18,17 @@ export interface SeoResult {
   imageAltTexts: string[];
 }
 
-const SYSTEM = `Du är en svensk e-handelscopywriter och SEO-expert för en webshop (Fyndplats).
-Du får rådata om en produkt (ofta dålig engelska/kinesiska från AliExpress) och ska
-skapa säljande, korrekt och SEO-optimerat svenskt innehåll. Hitta aldrig på tekniska
-specifikationer som inte framgår av källan. Svara ENDAST med giltig JSON enligt schemat.`;
+const SYSTEM = `Du är en svensk e-handelscopywriter och SEO-expert.
+Du får rådata om EN SPECIFIK produkt (ofta dålig engelska/kinesiska från AliExpress)
+och ska skapa säljande, korrekt och SEO-optimerat svenskt innehåll FÖR JUST DEN PRODUKTEN.
+
+ABSOLUTA REGLER:
+- Skriv ALDRIG om butiken, sajten eller varumärket "Fyndplats". Nämn aldrig "Fyndplats",
+  "Välkommen till …", "bästa deals", "din destination" eller liknande butiks-/startsidescopy.
+- Innehållet ska handla om produkten — aldrig om webshopen.
+- Hitta aldrig på tekniska specifikationer som inte framgår av källan.
+- Om råtiteln är tom eller intetsägande: hitta INTE på en produkt. Använd råtiteln som den är.
+Svara ENDAST med giltig JSON enligt schemat.`;
 
 export async function generateSeo(product: AliExpressProduct): Promise<SeoResult> {
   const user = `Skapa svenskt SEO-innehåll för denna produkt. Svara med JSON:
@@ -37,14 +45,16 @@ Antal bilder: ${product.imageUrls.length}
 Råtitel: ${product.rawTitle}
 Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
 
-  // Cache-key på rå-titel + första 500 tecken av rå-beskrivning. Samma
-  // AliExpress-produkt re-importad → ingen ny SEO-generering (besparing när
-  // Leonard kör om en import för att uppdatera priser/variant-urval).
+  // Cache-key på produkt-id + rå-titel + första 500 tecken av rå-beskrivning.
+  // supplierProductId ingår så att TVÅ OLIKA produkter aldrig kan kollidera på
+  // samma nyckel (tidigare kollapsade tomma skrapningar till EN konstant nyckel
+  // → en dålig generering cachades och spelades upp för alla — bug 2026-05-31).
+  // Samma AliExpress-produkt re-importad → fortfarande cache-träff.
   const cacheKey = makeCacheKey({
     op: "generateSeo",
     name: product.rawTitle,
     description: product.rawDescription,
-    dependencyFingerprint: `imgCount=${product.imageUrls.length}`,
+    dependencyFingerprint: `pid=${product.supplierProductId}|imgCount=${product.imageUrls.length}`,
   });
 
   // Fail-open: om både Claude (credit balance) och Gemini failar, falla
@@ -60,6 +70,16 @@ Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
     imageAltTexts: product.imageUrls.map(() => product.rawTitle),
   };
 
+  // Skydd 1: om produktdatan är för tunn (misslyckad skrapning) — anropa INTE
+  // LLM:en. Utan produktkontext genererar modellen butikscopy om Fyndplats
+  // istället för produktinnehåll. Returnera fail-open direkt.
+  if (isThinProductInput(product.rawTitle)) {
+    console.warn(
+      `[seo] Tunn produktdata (pid=${product.supplierProductId}, titel="${product.rawTitle}") — hoppar över SEO-generering.`,
+    );
+    return clampSeo(failOpen, product.imageUrls.length);
+  }
+
   const result = await completeJson<SeoResult>({
     system: SYSTEM,
     user,
@@ -68,6 +88,17 @@ Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
     cacheKey,
     failOpen,
   });
+
+  // Skydd 2: avvisa output som ser ut som butiks-/startsidescopy istället för
+  // produktinnehåll. Detta fångar kontaminationen oavsett orsak (tunn input,
+  // poisoned cache, modell-hallucination) innan den når Wix.
+  if (looksLikeStoreCopy(result.title) || looksLikeStoreCopy(result.descriptionHtml)) {
+    console.warn(
+      `[seo] LLM-output ser ut som butikscopy (pid=${product.supplierProductId}, titel="${result.title}") — använder fail-open.`,
+    );
+    return clampSeo(failOpen, product.imageUrls.length);
+  }
+
   return clampSeo(result, product.imageUrls.length);
 }
 

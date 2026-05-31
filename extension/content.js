@@ -87,6 +87,22 @@ function extract() {
     result.rawTitle = titleModule.subject || document.title || "";
     result.imageUrls = imageModule.imagePathList || [];
 
+    // Beskrivning: AliExpress lägger den fulla HTML-beskrivningen bakom en
+    // separat URL (descriptionModule.descriptionUrl), men specsModule.props
+    // (attribut-tabellen) finns inline och ger SEO-generatorn riktig produkt-
+    // data att utgå från. Utan detta blev rawDescription ALLTID tom → LLM:en
+    // hittade på butikscopy (bug 2026-05-31).
+    const specsModule = data.specsModule || {};
+    const specProps = specsModule.props || [];
+    const specLines = specProps
+      .map((p) => {
+        const name = p.attrName || p.name;
+        const val = p.attrValue || p.value;
+        return name && val ? `${name}: ${val}` : "";
+      })
+      .filter(Boolean);
+    result.rawDescription = specLines.join("\n");
+
     const skuPriceList = skuModule.skuPriceList || [];
     const props = skuModule.productSKUPropertyList || [];
 
@@ -155,6 +171,9 @@ function extract() {
       .map((img) => img.src)
       .filter((s) => /alicdn\.com/.test(s))
       .slice(0, 8);
+    // DOM-fallback för beskrivning: meta description är den mest stabila källan.
+    const metaDesc = document.querySelector('meta[name="description"]');
+    result.rawDescription = (metaDesc && metaDesc.getAttribute("content")) || "";
   }
 
   if (result.variants.length === 0) {
