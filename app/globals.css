@@ -72,7 +72,16 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .meganav-sub-count{font-size:11.5px;font-weight:600;color:var(--soft);background:rgba(0,0,0,.04);padding:2px 8px;border-radius:999px;flex:0 0 auto}
 .meganav-sub:hover .meganav-sub-count{color:#C2410C;background:rgba(194,65,12,.09)}
 .meganav-empty{color:var(--soft);font-size:15px;padding:4px 2px}
-@media(max-width:1080px){.meganav{gap:11px;font-size:13px}.searchwrap{max-width:300px}}
+/* Medelbredd (901–1180): 8 kategorier + sökruta får inte plats på en rad. Vi
+   släpper då den inline-sökrutan och visar den dedikerade fullbredds-sökraden
+   (.hsearch-mobile) under headern istället, så mega-navet får hela bredden.
+   Sökrutan i .hsearch-mobile är scopad utanför .hrow så den påverkas inte. */
+@media(max-width:1180px){
+  .hrow .searchwrap{display:none}
+  .hsearch-mobile{display:block;padding-bottom:13px}
+  .hsearch-mobile .searchwrap{max-width:none;width:100%}
+  .meganav{gap:13px;font-size:13.5px}
+}
 
 .hero{position:relative;overflow:hidden;background:linear-gradient(155deg,#FFF7F0 0%,#FCEADC 52%,#F8DAC4 100%)}
 .hero::before{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(244,122,53,.22),transparent 68%);top:-160px;right:-90px;pointer-events:none;animation:glowDrift 16s ease-in-out infinite}
@@ -289,9 +298,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .catgrid,.cards{grid-template-columns:repeat(2,1fr)}
   .prodgrid{grid-template-columns:repeat(2,1fr)}
   .fgrid{grid-template-columns:1fr 1fr}
-  .nav,.meganav,.hrow .searchwrap{display:none}
-  .hsearch-mobile{display:block;padding-bottom:13px}
-  .hsearch-mobile .searchwrap{max-width:none;width:100%}
+  .nav,.meganav{display:none}
   .herogrid{grid-template-columns:1fr;gap:34px}
   .mcol-offset{margin-top:0}
 }
