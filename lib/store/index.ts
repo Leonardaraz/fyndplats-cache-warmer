@@ -55,6 +55,18 @@ export interface ProductMappingRecord {
   imageAnalysis?: ImageAnalysisEntry[];
   /** Claude-förslag på Wix-kategori. Saknas = ej kategoriserad. */
   categorySuggestion?: CategorySuggestionRecord;
+  /**
+   * Aggregerade warehouse-koder (t.ex. ["ES","CN"]). Tom/saknas = okänt.
+   * Används av /admin/queue-filter och av sajten för EU-badge.
+   */
+  shipsFromCountries?: string[];
+  /** True om någon variant skickas från EU-lager (snabbsorterings-flagga). */
+  hasEuWarehouse?: boolean;
+  /**
+   * Klassificering: "EU" = alla varianter från EU; "CN" = inga; "MIXED" =
+   * några varianter EU och några inte; "UNKNOWN" = saknar data.
+   */
+  warehouseClass?: "EU" | "CN" | "MIXED" | "UNKNOWN";
 }
 
 export interface AuditEntry {

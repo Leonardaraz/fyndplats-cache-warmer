@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/bulk-import-worker",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/watchlist",
+      "schedule": "0 6 * * *"
     }
   ]
 }

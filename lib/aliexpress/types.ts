@@ -9,6 +9,8 @@ export interface AliExpressDsVariant {
   price: number;
   originalPrice?: number;
   stock?: number;
+  /** ISO-3166 alpha-2-kod för warehouse, t.ex. "ES" eller "CN". Tom = okänd. */
+  shipFrom?: string;
 }
 
 export interface AliExpressDsProduct {
@@ -19,7 +21,15 @@ export interface AliExpressDsProduct {
   images: string[];
   variants: AliExpressDsVariant[];
   categoryId?: string;
+  /** Default shipFrom för produkten (kan skilja per variant). */
   shipFrom?: string;
+  /**
+   * Unika shipFrom-koder över alla SKU:er, sorterade.
+   * Tom array = okänt warehouse.
+   */
+  shipsFromCountries?: string[];
+  /** True om någon SKU skickas från EU-warehouse (för snabbfilterring). */
+  hasEuWarehouse?: boolean;
 }
 
 export interface DsTokenResponse {

@@ -5,6 +5,38 @@
 // (window.runParams / __INIT_DATA__) och faller tillbaka på DOM. När import
 // slutar fungera är det nästan alltid här selektorerna behöver uppdateras.
 
+// EU-warehouse countries (held i sync med lib/aliexpress/eu-countries.ts).
+// Dupliceras här eftersom content-scripts inte kan importera från lib/.
+const EU_WAREHOUSE_CODES = new Set([
+  "ES", "DE", "CZ", "PL", "FR", "IT", "NL", "BE", "GB",
+]);
+
+// Mappar fritext-warehouse → ISO-kod. Subset av lib/aliexpress/eu-countries.ts;
+// håll dem synkade när nya warehouses dyker upp.
+const SHIP_FROM_NAME_MAP = {
+  SPAIN: "ES", GERMANY: "DE", "CZECH REPUBLIC": "CZ", CZECHIA: "CZ",
+  POLAND: "PL", FRANCE: "FR", ITALY: "IT", NETHERLANDS: "NL",
+  BELGIUM: "BE", "UNITED KINGDOM": "GB", UK: "GB", CHINA: "CN",
+  "UNITED STATES": "US", USA: "US", RUSSIA: "RU", TURKEY: "TR",
+  MADRID: "ES", BERLIN: "DE", PARIS: "FR", AMSTERDAM: "NL",
+};
+
+function normalizeShipFrom(raw) {
+  if (!raw) return "";
+  const s = String(raw).trim().toUpperCase();
+  if (!s) return "";
+  if (/^[A-Z]{2}$/.test(s)) return s;
+  if (SHIP_FROM_NAME_MAP[s]) return SHIP_FROM_NAME_MAP[s];
+  for (const [name, code] of Object.entries(SHIP_FROM_NAME_MAP)) {
+    if (s.includes(name)) return code;
+  }
+  return s;
+}
+
+function isEuWarehouse(code) {
+  return Boolean(code) && EU_WAREHOUSE_CODES.has(String(code).toUpperCase());
+}
+
 function readEmbeddedData() {
   // AliExpress lägger historiskt produktdata i window.runParams.data.
   try {
@@ -40,6 +72,9 @@ function extract() {
     variants: [],
     // { [optionName]: { [choiceName]: swatchImageUrl } } för options med bild (färg).
     swatchImages: {},
+    // Aggregerade shipFrom-koder från alla varianter, t.ex. ["CN", "ES"].
+    // Tom = okänd (varken sidan eller embedded data avslöjar warehouse).
+    shipsFrom: [],
     _warnings: [],
   };
 
@@ -67,18 +102,52 @@ function extract() {
         result.swatchImages[optionName][choiceName] = v.skuPropertyImagePath;
       }
     }
-    result.variants = skuPriceList.map((sku, i) => ({
-      supplierVariantId: String(sku.skuId || sku.skuIdStr || i),
-      options: decodeSkuProps(sku.skuPropIds, props),
-      costUsd: Number(
-        (sku.skuVal && (sku.skuVal.actSkuCalPrice || sku.skuVal.skuCalPrice)) ||
-          priceModule.minActivityAmount?.value ||
-          priceModule.minAmount?.value ||
-          0,
-      ),
-      stock: sku.skuVal ? Number(sku.skuVal.availQuantity || 0) : undefined,
-      included: true,
-    }));
+    // Page-level default shipFrom (gäller alla varianter om inget annat står).
+    // Vi kollar flera kända ställen — AliExpress flyttar runt fältet ibland.
+    const shippingModule = data.shippingModule || {};
+    const crossBorderModule = data.crossBorderModule || {};
+    const defaultShipFromRaw =
+      shippingModule.shipFromInfo?.shipFromCode ||
+      shippingModule.shipFromInfo?.shipFrom ||
+      shippingModule.shipFrom ||
+      crossBorderModule.shipFromCountryCode ||
+      crossBorderModule.shipFromCountry ||
+      data.actionModule?.shipFrom ||
+      "";
+    const defaultShipFrom = normalizeShipFrom(defaultShipFromRaw);
+
+    result.variants = skuPriceList.map((sku, i) => {
+      // Variant-level shipFrom kan ligga i flera ställen beroende på
+      // marknad/version — försök allt vi sett, fall tillbaka på page-default.
+      const variantShipRaw =
+        sku.skuVal?.shipFromCode ||
+        sku.skuVal?.shipFrom ||
+        sku.shipFromCode ||
+        sku.shipFrom ||
+        defaultShipFromRaw;
+      const variantShipFrom = normalizeShipFrom(variantShipRaw);
+      return {
+        supplierVariantId: String(sku.skuId || sku.skuIdStr || i),
+        options: decodeSkuProps(sku.skuPropIds, props),
+        costUsd: Number(
+          (sku.skuVal && (sku.skuVal.actSkuCalPrice || sku.skuVal.skuCalPrice)) ||
+            priceModule.minActivityAmount?.value ||
+            priceModule.minAmount?.value ||
+            0,
+        ),
+        stock: sku.skuVal ? Number(sku.skuVal.availQuantity || 0) : undefined,
+        shipFrom: variantShipFrom || defaultShipFrom || "",
+        included: true,
+      };
+    });
+
+    // Aggregera unika shipFrom-koder för produkten (för UI och Wix-metadata).
+    const codes = new Set();
+    for (const v of result.variants) {
+      if (v.shipFrom) codes.add(v.shipFrom);
+    }
+    if (defaultShipFrom) codes.add(defaultShipFrom);
+    result.shipsFrom = [...codes].sort();
   } else {
     result._warnings.push("Kunde inte läsa inbäddad data — föll tillbaka på DOM.");
     result.rawTitle = (document.querySelector("h1") || {}).textContent || document.title;

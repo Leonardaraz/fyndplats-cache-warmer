@@ -13,6 +13,8 @@ const VariantSchema = z.object({
   options: z.record(z.string()),
   costUsd: z.number().nonnegative(),
   stock: z.number().int().nonnegative().optional(),
+  // ISO-3166 alpha-2-warehouse-kod, t.ex. "ES". Tom sträng tillåts (okänd).
+  shipFrom: z.string().max(8).optional(),
   included: z.boolean(),
 });
 
@@ -23,6 +25,9 @@ const ProductSchema = z.object({
   rawDescription: z.string(),
   imageUrls: z.array(z.string().url()),
   variants: z.array(VariantSchema).min(1),
+  // Aggregerade warehouse-koder från extension/page-scraper.
+  // Tom array eller saknas → ingen EU-flagga sätts.
+  shipsFrom: z.array(z.string().max(8)).optional(),
   // Färgkoder samplade från produktbilden: { [optionName]: { [choiceName]: "#hex" } }.
   optionColorCodes: z.record(z.record(z.string())).optional(),
 });
@@ -56,6 +61,12 @@ export async function POST(req: Request) {
     const mappingExtras: Record<string, unknown> = {};
     if (resultAny.imageAnalysis !== undefined) mappingExtras.imageAnalysis = resultAny.imageAnalysis;
     if (resultAny.categorySuggestion !== undefined) mappingExtras.categorySuggestion = resultAny.categorySuggestion;
+    // Warehouse-metadata (EU-filterring) — sätts av pipelinen om shipFrom
+    // var närvarande i payloaden. Lagras på mappingen så att /admin/queue
+    // kan filtrera och sajten kan visa EU-badge utan extra round-trip.
+    if (resultAny.shipsFromCountries !== undefined) mappingExtras.shipsFromCountries = resultAny.shipsFromCountries;
+    if (resultAny.hasEuWarehouse !== undefined) mappingExtras.hasEuWarehouse = resultAny.hasEuWarehouse;
+    if (resultAny.warehouseClass !== undefined) mappingExtras.warehouseClass = resultAny.warehouseClass;
 
     await getStore().saveMapping({
       supplierProductId: result.supplierProductId,

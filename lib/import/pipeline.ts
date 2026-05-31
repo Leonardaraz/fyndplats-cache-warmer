@@ -17,6 +17,12 @@ import {
   type ImageAnalysisResult,
 } from "../claude/client";
 import type { CategorySuggestionRecord, ImageAnalysisEntry } from "../store/index";
+import {
+  classifyWarehouses,
+  hasAnyEuWarehouse,
+  uniqueShipFromCodes,
+  type WarehouseClass,
+} from "../aliexpress/eu-countries";
 import { audit } from "../audit";
 
 export interface VariantMapping {
@@ -41,6 +47,12 @@ export interface ImportResult {
   imageAnalysis: ImageAnalysisEntry[];
   /** Claude-förslag på Wix-kategori. */
   categorySuggestion: CategorySuggestionRecord;
+  /** Unika shipFrom-koder (t.ex. ["ES","CN"]). */
+  shipsFromCountries: string[];
+  /** True om någon variant skickas från EU-lager. */
+  hasEuWarehouse: boolean;
+  /** "EU" | "CN" | "MIXED" | "UNKNOWN" — för Wix custom-field / ribbon. */
+  warehouseClass: WarehouseClass;
 }
 
 /** Stabil SKU per leverantörsvariant — används senare för lager-/orderkoppling. */
@@ -153,6 +165,17 @@ export async function importProduct(
     altText: altByOriginalUrl.get(orderedImageUrls[i]) ?? seo.title,
   }));
 
+  // Aggregera warehouse-koder över alla varianter + ev. produkt-default.
+  // Påverkar Wix-ribbonen och persisteras på mapping-posten för senare filterring.
+  const allShipFromCodes: string[] = [];
+  for (const v of product.variants) {
+    if (v.shipFrom) allShipFromCodes.push(v.shipFrom);
+  }
+  if (product.shipsFrom) allShipFromCodes.push(...product.shipsFrom);
+  const shipsFromCountries = uniqueShipFromCodes(allShipFromCodes);
+  const hasEuWarehouse = hasAnyEuWarehouse(shipsFromCountries);
+  const warehouseClass = classifyWarehouses(shipsFromCountries);
+
   const wixInput: WixProductInput = {
     name: seo.title,
     slug: seo.slug,
@@ -161,6 +184,11 @@ export async function importProduct(
     options: options.length ? options : undefined,
     variants: wixVariants,
     mediaItems: mediaItems.length ? mediaItems : undefined,
+    // EU-lager-produkter får ett ribbon i Wix (visas på produktkort). Vi
+    // använder ribbon istället för custom-fält + product tags eftersom Wix V3
+    // har inbyggt stöd och det renderas både i back-end och på sajten utan
+    // extra Velo-kod. Headless-repots produktkort läser samma fält.
+    ribbonName: hasEuWarehouse ? "EU-lager" : undefined,
     // Standard: nya produkter göms tills publish via /admin/queue.
     // IMPORT_DRAFT_DEFAULT=false hoppar över granskningen.
     visible: process.env.IMPORT_DRAFT_DEFAULT === "false",
@@ -223,6 +251,9 @@ export async function importProduct(
     variantMappings,
     imageAnalysis: imageAnalysisEntries,
     categorySuggestion,
+    shipsFromCountries,
+    hasEuWarehouse,
+    warehouseClass,
   };
 }
 

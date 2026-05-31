@@ -9,6 +9,8 @@ export interface AliExpressVariant {
   costUsd: number;
   /** Lagersaldo om tillgängligt. */
   stock?: number;
+  /** ISO-3166 alpha-2-warehouse-kod, t.ex. "ES" eller "CN". */
+  shipFrom?: string;
   /** Om kunden bockat av varianten i popupen importeras den inte. */
   included: boolean;
 }
@@ -23,6 +25,11 @@ export interface AliExpressProduct {
   rawDescription: string;
   imageUrls: string[];
   variants: AliExpressVariant[];
+  /**
+   * Aggregerade warehouse-koder över alla varianter, t.ex. ["ES","CN"].
+   * Tom = okänt warehouse (importeras utan EU-flagga).
+   */
+  shipsFrom?: string[];
 }
 
 export interface MarkupRule {

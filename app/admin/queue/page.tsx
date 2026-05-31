@@ -18,6 +18,36 @@ function pendingFirst(a: ProductMappingRecord, b: ProductMappingRecord): number 
   return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
 }
 
+/**
+ * Sortering "EU först": hasEuWarehouse=true upp, sedan datum desc.
+ * Tål att hasEuWarehouse saknas (= treat as false).
+ */
+function euFirst(a: ProductMappingRecord, b: ProductMappingRecord): number {
+  const aEu = a.hasEuWarehouse ? 1 : 0;
+  const bEu = b.hasEuWarehouse ? 1 : 0;
+  if (aEu !== bEu) return bEu - aEu;
+  return pendingFirst(a, b);
+}
+
+const WAREHOUSE_BADGE: Record<
+  "EU" | "CN" | "MIXED" | "UNKNOWN",
+  { label: string; bg: string; color: string; border: string }
+> = {
+  EU: { label: "🇪🇺 EU-lager", bg: "#d1fae5", color: "#065f46", border: "#6ee7b7" },
+  MIXED: { label: "🇪🇺 Delvis EU", bg: "#fef3c7", color: "#92400e", border: "#fcd34d" },
+  CN: { label: "🇨🇳 Kina", bg: "#fee2e2", color: "#991b1b", border: "#fecaca" },
+  UNKNOWN: { label: "Lager okänt", bg: "#e5e7eb", color: "#4b5563", border: "#d1d5db" },
+};
+
+function warehouseClassOf(m: ProductMappingRecord): "EU" | "CN" | "MIXED" | "UNKNOWN" {
+  if (m.warehouseClass) return m.warehouseClass;
+  // Härled från shipsFromCountries om warehouseClass inte sparades
+  // (back-compat med äldre rader importerade innan EU-filtret fanns).
+  if (m.hasEuWarehouse) return "EU";
+  if (m.shipsFromCountries && m.shipsFromCountries.length > 0) return "CN";
+  return "UNKNOWN";
+}
+
 const VERDICT_LABEL: Record<"ok" | "warn" | "reject", string> = {
   ok: "OK",
   warn: "Varning",
@@ -30,16 +60,30 @@ const VERDICT_COLOR: Record<"ok" | "warn" | "reject", string> = {
   reject: "#dc2626",
 };
 
-export default async function QueuePage() {
+export default async function QueuePage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const euOnly = sp.eu === "1" || sp.eu === "true";
+  const sortMode = sp.sort === "eu" ? "eu" : "date";
+
   const store = getStore();
   const all = await store.listMappings();
-  const pending = all
+  const sortFn = sortMode === "eu" ? euFirst : pendingFirst;
+  const pendingAll = all
     .filter((m) => (m.draftStatus ?? "published") === "pending_review")
-    .sort(pendingFirst);
+    .sort(sortFn);
+  const pending = euOnly
+    ? pendingAll.filter((m) => m.hasEuWarehouse === true)
+    : pendingAll;
   const recent = all
     .filter((m) => m.draftStatus === "published" || m.draftStatus === "rejected")
     .sort(pendingFirst)
     .slice(0, 10);
+  const totalPending = pendingAll.length;
+  const euPendingCount = pendingAll.filter((m) => m.hasEuWarehouse === true).length;
 
   // Aggregera bild-analys-statistik för översikt högst upp.
   const stats = pending.reduce(
@@ -88,7 +132,40 @@ export default async function QueuePage() {
         </div>
       ) : null}
 
-      <h2>Väntar på granskning ({pending.length})</h2>
+      {/* Filter + sort-chips */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          margin: "12px 0",
+          fontSize: 13,
+        }}
+      >
+        <ChipLink
+          href={buildQs(sp, { eu: undefined })}
+          active={!euOnly}
+          label={`Alla (${totalPending})`}
+        />
+        <ChipLink
+          href={buildQs(sp, { eu: "1" })}
+          active={euOnly}
+          label={`🇪🇺 Endast EU-lager (${euPendingCount})`}
+        />
+        <span style={{ borderLeft: "1px solid #e5e7eb", margin: "0 4px" }} />
+        <ChipLink
+          href={buildQs(sp, { sort: undefined })}
+          active={sortMode === "date"}
+          label="Senast importerade först"
+        />
+        <ChipLink
+          href={buildQs(sp, { sort: "eu" })}
+          active={sortMode === "eu"}
+          label="🇪🇺 EU först"
+        />
+      </div>
+
+      <h2>Väntar på granskning ({pending.length}{euOnly ? ` av ${totalPending}` : ""})</h2>
       {pending.length === 0 ? (
         <p style={{ color: "#888" }}>Inga produkter väntar på granskning.</p>
       ) : (
@@ -156,6 +233,9 @@ function QueueCard({ product: p }: { product: ProductMappingRecord }) {
   const okImages = images.filter((i) => i.verdict === "ok");
   const flaggedImages = images.filter((i) => i.verdict !== "ok");
   const cat = p.categorySuggestion;
+  const cls = warehouseClassOf(p);
+  const badge = WAREHOUSE_BADGE[cls];
+  const codes = p.shipsFromCountries ?? [];
 
   return (
     <div
@@ -174,8 +254,26 @@ function QueueCard({ product: p }: { product: ProductMappingRecord }) {
           style={{ marginTop: 4 }}
         />
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, fontSize: 15 }}>
-            {p.seoTitle ?? p.wixProductId}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ fontWeight: 600, fontSize: 15 }}>
+              {p.seoTitle ?? p.wixProductId}
+            </div>
+            <span
+              title={codes.length ? `Warehouses: ${codes.join(", ")}` : ""}
+              style={{
+                display: "inline-block",
+                fontSize: 10,
+                fontWeight: 600,
+                padding: "2px 8px",
+                borderRadius: 999,
+                background: badge.bg,
+                color: badge.color,
+                border: `1px solid ${badge.border}`,
+              }}
+            >
+              {badge.label}
+              {codes.length ? ` (${codes.join(", ")})` : ""}
+            </span>
           </div>
           <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
             {p.variants.length} varianter · importerad{" "}
@@ -369,5 +467,55 @@ function CategoryRow({
       <b>Okategoriserad.</b>{" "}
       <span style={{ fontSize: 12 }}>{cat.reason || "Sätt kategori manuellt i Wix."}</span>
     </div>
+  );
+}
+
+/**
+ * Bygger en query-string baserat på nuvarande searchParams med patch-overrides.
+ * `undefined` i patch betyder "ta bort den parametern".
+ */
+function buildQs(
+  current: Record<string, string | string[] | undefined>,
+  patch: Record<string, string | undefined>,
+): string {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(current)) {
+    if (k in patch) continue;
+    if (Array.isArray(v)) v.forEach((x) => params.append(k, String(x)));
+    else if (v !== undefined) params.set(k, String(v));
+  }
+  for (const [k, v] of Object.entries(patch)) {
+    if (v !== undefined) params.set(k, v);
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
+function ChipLink({
+  href,
+  active,
+  label,
+}: {
+  href: string;
+  active: boolean;
+  label: string;
+}) {
+  return (
+    <Link
+      href={`/admin/queue${href}`}
+      style={{
+        display: "inline-block",
+        padding: "4px 10px",
+        borderRadius: 999,
+        textDecoration: "none",
+        fontWeight: active ? 700 : 500,
+        background: active ? "#1f2937" : "#f3f4f6",
+        color: active ? "#fff" : "#374151",
+        border: active ? "1px solid #1f2937" : "1px solid #e5e7eb",
+        fontSize: 12,
+      }}
+    >
+      {label}
+    </Link>
   );
 }

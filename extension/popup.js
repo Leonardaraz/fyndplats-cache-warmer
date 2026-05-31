@@ -1,6 +1,65 @@
 // Popup: hämtar extraherad produkt från content-scriptet, visar varianter med
 // kryssrutor (variant-filter), och postar valda varianter till import-API:t.
 
+// EU-warehouse codes — dupliceras från lib/aliexpress/eu-countries.ts.
+// Håll synkad när listan ändras.
+const EU_WAREHOUSE_CODES = new Set([
+  "ES", "DE", "CZ", "PL", "FR", "IT", "NL", "BE", "GB",
+]);
+
+function badgeForShipFrom(code) {
+  const span = document.createElement("span");
+  span.className = "badge";
+  if (!code) {
+    span.classList.add("badge-unknown");
+    span.textContent = "?";
+    span.title = "Okänt warehouse";
+    return span;
+  }
+  const up = String(code).toUpperCase();
+  if (EU_WAREHOUSE_CODES.has(up)) {
+    span.classList.add("badge-eu");
+    span.textContent = `EU ${up}`;
+    span.title = `EU-lager (${up}) — snabb leverans 3–7 dagar`;
+  } else if (up === "CN") {
+    span.classList.add("badge-cn");
+    span.textContent = "Kina";
+    span.title = "Kinesiskt lager — 2–3 veckors leverans";
+  } else {
+    span.classList.add("badge-cn");
+    span.textContent = up;
+    span.title = `Warehouse: ${up}`;
+  }
+  return span;
+}
+
+function summarizeShipsFrom(codes) {
+  if (!codes || codes.length === 0) {
+    return { className: "badge-unknown", text: "Lager: okänt", title: "" };
+  }
+  const hasEu = codes.some((c) => EU_WAREHOUSE_CODES.has(String(c).toUpperCase()));
+  const hasNonEu = codes.some((c) => !EU_WAREHOUSE_CODES.has(String(c).toUpperCase()));
+  if (hasEu && !hasNonEu) {
+    return {
+      className: "badge-eu",
+      text: `🇪🇺 EU-lager (${codes.join(", ")})`,
+      title: "Snabb leverans — 3–7 dagar inom EU",
+    };
+  }
+  if (hasEu && hasNonEu) {
+    return {
+      className: "badge-eu",
+      text: `🇪🇺 Delvis EU (${codes.join(", ")})`,
+      title: "Vissa varianter från EU — välj rätt variant för snabb leverans",
+    };
+  }
+  return {
+    className: "badge-cn",
+    text: `🇨🇳 Kina (${codes.join(", ")})`,
+    title: "Långsam leverans — 2–3 veckor från Kina",
+  };
+}
+
 let product = null;
 
 const $title = document.getElementById("title");
@@ -49,7 +108,18 @@ function sampleColors() {
 }
 
 function render() {
-  $title.textContent = product.rawTitle || "(ingen titel)";
+  // Visa produkttitel + sammanfattnings-badge för warehouse-status.
+  const summary = summarizeShipsFrom(product.shipsFrom || []);
+  $title.textContent = "";
+  const titleText = document.createElement("span");
+  titleText.textContent = product.rawTitle || "(ingen titel)";
+  $title.append(titleText);
+  const summaryBadge = document.createElement("span");
+  summaryBadge.className = `summary-badge ${summary.className}`;
+  summaryBadge.textContent = summary.text;
+  summaryBadge.title = summary.title;
+  $title.append(summaryBadge);
+
   $variants.innerHTML = "";
   product.variants.forEach((v, i) => {
     const row = document.createElement("div");
@@ -64,6 +134,8 @@ function render() {
     const optText = Object.values(v.options).join(" / ") || "Standard";
     label.innerHTML = `${optText} <span class="cost">($${v.costUsd})</span>`;
     row.append(cb, label);
+    // Per-variant EU/CN-badge
+    row.append(badgeForShipFrom(v.shipFrom));
     $variants.append(row);
   });
 

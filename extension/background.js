@@ -32,11 +32,15 @@ async function importProduct(product) {
     rawTitle: product.rawTitle,
     rawDescription: product.rawDescription || "",
     imageUrls: product.imageUrls || [],
+    // Aggregerade warehouse-koder för EU-filterringen (t.ex. ["ES","CN"]).
+    // Tom = okänd — API:t hanterar det som UNKNOWN i Wix-metadatat.
+    shipsFrom: Array.isArray(product.shipsFrom) ? product.shipsFrom : [],
     variants: product.variants.map((v) => ({
       supplierVariantId: v.supplierVariantId,
       options: v.options || {},
       costUsd: Number(v.costUsd) || 0,
       stock: v.stock,
+      shipFrom: v.shipFrom || "",
       included: Boolean(v.included),
     })),
     ...(product.optionColorCodes ? { optionColorCodes: product.optionColorCodes } : {}),
