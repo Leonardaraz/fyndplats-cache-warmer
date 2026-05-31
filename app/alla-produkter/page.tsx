@@ -16,21 +16,37 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
   const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : mixByCategory(products, collections);
 
   return (
-    <section className="sec">
-      <div className="container">
-        <nav className="crumbs">
-          <a href="/">Hem</a> <span>/</span> <a href="/butik">Butik</a> <span>/</span> <em>Alla produkter</em>
-        </nav>
-        <div className="sechead">
-          <div className="eyebrow">Hela sortimentet</div>
-          <h1>{active ? active.name : "Alla produkter"}</h1>
-          <p>{active ? `Allt inom ${active.name}` : "Filtrera på pris och sortera – fler fynd varje vecka."}</p>
+    <div className="alla-prod">
+      {/* PREMIUM HERO — samma look som /butik (cream, serif, brödsmulor) */}
+      <section className="butik-hero alla-prod-hero">
+        <div className="container">
+          <nav className="butik-crumbs" aria-label="Brödsmulor">
+            <a href="/">Hem</a>
+            <span aria-hidden="true">/</span>
+            <a href="/butik">Butik</a>
+            <span aria-hidden="true">/</span>
+            <em>{active ? active.name : "Alla produkter"}</em>
+          </nav>
+          <div className="butik-hero-inner">
+            <span className="butik-hero-eyebrow">Hela sortimentet</span>
+            <h1 className="butik-hero-title">{active ? active.name : "Alla produkter"}</h1>
+            <p className="butik-hero-lede">
+              {active
+                ? `Noga utvalda fynd inom ${active.name.toLowerCase()}.`
+                : "Filtrera på pris, rea och kategori – allt på ett ställe."}
+              <span className="butik-hero-meta"> {products.length} produkter · {collections.length} kategorier</span>
+            </p>
+          </div>
         </div>
+      </section>
 
-        <CatNav products={products} collections={collections} activeSlug={active?.slug} />
+      <section className="alla-prod-body">
+        <div className="container">
+          <CatNav products={products} collections={collections} activeSlug={active?.slug} />
 
-        <ShopBrowser products={list} />
-      </div>
-    </section>
+          <ShopBrowser products={list} />
+        </div>
+      </section>
+    </div>
   );
 }

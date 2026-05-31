@@ -88,17 +88,25 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
           </nav>
           <div className="butik-hero-inner">
             <span className="butik-hero-eyebrow">Hela vårt sortiment</span>
-            <h1 className="butik-hero-title">Hitta dina nästa<br />fynd.</h1>
+            <h1 className="butik-hero-title">Hitta dina nästa fynd.</h1>
             <p className="butik-hero-lede">
               Noga utvalda favoriter inom hem, kök, elektronik, hudvård och mer – allt på ett ställe.
               <span className="butik-hero-meta"> {products.length} produkter · {collections.length} kategorier</span>
             </p>
+            <div className="butik-hero-ctas">
+              <a className="butik-hero-cta-all" href="/alla-produkter">
+                Se alla {products.length} produkter <span aria-hidden="true">→</span>
+              </a>
+              <a className="butik-hero-cta-cats" href="#kategorier">
+                Bläddra kategorier
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
       {/* HUVUDKATEGORIER — stora premium-kort med hero-bild + undergrupper */}
-      <section className="butik-cats-sec">
+      <section className="butik-cats-sec" id="kategorier">
         <div className="container">
           <h2 className="sronly">Huvudkategorier</h2>
           <div className="butik-cats-grid">

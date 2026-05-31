@@ -41,10 +41,23 @@ export function ShopBrowser({ products }: { products: Product[] }) {
 
   return (
     <>
+      {/* Top toolbar — filter vänster, count mitten/subtilt, sort höger */}
       <div className={`shopbar ${open ? "open" : ""}`}>
         <button type="button" className="shopbar-toggle" onClick={() => setOpen((b) => !b)} aria-expanded={open}>
           ⚙ Filter {activeFilters > 0 && <span className="filter-count">{activeFilters}</span>}
         </button>
+
+        <div className="shopcount-inline" aria-live="polite">
+          {list.length} {list.length === 1 ? "produkt" : "produkter"}
+          {activeFilters > 0 && <span className="shopcount-of"> av {products.length}</span>}
+        </div>
+
+        <label className="sortsel shopbar-sort">
+          <span>Sortera</span>
+          <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sortera produkter">
+            {SORTS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
+          </select>
+        </label>
 
         <div className="shopbar-panel">
           <div className="filter-group">
@@ -78,20 +91,11 @@ export function ShopBrowser({ products }: { products: Product[] }) {
             </div>
           </div>
 
-          <label className="sortsel">
-            <span>Sortera</span>
-            <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sortera produkter">
-              {SORTS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
-            </select>
-          </label>
-
           {activeFilters > 0 && (
             <button type="button" className="filter-reset" onClick={reset}>✕ Rensa filter</button>
           )}
         </div>
       </div>
-
-      <div className="shopcount">{list.length} {list.length === 1 ? "produkt" : "produkter"}{activeFilters > 0 && <span className="shopcount-of"> · {products.length} totalt</span>}</div>
 
       {list.length ? (
         <div className="prodgrid">{list.map((p) => <ProductCard p={p} key={p.slug} />)}</div>

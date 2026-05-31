@@ -655,6 +655,53 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .tack-trust{gap:14px;font-size:12.5px}
 }
 
+/* ============================================================
+   /alla-produkter — premium scoped overrides
+   (hero band återanvänder .butik-hero; nedan justeras chips,
+   shopbar, count och grid-breathing endast inom .alla-prod —
+   /kategori/[slug] påverkas inte)
+   ============================================================ */
+.alla-prod-hero{padding:36px 0 56px}
+@media(max-width:760px){.alla-prod-hero{padding:24px 0 44px}}
+.alla-prod-body{padding:48px 0 90px;background:#fff}
+@media(max-width:760px){.alla-prod-body{padding:32px 0 60px}}
+
+/* Toned-down chips — neutral, orange endast vid hover/active */
+.alla-prod .catnav{margin:0 0 36px}
+.alla-prod .catchip{background:#FAF6F0;border-color:transparent;color:var(--ink);box-shadow:none;padding:9px 16px 9px 18px}
+.alla-prod .catchip:hover{background:#fff;border-color:#C2410C;color:#C2410C;transform:translateY(-1px);box-shadow:0 6px 14px -10px rgba(194,65,12,.3)}
+.alla-prod .catchip.active{background:#fff;color:#C2410C;border-color:#C2410C;box-shadow:0 4px 12px -8px rgba(194,65,12,.4)}
+.alla-prod .catchip.active .cc-count{color:#C2410C;opacity:.7;background:rgba(194,65,12,.08)}
+.alla-prod .cc-count{font-size:11.5px;font-weight:600;color:var(--soft);background:rgba(0,0,0,.04);padding:2px 7px;border-radius:999px;letter-spacing:.01em}
+
+/* Clean shopbar: filter (vänster) · count (subtilt) · sort (höger) */
+.alla-prod .shopbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:14px 18px;background:#FAF6F0;border:1px solid var(--line);border-radius:14px;margin-bottom:28px}
+.alla-prod .shopbar-toggle{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:9px 16px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer;margin:0}
+.alla-prod .shopbar-toggle:hover{border-color:#C2410C;color:#C2410C}
+.alla-prod .shopcount-inline{font-size:13.5px;color:var(--soft);font-weight:500;text-align:center;justify-self:center}
+.alla-prod .shopcount-inline .shopcount-of{color:var(--soft);font-weight:400}
+.alla-prod .shopbar-sort{justify-self:end}
+.alla-prod .shopbar-panel{display:none;grid-column:1 / -1;padding-top:14px;border-top:1px solid var(--line);margin-top:6px;flex-wrap:wrap;gap:20px;align-items:flex-end}
+.alla-prod .shopbar.open .shopbar-panel{display:flex}
+.alla-prod .shopcount{display:none}
+
+/* Tonad-ned pchip — samma neutrala palett som catchip */
+.alla-prod .pchip{background:#fff;border-color:var(--line);color:var(--soft)}
+.alla-prod .pchip:hover{border-color:#C2410C;color:#C2410C}
+.alla-prod .pchip.active{background:#fff;border-color:#C2410C;color:#C2410C;font-weight:700}
+
+/* Produktrutnät — mer luft mellan kort */
+.alla-prod .prodgrid{gap:28px}
+@media(max-width:900px){.alla-prod .prodgrid{grid-template-columns:repeat(2,1fr);gap:18px}}
+@media(max-width:540px){.alla-prod .prodgrid{grid-template-columns:repeat(2,1fr);gap:14px}}
+
+/* Mobil-toolbar: filter-rad blir egen, sort + count på samma rad */
+@media(max-width:640px){
+  .alla-prod .shopbar{grid-template-columns:auto 1fr;padding:12px 14px;gap:12px}
+  .alla-prod .shopcount-inline{justify-self:end;text-align:right}
+  .alla-prod .shopbar-sort{grid-column:1 / -1;justify-self:stretch;display:flex;justify-content:space-between}
+}
+
 /* Premium two-tier category nav (Butik + kategori-sidor) */
 .catnav{display:flex;flex-direction:column;margin:8px 0 32px}
 .catnav-main{display:flex;gap:9px;flex-wrap:nowrap;align-items:center;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
@@ -735,12 +782,19 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .butik-hero-title br{display:inline}
 .butik-hero-lede{font-size:18px;color:#5c544c;line-height:1.55;max-width:54ch}
 .butik-hero-meta{display:block;margin-top:10px;font-size:14px;color:var(--soft);font-weight:500;letter-spacing:.02em}
+.butik-hero-ctas{margin-top:32px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.butik-hero-cta-all{display:inline-flex;align-items:center;gap:10px;background:var(--ink,#1a1a1a);color:#fff;padding:14px 24px;border-radius:999px;font-size:15px;font-weight:600;letter-spacing:.005em;border:1.5px solid var(--ink,#1a1a1a);transition:background .2s,color .2s,gap .2s,transform .15s,box-shadow .2s}
+.butik-hero-cta-all:hover{background:#C2410C;border-color:#C2410C;color:#fff;gap:14px;transform:translateY(-1px);box-shadow:0 14px 30px -14px rgba(194,65,12,.5)}
+.butik-hero-cta-cats{display:inline-flex;align-items:center;gap:8px;padding:14px 22px;border-radius:999px;font-size:15px;font-weight:600;color:var(--ink);border:1.5px solid #d9cfc2;background:transparent;transition:background .2s,border-color .2s,color .2s}
+.butik-hero-cta-cats:hover{background:#fff;border-color:#C2410C;color:#C2410C}
 @media(max-width:760px){
   .butik-hero{padding:30px 0 60px}
   .butik-crumbs{margin-bottom:26px}
   .butik-hero-title{font-size:clamp(40px,11vw,60px)}
   .butik-hero-title br{display:none}
   .butik-hero-lede{font-size:16px}
+  .butik-hero-ctas{margin-top:24px;gap:10px}
+  .butik-hero-cta-all,.butik-hero-cta-cats{padding:12px 18px;font-size:14px}
 }
 
 /* Huvudkategori-rutnät — 2 kolumner desktop, 1 mobil */
