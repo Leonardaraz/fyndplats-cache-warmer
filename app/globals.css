@@ -171,12 +171,12 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .prod .pimg{aspect-ratio:1;background:#f6f1ec;position:relative;overflow:hidden}
 .prod .pbody{padding:16px}
 .prod .pname{font-size:14.5px;font-weight:600;line-height:1.35;min-height:40px}
-/* gap + min-width:0 + flex-wrap låter priset (ev. "Från X" + överstruket gammalt
-   pris) radbryta i stället för att knuffa ut "Köp"-knappen ur det overflow:hidden-
-   klippta kortet. Knappen är flex:0 0 auto + nowrap → ALLTID synlig, även för
-   REA + "Från" + överstruket pris-kombon (Leonards bugg). */
-.prod .prow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
-.prod .pprice{font-size:17px;font-weight:800;color:#C2410C;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;line-height:1.25}
+/* Pris OVANFÖR, "Köp"-knapp UNDER (vertikal stack). På smala kort fanns tidigare
+   en horisontell space-between-layout, men priset (nowrap "Från X" + ev. överstruket
+   gammalt pris) kunde då flöda ut ur sitt flex-utrymme och hamna OVANPÅ knappen.
+   Stacken garanterar separerat, icke-överlappande pris + alltid synlig knapp. */
+.prod .prow{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:12px}
+.prod .pprice{font-size:17px;font-weight:800;color:#C2410C;width:100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;line-height:1.25}
 .pprice-now{white-space:nowrap}
 .pprice-old{font-size:13px;font-weight:600;color:#a39c93;text-decoration:line-through}
 .sale-badge{position:absolute;top:10px;left:10px;z-index:2;background:#F84848;color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:7px;box-shadow:0 4px 10px -3px rgba(248,72,72,.6)}
