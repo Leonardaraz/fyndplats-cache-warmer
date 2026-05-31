@@ -55,3 +55,6 @@ out/
 # Lighthouse + screenshots (ad-hoc analys, ej källkod)
 lhr*.json
 store-*.jpg
+.wix-key-tmp
+.wix-env-body.json
+.wix-runtime-env

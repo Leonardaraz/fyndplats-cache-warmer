@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [slugs, collections, posts] = await Promise.all([getProductSlugs(), getCollections(), getPosts()]);
 
   const staticPaths = [
-    "", "/butik", "/omoss", "/omdomen", "/kundtjanst",
+    "", "/butik", "/alla-produkter", "/omoss", "/omdomen", "/kundtjanst",
     "/kontaktaoss", "/vanliga-fragor", "/returer", "/kopvillkor", "/sekretesspolicy", "/vara-butikspolicyer",
   ];
   // /blogg är noindex tills det finns inlägg → lista bloggindex i sitemap först då
@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = staticPaths.map((path) => ({
     url: `${BASE}${path}`,
     lastModified: new Date(),
-    changeFrequency: (path === "" || path === "/butik" ? "daily" : "monthly") as "daily" | "monthly",
+    changeFrequency: (path === "" || path === "/butik" || path === "/alla-produkter" ? "daily" : "monthly") as "daily" | "monthly",
     priority: path === "" ? 1 : 0.7,
   }));
 

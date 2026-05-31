@@ -714,3 +714,144 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .cookiehead{display:flex;align-items:center;gap:10px}
 .cookiehead strong{font-size:15px;font-weight:800;color:var(--ink)}
 .cookie-icon{font-size:22px;line-height:1;flex:0 0 auto}
+
+/* ============================================================
+   /butik — premium category browse page
+   ============================================================ */
+.sronly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Hero — typografi-driven, kort men premium. Cream-bakgrund ger värme. */
+.butik-hero{background:linear-gradient(180deg,#FAF6F0 0%,#FDF9F4 100%);border-bottom:1px solid var(--line);padding:42px 0 88px;position:relative;overflow:hidden}
+.butik-hero::after{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(244,122,53,.08),transparent 70%);right:-160px;top:-180px;pointer-events:none}
+.butik-crumbs{font-size:13px;color:var(--soft);margin-bottom:38px;display:flex;gap:8px;align-items:center;position:relative;z-index:1}
+.butik-crumbs a{color:var(--soft);transition:color .15s}
+.butik-crumbs a:hover{color:#C2410C}
+.butik-crumbs span{opacity:.5}
+.butik-crumbs em{color:var(--ink);font-style:normal;font-weight:600}
+.butik-hero-inner{max-width:760px;position:relative;z-index:1}
+.butik-hero-eyebrow{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#C2410C;margin-bottom:18px}
+.butik-hero-eyebrow::before{content:"";display:inline-block;width:22px;height:2px;background:currentColor;border-radius:2px;opacity:.55;margin-right:9px;vertical-align:middle}
+.butik-hero-title{font-family:var(--font-display),Georgia,serif;font-size:clamp(42px,7vw,86px);line-height:1;letter-spacing:-.025em;font-weight:600;color:var(--ink);margin-bottom:24px}
+.butik-hero-title br{display:inline}
+.butik-hero-lede{font-size:18px;color:#5c544c;line-height:1.55;max-width:54ch}
+.butik-hero-meta{display:block;margin-top:10px;font-size:14px;color:var(--soft);font-weight:500;letter-spacing:.02em}
+@media(max-width:760px){
+  .butik-hero{padding:30px 0 60px}
+  .butik-crumbs{margin-bottom:26px}
+  .butik-hero-title{font-size:clamp(40px,11vw,60px)}
+  .butik-hero-title br{display:none}
+  .butik-hero-lede{font-size:16px}
+}
+
+/* Huvudkategori-rutnät — 2 kolumner desktop, 1 mobil */
+.butik-cats-sec{padding:64px 0 88px;background:#fff}
+.butik-cats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}
+@media(max-width:880px){.butik-cats-sec{padding:48px 0 60px}.butik-cats-grid{grid-template-columns:1fr;gap:22px}}
+
+.butik-cat{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s,border-color .3s}
+.butik-cat:hover{transform:translateY(-4px);box-shadow:0 30px 60px -28px rgba(28,28,28,.32);border-color:#C2410C33}
+.butik-cat-imgwrap{position:relative;display:block;aspect-ratio:5/4;overflow:hidden;background:#f6f1ec}
+.butik-cat-img{object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.butik-cat:hover .butik-cat-img{transform:scale(1.06)}
+.butik-cat-imghover{position:absolute;inset:auto 0 0 0;display:flex;align-items:flex-end;justify-content:flex-end;padding:18px 22px;background:linear-gradient(180deg,transparent 30%,rgba(20,18,15,.55) 100%);opacity:0;transition:opacity .3s ease;pointer-events:none}
+.butik-cat-imghover span{color:#fff;font-size:14px;font-weight:700;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.32);padding:9px 16px;border-radius:999px;letter-spacing:.01em}
+.butik-cat:hover .butik-cat-imghover{opacity:1}
+@media(hover:none){.butik-cat-imghover{display:none}}
+
+.butik-cat-body{padding:28px 28px 26px;display:flex;flex-direction:column;gap:14px}
+.butik-cat-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.butik-cat-titlelink{color:var(--ink)}
+.butik-cat-titlelink:hover .butik-cat-title{color:#C2410C}
+.butik-cat-title{font-family:var(--font-display),Georgia,serif;font-size:clamp(24px,2.6vw,30px);font-weight:600;letter-spacing:-.018em;line-height:1.1;color:var(--ink);transition:color .15s}
+.butik-cat-count{font-size:13px;font-weight:600;color:var(--soft);white-space:nowrap;padding:5px 11px;background:#FAF6F0;border-radius:999px;flex:0 0 auto}
+.butik-cat-tag{font-size:15px;color:#5c544c;line-height:1.5;margin:-2px 0 4px}
+
+.butik-cat-subs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.butik-cat-subs:has(>:only-child){grid-template-columns:1fr}
+.butik-subchip{display:flex;align-items:center;gap:11px;padding:9px 12px 9px 9px;background:#FAF6F0;border:1px solid transparent;border-radius:14px;color:var(--ink);transition:background .15s,border-color .15s,transform .15s}
+.butik-subchip:hover{background:#fff;border-color:#C2410C;transform:translateY(-1px)}
+.butik-subchip-thumb{position:relative;width:38px;height:38px;flex:0 0 auto;border-radius:9px;overflow:hidden;background:#f6f1ec}
+.butik-subchip-thumb img{object-fit:cover}
+.butik-subchip-text{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.butik-subchip-name{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.butik-subchip-count{font-size:11.5px;color:var(--soft);font-weight:500}
+.butik-subchip-arr{color:#C2410C;font-weight:600;font-size:14px;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s;flex:0 0 auto}
+.butik-subchip:hover .butik-subchip-arr{opacity:1;transform:translateX(0)}
+
+.butik-cat-cta{align-self:flex-start;margin-top:6px;font-size:14px;font-weight:700;color:#C2410C;padding:11px 0;display:inline-flex;align-items:center;gap:7px;border-bottom:1.5px solid transparent;transition:border-color .15s,gap .2s}
+.butik-cat-cta:hover{border-bottom-color:#C2410C;gap:11px}
+
+@media(max-width:540px){
+  .butik-cat-body{padding:22px 20px 22px}
+  .butik-cat-subs{grid-template-columns:1fr}
+}
+
+/* Veckans fynd — same look as homepage but cleaner whitespace */
+.butik-veckans{background:#fff;padding:64px 0 80px}
+@media(max-width:760px){.butik-veckans{padding:48px 0 56px}}
+
+/* Editorial story-section */
+.butik-story{background:#FAF6F0;padding:80px 0 96px;border-top:1px solid var(--line)}
+.butik-story-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.butik-story-text .eyebrow{margin-bottom:14px}
+.butik-story-text h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(30px,4vw,46px);font-weight:600;letter-spacing:-.02em;line-height:1.08;margin-bottom:22px;color:var(--ink)}
+.butik-story-text p{font-size:16.5px;line-height:1.65;color:#4a443d;margin-bottom:16px;max-width:48ch}
+.butik-story-text p:last-child{margin-bottom:0}
+.butik-story-pillars{list-style:none;display:flex;flex-direction:column;gap:22px}
+.butik-story-pillars li{display:flex;gap:22px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px 26px;transition:transform .25s,box-shadow .25s,border-color .25s}
+.butik-story-pillars li:hover{transform:translateY(-3px);box-shadow:0 22px 50px -28px rgba(28,28,28,.3);border-color:#C2410C33}
+.butik-pillar-num{font-family:var(--font-display),Georgia,serif;font-size:34px;font-weight:600;color:#C2410C;letter-spacing:-.02em;line-height:1;flex:0 0 auto;width:50px}
+.butik-story-pillars h4{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.01em}
+.butik-story-pillars p{font-size:14.5px;color:var(--soft);line-height:1.55;margin:0}
+@media(max-width:880px){
+  .butik-story{padding:56px 0 64px}
+  .butik-story-grid{grid-template-columns:1fr;gap:36px}
+  .butik-story-pillars li{padding:20px 22px;gap:18px}
+  .butik-pillar-num{font-size:30px;width:42px}
+}
+
+/* ============================================================
+   Hemsidans nya kategori-sektion (4 stora kort + small "alla")
+   ============================================================ */
+.homecat-sec{padding:80px 0;background:#fff}
+.homecat-head{text-align:center;margin-bottom:42px}
+.homecat-head .eyebrow{margin-bottom:12px}
+.homecat-head h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(28px,3.8vw,42px);font-weight:600;letter-spacing:-.018em;color:var(--ink);margin-bottom:6px}
+.homecat-head p{color:var(--soft);font-size:16px}
+.homecat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:880px){.homecat-grid{grid-template-columns:repeat(2,1fr);gap:14px}.homecat-sec{padding:56px 0}}
+
+.homecat{position:relative;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#fff;border:1px solid var(--line);transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s,border-color .3s}
+.homecat:hover{transform:translateY(-5px);box-shadow:0 28px 56px -28px rgba(28,28,28,.4);border-color:#C2410C44}
+.homecat-img{position:relative;aspect-ratio:4/5;overflow:hidden;background:#f6f1ec}
+.homecat-img img{object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+.homecat:hover .homecat-img img{transform:scale(1.06)}
+.homecat-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,18,15,.4) 100%);opacity:0;transition:opacity .3s}
+.homecat:hover .homecat-img::after{opacity:1}
+.homecat-cta{position:absolute;left:50%;bottom:18px;transform:translate(-50%,8px);opacity:0;transition:opacity .25s,transform .25s;color:#fff;font-size:13px;font-weight:700;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.32);padding:8px 14px;border-radius:999px;white-space:nowrap;pointer-events:none}
+.homecat:hover .homecat-cta{opacity:1;transform:translate(-50%,0)}
+@media(hover:none){.homecat-cta{display:none}}
+.homecat-body{padding:16px 18px 18px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.homecat-name{font-family:var(--font-display),Georgia,serif;font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.012em;line-height:1.2}
+.homecat-count{font-size:12px;font-weight:600;color:var(--soft);white-space:nowrap}
+.homecat-allwrap{text-align:center;margin-top:34px}
+.homecat-alllink{display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:700;color:var(--ink);border-bottom:1.5px solid var(--ink);padding-bottom:3px;transition:color .15s,border-color .15s,gap .2s}
+.homecat-alllink:hover{color:#C2410C;border-color:#C2410C;gap:11px}
+
+/* ============================================================
+   Kategorisidan — premium hero-band
+   ============================================================ */
+.kat-hero{background:linear-gradient(180deg,#FAF6F0 0%,#FDF9F4 100%);border-bottom:1px solid var(--line);padding:28px 0 44px;position:relative;overflow:hidden}
+.kat-hero::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(244,122,53,.08),transparent 70%);right:-150px;top:-160px;pointer-events:none}
+.kat-hero .crumbs{padding:0 0 20px;position:relative;z-index:1}
+.kat-hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:42px;align-items:center;position:relative;z-index:1}
+.kat-hero-text .eyebrow{margin-bottom:12px;justify-content:flex-start}
+.kat-hero-text h1{font-family:var(--font-display),Georgia,serif;font-size:clamp(34px,5vw,56px);font-weight:600;line-height:1.04;letter-spacing:-.02em;color:var(--ink);margin-bottom:14px}
+.kat-hero-text p{font-size:16px;color:#5c544c;line-height:1.5;max-width:48ch}
+.kat-hero-img{position:relative;aspect-ratio:5/4;border-radius:20px;overflow:hidden;background:#f6f1ec;box-shadow:0 28px 56px -28px rgba(28,28,28,.35);border:4px solid #fff}
+.kat-hero-img img{object-fit:cover}
+@media(max-width:760px){
+  .kat-hero{padding:18px 0 36px}
+  .kat-hero-grid{grid-template-columns:1fr;gap:24px}
+  .kat-hero-img{aspect-ratio:16/10}
+}
