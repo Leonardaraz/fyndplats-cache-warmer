@@ -57,7 +57,7 @@ export async function SiteHeader() {
     <>
       <div className="promo">
         <div className="container promorow">
-          <span className="promotext">🚚 Fri frakt över <b>499 kr</b> · Betala smidigt med <b>Klarna</b></span>
+          <span className="promotext">🚚 Fri frakt över <b>499 kr</b> · Betala smidigt med <b className="klarna-mark">Klarna</b></span>
           <Social className="promo-social" />
         </div>
       </div>

@@ -62,9 +62,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
       .sort((a, b) => b.imageScore - a.imageScore)[0]?.img ||
     catList.find((p) => p.img)?.img ||
     "";
-  // Föll vi tillbaka på en produktbild (subkategori)? Då renderas heron med
-  // object-fit:contain (is-product) så hela produkten syns i stället för ett
-  // inzoomat hörn. Curated Unsplash-heron (huvudkategori) behåller cover.
+  // Föll vi tillbaka på en produktbild (subkategori)? Då renderas heron i en
+  // 4:3-ram med object-fit:cover (is-product) så den kvadratiska produktbilden
+  // centreras balanserat — varken inzoomad eller hopkrympt med bakgrund runtom.
+  // Curated Unsplash-heron (huvudkategori) behåller sin breda cover-ram.
   const heroIsProduct = !curatedHero && !!heroImg;
   const heroBlur = heroImg ? await getBlurDataURL(heroImg) : "";
 
