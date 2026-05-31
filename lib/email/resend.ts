@@ -168,7 +168,9 @@ export function buildDailySummaryEmail(
            )
            .join("")}
        </ul>
-       <p style="font-size:12px;color:#6b7280;margin:6px 0 0;">Real-tids-mejl med alternativa leverantörer har redan skickats för varje produkt ovan.</p>`
+       <p style="font-size:12px;color:#6b7280;margin:6px 0 0;">${summary.dryRun
+         ? "Dry-run: inga real-tids-mejl skickades. I live-läge skickas ett mejl med alternativa leverantörer per produkt ovan."
+         : "Real-tids-mejl med alternativa leverantörer har skickats för varje produkt ovan."}</p>`
     : "";
 
   const errorsBlock = summary.errors.length > 0

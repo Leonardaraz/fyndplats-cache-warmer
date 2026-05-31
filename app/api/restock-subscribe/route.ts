@@ -30,8 +30,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const productId = typeof body.productId === "string" ? body.productId.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
 
-  if (!productId) {
-    return NextResponse.json({ ok: false, error: "productId saknas." }, { status: 400 });
+  // Validera productId-format/-längd: dels för att inte skriva skräp i Wix Data
+  // (_id byggs av productId), dels som enkel missbruks-broms (kapad radstorlek).
+  // Wix-produkt-id:n är GUID/slug-aktiga — tillåt alfanumeriskt + - och _.
+  if (!productId || !/^[A-Za-z0-9_-]{1,128}$/.test(productId)) {
+    return NextResponse.json({ ok: false, error: "Ogiltigt productId." }, { status: 400 });
   }
   if (!isValidEmail(email)) {
     return NextResponse.json({ ok: false, error: "Ogiltig e-postadress." }, { status: 400 });

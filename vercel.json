@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/aliexpress-sync",
-      "schedule": "0 6 * * *"
+      "schedule": "0 */4 * * *"
     },
     {
       "path": "/api/cron/bulk-import-worker",

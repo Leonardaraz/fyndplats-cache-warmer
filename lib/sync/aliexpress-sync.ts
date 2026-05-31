@@ -576,6 +576,15 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   }
 
   // 5.5) Real-tids-OOS-larm + restock-mejl (Features 1-3).
+  //
+  // VIKTIGT (dry-run-semantik): real-tids-larm, restock-mejl, alternativ-
+  // sökning OCH de tillstånds-fält som övergångs-detekteringen vilar på
+  // (listingStatus, lastOosAlertAt) får ENDAST muteras i live-läge. Annars
+  // "konsumerar" en dry-run-körning övergången (active→oos / oos→active) genom
+  // att persistera den, så att justWentOos/justRestocked blir false när
+  // SYNC_DRY_RUN sedan slås av — och de riktiga mejlen aldrig skickas.
+  // Vi REGISTRERAR däremot oosEvent även i dry-run (det är en detektering, inte
+  // ett utskick) så att sammanfattnings-rapporten visar vad som skulle hänt.
   let oosAlertSent = false;
   let oosEvent: SyncOneResult["oosEvent"];
   let restockSent = 0;
@@ -586,9 +595,18 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   const productImage =
     mapping.imageAnalysis?.find((i) => i.verdict === "ok")?.url ?? aliExpress?.images?.[0];
 
-  // Feature 2 + 3: produkten flippade just till slut hos leverantören.
-  if (decision.justWentOos && opts.opsAlertEmail) {
-    // Debounce: larma inte igen inom 24h även om cronen kör flera gånger.
+  // Registrera övergången till slut-i-lager för dagsrapporten (även i dry-run).
+  if (decision.justWentOos) {
+    oosEvent = {
+      productName,
+      aliexpressId: mapping.supplierProductId,
+      sales30d: opts.sales30d,
+    };
+  }
+
+  // Feature 2 + 3: skicka real-tids-larm — ENDAST live (kostar AE-sök + ev.
+  // Haiku + mejl). Debounce: larma inte igen inom 24h.
+  if (decision.justWentOos && opts.opsAlertEmail && !dryRun) {
     const within24h = lastOosAlertAt
       ? Date.parse(checkedAt) - Date.parse(lastOosAlertAt) < 24 * 3600 * 1000
       : false;
@@ -601,6 +619,8 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
               productName,
               baseUrl: opts.baseUrl,
               usdToSek: pricing.usdToSek,
+              // Senast kända inköpspris (produkten är slut nu → minCostUsd ofta 0).
+              originalCostUsd: state?.currentCostUsd ?? aliExpress?.minCostUsd ?? undefined,
             }).catch(() => [])
           : [];
         const alertsUrl = `${opts.baseUrl.replace(/\/$/, "")}/admin/sync-alerts`;
@@ -612,21 +632,14 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
           alternatives,
           alertsUrl,
         });
-        if (!dryRun) {
-          await sendEmail({
-            to: opts.opsAlertEmail,
-            subject: email.subject,
-            bodyHtml: email.html,
-            bodyText: email.text,
-          });
-        }
-        lastOosAlertAt = checkedAt;
+        await sendEmail({
+          to: opts.opsAlertEmail,
+          subject: email.subject,
+          bodyHtml: email.html,
+          bodyText: email.text,
+        });
+        lastOosAlertAt = checkedAt; // debounce-stämpel — bara på verkligt utskick
         oosAlertSent = true;
-        oosEvent = {
-          productName,
-          aliexpressId: mapping.supplierProductId,
-          sales30d: opts.sales30d,
-        };
       } catch (err) {
         // Mejl/sökning ska aldrig fälla själva sync-checken.
         console.warn(
@@ -636,8 +649,8 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     }
   }
 
-  // Feature 1: produkten kom tillbaka i lager → mejla bevakarna.
-  if (decision.justRestocked) {
+  // Feature 1: produkten kom tillbaka i lager → mejla bevakarna. Endast live.
+  if (decision.justRestocked && !dryRun) {
     try {
       const restockStore = getRestockStore();
       const subs = await restockStore.listPendingForProduct(mapping.wixProductId);
@@ -650,17 +663,15 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
         });
         const notifiedIds: string[] = [];
         for (const sub of subs) {
-          if (!dryRun) {
-            await sendEmail({
-              to: sub.email,
-              subject: email.subject,
-              bodyHtml: email.html,
-              bodyText: email.text,
-            });
-          }
+          await sendEmail({
+            to: sub.email,
+            subject: email.subject,
+            bodyHtml: email.html,
+            bodyText: email.text,
+          });
           notifiedIds.push(sub.id);
         }
-        if (!dryRun) await restockStore.markNotified(notifiedIds);
+        await restockStore.markNotified(notifiedIds);
         restockSent = notifiedIds.length;
       }
     } catch (err) {
@@ -671,17 +682,20 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   }
 
   // 6) Sidoeffekter — state + log.
+  // I dry-run fryser vi listingStatus + lastOosAlertAt till föregående (riktiga)
+  // värden så att en dry-run inte konsumerar en övergång eller stämplar
+  // debouncen. Övriga fält (kostnad/lager/hashar) får uppdateras för diff-syfte.
   const newState: SyncStateEntry = {
     wixProductId: mapping.wixProductId,
     aliexpressId: mapping.supplierProductId,
     currentCostSek: decision.newCostSek,
     currentCostUsd: aliExpress?.minCostUsd ?? null,
     currentStock: aliExpress?.totalStock ?? null,
-    listingStatus: decision.listingStatus,
+    listingStatus: dryRun ? (state?.listingStatus ?? decision.listingStatus) : decision.listingStatus,
     titleHash: newTitleHash || null,
     imageHash: newImageHash || null,
     lastCheckedAt: checkedAt,
-    lastOosAlertAt,
+    lastOosAlertAt: dryRun ? (state?.lastOosAlertAt ?? null) : lastOosAlertAt,
   };
   await syncStore.saveState(newState);
 

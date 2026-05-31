@@ -1,11 +1,14 @@
-// Skapar Wix Data-kollektionen FyndplatsRestockSubscribers om den saknas, och
-// verifierar att /api/restock-subscribe fungerar. Idempotent.
+// Skapar de Wix Data-kollektioner hybrid-OOS-funktionerna behöver, om de saknas,
+// och är idempotent (hoppar över dem som redan finns).
 //
 //   node scripts/ensure-restock-collection.mjs
 //
-// Läser WIX_API_TOKEN + WIX_SITE_ID från .env.local. Skapar en admin-only
-// kollektion (samma åtkomstmodell som FyndplatsMappings m.fl. — appen läser/
-// skriver med admin-token, inte med member-permissions).
+// Kollektioner:
+//   - FyndplatsRestockSubscribers  (Feature 1 — restock-bevakare)
+//   - FyndplatsAlternativeCache    (Feature 3 — 30-dagars alternativ-cache)
+//
+// Läser WIX_API_TOKEN + WIX_SITE_ID från .env.local. Admin-only-åtkomst (appen
+// läser/skriver med admin-token, inte member-permissions).
 
 import { readFileSync } from "node:fs";
 
@@ -22,7 +25,6 @@ function loadEnv() {
 const env = loadEnv();
 const TOKEN = env.WIX_API_TOKEN;
 const SITE = env.WIX_SITE_ID;
-const COLLECTION = "FyndplatsRestockSubscribers";
 if (!TOKEN) { console.error("WIX_API_TOKEN saknas i .env.local"); process.exit(1); }
 
 const headers = {
@@ -31,47 +33,52 @@ const headers = {
   ...(SITE ? { "wix-site-id": SITE } : {}),
 };
 
-async function getCollection() {
-  const res = await fetch(
-    `https://www.wixapis.com/wix-data/v2/collections/${encodeURIComponent(COLLECTION)}`,
+const COLLECTIONS = [
+  {
+    id: "FyndplatsRestockSubscribers",
+    displayName: "Fyndplats Restock Subscribers",
+    fields: [
+      { key: "productId", displayName: "Product ID", type: "TEXT" },
+      { key: "email", displayName: "Email", type: "TEXT" },
+      { key: "subscribedAt", displayName: "Subscribed At", type: "TEXT" },
+      { key: "notifiedAt", displayName: "Notified At", type: "TEXT" },
+    ],
+  },
+  {
+    id: "FyndplatsAlternativeCache",
+    displayName: "Fyndplats Alternative Cache",
+    fields: [
+      { key: "alternativesJson", displayName: "Alternatives JSON", type: "TEXT" },
+      { key: "computedAt", displayName: "Computed At", type: "TEXT" },
+    ],
+  },
+];
+
+async function ensure(spec) {
+  const getRes = await fetch(
+    `https://www.wixapis.com/wix-data/v2/collections/${encodeURIComponent(spec.id)}`,
     { headers },
   );
-  return { status: res.status, body: await res.text() };
-}
-
-async function createCollection() {
-  const body = {
-    collection: {
-      id: COLLECTION,
-      displayName: "Fyndplats Restock Subscribers",
-      fields: [
-        { key: "productId", displayName: "Product ID", type: "TEXT" },
-        { key: "email", displayName: "Email", type: "TEXT" },
-        { key: "subscribedAt", displayName: "Subscribed At", type: "TEXT" },
-        { key: "notifiedAt", displayName: "Notified At", type: "TEXT" },
-      ],
-    },
-  };
+  if (getRes.status === 200) {
+    console.log(`[skip] ${spec.id} finns redan.`);
+    return true;
+  }
+  if (getRes.status !== 404) {
+    console.log(`[warn] ${spec.id} kontroll → HTTP ${getRes.status}: ${(await getRes.text()).slice(0, 300)}`);
+  }
   const res = await fetch("https://www.wixapis.com/wix-data/v2/collections", {
     method: "POST",
     headers,
-    body: JSON.stringify(body),
+    body: JSON.stringify({ collection: spec }),
   });
-  return { status: res.status, body: await res.text() };
+  const ok = res.status >= 200 && res.status < 300;
+  console.log(`[create] ${spec.id} → HTTP ${res.status} ${ok ? "OK" : (await res.text()).slice(0, 300)}`);
+  return ok;
 }
 
-const existing = await getCollection();
-console.log(`[get] ${COLLECTION} -> HTTP ${existing.status}`);
-if (existing.status === 200) {
-  console.log("Kollektionen finns redan. Inget att göra.");
-  process.exit(0);
+let allOk = true;
+for (const spec of COLLECTIONS) {
+  // eslint-disable-next-line no-await-in-loop
+  if (!(await ensure(spec))) allOk = false;
 }
-if (existing.status !== 404) {
-  console.log("Oväntat svar vid kontroll:", existing.body.slice(0, 500));
-}
-
-console.log("Skapar kollektionen…");
-const created = await createCollection();
-console.log(`[create] HTTP ${created.status}`);
-console.log(created.body.slice(0, 800));
-process.exit(created.status >= 200 && created.status < 300 ? 0 : 1);
+process.exit(allOk ? 0 : 1);

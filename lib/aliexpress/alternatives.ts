@@ -22,6 +22,7 @@ import {
 } from "./client";
 import { completeJsonRouted } from "../claude/client";
 import { makeCacheKey } from "../llm/cache";
+import { getAlternativeCache, isFresh } from "./alternative-cache";
 
 export interface AlternativeSupplier {
   aliexpressId: string;
@@ -90,9 +91,29 @@ export function genericizeQuery(name: string, maxWords = 8): string {
 
   let query = words.join(" ");
   if (query.length > 80) query = query.slice(0, 80).trim();
-  // Fallback: om allt ströks (kort/konstigt namn) — använd originalets första ord.
-  if (!query) query = name.replace(/[^\p{L}\p{N}\s]/gu, " ").trim().split(/\s+/).slice(0, 6).join(" ");
+  // Fallback: om allt ströks bort (bara stopord/siffror) — ta de längsta
+  // icke-stopord-tokens (≥4 tecken) som troligen bär betydelse. Returnera ""
+  // om inget meningsfullt finns; caller hoppar då över sökningen helt istället
+  // för att söka på rena stopord (som ger irrelevanta träffar).
+  if (!query) {
+    const meaningful = cleaned
+      .split(" ")
+      .map((w) => w.trim())
+      .filter((w) => w.length >= 4 && !/^\d+$/.test(w))
+      .sort((a, b) => b.length - a.length)
+      .slice(0, 3);
+    query = meaningful.join(" ");
+  }
   return query;
+}
+
+/** Normaliserar en titel till jämförbara tokens (samma rensning som genericize). */
+function normalizeTokens(text: string): string[] {
+  return text
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
 }
 
 export interface RankOptions {
@@ -162,7 +183,7 @@ function heuristicScores(
   );
   const maxOrders = Math.max(1, ...candidates.map((c) => c.orders ?? 0));
   return candidates.map((c) => {
-    const candWords = c.title.toLowerCase().split(/\s+/).filter(Boolean);
+    const candWords = normalizeTokens(c.title);
     const overlap = candWords.filter((w) => origWords.has(w)).length;
     const overlapPct = origWords.size > 0 ? overlap / origWords.size : 0;
     const ordersBonus = (c.orders ?? 0) / maxOrders; // 0-1
@@ -234,6 +255,127 @@ Svara ENDAST med JSON-array, en post per alternativ:
   });
 }
 
+// =====================================================================
+// Deterministisk rankning (PRIMÄR sökväg — gratis, ingen LLM)
+// =====================================================================
+
+/**
+ * Pris inom ±pct av originalet? Okänt pris (endera sidan) → true, så vi inte
+ * filtrerar bort kandidater bara för att pris saknas i search-svaret.
+ */
+export function priceWithinRange(
+  candidateUsd: number | undefined,
+  originalUsd: number | undefined,
+  pct = 0.5,
+): boolean {
+  if (candidateUsd === undefined || originalUsd === undefined || originalUsd <= 0) return true;
+  return candidateUsd >= originalUsd * (1 - pct) && candidateUsd <= originalUsd * (1 + pct);
+}
+
+/** EU-lager först, sedan blandat, sedan resten. */
+function warehouseSortRank(cls: AlternativeSupplier["warehouseClass"]): number {
+  return cls === "EU" ? 0 : cls === "MIXED" ? 1 : 2;
+}
+
+function tokenOverlap(title: string, queryTokens: string[]): number {
+  const t = new Set(normalizeTokens(title));
+  let n = 0;
+  for (const q of queryTokens) if (t.has(q)) n++;
+  return n;
+}
+
+export interface DeterministicRankOptions {
+  excludeProductId: string;
+  /** Originalproduktens inköpspris i USD (för ±50%-filtret). */
+  originalCostUsd?: number;
+  /** Antal att behålla. Default 3. */
+  topN?: number;
+}
+
+/**
+ * PRIMÄR sökväg: filtrera bort originalet + pris utanför ±50%, sortera
+ * EU-lager först → orders desc → pris asc. Ren funktion — testad.
+ * Om ±50%-filtret skulle tömma poolen behåller vi de ofiltrerade (hellre
+ * något än inget — mejlet ska ändå ge förslag).
+ */
+export function rankDeterministic(
+  results: AliExpressSearchResult[],
+  opts: DeterministicRankOptions,
+): AliExpressSearchResult[] {
+  const topN = opts.topN ?? 3;
+  const seen = new Set<string>();
+  const base = results.filter((r) => {
+    if (!r.productId || r.productId === opts.excludeProductId || seen.has(r.productId)) return false;
+    seen.add(r.productId);
+    return true;
+  });
+  const priced = base.filter((r) => priceWithinRange(r.priceUsd, opts.originalCostUsd, 0.5));
+  const pool = priced.length > 0 ? priced : base;
+  pool.sort((a, b) => {
+    const w = warehouseSortRank(a.warehouseClass ?? "UNKNOWN") - warehouseSortRank(b.warehouseClass ?? "UNKNOWN");
+    if (w !== 0) return w;
+    const o = (b.orders ?? 0) - (a.orders ?? 0);
+    if (o !== 0) return o;
+    return (a.priceUsd ?? Infinity) - (b.priceUsd ?? Infinity);
+  });
+  return pool.slice(0, topN);
+}
+
+/**
+ * Är de deterministiska träffarna trygga nog att använda utan Claude?
+ * Kräver minst 3 träffar SOM dessutom delar kategori med originalet (token-
+ * överlapp mot den generiska frågan). Annars → fallback till Haiku.
+ */
+export function isCategoryConfident(
+  candidates: AliExpressSearchResult[],
+  originalName: string,
+): boolean {
+  if (candidates.length < 3) return false;
+  const queryTokens = genericizeQuery(originalName, 12).toLowerCase().split(" ").filter(Boolean);
+  const need = queryTokens.length >= 2 ? 2 : 1;
+  const consistent = candidates.filter((c) => tokenOverlap(c.title, queryTokens) >= need).length;
+  return consistent >= 3;
+}
+
+/** Deterministisk display-poäng (ingen LLM): relevans + EU-bonus + popularitet. */
+function deterministicScore(
+  c: AliExpressSearchResult,
+  queryTokens: string[],
+  maxOrders: number,
+): { score: number; reason: string } {
+  const overlapPct = queryTokens.length ? Math.min(1, tokenOverlap(c.title, queryTokens) / queryTokens.length) : 0;
+  const euBonus = c.warehouseClass === "EU" ? 1 : c.warehouseClass === "MIXED" ? 0.5 : 0;
+  const ordersBonus = maxOrders > 0 ? (c.orders ?? 0) / maxOrders : 0;
+  const score = Math.round(Math.min(100, overlapPct * 55 + euBonus * 25 + ordersBonus * 20));
+  const reason =
+    c.warehouseClass === "EU"
+      ? "EU-lager, hög relevans & popularitet."
+      : "Matchande produkt, rankad på popularitet & pris.";
+  return { score, reason };
+}
+
+function toSupplier(
+  r: AliExpressSearchResult,
+  opts: { baseUrl: string; usdToSek: number; aliexpressId: string },
+  scored: { score: number; reason: string },
+): AlternativeSupplier {
+  const productUrl = productUrlFor(r);
+  return {
+    aliexpressId: r.productId,
+    title: r.title,
+    priceUsd: r.priceUsd,
+    priceSek: r.priceUsd !== undefined ? Math.round(r.priceUsd * opts.usdToSek) : undefined,
+    imageUrl: r.imageUrl,
+    productUrl,
+    orders: r.orders,
+    shipsFromCountries: r.shipsFromCountries ?? [],
+    warehouseClass: r.warehouseClass ?? "UNKNOWN",
+    score: scored.score,
+    scoreReason: scored.reason,
+    importUrl: buildImportUrl(opts.baseUrl, productUrl, opts.aliexpressId),
+  };
+}
+
 export interface FindAlternativesOptions {
   aliexpressId: string;
   productName: string;
@@ -241,16 +383,28 @@ export interface FindAlternativesOptions {
   baseUrl: string;
   /** USD→SEK för prisvisning i mejlet. */
   usdToSek: number;
+  /** Originalproduktens senast kända inköpspris i USD (för ±50%-prisfiltret). */
+  originalCostUsd?: number;
   /** Antal alternativ att returnera. Default 3. */
   returnCount?: number;
-  /** Antal kandidater att poängsätta. Default 5. */
+  /** Antal kandidater att poängsätta i fallback. Default 5. */
   scoreCount?: number;
+  /** Hoppa över 30-dagars-cachen (för felsökning/återgenerering). */
+  skipCache?: boolean;
 }
 
 /**
  * Hittar och rankar alternativa leverantörer för en slutsåld produkt.
- * Read-only mot AliExpress (ingen Wix-skrivning) — säker att köra i dry-run.
- * Kastar inte: returnerar [] om sökningen failar (mejlet skickas ändå).
+ *
+ * Kostnadsoptimerad (Feature 3): primär sökväg är GRATIS & deterministisk
+ * (EU-först + orders + pris-±50%, cachad 30 dagar). Claude Haiku används BARA
+ * som fallback när det deterministiska resultatet är < 3 träffar eller ser ut
+ * att blanda kategorier — då re-rankar Haiku (budget-capad till $2/dag).
+ *
+ * Read-only mot AliExpress (ingen Wix-katalog-skrivning) — säker i dry-run.
+ * Skriver dock till alternativ-cachen (egen kollektion) även i dry-run för att
+ * spara API-anrop; det är ingen butiks-ändring. Kastar aldrig — returnerar []
+ * om sökningen failar (mejlet skickas ändå).
  */
 export async function findAlternativeSuppliers(
   opts: FindAlternativesOptions,
@@ -259,7 +413,26 @@ export async function findAlternativeSuppliers(
   const returnCount = opts.returnCount ?? 3;
   const scoreCount = opts.scoreCount ?? 5;
 
+  // 0) Cache: färsk + tillräckligt många → använd direkt (inget AE-anrop, ingen LLM).
+  if (!opts.skipCache) {
+    try {
+      const cached = await getAlternativeCache().get(opts.aliexpressId);
+      if (cached && isFresh(cached.computedAt, new Date()) && cached.alternatives.length >= returnCount) {
+        return cached.alternatives.slice(0, returnCount);
+      }
+    } catch (err) {
+      console.warn(
+        `[alternatives] cache-läsning misslyckades för ${opts.aliexpressId}: ${err instanceof Error ? err.message.slice(0, 150) : String(err)}`,
+      );
+    }
+  }
+
+  // 1) Sök (kostar ett AE-anrop, ingen LLM-kostnad).
   const query = genericizeQuery(opts.productName);
+  if (!query.trim()) {
+    // Inget meningsfullt att söka på (bara stopord/siffror) — sök inte alls.
+    return [];
+  }
   let results: AliExpressSearchResult[];
   try {
     results = await searchAliExpressByText(query, { sortBy: "orders,desc", pageSize: 20 });
@@ -270,35 +443,48 @@ export async function findAlternativeSuppliers(
     return [];
   }
 
-  const ranked = filterAndRank(results, { excludeProductId: opts.aliexpressId, topN: scoreCount });
-  if (ranked.length === 0) return [];
-
-  const scores = await scoreCandidates(opts.productName, ranked).catch(() =>
-    heuristicScores(opts.productName, ranked),
-  );
-  const scoreById = new Map(scores.map((s) => [s.id, s]));
-
-  const enriched: AlternativeSupplier[] = ranked.map((r) => {
-    const s = scoreById.get(r.productId);
-    const productUrl = productUrlFor(r);
-    const priceSek =
-      r.priceUsd !== undefined ? Math.round(r.priceUsd * opts.usdToSek) : undefined;
-    return {
-      aliexpressId: r.productId,
-      title: r.title,
-      priceUsd: r.priceUsd,
-      priceSek,
-      imageUrl: r.imageUrl,
-      productUrl,
-      orders: r.orders,
-      shipsFromCountries: r.shipsFromCountries ?? [],
-      warehouseClass: r.warehouseClass ?? "UNKNOWN",
-      score: s?.score ?? 0,
-      scoreReason: s?.reason ?? "",
-      importUrl: buildImportUrl(opts.baseUrl, productUrl, opts.aliexpressId),
-    };
+  const queryTokens = genericizeQuery(opts.productName, 12).toLowerCase().split(" ").filter(Boolean);
+  const detTop = rankDeterministic(results, {
+    excludeProductId: opts.aliexpressId,
+    originalCostUsd: opts.originalCostUsd,
+    topN: returnCount,
   });
 
-  enriched.sort((a, b) => b.score - a.score);
-  return enriched.slice(0, returnCount);
+  let alternatives: AlternativeSupplier[];
+
+  if (isCategoryConfident(detTop, opts.productName)) {
+    // PRIMÄR (gratis): deterministisk rankning, deterministiska display-poäng.
+    const maxOrders = Math.max(1, ...detTop.map((c) => c.orders ?? 0));
+    alternatives = detTop.map((r) => toSupplier(r, opts, deterministicScore(r, queryTokens, maxOrders)));
+  } else {
+    // FALLBACK (Haiku, budget-capad): re-ranka en bredare kandidatlista.
+    const wide = filterAndRank(results, { excludeProductId: opts.aliexpressId, topN: scoreCount });
+    if (wide.length === 0) return [];
+    const scores = await scoreCandidates(opts.productName, wide).catch(() =>
+      heuristicScores(opts.productName, wide),
+    );
+    const byId = new Map(scores.map((s) => [s.id, s]));
+    const reranked = [...wide]
+      .sort((a, b) => (byId.get(b.productId)?.score ?? 0) - (byId.get(a.productId)?.score ?? 0))
+      .slice(0, returnCount);
+    alternatives = reranked.map((r) => {
+      const s = byId.get(r.productId);
+      return toSupplier(r, opts, { score: s?.score ?? 0, reason: s?.reason ?? "" });
+    });
+  }
+
+  if (alternatives.length === 0) return [];
+
+  // 2) Cacha (30 dagar) — bara om vi fick en fullständig uppsättning.
+  if (alternatives.length >= returnCount) {
+    try {
+      await getAlternativeCache().save(opts.aliexpressId, alternatives);
+    } catch (err) {
+      console.warn(
+        `[alternatives] cache-skrivning misslyckades för ${opts.aliexpressId}: ${err instanceof Error ? err.message.slice(0, 150) : String(err)}`,
+      );
+    }
+  }
+
+  return alternatives.slice(0, returnCount);
 }

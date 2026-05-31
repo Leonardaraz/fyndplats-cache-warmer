@@ -10,7 +10,7 @@ görs inga Wix-skrivningar och inga mejl skickas (de komponeras bara).
 |---|---|
 | **F1 — Hybrid OOS** | `lib/sync/aliexpress-sync.ts` (justRestocked), `lib/restock/store.ts`, `app/api/restock-subscribe/route.ts`, `app/admin/restock-list/page.tsx` |
 | **F2 — Real-tids-larm** | `lib/sync/aliexpress-sync.ts` (justWentOos + debounce), `lib/email/resend.ts` (`buildOosAlertEmail`) |
-| **F3 — Alternativ** | `lib/aliexpress/alternatives.ts` (Haiku-scoring via budget-router) |
+| **F3 — Alternativ** | `lib/aliexpress/alternatives.ts` + `alternative-cache.ts` (gratis deterministisk primär väg, Haiku-fallback) |
 | **F4 — Prioriterad sync** | `lib/sync/bestsellers.ts`, sort i `runDailySync`, enqueue i `app/api/wix-order/route.ts` |
 
 ## Viktigt designbeslut — `visible:false` vs. headless-filtrering
@@ -58,13 +58,38 @@ prenumerationen, men skapa den gärna manuellt för index/sortering:
 `OPS_ALERT_EMAIL` återanvänds för real-tids-larmen. Inga nya cron-jobb —
 restock-utskick och bestseller-prioritet körs i den befintliga dagliga syncen.
 
-## Debounce + budget
+## Cron-schema
 
-- Real-tids-larm: max 1 per produkt per 24h (`lastOosAlertAt` i sync-state).
-- Larm sker bara vid en **faktisk övergång** aktiv→slut (inte på första
-  observationen av en redan slut produkt).
-- Alternativ-scoring routas via `lib/llm/router` → ärver daglig budgetcap
-  (`ANTHROPIC_DAILY_BUDGET_USD`, default $2) + Gemini-fallback + cache.
+`/api/cron/aliexpress-sync` körs **var 4:e timme** (`0 */4 * * *`, Vercel Pro) —
+6 körningar/dygn × 100 anrop = 600 checkar/dygn → hela katalogen (~207) varje
+dygn med 2-3× täckning för high-priority (bestsellers/köp).
+
+## Feature 3 — kostnad nära noll
+
+- **Primär väg (GRATIS, ingen Claude):** strippad generisk sökning →
+  AliExpress text.search → rank **EU-lager först → orders desc → pris ±50% av
+  originalet** → topp 3. Resultatet **cachas 30 dagar** i
+  `FyndplatsAlternativeCache`. Vid OOS-händelse: cache-träff (färsk + ≥3
+  alternativ) → ingen sökning alls.
+- **Fallback (Claude Haiku):** bara när deterministiskt ger **< 3 träffar**
+  ELLER när träffarna ser ut att blanda kategorier (lågt token-överlapp mot
+  originalet). Då re-rankar Haiku en bredare kandidatlista. Budget-capad via
+  `lib/llm/router` (`ANTHROPIC_DAILY_BUDGET_USD`, default $2) + Gemini-fallback.
+- Nettoeffekt: ~$0 för ~90% av fallen, ~$0.005 bara för de ~10% där den
+  deterministiska rankningen inte är trygg. `OOS_ALTERNATIVES=off` stänger av.
+
+## Debounce + dry-run-semantik
+
+- Real-tids-larm: max 1 per produkt per 24h (`lastOosAlertAt`), och bara vid en
+  **faktisk övergång** aktiv→slut (inte på första observationen).
+- **Dry-run muterar inte övergångs-tillståndet.** real-tids-larm, restock-mejl
+  och alternativ-sökning körs ENDAST i live-läge; i dry-run fryses
+  `listingStatus` + `lastOosAlertAt` i state. Annars skulle en dry-run-körning
+  "konsumera" en övergång (persistera oos/active) så att inga riktiga mejl
+  skickas när `SYNC_DRY_RUN` slås av. Dagsrapporten listar däremot fortfarande
+  OOS-händelser (detektering ≠ utskick). *(Bug funnen av den adversariella
+  review-workflowen — den deterministiska transition-logiken vilade på state
+  som muterades i dry-run.)*
 
 ## Verifiering
 

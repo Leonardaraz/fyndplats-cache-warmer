@@ -3,6 +3,9 @@ import {
   genericizeQuery,
   filterAndRank,
   buildImportUrl,
+  rankDeterministic,
+  priceWithinRange,
+  isCategoryConfident,
 } from "./alternatives";
 import type { AliExpressSearchResult } from "./client";
 
@@ -72,6 +75,78 @@ describe("filterAndRank", () => {
     const ranked = filterAndRank(results, { excludeProductId: "x", topN: 3 });
     expect(ranked).toHaveLength(3);
     expect(ranked[0].productId).toBe("p9");
+  });
+});
+
+describe("priceWithinRange", () => {
+  it("true inom ±50%", () => {
+    expect(priceWithinRange(15, 20)).toBe(true); // 20±50% = [10,30]
+    expect(priceWithinRange(10, 20)).toBe(true);
+    expect(priceWithinRange(30, 20)).toBe(true);
+  });
+  it("false utanför ±50%", () => {
+    expect(priceWithinRange(9, 20)).toBe(false);
+    expect(priceWithinRange(31, 20)).toBe(false);
+  });
+  it("okänt pris eller okänt original → true (filtrera inte bort)", () => {
+    expect(priceWithinRange(undefined, 20)).toBe(true);
+    expect(priceWithinRange(15, undefined)).toBe(true);
+    expect(priceWithinRange(15, 0)).toBe(true);
+  });
+});
+
+describe("rankDeterministic", () => {
+  it("EU-lager först, sedan orders desc, exkluderar original", () => {
+    const results = [
+      result({ productId: "orig", orders: 9999, warehouseClass: "EU" }),
+      result({ productId: "cn-hi", orders: 5000, warehouseClass: "CN", priceUsd: 20 }),
+      result({ productId: "eu-lo", orders: 100, warehouseClass: "EU", priceUsd: 20 }),
+      result({ productId: "eu-hi", orders: 800, warehouseClass: "EU", priceUsd: 20 }),
+    ];
+    const ranked = rankDeterministic(results, { excludeProductId: "orig", originalCostUsd: 20, topN: 3 });
+    // EU först (eu-hi > eu-lo på orders), sedan CN.
+    expect(ranked.map((r) => r.productId)).toEqual(["eu-hi", "eu-lo", "cn-hi"]);
+  });
+
+  it("filtrerar bort pris utanför ±50% av originalet", () => {
+    const results = [
+      result({ productId: "ok", orders: 10, warehouseClass: "CN", priceUsd: 22 }),
+      result({ productId: "toohigh", orders: 9999, warehouseClass: "CN", priceUsd: 100 }),
+    ];
+    const ranked = rankDeterministic(results, { excludeProductId: "x", originalCostUsd: 20, topN: 3 });
+    expect(ranked.map((r) => r.productId)).toEqual(["ok"]);
+  });
+
+  it("faller tillbaka till ofiltrerat om prisfiltret tömmer poolen", () => {
+    const results = [
+      result({ productId: "a", orders: 5, warehouseClass: "CN", priceUsd: 100 }),
+      result({ productId: "b", orders: 9, warehouseClass: "CN", priceUsd: 200 }),
+    ];
+    const ranked = rankDeterministic(results, { excludeProductId: "x", originalCostUsd: 20, topN: 3 });
+    expect(ranked.length).toBe(2); // inget inom ±50% → behåll alla hellre än inget
+  });
+});
+
+describe("isCategoryConfident", () => {
+  const orig = "Smart Body Fat Scale Bluetooth";
+  it("true när ≥3 träffar delar kategori-tokens", () => {
+    const cands = [
+      result({ productId: "1", title: "Smart Body Fat Scale Wireless" }),
+      result({ productId: "2", title: "Bluetooth Body Fat Scale Digital" }),
+      result({ productId: "3", title: "Smart Scale Body Composition Fat" }),
+    ];
+    expect(isCategoryConfident(cands, orig)).toBe(true);
+  });
+  it("false vid <3 träffar", () => {
+    expect(isCategoryConfident([result({ productId: "1", title: "Smart Body Fat Scale" })], orig)).toBe(false);
+  });
+  it("false när träffarna är annan kategori (lågt token-överlapp)", () => {
+    const cands = [
+      result({ productId: "1", title: "Kitchen Knife Set Stainless" }),
+      result({ productId: "2", title: "Garden Hose Reel" }),
+      result({ productId: "3", title: "Car Phone Holder Magnetic" }),
+    ];
+    expect(isCategoryConfident(cands, orig)).toBe(false);
   });
 });
 
