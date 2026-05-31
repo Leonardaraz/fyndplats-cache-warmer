@@ -200,6 +200,32 @@ export async function patchV3ProductSeo(
 }
 
 /**
+ * Sätter `visible` på en V3-produkt på HEADLESS-sajten (samma site-id som
+ * listAllV3Products frågar). Används av cleanup-skriptet för att dölja
+ * kontaminerade importer. Returnerar nya revisionen.
+ */
+export async function setV3ProductVisibility(
+  productId: string,
+  revision: string,
+  visible: boolean,
+): Promise<{ revision: string }> {
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({
+      product: { revision, visible },
+      fieldMask: { paths: ["visible"] },
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`setV3ProductVisibility(${productId}) ${res.status}: ${text.slice(0, 300)}`);
+  }
+  const data = (await res.json()) as { product?: { revision?: string } };
+  return { revision: data.product?.revision ?? revision };
+}
+
+/**
  * Bulk-updaterar upp till 100 V3-produkter i ett anrop. Används av SEO-
  * enrichment för att batcha PATCH:ar (dramatiskt snabbare än individuella).
  * @param updates  Array av {id, revision, seoData.tags} per produkt

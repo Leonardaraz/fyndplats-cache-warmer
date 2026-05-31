@@ -6,7 +6,13 @@ import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
-import { isAliExpressSourceUrl, looksLikeStoreCopy } from "@/lib/import/guard";
+import {
+  hasFyndplatsImageUrl,
+  hasUsablePrice,
+  isAliExpressSourceUrl,
+  isThinProductInput,
+  looksLikeStoreCopy,
+} from "@/lib/import/guard";
 import { audit } from "@/lib/audit";
 
 const VariantSchema = z.object({
@@ -31,6 +37,15 @@ const ProductSchema = z.object({
   shipsFrom: z.array(z.string().max(8)).optional(),
   // Färgkoder samplade från produktbilden: { [optionName]: { [choiceName]: "#hex" } }.
   optionColorCodes: z.record(z.record(z.string())).optional(),
+  // AI-funktionsväljare från extension-popupen. Saknas = allt på (default).
+  featureFlags: z
+    .object({
+      translate: z.boolean().optional(),
+      seo: z.boolean().optional(),
+      imageAnalysis: z.boolean().optional(),
+      autoCategorize: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export async function POST(req: Request) {
@@ -50,7 +65,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Valideringsfel", details: parsed.error.flatten() }, { status: 422 });
   }
 
-  const { optionColorCodes, ...product } = parsed.data;
+  const { optionColorCodes, featureFlags, ...product } = parsed.data;
 
   // Skydd: källan MÅSTE vara en AliExpress-produkt-URL. Hindrar att en
   // felskrapad sida (t.ex. fyndplats.se i en annan flik) importeras.
@@ -62,24 +77,62 @@ export async function POST(req: Request) {
     );
   }
 
-  // Skydd: avvisa payload som redan innehåller Fyndplats butiks-/startsidescopy
-  // i titel eller beskrivning. Det betyder att fel sida skrapats (eller att en
-  // tidigare kontaminerad import re-postats) — importera inte skräpet.
-  if (looksLikeStoreCopy(product.rawTitle) || looksLikeStoreCopy(product.rawDescription)) {
-    await audit("import-rejected-contaminated", product.supplierProductId, product.rawTitle.slice(0, 120));
-    return NextResponse.json(
-      {
-        error: "Kontaminerad produktdata",
+  // Skydd: avvisa kontaminerad/tom produktdata. Hellre vägra än skapa en
+  // spökprodukt med butikscopy + 0,9 kr (bug 2026-05-31). Vi loggar varje
+  // avvisning i audit så Leonard ser att tillägget behöver laddas om / sidan
+  // läsas om snarare än att tro att importen tyst lyckades.
+  const rejection = ((): { reason: string; message: string } | null => {
+    if (looksLikeStoreCopy(product.rawTitle) || looksLikeStoreCopy(product.rawDescription)) {
+      return {
+        reason: "store-copy",
         message:
           "Titel/beskrivning ser ut som Fyndplats startsida, inte en AliExpress-produkt. " +
           "Ladda om AliExpress-produktsidan och försök igen.",
-      },
+      };
+    }
+    if (isThinProductInput(product.rawTitle)) {
+      return {
+        reason: "thin-title",
+        message: "Produkttiteln är för kort/tom — AliExpress-sidan kunde inte läsas korrekt.",
+      };
+    }
+    if (hasFyndplatsImageUrl(product.imageUrls)) {
+      return {
+        reason: "fyndplats-image",
+        message: "En bild-URL pekar på fyndplats.se. Produktbilder måste komma från AliExpress.",
+      };
+    }
+    if (!hasUsablePrice(product.variants)) {
+      return {
+        reason: "zero-price",
+        message: "Ingen vald variant har ett pris > 0 — AliExpress-priset kunde inte läsas.",
+      };
+    }
+    return null;
+  })();
+
+  if (rejection) {
+    await audit(
+      "import-rejected-contaminated",
+      product.supplierProductId,
+      `${rejection.reason}: ${product.rawTitle.slice(0, 100)}`,
+    );
+    console.warn(
+      `[import] AVVISAD (${rejection.reason}) pid=${product.supplierProductId} titel="${product.rawTitle.slice(0, 80)}"`,
+    );
+    return NextResponse.json(
+      { error: "Ogiltig produktdata", reason: rejection.reason, message: rejection.message },
       { status: 422 },
     );
   }
 
   try {
-    const result = await importProduct(product as AliExpressProduct, pricingConfigFromEnv(), optionColorCodes);
+    const result = await importProduct(
+      product as AliExpressProduct,
+      pricingConfigFromEnv(),
+      optionColorCodes,
+      featureFlags,
+    );
     const draftStatus = process.env.IMPORT_DRAFT_DEFAULT === "false" ? "published" : "pending_review";
     // Defensiv: image-analys + kategoriförslag är opt-in (WIP-fält som inte
     // alltid returneras av pipelinen och inte alltid är deklarerade i typen).

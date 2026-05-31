@@ -1,6 +1,6 @@
 import { computePrice } from "./pricing";
-import { generateSeo, type SeoResult } from "./seo";
-import type { AliExpressProduct, PricingConfig } from "./types";
+import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
+import type { AliExpressProduct, FeatureFlags, PricingConfig } from "./types";
 import {
   addProductToCollection,
   createProduct,
@@ -106,17 +106,29 @@ export async function importProduct(
   product: AliExpressProduct,
   config: PricingConfig,
   colorCodes?: OptionColorCodes,
+  flags?: FeatureFlags,
 ): Promise<ImportResult> {
   const included = product.variants.filter((v) => v.included);
   if (included.length === 0) {
     throw new Error("Inga varianter valda för import.");
   }
 
+  // Feature-flaggor (saknas = på). translate+seo delar generateSeo-anropet:
+  // kör det om minst en är på. imageAnalysis/autoCategorize gatar sina egna steg.
+  const runSeo = flags?.seo !== false || flags?.translate !== false;
+  const runImageAnalysis = flags?.imageAnalysis !== false;
+  const runCategory = flags?.autoCategorize !== false;
+
   // Kör SEO, bildanalys och kategoriförslag parallellt för att hålla
-  // import-latensen nere. Alla tre är Claude-anrop som kan failas individuellt.
-  const seoPromise = generateSeo(product);
-  const imageAnalysisPromise = analyzeImages(product.imageUrls);
-  const collectionsPromise = getCollectionsSafe();
+  // import-latensen nere. Alla tre är Claude-anrop som kan failas individuellt;
+  // avstängda steg ersätts med billiga lokala fallbacks (inga Claude-credits).
+  const seoPromise = runSeo ? generateSeo(product) : Promise.resolve(buildFallbackSeo(product));
+  const imageAnalysisPromise = runImageAnalysis
+    ? analyzeImages(product.imageUrls)
+    : Promise.resolve(
+        product.imageUrls.map((url) => ({ url, verdict: "ok" as const, reason: "" })),
+      );
+  const collectionsPromise = runCategory ? getCollectionsSafe() : Promise.resolve([]);
 
   const seo = await seoPromise;
   const imageVerdicts = await imageAnalysisPromise;

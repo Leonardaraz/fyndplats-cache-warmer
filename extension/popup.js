@@ -67,6 +67,27 @@ const $variants = document.getElementById("variants");
 const $import = document.getElementById("import");
 const $status = document.getElementById("status");
 
+// --- Feature toggles (persisteras i chrome.storage.sync) -----------------
+// Alla PÅ som default för nya användare. Skickas i payloaden som featureFlags
+// så backend kan hoppa över motsvarande Claude-steg och spara credits.
+const FEATURE_KEYS = ["translate", "seo", "imageAnalysis", "autoCategorize"];
+const DEFAULT_FLAGS = { translate: true, seo: true, imageAnalysis: true, autoCategorize: true };
+let featureFlags = { ...DEFAULT_FLAGS };
+
+async function loadFeatureFlags() {
+  const stored = await chrome.storage.sync.get("featureFlags");
+  featureFlags = { ...DEFAULT_FLAGS, ...(stored.featureFlags || {}) };
+  for (const key of FEATURE_KEYS) {
+    const cb = document.getElementById(`f-${key}`);
+    if (!cb) continue;
+    cb.checked = featureFlags[key] !== false;
+    cb.addEventListener("change", () => {
+      featureFlags[key] = cb.checked;
+      chrome.storage.sync.set({ featureFlags });
+    });
+  }
+}
+
 function setStatus(text, cls) {
   $status.textContent = text;
   $status.className = cls || "";
@@ -87,11 +108,13 @@ async function load() {
   chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_PRODUCT" }, (res) => {
     if (chrome.runtime.lastError || !res || !res.ok) {
       $title.textContent = "Kunde inte läsa produkten (ladda om sidan).";
+      $import.disabled = true;
       return;
     }
     product = res.product;
     render();
-    sampleColors();
+    // Bild-färgsampling är bara meningsfull om vi faktiskt fick produktdata.
+    if (product.extractionOk) sampleColors();
   });
 }
 
@@ -139,6 +162,23 @@ function render() {
     $variants.append(row);
   });
 
+  // Vägra import om skrapningen inte gav användbar produktdata. Hellre stoppa
+  // här än att skapa en spökprodukt med 0,9 kr och butikscopy (bug 2026-05-31).
+  if (!product.extractionOk) {
+    $import.disabled = true;
+    const q = product.quality || {};
+    const missing = [];
+    if (!q.hasTitle) missing.push("titel");
+    if (!q.hasImages) missing.push("bild");
+    if (!q.hasPrice) missing.push("pris");
+    setStatus(
+      `AliExpress-sidan kunde inte läsas (saknar: ${missing.join(", ") || "produktdata"}).\n` +
+        "Försök ladda om sidan, eller använd \"Öppna orderläge\" för manuell inmatning.",
+      "err",
+    );
+    return;
+  }
+
   if (product._warnings && product._warnings.length) {
     setStatus(product._warnings.join("\n"), "warn");
   }
@@ -146,6 +186,11 @@ function render() {
 }
 
 $import.addEventListener("click", async () => {
+  // Dubbelkolla: importera aldrig om extraktionen misslyckades.
+  if (!product || !product.extractionOk) {
+    setStatus("Kan inte importera — produktdatan kunde inte läsas.", "err");
+    return;
+  }
   const chosen = product.variants.filter((v) => v.included);
   if (chosen.length === 0) {
     setStatus("Välj minst en variant.", "err");
@@ -154,7 +199,7 @@ $import.addEventListener("click", async () => {
   $import.disabled = true;
   setStatus("Importerar…");
 
-  chrome.runtime.sendMessage({ type: "IMPORT_PRODUCT", product }, (res) => {
+  chrome.runtime.sendMessage({ type: "IMPORT_PRODUCT", product, featureFlags }, (res) => {
     if (chrome.runtime.lastError || !res) {
       setStatus("Fel: " + (chrome.runtime.lastError?.message || "okänt"), "err");
       $import.disabled = false;
@@ -173,4 +218,5 @@ document.getElementById("orders").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("orders.html") });
 });
 
+loadFeatureFlags();
 load();

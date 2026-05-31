@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isAliExpressSourceUrl, isThinProductInput, looksLikeStoreCopy } from "./guard";
+import {
+  hasFyndplatsImageUrl,
+  hasUsablePrice,
+  isAliExpressSourceUrl,
+  isThinProductInput,
+  looksLikeStoreCopy,
+} from "./guard";
 
 describe("looksLikeStoreCopy", () => {
   it("flags the exact contaminated homepage title from the 2026-05-31 bug", () => {
@@ -44,6 +50,32 @@ describe("isThinProductInput", () => {
 
   it("does not flag a real product title", () => {
     expect(isThinProductInput("Smart Body Fat Scale Bluetooth Digital")).toBe(false);
+  });
+});
+
+describe("hasFyndplatsImageUrl", () => {
+  it("flags a fyndplats.se image (store logo leaked in)", () => {
+    expect(hasFyndplatsImageUrl(["https://www.fyndplats.se/logo.png"])).toBe(true);
+  });
+  it("does not flag genuine alicdn images", () => {
+    expect(hasFyndplatsImageUrl(["https://ae01.alicdn.com/a.jpg"])).toBe(false);
+    expect(hasFyndplatsImageUrl([])).toBe(false);
+    expect(hasFyndplatsImageUrl(undefined)).toBe(false);
+  });
+});
+
+describe("hasUsablePrice", () => {
+  it("true when an included variant has cost > 0", () => {
+    expect(hasUsablePrice([{ costUsd: 20, included: true }])).toBe(true);
+  });
+  it("false when all included variants are zero-priced (failed scrape)", () => {
+    expect(hasUsablePrice([{ costUsd: 0, included: true }])).toBe(false);
+    expect(hasUsablePrice([{ costUsd: 0, included: true }, { costUsd: 5, included: false }])).toBe(false);
+  });
+  it("falls back to all variants when none are explicitly included", () => {
+    expect(hasUsablePrice([{ costUsd: 12 }])).toBe(true);
+    expect(hasUsablePrice([])).toBe(false);
+    expect(hasUsablePrice(undefined)).toBe(false);
   });
 });
 

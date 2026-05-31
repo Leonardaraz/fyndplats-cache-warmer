@@ -30,6 +30,25 @@ ABSOLUTA REGLER:
 - Om råtiteln är tom eller intetsägande: hitta INTE på en produkt. Använd råtiteln som den är.
 Svara ENDAST med giltig JSON enligt schemat.`;
 
+/**
+ * Bygger ett SEO-resultat direkt ur rådatan, utan LLM-anrop. Används som
+ * fail-open (när Claude+Gemini failar eller datan är tunn) OCH när användaren
+ * stängt av SEO/översättning via feature-flaggor.
+ */
+export function buildFallbackSeo(product: AliExpressProduct): SeoResult {
+  return clampSeo(
+    {
+      title: product.rawTitle.slice(0, 70),
+      metaDescription: product.rawTitle.slice(0, 160),
+      descriptionHtml: `<p>${product.rawDescription.slice(0, 1000)}</p>`,
+      slug: product.rawTitle ? "" : "produkt",
+      suggestedCategory: "",
+      imageAltTexts: product.imageUrls.map(() => product.rawTitle),
+    },
+    product.imageUrls.length,
+  );
+}
+
 export async function generateSeo(product: AliExpressProduct): Promise<SeoResult> {
   const user = `Skapa svenskt SEO-innehåll för denna produkt. Svara med JSON:
 {

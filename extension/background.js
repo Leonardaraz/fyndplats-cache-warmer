@@ -13,7 +13,7 @@ async function ensureHostPermission(apiBase) {
   return chrome.permissions.request({ origins: [origin] });
 }
 
-async function importProduct(product) {
+async function importProduct(product, featureFlags) {
   const { apiBase, apiToken } = await getConfig();
   if (!apiBase || !apiToken) {
     return { ok: false, error: "Konfigurera API-URL och token i tilläggets inställningar." };
@@ -44,6 +44,8 @@ async function importProduct(product) {
       included: Boolean(v.included),
     })),
     ...(product.optionColorCodes ? { optionColorCodes: product.optionColorCodes } : {}),
+    // AI-funktionsväljare från popupen. Saknas = backend kör allt (default på).
+    ...(featureFlags ? { featureFlags } : {}),
   };
 
   try {
@@ -127,7 +129,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (!msg) return;
   switch (msg.type) {
     case "IMPORT_PRODUCT":
-      importProduct(msg.product).then(sendResponse);
+      importProduct(msg.product, msg.featureFlags).then(sendResponse);
       return true;
     case "SAMPLE_COLORS":
       sampleSwatchColors(msg.swatchImages).then(sendResponse);

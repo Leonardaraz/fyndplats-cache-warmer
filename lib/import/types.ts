@@ -32,6 +32,19 @@ export interface AliExpressProduct {
   shipsFrom?: string[];
 }
 
+/**
+ * AI-funktionsväljare från extension-popupen. Saknas/odefinierat fält = på
+ * (default). Låter Leonard stänga av enskilda Claude-steg för snabbare/billigare
+ * import. `translate` och `seo` delar samma generateSeo-anrop — det körs om
+ * minst en av dem är på.
+ */
+export interface FeatureFlags {
+  translate?: boolean;
+  seo?: boolean;
+  imageAnalysis?: boolean;
+  autoCategorize?: boolean;
+}
+
 export interface MarkupRule {
   /** Multiplikator på landad kostnad (exkl. moms), t.ex. 2.5. */
   multiplier: number;

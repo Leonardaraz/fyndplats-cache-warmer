@@ -46,6 +46,27 @@ export function isThinProductInput(rawTitle: string | null | undefined): boolean
   return (rawTitle ?? "").trim().length < 10;
 }
 
+/**
+ * True om någon bild-URL pekar på fyndplats.se (= butikens egen logotyp/sida
+ * smög in). Produktbilder ska alltid ligga på AliExpress-CDN (alicdn.com).
+ */
+export function hasFyndplatsImageUrl(urls: string[] | null | undefined): boolean {
+  return (urls ?? []).some((u) => /fyndplats\.se/i.test(String(u)));
+}
+
+/**
+ * True om minst en INKLUDERAD variant har ett pris > 0. En misslyckad skrapning
+ * ger costUsd=0 på alla varianter → produkten kan inte prissättas korrekt.
+ */
+export function hasUsablePrice(
+  variants: Array<{ costUsd?: number; included?: boolean }> | null | undefined,
+): boolean {
+  const list = variants ?? [];
+  const included = list.filter((v) => v.included !== false);
+  const pool = included.length > 0 ? included : list;
+  return pool.some((v) => Number(v.costUsd) > 0);
+}
+
 export interface SourceUrlCheck {
   ok: boolean;
   reason?: string;
