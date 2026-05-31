@@ -9,12 +9,26 @@ const ALLOWED_ORIGINS = [
   "https://www.aliexpress.com",
   "https://www.aliexpress.us",
   "https://m.aliexpress.com",
+  // Headless-storefront — anropar /api/restock-subscribe från produktsidan.
+  "https://fyndplats.se",
+  "https://www.fyndplats.se",
 ];
+
+// Extra origins via env (kommaseparerat), t.ex. preview-deployer av headless.
+function envOrigins(): string[] {
+  return (process.env.STOREFRONT_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 function isAllowedOrigin(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (envOrigins().includes(origin)) return true;
   // Tillåt alla chrome-extension://-origins under utveckling (unpacked extension får ny ID per maskin).
-  return origin.startsWith("chrome-extension://");
+  if (origin.startsWith("chrome-extension://")) return true;
+  // Headless-preview-deployer på Vercel.
+  return /^https:\/\/fyndplats-headless[a-z0-9-]*\.vercel\.app$/.test(origin);
 }
 
 export function middleware(req: NextRequest) {

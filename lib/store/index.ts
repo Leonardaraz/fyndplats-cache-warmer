@@ -72,6 +72,20 @@ export interface ProductMappingRecord {
    * /admin/queue visar "Slug auto-justerad"-badge när detta är satt.
    */
   slugSuffix?: string;
+  /**
+   * Sync-prioritet (Feature 4 — prioriterad sync). Styr ordningen i
+   * /api/cron/aliexpress-sync: "high" synkas före "normal"/"low" oavsett
+   * lastCheckedAt. Saknas = behandlas som "normal" (back-compat).
+   *   - "high": bestsellers (top-50 senaste 30 dgr) + nyss köpta produkter.
+   *   - "normal": default rullande kö (äldsta lastCheckedAt först).
+   *   - "low": avprioriterad (t.ex. långsam-säljare) — synkas sist.
+   * Sätts av applyBestsellerPriority (daglig) + order-webhooken (vid köp).
+   */
+  priority?: "low" | "normal" | "high";
+  /** Svensk motivering till varför priority sattes — visas i admin. */
+  priorityReason?: string;
+  /** ISO-tid då priority senast ändrades automatiskt. */
+  priorityUpdatedAt?: string;
 }
 
 export interface AuditEntry {

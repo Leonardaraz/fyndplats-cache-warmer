@@ -219,6 +219,88 @@ describe("decideSyncOutcome", () => {
     );
     expect(out.shouldRestore).toBe(false);
   });
+
+  it("sätter justWentOos när produkten flippar aktiv → slut (Feature 2)", () => {
+    const out = decideSyncOutcome(
+      baseInputs({
+        prevState: {
+          wixProductId: "p1",
+          aliexpressId: "ae1",
+          currentCostSek: 100,
+          currentCostUsd: 10,
+          currentStock: 20,
+          listingStatus: "active",
+          titleHash: "t",
+          imageHash: "i",
+          lastCheckedAt: new Date().toISOString(),
+        },
+        aliExpress: { title: "x", images: [], minCostUsd: 10, totalStock: 0, listingRemoved: false },
+      }),
+    );
+    expect(out.actionTaken).toBe("marked_oos");
+    expect(out.justWentOos).toBe(true);
+    expect(out.justRestocked).toBe(false);
+  });
+
+  it("sätter INTE justWentOos på första observationen (prevState=null)", () => {
+    const out = decideSyncOutcome(
+      baseInputs({
+        prevState: null,
+        aliExpress: { title: "x", images: [], minCostUsd: 10, totalStock: 0, listingRemoved: false },
+      }),
+    );
+    expect(out.justWentOos).toBe(false);
+  });
+
+  it("sätter INTE justWentOos om produkten redan var slut (ingen ny övergång)", () => {
+    const out = decideSyncOutcome(
+      baseInputs({
+        prevState: {
+          wixProductId: "p1",
+          aliexpressId: "ae1",
+          currentCostSek: 100,
+          currentCostUsd: 10,
+          currentStock: 0,
+          listingStatus: "out_of_stock",
+          titleHash: "t",
+          imageHash: "i",
+          lastCheckedAt: new Date().toISOString(),
+        },
+        aliExpress: { title: "x", images: [], minCostUsd: 10, totalStock: 0, listingRemoved: false },
+      }),
+    );
+    expect(out.justWentOos).toBe(false);
+  });
+
+  it("sätter justRestocked när produkten kommer tillbaka i lager (Feature 1)", () => {
+    const out = decideSyncOutcome(
+      baseInputs({
+        prevState: {
+          wixProductId: "p1",
+          aliexpressId: "ae1",
+          currentCostSek: 100,
+          currentCostUsd: 10,
+          currentStock: 0,
+          listingStatus: "out_of_stock",
+          // Samma hashar som baseInputs default → ingen content-change-flagga,
+          // så vi isolerar restored-utfallet.
+          titleHash: "title-hash-1",
+          imageHash: "img-hash-1",
+          lastCheckedAt: new Date().toISOString(),
+        },
+        aliExpress: {
+          title: "Test produkt",
+          images: ["https://img/a.jpg", "https://img/b.jpg"],
+          minCostUsd: 10,
+          totalStock: 50,
+          listingRemoved: false,
+        },
+      }),
+    );
+    expect(out.justRestocked).toBe(true);
+    expect(out.justWentOos).toBe(false);
+    expect(out.actionTaken).toBe("restored");
+  });
 });
 
 describe("projectedMarginAtPrice", () => {

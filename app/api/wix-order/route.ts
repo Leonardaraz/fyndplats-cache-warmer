@@ -3,6 +3,7 @@ import { parseWebhookBody } from "@/lib/orders/webhook";
 import { deriveTasks, normalizeOrderEvent } from "@/lib/orders/tasks";
 import { getStore } from "@/lib/store/factory";
 import { audit } from "@/lib/audit";
+import { enqueuePriorityCheck } from "@/lib/sync/bestsellers";
 
 // Wix eCom Order-webhook. Verifierar signatur (om publik nyckel finns),
 // avduplicerar på event-id (idempotens) och skapar en fulfillment-task per
@@ -36,6 +37,19 @@ export async function POST(req: Request) {
     if (await store.createTaskIfAbsent(task)) created++;
   }
 
-  await audit("order", event.orderId, `${created} tasks skapade`);
-  return NextResponse.json({ ok: true, orderId: event.orderId, tasksCreated: created });
+  // Feature 4: bumpa köpta produkter till high-priority sync nästa cron-cykel
+  // så lagret kollas direkt efter försäljning. Best-effort — order-flödet får
+  // aldrig faila pga detta.
+  let enqueued = 0;
+  try {
+    const productIds = tasks
+      .map((t) => t.wixCatalogItemId)
+      .filter((id): id is string => Boolean(id));
+    enqueued = await enqueuePriorityCheck(store, productIds);
+  } catch {
+    // ignorerat — prioritering är bäst-möjligt, inte kritiskt
+  }
+
+  await audit("order", event.orderId, `${created} tasks skapade, ${enqueued} prioriterade`);
+  return NextResponse.json({ ok: true, orderId: event.orderId, tasksCreated: created, prioritized: enqueued });
 }

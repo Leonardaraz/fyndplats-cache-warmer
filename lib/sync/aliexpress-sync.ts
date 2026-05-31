@@ -39,6 +39,15 @@ import {
   type SyncLogEntry,
   type SyncStateEntry,
 } from "./sync-log";
+import { fetchOrders, aggregateOrders, isoDaysAgo } from "../wix/orders";
+import { findAlternativeSuppliers, isAlternativesEnabled } from "../aliexpress/alternatives";
+import { getRestockStore } from "../restock/store";
+import {
+  buildOosAlertEmail,
+  buildRestockNotificationEmail,
+  sendEmail,
+} from "../email/resend";
+import { applyBestsellerPriority, priorityRank, RECENT_PURCHASE_REASON } from "./bestsellers";
 
 export const DEFAULT_MARGIN_FLOOR_PERCENT = 20;
 export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
@@ -85,6 +94,18 @@ export interface SyncDecision {
   notes: string;
   /** Nuvarande landade kostnad i SEK (för logg + state). */
   newCostSek: number | null;
+  /**
+   * True om produkten just flippade TILL slut-i-lager (prev var inte oos).
+   * Triggar real-tids-larm + alternativ-sökning (Feature 2 + 3). Sätts INTE
+   * på första observationen (prevState=null) — vi larmar bara på en faktisk
+   * övergång, inte på produkter som redan var slut när vi först såg dem.
+   */
+  justWentOos: boolean;
+  /**
+   * True om produkten just kom tillbaka i lager (prev var oos, nu aktiv).
+   * Triggar restock-mejl till bevakare (Feature 1).
+   */
+  justRestocked: boolean;
 }
 
 /**
@@ -105,14 +126,17 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
       alert: null,
       newCostSek: null,
       notes: "AliExpress-listning borttagen — produkten döljs i butiken.",
+      justWentOos: false,
+      justRestocked: false,
     };
   }
 
   const newCostSek = round2(aliExpress.minCostUsd * pricing.usdToSek);
-  const prevCostSek = prevState?.currentCostSek ?? null;
 
-  // 2) Slut i lager — markera oos men dölj inte.
+  // 2) Slut i lager — markera oos men dölj inte (hybrid: produktsidan lever
+  // kvar, listningarna filtreras bort på headless-sajten via inventory=0).
   if (aliExpress.totalStock <= 0) {
+    const wasOos = prevState?.listingStatus === "out_of_stock";
     return {
       listingStatus: "out_of_stock",
       actionTaken: "marked_oos",
@@ -122,6 +146,9 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
       alert: null,
       newCostSek,
       notes: "Slut i lager hos AliExpress — Wix-lager sätts till 0.",
+      // Larma bara på en faktisk övergång (prev fanns och var inte redan oos).
+      justWentOos: Boolean(prevState) && !wasOos,
+      justRestocked: false,
     };
   }
 
@@ -138,6 +165,9 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     alert: null,
     newCostSek,
     notes: "",
+    justWentOos: false,
+    // Tillbaka i lager efter att ha varit slut → trigga restock-mejl.
+    justRestocked: prevState?.listingStatus === "out_of_stock",
   };
 
   // 4) Prishöjning som hotar marginalen? → flagga.
@@ -232,6 +262,13 @@ export interface RunDailySyncOptions {
   skipIds?: Set<string>;
   /** Marginal-golv för pris-alert. */
   marginFloorPercent: number;
+  /**
+   * Bas-URL för cache-warmer-appen (admin-import-länkar i OOS-mejlet).
+   * T.ex. https://fyndplats-cache-warmer.vercel.app.
+   */
+  baseUrl: string;
+  /** Mottagare för real-tids-OOS-larm (Feature 2). Saknas = inga larm skickas. */
+  opsAlertEmail?: string;
 }
 
 export interface SyncSummary {
@@ -251,6 +288,15 @@ export interface SyncSummary {
   flaggedPrice: number;
   /** Antal content-change-alerts. */
   flaggedContent: number;
+  /** Antal real-tids-"slut hos leverantör"-mejl som skickades (Feature 2). */
+  oosRealtimeAlerts: number;
+  /** Antal restock-mejl som skickades till väntande prenumeranter (Feature 1). */
+  restockNotificationsSent: number;
+  /**
+   * Produkter som flippade till slut-i-lager denna körning (för daglig
+   * aggregering i sammanfattnings-mejlet). En post per ny OOS-händelse.
+   */
+  oosEvents: { productName: string; aliexpressId: string; sales30d: number }[];
   /** Antal som inte hade någon ändring att göra. */
   unchanged: number;
   /** Per-produkt-fel som inte avbröt körningen. */
@@ -277,6 +323,9 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     restored: 0,
     flaggedPrice: 0,
     flaggedContent: 0,
+    oosRealtimeAlerts: 0,
+    restockNotificationsSent: 0,
+    oosEvents: [],
     unchanged: 0,
     errors: [],
     dryRun: opts.dryRun,
@@ -284,12 +333,43 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     finishedAt: startedAt,
   };
 
-  // Sortera så att produkter med äldsta lastCheckedAt synkas först — så vi
-  // hinner runt även när rate-limit gör att vi inte täcker allt på en körning.
+  // --- Senaste 30 dagars försäljning (en gång per körning) ----------------
+  // Används både för bestseller-prioritet (Feature 4) och för "X sålda"-raden
+  // i real-tids-OOS-mejlet (Feature 2). Best-effort: failar order-API:t kör vi
+  // vidare med tomt data (mejlet visar då 0 sålda, prioriteringen rör inget).
+  let salesByProduct: Record<string, number> = {};
+  try {
+    const orders = await fetchOrders(isoDaysAgo(30));
+    const agg = aggregateOrders(orders);
+    salesByProduct = Object.fromEntries(
+      Object.entries(agg.byProductId).map(([id, v]) => [id, v.units]),
+    );
+  } catch (err) {
+    console.warn(
+      `[sync] kunde inte hämta 30-dagars orderdata: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+    );
+  }
+
+  // --- Bestseller-prioritet (Feature 4) -----------------------------------
+  // Sätter priority=high på top-50 sålda. Muterar in-memory mappings så
+  // sorteringen nedan ser ny prioritet; skriver till store endast om !dryRun.
+  try {
+    await applyBestsellerPriority({ store, mappings, salesByProduct, dryRun: opts.dryRun });
+  } catch (err) {
+    console.warn(
+      `[sync] bestseller-prioritet misslyckades: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+    );
+  }
+
+  // Sortera: priority DESC (high först), sedan äldsta lastCheckedAt först — så
+  // bestsellers/köp-triggade produkter alltid hinner med innan rate-limit slår
+  // till, medan resten roterar runt över flera dagar.
   const states = await Promise.all(
     mappings.map((m) => syncStore.getState(m.wixProductId).then((s) => ({ mapping: m, state: s }))),
   );
   states.sort((a, b) => {
+    const pr = priorityRank(a.mapping.priority) - priorityRank(b.mapping.priority);
+    if (pr !== 0) return pr;
     const aTime = a.state?.lastCheckedAt ?? "0";
     const bTime = b.state?.lastCheckedAt ?? "0";
     return aTime.localeCompare(bTime);
@@ -324,6 +404,9 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
         pricing: opts.pricing,
         dryRun: opts.dryRun,
         marginFloorPercent: opts.marginFloorPercent,
+        sales30d: salesByProduct[mapping.wixProductId] ?? 0,
+        baseUrl: opts.baseUrl,
+        opsAlertEmail: opts.opsAlertEmail,
       });
       summary.checked++;
       switch (result.actionTaken) {
@@ -336,6 +419,9 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
         case "dry_run":
           summary.unchanged++; break;
       }
+      if (result.oosAlertSent) summary.oosRealtimeAlerts++;
+      if (result.oosEvent) summary.oosEvents.push(result.oosEvent);
+      if (result.restockSent) summary.restockNotificationsSent += result.restockSent;
     } catch (err) {
       summary.errors.push({
         productId: mapping.wixProductId,
@@ -355,10 +441,22 @@ interface SyncOneOpts {
   pricing: PricingConfig;
   dryRun: boolean;
   marginFloorPercent: number;
+  /** Sålda enheter senaste 30 dagar (för OOS-mejlet). */
+  sales30d: number;
+  /** Bas-URL för admin-import-länkar. */
+  baseUrl: string;
+  /** Mottagare för real-tids-OOS-larm. Saknas = larma inte. */
+  opsAlertEmail?: string;
 }
 
 interface SyncOneResult {
   actionTaken: SyncAction;
+  /** True om ett real-tids-OOS-mejl komponerades/skickades denna körning. */
+  oosAlertSent?: boolean;
+  /** Sätts när produkten flippade till OOS (för daglig aggregering). */
+  oosEvent?: { productName: string; aliexpressId: string; sales30d: number };
+  /** Antal restock-mejl som skickades till bevakare. */
+  restockSent?: number;
 }
 
 async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
@@ -477,6 +575,101 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     await syncStore.closeAlertIfOpen(`${mapping.wixProductId}-content_change`);
   }
 
+  // 5.5) Real-tids-OOS-larm + restock-mejl (Features 1-3).
+  let oosAlertSent = false;
+  let oosEvent: SyncOneResult["oosEvent"];
+  let restockSent = 0;
+  let lastOosAlertAt = state?.lastOosAlertAt ?? null;
+
+  const productName =
+    mapping.seoTitle || wixSnapshot.name || aliExpress?.title || mapping.supplierProductId;
+  const productImage =
+    mapping.imageAnalysis?.find((i) => i.verdict === "ok")?.url ?? aliExpress?.images?.[0];
+
+  // Feature 2 + 3: produkten flippade just till slut hos leverantören.
+  if (decision.justWentOos && opts.opsAlertEmail) {
+    // Debounce: larma inte igen inom 24h även om cronen kör flera gånger.
+    const within24h = lastOosAlertAt
+      ? Date.parse(checkedAt) - Date.parse(lastOosAlertAt) < 24 * 3600 * 1000
+      : false;
+    if (!within24h) {
+      try {
+        const aliexpressUrl = `https://www.aliexpress.com/item/${mapping.supplierProductId}.html`;
+        const alternatives = isAlternativesEnabled()
+          ? await findAlternativeSuppliers({
+              aliexpressId: mapping.supplierProductId,
+              productName,
+              baseUrl: opts.baseUrl,
+              usdToSek: pricing.usdToSek,
+            }).catch(() => [])
+          : [];
+        const alertsUrl = `${opts.baseUrl.replace(/\/$/, "")}/admin/sync-alerts`;
+        const email = buildOosAlertEmail({
+          productName,
+          imageUrl: productImage,
+          aliexpressUrl,
+          sales30d: opts.sales30d,
+          alternatives,
+          alertsUrl,
+        });
+        if (!dryRun) {
+          await sendEmail({
+            to: opts.opsAlertEmail,
+            subject: email.subject,
+            bodyHtml: email.html,
+            bodyText: email.text,
+          });
+        }
+        lastOosAlertAt = checkedAt;
+        oosAlertSent = true;
+        oosEvent = {
+          productName,
+          aliexpressId: mapping.supplierProductId,
+          sales30d: opts.sales30d,
+        };
+      } catch (err) {
+        // Mejl/sökning ska aldrig fälla själva sync-checken.
+        console.warn(
+          `[sync] OOS-larm misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+        );
+      }
+    }
+  }
+
+  // Feature 1: produkten kom tillbaka i lager → mejla bevakarna.
+  if (decision.justRestocked) {
+    try {
+      const restockStore = getRestockStore();
+      const subs = await restockStore.listPendingForProduct(mapping.wixProductId);
+      if (subs.length > 0) {
+        const productUrl = productPageUrl(wixSnapshot.slug);
+        const email = buildRestockNotificationEmail({
+          productName,
+          productUrl,
+          imageUrl: productImage,
+        });
+        const notifiedIds: string[] = [];
+        for (const sub of subs) {
+          if (!dryRun) {
+            await sendEmail({
+              to: sub.email,
+              subject: email.subject,
+              bodyHtml: email.html,
+              bodyText: email.text,
+            });
+          }
+          notifiedIds.push(sub.id);
+        }
+        if (!dryRun) await restockStore.markNotified(notifiedIds);
+        restockSent = notifiedIds.length;
+      }
+    } catch (err) {
+      console.warn(
+        `[sync] restock-mejl misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+      );
+    }
+  }
+
   // 6) Sidoeffekter — state + log.
   const newState: SyncStateEntry = {
     wixProductId: mapping.wixProductId,
@@ -488,6 +681,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     titleHash: newTitleHash || null,
     imageHash: newImageHash || null,
     lastCheckedAt: checkedAt,
+    lastOosAlertAt,
   };
   await syncStore.saveState(newState);
 
@@ -506,7 +700,36 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   };
   await syncStore.appendLog(logEntry);
 
-  return { actionTaken: logEntry.actionTaken };
+  // Feature 4: köp-triggad engångsprioritet konsumeras efter check → tillbaka
+  // till normal så produkten inte fastnar överst i kön för alltid.
+  if (
+    !dryRun
+    && mapping.priority === "high"
+    && mapping.priorityReason === RECENT_PURCHASE_REASON
+  ) {
+    try {
+      await getStore().saveMapping({
+        ...mapping,
+        priority: "normal",
+        priorityReason: undefined,
+        priorityUpdatedAt: checkedAt,
+      });
+    } catch {
+      // best-effort
+    }
+  }
+
+  return { actionTaken: logEntry.actionTaken, oosAlertSent, oosEvent, restockSent };
+}
+
+/**
+ * Bygger produktsidans publika URL för restock-mejl. Slug kommer från Wix-
+ * produkten; bas-URL från STORE_PRODUCT_BASE_URL (default fyndplats.se/produkt).
+ */
+function productPageUrl(slug?: string): string {
+  const base = (process.env.STORE_PRODUCT_BASE_URL ?? "https://fyndplats.se/produkt").replace(/\/$/, "");
+  if (slug) return `${base}/${slug}`;
+  return process.env.NEXT_PUBLIC_STORE_URL ?? "https://fyndplats.se";
 }
 
 /**

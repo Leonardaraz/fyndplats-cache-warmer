@@ -353,6 +353,8 @@ export interface WixProductSnapshot {
   id: string;
   revision: string;
   name: string;
+  /** URL-slug (för att bygga produktsidans länk i restock-mejl). */
+  slug?: string;
   visible: boolean;
   variants: { id: string; sku: string; actualPriceAmount: string }[];
 }
@@ -371,6 +373,7 @@ export async function getProduct(productId: string): Promise<WixProductSnapshot 
       id: string;
       revision: string;
       name: string;
+      slug?: string;
       visible?: boolean;
       variantsInfo?: {
         variants?: { id: string; sku?: string; price?: { actualPrice?: { amount?: string } } }[];
@@ -382,6 +385,7 @@ export async function getProduct(productId: string): Promise<WixProductSnapshot 
     id: p.id,
     revision: p.revision,
     name: p.name,
+    slug: p.slug,
     visible: p.visible ?? true,
     variants: (p.variantsInfo?.variants ?? []).map((v) => ({
       id: v.id,

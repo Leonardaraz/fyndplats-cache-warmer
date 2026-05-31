@@ -63,6 +63,12 @@ export interface SyncStateEntry {
   titleHash: string | null;
   imageHash: string | null;
   lastCheckedAt: string;      // ISO
+  /**
+   * ISO-tid då det senaste real-tids-"slut hos leverantör"-mejlet skickades
+   * (Feature 2). Används för debounce: samma produkt larmas inte igen inom 24h
+   * även om cronen kör flera gånger. Saknas = aldrig larmat.
+   */
+  lastOosAlertAt?: string | null;
 }
 
 export type AlertType = "price_increase" | "content_change";

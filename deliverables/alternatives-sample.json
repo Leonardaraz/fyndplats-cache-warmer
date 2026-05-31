@@ -1,0 +1,57 @@
+{
+  "_note": "Output från findAlternativeSuppliers-pipelinen. genericize+rank+enrich är produktionskod; score är hand-satt här (Haiku-scoring kräver nätverk/credits som saknas i genereringsmiljön).",
+  "originalProductId": "1005006001234567",
+  "originalName": "🔥HOT 2024 New Smart Body Fat Scale Wireless Bluetooth Digital Weight Scale Free Shipping",
+  "genericQuery": "Smart Body Fat Scale Wireless Bluetooth Digital Weight",
+  "alternatives": [
+    {
+      "aliexpressId": "1005007002000001",
+      "title": "Smart Body Fat Scale Bluetooth Digital Bathroom Weighing Scale BMI",
+      "priceUsd": 18.9,
+      "priceSek": 198,
+      "imageUrl": "https://ae01.alicdn.com/kf/altB.jpg",
+      "productUrl": "https://www.aliexpress.com/item/1005007002000001.html",
+      "orders": 5400,
+      "shipsFromCountries": [
+        "ES"
+      ],
+      "warehouseClass": "EU",
+      "score": 92,
+      "scoreReason": "Samma typ av smart kroppsfettsvåg, EU-lager.",
+      "importUrl": "https://fyndplats-cache-warmer.vercel.app/admin/import?source=alternative&aliexpressUrl=https%3A%2F%2Fwww.aliexpress.com%2Fitem%2F1005007002000001.html&replacesProductId=1005006001234567"
+    },
+    {
+      "aliexpressId": "1005007002000003",
+      "title": "Mini Digital Bluetooth Body Fat Scale High Precision EU Warehouse",
+      "priceUsd": 17.95,
+      "priceSek": 188,
+      "imageUrl": "https://ae01.alicdn.com/kf/altD.jpg",
+      "productUrl": "https://www.aliexpress.com/item/1005007002000003.html",
+      "orders": 2750,
+      "shipsFromCountries": [
+        "CZ",
+        "PL"
+      ],
+      "warehouseClass": "EU",
+      "score": 86,
+      "scoreReason": "Bluetooth-fettvåg, EU-lager — bra ersättare.",
+      "importUrl": "https://fyndplats-cache-warmer.vercel.app/admin/import?source=alternative&aliexpressUrl=https%3A%2F%2Fwww.aliexpress.com%2Fitem%2F1005007002000003.html&replacesProductId=1005006001234567"
+    },
+    {
+      "aliexpressId": "1005007002000002",
+      "title": "Wireless Smart Scale Body Composition Analyzer Fat BMI 13 Metrics",
+      "priceUsd": 20.5,
+      "priceSek": 215,
+      "imageUrl": "https://ae01.alicdn.com/kf/altC.jpg",
+      "productUrl": "https://www.aliexpress.com/item/1005007002000002.html",
+      "orders": 3100,
+      "shipsFromCountries": [
+        "CN"
+      ],
+      "warehouseClass": "CN",
+      "score": 83,
+      "scoreReason": "Smart kroppsanalys-våg, liknande funktioner.",
+      "importUrl": "https://fyndplats-cache-warmer.vercel.app/admin/import?source=alternative&aliexpressUrl=https%3A%2F%2Fwww.aliexpress.com%2Fitem%2F1005007002000002.html&replacesProductId=1005006001234567"
+    }
+  ]
+}

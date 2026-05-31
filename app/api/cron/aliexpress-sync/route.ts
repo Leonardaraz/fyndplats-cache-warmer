@@ -69,11 +69,20 @@ async function handle(req: NextRequest): Promise<NextResponse> {
       DEFAULT_MARGIN_FLOOR_PERCENT,
     );
 
+    const baseUrl = (
+      process.env.NEXT_PUBLIC_APP_URL
+      ?? process.env.VERCEL_URL
+      ?? "https://fyndplats-cache-warmer.vercel.app"
+    ).replace(/^https?:\/\//, "https://").replace(/\/$/, "");
+    const opsEmailForAlerts = process.env.OPS_ALERT_EMAIL;
+
     const summary = await runDailySync({
       pricing,
       dryRun,
       maxApiCalls,
       marginFloorPercent,
+      baseUrl,
+      opsAlertEmail: opsEmailForAlerts,
     });
 
     await audit(
@@ -87,6 +96,8 @@ async function handle(req: NextRequest): Promise<NextResponse> {
         hidden: summary.hidden,
         markedOos: summary.markedOos,
         restored: summary.restored,
+        oosRealtimeAlerts: summary.oosRealtimeAlerts,
+        restockNotificationsSent: summary.restockNotificationsSent,
         errors: summary.errors.length,
       }),
     );
@@ -95,11 +106,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     const opsEmail = process.env.OPS_ALERT_EMAIL;
     if (opsEmail) {
       try {
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL
-          ?? process.env.VERCEL_URL
-          ?? "https://fyndplats-cache-warmer.vercel.app";
-        const alertsUrl = `${baseUrl.replace(/^https?:\/\//, "https://").replace(/\/$/, "")}/admin/sync-alerts`;
+        const alertsUrl = `${baseUrl}/admin/sync-alerts`;
         const built = buildDailySummaryEmail(summary, alertsUrl);
         if (built) {
           await sendEmail({
