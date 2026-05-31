@@ -1,8 +1,23 @@
 import { computePrice } from "./pricing";
 import { generateSeo, type SeoResult } from "./seo";
 import type { AliExpressProduct, PricingConfig } from "./types";
-import { createProduct, type WixProductInput, type WixVariantInput } from "../wix/client";
+import {
+  addProductToCollection,
+  createProduct,
+  getCollections,
+  type WixProductInput,
+  type WixVariantInput,
+} from "../wix/client";
 import { importMediaUrls } from "../wix/media";
+import {
+  analyzeImages,
+  suggestCategory,
+  type CategorySuggestion,
+  type CollectionOption,
+  type ImageAnalysisResult,
+} from "../claude/client";
+import type { CategorySuggestionRecord, ImageAnalysisEntry } from "../store/index";
+import { audit } from "../audit";
 
 export interface VariantMapping {
   supplierVariantId: string;
@@ -22,6 +37,10 @@ export interface ImportResult {
   supplierProductId: string;
   seo: SeoResult;
   variantMappings: VariantMapping[];
+  /** Claude vision-analys per bild (samma ordning som inkommande imageUrls). */
+  imageAnalysis: ImageAnalysisEntry[];
+  /** Claude-förslag på Wix-kategori. */
+  categorySuggestion: CategorySuggestionRecord;
 }
 
 /** Stabil SKU per leverantörsvariant — används senare för lager-/orderkoppling. */
@@ -76,11 +95,23 @@ export async function importProduct(
     throw new Error("Inga varianter valda för import.");
   }
 
-  const seo = await generateSeo(product);
+  // Kör SEO, bildanalys och kategoriförslag parallellt för att hålla
+  // import-latensen nere. Alla tre är Claude-anrop som kan failas individuellt.
+  const seoPromise = generateSeo(product);
+  const imageAnalysisPromise = analyzeImages(product.imageUrls);
+  const collectionsPromise = getCollectionsSafe();
+
+  const seo = await seoPromise;
+  const imageVerdicts = await imageAnalysisPromise;
+
+  // Filtrera bort rejected bilder från huvudgalleriet. Warns demoteras (läggs
+  // sist) men följer ändå med så Leonard kan välja att behålla dem.
+  const orderedImageUrls = orderImagesByVerdict(product.imageUrls, imageVerdicts);
 
   // Ladda upp bilder till Wix Media Manager parallellt med variant-/options-bygget.
+  // Endast bilder som inte är "reject" laddas upp — sparar tid och Wix-storage.
   const mediaPromise = importMediaUrls(
-    product.imageUrls.map((url, i) => ({ url, displayName: `${seo.slug || "produkt"}-${i + 1}` })),
+    orderedImageUrls.map((url, i) => ({ url, displayName: `${seo.slug || "produkt"}-${i + 1}` })),
   );
 
   // Options härleds från ALLA varianter; avbockade varianter skapas men döljs
@@ -110,10 +141,16 @@ export async function importProduct(
 
   // Vänta in bilduppladdningarna och koppla alt-text per bild (faller tillbaka
   // på titeln om SEO-pipelinen inte producerade en alt för just den bilden).
+  // OBS: alt-texterna matchade ursprungsordningen — gör om mappningen mot
+  // de nya (omsorterade) URL:erna så vi behåller rätt alt per bild.
   const uploadedMedia = await mediaPromise;
+  const altByOriginalUrl = new Map<string, string>();
+  product.imageUrls.forEach((u, i) => {
+    altByOriginalUrl.set(u, seo.imageAltTexts[i] ?? seo.title);
+  });
   const mediaItems = uploadedMedia.map((m, i) => ({
     url: m.url,
-    altText: seo.imageAltTexts[i] ?? seo.title,
+    altText: altByOriginalUrl.get(orderedImageUrls[i]) ?? seo.title,
   }));
 
   const wixInput: WixProductInput = {
@@ -137,11 +174,160 @@ export async function importProduct(
     m.wixVariantId = skuToWixId.get(m.sku);
   }
 
+  // Kategorisering. Vänta in collections (kan vara tom om Wix-call misslyckats).
+  const collections = await collectionsPromise;
+  const categorySuggestion = await suggestCategoryRecord(seo, product, collections);
+
+  // Auto-assign vid hög confidence.
+  if (categorySuggestion.status === "auto" && categorySuggestion.collectionId) {
+    try {
+      await addProductToCollection(created.id, categorySuggestion.collectionId);
+      await audit(
+        "category-auto-assign",
+        created.id,
+        `${categorySuggestion.collectionSlug} (conf=${categorySuggestion.confidence.toFixed(2)})`,
+      );
+    } catch (err) {
+      // Demotera till "suggested" om Wix-anropet failade — Leonard kan
+      // klicka in den manuellt från kö-UI:t.
+      categorySuggestion.status = "suggested";
+      await audit(
+        "category-auto-assign-failed",
+        created.id,
+        err instanceof Error ? err.message.slice(0, 200) : String(err),
+      );
+    }
+  }
+
+  const imageAnalysisEntries: ImageAnalysisEntry[] = imageVerdicts.map((v) => ({
+    url: v.url,
+    verdict: v.verdict,
+    reason: v.reason,
+  }));
+
+  // Logga sammanfattning så vi kan se i /admin/audit hur många bilder som flaggades.
+  const counts = countByVerdict(imageVerdicts);
+  if (imageVerdicts.length > 0) {
+    await audit(
+      "claude-image-analysis",
+      created.id,
+      `ok=${counts.ok} warn=${counts.warn} reject=${counts.reject}`,
+    );
+  }
+
   return {
     wixProductId: created.id,
     slug: created.slug,
     supplierProductId: product.supplierProductId,
     seo,
     variantMappings,
+    imageAnalysis: imageAnalysisEntries,
+    categorySuggestion,
+  };
+}
+
+// --- Helpers ---------------------------------------------------------------
+
+/**
+ * Returnerar bild-URL:er i ny ordning: ok-bilder först, warns sist, rejects
+ * helt borttagna. Bevarar ursprunglig ordning inom varje grupp.
+ */
+export function orderImagesByVerdict(
+  urls: string[],
+  verdicts: ImageAnalysisResult[],
+): string[] {
+  const verdictByUrl = new Map(verdicts.map((v) => [v.url, v.verdict]));
+  const ok: string[] = [];
+  const warn: string[] = [];
+  for (const url of urls) {
+    const v = verdictByUrl.get(url);
+    if (v === "reject") continue;
+    if (v === "warn") warn.push(url);
+    else ok.push(url); // "ok" + okänd (fail-open)
+  }
+  return [...ok, ...warn];
+}
+
+function countByVerdict(verdicts: ImageAnalysisResult[]): {
+  ok: number;
+  warn: number;
+  reject: number;
+} {
+  let ok = 0;
+  let warn = 0;
+  let reject = 0;
+  for (const v of verdicts) {
+    if (v.verdict === "reject") reject++;
+    else if (v.verdict === "warn") warn++;
+    else ok++;
+  }
+  return { ok, warn, reject };
+}
+
+/** Wrap getCollections så ett fel inte fäller hela importen. */
+async function getCollectionsSafe(): Promise<CollectionOption[]> {
+  try {
+    const cols = await getCollections();
+    return cols.map((c) => ({ slug: c.slug, name: c.name, description: c.description }));
+  } catch (err) {
+    console.warn(
+      "[import] getCollections failed, hoppar över kategorisering:",
+      err instanceof Error ? err.message : String(err),
+    );
+    return [];
+  }
+}
+
+/**
+ * Översätter Claudes suggestion till en CategorySuggestionRecord — inkl.
+ * att slå upp Wix collection-id för auto-assign.
+ */
+async function suggestCategoryRecord(
+  seo: SeoResult,
+  product: AliExpressProduct,
+  collections: CollectionOption[],
+): Promise<CategorySuggestionRecord> {
+  if (collections.length === 0) {
+    return {
+      collectionSlug: null,
+      confidence: 0,
+      reason: "Inga butikskollektioner tillgängliga.",
+      status: "uncategorized",
+    };
+  }
+
+  const suggestion: CategorySuggestion = await suggestCategory(
+    seo.title,
+    seo.descriptionHtml || product.rawDescription,
+    collections,
+  );
+
+  if (!suggestion.collectionSlug) {
+    return {
+      collectionSlug: null,
+      confidence: suggestion.confidence,
+      reason: suggestion.reason || "Claude kunde inte hitta en tydlig kategori.",
+      status: "uncategorized",
+    };
+  }
+
+  // Slå upp Wix-id + namn för slug:en (för auto-assign + visning).
+  const wixCols = await getCollections().catch(() => []);
+  const match = wixCols.find((c) => c.slug === suggestion.collectionSlug);
+  const collectionId = match?.id;
+  const collectionName = match?.name ?? suggestion.collectionSlug;
+
+  let status: CategorySuggestionRecord["status"];
+  if (suggestion.confidence > 0.7 && collectionId) status = "auto";
+  else if (suggestion.confidence >= 0.4) status = "suggested";
+  else status = "uncategorized";
+
+  return {
+    collectionSlug: suggestion.collectionSlug,
+    collectionId,
+    collectionName,
+    confidence: suggestion.confidence,
+    reason: suggestion.reason,
+    status,
   };
 }

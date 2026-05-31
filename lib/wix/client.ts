@@ -329,3 +329,164 @@ export async function setProductVisibility(
   const data = (await res.json()) as { product?: { revision?: string } };
   return { revision: data.product?.revision ?? revision };
 }
+
+// --------------------------------------------------------------------------
+// Collections (kategorier i Wix Stores V3)
+// https://dev.wix.com/docs/rest/business-solutions/stores/catalog-v3/collections-v3
+// --------------------------------------------------------------------------
+
+export interface WixCollection {
+  id: string;
+  name: string;
+  /** Stabil slug — det vi mappar tillbaka mot vid auto-kategorisering. */
+  slug: string;
+  description?: string;
+}
+
+interface WixCollectionRaw {
+  id: string;
+  name?: string;
+  slug?: string;
+  description?: string;
+}
+
+/** Hämtar alla Wix Stores V3-kollektioner. Paginerar tills cursor är slut. */
+export async function getCollections(): Promise<WixCollection[]> {
+  const all: WixCollection[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < 20; page++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    const res = await fetch(`${WIX_BASE}/stores/v3/collections/query`, {
+      method: "POST",
+      headers: wixHeaders(),
+      body: JSON.stringify({ query: { cursorPaging } }),
+    });
+    if (!res.ok) {
+      // Saknad katalogapp eller saknade scopes — tolerera tyst (importen
+      // ska inte falla bara för att kategoriförslaget inte går att göra).
+      if (res.status === 404 || res.status === 403) return all;
+      const text = await res.text();
+      throw new Error(`Wix get-collections misslyckades (${res.status}): ${text.slice(0, 400)}`);
+    }
+    const data = (await res.json()) as {
+      collections?: WixCollectionRaw[];
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+    for (const c of data.collections ?? []) {
+      if (!c.slug || !c.name) continue;
+      all.push({ id: c.id, name: c.name, slug: c.slug, description: c.description });
+    }
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (!data.pagingMetadata?.hasNext || !cursor) break;
+  }
+  return all;
+}
+
+/**
+ * Lägger till en produkt i en kollektion. Wix Stores V3 har en
+ * dedikerad add-products-to-collection-endpoint.
+ */
+export async function addProductToCollection(productId: string, collectionId: string): Promise<void> {
+  if (isDryRun()) return;
+  const res = await fetch(
+    `${WIX_BASE}/stores/v3/collections/${encodeURIComponent(collectionId)}/products/add`,
+    {
+      method: "POST",
+      headers: wixHeaders(),
+      body: JSON.stringify({ productIds: [productId] }),
+    },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix add-to-collection misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+}
+
+// --------------------------------------------------------------------------
+// Media-hantering på existerande produkt (för "Ta bort bild" i kö-UI:t)
+// --------------------------------------------------------------------------
+
+export interface WixProductMediaSnapshot {
+  id: string;
+  revision: string;
+  media: { url: string; altText?: string; id?: string }[];
+}
+
+/** Hämtar produktens nuvarande mediaItems (för att kunna ta bort en specifik bild). */
+export async function getProductMedia(productId: string): Promise<WixProductMediaSnapshot | null> {
+  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`;
+  const res = await fetch(url, { method: "GET", headers: wixHeaders() });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix get-product-media misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as {
+    product: {
+      id: string;
+      revision: string;
+      media?: {
+        main?: { image?: { url?: string; altText?: string; id?: string } } & {
+          url?: string;
+          altText?: string;
+          id?: string;
+        };
+        itemsInfo?: {
+          items?: Array<
+            { image?: { url?: string; altText?: string; id?: string } } & {
+              url?: string;
+              altText?: string;
+              id?: string;
+            }
+          >;
+        };
+      };
+    };
+  };
+  const items = data.product.media?.itemsInfo?.items ?? [];
+  const media = items
+    .map((it) => {
+      const url = it.image?.url ?? it.url;
+      const altText = it.image?.altText ?? it.altText;
+      const id = it.image?.id ?? it.id;
+      return url ? { url, altText, id } : null;
+    })
+    .filter((m): m is { url: string; altText: string | undefined; id: string | undefined } => m !== null);
+  return { id: data.product.id, revision: data.product.revision, media };
+}
+
+/**
+ * Skriver om produktens mediaItems till den nya listan (utan den
+ * borttagna bilden). Wix V3 ersätter hela media-arrayen vid PATCH med
+ * fieldMask=["media"].
+ */
+export async function setProductMedia(
+  productId: string,
+  revision: string,
+  media: { url: string; altText?: string }[],
+): Promise<{ revision: string }> {
+  if (isDryRun()) return { revision };
+  const items = media.map((m) => ({ url: m.url, ...(m.altText ? { altText: m.altText } : {}) }));
+  const body = {
+    product: {
+      revision,
+      media: {
+        main: items[0],
+        itemsInfo: { items },
+      },
+    },
+    fieldMask: { paths: ["media"] },
+  };
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
+    method: "PATCH",
+    headers: wixHeaders(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix set-media misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as { product?: { revision?: string } };
+  return { revision: data.product?.revision ?? revision };
+}

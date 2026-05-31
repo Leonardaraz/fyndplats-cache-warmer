@@ -9,6 +9,30 @@ import type { VariantMapping } from "../import/pipeline";
 
 export type DraftStatus = "pending_review" | "published" | "rejected";
 
+/** Per-bild verdict från Claude vision (sparas på mapping för granskning). */
+export interface ImageAnalysisEntry {
+  url: string;
+  verdict: "ok" | "warn" | "reject";
+  /** Svensk anledning, visas i /admin/queue. Tom om verdict=ok. */
+  reason: string;
+}
+
+/** Claude-förslag på Wix-kategori. */
+export interface CategorySuggestionRecord {
+  collectionSlug: string | null;
+  collectionId?: string;
+  collectionName?: string;
+  confidence: number;
+  /** Svensk motivering, visas i kö-UI:t. */
+  reason: string;
+  /**
+   * "auto" = redan tilldelad i Wix vid import (confidence > 0.7).
+   * "suggested" = väntar på Leonards ett-klick (0.4–0.7).
+   * "uncategorized" = för låg confidence eller fel — manuell hantering.
+   */
+  status: "auto" | "suggested" | "uncategorized";
+}
+
 export interface ProductMappingRecord {
   supplierProductId: string;
   wixProductId: string;
@@ -27,6 +51,10 @@ export interface ProductMappingRecord {
   seoTitle?: string;
   /** Källadress till AliExpress-produkten — visas i kön. */
   sourceUrl?: string;
+  /** Claude vision-analys per bild. Saknas = analyserades inte. */
+  imageAnalysis?: ImageAnalysisEntry[];
+  /** Claude-förslag på Wix-kategori. Saknas = ej kategoriserad. */
+  categorySuggestion?: CategorySuggestionRecord;
 }
 
 export interface AuditEntry {
