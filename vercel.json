@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/aliexpress-sync",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/bulk-import-worker",
+      "schedule": "* * * * *"
     }
   ]
 }

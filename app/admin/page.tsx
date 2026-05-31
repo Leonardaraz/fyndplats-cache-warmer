@@ -132,6 +132,7 @@ export default async function AdminPage() {
         <li>
           <a href="/admin/queue"><b>Granskningskö</b></a> — {pendingReview.length > 0 ? `${pendingReview.length} produkter väntar på publicering` : "publicera nyimporterade utkast (för närvarande tomt)"}
         </li>
+        <li><a href="/admin/bulk-import"><b>Bulk-import (CSV)</b></a> — importera många AliExpress-produkter på en gång (alla landar i kön som visible:false)</li>
         <li><a href="/admin/sync-alerts"><b>Sync-alerts</b></a> — daglig AliExpress-sync flaggar prishöjningar och innehållsändringar att granska</li>
         <li><a href="/admin/mappings"><b>AliExpress-mappning</b></a> — länka existerande Wix-produkter till AliExpress-källor (krävs för auto-pipelinen)</li>
         <li><a href="/admin/seo"><b>SEO-migration</b></a> — V1↔V3-matchning, 301-redirects, sitemap, SEO-audit inför headless-cutover</li>
@@ -148,6 +149,8 @@ export default async function AdminPage() {
         <li><code>POST /api/aliexpress/order</code> · <code>GET /api/aliexpress/tracking</code></li>
         <li><code>GET /api/cron/poll-tracking</code> — körs var 3:e h via Vercel Cron</li>
         <li><code>POST /api/cron/aliexpress-sync</code> — daglig sync 06:00 UTC (Vercel Cron)</li>
+        <li><code>POST /api/cron/bulk-import-worker</code> — bulk-import worker (varje minut via Vercel Cron)</li>
+        <li><code>POST /api/admin/bulk-import</code> — skapa bulk-import-jobb från CSV</li>
       </ul>
 
       <h2>Lönsamhet per produkt</h2>
