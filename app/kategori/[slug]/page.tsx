@@ -40,16 +40,23 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // avdelningssidan blir komplett. Subkategori: bara sina egna produkter.
   const childIds = collections.filter((c) => c.parentId === active.id).map((c) => c.id);
   const catIds = new Set([active.id, ...childIds]);
-  const list = products.filter((p) => (p.collectionIds || []).some((cid) => catIds.has(cid)));
+  const catList = products.filter((p) => (p.collectionIds || []).some((cid) => catIds.has(cid)));
+  // Första raden: de 3 högst bild-poängsatta produkterna (lib/image-scores) först
+  // — bästa bilderna möter besökaren. Resten behåller katalogordningen.
+  const topThree = [...catList].sort((a, b) => b.imageScore - a.imageScore).slice(0, 3);
+  const topIds = new Set(topThree.map((p) => p.id));
+  const list = [...topThree, ...catList.filter((p) => !topIds.has(p.id))];
   // Förälder (om detta är en subkategori) → för brödsmulor.
   const parent = active.parentId ? collections.find((c) => c.id === active.parentId) : undefined;
 
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
-  // första non-denylisted produktbild i kategorin (clean, ingen text-overlay).
+  // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
   const heroImg =
     categoryHero(active.name) ||
-    list.find((p) => p.img && !MOSAIC_DENYLIST.has(p.slug))?.img ||
-    list.find((p) => p.img)?.img ||
+    [...catList]
+      .filter((p) => p.img && !MOSAIC_DENYLIST.has(p.slug))
+      .sort((a, b) => b.imageScore - a.imageScore)[0]?.img ||
+    catList.find((p) => p.img)?.img ||
     "";
   const heroBlur = heroImg ? await getBlurDataURL(heroImg) : "";
 

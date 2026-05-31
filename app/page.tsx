@@ -1,9 +1,10 @@
 import Image from "next/image";
-import { getProducts, getCollections, mixByCategory } from "../lib/products";
+import { getProducts, getCollections } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
+import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../lib/image-scores";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -130,19 +131,32 @@ export default async function Home() {
     "astronaut-stjarnprojektor",                           // Hem & Inredning
     "ansiktsroller-massageverktyg-for-ansikte-och-ogon",  // Hudvård
   ];
-  const veckansPool = allProducts.filter((p) => !usedHero.has(p.slug));
-  const veckansSlugMap = new Map(veckansPool.map((p) => [p.slug, p]));
-  const veckansPicks: typeof allProducts = [];
-  const veckansUsed = new Set<string>();
-  for (const slug of VECKANS_CURATION) {
-    const p = veckansSlugMap.get(slug);
-    if (p && !veckansUsed.has(slug)) { veckansPicks.push(p); veckansUsed.add(slug); }
-  }
+  // Veckans fynd drivs nu av bildkvalitets-poäng (lib/image-scores): bara topp-
+  // nivån (score > 75) får visas, sorterat fallande, och produkter merchant gömt
+  // i /admin/image-issues filtreras bort. Den handplockade VECKANS_CURATION
+  // behålls som prioriterad front NÄR slugarna klarar poängkravet — annars styr
+  // poängen. Faller tillbaka på poäng-sorterad pool om för få passerar baren.
+  const hiddenFromFeatured = await getHiddenFromFeatured();
+  const veckansPool = allProducts.filter(
+    (p) => !usedHero.has(p.slug) && !hiddenFromFeatured.has(p.id) && !MOSAIC_DENYLIST.has(p.slug),
+  );
+  const topTier = veckansPool.filter((p) => p.imageScore > FEATURED_MIN_SCORE);
+  const curatedSet = new Set(VECKANS_CURATION);
+  const curatedFront = VECKANS_CURATION
+    .map((slug) => topTier.find((p) => p.slug === slug))
+    .filter((p): p is (typeof allProducts)[number] => Boolean(p));
+  const byScore = topTier
+    .filter((p) => !curatedSet.has(p.slug))
+    .sort((a, b) => b.imageScore - a.imageScore);
+  const veckansPicks = [...curatedFront, ...byScore];
+  // Säkerhetsfyllning om < 8 produkter klarar > 75: ta de högst poängsatta ur
+  // poolen (fortfarande utan gömda/denylist) så raden aldrig blir gles.
   if (veckansPicks.length < 8) {
-    for (const p of mixByCategory(veckansPool, cols)) {
+    const used = new Set(veckansPicks.map((p) => p.slug));
+    for (const p of [...veckansPool].sort((a, b) => b.imageScore - a.imageScore)) {
       if (veckansPicks.length >= 8) break;
-      if (veckansUsed.has(p.slug) || MOSAIC_DENYLIST.has(p.slug)) continue;
-      veckansPicks.push(p); veckansUsed.add(p.slug);
+      if (used.has(p.slug)) continue;
+      veckansPicks.push(p); used.add(p.slug);
     }
   }
   const products = veckansPicks.slice(0, 8);

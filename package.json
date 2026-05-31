@@ -10,6 +10,7 @@
     "test": "node --test --experimental-strip-types --no-warnings lib/**/*.test.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.0.8",
     "@vercel/postgres": "^0.10.0",

@@ -1,0 +1,2674 @@
+{
+  "generatedAt": "2026-05-31T13:04:13.158Z",
+  "model": "claude-haiku-4-5-20251001",
+  "count": 207,
+  "scores": {
+    "036a4f77-5d17-475f-99bb-0db49758c2f3": {
+      "slug": "tradlos-ergonomisk-mus-4000-dpi-99",
+      "name": "Trådlös Ergonomisk Mus – 4000 DPI, 99 % Tysta Klick, 6 Knappar (2.4 GHz)",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "baked_text",
+        "badge",
+        "busy_background"
+      ],
+      "reason": "UGREEN badge, baked specs text, red/white border cluttered",
+      "analyzedAt": "2026-05-31T12:59:05.338Z"
+    },
+    "eb7fdc9e-93bc-479e-91da-849a1bbb1516": {
+      "slug": "automatisk-tvaldispenser-touchless-sensor-skum",
+      "name": "Automatisk Tvåldispenser – Touchless Sensor, Skum & Vätska, USB-Uppladdningsbar",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Liquid/Foam icons & text overlay, cable/hand distracts from clean product shot",
+      "analyzedAt": "2026-05-31T12:59:05.338Z"
+    },
+    "a5ffccfd-b8e4-4178-b88d-82e18201e7fe": {
+      "slug": "teddy-fleece-rattoverdrag-varmt-och-mjukt",
+      "name": "Teddy Fleece Rattöverdrag – Varmt & Mjukt Rattfodral för Vintern (Universal)",
+      "mainImageScore": 48,
+      "allImageScores": [
+        48
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Dashboard visible, car interior background, multi-element composition unprofessional",
+      "analyzedAt": "2026-05-31T12:59:05.338Z"
+    },
+    "9dffae98-f1be-42e2-a5b0-c96bb2f71b48": {
+      "slug": "12-pack-hjarteballonger-roda-och-peach",
+      "name": "12-pack Hjärteballonger – Röda & Peach Love Ballonger",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photo, single product focus, excellent lighting",
+      "analyzedAt": "2026-05-31T12:59:05.338Z"
+    },
+    "d54c7409-05e1-4aba-8dfc-4a0c30076294": {
+      "slug": "whiskey-stenar-i-rostfritt-stal-4",
+      "name": "Whiskey-stenar i rostfritt stål – 4/6/8-pack Återanvändbara Kylstenar för Dryck",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Dark gray background, open packaging shows multiple angles; professional but not pristine",
+      "analyzedAt": "2026-05-31T12:59:05.338Z"
+    },
+    "c8dff5b8-1a9a-4278-bbb3-900c04ee4b64": {
+      "slug": "barnens-bilformade-lektalt-inomhus-playhouse-hopfallbart",
+      "name": "Barnens Bilformade Lektält – Inomhus Playhouse, Hopfällbart Tält för Småbarn",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photo, single product well-centered and properly lit.",
+      "analyzedAt": "2026-05-31T12:59:12.545Z"
+    },
+    "d1696633-4e5f-4f4f-a7d9-d119f7d78200": {
+      "slug": "1l-sportflaska-med-sugror-bpa-fri",
+      "name": "1L Sportflaska med Sugrör – BPA-fri, Tidsmarkering & Läckagesäker",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Multiple baked-in time markers and motivational text overlay covering product surface significantly.",
+      "analyzedAt": "2026-05-31T12:59:12.545Z"
+    },
+    "6507e290-68bb-4313-ac86-9f98bcd93352": {
+      "slug": "arcade-basketbollspel-for-hemmet-justerbart-stabil",
+      "name": "Arcade Basketbollspel för Hemmet – Justerbart, Stabil Konstruktion & Inkl. Boll",
+      "mainImageScore": 42,
+      "allImageScores": [
+        42
+      ],
+      "flags": [
+        "busy_background",
+        "amateur"
+      ],
+      "reason": "Amateur snapshot in indoor gym setting with visible walls, windows, floor clutter; poor product isolation.",
+      "analyzedAt": "2026-05-31T12:59:12.545Z"
+    },
+    "7bc09380-bb20-4eb8-b291-de308965f909": {
+      "slug": "svart-multifunktionell-makeupborste",
+      "name": "Svart Multifunktionell Makeupborste",
+      "mainImageScore": 68,
+      "allImageScores": [
+        68
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean background, sharp product, but measurement dimension text baked into image detracts from clean look.",
+      "analyzedAt": "2026-05-31T12:59:12.545Z"
+    },
+    "7dc67777-f4ba-4209-a886-4304d12a7138": {
+      "slug": "ai-oversattande-horlurar-realtidsoversattning-i-upp",
+      "name": "AI-översättande hörlurar – realtidsöversättning i upp till 144 språk",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Professional product photography on clean background, multiple earpieces and case shown clearly, sharp focus.",
+      "analyzedAt": "2026-05-31T12:59:12.545Z"
+    },
+    "03a47908-8e60-4864-bd5c-e44feb28c0aa": {
+      "slug": "elektrisk-rengoringsborste-8-i-1-sladdlos",
+      "name": "Elektrisk Rengöringsborste 8-i-1 – Sladdlös med 8 Borsthuvuden & LED-ljus",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Multiple unrelated products (brush, heads, adapter, cable, bag). Text label 'QC 3.0 Adapter(EU Plug)' baked in.",
+      "analyzedAt": "2026-05-31T12:59:20.717Z"
+    },
+    "4c0db922-6805-4b6a-8c69-8f521bd64044": {
+      "slug": "sladdlos-handdammsugare-bil",
+      "name": "Sladdlös Handdammsugare för Bil & Hem – Mini Bildammsugare",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "baked_text",
+        "badge",
+        "busy_background"
+      ],
+      "reason": "Yellow 'cenrr' badge top-left, '98000PA' text overlay, busy dark textured background, collage layout.",
+      "analyzedAt": "2026-05-31T12:59:20.717Z"
+    },
+    "1f4000dc-7d4e-45af-a25b-b73095131314": {
+      "slug": "massagepistol-led-skarm",
+      "name": "Massagepistol med LED-skärm & 6 massagehuvuden",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "baked_text",
+        "collage"
+      ],
+      "reason": "Multiple text overlays ('Upgrade lithium battery', 'AI control chip'), multiple accessories shown, hand model not profes",
+      "analyzedAt": "2026-05-31T12:59:20.717Z"
+    },
+    "d5b9cc39-1b16-4cfa-8f42-a2931742cf39": {
+      "slug": "elektrisk-mjolkskummare",
+      "name": "Elektrisk Mjölkskummare 4-i-1 – Varmt & Kallt Skum",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [],
+      "reason": "Clean white background, single product with one accessory. Professional shot, minor clutter with brush included.",
+      "analyzedAt": "2026-05-31T12:59:20.717Z"
+    },
+    "7db73a20-a9b1-45c2-8220-9a112ee82b2e": {
+      "slug": "hallningskorrigerare-ryggstod",
+      "name": "Hållningskorrigerare – Ryggstöd för Bättre Hållning",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Mostly white background but flowers and wood table frame visible. Professional product photo, minor styling distraction.",
+      "analyzedAt": "2026-05-31T12:59:20.717Z"
+    },
+    "0511da03-6442-415d-8d0f-becb7b7e87b4": {
+      "slug": "elektrisk-vinoppnare",
+      "name": "Elektrisk Vinöppnare – Automatisk Korkskruv, Uppladdningsbar",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Dark cluttered background with wine, food, corks—collage style. Distracts from product.",
+      "analyzedAt": "2026-05-31T12:59:28.060Z"
+    },
+    "ebcd8299-e28c-4150-829f-44b6edfedf05": {
+      "slug": "manuell-mathackare",
+      "name": "Manuell Mathackare – Snabbhackare för Grönsaker & Lök",
+      "mainImageScore": 62,
+      "allImageScores": [
+        62
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Lifestyle scene with hands, vegetables, basket. Product visible but context-heavy for hero.",
+      "analyzedAt": "2026-05-31T12:59:28.060Z"
+    },
+    "722e911f-b851-4dfb-8a9c-707cfb1eb842": {
+      "slug": "mini-luftfuktare",
+      "name": "Mini Luftfuktare – Bärbar Aromdiffuser med USB, 220 ml",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean light blue background, two units shown with mist effect. Professional, minimal distraction.",
+      "analyzedAt": "2026-05-31T12:59:28.060Z"
+    },
+    "2675cdc6-13b0-4b4f-88e1-303bf65e50f5": {
+      "slug": "elektrisk-fotfil",
+      "name": "Elektrisk Fotfil – Effektiv Hårdhudsborttagare för Len Hud",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, single product centered, professional lighting, sharp details.",
+      "analyzedAt": "2026-05-31T12:59:28.060Z"
+    },
+    "d4439dc9-c166-43c9-8d45-f79320dff065": {
+      "slug": "magnetisk-mobilhallare-bil",
+      "name": "Magnetisk Mobilhållare för Bil – 360° Vridbar Hållare",
+      "mainImageScore": 58,
+      "allImageScores": [
+        58
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Two product variants shown together, visible text branding on rings. Not single-product focus.",
+      "analyzedAt": "2026-05-31T12:59:28.060Z"
+    },
+    "66ec1180-4d70-4e23-bc1b-c304f3bcdf24": {
+      "slug": "usb-koppvarmare",
+      "name": "USB Koppvärmare – Värmeplatta för Kaffe & Te, Termostat",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Cluttered desk scene with laptop, fruit, multiple unrelated items; distracts from product focus.",
+      "analyzedAt": "2026-05-31T12:59:35.245Z"
+    },
+    "a724c0a5-bee7-4ae9-aecf-26ad00fc1bdc": {
+      "slug": "astronaut-stjarnprojektor",
+      "name": "Astronaut Stjärnprojektor – Galax-nattlampa för Rummet",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple items shown (projector, remote, cable); not single-product focus for hero image.",
+      "analyzedAt": "2026-05-31T12:59:35.245Z"
+    },
+    "f3074573-f742-4e12-a084-1679932d0819": {
+      "slug": "digital-hopprep",
+      "name": "Digital Hopprep med Räknare – Justerbart Träningsrep",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Large English text overlay 'Accurate Counting Wire Jump Rope' baked into image; non-white background.",
+      "analyzedAt": "2026-05-31T12:59:35.245Z"
+    },
+    "f225dc03-3629-4e47-8824-8300ee7e3b56": {
+      "slug": "elektrisk-porrensare",
+      "name": "Elektrisk Porrensare – Ansiktsrengöring med 3 Suglägen",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multi-item display (device + 5 interchangeable heads + box); cluttered composition detracts from primary product.",
+      "analyzedAt": "2026-05-31T12:59:35.245Z"
+    },
+    "5411f822-75f7-4fa2-b414-a6be78c4cc10": {
+      "slug": "elektrisk-pepparkvarn",
+      "name": "Elektrisk Salt- & Pepparkvarn – USB, Justerbar Malning",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Two grinders shown with accessories (brush, cable); acceptable but collage format reduces hero image impact.",
+      "analyzedAt": "2026-05-31T12:59:35.245Z"
+    },
+    "6a530720-d691-4266-8f0f-063ec6731efa": {
+      "slug": "elektrisk-munduschare",
+      "name": "Elektrisk Munduschare – Bärbar Tandvård med 3 Lägen",
+      "mainImageScore": 85,
+      "allImageScores": [
+        85
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Clean product but multiple accessories shown; collage layout reduces hero impact",
+      "analyzedAt": "2026-05-31T12:59:42.194Z"
+    },
+    "a6dcca48-be11-40a0-9fd4-e70eca71b93d": {
+      "slug": "trimmerset-herr",
+      "name": "Trimmerset för Herr 4-i-1 – Hår, Skägg, Näsa & Öron",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "watermark",
+        "badge",
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Kemei branding/watermark, packaging box, busy background with text overlays",
+      "analyzedAt": "2026-05-31T12:59:42.194Z"
+    },
+    "0b4c35be-bf77-4816-be95-35748253f6e7": {
+      "slug": "elektrisk-precisionsskruvdragare",
+      "name": "Elektrisk Precisionsskruvdragare – Mini, Uppladdningsbar",
+      "mainImageScore": 80,
+      "allImageScores": [
+        80
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean white background, sharp image but text labels on bits reduce polish",
+      "analyzedAt": "2026-05-31T12:59:42.194Z"
+    },
+    "0f729f48-f743-442b-8b40-8b6b9d1d6584": {
+      "slug": "rgb-led-slinga",
+      "name": "RGB LED-slinga med App & Fjärrkontroll – Färgskiftande",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "busy_background",
+        "baked_text",
+        "collage"
+      ],
+      "reason": "Heavy branded text, collage with multiple items, busy gradient background",
+      "analyzedAt": "2026-05-31T12:59:42.194Z"
+    },
+    "b2a1b93a-4946-4b84-a442-8aa0dca7f77c": {
+      "slug": "duschmunstycke-hogtryck",
+      "name": "Duschmunstycke med 3 Lägen – Högtryck & Vattenbesparande",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Single product, clean white background, sharp professional photography",
+      "analyzedAt": "2026-05-31T12:59:42.194Z"
+    },
+    "9131502e-fe3d-47ba-be5d-cfed7f825860": {
+      "slug": "laptopstall-aluminium",
+      "name": "Laptopställ i Aluminium – Hopfällbart & Höjdjusterbart",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple products in one frame (stand variations, carrying case, laptop). Distracting composition.",
+      "analyzedAt": "2026-05-31T12:59:49.735Z"
+    },
+    "69bfd27b-76a8-440d-acf9-c97b0b4d7044": {
+      "slug": "sminkspegel-10x-led",
+      "name": "Sminkspegel med 10x Förstoring – LED-ljus & Sugkopp",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Collage with accessories. Baked \"10X\" badge on main product image detracts from clean presentation.",
+      "analyzedAt": "2026-05-31T12:59:49.735Z"
+    },
+    "607cb065-52ed-4c75-8dce-1420a8a444fc": {
+      "slug": "digital-stektermometer",
+      "name": "Digital Stektermometer med Trådgivare – Ugn & Grill",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Single product, clean white background, but multiple baked-in text overlays (BEEF, COOK TEMP, ALERT TEMP) reduce quality",
+      "analyzedAt": "2026-05-31T12:59:49.735Z"
+    },
+    "a4c5a29f-bee0-42e9-b118-b46bf1fb1c0d": {
+      "slug": "knivslip-4-steg",
+      "name": "Knivslip 4 Steg – Multifunktion med Halkfri Bas",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "busy_background",
+        "amateur"
+      ],
+      "reason": "Lifestyle/usage shot on marble background. Not professional studio product photography. Cluttered composition.",
+      "analyzedAt": "2026-05-31T12:59:49.735Z"
+    },
+    "76b16e9b-0787-4c81-8bd3-138e5e29640f": {
+      "slug": "elektrisk-myggdodare-uv",
+      "name": "Elektrisk Myggdödare – UV-lampa & Insektsfälla, USB",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white background, single product, sharp professional photography, minimal distractions.",
+      "analyzedAt": "2026-05-31T12:59:49.735Z"
+    },
+    "06e2b178-adc1-435b-8c47-9d271c5837ed": {
+      "slug": "digital-bagagevag",
+      "name": "Digital Bagagevåg – Väg Resväskan upp till 50 kg",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean white background, sharp product photo. Baked-in text on device (Max 50KG/110lD, UNIT, Z/F) reduces score.",
+      "analyzedAt": "2026-05-31T12:59:57.800Z"
+    },
+    "d275f8d5-ed28-4505-a1dd-cf1b367558a1": {
+      "slug": "elektrisk-klovard-husdjur",
+      "name": "Elektrisk Klovård för Hund & Katt – Tyst Nagelfil",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Multiple product components shown (collage layout). Baked brand text 'SMEHNSER' visible. Clean background but compositio",
+      "analyzedAt": "2026-05-31T12:59:57.800Z"
+    },
+    "7a812ddf-4cb5-47ea-8b23-c41d0d115d43": {
+      "slug": "oljesprayer-glas-2-i-1",
+      "name": "Oljesprayer i glas – 2-i-1 sprej och hällpip, 470 ml",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Multiple product angles/variants (collage). Baked white text 'EXTRA VIRGIN OLIVE OIL' on bottle label. Not single-produc",
+      "analyzedAt": "2026-05-31T12:59:57.800Z"
+    },
+    "36a24478-e8cd-48ca-9ed3-66c144191d13": {
+      "slug": "hopfallbart-mikrovagslock-stankskydd",
+      "name": "Hopfällbart mikrovågslock – stänkskydd med ånghål",
+      "mainImageScore": 85,
+      "allImageScores": [
+        85
+      ],
+      "flags": [],
+      "reason": "Professional product photo on clean background. Single product displayed clearly. Minor text on rim barely visible. Shar",
+      "analyzedAt": "2026-05-31T12:59:57.800Z"
+    },
+    "af766fb7-aa77-4d19-9238-8cda144aa0cd": {
+      "slug": "roterande-sminkforvaring-360",
+      "name": "Roterande sminkförvaring 360° – borsthållare med 5 fack",
+      "mainImageScore": 68,
+      "allImageScores": [
+        68
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Rotating makeup storage with baked text '360° rotating' visible on product. Clean white background but baked marketing t",
+      "analyzedAt": "2026-05-31T12:59:57.800Z"
+    },
+    "739a75b2-fc1f-4d5c-a8b7-a92f3e89dc7c": {
+      "slug": "tradlos-led-sensorlampa-usb-laddbar-nattlampa-rorelsesensor",
+      "name": "Trådlös LED-sensorlampa – USB-laddbar nattlampa med rörelsesensor",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional product photo, single item centered",
+      "analyzedAt": "2026-05-31T13:00:04.423Z"
+    },
+    "f103cd6b-33e7-43d9-9c2a-7655751e3310": {
+      "slug": "spikmatta-akupressurmatta-kudde-rygg-nacke",
+      "name": "Spikmatta med kudde – akupressurmatta för rygg, nacke & avslappning",
+      "mainImageScore": 68,
+      "allImageScores": [
+        68
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple unrelated products (mat, pillow, carrying bag) in one frame",
+      "analyzedAt": "2026-05-31T13:00:04.423Z"
+    },
+    "bab67ed0-15a1-4e40-81be-eb31338a9c44": {
+      "slug": "taktisk-led-ficklampa-2000lm-usb-laddbar",
+      "name": "Taktisk LED-ficklampa 2000LM – USB-laddbar & vattentät med zoom",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Two flashlights + cables shown together, not single hero product",
+      "analyzedAt": "2026-05-31T13:00:04.423Z"
+    },
+    "663e54f3-c1f4-4994-9623-5e92e2e2a770": {
+      "slug": "napphallare-i-silikon-och-tra-saker",
+      "name": "Napphållare i silikon och trä – säker nappkedja för bebisar",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Busy wood slice background distracts from pacifier holders",
+      "analyzedAt": "2026-05-31T13:00:04.423Z"
+    },
+    "529336bc-02e5-4a51-9c11-aa5f432c7ad2": {
+      "slug": "traleksak-med-bondgardsdjur-stapel-och-balansleksak",
+      "name": "Träleksak med bondgårdsdjur – stapel- och balansleksak för barn",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [],
+      "reason": "Clean white background, professional photo but slight complexity with stacked layout",
+      "analyzedAt": "2026-05-31T13:00:04.423Z"
+    },
+    "bc4273db-1c14-441c-8921-815188eb39b7": {
+      "slug": "handgjord-napphallare-i-tra-virkad-kanin",
+      "name": "Handgjord napphållare i trä – virkad kanin med klämma",
+      "mainImageScore": 58,
+      "allImageScores": [
+        58
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Patterned fabric background with decorative circles; multiple unrelated items grouped together",
+      "analyzedAt": "2026-05-31T13:00:11.417Z"
+    },
+    "3689d38e-016e-4ef0-91fc-db4996f3695f": {
+      "slug": "montessori-koksleksak-i-tra-pedagogiskt-kokset",
+      "name": "Montessori Köksleksak i Trä – Pedagogiskt Kökset för Barn",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Clean white background, sharp, but multiple kitchen toys scattered as collage composition",
+      "analyzedAt": "2026-05-31T13:00:11.417Z"
+    },
+    "0e37c64d-1de5-4cb2-b941-bc546de6ce60": {
+      "slug": "doktorsset-i-silikon-pedagogisk-leksak",
+      "name": "Doktorsset i silikon – pedagogisk leksak för barn",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "baked_text",
+        "collage"
+      ],
+      "reason": "Handwritten text on visit card; multiple doctor set items spread across frame",
+      "analyzedAt": "2026-05-31T13:00:11.417Z"
+    },
+    "0e2f8bfa-0d32-4468-8dcf-c0c606273309": {
+      "slug": "tragavobox-for-bebis-handgjort-presentset",
+      "name": "Trägåvobox för bebis – handgjort presentset med rassel och snuttefilt",
+      "mainImageScore": 48,
+      "allImageScores": [
+        48
+      ],
+      "flags": [
+        "baked_text",
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Percentage text baked in; gift box with multiple unrelated items; human hands visible",
+      "analyzedAt": "2026-05-31T13:00:11.417Z"
+    },
+    "5cc552cf-0ad1-4a6a-8527-66e49073ca9b": {
+      "slug": "montessori-musikset-i-tra-5-delars",
+      "name": "Montessori Musikset i Trä – 5-delars pedagogiskt instrumentset för barn",
+      "mainImageScore": 76,
+      "allImageScores": [
+        76
+      ],
+      "flags": [],
+      "reason": "Clean white/light background, sharp focus, professional layout of 5-piece music set",
+      "analyzedAt": "2026-05-31T13:00:11.417Z"
+    },
+    "79d0676f-06b1-4f5d-b6c3-699987abdbe8": {
+      "slug": "babygym-i-tra-stabil-aktivitetsstallning",
+      "name": "Babygym i trä – stabil aktivitetsställning för nyfödda och småbarn",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Clean product shot, professional lighting. Sandy beach setting slightly busy.",
+      "analyzedAt": "2026-05-31T13:00:19.028Z"
+    },
+    "79a7d2b8-9fb4-4cfa-be30-7cba9ab866cb": {
+      "slug": "kaffemaskin-i-tra-leksaksset-for-barn",
+      "name": "Kaffemaskin i trä – Leksaksset för barn med koppar och tillbehör",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Excellent product presentation, sharp focus, neutral background, professional photography.",
+      "analyzedAt": "2026-05-31T13:00:19.028Z"
+    },
+    "2c80f8af-6cc3-43be-a22e-9e347a3c54d9": {
+      "slug": "silikonbitring-for-bebis-mjuk-och-saker",
+      "name": "Silikonbitring för bebis – Mjuk och säker bitleksak",
+      "mainImageScore": 94,
+      "allImageScores": [
+        94
+      ],
+      "flags": [],
+      "reason": "Perfect product display, multiple items, clean neutral background, professional shot.",
+      "analyzedAt": "2026-05-31T13:00:19.028Z"
+    },
+    "f7abffd9-4808-4f6b-86ca-bfc5703919df": {
+      "slug": "montessori-musikleksaker-i-tra-pedagogiskt-instrumentset",
+      "name": "Montessori Musikleksaker i Trä – Pedagogiskt Instrumentset för Barn",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Multiple unrelated instruments in collage layout. Baked text 'Tambourine' and brand names visible.",
+      "analyzedAt": "2026-05-31T13:00:19.028Z"
+    },
+    "3b1f26e3-0fec-43e4-a68d-dac4d8e25964": {
+      "slug": "palsborttagningshandske-for-husdjur-effektiv-rengoring",
+      "name": "Pälsborttagningshandske för husdjur – effektiv rengöring av katt- och hundhår",
+      "mainImageScore": 52,
+      "allImageScores": [
+        52
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Multiple products and animals in frame. Busy composition with human hand model.",
+      "analyzedAt": "2026-05-31T13:00:19.028Z"
+    },
+    "82d40acf-0bec-4da3-8bcb-af1194aec35c": {
+      "slug": "hundsele-med-koppel-bekvam-vastsele",
+      "name": "Hundsele med koppel – bekväm västsele för hundar",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "6 harnesses shown; collage format unsuitable for hero image",
+      "analyzedAt": "2026-05-31T13:00:26.833Z"
+    },
+    "5af457b7-3b37-4d4f-a004-2e64b15babdf": {
+      "slug": "hopfallbar-djurhage-sexkantig-lekbur-for-smadjur",
+      "name": "Hopfällbar djurhage – sexkantig lekbur för smådjur och kattungar",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple color variants + animals; cluttered composition",
+      "analyzedAt": "2026-05-31T13:00:26.833Z"
+    },
+    "ce5200a4-52a9-4438-b553-7d8343ff3a1f": {
+      "slug": "kattunnel-med-flera-gangar-vikbar-lektunnel",
+      "name": "Kattunnel med flera gångar – vikbar lektunnel med bollar för aktiva katter",
+      "mainImageScore": 40,
+      "allImageScores": [
+        40
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple tunnel angles + 5 cats; chaotic, unclear main product",
+      "analyzedAt": "2026-05-31T13:00:26.833Z"
+    },
+    "05849bb0-1b46-46cc-a17a-7aa0b3607bc8": {
+      "slug": "hundbajspasehallare-med-krok-praktisk-dispenser",
+      "name": "Hundbajspåsehållare med krok – praktisk dispenser för promenader",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "collage",
+        "busy_background",
+        "baked_text"
+      ],
+      "reason": "Multiple holders, hand model, baked 'HAPPY LIFE' text overlay",
+      "analyzedAt": "2026-05-31T13:00:26.833Z"
+    },
+    "178f7a1f-1d03-4d27-af50-4efcc1297db9": {
+      "slug": "kattleksak-med-fjadrar-10-pack-teleskopiska",
+      "name": "Kattleksak med fjädrar – 10-pack teleskopiska fiskespön för aktiv lek",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "collage",
+        "busy_background",
+        "baked_text"
+      ],
+      "reason": "10 toys scattered; '10pc' badge; cluttered arrangement vs single hero",
+      "analyzedAt": "2026-05-31T13:00:26.833Z"
+    },
+    "c2cfbf94-6387-4f0f-a1d4-5c4f93df27dd": {
+      "slug": "interaktiva-kattmoss-med-fjadrar-fargglada-microfiberleksaker",
+      "name": "Interaktiva kattmöss med fjädrar – färgglada microfiberleksaker för lek och jakt",
+      "mainImageScore": 85,
+      "allImageScores": [
+        85
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photo. Multiple colorful toys shown but cohesive product set display.",
+      "analyzedAt": "2026-05-31T13:00:34.593Z"
+    },
+    "75714848-cc42-42c6-923c-eb136fcbaca3": {
+      "slug": "halloween-kostym-for-katt-och-hund",
+      "name": "Halloween-kostym för katt och hund – vampyrmantel för små husdjur",
+      "mainImageScore": 60,
+      "allImageScores": [
+        60
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Dark themed background with bat graphics; distracts from product. Composite/montage style reduces clarity.",
+      "analyzedAt": "2026-05-31T13:00:34.593Z"
+    },
+    "1d6e4988-39d6-4beb-8de4-c5832d837a0f": {
+      "slug": "justerbart-sele-och-koppelset-for-sma",
+      "name": "Justerbart sele och koppelset för små hundar och katter",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple harness variants and cat model photos in one frame. Collage-style layout not ideal for hero placement.",
+      "analyzedAt": "2026-05-31T13:00:34.593Z"
+    },
+    "4c411c0e-3cc8-44bb-8381-4680c8a5af95": {
+      "slug": "mjuk-skyddskrage-for-katt-sot-design",
+      "name": "Mjuk skyddskrage för katt – söt design mot slickning och bitning",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple cat cone designs and live cat models combined. Collage presentation lacks focus for single product hero image.",
+      "analyzedAt": "2026-05-31T13:00:34.593Z"
+    },
+    "629f51c2-26e5-4594-86d0-e44e137c8fb8": {
+      "slug": "professionell-klotang-for-hund-och-katt",
+      "name": "Professionell klotång för hund och katt – rostfritt stål med säkerhetslås",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [],
+      "reason": "Clean white background, professional product shots with detail circle. Sharp, single focus item suitable for prime place",
+      "analyzedAt": "2026-05-31T13:00:34.593Z"
+    },
+    "7a5ed57d-b47d-4612-98ce-2cc9b0df6736": {
+      "slug": "tuggskyddad-hamsterbur-med-tillbehor-rymlig",
+      "name": "Tuggskyddad hamsterbur med tillbehör – rymlig och lätt att rengöra",
+      "mainImageScore": 52,
+      "allImageScores": [
+        52
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Hamster cage shown in home setting with wooden floor, carpet, plants visible. Cluttered background detracts from product",
+      "analyzedAt": "2026-05-31T13:00:43.112Z"
+    },
+    "0a496179-a431-429e-824f-f48dfbfa94db": {
+      "slug": "bajspasehallare-for-hund-benformad-dispenser",
+      "name": "Bajspåsehållare för hund – benformad dispenser med krok",
+      "mainImageScore": 68,
+      "allImageScores": [
+        68
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple product variations shown in line (collage). Inset circular image of dispenser top adds complexity. Should show ",
+      "analyzedAt": "2026-05-31T13:00:43.112Z"
+    },
+    "694f47a3-d988-4bd3-a578-33d768edebbc": {
+      "slug": "mjuk-tuggleksak-for-hund-och-katt",
+      "name": "Mjuk tuggleksak för hund och katt – slitstark plyschdinosaurie",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photo. Dog and toy clearly visible. Minor: blurred background elements slight",
+      "analyzedAt": "2026-05-31T13:00:43.112Z"
+    },
+    "a9d2104f-353f-445b-ba5d-b019a5cda932": {
+      "slug": "mjuk-anka-leksak-for-hund-plysch",
+      "name": "Mjuk anka-leksak för hund – plysch tuggleksak för lek och vila",
+      "mainImageScore": 70,
+      "allImageScores": [
+        70
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Yellow lightning bolt graphics overlaid on image. Clean background otherwise, but decorative elements reduce professiona",
+      "analyzedAt": "2026-05-31T13:00:43.112Z"
+    },
+    "70a9a97d-db01-4e96-8d07-10c10726fe13": {
+      "slug": "reflekterande-hundkoppel-med-stotdampning-slitstarkt-taktiskt",
+      "name": "Reflekterande hundkoppel med stötdämpning – slitstarkt taktiskt bungee-koppel",
+      "mainImageScore": 82,
+      "allImageScores": [
+        82
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photography. Leash clearly displayed. Single product hero shot with good deta",
+      "analyzedAt": "2026-05-31T13:00:43.112Z"
+    },
+    "ac6149e5-a7fc-4d74-aa11-acdfe4669bbd": {
+      "slug": "taktisk-hundsele-militarinspirerad-vast-med-snabbfaste",
+      "name": "Taktisk hundsele – militärinspirerad väst med snabbfäste",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photography, single product displayed clearly",
+      "analyzedAt": "2026-05-31T13:00:49.722Z"
+    },
+    "d44d4072-4ba1-483f-b6d6-042f70845743": {
+      "slug": "kattunnel-med-bollar-hopfallbar-lektunnel",
+      "name": "Kattunnel med bollar – hopfällbar lektunnel för katter",
+      "mainImageScore": 95,
+      "allImageScores": [
+        95
+      ],
+      "flags": [],
+      "reason": "Clean white background, excellent product isolation, sharp focus, professional lighting",
+      "analyzedAt": "2026-05-31T13:00:49.722Z"
+    },
+    "ec720511-f72e-4811-a424-ddabdaa922a6": {
+      "slug": "interaktiv-kattkanon-med-fargglada-bollar-lek",
+      "name": "Interaktiv kattkanon med färgglada bollar – lek och träning för din katt",
+      "mainImageScore": 68,
+      "allImageScores": [
+        68
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple unrelated items (cat, cannon, balls), busy scene with human hand visible",
+      "analyzedAt": "2026-05-31T13:00:49.722Z"
+    },
+    "95750802-7d65-4219-be38-98f749f9171d": {
+      "slug": "4k-stod-projektor-med-300-ansi",
+      "name": "4K-stöd projektor med 300 ANSI-lumens och WiFi – bärbar LED-projektor",
+      "mainImageScore": 93,
+      "allImageScores": [
+        93
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional product shot, single item, excellent lighting",
+      "analyzedAt": "2026-05-31T13:00:49.722Z"
+    },
+    "ecb51d9c-3f93-499e-896f-1203f59ff4bf": {
+      "slug": "lyxigt-magsafe-skal-med-vikbart-stall",
+      "name": "Lyxigt MagSafe-skal med vikbart ställ – stötsäkert, magnetiskt och elegant",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple product variations shown together rather than single hero shot",
+      "analyzedAt": "2026-05-31T13:00:49.722Z"
+    },
+    "40b759a8-c7d0-4ebe-84e2-e611a289c17f": {
+      "slug": "genomskinlig-katt-ryggsack-med-ventilationshal-barvaska",
+      "name": "Genomskinlig katt-ryggsäck med ventilationshål – bärväska för smådjur och katter",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photo, single product well-lit and centered",
+      "analyzedAt": "2026-05-31T13:00:57.992Z"
+    },
+    "d13bb840-5da1-4640-8061-afabd9af0b73": {
+      "slug": "jbl-flip-5-bluetooth-hogtalare-vattentalig",
+      "name": "JBL Flip 5 Bluetooth-högtalare – vattentålig IPX7 portabel högtalare",
+      "mainImageScore": 48,
+      "allImageScores": [
+        48
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background",
+        "badge"
+      ],
+      "reason": "Multiple baked-in text overlays, JBL logo/badge, busy water splash background, not clean",
+      "analyzedAt": "2026-05-31T13:00:57.992Z"
+    },
+    "0e3a2403-a4f0-470f-b8e3-900143a7d83a": {
+      "slug": "joyroom-360-cykelhallare-for-mobil-universal",
+      "name": "Joyroom 360° cykelhållare för mobil – universal mobilhållare för cykelstyre",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "collage",
+        "busy_background",
+        "badge"
+      ],
+      "reason": "Collage with motorcycle background image, unrelated product shown, JOYROOM brand badge",
+      "analyzedAt": "2026-05-31T13:00:57.992Z"
+    },
+    "d49b3f3d-fb30-4b34-b05d-66d3cc29b2bf": {
+      "slug": "joyroom-magnetiska-kabelklammor-sjalvhaftande-kabelhallare",
+      "name": "Joyroom magnetiska kabelklämmor – självhäftande kabelhållare",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "busy_background",
+        "badge"
+      ],
+      "reason": "Multiple products/cables shown in one frame, cluttered styling, JOYROOM badge visible",
+      "analyzedAt": "2026-05-31T13:00:57.992Z"
+    },
+    "7506d968-e2cc-4b48-b93a-762925f73e49": {
+      "slug": "pop-mart-labubu-the-monsters-series",
+      "name": "POP MART Labubu The Monsters Series V1 & V2 – Samlarfigurer och blindboxar",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "baked_text",
+        "chinese_text",
+        "busy_background"
+      ],
+      "reason": "Chinese characters visible on box, multiple baked-in text labels, busy background with color palette",
+      "analyzedAt": "2026-05-31T13:00:57.992Z"
+    },
+    "7eac764d-2435-4793-91bf-84eaaae5a375": {
+      "slug": "palsborste-hund-katt",
+      "name": "Pälsborste för Hund & Katt – Rostfri Underullsborste",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple unrelated products (brush + animals) in collage format; busy composition",
+      "analyzedAt": "2026-05-31T13:01:04.874Z"
+    },
+    "354c0bfd-c200-43e6-8331-be513ef776b3": {
+      "slug": "selfie-light-for-mobil-magnetisk-led",
+      "name": "Selfie Light för mobil – magnetisk LED-ringlampa med stativfunktion",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Collage with multiple usage photos and product views; cluttered layout",
+      "analyzedAt": "2026-05-31T13:01:04.874Z"
+    },
+    "03e4c5b0-241e-4457-89c0-37d5e78b1adb": {
+      "slug": "babyleksak-vattenfylld-tummy-time-lekmatta-100",
+      "name": "Babyleksak – Vattenfylld Tummy Time Lekmatta (100 cm)",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Clean product shot but busy illustrated pattern on mat reduces focus",
+      "analyzedAt": "2026-05-31T13:01:04.874Z"
+    },
+    "1b473060-472e-4b7c-bd6c-31cf24c939ca": {
+      "slug": "1-64-mini-rc-driftbil-fyrhjulsdriven",
+      "name": "1:64 Mini RC Driftbil – fyrhjulsdriven radiostyrd sportbil med LED",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multi-component collage with box, car, remote, cones; cluttered arrangement",
+      "analyzedAt": "2026-05-31T13:01:04.874Z"
+    },
+    "d37a408c-c8a7-47d3-9058-95dac441a561": {
+      "slug": "360-roterbar-blandare-fyrvags-vattenflode",
+      "name": "360° Roterbar blandare – fyrvägs vattenflöde med varm- och kallvattenfunktion",
+      "mainImageScore": 82,
+      "allImageScores": [
+        82
+      ],
+      "flags": [],
+      "reason": "Clean, professional single-product shot on white/neutral background",
+      "analyzedAt": "2026-05-31T13:01:04.874Z"
+    },
+    "13d1b199-5d53-4c5d-b8c9-2937d9cff90d": {
+      "slug": "dorrklocka-med-kamera-tradlos-videodorrklocka",
+      "name": "Dörrklocka med kamera – trådlös videodörrklocka med 1080P HD, rörelsedetektering",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp product photography, single product with doorbell unit and chime clearly visible.",
+      "analyzedAt": "2026-05-31T13:01:12.647Z"
+    },
+    "88de9c2d-f469-4265-92c6-caa70ccef9e6": {
+      "slug": "baseus-magnetisk-tradlos-billaddare-15w-snabbladdning",
+      "name": "Baseus magnetisk trådlös billaddare – 15W snabbladdning med hållare och flexibel",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "badge",
+        "busy_background"
+      ],
+      "reason": "Baseus brand badge in top-left corner, dark/busy dashboard background, collage of multiple product angles.",
+      "analyzedAt": "2026-05-31T13:01:12.647Z"
+    },
+    "60a1b71f-e9dd-4501-951a-4f51e6f07b3c": {
+      "slug": "baby-nagelvardset-komplett-set-i-sot",
+      "name": "Baby Nagelvårdset – Komplett Set i Söt Förvaringsbox",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean light background, sharp photography, all nail care tools and cute container clearly visible in professional setup.",
+      "analyzedAt": "2026-05-31T13:01:12.647Z"
+    },
+    "ab4193a6-d06a-42f8-8ca5-926e3d14e3cf": {
+      "slug": "gamewave-x-handhallen-spelkonsol-med-64gb",
+      "name": "GameWave X – Handhållen spelkonsol med 64GB/128GB och upp till 20 000 klassiska",
+      "mainImageScore": 70,
+      "allImageScores": [
+        70
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Gaming console shown with accessory (cartridge), white background, but collage layout with two product angles.",
+      "analyzedAt": "2026-05-31T13:01:12.647Z"
+    },
+    "e916395a-9622-4954-b43d-12e09457aca3": {
+      "slug": "trendigt-snake-chain-kedjehalsband-slat",
+      "name": "Trendigt Snake Chain-kedjehalsband – Slät & lyxig design",
+      "mainImageScore": 82,
+      "allImageScores": [
+        82
+      ],
+      "flags": [],
+      "reason": "Clean background, sharp product shot of necklace on person, professional lifestyle photography, single product focus.",
+      "analyzedAt": "2026-05-31T13:01:12.647Z"
+    },
+    "f23ceadf-22bd-4c1d-a88b-00e74aea7eac": {
+      "slug": "vintertofflor-i-mockastil-varma-mjuka",
+      "name": "Vintertofflor i mockastil – varma, mjuka och halkfria innetofflor",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Multiple products on wood floor, not white/clean background",
+      "analyzedAt": "2026-05-31T13:01:20.097Z"
+    },
+    "ef90f5ae-f6d4-4433-a10f-eb7169115d99": {
+      "slug": "sjalvhaftande-vaggkrokar-i-aluminium-modern",
+      "name": "Självhäftande Väggkrokar i Aluminium – Modern & Stark Fästkraft",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Cluttered wall with items, not clean white background for product focus",
+      "analyzedAt": "2026-05-31T13:01:20.097Z"
+    },
+    "9af2571b-4640-4fb2-a354-8e86392f07d6": {
+      "slug": "elektrisk-nassug-for-bebisar-skonsam",
+      "name": "Elektrisk Nässug för Bebisar – Skonsam och Effektiv Nässugning",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Box and product shown together; extensive on-image text/specs",
+      "analyzedAt": "2026-05-31T13:01:20.097Z"
+    },
+    "0473960b-1f6d-4244-9147-ad891425ca20": {
+      "slug": "vikbar-skotbadd-vattentat-och-portabel-skotmatta",
+      "name": "Vikbar Skötbädd – Vattentät och Portabel Skötmatta",
+      "mainImageScore": 82,
+      "allImageScores": [
+        82
+      ],
+      "flags": [],
+      "reason": "Clean white background, single product, professional shot",
+      "analyzedAt": "2026-05-31T13:01:20.097Z"
+    },
+    "05215805-466e-4b55-9ae5-4ee403d7ac51": {
+      "slug": "pedagogiskt-babygym-och-lekmatta-mjuk-spelmatta",
+      "name": "Pedagogiskt Babygym & Lekmatta – Mjuk Spelmatta",
+      "mainImageScore": 60,
+      "allImageScores": [
+        60
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Measurement overlays (55cm, 85cm) baked into image",
+      "analyzedAt": "2026-05-31T13:01:20.097Z"
+    },
+    "d59afd8e-330e-4145-955b-23f8b23c104a": {
+      "slug": "keramisk-kaffekopp-stilren-handgjord-vintagekopp",
+      "name": "Keramisk Kaffekopp – Stilren Handgjord Vintagekopp för Kaffe och Te",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple unrelated products (6 mugs) in single frame, cluttered composition",
+      "analyzedAt": "2026-05-31T13:01:26.584Z"
+    },
+    "4736544b-8b5b-418f-a732-04b9294b9753": {
+      "slug": "badrumshylla-vaggmonterad-duschhylla-i-rostfritt-stal",
+      "name": "Badrumshylla – Väggmonterad Duschhylla i Rostfritt Stål (Svart)",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean white background, good lighting; baked text label on bottle reduces score",
+      "analyzedAt": "2026-05-31T13:01:26.584Z"
+    },
+    "6653bbfd-fdad-4327-a8f8-59602c765ed2": {
+      "slug": "elektrisk-sonisk-tandborste",
+      "name": "Elektrisk Sonisk Tandborste 2-pack – Fairywill FW-D7",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "collage",
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Multiple products (box, toothbrushes, accessories), cluttered display, branded packaging",
+      "analyzedAt": "2026-05-31T13:01:26.584Z"
+    },
+    "39ed36e8-23f1-4c6f-a1d6-14a7b3049b7c": {
+      "slug": "tandgnisselskena-for-nattbruk-och-tandskydd",
+      "name": "Tandgnisselskena för Nattbruk och Tandskydd",
+      "mainImageScore": 40,
+      "allImageScores": [
+        40
+      ],
+      "flags": [
+        "collage",
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Multiple guard trays and packaging visible, cluttered composition with branded box overlay",
+      "analyzedAt": "2026-05-31T13:01:26.584Z"
+    },
+    "56b88abc-7697-4291-829f-f42539830dee": {
+      "slug": "robust-paraply-med-uv-skydd",
+      "name": "Robust Paraply med UV-Skydd",
+      "mainImageScore": 52,
+      "allImageScores": [
+        52
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Multiple umbrella angles, baked specs text, circular detail inset, non-white background",
+      "analyzedAt": "2026-05-31T13:01:26.584Z"
+    },
+    "e3c339c4-291a-4855-878b-853421ef4b59": {
+      "slug": "mjuk-huva-handduk-i-coral-fleece",
+      "name": "Mjuk Huva-Handduk i Coral Fleece",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple product variants stacked on right; child model distracts from hero towel focus",
+      "analyzedAt": "2026-05-31T13:01:33.910Z"
+    },
+    "5bc18c70-d633-4025-abdb-58f40c57dbcc": {
+      "slug": "barnsakerhet-horn-och-kantsskydd-i-mjuk",
+      "name": "Barnsäkerhet – Hörn- och Kantsskydd i Mjuk PVC (4/10-pack)",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Wooden floor background cluttered; product clearly shown but context detracts",
+      "analyzedAt": "2026-05-31T13:01:33.910Z"
+    },
+    "f45f4227-c1f0-4959-bbc2-cf34b3cfd6c0": {
+      "slug": "stottaligt-skal-for-iphone-17-pro",
+      "name": "Stöttåligt Skal för iPhone 17 Pro / 17 Pro Max",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean single product on white/neutral background, sharp professional photography",
+      "analyzedAt": "2026-05-31T13:01:33.910Z"
+    },
+    "a0c71a64-7106-4be6-8b50-8fb33d309258": {
+      "slug": "stottaligt-silikonskal-for-iphone-slimmad-passform",
+      "name": "Stöttåligt Silikonskal för iPhone – Slimmad Passform & Silkeslen Yta",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "busy_background",
+        "amateur"
+      ],
+      "reason": "Lifestyle snapshot with multiple products, hand model, wooden table; lacks professional studio lighting",
+      "analyzedAt": "2026-05-31T13:01:33.910Z"
+    },
+    "faa185a3-cb39-4930-b65d-de69f1570f61": {
+      "slug": "12-meters-jatterulle-malarpapper-for-barn",
+      "name": "12-Meters Jätterulle Målarpapper för Barn – Djur, Dinosaurier & Fordon",
+      "mainImageScore": 58,
+      "allImageScores": [
+        58
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Multiple illustrated animals and designs compete; child in scene creates lifestyle shot vs product focus",
+      "analyzedAt": "2026-05-31T13:01:33.910Z"
+    },
+    "fc6b8cf7-4363-4cb1-ab7e-eeb9022fc8f3": {
+      "slug": "4-pack-hardat-glas-skarmskydd",
+      "name": "4-Pack Härdat Glas Skärmskydd för iPhone",
+      "mainImageScore": 28,
+      "allImageScores": [
+        28
+      ],
+      "flags": [
+        "baked_text",
+        "chinese_text",
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Heavy overlay text, Chinese characters visible, collage layout with comparison sections, cluttered background",
+      "analyzedAt": "2026-05-31T13:01:41.411Z"
+    },
+    "08480fe8-ef1f-48b1-ad31-ac5ccca9a305": {
+      "slug": "spillsaker-barnskal-roterande-360-konstruktion",
+      "name": "Spillsäker Barnskål – Roterande 360° Konstruktion för Små Barn",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional shot, single product, excellent lighting and clarity",
+      "analyzedAt": "2026-05-31T13:01:41.411Z"
+    },
+    "c538b6bc-2989-4cd3-a318-568abc00c4ac": {
+      "slug": "hopfallbar-matstol-for-barn-justerbar",
+      "name": "Hopfällbar Matstol för Barn – Justerbar & Stabil Högstol från 0-2 år",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple product views/angles in collage format rather than single hero shot, reduces focus",
+      "analyzedAt": "2026-05-31T13:01:41.411Z"
+    },
+    "d3832fe5-6b2d-4a6d-bda6-4dd9a75b5973": {
+      "slug": "tandblekningsremsor-effektiv-hemmablekning-med-mintsmak",
+      "name": "Tandblekningsremsor – Effektiv Hemmablekning med Mintsmak",
+      "mainImageScore": 85,
+      "allImageScores": [
+        85
+      ],
+      "flags": [],
+      "reason": "Clean white background, professional photography, single product focus, good clarity and lighting",
+      "analyzedAt": "2026-05-31T13:01:41.411Z"
+    },
+    "78ab31c0-fb38-447f-9c9f-4cbed31fdcd8": {
+      "slug": "elektrisk-sjalvskakande-kaffemugg-380-ml-rostfritt",
+      "name": "Elektrisk Självskakande Kaffemugg – 380 ml Rostfritt Stål med Temperaturkontroll",
+      "mainImageScore": 48,
+      "allImageScores": [
+        48
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple items shown (cable, mug, coffee grounds), scattered composition, not clean single-product hero",
+      "analyzedAt": "2026-05-31T13:01:41.411Z"
+    },
+    "fb77b43b-a247-4be7-bd68-3b4d40bacd1b": {
+      "slug": "universal-tv-fjarrkontroll-lg-smart-tv",
+      "name": "Universal TV-Fjärrkontroll - LG Smart TV MR20GA",
+      "mainImageScore": 85,
+      "allImageScores": [
+        85
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean white background, sharp product photo. Model number text baked in.",
+      "analyzedAt": "2026-05-31T13:01:48.499Z"
+    },
+    "53e77acb-7aed-46ce-9993-5f5ee86dbb82": {
+      "slug": "varmluftsborste-med-lock-och-stylingfunktion-160",
+      "name": "Varmluftsborste med lock- och stylingfunktion – 160–210 °C",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Professional product shot, clean white background, sharp detail, single product.",
+      "analyzedAt": "2026-05-31T13:01:48.499Z"
+    },
+    "fdcc9c11-08e4-485a-9efc-92f15de0212d": {
+      "slug": "vinkylare-med-luftare-och-upphallare-rostfritt",
+      "name": "Vinkylare med luftare och upphällare – rostfritt stål",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white background, professional lighting. Slight shadow cast acceptable.",
+      "analyzedAt": "2026-05-31T13:01:48.499Z"
+    },
+    "e488568a-f3c3-4197-bf26-a0fcf8edb074": {
+      "slug": "speedy-tail-2-0-olika-interaktiv",
+      "name": "Speedy Tail 2.0 – Olika Interaktiv kattleksaker (boll, rep & svansdesign)",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple unrelated products (cat toy + animals). Decorative graphics/symbols cluttered.",
+      "analyzedAt": "2026-05-31T13:01:48.499Z"
+    },
+    "bfedda64-6cb0-4962-a2fe-1898c3bdcae4": {
+      "slug": "6st-rgb-led-pucklampor-med-fjarrkontroll",
+      "name": "6st RGB LED Pucklampor med fjärrkontroll – 16 färger & dimmer",
+      "mainImageScore": 60,
+      "allImageScores": [
+        60
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple product angles/packaging shown together. Box + puck lamps in one frame.",
+      "analyzedAt": "2026-05-31T13:01:48.499Z"
+    },
+    "9f4e09ba-8587-4193-9361-7dd0119edaee": {
+      "slug": "starbeat-fashion-dolls-k-pop-inspirerade",
+      "name": "StarBeat Fashion Dolls – K-Pop inspirerade samlardockor",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Package box with multiple characters visible, baked-in text overlay 'K-POP DEMON HUNTERS'",
+      "analyzedAt": "2026-05-31T13:01:56.029Z"
+    },
+    "a237033d-5d49-46d8-b0d6-5743ab26492b": {
+      "slug": "fotmassagerulle-ergonomisk-massage-for-plantar-fascia",
+      "name": "Fotmassagerulle – ergonomisk massage för plantar fascia & hälsporre",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean, professional product shot with neutral background, sharp focus, single product clear",
+      "analyzedAt": "2026-05-31T13:01:56.029Z"
+    },
+    "1e7239aa-41fb-45ec-9f5b-a688c8823988": {
+      "slug": "barnsked-i-mjuk-silikon-traningssked",
+      "name": "Barnsked i mjuk silikon – träningssked för smakportioner (1-2 pack)",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Multiple products shown with wooden board and tomatoes, not single-product focus",
+      "analyzedAt": "2026-05-31T13:01:56.029Z"
+    },
+    "ba25fba7-814d-484f-a734-72888614e2a9": {
+      "slug": "16-tum-lcd-ritplatta-for-barn",
+      "name": "16-tum LCD ritplatta för barn – stor skärm & batterisparfunktion",
+      "mainImageScore": 60,
+      "allImageScores": [
+        60
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple devices, flowers, smiley toy as styling clutter on colored background",
+      "analyzedAt": "2026-05-31T13:01:56.029Z"
+    },
+    "78ce3b67-d864-4469-93ff-f09f560ff430": {
+      "slug": "laderplanbok-med-batman-effekt-blir-hjalten",
+      "name": "Läderplånbok med Batman-effekt – blir hjälten när du stoppar in ditt ID-kort",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "baked_text",
+        "badge"
+      ],
+      "reason": "ID card visible in wallet with personal data/security badge, not clean product shot",
+      "analyzedAt": "2026-05-31T13:01:56.029Z"
+    },
+    "72983799-d33c-447e-84c2-70e3474a43be": {
+      "slug": "transparent-dorrstopp-i-silikon-sjalvhaftande",
+      "name": "Transparent dörrstopp i silikon – självhäftande & tyst dämpning",
+      "mainImageScore": 85,
+      "allImageScores": [
+        85
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Clean product shot with good lighting, but contextual background (door, floor) distracts from hero focus",
+      "analyzedAt": "2026-05-31T13:02:03.128Z"
+    },
+    "9b6b8f4a-216d-4a28-95da-0cc151f56bf0": {
+      "slug": "snabbtorkande-diatomitmatta-for-kok-och-badrum",
+      "name": "Snabbtorkande diatomitmatta för kök & badrum – superabsorberande och hygienisk",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Multiple product angles/variations with decorative props and scattered plants reduce clean presentation",
+      "analyzedAt": "2026-05-31T13:02:03.128Z"
+    },
+    "447dd38b-e203-40de-9ad2-16ff9b4940c4": {
+      "slug": "videobabymonitor-med-natt-sikt-ljud",
+      "name": "Videobabymonitor med natt­sikt, ljud & temperaturövervakning",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Multi-piece collage with manual, cables, and baked 'Baby Monitor' text; not single hero product",
+      "analyzedAt": "2026-05-31T13:02:03.128Z"
+    },
+    "14fa2bb4-1cfe-45e3-9244-c1c47f5f44c2": {
+      "slug": "3d-stickers-fjarilar-och-blommor-dekoration",
+      "name": "3D Stickers – Fjärilar & Blommor / Dekoration för vägg, skåp & laptop",
+      "mainImageScore": 48,
+      "allImageScores": [
+        48
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Collage of multiple sticker sheets with prominent 'STICKERS' branding text; cluttered presentation",
+      "analyzedAt": "2026-05-31T13:02:03.128Z"
+    },
+    "dd581e49-1adf-4f3f-9c4f-f446d7f7bc91": {
+      "slug": "vagghangd-utfallbar-kladhangare-i-tra-platsbesparande",
+      "name": "Vägghängd utfällbar klädhängare i trä – platsbesparande & stilren",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Professional clean product shot on neutral background with good lighting and single focus item",
+      "analyzedAt": "2026-05-31T13:02:03.128Z"
+    },
+    "28704797-9770-443c-ba8e-30bf889455c7": {
+      "slug": "domarset-fotboll-flagga-visselpipa-och-kort",
+      "name": "Domarset fotboll – flagga, visselpipa och kort",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple unrelated products in one frame (flags, whistles, cards, bags)",
+      "analyzedAt": "2026-05-31T13:02:10.048Z"
+    },
+    "d17b8175-e9a2-498d-835d-11a45492a735": {
+      "slug": "duschskrapa-i-silikon-for-glas-speglar",
+      "name": "Duschskrapa i silikon – för glas, speglar & kakel",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp single product, professional photography",
+      "analyzedAt": "2026-05-31T13:02:10.048Z"
+    },
+    "12b037d8-153d-4f92-92ad-3a72398126c6": {
+      "slug": "silikonmatta-for-diskbank-vattensamlare-och-avlastningsyta",
+      "name": "Silikonmatta för diskbänk – vattensamlare & avlastningsyta vid kranen",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Cluttered kitchen scene with multiple items, faucet, spray bottle, accessories",
+      "analyzedAt": "2026-05-31T13:02:10.048Z"
+    },
+    "efc9f63d-71cd-4bc0-ae9d-de3e2353ef39": {
+      "slug": "2-vanings-utdragbar-forvaringshylla-organiserare",
+      "name": "2-vånings utdragbar förvaringshylla – organiserare för under diskbänken",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple cleaning products and branded items visible; cluttered styling",
+      "analyzedAt": "2026-05-31T13:02:10.048Z"
+    },
+    "c33996e0-66bd-46fe-b562-7dc5bf152b1e": {
+      "slug": "traningsvastar-for-lag-numrerade-sportvastar",
+      "name": "Träningsvästar för lag – numrerade sportvästar i lätt & snabbtorkande material",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white background, multiple vests shown but consistent product display",
+      "analyzedAt": "2026-05-31T13:02:10.048Z"
+    },
+    "51ca5cd5-b4a9-495f-9625-a20d1b82c325": {
+      "slug": "360-roterande-kryddstall-i-metall-flerlagers",
+      "name": "360° roterande kryddställ i metall – flerlagers köksorganiserare",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multi-angle collage with kitchen background; busy setting reduces hero image quality",
+      "analyzedAt": "2026-05-31T13:02:16.549Z"
+    },
+    "f25235aa-02f0-4e9e-a401-115146f42109": {
+      "slug": "tradlos-led-nattlampa-med-rorelsesensor-batteridriven",
+      "name": "Trådlös LED-nattlampa med rörelsesensor – batteridriven pucklampa",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp product photography, professional lighting, single product focus",
+      "analyzedAt": "2026-05-31T13:02:16.549Z"
+    },
+    "57bb51ec-5180-4bbc-b1ef-d89072dc0040": {
+      "slug": "8-eller-16-delars-sparrnyckelsats-kombinycklar",
+      "name": "8 eller 16-delars spärrnyckelsats – kombinycklar i Cr-V stål med hållare",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Heavy baked-in text overlay, dark busy background, multiple info badges detract from product",
+      "analyzedAt": "2026-05-31T13:02:16.549Z"
+    },
+    "84311037-d680-4e3b-9a18-64a53c5b9638": {
+      "slug": "4-pack-glas-ribbad-design",
+      "name": "4-pack Glas – Ribbad Design för Dryck & Kaffe",
+      "mainImageScore": 70,
+      "allImageScores": [
+        70
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple products and straws in one frame; cluttered composition with extra accessories",
+      "analyzedAt": "2026-05-31T13:02:16.549Z"
+    },
+    "e23fc2d8-82ee-4f6a-920b-3f1f88536b35": {
+      "slug": "veckovis-medicinlada-kompakt-pillerfodral-for-enkel",
+      "name": "Veckovis medicinlåda – kompakt pillerfodral för enkel dosering",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Non-white background (blue/pink); product visible but styling reduces clean hero appeal",
+      "analyzedAt": "2026-05-31T13:02:16.549Z"
+    },
+    "cb76e6f8-40de-45ec-8840-1913b29da9f7": {
+      "slug": "20w-pd-usb-c-till-lightning",
+      "name": "20W PD USB-C till Lightning snabbladdningskabel",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional product shot, single cable clearly displayed",
+      "analyzedAt": "2026-05-31T13:02:25.462Z"
+    },
+    "79e6ecb2-c49f-4efb-9c04-1d9f6adbb321": {
+      "slug": "pd-20w-usb-c-snabbladdningsadapter",
+      "name": "PD 20W USB-C Snabbladdningsadapter",
+      "mainImageScore": 94,
+      "allImageScores": [
+        94
+      ],
+      "flags": [],
+      "reason": "Pristine white background, professional lighting, clean charger adapter isolated",
+      "analyzedAt": "2026-05-31T13:02:25.462Z"
+    },
+    "5788ed31-acf0-4ad2-ad6f-8767762b86c9": {
+      "slug": "c-till-usb-c-snabbladdningskabel",
+      "name": "C till USB-C Snabbladdningskabel – För Telefon, Surfplatta och Laptop",
+      "mainImageScore": 93,
+      "allImageScores": [
+        93
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp focus, single cable product clearly visible",
+      "analyzedAt": "2026-05-31T13:02:25.462Z"
+    },
+    "e64e6d75-2ec5-469d-9f9e-103cc8d8cc21": {
+      "slug": "resenacessar-vattentalig-och-rymlig-necessar",
+      "name": "Resenäcessär – Vattentålig & Rymlig Necessär med Flera Fack",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "busy_background",
+        "collage",
+        "chinese_text"
+      ],
+      "reason": "Multiple products, person in shot, Chinese text on packaging visible inside product",
+      "analyzedAt": "2026-05-31T13:02:25.462Z"
+    },
+    "6377b0e9-2794-474c-b2e2-acf97a3e257b": {
+      "slug": "3-i-1-tradlos-laddstation",
+      "name": "3-i-1 Trådlös Laddstation – För Samsung Klocka, Telefon & Hörlura",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Multiple charging zones clutters frame, complex multi-device product reduces focus clarity",
+      "analyzedAt": "2026-05-31T13:02:25.462Z"
+    },
+    "672c393b-a781-47bf-917c-ad738880686c": {
+      "slug": "3-in-1-30w-hopfallbar-tradlos",
+      "name": "3-in-1 30W Hopfällbar Trådlös Laddningsstation för iPhone 12–17",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple products in one frame; blue wireless indicators distract; clean white base good.",
+      "analyzedAt": "2026-05-31T13:02:32.746Z"
+    },
+    "ad865326-873a-4788-8aab-f39f387b2081": {
+      "slug": "3-i-1-tradlos-laddningsstation-mobil",
+      "name": "3-i-1 Trådlös Laddningsstation – Mobil, Apple Watch & AirPods – 30W",
+      "mainImageScore": 82,
+      "allImageScores": [
+        82
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Single product, professional shot, but dark background with blue accent detracts from clean presentation.",
+      "analyzedAt": "2026-05-31T13:02:32.746Z"
+    },
+    "d6f3adab-0ce9-421f-891d-9ad39d6c62ba": {
+      "slug": "stodjande-graviditetskudde-ergonomisk-sidokudde-for-battre",
+      "name": "Stödjande graviditetskudde – ergonomisk sidokudde för bättre sömn",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Product clear but gray-blue background with cotton prop; multiple pillow angles create visual clutter.",
+      "analyzedAt": "2026-05-31T13:02:32.746Z"
+    },
+    "b48d1050-af08-4832-9b5e-00aceb70409b": {
+      "slug": "nackmassageapparat-tradlos-nack-och-axelmassager",
+      "name": "Nackmassageapparat – trådlös nack- och axelmassager med värme",
+      "mainImageScore": 68,
+      "allImageScores": [
+        68
+      ],
+      "flags": [
+        "busy_background",
+        "amateur"
+      ],
+      "reason": "Product displayed at odd angle; straps tangled; lacks professional studio presentation; white background helps.",
+      "analyzedAt": "2026-05-31T13:02:32.746Z"
+    },
+    "ead6977d-f0d3-4017-990f-3cc19b2f6e27": {
+      "slug": "6-bladig-elektrisk-mixerbagare-barbar-smoothie",
+      "name": "6-bladig Elektrisk Mixerbägare – Bärbar Smoothie- och Juicerblender 400 ml",
+      "mainImageScore": 81,
+      "allImageScores": [
+        81
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp product focus, professional styling with liquid imagery; single product prominent.",
+      "analyzedAt": "2026-05-31T13:02:32.746Z"
+    },
+    "8917e810-d52a-4a93-b548-3028368f4aff": {
+      "slug": "portabel-fruktmixer-med-12-blad",
+      "name": "Portabel fruktmixer med 12 blad och 400 ml",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Colorful styled scene with fruits/glass distracts from product focus",
+      "analyzedAt": "2026-05-31T13:02:40.473Z"
+    },
+    "641fd795-c63f-425f-a6df-d87ffc02da4e": {
+      "slug": "5m-10m-tatlist-for-dorrar",
+      "name": "5m/10m Tätlist för Dörrar & Fönster – D/I/E/P-form, Självhäftande EPDM-gummilist",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "baked_text",
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple products shown, large '5M/10M' text overlay, warning icons clutter",
+      "analyzedAt": "2026-05-31T13:02:40.473Z"
+    },
+    "58012ed3-9c4d-48a4-b263-c276ee097eab": {
+      "slug": "vaggmonterad-uv-tandborststerilisator-solcell",
+      "name": "Väggmonterad Solcellsdriven UV-Tandborststerilisator, Automatisk Tankrämspress",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "White background but cluttered with toothbrushes and instruction card",
+      "analyzedAt": "2026-05-31T13:02:40.473Z"
+    },
+    "fbd6b26f-aa8e-4034-a98c-8f4aeb45ffba": {
+      "slug": "usb-driven-fotvarmare-mjuk-varmekudde",
+      "name": "USB-driven fotvärmare – mjuk värmekudde för kalla fötter",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, single product, sharp professional photography",
+      "analyzedAt": "2026-05-31T13:02:40.473Z"
+    },
+    "84ebc90e-cf7b-48bd-87f2-bd08f9c849c8": {
+      "slug": "shiatsu-massageapparat-for-nacke-och-axel",
+      "name": "Shiatsu Massageapparat för Nacke och Axel – Värmefunktion, 8 Massagehuvuden",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white background, professional product shot, minimal clutter",
+      "analyzedAt": "2026-05-31T13:02:40.473Z"
+    },
+    "bc26033f-555f-4d36-8245-99cf87e06bc9": {
+      "slug": "vakuumforslutningsrullar-for-matforvaring",
+      "name": "Vakuumförslutningsrullar för matförvaring",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Large red dimension text overlay + measurement indicators; gray background not clean white",
+      "analyzedAt": "2026-05-31T13:02:53.386Z"
+    },
+    "1fa3cbb5-28b4-4544-b64e-d0311a74540e": {
+      "slug": "tradlos-handdammsugare-kraftfull-9000pa-sugkraft-usb",
+      "name": "Trådlös Handdammsugare – Kraftfull 9000PA Sugkraft, USB-laddning, Vått & Torrt",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple accessories shown with main product; otherwise clean white background and sharp",
+      "analyzedAt": "2026-05-31T13:02:53.386Z"
+    },
+    "2c1f8278-4444-4152-8ee3-09e23444d583": {
+      "slug": "lyxig-necessar-med-flera-fack",
+      "name": "Lyxig Necessär med Flera Fack – För Resa & Vardag",
+      "mainImageScore": 50,
+      "allImageScores": [
+        50
+      ],
+      "flags": [
+        "busy_background",
+        "amateur"
+      ],
+      "reason": "Hand in frame; busy lifestyle staging; non-white background; appears as styled scene not pure product shot",
+      "analyzedAt": "2026-05-31T13:02:53.386Z"
+    },
+    "6bb49684-a433-4c00-889a-56eb4fc2a9d0": {
+      "slug": "nackkudde-for-bil-memory-foam-universal",
+      "name": "Nackkudde för Bil - Memory Foam (Universal)",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean product on white; subtle 'BLACK' text watermark visible at top; otherwise professional",
+      "analyzedAt": "2026-05-31T13:02:53.386Z"
+    },
+    "06a72ac1-884f-4bdf-a040-7d4b79e0e244": {
+      "slug": "lader-rattoverdrag-varmt-pa-vintern-svalt",
+      "name": "Läder Rattöverdrag – Varmt på vintern, svalt på sommaren",
+      "mainImageScore": 40,
+      "allImageScores": [
+        40
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Installed in car interior with dashboard visible; not isolated product shot; cluttered background",
+      "analyzedAt": "2026-05-31T13:02:53.386Z"
+    },
+    "8d356be1-a3c4-485b-a3f8-2a77655c8407": {
+      "slug": "usb-uppladdningsbart-cykelbakljus-vattentatt-led-sakerhetsljus",
+      "name": "USB Uppladdningsbart Cykelbakljus – Vattentätt LED Säkerhetsljus",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Dark gradient background distracts; otherwise clean product shot with good lighting.",
+      "analyzedAt": "2026-05-31T13:03:00.766Z"
+    },
+    "4b228a5c-bc3e-4cc2-bb34-3305f191ee5e": {
+      "slug": "550-ml-reseflaska-i-hardat-glas",
+      "name": "550 ml Reseflaska i Härdat Glas – Stöttålig & Portabel Vattenflaska med Bärrem",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photography, single product centered perfectly.",
+      "analyzedAt": "2026-05-31T13:03:00.766Z"
+    },
+    "3f417d62-4aec-44f1-8543-67f2b6946dde": {
+      "slug": "gua-sha-massagesten-i-akta-jade",
+      "name": "Gua Sha Massagesten i Äkta Jade/Rosenkvarts – Ansikts- & Nackmassage",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple unrelated products shown together (6+ different gua sha stones) in one frame.",
+      "analyzedAt": "2026-05-31T13:03:00.766Z"
+    },
+    "00d5084e-2b7d-457f-8aa6-bf86513edd2c": {
+      "slug": "infrarod-led-terapi-pad-rodljus",
+      "name": "Infraröd LED Terapi-Pad – Rödljus för Smärtlindring & Hudvård",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Collage layout with pad, accessories, and usage examples cluttering frame significantly.",
+      "analyzedAt": "2026-05-31T13:03:00.766Z"
+    },
+    "30febae8-5383-48fb-a956-be39360de8da": {
+      "slug": "ansiktsmaskborstar-set-med-skal-spatlar",
+      "name": "Ansiktsmaskborstar – Set med Skål, Spatlar & Penslar för Hudvård",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white/light background, professional product set photography, single composition.",
+      "analyzedAt": "2026-05-31T13:03:00.766Z"
+    },
+    "e9865458-5096-4d01-909b-cc1124812794": {
+      "slug": "3-delars-massageset-triggerpunktboll-massagerulle",
+      "name": "3-delars Massageset – Triggerpunktboll, Massagerulle & Fotmassage Roller",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Pink textured background distracts from product. Clean product display otherwise.",
+      "analyzedAt": "2026-05-31T13:03:07.807Z"
+    },
+    "bc0ac48c-a56d-4a0e-8a7d-f45ee664a5fd": {
+      "slug": "montessori-sorteringsleksak-fargglada-parlor-med-klamma",
+      "name": "Montessori Sorteringsleksak – Färgglada Pärlor med Klämma",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "collage",
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Multiple unrelated items, packaging text overlay, cluttered composition unfit for hero.",
+      "analyzedAt": "2026-05-31T13:03:07.807Z"
+    },
+    "d8d3d071-aa28-4231-9c5f-814b53d64ac4": {
+      "slug": "vit-parlballong-20-50-100-pack",
+      "name": "Vit Pärlballong 20/50/100-pack – Dekorationsballonger för Fest & Födelsedag",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp product photography, professional presentation.",
+      "analyzedAt": "2026-05-31T13:03:07.807Z"
+    },
+    "334fe1ef-edc5-430f-9909-583efeeb84a3": {
+      "slug": "1-ars-fotobanner-12-manader-fodelsedagsgirlang",
+      "name": "1-års Fotobanner – \"12 Månader\" Födelsedagsgirlang",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple photos in frame, distracting background, not single-product focus.",
+      "analyzedAt": "2026-05-31T13:03:07.807Z"
+    },
+    "504f01c1-5229-4055-ab72-efe65dd2f2ce": {
+      "slug": "hopfallbar-griptang-extra-lang-plockare",
+      "name": "Hopfällbar Griptång – Extra Lång Plockare för Skräp, Trädgård & Hem",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white background, professional product shots, multiple angles shown clearly.",
+      "analyzedAt": "2026-05-31T13:03:07.807Z"
+    },
+    "7b6733ce-4af9-4055-a43b-3bf9fe639d7c": {
+      "slug": "pop-up-lektalt-for-barn-inne",
+      "name": "Pop-Up Lektält för Barn – Inne & Utelek, Hopfällbart Tält",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional product shot, single product clearly displayed",
+      "analyzedAt": "2026-05-31T13:03:15.482Z"
+    },
+    "e1eb7b4a-56a2-4ded-9c35-958e052d7507": {
+      "slug": "digital-koksvag-5-kg-rostfri-elektronisk",
+      "name": "Digital Köksvåg 5 kg – Rostfri Elektronisk Vågsensor med LCD-display",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white/neutral background, sharp image, professional lighting, minor reflection artifact",
+      "analyzedAt": "2026-05-31T13:03:15.482Z"
+    },
+    "cbcda8a2-5827-45d1-87a3-1eecaec78052": {
+      "slug": "polariserade-solglasogon-aluminiumram-uv400-herr-rektangular",
+      "name": "Polariserade Solglasögon – Aluminiumram – UV400 – Herr – Rektangulär Modell",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "collage",
+        "baked_text"
+      ],
+      "reason": "Multiple product angles in collage format, baked-in text 'Gun/Gray' and 'KINGSEVEN' copyright overlay",
+      "analyzedAt": "2026-05-31T13:03:15.482Z"
+    },
+    "fad742ce-96ee-4b51-b01a-dabf1ca12058": {
+      "slug": "automatisk-dartblaster-med-mjuka-skumkulor-roterande",
+      "name": "Automatisk Dartblaster med Mjuka Skumkulor – Roterande Trumma",
+      "mainImageScore": 40,
+      "allImageScores": [
+        40
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Dark cluttered background, multiple product variants and ammunition shown as collage",
+      "analyzedAt": "2026-05-31T13:03:15.482Z"
+    },
+    "52122812-6596-46c5-a80b-1fe4505517fc": {
+      "slug": "ultratunna-foundationborstar-2-pack-precisionsborste",
+      "name": "Ultratunna Foundationborstar 2-pack – Precisionsborste & Crescent Maskborste",
+      "mainImageScore": 95,
+      "allImageScores": [
+        95
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional single-product shot, excellent lighting and clarity",
+      "analyzedAt": "2026-05-31T13:03:15.482Z"
+    },
+    "7dbe5603-bf4f-439c-92cc-20d0e7064489": {
+      "slug": "ansiktsroller-massageverktyg-for-ansikte-och-ogon",
+      "name": "Ansiktsroller – Massageverktyg för Ansikte och Ögon",
+      "mainImageScore": 95,
+      "allImageScores": [
+        95
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional product shot, single item centered",
+      "analyzedAt": "2026-05-31T13:03:22.353Z"
+    },
+    "637f046d-bf0c-4fa4-b86d-4ab618692194": {
+      "slug": "digital-klocka-for-herr-led-display",
+      "name": "Digital Klocka för Herr – LED Display och Vattentålig Design",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Multiple text overlays on watch face (SKMEI, mode labels, water resist). Otherwise clean.",
+      "analyzedAt": "2026-05-31T13:03:22.353Z"
+    },
+    "2ab43408-fcb6-402f-a67e-db351958dc61": {
+      "slug": "tradlosa-sovhorlurar-med-ogonmask-bluetooth-5",
+      "name": "Trådlösa Sovhörlurar med Ögonmask – Bluetooth 5.4 och Aktiv Brusreducering",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white background, professional product shot, single item well-lit",
+      "analyzedAt": "2026-05-31T13:03:22.353Z"
+    },
+    "2adf6870-a756-45d8-8cff-6680a56b1f7a": {
+      "slug": "tradlos-bluetooth-hogtalare-s5-vattentat-ipx7",
+      "name": "Trådlös Bluetooth-högtalare S5 – vattentät IPX7 med kraftfullt ljud",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Blue gradient background instead of clean white, reduces professional e-commerce aesthetic",
+      "analyzedAt": "2026-05-31T13:03:22.353Z"
+    },
+    "f5bf4b9a-0acf-4e87-9d08-7c95a19d8be9": {
+      "slug": "elektrisk-kladvardsrakapparat-uppladdningsbar-noppborttagare-med-led",
+      "name": "Elektrisk klädvårdsrakapparat – uppladdningsbar noppborttagare med LED-display",
+      "mainImageScore": 82,
+      "allImageScores": [
+        82
+      ],
+      "flags": [],
+      "reason": "Clean white background, two-angle product display, sharp lighting, professional",
+      "analyzedAt": "2026-05-31T13:03:22.353Z"
+    },
+    "76c69fa0-9e41-4e43-a399-3cb0fac5b6a1": {
+      "slug": "ai-gimbal-med-360-ansiktsfoljning-smart",
+      "name": "AI-gimbal med 360° ansiktsföljning – smart mobilhållare för livesändning",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional product shot, single item clearly displayed",
+      "analyzedAt": "2026-05-31T13:03:29.832Z"
+    },
+    "def18520-40e4-4f43-b041-51b9e4772017": {
+      "slug": "solnedgangslampa-projektionslampa-med-16-farger",
+      "name": "Solnedgångslampa – Projektionslampa med 16 Färger & Fjärrkontroll",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Busy lifestyle scene with multiple products, overlaid color swatch grid, baked-in text overlay detracts from product foc",
+      "analyzedAt": "2026-05-31T13:03:29.832Z"
+    },
+    "98983c76-fa5f-47aa-af73-8047be673be6": {
+      "slug": "bladlos-nackflakt",
+      "name": "Bladlös Nackfläkt – Bärbar & Uppladdningsbar, 3 Hastigheter",
+      "mainImageScore": 30,
+      "allImageScores": [
+        30
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Heavy baked-in English text overlay covering ~40% of image, busy blue background with mountain scene, excessive feature ",
+      "analyzedAt": "2026-05-31T13:03:29.832Z"
+    },
+    "74fb2fb8-1a32-4c3f-9c8d-90e2f73c7cfc": {
+      "slug": "handhallen-kladangare",
+      "name": "Handhållen Klädångare – Bärbar Ångare för Kläder & Resa",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean textured background, professional photography, single product clearly visible, good lighting and detail",
+      "analyzedAt": "2026-05-31T13:03:29.832Z"
+    },
+    "c7f63ef6-a68a-4be8-9463-311894f07cb5": {
+      "slug": "magtranare-ab-hjul",
+      "name": "Magtränare AB-hjul – Träningshjul för Mage & Core",
+      "mainImageScore": 94,
+      "allImageScores": [
+        94
+      ],
+      "flags": [],
+      "reason": "Pristine white background, sharp professional shot, single product centered, excellent clarity and lighting",
+      "analyzedAt": "2026-05-31T13:03:29.832Z"
+    },
+    "fbeed9a0-037f-49fc-b2b2-2130b961d39b": {
+      "slug": "uppvarmd-ogonmask",
+      "name": "Uppvärmd Ögonmask – Värmemask för Torra & Trötta Ögon",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Measurement overlay and dimension text baked into image reduces usability",
+      "analyzedAt": "2026-05-31T13:03:36.504Z"
+    },
+    "4e9e595e-6c6d-4b8b-bff1-81868b6e4e65": {
+      "slug": "elektrisk-konservoppnare",
+      "name": "Elektrisk Konservöppnare – Automatisk Handsfri Burköppnare",
+      "mainImageScore": 30,
+      "allImageScores": [
+        30
+      ],
+      "flags": [
+        "collage",
+        "busy_background"
+      ],
+      "reason": "Multiple unrelated products (can opener, tomatoes, openers) in collage format",
+      "analyzedAt": "2026-05-31T13:03:36.504Z"
+    },
+    "65270bbc-909d-4282-a53f-c71d9e8d9038": {
+      "slug": "motstandsband-11-delars-set",
+      "name": "Motståndsband 11-delars Set – Komplett Träningsutrustning",
+      "mainImageScore": 60,
+      "allImageScores": [
+        60
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple resistance bands and accessories displayed together, not single hero product",
+      "analyzedAt": "2026-05-31T13:03:36.504Z"
+    },
+    "bbaefafc-e991-4bb6-a23f-2044a5b08afc": {
+      "slug": "3d-kristallkula-nattlampa",
+      "name": "3D Kristallkula Nattlampa – Galax & Planeter med Träbas",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Blurred background elements (astronaut figure) distract from crystal ball focus",
+      "analyzedAt": "2026-05-31T13:03:36.504Z"
+    },
+    "9b5f4775-209d-4561-807a-c50da47f9f77": {
+      "slug": "elektrisk-luddborttagare",
+      "name": "Elektrisk Luddborttagare – Tygrakapparat för Kläder & Möbler",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photo, single product focus, excellent presentation",
+      "analyzedAt": "2026-05-31T13:03:36.504Z"
+    },
+    "ae2f8669-ba0d-4719-9e6c-e90efd45c973": {
+      "slug": "elektrisk-aggkokare",
+      "name": "Elektrisk Äggkokare – Automatisk Ångkokare med Timer",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "chinese_text",
+        "baked_text",
+        "busy_background"
+      ],
+      "reason": "Chinese branding visible, baked-in text/icons on product, reflective surface",
+      "analyzedAt": "2026-05-31T13:03:44.350Z"
+    },
+    "5f42cfbb-5122-415d-8da1-1cbb8b082313": {
+      "slug": "bidedusch-toalett",
+      "name": "Bidédusch för Toaletten – Slim Toalettsits-tillsats",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean white background, product clear, but 'Samodra' text overlay present",
+      "analyzedAt": "2026-05-31T13:03:44.350Z"
+    },
+    "094345fd-5b48-4bb7-af83-45b24d188b8e": {
+      "slug": "tojbara-silikonlock-6-pack",
+      "name": "Töjbara silikonlock 6-pack – återanvändbara skållock",
+      "mainImageScore": 45,
+      "allImageScores": [
+        45
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Multiple products, cluttered wooden background, food styling contextual",
+      "analyzedAt": "2026-05-31T13:03:44.350Z"
+    },
+    "27b8a650-5e00-4561-b39b-92e6a5ebcf94": {
+      "slug": "mandolinskarare-rostfritt-stal",
+      "name": "Justerbar mandolinskärare i rostfritt stål – 18 skärlägen",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "busy_background",
+        "collage"
+      ],
+      "reason": "Many produce items shown, complex multi-product layout, busy scene",
+      "analyzedAt": "2026-05-31T13:03:44.350Z"
+    },
+    "cc663522-1c91-4af2-a432-032458449e95": {
+      "slug": "bagageorganiserare-bil-filt",
+      "name": "Bagageorganiserare i filt – hopfällbar förvaringslåda för bilen",
+      "mainImageScore": 80,
+      "allImageScores": [
+        80
+      ],
+      "flags": [],
+      "reason": "Clean product on white/neutral background, professional shot, minimal distractions",
+      "analyzedAt": "2026-05-31T13:03:44.350Z"
+    },
+    "63a5c21e-f15e-496d-9530-d5f931c33dfd": {
+      "slug": "vitlokspress-rostfritt-stal",
+      "name": "Vitlökspress i rostfritt stål – pressa vitlök & ingefära",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional product photo, single item well-lit",
+      "analyzedAt": "2026-05-31T13:03:50.827Z"
+    },
+    "a36f1172-0c38-4548-97d4-6b2468238eae": {
+      "slug": "langsam-hundskal-roterande-boll",
+      "name": "Långsam hundskål med roterande boll – mot snabbätning",
+      "mainImageScore": 35,
+      "allImageScores": [
+        35
+      ],
+      "flags": [
+        "baked_text",
+        "busy_background",
+        "badge"
+      ],
+      "reason": "Heavy overlay text, feature callouts, instructional graphics, busy design",
+      "analyzedAt": "2026-05-31T13:03:50.827Z"
+    },
+    "97c983d7-71d6-44bd-afd3-5bde97e139f8": {
+      "slug": "mini-soptunna-bil-550-ml-trycklock",
+      "name": "Mini soptunna för bilen – 550 ml med smart trycklock",
+      "mainImageScore": 55,
+      "allImageScores": [
+        55
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Dark car interior background distracts from product, lifestyle shot not clean",
+      "analyzedAt": "2026-05-31T13:03:50.827Z"
+    },
+    "2e5508f5-ad7a-425e-8832-60dd176e3a84": {
+      "slug": "appelskalare-3-i-1-skalar-karnar-skivar",
+      "name": "Äppelskalare 3-i-1 – skalar, kärnar ur och skivar",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [],
+      "reason": "Good product photo with demo, but cluttered with scattered apple pieces",
+      "analyzedAt": "2026-05-31T13:03:50.827Z"
+    },
+    "11c14f84-e030-48da-ad9a-ac9e9635d2f3": {
+      "slug": "gaming-musmatta-skrivbordsunderlagg-sydd-kant",
+      "name": "Gaming-musmatta – skrivbordsunderlägg med sydd kant och halkfri bas",
+      "mainImageScore": 60,
+      "allImageScores": [
+        60
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Multiple product views/angles shown together, not single clean hero shot",
+      "analyzedAt": "2026-05-31T13:03:50.827Z"
+    },
+    "33ccc308-c9e1-4bc2-a5a9-b6f96c766430": {
+      "slug": "tradlost-tangentbord-mus-kompakt-bluetooth-set",
+      "name": "Trådlöst tangentbord och mus – kompakt Bluetooth-set",
+      "mainImageScore": 78,
+      "allImageScores": [
+        78
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean white background, sharp product photo. Small Bluetooth/USB icon labels at bottom detract slightly.",
+      "analyzedAt": "2026-05-31T13:03:58.058Z"
+    },
+    "6d172d02-5abb-46ab-8a8b-794bb2c291f3": {
+      "slug": "laptopfodral-stotdampande-sleeve-barbar-dator",
+      "name": "Laptopfodral – stötdämpande sleeve för 13–15,6 tums bärbar dator",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Excellent professional product shot. Clean gradient background, sharp focus, single product well-lit.",
+      "analyzedAt": "2026-05-31T13:03:58.058Z"
+    },
+    "33043c68-7224-4ccd-b6df-48c91d1fecbd": {
+      "slug": "digital-led-vackarklocka-bordsklocka-nattljus",
+      "name": "Digital LED-väckarklocka – bordsklocka med nattljus, temperatur & kalender",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photo. Minor icon details on product acceptable.",
+      "analyzedAt": "2026-05-31T13:03:58.058Z"
+    },
+    "aa042e0d-cd94-49f1-bab2-62909ac1b5b2": {
+      "slug": "digitalt-skjutmatt-elektroniskt-matverktyg-lcd",
+      "name": "Digitalt skjutmått – elektroniskt mätverktyg med stor LCD-display",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Good product photo but has visible English text 'ELECTRONIC DIGITAL CALIPER' baked into product surface.",
+      "analyzedAt": "2026-05-31T13:03:58.058Z"
+    },
+    "5ea97528-00b0-4b6d-a441-e75c9dbe4f89": {
+      "slug": "magnetisk-knivhallare-akacia-vaggmonterad-knivlist",
+      "name": "Magnetisk knivhållare i akacia – väggmonterad knivlist 40 cm",
+      "mainImageScore": 70,
+      "allImageScores": [
+        70
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Textured concrete wall background is busy/not clean white. Multiple knives create slight collage feel.",
+      "analyzedAt": "2026-05-31T13:03:58.058Z"
+    },
+    "7479aa5e-4af3-4a67-a94f-4051e0467456": {
+      "slug": "tradlosa-horlurar-bluetooth-led-display",
+      "name": "Trådlösa hörlurar – Bluetooth med LED-display",
+      "mainImageScore": 75,
+      "allImageScores": [
+        75
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Clean white background, sharp product photo. Green LED display text overlay detracts from prime placement.",
+      "analyzedAt": "2026-05-31T13:04:05.706Z"
+    },
+    "d46f926b-7d7a-4c50-8a3a-a94e1993e5af": {
+      "slug": "cat-eye-solglasogon-dam-retro-uv-skydd",
+      "name": "Cat eye-solglasögon för dam – retrostil med UV-skydd",
+      "mainImageScore": 88,
+      "allImageScores": [
+        88
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Professional product shot, clean styling. Minor textured background prop reduces score slightly.",
+      "analyzedAt": "2026-05-31T13:04:05.706Z"
+    },
+    "fd006b51-c688-4752-a71a-a2576b09f824": {
+      "slug": "sportkeps-mesh-snabbtorkande-solskydd",
+      "name": "Sportkeps i mesh – snabbtorkande med solskydd",
+      "mainImageScore": 82,
+      "allImageScores": [
+        82
+      ],
+      "flags": [
+        "baked_text"
+      ],
+      "reason": "Good clean background, sharp cap. Visible 'SPORTS' brand text on product reduces quality for prime store.",
+      "analyzedAt": "2026-05-31T13:04:05.706Z"
+    },
+    "b9ddbb9d-8149-4f49-8841-090ab878b075": {
+      "slug": "stalarmband-herr-flatad-dubbellank-magnetlas",
+      "name": "Stålarmband för herr – flätad dubbellänk med magnetlås",
+      "mainImageScore": 92,
+      "allImageScores": [
+        92
+      ],
+      "flags": [],
+      "reason": "Excellent professional product shot. Clean white background, sharp detail, single product displayed ideally.",
+      "analyzedAt": "2026-05-31T13:04:05.706Z"
+    },
+    "1fb9c339-2554-427f-a680-6dbb0cf03aaf": {
+      "slug": "korshalsband-krucifix-guld-eller-silver",
+      "name": "Korshalsband med krucifix – guld eller silver",
+      "mainImageScore": 90,
+      "allImageScores": [
+        90
+      ],
+      "flags": [],
+      "reason": "Clean white background, sharp professional photography. Single product, excellent clarity and presentation for e-commerc",
+      "analyzedAt": "2026-05-31T13:04:05.706Z"
+    },
+    "b96574c9-7274-4aa0-900d-b5d13fe3dd34": {
+      "slug": "svamphallare-diskho-sjalvhaftande-rostfritt-stal",
+      "name": "Svamphållare för Diskho – Självhäftande Rostfritt Stål",
+      "mainImageScore": 65,
+      "allImageScores": [
+        65
+      ],
+      "flags": [
+        "busy_background"
+      ],
+      "reason": "Sink backdrop cluttered, distracts from product. Otherwise sharp, clean product shot.",
+      "analyzedAt": "2026-05-31T13:04:11.563Z"
+    },
+    "de398180-b1f5-4215-aaa2-c260e37d1f28": {
+      "slug": "magnetiska-orhangen-clips-utan-hal-zirkonia",
+      "name": "Magnetiska Örhängen – Clips utan Hål med Zirkonia",
+      "mainImageScore": 72,
+      "allImageScores": [
+        72
+      ],
+      "flags": [
+        "collage"
+      ],
+      "reason": "Two earring angles in one frame. Professional quality but multi-view layout less ideal for hero.",
+      "analyzedAt": "2026-05-31T13:04:11.563Z"
+    }
+  }
+}

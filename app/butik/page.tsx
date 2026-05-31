@@ -1,9 +1,10 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { getProducts, getCollections, mixByCategory } from "../../lib/products";
+import { getProducts, getCollections } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
 import { buildGroupCards, MOSAIC_DENYLIST } from "../../lib/category-groups";
 import { pageMeta } from "../../lib/seo";
+import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../../lib/image-scores";
 
 export const metadata = pageMeta(
   "Butik – utforska hela vårt sortiment",
@@ -36,17 +37,26 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
     "gamewave-x-handhallen-spelkonsol-med-64gb",
     "digital-bagagevag",
   ];
-  const slugMap = new Map(products.map((p) => [p.slug, p]));
-  const veckansPicks: typeof products = [];
-  const used = new Set<string>();
-  for (const slug of VECKANS_CURATION) {
-    const p = slugMap.get(slug);
-    if (p && !used.has(slug)) { veckansPicks.push(p); used.add(slug); }
-  }
+  // Poäng-driven Veckans fynd (se lib/image-scores): topp-nivå (> 75), gömda
+  // bortfiltrerade, curation först när den klarar baren, annars poäng-sorterat.
+  const hiddenFromFeatured = await getHiddenFromFeatured();
+  const veckansPool = products.filter(
+    (p) => !hiddenFromFeatured.has(p.id) && !MOSAIC_DENYLIST.has(p.slug),
+  );
+  const topTier = veckansPool.filter((p) => p.imageScore > FEATURED_MIN_SCORE);
+  const curatedSet = new Set(VECKANS_CURATION);
+  const curatedFront = VECKANS_CURATION
+    .map((slug) => topTier.find((p) => p.slug === slug))
+    .filter((p): p is (typeof products)[number] => Boolean(p));
+  const byScore = topTier
+    .filter((p) => !curatedSet.has(p.slug))
+    .sort((a, b) => b.imageScore - a.imageScore);
+  const veckansPicks = [...curatedFront, ...byScore];
   if (veckansPicks.length < 8) {
-    for (const p of mixByCategory(products, collections)) {
+    const used = new Set(veckansPicks.map((p) => p.slug));
+    for (const p of [...veckansPool].sort((a, b) => b.imageScore - a.imageScore)) {
       if (veckansPicks.length >= 8) break;
-      if (used.has(p.slug) || MOSAIC_DENYLIST.has(p.slug)) continue;
+      if (used.has(p.slug)) continue;
       veckansPicks.push(p); used.add(p.slug);
     }
   }

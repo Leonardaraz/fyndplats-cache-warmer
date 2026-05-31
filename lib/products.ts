@@ -4,6 +4,7 @@ import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
 import local from "../products.json";
 import variantImages from "../data/variant-images.json";
+import { imageScoreOf, imageRecordOf } from "./image-scores";
 
 export type Product = {
   id: string;
@@ -27,6 +28,10 @@ export type Product = {
   onSale?: boolean;
   descriptionHtml?: string;
   options?: { name: string; choices: { label: string; image: string; color: string; variantId: string; price: string; priceNum: number; originalPrice: string }[] } | null;
+  // Bildkvalitets-poäng (Claude vision, se lib/image-scores.ts). Styr ordningen
+  // på startsida/kategori/alla-produkter. DEFAULT_SCORE för opoängsatta produkter.
+  imageScore: number;
+  imageFlags: string[];
 };
 
 // Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas.
@@ -98,8 +103,11 @@ function mapProduct(p: any): Product {
   const minV = typeof pr.minValue === "number" ? pr.minValue : null;
   const maxV = typeof pr.maxValue === "number" ? pr.maxValue : null;
   const hasRange = minV != null && maxV != null && minV < maxV;
+  const pid = p._id || p.id || "";
   return {
-    id: p._id || p.id || "",
+    id: pid,
+    imageScore: imageScoreOf(pid),
+    imageFlags: imageRecordOf(pid)?.flags ?? [],
     variants,
     collectionIds: p.collectionIds || [],
     name: p.name || "",

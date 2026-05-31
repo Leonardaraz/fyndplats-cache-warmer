@@ -12,6 +12,7 @@ const BRACKETS = [
 ];
 
 const SORTS = [
+  { v: "img", label: "Bäst bilder" },
   { v: "pop", label: "Populärast" },
   { v: "price-asc", label: "Pris: lågt → högt" },
   { v: "price-desc", label: "Pris: högt → lågt" },
@@ -19,7 +20,8 @@ const SORTS = [
 ];
 
 export function ShopBrowser({ products }: { products: Product[] }) {
-  const [sort, setSort] = useState("pop");
+  // "Bäst bilder" (bildkvalitets-poäng fallande) är default — visuellt starkast först.
+  const [sort, setSort] = useState("img");
   const [bi, setBi] = useState(0);
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [onlyOnSale, setOnlyOnSale] = useState(false);
@@ -30,7 +32,8 @@ export function ShopBrowser({ products }: { products: Product[] }) {
     let out = products.filter((p) => p.priceNum >= b.min && p.priceNum < b.max);
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
-    if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
+    if (sort === "img") out = [...out].sort((a, z) => (z.imageScore ?? 60) - (a.imageScore ?? 60));
+    else if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
     return out;
