@@ -1,4 +1,5 @@
 import { completeJson } from "../ai/claude";
+import { makeCacheKey } from "../llm/cache";
 import type { AliExpressProduct } from "./types";
 
 export interface SeoResult {
@@ -36,7 +37,37 @@ Antal bilder: ${product.imageUrls.length}
 Råtitel: ${product.rawTitle}
 Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
 
-  const result = await completeJson<SeoResult>({ system: SYSTEM, user, maxTokens: 3000 });
+  // Cache-key på rå-titel + första 500 tecken av rå-beskrivning. Samma
+  // AliExpress-produkt re-importad → ingen ny SEO-generering (besparing när
+  // Leonard kör om en import för att uppdatera priser/variant-urval).
+  const cacheKey = makeCacheKey({
+    op: "generateSeo",
+    name: product.rawTitle,
+    description: product.rawDescription,
+    dependencyFingerprint: `imgCount=${product.imageUrls.length}`,
+  });
+
+  // Fail-open: om både Claude (credit balance) och Gemini failar, falla
+  // tillbaka till rå-titeln så importen inte kraschar — Leonard kan redigera
+  // SEO i Wix efteråt. max_tokens sänkt från 3000 → 2000 (beskrivningen behöver
+  // sällan mer än ~6kB svensk HTML).
+  const failOpen: SeoResult = {
+    title: product.rawTitle.slice(0, 70),
+    metaDescription: product.rawTitle.slice(0, 160),
+    descriptionHtml: `<p>${product.rawDescription.slice(0, 1000)}</p>`,
+    slug: "produkt",
+    suggestedCategory: "",
+    imageAltTexts: product.imageUrls.map(() => product.rawTitle),
+  };
+
+  const result = await completeJson<SeoResult>({
+    system: SYSTEM,
+    user,
+    maxTokens: 2000,
+    op: "generateSeo",
+    cacheKey,
+    failOpen,
+  });
   return clampSeo(result, product.imageUrls.length);
 }
 

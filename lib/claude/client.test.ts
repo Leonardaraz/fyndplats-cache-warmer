@@ -23,9 +23,14 @@ import {
   __testing,
   type CollectionOption,
 } from "./client";
+import { __resetLlmMemoryStore } from "../llm/storage";
+import { __clearMemCache } from "../llm/cache";
 
-function textMessage(text: string) {
-  return { content: [{ type: "text", text }] };
+function textMessage(text: string, usage: { input_tokens?: number; output_tokens?: number } = {}) {
+  return {
+    content: [{ type: "text", text }],
+    usage: { input_tokens: usage.input_tokens ?? 0, output_tokens: usage.output_tokens ?? 0 },
+  };
 }
 
 beforeEach(() => {
@@ -33,6 +38,12 @@ beforeEach(() => {
   process.env.ANTHROPIC_API_KEY = "sk-ant-test";
   delete process.env.CLAUDE_IMAGE_ANALYSIS;
   delete process.env.CLAUDE_AUTO_CATEGORIZATION;
+  delete process.env.GEMINI_API_KEY;
+  delete process.env.LLM_PROVIDER_DEFAULT;
+  delete process.env.ANTHROPIC_DAILY_BUDGET_USD;
+  // Rensa både persistent (Wix Data fake-bucket) och in-memory cache så tester är isolerade.
+  __resetLlmMemoryStore();
+  __clearMemCache();
 });
 
 afterEach(() => {
@@ -107,7 +118,7 @@ describe("analyzeImages", () => {
     });
   });
 
-  it("fail-open: returns ok for whole batch when Claude throws", async () => {
+  it("fail-open: returns ok for whole batch when Claude throws (no Gemini key)", async () => {
     mockCreate.mockRejectedValueOnce(new Error("rate limit"));
     const res = await analyzeImages(["https://example.com/a.jpg"]);
     expect(res).toEqual([{ url: "https://example.com/a.jpg", verdict: "ok", reason: "" }]);
@@ -147,6 +158,14 @@ describe("analyzeImages", () => {
     const imageBlock = userMsg.content.find((c: { type: string }) => c.type === "image");
     expect(imageBlock.source.type).toBe("url");
     expect(imageBlock.source.url).toBe("https://example.com/foo.jpg");
+  });
+
+  it("uses prompt-caching cache_control on the system prompt", async () => {
+    mockCreate.mockResolvedValueOnce(textMessage(JSON.stringify([{ verdict: "ok", reason: "" }])));
+    await analyzeImages(["https://example.com/q.jpg"]);
+    const callArgs = mockCreate.mock.calls[0][0];
+    expect(Array.isArray(callArgs.system)).toBe(true);
+    expect(callArgs.system[0].cache_control).toEqual({ type: "ephemeral" });
   });
 });
 
@@ -211,9 +230,9 @@ describe("suggestCategory", () => {
     expect(r.confidence).toBe(1);
   });
 
-  it("fail-open: returns null suggestion when Claude throws", async () => {
+  it("fail-open: returns null suggestion when Claude throws and no Gemini key", async () => {
     mockCreate.mockRejectedValueOnce(new Error("boom"));
-    const r = await suggestCategory("X", "Y", collections);
+    const r = await suggestCategory("UniqueProduct123", "Description", collections);
     expect(r.collectionSlug).toBe(null);
     expect(r.confidence).toBe(0);
   });
@@ -228,6 +247,18 @@ describe("suggestCategory", () => {
     const r2 = await suggestCategory("Plastbil", "Liten leksaksbil", collections);
     expect(r1).toEqual(r2);
     expect(mockCreate).toHaveBeenCalledTimes(1); // andra anropet träffade cachen
+  });
+
+  it("uses prompt-caching on system + static collections prefix", async () => {
+    mockCreate.mockResolvedValueOnce(
+      textMessage(JSON.stringify({ collection_slug: "skonhet", confidence: 0.9, reason: "" })),
+    );
+    await suggestCategory("Cachetest", "x", collections);
+    const callArgs = mockCreate.mock.calls[0][0];
+    expect(Array.isArray(callArgs.system)).toBe(true);
+    expect(callArgs.system[0].cache_control).toEqual({ type: "ephemeral" });
+    const userBlocks = callArgs.messages[0].content;
+    expect(userBlocks[0].cache_control).toEqual({ type: "ephemeral" });
   });
 });
 
@@ -249,7 +280,7 @@ describe("categoryCacheKey", () => {
   });
 });
 
-describe("get/setCachedCategory", () => {
+describe("get/setCachedCategory (legacy in-process helpers)", () => {
   it("round-trips a suggestion", () => {
     const key = "test-key-1";
     expect(getCachedCategory(key)).toBe(null);
@@ -279,5 +310,24 @@ describe("internal helpers", () => {
   });
   it("parseJsonArray returns empty array on garbage", () => {
     expect(__testing.parseJsonArray<unknown>("not json at all")).toEqual([]);
+  });
+
+  it("mapAnthropicError detects credit-balance errors", () => {
+    const err = Object.assign(new Error("Your credit balance is too low to access the API."), {
+      status: 400,
+      error: { error: { type: "invalid_request_error", message: "credit balance too low" } },
+    });
+    const mapped = __testing.mapAnthropicError(err);
+    expect(mapped.name).toBe("CreditBalanceError");
+  });
+
+  it("mapAnthropicError wraps generic 4xx as ProviderClientError", () => {
+    const err = Object.assign(new Error("bad request"), {
+      status: 400,
+      error: { error: { type: "invalid_request_error", message: "something else" } },
+    });
+    const mapped = __testing.mapAnthropicError(err) as Error & { status?: number };
+    expect(mapped.name).toBe("ProviderClientError");
+    expect(mapped.status).toBe(400);
   });
 });
