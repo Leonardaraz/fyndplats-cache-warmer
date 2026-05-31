@@ -3,17 +3,34 @@ import {
   addVat,
   applyMarkup,
   computePrice,
+  computePriceWithRules,
   computeProfit,
   costToSek,
   exceedsIossThreshold,
+  resolveMarkup,
   roundPrice,
 } from "./pricing";
-import type { PricingConfig } from "./types";
+import type { PricingConfig, PricingRules } from "./types";
 
 const config: PricingConfig = {
   usdToSek: 10,
   vatRatePercent: 25,
   markup: { multiplier: 2.5, fixedSek: 0 },
+  rounding: "none",
+};
+
+const rules: PricingRules = {
+  usdToSek: 10,
+  vatRatePercent: 25,
+  defaultMultiplier: 2.0,
+  fixedSurchargeSek: 0,
+  categoryMultipliers: { "Skönhet & Hälsa": 3.0, Husdjur: 2.5 },
+  tiersEnabled: false,
+  tiers: [
+    { minCostSek: 0, maxCostSek: 50, multiplier: 3.5 },
+    { minCostSek: 50, maxCostSek: 150, multiplier: 2.5 },
+    { minCostSek: 150, maxCostSek: null, multiplier: 1.7 },
+  ],
   rounding: "none",
 };
 
@@ -45,6 +62,51 @@ describe("roundPrice", () => {
   });
   it("never returns negative charm price", () => {
     expect(roundPrice(0.2, "charm90")).toBe(0.9);
+  });
+  it("charm9 rounds to nearest integer ending in 9", () => {
+    expect(roundPrice(199, "charm9")).toBe(199);
+    expect(roundPrice(195, "charm9")).toBe(199);
+    expect(roundPrice(192, "charm9")).toBe(189);
+    expect(roundPrice(3, "charm9")).toBe(9); // floor at 9
+  });
+  it("nearest10 rounds UP to whole tens", () => {
+    expect(roundPrice(251, "nearest10")).toBe(260);
+    expect(roundPrice(250, "nearest10")).toBe(250);
+    expect(roundPrice(240.01, "nearest10")).toBe(250);
+  });
+});
+
+describe("resolveMarkup", () => {
+  it("falls back to default multiplier with no category/tier match", () => {
+    expect(resolveMarkup(80, null, rules)).toEqual({ multiplier: 2.0, fixedSek: 0 });
+  });
+  it("applies per-category multiplier (case-insensitive)", () => {
+    expect(resolveMarkup(80, "skönhet & hälsa", rules).multiplier).toBe(3.0);
+  });
+  it("tier overrides category when tiers enabled", () => {
+    const r = { ...rules, tiersEnabled: true };
+    // costSek 80 → tier 50–150 = 2.5, beats category 3.0
+    expect(resolveMarkup(80, "Skönhet & Hälsa", r).multiplier).toBe(2.5);
+  });
+  it("ignores tiers when disabled", () => {
+    expect(resolveMarkup(80, "Husdjur", rules).multiplier).toBe(2.5);
+  });
+  it("carries the fixed surcharge", () => {
+    expect(resolveMarkup(80, null, { ...rules, fixedSurchargeSek: 50 }).fixedSek).toBe(50);
+  });
+});
+
+describe("computePriceWithRules", () => {
+  it("uses category multiplier in the full price calc", () => {
+    // 5 USD * 10 = 50 SEK; category 3.0 → net 150; gross *1.25 = 187.5
+    const b = computePriceWithRules(5, rules, "Skönhet & Hälsa");
+    expect(b.costSek).toBe(50);
+    expect(b.grossSek).toBe(187.5);
+  });
+  it("uses default multiplier without a category", () => {
+    const b = computePriceWithRules(5, rules, null);
+    // 50 * 2.0 = 100; *1.25 = 125
+    expect(b.grossSek).toBe(125);
   });
 });
 

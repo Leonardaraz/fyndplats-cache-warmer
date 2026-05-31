@@ -1,4 +1,4 @@
-import type { PricingConfig } from "./import/types";
+import type { PricingConfig, PricingRules, PricingTier } from "./import/types";
 
 export interface PaymentFeeConfig {
   /** T.ex. 3 = 3% av bruttobeloppet. */
@@ -23,6 +23,50 @@ export function pricingConfigFromEnv(): PricingConfig {
       fixedSek: num("MARKUP_FIXED_SEK", 0),
     },
     rounding: (process.env.PRICE_ROUNDING as PricingConfig["rounding"]) || "charm90",
+  };
+}
+
+/**
+ * Default per-kategori-multiplikatorer. Nycklarna matchar Wix-kollektionernas
+ * namn (case-insensitivt vid uppslag). Leonard kan ändra dessa i /admin/pricing.
+ */
+export const DEFAULT_CATEGORY_MULTIPLIERS: Record<string, number> = {
+  "Hem & Inredning": 2.5,
+  "Elektronik & Tillbehör": 2.0,
+  "Skönhet & Hälsa": 3.0,
+  "Sport & Fritid": 2.5,
+  "Kök & Husgeråd": 2.5,
+  "Barn & Familj": 2.5,
+  "Mode & Accessoarer": 3.0,
+  Husdjur: 2.5,
+};
+
+/** Default intervall-regler (landad inköpskostnad i SEK → multiplikator). */
+export const DEFAULT_PRICING_TIERS: PricingTier[] = [
+  { minCostSek: 0, maxCostSek: 50, multiplier: 3.5 },
+  { minCostSek: 50, maxCostSek: 150, multiplier: 2.5 },
+  { minCostSek: 150, maxCostSek: 500, multiplier: 2.0 },
+  { minCostSek: 500, maxCostSek: null, multiplier: 1.7 },
+];
+
+/**
+ * Bygger en fullständig PricingRules-default ur miljön. Används som fallback när
+ * ingen sparad konfig finns i FyndplatsPricingConfig (kall start) och som bas
+ * som den sparade konfigen mergas ovanpå.
+ */
+export function pricingRulesFromEnv(): PricingRules {
+  const base = pricingConfigFromEnv();
+  return {
+    usdToSek: base.usdToSek,
+    vatRatePercent: base.vatRatePercent,
+    defaultMultiplier: base.markup.multiplier,
+    fixedSurchargeSek: base.markup.fixedSek,
+    categoryMultipliers: { ...DEFAULT_CATEGORY_MULTIPLIERS },
+    // Intervall-baserad prissättning är opt-in (av som default) — annars skulle
+    // den åsidosätta kategori-/standardregeln vid första importen.
+    tiersEnabled: false,
+    tiers: DEFAULT_PRICING_TIERS.map((t) => ({ ...t })),
+    rounding: base.rounding,
   };
 }
 

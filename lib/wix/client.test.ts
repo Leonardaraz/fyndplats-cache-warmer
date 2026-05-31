@@ -64,6 +64,51 @@ describe("buildCreateProductBody — swatches", () => {
   });
 });
 
+describe("buildCreateProductBody — inventory + cost + SEO (fixes 1/3/4)", () => {
+  it("embeds inventoryItem with quantity per variant (in-line lager-skapande)", () => {
+    const body = buildCreateProductBody({
+      ...base,
+      variants: [
+        { sku: "s1", actualPrice: "199.00", choices: { Färg: "Röd" }, visible: true, inventoryQuantity: 10 },
+        { sku: "s2", actualPrice: "199.00", choices: { Färg: "Blå" }, visible: false, inventoryQuantity: 0 },
+      ],
+    });
+    const variants = getVariants(body);
+    expect(variants[0].inventoryItem).toEqual({ trackQuantity: true, quantity: 10 });
+    expect(variants[1].inventoryItem).toEqual({ trackQuantity: true, quantity: 0 });
+  });
+
+  it("sets revenueDetails.cost (Varukostnad) when costAmount is given", () => {
+    const body = buildCreateProductBody({
+      ...base,
+      variants: [{ sku: "s1", actualPrice: "199.00", choices: { Färg: "Röd" }, visible: true, costAmount: "42.50" }],
+    });
+    expect(getVariants(body)[0].revenueDetails).toEqual({ cost: { amount: "42.50" } });
+  });
+
+  it("emits meta description + og:title/og:description as custom SEO tags", () => {
+    const body = buildCreateProductBody({
+      ...base,
+      seo: { title: "Snygg lampa", description: "En varm bordslampa för hemmet." },
+    });
+    const tags = (body.product as { seoData: { tags: any[] } }).seoData.tags;
+
+    const metaDesc = tags.find((t) => t.type === "meta" && t.props?.name === "description");
+    expect(metaDesc).toMatchObject({
+      props: { name: "description", content: "En varm bordslampa för hemmet." },
+      custom: true,
+    });
+
+    const ogTitle = tags.find((t) => t.props?.property === "og:title");
+    expect(ogTitle).toMatchObject({ props: { content: "Snygg lampa" }, custom: true });
+
+    const ogDesc = tags.find((t) => t.props?.property === "og:description");
+    expect(ogDesc).toMatchObject({ props: { content: "En varm bordslampa för hemmet." }, custom: true });
+
+    expect(tags.some((t) => t.props?.property === "og:type")).toBe(true);
+  });
+});
+
 describe("createProduct — DUPLICATE_SLUG_ERROR retry", () => {
   const ORIGINAL_FETCH = global.fetch;
   const ORIGINAL_WARN = console.warn;

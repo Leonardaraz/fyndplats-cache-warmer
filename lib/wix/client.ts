@@ -13,6 +13,18 @@ export interface WixVariantInput {
   /** Mappning optionsnamn -> valt värde, t.ex. { Färg: "Röd", Storlek: "M" }. */
   choices: Record<string, string>;
   visible?: boolean;
+  /**
+   * Initialt lagersaldo. Sätts via /products-with-inventory så lagerposterna
+   * skapas vid import (Wix skapar dem INTE automatiskt vid vanlig create →
+   * produkten blev annars "Slut i lager"). undefined = inget lager skapas.
+   */
+  inventoryQuantity?: number;
+  /**
+   * Varukostnad (inköp) i butikens valuta, decimalsträng. Mappar till V3:s
+   * variantsInfo.variants[].revenueDetails.cost → driver Wix lönsamhetsrapporter
+   * och /admin/profitability (istället för 30%-antagande).
+   */
+  costAmount?: string;
 }
 
 export interface WixProductInput {
@@ -90,6 +102,14 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
           actualPrice: { amount: v.actualPrice },
           ...(v.compareAtPrice ? { compareAtPrice: { amount: v.compareAtPrice } } : {}),
         },
+        // Varukostnad → V3 revenueDetails.cost (Wix räknar marginal/vinst på detta).
+        ...(v.costAmount ? { revenueDetails: { cost: { amount: v.costAmount } } } : {}),
+        // Lagerpost skapas in-line (endast via /products-with-inventory). quantity>0
+        // → availabilityStatus=IN_STOCK. trackQuantity=true så daglig OOS-sync kan
+        // flippa saldot till 0 senare.
+        ...(v.inventoryQuantity !== undefined
+          ? { inventoryItem: { trackQuantity: true, quantity: Math.max(0, Math.trunc(v.inventoryQuantity)) } }
+          : {}),
         choices: Object.entries(v.choices).map(([optionName, choiceName]) => ({
           optionChoiceNames: {
             optionName,
@@ -106,14 +126,44 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
   if (input.brandName) product.brand = { name: input.brandName };
   if (input.ribbonName) product.ribbon = { name: input.ribbonName };
   if (input.seo) {
-    product.seoData = {
-      tags: [
-        ...(input.seo.title ? [{ type: "title", children: input.seo.title }] : []),
-        ...(input.seo.description
-          ? [{ type: "meta", props: { name: "description", content: input.seo.description } }]
-          : []),
-      ],
-    };
+    // VIKTIGT (bug 2026-05-31): Wix SEO-panelen visade "Ingen produktbeskrivning"
+    // trots att metabeskrivningen sattes. Två orsaker, båda fixade här:
+    //   1. Taggarna måste markeras `custom: true` (annars behandlar Wix dem som
+    //      auto-genererade defaults och panelen visar dem som tomma/overridebara).
+    //   2. og:description/og:title saknades helt → ingen social-preview-text.
+    // Shapen speglar lib/seo/enrich.ts (den verifierat fungerande enrichern):
+    // meta name=description, plus og:title/og:description/og:type via props.property.
+    const tags: Array<Record<string, unknown>> = [];
+    if (input.seo.title) {
+      tags.push({ type: "title", children: input.seo.title });
+      tags.push({
+        type: "meta",
+        props: { property: "og:title", content: input.seo.title },
+        children: "",
+        custom: true,
+      });
+    }
+    if (input.seo.description) {
+      tags.push({
+        type: "meta",
+        props: { name: "description", content: input.seo.description },
+        children: "",
+        custom: true,
+      });
+      tags.push({
+        type: "meta",
+        props: { property: "og:description", content: input.seo.description },
+        children: "",
+        custom: true,
+      });
+    }
+    tags.push({
+      type: "meta",
+      props: { property: "og:type", content: "product" },
+      children: "",
+      custom: true,
+    });
+    product.seoData = { tags };
   }
   if (input.options?.length) {
     product.options = input.options.map((o) => {
@@ -249,7 +299,12 @@ type CreateProductAttempt =
   | { ok: false; status: number; body: string; errorCode?: string };
 
 async function attemptCreateProduct(input: WixProductInput): Promise<CreateProductAttempt> {
-  const res = await fetch(`${WIX_BASE}/stores/v3/products`, {
+  // VIKTIGT: /products-with-inventory (INTE /products). Wix skapar INTE lagerposter
+  // automatiskt vid vanlig create — utan dem blir varianterna "Slut i lager" och
+  // den separata setInitialStock-queryn hittade inga poster att uppdatera (bug
+  // 2026-05-31, andra försöket). Denna endpoint skapar produkt + lager atomiskt
+  // via variantsInfo.variants[].inventoryItem som buildCreateProductBody sätter.
+  const res = await fetch(`${WIX_BASE}/stores/v3/products-with-inventory`, {
     method: "POST",
     headers: wixHeaders(),
     body: JSON.stringify(buildCreateProductBody(input)),

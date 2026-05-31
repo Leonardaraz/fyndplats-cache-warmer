@@ -17,7 +17,7 @@
 import { getBulkImportStore, type BulkImportItem, type BulkImportJob } from "./store";
 import { fetchAliExpressProductFromUrl } from "../import/from-url";
 import { importProduct } from "../import/pipeline";
-import { pricingConfigFromEnv } from "../config";
+import { getPricingRules } from "../store/pricing-config";
 import { getStore } from "../store/factory";
 import { getImportCostStore } from "../store/import-costs";
 import { audit } from "../audit";
@@ -265,8 +265,7 @@ async function defaultImporter(item: BulkImportItem): Promise<ImportOutcome> {
     );
   }
 
-  const pricing = pricingConfigFromEnv();
-  const result = await importProduct(fetched.product, pricing);
+  const result = await importProduct(fetched.product, await getPricingRules());
 
   // Spara mapping (samma form som /api/import gör).
   const resultAny = result as unknown as Record<string, unknown>;

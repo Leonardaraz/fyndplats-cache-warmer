@@ -58,12 +58,58 @@ export interface MarkupRule {
   fixedSek: number;
 }
 
+/**
+ * Avrundningsstrategi för slutpris inkl. moms.
+ * - none: två decimaler (ingen avrundning)
+ * - charm90: närmaste heltal som slutar på .90 (t.ex. 249.90)
+ * - charm9: närmaste heltal som slutar på 9 (t.ex. 199, 299, 599)
+ * - integer: närmaste heltal
+ * - nearest10: avrunda UPP till närmaste hela 10-krona (t.ex. 251 → 260)
+ */
+export type RoundingStrategy = "none" | "charm90" | "charm9" | "integer" | "nearest10";
+
 export interface PricingConfig {
   usdToSek: number;
   vatRatePercent: number;
   markup: MarkupRule;
   /** Avrundningsstrategi för slutpris inkl. moms. */
-  rounding: "none" | "charm90" | "integer";
+  rounding: RoundingStrategy;
+}
+
+/** Ett inköpspris-intervall (landad kostnad i SEK) med egen multiplikator. */
+export interface PricingTier {
+  /** Nedre gräns inklusive (SEK). */
+  minCostSek: number;
+  /** Övre gräns exklusive (SEK). null = oändligt (>minCostSek). */
+  maxCostSek: number | null;
+  multiplier: number;
+}
+
+/**
+ * Komplett prissättningskonfig som Leonard redigerar i /admin/pricing och som
+ * persisteras i Wix Data-kollektionen FyndplatsPricingConfig (en enda rad).
+ * Läses i lib/import/pricing.ts vid varje import.
+ *
+ * Multiplikator-prioritet (mest specifik vinner):
+ *   1. matchande intervall-regel (om tiersEnabled)
+ *   2. per-kategori-regel (om produktens kategori har en regel)
+ *   3. defaultMultiplier
+ * Det fasta påslaget (fixedSurchargeSek) läggs alltid på ovanpå den valda
+ * multiplikatorn (0 = inget påslag).
+ */
+export interface PricingRules {
+  usdToSek: number;
+  vatRatePercent: number;
+  /** Standardmultiplikator när ingen kategori-/intervallregel matchar. */
+  defaultMultiplier: number;
+  /** Fast påslag i SEK (exkl. moms). 0 = av. */
+  fixedSurchargeSek: number;
+  /** Per-kategori-multiplikatorer, nyckel = Wix-kollektionens namn. */
+  categoryMultipliers: Record<string, number>;
+  /** Om true används intervall-reglerna före kategori-/standardregeln. */
+  tiersEnabled: boolean;
+  tiers: PricingTier[];
+  rounding: RoundingStrategy;
 }
 
 export interface PriceBreakdown {

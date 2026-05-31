@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthorized } from "@/lib/auth";
-import { pricingConfigFromEnv } from "@/lib/config";
+import { getPricingRules } from "@/lib/store/pricing-config";
 import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
@@ -131,7 +131,7 @@ export async function POST(req: Request) {
   try {
     const result = await importProduct(
       product as AliExpressProduct,
-      pricingConfigFromEnv(),
+      await getPricingRules(),
       optionColorCodes,
       featureFlags,
     );

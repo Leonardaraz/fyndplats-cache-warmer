@@ -13,7 +13,7 @@ import {
 } from "@/lib/aliexpress/client";
 import { classifyWarehouses } from "@/lib/aliexpress/eu-countries";
 import { audit } from "@/lib/audit";
-import { pricingConfigFromEnv } from "@/lib/config";
+import { getPricingRules } from "@/lib/store/pricing-config";
 import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
@@ -110,7 +110,7 @@ export async function importByUrlAction(url: string): Promise<ImportActionRespon
       })),
     };
 
-    const result = await importProduct(adapted, pricingConfigFromEnv());
+    const result = await importProduct(adapted, await getPricingRules());
 
     // Spara mappingen (med warehouse-fält) — duplicerar route.ts-logiken
     // men håller actionen självförsörjande.

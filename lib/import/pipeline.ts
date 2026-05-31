@@ -1,10 +1,11 @@
-import { computePrice } from "./pricing";
+import { computePriceWithRules } from "./pricing";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
-import type { AliExpressProduct, FeatureFlags, PricingConfig } from "./types";
+import type { AliExpressProduct, FeatureFlags, PricingRules } from "./types";
 import {
   addProductToCollection,
   createProduct,
   getCollections,
+  type WixCollection,
   type WixProductInput,
   type WixVariantInput,
 } from "../wix/client";
@@ -23,8 +24,7 @@ import {
   uniqueShipFromCodes,
   type WarehouseClass,
 } from "../aliexpress/eu-countries";
-import { audit, isDryRun } from "../audit";
-import { syncProductStock, type DesiredStock } from "../sync/inventory";
+import { audit } from "../audit";
 
 export interface VariantMapping {
   supplierVariantId: string;
@@ -105,7 +105,7 @@ export function deriveOptions(
  */
 export async function importProduct(
   product: AliExpressProduct,
-  config: PricingConfig,
+  rules: PricingRules,
   colorCodes?: OptionColorCodes,
   flags?: FeatureFlags,
 ): Promise<ImportResult> {
@@ -134,6 +134,17 @@ export async function importProduct(
   const seo = await seoPromise;
   const imageVerdicts = await imageAnalysisPromise;
 
+  // Kategoriförslaget beräknas FÖRE prissättningen så per-kategori-multiplikatorn
+  // kan tillämpas (Fix 5). Kräver bara seo + kollektioner (båda klara här); själva
+  // Wix-tilldelningen sker efter create (kräver productId).
+  const collections = await collectionsPromise;
+  const categorySuggestion = await suggestCategoryRecord(seo, product, collections);
+  const categoryName = categorySuggestion.collectionName ?? null;
+
+  // Initialt lagersaldo per variant. quantity>0 → availabilityStatus=IN_STOCK.
+  // Default IN_STOCK (AE-produkter säljer aktivt); explicit OOS från skrapan → 0.
+  const stockQty = product.inStock === false ? 0 : defaultStockQty();
+
   // Omsortera bilderna efter verdict: ok först, warn sedan, reject sist. Inga
   // bilder tas bort (se orderImagesByVerdict) — vi vill hellre ha med en bild med
   // lite text än att stå utan bilder helt.
@@ -151,7 +162,7 @@ export async function importProduct(
   const variantMappings: VariantMapping[] = [];
   const wixVariants: WixVariantInput[] = product.variants.map((v) => {
     const sku = makeSku(product.supplierProductId, v.supplierVariantId);
-    const price = computePrice(v.costUsd, config);
+    const price = computePriceWithRules(v.costUsd, rules, categoryName);
     if (v.included) {
       variantMappings.push({
         supplierVariantId: v.supplierVariantId,
@@ -167,6 +178,11 @@ export async function importProduct(
       actualPrice: price.grossSek.toFixed(2),
       choices: v.options,
       visible: v.included,
+      // Lager skapas in-line via /products-with-inventory (Fix 1). Ej inkluderade
+      // (visible:false) varianter får 0 så de inte felaktigt signalerar lager.
+      inventoryQuantity: v.included ? stockQty : 0,
+      // Varukostnad (landad inköp i SEK) → Wix revenueDetails.cost (Fix 4).
+      costAmount: price.costSek.toFixed(2),
     };
   });
 
@@ -221,23 +237,23 @@ export async function importProduct(
     m.wixVariantId = skuToWixId.get(m.sku);
   }
 
-  // --- Initialt lagersaldo (bug 2026-05-31) -------------------------------
-  // Nyskapade Wix V3-produkter får annars availabilityStatus=OUT_OF_STOCK
-  // ("Slut i lager") direkt — lagerposterna skapas utan saldo. Vi sätter därför
-  // explicit ett saldo så importerade produkter blir köpbara. Default-antagande:
-  // IN_STOCK (AE-produkter säljer aktivt) om inte skrapan signalerat OOS.
-  // trackQuantity sätts true (av bulkUpdateInventoryQuantities) så att den
-  // dagliga OOS-syncen kan flippa saldot till 0 senare.
-  await setInitialStock(created.id, created.variants, product.inStock);
+  // --- Initialt lagersaldo (bug 2026-05-31, slutgiltig fix) ----------------
+  // Lagerposterna skapas nu IN-LINE i createProduct (/products-with-inventory)
+  // med quantity=stockQty per inkluderad variant. Tidigare separata query→update
+  // no-op:ade eftersom Wix INTE skapar lagerposter vid vanlig create — det var
+  // därför produkterna fortsatte visas "Slut i lager". Här loggar vi bara utfallet.
+  const includedCount = product.variants.filter((v) => v.included).length;
+  await audit(
+    "import-initial-stock",
+    created.id,
+    `${product.inStock === false ? "OOS" : "IN_STOCK"} qty=${stockQty} på ${includedCount} variant(er) (in-line via products-with-inventory)`,
+  );
 
-  // Kategorisering. Vänta in collections (kan vara tom om Wix-call misslyckats).
-  const collections = await collectionsPromise;
-  const categorySuggestion = await suggestCategoryRecord(seo, product, collections);
-
-  // Auto-assign vid hög confidence.
+  // Auto-assign kategorin (beräknad före prissättningen ovan). Tilldelningen sker
+  // här eftersom den kräver det persisterade productId:t. Ett retry-försök vid fel.
   if (categorySuggestion.status === "auto" && categorySuggestion.collectionId) {
     try {
-      await addProductToCollection(created.id, categorySuggestion.collectionId);
+      await assignCollectionWithRetry(created.id, categorySuggestion.collectionId);
       await audit(
         "category-auto-assign",
         created.id,
@@ -306,38 +322,18 @@ function defaultStockQty(): number {
 }
 
 /**
- * Sätter initialt lagersaldo på en nyimporterad produkts varianter. In-stock
- * (default) → placeholder-saldo (10); explicit OOS → 0. Best-effort: ett fel här
- * får inte fälla hela importen (produkten är redan skapad). Skippas i dry-run.
+ * Lägger produkten i en kollektion med ett retry-försök. Direkt efter create kan
+ * V3-katalogen vara någon hundradels sekund efter sig (eventual consistency) →
+ * ett snabbt omtag undviker att ett tillfälligt 404/409 demoterar kategorin till
+ * "suggested" i onödan.
  */
-async function setInitialStock(
-  wixProductId: string,
-  variants: { id: string; sku: string }[],
-  inStock: boolean | undefined,
-): Promise<void> {
-  if (isDryRun()) return;
-  if (variants.length === 0) return;
-  // Default IN_STOCK: bara explicit `false` från skrapan räknas som OOS.
-  const quantity = inStock === false ? 0 : defaultStockQty();
-  const desired: DesiredStock[] = variants.map((v) => ({ wixVariantId: v.id, quantity }));
+async function assignCollectionWithRetry(productId: string, collectionId: string): Promise<void> {
   try {
-    const res = await syncProductStock(wixProductId, desired);
-    await audit(
-      "import-initial-stock",
-      wixProductId,
-      `${inStock === false ? "OOS" : "IN_STOCK"} qty=${quantity} satt på ${res.updated} variant(er)` +
-        (res.unmatched.length ? ` (${res.unmatched.length} omatchade)` : ""),
-    );
+    await addProductToCollection(productId, collectionId);
   } catch (err) {
-    console.warn(
-      "[import] setInitialStock failade (icke-fatalt):",
-      err instanceof Error ? err.message : String(err),
-    );
-    await audit(
-      "import-initial-stock-failed",
-      wixProductId,
-      err instanceof Error ? err.message.slice(0, 200) : String(err),
-    );
+    await new Promise((r) => setTimeout(r, 400));
+    await addProductToCollection(productId, collectionId);
+    void err;
   }
 }
 
@@ -386,11 +382,15 @@ function countByVerdict(verdicts: ImageAnalysisResult[]): {
   return { ok, warn, reject };
 }
 
-/** Wrap getCollections så ett fel inte fäller hela importen. */
-async function getCollectionsSafe(): Promise<CollectionOption[]> {
+/**
+ * Wrap getCollections så ett fel inte fäller hela importen. Returnerar de FULLA
+ * kollektionerna (inkl. id) så categorISeringen kan slå upp id:t utan ett andra
+ * nätverksanrop (tidigare gjordes en redundant getCollections() som var en extra
+ * felpunkt → kategorin demoterades ibland i onödan).
+ */
+async function getCollectionsSafe(): Promise<WixCollection[]> {
   try {
-    const cols = await getCollections();
-    return cols.map((c) => ({ slug: c.slug, name: c.name, description: c.description }));
+    return await getCollections();
   } catch (err) {
     console.warn(
       "[import] getCollections failed, hoppar över kategorisering:",
@@ -401,13 +401,13 @@ async function getCollectionsSafe(): Promise<CollectionOption[]> {
 }
 
 /**
- * Översätter Claudes suggestion till en CategorySuggestionRecord — inkl.
- * att slå upp Wix collection-id för auto-assign.
+ * Översätter Claudes suggestion till en CategorySuggestionRecord — inkl. att slå
+ * upp Wix collection-id för auto-assign ur den redan hämtade kollektionslistan.
  */
 async function suggestCategoryRecord(
   seo: SeoResult,
   product: AliExpressProduct,
-  collections: CollectionOption[],
+  collections: WixCollection[],
 ): Promise<CategorySuggestionRecord> {
   if (collections.length === 0) {
     return {
@@ -418,10 +418,15 @@ async function suggestCategoryRecord(
     };
   }
 
+  const options: CollectionOption[] = collections.map((c) => ({
+    slug: c.slug,
+    name: c.name,
+    description: c.description,
+  }));
   const suggestion: CategorySuggestion = await suggestCategory(
     seo.title,
     seo.descriptionHtml || product.rawDescription,
-    collections,
+    options,
   );
 
   if (!suggestion.collectionSlug) {
@@ -433,14 +438,16 @@ async function suggestCategoryRecord(
     };
   }
 
-  // Slå upp Wix-id + namn för slug:en (för auto-assign + visning).
-  const wixCols = await getCollections().catch(() => []);
-  const match = wixCols.find((c) => c.slug === suggestion.collectionSlug);
+  // Slå upp Wix-id + namn för slug:en ur den redan hämtade listan (inget extra anrop).
+  const match = collections.find((c) => c.slug === suggestion.collectionSlug);
   const collectionId = match?.id;
   const collectionName = match?.name ?? suggestion.collectionSlug;
 
+  // Auto-assign-tröskel sänkt 0.7 → 0.6: Haiku-kategoriseraren landar ofta i
+  // 0.6–0.7-bandet ("tydlig men inte glasklar match") och produkterna fastnade då
+  // som "suggested" utan att faktiskt få en kategori satt (Fix 2). 0.6 = tydlig match.
   let status: CategorySuggestionRecord["status"];
-  if (suggestion.confidence > 0.7 && collectionId) status = "auto";
+  if (suggestion.confidence >= 0.6 && collectionId) status = "auto";
   else if (suggestion.confidence >= 0.4) status = "suggested";
   else status = "uncategorized";
 
