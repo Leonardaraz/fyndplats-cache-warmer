@@ -35,6 +35,8 @@ const ProductSchema = z.object({
   // Aggregerade warehouse-koder från extension/page-scraper.
   // Tom array eller saknas → ingen EU-flagga sätts.
   shipsFrom: z.array(z.string().max(8)).optional(),
+  // Lagerstatus från skrapan. Saknas = i lager (default-antagande).
+  inStock: z.boolean().optional(),
   // Färgkoder samplade från produktbilden: { [optionName]: { [choiceName]: "#hex" } }.
   optionColorCodes: z.record(z.record(z.string())).optional(),
   // AI-funktionsväljare från extension-popupen. Saknas = allt på (default).

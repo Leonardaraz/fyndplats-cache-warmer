@@ -35,6 +35,8 @@ async function importProduct(product, featureFlags) {
     // Aggregerade warehouse-koder för EU-filterringen (t.ex. ["ES","CN"]).
     // Tom = okänd — API:t hanterar det som UNKNOWN i Wix-metadatat.
     shipsFrom: Array.isArray(product.shipsFrom) ? product.shipsFrom : [],
+    // Lagerstatus från skrapan. Bara explicit false = OOS; annars i lager.
+    ...(typeof product.inStock === "boolean" ? { inStock: product.inStock } : {}),
     variants: product.variants.map((v) => ({
       supplierVariantId: v.supplierVariantId,
       options: v.options || {},

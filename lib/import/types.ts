@@ -30,6 +30,12 @@ export interface AliExpressProduct {
    * Tom = okänt warehouse (importeras utan EU-flagga).
    */
   shipsFrom?: string[];
+  /**
+   * Lagerstatus läst från AliExpress-sidan. `false` = sidan signalerade
+   * slutsåld/out-of-stock. `true`/utelämnat = i lager (default-antagande —
+   * AE-produkter säljer aktivt). Styr initialt Wix-lagersaldo vid import.
+   */
+  inStock?: boolean;
 }
 
 /**

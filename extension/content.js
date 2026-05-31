@@ -118,8 +118,70 @@ function cleanImageUrl(u) {
   if (!u) return "";
   let s = String(u).trim();
   if (s.startsWith("//")) s = "https:" + s;
+  // Strippar AE:s storleks-/format-suffix efter filändelsen, t.ex.
+  // "….jpg_220x220q75.jpg_.avif" eller "….png_640x640.png" → "….jpg"/"….png".
   s = s.replace(/(\.(?:jpg|jpeg|png|webp|gif|avif|bmp))_[^/]*$/i, "$1");
   return s;
+}
+
+// --- Bild-extraktion (lager 4, DOM) --------------------------------------
+// Bug 2026-05-31: tidigare fångades bara ~3 bilder. AE har många fler källor:
+// huvud-slider, thumbnails, zoom/magnifier-versioner och färg-swatch-bilder.
+// Vi samlar från alla och låter CDN-filtret + dedup i extract() städa.
+//
+// Ordning = prioritet: huvudgalleri (hero + thumbs) först, färg-swatchar sist
+// (de är giltiga produktbilder men mindre representativa som hero).
+const GALLERY_IMG_SELECTORS = [
+  '[class*="slider--item"] img',
+  '[class*="slider--img"] img',
+  '[class*="image-view"] img',
+  '[class*="magnifier"] img',
+];
+const SWATCH_IMG_SELECTORS = ['[class*="sku-item--imageWrap"] img'];
+
+function collectImgSrc(selectors, out) {
+  for (const sel of selectors) {
+    for (const img of document.querySelectorAll(sel)) {
+      // AE lazy-laddar — riktiga full-res-URL:en ligger ofta i data-src/srcset.
+      const src = img.getAttribute("src") || img.getAttribute("data-src") || "";
+      if (src) out.push(src);
+      const srcset = img.getAttribute("srcset") || "";
+      if (srcset) {
+        // Sista kandidaten i srcset är störst.
+        const last = srcset.split(",").pop();
+        const url = last && last.trim().split(/\s+/)[0];
+        if (url) out.push(url);
+      }
+    }
+  }
+}
+
+// Samlar galleri- + swatch-bilder ur DOM (hero/thumbs först, swatchar sist).
+function collectDomImages() {
+  const out = [];
+  collectImgSrc(GALLERY_IMG_SELECTORS, out);
+  collectImgSrc(SWATCH_IMG_SELECTORS, out);
+  return out;
+}
+
+// --- Lagerstatus (bug 2026-05-31) ----------------------------------------
+// AE-produkter visas annars som "Slut i lager" i Wix för att vi aldrig läste
+// lagerstatus. Default-antagande: I LAGER (AE-produkter säljer aktivt). Bara en
+// stark OOS-signal sätter false.
+function detectInStock() {
+  // Köpknapp-/action-området är mest tillförlitligt; falla tillbaka på body.
+  const actionEl =
+    document.querySelector('[class*="product-action"], [class*="pdp-info-right"], [class*="buy"]') ||
+    document.body;
+  const txt = (actionEl && (actionEl.innerText || actionEl.textContent)) || "";
+  // Stark OOS-signal nära köp-ytan.
+  if (/\b(out of stock|sold out|no longer available|inte tillgänglig|slutsåld|slut i lager)\b/i.test(txt)) {
+    return false;
+  }
+  // "X available" / "X st kvar" → uttryckligen i lager.
+  if (/\d+\s*(available|in stock|st\b|kvar)/i.test(txt)) return true;
+  // Default: i lager (bättre default än OOS).
+  return true;
 }
 
 // --- Lager 1+2: inbäddad JSON --------------------------------------------
@@ -298,6 +360,8 @@ function extract() {
     variants: [],
     swatchImages: {},
     shipsFrom: [],
+    // Lagerstatus — default i lager (sätts nedan via detectInStock + ev. SKU-saldo).
+    inStock: true,
     _warnings: [],
     // Sätts nedan: om vi kunde extrahera användbar produktdata (titel + bild +
     // pris). Popupen vägrar importera när detta är false.
@@ -404,19 +468,21 @@ function extract() {
       (document.querySelector("h1") || {}).textContent ||
       "";
   }
-  if (result.imageUrls.length === 0) {
-    // Galleri-bilder (nya layouten: slider/image-view/magnifier på *-media.com).
-    let imgs = [
-      ...document.querySelectorAll(
-        '[class*="slider--img"] img, [class*="image-view"] img, [class*="slider--item"] img, [class*="magnifier"] img',
-      ),
-    ].map((img) => img.src);
-    // OG-bild som fallback.
+  // Bug 2026-05-31: hämta ALLTID galleri- + swatch-bilder ur DOM och slå ihop med
+  // det inbäddad data/JSON-LD gav (tidigare togs DOM-bilder bara när listan var
+  // tom → vi fastnade på ~3 bilder). CDN-filtret + dedup nedan städar bort dubbletter
+  // och icke-AE-bilder; målet är 6–12 bilder per produkt.
+  {
+    const domImgs = collectDomImages();
+    if (domImgs.length) result.imageUrls = result.imageUrls.concat(domImgs);
+    // OG-bild som komplement/fallback.
     const og = metaContent('meta[property="og:image"]');
-    if (og) imgs.push(og);
-    // Sista utväg: alla img på sidan (filtreras på CDN nedan).
-    if (imgs.length === 0) imgs = [...document.querySelectorAll("img")].map((img) => img.src);
-    result.imageUrls = imgs;
+    if (og) result.imageUrls.push(og);
+    // Sista utväg om vi fortfarande står utan bilder: alla img på sidan (filtreras
+    // på CDN nedan så bara AliExpress-bilder överlever).
+    if (result.imageUrls.length === 0) {
+      result.imageUrls = [...document.querySelectorAll("img")].map((img) => img.src);
+    }
   }
   if (!result.rawDescription) {
     result.rawDescription = metaContent('meta[name="description"]');
@@ -496,6 +562,19 @@ function extract() {
 
   // Ship-from-koder ihopsamlade från data + DOM.
   result.shipsFrom = [...shipCodes].sort();
+
+  // Lagerstatus: börja med DOM-signalen (köp-knapp/text). Om inbäddad SKU-data
+  // har explicita saldon väger de tyngst: alla 0 → OOS, något > 0 → i lager.
+  result.inStock = detectInStock();
+  if (hasRealVariants) {
+    const stocks = result.variants
+      .map((v) => v.stock)
+      .filter((s) => typeof s === "number");
+    if (stocks.length) {
+      if (stocks.some((s) => s > 0)) result.inStock = true;
+      else if (stocks.every((s) => s === 0)) result.inStock = false;
+    }
+  }
 
   // Syntetisk default-variant om inga hittades (saknar pris → räknas inte som
   // giltig prisinfo nedan, vilket gör att importen vägras).

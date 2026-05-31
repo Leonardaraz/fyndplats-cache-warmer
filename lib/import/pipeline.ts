@@ -23,7 +23,8 @@ import {
   uniqueShipFromCodes,
   type WarehouseClass,
 } from "../aliexpress/eu-countries";
-import { audit } from "../audit";
+import { audit, isDryRun } from "../audit";
+import { syncProductStock, type DesiredStock } from "../sync/inventory";
 
 export interface VariantMapping {
   supplierVariantId: string;
@@ -133,12 +134,13 @@ export async function importProduct(
   const seo = await seoPromise;
   const imageVerdicts = await imageAnalysisPromise;
 
-  // Filtrera bort rejected bilder från huvudgalleriet. Warns demoteras (läggs
-  // sist) men följer ändå med så Leonard kan välja att behålla dem.
+  // Omsortera bilderna efter verdict: ok först, warn sedan, reject sist. Inga
+  // bilder tas bort (se orderImagesByVerdict) — vi vill hellre ha med en bild med
+  // lite text än att stå utan bilder helt.
   const orderedImageUrls = orderImagesByVerdict(product.imageUrls, imageVerdicts);
 
-  // Ladda upp bilder till Wix Media Manager parallellt med variant-/options-bygget.
-  // Endast bilder som inte är "reject" laddas upp — sparar tid och Wix-storage.
+  // Ladda upp samtliga (omsorterade) bilder till Wix Media Manager parallellt med
+  // variant-/options-bygget.
   const mediaPromise = importMediaUrls(
     orderedImageUrls.map((url, i) => ({ url, displayName: `${seo.slug || "produkt"}-${i + 1}` })),
   );
@@ -219,6 +221,15 @@ export async function importProduct(
     m.wixVariantId = skuToWixId.get(m.sku);
   }
 
+  // --- Initialt lagersaldo (bug 2026-05-31) -------------------------------
+  // Nyskapade Wix V3-produkter får annars availabilityStatus=OUT_OF_STOCK
+  // ("Slut i lager") direkt — lagerposterna skapas utan saldo. Vi sätter därför
+  // explicit ett saldo så importerade produkter blir köpbara. Default-antagande:
+  // IN_STOCK (AE-produkter säljer aktivt) om inte skrapan signalerat OOS.
+  // trackQuantity sätts true (av bulkUpdateInventoryQuantities) så att den
+  // dagliga OOS-syncen kan flippa saldot till 0 senare.
+  await setInitialStock(created.id, created.variants, product.inStock);
+
   // Kategorisering. Vänta in collections (kan vara tom om Wix-call misslyckats).
   const collections = await collectionsPromise;
   const categorySuggestion = await suggestCategoryRecord(seo, product, collections);
@@ -288,9 +299,59 @@ export async function importProduct(
 
 // --- Helpers ---------------------------------------------------------------
 
+/** Placeholder-saldo för en in-stock-produkt. Override: IMPORT_DEFAULT_STOCK_QTY. */
+function defaultStockQty(): number {
+  const n = Number(process.env.IMPORT_DEFAULT_STOCK_QTY);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 10;
+}
+
 /**
- * Returnerar bild-URL:er i ny ordning: ok-bilder först, warns sist, rejects
- * helt borttagna. Bevarar ursprunglig ordning inom varje grupp.
+ * Sätter initialt lagersaldo på en nyimporterad produkts varianter. In-stock
+ * (default) → placeholder-saldo (10); explicit OOS → 0. Best-effort: ett fel här
+ * får inte fälla hela importen (produkten är redan skapad). Skippas i dry-run.
+ */
+async function setInitialStock(
+  wixProductId: string,
+  variants: { id: string; sku: string }[],
+  inStock: boolean | undefined,
+): Promise<void> {
+  if (isDryRun()) return;
+  if (variants.length === 0) return;
+  // Default IN_STOCK: bara explicit `false` från skrapan räknas som OOS.
+  const quantity = inStock === false ? 0 : defaultStockQty();
+  const desired: DesiredStock[] = variants.map((v) => ({ wixVariantId: v.id, quantity }));
+  try {
+    const res = await syncProductStock(wixProductId, desired);
+    await audit(
+      "import-initial-stock",
+      wixProductId,
+      `${inStock === false ? "OOS" : "IN_STOCK"} qty=${quantity} satt på ${res.updated} variant(er)` +
+        (res.unmatched.length ? ` (${res.unmatched.length} omatchade)` : ""),
+    );
+  } catch (err) {
+    console.warn(
+      "[import] setInitialStock failade (icke-fatalt):",
+      err instanceof Error ? err.message : String(err),
+    );
+    await audit(
+      "import-initial-stock-failed",
+      wixProductId,
+      err instanceof Error ? err.message.slice(0, 200) : String(err),
+    );
+  }
+}
+
+/**
+ * Returnerar bild-URL:er omsorterade efter verdict: ok först, warns sedan,
+ * rejects SIST. Bevarar ursprunglig ordning inom varje grupp.
+ *
+ * VIKTIGT (bug 2026-05-31): rejects tas INTE bort längre. Tidigare slängdes de,
+ * vilket i kombination med en för sträng vision-prompt gav produkter med NOLL
+ * bilder (alla AE-bilder flaggades pga dekorativ text/rea-badge). Nu behåller vi
+ * alltid alla bilder och demoterar bara de sämsta sist — "hellre någon bild än
+ * ingen". Den lättade prompten (se IMAGE_SYSTEM) gör dessutom att äkta rejects
+ * blir sällsynta. Safety-cap: även om HELA uppsättningen flaggas som reject
+ * behåller vi dem (de hamnar bara sist) → galleriet blir aldrig tomt.
  */
 export function orderImagesByVerdict(
   urls: string[],
@@ -299,13 +360,14 @@ export function orderImagesByVerdict(
   const verdictByUrl = new Map(verdicts.map((v) => [v.url, v.verdict]));
   const ok: string[] = [];
   const warn: string[] = [];
+  const reject: string[] = [];
   for (const url of urls) {
     const v = verdictByUrl.get(url);
-    if (v === "reject") continue;
-    if (v === "warn") warn.push(url);
+    if (v === "reject") reject.push(url);
+    else if (v === "warn") warn.push(url);
     else ok.push(url); // "ok" + okänd (fail-open)
   }
-  return [...ok, ...warn];
+  return [...ok, ...warn, ...reject];
 }
 
 function countByVerdict(verdicts: ImageAnalysisResult[]): {
