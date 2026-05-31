@@ -120,9 +120,20 @@ async function callApi<T>(
     const responseKey = method.replaceAll(".", "_") + "_response";
     const data = (json[responseKey] ?? json) as Record<string, unknown>;
     // Både `code` (legacy /sync) och `rsp_code` (DS API) kan signalera fel.
+    // OBS: vissa AliExpress-endpoints (text.search, recommend.feed) returnerar
+    // "00" som success-kod — så vi tillåter både "0"/0/"00"/200/"200".
     const codeRaw = data.code ?? data.rsp_code;
-    if (codeRaw !== undefined && codeRaw !== null && codeRaw !== 0 && codeRaw !== "0" && codeRaw !== 200 && codeRaw !== "200") {
-          throw new Error(`AliExpress API-fel ${codeRaw}: ${JSON.stringify(data).slice(0, 400)}`);
+    const isSuccessCode =
+      codeRaw === undefined
+      || codeRaw === null
+      || codeRaw === 0
+      || codeRaw === "0"
+      || codeRaw === "00"
+      || codeRaw === 200
+      || codeRaw === "200";
+    if (!isSuccessCode) {
+      const msg = data.msg ?? data.rsp_msg ?? data.sub_msg ?? data.message ?? "okänt fel";
+      throw new Error(`AliExpress API-fel ${codeRaw}: ${msg}`);
     }
     return data as T;
 }
@@ -461,29 +472,118 @@ export interface AliExpressSearchResult {
   productId: string;
   title: string;
   imageUrl?: string;
+  /** Faktiskt försäljningspris (efter rabatt). */
   priceUsd?: number;
+  /** Ordinariepris före rabatt — visa överstruket om != priceUsd. */
+  originalPriceUsd?: number;
+  /** Rabattprocent (0–100). */
+  discountPct?: number;
   productUrl?: string;
 }
 
+interface LegacyRawProduct {
+  product_id?: string;
+  subject?: string;
+  product_main_image_url?: string;
+  app_sale_price?: string;
+  target_app_sale_price?: string;
+  original_price?: string;
+  discount?: string;
+  product_detail_url?: string;
+}
+
+/**
+ * Nyare AliExpress-search-shape (kombinerar text.search v2 + recommend.feed.get).
+ * Fältnamnen varierar mellan endpoints och simplify-flaggor — vi plockar alla
+ * vanliga varianter defensivt.
+ */
+interface NewRawProduct {
+  itemId?: string | number;
+  productId?: string | number;
+  product_id?: string | number;
+  itemTitle?: string;
+  title?: string;
+  subject?: string;
+  itemMainPic?: string;
+  mainPic?: string;
+  product_main_image_url?: string;
+  originalPrice?: string | number | { amount?: string | number; value?: string | number };
+  salePrice?: string | number | { amount?: string | number; value?: string | number };
+  app_sale_price?: string | number;
+  target_app_sale_price?: string | number;
+  discount?: string | number;
+  discountPercent?: string | number;
+  itemUrl?: string;
+  productDetailUrl?: string;
+  product_detail_url?: string;
+  /** Wrapper-shape: data.products[].selection_search_product */
+  selection_search_product?: NewRawProduct;
+}
+
 interface RawSearchResponse {
-  products?: {
-    traffic_image_product_d_t_o?: Array<{
-      product_id?: string;
-      subject?: string;
-      product_main_image_url?: string;
-      app_sale_price?: string;
-      target_app_sale_price?: string;
-      product_detail_url?: string;
-    }>;
+  products?:
+    | { traffic_image_product_d_t_o?: LegacyRawProduct[] }
+    | NewRawProduct[];
+  result_list?: { traffic_image_product_d_t_o?: LegacyRawProduct[] };
+  /** Nyare svar lägger payload under `data` med code "00" på top-level. */
+  data?: {
+    pageIndex?: number;
+    pageSize?: number;
+    totalCount?: number | string;
+    products?: NewRawProduct[] | Record<string, never>;
   };
-  result_list?: {
-    traffic_image_product_d_t_o?: Array<{
-      product_id?: string;
-      subject?: string;
-      product_main_image_url?: string;
-      app_sale_price?: string;
-      product_detail_url?: string;
-    }>;
+  totalCount?: number | string;
+}
+
+function parseAmount(v: unknown): number | undefined {
+  if (v == null || v === "") return undefined;
+  if (typeof v === "number") return Number.isFinite(v) ? v : undefined;
+  if (typeof v === "string") {
+    const n = parseFloat(v.replace(/[^\d.\-]/g, ""));
+    return Number.isFinite(n) ? n : undefined;
+  }
+  if (typeof v === "object") {
+    const obj = v as { amount?: unknown; value?: unknown };
+    return parseAmount(obj.amount ?? obj.value);
+  }
+  return undefined;
+}
+
+function mapLegacy(p: LegacyRawProduct): AliExpressSearchResult {
+  const priceUsd = parseAmount(p.target_app_sale_price ?? p.app_sale_price);
+  const originalPriceUsd = parseAmount(p.original_price);
+  const discountPct = parseAmount(p.discount);
+  return {
+    productId: String(p.product_id ?? ""),
+    title: p.subject ?? "",
+    imageUrl: p.product_main_image_url,
+    priceUsd,
+    originalPriceUsd:
+      originalPriceUsd && priceUsd && originalPriceUsd > priceUsd
+        ? originalPriceUsd
+        : undefined,
+    discountPct,
+    productUrl: p.product_detail_url,
+  };
+}
+
+function mapNew(raw: NewRawProduct): AliExpressSearchResult {
+  // Vissa svar wrapaer varje träff i { selection_search_product: {...} }.
+  const p = raw.selection_search_product ?? raw;
+  const priceUsd = parseAmount(p.salePrice ?? p.target_app_sale_price ?? p.app_sale_price);
+  const originalPriceUsd = parseAmount(p.originalPrice);
+  const discountPct = parseAmount(p.discountPercent ?? p.discount);
+  return {
+    productId: String(p.itemId ?? p.productId ?? p.product_id ?? ""),
+    title: String(p.itemTitle ?? p.title ?? p.subject ?? ""),
+    imageUrl: p.itemMainPic ?? p.mainPic ?? p.product_main_image_url,
+    priceUsd,
+    originalPriceUsd:
+      originalPriceUsd && priceUsd && originalPriceUsd > priceUsd
+        ? originalPriceUsd
+        : undefined,
+    discountPct,
+    productUrl: p.itemUrl ?? p.productDetailUrl ?? p.product_detail_url,
   };
 }
 
@@ -491,6 +591,11 @@ interface RawSearchResponse {
  * Söker AliExpress-produkter via text. Använder aliexpress.ds.text.search-
  * metoden. Om appens permission-grupp inte har sök-tillgång kastar callApi
  * med tydligt felmeddelande (caller fångar och visar paste-URL-fallback).
+ *
+ * Hanterar flera response-shapes:
+ *   1) Legacy: { products: { traffic_image_product_d_t_o: [{subject,...}] } }
+ *   2) Nyare:  { code:"00", data: { products: [{itemMainPic, itemTitle,...}] } }
+ *   3) Wrapper: data.products[].selection_search_product
  */
 export async function searchAliExpressByText(query: string): Promise<AliExpressSearchResult[]> {
     const raw = await callApi<RawSearchResponse>("aliexpress.ds.text.search", {
@@ -503,17 +608,28 @@ export async function searchAliExpressByText(query: string): Promise<AliExpressS
           pageIndex: "1",
     });
 
-  const list = raw.products?.traffic_image_product_d_t_o
-      ?? raw.result_list?.traffic_image_product_d_t_o
-      ?? [];
+  // 1) Legacy: products.traffic_image_product_d_t_o eller result_list.traffic_…
+  const legacyList =
+    (raw.products && !Array.isArray(raw.products)
+      ? raw.products.traffic_image_product_d_t_o
+      : undefined)
+    ?? raw.result_list?.traffic_image_product_d_t_o;
+  if (legacyList && legacyList.length > 0) {
+    return legacyList.slice(0, 10).map(mapLegacy).filter((p) => p.productId);
+  }
 
-  return list.slice(0, 10).map((p) => ({
-        productId: String(p.product_id ?? ""),
-        title: p.subject ?? "",
-        imageUrl: p.product_main_image_url,
-        priceUsd: p.app_sale_price ? parseFloat(p.app_sale_price) : undefined,
-        productUrl: p.product_detail_url,
-  })).filter((p) => p.productId);
+  // 2/3) Nyare shape — data.products som array (eller {} när inga träffar).
+  const dataProducts = raw.data?.products;
+  if (Array.isArray(dataProducts) && dataProducts.length > 0) {
+    return dataProducts.slice(0, 10).map(mapNew).filter((p) => p.productId);
+  }
+
+  // 4) Defensiv fallback: products som direkt array
+  if (Array.isArray(raw.products) && raw.products.length > 0) {
+    return raw.products.slice(0, 10).map(mapNew).filter((p) => p.productId);
+  }
+
+  return [];
 }
 
 /**

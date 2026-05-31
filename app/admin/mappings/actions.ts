@@ -73,17 +73,18 @@ export async function createMappingAction(
 /** Söker AliExpress-produkter. Returnerar resultat eller felmeddelande. */
 export async function searchAliExpressAction(
   query: string,
-): Promise<{ ok: true; results: AliExpressSearchResult[] } | { ok: false; error: string }> {
-  if (!query.trim()) return { ok: false, error: "Tom query" };
+): Promise<{ ok: true; results: AliExpressSearchResult[]; query: string } | { ok: false; error: string }> {
+  const q = query.trim();
+  if (!q) return { ok: false, error: "Skriv ett sökord först." };
   try {
-    const results = await searchAliExpressByText(query);
-    return { ok: true, results };
+    const results = await searchAliExpressByText(q);
+    return { ok: true, results, query: q };
   } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof Error
-        ? `${err.message} — använd paste-URL-fältet istället`
-        : "Sökfel",
-    };
+    const message = err instanceof Error ? err.message : String(err);
+    // Nätverksfel (fetch failed, ENOTFOUND, timeout) → vänligt meddelande
+    if (/fetch failed|ENOTFOUND|ECONNRESET|timed? ?out|network/i.test(message)) {
+      return { ok: false, error: "Kunde inte nå AliExpress. Prova igen om en stund." };
+    }
+    return { ok: false, error: message };
   }
 }
