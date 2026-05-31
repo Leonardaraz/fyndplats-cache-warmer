@@ -63,6 +63,24 @@ export function Gallery({
     setZoom((z) => !z);
   };
 
+  // Produkt utan bilder → visa en igenkännbar platshållare i stället för en tom
+  // gräddvit ruta (Leonards rapport). Hela katalogen har i dag bild, men import-
+  // brister kan ge enstaka bildlösa produkter; då vill vi ändå visa något vänligt.
+  if (imgs.length === 0) {
+    return (
+      <div className="gallery">
+        <div className="gmain gmain-empty" role="img" aria-label={`${alt} – bild kommer snart`}>
+          <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <rect x="6" y="9" width="36" height="30" rx="4" stroke="currentColor" strokeWidth="2.2" />
+            <circle cx="17" cy="20" r="3.5" stroke="currentColor" strokeWidth="2.2" />
+            <path d="M9 35l10-10 7 7 5-4 8 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>Bild kommer snart</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="gallery">
       <button type="button" className="gmain" onClick={() => { setZoom(false); setLightbox(true); }} aria-label="Förstora bilden">

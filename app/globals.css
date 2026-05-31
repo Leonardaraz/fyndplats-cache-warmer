@@ -30,6 +30,14 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .search:focus-within{border-color:var(--orange);background:#fff}
 .search input{flex:1;border:none;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none;padding:0}
 .search input::placeholder{color:#9a948c}
+/* iOS Safari auto-zoomar in hela sidan när ett fokuserat fält har font-size < 16px.
+   Tvinga därför ALLA interaktiva fält till minst 16px på mobil (sök, nyhetsbrev,
+   bevaka-i-lager, spårning, kontakt). !important krävs eftersom flera fält har
+   egna, mer specifika font-size-regler (.search input 14px, .nl-input 15.5px,
+   .restock-input 15px). Endast på smala skärmar → påverkar inte desktop-design. */
+@media screen and (max-width:768px){
+  input,select,textarea{font-size:16px !important}
+}
 /* search autocomplete */
 .sugg{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 26px 54px -22px rgba(28,28,28,.42);padding:6px;z-index:200;animation:suggIn .16s ease}
 @keyframes suggIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
@@ -360,6 +368,10 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .gallery .gmain:hover .gmain-zoom{opacity:1}
 .gallery .gmain img{width:100%;height:auto;aspect-ratio:1;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.2,.7,.2,1);animation:gFade .35s ease}
 .gallery .gmain:hover img{transform:scale(1.07)}
+/* Bildlös produkt: vänlig platshållare i stället för tom gräddvit ruta. */
+.gallery .gmain-empty{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:default;color:#b8ab9b}
+.gallery .gmain-empty svg{width:64px;height:64px}
+.gallery .gmain-empty span{font-size:15px;font-weight:600;letter-spacing:.01em;color:#9a8f7f}
 @keyframes gFade{from{opacity:.3}to{opacity:1}}
 .gthumbs{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
 .gthumb{width:72px;height:72px;border-radius:12px;border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;padding:0;background:#f6f1ec;transition:border-color .2s,box-shadow .2s,transform .2s}
@@ -930,7 +942,11 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .butik-cat{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s,border-color .3s}
 .butik-cat:hover{transform:translateY(-4px);box-shadow:0 30px 60px -28px rgba(28,28,28,.32);border-color:#C2410C33}
 .butik-cat-imgwrap{position:relative;display:block;aspect-ratio:5/4;overflow:hidden;background:#f6f1ec}
-.butik-cat-img{object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+/* Kategorikortens hero på /butik visar PRODUKTbilder (≈kvadratiska, 559×559).
+   I en 5:4-ruta beskar object-fit:cover ~25% topp+botten → produkten såg inzoomad
+   och konstigt avskuren ut (Leonards mobil-rapport). contain visar hela produkten
+   centrerad mot den varmvita rutan – ingen beskärning, robust för alla källformat. */
+.butik-cat-img{object-fit:contain;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 .butik-cat:hover .butik-cat-img{transform:scale(1.06)}
 .butik-cat-imghover{position:absolute;inset:auto 0 0 0;display:flex;align-items:flex-end;justify-content:flex-end;padding:18px 22px;background:linear-gradient(180deg,transparent 30%,rgba(20,18,15,.55) 100%);opacity:0;transition:opacity .3s ease;pointer-events:none}
 .butik-cat-imghover span{color:#fff;font-size:14px;font-weight:700;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.32);padding:9px 16px;border-radius:999px;letter-spacing:.01em}

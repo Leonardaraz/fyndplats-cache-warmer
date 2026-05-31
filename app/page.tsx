@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getProducts, getCollections, forListings } from "../lib/products";
+import { getProducts, getCollections, forListings, dedupeProducts } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
@@ -162,7 +162,7 @@ export default async function Home() {
       veckansPicks.push(p); used.add(p.slug);
     }
   }
-  const products = veckansPicks.slice(0, 8);
+  const products = dedupeProducts(veckansPicks).slice(0, 8);
 
   // Topp-4 huvudgrupper för hemsidan (sorterade efter produktantal). Använder samma
   // groupbuild som /butik så curated hero-bilder matchar — användaren ser samma
@@ -183,7 +183,7 @@ export default async function Home() {
               <h1>Fyndplats — Noga utvalda fynd, <em>tryggt köp</em></h1>
               <p>Handplockade fynd inom hem, kök, sport och elektronik – noga utvalda för svenska hem. Fri frakt över 499 kr. Svensk kundtjänst som svarar inom 24 timmar.</p>
               <div className="btns">
-                <a className="btn btn-primary" href="/butik">Handla nu →</a>
+                <a className="btn btn-primary" href="/alla-produkter">Handla nu →</a>
                 <a className="btn btn-ghost" href="/butik">Se alla kategorier</a>
               </div>
               <div className="herotrust">

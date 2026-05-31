@@ -81,8 +81,15 @@ export const MAIN_GROUPS: MainGroup[] = [
 // krävs). Varje rad dokumenterar foto-sidans URL för spårbarhet/attribution.
 // Bilderna är visuellt granskade (rätt motiv, inga konkurrent-varumärken) innan
 // hårdkodning. images.unsplash.com är whitelistad i next.config.ts.
+// Leverera bilden FÖRKROPPAD till kortets bildförhållande (5:4) med center-crop.
+// Tidigare (?w=1600&fit=crop utan höjd) returnerade Unsplash källans egna
+// landskaps­proportioner (≈3:2), och .butik-cat-img/.kat-hero-img (aspect 5/4,
+// object-fit:cover) beskar då bilden en andra gång i webbläsaren → motivet såg
+// inzoomat/konstigt beskuret ut (Leonards mobil-rapport). Genom att be Unsplash
+// crop:a till exakt 5:4 (w=1600&h=1280) med crop=center matchar levererad bild
+// behållaren → ingen dubbelbeskärning, kontrollerad center-framing.
 const UNSPLASH = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?q=80&w=1600&auto=format&fit=crop`;
+  `https://images.unsplash.com/photo-${id}?q=80&w=1600&h=1280&fit=crop&crop=center&auto=format`;
 
 export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   // Skandinavisk vardagsrumsscen, gul fåtölj, mässingslampa, solljus — lugn & premium.

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { getProducts, getCollections, forListings } from "../../lib/products";
+import { getProducts, getCollections, forListings, dedupeProducts } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
 import { buildGroupCards, MOSAIC_DENYLIST } from "../../lib/category-groups";
 import { pageMeta } from "../../lib/seo";
@@ -61,7 +61,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
       veckansPicks.push(p); used.add(p.slug);
     }
   }
-  const veckans = veckansPicks.slice(0, 8);
+  const veckans = dedupeProducts(veckansPicks).slice(0, 8);
 
   const breadcrumbLd = {
     "@context": "https://schema.org",

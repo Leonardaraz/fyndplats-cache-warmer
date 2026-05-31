@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProducts, getCollections, forListings } from "../../../lib/products";
+import { getProducts, getCollections, forListings, dedupeProducts } from "../../../lib/products";
 import { ProductCard } from "../../../components/productcard";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { pageMeta } from "../../../lib/seo";
@@ -46,7 +46,9 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // — bästa bilderna möter besökaren. Resten behåller katalogordningen.
   const topThree = [...catList].sort((a, b) => b.imageScore - a.imageScore).slice(0, 3);
   const topIds = new Set(topThree.map((p) => p.id));
-  const list = [...topThree, ...catList.filter((p) => !topIds.has(p.id))];
+  // dedupeProducts: defensivt skydd så två kort aldrig visar samma produkt/bild
+  // bredvid varandra (Leonards "samma bild två gånger i rad" i Mobiltillbehör).
+  const list = dedupeProducts([...topThree, ...catList.filter((p) => !topIds.has(p.id))]);
   // Förälder (om detta är en subkategori) → för brödsmulor.
   const parent = active.parentId ? collections.find((c) => c.id === active.parentId) : undefined;
 

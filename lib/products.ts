@@ -282,6 +282,33 @@ export function forListings(products: Product[]): Product[] {
   return products.filter((p) => p.inStock);
 }
 
+// Wixstatic-bildens fil-id (samma fil kan levereras med olika transform-params,
+// w_400 vs w_800), så vi jämför på id:t — inte hela URL:en.
+function imgKey(url: string): string {
+  return (url || "").match(/\/media\/([^/?]+)/)?.[1] || url || "";
+}
+
+// Defensiv render-lags-dedup för produktrader. getProducts() kollapsar redan
+// dubbletter per id (källan), men en enskild rad kan fortfarande råka rendera
+// SAMMA produkt eller SAMMA bild två gånger om den byggs ihop av flera urval
+// (t.ex. curated-front + poäng-sorterad svans, eller två importer som delar
+// samma foto). Detta var Leonards "samma produktbild två gånger i rad" i
+// Mobiltillbehör. Vi släpper igenom varje produkt-id OCH varje bild-fil bara en
+// gång, så två kort aldrig kan visa samma foto bredvid varandra.
+export function dedupeProducts(list: Product[]): Product[] {
+  const seenId = new Set<string>();
+  const seenImg = new Set<string>();
+  const out: Product[] = [];
+  for (const p of list) {
+    const k = imgKey(p.img);
+    if (seenId.has(p.id) || (k && seenImg.has(k))) continue;
+    seenId.add(p.id);
+    if (k) seenImg.add(k);
+    out.push(p);
+  }
+  return out;
+}
+
 // Re-order products so categories are INTERLEAVED (round-robin) instead of clustered —
 // gives a varied "mix" for "Veckans fynd" and the default butik order instead of e.g.
 // 50 toys in a row. Each product is bucketed by its first matching collection (collections
