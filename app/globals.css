@@ -938,6 +938,14 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .homecat:hover .homecat-img img{transform:scale(1.06)}
 .homecat-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,18,15,.4) 100%);opacity:0;transition:opacity .3s}
 .homecat:hover .homecat-img::after{opacity:1}
+/* 2×2 produktmosaik (quad) — 4 riktiga produkt-thumbs per kort */
+.homecat-mosaic{position:relative;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;aspect-ratio:1/1;background:#efe7df;overflow:hidden}
+.homecat-thumb{position:relative;overflow:hidden;background:#f6f1ec}
+.homecat-thumb img{object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+.homecat:hover .homecat-thumb img{transform:scale(1.05)}
+.homecat-thumb-pad{background:linear-gradient(135deg,#efe7df,#e3d8cc)}
+.homecat-mosaic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,18,15,.42) 100%);opacity:0;transition:opacity .3s;pointer-events:none}
+.homecat:hover .homecat-mosaic::after{opacity:1}
 .homecat-cta{position:absolute;left:50%;bottom:18px;transform:translate(-50%,8px);opacity:0;transition:opacity .25s,transform .25s;color:#fff;font-size:13px;font-weight:700;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.32);padding:8px 14px;border-radius:999px;white-space:nowrap;pointer-events:none}
 .homecat:hover .homecat-cta{opacity:1;transform:translate(-50%,0)}
 @media(hover:none){.homecat-cta{display:none}}

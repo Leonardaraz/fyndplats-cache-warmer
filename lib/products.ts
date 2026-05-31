@@ -207,8 +207,16 @@ async function fetchProducts(): Promise<Product[]> {
       skip += limit;
     }
     const mapped = all.filter((p) => p.visible !== false).map(mapProduct).filter((p) => p.img);
-    console.log(`[wix] live products loaded: ${mapped.length}`);
-    return mapped.length ? mapped : (local as Product[]);
+    // Dedupe by product id. After the V3 restructure a product belongs to a main
+    // category AND 1–3 subcategories; the catalog query can also return overlapping
+    // pages. Collapsing to one entry per id here is the single source of truth, so
+    // every downstream list (/butik, /alla-produkter, /kategori, home) renders each
+    // product exactly once without each page repeating its own dedupe.
+    const byId = new Map<string, Product>();
+    for (const p of mapped) if (p.id && !byId.has(p.id)) byId.set(p.id, p);
+    const unique = [...byId.values()];
+    console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
+    return unique.length ? unique : (local as Product[]);
   } catch (e) {
     console.error("[wix] live fetch failed, using local fallback:", (e as Error).message);
     productsPromise = null; // allow retry on a later request

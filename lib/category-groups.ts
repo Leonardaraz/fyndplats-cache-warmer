@@ -91,6 +91,7 @@ export type GroupCard = {
   tag: string;
   count: number;
   heroImg: string;
+  thumbs: string[];            // upp till 4 produktbilder för hemsidans 2×2-mosaikkort
   subs: { id: string; name: string; slug: string; count: number; img: string }[];
 };
 
@@ -224,11 +225,39 @@ export function buildGroupCards(products: Product[], collections: Collection[]):
       })
       .filter((x): x is NonNullable<typeof x> => x !== null);
 
+    // Quad-mosaik-thumbs för hemsidans kategorikort: upp till 4 produktbilder ur
+    // huvudkategorin ELLER någon av dess underkategorier. heroImg leder (curated,
+    // ren bild), sedan fylls med oanvända non-denylisted bilder. Vi spårar valda
+    // slugs i usedImg så de fyra korten på startsidan inte delar samma bild.
+    const subIds = new Set(subs.map((s) => s.id));
+    const thumbPool = products.filter(
+      (p) => p.img && (p.collectionIds || []).some((cid) => cid === mainCol.id || subIds.has(cid))
+    );
+    const thumbs: string[] = [];
+    if (heroImg) thumbs.push(heroImg); // heroSlug ligger redan i usedImg → ej dubblerad nedan
+    const addThumbs = (clean: boolean) => {
+      for (const p of thumbPool) {
+        if (thumbs.length >= 4) break;
+        if (usedImg.has(p.slug)) continue;
+        if (clean && MOSAIC_DENYLIST.has(p.slug)) continue;
+        thumbs.push(p.img);
+        usedImg.add(p.slug);
+      }
+    };
+    addThumbs(true);   // 1. oanvända, rena bilder
+    addThumbs(false);  // 2. oanvända (tillåt denylistade hellre än tomt)
+    // 3. sista utväg: < 4 produkter i kategorin → upprepa befintliga (CSS-padding
+    //    täcker resten om poolen är helt tom).
+    for (let i = 0; thumbs.length < 4 && thumbPool.length > 0; i++) {
+      thumbs.push(thumbPool[i % thumbPool.length].img);
+    }
+
     cards.push({
       main: mainCol,
       tag: g.tag,
       count: counts.get(mainCol.id) || 0,
       heroImg,
+      thumbs,
       subs,
     });
   }

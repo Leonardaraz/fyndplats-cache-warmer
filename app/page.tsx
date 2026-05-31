@@ -219,14 +219,22 @@ export default async function Home() {
             <div className="homecat-grid">
               {homeCats.map((c) => (
                 <a className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`} aria-label={`${c.main.name}, ${c.count} produkter`}>
-                  <div className="homecat-img">
-                    {c.heroImg && (
-                      <Image
-                        src={c.heroImg}
-                        alt=""
-                        fill
-                        sizes="(max-width:380px) 100vw, (max-width:880px) 50vw, 280px"
-                      />
+                  {/* 2×2-mosaik av 4 riktiga produktbilder ur kategorin. Under-fold →
+                      ingen priority, lazy default; sized thumbs håller LCP på hjälten. */}
+                  <div className="homecat-mosaic">
+                    {Array.from({ length: 4 }).map((_, i) =>
+                      c.thumbs[i] ? (
+                        <span className="homecat-thumb" key={i}>
+                          <Image
+                            src={c.thumbs[i]}
+                            alt=""
+                            fill
+                            sizes="(max-width:380px) 25vw, (max-width:880px) 12vw, 140px"
+                          />
+                        </span>
+                      ) : (
+                        <span className="homecat-thumb homecat-thumb-pad" key={i} aria-hidden="true" />
+                      )
                     )}
                     <span className="homecat-cta">Utforska →</span>
                   </div>
