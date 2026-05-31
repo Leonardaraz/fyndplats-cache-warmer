@@ -58,3 +58,53 @@ export async function wixFetch<T = unknown>(opts: WixRequestOptions): Promise<T>
   }
   return text ? (JSON.parse(text) as T) : (undefined as T);
 }
+
+// --------------------------------------------------------------------------
+// Stores Catalog V3 — produkt-beskrivning (för /admin/enrich-products)
+// --------------------------------------------------------------------------
+// Används av flik-back-fillen för att läsa + skriva produktens rika beskrivning
+// (plainDescription), där de tabbade PDP-sektionerna lagras som <h2>-block.
+// Kräver WIX_API_KEY med Stores read/write (samma nyckel som kupong-/checkout-API:t).
+
+export interface AdminProduct {
+  id: string;
+  revision: string;
+  name: string;
+  /** Rik beskrivnings-HTML (V3 PLAIN_DESCRIPTION) — innehåller flik-<h2>-blocken. */
+  description: string;
+}
+
+/** Hämtar en produkts beskrivning + revision (revisionen krävs för PATCH). */
+export async function getAdminProduct(productId: string): Promise<AdminProduct | null> {
+  try {
+    const data = await wixFetch<{
+      product?: { id: string; revision: string; name?: string; plainDescription?: string };
+    }>({
+      method: 'GET',
+      path: `/stores/v3/products/${encodeURIComponent(productId)}?fields=PLAIN_DESCRIPTION`,
+    });
+    const p = data?.product;
+    if (!p) return null;
+    return { id: p.id, revision: p.revision, name: p.name ?? '', description: p.plainDescription ?? '' };
+  } catch (e) {
+    if (e instanceof WixApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+
+/**
+ * Skriver om produktens beskrivning (plainDescription) — PATCH med fieldMask så
+ * endast beskrivningen rörs. Returnerar nya revisionen.
+ */
+export async function updateAdminProductDescription(
+  productId: string,
+  revision: string,
+  plainDescription: string,
+): Promise<{ revision: string }> {
+  const data = await wixFetch<{ product?: { revision?: string } }>({
+    method: 'PATCH',
+    path: `/stores/v3/products/${encodeURIComponent(productId)}`,
+    body: { product: { revision, plainDescription }, fieldMask: { paths: ['plainDescription'] } },
+  });
+  return { revision: data?.product?.revision ?? revision };
+}
