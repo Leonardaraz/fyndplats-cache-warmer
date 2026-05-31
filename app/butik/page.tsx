@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { getProducts, getCollections } from "../../lib/products";
+import { getProducts, getCollections, forListings } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
 import { buildGroupCards, MOSAIC_DENYLIST } from "../../lib/category-groups";
 import { pageMeta } from "../../lib/seo";
@@ -22,7 +22,8 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
     if (match) redirect(`/kategori/${match.slug}`);
   }
 
-  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
+  const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const groups = buildGroupCards(products, collections);
 
   // Veckans fynd: 8 curated picks (samma logik som hemsidan men oberoende

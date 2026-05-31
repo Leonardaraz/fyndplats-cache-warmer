@@ -1,4 +1,4 @@
-import { getProducts, getCollections, mixByCategory } from "../../lib/products";
+import { getProducts, getCollections, mixByCategory, forListings } from "../../lib/products";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { CategoryDropdown } from "../../components/categorydropdown";
 import { pageMeta } from "../../lib/seo";
@@ -11,7 +11,8 @@ export const metadata = pageMeta(
 
 export default async function AllaProdukter({ searchParams }: { searchParams: Promise<{ kategori?: string }> }) {
   const { kategori } = await searchParams;
-  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
+  const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const active = collections.find((c) => c.slug === kategori);
   const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : mixByCategory(products, collections);
 

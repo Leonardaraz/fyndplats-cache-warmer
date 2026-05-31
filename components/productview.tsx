@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useCart } from "./cart";
 import { Gallery } from "./gallery";
+import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
@@ -154,6 +155,12 @@ export function ProductView({
       <div className="pinfo">
         <div className="eyebrow" style={{ marginBottom: 10 }}>Fyndplats</div>
         <h1>{name}</h1>
+        {!inStock && (
+          <div className="oos-banner" role="status">
+            <span className="oos-banner-chip">Slutsåld</span>
+            <span className="oos-banner-text">Varan är tillfälligt slut hos oss – bevaka nedan så hör vi av oss.</span>
+          </div>
+        )}
         <div className="pdp-price">
           {displayPrice}
           {displayOriginal && <span className="pdp-price-old">{displayOriginal}</span>}
@@ -225,8 +232,10 @@ export function ProductView({
             disabled={busy || !productId || !inStock || (needsVariant && !variantId)}
             onClick={onAdd}
           >
-            {!inStock ? "Tillfälligt slut" : busy ? "Lägger till…" : added ? "✓ Tillagd i varukorgen" : "Lägg i kundvagn"}
+            {!inStock ? "Slutsåld" : busy ? "Lägger till…" : added ? "✓ Tillagd i varukorgen" : "Lägg i kundvagn"}
           </button>
+
+          {!inStock && productId && <RestockForm productId={productId} />}
         </div>
 
         <div className="pdp-trust">

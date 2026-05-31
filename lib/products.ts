@@ -263,6 +263,25 @@ export async function getProductSlugs(): Promise<string[]> {
   return list.map((p) => p.slug);
 }
 
+// Hybrid slut-i-lager (Feature 1): dölj slutsålda produkter från LISTNINGARNA
+// (/butik, /alla-produkter, /kategori/*) men behåll produktsidan nåbar (sidan
+// renderar med "Slutsåld"-banner + bevakningsformulär). Wix sätter inventory=0
+// på slutsålda produkter via sync-cronen; här filtrerar vi bort dem ur listor.
+//
+// Opt-in via HIDE_OOS_FROM_LISTINGS=1 — default AV så att inget i den live:a
+// butiken ändras förrän Leonard aktiverar det (matchar SYNC_DRY_RUN-andan:
+// produktsidans OOS-UI är redan säker eftersom den bara syns när en produkt
+// faktiskt är slut). Produktsidan påverkas ALDRIG av detta filter.
+export function hideOosFromListings(): boolean {
+  return process.env.HIDE_OOS_FROM_LISTINGS === "1";
+}
+
+/** Filtrerar bort slutsålda produkter ur en listning om flaggan är på. */
+export function forListings(products: Product[]): Product[] {
+  if (!hideOosFromListings()) return products;
+  return products.filter((p) => p.inStock);
+}
+
 // Re-order products so categories are INTERLEAVED (round-robin) instead of clustered —
 // gives a varied "mix" for "Veckans fynd" and the default butik order instead of e.g.
 // 50 toys in a row. Each product is bucketed by its first matching collection (collections

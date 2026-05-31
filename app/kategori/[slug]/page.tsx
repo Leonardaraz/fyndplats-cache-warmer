@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProducts, getCollections } from "../../../lib/products";
+import { getProducts, getCollections, forListings } from "../../../lib/products";
 import { ProductCard } from "../../../components/productcard";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { pageMeta } from "../../../lib/seo";
@@ -33,7 +33,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function Kategori({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
+  const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const active = collections.find((c) => c.slug === slug);
   if (!active) notFound();
   // Huvudkategori: visa produkter i kategorin OCH alla dess underkategorier, så
