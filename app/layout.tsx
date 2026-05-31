@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { CartProvider, CartDrawer } from "../components/cart";
+import { CartProvider } from "../components/cart";
 import { SiteHeader, SiteFooter } from "../components/site";
-import { CookieConsent } from "../components/cookieconsent";
-import { WishlistProvider, WishlistDrawer } from "../components/wishlist";
-import { ScrollIndicator } from "../components/scrollindicator";
-import { BackToTop } from "../components/backtotop";
+import { WishlistProvider } from "../components/wishlist";
+// Below-fold / interaction-only components — code-split via next/dynamic so
+// they don't bloat the initial JS payload (round-2 perf). See components/deferred.tsx.
+import {
+  ScrollIndicator,
+  BackToTop,
+  CookieConsent,
+  CartDrawer,
+  WishlistDrawer,
+} from "../components/deferred";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 
@@ -114,9 +120,17 @@ export default function RootLayout({
             __html: `window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};gtag('js',new Date());gtag('config','${GA_MEASUREMENT_ID}');`,
           }}
         />
+        {/*
+          lazyOnload (round-2 perf): GA4 doesn't need to load before user idle.
+          The inline gtag stub above already queues 'js' + 'config' onto
+          window.dataLayer, so when gtag.js eventually arrives it processes
+          the backlog — no pageview / event loss. Moving from afterInteractive
+          to lazyOnload removes ~50KB of script execution from main-thread
+          critical path and shrinks TBT.
+        */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
       </body>
     </html>
