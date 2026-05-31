@@ -112,10 +112,17 @@ async function callApi<T>(
     if (!res.ok) throw new Error(`AliExpress API HTTP-fel: ${res.status}`);
 
   const json = (await res.json()) as Record<string, unknown>;
+    // Top-level fel ({error_response: {...}}) hanteras separat — annars
+    // riskerar vi att returnera ett tomt data-objekt och få oklar nedströms-error.
+    if ("error_response" in json) {
+          throw new Error(`AliExpress API-fel: ${JSON.stringify(json.error_response)}`);
+    }
     const responseKey = method.replaceAll(".", "_") + "_response";
-    const data = json[responseKey] ?? json;
-    if ((data as { code?: number }).code && (data as { code?: number }).code !== 200) {
-          throw new Error(`AliExpress API-fel: ${JSON.stringify(data)}`);
+    const data = (json[responseKey] ?? json) as Record<string, unknown>;
+    // Både `code` (legacy /sync) och `rsp_code` (DS API) kan signalera fel.
+    const codeRaw = data.code ?? data.rsp_code;
+    if (codeRaw !== undefined && codeRaw !== null && codeRaw !== 0 && codeRaw !== "0" && codeRaw !== 200 && codeRaw !== "200") {
+          throw new Error(`AliExpress API-fel ${codeRaw}: ${JSON.stringify(data).slice(0, 400)}`);
     }
     return data as T;
 }
@@ -260,29 +267,53 @@ export async function refreshAndPersist(): Promise<{
     return { accessToken: fresh.access_token, refreshToken, expiresAt };
 }
 
+// AliExpress DS product.get-svar: payload sitter alltid under `result` (per
+// officiell spec). Basinfo (id/titel/detail) ligger nästat under
+// ae_item_base_info_dto. SKU-listan och prop-listan kan vara antingen
+// direkt array (när AliExpress-appen är satt till simplify=true) ELLER
+// inslagen i en wrapper-key ({ ae_item_sku_info_d_t_o: [...] } resp.
+// { ae_sku_property_d_t_o: [...] }) i den icke-förenklade formen. Vi
+// avwrappar defensivt så koden funkar oavsett app-konfiguration.
+interface RawSkuProp {
+  sku_property_name?: string;
+  property_value_definition_name?: string;
+  property_value_name?: string;
+  sku_image?: string;
+}
+interface RawSku {
+  id?: string;
+  sku_stock?: boolean;
+  sku_available_stock?: number;
+  s_k_u_available_stock?: number;
+  offer_sale_price?: string;
+  sku_price?: string;
+  ae_sku_property_dtos?:
+    | { ae_sku_property_d_t_o?: RawSkuProp[] }
+    | RawSkuProp[];
+  aeop_s_k_u_propertys?: RawSkuProp[];
+}
 interface RawProduct {
-    product?: {
-          product_id?: number;
-          subject?: string;
-          description?: string;
-          ae_multimedia_info_dto?: { ae_video_dtos?: unknown; image_urls?: string };
-          ae_item_sku_info_dtos?: {
-            ae_item_sku_info_d_t_o?: Array<{
-              id?: string;
-              sku_stock?: boolean;
-              sku_available_stock?: number;
-              offer_sale_price?: string;
-              sku_price?: string;
-              ae_sku_property_dtos?: {
-                ae_sku_property_d_t_o?: Array<{
-                  sku_property_name?: string;
-                  property_value_definition_name?: string;
-                  sku_image?: string;
-                }>;
-              };
-            }>;
-          };
+  result?: {
+    ae_item_base_info_dto?: {
+      product_id?: number | string;
+      subject?: string;
+      detail?: string;
+      mobile_detail?: string;
     };
+    ae_multimedia_info_dto?: { ae_video_dtos?: unknown; image_urls?: string };
+    ae_item_sku_info_dtos?:
+      | { ae_item_sku_info_d_t_o?: RawSku[] }
+      | RawSku[];
+  };
+}
+
+function unwrapArray<T>(value: unknown, wrapperKey: string): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === "object") {
+    const inner = (value as Record<string, unknown>)[wrapperKey];
+    if (Array.isArray(inner)) return inner as T[];
+  }
+  return [];
 }
 
 export async function getProduct(productId: string): Promise<AliExpressDsProduct> {
@@ -290,29 +321,40 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
           product_id: productId,
           target_currency: "USD",
           target_language: "EN",
+          ship_to_country: "SE",
     });
 
-  const p = raw.product;
-    if (!p) throw new Error(`Produkt ${productId} hittades inte i DS-svaret.`);
+  const r = raw.result;
+  if (!r) {
+    throw new Error(
+      `AliExpress DS-svaret saknar result-fält för produkt ${productId}. `
+      + `Räkna med {aliexpress_ds_product_get_response:{result:{...}}}; fick: ${JSON.stringify(raw).slice(0, 400)}`,
+    );
+  }
 
-  const images = (p.ae_multimedia_info_dto?.image_urls ?? "")
+  const base = r.ae_item_base_info_dto ?? {};
+  const images = (r.ae_multimedia_info_dto?.image_urls ?? "")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
 
-  const skuDtos = p.ae_item_sku_info_dtos?.ae_item_sku_info_d_t_o ?? [];
+  const skuDtos = unwrapArray<RawSku>(r.ae_item_sku_info_dtos, "ae_item_sku_info_d_t_o");
 
   const variants: AliExpressDsVariant[] = skuDtos.map((sku) => {
         const props: Record<string, string> = {};
         let imageUrl: string | undefined;
-        for (const prop of sku.ae_sku_property_dtos?.ae_sku_property_d_t_o ?? []) {
+        const propList = sku.aeop_s_k_u_propertys
+          ?? unwrapArray<RawSkuProp>(sku.ae_sku_property_dtos, "ae_sku_property_d_t_o");
+        for (const prop of propList) {
                 const name = prop.sku_property_name ?? "Option";
-                const value = prop.property_value_definition_name ?? "";
+                const value = prop.property_value_definition_name ?? prop.property_value_name ?? "";
                 props[name] = value;
                 if (prop.sku_image) imageUrl = prop.sku_image;
         }
         const price = parseFloat(sku.offer_sale_price ?? sku.sku_price ?? "0");
-        const stock = sku.sku_available_stock ?? (sku.sku_stock ? 999 : 0);
+        const stock = sku.sku_available_stock
+          ?? sku.s_k_u_available_stock
+          ?? (sku.sku_stock ? 999 : 0);
         return {
                 skuId: String(sku.id ?? ""),
                 skuProps: props,
@@ -323,9 +365,9 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
   });
 
   return {
-        productId: String(p.product_id ?? productId),
-        title: p.subject ?? "",
-        description: p.description ?? "",
+        productId: String(base.product_id ?? productId),
+        title: base.subject ?? "",
+        description: base.detail ?? base.mobile_detail ?? "",
         images,
         variants,
   };
