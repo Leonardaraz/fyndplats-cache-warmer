@@ -21,8 +21,9 @@ img{display:block;max-width:100%}
 .promo b{color:var(--peach)}
 /* "Klarna" i promobaren ska bära Klarnas egen rosa (#FFB3C7, samma som footerns
    .pay-klarna), inte den generella peach-accenten — övriga <b> (t.ex. "499 kr")
-   förblir peach. */
-.klarna-mark{color:#FFB3C7}
+   förblir peach. OBS: regeln MÅSTE matcha `.promo b`-specificiteten (0,1,1),
+   annars vinner peach-regeln ovan. Därför `.promo b.klarna-mark` (0,2,1). */
+.promo b.klarna-mark{color:#FFB3C7}
 
 header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .hrow{display:flex;align-items:center;gap:22px;padding:15px 0}
