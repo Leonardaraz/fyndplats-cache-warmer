@@ -44,9 +44,12 @@ prenumerationen, men skapa den gärna manuellt för index/sortering:
 | `subscribedAt` | text (ISO) |
 | `notifiedAt` | text (ISO) eller tom |
 
-> **Ingen Wix-MCP var ansluten i bygg-sessionen**, så kollektionen kunde inte
-> skapas automatiskt härifrån. Koden tolererar att den saknas (tom lista) tills
-> första skrivningen.
+> **Status:** kollektionen är SKAPAD i produktion via Wix Data Collections REST
+> API (`scripts/ensure-restock-collection.mjs`) — Wix-MCP var inte ansluten i
+> bygg-sessionen och Wix Data auto-skapar inte kollektioner vid första skriv.
+> Verifierad live: `POST /api/restock-subscribe` → `{ok:true, status:"subscribed"}`,
+> dubblett → `already_subscribed`. Test-raden raderades efteråt. Kör skriptet igen
+> om kollektionen någonsin måste återskapas (idempotent).
 
 ## Nya env-vars (se `.env.example`)
 
