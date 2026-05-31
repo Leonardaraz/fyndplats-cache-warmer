@@ -44,17 +44,11 @@ export function ProductCard({ p }: { p: Product }) {
         <div className="pname">{p.name}</div>
         <div className="prow">
           <span className="pprice">
-            {p.hasRange ? (
-              <>
-                Från {p.priceFrom}
-                {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
-              </>
-            ) : (
-              <>
-                {p.price}
-                {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
-              </>
-            )}
+            {/* pprice-now håller "Från X" / priset ihop på en rad (nowrap) så det
+                aldrig bryts mitt itu; ett ev. överstruket gammalt pris radbryter
+                i stället under, och "Köp"-knappen förblir alltid synlig. */}
+            <span className="pprice-now">{p.hasRange ? `Från ${p.priceFrom}` : p.price}</span>
+            {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
           </span>
           <span className="pbtn" style={{ background: "#C2410C" }}>Köp</span>
         </div>

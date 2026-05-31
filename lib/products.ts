@@ -97,11 +97,30 @@ function mapProduct(p: any): Product {
   const variants = ((p.variants) || [])
     .map((v: any) => ({ id: v._id, label: Object.values(v.choices || {}).join(" / ") || "Standard" }))
     .filter((v: any) => v.id);
-  // Pris-spann (Wix priceRange) → "Från X kr" på kort/listor när varianter har olika pris.
-  // Annars (min === max eller saknas) visas det vanliga priset. Defensivt: degraderar utan fel.
+  // Pris-spann → "Från X kr" på kort/listor när varianter har OLIKA pris.
+  // queryProducts() lämnar p.priceRange tomt ({}) för de allra flesta produkter
+  // (bara ~10 % har den ifylld) — så vi härleder spannet PRIMÄRT från varianternas
+  // egna priser (variant.priceData, alltid med i listfrågan) och faller tillbaka
+  // på priceRange bara om inga variantpriser finns. Annars (min === max eller
+  // inga varianter) visas det vanliga priset. Defensivt: degraderar utan fel.
+  const variantPrices: number[] = ((p.variants) || [])
+    .map((v: any) => {
+      const pd = v?.variant?.priceData;
+      if (!pd) return null;
+      return typeof pd.discountedPrice === "number" ? pd.discountedPrice
+        : typeof pd.price === "number" ? pd.price : null;
+    })
+    .filter((x: number | null): x is number => typeof x === "number");
   const pr = p.priceRange || {};
-  const minV = typeof pr.minValue === "number" ? pr.minValue : null;
-  const maxV = typeof pr.maxValue === "number" ? pr.maxValue : null;
+  let minV: number | null = null;
+  let maxV: number | null = null;
+  if (variantPrices.length > 0) {
+    minV = Math.min(...variantPrices);
+    maxV = Math.max(...variantPrices);
+  } else {
+    minV = typeof pr.minValue === "number" ? pr.minValue : null;
+    maxV = typeof pr.maxValue === "number" ? pr.maxValue : null;
+  }
   const hasRange = minV != null && maxV != null && minV < maxV;
   const pid = p._id || p.id || "";
   return {

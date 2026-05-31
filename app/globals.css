@@ -171,11 +171,16 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .prod .pimg{aspect-ratio:1;background:#f6f1ec;position:relative;overflow:hidden}
 .prod .pbody{padding:16px}
 .prod .pname{font-size:14.5px;font-weight:600;line-height:1.35;min-height:40px}
-.prod .prow{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
-.prod .pprice{font-size:17px;font-weight:800;color:#C2410C}
-.pprice-old{font-size:13px;font-weight:600;color:#a39c93;text-decoration:line-through;margin-left:7px}
+/* gap + min-width:0 + flex-wrap låter priset (ev. "Från X" + överstruket gammalt
+   pris) radbryta i stället för att knuffa ut "Köp"-knappen ur det overflow:hidden-
+   klippta kortet. Knappen är flex:0 0 auto + nowrap → ALLTID synlig, även för
+   REA + "Från" + överstruket pris-kombon (Leonards bugg). */
+.prod .prow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+.prod .pprice{font-size:17px;font-weight:800;color:#C2410C;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;line-height:1.25}
+.pprice-now{white-space:nowrap}
+.pprice-old{font-size:13px;font-weight:600;color:#a39c93;text-decoration:line-through}
 .sale-badge{position:absolute;top:10px;left:10px;z-index:2;background:#F84848;color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:7px;box-shadow:0 4px 10px -3px rgba(248,72,72,.6)}
-.prod .pbtn{font-size:12.5px;font-weight:700;color:#fff;background:var(--ink);border-radius:9px;padding:8px 12px}
+.prod .pbtn{flex:0 0 auto;white-space:nowrap;font-size:12.5px;font-weight:700;color:#fff;background:var(--ink);border-radius:9px;padding:8px 12px}
 .center{text-align:center;margin-top:34px}
 .linkbtn{display:inline-block;border:1.5px solid var(--ink);border-radius:12px;padding:13px 28px;font-weight:700;font-size:14.5px;transition:background .2s,color .2s}
 .linkbtn:hover{background:var(--ink);color:#fff}
@@ -372,7 +377,12 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .gallery .gmain{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#f6f1ec;position:relative;cursor:zoom-in}
 .gmain-zoom{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px -4px rgba(0,0,0,.35);opacity:0;transition:opacity .2s;pointer-events:none}
 .gallery .gmain:hover .gmain-zoom{opacity:1}
-.gallery .gmain img{width:100%;height:auto;aspect-ratio:1;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.2,.7,.2,1);animation:gFade .35s ease}
+/* position:relative+z-index lyfter hjältebilden (och dess inline-blur) ÖVER
+   shimmer-::before:t nedan. Galleriets huvudbild är non-fill (block, oposition-
+   erad) → utan detta målas den absolutpositionerade shimmern OVANPÅ bilden och
+   döljer både blur och laddad bild i ~5 s (Leonards "gräddruta sen bild"-bugg).
+   Produktkorten använder fill (positionerad img) och drabbas därför inte. */
+.gallery .gmain img{position:relative;z-index:1;width:100%;height:auto;aspect-ratio:1;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.2,.7,.2,1);animation:gFade .35s ease}
 .gallery .gmain:hover img{transform:scale(1.07)}
 /* Bildlös produkt: vänlig platshållare i stället för tom gräddvit ruta. */
 .gallery .gmain-empty{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:default;color:#b8ab9b}
