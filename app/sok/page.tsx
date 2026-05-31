@@ -13,24 +13,26 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   const term = q.trim();
   const all = await getProducts();
   // Tokeniserad, stam-medveten matchning (lib/search) — samma som autocomplete:
-  // 1) NAMN-träffar först, rankade på relevans-score ("knivset" → knivhållare,
-  //    "halsband" → kedjehalsband). 2) Sedan produkter där HELA söksträngen finns
-  //    i beskrivning/specs men inte i namnet (så varumärkes-/materialsök funkar)
-  //    — men bara som exakt fras, så "halsband" inte drar in en kattdräkt vars
-  //    beskrivning råkar nämna ordet löst. Namn-träffar slår alltid text-träffar.
+  // NAMN-träffar först, rankade på relevans-score ("knivset" → knivhållare,
+  // "halsband" → kedjehalsband). Beskrivning/specs-matchning används BARA som
+  // fallback när namnet inte ger NÅGON träff (t.ex. material-/varumärkessök som
+  // "akacia"). Så snart riktiga namn-träffar finns visar vi bara dem — annars
+  // drar en lös omnämning i en produkttext in fel resultat (re-audit: "halsband"
+  // tog tidigare med en halloween-kattdräkt vars text nämnde ordet).
   let results: typeof all = [];
   if (term) {
     const scored = all
       .map((p) => ({ p, score: nameScore(p.name, term) }))
       .filter((r) => r.score > 0)
       .sort((a, b) => b.score - a.score);
-    const nameHitIds = new Set(scored.map((r) => r.p.id));
-    const phrase = normalize(term);
-    const textHits = all.filter(
-      (p) => !nameHitIds.has(p.id) &&
-        (normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase))
-    );
-    results = [...scored.map((r) => r.p), ...textHits];
+    if (scored.length > 0) {
+      results = scored.map((r) => r.p);
+    } else {
+      const phrase = normalize(term);
+      results = all.filter(
+        (p) => normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase)
+      );
+    }
   }
 
   return (
