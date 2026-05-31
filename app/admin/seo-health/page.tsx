@@ -143,7 +143,8 @@ export default async function SeoHealthPage() {
           {report.ping.weeklyCron}.
         </li>
         <li>
-          <strong>Google:</strong> indexeras via sitemap.xml (crawl) + Search Console. (Google stödjer inte IndexNow.)
+          <strong>Google:</strong> sitemap-ping varje måndag {report.ping.weeklyCron} (legacy-endpoint, best-effort —
+          Google stödjer inte IndexNow; Search Console är den garanterade vägen).
         </li>
       </ul>
 

@@ -75,20 +75,69 @@ export async function pingIndexNow(urls: string[]): Promise<IndexNowResult> {
   }
 }
 
-/** Ping every indexable URL on the site (the full sitemap). Used by the weekly cron. */
+/** Ping every indexable URL on the site to IndexNow only (Bing/Yandex). */
 export async function pingAllSiteUrls(): Promise<IndexNowResult> {
   const urls = await getSiteUrlStrings();
   return pingIndexNow(urls);
 }
 
-/** Convenience for the webhook: ping a single product URL by slug. */
-export async function pingProductSlug(slug: string): Promise<IndexNowResult> {
-  if (!slug) return { ok: true, submitted: 0, batches: [] };
-  return pingIndexNow([`${SITE}/produkt/${slug}`]);
+// ── Google sitemap ping ──────────────────────────────────────────────────────
+export const SITEMAP_URL = `${SITE}/sitemap.xml`;
+
+export type GooglePingResult = { ok: boolean; status: number; deprecated: true; note: string };
+
+/**
+ * Ping Google's legacy sitemap endpoint. Google DEPRECATED this in 2023 — it
+ * typically responds 404 and does NOT actually queue a crawl (Search Console is
+ * the supported path). We fire it best-effort so every update also nudges Google,
+ * and report the real status honestly. Free, never throws.
+ */
+export async function pingGoogleSitemap(): Promise<GooglePingResult> {
+  const url = `https://www.google.com/ping?sitemap=${encodeURIComponent(SITEMAP_URL)}`;
+  try {
+    const res = await fetch(url, { method: "GET" });
+    return {
+      ok: res.status >= 200 && res.status < 400,
+      status: res.status,
+      deprecated: true,
+      note: "Google deprecated sitemap ping (2023) — best-effort; Search Console is the supported path.",
+    };
+  } catch (e) {
+    return { ok: false, status: 0, deprecated: true, note: (e as Error).message };
+  }
 }
 
-/** Convenience for the webhook: ping a single blog post URL by slug. */
-export async function pingBlogSlug(slug: string): Promise<IndexNowResult> {
-  if (!slug) return { ok: true, submitted: 0, batches: [] };
-  return pingIndexNow([`${SITE}/blogg/${slug}`, `${SITE}/blogg`]);
+// ── combined: notify Google + Bing/Yandex in one call ────────────────────────
+export type SearchEnginePingResult = { indexNow: IndexNowResult; google: GooglePingResult };
+
+function noopPing(): SearchEnginePingResult {
+  return {
+    indexNow: { ok: true, submitted: 0, batches: [] },
+    google: { ok: true, status: 0, deprecated: true, note: "skipped (no urls)" },
+  };
+}
+
+/** Submit URLs to IndexNow (Bing/Yandex) AND ping Google's sitemap endpoint, in parallel. */
+export async function pingSearchEngines(urls: string[]): Promise<SearchEnginePingResult> {
+  if (urls.length === 0) return noopPing();
+  const [indexNow, google] = await Promise.all([pingIndexNow(urls), pingGoogleSitemap()]);
+  return { indexNow, google };
+}
+
+/** The whole sitemap → Google + Bing + Yandex. Used by the weekly cron + manual button. */
+export async function pingAllSearchEngines(): Promise<SearchEnginePingResult> {
+  const urls = await getSiteUrlStrings();
+  return pingSearchEngines(urls);
+}
+
+/** Webhook: a new/updated product → notify Google + Bing/Yandex. */
+export async function pingProductSlug(slug: string): Promise<SearchEnginePingResult> {
+  if (!slug) return noopPing();
+  return pingSearchEngines([`${SITE}/produkt/${slug}`]);
+}
+
+/** Webhook: a new/updated blog post → notify Google + Bing/Yandex. */
+export async function pingBlogSlug(slug: string): Promise<SearchEnginePingResult> {
+  if (!slug) return noopPing();
+  return pingSearchEngines([`${SITE}/blogg/${slug}`, `${SITE}/blogg`]);
 }

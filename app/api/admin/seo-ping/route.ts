@@ -12,33 +12,16 @@
 //      still fire it best-effort and report the status honestly. The real way to
 //      (re)submit to Google is Search Console, which needs OAuth we don't wire here.
 import { NextResponse } from "next/server";
-import { pingAllSiteUrls, INDEXNOW_KEY_LOCATION } from "../../../../lib/indexnow";
-import { SITE } from "../../../../lib/site-urls";
+import { pingAllSearchEngines, INDEXNOW_KEY_LOCATION, SITEMAP_URL } from "../../../../lib/indexnow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SITEMAP_URL = `${SITE}/sitemap.xml`;
-
-async function pingGoogle(): Promise<{ ok: boolean; status: number; deprecated: true; note: string }> {
-  const url = `https://www.google.com/ping?sitemap=${encodeURIComponent(SITEMAP_URL)}`;
-  try {
-    const res = await fetch(url, { method: "GET" });
-    return {
-      ok: res.status >= 200 && res.status < 400,
-      status: res.status,
-      deprecated: true,
-      note: "Google deprecated sitemap ping (2023). Use Search Console for guaranteed submission.",
-    };
-  } catch (e) {
-    return { ok: false, status: 0, deprecated: true, note: (e as Error).message };
-  }
-}
-
 export async function GET() {
-  const [indexNow, google] = await Promise.all([pingAllSiteUrls(), pingGoogle()]);
+  // Same code path as the weekly cron: Google + Bing/Yandex in one shot.
+  const { indexNow, google } = await pingAllSearchEngines();
   return NextResponse.json({
-    ok: indexNow.ok, // IndexNow is the path we actually rely on
+    ok: indexNow.ok, // IndexNow is the path we actually rely on (Google ping is best-effort)
     sitemap: SITEMAP_URL,
     indexNow: { ...indexNow, keyLocation: INDEXNOW_KEY_LOCATION },
     google,

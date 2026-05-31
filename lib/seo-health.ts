@@ -169,7 +169,7 @@ export async function buildSeoHealthReport(opts: ReportOptions = {}): Promise<Se
     ping: {
       indexNowKeyLocation: `${SITE}/a3f9c2e7b6d8419fae20c5d731b8e4f6.txt`,
       weeklyCron: "0 3 * * 1 (måndagar 03:00 UTC)",
-      note: "IndexNow pingar Bing/Yandex veckovis + vid produkt/bloggändring (Wix-webhook). Manuell submit: /api/admin/seo-ping.",
+      note: "Veckovis cron pingar Google + Bing/Yandex automatiskt (även vid produkt/bloggändring via Wix-webhook). Manuell submit: /api/admin/seo-ping.",
     },
     issues,
     healthy,
