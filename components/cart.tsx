@@ -1,9 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import Cookies from "js-cookie";
-import { createClient, OAuthStrategy } from "@wix/sdk";
-import { currentCart } from "@wix/ecom";
 import {
   stashPurchaseSnapshot,
   trackBeginCheckout,
@@ -11,6 +9,7 @@ import {
 } from "../lib/analytics";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
+const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 
 function liImageUrl(x: any): string {
   const u: any = typeof x === "string" ? x : (x?.url || x?.id || "");
@@ -22,14 +21,35 @@ function liImageUrl(x: any): string {
   return "";
 }
 
-function makeClient() {
-  return createClient({
-    modules: { currentCart },
-    auth: OAuthStrategy({
-      clientId: "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153", // hardcoded for wix-vibe-site-u4lp; bypasses stale Vercel env vars
-      tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
-    }),
-  });
+// Round-3 perf: lazy-import @wix/sdk + @wix/ecom so the ~600 KB SDK doesn't
+// ship in the main bundle. Module-level imports made every page (incl. blog)
+// pay the SDK weight up front. Now it's fetched only on first cart interaction.
+let clientPromise: Promise<{ client: any; currentCart: any }> | null = null;
+function getClient() {
+  if (!clientPromise) {
+    clientPromise = (async () => {
+      const [sdk, ecom] = await Promise.all([
+        import("@wix/sdk"),
+        import("@wix/ecom"),
+      ]);
+      const client = sdk.createClient({
+        modules: { currentCart: ecom.currentCart },
+        auth: sdk.OAuthStrategy({
+          clientId: HEADLESS_CLIENT_ID,
+          tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
+        }),
+      });
+      return { client, currentCart: ecom.currentCart };
+    })();
+  }
+  return clientPromise;
+}
+
+function persistTokens(client: any) {
+  try {
+    const t = client?.auth?.getTokens?.();
+    if (t) Cookies.set("session", JSON.stringify(t), { expires: 30 });
+  } catch {}
 }
 
 type Ctx = {
@@ -51,7 +71,6 @@ export const useCart = () => {
 };
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const client = useMemo(makeClient, []);
   const [cart, setCart] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -66,56 +85,54 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (open) trackViewCart(cartRef.current);
   }, [open]);
 
-  const persist = () => {
-    try {
-      const t = (client as any).auth.getTokens?.();
-      if (t) Cookies.set("session", JSON.stringify(t), { expires: 30 });
-    } catch {}
-  };
-
   const refresh = useCallback(async () => {
-    try { setCart(await client.currentCart.getCurrentCart()); }
-    catch { setCart(null); Cookies.remove("fp_cart"); }
-  }, [client]);
+    try {
+      const { client } = await getClient();
+      setCart(await client.currentCart.getCurrentCart());
+    } catch { setCart(null); Cookies.remove("fp_cart"); }
+  }, []);
 
   useEffect(() => {
-    (async () => {
-      try {
-        if (!Cookies.get("session")) {
-          const t = await (client as any).auth.generateVisitorTokens();
-          Cookies.set("session", JSON.stringify(t), { expires: 30 });
-        }
-      } catch {}
-      // Only fetch the cart if this visitor has created one — avoids a 404 on the
-      // empty-cart endpoint for first-time visitors (keeps the console clean).
-      if (Cookies.get("fp_cart")) refresh();
-    })();
-  }, [client, refresh]);
+    // Returvisitor med befintlig kundvagn → ladda SDK och hämta cart.
+    // Nya besökare betalar 0 SDK-bytes tills de klickar "Lägg i kundvagn".
+    // generateVisitorTokens flyttat till första add() — annars skulle vi
+    // tvinga SDK-load även för rena katalogbesök.
+    if (Cookies.get("fp_cart")) refresh();
+  }, [refresh]);
 
   const add = useCallback(async (id: string, variantId?: string) => {
     setBusy(true);
     try {
+      const { client } = await getClient();
+      if (!Cookies.get("session")) {
+        try {
+          const t = await client.auth.generateVisitorTokens();
+          Cookies.set("session", JSON.stringify(t), { expires: 30 });
+        } catch {}
+      }
       const ref: any = { appId: STORES_APP_ID, catalogItemId: id };
       if (variantId) ref.options = { variantId };
       const res: any = await client.currentCart.addToCurrentCart({ lineItems: [{ catalogReference: ref, quantity: 1 }] });
-      setCart(res.cart); persist(); setOpen(true);
+      setCart(res.cart); persistTokens(client); setOpen(true);
       Cookies.set("fp_cart", "1", { expires: 30 });
     } finally { setBusy(false); }
-  }, [client]);
+  }, []);
 
   const remove = useCallback(async (lineId: string) => {
+    const { client } = await getClient();
     const res: any = await client.currentCart.removeLineItemsFromCurrentCart([lineId]);
     setCart(res.cart);
-  }, [client]);
+  }, []);
 
   const updateQty = useCallback(async (lineId: string, quantity: number) => {
     if (quantity < 1) { await remove(lineId); return; }
     setBusy(true);
     try {
+      const { client } = await getClient();
       const res: any = await client.currentCart.updateCurrentCartLineItemQuantity([{ _id: lineId, quantity }]);
       setCart(res.cart);
     } finally { setBusy(false); }
-  }, [client, remove]);
+  }, [remove]);
 
   const checkout = useCallback(async () => {
     setBusy(true);
@@ -124,16 +141,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // routar tillbaka till /tack utan items — purchase-eventet behöver det.
       trackBeginCheckout(cart);
       stashPurchaseSnapshot(cart);
-      const { checkoutId }: any = await client.currentCart.createCheckoutFromCurrentCart({ channelType: (currentCart as any).ChannelType.WEB });
+      const { client, currentCart: cc } = await getClient();
+      const { checkoutId }: any = await client.currentCart.createCheckoutFromCurrentCart({ channelType: cc.ChannelType.WEB });
       // Bypass IAM cookie hop (createSessionCookie 404s on primary domain checkout.fyndplats.se).
       // Navigate directly to the Wix-hosted checkout app with the headless client id.
       const thankYouUrl = `${window.location.origin}/tack`;
-      const checkoutUrl = `https://checkout.fyndplats.se/__ecom/checkout?checkoutId=${encodeURIComponent(checkoutId)}&origin=${encodeURIComponent(thankYouUrl)}&headlessClientId=3d8fdd09-3b3c-475f-aac2-b6bfa9e05153`;
+      const checkoutUrl = `https://checkout.fyndplats.se/__ecom/checkout?checkoutId=${encodeURIComponent(checkoutId)}&origin=${encodeURIComponent(thankYouUrl)}&headlessClientId=${HEADLESS_CLIENT_ID}`;
       window.location.href = checkoutUrl;
     } catch (e: any) {
       alert("Kassan kunde inte öppnas: " + (e?.message || "okänt fel"));
     } finally { setBusy(false); }
-  }, [client, cart]);
+  }, [cart]);
 
   const count = (cart?.lineItems || []).reduce((n: number, li: any) => n + (li.quantity || 0), 0);
 

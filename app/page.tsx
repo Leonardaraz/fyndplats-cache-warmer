@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getProducts, getCollections, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
+import { buildGroupCards } from "../lib/category-groups";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -56,49 +57,9 @@ export default async function Home() {
     "Dator & Gaming": [],
   };
 
-  // Premium kategori-mosaik: auto-väljer topp-6 kategorier från faktiska produktantal,
-  // men bildvalen är HANDPLOCKADE (PREMIUM_CURATION) efter visuell granskning — inga
-  // produktbilder med text-overlays, brand-loggor eller plastförpackningar.
-  // Fallback-logik om en kategori saknar curated picks: hoppa över denylist,
-  // sedan ta första bästa, sist allt.
-  const PREMIUM_CURATION: Record<string, string[]> = {
-    "Hem & Inredning": [
-      "magnetisk-knivhallare-akacia-vaggmonterad-knivlist",
-      "manuell-mathackare",
-      "astronaut-stjarnprojektor",
-      "knivslip-4-steg",
-    ],
-    "Elektronik": [
-      "elektrisk-mjolkskummare",
-      "elektrisk-vinoppnare",
-      "mini-luftfuktare",
-      "usb-koppvarmare",
-    ],
-    "Lek, Bädd & Tillbehör": [
-      "napphallare-i-silikon-och-tra-saker",
-      "traleksak-med-bondgardsdjur-stapel-och-balansleksak",
-      "handgjord-napphallare-i-tra-virkad-kanin",
-      "montessori-koksleksak-i-tra-pedagogiskt-kokset",
-    ],
-    "Barn & Familj": [
-      "montessori-musikset-i-tra-5-delars",
-      "babygym-i-tra-stabil-aktivitetsstallning",
-      "montessori-musikleksaker-i-tra-pedagogiskt-instrumentset",
-      "kaffemaskin-i-tra-leksaksset-for-barn",
-    ],
-    "Kropp & Välbefinnande": [
-      "hallningskorrigerare-ryggstod",
-      "elektrisk-fotfil",
-      "elektrisk-munduschare",
-      "spikmatta-akupressurmatta-kudde-rygg-nacke",
-    ],
-    "Köksredskap & Tillbehör": [
-      "manuell-mathackare",
-      "knivslip-4-steg",
-      "keramisk-kaffekopp-stilren-handgjord-vintagekopp",
-      "vinkylare-med-luftare-och-upphallare-rostfritt",
-    ],
-  };
+  // MOSAIC_DENYLIST: produktbilder med text-overlays, brand-loggor eller plast­förpackningar
+  // som inte ska visas som hero. Används av hero-mosaiken nedan (homeCats använder
+  // den centrala buildGroupCards som har sin egen denylist).
   const MOSAIC_DENYLIST = new Set<string>([
     "sladdlos-handdammsugare-bil", "rgb-led-slinga", "digital-stektermometer",
     "tradlos-ergonomisk-mus-4000-dpi-99", "automatisk-tvaldispenser-touchless-sensor-skum",
@@ -179,37 +140,11 @@ export default async function Home() {
   }
   const products = veckansPicks.slice(0, 8);
 
-  const catCounts = new Map<string, number>();
-  for (const p of allProducts) for (const cid of (p.collectionIds || [])) catCounts.set(cid, (catCounts.get(cid) || 0) + 1);
-  const catTiles = cols
-    .map((c) => ({ ...c, count: catCounts.get(c.id) || 0 }))
-    .filter((c) => c.count >= 4)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6)
-    .map((c) => {
-      const inCat = allProducts.filter((p) => p.img && (p.collectionIds || []).includes(c.id));
-      const slugMap = new Map(inCat.map((p) => [p.slug, p]));
-      const mosaic: typeof inCat = [];
-      const used = new Set<string>();
-      // 1. Curated picks
-      for (const slug of PREMIUM_CURATION[c.name] || []) {
-        const p = slugMap.get(slug);
-        if (p && !used.has(slug)) { mosaic.push(p); used.add(slug); if (mosaic.length >= 4) break; }
-      }
-      // 2. Fill with non-denylisted
-      if (mosaic.length < 4) for (const p of inCat) {
-        if (used.has(p.slug) || MOSAIC_DENYLIST.has(p.slug)) continue;
-        mosaic.push(p); used.add(p.slug);
-        if (mosaic.length >= 4) break;
-      }
-      // 3. Last resort
-      if (mosaic.length < 4) for (const p of inCat) {
-        if (used.has(p.slug)) continue;
-        mosaic.push(p); used.add(p.slug);
-        if (mosaic.length >= 4) break;
-      }
-      return { ...c, mosaic };
-    });
+  // Topp-4 huvudgrupper för hemsidan (sorterade efter produktantal). Använder samma
+  // groupbuild som /butik så curated hero-bilder matchar — användaren ser samma
+  // bild för "Hem & Inredning" på startsidan som på butik-landningen.
+  const allGroups = buildGroupCards(allProducts, cols);
+  const homeCats = [...allGroups].sort((a, b) => b.count - a.count).slice(0, 4);
 
   return (
     <>
@@ -224,8 +159,8 @@ export default async function Home() {
               <h1>Fyndplats — Noga utvalda fynd, <em>tryggt köp</em></h1>
               <p>Handplockade fynd inom hem, kök, sport och elektronik – noga utvalda för svenska hem. Fri frakt över 499 kr. Svensk kundtjänst som svarar inom 24 timmar.</p>
               <div className="btns">
-                <a className="btn btn-primary" href="#produkter">Handla nu →</a>
-                <a className="btn btn-ghost" href="#kategorier">Se alla kategorier</a>
+                <a className="btn btn-primary" href="/butik">Handla nu →</a>
+                <a className="btn btn-ghost" href="/butik">Se alla kategorier</a>
               </div>
               <div className="herotrust">
                 <span><b style={{ color: "#C2410C" }}>✓</b> Google 4,9★ (21 omdömen)</span>
@@ -244,6 +179,7 @@ export default async function Home() {
                       fill
                       priority={i === 0}
                       fetchPriority={i === 0 ? "high" : undefined}
+                      loading={i === 0 ? undefined : "eager"}
                       sizes="(max-width:880px) 42vw, 22vw"
                     />
                     {p.price && <span className="htag">{p.price}</span>}
@@ -253,7 +189,7 @@ export default async function Home() {
               <div className="mcol mcol-offset">
                 {heroProducts.slice(2, 4).map((p) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
-                    <Image src={p.img} alt={p.name} fill sizes="(max-width:880px) 42vw, 22vw" />
+                    <Image src={p.img} alt={p.name} fill loading="eager" sizes="(max-width:880px) 42vw, 22vw" />
                     {p.price && <span className="htag">{p.price}</span>}
                   </a>
                 ))}
@@ -272,31 +208,37 @@ export default async function Home() {
         </div>
       </div>
 
-      {catTiles.length > 0 && (
-        <section className="sec" id="kategorier">
+      {homeCats.length > 0 && (
+        <section className="homecat-sec" id="kategorier">
           <div className="container">
-            <div className="sechead">
-              <div className="eyebrow">Utforska</div>
-              <h2>Handla efter kategori</h2>
-              <p>Hitta dina fynd snabbt – sortimentets största kategorier.</p>
+            <div className="homecat-head">
+              <div className="eyebrow">Utforska kategorier</div>
+              <h2>Hitta dina nästa fynd</h2>
+              <p>Våra största avdelningar – noga utvalda för svenska hem.</p>
             </div>
-            <div className="catmosaic-grid">
-              {catTiles.map((c) => (
-                <a className="catmtile" key={c.id} href={`/kategori/${c.slug}`} aria-label={`${c.name}, ${c.count} produkter`}>
-                  <div className="catmtile-grid">
-                    {c.mosaic.map((p, i) => (
-                      <div className="catmtile-cell" key={p.slug + i}>
-                        <Image src={p.img} alt="" fill sizes="(max-width:540px) 50vw, (max-width:880px) 25vw, 17vw" />
-                      </div>
-                    ))}
+            <div className="homecat-grid">
+              {homeCats.map((c) => (
+                <a className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`} aria-label={`${c.main.name}, ${c.count} produkter`}>
+                  <div className="homecat-img">
+                    {c.heroImg && (
+                      <Image
+                        src={c.heroImg}
+                        alt=""
+                        fill
+                        sizes="(max-width:380px) 100vw, (max-width:880px) 50vw, 280px"
+                      />
+                    )}
+                    <span className="homecat-cta">Utforska →</span>
                   </div>
-                  <div className="catmtile-meta">
-                    <span className="catmtile-name">{c.name}</span>
-                    <span className="catmtile-count">{c.count} produkter</span>
-                    <span className="catmtile-arr" aria-hidden>→</span>
+                  <div className="homecat-body">
+                    <span className="homecat-name">{c.main.name}</span>
+                    <span className="homecat-count">{c.count} st</span>
                   </div>
                 </a>
               ))}
+            </div>
+            <div className="homecat-allwrap">
+              <a className="homecat-alllink" href="/butik">Se alla kategorier <span aria-hidden="true">→</span></a>
             </div>
           </div>
         </section>
@@ -314,7 +256,7 @@ export default async function Home() {
               <ProductCard p={p} key={p.slug} />
             ))}
           </div>
-          <div className="center"><a className="linkbtn" href="/butik">Visa hela sortimentet →</a></div>
+          <div className="center"><a className="linkbtn" href="/alla-produkter">Visa hela sortimentet →</a></div>
         </div>
       </section>
 
