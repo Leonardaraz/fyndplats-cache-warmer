@@ -17,6 +17,43 @@ const FLIK_TITLE_PATTERNS = [
   /Kontakta\s+oss/,
 ];
 
+type Flik = { title: string; contentHtml: string };
+
+// "Kontakta oss" är statisk och IDENTISK på varje produktsida (Leonards krav:
+// alltid med). Läggs till om produktens beskrivning inte redan innehåller den, så
+// att även nya import-produkter (utan V1:s H2-block) får kontakt-fliken.
+const CONTACT_FLIK_HTML =
+  '<p>Har du en fråga om den här produkten – mått, material, leverans eller något annat? Vi svarar normalt inom 24 timmar på vardagar.</p>' +
+  '<ul>' +
+  '<li>E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a></li>' +
+  '<li>Telefon: <a href="tel:+46736630990">+46 (0) 736 630 990</a></li>' +
+  '<li>Mer hjälp: <a href="/kontaktaoss">Kontakta oss</a> · <a href="/vanliga-fragor">Vanliga frågor</a></li>' +
+  '</ul>';
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+const SPEC_FLIK_RE = /Tekniska\s+[Ss]pecifikationer/;
+const CONTACT_FLIK_RE = /Kontakta\s+oss/;
+
+// Slår ihop beskrivningens H2-baserade flikar med syntetiserade flikar så ALLA
+// produkter (gamla med V1-block + nya importer) får samma tabb-struktur:
+//  • Tekniska specifikationer — från specLines om beskrivningen saknar den fliken
+//  • Kontakta oss — statisk, läggs alltid till om den saknas (sist)
+function buildFlikar(descFlikar: Flik[], specLines: string[]): Flik[] {
+  const out = [...descFlikar];
+  if (!out.some((f) => SPEC_FLIK_RE.test(f.title)) && specLines.length > 0) {
+    const items = specLines.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+    // Lägg specifikationerna efter beskrivningen men före Kontakta oss.
+    out.push({ title: "Tekniska specifikationer", contentHtml: `<ul>${items}</ul>` });
+  }
+  if (!out.some((f) => CONTACT_FLIK_RE.test(f.title))) {
+    out.push({ title: "Kontakta oss", contentHtml: CONTACT_FLIK_HTML });
+  }
+  return out;
+}
+
 function splitFlikar(html: string): { mainHtml: string; flikar: { title: string; contentHtml: string }[] } {
   const combined = FLIK_TITLE_PATTERNS.map((p) => p.source).join("|");
   const regex = new RegExp(`<h2[^>]*>\\s*(${combined})\\s*</h2>`, "gi");
@@ -247,36 +284,44 @@ export function ProductView({
           <span>🔒 Trygg betalning med Klarna</span>
         </div>
 
-        {(descriptionHtml || blurb) && (
-          <div className="pdp-section">
-            <h2>Beskrivning</h2>
-            {descriptionHtml ? (() => {
-              const { mainHtml, flikar } = splitFlikar(descriptionHtml);
-              return (
-                <>
-                  <div className="pdp-desc" dangerouslySetInnerHTML={{ __html: mainHtml }} />
-                  {flikar.length > 0 && (
-                    <div className="pdp-flikar">
-                      {flikar.map((f, i) => (
-                        <details key={i} className="pdp-flik">
-                          <summary>{f.title}</summary>
-                          <div className="pdp-flik-body" dangerouslySetInnerHTML={{ __html: f.contentHtml }} />
-                        </details>
-                      ))}
-                    </div>
-                  )}
-                </>
-              );
-            })() : <p className="pdp-blurb">{blurb}</p>}
-          </div>
-        )}
+        {(() => {
+          // Bygg en enhetlig tabb-uppsättning: beskrivningens egna H2-flikar +
+          // syntetiserad Tekniska specifikationer (från specLines) + statisk
+          // Kontakta oss. Specbox:en nedan visas BARA om specifikationerna inte
+          // redan hamnat i en flik (undviker dubbletter).
+          const split = descriptionHtml ? splitFlikar(descriptionHtml) : { mainHtml: "", flikar: [] as Flik[] };
+          const flikar = buildFlikar(split.flikar, specLines);
+          const specInFlik = flikar.some((f) => SPEC_FLIK_RE.test(f.title));
+          return (
+            <>
+              <div className="pdp-section">
+                <h2>Beskrivning</h2>
+                {descriptionHtml ? (
+                  <div className="pdp-desc" dangerouslySetInnerHTML={{ __html: split.mainHtml }} />
+                ) : blurb ? (
+                  <p className="pdp-blurb">{blurb}</p>
+                ) : null}
+                {flikar.length > 0 && (
+                  <div className="pdp-flikar">
+                    {flikar.map((f, i) => (
+                      <details key={i} className="pdp-flik">
+                        <summary>{f.title}</summary>
+                        <div className="pdp-flik-body" dangerouslySetInnerHTML={{ __html: f.contentHtml }} />
+                      </details>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-        {specLines.length > 0 && (
-          <div className="specbox">
-            <h2>Specifikationer</h2>
-            <ul>{specLines.map((s, i) => <li key={i}>{s}</li>)}</ul>
-          </div>
-        )}
+              {specLines.length > 0 && !specInFlik && (
+                <div className="specbox">
+                  <h2>Specifikationer</h2>
+                  <ul>{specLines.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
     </div>
     {/* Sticky köp-knapp på mobil — visas bara på små skärmar (CSS) */}

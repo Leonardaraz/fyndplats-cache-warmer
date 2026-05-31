@@ -18,7 +18,9 @@ const BRACKETS = [
 ];
 
 const SORTS = [
-  { v: "img", label: "Bäst bilder" },
+  // "img" sorterar på intern bildkvalitets-poäng men heter "Rekommenderat" utåt —
+  // kunden ska inte exponeras för intern logik ("Bäst bilder" förvirrade). Default.
+  { v: "img", label: "Rekommenderat" },
   { v: "pop", label: "Populärast" },
   { v: "price-asc", label: "Pris: lågt → högt" },
   { v: "price-desc", label: "Pris: högt → lågt" },

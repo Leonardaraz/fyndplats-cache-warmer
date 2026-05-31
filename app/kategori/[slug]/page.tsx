@@ -54,13 +54,18 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
 
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
   // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
+  const curatedHero = categoryHero(active.name);
   const heroImg =
-    categoryHero(active.name) ||
+    curatedHero ||
     [...catList]
       .filter((p) => p.img && !MOSAIC_DENYLIST.has(p.slug))
       .sort((a, b) => b.imageScore - a.imageScore)[0]?.img ||
     catList.find((p) => p.img)?.img ||
     "";
+  // Föll vi tillbaka på en produktbild (subkategori)? Då renderas heron med
+  // object-fit:contain (is-product) så hela produkten syns i stället för ett
+  // inzoomat hörn. Curated Unsplash-heron (huvudkategori) behåller cover.
+  const heroIsProduct = !curatedHero && !!heroImg;
   const heroBlur = heroImg ? await getBlurDataURL(heroImg) : "";
 
   const crumbItems = [
@@ -93,7 +98,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               <p>{list.length} {list.length === 1 ? "produkt" : "produkter"} – noga utvalda fynd inom {active.name.toLowerCase()}.</p>
             </div>
             {heroImg && (
-              <div className="kat-hero-img">
+              <div className={`kat-hero-img${heroIsProduct ? " is-product" : ""}`}>
                 <Image
                   src={heroImg}
                   alt=""

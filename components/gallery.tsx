@@ -1,7 +1,26 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
+import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
+
+// LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
+// tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
+// bild — första besöket på en produkt fick vänta på att servern optimerade.
+// Wix-CDN:n kan själv leverera en exakt-storlek, center-fylld webp via en
+// transform-URL (samma mekanism som blur-miniatyren i lib/lqip). Genom att peka
+// huvudbildens loader dit hämtas LCP-elementet direkt från Wix globala CDN,
+// redan webp och rätt storlek — ingen optimerar-kallstart i kritiska vägen.
+// Galleriets huvudbild visas i aspect-ratio:1 med object-fit:cover, så en
+// kvadratisk fill (w=h) matchar exakt utan dubbelbeskärning.
+// preload + fetchPriority="high" på <Image> ger fortfarande <link rel=preload>
+// i <head>, och Next genererar preload-href:en via SAMMA loader → webbläsaren
+// förladdar Wix-URL:en direkt, inte optimerar-URL:en.
+function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
+  const m = (src || "").match(/static\.wixstatic\.com\/media\/([^/]+)/);
+  if (!m) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
+  const q = quality || 82;
+  return `https://static.wixstatic.com/media/${m[1]}/v1/fill/w_${width},h_${width},al_c,q_${q}/file.webp`;
+}
 
 export function Gallery({
   images,
@@ -84,7 +103,7 @@ export function Gallery({
   return (
     <div className="gallery">
       <button type="button" className="gmain" onClick={() => { setZoom(false); setLightbox(true); }} aria-label="Förstora bilden">
-        {main && <Image key={main} src={main} alt={alt} width={800} height={800} preload fetchPriority="high" placeholder="blur" blurDataURL={mainBlur || SHIMMER_BLUR} sizes="(max-width:760px) 100vw, 45vw" />}
+        {main && <Image key={main} src={main} alt={alt} width={800} height={800} loader={main.includes("static.wixstatic.com") ? wixMainLoader : undefined} preload fetchPriority="high" placeholder="blur" blurDataURL={mainBlur || SHIMMER_BLUR} sizes="(max-width:760px) 100vw, 45vw" />}
         <span className="gmain-zoom" aria-hidden>⤢</span>
       </button>
 

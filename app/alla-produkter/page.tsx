@@ -34,8 +34,8 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
             <p className="butik-hero-lede">
               {active
                 ? `Noga utvalda fynd inom ${active.name.toLowerCase()}.`
-                : "Filtrera på pris, rea och kategori – allt på ett ställe."}
-              <span className="butik-hero-meta"> {products.length} produkter · {collections.length} kategorier</span>
+                : `${products.length} noga utvalda fynd inom hem, elektronik, kök och mer – varje produkt handplockad för svenska hem.`}
+              <span className="butik-hero-meta"> {products.length} produkter · {collections.length} kategorier · Fri frakt över 499 kr</span>
             </p>
           </div>
         </div>
