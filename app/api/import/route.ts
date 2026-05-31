@@ -49,6 +49,14 @@ export async function POST(req: Request) {
   try {
     const result = await importProduct(product as AliExpressProduct, pricingConfigFromEnv(), optionColorCodes);
     const draftStatus = process.env.IMPORT_DRAFT_DEFAULT === "false" ? "published" : "pending_review";
+    // Defensiv: image-analys + kategoriförslag är opt-in (WIP-fält som inte
+    // alltid returneras av pipelinen och inte alltid är deklarerade i typen).
+    // Cast:ar via Record<string, unknown> så TS godkänner båda formerna.
+    const resultAny = result as unknown as Record<string, unknown>;
+    const mappingExtras: Record<string, unknown> = {};
+    if (resultAny.imageAnalysis !== undefined) mappingExtras.imageAnalysis = resultAny.imageAnalysis;
+    if (resultAny.categorySuggestion !== undefined) mappingExtras.categorySuggestion = resultAny.categorySuggestion;
+
     await getStore().saveMapping({
       supplierProductId: result.supplierProductId,
       wixProductId: result.wixProductId,
@@ -57,8 +65,7 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
       seoTitle: result.seo.title,
       sourceUrl: parsed.data.sourceUrl,
-      imageAnalysis: result.imageAnalysis,
-      categorySuggestion: result.categorySuggestion,
+      ...mappingExtras,
     });
     // Skriv även en cost-rad till FyndplatsImportCosts så /admin/profitability
     // har en kanonisk inköpsdata-källa (utöver mappnings-tabellen). Best-effort
@@ -99,9 +106,10 @@ export async function POST(req: Request) {
         ok: true,
         result,
         draftStatus,
-        // Bekvämligheter på toppnivå för smoke-tester och extension-UI.
-        image_analysis: result.imageAnalysis,
-        suggested_category: result.categorySuggestion,
+        // Bekvämligheter på toppnivå för smoke-tester och extension-UI (om
+        // pipelinen producerade dem — annars undefined).
+        image_analysis: resultAny.imageAnalysis,
+        suggested_category: resultAny.categorySuggestion,
       },
       { status: 201 },
     );

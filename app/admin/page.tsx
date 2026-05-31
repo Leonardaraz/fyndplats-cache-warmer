@@ -132,6 +132,7 @@ export default async function AdminPage() {
         <li>
           <a href="/admin/queue"><b>Granskningskö</b></a> — {pendingReview.length > 0 ? `${pendingReview.length} produkter väntar på publicering` : "publicera nyimporterade utkast (för närvarande tomt)"}
         </li>
+        <li><a href="/admin/sync-alerts"><b>Sync-alerts</b></a> — daglig AliExpress-sync flaggar prishöjningar och innehållsändringar att granska</li>
         <li><a href="/admin/mappings"><b>AliExpress-mappning</b></a> — länka existerande Wix-produkter till AliExpress-källor (krävs för auto-pipelinen)</li>
         <li><a href="/admin/seo"><b>SEO-migration</b></a> — V1↔V3-matchning, 301-redirects, sitemap, SEO-audit inför headless-cutover</li>
         <li><a href="/admin/profitability"><b>Lönsamhet per produkt</b></a> — sortbar tabell över intäkt/inköp/marginal/sålda enheter (90 dagar default) + CSV-export</li>
@@ -146,6 +147,7 @@ export default async function AdminPage() {
         <li><code>POST /api/fulfillment/mark-ordered</code> · <code>/complete</code> · <code>/api/orders/cancel</code></li>
         <li><code>POST /api/aliexpress/order</code> · <code>GET /api/aliexpress/tracking</code></li>
         <li><code>GET /api/cron/poll-tracking</code> — körs var 3:e h via Vercel Cron</li>
+        <li><code>POST /api/cron/aliexpress-sync</code> — daglig sync 06:00 UTC (Vercel Cron)</li>
       </ul>
 
       <h2>Lönsamhet per produkt</h2>
