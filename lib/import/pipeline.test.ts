@@ -1,5 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { orderImagesByVerdict } from "./pipeline";
+import { deriveOptions, orderImagesByVerdict } from "./pipeline";
+import type { AliExpressProduct } from "./types";
+
+// Bug 2026-06-01: storleksvarianter försvann. Den serverdelen (deriveOptions →
+// Wix-options) måste producera BÅDA axlarna (Color + Size) när varianterna har
+// två dimensioner, annars blir produkten enbart färg i Wix.
+describe("deriveOptions — flerdimensionella varianter (Color + Size)", () => {
+  const variants: AliExpressProduct["variants"] = [
+    { supplierVariantId: "1", options: { Color: "Röd", Size: "S" }, costUsd: 4, included: true },
+    { supplierVariantId: "2", options: { Color: "Röd", Size: "M" }, costUsd: 4, included: true },
+    { supplierVariantId: "3", options: { Color: "Blå", Size: "S" }, costUsd: 4, included: true },
+    { supplierVariantId: "4", options: { Color: "Blå", Size: "M" }, costUsd: 4, included: true },
+  ];
+
+  it("härleder båda options-axlarna med unika val", () => {
+    const opts = deriveOptions(variants);
+    expect(opts.map((o) => o.name).sort()).toEqual(["Color", "Size"]);
+    const color = opts.find((o) => o.name === "Color")!;
+    const size = opts.find((o) => o.name === "Size")!;
+    expect(color.choices.map((c) => c.name).sort()).toEqual(["Blå", "Röd"]);
+    expect(size.choices.map((c) => c.name).sort()).toEqual(["M", "S"]);
+  });
+
+  it("släpper aldrig en axel även om bara en variant bär den", () => {
+    const mixed: AliExpressProduct["variants"] = [
+      { supplierVariantId: "1", options: { Color: "Röd", Size: "XL" }, costUsd: 4, included: true },
+      { supplierVariantId: "2", options: { Color: "Blå" }, costUsd: 4, included: true },
+    ];
+    const names = deriveOptions(mixed).map((o) => o.name).sort();
+    expect(names).toEqual(["Color", "Size"]);
+  });
+});
 
 describe("orderImagesByVerdict", () => {
   it("demotes warns after oks and rejects last, preserving order within groups", () => {

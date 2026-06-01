@@ -35,7 +35,9 @@ function badgeForShipFrom(code) {
 
 function summarizeShipsFrom(codes) {
   if (!codes || codes.length === 0) {
-    return { className: "badge-unknown", text: "Lager: okänt", title: "" };
+    // OBS: detta gäller LEVERANS/warehouse, inte lagersaldo. Tidigare stod här
+    // "Lager: okänt" vilket lästes som att stocken var okänd (bug 2026-06-01).
+    return { className: "badge-unknown", text: "Leverans: okänt", title: "Okänt warehouse — leveranstid oklar" };
   }
   const hasEu = codes.some((c) => EU_WAREHOUSE_CODES.has(String(c).toUpperCase()));
   const hasNonEu = codes.some((c) => !EU_WAREHOUSE_CODES.has(String(c).toUpperCase()));
@@ -58,6 +60,25 @@ function summarizeShipsFrom(codes) {
     text: `🇨🇳 Kina (${codes.join(", ")})`,
     title: "Långsam leverans — 2–3 veckor från Kina",
   };
+}
+
+// Lager-badge utifrån skrapans inStock-flagga. Visar tydligt "I lager"/"Slut"
+// redan före import (tidigare gav warehouse-badgen "Lager: okänt" vilket Leonard
+// läste som att lagret var okänt — bug 2026-06-01). Efter import ersätts texten
+// av det faktiska saldot från API-svaret.
+function stockBadge(p) {
+  const span = document.createElement("span");
+  span.className = "summary-badge";
+  if (p.inStock === false) {
+    span.classList.add("badge-cn");
+    span.textContent = "Slut i lager";
+    span.title = "AliExpress-sidan signalerade slutsåld — importeras med 0 i lager.";
+  } else {
+    span.classList.add("badge-eu");
+    span.textContent = "I lager";
+    span.title = "Importeras som i lager (standard 10 st per variant).";
+  }
+  return span;
 }
 
 let product = null;
@@ -142,6 +163,8 @@ function render() {
   summaryBadge.textContent = summary.text;
   summaryBadge.title = summary.title;
   $title.append(summaryBadge);
+  // Separat lager-badge (skild från warehouse/leverans-badgen ovan).
+  $title.append(stockBadge(product));
 
   $variants.innerHTML = "";
   product.variants.forEach((v, i) => {
@@ -206,7 +229,21 @@ $import.addEventListener("click", async () => {
       return;
     }
     if (res.ok) {
-      setStatus(`Klart! Wix-produkt skapad (${res.result.wixProductId}).`, "ok");
+      // Visa det faktiska lagersaldot som backend satte (stockQuantity). Fallback
+      // till skrapans inStock-flagga om svaret saknar fältet (äldre backend).
+      const qty =
+        res.result && typeof res.result.stockQuantity === "number"
+          ? res.result.stockQuantity
+          : null;
+      const lager =
+        qty !== null
+          ? qty > 0
+            ? `${qty} st i lager`
+            : "0 — slut i lager"
+          : product.inStock === false
+            ? "slut i lager"
+            : "i lager";
+      setStatus(`Klart! Wix-produkt skapad (${res.result.wixProductId}). Lager: ${lager}.`, "ok");
     } else {
       setStatus("Import misslyckades: " + res.error, "err");
       $import.disabled = false;

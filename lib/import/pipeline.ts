@@ -49,6 +49,12 @@ export interface ImportResult {
   imageAnalysis: ImageAnalysisEntry[];
   /** Claude-förslag på Wix-kategori. */
   categorySuggestion: CategorySuggestionRecord;
+  /**
+   * Initialt lagersaldo som sattes per inkluderad variant (0 = OOS). Returneras
+   * så extension-popupen kan visa "Lager: N st" efter en lyckad import istället
+   * för den gamla "Lager: okänt"-badgen (bug 2026-06-01).
+   */
+  stockQuantity: number;
   /** Unika shipFrom-koder (t.ex. ["ES","CN"]). */
   shipsFromCountries: string[];
   /** True om någon variant skickas från EU-lager. */
@@ -141,6 +147,22 @@ export async function importProduct(
   const collections = await collectionsPromise;
   const categorySuggestion = await suggestCategoryRecord(seo, product, collections);
   const categoryName = categorySuggestion.collectionName ?? null;
+
+  // Explicit kategoriserings-trace (bug 2026-06-01: kategori sattes aldrig och vi
+  // kunde inte se var det föll). Loggar varje beslutssteg så nästa miss går att
+  // felsöka direkt i Vercel-loggen utan att gissa.
+  console.log(
+    `[import:category] pid=${product.supplierProductId} runCategory=${runCategory} ` +
+      `kollektioner=${collections.length} → slug=${categorySuggestion.collectionSlug ?? "null"} ` +
+      `conf=${categorySuggestion.confidence.toFixed(2)} status=${categorySuggestion.status} ` +
+      `collectionId=${categorySuggestion.collectionId ?? "saknas"} reason="${categorySuggestion.reason}"`,
+  );
+  if (runCategory && collections.length === 0) {
+    console.warn(
+      "[import:category] Inga Wix-kollektioner hämtades (getCollections gav []). " +
+        "Antingen saknar produkten kategori i Wix, eller så blockerade scopes/404 anropet.",
+    );
+  }
 
   // Strukturerade PDP-flikar (Tekniska specifikationer / Vanliga frågor /
   // Användning och skötsel) → svenska, via Haiku. Fogas in i beskrivningen som
@@ -270,8 +292,13 @@ export async function importProduct(
   // Auto-assign kategorin (beräknad före prissättningen ovan). Tilldelningen sker
   // här eftersom den kräver det persisterade productId:t. Ett retry-försök vid fel.
   if (categorySuggestion.status === "auto" && categorySuggestion.collectionId) {
+    console.log(
+      `[import:category] tilldelar produkt ${created.id} → kollektion ` +
+        `${categorySuggestion.collectionSlug} (${categorySuggestion.collectionId})`,
+    );
     try {
       await assignCollectionWithRetry(created.id, categorySuggestion.collectionId);
+      console.log(`[import:category] ✓ tilldelning OK för ${created.id}`);
       await audit(
         "category-auto-assign",
         created.id,
@@ -279,14 +306,29 @@ export async function importProduct(
       );
     } catch (err) {
       // Demotera till "suggested" om Wix-anropet failade — Leonard kan
-      // klicka in den manuellt från kö-UI:t.
+      // klicka in den manuellt från kö-UI:t. Logga den FAKTISKA Wix-feltexten
+      // (tidigare gömdes den helt i audit) så orsaken syns i Vercel-loggen.
       categorySuggestion.status = "suggested";
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(
+        `[import:category] ✗ Wix add-to-collection FAILADE för ${created.id} ` +
+          `(kollektion ${categorySuggestion.collectionId}): ${errMsg}`,
+      );
       await audit(
         "category-auto-assign-failed",
         created.id,
-        err instanceof Error ? err.message.slice(0, 200) : String(err),
+        errMsg.slice(0, 200),
       );
     }
+  } else if (categorySuggestion.collectionSlug) {
+    // Vi hade ett förslag men det nådde inte auto-tröskeln (status "suggested"/
+    // "uncategorized") → ingen kategori sätts. Logga varför så det inte ser ut
+    // som en bugg när Leonard ser en okategoriserad produkt.
+    console.log(
+      `[import:category] INGEN auto-tilldelning för ${created.id}: status=` +
+        `${categorySuggestion.status} (conf=${categorySuggestion.confidence.toFixed(2)}, ` +
+        `tröskel auto≥0.6). Förslag "${categorySuggestion.collectionSlug}" lämnas som ${categorySuggestion.status}.`,
+    );
   }
 
   const imageAnalysisEntries: ImageAnalysisEntry[] = imageVerdicts.map((v) => ({
@@ -324,6 +366,7 @@ export async function importProduct(
     variantMappings,
     imageAnalysis: imageAnalysisEntries,
     categorySuggestion,
+    stockQuantity: stockQty,
     shipsFromCountries,
     hasEuWarehouse,
     warehouseClass,

@@ -306,29 +306,86 @@ function extractPriceUsd() {
   return 0;
 }
 
+// Kända warehouse-koder — används för att gissa att en namnlös grupp egentligen
+// är "Ships From" (annars skulle den bli en falsk variant-dimension).
+const KNOWN_SHIP_CODES = new Set([...EU_WAREHOUSE_CODES, "CN", "US", "RU", "TR", "AU", "CA"]);
+
+// Läser en SKU-grupps namn (Color / Size / Ships From) robust. AE visar det som
+// "Color: <valt värde>" men klassnamnen varierar mellan sidversioner, och SIZE-
+// gruppens titel saknar ibland sku-item--title helt — då tappade den gamla koden
+// hela storleks-axeln (bug 2026-06-01). Provar flera källor innan vi ger upp.
+function readSkuGroupName(wrap, list) {
+  const clean = (s) => (String(s || "").split(/[:：]/)[0] || "").replace(/\s+/g, " ").trim();
+  const ok = (s) => s && s.length >= 1 && s.length <= 40;
+  if (wrap) {
+    // a) Dedikerat title-element (flera möjliga klassnamn).
+    const titleEl = wrap.querySelector(
+      '[class*="sku-item--title"], [class*="skuTitle"], [class*="--title"]',
+    );
+    let n = clean(titleEl && titleEl.textContent);
+    if (ok(n)) return n;
+    // b) aria-label på wrappen.
+    n = clean(wrap.getAttribute && wrap.getAttribute("aria-label"));
+    if (ok(n)) return n;
+  }
+  // c) Närmast föregående syskon till listan (en label-rad strax ovanför rutorna).
+  let sib = list.previousElementSibling;
+  for (let i = 0; sib && i < 3; i++, sib = sib.previousElementSibling) {
+    if (sib.querySelector && sib.querySelector('[class*="sku-item--skuList"]')) break;
+    const n = clean(sib.textContent);
+    if (ok(n)) return n;
+  }
+  return "";
+}
+
 // Hämtar SKU-grupper ur DOM: [{name:"Color", values:[{label, image}]}, ...].
+// Fångar BÅDE text-rutor (sku-item--box → Size/Model) och bild-swatchar
+// (sku-item--imageWrap → Color). En grupp med värden tappas ALDRIG bara för att
+// titeln inte gick att läsa — då får den ett stabilt fallback-namn (annars
+// försvann hela storleks-axeln och varianterna blev bara färg, bug 2026-06-01).
 function extractDomSkuGroups() {
   const lists = [...document.querySelectorAll('[class*="sku-item--skuList"]')];
   const groups = [];
-  for (const list of lists) {
+  lists.forEach((list, idx) => {
     const wrap = list.closest('[class*="sku-item--property"]') || list.parentElement;
-    const titleEl = wrap && wrap.querySelector('[class*="sku-item--title"]');
-    const name = titleEl ? titleEl.textContent.split(":")[0].trim() : "";
-    const items = [
+    let name = readSkuGroupName(wrap, list);
+
+    // Markera både text-boxar och bild-swatchar; filtrera bort yttre element som
+    // omsluter ett annat matchat element (en swatch inuti en box → dubbelräkning).
+    const rawItems = [
       ...list.querySelectorAll('[class*="sku-item--box"], [class*="sku-item--imageWrap"]'),
     ];
-    const values = items
-      .map((it) => {
-        const img = it.querySelector("img");
-        let label = (
-          it.querySelector('[class*="skuText"], [class*="sku-item--text"]') || it
-        ).textContent.trim();
-        if (!label && img) label = (img.alt || img.getAttribute("title") || "").trim();
-        return { label: label || "", image: img ? cleanImageUrl(img.src) : "" };
-      })
-      .filter((v) => v.label);
-    if (name && values.length) groups.push({ name, values });
-  }
+    const items = rawItems.filter(
+      (it) => !rawItems.some((other) => other !== it && it.contains(other)),
+    );
+
+    const seen = new Set();
+    const values = [];
+    for (const it of items) {
+      const img = it.querySelector("img");
+      let label = (
+        it.querySelector('[class*="skuText"], [class*="sku-item--text"]') || it
+      ).textContent.trim();
+      if (!label && img) label = (img.alt || img.getAttribute("title") || "").trim();
+      label = label.replace(/\s+/g, " ").trim();
+      if (!label) continue;
+      const key = label.toLowerCase();
+      if (seen.has(key)) continue; // deduppa (dubbelrenderade rutor)
+      seen.add(key);
+      values.push({ label, image: img ? cleanImageUrl(img.src) : "" });
+    }
+    if (!values.length) return;
+
+    // Titel oläsbar → behåll axeln med ett vettigt fallback-namn istället för att
+    // släppa den. Gissa "Ships From" om värdena ser ut som warehouse-koder,
+    // annars "Färg" för rena bild-swatchgrupper, annars positionsnamn.
+    if (!name) {
+      const looksShip = values.every((v) => KNOWN_SHIP_CODES.has(normalizeShipFrom(v.label)));
+      const allImg = values.every((v) => v.image);
+      name = looksShip ? "Ships From" : allImg ? "Färg" : `Variant ${idx + 1}`;
+    }
+    groups.push({ name, values });
+  });
   return groups;
 }
 
