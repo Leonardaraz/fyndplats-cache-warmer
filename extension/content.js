@@ -187,6 +187,40 @@ function detectInStock() {
   return true;
 }
 
+// --- Ship-from ur DOM (bug 2026-06-01) -----------------------------------
+// På nya PC-sidan är fraktlandet inte en SKU-grupp utan en "Levereras från:
+// Polen"/"Ships from: China"-rad (ofta i ett [data-pl*="ship"]- eller
+// shipping-block). Den gamla skrapan läste bara shipFrom ur inbäddad SKU-data /
+// SKU-grupper → "Leverans: Okänt". Vi skannar därför även dedikerade
+// shipping-block och body-texten och normaliserar lands-namn → ISO-2.
+const SHIP_FROM_TEXT_RE =
+  /(?:ships?\s*from|dispatch(?:ed)?\s*from|levereras?\s*fr[åa]n|skickas?\s*fr[åa]n|fraktas?\s*fr[åa]n)\s*[:：]?\s*([A-Za-zÅÄÖåäö][A-Za-zÅÄÖåäö .'-]{1,28})/i;
+
+function detectShipFromDom() {
+  const codes = new Set();
+  const tryAdd = (raw) => {
+    const code = normalizeShipFrom(String(raw || "").trim());
+    if (code && /^[A-Z]{2}$/.test(code)) codes.add(code);
+  };
+  // a) Dedikerade shipping-/leverans-block.
+  const blocks = document.querySelectorAll(
+    '[data-pl*="ship" i], [class*="shipping"], [class*="dynamic-shipping"], ' +
+      '[class*="ship-from"], [class*="shipFrom"], [class*="delivery"]',
+  );
+  for (const el of blocks) {
+    const m = ((el.innerText || el.textContent) || "").match(SHIP_FROM_TEXT_RE);
+    if (m) tryAdd(m[1]);
+  }
+  // b) Body-text-fallback (global skanning efter alla "från X"-omnämnanden).
+  if (codes.size === 0) {
+    const body = (document.body && document.body.innerText) || "";
+    const re = new RegExp(SHIP_FROM_TEXT_RE.source, "gi");
+    let m;
+    while ((m = re.exec(body)) && codes.size < 5) tryAdd(m[1]);
+  }
+  return [...codes];
+}
+
 // --- Lager 1+2: inbäddad JSON --------------------------------------------
 
 function readEmbeddedData() {
@@ -847,8 +881,18 @@ function extract() {
     }
   }
 
-  // Ship-from-koder ihopsamlade från data + DOM.
+  // Ship-from-koder ihopsamlade från data + SKU-grupper. Komplettera ALLTID med
+  // dedikerade shipping-block/body-text (nya PC-sidan visar fraktlandet där, inte
+  // som en SKU-grupp) så att "Leverans: Okänt" blir t.ex. "Polen" (bug 2026-06-01).
+  for (const code of detectShipFromDom()) shipCodes.add(code);
   result.shipsFrom = [...shipCodes].sort();
+
+  // Backfill per-variant shipFrom när hela produkten skickas från EXAKT ett lager
+  // (vanligaste fallet) men varianterna saknade kod — så att per-variant-badgen i
+  // popupen och EU-flaggan i pipelinen blir rätt.
+  if (result.shipsFrom.length === 1) {
+    for (const v of result.variants) if (!v.shipFrom) v.shipFrom = result.shipsFrom[0];
+  }
 
   // Lagerstatus: börja med DOM-signalen (köp-knapp/text). Om inbäddad SKU-data
   // har explicita saldon väger de tyngst: alla 0 → OOS, något > 0 → i lager.
