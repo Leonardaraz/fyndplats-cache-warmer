@@ -72,10 +72,11 @@ export const MAIN_GROUPS: MainGroup[] = [
 ];
 
 // ── Kategori-hero-bilder (Unsplash) ───────────────────────────────────────
-// Curated lifestyle-hero per huvudkategori, så /kategori/<huvud>-sidan får en
-// vacker, on-brand hjältebild i stället för "första produktbilden" (som för
-// Hem & Inredning blev en bukett hjärtballonger — granskningens #1 kategori-fel).
-// Subkategorier behåller produktbild-fallbacken (categoryHero returnerar "").
+// Curated lifestyle-hero per kategori (huvud- OCH underkategori), så varje
+// /kategori-sida får en vacker, on-brand hjältebild i stället för "första
+// produktbilden" (som för Hem & Inredning blev en bukett hjärtballonger —
+// granskningens #1 kategori-fel). Kategorier utan curated hero faller fortfarande
+// tillbaka på den högst bild-poängsatta produktbilden (categoryHero returnerar "").
 //
 // Alla bilder är Unsplash License (fri kommersiell användning, ingen attribution
 // krävs). Varje rad dokumenterar foto-sidans URL för spårbarhet/attribution.
@@ -116,6 +117,68 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   // Stilfull kvinna i vinröd kappa med kassar — mode & accessoarer.
   // https://unsplash.com/photos/1483985988355-763728e1935b
   "Mode & Accessoarer": UNSPLASH("1483985988355-763728e1935b"),
+
+  // ── Underkategori-hero-bilder ───────────────────────────────────────────
+  // Curated lifestyle-hero per underkategori (samma kvalité/stil som huvud-
+  // kategorierna ovan). Tidigare föll subsidorna tillbaka på första rena
+  // produktbilden (categoryHero() → ""), vilket gav ojämn, ibland tråkig hero.
+  // Nu får varje sub en egen on-brand lifestyle-bild → samma upplevelse som
+  // huvudkategori-sidorna och /butik-korten.
+  //
+  // Nyckeln MÅSTE matcha Wix V3-katalogens kategorinamn EXAKT (hämtade live via
+  // /categories/v1/categories/query 2026-06-01). Bilderna är Unsplash License
+  // (fri kommersiell användning, ingen attribution krävs) och visuellt granskade
+  // i contact sheet 2026-06-01 (foto-realistiska, varmt ljus, relevant motiv,
+  // inga konkurrent-varumärken/vattenstämplar, inga AI-renders). Levereras crop:ade
+  // till 5:4 av UNSPLASH() → matchar .kat-hero-img-behållaren utan dubbelbeskärning.
+
+  // Kök & Husgeråd
+  "Köksredskap & Tillbehör": UNSPLASH("1556909211-36987daf7b4d"), // ljust kök, skärbrädor + redskap i kanna
+  "Köksmaskiner & Apparater": UNSPLASH("1668910231038-e342ad670789"), // vit köksbänk med små apparater
+  "Servering & Glas": UNSPLASH("1560145725-8cbf9768b73a"), // eleganta vinglas på dukat bord
+
+  // Skönhet & Hälsa
+  "Hudvård & Ansikte": UNSPLASH("1739980104488-408eff709fff"), // hudvårdsflaskor på ljus yta
+  "Massage & Återhämtning": UNSPLASH("1610402601271-5b4bd5b3eba4"), // ryggmassage med varma stenar
+  "Hår & Rakning": UNSPLASH("1564141696939-9eb6e957ccfc"), // friskt, böljande hår
+  "Kropp & Välbefinnande": UNSPLASH("1535007829477-d13662ffb714"), // lugn självomvårdnad vid fönster
+
+  // Mode & Accessoarer
+  "Smycken": UNSPLASH("1561828995-aa79a2db86dd"), // guldsmycken flat-lay
+  "Klockor & Solglasögon": UNSPLASH("1629139033414-76f3c0eacf84"), // klocka + solglasögon flat-lay
+  "Skor": UNSPLASH("1600185365483-26d7a4cc7519"), // ren sneaker, ljus bakgrund
+  "Väskor & Necessärer": UNSPLASH("1583454110551-21f2fa2afe61"), // läderväska, mode
+
+  // Barn & Familj
+  "Baby & Småbarn": UNSPLASH("1618842676088-c4d48a6a7c9d"), // staplingsleksak i trä, mjuka toner
+  "Leksaker & Spel": UNSPLASH("1596066190600-3af9aadaaea1"), // barn leker med träleksaker
+
+  // Elektronik & Tillbehör
+  "Hörlurar & Ljud": UNSPLASH("1546435770-a3e426bf472b"), // hörlurar på stativ
+  "Laddare & Kablar": UNSPLASH("1557767382-97b28f5488e7"), // telefon som laddas, minimal
+  "Mobiltillbehör": UNSPLASH("1573739022854-abceaeb585dc"), // mobil + tillbehör flat-lay
+  "Dator & Gaming": UNSPLASH("1614179924047-e1ab49a0a0cf"), // gaming-setup med RGB-ljus
+
+  // Hem & Inredning
+  "Belysning": UNSPLASH("1517991104123-1d56a6e81ed9"), // varm bordslampa
+  "Dekoration & Prydnad": UNSPLASH("1623244307563-f9ade3df13c0"), // vas med pampasgräs, minimal
+  "Förvaring & Organisering": UNSPLASH("1601330862030-1e08c703ac04"), // flätade förvaringskorgar
+  "Hushållsapparater": UNSPLASH("1586208958839-06c17cacdf08"), // ljust kök med apparater
+  "Badrum & Hemtextil": UNSPLASH("1616663717839-2fea42e1a1f6"), // mjuka handdukar, badrum
+  "Verktyg & Hemmafix": UNSPLASH("1426927308491-6380b6a9936f"), // organiserad verktygsvägg
+  "Kalas & Fest": UNSPLASH("1556125574-d7f27ec36a06"), // festscen med ljusslingor
+
+  // Husdjur
+  "Pälsvård & Skötsel": UNSPLASH("1675430426271-d74b542f21e4"), // hund som borstas
+  "Selar, Koppel & Transport": UNSPLASH("1530700131180-d43d9b8cc41f"), // hundpromenad i koppel
+  "Burar, Kläder & Tillbehör": UNSPLASH("1581888227599-779811939961"), // hund i mysig bädd
+  "Mat & Vattenskålar": UNSPLASH("1695023265600-07f536e8ca4c"), // glad hund, husdjurslivsstil
+  "Lek & Tillbehör för husdjur": UNSPLASH("1545249390-6bdfa286032f"), // kattunge som leker
+
+  // Sport & Fritid
+  "Träning & Gym": UNSPLASH("1705909237050-7a7625b47fac"), // träning med vikter
+  "Friluftsliv & Resa": UNSPLASH("1501555088652-021faa106b9b"), // vandrare med ryggsäck, berg
+  "Bil & Cykel": UNSPLASH("1541625602330-2277a4c46182"), // cyklister på väg
 };
 
 // Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan

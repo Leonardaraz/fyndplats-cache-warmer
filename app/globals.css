@@ -963,11 +963,13 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .butik-cat{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s,border-color .3s}
 .butik-cat:hover{transform:translateY(-4px);box-shadow:0 30px 60px -28px rgba(28,28,28,.32);border-color:#C2410C33}
 .butik-cat-imgwrap{position:relative;display:block;aspect-ratio:5/4;overflow:hidden;background:#f6f1ec}
-/* Kategorikortens hero på /butik visar PRODUKTbilder (≈kvadratiska, 559×559).
-   I en 5:4-ruta beskar object-fit:cover ~25% topp+botten → produkten såg inzoomad
-   och konstigt avskuren ut (Leonards mobil-rapport). contain visar hela produkten
-   centrerad mot den varmvita rutan – ingen beskärning, robust för alla källformat. */
-.butik-cat-img{object-fit:contain;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+/* Kategorikortens hero på /butik visar nu samma curated lifestyle-bild som
+   huvudkategori-sidans egen hero (lib categoryHero), levererad crop:ad till exakt
+   5:4 av UNSPLASH(). object-fit:cover fyller 5:4-rutan utan brevlåda och ger
+   identisk look med .kat-hero-img (som också är cover). Tidigare var detta
+   produktbilder (≈kvadratiska) och använde contain för att slippa beskärning —
+   irrelevant nu när källan redan är 5:4. */
+.butik-cat-img{object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 .butik-cat:hover .butik-cat-img{transform:scale(1.06)}
 .butik-cat-imghover{position:absolute;inset:auto 0 0 0;display:flex;align-items:flex-end;justify-content:flex-end;padding:18px 22px;background:linear-gradient(180deg,transparent 30%,rgba(20,18,15,.55) 100%);opacity:0;transition:opacity .3s ease;pointer-events:none}
 .butik-cat-imghover span{color:#fff;font-size:14px;font-weight:700;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.32);padding:9px 16px;border-radius:999px;letter-spacing:.01em}

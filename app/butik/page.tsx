@@ -2,7 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getProducts, getCollections, forListings, dedupeProducts } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
-import { buildGroupCards, MOSAIC_DENYLIST } from "../../lib/category-groups";
+import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/category-groups";
 import { pageMeta } from "../../lib/seo";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../../lib/image-scores";
 
@@ -122,13 +122,18 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
         <div className="container">
           <h2 className="sronly">Huvudkategorier</h2>
           <div className="butik-cats-grid">
-            {groups.map((g, idx) => (
+            {groups.map((g, idx) => {
+              // Samma curated lifestyle-hero som huvudkategori-sidans egen hero
+              // (lib categoryHero). Faller tillbaka på produkt-heron bara om en
+              // huvudkategori saknar curated bild (ska inte hända för de 8).
+              const heroSrc = categoryHero(g.main.name) || g.heroImg;
+              return (
               <article className="butik-cat" key={g.main.id}>
                 <a className="butik-cat-imgwrap" href={`/kategori/${g.main.slug}`} aria-label={`Utforska ${g.main.name}`}>
-                  {g.heroImg && (
+                  {heroSrc && (
                     <Image
                       className="butik-cat-img"
-                      src={g.heroImg}
+                      src={heroSrc}
                       alt=""
                       fill
                       sizes="(max-width:760px) 100vw, (max-width:1100px) 50vw, 560px"
@@ -171,7 +176,8 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                   </a>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
