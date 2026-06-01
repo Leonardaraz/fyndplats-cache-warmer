@@ -1,6 +1,10 @@
 import { computePriceWithRules } from "./pricing";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs } from "./tabs";
+import {
+  translateOptionColorCodes,
+  translateVariantOptions,
+} from "./variant-translations";
 import type { AliExpressProduct, FeatureFlags, PricingRules } from "./types";
 import {
   addProductToCollection,
@@ -116,7 +120,18 @@ export async function importProduct(
   colorCodes?: OptionColorCodes,
   flags?: FeatureFlags,
 ): Promise<ImportResult> {
-  const included = product.variants.filter((v) => v.included);
+  // Deterministisk svensk översättning av variantaxlar + värden (INGA AI-anrop,
+  // $0). Görs i ETT pass över varianterna så att Wix-options OCH variantval blir
+  // identiskt översatta (Wix matchar dem på exakt sträng). Färgkods-tabellen
+  // remappas till samma översatta nycklar så swatch-uppslaget i deriveOptions
+  // fortsätter träffa. Okända axlar/värden faller tillbaka på råvärdet.
+  const variants = product.variants.map((v) => ({
+    ...v,
+    options: translateVariantOptions(v.options),
+  }));
+  const translatedColorCodes = colorCodes ? translateOptionColorCodes(colorCodes) : undefined;
+
+  const included = variants.filter((v) => v.included);
   if (included.length === 0) {
     throw new Error("Inga varianter valda för import.");
   }
@@ -198,9 +213,9 @@ export async function importProduct(
 
   // Options härleds från ALLA varianter; avbockade varianter skapas men döljs
   // (visible: false) så att Wix får en komplett variantuppsättning.
-  const options = deriveOptions(product.variants, colorCodes);
+  const options = deriveOptions(variants, translatedColorCodes);
   const variantMappings: VariantMapping[] = [];
-  const wixVariants: WixVariantInput[] = product.variants.map((v) => {
+  const wixVariants: WixVariantInput[] = variants.map((v) => {
     const sku = makeSku(product.supplierProductId, v.supplierVariantId);
     const price = computePriceWithRules(v.costUsd, rules, categoryName);
     if (v.included) {
@@ -243,7 +258,7 @@ export async function importProduct(
   // Aggregera warehouse-koder över alla varianter + ev. produkt-default.
   // Påverkar Wix-ribbonen och persisteras på mapping-posten för senare filterring.
   const allShipFromCodes: string[] = [];
-  for (const v of product.variants) {
+  for (const v of variants) {
     if (v.shipFrom) allShipFromCodes.push(v.shipFrom);
   }
   if (product.shipsFrom) allShipFromCodes.push(...product.shipsFrom);
@@ -282,7 +297,7 @@ export async function importProduct(
   // med quantity=stockQty per inkluderad variant. Tidigare separata query→update
   // no-op:ade eftersom Wix INTE skapar lagerposter vid vanlig create — det var
   // därför produkterna fortsatte visas "Slut i lager". Här loggar vi bara utfallet.
-  const includedCount = product.variants.filter((v) => v.included).length;
+  const includedCount = variants.filter((v) => v.included).length;
   await audit(
     "import-initial-stock",
     created.id,
