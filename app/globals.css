@@ -387,23 +387,36 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
    erad) → utan detta målas den absolutpositionerade shimmern OVANPÅ bilden och
    döljer både blur och laddad bild i ~5 s (Leonards "gräddruta sen bild"-bugg).
    Produktkorten använder fill (positionerad img) och drabbas därför inte. */
-.gallery .gmain img{position:relative;z-index:1;width:100%;height:auto;aspect-ratio:1;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.2,.7,.2,1);animation:gFade .35s ease}
+.gallery .gmain img{position:relative;z-index:1;width:100%;height:auto;aspect-ratio:1;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.2,.7,.2,1);animation:gFade .4s cubic-bezier(.2,.7,.2,1)}
 .gallery .gmain:hover img{transform:scale(1.07)}
 /* Bildlös produkt: vänlig platshållare i stället för tom gräddvit ruta. */
 .gallery .gmain-empty{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:default;color:#b8ab9b}
 .gallery .gmain-empty svg{width:64px;height:64px}
 .gallery .gmain-empty span{font-size:15px;font-weight:600;letter-spacing:.01em;color:#9a8f7f}
-@keyframes gFade{from{opacity:.3}to{opacity:1}}
+/* Cross-fade + uppskalning vid bildbyte (variantval / svep). Mjuk premium-känsla
+   utan flicker; ingen scroll-jump eftersom hero-bilden byts på plats. */
+@keyframes gFade{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .gthumbs{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
 .gthumb{width:72px;height:72px;border-radius:12px;border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;padding:0;background:#f6f1ec;transition:border-color .2s,box-shadow .2s,transform .2s}
 .gthumb:hover{border-color:var(--orange)}
 .gthumb.active{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange);transform:translateY(-1px)}
+/* Prickindikator — visas i stället för miniatyrgriden på mobil (renare look).
+   Desktop behåller miniatyrerna; mobil-reglerna nedan växlar synligheten. */
+.gdots{display:none;justify-content:center;align-items:center;gap:8px;margin-top:14px}
+.gdot{width:8px;height:8px;padding:0;border:none;border-radius:50%;background:#d8cdbf;cursor:pointer;transition:background .2s,transform .2s,width .2s}
+.gdot:hover{background:#bba98f}
+.gdot.active{background:#C2410C;transform:scale(1.15);width:20px;border-radius:999px}
+.gdot:focus-visible{outline:2px solid #C2410C;outline-offset:2px}
 /* lightbox */
 .lightbox{position:fixed;inset:0;z-index:300;background:rgba(20,18,15,.93);display:flex;align-items:center;justify-content:center;padding:24px;animation:lbIn .2s ease}
 @keyframes lbIn{from{opacity:0}to{opacity:1}}
-.lb-stage{position:relative;width:min(880px,92vw);height:min(880px,82vh);overflow:hidden;cursor:zoom-in}
+/* touch-action:none → pointer-handlers äger pinch/pan/svep helt (annars stjäl
+   webbläsarens egna gester eventströmmen). will-change för mjuk GPU-transform. */
+.lb-stage{position:relative;width:min(880px,92vw);height:min(880px,82vh);overflow:hidden;cursor:zoom-in;touch-action:none}
 .lb-stage.zoomed{cursor:zoom-out}
-.lb-imgwrap{position:absolute;inset:0;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+.lb-imgwrap{position:absolute;inset:0;will-change:transform}
+.lb-hint{position:absolute;bottom:22px;right:50%;transform:translateX(50%);color:rgba(255,255,255,.7);font-size:12px;display:none}
+@media(hover:none) and (pointer:coarse){.lb-hint{display:block}.lb-count{bottom:46px}}
 .lb-close{position:absolute;top:18px;right:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:19px;cursor:pointer;transition:background .2s;z-index:2}
 .lb-close:hover{background:rgba(255,255,255,.3)}
 .lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:30px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:2}
@@ -473,7 +486,30 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .specbox li{font-size:13.5px;color:#4a443d;padding-left:16px;position:relative}
 .specbox li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--orange)}
 .relsec{border-top:1px solid var(--line);margin-top:10px}
-@media(max-width:760px){ .pdp{grid-template-columns:1fr;gap:26px} .buy{max-width:none} }
+@media(max-width:760px){
+  /* Mobil PDP-omstrukturering: flex-kolumn + display:contents på .pinfo gör att
+     pickern/blocken blir direkta barn till .pdp, så CSS-order kan lyfta
+     variant-pickern direkt under hero-bilden — FÖRE titel/pris. Ordning:
+     hero → picker → titel/pris → köp → beskrivning. */
+  .pdp{display:flex;flex-direction:column;gap:0}
+  .pinfo{display:contents}
+  .pdp>.gallery,.pdp-variants,.pdp-head,.pdp-actions,.pdp-detail{min-width:0}
+  .pdp>.gallery{order:1;margin-bottom:18px}
+  .pdp-variants{order:2;margin-bottom:18px;max-width:none}
+  .pdp-head{order:3;margin-bottom:4px}
+  .pdp-actions{order:4;max-width:none}
+  .pdp-detail{order:5}
+  .buy{max-width:none}
+  /* Miniatyrgriden ersätts av prickindikatorn på mobil (ingen dubblering) */
+  .gallery .gthumbs{display:none}
+  .gdots{display:flex}
+  /* Många swatches → horisontell scroll i stället för radbrytning */
+  .varswatches{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin:0 -2px;scrollbar-width:none}
+  .varswatches::-webkit-scrollbar{display:none}
+  .varswatch{scroll-snap-align:start;flex:0 0 auto}
+  /* lyft-skugga får inte klippas av overflow:auto */
+  .varswatches{padding-top:4px}
+}
 
 /* cart */
 .cartbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:none;border:none;color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
@@ -570,6 +606,29 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .varpill:hover{border-color:var(--ink);background:var(--warm);transform:translateY(-1px)}
 .varpill.active{border-color:#C2410C;background:#C2410C;color:#fff}
 .varpill:focus-visible{outline:2px solid #C2410C;outline-offset:2px}
+
+/* ── Variant-picker: named swatches (bild/färg + namn) ─────────────────────────
+   En enhetlig picker som visar både cirkelbild OCH namn. Tydlig vald-state
+   (lyft, scale, kraftig border), dimmade ovalda. Horisontell scroll om många. */
+.pdp-variants{margin:0 0 20px;max-width:420px}
+.varhead{font-size:13.5px;color:var(--soft);margin-bottom:11px}
+.varhead-key::after{content:":"}
+.varhead-val{color:var(--ink);font-weight:700;margin-left:6px}
+.varswatches{display:flex;gap:10px;flex-wrap:wrap}
+/* Många varianter → horisontell scroll i stället för radbrytning (mobil) */
+.varswatch{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:6px 15px 6px 6px;cursor:pointer;opacity:.62;transition:opacity .2s,border-color .2s,box-shadow .2s,transform .2s;-webkit-tap-highlight-color:transparent}
+.varswatch.text{padding:9px 18px}
+.varswatch:hover{opacity:.85;border-color:#C2410C66}
+.varswatch.active{opacity:1;border-color:#C2410C;box-shadow:0 0 0 3px rgba(194,65,12,.18),0 10px 22px -12px rgba(194,65,12,.5);transform:scale(1.05);animation:swatchPop .32s cubic-bezier(.34,1.56,.64,1)}
+.varswatch.text.active{background:#C2410C;color:#fff;border-color:#C2410C}
+.varswatch:focus-visible{outline:2px solid #C2410C;outline-offset:2px}
+.varswatch-thumb{width:38px;height:38px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#f6f1ec;display:block}
+.varswatch-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.varswatch-dot{width:24px;height:24px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);margin-left:6px}
+.varswatch-name{white-space:nowrap}
+/* Bouncy spring-in när en swatch väljs (premium-feel utan animationsbibliotek) */
+@keyframes swatchPop{0%{transform:scale(.94)}55%{transform:scale(1.09)}100%{transform:scale(1.05)}}
+@media(prefers-reduced-motion:reduce){.varswatch.active{animation:none}}
 .catbar{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-bottom:34px}
 .chip{font-size:13.5px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:9px 18px;transition:border-color .2s,color .2s,background .2s}
 .chip:hover{border-color:var(--orange);color:var(--orange)}
