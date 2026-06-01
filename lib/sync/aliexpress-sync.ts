@@ -466,12 +466,21 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // 1) Hämta AliExpress-data. Två anrop räcker (product.get inkluderar redan
   // varianterna), men vi separerar för tydlighet och felisolering.
   let aliExpress: SyncInputs["aliExpress"] = null;
+  // Per-variant-saldo från AliExpress, keyat på skuId (= mapping.supplierVariantId).
+  // Används av applyInventoryTarget för att spegla VERKLIGT lager per variant i Wix
+  // istället för att jämnt fördela aggregatet (bug 2026-06-01).
+  let aeStockBySupplierId: Record<string, number> = {};
   try {
     const product = await getAliExpressProduct(mapping.supplierProductId);
     const minCostUsd = product.variants
       .filter((v) => (v.stock ?? 0) > 0 && v.price > 0)
       .reduce((min, v) => (min === 0 ? v.price : Math.min(min, v.price)), 0);
     const totalStock = product.variants.reduce((s, v) => s + (v.stock ?? 0), 0);
+    aeStockBySupplierId = Object.fromEntries(
+      product.variants
+        .filter((v) => v.skuId)
+        .map((v) => [String(v.skuId), Math.max(0, Math.trunc(v.stock ?? 0))]),
+    );
     aliExpress = {
       title: product.title,
       images: product.images,
@@ -551,7 +560,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, true);
     }
     if (decision.inventoryTarget !== null) {
-      await applyInventoryTarget(mapping, decision.inventoryTarget);
+      await applyInventoryTarget(mapping, decision.inventoryTarget, aeStockBySupplierId);
     }
   }
 
@@ -747,28 +756,45 @@ function productPageUrl(slug?: string): string {
 }
 
 /**
- * Skriver lager-target till alla varianter (samma värde — vi vet inte vilken
- * variant som har lager kvar utan ytterligare anrop, och spec:en frågar bara
- * efter aggregerat lager: 0 vid oos, annars återställning).
+ * Skriver lager-target till varianterna.
  *
- * NOTE: getInventory är onödig om vi redan har data, men vi har den nu från
- * AliExpress så vi gör inte ett extra anrop.
+ * Bug 2026-06-01: tidigare fördelades aggregatet JÄMNT över alla varianter
+ * (target / n), så en produkt med 100 i lager på "Röd" och 0 på "Blå" fick 50/50
+ * i Wix — fel verklighet. När vi har AliExpress per-variant-saldo (stockBySupplierId,
+ * keyat på skuId) sätter vi nu varje Wix-variants saldo individuellt genom att
+ * matcha Wix variantId → mapping.supplierVariantId → AE-saldo. Saknas per-variant-
+ * data faller vi tillbaka på den gamla jämna fördelningen. target===0 (slut i lager)
+ * nollar alltid hela linjen.
  */
 async function applyInventoryTarget(
   mapping: ProductMappingRecord,
   target: number,
+  stockBySupplierId: Record<string, number> = {},
 ): Promise<void> {
   const items: WixInventoryItem[] = await queryInventoryItemsByProductId(mapping.wixProductId);
   if (items.length === 0) return;
-  const updates = items.map((it) => ({
-    id: it.id,
-    revision: it.revision,
-    quantity: Math.max(0, Math.trunc(target / Math.max(1, items.length))),
-  }));
-  // Om target är 0 vill vi sätta 0 över hela linjen, inte dela med n.
-  if (target === 0) {
-    for (const u of updates) u.quantity = 0;
+
+  // Wix variantId → leverantörens variant-id (skuId), via sparad mapping.
+  const supplierByVariantId = new Map<string, string>();
+  for (const v of mapping.variants ?? []) {
+    if (v.wixVariantId) supplierByVariantId.set(v.wixVariantId, v.supplierVariantId);
   }
+  const hasPerVariant = target > 0 && Object.keys(stockBySupplierId).length > 0;
+  const evenSplit = Math.max(0, Math.trunc(target / Math.max(1, items.length)));
+
+  const updates = items.map((it) => {
+    let quantity: number;
+    if (target === 0) {
+      quantity = 0;
+    } else if (hasPerVariant) {
+      const supplierId = supplierByVariantId.get(it.variantId);
+      const perVariant = supplierId != null ? stockBySupplierId[supplierId] : undefined;
+      quantity = typeof perVariant === "number" ? perVariant : evenSplit;
+    } else {
+      quantity = evenSplit;
+    }
+    return { id: it.id, revision: it.revision, quantity };
+  });
   await bulkUpdateInventoryQuantities(updates);
 }
 

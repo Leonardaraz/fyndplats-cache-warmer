@@ -76,7 +76,9 @@ function stockBadge(p) {
   } else {
     span.classList.add("badge-eu");
     span.textContent = "I lager";
-    span.title = "Importeras som i lager (standard 10 st per variant).";
+    span.title =
+      "Importeras som i lager — verkligt AliExpress-saldo per variant när det " +
+      "kunde läsas, annars standard 10 st.";
   }
   return span;
 }

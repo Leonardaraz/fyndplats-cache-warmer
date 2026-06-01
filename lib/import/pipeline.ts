@@ -1,5 +1,6 @@
 import { computePriceWithRules } from "./pricing";
 import { deriveFocusKeyword } from "./focus-keyword";
+import { resolveImportStockQty } from "./variant-stock";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs } from "./tabs";
 import {
@@ -272,7 +273,9 @@ export async function importProduct(
       visible: v.included,
       // Lager skapas in-line via /products-with-inventory (Fix 1). Ej inkluderade
       // (visible:false) varianter får 0 så de inte felaktigt signalerar lager.
-      inventoryQuantity: v.included ? stockQty : 0,
+      // Verkligt AliExpress per-variant-saldo (skrapans availQuantity) när det finns,
+      // annars fallback till stockQty (default 10); OOS-produkt → 0 (bug 2026-06-01).
+      inventoryQuantity: v.included ? resolveImportStockQty(v.stock, stockQty, product.inStock) : 0,
       // Varukostnad (landad inköp i SEK) → Wix revenueDetails.cost (Fix 4).
       costAmount: price.costSek.toFixed(2),
     };
