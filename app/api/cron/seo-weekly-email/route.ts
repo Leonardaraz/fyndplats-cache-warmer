@@ -44,8 +44,11 @@ export async function GET(request: Request) {
   try {
     const { data, error } = await resend.emails.send({ from: FROM, to, subject, html });
     if (error) {
+      console.error("[seo-weekly] resend error", { to, subject, error: String(error) });
       return NextResponse.json({ ok: false, error: String(error), subject }, { status: 502 });
     }
+    // Logged so each Monday run leaves an audit trail in Vercel function logs.
+    console.log("[seo-weekly] sent", { id: data?.id, to, subject, issues: report.issues.length, healthy: report.healthy });
     return NextResponse.json({
       ok: true,
       id: data?.id,
@@ -54,6 +57,7 @@ export async function GET(request: Request) {
       healthy: report.healthy,
     });
   } catch (e) {
+    console.error("[seo-weekly] send threw", { to, subject, error: (e as Error).message });
     return NextResponse.json({ ok: false, error: (e as Error).message, subject }, { status: 502 });
   }
 }
