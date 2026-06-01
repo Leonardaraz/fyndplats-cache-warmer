@@ -60,13 +60,21 @@ function hashPhone(raw?: string): string | undefined {
   return digits ? sha256(digits) : undefined;
 }
 
+// En env-var räknas som "satt" bara om den har meningsfullt innehåll efter
+// trim. Skyddar mot tomma/whitespace-placeholders (t.ex. tomma slots i Vercel
+// som väntar på riktiga värden) — de ska behandlas som ej-konfigurerade så
+// Pixel/CAPI förblir en säker no-op tills riktiga värden fylls i.
+export function metaEnv(name: "META_PIXEL_ID" | "META_CAPI_ACCESS_TOKEN" | "META_TEST_EVENT_CODE"): string {
+  return (process.env[name] || "").trim();
+}
+
 export function metaCapiConfigured(): boolean {
-  return Boolean(process.env.META_PIXEL_ID && process.env.META_CAPI_ACCESS_TOKEN);
+  return Boolean(metaEnv("META_PIXEL_ID") && metaEnv("META_CAPI_ACCESS_TOKEN"));
 }
 
 export async function sendMetaCapiEvent(input: CapiEventInput): Promise<CapiResult> {
-  const pixelId = process.env.META_PIXEL_ID;
-  const token = process.env.META_CAPI_ACCESS_TOKEN;
+  const pixelId = metaEnv("META_PIXEL_ID");
+  const token = metaEnv("META_CAPI_ACCESS_TOKEN");
   if (!pixelId || !token) {
     // Inte konfigurerat ännu (placeholder-läge). Inte ett fel — Pixel/CAPI är
     // helt enkelt inaktiv tills Leonard fyllt i env-variablerna.
@@ -97,7 +105,7 @@ export async function sendMetaCapiEvent(input: CapiEventInput): Promise<CapiResu
 
   const payload: Record<string, unknown> = { data: [event] };
   // Test Events-läge bara utanför produktion → skarp data smutsas aldrig ner.
-  const testCode = process.env.META_TEST_EVENT_CODE;
+  const testCode = metaEnv("META_TEST_EVENT_CODE");
   if (process.env.NODE_ENV !== "production" && testCode) {
     payload.test_event_code = testCode;
   }

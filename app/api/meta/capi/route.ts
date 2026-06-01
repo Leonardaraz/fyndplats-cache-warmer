@@ -13,7 +13,7 @@
 // META_CAPI_ACCESS_TOKEN, META_TEST_EVENT_CODE (valfri).
 
 import { NextResponse, type NextRequest } from "next/server";
-import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
+import { metaCapiConfigured, metaEnv, sendMetaCapiEvent } from "@/lib/meta-capi";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -78,11 +78,15 @@ export async function POST(req: NextRequest) {
 // GET för enkel health-check (verifiera deploy + konfiguration utan att skicka
 // ett event). Avslöjar inte token — bara om den är satt.
 export async function GET() {
+  // Längder (inte värden) för diagnos: visar om en slot är tom/whitespace utan
+  // att läcka Pixel-ID eller token.
   return NextResponse.json({
     status: "ok",
     endpoint: "meta-capi",
     configured: metaCapiConfigured(),
+    pixelIdLen: metaEnv("META_PIXEL_ID").length,
+    tokenLen: metaEnv("META_CAPI_ACCESS_TOKEN").length,
     testEventMode:
-      process.env.NODE_ENV !== "production" && Boolean(process.env.META_TEST_EVENT_CODE),
+      process.env.NODE_ENV !== "production" && Boolean(metaEnv("META_TEST_EVENT_CODE")),
   });
 }

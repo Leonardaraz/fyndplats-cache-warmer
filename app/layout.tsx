@@ -23,7 +23,7 @@ const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 // Meta Pixel-ID läses server-side (icke-hemligt — syns ändå i sidans källkod).
 // Tomt → MetaPixel renderar inget och CAPI-routen svarar "not_configured", så
 // sajten fungerar oförändrat tills Leonard fyllt i env-variabeln i Vercel.
-const META_PIXEL_ID = process.env.META_PIXEL_ID || "";
+const META_PIXEL_ID = (process.env.META_PIXEL_ID || "").trim();
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const fraunces = Fraunces({
