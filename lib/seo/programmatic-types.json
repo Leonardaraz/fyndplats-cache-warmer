@@ -1,0 +1,203 @@
+{
+  "_doc": "Pattern 1 — /basta-i-test/{slug}. Config-styrda 'bäst i test'-sidor. Varje typ matchar produkter via 'keywords' (substring i produktnamnet, gemener) minus 'exclude'. En typ RENDERAS bara om den matchar >= 3 produkter i den LIVE katalogen (quality-guard i lib/seo/programmatic.ts) — annars 404 + utesluts ur sitemap. 'category' är Wix-kategorinamnet (exakt) för brödsmula + intern länk; saknas den i katalogen hoppas länken bara över. Lägg till fler typer fritt — guarden filtrerar bort de som inte håller måttet.",
+  "types": [
+    {
+      "slug": "massagepistoler",
+      "label": "massagepistoler",
+      "singular": "massagepistol",
+      "keywords": ["massagepistol", "massageapparat", "shiatsu", "nackmassage", "fotmassage", "massage"],
+      "exclude": ["massagesten", "massageset", "massageolja", "massageroller"],
+      "category": "Massage & Återhämtning",
+      "audience": "dig som vill lösa upp stela muskler hemma",
+      "painpoint": "spänd nacke och ömma muskler efter träning eller en lång dag vid skrivbordet",
+      "usp": "kraftfull avslappning på minuter — utan dyra massörbesök"
+    },
+    {
+      "slug": "ansiktsverktyg",
+      "label": "ansiktsverktyg",
+      "singular": "ansiktsverktyg",
+      "keywords": ["gua sha", "ansiktsroller", "ansiktsrengöring", "porrensare", "jaderoller", "massageset", "ansiktsborste"],
+      "exclude": ["massagepistol"],
+      "category": "Hudvård & Ansikte",
+      "audience": "dig som vill ge huden lite extra omtanke hemma",
+      "painpoint": "trött hud, svullnad på morgonen och porer som behöver en djuprengöring",
+      "usp": "spa-känsla i badrummet — varje kväll, året om"
+    },
+    {
+      "slug": "tradlosa-horlurar",
+      "label": "trådlösa hörlurar",
+      "singular": "trådlösa hörlurar",
+      "keywords": ["hörlur", "earbuds", "sovhörlurar"],
+      "exclude": [],
+      "category": "Hörlurar & Ljud",
+      "audience": "dig som vill ha musiken med dig överallt",
+      "painpoint": "trassliga sladdar, dålig passform och batteri som tar slut mitt i låten",
+      "usp": "kristallklart ljud och frihet från sladdar — hela dagen"
+    },
+    {
+      "slug": "laddare-och-kablar",
+      "label": "laddare och kablar",
+      "singular": "laddare",
+      "keywords": ["laddare", "laddkabel", "laddstation", "powerbank", "snabbladdning", "usb-c"],
+      "exclude": [],
+      "category": "Laddare & Kablar",
+      "audience": "dig som är less på att ladda långsamt",
+      "painpoint": "ett urladdat batteri vid fel tillfälle och kablar som slutar funka efter någon månad",
+      "usp": "snabb, pålitlig laddning till alla dina prylar"
+    },
+    {
+      "slug": "mobilhallare",
+      "label": "mobilhållare",
+      "singular": "mobilhållare",
+      "keywords": ["mobilhållare", "telefonhållare", "cykelhållare", "magsafe"],
+      "exclude": [],
+      "category": "Mobiltillbehör",
+      "audience": "dig som vill ha mobilen säkert på plats",
+      "painpoint": "en telefon som glider runt i bilen eller ramlar ner mitt i ett samtal",
+      "usp": "stadigt grepp och full koll — i bilen, på cykeln och på skrivbordet"
+    },
+    {
+      "slug": "nattlampor-och-projektorer",
+      "label": "nattlampor och projektorer",
+      "singular": "nattlampa",
+      "keywords": ["nattlampa", "projektor", "stjärnprojektor", "sensorlampa", "led-slinga", "ljusslinga"],
+      "exclude": [],
+      "category": "Belysning",
+      "audience": "dig som vill skapa rätt stämning hemma",
+      "painpoint": "kalla taklampor som dödar mysfaktorn och mörka hallar att treva sig fram i",
+      "usp": "varmt, mjukt ljus som förvandlar rummet på sekunder"
+    },
+    {
+      "slug": "kaffetillbehor",
+      "label": "kaffetillbehör",
+      "singular": "kaffetillbehör",
+      "keywords": ["kaffe", "mjölkskummare", "koppvärmare", "espresso", "termos"],
+      "exclude": ["kaffemaskin i trä", "leksak"],
+      "category": "Köksmaskiner & Apparater",
+      "audience": "dig som tar kaffepausen på allvar",
+      "painpoint": "kallnat kaffe och platt mjölk som aldrig blir som på caféet",
+      "usp": "barista-känsla hemma — varje kopp, varje morgon"
+    },
+    {
+      "slug": "montessorileksaker",
+      "label": "montessori- och träleksaker",
+      "singular": "montessorileksak",
+      "keywords": ["montessori", "träleksak"],
+      "exclude": [],
+      "category": "Leksaker & Spel",
+      "audience": "dig som vill ge barnet lek som också utvecklar",
+      "painpoint": "plastleksaker som tröttnar fort och inte tål att ärvas vidare",
+      "usp": "tidlös lek i naturmaterial som växer med barnet"
+    },
+    {
+      "slug": "babytillbehor",
+      "label": "babytillbehör",
+      "singular": "babytillbehör",
+      "keywords": ["napphållare", "bitring", "babygym", "nappkedja"],
+      "exclude": [],
+      "category": "Baby & Småbarn",
+      "audience": "dig som vill ha trygga, genomtänkta favoriter till de minsta",
+      "painpoint": "tappade nappar, ömma tandköttet och prylar man inte vågar lita på",
+      "usp": "säkra material och smarta detaljer för en lugnare vardag"
+    },
+    {
+      "slug": "hundselar-och-koppel",
+      "label": "hundselar och koppel",
+      "singular": "hundsele",
+      "keywords": ["hundsele", "hundkoppel", "koppel", "sele"],
+      "exclude": ["kattunnel", "kattleksak"],
+      "category": "Selar, Koppel & Transport",
+      "audience": "dig som vill ha trygga och sköna promenader med hunden",
+      "painpoint": "selar som skaver, koppel som drar och en hund som glider ur",
+      "usp": "bekväm passform och fullt kontroll på varje promenad"
+    },
+    {
+      "slug": "kattleksaker",
+      "label": "kattleksaker",
+      "singular": "kattleksak",
+      "keywords": ["kattleksak", "kattunnel", "kattkanon", "kattmöss", "kattmus", "fjäderleksak"],
+      "exclude": [],
+      "category": "Lek & Tillbehör för husdjur",
+      "audience": "dig som vill ha en aktiv och nöjd katt",
+      "painpoint": "en uttråkad katt som klöser möblerna istället för leksaken",
+      "usp": "lek som väcker jaktinstinkten och bränner energi"
+    },
+    {
+      "slug": "sminktillbehor",
+      "label": "sminktillbehör",
+      "singular": "sminktillbehör",
+      "keywords": ["makeupborste", "sminkborste", "sminkspegel", "sminkförvaring", "makeupset"],
+      "exclude": [],
+      "category": "Hudvård & Ansikte",
+      "audience": "dig som vill ha ordning och rätt verktyg framför spegeln",
+      "painpoint": "rörig sminkhög, dålig belysning och borstar som tappar hår",
+      "usp": "proffsverktyg och smart förvaring för ett enklare morgonrutin"
+    },
+    {
+      "slug": "smycken",
+      "label": "smycken",
+      "singular": "smycke",
+      "keywords": ["halsband", "örhängen", "armband", "krucifix", "berlock", "kedjehalsband"],
+      "exclude": [],
+      "category": "Smycken",
+      "audience": "dig som vill lyfta looken med en detalj",
+      "painpoint": "smycken som missfärgas, går sönder eller känns billiga",
+      "usp": "tidlösa val i tåligt material — till vardag och fest"
+    },
+    {
+      "slug": "solglasogon-och-klockor",
+      "label": "solglasögon och klockor",
+      "singular": "accessoar",
+      "keywords": ["solglasögon", "armbandsur", "herrklocka", "polariserade", "digital klocka för herr"],
+      "exclude": ["dörrklocka", "laddstation", "väckarklocka"],
+      "category": "Klockor & Solglasögon",
+      "audience": "dig som vill toppa stilen med rätt accessoar",
+      "painpoint": "billiga bågar som spricker och klockor som ser tråkiga ut",
+      "usp": "stilsäkra detaljer som håller — i solen och på jobbet"
+    },
+    {
+      "slug": "vaskor-och-necessarer",
+      "label": "väskor och necessärer",
+      "singular": "väska",
+      "keywords": ["necessär", "ryggsäck", "sminkväska", "resenäcessär", "axelväska"],
+      "exclude": [],
+      "category": "Väskor & Necessärer",
+      "audience": "dig som vill ha ordning på prylarna var du än är",
+      "painpoint": "en stökig väska där allt försvinner och nödvändiga saker tar slut",
+      "usp": "smart förvaring som håller ordning — hemma och på resan"
+    },
+    {
+      "slug": "traningsutrustning",
+      "label": "träningsutrustning för hemmet",
+      "singular": "träningsredskap",
+      "keywords": ["sportflaska", "hopprep", "spikmatta", "hållningskorrigerare", "träningsband", "yogamatta", "vattenflaska"],
+      "exclude": [],
+      "category": "Träning & Gym",
+      "audience": "dig som vill träna smart hemma",
+      "painpoint": "dyra gymkort, trånga omklädningsrum och redskap som tar plats",
+      "usp": "allt du behöver för ett effektivt hemmapass — utan abonnemang"
+    },
+    {
+      "slug": "rakning-och-trimning",
+      "label": "rakning och trimning",
+      "singular": "trimmer",
+      "keywords": ["trimmer", "skäggtrimmer", "rakapparat", "skägg"],
+      "exclude": ["klovård", "klädvård", "klädvårdsrak"],
+      "category": "Hår & Rakning",
+      "audience": "dig som vill sköta skägget och stylingen själv",
+      "painpoint": "ojämn trimning, irriterad hud och apparater som tappar laddning",
+      "usp": "skarp, skonsam trimning hemma — slipp barberarbesöken"
+    },
+    {
+      "slug": "koksredskap",
+      "label": "köksredskap och smarta hjälpmedel",
+      "singular": "köksredskap",
+      "keywords": ["knivslip", "knivhållare", "mathackare", "skärbräda", "oljesprayer", "vinöppnare", "pepparkvarn", "mikrovågslock"],
+      "exclude": [],
+      "category": "Köksredskap & Tillbehör",
+      "audience": "dig som vill laga mat snabbare och snyggare",
+      "painpoint": "slöa knivar, kladdiga moment och redskap som mest är i vägen",
+      "usp": "smarta hjälpmedel som gör matlagningen både roligare och enklare"
+    }
+  ]
+}

@@ -15,6 +15,7 @@
 // /tack and /sparning (transient/private order pages), /admin/* (proxy-gated).
 import { getProductSlugs, getCollections } from "./products";
 import { getPosts } from "./blog";
+import { getProgrammaticUrls } from "./seo/programmatic";
 
 export const SITE = "https://www.fyndplats.se";
 
@@ -25,7 +26,8 @@ export type SiteUrlType =
   | "sida"
   | "kategori"
   | "produkt"
-  | "blogg";
+  | "blogg"
+  | "programmatic";
 
 export type SiteUrl = {
   path: string; // "" for home, otherwise leading-slash path
@@ -56,10 +58,11 @@ const STATIC_INFO_PATHS = [
  * loaders the storefront uses, so it costs nothing extra per request.
  */
 export async function getSiteUrls(): Promise<SiteUrl[]> {
-  const [slugs, collections, posts] = await Promise.all([
+  const [slugs, collections, posts, programmatic] = await Promise.all([
     getProductSlugs(),
     getCollections(),
     getPosts(),
+    getProgrammaticUrls(),
   ]);
 
   const now = new Date();
@@ -88,6 +91,13 @@ export async function getSiteUrls(): Promise<SiteUrl[]> {
     urls.push(
       entry(`/blogg/${post.slug}`, "blogg", "monthly", 0.6, post.date ? new Date(post.date) : now),
     );
+  }
+
+  // Programmatiska SEO-landningssidor (Pattern 1–3, lib/seo/programmatic.ts).
+  // Bara sidor som klarar quality-guards (>= 3/4 produkter, >= 250 ord) listas
+  // här → de pingas automatiskt till IndexNow och syns i sitemap/health-check.
+  for (const pg of programmatic) {
+    urls.push(entry(pg.path, "programmatic", pg.changeFrequency, pg.priority));
   }
 
   return urls;

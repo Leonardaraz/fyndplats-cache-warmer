@@ -7,6 +7,8 @@ import { CategoryDropdown } from "../../../components/categorydropdown";
 import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
 import { getBlurDataURL } from "../../../lib/lqip";
+import { categoryProgrammaticLinks } from "../../../lib/seo/programmatic";
+import { ProgCrossLinks } from "../../../components/programmatic";
 
 export async function generateStaticParams() {
   const cols = await getCollections();
@@ -51,6 +53,9 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   const list = dedupeProducts([...topThree, ...catList.filter((p) => !topIds.has(p.id))]);
   // Förälder (om detta är en subkategori) → för brödsmulor.
   const parent = active.parentId ? collections.find((c) => c.id === active.parentId) : undefined;
+  // Programmatiska SEO-länkar för kategorin (pris-tiers + bäst-i-test) — bara
+  // giltiga sidor, så aldrig en länk till 404.
+  const progLinks = await categoryProgrammaticLinks(active.slug);
 
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
   // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
@@ -127,6 +132,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
           </div>
         </div>
       </section>
+
+      {progLinks.length > 0 && (
+        <ProgCrossLinks title={`Fler sätt att handla ${active.name}`} links={progLinks} />
+      )}
     </>
   );
 }

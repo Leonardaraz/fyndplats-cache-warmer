@@ -1,0 +1,125 @@
+{
+  "_doc": "Pattern 3 — /for-dig-som/{slug}. Curerade livsstils-landningssidor. Produkter väljs ut via 'productSlugs' (curerade, först i listan om de finns i katalogen) UNIONERAT med 'keywords' (substring i produktnamnet, gemener) minus 'exclude'. Valfri 'categories' begränsar keyword-träffarna till de Wix-kategorierna. En sida RENDERAS bara om >= 4 produkter matchar i LIVE-katalogen (guard i lib/seo/programmatic.ts) — annars 404 + utesluts ur sitemap. Visar max 8 produkter. Lägg till fler intressen fritt.",
+  "interests": [
+    {
+      "slug": "joggar",
+      "verb": "joggar",
+      "noun": "löpningen",
+      "keywords": ["sportflaska", "hopprep", "hållningskorrigerare", "vattenflaska", "armbandsur", "spikmatta"],
+      "exclude": [],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Du snör på dig skorna oavsett väder och vet att de små sakerna gör skillnad mil efter mil.",
+      "painpoint": "rätt vätska, återhämtning och koll på tiden utan att släpa på en massa utrustning",
+      "usp": "smarta tillbehör som följer med i tempot — från uppvärmning till nedvarvning"
+    },
+    {
+      "slug": "lagar-mat-mycket",
+      "verb": "lagar mat mycket",
+      "noun": "matlagningen",
+      "keywords": ["kniv", "mathackare", "mjölkskummare", "vinöppnare", "oljesprayer", "pepparkvarn", "termometer", "knivslip", "skärbräda", "mikrovågslock"],
+      "exclude": ["leksak", "montessori"],
+      "categories": ["Köksredskap & Tillbehör", "Köksmaskiner & Apparater", "Servering & Glas"],
+      "productSlugs": [],
+      "audience": "Köket är din plats. Du står gärna vid spisen en vardagskväll och vill ha redskap som håller.",
+      "painpoint": "slöa knivar, kladdiga moment och prylar som inte tål att användas dagligen",
+      "usp": "genomtänkta hjälpmedel som gör varje moment snabbare och godare"
+    },
+    {
+      "slug": "jobbar-hemifran",
+      "verb": "jobbar hemifrån",
+      "noun": "hemmakontoret",
+      "keywords": ["ergonomisk mus", "tangentbord", "laptopställ", "musmatta", "koppvärmare", "handledsstöd", "skrivbord", "webbkamera", "ringljus"],
+      "exclude": ["musik", "montessori"],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Skrivbordet hemma är ditt kontor. Du vet att rätt setup räddar både ryggen och fokuset.",
+      "painpoint": "ömma handleder, rörigt skrivbord och kaffe som hinner kallna",
+      "usp": "ergonomiska detaljer som gör arbetsdagen skönare och mer produktiv"
+    },
+    {
+      "slug": "har-hund",
+      "verb": "har hund",
+      "noun": "hundlivet",
+      "keywords": ["hundsele", "hundkoppel", "koppel", "bajspåse", "klotång", "pälsborttagning", "tuggleksak", "hundbädd"],
+      "exclude": ["katt"],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Hunden är familj. Promenaderna är heliga och du vill ha utrustning som funkar i ur och skur.",
+      "painpoint": "selar som skaver, stökiga promenader och pälsvård som tar evigheter",
+      "usp": "trygga, sköna tillbehör för en enklare och gladare vardag med hunden"
+    },
+    {
+      "slug": "har-katt",
+      "verb": "har katt",
+      "noun": "kattlivet",
+      "keywords": ["kattleksak", "kattunnel", "kattkanon", "kattmöss", "skyddskrage", "katt-ryggsäck", "klotång", "kattmus"],
+      "exclude": ["hund"],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Katten styr hemmet och du vet det. Du vill ha leksaker och tillbehör som håller den nöjd.",
+      "painpoint": "en uttråkad katt, klösta möbler och tillbehör som tröttnar fort",
+      "usp": "lek och skötsel som väcker jaktinstinkten och håller katten i form"
+    },
+    {
+      "slug": "har-smabarn",
+      "verb": "har småbarn",
+      "noun": "småbarnslivet",
+      "keywords": ["montessori", "träleksak", "napphållare", "bitring", "babygym", "nappkedja", "doktorsset", "köksleksak"],
+      "exclude": [],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Vardagen snurrar kring de minsta. Du vill ha leksaker och prylar som är både trygga och utvecklande.",
+      "painpoint": "tappade nappar, tråkig plast och prylar man inte vågar lita på",
+      "usp": "säkra material och pedagogisk lek som växer med barnet"
+    },
+    {
+      "slug": "gillar-egentid",
+      "verb": "älskar egentid",
+      "noun": "egentiden",
+      "keywords": ["gua sha", "ansiktsroller", "sminkspegel", "porrensare", "massageset", "fotfil", "ögonmask", "spikmatta", "massageapparat"],
+      "exclude": [],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Du vet att en stund för dig själv är guld värd — och att rätt prylar gör den ännu skönare.",
+      "painpoint": "stress, spänningar och hud som behöver lite extra kärlek",
+      "usp": "spa-känsla hemma som hjälper dig varva ner på riktigt"
+    },
+    {
+      "slug": "reser-mycket",
+      "verb": "reser mycket",
+      "noun": "resandet",
+      "keywords": ["bagagevåg", "necessär", "resenäcessär", "ryggsäck", "sportflaska", "packpåsar", "reseadapter"],
+      "exclude": [],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Väskan står alltid halvpackad. Du vill resa smart och slippa krångel på flygplatsen.",
+      "painpoint": "övervikt på bagaget, rörig necessär och saker som tar onödig plats",
+      "usp": "smarta reseprylar som gör packningen lättare och resan smidigare"
+    },
+    {
+      "slug": "gillar-mysig-belysning",
+      "verb": "älskar mysig belysning",
+      "noun": "hemmastämningen",
+      "keywords": ["nattlampa", "projektor", "stjärnprojektor", "led-slinga", "sensorlampa", "ljusslinga", "bordslampa"],
+      "exclude": [],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Rätt ljus är allt för dig. Du vill ha ett hem som känns varmt och inbjudande direkt man kliver in.",
+      "painpoint": "kalla taklampor som dödar stämningen och mörka hörn som känns ogästvänliga",
+      "usp": "varmt, mjukt ljus som förvandlar hemmet på sekunder"
+    },
+    {
+      "slug": "tranar-hemma",
+      "verb": "tränar hemma",
+      "noun": "hemmaträningen",
+      "keywords": ["massagepistol", "spikmatta", "hopprep", "träningsband", "hållningskorrigerare", "sportflaska", "yogamatta"],
+      "exclude": [],
+      "categories": [],
+      "productSlugs": [],
+      "audience": "Vardagsrummet är ditt gym. Du vill träna effektivt utan dyra kort eller trånga lokaler.",
+      "painpoint": "tidsbrist, dyra abonnemang och redskap som tar för mycket plats",
+      "usp": "kompakt utrustning för riktiga pass — när det passar dig"
+    }
+  ]
+}

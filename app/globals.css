@@ -1148,3 +1148,62 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .kat-hero-grid{grid-template-columns:1fr;gap:24px}
   .kat-hero-img{aspect-ratio:16/10}
 }
+
+/* ── Programmatiska SEO-landningssidor (Pattern 1–3) ──────────────────────
+   Återanvänder .kat-hero/.faq/.prodgrid; nedan bara det specifika: hero-text,
+   jämförelsetabell, per-produkt-sektioner, badges och länk-chips. */
+.prog-hero .crumbs{padding:0 0 18px}
+.prog-hero .crumbs span span{margin:0 6px;opacity:.5}
+.prog-h1{font-family:var(--font-display),Georgia,serif;font-size:clamp(28px,4.4vw,46px);font-weight:600;letter-spacing:-.02em;line-height:1.08;max-width:18ch;margin:2px 0 0}
+.prog-intro{max-width:70ch;margin-top:18px;display:flex;flex-direction:column;gap:12px}
+.prog-intro p{font-size:16.5px;line-height:1.7;color:#3f3a34}
+.prog-h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(22px,3vw,30px);font-weight:600;letter-spacing:-.015em;margin:0 0 20px}
+
+/* Jämförelsetabell */
+.prog-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;margin-bottom:44px;background:#fff;box-shadow:0 18px 40px -30px rgba(28,28,28,.3)}
+.prog-table{width:100%;border-collapse:collapse;min-width:540px}
+.prog-table-caption{text-align:left;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--soft);padding:16px 18px 0}
+.prog-table th,.prog-table td{padding:14px 18px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--line);font-size:15px}
+.prog-table thead th{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);border-bottom:1.5px solid var(--line)}
+.prog-table tbody tr:last-child th,.prog-table tbody tr:last-child td{border-bottom:none}
+.prog-td-name a{display:flex;align-items:center;gap:12px;font-weight:600;color:var(--ink)}
+.prog-td-name a:hover{color:var(--orange)}
+.prog-td-thumb{position:relative;width:48px;height:48px;flex:0 0 auto;border-radius:10px;overflow:hidden;background:var(--warm)}
+.prog-td-price{font-weight:700;white-space:nowrap}
+.prog-td-cta{text-align:right}
+.prog-buy{padding:9px 20px;font-size:14px;border-radius:11px}
+
+/* Badges */
+.prog-badge{display:inline-block;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;white-space:nowrap}
+.prog-badge-budget{background:#e6f4ea;color:#16804a}
+.prog-badge-value{background:#fff1e6;color:#C2410C}
+.prog-badge-premium{background:#efe9fb;color:#6b3fb3}
+.prog-badge-good{background:#f1f0ee;color:#5a544c}
+
+/* Per-produkt-sektioner */
+.prog-prodsecs{display:flex;flex-direction:column;gap:26px}
+.prog-prodsec{display:grid;grid-template-columns:280px 1fr;gap:26px;align-items:stretch;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff}
+.prog-prodsec-img{position:relative;min-height:220px;background:var(--warm);display:block}
+.prog-prodsec-img .prog-badge{position:absolute;top:14px;left:14px;z-index:2}
+.prog-prodsec-body{padding:24px 26px;display:flex;flex-direction:column;gap:12px}
+.prog-prodsec-body h3{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0}
+.prog-prodsec-body h3 a{color:var(--ink)}
+.prog-prodsec-body h3 a:hover{color:var(--orange)}
+.prog-prodsec-body p{font-size:15.5px;line-height:1.65;color:#3f3a34;margin:0}
+.prog-prodsec-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:8px}
+.prog-prodsec-foot .pprice-now{font-size:19px;font-weight:800}
+
+/* Cross-länkar */
+.prog-links-sec{padding-top:8px}
+.prog-faq-sec{padding-bottom:8px}
+.prog-links{display:flex;flex-wrap:wrap;gap:12px}
+.prog-link-chip{display:inline-flex;align-items:center;padding:11px 18px;border:1.5px solid var(--line);border-radius:999px;font-size:14.5px;font-weight:600;color:var(--ink);background:#fff;transition:border-color .18s,background .18s,transform .15s}
+.prog-link-chip:hover{border-color:var(--orange);background:var(--warm);transform:translateY(-1px)}
+.prog-bloglinks{margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:14.5px}
+.prog-bloglinks-label{color:var(--soft);font-weight:600}
+.prog-bloglinks a{color:var(--orange);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+
+@media(max-width:760px){
+  .prog-prodsec{grid-template-columns:1fr}
+  .prog-prodsec-img{min-height:200px}
+}
