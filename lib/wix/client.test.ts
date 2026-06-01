@@ -107,6 +107,26 @@ describe("buildCreateProductBody — inventory + cost + SEO (fixes 1/3/4)", () =
 
     expect(tags.some((t) => t.props?.property === "og:type")).toBe(true);
   });
+
+  it("sets focusKeyword as seoData.settings.keywords[isMain] (Wix fokusord)", () => {
+    const body = buildCreateProductBody({
+      ...base,
+      seo: { title: "Snygg lampa", description: "En varm bordslampa." },
+      focusKeyword: "snygg lampa",
+    });
+    const seoData = (body.product as { seoData: { tags: any[]; settings: any } }).seoData;
+    expect(seoData.settings.keywords).toEqual([
+      { term: "snygg lampa", isMain: true, origin: "USER" },
+    ]);
+    // Fokusordet får inte radera SEO-taggarna.
+    expect(seoData.tags.length).toBeGreaterThan(0);
+  });
+
+  it("omits seoData.settings when no focusKeyword is given", () => {
+    const body = buildCreateProductBody({ ...base, seo: { title: "Lampa" } });
+    const seoData = (body.product as { seoData?: { settings?: unknown } }).seoData;
+    expect(seoData?.settings).toBeUndefined();
+  });
 });
 
 describe("createProduct — DUPLICATE_SLUG_ERROR retry", () => {

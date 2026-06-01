@@ -34,6 +34,12 @@ export interface WixProductInput {
   brandName?: string;
   ribbonName?: string;
   seo?: { title?: string; description?: string };
+  /**
+   * Fokusord (Wix "focus keyword"). Lagras i seoData.settings.keywords med
+   * isMain:true → visas i Wix-adminens SEO-panel. Härleds deterministiskt ur
+   * produktnamnet (lib/import/focus-keyword.ts), inga AI-anrop.
+   */
+  focusKeyword?: string;
   /** wixstatic-URL:er till bilder (från media.ts/importMediaByUrl) + alt-text. */
   mediaItems?: { url: string; altText?: string }[];
   /**
@@ -164,6 +170,16 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
       custom: true,
     });
     product.seoData = { tags };
+  }
+  // Fokusord → seoData.settings.keywords med isMain:true (Wix-adminens "Fokusord").
+  // Verifierat 2026-06-01: create accepterar fältet inline och det round-trippar.
+  // Fältväg + format speglar setProductFocusKeyword (backfill av befintliga).
+  if (input.focusKeyword) {
+    const seoData = (product.seoData as Record<string, unknown> | undefined) ?? {};
+    seoData.settings = {
+      keywords: [{ term: input.focusKeyword, isMain: true, origin: "USER" }],
+    };
+    product.seoData = seoData;
   }
   if (input.options?.length) {
     product.options = input.options.map((o) => {

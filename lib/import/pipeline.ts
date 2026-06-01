@@ -1,4 +1,5 @@
 import { computePriceWithRules } from "./pricing";
+import { deriveFocusKeyword } from "./focus-keyword";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs } from "./tabs";
 import {
@@ -321,6 +322,9 @@ export async function importProduct(
     slug: seo.slug,
     plainDescription: enrichedDescriptionHtml,
     seo: { title: seo.title, description: seo.metaDescription },
+    // Fokusord (Wix "focus keyword") härlett deterministiskt ur den översatta
+    // titeln — inga AI-anrop. Sätts inline i create via seoData.settings.keywords.
+    focusKeyword: deriveFocusKeyword(seo.title),
     options: options.length ? options : undefined,
     variants: wixVariants,
     mediaItems: mediaItems.length ? mediaItems : undefined,
