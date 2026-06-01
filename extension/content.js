@@ -17,7 +17,8 @@
 //     pris-span [class*="price--currentPriceText"] (lokalformaterad "196,11 kr").
 //   - Bild: galleri-img på *aliexpress-media.com* (NYTT värdnamn — gamla
 //     alicdn-only-filtret slängde alla bilder → "saknar bild"-buggen).
-//   - Variant: SKU-rutor [class*="sku-item--skuList"] (Color/Size/Ships From).
+//   - Variant: SKU-rutor i [class*="sku-item--property"] (Color/Size/Ships From);
+//     varje värde-ruta bär attributet data-sku-col (juni 2026-layouten).
 //
 // VALUTA: costUsd MÅSTE vara i USD eftersom servern (lib/config.ts ->
 // pricingConfigFromEnv + lib/import/pricing.ts) räknar costSek = costUsd *
@@ -137,7 +138,9 @@ const GALLERY_IMG_SELECTORS = [
   '[class*="image-view"] img',
   '[class*="magnifier"] img',
 ];
-const SWATCH_IMG_SELECTORS = ['[class*="sku-item--imageWrap"] img'];
+// "sku-item--image" matchar både gamla "sku-item--imageWrap" och nya
+// "sku-item--image" (substring), så swatch-bilder fångas oavsett layout.
+const SWATCH_IMG_SELECTORS = ['[class*="sku-item--image"] img'];
 
 function collectImgSrc(selectors, out) {
   for (const sel of selectors) {
@@ -331,7 +334,11 @@ function readSkuGroupName(wrap, list) {
   // c) Närmast föregående syskon till listan (en label-rad strax ovanför rutorna).
   let sib = list.previousElementSibling;
   for (let i = 0; sib && i < 3; i++, sib = sib.previousElementSibling) {
-    if (sib.querySelector && sib.querySelector('[class*="sku-item--skuList"]')) break;
+    if (
+      sib.querySelector &&
+      sib.querySelector('[class*="sku-item--skus"], [class*="sku-item--skuList"]')
+    )
+      break;
     const n = clean(sib.textContent);
     if (ok(n)) return n;
   }
@@ -339,22 +346,49 @@ function readSkuGroupName(wrap, list) {
 }
 
 // Hämtar SKU-grupper ur DOM: [{name:"Color", values:[{label, image}]}, ...].
-// Fångar BÅDE text-rutor (sku-item--box → Size/Model) och bild-swatchar
-// (sku-item--imageWrap → Color). En grupp med värden tappas ALDRIG bara för att
-// titeln inte gick att läsa — då får den ett stabilt fallback-namn (annars
-// försvann hela storleks-axeln och varianterna blev bara färg, bug 2026-06-01).
+//
+// Layout-historik (verifierad live 2026-06-01 mot en t-shirt med Color+Size):
+// AE:s PC-sida renderar numera varje axel som [class*="sku-item--property"] med
+// en titel [class*="sku-item--title"] och en värdelista [class*="sku-item--skus"]
+// (det GAMLA klassnamnet var "sku-item--skuList" — det matchar INGET längre, så
+// den tidigare koden som itererade på skuList hittade NOLL grupper och tappade
+// hela Size-axeln, bug 2026-06-01). Bild-swatchar bytte också klass från
+// "sku-item--imageWrap" till "sku-item--image". Den enda stabila kroken är
+// attributet data-sku-col som sitter på VARJE värde-ruta (både färg-swatch och
+// storleks-knapp), så vi itererar över property-containern och plockar dess
+// data-sku-col-leaves. Klassbaserad fallback behålls om AE rullar tillbaka.
+// En grupp med värden tappas ALDRIG bara för att titeln inte gick att läsa —
+// då får den ett stabilt fallback-namn.
 function extractDomSkuGroups() {
-  const lists = [...document.querySelectorAll('[class*="sku-item--skuList"]')];
+  // Axel-containern finns i både gammal och ny layout. Faller tillbaka på
+  // skuList/skus-listans property om ingen property-container hittas.
+  let props = [...document.querySelectorAll('[class*="sku-item--property"]')];
+  if (!props.length) {
+    props = [...document.querySelectorAll('[class*="sku-item--skus"], [class*="sku-item--skuList"]')]
+      .map((l) => l.closest('[class*="sku-item--property"]') || l.parentElement)
+      .filter(Boolean);
+  }
   const groups = [];
-  lists.forEach((list, idx) => {
-    const wrap = list.closest('[class*="sku-item--property"]') || list.parentElement;
-    let name = readSkuGroupName(wrap, list);
+  props.forEach((prop, idx) => {
+    if (!prop) return;
+    const list =
+      prop.querySelector('[class*="sku-item--skus"]') ||
+      prop.querySelector('[class*="sku-item--skuList"]') ||
+      prop;
+    let name = readSkuGroupName(prop, list);
 
-    // Markera både text-boxar och bild-swatchar; filtrera bort yttre element som
+    // Värde-rutor: data-sku-col sitter på varje leaf (text-box ELLER bild-swatch)
+    // och är layout-stabil. Faller tillbaka på klassnamn (box=text, image/
+    // imageWrap=swatch) om attributet saknas. Filtrera bort yttre element som
     // omsluter ett annat matchat element (en swatch inuti en box → dubbelräkning).
-    const rawItems = [
-      ...list.querySelectorAll('[class*="sku-item--box"], [class*="sku-item--imageWrap"]'),
-    ];
+    let rawItems = [...prop.querySelectorAll("[data-sku-col]")];
+    if (!rawItems.length) {
+      rawItems = [
+        ...prop.querySelectorAll(
+          '[class*="sku-item--box"], [class*="sku-item--image"], [class*="sku-item--imageWrap"]',
+        ),
+      ];
+    }
     const items = rawItems.filter(
       (it) => !rawItems.some((other) => other !== it && it.contains(other)),
     );
