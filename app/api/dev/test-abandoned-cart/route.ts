@@ -23,6 +23,7 @@ import {
   processDueCart,
   onOrderConverted,
 } from '@/lib/abandoned-cart';
+import { pollAbandonedCheckouts } from '@/lib/abandoned-checkout-poll';
 import { hashAddress } from '@/lib/address-hash';
 
 export const dynamic = 'force-dynamic';
@@ -82,6 +83,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, migrated: true });
   }
 
+  // Run the Wix abandoned-checkout poller on demand (same code the cron runs).
+  if (action === 'poll') {
+    const hours = Number(url.searchParams.get('hours') ?? '24');
+    const result = await pollAbandonedCheckouts({ lookbackHours: hours });
+    return NextResponse.json({ ok: true, poll: result });
+  }
+
   if (action === 'simulate') {
     const cart = sampleCart();
     const enq = await enqueueAbandonedCart(cart);
@@ -139,12 +147,17 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: false, error: `unknown action ${action}` }, { status: 400 });
 }
 
-// GET → quick status: lists current pending carts so we can eyeball state.
+// GET → quick status: lists current carts + recently sent emails (with resend ids)
+// so we can verify the live flow end-to-end without a Resend dashboard.
 export async function GET(request: Request) {
   if (!authorised(request)) return NextResponse.json({ ok: false, error: 'unauthorised' }, { status: 401 });
-  const r = await sql/*sql*/`
-    SELECT id, email, status, next_step, next_step_at, discount_code
+  const carts = await sql/*sql*/`
+    SELECT id, email, status, next_step, next_step_at, abandoned_at, discount_code
       FROM abandoned_carts ORDER BY created_at DESC LIMIT 20
   `;
-  return NextResponse.json({ ok: true, carts: r.rows });
+  const sent = await sql/*sql*/`
+    SELECT cart_id, step, resend_id, email, sent_at, discount_code
+      FROM sent_emails ORDER BY sent_at DESC LIMIT 20
+  `;
+  return NextResponse.json({ ok: true, carts: carts.rows, sentEmails: sent.rows });
 }
