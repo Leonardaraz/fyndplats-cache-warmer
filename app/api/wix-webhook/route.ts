@@ -34,6 +34,7 @@ import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkou
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
 import { sql } from "@/lib/db";
+import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -386,6 +387,73 @@ function classify(eventType: string, payload: Record<string, unknown>): EventKin
   return "unknown";
 }
 
+// Meta-content_ids ur orderns rader. Wix lägger produkt-ID:t på
+// catalogReference.catalogItemId (samma fält PDP/cart skickar i view_item/
+// add_to_cart), med fallbacks för äldre/andra shapes.
+function extractContentIds(order: Record<string, unknown>): string[] {
+  const lineItems = (order.lineItems ?? order.items) as Array<Record<string, unknown>> | undefined;
+  if (!Array.isArray(lineItems)) return [];
+  return lineItems
+    .map((li) => {
+      const ref = li.catalogReference as { catalogItemId?: string; productId?: string } | undefined;
+      return firstStr(ref?.catalogItemId, ref?.productId, li.productId as string, li.catalogItemId as string);
+    })
+    .filter((x): x is string => Boolean(x));
+}
+
+// Server-autoritativt Meta Purchase via CAPI. Fyras vid order_created — når
+// alltså fram även när kundens /tack-sida aldrig laddas (adblock/iOS stoppar
+// klient-Pixeln). Dedupliceras mot klientens Purchase (lib/analytics) via SAMMA
+// deterministiska event_id `purchase_<orderId>`. orderId tas från orderns _id/
+// id (GUID), vilket är det Wix-headless redirectar med i /tack?orderId=.
+//
+// VIKTIGT (att verifiera i Test Events): dedup förutsätter att /tack-redirectens
+// ?orderId matchar denna orderId. Om Purchase dubbelräknas → justera id-källan
+// så de två stämmer. Best-effort: ett fel får ALDRIG blockera bekräftelsemejlet.
+//
+// Ingen IP/User-Agent skickas: webhook-requesten kommer från Wix servrar, inte
+// kunden — fel signal vore värre än ingen. Matchningen vilar på hashad e-post +
+// telefon (starka signaler), value/currency och content_ids.
+async function fireMetaPurchase(order: Record<string, unknown>): Promise<void> {
+  if (!metaCapiConfigured()) return;
+  try {
+    const customer = extractCustomer(order); // { firstName, email } | null
+    const phone = extractCustomerPhone(order);
+    const totals = (order.priceSummary ?? order.totals) as Record<string, unknown> | undefined;
+    const value = moneyNum(totals?.total ?? totals?.totalPrice);
+    const currency = moneyCurrency(totals ?? order.currency, "SEK");
+    const contentIds = extractContentIds(order);
+    const items = extractItems(order);
+    const numItems = items.reduce((n, it) => n + it.qty, 0) || contentIds.length || 1;
+    const orderId = firstStr(order._id as string, order.id as string, order.number as string, order.orderNumber as string);
+
+    await sendMetaCapiEvent({
+      eventName: "Purchase",
+      eventId: orderId ? `purchase_${orderId}` : undefined,
+      eventSourceUrl: "https://www.fyndplats.se/tack",
+      actionSource: "website",
+      customData: {
+        currency,
+        value,
+        content_type: "product",
+        content_ids: contentIds,
+        contents: items.map((it, i) => ({
+          id: contentIds[i] || it.name,
+          quantity: it.qty,
+          item_price: it.unitPrice,
+        })),
+        num_items: numItems,
+      },
+      userData: {
+        email: customer?.email,
+        phone,
+      },
+    });
+  } catch (err) {
+    console.error("[wix-webhook] Meta Purchase CAPI fel (ignorerar)", err);
+  }
+}
+
 export async function POST(req: NextRequest) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
@@ -502,6 +570,9 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("[wix-webhook] recordOrder fel (ignorerar)", err);
       }
+      // Server-autoritativt Meta Purchase (CAPI). Best-effort; dedupliceras mot
+      // klientens /tack-Purchase via delad event_id `purchase_<orderId>`.
+      await fireMetaPurchase(entity);
       const customer = extractCustomer(entity)!;
       const html = await render(OrderConfirmationEmail(props));
       const sent = await resend.emails.send({

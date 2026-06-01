@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { CONSENT_EVENT } from "../lib/consent";
 
 export function CookieConsent() {
   const [show, setShow] = useState(false);
@@ -12,9 +13,10 @@ export function CookieConsent() {
 
   const choose = (v: "all" | "necessary") => {
     try { localStorage.setItem("fp_cookie_consent", v); } catch {}
+    // Notify marketing scripts (Meta Pixel + CAPI) so de kan starta/stoppa
+    // direkt utan sidladdning. Gated on localStorage.fp_cookie_consent === "all".
+    try { window.dispatchEvent(new Event(CONSENT_EVENT)); } catch {}
     setShow(false);
-    // Any future analytics/marketing scripts should be gated on
-    // localStorage.fp_cookie_consent === "all".
   };
 
   if (!show) return null;

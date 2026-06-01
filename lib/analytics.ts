@@ -7,6 +7,8 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { metaTrack, type MetaContent } from "./meta";
+
 export type Item = {
   item_id: string;
   item_name: string;
@@ -75,6 +77,18 @@ function cartTotal(cart: any): number {
   return parseFloat(sub) || 0;
 }
 
+// Meta använder content_ids (sträng-array) + contents (id/quantity/item_price).
+// Samma normalisering som GA4-items, omformad till Metas shape.
+function metaContents(items: Item[]): MetaContent[] {
+  return items.map((i) => ({ id: i.item_id, quantity: i.quantity, item_price: i.price }));
+}
+function metaIds(items: Item[]): string[] {
+  return items.map((i) => i.item_id);
+}
+function numItems(items: Item[]): number {
+  return items.reduce((n, i) => n + i.quantity, 0);
+}
+
 export type ViewItemInput = {
   id: string;
   name: string;
@@ -96,6 +110,15 @@ export function trackViewItem(p: ViewItemInput) {
         quantity: 1,
       },
     ],
+  });
+  // Meta ViewContent (Pixel + CAPI, delad event_id).
+  metaTrack("ViewContent", {
+    content_type: "product",
+    content_ids: [p.id],
+    content_name: p.name,
+    content_category: p.category,
+    value: p.priceNum,
+    currency: "SEK",
   });
 }
 
@@ -123,6 +146,16 @@ export function trackAddToCart(input: AddToCartInput) {
       },
     ],
   });
+  // Meta AddToCart (Pixel + CAPI, delad event_id).
+  metaTrack("AddToCart", {
+    content_type: "product",
+    content_ids: [input.id],
+    content_name: input.name,
+    content_category: input.category,
+    contents: [{ id: input.id, quantity: qty, item_price: input.priceNum }],
+    value: input.priceNum * qty,
+    currency: "SEK",
+  });
 }
 
 export function trackViewCart(cart: any) {
@@ -142,6 +175,16 @@ export function trackBeginCheckout(cart: any) {
     currency: "SEK",
     value: cartTotal(cart),
     items,
+  });
+  // Meta InitiateCheckout (Pixel + CAPI, delad event_id). metaTrack använder
+  // keepalive så anropet överlever redirecten till Wix-kassan direkt efteråt.
+  metaTrack("InitiateCheckout", {
+    content_type: "product",
+    content_ids: metaIds(items),
+    contents: metaContents(items),
+    num_items: numItems(items),
+    value: cartTotal(cart),
+    currency: "SEK",
   });
 }
 
@@ -216,5 +259,22 @@ export function trackPurchase(orderId: string | null | undefined) {
     value: snap.value,
     items: snap.items,
   });
+  // Meta Purchase (Pixel + CAPI). event_id = `purchase_<txId>` är DETERMINISTISK
+  // och delas med det server-autoritativa Purchase som /api/wix-webhook fyrar
+  // vid order_created (lib/handlers / meta-capi) → Meta deduplicerar dem mot
+  // varandra. Klient-eventet ger snabb browser-signal; webhook-eventet är
+  // backupen som når fram även när /tack aldrig laddas (adblock/iOS).
+  metaTrack(
+    "Purchase",
+    {
+      content_type: "product",
+      content_ids: snap.items.map((i) => i.item_id),
+      contents: snap.items.map((i) => ({ id: i.item_id, quantity: i.quantity, item_price: i.price })),
+      num_items: snap.items.reduce((n, i) => n + i.quantity, 0),
+      value: snap.value,
+      currency: snap.currency,
+    },
+    { eventId: `purchase_${txId}` },
+  );
   clearPurchaseSnapshot();
 }

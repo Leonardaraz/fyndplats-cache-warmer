@@ -16,8 +16,14 @@ import {
   CartDrawer,
   WishlistDrawer,
 } from "../components/deferred";
+import { MetaPixel } from "../components/metapixel";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
+
+// Meta Pixel-ID läses server-side (icke-hemligt — syns ändå i sidans källkod).
+// Tomt → MetaPixel renderar inget och CAPI-routen svarar "not_configured", så
+// sajten fungerar oförändrat tills Leonard fyllt i env-variabeln i Vercel.
+const META_PIXEL_ID = process.env.META_PIXEL_ID || "";
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const fraunces = Fraunces({
@@ -142,6 +148,13 @@ export default function RootLayout({
         */}
         <Analytics />
         <SpeedInsights />
+        {/*
+          Meta Pixel (Facebook/Instagram-annonsering). Gated på marknadssamtycke
+          inuti komponenten (lib/consent) — laddas BARA efter "Godkänn alla".
+          Konverteringsevent fyras via lib/analytics → lib/meta (Pixel + CAPI med
+          delad event_id för deduplicering). Server-side CAPI: /api/meta/capi.
+        */}
+        {META_PIXEL_ID && <MetaPixel pixelId={META_PIXEL_ID} />}
       </body>
     </html>
   );
