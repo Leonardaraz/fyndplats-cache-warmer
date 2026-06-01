@@ -1207,3 +1207,20 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .prog-prodsec{grid-template-columns:1fr}
   .prog-prodsec-img{min-height:200px}
 }
+
+/* --- Kundrecensioner (importerade AliExpress-omdömen) -------------------- */
+.revsec{padding:48px 0;border-top:1px solid var(--line)}
+.rev-summary{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);margin-bottom:22px}
+.rev-summary strong{font-size:20px}
+.rev-count{color:var(--soft)}
+.rev-stars{color:#f5a623;letter-spacing:1px;font-size:15px;white-space:nowrap}
+.rev-stars-empty{color:#dcd6cd}
+.rev-list{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.rev-item{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff}
+.rev-item-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+.rev-author{font-weight:600;font-size:13.5px;color:var(--ink)}
+.rev-date{font-size:12px;color:var(--soft);margin-left:auto}
+.rev-text{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink)}
+.rev-photo{margin-top:10px;max-width:120px;max-height:120px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
+.rev-more{margin-top:18px;display:inline-block;padding:11px 22px;border:1px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
+.rev-more:hover{background:var(--ink);color:#fff}

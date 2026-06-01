@@ -4,6 +4,8 @@ import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
 import { getProduct, getProductSlugs, getProducts, getCollections } from "../../../lib/products";
 import { getBlurDataURL } from "../../../lib/lqip";
+import { getProductReviews } from "../../../lib/reviews";
+import { ProductReviews } from "../../../components/ProductReviews";
 
 export async function generateStaticParams() {
   const slugs = await getProductSlugs();
@@ -30,7 +32,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const cols = await getCollections();
   const primaryCol = cols.find((c) => (p.collectionIds || []).includes(c.id));
 
-  const jsonLd = {
+  // Riktiga importerade kundrecensioner (social proof + schema.org). Tom om inga.
+  const reviewData = await getProductReviews(p.id);
+
+  const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: p.name,
@@ -55,8 +60,28 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         returnFees: "https://schema.org/ReturnShippingFees",
       },
     },
-    aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "20" },
   };
+
+  // AggregateRating + Review markup BARA när vi har riktiga recensioner. Google
+  // straffar fejkade/hårdkodade betyg (review snippet spam) — tidigare låg här
+  // ett statiskt 4.9/20 som nu ersätts av verklig data eller utelämnas helt.
+  if (reviewData.count > 0 && reviewData.average != null) {
+    jsonLd.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: reviewData.average.toFixed(1),
+      reviewCount: String(reviewData.count),
+      bestRating: "5",
+      worstRating: "1",
+    };
+    // Upp till 10 enskilda Review-objekt för rich snippets.
+    jsonLd.review = reviewData.reviews.slice(0, 10).map((r) => ({
+      "@type": "Review",
+      reviewRating: { "@type": "Rating", ratingValue: String(r.rating), bestRating: "5", worstRating: "1" },
+      author: { "@type": "Person", name: r.customerName },
+      ...(r.date ? { datePublished: r.date.slice(0, 10) } : {}),
+      reviewBody: r.text,
+    }));
+  }
 
   const breadcrumbItems: { "@type": "ListItem"; position: number; name: string; item: string }[] = [
     { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
@@ -119,6 +144,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           category={primaryCol?.name}
         />
       </div>
+
+      <ProductReviews
+        reviews={reviewData.reviews}
+        count={reviewData.count}
+        average={reviewData.average}
+      />
 
       {related.length >= 2 && (
         <section className="sec relsec">
