@@ -26,7 +26,13 @@ const COL = {
 };
 
 export type BulkJobStatus = "pending" | "running" | "completed" | "failed" | "stopped";
-export type BulkItemStatus = "pending" | "importing" | "done" | "failed" | "skipped";
+export type BulkItemStatus =
+  | "pending"
+  | "importing"
+  | "awaiting_batch" // Batch API (#8): skrapad + inskickad, väntar på Anthropic-svar
+  | "done"
+  | "failed"
+  | "skipped";
 
 export interface BulkImportJob {
   id: string;
@@ -58,6 +64,15 @@ export interface BulkImportItem {
   error?: string;
   attemptedAt?: string;
   completedAt?: string;
+  // --- Batch API (#8) — sätts bara när USE_BATCH_API=true ---
+  /** Anthropic message_batch_id som denna rad väntar på. */
+  batchId?: string;
+  /** custom_id i batchen som matchar svaret tillbaka (= item.id). */
+  batchCustomId?: string;
+  /** ISO-tid då raden skickades in i batchen (för timeout-skydd). */
+  batchSubmittedAt?: string;
+  /** Skrapad AliExpressProduct (JSON) — sparas så finish-fasen slipper re-skrapa. */
+  productJson?: string;
 }
 
 // ---------------------------------------------------------------------------

@@ -9,7 +9,7 @@ interface BulkItem {
   aliexpressUrl: string;
   collectionSlug?: string;
   targetPriceSek?: number;
-  status: "pending" | "importing" | "done" | "failed" | "skipped";
+  status: "pending" | "importing" | "awaiting_batch" | "done" | "failed" | "skipped";
   attempts: number;
   wixProductId?: string;
   error?: string;
@@ -46,6 +46,7 @@ interface Props {
 const STATUS_LABEL: Record<BulkItem["status"], string> = {
   pending: "I kö",
   importing: "Importeras",
+  awaiting_batch: "Bearbetar…",
   done: "Klar",
   failed: "Misslyckad",
   skipped: "Hoppad",
@@ -54,6 +55,7 @@ const STATUS_LABEL: Record<BulkItem["status"], string> = {
 const STATUS_COLOR: Record<BulkItem["status"], string> = {
   pending: "#64748b",
   importing: "#0891b2",
+  awaiting_batch: "#7c3aed",
   done: "#16a34a",
   failed: "#dc2626",
   skipped: "#9ca3af",

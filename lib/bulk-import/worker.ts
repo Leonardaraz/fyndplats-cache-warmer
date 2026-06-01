@@ -17,6 +17,9 @@
 import { getBulkImportStore, type BulkImportItem, type BulkImportJob } from "./store";
 import { fetchAliExpressProductFromUrl } from "../import/from-url";
 import { importProduct } from "../import/pipeline";
+import type { ProductContent } from "../import/generate";
+import type { AliExpressProduct } from "../import/types";
+import { isBatchApiEnabled } from "../claude/batch";
 import { getPricingRules } from "../store/pricing-config";
 import { getStore } from "../store/factory";
 import { getImportCostStore } from "../store/import-costs";
@@ -49,7 +52,7 @@ export interface WorkerRunResult {
   errors: { itemId: string; error: string }[];
 }
 
-interface ImportOutcome {
+export interface ImportOutcome {
   wixProductId?: string;
   wixProductSlug?: string;
   skipped?: boolean;
@@ -59,6 +62,13 @@ interface ImportOutcome {
 
 /** En körning av workern. Pullar upp till maxItems items från aktiva jobb. */
 export async function runBulkImportWorker(opts: WorkerRunOptions = {}): Promise<WorkerRunResult> {
+  // Batch API-läge (#8, default av): delegera till den asynkrona två-fas-workern.
+  // Dynamisk import undviker en statisk cykel (batch-worker importerar härifrån).
+  if (!opts.importerOverride && isBatchApiEnabled()) {
+    const { runBulkImportBatchWorker } = await import("./batch-worker");
+    return runBulkImportBatchWorker(opts);
+  }
+
   const store = getBulkImportStore();
   const startMs = Date.now();
   const maxItems = opts.maxItems ?? 10;
@@ -243,8 +253,14 @@ async function maybeCompleteJob(
 // mapping. Speglar /api/import-rutten men förbi HTTP-lagret.
 // ---------------------------------------------------------------------------
 
-async function defaultImporter(item: BulkImportItem): Promise<ImportOutcome> {
-  // Dedupe-check: kolla om en mapping redan existerar för denna leverantörsprodukt.
+/**
+ * Skrapar AliExpress-URL:en och kollar dedupe. Returnerar antingen den skrapade
+ * produkten (för import) eller ett skip-utfall om den redan finns. Delas av det
+ * synkrona flödet och Batch API-submit-fasen (lib/bulk-import/batch-worker.ts).
+ */
+export async function scrapeAndDedupe(
+  item: BulkImportItem,
+): Promise<{ product: AliExpressProduct } | { skip: ImportOutcome }> {
   const ordinaryStore = getStore();
   const fetched = await fetchAliExpressProductFromUrl(item.aliexpressUrl);
   try {
@@ -252,9 +268,11 @@ async function defaultImporter(item: BulkImportItem): Promise<ImportOutcome> {
     const existing = allMappings.find((m) => m.supplierProductId === fetched.supplierProductId);
     if (existing) {
       return {
-        skipped: true,
-        skipReason: `Redan importerad — finns som Wix-produkt ${existing.wixProductId}`,
-        wixProductId: existing.wixProductId,
+        skip: {
+          skipped: true,
+          skipReason: `Redan importerad — finns som Wix-produkt ${existing.wixProductId}`,
+          wixProductId: existing.wixProductId,
+        },
       };
     }
   } catch (lookupErr) {
@@ -264,8 +282,27 @@ async function defaultImporter(item: BulkImportItem): Promise<ImportOutcome> {
       lookupErr instanceof Error ? lookupErr.message : lookupErr,
     );
   }
+  return { product: fetched.product };
+}
 
-  const result = await importProduct(fetched.product, await getPricingRules());
+async function defaultImporter(item: BulkImportItem): Promise<ImportOutcome> {
+  const r = await scrapeAndDedupe(item);
+  if ("skip" in r) return r.skip;
+  return finishImport(item, r.product);
+}
+
+/**
+ * Kör själva importen (importProduct) och persisterar mapping/cost/kollektion/audit.
+ * `preGenerated` injiceras av Batch API-flödet (#8) så importen INTE gör ett nytt
+ * Claude-textanrop. Delas av det synkrona flödet och batch-finish-fasen.
+ */
+export async function finishImport(
+  item: BulkImportItem,
+  product: AliExpressProduct,
+  preGenerated?: ProductContent,
+): Promise<ImportOutcome> {
+  const ordinaryStore = getStore();
+  const result = await importProduct(product, await getPricingRules(), undefined, undefined, preGenerated);
 
   // Spara mapping (samma form som /api/import gör).
   const resultAny = result as unknown as Record<string, unknown>;

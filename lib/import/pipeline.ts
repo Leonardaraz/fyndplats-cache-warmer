@@ -1,8 +1,9 @@
 import { computePriceWithRules } from "./pricing";
 import { deriveFocusKeyword } from "./focus-keyword";
 import { resolveImportStockQty } from "./variant-stock";
+import { generateProductContent, type ProductContent } from "./generate";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
-import { appendTabSections, buildTabSections, generateTabs } from "./tabs";
+import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
 import {
   translateOptionColorCodes,
   translateVariantOptions,
@@ -123,6 +124,13 @@ export async function importProduct(
   rules: PricingRules,
   colorCodes?: OptionColorCodes,
   flags?: FeatureFlags,
+  /**
+   * Förgenererat innehåll (SEO + kategori + flikar). Sätts av Batch API-flödet
+   * (#8): bakgrundsjobbet har redan kört den sammanslagna genereringen via
+   * Message Batches och injicerar resultatet här så att importen INTE gör ett
+   * nytt Claude-textanrop. Saknas = generera normalt (direkt/legacy).
+   */
+  preGenerated?: ProductContent,
 ): Promise<ImportResult> {
   // Deterministisk svensk översättning av variantaxlar + värden (INGA AI-anrop,
   // $0). Görs i ETT pass över varianterna så att Wix-options OCH variantval blir
@@ -146,31 +154,83 @@ export async function importProduct(
     throw new Error("Inga varianter valda för import.");
   }
 
-  // Feature-flaggor (saknas = på). translate+seo delar generateSeo-anropet:
-  // kör det om minst en är på. imageAnalysis/autoCategorize gatar sina egna steg.
+  // Feature-flaggor (saknas = på). translate+seo delar text-genereringen:
+  // kör den om minst en är på. imageAnalysis/autoCategorize gatar sina egna steg.
   const runSeo = flags?.seo !== false || flags?.translate !== false;
   const runImageAnalysis = flags?.imageAnalysis !== false;
   const runCategory = flags?.autoCategorize !== false;
 
-  // Kör SEO, bildanalys och kategoriförslag parallellt för att hålla
-  // import-latensen nere. Alla tre är Claude-anrop som kan failas individuellt;
-  // avstängda steg ersätts med billiga lokala fallbacks (inga Claude-credits).
-  const seoPromise = runSeo ? generateSeo(product) : Promise.resolve(buildFallbackSeo(product));
+  // Batchat flöde (#1, 2026-06-01): när USE_BATCHED_PIPELINE är på OCH text-
+  // generering är påslagen slår vi ihop SEO + kategori + flikar till ETT Claude-
+  // anrop (lib/import/generate.ts) istället för tre — sänker text-kostnaden ~⅔.
+  // Vision (analyzeImages) är ALLTID ett separat anrop oavsett flagga.
+  const batched = useBatchedPipeline() && runSeo;
+
+  // Bildanalysen körs parallellt med text-genereringen i båda lägena. Avstängda
+  // steg ersätts med billiga lokala fallbacks (inga Claude-credits).
   const imageAnalysisPromise = runImageAnalysis
     ? analyzeImages(product.imageUrls)
     : Promise.resolve(
         product.imageUrls.map((url) => ({ url, verdict: "ok" as const, reason: "" })),
       );
-  const collectionsPromise = runCategory ? getCollectionsSafe() : Promise.resolve([]);
+  // Kollektioner behövs för kategoriförslaget — i batchat läge skickas de in som
+  // kontext i samma anrop, i legacy-läget till suggestCategoryRecord. Hämtas när
+  // kategoristeget är på ELLER vi kör batchat.
+  const collectionsPromise =
+    runCategory || batched || preGenerated ? getCollectionsSafe() : Promise.resolve([]);
 
-  const seo = await seoPromise;
+  // Starta text-genereringen direkt så den kör parallellt med bildanalysen.
+  // I batchat läge = ett enda generateProductContent-anrop; annars de tre gamla.
+  const textGenPromise: Promise<{
+    seo: SeoResult;
+    categorySuggestion: CategorySuggestionRecord;
+    generatedTabs: GeneratedTabs;
+  }> = (async () => {
+    const cols = await collectionsPromise;
+    // Batch API-flödet (#8): innehållet är redan genererat → inget nytt Claude-anrop.
+    if (preGenerated) {
+      const rec: CategorySuggestionRecord =
+        runCategory && cols.length
+          ? buildCategoryRecord(preGenerated.category, cols)
+          : {
+              collectionSlug: null,
+              confidence: 0,
+              reason: "Inga butikskollektioner tillgängliga.",
+              status: "uncategorized",
+            };
+      return { seo: preGenerated.seo, categorySuggestion: rec, generatedTabs: preGenerated.tabs };
+    }
+    if (batched) {
+      const content = await generateProductContent(product, runCategory ? cols : [], flags);
+      const rec: CategorySuggestionRecord =
+        runCategory && cols.length
+          ? buildCategoryRecord(content.category, cols)
+          : {
+              collectionSlug: null,
+              confidence: 0,
+              reason: "Inga butikskollektioner tillgängliga.",
+              status: "uncategorized",
+            };
+      return { seo: content.seo, categorySuggestion: rec, generatedTabs: content.tabs };
+    }
+    const seoLegacy = runSeo ? await generateSeo(product) : buildFallbackSeo(product);
+    const rec = await suggestCategoryRecord(seoLegacy, product, cols);
+    const tabs = await generateTabs({
+      productId: product.supplierProductId,
+      name: seoLegacy.title || product.rawTitle,
+      categoryName: rec.collectionName ?? null,
+      specifications: product.specifications,
+      features: product.features,
+      packageContents: product.packageContents,
+    });
+    return { seo: seoLegacy, categorySuggestion: rec, generatedTabs: tabs };
+  })();
+
   const imageVerdicts = await imageAnalysisPromise;
-
-  // Kategoriförslaget beräknas FÖRE prissättningen så per-kategori-multiplikatorn
-  // kan tillämpas (Fix 5). Kräver bara seo + kollektioner (båda klara här); själva
-  // Wix-tilldelningen sker efter create (kräver productId).
   const collections = await collectionsPromise;
-  const categorySuggestion = await suggestCategoryRecord(seo, product, collections);
+  // Kategoriförslaget beräknas FÖRE prissättningen så per-kategori-multiplikatorn
+  // kan tillämpas (Fix 5); själva Wix-tilldelningen sker efter create (kräver id).
+  const { seo, categorySuggestion, generatedTabs } = await textGenPromise;
   const categoryName = categorySuggestion.collectionName ?? null;
 
   // Explicit kategoriserings-trace (bug 2026-06-01: kategori sattes aldrig och vi
@@ -190,17 +250,9 @@ export async function importProduct(
   }
 
   // Strukturerade PDP-flikar (Tekniska specifikationer / Vanliga frågor /
-  // Användning och skötsel) → svenska, via Haiku. Fogas in i beskrivningen som
-  // <h2>-block som storefronten splittar till flikar. Fail-open inuti generateTabs
-  // (oöversatta specs vid fel) så importen aldrig faller på detta.
-  const generatedTabs = await generateTabs({
-    productId: product.supplierProductId,
-    name: seo.title || product.rawTitle,
-    categoryName,
-    specifications: product.specifications,
-    features: product.features,
-    packageContents: product.packageContents,
-  });
+  // Användning och skötsel) genererades ovan (batchat i ett anrop, eller via
+  // generateTabs i legacy-läget) och fogas nu in i beskrivningen som <h2>-block
+  // som storefronten splittar till flikar.
   const enrichedDescriptionHtml = appendTabSections(
     seo.descriptionHtml,
     buildTabSections(generatedTabs),
@@ -617,7 +669,19 @@ async function suggestCategoryRecord(
     seo.descriptionHtml || product.rawDescription,
     options,
   );
+  return buildCategoryRecord(suggestion, collections);
+}
 
+/**
+ * Bygger en CategorySuggestionRecord ur en CategorySuggestion: slår upp Wix
+ * collection-id/-namn ur den redan hämtade listan och avgör auto/suggested/
+ * uncategorized-status. Delas av legacy-flödet (suggestCategoryRecord) och det
+ * batchade flödet (där kategorin kommer ur det sammanslagna generateProductContent).
+ */
+export function buildCategoryRecord(
+  suggestion: CategorySuggestion,
+  collections: WixCollection[],
+): CategorySuggestionRecord {
   if (!suggestion.collectionSlug) {
     return {
       collectionSlug: null,
@@ -648,4 +712,14 @@ async function suggestCategoryRecord(
     reason: suggestion.reason,
     status,
   };
+}
+
+/**
+ * Batchat text-flöde (#1, 2026-06-01): slår ihop SEO + kategori + flikar till ETT
+ * Claude-anrop. Default PÅ; sätt USE_BATCHED_PIPELINE=false för att falla tillbaka
+ * på de tre separata anropen (legacy). Flaggan rullas ut först efter att A/B-testet
+ * passerat.
+ */
+export function useBatchedPipeline(): boolean {
+  return (process.env.USE_BATCHED_PIPELINE ?? "true").toLowerCase() !== "false";
 }
