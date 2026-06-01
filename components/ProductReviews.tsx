@@ -3,13 +3,6 @@
 import { useState } from "react";
 import type { ProductReview } from "../lib/reviews";
 
-const COUNTRY_FLAG: Record<string, string> = {
-  Sverige: "🇸🇪", Norge: "🇳🇴", Danmark: "🇩🇰", Finland: "🇫🇮",
-  Tyskland: "🇩🇪", Frankrike: "🇫🇷", Spanien: "🇪🇸", Italien: "🇮🇹",
-  Nederländerna: "🇳🇱", Belgien: "🇧🇪", Polen: "🇵🇱", Tjeckien: "🇨🇿",
-  Storbritannien: "🇬🇧", Portugal: "🇵🇹", Österrike: "🇦🇹",
-};
-
 function Stars({ rating }: { rating: number }) {
   const full = Math.max(0, Math.min(5, Math.round(rating)));
   return (
@@ -18,13 +11,6 @@ function Stars({ rating }: { rating: number }) {
       <span className="rev-stars-empty">{"★".repeat(5 - full)}</span>
     </span>
   );
-}
-
-function flagFor(name: string): string {
-  // customerName är "Verifierad kund från {land}" — plocka landet för flaggan.
-  const m = name.match(/från\s+(.+)$/i);
-  if (!m) return "";
-  return COUNTRY_FLAG[m[1].trim()] || "";
 }
 
 export function ProductReviews({
@@ -61,9 +47,7 @@ export function ProductReviews({
             <li key={r.reviewIdAE} className="rev-item">
               <div className="rev-item-head">
                 <Stars rating={r.rating} />
-                <span className="rev-author">
-                  {flagFor(r.customerName)} {r.customerName}
-                </span>
+                <span className="rev-author">{r.displayName}</span>
                 {r.date ? <span className="rev-date">{r.date.slice(0, 10)}</span> : null}
               </div>
               <p className="rev-text">{r.text}</p>
@@ -80,6 +64,11 @@ export function ProductReviews({
             Visa alla {count} recensioner
           </button>
         ) : null}
+
+        <p className="rev-disclaimer">
+          Recensioner visas med initialer för att skydda kundernas integritet. Importerade
+          recensioner från verifierade köpare av samma produkt är översatta från ursprungsspråk.
+        </p>
       </div>
     </section>
   );

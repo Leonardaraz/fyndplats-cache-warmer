@@ -2,6 +2,10 @@
 // Skrivs av cache-warmern (lib/store/reviews.ts → FyndplatsImportedReviews) och
 // läses här server-side via Wix Data REST — samma WIX_API_KEY-mönster som
 // lib/image-scores.ts. Visas som social proof + schema.org på produktsidan.
+//
+// Integritet: vi visar BARA initialer ("M.K."), aldrig namn eller land. Killswitch
+// REVIEW_DISPLAY_MODE=verified_buyer byter alla visningsnamn till "Verifierad
+// köpare" (panic-läge). Bara status approved/edited visas publikt.
 
 const WIX_BASE = "https://www.wixapis.com";
 const COL = process.env.WIX_DATA_COL_REVIEWS || "FyndplatsImportedReviews";
@@ -10,8 +14,8 @@ export interface ProductReview {
   reviewIdAE: string;
   rating: number;
   text: string;
-  customerName: string;
-  customerCountry?: string;
+  /** Visningsnamn enligt REVIEW_DISPLAY_MODE — "M.K." eller "Verifierad köpare". */
+  displayName: string;
   date?: string;
   hasImage: boolean;
   imageUrl?: string;
@@ -22,6 +26,12 @@ export interface ProductReviews {
   /** Snittbetyg (1 decimal) eller null om inga recensioner. */
   average: number | null;
   reviews: ProductReview[];
+}
+
+function reviewDisplayName(initials: string): string {
+  const mode = (process.env.REVIEW_DISPLAY_MODE || "").toLowerCase();
+  if (mode === "verified_buyer") return "Verifierad köpare";
+  return initials || "Verifierad köpare";
 }
 
 function wixDataHeaders(): Record<string, string> | null {
@@ -36,20 +46,20 @@ interface WixReviewRow {
   rating?: number;
   textSwedish?: string;
   textOriginal?: string;
-  customerName?: string;
-  customerCountry?: string;
+  initials?: string;
   date?: string;
   hasImage?: boolean;
   imageUrl?: string;
-  hidden?: boolean;
+  status?: string;
 }
 
 const EMPTY: ProductReviews = { count: 0, average: null, reviews: [] };
+const VISIBLE = new Set(["approved", "edited"]);
 
 /**
- * Synliga (ej dolda) recensioner för en produkt, sorterade med foto + senaste
- * först. ISR-cachat 1 h. Returnerar tomt om token/kollektion saknas eller anropet
- * failar — produktsidan fungerar då precis som innan (ingen recensions-sektion).
+ * Godkända (approved/edited) recensioner för en produkt, sorterade med foto +
+ * senaste först. ISR-cachat 1 h. Returnerar tomt om token/kollektion saknas eller
+ * anropet failar — produktsidan fungerar då precis som innan (ingen sektion).
  */
 export async function getProductReviews(productId: string): Promise<ProductReviews> {
   const h = wixDataHeaders();
@@ -68,14 +78,15 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
     const body = (await res.json()) as { dataItems?: { data?: WixReviewRow }[] };
     const rows = (body.dataItems || [])
       .map((d) => d.data)
-      .filter((d): d is WixReviewRow => Boolean(d && !d.hidden && (d.textSwedish || d.textOriginal)));
+      .filter((d): d is WixReviewRow =>
+        Boolean(d && VISIBLE.has(String(d.status || "")) && (d.textSwedish || d.textOriginal)),
+      );
 
     const reviews: ProductReview[] = rows.map((r) => ({
       reviewIdAE: String(r.reviewIdAE || ""),
       rating: Math.max(1, Math.min(5, Math.round(Number(r.rating) || 5))),
       text: String(r.textSwedish || r.textOriginal || ""),
-      customerName: String(r.customerName || "Verifierad kund"),
-      customerCountry: r.customerCountry ? String(r.customerCountry) : undefined,
+      displayName: reviewDisplayName(String(r.initials || "")),
       date: r.date ? String(r.date) : undefined,
       hasImage: Boolean(r.hasImage),
       imageUrl: r.hasImage && r.imageUrl ? String(r.imageUrl) : undefined,

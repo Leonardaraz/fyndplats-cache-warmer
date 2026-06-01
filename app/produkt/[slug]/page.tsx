@@ -77,7 +77,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     jsonLd.review = reviewData.reviews.slice(0, 10).map((r) => ({
       "@type": "Review",
       reviewRating: { "@type": "Rating", ratingValue: String(r.rating), bestRating: "5", worstRating: "1" },
-      author: { "@type": "Person", name: r.customerName },
+      author: { "@type": "Person", name: r.displayName },
       ...(r.date ? { datePublished: r.date.slice(0, 10) } : {}),
       reviewBody: r.text,
     }));

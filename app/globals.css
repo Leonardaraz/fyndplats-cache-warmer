@@ -1224,3 +1224,4 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rev-photo{margin-top:10px;max-width:120px;max-height:120px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
 .rev-more{margin-top:18px;display:inline-block;padding:11px 22px;border:1px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
 .rev-more:hover{background:var(--ink);color:#fff}
+.rev-disclaimer{margin-top:18px;font-size:12px;line-height:1.5;color:var(--soft);max-width:640px}
