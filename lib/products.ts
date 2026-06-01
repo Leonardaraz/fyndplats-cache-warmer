@@ -83,6 +83,47 @@ const wix = CLIENT_ID
   ? createClient({ modules: { products: wixProducts, categories: wixCategories }, auth: OAuthStrategy({ clientId: CLIENT_ID }) })
   : null;
 
+// V3-katalogens site-id + admin-nyckel (server-side ONLY). Det publika OAuth-SDK:t
+// släpper choice.media för V3 (verifierat 2026-06-01: 0/100 produkter exponerar den),
+// så per-färg-variantbilden (linkedMedia) läses autentiserat via V3 REST i getProduct.
+// Saknad nyckel → vi faller tillbaka på data/variant-images.json + färg-swatch.
+const WIX_API_KEY = process.env.WIX_API_KEY;
+const WIX_SITE_ID = process.env.WIX_SITE_ID || "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
+
+/**
+ * Läser per-val variantbilder (V3 `linkedMedia`) live för en produkt och returnerar
+ * { [optionName]: { [choiceName]: bild-URL } }. Detta är den ENDA källan som täcker
+ * nyimporterade produkter (variant-images.json exporteras från V1-sajten och innehåller
+ * dem inte). Fail-open: saknad nyckel / fel / ingen länkad media → {} (statiska filen +
+ * colorOf-swatchen tar då över). Cachas en timme (variantbilder ändras sällan).
+ */
+async function fetchV3ChoiceImages(productId: string): Promise<Record<string, Record<string, string>>> {
+  if (!WIX_API_KEY || !productId) return {};
+  try {
+    const res = await fetch(
+      `https://www.wixapis.com/stores/v3/products/${productId}?fields=MEDIA_ITEMS_INFO`,
+      {
+        headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID },
+        next: { revalidate: 3600 },
+      },
+    );
+    if (!res.ok) return {};
+    const data = await res.json();
+    const out: Record<string, Record<string, string>> = {};
+    for (const opt of data?.product?.options || []) {
+      const name = opt?.name;
+      if (!name) continue;
+      for (const ch of opt?.choicesSettings?.choices || []) {
+        const url = ch?.linkedMedia?.[0]?.image?.url;
+        if (ch?.name && url) (out[name] ||= {})[ch.name] = url;
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 function stripHtml(h: string): string {
   return (h || "").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -269,6 +310,19 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         const prod = mapProduct(res.items[0]);
         prod.options = optionsForProduct(slug, res.items[0]);
         prod.descriptionHtml = res.items[0].description || "";
+        // Lägg per-val variantbilder från V3 linkedMedia ÖVERST (mest aktuell källan
+        // — täcker nyimporterade produkter som inte finns i variant-images.json).
+        // Strikt additivt: live-bild vinner när den finns, annars behålls den
+        // statiska/colorOf-bilden → ingen regression för migrerade produkter.
+        if (prod.options) {
+          const live = await fetchV3ChoiceImages(prod.id);
+          const byVal = live[prod.options.name];
+          if (byVal) {
+            for (const ch of prod.options.choices) {
+              if (byVal[ch.label]) ch.image = byVal[ch.label];
+            }
+          }
+        }
         return prod;
       }
     } catch (e) { console.error("[wix] getProduct failed:", (e as Error).message); }
