@@ -29,10 +29,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: "unauthorised" }, { status: 401 });
   }
 
-  const to = process.env.OPS_ALERT_EMAIL;
-  if (!to) {
-    return NextResponse.json({ ok: false, error: "OPS_ALERT_EMAIL not configured" }, { status: 500 });
-  }
+  // Fall back to the ops mailbox so the weekly touch still arrives even if
+  // OPS_ALERT_EMAIL is missing in Vercel (mirrors app/api/sms-inbound/route.ts).
+  const to = process.env.OPS_ALERT_EMAIL || "info@fyndplats.com";
   if (!process.env.RESEND_API_KEY) {
     return NextResponse.json({ ok: false, error: "RESEND_API_KEY not configured" }, { status: 500 });
   }
