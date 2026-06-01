@@ -361,6 +361,32 @@ async function sendStep2(cart: CartRow): Promise<ProcessResult> {
   return { cartId: cart.id, step: 2, action: 'sent', resendId: send.data?.id };
 }
 
+async function sendStep3NoCode(cart: CartRow): Promise<ProcessResult> {
+  const subject = 'Vi saknar dig — din kundvagn väntar';
+  const { html, text } = renderAbandonedCart3NoCode({
+    items: cart.items_json,
+    recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
+    subtotalMinor: cart.subtotal_minor,
+    currency: cart.currency,
+    unsubscribeUrl: unsubscribeUrl(cart.email),
+  });
+  const send = await resend().emails.send({
+    from: FROM,
+    to: cart.email,
+    replyTo: REPLY_TO,
+    subject,
+    html,
+    text,
+    headers: unsubHeaders(cart.email),
+  });
+  await sql/*sql*/`
+    INSERT INTO sent_emails (cart_id, step, resend_id, email)
+    VALUES (${cart.id}, 3, ${send.data?.id ?? null}, ${cart.email})
+    ON CONFLICT (cart_id, step) DO NOTHING
+  `;
+  return { cartId: cart.id, step: 3, action: 'sent_no_code', resendId: send.data?.id };
+}
+
 async function sendStep3(cart: CartRow): Promise<ProcessResult> {
   // Anti-abuse gate for the discount code -----------------------------------
   const belowMin = cart.subtotal_minor < MIN_SUBTOTAL_FOR_CODE_MINOR;
@@ -385,34 +411,21 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
   const shouldSendNoCode = belowMin || addressKnown || phoneKnown;
 
   if (shouldSendNoCode) {
-    const subject = 'Vi saknar dig — din kundvagn väntar';
-    const { html, text } = renderAbandonedCart3NoCode({
-      items: cart.items_json,
-      recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
-      subtotalMinor: cart.subtotal_minor,
-      currency: cart.currency,
-      unsubscribeUrl: unsubscribeUrl(cart.email),
-    });
-    const send = await resend().emails.send({
-      from: FROM,
-      to: cart.email,
-      replyTo: REPLY_TO,
-      subject,
-      html,
-      text,
-      headers: unsubHeaders(cart.email),
-    });
-    await sql/*sql*/`
-      INSERT INTO sent_emails (cart_id, step, resend_id, email)
-      VALUES (${cart.id}, 3, ${send.data?.id ?? null}, ${cart.email})
-      ON CONFLICT (cart_id, step) DO NOTHING
-    `;
-    return { cartId: cart.id, step: 3, action: 'sent_no_code', resendId: send.data?.id };
+    return sendStep3NoCode(cart);
   }
 
   // Mint and send the 5% code -----------------------------------------------
+  // If coupon minting fails (e.g. a transient Wix Coupons API error), we must
+  // still send email 3 — fall back to the no-code variant rather than dropping
+  // the whole step and retrying forever.
   const subtotalSek = Math.round(cart.subtotal_minor / 100);
-  const minted = await mintAbandonedCartCoupon({ cartId: cart.id, subtotalSek });
+  let minted;
+  try {
+    minted = await mintAbandonedCartCoupon({ cartId: cart.id, subtotalSek });
+  } catch (err) {
+    console.error('[abandoned-cart] coupon mint failed, sending no-code variant', cart.id, err instanceof Error ? err.message : err);
+    return sendStep3NoCode(cart);
+  }
 
   await sql/*sql*/`
     UPDATE abandoned_carts
