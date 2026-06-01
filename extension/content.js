@@ -313,6 +313,33 @@ function extractPriceUsd() {
 // är "Ships From" (annars skulle den bli en falsk variant-dimension).
 const KNOWN_SHIP_CODES = new Set([...EU_WAREHOUSE_CODES, "CN", "US", "RU", "TR", "AU", "CA"]);
 
+// Bug 2026-06-01: variantnamn visades som AliExpress-interna SKU-koder
+// ("F202504221116183") istället för det läsbara färg-/modellnamnet ("Sverige
+// Hemma Vuxen Gul"). Koden ligger i SKU-rutans text/data-sku-col, medan det
+// riktiga namnet nästan alltid finns i bildens alt/title. Vi måste därför aktivt
+// välja BORT koden och föredra det läsbara namnet.
+
+// True om strängen ser ut som en intern SKU-/property-kod snarare än ett namn:
+// ren sifferkod (ev. 1–2 bokstäver prefix, t.ex. "F2025…") eller en lång siffer-
+// sekvens (>=8 i följd, t.ex. property-value-id "100014064").
+function looksLikeSkuCode(s) {
+  const t = String(s || "").replace(/\s+/g, "");
+  if (!t) return true;
+  if (/^[A-Za-z]{0,2}\d{6,}$/.test(t)) return true;
+  if (/\d{8,}/.test(t)) return true;
+  return false;
+}
+
+// Väljer det mest läsbara variantnamnet bland kandidater (bild-alt/title,
+// aria-label, sub-span-text, box-text). Hoppar över interna koder. Faller tillbaka
+// på första icke-tomma kandidaten om ALLA ser ut som koder (hellre något än inget).
+function pickDisplayName(candidates) {
+  const cleaned = (candidates || [])
+    .map((c) => String(c || "").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  return cleaned.find((c) => !looksLikeSkuCode(c)) || cleaned[0] || "";
+}
+
 // Läser en SKU-grupps namn (Color / Size / Ships From) robust. AE visar det som
 // "Color: <valt värde>" men klassnamnen varierar mellan sidversioner, och SIZE-
 // gruppens titel saknar ibland sku-item--title helt — då tappade den gamla koden
@@ -397,11 +424,18 @@ function extractDomSkuGroups() {
     const values = [];
     for (const it of items) {
       const img = it.querySelector("img");
-      let label = (
-        it.querySelector('[class*="skuText"], [class*="sku-item--text"]') || it
-      ).textContent.trim();
-      if (!label && img) label = (img.alt || img.getAttribute("title") || "").trim();
-      label = label.replace(/\s+/g, " ").trim();
+      const subSpan = it.querySelector('[class*="skuText"], [class*="sku-item--text"]');
+      // Kandidater i prioritetsordning: läsbar bild-alt/title > aria-label/title
+      // > sub-span-text > box-text. pickDisplayName väljer bort interna SKU-koder
+      // så det Wix-synliga namnet blir "Sverige Hemma Vuxen Gul", inte "F2025…".
+      const label = pickDisplayName([
+        img && img.getAttribute("alt"),
+        img && img.getAttribute("title"),
+        it.getAttribute && it.getAttribute("title"),
+        it.getAttribute && it.getAttribute("aria-label"),
+        subSpan && subSpan.textContent,
+        it.textContent,
+      ]);
       if (!label) continue;
       const key = label.toLowerCase();
       if (seen.has(key)) continue; // deduppa (dubbelrenderade rutor)
@@ -432,7 +466,11 @@ function decodeSkuProps(skuPropIds, props) {
     const prop = props.find((p) => String(p.skuPropertyId) === pid);
     if (!prop) continue;
     const value = (prop.skuPropertyValues || []).find((v) => String(v.propertyValueId) === vid);
-    options[prop.skuPropertyName || pid] = value ? value.propertyValueDisplayName || value.propertyValueName : vid;
+    // Föredra det läsbara namnet; AE lägger ibland en intern kod i display-/name-
+    // fältet → pickDisplayName väljer bort koden (bug 2026-06-01).
+    options[prop.skuPropertyName || pid] = value
+      ? pickDisplayName([value.propertyValueDisplayName, value.propertyValueName]) || vid
+      : vid;
   }
   return options;
 }
@@ -637,8 +675,10 @@ function extract() {
       if (withImg.length === 0) continue;
       result.swatchImages[optionName] = {};
       for (const v of withImg) {
-        const choiceName = v.propertyValueDisplayName || v.propertyValueName;
-        result.swatchImages[optionName][choiceName] = v.skuPropertyImagePath;
+        // Måste matcha samma läsbara namn som decodeSkuProps sätter på optionsvalet
+        // (annars missar linkedMedia-kopplingen i pipelinen).
+        const choiceName = pickDisplayName([v.propertyValueDisplayName, v.propertyValueName]);
+        if (choiceName) result.swatchImages[optionName][choiceName] = v.skuPropertyImagePath;
       }
     }
 
