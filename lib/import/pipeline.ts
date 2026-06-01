@@ -10,11 +10,13 @@ import {
   addProductToCollection,
   createProduct,
   getCollections,
+  linkChoiceMedia,
+  type ChoiceMediaLink,
   type WixCollection,
   type WixProductInput,
   type WixVariantInput,
 } from "../wix/client";
-import { importMediaUrls } from "../wix/media";
+import { importMediaByUrl, importMediaUrls } from "../wix/media";
 import {
   analyzeImages,
   suggestCategory,
@@ -130,6 +132,12 @@ export async function importProduct(
     options: translateVariantOptions(v.options),
   }));
   const translatedColorCodes = colorCodes ? translateOptionColorCodes(colorCodes) : undefined;
+  // Per-val bild-URL:er översätts till samma svenska axel-/val-nycklar som
+  // varianterna (translateOptionColorCodes har exakt rätt shape) så att de matchar
+  // de härledda Wix-optionsvalen vid kopplingen nedan.
+  const translatedSwatchImages = product.swatchImages
+    ? translateOptionColorCodes(product.swatchImages)
+    : undefined;
 
   const included = variants.filter((v) => v.included);
   if (included.length === 0) {
@@ -214,6 +222,34 @@ export async function importProduct(
   // Options härleds från ALLA varianter; avbockade varianter skapas men döljs
   // (visible: false) så att Wix får en komplett variantuppsättning.
   const options = deriveOptions(variants, translatedColorCodes);
+
+  // Per-val bilder (linkedMedia): plocka ut de swatch-bilder vars axel+val faktiskt
+  // finns bland de härledda optionsvalen, ladda upp dem till Wix Media Manager och
+  // lägg dem i media-poolen (krav för linkedMedia). Kopplas till valen EFTER create
+  // (lib/wix/client.ts#linkChoiceMedia) → huvudbilden byts vid färgval. Körs parallellt
+  // med galleriuppladdningen. Tom/saknad swatch-data → poolUrls=[] och links=[] (no-op).
+  const optionChoiceSet = new Set(
+    options.flatMap((o) => o.choices.map((c) => `${o.name} ${c.name}`)),
+  );
+  const swatchSources: { optionName: string; choiceName: string; sourceUrl: string; altText: string }[] = [];
+  if (translatedSwatchImages) {
+    for (const [axis, valueMap] of Object.entries(translatedSwatchImages)) {
+      for (const [value, url] of Object.entries(valueMap)) {
+        if (url && optionChoiceSet.has(`${axis} ${value}`)) {
+          // altText är BÅDE vettig alt-text OCH den stabila matchningsnyckeln som
+          // linkChoiceMedia använder (id/URL byts vid Wix re-import). Unik per val.
+          swatchSources.push({
+            optionName: axis,
+            choiceName: value,
+            sourceUrl: url,
+            altText: `${seo.title} – ${value}`,
+          });
+        }
+      }
+    }
+  }
+  const swatchMediaPromise = uploadSwatchMedia(swatchSources, seo.slug);
+
   const variantMappings: VariantMapping[] = [];
   const wixVariants: WixVariantInput[] = variants.map((v) => {
     const sku = makeSku(product.supplierProductId, v.supplierVariantId);
@@ -255,6 +291,20 @@ export async function importProduct(
     altText: altByOriginalUrl.get(orderedImageUrls[i]) ?? seo.title,
   }));
 
+  // Lägg variant-/swatch-bilderna SIST i poolen (huvudbilden = galleriets första,
+  // inte en swatch-thumbnail). Deduppa mot galleriet på media-id så samma foto inte
+  // dyker upp dubbelt. Varje swatch-item bär sin unika altText (matchningsnyckel).
+  // `swatchLinks` används efter create för att koppla val→bild.
+  const { poolItems: swatchPoolItems, links: swatchLinks } = await swatchMediaPromise;
+  const existingMediaKeys = new Set(mediaItems.map((m) => mediaKey(m.url)));
+  for (const it of swatchPoolItems) {
+    const k = mediaKey(it.url);
+    if (k && !existingMediaKeys.has(k)) {
+      existingMediaKeys.add(k);
+      mediaItems.push(it);
+    }
+  }
+
   // Aggregera warehouse-koder över alla varianter + ev. produkt-default.
   // Påverkar Wix-ribbonen och persisteras på mapping-posten för senare filterring.
   const allShipFromCodes: string[] = [];
@@ -290,6 +340,20 @@ export async function importProduct(
   const skuToWixId = new Map(created.variants.map((v) => [v.sku, v.id]));
   for (const m of variantMappings) {
     m.wixVariantId = skuToWixId.get(m.sku);
+  }
+
+  // --- Per-val bild (linkedMedia) ------------------------------------------
+  // Koppla varje färg-/variantval till sin bild så att huvudbilden byts när
+  // kunden väljer t.ex. "Blå" på produktsidan. Måste ske EFTER create (bilderna
+  // ingest:as asynkront till media-poolen). Fail-open inuti linkChoiceMedia —
+  // kopplingen får aldrig fälla importen. Loggas i audit för spårbarhet.
+  if (swatchLinks.length > 0) {
+    const linkedCount = await linkChoiceMedia(created.id, swatchLinks);
+    await audit(
+      "import-variant-media",
+      created.id,
+      `${linkedCount}/${swatchLinks.length} val kopplade till variantbild (linkedMedia)`,
+    );
   }
 
   // --- Initialt lagersaldo (bug 2026-05-31, slutgiltig fix) ----------------
@@ -390,6 +454,48 @@ export async function importProduct(
 }
 
 // --- Helpers ---------------------------------------------------------------
+
+/** Wixstatic-media-id ur en URL (delen efter /media/) — för dedup mot galleriet. */
+function mediaKey(url: string): string {
+  const m = (url || "").match(/\/media\/([^/?]+)/);
+  return m ? m[1] : url || "";
+}
+
+/**
+ * Laddar upp swatch-/variantbilder till Wix Media Manager och bygger kopplingarna
+ * val→bild. Dedupar käll-URL:er (samma foto kan delas mellan val). Misslyckade
+ * uppladdningar hoppas tyst över (importen ska aldrig falla på en variantbild).
+ * Returnerar poolUrls (wixstatic-URL:er att lägga i media-poolen, krav för
+ * linkedMedia) + links (val→bild, används av linkChoiceMedia efter create).
+ */
+async function uploadSwatchMedia(
+  sources: { optionName: string; choiceName: string; sourceUrl: string; altText: string }[],
+  slug: string,
+): Promise<{ poolItems: { url: string; altText: string }[]; links: ChoiceMediaLink[] }> {
+  if (sources.length === 0) return { poolItems: [], links: [] };
+  const uniqueSources = [...new Set(sources.map((s) => s.sourceUrl))];
+  const results = await Promise.allSettled(
+    uniqueSources.map((url, i) => importMediaByUrl(url, `${slug || "produkt"}-variant-${i + 1}`)),
+  );
+  const wixBySource = new Map<string, string>();
+  uniqueSources.forEach((src, i) => {
+    const r = results[i];
+    if (r.status === "fulfilled") wixBySource.set(src, r.value.url);
+  });
+  const poolItems: { url: string; altText: string }[] = [];
+  const seenUrls = new Set<string>();
+  const links: ChoiceMediaLink[] = [];
+  for (const s of sources) {
+    const wix = wixBySource.get(s.sourceUrl);
+    if (!wix) continue;
+    links.push({ optionName: s.optionName, choiceName: s.choiceName, altText: s.altText });
+    if (!seenUrls.has(wix)) {
+      seenUrls.add(wix);
+      poolItems.push({ url: wix, altText: s.altText });
+    }
+  }
+  return { poolItems, links };
+}
 
 /** Placeholder-saldo för en in-stock-produkt. Override: IMPORT_DEFAULT_STOCK_QTY. */
 function defaultStockQty(): number {

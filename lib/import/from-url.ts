@@ -8,7 +8,7 @@
 // vägen via det officiella API:t.
 
 import { getProduct as getAliExpressDsProduct } from "../aliexpress/client";
-import type { AliExpressDsProduct } from "../aliexpress/types";
+import type { AliExpressDsProduct, AliExpressDsVariant } from "../aliexpress/types";
 import type { AliExpressProduct, AliExpressVariant } from "./types";
 import { parseAliExpressUrl } from "../bulk-import/url";
 
@@ -79,6 +79,10 @@ export function convertDsToAliExpressProduct(
     }
   }
 
+  // Per-variant swatch-bilder ur DS-API:t (en imageUrl per SKU). undefined om
+  // ingen tydlig bild-axel hittas → pipelinen hoppar bara över linkedMedia.
+  const swatchFromDs = buildSwatchImagesFromDs(ds.variants);
+
   const product: AliExpressProduct = {
     supplierProductId: ds.productId,
     sourceUrl,
@@ -86,7 +90,38 @@ export function convertDsToAliExpressProduct(
     rawDescription: ds.description,
     imageUrls: ds.images,
     variants,
+    ...(swatchFromDs ? { swatchImages: swatchFromDs } : {}),
   };
 
   return { product, excludedCount, supplierProductId: ds.productId };
+}
+
+/**
+ * Bygger swatch-bilder ur DS-varianternas per-SKU `imageUrl`. Hittar den axel vars
+ * värde bestämmer bilden (typiskt färg): för varje axel, om varje värde mappar till
+ * exakt EN bild-URL och minst två värden har bilder, är det bild-axeln. Returnerar
+ * { [axel]: { [värde]: url } } så pipelinen kan koppla val→bild (linkedMedia), annars
+ * undefined. Samma shape som extension-skraparens swatchImages.
+ */
+export function buildSwatchImagesFromDs(
+  variants: AliExpressDsVariant[],
+): Record<string, Record<string, string>> | undefined {
+  const axisNames = new Set<string>();
+  for (const v of variants) for (const k of Object.keys(v.skuProps)) axisNames.add(k);
+  for (const axis of axisNames) {
+    const byValue: Record<string, Set<string>> = {};
+    for (const v of variants) {
+      const val = v.skuProps[axis];
+      if (!val || !v.imageUrl) continue;
+      (byValue[val] ??= new Set()).add(v.imageUrl);
+    }
+    const values = Object.keys(byValue);
+    const consistent = values.length >= 2 && values.every((val) => byValue[val].size === 1);
+    if (consistent) {
+      const map: Record<string, string> = {};
+      for (const val of values) map[val] = [...byValue[val]][0];
+      return { [axis]: map };
+    }
+  }
+  return undefined;
 }

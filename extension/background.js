@@ -46,6 +46,13 @@ async function importProduct(product, featureFlags) {
       included: Boolean(v.included),
     })),
     ...(product.optionColorCodes ? { optionColorCodes: product.optionColorCodes } : {}),
+    // Per-färg bild-URL:er { [axel]: { [val]: "https://…alicdn.jpg" } }. Backaren
+    // laddar upp dem och kopplar dem till rätt optionsval (Wix linkedMedia) så
+    // huvudbilden byts när kunden väljer t.ex. "Blå". Skickas bara när skrapan
+    // faktiskt hittade swatch-bilder (annars utelämnas fältet helt).
+    ...(product.swatchImages && Object.keys(product.swatchImages).length
+      ? { swatchImages: product.swatchImages }
+      : {}),
     // Strukturerad produktinfo för de tabbade PDP-sektionerna (Tekniska
     // specifikationer / Vanliga frågor / Användning och skötsel). Skickas bara
     // när skrapan faktiskt hittade något så att tomma fält inte når servern.

@@ -404,6 +404,135 @@ export async function createProduct(input: WixProductInput): Promise<WixCreatePr
   };
 }
 
+/**
+ * En koppling bild→optionsval: visa media-item:et vars `altText` matchar, när
+ * kunden väljer `choiceName` i `optionName`.
+ */
+export interface ChoiceMediaLink {
+  optionName: string;
+  choiceName: string;
+  /**
+   * Exakt altText som satts på swatch-bildens media-item i createProduct. Detta
+   * är den STABILA matchningsnyckeln mot produktens media-pool: Wix re-importerar
+   * varje bild till produkten och tilldelar då ett NYTT id OCH en NY URL (verifierat
+   * 2026-06-01), så varken uppladdnings-id:t eller -URL:en går att matcha på — men
+   * altText följer med oförändrad och är unik per val.
+   */
+  altText: string;
+}
+
+/**
+ * Kopplar produktbilder till specifika optionsval (V3 `linkedMedia`) så att
+ * huvudbilden byts när kunden väljer t.ex. "Blå". Verifierad mot V3 2026-06-01:
+ *   1. Bilderna måste FÖRST ligga i produktens media-pool (laddas upp med en unik
+ *      altText per val + skickas som mediaItems i createProduct). linkedMedia vid
+ *      CREATE ger 404 PRODUCT_MEDIA_NOT_EXIST eftersom Wix ingest:ar asynkront.
+ *   2. Vi matchar media-item → val på altText (id/URL byts vid Wix re-import och
+ *      duger inte som nyckel) och läser id:t ur produkt-readbacken.
+ *   3. PATCH:ar options.choicesSettings.choices[].linkedMedia = [{ id }] (+ skickar
+ *      variantsInfo verbatim, annars 428 MISSING_VARIANT_OPTION_CHOICE). Ingest:en
+ *      är asynkron (~5 s) så PATCH:en kan "lyckas" (200) men tappa linkedMedia tills
+ *      bilden är klar → vi verifierar via re-GET och försöker om med ny revision.
+ * Fail-open: loggar och returnerar antal lyckade kopplingar (0 vid fel) — bild-
+ * kopplingen får ALDRIG fälla en import.
+ */
+export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[]): Promise<number> {
+  if (isDryRun() || links.length === 0) return 0;
+  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=MEDIA_ITEMS_INFO`;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const getProductRaw = async (): Promise<any | null> => {
+    const res = await fetch(url, { headers: wixHeaders() });
+    return res.ok ? (await res.json()).product : null;
+  };
+  // Sätter linkedMedia på matchande val genom att slå upp media-item-id via altText.
+  // Returnerar [options, antal satta].
+  const applyLinks = (product: any): [any[], number] => {
+    const idByAlt = new Map<string, string>();
+    for (const it of product?.media?.itemsInfo?.items ?? []) {
+      const alt = it?.altText ?? it?.image?.altText;
+      if (alt && it?.id && !idByAlt.has(alt)) idByAlt.set(alt, it.id);
+    }
+    const options: any[] = product.options ?? [];
+    let n = 0;
+    for (const opt of options) {
+      for (const ch of opt?.choicesSettings?.choices ?? []) {
+        const link = links.find((l) => l.optionName === opt.name && l.choiceName === ch.name);
+        if (!link) continue;
+        const id = idByAlt.get(link.altText);
+        if (!id) continue;
+        ch.linkedMedia = [{ id }];
+        n++;
+      }
+    }
+    return [options, n];
+  };
+
+  // Antalet val som matchar på NAMN (oberoende av om bilden hunnit ingest:as) —
+  // om 0 finns inget att vänta på och vi ger upp direkt.
+  const linkNames = new Set(links.map((l) => `${l.optionName} ${l.choiceName}`));
+  const countLinked = (p: any): number =>
+    (p?.options ?? []).reduce(
+      (sum: number, o: any) =>
+        sum + (o?.choicesSettings?.choices ?? []).filter((c: any) => (c.linkedMedia ?? []).length).length,
+      0,
+    );
+
+  try {
+    // Upp till 8 försök (~20 s) för att rida ut den asynkrona media-ingest:en (~5 s
+    // typiskt, men varierar). intended===0 = bilden ännu inte ingest:ad → försök om.
+    let target = 0;
+    let best = 0;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const product = await getProductRaw();
+      if (!product) break;
+
+      if (attempt === 0) {
+        target = (product.options ?? []).reduce(
+          (sum: number, o: any) =>
+            sum + (o?.choicesSettings?.choices ?? []).filter((c: any) => linkNames.has(`${o.name} ${c.name}`)).length,
+          0,
+        );
+        if (target === 0) {
+          console.warn(`[wix.linkChoiceMedia] inga val matchar på namn för ${productId} (${links.length} länkar).`);
+          return 0;
+        }
+      }
+
+      const [options, intended] = applyLinks(product);
+      if (intended > 0) {
+        const body = {
+          product: { revision: product.revision, options, variantsInfo: product.variantsInfo },
+          fieldMask: { paths: ["options", "variantsInfo"] },
+        };
+        const res = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
+          method: "PATCH",
+          headers: wixHeaders(),
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          // Verifiera att linkedMedia faktiskt persisterades (kan tappas medan media
+          // fortfarande ingest:as trots 200-svar).
+          best = countLinked(await getProductRaw());
+          if (best >= target) return best;
+        } else if (res.status !== 404 && res.status !== 409 && res.status !== 428) {
+          // 404 (media ej klar) / 409 (revision) / 428 → försök om; annat = ge upp.
+          console.warn(`[wix.linkChoiceMedia] PATCH misslyckades (${res.status}): ${(await res.text()).slice(0, 200)}`);
+          return best;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 2500));
+    }
+    if (best < target) {
+      console.warn(`[wix.linkChoiceMedia] kopplade ${best}/${target} val för ${productId} (media ingest:ades långsamt).`);
+    }
+    return best;
+  } catch (err) {
+    console.warn("[wix.linkChoiceMedia] fel (icke-fatalt):", err instanceof Error ? err.message : String(err));
+    return 0;
+  }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+}
+
 export interface WixProductSnapshot {
   id: string;
   revision: string;

@@ -46,6 +46,15 @@ export interface AliExpressProduct {
   features?: string[];
   /** "Vad som ingår i paketet" (råtext), t.ex. ["1 x Kabel", "1 x Manual"]. */
   packageContents?: string[];
+  /**
+   * Per-val bild-URL:er { [axelnamn]: { [val]: "https://…alicdn.jpg" } } skrapade
+   * från AliExpress swatch-/SKU-bilder, t.ex. { Color: { Blue: "…blue.jpg" } }.
+   * Importen laddar upp dem och kopplar dem till motsvarande Wix-optionsval
+   * (linkedMedia) så att huvudbilden byts när kunden väljer en färg. Nycklarna är
+   * råa (engelska) och översätts till svenska i pipelinen innan de matchas mot
+   * de översatta optionsvalen.
+   */
+  swatchImages?: Record<string, Record<string, string>>;
 }
 
 /**

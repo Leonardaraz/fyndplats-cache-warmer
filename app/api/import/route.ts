@@ -44,6 +44,9 @@ const ProductSchema = z.object({
   packageContents: z.array(z.string()).optional(),
   // Färgkoder samplade från produktbilden: { [optionName]: { [choiceName]: "#hex" } }.
   optionColorCodes: z.record(z.record(z.string())).optional(),
+  // Per-val bild-URL:er { [optionName]: { [choiceName]: "https://…alicdn.jpg" } }.
+  // Laddas upp + kopplas till Wix-optionsval (linkedMedia) → huvudbild byts vid färgval.
+  swatchImages: z.record(z.record(z.string())).optional(),
   // AI-funktionsväljare från extension-popupen. Saknas = allt på (default).
   featureFlags: z
     .object({
