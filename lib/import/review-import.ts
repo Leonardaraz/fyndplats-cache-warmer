@@ -10,7 +10,7 @@
 // All filtrering/rankning är rena, testbara funktioner. Själva I/O:t (DeepL +
 // Wix) injiceras som beroenden så orchestreringen kan enhetstestas utan nätverk.
 
-import { countChars, translateBatch } from "../translate/deepl";
+import { countChars, translateBatchDetailed, type DeeplTranslation } from "../translate/deepl";
 import {
   getTranslationUsageStore,
   monthKey,
@@ -30,7 +30,10 @@ export interface AERReview {
   language?: string;
   hasImage?: boolean;
   imageUrl?: string;
-  /** ISO-2-kod eller landnamn (engelska) — anonymiseras till svenskt namn. */
+  /** Rått AE-användarnamn (t.ex. "M***a", "u****6543"). LAGRAS för bevis, visas
+   * ALDRIG — vi härleder bara initialer för visning. */
+  customerName?: string;
+  /** ISO-2-kod eller landnamn. LAGRAS för bevis, visas ALDRIG. */
   customerCountry?: string;
   /** ISO-datum om känt. */
   date?: string;
@@ -134,55 +137,70 @@ export function filterAndRankReviews(
   return kept.slice(0, max);
 }
 
-// --- Anonymisering ---------------------------------------------------------
+// --- Initialer (visningsnamn) ---------------------------------------------
+//
+// Vi visar BARA initialer ("M.K."), aldrig hela namnet eller landet. Initialerna
+// härleds från AE-användarnamnet om det innehåller bokstäver (AE maskerar ofta
+// mitten men visar första+sista tecken, t.ex. "M***a" → "M.A."), annars
+// deterministiskt ur reviewIdAE så samma recension ALLTID får samma initialer.
 
-/**
- * ISO-2/landnamn → svenskt landnamn. AE-recensioner ger ofta landkoder (DE, FR)
- * eller engelska namn. Okänt land → tom sträng (caller faller tillbaka på "Verifierad kund").
- */
-const COUNTRY_SV: Record<string, string> = {
-  SE: "Sverige", NO: "Norge", DK: "Danmark", FI: "Finland",
-  DE: "Tyskland", FR: "Frankrike", ES: "Spanien", IT: "Italien",
-  NL: "Nederländerna", BE: "Belgien", PL: "Polen", CZ: "Tjeckien",
-  GB: "Storbritannien", UK: "Storbritannien", IE: "Irland", PT: "Portugal",
-  AT: "Österrike", CH: "Schweiz", US: "USA", CA: "Kanada", AU: "Australien",
-  GREECE: "Grekland", GR: "Grekland",
-  GERMANY: "Tyskland", FRANCE: "Frankrike", SPAIN: "Spanien", ITALY: "Italien",
-  POLAND: "Polen", NETHERLANDS: "Nederländerna", SWEDEN: "Sverige",
-  PORTUGAL: "Portugal", BELGIUM: "Belgien", AUSTRIA: "Österrike",
-};
-
-export function swedishCountry(country?: string): string {
-  if (!country) return "";
-  const key = country.trim().toUpperCase();
-  return COUNTRY_SV[key] ?? "";
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return h >>> 0;
 }
 
+/** Deterministisk versal A–Z ur en seed + salt. */
+function hashLetter(seed: string, salt: number): string {
+  const h = hashString(`${seed}#${salt}`);
+  return String.fromCharCode(65 + (h % 26));
+}
+
+const LETTER_RE = /[a-zA-ZÀ-ÿЀ-ӿ]/g;
+
 /**
- * Anonymiserar kunden. AE-namn ("u****6543") får ALDRIG visas — vi visar
- * "Verifierad kund" eller "Verifierad kund från {land}". Etiskt val (se spec):
- * vi hittar INTE på svenska namn, vi markerar bara att det är en verifierad köpare.
+ * Härleder visningsinitialer "X.Y." för en recension.
+ *   - Flera namn-tokens ("Maria K") → första bokstaven i första + sista token.
+ *   - Ett token, maskerat ("M***a") → första + sista bokstaven i token.
+ *   - En enda bokstav ("u****6543") → den + en deterministisk andra ur reviewIdAE.
+ *   - Inga bokstäver → två deterministiska bokstäver ur reviewIdAE.
  */
-export function anonymizeCustomer(country?: string): string {
-  const sv = swedishCountry(country);
-  return sv ? `Verifierad kund från ${sv}` : "Verifierad kund";
+export function deriveInitials(rawName: string | undefined, reviewIdAE: string): string {
+  const name = (rawName ?? "").trim();
+  if (name) {
+    const tokens = name.split(/\s+/).filter((t) => LETTER_RE.test(t) || /\d/.test(t));
+    LETTER_RE.lastIndex = 0;
+    if (tokens.length >= 2) {
+      const first = (tokens[0].match(LETTER_RE) ?? [])[0];
+      const lastTok = tokens[tokens.length - 1].match(LETTER_RE) ?? [];
+      const last = lastTok[0];
+      if (first && last) return `${first.toUpperCase()}.${last.toUpperCase()}.`;
+    }
+    // Ett token — använd första + sista bokstaven (maskerade namn "M***a").
+    const alphas = name.match(LETTER_RE) ?? [];
+    const firstA = alphas[0];
+    const lastA = alphas[alphas.length - 1];
+    if (firstA && lastA && alphas.length >= 2) {
+      return `${firstA.toUpperCase()}.${lastA.toUpperCase()}.`;
+    }
+    if (firstA && alphas.length === 1) {
+      return `${firstA.toUpperCase()}.${hashLetter(reviewIdAE, 1)}.`;
+    }
+  }
+  return `${hashLetter(reviewIdAE, 0)}.${hashLetter(reviewIdAE, 1)}.`;
 }
 
 /** Stabil reviewIdAE när skrapan inte gav någon (hash av normaliserad text). */
 export function ensureReviewId(r: AERReview): string {
   if (r.reviewIdAE && r.reviewIdAE.trim()) return r.reviewIdAE.trim();
-  const key = dedupKey(r.text);
-  let h = 0;
-  for (let i = 0; i < key.length; i++) {
-    h = (h * 31 + key.charCodeAt(i)) | 0;
-  }
-  return `gen-${(h >>> 0).toString(36)}`;
+  return `gen-${hashString(dedupKey(r.text)).toString(36)}`;
 }
 
 // --- Orchestrering (translate + persist) -----------------------------------
 
 export interface ReviewImportDeps {
-  translate?: (texts: string[]) => Promise<string[]>;
+  /** Returnerar översatt text + detekterat källspråk per text (ordningsbevarande). */
+  translate?: (texts: string[]) => Promise<DeeplTranslation[]>;
   usageStore?: TranslationUsageStore;
   reviewStore?: ReviewStore;
   now?: Date;
@@ -217,7 +235,7 @@ export async function importReviewsForProduct(
   const now = deps.now ?? new Date();
   const usageStore = deps.usageStore ?? getTranslationUsageStore();
   const reviewStore = deps.reviewStore ?? getReviewStore();
-  const translate = deps.translate ?? ((texts: string[]) => translateBatch(texts));
+  const translate = deps.translate ?? ((texts: string[]) => translateBatchDetailed(texts));
   const budget = deps.budgetChars ?? monthlyBudget();
 
   const ranked = filterAndRankReviews(rawReviews ?? [], now);
@@ -238,17 +256,17 @@ export async function importReviewsForProduct(
   }
   const budgetExceeded = usage + needChars > budget;
 
-  let swedish: string[];
+  let translated: DeeplTranslation[];
   let charsUsed = 0;
   if (budgetExceeded) {
     console.warn(
       `[review-import] DeepL-budget skulle överskridas (${usage}+${needChars} > ${budget}). ` +
         `Importerar ${ranked.length} recensioner OTRANSLATERADE (originaltext).`,
     );
-    swedish = texts;
+    translated = texts.map((t) => ({ text: t }));
   } else {
     try {
-      swedish = await translate(texts);
+      translated = await translate(texts);
       charsUsed = needChars;
       try {
         await usageStore.addUsage(month, needChars);
@@ -260,7 +278,7 @@ export async function importReviewsForProduct(
         "[review-import] DeepL-översättning misslyckades, faller tillbaka på originaltext:",
         err instanceof Error ? err.message : err,
       );
-      swedish = texts;
+      translated = texts.map((t) => ({ text: t }));
     }
   }
 
@@ -279,18 +297,23 @@ export async function importReviewsForProduct(
     } catch (err) {
       console.warn("[review-import] exists-koll misslyckades, fortsätter:", err instanceof Error ? err.message : err);
     }
+    const t = translated[i];
     const stored: StoredReview = {
       productId,
       reviewIdAE,
       rating: Math.max(1, Math.min(5, Math.round(r.rating))),
       textOriginal: r.text,
-      textSwedish: swedish[i] ?? r.text,
-      customerName: anonymizeCustomer(r.customerCountry),
+      textSwedish: t?.text ?? r.text,
+      sourceLanguage: t?.detected_source_language ?? (r.language ? r.language.toUpperCase() : undefined),
+      customerNameRaw: r.customerName,
+      initials: deriveInitials(r.customerName, reviewIdAE),
       customerCountry: r.customerCountry,
       date: r.date,
       hasImage: Boolean(r.hasImage),
       imageUrl: r.imageUrl,
-      hidden: false,
+      // Importerade AE-recensioner auto-godkänns (spec 2026-06-02); framtida
+      // riktiga kundrecensioner får "pending" och kräver Leonards godkännande.
+      status: "approved",
       importedAt,
     };
     try {

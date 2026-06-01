@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  anonymizeCustomer,
   dedupKey,
+  deriveInitials,
   ensureReviewId,
   filterAndRankReviews,
   importReviewsForProduct,
   isSpam,
   scoreReview,
-  swedishCountry,
   type AERReview,
 } from "./review-import";
 import type { StoredReview } from "../store/reviews";
@@ -22,6 +21,7 @@ function review(o: Partial<AERReview>): AERReview {
     text: o.text ?? "Helt fantastisk produkt som höll vad den lovade och mer därtill.",
     hasImage: o.hasImage,
     imageUrl: o.imageUrl,
+    customerName: o.customerName,
     customerCountry: o.customerCountry,
     date: o.date,
     language: o.language,
@@ -90,19 +90,29 @@ describe("scoreReview", () => {
   });
 });
 
-describe("anonymisering", () => {
-  it("mappar landkod till svenskt namn", () => {
-    expect(swedishCountry("DE")).toBe("Tyskland");
-    expect(swedishCountry("Germany")).toBe("Tyskland");
-    expect(swedishCountry("XX")).toBe("");
+describe("deriveInitials", () => {
+  it("flera namn-tokens → första + sista initial", () => {
+    expect(deriveInitials("Maria Karlsson", "x")).toBe("M.K.");
+    expect(deriveInitials("anna k", "x")).toBe("A.K.");
   });
-  it("anonymiserar med eller utan land", () => {
-    expect(anonymizeCustomer("FR")).toBe("Verifierad kund från Frankrike");
-    expect(anonymizeCustomer(undefined)).toBe("Verifierad kund");
-    expect(anonymizeCustomer("XX")).toBe("Verifierad kund");
+  it("maskerat AE-namn (M***a) → första + sista bokstaven", () => {
+    expect(deriveInitials("M***a", "x")).toBe("M.A.");
   });
-  it("avslöjar aldrig ett AE-användarnamn", () => {
-    expect(anonymizeCustomer("u****6543")).toBe("Verifierad kund");
+  it("en bokstav (u****6543) → bokstav + deterministisk andra", () => {
+    const out = deriveInitials("u****6543", "rev1");
+    expect(out).toMatch(/^U\.[A-Z]\.$/);
+    expect(deriveInitials("u****6543", "rev1")).toBe(out); // deterministiskt
+  });
+  it("inget namn → två deterministiska bokstäver ur reviewIdAE", () => {
+    const out = deriveInitials(undefined, "rev-abc");
+    expect(out).toMatch(/^[A-Z]\.[A-Z]\.$/);
+    expect(deriveInitials("", "rev-abc")).toBe(out);
+    // Olika reviewIdAE → (oftast) olika initialer, men ALLTID stabilt per id.
+    expect(deriveInitials(undefined, "rev-abc")).toBe(out);
+  });
+  it("visar aldrig hela namnet eller siffror", () => {
+    expect(deriveInitials("Maria Karlsson", "x")).not.toContain("aria");
+    expect(deriveInitials("u****6543", "x")).not.toMatch(/\d/);
   });
 });
 
@@ -141,14 +151,14 @@ class FakeReviewStore {
 }
 
 describe("importReviewsForProduct", () => {
-  it("översätter via DeepL, anonymiserar och sparar; bokför teckenanvändning", async () => {
+  it("översätter via DeepL, sätter initialer/status och bokför teckenanvändning", async () => {
     const usage = new FakeUsage(0);
     const store = new FakeReviewStore();
     const calls: string[][] = [];
     const res = await importReviewsForProduct(
       "prod1",
       [
-        review({ reviewIdAE: "a", text: "Excellent product, fast shipping and great quality overall here." , customerCountry: "DE" }),
+        review({ reviewIdAE: "a", text: "Excellent product, fast shipping and great quality overall here.", customerName: "Maria Karlsson", customerCountry: "DE" }),
         review({ reviewIdAE: "b", text: "Very happy with this purchase, works perfectly and looks premium too." }),
       ],
       {
@@ -157,7 +167,7 @@ describe("importReviewsForProduct", () => {
         reviewStore: store as never,
         translate: async (texts) => {
           calls.push(texts);
-          return texts.map((t) => `[SV] ${t}`);
+          return texts.map((t) => ({ text: `[SV] ${t}`, detected_source_language: "EN" }));
         },
       },
     );
@@ -165,7 +175,13 @@ describe("importReviewsForProduct", () => {
     expect(res.charsUsed).toBeGreaterThan(0);
     expect(usage.chars).toBe(res.charsUsed);
     expect(store.saved[0].textSwedish.startsWith("[SV]")).toBe(true);
-    expect(store.saved[0].customerName).toBe("Verifierad kund från Tyskland");
+    // Visningsnamn = initialer; landet/namnet LAGRAS men visas aldrig.
+    expect(store.saved[0].initials).toBe("M.K.");
+    expect(store.saved[0].customerNameRaw).toBe("Maria Karlsson");
+    expect(store.saved[0].customerCountry).toBe("DE");
+    expect(store.saved[0].sourceLanguage).toBe("EN");
+    expect(store.saved[0].status).toBe("approved");
+    expect(store.saved[1].initials).toMatch(/^[A-Z]\.[A-Z]\.$/);
     expect(calls).toHaveLength(1); // en batch
   });
 
@@ -175,7 +191,7 @@ describe("importReviewsForProduct", () => {
     const res = await importReviewsForProduct(
       "prod1",
       [review({ reviewIdAE: "a", text: "Bra produkt med fin kvalitet och snabb leverans verkligen toppen." })],
-      { now: NOW, usageStore: new FakeUsage(), reviewStore: store as never, translate: async (t) => t },
+      { now: NOW, usageStore: new FakeUsage(), reviewStore: store as never, translate: async (t) => t.map((x) => ({ text: x })) },
     );
     expect(res.imported).toBe(0);
     expect(res.skippedExisting).toBe(1);
@@ -194,7 +210,7 @@ describe("importReviewsForProduct", () => {
         reviewStore: store as never,
         translate: async (t) => {
           translateCalled = true;
-          return t;
+          return t.map((x) => ({ text: x }));
         },
       },
     );
@@ -227,7 +243,7 @@ describe("importReviewsForProduct", () => {
       now: NOW,
       usageStore: new FakeUsage(),
       reviewStore: new FakeReviewStore() as never,
-      translate: async (t) => t,
+      translate: async (t) => t.map((x) => ({ text: x })),
     });
     expect(res.imported).toBe(0);
     expect(res.reviews).toHaveLength(0);

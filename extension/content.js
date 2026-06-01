@@ -707,6 +707,14 @@ function reviewDate(el) {
   return Number.isNaN(t) ? "" : new Date(t).toISOString();
 }
 
+// Rått AE-användarnamn (ofta maskerat, t.ex. "M***a" eller "u****6543"). Servern
+// LAGRAR det för bevis men VISAR bara initialer ("M.K.") — aldrig hela namnet.
+function reviewAuthor(el) {
+  const a = el.querySelector('[class*="user-name"], [class*="buyer-name"], [class*="--name"], [class*="comment--name"]');
+  const txt = a && a.textContent ? a.textContent.trim() : "";
+  return txt.slice(0, 60);
+}
+
 function reviewHasImage(el) {
   return Boolean(
     el.querySelector('[class*="comment--photo"] img, [class*="feedback--photo"] img, [class*="review-image"] img, [class*="thumbnail"] img'),
@@ -753,6 +761,7 @@ function scrapeReviews() {
         rating,
         text,
         hasImage: reviewHasImage(el),
+        customerName: reviewAuthor(el),
         customerCountry: reviewCountry(el),
         date: reviewDate(el),
       };

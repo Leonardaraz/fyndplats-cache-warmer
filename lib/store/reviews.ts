@@ -2,23 +2,31 @@
 // recensioner (översatta till svenska via DeepL). Visas som social proof på
 // produktsidorna (headless-PDP) och modereras i cache-warmerns /admin/reviews.
 //
-// Schema (dataItem.data):
-//   _id:           "{productId}__{reviewIdAE}" (komposit → unik per produkt)
-//   productId:     Wix product-id
-//   reviewIdAE:    AliExpress review-id (dedup-nyckel)
-//   rating:        1-5
-//   textOriginal:  rå recensionstext (engelska/kinesiska)
-//   textSwedish:   DeepL-översatt svensk text (= textOriginal om budget slut)
-//   customerName:  anonymiserat, t.ex. "Verifierad kund från Tyskland"
-//   customerCountry: ISO-2 eller råtext (kan saknas)
-//   date:          ISO-datum (kan saknas)
-//   hasImage:      boolean
-//   imageUrl:      string (om vi importerade recensionsbilden)
-//   hidden:        boolean — satt av moderering i /admin/reviews (döljs på PDP)
-//   importedAt:    ISO-datum
+// Integritets-/juridikdesign (2026-06-02):
+//   - VISAR bara initialer ("M.K.") — aldrig fullständigt namn, aldrig land,
+//     aldrig "Verifierad köpare" (den texten styrs av killswitch på PDP-sidan).
+//   - LAGRAR full data internt för bevis (om Konsumentverket frågar): original-
+//     text, översatt text, reviewIdAE, datum, ursprungsspråk, land och det råa
+//     AE-användarnamnet. Vi byter ALDRIG namn baserat på ursprung — vi visar bara
+//     inte hela förnamnet.
 //
-// Mönster speglar lib/store/import-costs.ts (Wix Data v2-REST, tolerera saknad
-// kollektion som tom).
+// Schema (dataItem.data):
+//   _id:            "{productId}__{reviewIdAE}" (komposit → unik per produkt)
+//   productId:      Wix product-id
+//   reviewIdAE:     AliExpress review-id (dedup-nyckel)
+//   rating:         1-5
+//   textOriginal:   rå recensionstext (engelska/kinesiska) — BEVIS
+//   textSwedish:    DeepL-översatt svensk text (= textOriginal om budget slut;
+//                   = Leonards redigerade text om status === "edited")
+//   sourceLanguage: detekterat ursprungsspråk från DeepL (t.ex. "EN", "ZH") — BEVIS
+//   customerNameRaw: rått AE-användarnamn (LAGRAS, visas ALDRIG) — BEVIS
+//   initials:       visningsnamn "M.K." (förnamn- + efternamnsinitial)
+//   customerCountry: ISO-2/landnamn (LAGRAS, visas ALDRIG)
+//   date:           ISO-datum (kan saknas)
+//   hasImage:       boolean
+//   imageUrl:       string (om vi importerade recensionsbilden)
+//   status:         "pending" | "approved" | "rejected" | "edited"
+//   importedAt:     ISO-datum
 
 const WIX_BASE = "https://www.wixapis.com";
 
@@ -34,18 +42,31 @@ function headers(): Record<string, string> {
 const COLLECTION_ID =
   process.env.WIX_DATA_COL_REVIEWS ?? "FyndplatsImportedReviews";
 
+export type ReviewStatus = "pending" | "approved" | "rejected" | "edited";
+
+/** Status som visas publikt på produktsidan. */
+export const VISIBLE_STATUSES: ReviewStatus[] = ["approved", "edited"];
+export function isVisibleStatus(s: ReviewStatus | undefined): boolean {
+  return s === "approved" || s === "edited";
+}
+
 export interface StoredReview {
   productId: string;
   reviewIdAE: string;
   rating: number;
   textOriginal: string;
   textSwedish: string;
-  customerName: string;
+  sourceLanguage?: string;
+  /** Rått AE-användarnamn — LAGRAS för bevis, visas ALDRIG. */
+  customerNameRaw?: string;
+  /** Visningsnamn, t.ex. "M.K.". */
+  initials: string;
+  /** LAGRAS för bevis, visas ALDRIG. */
   customerCountry?: string;
   date?: string;
   hasImage: boolean;
   imageUrl?: string;
-  hidden?: boolean;
+  status: ReviewStatus;
   importedAt?: string;
 }
 
@@ -83,7 +104,7 @@ export class ReviewStore {
           data: {
             _id: id,
             ...review,
-            hidden: review.hidden ?? false,
+            status: review.status ?? "approved",
             importedAt: review.importedAt ?? new Date().toISOString(),
           },
         },
@@ -103,17 +124,28 @@ export class ReviewStore {
     return this.query({}, limit);
   }
 
-  async setHidden(productId: string, reviewIdAE: string, hidden: boolean): Promise<void> {
+  private async get(productId: string, reviewIdAE: string): Promise<StoredReview | null> {
     const id = reviewDocId(productId, reviewIdAE);
     const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(COLLECTION_ID)}`;
-    const getRes = await fetch(url, { method: "GET", headers: headers() });
-    if (!getRes.ok) {
-      throw new Error(`ReviewStore.setHidden/get (${getRes.status})`);
-    }
-    const body = (await getRes.json()) as { dataItem?: { data?: StoredReview } };
-    const existing = body.dataItem?.data;
-    if (!existing) throw new Error(`ReviewStore.setHidden: ${id} saknas`);
-    await this.upsert({ ...existing, hidden });
+    const res = await fetch(url, { method: "GET", headers: headers() });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`ReviewStore.get (${res.status})`);
+    const body = (await res.json()) as { dataItem?: { data?: StoredReview } };
+    return body.dataItem?.data ?? null;
+  }
+
+  /** Moderering: sätt status (godkänn/avvisa). */
+  async setStatus(productId: string, reviewIdAE: string, status: ReviewStatus): Promise<void> {
+    const existing = await this.get(productId, reviewIdAE);
+    if (!existing) throw new Error(`ReviewStore.setStatus: ${reviewDocId(productId, reviewIdAE)} saknas`);
+    await this.upsert({ ...existing, status });
+  }
+
+  /** Moderering: redigera den svenska texten (t.ex. liten typo) → status "edited". */
+  async editText(productId: string, reviewIdAE: string, newSwedish: string): Promise<void> {
+    const existing = await this.get(productId, reviewIdAE);
+    if (!existing) throw new Error(`ReviewStore.editText: ${reviewDocId(productId, reviewIdAE)} saknas`);
+    await this.upsert({ ...existing, textSwedish: newSwedish, status: "edited" });
   }
 
   private async query(filter: Record<string, unknown>, limit: number): Promise<StoredReview[]> {

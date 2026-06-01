@@ -47,25 +47,25 @@ function endpointFor(apiKey: string): string {
  * (review-import) fångar och faller tillbaka på originaltexten så att en
  * översättningsmiss aldrig fäller produktimporten.
  */
-export async function translateBatch(
+export async function translateBatchDetailed(
   texts: string[],
   targetLang = "SV",
   apiKey = process.env.DEEPL_API_KEY,
   fetchImpl: typeof fetch = fetch,
-): Promise<string[]> {
+): Promise<DeeplTranslation[]> {
   if (!apiKey) {
     throw new Error("DEEPL_API_KEY saknas i miljön.");
   }
   if (texts.length === 0) return [];
 
   const endpoint = endpointFor(apiKey);
-  const out: string[] = new Array(texts.length);
+  const out: DeeplTranslation[] = new Array(texts.length);
 
   // Indexera de icke-tomma texterna så vi kan skippa tomma utan att tappa ordning.
   const nonEmpty: { idx: number; text: string }[] = [];
   texts.forEach((t, i) => {
     if (t && t.trim()) nonEmpty.push({ idx: i, text: t });
-    else out[i] = t ?? "";
+    else out[i] = { text: t ?? "" };
   });
 
   for (let start = 0; start < nonEmpty.length; start += MAX_TEXTS_PER_REQUEST) {
@@ -85,9 +85,23 @@ export async function translateBatch(
     const data = (await res.json()) as DeeplResponse;
     const translations = data.translations ?? [];
     chunk.forEach((c, i) => {
-      out[c.idx] = translations[i]?.text ?? c.text;
+      out[c.idx] = {
+        text: translations[i]?.text ?? c.text,
+        detected_source_language: translations[i]?.detected_source_language,
+      };
     });
   }
 
   return out;
+}
+
+/** Bekvämlighet: bara de översatta texterna (ordningsbevarande). */
+export async function translateBatch(
+  texts: string[],
+  targetLang = "SV",
+  apiKey = process.env.DEEPL_API_KEY,
+  fetchImpl: typeof fetch = fetch,
+): Promise<string[]> {
+  const detailed = await translateBatchDetailed(texts, targetLang, apiKey, fetchImpl);
+  return detailed.map((d) => d.text);
 }

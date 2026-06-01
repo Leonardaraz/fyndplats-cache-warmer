@@ -2,15 +2,26 @@
 
 import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit";
-import { getReviewStore } from "@/lib/store/reviews";
+import { getReviewStore, type ReviewStatus } from "@/lib/store/reviews";
 
-/** Visa/dölj en recension på produktsidan (moderering). */
-export async function setReviewHidden(
+/** Moderering: godkänn / avvisa en recension. */
+export async function setReviewStatus(
   productId: string,
   reviewIdAE: string,
-  hidden: boolean,
+  status: ReviewStatus,
 ): Promise<void> {
-  await getReviewStore().setHidden(productId, reviewIdAE, hidden);
-  await audit("review-moderate", productId, `${reviewIdAE} → ${hidden ? "dold" : "synlig"}`);
+  await getReviewStore().setStatus(productId, reviewIdAE, status);
+  await audit("review-moderate", productId, `${reviewIdAE} → ${status}`);
+  revalidatePath("/admin/reviews");
+}
+
+/** Moderering: redigera svensk text (liten typo) → status "edited". */
+export async function editReviewText(formData: FormData): Promise<void> {
+  const productId = String(formData.get("productId") || "");
+  const reviewIdAE = String(formData.get("reviewIdAE") || "");
+  const text = String(formData.get("text") || "").trim();
+  if (!productId || !reviewIdAE || !text) return;
+  await getReviewStore().editText(productId, reviewIdAE, text);
+  await audit("review-edit", productId, `${reviewIdAE} redigerad`);
   revalidatePath("/admin/reviews");
 }

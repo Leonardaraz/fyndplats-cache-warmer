@@ -22,6 +22,7 @@ const ReviewSchema = z.object({
   language: z.string().optional(),
   hasImage: z.boolean().optional(),
   imageUrl: z.string().optional(),
+  customerName: z.string().optional(),
   customerCountry: z.string().optional(),
   date: z.string().optional(),
 });

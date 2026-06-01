@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getReviewStore, type StoredReview } from "@/lib/store/reviews";
+import { getReviewStore, isVisibleStatus, type StoredReview } from "@/lib/store/reviews";
+import { reviewDisplayName } from "@/lib/import/review-display";
 
-// Publik läs-endpoint: visar SYNLIGA (ej dolda) recensioner för en produkt.
-// Headless-PDP:n hämtar den vid build/request för att rendera recensions-
-// sektionen + schema.org. Ingen auth — recensionerna är publik social proof.
-// Returnerar bara publika fält (originaltext utelämnas).
+// Publik läs-endpoint: visar GODKÄNDA recensioner för en produkt. Headless-PDP:n
+// läser normalt Wix Data direkt, men denna endpoint finns för felsökning/återbruk.
+// Ingen auth — recensionerna är publik social proof. Returnerar BARA publika fält
+// (visningsnamn enligt REVIEW_DISPLAY_MODE; original/land/rånamn utelämnas).
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,7 @@ interface PublicReview {
   reviewIdAE: string;
   rating: number;
   text: string;
-  customerName: string;
-  customerCountry?: string;
+  displayName: string;
   date?: string;
   hasImage: boolean;
   imageUrl?: string;
@@ -24,8 +24,7 @@ function toPublic(r: StoredReview): PublicReview {
     reviewIdAE: r.reviewIdAE,
     rating: r.rating,
     text: r.textSwedish || r.textOriginal,
-    customerName: r.customerName,
-    customerCountry: r.customerCountry,
+    displayName: reviewDisplayName(r.initials),
     date: r.date,
     hasImage: Boolean(r.hasImage),
     ...(r.hasImage && r.imageUrl ? { imageUrl: r.imageUrl } : {}),
@@ -45,12 +44,11 @@ export async function GET(
   try {
     reviews = await getReviewStore().listByProduct(productId);
   } catch (err) {
-    // Saknad kollektion / Wix-fel → tom lista (PDP visar då ingen recension).
     console.warn("[api/reviews] kunde inte läsa recensioner:", err instanceof Error ? err.message : err);
     return NextResponse.json({ productId, count: 0, average: null, reviews: [] }, { status: 200 });
   }
 
-  const visible = reviews.filter((r) => !r.hidden);
+  const visible = reviews.filter((r) => isVisibleStatus(r.status));
   const average =
     visible.length > 0
       ? Math.round((visible.reduce((s, r) => s + r.rating, 0) / visible.length) * 10) / 10
@@ -65,7 +63,6 @@ export async function GET(
     },
     {
       status: 200,
-      // Cacha en timme på CDN; recensioner ändras sällan.
       headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" },
     },
   );
