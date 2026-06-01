@@ -535,9 +535,24 @@ export async function setProductVisibility(
 }
 
 // --------------------------------------------------------------------------
-// Collections (kategorier i Wix Stores V3)
-// https://dev.wix.com/docs/rest/business-solutions/stores/catalog-v3/collections-v3
+// Kategorier (Wix Stores Catalog V3)
+//
+// VIKTIGT (bug 2026-06-01, fix): Den gamla koden anropade /stores/v3/collections/query
+// ("collections"). Butiken är Catalog V3 och har INGA collections — anropet gav 404
+// (och /stores/v1/.../query gav 428 "site is using CATALOG_V3"). De riktiga
+// kategorierna (Leksaker & Spel, Förvaring & Organisering, ...) ligger i den DELADE
+// Categories-tjänsten, inte under stores/*. Verifierad endpoint mot site
+// e6d27e90-...: POST /categories/v1/categories/query med treeReference appNamespace
+// "@wix/stores" → 200 med alla 45 kategorier. Add-to-category sker via
+// /categories/v1/bulk/categories/{id}/add-items med samma treeReference + Wix Stores
+// app-id som item-referens.
+// Docs: https://dev.wix.com/docs/rest/business-management/categories/
 // --------------------------------------------------------------------------
+
+/** Wix Stores app-id — krävs som item-referens när produkter läggs i en kategori. */
+const WIX_STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
+/** Categories-tjänsten är multi-app; för Stores-katalogen är trädet alltid detta. */
+const CATEGORIES_TREE_REFERENCE = { appNamespace: "@wix/stores" } as const;
 
 export interface WixCollection {
   id: string;
@@ -545,65 +560,103 @@ export interface WixCollection {
   /** Stabil slug — det vi mappar tillbaka mot vid auto-kategorisering. */
   slug: string;
   description?: string;
+  /** Förälderkategorins id (saknas för rotkategorier). */
+  parentId?: string;
 }
 
-interface WixCollectionRaw {
+interface WixCategoryRaw {
   id: string;
   name?: string;
   slug?: string;
   description?: string;
+  parentCategory?: { id?: string };
 }
 
-/** Hämtar alla Wix Stores V3-kollektioner. Paginerar tills cursor är slut. */
+/**
+ * Modulnivå-cache. Kategorier ändras sällan (Leonard skapar/redigerar dem
+ * manuellt i Wix-adminet) så en kort TTL räcker — en varm lambda slipper då
+ * göra om query:n för varje produkt i en bulk-import. Cachen delas inte mellan
+ * kall-starter, vilket är helt OK.
+ */
+let categoriesCache: { at: number; data: WixCollection[] } | null = null;
+const CATEGORIES_CACHE_TTL_MS = 10 * 60 * 1000;
+
+/**
+ * Hämtar alla Wix Stores-kategorier via den delade Categories-tjänsten.
+ * Paginerar tills cursor är slut och cachar resultatet (TTL ovan).
+ * Behåller namnet getCollections() så anroparna (lib/import/pipeline.ts) inte
+ * behöver röras — "kollektion" och "kategori" är samma sak för vår del.
+ */
 export async function getCollections(): Promise<WixCollection[]> {
+  if (categoriesCache && Date.now() - categoriesCache.at < CATEGORIES_CACHE_TTL_MS) {
+    return categoriesCache.data;
+  }
+
   const all: WixCollection[] = [];
   let cursor: string | undefined;
   for (let page = 0; page < 20; page++) {
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
-    const res = await fetch(`${WIX_BASE}/stores/v3/collections/query`, {
+    const res = await fetch(`${WIX_BASE}/categories/v1/categories/query`, {
       method: "POST",
       headers: wixHeaders(),
-      body: JSON.stringify({ query: { cursorPaging } }),
+      body: JSON.stringify({
+        treeReference: CATEGORIES_TREE_REFERENCE,
+        query: { cursorPaging },
+      }),
     });
     if (!res.ok) {
       // Saknad katalogapp eller saknade scopes — tolerera tyst (importen
       // ska inte falla bara för att kategoriförslaget inte går att göra).
       if (res.status === 404 || res.status === 403) return all;
       const text = await res.text();
-      throw new Error(`Wix get-collections misslyckades (${res.status}): ${text.slice(0, 400)}`);
+      throw new Error(`Wix get-categories misslyckades (${res.status}): ${text.slice(0, 400)}`);
     }
     const data = (await res.json()) as {
-      collections?: WixCollectionRaw[];
+      categories?: WixCategoryRaw[];
       pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
     };
-    for (const c of data.collections ?? []) {
+    for (const c of data.categories ?? []) {
       if (!c.slug || !c.name) continue;
-      all.push({ id: c.id, name: c.name, slug: c.slug, description: c.description });
+      all.push({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        ...(c.parentCategory?.id ? { parentId: c.parentCategory.id } : {}),
+      });
     }
     cursor = data.pagingMetadata?.cursors?.next;
     if (!data.pagingMetadata?.hasNext || !cursor) break;
   }
+
+  categoriesCache = { at: Date.now(), data: all };
   return all;
 }
 
 /**
- * Lägger till en produkt i en kollektion. Wix Stores V3 har en
- * dedikerad add-products-to-collection-endpoint.
+ * Lägger till en produkt i en kategori via Categories-tjänstens
+ * bulk-add-items-endpoint. Produkten refereras med Wix Stores app-id +
+ * produkt-id (catalogItemId). Auto-hanterade kategorier (t.ex. "All Products")
+ * returnerar 403 MANAGED_CATEGORY_OPERATION_NOT_ALLOWED — det är förväntat och
+ * får bubbla upp (pipelinen demoterar då förslaget till "suggested").
  */
 export async function addProductToCollection(productId: string, collectionId: string): Promise<void> {
   if (isDryRun()) return;
   const res = await fetch(
-    `${WIX_BASE}/stores/v3/collections/${encodeURIComponent(collectionId)}/products/add`,
+    `${WIX_BASE}/categories/v1/bulk/categories/${encodeURIComponent(collectionId)}/add-items`,
     {
       method: "POST",
       headers: wixHeaders(),
-      body: JSON.stringify({ productIds: [productId] }),
+      body: JSON.stringify({
+        treeReference: CATEGORIES_TREE_REFERENCE,
+        items: [{ appId: WIX_STORES_APP_ID, catalogItemId: productId }],
+      }),
     },
   );
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Wix add-to-collection misslyckades (${res.status}): ${text.slice(0, 400)}`);
+    throw new Error(`Wix add-to-category misslyckades (${res.status}): ${text.slice(0, 400)}`);
   }
 }
 
