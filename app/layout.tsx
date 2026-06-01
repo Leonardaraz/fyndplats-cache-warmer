@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { CartProvider } from "../components/cart";
 import { SiteHeader, SiteFooter } from "../components/site";
@@ -132,6 +134,14 @@ export default function RootLayout({
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="lazyOnload"
         />
+        {/*
+          Vercel Web Analytics (cookie-free, privacy-friendly) — no consent gate
+          needed, so it sits outside <CookieConsent />. Beacons to
+          /_vercel/insights/view. SpeedInsights reports real-user Core Web Vitals
+          (LCP/CLS/INP) to /_vercel/speed-insights/vitals.
+        */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
