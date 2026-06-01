@@ -648,6 +648,125 @@ function extractPackageContents() {
   return out.slice(0, 20);
 }
 
+// --- Recensioner (social proof) ------------------------------------------
+// Skrapar AliExpress-recensioner från produktsidan så att Fyndplats-produkten
+// får recensioner från dag 1. GRATIS — översättningen sker server-side via DeepL
+// (ingen Anthropic-användning). Skrapan är best-effort: AE renderar recensioner
+// klient-sida och lazy-laddar dem, så vi tar det som finns i DOM:en just nu.
+//
+// Filtrering/rankning sker server-side (lib/import/review-import.ts); här gör vi
+// en lätt förfiltrering + topp-15-kapning så payloaden hålls liten.
+
+const REVIEW_MIN_LEN = 50;
+const REVIEW_MAX_LEN = 300;
+const REVIEW_MAX = 15;
+
+// Försök läsa stjärnbetyg (1–5) ur ett recensions-element. AE använder oftast en
+// bredd-baserad stjärnbar (style="width: 80%") eller N ifyllda stjärn-spans.
+function reviewRating(el) {
+  // 1. Bredd-baserad stjärnbar.
+  const bar = el.querySelector('[class*="star"] [style*="width"], [style*="width"][class*="star"]');
+  if (bar && bar.style && bar.style.width) {
+    const pct = parseFloat(bar.style.width);
+    if (Number.isFinite(pct) && pct > 0) return Math.max(1, Math.min(5, Math.round(pct / 20)));
+  }
+  // 2. Antal ifyllda stjärnor.
+  const filled = el.querySelectorAll('[class*="star--filled"], [class*="star-active"], [class*="icon-star"]');
+  if (filled.length >= 1 && filled.length <= 5) return filled.length;
+  // 3. Numeriskt betyg i text ("5.0", "4,5").
+  const m = (el.textContent || "").match(/\b([1-5])([.,]\d)?\s*(?:\/\s*5|stars?|star|stjärn)/i);
+  if (m) return Math.round(parseFloat(m[1] + (m[2] ? m[2].replace(",", ".") : "")));
+  return 0;
+}
+
+function reviewText(el) {
+  const node =
+    el.querySelector('[class*="comment--content"], [class*="buyer-feedback"], [class*="feedback--content"], [class*="review-content"]') ||
+    el;
+  let txt = (node.textContent || "").replace(/\s+/g, " ").trim();
+  // Klipp bort uppenbara metarader (datum/land/variant) om vi tog hela elementet.
+  return txt;
+}
+
+function reviewCountry(el) {
+  const c =
+    el.querySelector('[class*="user-country"], [class*="country"], [class*="--country"]');
+  if (c && c.textContent) return c.textContent.trim();
+  // Flagg-bild med land i alt/title.
+  const flag = el.querySelector('img[class*="flag"], img[alt][class*="country"]');
+  if (flag) return (flag.getAttribute("alt") || flag.getAttribute("title") || "").trim();
+  return "";
+}
+
+function reviewDate(el) {
+  const d = el.querySelector('[class*="comment--date"], [class*="feedback--date"], [class*="review-date"], time');
+  const raw = d ? (d.getAttribute("datetime") || d.textContent || "") : "";
+  const s = raw.trim();
+  if (!s) return "";
+  const t = Date.parse(s);
+  return Number.isNaN(t) ? "" : new Date(t).toISOString();
+}
+
+function reviewHasImage(el) {
+  return Boolean(
+    el.querySelector('[class*="comment--photo"] img, [class*="feedback--photo"] img, [class*="review-image"] img, [class*="thumbnail"] img'),
+  );
+}
+
+// Hittar recensions-element via flera selektorer (AE byter klassnamn ofta).
+function findReviewElements() {
+  const SELECTORS = [
+    '[data-pl="product-reviews"] [class*="comment--item"]',
+    '[class*="comment--list"] [class*="comment--item"]',
+    '[class*="feedback-item"]',
+    '[class*="review-item"]',
+    '[class*="comment-item"]',
+  ];
+  for (const sel of SELECTORS) {
+    const els = document.querySelectorAll(sel);
+    if (els.length) return [...els];
+  }
+  return [];
+}
+
+function scrapeReviews() {
+  let els;
+  try {
+    els = findReviewElements();
+  } catch (_) {
+    return [];
+  }
+  const out = [];
+  const seen = new Set();
+  for (const el of els) {
+    let r;
+    try {
+      const text = reviewText(el);
+      if (!text || text.length < REVIEW_MIN_LEN || text.length > REVIEW_MAX_LEN) continue;
+      const rating = reviewRating(el) || 5; // okänt → anta positiv (filtreras ändå server-side)
+      if (rating < 3) continue;
+      const key = text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      r = {
+        reviewIdAE: el.getAttribute("data-id") || el.id || "",
+        rating,
+        text,
+        hasImage: reviewHasImage(el),
+        customerCountry: reviewCountry(el),
+        date: reviewDate(el),
+      };
+    } catch (_) {
+      continue;
+    }
+    out.push(r);
+    if (out.length >= REVIEW_MAX * 2) break; // ta lite extra; servern rankar/kapar
+  }
+  // Lätt rankning: foto + längd (servern gör den fullständiga rankningen).
+  out.sort((a, b) => (Number(b.hasImage) - Number(a.hasImage)) || (b.text.length - a.text.length));
+  return out.slice(0, REVIEW_MAX);
+}
+
 function extract() {
   const data = readEmbeddedData();
   const supplierProductId =
@@ -665,6 +784,8 @@ function extract() {
     specifications: {},
     features: [],
     packageContents: [],
+    // Skrapade recensioner (social proof). Översätts server-side via DeepL.
+    reviewsToImport: [],
     shipsFrom: [],
     // Lagerstatus — default i lager (sätts nedan via detectInStock + ev. SKU-saldo).
     inStock: true,
@@ -826,6 +947,8 @@ function extract() {
   }
   result.features = extractFeatures();
   result.packageContents = extractPackageContents();
+  // Recensioner (best-effort — kräver att AE renderat recensions-sektionen).
+  result.reviewsToImport = scrapeReviews();
 
   // --- Variant-fallback från DOM (när inbäddad SKU-data saknas) -----------
   // Nya PC-sidan saknar inbäddad SKU-JSON. Bygg varianter ur SKU-rutorna.

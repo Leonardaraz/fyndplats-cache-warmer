@@ -6,6 +6,7 @@ import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
+import { importReviewsForProduct } from "@/lib/import/review-import";
 import {
   hasFyndplatsImageUrl,
   hasUsablePrice,
@@ -23,6 +24,20 @@ const VariantSchema = z.object({
   // ISO-3166 alpha-2-warehouse-kod, t.ex. "ES". Tom sträng tillåts (okänd).
   shipFrom: z.string().max(8).optional(),
   included: z.boolean(),
+});
+
+// Skrapad AliExpress-recension (social proof). Filtreras/rankas/översätts
+// server-side i lib/import/review-import.ts — vi är toleranta i schemat så att
+// en udda recension inte fäller hela produktimporten (422).
+const ReviewSchema = z.object({
+  reviewIdAE: z.string().optional(),
+  rating: z.number().min(0).max(5),
+  text: z.string(),
+  language: z.string().optional(),
+  hasImage: z.boolean().optional(),
+  imageUrl: z.string().optional(),
+  customerCountry: z.string().optional(),
+  date: z.string().optional(),
 });
 
 const ProductSchema = z.object({
@@ -56,6 +71,10 @@ const ProductSchema = z.object({
       autoCategorize: z.boolean().optional(),
     })
     .optional(),
+  // Skrapade AliExpress-recensioner (social proof). Översätts (DeepL, GRATIS)
+  // och sparas i FyndplatsImportedReviews EFTER produktimporten. Best-effort —
+  // recensionsfel fäller aldrig själva produktimporten.
+  reviewsToImport: z.array(ReviewSchema).optional(),
 });
 
 export async function POST(req: Request) {
@@ -75,7 +94,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Valideringsfel", details: parsed.error.flatten() }, { status: 422 });
   }
 
-  const { optionColorCodes, featureFlags, ...product } = parsed.data;
+  const { optionColorCodes, featureFlags, reviewsToImport, ...product } = parsed.data;
 
   // Skydd: källan MÅSTE vara en AliExpress-produkt-URL. Hindrar att en
   // felskrapad sida (t.ex. fyndplats.se i en annan flik) importeras.
@@ -199,6 +218,34 @@ export async function POST(req: Request) {
       );
     }
 
+    // Recensions-import (social proof): filtrera/ranka/översätt (DeepL, GRATIS)
+    // och spara i FyndplatsImportedReviews. Best-effort — recensionsfel (DeepL
+    // nere, kollektion saknas, budget slut) får ALDRIG fälla produktimporten.
+    let reviewsResult: { imported: number; skippedExisting: number; charsUsed: number; budgetExceeded: boolean } | undefined;
+    if (reviewsToImport && reviewsToImport.length > 0) {
+      try {
+        const r = await importReviewsForProduct(result.wixProductId, reviewsToImport);
+        reviewsResult = {
+          imported: r.imported,
+          skippedExisting: r.skippedExisting,
+          charsUsed: r.charsUsed,
+          budgetExceeded: r.budgetExceeded,
+        };
+        if (r.imported > 0) {
+          await audit(
+            "reviews-import",
+            result.wixProductId,
+            `${r.imported} recensioner (DeepL ${r.charsUsed} tecken${r.budgetExceeded ? ", BUDGET SLUT → otranslaterade" : ""})`,
+          );
+        }
+      } catch (revErr) {
+        console.warn(
+          "[import] recensions-import failade (icke-fatalt):",
+          revErr instanceof Error ? revErr.message : revErr,
+        );
+      }
+    }
+
     await audit(
       draftStatus === "pending_review" ? "import-pending" : "import",
       result.wixProductId,
@@ -209,6 +256,7 @@ export async function POST(req: Request) {
         ok: true,
         result,
         draftStatus,
+        reviews: reviewsResult,
         // Bekvämligheter på toppnivå för smoke-tester och extension-UI (om
         // pipelinen producerade dem — annars undefined).
         image_analysis: resultAny.imageAnalysis,

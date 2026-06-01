@@ -135,6 +135,7 @@ export default async function AdminPage() {
         <li><a href="/admin/bulk-import"><b>Bulk-import (CSV)</b></a> — importera många AliExpress-produkter på en gång (alla landar i kön som visible:false)</li>
         <li><a href="/admin/sync-alerts"><b>Sync-alerts</b></a> — daglig AliExpress-sync flaggar prishöjningar och innehållsändringar att granska</li>
         <li><a href="/admin/restock-list"><b>Restock-bevakare</b></a> — kunder som väntar på "tillbaka i lager"-mejl per slutsåld produkt</li>
+        <li><a href="/admin/reviews"><b>Recensioner</b></a> — moderera (visa/dölj) importerade AliExpress-recensioner översatta till svenska</li>
         <li><a href="/admin/mappings"><b>AliExpress-mappning</b></a> — länka existerande Wix-produkter till AliExpress-källor (krävs för auto-pipelinen)</li>
         <li><a href="/admin/seo"><b>SEO-migration</b></a> — V1↔V3-matchning, 301-redirects, sitemap, SEO-audit inför headless-cutover</li>
         <li><a href="/admin/profitability"><b>Lönsamhet per produkt</b></a> — sortbar tabell över intäkt/inköp/marginal/sålda enheter (90 dagar default) + CSV-export</li>

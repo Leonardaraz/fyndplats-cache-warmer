@@ -67,6 +67,12 @@ async function importProduct(product, featureFlags) {
       : {}),
     // AI-funktionsväljare från popupen. Saknas = backend kör allt (default på).
     ...(featureFlags ? { featureFlags } : {}),
+    // Skrapade AliExpress-recensioner (social proof). Översätts server-side via
+    // DeepL (GRATIS) och sparas i FyndplatsImportedReviews. Skickas bara när
+    // skrapan faktiskt hittade recensioner (annars utelämnas fältet helt).
+    ...(Array.isArray(product.reviewsToImport) && product.reviewsToImport.length
+      ? { reviewsToImport: product.reviewsToImport }
+      : {}),
   };
 
   try {
