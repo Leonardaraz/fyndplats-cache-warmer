@@ -122,5 +122,27 @@ export async function runMigration(): Promise<{ ok: true }> {
   `;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS newsletter_status_idx ON newsletter_subscribers(status);`;
 
+  // Order-sammandrag för morgon-dashboarden (app/admin/dashboard). Den WIX_API_KEY
+  // vi har saknar "Read Orders"-behörighet (Wix svarar 403 READ_ORDER_FORBIDDEN),
+  // så vi kan inte fråga Wix Orders-API:t direkt. Istället speglar vi varje order
+  // hit när order_created-webhooken kommer in (lib/order-record.ts). Tabellen är
+  // en lättviktig analys-spegel — INTE källa för sanning (Wix äger ordern). Lagrar
+  // bara aggregat-fält + line items (namn/antal/pris) för topplistor; ingen PII
+  // utöver kund-e-post (för dedupe/abandoned-koppling).
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS orders (
+      id            TEXT PRIMARY KEY,
+      order_number  TEXT,
+      email         TEXT,
+      total_minor   INTEGER NOT NULL DEFAULT 0,
+      currency      TEXT NOT NULL DEFAULT 'SEK',
+      item_count    INTEGER NOT NULL DEFAULT 0,
+      items_json    JSONB NOT NULL DEFAULT '[]'::jsonb,
+      created_at    TIMESTAMPTZ NOT NULL,
+      recorded_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS orders_created_idx ON orders(created_at DESC);`;
+
   return { ok: true };
 }

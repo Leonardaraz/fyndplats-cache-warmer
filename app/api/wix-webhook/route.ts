@@ -32,6 +32,7 @@ import RefundConfirmationEmail, {
 } from "@/emails/refund-confirmation";
 import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
+import { recordOrder } from "@/lib/order-record";
 import { sql } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -492,6 +493,14 @@ export async function POST(req: NextRequest) {
       if (!props) {
         console.warn("[wix-webhook] order_created: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
+      }
+      // Spegla ordern till vår lokala `orders`-tabell för morgon-dashboarden.
+      // Best-effort: vår WIX_API_KEY saknar Read-Orders-behörighet så detta är
+      // dashboardens enda orderkälla. Ett fel får inte blockera bekräftelsemejlet.
+      try {
+        await recordOrder(entity as Record<string, unknown>);
+      } catch (err) {
+        console.error("[wix-webhook] recordOrder fel (ignorerar)", err);
       }
       const customer = extractCustomer(entity)!;
       const html = await render(OrderConfirmationEmail(props));
