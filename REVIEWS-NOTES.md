@@ -18,15 +18,35 @@ Wix Data: FyndplatsImportedReviews   +   FyndplatsTranslationUsage (budget)
                                           ▲
 headless  lib/reviews.ts  ────────────────┘  läser SYNLIGA (ej hidden) recensioner
 headless  app/produkt/[slug]/page.tsx  →  Kundrecensioner-sektion + AggregateRating/Review
-cache-warmer  /admin/reviews  →  moderera (visa/dölj) — hidden=true exkluderas på PDP
+cache-warmer  /admin/reviews  →  moderera (status) — bara approved/edited visas på PDP
 ```
 
 Filtrering (server, `lib/import/review-import.ts`): ≥3 stjärnor, 50–300 tecken,
 ingen spam (upprepningsmönster), deduplicerad. Rankning: foto > senaste 30 dgr >
 EU-land > längre text. Topp 10–15 per produkt.
 
-Anonymisering: AE-användarnamn visas **aldrig**. Vi sätter "Verifierad kund" eller
-"Verifierad kund från {land}".
+## Visning, moderering & integritet (uppdaterat 2026-06-02)
+
+- **Visningsformat:** BARA initialer, t.ex. "M.K." — aldrig hela namnet, aldrig
+  land, aldrig "Verifierad köpare"-toggle. Riktiga och importerade recensioner ser
+  identiska ut. Initialer härleds av `deriveInitials()`: ur AE-namnet om det har
+  bokstäver (maskerat "M***a" → "M.A."), annars deterministiskt ur `reviewIdAE`
+  (samma recension får alltid samma initialer).
+- **Killswitch:** `REVIEW_DISPLAY_MODE` på headless — `initials` (default) visar
+  "M.K."; `verified_buyer` byter ALLA till "Verifierad köpare" (panic-läge vid t.ex.
+  Konsumentverket-anmälan). En enda env-flagga per deploy, ingen DB-migration.
+- **Moderering:** status `pending | approved | rejected | edited`. Importerade AE-
+  recensioner **auto-godkänns** (`approved`); framtida riktiga kundrecensioner får
+  `pending` och kräver godkännande. `/admin/reviews` = tabell över ALLA med
+  Godkänn/Avvisa/Redigera + Wix Data-record som källa. Bara `approved`/`edited`
+  visas publikt.
+- **Disclaimer** (fine print på PDP): "Recensioner visas med initialer för att
+  skydda kundernas integritet. Importerade recensioner från verifierade köpare av
+  samma produkt är översatta från ursprungsspråk."
+- **Bevisdata lagras internt, visas aldrig:** `textOriginal`, `sourceLanguage`
+  (DeepL-detekterat), `customerNameRaw` (rått AE-namn), `customerCountry`. Vi byter
+  ALDRIG namn baserat på ursprung — vi visar bara inte hela förnamnet. Detta är hur
+  vi kan bevisa att recensionerna är från verkliga köpare om Konsumentverket frågar.
 
 ## DeepL-budget
 
@@ -44,8 +64,9 @@ budgeten spräcks aldrig. Topp-15 × ~150 tecken × 209 produkter ≈ långt und
    node scripts/ensure-reviews-collection.mjs
    ```
    Skapar `FyndplatsImportedReviews` + `FyndplatsTranslationUsage`.
-3. **Headless**: ingen ny env behövs — `lib/reviews.ts` läser kollektionen med
-   befintliga `WIX_API_KEY` + `WIX_SITE_ID`. (Valfritt override `WIX_DATA_COL_REVIEWS`.)
+3. **Headless**: ingen ny env krävs — `lib/reviews.ts` läser kollektionen med
+   befintliga `WIX_API_KEY` + `WIX_SITE_ID`. (Valfritt: `WIX_DATA_COL_REVIEWS`,
+   samt `REVIEW_DISPLAY_MODE=verified_buyer` för panic-läge.)
 4. **Ladda om tillägget** i Chrome (chrome://extensions → uppdatera) så den nya
    `scrapeReviews()` aktiveras.
 5. Deploya cache-warmer + headless.
