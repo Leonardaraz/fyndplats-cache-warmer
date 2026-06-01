@@ -36,11 +36,17 @@ const EU_WAREHOUSE_CODES = new Set([
 ]);
 
 const SHIP_FROM_NAME_MAP = {
+  // Engelska
   SPAIN: "ES", GERMANY: "DE", "CZECH REPUBLIC": "CZ", CZECHIA: "CZ",
   POLAND: "PL", FRANCE: "FR", ITALY: "IT", NETHERLANDS: "NL",
   BELGIUM: "BE", "UNITED KINGDOM": "GB", UK: "GB", CHINA: "CN",
   "UNITED STATES": "US", USA: "US", RUSSIA: "RU", TURKEY: "TR",
   MADRID: "ES", BERLIN: "DE", PARIS: "FR", AMSTERDAM: "NL",
+  // Svenska (Leonards butik körs i svensk AE-locale → "Levereras från Polen")
+  SPANIEN: "ES", TYSKLAND: "DE", TJECKIEN: "CZ", POLEN: "PL",
+  FRANKRIKE: "FR", ITALIEN: "IT", NEDERLÄNDERNA: "NL", HOLLAND: "NL",
+  BELGIEN: "BE", STORBRITANNIEN: "GB", KINA: "CN", RYSSLAND: "RU",
+  TURKIET: "TR", "FÖRENTA STATERNA": "US",
 };
 
 // Valutakurser: enheter per 1 USD. SEK = serverns default usdToSek (USD_TO_SEK i
