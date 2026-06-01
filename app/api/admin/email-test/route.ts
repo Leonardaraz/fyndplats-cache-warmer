@@ -202,7 +202,13 @@ async function handle(template: string, to: string) {
   }
   if (template === "all") {
     const results = [];
-    for (const key of Object.keys(TEMPLATES)) results.push(await sendOne(key, to));
+    const keys = Object.keys(TEMPLATES);
+    for (let i = 0; i < keys.length; i++) {
+      // Resend allows 5 requests/second — space the batch out so a full run
+      // doesn't trip the rate limit.
+      if (i > 0) await new Promise((r) => setTimeout(r, 300));
+      results.push(await sendOne(keys[i], to));
+    }
     return NextResponse.json({ ok: results.every((r) => r.ok), to, results });
   }
   const result = await sendOne(template, to);
