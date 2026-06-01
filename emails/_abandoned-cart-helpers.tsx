@@ -21,6 +21,8 @@ export interface BaseProps {
   recoverUrl: string;
   subtotalMinor: number;
   currency: string;
+  /** GDPR opt-out link (lib/newsletter.unsubscribeUrl). Rendered in the footer. */
+  unsubscribeUrl?: string;
 }
 
 const BRAND = '#F47A35';
@@ -84,6 +86,7 @@ export interface LayoutOpts {
   subtotalMinor: number;
   currency: string;
   closing?: string;
+  unsubscribeUrl?: string;
 }
 
 export function renderEmail(opts: LayoutOpts): { html: string; text: string } {
@@ -142,7 +145,7 @@ export function renderEmail(opts: LayoutOpts): { html: string; text: string } {
           </td></tr>
           ${opts.closing ? `<tr><td style="padding:0 24px 24px 24px;color:${MUTED};font-size:13px;line-height:1.5">${escapeHtml(opts.closing)}</td></tr>` : ''}
           <tr><td style="padding:16px 24px;background:#F9FAFB;color:${MUTED};font-size:12px;text-align:center">
-            Du får detta mejl för att du började en beställning hos Fyndplats. Vill du inte ha påminnelser? Svara på det här mejlet så ordnar vi det.
+            Du får detta mejl för att du började en beställning hos Fyndplats.${opts.unsubscribeUrl ? ` Vill du inte ha fler påminnelser? <a href="${escapeHtml(opts.unsubscribeUrl)}" style="color:${MUTED};text-decoration:underline">Avregistrera dig här</a>.` : ' Vill du inte ha påminnelser? Svara på det här mejlet så ordnar vi det.'}
           </td></tr>
         </table>
       </td></tr>
@@ -162,6 +165,7 @@ Summa: ${formatMoney(opts.subtotalMinor, opts.currency)}
 ${opts.ctaLabel}: ${opts.ctaUrl}
 
 ${opts.closing ?? ''}
+${opts.unsubscribeUrl ? `\nAvregistrera dig: ${opts.unsubscribeUrl}\n` : ''}
 — Fyndplats`;
 
   return { html, text };

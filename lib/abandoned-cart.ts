@@ -22,6 +22,7 @@ import { renderAbandonedCart1 } from '../emails/abandoned-cart-1';
 import { renderAbandonedCart2 } from '../emails/abandoned-cart-2';
 import { renderAbandonedCart3 } from '../emails/abandoned-cart-3';
 import { renderAbandonedCart3NoCode } from '../emails/abandoned-cart-3-no-code';
+import { unsubscribeUrl, isSuppressed } from './newsletter';
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const STEP_DELAYS_MS: Record<1 | 2 | 3, number> = {
@@ -66,6 +67,16 @@ export interface EnqueueResult {
 
 function resend(): Resend {
   return new Resend(process.env.RESEND_API_KEY);
+}
+
+// RFC 8058 one-click unsubscribe headers so Gmail/Apple Mail show a native
+// "Unsubscribe" button that hits the same opt-out URL as the footer link.
+function unsubHeaders(email: string): Record<string, string> {
+  const url = unsubscribeUrl(email);
+  return {
+    'List-Unsubscribe': `<${url}>, <mailto:info@fyndplats.com?subject=unsubscribe>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -213,7 +224,7 @@ export async function fetchDueCarts(limit = 25, nowOverride?: Date): Promise<Car
 export interface ProcessResult {
   cartId: string;
   step: number;
-  action: 'sent' | 'sent_no_code' | 'skipped_cooldown' | 'skipped_below_min' | 'completed' | 'error';
+  action: 'sent' | 'sent_no_code' | 'skipped_cooldown' | 'skipped_unsubscribed' | 'skipped_below_min' | 'completed' | 'error';
   resendId?: string;
   discountCode?: string;
   error?: string;
@@ -242,6 +253,14 @@ export async function processDueCart(
         UPDATE abandoned_carts SET status='skipped', updated_at=NOW() WHERE id=${cart.id}
       `;
       return { cartId: cart.id, step, action: 'skipped_cooldown' };
+    }
+
+    // GDPR opt-out: if the recipient has unsubscribed, stop the whole flow.
+    if (await isSuppressed(cart.email)) {
+      await sql/*sql*/`
+        UPDATE abandoned_carts SET status='unsubscribed', updated_at=NOW() WHERE id=${cart.id}
+      `;
+      return { cartId: cart.id, step, action: 'skipped_unsubscribed' };
     }
 
     if (step === 1) {
@@ -294,9 +313,10 @@ async function sendStep1(cart: CartRow): Promise<ProcessResult> {
   const subject = 'Du glömde något i kundvagnen';
   const { html, text } = renderAbandonedCart1({
     items: cart.items_json,
-    recoverUrl: cart.recover_url ?? 'https://fyndplats.se/cart',
+    recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
     subtotalMinor: cart.subtotal_minor,
     currency: cart.currency,
+    unsubscribeUrl: unsubscribeUrl(cart.email),
   });
   const send = await resend().emails.send({
     from: FROM,
@@ -305,6 +325,7 @@ async function sendStep1(cart: CartRow): Promise<ProcessResult> {
     subject,
     html,
     text,
+    headers: unsubHeaders(cart.email),
   });
   await sql/*sql*/`
     INSERT INTO sent_emails (cart_id, step, resend_id, email)
@@ -318,9 +339,10 @@ async function sendStep2(cart: CartRow): Promise<ProcessResult> {
   const subject = 'Vi sparade din kundvagn — fri frakt';
   const { html, text } = renderAbandonedCart2({
     items: cart.items_json,
-    recoverUrl: cart.recover_url ?? 'https://fyndplats.se/cart',
+    recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
     subtotalMinor: cart.subtotal_minor,
     currency: cart.currency,
+    unsubscribeUrl: unsubscribeUrl(cart.email),
   });
   const send = await resend().emails.send({
     from: FROM,
@@ -329,6 +351,7 @@ async function sendStep2(cart: CartRow): Promise<ProcessResult> {
     subject,
     html,
     text,
+    headers: unsubHeaders(cart.email),
   });
   await sql/*sql*/`
     INSERT INTO sent_emails (cart_id, step, resend_id, email)
@@ -365,9 +388,10 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
     const subject = 'Vi saknar dig — din kundvagn väntar';
     const { html, text } = renderAbandonedCart3NoCode({
       items: cart.items_json,
-      recoverUrl: cart.recover_url ?? 'https://fyndplats.se/cart',
+      recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
       subtotalMinor: cart.subtotal_minor,
       currency: cart.currency,
+      unsubscribeUrl: unsubscribeUrl(cart.email),
     });
     const send = await resend().emails.send({
       from: FROM,
@@ -376,6 +400,7 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
       subject,
       html,
       text,
+      headers: unsubHeaders(cart.email),
     });
     await sql/*sql*/`
       INSERT INTO sent_emails (cart_id, step, resend_id, email)
@@ -400,11 +425,12 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
   const subject = '5% extra för att slutföra';
   const { html, text } = renderAbandonedCart3({
     items: cart.items_json,
-    recoverUrl: cart.recover_url ?? 'https://fyndplats.se/cart',
+    recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
     subtotalMinor: cart.subtotal_minor,
     currency: cart.currency,
     discountCode: minted.code,
     expiresAt: minted.expiresAt,
+    unsubscribeUrl: unsubscribeUrl(cart.email),
   });
   const send = await resend().emails.send({
     from: FROM,
@@ -413,6 +439,7 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
     subject,
     html,
     text,
+    headers: unsubHeaders(cart.email),
   });
   await sql/*sql*/`
     INSERT INTO sent_emails (cart_id, step, resend_id, email, discount_code)

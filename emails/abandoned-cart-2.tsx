@@ -19,5 +19,6 @@ export function renderAbandonedCart2(props: BaseProps): { html: string; text: st
     items: props.items,
     subtotalMinor: props.subtotalMinor,
     currency: props.currency,
+    unsubscribeUrl: props.unsubscribeUrl,
   });
 }

@@ -80,15 +80,39 @@ export async function subscribe(emailRaw: string, source: string, consent: boole
 }
 
 // Avregistrering — verifierar token, sätter status='unsubscribed'.
+// Upsert (inte bara UPDATE): mottagare av t.ex. abandoned-cart-mejl finns oftast
+// INTE i newsletter_subscribers, men ska ändå kunna avregistrera sig. Vi skapar
+// då en rad med status='unsubscribed' så suppressionen gäller framåt.
 export async function unsubscribe(emailRaw: string, token: string): Promise<{ ok: boolean; error?: string }> {
   const email = emailRaw.toLowerCase().trim();
   if (!isValidEmail(email)) return { ok: false, error: "invalid_email" };
   if (token !== unsubscribeToken(email)) return { ok: false, error: "invalid_token" };
   await ensureTable();
   await sql/*sql*/`
-    UPDATE newsletter_subscribers
-       SET status = 'unsubscribed', updated_at = NOW()
-     WHERE email = ${email}
+    INSERT INTO newsletter_subscribers (email, source, status, consent)
+    VALUES (${email}, 'unsubscribe-link', 'unsubscribed', FALSE)
+    ON CONFLICT (email) DO UPDATE
+      SET status = 'unsubscribed', updated_at = NOW()
   `;
   return { ok: true };
+}
+
+// Har den här adressen avregistrerat sig? Används av abandoned-cart-flödet för att
+// respektera opt-out innan varje mejl skickas (GDPR).
+export async function isSuppressed(emailRaw: string): Promise<boolean> {
+  const email = emailRaw.toLowerCase().trim();
+  if (!isValidEmail(email)) return false;
+  try {
+    await ensureTable();
+    const r = await sql/*sql*/`
+      SELECT 1 FROM newsletter_subscribers
+       WHERE email = ${email} AND status = 'unsubscribed' LIMIT 1
+    `;
+    return (r.rowCount ?? 0) > 0;
+  } catch {
+    // If the lookup fails we fail OPEN (allow send) — a transactional cart reminder
+    // under legitimate interest is the conservative default, and the recipient still
+    // gets a working unsubscribe link in that email.
+    return false;
+  }
 }

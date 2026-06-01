@@ -16,5 +16,6 @@ export function renderAbandonedCart1(props: BaseProps): { html: string; text: st
     subtotalMinor: props.subtotalMinor,
     currency: props.currency,
     closing: 'Ingen brådska — vi sparar kundvagnen åt dig.',
+    unsubscribeUrl: props.unsubscribeUrl,
   });
 }

@@ -19,5 +19,6 @@ export function renderAbandonedCart3NoCode(props: BaseProps): { html: string; te
     subtotalMinor: props.subtotalMinor,
     currency: props.currency,
     closing: 'Frågor? Svara på det här mejlet så hör vi av oss.',
+    unsubscribeUrl: props.unsubscribeUrl,
   });
 }

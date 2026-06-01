@@ -39,5 +39,6 @@ export function renderAbandonedCart3(props: Cart3Props): { html: string; text: s
     subtotalMinor: props.subtotalMinor,
     currency: props.currency,
     closing: 'Koden är personlig och kopplad till din kundvagn.',
+    unsubscribeUrl: props.unsubscribeUrl,
   });
 }
