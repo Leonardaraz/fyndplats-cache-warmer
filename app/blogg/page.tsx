@@ -7,7 +7,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const meta = pageMeta(
     "Blogg",
     "Tips, guider och nyheter från Fyndplats – inspiration för dina nästa fynd.",
-    "/blogg"
+    "/blogg",
+    "bde2fbb141b9fd62"
   );
   // Undvik thin-content-flaggning: noindex så länge inga inlägg finns.
   // Auto-läker — sidan indexeras igen så snart första inlägget publiceras.

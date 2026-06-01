@@ -9,7 +9,8 @@ import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../../lib/image-score
 export const metadata = pageMeta(
   "Butik – utforska hela vårt sortiment",
   "Bläddra Fyndplats butiksavdelningar – hem & inredning, elektronik, hudvård, mode och mer. Noga utvalda fynd, fri frakt över 499 kr.",
-  "/butik"
+  "/butik",
+  "c3bea817cdcb3351"
 );
 
 export default async function Butik({ searchParams }: { searchParams: Promise<{ kategori?: string }> }) {

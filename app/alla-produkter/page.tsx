@@ -6,7 +6,8 @@ import { pageMeta } from "../../lib/seo";
 export const metadata = pageMeta(
   "Alla produkter – hela sortimentet",
   "Bläddra hela Fyndplats-sortimentet. Filtrera på pris, rea och kategori. Fri frakt över 499 kr, trygga betalningar med Klarna.",
-  "/alla-produkter"
+  "/alla-produkter",
+  "512c0f177326223c"
 );
 
 export default async function AllaProdukter({ searchParams }: { searchParams: Promise<{ kategori?: string }> }) {
