@@ -1,6 +1,7 @@
 import { computePriceWithRules } from "./pricing";
 import { deriveFocusKeyword } from "./focus-keyword";
 import { resolveImportStockQty } from "./variant-stock";
+import { trimVariants, variantTrimEnabled, variantTrimMax } from "./variant-trim";
 import { generateProductContent, type ProductContent } from "./generate";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
@@ -152,6 +153,25 @@ export async function importProduct(
   const included = variants.filter((v) => v.included);
   if (included.length === 0) {
     throw new Error("Inga varianter valda för import.");
+  }
+
+  // Variant pre-trim (Feature 3, 2026-06-02): produkter med fler än maxCount (8)
+  // valda varianter trimmas till topp-N (sälj-/lager-rankade, minst 1 per färg)
+  // för en renare PDP. De bortvalda RADERAS inte — de demoteras till
+  // included:false så att Wix får hela variantuppsättningen men bara visar topp-N
+  // (samma mönster som manuellt avbockade). Deterministiskt, inga AI-anrop.
+  // Stäng av med IMPORT_VARIANT_TRIM=false. Loggas i audit efter create.
+  let variantTrimSummary: string | null = null;
+  if (variantTrimEnabled() && included.length > variantTrimMax()) {
+    const { kept, removed, summary } = trimVariants(included, variantTrimMax());
+    if (removed.length > 0) {
+      const keptIds = new Set(kept.map((k) => k.supplierVariantId));
+      for (const v of variants) {
+        if (v.included && !keptIds.has(v.supplierVariantId)) v.included = false;
+      }
+      variantTrimSummary = summary;
+      console.log(`[import:variant-trim] pid=${product.supplierProductId} ${summary}`);
+    }
   }
 
   // Feature-flaggor (saknas = på). translate+seo delar text-genereringen:
@@ -426,6 +446,12 @@ export async function importProduct(
     created.id,
     `${product.inStock === false ? "OOS" : "IN_STOCK"} qty=${stockQty} på ${includedCount} variant(er) (in-line via products-with-inventory)`,
   );
+
+  // Variant pre-trim-utfall (Feature 3) → audit (FyndplatsAudit) så vi i efterhand
+  // kan analysera om vi trimmade bort något viktigt. Best-effort, fäller aldrig importen.
+  if (variantTrimSummary) {
+    await audit("variant-trim", created.id, variantTrimSummary);
+  }
 
   // Auto-assign kategorin (beräknad före prissättningen ovan). Tilldelningen sker
   // här eftersom den kräver det persisterade productId:t. Ett retry-försök vid fel.
