@@ -83,6 +83,130 @@ async function importProduct(product, featureFlags) {
   }
 }
 
+// ======================================================================
+//  Bulk-import: skrapa flera AliExpress-produkter via dolda flikar och
+//  posta var och en till /api/import (samma path som en enskild import).
+//
+//  MV3-noter: vi kör produkterna SEKVENTIELLT (en dold flik i taget) för att
+//  vara snälla mot AliExpress och slippa rate-limit/captcha. Status skickas
+//  löpande till ursprungsfliken via BULK_PROGRESS och slutresultatet via
+//  BULK_DONE — vi förlitar oss inte på sendResponse, som inte garanterat
+//  överlever ett flerminuters jobb om service-workern pausas.
+// ======================================================================
+
+function delay(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function sendToTab(tabId, payload) {
+  try {
+    chrome.tabs.sendMessage(tabId, payload, () => void chrome.runtime.lastError);
+  } catch (_) {}
+}
+
+// Väntar tills en flik når status "complete" (eller timeout).
+function waitForTabComplete(tabId, timeoutMs = 30000) {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (ok) => {
+      if (done) return;
+      done = true;
+      chrome.tabs.onUpdated.removeListener(listener);
+      clearTimeout(timer);
+      resolve(ok);
+    };
+    const listener = (id, info) => {
+      if (id === tabId && info.status === "complete") finish(true);
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+    // Om fliken redan är klar.
+    chrome.tabs.get(tabId, (t) => {
+      if (chrome.runtime.lastError) return;
+      if (t && t.status === "complete") finish(true);
+    });
+    const timer = setTimeout(() => finish(false), timeoutMs);
+  });
+}
+
+// Be content.js (på /item/-sidan) om produktdata. Försöker flera gånger eftersom
+// AliExpress PC-sida renderas klient-sida och JSON-LD/DOM kan dröja.
+function requestExtract(tabId) {
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, { type: "EXTRACT_PRODUCT" }, (res) => {
+      if (chrome.runtime.lastError) return resolve(null);
+      resolve(res);
+    });
+  });
+}
+
+async function scrapeAndImport(item, featureFlags) {
+  let tab;
+  try {
+    tab = await chrome.tabs.create({ url: item.url, active: false });
+  } catch (err) {
+    return { id: item.id, ok: false, error: "Kunde inte öppna flik: " + String(err) };
+  }
+  const tabId = tab.id;
+  try {
+    await waitForTabComplete(tabId, 35000);
+    // Ge React-sidan tid att rendera JSON-LD + DOM, sedan skrapa med upprepning.
+    let product = null;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await delay(attempt === 0 ? 2500 : 2000);
+      const res = await requestExtract(tabId);
+      if (res && res.ok && res.product) {
+        product = res.product;
+        if (product.extractionOk) break; // bra data — sluta försöka
+      }
+    }
+    if (!product) {
+      return { id: item.id, ok: false, error: "Sidan svarade inte (content-scriptet kunde inte läsas)." };
+    }
+    if (!product.extractionOk) {
+      const q = product.quality || {};
+      const miss = [];
+      if (!q.hasTitle) miss.push("titel");
+      if (!q.hasImages) miss.push("bild");
+      if (!q.hasPrice) miss.push("pris");
+      return { id: item.id, ok: false, error: `Otillräcklig produktdata (saknar: ${miss.join(", ") || "data"}).` };
+    }
+    const imp = await importProduct(product, featureFlags);
+    if (!imp.ok) return { id: item.id, ok: false, error: imp.error };
+    return {
+      id: item.id,
+      ok: true,
+      wixProductId: imp.result && imp.result.wixProductId,
+      stockQuantity: imp.result && imp.result.stockQuantity,
+    };
+  } catch (err) {
+    return { id: item.id, ok: false, error: String(err) };
+  } finally {
+    try {
+      await chrome.tabs.remove(tabId);
+    } catch (_) {}
+  }
+}
+
+async function runBulkImport(items, featureFlags, originTabId) {
+  const results = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index: i, state: "working" });
+    const r = await scrapeAndImport(item, featureFlags);
+    results.push(r);
+    sendToTab(originTabId, {
+      type: "BULK_PROGRESS",
+      id: item.id,
+      index: i,
+      state: r.ok ? "done" : "fail",
+      wixProductId: r.wixProductId,
+      error: r.error,
+    });
+  }
+  sendToTab(originTabId, { type: "BULK_DONE", results });
+  return results;
+}
+
 // Generisk autentiserad request mot API:t (för order-läget).
 async function apiCall(path, options) {
   const { apiBase, apiToken } = await getConfig();
@@ -152,6 +276,23 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     case "IMPORT_PRODUCT":
       importProduct(msg.product, msg.featureFlags).then(sendResponse);
       return true;
+    case "BULK_IMPORT": {
+      // Acka direkt att kön startar; kör sedan i bakgrunden och rapportera via
+      // flik-meddelanden (BULK_PROGRESS/BULK_DONE) till ursprungsfliken.
+      const originTabId = _sender && _sender.tab && _sender.tab.id;
+      const items = Array.isArray(msg.items) ? msg.items.filter((i) => i && /\/item\/\d+\.html/.test(i.url || "")) : [];
+      if (!originTabId) {
+        sendResponse({ ok: false, error: "Saknar ursprungsflik." });
+        return true;
+      }
+      if (!items.length) {
+        sendResponse({ ok: false, error: "Inga giltiga AliExpress-produkter att importera." });
+        return true;
+      }
+      sendResponse({ ok: true, started: items.length });
+      runBulkImport(items, msg.featureFlags, originTabId);
+      return true;
+    }
     case "SAMPLE_COLORS":
       sampleSwatchColors(msg.swatchImages).then(sendResponse);
       return true;

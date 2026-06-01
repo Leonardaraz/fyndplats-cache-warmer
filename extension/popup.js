@@ -116,6 +116,25 @@ function setStatus(text, cls) {
   $status.className = cls || "";
 }
 
+// --- EU-lager-läge -------------------------------------------------------
+// Global toggle (chrome.storage.sync.euOnly). När den ändras broadcastar vi
+// EU_MODE_CHANGED till alla öppna AliExpress-flikar så filtret slår till/av
+// direkt utan att Leonard behöver ladda om dem.
+async function loadEuToggle() {
+  const $eu = document.getElementById("euOnly");
+  if (!$eu) return;
+  const { euOnly } = await chrome.storage.sync.get("euOnly");
+  $eu.checked = euOnly === true;
+  $eu.addEventListener("change", async () => {
+    const on = $eu.checked;
+    await chrome.storage.sync.set({ euOnly: on });
+    const tabs = await chrome.tabs.query({ url: ["https://*.aliexpress.com/*", "https://*.aliexpress.us/*"] });
+    for (const t of tabs) {
+      chrome.tabs.sendMessage(t.id, { type: "EU_MODE_CHANGED", euOnly: on }, () => void chrome.runtime.lastError);
+    }
+  });
+}
+
 async function activeTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   return tab;
@@ -258,4 +277,5 @@ document.getElementById("orders").addEventListener("click", () => {
 });
 
 loadFeatureFlags();
+loadEuToggle();
 load();

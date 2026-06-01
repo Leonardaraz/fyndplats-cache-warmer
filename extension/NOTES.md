@@ -8,10 +8,11 @@ om. Efter en `git pull`/kodändring:
 1. Öppna `chrome://extensions` i Chrome.
 2. Slå på **Developer mode** (växeln uppe till höger) om den inte redan är på.
 3. Hitta **"Fyndplats AliExpress Import"** och klicka på **↻ (reload-ikonen)**.
-   - Kontrollera att versionen visar **0.1.1** (bumpas vid varje content.js-fix
-     så man ser att omladdningen tog).
-4. **Ladda om AliExpress-produktsidan** (F5) — content-scriptet injiceras vid
-   sidladdning, så en redan öppen flik kör fortfarande den gamla koden.
+   - Kontrollera att versionen visar **0.1.7** (bumpas vid varje content/discover-
+     fix så man ser att omladdningen tog).
+4. **Ladda om AliExpress-sidan** (F5) — content-scripten injiceras vid
+   sidladdning, så en redan öppen flik kör fortfarande den gamla koden. Detta
+   gäller BÅDE produktsidor (`content.js`) och sök-/kategorisidor (`discover.js`).
 5. Klicka på tilläggsikonen → popupen ska visa varianter och en aktiv
    **"Importera valda varianter"**-knapp.
 
@@ -80,7 +81,78 @@ SKU-rutorna i DOM:
 | Poster (Color + Ships From) | 1005006830101552 | pris $1.34, 6 bilder, Color + Ships From-filtrering |
 | Enkel produkt (inga varianter) | 1005003351373581 | pris $2.27, 6 bilder, 1 default-variant |
 
+## EU-lager-läge + bulk-import på sök-/kategorisidor (v0.1.7, `discover.js`)
+
+Nytt content-script `discover.js` (+ `discover.css`) körs på AliExpress sök-/
+kategori-/butikssidor (`/w/`, `/wholesale*`, `/category/`, `/p/`, `/store/` på
+`*.aliexpress.com` och `.us`). Produktsidor (`/item/`) hanteras fortsatt enbart av
+`content.js` (uteslutna via `exclude_matches`).
+
+### EU-filter — hur det funkar (verifierat live 2026-06-02)
+AliExpress filtrerar ship-from **server-sida** via URL-param **`shpf_co=<ISO2>`**
+(t.ex. `?shpf_co=ES`). Verifierat: `summer dress` 60→9 träffar, alla "Ship from
+EU", sidofältets Spanien-radio blir vald. **Begränsning:** param tar bara ETT land
+(komma-separerat `ES,PL,IT` ignoreras → inget filter). Det finns alltså inget sätt
+att visa alla EU-länder samtidigt via AE:s officiella filter.
+
+Korten på sök-sidan bär INGEN ship-from-data (varken i DOM eller i embedded-JSON
+`_dida_config_._init_data_…itemList.content` — bara ett opakt `curPageLogisticsUid`).
+DOM-filtrering kort-för-kort är därför omöjlig; server-sidans `shpf_co` är enda
+tillförlitliga vägen. Slutsats: vi LÅSER oss till `shpf_co` och visar EU-länderna
+som ett-klicks-chips.
+
+Flöde när EU-läge är PÅ:
+1. Läs tillgängliga ship-from-länder ur sidofältets **"Shipping from"**-lista
+   (hittas via rubriktexten, EN+SV; landsnamn → ISO via `NAME_TO_ISO`). Korsa med
+   EU-listan. (Sidofältet finns bara för sökningar som HAR EU-lager — t.ex. kläder;
+   "led lampor" saknar det helt → då finns inga EU-produkter att visa.)
+2. Om inget `shpf_co` satt → auto-redirect (`location.replace`) till bästa
+   tillgängliga EU-land (`EU_PRIORITY`). Guard i `sessionStorage` (`fp_eu_applied`)
+   hindrar redirect-loop och respekterar AE:s "Clear all".
+3. Banner högst upp: flagg-chips per EU-land (aktivt = orange), "Sortera: Mest
+   sålda" (`sortType=total_tranpro_desc`), och "Stäng av på denna flik".
+
+Två av/på-nivåer (per krav):
+- **Globalt**: `chrome.storage.sync.euOnly` (togglas i popupen; broadcastar
+  `EU_MODE_CHANGED` till alla öppna AE-flikar).
+- **Per flik**: "Stäng av på denna flik" → `sessionStorage.fp_eu_tab_off` (släpper
+  filtret bara på den fliken, globala läget kvar).
+
+### Bulk-select + bulk-import
+- Kryssruta (uppe vänster) + "Importera"-snabbknapp injiceras på varje kort
+  (`a[href*="/item/"]` → närmaste `.card-out-wrapper`). MutationObserver +
+  rAF-debounce dekorerar nya kort vid scroll/paginering. Markerat kort: orange ram
+  + "FYNDPLATS"-stämpel. Markeringen lever kvar (Map på productId) vid om-rendering.
+- Sticky bottom-bar: antal valda + miniatyrer + "Importera alla valda (N)" + "Rensa".
+- **Import**: `discover.js` → background `BULK_IMPORT`. Background kör SEKVENTIELLT:
+  öppnar varje produkt i en **dold flik** (`active:false`), väntar på `complete`,
+  ber `content.js` om `EXTRACT_PRODUCT` (upp till 6 försök × ~2 s, eftersom AE
+  renderar klient-sida), postar till `/api/import` (samma path som enskild import),
+  stänger fliken. Status streamas till ursprungsfliken via `BULK_PROGRESS` och
+  slutresultat via `BULK_DONE` (INTE via sendResponse — MV3-workern kan pausas under
+  ett flerminuters jobb). Modal visar progress-bar + per-produkt-status +
+  "Försök igen" på fel. Toast + länk till `/admin/queue` när klart.
+
+### Manuell verifiering (kräver omladdat tillägg + apiBase/token i inställningar)
+1. Popup → slå på "🇪🇺 EU-lager-läge".
+2. Sök t.ex. "summer dress" → sidan filtreras till ett EU-land, banner med chips.
+3. Bocka 3 kort → bottom-bar → "Importera alla valda" → modal räknar upp → de tre
+   ska dyka upp i `/admin/queue`.
+4. "Stäng av på denna flik" → filtret släpps bara där. Popup-toggle av → filtret
+   släpps överallt.
+
+## CHANGELOG
+- **0.1.7** — EU-lager-läge (server-side `shpf_co`-filter + landschips) och bulk-
+  select/bulk-import på sök-/kategorisidor (`discover.js`/`discover.css`,
+  background `BULK_IMPORT`, popup-toggle). Ny `tabs`-permission.
+- 0.1.6 — ship-from svenska landsnamn → ISO; per-variant-lager; m.m. (se git-logg).
+
 ## Känt (utanför denna fix)
+- AE:s ship-from-filter tar bara **ett** land i taget — "EU-läge" visar därför ett
+  EU-land åt gången (växla via chips), inte alla samtidigt. Det är en AE-begränsning,
+  inte en bugg.
+- Sök-/kategorisidor som saknar EU-lager (t.ex. många rena Kina-kategorier) visar
+  bannern "Inga EU-lager hittades för denna sökning".
 - Popupens variant-rad visar `costUsd` med dollartecken (`$…`) — det är
   inköpskostnaden i USD, inte slutpriset. Slutpris (SEK inkl. moms) räknas på
   servern.

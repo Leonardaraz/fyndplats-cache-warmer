@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Fyndplats Import",
-  "version": "0.1.6",
-  "description": "Importerar AliExpress-produkter till Fyndplats (Wix) med svensk SEO och påslag.",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "version": "0.1.7",
+  "description": "Importerar AliExpress-produkter till Fyndplats (Wix) med svensk SEO och påslag. EU-lager-filter + bulk-import på sök-/kategorisidor.",
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
   "optional_host_permissions": ["https://*/*"],
   "host_permissions": [
     "https://*.aliexpress.com/*",
@@ -22,6 +22,23 @@
     {
       "matches": ["https://*.aliexpress.com/item/*", "https://*.aliexpress.us/item/*"],
       "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*.aliexpress.com/w/*",
+        "https://*.aliexpress.com/wholesale*",
+        "https://*.aliexpress.com/category/*",
+        "https://*.aliexpress.com/p/*",
+        "https://*.aliexpress.com/store/*",
+        "https://*.aliexpress.us/w/*",
+        "https://*.aliexpress.us/wholesale*",
+        "https://*.aliexpress.us/category/*",
+        "https://*.aliexpress.us/store/*"
+      ],
+      "exclude_matches": ["https://*.aliexpress.com/item/*", "https://*.aliexpress.us/item/*"],
+      "js": ["discover.js"],
+      "css": ["discover.css"],
       "run_at": "document_idle"
     }
   ]

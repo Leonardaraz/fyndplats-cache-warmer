@@ -35,6 +35,26 @@
       .warn { color: #b25000; }
       .ok { color: #1a7f37; }
       .err { color: #b00020; }
+      .eu-toggle {
+        display: flex; align-items: center; gap: 10px;
+        background: linear-gradient(90deg, #fff3e9, #ffe9d6);
+        border: 1px solid #ffd2ad; border-radius: 10px;
+        padding: 10px; margin-bottom: 10px;
+      }
+      .eu-text { flex: 1; }
+      .eu-title { font-size: 13px; font-weight: 700; color: #6b3b00; }
+      .switch { position: relative; display: inline-block; width: 42px; height: 24px; flex: 0 0 auto; }
+      .switch input { opacity: 0; width: 0; height: 0; }
+      .slider {
+        position: absolute; cursor: pointer; inset: 0; background: #ccc;
+        border-radius: 24px; transition: 0.2s;
+      }
+      .slider::before {
+        content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px;
+        background: #fff; border-radius: 50%; transition: 0.2s;
+      }
+      .switch input:checked + .slider { background: #ff6a00; }
+      .switch input:checked + .slider::before { transform: translateX(18px); }
       details.settings { margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px; }
       details.settings summary { font-size: 12px; font-weight: 600; cursor: pointer; color: #444; }
       .feature { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 0; }
@@ -44,6 +64,18 @@
   </head>
   <body>
     <h1>Fyndplats Import</h1>
+
+    <div class="eu-toggle">
+      <label class="switch">
+        <input type="checkbox" id="euOnly" />
+        <span class="slider"></span>
+      </label>
+      <div class="eu-text">
+        <div class="eu-title">🇪🇺 EU-lager-läge</div>
+        <div class="hint">Visar & bulk-importerar bara produkter från EU-lager på AliExpress sök-/kategorisidor. Sätt på, sök sedan som vanligt.</div>
+      </div>
+    </div>
+
     <div id="title" class="title">Läser produkt…</div>
     <div id="variants"></div>
     <button id="import" disabled>Importera valda varianter</button>
