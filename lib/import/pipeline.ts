@@ -3,6 +3,16 @@ import { deriveFocusKeyword } from "./focus-keyword";
 import { resolveImportStockQty } from "./variant-stock";
 import { trimVariants, variantTrimEnabled, variantTrimMax } from "./variant-trim";
 import { generateProductContent, type ProductContent } from "./generate";
+import {
+  resolveQualityMode,
+  aiEnabledForMode,
+  isPremiumMode,
+  estimatedCostOre,
+  type QualityMode,
+} from "./quality-mode";
+import { generatePremiumContent } from "./premium-pipeline";
+import { rankProductImages } from "./image-rank";
+import type { FaqReviewHint } from "./faq-gen";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
 import {
@@ -76,6 +86,24 @@ export interface ImportResult {
    * /admin/queue använder detta för att visa "Slug auto-justerad"-badge.
    */
   slugSuffix?: string;
+  /**
+   * True när produkten skapades RÅ (AI_ENRICHMENT_ENABLED=false / flags.enableAI=false):
+   * ingen Claude-text/kategori/bild-ranking kördes. Produkten är då draft och
+   * väntar på manuell polering via /admin/queue → "Be Claude i chatten att polera".
+   */
+  needsAiPolish?: boolean;
+  /** Vilket AI-kvalitetsläge importen kördes i (raw/standard/premium). */
+  qualityMode: QualityMode;
+  /**
+   * Premium-läget: kvalitets-judgens slutbetyg 1–10. Saknas i raw/standard.
+   */
+  qualityScore?: number;
+  /**
+   * Premium-läget: judgen nådde inte tröskeln (9,5) ens efter en extra
+   * förfiningsrunda → produkten publiceras INTE utan flaggas för manuell polering
+   * (men är ändå rikare än standard). /admin/queue visar detta.
+   */
+  needsManualPolish?: boolean;
 }
 
 /** Stabil SKU per leverantörsvariant — används senare för lager-/orderkoppling. */
@@ -132,6 +160,12 @@ export async function importProduct(
    * nytt Claude-textanrop. Saknas = generera normalt (direkt/legacy).
    */
   preGenerated?: ProductContent,
+  /**
+   * Premium-läget (komponent 4): skrapade AliExpress-recensioner som FAQ-genereringen
+   * läser för att hitta vad kunder faktiskt undrar. Best-effort — saknas = FAQ byggs
+   * ändå ur beskrivning + kategori. Påverkar bara premium-flödet.
+   */
+  premiumOpts?: { reviews?: FaqReviewHint[] },
 ): Promise<ImportResult> {
   // Deterministisk svensk översättning av variantaxlar + värden (INGA AI-anrop,
   // $0). Görs i ETT pass över varianterna så att Wix-options OCH variantval blir
@@ -174,9 +208,17 @@ export async function importProduct(
     }
   }
 
-  // Master-switch: AI_ENRICHMENT_ENABLED (env) eller flags.enableAI (explicit).
-  // false = RÅ import utan ETT ENDA Claude-anrop ($0). Gatar varje AI-steg nedan.
-  const aiEnabled = aiEnrichmentEnabled(flags);
+  // AI-kvalitetsläge (lib/import/quality-mode.ts): raw / standard / premium.
+  //   raw      → 0 Claude-anrop ($0), draft, väntar på manuell polering.
+  //   standard → batchat Haiku ($0,105), draft.
+  //   premium  → Opus multi-pass + Sonnet vision (~0,85 kr), publiceras direkt.
+  const qualityMode = resolveQualityMode(flags);
+  const aiEnabled = aiEnabledForMode(qualityMode);
+  const premium = isPremiumMode(qualityMode);
+  console.log(
+    `[import:mode] pid=${product.supplierProductId} mode=${qualityMode} ` +
+      `(~${estimatedCostOre(qualityMode)} öre/produkt)`,
+  );
   // Förgenererat batch-innehåll är AI-output — ignorera det i RÅ-läge så vi
   // garanterat skapar en rå produkt (batch-flödet körs ändå aldrig när AI är av).
   const effectivePreGenerated = aiEnabled ? preGenerated : undefined;
@@ -196,16 +238,22 @@ export async function importProduct(
 
   // Bildanalysen körs parallellt med text-genereringen i båda lägena. Avstängda
   // steg ersätts med billiga lokala fallbacks (inga Claude-credits).
-  const imageAnalysisPromise = runImageAnalysis
-    ? analyzeImages(product.imageUrls)
-    : Promise.resolve(
-        product.imageUrls.map((url) => ({ url, verdict: "ok" as const, reason: "" })),
-      );
+  // PREMIUM (komponent 3): Sonnet vision rankar + ordnar bilderna (hero→lifestyle→
+  // detalj→storlek) istället för enkel ok/warn/reject-sortering. Gatas av samma
+  // imageAnalysis-flagga så Leonard kan stänga av den dyra vision-rankingen.
+  const usePremiumImages = premium && runImageAnalysis;
+  const premiumImagesPromise = usePremiumImages ? rankProductImages(product.imageUrls) : null;
+  const imageAnalysisPromise =
+    !usePremiumImages && runImageAnalysis
+      ? analyzeImages(product.imageUrls)
+      : Promise.resolve(
+          product.imageUrls.map((url) => ({ url, verdict: "ok" as const, reason: "" })),
+        );
   // Kollektioner behövs för kategoriförslaget — i batchat läge skickas de in som
   // kontext i samma anrop, i legacy-läget till suggestCategoryRecord. Hämtas när
   // kategoristeget är på ELLER vi kör batchat.
   const collectionsPromise =
-    runCategory || batched || effectivePreGenerated ? getCollectionsSafe() : Promise.resolve([]);
+    runCategory || batched || premium || effectivePreGenerated ? getCollectionsSafe() : Promise.resolve([]);
 
   // Starta text-genereringen direkt så den kör parallellt med bildanalysen.
   // I batchat läge = ett enda generateProductContent-anrop; annars de tre gamla.
@@ -213,6 +261,8 @@ export async function importProduct(
     seo: SeoResult;
     categorySuggestion: CategorySuggestionRecord;
     generatedTabs: GeneratedTabs;
+    /** Premium-läget: kvalitets-judgens dom (för publish-beslut + result-fält). */
+    premium?: { score: number; passed: boolean };
   }> = (async () => {
     const cols = await collectionsPromise;
     // RÅ-läge (master-switch av): hoppa över ALLT Claude-innehåll. Rå titel/
@@ -223,6 +273,34 @@ export async function importProduct(
         seo: buildFallbackSeo(product),
         categorySuggestion: emptyCategoryRecord(),
         generatedTabs: rawTabsFromProduct(product),
+      };
+    }
+    // PREMIUM-läget: Opus multi-pass-beskrivning + FAQ + SEO-A/B + kvalitets-judge
+    // (lib/import/premium-pipeline.ts). Returnerar samma ProductContent-form + en
+    // kvalitetsdom som styr publish-beslutet nedan.
+    if (premium) {
+      const result = await generatePremiumContent(product, runCategory ? cols : [], {
+        reviews: premiumOpts?.reviews,
+      });
+      const rec: CategorySuggestionRecord =
+        runCategory && cols.length
+          ? buildCategoryRecord(result.content.category, cols)
+          : {
+              collectionSlug: null,
+              confidence: 0,
+              reason: "Inga butikskollektioner tillgängliga.",
+              status: "uncategorized",
+            };
+      console.log(
+        `[import:premium] pid=${product.supplierProductId} judge=${result.quality.score.toFixed(1)}/10 ` +
+          `passed=${result.quality.passed} refined=${result.refined} ` +
+          `metaVarianter=${result.seoMetaVariants.length}`,
+      );
+      return {
+        seo: result.content.seo,
+        categorySuggestion: rec,
+        generatedTabs: result.content.tabs,
+        premium: { score: result.quality.score, passed: result.quality.passed },
       };
     }
     // Batch API-flödet (#8): innehållet är redan genererat → inget nytt Claude-anrop.
@@ -268,11 +346,22 @@ export async function importProduct(
     return { seo: seoLegacy, categorySuggestion: rec, generatedTabs: tabs };
   })();
 
-  const imageVerdicts = await imageAnalysisPromise;
+  // Bild-verdikt + ordning. Premium: Sonnet vision-rankingen ger BÅDE entries
+  // (admin-vyn) och den färdiga hero→lifestyle→detalj→storlek-ordningen. Övriga
+  // lägen: ok/warn/reject-sortering som förut.
+  let imageVerdicts: ImageAnalysisResult[];
+  let premiumOrderedUrls: string[] | null = null;
+  if (premiumImagesPromise) {
+    const ranked = await premiumImagesPromise;
+    imageVerdicts = ranked.entries;
+    premiumOrderedUrls = ranked.orderedUrls.length ? ranked.orderedUrls : product.imageUrls;
+  } else {
+    imageVerdicts = await imageAnalysisPromise;
+  }
   const collections = await collectionsPromise;
   // Kategoriförslaget beräknas FÖRE prissättningen så per-kategori-multiplikatorn
   // kan tillämpas (Fix 5); själva Wix-tilldelningen sker efter create (kräver id).
-  const { seo, categorySuggestion, generatedTabs } = await textGenPromise;
+  const { seo, categorySuggestion, generatedTabs, premium: premiumResult } = await textGenPromise;
   const categoryName = categorySuggestion.collectionName ?? null;
 
   // Explicit kategoriserings-trace (bug 2026-06-01: kategori sattes aldrig och vi
@@ -307,7 +396,7 @@ export async function importProduct(
   // Omsortera bilderna efter verdict: ok först, warn sedan, reject sist. Inga
   // bilder tas bort (se orderImagesByVerdict) — vi vill hellre ha med en bild med
   // lite text än att stå utan bilder helt.
-  const orderedImageUrls = orderImagesByVerdict(product.imageUrls, imageVerdicts);
+  const orderedImageUrls = premiumOrderedUrls ?? orderImagesByVerdict(product.imageUrls, imageVerdicts);
 
   // Ladda upp samtliga (omsorterade) bilder till Wix Media Manager parallellt med
   // variant-/options-bygget.
@@ -430,11 +519,14 @@ export async function importProduct(
     // har inbyggt stöd och det renderas både i back-end och på sajten utan
     // extra Velo-kod. Headless-repots produktkort läser samma fält.
     ribbonName: hasEuWarehouse ? "EU-lager" : undefined,
-    // Standard: nya produkter göms tills publish via /admin/queue.
-    // IMPORT_DRAFT_DEFAULT=false hoppar över granskningen. Rå imports (aiEnabled
-    // =false) ärver samma draft-default — de blir alltså osynliga draft i Wix
-    // (existerande beteende) och poleras sedan manuellt via chatten.
-    visible: process.env.IMPORT_DRAFT_DEFAULT === "false",
+    // Synlighet per läge:
+    //   PREMIUM   → publiceras DIREKT (visible:true) om kvalitets-judgen godkände
+    //               (≥9,5). Underkänd premium → draft + needs_manual_polish.
+    //   STANDARD  → draft som förut; IMPORT_DRAFT_DEFAULT=false hoppar granskningen.
+    //   RAW       → ALLTID draft (aiEnabled=false): kräver manuell polering först.
+    visible: premium
+      ? premiumResult?.passed === true
+      : aiEnabled && process.env.IMPORT_DRAFT_DEFAULT === "false",
   };
 
   const created = await createProduct(wixInput);
@@ -478,12 +570,21 @@ export async function importProduct(
   }
 
   // RÅ import (master-switch av) → audit + log så det syns i Vercel/-admin att
-  // produkten medvetet skapades utan AI-berikning (draft i Wix, poleras via chatten).
+  // produkten medvetet skapades utan AI-berikning och väntar på manuell polering.
   if (!aiEnabled) {
     console.log(
-      `[import:raw] pid=${product.supplierProductId} → ${created.id} skapad RÅ (0 Claude-anrop) — draft, poleras manuellt.`,
+      `[import:raw] pid=${product.supplierProductId} → ${created.id} skapad RÅ (0 Claude-anrop), draft + needs_ai_polish.`,
     );
     await audit("import-raw-no-ai", created.id, `Rå import (AI-berikning av) — ${seo.title}`);
+  }
+
+  // PREMIUM → audit kvalitetsdomen så Leonard ser betyget och om produkten
+  // publicerades direkt eller flaggades för manuell polering.
+  if (premium && premiumResult) {
+    const verdict = premiumResult.passed
+      ? `publicerad direkt (judge ${premiumResult.score.toFixed(1)}/10)`
+      : `flaggad för manuell polering (judge ${premiumResult.score.toFixed(1)}/10 < tröskel)`;
+    await audit("import-premium", created.id, `${verdict} — ${seo.title}`);
   }
 
   // Auto-assign kategorin (beräknad före prissättningen ovan). Tilldelningen sker
@@ -568,6 +669,10 @@ export async function importProduct(
     hasEuWarehouse,
     warehouseClass,
     ...(created.slugSuffix ? { slugSuffix: created.slugSuffix } : {}),
+    ...(aiEnabled ? {} : { needsAiPolish: true }),
+    qualityMode,
+    ...(premium && premiumResult ? { qualityScore: premiumResult.score } : {}),
+    ...(premium && premiumResult && !premiumResult.passed ? { needsManualPolish: true } : {}),
   };
 }
 
@@ -820,6 +925,7 @@ export function useBatchedPipeline(): boolean {
  * och en bulk-task kan tvinga AV (enableAI:false). Flaggan är default men inte hård.
  */
 export function aiEnrichmentEnabled(flags?: FeatureFlags): boolean {
-  if (flags?.enableAI !== undefined) return flags.enableAI;
-  return (process.env.AI_ENRICHMENT_ENABLED ?? "true").toLowerCase() !== "false";
+  // Delegerar nu till det enhetliga kvalitetsläget (raw/standard/premium):
+  // aiEnabled = läget är inte "raw". Bakåtkompatibelt med enableAI + AI_ENRICHMENT_ENABLED.
+  return aiEnabledForMode(resolveQualityMode(flags));
 }

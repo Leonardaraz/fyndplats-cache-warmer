@@ -1,0 +1,46 @@
+{
+  "_note": "Gold-standard-exempel på Fyndplats manuellt polerade produkttexter. Används som few-shot-exempel i premium-läget (lib/claude/brand-voice.ts). HÄMTA/UPPDATERA dessa från Leonards bästa Wix-produkter med `node scripts/extract-brand-voice-examples.mjs` (kräver WIX_API_KEY + WIX_SITE_ID i miljön). De tre nedan är handskrivna seed-exempel (Gua Sha, ansiktsroller, LED-ljus) i rätt ton tills den riktiga extraktionen körts.",
+  "version": 1,
+  "source": "seed-handwritten",
+  "examples": [
+    {
+      "productType": "Gua Sha-sten i äkta jade",
+      "category": "Skönhet & hudvård",
+      "title": "Gua Sha-sten i äkta jade – naturlig ansiktsmassage",
+      "metaDescription": "Gua Sha i sval jade för daglig ansiktsmassage. Mjukar upp spänningar, ger lyster och en stunds lugn. Slät kant, skön i handen. Fri frakt.",
+      "descriptionHtml": "<p>Ibland behöver huden inget mer avancerat än några lugna minuter framför spegeln. Den här Gua Sha-stenen är skuren i äkta jade som håller sig naturligt sval mot huden – precis den där behagliga kylan som får morgontröttheten att släppa.</p><p>Du följer ansiktets konturer med de mjukt slipade kanterna: uppåt längs käklinjen, utåt över kinderna, försiktigt runt ögonen. Många upplever att ansiktet känns mindre svullet och att hudvårdsoljan sjunker in bättre när den masseras in på det här sättet.</p><ul><li><strong>Äkta jade</strong> – tyngd och svalka som plast aldrig kommer åt</li><li><strong>Tre formade kanter</strong> för käke, kindben och de finare partierna runt ögonen</li><li><strong>Handslipad yta</strong> som glider mjukt utan att dra i huden</li><li><strong>Lagom stor</strong> – ligger stadigt i handen, ryms i necessären</li><li><strong>Enkel att hålla ren</strong> – skölj i ljummet vatten och torka av</li></ul><p>Perfekt som en lugn avslutning på kvällsrutinen eller en uppfriskande start på dagen. Förvara den gärna svalt så blir den där sköna kylan ännu tydligare.</p>",
+      "faq": [
+        { "q": "Hur ofta kan jag använda min Gua Sha?", "a": "Varje dag går utmärkt. Många kör 3–5 minuter morgon eller kväll – lyssna på huden och ta det varligt runt ögonen." },
+        { "q": "Behöver jag använda olja eller serum?", "a": "Det rekommenderas. En liten mängd ansiktsolja eller serum gör att stenen glider mjukt istället för att dra i huden." },
+        { "q": "Är stenen i äkta jade?", "a": "Ja, den är skuren i naturlig jade, vilket ger den sin tyngd och svala känsla. Varje sten är unik i nyans och ådring." }
+      ],
+      "altTextSample": "Grön Gua Sha-sten i jade som hålls mot kinden vid ansiktsmassage"
+    },
+    {
+      "productType": "Ansiktsroller / jaderoller",
+      "category": "Skönhet & hudvård",
+      "title": "Ansiktsroller i jade – sval massage för piggare hy",
+      "metaDescription": "Jaderoller med dubbla ändar för ansikte och ögonparti. Sval, skön och tyst i lagret. Ger lyster och hjälper serum sjunka in. Snabb leverans.",
+      "descriptionHtml": "<p>En ansiktsroller är en av de där små lyxerna som snabbt blir en favorit i hudvårdsrutinen. Den här är gjord i sval jade och rullar mjukt över huden – en skön, nästan meditativ rörelse som lätt blir kvällens lugnaste minut.</p><p>Rollern har två ändar: en större för kinder, panna och hals, och en mindre för det känsliga området runt ögonen där huden gärna känns trött och svullen på morgonen. Stenen håller sig naturligt sval, och effekten blir ännu tydligare om du förvarar rollern i kylen.</p><ul><li><strong>Dubbla rullar</strong> – stor för ansiktet, liten för ögonpartiet</li><li><strong>Sval jade</strong> som ger en uppfriskande känsla mot huden</li><li><strong>Tyst, stadig fattning</strong> utan gnissel – ramen sitter fast ordentligt</li><li><strong>Hjälper serum och olja</strong> att masseras in jämnt</li><li><strong>Lätt att rengöra</strong> – torka av med en fuktig trasa efter användning</li></ul><p>Använd morgon för att vakna till liv eller kväll för att varva ner. Lägg den i kylen en stund innan – den svala stenen mot huden är hela poängen.</p>",
+      "faq": [
+        { "q": "Kan jag förvara rollern i kylen?", "a": "Ja, det rekommenderas! En sval roller känns extra uppfriskande och skön mot huden, särskilt runt ögonen på morgonen." },
+        { "q": "Vad är skillnaden mot en Gua Sha?", "a": "Rollern rullar mjukt och är enkel att svepa över hela ansiktet, medan en Gua Sha ger en mer riktad massage längs konturerna. Många använder båda." },
+        { "q": "Gnisslar rollern efter ett tag?", "a": "Ramen är monterad för att sitta stadigt och tyst. Torka av den efter användning så håller den sig fin länge." }
+      ],
+      "altTextSample": "Jaderoller med två ändar för ansikts- och ögonmassage"
+    },
+    {
+      "productType": "LED-nattlampa med rörelsesensor",
+      "category": "Hem & belysning",
+      "title": "LED-nattlampa med rörelsesensor – mjukt ljus på natten",
+      "metaDescription": "Trådlös LED-lampa som tänds automatiskt när du rör dig. Varmt, bländfritt ljus för hall, garderob och trappa. Magnetfäste och USB-laddning.",
+      "descriptionHtml": "<p>Det nattliga vandrandet till köket eller badrummet behöver inte sluta med att du famlar efter strömbrytaren eller bländas av taklampan. Den här lilla LED-lampan känner av när du rör dig och tänder ett mjukt, varmt sken precis där du behöver det – sedan slocknar den av sig själv när du gått vidare.</p><p>Den är helt trådlös och laddas via USB, så du slipper batteribyten och sladdar. Baksidan har ett magnetfäste och medföljande metallplatta, vilket gör att du kan sätta upp den på sekunden i garderoben, hallen, längs trappan eller under köksskåpen – och enkelt ta loss den för laddning.</p><ul><li><strong>Rörelsesensor</strong> som tänder automatiskt och släcker efter ca 15 sekunder</li><li><strong>Varmt, bländfritt ljus</strong> som inte väcker dig helt mitt i natten</li><li><strong>Uppladdningsbar via USB</strong> – inga batterier att byta</li><li><strong>Magnetfäste</strong> för snabb montering utan verktyg eller skruv</li><li><strong>Smidig storlek</strong> som passar i garderob, hall, trappa och kök</li></ul><p>En liten detalj som gör vardagen tryggare och lite mysigare – särskilt fin för barnrummet, för den som vaknar tidigt, eller var som helst där en strömbrytare känns krånglig.</p>",
+      "faq": [
+        { "q": "Hur länge lyser lampan när den tänts?", "a": "Den lyser i ungefär 15 sekunder efter senaste rörelsen och släcks sedan automatiskt för att spara batteri." },
+        { "q": "Hur sätter jag upp den?", "a": "Fäst den medföljande metallplattan på väggen med tejpen och sätt lampan mot den med magneten. Inga skruvar eller verktyg behövs." },
+        { "q": "Hur ofta behöver den laddas?", "a": "Det beror på hur ofta den tänds, men vid normal användning räcker en laddning i flera veckor. Du laddar den enkelt via USB." }
+      ],
+      "altTextSample": "Trådlös LED-nattlampa med rörelsesensor monterad i en garderob"
+    }
+  ]
+}

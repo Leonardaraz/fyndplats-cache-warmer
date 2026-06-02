@@ -52,6 +52,14 @@ export function getClaude(): Anthropic {
 export const VISION_MODEL = process.env.CLAUDE_VISION_MODEL || "claude-sonnet-4-5";
 export const TEXT_MODEL = process.env.CLAUDE_TEXT_MODEL || "claude-haiku-4-5-20251001";
 
+/**
+ * Premium-läget (lib/import/quality-mode.ts) använder Opus för text (multi-pass
+ * self-critique på beskrivning + FAQ + judge) och Sonnet för vision-ranking.
+ * Overrideas via CLAUDE_PREMIUM_MODEL / CLAUDE_PREMIUM_VISION_MODEL.
+ */
+export const PREMIUM_TEXT_MODEL = process.env.CLAUDE_PREMIUM_MODEL || "claude-opus-4-6";
+export const PREMIUM_VISION_MODEL = process.env.CLAUDE_PREMIUM_VISION_MODEL || VISION_MODEL;
+
 export function isImageAnalysisEnabled(): boolean {
   return (process.env.CLAUDE_IMAGE_ANALYSIS ?? "on").toLowerCase() !== "off";
 }
@@ -356,6 +364,66 @@ async function completeJsonClaude<T>(opts: {
       max_tokens: opts.maxTokens ?? 1000,
       system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: opts.user }],
+    });
+  } catch (err) {
+    throw mapAnthropicError(err);
+  }
+  const text = extractText(msg);
+  return { result: parseJsonObject<T>(text), usage: extractUsage(msg), model: opts.model };
+}
+
+// ------------------------------------------------------------------
+// Vision-completion med JSON-svar (premium bild-ranking, lib/import/image-rank.ts)
+// ------------------------------------------------------------------
+
+/**
+ * Vision-JSON-completion: skickar text + bilder och förväntar ett JSON-objekt
+ * tillbaka. Routas via samma router som allt annat så att kostnad/budgetcap/stats
+ * bokförs (op-namnet syns per-rad i /admin/llm-usage). INGEN Gemini-fallback —
+ * premium-vision är Sonnet eller inget; vid fel returneras failOpen.
+ */
+export async function visionJsonRouted<T>(opts: {
+  system: string;
+  user: string;
+  imageUrls: string[];
+  maxTokens?: number;
+  op: string;
+  cacheKey: string | null;
+  model?: string;
+  failOpen?: T;
+}): Promise<T> {
+  const model = opts.model || PREMIUM_VISION_MODEL;
+  const run = await runOperation<T>({
+    op: opts.op,
+    cacheKey: opts.cacheKey,
+    claudeCall: () => visionJsonClaude<T>({ ...opts, model }),
+    failOpen: opts.failOpen,
+  });
+  return run.result;
+}
+
+async function visionJsonClaude<T>(opts: {
+  system: string;
+  user: string;
+  imageUrls: string[];
+  maxTokens?: number;
+  model: string;
+}): Promise<ProviderCallResult<T>> {
+  const claude = getClaude();
+  const content: Anthropic.ContentBlockParam[] = [];
+  opts.imageUrls.forEach((url, idx) => {
+    content.push({ type: "text", text: `Bild ${idx + 1}:` });
+    content.push({ type: "image", source: { type: "url", url } });
+  });
+  content.push({ type: "text", text: opts.user });
+
+  let msg: Anthropic.Message;
+  try {
+    msg = await claude.messages.create({
+      model: opts.model,
+      max_tokens: opts.maxTokens ?? 1500,
+      system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content }],
     });
   } catch (err) {
     throw mapAnthropicError(err);

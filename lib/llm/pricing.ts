@@ -38,6 +38,21 @@ const PRICES: Record<string, ModelPrice> = {
     cachedInputPerMillion: 0.3,
   },
 
+  // Claude Opus — premium quality mode (lib/import/quality-mode.ts). Dyrast men
+  // smartast: Opus multi-pass self-critique på beskrivning + FAQ. Cached input är
+  // 1/10 av input ($1.50/M) tack vare prompt caching av brand-voice-exemplen.
+  // Justera om Anthropic ändrar Opus-prislistan.
+  "claude-opus-4-6": {
+    inputPerMillion: 15.0,
+    outputPerMillion: 75.0,
+    cachedInputPerMillion: 1.5,
+  },
+  "claude-opus-4-8": {
+    inputPerMillion: 15.0,
+    outputPerMillion: 75.0,
+    cachedInputPerMillion: 1.5,
+  },
+
   // Gemini 2.0 — gratis-tier för input <128k. Vi sätter priserna till 0 så
   // budgetcap aldrig triggas av Gemini-trafik. Om Leonard senare flyttar till
   // paid tier behöver bara dessa rader uppdateras.
