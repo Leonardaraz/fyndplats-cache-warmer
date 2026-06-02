@@ -459,12 +459,13 @@ function extractContentIds(order: Record<string, unknown>): string[] {
 // Server-autoritativt Meta Purchase via CAPI. Fyras vid order_created — når
 // alltså fram även när kundens /tack-sida aldrig laddas (adblock/iOS stoppar
 // klient-Pixeln). Dedupliceras mot klientens Purchase (lib/analytics) via SAMMA
-// deterministiska event_id `purchase_<orderId>`. orderId tas från orderns _id/
-// id (GUID), vilket är det Wix-headless redirectar med i /tack?orderId=.
+// deterministiska event_id `purchase_<GUID>`. orderId tas från orderns _id/id
+// (GUID) — det är det värde Wix headless redirectar med till /tack och som
+// klienten i sin tur kräver är ett GUID innan den fyrar (annars hoppar den över
+// och låter detta event vara enda källan). number/orderNumber är bara nödfall.
 //
-// VIKTIGT (att verifiera i Test Events): dedup förutsätter att /tack-redirectens
-// ?orderId matchar denna orderId. Om Purchase dubbelräknas → justera id-källan
-// så de två stämmer. Best-effort: ett fel får ALDRIG blockera bekräftelsemejlet.
+// Best-effort: ett fel får ALDRIG blockera bekräftelsemejlet. Loggen ovan gör
+// att en eventuell id-källemiss (t.ex. saknat _id) syns i prod-loggen.
 //
 // Ingen IP/User-Agent skickas: webhook-requesten kommer från Wix servrar, inte
 // kunden — fel signal vore värre än ingen. Matchningen vilar på hashad e-post +
@@ -480,7 +481,19 @@ async function fireMetaPurchase(order: Record<string, unknown>): Promise<void> {
     const contentIds = extractContentIds(order);
     const items = extractItems(order);
     const numItems = items.reduce((n, it) => n + it.qty, 0) || contentIds.length || 1;
-    const orderId = firstStr(order._id as string, order.id as string, order.number as string, order.orderNumber as string);
+    // GUID (_id) FÖRST: det är detta Wix headless lägger i /tack-redirecten och
+    // det klienten (lib/analytics) bygger sitt event_id på. number/orderNumber
+    // är bara nödfallback — ett ordernummer här skulle INTE matcha klientens
+    // GUID och ge dubbelräkning, så vi loggar om vi tvingas dit.
+    const guid = firstStr(order._id as string, order.id as string);
+    const orderId = guid ?? firstStr(order.number as string, order.orderNumber as string);
+    if (!guid) {
+      console.warn(
+        `[wix-webhook] Meta Purchase: order saknar _id/id (GUID) — föll tillbaka på ordernummer=${orderId ?? "null"}. ` +
+          "Detta matchar INTE klientens GUID-baserade event_id → risk för dubbelräkning i Meta.",
+      );
+    }
+    console.log(`[wix-webhook] Meta Purchase event_id=purchase_${orderId ?? "(saknas)"} (guid=${Boolean(guid)})`);
 
     await sendMetaCapiEvent({
       eventName: "Purchase",

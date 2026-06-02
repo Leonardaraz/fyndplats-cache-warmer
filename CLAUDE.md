@@ -79,6 +79,44 @@ i `lib/meta.ts` + `components/metapixel.tsx`.
 5. Health-check när som helst: `GET https://www.fyndplats.se/api/meta/capi`
    → `{ "configured": true }` när env är satt.
 
+### Testplan: verifiera Purchase-dedup (kör detta när Pixel-ID fylls i)
+
+Purchase fyras från **två** håll med samma `event_id` (`purchase_<order-GUID>`):
+klienten på `/tack` (Pixel + CAPI) och webhooken vid `order_created` (CAPI). De
+ska deduplicera till **ETT** event i Meta. Det vilar på att båda använder Wix
+order-**GUID** (`order._id`) — webhooken tar `_id` först, och klienten fyrar
+*bara* om `/tack`-redirectens id är ett GUID (annars hoppar den över och låter
+webhooken vara enda källan; den loggar `[meta] Klient-Purchase hoppades över …`).
+
+Gör så här innan du går till produktion:
+
+1. Fyll i `META_PIXEL_ID` + `META_CAPI_ACCESS_TOKEN` på **Preview** (och valfritt
+   Production senare). Sätt även `META_TEST_EVENT_CODE` (Events Manager → din
+   Pixel → *Test Events* → koden visas överst) på **Preview/Development** —
+   den används bara när `NODE_ENV !== "production"`, så skarp data smutsas aldrig.
+2. Redeploy:a Preview. Öppna Events Manager → din Pixel → **Test Events** och
+   håll den öppen.
+3. På preview-URL:en: acceptera cookies med **"Godkänn alla"** (Purchase är
+   consent-gated på `fp_cookie_consent === "all"`), lägg en produkt i kundvagnen
+   och slutför ett **testköp** hela vägen till `/tack`.
+4. I Test Events ska du se **ett** `Purchase`-event märkt **"Deduplicated"** —
+   det betyder att klientens Pixel/CAPI och webhookens CAPI slogs ihop på samma
+   `event_id`. Ser du **två** separata Purchase → dedup brister.
+5. Om dedup brister, kolla loggarna (Vercel → Preview-deployen → *Functions*):
+   - `/tack` (browser-konsol): `[meta] Klient-Purchase hoppades över: orderId=… `
+     → `/tack`-redirecten gav inget GUID. Kolla vilken query-param Wix faktiskt
+     skickar (DevTools → Network → redirecten till `/tack`) och utöka
+     `params.get(...)`-listan i `components/thankyou.tsx` så GUID:t plockas upp.
+   - `[wix-webhook] Meta Purchase event_id=purchase_… (guid=…)` → bekräftar vilket
+     id webhooken använde. `guid=false` = ordern saknade `_id` (ska inte hända)
+     → matchar inte klienten.
+   Jämför de två event_id:na: de **måste** vara identiska (`purchase_<samma-GUID>`).
+6. Verifiera att webhook-Purchase fungerar **utan** `/tack` (iOS/adblock-fallet):
+   gör ett köp, blockera/stäng fliken före `/tack` laddar — Test Events ska ändå
+   visa ett `Purchase` (bara CAPI-raden, från webhooken).
+7. När allt deduplicerar korrekt: lägg `META_PIXEL_ID` + `META_CAPI_ACCESS_TOKEN`
+   på **Production**, men sätt **INTE** `META_TEST_EVENT_CODE` där. Redeploy.
+
 # Package manager
 
 This repo has **both** `pnpm-lock.yaml` (v9) and `package-lock.json` committed.

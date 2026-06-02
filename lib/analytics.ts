@@ -234,6 +234,15 @@ function clearPurchaseSnapshot() {
   } catch {}
 }
 
+// Ett Wix-order-GUID (order._id) — 8-4-4-4-12 hex. Det är detta värde Wix
+// headless lägger i /tack-redirecten OCH det webhooken bygger sitt
+// Purchase-event_id på (route.ts → firstStr(order._id, …)). Bara värden på
+// detta format kan dela event_id med CAPI-webhooken och därmed deduppas.
+const ORDER_GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isOrderGuid(v: string | null | undefined): v is string {
+  return typeof v === "string" && ORDER_GUID_RE.test(v.trim());
+}
+
 // Den kritiska eventen för Google Ads-attribution. Wix Ecom skickar inte items
 // i tack-redirecten, så vi förlitar oss på snapshot:en som lagrades innan
 // kassan öppnades. Dedupar på transaction_id så att en F5 på /tack inte
@@ -242,6 +251,10 @@ export function trackPurchase(orderId: string | null | undefined) {
   if (typeof window === "undefined") return;
   const snap = readPurchaseSnapshot();
   if (!snap) return;
+  // GA4 transaction_id: orderId om vi har det, annars en lokal fallback. GA4 har
+  // INGEN server-motsvarighet (ingen CAPI-tvilling), så ett fallback-id kan inte
+  // dubbelräkna — och snapshot:en rensas efter första fyrningen, vilket skyddar
+  // mot F5. Meta hanteras separat nedan med striktare krav.
   const txId = orderId || `fp-${Date.now()}`;
   const sentKey = `fp_purchase_sent_${txId}`;
   try {
@@ -259,22 +272,40 @@ export function trackPurchase(orderId: string | null | undefined) {
     value: snap.value,
     items: snap.items,
   });
-  // Meta Purchase (Pixel + CAPI). event_id = `purchase_<txId>` är DETERMINISTISK
-  // och delas med det server-autoritativa Purchase som /api/wix-webhook fyrar
-  // vid order_created (lib/handlers / meta-capi) → Meta deduplicerar dem mot
-  // varandra. Klient-eventet ger snabb browser-signal; webhook-eventet är
-  // backupen som når fram även när /tack aldrig laddas (adblock/iOS).
-  metaTrack(
-    "Purchase",
-    {
-      content_type: "product",
-      content_ids: snap.items.map((i) => i.item_id),
-      contents: snap.items.map((i) => ({ id: i.item_id, quantity: i.quantity, item_price: i.price })),
-      num_items: snap.items.reduce((n, i) => n + i.quantity, 0),
-      value: snap.value,
-      currency: snap.currency,
-    },
-    { eventId: `purchase_${txId}` },
-  );
+  // Meta Purchase (Pixel + CAPI). event_id = `purchase_<GUID>` MÅSTE matcha det
+  // server-autoritativa Purchase som /api/wix-webhook fyrar vid order_created
+  // (det bygger event_id på order._id = GUID). Meta deduplicerar på
+  // (event_name, event_id) → ETT event.
+  //
+  // KRITISKT: vi fyrar klient-Meta-Purchase ENDAST när orderId är ett Wix-order-
+  // GUID i samma format som webhookens order._id. Faller vi tillbaka på ett
+  // slump-id (orderId saknas) ELLER på ett ordernummer (om Wix-redirecten skickar
+  // ?orderNumber= i stället för ?orderId=) kan event_id ALDRIG matcha webhooken
+  // → Meta räknar köpet TVÅ gånger. Hellre hoppa över klient-eventet och låta
+  // det server-autoritativa webhook-Purchase vara enda källan — det når fram
+  // ändå, även när /tack aldrig laddas (adblock/iOS). Detta är striktare än ett
+  // rent null-test eftersom det också fångar ordernummer-formatet.
+  if (isOrderGuid(orderId)) {
+    metaTrack(
+      "Purchase",
+      {
+        content_type: "product",
+        content_ids: snap.items.map((i) => i.item_id),
+        contents: snap.items.map((i) => ({ id: i.item_id, quantity: i.quantity, item_price: i.price })),
+        num_items: snap.items.reduce((n, i) => n + i.quantity, 0),
+        value: snap.value,
+        currency: snap.currency,
+      },
+      { eventId: `purchase_${orderId.trim()}` },
+    );
+  } else {
+    // Dedup kan inte garanteras → hoppa över klient-Meta och logga så vi kan
+    // upptäcka det i prod (t.ex. om Wix byter redirect-param-namn/-format).
+    // Webhookens order_created-Purchase blir enda källan.
+    console.warn(
+      `[meta] Klient-Purchase hoppades över: orderId=${orderId ?? "null"} är inget Wix-order-GUID — ` +
+        "kan inte deduppas mot CAPI-webhooken. Server-Purchase (order_created) blir enda källan.",
+    );
+  }
   clearPurchaseSnapshot();
 }
