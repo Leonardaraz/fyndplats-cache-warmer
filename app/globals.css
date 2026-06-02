@@ -164,17 +164,17 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .mcol-offset{animation-duration:7.6s;animation-delay:-2.6s}
 
 .usp{background:var(--warm);border-bottom:1px solid var(--line)}
-.usprow{display:flex;justify-content:center;flex-wrap:wrap;padding:14px 0}
+.usprow{display:flex;justify-content:center;flex-wrap:wrap;padding:22px 0}
 .uspitem{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:600;padding:0 22px}
 .uspitem svg{width:18px;height:18px;color:var(--orange);flex:0 0 auto}
 /* Mobil: jämnt 2×2-rutnät, centrerat som block (kolumnerna är innehållsbreda
    och gruppen centreras) i stället för ojämn 2+1+1-wrap eller vänsterhäng */
 @media(max-width:600px){
-  .usprow{display:grid;grid-template-columns:auto auto;justify-content:center;gap:14px 24px;padding:16px 4px}
+  .usprow{display:grid;grid-template-columns:auto auto;justify-content:center;gap:14px 24px;padding:22px 4px}
   .uspitem{padding:0;font-size:12px;gap:8px;align-items:center;justify-content:flex-start;line-height:1.25}
 }
 
-.sec{padding:64px 0}
+.sec{padding:80px 0}
 .sechead{text-align:center;margin-bottom:36px}
 .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#C2410C;margin-bottom:12px}
 .eyebrow::before,.eyebrow::after{content:"";width:22px;height:2px;background:currentColor;border-radius:2px;opacity:.55}
@@ -1035,7 +1035,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 }
 
 /* Huvudkategori-rutnät — 2 kolumner desktop, 1 mobil */
-.butik-cats-sec{padding:64px 0 88px;background:#fff}
+.butik-cats-sec{padding:80px 0;background:#fff}
 .butik-cats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}
 @media(max-width:880px){.butik-cats-sec{padding:48px 0 60px}.butik-cats-grid{grid-template-columns:1fr;gap:22px}}
 
@@ -1084,7 +1084,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 }
 
 /* Veckans fynd — same look as homepage but cleaner whitespace */
-.butik-veckans{background:#fff;padding:64px 0 80px}
+.butik-veckans{background:#fff;padding:80px 0}
 @media(max-width:760px){.butik-veckans{padding:48px 0 56px}}
 
 /* Editorial story-section */
