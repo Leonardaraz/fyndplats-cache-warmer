@@ -6,7 +6,12 @@ import { ProductCard } from "../../../components/productcard";
 import { ProgSchemas, ProgHero, ProgFaq, ProgCrossLinks } from "../../../components/programmatic";
 
 export const revalidate = 86400; // 24h ISR
-export const dynamicParams = false; // bara giltiga intressen (>= 4 produkter) renderas
+// dynamicParams=true: resolvern (samma interestCore-guard som sitemap-listan) är
+// ENDA sanningskällan för giltighet. dynamicParams=false frös giltiga slugs vid
+// BUILD, medan sitemap.xml regenereras ~varje timme (produkt-fetch revalidate:3600)
+// — så en tröskel-slug kunde ligga i sitemap men 404:a tills nästa deploy. On-demand
+// + resolverns notFound() ger thin-content-skyddet utan build-tidens drift.
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const slugs = await getValidInterestSlugs();
