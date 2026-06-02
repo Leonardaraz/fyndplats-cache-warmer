@@ -144,5 +144,20 @@ export async function runMigration(): Promise<{ ok: true }> {
   `;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS orders_created_idx ON orders(created_at DESC);`;
 
+  // Trustpilot review-request-inbjudningar (app/api/cron/trustpilot-invite).
+  // En rad per order vi bjudit in — idempotens-vakt så ett kund får MAX en
+  // inbjudan även om cronet skulle köra om samma dag eller fönstret överlappar.
+  // channel = 'afs' (Trustpilot-API) | 'email' (Resend-mejl med evaluate-länk).
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS trustpilot_invites (
+      order_id   TEXT PRIMARY KEY,
+      email      TEXT NOT NULL,
+      channel    TEXT NOT NULL,
+      resend_id  TEXT,
+      sent_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql/*sql*/`CREATE INDEX IF NOT EXISTS trustpilot_invites_sent_idx ON trustpilot_invites(sent_at DESC);`;
+
   return { ok: true };
 }
