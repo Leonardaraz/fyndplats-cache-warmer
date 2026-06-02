@@ -50,6 +50,8 @@ const STATIC_INFO_PATHS = [
   "/kopvillkor",
   "/sekretesspolicy",
   "/vara-butikspolicyer",
+  "/integritetspolicy-app",
+  "/anvandarvillkor-app",
 ];
 
 /**
