@@ -399,7 +399,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .crumbs span{margin:0 6px;opacity:.5}
 .pdp{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:20px 0 64px;align-items:start}
 .pdp>*{min-width:0}/* låt grid-barnen krympa → inget vågrätt spill på mobil */
-.gallery .gmain{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#f6f1ec;position:relative;cursor:zoom-in}
+.gallery .gmain{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#f6f1ec;position:relative;cursor:zoom-in;aspect-ratio:1}
 .gmain-zoom{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px -4px rgba(0,0,0,.35);opacity:0;transition:opacity .2s;pointer-events:none}
 .gallery .gmain:hover .gmain-zoom{opacity:1}
 /* position:relative+z-index lyfter hjältebilden (och dess inline-blur) ÖVER
@@ -408,6 +408,12 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
    döljer både blur och laddad bild i ~5 s (Leonards "gräddruta sen bild"-bugg).
    Produktkorten använder fill (positionerad img) och drabbas därför inte. */
 .gallery .gmain img{position:relative;z-index:1;width:100%;height:auto;aspect-ratio:1;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.2,.7,.2,1);animation:gFade .22s ease-out}
+/* Crossfade-lager: alla hjälte-bildlager staplas absolut i den aspect-ratio:1-
+   container .gmain ger. Bara `is-shown`-lagret är synligt (opacity 1, överst);
+   byte tonar mjukt över .3s utan layout-hopp eller blur-blink. Mer specifik än
+   regeln ovan → vinner position/animation. */
+.gallery .gmain img.ghero-layer{position:absolute;inset:0;z-index:1;width:100%;height:100%;aspect-ratio:auto;object-fit:cover;opacity:0;animation:none;transition:opacity .3s ease,transform .45s cubic-bezier(.2,.7,.2,1)}
+.gallery .gmain img.ghero-layer.is-shown{opacity:1;z-index:2}
 .gallery .gmain:hover img{transform:scale(1.07)}
 /* Bildlös produkt: vänlig platshållare i stället för tom gräddvit ruta. */
 .gallery .gmain-empty{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:default;color:#b8ab9b}

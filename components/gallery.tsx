@@ -18,7 +18,10 @@ import { SHIMMER_BLUR } from "../lib/lqip";
 function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
   const m = (src || "").match(/static\.wixstatic\.com\/media\/([^/]+)/);
   if (!m) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
-  const q = quality || 82;
+  // q_72 i stället för 82: hjältebilden var en PNG-sourcad produktbild som
+  // komprimerade dåligt → 114 KB webp och ~6 s LCP på 4G (mätt på prod). Vid 72
+  // sparas ~25–30 % utan synlig kvalitetsförlust i webp → snabbare första paint.
+  const q = quality || 72;
   return `https://static.wixstatic.com/media/${m[1]}/v1/fill/w_${width},h_${width},al_c,q_${q}/file.webp`;
 }
 
@@ -59,6 +62,24 @@ export function Gallery({
   const [view, setView] = useState({ s: 1, x: 0, y: 0 });
   const resetView = useCallback(() => setView({ s: 1, x: 0, y: 0 }), []);
   const main = imgs[active] || imgs[0] || "";
+
+  // ── Hjälte-crossfade (ersätter <Image key={main}>) ──────────────────────────
+  // Tidigare remountade en enda <Image> via key={src} vid varje variant-/bildbyte.
+  // Mätt på prod (Leonards rapport, 4G): det gav (1) blur-placeholdern tillbaka,
+  // (2) ett layout-hopp 321→130→321 px medan elementet remounterades, och (3) en
+  // bortkastad w_3840-fetch innan srcset hann räknas om. Nu renderas i stället
+  // varje bild som ett absolut lager och vi tonar opacity mellan dem. Lagren
+  // mountas lazy (bara den initiala laddas direkt → oförändrad LCP) och ett nytt
+  // lager visas FÖRST när dess bild laddat klart, så det gamla ligger kvar tills
+  // det nya är redo — äkta crossfade utan blink, hopp eller refetch.
+  const initialActive = useRef(active).current;
+  const [mounted, setMounted] = useState<number[]>([active]);
+  const [loaded, setLoaded] = useState<Record<number, boolean>>({});
+  const [shown, setShown] = useState(active);
+  useEffect(() => {
+    setMounted((m) => (m.includes(active) ? m : [...m, active]));
+    if (loaded[active]) setShown(active); // byt först när målbilden är dekodad
+  }, [active, loaded]);
 
   const go = useCallback((dir: number) => {
     setView({ s: 1, x: 0, y: 0 }); // nollställ zoom vid bildbyte (inlinat → stabil dep-lista)
@@ -208,10 +229,32 @@ export function Gallery({
         onTouchEnd={onHeroTouchEnd}
         aria-label="Förstora bilden"
       >
-        {/* key={main} remountar bilden vid byte → gFade-animationen (cross-fade +
-            scale) körs om. På plats-byte ger det en mjuk premium-övergång utan
-            flicker eller scroll-jump. */}
-        {main && <Image key={main} src={main} alt={alt} width={800} height={800} loader={main.includes("static.wixstatic.com") ? wixMainLoader : undefined} preload fetchPriority="high" placeholder="blur" blurDataURL={mainBlur || SHIMMER_BLUR} sizes="(max-width:760px) 100vw, 45vw" />}
+        {/* Crossfade-lager: ett <Image> per bild som hunnit bli aktiv. Bara det
+            initiala lagret preloadas (LCP-bilden); övriga laddas eager först när
+            man växlar dit. `is-shown` tonar in det lager vars bild laddat klart. */}
+        {mounted.map((i) => {
+          const src = imgs[i];
+          if (!src) return null;
+          const isWix = src.includes("static.wixstatic.com");
+          const isInitial = i === initialActive;
+          return (
+            <Image
+              key={i}
+              src={src}
+              alt={i === active ? alt : ""}
+              width={800}
+              height={800}
+              loader={isWix ? wixMainLoader : undefined}
+              {...(isInitial ? { preload: true } : { loading: "eager" as const })}
+              placeholder="blur"
+              blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
+              sizes="(max-width:760px) 100vw, 45vw"
+              className={`ghero-layer ${i === shown ? "is-shown" : ""}`}
+              draggable={false}
+              onLoad={() => setLoaded((l) => (l[i] ? l : { ...l, [i]: true }))}
+            />
+          );
+        })}
         <span className="gmain-zoom" aria-hidden>⤢</span>
       </button>
 
