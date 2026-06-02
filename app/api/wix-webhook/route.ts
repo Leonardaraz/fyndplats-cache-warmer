@@ -457,6 +457,26 @@ function extractContentIds(order: Record<string, unknown>): string[] {
     .filter((x): x is string => Boolean(x));
 }
 
+// Per-line-item content_id, 1:1-justerad mot extractItems (ingen filtrering, samma
+// ordning/längd). catalogItemId/productId = Wix katalog-GUID som matchar PDP/cart-
+// eventen och Meta-produktkatalogen. Sista fallback är line-itemets eget _id (ett
+// GUID som ALLTID finns på en Wix order-rad) — ALDRIG produktnamnet, som inte
+// matchar något i Meta-katalogen och varierar med locale/versaler.
+function extractContentIdsAligned(order: Record<string, unknown>): (string | undefined)[] {
+  const lineItems = (order.lineItems ?? order.items) as Array<Record<string, unknown>> | undefined;
+  if (!Array.isArray(lineItems)) return [];
+  return lineItems.map((li) => {
+    const ref = li.catalogReference as { catalogItemId?: string; productId?: string } | undefined;
+    return firstStr(
+      ref?.catalogItemId,
+      ref?.productId,
+      li.productId as string,
+      li.catalogItemId as string,
+      li._id as string,
+    );
+  });
+}
+
 // Server-autoritativt Meta Purchase via CAPI. Fyras vid order_created — når
 // alltså fram även när kundens /tack-sida aldrig laddas (adblock/iOS stoppar
 // klient-Pixeln). Dedupliceras mot klientens Purchase (lib/analytics) via SAMMA
@@ -481,6 +501,9 @@ async function fireMetaPurchase(order: Record<string, unknown>): Promise<void> {
     const currency = moneyCurrency(totals ?? order.currency, "SEK");
     const contentIds = extractContentIds(order);
     const items = extractItems(order);
+    // Justerad per-rad-lista (samma längd/ordning som items) med GUID-fallback,
+    // så contents[i].id alltid pekar på rätt rad och aldrig på ett produktnamn.
+    const alignedIds = extractContentIdsAligned(order);
     const numItems = items.reduce((n, it) => n + it.qty, 0) || contentIds.length || 1;
     // GUID (_id) FÖRST: det är detta Wix headless lägger i /tack-redirecten och
     // det klienten (lib/analytics) bygger sitt event_id på. number/orderNumber
@@ -507,7 +530,7 @@ async function fireMetaPurchase(order: Record<string, unknown>): Promise<void> {
         content_type: "product",
         content_ids: contentIds,
         contents: items.map((it, i) => ({
-          id: contentIds[i] || it.name,
+          id: alignedIds[i] ?? `wix_line_${i}`,
           quantity: it.qty,
           item_price: it.unitPrice,
         })),
