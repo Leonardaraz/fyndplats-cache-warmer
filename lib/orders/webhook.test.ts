@@ -1,6 +1,6 @@
 import { generateKeyPairSync, createSign } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { parseWebhookBody, verifyJwtRs256 } from "./webhook";
+import { decodeJwtUnsafe, parseWebhookBody, verifyJwtRs256 } from "./webhook";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const publicPem = publicKey.export({ type: "spki", format: "pem" }).toString();
@@ -51,5 +51,36 @@ describe("parseWebhookBody", () => {
 
   it("parses raw JSON when no public key is configured (dev/test)", () => {
     expect(parseWebhookBody(JSON.stringify({ id: "evt-2" }))).toEqual({ id: "evt-2" });
+  });
+
+  it("accepts a forwarded JWT body without verifying the signature", () => {
+    // En tampered JWT — signaturen skulle aldrig verifieras under normal flöde,
+    // men i fan-out:en från fyndplats-headless har vi redan verifierat upstream
+    // och vill kunna avkoda payloaden ändå.
+    const inner = { id: "evt-forwarded", slug: "created" };
+    const token = signJwt({ data: JSON.stringify(inner) });
+    const tampered = token.slice(0, -4) + "AAAA";
+
+    // Utan trustedForwarded: avvisas pga ogiltig signatur
+    expect(parseWebhookBody(tampered, publicPem)).toBeNull();
+
+    // Med trustedForwarded: payloaden plockas ut även om signaturen är trasig
+    expect(parseWebhookBody(tampered, publicPem, { trustedForwarded: true })).toEqual(inner);
+  });
+
+  it("accepts a forwarded raw-JSON body without verifying the signature", () => {
+    const body = JSON.stringify({ id: "evt-forwarded-json" });
+    expect(parseWebhookBody(body, publicPem, { trustedForwarded: true })).toEqual({
+      id: "evt-forwarded-json",
+    });
+  });
+
+  it("decodeJwtUnsafe extracts payload from a well-formed JWT without verifying", () => {
+    const token = signJwt({ hello: "from-headless" });
+    expect(decodeJwtUnsafe(token)).toEqual({ hello: "from-headless" });
+    // För få delar → null
+    expect(decodeJwtUnsafe("only.two")).toBeNull();
+    // 3 delar men payload-delen är inte giltig JSON → null
+    expect(decodeJwtUnsafe("not.a.jwt")).toBeNull();
   });
 });

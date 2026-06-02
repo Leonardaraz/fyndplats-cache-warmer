@@ -14,7 +14,20 @@ export async function POST(req: Request) {
   const raw = await req.text();
   const publicKey = process.env.WIX_WEBHOOK_PUBLIC_KEY;
 
-  const parsed = parseWebhookBody(raw, publicKey);
+  // Forward från fyndplats-headless: signaturen är redan verifierad upstream
+  // (Wix tillåter bara EN webhook-subscription per event-type, så headless tar
+  // emot Wix:s direktanrop och fan-out:ar hit). När X-Forwarded-From-headern
+  // sätts kan vi lita på payloaden utan att kräva WIX_WEBHOOK_PUBLIC_KEY här.
+  const forwardedFrom = req.headers.get("x-forwarded-from");
+  const trustedForwarded = forwardedFrom === "fyndplats-webhook";
+  if (trustedForwarded) {
+    console.log(
+      `[wix-order] accepting forwarded event from ${forwardedFrom} ` +
+        `(event-type=${req.headers.get("x-original-event-type") ?? "?"})`,
+    );
+  }
+
+  const parsed = parseWebhookBody(raw, publicKey, { trustedForwarded });
   if (!parsed) {
     return NextResponse.json({ error: "Ogiltig eller osignerad webhook" }, { status: 401 });
   }
