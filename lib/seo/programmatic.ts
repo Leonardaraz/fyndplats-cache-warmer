@@ -14,8 +14,10 @@
 // slår mot de cachade valid-listorna — core anropar dem aldrig, så ingen rekursion.
 //
 // QUALITY-GUARDS (mot thin/duplicate-content-straff):
-//   • Min 3 produkter (Pattern 1 & 2), min 4 (Pattern 3) — annars utesluts.
-//   • Min 250 ord synlig brödtext (intro + FAQ + produktnamn/priser).
+//   • Min 4 produkter (Pattern 1, 2 & 3) — annars utesluts.
+//   • Min 250 ord synlig brödtext i <main> (intro + FAQ + produktnamn/priser).
+//     INGEN bypass: alla mönster bär samma ordkrav, oavsett produktantal. Nav/
+//     footer räknas aldrig — bara content-modellen som renderas i <main>.
 //   • Unik H1 + meta per sida — seedad variation + unika slot-data; verifieras i
 //     scripts/verify-programmatic-full.mjs.
 import { cache } from "react";
@@ -28,9 +30,14 @@ import * as T from "./programmatic-templates";
 export const SITE = "https://www.fyndplats.se";
 export const PRICE_TIERS = [200, 500, 1000] as const;
 
-const MIN_PRODUCTS = 3; // Pattern 1 & 2
+// MIN_PRODUCTS lyftes från 3 → 4 (fix(seo) 2026-06-02): tar bort 6-product
+// bypass i tierCore och stramar floor mot thin content. Blast radius mot live
+// Wix-katalog (scripts/blast-radius.mjs): 15.0% av sidor faller ur (3/20),
+// vilket precis möter 15%-budgeten. Lägre tröskel (T=3) hade ingen blast radius
+// men lät tunnare basta-i-test-sidor leva vidare; högre (T=5) hade tagit 40%.
+const MIN_PRODUCTS = 4; // Pattern 1 & 2
 const MIN_INTEREST = 4; // Pattern 3
-const MIN_BODY_WORDS = 250;
+const MIN_BODY_WORDS = 250; // <main>-brödtext; gemensam tröskel för ALLA mönster (ingen bypass)
 const MAX_TYPE_LIST = 5; // bäst-i-test: 3–5 produkter
 const MAX_TIER_LIST = 24; // pris-tier: produktlista
 const MAX_INTEREST_LIST = 8; // för-dig-som: 4–8 produkter
@@ -379,9 +386,10 @@ function tierCore(products: Product[], collections: Collection[], cat: Collectio
   const minPrice = fmtKr(Math.min(...list.map((p) => p.priceNum)));
   const intro = T.priceTierIntro({ categoryName: cat.name, price, count: list.length, minPrice, seed });
   const bodyWords = wordCount(intro) + listWords(list);
-  // Korta listor (<6 produkter) måste bära 250 ord i intro+lista; långa listor
-  // har gott om synlig produkttext och slipper ordkravet.
-  if (bodyWords < MIN_BODY_WORDS && list.length < 6) return null;
+  // Samma ordkrav som alla andra mönster — INGEN bypass för långa produktlistor.
+  // En lista med ≥6 produkter men tunn brödtext är fortfarande thin content
+  // i Googles ögon och ska 404:a + falla ur sitemap.
+  if (bodyWords < MIN_BODY_WORDS) return null;
   return { cat, price, path, seed, products: list, minPrice, intro, bodyWords };
 }
 
@@ -609,7 +617,6 @@ export const categoryProgrammaticLinks = cache(async (categorySlug: string): Pro
   }
   return links;
 });
-
 export type ProgrammaticUrl = { path: string; changeFrequency: "daily" | "weekly" | "monthly"; priority: number };
 
 export const getProgrammaticUrls = cache(async (): Promise<ProgrammaticUrl[]> => {
