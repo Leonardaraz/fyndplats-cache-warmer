@@ -81,6 +81,18 @@ function mediaKey(url: string): string {
   return m ? m[1] : url || "";
 }
 
+// Variant-pillens miniatyr visas 38×38 px, men c.image pekade på full w_800-bild
+// (~90 KB styck). Med 5–7 varianter laddades 300–600 KB onödigt som stal band-
+// bredd från hjältebildens LCP (Lighthouse image-delivery: ~304 KB savings, LCP
+// sköt i höjden på simulerat 4G). Skala ner till en liten center-cropped webp
+// direkt från Wix-CDN (samma mekanism som hjältebildens loader). 120 px täcker
+// 38 px @3× retina.
+function thumbUrl(url: string): string {
+  const m = (url || "").match(/static\.wixstatic\.com\/media\/([^/]+)/);
+  if (!m) return url;
+  return `https://static.wixstatic.com/media/${m[1]}/v1/fill/w_120,h_120,al_c,q_80/file.webp`;
+}
+
 // Variantbilderna först (index = variant-index), sedan övriga galleribilder
 // (instruktioner etc.) som inte redan är en variantbild.
 function mergeGallery(choices: Choice[], images: string[]): string[] {
@@ -208,7 +220,7 @@ export function ProductView({
                 {variantMode === "image" ? (
                   <span className="varswatch-thumb">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={c.image} alt="" loading="lazy" />
+                    <img src={thumbUrl(c.image)} alt="" loading="lazy" width={38} height={38} decoding="async" />
                   </span>
                 ) : variantMode === "color" ? (
                   <span className="varswatch-dot" style={{ background: c.color || "#e5e7eb" }} />
