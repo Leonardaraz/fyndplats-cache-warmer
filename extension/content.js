@@ -31,9 +31,9 @@
 // vägrar popupen importera (bug 2026-05-31: tom skrapning skapade 0,9 kr-
 // spökprodukter med butikscopy).
 
-const EU_WAREHOUSE_CODES = new Set([
-  "ES", "DE", "CZ", "PL", "FR", "IT", "NL", "BE", "GB",
-]);
+// EU-warehouse-koder — EN sanningskälla i extension/eu-countries.js (laddas före
+// detta skript i manifest.json content_scripts). Feeds KNOWN_SHIP_CODES nedan.
+const EU_WAREHOUSE_CODES = globalThis.FP_EU.EU_CODES;
 
 const SHIP_FROM_NAME_MAP = {
   // Engelska

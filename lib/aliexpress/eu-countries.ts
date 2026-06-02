@@ -13,17 +13,44 @@
 //   - Stadsnamn ("Madrid")
 // Vi normaliserar i `normalizeShipFromCode()`.
 
-/** Default-lista — ändras via env FYNDPLATS_EU_COUNTRIES vid behov. */
+/**
+ * Default-lista — ändras via env FYNDPLATS_EU_COUNTRIES vid behov.
+ *
+ * MÅSTE hållas i synk med tilläggets extension/eu-countries.js (FP_EU.EU_CODES).
+ * Det är två modulsystem (browser-global vs TS-import) så de kan inte dela fil,
+ * men listorna ska vara identiska. Tidigare hade den här bara 9 länder medan
+ * tilläggets sök-sida körde 27 → en SE/DK-lager-produkt klassades som EU i
+ * discover men icke-EU i import/popup. Nu är alla samma 27 EU/EES-warehouse-
+ * länder (EU-medlemmar + EES (NO) + GB för snabba UK-lager).
+ */
 export const DEFAULT_EU_COUNTRIES = [
   "ES", // Spanien
-  "DE", // Tyskland
-  "CZ", // Tjeckien
   "PL", // Polen
+  "CZ", // Tjeckien
+  "DE", // Tyskland
   "FR", // Frankrike
   "IT", // Italien
   "NL", // Nederländerna
   "BE", // Belgien
+  "SE", // Sverige
+  "DK", // Danmark
+  "FI", // Finland
+  "AT", // Österrike
   "GB", // Storbritannien (inte EU men nära/snabb shipping)
+  "IE", // Irland
+  "PT", // Portugal
+  "GR", // Grekland
+  "NO", // Norge (EES)
+  "HU", // Ungern
+  "RO", // Rumänien
+  "SK", // Slovakien
+  "SI", // Slovenien
+  "HR", // Kroatien
+  "BG", // Bulgarien
+  "LT", // Litauen
+  "LV", // Lettland
+  "EE", // Estland
+  "LU", // Luxemburg
 ] as const;
 
 /** Returnerar aktuell EU-lista (env override → default). Versaler. */
@@ -54,6 +81,11 @@ const NAME_TO_CODE: Record<string, string> = {
   NETHERLANDS: "NL", HOLLAND: "NL",
   BELGIUM: "BE",
   "UNITED KINGDOM": "GB", UK: "GB", BRITAIN: "GB", ENGLAND: "GB",
+  SWEDEN: "SE", DENMARK: "DK", FINLAND: "FI", NORWAY: "NO",
+  AUSTRIA: "AT", IRELAND: "IE", PORTUGAL: "PT", GREECE: "GR",
+  HUNGARY: "HU", ROMANIA: "RO", SLOVAKIA: "SK", SLOVENIA: "SI",
+  CROATIA: "HR", BULGARIA: "BG", LITHUANIA: "LT", LATVIA: "LV",
+  ESTONIA: "EE", LUXEMBOURG: "LU",
   CHINA: "CN",
   "UNITED STATES": "US", USA: "US",
   RUSSIA: "RU",

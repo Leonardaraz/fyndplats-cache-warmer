@@ -1,11 +1,10 @@
 // Popup: hämtar extraherad produkt från content-scriptet, visar varianter med
 // kryssrutor (variant-filter), och postar valda varianter till import-API:t.
 
-// EU-warehouse codes — dupliceras från lib/aliexpress/eu-countries.ts.
-// Håll synkad när listan ändras.
-const EU_WAREHOUSE_CODES = new Set([
-  "ES", "DE", "CZ", "PL", "FR", "IT", "NL", "BE", "GB",
-]);
+// EU-warehouse-koder — EN sanningskälla i extension/eu-countries.js (laddas före
+// detta skript i popup.html). Tidigare hade popupen bara 9 länder medan
+// discover.js hade 27 → samma produkt (t.ex. SE/DK-lager) fick olika badge.
+const EU_WAREHOUSE_CODES = globalThis.FP_EU.EU_CODES;
 
 function badgeForShipFrom(code) {
   const span = document.createElement("span");

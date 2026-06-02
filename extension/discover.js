@@ -25,51 +25,10 @@
   if (window.__fpDiscoverLoaded) return; // skydda mot dubbelinjektion
   window.__fpDiscoverLoaded = true;
 
-  // --- EU-konstanter (synk med lib/aliexpress/eu-countries.ts) -----------
-  const EU_CODES = new Set([
-    "ES", "DE", "CZ", "PL", "FR", "IT", "NL", "BE", "GB",
-    "SE", "DK", "FI", "NO", "AT", "IE", "GR", "PT",
-    "HU", "RO", "SK", "SI", "HR", "BG", "LT", "LV", "EE", "LU",
-  ]);
-  // Ordning som auto-applikationen föredrar (störst EU-warehouses först).
-  const EU_PRIORITY = [
-    "ES", "PL", "CZ", "DE", "FR", "IT", "NL", "BE", "SE", "DK", "FI", "AT", "GB", "IE", "PT", "GR", "NO",
-  ];
-  // Lands-/sidofälts-namn → ISO-2 (engelska + svenska — AE-locale varierar).
-  const NAME_TO_ISO = {
-    "UNITED KINGDOM": "GB", UK: "GB", BRITAIN: "GB", ENGLAND: "GB", STORBRITANNIEN: "GB",
-    SPAIN: "ES", SPANIEN: "ES", "ESPAÑA": "ES",
-    GERMANY: "DE", TYSKLAND: "DE", DEUTSCHLAND: "DE",
-    "CZECH REPUBLIC": "CZ", CZECHIA: "CZ", TJECKIEN: "CZ",
-    POLAND: "PL", POLEN: "PL",
-    FRANCE: "FR", FRANKRIKE: "FR",
-    ITALY: "IT", ITALIEN: "IT", ITALIA: "IT",
-    NETHERLANDS: "NL", NEDERLÄNDERNA: "NL", HOLLAND: "NL",
-    BELGIUM: "BE", BELGIEN: "BE",
-    SWEDEN: "SE", SVERIGE: "SE",
-    DENMARK: "DK", DANMARK: "DK",
-    FINLAND: "FI",
-    NORWAY: "NO", NORGE: "NO",
-    AUSTRIA: "AT", ÖSTERRIKE: "AT",
-    IRELAND: "IE", IRLAND: "IE",
-    PORTUGAL: "PT",
-    GREECE: "GR", GREKLAND: "GR",
-    // icke-EU (för att kunna identifiera/varna)
-    CHINA: "CN", KINA: "CN",
-    TURKEY: "TR", TURKIET: "TR",
-    "UNITED STATES": "US", USA: "US", RUSSIA: "RU", RYSSLAND: "RU",
-  };
-  const ISO_TO_NAME = {
-    ES: "Spanien", DE: "Tyskland", CZ: "Tjeckien", PL: "Polen", FR: "Frankrike",
-    IT: "Italien", NL: "Nederländerna", BE: "Belgien", GB: "Storbritannien",
-    SE: "Sverige", DK: "Danmark", FI: "Finland", NO: "Norge", AT: "Österrike",
-    IE: "Irland", PT: "Portugal", GR: "Grekland",
-  };
-  const FLAG = {
-    ES: "🇪🇸", DE: "🇩🇪", CZ: "🇨🇿", PL: "🇵🇱", FR: "🇫🇷", IT: "🇮🇹", NL: "🇳🇱",
-    BE: "🇧🇪", GB: "🇬🇧", SE: "🇸🇪", DK: "🇩🇰", FI: "🇫🇮", NO: "🇳🇴", AT: "🇦🇹",
-    IE: "🇮🇪", PT: "🇵🇹", GR: "🇬🇷",
-  };
+  // --- EU-konstanter — EN sanningskälla i extension/eu-countries.js -------
+  // Laddas före detta skript via manifest.json (content_scripts-arrayen kör
+  // filerna i ordning i samma isolerade värld) och exponeras på globalThis.FP_EU.
+  const { EU_CODES, EU_PRIORITY, NAME_TO_ISO, ISO_TO_NAME, FLAG } = globalThis.FP_EU;
 
   const SHIP_HEAD_RE = /^\s*(shipping from|ship from|levereras\s*fr[åa]n|skickas\s*fr[åa]n|frakt(?:as)?\s*fr[åa]n)\s*$/i;
 
