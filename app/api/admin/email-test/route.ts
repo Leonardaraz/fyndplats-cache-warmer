@@ -20,11 +20,13 @@ import OrderConfirmationEmail from "@/emails/order-confirmation";
 import ShippingConfirmationEmail from "@/emails/shipping-confirmation";
 import DeliveryNotificationEmail, { deliverySubject } from "@/emails/delivery-notification";
 import RefundConfirmationEmail from "@/emails/refund-confirmation";
+import OrderCancellationEmail from "@/emails/order-cancellation";
 import ReturnConfirmationEmail from "@/emails/return-confirmation";
 import NewsletterWelcomeEmail from "@/emails/newsletter-welcome";
 import { renderAbandonedCart1 } from "@/emails/abandoned-cart-1";
 import { renderAbandonedCart2 } from "@/emails/abandoned-cart-2";
 import { renderAbandonedCart3 } from "@/emails/abandoned-cart-3";
+import { renderAbandonedCart3NoCode } from "@/emails/abandoned-cart-3-no-code";
 import { unsubscribeUrl } from "@/lib/newsletter";
 
 export const runtime = "nodejs";
@@ -116,6 +118,23 @@ const TEMPLATES: Record<string, TemplateEntry> = {
         }),
       ),
   },
+  "order-cancellation": {
+    label: "Orderavbokning",
+    subject: `Din beställning ${ORDER_NO} är avbruten`,
+    render: () =>
+      render(
+        OrderCancellationEmail({
+          firstName: "Leonard",
+          orderNumber: ORDER_NO,
+          cancellationDate: new Date().toLocaleDateString("sv-SE", { day: "numeric", month: "long", year: "numeric" }),
+          totalAmount: 296.98,
+          currency: "SEK",
+          paymentMethod: "Klarna Pay Later",
+          cancellationReason: "Kund ångrade köpet",
+          refundInitiated: false,
+        }),
+      ),
+  },
   "return-confirmation": {
     label: "Returbekräftelse (manuell)",
     subject: `Vi har tagit emot din returanmälan – order ${ORDER_NO}`,
@@ -169,6 +188,18 @@ const TEMPLATES: Record<string, TemplateEntry> = {
         currency: "SEK",
         discountCode: "FP5-TEST-ABC123",
         expiresAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+        unsubscribeUrl: unsubscribeUrl(to),
+      }).html,
+  },
+  "abandoned-cart-3-no-code": {
+    label: "Övergiven kundvagn – 72h (utan kod)",
+    subject: "Vi saknar dig — din kundvagn väntar",
+    render: (to) =>
+      renderAbandonedCart3NoCode({
+        items: sampleItems.map((i) => ({ name: i.name, quantity: i.qty, imageUrl: i.imageUrl, priceMinor: Math.round(i.unitPrice * 100) })),
+        recoverUrl: "https://www.fyndplats.se",
+        subtotalMinor: 31698,
+        currency: "SEK",
         unsubscribeUrl: unsubscribeUrl(to),
       }).html,
   },

@@ -12,11 +12,13 @@ const TEMPLATES: { key: string; label: string; note?: string }[] = [
   { key: "shipping-confirmation", label: "Fraktbekräftelse / på väg", note: "Wix order_shipped" },
   { key: "delivery-notification", label: "Leverans-/utlämnings-notis", note: "/api/sms-inbound" },
   { key: "refund-confirmation", label: "Återbetalning", note: "Wix refund" },
+  { key: "order-cancellation", label: "Orderavbokning", note: "Wix order_cancelled" },
   { key: "return-confirmation", label: "Returbekräftelse", note: "manuell" },
   { key: "newsletter-welcome", label: "Nyhetsbrev-välkomst", note: "/api/newsletter-signup" },
   { key: "abandoned-cart-1", label: "Övergiven kundvagn – 1h", note: "poller+sender" },
   { key: "abandoned-cart-2", label: "Övergiven kundvagn – 24h", note: "poller+sender" },
   { key: "abandoned-cart-3", label: "Övergiven kundvagn – 72h (5% kod)", note: "poller+sender" },
+  { key: "abandoned-cart-3-no-code", label: "Övergiven kundvagn – 72h (utan kod)", note: "poller+sender" },
 ];
 
 type Result = { template: string; ok: boolean; resendId?: string; error?: string };
