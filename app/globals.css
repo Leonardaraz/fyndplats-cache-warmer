@@ -1,5 +1,9 @@
 :root{
-  --ink:#1c1c1c; --soft:#7a736b; --line:#EFE7DE;
+  /* --soft = dämpad metatext (counts, labels, lede). Mörkad från #7a736b
+     (≈4,3:1 på cream → underkänt WCAG AA) till #6b6157 som ger ≥4,5:1 mot
+     både cream-bakgrunderna (#FAF6F0/#FFF6EF) och vitt. --text-muted är ett
+     semantiskt alias för samma värde. */
+  --ink:#1c1c1c; --soft:#6b6157; --text-muted:#6b6157; --line:#EFE7DE;
   --orange:#F47A35; --orange2:#E5681F; --peach:#FFB078; --char:#222018; --warm:#FFF6EF;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -183,7 +187,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .prod .prow{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:12px}
 .prod .pprice{font-size:17px;font-weight:800;color:#C2410C;width:100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;line-height:1.25}
 .pprice-now{white-space:nowrap}
-.pprice-old{font-size:13px;font-weight:600;color:#a39c93;text-decoration:line-through}
+.pprice-old{font-size:13px;font-weight:600;color:#7c746b;text-decoration:line-through}
 .sale-badge{position:absolute;top:10px;left:10px;z-index:2;background:#F84848;color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:7px;box-shadow:0 4px 10px -3px rgba(248,72,72,.6)}
 .prod .pbtn{flex:0 0 auto;white-space:nowrap;font-size:12.5px;font-weight:700;color:#fff;background:var(--ink);border-radius:9px;padding:8px 12px}
 .center{text-align:center;margin-top:34px}
@@ -427,7 +431,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 @media(max-width:540px){.lb-nav{width:42px;height:42px;font-size:26px}.lb-prev{left:8px}.lb-next{right:8px}}
 .pinfo h1{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px}
 .pdp-price{font-size:30px;font-weight:800;color:#C2410C;margin-bottom:10px}
-.pdp-price-old{font-size:18px;font-weight:600;color:#a39c93;text-decoration:line-through;margin-left:10px;vertical-align:middle}
+.pdp-price-old{font-size:18px;font-weight:600;color:#7c746b;text-decoration:line-through;margin-left:10px;vertical-align:middle}
 .pdp-sale{display:inline-block;vertical-align:middle;margin-left:10px;background:#F84848;color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:7px}
 .pdp-desc{font-size:15px;color:#4a443d;line-height:1.7;margin-bottom:24px;overflow-wrap:break-word}
 /* Wix-beskrivningen är rå HTML → tämja innehåll som annars spiller över skärmbredden */

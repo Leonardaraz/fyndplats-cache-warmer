@@ -100,7 +100,7 @@ export default function Kopvillkor() {
         <li><a href="/kontaktaoss">Kontakta oss</a></li>
       </ul>
 
-      <p style={{ fontSize: 13, color: "#7a7268", marginTop: 24 }}>Senast uppdaterad: 30 maj 2026</p>
+      <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 30 maj 2026</p>
     </ContentPage>
   );
 }
