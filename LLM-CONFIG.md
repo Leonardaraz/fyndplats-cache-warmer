@@ -46,7 +46,7 @@ WIX_DATA_COL_LLM_STATS=FyndplatsLlmStats
 | `CLAUDE_TEXT_MODEL` | `claude-haiku-4-5-20251001` | För kategorisering. Haiku 4.5 är 3× billigare än Sonnet ($1/M in, $5/M ut vs $3/$15) och funkar utmärkt för "välj-ur-lista"-uppgifter. |
 | `CLAUDE_VISION_MODEL` | `claude-sonnet-4-5` | För bildanalys (QA av produktbilder). Vision-kvalitet är viktig — behåll Sonnet. |
 | `CLAUDE_SEO_MODEL` | `claude-sonnet-4-6` | För svensk SEO-copywriting. Kvalitets-sensitiv, behåll Sonnet. |
-| `AI_ENRICHMENT_ENABLED` | `true` | Master-switch för ALL AI-berikning i import-pipelinen. `false` = importera RÅ AliExpress-data utan ETT enda Claude-anrop ($0): rå titel/beskrivning, deterministisk variant-översättning + pris + lager funkar ändå, produkten blir draft i Wix och poleras gratis via chatten (Wix MCP). Default-arbetsflödet i prod — se `CLAUDE.md`. Override per import: `flags.enableAI` (vinner över env). |
+| `AI_ENRICHMENT_ENABLED` | `true` | Master-switch för ALL AI-berikning i import-pipelinen. `false` = importera RÅ AliExpress-data utan ETT enda Claude-anrop ($0): rå titel/beskrivning, deterministisk variant-översättning + pris + lager funkar ändå, produkten blir draft i `/admin/queue` och poleras gratis via chatten. Default-arbetsflödet i prod — se `CLAUDE.md`. Override per import: `flags.enableAI` (vinner över env). |
 
 ### Gemini-fallback
 

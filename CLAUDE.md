@@ -15,14 +15,12 @@ Sätt `AI_ENRICHMENT_ENABLED=false` i Vercel (production). Då:
   beskrivning**, deterministisk svensk **variant-översättning** (gratis, via
   `variant-translations.ts`), **prissättning** + **lager** (deterministiskt),
   bilder, EU-lager-ribbon, spec-fliken från råa specs.
-- Produkten blir en **draft i Wix** (osynlig i butiken) via det existerande
-  draft-default-beteendet (`IMPORT_DRAFT_DEFAULT`) — inga extra UI-ändringar i
-  `/admin/queue` behövs.
-
-**Poleringsflöde (gratis):** Leonard säger *"polera produkten X"* i Cowork-chatten
-→ Claude skriver svensk SEO-titel/beskrivning/FAQ/kategori och uppdaterar Wix-
-produkten direkt via **Wix MCP** (eller admin). Kostnaden hamnar i chatt-sessionen,
-inte i den betalda import-API-pipelinen.
+- Produkten blir **draft** (`visible:false`) och hamnar i **`/admin/queue`** med
+  badgen **"✨ Behöver AI-polering"** (filter-chip finns).
+- I kön finns knappen **"✨ Be Claude i chatten att polera"** → kopierar
+  produkt-info + Wix-ID till urklipp. Klistra in i Cowork-chatten och säg
+  *"polera denna"* så skriver Claude SEO/beskrivning/FAQ/kategori gratis i chatten
+  istället för via betald API-pipeline.
 
 ### Bulk-läge: AI-berikning PÅ (kostar Anthropic-credits)
 
@@ -40,9 +38,8 @@ trots env=true. Flaggan är default men inte hård (`aiEnrichmentEnabled()`).
 ### Var det gatas
 
 `aiEnrichmentEnabled(flags)` i `lib/import/pipeline.ts` är enda beslutspunkten.
-När AI är av: `runSeo/runImageAnalysis/runCategory/batched` blir alla `false`
-(rå titel/beskrivning via `buildFallbackSeo`, okategoriserad, spec-flik ur råa
-specs), och `lib/bulk-import/worker.ts` tvingar realtidsvägen (ingen Batch
-API-pre-generering som annars kostar).
+När AI är av: `runSeo/runImageAnalysis/runCategory/batched` blir alla `false`,
+`importProduct` returnerar `needsAiPolish:true`, och `lib/bulk-import/worker.ts`
+tvingar realtidsvägen (ingen Batch API-pre-generering som annars kostar).
 
 Övriga LLM-/kostnads-env-variabler dokumenteras i **`LLM-CONFIG.md`**.

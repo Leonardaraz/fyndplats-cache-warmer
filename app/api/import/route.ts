@@ -6,7 +6,10 @@ import { importProduct } from "@/lib/import/pipeline";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
+import { recordSupplierImport } from "@/lib/import/supplier-tracking";
 import { importReviewsForProduct } from "@/lib/import/review-import";
+import { saveProductHash } from "@/lib/store/product-hashes";
+import { pHashFromUrl } from "@/lib/import/phash";
 import {
   hasFyndplatsImageUrl,
   hasUsablePrice,
@@ -65,6 +68,25 @@ const ProductSchema = z.object({
   // Per-val bild-URL:er { [optionName]: { [choiceName]: "https://…alicdn.jpg" } }.
   // Laddas upp + kopplas till Wix-optionsval (linkedMedia) → huvudbild byts vid färgval.
   swatchImages: z.record(z.record(z.string())).optional(),
+  // Säljardata (Feature 6 — säljar-score). supplierId obligatoriskt om fältet
+  // skickas; övriga AE-fält valfria. Saknas helt = säljaren kunde inte skrapas.
+  // Utökade fält (bug 2026-06-02): positiveFeedbackPct, yearsOnAE, topBrand
+  // används av säljar-score för riskflaggor.
+  supplier: z
+    .object({
+      supplierId: z.string().min(1),
+      supplierName: z.string().optional(),
+      supplierStoreUrl: z.string().optional(),
+      aeRating: z.number().optional(),
+      aeFollowers: z.number().optional(),
+      positiveFeedbackPct: z.number().min(0).max(100).optional(),
+      yearsOnAE: z.number().int().min(0).max(30).optional(),
+      topBrand: z.boolean().optional(),
+    })
+    .optional(),
+  // Full HTML-beskrivning från AE:s Product Description-sektion (renad). Optional
+  // — saknas = bara rawDescription + specifications finns att jobba med (rå-läge).
+  descriptionHtml: z.string().optional(),
   // AI-funktionsväljare från extension-popupen. Saknas = allt på (default).
   featureFlags: z
     .object({
@@ -72,12 +94,24 @@ const ProductSchema = z.object({
       seo: z.boolean().optional(),
       imageAnalysis: z.boolean().optional(),
       autoCategorize: z.boolean().optional(),
+      // AI-kvalitetsläge-dropdown (raw/standard/premium). Saknas = env-default.
+      qualityMode: z.enum(["raw", "standard", "premium"]).optional(),
     })
     .optional(),
   // Skrapade AliExpress-recensioner (social proof). Översätts (DeepL, GRATIS)
   // och sparas i FyndplatsImportedReviews EFTER produktimporten. Best-effort —
   // recensionsfel fäller aldrig själva produktimporten.
   reviewsToImport: z.array(ReviewSchema).optional(),
+  // Per-import-prisoverride (extension-dropdownen "Marginal-tier" → Premium/Custom).
+  // Saknas = default-tier via FyndplatsPricingConfig (bakåtkompatibelt). Vinner
+  // över default-/kategori-/intervallregeln för just den här importen.
+  pricingOverride: z
+    .object({
+      multiplier: z.number().min(1).max(5),
+      floorSek: z.number().nonnegative().optional(),
+      ceilingSek: z.number().positive().optional(),
+    })
+    .optional(),
 });
 
 export async function POST(req: Request) {
@@ -97,7 +131,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Valideringsfel", details: parsed.error.flatten() }, { status: 422 });
   }
 
-  const { optionColorCodes, featureFlags, reviewsToImport, ...product } = parsed.data;
+  const { optionColorCodes, featureFlags, supplier, reviewsToImport, pricingOverride, ...product } = parsed.data;
 
   // Skydd: källan MÅSTE vara en AliExpress-produkt-URL. Hindrar att en
   // felskrapad sida (t.ex. fyndplats.se i en annan flik) importeras.
@@ -162,18 +196,48 @@ export async function POST(req: Request) {
     // Smart routing: /api/import är extension-knappen (UX-blockerande) → ALLTID
     // realtid, oavsett USE_BATCH_API. Loggas per import för spårbarhet/verifiering.
     console.log(`[import] ${describeRouting("extension")} pid=${product.supplierProductId}`);
+    // Premium-läget (komponent 4): mata in de skrapade recensionerna i FAQ-
+    // genereringen så frågorna grundas i vad kunder faktiskt undrat. Best-effort.
+    const premiumReviewHints =
+      reviewsToImport && reviewsToImport.length > 0
+        ? reviewsToImport
+            .filter((r) => typeof r.text === "string" && r.text.trim())
+            .map((r) => ({ text: r.text, rating: r.rating }))
+        : undefined;
     const result = await importProduct(
       product as AliExpressProduct,
       await getPricingRules(),
       optionColorCodes,
       featureFlags,
+      undefined,
+      premiumReviewHints ? { reviews: premiumReviewHints } : undefined,
+      pricingOverride,
     );
-    const draftStatus = process.env.IMPORT_DRAFT_DEFAULT === "false" ? "published" : "pending_review";
     // Defensiv: image-analys + kategoriförslag är opt-in (WIP-fält som inte
     // alltid returneras av pipelinen och inte alltid är deklarerade i typen).
     // Cast:ar via Record<string, unknown> så TS godkänner båda formerna.
     const resultAny = result as unknown as Record<string, unknown>;
+    // RÅ import (AI_ENRICHMENT_ENABLED=false) → ALLTID granskningskön: produkten
+    // är opolerad (draft) och måste poleras + godkännas manuellt, oavsett
+    // IMPORT_DRAFT_DEFAULT. Normal import följer IMPORT_DRAFT_DEFAULT som förut.
+    const needsAiPolish = resultAny.needsAiPolish === true;
+    // PREMIUM: produkten publicerades direkt om kvalitets-judgen godkände
+    // (visible:true sattes i pipelinen). Underkänd premium → needsManualPolish →
+    // granskningskön. Övriga lägen: oförändrat IMPORT_DRAFT_DEFAULT-beteende.
+    const isPremiumResult = resultAny.qualityMode === "premium";
+    const needsManualPolish = resultAny.needsManualPolish === true;
+    const draftStatus = isPremiumResult
+      ? needsManualPolish
+        ? "pending_review"
+        : "published"
+      : !needsAiPolish && process.env.IMPORT_DRAFT_DEFAULT === "false"
+        ? "published"
+        : "pending_review";
     const mappingExtras: Record<string, unknown> = {};
+    if (needsAiPolish) mappingExtras.needsAiPolish = true;
+    if (needsManualPolish) mappingExtras.needsManualPolish = true;
+    if (isPremiumResult) mappingExtras.qualityMode = "premium";
+    if (typeof resultAny.qualityScore === "number") mappingExtras.qualityScore = resultAny.qualityScore;
     if (resultAny.imageAnalysis !== undefined) mappingExtras.imageAnalysis = resultAny.imageAnalysis;
     if (resultAny.categorySuggestion !== undefined) mappingExtras.categorySuggestion = resultAny.categorySuggestion;
     // Warehouse-metadata (EU-filterring) — sätts av pipelinen om shipFrom
@@ -184,6 +248,12 @@ export async function POST(req: Request) {
     if (resultAny.warehouseClass !== undefined) mappingExtras.warehouseClass = resultAny.warehouseClass;
     // Persistera slug-kollision-suffix på mapping så /admin/queue kan visa badge.
     if (resultAny.slugSuffix !== undefined) mappingExtras.slugSuffix = resultAny.slugSuffix;
+    // Säljar-koppling (Feature 6): foreign key till FyndplatsSuppliers + namn
+    // (denormaliserat för admin-vyer). Sätts bara om säljaren kunde skrapas.
+    if (supplier) {
+      mappingExtras.supplierId = supplier.supplierId;
+      if (supplier.supplierName) mappingExtras.supplierName = supplier.supplierName;
+    }
 
     await getStore().saveMapping({
       supplierProductId: result.supplierProductId,
@@ -222,6 +292,43 @@ export async function POST(req: Request) {
         "[import] FyndplatsImportCosts.upsert failade (icke-fatalt):",
         costErr instanceof Error ? costErr.message : costErr,
       );
+    }
+
+    // Dubblett-index (Feature 1): spara huvudbildens pHash + AliExpress-id i
+    // FyndplatsProductHashes så att framtida importer kan dubblett-checkas mot den
+    // här produkten direkt (utan att vänta på nästa backfill). Best-effort — hash-
+    // fel (bild nere, kollektion saknas) får aldrig fälla importen.
+    try {
+      const firstImage = product.imageUrls[0];
+      const phash = firstImage ? await pHashFromUrl(firstImage) : null;
+      await saveProductHash({
+        wixProductId: result.wixProductId,
+        productName: result.seo.title,
+        phash,
+        aeProductId: result.supplierProductId,
+        imageUrl: firstImage,
+        slug: result.slug,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (hashErr) {
+      console.warn(
+        "[import] FyndplatsProductHashes.save failade (icke-fatalt):",
+        hashErr instanceof Error ? hashErr.message : hashErr,
+      );
+    }
+
+    // Säljar-score (Feature 6): upserta säljaren i FyndplatsSuppliers och länka
+    // produkten. Best-effort — om kollektionen saknas eller skrivningen failar
+    // ska importen inte avbrytas; logga bara och fortsätt.
+    if (supplier) {
+      try {
+        await recordSupplierImport(supplier, result.wixProductId);
+      } catch (supErr) {
+        console.warn(
+          "[import] recordSupplierImport failade (icke-fatalt):",
+          supErr instanceof Error ? supErr.message : supErr,
+        );
+      }
     }
 
     // Recensions-import (social proof): filtrera/ranka/översätt (DeepL, GRATIS)

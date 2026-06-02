@@ -86,6 +86,21 @@ export interface ProductMappingRecord {
   priorityReason?: string;
   /** ISO-tid då priority senast ändrades automatiskt. */
   priorityUpdatedAt?: string;
+  /**
+   * AliExpress seller/store-id (Feature 6 — säljar-score). Foreign key till
+   * FyndplatsSuppliers. Sätts vid import om extensionen kunde skrapa säljaren.
+   * Saknas = importerad innan säljarspårningen fanns (eller säljaren okänd).
+   */
+  supplierId?: string;
+  /** AE-butikens namn (denormaliserat för admin-vyer, slipper extra uppslag). */
+  supplierName?: string;
+  /**
+   * True när produkten importerades RÅ (AI_ENRICHMENT_ENABLED=false): ingen
+   * Claude-text/kategori/bild-ranking kördes. /admin/queue visar då en
+   * "✨ Behöver AI-polering"-badge + knapp för att polera via chatten. Saknas =
+   * normalt AI-berikad import (back-compat med äldre rader).
+   */
+  needsAiPolish?: boolean;
 }
 
 export interface AuditEntry {

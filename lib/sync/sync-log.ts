@@ -69,6 +69,13 @@ export interface SyncStateEntry {
    * även om cronen kör flera gånger. Saknas = aldrig larmat.
    */
   lastOosAlertAt?: string | null;
+  /**
+   * ISO-tid då produkten senast gick till slut-i-lager (Feature 8 — SEO-vänlig
+   * OOS). Sätts vid övergången aktiv→slut och nollställs (null) vid restock.
+   * Låter headless-sajten visa "Slutsåld sedan X" på produktsidan. Saknas/null
+   * = produkten är inte (och har inte registrerats som) slut.
+   */
+  outOfStockSince?: string | null;
 }
 
 export type AlertType = "price_increase" | "content_change";

@@ -5,12 +5,14 @@
 import Link from "next/link";
 import { getStore } from "@/lib/store/factory";
 import type { ProductMappingRecord } from "@/lib/store/index";
+import { getSupplierStore, type SupplierRecord, type SupplierStatus } from "@/lib/import/supplier-tracking";
 import {
   acceptCategorySuggestion,
   publishProducts,
   rejectProducts,
   removeImage,
 } from "./actions";
+import { PolishButton } from "./polish-button";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +50,15 @@ function warehouseClassOf(m: ProductMappingRecord): "EU" | "CN" | "MIXED" | "UNK
   return "UNKNOWN";
 }
 
+const SUPPLIER_BADGE: Record<
+  SupplierStatus,
+  { label: string; bg: string; color: string; border: string }
+> = {
+  good: { label: "✓ Säljare OK", bg: "#d1fae5", color: "#065f46", border: "#6ee7b7" },
+  warning: { label: "⚠️ Säljare medel", bg: "#fef3c7", color: "#92400e", border: "#fcd34d" },
+  blocked: { label: "⛔ Säljare blockerad", bg: "#fee2e2", color: "#991b1b", border: "#fecaca" },
+};
+
 const VERDICT_LABEL: Record<"ok" | "warn" | "reject", string> = {
   ok: "OK",
   warn: "Varning",
@@ -67,23 +78,31 @@ export default async function QueuePage({
 }) {
   const sp = (await searchParams) ?? {};
   const euOnly = sp.eu === "1" || sp.eu === "true";
+  const polishOnly = sp.polish === "1" || sp.polish === "true";
   const sortMode = sp.sort === "eu" ? "eu" : "date";
 
   const store = getStore();
   const all = await store.listMappings();
+  // Säljar-score (Feature 6) — slå upp status per supplierId för kö-badgen.
+  const suppliers = await getSupplierStore()
+    .listAll()
+    .catch(() => [] as SupplierRecord[]);
+  const supplierById = new Map(suppliers.map((s) => [s.supplierId, s]));
   const sortFn = sortMode === "eu" ? euFirst : pendingFirst;
   const pendingAll = all
     .filter((m) => (m.draftStatus ?? "published") === "pending_review")
     .sort(sortFn);
-  const pending = euOnly
+  let pending = euOnly
     ? pendingAll.filter((m) => m.hasEuWarehouse === true)
     : pendingAll;
+  if (polishOnly) pending = pending.filter((m) => m.needsAiPolish === true);
   const recent = all
     .filter((m) => m.draftStatus === "published" || m.draftStatus === "rejected")
     .sort(pendingFirst)
     .slice(0, 10);
   const totalPending = pendingAll.length;
   const euPendingCount = pendingAll.filter((m) => m.hasEuWarehouse === true).length;
+  const polishPendingCount = pendingAll.filter((m) => m.needsAiPolish === true).length;
 
   // Aggregera bild-analys-statistik för översikt högst upp.
   const stats = pending.reduce(
@@ -152,6 +171,11 @@ export default async function QueuePage({
           active={euOnly}
           label={`🇪🇺 Endast EU-lager (${euPendingCount})`}
         />
+        <ChipLink
+          href={buildQs(sp, { polish: "1" })}
+          active={polishOnly}
+          label={`✨ Behöver AI-polering (${polishPendingCount})`}
+        />
         <span style={{ borderLeft: "1px solid #e5e7eb", margin: "0 4px" }} />
         <ChipLink
           href={buildQs(sp, { sort: undefined })}
@@ -172,7 +196,11 @@ export default async function QueuePage({
         <form>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {pending.map((p) => (
-              <QueueCard key={p.wixProductId} product={p} />
+              <QueueCard
+                key={p.wixProductId}
+                product={p}
+                supplier={p.supplierId ? supplierById.get(p.supplierId) : undefined}
+              />
             ))}
           </div>
 
@@ -228,7 +256,13 @@ export default async function QueuePage({
   );
 }
 
-function QueueCard({ product: p }: { product: ProductMappingRecord }) {
+function QueueCard({
+  product: p,
+  supplier,
+}: {
+  product: ProductMappingRecord;
+  supplier?: SupplierRecord;
+}) {
   const images = p.imageAnalysis ?? [];
   const okImages = images.filter((i) => i.verdict === "ok");
   const flaggedImages = images.filter((i) => i.verdict !== "ok");
@@ -274,6 +308,28 @@ function QueueCard({ product: p }: { product: ProductMappingRecord }) {
               {badge.label}
               {codes.length ? ` (${codes.join(", ")})` : ""}
             </span>
+            {supplier ? (
+              <span
+                title={
+                  `Säljare: ${supplier.supplierName || supplier.supplierId} · ` +
+                  `klagomål ${supplier.complaintRate}% (${supplier.complaintCount}/${supplier.productsSold} sålda) · ` +
+                  `leverans ${supplier.avgShipDays} dgr · ${supplier.productsImported} importerade` +
+                  (supplier.aeRating ? ` · AE-score ${supplier.aeRating}` : "")
+                }
+                style={{
+                  display: "inline-block",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: SUPPLIER_BADGE[supplier.status].bg,
+                  color: SUPPLIER_BADGE[supplier.status].color,
+                  border: `1px solid ${SUPPLIER_BADGE[supplier.status].border}`,
+                }}
+              >
+                {SUPPLIER_BADGE[supplier.status].label}
+              </span>
+            ) : null}
             {p.slugSuffix ? (
               <span
                 title={`Wix returnerade DUPLICATE_SLUG_ERROR — suffix "${p.slugSuffix}" lades på automatiskt.`}
@@ -289,6 +345,23 @@ function QueueCard({ product: p }: { product: ProductMappingRecord }) {
                 }}
               >
                 Slug auto-justerad ({p.slugSuffix})
+              </span>
+            ) : null}
+            {p.needsAiPolish ? (
+              <span
+                title="Importerad RÅ (AI-berikning av) — saknar AI-genererad SEO/beskrivning/kategori. Polera via chatten."
+                style={{
+                  display: "inline-block",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "#f3e8ff",
+                  color: "#6b21a8",
+                  border: "1px solid #d8b4fe",
+                }}
+              >
+                ✨ Behöver AI-polering
               </span>
             ) : null}
           </div>
@@ -307,6 +380,15 @@ function QueueCard({ product: p }: { product: ProductMappingRecord }) {
           </div>
         </div>
       </div>
+
+      {/* RÅ import (behöver AI-polering): kopiera produkt-info till chatten. */}
+      {p.needsAiPolish ? (
+        <PolishButton
+          wixProductId={p.wixProductId}
+          title={p.seoTitle}
+          sourceUrl={p.sourceUrl}
+        />
+      ) : null}
 
       {/* Kategoriförslag */}
       {cat ? <CategoryRow productId={p.wixProductId} cat={cat} /> : null}

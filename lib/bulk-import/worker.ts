@@ -325,6 +325,8 @@ export async function finishImport(
   // Spara mapping (samma form som /api/import gör).
   const resultAny = result as unknown as Record<string, unknown>;
   const mappingExtras: Record<string, unknown> = {};
+  // RÅ import (AI_ENRICHMENT_ENABLED=false) → markera för polering i /admin/queue.
+  if (resultAny.needsAiPolish === true) mappingExtras.needsAiPolish = true;
   if (resultAny.imageAnalysis !== undefined) mappingExtras.imageAnalysis = resultAny.imageAnalysis;
   if (resultAny.categorySuggestion !== undefined) mappingExtras.categorySuggestion = resultAny.categorySuggestion;
 

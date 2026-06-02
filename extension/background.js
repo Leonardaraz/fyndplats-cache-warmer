@@ -35,12 +35,23 @@ async function importProduct(product, featureFlags) {
     sourceUrl: product.sourceUrl,
     rawTitle: product.rawTitle,
     rawDescription: product.rawDescription || "",
+    // Full HTML-beskrivning från AE:s Product Description-sektion (renad).
+    // Skickas bara när skrapan faktiskt fick HTML — annars använder backend
+    // rawDescription. Bug 2026-06-02.
+    ...(typeof product.descriptionHtml === "string" && product.descriptionHtml.length
+      ? { descriptionHtml: product.descriptionHtml }
+      : {}),
     imageUrls: product.imageUrls || [],
     // Aggregerade warehouse-koder för EU-filterringen (t.ex. ["ES","CN"]).
     // Tom = okänd — API:t hanterar det som UNKNOWN i Wix-metadatat.
     shipsFrom: Array.isArray(product.shipsFrom) ? product.shipsFrom : [],
     // Lagerstatus från skrapan. Bara explicit false = OOS; annars i lager.
     ...(typeof product.inStock === "boolean" ? { inStock: product.inStock } : {}),
+    // Säljardata (Feature 6 — säljar-score). Skickas bara när skrapan kunde
+    // identifiera säljaren (supplierId ifyllt), annars utelämnas fältet.
+    ...(product.supplier && product.supplier.supplierId
+      ? { supplier: product.supplier }
+      : {}),
     variants: product.variants.map((v) => ({
       supplierVariantId: v.supplierVariantId,
       options: v.options || {},
@@ -71,6 +82,12 @@ async function importProduct(product, featureFlags) {
       : {}),
     // AI-funktionsväljare från popupen. Saknas = backend kör allt (default på).
     ...(featureFlags ? { featureFlags } : {}),
+    // Per-import-prisoverride (Marginal-tier-dropdownen → Premium/Custom). Skickas
+    // bara när Leonard valt något annat än "Standard" — annars utelämnas fältet och
+    // backend använder default-tiern (bakåtkompatibelt).
+    ...(product.pricingOverride && typeof product.pricingOverride.multiplier === "number"
+      ? { pricingOverride: product.pricingOverride }
+      : {}),
     // Skrapade AliExpress-recensioner (social proof). Översätts server-side via
     // DeepL (GRATIS) och sparas i FyndplatsImportedReviews. Skickas bara när
     // skrapan faktiskt hittade recensioner (annars utelämnas fältet helt).
@@ -306,6 +323,34 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     case "SAMPLE_COLORS":
       sampleSwatchColors(msg.swatchImages).then(sendResponse);
       return true;
+    case "SUPPLIER_STATUS":
+      // Slår upp säljarens score/status före import (Feature 6).
+      apiCall(`/api/supplier-status?supplierId=${encodeURIComponent(msg.supplierId)}`, {
+        method: "GET",
+      }).then(sendResponse);
+      return true;
+    case "CHECK_DUPLICATE": {
+      // Dubblett-detektor (Feature 1) — kollar titel/bild/AE-id mot butiken.
+      const q = new URLSearchParams();
+      if (msg.title) q.set("title", msg.title);
+      if (msg.imageUrl) q.set("imageUrl", msg.imageUrl);
+      if (msg.aeId) q.set("aeId", msg.aeId);
+      apiCall(`/api/check-duplicate?${q.toString()}`, { method: "GET" }).then(sendResponse);
+      return true;
+    }
+    case "COMPETITOR_PRICES": {
+      // Konkurrentpris-check (Feature 2) — svenska prisjämförelsetjänster.
+      const q = new URLSearchParams();
+      if (msg.title) q.set("title", msg.title);
+      if (typeof msg.ourPrice === "number") q.set("ourPrice", String(msg.ourPrice));
+      apiCall(`/api/competitor-prices?${q.toString()}`, { method: "GET" }).then(sendResponse);
+      return true;
+    }
+    case "PRICING_CONFIG":
+      // Aktuella prissättningsregler (default-multiplikator, tiers, moms) → visas
+      // som hint i popupen så Leonard ser default-tiern innan han väljer override.
+      apiCall("/api/pricing-config", { method: "GET" }).then(sendResponse);
+      return true;
     case "FETCH_TASKS":
       apiCall("/api/tasks?status=pending", { method: "GET" }).then(sendResponse);
       return true;
@@ -318,4 +363,4 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     default:
       return;
   }
-});
+});

@@ -127,7 +127,7 @@ afterEach(() => {
 });
 
 describe("importProduct — AI_ENRICHMENT_ENABLED av (rå import)", () => {
-  it("gör NOLL Claude-anrop och skapar produkten ur rå data", async () => {
+  it("gör NOLL Claude-anrop och skapar produkten RÅ (draft + needs_ai_polish)", async () => {
     const result = await importProduct(makeProduct(), RULES, undefined, { enableAI: false });
 
     // Inte ETT enda AI-anrop.
@@ -137,8 +137,10 @@ describe("importProduct — AI_ENRICHMENT_ENABLED av (rå import)", () => {
     expect(generateSeo).not.toHaveBeenCalled();
     expect(generateTabs).not.toHaveBeenCalled();
 
-    // Produkten skapas (Wix sätter draft/visible via existerande IMPORT_DRAFT_DEFAULT).
+    // Produkten skapas men som draft (osynlig) och flaggas för polering.
     expect(createProduct).toHaveBeenCalledTimes(1);
+    expect(createProduct.mock.calls[0][0].visible).toBe(false);
+    expect(result.needsAiPolish).toBe(true);
 
     // Rå titel/beskrivning används (buildFallbackSeo, ingen LLM).
     expect(result.seo.title).toBe("Trådlös Bluetooth-högtalare bärbar vattentät");
@@ -149,14 +151,20 @@ describe("importProduct — AI_ENRICHMENT_ENABLED av (rå import)", () => {
     expect(result.categorySuggestion.collectionSlug).toBeNull();
   });
 
+  it("tvingar draft även när IMPORT_DRAFT_DEFAULT=false", async () => {
+    process.env.IMPORT_DRAFT_DEFAULT = "false";
+    await importProduct(makeProduct(), RULES, undefined, { enableAI: false });
+    expect(createProduct.mock.calls[0][0].visible).toBe(false);
+  });
+
   it("respekterar env AI_ENRICHMENT_ENABLED=false utan explicit flagga", async () => {
     const prev = process.env.AI_ENRICHMENT_ENABLED;
     process.env.AI_ENRICHMENT_ENABLED = "false";
     try {
-      await importProduct(makeProduct(), RULES);
+      const result = await importProduct(makeProduct(), RULES);
       expect(analyzeImages).not.toHaveBeenCalled();
       expect(generateProductContent).not.toHaveBeenCalled();
-      expect(suggestCategory).not.toHaveBeenCalled();
+      expect(result.needsAiPolish).toBe(true);
     } finally {
       if (prev === undefined) delete process.env.AI_ENRICHMENT_ENABLED;
       else process.env.AI_ENRICHMENT_ENABLED = prev;
@@ -165,7 +173,7 @@ describe("importProduct — AI_ENRICHMENT_ENABLED av (rå import)", () => {
 });
 
 describe("importProduct — AI_ENRICHMENT_ENABLED på (normal import)", () => {
-  it("kör AI-stegen som vanligt", async () => {
+  it("kör AI-stegen och flaggar INTE för polering", async () => {
     const prev = process.env.AI_ENRICHMENT_ENABLED;
     delete process.env.AI_ENRICHMENT_ENABLED; // default = på
     try {
@@ -175,6 +183,7 @@ describe("importProduct — AI_ENRICHMENT_ENABLED på (normal import)", () => {
       expect(analyzeImages).toHaveBeenCalledTimes(1);
       expect(generateProductContent).toHaveBeenCalledTimes(1);
 
+      expect(result.needsAiPolish).toBeUndefined();
       expect(result.seo.title).toBe("AI-genererad titel");
     } finally {
       if (prev === undefined) delete process.env.AI_ENRICHMENT_ENABLED;

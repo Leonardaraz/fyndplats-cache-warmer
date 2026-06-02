@@ -119,16 +119,42 @@ function detectCurrency(txt) {
   return "";
 }
 
-// Normaliserar en AliExpress-bild-URL: lägger på protokoll och strippar
-// storleks-/format-suffix ("….png_220x220q75.jpg_.avif" → "….png").
+// Normaliserar en AliExpress-bild-URL: lägger på protokoll och strippar ALLA
+// kända storleks-/format-suffix så vi alltid får full-res-källan.
+//
+// AE serverar samma asset i många storlekar via olika URL-patterns:
+//   1. Suffix EFTER extension: "….png_220x220q75.jpg_.avif" — det vanligaste
+//      thumb-mönstret. Plockas bort via regel #1.
+//   2. Suffix FÖRE extension: "….abc_220x220.jpg" / "….abc_50x50.webp" —
+//      thumbnail-/swatch-storlek inbäddad i filnamnet. Bug 2026-06-02:
+//      tidigare strippades inte detta → 220×220-thumbs och 48×48-ikoner föll
+//      igenom till Wix-galleriet. Plockas bort via regel #2.
+//   3. Dubbla extensioner: "….jpg.webp" — formatkonvertering. Regel #3.
+// Full-res är samma URL utan suffix (AE faller tillbaka till originalet).
 function cleanImageUrl(u) {
   if (!u) return "";
   let s = String(u).trim();
   if (s.startsWith("//")) s = "https:" + s;
-  // Strippar AE:s storleks-/format-suffix efter filändelsen, t.ex.
-  // "….jpg_220x220q75.jpg_.avif" eller "….png_640x640.png" → "….jpg"/"….png".
+  // 1. Suffix EFTER extension: ".jpg_220x220q75.jpg_.avif" / ".png_640x640.png" → ".jpg" / ".png".
   s = s.replace(/(\.(?:jpg|jpeg|png|webp|gif|avif|bmp))_[^/]*$/i, "$1");
+  // 2. Suffix FÖRE extension: "abc_220x220.jpg" / "abc_50x50q75.webp" → "abc.jpg" / "abc.webp".
+  //    Matchar 2–4-siffriga storlekar (NxN, ev. följt av qN) precis före filändelsen.
+  s = s.replace(/_\d{2,4}x\d{2,4}(?:q\d{1,3})?(?=\.(?:jpg|jpeg|png|webp|gif|avif|bmp)$)/i, "");
+  // 3. Dubbel-extension efter dedup ("….jpg.webp" / "….png.webp") — behåll bara
+  //    den första extensionen (AE serverar originalet).
+  s = s.replace(/(\.(?:jpg|jpeg|png|webp|gif|avif|bmp))\.(?:jpg|jpeg|png|webp|gif|avif|bmp)$/i, "$1");
   return s;
+}
+
+// True om URL:en uttryckligen pekar på en ikon-/microthumb-storlek
+// (≤120×120) — t.ex. en 48×48-favicon eller en swatch-färgruta som råkade
+// hamna i galleriet. Används som extra filter EFTER cleanImageUrl (eftersom
+// cleanImageUrl strippar storleks-suffix; det här fångar URL:er där storleken
+// låg i filnamnet på ett sätt vi inte ville normalisera bort, eller som
+// kvarstår efter strippningen). Bug 2026-06-02: en 48×48-ikon hamnade som
+// galleribild i Wix på prod 1005010492587553.
+function isTinyImageUrl(u) {
+  return /[_/-](?:36|40|48|50|56|60|64|72|80|96|100|120)x(?:36|40|48|50|56|60|64|72|80|96|100|120)\b/i.test(String(u || ""));
 }
 
 // --- Bild-extraktion (lager 4, DOM) --------------------------------------
@@ -530,6 +556,70 @@ function cleanValue(s) {
   return String(s || "").replace(/\s+/g, " ").trim();
 }
 
+// Renar en HTML-sträng från oönskat innehåll (skript, stilar, attribut,
+// AE-spårningspixlar) så vi kan persistera den som beskrivnings-HTML i Wix.
+// Behåller bara säkra inline-element + grundläggande block för läsbarhet.
+// Bug 2026-06-02: tidigare skickades bara meta-description-boilerplate;
+// servern hade ingen riktig produkttext att fallback:a till i rå-läge.
+function sanitizeDescriptionHtml(html, opts = {}) {
+  const maxChars = opts.maxChars || 20000;
+  if (!html) return "";
+  let s = String(html);
+  // Plocka bort script/style/iframe-block.
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, "");
+  s = s.replace(/<style[\s\S]*?<\/style>/gi, "");
+  s = s.replace(/<iframe[\s\S]*?<\/iframe>/gi, "");
+  s = s.replace(/<noscript[\s\S]*?<\/noscript>/gi, "");
+  // Strippa alla on*-attribut och javascript:-URL:er (XSS-skydd).
+  s = s.replace(/\s+on[a-z]+\s*=\s*"[^"]*"/gi, "");
+  s = s.replace(/\s+on[a-z]+\s*=\s*'[^']*'/gi, "");
+  s = s.replace(/javascript:/gi, "");
+  // Strippa AE:s data-* spårnings-attribut.
+  s = s.replace(/\s+data-[a-z0-9_-]+\s*=\s*"[^"]*"/gi, "");
+  s = s.replace(/\s+data-[a-z0-9_-]+\s*=\s*'[^']*'/gi, "");
+  // Strippa AE:s spårnings-pixlar (1×1 img utan alt).
+  s = s.replace(/<img[^>]*\s(?:width|height)\s*=\s*['"]?1['"]?[^>]*>/gi, "");
+  // Trim whitespace.
+  s = s.replace(/\s{3,}/g, " ").trim();
+  if (s.length > maxChars) s = s.slice(0, maxChars);
+  return s;
+}
+
+// Plockar ut Product Description-HTML från sidan. AE lagrar den på flera
+// platser beroende på sidversion:
+//   - Inbäddad i window.runParams.descriptionModule.descriptionUrl (URL till
+//     en separat HTML — ej skrapbar utan extra fetch)
+//   - I DOM under [class*="description--wrap"] / [id*="product-description"]
+//   - I en <iframe> som lazy-laddas (ej åtkomlig utan extra arbete)
+// Vi tar DOM-källan när den finns och faller tillbaka till sammanfattningar
+// av features + specifications när den inte hittas.
+function extractDescriptionHtml() {
+  const SELECTORS = [
+    '[data-pl="product-description"]',
+    '[id*="product-description" i]',
+    '#J-product-desc',
+    '[class*="product-description"]',
+    '[class*="productDescription"]',
+    '[class*="description--wrap"]',
+    '[class*="description-wrap"]',
+    '[class*="description-content"]',
+    '[class*="descriptionContent"]',
+    '[id="dec-description"]',
+  ];
+  for (const sel of SELECTORS) {
+    const el = document.querySelector(sel);
+    if (!el) continue;
+    const html = el.innerHTML || "";
+    if (html.length < 50) continue; // för lite för att vara den riktiga beskrivningen
+    const cleaned = sanitizeDescriptionHtml(html);
+    // Säkerställ att vi inte plockade ett tomt skal — kräver minst lite text.
+    const text = el.innerText || el.textContent || "";
+    if (text.replace(/\s+/g, "").length < 100) continue;
+    return cleaned;
+  }
+  return "";
+}
+
 // Specifikationstabell → { [label]: value }. Försöker flera kända AE-strukturer:
 // dl/dt/dd, två-cells-rader (li/tr med titel+värde), samt "Label: Value"-rader.
 function extractSpecifications() {
@@ -545,7 +635,9 @@ function extractSpecifications() {
 
   const containers = document.querySelectorAll(
     '[class*="specification"], [class*="product-specs"], [class*="productSpec"], ' +
-      '[class*="prop-list"], [class*="product-prop"], [class*="extend-info"], [id*="specification" i]',
+      '[class*="prop-list"], [class*="product-prop"], [class*="extend-info"], ' +
+      '[id*="specification" i], [data-pl*="specification" i], [class*="propertyList"], ' +
+      '[class*="specs--list"], [class*="specsTable"]',
   );
   for (const c of containers) {
     // a) Definition lists.
@@ -554,13 +646,16 @@ function extractSpecifications() {
     }
     // b) Rader med separata titel-/värde-celler.
     for (const row of c.querySelectorAll(
-      'li, tr, [class*="prop-item"], [class*="specification-item"], [class*="property-item"]',
+      'li, tr, [class*="prop-item"], [class*="specification-item"], [class*="property-item"], ' +
+        '[class*="specs--item"], [class*="specsItem"]',
     )) {
       const key = row.querySelector(
-        '[class*="prop-title"], [class*="propertyTitle"], [class*="title"], [class*="name"], [class*="key"], dt, th',
+        '[class*="prop-title"], [class*="propertyTitle"], [class*="title"], [class*="name"], [class*="key"], ' +
+          '[class*="specs--title"], [class*="specsLabel"], dt, th',
       );
       const val = row.querySelector(
-        '[class*="prop-value"], [class*="propertyValue"], [class*="value"], [class*="desc"], dd, td',
+        '[class*="prop-value"], [class*="propertyValue"], [class*="value"], [class*="desc"], ' +
+          '[class*="specs--value"], [class*="specsValue"], dd, td',
       );
       if (key && val && key !== val) {
         add(key.textContent, val.textContent);
@@ -575,7 +670,9 @@ function extractSpecifications() {
 }
 
 // Säljpunkter/funktioner → array av strängar. AE visar dem som "key-features"-
-// listor eller sales-bullets nära beskrivningen.
+// listor, sales-bullets nära beskrivningen, ELLER som bullet points i
+// Product Description-sektionen (vanligaste — bug 2026-06-02: tomt features-
+// fält på rå-imports → ingen säljande text för cataloget).
 function extractFeatures() {
   const out = [];
   const seen = new Set();
@@ -588,9 +685,11 @@ function extractFeatures() {
     seen.add(key);
     out.push(t);
   };
+  // 1) Dedikerade bullet-/feature-containers (snabbast om de finns).
   const containers = document.querySelectorAll(
     '[class*="product-feature"], [class*="key-features"], [class*="keyFeatures"], ' +
-      '[class*="sales-bullet"], [class*="bullet-point"], [class*="highlight"]',
+      '[class*="sales-bullet"], [class*="bullet-point"], [class*="highlight"], ' +
+      '[class*="feature--list"], [class*="featureList"], [class*="seo-points"]',
   );
   for (const c of containers) {
     const items = c.querySelectorAll("li");
@@ -600,6 +699,30 @@ function extractFeatures() {
       push(c.textContent);
     }
     if (out.length >= 12) break;
+  }
+  // 2) Fallback: bullets från Product Description-sektionen (AE-säljare lägger
+  //    ofta säljpunkter som <li> eller <p>-rader där). Tar bara korta rader så
+  //    själva beskrivningstexten inte hamnar i features.
+  if (out.length < 5) {
+    const descSel = [
+      '[data-pl="product-description"]',
+      '[id*="product-description" i]',
+      '#J-product-desc',
+      '[class*="product-description"]',
+      '[class*="description--wrap"]',
+    ];
+    for (const sel of descSel) {
+      const el = document.querySelector(sel);
+      if (!el) continue;
+      for (const li of el.querySelectorAll("li")) push(li.textContent);
+      if (out.length >= 8) break;
+      // Korta <p>-rader som ser ut som bullets (börjar med • eller -).
+      for (const p of el.querySelectorAll("p")) {
+        const t = (p.textContent || "").trim();
+        if (/^[•\-*·✓✔★]/u.test(t) && t.length < 160) push(t.replace(/^[•\-*·✓✔★]\s*/u, ""));
+      }
+      if (out.length >= 12) break;
+    }
   }
   return out.slice(0, 12);
 }
@@ -776,6 +899,190 @@ function scrapeReviews() {
   return out.slice(0, REVIEW_MAX);
 }
 
+// --- Säljardata (Feature 6 — säljar-score) -------------------------------
+// Skrapar AliExpress-säljaren från produktsidan: store-id (vår supplierId),
+// butiksnamn, store-URL, AE:s egen säljar-score (1–5) och antal followers.
+// supplierId är nyckeln — utan den kan servern inte spåra säljaren över tid.
+// Källor i prioritetsordning: inbäddad storeModule/sellerModule (renast, men
+// ofta null på nya PC-sidan) → store-länk (/store/{id}) → dedikerade DOM-element.
+
+// Tolkar antal som kan vara "1.2k", "3,4 tn", "12 345" → heltal.
+function parseCount(str) {
+  const s = String(str || "").trim().toLowerCase().replace(/\s/g, "");
+  const m = s.match(/([\d.,]+)\s*(k|m|tn|mn)?/);
+  if (!m) return 0;
+  let n = parseNumeric(m[1]);
+  if (!(n > 0)) return 0;
+  const suffix = m[2];
+  if (suffix === "k" || suffix === "tn") n *= 1000;
+  else if (suffix === "m" || suffix === "mn") n *= 1000000;
+  return Math.round(n);
+}
+
+function extractSupplier(data) {
+  const sup = {
+    supplierId: "",
+    supplierName: "",
+    supplierStoreUrl: "",
+    aeRating: 0,
+    aeFollowers: 0,
+    // Utökade säljarmetadata (bug 2026-06-02): säljarens positiva feedback-%,
+    // år på AliExpress, och "Top Brand"-badge — alla används av säljar-score
+    // (Feature 6) för att flagga riskabla säljare. Skickas bara när skrapade.
+    positiveFeedbackPct: 0,
+    yearsOnAE: 0,
+    topBrand: false,
+  };
+
+  // 1) Inbäddad storeModule/sellerModule (klassisk runParams) — renaste källan.
+  const storeModule = (data && (data.storeModule || data.sellerModule)) || null;
+  if (storeModule) {
+    if (storeModule.storeNum != null) sup.supplierId = String(storeModule.storeNum);
+    else if (storeModule.sellerAdminSeq != null) sup.supplierId = String(storeModule.sellerAdminSeq);
+    if (storeModule.storeName) sup.supplierName = String(storeModule.storeName).trim().slice(0, 80);
+    if (storeModule.storeURL || storeModule.storeHomePage) {
+      sup.supplierStoreUrl = cleanStoreUrl(storeModule.storeURL || storeModule.storeHomePage);
+    }
+    if (Number(storeModule.followingNumber) > 0) sup.aeFollowers = Math.round(Number(storeModule.followingNumber));
+    // positiveRate är en feedback-% (0–100) → räkna om till en 1–5-score OCH
+    // behåll rå %:en (positiveFeedbackPct) för säljar-score-heuristiken.
+    const rate = Number(storeModule.positiveRate);
+    if (rate > 0) {
+      sup.aeRating = Math.round((rate / 20) * 10) / 10;
+      sup.positiveFeedbackPct = Math.round(rate * 10) / 10;
+    }
+    // openTime / openDate / openYear — ISO eller år som tal. Räkna år sedan.
+    const openRaw =
+      storeModule.openTime ||
+      storeModule.openDate ||
+      storeModule.openYear ||
+      storeModule.companyEstablishedTime;
+    if (openRaw) {
+      const yrs = yearsFromOpenDate(openRaw);
+      if (yrs > 0) sup.yearsOnAE = yrs;
+    }
+    // Top Brand-flagga (varierar i fältnamn över AE-versioner).
+    if (
+      storeModule.isTopBrand === true ||
+      storeModule.isTopRated === true ||
+      storeModule.topBrand === true ||
+      storeModule.topRatedSeller === true
+    ) {
+      sup.topBrand = true;
+    }
+  }
+
+  // 2) Store-länk (/store/{id}) — id + URL + namn.
+  if (!sup.supplierId || !sup.supplierStoreUrl) {
+    const storeLink = document.querySelector(
+      'a[href*="/store/"], a[href*="storeId="], a[href*="sellerAdminSeq="], ' +
+        '[data-pl="store-name"] a, [class*="store-info"] a, [class*="storeName"] a',
+    );
+    if (storeLink) {
+      const href = storeLink.getAttribute("href") || "";
+      if (!sup.supplierStoreUrl && href) sup.supplierStoreUrl = cleanStoreUrl(href);
+      const m =
+        href.match(/\/store\/(\d+)/) ||
+        href.match(/storeId=(\d+)/) ||
+        href.match(/sellerAdminSeq=(\d+)/);
+      if (m && !sup.supplierId) sup.supplierId = m[1];
+      const name = (storeLink.textContent || "").trim();
+      if (!sup.supplierName && name && name.length <= 80) sup.supplierName = name;
+    }
+  }
+
+  // 3) Butiksnamn-fallback ur dedikerat element.
+  if (!sup.supplierName) {
+    const nameEl = document.querySelector(
+      '[data-pl="store-name"], [class*="store-name"], [class*="storeName"], [class*="shop-name"]',
+    );
+    if (nameEl) sup.supplierName = (nameEl.textContent || "").trim().slice(0, 80);
+  }
+
+  // 4) Rating + followers + positivFeedback + år + topBrand ur store-/seller-block.
+  const blocks = document.querySelectorAll(
+    '[class*="store-info"], [class*="storeInfo"], [class*="seller"], [data-pl*="store"], [class*="shop-"]',
+  );
+  for (const el of blocks) {
+    const txt = (el.innerText || el.textContent || "").slice(0, 800);
+    if (!sup.aeRating) {
+      // En 1–5-score med en decimal, t.ex. "4.8" (undvik %-tal och årtal).
+      const r = txt.match(/\b([0-5](?:[.,]\d))\b(?!\s*%)/);
+      if (r) sup.aeRating = parseNumeric(r[1]);
+    }
+    if (!sup.aeFollowers) {
+      const f = txt.match(/([\d.,]+\s*[km]?)\s*(followers|följare|seguidores)/i);
+      if (f) sup.aeFollowers = parseCount(f[1]);
+    }
+    if (!sup.positiveFeedbackPct) {
+      // "98.4% Positive Feedback" / "Positivt omdöme 97,3 %".
+      const p = txt.match(/(\d{1,3}(?:[.,]\d{1,2})?)\s*%\s*(positive|positivt|positive feedback|positiv)/i) ||
+        txt.match(/(positive feedback|positivt omdöme)\s*[:：]?\s*(\d{1,3}(?:[.,]\d{1,2})?)\s*%/i);
+      if (p) {
+        const val = parseNumeric(p[1] || p[2]);
+        if (val > 0 && val <= 100) sup.positiveFeedbackPct = Math.round(val * 10) / 10;
+      }
+    }
+    if (!sup.yearsOnAE) {
+      // "Year on AliExpress: 5" / "5 år på AliExpress".
+      const y = txt.match(/(\d{1,2})\s*(years?|år)\s*(?:on|på)?\s*aliexpress/i) ||
+        txt.match(/aliexpress\s*(?:since|sedan)\s*(\d{4})/i);
+      if (y) {
+        let val = parseInt(y[1], 10);
+        if (val > 1900) val = new Date().getFullYear() - val; // tolkat som öppningsår
+        if (val > 0 && val < 30) sup.yearsOnAE = val;
+      }
+    }
+    if (!sup.topBrand) {
+      if (/\btop\s*brand\b|\btop\s*rated\b|\btoppsäljare\b|\btoppmärke\b/i.test(txt)) {
+        sup.topBrand = true;
+      }
+    }
+  }
+
+  // 4b) Top Brand-badgar visas ofta som <img alt="Top Brand"> eller en separat
+  // pixel-art-badge — leta över hela sidan om vi inte hittade flaggan i text.
+  if (!sup.topBrand) {
+    const badge = document.querySelector(
+      'img[alt*="Top Brand" i], img[alt*="Top Rated" i], [class*="top-brand"], [class*="topBrand"], [class*="topRated"]',
+    );
+    if (badge) sup.topBrand = true;
+  }
+
+  return sup;
+}
+
+// Beräknar antal år sedan en öppningsdatum-sträng (ISO eller år).
+function yearsFromOpenDate(raw) {
+  if (!raw) return 0;
+  const s = String(raw).trim();
+  if (!s) return 0;
+  // Bara år (4 siffror).
+  if (/^\d{4}$/.test(s)) {
+    return new Date().getFullYear() - parseInt(s, 10);
+  }
+  // ISO eller annat datum.
+  const t = Date.parse(s);
+  if (Number.isNaN(t)) {
+    // Försök tolka "DD/MM/YYYY" eller "YYYY-MM".
+    const m = s.match(/(\d{4})/);
+    if (m) return new Date().getFullYear() - parseInt(m[1], 10);
+    return 0;
+  }
+  const diffMs = Date.now() - t;
+  const diffYrs = diffMs / (365.25 * 24 * 3600 * 1000);
+  return Math.max(0, Math.floor(diffYrs));
+}
+
+// Normaliserar en AE store-URL (protokoll + behåll bara path till storefronten).
+function cleanStoreUrl(u) {
+  let s = String(u || "").trim();
+  if (!s) return "";
+  if (s.startsWith("//")) s = "https:" + s;
+  else if (s.startsWith("/")) s = "https://www.aliexpress.com" + s;
+  return s;
+}
+
 function extract() {
   const data = readEmbeddedData();
   const supplierProductId =
@@ -786,6 +1093,10 @@ function extract() {
     sourceUrl: location.href,
     rawTitle: "",
     rawDescription: "",
+    // Full HTML från AE:s Product Description-sektion (renad). Tom = bara
+    // meta-description-boilerplate fanns att tillgå. Bug 2026-06-02: tunn
+    // beskrivning på rå-imports → inget för servern att visa.
+    descriptionHtml: "",
     imageUrls: [],
     variants: [],
     swatchImages: {},
@@ -796,6 +1107,18 @@ function extract() {
     // Skrapade recensioner (social proof). Översätts server-side via DeepL.
     reviewsToImport: [],
     shipsFrom: [],
+    // Säljardata (Feature 6). supplierId tom = säljaren kunde inte identifieras.
+    // Utökade fält (bug 2026-06-02): positiveFeedbackPct, yearsOnAE, topBrand.
+    supplier: {
+      supplierId: "",
+      supplierName: "",
+      supplierStoreUrl: "",
+      aeRating: 0,
+      aeFollowers: 0,
+      positiveFeedbackPct: 0,
+      yearsOnAE: 0,
+      topBrand: false,
+    },
     // Lagerstatus — default i lager (sätts nedan via detectInStock + ev. SKU-saldo).
     inStock: true,
     _warnings: [],
@@ -848,7 +1171,9 @@ function extract() {
         // Måste matcha samma läsbara namn som decodeSkuProps sätter på optionsvalet
         // (annars missar linkedMedia-kopplingen i pipelinen).
         const choiceName = pickDisplayName([v.propertyValueDisplayName, v.propertyValueName]);
-        if (choiceName) result.swatchImages[optionName][choiceName] = v.skuPropertyImagePath;
+        // Strippa thumbnail-suffix så Wix får full-res för per-färg-bildväxlingen
+        // (bug 2026-06-02: linkedMedia satte 220×220-thumbs istället för original).
+        if (choiceName) result.swatchImages[optionName][choiceName] = cleanImageUrl(v.skuPropertyImagePath);
       }
     }
 
@@ -872,6 +1197,20 @@ function extract() {
         sku.shipFrom ||
         defaultShipFromRaw;
       const variantShipFrom = normalizeShipFrom(variantShipRaw);
+      // Bug 2026-06-02: tidigare gjorde vi `availQuantity || 0` → en variant
+      // som saknade `availQuantity` (undefined) fick stock=0, vilket bakaren
+      // tolkar som "explicit 0 lager" och därför ALDRIG applicerar fallbacken
+      // 10 → varianten blev OOS. Nu skickar vi en riktig number BARA när AE
+      // gav ett numeriskt värde; saknas det skickas undefined så bakaren får
+      // använda sin egen fallback. Värdet 0 bevaras (legitim OOS-signal).
+      const rawStock =
+        sku.skuVal && Object.prototype.hasOwnProperty.call(sku.skuVal, "availQuantity")
+          ? sku.skuVal.availQuantity
+          : undefined;
+      const stock =
+        typeof rawStock === "number" && Number.isFinite(rawStock) && rawStock >= 0
+          ? rawStock
+          : undefined;
       return {
         supplierVariantId: String(sku.skuId || sku.skuIdStr || i),
         options: decodeSkuProps(sku.skuPropIds, props),
@@ -881,7 +1220,7 @@ function extract() {
             priceModule.minAmount?.value ||
             0,
         ),
-        stock: sku.skuVal ? Number(sku.skuVal.availQuantity || 0) : undefined,
+        stock,
         shipFrom: variantShipFrom || defaultShipFrom || "",
         included: true,
       };
@@ -935,12 +1274,20 @@ function extract() {
 
   // VIKTIGT: behåll bara AliExpress-CDN-bilder (alicdn ELLER aliexpress-media/
   // ae-pic). Annars smiter logotyper/3:e-parts-bilder med. Normalisera + deduppa.
+  // Dubbel-dedup-pass: först rå-dedup (samma URL två gånger), sedan stripp av
+  // storleks-/format-suffix, sedan dedup igen (en thumb + en full-res av samma
+  // bild reduceras till en post). Filter bort ikon-/microthumb-URL:er
+  // (≤120×120) som annars hamnar i galleriet — bug 2026-06-02: en 48×48-ikon
+  // importerades som galleribild på prod 1005010492587553.
   {
-    const seen = new Set();
+    const seenRaw = new Set();
+    const seenClean = new Set();
     result.imageUrls = (result.imageUrls || [])
+      .filter((u) => u && (seenRaw.has(u) ? false : (seenRaw.add(u), true)))
       .map(cleanImageUrl)
       .filter((u) => u && IMAGE_HOST_RE.test(u))
-      .filter((u) => (seen.has(u) ? false : (seen.add(u), true)))
+      .filter((u) => !isTinyImageUrl(u))
+      .filter((u) => (seenClean.has(u) ? false : (seenClean.add(u), true)))
       .slice(0, 12);
   }
 
@@ -956,8 +1303,14 @@ function extract() {
   }
   result.features = extractFeatures();
   result.packageContents = extractPackageContents();
+  // Full HTML-beskrivning från Product Description-sektionen (bug 2026-06-02).
+  // Renad från skript/stilar/spårningspixlar. Tom = sektionen ej skrapbar
+  // (lazy-laddad iframe eller separat URL); backend faller tillbaka till
+  // rawDescription + specifications.
+  result.descriptionHtml = extractDescriptionHtml();
   // Recensioner (best-effort — kräver att AE renderat recensions-sektionen).
   result.reviewsToImport = scrapeReviews();
+  result.supplier = extractSupplier(data);
 
   // --- Variant-fallback från DOM (när inbäddad SKU-data saknas) -----------
   // Nya PC-sidan saknar inbäddad SKU-JSON. Bygg varianter ur SKU-rutorna.
@@ -1084,4 +1437,4 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
   }
   return true;
-});
+});

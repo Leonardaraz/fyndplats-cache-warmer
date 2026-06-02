@@ -55,11 +55,72 @@
       }
       .switch input:checked + .slider { background: #ff6a00; }
       .switch input:checked + .slider::before { transform: translateX(18px); }
+      .quality-mode {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 10px; font-size: 12px;
+      }
+      .quality-mode label { font-weight: 600; color: #444; white-space: nowrap; }
+      .quality-mode select {
+        flex: 1; padding: 6px 8px; font-size: 12px; border-radius: 8px;
+        border: 1px solid #d1d5db; background: #fff; cursor: pointer;
+      }
+      .quality-hint { font-size: 10px; color: #888; margin: -4px 0 10px; }
+      .pricing-tier {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 6px; font-size: 12px;
+      }
+      .pricing-tier label { font-weight: 600; color: #444; white-space: nowrap; }
+      .pricing-tier select {
+        flex: 1; padding: 6px 8px; font-size: 12px; border-radius: 8px;
+        border: 1px solid #d1d5db; background: #fff; cursor: pointer;
+      }
+      .custom-tier {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+        padding: 8px; margin-bottom: 10px;
+      }
+      .ct-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }
+      .ct-row label { flex: 1; color: #444; }
+      .ct-row input { width: 96px; padding: 4px 6px; font-size: 12px; border-radius: 6px; border: 1px solid #d1d5db; }
+      .ct-row .unit { color: #888; font-size: 10px; width: 18px; }
       details.settings { margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px; }
       details.settings summary { font-size: 12px; font-weight: 600; cursor: pointer; color: #444; }
       .feature { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 0; }
       .feature label { flex: 1; }
       .feature .hint { color: #888; font-size: 10px; }
+
+      /* --- Pre-import-modal (Feature 1 dubblett + Feature 2 konkurrentpris) --- */
+      .fp-modal-backdrop {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+        display: flex; align-items: center; justify-content: center; z-index: 9999;
+      }
+      .fp-modal {
+        background: #fff; width: 330px; max-height: 460px; overflow-y: auto;
+        border-radius: 12px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      }
+      .fp-modal h2 { font-size: 14px; margin: 0 0 8px; }
+      .fp-modal h3 { font-size: 12px; margin: 12px 0 4px; color: #333; }
+      .fp-dup {
+        display: flex; gap: 8px; align-items: center; font-size: 11px;
+        padding: 6px; border-radius: 8px; margin-bottom: 4px; background: #f3f4f6;
+      }
+      .fp-dup.strong { background: #fde2e1; border: 1px solid #f5b5b2; }
+      .fp-dup.mild { background: #fff4e0; border: 1px solid #ffd9a8; }
+      .fp-dup a { color: #1d4ed8; text-decoration: none; }
+      .fp-dup .mt { font-weight: 700; text-transform: uppercase; font-size: 9px; opacity: 0.7; }
+      .fp-rec { font-size: 12px; font-weight: 600; padding: 8px; border-radius: 8px; margin: 6px 0; }
+      .fp-rec.green { background: #d1fae5; color: #065f46; }
+      .fp-rec.yellow { background: #fef3c7; color: #78350f; }
+      .fp-rec.red { background: #fde2e1; color: #991b1b; }
+      .fp-rec.none { background: #e5e7eb; color: #374151; }
+      .fp-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+      .fp-table th, .fp-table td { text-align: left; padding: 3px 4px; border-bottom: 1px solid #eee; }
+      .fp-table th { color: #666; font-weight: 600; }
+      .fp-price { font-weight: 700; white-space: nowrap; }
+      .fp-actions { display: flex; gap: 8px; margin-top: 12px; }
+      .fp-actions button { margin-top: 0; }
+      .fp-cancel { background: #e5e7eb; }
+      .fp-proceed { background: #ff6a00; color: #fff; border: none; }
+      .fp-muted { color: #888; font-size: 11px; }
     </style>
   </head>
   <body>
@@ -73,6 +134,43 @@
       <div class="eu-text">
         <div class="eu-title">🇪🇺 EU-lager-läge</div>
         <div class="hint">Visar & bulk-importerar bara produkter från EU-lager på AliExpress sök-/kategorisidor. Sätt på, sök sedan som vanligt.</div>
+      </div>
+    </div>
+
+    <div class="quality-mode">
+      <label for="qualityMode">AI-kvalité:</label>
+      <select id="qualityMode">
+        <option value="raw">Raw (gratis)</option>
+        <option value="standard">Standard (~0,11 kr)</option>
+        <option value="premium">Premium (~0,85 kr)</option>
+      </select>
+    </div>
+    <div id="qualityHint" class="quality-hint"></div>
+
+    <div class="pricing-tier">
+      <label for="pricingTier">Marginal-tier:</label>
+      <select id="pricingTier">
+        <option value="standard">Standard (din default)</option>
+        <option value="premium">Premium (2.5×)</option>
+        <option value="custom">Custom…</option>
+      </select>
+    </div>
+    <div id="pricingHint" class="quality-hint">Hämtar nuvarande default-tier…</div>
+    <div id="customTier" class="custom-tier" hidden>
+      <div class="ct-row">
+        <label for="ctMultiplier">Multiplier</label>
+        <input type="number" id="ctMultiplier" min="1" max="5" step="0.1" value="2.5" />
+        <span class="unit">×</span>
+      </div>
+      <div class="ct-row">
+        <label for="ctFloor">Floor (min vinst)</label>
+        <input type="number" id="ctFloor" min="0" step="1" placeholder="valfritt" />
+        <span class="unit">kr</span>
+      </div>
+      <div class="ct-row">
+        <label for="ctCeiling">Ceiling (max slutpris)</label>
+        <input type="number" id="ctCeiling" min="0" step="1" placeholder="valfritt" />
+        <span class="unit">kr</span>
       </div>
     </div>
 

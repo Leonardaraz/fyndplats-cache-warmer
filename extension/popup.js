@@ -83,6 +83,9 @@ function stockBadge(p) {
 }
 
 let product = null;
+// Säljarstatus (Feature 6) — sätts av checkSupplierStatus efter extraktion.
+// null = okänd/ej kontrollerad; annars { status, complaintRate, ... }.
+let supplierStatus = null;
 
 const $title = document.getElementById("title");
 const $variants = document.getElementById("variants");
@@ -96,8 +99,17 @@ const FEATURE_KEYS = ["translate", "seo", "imageAnalysis", "autoCategorize"];
 const DEFAULT_FLAGS = { translate: true, seo: true, imageAnalysis: true, autoCategorize: true };
 let featureFlags = { ...DEFAULT_FLAGS };
 
+// AI-kvalitetsläge (raw/standard/premium) — persisteras separat och bakas in i
+// featureFlags vid import. Default "standard" (samma som env-default i backend).
+const QUALITY_HINTS = {
+  raw: "Ingen AI — rå AliExpress-data, sparas som utkast för manuell polering. 0 kr.",
+  standard: "Haiku: översättning, SEO, kategori & flikar. Sparas som utkast. ~0,11 kr.",
+  premium: "Opus multi-pass + Sonnet bild-ranking. Publiceras direkt vid 9,5+. ~0,85 kr.",
+};
+let qualityMode = "standard";
+
 async function loadFeatureFlags() {
-  const stored = await chrome.storage.sync.get("featureFlags");
+  const stored = await chrome.storage.sync.get(["featureFlags", "qualityMode"]);
   featureFlags = { ...DEFAULT_FLAGS, ...(stored.featureFlags || {}) };
   for (const key of FEATURE_KEYS) {
     const cb = document.getElementById(`f-${key}`);
@@ -108,6 +120,110 @@ async function loadFeatureFlags() {
       chrome.storage.sync.set({ featureFlags });
     });
   }
+
+  // AI-kvalité-dropdown.
+  const sel = document.getElementById("qualityMode");
+  const hint = document.getElementById("qualityHint");
+  qualityMode = ["raw", "standard", "premium"].includes(stored.qualityMode) ? stored.qualityMode : "standard";
+  if (sel) {
+    sel.value = qualityMode;
+    if (hint) hint.textContent = QUALITY_HINTS[qualityMode] || "";
+    sel.addEventListener("change", () => {
+      qualityMode = sel.value;
+      if (hint) hint.textContent = QUALITY_HINTS[qualityMode] || "";
+      chrome.storage.sync.set({ qualityMode });
+    });
+  }
+}
+
+/** featureFlags + det valda kvalitetsläget, redo att skickas till backend. */
+function flagsWithMode() {
+  return { ...featureFlags, qualityMode };
+}
+
+// --- Marginal-tier (per-import-prisoverride) -----------------------------
+// Dropdown: Standard (ingen override → backend använder default-tier),
+// Premium (fast 2.5×) eller Custom (egen multiplier + floor/ceiling). Valet
+// persisteras i chrome.storage.sync och bakas in i payloaden som pricingOverride.
+let pricingTier = "standard"; // "standard" | "premium" | "custom"
+const PREMIUM_MULTIPLIER = 2.5;
+
+/**
+ * Bygger pricingOverride-objektet utifrån valt tier, eller null för Standard
+ * (då skickas inget fält → backend använder default-tiern, bakåtkompatibelt).
+ */
+function buildPricingOverride() {
+  if (pricingTier === "premium") return { multiplier: PREMIUM_MULTIPLIER };
+  if (pricingTier === "custom") {
+    const mult = parseFloat(document.getElementById("ctMultiplier").value);
+    const floor = parseFloat(document.getElementById("ctFloor").value);
+    const ceiling = parseFloat(document.getElementById("ctCeiling").value);
+    // Multiplier krävs (1–5). Saknas/ogiltig → fall tillbaka på premium-default
+    // så vi aldrig skickar en trasig override.
+    const multiplier = Number.isFinite(mult) ? Math.min(5, Math.max(1, mult)) : PREMIUM_MULTIPLIER;
+    const override = { multiplier };
+    if (Number.isFinite(floor) && floor > 0) override.floorSek = floor;
+    if (Number.isFinite(ceiling) && ceiling > 0) override.ceilingSek = ceiling;
+    return override;
+  }
+  return null; // standard
+}
+
+/** Visar/döljer Custom-formuläret beroende på valt tier. */
+function toggleCustomTier() {
+  const box = document.getElementById("customTier");
+  if (box) box.hidden = pricingTier !== "custom";
+}
+
+/**
+ * Läser default-prissättningen (GET /api/pricing-config) och visar den som hint
+ * så Leonard ser utgångsläget (default-multiplikator / aktiva intervall-tiers).
+ */
+function loadPricingHint() {
+  const hint = document.getElementById("pricingHint");
+  if (!hint) return;
+  chrome.runtime.sendMessage({ type: "PRICING_CONFIG" }, (res) => {
+    if (chrome.runtime.lastError || !res || !res.ok || !res.data || !res.data.rules) {
+      hint.textContent = "Kunde inte hämta default-tier (importen använder din sparade default).";
+      return;
+    }
+    const r = res.data.rules;
+    const tiers = r.tiersEnabled && Array.isArray(r.tiers) && r.tiers.length
+      ? `, intervall-tiers PÅ (${r.tiers.length} steg)`
+      : "";
+    hint.textContent = `Din default: ${r.defaultMultiplier}× på inköp, ${r.vatRatePercent}% moms${tiers}.`;
+  });
+}
+
+async function loadPricingTier() {
+  const sel = document.getElementById("pricingTier");
+  if (!sel) return;
+  const stored = await chrome.storage.sync.get(["pricingTier", "customTier"]);
+  pricingTier = ["standard", "premium", "custom"].includes(stored.pricingTier) ? stored.pricingTier : "standard";
+  sel.value = pricingTier;
+  // Återställ ev. sparade Custom-värden.
+  const c = stored.customTier || {};
+  if (Number.isFinite(c.multiplier)) document.getElementById("ctMultiplier").value = c.multiplier;
+  if (Number.isFinite(c.floorSek)) document.getElementById("ctFloor").value = c.floorSek;
+  if (Number.isFinite(c.ceilingSek)) document.getElementById("ctCeiling").value = c.ceilingSek;
+  toggleCustomTier();
+
+  sel.addEventListener("change", () => {
+    pricingTier = sel.value;
+    toggleCustomTier();
+    chrome.storage.sync.set({ pricingTier });
+  });
+  // Spara Custom-värdena medan Leonard skriver så de finns kvar nästa gång.
+  for (const id of ["ctMultiplier", "ctFloor", "ctCeiling"]) {
+    const inp = document.getElementById(id);
+    if (!inp) continue;
+    inp.addEventListener("change", () => {
+      const ov = buildPricingOverride() || {};
+      chrome.storage.sync.set({ customTier: ov });
+    });
+  }
+
+  loadPricingHint();
 }
 
 function setStatus(text, cls) {
@@ -155,7 +271,36 @@ async function load() {
     product = res.product;
     render();
     // Bild-färgsampling är bara meningsfull om vi faktiskt fick produktdata.
-    if (product.extractionOk) sampleColors();
+    if (product.extractionOk) {
+      sampleColors();
+      checkSupplierStatus();
+    }
+  });
+}
+
+// Hämtar säljarens score/status (Feature 6) och visar en varning före import:
+//   blocked → röd varning + kräver bekräftelse vid import
+//   warning → gul toast (överväg annan leverantör)
+//   good/okänd → ingen varning
+function checkSupplierStatus() {
+  const supplierId = product && product.supplier && product.supplier.supplierId;
+  if (!supplierId) return;
+  chrome.runtime.sendMessage({ type: "SUPPLIER_STATUS", supplierId }, (res) => {
+    if (chrome.runtime.lastError || !res || !res.ok || !res.data) return;
+    const d = res.data;
+    supplierStatus = d;
+    if (!d.known) return; // ingen historik → ingen varning
+    const rate = typeof d.complaintRate === "number" ? d.complaintRate : 0;
+    if (d.status === "blocked") {
+      setStatus(
+        `⚠️ Den här säljaren har hög klagomålsprocent (${rate}%) på dina tidigare imports. ` +
+          "Du kan importera ändå — du får bekräfta vid klick.",
+        "err",
+      );
+    } else if (d.status === "warning") {
+      const why = rate > 5 ? `klagomål ${rate}%` : `leveranstid ${d.avgShipDays} dgr`;
+      setStatus(`Säljarens prestanda är medel (${why}) — överväg alternativ leverantör.`, "warn");
+    }
   });
 }
 
@@ -228,6 +373,130 @@ function render() {
   $import.disabled = false;
 }
 
+// --- Pre-import-check: dubblett (Feature 1) + konkurrentpris (Feature 2) ------
+
+function sendMessageAsync(payload) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(payload, (res) => {
+      if (chrome.runtime.lastError) return resolve(null);
+      resolve(res);
+    });
+  });
+}
+
+/**
+ * Kör dubblett- + konkurrentpris-check och visar en bekräftelse-modal.
+ * Returnerar Promise<boolean>: true = fortsätt importen, false = avbryt.
+ * Fail-open: om backend inte svarar (offline/timeout) tillåter vi import.
+ */
+async function preImportCheck(p) {
+  const firstImage = (p.imageUrls && p.imageUrls[0]) || "";
+  const title = p.rawTitle || "";
+  const aeId = p.supplierProductId || "";
+
+  const [dupRes, compRes] = await Promise.all([
+    sendMessageAsync({ type: "CHECK_DUPLICATE", title, imageUrl: firstImage, aeId }),
+    sendMessageAsync({ type: "COMPETITOR_PRICES", title }),
+  ]);
+
+  // apiCall-wrappern returnerar { ok, data } där data är route-svaret.
+  const dup = dupRes && dupRes.ok && dupRes.data ? dupRes.data : null;
+  const comp = compRes && compRes.ok && compRes.data ? compRes.data : null;
+
+  const matches = (dup && Array.isArray(dup.matches) ? dup.matches : []);
+  const prices = (comp && Array.isArray(comp.prices) ? comp.prices : []);
+  const summary = comp && comp.summary ? comp.summary : null;
+
+  // Ingen dubblett OCH ingen konkurrentdata → ingen modal, fortsätt direkt.
+  if (matches.length === 0 && prices.length === 0) return true;
+
+  return showPreImportModal(matches, prices, summary);
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+/** Renderar bekräftelse-modalen och löser till true/false vid knapptryck. */
+function showPreImportModal(matches, prices, summary) {
+  return new Promise((resolve) => {
+    const back = el("div", "fp-modal-backdrop");
+    const modal = el("div", "fp-modal");
+    modal.append(el("h2", null, "Innan import"));
+
+    // --- Dubbletter ---
+    if (matches.length > 0) {
+      const strongest = matches[0];
+      const heading =
+        strongest.confidence > 0.9
+          ? "⚠️ Liknande produkt finns REDAN i butiken"
+          : "Möjlig dubblett i butiken";
+      modal.append(el("h3", null, heading));
+      for (const m of matches.slice(0, 5)) {
+        const cls = m.confidence > 0.9 ? "fp-dup strong" : m.confidence >= 0.6 ? "fp-dup mild" : "fp-dup";
+        const row = el("div", cls);
+        row.append(el("span", "mt", m.matchType));
+        const nameWrap = el("span");
+        if (m.url) {
+          const a = el("a", null, m.productName);
+          a.href = m.url;
+          a.target = "_blank";
+          nameWrap.append(a);
+        } else {
+          nameWrap.textContent = m.productName;
+        }
+        nameWrap.append(el("span", "fp-muted", `  (${Math.round(m.confidence * 100)}%)`));
+        row.append(nameWrap);
+        modal.append(row);
+      }
+    }
+
+    // --- Konkurrentpriser ---
+    if (summary) {
+      modal.append(el("h3", null, "Konkurrenter på svenska marknaden"));
+      const rec = el("div", `fp-rec ${summary.signal || "none"}`, summary.message || "");
+      modal.append(rec);
+    }
+    if (prices.length > 0) {
+      const table = el("table", "fp-table");
+      const thead = el("tr");
+      thead.append(el("th", null, "Källa"), el("th", null, "Produkt"), el("th", null, "Pris"));
+      table.append(thead);
+      for (const p of prices.slice(0, 8)) {
+        const tr = el("tr");
+        tr.append(
+          el("td", null, p.source),
+          el("td", null, (p.title || "").slice(0, 30)),
+          el("td", "fp-price", `${p.priceSek} kr`),
+        );
+        table.append(tr);
+      }
+      modal.append(table);
+    }
+
+    // --- Knappar ---
+    const actions = el("div", "fp-actions");
+    const cancel = el("button", "fp-cancel", "Avbryt");
+    const proceed = el("button", "fp-proceed", "Importera ändå");
+    cancel.addEventListener("click", () => {
+      back.remove();
+      resolve(false);
+    });
+    proceed.addEventListener("click", () => {
+      back.remove();
+      resolve(true);
+    });
+    actions.append(cancel, proceed);
+    modal.append(actions);
+
+    back.append(modal);
+    document.body.append(back);
+  });
+}
+
 $import.addEventListener("click", async () => {
   // Dubbelkolla: importera aldrig om extraktionen misslyckades.
   if (!product || !product.extractionOk) {
@@ -239,10 +508,39 @@ $import.addEventListener("click", async () => {
     setStatus("Välj minst en variant.", "err");
     return;
   }
+  // Feature 6: blockerad säljare → kräv uttrycklig bekräftelse innan import.
+  if (supplierStatus && supplierStatus.known && supplierStatus.status === "blocked") {
+    const rate = typeof supplierStatus.complaintRate === "number" ? supplierStatus.complaintRate : 0;
+    const ok = window.confirm(
+      `⚠️ Den här säljaren har hög klagomålsprocent (${rate}%) på dina tidigare imports.\n\n` +
+        "Importera ändå?",
+    );
+    if (!ok) {
+      setStatus("Import avbruten — säljaren är blockerad.", "warn");
+      return;
+    }
+  }
+  // Feature 1 + 2: dubblett- och konkurrentpris-check FÖRE import. Visar en modal
+  // med ev. liknande produkter + konkurrentpriser. Importen fortsätter bara om
+  // Leonard klickar "Importera ändå". Tom check (inga dubbletter, ingen konkurrent-
+  // data) hoppar över modalen så att normalflödet inte bromsas.
+  setStatus("Kollar dubbletter & konkurrentpriser…");
+  const proceed = await preImportCheck(product);
+  if (!proceed) {
+    setStatus("Import avbruten.", "warn");
+    return;
+  }
+
   $import.disabled = true;
   setStatus("Importerar…");
 
-  chrome.runtime.sendMessage({ type: "IMPORT_PRODUCT", product, featureFlags }, (res) => {
+  // Baka in vald Marginal-tier som pricingOverride (null för Standard → backend
+  // använder default-tiern). Sätts på produkten så background.js kan vidarebefordra.
+  const override = buildPricingOverride();
+  if (override) product.pricingOverride = override;
+  else delete product.pricingOverride;
+
+  chrome.runtime.sendMessage({ type: "IMPORT_PRODUCT", product, featureFlags: flagsWithMode() }, (res) => {
     if (chrome.runtime.lastError || !res) {
       setStatus("Fel: " + (chrome.runtime.lastError?.message || "okänt"), "err");
       $import.disabled = false;
@@ -277,4 +575,5 @@ document.getElementById("orders").addEventListener("click", () => {
 
 loadFeatureFlags();
 loadEuToggle();
+loadPricingTier();
 load();

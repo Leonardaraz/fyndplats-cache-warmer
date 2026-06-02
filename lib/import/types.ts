@@ -23,6 +23,13 @@ export interface AliExpressProduct {
   rawTitle: string;
   /** Rå beskrivning (HTML eller text). */
   rawDescription: string;
+  /**
+   * Full HTML-beskrivning från AE:s Product Description-sektion (renad av
+   * skrapan). Optional — saknas på rå-imports innan AE:s lazy-loaded
+   * description-iframe hann renderas, eller om sektionen returnerade tom HTML.
+   * Servern föredrar den här över rawDescription när den finns. Bug 2026-06-02.
+   */
+  descriptionHtml?: string;
   imageUrls: string[];
   variants: AliExpressVariant[];
   /**

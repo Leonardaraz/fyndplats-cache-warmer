@@ -42,6 +42,7 @@ import {
 import { fetchOrders, aggregateOrders, isoDaysAgo } from "../wix/orders";
 import { findAlternativeSuppliers, isAlternativesEnabled } from "../aliexpress/alternatives";
 import { getRestockStore } from "../restock/store";
+import { getRestockLogStore } from "../restock/log";
 import {
   buildOosAlertEmail,
   buildRestockNotificationEmail,
@@ -658,7 +659,8 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     }
   }
 
-  // Feature 1: produkten kom tillbaka i lager → mejla bevakarna. Endast live.
+  // Feature 1 + 8: produkten kom tillbaka i lager → mejla bevakarna och logga
+  // restock-händelsen i FyndplatsRestockLog (restock-tidslinje för admin). Endast live.
   if (decision.justRestocked && !dryRun) {
     try {
       const restockStore = getRestockStore();
@@ -683,6 +685,21 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
         await restockStore.markNotified(notifiedIds);
         restockSent = notifiedIds.length;
       }
+      // Logga restock-händelsen oavsett om någon bevakare fanns (= full tidslinje).
+      // Best-effort: en misslyckad loggning får inte fälla syncen.
+      try {
+        await getRestockLogStore().log({
+          productId: mapping.wixProductId,
+          productName,
+          restockedAt: checkedAt,
+          subscribersNotified: restockSent,
+          newStock: aliExpress?.totalStock ?? null,
+        });
+      } catch (logErr) {
+        console.warn(
+          `[sync] restock-logg misslyckades för ${mapping.wixProductId}: ${logErr instanceof Error ? logErr.message.slice(0, 200) : String(logErr)}`,
+        );
+      }
     } catch (err) {
       console.warn(
         `[sync] restock-mejl misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
@@ -690,10 +707,21 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     }
   }
 
+  // Feature 8: spåra NÄR produkten gick slut (outOfStockSince). Sätts vid första
+  // observationen som slut och behålls tills den kommer tillbaka (då nollas den).
+  // "removed" rör inte fältet. Headless visar "Slutsåld sedan X" från detta.
+  let outOfStockSince = state?.outOfStockSince ?? null;
+  if (decision.listingStatus === "out_of_stock") {
+    if (!outOfStockSince) outOfStockSince = checkedAt;
+  } else if (decision.listingStatus === "active") {
+    outOfStockSince = null;
+  }
+
   // 6) Sidoeffekter — state + log.
-  // I dry-run fryser vi listingStatus + lastOosAlertAt till föregående (riktiga)
-  // värden så att en dry-run inte konsumerar en övergång eller stämplar
-  // debouncen. Övriga fält (kostnad/lager/hashar) får uppdateras för diff-syfte.
+  // I dry-run fryser vi listingStatus + lastOosAlertAt + outOfStockSince till
+  // föregående (riktiga) värden så att en dry-run inte konsumerar en övergång,
+  // stämplar debouncen eller sätter en falsk slut-sedan-tidpunkt. Övriga fält
+  // (kostnad/lager/hashar) får uppdateras för diff-syfte.
   const newState: SyncStateEntry = {
     wixProductId: mapping.wixProductId,
     aliexpressId: mapping.supplierProductId,
@@ -705,6 +733,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     imageHash: newImageHash || null,
     lastCheckedAt: checkedAt,
     lastOosAlertAt: dryRun ? (state?.lastOosAlertAt ?? null) : lastOosAlertAt,
+    outOfStockSince: dryRun ? (state?.outOfStockSince ?? null) : outOfStockSince,
   };
   await syncStore.saveState(newState);
 
