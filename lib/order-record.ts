@@ -1,13 +1,19 @@
 // lib/order-record.ts
 // Speglar en inkommen Wix order_created-händelse till vår lokala `orders`-tabell
 // så att morgon-dashboarden (app/admin/dashboard) kan visa orderantal, omsättning,
-// AOV och topprodukter UTAN att fråga Wix Orders-API:t — den nyckel vi har saknar
-// "Read Orders"-behörighet (403 READ_ORDER_FORBIDDEN, verifierat 2026-06-02).
+// AOV och topprodukter.
 //
-// Best-effort: anropas efter att orderbekräftelsen skickats i wix-webhook-routen.
-// Ett fel här får ALDRIG blockera mejlet eller webhook-ack:en — vi loggar och
-// sväljer. Idempotent på order-id (ON CONFLICT DO NOTHING) så Wix-retries inte
-// dubbelräknar.
+// Roll: SKYDDSNÄT, inte primärkälla. Wix Orders-API:t svarar 200 (nyckeln HAR
+// Read Orders — verifierat 2026-06-02), så dashboarden läser i första hand
+// auktoritativt från Wix (lib/dashboard → tryWixOrders) och faller bara tillbaka
+// till den här spegeln om API:t skulle börja neka (t.ex. om behörigheten dras in).
+// Spegeln hålls aktuell på två sätt: (1) realtid via order_created-webhooken som
+// anropar recordOrder, (2) en daglig sync-cron (lib/order-sync) som fyller i ev.
+// missade webhooks mot Wix-API:t.
+//
+// Best-effort: anropas i wix-webhook-routen. Ett fel här får ALDRIG blockera
+// mejlet eller webhook-ack:en — vi loggar och sväljer. Idempotent på order-id
+// (ON CONFLICT DO NOTHING) så Wix-retries och sync-cron inte dubbelräknar.
 
 import { sql } from "./db";
 
@@ -60,7 +66,9 @@ function unwrapOrder(entity: Record<string, unknown> | undefined): Record<string
   return order && typeof order === "object" ? order : null;
 }
 
-export async function recordOrder(entity: Record<string, unknown> | undefined): Promise<{ recorded: boolean }> {
+export async function recordOrder(
+  entity: Record<string, unknown> | undefined,
+): Promise<{ recorded: boolean; inserted?: boolean }> {
   const order = unwrapOrder(entity);
   if (!order) return { recorded: false };
 
@@ -86,7 +94,7 @@ export async function recordOrder(entity: Record<string, unknown> | undefined): 
     new Date().toISOString();
 
   try {
-    await sql/*sql*/`
+    const res = await sql/*sql*/`
       INSERT INTO orders (id, order_number, email, total_minor, currency, item_count, items_json, created_at)
       VALUES (
         ${id}, ${orderNumber ?? null}, ${email ?? null}, ${totalMinor}, ${currency},
@@ -94,7 +102,9 @@ export async function recordOrder(entity: Record<string, unknown> | undefined): 
       )
       ON CONFLICT (id) DO NOTHING
     `;
-    return { recorded: true };
+    // rowCount = 1 vid ny rad, 0 när ordern redan fanns (ON CONFLICT). Sync-cronet
+    // använder detta för att skilja faktiskt ifyllda missade ordrar från no-ops.
+    return { recorded: true, inserted: (res.rowCount ?? 0) > 0 };
   } catch (err) {
     // Tabellen kanske inte är migrerad än, eller DB nere — logga och svälj.
     console.error("[order-record] kunde inte spegla order", id, err instanceof Error ? err.message : err);

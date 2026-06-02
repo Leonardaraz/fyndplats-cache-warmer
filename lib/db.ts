@@ -122,13 +122,13 @@ export async function runMigration(): Promise<{ ok: true }> {
   `;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS newsletter_status_idx ON newsletter_subscribers(status);`;
 
-  // Order-sammandrag för morgon-dashboarden (app/admin/dashboard). Den WIX_API_KEY
-  // vi har saknar "Read Orders"-behörighet (Wix svarar 403 READ_ORDER_FORBIDDEN),
-  // så vi kan inte fråga Wix Orders-API:t direkt. Istället speglar vi varje order
-  // hit när order_created-webhooken kommer in (lib/order-record.ts). Tabellen är
-  // en lättviktig analys-spegel — INTE källa för sanning (Wix äger ordern). Lagrar
-  // bara aggregat-fält + line items (namn/antal/pris) för topplistor; ingen PII
-  // utöver kund-e-post (för dedupe/abandoned-koppling).
+  // Order-sammandrag för morgon-dashboarden (app/admin/dashboard). Wix Orders-API:t
+  // är primärkällan (svarar 200 — nyckeln HAR Read Orders), men vi speglar varje
+  // order hit som SKYDDSNÄT: realtid via order_created-webhooken (lib/order-record.ts)
+  // + daglig sync-cron (lib/order-sync.ts) som fångar ev. missade webhooks. Faller
+  // dashboarden tillbaka hit om API:t skulle börja neka. Tabellen är en lättviktig
+  // analys-spegel — INTE källa för sanning (Wix äger ordern). Lagrar bara aggregat-
+  // fält + line items (namn/antal/pris) för topplistor; ingen PII utöver kund-e-post.
   await sql/*sql*/`
     CREATE TABLE IF NOT EXISTS orders (
       id            TEXT PRIMARY KEY,

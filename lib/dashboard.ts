@@ -6,8 +6,9 @@
 // hela sidan. Inget kastar uppåt.
 //
 // Datakällor och deras status (2026-06-02):
-//   • Orders      → lokal `orders`-tabell (speglad från order_created-webhooken).
-//                   Wix Orders-API:t är 403 (nyckeln saknar Read Orders) → fallback.
+//   • Orders      → Wix Orders-API:t (auktoritativt, svarar 200 — nyckeln HAR
+//                   Read Orders). Faller tillbaka till lokal `orders`-spegel
+//                   (webhook + daglig sync-cron) om API:t skulle börja neka.
 //   • Lager       → getProducts() (publika OAuth-SDK:t, fungerar). stock.quantity.
 //   • Abandoned   → Postgres `abandoned_carts` (status != 'converted').
 //   • Nyhetsbrev  → Postgres `newsletter_subscribers`.
@@ -189,8 +190,8 @@ async function getOrdersSection(now: Date): Promise<OrdersSection> {
       source: "local-mirror",
       ...agg,
       note:
-        "Källa: lokal order-spegel (Wix Orders-API saknar Read-behörighet på nyckeln). " +
-        "Visar ordrar gjorda efter att speglingen aktiverades.",
+        "Källa: lokal order-spegel (Wix Orders-API svarade inte — skyddsnät via " +
+        "webhook + daglig sync). Visar ordrar gjorda efter att speglingen aktiverades.",
     };
   } catch (e) {
     return {

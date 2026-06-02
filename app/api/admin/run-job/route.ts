@@ -7,6 +7,7 @@ import { runMigration } from "@/lib/db";
 import { buildDashboard } from "@/lib/dashboard";
 import { renderMorningEmail } from "@/lib/dashboard-email";
 import { buildSeoHealthReport, renderSeoEmailHtml, seoEmailSubject } from "@/lib/seo-health";
+import { syncOrdersFromWix } from "@/lib/order-sync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +30,11 @@ export async function POST(request: Request) {
     if (job === "migrate") {
       await runMigration();
       return NextResponse.json({ ok: true, job, migrated: true });
+    }
+
+    if (job === "order-sync") {
+      const result = await syncOrdersFromWix();
+      return NextResponse.json({ job, ...result });
     }
 
     if (job === "morning-email" || job === "seo-weekly") {

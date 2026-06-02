@@ -625,18 +625,21 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("[wix-webhook] onWixOrderCreatedForAbandonedCart fel (ignorerar)", err);
       }
-      const props = buildOrderConfirmationProps(entity);
-      if (!props) {
-        console.warn("[wix-webhook] order_created: kunde inte extrahera kund — skippar");
-        return NextResponse.json({ received: true, handled: false }, { status: 200 });
-      }
       // Spegla ordern till vår lokala `orders`-tabell för morgon-dashboarden.
-      // Best-effort: vår WIX_API_KEY saknar Read-Orders-behörighet så detta är
-      // dashboardens enda orderkälla. Ett fel får inte blockera bekräftelsemejlet.
+      // Skyddsnät om Wix Orders-API:t förlorar Read-behörighet. Görs FÖRE
+      // kund-extraktionen nedan så att även ordrar utan extraherbar kund (t.ex.
+      // gästköp med oväntad buyerInfo-shape) ändå räknas in i omsättning/topplistor.
+      // Best-effort: ett fel får aldrig blockera bekräftelsemejlet. En daglig
+      // sync-cron (lib/order-sync) fyller i ev. missade webhooks mot Wix-API:t.
       try {
         await recordOrder(entity as Record<string, unknown>);
       } catch (err) {
         console.error("[wix-webhook] recordOrder fel (ignorerar)", err);
+      }
+      const props = buildOrderConfirmationProps(entity);
+      if (!props) {
+        console.warn("[wix-webhook] order_created: kunde inte extrahera kund — skippar mejl (ordern är speglad)");
+        return NextResponse.json({ received: true, handled: false, mirrored: true }, { status: 200 });
       }
       const customer = extractCustomer(entity)!;
       const html = await render(OrderConfirmationEmail(props));
