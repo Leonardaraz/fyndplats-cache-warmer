@@ -247,10 +247,17 @@ function isOrderGuid(v: string | null | undefined): v is string {
 // i tack-redirecten, så vi förlitar oss på snapshot:en som lagrades innan
 // kassan öppnades. Dedupar på transaction_id så att en F5 på /tack inte
 // rapporterar dubbla konverteringar.
-export function trackPurchase(orderId: string | null | undefined) {
+export function trackPurchase(orderId: string | null | undefined, finalTotal?: number | null) {
   if (typeof window === "undefined") return;
   const snap = readPurchaseSnapshot();
   if (!snap) return;
+  // Purchase-value ska vara order-TOTAL (efter frakt/rabatt) — samma belopp som
+  // det server-autoritativa webhook-Purchase skickar (route.ts → priceSummary.total),
+  // så de två deduppar till ETT Meta-event med konsekvent konverteringsvärde.
+  // Wix headless kan appenda slutbeloppet på /tack-redirecten; finns det använder
+  // vi det. Annars faller vi tillbaka på snapshot-subtotalen (frakt/rabatt är inte
+  // kända klient-side innan kassan) — webhooken förblir auktoritativ för exakt total.
+  const value = typeof finalTotal === "number" && finalTotal > 0 ? finalTotal : snap.value;
   // GA4 transaction_id: orderId om vi har det, annars en lokal fallback. GA4 har
   // INGEN server-motsvarighet (ingen CAPI-tvilling), så ett fallback-id kan inte
   // dubbelräkna — och snapshot:en rensas efter första fyrningen, vilket skyddar
@@ -269,7 +276,7 @@ export function trackPurchase(orderId: string | null | undefined) {
   send("purchase", {
     transaction_id: txId,
     currency: snap.currency,
-    value: snap.value,
+    value,
     items: snap.items,
   });
   // Meta Purchase (Pixel + CAPI). event_id = `purchase_<GUID>` MÅSTE matcha det
@@ -293,7 +300,7 @@ export function trackPurchase(orderId: string | null | undefined) {
         content_ids: snap.items.map((i) => i.item_id),
         contents: snap.items.map((i) => ({ id: i.item_id, quantity: i.quantity, item_price: i.price })),
         num_items: snap.items.reduce((n, i) => n + i.quantity, 0),
-        value: snap.value,
+        value,
         currency: snap.currency,
       },
       { eventId: `purchase_${orderId.trim()}` },

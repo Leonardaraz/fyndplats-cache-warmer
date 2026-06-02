@@ -20,6 +20,15 @@ export function ThankYou() {
     params.get("order") ||
     params.get("orderID");
 
+  // Slutbelopp (efter frakt/rabatt) om Wix headless appendar det på redirecten.
+  // Används för att Purchase-value ska matcha det server-autoritativa webhook-
+  // Purchase (order-total) → konsekvent dedup/konverteringsvärde i Meta + GA4.
+  const totalParam =
+    params.get("total") ||
+    params.get("amount") ||
+    params.get("orderTotal") ||
+    params.get("totalPrice");
+
   // Rensa lokal cart-cookie så cart-bubblen i header visar 0 efter köp.
   // (Wix tömmer cart server-side när checkout completes, men vår client-state
   // kan hänga kvar på gammal data tills nästa refresh.)
@@ -28,10 +37,11 @@ export function ThankYou() {
     // fp_purchase_pending-snapshoten som cart.tsx stashar innan kassan öppnas
     // (Wix redirectar tillbaka utan items i URL:en). Dedupar internt på
     // transaction_id så att F5 inte rapporterar dubbla konverteringar.
-    trackPurchase(orderId);
+    const finalTotal = totalParam ? Number.parseFloat(totalParam) : NaN;
+    trackPurchase(orderId, Number.isFinite(finalTotal) ? finalTotal : null);
     Cookies.remove("fp_cart");
     Cookies.remove("session"); // tvingar ny visitor-session vid nästa /butik-besök
-  }, [orderId]);
+  }, [orderId, totalParam]);
 
   return (
     <div className="tack-wrap">
