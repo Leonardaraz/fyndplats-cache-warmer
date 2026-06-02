@@ -1,6 +1,10 @@
 // app/api/cron/seo-weekly-email/route.ts
 // Vercel Cron entry: GET /api/cron/seo-weekly-email
-// Schedule: Mondays 08:00 UTC ("0 8 * * 1", see vercel.json).
+// Schedule: Mondays "0 6,7 * * 1" (06:00 + 07:00 UTC, see vercel.json). Vercel
+// Cron runs in fixed UTC without timezone support, so we fire on BOTH hours and
+// gate in code against Swedish local time (lib/cron-time) so the report always
+// lands 08:00 Swedish on Mondays — summer and winter alike. In summer 06 UTC =
+// 08:00, in winter 07 UTC = 08:00; the other firing short-circuits with 200.
 //
 // Builds the deterministic SEO health report (lib/seo-health) and emails it to
 // OPS_ALERT_EMAIL via Resend. Subject reflects health:
@@ -9,6 +13,10 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { buildSeoHealthReport, renderSeoEmailHtml, seoEmailSubject } from "../../../../lib/seo-health";
+import { cronClock, isSwedishHour } from "../../../../lib/cron-time";
+
+// Mondays 08:00 Swedish time. `?force=1` bypasses the gate (post-deploy verify).
+const TARGET_SWEDISH_HOUR = 8;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +36,15 @@ export async function GET(request: Request) {
   if (!isAuthorised(request)) {
     return NextResponse.json({ ok: false, error: "unauthorised" }, { status: 401 });
   }
+
+  // DST gate: skip the firing that isn't 08:00 Swedish time.
+  const clock = cronClock();
+  const force = new URL(request.url).searchParams.get("force") === "1";
+  if (!force && !isSwedishHour(TARGET_SWEDISH_HOUR)) {
+    console.log("[seo-weekly] skipped — off target hour", clock);
+    return NextResponse.json({ ok: true, skipped: "off_target_hour", ...clock });
+  }
+  console.log("[seo-weekly] firing", { ...clock, force });
 
   // Fall back to the ops mailbox so the weekly touch still arrives even if
   // OPS_ALERT_EMAIL is missing in Vercel (mirrors app/api/sms-inbound/route.ts).
