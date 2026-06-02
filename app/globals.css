@@ -419,6 +419,12 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .gallery .gmain img.ghero-layer.ghero-base{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:1}
 .gallery .gmain img.ghero-layer.is-shown{opacity:1;z-index:2}
 .gallery .gmain:hover img{transform:scale(1.07)}
+/* Variant-swap-spinner: visas bara om man bytt till en bild som ännu inte
+   dekodats (efter den ivriga förladdningen normalt aldrig). Mjuk, centrerad,
+   ovanpå det gamla bildlagret så det syns att något händer. */
+.gallery .gmain .ghero-spin{position:absolute;top:50%;left:50%;width:34px;height:34px;margin:-17px 0 0 -17px;z-index:4;border-radius:50%;border:3px solid rgba(0,0,0,.12);border-top-color:#C2410C;animation:gheroSpin .7s linear infinite;pointer-events:none}
+@keyframes gheroSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.gallery .gmain .ghero-spin{animation-duration:1.6s}}
 /* Bildlös produkt: vänlig platshållare i stället för tom gräddvit ruta. */
 .gallery .gmain-empty{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:default;color:#b8ab9b}
 .gallery .gmain-empty svg{width:64px;height:64px}

@@ -78,7 +78,10 @@ export function Gallery({
   // mountas lazy (bara den initiala laddas direkt → oförändrad LCP) och ett nytt
   // lager visas FÖRST när dess bild laddat klart, så det gamla ligger kvar tills
   // det nya är redo — äkta crossfade utan blink, hopp eller refetch.
-  const initialActive = useRef(active).current;
+  // Fångar `active` vid första render (det initiala/LCP-lagret) en gång. useState
+  // i stället för useRef().current → inget ref-läs under render (react-hooks/refs).
+  const [initialActive] = useState(active);
+  const gmainRef = useRef<HTMLButtonElement>(null);
   const [mounted, setMounted] = useState<number[]>([active]);
   const [loaded, setLoaded] = useState<Record<number, boolean>>({});
   const [shown, setShown] = useState(active);
@@ -86,6 +89,34 @@ export function Gallery({
     setMounted((m) => (m.includes(active) ? m : [...m, active]));
     if (loaded[active]) setShown(active); // byt först när målbilden är dekodad
   }, [active, loaded]);
+
+  // Pålitlig "dekodad"-detektering. next/image:s onLoad fyrar INTE för en bild
+  // som redan låg i webbläsarcachen när lagret mountas (klassisk next/image-fälla,
+  // mätt här: förladdade lager fick aldrig loaded=true → crossfaden bytte aldrig
+  // och spinnern fastnade). Efter varje mount-ändring läser vi därför av varje
+  // lagers faktiska `complete`-status och markerar de dekodade som laddade — så
+  // täcks både cache-träff (complete direkt) och kall fetch (onLoad nedan).
+  useEffect(() => {
+    const root = gmainRef.current;
+    if (!root) return;
+    const scan = () => {
+      const nodes = root.querySelectorAll<HTMLImageElement>("img.ghero-layer[data-idx]");
+      const done: number[] = [];
+      nodes.forEach((im) => { if (im.complete && im.naturalWidth > 0) done.push(Number(im.dataset.idx)); });
+      if (done.length) setLoaded((l) => {
+        let next = l;
+        for (const i of done) if (!next[i]) { if (next === l) next = { ...l }; next[i] = true; }
+        return next;
+      });
+    };
+    // Synkron avläsning (cache-träffar är complete redan här) + ett par sena
+    // svep för bilder som dekodar strax efter mount. setTimeout (inte rAF) — rAF
+    // pausas helt i en dold flik, vilket annars låste crossfaden + spinnern.
+    scan();
+    const t1 = setTimeout(scan, 60);
+    const t2 = setTimeout(scan, 400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [mounted]);
 
   // ── Ivrig förladdning av ALLA variant-/galleribilder (Leonards rapport:
   //    "när man byter variant händer inget om bilden inte laddats"). Tidigare
@@ -96,17 +127,29 @@ export function Gallery({
   //    Lagren hämtas+dekodas på exakt den srcset-kandidat ett kommande byte visar
   //    → variantbytet blir en direkt cache-träff (mätt: 0 nya fetchar, <100 ms).
   const preloadedAll = useRef(false);
-  useEffect(() => {
-    if (preloadedAll.current) return;
-    if (!loaded[initialActive]) return; // vänta tills LCP-bilden är klar
-    if (imgs.length <= 1) return;
+  const doPreload = useCallback(() => {
+    if (preloadedAll.current || imgs.length <= 1) return;
     preloadedAll.current = true;
     const n = eagerCount && eagerCount > 0 ? Math.min(eagerCount, imgs.length) : imgs.length;
     const targets = Array.from({ length: n }, (_, i) => i);
-    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
-    if (ric) ric(() => setMounted((m) => [...new Set([...m, ...targets])]), { timeout: 1500 });
-    else setTimeout(() => setMounted((m) => [...new Set([...m, ...targets])]), 300);
-  }, [loaded, initialActive, imgs.length, eagerCount]);
+    setMounted((m) => [...new Set([...m, ...targets])]);
+  }, [imgs.length, eagerCount]);
+  // Primär: så fort hjältebilden (LCP) dekodats → schemalägg på browser-idle, så
+  // bakgrundsfetcharna aldrig konkurrerar med LCP i kritiska vägen.
+  useEffect(() => {
+    if (!loaded[initialActive]) return;
+    const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void };
+    if (w.requestIdleCallback) { w.requestIdleCallback(doPreload, { timeout: 1500 }); return; }
+    const t = setTimeout(doPreload, 300);
+    return () => clearTimeout(t);
+  }, [loaded, initialActive, doPreload]);
+  // Skyddsnät: next/image:s onLoad fyrar INTE när bilden redan låg i cachen vid
+  // hydrering (mätt — då fyllde förladdningen aldrig). Förladda då ändå efter en
+  // stund så variantbyten blir snabba oavsett.
+  useEffect(() => {
+    const t = setTimeout(doPreload, 2500);
+    return () => clearTimeout(t);
+  }, [doPreload]);
 
   // Subtil laddningsindikator: man har bytt till ett lager vars bild ännu inte
   // dekodats (det gamla ligger kvar tills det nya är redo — äkta crossfade). Utan
@@ -256,6 +299,7 @@ export function Gallery({
       <button
         type="button"
         className="gmain"
+        ref={gmainRef}
         onClick={onHeroClick}
         onTouchStart={onHeroTouchStart}
         onTouchMove={onHeroTouchMove}
@@ -277,6 +321,7 @@ export function Gallery({
               alt={i === active ? alt : ""}
               width={800}
               height={800}
+              data-idx={i}
               loader={isWix ? wixMainLoader : undefined}
               {...(isInitial ? { preload: true } : { loading: "eager" as const })}
               placeholder="blur"

@@ -252,6 +252,10 @@ export function ProductView({
         mainBlur={mainBlur}
         active={allHaveImage ? galleryIdx : undefined}
         onActiveChange={allHaveImage ? onGalleryActive : undefined}
+        // Förladda variantbilderna (de ligger först i galleryImages) efter LCP så
+        // varje variantbyte blir en direkt cache-träff. Galleriets extrabilder
+        // (svep-bara, ej i pickern) lämnas lazy.
+        eagerCount={allHaveImage ? imageChoices.length : 1}
       />
 
       <div className="pinfo">
