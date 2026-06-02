@@ -134,8 +134,14 @@ export function Gallery({
     const targets = Array.from({ length: n }, (_, i) => i);
     setMounted((m) => [...new Set([...m, ...targets])]);
   }, [imgs.length, eagerCount]);
-  // Primär: så fort hjältebilden (LCP) dekodats → schemalägg på browser-idle, så
-  // bakgrundsfetcharna aldrig konkurrerar med LCP i kritiska vägen.
+  // Gate:as på att hjältebilden (LCP) faktiskt dekodats — annars stal de 5
+  // variant-fetcharna bandbredd från LCP-bilden på 4G (mätt: sportflaskans LCP
+  // sköt från 2,0→3,0 s när förladdningen råkade starta för tidigt). loaded-
+  // detekteringen ovan är pålitlig (synk-scan för cache-träff, onLoad för kall
+  // fetch), så detta fyrar säkert. requestIdleCallback skjuter dessutom upp till
+  // browser-idle. Inget separat skyddsnät → förladdningen kan ALDRIG ligga före
+  // LCP. (Slår förladdningen fel uteblir den bara → svep faller tillbaka på
+  // on-demand-mount med spinner, dvs det gamla beteendet.)
   useEffect(() => {
     if (!loaded[initialActive]) return;
     const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void };
@@ -143,13 +149,6 @@ export function Gallery({
     const t = setTimeout(doPreload, 300);
     return () => clearTimeout(t);
   }, [loaded, initialActive, doPreload]);
-  // Skyddsnät: next/image:s onLoad fyrar INTE när bilden redan låg i cachen vid
-  // hydrering (mätt — då fyllde förladdningen aldrig). Förladda då ändå efter en
-  // stund så variantbyten blir snabba oavsett.
-  useEffect(() => {
-    const t = setTimeout(doPreload, 2500);
-    return () => clearTimeout(t);
-  }, [doPreload]);
 
   // Subtil laddningsindikator: man har bytt till ett lager vars bild ännu inte
   // dekodats (det gamla ligger kvar tills det nya är redo — äkta crossfade). Utan
@@ -323,7 +322,9 @@ export function Gallery({
               height={800}
               data-idx={i}
               loader={isWix ? wixMainLoader : undefined}
-              {...(isInitial ? { preload: true } : { loading: "eager" as const })}
+              {...(isInitial
+                ? { preload: true }
+                : { loading: "eager" as const, fetchPriority: "low" as const })}
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
               sizes="(max-width:760px) 100vw, 45vw"
