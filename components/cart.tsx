@@ -7,6 +7,7 @@ import {
   trackBeginCheckout,
   trackViewCart,
 } from "../lib/analytics";
+import type { RecoProduct } from "../lib/products";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -227,9 +228,13 @@ export function BuyBox({ id, variants }: { id: string; variants?: { id: string; 
   );
 }
 
-export function CartDrawer() {
+export function CartDrawer({ recommendations = [] }: { recommendations?: RecoProduct[] }) {
   const { cart, open, setOpen, remove, updateQty, checkout, busy, count } = useCart();
   const items: any[] = cart?.lineItems || [];
+  // "Andra köpte också": visa upp till 3 rekommendationer som inte redan ligger
+  // i varukorgen (matchas på Wix-katalog-id). Hjälper att fylla fri-frakt-gapet.
+  const cartIds = new Set(items.map((li) => li?.catalogReference?.catalogItemId).filter(Boolean));
+  const recos = recommendations.filter((r) => !cartIds.has(r.id)).slice(0, 3);
   const subtotal = cart?.subtotal?.formattedAmount || cart?.priceSummary?.subtotal?.formattedAmount || "";
   const FREE_SHIP = 499;
   const subNum = parseFloat(cart?.priceSummary?.subtotal?.amount ?? cart?.subtotal?.amount ?? "0") || 0;
@@ -288,6 +293,22 @@ export function CartDrawer() {
                 </div>
               );
             })
+          )}
+          {items.length > 0 && recos.length > 0 && (
+            <div className="cart-recos">
+              <div className="cart-recos-head">Andra köpte också</div>
+              {recos.map((r) => (
+                <a className="cart-reco" key={r.slug} href={`/produkt/${r.slug}`} onClick={() => setOpen(false)}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {r.img ? <img className="cart-reco-img" src={r.img} alt={r.name} loading="lazy" /> : <span className="cart-reco-img" />}
+                  <span className="cart-reco-info">
+                    <span className="cart-reco-name">{r.name}</span>
+                    <span className="cart-reco-price">{r.price}</span>
+                  </span>
+                  <span className="cart-reco-arr" aria-hidden="true">→</span>
+                </a>
+              ))}
+            </div>
           )}
         </div>
         {items.length > 0 && (

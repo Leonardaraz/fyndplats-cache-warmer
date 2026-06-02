@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { CartProvider } from "../components/cart";
+import { getProducts, forListings, cartRecommendations } from "../lib/products";
 import { SiteHeader, SiteFooter } from "../components/site";
 import { WishlistProvider } from "../components/wishlist";
 // Below-fold / interaction-only components — code-split via next/dynamic so
@@ -88,9 +89,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Bästsäljar-rekommendationer till cart-drawerns "Andra köpte också"-block.
+  // getProducts() är cache:ad så detta delar fetch med övriga server-renders.
+  const cartRecos = cartRecommendations(forListings(await getProducts()));
   return (
     <html lang="sv" className={`${geist.variable} ${fraunces.variable}`}>
       <head>
@@ -109,7 +113,7 @@ export default function RootLayout({
             <SiteHeader />
             <main>{children}</main>
             <SiteFooter />
-            <CartDrawer />
+            <CartDrawer recommendations={cartRecos} />
             <WishlistDrawer />
             <BackToTop />
           </WishlistProvider>

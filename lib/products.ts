@@ -355,6 +355,31 @@ export function forListings(products: Product[]): Product[] {
   return products.filter((p) => p.inStock);
 }
 
+// Slim produktform för cart-drawerns "Andra köpte också"-block — bara de fält
+// klienten behöver, så vi inte serialiserar hela Product[] in i klient-payloaden.
+export type RecoProduct = { id: string; slug: string; name: string; img: string; price: string };
+
+// Rekommendationer till cart-drawern. Vi saknar riktig "frequently bought
+// together"-orderdata, så vi approximerar med bästsäljare / bäst presenterade
+// produkter i lager (ribbon=Bestseller först, därefter högst bild-poäng).
+// dedupeProducts ser till att inga dubbletter eller samma bild listas.
+export function cartRecommendations(products: Product[], limit = 8): RecoProduct[] {
+  const inStock = products.filter((p) => p.inStock && p.img);
+  const ranked = [...inStock].sort((a, b) => {
+    const ba = a.ribbon === "Bestseller" ? 1 : 0;
+    const bb = b.ribbon === "Bestseller" ? 1 : 0;
+    if (ba !== bb) return bb - ba;
+    return (b.imageScore ?? 60) - (a.imageScore ?? 60);
+  });
+  return dedupeProducts(ranked).slice(0, limit).map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    img: p.img,
+    price: p.hasRange ? `Från ${p.priceFrom}` : p.price,
+  }));
+}
+
 // Wixstatic-bildens fil-id (samma fil kan levereras med olika transform-params,
 // w_400 vs w_800), så vi jämför på id:t — inte hela URL:en.
 function imgKey(url: string): string {
