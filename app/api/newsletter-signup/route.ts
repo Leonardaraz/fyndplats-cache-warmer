@@ -54,8 +54,9 @@ export async function POST(request: Request) {
   // inte spammar någon som klickar igen.
   if (!result.already && process.env.RESEND_API_KEY) {
     try {
+      const unsubUrl = unsubscribeUrl(email);
       const html = await render(
-        NewsletterWelcomeEmail({ unsubscribeUrl: unsubscribeUrl(email) })
+        NewsletterWelcomeEmail({ unsubscribeUrl: unsubUrl })
       );
       await new Resend(process.env.RESEND_API_KEY).emails.send({
         from: FROM,
@@ -63,6 +64,12 @@ export async function POST(request: Request) {
         replyTo: REPLY_TO,
         subject: "Tack för att du prenumererar!",
         html,
+        // RFC 8058 one-click unsubscribe headers så Gmail/Apple Mail visar en
+        // native "Unsubscribe"-knapp (matchar abandoned-cart-mejlen).
+        headers: {
+          "List-Unsubscribe": `<${unsubUrl}>, <mailto:info@fyndplats.com?subject=unsubscribe>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
       });
     } catch (e) {
       console.error("[newsletter] confirmation email failed:", (e as Error).message);
