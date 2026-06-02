@@ -68,14 +68,16 @@ i `lib/meta.ts` + `components/metapixel.tsx`.
    - `META_PIXEL_ID` = ditt Pixel-ID
    - `META_CAPI_ACCESS_TOKEN` = din CAPI-token
    - `META_TEST_EVENT_CODE` = (valfri) koden från Events Manager → *Test Events*
-     — används bara utanför produktion.
+     — attacheras bara när `VERCEL_ENV !== "production"` (preview-deploys + lokalt).
    Redeploy:a efter att värdena sparats (env-ändringar slår igenom först vid ny
    deploy). Tills variablerna är ifyllda renderar Pixeln inget och CAPI svarar
    `{ skipped: "not_configured" }` — sajten fungerar oförändrat.
 4. **Test Events**: Events Manager → din Pixel → **Test Events**. Sätt
-   `META_TEST_EVENT_CODE` i Preview/Dev och surfa på en preview-deploy — events
-   dyker upp i panelen i realtid. Verifiera att Pixel- och CAPI-raden för samma
-   sidladdning **deduplicerar** (visas som *ett* event med "Deduplicated").
+   `META_TEST_EVENT_CODE` (+ Pixel-ID + CAPI-token) i **Preview** och surfa på en
+   preview-deploy — events dyker upp i panelen i realtid (gaten är `VERCEL_ENV`,
+   så preview funkar men prod rör aldrig test-koden). Verifiera att Pixel- och
+   CAPI-raden för samma sidladdning **deduplicerar** (visas som *ett* event med
+   "Deduplicated"). Se den detaljerade testplanen nedan.
 5. Health-check när som helst: `GET https://www.fyndplats.se/api/meta/capi`
    → `{ "configured": true }` när env är satt.
 
@@ -92,8 +94,11 @@ Gör så här innan du går till produktion:
 
 1. Fyll i `META_PIXEL_ID` + `META_CAPI_ACCESS_TOKEN` på **Preview** (och valfritt
    Production senare). Sätt även `META_TEST_EVENT_CODE` (Events Manager → din
-   Pixel → *Test Events* → koden visas överst) på **Preview/Development** —
-   den används bara när `NODE_ENV !== "production"`, så skarp data smutsas aldrig.
+   Pixel → *Test Events* → koden visas överst) på **Preview** —
+   `lib/meta-capi.ts` attacherar `test_event_code` bara när `VERCEL_ENV !==
+   "production"` (dvs på preview-deploys + lokalt, ALDRIG i prod), så skarp data
+   smutsas aldrig ner. (NODE_ENV duger inte — Vercel bygger preview som
+   production.)
 2. Redeploy:a Preview. Öppna Events Manager → din Pixel → **Test Events** och
    håll den öppen.
 3. På preview-URL:en: acceptera cookies med **"Godkänn alla"** (Purchase är

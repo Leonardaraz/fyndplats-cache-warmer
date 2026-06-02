@@ -105,8 +105,14 @@ export async function sendMetaCapiEvent(input: CapiEventInput): Promise<CapiResu
 
   const payload: Record<string, unknown> = { data: [event] };
   // Test Events-läge bara utanför produktion → skarp data smutsas aldrig ner.
+  // OBS: VERCEL_ENV, INTE NODE_ENV. Vercel bygger BÅDE preview och production med
+  // NODE_ENV=production, så NODE_ENV kan inte skilja dem åt — bara lokal `next dev`
+  // får NODE_ENV=development. VERCEL_ENV är "production" | "preview" | (saknas
+  // lokalt). Så test_event_code attacheras på preview-deploys och lokalt, men
+  // ALDRIG i produktion. Faller tillbaka på NODE_ENV om VERCEL_ENV saknas.
+  const deployEnv = (process.env.VERCEL_ENV || process.env.NODE_ENV || "").trim();
   const testCode = metaEnv("META_TEST_EVENT_CODE");
-  if (process.env.NODE_ENV !== "production" && testCode) {
+  if (deployEnv !== "production" && testCode) {
     payload.test_event_code = testCode;
   }
 
