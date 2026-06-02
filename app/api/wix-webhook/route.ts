@@ -638,9 +638,6 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("[wix-webhook] recordOrder fel (ignorerar)", err);
       }
-      // Server-autoritativt Meta Purchase (CAPI). Best-effort; dedupliceras mot
-      // klientens /tack-Purchase via delad event_id `purchase_<orderId>`.
-      await fireMetaPurchase(entity);
       const customer = extractCustomer(entity)!;
       const html = await render(OrderConfirmationEmail(props));
       const sent = await resend.emails.send({
@@ -654,6 +651,13 @@ export async function POST(req: NextRequest) {
         console.error("[wix-webhook] Resend order_created fel", sent.error);
         return NextResponse.json({ error: "Email send failed" }, { status: 500 });
       }
+      // Server-autoritativt Meta Purchase (CAPI) — fyras EFTER bekräftelsemejlet
+      // så en hängande Graph API-fetch aldrig kan fördröja kund-mejlet och trigga
+      // Wix-retry → dubbel orderbekräftelse. CAPI-fetchen har dessutom 3s timeout
+      // (lib/meta-capi) så svaret nedan inte heller kan blockeras på obestämd tid.
+      // Best-effort; dedupliceras mot klientens /tack-Purchase via event_id
+      // `purchase_<orderId>`.
+      await fireMetaPurchase(entity);
       return NextResponse.json({ received: true, sent: sent.data?.id }, { status: 200 });
     }
 

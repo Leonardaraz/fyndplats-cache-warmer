@@ -118,11 +118,15 @@ export async function sendMetaCapiEvent(input: CapiEventInput): Promise<CapiResu
 
   const url = `https://graph.facebook.com/${GRAPH_VERSION}/${pixelId}/events?access_token=${encodeURIComponent(token)}`;
   try {
+    // 3s timeout: Graph API får ALDRIG hänga och blockera anroparen (t.ex.
+    // wix-webhooken som väntar med att svara 200 → Wix retry → dubbla mejl).
+    // AbortSignal.timeout kastar TimeoutError som fångas nedan → fetch_failed.
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
       cache: "no-store",
+      signal: AbortSignal.timeout(3000),
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
