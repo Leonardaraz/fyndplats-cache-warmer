@@ -58,9 +58,9 @@ export function bestInTestH1(label: string, seed: number): string {
 
 export function bestInTestMetaTitle(label: string, seed: number): string {
   const v = [
-    `Bäst i test: ${label} ${YEAR} | Fyndplats`,
-    `${cap(label)} – bäst i test ${YEAR} | Fyndplats`,
-    `Bäst i test ${label} ${YEAR} – jämförelse | Fyndplats`,
+    `Bäst i test: ${label} ${YEAR}`,
+    `${cap(label)} – bäst i test ${YEAR}`,
+    `Bäst i test ${label} ${YEAR} – jämförelse`,
   ];
   return pick(v, seed, 7);
 }
@@ -206,9 +206,9 @@ export function priceTierH1(categoryName: string, price: number, seed: number): 
 
 export function priceTierMetaTitle(categoryName: string, price: number, seed: number): string {
   const v = [
-    `${categoryName} under ${price} kr | Fyndplats`,
-    `Billig ${categoryName.toLowerCase()} under ${price} kr | Fyndplats`,
-    `${categoryName} under ${price} kr – smarta fynd | Fyndplats`,
+    `${categoryName} under ${price} kr`,
+    `Billig ${categoryName.toLowerCase()} under ${price} kr`,
+    `${categoryName} under ${price} kr – smarta fynd`,
   ];
   return pick(v, seed, 7);
 }
@@ -280,9 +280,9 @@ export function interestH1(verb: string, seed: number): string {
 
 export function interestMetaTitle(verb: string, seed: number): string {
   const v = [
-    `För dig som ${verb} – handplockade fynd | Fyndplats`,
-    `Fynd för dig som ${verb} | Fyndplats`,
-    `För dig som ${verb} – våra favoriter | Fyndplats`,
+    `För dig som ${verb} – handplockade fynd`,
+    `Fynd för dig som ${verb}`,
+    `För dig som ${verb} – våra favoriter`,
   ];
   return pick(v, seed, 7);
 }
