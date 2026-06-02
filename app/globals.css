@@ -1309,3 +1309,22 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rv-drawer-info{display:flex;flex-direction:column;gap:2px;min-width:0}
 .rv-drawer-name{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rv-drawer-price{font-size:13px;font-weight:700;color:var(--char)}
+
+/* --- Exit-intent cart popup --------------------------------------------- */
+@keyframes fpPopOv{from{opacity:0}to{opacity:1}}
+@keyframes fpPopIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.xpop-ov{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,18,15,.5);animation:fpPopOv .25s ease}
+.xpop{position:relative;width:100%;max-width:400px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 30px 70px -22px rgba(28,28,28,.55);border-top:5px solid var(--orange);padding:32px 28px 24px;text-align:center;animation:fpPopIn .3s cubic-bezier(.2,.7,.2,1)}
+.xpop-x{position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;line-height:1;color:var(--soft);cursor:pointer;padding:6px;border-radius:8px;transition:color .15s,background .15s}
+.xpop-x:hover{color:var(--ink);background:rgba(0,0,0,.05)}
+.xpop-ic{font-size:42px;line-height:1;margin-bottom:8px}
+.xpop-title{font-family:var(--font-display),serif;font-size:24px;line-height:1.2;color:var(--char);margin:0 0 8px}
+.xpop-sub{font-size:14.5px;line-height:1.5;color:var(--soft);margin:0 auto 18px;max-width:320px}
+.xpop-sub strong{color:var(--char)}
+.xpop-cta{font:inherit;font-size:16px;font-weight:800;width:100%;padding:15px 18px;border:none;border-radius:12px;background:#C2410C;color:#fff;cursor:pointer;transition:background .18s,transform .05s}
+.xpop-cta:hover{background:#A8380A}
+.xpop-cta:active{transform:translateY(1px)}
+.xpop-cta:disabled{opacity:.65;cursor:default}
+.xpop-nothanks{display:inline-block;margin-top:12px;background:none;border:none;font:inherit;font-size:13px;color:var(--soft);text-decoration:underline;cursor:pointer}
+.xpop-nothanks:hover{color:var(--ink)}
+@media(max-width:480px){.xpop{padding:28px 20px 20px}.xpop-title{font-size:21px}}

@@ -41,3 +41,11 @@ export const WishlistDrawer = dynamic(
   () => import("./wishlist").then((m) => m.WishlistDrawer),
   { ssr: false, loading: () => null },
 );
+
+// Exit-intent-popup: ren interaktions-driven UI, aldrig en del av första
+// paint → ssr:false så den inte väger på initial JS eller LCP. Laddas under
+// idle efter hydration.
+export const ExitIntentCart = dynamic(
+  () => import("./exit-intent-cart").then((m) => m.ExitIntentCart),
+  { ssr: false, loading: () => null },
+);
