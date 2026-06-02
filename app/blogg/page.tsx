@@ -43,7 +43,7 @@ export default async function Blogg() {
                   <div className="pbody">
                     {p.date && <div style={{ fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>{fmtDate(p.date)}</div>}
                     <div className="pname" style={{ minHeight: 0 }}>{p.title}</div>
-                    {p.excerpt && <p style={{ fontSize: 13.5, color: "var(--soft)", marginTop: 8, lineHeight: 1.5 }}>{p.excerpt.slice(0, 120)}</p>}
+                    {p.excerpt && <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 8, lineHeight: 1.5 }}>{p.excerpt.slice(0, 120)}</p>}
                   </div>
                 </a>
               ))}
