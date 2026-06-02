@@ -5,6 +5,18 @@ import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../lib/image-scores";
+import { getCropEntry, wixMediaKey } from "../lib/wix-image";
+
+// Wraps Wix-CDN-URL med tight-crop transform när vi har detection-data. Saknas
+// data → orört (samma beteende som tidigare). Används för home-hero mosaiken
+// och kategori-thumb-mosaiken där bilderna har inbakad vit padding.
+function tight(url: string): string {
+  const key = wixMediaKey(url);
+  if (!key) return url;
+  const crop = getCropEntry(url);
+  if (!crop) return url;
+  return `https://static.wixstatic.com/media/${key}/v1/crop/x_${crop.x},y_${crop.y},w_${crop.w},h_${crop.h}/file.webp`;
+}
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -198,7 +210,7 @@ export default async function Home() {
                 {heroProducts.slice(0, 2).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
                     <Image
-                      src={p.img}
+                      src={tight(p.img)}
                       alt={p.name}
                       fill
                       preload
@@ -214,7 +226,7 @@ export default async function Home() {
               <div className="mcol mcol-offset">
                 {heroProducts.slice(2, 4).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
-                    <Image src={p.img} alt={p.name} fill preload placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
+                    <Image src={tight(p.img)} alt={p.name} fill preload placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
                     {p.price && <span className="htag">{p.price}</span>}
                   </a>
                 ))}
@@ -251,7 +263,7 @@ export default async function Home() {
                       c.thumbs[i] ? (
                         <span className="homecat-thumb" key={i}>
                           <Image
-                            src={c.thumbs[i]}
+                            src={tight(c.thumbs[i])}
                             alt=""
                             fill
                             placeholder="blur"
@@ -304,13 +316,4 @@ export default async function Home() {
           <div className="cards">
             <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg></div><h3>Spårbar leverans</h3><p>Fri frakt över 499 kr. Följ paketet hela vägen hem.</p></div>
             <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>Trygg betalning med Klarna</h3><p>Kort, Swish eller faktura – du väljer själv.</p></div>
-            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>30 dagars öppet köp</h3><p>Ändrat dig? Enkel och trygg retur – vi förlänger lagens 14 dagar till 30.</p></div>
-            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg></div><h3>Svensk kundtjänst</h3><p>Vi svarar normalt inom 24 timmar.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <Newsletter />
-    </>
-  );
-}
+            <div className="card"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidt

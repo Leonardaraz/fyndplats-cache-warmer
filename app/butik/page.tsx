@@ -5,6 +5,15 @@ import { ProductCard } from "../../components/productcard";
 import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/category-groups";
 import { pageMeta } from "../../lib/seo";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../../lib/image-scores";
+import { getCropEntry, wixMediaKey } from "../../lib/wix-image";
+
+function tight(url: string): string {
+  const key = wixMediaKey(url);
+  if (!key) return url;
+  const crop = getCropEntry(url);
+  if (!crop) return url;
+  return `https://static.wixstatic.com/media/${key}/v1/crop/x_${crop.x},y_${crop.y},w_${crop.w},h_${crop.h}/file.webp`;
+}
 
 export const metadata = pageMeta(
   "Butik – utforska hela vårt sortiment",
@@ -133,7 +142,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                   {heroSrc && (
                     <Image
                       className="butik-cat-img"
-                      src={heroSrc}
+                      src={tight(heroSrc)}
                       alt=""
                       fill
                       sizes="(max-width:760px) 100vw, (max-width:1100px) 50vw, 560px"
@@ -159,7 +168,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                         <a className="butik-subchip" key={s.id} href={`/kategori/${s.slug}`}>
                           {s.img && (
                             <span className="butik-subchip-thumb">
-                              <Image src={s.img} alt="" fill sizes="48px" />
+                              <Image src={tight(s.img)} alt="" fill sizes="48px" />
                             </span>
                           )}
                           <span className="butik-subchip-text">
@@ -228,17 +237,4 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                   <p>Riktig kontakt med svensktalande personal – vi svarar inom 24 timmar.</p>
                 </div>
               </li>
-              <li>
-                <span className="butik-pillar-num">03</span>
-                <div>
-                  <h4>Trygga köp</h4>
-                  <p>Klarna, 30 dagars öppet köp och spårbar leverans till hela Sverige.</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-    </>
-  );
-}
+            

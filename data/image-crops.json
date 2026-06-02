@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-02T00:00:00Z",
+  "comment": "Tight-crop bounding-boxes per Wix media-key. Genererad av scripts/detect-image-crops.mjs. Tomma 'entries' = inga tight-crops aktiva; render-pipelinen faller då tillbaka på fill (samma som tidigare). Kör scriptet för att populera när Wix CDN är tillgänglig.",
+  "entries": {}
+}

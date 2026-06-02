@@ -1,0 +1,245 @@
+// app/api/admin/detect-image-crops/route.ts
+// Server-side endpoint som kör Sharp-baserad tight-crop-detection mot Wix CDN
+// och returnerar färdig JSON som kan paste:as in i `data/image-crops.json`.
+//
+// Varför: lokal detection kräver nätverkstillgång till static.wixstatic.com som
+// kan saknas i sandboxade utvecklings-miljöer (CLI-proxy med allowlist). Vercels
+// runtime har öppen internet — denna route är därför vägen för att populera
+// crop-cachen.
+//
+// Användning:
+//   GET /api/admin/detect-image-crops?token=<ADMIN_TOKEN>
+//
+// Parametrar:
+//   token  — krävs. Matchas mot env ADMIN_API_TOKEN (samma som andra admin-routes).
+//   limit  — valfri. Begränsa antal URLer (för debug).
+//   only   — valfri. Kommaseparerad lista; bilder vars URL innehåller en substring matchas.
+//
+// Svaret är samma form som `data/image-crops.json` ({ version, generatedAt,
+// entries, skipped, failed }). Spara svaret som filen och deploya igen.
+
+import { NextResponse } from "next/server";
+import sharp from "sharp";
+import fs from "node:fs";
+import path from "node:path";
+
+export const runtime = "nodejs";
+export const maxDuration = 300; // sek; detection kan ta tid.
+
+const WHITE_THRESHOLD = 240;
+const PADDING_PCT = 6;
+const SKIP_MARGIN_PCT = 25;
+const MIN_MARGIN_PCT = 3;
+const FETCH_TIMEOUT_MS = 20000;
+const MAX_PARALLEL = 6;
+
+function wixMediaKey(url: string): string | null {
+  const m = (url || "").match(/static\.wixstatic\.com\/media\/([^/?#]+)/);
+  return m ? m[1] : null;
+}
+
+function originalWixUrl(url: string): string | null {
+  const k = wixMediaKey(url);
+  return k ? `https://static.wixstatic.com/media/${k}` : null;
+}
+
+function findBoundingBox(
+  rgba: Buffer,
+  w: number,
+  h: number,
+  channels: number,
+): { top: number; left: number; right: number; bottom: number } {
+  const isContent = (off: number) => {
+    if (channels === 4 && rgba[off + 3] < 16) return false;
+    return rgba[off] < WHITE_THRESHOLD || rgba[off + 1] < WHITE_THRESHOLD || rgba[off + 2] < WHITE_THRESHOLD;
+  };
+  let top = 0, left = 0, right = w - 1, bottom = h - 1;
+  outerTop:
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (isContent((y * w + x) * channels)) { top = y; break outerTop; }
+    }
+  }
+  outerBottom:
+  for (let y = h - 1; y >= 0; y--) {
+    for (let x = 0; x < w; x++) {
+      if (isContent((y * w + x) * channels)) { bottom = y; break outerBottom; }
+    }
+  }
+  outerLeft:
+  for (let x = 0; x < w; x++) {
+    for (let y = top; y <= bottom; y++) {
+      if (isContent((y * w + x) * channels)) { left = x; break outerLeft; }
+    }
+  }
+  outerRight:
+  for (let x = w - 1; x >= 0; x--) {
+    for (let y = top; y <= bottom; y++) {
+      if (isContent((y * w + x) * channels)) { right = x; break outerRight; }
+    }
+  }
+  return { top, left, right, bottom };
+}
+
+function bboxToCrop(
+  bbox: { top: number; left: number; right: number; bottom: number },
+  ow: number,
+  oh: number,
+) {
+  const { top, left, right, bottom } = bbox;
+  const contentW = right - left + 1;
+  const contentH = bottom - top + 1;
+  const margins = {
+    top: (top / oh) * 100,
+    right: ((ow - 1 - right) / ow) * 100,
+    bottom: ((oh - 1 - bottom) / oh) * 100,
+    left: (left / ow) * 100,
+  };
+  const maxMargin = Math.max(margins.top, margins.right, margins.bottom, margins.left);
+  const minMargin = Math.min(margins.top, margins.right, margins.bottom, margins.left);
+  const cx = (left + right) / 2;
+  const cy = (top + bottom) / 2;
+  const baseSize = Math.max(contentW, contentH);
+  const padFactor = 1 + 2 * (PADDING_PCT / 100);
+  let side = Math.round(baseSize * padFactor);
+  side = Math.min(side, ow, oh);
+  let x = Math.round(cx - side / 2);
+  let y = Math.round(cy - side / 2);
+  x = Math.max(0, Math.min(x, ow - side));
+  y = Math.max(0, Math.min(y, oh - side));
+  return { x, y, w: side, h: side, margins, maxMargin, minMargin };
+}
+
+async function fetchBuf(url: string, ms: number): Promise<Buffer> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, headers: { "User-Agent": "fyndplats-crop-detect/1.0" } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return Buffer.from(await res.arrayBuffer());
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+async function detectOne(url: string) {
+  const orig = originalWixUrl(url);
+  if (!orig) return { ok: false as const, err: "not-wix" };
+  const buf = await fetchBuf(orig, FETCH_TIMEOUT_MS);
+  const meta = await sharp(buf, { failOn: "none" }).metadata();
+  const ow = meta.width, oh = meta.height;
+  if (!ow || !oh) return { ok: false as const, err: "no-dimensions" };
+  const scanSize = 800;
+  const scale = Math.min(1, scanSize / Math.max(ow, oh));
+  const sw = Math.max(1, Math.round(ow * scale));
+  const sh = Math.max(1, Math.round(oh * scale));
+  const { data: rgba, info } = await sharp(buf, { failOn: "none" })
+    .resize(sw, sh, { fit: "fill" })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const bbox = findBoundingBox(rgba, info.width, info.height, info.channels);
+  const origBbox = {
+    top: Math.round(bbox.top / scale),
+    left: Math.round(bbox.left / scale),
+    right: Math.round(bbox.right / scale),
+    bottom: Math.round(bbox.bottom / scale),
+  };
+  const crop = bboxToCrop(origBbox, ow, oh);
+  if (crop.maxMargin < MIN_MARGIN_PCT) {
+    return { ok: true as const, ow, oh, crop, skip: true as const, reason: "already-tight" };
+  }
+  if (crop.maxMargin > SKIP_MARGIN_PCT) {
+    return { ok: true as const, ow, oh, crop, skip: true as const, reason: "margin-too-large" };
+  }
+  return { ok: true as const, ow, oh, crop, skip: false as const };
+}
+
+function collectUrls(): string[] {
+  const urls = new Set<string>();
+  const ROOT = process.cwd();
+  try {
+    const ps = JSON.parse(fs.readFileSync(path.join(ROOT, "products.json"), "utf8"));
+    for (const p of ps) {
+      if (p.img) urls.add(p.img);
+      for (const g of (p.gallery || [])) if (g) urls.add(g);
+    }
+  } catch {}
+  try {
+    const v = JSON.parse(fs.readFileSync(path.join(ROOT, "data/variant-images.json"), "utf8"));
+    for (const slug of Object.keys(v.products || {})) {
+      for (const opt of (v.products[slug].options || [])) {
+        for (const c of (opt.choices || [])) {
+          if (c.image) urls.add(c.image);
+        }
+      }
+    }
+  } catch {}
+  return [...urls];
+}
+
+async function pMap<T, R>(items: T[], fn: (x: T, i: number) => Promise<R>, conc: number): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let i = 0;
+  async function worker() {
+    while (i < items.length) {
+      const idx = i++;
+      try { results[idx] = await fn(items[idx], idx); }
+      catch (e) { results[idx] = { err: (e as Error).message } as R; }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(conc, items.length) }, worker));
+  return results;
+}
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const token = url.searchParams.get("token") || "";
+  const expected = process.env.ADMIN_API_TOKEN;
+  if (!expected || token !== expected) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  const limit = Math.min(Number(url.searchParams.get("limit") || "0") || 0, 1000);
+  const only = (url.searchParams.get("only") || "").toLowerCase().split(",").filter(Boolean);
+  const urls0 = collectUrls();
+  let urls = only.length
+    ? urls0.filter((u) => only.some((k) => u.toLowerCase().includes(k)))
+    : urls0;
+  if (limit > 0) urls = urls.slice(0, limit);
+
+  const entries: Record<string, unknown> = {};
+  const skipped: unknown[] = [];
+  const failed: unknown[] = [];
+
+  await pMap(urls, async (u) => {
+    const key = wixMediaKey(u);
+    try {
+      const r = await detectOne(u);
+      if (!r.ok) { failed.push({ key, err: r.err }); return; }
+      if (r.skip) { skipped.push({ key, reason: r.reason, maxMargin: +r.crop.maxMargin.toFixed(2) }); return; }
+      entries[key!] = {
+        ow: r.ow, oh: r.oh, x: r.crop.x, y: r.crop.y, w: r.crop.w, h: r.crop.h,
+        margins: {
+          top: +r.crop.margins.top.toFixed(2),
+          right: +r.crop.margins.right.toFixed(2),
+          bottom: +r.crop.margins.bottom.toFixed(2),
+          left: +r.crop.margins.left.toFixed(2),
+        },
+      };
+    } catch (e) {
+      failed.push({ key, err: (e as Error).message });
+    }
+  }, MAX_PARALLEL);
+
+  return NextResponse.json({
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    totalProcessed: urls.length,
+    totalEntries: Object.keys(entries).length,
+    totalSkipped: skipped.length,
+    totalFailed: failed.length,
+    skipped,
+    failed,
+    entries,
+  });
+}
