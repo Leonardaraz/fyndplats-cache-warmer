@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
 import type { Product } from "../lib/products";
 
@@ -9,12 +10,14 @@ import type { Product } from "../lib/products";
 // hanterbar batch och håller DOM:en liten tills användaren ber om mer.
 const PAGE_SIZE = 24;
 
+// Pris-brackets. `slug` är det som hamnar i URL:en (?pris=under-100) så delning
+// och SEO funkar; index 0 ("Alla priser") utelämnas helt ur URL:en.
 const BRACKETS = [
-  { label: "Alla priser", min: 0, max: Infinity },
-  { label: "Under 100 kr", min: 0, max: 100 },
-  { label: "100–250 kr", min: 100, max: 250 },
-  { label: "250–500 kr", min: 250, max: 500 },
-  { label: "Över 500 kr", min: 500, max: Infinity },
+  { label: "Alla priser", min: 0, max: Infinity, slug: "" },
+  { label: "Under 100 kr", min: 0, max: 100, slug: "under-100" },
+  { label: "100–250 kr", min: 100, max: 250, slug: "100-250" },
+  { label: "250–500 kr", min: 250, max: 500, slug: "250-500" },
+  { label: "Över 500 kr", min: 500, max: Infinity, slug: "over-500" },
 ];
 
 const SORTS = [
@@ -26,14 +29,54 @@ const SORTS = [
   { v: "price-desc", label: "Pris: högt → lågt" },
   { v: "name", label: "Namn: A–Ö" },
 ];
+const SORT_VALUES = new Set(SORTS.map((s) => s.v));
 
 export function ShopBrowser({ products }: { products: Product[] }) {
-  // "Bäst bilder" (bildkvalitets-poäng fallande) är default — visuellt starkast först.
-  const [sort, setSort] = useState("img");
-  const [bi, setBi] = useState(0);
-  const [onlyInStock, setOnlyInStock] = useState(false);
-  const [onlyOnSale, setOnlyOnSale] = useState(false);
+  // useSearchParams() kräver en Suspense-gräns för att statiska sidor
+  // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
+  // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
+  // rutnätet som fallback så inget hoppar.
+  return (
+    <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p) => <ProductCard p={p} key={p.slug} />)}</div>}>
+      <ShopBrowserInner products={products} />
+    </Suspense>
+  );
+}
+
+function ShopBrowserInner({ products }: { products: Product[] }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const sp = useSearchParams();
+
+  // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
+  const [sort, setSort] = useState(() => {
+    const s = sp.get("sortera");
+    return s && SORT_VALUES.has(s) ? s : "img";
+  });
+  const [bi, setBi] = useState(() => {
+    const p = sp.get("pris");
+    const i = BRACKETS.findIndex((b) => b.slug && b.slug === p);
+    return i > 0 ? i : 0;
+  });
+  const [onlyInStock, setOnlyInStock] = useState(() => sp.get("lager") === "1");
+  const [onlyOnSale, setOnlyOnSale] = useState(() => sp.get("rea") === "1");
   const [open, setOpen] = useState(false); // mobile-collapsible filter panel
+
+  // Sync state → URL. Bygger på window.location.search så befintliga params
+  // (t.ex. ?kategori på /alla-produkter) bevaras. Kör vid mount men skriver bara
+  // om URL:en faktiskt skiljer sig → ingen onödig history-replace eller loop.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (sort !== "img") params.set("sortera", sort); else params.delete("sortera");
+    const slug = BRACKETS[bi]?.slug;
+    if (slug) params.set("pris", slug); else params.delete("pris");
+    if (onlyInStock) params.set("lager", "1"); else params.delete("lager");
+    if (onlyOnSale) params.set("rea", "1"); else params.delete("rea");
+    const qs = params.toString();
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    const current = window.location.pathname + window.location.search;
+    if (url !== current) router.replace(url, { scroll: false });
+  }, [sort, bi, onlyInStock, onlyOnSale, pathname, router]);
 
   const list = useMemo(() => {
     const b = BRACKETS[bi];
@@ -54,7 +97,13 @@ export function ShopBrowser({ products }: { products: Product[] }) {
   // till första sidan när filter/sortering/produktlista ändras (annars skulle en
   // ny lista ärva ett stort "shown"-värde och rendera allt på en gång igen).
   const [shown, setShown] = useState(PAGE_SIZE);
-  useEffect(() => { setShown(PAGE_SIZE); }, [sort, bi, onlyInStock, onlyOnSale, products]);
+  const firstRender = useRef(true);
+  useEffect(() => {
+    // Hoppa över första körningen så en delad länk inte nollställer en ev.
+    // bevarad scroll-position direkt vid mount.
+    if (firstRender.current) { firstRender.current = false; return; }
+    setShown(PAGE_SIZE);
+  }, [sort, bi, onlyInStock, onlyOnSale, products]);
   const visible = list.slice(0, shown);
   const remaining = list.length - visible.length;
 

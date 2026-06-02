@@ -2,8 +2,8 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProducts, getCollections, forListings, dedupeProducts } from "../../../lib/products";
-import { ProductCard } from "../../../components/productcard";
 import { CategoryDropdown } from "../../../components/categorydropdown";
+import { ShopBrowser } from "../../../components/shopbrowser";
 import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
 import { getBlurDataURL } from "../../../lib/lqip";
@@ -125,11 +125,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
         <div className="container">
           <CategoryDropdown products={products} collections={collections} activeSlug={active.slug} />
 
-          <div className="prodgrid">
-            {list.map((p) => (
-              <ProductCard p={p} key={p.slug} />
-            ))}
-          </div>
+          {/* ShopBrowser ger sortering (Rekommenderat/pris/namn), prisfilter,
+              lager-/rea-toggles, paginering och delbart filter-tillstånd i URL:en
+              — samma verktyg som /alla-produkter. (Audit 2026-06-02 #7) */}
+          <ShopBrowser products={list} />
         </div>
       </section>
 
