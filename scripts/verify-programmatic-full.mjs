@@ -1,9 +1,15 @@
 // Bred verifiering: hämtar ALLA programmatiska URL:er, kollar global unikhet på
-// h1/title/description, >=250 ord, och strukturell JSON-LD-validering (ItemList /
-// FAQPage / BreadcrumbList har sina obligatoriska fält).
+// h1/title/description, >=250 ord i <main>, och strukturell JSON-LD-validering
+// (ItemList / FAQPage / BreadcrumbList har sina obligatoriska fält).
 const BASE = process.argv[2] || "http://localhost:3210";
+// Matchar generatorns MIN_BODY_WORDS (lib/seo/programmatic.ts), som räknar
+// main-innehåll (intro + FAQ + produkttext).
+const MIN_WORDS = 250;
 const tag = (h, re) => { const m = h.match(re); return m ? m[1].replace(/\s+/g, " ").trim() : ""; };
-const words = (h) => h.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
+// Räkna ENBART ord i <main> — nav/footer ska aldrig inflatera ordantalet och
+// dölja en tunn sida (det var precis så en 198-ords-sida slank igenom).
+const mainHtml = (h) => { const m = h.match(/<main[^>]*>([\s\S]*?)<\/main>/i); return m ? m[1] : h; };
+const words = (h) => mainHtml(h).replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
 function schemas(h) {
   const out = []; const re = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g; let m;
   while ((m = re.exec(h))) { try { const j = JSON.parse(m[1]); (Array.isArray(j) ? j : [j]).forEach((o) => out.push(o)); } catch { out.push({ "@type": "INVALID" }); } }
@@ -35,7 +41,7 @@ for (const u of all) {
   const res = await fetch(u); const html = await res.text();
   if (res.status === 200) ok200++; else { dups.push(`${res.status} ${u}`); continue; }
   const h1 = tag(html, /<h1[^>]*>([\s\S]*?)<\/h1>/i), title = tag(html, /<title[^>]*>([\s\S]*?)<\/title>/i), desc = tag(html, /<meta name="description" content="([^"]*)"/i);
-  const w = words(html); if (w < 250) thin++;
+  const w = words(html); if (w < MIN_WORDS) { thin++; dups.push(`THIN ${w}w ${u}`); }
   for (const [map, val, lbl] of [[h1s, h1, "h1"], [titles, title, "title"], [descs, desc, "desc"]]) {
     if (map.has(val)) dups.push(`DUP ${lbl}: "${val.slice(0, 50)}" @ ${u} & ${map.get(val)}`);
     else map.set(val, u);
@@ -45,7 +51,7 @@ for (const u of all) {
 }
 console.log(`200 OK: ${ok200}/${all.length}`);
 console.log(`Unika h1: ${h1s.size}, titlar: ${titles.size}, descriptions: ${descs.size}`);
-console.log(`Tunna sidor (<250 ord): ${thin}`);
+console.log(`Tunna sidor (<${MIN_WORDS} ord i <main>): ${thin}`);
 console.log(`Schema-fel: ${schemaFail}`);
 if (dups.length) { console.log(`\nPROBLEM (${dups.length}):`); dups.slice(0, 20).forEach((d) => console.log("  - " + d)); process.exit(1); }
 console.log("\nALLT GRÖNT: 200, globalt unika h1/title/desc, inga tunna sidor, alla scheman giltiga ✅");

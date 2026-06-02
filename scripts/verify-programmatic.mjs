@@ -2,16 +2,22 @@
 // Verifierar det programmatiska SEO-ramverket mot en körande server.
 //   node scripts/verify-programmatic.mjs [baseUrl]
 // Kollar: sitemap innehåller programmatiska URL:er, ett urval sidor svarar 200
-// med UNIK h1 + meta-description, >= 250 synliga ord, och giltig JSON-LD
+// med UNIK h1 + meta-description, >= 250 synliga ord i <main>, och giltig JSON-LD
 // (ItemList/FAQPage/BreadcrumbList där det förväntas).
 const BASE = process.argv[2] || "http://localhost:3210";
+// Matchar generatorns MIN_BODY_WORDS (lib/seo/programmatic.ts) — den räknar
+// main-innehåll (intro + FAQ + produkttext), så verifieraren måste använda samma
+// tröskel mot <main>, annars underkänns generator-giltiga sidor felaktigt.
+const MIN_WORDS = 250;
 
 function tag(html, re) {
   const m = html.match(re);
   return m ? m[1].replace(/\s+/g, " ").trim() : "";
 }
 function visibleWords(html) {
-  const body = html
+  // Bara <main> — nav/footer ska inte räknas mot thin-content-tröskeln.
+  const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+  const body = (mainMatch ? mainMatch[1] : html)
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
@@ -75,7 +81,7 @@ async function main() {
     titles.add(title);
     descs.add(desc);
     const ok =
-      res.status === 200 && h1 && title && desc && words >= 250 && !dupH1 && !dupTitle && !dupDesc &&
+      res.status === 200 && h1 && title && desc && words >= MIN_WORDS && !dupH1 && !dupTitle && !dupDesc &&
       types.includes("BreadcrumbList") && types.includes("ItemList") && !types.includes("INVALID_JSON");
     if (ok) pass++;
     console.log(
