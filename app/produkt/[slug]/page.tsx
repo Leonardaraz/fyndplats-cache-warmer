@@ -6,6 +6,7 @@ import { getProduct, getProductSlugs, getProducts, getCollections } from "../../
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
+import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
 
 export async function generateStaticParams() {
   const slugs = await getProductSlugs();
@@ -34,6 +35,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   // Riktiga importerade kundrecensioner (social proof + schema.org). Tom om inga.
   const reviewData = await getProductReviews(p.id);
+
+  // Trustpilot Product Reviews-widget matchar recensioner mot produktens SKU
+  // (= Wix-produkt-ID). När business unit-ID:t är ifyllt visar vi Trustpilot;
+  // annars faller vi tillbaka på de egna importerade recensionerna nedan.
+  const trustpilotBU = (process.env.TRUSTPILOT_BUSINESS_UNIT_ID || "").trim();
 
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -145,11 +151,29 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         />
       </div>
 
-      <ProductReviews
-        reviews={reviewData.reviews}
-        count={reviewData.count}
-        average={reviewData.average}
-      />
+      {trustpilotBU ? (
+        <section className="sec revsec" id="recensioner">
+          <div className="container">
+            <div className="sechead">
+              <div className="eyebrow">Vad kunderna säger</div>
+              <h2>Kundrecensioner</h2>
+            </div>
+            <TrustBox
+              businessUnitId={trustpilotBU}
+              templateId={TRUSTBOX_TEMPLATES.productReviews}
+              height="500px"
+              sku={p.id}
+              className="pdp-trustbox"
+            />
+          </div>
+        </section>
+      ) : (
+        <ProductReviews
+          reviews={reviewData.reviews}
+          count={reviewData.count}
+          average={reviewData.average}
+        />
+      )}
 
       {related.length >= 2 && (
         <section className="sec relsec">
