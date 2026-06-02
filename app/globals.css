@@ -1281,31 +1281,3 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rev-more{margin-top:18px;display:inline-block;padding:11px 22px;border:1px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
 .rev-more:hover{background:var(--ink);color:#fff}
 .rev-disclaimer{margin-top:18px;font-size:12px;line-height:1.5;color:var(--soft);max-width:640px}
-
-/* ============================================================================
-   Konverterings-features (recently-viewed, exit-intent)
-   ============================================================================ */
-
-/* --- Recently viewed widget --------------------------------------------- */
-.rv-sec{padding:40px 0;border-top:1px solid var(--line)}
-.rv-row{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
-.rv-row::-webkit-scrollbar{height:6px}
-.rv-row::-webkit-scrollbar-thumb{background:var(--line);border-radius:999px}
-.rv-card{flex:0 0 150px;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;text-align:left}
-.rv-card-imgwrap{display:block;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#f3eee7;border:1px solid var(--line)}
-.rv-card-img{width:100%;height:100%;object-fit:cover;transition:transform .25s}
-.rv-card:hover .rv-card-img{transform:scale(1.04)}
-.rv-card-name{font-size:13px;line-height:1.35;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rv-card-price{font-size:13.5px;font-weight:700;color:var(--char)}
-@media(max-width:480px){.rv-card{flex-basis:128px}}
-
-/* Recently viewed — kompakt variant i varukorgs-drawern */
-.rv-drawer{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
-.rv-drawer-head{font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--soft);text-transform:uppercase;margin-bottom:10px}
-.rv-drawer-list{display:flex;flex-direction:column;gap:8px}
-.rv-drawer-item{display:flex;align-items:center;gap:10px;padding:6px;border-radius:10px;transition:background .15s}
-.rv-drawer-item:hover{background:rgba(0,0,0,.035)}
-.rv-drawer-img{width:46px;height:46px;flex:0 0 auto;border-radius:8px;object-fit:cover;background:#f3eee7;border:1px solid var(--line)}
-.rv-drawer-info{display:flex;flex-direction:column;gap:2px;min-width:0}
-.rv-drawer-name{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rv-drawer-price{font-size:13px;font-weight:700;color:var(--char)}

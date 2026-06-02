@@ -8,7 +8,6 @@ import {
   trackViewCart,
 } from "../lib/analytics";
 import type { RecoProduct } from "../lib/products";
-import { RecentlyViewed } from "./recently-viewed";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -272,7 +271,6 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
               <p className="cart-empty-title">Din varukorg är tom</p>
               <p className="cart-empty-sub">Här samlar du dina favoritfynd.</p>
               <a className="cart-empty-cta" href="/butik" onClick={() => setOpen(false)}>Utforska butiken →</a>
-              <RecentlyViewed variant="drawer" onNavigate={() => setOpen(false)} />
             </div>
           ) : (
             items.map((li) => {
@@ -312,7 +310,6 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
               ))}
             </div>
           )}
-          {items.length > 0 && <RecentlyViewed variant="drawer" onNavigate={() => setOpen(false)} />}
         </div>
         {items.length > 0 && (
           <div className="drawer-foot">

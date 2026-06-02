@@ -7,7 +7,6 @@ import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
-import { RecentlyViewed, RecentlyViewedTracker } from "../../../components/recently-viewed";
 
 export async function generateStaticParams() {
   const slugs = await getProductSlugs();
@@ -186,10 +185,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         </section>
       )}
-
-      {/* Spåra det här PDP-besöket + visa "Senast tittade" (exkl. denna produkt). */}
-      <RecentlyViewedTracker productId={p.id} slug={p.slug} name={p.name} price={p.price} image={p.img} />
-      <RecentlyViewed excludeSlug={p.slug} />
     </>
   );
 }
