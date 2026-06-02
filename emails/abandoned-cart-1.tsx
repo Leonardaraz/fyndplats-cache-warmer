@@ -4,7 +4,7 @@
 
 import { renderEmail, type BaseProps } from './_abandoned-cart-helpers';
 
-export function renderAbandonedCart1(props: BaseProps): { html: string; text: string } {
+export function renderAbandonedCart1(props: BaseProps): Promise<{ html: string; text: string }> {
   return renderEmail({
     preheader: 'Vi sparade din kundvagn åt dig.',
     headline: 'Du glömde något i kundvagnen',

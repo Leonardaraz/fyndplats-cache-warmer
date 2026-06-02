@@ -22,7 +22,7 @@ function formatExpiry(iso: string): string {
   });
 }
 
-export function renderAbandonedCart3(props: Cart3Props): { html: string; text: string } {
+export function renderAbandonedCart3(props: Cart3Props): Promise<{ html: string; text: string }> {
   return renderEmail({
     preheader: `Använd koden ${props.discountCode} inom 24 timmar.`,
     headline: '5% extra för att slutföra',

@@ -4,7 +4,7 @@
 
 import { renderEmail, type BaseProps } from './_abandoned-cart-helpers';
 
-export function renderAbandonedCart2(props: BaseProps): { html: string; text: string } {
+export function renderAbandonedCart2(props: BaseProps): Promise<{ html: string; text: string }> {
   return renderEmail({
     preheader: 'Vi har fri frakt över 499 kr.',
     headline: 'Vi sparade din kundvagn — fri frakt över 499 kr',

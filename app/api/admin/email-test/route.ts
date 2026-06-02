@@ -156,32 +156,32 @@ const TEMPLATES: Record<string, TemplateEntry> = {
   "abandoned-cart-1": {
     label: "Övergiven kundvagn – 1h",
     subject: "Du glömde något i kundvagnen",
-    render: (to) =>
-      renderAbandonedCart1({
+    render: async (to) =>
+      (await renderAbandonedCart1({
         items: sampleItems.map((i) => ({ name: i.name, quantity: i.qty, imageUrl: i.imageUrl, priceMinor: Math.round(i.unitPrice * 100) })),
         recoverUrl: "https://www.fyndplats.se",
         subtotalMinor: 31698,
         currency: "SEK",
         unsubscribeUrl: unsubscribeUrl(to),
-      }).html,
+      })).html,
   },
   "abandoned-cart-2": {
     label: "Övergiven kundvagn – 24h (fri frakt)",
     subject: "Vi sparade din kundvagn — fri frakt",
-    render: (to) =>
-      renderAbandonedCart2({
+    render: async (to) =>
+      (await renderAbandonedCart2({
         items: sampleItems.map((i) => ({ name: i.name, quantity: i.qty, imageUrl: i.imageUrl, priceMinor: Math.round(i.unitPrice * 100) })),
         recoverUrl: "https://www.fyndplats.se",
         subtotalMinor: 31698,
         currency: "SEK",
         unsubscribeUrl: unsubscribeUrl(to),
-      }).html,
+      })).html,
   },
   "abandoned-cart-3": {
     label: "Övergiven kundvagn – 72h (5% kod)",
     subject: "5% extra för att slutföra",
-    render: (to) =>
-      renderAbandonedCart3({
+    render: async (to) =>
+      (await renderAbandonedCart3({
         items: sampleItems.map((i) => ({ name: i.name, quantity: i.qty, imageUrl: i.imageUrl, priceMinor: Math.round(i.unitPrice * 100) })),
         recoverUrl: "https://www.fyndplats.se",
         subtotalMinor: 31698,
@@ -189,19 +189,19 @@ const TEMPLATES: Record<string, TemplateEntry> = {
         discountCode: "FP5-TEST-ABC123",
         expiresAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
         unsubscribeUrl: unsubscribeUrl(to),
-      }).html,
+      })).html,
   },
   "abandoned-cart-3-no-code": {
     label: "Övergiven kundvagn – 72h (utan kod)",
     subject: "Vi saknar dig — din kundvagn väntar",
-    render: (to) =>
-      renderAbandonedCart3NoCode({
+    render: async (to) =>
+      (await renderAbandonedCart3NoCode({
         items: sampleItems.map((i) => ({ name: i.name, quantity: i.qty, imageUrl: i.imageUrl, priceMinor: Math.round(i.unitPrice * 100) })),
         recoverUrl: "https://www.fyndplats.se",
         subtotalMinor: 31698,
         currency: "SEK",
         unsubscribeUrl: unsubscribeUrl(to),
-      }).html,
+      })).html,
   },
 };
 

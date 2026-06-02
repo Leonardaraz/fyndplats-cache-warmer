@@ -311,7 +311,7 @@ export async function processDueCart(
 
 async function sendStep1(cart: CartRow): Promise<ProcessResult> {
   const subject = 'Du glömde något i kundvagnen';
-  const { html, text } = renderAbandonedCart1({
+  const { html, text } = await renderAbandonedCart1({
     items: cart.items_json,
     recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
     subtotalMinor: cart.subtotal_minor,
@@ -337,7 +337,7 @@ async function sendStep1(cart: CartRow): Promise<ProcessResult> {
 
 async function sendStep2(cart: CartRow): Promise<ProcessResult> {
   const subject = 'Vi sparade din kundvagn — fri frakt';
-  const { html, text } = renderAbandonedCart2({
+  const { html, text } = await renderAbandonedCart2({
     items: cart.items_json,
     recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
     subtotalMinor: cart.subtotal_minor,
@@ -363,7 +363,7 @@ async function sendStep2(cart: CartRow): Promise<ProcessResult> {
 
 async function sendStep3NoCode(cart: CartRow): Promise<ProcessResult> {
   const subject = 'Vi saknar dig — din kundvagn väntar';
-  const { html, text } = renderAbandonedCart3NoCode({
+  const { html, text } = await renderAbandonedCart3NoCode({
     items: cart.items_json,
     recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
     subtotalMinor: cart.subtotal_minor,
@@ -436,7 +436,7 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
   `;
 
   const subject = '5% extra för att slutföra';
-  const { html, text } = renderAbandonedCart3({
+  const { html, text } = await renderAbandonedCart3({
     items: cart.items_json,
     recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
     subtotalMinor: cart.subtotal_minor,
