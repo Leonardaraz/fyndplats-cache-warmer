@@ -79,33 +79,118 @@ function verifyJwt(token: string, publicKeyPem: string): Record<string, unknown>
 }
 
 // Wix:s eCom-event-format (v2 webhooks): payload har shape
-// { instanceId, eventType, identity, data: "<JSON-stringified entity>" }
-// `data` är en sträng som måste parseas vidare. Vi normaliserar till objekt.
+// {
+//   id, entityFqdn: "wix.ecom.v1.order", slug: "created", entityId,
+//   createdEvent?: { entity },          // för creates
+//   updatedEvent?: { currentEntity },   // för updates
+//   actionEvent?: { body: { order } },  // för action-events (canceled, fulfilled)
+//   eventTime,
+// }
+// Legacy/v1 payloads har `eventType` och `data: "<JSON-stringified>"` istället.
+// Vi normaliserar till en composite eventType (entityFqdn.slug) + plockar ut
+// den faktiska entiteten från rätt wrapper.
 interface WixEventEnvelope {
+  id?: string;
   instanceId?: string;
   eventType?: string;
   slug?: string;
-  data?: unknown;
-  actionEvent?: { body?: string | object };
   entityFqdn?: string;
+  entityId?: string;
+  data?: unknown;
+  actionEvent?: { body?: string | Record<string, unknown> | object; bodyAsJson?: unknown };
+  createdEvent?: { entity?: unknown };
+  updatedEvent?: { entity?: unknown; currentEntity?: unknown };
+  deletedEvent?: { entity?: unknown };
   // Fallback för ren payload utan envelope
   [key: string]: unknown;
 }
 
-function unwrap(payload: Record<string, unknown>): { eventType: string; entity: Record<string, unknown> } {
-  const env = payload as WixEventEnvelope;
-  const eventType = (env.eventType || env.slug || (env.entityFqdn as string) || "").toLowerCase();
+interface UnwrapResult {
+  eventType: string;
+  entity: Record<string, unknown>;
+  entityFqdn?: string;
+  slug?: string;
+  entityId?: string;
+}
 
-  // Försök i tur och ordning: actionEvent.body (string|object), data (string|object), payload self
-  let entity: unknown = env.actionEvent?.body ?? env.data ?? payload;
-  if (typeof entity === "string") {
-    try {
-      entity = JSON.parse(entity);
-    } catch {
-      entity = {};
-    }
+function unwrap(payload: Record<string, unknown>): UnwrapResult {
+  const env = payload as WixEventEnvelope;
+  const entityFqdn = typeof env.entityFqdn === "string" ? env.entityFqdn : undefined;
+  const slug = typeof env.slug === "string" ? env.slug : undefined;
+  const entityId = typeof env.entityId === "string" ? env.entityId : undefined;
+
+  // Composite eventType: entityFqdn.slug är Wix:s kanoniska v2-identifierare
+  // (t.ex. "wix.ecom.v1.order.created"). Legacy-payloads har bara `eventType`
+  // eller `slug` ensamt — vi faller tillbaka på dem för bakåtkompatibilitet.
+  let eventType = "";
+  if (typeof env.eventType === "string" && env.eventType) {
+    eventType = env.eventType;
+  } else if (entityFqdn && slug) {
+    eventType = `${entityFqdn}.${slug}`;
+  } else {
+    eventType = slug ?? entityFqdn ?? "";
   }
-  return { eventType, entity: (entity as Record<string, unknown>) || {} };
+  eventType = eventType.toLowerCase();
+
+  // Plocka ut entity från rätt wrapper. Ordning:
+  //   createdEvent.entity            — Order Created, Abandoned Checkout Created
+  //   updatedEvent.currentEntity     — Order With Fulfillments Updated, Refund Completed
+  //   updatedEvent.entity            — sällsynt variant
+  //   deletedEvent.entity            — deletes
+  //   actionEvent.body (.order)      — Order Canceled, Order Fulfilled
+  //   actionEvent.bodyAsJson         — Events V3 (guest_order_canceled m.fl.)
+  //   data                           — legacy v1, ev. JSON-strängad
+  //   payload                        — sista utvägen (testpayloads utan envelope)
+  let entity: unknown = undefined;
+  if (env.createdEvent && (env.createdEvent as { entity?: unknown }).entity !== undefined) {
+    entity = (env.createdEvent as { entity: unknown }).entity;
+  } else if (env.updatedEvent && (env.updatedEvent as { currentEntity?: unknown }).currentEntity !== undefined) {
+    entity = (env.updatedEvent as { currentEntity: unknown }).currentEntity;
+  } else if (env.updatedEvent && (env.updatedEvent as { entity?: unknown }).entity !== undefined) {
+    entity = (env.updatedEvent as { entity: unknown }).entity;
+  } else if (env.deletedEvent && (env.deletedEvent as { entity?: unknown }).entity !== undefined) {
+    entity = (env.deletedEvent as { entity: unknown }).entity;
+  } else if (env.actionEvent?.body !== undefined) {
+    const body = env.actionEvent.body;
+    if (typeof body === "string") {
+      try {
+        entity = JSON.parse(body);
+      } catch {
+        entity = {};
+      }
+    } else {
+      entity = body;
+    }
+    // actionEvent.body wrappar ofta entiteten i `.order` (Order Canceled, Order
+    // Fulfilled). Packa upp ett steg så extractors:erna ser order-fälten direkt.
+    if (entity && typeof entity === "object" && "order" in (entity as Record<string, unknown>)) {
+      const inner = (entity as { order?: unknown }).order;
+      if (inner && typeof inner === "object") entity = inner;
+    }
+  } else if (env.actionEvent && (env.actionEvent as { bodyAsJson?: unknown }).bodyAsJson !== undefined) {
+    entity = (env.actionEvent as { bodyAsJson: unknown }).bodyAsJson;
+  } else if (env.data !== undefined) {
+    const data = env.data;
+    if (typeof data === "string") {
+      try {
+        entity = JSON.parse(data);
+      } catch {
+        entity = {};
+      }
+    } else {
+      entity = data;
+    }
+  } else {
+    entity = payload;
+  }
+
+  return {
+    eventType,
+    entity: (entity as Record<string, unknown>) || {},
+    entityFqdn,
+    slug,
+    entityId,
+  };
 }
 
 // Hjälpfunktion för att plocka första icke-tom-sträng från flera kandidater.
@@ -425,23 +510,96 @@ async function upsertTrackingMapping(opts: {
   }
 }
 
-// Klassificera event-typ. Wix har flera möjliga slugs och har bytt namn
-// mellan v1/v2/v3 — vi matchar liberalt på substring.
-type EventKind = "order_created" | "order_shipped" | "refund" | "order_cancelled" | "unknown";
-function classify(eventType: string, payload: Record<string, unknown>): EventKind {
+// Klassificera event-typ. Wix v2 ger oss `entityFqdn + slug` som unik nyckel
+// (t.ex. "wix.ecom.v1.order.created"). Vi matchar FÖRST på den exakta strängen,
+// och faller tillbaka på substring-matchning för legacy/test-payloads.
+//
+// Mappning (verifierad mot https://dev.wix.com/docs/api-reference/...):
+//   wix.ecom.v1.order.created                          → order_created
+//   wix.ecom.v1.order.canceled                         → order_cancelled
+//   wix.ecom.v1.order.fulfilled                        → order_shipped (legacy)
+//   wix.ecom.v1.fulfillments.updated                   → order_fulfillments_updated
+//   wix.ecom.v1.order_transactions.refund_completed    → refund
+//   wix.ecom.v1.abandoned_checkout.created             → abandoned_checkout_created
+type EventKind =
+  | "order_created"
+  | "order_shipped"                  // Order Fulfilled (slug=fulfilled) — full order i payload
+  | "order_fulfillments_updated"     // Fulfillments Updated — bara orderId+fulfillments, måste fetcha order
+  | "refund"
+  | "order_cancelled"
+  | "abandoned_checkout_created"
+  | "unknown";
+
+function classify(
+  eventType: string,
+  entityFqdn: string | undefined,
+  slug: string | undefined,
+  payload: Record<string, unknown>,
+): EventKind {
   const t = eventType.toLowerCase();
+  const fqdn = (entityFqdn ?? "").toLowerCase();
+  const s = (slug ?? "").toLowerCase();
+
+  // 1. Exakt composite-matchning (Wix v2 kanoniska events)
+  if (fqdn === "wix.ecom.v1.order" && s === "created") return "order_created";
+  if (fqdn === "wix.ecom.v1.order" && s === "canceled") return "order_cancelled";
+  if (fqdn === "wix.ecom.v1.order" && s === "fulfilled") return "order_shipped";
+  if (fqdn === "wix.ecom.v1.fulfillments" && s === "updated") return "order_fulfillments_updated";
+  if (fqdn === "wix.ecom.v1.order_transactions" && s === "refund_completed") return "refund";
+  if (fqdn === "wix.ecom.v1.abandoned_checkout" && s === "created") return "abandoned_checkout_created";
+
+  // 2. Substring-fallback (legacy event-typer, testpayloads, framtida varianter)
+  if (t.includes("abandoned_checkout") && (t.includes("created") || s === "created")) return "abandoned_checkout_created";
   if (t.includes("refund")) return "refund";
-  // Cancellation måste matchas FÖRE "shipped"/"fulfillment" — vissa Wix-event
-  // som "order_canceled" innehåller delsträngar som inte ska tas för leverans.
+  // Cancellation FÖRE "shipped"/"fulfillment" — "order_canceled" får inte
+  // misstolkas som leverans.
   if (t.includes("cancel")) return "order_cancelled";
-  if (t.includes("shipped") || t.includes("shipment") || t.includes("fulfillment")) return "order_shipped";
+  if (t.includes("fulfillment")) return "order_fulfillments_updated";
+  if (t.includes("shipped") || t.includes("shipment") || t.includes("fulfilled")) return "order_shipped";
   if (t.includes("order_created") || t.includes("ordercreated") || t.includes("order_approved")) return "order_created";
 
   // Fallback: kolla payload-shape
-  if (payload.refund || (payload as { fulfillment?: unknown }).fulfillment) {
-    return payload.refund ? "refund" : "order_shipped";
+  if (payload.refund || (payload as { fulfillment?: unknown }).fulfillment || (payload as { fulfillments?: unknown }).fulfillments) {
+    if (payload.refund) return "refund";
+    return "order_fulfillments_updated";
   }
   return "unknown";
+}
+
+// Fetch full order from Wix eCom API. Used by Fulfillments Updated where the
+// webhook payload only contains { orderId, fulfillments[] } — no customer
+// email or line items. Same auth as lib/order-sync.ts. Returns null on any
+// failure (callers ack 200 + handled:false; we never block the webhook).
+async function fetchWixOrder(orderId: string): Promise<Record<string, unknown> | null> {
+  const key = process.env.WIX_API_KEY;
+  const site = process.env.WIX_SITE_ID;
+  if (!key || !site || !orderId) {
+    console.warn(
+      `[wix-webhook] fetchWixOrder: saknad config (key=${Boolean(key)}, site=${Boolean(site)}, orderId=${Boolean(orderId)})`,
+    );
+    return null;
+  }
+  try {
+    const res = await fetch(`https://www.wixapis.com/ecom/v1/orders/${encodeURIComponent(orderId)}`, {
+      method: "GET",
+      headers: {
+        Authorization: key,
+        "wix-site-id": site,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      console.warn(`[wix-webhook] fetchWixOrder(${orderId}) → HTTP ${res.status}: ${txt.slice(0, 200)}`);
+      return null;
+    }
+    const json = (await res.json()) as { order?: Record<string, unknown> };
+    return json.order ?? null;
+  } catch (err) {
+    console.error(`[wix-webhook] fetchWixOrder(${orderId}) fel`, err);
+    return null;
+  }
 }
 
 // Meta-content_ids ur orderns rader. Wix lägger produkt-ID:t på
@@ -609,7 +767,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Empty payload" }, { status: 400 });
   }
 
-  const { eventType, entity } = unwrap(payload);
+  const { eventType, entity, entityFqdn, slug, entityId } = unwrap(payload);
+  const kind = classify(eventType, entityFqdn, slug, entity);
+
+  // Strukturerad logg per event — gör det möjligt att i Vercel-loggen filtrera
+  // på `kind=` och se exakt vad vi gjorde med varje webhook. Skriv ut FÖRE
+  // dispatch så att en handler-krasch ändå syns kopplad till rätt event.
+  console.log(
+    `[wix-webhook] dispatch fqdn=${entityFqdn ?? "—"} slug=${slug ?? "—"} entityId=${entityId ?? "—"} eventType=${eventType || "—"} → kind=${kind} verified=${verified}`,
+  );
 
   // ---------------------------------------------------------------------------
   // Fan-out till cache-warmer (best-effort, non-blocking).
@@ -632,16 +798,15 @@ export async function POST(req: NextRequest) {
   }
 
   // Abandoned checkout (wix.ecom.v1.abandoned_checkout, slug=created) — enqueue
-  // the cart for the 3-email recovery flow. Slug guard means we only act on
-  // creations; updates/deletes are ack:ed below as "unknown".
-  if (eventType.includes("abandoned_checkout") || entity.abandonedCheckout) {
-    const slug = typeof (payload as { slug?: unknown }).slug === "string"
-      ? (payload as { slug: string }).slug
-      : undefined;
+  // the cart for the 3-email recovery flow. Vi dispatcher på classified kind
+  // (inte raw eventType) så att FQDN+slug-matchningen kicks in även när slug
+  // är den generiska "created"-strängen.
+  if (kind === "abandoned_checkout_created") {
     try {
       const result = await handleAbandonedCheckoutCreated({
-        slug,
-        abandonedCheckout: (entity.abandonedCheckout as Record<string, unknown> | undefined) ?? entity,
+        slug: slug ?? "created",
+        abandonedCheckout:
+          (entity.abandonedCheckout as Record<string, unknown> | undefined) ?? entity,
       } as Parameters<typeof handleAbandonedCheckoutCreated>[0]);
       return NextResponse.json({ received: true, abandonedCart: result }, { status: 200 });
     } catch (err) {
@@ -650,11 +815,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const kind = classify(eventType, entity);
-
   if (kind === "unknown") {
     // Bekräfta ändå (200) — okänd event-typ ska inte få Wix att retry:a evigt.
-    console.warn(`[wix-webhook] Okänd event-typ "${eventType}" (verified=${verified}) — ack:ar`);
+    // Vi loggar entityFqdn+slug separat så det blir trivialt att identifiera
+    // vilken NY event-typ vi inte stödjer (om Leonard prenumererar på fler).
+    console.warn(
+      `[wix-webhook] Okänd event-typ fqdn=${entityFqdn ?? "—"} slug=${slug ?? "—"} eventType="${eventType}" (verified=${verified}) — ack:ar`,
+    );
     return NextResponse.json({ received: true, handled: false }, { status: 200 });
   }
 
@@ -671,11 +838,6 @@ export async function POST(req: NextRequest) {
         console.error("[wix-webhook] onWixOrderCreatedForAbandonedCart fel (ignorerar)", err);
       }
       // Spegla ordern till vår lokala `orders`-tabell för morgon-dashboarden.
-      // Skyddsnät om Wix Orders-API:t förlorar Read-behörighet. Görs FÖRE
-      // kund-extraktionen nedan så att även ordrar utan extraherbar kund (t.ex.
-      // gästköp med oväntad buyerInfo-shape) ändå räknas in i omsättning/topplistor.
-      // Best-effort: ett fel får aldrig blockera bekräftelsemejlet. En daglig
-      // sync-cron (lib/order-sync) fyller i ev. missade webhooks mot Wix-API:t.
       try {
         await recordOrder(entity as Record<string, unknown>);
       } catch (err) {
@@ -699,16 +861,10 @@ export async function POST(req: NextRequest) {
         console.error("[wix-webhook] Resend order_created fel", sent.error);
         return NextResponse.json({ error: "Email send failed" }, { status: 500 });
       }
-      // Server-autoritativt Meta Purchase (CAPI) — fyras EFTER bekräftelsemejlet
-      // så en hängande Graph API-fetch aldrig kan fördröja kund-mejlet och trigga
-      // Wix-retry → dubbel orderbekräftelse. CAPI-fetchen har dessutom 3s timeout
-      // (lib/meta-capi) så svaret nedan inte heller kan blockeras på obestämd tid.
-      // Best-effort; dedupliceras mot klientens /tack-Purchase via event_id
-      // `purchase_<orderId>`.
+      console.log(
+        `[wix-webhook] order_created ${props.orderNumber}: bekräftelsemejl skickat (resendId=${sent.data?.id})`,
+      );
       await fireMetaPurchase(entity);
-      // Push parallellt med mejlet (snabb notis; mejlet är backup). Fire-and-
-      // forget — push får ALDRIG blockera/fälla webhook-svaret (samma princip
-      // som CAPI ovan). Kanal 'order' respekterar mottagarens preferenser.
       firePush({
         userEmail: customer.email,
         channel: "order",
@@ -719,16 +875,87 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, sent: sent.data?.id }, { status: 200 });
     }
 
+    if (kind === "order_fulfillments_updated") {
+      // Wix Fulfillments Updated-payloaden innehåller bara { orderId, fulfillments[] }
+      // — INGEN kund, inga lineItems, inga prissummor. Vi måste fetcha hela
+      // ordern från Wix Orders API innan vi kan bygga ett shipping-mejl.
+      const orderId = firstStr(entity.orderId as string, entityId);
+      if (!orderId) {
+        console.warn("[wix-webhook] order_fulfillments_updated: ingen orderId — skippar");
+        return NextResponse.json({ received: true, handled: false, reason: "no orderId" }, { status: 200 });
+      }
+      const fulfillmentsArr = (entity.fulfillments as Array<Record<string, unknown>> | undefined) ?? [];
+      const fulfillWithTracking = fulfillmentsArr.find((f) => Boolean(f.trackingInfo));
+      const fulfillment = fulfillWithTracking ?? fulfillmentsArr[fulfillmentsArr.length - 1];
+      if (!fulfillment) {
+        console.warn(`[wix-webhook] order_fulfillments_updated ${orderId}: ingen fulfillment-rad — skippar`);
+        return NextResponse.json({ received: true, handled: false, reason: "no fulfillments" }, { status: 200 });
+      }
+      const trackingPreview = firstStr(
+        (fulfillment.trackingInfo as { trackingNumber?: string } | undefined)?.trackingNumber,
+        fulfillment.trackingNumber as string,
+      );
+      const order = await fetchWixOrder(orderId);
+      if (!order) {
+        console.warn(`[wix-webhook] order_fulfillments_updated ${orderId}: kunde inte hämta order från Wix API — ack:ar`);
+        return NextResponse.json({ received: true, handled: false, reason: "fetch failed" }, { status: 200 });
+      }
+      const built = buildShippingProps({ order, fulfillment });
+      if (!built) {
+        console.warn(`[wix-webhook] order_fulfillments_updated ${orderId}: kunde inte extrahera kund — skippar`);
+        return NextResponse.json({ received: true, handled: false }, { status: 200 });
+      }
+      let trackingMapped = false;
+      if (built.props.trackingNumber) {
+        trackingMapped = await upsertTrackingMapping({
+          trackingNumber: built.props.trackingNumber,
+          orderId: built.props.orderNumber === "—" ? null : built.props.orderNumber,
+          customerEmail: built.email,
+          customerName: built.props.firstName === "kund" ? null : built.props.firstName,
+          customerPhone: extractCustomerPhone(order) ?? null,
+        });
+      } else {
+        console.warn(
+          `[wix-webhook] order_fulfillments_updated ${orderId}: ingen tracking_number i fulfillment — hoppar tracking_mapping (preview=${trackingPreview ?? "—"})`,
+        );
+      }
+      const html = await render(ShippingConfirmationEmail(built.props));
+      const sent = await resend.emails.send({
+        from: FROM,
+        to: built.email,
+        replyTo: REPLY_TO,
+        subject: `Ditt paket är på väg – order ${built.props.orderNumber}`,
+        html,
+      });
+      if (sent.error) {
+        console.error("[wix-webhook] Resend order_fulfillments_updated fel", sent.error);
+        return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+      }
+      firePush({
+        userEmail: built.email,
+        channel: "order",
+        title: "Ditt paket är på väg ✈️",
+        body: built.props.trackingNumber
+          ? `Order ${built.props.orderNumber} är skickad. Spårningsnr: ${built.props.trackingNumber}`
+          : `Order ${built.props.orderNumber} är skickad och på väg till dig.`,
+        data: {
+          type: "order_shipped",
+          orderNumber: built.props.orderNumber,
+          trackingNumber: built.props.trackingNumber,
+        },
+      });
+      console.log(
+        `[wix-webhook] order_fulfillments_updated ${orderId}: shipping-mejl skickat (resendId=${sent.data?.id}, trackingMapped=${trackingMapped})`,
+      );
+      return NextResponse.json({ received: true, sent: sent.data?.id, trackingMapped }, { status: 200 });
+    }
+
     if (kind === "order_shipped") {
       const built = buildShippingProps(entity);
       if (!built) {
         console.warn("[wix-webhook] order_shipped: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
       }
-
-      // Populate tracking_mapping so /api/sms-inbound can match the
-      // forwarded carrier SMS back to this customer. Best-effort: a DB
-      // failure here must not block the shipping email.
       let trackingMapped = false;
       if (built.props.trackingNumber) {
         const orderForCustomer = (entity.order ?? entity) as Record<string, unknown>;
@@ -742,7 +969,6 @@ export async function POST(req: NextRequest) {
       } else {
         console.warn("[wix-webhook] order_shipped: ingen tracking_number — hoppar tracking_mapping");
       }
-
       const html = await render(ShippingConfirmationEmail(built.props));
       const sent = await resend.emails.send({
         from: FROM,
@@ -755,8 +981,6 @@ export async function POST(req: NextRequest) {
         console.error("[wix-webhook] Resend order_shipped fel", sent.error);
         return NextResponse.json({ error: "Email send failed" }, { status: 500 });
       }
-      // Push "paketet är på väg" parallellt med mejlet (fire-and-forget).
-      // Leveransnotiser är order-uppdateringar → kanal 'order'.
       firePush({
         userEmail: built.email,
         channel: "order",
@@ -823,7 +1047,15 @@ export async function GET() {
   return NextResponse.json({
     status: "ok",
     endpoint: "wix-webhook",
-    accepts: ["order_created", "order_shipped", "order_cancelled", "refund"],
+    accepts: [
+      "wix.ecom.v1.order.created",
+      "wix.ecom.v1.order.canceled",
+      "wix.ecom.v1.order.fulfilled",
+      "wix.ecom.v1.fulfillments.updated",
+      "wix.ecom.v1.order_transactions.refund_completed",
+      "wix.ecom.v1.abandoned_checkout.created",
+    ],
     signatureVerification: process.env.WIX_WEBHOOK_PUBLIC_KEY ? "enabled" : "disabled (key missing)",
+    orderFetch: process.env.WIX_API_KEY && process.env.WIX_SITE_ID ? "enabled" : "disabled (WIX_API_KEY/WIX_SITE_ID missing)",
   });
 }
