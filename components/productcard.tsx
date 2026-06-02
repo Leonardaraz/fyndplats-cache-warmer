@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Product } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
 import { SHIMMER_BLUR } from "../lib/lqip";
+import { tightFillUrl } from "../lib/wix-image";
 
 export function ProductCard({ p }: { p: Product }) {
   // Hover-alt-image: använd andra bilden i galleriet (om finns) som "swap"-bild
@@ -20,7 +21,7 @@ export function ProductCard({ p }: { p: Product }) {
         {p.img && (
           <Image
             className="pimg-main"
-            src={p.img}
+            src={tightFillUrl(p.img, 600, 600)}
             alt={p.name}
             fill
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
@@ -32,7 +33,7 @@ export function ProductCard({ p }: { p: Product }) {
         {altImg && (
           <Image
             className="pimg-alt"
-            src={altImg}
+            src={tightFillUrl(altImg, 600, 600)}
             alt=""
             fill
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"

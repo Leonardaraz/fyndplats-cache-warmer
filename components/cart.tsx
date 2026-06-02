@@ -8,6 +8,7 @@ import {
   trackViewCart,
 } from "../lib/analytics";
 import type { RecoProduct } from "../lib/products";
+import { tightFillUrl } from "../lib/wix-image";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -279,7 +280,7 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
               return (
                 <div className="li" key={li._id}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {img ? <img className="li-img" src={img} alt={name} loading="lazy" /> : <div className="li-img" />}
+                  {img ? <img className="li-img" src={tightFillUrl(img, 160, 160)} alt={name} loading="lazy" /> : <div className="li-img" />}
                   <div className="li-info">
                     <div className="li-name">{name}</div>
                     <div className="li-meta">{li.price?.formattedAmount || ""}</div>
@@ -300,7 +301,7 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
               {recos.map((r) => (
                 <a className="cart-reco" key={r.slug} href={`/produkt/${r.slug}`} onClick={() => setOpen(false)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {r.img ? <img className="cart-reco-img" src={r.img} alt={r.name} loading="lazy" /> : <span className="cart-reco-img" />}
+                  {r.img ? <img className="cart-reco-img" src={tightFillUrl(r.img, 160, 160)} alt={r.name} loading="lazy" /> : <span className="cart-reco-img" />}
                   <span className="cart-reco-info">
                     <span className="cart-reco-name">{r.name}</span>
                     <span className="cart-reco-price">{r.price}</span>

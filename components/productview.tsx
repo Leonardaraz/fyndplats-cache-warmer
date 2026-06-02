@@ -4,6 +4,7 @@ import { useCart } from "./cart";
 import { Gallery } from "./gallery";
 import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
+import { tightFillUrl } from "../lib/wix-image";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -88,9 +89,10 @@ function mediaKey(url: string): string {
 // direkt från Wix-CDN (samma mekanism som hjältebildens loader). 120 px täcker
 // 38 px @3× retina.
 function thumbUrl(url: string): string {
-  const m = (url || "").match(/static\.wixstatic\.com\/media\/([^/]+)/);
-  if (!m) return url;
-  return `https://static.wixstatic.com/media/${m[1]}/v1/fill/w_120,h_120,al_c,q_80/file.webp`;
+  if (!(url || "").includes("static.wixstatic.com")) return url;
+  // tightFillUrl: crop när detection-cache har bbox, annars samma w_120 fill-URL
+  // som tidigare. Säker fallback bevarar gamla beteendet vid tom cache.
+  return tightFillUrl(url, 120, 120, 80);
 }
 
 // Variantbilderna först (index = variant-index), sedan övriga galleribilder

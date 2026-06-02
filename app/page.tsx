@@ -5,6 +5,7 @@ import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../lib/image-scores";
+import { tightFillUrl } from "../lib/wix-image";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -198,7 +199,7 @@ export default async function Home() {
                 {heroProducts.slice(0, 2).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
                     <Image
-                      src={p.img}
+                      src={tightFillUrl(p.img, 800, 800)}
                       alt={p.name}
                       fill
                       preload
@@ -214,7 +215,7 @@ export default async function Home() {
               <div className="mcol mcol-offset">
                 {heroProducts.slice(2, 4).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
-                    <Image src={p.img} alt={p.name} fill preload placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
+                    <Image src={tightFillUrl(p.img, 800, 800)} alt={p.name} fill preload placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
                     {p.price && <span className="htag">{p.price}</span>}
                   </a>
                 ))}
@@ -251,7 +252,7 @@ export default async function Home() {
                       c.thumbs[i] ? (
                         <span className="homecat-thumb" key={i}>
                           <Image
-                            src={c.thumbs[i]}
+                            src={tightFillUrl(c.thumbs[i], 280, 280)}
                             alt=""
                             fill
                             placeholder="blur"

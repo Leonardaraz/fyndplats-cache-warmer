@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
+import { tightFillUrl } from "../lib/wix-image";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -16,13 +17,13 @@ import { SHIMMER_BLUR } from "../lib/lqip";
 // i <head>, och Next genererar preload-href:en via SAMMA loader → webbläsaren
 // förladdar Wix-URL:en direkt, inte optimerar-URL:en.
 function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
-  const m = (src || "").match(/static\.wixstatic\.com\/media\/([^/]+)/);
-  if (!m) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
+  if (!(src || "").includes("static.wixstatic.com")) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
   // q_72 i stället för 82: hjältebilden var en PNG-sourcad produktbild som
   // komprimerade dåligt → 114 KB webp och ~6 s LCP på 4G (mätt på prod). Vid 72
   // sparas ~25–30 % utan synlig kvalitetsförlust i webp → snabbare första paint.
-  const q = quality || 72;
-  return `https://static.wixstatic.com/media/${m[1]}/v1/fill/w_${width},h_${width},al_c,q_${q}/file.webp`;
+  // tightFillUrl: när crop-data finns i image-crops.json byggs en /v1/crop-URL
+  // (bbox i original-pixlar); annars samma fill-URL som tidigare. Säker fallback.
+  return tightFillUrl(src, width, width, quality || 72);
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -350,7 +351,7 @@ export function Gallery({
               aria-selected={i === active}
               aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 8)}`}
             >
-              <Image src={g} alt="" fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
+              <Image src={tightFillUrl(g, 152, 152)} alt="" fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
             </button>
           ))}
         </div>
@@ -394,7 +395,7 @@ export function Gallery({
                 transition: gesturing ? "none" : "transform .28s cubic-bezier(.2,.7,.2,1)",
               }}
             >
-              <Image key={main} src={main} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} preload draggable={false} />
+              <Image key={main} src={tightFillUrl(main, 1600, 1600)} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} preload draggable={false} />
             </div>
           </div>
           {imgs.length > 1 && (

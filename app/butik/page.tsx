@@ -5,6 +5,7 @@ import { ProductCard } from "../../components/productcard";
 import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/category-groups";
 import { pageMeta } from "../../lib/seo";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../../lib/image-scores";
+import { tightFillUrl } from "../../lib/wix-image";
 
 export const metadata = pageMeta(
   "Butik – utforska hela vårt sortiment",
@@ -133,7 +134,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                   {heroSrc && (
                     <Image
                       className="butik-cat-img"
-                      src={heroSrc}
+                      src={tightFillUrl(heroSrc, 1120, 1120)}
                       alt=""
                       fill
                       sizes="(max-width:760px) 100vw, (max-width:1100px) 50vw, 560px"
@@ -159,7 +160,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                         <a className="butik-subchip" key={s.id} href={`/kategori/${s.slug}`}>
                           {s.img && (
                             <span className="butik-subchip-thumb">
-                              <Image src={s.img} alt="" fill sizes="48px" />
+                              <Image src={tightFillUrl(s.img, 96, 96)} alt="" fill sizes="48px" />
                             </span>
                           )}
                           <span className="butik-subchip-text">
