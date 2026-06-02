@@ -5,6 +5,7 @@ import { MobileNav } from "./mobilenav";
 import { MegaNav } from "./meganav";
 import { getCategoryTree } from "../lib/category-groups";
 import { getPosts } from "../lib/blog";
+import { TrustBox, TRUSTBOX_TEMPLATES } from "./trustpilot";
 
 export function GoogleG({ size = 16 }: { size?: number }) {
   return (
@@ -81,6 +82,9 @@ export async function SiteHeader() {
 
 export async function SiteFooter() {
   const hasBlog = (await getPosts()).length > 0;
+  // Trustpilot Mini TrustBox — bara när Leonard fyllt i business unit-ID:t i
+  // Vercel. Tom env → ingen widget, inget Trustpilot-script (noll extra request).
+  const trustpilotBU = (process.env.TRUSTPILOT_BUSINESS_UNIT_ID || "").trim();
   return (
     <footer>
       <div className="container fgrid">
@@ -88,6 +92,14 @@ export async function SiteFooter() {
           <div className="fbrand"><Mark size={30} />Fyndplats</div>
           <p style={{ fontSize: 14, color: "#a39c93", maxWidth: "30ch" }}>Trygg svensk e-handel med ett brett sortiment till låga priser.</p>
           <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">4,9</b> <span className="star">★★★★★</span> <span className="g-count">(21 omdömen)</span></div>
+          {trustpilotBU && (
+            <TrustBox
+              businessUnitId={trustpilotBU}
+              templateId={TRUSTBOX_TEMPLATES.mini}
+              height="150px"
+              className="footer-trustbox"
+            />
+          )}
           <Social className="footer-social" />
         </div>
         <div className="fcol"><div className="fhead">Handla</div><a href="/butik">Butik</a><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a>{hasBlog && <a href="/blogg">Blogg</a>}</div>

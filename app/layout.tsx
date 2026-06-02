@@ -85,6 +85,15 @@ export const metadata: Metadata = {
       ...(process.env.BING_VERIFICATION_TOKEN && {
         'msvalidate.01': process.env.BING_VERIFICATION_TOKEN,
       }),
+      // Trustpilot domain-verifiering. Leonard skapar gratis-kontot på
+      // trustpilot.com/business och klistrar in meta-koden i env. Tom →
+      // taggen renderas inte (Trustpilot bryr sig inte om en tom tag, och
+      // sajten är oförändrad tills verifieringen aktiveras). Se
+      // docs/trustpilot-setup.md.
+      ...(process.env.TRUSTPILOT_VERIFICATION_ID && {
+        'trustpilot-one-time-domain-verification-id':
+          process.env.TRUSTPILOT_VERIFICATION_ID,
+      }),
     },
   },
 };
