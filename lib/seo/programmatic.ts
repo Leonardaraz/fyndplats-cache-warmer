@@ -203,14 +203,25 @@ function faqSchema(faqs: { q: string; a: string }[]): object {
   };
 }
 
+// Versalisera enbart första bokstaven, resten orört ("massagepistoler" →
+// "Massagepistoler", men "Under 500 kr" lämnas oförändrat). Inte full Title Case —
+// vi vill inte versalisera "kr"/övriga ord.
+function capitalizeFirst(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
 function breadcrumbSchema(crumbs: { name: string; path: string }[]): object {
+  const lastIndex = crumbs.length - 1;
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: crumbs.map((c, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      name: c.name,
+      // Leaf-crumben kan komma som lowercase type/verb-slug (t.ex. cfg.label
+      // "massagepistoler") — versalisera första bokstaven så breadcrumben visas
+      // korrekt i SERP. Övriga crumbs är redan rättkasade.
+      name: i === lastIndex ? capitalizeFirst(c.name) : c.name,
       item: `${SITE}${c.path}`,
     })),
   };
