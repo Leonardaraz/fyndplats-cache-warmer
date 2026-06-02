@@ -52,14 +52,27 @@ const DEFAULT_PRICE: ModelPrice = {
   cachedInputPerMillion: 0.3,
 };
 
-export function estimateCostUsd(model: string, usage: LlmUsage): number {
+/** Anthropic Message Batches-rabatt: 50 % på all token-trafik. */
+export const BATCH_DISCOUNT = 0.5;
+
+export interface CostOptions {
+  /**
+   * Anropet gick via Anthropic Message Batches API → 50 % rabatt på hela
+   * token-kostnaden (input, cached input och output). Default false (realtid).
+   */
+  batch?: boolean;
+}
+
+export function estimateCostUsd(model: string, usage: LlmUsage, opts?: CostOptions): number {
   const price = PRICES[model] ?? DEFAULT_PRICE;
   const cached = usage.cachedInputTokens ?? 0;
   const uncachedInput = Math.max(0, usage.inputTokens - cached);
   const inputCost = (uncachedInput / 1_000_000) * price.inputPerMillion;
   const cachedCost = (cached / 1_000_000) * (price.cachedInputPerMillion ?? price.inputPerMillion);
   const outputCost = (usage.outputTokens / 1_000_000) * price.outputPerMillion;
-  return roundUsd(inputCost + cachedCost + outputCost);
+  const total = inputCost + cachedCost + outputCost;
+  // Batch API ger 50 % rabatt på alla rater (gäller även cachade tokens).
+  return roundUsd(opts?.batch ? total * BATCH_DISCOUNT : total);
 }
 
 function roundUsd(n: number): number {

@@ -19,7 +19,7 @@ import { fetchAliExpressProductFromUrl } from "../import/from-url";
 import { importProduct } from "../import/pipeline";
 import type { ProductContent } from "../import/generate";
 import type { AliExpressProduct } from "../import/types";
-import { isBatchApiEnabled } from "../claude/batch";
+import { describeRouting, resolveImportPath, type TriggerSource } from "../import/trigger-routing";
 import { getPricingRules } from "../store/pricing-config";
 import { getStore } from "../store/factory";
 import { getImportCostStore } from "../store/import-costs";
@@ -39,6 +39,12 @@ export interface WorkerRunOptions {
   disableDelay?: boolean;
   /** Override import-funktionen — för integrationstester. */
   importerOverride?: (item: BulkImportItem) => Promise<ImportOutcome>;
+  /**
+   * Var körningen startade. Avgör (via lib/import/trigger-routing.ts) om vi får
+   * gå via Batch API (latens-tolerant) eller måste köra realtid. Saknas = "cron"
+   * (worker triggas normalt av Vercel Cron).
+   */
+  triggerSource?: TriggerSource;
 }
 
 export interface WorkerRunResult {
@@ -62,9 +68,14 @@ export interface ImportOutcome {
 
 /** En körning av workern. Pullar upp till maxItems items från aktiva jobb. */
 export async function runBulkImportWorker(opts: WorkerRunOptions = {}): Promise<WorkerRunResult> {
-  // Batch API-läge (#8, default av): delegera till den asynkrona två-fas-workern.
+  // Smart routing (#smart-routing): batch vs realtid avgörs av trigger-källan +
+  // master-flaggan USE_BATCH_API. Bakgrundskällor (cron/bulk/admin-batch) får gå
+  // via Batch API (50 % rabatt); en importerOverride (tester) tvingar realtid.
   // Dynamisk import undviker en statisk cykel (batch-worker importerar härifrån).
-  if (!opts.importerOverride && isBatchApiEnabled()) {
+  const triggerSource: TriggerSource = opts.triggerSource ?? "cron";
+  const path = opts.importerOverride ? "realtime" : resolveImportPath(triggerSource);
+  console.log(`[bulk-import] ${describeRouting(triggerSource)}`);
+  if (path === "batch") {
     const { runBulkImportBatchWorker } = await import("./batch-worker");
     return runBulkImportBatchWorker(opts);
   }

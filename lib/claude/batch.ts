@@ -20,6 +20,11 @@ import {
 } from "../import/generate";
 import type { AliExpressProduct } from "../import/types";
 import type { CollectionOption } from "./types";
+import { batchModel } from "../import/generate";
+import { estimateCostUsd } from "../llm/pricing";
+import { addSpend } from "../llm/budget";
+import { recordCall } from "../llm/stats";
+import type { LlmUsage } from "../llm/types";
 
 export interface BatchInputItem {
   /** Stabil nyckel som matchar svaret tillbaka till källraden (t.ex. bulk-item-id). */
@@ -55,6 +60,8 @@ export async function submitProductContentBatch(items: BatchInputItem[]): Promis
     };
   });
   const batch = await claude.messages.batches.create({ requests });
+  // Logga batch-id:t (path=batch) så det syns i Vercel-loggen vid verifiering.
+  console.log(`[claude:batch] submitted batch_id=${batch.id} requests=${requests.length}`);
   return batch.id;
 }
 
@@ -91,6 +98,10 @@ export async function fetchBatchResults(
   const stream = await claude.messages.batches.results(batchId);
   for await (const entry of stream) {
     if (entry.result.type !== "succeeded") continue;
+    // Cost-stats per path (#smart-routing): batch-anrop går INTE via llm/router,
+    // så vi bokför usage + 50 %-rabatten här istället. Best-effort — en miss i
+    // statistiken får aldrig fälla import-finishen.
+    await recordBatchUsage(batchId, entry.result.message);
     const ctx = context.get(entry.custom_id);
     if (!ctx) continue;
     const text = extractText(entry.result.message);
@@ -100,6 +111,50 @@ export async function fetchBatchResults(
     }
   }
   return out;
+}
+
+/**
+ * Bokför token-usage + (rabatterad) kostnad för ett lyckat batch-svar mot samma
+ * spend/stats-pipeline som realtidsflödet — men taggat path="batch" och med 50 %
+ * batch-rabatt. Loggas så Leonard kan jämföra batch- vs realtidskostnad över tid.
+ */
+async function recordBatchUsage(batchId: string, message: Anthropic.Message): Promise<void> {
+  try {
+    const model = message.model || batchModel();
+    const usage = extractUsage(message);
+    const costUsd = estimateCostUsd(model, usage, { batch: true });
+    await addSpend("claude", costUsd);
+    await recordCall({
+      provider: "claude",
+      op: "generateProductContent",
+      success: true,
+      cacheHit: false,
+      costUsd,
+      latencyMs: 0,
+      path: "batch",
+      detail: `batch:${batchId}`,
+    });
+  } catch (err) {
+    console.warn(
+      `[claude:batch] kunde inte bokföra batch-usage (${batchId}):`,
+      err instanceof Error ? err.message : err,
+    );
+  }
+}
+
+function extractUsage(msg: Anthropic.Message): LlmUsage {
+  const u = msg.usage as unknown as {
+    input_tokens?: number;
+    output_tokens?: number;
+    cache_read_input_tokens?: number;
+    cache_creation_input_tokens?: number;
+  };
+  const cached = u?.cache_read_input_tokens ?? 0;
+  return {
+    inputTokens: (u?.input_tokens ?? 0) + (u?.cache_creation_input_tokens ?? 0) + cached,
+    outputTokens: u?.output_tokens ?? 0,
+    cachedInputTokens: cached,
+  };
 }
 
 export function isBatchApiEnabled(): boolean {

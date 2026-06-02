@@ -15,6 +15,7 @@ import {
   looksLikeStoreCopy,
 } from "@/lib/import/guard";
 import { audit } from "@/lib/audit";
+import { describeRouting } from "@/lib/import/trigger-routing";
 
 const VariantSchema = z.object({
   supplierVariantId: z.string().min(1),
@@ -158,6 +159,9 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Smart routing: /api/import är extension-knappen (UX-blockerande) → ALLTID
+    // realtid, oavsett USE_BATCH_API. Loggas per import för spårbarhet/verifiering.
+    console.log(`[import] ${describeRouting("extension")} pid=${product.supplierProductId}`);
     const result = await importProduct(
       product as AliExpressProduct,
       await getPricingRules(),

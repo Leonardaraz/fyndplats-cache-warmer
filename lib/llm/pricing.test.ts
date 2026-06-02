@@ -38,4 +38,13 @@ describe("estimateCostUsd", () => {
     const cost = estimateCostUsd("unknown-model", { inputTokens: 1_000_000, outputTokens: 0 });
     expect(cost).toBeCloseTo(3.0, 4);
   });
+
+  it("batch:true applies the 50% Message Batches discount", () => {
+    const usage = { inputTokens: 1_000_000, outputTokens: 200_000 };
+    const realtime = estimateCostUsd("claude-haiku-4-5-20251001", usage);
+    const batch = estimateCostUsd("claude-haiku-4-5-20251001", usage, { batch: true });
+    expect(realtime).toBeCloseTo(2.0, 4);
+    expect(batch).toBeCloseTo(1.0, 4); // 50% off
+    expect(batch).toBeCloseTo(realtime / 2, 6);
+  });
 });

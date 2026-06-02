@@ -27,13 +27,26 @@ export default async function LlmUsagePage() {
   let totalCacheHits = 0;
   let totalCostUsd = 0;
   let totalFailures = 0;
+  // Per-path-summa (smart routing): batch (50 % rabatt) vs realtid.
+  let batchCalls = 0;
+  let batchCostUsd = 0;
+  let realtimeCalls = 0;
+  let realtimeCostUsd = 0;
   for (const d of days) {
     totalCalls += d.totals.calls;
     totalCacheHits += d.totals.cacheHits;
     totalCostUsd += d.totals.costUsd;
     totalFailures += d.totals.failures;
+    batchCalls += d.byPath.batch.calls;
+    batchCostUsd += d.byPath.batch.costUsd;
+    realtimeCalls += d.byPath.realtime.calls;
+    realtimeCostUsd += d.byPath.realtime.costUsd;
   }
   const cacheHitRate = totalCalls > 0 ? Math.round((totalCacheHits / totalCalls) * 100) : 0;
+  // Genomsnittlig kostnad/anrop per path — gör 50 %-rabatten synlig över tid.
+  const batchAvg = batchCalls > 0 ? batchCostUsd / batchCalls : 0;
+  const realtimeAvg = realtimeCalls > 0 ? realtimeCostUsd / realtimeCalls : 0;
+  const batchSavingPct = realtimeAvg > 0 ? Math.round((1 - batchAvg / realtimeAvg) * 100) : 0;
 
   return (
     <main style={{ maxWidth: 960, margin: "40px auto", padding: "0 16px" }}>
@@ -108,6 +121,48 @@ export default async function LlmUsagePage() {
           <li>Failures: {totalFailures}</li>
           <li>Total kostnad: ${totalCostUsd.toFixed(4)} USD</li>
         </ul>
+      </section>
+
+      <section style={{ marginTop: 24 }}>
+        <h2>Smart routing: batch vs realtid (senaste 30 dagar)</h2>
+        <p style={{ fontSize: 13, color: "#666" }}>
+          Bakgrundskällor (bulk-CSV / cron / admin-batch) routas via Anthropic Batch API
+          (50 % rabatt); UX-blockerande källor (extension, admin-singel) körs realtid.
+          Routning i <code>lib/import/trigger-routing.ts</code>.
+        </p>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>
+              <th style={{ padding: "6px 8px" }}>Path</th>
+              <th style={{ padding: "6px 8px" }}>Anrop</th>
+              <th style={{ padding: "6px 8px" }}>Kostnad $</th>
+              <th style={{ padding: "6px 8px" }}>Snitt $/anrop</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderBottom: "1px solid #f0f0f0" }}>
+              <td style={{ padding: "6px 8px" }}>Batch (50 % rabatt)</td>
+              <td style={{ padding: "6px 8px" }}>{batchCalls}</td>
+              <td style={{ padding: "6px 8px" }}>${batchCostUsd.toFixed(4)}</td>
+              <td style={{ padding: "6px 8px" }}>${batchAvg.toFixed(6)}</td>
+            </tr>
+            <tr style={{ borderBottom: "1px solid #f0f0f0" }}>
+              <td style={{ padding: "6px 8px" }}>Realtid</td>
+              <td style={{ padding: "6px 8px" }}>{realtimeCalls}</td>
+              <td style={{ padding: "6px 8px" }}>${realtimeCostUsd.toFixed(4)}</td>
+              <td style={{ padding: "6px 8px" }}>${realtimeAvg.toFixed(6)}</td>
+            </tr>
+          </tbody>
+        </table>
+        {batchCalls > 0 && realtimeCalls > 0 ? (
+          <p style={{ fontSize: 13, color: "#2a7", marginTop: 8 }}>
+            Batch-snitt är {batchSavingPct}% billigare per anrop än realtid.
+          </p>
+        ) : (
+          <p style={{ fontSize: 13, color: "#666", marginTop: 8 }}>
+            Behöver anrop i båda path för en jämförelse (batch aktiveras av USE_BATCH_API=true).
+          </p>
+        )}
       </section>
 
       <section style={{ marginTop: 24 }}>

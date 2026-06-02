@@ -38,7 +38,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const result = await runBulkImportWorker({ maxItems: 10, budgetMs: 50_000 });
+    const result = await runBulkImportWorker({ maxItems: 10, budgetMs: 50_000, triggerSource: "cron" });
     if (result.itemsProcessed > 0) {
       await audit(
         "bulk-import-worker-tick",
