@@ -30,6 +30,9 @@ import ShippingConfirmationEmail, {
 import RefundConfirmationEmail, {
   type RefundConfirmationProps,
 } from "@/emails/refund-confirmation";
+import OrderCancellationEmail, {
+  type OrderCancellationProps,
+} from "@/emails/order-cancellation";
 import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
@@ -311,6 +314,55 @@ function buildShippingProps(payload: Record<string, unknown>): { props: Shipping
   };
 }
 
+function buildCancellationProps(payload: Record<string, unknown>): { props: OrderCancellationProps; email: string } | null {
+  // Cancel-events: kan vara på `order` med status="CANCELED" eller eget event.
+  const order = (payload.order ?? payload) as Record<string, unknown>;
+  const customer = extractCustomer(order);
+  if (!customer) return null;
+
+  const totals = (order.priceSummary ?? order.totals) as Record<string, unknown> | undefined;
+  const totalAmount = moneyNum(totals?.total ?? totals?.totalPrice);
+  const currency = moneyCurrency(totals ?? order.currency, "SEK");
+
+  const paymentMethod = firstStr(
+    (order.paymentSummary as { paymentMethods?: Array<{ method?: string }> } | undefined)?.paymentMethods?.[0]?.method,
+    (order.billingInfo as { paymentMethod?: string } | undefined)?.paymentMethod,
+  );
+
+  // Cancellation reason kan ligga på flera platser
+  const cancellationReason = firstStr(
+    (order.cancellation as { reason?: string } | undefined)?.reason,
+    payload.reason as string,
+    (order as { cancellationReason?: string }).cancellationReason,
+  );
+
+  // refundInitiated: om payload har refund-info, då sker det parallellt
+  const refundInitiated = Boolean(
+    payload.refund ||
+    (order.refunds as Array<unknown> | undefined)?.length,
+  );
+
+  const cancellationDate = formatSvDate(firstStr(
+    (order.cancellation as { date?: string } | undefined)?.date,
+    order.updatedDate as string,
+    order._updatedDate as string,
+  ));
+
+  return {
+    props: {
+      firstName: customer.firstName,
+      orderNumber: extractOrderNumber(order),
+      cancellationDate,
+      totalAmount,
+      currency,
+      paymentMethod,
+      cancellationReason,
+      refundInitiated,
+    },
+    email: customer.email,
+  };
+}
+
 function buildRefundProps(payload: Record<string, unknown>): { props: RefundConfirmationProps; email: string } | null {
   // Refund-events: kan vara på `order` (med refund-array) eller eget event.
   const order = (payload.order ?? payload) as Record<string, unknown>;
@@ -373,10 +425,13 @@ async function upsertTrackingMapping(opts: {
 
 // Klassificera event-typ. Wix har flera möjliga slugs och har bytt namn
 // mellan v1/v2/v3 — vi matchar liberalt på substring.
-type EventKind = "order_created" | "order_shipped" | "refund" | "unknown";
+type EventKind = "order_created" | "order_shipped" | "refund" | "order_cancelled" | "unknown";
 function classify(eventType: string, payload: Record<string, unknown>): EventKind {
   const t = eventType.toLowerCase();
   if (t.includes("refund")) return "refund";
+  // Cancellation måste matchas FÖRE "shipped"/"fulfillment" — vissa Wix-event
+  // som "order_canceled" innehåller delsträngar som inte ska tas för leverans.
+  if (t.includes("cancel")) return "order_cancelled";
   if (t.includes("shipped") || t.includes("shipment") || t.includes("fulfillment")) return "order_shipped";
   if (t.includes("order_created") || t.includes("ordercreated") || t.includes("order_approved")) return "order_created";
 
@@ -628,6 +683,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, sent: sent.data?.id, trackingMapped }, { status: 200 });
     }
 
+    if (kind === "order_cancelled") {
+      const built = buildCancellationProps(entity);
+      if (!built) {
+        console.warn("[wix-webhook] order_cancelled: kunde inte extrahera kund — skippar");
+        return NextResponse.json({ received: true, handled: false }, { status: 200 });
+      }
+      const html = await render(OrderCancellationEmail(built.props));
+      const sent = await resend.emails.send({
+        from: FROM,
+        to: built.email,
+        replyTo: REPLY_TO,
+        subject: `Din beställning ${built.props.orderNumber} är avbruten`,
+        html,
+      });
+      if (sent.error) {
+        console.error("[wix-webhook] Resend order_cancelled fel", sent.error);
+        return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+      }
+      return NextResponse.json({ received: true, sent: sent.data?.id }, { status: 200 });
+    }
+
     if (kind === "refund") {
       const built = buildRefundProps(entity);
       if (!built) {
@@ -661,7 +737,7 @@ export async function GET() {
   return NextResponse.json({
     status: "ok",
     endpoint: "wix-webhook",
-    accepts: ["order_created", "order_shipped", "refund"],
+    accepts: ["order_created", "order_shipped", "order_cancelled", "refund"],
     signatureVerification: process.env.WIX_WEBHOOK_PUBLIC_KEY ? "enabled" : "disabled (key missing)",
   });
 }
