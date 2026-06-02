@@ -23,6 +23,7 @@ import { renderAbandonedCart2 } from '../emails/abandoned-cart-2';
 import { renderAbandonedCart3 } from '../emails/abandoned-cart-3';
 import { renderAbandonedCart3NoCode } from '../emails/abandoned-cart-3-no-code';
 import { unsubscribeUrl, isSuppressed } from './newsletter';
+import { firePush } from './push-send';
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const STEP_DELAYS_MS: Record<1 | 2 | 3, number> = {
@@ -332,6 +333,16 @@ async function sendStep1(cart: CartRow): Promise<ProcessResult> {
     VALUES (${cart.id}, 1, ${send.data?.id ?? null}, ${cart.email})
     ON CONFLICT (cart_id, step) DO NOTHING
   `;
+  // Push parallellt med +1h-mejlet (snabb påminnelse; mejlet är backup).
+  // Fire-and-forget — får aldrig fälla eller fördröja cron-flödet. Kanal 'cart'
+  // respekterar mottagarens cartReminders-preferens.
+  firePush({
+    userEmail: cart.email,
+    channel: 'cart',
+    title: 'Glömde du något? 🛒',
+    body: 'Din kundvagn väntar på dig — slutför köpet innan varorna tar slut.',
+    data: { type: 'abandoned_cart', cartId: cart.id, recoverUrl: cart.recover_url ?? undefined },
+  });
   return { cartId: cart.id, step: 1, action: 'sent', resendId: send.data?.id };
 }
 

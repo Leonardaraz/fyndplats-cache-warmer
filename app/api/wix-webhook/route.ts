@@ -38,6 +38,7 @@ import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversi
 import { recordOrder } from "@/lib/order-record";
 import { sql } from "@/lib/db";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
+import { firePush } from "@/lib/push-send";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -661,6 +662,16 @@ export async function POST(req: NextRequest) {
       // Best-effort; dedupliceras mot klientens /tack-Purchase via event_id
       // `purchase_<orderId>`.
       await fireMetaPurchase(entity);
+      // Push parallellt med mejlet (snabb notis; mejlet är backup). Fire-and-
+      // forget — push får ALDRIG blockera/fälla webhook-svaret (samma princip
+      // som CAPI ovan). Kanal 'order' respekterar mottagarens preferenser.
+      firePush({
+        userEmail: customer.email,
+        channel: "order",
+        title: "Order bekräftad! 🎉",
+        body: `Tack för din beställning ${props.orderNumber}. Vi börjar packa direkt.`,
+        data: { type: "order_created", orderNumber: props.orderNumber },
+      });
       return NextResponse.json({ received: true, sent: sent.data?.id }, { status: 200 });
     }
 
@@ -700,6 +711,17 @@ export async function POST(req: NextRequest) {
         console.error("[wix-webhook] Resend order_shipped fel", sent.error);
         return NextResponse.json({ error: "Email send failed" }, { status: 500 });
       }
+      // Push "paketet är på väg" parallellt med mejlet (fire-and-forget).
+      // Leveransnotiser är order-uppdateringar → kanal 'order'.
+      firePush({
+        userEmail: built.email,
+        channel: "order",
+        title: "Ditt paket är på väg ✈️",
+        body: built.props.trackingNumber
+          ? `Order ${built.props.orderNumber} är skickad. Spårningsnr: ${built.props.trackingNumber}`
+          : `Order ${built.props.orderNumber} är skickad och på väg till dig.`,
+        data: { type: "order_shipped", orderNumber: built.props.orderNumber, trackingNumber: built.props.trackingNumber },
+      });
       return NextResponse.json({ received: true, sent: sent.data?.id, trackingMapped }, { status: 200 });
     }
 
