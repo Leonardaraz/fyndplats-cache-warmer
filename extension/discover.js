@@ -245,8 +245,20 @@
     return { id, url, title, thumb };
   }
 
+  // Skopa kort-dekoreringen till AliExpress sökresultats-kort så vi inte
+  // dekorerar footer-/rekommendationslänkar (som också pekar på /item/…).
+  // Verifierade container-klasser (sök-/kategorisida, 2026-06): se nedan.
+  const CARD_SCOPE = [
+    '.search-item-card-wrapper-gallery a[href*="/item/"]',
+    '.search-card-item a[href*="/item/"]',
+    '.card-out-wrapper a[href*="/item/"]',
+  ].join(", ");
+
   function decorateCards() {
-    const links = document.querySelectorAll('a[href*="/item/"]');
+    // Fallback till bred selektor om AliExpress bytt klassnamn — hellre dekorera
+    // brett än att tappa funktionen helt (cardInfo filtrerar ändå på /item/<id>.html).
+    let links = document.querySelectorAll(CARD_SCOPE);
+    if (links.length === 0) links = document.querySelectorAll('a[href*="/item/"]');
     for (const link of links) {
       // Container att dekorera: kort-wrappern (en div, ej <a>) så våra kontroller
       // inte ärver kortets klick. Faller tillbaka uppåt om wrappern är en länk.
