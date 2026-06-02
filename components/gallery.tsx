@@ -33,12 +33,18 @@ export function Gallery({
   mainBlur,
   active: activeProp,
   onActiveChange,
+  eagerCount,
 }: {
   images: string[];
   alt: string;
   mainBlur?: string;
   active?: number;
   onActiveChange?: (i: number) => void;
+  // Antal bilder från början som ska bakgrundsförladdas efter LCP (variant-
+  // bilderna ligger först). Default: alla. Övriga (svep-bara galleriextrabilder,
+  // t.ex. instruktioner) mountas lazy vid första visning så vi inte slösar band-
+  // bredd på bilder pickern aldrig hoppar till.
+  eagerCount?: number;
 }) {
   const imgs = images.filter(Boolean);
   const [activeInternal, setActiveInternal] = useState(0);
@@ -80,6 +86,33 @@ export function Gallery({
     setMounted((m) => (m.includes(active) ? m : [...m, active]));
     if (loaded[active]) setShown(active); // byt först när målbilden är dekodad
   }, [active, loaded]);
+
+  // ── Ivrig förladdning av ALLA variant-/galleribilder (Leonards rapport:
+  //    "när man byter variant händer inget om bilden inte laddats"). Tidigare
+  //    mountades ett bildlager först VID variantbytet → första bytet till varje
+  //    variant väntade på en kall fetch (1–3 s på 4G, ingen feedback). Nu mountar
+  //    vi resten av lagren (opacity:0) SÅ FORT hjältebilden/LCP-bilden dekodats,
+  //    via requestIdleCallback så de aldrig konkurrerar med LCP i kritiska vägen.
+  //    Lagren hämtas+dekodas på exakt den srcset-kandidat ett kommande byte visar
+  //    → variantbytet blir en direkt cache-träff (mätt: 0 nya fetchar, <100 ms).
+  const preloadedAll = useRef(false);
+  useEffect(() => {
+    if (preloadedAll.current) return;
+    if (!loaded[initialActive]) return; // vänta tills LCP-bilden är klar
+    if (imgs.length <= 1) return;
+    preloadedAll.current = true;
+    const n = eagerCount && eagerCount > 0 ? Math.min(eagerCount, imgs.length) : imgs.length;
+    const targets = Array.from({ length: n }, (_, i) => i);
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
+    if (ric) ric(() => setMounted((m) => [...new Set([...m, ...targets])]), { timeout: 1500 });
+    else setTimeout(() => setMounted((m) => [...new Set([...m, ...targets])]), 300);
+  }, [loaded, initialActive, imgs.length, eagerCount]);
+
+  // Subtil laddningsindikator: man har bytt till ett lager vars bild ännu inte
+  // dekodats (det gamla ligger kvar tills det nya är redo — äkta crossfade). Utan
+  // feedback upplevdes det som att "inget händer". Efter förladdningen ovan är
+  // detta normalt aldrig sant (träffen är direkt); annars syns en mjuk spinner.
+  const waiting = active !== shown && !loaded[active];
 
   const go = useCallback((dir: number) => {
     setView({ s: 1, x: 0, y: 0 }); // nollställ zoom vid bildbyte (inlinat → stabil dep-lista)
@@ -249,12 +282,13 @@ export function Gallery({
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
               sizes="(max-width:760px) 100vw, 45vw"
-              className={`ghero-layer ${i === shown ? "is-shown" : ""}`}
+              className={`ghero-layer ${isInitial ? "ghero-base" : ""} ${i === shown ? "is-shown" : ""}`}
               draggable={false}
               onLoad={() => setLoaded((l) => (l[i] ? l : { ...l, [i]: true }))}
             />
           );
         })}
+        {waiting && <span className="ghero-spin" aria-hidden />}
         <span className="gmain-zoom" aria-hidden>⤢</span>
       </button>
 

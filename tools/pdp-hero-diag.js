@@ -114,8 +114,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
           variant.frames.push({ t, ...s });
           await page.screenshot({ path: path.join(OUT, `${TAG}-${slug}-variant-t${t}.png`) }).catch(() => {});
         }
-        // blur-blip = någon frame där hero img saknar complete/naturalWidth.
+        // blur-blip = någon frame där det SYNLIGA lagret saknar complete bild.
         variant.blip = variant.frames.some((f) => !f.heroComplete || f.heroNaturalW === 0);
+        // layout-hopp = container-boxens bredd varierar mellan frames (förr 321→130).
+        const ws = variant.frames.map((f) => f.contBoxW).filter((w) => w != null);
+        variant.contBoxRange = ws.length ? [Math.min(...ws), Math.max(...ws)] : null;
+        variant.layoutJump = ws.length ? Math.max(...ws) - Math.min(...ws) > 2 : null;
       }
 
       Object.assign(metric, { at500, at2s, ...perf, variant });
@@ -139,21 +143,25 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function heroState(page) {
   return page.evaluate(() => {
     const round = (n) => (n == null ? null : Math.round(n * 100) / 100);
-    const img = document.querySelector('.gallery .gmain img');
-    if (!img) return { heroExists: false };
-    const r = img.getBoundingClientRect();
-    const cs = getComputedStyle(img);
+    const cont = document.querySelector('.gallery .gmain');
+    if (!cont) return { heroExists: false };
+    // Det SYNLIGA lagret (.is-shown) — base-lagret byter inte src vid variantval.
+    const img = cont.querySelector('.ghero-layer.is-shown') || cont.querySelector('img');
+    const cr = cont.getBoundingClientRect();
+    const r = img && img.getBoundingClientRect();
+    const cs = img && getComputedStyle(img);
     return {
       heroExists: true,
-      heroComplete: img.complete,
-      heroNaturalW: img.naturalWidth,
-      heroCurrentSrc: (img.currentSrc || img.src || '').slice(0, 120),
-      heroBoxW: round(r.width),
-      heroBoxH: round(r.height),
-      // background-image = blur-placeholderns data-URL (next/image). Längden
-      // avslöjar om en äkta blur (lång base64) eller shimmer-svg används.
-      bgImageLen: (cs.backgroundImage || '').length,
-      bgSize: cs.backgroundSize,
+      // CONTAINER-boxen = det som syns/skiftar. Tidigare buggen kollapsade den.
+      contBoxW: round(cr.width),
+      contBoxH: round(cr.height),
+      heroComplete: img ? img.complete : null,
+      heroNaturalW: img ? img.naturalWidth : null,
+      heroCurrentSrc: img ? (img.currentSrc || img.src || '').slice(0, 120) : '',
+      heroBoxW: r ? round(r.width) : null,
+      heroBoxH: r ? round(r.height) : null,
+      bgImageLen: cs ? (cs.backgroundImage || '').length : 0,
+      bgSize: cs ? cs.backgroundSize : '',
     };
   });
 }

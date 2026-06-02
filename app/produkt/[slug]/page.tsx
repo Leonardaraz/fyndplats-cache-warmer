@@ -112,19 +112,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // En riktig blur av produktbilden visar en igenkännbar förhandsbild direkt.
   const mainBlur = await getBlurDataURL(images[0] || "");
 
-  // Förvärm variantbildernas mobil-storlek (w_750 = samma srcset-kandidat som
-  // gallery-loadern väljer på 375px@2x) med rel=prefetch (lägsta prioritet, rör
-  // inte hjältens LCP). Då ligger nästa variantbild i cachen och galleriets
-  // crossfade blir omedelbar. Hoppar över [0] (= hjältebilden, redan preloadad).
-  const variantPrefetch = (p.options?.choices || [])
-    .slice(1, 5)
-    .map((c) => {
-      const u = c.image || "";
-      const m = u.match(/static\.wixstatic\.com\/media\/([^/]+)/);
-      return m ? `https://static.wixstatic.com/media/${m[1]}/v1/fill/w_750,h_750,al_c,q_72/file.webp` : null;
-    })
-    .filter((u): u is string => !!u);
-
   // "Liknande produkter" – ranked by how many collections they share with this product
   // (most relevant first). No random global filler — only genuinely related products.
   const all = await getProducts();
@@ -140,9 +127,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      {variantPrefetch.map((href) => (
-        <link key={href} rel="prefetch" as="image" href={href} />
-      ))}
 
       <div className="container">
         <nav className="crumbs"><a href="/">Hem</a> <span>/</span> <a href="/butik">Butik</a> <span>/</span> <em>{p.name}</em></nav>

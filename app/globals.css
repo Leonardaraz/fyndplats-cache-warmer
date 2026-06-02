@@ -413,6 +413,10 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
    byte tonar mjukt över .3s utan layout-hopp eller blur-blink. Mer specifik än
    regeln ovan → vinner position/animation. */
 .gallery .gmain img.ghero-layer{position:absolute;inset:0;z-index:1;width:100%;height:100%;aspect-ratio:auto;object-fit:cover;opacity:0;animation:none;transition:opacity .3s ease,transform .45s cubic-bezier(.2,.7,.2,1)}
+/* Det INITIALA lagret ligger kvar i flödet (relative) och ger .gmain sin bredd/
+   höjd — utan en in-flow-bild kollapsar containern till min-content (mätt: hero
+   krympte till ~100 px). Övriga lager overlay:ar absolut ovanpå för crossfade. */
+.gallery .gmain img.ghero-layer.ghero-base{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:1}
 .gallery .gmain img.ghero-layer.is-shown{opacity:1;z-index:2}
 .gallery .gmain:hover img{transform:scale(1.07)}
 /* Bildlös produkt: vänlig platshållare i stället för tom gräddvit ruta. */
