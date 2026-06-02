@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   addVat,
   applyMarkup,
+  applyOverrideBounds,
   computePrice,
   computePriceWithRules,
   computeProfit,
@@ -148,6 +149,56 @@ describe("exceedsIossThreshold", () => {
   });
   it("allows orders under threshold", () => {
     expect(exceedsIossThreshold(1000, 0.088, 150)).toBe(false);
+  });
+});
+
+describe("computePriceWithRules — pricingOverride (Marginal-tier)", () => {
+  // rules.defaultMultiplier=2.0, usdToSek=10, VAT 25%, rounding "none".
+  it("Custom 3.5× åsidosätter default-multiplikatorn", () => {
+    // cost $10 → 100 SEK; ×3.5 = 350 netto; ×1.25 moms = 437.5 brutto.
+    const p = computePriceWithRules(10, rules, null, { multiplier: 3.5 });
+    expect(p.costSek).toBe(100);
+    expect(p.netSek).toBe(350);
+    expect(p.grossSek).toBe(437.5);
+  });
+
+  it("override vinner även över en matchande kategori-regel", () => {
+    // Utan override skulle "Skönhet & Hälsa" ge 3.0×; override tvingar 2.0×.
+    const p = computePriceWithRules(10, rules, "Skönhet & Hälsa", { multiplier: 2.0 });
+    expect(p.grossSek).toBe(250); // 100 × 2.0 × 1.25
+  });
+
+  it("floorSek höjer priset så att minsta vinst nås", () => {
+    // cost 100, 1.5× → 150 netto (vinst 50). Floor 120 → minsta netto 220 → brutto 275.
+    const p = computePriceWithRules(10, rules, null, { multiplier: 1.5, floorSek: 120 });
+    expect(p.netSek).toBe(220);
+    expect(p.grossSek).toBe(275);
+  });
+
+  it("floorSek rör inte priset när vinsten redan räcker", () => {
+    // 3.5× → 350 netto (vinst 250) ≥ floor 100 → oförändrat.
+    const p = computePriceWithRules(10, rules, null, { multiplier: 3.5, floorSek: 100 });
+    expect(p.grossSek).toBe(437.5);
+  });
+
+  it("ceilingSek kapar slutpriset hårt", () => {
+    // 3.5× → 437.5 brutto; tak 300 → kapas till 300.
+    const p = computePriceWithRules(10, rules, null, { multiplier: 3.5, ceilingSek: 300 });
+    expect(p.grossSek).toBe(300);
+    expect(round2(p.netSek + p.vatSek)).toBe(300); // netto + moms = brutto
+  });
+
+  it("ceiling vinner över floor (kan underskrida min vinst med för lågt tak)", () => {
+    // floor 200 → minst 437.5 brutto, men ceiling 260 kapar sist → 260.
+    const p = computePriceWithRules(10, rules, null, { multiplier: 3.5, floorSek: 200, ceilingSek: 260 });
+    expect(p.grossSek).toBe(260);
+  });
+});
+
+describe("applyOverrideBounds", () => {
+  const base = { costUsd: 10, costSek: 100, netSek: 240, vatSek: 60, grossSek: 300 };
+  it("är en no-op utan floor/ceiling", () => {
+    expect(applyOverrideBounds(base, { multiplier: 3 }, 25, "none")).toBe(base);
   });
 });
 

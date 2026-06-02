@@ -100,6 +100,28 @@ export interface MarkupRule {
 }
 
 /**
+ * Per-import-prisoverride (extension-dropdownen "Marginal-tier" → Custom). Vinner
+ * över default-/kategori-/intervallregeln för JUST den importen. Saknas =
+ * normal prissättning via PricingRules (bakåtkompatibelt).
+ *
+ * Tillämpningsordning i computePriceWithRules:
+ *   1. multiplier ersätter den annars valda markup-multiplikatorn (det fasta
+ *      påslaget fixedSurchargeSek läggs fortfarande på).
+ *   2. floorSek höjer slutpriset så att vinsten (netto exkl. moms − landad kostnad)
+ *      når minst floorSek.
+ *   3. ceilingSek är ett HÅRT tak på slutpriset inkl. moms (kapar sist — kan
+ *      därmed underskrida floorSek om Leonard sätter ett för lågt tak).
+ */
+export interface PricingOverride {
+  /** Multiplikator på landad kostnad (1.0–5.0). */
+  multiplier: number;
+  /** Minsta vinst i SEK (netto exkl. moms − landad kostnad). 0/utelämnad = av. */
+  floorSek?: number;
+  /** Högsta slutpris inkl. moms i SEK. 0/utelämnad = av. */
+  ceilingSek?: number;
+}
+
+/**
  * Avrundningsstrategi för slutpris inkl. moms.
  * - none: två decimaler (ingen avrundning)
  * - charm90: närmaste heltal som slutar på .90 (t.ex. 249.90)

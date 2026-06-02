@@ -19,7 +19,7 @@ import {
   translateOptionColorCodes,
   translateVariantOptions,
 } from "./variant-translations";
-import type { AliExpressProduct, FeatureFlags, PricingRules } from "./types";
+import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
   addProductToCollection,
   createProduct,
@@ -166,6 +166,12 @@ export async function importProduct(
    * ändå ur beskrivning + kategori. Påverkar bara premium-flödet.
    */
   premiumOpts?: { reviews?: FaqReviewHint[] },
+  /**
+   * Per-import-prisoverride (extension-dropdownen "Marginal-tier" → Premium/Custom).
+   * Vinner över default-/kategori-/intervallregeln för JUST den här importen
+   * (se computePriceWithRules). Saknas = normal prissättning via `rules`.
+   */
+  pricingOverride?: PricingOverride,
 ): Promise<ImportResult> {
   // Deterministisk svensk översättning av variantaxlar + värden (INGA AI-anrop,
   // $0). Görs i ETT pass över varianterna så att Wix-options OCH variantval blir
@@ -219,6 +225,13 @@ export async function importProduct(
     `[import:mode] pid=${product.supplierProductId} mode=${qualityMode} ` +
       `(~${estimatedCostOre(qualityMode)} öre/produkt)`,
   );
+  if (pricingOverride) {
+    console.log(
+      `[import:pricing-override] pid=${product.supplierProductId} multiplier=${pricingOverride.multiplier} ` +
+        `floorSek=${pricingOverride.floorSek ?? "-"} ceilingSek=${pricingOverride.ceilingSek ?? "-"} ` +
+        `(åsidosätter default/kategori/intervall-tier)`,
+    );
+  }
   // Förgenererat batch-innehåll är AI-output — ignorera det i RÅ-läge så vi
   // garanterat skapar en rå produkt (batch-flödet körs ändå aldrig när AI är av).
   const effectivePreGenerated = aiEnabled ? preGenerated : undefined;
@@ -438,7 +451,7 @@ export async function importProduct(
   const variantMappings: VariantMapping[] = [];
   const wixVariants: WixVariantInput[] = variants.map((v) => {
     const sku = makeSku(product.supplierProductId, v.supplierVariantId);
-    const price = computePriceWithRules(v.costUsd, rules, categoryName);
+    const price = computePriceWithRules(v.costUsd, rules, categoryName, pricingOverride);
     if (v.included) {
       variantMappings.push({
         supplierVariantId: v.supplierVariantId,

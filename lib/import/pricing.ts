@@ -1,4 +1,4 @@
-import type { MarkupRule, PriceBreakdown, PricingConfig, PricingRules } from "./types";
+import type { MarkupRule, PriceBreakdown, PricingConfig, PricingOverride, PricingRules } from "./types";
 
 // Ren prissättnings-/momslogik. Inga sidoeffekter — fullt enhetstestbar.
 
@@ -91,20 +91,64 @@ export function resolveMarkup(
  * Räknar fram pris ur den fullständiga prissättningskonfigen + ev. kategori.
  * Tunn wrapper över resolveMarkup + computePrice så pipelinen slipper bygga en
  * mellanliggande PricingConfig per variant.
+ *
+ * `override` (extension-dropdownens Custom-tier) vinner över default-/kategori-/
+ * intervallregeln: dess multiplier ersätter den annars valda multiplikatorn, och
+ * floor/ceiling justerar slutpriset (se applyOverrideBounds). Saknas = oförändrat.
  */
 export function computePriceWithRules(
   costUsd: number,
   rules: PricingRules,
   category: string | null,
+  override?: PricingOverride,
 ): PriceBreakdown {
   const costSek = costToSek(costUsd, rules.usdToSek);
-  const markup = resolveMarkup(costSek, category, rules);
-  return computePrice(costUsd, {
+  const markup: MarkupRule = override
+    ? { multiplier: override.multiplier, fixedSek: rules.fixedSurchargeSek }
+    : resolveMarkup(costSek, category, rules);
+  const breakdown = computePrice(costUsd, {
     usdToSek: rules.usdToSek,
     vatRatePercent: rules.vatRatePercent,
     markup,
     rounding: rules.rounding,
   });
+  return override
+    ? applyOverrideBounds(breakdown, override, rules.vatRatePercent, rules.rounding)
+    : breakdown;
+}
+
+/**
+ * Tillämpar Custom-tierns floor (minsta vinst) + ceiling (max slutpris) på ett
+ * redan beräknat prisbrott. Floor höjer priset tills vinsten (netto − landad
+ * kostnad) når floorSek; ceiling kapar slutpriset hårt (sist, kan underskrida
+ * floor om taket sätts för lågt). Räknar om netto/moms ur det justerade bruttot
+ * så att netto + moms = brutto. Ren funktion — enhetstestbar.
+ */
+export function applyOverrideBounds(
+  breakdown: PriceBreakdown,
+  override: PricingOverride,
+  vatRatePercent: number,
+  rounding: PricingConfig["rounding"],
+): PriceBreakdown {
+  let grossSek = breakdown.grossSek;
+
+  // Floor: höj så att vinsten (netto exkl. moms − landad kostnad) ≥ floorSek.
+  if (typeof override.floorSek === "number" && override.floorSek > 0) {
+    const minNetSek = breakdown.costSek + override.floorSek;
+    const minGross = roundPrice(addVat(minNetSek, vatRatePercent), rounding);
+    if (grossSek < minGross) grossSek = minGross;
+  }
+
+  // Ceiling: hårt tak på slutpriset (kapar sist). Kapar till exakt taket (round2)
+  // så Leonards angivna maxpris respekteras utan att charm-avrundning höjer det.
+  if (typeof override.ceilingSek === "number" && override.ceilingSek > 0 && grossSek > override.ceilingSek) {
+    grossSek = round2(override.ceilingSek);
+  }
+
+  if (grossSek === breakdown.grossSek) return breakdown;
+  const netSek = round2(grossSek / (1 + vatRatePercent / 100));
+  const vatSek = round2(grossSek - netSek);
+  return { ...breakdown, netSek, vatSek, grossSek };
 }
 
 export interface ProfitInput {
