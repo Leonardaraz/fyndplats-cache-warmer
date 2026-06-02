@@ -28,3 +28,8 @@ next-env.d.ts
 
 # migration progress-filer (genereras lokalt, ej i repo)
 /migration/_work/
+
+# extension build artifacts
+extension.pem
+extension.crx
+__push_*.
