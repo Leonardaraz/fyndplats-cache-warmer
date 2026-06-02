@@ -16,7 +16,7 @@
 
 import { getBulkImportStore, type BulkImportItem, type BulkImportJob } from "./store";
 import { fetchAliExpressProductFromUrl } from "../import/from-url";
-import { importProduct } from "../import/pipeline";
+import { aiEnrichmentEnabled, importProduct } from "../import/pipeline";
 import type { ProductContent } from "../import/generate";
 import type { AliExpressProduct } from "../import/types";
 import { describeRouting, resolveImportPath, type TriggerSource } from "../import/trigger-routing";
@@ -73,8 +73,15 @@ export async function runBulkImportWorker(opts: WorkerRunOptions = {}): Promise<
   // via Batch API (50 % rabatt); en importerOverride (tester) tvingar realtid.
   // Dynamisk import undviker en statisk cykel (batch-worker importerar härifrån).
   const triggerSource: TriggerSource = opts.triggerSource ?? "cron";
-  const path = opts.importerOverride ? "realtime" : resolveImportPath(triggerSource);
-  console.log(`[bulk-import] ${describeRouting(triggerSource)}`);
+  // Master-switch (AI_ENRICHMENT_ENABLED=false) → tvinga realtid: Batch API-vägen
+  // pre-genererar AI-innehåll (kostar), och i RÅ-läge vill vi inte göra ETT enda
+  // Claude-anrop. Realtidsvägen kör importProduct som då skippar all AI ($0).
+  const path = opts.importerOverride
+    ? "realtime"
+    : aiEnrichmentEnabled()
+      ? resolveImportPath(triggerSource)
+      : "realtime";
+  console.log(`[bulk-import] ${describeRouting(triggerSource)}${aiEnrichmentEnabled() ? "" : " · AI-berikning AV (rå import, $0)"}`);
   if (path === "batch") {
     const { runBulkImportBatchWorker } = await import("./batch-worker");
     return runBulkImportBatchWorker(opts);

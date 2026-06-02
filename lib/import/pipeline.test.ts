@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { deriveOptions, orderImagesByVerdict } from "./pipeline";
+import { afterEach, describe, expect, it } from "vitest";
+import { aiEnrichmentEnabled, deriveOptions, orderImagesByVerdict } from "./pipeline";
 import type { AliExpressProduct } from "./types";
 
 // Bug 2026-06-01: storleksvarianter försvann. Den serverdelen (deriveOptions →
@@ -63,5 +63,50 @@ describe("orderImagesByVerdict", () => {
   it("treats unknown URL verdicts as ok", () => {
     const verdicts = [{ url: "x", verdict: "reject" as const, reason: "" }];
     expect(orderImagesByVerdict(["a", "b"], verdicts)).toEqual(["a", "b"]);
+  });
+});
+
+// AI_ENRICHMENT_ENABLED master-switch (2026-06-02): default på; env "false" stänger
+// av all AI; ett explicit flags.enableAI vinner alltid över env (default men inte hård).
+describe("aiEnrichmentEnabled", () => {
+  const prev = process.env.AI_ENRICHMENT_ENABLED;
+  afterEach(() => {
+    if (prev === undefined) delete process.env.AI_ENRICHMENT_ENABLED;
+    else process.env.AI_ENRICHMENT_ENABLED = prev;
+  });
+
+  it("defaultar PÅ när env saknas", () => {
+    delete process.env.AI_ENRICHMENT_ENABLED;
+    expect(aiEnrichmentEnabled()).toBe(true);
+    expect(aiEnrichmentEnabled({})).toBe(true);
+  });
+
+  it("stängs AV av env=false (case-insensitive)", () => {
+    process.env.AI_ENRICHMENT_ENABLED = "false";
+    expect(aiEnrichmentEnabled()).toBe(false);
+    process.env.AI_ENRICHMENT_ENABLED = "FALSE";
+    expect(aiEnrichmentEnabled()).toBe(false);
+  });
+
+  it("är PÅ för andra env-värden (true/1/tomt-icke-false)", () => {
+    process.env.AI_ENRICHMENT_ENABLED = "true";
+    expect(aiEnrichmentEnabled()).toBe(true);
+    process.env.AI_ENRICHMENT_ENABLED = "1";
+    expect(aiEnrichmentEnabled()).toBe(true);
+  });
+
+  it("explicit flags.enableAI vinner över env (PÅ trots env=false)", () => {
+    process.env.AI_ENRICHMENT_ENABLED = "false";
+    expect(aiEnrichmentEnabled({ enableAI: true })).toBe(true);
+  });
+
+  it("explicit flags.enableAI vinner över env (AV trots env=true)", () => {
+    process.env.AI_ENRICHMENT_ENABLED = "true";
+    expect(aiEnrichmentEnabled({ enableAI: false })).toBe(false);
+  });
+
+  it("faller tillbaka på env när andra flaggor satta men enableAI saknas", () => {
+    process.env.AI_ENRICHMENT_ENABLED = "false";
+    expect(aiEnrichmentEnabled({ seo: true, imageAnalysis: true })).toBe(false);
   });
 });

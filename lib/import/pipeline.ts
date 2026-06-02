@@ -174,11 +174,19 @@ export async function importProduct(
     }
   }
 
+  // Master-switch: AI_ENRICHMENT_ENABLED (env) eller flags.enableAI (explicit).
+  // false = RÅ import utan ETT ENDA Claude-anrop ($0). Gatar varje AI-steg nedan.
+  const aiEnabled = aiEnrichmentEnabled(flags);
+  // Förgenererat batch-innehåll är AI-output — ignorera det i RÅ-läge så vi
+  // garanterat skapar en rå produkt (batch-flödet körs ändå aldrig när AI är av).
+  const effectivePreGenerated = aiEnabled ? preGenerated : undefined;
+
   // Feature-flaggor (saknas = på). translate+seo delar text-genereringen:
   // kör den om minst en är på. imageAnalysis/autoCategorize gatar sina egna steg.
-  const runSeo = flags?.seo !== false || flags?.translate !== false;
-  const runImageAnalysis = flags?.imageAnalysis !== false;
-  const runCategory = flags?.autoCategorize !== false;
+  // ALLA gatas dessutom av master-switchen: aiEnabled=false → inget AI-steg körs.
+  const runSeo = aiEnabled && (flags?.seo !== false || flags?.translate !== false);
+  const runImageAnalysis = aiEnabled && flags?.imageAnalysis !== false;
+  const runCategory = aiEnabled && flags?.autoCategorize !== false;
 
   // Batchat flöde (#1, 2026-06-01): när USE_BATCHED_PIPELINE är på OCH text-
   // generering är påslagen slår vi ihop SEO + kategori + flikar till ETT Claude-
@@ -197,7 +205,7 @@ export async function importProduct(
   // kontext i samma anrop, i legacy-läget till suggestCategoryRecord. Hämtas när
   // kategoristeget är på ELLER vi kör batchat.
   const collectionsPromise =
-    runCategory || batched || preGenerated ? getCollectionsSafe() : Promise.resolve([]);
+    runCategory || batched || effectivePreGenerated ? getCollectionsSafe() : Promise.resolve([]);
 
   // Starta text-genereringen direkt så den kör parallellt med bildanalysen.
   // I batchat läge = ett enda generateProductContent-anrop; annars de tre gamla.
@@ -207,18 +215,32 @@ export async function importProduct(
     generatedTabs: GeneratedTabs;
   }> = (async () => {
     const cols = await collectionsPromise;
+    // RÅ-läge (master-switch av): hoppa över ALLT Claude-innehåll. Rå titel/
+    // beskrivning via buildFallbackSeo (ingen LLM), ingen kategori, och flikarna
+    // byggs deterministiskt ur den råa skrapdatan (oöversatta specs/paket) — $0.
+    if (!aiEnabled) {
+      return {
+        seo: buildFallbackSeo(product),
+        categorySuggestion: emptyCategoryRecord(),
+        generatedTabs: rawTabsFromProduct(product),
+      };
+    }
     // Batch API-flödet (#8): innehållet är redan genererat → inget nytt Claude-anrop.
-    if (preGenerated) {
+    if (effectivePreGenerated) {
       const rec: CategorySuggestionRecord =
         runCategory && cols.length
-          ? buildCategoryRecord(preGenerated.category, cols)
+          ? buildCategoryRecord(effectivePreGenerated.category, cols)
           : {
               collectionSlug: null,
               confidence: 0,
               reason: "Inga butikskollektioner tillgängliga.",
               status: "uncategorized",
             };
-      return { seo: preGenerated.seo, categorySuggestion: rec, generatedTabs: preGenerated.tabs };
+      return {
+        seo: effectivePreGenerated.seo,
+        categorySuggestion: rec,
+        generatedTabs: effectivePreGenerated.tabs,
+      };
     }
     if (batched) {
       const content = await generateProductContent(product, runCategory ? cols : [], flags);
@@ -409,7 +431,9 @@ export async function importProduct(
     // extra Velo-kod. Headless-repots produktkort läser samma fält.
     ribbonName: hasEuWarehouse ? "EU-lager" : undefined,
     // Standard: nya produkter göms tills publish via /admin/queue.
-    // IMPORT_DRAFT_DEFAULT=false hoppar över granskningen.
+    // IMPORT_DRAFT_DEFAULT=false hoppar över granskningen. Rå imports (aiEnabled
+    // =false) ärver samma draft-default — de blir alltså osynliga draft i Wix
+    // (existerande beteende) och poleras sedan manuellt via chatten.
     visible: process.env.IMPORT_DRAFT_DEFAULT === "false",
   };
 
@@ -451,6 +475,15 @@ export async function importProduct(
   // kan analysera om vi trimmade bort något viktigt. Best-effort, fäller aldrig importen.
   if (variantTrimSummary) {
     await audit("variant-trim", created.id, variantTrimSummary);
+  }
+
+  // RÅ import (master-switch av) → audit + log så det syns i Vercel/-admin att
+  // produkten medvetet skapades utan AI-berikning (draft i Wix, poleras via chatten).
+  if (!aiEnabled) {
+    console.log(
+      `[import:raw] pid=${product.supplierProductId} → ${created.id} skapad RÅ (0 Claude-anrop) — draft, poleras manuellt.`,
+    );
+    await audit("import-raw-no-ai", created.id, `Rå import (AI-berikning av) — ${seo.title}`);
   }
 
   // Auto-assign kategorin (beräknad före prissättningen ovan). Tilldelningen sker
@@ -539,6 +572,30 @@ export async function importProduct(
 }
 
 // --- Helpers ---------------------------------------------------------------
+
+/** Tomt kategorirecord för RÅ-läge (ingen AI-kategorisering kördes). */
+function emptyCategoryRecord(): CategorySuggestionRecord {
+  return {
+    collectionSlug: null,
+    confidence: 0,
+    reason: "AI-berikning avstängd (rå import) — sätt kategori manuellt eller polera via chatten.",
+    status: "uncategorized",
+  };
+}
+
+/**
+ * Bygger PDP-flikar deterministiskt ur den RÅA skrapdatan (inga Claude-anrop):
+ * oöversatta specs + paketinnehåll. FAQ/skötsel kräver AI och lämnas tomma.
+ * Används i RÅ-läge (AI_ENRICHMENT_ENABLED=false) så spec-fliken ändå byggs.
+ */
+function rawTabsFromProduct(product: AliExpressProduct): GeneratedTabs {
+  return {
+    specs: Object.entries(product.specifications || {}).map(([label, value]) => ({ label, value })),
+    packageContents: product.packageContents || [],
+    faq: [],
+    careHtml: null,
+  };
+}
 
 /** Wixstatic-media-id ur en URL (delen efter /media/) — för dedup mot galleriet. */
 function mediaKey(url: string): string {
@@ -748,4 +805,21 @@ export function buildCategoryRecord(
  */
 export function useBatchedPipeline(): boolean {
   return (process.env.USE_BATCHED_PIPELINE ?? "true").toLowerCase() !== "false";
+}
+
+/**
+ * Master-switch för AI-berikning i import-pipelinen. Default PÅ. Sätt
+ * AI_ENRICHMENT_ENABLED=false i miljön för att importera RÅ AliExpress-data utan
+ * ETT ENDA Claude-anrop ($0 Anthropic): rå titel/beskrivning (deterministisk
+ * variant-översättning körs ändå — den är gratis), ingen SEO/kategori/bild-
+ * ranking/flikar. Produkten skapas som draft och hamnar i /admin/queue för
+ * manuell polering via chatten.
+ *
+ * Ett explicit flags.enableAI vinner ALLTID över env-flaggan: en admin
+ * "kör AI-batch"-knapp kan tvinga PÅ (enableAI:true) även om env stängt av den,
+ * och en bulk-task kan tvinga AV (enableAI:false). Flaggan är default men inte hård.
+ */
+export function aiEnrichmentEnabled(flags?: FeatureFlags): boolean {
+  if (flags?.enableAI !== undefined) return flags.enableAI;
+  return (process.env.AI_ENRICHMENT_ENABLED ?? "true").toLowerCase() !== "false";
 }

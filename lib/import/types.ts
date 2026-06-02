@@ -68,6 +68,28 @@ export interface FeatureFlags {
   seo?: boolean;
   imageAnalysis?: boolean;
   autoCategorize?: boolean;
+  /**
+   * Master-override för ALL AI-berikning (text, kategori, bild-ranking, flikar).
+   * Saknas/undefined = följ env-flaggan AI_ENRICHMENT_ENABLED (default på).
+   * `false` tvingar RÅ import (0 Claude-anrop, $0) även om env säger på.
+   * `true` tvingar AI PÅ även om env stängt av den globalt (t.ex. en admin
+   * "kör AI-batch"-knapp). Flaggan är default men inte hård — explicit val vinner.
+   * Se lib/import/pipeline.ts#aiEnrichmentEnabled.
+   *
+   * OBS: `qualityMode` nedan är det nyare, mer uttrycksfulla valet (raw/standard/
+   * premium). `enableAI` behålls för bakåtkompatibilitet — `enableAI:false`
+   * motsvarar `qualityMode:"raw"`. Sätts båda vinner `qualityMode`.
+   */
+  enableAI?: boolean;
+  /**
+   * AI-kvalitetsläge för JUST den här importen (extension-dropdown). Vinner över
+   * env AI_QUALITY_MODE och legacy `enableAI`.
+   *   "raw"      → 0 öre, ingen AI, draft (väntar på manuell polering).
+   *   "standard" → ~10,5 öre, batchat Haiku, draft.
+   *   "premium"  → ~75–100 öre, Opus multi-pass + Sonnet vision, publiceras direkt.
+   * Se lib/import/quality-mode.ts#resolveQualityMode.
+   */
+  qualityMode?: "raw" | "standard" | "premium";
 }
 
 export interface MarkupRule {
