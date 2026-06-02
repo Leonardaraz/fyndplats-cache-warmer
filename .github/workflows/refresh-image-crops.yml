@@ -1,0 +1,121 @@
+# .github/workflows/refresh-image-crops.yml
+#
+# Auto-detection av tight-crops för Wix-CDN-bilder.
+#
+# Vad: var 6:e timma — och vid manual dispatch — anropas
+# /api/admin/detect-image-crops på live-siten med ?skipCached=1 → routen
+# scanar bara nya bilder (som ännu inte finns i data/image-crops.json).
+# Returnerade entries mergeas in i cache-filen och pushas tillbaka till
+# headless-site-branchen (triggar Vercel auto-deploy).
+#
+# Varför: nya AliExpress-produkter importeras via cache-warmer → fyndplats.se
+# rebuildas → nya Wix-bilder dyker upp i products.json/variant-images.json.
+# Utan denna workflow ramlar de bilderna ut i fill-fallback (regression).
+#
+# Säkerhet: ADMIN_SECRET (för att anropa detection-routen) hämtas från Repo
+# Secrets. GITHUB_TOKEN tillhandahålls av Actions; vi commitar med
+# github-actions[bot].
+
+name: refresh-image-crops
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # var 6:e timma kl :17
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Max URLer per körning (0 = obegränsat upp till 1000)"
+        required: false
+        default: "1000"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: refresh-image-crops
+      cancel-in-progress: false
+    steps:
+      - name: Checkout headless-site
+        uses: actions/checkout@v4
+        with:
+          ref: headless-site
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Trigger detection (skipCached=1)
+        id: detect
+        env:
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+          LIMIT: ${{ github.event.inputs.limit || '1000' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ADMIN_SECRET:-}" ]; then
+            echo "::error::ADMIN_SECRET saknas i Repo Secrets"
+            exit 1
+          fi
+          mkdir -p outputs
+          # proxy.ts pa headless kraver ?key=<ADMIN_SECRET> (sätter cookie + redirectar).
+          # Routen själv kollar ?token=. curl med -L och --cookie-jar foljer redirecten
+          # och bär med sig cookien sa route-auth slutfors pa token.
+          URL="https://www.fyndplats.se/api/admin/detect-image-crops?key=${ADMIN_SECRET}&token=${ADMIN_SECRET}&skipCached=1&limit=${LIMIT}"
+          echo "Calling detection route (limit=${LIMIT})..."
+          # 5 min timeout — routen själv har maxDuration=300.
+          curl -sS -L --max-time 300 --cookie-jar /tmp/cookies.txt --cookie /tmp/cookies.txt -o outputs/detect-response.json -w "HTTP=%{http_code} size=%{size_download} time=%{time_total}\n" "$URL"
+          head -c 400 outputs/detect-response.json || true
+          echo ""
+
+      - name: Merge entries
+        id: merge
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+          const before = JSON.parse(fs.readFileSync('data/image-crops.json', 'utf8'));
+          const fresh = JSON.parse(fs.readFileSync('outputs/detect-response.json', 'utf8'));
+          if (!fresh.entries || typeof fresh.entries !== 'object') {
+            console.log('No entries in response — nothing to merge.');
+            console.log('Response keys:', Object.keys(fresh));
+            require('fs').writeFileSync(process.env.GITHUB_OUTPUT, 'added=0\n', { flag: 'a' });
+            process.exit(0);
+          }
+          const beforeKeys = new Set(Object.keys(before.entries || {}));
+          const merged = { ...(before.entries || {}), ...fresh.entries };
+          const added = Object.keys(fresh.entries).filter((k) => !beforeKeys.has(k)).length;
+          console.log(`Before: ${beforeKeys.size}  Fresh-entries: ${Object.keys(fresh.entries).length}  Added: ${added}`);
+          if (added > 0) {
+            const out = { version: 1, generatedAt: new Date().toISOString(), comment: before.comment || '', entries: merged };
+            fs.writeFileSync('data/image-crops.json', JSON.stringify(out, null, 2) + '\n');
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `added=${added}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `total=${Object.keys(merged).length}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `processed=${fresh.totalProcessed ?? 0}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `skipped=${fresh.totalSkipped ?? 0}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `failed=${fresh.totalFailed ?? 0}\n`);
+          EOF
+
+      - name: Commit & push if changed
+        if: steps.merge.outputs.added != '0'
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/image-crops.json
+          git commit -m "chore(images): auto-refresh tight-crop cache (+${{ steps.merge.outputs.added }} entries, total ${{ steps.merge.outputs.total }})"
+          git push origin headless-site
+
+      - name: Summary
+        run: |
+          echo "### refresh-image-crops" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- added: **${{ steps.merge.outputs.added || '0' }}**" >> $GITHUB_STEP_SUMMARY
+          echo "- total entries: ${{ steps.merge.outputs.total || 'unchanged' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- processed: ${{ steps.merge.outputs.processed || '0' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- skipped:   ${{ steps.merge.outputs.skipped || '0' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- failed:    ${{ steps.merge.outputs.failed || '0' }}" >> $GITHUB_STEP_SUMMARY

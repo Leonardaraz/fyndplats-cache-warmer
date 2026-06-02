@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-06-02T22:14:00Z",
+  "before": 53,
+  "after": 384,
+  "added": 331,
+  "totalUniqueKeys": 763,
+  "coveragePct": 50.3,
+  "shardSummary": [
+    {
+      "shard": "0",
+      "processed": 56,
+      "entries": 27,
+      "skipped": 29
+    },
+    {
+      "shard": "1",
+      "processed": 45,
+      "entries": 17,
+      "skipped": 28
+    },
+    {
+      "shard": "2",
+      "processed": 51,
+      "entries": 29,
+      "skipped": 22
+    },
+    {
+      "shard": "3",
+      "processed": 46,
+      "entries": 25,
+      "skipped": 21
+    },
+    {
+      "shard": "4",
+      "processed": 45,
+      "entries": 23,
+      "skipped": 22
+    },
+    {
+      "shard": "5",
+      "processed": 44,
+      "entries": 27,
+      "skipped": 17
+    },
+    {
+      "shard": "6",
+      "processed": 38,
+      "entries": 15,
+      "skipped": 23
+    },
+    {
+      "shard": "7",
+      "processed": 40,
+      "entries": 19,
+      "skipped": 21
+    },
+    {
+      "shard": "8",
+      "processed": 58,
+      "entries": 33,
+      "skipped": 25
+    },
+    {
+      "shard": "9",
+      "processed": 47,
+      "entries": 29,
+      "skipped": 18
+    },
+    {
+      "shard": "a",
+      "processed": 45,
+      "entries": 20,
+      "skipped": 25
+    },
+    {
+      "shard": "b",
+      "processed": 64,
+      "entries": 36,
+      "skipped": 28
+    },
+    {
+      "shard": "c",
+      "processed": 43,
+      "entries": 22,
+      "skipped": 21
+    },
+    {
+      "shard": "d",
+      "processed": 47,
+      "entries": 19,
+      "skipped": 28
+    },
+    {
+      "shard": "e",
+      "processed": 52,
+      "entries": 25,
+      "skipped": 27
+    },
+    {
+      "shard": "f",
+      "processed": 45,
+      "entries": 18,
+      "skipped": 27
+    }
+  ],
+  "totalProcessed": 766,
+  "totalSkippedAcrossRuns": 382
+}

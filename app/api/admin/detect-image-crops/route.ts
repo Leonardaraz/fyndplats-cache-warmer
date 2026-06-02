@@ -1,21 +1,22 @@
 // app/api/admin/detect-image-crops/route.ts
-// Server-side endpoint som kör Sharp-baserad tight-crop-detection mot Wix CDN
-// och returnerar färdig JSON som kan paste:as in i `data/image-crops.json`.
+// Server-side endpoint som kor Sharp-baserad tight-crop-detection mot Wix CDN
+// och returnerar fardig JSON som kan paste:as in i `data/image-crops.json`.
 //
-// Varför: lokal detection kräver nätverkstillgång till static.wixstatic.com som
-// kan saknas i sandboxade utvecklings-miljöer (CLI-proxy med allowlist). Vercels
-// runtime har öppen internet — denna route är därför vägen för att populera
-// crop-cachen.
-//
-// Användning:
-//   GET /api/admin/detect-image-crops?token=<ADMIN_SECRET>
+// Anvandning:
+//   GET  /api/admin/detect-image-crops?token=<ADMIN_SECRET>
+//   POST /api/admin/detect-image-crops?token=<ADMIN_SECRET>  (body: { urls: [...] })
 //
 // Parametrar:
-//   token  — krävs. Matchas mot env ADMIN_SECRET (samma som proxy.ts och andra admin-routes).
-//   limit  — valfri. Begränsa antal URLer (för debug).
-//   only   — valfri. Kommaseparerad lista; bilder vars URL innehåller en substring matchas.
+//   token       - kravs. Matchas mot env ADMIN_SECRET (samma som proxy.ts).
+//   limit       - valfri. Begransa antal URLer (for debug / shard-tid).
+//   only        - valfri. Kommaseparerad lista substrings - bilder vars URL matchar.
+//   urls        - valfri. Kommaseparerad lista konkreta URLer (eller media-keys).
+//                 Bypassar produkts-katalogen - anvandbart for auto-trigger efter
+//                 import (cache-warmer skickar nyimporterade bilder direkt).
+//   skipCached  - valfri (1). Hoppa over media-keys som redan finns i
+//                 `data/image-crops.json` - drastiskt snabbare vid re-scan.
 //
-// Svaret är samma form som `data/image-crops.json` ({ version, generatedAt,
+// Svaret ar samma form som `data/image-crops.json` ({ version, generatedAt,
 // entries, skipped, failed }). Spara svaret som filen och deploya igen.
 
 import { NextResponse } from "next/server";
@@ -178,6 +179,23 @@ function collectUrls(): string[] {
   return [...urls];
 }
 
+function loadCachedKeys(): Set<string> {
+  try {
+    const raw = fs.readFileSync(path.join(process.cwd(), "data/image-crops.json"), "utf8");
+    const j = JSON.parse(raw);
+    return new Set(Object.keys(j?.entries || {}));
+  } catch {
+    return new Set();
+  }
+}
+
+function normalizeToUrl(s: string): string | null {
+  if (!s) return null;
+  if (s.startsWith("http")) return s;
+  if (/^[a-zA-Z0-9_~.-]+$/.test(s)) return `https://static.wixstatic.com/media/${s}`;
+  return null;
+}
+
 async function pMap<T, R>(items: T[], fn: (x: T, i: number) => Promise<R>, conc: number): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let i = 0;
@@ -192,22 +210,39 @@ async function pMap<T, R>(items: T[], fn: (x: T, i: number) => Promise<R>, conc:
   return results;
 }
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const token = url.searchParams.get("token") || "";
-  // Använd ADMIN_SECRET (samma som proxy.ts och alla andra admin-routes).
-  // Den tidigare ADMIN_API_TOKEN fanns inte satt på Vercel → routen var dead code.
+async function runDetection(opts: {
+  token: string;
+  limit: number;
+  only: string[];
+  explicitUrls: string[];
+  skipCached: boolean;
+}): Promise<NextResponse> {
   const expected = process.env.ADMIN_SECRET;
-  if (!expected || token !== expected) {
+  if (!expected || opts.token !== expected) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const limit = Math.min(Number(url.searchParams.get("limit") || "0") || 0, 1000);
-  const only = (url.searchParams.get("only") || "").toLowerCase().split(",").filter(Boolean);
-  const urls0 = collectUrls();
-  let urls = only.length
-    ? urls0.filter((u) => only.some((k) => u.toLowerCase().includes(k)))
-    : urls0;
-  if (limit > 0) urls = urls.slice(0, limit);
+
+  let urls: string[];
+  if (opts.explicitUrls.length) {
+    urls = opts.explicitUrls
+      .map((s) => normalizeToUrl(s.trim()))
+      .filter((v): v is string => Boolean(v));
+  } else {
+    urls = collectUrls();
+    if (opts.only.length) {
+      urls = urls.filter((u) => opts.only.some((k) => u.toLowerCase().includes(k)));
+    }
+  }
+
+  if (opts.skipCached) {
+    const cached = loadCachedKeys();
+    urls = urls.filter((u) => {
+      const k = wixMediaKey(u);
+      return k ? !cached.has(k) : true;
+    });
+  }
+
+  if (opts.limit > 0) urls = urls.slice(0, opts.limit);
 
   const entries: Record<string, unknown> = {};
   const skipped: unknown[] = [];
@@ -244,4 +279,35 @@ export async function GET(req: Request) {
     failed,
     entries,
   });
+}
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const token = url.searchParams.get("token") || "";
+  const limit = Math.min(Number(url.searchParams.get("limit") || "0") || 0, 1000);
+  const only = (url.searchParams.get("only") || "").toLowerCase().split(",").filter(Boolean);
+  const explicitUrls = (url.searchParams.get("urls") || "").split(",").map((s) => s.trim()).filter(Boolean);
+  const skipCached = ["1", "true", "yes"].includes((url.searchParams.get("skipCached") || "").toLowerCase());
+  return runDetection({ token, limit, only, explicitUrls, skipCached });
+}
+
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const token = url.searchParams.get("token") || "";
+  const limit = Math.min(Number(url.searchParams.get("limit") || "0") || 0, 1000);
+  const skipCached = ["1", "true", "yes"].includes((url.searchParams.get("skipCached") || "").toLowerCase());
+  let explicitUrls: string[] = [];
+  let only: string[] = [];
+  try {
+    const body = await req.json().catch(() => ({}));
+    if (Array.isArray(body?.urls)) explicitUrls = body.urls.filter((s: unknown) => typeof s === "string");
+    if (Array.isArray(body?.only)) only = body.only.filter((s: unknown) => typeof s === "string").map((s: string) => s.toLowerCase());
+  } catch {}
+  if (!explicitUrls.length) {
+    explicitUrls = (url.searchParams.get("urls") || "").split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  if (!only.length) {
+    only = (url.searchParams.get("only") || "").toLowerCase().split(",").filter(Boolean);
+  }
+  return runDetection({ token, limit, only, explicitUrls, skipCached });
 }
