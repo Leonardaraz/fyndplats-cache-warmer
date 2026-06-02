@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
-import { getCropEntry, wixMediaKey } from "../lib/wix-image";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -16,30 +15,14 @@ import { getCropEntry, wixMediaKey } from "../lib/wix-image";
 // preload + fetchPriority="high" på <Image> ger fortfarande <link rel=preload>
 // i <head>, och Next genererar preload-href:en via SAMMA loader → webbläsaren
 // förladdar Wix-URL:en direkt, inte optimerar-URL:en.
-//
-// Tight-crop (2026-06): många källbilder har inbakad vit padding (bilden ligger
-// i mitten av ett vit-fält). Vi slår upp media-key:n i en förberäknad cache
-// (`lib/wix-image.ts` → `data/image-crops.json`) och bygger en `/v1/crop/x_..,y_..,
-// w_..,h_..`-URL i stället för `fill` när vi har tight-crop-data. Då serveras
-// hjälte-rutan med innehållsytan ≥85 % av container — i stället för ~60–70 %.
-// Saknar bilden tight-crop-data → behåll fill (oförändrat beteende).
 function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
-  const key = wixMediaKey(src);
-  if (!key) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
-  const q = quality || 72;
-  const crop = getCropEntry(src);
-  if (crop) {
-    // Crop-URL: extraherar tight-bbox i original-pixlar. Browsern skalar via
-    // <Image fill>+object-fit:cover. Q kan inte sättas på crop-transformer, men
-    // /file.webp ger fortfarande webp (Wix CDN re-encoder). Bandbredd: cropped
-    // region är typiskt ~70 % av originalbilden i pixlar → ungefär samma byte-
-    // budget som dagens fill men med mycket större synlig produkt.
-    return `https://static.wixstatic.com/media/${key}/v1/crop/x_${crop.x},y_${crop.y},w_${crop.w},h_${crop.h}/file.webp`;
-  }
+  const m = (src || "").match(/static\.wixstatic\.com\/media\/([^/]+)/);
+  if (!m) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
   // q_72 i stället för 82: hjältebilden var en PNG-sourcad produktbild som
   // komprimerade dåligt → 114 KB webp och ~6 s LCP på 4G (mätt på prod). Vid 72
   // sparas ~25–30 % utan synlig kvalitetsförlust i webp → snabbare första paint.
-  return `https://static.wixstatic.com/media/${key}/v1/fill/w_${width},h_${width},al_c,q_${q}/file.webp`;
+  const q = quality || 72;
+  return `https://static.wixstatic.com/media/${m[1]}/v1/fill/w_${width},h_${width},al_c,q_${q}/file.webp`;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -234,4 +217,193 @@ export function Gallery({
 
   const onStageDown = (e: React.PointerEvent) => {
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.client
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    setGesturing(true);
+    if (ptrs.current.size === 2) {
+      const [a, b] = [...ptrs.current.values()];
+      gesture.current = { mode: "pinch", startDist: dist(a, b) || 1, startScale: view.s };
+    } else if (ptrs.current.size === 1) {
+      gesture.current = view.s > 1
+        ? { mode: "pan", sx: e.clientX, sy: e.clientY, bx: view.x, by: view.y, moved: false }
+        : { mode: "swipe", sx: e.clientX, sy: e.clientY, moved: false };
+    }
+  };
+  const onStageMove = (e: React.PointerEvent) => {
+    if (!ptrs.current.has(e.pointerId)) return;
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const g = gesture.current; if (!g) return;
+    if (g.mode === "pinch" && ptrs.current.size >= 2) {
+      const [a, b] = [...ptrs.current.values()];
+      const s = clamp(g.startScale * (dist(a, b) / g.startDist), 1, 4);
+      setView((v) => ({ ...v, s }));
+    } else if (g.mode === "pan") {
+      setView({ s: view.s, x: g.bx + (e.clientX - g.sx), y: g.by + (e.clientY - g.sy) });
+      g.moved = true;
+    } else if (g.mode === "swipe") {
+      if (Math.abs(e.clientX - g.sx) > 8 || Math.abs(e.clientY - g.sy) > 8) g.moved = true;
+    }
+  };
+  const onStageUp = (e: React.PointerEvent) => {
+    const g = gesture.current;
+    ptrs.current.delete(e.pointerId);
+    if (ptrs.current.size > 0) return; // vänta tills alla fingrar släppts
+    setGesturing(false);
+    gesture.current = null;
+    if (!g) return;
+    if (g.mode === "pinch") {
+      if (view.s <= 1.05) resetView(); // snäpp tillbaka om man nästan zoomat ut
+      return;
+    }
+    if (g.mode === "pan") return;
+    // swipe: ren tap → toggla zoom kring tap-punkten; annars navigera/stäng
+    if (!g.moved) { toggleZoomAt(e); return; }
+    const dx = e.clientX - g.sx, dy = e.clientY - g.sy;
+    if (dy > 90 && Math.abs(dy) > Math.abs(dx)) setLightbox(false);          // svep ned → stäng
+    else if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1); // svep i sidled
+  };
+  const onStageCancel = (e: React.PointerEvent) => {
+    ptrs.current.delete(e.pointerId);
+    if (ptrs.current.size === 0) { setGesturing(false); gesture.current = null; }
+  };
+  // Toggla mellan 1× och 2.5×; vid inzoom centreras tap-punkten.
+  const toggleZoomAt = (e: React.PointerEvent) => {
+    if (view.s > 1.05) { resetView(); return; }
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const s = 2.5;
+    const px = e.clientX - (r.left + r.width / 2);
+    const py = e.clientY - (r.top + r.height / 2);
+    setView({ s, x: -px * (s - 1), y: -py * (s - 1) });
+  };
+
+  // Produkt utan bilder → visa en igenkännbar platshållare i stället för en tom
+  // gräddvit ruta (Leonards rapport). Hela katalogen har i dag bild, men import-
+  // brister kan ge enstaka bildlösa produkter; då vill vi ändå visa något vänligt.
+  if (imgs.length === 0) {
+    return (
+      <div className="gallery">
+        <div className="gmain gmain-empty" role="img" aria-label={`${alt} – bild kommer snart`}>
+          <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <rect x="6" y="9" width="36" height="30" rx="4" stroke="currentColor" strokeWidth="2.2" />
+            <circle cx="17" cy="20" r="3.5" stroke="currentColor" strokeWidth="2.2" />
+            <path d="M9 35l10-10 7 7 5-4 8 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>Bild kommer snart</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="gallery">
+      <button
+        type="button"
+        className="gmain"
+        ref={gmainRef}
+        onClick={onHeroClick}
+        onTouchStart={onHeroTouchStart}
+        onTouchMove={onHeroTouchMove}
+        onTouchEnd={onHeroTouchEnd}
+        aria-label="Förstora bilden"
+      >
+        {/* Crossfade-lager: ett <Image> per bild som hunnit bli aktiv. Bara det
+            initiala lagret preloadas (LCP-bilden); övriga laddas eager först när
+            man växlar dit. `is-shown` tonar in det lager vars bild laddat klart. */}
+        {mounted.map((i) => {
+          const src = imgs[i];
+          if (!src) return null;
+          const isWix = src.includes("static.wixstatic.com");
+          const isInitial = i === initialActive;
+          return (
+            <Image
+              key={i}
+              src={src}
+              alt={i === active ? alt : ""}
+              width={800}
+              height={800}
+              data-idx={i}
+              loader={isWix ? wixMainLoader : undefined}
+              {...(isInitial
+                ? { preload: true }
+                : { loading: "eager" as const, fetchPriority: "low" as const })}
+              placeholder="blur"
+              blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
+              sizes="(max-width:760px) 100vw, 45vw"
+              className={`ghero-layer ${isInitial ? "ghero-base" : ""} ${i === shown ? "is-shown" : ""}`}
+              draggable={false}
+              onLoad={() => setLoaded((l) => (l[i] ? l : { ...l, [i]: true }))}
+            />
+          );
+        })}
+        {waiting && <span className="ghero-spin" aria-hidden />}
+        <span className="gmain-zoom" aria-hidden>⤢</span>
+      </button>
+
+      {imgs.length > 1 && (
+        <div className="gthumbs" role="tablist" aria-label="Fler produktbilder">
+          {imgs.slice(0, 8).map((g, i) => (
+            <button
+              type="button"
+              key={g + i}
+              className={`gthumb ${i === active ? "active" : ""}`}
+              onClick={() => setActive(i)}
+              role="tab"
+              aria-selected={i === active}
+              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 8)}`}
+            >
+              <Image src={g} alt="" fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Prickindikator — ersätter miniatyrgriden på mobil (renare look), klickbar */}
+      {imgs.length > 1 && (
+        <div className="gdots" role="tablist" aria-label="Bläddra bland produktbilder">
+          {imgs.slice(0, 8).map((g, i) => (
+            <button
+              type="button"
+              key={"dot" + i}
+              className={`gdot ${i === active ? "active" : ""}`}
+              onClick={() => setActive(i)}
+              role="tab"
+              aria-selected={i === active}
+              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 8)}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(false)} role="dialog" aria-modal="true" aria-label={alt}>
+          <button className="lb-close" onClick={() => setLightbox(false)} aria-label="Stäng">✕</button>
+          {imgs.length > 1 && (
+            <button className="lb-nav lb-prev" onClick={(e) => { e.stopPropagation(); go(-1); }} aria-label="Föregående bild">‹</button>
+          )}
+          <div
+            className={`lb-stage ${view.s > 1 ? "zoomed" : ""}`}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={onStageDown}
+            onPointerMove={onStageMove}
+            onPointerUp={onStageUp}
+            onPointerCancel={onStageCancel}
+          >
+            <div
+              className="lb-imgwrap"
+              style={{
+                transform: `translate(${view.x}px, ${view.y}px) scale(${view.s})`,
+                transition: gesturing ? "none" : "transform .28s cubic-bezier(.2,.7,.2,1)",
+              }}
+            >
+              <Image key={main} src={main} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} preload draggable={false} />
+            </div>
+          </div>
+          {imgs.length > 1 && (
+            <button className="lb-nav lb-next" onClick={(e) => { e.stopPropagation(); go(1); }} aria-label="Nästa bild">›</button>
+          )}
+          {imgs.length > 1 && <div className="lb-count">{active + 1} / {imgs.length}</div>}
+          <div className="lb-hint" aria-hidden>Nyp för att zooma · svep ned för att stänga</div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -8,33 +8,18 @@ import {
   trackViewCart,
 } from "../lib/analytics";
 import type { RecoProduct } from "../lib/products";
-import cropsData from "../data/image-crops.json";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 
-const __cartCrops: Record<string, { x: number; y: number; w: number; h: number }> =
-  ((cropsData as { entries?: Record<string, { x: number; y: number; w: number; h: number }> }).entries) || {};
-
 function liImageUrl(x: any): string {
   const u: any = typeof x === "string" ? x : (x?.url || x?.id || "");
   if (!u || typeof u !== "string") return "";
-  let raw = "";
-  if (u.startsWith("http")) raw = u;
-  else {
-    const m = u.match(/wix:image:\/\/v1\/([^/#]+)/);
-    if (m) raw = `https://static.wixstatic.com/media/${m[1]}`;
-    else if (/^[\w]+_[\w~.%-]+\.(jpg|jpeg|png|webp|gif)/i.test(u)) raw = `https://static.wixstatic.com/media/${u}`;
-  }
-  if (!raw) return "";
-  // Applicera tight-crop när vi har data för bilden. Annars råa wixstatic-URL:n
-  // (samma som tidigare beteende).
-  const keyMatch = raw.match(/static\.wixstatic\.com\/media\/([^/?#]+)/);
-  if (!keyMatch) return raw;
-  const key = keyMatch[1];
-  const c = __cartCrops[key];
-  if (c) return `https://static.wixstatic.com/media/${key}/v1/crop/x_${c.x},y_${c.y},w_${c.w},h_${c.h}/file.webp`;
-  return raw;
+  if (u.startsWith("http")) return u;
+  const m = u.match(/wix:image:\/\/v1\/([^/#]+)/);
+  if (m) return `https://static.wixstatic.com/media/${m[1]}`;
+  if (/^[\w]+_[\w~.%-]+\.(jpg|jpeg|png|webp|gif)/i.test(u)) return `https://static.wixstatic.com/media/${u}`;
+  return "";
 }
 
 // Round-3 perf: lazy-import @wix/sdk + @wix/ecom so the ~600 KB SDK doesn't
@@ -296,4 +281,44 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {img ? <img className="li-img" src={img} alt={name} loading="lazy" /> : <div className="li-img" />}
                   <div className="li-info">
-                    <div className="li-name">{name}<
+                    <div className="li-name">{name}</div>
+                    <div className="li-meta">{li.price?.formattedAmount || ""}</div>
+                    <div className="li-qty">
+                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity - 1)} disabled={busy} aria-label="Minska antal">−</button>
+                      <span className="qnum">{li.quantity}</span>
+                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity + 1)} disabled={busy} aria-label="Öka antal">+</button>
+                    </div>
+                  </div>
+                  <button className="li-x" onClick={() => remove(li._id)} aria-label="Ta bort">Ta bort</button>
+                </div>
+              );
+            })
+          )}
+          {items.length > 0 && recos.length > 0 && (
+            <div className="cart-recos">
+              <div className="cart-recos-head">Andra köpte också</div>
+              {recos.map((r) => (
+                <a className="cart-reco" key={r.slug} href={`/produkt/${r.slug}`} onClick={() => setOpen(false)}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {r.img ? <img className="cart-reco-img" src={r.img} alt={r.name} loading="lazy" /> : <span className="cart-reco-img" />}
+                  <span className="cart-reco-info">
+                    <span className="cart-reco-name">{r.name}</span>
+                    <span className="cart-reco-price">{r.price}</span>
+                  </span>
+                  <span className="cart-reco-arr" aria-hidden="true">→</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+        {items.length > 0 && (
+          <div className="drawer-foot">
+            <div className="sub"><span>Delsumma</span><b>{subtotal}</b></div>
+            <button className="buy" disabled={busy} onClick={checkout}>{busy ? "…" : "Till kassan →"}</button>
+            <p className="drawer-note">Frakt och rabatter beräknas i kassan.</p>
+          </div>
+        )}
+      </aside>
+    </>
+  );
+}

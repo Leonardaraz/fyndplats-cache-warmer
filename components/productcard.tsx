@@ -2,24 +2,10 @@ import Image from "next/image";
 import type { Product } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
 import { SHIMMER_BLUR } from "../lib/lqip";
-import { getCropEntry, wixMediaKey } from "../lib/wix-image";
-
-// Wraps en Wix-CDN-URL med /v1/crop/x_..,y_..,w_..,h_..  om vi har tight-crop-
-// data. Returnerar originalet annars. Next/Image plockar upp den nya URL:en
-// som `src` och optimerar den vidare via /_next/image.
-function tightSrc(url: string): string {
-  const key = wixMediaKey(url);
-  if (!key) return url;
-  const crop = getCropEntry(url);
-  if (!crop) return url; // ingen detection-data → orört
-  return `https://static.wixstatic.com/media/${key}/v1/crop/x_${crop.x},y_${crop.y},w_${crop.w},h_${crop.h}/file.webp`;
-}
 
 export function ProductCard({ p }: { p: Product }) {
   // Hover-alt-image: använd andra bilden i galleriet (om finns) som "swap"-bild
   const altImg = p.gallery.find((g) => g !== p.img);
-  const mainSrc = tightSrc(p.img);
-  const altSrc = altImg ? tightSrc(altImg) : undefined;
   const lowStock = p.inStock && typeof p.stockQuantity === "number" && p.stockQuantity > 0 && p.stockQuantity <= 5;
   return (
     <a className="prod" href={`/produkt/${p.slug}`}>
@@ -31,10 +17,10 @@ export function ProductCard({ p }: { p: Product }) {
         {!p.onSale && p.inStock && p.ribbon === "Bestseller" && <span className="ribbon-badge ribbon-bestseller">Bästsäljare</span>}
         {lowStock && <span className="low-stock-badge">Endast {p.stockQuantity} kvar</span>}
         <WishlistHeart slug={p.slug} />
-        {mainSrc && (
+        {p.img && (
           <Image
             className="pimg-main"
-            src={mainSrc}
+            src={p.img}
             alt={p.name}
             fill
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
@@ -43,10 +29,10 @@ export function ProductCard({ p }: { p: Product }) {
             style={{ objectFit: "cover" }}
           />
         )}
-        {altSrc && (
+        {altImg && (
           <Image
             className="pimg-alt"
-            src={altSrc}
+            src={altImg}
             alt=""
             fill
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
@@ -55,4 +41,18 @@ export function ProductCard({ p }: { p: Product }) {
         )}
       </div>
       <div className="pbody">
-        <div clas
+        <div className="pname">{p.name}</div>
+        <div className="prow">
+          <span className="pprice">
+            {/* pprice-now håller "Från X" / priset ihop på en rad (nowrap) så det
+                aldrig bryts mitt itu; ett ev. överstruket gammalt pris radbryter
+                i stället under, och "Köp"-knappen förblir alltid synlig. */}
+            <span className="pprice-now">{p.hasRange ? `Från ${p.priceFrom}` : p.price}</span>
+            {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
+          </span>
+          <span className="pbtn" style={{ background: "#C2410C" }}>Köp</span>
+        </div>
+      </div>
+    </a>
+  );
+}

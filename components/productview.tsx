@@ -4,12 +4,6 @@ import { useCart } from "./cart";
 import { Gallery } from "./gallery";
 import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
-import { getCropEntry } from "../lib/wix-image";
-
-// Tight-crop slå-upp för variant-thumbnails. Returnerar bbox eller null.
-function thumbCrop(url: string) {
-  return getCropEntry(url);
-}
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -93,20 +87,10 @@ function mediaKey(url: string): string {
 // sköt i höjden på simulerat 4G). Skala ner till en liten center-cropped webp
 // direkt från Wix-CDN (samma mekanism som hjältebildens loader). 120 px täcker
 // 38 px @3× retina.
-//
-// Tight-crop (2026-06): variant-thumbnails använder samma tight-crop-cache som
-// hero-bilden — får bilden tight-data slipper vi vit padding även här. Saknas
-// data → fill som tidigare.
 function thumbUrl(url: string): string {
   const m = (url || "").match(/static\.wixstatic\.com\/media\/([^/]+)/);
   if (!m) return url;
-  const key = m[1];
-  // Inline lookup (modulen importerar getCropEntry från lib/wix-image).
-  const crop = thumbCrop(url);
-  if (crop) {
-    return `https://static.wixstatic.com/media/${key}/v1/crop/x_${crop.x},y_${crop.y},w_${crop.w},h_${crop.h}/file.webp`;
-  }
-  return `https://static.wixstatic.com/media/${key}/v1/fill/w_120,h_120,al_c,q_80/file.webp`;
+  return `https://static.wixstatic.com/media/${m[1]}/v1/fill/w_120,h_120,al_c,q_80/file.webp`;
 }
 
 // Variantbilderna först (index = variant-index), sedan övriga galleribilder
@@ -332,4 +316,49 @@ export function ProductView({
                 <h2>Beskrivning</h2>
                 {descriptionHtml ? (
                   <div className="pdp-desc" dangerouslySetInnerHTML={{ __html: split.mainHtml }} />
-          
+                ) : blurb ? (
+                  <p className="pdp-blurb">{blurb}</p>
+                ) : null}
+                {flikar.length > 0 && (
+                  <div className="pdp-flikar">
+                    {flikar.map((f, i) => (
+                      <details key={i} className="pdp-flik">
+                        <summary>{f.title}</summary>
+                        <div className="pdp-flik-body" dangerouslySetInnerHTML={{ __html: f.contentHtml }} />
+                      </details>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {specLines.length > 0 && !specInFlik && (
+                <div className="specbox">
+                  <h2>Specifikationer</h2>
+                  <ul>{specLines.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                </div>
+              )}
+            </>
+          );
+        })()}
+        </div>
+      </div>
+    </div>
+    {/* Sticky köp-knapp på mobil — visas bara på små skärmar (CSS) */}
+    <div className="sticky-buy-mobile" aria-hidden={!inStock}>
+      <div className="sticky-buy-inner">
+        <div className="sticky-buy-info">
+          <div className="sticky-buy-price">{displayPrice}</div>
+          <div className="sticky-buy-name">{variantLabel ? `${name} · ${variantLabel}` : name}</div>
+        </div>
+        <button
+          className="buy sticky-buy-btn"
+          disabled={busy || !productId || !inStock || (needsVariant && !variantId)}
+          onClick={onAdd}
+        >
+          {!inStock ? "Slut" : busy ? "..." : added ? "✓" : "Lägg i kundvagn"}
+        </button>
+      </div>
+    </div>
+    </>
+  );
+}
