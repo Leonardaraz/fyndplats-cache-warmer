@@ -2,8 +2,12 @@
 // import-API:t med den hemliga token. Begär host-permission för API-origin vid behov.
 
 async function getConfig() {
-  const { apiBase, apiToken } = await chrome.storage.sync.get(["apiBase", "apiToken"]);
-  return { apiBase, apiToken };
+  // apiBase synkas (ej känsligt); API-token läses bara från lokal lagring så den
+  // aldrig hamnar i Googles moln-synk. Fallback till ev. gammal sync-token för
+  // bakåtkompatibilitet tills options-sidan migrerat den (se options.js).
+  const { apiBase, apiToken: syncToken } = await chrome.storage.sync.get(["apiBase", "apiToken"]);
+  const { apiToken: localToken } = await chrome.storage.local.get(["apiToken"]);
+  return { apiBase, apiToken: localToken || syncToken };
 }
 
 async function ensureHostPermission(apiBase) {
