@@ -33,6 +33,7 @@ import RefundConfirmationEmail, {
 import OrderCancellationEmail, {
   type OrderCancellationProps,
 } from "@/emails/order-cancellation";
+import { fanoutToCacheWarmer, shouldFanoutToCacheWarmer } from "@/lib/webhook-fanout";
 import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
@@ -609,6 +610,26 @@ export async function POST(req: NextRequest) {
   }
 
   const { eventType, entity } = unwrap(payload);
+
+  // ---------------------------------------------------------------------------
+  // Fan-out till cache-warmer (best-effort, non-blocking).
+  //
+  // Wix tillåter bara EN webhook-subscription per event-type i hela företaget,
+  // så vi kan inte registrera både detta projekt och fyndplats-cache-warmer för
+  // samma order-events. Lösning: vi tar emot här, verifierar signaturen, och
+  // forwardar samma raw body till cache-warmer för dess fulfillment-tasks.
+  //
+  // Fire-and-forget: ett fel hos cache-warmer får ALDRIG fördröja eller fälla
+  // webhook-svaret till Wix (det skulle ge retry → dubbla bekräftelsemejl).
+  // Implementation i lib/webhook-fanout för testbarhet.
+  // ---------------------------------------------------------------------------
+  if (shouldFanoutToCacheWarmer(eventType)) {
+    void fanoutToCacheWarmer({
+      rawBody,
+      eventType,
+      digest: req.headers.get("digest"),
+    });
+  }
 
   // Abandoned checkout (wix.ecom.v1.abandoned_checkout, slug=created) — enqueue
   // the cart for the 3-email recovery flow. Slug guard means we only act on
