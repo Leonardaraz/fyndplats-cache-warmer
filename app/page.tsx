@@ -4,6 +4,7 @@ import { ProductCard } from "../components/productcard";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
+import { RecentlyViewed } from "../components/recently-viewed";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../lib/image-scores";
 
 const jsonLd = {
@@ -232,6 +233,9 @@ export default async function Home() {
           <span className="uspitem">⭐ Google 4,9 (21 omdömen)</span>
         </div>
       </div>
+
+      {/* "Senast tittade" — renderar bara klient-side när >= 2 produkter setts. */}
+      <RecentlyViewed />
 
       {homeCats.length > 0 && (
         <section className="homecat-sec" id="kategorier">
