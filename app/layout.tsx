@@ -16,7 +16,6 @@ import {
   CookieConsent,
   CartDrawer,
   WishlistDrawer,
-  ExitIntentCart,
 } from "../components/deferred";
 import { MetaPixel } from "../components/metapixel";
 
@@ -126,8 +125,6 @@ export default async function RootLayout({
             <CartDrawer recommendations={cartRecos} />
             <WishlistDrawer />
             <BackToTop />
-            {/* Exit-intent-påminnelse — inuti CartProvider (läser cart-count). */}
-            <ExitIntentCart />
           </WishlistProvider>
         </CartProvider>
         <CookieConsent />
