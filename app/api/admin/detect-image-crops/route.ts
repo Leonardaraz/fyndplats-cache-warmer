@@ -8,10 +8,10 @@
 // crop-cachen.
 //
 // Användning:
-//   GET /api/admin/detect-image-crops?token=<ADMIN_TOKEN>
+//   GET /api/admin/detect-image-crops?token=<ADMIN_SECRET>
 //
 // Parametrar:
-//   token  — krävs. Matchas mot env ADMIN_API_TOKEN (samma som andra admin-routes).
+//   token  — krävs. Matchas mot env ADMIN_SECRET (samma som proxy.ts och andra admin-routes).
 //   limit  — valfri. Begränsa antal URLer (för debug).
 //   only   — valfri. Kommaseparerad lista; bilder vars URL innehåller en substring matchas.
 //
@@ -195,7 +195,9 @@ async function pMap<T, R>(items: T[], fn: (x: T, i: number) => Promise<R>, conc:
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const token = url.searchParams.get("token") || "";
-  const expected = process.env.ADMIN_API_TOKEN;
+  // Använd ADMIN_SECRET (samma som proxy.ts och alla andra admin-routes).
+  // Den tidigare ADMIN_API_TOKEN fanns inte satt på Vercel → routen var dead code.
+  const expected = process.env.ADMIN_SECRET;
   if (!expected || token !== expected) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
