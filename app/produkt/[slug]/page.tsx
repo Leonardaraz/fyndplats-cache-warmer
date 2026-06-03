@@ -26,11 +26,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const p = await getProduct(slug);
   if (!p) return { title: "Produkten hittades inte" };
+  // Föredra merchantens kuraterade Wix-SEO (korta, Google-anpassade) när de finns;
+  // annars dagens name/blurb. seoTitle innehåller redan "| Fyndplats", så vi sätter
+  // den som `absolute` för att inte få templaten (%s | Fyndplats) att dubblera den.
+  const desc = p.seoDescription || p.blurb || `${p.name} – köp hos Fyndplats. Fri frakt över 499 kr.`;
   return {
-    title: p.name,
-    description: p.blurb || `${p.name} – köp hos Fyndplats. Fri frakt över 499 kr.`,
+    title: p.seoTitle ? { absolute: p.seoTitle } : p.name,
+    description: desc,
     alternates: { canonical: `https://www.fyndplats.se/produkt/${p.slug}` },
-    openGraph: { title: p.name, description: p.blurb, images: p.img ? [p.img] : [] },
+    openGraph: { title: p.seoTitle || p.name, description: desc, images: p.img ? [p.img] : [] },
   };
 }
 
