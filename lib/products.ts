@@ -21,6 +21,12 @@ export type Product = {
   gallery: string[];
   blurb: string;
   specs: string;
+  // Kuraterad Wix-SEO (seoData.tags) — satt ENBART när merchant manuellt skrivit
+  // en egen titel/description i Wix (dvs skiljer sig från rånamnet). Frontenden
+  // föredrar dessa i <title>/meta-description (korta, Google-anpassade) och faller
+  // annars tillbaka på name/blurb. Tomt för icke-kuraterade produkter.
+  seoTitle?: string;
+  seoDescription?: string;
   inStock: boolean;
   stockQuantity?: number;
   ribbon?: string;
@@ -164,6 +170,18 @@ function mapProduct(p: any): Product {
   }
   const hasRange = minV != null && maxV != null && minV < maxV;
   const pid = p._id || p.id || "";
+  // Kuraterad Wix-SEO ur seoData.tags (samma struktur i Stores V1/V3): en
+  // <title>-tagg + en <meta name="description">. Vi använder dem BARA när de är
+  // manuellt satta (seoTitle skiljer sig från rånamnet) — då är de korta och
+  // Google-anpassade. Icke-kuraterade produkter har seoTitle === name → vi låter
+  // dem falla tillbaka på dagens name/blurb-beteende (ingen regression).
+  const seoTags: any[] = (p.seoData && p.seoData.tags) || [];
+  const seoTitleTag = seoTags.find((t) => t && t.type === "title");
+  const seoDescTag = seoTags.find((t) => t && t.type === "meta" && t.props && t.props.name === "description");
+  const rawSeoTitle = seoTitleTag && typeof seoTitleTag.children === "string" ? seoTitleTag.children.trim() : "";
+  const rawSeoDesc = seoDescTag && seoDescTag.props && typeof seoDescTag.props.content === "string" ? seoDescTag.props.content.trim() : "";
+  const curatedSeoTitle = rawSeoTitle && rawSeoTitle !== (p.name || "") ? rawSeoTitle : undefined;
+  const curatedSeoDesc = curatedSeoTitle && rawSeoDesc ? rawSeoDesc : undefined;
   return {
     id: pid,
     imageScore: imageScoreOf(pid),
@@ -183,6 +201,8 @@ function mapProduct(p: any): Product {
     gallery: gallery.slice(0, 6),
     blurb: stripHtml(firstP ? firstP[1] : p.description || "").slice(0, 220),
     specs: stripHtml(specsSection ? specsSection.description : "").slice(0, 400),
+    seoTitle: curatedSeoTitle,
+    seoDescription: curatedSeoDesc,
     inStock: !!(p.stock && p.stock.inStock),
     stockQuantity: (p.stock && typeof p.stock.quantity === "number") ? p.stock.quantity : undefined,
     ribbon: (p.ribbon && (typeof p.ribbon === "string" ? p.ribbon : p.ribbon.name)) || undefined,
