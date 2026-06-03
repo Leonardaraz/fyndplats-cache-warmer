@@ -1189,6 +1189,15 @@ function extract() {
       "";
     const defaultShipFrom = normalizeShipFrom(defaultShipFromRaw);
 
+    // --- v0.1.14 stock-sync (bug 2026-06-03) -----------------------------
+    // Per-variant SKU-data ur skuPriceList[]: primär källa för riktig
+    // supplierVariantId, per-variant stock + costUsd + options-mapping.
+    // Tidigare versioner missade stock-fältet när AE:s skuVal-form varierade
+    // (availQuantity kunde ligga på skuVal, direkt på sku, eller heta
+    // inventory), och föll tillbaka på bakarens default-stock på 10 — Wix-
+    // Mapping visade "10 i lager" för alla varianter oavsett vad AE sade.
+    // Nu försöker vi alla kända fältplaceringar och bevarar 0 som legitim
+    // OOS-signal, undefined ENBART när inget fält finns alls.
     result.variants = skuPriceList.map((sku, i) => {
       const variantShipRaw =
         sku.skuVal?.shipFromCode ||
@@ -1197,29 +1206,71 @@ function extract() {
         sku.shipFrom ||
         defaultShipFromRaw;
       const variantShipFrom = normalizeShipFrom(variantShipRaw);
-      // Bug 2026-06-02: tidigare gjorde vi `availQuantity || 0` → en variant
-      // som saknade `availQuantity` (undefined) fick stock=0, vilket bakaren
-      // tolkar som "explicit 0 lager" och därför ALDRIG applicerar fallbacken
-      // 10 → varianten blev OOS. Nu skickar vi en riktig number BARA när AE
-      // gav ett numeriskt värde; saknas det skickas undefined så bakaren får
-      // använda sin egen fallback. Värdet 0 bevaras (legitim OOS-signal).
-      const rawStock =
-        sku.skuVal && Object.prototype.hasOwnProperty.call(sku.skuVal, "availQuantity")
-          ? sku.skuVal.availQuantity
-          : undefined;
-      const stock =
-        typeof rawStock === "number" && Number.isFinite(rawStock) && rawStock >= 0
-          ? rawStock
-          : undefined;
+
+      // supplierVariantId — AE:s riktiga sku-ID. skuIdStr (sträng) är säkrast;
+      // skuId som Number kan tappa precision för stora värden (12e15+).
+      // Fallback till "idx-N" så bakarens stock-mapping inte kolliderar med
+      // ett verkligt AE-skuId om en variant skulle sakna id. Bug 2026-06-03:
+      // tidigare kunde råa `i` (index) bli supplierVariantId → bakaren
+      // mappade fel SKU vid stock-syncen om AE returnerade skuPriceList
+      // i varierande ordning mellan importer.
+      const skuIdRaw =
+        sku.skuIdStr ||
+        sku.skuId ||
+        (sku.skuVal && (sku.skuVal.skuIdStr || sku.skuVal.skuId)) ||
+        "";
+      const supplierVariantId = skuIdRaw ? String(skuIdRaw) : `idx-${i}`;
+
+      // availQuantity — primärt på skuVal, men vissa AE-bundlar lägger det
+      // direkt på sku eller använder "inventory"-namnet. Behåll undefined
+      // ENBART om INGET fält finns alls; 0 bevaras som legitim OOS-signal.
+      // Bug 2026-06-02 (kvarstår): tidigare `availQuantity || 0` gjorde
+      // undefined → 0 → varianten markerades som OOS i Wix istället för att
+      // få bakarens fallback-stock.
+      let rawStock;
+      if (sku.skuVal && Object.prototype.hasOwnProperty.call(sku.skuVal, "availQuantity")) {
+        rawStock = sku.skuVal.availQuantity;
+      } else if (Object.prototype.hasOwnProperty.call(sku, "availQuantity")) {
+        rawStock = sku.availQuantity;
+      } else if (sku.skuVal && Object.prototype.hasOwnProperty.call(sku.skuVal, "inventory")) {
+        rawStock = sku.skuVal.inventory;
+      } else if (Object.prototype.hasOwnProperty.call(sku, "inventory")) {
+        rawStock = sku.inventory;
+      } else {
+        rawStock = undefined;
+      }
+      let stock;
+      if (typeof rawStock === "number" && Number.isFinite(rawStock) && rawStock >= 0) {
+        stock = rawStock;
+      } else if (typeof rawStock === "string" && /^\d+$/.test(rawStock)) {
+        stock = parseInt(rawStock, 10);
+      } else {
+        stock = undefined;
+      }
+
+      // costUsd — actSkuCalPrice = aktuellt rabattpris, skuCalPrice = ordinarie.
+      // Vissa AE-bundlar lägger pris-fältet direkt på sku istället för
+      // sku.skuVal. Faller tillbaka på priceModule:s min-amount om SKU saknar
+      // pris helt (sällsynt — då är varianten inte säljbar och kommer
+      // filtreras vidare i pipelinen).
+      const costUsd = Number(
+        (sku.skuVal && (sku.skuVal.actSkuCalPrice || sku.skuVal.skuCalPrice)) ||
+          sku.actSkuCalPrice ||
+          sku.skuCalPrice ||
+          priceModule.minActivityAmount?.value ||
+          priceModule.minAmount?.value ||
+          0,
+      );
+
+      // options-mapping — decodeSkuProps översätter sku.skuPropIds
+      // ("14:200…;5:100…") → läsbara namn ({Färg:"Röd", Storlek:"M"}).
+      // skuAttr är ett alternativfält i vissa AE-versioner.
+      const options = decodeSkuProps(sku.skuPropIds || sku.skuAttr || "", props);
+
       return {
-        supplierVariantId: String(sku.skuId || sku.skuIdStr || i),
-        options: decodeSkuProps(sku.skuPropIds, props),
-        costUsd: Number(
-          (sku.skuVal && (sku.skuVal.actSkuCalPrice || sku.skuVal.skuCalPrice)) ||
-            priceModule.minActivityAmount?.value ||
-            priceModule.minAmount?.value ||
-            0,
-        ),
+        supplierVariantId,
+        options,
+        costUsd,
         stock,
         shipFrom: variantShipFrom || defaultShipFrom || "",
         included: true,
@@ -1437,4 +1488,40 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
   }
   return true;
-});
+});
+esult.variants = [{ supplierVariantId: "default", options: {}, costUsd: 0, included: true }];
+  }
+
+  // --- Kvalitetsbedömning ------------------------------------------------
+  const titleOk = result.rawTitle.length >= 10 && !/fyndplats/i.test(result.rawTitle);
+  const imagesOk = result.imageUrls.length >= 1;
+  const priceOk = result.variants.some((v) => Number(v.costUsd) > 0);
+  result.quality = {
+    hasTitle: titleOk,
+    hasImages: imagesOk,
+    hasPrice: priceOk,
+    hasRealVariants,
+  };
+  result.extractionOk = titleOk && imagesOk && priceOk;
+
+  if (!result.extractionOk) {
+    const missing = [];
+    if (!titleOk) missing.push("titel");
+    if (!imagesOk) missing.push("bild");
+    if (!priceOk) missing.push("pris");
+    result._warnings.push(`Otillräcklig produktdata (saknar: ${missing.join(", ")}).`);
+  }
+
+  return result;
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg && msg.type === "EXTRACT_PRODUCT") {
+    try {
+      sendResponse({ ok: true, product: extract() });
+    } catch (err) {
+      sendResponse({ ok: false, error: String(err) });
+    }
+  }
+  return true;
+});
