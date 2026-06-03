@@ -131,10 +131,15 @@ function bboxToCrop(bbox, ow, oh) {
   };
   const maxMargin = Math.max(margins.top, margins.right, margins.bottom, margins.left);
   const minMargin = Math.min(margins.top, margins.right, margins.bottom, margins.left);
-  // Kvadratisk crop runt content center. Sidan = max(contentW, contentH) * (1 + 2*padding).
+  // Kvadratisk crop runt content center. Sidan = min(contentW, contentH) * (1 + 2*padding).
+  // Vi använder MIN, inte MAX: vid imbalanserat innehåll (t.ex. tall-narrow Gua Sha-
+  // bilder) snäpper sidan till kortsidan så cropet faktiskt fyller .gmain (1:1) utan
+  // att inkludera vit padding på den längre dimensionen. Skär dock in i innehållet
+  // på långsidan — acceptabelt eftersom galleri-thumbs visar hela bilden.
+  // Bug 2026-06-03: Leonards observation att Gua Sha inte fyllde frame:n.
   const cx = (left + right) / 2;
   const cy = (top + bottom) / 2;
-  const baseSize = Math.max(contentW, contentH);
+  const baseSize = Math.min(contentW, contentH);
   const padFactor = 1 + 2 * (PADDING_PCT / 100);
   let side = Math.round(baseSize * padFactor);
   // Klipp inte utanför originalbilden.
