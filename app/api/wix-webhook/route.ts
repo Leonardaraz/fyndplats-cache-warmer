@@ -17,6 +17,7 @@
 // returnerar 200 (ack — vi vill inte att Wix ska spamma retries).
 
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import crypto from "node:crypto";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
@@ -40,6 +41,7 @@ import { recordOrder } from "@/lib/order-record";
 import { sql } from "@/lib/db";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 import { firePush } from "@/lib/push-send";
+import { getProducts } from "@/lib/products";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -842,6 +844,34 @@ export async function POST(req: NextRequest) {
         await recordOrder(entity as Record<string, unknown>);
       } catch (err) {
         console.error("[wix-webhook] recordOrder fel (ignorerar)", err);
+      }
+      // ISR on-demand revalidation: PDPs är cachade i 5 min (revalidate=300 i
+      // app/produkt/[slug]/page.tsx). När ett köp sker måste vi PUSHA en ny
+      // version omgående så lager-display ("X kvar i lager" / "Slutsåld") inte
+      // ligger 0-5 min efter. catalogItemId från orden → slug via cachad
+      // getProducts() → revalidatePath('/produkt/<slug>'). Best-effort: får
+      // aldrig blockera bekräftelsemejlet.
+      try {
+        const ids = extractContentIds(entity);
+        if (ids.length > 0) {
+          const all = await getProducts();
+          const idToSlug = new Map(all.map((p) => [p.id, p.slug]));
+          const revalidated: string[] = [];
+          for (const id of ids) {
+            const slug = idToSlug.get(id);
+            if (slug) {
+              revalidatePath(`/produkt/${slug}`);
+              revalidated.push(slug);
+            }
+          }
+          if (revalidated.length > 0) {
+            console.log(
+              `[wix-webhook] order_created ISR-revalidated PDPs: ${revalidated.join(", ")}`,
+            );
+          }
+        }
+      } catch (err) {
+        console.error("[wix-webhook] revalidatePath fel (ignorerar)", err);
       }
       const props = buildOrderConfirmationProps(entity);
       if (!props) {

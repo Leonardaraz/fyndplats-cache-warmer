@@ -8,6 +8,15 @@ import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
 
+// ISR: PDPs cachas på Vercel edge i 5 min. Bakgrundsregenerering på stale.
+// Mätt: SSR ~400ms TTFB → cache-hit ~30-50ms (~10x snabbare för LCP).
+// Lager/pris uppdateras direkt via revalidatePath i app/api/wix-webhook/route.ts
+// vid order_created — så 5 min är ett tak, inte en faktisk fördröjning för köp.
+export const revalidate = 300;
+// dynamicParams=true: nya produkter (efter senaste deploy) som inte finns i
+// generateStaticParams renderas on-demand vid första träffen och cachas sen.
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   const slugs = await getProductSlugs();
   return slugs.map((slug) => ({ slug }));
