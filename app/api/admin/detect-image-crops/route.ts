@@ -29,7 +29,7 @@ export const maxDuration = 300; // sek; detection kan ta tid.
 
 const WHITE_THRESHOLD = 248;
 const PADDING_PCT = 6;
-const SKIP_MARGIN_PCT = 25;
+const SKIP_MARGIN_PCT = 45;
 const MIN_MARGIN_PCT = 3;
 const FETCH_TIMEOUT_MS = 20000;
 const MAX_PARALLEL = 6;

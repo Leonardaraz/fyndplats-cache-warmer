@@ -46,7 +46,7 @@ const ROOT = path.resolve(__dirname, "..");
 
 const WHITE_THRESHOLD = 248; // 0–255 per kanal. <240 räknas som "innehåll".
 const PADDING_PCT = 6;       // padding kring innehållet (per kant av crop-bredd).
-const SKIP_MARGIN_PCT = 25;  // >25 % margin på någon kant → skip.
+const SKIP_MARGIN_PCT = 45;  // >45 % margin på någon kant → skip (bumped 25→45 2026-06-03 så fler produkter med vit padding får tight crop).
 const MIN_MARGIN_PCT = 3;    // <3 % margin på alla kanter → behåll original.
 const MAX_PARALLEL = 6;      // samtidiga hämtningar.
 const FETCH_TIMEOUT_MS = 20000;
