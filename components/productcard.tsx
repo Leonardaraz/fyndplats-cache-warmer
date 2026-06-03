@@ -18,20 +18,14 @@ export function ProductCard({ p }: { p: Product }) {
         {!p.onSale && p.inStock && p.ribbon === "Bestseller" && <span className="ribbon-badge ribbon-bestseller">Bästsäljare</span>}
         {lowStock && <span className="low-stock-badge">Endast {p.stockQuantity} kvar</span>}
         <WishlistHeart slug={p.slug} />
-        {/* unoptimized: src är redan en färdig-storleksatt Wix-CDN-webp (tightFillUrl
-            → q_72, 600×600). Utan detta rutar next/image om varje katalogbild via
-            /_next/image-optimeraren (kallstart per bild + dubbeloptimering av en
-            redan optimerad webp). Med unoptimized serveras Wix-URL:en direkt från
-            Wix globala CDN — server-säkra motsvarigheten till galleriets wixMainLoader
-            (en loader-funktion kräver Client Component; korten är medvetet server-
-            renderade). 600px är redan dagens tak, så ingen visuell förändring. */}
+        {/* Bilderna serveras via den globala loadern (lib/image-loader.ts) direkt
+            från Wix CDN med responsiv srcset — ingen /_next/image-optimerare. */}
         {p.img && (
           <Image
             className="pimg-main"
             src={tightFillUrl(p.img, 600, 600)}
             alt={p.name}
             fill
-            unoptimized
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
             placeholder="blur"
             blurDataURL={SHIMMER_BLUR}
@@ -44,7 +38,6 @@ export function ProductCard({ p }: { p: Product }) {
             src={tightFillUrl(altImg, 600, 600)}
             alt=""
             fill
-            unoptimized
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
             style={{ objectFit: "cover" }}
           />

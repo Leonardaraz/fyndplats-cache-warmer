@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Global loader (lib/image-loader.ts): serverar varje <Image> direkt från
+    // bildens egen CDN (Wix / Unsplash) med responsiv srcset, i stället för via
+    // Vercels /_next/image-optimerare (kallstart + extra hop). remotePatterns
+    // behålls som dokumentation av tillåtna värdar; optimeraren är förbikopplad.
+    loaderFile: "./lib/image-loader.ts",
     remotePatterns: [
       { protocol: "https", hostname: "static.wixstatic.com" },
       // Curated kategori-hero-bilder (lib/category-groups.ts → CATEGORY_HERO_IMAGES).
