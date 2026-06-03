@@ -25,7 +25,6 @@ import { getStore } from "../store/factory";
 import { getImportCostStore } from "../store/import-costs";
 import { audit } from "../audit";
 import { addProductToCollection, getCollections } from "../wix/client";
-import { triggerCropDetection } from "../headless/trigger-crop-detection";
 
 const ITEM_DELAY_MS = 3000;
 const MAX_ATTEMPTS = 2;
@@ -384,13 +383,6 @@ export async function finishImport(
 
   await audit("bulk-import-item-done", result.wixProductId, result.seo.title);
 
-  // Fire-and-forget: be headless detektera tight-crop för nya bilder. Routen
-  // läser products.json/variant-images.json från Vercel-filsystemet — när
-  // headless-sidan har deployats om (via cache-warmer-fanout) får routen syn
-  // på de nya media-keys:erna och scanar dem (skipCached=1 gör att redan
-  // cachade hoppas över så det är gratis vid varje import).
-  triggerCropDetection({ source: `bulk-import:${result.wixProductId}` });
-
   return {
     wixProductId: result.wixProductId,
     wixProductSlug: result.slug,
@@ -409,19 +401,4 @@ function isRetryable(err: unknown): boolean {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-lean {
-  if (!(err instanceof Error)) return false;
-  const m = err.message.toLowerCase();
-  if (m.includes("timeout") || m.includes("etimedout")) return true;
-  if (m.includes("rate limit") || m.includes("too many requests") || m.includes("429")) return true;
-  if (/\b(5\d{2})\b/.test(m) && !m.includes("404")) return true;
-  if (m.includes("network") || m.includes("fetch failed")) return true;
-  return false;
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-e, ms));
 }
