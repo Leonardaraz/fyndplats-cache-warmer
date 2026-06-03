@@ -19,6 +19,7 @@ import {
 } from "@/lib/import/guard";
 import { audit } from "@/lib/audit";
 import { describeRouting } from "@/lib/import/trigger-routing";
+import { triggerCropDetection } from "@/lib/headless/trigger-crop-detection";
 
 const VariantSchema = z.object({
   supplierVariantId: z.string().min(1),
@@ -364,6 +365,11 @@ export async function POST(req: Request) {
       result.wixProductId,
       result.seo.title,
     );
+
+    // Fire-and-forget: be headless detektera tight-crop för nya bilder.
+    // Se lib/headless/trigger-crop-detection.ts för designbeslut. No-await.
+    triggerCropDetection({ source: `import:${result.wixProductId}` });
+
     return NextResponse.json(
       {
         ok: true,
@@ -374,14 +380,13 @@ export async function POST(req: Request) {
         // pipelinen producerade dem — annars undefined).
         image_analysis: resultAny.imageAnalysis,
         suggested_category: resultAny.categorySuggestion,
-        // Sätts bara när Wix gav DUPLICATE_SLUG_ERROR och vi lade på ett
         // suffix. Extension-popupen kan visa "Slug auto-justerad: foo-2".
         slug_suffix: resultAny.slugSuffix,
       },
       { status: 201 },
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Okänt fel";
+    const message = err instanceof Error ? err.message : "Okant fel";
     return NextResponse.json({ error: "Import misslyckades", message }, { status: 500 });
   }
 }
