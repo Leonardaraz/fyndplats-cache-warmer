@@ -18,6 +18,8 @@ export function ProductCard({ p }: { p: Product }) {
         {!p.onSale && p.inStock && p.ribbon === "Bestseller" && <span className="ribbon-badge ribbon-bestseller">Bästsäljare</span>}
         {lowStock && <span className="low-stock-badge">Endast {p.stockQuantity} kvar</span>}
         <WishlistHeart slug={p.slug} />
+        {/* Bilderna serveras via den globala loadern (lib/image-loader.ts) direkt
+            från Wix CDN med responsiv srcset — ingen /_next/image-optimerare. */}
         {p.img && (
           <Image
             className="pimg-main"
