@@ -27,6 +27,10 @@ on:
         description: "Max URLer per körning (0 = obegränsat upp till 1000)"
         required: false
         default: "1000"
+      skipCached:
+        description: "1 = bara nya bilder (snabbt). 0 = re-scana ALLT (anvand vid threshold-byte)"
+        required: false
+        default: "1"
 
 permissions:
   contents: write
@@ -55,6 +59,7 @@ jobs:
         env:
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
           LIMIT: ${{ github.event.inputs.limit || '1000' }}
+          SKIP_CACHED: ${{ github.event.inputs.skipCached || '1' }}
         run: |
           set -euo pipefail
           if [ -z "${ADMIN_SECRET:-}" ]; then
@@ -65,8 +70,8 @@ jobs:
           # proxy.ts pa headless kraver ?key=<ADMIN_SECRET> (sätter cookie + redirectar).
           # Routen själv kollar ?token=. curl med -L och --cookie-jar foljer redirecten
           # och bär med sig cookien sa route-auth slutfors pa token.
-          URL="https://www.fyndplats.se/api/admin/detect-image-crops?key=${ADMIN_SECRET}&token=${ADMIN_SECRET}&skipCached=1&limit=${LIMIT}"
-          echo "Calling detection route (limit=${LIMIT})..."
+          URL="https://www.fyndplats.se/api/admin/detect-image-crops?key=${ADMIN_SECRET}&token=${ADMIN_SECRET}&skipCached=${SKIP_CACHED}&limit=${LIMIT}"
+          echo "Calling detection route (limit=${LIMIT}, skipCached=${SKIP_CACHED})..."
           # 5 min timeout — routen själv har maxDuration=300.
           curl -sS -L --max-time 300 --cookie-jar /tmp/cookies.txt --cookie /tmp/cookies.txt -o outputs/detect-response.json -w "HTTP=%{http_code} size=%{size_download} time=%{time_total}\n" "$URL"
           head -c 400 outputs/detect-response.json || true
@@ -82,18 +87,24 @@ jobs:
           if (!fresh.entries || typeof fresh.entries !== 'object') {
             console.log('No entries in response — nothing to merge.');
             console.log('Response keys:', Object.keys(fresh));
-            require('fs').writeFileSync(process.env.GITHUB_OUTPUT, 'added=0\n', { flag: 'a' });
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'added=0\nchanged=0\ndelta=0\n');
             process.exit(0);
           }
-          const beforeKeys = new Set(Object.keys(before.entries || {}));
-          const merged = { ...(before.entries || {}), ...fresh.entries };
-          const added = Object.keys(fresh.entries).filter((k) => !beforeKeys.has(k)).length;
-          console.log(`Before: ${beforeKeys.size}  Fresh-entries: ${Object.keys(fresh.entries).length}  Added: ${added}`);
-          if (added > 0) {
+          const beforeEntries = before.entries || {};
+          const beforeKeys = new Set(Object.keys(beforeEntries));
+          const merged = { ...beforeEntries, ...fresh.entries };
+          const freshKeys = Object.keys(fresh.entries);
+          const added = freshKeys.filter((k) => !beforeKeys.has(k)).length;
+          const changed = freshKeys.filter((k) => beforeKeys.has(k) && JSON.stringify(beforeEntries[k]) !== JSON.stringify(fresh.entries[k])).length;
+          const delta = added + changed;
+          console.log(`Before: ${beforeKeys.size}  Fresh-entries: ${freshKeys.length}  Added: ${added}  Changed: ${changed}  Delta: ${delta}`);
+          if (delta > 0) {
             const out = { version: 1, generatedAt: new Date().toISOString(), comment: before.comment || '', entries: merged };
             fs.writeFileSync('data/image-crops.json', JSON.stringify(out, null, 2) + '\n');
           }
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `added=${added}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `delta=${delta}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `total=${Object.keys(merged).length}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `processed=${fresh.totalProcessed ?? 0}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `skipped=${fresh.totalSkipped ?? 0}\n`);
@@ -101,13 +112,13 @@ jobs:
           EOF
 
       - name: Commit & push if changed
-        if: steps.merge.outputs.added != '0'
+        if: steps.merge.outputs.delta != '0'
         run: |
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/image-crops.json
-          git commit -m "chore(images): auto-refresh tight-crop cache (+${{ steps.merge.outputs.added }} entries, total ${{ steps.merge.outputs.total }})"
+          git commit -m "chore(images): auto-refresh tight-crop cache (+${{ steps.merge.outputs.added }} new, ${{ steps.merge.outputs.changed }} changed, total ${{ steps.merge.outputs.total }})"
           git push origin headless-site
 
       - name: Summary
@@ -115,6 +126,7 @@ jobs:
           echo "### refresh-image-crops" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- added: **${{ steps.merge.outputs.added || '0' }}**" >> $GITHUB_STEP_SUMMARY
+          echo "- changed: **${{ steps.merge.outputs.changed || '0' }}**" >> $GITHUB_STEP_SUMMARY
           echo "- total entries: ${{ steps.merge.outputs.total || 'unchanged' }}" >> $GITHUB_STEP_SUMMARY
           echo "- processed: ${{ steps.merge.outputs.processed || '0' }}" >> $GITHUB_STEP_SUMMARY
           echo "- skipped:   ${{ steps.merge.outputs.skipped || '0' }}" >> $GITHUB_STEP_SUMMARY
