@@ -178,6 +178,13 @@
     title.append(el("span", "fp-banner__flag", "🇪🇺"), document.createTextNode("EU-lager-läge"));
     bar.append(title);
 
+    // "Alla EU (en sida)" — sammanslagen vy via server-API:t. Visar produkter
+    // från ALLA EU-lager i en lista (kringgår AE-söksidans en-land-i-taget-gräns).
+    const allEu = el("button", "fp-chip fp-chip--alleu", "🇪🇺 Alla EU (en sida)");
+    allEu.title = "Visa produkter från ALLA EU-lager i en enda lista (via Fyndplats-API:t)";
+    allEu.onclick = openEuPanel;
+    bar.append(allEu);
+
     if (active && !EU_CODES.has(active)) {
       // Explicit icke-EU-val medan EU-läge är på.
       bar.append(el("span", "fp-banner__msg", `Du visar ett icke-EU-lager (${active}).`));
@@ -220,6 +227,232 @@
 
     if (!existing) document.body.insertBefore(bar, document.body.firstChild);
     bannerEl = bar;
+  }
+
+  // ======================================================================
+  //  "Alla EU" — sammanslagen vy via server-API:t (alla EU-länder, en sida)
+  // ======================================================================
+  // AE:s egen söksida filtrerar bara ETT ship-from-land i taget. Den här vyn går
+  // i stället via Fyndplats-API:t (/api/aliexpress/discover → AliExpress
+  // ds.text.search) som filtrerar EU-lager över ALLA länder och returnerar en
+  // enda lista. Samma bulk-import-pipeline (öppnar AE-sidan, skrapar, importerar)
+  // återanvänds via det delade `selected`-urvalet.
+  let euPanel = null; // { query, sortBy, page, results:[], loading, error, done }
+
+  function bgMessage(payload) {
+    return new Promise((resolve) => {
+      try {
+        chrome.runtime.sendMessage(payload, (res) => {
+          if (chrome.runtime.lastError) return resolve(null);
+          resolve(res);
+        });
+      } catch (_) {
+        resolve(null);
+      }
+    });
+  }
+
+  // Plockar sökordet ur sidan: sökrutan → ?SearchText= → /w|af/<query>.html.
+  function currentSearchQuery() {
+    const input = document.querySelector(
+      'input#search-words, input[name="SearchText"], input[type="search"]',
+    );
+    if (input && input.value && input.value.trim()) return input.value.trim();
+    try {
+      const u = new URL(location.href);
+      const st = u.searchParams.get("SearchText");
+      if (st) return st.trim();
+      const m = u.pathname.match(/\/(?:w|af)\/(?:wholesale-)?([^/]+?)\.html/i);
+      if (m) return decodeURIComponent(m[1]).replace(/[-+]/g, " ").trim();
+    } catch (_) {}
+    return "";
+  }
+
+  const EU_SORTS = [
+    ["orders,desc", "Mest sålda"],
+    ["price,asc", "Pris: lågt → högt"],
+    ["price,desc", "Pris: högt → lågt"],
+    ["evaluate,desc", "Högst betyg"],
+  ];
+  const EU_PAGE_SIZE = 30; // måste matcha pageSize i background.js DISCOVER_EU
+
+  function openEuPanel() {
+    const query = currentSearchQuery();
+    if (!query) {
+      toast("Hittade ingen sökterm på sidan — sök efter något först.", "err");
+      return;
+    }
+    euPanel = { query, sortBy: "orders,desc", page: 0, results: [], loading: false, error: "", done: false };
+    renderBulkBar(); // göm den globala bulk-baren medan panelen är öppen
+    renderEuPanel();
+    loadEuPage(1);
+  }
+
+  function closeEuPanel() {
+    euPanel = null;
+    const b = document.getElementById("fp-eupanel-backdrop");
+    if (b) b.remove();
+    renderBulkBar(); // återställ bulk-baren (speglar ev. kvarvarande urval)
+  }
+
+  async function loadEuPage(page) {
+    if (!euPanel || euPanel.loading) return;
+    euPanel.loading = true;
+    euPanel.error = "";
+    renderEuPanel();
+    const res = await bgMessage({ type: "DISCOVER_EU", query: euPanel.query, sortBy: euPanel.sortBy, page });
+    if (!euPanel) return; // panelen stängdes under tiden
+    euPanel.loading = false;
+    if (!res || !res.ok || !res.data || res.data.ok === false) {
+      euPanel.error =
+        (res && (res.error || (res.data && res.data.error))) ||
+        "Sökningen misslyckades. Appen kanske saknar AliExpress sök-permission — använd " +
+          "annars per-land-filtret ovan, eller klistra in en produkt-URL i popupen.";
+      renderEuPanel();
+      return;
+    }
+    const batch = Array.isArray(res.data.results) ? res.data.results : [];
+    euPanel.page = page;
+    euPanel.results = page <= 1 ? batch : euPanel.results.concat(batch);
+    euPanel.done = batch.length < EU_PAGE_SIZE;
+    renderEuPanel();
+  }
+
+  // Resultat från API:t → bulk-import-item ({id,url,title,thumb}). URL:en pekar
+  // på AE-produktsidan så samma skrap-/import-pipeline som vanligt körs.
+  function euItemFromResult(p) {
+    const id = String(p.productId || "");
+    const url = p.productUrl || `https://www.aliexpress.com/item/${encodeURIComponent(id)}.html`;
+    return { id, url, title: (p.title || "").slice(0, 80), thumb: p.imageUrl || "" };
+  }
+
+  function renderEuPanel() {
+    if (!euPanel) return;
+    let back = document.getElementById("fp-eupanel-backdrop");
+    if (!back) {
+      back = document.createElement("div");
+      back.id = "fp-eupanel-backdrop";
+      back.className = "fp-eupanel-backdrop";
+      back.addEventListener("click", (e) => {
+        if (e.target === back) closeEuPanel();
+      });
+      document.body.appendChild(back);
+    }
+    back.innerHTML = "";
+    const panel = el("div", "fp-eupanel");
+
+    // Header: titel + sortering + stäng
+    const head = el("div", "fp-eupanel__head");
+    const h = el("div", "fp-eupanel__title");
+    h.append(el("span", null, "🇪🇺 Alla EU-lager"), el("span", "fp-eupanel__q", `"${euPanel.query}"`));
+    head.append(h);
+    const sortSel = document.createElement("select");
+    sortSel.className = "fp-eupanel__sort";
+    for (const [v, label] of EU_SORTS) {
+      const o = document.createElement("option");
+      o.value = v;
+      o.textContent = label;
+      if (v === euPanel.sortBy) o.selected = true;
+      sortSel.append(o);
+    }
+    sortSel.onchange = () => {
+      euPanel.sortBy = sortSel.value;
+      euPanel.results = [];
+      euPanel.page = 0;
+      euPanel.done = false;
+      loadEuPage(1);
+    };
+    head.append(sortSel);
+    const close = el("button", "fp-eupanel__close", "✕");
+    close.title = "Stäng";
+    close.onclick = closeEuPanel;
+    head.append(close);
+    panel.append(head);
+
+    panel.append(
+      el(
+        "div",
+        "fp-eupanel__sub",
+        euPanel.error
+          ? ""
+          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · markera och importera`,
+      ),
+    );
+
+    // Body
+    if (euPanel.error) {
+      panel.append(el("div", "fp-eupanel__error", euPanel.error));
+    } else if (euPanel.results.length === 0 && euPanel.loading) {
+      panel.append(el("div", "fp-eupanel__empty", "Söker…"));
+    } else if (euPanel.results.length === 0) {
+      panel.append(el("div", "fp-eupanel__empty", "Inga EU-lager-produkter för denna sökterm."));
+    } else {
+      const grid = el("div", "fp-eupanel__grid");
+      for (const p of euPanel.results) grid.append(renderEuCard(p));
+      panel.append(grid);
+    }
+
+    // Footer: visa fler + importera valda
+    const foot = el("div", "fp-eupanel__foot");
+    if (!euPanel.error && euPanel.results.length > 0 && !euPanel.done) {
+      const more = el("button", "fp-btn-text", euPanel.loading ? "Hämtar…" : "Visa fler");
+      more.disabled = euPanel.loading;
+      more.onclick = () => loadEuPage(euPanel.page + 1);
+      foot.append(more);
+    }
+    foot.append(el("span", "fp-eupanel__spacer"));
+    const importBtn = el("button", "fp-eupanel__import", `Importera valda (${selected.size})`);
+    importBtn.disabled = selected.size === 0;
+    importBtn.onclick = () => {
+      if (selected.size) startBulkImport([...selected.values()]);
+    };
+    foot.append(importBtn);
+    panel.append(foot);
+
+    back.append(panel);
+  }
+
+  function renderEuCard(p) {
+    const info = euItemFromResult(p);
+    const card = el("div", "fp-eucard");
+    if (selected.has(info.id)) card.classList.add("fp-eucard--sel");
+
+    const imgWrap = el("div", "fp-eucard__imgwrap");
+    if (info.thumb) {
+      const img = document.createElement("img");
+      img.src = info.thumb;
+      img.alt = "";
+      imgWrap.append(img);
+    }
+    const codes = p.shipsFromCountries || [];
+    const cls = p.warehouseClass || (codes.some((c) => EU_CODES.has(c)) ? "EU" : "UNKNOWN");
+    const badgeText =
+      cls === "EU"
+        ? `🇪🇺 ${codes.join(", ") || "EU"}`
+        : cls === "MIXED"
+          ? `🇪🇺 Delvis (${codes.join(", ")})`
+          : codes.length
+            ? codes.join(", ")
+            : "okänt lager";
+    imgWrap.append(el("span", "fp-eucard__badge" + (cls === "EU" ? " fp-eucard__badge--eu" : ""), badgeText));
+    card.append(imgWrap);
+
+    card.append(el("div", "fp-eucard__title", info.title));
+    card.append(el("div", "fp-eucard__price", p.priceUsd !== undefined ? `$${Number(p.priceUsd).toFixed(2)}` : "—"));
+
+    const actions = el("div", "fp-eucard__actions");
+    const sel = el("button", "fp-eucard__sel", selected.has(info.id) ? "✓ Vald" : "Markera");
+    sel.onclick = () => {
+      if (selected.has(info.id)) selected.delete(info.id);
+      else selected.set(info.id, info);
+      renderEuPanel();
+    };
+    const imp = el("button", "fp-eucard__imp", "Importera");
+    imp.title = "Importera bara denna nu";
+    imp.onclick = () => startBulkImport([info]);
+    actions.append(sel, imp);
+    card.append(actions);
+    return card;
   }
 
   // ======================================================================
@@ -336,6 +569,13 @@
   //  Sticky bottom-bar
   // ======================================================================
   function renderBulkBar() {
+    // Medan "Alla EU"-panelen är öppen sköter dess egen footer importen — göm
+    // den globala bulk-baren så de inte överlappar.
+    if (euPanel) {
+      const open = document.getElementById("fp-bulkbar");
+      if (open) open.remove();
+      return;
+    }
     let bar = document.getElementById("fp-bulkbar");
     if (selected.size === 0) {
       if (bar) bar.remove();
@@ -513,6 +753,7 @@
     } else if (failCount) {
       toast(`Inga importerades (${failCount} misslyckades). Se modalen.`, "err");
     }
+    if (euPanel) renderEuPanel(); // uppdatera "Importera valda (N)" + vald-status
   }
 
   function clearSelectionVisual() {

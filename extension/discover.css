@@ -266,3 +266,112 @@
 .fp-toast--ok { background: var(--fp-green); }
 .fp-toast--err { background: #b00020; }
 .fp-toast a { color: #fff; text-decoration: underline; }
+
+/* --- "Alla EU"-knapp i banneret -------------------------------------- */
+.fp-chip--alleu {
+  background: var(--fp-orange) !important;
+  color: #fff !important;
+  border-color: var(--fp-orange) !important;
+  font-weight: 800 !important;
+}
+.fp-chip--alleu:hover { background: var(--fp-orange-dark) !important; }
+
+/* --- "Alla EU"-overlay-panel ----------------------------------------- */
+.fp-eupanel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000; /* under progress-modalen (100001) + toast (100002) */
+  background: rgba(17, 24, 39, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.fp-eupanel {
+  background: #fff;
+  width: min(1100px, 94vw);
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.fp-eupanel__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+.fp-eupanel__title { font-size: 17px; font-weight: 800; color: #111827; display: flex; gap: 8px; align-items: baseline; }
+.fp-eupanel__q { font-size: 13px; font-weight: 600; color: #6b7280; }
+.fp-eupanel__sort {
+  margin-left: auto;
+  font-size: 13px;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.fp-eupanel__close {
+  font-size: 18px; line-height: 1; color: #6b7280; background: #f3f4f6;
+  border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer;
+}
+.fp-eupanel__close:hover { background: #e5e7eb; }
+.fp-eupanel__sub { padding: 10px 20px 0; font-size: 12px; color: #6b7280; }
+.fp-eupanel__error {
+  margin: 18px 20px; padding: 14px 16px; border-radius: 10px;
+  background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-size: 13px; line-height: 1.5;
+}
+.fp-eupanel__empty { padding: 40px 20px; text-align: center; color: #9ca3af; font-size: 14px; }
+.fp-eupanel__grid {
+  padding: 14px 20px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+.fp-eucard {
+  border: 2px solid #eef0f2;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  transition: border-color 0.12s;
+}
+.fp-eucard--sel { border-color: var(--fp-orange); }
+.fp-eucard__imgwrap { position: relative; aspect-ratio: 1; background: #f6f7f8; }
+.fp-eucard__imgwrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fp-eucard__badge {
+  position: absolute; left: 6px; bottom: 6px;
+  font-size: 10px; font-weight: 700; color: #374151;
+  background: rgba(255, 255, 255, 0.92); padding: 2px 6px; border-radius: 6px;
+}
+.fp-eucard__badge--eu { background: var(--fp-green-bg); color: var(--fp-green); }
+.fp-eucard__title {
+  font-size: 12px; color: #374151; padding: 8px 10px 0; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.fp-eucard__price { font-size: 14px; font-weight: 800; color: #111827; padding: 4px 10px 8px; }
+.fp-eucard__actions { display: flex; gap: 6px; padding: 0 10px 10px; margin-top: auto; }
+.fp-eucard__sel, .fp-eucard__imp {
+  flex: 1; font-size: 12px; font-weight: 700; border-radius: 8px; padding: 7px 0; cursor: pointer; border: none;
+}
+.fp-eucard__sel { background: #f3f4f6; color: #374151; }
+.fp-eucard--sel .fp-eucard__sel { background: var(--fp-green-bg); color: var(--fp-green); }
+.fp-eucard__imp { background: var(--fp-orange); color: #fff; }
+.fp-eucard__imp:hover { background: var(--fp-orange-dark); }
+.fp-eupanel__foot {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px; border-top: 1px solid #eee;
+}
+.fp-eupanel__spacer { flex: 1 1 auto; }
+.fp-eupanel__import {
+  font-size: 14px; font-weight: 800; color: #fff; background: var(--fp-orange);
+  border: none; border-radius: 10px; padding: 10px 20px; cursor: pointer;
+}
+.fp-eupanel__import:hover { background: var(--fp-orange-dark); }
+.fp-eupanel__import:disabled { background: #d1d5db; cursor: not-allowed; }
