@@ -60,7 +60,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     name: p.name,
     sku: p.id,
     image: p.gallery.length ? p.gallery : [p.img],
-    description: p.blurb,
+    // Samma preferens som meta-descriptionen ovan: kuraterad Wix-SEO när den
+    // finns, annars blurb — så strukturerad data och snippet matchar.
+    description: p.seoDescription || p.blurb,
     brand: { "@type": "Brand", name: "Fyndplats" },
     offers: {
       "@type": "Offer",
