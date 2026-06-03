@@ -27,7 +27,7 @@ import path from "node:path";
 export const runtime = "nodejs";
 export const maxDuration = 300; // sek; detection kan ta tid.
 
-const WHITE_THRESHOLD = 240;
+const WHITE_THRESHOLD = 248;
 const PADDING_PCT = 6;
 const SKIP_MARGIN_PCT = 25;
 const MIN_MARGIN_PCT = 3;

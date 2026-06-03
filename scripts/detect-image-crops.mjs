@@ -44,7 +44,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
-const WHITE_THRESHOLD = 240; // 0–255 per kanal. <240 räknas som "innehåll".
+const WHITE_THRESHOLD = 248; // 0–255 per kanal. <240 räknas som "innehåll".
 const PADDING_PCT = 6;       // padding kring innehållet (per kant av crop-bredd).
 const SKIP_MARGIN_PCT = 25;  // >25 % margin på någon kant → skip.
 const MIN_MARGIN_PCT = 3;    // <3 % margin på alla kanter → behåll original.
