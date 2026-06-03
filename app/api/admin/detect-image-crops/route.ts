@@ -100,15 +100,12 @@ function bboxToCrop(
   const minMargin = Math.min(margins.top, margins.right, margins.bottom, margins.left);
   const cx = (left + right) / 2;
   const cy = (top + bottom) / 2;
-  // baseSize: vi behåller `min(contentW, contentH)` så cropet fyller hela rutan
-  // även när innehållet är högt-och-smalt eller brett-och-lågt (t.ex. Gua Sha-
-  // bilder där content är ~5×8 cm i ett 800×800-foto med vit padding).
-  // Tidigare `max` gjorde att den 1:1-snappade siden = långsidan av content,
-  // vilket inkluderar all vit padding på kortsidan → bilden ser liten ut i
-  // .gmain-containern. `min` skär in i den långa dimensionen (t.ex. klipper
-  // bort mätpilarna ovan/under stenen) men ger en bild som fyller frame:n.
-  // Bug 2026-06-03: Leonards observation att Gua Sha-bilden inte fyllde rutan.
-  const baseSize = Math.min(contentW, contentH);
+  // baseSize = max(contentW, contentH): 1:1-cropet täcker hela bbox utan att
+  // klippa in i innehållet. För tall-narrow eller wide-flat content blir det
+  // vit padding på kortsidan — det är acceptabelt jämfört med att klippa
+  // bort delar av produkten. Försök med `min` reverterad 2026-06-03 efter att
+  // Leonard rapporterade att Gua Sha-stenen blev avklippt i toppen.
+  const baseSize = Math.max(contentW, contentH);
   const padFactor = 1 + 2 * (PADDING_PCT / 100);
   let side = Math.round(baseSize * padFactor);
   side = Math.min(side, ow, oh);
