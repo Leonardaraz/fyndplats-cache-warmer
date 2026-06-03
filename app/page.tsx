@@ -202,6 +202,7 @@ export default async function Home() {
                       src={tightFillUrl(p.img, 800, 800)}
                       alt={p.name}
                       fill
+                      unoptimized
                       preload
                       fetchPriority={i === 0 ? "high" : undefined}
                       placeholder="blur"
@@ -215,7 +216,7 @@ export default async function Home() {
               <div className="mcol mcol-offset">
                 {heroProducts.slice(2, 4).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
-                    <Image src={tightFillUrl(p.img, 800, 800)} alt={p.name} fill preload placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
+                    <Image src={tightFillUrl(p.img, 800, 800)} alt={p.name} fill unoptimized preload placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
                     {p.price && <span className="htag">{p.price}</span>}
                   </a>
                 ))}
@@ -255,6 +256,7 @@ export default async function Home() {
                             src={tightFillUrl(c.thumbs[i], 280, 280)}
                             alt=""
                             fill
+                            unoptimized
                             placeholder="blur"
                             blurDataURL={SHIMMER_BLUR}
                             sizes="(max-width:380px) 25vw, (max-width:880px) 12vw, 140px"
