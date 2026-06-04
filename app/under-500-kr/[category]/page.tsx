@@ -3,7 +3,7 @@ import { priceTierStaticParams, priceTierMetadata, PriceTierPage } from "../../.
 
 const PRICE = 500;
 
-export const revalidate = 86400; // 24h ISR
+export const revalidate = 3600; // 1h ISR (i takt med sitemapen + start/kategori)
 // dynamicParams=true: resolvern (samma tierCore-guard som sitemap-listan) är ENDA
 // sanningskällan. Se kommentaren i basta-i-test/[type]/page.tsx — frusna build-tids-
 // params drev isär från den ~timvis regenererade sitemapen och gav 404 i sitemap.
