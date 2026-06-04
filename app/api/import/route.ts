@@ -4,6 +4,7 @@ import { isAuthorized } from "@/lib/auth";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { importProduct } from "@/lib/import/pipeline";
 import { getInventory } from "@/lib/aliexpress/client";
+import { optionComboKey } from "@/lib/import/variant-stock";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
@@ -209,16 +210,30 @@ export async function POST(req: Request) {
       const inv = await getInventory(product.supplierProductId);
       if (inv.length) {
         const bySku = new Map(inv.map((i) => [String(i.skuId), i.stock]));
+        // Fallback-matchning på optionskombination (färg/storlek). AE laddar inte
+        // längre SKU-id i sidan → skrapan sätter "idx-N" → skuId-matchningen ger
+        // 0 träffar → allt fick fallback-lager 10 (bug 2026-06-04). Kombo-nyckeln
+        // delas av båda källor och räddar de variant som skuId missar.
+        const byCombo = new Map<string, number>();
+        for (const i of inv) {
+          const key = optionComboKey(i.skuProps);
+          if (key && !byCombo.has(key)) byCombo.set(key, i.stock);
+        }
         let matched = 0;
+        let viaCombo = 0;
         for (const v of product.variants) {
-          const real = bySku.get(String(v.supplierVariantId));
+          let real = bySku.get(String(v.supplierVariantId));
+          if (typeof real !== "number") {
+            real = byCombo.get(optionComboKey(v.options));
+            if (typeof real === "number") viaCombo++;
+          }
           if (typeof real === "number") {
             v.stock = real;
             matched++;
           }
         }
         console.log(
-          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade`,
+          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade (varav ${viaCombo} via optionskombo)`,
         );
       }
     } catch (e) {

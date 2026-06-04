@@ -28,3 +28,26 @@ export function resolveImportStockQty(
   // Saknas data - gissa "i lager" via fallback.
   return Math.max(0, Math.trunc(fallbackQty));
 }
+
+/**
+ * Stabil nyckel for att matcha en variant mellan skrapan och DS-API:t nar
+ * skuId saknas eller skiljer sig.
+ *
+ * Bug 2026-06-04: AliExpress laddar inte langre SKU-datan i sjalva sidan, sa
+ * skrapan (content.js) far inget skuId och faller tillbaka pa "idx-N". DS-API:t
+ * returnerar dock riktiga skuId, sa `bySku`-matchningen gav 0 traffar och varje
+ * variant fick fallback-lagret 10. Vi matchar darfor pa optionsVARDENA (t.ex.
+ * {Color:"Red",Size:"M"} -> "m|red") som bada kallor delar. Vardena, inte
+ * namnen, sa sma namnskillnader mellan endpoints inte spelar roll. Unikt per
+ * variant (varje variant ar en unik kombination), sa ingen kollisionsrisk.
+ *
+ * Ren funktion - inga sidoeffekter, fullt enhetstestbar.
+ */
+export function optionComboKey(options: Record<string, string> | undefined): string {
+  if (!options) return "";
+  return Object.values(options)
+    .map((v) => String(v).trim().toLowerCase())
+    .filter((v) => v.length > 0)
+    .sort()
+    .join("|");
+}

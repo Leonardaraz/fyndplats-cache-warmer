@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveImportStockQty } from "./variant-stock";
+import { optionComboKey, resolveImportStockQty } from "./variant-stock";
 
 describe("resolveImportStockQty", () => {
   it("anvander skrapans per-variant-saldo nar det ar > 0", () => {
@@ -33,5 +33,41 @@ describe("resolveImportStockQty", () => {
   it("i lager (true) beter sig som default", () => {
     expect(resolveImportStockQty(50, 10, true)).toBe(50);
     expect(resolveImportStockQty(undefined, 10, true)).toBe(10);
+  });
+});
+
+// Bug 2026-06-04: AE laddar inte langre SKU-id i sidan -> skrapan satter "idx-N"
+// -> skuId-matchningen mot DS-API gav 0 traffar -> allt fick fallback 10. Vi
+// matchar nu pa optionsVARDENA, som bada kallor delar.
+describe("optionComboKey", () => {
+  it("bygger en sorterad, normaliserad nyckel av optionsvardena", () => {
+    expect(optionComboKey({ Color: "Red", Size: "M" })).toBe("m|red");
+  });
+
+  it("ar oberoende av nyckelordning (skrapan vs DS-API kan skilja)", () => {
+    const scraped = optionComboKey({ Size: "M", Color: "Red" });
+    const dsApi = optionComboKey({ Color: "Red", Size: "M" });
+    expect(scraped).toBe(dsApi);
+  });
+
+  it("ar oberoende av optionsNAMN — matchar pa varden", () => {
+    // Skrapan kan kalla axeln "Färg", DS-API "Color" — vardet "Red" delas.
+    expect(optionComboKey({ "Färg": "Red" })).toBe(optionComboKey({ Color: "Red" }));
+  });
+
+  it("normaliserar skiftlage och blanksteg", () => {
+    expect(optionComboKey({ Color: "  RED  " })).toBe("red");
+  });
+
+  it("hoppar over tomma varden och hanterar tomt/undefined", () => {
+    expect(optionComboKey({ Color: "Red", Ships: "" })).toBe("red");
+    expect(optionComboKey({})).toBe("");
+    expect(optionComboKey(undefined)).toBe("");
+  });
+
+  it("ger distinkta nycklar for distinkta kombinationer", () => {
+    const red = optionComboKey({ Color: "Red", Size: "M" });
+    const blue = optionComboKey({ Color: "Blue", Size: "M" });
+    expect(red).not.toBe(blue);
   });
 });

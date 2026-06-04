@@ -503,12 +503,15 @@ export async function getTracking(tradeOrderId: string): Promise<DsTrackingResul
 
 export async function getInventory(
     productId: string,
-  ): Promise<{ skuId: string; price: number; stock: number }[]> {
+  ): Promise<{ skuId: string; price: number; stock: number; skuProps: Record<string, string> }[]> {
     const product = await getProduct(productId);
     return product.variants.map((v) => ({
           skuId: v.skuId,
           price: v.price,
           stock: v.stock ?? 0,
+          // skuProps följer med så importen kan matcha lager på optionskombination
+          // när skrapan tappar skuId (AE laddar inte längre SKU-data i sidan).
+          skuProps: v.skuProps ?? {},
     }));
 }
 
