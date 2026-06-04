@@ -85,8 +85,16 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     "Content-Type": "application/json",
     ...(site ? { "wix-site-id": site } : {}),
   };
+  // E1-härdning: union av default-namnen OCH ev. WIX_DATA_COL_*-override:r, så vi
+  // skapar exakt de namn koden faktiskt slår upp — oavsett om du satt egna.
+  const names = new Set<string>(COLLECTIONS);
+  for (const [k, v] of Object.entries(process.env)) {
+    if (k.startsWith("WIX_DATA_COL_") && typeof v === "string" && v.trim()) {
+      names.add(v.trim());
+    }
+  }
   const results: Result[] = [];
-  for (const id of COLLECTIONS) {
+  for (const id of names) {
     try {
       results.push(await ensure(id, headers));
     } catch (e) {
