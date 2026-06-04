@@ -43,13 +43,16 @@ const nextConfig: NextConfig = {
       { source: "/products/:slug", destination: "/produkt/:slug", permanent: true },
 
       // Gamla Wix-kategori-URL:er → headless /kategori/[slug].
-      // "Sport & Fritid" och "Skönhet & Hälsa" finns inte som egna kategorier
-      // i V3-katalogen — närmaste matchning är Friluftsliv & Resa resp. Hudvård & Ansikte.
-      { source: "/elektronik", destination: "/kategori/elektronik", permanent: true },
+      // Slugs verifierade mot V3-katalogens faktiska huvudkategorier (2026-06-04).
+      // Tidigare pekade /elektronik och /kok-och-matlagning på slugs som 404:ade
+      // (elektronik / kok-matlagning finns inte — rätt är elektronik-tillbehor /
+      // kok-husgerad), och Sport/Skönhet pekade på underkategorier trots att
+      // huvudkategorierna numera finns (sport-fritid / skonhet-halsa).
+      { source: "/elektronik", destination: "/kategori/elektronik-tillbehor", permanent: true },
       { source: "/hem-och-inredning", destination: "/kategori/hem-inredning", permanent: true },
-      { source: "/kok-och-matlagning", destination: "/kategori/kok-matlagning", permanent: true },
-      { source: "/sport-och-fritid", destination: "/kategori/friluftsliv-resa", permanent: true },
-      { source: "/skonhet-och-halsa", destination: "/kategori/hudvard-ansikte", permanent: true },
+      { source: "/kok-och-matlagning", destination: "/kategori/kok-husgerad", permanent: true },
+      { source: "/sport-och-fritid", destination: "/kategori/sport-fritid", permanent: true },
+      { source: "/skonhet-och-halsa", destination: "/kategori/skonhet-halsa", permanent: true },
       { source: "/mode-och-accessoarer", destination: "/kategori/mode-accessoarer", permanent: true },
       { source: "/smycken", destination: "/kategori/smycken", permanent: true },
       { source: "/husdjur", destination: "/kategori/husdjur", permanent: true },
