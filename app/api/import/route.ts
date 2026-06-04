@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isAuthorized } from "@/lib/auth";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { importProduct } from "@/lib/import/pipeline";
+import { getInventory } from "@/lib/aliexpress/client";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
@@ -197,6 +198,34 @@ export async function POST(req: Request) {
     // Smart routing: /api/import är extension-knappen (UX-blockerande) → ALLTID
     // realtid, oavsett USE_BATCH_API. Loggas per import för spårbarhet/verifiering.
     console.log(`[import] ${describeRouting("extension")} pid=${product.supplierProductId}`);
+    // Riktigt per-variant-lager från AliExpress DS-API. AliExpress visar inte
+    // längre lagersaldo i själva sidan (hämtas via XHR till React-state), så
+    // skrapan (content.js) får sällan något → pipelinen föll tillbaka på standard
+    // 10. Vi hämtar därför det FAKTISKA lagret server-side och skriver över
+    // v.stock innan pipelinen (resolveImportStockQty använder det). Best-effort +
+    // fail-open: misslyckas DS-anropet (saknad token/permission/nät) behålls
+    // skrapans värde och beteendet blir som förut.
+    try {
+      const inv = await getInventory(product.supplierProductId);
+      if (inv.length) {
+        const bySku = new Map(inv.map((i) => [String(i.skuId), i.stock]));
+        let matched = 0;
+        for (const v of product.variants) {
+          const real = bySku.get(String(v.supplierVariantId));
+          if (typeof real === "number") {
+            v.stock = real;
+            matched++;
+          }
+        }
+        console.log(
+          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade`,
+        );
+      }
+    } catch (e) {
+      console.warn(
+        `[import:stock] DS-lagerhämtning misslyckades pid=${product.supplierProductId}: ${(e as Error).message}`,
+      );
+    }
     // Premium-läget (komponent 4): mata in de skrapade recensionerna i FAQ-
     // genereringen så frågorna grundas i vad kunder faktiskt undrat. Best-effort.
     const premiumReviewHints =
