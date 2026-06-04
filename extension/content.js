@@ -1489,39 +1489,3 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
   return true;
 });
-esult.variants = [{ supplierVariantId: "default", options: {}, costUsd: 0, included: true }];
-  }
-
-  // --- Kvalitetsbedömning ------------------------------------------------
-  const titleOk = result.rawTitle.length >= 10 && !/fyndplats/i.test(result.rawTitle);
-  const imagesOk = result.imageUrls.length >= 1;
-  const priceOk = result.variants.some((v) => Number(v.costUsd) > 0);
-  result.quality = {
-    hasTitle: titleOk,
-    hasImages: imagesOk,
-    hasPrice: priceOk,
-    hasRealVariants,
-  };
-  result.extractionOk = titleOk && imagesOk && priceOk;
-
-  if (!result.extractionOk) {
-    const missing = [];
-    if (!titleOk) missing.push("titel");
-    if (!imagesOk) missing.push("bild");
-    if (!priceOk) missing.push("pris");
-    result._warnings.push(`Otillräcklig produktdata (saknar: ${missing.join(", ")}).`);
-  }
-
-  return result;
-}
-
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg && msg.type === "EXTRACT_PRODUCT") {
-    try {
-      sendResponse({ ok: true, product: extract() });
-    } catch (err) {
-      sendResponse({ ok: false, error: String(err) });
-    }
-  }
-  return true;
-});
