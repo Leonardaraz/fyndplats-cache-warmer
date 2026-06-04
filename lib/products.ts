@@ -5,6 +5,7 @@ import { categories as wixCategories } from "@wix/categories";
 import local from "../products.json";
 import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
+import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 
 export type Product = {
   id: string;
@@ -141,8 +142,13 @@ function mapProduct(p: any): Product {
     .filter(Boolean);
   const specsSection = ((p.additionalInfoSections) || []).find((s: any) => /specifikation/i.test(s.title || ""));
   const firstP = (p.description || "").match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+  // label är endast för VISNING (cart/PDP matchar på v.id, inte på texten), så
+  // vi översätter varje choice-värde till svenska direkt här. Se lib/option-i18n.
   const variants = ((p.variants) || [])
-    .map((v: any) => ({ id: v._id, label: Object.values(v.choices || {}).join(" / ") || "Standard" }))
+    .map((v: any) => ({
+      id: v._id,
+      label: Object.values(v.choices || {}).map((x: any) => swedishChoiceValue(String(x))).join(" / ") || "Standard",
+    }))
     .filter((v: any) => v.id);
   // Pris-spann → "Från X kr" på kort/listor när varianter har OLIKA pris.
   // queryProducts() lämnar p.priceRange tomt ({}) för de allra flesta produkter
@@ -342,6 +348,12 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
               if (byVal[ch.label]) ch.image = byVal[ch.label];
             }
           }
+          // SIST, efter ALL intern matchning (variantId/colorOf i extractOptions)
+          // och bildhydrering ovan (som matchar på det engelska RÅvärdet): byt
+          // ut visnings­etiketterna mot svenska. Wix låser choice-värdena, så
+          // detta är enda säkra vägen att visa svenska. Se lib/option-i18n.
+          for (const ch of prod.options.choices) ch.label = swedishChoiceValue(ch.label);
+          prod.options.name = swedishOptionName(prod.options.name);
         }
         return prod;
       }
