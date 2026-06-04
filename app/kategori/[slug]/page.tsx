@@ -98,7 +98,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
     numberOfItems: list.length,
     mainEntity: {
       "@type": "ItemList",
-      numberOfItems: list.length,
+      // numberOfItems måste matcha antalet faktiskt uppräknade itemListElement
+      // (vi kapar till 50), annars är ItemList:en internt inkonsistent och Google
+      // kan ignorera den. CollectionPage-nivåns numberOfItems ovan = hela katalogen.
+      numberOfItems: Math.min(list.length, 50),
       itemListElement: list.slice(0, 50).map((p, i) => ({
         "@type": "ListItem",
         position: i + 1,
