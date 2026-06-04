@@ -352,6 +352,21 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         body: JSON.stringify({ taskId: msg.taskId }),
       }).then(sendResponse);
       return true;
+    case "DISCOVER_EU":
+      // "Alla EU" — söker via serverns AliExpress-API (ds.text.search) och
+      // filtrerar EU-lager över ALLA länder i en lista. Kringgår AE-söksidans
+      // begränsning (?shpf_co tar bara ett land i taget).
+      apiCall("/api/aliexpress/discover", {
+        method: "POST",
+        body: JSON.stringify({
+          query: msg.query,
+          sortBy: msg.sortBy || "orders,desc",
+          page: msg.page || 1,
+          pageSize: 30,
+          euOnly: true,
+        }),
+      }).then(sendResponse);
+      return true;
     default:
       return;
   }
