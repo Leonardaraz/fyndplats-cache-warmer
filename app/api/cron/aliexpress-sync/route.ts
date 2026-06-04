@@ -64,6 +64,10 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     const pricing = pricingConfigFromEnv();
     const dryRun = (process.env.SYNC_DRY_RUN ?? "true").toLowerCase() !== "false";
     const maxApiCalls = numberFromEnv("SYNC_MAX_API_CALLS", DEFAULT_MAX_API_CALLS_PER_RUN);
+    // Stanna ~30s under cronens maxDuration (300s) så rapporten + mejlet hinner
+    // skickas i stället för att Vercel dödar funktionen mitt i loopen. Gör
+    // SYNC_MAX_API_CALLS=1000 säkert (tidsbudgeten blir den verkliga gränsen).
+    const timeBudgetMs = numberFromEnv("SYNC_TIME_BUDGET_MS", 270_000);
     const marginFloorPercent = numberFromEnv(
       "SYNC_MARGIN_FLOOR_PERCENT",
       DEFAULT_MARGIN_FLOOR_PERCENT,
@@ -80,6 +84,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
       pricing,
       dryRun,
       maxApiCalls,
+      timeBudgetMs,
       marginFloorPercent,
       baseUrl,
       opsAlertEmail: opsEmailForAlerts,

@@ -270,6 +270,14 @@ export interface RunDailySyncOptions {
   baseUrl: string;
   /** Mottagare för real-tids-OOS-larm (Feature 2). Saknas = inga larm skickas. */
   opsAlertEmail?: string;
+  /**
+   * Vägg-klocka-budget i ms. Loopen stannar SNYGGT innan denna nås (resten
+   * räknas som skipped och plockas av nästa körning), så att cronens hårda
+   * maxDuration (300s) aldrig dödar funktionen mitt i — då skulle rapporten +
+   * mejlet utebli. Gör det säkert att sätta ett högt SYNC_MAX_API_CALLS (t.ex.
+   * 1000): tidsbudgeten blir den verkliga gränsen per körning. Default 270s.
+   */
+  timeBudgetMs?: number;
 }
 
 export interface SyncSummary {
@@ -377,8 +385,20 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   });
 
   let apiCallsUsed = 0;
+  // Vägg-klocka-budget: stanna innan cronens 300s-deadline dödar funktionen.
+  // Kollas FÖRE varje produkt → avbryter aldrig en pågående lager-skrivning.
+  const loopStart = Date.now();
+  const timeBudgetMs = opts.timeBudgetMs ?? 270_000;
 
+  let processedIdx = 0;
   for (const { mapping, state } of states) {
+    if (Date.now() - loopStart > timeBudgetMs) {
+      // Resten hinns inte denna körning — räknas som skipped, tas av nästa
+      // cron (de har äldst lastCheckedAt → hamnar först i sorteringen).
+      summary.skipped += states.length - processedIdx;
+      break;
+    }
+    processedIdx++;
     if (apiCallsUsed >= opts.maxApiCalls) {
       summary.skipped++;
       continue;
