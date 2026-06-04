@@ -1516,9 +1516,19 @@ async function enrichDescription(product) {
   try {
     const url = findDescriptionUrl();
     if (!url) return;
-    const resp = await chrome.runtime.sendMessage({ type: "FETCH_DESCRIPTION", url });
+    // F3: klient-timeout så importen aldrig blockeras om workern inte svarar.
+    const resp = await Promise.race([
+      chrome.runtime.sendMessage({ type: "FETCH_DESCRIPTION", url }),
+      new Promise((r) => setTimeout(() => r(null), 10000)),
+    ]);
     if (!resp || !resp.ok || !resp.html) return;
-    const full = sanitizeDescriptionHtml(resp.html);
+    // F4: description-URL:en ger ibland ett HELT HTML-dokument — släng doctype/
+    // <head> och html/body-wrappers så vi inte får in <title>/<meta>-skräp.
+    const stripped = String(resp.html)
+      .replace(/<!doctype[^>]*>/gi, "")
+      .replace(/<head[\s\S]*?<\/head>/gi, "")
+      .replace(/<\/?(?:html|body)[^>]*>/gi, "");
+    const full = sanitizeDescriptionHtml(stripped);
     if (full && full.length > (product.descriptionHtml || "").length) {
       product.descriptionHtml = full;
     }

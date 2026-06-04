@@ -305,11 +305,26 @@ async function sampleSwatchColors(swatchImages) {
 // timeout så en seg/blockerad fetch aldrig hänger importen.
 async function fetchDescriptionHtml(url) {
   try {
-    if (!url || !/^https?:\/\//i.test(url)) return { ok: false };
+    if (!url) return { ok: false };
+    // F1: normalisera protokoll-relativ URL (//host/…) → https.
+    let u = String(url).trim();
+    if (u.startsWith("//")) u = "https:" + u;
+    if (!/^https?:\/\//i.test(u)) return { ok: false };
+    // F2 (säkerhet): URL:en kommer från sidan — hämta BARA från AliExpress/
+    // alicdn (matchar host_permissions). Vägra godtyckliga värdar.
+    let host = "";
+    try {
+      host = new URL(u).hostname;
+    } catch (_) {
+      return { ok: false };
+    }
+    if (!/(^|\.)(alicdn\.com|aliexpress\.com|aliexpress\.us)$/i.test(host)) {
+      return { ok: false };
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
     try {
-      const res = await fetch(url, { credentials: "omit", signal: controller.signal });
+      const res = await fetch(u, { credentials: "omit", signal: controller.signal });
       if (!res.ok) return { ok: false };
       const html = await res.text();
       return { ok: true, html };
