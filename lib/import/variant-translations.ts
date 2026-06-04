@@ -213,8 +213,6 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   pig: "Gris",
   crocodile: "Krokodil",
   duck: "Anka",
-  dinosaur: "Dinosaurie",
-  bear: "Björn",
 
   // --- Mat / smaker ---
   doughnut: "Munk",
@@ -260,7 +258,6 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   "random color 1 pc": "Slumpmässig färg, 1 st",
   // färgnyanser / beskrivande som inte redan finns ovan
   long: "Lång",
-  short: "Kort",
   "deep blue": "Mörkblå",
   skyblue: "Himmelsblå",
   "rose red": "Rosenröd",
@@ -316,8 +313,10 @@ export function translateValue(raw: string): string {
     })
     .join("");
   if (!touched) return trimmed;
-  // Versalisera första bokstaven (bindeord i tabellen är gemena: "med", "och").
-  return out.charAt(0).toUpperCase() + out.slice(1);
+  // Normalisera ev. dubbla mellanslag (rörig AE-data) och versalisera första
+  // bokstaven (bindeord i tabellen är gemena: "med", "och").
+  const norm = out.replace(/\s+/g, " ").trim();
+  return norm.charAt(0).toUpperCase() + norm.slice(1);
 }
 
 /**
