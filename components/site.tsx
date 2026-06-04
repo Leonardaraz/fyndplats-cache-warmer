@@ -91,7 +91,7 @@ export async function SiteFooter() {
         <div>
           <div className="fbrand"><Mark size={30} />Fyndplats</div>
           <p style={{ fontSize: 14, color: "#a39c93", maxWidth: "30ch" }}>Trygg svensk e-handel med ett brett sortiment till låga priser.</p>
-          <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">4,9</b> <span className="star">★★★★★</span> <span className="g-count">(21 omdömen)</span></div>
+          <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">4,9</b> <span className="star">★★★★★</span> <span className="g-count">(22 omdömen)</span></div>
           {trustpilotBU && (
             <TrustBox
               businessUnitId={trustpilotBU}
