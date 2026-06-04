@@ -36,7 +36,7 @@ export function ProductCard({ p }: { p: Product }) {
           <Image
             className="pimg-alt"
             src={tightFillUrl(altImg, 600, 600)}
-            alt=""
+            alt={p.name}
             fill
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
             style={{ objectFit: "cover" }}
