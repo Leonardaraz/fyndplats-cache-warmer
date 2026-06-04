@@ -53,6 +53,37 @@ describe("translateValue", () => {
     expect(translateValue("F2025-Sverige")).toBe("F2025-Sverige");
     expect(translateValue("Unicorn")).toBe("Unicorn");
   });
+
+  it("översätter ALLA kända ord token-vis, inte bara det första", () => {
+    expect(translateValue("Black with LED")).toBe("Svart med LED");
+    expect(translateValue("Black without LED")).toBe("Svart utan LED");
+    expect(translateValue("33-Grey")).toBe("33-Grå"); // bindestreck bevaras
+    expect(translateValue("B6AC Blue")).toBe("B6AC Blå"); // kod-prefix orört
+  });
+
+  it("översätter djur, instrument och kontakttyper", () => {
+    expect(translateValue("Lion")).toBe("Lejon");
+    expect(translateValue("Rabbit")).toBe("Kanin");
+    expect(translateValue("EU Plug")).toBe("EU-kontakt");
+    expect(translateValue("Touchscreen model")).toBe("Pekskärmsmodell");
+  });
+
+  it("lämnar modellnamn, berlock-text och koder orörda", () => {
+    expect(translateValue("iPhone 15 Pro")).toBe("iPhone 15 Pro");
+    expect(translateValue("LOVE")).toBe("LOVE");
+    expect(translateValue("KM-6631")).toBe("KM-6631");
+    expect(translateValue("KID110")).toBe("KID110");
+    expect(translateValue("Care Bear")).toBe("Care Bear"); // 'bear' översätts ej
+  });
+
+  it("full paritet med storefront-ordboken på sammansatta fraser", () => {
+    expect(translateValue("Army Green")).toBe("Armégrön");
+    expect(translateValue("Sky Blue")).toBe("Himmelsblå");
+    expect(translateValue("Type-C to USB-A")).toBe("Type-C till USB-A");
+    expect(translateValue("Gym with Tent")).toBe("Gym med tält");
+    expect(translateValue("5pc Sets 3")).toBe("5-delars set 3");
+    expect(translateValue("Squirrel Maracas")).toBe("Maracas, ekorre");
+  });
 });
 
 describe("translateVariantOptions", () => {
