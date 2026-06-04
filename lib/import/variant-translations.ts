@@ -189,6 +189,84 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   // Sverige-tema (dyker upp i AE-titlar för svenska butiker)
   sweden: "Sverige",
   swedish: "Svensk",
+
+  // --- Sammanbindande ord (för token-vis översättning av sammansatta värden,
+  //     t.ex. "Black with LED" → "Svart med LED") ---
+  with: "med",
+  without: "utan",
+  and: "och",
+
+  // --- Djur (vanliga i barn-/husdjursprodukter) ---
+  lion: "Lejon",
+  elephant: "Elefant",
+  rabbit: "Kanin",
+  bunny: "Kanin",
+  tiger: "Tiger",
+  cow: "Ko",
+  penguin: "Pingvin",
+  fox: "Räv",
+  squirrel: "Ekorre",
+  skunk: "Skunk",
+  raccoon: "Tvättbjörn",
+  koala: "Koala",
+  monkey: "Apa",
+  pig: "Gris",
+  crocodile: "Krokodil",
+  duck: "Anka",
+  dinosaur: "Dinosaurie",
+  bear: "Björn",
+
+  // --- Mat / smaker ---
+  doughnut: "Munk",
+  donut: "Munk",
+  watermelon: "Vattenmelon",
+  carrot: "Morot",
+  bone: "Ben",
+  soymilk: "Sojamjölk",
+  "lychee berry": "Litchibär",
+  "chestnut cocoa": "Kastanj & kakao",
+  "green grape": "Gröna druvor",
+  "sesame bean": "Sesam & böna",
+  "sea salt coconut": "Havssalt & kokos",
+  "chicken leg": "Kycklingben",
+
+  // --- Instrument ---
+  trumpet: "Trumpet",
+  maracas: "Maracas",
+  castanets: "Kastanjetter",
+  xylophone: "Xylofon",
+  drum: "Trumma",
+
+  // --- Kontakttyper (värden) ---
+  "eu plug": "EU-kontakt",
+  "us plug": "USA-kontakt",
+  "uk plug": "UK-kontakt",
+  "au plug": "AU-kontakt",
+
+  // --- Övriga vanliga engelska värden / fraser ---
+  camera: "Kamera",
+  cloud: "Moln",
+  camouflage: "Kamouflage",
+  "touchscreen model": "Pekskärmsmodell",
+  "baby monitor": "Babyvakt",
+  "ice cream machine": "Glassmaskin",
+  "coffee machine": "Kaffemaskin",
+  "coffe machine": "Kaffemaskin",
+  "kitchen utensils": "Köksredskap",
+  "makeup set": "Sminkset",
+  "kitchen set": "Köksset",
+  "adventure suit": "Äventyrsdräkt",
+  "with dual light": "Med dubbelt ljus",
+  "random color 1 pc": "Slumpmässig färg, 1 st",
+  // färgnyanser / beskrivande som inte redan finns ovan
+  long: "Lång",
+  short: "Kort",
+  "deep blue": "Mörkblå",
+  skyblue: "Himmelsblå",
+  "rose red": "Rosenröd",
+  "reddish brown": "Rödbrun",
+  "ginger yellow": "Ingefärsgul",
+  "leather pink": "Läderrosa",
 };
 
 /**
@@ -219,12 +297,27 @@ export function translateValue(raw: string): string {
   const full = VALUE_TRANSLATIONS[trimmed.toLowerCase()];
   if (full) return full;
 
-  const words = trimmed.split(/\s+/);
-  if (words.length > 1) {
-    const first = VALUE_TRANSLATIONS[words[0].toLowerCase()];
-    if (first) return [first, ...words.slice(1)].join(" ");
-  }
-  return trimmed;
+  // Token-vis: översätt VARJE känt ord (inte bara det första) så sammansatta
+  // värden blir helt svenska: "Black with LED" → "Svart med LED", "Long Blue"
+  // → "Lång blå", "33-Grey" → "33-Grå". Separatorer (mellanslag/bindestreck)
+  // bevaras. Okända ord (koder, mått, modellnamn som "iPhone 15") lämnas orörda
+  // → hela värdet faller tillbaka på råvärdet om inget ord kändes igen.
+  let touched = false;
+  const out = trimmed
+    .split(/([\s-]+)/)
+    .map((tok) => {
+      if (/^[\s-]*$/.test(tok)) return tok;
+      const hit = VALUE_TRANSLATIONS[tok.toLowerCase()];
+      if (hit) {
+        touched = true;
+        return hit;
+      }
+      return tok;
+    })
+    .join("");
+  if (!touched) return trimmed;
+  // Versalisera första bokstaven (bindeord i tabellen är gemena: "med", "och").
+  return out.charAt(0).toUpperCase() + out.slice(1);
 }
 
 /**

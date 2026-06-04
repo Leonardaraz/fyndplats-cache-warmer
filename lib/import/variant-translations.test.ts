@@ -53,6 +53,26 @@ describe("translateValue", () => {
     expect(translateValue("F2025-Sverige")).toBe("F2025-Sverige");
     expect(translateValue("Unicorn")).toBe("Unicorn");
   });
+
+  it("översätter ALLA kända ord token-vis, inte bara det första", () => {
+    expect(translateValue("Black with LED")).toBe("Svart med LED");
+    expect(translateValue("Black without LED")).toBe("Svart utan LED");
+    expect(translateValue("33-Grey")).toBe("33-Grå"); // bindestreck bevaras
+    expect(translateValue("B6AC Blue")).toBe("B6AC Blå"); // kod-prefix orört
+  });
+
+  it("översätter djur, instrument och kontakttyper", () => {
+    expect(translateValue("Lion")).toBe("Lejon");
+    expect(translateValue("Rabbit")).toBe("Kanin");
+    expect(translateValue("EU Plug")).toBe("EU-kontakt");
+    expect(translateValue("Touchscreen model")).toBe("Pekskärmsmodell");
+  });
+
+  it("lämnar modellnamn, berlock-text och koder orörda", () => {
+    expect(translateValue("iPhone 15 Pro")).toBe("iPhone 15 Pro");
+    expect(translateValue("LOVE")).toBe("LOVE");
+    expect(translateValue("KM-6631")).toBe("KM-6631");
+  });
 });
 
 describe("translateVariantOptions", () => {
