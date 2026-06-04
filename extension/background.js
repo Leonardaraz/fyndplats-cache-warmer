@@ -338,14 +338,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       apiCall(`/api/check-duplicate?${q.toString()}`, { method: "GET" }).then(sendResponse);
       return true;
     }
-    case "COMPETITOR_PRICES": {
-      // Konkurrentpris-check (Feature 2) — svenska prisjämförelsetjänster.
-      const q = new URLSearchParams();
-      if (msg.title) q.set("title", msg.title);
-      if (typeof msg.ourPrice === "number") q.set("ourPrice", String(msg.ourPrice));
-      apiCall(`/api/competitor-prices?${q.toString()}`, { method: "GET" }).then(sendResponse);
-      return true;
-    }
     case "PRICING_CONFIG":
       // Aktuella prissättningsregler (default-multiplikator, tiers, moms) → visas
       // som hint i popupen så Leonard ser default-tiern innan han väljer override.

@@ -373,7 +373,7 @@ function render() {
   $import.disabled = false;
 }
 
-// --- Pre-import-check: dubblett (Feature 1) + konkurrentpris (Feature 2) ------
+// --- Pre-import-check: dubblett (Feature 1) ----------------------------------
 
 function sendMessageAsync(payload) {
   return new Promise((resolve) => {
@@ -385,7 +385,7 @@ function sendMessageAsync(payload) {
 }
 
 /**
- * Kör dubblett- + konkurrentpris-check och visar en bekräftelse-modal.
+ * Kör dubblett-check och visar en bekräftelse-modal.
  * Returnerar Promise<boolean>: true = fortsätt importen, false = avbryt.
  * Fail-open: om backend inte svarar (offline/timeout) tillåter vi import.
  */
@@ -394,23 +394,16 @@ async function preImportCheck(p) {
   const title = p.rawTitle || "";
   const aeId = p.supplierProductId || "";
 
-  const [dupRes, compRes] = await Promise.all([
-    sendMessageAsync({ type: "CHECK_DUPLICATE", title, imageUrl: firstImage, aeId }),
-    sendMessageAsync({ type: "COMPETITOR_PRICES", title }),
-  ]);
+  const dupRes = await sendMessageAsync({ type: "CHECK_DUPLICATE", title, imageUrl: firstImage, aeId });
 
   // apiCall-wrappern returnerar { ok, data } där data är route-svaret.
   const dup = dupRes && dupRes.ok && dupRes.data ? dupRes.data : null;
-  const comp = compRes && compRes.ok && compRes.data ? compRes.data : null;
-
   const matches = (dup && Array.isArray(dup.matches) ? dup.matches : []);
-  const prices = (comp && Array.isArray(comp.prices) ? comp.prices : []);
-  const summary = comp && comp.summary ? comp.summary : null;
 
-  // Ingen dubblett OCH ingen konkurrentdata → ingen modal, fortsätt direkt.
-  if (matches.length === 0 && prices.length === 0) return true;
+  // Ingen dubblett → ingen modal, fortsätt direkt.
+  if (matches.length === 0) return true;
 
-  return showPreImportModal(matches, prices, summary);
+  return showPreImportModal(matches);
 }
 
 function el(tag, cls, text) {
@@ -421,7 +414,7 @@ function el(tag, cls, text) {
 }
 
 /** Renderar bekräftelse-modalen och löser till true/false vid knapptryck. */
-function showPreImportModal(matches, prices, summary) {
+function showPreImportModal(matches) {
   return new Promise((resolve) => {
     const back = el("div", "fp-modal-backdrop");
     const modal = el("div", "fp-modal");
@@ -452,29 +445,6 @@ function showPreImportModal(matches, prices, summary) {
         row.append(nameWrap);
         modal.append(row);
       }
-    }
-
-    // --- Konkurrentpriser ---
-    if (summary) {
-      modal.append(el("h3", null, "Konkurrenter på svenska marknaden"));
-      const rec = el("div", `fp-rec ${summary.signal || "none"}`, summary.message || "");
-      modal.append(rec);
-    }
-    if (prices.length > 0) {
-      const table = el("table", "fp-table");
-      const thead = el("tr");
-      thead.append(el("th", null, "Källa"), el("th", null, "Produkt"), el("th", null, "Pris"));
-      table.append(thead);
-      for (const p of prices.slice(0, 8)) {
-        const tr = el("tr");
-        tr.append(
-          el("td", null, p.source),
-          el("td", null, (p.title || "").slice(0, 30)),
-          el("td", "fp-price", `${p.priceSek} kr`),
-        );
-        table.append(tr);
-      }
-      modal.append(table);
     }
 
     // --- Knappar ---
@@ -520,11 +490,10 @@ $import.addEventListener("click", async () => {
       return;
     }
   }
-  // Feature 1 + 2: dubblett- och konkurrentpris-check FÖRE import. Visar en modal
-  // med ev. liknande produkter + konkurrentpriser. Importen fortsätter bara om
-  // Leonard klickar "Importera ändå". Tom check (inga dubbletter, ingen konkurrent-
-  // data) hoppar över modalen så att normalflödet inte bromsas.
-  setStatus("Kollar dubbletter & konkurrentpriser…");
+  // Feature 1: dubblett-check FÖRE import. Visar en modal med ev. liknande
+  // produkter. Importen fortsätter bara om Leonard klickar "Importera ändå".
+  // Tom check (inga dubbletter) hoppar över modalen så normalflödet inte bromsas.
+  setStatus("Kollar dubbletter…");
   const proceed = await preImportCheck(product);
   if (!proceed) {
     setStatus("Import avbruten.", "warn");
