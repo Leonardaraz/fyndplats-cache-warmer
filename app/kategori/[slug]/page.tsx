@@ -85,10 +85,36 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
     "@type": "BreadcrumbList",
     itemListElement: crumbItems,
   };
+  // CollectionPage + ItemList för kategorin (samma mönster som /butik och
+  // /alla-produkter) så Google förstår sidan som en produktlistning, inte bara
+  // en brödsmulekedja. ItemList:en kapas till 50 för att hålla payloaden rimlig.
+  const collectionPageLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: active.name,
+    url: `https://www.fyndplats.se/kategori/${active.slug}`,
+    description: `Handla ${active.name} hos Fyndplats – noga utvalda fynd till smarta priser.`,
+    isPartOf: { "@type": "WebSite", name: "Fyndplats", url: "https://www.fyndplats.se/" },
+    numberOfItems: list.length,
+    mainEntity: {
+      "@type": "ItemList",
+      // numberOfItems måste matcha antalet faktiskt uppräknade itemListElement
+      // (vi kapar till 50), annars är ItemList:en internt inkonsistent och Google
+      // kan ignorera den. CollectionPage-nivåns numberOfItems ovan = hela katalogen.
+      numberOfItems: Math.min(list.length, 50),
+      itemListElement: list.slice(0, 50).map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://www.fyndplats.se/produkt/${p.slug}`,
+        name: p.name,
+      })),
+    },
+  };
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageLd) }} />
 
       <section className="kat-hero">
         <div className="container">
