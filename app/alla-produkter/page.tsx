@@ -17,8 +17,39 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
   const active = collections.find((c) => c.slug === kategori);
   const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : mixByCategory(products, collections);
 
+  // JSON-LD: CollectionPage + BreadcrumbList (samma mönster som /butik) så Google
+  // förstår att detta är en produktlistning. När ?kategori= är aktiv beskriver
+  // sidan EN kategori (H1 + lista byts) — då måste schemat följa med, annars
+  // motsäger strukturerad data den synliga sidan (fel namn/antal/url).
+  const pageName = active ? active.name : "Alla produkter – hela sortimentet";
+  const pageUrl = active
+    ? `https://www.fyndplats.se/alla-produkter?kategori=${active.slug}`
+    : "https://www.fyndplats.se/alla-produkter";
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
+      { "@type": "ListItem", position: 2, name: "Butik", item: "https://www.fyndplats.se/butik" },
+      { "@type": "ListItem", position: 3, name: active ? active.name : "Alla produkter", item: pageUrl },
+    ],
+  };
+  const collectionPageLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: pageName,
+    url: pageUrl,
+    description: active
+      ? `Handla ${active.name} hos Fyndplats – noga utvalda fynd till smarta priser.`
+      : "Bläddra hela Fyndplats-sortimentet. Filtrera på pris, rea och kategori.",
+    isPartOf: { "@type": "WebSite", name: "Fyndplats", url: "https://www.fyndplats.se/" },
+    numberOfItems: list.length,
+  };
+
   return (
     <div className="alla-prod">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageLd) }} />
       {/* PREMIUM HERO — samma look som /butik (cream, serif, brödsmulor) */}
       <section className="butik-hero alla-prod-hero">
         <div className="container">
