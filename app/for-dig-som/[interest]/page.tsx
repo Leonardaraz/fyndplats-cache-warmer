@@ -5,7 +5,7 @@ import { getValidInterestSlugs, resolveInterest } from "../../../lib/seo/program
 import { ProductCard } from "../../../components/productcard";
 import { ProgSchemas, ProgHero, ProgFaq, ProgCrossLinks } from "../../../components/programmatic";
 
-export const revalidate = 86400; // 24h ISR
+export const revalidate = 3600; // 1h ISR (i takt med sitemapen + start/kategori)
 // dynamicParams=true: resolvern (samma interestCore-guard som sitemap-listan) är
 // ENDA sanningskällan för giltighet. dynamicParams=false frös giltiga slugs vid
 // BUILD, medan sitemap.xml regenereras ~varje timme (produkt-fetch revalidate:3600)

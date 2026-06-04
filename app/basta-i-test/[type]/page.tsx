@@ -4,7 +4,7 @@ import { pageMeta } from "../../../lib/seo";
 import { getValidTypeSlugs, resolveBestInTest } from "../../../lib/seo/programmatic";
 import { ProgSchemas, ProgHero, ComparisonTable, ProductSection, ProgFaq, ProgCrossLinks } from "../../../components/programmatic";
 
-export const revalidate = 86400; // 24h ISR
+export const revalidate = 3600; // 1h ISR (i takt med sitemapen + start/kategori)
 // dynamicParams=true: resolvern (samma typeCore-guard som sitemap-listan) är ENDA
 // sanningskällan för giltighet. dynamicParams=false frös giltiga slugs vid BUILD,
 // medan sitemap.xml regenereras ~varje timme (produkt-fetch revalidate:3600) — så
