@@ -1479,13 +1479,76 @@ function extract() {
   return result;
 }
 
+// Hittar URL:en till AE:s separata Product Description-HTML ("view more").
+// AE laddar den lazy från en egen alicdn-URL som inte ligger i DOM förrän man
+// scrollar/expanderar. Vi gräver fram den ur (a) inbäddad data/runParams,
+// (b) en ev. description-iframe, (c) inline-script ("descriptionUrl":"…") så
+// background-workern kan hämta den cross-origin.
+function findDescriptionUrl() {
+  try {
+    const data = readEmbeddedData();
+    const u =
+      (data && data.descriptionModule && data.descriptionModule.descriptionUrl) ||
+      (window.runParams &&
+        window.runParams.descriptionModule &&
+        window.runParams.descriptionModule.descriptionUrl);
+    if (u) return String(u);
+  } catch (_) {}
+  try {
+    const iframe = document.querySelector(
+      '[class*="description"] iframe, [id*="product-description"] iframe, #J-product-desc iframe',
+    );
+    if (iframe && iframe.src) return iframe.src;
+  } catch (_) {}
+  try {
+    const html = document.documentElement.innerHTML || "";
+    const m = html.match(/"descriptionUrl"\s*:\s*"([^"]+)"/);
+    if (m && m[1]) return m[1].replace(/\\u002f/gi, "/").replace(/\\\//g, "/");
+  } catch (_) {}
+  return "";
+}
+
+// Berikar produkten med HELA "view more"-beskrivningen. AE laddar den från en
+// separat URL → content scripts blockeras av CORS, så background-workern hämtar
+// den. Fail-open: hittar vi ingen URL, eller fetchen/reningen ger mindre än vad
+// DOM redan gav, behålls DOM-beskrivningen och importen påverkas inte.
+async function enrichDescription(product) {
+  try {
+    const url = findDescriptionUrl();
+    if (!url) return;
+    // F3: klient-timeout så importen aldrig blockeras om workern inte svarar.
+    const resp = await Promise.race([
+      chrome.runtime.sendMessage({ type: "FETCH_DESCRIPTION", url }),
+      new Promise((r) => setTimeout(() => r(null), 10000)),
+    ]);
+    if (!resp || !resp.ok || !resp.html) return;
+    // F4: description-URL:en ger ibland ett HELT HTML-dokument — släng doctype/
+    // <head> och html/body-wrappers så vi inte får in <title>/<meta>-skräp.
+    const stripped = String(resp.html)
+      .replace(/<!doctype[^>]*>/gi, "")
+      .replace(/<head[\s\S]*?<\/head>/gi, "")
+      .replace(/<\/?(?:html|body)[^>]*>/gi, "");
+    const full = sanitizeDescriptionHtml(stripped);
+    if (full && full.length > (product.descriptionHtml || "").length) {
+      product.descriptionHtml = full;
+    }
+  } catch (_) {
+    /* fail-open — behåll DOM-beskrivningen */
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.type === "EXTRACT_PRODUCT") {
-    try {
-      sendResponse({ ok: true, product: extract() });
-    } catch (err) {
-      sendResponse({ ok: false, error: String(err) });
-    }
+    (async () => {
+      try {
+        const product = extract();
+        await enrichDescription(product);
+        sendResponse({ ok: true, product });
+      } catch (err) {
+        sendResponse({ ok: false, error: String(err) });
+      }
+    })();
+    return true; // håll kanalen öppen för async sendResponse
   }
   return true;
 });
