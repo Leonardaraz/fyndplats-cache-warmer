@@ -60,6 +60,13 @@ const PHRASES: Record<string, string> = {
   "eu plug": "EU-kontakt", "us plug": "USA-kontakt", "uk plug": "UK-kontakt",
   "au plug": "AU-kontakt", "type-c to usb-a": "Type-C till USB-A",
   "type-c to type-c": "Type-C till Type-C",
+  // kameror / set / mysteri (Npc/Npcs är tvetydigt — exakta fraser är säkrast)
+  "1pc 8mp poe camera": "1 st 8MP POE-kamera", "1pcs 5mp poe camera": "1 st 5MP POE-kamera",
+  "2pcs 5mp poe camera": "2 st 5MP POE-kamera", "2pcs 8mp poe camera": "2 st 8MP POE-kamera",
+  "3pcs 5mp poe camera": "3 st 5MP POE-kamera", "3pcs 8mp poe camera": "3 st 8MP POE-kamera",
+  "5pc sets 1": "5-delars set 1", "5pc sets 2": "5-delars set 2", "5pc sets 3": "5-delars set 3",
+  "5pc sets 4": "5-delars set 4", "5pc sets 5": "5-delars set 5", "5pc sets 6": "5-delars set 6",
+  "1 st mysteri box": "1 st mysterieask", "6 st mysteri box": "6 st mysterieask",
 };
 
 // Enstaka engelska ord → svenska. Tillämpas token-för-token på det som blir kvar
@@ -77,6 +84,7 @@ const WORDS: Record<string, string> = {
   // instrument / mat
   drum: "trumma", trumpet: "trumpet", maracas: "maracas", castanets: "kastanjetter",
   xylophone: "xylofon", doughnut: "munk", watermelon: "vattenmelon", coffee: "kaffe",
+  camera: "kamera",
   // storlek / övrigt
   large: "stor", small: "liten", camouflage: "kamouflage",
   // sammanbindande / beskrivande
