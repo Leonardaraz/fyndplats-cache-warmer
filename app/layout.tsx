@@ -70,6 +70,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "sv_SE",
     siteName: "Fyndplats",
+    url: "https://www.fyndplats.se/",
     title: "Fyndplats | Noga utvalda fynd till smarta priser",
     description:
       "Svensk webbutik med noga utvalda fynd till smarta priser. Klarna och fri frakt över 499 kr.",

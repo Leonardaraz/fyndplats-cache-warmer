@@ -17,8 +17,31 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
   const active = collections.find((c) => c.slug === kategori);
   const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : mixByCategory(products, collections);
 
+  // JSON-LD: CollectionPage + BreadcrumbList (samma mönster som /butik) så Google
+  // förstår att detta är listningssidan för hela sortimentet.
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
+      { "@type": "ListItem", position: 2, name: "Butik", item: "https://www.fyndplats.se/butik" },
+      { "@type": "ListItem", position: 3, name: "Alla produkter", item: "https://www.fyndplats.se/alla-produkter" },
+    ],
+  };
+  const collectionPageLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Alla produkter – hela sortimentet",
+    url: "https://www.fyndplats.se/alla-produkter",
+    description: "Bläddra hela Fyndplats-sortimentet. Filtrera på pris, rea och kategori.",
+    isPartOf: { "@type": "WebSite", name: "Fyndplats", url: "https://www.fyndplats.se/" },
+    numberOfItems: products.length,
+  };
+
   return (
     <div className="alla-prod">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageLd) }} />
       {/* PREMIUM HERO — samma look som /butik (cream, serif, brödsmulor) */}
       <section className="butik-hero alla-prod-hero">
         <div className="container">

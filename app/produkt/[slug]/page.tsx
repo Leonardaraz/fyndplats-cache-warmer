@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: p.seoTitle ? { absolute: p.seoTitle } : p.name,
     description: desc,
     alternates: { canonical: `https://www.fyndplats.se/produkt/${p.slug}` },
-    openGraph: { title: p.seoTitle || p.name, description: desc, images: p.img ? [p.img] : [] },
+    openGraph: { title: p.seoTitle || p.name, description: desc, url: `https://www.fyndplats.se/produkt/${p.slug}`, images: p.img ? [p.img] : [] },
   };
 }
 
