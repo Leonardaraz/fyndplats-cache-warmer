@@ -493,6 +493,17 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   let aeStockBySupplierId: Record<string, number> = {};
   try {
     const product = await getAliExpressProduct(mapping.supplierProductId);
+    // Skydd mot AE-glitch: en LYCKAD men TOM variant-respons (rate-limit/cache)
+    // är oskiljbar från en riktig produkt och skulle annars ge totalStock=0 →
+    // felaktig OOS-markering som tystar en levande produkt. Kasta i stället →
+    // fångas nedan, matchar inte "borttagen"-mönstren, re-throwas → loopen
+    // loggar ett fel och tar INGEN åtgärd (ingen OOS, ingen döljning). En
+    // verkligt slutsåld produkt har sina varianter kvar (stock 0) → träffas ej.
+    if (!Array.isArray(product.variants) || product.variants.length === 0) {
+      throw new Error(
+        `tom variant-respons från AliExpress (möjlig glitch) — hoppar över pid=${mapping.supplierProductId}`,
+      );
+    }
     const minCostUsd = product.variants
       .filter((v) => (v.stock ?? 0) > 0 && v.price > 0)
       .reduce((min, v) => (min === 0 ? v.price : Math.min(min, v.price)), 0);
