@@ -8,9 +8,11 @@ export default async function NotFound() {
   let mains: { name: string; slug: string }[] = [];
   try {
     const cols = await getCollections();
+    // getCollections() returnerar redan huvudkategorierna i MAIN_ORDER (se
+    // lib/products.ts). Parentlösa kategorier har alla index 0, så en egen
+    // index-sortering vore en no-op — behåll katalogens ordning.
     mains = cols
       .filter((c) => !c.parentId)
-      .sort((a, b) => a.index - b.index)
       .slice(0, 6)
       .map((c) => ({ name: c.name, slug: c.slug }));
   } catch {
