@@ -140,9 +140,13 @@ export function trimVariants<T extends TrimmableVariant>(
   };
 }
 
-/** Är variant-trim påslagen? Default ON. Stäng av med IMPORT_VARIANT_TRIM=false. */
+/**
+ * Är variant-trim påslagen? Default AV (2026-06-04) — importera ALLA varianter
+ * så att alla färger/storlekar syns med rätt lager. Slå på en cap igen med
+ * IMPORT_VARIANT_TRIM=true (+ ev. IMPORT_VARIANT_TRIM_MAX) för renare PDP.
+ */
 export function variantTrimEnabled(): boolean {
-  return (process.env.IMPORT_VARIANT_TRIM ?? "true").toLowerCase() !== "false";
+  return (process.env.IMPORT_VARIANT_TRIM ?? "false").toLowerCase() === "true";
 }
 
 /** Maxantal varianter efter trim. Override: IMPORT_VARIANT_TRIM_MAX (default 8). */
