@@ -253,7 +253,7 @@ export default async function Home() {
                         <span className="homecat-thumb" key={i}>
                           <Image
                             src={tightFillUrl(c.thumbs[i], 280, 280)}
-                            alt=""
+                            alt={c.main.name}
                             fill
                             placeholder="blur"
                             blurDataURL={SHIMMER_BLUR}

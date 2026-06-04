@@ -135,7 +135,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                     <Image
                       className="butik-cat-img"
                       src={tightFillUrl(heroSrc, 1120, 1120)}
-                      alt=""
+                      alt={g.main.name}
                       fill
                       sizes="(max-width:760px) 100vw, (max-width:1100px) 50vw, 560px"
                       priority={idx < 2}

@@ -107,7 +107,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               <div className={`kat-hero-img${heroIsProduct ? " is-product" : ""}`}>
                 <Image
                   src={heroImg}
-                  alt=""
+                  alt={active.name}
                   fill
                   preload
                   fetchPriority="high"
