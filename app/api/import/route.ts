@@ -209,26 +209,38 @@ export async function POST(req: Request) {
     try {
       const inv = await getInventory(product.supplierProductId);
       if (inv.length) {
-        const bySku = new Map(inv.map((i) => [String(i.skuId), i.stock]));
+        // Adoptera DS-skuId: när en variant matchas skriver vi över skrapans id
+        // (ofta "idx-N" eftersom AE inte längre lägger skuId i sidan) med
+        // AliExpress riktiga DS-skuId. Då sparas mappningen med samma id som den
+        // DAGLIGA synken (lib/sync/aliexpress-sync) använder (den keyar på
+        // getProduct().variants[].skuId) → lagret kan hållas färskt automatiskt.
+        const adopt = (
+          v: { stock?: number; supplierVariantId: string },
+          entry: { skuId: string; stock: number },
+        ) => {
+          v.stock = entry.stock;
+          if (entry.skuId) v.supplierVariantId = String(entry.skuId);
+        };
+        const bySku = new Map(inv.map((i) => [String(i.skuId), i]));
         // Fallback-matchning på optionskombination (färg/storlek). AE laddar inte
         // längre SKU-id i sidan → skrapan sätter "idx-N" → skuId-matchningen ger
         // 0 träffar → allt fick fallback-lager 10 (bug 2026-06-04). Kombo-nyckeln
         // delas av båda källor och räddar de variant som skuId missar.
-        const byCombo = new Map<string, number>();
+        const byCombo = new Map<string, (typeof inv)[number]>();
         for (const i of inv) {
           const key = optionComboKey(i.skuProps);
-          if (key && !byCombo.has(key)) byCombo.set(key, i.stock);
+          if (key && !byCombo.has(key)) byCombo.set(key, i);
         }
         let matched = 0;
         let viaCombo = 0;
         for (const v of product.variants) {
-          let real = bySku.get(String(v.supplierVariantId));
-          if (typeof real !== "number") {
-            real = byCombo.get(optionComboKey(v.options));
-            if (typeof real === "number") viaCombo++;
+          let entry = bySku.get(String(v.supplierVariantId));
+          if (!entry) {
+            entry = byCombo.get(optionComboKey(v.options));
+            if (entry) viaCombo++;
           }
-          if (typeof real === "number") {
-            v.stock = real;
+          if (entry) {
+            adopt(v, entry);
             matched++;
           }
         }
@@ -242,7 +254,7 @@ export async function POST(req: Request) {
         let viaPosition = 0;
         if (matched === 0 && inv.length === product.variants.length) {
           for (let idx = 0; idx < product.variants.length; idx++) {
-            product.variants[idx].stock = inv[idx].stock;
+            adopt(product.variants[idx], inv[idx]);
             matched++;
             viaPosition++;
           }
