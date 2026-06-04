@@ -30,7 +30,12 @@ const jsonLd = {
     "https://www.instagram.com/fyndplats/",
     "https://www.facebook.com/profile.php?id=100089607278056",
   ],
-  aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "21" },
+  // OBS: ingen aggregateRating här. Ett hårdkodat butiks-betyg på Organization/
+  // OnlineStore-entiteten är "self-serving rating" som Googles riktlinjer
+  // förbjuder i strukturerad data (måste komma från recensioner PÅ sajten) och
+  // kan ge manuell åtgärd. Äkta betyg visas bara på produktsidorna (PDP), där
+  // aggregateRating sätts enbart när det finns riktig recensionsdata. Google-
+  // betyget 4,9 visas fortfarande som synlig text i sidfoten (helt OK).
 };
 
 const websiteJsonLd = {

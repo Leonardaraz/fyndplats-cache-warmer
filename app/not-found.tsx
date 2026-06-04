@@ -1,4 +1,22 @@
-export default function NotFound() {
+import { getCollections } from "../lib/products";
+
+// Hämtar de FAKTISKA huvudkategorierna (parentlösa) ur katalogen i stället för
+// hårdkodade slugs. Tidigare pekade 404-sidan på gamla/gissade slugs
+// (/kategori/elektronik, hem-och-inredning, …) som själva 404:ade — en 404-sida
+// som ledde till nya 404:or. Nu kan slugarna aldrig driva isär från katalogen.
+export default async function NotFound() {
+  let mains: { name: string; slug: string }[] = [];
+  try {
+    const cols = await getCollections();
+    mains = cols
+      .filter((c) => !c.parentId)
+      .sort((a, b) => a.index - b.index)
+      .slice(0, 6)
+      .map((c) => ({ name: c.name, slug: c.slug }));
+  } catch {
+    mains = []; // fail-soft: hellre ingen kategori-rad än en trasig 404-sida
+  }
+
   return (
     <div className="container nf-wrap">
       <div className="nf">
@@ -9,17 +27,16 @@ export default function NotFound() {
           <a className="btn btn-primary" href="/">← Tillbaka till startsidan</a>
           <a className="btn btn-ghost" href="/butik">Se hela sortimentet</a>
         </div>
-        <div className="nf-cats">
-          <div className="nf-cats-label">Populära kategorier</div>
-          <div className="nf-cats-row">
-            <a href="/kategori/elektronik">Elektronik</a>
-            <a href="/kategori/hem-och-inredning">Hem &amp; Inredning</a>
-            <a href="/kategori/skonhet-och-halsa">Skönhet &amp; Hälsa</a>
-            <a href="/kategori/mode-och-accessoarer">Mode &amp; Accessoarer</a>
-            <a href="/kategori/husdjur">Husdjur</a>
-            <a href="/kategori/barn-och-familj">Barn &amp; Familj</a>
+        {mains.length > 0 && (
+          <div className="nf-cats">
+            <div className="nf-cats-label">Populära kategorier</div>
+            <div className="nf-cats-row">
+              {mains.map((c) => (
+                <a key={c.slug} href={`/kategori/${c.slug}`}>{c.name}</a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
