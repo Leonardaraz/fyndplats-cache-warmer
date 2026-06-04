@@ -10,6 +10,13 @@ import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
 
+// ISR: kategorisidorna förgenereras (generateStaticParams) men regenereras i
+// bakgrunden var timme, så nya/ändrade produkter i en kategori syns utan en ny
+// deploy. dynamicParams=true: en helt ny kategori (efter senaste deploy)
+// renderas on-demand vid första träffen och cachas sen.
+export const revalidate = 3600;
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   const cols = await getCollections();
   return cols.map((c) => ({ slug: c.slug }));

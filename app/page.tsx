@@ -7,6 +7,12 @@ import { Newsletter } from "../components/newsletter";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../lib/image-scores";
 import { tightFillUrl } from "../lib/wix-image";
 
+// ISR: startsidan renderas statiskt men regenereras i bakgrunden var timme, så
+// nyimporterade produkter och kategori-ändringar dyker upp utan en ny deploy.
+// (Pris/lager är inte tidskritiskt här — det visas på produktsidorna, som har
+// egen 5-min-ISR + webhook-revalidering vid order_created.)
+export const revalidate = 3600;
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "OnlineStore",
