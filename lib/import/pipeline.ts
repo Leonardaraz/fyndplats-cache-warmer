@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { computePriceWithRules } from "./pricing";
 import { deriveFocusKeyword } from "./focus-keyword";
 import { resolveImportStockQty } from "./variant-stock";
@@ -108,7 +109,17 @@ export interface ImportResult {
 
 /** Stabil SKU per leverantörsvariant — används senare för lager-/orderkoppling. */
 export function makeSku(supplierProductId: string, supplierVariantId: string): string {
-  return `AE-${supplierProductId}-${supplierVariantId}`;
+  const raw = `AE-${supplierProductId}-${supplierVariantId}`;
+  // Wix SKU har MAX_LENGTH 40. Sedan vi adopterar AliExpress DS-skuId som
+  // supplierVariantId (för dagliga synken) kan det vara en lång prop-path
+  // ("14:29;200007763:201336104;…", upp till 60 tecken) → create-product 400
+  // (bug 2026-06-04). När den naturliga SKU:n överstiger 40 hashar vi den till
+  // en kort, deterministisk, unik form. Mappningens supplierVariantId behåller
+  // det FULLA id:t — bara Wix-SKU-strängen kortas (den parsas aldrig tillbaka;
+  // fulfillment går via mappningen).
+  if (raw.length <= 40) return raw;
+  const hash = createHash("sha1").update(raw).digest("hex").slice(0, 24);
+  return `AE-${hash}`; // 3 + 24 = 27 tecken, alltid ≤ 40, unikt per variant
 }
 
 /** Färgkoder per option och val: { [optionName]: { [choiceName]: "#hex" } }. */
