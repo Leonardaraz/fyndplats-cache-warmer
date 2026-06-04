@@ -297,11 +297,38 @@ async function sampleSwatchColors(swatchImages) {
   return { ok: true, optionColorCodes: out };
 }
 
+// Hämtar AE:s separata Product Description-HTML ("view more") cross-origin.
+// AE laddar den rika beskrivningen lazy från en egen alicdn-URL. Content
+// scripts blockeras av CORS i MV3, men service-workern har host_permissions
+// för *.alicdn.com / *.aliexpress.com och kringgår det (samma mönster som
+// sampleColor). Returnerar rå HTML — content.js renar den. Fail-open med
+// timeout så en seg/blockerad fetch aldrig hänger importen.
+async function fetchDescriptionHtml(url) {
+  try {
+    if (!url || !/^https?:\/\//i.test(url)) return { ok: false };
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(url, { credentials: "omit", signal: controller.signal });
+      if (!res.ok) return { ok: false };
+      const html = await res.text();
+      return { ok: true, html };
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (_) {
+    return { ok: false };
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (!msg) return;
   switch (msg.type) {
     case "IMPORT_PRODUCT":
       importProduct(msg.product, msg.featureFlags).then(sendResponse);
+      return true;
+    case "FETCH_DESCRIPTION":
+      fetchDescriptionHtml(msg.url).then(sendResponse);
       return true;
     case "BULK_IMPORT": {
       // Acka direkt att kön startar; kör sedan i bakgrunden och rapportera via
