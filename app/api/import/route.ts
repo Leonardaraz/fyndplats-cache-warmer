@@ -232,8 +232,23 @@ export async function POST(req: Request) {
             matched++;
           }
         }
+        // Sista utväg: positions-matchning. För vissa produkter svarar DS-API:t
+        // med TOMMA skuProps-värden ({Color:""}) och ett skuId i prop-path-form
+        // ("14:29;…") som inte matchar skrapans id → både skuId och kombo ger 0
+        // träffar trots att DS HAR rätt per-variant-lager (verifierat 2026-06-04:
+        // 9 resp 1 st). DS returnerar varianterna i samma ordning som sidan, så
+        // när inget matchade men antalet är exakt lika mappar vi per position.
+        // Klart bättre än fallback 10 (som dessutom döljer äkta OOS). Loggas.
+        let viaPosition = 0;
+        if (matched === 0 && inv.length === product.variants.length) {
+          for (let idx = 0; idx < product.variants.length; idx++) {
+            product.variants[idx].stock = inv[idx].stock;
+            matched++;
+            viaPosition++;
+          }
+        }
         console.log(
-          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade (varav ${viaCombo} via optionskombo)`,
+          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade (kombo ${viaCombo}, position ${viaPosition})`,
         );
       }
     } catch (e) {
