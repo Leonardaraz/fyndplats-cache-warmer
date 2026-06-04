@@ -36,6 +36,12 @@ const nextConfig: NextConfig = {
       // Wildcard: täcker de 204 produkter vars slug är oförändrad.
       { source: "/product-page/:slug", destination: "/produkt/:slug", permanent: true },
 
+      // Gamla Wix V1-URL-strukturen /products/[slug] — Wix lagrar fortfarande den
+      // som canonical/og:url i produkternas seoData, och Google kan ha indexerat
+      // den från Wix-eran. Headless servar /produkt/[slug], så /products/ 404:ar.
+      // 301 hit så de leder rätt i stället för att tappa länkstyrka.
+      { source: "/products/:slug", destination: "/produkt/:slug", permanent: true },
+
       // Gamla Wix-kategori-URL:er → headless /kategori/[slug].
       // "Sport & Fritid" och "Skönhet & Hälsa" finns inte som egna kategorier
       // i V3-katalogen — närmaste matchning är Friluftsliv & Resa resp. Hudvård & Ansikte.
