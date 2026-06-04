@@ -72,6 +72,17 @@ describe("translateValue", () => {
     expect(translateValue("iPhone 15 Pro")).toBe("iPhone 15 Pro");
     expect(translateValue("LOVE")).toBe("LOVE");
     expect(translateValue("KM-6631")).toBe("KM-6631");
+    expect(translateValue("KID110")).toBe("KID110");
+    expect(translateValue("Care Bear")).toBe("Care Bear"); // 'bear' översätts ej
+  });
+
+  it("full paritet med storefront-ordboken på sammansatta fraser", () => {
+    expect(translateValue("Army Green")).toBe("Armégrön");
+    expect(translateValue("Sky Blue")).toBe("Himmelsblå");
+    expect(translateValue("Type-C to USB-A")).toBe("Type-C till USB-A");
+    expect(translateValue("Gym with Tent")).toBe("Gym med tält");
+    expect(translateValue("5pc Sets 3")).toBe("5-delars set 3");
+    expect(translateValue("Squirrel Maracas")).toBe("Maracas, ekorre");
   });
 });
 
