@@ -244,14 +244,25 @@ export async function POST(req: Request) {
         }
         let matched = 0;
         let viaCombo = 0;
+        // Samla per-variant DS-bild (sku_image) för linkedMedia-berikning nedan.
+        const dsImgByVariant: { options: Record<string, string>; imageUrl: string }[] = [];
+        const captureImg = (
+          opts: Record<string, string> | undefined,
+          entry: { imageUrl?: string },
+        ) => {
+          if (entry.imageUrl && opts) dsImgByVariant.push({ options: opts, imageUrl: entry.imageUrl });
+        };
         for (const v of product.variants) {
           const key = optionComboKey(v.options);
           const exact = bySku.get(String(v.supplierVariantId));
           if (exact) {
             adopt(v, exact);
+            captureImg(v.options, exact);
             matched++;
           } else if (key && byComboMax.has(key)) {
-            adopt(v, byComboMax.get(key)!);
+            const e = byComboMax.get(key)!;
+            adopt(v, e);
+            captureImg(v.options, e);
             matched++;
             viaCombo++;
           }
@@ -267,6 +278,7 @@ export async function POST(req: Request) {
         if (matched === 0 && inv.length === product.variants.length) {
           for (let idx = 0; idx < product.variants.length; idx++) {
             adopt(product.variants[idx], inv[idx]);
+            captureImg(product.variants[idx].options, inv[idx]);
             matched++;
             viaPosition++;
           }
@@ -274,6 +286,46 @@ export async function POST(req: Request) {
         console.log(
           `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade (kombo ${viaCombo}, position ${viaPosition})`,
         );
+
+        // Berika variantbilder (linkedMedia) från DS sku_image när skrapan tappat
+        // swatch-bilderna (klient-renderade sidor). Bygg { axel: { värde: url } }
+        // men BARA för axlar där varje värde har EXAKT en konsekvent bild och minst
+        // två värden skiljer sig åt (= den riktiga bild-axeln, t.ex. färg). Axlar
+        // där ett värde mappar till flera bilder (t.ex. storlek) eller alla samma
+        // bild (t.ex. pack-storlek) hoppas över → ingen felkopplad variantbild.
+        if (dsImgByVariant.length) {
+          const perAxisVal = new Map<string, Map<string, Set<string>>>();
+          for (const { options, imageUrl } of dsImgByVariant) {
+            for (const [axis, val] of Object.entries(options)) {
+              if (!axis || !val) continue;
+              const m = perAxisVal.get(axis) ?? new Map<string, Set<string>>();
+              perAxisVal.set(axis, m);
+              const s = m.get(val) ?? new Set<string>();
+              m.set(val, s);
+              s.add(imageUrl);
+            }
+          }
+          const dsSwatch: Record<string, Record<string, string>> = {};
+          for (const [axis, vals] of perAxisVal) {
+            if (![...vals.values()].every((s) => s.size === 1)) continue; // ej bild-axel
+            const distinct = new Set([...vals.values()].map((s) => [...s][0]));
+            if (distinct.size < 2) continue; // alla samma bild → ingen variant-växling
+            const map: Record<string, string> = {};
+            for (const [val, s] of vals) map[val] = [...s][0];
+            dsSwatch[axis] = map;
+          }
+          if (Object.keys(dsSwatch).length) {
+            // Skrapans swatch-bilder vinner (full-res från sidan); DS fyller luckor.
+            const merged: Record<string, Record<string, string>> = { ...(product.swatchImages || {}) };
+            for (const [axis, map] of Object.entries(dsSwatch)) {
+              merged[axis] = { ...map, ...(merged[axis] || {}) };
+            }
+            product.swatchImages = merged;
+            console.log(
+              `[import:img] pid=${product.supplierProductId} DS-variantbilder kopplade: ${Object.keys(dsSwatch).join(", ")}`,
+            );
+          }
+        }
       }
     } catch (e) {
       console.warn(

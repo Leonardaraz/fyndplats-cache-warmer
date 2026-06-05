@@ -503,7 +503,7 @@ export async function getTracking(tradeOrderId: string): Promise<DsTrackingResul
 
 export async function getInventory(
     productId: string,
-  ): Promise<{ skuId: string; price: number; stock: number; skuProps: Record<string, string>; shipFrom?: string }[]> {
+  ): Promise<{ skuId: string; price: number; stock: number; skuProps: Record<string, string>; shipFrom?: string; imageUrl?: string }[]> {
     const product = await getProduct(productId);
     return product.variants.map((v) => ({
           skuId: v.skuId,
@@ -515,6 +515,9 @@ export async function getInventory(
           // shipFrom (normaliserad landskod) → importen kan välja EU-lagrets saldo
           // när en färg finns i flera lager-länder (policy: endast EU-lagret).
           shipFrom: v.shipFrom,
+          // Per-variant bild (sku_image) → importen kan koppla variantbild
+          // (linkedMedia) även när skrapan tappade swatch-bilderna.
+          imageUrl: v.imageUrl,
     }));
 }
 
