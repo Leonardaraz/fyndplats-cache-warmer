@@ -710,6 +710,25 @@ function mapNewSearchProduct(raw: NewSearchProduct): AliExpressSearchResult {
  * shipFrom på listsidan är inte garanterat — för säkra EU-flaggor krävs
  * en separat produkt-get per träff (gör i UI:t bara för synliga träffar).
  */
+/**
+ * DEBUG (read-only): returnerar RÅSVARET från aliexpress.ds.text.search,
+ * otolkat. Används av /api/admin/ds-search?raw=1 för att skilja parse-fel
+ * (produkter finns men i okänd form) från genuint tomt svar (t.ex. saknad
+ * API-permission på metoden). Speglar bizParams i searchAliExpressByText.
+ */
+export async function debugRawTextSearch(query: string): Promise<unknown> {
+  const bizParams: Record<string, string> = {
+    keyWord: query,
+    local: "en_US",
+    countryCode: "SE",
+    currency: "USD",
+    searchExtend: JSON.stringify({ sortBy: "orders,desc" }),
+    pageSize: "20",
+    pageIndex: "1",
+  };
+  return callApi<unknown>("aliexpress.ds.text.search", bizParams);
+}
+
 export async function searchAliExpressByText(
     query: string,
     options: AliExpressSearchOptions = {},

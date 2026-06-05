@@ -9,7 +9,7 @@
 // Token-skyddad via EXTENSION_API_TOKEN i query. Helt read-only.
 
 import { type NextRequest, NextResponse } from "next/server";
-import { searchAliExpressByText } from "@/lib/aliexpress/client";
+import { searchAliExpressByText, debugRawTextSearch } from "@/lib/aliexpress/client";
 import { classifyWarehouses } from "@/lib/aliexpress/eu-countries";
 
 export const runtime = "nodejs";
@@ -25,6 +25,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "q krävs" }, { status: 400 });
   }
   try {
+    // ?raw=1 → returnera otolkat API-råsvar (parse-fel vs genuint tomt).
+    if (req.nextUrl.searchParams.get("raw") === "1") {
+      const raw = await debugRawTextSearch(q);
+      return NextResponse.json({ ok: true, q, raw });
+    }
     const all = await searchAliExpressByText(q, { pageSize: 20 });
     const rows = all.map((p) => {
       const codes = p.shipsFromCountries ?? [];
