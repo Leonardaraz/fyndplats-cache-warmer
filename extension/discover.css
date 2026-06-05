@@ -354,12 +354,24 @@
 .fp-eucard__title {
   font-size: 12px; color: #374151; padding: 8px 10px 0; line-height: 1.35;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  text-decoration: none; font-weight: 600;
 }
-.fp-eucard__price { font-size: 14px; font-weight: 800; color: #111827; padding: 4px 10px 8px; }
+.fp-eucard__title:hover { color: var(--fp-orange-dark); text-decoration: underline; }
+.fp-eucard__price { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; padding: 4px 10px 4px; }
+.fp-eucard__price-now { font-size: 14px; font-weight: 800; color: #111827; }
+.fp-eucard__price-was { font-size: 11px; color: #9ca3af; text-decoration: line-through; }
+.fp-eucard__price-off { font-size: 11px; font-weight: 700; color: var(--fp-orange-dark); }
+.fp-eucard__meta { display: flex; gap: 10px; padding: 0 10px 8px; font-size: 11px; }
+.fp-eucard__rating { color: #b45309; font-weight: 700; }
+.fp-eucard__orders { color: #6b7280; }
 .fp-eucard__actions { display: flex; gap: 6px; padding: 0 10px 10px; margin-top: auto; }
-.fp-eucard__sel, .fp-eucard__imp {
+.fp-eucard__sel, .fp-eucard__imp, .fp-eucard__open {
   flex: 1; font-size: 12px; font-weight: 700; border-radius: 8px; padding: 7px 0; cursor: pointer; border: none;
 }
+.fp-eucard__open {
+  background: #eef2ff; color: #3730a3; text-align: center; text-decoration: none; line-height: 1.5;
+}
+.fp-eucard__open:hover { background: #e0e7ff; }
 .fp-eucard__sel { background: #f3f4f6; color: #374151; }
 .fp-eucard--sel .fp-eucard__sel { background: var(--fp-green-bg); color: var(--fp-green); }
 .fp-eucard__imp { background: var(--fp-orange); color: #fff; }

@@ -437,8 +437,46 @@
     imgWrap.append(el("span", "fp-eucard__badge" + (cls === "EU" ? " fp-eucard__badge--eu" : ""), badgeText));
     card.append(imgWrap);
 
-    card.append(el("div", "fp-eucard__title", info.title));
-    card.append(el("div", "fp-eucard__price", p.priceUsd !== undefined ? `$${Number(p.priceUsd).toFixed(2)}` : "—"));
+    // Titel som klickbar länk → öppnar produkten på AliExpress i ny flik.
+    const titleLink = document.createElement("a");
+    titleLink.className = "fp-eucard__title";
+    titleLink.href = info.url;
+    titleLink.target = "_blank";
+    titleLink.rel = "noopener";
+    titleLink.textContent = info.title || "(utan titel)";
+    titleLink.title = info.title || "";
+    card.append(titleLink);
+
+    // Pris (USD) + ev. ordinariepris (överstruket) + rabatt.
+    const priceRow = el("div", "fp-eucard__price");
+    priceRow.append(
+      el(
+        "span",
+        "fp-eucard__price-now",
+        p.priceUsd !== undefined ? `$${Number(p.priceUsd).toFixed(2)}` : "—",
+      ),
+    );
+    if (p.originalPriceUsd !== undefined && p.originalPriceUsd > (p.priceUsd ?? 0)) {
+      priceRow.append(
+        el("span", "fp-eucard__price-was", `$${Number(p.originalPriceUsd).toFixed(2)}`),
+      );
+    }
+    if (p.discountPct) {
+      priceRow.append(el("span", "fp-eucard__price-off", `-${Math.round(Number(p.discountPct))}%`));
+    }
+    card.append(priceRow);
+
+    // Meta: betyg + antal sålda (visas bara när data finns).
+    const meta = el("div", "fp-eucard__meta");
+    if (p.rating !== undefined) {
+      meta.append(el("span", "fp-eucard__rating", `★ ${Number(p.rating).toFixed(1)}`));
+    }
+    if (p.orders !== undefined) {
+      meta.append(
+        el("span", "fp-eucard__orders", `${Number(p.orders).toLocaleString("sv-SE")} sålda`),
+      );
+    }
+    if (meta.childNodes.length) card.append(meta);
 
     const actions = el("div", "fp-eucard__actions");
     const sel = el("button", "fp-eucard__sel", selected.has(info.id) ? "✓ Vald" : "Markera");
@@ -447,10 +485,17 @@
       else selected.set(info.id, info);
       renderEuPanel();
     };
+    const open = document.createElement("a");
+    open.className = "fp-eucard__open";
+    open.href = info.url;
+    open.target = "_blank";
+    open.rel = "noopener";
+    open.textContent = "Öppna ↗";
+    open.title = "Öppna produkten på AliExpress i ny flik";
     const imp = el("button", "fp-eucard__imp", "Importera");
     imp.title = "Importera bara denna nu";
     imp.onclick = () => startBulkImport([info]);
-    actions.append(sel, imp);
+    actions.append(sel, open, imp);
     card.append(actions);
     return card;
   }
