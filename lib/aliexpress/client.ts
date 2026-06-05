@@ -580,6 +580,10 @@ interface NewSearchProduct {
   salePrice?: string | number | { amount?: string | number; value?: string | number };
   app_sale_price?: string | number;
   target_app_sale_price?: string | number;
+  // targetSalePrice/targetOriginalPrice är ALLTID i USD (targetOriginalPriceCurrency)
+  // medan salePrice kan vara i CNY → föredra target-fälten för priceUsd.
+  targetSalePrice?: string | number;
+  targetOriginalPrice?: string | number;
   discount?: string | number;
   discountPercent?: string | number;
   itemUrl?: string;
@@ -603,7 +607,9 @@ interface RawSearchResponse {
     pageIndex?: number;
     pageSize?: number;
     totalCount?: number | string;
-    products?: NewSearchProduct[] | Record<string, never>;
+    // aliexpress.ds.text.search (2026-06): produkterna ligger under
+    // data.products.selection_search_product[] — inte som array direkt.
+    products?: NewSearchProduct[] | { selection_search_product?: NewSearchProduct[] };
   };
   totalCount?: number | string;
 }
@@ -675,6 +681,21 @@ function mapSearchProduct(p: RawSearchProduct): AliExpressSearchResult {
   };
 }
 
+/**
+ * Plockar ut produkt-arrayen ur ett "nyare shape"-svar. Listan kan ligga som
+ * array direkt, eller (aliexpress.ds.text.search 2026-06) inbäddad under
+ * nyckeln `selection_search_product`. Bug 2026-06-05: bara array-formen stöddes
+ * → 0 träffar trots fullt svar (totalCount > 50000).
+ */
+function extractNewSearchList(prods: unknown): NewSearchProduct[] | undefined {
+  if (Array.isArray(prods)) return prods as NewSearchProduct[];
+  if (prods && typeof prods === "object") {
+    const inner = (prods as { selection_search_product?: unknown }).selection_search_product;
+    if (Array.isArray(inner)) return inner as NewSearchProduct[];
+  }
+  return undefined;
+}
+
 /** Mappar nyare search-shape (itemMainPic, salePrice, etc) till resultat. */
 function mapNewSearchProduct(raw: NewSearchProduct): AliExpressSearchResult {
   const p = raw.selection_search_product ?? raw;
@@ -682,8 +703,12 @@ function mapNewSearchProduct(raw: NewSearchProduct): AliExpressSearchResult {
   const shipsFromCountries = shipFromRaw
     ? uniqueShipFromCodes([shipFromRaw])
     : [];
-  const priceUsd = parseAmount(p.salePrice ?? p.target_app_sale_price ?? p.app_sale_price);
-  const originalPriceUsd = parseAmount(p.originalPrice);
+  // targetSalePrice/targetOriginalPrice är USD; salePrice/originalPrice kan vara
+  // CNY → ta USD-fälten först, lägg CNY-fälten sist som nödfallback.
+  const priceUsd = parseAmount(
+    p.targetSalePrice ?? p.target_app_sale_price ?? p.app_sale_price ?? p.salePrice,
+  );
+  const originalPriceUsd = parseAmount(p.targetOriginalPrice ?? p.originalPrice);
   const discountPct = parseAmount(p.discountPercent ?? p.discount);
   return {
     productId: String(p.itemId ?? p.productId ?? p.product_id ?? ""),
@@ -766,13 +791,10 @@ export async function searchAliExpressByText(
   if (legacyList && legacyList.length > 0) {
     results = legacyList.map(mapSearchProduct).filter((p) => p.productId);
   } else {
-    // 2/3) Nyare shape: { code:"00", data: { products: [...] } }
-    //      eller     : { products: [...] } direkt (utan wrapper)
-    const newList = Array.isArray(raw.data?.products)
-      ? raw.data!.products
-      : Array.isArray(raw.products)
-      ? raw.products
-      : undefined;
+    // 2/3) Nyare shape: { code:"00", data: { products: { selection_search_product: [...] } } }
+    //      eller arrayer direkt under data.products / products (utan wrapper).
+    const newList =
+      extractNewSearchList(raw.data?.products) ?? extractNewSearchList(raw.products);
     if (newList && newList.length > 0) {
       results = newList.map(mapNewSearchProduct).filter((p) => p.productId);
     }
