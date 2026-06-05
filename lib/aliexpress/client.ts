@@ -503,7 +503,7 @@ export async function getTracking(tradeOrderId: string): Promise<DsTrackingResul
 
 export async function getInventory(
     productId: string,
-  ): Promise<{ skuId: string; price: number; stock: number; skuProps: Record<string, string> }[]> {
+  ): Promise<{ skuId: string; price: number; stock: number; skuProps: Record<string, string>; shipFrom?: string }[]> {
     const product = await getProduct(productId);
     return product.variants.map((v) => ({
           skuId: v.skuId,
@@ -512,6 +512,9 @@ export async function getInventory(
           // skuProps följer med så importen kan matcha lager på optionskombination
           // när skrapan tappar skuId (AE laddar inte längre SKU-data i sidan).
           skuProps: v.skuProps ?? {},
+          // shipFrom (normaliserad landskod) → importen kan välja EU-lagrets saldo
+          // när en färg finns i flera lager-länder (policy: endast EU-lagret).
+          shipFrom: v.shipFrom,
     }));
 }
 

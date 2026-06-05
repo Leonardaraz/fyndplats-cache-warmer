@@ -4,6 +4,7 @@ import { isAuthorized } from "@/lib/auth";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { importProduct } from "@/lib/import/pipeline";
 import { getInventory } from "@/lib/aliexpress/client";
+import { isEuCountry } from "@/lib/aliexpress/eu-countries";
 import { optionComboKey } from "@/lib/import/variant-stock";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
@@ -216,32 +217,54 @@ export async function POST(req: Request) {
         // getProduct().variants[].skuId) → lagret kan hållas färskt automatiskt.
         const adopt = (
           v: { stock?: number; supplierVariantId: string },
-          entry: { skuId: string; stock: number },
+          stock: number,
+          skuId: string,
         ) => {
-          v.stock = entry.stock;
-          if (entry.skuId) v.supplierVariantId = String(entry.skuId);
+          v.stock = stock;
+          if (skuId) v.supplierVariantId = String(skuId);
         };
         const bySku = new Map(inv.map((i) => [String(i.skuId), i]));
-        // Fallback-matchning på optionskombination (färg/storlek). AE laddar inte
-        // längre SKU-id i sidan → skrapan sätter "idx-N" → skuId-matchningen ger
-        // 0 träffar → allt fick fallback-lager 10 (bug 2026-06-04). Kombo-nyckeln
-        // delas av båda källor och räddar de variant som skuId missar.
+        // Matchning på optionskombination (färg/storlek). AE laddar inte längre
+        // SKU-id i sidan → skrapan sätter "idx-N" → skuId-matchningen ger 0 träffar
+        // (bug 2026-06-04). Kombo-nyckeln delas av båda källor.
+        //
+        // Policy "endast EU-lagret" (2026-06-05): en produkt kan ha samma färg i
+        // FLERA lager-länder (färg × ships-from = N SKU:er) men butiken visar bara
+        // färg. Då ska bara EU-lagrets saldo räknas per färg — annars tog importen
+        // första lagret (kunde vara CN/0) och en färg såg felaktigt slut ut.
+        // euStockByCombo = summa EU-lager per kombo; euSkuByCombo = ett EU-skuId
+        // att adoptera (så dagliga synken speglar EU-saldot). byCombo = fallback
+        // (första lagret) när ship-from saknas eller inget EU-lager finns.
+        const euStockByCombo = new Map<string, number>();
+        const euSkuByCombo = new Map<string, string>();
         const byCombo = new Map<string, (typeof inv)[number]>();
         for (const i of inv) {
           const key = optionComboKey(i.skuProps);
-          if (key && !byCombo.has(key)) byCombo.set(key, i);
+          if (!key) continue;
+          if (!byCombo.has(key)) byCombo.set(key, i);
+          if (isEuCountry(i.shipFrom ?? "")) {
+            euStockByCombo.set(key, (euStockByCombo.get(key) ?? 0) + i.stock);
+            if (!euSkuByCombo.has(key)) euSkuByCombo.set(key, String(i.skuId));
+          }
         }
         let matched = 0;
+        let viaEu = 0;
         let viaCombo = 0;
         for (const v of product.variants) {
-          let entry = bySku.get(String(v.supplierVariantId));
-          if (!entry) {
-            entry = byCombo.get(optionComboKey(v.options));
-            if (entry) viaCombo++;
-          }
-          if (entry) {
-            adopt(v, entry);
+          const key = optionComboKey(v.options);
+          const exact = bySku.get(String(v.supplierVariantId));
+          if (exact) {
+            adopt(v, exact.stock, String(exact.skuId));
             matched++;
+          } else if (key && euStockByCombo.has(key)) {
+            adopt(v, euStockByCombo.get(key) ?? 0, euSkuByCombo.get(key) ?? "");
+            matched++;
+            viaEu++;
+          } else if (key && byCombo.has(key)) {
+            const e = byCombo.get(key)!;
+            adopt(v, e.stock, String(e.skuId));
+            matched++;
+            viaCombo++;
           }
         }
         // Sista utväg: positions-matchning. För vissa produkter svarar DS-API:t
@@ -254,13 +277,13 @@ export async function POST(req: Request) {
         let viaPosition = 0;
         if (matched === 0 && inv.length === product.variants.length) {
           for (let idx = 0; idx < product.variants.length; idx++) {
-            adopt(product.variants[idx], inv[idx]);
+            adopt(product.variants[idx], inv[idx].stock, String(inv[idx].skuId));
             matched++;
             viaPosition++;
           }
         }
         console.log(
-          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade (kombo ${viaCombo}, position ${viaPosition})`,
+          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade (eu ${viaEu}, kombo ${viaCombo}, position ${viaPosition})`,
         );
       }
     } catch (e) {
