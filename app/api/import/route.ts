@@ -215,12 +215,15 @@ export async function POST(req: Request) {
         // DAGLIGA synken (lib/sync/aliexpress-sync) använder (den keyar på
         // getProduct().variants[].skuId) → lagret kan hållas färskt automatiskt.
         const adopt = (
-          v: { stock?: number; supplierVariantId: string },
-          stock: number,
-          skuId: string,
+          v: { stock?: number; supplierVariantId: string; costUsd?: number },
+          entry: { stock: number; skuId: string; price?: number },
         ) => {
-          v.stock = stock;
-          if (skuId) v.supplierVariantId = String(skuId);
+          v.stock = entry.stock;
+          if (entry.skuId) v.supplierVariantId = String(entry.skuId);
+          // Per-variant kostnad (USD) från DS-API:t (target_currency=USD). Utan
+          // detta ärver alla varianter skrapans enda pris → fel när varianterna
+          // kostar olika (t.ex. 3PCS/4PCS/5PCS). Behåll skrapans pris om DS ger 0.
+          if (typeof entry.price === "number" && entry.price > 0) v.costUsd = entry.price;
         };
         const bySku = new Map(inv.map((i) => [String(i.skuId), i]));
         // Matchning på optionskombination (färg/storlek). AE laddar inte längre
@@ -245,11 +248,10 @@ export async function POST(req: Request) {
           const key = optionComboKey(v.options);
           const exact = bySku.get(String(v.supplierVariantId));
           if (exact) {
-            adopt(v, exact.stock, String(exact.skuId));
+            adopt(v, exact);
             matched++;
           } else if (key && byComboMax.has(key)) {
-            const e = byComboMax.get(key)!;
-            adopt(v, e.stock, String(e.skuId));
+            adopt(v, byComboMax.get(key)!);
             matched++;
             viaCombo++;
           }
@@ -264,7 +266,7 @@ export async function POST(req: Request) {
         let viaPosition = 0;
         if (matched === 0 && inv.length === product.variants.length) {
           for (let idx = 0; idx < product.variants.length; idx++) {
-            adopt(product.variants[idx], inv[idx].stock, String(inv[idx].skuId));
+            adopt(product.variants[idx], inv[idx]);
             matched++;
             viaPosition++;
           }
