@@ -4,7 +4,6 @@ import { isAuthorized } from "@/lib/auth";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { importProduct } from "@/lib/import/pipeline";
 import { getInventory } from "@/lib/aliexpress/client";
-import { isEuCountry } from "@/lib/aliexpress/eu-countries";
 import { optionComboKey } from "@/lib/import/variant-stock";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
@@ -228,27 +227,19 @@ export async function POST(req: Request) {
         // SKU-id i sidan → skrapan sätter "idx-N" → skuId-matchningen ger 0 träffar
         // (bug 2026-06-04). Kombo-nyckeln delas av båda källor.
         //
-        // Policy "endast EU-lagret" (2026-06-05): en produkt kan ha samma färg i
-        // FLERA lager-länder (färg × ships-from = N SKU:er) men butiken visar bara
-        // färg. Då ska bara EU-lagrets saldo räknas per färg — annars tog importen
-        // första lagret (kunde vara CN/0) och en färg såg felaktigt slut ut.
-        // euStockByCombo = summa EU-lager per kombo; euSkuByCombo = ett EU-skuId
-        // att adoptera (så dagliga synken speglar EU-saldot). byCombo = fallback
-        // (första lagret) när ship-from saknas eller inget EU-lager finns.
-        const euStockByCombo = new Map<string, number>();
-        const euSkuByCombo = new Map<string, string>();
-        const byCombo = new Map<string, (typeof inv)[number]>();
+        // Policy "mest saldo" (2026-06-05): en produkt kan ha samma färg i FLERA
+        // lager-länder (färg × ships-from = N SKU:er) men butiken visar bara färg.
+        // Vi kan inte avgöra vilket lager som är EU server-side (DS-API:t ger tomt
+        // land), så vi tar lagret med MEST saldo per färg → ingen färg ser falskt
+        // slut ut. Adopterar det lagrets skuId så dagliga synken följer samma SKU.
+        const byComboMax = new Map<string, (typeof inv)[number]>();
         for (const i of inv) {
           const key = optionComboKey(i.skuProps);
           if (!key) continue;
-          if (!byCombo.has(key)) byCombo.set(key, i);
-          if (isEuCountry(i.shipFrom ?? "")) {
-            euStockByCombo.set(key, (euStockByCombo.get(key) ?? 0) + i.stock);
-            if (!euSkuByCombo.has(key)) euSkuByCombo.set(key, String(i.skuId));
-          }
+          const cur = byComboMax.get(key);
+          if (!cur || i.stock > cur.stock) byComboMax.set(key, i);
         }
         let matched = 0;
-        let viaEu = 0;
         let viaCombo = 0;
         for (const v of product.variants) {
           const key = optionComboKey(v.options);
@@ -256,12 +247,8 @@ export async function POST(req: Request) {
           if (exact) {
             adopt(v, exact.stock, String(exact.skuId));
             matched++;
-          } else if (key && euStockByCombo.has(key)) {
-            adopt(v, euStockByCombo.get(key) ?? 0, euSkuByCombo.get(key) ?? "");
-            matched++;
-            viaEu++;
-          } else if (key && byCombo.has(key)) {
-            const e = byCombo.get(key)!;
+          } else if (key && byComboMax.has(key)) {
+            const e = byComboMax.get(key)!;
             adopt(v, e.stock, String(e.skuId));
             matched++;
             viaCombo++;
@@ -283,7 +270,7 @@ export async function POST(req: Request) {
           }
         }
         console.log(
-          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade (eu ${viaEu}, kombo ${viaCombo}, position ${viaPosition})`,
+          `[import:stock] pid=${product.supplierProductId} DS-lager: ${matched}/${product.variants.length} varianter matchade (kombo ${viaCombo}, position ${viaPosition})`,
         );
       }
     } catch (e) {
