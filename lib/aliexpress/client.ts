@@ -591,6 +591,9 @@ interface NewSearchProduct {
   product_detail_url?: string;
   ship_from?: string;
   ship_from_country?: string;
+  // Popularitet/betyg i nyare shape: orders ("4,000+"), score (stjärnor 0–5).
+  orders?: string | number;
+  score?: string | number;
   /** Wrapper-shape: data.products[].selection_search_product */
   selection_search_product?: NewSearchProduct;
 }
@@ -710,6 +713,10 @@ function mapNewSearchProduct(raw: NewSearchProduct): AliExpressSearchResult {
   );
   const originalPriceUsd = parseAmount(p.targetOriginalPrice ?? p.originalPrice);
   const discountPct = parseAmount(p.discountPercent ?? p.discount);
+  // Antal sålda: "4,000+" → 4000 (parseIntSafe stannar annars vid kommat).
+  const ordersDigits = String(p.orders ?? "").replace(/[^\d]/g, "");
+  const orders = ordersDigits ? parseInt(ordersDigits, 10) : undefined;
+  const rating = parseFloatSafe(p.score);
   return {
     productId: String(p.itemId ?? p.productId ?? p.product_id ?? ""),
     title: String(p.itemTitle ?? p.title ?? p.subject ?? ""),
@@ -720,6 +727,8 @@ function mapNewSearchProduct(raw: NewSearchProduct): AliExpressSearchResult {
         ? originalPriceUsd
         : undefined,
     discountPct,
+    orders,
+    rating: rating !== undefined && rating > 0 ? rating : undefined,
     productUrl: p.itemUrl ?? p.productDetailUrl ?? p.product_detail_url,
     shipsFromCountries,
     hasEuWarehouse: hasAnyEuWarehouse(shipsFromCountries),
