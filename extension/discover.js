@@ -375,7 +375,7 @@
         "fp-eupanel__sub",
         euPanel.error
           ? ""
-          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · markera och importera`,
+          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · markera och importera · v0.1.21 ✅ rika kort`,
       ),
     );
 
