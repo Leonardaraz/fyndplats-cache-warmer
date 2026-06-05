@@ -217,13 +217,17 @@ export async function POST(req: Request) {
         const adopt = (
           v: { stock?: number; supplierVariantId: string; costUsd?: number },
           entry: { stock: number; skuId: string; price?: number },
+          opts?: { withCost?: boolean },
         ) => {
           v.stock = entry.stock;
           if (entry.skuId) v.supplierVariantId = String(entry.skuId);
           // Per-variant kostnad (USD) från DS-API:t (target_currency=USD). Utan
           // detta ärver alla varianter skrapans enda pris → fel när varianterna
           // kostar olika (t.ex. 3PCS/4PCS/5PCS). Behåll skrapans pris om DS ger 0.
-          if (typeof entry.price === "number" && entry.price > 0) v.costUsd = entry.price;
+          // withCost=false vid osäker positions-matchning (se nedan) → rör ej pris.
+          if (opts?.withCost !== false && typeof entry.price === "number" && entry.price > 0) {
+            v.costUsd = entry.price;
+          }
         };
         const bySku = new Map(inv.map((i) => [String(i.skuId), i]));
         // Matchning på optionskombination (färg/storlek). AE laddar inte längre
@@ -274,11 +278,16 @@ export async function POST(req: Request) {
         // 9 resp 1 st). DS returnerar varianterna i samma ordning som sidan, så
         // när inget matchade men antalet är exakt lika mappar vi per position.
         // Klart bättre än fallback 10 (som dessutom döljer äkta OOS). Loggas.
+        //
+        // KONSERVATIVT (2026-06-05, audit-fynd F1): positions-matchning är en
+        // GISSNING om ordningen. Den adopterar därför ENDAST lager + skuId — INTE
+        // pris eller bild. En felgissad ordning får då aldrig felprissätta eller
+        // sätta fel variantbild för kunden; den behåller skrapans pris/bild.
+        // (Exakt- och kombo-matchning ovan är säkra → de berikar fullt ut.)
         let viaPosition = 0;
         if (matched === 0 && inv.length === product.variants.length) {
           for (let idx = 0; idx < product.variants.length; idx++) {
-            adopt(product.variants[idx], inv[idx]);
-            captureImg(product.variants[idx].options, inv[idx]);
+            adopt(product.variants[idx], inv[idx], { withCost: false });
             matched++;
             viaPosition++;
           }
