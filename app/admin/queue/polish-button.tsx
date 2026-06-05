@@ -21,7 +21,10 @@ export function PolishButton({
   const [failed, setFailed] = useState(false);
 
   const payload = [
-    "Polera denna RÅ-importerade produkt (skriv svensk SEO-titel, beskrivning, FAQ, kategori):",
+    "SEO-polera denna RÅ-importerade produkt.",
+    "FÖRST: läs och följ instruktionerna i docs/seo-polish-runbook.md (exakt, i ordning) —",
+    "inkl. att PUBLICERA produkten (visible:true) när poleringen är klar och verifierad.",
+    "",
     `Wix-produkt-ID: ${wixProductId}`,
     title ? `Titel (rå): ${title}` : null,
     sourceUrl ? `AliExpress-källa: ${sourceUrl}` : null,
