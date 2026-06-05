@@ -140,14 +140,11 @@ export function ProductView({
   priceNum: number;
 }) {
   const { add, busy } = useCart();
-  // Förvälj billigaste varianten så att produktsidans pris matchar "Från X kr" på
-  // kort/listor (annars hoppade priset eftersom variant 0 inte är billigast).
-  const [sel, setSel] = useState(() => {
-    const cs = options?.choices || [];
-    let bi = 0, bv = Infinity;
-    cs.forEach((c, i) => { if (c.priceNum > 0 && c.priceNum < bv) { bv = c.priceNum; bi = i; } });
-    return bi;
-  });
+  // Förvälj FÖRSTA varianten (index 0) — samma som galleriets startbild nedan,
+  // så vald ruta och visad bild alltid stämmer när sidan öppnas. (Tidigare
+  // förvaldes billigaste varianten för att matcha "Från X kr" på korten, men då
+  // pekade rutan på en variant medan galleriet visade huvudbilden — o-synkat.)
+  const [sel, setSel] = useState(0);
   const [galleryIdx, setGalleryIdx] = useState(0); // aktiv galleribild
   const [added, setAdded] = useState(false);
 
