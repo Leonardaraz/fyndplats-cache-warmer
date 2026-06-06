@@ -48,6 +48,7 @@ import {
 } from "../aliexpress/eu-countries";
 import { getProduct } from "../aliexpress/client";
 import { enrichSwatchImagesFromApi, needsSwatchBackfill } from "./variant-images";
+import { matchesColorName } from "./color-match";
 import { audit } from "../audit";
 
 export interface VariantMapping {
@@ -542,6 +543,29 @@ export async function importProduct(
     }
   }
 
+  // Komplettera linkedMedia (bug "hundvagn" 2026-06-06): färg-/modell-val som INTE
+  // fick en explicit swatch-bild (DS/skrap saknade strukturerad mappning) kopplas
+  // nu mot en GALLERIbild vars alt-text NAMNGER färgen (robust svensk färgmatchning,
+  // se color-match.ts). Reuse:ar de per-färg-galleribilder som produkten redan har →
+  // storefronten (läser linkedMedia med högsta prioritet) visar rätt bild per modell,
+  // helt utan storefront-ändring. Explicit swatch vinner; detta fyller bara luckorna.
+  const linkedChoiceKeys = new Set(swatchLinks.map((l) => `${l.optionName} ${l.choiceName}`));
+  const usedSwatchAlts = new Set<string>();
+  const altLinks: ChoiceMediaLink[] = [];
+  for (const o of options) {
+    for (const c of o.choices) {
+      if (linkedChoiceKeys.has(`${o.name} ${c.name}`)) continue;
+      const match = mediaItems.find(
+        (m) => m.altText && !usedSwatchAlts.has(m.altText) && matchesColorName(m.altText, c.name),
+      );
+      if (match?.altText) {
+        usedSwatchAlts.add(match.altText);
+        altLinks.push({ optionName: o.name, choiceName: c.name, altText: match.altText });
+      }
+    }
+  }
+  const choiceMediaLinks = swatchLinks.concat(altLinks);
+
   // Aggregera warehouse-koder över alla varianter + ev. produkt-default.
   // Påverkar Wix-ribbonen och persisteras på mapping-posten för senare filterring.
   const allShipFromCodes: string[] = [];
@@ -592,12 +616,13 @@ export async function importProduct(
   // kunden väljer t.ex. "Blå" på produktsidan. Måste ske EFTER create (bilderna
   // ingest:as asynkront till media-poolen). Fail-open inuti linkChoiceMedia —
   // kopplingen får aldrig fälla importen. Loggas i audit för spårbarhet.
-  if (swatchLinks.length > 0) {
-    const linkedCount = await linkChoiceMedia(created.id, swatchLinks);
+  if (choiceMediaLinks.length > 0) {
+    const linkedCount = await linkChoiceMedia(created.id, choiceMediaLinks);
     await audit(
       "import-variant-media",
       created.id,
-      `${linkedCount}/${swatchLinks.length} val kopplade till variantbild (linkedMedia)`,
+      `${linkedCount}/${choiceMediaLinks.length} val kopplade till variantbild ` +
+        `(linkedMedia; ${swatchLinks.length} explicit swatch + ${altLinks.length} via alt-text-färgmatch)`,
     );
   }
 
