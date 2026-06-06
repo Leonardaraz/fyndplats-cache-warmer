@@ -112,16 +112,46 @@ export function buildSwatchImagesFromDs(
     const byValue: Record<string, Set<string>> = {};
     for (const v of variants) {
       const val = v.skuProps[axis];
-      if (!val || !v.imageUrl) continue;
-      (byValue[val] ??= new Set()).add(v.imageUrl);
+      const img = cleanAliCdnUrl(v.imageUrl);
+      if (!val || !img) continue;
+      (byValue[val] ??= new Set()).add(img);
     }
     const values = Object.keys(byValue);
-    const consistent = values.length >= 2 && values.every((val) => byValue[val].size === 1);
-    if (consistent) {
-      const map: Record<string, string> = {};
-      for (const val of values) map[val] = [...byValue[val]][0];
-      return { [axis]: map };
-    }
+    // Bild-axel = minst 2 värden där varje värde mappar till exakt EN bild.
+    const eachSingle = values.length >= 2 && values.every((val) => byValue[val].size === 1);
+    if (!eachSingle) continue;
+    const map: Record<string, string> = {};
+    for (const val of values) map[val] = [...byValue[val]][0];
+    // ...OCH minst två DISTINKTA bilder. Annars är det ingen riktig swatch-axel:
+    // en storleksaxel där alla SKU:er delar samma hjältebild ger en degenererad
+    // karta som skulle koppla samma bild till varje val (linkedMedia-brus).
+    if (new Set(Object.values(map)).size < 2) continue;
+    return { [axis]: map };
   }
   return undefined;
+}
+
+/**
+ * Strippar alicdn-storleks-/thumbnail-suffix så Wix linkedMedia får ORIGINALET i
+ * full upplösning (server-side motsvarighet till extension-skraparens cleanImageUrl;
+ * bug 2026-06-02: linkedMedia satte 220×220-thumbs i stället för originalet). No-op
+ * på redan rena URL:er.
+ */
+export function cleanAliCdnUrl(u: string | undefined): string {
+  if (!u) return "";
+  let s = String(u).trim();
+  if (s.startsWith("//")) s = "https:" + s;
+  // Rör inte URL:er med query-sträng: alicdn-bildernas storleks-suffix ligger i
+  // sökvägen, inte i en query. Suffix-regexarna nedan är ankrade på sträng-slutet
+  // ($), så en query skulle annars kunna manglas (t.ex. "?w=a.jpg.webp" eller en
+  // signerad param) och ge en 404. Lämna query-bärande URL:er orörda (worst case:
+  // en thumbnail som inte strippas — fortfarande giltig).
+  if (s.includes("?")) return s;
+  // Suffix EFTER filändelsen: ".jpg_220x220q75.jpg_.avif" → ".jpg".
+  s = s.replace(/(\.(?:jpg|jpeg|png|webp|gif|avif|bmp))_[^/]*$/i, "$1");
+  // Suffix FÖRE filändelsen: "abc_220x220.jpg" / "abc_50x50q75.webp" → "abc.jpg".
+  s = s.replace(/_\d{2,4}x\d{2,4}(?:q\d{1,3})?(?=\.(?:jpg|jpeg|png|webp|gif|avif|bmp)$)/i, "");
+  // Dubbel-extension efter dedup ("….jpg.webp") → behåll första.
+  s = s.replace(/(\.(?:jpg|jpeg|png|webp|gif|avif|bmp))\.(?:jpg|jpeg|png|webp|gif|avif|bmp)$/i, "$1");
+  return s;
 }

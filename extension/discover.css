@@ -387,3 +387,49 @@
 }
 .fp-eupanel__import:hover { background: var(--fp-orange-dark); }
 .fp-eupanel__import:disabled { background: #d1d5db; cursor: not-allowed; }
+
+/* --- CSS-pansar mot AliExpress värd-CSS (panel-korten) -------------------
+   "Alla EU"-panelen renderas i light-DOM (ingen shadow-DOM/iframe), så AE:s
+   egen CSS konkurrerar i samma kaskad. AE har !important-regler som läcker in
+   och kapar korten. Diagnostiserat live (console-prob 2026-06-06):
+     • .fp-eucard__title fick `display: flow-root` (AE) i stället för vår
+       `-webkit-box` → `-webkit-line-clamp: 2` slogs ut (titlarna klipptes inte).
+     • Kortet klipptes LÄGRE än sin egen bild (korthöjd 178 < bildhöjd 199):
+       AE störde kortets flex/höjd-layout och `overflow:hidden` kapade innehållet.
+   Resten av filen pansras redan med hög specificitet + !important "där
+   AliExpress annars vinner"; .fp-eucard*-blocket (infört i #109) gjorde inte
+   det. Här återställer vi de BÄRANDE layout-egenskaperna scopade under
+   .fp-eupanel-backdrop (höjer specificiteten över AE:s klassregler) + !important.
+   De kosmetiska .fp-eucard*-reglerna ovan står kvar som bas. Om AE börjar slå
+   även detta: flytta panelen till en shadow-DOM (full isolering). */
+.fp-eupanel-backdrop .fp-eucard {
+  display: flex !important;
+  flex-direction: column !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: hidden !important;
+}
+.fp-eupanel-backdrop .fp-eucard__imgwrap {
+  position: relative !important;
+  aspect-ratio: 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  flex: 0 0 auto !important;
+}
+.fp-eupanel-backdrop .fp-eucard__imgwrap img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+.fp-eupanel-backdrop .fp-eucard__title {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+.fp-eupanel-backdrop .fp-eucard__actions {
+  display: flex !important;
+  margin-top: auto !important;
+}

@@ -46,6 +46,8 @@ import {
   uniqueShipFromCodes,
   type WarehouseClass,
 } from "../aliexpress/eu-countries";
+import { getProduct } from "../aliexpress/client";
+import { enrichSwatchImagesFromApi, needsSwatchBackfill } from "./variant-images";
 import { audit } from "../audit";
 
 export interface VariantMapping {
@@ -194,11 +196,35 @@ export async function importProduct(
     options: translateVariantOptions(v.options),
   }));
   const translatedColorCodes = colorCodes ? translateOptionColorCodes(colorCodes) : undefined;
+  // Variantbild-backfill (bug "kepsen" 2026-06-06): när skrapan inte fångade NÅGON
+  // per-färg-bild (lazy-load/annan DOM) får produkten text-val utan bild. Hämta då
+  // bilderna från DS-produkt-API:t (sku_image), matchat på SKU-id, med skrapans råa
+  // namn. Hoppar API-anropet helt när skrapan redan gav swatch-bilder → ingen extra
+  // kostnad/regression. Best-effort — fäller aldrig importen.
+  let effectiveSwatchImages = product.swatchImages;
+  if (variantImageBackfillEnabled() && needsSwatchBackfill(product)) {
+    const backfilled = await enrichSwatchImagesFromApi(product, { getProduct });
+    const axis = Object.keys(backfilled)[0];
+    if (axis) {
+      // needsSwatchBackfill garanterar att skrapan gav noll swatchar här, så
+      // backfilled ÄR hela kartan (ingen merge att göra).
+      effectiveSwatchImages = backfilled;
+      console.log(
+        `[import:variant-images] pid=${product.supplierProductId} backfill via DS-API: ` +
+          `axel "${axis}", ${Object.keys(backfilled[axis]).length} färgbilder (skrapan gav inga).`,
+      );
+    } else {
+      console.log(
+        `[import:variant-images] pid=${product.supplierProductId} skrapan gav inga swatch-bilder ` +
+          `och DS-API:t gav inga per-SKU-bilder att koppla.`,
+      );
+    }
+  }
   // Per-val bild-URL:er översätts till samma svenska axel-/val-nycklar som
   // varianterna (translateOptionColorCodes har exakt rätt shape) så att de matchar
   // de härledda Wix-optionsvalen vid kopplingen nedan.
-  const translatedSwatchImages = product.swatchImages
-    ? translateOptionColorCodes(product.swatchImages)
+  const translatedSwatchImages = effectiveSwatchImages
+    ? translateOptionColorCodes(effectiveSwatchImages)
     : undefined;
 
   const included = variants.filter((v) => v.included);
@@ -934,6 +960,16 @@ export function buildCategoryRecord(
  */
 export function useBatchedPipeline(): boolean {
   return (process.env.USE_BATCHED_PIPELINE ?? "true").toLowerCase() !== "false";
+}
+
+/**
+ * Variantbild-backfill från DS-API:t när skrapan inte gav per-färg-bilder. Default
+ * PÅ. Sätt IMPORT_VARIANT_IMAGE_BACKFILL=false för att stänga av (då förlitar sig
+ * importen enbart på skrapans swatch-bilder, som tidigare). Backfillen gör ett
+ * getProduct-anrop ENDAST när skrapan gav noll swatch-bilder.
+ */
+export function variantImageBackfillEnabled(): boolean {
+  return (process.env.IMPORT_VARIANT_IMAGE_BACKFILL ?? "true").toLowerCase() !== "false";
 }
 
 /**
