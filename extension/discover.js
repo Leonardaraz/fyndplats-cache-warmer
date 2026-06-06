@@ -282,10 +282,14 @@
       toast("Hittade ingen sökterm på sidan — sök efter något först.", "err");
       return;
     }
-    euPanel = { query, sortBy: "orders,desc", page: 1, results: [], loading: false, error: "", done: false };
+    euPanel = {
+      query, sortBy: "orders,desc",
+      results: [], byId: new Map(), diag: [], countries: [], progress: "",
+      loading: false, error: "", done: false,
+    };
     renderBulkBar(); // göm den globala bulk-baren medan panelen är öppen
     renderEuPanel();
-    loadEuPage(true);
+    loadEuAll(true);
   }
 
   function closeEuPanel() {
@@ -293,6 +297,198 @@
     const b = document.getElementById("fp-eupanel-backdrop");
     if (b) b.remove();
     renderBulkBar(); // återställ bulk-baren (speglar ev. kvarvarande urval)
+  }
+
+  // ======================================================================
+  //  Väg 2: "Alla EU" via AE:s EGNA lands-filter (shpf_co) i dolda iframes
+  // ======================================================================
+  // DS-sök-API:t saknar ship-from-filter, så panelen hämtar i stället AE:s egna
+  // sökresultat per EU-land (samma server-side shpf_co-filter som lands-chipsen)
+  // i dolda SAME-ORIGIN-iframes, skrapar korten ur deras DOM och slår ihop +
+  // deduplicerar. Varje träff är då GARANTERAT EU med känt land — ingen gissning,
+  // inga detalj-anrop. Sandbox utan allow-top-navigation hindrar AE:s ev.
+  // frame-busting från att kapa din flik. Diagnostik per land visas om något
+  // inte gick att läsa (t.ex. X-Frame-Options) så vi ser exakt vad som hände.
+  const MAX_EU_COUNTRIES = 10;
+  const EU_SCRAPE_TIMEOUT_MS = 12000;
+
+  function aeSortType(sortBy) {
+    switch (sortBy) {
+      case "orders,desc": return "total_tranpro_desc";
+      case "price,asc": return "price_asc";
+      case "price,desc": return "price_desc";
+      default: return "";
+    }
+  }
+
+  function euCountrySearchUrl(country, sortBy) {
+    const u = new URL(location.href);
+    u.searchParams.set("shpf_co", country);
+    const st = aeSortType(sortBy);
+    if (st) u.searchParams.set("sortType", st);
+    return u.toString();
+  }
+
+  // Skrapar produkt-korten ur en (iframe-)dokumentrot. shpf_co gör att ALLA
+  // träffar är EU för `country`. Klättrar till kort-CONTAINERN per produkt och
+  // plockar titel, pris och antal sålda (AE lägger ofta titeln i ett SKILT element
+  // från bild-länken, därför räcker inte bild-länken).
+  function scrapeDocCards(doc, country) {
+    let links = [...doc.querySelectorAll(CARD_SCOPE)];
+    if (!links.length) links = [...doc.querySelectorAll('a[href*="/item/"]')];
+    const out = [];
+    const seen = new Set();
+    for (const link of links) {
+      const m = (link.getAttribute("href") || "").match(/\/item\/(\d+)\.html/);
+      if (!m) continue;
+      const id = m[1];
+      if (seen.has(id)) continue;
+
+      // Kort-container: känd wrapper, annars klättra tills boxen har bild + (pris|titel).
+      let card =
+        link.closest(".search-item-card-wrapper-gallery, .search-card-item, .card-out-wrapper");
+      if (!card) {
+        card = link.parentElement;
+        for (let i = 0; i < 5 && card; i++) {
+          if (card.querySelector("img") && card.querySelector('[class*="price" i], [class*="title" i]')) break;
+          card = card.parentElement;
+        }
+        if (!card) card = link;
+      }
+
+      const img = card.querySelector("img");
+      let thumb = img ? img.getAttribute("src") || img.getAttribute("data-src") || img.getAttribute("data-image") || "" : "";
+      if (thumb.startsWith("//")) thumb = "https:" + thumb;
+      if (!thumb) continue; // hoppa länkar utan bild (footer/rekommendationer)
+
+      let title = "";
+      const titleEl = card.querySelector('[class*="title" i], h1, h3');
+      if (titleEl) title = (titleEl.getAttribute("title") || titleEl.textContent || "").trim();
+      if (title.length < 4) title = (link.getAttribute("title") || (img && img.getAttribute("alt")) || link.textContent || "").trim();
+      title = title.replace(/\s+/g, " ").slice(0, 90);
+
+      let priceText = "";
+      const priceEl = card.querySelector('[class*="price-sale" i], [class*="price" i]');
+      if (priceEl) priceText = (priceEl.textContent || "").replace(/\s+/g, " ").trim().slice(0, 24);
+
+      let salesText = "";
+      const salesEl = card.querySelector('[class*="trade" i], [class*="sold" i], [class*="sale-num" i], [class*="order" i]');
+      if (salesEl) salesText = (salesEl.textContent || "").replace(/\s+/g, " ").trim().slice(0, 28);
+
+      let url = link.href;
+      try { url = new URL(link.href).origin + new URL(link.href).pathname; } catch (_) {}
+
+      seen.add(id);
+      out.push({
+        productId: id,
+        productUrl: url,
+        title,
+        imageUrl: thumb,
+        priceText,
+        salesText,
+        shipsFromCountries: [country],
+        warehouseClass: "EU",
+      });
+    }
+    return out;
+  }
+
+  // Laddar en dold iframe med AE:s sök för `country`, väntar in AE:s render och
+  // skrapar korten. Returnerar { items, note } där note förklarar ev. 0-utfall.
+  function scrapeEuCountry(country, sortBy) {
+    return new Promise((resolve) => {
+      const iframe = document.createElement("iframe");
+      iframe.setAttribute("aria-hidden", "true");
+      // allow-scripts: AE:s JS måste rendera korten. allow-same-origin: så vi kan
+      // läsa contentDocument. INGEN allow-top-navigation → frame-busting kan inte
+      // kapa din flik.
+      iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
+      iframe.style.cssText =
+        "position:fixed;left:-10000px;top:0;width:1280px;height:900px;border:0;opacity:0;pointer-events:none;";
+      let settled = false;
+      const finish = (res) => {
+        if (settled) return;
+        settled = true;
+        try { iframe.remove(); } catch (_) {}
+        resolve(res);
+      };
+      const start = Date.now();
+      const poll = () => {
+        if (settled) return;
+        let doc = null;
+        try { doc = iframe.contentDocument; } catch (_) { doc = null; }
+        if (!doc) {
+          if (Date.now() - start > EU_SCRAPE_TIMEOUT_MS) {
+            return finish({ items: [], note: "iframe ej läsbar (ev. X-Frame-Options)" });
+          }
+          return setTimeout(poll, 400);
+        }
+        const itemLinks = doc.querySelectorAll('a[href*="/item/"]').length;
+        if (itemLinks > 0) return finish({ items: scrapeDocCards(doc, country), note: "" });
+        if (Date.now() - start > EU_SCRAPE_TIMEOUT_MS) {
+          return finish({ items: [], note: "0 kort (AE renderade inga item-länkar)" });
+        }
+        setTimeout(poll, 400);
+      };
+      iframe.addEventListener("load", () => setTimeout(poll, 300));
+      setTimeout(() => finish({ items: [], note: "timeout" }), EU_SCRAPE_TIMEOUT_MS + 4000);
+      try {
+        iframe.src = euCountrySearchUrl(country, sortBy);
+        document.body.appendChild(iframe);
+      } catch (e) {
+        finish({ items: [], note: "kunde inte skapa iframe: " + ((e && e.message) || e) });
+      }
+    });
+  }
+
+  function defaultEuScrapeCountries() {
+    return EU_PRIORITY.slice(0, MAX_EU_COUNTRIES);
+  }
+
+  // Orkestrerar väg 2: skrapar varje tillgängligt EU-land sekventiellt, slår ihop
+  // + deduplicerar (slår ihop länder per produkt), renderar inkrementellt.
+  async function loadEuAll(reset) {
+    if (!euPanel || euPanel.loading) return;
+    const session = euPanel;
+    if (reset) {
+      session.results = [];
+      session.byId = new Map();
+      session.diag = [];
+      session.done = false;
+    }
+    session.loading = true;
+    session.error = "";
+    let countries = readAvailableCountries().eu;
+    if (!countries.length) countries = defaultEuScrapeCountries();
+    countries = countries.slice(0, MAX_EU_COUNTRIES);
+    session.countries = countries;
+    renderEuPanel();
+
+    for (const country of countries) {
+      if (euPanel !== session) return; // panelen stängdes/öppnades om
+      session.progress = ISO_TO_NAME[country] || country;
+      renderEuPanel();
+      const { items, note } = await scrapeEuCountry(country, session.sortBy);
+      if (euPanel !== session) return;
+      let added = 0;
+      for (const it of items) {
+        const existing = session.byId.get(it.productId);
+        if (existing) {
+          if (!existing.shipsFromCountries.includes(country)) existing.shipsFromCountries.push(country);
+        } else {
+          session.byId.set(it.productId, it);
+          session.results.push(it);
+          added++;
+        }
+      }
+      session.diag.push(`${FLAG[country] || ""} ${ISO_TO_NAME[country] || country}: ${added}${note ? " — " + note : ""}`);
+      renderEuPanel();
+    }
+    if (euPanel !== session) return;
+    session.progress = "";
+    session.loading = false;
+    session.done = true;
+    renderEuPanel();
   }
 
   // Laddar nästa "sida" EU-lager-produkter. Servern berikar varje träff med
@@ -398,7 +594,7 @@
     }
     sortSel.onchange = () => {
       euPanel.sortBy = sortSel.value;
-      loadEuPage(true); // reset + ladda om från sida 1
+      loadEuAll(true); // reset + skrapa om alla EU-länder
     };
     head.append(sortSel);
     const close = el("button", "fp-eupanel__close", "✕");
@@ -413,48 +609,51 @@
         "fp-eupanel__sub",
         euPanel.error
           ? ""
-          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · verifierat lager per produkt · markera och importera · v0.1.24`,
+          : `${euPanel.results.length} EU-lager-produkter${euPanel.loading ? "…" : ""} · AE:s eget lands-filter (alla EU-länder) · markera och importera · v0.1.26`,
       ),
     );
+
+    // Liten diagnostik-rad per land (hjälper se varför ett land gav 0).
+    const diagBlock = () => {
+      const d = el("div", "fp-eupanel__sub");
+      d.style.cssText = "white-space:pre-line;color:#9ca3af;font-size:11px;line-height:1.5;";
+      d.textContent =
+        (euPanel.progress ? `Söker: ${euPanel.progress}…\n` : "") +
+        (euPanel.diag && euPanel.diag.length ? "Per land:\n" + euPanel.diag.join("\n") : "");
+      return d;
+    };
 
     // Body
     if (euPanel.error) {
       panel.append(el("div", "fp-eupanel__error", euPanel.error));
     } else if (euPanel.results.length === 0 && euPanel.loading) {
-      panel.append(el("div", "fp-eupanel__empty", "Söker EU-lager…"));
+      panel.append(el("div", "fp-eupanel__empty", `Söker EU-lager…${euPanel.progress ? " " + euPanel.progress : ""}`));
+      panel.append(diagBlock());
     } else if (euPanel.results.length === 0) {
-      // OBS: hasMore räknas på råa sökträffar, så done kan vara false trots 0 EU på
-      // de skannade sidorna → erbjud "Sök vidare" (footern) i stället för att
-      // dödläges-påstå att inget finns.
       panel.append(
         el(
           "div",
           "fp-eupanel__empty",
-          euPanel.done
-            ? "Inga EU-lager-produkter för denna sökterm."
-            : "Inga EU-lager på de första sidorna — klicka ”Sök vidare” för fler.",
+          euPanel.loading ? "Söker EU-lager…" : "Inga EU-lager-produkter hittades för denna sökterm.",
         ),
       );
+      panel.append(diagBlock());
     } else {
       const grid = el("div", "fp-eupanel__grid");
       for (const p of euPanel.results) grid.append(renderEuCard(p));
       panel.append(grid);
+      if (euPanel.loading && euPanel.progress) {
+        panel.append(el("div", "fp-eupanel__sub", `Söker vidare… ${euPanel.progress}`));
+      }
     }
 
-    // Footer: visa fler / sök vidare + importera valda. Knappen visas så länge det
-    // finns fler sidor (!done) ÄVEN när 0 EU hittats än — annars fastnar EU-glesa
-    // sökord på en tom vy utan väg framåt.
+    // Footer: uppdatera (skrapa om alla EU-länder) + importera valda.
     const foot = el("div", "fp-eupanel__foot");
-    if (!euPanel.error && !euPanel.done) {
-      const label = euPanel.loading
-        ? "Hämtar…"
-        : euPanel.results.length > 0
-          ? "Visa fler"
-          : "Sök vidare";
-      const more = el("button", "fp-btn-text", label);
-      more.disabled = euPanel.loading;
-      more.onclick = () => loadEuPage();
-      foot.append(more);
+    if (!euPanel.error) {
+      const refresh = el("button", "fp-btn-text", euPanel.loading ? "Söker…" : "↻ Uppdatera");
+      refresh.disabled = euPanel.loading;
+      refresh.onclick = () => loadEuAll(true);
+      foot.append(refresh);
     }
     foot.append(el("span", "fp-eupanel__spacer"));
     const importBtn = el("button", "fp-eupanel__import", `Importera valda (${selected.size})`);
@@ -468,16 +667,48 @@
     back.append(panel);
   }
 
+  // Sätter stilar som inline !important → slår AE:s stylesheet (även !important)
+  // garanterat, eftersom AE inte kan röra VÅRA egna element. Löser att korten förr
+  // bara visade bilden (AE/övrig CSS klippte/dolde titel, pris, badge och knappar).
+  function setImp(node, styles) {
+    for (const k in styles) node.style.setProperty(k, styles[k], "important");
+  }
+
   function renderEuCard(p) {
     const info = euItemFromResult(p);
+    const isSel = selected.has(info.id);
     const card = el("div", "fp-eucard");
-    if (selected.has(info.id)) card.classList.add("fp-eucard--sel");
+    if (isSel) card.classList.add("fp-eucard--sel");
+    setImp(card, {
+      display: "flex",
+      "flex-direction": "column",
+      height: "auto",
+      "min-height": "0",
+      "max-height": "none",
+      overflow: "visible", // klipp ALDRIG bort kort-innehåll (titel/pris/knappar)
+      background: "#fff",
+      border: isSel ? "2px solid #ff6a00" : "2px solid #eef0f2",
+      "border-radius": "12px",
+      "box-sizing": "border-box",
+    });
 
     const imgWrap = el("div", "fp-eucard__imgwrap");
+    setImp(imgWrap, {
+      position: "relative",
+      display: "block",
+      width: "100%",
+      height: "150px", // fast höjd → enhetliga kort oavsett AE:s img-regler
+      overflow: "hidden",
+      "border-radius": "10px 10px 0 0",
+      background: "#f6f7f8",
+      flex: "0 0 auto",
+      "box-sizing": "border-box",
+    });
     if (info.thumb) {
       const img = document.createElement("img");
       img.src = info.thumb;
       img.alt = "";
+      setImp(img, { width: "100%", height: "100%", "object-fit": "cover", display: "block" });
       imgWrap.append(img);
     }
     const codes = p.shipsFromCountries || [];
@@ -490,7 +721,25 @@
           : codes.length
             ? codes.join(", ")
             : "okänt lager";
-    imgWrap.append(el("span", "fp-eucard__badge" + (cls === "EU" ? " fp-eucard__badge--eu" : ""), badgeText));
+    const badge = el("span", "fp-eucard__badge" + (cls === "EU" ? " fp-eucard__badge--eu" : ""), badgeText);
+    setImp(badge, {
+      position: "absolute",
+      left: "6px",
+      bottom: "6px",
+      "max-width": "calc(100% - 12px)",
+      "font-size": "10px",
+      "font-weight": "700",
+      padding: "2px 6px",
+      "border-radius": "6px",
+      background: cls === "EU" ? "#e6f7ee" : "rgba(255,255,255,0.92)",
+      color: cls === "EU" ? "#0a8a3f" : "#374151",
+      "-webkit-text-fill-color": cls === "EU" ? "#0a8a3f" : "#374151",
+      "white-space": "nowrap",
+      overflow: "hidden",
+      "text-overflow": "ellipsis",
+      "z-index": "2",
+    });
+    imgWrap.append(badge);
     card.append(imgWrap);
 
     // Titel som klickbar länk → öppnar produkten på AliExpress i ny flik.
@@ -501,41 +750,76 @@
     titleLink.rel = "noopener";
     titleLink.textContent = info.title || "(utan titel)";
     titleLink.title = info.title || "";
+    setImp(titleLink, {
+      display: "-webkit-box",
+      "-webkit-line-clamp": "2",
+      "-webkit-box-orient": "vertical",
+      overflow: "hidden",
+      padding: "8px 10px 0",
+      margin: "0",
+      color: "#374151",
+      "-webkit-text-fill-color": "#374151",
+      "font-size": "12px",
+      "line-height": "1.35",
+      "font-weight": "600",
+      "text-decoration": "none",
+      visibility: "visible",
+      opacity: "1",
+    });
     card.append(titleLink);
 
-    // Pris (USD) + ev. ordinariepris (överstruket) + rabatt.
+    // Pris.
     const priceRow = el("div", "fp-eucard__price");
-    priceRow.append(
-      el(
-        "span",
-        "fp-eucard__price-now",
-        p.priceUsd !== undefined ? `$${Number(p.priceUsd).toFixed(2)}` : "—",
-      ),
+    setImp(priceRow, { display: "flex", "align-items": "baseline", gap: "6px", "flex-wrap": "wrap", padding: "4px 10px" });
+    const priceNow = el(
+      "span",
+      "fp-eucard__price-now",
+      p.priceText ? p.priceText : p.priceUsd !== undefined ? `$${Number(p.priceUsd).toFixed(2)}` : "—",
     );
-    if (p.originalPriceUsd !== undefined && p.originalPriceUsd > (p.priceUsd ?? 0)) {
-      priceRow.append(
-        el("span", "fp-eucard__price-was", `$${Number(p.originalPriceUsd).toFixed(2)}`),
-      );
-    }
-    if (p.discountPct) {
-      priceRow.append(el("span", "fp-eucard__price-off", `-${Math.round(Number(p.discountPct))}%`));
-    }
+    setImp(priceNow, { "font-size": "14px", "font-weight": "800", color: "#111827", "-webkit-text-fill-color": "#111827" });
+    priceRow.append(priceNow);
     card.append(priceRow);
 
-    // Meta: betyg + antal sålda (visas bara när data finns).
+    // Meta: antal sålda (skrapad text) eller betyg/orders om de finns.
     const meta = el("div", "fp-eucard__meta");
-    if (p.rating !== undefined) {
-      meta.append(el("span", "fp-eucard__rating", `★ ${Number(p.rating).toFixed(1)}`));
+    if (p.salesText) meta.append(el("span", "fp-eucard__orders", p.salesText));
+    else {
+      if (p.rating !== undefined) meta.append(el("span", "fp-eucard__rating", `★ ${Number(p.rating).toFixed(1)}`));
+      if (p.orders !== undefined) meta.append(el("span", "fp-eucard__orders", `${Number(p.orders).toLocaleString("sv-SE")} sålda`));
     }
-    if (p.orders !== undefined) {
-      meta.append(
-        el("span", "fp-eucard__orders", `${Number(p.orders).toLocaleString("sv-SE")} sålda`),
-      );
+    if (meta.childNodes.length) {
+      setImp(meta, { display: "flex", gap: "10px", padding: "0 10px 8px", "font-size": "11px", color: "#6b7280" });
+      for (const c of meta.childNodes) setImp(c, { color: "#6b7280", "-webkit-text-fill-color": "#6b7280" });
+      card.append(meta);
     }
-    if (meta.childNodes.length) card.append(meta);
 
+    // Knappar.
     const actions = el("div", "fp-eucard__actions");
-    const sel = el("button", "fp-eucard__sel", selected.has(info.id) ? "✓ Vald" : "Markera");
+    setImp(actions, { display: "flex", gap: "6px", padding: "0 10px 10px", "margin-top": "auto" });
+    const btnBase = {
+      flex: "1",
+      "font-size": "12px",
+      "font-weight": "700",
+      "border-radius": "8px",
+      padding: "7px 0",
+      cursor: "pointer",
+      border: "none",
+      display: "inline-block",
+      "text-align": "center",
+      "text-decoration": "none",
+      "line-height": "1.5",
+      visibility: "visible",
+      opacity: "1",
+      "pointer-events": "auto",
+      "box-sizing": "border-box",
+    };
+    const sel = el("button", "fp-eucard__sel", isSel ? "✓ Vald" : "Markera");
+    setImp(sel, {
+      ...btnBase,
+      background: isSel ? "#e6f7ee" : "#f3f4f6",
+      color: isSel ? "#0a8a3f" : "#374151",
+      "-webkit-text-fill-color": isSel ? "#0a8a3f" : "#374151",
+    });
     sel.onclick = () => {
       if (selected.has(info.id)) selected.delete(info.id);
       else selected.set(info.id, info);
@@ -548,8 +832,10 @@
     open.rel = "noopener";
     open.textContent = "Öppna ↗";
     open.title = "Öppna produkten på AliExpress i ny flik";
+    setImp(open, { ...btnBase, background: "#eef2ff", color: "#3730a3", "-webkit-text-fill-color": "#3730a3" });
     const imp = el("button", "fp-eucard__imp", "Importera");
     imp.title = "Importera bara denna nu";
+    setImp(imp, { ...btnBase, background: "#ff6a00", color: "#fff", "-webkit-text-fill-color": "#fff" });
     imp.onclick = () => startBulkImport([info]);
     actions.append(sel, open, imp);
     card.append(actions);
