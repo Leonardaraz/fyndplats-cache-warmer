@@ -1,10 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  deriveSwatchFromVariantImages,
-  enrichSwatchImagesFromApi,
-  mergeSwatchImages,
-  needsSwatchBackfill,
-} from "./variant-images";
+import { enrichSwatchImagesFromApi, needsSwatchBackfill } from "./variant-images";
+import { translateOptionColorCodes, translateVariantOptions } from "./variant-translations";
 import type { AliExpressProduct } from "./types";
 
 function product(partial: Partial<AliExpressProduct>): AliExpressProduct {
@@ -44,68 +40,8 @@ describe("needsSwatchBackfill", () => {
   });
 });
 
-describe("deriveSwatchFromVariantImages", () => {
-  it("väljer den bildbärande (färg-)axeln och ignorerar storlek", () => {
-    const variants = [
-      variant("s1", { Färg: "Röd", Storlek: "S" }),
-      variant("s2", { Färg: "Röd", Storlek: "M" }),
-      variant("s3", { Färg: "Blå", Storlek: "S" }),
-      variant("s4", { Färg: "Blå", Storlek: "M" }),
-    ];
-    const imageBySkuId = new Map([
-      ["s1", "red.jpg"],
-      ["s2", "red.jpg"],
-      ["s3", "blue.jpg"],
-      ["s4", "blue.jpg"],
-    ]);
-    expect(deriveSwatchFromVariantImages(variants, imageBySkuId)).toEqual({
-      Färg: { Röd: "red.jpg", Blå: "blue.jpg" },
-    });
-  });
-
-  it("hanterar enkel-axlad produkt", () => {
-    const variants = [variant("s1", { Färg: "Röd" }), variant("s2", { Färg: "Blå" })];
-    const imageBySkuId = new Map([
-      ["s1", "red.jpg"],
-      ["s2", "blue.jpg"],
-    ]);
-    expect(deriveSwatchFromVariantImages(variants, imageBySkuId)).toEqual({
-      Färg: { Röd: "red.jpg", Blå: "blue.jpg" },
-    });
-  });
-
-  it("returnerar {} när inga SKU-id matchar en bild", () => {
-    const variants = [variant("s1", { Färg: "Röd" })];
-    expect(deriveSwatchFromVariantImages(variants, new Map())).toEqual({});
-  });
-
-  it("returnerar {} när enda axeln är inkonsistent (samma värde, olika bilder)", () => {
-    const variants = [variant("s1", { Färg: "Röd" }), variant("s2", { Färg: "Röd" })];
-    const imageBySkuId = new Map([
-      ["s1", "a.jpg"],
-      ["s2", "b.jpg"],
-    ]);
-    expect(deriveSwatchFromVariantImages(variants, imageBySkuId)).toEqual({});
-  });
-});
-
-describe("mergeSwatchImages", () => {
-  it("base vinner, extra fyller bara luckor", () => {
-    const base = { Färg: { Röd: "scrape-red.jpg" } };
-    const extra = { Färg: { Röd: "api-red.jpg", Blå: "api-blue.jpg" } };
-    expect(mergeSwatchImages(base, extra)).toEqual({
-      Färg: { Röd: "scrape-red.jpg", Blå: "api-blue.jpg" },
-    });
-  });
-  it("fungerar utan base", () => {
-    expect(mergeSwatchImages(undefined, { Färg: { Röd: "r.jpg" } })).toEqual({
-      Färg: { Röd: "r.jpg" },
-    });
-  });
-});
-
 describe("enrichSwatchImagesFromApi", () => {
-  it("bygger swatch-kartan ur DS-API:ts sku_image, matchat på SKU-id", async () => {
+  it("bygger swatch-kartan ur DS sku_image (matchat på SKU-id) via buildSwatchImagesFromDs", async () => {
     const p = product({
       variants: [variant("s1", { Färg: "Röd" }), variant("s2", { Färg: "Blå" })],
     });
@@ -134,5 +70,55 @@ describe("enrichSwatchImagesFromApi", () => {
     const p = product({ variants: [variant("s1", { Färg: "Röd" })] });
     const getProduct = vi.fn(async () => ({ variants: [{ skuId: "s1", imageUrl: "" }] }));
     expect(await enrichSwatchImagesFromApi(p, { getProduct })).toEqual({});
+  });
+
+  it("returnerar {} för enkel-färgad produkt (ärver buildSwatchImagesFromDs guards)", async () => {
+    const p = product({ variants: [variant("s1", { Färg: "Röd" }), variant("s2", { Färg: "Röd" })] });
+    const getProduct = vi.fn(async () => ({
+      variants: [
+        { skuId: "s1", imageUrl: "r.jpg" },
+        { skuId: "s2", imageUrl: "r.jpg" },
+      ],
+    }));
+    expect(await enrichSwatchImagesFromApi(p, { getProduct })).toEqual({});
+  });
+
+  it("varianter med icke-matchande SKU-id (idx-fallback) hoppas tyst över", async () => {
+    const p = product({
+      variants: [variant("idx-0", { Färg: "Röd" }), variant("s2", { Färg: "Blå" })],
+    });
+    const getProduct = vi.fn(async () => ({
+      variants: [
+        { skuId: "s1", imageUrl: "red.jpg" }, // matchar ingen scrape-variant
+        { skuId: "s2", imageUrl: "blue.jpg" },
+      ],
+    }));
+    // Bara Blå (s2) matchar → en enda färg → buildSwatchImagesFromDs kräver ≥2 → {}.
+    expect(await enrichSwatchImagesFromApi(p, { getProduct })).toEqual({});
+  });
+});
+
+describe("namn-match efter översättning (load-bearing: swatch ↔ Wix-optionsval)", () => {
+  it("backfilld swatch matchar de översatta variant-axlarna/-värdena", async () => {
+    const variants = [variant("s1", { Color: "Red" }), variant("s2", { Color: "Blue" })];
+    const getProduct = async () => ({
+      variants: [
+        { skuId: "s1", imageUrl: "r.jpg" },
+        { skuId: "s2", imageUrl: "b.jpg" },
+      ],
+    });
+    const swatch = await enrichSwatchImagesFromApi(product({ variants }), { getProduct });
+
+    // Pipelinen översätter swatch-kartan (translateOptionColorCodes) och härleder
+    // Wix-optioner ur översatta varianter (translateVariantOptions). Nycklarna MÅSTE
+    // matcha annars kopplas inga bilder (det var ju hela buggen).
+    const translatedSwatch = translateOptionColorCodes(swatch);
+    const tAxis = Object.keys(translateVariantOptions({ Color: "Red" }))[0];
+    const tRed = translateVariantOptions({ Color: "Red" })[tAxis];
+    const tBlue = translateVariantOptions({ Color: "Blue" })[tAxis];
+
+    expect(Object.keys(translatedSwatch)).toContain(tAxis);
+    expect(translatedSwatch[tAxis][tRed]).toBe("r.jpg");
+    expect(translatedSwatch[tAxis][tBlue]).toBe("b.jpg");
   });
 });

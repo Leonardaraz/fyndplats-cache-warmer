@@ -47,11 +47,7 @@ import {
   type WarehouseClass,
 } from "../aliexpress/eu-countries";
 import { getProduct } from "../aliexpress/client";
-import {
-  enrichSwatchImagesFromApi,
-  mergeSwatchImages,
-  needsSwatchBackfill,
-} from "./variant-images";
+import { enrichSwatchImagesFromApi, needsSwatchBackfill } from "./variant-images";
 import { audit } from "../audit";
 
 export interface VariantMapping {
@@ -210,7 +206,9 @@ export async function importProduct(
     const backfilled = await enrichSwatchImagesFromApi(product, { getProduct });
     const axis = Object.keys(backfilled)[0];
     if (axis) {
-      effectiveSwatchImages = mergeSwatchImages(product.swatchImages, backfilled);
+      // needsSwatchBackfill garanterar att skrapan gav noll swatchar här, så
+      // backfilled ÄR hela kartan (ingen merge att göra).
+      effectiveSwatchImages = backfilled;
       console.log(
         `[import:variant-images] pid=${product.supplierProductId} backfill via DS-API: ` +
           `axel "${axis}", ${Object.keys(backfilled[axis]).length} färgbilder (skrapan gav inga).`,
