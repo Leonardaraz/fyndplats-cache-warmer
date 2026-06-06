@@ -433,7 +433,3 @@
   display: flex !important;
   margin-top: auto !important;
 }
-.fp-eupanel-backdrop .fp-eucard__price,
-.fp-eupanel-backdrop .fp-eucard__meta {
-  display: flex !important;
-}

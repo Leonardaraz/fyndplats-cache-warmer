@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
   lastCall.at = now;
 
   const euOnly = body.euOnly !== false;
-  const page = Math.max(1, Number(body.page) || 1);
+  const page = Math.max(1, Math.trunc(Number(body.page)) || 1);
   // I EU-läget berikar vi varje träff → använd en (env-tunbar) sidstorlek så vi
   // får tillräckligt med kandidater per sida (EU-lager är en minoritet av träffarna).
   const pageSize = euOnly

@@ -107,25 +107,31 @@ export async function filterEuWarehouses(
 
   const codes: string[][] = results.map((r) => r.shipsFromCountries ?? []);
 
-  // Plocka ut index som behöver berikas (saknar koder och inte i cachen).
-  const todo: number[] = [];
+  // Gruppera index per productId så DUBBLETTER på samma sida bara berikas EN gång
+  // (sök-API:t deduppar inte träffar → annars dubbla, betalda detalj-anrop).
+  const todoById = new Map<string, number[]>();
   for (let i = 0; i < results.length; i++) {
     if (codes[i].length > 0) continue; // redan känd → inget detalj-anrop
     const id = results[i].productId;
-    const cached = id ? cacheGet(cache, id, now()) : undefined;
-    if (cached) codes[i] = cached;
-    else if (id) todo.push(i);
+    if (!id) continue;
+    const cached = cacheGet(cache, id, now());
+    if (cached) {
+      codes[i] = cached;
+      continue;
+    }
+    const arr = todoById.get(id);
+    if (arr) arr.push(i);
+    else todoById.set(id, [i]);
   }
 
-  await mapWithConcurrency(todo, concurrency, async (i) => {
-    const id = results[i].productId;
+  await mapWithConcurrency([...todoById.keys()], concurrency, async (id) => {
     let got: string[] = [];
     try {
       got = await getShipFrom(id);
     } catch {
       got = []; // detalj-fel → okänd → utesluts (fail-closed)
     }
-    codes[i] = got;
+    for (const i of todoById.get(id) ?? []) codes[i] = got;
     cacheSet(cache, id, got, now() + cacheTtlMs);
   });
 

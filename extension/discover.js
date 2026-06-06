@@ -238,6 +238,7 @@
   // enda lista. Samma bulk-import-pipeline (öppnar AE-sidan, skrapar, importerar)
   // återanvänds via det delade `selected`-urvalet.
   let euPanel = null; // { query, sortBy, page, results:[], loading, error, done }
+  let euLastReqAt = 0; // tidsstämpel för senaste DISCOVER_EU-anrop (server-throttle-spacing)
 
   function bgMessage(payload) {
     return new Promise((resolve) => {
@@ -317,6 +318,14 @@
     const MAX_AUTO_PAGES = 4; // tak mot att skanna i evighet på EU-glesa sökord
     for (let i = 0; i < MAX_AUTO_PAGES; i++) {
       if (euPanel !== session) return;
+      // Respektera serverns throttle (~1 anrop/2 s) FÖRE varje anrop — gäller även
+      // det FÖRSTA anropet i en ny loadEuPage (sortering/"Visa fler"/öppna om), inte
+      // bara mellan auto-skannade sidor, annars triggas ett 429 som visas som ett
+      // missvisande hårt fel.
+      const wait = 2100 - (Date.now() - euLastReqAt);
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+      if (euPanel !== session) return;
+      euLastReqAt = Date.now();
       const before = session.results.length;
       const res = await bgMessage({
         type: "DISCOVER_EU",
@@ -342,9 +351,8 @@
 
       // Klart om: inga fler sidor finns, ELLER den här sidan gav nya EU-träffar.
       if (session.done || session.results.length > before) break;
-      // Annars: 0 EU på denna sida men fler finns → respektera endpoint-throttlen
-      // (~1 anrop/2 s) innan nästa skann-sida.
-      await new Promise((r) => setTimeout(r, 2100));
+      // Annars: 0 EU på denna sida men fler finns → fortsätt skanna (pre-request-
+      // spacingen ovan sköter takten mot servern).
     }
     if (euPanel !== session) return;
     session.loading = false;
@@ -405,7 +413,7 @@
         "fp-eupanel__sub",
         euPanel.error
           ? ""
-          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · verifierat lager per produkt · markera och importera · v0.1.23`,
+          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · verifierat lager per produkt · markera och importera · v0.1.24`,
       ),
     );
 
@@ -415,17 +423,35 @@
     } else if (euPanel.results.length === 0 && euPanel.loading) {
       panel.append(el("div", "fp-eupanel__empty", "Söker EU-lager…"));
     } else if (euPanel.results.length === 0) {
-      panel.append(el("div", "fp-eupanel__empty", "Inga EU-lager-produkter för denna sökterm."));
+      // OBS: hasMore räknas på råa sökträffar, så done kan vara false trots 0 EU på
+      // de skannade sidorna → erbjud "Sök vidare" (footern) i stället för att
+      // dödläges-påstå att inget finns.
+      panel.append(
+        el(
+          "div",
+          "fp-eupanel__empty",
+          euPanel.done
+            ? "Inga EU-lager-produkter för denna sökterm."
+            : "Inga EU-lager på de första sidorna — klicka ”Sök vidare” för fler.",
+        ),
+      );
     } else {
       const grid = el("div", "fp-eupanel__grid");
       for (const p of euPanel.results) grid.append(renderEuCard(p));
       panel.append(grid);
     }
 
-    // Footer: visa fler + importera valda
+    // Footer: visa fler / sök vidare + importera valda. Knappen visas så länge det
+    // finns fler sidor (!done) ÄVEN när 0 EU hittats än — annars fastnar EU-glesa
+    // sökord på en tom vy utan väg framåt.
     const foot = el("div", "fp-eupanel__foot");
-    if (!euPanel.error && euPanel.results.length > 0 && !euPanel.done) {
-      const more = el("button", "fp-btn-text", euPanel.loading ? "Hämtar…" : "Visa fler");
+    if (!euPanel.error && !euPanel.done) {
+      const label = euPanel.loading
+        ? "Hämtar…"
+        : euPanel.results.length > 0
+          ? "Visa fler"
+          : "Sök vidare";
+      const more = el("button", "fp-btn-text", label);
       more.disabled = euPanel.loading;
       more.onclick = () => loadEuPage();
       foot.append(more);

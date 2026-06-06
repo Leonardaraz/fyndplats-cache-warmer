@@ -82,6 +82,16 @@ describe("filterEuWarehouses", () => {
     expect(res.map((r) => r.productId)).toEqual(["a", "b", "c"]);
   });
 
+  it("berikar varje productId bara en gång även vid dubbletter på sidan", async () => {
+    const getShipFrom = vi.fn(async () => ["ES"]);
+    const res = await filterEuWarehouses([mk("a"), mk("a"), mk("b")], {
+      getShipFrom,
+      cache: new Map(),
+    });
+    expect(getShipFrom).toHaveBeenCalledTimes(2); // a en gång (inte två), b en gång
+    expect(res.map((r) => r.productId)).toEqual(["a", "a", "b"]); // båda a-raderna kvar, ordning bevarad
+  });
+
   it("respekterar concurrency-gränsen", async () => {
     let active = 0;
     let peak = 0;
