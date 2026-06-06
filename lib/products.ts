@@ -6,6 +6,7 @@ import local from "../products.json";
 import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
+import { linkVariantImagesByAltText } from "./variant-color-image";
 
 export type Product = {
   id: string;
@@ -348,6 +349,16 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
               if (byVal[ch.label]) ch.image = byVal[ch.label];
             }
           }
+          // LÄGST prioritet (efter ch.media, variant-images.json och linkedMedia):
+          // fyll resterande BILDLÖSA färg-val genom att matcha färgnamnet mot
+          // galleribildens alt-text (positions-oberoende — per-färg-bilderna ligger
+          // ofta sist). Kör FÖRE svensk-översättningen så matchningen sker på
+          // råvärdet. Matchar inget → dagens bubbla/text behålls. Se
+          // lib/variant-color-image.ts. Detta täcker hela katalogen automatiskt.
+          linkVariantImagesByAltText(
+            prod.options.choices,
+            (res.items[0].media?.items || []).map((it: any) => ({ url: it?.image?.url, altText: it?.image?.altText })),
+          );
           // SIST, efter ALL intern matchning (variantId/colorOf i extractOptions)
           // och bildhydrering ovan (som matchar på det engelska RÅvärdet): byt
           // ut visnings­etiketterna mot svenska. Wix låser choice-värdena, så
