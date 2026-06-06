@@ -20,7 +20,7 @@ const COLOR_FORMS: Record<string, string[]> = {
   vit: ["vit", "vitt", "vita", "white"],
   svart: ["svart", "svarta", "black"],
   brun: ["brun", "brunt", "bruna", "brown"],
-  beige: ["beige", "khaki"],
+  beige: ["beige"],
   rosa: ["rosa", "pink"],
   lila: ["lila", "purple", "violett", "violet"],
   orange: ["orange"],

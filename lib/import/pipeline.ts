@@ -550,13 +550,25 @@ export async function importProduct(
   // storefronten (läser linkedMedia med högsta prioritet) visar rätt bild per modell,
   // helt utan storefront-ändring. Explicit swatch vinner; detta fyller bara luckorna.
   const linkedChoiceKeys = new Set(swatchLinks.map((l) => `${l.optionName} ${l.choiceName}`));
+  // Per-färg alt-matchning är BARA säker när alt-texten är specifik för EN bild. I
+  // rå-läge (AI_ENRICHMENT_ENABLED=false) får alla galleribilder samma alt (rå
+  // titeln) → en delad alt-text skulle felaktigt koppla en färg till första bilden.
+  // Koppla därför bara mot en alt-text som bärs av EXAKT en galleribild.
+  const altCount = new Map<string, number>();
+  for (const m of mediaItems) {
+    if (m.altText) altCount.set(m.altText, (altCount.get(m.altText) ?? 0) + 1);
+  }
   const usedSwatchAlts = new Set<string>();
   const altLinks: ChoiceMediaLink[] = [];
   for (const o of options) {
     for (const c of o.choices) {
       if (linkedChoiceKeys.has(`${o.name} ${c.name}`)) continue;
       const match = mediaItems.find(
-        (m) => m.altText && !usedSwatchAlts.has(m.altText) && matchesColorName(m.altText, c.name),
+        (m) =>
+          m.altText &&
+          altCount.get(m.altText) === 1 &&
+          !usedSwatchAlts.has(m.altText) &&
+          matchesColorName(m.altText, c.name),
       );
       if (match?.altText) {
         usedSwatchAlts.add(match.altText);

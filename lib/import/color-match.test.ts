@@ -47,6 +47,12 @@ describe("matchesColorName — robusthet", () => {
     // "gult" finns inte i "kulturella" trots delsträngen "ul"
     expect(matchesColorName("En kulturell pryl", "Gul")).toBe(false);
   });
+  it("beige och khaki korsmatchar INTE (distinkta färger)", () => {
+    expect(matchesColorName("Väska i khaki", "Beige")).toBe(false);
+    expect(matchesColorName("Väska i beige", "Khaki")).toBe(false);
+    expect(matchesColorName("Väska i khaki", "Khaki")).toBe(true);
+    expect(matchesColorName("Väska i beige", "Beige")).toBe(true);
+  });
 });
 
 describe("colorBasesIn", () => {
