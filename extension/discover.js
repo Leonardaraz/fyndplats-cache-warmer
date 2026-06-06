@@ -274,7 +274,6 @@
     ["price,desc", "Pris: högt → lågt"],
     ["evaluate,desc", "Högst betyg"],
   ];
-  const EU_PAGE_SIZE = 30; // måste matcha pageSize i background.js DISCOVER_EU
 
   function openEuPanel() {
     const query = currentSearchQuery();
@@ -282,10 +281,10 @@
       toast("Hittade ingen sökterm på sidan — sök efter något först.", "err");
       return;
     }
-    euPanel = { query, sortBy: "orders,desc", page: 0, results: [], loading: false, error: "", done: false };
+    euPanel = { query, sortBy: "orders,desc", page: 1, results: [], loading: false, error: "", done: false };
     renderBulkBar(); // göm den globala bulk-baren medan panelen är öppen
     renderEuPanel();
-    loadEuPage(1);
+    loadEuPage(true);
   }
 
   function closeEuPanel() {
@@ -295,26 +294,60 @@
     renderBulkBar(); // återställ bulk-baren (speglar ev. kvarvarande urval)
   }
 
-  async function loadEuPage(page) {
+  // Laddar nästa "sida" EU-lager-produkter. Servern berikar varje träff med
+  // riktig ship-from och returnerar bara BEKRÄFTADE EU-lager (en minoritet av
+  // sökträffarna) → en enskild söksida kan ge få/inga EU-träffar. Då auto-skannar
+  // vi vidare några sidor så panelen inte dödläges-visar "inga" på en gles sida.
+  // reset=true börjar om från sida 1 (ny sökning/sortering).
+  async function loadEuPage(reset) {
     if (!euPanel || euPanel.loading) return;
-    euPanel.loading = true;
-    euPanel.error = "";
-    renderEuPanel();
-    const res = await bgMessage({ type: "DISCOVER_EU", query: euPanel.query, sortBy: euPanel.sortBy, page });
-    if (!euPanel) return; // panelen stängdes under tiden
-    euPanel.loading = false;
-    if (!res || !res.ok || !res.data || res.data.ok === false) {
-      euPanel.error =
-        (res && (res.error || (res.data && res.data.error))) ||
-        "Sökningen misslyckades. Appen kanske saknar AliExpress sök-permission — använd " +
-          "annars per-land-filtret ovan, eller klistra in en produkt-URL i popupen.";
-      renderEuPanel();
-      return;
+    // Bind till DENNA panel-instans. Stängs/öppnas panelen om under en await
+    // (bgMessage eller auto-skann-pausen) bailar vi i stället för att mutera en
+    // stängd/ny panel.
+    const session = euPanel;
+    if (reset) {
+      session.results = [];
+      session.page = 1;
+      session.done = false;
     }
-    const batch = Array.isArray(res.data.results) ? res.data.results : [];
-    euPanel.page = page;
-    euPanel.results = page <= 1 ? batch : euPanel.results.concat(batch);
-    euPanel.done = batch.length < EU_PAGE_SIZE;
+    session.loading = true;
+    session.error = "";
+    renderEuPanel();
+
+    const MAX_AUTO_PAGES = 4; // tak mot att skanna i evighet på EU-glesa sökord
+    for (let i = 0; i < MAX_AUTO_PAGES; i++) {
+      if (euPanel !== session) return;
+      const before = session.results.length;
+      const res = await bgMessage({
+        type: "DISCOVER_EU",
+        query: session.query,
+        sortBy: session.sortBy,
+        page: session.page,
+      });
+      if (euPanel !== session) return; // panelen stängdes/öppnades om
+      if (!res || !res.ok || !res.data || res.data.ok === false) {
+        session.loading = false;
+        session.error =
+          (res && (res.error || (res.data && res.data.error))) ||
+          "Sökningen misslyckades. Appen kanske saknar AliExpress sök-permission — använd " +
+            "annars per-land-filtret ovan, eller klistra in en produkt-URL i popupen.";
+        renderEuPanel();
+        return;
+      }
+      const batch = Array.isArray(res.data.results) ? res.data.results : [];
+      session.results = session.results.concat(batch);
+      session.page = res.data.nextPage || session.page + 1;
+      session.done = res.data.hasMore === false;
+      renderEuPanel(); // visa delresultat löpande
+
+      // Klart om: inga fler sidor finns, ELLER den här sidan gav nya EU-träffar.
+      if (session.done || session.results.length > before) break;
+      // Annars: 0 EU på denna sida men fler finns → respektera endpoint-throttlen
+      // (~1 anrop/2 s) innan nästa skann-sida.
+      await new Promise((r) => setTimeout(r, 2100));
+    }
+    if (euPanel !== session) return;
+    session.loading = false;
     renderEuPanel();
   }
 
@@ -357,10 +390,7 @@
     }
     sortSel.onchange = () => {
       euPanel.sortBy = sortSel.value;
-      euPanel.results = [];
-      euPanel.page = 0;
-      euPanel.done = false;
-      loadEuPage(1);
+      loadEuPage(true); // reset + ladda om från sida 1
     };
     head.append(sortSel);
     const close = el("button", "fp-eupanel__close", "✕");
@@ -375,7 +405,7 @@
         "fp-eupanel__sub",
         euPanel.error
           ? ""
-          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · markera och importera · v0.1.22 ✅ rika kort (CSS-pansrad)`,
+          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · verifierat lager per produkt · markera och importera · v0.1.23`,
       ),
     );
 
@@ -383,7 +413,7 @@
     if (euPanel.error) {
       panel.append(el("div", "fp-eupanel__error", euPanel.error));
     } else if (euPanel.results.length === 0 && euPanel.loading) {
-      panel.append(el("div", "fp-eupanel__empty", "Söker…"));
+      panel.append(el("div", "fp-eupanel__empty", "Söker EU-lager…"));
     } else if (euPanel.results.length === 0) {
       panel.append(el("div", "fp-eupanel__empty", "Inga EU-lager-produkter för denna sökterm."));
     } else {
@@ -397,7 +427,7 @@
     if (!euPanel.error && euPanel.results.length > 0 && !euPanel.done) {
       const more = el("button", "fp-btn-text", euPanel.loading ? "Hämtar…" : "Visa fler");
       more.disabled = euPanel.loading;
-      more.onclick = () => loadEuPage(euPanel.page + 1);
+      more.onclick = () => loadEuPage();
       foot.append(more);
     }
     foot.append(el("span", "fp-eupanel__spacer"));
