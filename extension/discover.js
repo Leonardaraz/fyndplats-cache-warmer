@@ -282,10 +282,14 @@
       toast("Hittade ingen sökterm på sidan — sök efter något först.", "err");
       return;
     }
-    euPanel = { query, sortBy: "orders,desc", page: 1, results: [], loading: false, error: "", done: false };
+    euPanel = {
+      query, sortBy: "orders,desc",
+      results: [], byId: new Map(), diag: [], countries: [], progress: "",
+      loading: false, error: "", done: false,
+    };
     renderBulkBar(); // göm den globala bulk-baren medan panelen är öppen
     renderEuPanel();
-    loadEuPage(true);
+    loadEuAll(true);
   }
 
   function closeEuPanel() {
@@ -293,6 +297,164 @@
     const b = document.getElementById("fp-eupanel-backdrop");
     if (b) b.remove();
     renderBulkBar(); // återställ bulk-baren (speglar ev. kvarvarande urval)
+  }
+
+  // ======================================================================
+  //  Väg 2: "Alla EU" via AE:s EGNA lands-filter (shpf_co) i dolda iframes
+  // ======================================================================
+  // DS-sök-API:t saknar ship-from-filter, så panelen hämtar i stället AE:s egna
+  // sökresultat per EU-land (samma server-side shpf_co-filter som lands-chipsen)
+  // i dolda SAME-ORIGIN-iframes, skrapar korten ur deras DOM och slår ihop +
+  // deduplicerar. Varje träff är då GARANTERAT EU med känt land — ingen gissning,
+  // inga detalj-anrop. Sandbox utan allow-top-navigation hindrar AE:s ev.
+  // frame-busting från att kapa din flik. Diagnostik per land visas om något
+  // inte gick att läsa (t.ex. X-Frame-Options) så vi ser exakt vad som hände.
+  const MAX_EU_COUNTRIES = 10;
+  const EU_SCRAPE_TIMEOUT_MS = 12000;
+
+  function aeSortType(sortBy) {
+    switch (sortBy) {
+      case "orders,desc": return "total_tranpro_desc";
+      case "price,asc": return "price_asc";
+      case "price,desc": return "price_desc";
+      default: return "";
+    }
+  }
+
+  function euCountrySearchUrl(country, sortBy) {
+    const u = new URL(location.href);
+    u.searchParams.set("shpf_co", country);
+    const st = aeSortType(sortBy);
+    if (st) u.searchParams.set("sortType", st);
+    return u.toString();
+  }
+
+  // Skrapar produkt-korten ur en (iframe-)dokumentrot. shpf_co gör att ALLA
+  // träffar är EU för `country`. Återanvänder cardInfo (länk → {id,url,title,thumb}).
+  function scrapeDocCards(doc, country) {
+    let links = [...doc.querySelectorAll(CARD_SCOPE)];
+    if (!links.length) links = [...doc.querySelectorAll('a[href*="/item/"]')];
+    const out = [];
+    const seen = new Set();
+    for (const link of links) {
+      const info = cardInfo(link);
+      if (!info || seen.has(info.id)) continue;
+      seen.add(info.id);
+      let priceText = "";
+      try {
+        const box = link.closest('[class*="card"], [class*="search-item"], li') || link.parentElement;
+        const priceEl = box && box.querySelector('[class*="price"], [class*="Price"]');
+        if (priceEl) priceText = (priceEl.textContent || "").replace(/\s+/g, " ").trim().slice(0, 24);
+      } catch (_) {}
+      out.push({
+        productId: info.id,
+        productUrl: info.url,
+        title: info.title,
+        imageUrl: info.thumb,
+        priceText,
+        shipsFromCountries: [country],
+        warehouseClass: "EU",
+      });
+    }
+    return out;
+  }
+
+  // Laddar en dold iframe med AE:s sök för `country`, väntar in AE:s render och
+  // skrapar korten. Returnerar { items, note } där note förklarar ev. 0-utfall.
+  function scrapeEuCountry(country, sortBy) {
+    return new Promise((resolve) => {
+      const iframe = document.createElement("iframe");
+      iframe.setAttribute("aria-hidden", "true");
+      // allow-scripts: AE:s JS måste rendera korten. allow-same-origin: så vi kan
+      // läsa contentDocument. INGEN allow-top-navigation → frame-busting kan inte
+      // kapa din flik.
+      iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
+      iframe.style.cssText =
+        "position:fixed;left:-10000px;top:0;width:1280px;height:900px;border:0;opacity:0;pointer-events:none;";
+      let settled = false;
+      const finish = (res) => {
+        if (settled) return;
+        settled = true;
+        try { iframe.remove(); } catch (_) {}
+        resolve(res);
+      };
+      const start = Date.now();
+      const poll = () => {
+        if (settled) return;
+        let doc = null;
+        try { doc = iframe.contentDocument; } catch (_) { doc = null; }
+        if (!doc) {
+          if (Date.now() - start > EU_SCRAPE_TIMEOUT_MS) {
+            return finish({ items: [], note: "iframe ej läsbar (ev. X-Frame-Options)" });
+          }
+          return setTimeout(poll, 400);
+        }
+        const itemLinks = doc.querySelectorAll('a[href*="/item/"]').length;
+        if (itemLinks > 0) return finish({ items: scrapeDocCards(doc, country), note: "" });
+        if (Date.now() - start > EU_SCRAPE_TIMEOUT_MS) {
+          return finish({ items: [], note: "0 kort (AE renderade inga item-länkar)" });
+        }
+        setTimeout(poll, 400);
+      };
+      iframe.addEventListener("load", () => setTimeout(poll, 300));
+      setTimeout(() => finish({ items: [], note: "timeout" }), EU_SCRAPE_TIMEOUT_MS + 4000);
+      try {
+        iframe.src = euCountrySearchUrl(country, sortBy);
+        document.body.appendChild(iframe);
+      } catch (e) {
+        finish({ items: [], note: "kunde inte skapa iframe: " + ((e && e.message) || e) });
+      }
+    });
+  }
+
+  function defaultEuScrapeCountries() {
+    return EU_PRIORITY.slice(0, MAX_EU_COUNTRIES);
+  }
+
+  // Orkestrerar väg 2: skrapar varje tillgängligt EU-land sekventiellt, slår ihop
+  // + deduplicerar (slår ihop länder per produkt), renderar inkrementellt.
+  async function loadEuAll(reset) {
+    if (!euPanel || euPanel.loading) return;
+    const session = euPanel;
+    if (reset) {
+      session.results = [];
+      session.byId = new Map();
+      session.diag = [];
+      session.done = false;
+    }
+    session.loading = true;
+    session.error = "";
+    let countries = readAvailableCountries().eu;
+    if (!countries.length) countries = defaultEuScrapeCountries();
+    countries = countries.slice(0, MAX_EU_COUNTRIES);
+    session.countries = countries;
+    renderEuPanel();
+
+    for (const country of countries) {
+      if (euPanel !== session) return; // panelen stängdes/öppnades om
+      session.progress = ISO_TO_NAME[country] || country;
+      renderEuPanel();
+      const { items, note } = await scrapeEuCountry(country, session.sortBy);
+      if (euPanel !== session) return;
+      let added = 0;
+      for (const it of items) {
+        const existing = session.byId.get(it.productId);
+        if (existing) {
+          if (!existing.shipsFromCountries.includes(country)) existing.shipsFromCountries.push(country);
+        } else {
+          session.byId.set(it.productId, it);
+          session.results.push(it);
+          added++;
+        }
+      }
+      session.diag.push(`${FLAG[country] || ""} ${ISO_TO_NAME[country] || country}: ${added}${note ? " — " + note : ""}`);
+      renderEuPanel();
+    }
+    if (euPanel !== session) return;
+    session.progress = "";
+    session.loading = false;
+    session.done = true;
+    renderEuPanel();
   }
 
   // Laddar nästa "sida" EU-lager-produkter. Servern berikar varje träff med
@@ -398,7 +560,7 @@
     }
     sortSel.onchange = () => {
       euPanel.sortBy = sortSel.value;
-      loadEuPage(true); // reset + ladda om från sida 1
+      loadEuAll(true); // reset + skrapa om alla EU-länder
     };
     head.append(sortSel);
     const close = el("button", "fp-eupanel__close", "✕");
@@ -413,48 +575,51 @@
         "fp-eupanel__sub",
         euPanel.error
           ? ""
-          : `${euPanel.results.length} EU-lager-produkter${euPanel.done ? "" : "+"} · verifierat lager per produkt · markera och importera · v0.1.24`,
+          : `${euPanel.results.length} EU-lager-produkter${euPanel.loading ? "…" : ""} · AE:s eget lands-filter (alla EU-länder) · markera och importera · v0.1.25`,
       ),
     );
+
+    // Liten diagnostik-rad per land (hjälper se varför ett land gav 0).
+    const diagBlock = () => {
+      const d = el("div", "fp-eupanel__sub");
+      d.style.cssText = "white-space:pre-line;color:#9ca3af;font-size:11px;line-height:1.5;";
+      d.textContent =
+        (euPanel.progress ? `Söker: ${euPanel.progress}…\n` : "") +
+        (euPanel.diag && euPanel.diag.length ? "Per land:\n" + euPanel.diag.join("\n") : "");
+      return d;
+    };
 
     // Body
     if (euPanel.error) {
       panel.append(el("div", "fp-eupanel__error", euPanel.error));
     } else if (euPanel.results.length === 0 && euPanel.loading) {
-      panel.append(el("div", "fp-eupanel__empty", "Söker EU-lager…"));
+      panel.append(el("div", "fp-eupanel__empty", `Söker EU-lager…${euPanel.progress ? " " + euPanel.progress : ""}`));
+      panel.append(diagBlock());
     } else if (euPanel.results.length === 0) {
-      // OBS: hasMore räknas på råa sökträffar, så done kan vara false trots 0 EU på
-      // de skannade sidorna → erbjud "Sök vidare" (footern) i stället för att
-      // dödläges-påstå att inget finns.
       panel.append(
         el(
           "div",
           "fp-eupanel__empty",
-          euPanel.done
-            ? "Inga EU-lager-produkter för denna sökterm."
-            : "Inga EU-lager på de första sidorna — klicka ”Sök vidare” för fler.",
+          euPanel.loading ? "Söker EU-lager…" : "Inga EU-lager-produkter hittades för denna sökterm.",
         ),
       );
+      panel.append(diagBlock());
     } else {
       const grid = el("div", "fp-eupanel__grid");
       for (const p of euPanel.results) grid.append(renderEuCard(p));
       panel.append(grid);
+      if (euPanel.loading && euPanel.progress) {
+        panel.append(el("div", "fp-eupanel__sub", `Söker vidare… ${euPanel.progress}`));
+      }
     }
 
-    // Footer: visa fler / sök vidare + importera valda. Knappen visas så länge det
-    // finns fler sidor (!done) ÄVEN när 0 EU hittats än — annars fastnar EU-glesa
-    // sökord på en tom vy utan väg framåt.
+    // Footer: uppdatera (skrapa om alla EU-länder) + importera valda.
     const foot = el("div", "fp-eupanel__foot");
-    if (!euPanel.error && !euPanel.done) {
-      const label = euPanel.loading
-        ? "Hämtar…"
-        : euPanel.results.length > 0
-          ? "Visa fler"
-          : "Sök vidare";
-      const more = el("button", "fp-btn-text", label);
-      more.disabled = euPanel.loading;
-      more.onclick = () => loadEuPage();
-      foot.append(more);
+    if (!euPanel.error) {
+      const refresh = el("button", "fp-btn-text", euPanel.loading ? "Söker…" : "↻ Uppdatera");
+      refresh.disabled = euPanel.loading;
+      refresh.onclick = () => loadEuAll(true);
+      foot.append(refresh);
     }
     foot.append(el("span", "fp-eupanel__spacer"));
     const importBtn = el("button", "fp-eupanel__import", `Importera valda (${selected.size})`);
@@ -509,7 +674,11 @@
       el(
         "span",
         "fp-eucard__price-now",
-        p.priceUsd !== undefined ? `$${Number(p.priceUsd).toFixed(2)}` : "—",
+        p.priceText
+          ? p.priceText
+          : p.priceUsd !== undefined
+            ? `$${Number(p.priceUsd).toFixed(2)}`
+            : "—",
       ),
     );
     if (p.originalPriceUsd !== undefined && p.originalPriceUsd > (p.priceUsd ?? 0)) {
