@@ -32,6 +32,14 @@ describe("cleanAliCdnUrl", () => {
     expect(cleanAliCdnUrl(undefined)).toBe("");
     expect(cleanAliCdnUrl("")).toBe("");
   });
+  it("rör inte URL:er med query-sträng (undviker mangling av query)", () => {
+    expect(cleanAliCdnUrl("https://ae01.alicdn.com/kf/abc.png?w=a.jpg.webp")).toBe(
+      "https://ae01.alicdn.com/kf/abc.png?w=a.jpg.webp",
+    );
+    expect(cleanAliCdnUrl("https://ae01.alicdn.com/kf/Sreal.png?sig=v_100x100.png")).toBe(
+      "https://ae01.alicdn.com/kf/Sreal.png?sig=v_100x100.png",
+    );
+  });
 });
 
 describe("buildSwatchImagesFromDs", () => {

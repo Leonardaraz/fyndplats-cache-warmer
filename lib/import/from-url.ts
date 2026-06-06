@@ -141,6 +141,12 @@ export function cleanAliCdnUrl(u: string | undefined): string {
   if (!u) return "";
   let s = String(u).trim();
   if (s.startsWith("//")) s = "https:" + s;
+  // Rör inte URL:er med query-sträng: alicdn-bildernas storleks-suffix ligger i
+  // sökvägen, inte i en query. Suffix-regexarna nedan är ankrade på sträng-slutet
+  // ($), så en query skulle annars kunna manglas (t.ex. "?w=a.jpg.webp" eller en
+  // signerad param) och ge en 404. Lämna query-bärande URL:er orörda (worst case:
+  // en thumbnail som inte strippas — fortfarande giltig).
+  if (s.includes("?")) return s;
   // Suffix EFTER filändelsen: ".jpg_220x220q75.jpg_.avif" → ".jpg".
   s = s.replace(/(\.(?:jpg|jpeg|png|webp|gif|avif|bmp))_[^/]*$/i, "$1");
   // Suffix FÖRE filändelsen: "abc_220x220.jpg" / "abc_50x50q75.webp" → "abc.jpg".
