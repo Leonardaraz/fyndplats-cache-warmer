@@ -1,0 +1,145 @@
+// Färg-val → produktbild via galleri-bildens alt-text (positions-OBEROENDE).
+//
+// VARFÖR detta finns
+// ------------------
+// Importen skapar IDENTISK Wix-variantdata för alla färg-produkter
+// (optionRenderType = TEXT_CHOICES, choiceType = CHOICE_TEXT, INGEN colorCode,
+// TOMT linkedMedia). Bubbla-vs-bild i variant-pickern avgörs alltså HELT av
+// storefronten: en produkt vars val har en `image` renderas som bild-swatch
+// (önskat, som sportflaskan), en utan faller tillbaka på en enfärgad cirkel
+// (som hundvagnen). Skillnaden var att flaskan låg i data/variant-images.json
+// men hundvagnen inte — trots att hundvagnens galleri HAR en bild per färg.
+//
+// De per-färg-bilderna känns igen på sin alt-text (importen lägger färgnamnet
+// där, t.ex. "… i grått" = Grå) och ligger ofta SIST i galleriet. Positionsbero-
+// ende mappning (bild[i] = val[i]) duger därför inte — vi matchar på innehåll.
+//
+// Strategin: för varje BILDLÖST val, hitta en galleribild vars alt-text nämner
+// samma färg som valets namn, och sätt den som valets bild. Då flippar pickern
+// till bild-läge (productview kräver att ALLA val har bild). Matchar inget val
+// → ingen ändring (dagens bubbla/text-beteende behålls). Detta täcker hela
+// katalogen + alla framtida importer automatiskt, utan Wix-ändringar.
+
+// Kanoniska färgnycklar. Ett enskilt ord (gemener) → en nyckel som är gemensam
+// för svenska grund-/böjningsformer (grå/grått/gråa) OCH engelska namn
+// (gray/grey/blue …). Matchningen körs på RÅvärdet före svensk översättning, och
+// importörens alt-text kan vara svensk även när choice-värdet är engelskt, så
+// båda språken måste falla på samma nyckel. Oregelbundna böjningar (röd→rött,
+// grön→grönt) listas explicit — de kan inte härledas via ren prefix-/suffixregel.
+const COLOR_WORD_TO_KEY: Record<string, string> = {
+  // grå
+  "grå": "grå", "grått": "grå", "gråa": "grå", "gray": "grå", "grey": "grå",
+  "ljusgrå": "grå", "ljusgrått": "grå", "mörkgrå": "grå", "mörkgrått": "grå",
+  // blå
+  "blå": "blå", "blått": "blå", "blåa": "blå", "blue": "blå",
+  "ljusblå": "blå", "ljusblått": "blå", "mörkblå": "blå", "mörkblått": "blå",
+  // röd
+  "röd": "röd", "rött": "röd", "röda": "röd", "red": "röd",
+  // grön
+  "grön": "grön", "grönt": "grön", "gröna": "grön", "green": "grön",
+  "mörkgrön": "grön", "mörkgrönt": "grön", "ljusgrön": "grön", "ljusgrönt": "grön",
+  // gul
+  "gul": "gul", "gult": "gul", "gula": "gul", "yellow": "gul",
+  // vit
+  "vit": "vit", "vitt": "vit", "vita": "vit", "white": "vit",
+  // svart
+  "svart": "svart", "svarta": "svart", "black": "svart",
+  // beige / khaki / natur
+  "beige": "beige",
+  "khaki": "khaki", "kaki": "khaki",
+  "natur": "natur", "naturlig": "natur", "naturligt": "natur",
+  // rosa
+  "rosa": "rosa", "pink": "rosa", "ljusrosa": "rosa",
+  // lila / violett
+  "lila": "lila", "purple": "lila", "violett": "lila", "violet": "lila",
+  // brun
+  "brun": "brun", "brunt": "brun", "bruna": "brun", "brown": "brun",
+  // orange
+  "orange": "orange",
+  // guld
+  "guld": "guld", "gold": "guld", "golden": "guld", "gyllene": "guld",
+  // silver
+  "silver": "silver", "silvrig": "silver",
+  // turkos
+  "turkos": "turkos", "turkost": "turkos", "turquoise": "turkos", "teal": "turkos",
+  // marin / navy
+  "marin": "marin", "marinblå": "marin", "marinblått": "marin", "navy": "marin",
+  // vinröd / bordeaux
+  "vinröd": "vinröd", "vinrött": "vinröd", "bordeaux": "vinröd", "burgundy": "vinröd",
+  // champagne
+  "champagne": "champagne",
+};
+
+// Den kortaste nyckeln vi tillåter suffix-fallbacken att matcha på. Färgord är
+// distinkta, men 1–2-teckens-suffix skulle ge falska träffar.
+const MIN_SUFFIX_LEN = 3;
+
+/**
+ * Plockar ut alla kanoniska färgnycklar ur en text (choice-värde eller alt-text).
+ * Tokeniserar på bokstäver, slår först på exakt ord, sedan på längsta färgord
+ * som token SLUTAR på (fångar sammansättningar som "ljusgrått" → grå utan att
+ * lista varje variant). Tom mängd = ingen färg hittad.
+ */
+export function colorKeysOf(text: string): Set<string> {
+  const keys = new Set<string>();
+  const tokens = (text || "").toLowerCase().match(/[a-zåäöé]+/g) || [];
+  for (const tok of tokens) {
+    const exact = COLOR_WORD_TO_KEY[tok];
+    if (exact) { keys.add(exact); continue; }
+    let best = "";
+    for (const w in COLOR_WORD_TO_KEY) {
+      if (w.length >= MIN_SUFFIX_LEN && w.length > best.length && tok.endsWith(w)) best = w;
+    }
+    if (best) keys.add(COLOR_WORD_TO_KEY[best]);
+  }
+  return keys;
+}
+
+function intersects(a: Set<string>, b: Set<string>): boolean {
+  for (const x of a) if (b.has(x)) return true;
+  return false;
+}
+
+// Wixstatic-bildens fil-id (samma fil kan levereras med olika transform-params),
+// så vi jämför på id:t — inte hela URL:en. Annars kunde samma bild tilldelas två
+// val bara för att transformerna skiljer sig.
+function mediaKeyOf(url: string): string {
+  return (url || "").match(/\/media\/([^/?#]+)/)?.[1] || url || "";
+}
+
+export type AltTextMediaItem = { url?: string | null; altText?: string | null };
+
+/**
+ * Fyller `image` på varje BILDLÖST färg-val genom att matcha valets namn mot en
+ * galleribilds alt-text (positions-oberoende). Muterar `choices` på plats.
+ *
+ * - Hoppar över val som redan har en bild (explicit linkedMedia / variant-
+ *   images.json vinner — denna funktion är lägsta prioritet).
+ * - Varje galleribild används för HÖGST ett val (ingen färg får en annan färgs
+ *   bild i andra hand). Räcker inte bilderna till alla val lämnas resten
+ *   bildlösa → productview faller tillbaka på bubbla/text (ingen regression).
+ */
+export function linkVariantImagesByAltText(
+  choices: { label: string; image: string }[],
+  mediaItems: ReadonlyArray<AltTextMediaItem> | null | undefined,
+): void {
+  if (!choices?.length || !mediaItems?.length) return;
+  const imgs = mediaItems
+    .map((m) => ({ url: m?.url || "", key: mediaKeyOf(m?.url || ""), keys: colorKeysOf(m?.altText || "") }))
+    .filter((m) => m.url && m.keys.size > 0);
+  if (imgs.length === 0) return;
+
+  // Lås bilder som redan är knutna till ett val så de inte återanvänds.
+  const usedKeys = new Set<string>();
+  for (const ch of choices) if (ch.image) usedKeys.add(mediaKeyOf(ch.image));
+
+  for (const ch of choices) {
+    if (ch.image) continue;
+    const want = colorKeysOf(ch.label);
+    if (want.size === 0) continue;
+    const hit = imgs.find((im) => !usedKeys.has(im.key) && intersects(im.keys, want));
+    if (!hit) continue; // ingen ledig matchande bild → behåll dagens beteende
+    ch.image = hit.url;
+    usedKeys.add(hit.key);
+  }
+}
