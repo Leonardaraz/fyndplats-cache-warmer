@@ -1,4 +1,34 @@
-import { createVerify } from "node:crypto";
+import { createVerify, timingSafeEqual } from "node:crypto";
+
+/** Timing-säker strängjämförelse. */
+function safeStrEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
+
+/**
+ * Avgör om ett forwardat anrop (från headless-fanouten) får litas på och hoppa
+ * över egen signaturverifiering. Kräver rätt `X-Forwarded-From` OCH — när en delad
+ * hemlighet är konfigurerad (`WEBHOOK_FORWARD_SECRET`) — en matchande
+ * `X-Forward-Secret`. Är ingen hemlighet satt behålls nuvarande beteende (bara
+ * header-kollen), så inget bryts förrän hemligheten satts på BÅDA sidor.
+ *
+ * Säkerhet: tidigare räckte den gissningsbara klartext-headern `X-Forwarded-From`
+ * för att skippa signaturkollen → vem som helst kunde forwarda falska order. Med
+ * hemligheten satt måste en forgare nu antingen kunna hemligheten eller skicka ett
+ * giltigt Wix-RS256-JWT (verifieras mot WIX_WEBHOOK_PUBLIC_KEY).
+ */
+export function isTrustedForward(
+  forwardedFrom: string | null,
+  providedSecret: string | null,
+  expectedSecret: string | undefined,
+): boolean {
+  if (forwardedFrom !== "fyndplats-webhook") return false;
+  if (!expectedSecret) return true; // ingen hemlighet konfigurerad → bakåtkompatibelt
+  return safeStrEqual(providedSecret ?? "", expectedSecret);
+}
 
 // Wix levererar webhooks som ett RS256-signerat JWT i request-body. Verifiera
 // med appens publika nyckel (från Wix Dev Center). Ren funktion — testbar med
