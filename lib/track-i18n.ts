@@ -58,3 +58,37 @@ export function matchPhrase(description: string): string | null {
   }
   return null;
 }
+
+/** En spårnings-händelse med någon form av tidsstämpel (fältnamn varierar). */
+export type TimedEvent = {
+  time?: string;
+  time_iso?: string;
+  time_utc?: string;
+  time_raw?: string;
+  date?: string;
+};
+
+/** Första icke-tomma tidsfältet (ISO-strängar sorteras lexikalt korrekt). */
+function eventTimeKey(ev: TimedEvent): string {
+  return ev.time || ev.time_iso || ev.time_utc || ev.time_raw || ev.date || "";
+}
+
+/**
+ * Sorterar spårnings-händelser NYAST FÖRST (som 17track visar dem). Stabil vid
+ * lika tid; händelser utan tid hamnar sist. Används av spårningssidan så att den
+ * aktiva markören (första raden) hamnar på NUVARANDE steg i stället för det
+ * äldsta ("Registrerad"). Muterar inte indata.
+ */
+export function orderEventsNewestFirst<T extends TimedEvent>(events: T[]): T[] {
+  return events
+    .map((ev, i) => ({ ev, i }))
+    .sort((a, b) => {
+      const ka = eventTimeKey(a.ev);
+      const kb = eventTimeKey(b.ev);
+      if (ka === kb) return a.i - b.i; // stabil ordning vid lika/avsaknad tid
+      if (!ka) return 1; // tomma sist
+      if (!kb) return -1;
+      return ka < kb ? 1 : -1; // descending → nyast först
+    })
+    .map((x) => x.ev);
+}
