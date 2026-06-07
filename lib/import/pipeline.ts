@@ -53,6 +53,7 @@ import {
   needsDescriptionBackfill,
   sanitizeDescriptionHtml,
   descriptionToText,
+  isMoreInformative,
 } from "./description";
 import { matchesColorName } from "./color-match";
 import { audit } from "../audit";
@@ -242,7 +243,7 @@ export async function importProduct(
     try {
       const ds = await getProductOnce(product.supplierProductId);
       const detail = sanitizeDescriptionHtml(ds.description || "");
-      if (detail.length > (product.descriptionHtml || "").length) {
+      if (isMoreInformative(detail, product)) {
         product.descriptionHtml = detail;
         const text = descriptionToText(detail);
         if (text.length > (product.rawDescription || "").length) product.rawDescription = text;

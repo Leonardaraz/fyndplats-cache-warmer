@@ -17,8 +17,10 @@ export function descriptionBackfillEnabled(): boolean {
 // Under så här många synliga tecken anses den skrapade beskrivningen "tunn".
 const THIN_DESCRIPTION_CHARS = 200;
 
-/** Ord som avslöjar dropship-ursprunget — tas bort ur den synliga texten. */
-const LEAKY = /\b(aliexpress|alibaba|cainiao|china|chinese|shenzhen|guangzhou|shanghai|yiwu|made in prc|prc)\b/gi;
+/** Ord/tecken som avslöjar dropship-ursprunget — tas bort ur texten (även i
+ *  alt=/alicdn-URL:er). Täcker latinska + vanliga CJK-varianter. */
+const LEAKY =
+  /\b(?:aliexpress|ali[-\s]?express|alibaba|cainiao|china|chinese|shenzhen|guangzhou|shanghai|yiwu|hong\s?kong|alicdn|made in prc|prc)\b|中国|中國|深圳|广州|廣州|香港|义乌|義烏/gi;
 
 /** Plockar bort HTML-taggar → ren text (för längdmätning + rawDescription). */
 export function descriptionToText(html: string): string {
@@ -52,17 +54,47 @@ export function needsDescriptionBackfill(product: AliExpressProduct): boolean {
 export function sanitizeDescriptionHtml(html: string, maxLen = 12000): string {
   if (!html) return "";
   let s = html;
-  // Farliga element (inkl. innehåll).
-  s = s.replace(/<\s*(script|style|iframe|noscript)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "");
-  // Självstängande/oavslutade farliga taggar.
-  s = s.replace(/<\s*(script|style|iframe|noscript)\b[^>]*\/?>/gi, "");
-  // Inline event-handlers (onclick=...) och javascript:-URI:er.
+  // Farliga element INKL. innehåll (script/style/iframe + form/object/embed/svg/math).
+  s = s.replace(
+    /<\s*(script|style|iframe|noscript|form|object|embed|svg|math)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,
+    "",
+  );
+  // Själv-/oavslutade farliga taggar + void-/form-element utan plats i en beskrivning.
+  s = s.replace(
+    /<\s*(script|style|iframe|noscript|form|object|embed|svg|math|meta|link|base|input|button|textarea|select)\b[^>]*\/?>/gi,
+    "",
+  );
+  // Inline event-handlers (onclick=…).
   s = s.replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+  // Skript-bärande URI-scheman (javascript:, data:text/html, data:image/svg).
   s = s.replace(/javascript:/gi, "");
-  // Dropship-läckande ord i den synliga texten.
+  s = s.replace(/data:\s*(?:text\/html|image\/svg\+?xml?)/gi, "");
+  // Dropship-läckande ord/tecken i texten (även i alt=/alicdn-URL:er).
   s = s.replace(LEAKY, "");
   s = s.replace(/[ \t]{2,}/g, " ").trim();
   // Inget kvar utom whitespace/taggar? → tomt.
   if (!descriptionToText(s)) return "";
   return s.length > maxLen ? s.slice(0, maxLen) : s;
+}
+
+/** Antal <img>-taggar (proxy för bild-baserad beskrivning). */
+export function imageCount(html: string): number {
+  return ((html || "").match(/<img\b/gi) || []).length;
+}
+
+/**
+ * True om DS-detailen tillför MER än den nuvarande (tunna) beskrivningen: mer
+ * synlig text ELLER fler bilder. Ren längd-jämförelse på HTML-strängen räcker
+ * inte — en bild-baserad AE-beskrivning har lite text men många bilder, och en
+ * missad skrapning kan vara markup-tung men synligt tom. Detta är det avgörande
+ * villkoret för om backfillen faktiskt ersätter beskrivningen.
+ */
+export function isMoreInformative(
+  detail: string,
+  current: { descriptionHtml?: string; rawDescription?: string },
+): boolean {
+  if (!detail) return false;
+  const curHtml = current.descriptionHtml || "";
+  const curVisible = descriptionToText(curHtml || current.rawDescription || "").length;
+  return descriptionToText(detail).length > curVisible || imageCount(detail) > imageCount(curHtml);
 }
