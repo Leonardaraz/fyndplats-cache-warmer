@@ -12,6 +12,7 @@
 - `ExecuteWixAPI` kräver godkännande. Skriv `fields` i request-**body** vid query/PATCH. **Läs om `revision` precis före varje PATCH.** API-svar är plain strings (skriv ändå `v?.value ?? v`).
 - En PATCH är partiell: **bara fält du skickar ändras**. Skicka aldrig `options`/`variantsInfo` om du inte avser röra varianterna.
 - **Priser slutar på 9, inga decimaler.** Importen sätter redan priset till hela kronor som avrundas **uppåt** till närmaste tal som slutar på 9 (t.ex. 499, 489, 579) — **ingen `.90`**. Ändrar du ett pris: avrunda alltid **uppåt** till närmaste 9-slut och skriv hela kronor (aldrig `,90`).
+- **SKU sätts automatiskt — rör den inte.** Importen ger varje variant ett läsbart artikelnummer (`FP-<produkt>-<variant>`, t.ex. `FP-temperingsmaskin-choklad-17-l`) som syns i kassan/Google och mappar till AliExpress i bakgrunden. SKU:n behöver **inte** ändras vid polering; byt den inte (mappningen till leverantören hänger på den).
 
 **Input:** Wix-produkt-ID (+ ev. AliExpress-URL).
 
