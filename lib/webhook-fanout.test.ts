@@ -55,6 +55,7 @@ test("fanoutToCacheWarmer POSTs to the configured URL with the raw body", async 
     eventType: "wix.ecom.v1.order.order_created",
     digest: "sha256=abc",
     url: "https://example.test/api/wix-order",
+    secret: "", // explicit tom → deterministiskt oavsett ev. env-WEBHOOK_FORWARD_SECRET
     fetchImpl: mockFetch as unknown as typeof fetch,
   });
 
