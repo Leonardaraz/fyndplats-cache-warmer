@@ -43,13 +43,18 @@ export async function POST(req: Request) {
   if (await store.hasSeenEvent(event.eventId)) {
     return NextResponse.json({ ok: true, deduped: true });
   }
-  await store.markEventSeen(event.eventId);
 
+  // Skapa tasks FÖRST, markera event:et sett EFTERÅT. createTaskIfAbsent är
+  // idempotent (nyckel `${orderId}:${lineItemId}`), så en omleverans efter en
+  // krasch mitt i skapandet återskapar bara saknade tasks utan dubbletter. Om vi
+  // (som tidigare) markerade sett före skapandet kunde en krasch däremellan göra
+  // att omleveransen dedupp:ades och ordern tappades helt (kund aldrig skickad).
   const tasks = deriveTasks(event);
   let created = 0;
   for (const task of tasks) {
     if (await store.createTaskIfAbsent(task)) created++;
   }
+  await store.markEventSeen(event.eventId);
 
   // Feature 4: bumpa köpta produkter till high-priority sync nästa cron-cykel
   // så lagret kollas direkt efter försäljning. Best-effort — order-flödet får

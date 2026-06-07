@@ -1,5 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { deriveTasks, normalizeOrderEvent } from "./tasks";
+import { deriveTasks, normalizeOrderEvent, normalizeCountryCode } from "./tasks";
+
+describe("normalizeCountryCode", () => {
+  it("accepterar och versaliserar giltig ISO alpha-2", () => {
+    expect(normalizeCountryCode("se")).toBe("SE");
+    expect(normalizeCountryCode(" de ")).toBe("DE");
+    expect(normalizeCountryCode("FR")).toBe("FR");
+  });
+
+  it("returnerar null för saknad/ogiltig kod (ingen tyst SE-default)", () => {
+    expect(normalizeCountryCode(undefined)).toBeNull();
+    expect(normalizeCountryCode(null)).toBeNull();
+    expect(normalizeCountryCode("")).toBeNull();
+    expect(normalizeCountryCode("Sverige")).toBeNull();
+    expect(normalizeCountryCode("SWE")).toBeNull();
+    expect(normalizeCountryCode("S")).toBeNull();
+  });
+});
 
 const webhook = {
   id: "evt-123",

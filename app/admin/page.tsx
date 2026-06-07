@@ -4,7 +4,7 @@ import { getStore } from "@/lib/store/factory";
 import type { TaskStatus } from "@/lib/orders/types";
 import { paymentFeeFromEnv, pricingConfigFromEnv } from "@/lib/config";
 import { summarizeProductProfit } from "@/lib/analytics/profit";
-import { placeAliExpressOrderAction } from "./actions";
+import { placeAliExpressOrderAction, markTaskOrderedAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +35,7 @@ export default async function AdminPage() {
     .sort((a, b) => b.minProfit - a.minProfit);
   const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s).length;
   const pending = tasks.filter((t) => t.status === "pending");
+  const pendingPayment = tasks.filter((t) => t.status === "pending_payment");
   const orderedWaitingTracking = tasks.filter(
     (t) => t.status === "ordered" && t.aliexpressOrderId && !t.sku?.startsWith("shipped"),
   );
@@ -60,8 +61,9 @@ export default async function AdminPage() {
 
       <h2>Fulfillment-tasks</h2>
       <p>
-        Väntar: <b>{byStatus("pending")}</b> · Beställda: <b>{byStatus("ordered")}</b> · Skickade:{" "}
-        <b>{byStatus("shipped")}</b> · Avbrutna: <b>{byStatus("cancelled")}</b>
+        Väntar: <b>{byStatus("pending")}</b> · Väntar betalning: <b>{byStatus("pending_payment")}</b> · Beställda:{" "}
+        <b>{byStatus("ordered")}</b> · Skickade: <b>{byStatus("shipped")}</b> · Avbrutna:{" "}
+        <b>{byStatus("cancelled")}</b>
       </p>
       {pending.length > 0 ? (
         <ul style={{ listStyle: "none", padding: 0 }}>
@@ -109,6 +111,49 @@ export default async function AdminPage() {
       ) : (
         <p style={{ color: "#888" }}>Inga väntande tasks.</p>
       )}
+
+      {pendingPayment.length > 0 ? (
+        <>
+          <h3 style={{ fontSize: 16, marginTop: 18 }}>Väntar på betalning hos AliExpress</h3>
+          <p style={{ fontSize: 13, color: "#666" }}>
+            Ordern är lagd men kräver betalning. Betala på AliExpress och klicka sedan
+            <b> Markera som lagd</b> — då hämtar cron-jobbet spårningsnummer automatiskt
+            (utan detta fastnar ordern osynligt och kunden skickas aldrig).
+          </p>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {pendingPayment.map((t) => {
+              const markAction = markTaskOrderedAction.bind(null, t.taskId);
+              return (
+                <li key={t.taskId} style={{ padding: "10px 0", borderBottom: "1px solid #eee" }}>
+                  <div>
+                    <b>#{t.orderNumber}</b> — {t.productName} ×{t.quantity}{" "}
+                    {t.aliexpressOrderId ? (
+                      <code style={{ fontSize: 12 }}>AE-order: {t.aliexpressOrderId}</code>
+                    ) : null}
+                  </div>
+                  <form action={markAction} style={{ marginTop: 6 }}>
+                    <button
+                      type="submit"
+                      style={{
+                        background: "#16a34a",
+                        color: "#fff",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: 6,
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Markera som lagd
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      ) : null}
 
       {orderedWaitingTracking.length > 0 ? (
         <>

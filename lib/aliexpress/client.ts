@@ -439,6 +439,14 @@ interface RawOrderCreate {
 
 export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderCreateResult> {
     const addr = params.shippingAddress;
+    // Vägra hellre ordern än att skicka till fel land: ISO alpha-2 krävs. Tidigare
+    // defaultade anroparen till "SE" när landet saknades → tyst fel destination.
+    const country = (addr.countryCode ?? "").trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(country)) {
+      throw new Error(
+        `Ogiltig landskod "${addr.countryCode ?? ""}" — order avbruten (kräver ISO alpha-2, t.ex. SE/DE).`,
+      );
+    }
     const bizParams: Record<string, string> = {
           product_id: params.productId,
           product_count: String(params.quantity),
@@ -446,7 +454,7 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
           logistics_service_name: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
           address: addr.addressLine1 + (addr.addressLine2 ? ` ${addr.addressLine2}` : ""),
           city: addr.city,
-          country: addr.countryCode,
+          country,
           zip: addr.postalCode,
           contact_person: addr.name,
           ...(addr.phone ? { mobile_no: addr.phone } : {}),

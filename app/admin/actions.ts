@@ -3,10 +3,36 @@
 import { revalidatePath } from "next/cache";
 import { createOrder } from "@/lib/aliexpress/client";
 import { getStore } from "@/lib/store/factory";
+import { normalizeCountryCode } from "@/lib/orders/tasks";
+import { assertTransition } from "@/lib/orders/status";
 
 /** Form-action-wrapper — returnerar inget och funkar med <form action>. */
 export async function placeAliExpressOrderAction(taskId: string): Promise<void> {
   await placeAliExpressOrder(taskId);
+}
+
+/**
+ * Markerar en `pending_payment`-task som lagd (status → "ordered") efter att
+ * Leonard betalat ordern på AliExpress, så att poll-tracking-cronen plockar upp
+ * den och hämtar spårningsnummer. Utan detta fastnar betal-väntande order osynligt.
+ */
+export async function markTaskOrderedAction(taskId: string): Promise<void> {
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return;
+  try {
+    assertTransition(task.status, "ordered");
+  } catch {
+    return; // ogiltig övergång (t.ex. redan shipped) — gör inget
+  }
+  await store.setTaskStatus(taskId, "ordered");
+  await store.appendAudit({
+    at: new Date().toISOString(),
+    kind: "ordered",
+    ref: taskId,
+    detail: "manuellt markerad som betald/lagd via admin",
+  });
+  revalidatePath("/admin");
 }
 
 /**
@@ -35,6 +61,15 @@ export async function placeAliExpressOrder(taskId: string) {
   if (!variant) return { ok: false, error: "Variant kunde inte matchas till AliExpress-SKU" };
 
   const a = task.shippingAddress;
+  // Vägra ordern om landskoden saknas/är ogiltig i stället för att tyst skicka
+  // till Sverige (tidigare `?? "SE"`-default).
+  const countryCode = normalizeCountryCode(a.country);
+  if (!countryCode) {
+    return {
+      ok: false,
+      error: `Saknar/ogiltig landskod i leveransadressen ("${a.country ?? ""}") — order avbruten. Kontrollera Wix-ordern.`,
+    };
+  }
   try {
     const result = await createOrder({
       productId: mapping.supplierProductId,
@@ -46,7 +81,7 @@ export async function placeAliExpressOrder(taskId: string) {
         addressLine2: a.addressLine2,
         city: a.city ?? "",
         postalCode: a.postalCode ?? "",
-        countryCode: a.country ?? "SE",
+        countryCode,
         phone: a.phone,
       },
     });

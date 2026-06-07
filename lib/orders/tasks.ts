@@ -52,6 +52,17 @@ function extractSku(li: WixLineItem): string | undefined {
   return li.physicalProperties?.sku || undefined;
 }
 
+/**
+ * Normaliserar en landskod till ISO-3166 alpha-2 (versaler). Returnerar null om
+ * värdet inte är exakt två bokstäver. Order-läggningen vägrar då hellre ordern
+ * än skickar den fel — tidigare default `"SE"` kunde tyst skicka en kunds paket
+ * till Sverige när Wix-adressens land saknades/var i fel format.
+ */
+export function normalizeCountryCode(raw: string | undefined | null): string | null {
+  const s = (raw ?? "").trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(s) ? s : null;
+}
+
 function extractAddress(order: WixOrder): ShippingAddress | undefined {
   const addr =
     order.shippingInfo?.logistics?.shippingDestination?.address ?? order.recipientInfo?.address;
