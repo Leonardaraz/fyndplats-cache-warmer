@@ -55,6 +55,7 @@ test("fanoutToCacheWarmer POSTs to the configured URL with the raw body", async 
     eventType: "wix.ecom.v1.order.order_created",
     digest: "sha256=abc",
     url: "https://example.test/api/wix-order",
+    secret: "", // explicit tom → deterministiskt oavsett ev. env-WEBHOOK_FORWARD_SECRET
     fetchImpl: mockFetch as unknown as typeof fetch,
   });
 
@@ -68,6 +69,27 @@ test("fanoutToCacheWarmer POSTs to the configured URL with the raw body", async 
   assert.equal(headers["X-Original-Digest"], "sha256=abc");
   assert.equal(headers["X-Original-Event-Type"], "wix.ecom.v1.order.order_created");
   assert.equal(headers["Content-Type"], "application/json");
+  // Ingen hemlighet konfigurerad → headern utelämnas (opt-in).
+  assert.equal(headers["X-Forward-Secret"], undefined);
+});
+
+test("fanoutToCacheWarmer skickar X-Forward-Secret när en hemlighet är satt", async () => {
+  let captured: Record<string, string> = {};
+  const mockFetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    captured = init!.headers as Record<string, string>;
+    return new Response("ok", { status: 200 });
+  };
+
+  await fanoutToCacheWarmer({
+    rawBody: "header.payload.sig",
+    eventType: "wix.ecom.v1.order.order_created",
+    url: "https://example.test/api/wix-order",
+    secret: "topphemligt",
+    fetchImpl: mockFetch as unknown as typeof fetch,
+  });
+
+  assert.equal(captured["X-Forward-Secret"], "topphemligt");
+  assert.equal(captured["X-Forwarded-From"], "fyndplats-webhook");
 });
 
 test("fanoutToCacheWarmer never throws when fetch rejects (fire-and-forget)", async () => {
