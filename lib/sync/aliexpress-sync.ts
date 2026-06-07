@@ -819,8 +819,9 @@ function productPageUrl(slug?: string): string {
  *   En variant vars supplier-SKU SAKNAS i AE-svaret (slutsåld/borttagen variant
  *   som AE droppat) sätts till **0 — inte even-split**. Bug 2026-06-07: even-split-
  *   fallbacken gav en slutsåld variant `total/n` i lager → oversälj (#97-klassen igen).
- * - Saknar vi per-variant-data HELT (inget skuId-saldo) → even-split av aggregatet
- *   (bästa gissning när inget bättre finns).
+ * - Saknar vi per-variant-data HELT, ELLER matchar INGEN Wix-variant något skuId
+ *   i svaret (helt inaktuell mappning) → even-split av aggregatet. (Att nolla allt
+ *   när ingenting matchar vore falsk mass-OOS; even-split är säkrare gissning.)
  */
 export function resolveInventoryQuantities(
   items: ReadonlyArray<{ variantId: string }>,
@@ -829,12 +830,18 @@ export function resolveInventoryQuantities(
   stockBySupplierId: Record<string, number>,
 ): Map<string, number> {
   const out = new Map<string, number>();
-  const hasPerVariant = target > 0 && Object.keys(stockBySupplierId).length > 0;
   const evenSplit = Math.max(0, Math.trunc(target / Math.max(1, items.length)));
+  // Matchar NÅGON variant ett skuId i svaret? Om ingen gör det (inaktuell
+  // mappning) faller vi tillbaka på even-split i stället för att nolla allt.
+  const anyMatch = items.some((it) => {
+    const sid = supplierByVariantId.get(it.variantId);
+    return sid != null && sid in stockBySupplierId;
+  });
+  const usePerVariant = target > 0 && Object.keys(stockBySupplierId).length > 0 && anyMatch;
   for (const it of items) {
     if (target === 0) {
       out.set(it.variantId, 0);
-    } else if (hasPerVariant) {
+    } else if (usePerVariant) {
       const supplierId = supplierByVariantId.get(it.variantId);
       const perVariant = supplierId != null ? stockBySupplierId[supplierId] : undefined;
       out.set(it.variantId, typeof perVariant === "number" ? perVariant : 0);

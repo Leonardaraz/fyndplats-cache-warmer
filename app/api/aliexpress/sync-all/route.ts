@@ -53,8 +53,20 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // Prisbevakning per variant som FINNS i svaret.
+      // Matchar NÅGON mappad variant svaret? Om ingen gör det (helt inaktuell
+      // mappning) hoppar vi över — annars skulle seed-zero nolla hela produkten
+      // (falsk mass-OOS) på ett svar som egentligen inte gäller våra varianter.
       const bySupplier = new Map(inventory.map((inv) => [inv.skuId, inv]));
+      const anyMatch = mapping.variants.some(
+        (v) => v.wixVariantId && bySupplier.has(v.supplierVariantId),
+      );
+      if (!anyMatch) {
+        errors.push(`${mapping.supplierProductId}: ingen variant matchar mappningen — hoppar över`);
+        void audit("sync-skip", mapping.wixProductId, "ingen variant-match (inaktuell mappning?)");
+        continue;
+      }
+
+      // Prisbevakning per variant som FINNS i svaret.
       for (const vm of mapping.variants) {
         if (!vm.wixVariantId || !vm.costUsd) continue;
         const inv = bySupplier.get(vm.supplierVariantId);

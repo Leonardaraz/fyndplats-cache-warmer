@@ -353,4 +353,11 @@ describe("resolveInventoryQuantities (per-variant lager, ingen oversälj)", () =
     expect(q.get("v-red")).toBe(5);
     expect(q.get("v-blue")).toBe(5);
   });
+
+  it("even-split (inte mass-noll) när INGEN variant matchar svaret (inaktuell mappning)", () => {
+    // Mappningens skuId:n finns inte i svaret → vi vet inget → even-split, inte 0.
+    const q = resolveInventoryQuantities(items, supplierByVariantId, 8, { "sku-other": 8 });
+    expect(q.get("v-red")).toBe(4);
+    expect(q.get("v-blue")).toBe(4);
+  });
 });
