@@ -61,6 +61,13 @@ export interface FanoutOptions {
   url?: string;
   /** Injicerbar fetch för testbarhet. Default = global fetch. */
   fetchImpl?: typeof fetch;
+  /**
+   * Delad hemlighet som bevisar för cache-warmer att forwarden är äkta (skickas
+   * som X-Forward-Secret). Default = env WEBHOOK_FORWARD_SECRET. Skickas BARA när
+   * satt → opt-in; cache-warmer kräver den bara när dess egen env är satt, så
+   * inget bryts förrän hemligheten finns på båda sidor.
+   */
+  secret?: string;
 }
 
 /**
@@ -72,15 +79,21 @@ export interface FanoutOptions {
 export function fanoutToCacheWarmer(opts: FanoutOptions): Promise<void> {
   const url = opts.url ?? process.env.CACHE_WARMER_FANOUT_URL ?? DEFAULT_FANOUT_URL;
   const doFetch = opts.fetchImpl ?? fetch;
+  const secret = opts.secret ?? process.env.WEBHOOK_FORWARD_SECRET ?? "";
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Forwarded-From": "fyndplats-webhook",
+    "X-Original-Digest": opts.digest ?? "",
+    "X-Original-Event-Type": opts.eventType,
+  };
+  // Skicka hemligheten bara när den är konfigurerad (opt-in). Tom = headern
+  // utelämnas, och cache-warmer faller då tillbaka på JWT-verifiering.
+  if (secret) headers["X-Forward-Secret"] = secret;
 
   return doFetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Forwarded-From": "fyndplats-webhook",
-      "X-Original-Digest": opts.digest ?? "",
-      "X-Original-Event-Type": opts.eventType,
-    },
+    headers,
     body: opts.rawBody,
   })
     .then((r) => {
