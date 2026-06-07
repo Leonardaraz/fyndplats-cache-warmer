@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   decideSyncOutcome,
   projectedMarginAtPrice,
+  resolveInventoryQuantities,
   type SyncInputs,
 } from "./aliexpress-sync";
 import type { PricingConfig } from "../import/types";
@@ -315,5 +316,41 @@ describe("projectedMarginAtPrice", () => {
 
   it("returnerar negativ marginal när kost > netto-revenue", () => {
     expect(projectedMarginAtPrice(125, 200, 25)).toBeLessThan(0);
+  });
+});
+
+describe("resolveInventoryQuantities (per-variant lager, ingen oversälj)", () => {
+  const items = [{ variantId: "v-red" }, { variantId: "v-blue" }];
+  const supplierByVariantId = new Map([
+    ["v-red", "sku-red"],
+    ["v-blue", "sku-blue"],
+  ]);
+
+  it("speglar per-variant-saldo individuellt", () => {
+    const q = resolveInventoryQuantities(items, supplierByVariantId, 100, {
+      "sku-red": 100,
+      "sku-blue": 0,
+    });
+    expect(q.get("v-red")).toBe(100);
+    expect(q.get("v-blue")).toBe(0);
+  });
+
+  it("nollar en variant vars SKU saknas i AE-svaret — INTE even-split", () => {
+    // sku-blue droppad av AE (slutsåld variant) → blå ska bli 0, inte 50.
+    const q = resolveInventoryQuantities(items, supplierByVariantId, 100, { "sku-red": 100 });
+    expect(q.get("v-red")).toBe(100);
+    expect(q.get("v-blue")).toBe(0);
+  });
+
+  it("target=0 nollar hela linjen", () => {
+    const q = resolveInventoryQuantities(items, supplierByVariantId, 0, { "sku-red": 50 });
+    expect(q.get("v-red")).toBe(0);
+    expect(q.get("v-blue")).toBe(0);
+  });
+
+  it("faller tillbaka på even-split bara när per-variant-data helt saknas", () => {
+    const q = resolveInventoryQuantities(items, supplierByVariantId, 10, {});
+    expect(q.get("v-red")).toBe(5);
+    expect(q.get("v-blue")).toBe(5);
   });
 });
