@@ -68,9 +68,15 @@ export type TimedEvent = {
   date?: string;
 };
 
-/** Första icke-tomma tidsfältet (ISO-strängar sorteras lexikalt korrekt). */
-function eventTimeKey(ev: TimedEvent): string {
-  return ev.time || ev.time_iso || ev.time_utc || ev.time_raw || ev.date || "";
+/**
+ * Parsar händelsens tid till epoch-ms (riktig tidpunkt, inte sträng) så att
+ * olika tidszons-offset (+02:00 vs Z) sorteras korrekt. Saknad/oparsebar tid →
+ * -Infinity (hamnar sist vid nyast-först).
+ */
+function eventTimeMs(ev: TimedEvent): number {
+  const s = ev.time || ev.time_iso || ev.time_utc || ev.time_raw || ev.date || "";
+  const t = Date.parse(s);
+  return Number.isNaN(t) ? -Infinity : t;
 }
 
 /**
@@ -83,12 +89,10 @@ export function orderEventsNewestFirst<T extends TimedEvent>(events: T[]): T[] {
   return events
     .map((ev, i) => ({ ev, i }))
     .sort((a, b) => {
-      const ka = eventTimeKey(a.ev);
-      const kb = eventTimeKey(b.ev);
-      if (ka === kb) return a.i - b.i; // stabil ordning vid lika/avsaknad tid
-      if (!ka) return 1; // tomma sist
-      if (!kb) return -1;
-      return ka < kb ? 1 : -1; // descending → nyast först
+      const ta = eventTimeMs(a.ev);
+      const tb = eventTimeMs(b.ev);
+      if (ta === tb) return a.i - b.i; // stabil ordning vid lika/avsaknad tid
+      return tb - ta; // descending → nyast först
     })
     .map((x) => x.ev);
 }
