@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { adminAuthDecision } from "@/lib/admin-auth";
 
 // CORS för /api/*. Browser-tillägget och AliExpress-sidor anropar dessa
 // endpoints från andra origins; preflight (OPTIONS) måste få Allow-headers
@@ -32,6 +33,25 @@ function isAllowedOrigin(origin: string): boolean {
 }
 
 export function middleware(req: NextRequest) {
+  // /admin-sidorna (+ deras server-actions, som POST:ar till samma path): valfri
+  // HTTP Basic Auth på app-nivå. Opt-in via ADMIN_BASIC_USER/ADMIN_BASIC_PASS —
+  // av som default (ingen utelåsning; Vercel Deployment Protection är yttre lager
+  // tills detta sätts). Påverkar INTE /api/* (tillägget auth:ar med token där).
+  if (req.nextUrl.pathname.startsWith("/admin")) {
+    const decision = adminAuthDecision(
+      req.headers.get("authorization"),
+      process.env.ADMIN_BASIC_USER,
+      process.env.ADMIN_BASIC_PASS,
+    );
+    if (decision === "unauthorized") {
+      return new NextResponse("Autentisering krävs.", {
+        status: 401,
+        headers: { "WWW-Authenticate": 'Basic realm="Fyndplats Admin", charset="UTF-8"' },
+      });
+    }
+    return NextResponse.next();
+  }
+
   const origin = req.headers.get("origin") ?? "";
   const allowed = isAllowedOrigin(origin);
 
@@ -57,5 +77,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: "/api/:path*",
+  matcher: ["/api/:path*", "/admin", "/admin/:path*"],
 };
