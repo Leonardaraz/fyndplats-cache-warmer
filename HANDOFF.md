@@ -70,7 +70,7 @@ lib/                           # backend-logik (alla domäner med tester)
   auth.ts                      # x-fyndplats-token -guard (timingSafeEqual)
   analytics/profit.ts          # vinstberäkning per produkt
   import/
-    pricing.ts                 # VAT/IOSS + charm90-avrundning (testat)
+    pricing.ts                 # VAT/IOSS + charm9-avrundning (testat)
     seo.ts                     # Claude -> svensk SEO + alt-texter
     pipeline.ts                # SEO -> pricing -> Wix create
     types.ts
@@ -315,7 +315,7 @@ VAT_RATE_PERCENT=25
 IOSS_THRESHOLD_EUR=150
 MARKUP_MULTIPLIER=2.5
 MARKUP_FIXED_SEK=0
-PRICE_ROUNDING=charm90
+PRICE_ROUNDING=charm9
 KLARNA_FEE_PERCENT=3
 KLARNA_FEE_FIXED_SEK=2
 ```

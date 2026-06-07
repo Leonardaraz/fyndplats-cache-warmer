@@ -18,7 +18,7 @@ export function addVat(netSek: number, vatRatePercent: number): number {
 /**
  * Avrundar slutpriset (inkl. moms).
  * - charm90: närmaste heltal som slutar på .90 (t.ex. 249.90)
- * - charm9: närmaste heltal som slutar på 9 (t.ex. 199, 299, 599)
+ * - charm9: avrunda UPPÅT till närmaste heltal som slutar på 9 (489 → 489, 490 → 499)
  * - integer: närmaste heltal
  * - nearest10: avrunda UPP till närmaste hela 10-krona (t.ex. 251 → 260)
  * - none: två decimaler
@@ -27,8 +27,10 @@ export function roundPrice(gross: number, strategy: PricingConfig["rounding"]): 
   if (strategy === "integer") return Math.round(gross);
   if (strategy === "charm90") return Math.max(0, Math.round(gross - 0.9)) + 0.9;
   if (strategy === "charm9") {
-    // Närmaste heltal vars sista siffra är 9: ...9, 19, 29, 199, 299 osv.
-    return Math.max(9, Math.round((gross - 9) / 10) * 10 + 9);
+    // Avrunda UPPÅT till närmaste heltal vars sista siffra är 9 (9, 19, …, 489,
+    // 499, 579). Aldrig nedåt → marginalen skyddas. Epsilon-guard så ett pris som
+    // redan slutar på 9 inte hoppar ett steg pga flyttalsbrus.
+    return Math.max(9, Math.ceil((gross - 9) / 10 - 1e-9) * 10 + 9);
   }
   if (strategy === "nearest10") return Math.ceil(gross / 10) * 10;
   return round2(gross);

@@ -104,7 +104,7 @@ skapar fälten dynamiskt.
 | `IOSS_THRESHOLD_EUR` | `150` | Försändelser över → vanlig importdeklaration |
 | `MARKUP_MULTIPLIER` | `2.5` | Inköp × 2.5 = pris exkl. moms |
 | `MARKUP_FIXED_SEK` | `0` | Fast påslag i SEK |
-| `PRICE_ROUNDING` | `charm90` | Slut på .90 (t.ex. 249.90) |
+| `PRICE_ROUNDING` | `charm9` | Heltal som slutar på 9, avrundas uppåt (t.ex. 499, 489, 579). `charm90` = gammal .90-stil. |
 | `KLARNA_FEE_PERCENT` | `3` | Endast för lönsamhetsöversikten |
 | `KLARNA_FEE_FIXED_SEK` | `2` | Endast för lönsamhetsöversikten |
 | `MAX_PRICE_DROP_PERCENT` | `20` | Säkerhetsspärr på price-sync (blockera glitches) |

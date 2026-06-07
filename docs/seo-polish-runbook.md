@@ -11,6 +11,7 @@
 - **Verifierat (2026-06-05):** frontend läser `seoData`-taggarna `title` + `meta description` → de blir sidans `<title>` och meta. `Product`-JSON-LD (namn, pris, lager, betyg) och OpenGraph **genereras automatiskt** av frontend från produktfälten – du behöver alltså INTE sätta `og:`-taggar i `seoData`.
 - `ExecuteWixAPI` kräver godkännande. Skriv `fields` i request-**body** vid query/PATCH. **Läs om `revision` precis före varje PATCH.** API-svar är plain strings (skriv ändå `v?.value ?? v`).
 - En PATCH är partiell: **bara fält du skickar ändras**. Skicka aldrig `options`/`variantsInfo` om du inte avser röra varianterna.
+- **Priser slutar på 9, inga decimaler.** Importen sätter redan priset till hela kronor som avrundas **uppåt** till närmaste tal som slutar på 9 (t.ex. 499, 489, 579) — **ingen `.90`**. Ändrar du ett pris: avrunda alltid **uppåt** till närmaste 9-slut och skriv hela kronor (aldrig `,90`).
 
 **Input:** Wix-produkt-ID (+ ev. AliExpress-URL).
 
@@ -145,6 +146,44 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 ```
 
 > Hoppa över detta bara om produkten medvetet ska förbli draft. Frontend uppdateras via ISR (ingen redeploy).
+
+-----
+
+## Steg 6 – Varianter (kontrollera, fixa bara vid behov)
+
+Importen sköter varianterna automatiskt och deterministiskt (inga AI-anrop) — oftast behöver du inte göra något:
+
+- **Bildbyte per färg/modell är redan kopplat** (`linkedMedia`): huvudbilden byts när kunden väljer t.ex. "Blå". **Rör inte detta när det fungerar** (det gör det i de flesta fall — från skrapans swatch-bilder eller DS-API:ts per-SKU-bilder).
+- **Variantnamn översätts till svenska** deterministiskt ("Color"→"Färg", "Red"→"Röd"). Tabellen täcker dock inte allt — sammansatta/ovanliga värden kan bli klumpiga eller halv-engelska. **Dem får du gärna putsa** till naturlig svenska (samma ton som produktnamnet).
+
+**A) Putsa variantnamn (valfritt).** Hämta färsk `revision`, skicka tillbaka **HELA** `options`-arrayen + `variantsInfo` **verbatim** (annars 428), ändra bara `choices[].name`.
+⚠️ Byter du namnet på ett val som har en kopplad bild tappas kopplingen — sätt då om `linkedMedia` (se B) i samma PATCH.
+
+**B) Om ett färg-/modellval saknar bildbyte** (text-val utan att huvudbilden ändras) — koppla valet till rätt galleribild. Verifierat mot V3:
+
+1. **GET** produkten med `fields=MEDIA_ITEMS_INFO`, hitta rätt bilds `media.itemsInfo.items[].id` (matcha på motiv/`altText`) och läs färsk `revision`.
+2. **PATCH**: sätt `linkedMedia: [{ "id": "<media-item-id>" }]` på rätt `choices[]`. Skicka **HELA** `options` + `variantsInfo` **verbatim** + färsk `revision`.
+3. Wix ingest:ar bilder **asynkront** (~5 s) — verifiera via re-GET att `linkedMedia` sitter kvar; annars PATCHa om med ny `revision`.
+
+```
+GET .../products/{PRODUCT_ID}?fields=MEDIA_ITEMS_INFO        // media-item-id + färsk revision
+PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
+```
+
+```json
+{ "product": {
+  "revision": "{FÄRSK_REVISION}",
+  "options": [
+    { "name": "Färg",
+      "choicesSettings": { "choices": [
+        { "name": "Blå", "linkedMedia": [ { "id": "{MEDIA_ITEM_ID}" } ] }
+      ] } }
+  ],
+  "variantsInfo": "{VERBATIM_FRÅN_GET}"
+} }
+```
+
+> Skicka `options` **komplett** (alla optioner och val, inte bara det du ändrar) och `variantsInfo` exakt som det kom från GET — annars svarar V3 428 `MISSING_VARIANT_OPTION_CHOICE`. Bilden måste redan ligga i produktens media-pool (den gör den efter import).
 
 -----
 
