@@ -27,6 +27,8 @@ export interface FulfillmentTask {
   createdAt: string;
   /** AliExpress trade order id (sätts efter DS API-order). */
   aliexpressOrderId?: string;
+  /** AliExpress betal-URL när ordern kräver betalning (status pending_payment). */
+  paymentUrl?: string;
 }
 
 /** Normaliserad orderhändelse oavsett om den kom som JWT eller rå JSON. */

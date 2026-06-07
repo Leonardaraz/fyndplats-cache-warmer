@@ -56,6 +56,11 @@ export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
 // maxDuration (300 s) så loopen alltid hinner avsluta snyggt i stället för att
 // dödas mitt i en Wix-skrivning (= partiella skrivningar / state-divergens).
 export const DEFAULT_SYNC_TIME_BUDGET_MS = 240_000;
+// Antal körningar i RAD som måste klassa en produkt som "borttagen" innan vi
+// faktiskt döljer den. Skyddar mot att ett transient "product not found"-svar
+// (AE svarar ofta så tillfälligt) felaktigt döljer en levande produkt — som
+// dessutom inte auto-återställs (eftersom wixVisible då blir false).
+export const REMOVED_STRIKES_REQUIRED = 2;
 
 export interface SyncInputs {
   /** Vad vi sparade förra gången vi körde syncen (null = första körningen). */
@@ -82,6 +87,12 @@ export interface SyncInputs {
   pricing: PricingConfig;
   /** Tröskel under vilken en prishöjning ska flaggas (marginal i %). */
   marginFloorPercent: number;
+  /**
+   * Hur många körningar i rad (inkl. denna) som klassat produkten som borttagen.
+   * Vi döljer först vid REMOVED_STRIKES_REQUIRED. Saknas (äldre anropare/tester) →
+   * behandlas som bekräftad (bakåtkompatibelt — döljer direkt som förut).
+   */
+  removedStreak?: number;
 }
 
 export interface SyncDecision {
@@ -120,17 +131,37 @@ export interface SyncDecision {
 export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
   const { prevState, aliExpress, currentPriceSek, pricing, marginFloorPercent } = inputs;
 
-  // 1) Listningen är borta — dölj produkten i Wix.
+  // 1) Listningen verkar borta. Dölj BARA efter REMOVED_STRIKES_REQUIRED
+  // körningar i rad (skydd mot transient "not found" som annars gömmer en
+  // levande produkt permanent). Saknas removedStreak (äldre anropare/tester) →
+  // behandlas som bekräftad direkt (bakåtkompatibelt).
   if (!aliExpress || aliExpress.listingRemoved) {
+    const streak = inputs.removedStreak ?? REMOVED_STRIKES_REQUIRED;
+    const confirmed = streak >= REMOVED_STRIKES_REQUIRED;
+    if (confirmed) {
+      return {
+        listingStatus: "removed",
+        actionTaken: inputs.wixVisible ? "hidden" : "none",
+        shouldHide: inputs.wixVisible,
+        shouldRestore: false,
+        inventoryTarget: null,
+        alert: null,
+        newCostSek: null,
+        notes: "AliExpress-listning borttagen — produkten döljs i butiken.",
+        justWentOos: false,
+        justRestocked: false,
+      };
+    }
+    // Obekräftad (strike < tröskel): rör ingenting, behåll tidigare status.
     return {
-      listingStatus: "removed",
-      actionTaken: inputs.wixVisible ? "hidden" : "none",
-      shouldHide: inputs.wixVisible,
+      listingStatus: prevState?.listingStatus ?? "active",
+      actionTaken: "none",
+      shouldHide: false,
       shouldRestore: false,
       inventoryTarget: null,
       alert: null,
       newCostSek: null,
-      notes: "AliExpress-listning borttagen — produkten döljs i butiken.",
+      notes: `Möjlig borttagning (${streak}/${REMOVED_STRIKES_REQUIRED}) — väntar på bekräftelse innan produkten döljs.`,
       justWentOos: false,
       justRestocked: false,
     };
@@ -486,6 +517,9 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // Används av applyInventoryTarget för att spegla VERKLIGT lager per variant i Wix
   // istället för att jämnt fördela aggregatet (bug 2026-06-01).
   let aeStockBySupplierId: Record<string, number> = {};
+  // Sätts om AE-svaret klassas som "borttagen listning" (för strike-räkningen
+  // som kräver REMOVED_STRIKES_REQUIRED körningar i rad innan vi döljer).
+  let removedClassified = false;
   try {
     const product = await getAliExpressProduct(mapping.supplierProductId);
     // Skydd mot degraderat 200-svar: ett giltigt svar med TOM variant-lista
@@ -527,6 +561,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       || msg.includes("invalid product")
       || /code\s*7001\d{3}/.test(msg)
     ) {
+      removedClassified = true;
       aliExpress = {
         title: "",
         images: [],
@@ -538,6 +573,9 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       throw err;
     }
   }
+  // Strike-räkning: +1 per körning i rad som klassar borttagning, nollas annars.
+  // decideSyncOutcome döljer först vid REMOVED_STRIKES_REQUIRED.
+  const removedStreak = removedClassified ? (state?.removedStreak ?? 0) + 1 : 0;
 
   // 2) Hämta Wix-snapshot (för visibility + nuvarande pris).
   const wixSnapshot = await getWixProduct(mapping.wixProductId);
@@ -576,6 +614,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     newImageHash,
     pricing,
     marginFloorPercent,
+    removedStreak,
   });
 
   // 4) Sidoeffekter — Wix-skrivningar.
@@ -760,6 +799,8 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     lastCheckedAt: checkedAt,
     lastOosAlertAt: dryRun ? (state?.lastOosAlertAt ?? null) : lastOosAlertAt,
     outOfStockSince: dryRun ? (state?.outOfStockSince ?? null) : outOfStockSince,
+    // Frys i dry-run så en torrkörning inte "konsumerar" en strike.
+    removedStreak: dryRun ? (state?.removedStreak ?? 0) : removedStreak,
   };
   await syncStore.saveState(newState);
 

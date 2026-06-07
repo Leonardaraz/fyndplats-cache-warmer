@@ -304,6 +304,42 @@ describe("decideSyncOutcome", () => {
   });
 });
 
+describe("decideSyncOutcome — strike-guard mot transient borttagning (E#5)", () => {
+  const removed = { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true };
+
+  it("döljer DIREKT när removedStreak saknas (bakåtkompatibelt)", () => {
+    const out = decideSyncOutcome(baseInputs({ aliExpress: removed }));
+    expect(out.shouldHide).toBe(true);
+    expect(out.listingStatus).toBe("removed");
+  });
+
+  it("döljer INTE vid strike 1 — väntar på bekräftelse", () => {
+    const out = decideSyncOutcome(baseInputs({ aliExpress: removed, removedStreak: 1 }));
+    expect(out.shouldHide).toBe(false);
+    expect(out.actionTaken).toBe("none");
+    expect(out.inventoryTarget).toBeNull();
+    expect(out.listingStatus).toBe("active"); // prevState null → fallback, inte "removed"
+  });
+
+  it("döljer vid strike 2 (REMOVED_STRIKES_REQUIRED)", () => {
+    const out = decideSyncOutcome(baseInputs({ aliExpress: removed, removedStreak: 2 }));
+    expect(out.shouldHide).toBe(true);
+    expect(out.listingStatus).toBe("removed");
+  });
+
+  it("strike 1 behåller tidigare status (t.ex. out_of_stock)", () => {
+    const out = decideSyncOutcome(
+      baseInputs({
+        aliExpress: removed,
+        removedStreak: 1,
+        prevState: { listingStatus: "out_of_stock" } as never,
+      }),
+    );
+    expect(out.shouldHide).toBe(false);
+    expect(out.listingStatus).toBe("out_of_stock");
+  });
+});
+
 describe("projectedMarginAtPrice", () => {
   it("räknar netto-marginal korrekt med moms", () => {
     // grossSek = 250 inkl. 25% moms → netto = 200. Cost = 100. Marg = 50%.

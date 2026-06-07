@@ -131,6 +131,13 @@ export default async function AdminPage() {
                       <code style={{ fontSize: 12 }}>AE-order: {t.aliexpressOrderId}</code>
                     ) : null}
                   </div>
+                  {t.paymentUrl?.startsWith("https://") ? (
+                    <div style={{ marginTop: 4 }}>
+                      <a href={t.paymentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13 }}>
+                        Betala på AliExpress ↗
+                      </a>
+                    </div>
+                  ) : null}
                   <form action={markAction} style={{ marginTop: 6 }}>
                     <button
                       type="submit"
