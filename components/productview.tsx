@@ -73,7 +73,7 @@ function splitFlikar(html: string): { mainHtml: string; flikar: { title: string;
   return { mainHtml, flikar };
 }
 
-type Choice = { label: string; image: string; color?: string; variantId: string; price: string; priceNum: number; originalPrice: string };
+type Choice = { label: string; image: string; color?: string; variantId: string; price: string; priceNum: number; originalPrice: string; inStock?: boolean };
 
 // Wixstatic-bilder har samma fil-id men olika transform-params (w_400 vs w_800).
 // Dedup:a på fil-id:t så variantbilden inte dyker upp dubbelt i galleriet.
@@ -184,6 +184,14 @@ export function ProductView({
   // Etikett för vald variant — visas i pickern och i den sticky mobil-knappen.
   const variantLabel = hasImageVariants ? (imageChoices[sel]?.label || "") : hasTextVariants ? (variants[sel]?.label || "") : "";
 
+  // Per-variant lager (V3-hydrerat): den VALDA variantens lager styr köp-knappen så
+  // att en slut-variant inte kan läggas i kundvagn (även om andra varianter finns).
+  // inStock===false = explicit slut; undefined/saknat → behandlas som i lager (ingen
+  // regression för produkter/varianter där statusen inte hydrerats).
+  const selVariantInStock = hasImageVariants ? imageChoices[sel]?.inStock !== false : true;
+  const buyable = inStock && selVariantInStock;
+  const variantOnlyOOS = inStock && !selVariantInStock; // produkten finns, men vald variant är slut
+
   const onAdd = async () => {
     // GA4: skicka add_to_cart med variantens pris om det finns, annars listpris.
     const itemPrice = hasImageVariants && imageChoices[sel]?.priceNum
@@ -210,11 +218,11 @@ export function ProductView({
               <button
                 key={c.variantId}
                 type="button"
-                className={`varswatch ${variantMode} ${sel === i ? "active" : ""}`}
+                className={`varswatch ${variantMode} ${sel === i ? "active" : ""} ${c.inStock === false ? "oos" : ""}`}
                 onClick={() => pickVariant(i)}
-                aria-label={c.label}
+                aria-label={c.inStock === false ? `${c.label} – slut i lager` : c.label}
                 aria-pressed={sel === i}
-                title={c.label}
+                title={c.inStock === false ? `${c.label} – slut i lager` : c.label}
               >
                 {variantMode === "image" ? (
                   <span className="varswatch-thumb">
@@ -225,6 +233,7 @@ export function ProductView({
                   <span className="varswatch-dot" style={{ background: c.color || "#e5e7eb" }} />
                 ) : null}
                 <span className="varswatch-name">{c.label}</span>
+                {c.inStock === false && <span className="varswatch-oos">Slut</span>}
               </button>
             ))
           : variants.map((v, i) => (
@@ -261,10 +270,14 @@ export function ProductView({
         <div className="pdp-head">
           <div className="eyebrow" style={{ marginBottom: 10 }}>Fyndplats</div>
           <h1>{name}</h1>
-          {!inStock && (
+          {!buyable && (
             <div className="oos-banner" role="status">
               <span className="oos-banner-chip">Slutsåld</span>
-              <span className="oos-banner-text">Varan är tillfälligt slut hos oss – bevaka nedan så hör vi av oss.</span>
+              <span className="oos-banner-text">
+                {variantOnlyOOS
+                  ? `${variantLabel} är tillfälligt slut – välj en annan variant ovan, eller bevaka nedan så hör vi av oss.`
+                  : "Varan är tillfälligt slut hos oss – bevaka nedan så hör vi av oss."}
+              </span>
             </div>
           )}
           <div className="pdp-price">
@@ -272,10 +285,10 @@ export function ProductView({
             {displayOriginal && <span className="pdp-price-old">{displayOriginal}</span>}
             {displayOriginal && <span className="pdp-sale">Rea</span>}
           </div>
-          <div className={`stock ${inStock ? "in" : "out"}`}>
-            {inStock ? "✓ I lager" : "Tillfälligt slut"}
+          <div className={`stock ${buyable ? "in" : "out"}`}>
+            {buyable ? "✓ I lager" : variantOnlyOOS ? "Slut i denna variant" : "Tillfälligt slut"}
           </div>
-          {inStock && typeof stockQuantity === "number" && stockQuantity > 0 && stockQuantity <= 5 && (
+          {buyable && typeof stockQuantity === "number" && stockQuantity > 0 && stockQuantity <= 5 && (
             <div className="low-stock-warn">🔥 Endast <strong>{stockQuantity}</strong> kvar i lager</div>
           )}
         </div>
@@ -285,13 +298,13 @@ export function ProductView({
         <div className="buybox pdp-actions">
           <button
             className="buy"
-            disabled={busy || !productId || !inStock || (needsVariant && !variantId)}
+            disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
             onClick={onAdd}
           >
-            {!inStock ? "Slutsåld" : busy ? "Lägger till…" : added ? "✓ Tillagd i varukorgen" : "Lägg i kundvagn"}
+            {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : busy ? "Lägger till…" : added ? "✓ Tillagd i varukorgen" : "Lägg i kundvagn"}
           </button>
 
-          {!inStock && productId && <RestockForm productId={productId} />}
+          {!buyable && productId && <RestockForm productId={productId} />}
 
           <div className="pdp-trust">
             <span>🚚 Fri frakt över 499 kr</span>
@@ -343,7 +356,7 @@ export function ProductView({
       </div>
     </div>
     {/* Sticky köp-knapp på mobil — visas bara på små skärmar (CSS) */}
-    <div className="sticky-buy-mobile" aria-hidden={!inStock}>
+    <div className="sticky-buy-mobile" aria-hidden={!buyable}>
       <div className="sticky-buy-inner">
         <div className="sticky-buy-info">
           <div className="sticky-buy-price">{displayPrice}</div>
@@ -351,10 +364,10 @@ export function ProductView({
         </div>
         <button
           className="buy sticky-buy-btn"
-          disabled={busy || !productId || !inStock || (needsVariant && !variantId)}
+          disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
           onClick={onAdd}
         >
-          {!inStock ? "Slut" : busy ? "..." : added ? "✓" : "Lägg i kundvagn"}
+          {!buyable ? "Slut" : busy ? "..." : added ? "✓" : "Lägg i kundvagn"}
         </button>
       </div>
     </div>

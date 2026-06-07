@@ -36,7 +36,7 @@ export type Product = {
   originalPrice?: string;
   onSale?: boolean;
   descriptionHtml?: string;
-  options?: { name: string; choices: { label: string; image: string; color: string; variantId: string; price: string; priceNum: number; originalPrice: string }[] } | null;
+  options?: { name: string; choices: { label: string; image: string; color: string; variantId: string; price: string; priceNum: number; originalPrice: string; inStock?: boolean }[] } | null;
   // Bildkvalitets-poäng (Claude vision, se lib/image-scores.ts). Styr ordningen
   // på startsida/kategori/alla-produkter. DEFAULT_SCORE för opoängsatta produkter.
   imageScore: number;
@@ -370,6 +370,7 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
               price: c.price,
               priceNum: c.priceNum,
               originalPrice: c.originalPrice,
+              inStock: c.inStock,
             }));
           if (!prod.options) {
             prod.options = { name: v3v.optionName, choices: buildChoices() };
@@ -384,6 +385,7 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
               ch.price = c.price;
               ch.priceNum = c.priceNum;
               ch.originalPrice = c.originalPrice;
+              ch.inStock = c.inStock;
               if (!ch.variantId) ch.variantId = c.variantId;
               if (!ch.image) ch.image = c.image;
             }

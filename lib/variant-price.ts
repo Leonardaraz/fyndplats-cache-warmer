@@ -6,6 +6,10 @@
 // är fel för storleksvarianter med olika pris (t.ex. 2 L vs 30 L fick samma pris).
 // getProduct hydrerar därför priserna autentiserat via V3 REST och använder den här
 // rena, SDK-/fetch-fria parsningen (enhetstestbar med node --test).
+//
+// Samma SDK-begränsning gäller per-variant-LAGRET → en slut-variant kunde köpas på
+// sidan (produkten räknades som "i lager" så länge NÅGON variant fanns). Vi läser
+// därför även `inventoryStatus.inStock` per variant ur samma V3-svar.
 
 const SEK_FMT = new Intl.NumberFormat("sv-SE", {
   style: "currency",
@@ -28,6 +32,7 @@ export type V3VariantData = {
     price: string;
     priceNum: number;
     originalPrice: string;
+    inStock: boolean;
   }[];
 } | null;
 
@@ -57,8 +62,8 @@ export function v3VariantData(product: any): V3VariantData {
     meta[c.id] = { name: c.name, image: c?.linkedMedia?.[0]?.image?.url || "" };
   }
 
-  // choiceId → variantpris/-id (första varianten per val).
-  const byChoiceId: Record<string, { variantId: string; price: string; priceNum: number; originalPrice: string }> = {};
+  // choiceId → variantpris/-id/lager (första varianten per val).
+  const byChoiceId: Record<string, { variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean }> = {};
   for (const v of variants) {
     const cid = v?.choices?.[0]?.optionChoiceIds?.choiceId;
     if (!cid || byChoiceId[cid]) continue;
@@ -70,6 +75,9 @@ export function v3VariantData(product: any): V3VariantData {
       price: formatSek(num),
       priceNum: num,
       originalPrice: Number.isFinite(cmp) && cmp > num ? formatSek(cmp) : "",
+      // Slut i lager bara när Wix EXPLICIT säger inStock:false; saknat fält → i lager
+      // (bryt inte produkter där statusen inte hydrerats).
+      inStock: v?.inventoryStatus?.inStock !== false,
     };
   }
 

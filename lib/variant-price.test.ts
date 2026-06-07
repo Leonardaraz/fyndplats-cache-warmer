@@ -24,9 +24,9 @@ const product = {
   ],
   variantsInfo: {
     variants: [
-      { id: "v1", choices: [{ optionChoiceIds: { optionId: "o1", choiceId: "c1" } }], price: { actualPrice: { amount: "899.9" } } },
-      { id: "v2", choices: [{ optionChoiceIds: { optionId: "o1", choiceId: "c2" } }], price: { actualPrice: { amount: "2834.9" }, compareAtPrice: { amount: "3299" } } },
-      { id: "v3", choices: [{ optionChoiceIds: { optionId: "o1", choiceId: "c3" } }], price: { actualPrice: { amount: "5649.9" } } },
+      { id: "v1", choices: [{ optionChoiceIds: { optionId: "o1", choiceId: "c1" } }], price: { actualPrice: { amount: "899.9" } }, inventoryStatus: { inStock: true } },
+      { id: "v2", choices: [{ optionChoiceIds: { optionId: "o1", choiceId: "c2" } }], price: { actualPrice: { amount: "2834.9" }, compareAtPrice: { amount: "3299" } }, inventoryStatus: { inStock: false } },
+      { id: "v3", choices: [{ optionChoiceIds: { optionId: "o1", choiceId: "c3" } }], price: { actualPrice: { amount: "5649.9" } } }, // saknar inventoryStatus → default i lager
     ],
   },
 };
@@ -45,6 +45,12 @@ test("v3VariantData kopplar varje val till SITT variantpris/-id, i katalogordnin
   // rabatt (compareAtPrice > actual) ger originalPrice; annars tomt
   assert.match(r.choices[1].originalPrice, /kr/);
   assert.equal(r.choices[0].originalPrice, "");
+});
+
+test("inStock mappas per variant (explicit false = slut; saknat fält = i lager)", () => {
+  const r = v3VariantData(product);
+  assert.ok(r);
+  assert.deepEqual(r.choices.map((c) => c.inStock), [true, false, true]);
 });
 
 test("fler-options-produkt hoppas över (null) — single-option-antagande", () => {
