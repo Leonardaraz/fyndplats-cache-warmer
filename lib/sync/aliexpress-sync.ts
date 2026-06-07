@@ -52,6 +52,10 @@ import { applyBestsellerPriority, priorityRank, RECENT_PURCHASE_REASON } from ".
 
 export const DEFAULT_MARGIN_FLOOR_PERCENT = 20;
 export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
+// Vägg-klocka-budget (ms) för en sync-körning. Sätts under Vercel-funktionens
+// maxDuration (300 s) så loopen alltid hinner avsluta snyggt i stället för att
+// dödas mitt i en Wix-skrivning (= partiella skrivningar / state-divergens).
+export const DEFAULT_SYNC_TIME_BUDGET_MS = 240_000;
 
 export interface SyncInputs {
   /** Vad vi sparade förra gången vi körde syncen (null = första körningen). */
@@ -259,6 +263,12 @@ export interface RunDailySyncOptions {
   dryRun: boolean;
   /** Maxantal AliExpress-API-anrop per körning (rate-limit-skydd). */
   maxApiCalls: number;
+  /**
+   * Vägg-klocka-budget (ms). Loopen stannar (resten räknas som skipped) innan
+   * budgeten nås, så Vercel inte dödar lambdan mitt i en produkt-skrivning.
+   * Default DEFAULT_SYNC_TIME_BUDGET_MS.
+   */
+  timeBudgetMs?: number;
   /** Mappnings-id:er att hoppa över (för åter-körning av en partiell körning). */
   skipIds?: Set<string>;
   /** Marginal-golv för pris-alert. */
@@ -377,9 +387,14 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   });
 
   let apiCallsUsed = 0;
+  const loopStartMs = Date.now();
+  const timeBudgetMs = opts.timeBudgetMs ?? DEFAULT_SYNC_TIME_BUDGET_MS;
 
   for (const { mapping, state } of states) {
-    if (apiCallsUsed >= opts.maxApiCalls) {
+    // Stanna på rate-limit ELLER vägg-klocka-budget (kollas FÖRE varje produkt
+    // → avbryter aldrig en pågående skrivning). Resten räknas som skipped och
+    // tas nästa körning (äldsta lastCheckedAt först).
+    if (apiCallsUsed >= opts.maxApiCalls || Date.now() - loopStartMs >= timeBudgetMs) {
       summary.skipped++;
       continue;
     }
@@ -473,6 +488,17 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   let aeStockBySupplierId: Record<string, number> = {};
   try {
     const product = await getAliExpressProduct(mapping.supplierProductId);
+    // Skydd mot degraderat 200-svar: ett giltigt svar med TOM variant-lista
+    // (throttling/partiell DS-respons) skulle annars ge totalStock=0 →
+    // decideSyncOutcome markerar OOS → Wix-lagret NOLLAS för en levande produkt
+    // (försvinner ur butiken). En riktig produkt har alltid ≥1 SKU, så vi
+    // behandlar 0 varianter som transient (kasta → fångas i loopen, ingen skrivning).
+    if (!product.variants || product.variants.length === 0) {
+      throw new Error(
+        `AliExpress returnerade 0 varianter för ${mapping.supplierProductId} `
+        + `— behandlas som transient (ingen lager-skrivning).`,
+      );
+    }
     const minCostUsd = product.variants
       .filter((v) => (v.stock ?? 0) > 0 && v.price > 0)
       .reduce((min, v) => (min === 0 ? v.price : Math.min(min, v.price)), 0);
@@ -785,15 +811,49 @@ function productPageUrl(slug?: string): string {
 }
 
 /**
- * Skriver lager-target till varianterna.
+ * Avgör Wix-lagersaldo per variant (ren funktion → enhetstestbar).
  *
- * Bug 2026-06-01: tidigare fördelades aggregatet JÄMNT över alla varianter
- * (target / n), så en produkt med 100 i lager på "Röd" och 0 på "Blå" fick 50/50
- * i Wix — fel verklighet. När vi har AliExpress per-variant-saldo (stockBySupplierId,
- * keyat på skuId) sätter vi nu varje Wix-variants saldo individuellt genom att
- * matcha Wix variantId → mapping.supplierVariantId → AE-saldo. Saknas per-variant-
- * data faller vi tillbaka på den gamla jämna fördelningen. target===0 (slut i lager)
- * nollar alltid hela linjen.
+ * - `target === 0` (slut i lager) → nollar hela linjen.
+ * - Har vi per-variant-saldo från AE (`stockBySupplierId`, keyat på skuId)
+ *   speglas varje variant individuellt via Wix variantId → supplierVariantId.
+ *   En variant vars supplier-SKU SAKNAS i AE-svaret (slutsåld/borttagen variant
+ *   som AE droppat) sätts till **0 — inte even-split**. Bug 2026-06-07: even-split-
+ *   fallbacken gav en slutsåld variant `total/n` i lager → oversälj (#97-klassen igen).
+ * - Saknar vi per-variant-data HELT, ELLER matchar INGEN Wix-variant något skuId
+ *   i svaret (helt inaktuell mappning) → even-split av aggregatet. (Att nolla allt
+ *   när ingenting matchar vore falsk mass-OOS; even-split är säkrare gissning.)
+ */
+export function resolveInventoryQuantities(
+  items: ReadonlyArray<{ variantId: string }>,
+  supplierByVariantId: Map<string, string>,
+  target: number,
+  stockBySupplierId: Record<string, number>,
+): Map<string, number> {
+  const out = new Map<string, number>();
+  const evenSplit = Math.max(0, Math.trunc(target / Math.max(1, items.length)));
+  // Matchar NÅGON variant ett skuId i svaret? Om ingen gör det (inaktuell
+  // mappning) faller vi tillbaka på even-split i stället för att nolla allt.
+  const anyMatch = items.some((it) => {
+    const sid = supplierByVariantId.get(it.variantId);
+    return sid != null && sid in stockBySupplierId;
+  });
+  const usePerVariant = target > 0 && Object.keys(stockBySupplierId).length > 0 && anyMatch;
+  for (const it of items) {
+    if (target === 0) {
+      out.set(it.variantId, 0);
+    } else if (usePerVariant) {
+      const supplierId = supplierByVariantId.get(it.variantId);
+      const perVariant = supplierId != null ? stockBySupplierId[supplierId] : undefined;
+      out.set(it.variantId, typeof perVariant === "number" ? perVariant : 0);
+    } else {
+      out.set(it.variantId, evenSplit);
+    }
+  }
+  return out;
+}
+
+/**
+ * Skriver lager-target till varianterna (per-variant via resolveInventoryQuantities).
  */
 async function applyInventoryTarget(
   mapping: ProductMappingRecord,
@@ -808,22 +868,12 @@ async function applyInventoryTarget(
   for (const v of mapping.variants ?? []) {
     if (v.wixVariantId) supplierByVariantId.set(v.wixVariantId, v.supplierVariantId);
   }
-  const hasPerVariant = target > 0 && Object.keys(stockBySupplierId).length > 0;
-  const evenSplit = Math.max(0, Math.trunc(target / Math.max(1, items.length)));
-
-  const updates = items.map((it) => {
-    let quantity: number;
-    if (target === 0) {
-      quantity = 0;
-    } else if (hasPerVariant) {
-      const supplierId = supplierByVariantId.get(it.variantId);
-      const perVariant = supplierId != null ? stockBySupplierId[supplierId] : undefined;
-      quantity = typeof perVariant === "number" ? perVariant : evenSplit;
-    } else {
-      quantity = evenSplit;
-    }
-    return { id: it.id, revision: it.revision, quantity };
-  });
+  const qtyByVariant = resolveInventoryQuantities(items, supplierByVariantId, target, stockBySupplierId);
+  const updates = items.map((it) => ({
+    id: it.id,
+    revision: it.revision,
+    quantity: qtyByVariant.get(it.variantId) ?? 0,
+  }));
   await bulkUpdateInventoryQuantities(updates);
 }
 

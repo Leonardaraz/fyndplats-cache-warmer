@@ -29,6 +29,7 @@ import {
   runDailySync,
   DEFAULT_MARGIN_FLOOR_PERCENT,
   DEFAULT_MAX_API_CALLS_PER_RUN,
+  DEFAULT_SYNC_TIME_BUDGET_MS,
 } from "@/lib/sync/aliexpress-sync";
 import { audit } from "@/lib/audit";
 import { buildDailySummaryEmail, sendEmail } from "@/lib/email/resend";
@@ -64,6 +65,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     const pricing = pricingConfigFromEnv();
     const dryRun = (process.env.SYNC_DRY_RUN ?? "true").toLowerCase() !== "false";
     const maxApiCalls = numberFromEnv("SYNC_MAX_API_CALLS", DEFAULT_MAX_API_CALLS_PER_RUN);
+    const timeBudgetMs = numberFromEnv("SYNC_TIME_BUDGET_MS", DEFAULT_SYNC_TIME_BUDGET_MS);
     const marginFloorPercent = numberFromEnv(
       "SYNC_MARGIN_FLOOR_PERCENT",
       DEFAULT_MARGIN_FLOOR_PERCENT,
@@ -80,6 +82,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
       pricing,
       dryRun,
       maxApiCalls,
+      timeBudgetMs,
       marginFloorPercent,
       baseUrl,
       opsAlertEmail: opsEmailForAlerts,

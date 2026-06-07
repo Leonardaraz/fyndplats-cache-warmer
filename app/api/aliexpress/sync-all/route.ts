@@ -14,7 +14,7 @@ import { checkToken } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { pricingConfigFromEnv } from "@/lib/config";
 import { evaluatePriceChange } from "@/lib/sync/price-watch";
-import { syncProductStock } from "@/lib/sync/inventory";
+import { syncProductStock, buildDesiredStock } from "@/lib/sync/inventory";
 import { audit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -45,35 +45,46 @@ export async function POST(req: NextRequest) {
       // Hämta aktuellt lager + pris per variant från DS API.
       const inventory = await getInventory(mapping.supplierProductId);
 
-      // Bygg desired-stock baserat på variant-mappning (SKU → wixVariantId).
-      const desired = inventory
-        .map((inv) => {
-          const vm = mapping.variants.find((v) => {
-            // DS API returnerar skuId; vår mappning har supplierVariantId.
-            return v.supplierVariantId === inv.skuId;
-          });
-          if (!vm?.wixVariantId) return null;
+      // Tomt/degraderat svar → rör INTE lagret (annars skulle ett partiellt
+      // svar lämna allt orört, eller nolla fel). Hoppa över och försök nästa körning.
+      if (inventory.length === 0) {
+        errors.push(`${mapping.supplierProductId}: tomt lager-svar — hoppar över (rör inte lagret)`);
+        void audit("sync-skip", mapping.wixProductId, "tomt AliExpress-lager-svar");
+        continue;
+      }
 
-          // Prisbevakning.
-          if (vm.costUsd && vm.costUsd !== inv.price) {
-            const pw = evaluatePriceChange(vm.costUsd, inv.price, pricing, {
-              thresholdPercent,
-              autoAdjust,
-            });
-            if (pw.flagged || pw.newGrossSek !== undefined) {
-              alerts.push({ wixVariantId: vm.wixVariantId, ...pw });
-              if (pw.flagged) {
-                void audit("price-alert", vm.wixVariantId, `+${pw.percentChange}% — kräver åtgärd`);
-              } else if (pw.newGrossSek) {
-                void audit("price-adjust", vm.wixVariantId, `nytt pris ${pw.newGrossSek} kr`);
-              }
-            }
+      // Matchar NÅGON mappad variant svaret? Om ingen gör det (helt inaktuell
+      // mappning) hoppar vi över — annars skulle seed-zero nolla hela produkten
+      // (falsk mass-OOS) på ett svar som egentligen inte gäller våra varianter.
+      const bySupplier = new Map(inventory.map((inv) => [inv.skuId, inv]));
+      const anyMatch = mapping.variants.some(
+        (v) => v.wixVariantId && bySupplier.has(v.supplierVariantId),
+      );
+      if (!anyMatch) {
+        errors.push(`${mapping.supplierProductId}: ingen variant matchar mappningen — hoppar över`);
+        void audit("sync-skip", mapping.wixProductId, "ingen variant-match (inaktuell mappning?)");
+        continue;
+      }
+
+      // Prisbevakning per variant som FINNS i svaret.
+      for (const vm of mapping.variants) {
+        if (!vm.wixVariantId || !vm.costUsd) continue;
+        const inv = bySupplier.get(vm.supplierVariantId);
+        if (!inv || vm.costUsd === inv.price) continue;
+        const pw = evaluatePriceChange(vm.costUsd, inv.price, pricing, { thresholdPercent, autoAdjust });
+        if (pw.flagged || pw.newGrossSek !== undefined) {
+          alerts.push({ wixVariantId: vm.wixVariantId, ...pw });
+          if (pw.flagged) {
+            void audit("price-alert", vm.wixVariantId, `+${pw.percentChange}% — kräver åtgärd`);
+          } else if (pw.newGrossSek) {
+            void audit("price-adjust", vm.wixVariantId, `nytt pris ${pw.newGrossSek} kr`);
           }
+        }
+      }
 
-          return { wixVariantId: vm.wixVariantId, quantity: inv.stock };
-        })
-        .filter((d): d is { wixVariantId: string; quantity: number } => Boolean(d));
-
+      // Lager: seed:a ALLA mappade varianter; en variant som saknas i svaret
+      // (slutsåld/borttagen) nollas i stället för att behålla gammalt saldo (oversälj).
+      const desired = buildDesiredStock(mapping.variants, inventory);
       if (desired.length > 0) {
         await syncProductStock(mapping.wixProductId, desired);
         synced++;
