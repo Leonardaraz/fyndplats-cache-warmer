@@ -56,6 +56,7 @@ import {
   isMoreInformative,
 } from "./description";
 import { matchesColorName } from "./color-match";
+import { buildVariantSkus } from "./sku";
 import { audit } from "../audit";
 
 export interface VariantMapping {
@@ -526,8 +527,12 @@ export async function importProduct(
   const swatchMediaPromise = uploadSwatchMedia(swatchSources, seo.slug);
 
   const variantMappings: VariantMapping[] = [];
+  // Läsbara SKU:er ("FP-<produkt>-<variant>") istället för "AE-<hash>". SKU:n är ren
+  // etikett (fulfillment går via mappningen), så formatet är fritt. Byggs för ALLA
+  // varianter, unikt inom produkten. Endast nya importer påverkas.
+  const skuByVariantId = buildVariantSkus(variants, seo.slug, product.supplierProductId);
   const wixVariants: WixVariantInput[] = variants.map((v) => {
-    const sku = makeSku(product.supplierProductId, v.supplierVariantId);
+    const sku = skuByVariantId.get(v.supplierVariantId) ?? makeSku(product.supplierProductId, v.supplierVariantId);
     const price = computePriceWithRules(v.costUsd, rules, categoryName, pricingOverride);
     if (v.included) {
       variantMappings.push({
