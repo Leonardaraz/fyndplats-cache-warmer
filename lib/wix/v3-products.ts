@@ -142,6 +142,28 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
 }
 
 /**
+ * Slår upp EN produkt på exakt slug i V3-katalogen (headless-sajten). Används av
+ * admin-källuppslaget för att gå från en storefront-slug till wixProductId.
+ *
+ * Skannar katalogen (samma källa + pagineringskod som /admin/mappings) och
+ * matchar slug:en exakt, case-insensitivt. Vi använder MEDVETET inte ett
+ * `filter: { slug }` i V3-query:t: att fältet är filtrerbart kunde inte
+ * verifieras, och om Wix tyst ignorerar ett okänt filter skulle limit:1 ge
+ * FEL produkt (första i katalogen) i stället för "ingen träff". Skanningen är
+ * lite tyngre men alltid korrekt — acceptabelt för ett sällan-använt admin-
+ * uppslag. Returnerar null om ingen produkt matchar.
+ */
+export async function getV3ProductBySlug(
+  slug: string,
+): Promise<{ id: string; name: string; slug: string } | null> {
+  const wanted = (slug || "").trim().toLowerCase();
+  if (!wanted) return null;
+  const all = await listAllV3Products();
+  const hit = all.find((p) => (p.slug || "").toLowerCase() === wanted);
+  return hit ? { id: hit.id, name: hit.name, slug: hit.slug } : null;
+}
+
+/**
  * Hämtar fullständig V3-produkt med seoData, brand, media, price, inventory —
  * allt som SEO-enrichment behöver för att generera taggar.
  */
