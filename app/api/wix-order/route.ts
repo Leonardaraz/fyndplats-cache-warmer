@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parseWebhookBody } from "@/lib/orders/webhook";
+import { parseWebhookBody, isTrustedForward } from "@/lib/orders/webhook";
 import { deriveTasks, normalizeOrderEvent } from "@/lib/orders/tasks";
 import { getStore } from "@/lib/store/factory";
 import { audit } from "@/lib/audit";
@@ -16,10 +16,16 @@ export async function POST(req: Request) {
 
   // Forward från fyndplats-headless: signaturen är redan verifierad upstream
   // (Wix tillåter bara EN webhook-subscription per event-type, så headless tar
-  // emot Wix:s direktanrop och fan-out:ar hit). När X-Forwarded-From-headern
-  // sätts kan vi lita på payloaden utan att kräva WIX_WEBHOOK_PUBLIC_KEY här.
+  // emot Wix:s direktanrop och fan-out:ar hit). Forwarden litas på BARA om
+  // X-Forwarded-From stämmer OCH — när WEBHOOK_FORWARD_SECRET är satt — en
+  // matchande X-Forward-Secret medföljer (annars faller vi tillbaka på
+  // JWT-signaturverifiering nedan). Opt-in: utan satt hemlighet = oförändrat.
   const forwardedFrom = req.headers.get("x-forwarded-from");
-  const trustedForwarded = forwardedFrom === "fyndplats-webhook";
+  const trustedForwarded = isTrustedForward(
+    forwardedFrom,
+    req.headers.get("x-forward-secret"),
+    process.env.WEBHOOK_FORWARD_SECRET,
+  );
   if (trustedForwarded) {
     console.log(
       `[wix-order] accepting forwarded event from ${forwardedFrom} ` +

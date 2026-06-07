@@ -1,6 +1,6 @@
 import { generateKeyPairSync, createSign } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { decodeJwtUnsafe, parseWebhookBody, verifyJwtRs256 } from "./webhook";
+import { decodeJwtUnsafe, parseWebhookBody, verifyJwtRs256, isTrustedForward } from "./webhook";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const publicPem = publicKey.export({ type: "spki", format: "pem" }).toString();
@@ -82,5 +82,26 @@ describe("parseWebhookBody", () => {
     expect(decodeJwtUnsafe("only.two")).toBeNull();
     // 3 delar men payload-delen är inte giltig JSON → null
     expect(decodeJwtUnsafe("not.a.jwt")).toBeNull();
+  });
+});
+
+describe("isTrustedForward", () => {
+  it("kräver rätt X-Forwarded-From", () => {
+    expect(isTrustedForward("nån-annan", null, undefined)).toBe(false);
+    expect(isTrustedForward(null, null, undefined)).toBe(false);
+  });
+
+  it("utan konfigurerad hemlighet → bakåtkompatibelt (bara header-koll)", () => {
+    expect(isTrustedForward("fyndplats-webhook", null, undefined)).toBe(true);
+    expect(isTrustedForward("fyndplats-webhook", "vadsomhelst", undefined)).toBe(true);
+  });
+
+  it("med hemlighet satt → kräver matchande X-Forward-Secret", () => {
+    expect(isTrustedForward("fyndplats-webhook", "rätt-hemlis", "rätt-hemlis")).toBe(true);
+    expect(isTrustedForward("fyndplats-webhook", "fel", "rätt-hemlis")).toBe(false);
+    expect(isTrustedForward("fyndplats-webhook", null, "rätt-hemlis")).toBe(false);
+    // Rätt from men ingen hemlighet medskickad (forwarder ej uppdaterad) → ej betrodd
+    // → faller tillbaka på JWT-verifiering i routen (bryter inte order om nyckel finns).
+    expect(isTrustedForward("fyndplats-webhook", "", "rätt-hemlis")).toBe(false);
   });
 });
