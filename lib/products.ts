@@ -7,6 +7,7 @@ import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 import { linkVariantImagesByAltText } from "./variant-color-image";
+import { v3VariantData, type V3VariantData } from "./variant-price";
 
 export type Product = {
   id: string;
@@ -105,8 +106,11 @@ const WIX_SITE_ID = process.env.WIX_SITE_ID || "e6d27e90-4749-4720-9afe-0bbe91c1
  * dem inte). Fail-open: saknad nyckel / fel / ingen länkad media → {} (statiska filen +
  * colorOf-swatchen tar då över). Cachas en timme (variantbilder ändras sällan).
  */
-async function fetchV3ChoiceImages(productId: string): Promise<Record<string, Record<string, string>>> {
-  if (!WIX_API_KEY || !productId) return {};
+// Hämtar HELA V3-produkten autentiserat (admin-nyckel) EN gång per request. React
+// cache() dedupar så att bild- OCH pris-hydreringen nedan delar samma nätverksanrop.
+// Fail-open: ingen nyckel / fel → null. Edge-cachas en timme (revalidate 3600).
+const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> => {
+  if (!WIX_API_KEY || !productId) return null;
   try {
     const res = await fetch(
       `https://www.wixapis.com/stores/v3/products/${productId}?fields=MEDIA_ITEMS_INFO`,
@@ -115,21 +119,33 @@ async function fetchV3ChoiceImages(productId: string): Promise<Record<string, Re
         next: { revalidate: 3600 },
       },
     );
-    if (!res.ok) return {};
-    const data = await res.json();
-    const out: Record<string, Record<string, string>> = {};
-    for (const opt of data?.product?.options || []) {
-      const name = opt?.name;
-      if (!name) continue;
-      for (const ch of opt?.choicesSettings?.choices || []) {
-        const url = ch?.linkedMedia?.[0]?.image?.url;
-        if (ch?.name && url) (out[name] ||= {})[ch.name] = url;
-      }
-    }
-    return out;
+    if (!res.ok) return null;
+    return (await res.json())?.product ?? null;
   } catch {
-    return {};
+    return null;
   }
+});
+
+async function fetchV3ChoiceImages(productId: string): Promise<Record<string, Record<string, string>>> {
+  const product = await fetchV3ProductRaw(productId);
+  if (!product) return {};
+  const out: Record<string, Record<string, string>> = {};
+  for (const opt of product.options || []) {
+    const name = opt?.name;
+    if (!name) continue;
+    for (const ch of opt?.choicesSettings?.choices || []) {
+      const url = ch?.linkedMedia?.[0]?.image?.url;
+      if (ch?.name && url) (out[name] ||= {})[ch.name] = url;
+    }
+  }
+  return out;
+}
+
+// Per-variant pris/-id autentiserat från V3 (delar cachead hämtning med bilderna).
+// Ren parsning ligger i ./variant-price (enhetstestbar utan SDK/fetch-beroenden).
+async function fetchV3VariantData(productId: string): Promise<V3VariantData> {
+  const product = await fetchV3ProductRaw(productId);
+  return product ? v3VariantData(product) : null;
 }
 
 function stripHtml(h: string): string {
@@ -337,6 +353,44 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         const prod = mapProduct(res.items[0]);
         prod.options = optionsForProduct(slug, res.items[0]);
         prod.descriptionHtml = res.items[0].description || "";
+        // Per-variant PRIS (+ variant-id/bild) autentiserat från V3. Det publika
+        // SDK:t (queryProducts) släpper variantpriserna för V3 → annars visas
+        // baspriset för ALLA storleksvarianter (bug: 2 L och 30 L fick samma pris).
+        // Bygger options om SDK:t inte gav dem; annars överlagras priset på matchande
+        // val (rå-etikett, FÖRE svensk-översättningen nedan). Fail-open.
+        const v3v = await fetchV3VariantData(prod.id);
+        if (v3v) {
+          const isColorOpt = /färg|color|kulör/i.test(v3v.optionName);
+          const buildChoices = () =>
+            v3v.choices.map((c) => ({
+              label: c.label,
+              image: c.image,
+              color: isColorOpt ? colorOf(c.label) : "",
+              variantId: c.variantId,
+              price: c.price,
+              priceNum: c.priceNum,
+              originalPrice: c.originalPrice,
+            }));
+          if (!prod.options) {
+            prod.options = { name: v3v.optionName, choices: buildChoices() };
+          } else {
+            const byLabel: Record<string, (typeof v3v.choices)[number]> = {};
+            for (const c of v3v.choices) byLabel[c.label] = c;
+            let matched = 0;
+            for (const ch of prod.options.choices) {
+              const c = byLabel[ch.label];
+              if (!c) continue;
+              matched++;
+              ch.price = c.price;
+              ch.priceNum = c.priceNum;
+              ch.originalPrice = c.originalPrice;
+              if (!ch.variantId) ch.variantId = c.variantId;
+              if (!ch.image) ch.image = c.image;
+            }
+            // Namnen matchade inte (SDK-värde ≠ V3-namn) → bygg från V3 (auktoritativt).
+            if (matched === 0) prod.options = { name: v3v.optionName, choices: buildChoices() };
+          }
+        }
         // Lägg per-val variantbilder från V3 linkedMedia ÖVERST (mest aktuell källan
         // — täcker nyimporterade produkter som inte finns i variant-images.json).
         // Strikt additivt: live-bild vinner när den finns, annars behålls den
