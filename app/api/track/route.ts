@@ -19,6 +19,7 @@
 //   TRACK17_API_KEY  — API-key från https://api.17track.net/
 
 import { NextResponse, type NextRequest } from "next/server";
+import { PHRASE_SV } from "@/lib/track-i18n";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -98,26 +99,9 @@ interface Track17Response {
   };
 }
 
-// 17TRACK returnerar händelsetexter på engelska (carrierns originalspråk).
-// Översätt de vanligaste fraserna till svenska. Matchning är case-insensitive
-// substring; första träff vinner. Okända texter visas som-är (bättre än inget).
-const PHRASE_SV: Array<[RegExp, string]> = [
-  [/we have received a notification from your shipper.*preparing an item/i,
-    "Vi har fått besked från avsändaren om att din vara förbereds. Spårningen uppdateras när paketet lämnats till transportören."],
-  [/shipment information received|info received|information received/i,
-    "Fraktinformation mottagen – paketet är registrerat."],
-  [/item.*(picked up|collected)|picked up by/i, "Paketet har hämtats av transportören."],
-  [/(in transit|on its way|departed|arrived at)/i, "Paketet är på väg genom transportnätet."],
-  [/arrived at .*(facility|terminal|sorting|hub)/i, "Paketet har anlänt till en sorteringsterminal."],
-  [/customs/i, "Paketet hanteras i tullen."],
-  [/out for delivery/i, "Paketet är ute för leverans."],
-  [/available for pickup|ready for pickup|collect.*pickup point/i,
-    "Paketet finns för upphämtning hos ditt ombud."],
-  [/delivered|delivery completed/i, "Paketet är levererat."],
-  [/delivery.*(failed|unsuccessful|attempt)/i, "Leveransförsök misslyckades – ny leverans planeras."],
-  [/returned to sender|return to sender/i, "Paketet skickas tillbaka till avsändaren."],
-  [/exception|delay/i, "Det har uppstått en avvikelse i leveransen."],
-];
+// Svensk frasöversättning (PHRASE_SV) bor i lib/track-i18n.ts — där den är
+// utökad (sorteringsterminal, lastad, levererad-till-brevlåda m.fl.), rätt
+// ordnad (specifik före generisk) och enhetstestad. Importeras ovan.
 
 // Svensk fallback per stage om ingen frasträff. Täcker ALLA 17TRACK-stages
 // (latest_status.status + milestone.key_stage + event.stage) så ingen väg kan
