@@ -89,6 +89,7 @@ export async function placeAliExpressOrder(taskId: string) {
     await store.updateTask(taskId, {
       aliexpressOrderId: result.tradeOrderId,
       status: result.paymentRequired ? "pending_payment" : "ordered",
+      ...(result.paymentRequired && result.paymentUrl ? { paymentUrl: result.paymentUrl } : {}),
     });
     await store.appendAudit({
       at: new Date().toISOString(),

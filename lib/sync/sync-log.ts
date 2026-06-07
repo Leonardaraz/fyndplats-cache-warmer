@@ -76,6 +76,13 @@ export interface SyncStateEntry {
    * = produkten är inte (och har inte registrerats som) slut.
    */
   outOfStockSince?: string | null;
+  /**
+   * Antal körningar i RAD som klassat produkten som "borttagen" hos AliExpress.
+   * Nollställs så fort produkten ses igen. Vi döljer först vid
+   * REMOVED_STRIKES_REQUIRED så ett transient "not found" inte gömmer en levande
+   * produkt. Saknas/0 = inga obekräftade borttagnings-observationer.
+   */
+  removedStreak?: number;
 }
 
 export type AlertType = "price_increase" | "content_change";

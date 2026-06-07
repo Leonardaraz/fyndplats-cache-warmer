@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
       await store.updateTask(body.taskId, {
         aliexpressOrderId: result.tradeOrderId,
         status: result.paymentRequired ? "pending_payment" : "ordered",
+        ...(result.paymentRequired && result.paymentUrl ? { paymentUrl: result.paymentUrl } : {}),
       });
       await store.appendAudit({
         at: new Date().toISOString(),

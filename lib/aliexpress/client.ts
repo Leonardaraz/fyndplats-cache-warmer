@@ -390,7 +390,10 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         const price = parseFloat(sku.offer_sale_price ?? sku.sku_price ?? "0");
         const stock = sku.sku_available_stock
           ?? sku.s_k_u_available_stock
-          ?? (sku.sku_stock ? 999 : 0);
+          // sku_stock är en BOOLEAN ("finns i lager") utan antal. Tidigare gav vi
+          // 999 → grov oversälj-risk. Använd ett konservativt litet fallback-saldo;
+          // riktigt numeriskt saldo skriver över det vid nästa sync.
+          ?? (sku.sku_stock ? 5 : 0);
         const variantShipFromRaw = sku.ship_from_code
           ?? sku.shipFromCode
           ?? sku.ship_from

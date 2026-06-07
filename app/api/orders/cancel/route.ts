@@ -38,8 +38,20 @@ export async function POST(req: Request) {
   }
 
   const alreadyOrdered = task.status === "ordered";
+  // Om en AliExpress-order redan lagts avbeställs den INTE automatiskt här (DS-API:t
+  // saknar pålitlig cancel) → annars skulle vi tyst återbetala kunden men ändå få
+  // varan skickad/debiterad. Larma högt så Leonard avbeställer manuellt på AliExpress.
+  const aeOrderPlaced = alreadyOrdered && Boolean(task.aliexpressOrderId);
   await store.setTaskStatus(task.taskId, "cancelled");
-  await audit("cancel", task.taskId, alreadyOrdered ? "återbetalning krävs" : undefined);
+  if (aeOrderPlaced) {
+    await audit(
+      "cancel-manual-ae-required",
+      task.taskId,
+      `MANUELL AVBESTÄLLNING KRÄVS på AliExpress (order ${task.aliexpressOrderId}) + återbetalning till kund — annars skickas/debiteras varan ändå.`,
+    );
+  } else {
+    await audit("cancel", task.taskId, alreadyOrdered ? "återbetalning krävs" : undefined);
+  }
 
   return NextResponse.json({
     ok: true,
@@ -47,5 +59,8 @@ export async function POST(req: Request) {
     status: "cancelled",
     // Om varan redan beställts hos leverantören krävs återbetalning till kunden.
     refundRequired: alreadyOrdered,
+    // Ordern var redan lagd hos AliExpress → avbeställ MANUELLT där (sker ej här).
+    manualAliexpressCancelRequired: aeOrderPlaced,
+    aliexpressOrderId: aeOrderPlaced ? task.aliexpressOrderId : undefined,
   });
 }
