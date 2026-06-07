@@ -686,6 +686,12 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .varswatch-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .varswatch-dot{width:24px;height:24px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);margin-left:6px}
 .varswatch-name{white-space:nowrap}
+/* Slut-i-lager-variant: dämpad + genomstruken + liten "Slut"-tag (köp blockeras i JS) */
+.varswatch.oos{opacity:.5}
+.varswatch.oos:hover{opacity:.6}
+.varswatch.oos .varswatch-name{text-decoration:line-through;text-decoration-color:#9ca3af}
+.varswatch.oos.active{opacity:.8}
+.varswatch-oos{font-size:11px;font-weight:700;color:#b91c1c;background:#fef2f2;border-radius:999px;padding:1px 7px;margin-left:2px;letter-spacing:.02em}
 /* Bouncy spring-in när en swatch väljs (premium-feel utan animationsbibliotek) */
 /* Klick-bounce: transient överskjutning, men landar på scale(1) så vilo-/vald-
    läget inte växer utåt (annars återkommer vänster-utstick-buggen). */
