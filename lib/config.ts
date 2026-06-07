@@ -22,7 +22,7 @@ export function pricingConfigFromEnv(): PricingConfig {
       multiplier: num("MARKUP_MULTIPLIER", 2.5),
       fixedSek: num("MARKUP_FIXED_SEK", 0),
     },
-    rounding: (process.env.PRICE_ROUNDING as PricingConfig["rounding"]) || "charm90",
+    rounding: (process.env.PRICE_ROUNDING as PricingConfig["rounding"]) || "charm9",
   };
 }
 

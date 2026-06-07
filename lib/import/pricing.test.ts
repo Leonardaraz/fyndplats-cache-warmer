@@ -64,11 +64,14 @@ describe("roundPrice", () => {
   it("never returns negative charm price", () => {
     expect(roundPrice(0.2, "charm90")).toBe(0.9);
   });
-  it("charm9 rounds to nearest integer ending in 9", () => {
-    expect(roundPrice(199, "charm9")).toBe(199);
+  it("charm9 rounds UP to the next integer ending in 9", () => {
+    expect(roundPrice(199, "charm9")).toBe(199); // redan ...9 → oförändrat
     expect(roundPrice(195, "charm9")).toBe(199);
-    expect(roundPrice(192, "charm9")).toBe(189);
-    expect(roundPrice(3, "charm9")).toBe(9); // floor at 9
+    expect(roundPrice(192, "charm9")).toBe(199); // uppåt, inte 189
+    expect(roundPrice(489, "charm9")).toBe(489);
+    expect(roundPrice(490, "charm9")).toBe(499); // 489 < 490 → upp till 499
+    expect(roundPrice(571, "charm9")).toBe(579);
+    expect(roundPrice(3, "charm9")).toBe(9); // golv vid 9
   });
   it("nearest10 rounds UP to whole tens", () => {
     expect(roundPrice(251, "nearest10")).toBe(260);

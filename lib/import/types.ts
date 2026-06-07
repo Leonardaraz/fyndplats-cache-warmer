@@ -132,7 +132,7 @@ export interface PricingOverride {
  * Avrundningsstrategi för slutpris inkl. moms.
  * - none: två decimaler (ingen avrundning)
  * - charm90: närmaste heltal som slutar på .90 (t.ex. 249.90)
- * - charm9: närmaste heltal som slutar på 9 (t.ex. 199, 299, 599)
+ * - charm9: avrunda UPPÅT till närmaste heltal som slutar på 9 (489 → 489, 490 → 499)
  * - integer: närmaste heltal
  * - nearest10: avrunda UPP till närmaste hela 10-krona (t.ex. 251 → 260)
  */
