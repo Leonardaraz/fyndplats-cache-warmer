@@ -6,6 +6,7 @@
 
 - Butik: **Fyndplats**, site ID `e6d27e90-4749-4720-9afe-0bbe91c1b3d3`, **Catalog V3** (default). (V1-siten `8c62127f-…` ska INTE användas.)
 - Allt innehåll skrivs på **svenska**.
+- **Inga märken (gäller alltid):** råimporten lägger alltid märkesnamnet (HOMCOM, Pawhut, osv.) först i `name`/titeln. Ta bort märket **helt** – ur produktnamn (H1), SEO-titel, meta description och alla bild-alt-texter – och låt det generiska sökordet stå först. Sätt **inga** märkesfält. Importen själv fyller inte i något märkesfält, men har en äldre produkt redan ett ifyllt fält: rensa det i samma Steg 2-PATCH (`"brand": null`; bekräfta fältformatet i Product V3 första gången).
 - Frontend är headless Next.js/Vercel och uppdateras automatiskt via ISR – **ingen redeploy**.
 - **Verifierat (2026-06-05):** frontend läser `seoData`-taggarna `title` + `meta description` → de blir sidans `<title>` och meta. `Product`-JSON-LD (namn, pris, lager, betyg) och OpenGraph **genereras automatiskt** av frontend från produktfälten – du behöver alltså INTE sätta `og:`-taggar i `seoData`.
 - `ExecuteWixAPI` kräver godkännande. Skriv `fields` i request-**body** vid query/PATCH. **Läs om `revision` precis före varje PATCH.** API-svar är plain strings (skriv ändå `v?.value ?? v`).
@@ -18,6 +19,7 @@
 ## Steg 0 – Välj fokussökord (avgör allt annat)
 
 Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`.
+**Ringa in den exakta produkttypen, inte den breda kategorin.** Använd ordet för vad produkten *faktiskt är* (formen/typen), inte en generisk grupp – t.ex. `sadelstol` (inte "arbetsstol"), `hopfällbar massagebänk` (inte "möbel"). Det specifika ordet har oftast högre köpintention och mindre konkurrens, och matchar vad köparen söker.
 **Regel:** båda orden MÅSTE hamna i **titel, produktnamn (H1) och slug** – annars flaggar Wix SEO-assistenten dem som röda. Ordet finns redan grönt i beskrivning/meta om det står i texten.
 Specs får bara komma från känd importdata eller `web_search` (AliExpress-sidor är JS-blockerade). **Hitta inte på siffror.**
 
