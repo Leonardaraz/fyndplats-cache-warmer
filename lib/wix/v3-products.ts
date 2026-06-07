@@ -144,28 +144,23 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
 /**
  * Slår upp EN produkt på exakt slug i V3-katalogen (headless-sajten). Används av
  * admin-källuppslaget för att gå från en storefront-slug till wixProductId.
- * Returnerar null om ingen produkt matchar.
+ *
+ * Skannar katalogen (samma källa + pagineringskod som /admin/mappings) och
+ * matchar slug:en exakt, case-insensitivt. Vi använder MEDVETET inte ett
+ * `filter: { slug }` i V3-query:t: att fältet är filtrerbart kunde inte
+ * verifieras, och om Wix tyst ignorerar ett okänt filter skulle limit:1 ge
+ * FEL produkt (första i katalogen) i stället för "ingen träff". Skanningen är
+ * lite tyngre men alltid korrekt — acceptabelt för ett sällan-använt admin-
+ * uppslag. Returnerar null om ingen produkt matchar.
  */
 export async function getV3ProductBySlug(
   slug: string,
 ): Promise<{ id: string; name: string; slug: string } | null> {
-  const trimmed = (slug || "").trim();
-  if (!trimmed) return null;
-  const body = { query: { filter: { slug: trimmed }, cursorPaging: { limit: 1 } } };
-  const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`getV3ProductBySlug(${trimmed}) ${res.status}: ${text.slice(0, 200)}`);
-  }
-  const data = (await res.json()) as {
-    products?: Array<{ id: string; name: string; slug: string }>;
-  };
-  const p = data.products?.[0];
-  return p ? { id: p.id, name: p.name, slug: p.slug } : null;
+  const wanted = (slug || "").trim().toLowerCase();
+  if (!wanted) return null;
+  const all = await listAllV3Products();
+  const hit = all.find((p) => (p.slug || "").toLowerCase() === wanted);
+  return hit ? { id: hit.id, name: hit.name, slug: hit.slug } : null;
 }
 
 /**
