@@ -48,6 +48,12 @@ import {
 } from "../aliexpress/eu-countries";
 import { getProduct } from "../aliexpress/client";
 import { enrichSwatchImagesFromApi, needsSwatchBackfill } from "./variant-images";
+import {
+  descriptionBackfillEnabled,
+  needsDescriptionBackfill,
+  sanitizeDescriptionHtml,
+  descriptionToText,
+} from "./description";
 import { matchesColorName } from "./color-match";
 import { audit } from "../audit";
 
@@ -202,9 +208,14 @@ export async function importProduct(
   // bilderna från DS-produkt-API:t (sku_image), matchat på SKU-id, med skrapans råa
   // namn. Hoppar API-anropet helt när skrapan redan gav swatch-bilder → ingen extra
   // kostnad/regression. Best-effort — fäller aldrig importen.
+  // Memoiserat DS-anrop: variantbild- OCH beskrivnings-backfillen kan båda behöva
+  // DS-produkten — då hämtas den bara EN gång per import.
+  let dsProductPromise: ReturnType<typeof getProduct> | undefined;
+  const getProductOnce = (id: string) => (dsProductPromise ??= getProduct(id));
+
   let effectiveSwatchImages = product.swatchImages;
   if (variantImageBackfillEnabled() && needsSwatchBackfill(product)) {
-    const backfilled = await enrichSwatchImagesFromApi(product, { getProduct });
+    const backfilled = await enrichSwatchImagesFromApi(product, { getProduct: getProductOnce });
     const axis = Object.keys(backfilled)[0];
     if (axis) {
       // needsSwatchBackfill garanterar att skrapan gav noll swatchar här, så
@@ -221,6 +232,33 @@ export async function importProduct(
       );
     }
   }
+  // Beskrivnings-backfill: AE:s produktbeskrivning ligger i en lazy-laddad iframe
+  // som skrapan ofta missar → product.descriptionHtml/rawDescription blir tunn och
+  // Wix-produkten får nästan ingen text. Hämta då DS-produkt-API:ts detail, rena
+  // den (XSS + dropship-anonymisering) och använd den. Best-effort — fäller aldrig
+  // importen. Gäller både rå-läge (descriptionHtml → Wix direkt) och AI-läge
+  // (rawDescription → SEO-generering).
+  if (descriptionBackfillEnabled() && needsDescriptionBackfill(product)) {
+    try {
+      const ds = await getProductOnce(product.supplierProductId);
+      const detail = sanitizeDescriptionHtml(ds.description || "");
+      if (detail.length > (product.descriptionHtml || "").length) {
+        product.descriptionHtml = detail;
+        const text = descriptionToText(detail);
+        if (text.length > (product.rawDescription || "").length) product.rawDescription = text;
+        console.log(
+          `[import:description] pid=${product.supplierProductId} backfill via DS-API ` +
+            `(${detail.length} tecken; skrapan gav tunn beskrivning).`,
+        );
+      }
+    } catch (err) {
+      console.warn(
+        `[import:description] pid=${product.supplierProductId} DS-detail-backfill misslyckades: ` +
+          `${err instanceof Error ? err.message.slice(0, 160) : String(err)}`,
+      );
+    }
+  }
+
   // Per-val bild-URL:er översätts till samma svenska axel-/val-nycklar som
   // varianterna (translateOptionColorCodes har exakt rätt shape) så att de matchar
   // de härledda Wix-optionsvalen vid kopplingen nedan.
