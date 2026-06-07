@@ -55,15 +55,23 @@ export function buildVariantSkus(
     "produkt";
 
   const out = new Map<string, string>();
-  const seen = new Map<string, number>();
+  const used = new Set<string>();
   for (const v of variants) {
     const variantPart = truncateSlug(skuSlugify(Object.values(v.options ?? {}).join(" ")), VARIANT_PART_MAX);
     const base = (variantPart ? `FP-${productPart}-${variantPart}` : `FP-${productPart}`)
       .slice(0, SKU_MAX)
       .replace(/-+$/g, "");
-    const n = (seen.get(base) ?? 0) + 1;
-    seen.set(base, n);
-    const sku = n === 1 ? base : `${base.slice(0, SKU_MAX - 3).replace(/-+$/g, "")}-${n}`;
+    // Garantera unikhet mot ALLA redan utdelade SKU:er (inte bara mot samma bas):
+    // annars kan en variants naturliga namn krocka med en annans dedup-form
+    // ("Svart 2" vs "Svart" → "…-svart-2") → dubbel Wix-SKU → samma wixVariantId på
+    // två varianter → fel lager/pris/fulfillment vid synk. Suffix-längden räknas
+    // dynamiskt så strängen ALLTID håller sig ≤ SKU_MAX (även vid 2-/3-siffrig n).
+    let sku = base;
+    for (let n = 2; used.has(sku); n++) {
+      const suffix = `-${n}`;
+      sku = `${base.slice(0, SKU_MAX - suffix.length).replace(/-+$/g, "")}${suffix}`;
+    }
+    used.add(sku);
     out.set(v.supplierVariantId, sku);
   }
   return out;
