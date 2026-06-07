@@ -1,7 +1,44 @@
 // Run: node --test --experimental-strip-types lib/track-i18n.test.ts
 import test from "node:test";
 import assert from "node:assert/strict";
-import { matchPhrase } from "./track-i18n.ts";
+import { matchPhrase, orderEventsNewestFirst } from "./track-i18n.ts";
+
+test("orderEventsNewestFirst – nyast först (aktiv markör hamnar på nuvarande steg)", () => {
+  const evs = [
+    { time: "2026-05-28T05:17:00Z", status: "Registrerad" },
+    { time: "2026-06-04T16:53:00Z", status: "På väg" },
+    { time: "2026-06-05T13:36:00Z", status: "Levererad" },
+  ];
+  const ordered = orderEventsNewestFirst(evs);
+  assert.equal(ordered[0].status, "Levererad"); // nuvarande steg först
+  assert.equal(ordered[2].status, "Registrerad"); // äldsta sist
+  // Indata muteras inte
+  assert.equal(evs[0].status, "Registrerad");
+});
+
+test("orderEventsNewestFirst – händelser utan tid hamnar sist, stabil ordning", () => {
+  const evs = [
+    { status: "A" },
+    { time: "2026-06-01T00:00:00Z", status: "B" },
+    { status: "C" },
+  ];
+  const ordered = orderEventsNewestFirst(evs);
+  assert.equal(ordered[0].status, "B");
+  assert.deepEqual(ordered.slice(1).map((e) => e.status), ["A", "C"]); // stabilt
+});
+
+test("orderEventsNewestFirst – olika tidszons-offset sorteras på RIKTIG tid", () => {
+  // earlyZulu = 23:00Z; lateOffset visas som 01:00+02:00 = 23:00Z men +30 min senare i Z.
+  const evs = [
+    { time: "2026-06-05T01:30:00+02:00", status: "senare" }, // = 23:30Z
+    { time: "2026-06-04T23:00:00Z", status: "tidigare" }, // = 23:00Z
+  ];
+  // Lexikalt skulle "2026-06-05..." felaktigt hamna först; på riktig tid är
+  // "senare" (23:30Z) nyast → ska ligga först.
+  const ordered = orderEventsNewestFirst(evs);
+  assert.equal(ordered[0].status, "senare");
+  assert.equal(ordered[1].status, "tidigare");
+});
 
 // De FAKTISKA 17TRACK-texterna från kundens paket (IMG_4194) ska var och en bli
 // en EGEN svensk mening — inte alla kollapsa till "Paketet är på väg".

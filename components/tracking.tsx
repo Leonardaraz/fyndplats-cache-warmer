@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { orderEventsNewestFirst } from "@/lib/track-i18n";
 
 // Anropar /api/track i headless (Next.js API-route) som proxar till 17TRACK
 // API och bevarar anonymisering (CN/HK/TW/SG/MY-events strippade, kinesiska
@@ -140,7 +141,9 @@ export function TrackingWidget() {
   const isException = status === "Exception" || status === "Expired"
     || status === "DeliveryFailure" || status === "Undelivered";
   const carrier = data?.carrier || "Fyndplats Frakt";
-  const events = (data?.events || []).map((ev) => ({
+  // Nyast först (som 17track) → den aktiva markören (.ev.first) hamnar på
+  // NUVARANDE steg överst, inte på äldsta "Registrerad".
+  const events = orderEventsNewestFirst(data?.events || []).map((ev) => ({
     time: fmtTime(pick(ev as Record<string, unknown>, "time", "time_iso", "time_raw", "date")),
     status: pick(ev as Record<string, unknown>, "status", "stage") || "",
     place: pick(ev as Record<string, unknown>, "location", "place", "address") || "",
@@ -207,7 +210,7 @@ export function TrackingWidget() {
             <p className="track-empty">Vi väntar på första skanningen från fraktbolaget. Det kommer normalt inom 1–2 dagar efter att paketet skickats.</p>
           ) : (
             <div className="timeline">
-              {[...events].reverse().map((ev, i) => (
+              {events.map((ev, i) => (
                 <div className={`ev ${i === 0 ? "first" : ""}`} key={i}>
                   {ev.time && <div className="et">{ev.time}</div>}
                   {ev.status && <div className="es">{ev.status}</div>}
