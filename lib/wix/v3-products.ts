@@ -142,6 +142,33 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
 }
 
 /**
+ * Slår upp EN produkt på exakt slug i V3-katalogen (headless-sajten). Används av
+ * admin-källuppslaget för att gå från en storefront-slug till wixProductId.
+ * Returnerar null om ingen produkt matchar.
+ */
+export async function getV3ProductBySlug(
+  slug: string,
+): Promise<{ id: string; name: string; slug: string } | null> {
+  const trimmed = (slug || "").trim();
+  if (!trimmed) return null;
+  const body = { query: { filter: { slug: trimmed }, cursorPaging: { limit: 1 } } };
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`getV3ProductBySlug(${trimmed}) ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as {
+    products?: Array<{ id: string; name: string; slug: string }>;
+  };
+  const p = data.products?.[0];
+  return p ? { id: p.id, name: p.name, slug: p.slug } : null;
+}
+
+/**
  * Hämtar fullständig V3-produkt med seoData, brand, media, price, inventory —
  * allt som SEO-enrichment behöver för att generera taggar.
  */
