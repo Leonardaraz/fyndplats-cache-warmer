@@ -70,3 +70,17 @@ export function matchesColorName(altText: string, choiceName: string): boolean {
   const altWords = words(altText);
   return choiceBases.some((base) => COLOR_FORMS[base].some((f) => altWords.has(f)));
 }
+
+/**
+ * True om värdena i en options-axel faktiskt är FÄRGER (majoriteten bär ett
+ * igenkänt färgnamn) — inte storlekar/volymer/modeller/kontakttyper som AE-säljare
+ * ofta lägger under "Color"-fältet. Används för att INTE göra en sådan axel till en
+ * (meningslös, grå) färg-swatch i Wix bara för att värdena råkar ha en bild att
+ * sampla färg ur. Tomt → false (säkrare som text; bilder behålls ändå via linkedMedia).
+ */
+export function isColorAxis(values: ReadonlyArray<string>): boolean {
+  const vals = values.filter((v) => v && v.trim());
+  if (vals.length === 0) return false;
+  const colored = vals.filter((v) => colorBasesIn(v).length > 0).length;
+  return colored >= Math.ceil(vals.length / 2);
+}

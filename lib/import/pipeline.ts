@@ -55,7 +55,7 @@ import {
   descriptionToText,
   isMoreInformative,
 } from "./description";
-import { matchesColorName } from "./color-match";
+import { matchesColorName, isColorAxis } from "./color-match";
 import { buildVariantSkus } from "./sku";
 import { audit } from "../audit";
 
@@ -156,13 +156,23 @@ export function deriveOptions(
       map.get(name)!.add(value);
     }
   }
-  return [...map.entries()].map(([name, set]) => ({
-    name,
-    choices: [...set].map((choiceName) => ({
-      name: choiceName,
-      colorCode: colorCodes?.[name]?.[choiceName],
-    })),
-  }));
+  return [...map.entries()].map(([name, set]) => {
+    const values = [...set];
+    // Bara en ÄKTA färgaxel får bli färg-swatch. AE-säljare lägger ofta storlekar/
+    // volymer/modeller/kontakttyper under "Color"-fältet (med bilder) → de samplas
+    // till nästan identiska gråa colorCodes och skulle annars publiceras som
+    // meningslösa gråa swatchar döpta "Färg". Är värdena inte färger → släpp
+    // colorCodes (optionen blir TEXT; per-val-bilderna behålls ändå via linkedMedia).
+    const codes = colorCodes?.[name];
+    const keepColors = !!codes && isColorAxis(values);
+    return {
+      name,
+      choices: values.map((choiceName) => ({
+        name: choiceName,
+        colorCode: keepColors ? codes?.[choiceName] : undefined,
+      })),
+    };
+  });
 }
 
 /**

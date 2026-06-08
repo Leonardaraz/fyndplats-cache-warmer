@@ -32,6 +32,30 @@ describe("deriveOptions — flerdimensionella varianter (Color + Size)", () => {
   });
 });
 
+// Bug (gazebo): AE-säljare lägger storlekar (2–15 L) under "Color"-fältet, varje med
+// en bild → samplas till nästan identiska gråa colorCodes → publicerades som 5 gråa
+// swatchar döpta "Färg". colorCode får bara följa med för EN ÄKTA färgaxel.
+describe("deriveOptions — färg-swatch bara för äkta färgaxlar", () => {
+  it("storlekar under 'Färg' med (gråa) colorCodes blir TEXT, inte färg-swatch", () => {
+    const variants: AliExpressProduct["variants"] = [
+      { supplierVariantId: "1", options: { Färg: "2 L" }, costUsd: 4, included: true },
+      { supplierVariantId: "2", options: { Färg: "15 L" }, costUsd: 4, included: true },
+    ];
+    const codes = { Färg: { "2 L": "#4e657a", "15 L": "#4c6073" } };
+    const farg = deriveOptions(variants, codes).find((o) => o.name === "Färg")!;
+    expect(farg.choices.every((c) => c.colorCode === undefined)).toBe(true); // → TEXT_CHOICES i Wix
+  });
+  it("riktiga färger behåller colorCode (förblir färg-swatch)", () => {
+    const variants: AliExpressProduct["variants"] = [
+      { supplierVariantId: "1", options: { Färg: "Röd" }, costUsd: 4, included: true },
+      { supplierVariantId: "2", options: { Färg: "Blå" }, costUsd: 4, included: true },
+    ];
+    const codes = { Färg: { Röd: "#CC2222", Blå: "#2233CC" } };
+    const farg = deriveOptions(variants, codes).find((o) => o.name === "Färg")!;
+    expect(farg.choices.find((c) => c.name === "Röd")!.colorCode).toBe("#CC2222");
+  });
+});
+
 describe("orderImagesByVerdict", () => {
   it("demotes warns after oks and rejects last, preserving order within groups", () => {
     const urls = ["a", "b", "c", "d", "e"];
