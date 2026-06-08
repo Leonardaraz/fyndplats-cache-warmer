@@ -334,6 +334,10 @@ export async function completeJsonRouted<T>(opts: {
   op: string;
   cacheKey: string | null;
   model?: string;
+  /** Sampling-temperatur. Default ej satt (provider-default). Sätt 0 för
+   *  determinism — t.ex. variantöversättning som cachas och låser V3 choice.key
+   *  (samma råvärde MÅSTE alltid ge samma svenska). */
+  temperature?: number;
   failOpen?: T;
 }): Promise<T> {
   const model = opts.model || TEXT_MODEL;
@@ -342,9 +346,12 @@ export async function completeJsonRouted<T>(opts: {
     cacheKey: opts.cacheKey,
     claudeCall: () => completeJsonClaude<T>({ ...opts, model }),
     geminiCall: () =>
-      completeJsonGemini<T>({ system: opts.system, user: opts.user, maxTokens: opts.maxTokens }).then(
-        toProviderResult(process.env.GEMINI_TEXT_MODEL || "gemini-2.0-flash-lite"),
-      ),
+      completeJsonGemini<T>({
+        system: opts.system,
+        user: opts.user,
+        maxTokens: opts.maxTokens,
+        temperature: opts.temperature,
+      }).then(toProviderResult(process.env.GEMINI_TEXT_MODEL || "gemini-2.0-flash-lite")),
     failOpen: opts.failOpen,
   });
   return run.result;
@@ -355,6 +362,7 @@ async function completeJsonClaude<T>(opts: {
   user: string;
   maxTokens?: number;
   model: string;
+  temperature?: number;
 }): Promise<ProviderCallResult<T>> {
   const claude = getClaude();
   let msg: Anthropic.Message;
@@ -362,6 +370,7 @@ async function completeJsonClaude<T>(opts: {
     msg = await claude.messages.create({
       model: opts.model,
       max_tokens: opts.maxTokens ?? 1000,
+      ...(opts.temperature !== undefined ? { temperature: opts.temperature } : {}),
       system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: opts.user }],
     });

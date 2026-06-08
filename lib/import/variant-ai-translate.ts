@@ -85,14 +85,18 @@ export async function buildVariantTranslatorAI(
   // 4. Översätt missarna i ETT anrop; cacha varje svar — även oförändrat, vilket
   //    betyder "Claude beslöt att behålla det" (t.ex. modellnamn) → fråga aldrig
   //    igen, och flagga det inte som olöst.
-  if (misses.length > 0) {
+  // Chunka så ETT anrop aldrig blir så stort att svaret trunkeras (patologisk
+  // produkt med hundratals unika engelska värden) → bundet utdata per anrop.
+  const CHUNK = 50;
+  for (let i = 0; i < misses.length; i += CHUNK) {
+    const chunk = misses.slice(i, i + CHUNK);
     let translated: Record<string, string> = {};
     try {
-      translated = await translateBatch(misses, opts?.productTitle);
+      translated = await translateBatch(chunk, opts?.productTitle);
     } catch {
       translated = {}; // en översättnings-miss får ALDRIG fälla importen
     }
-    for (const c of misses) {
+    for (const c of chunk) {
       const sv = translated[c];
       if (typeof sv === "string" && sv.trim()) {
         const val = sv.trim();
@@ -136,6 +140,7 @@ Regler:
     op: OP,
     model: TEXT_MODEL, // Haiku — billigast
     maxTokens: 700,
+    temperature: 0, // deterministiskt: samma råvärde → alltid samma svenska (V3 key-lås)
     cacheKey: null, // vi cachar per värde själva (billigare än per-batch)
     failOpen: { sv: {} },
   });

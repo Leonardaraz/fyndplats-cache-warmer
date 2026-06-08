@@ -47,6 +47,7 @@ async function callGemini(
   parts: GeminiPart[],
   systemPrompt: string,
   maxTokens: number,
+  temperature = 0.2,
 ): Promise<{ text: string; usage: LlmUsage }> {
   const url = `${API_BASE}/models/${encodeURIComponent(model)}:generateContent?key=${apiKey()}`;
   const body = {
@@ -54,7 +55,7 @@ async function callGemini(
     systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
     generationConfig: {
       maxOutputTokens: maxTokens,
-      temperature: 0.2,
+      temperature,
       responseMimeType: "application/json",
     },
   };
@@ -178,8 +179,15 @@ export async function completeJsonGemini<T>(opts: {
   system: string;
   user: string;
   maxTokens?: number;
+  temperature?: number;
 }): Promise<{ result: T; usage: LlmUsage }> {
-  const { text, usage } = await callGemini(GEMINI_TEXT_MODEL, [{ text: opts.user }], opts.system, opts.maxTokens ?? 1000);
+  const { text, usage } = await callGemini(
+    GEMINI_TEXT_MODEL,
+    [{ text: opts.user }],
+    opts.system,
+    opts.maxTokens ?? 1000,
+    opts.temperature,
+  );
   return { result: parseJsonObject<T>(text), usage };
 }
 
