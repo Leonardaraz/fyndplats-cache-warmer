@@ -8,6 +8,7 @@ import {
   buildTranslatorFromBase,
   residualEnglishTokens,
   isSizeLikeAxis,
+  inferMislabeledColorAxis,
 } from "./variant-translations";
 
 describe("translateAxisName", () => {
@@ -265,12 +266,38 @@ describe("translateValue — tum-enheter (nummer-ankrat, säkert)", () => {
   });
 });
 
-describe("buildVariantTranslator — döper om felmärkt 'Color'-axel med storlekar", () => {
-  it("storlekar under 'Color' → axeln 'Storlek' (inte 'Färg'), enheter → svenska", () => {
-    const variants = [{ options: { Color: "42 inch" } }, { options: { Color: "50 inch" } }];
-    const t = buildVariantTranslator(variants);
+describe("inferMislabeledColorAxis — hela icke-färg-klassen under 'Color'", () => {
+  it("klassificerar storlek/kontakt/antal/spänning/lagring/volym", () => {
+    expect(inferMislabeledColorAxis(["42 in", "50 in"])).toBe("Storlek");
+    expect(inferMislabeledColorAxis(["S", "M", "L"])).toBe("Storlek");
+    expect(inferMislabeledColorAxis(["EU Plug", "US Plug"])).toBe("Kontakt");
+    expect(inferMislabeledColorAxis(["1 PCS", "2 Pcs"])).toBe("Antal");
+    expect(inferMislabeledColorAxis(["Set of 3", "Set of 5"])).toBe("Antal");
+    expect(inferMislabeledColorAxis(["110V", "220V"])).toBe("Spänning");
+    expect(inferMislabeledColorAxis(["64GB", "128GB"])).toBe("Lagring");
+    expect(inferMislabeledColorAxis(["500ml", "1.5L"])).toBe("Volym");
+  });
+  it("returnerar null (behåll 'Färg') för färger, blandat och tomt", () => {
+    expect(inferMislabeledColorAxis(["Red", "Blue"])).toBeNull();
+    expect(inferMislabeledColorAxis(["Champagne", "Ivory"])).toBeNull(); // exotiska färger → orört
+    expect(inferMislabeledColorAxis(["EU Plug", "Red"])).toBeNull(); // blandat
+    expect(inferMislabeledColorAxis([])).toBeNull();
+  });
+});
+
+describe("buildVariantTranslator — döper om felmärkt 'Color'-axel (hela klassen)", () => {
+  it("storlekar under 'Color' → 'Storlek', enheter → svenska", () => {
+    const t = buildVariantTranslator([{ options: { Color: "42 inch" } }, { options: { Color: "50 inch" } }]);
     expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
     expect(t.options({ Color: "50 inch" })).toEqual({ Storlek: "50 tum" });
+  });
+  it("kontakttyper under 'Color' → 'Kontakt'", () => {
+    const t = buildVariantTranslator([{ options: { Color: "EU Plug" } }, { options: { Color: "US Plug" } }]);
+    expect(t.options({ Color: "EU Plug" })).toEqual({ Kontakt: "EU-kontakt" });
+  });
+  it("antal under 'Color' → 'Antal'", () => {
+    const t = buildVariantTranslator([{ options: { Color: "1 PCS" } }, { options: { Color: "2 PCS" } }]);
+    expect(t.options({ Color: "1 PCS" })).toEqual({ Antal: "1 st" });
   });
   it("låter en ÄKTA färgaxel vara 'Färg'", () => {
     const t = buildVariantTranslator([{ options: { Color: "Red" } }, { options: { Color: "Blue" } }]);
@@ -279,5 +306,13 @@ describe("buildVariantTranslator — döper om felmärkt 'Color'-axel med storle
   it("rör inte en blandad axel (en riktig färg bland värdena avbryter omdöpningen)", () => {
     const t = buildVariantTranslator([{ options: { Color: "Red" } }, { options: { Color: "42 inch" } }]);
     expect(t.options({ Color: "Red" }).Färg).toBe("Röd"); // axeln förblir 'Färg'
+  });
+  it("AI-vägen (injicerad bas via buildTranslatorFromBase) får samma omdöpning", () => {
+    const t = buildTranslatorFromBase(
+      [{ options: { Color: "42 inch" } }, { options: { Color: "50 inch" } }],
+      translateValue,
+      translateAxisName,
+    );
+    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
   });
 });

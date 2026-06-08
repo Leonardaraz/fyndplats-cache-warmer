@@ -432,6 +432,36 @@ export function isSizeLikeAxis(values: ReadonlyArray<string>): boolean {
   return vals.every((v) => MEASUREMENT_VALUE_RE.test(v) || SIZE_LABEL_RE.test(v));
 }
 
+// Övriga icke-färg-klasser som AE-säljare lägger under "Color"-fältet (utöver
+// storlekar). Varje regex matchar ett HELT värde i sin klass; omdöpningen kräver
+// att SAMTLIGA värden matchar samma klass → aldrig en falsk positiv på en färg.
+const PLUG_RE = /\bplug\b/i; // "EU Plug", "With US Plug"
+const COUNT_RE = /^(?:\d+\s*(?:pcs?|pieces?|packs?|pairs?|sets?)\b|(?:set|pack)\s+of\s+\d+)/i; // "2 PCS", "Set of 3"
+const VOLTAGE_RE = /^\d+\s*v(?:olt)?s?$/i; // "110V", "220 Volt"
+const STORAGE_RE = /^\d+\s*[gtm]b$/i; // "64GB", "1TB"
+const VOLUME_RE = /^\d+(?:[.,]\d+)?\s*(?:ml|cl|dl|l|lit(?:er|re)s?)$/i; // "500ml", "1.5L"
+
+/**
+ * Bästa svenska axelnamn för en axel som översatts till "Färg" men vars värden
+ * INTE är färger — AE-säljare lägger ofta storlekar/kontakter/antal/spänning osv.
+ * under produktens "Color"-fält (så kunden annars ser "Färg: 42 in"). Returnerar
+ * ett namn BARA när samtliga värden entydigt tillhör EN icke-färg-klass (positiv
+ * matchning, aldrig "frånvaro av färg") → inga falska positiva på riktiga färger.
+ * null = behåll "Färg" (säkert; täcker äkta + exotiska färger). Medvetet
+ * konservativt: hellre kvar som "Färg" än en gissad etikett.
+ */
+export function inferMislabeledColorAxis(values: ReadonlyArray<string>): string | null {
+  const vals = values.map((v) => v.trim()).filter(Boolean);
+  if (vals.length === 0) return null;
+  if (isSizeLikeAxis(vals)) return "Storlek";
+  if (vals.every((v) => PLUG_RE.test(v))) return "Kontakt";
+  if (vals.every((v) => COUNT_RE.test(v))) return "Antal";
+  if (vals.every((v) => VOLTAGE_RE.test(v))) return "Spänning";
+  if (vals.every((v) => STORAGE_RE.test(v))) return "Lagring";
+  if (vals.every((v) => VOLUME_RE.test(v))) return "Volym";
+  return null;
+}
+
 /**
  * Normaliserar tum-enheter i ett värde till svenska "tum" — nummer-ankrat, så ett
  * löst "in" (preposition) ALDRIG rörs: "42 inch"/`42"` → "42 tum". Bart "in"
@@ -608,14 +638,17 @@ export function buildTranslatorFromBase(
   const axisName = new Map<string, string>();
   const valueByAxis = new Map<string, Map<string, string>>();
   for (const [axis, values] of rawValuesByAxis) {
-    // Felmärkt "Color"-axel: AE-säljare lägger ofta storlekar under färg-fältet
-    // ("Color: 42 in"). Blev axeln "Färg" men är ALLA värden storlekar/mått? →
-    // döp om till "Storlek" så kunden inte ser "Färg: 42 tum". deriveOptions
-    // släpper redan swatchen för icke-färgaxlar (isColorAxis); detta fixar bara
-    // det missvisande NAMNET. Bara entydiga fall (samtliga värden storlekslika),
-    // så riktiga färgaxlar lämnas orörda.
+    // Felmärkt "Color"-axel: AE-säljare lägger ofta storlekar/kontakter/antal osv.
+    // under färg-fältet ("Color: 42 in"). Blev axeln "Färg" men är ALLA värden en
+    // entydig icke-färg-klass? → döp om till rätt namn (Storlek/Kontakt/Antal/…) så
+    // kunden inte ser "Färg: 42 tum". deriveOptions släpper redan swatchen för
+    // icke-färgaxlar (isColorAxis); detta fixar det missvisande NAMNET. Konservativt
+    // (samtliga värden måste matcha) → riktiga (även exotiska) färger lämnas orörda.
     let resolvedAxis = baseAxis(axis);
-    if (resolvedAxis === "Färg" && isSizeLikeAxis(values)) resolvedAxis = "Storlek";
+    if (resolvedAxis === "Färg") {
+      const inferred = inferMislabeledColorAxis(values);
+      if (inferred) resolvedAxis = inferred;
+    }
     axisName.set(axis, resolvedAxis);
     const used = new Set<string>();
     const m = new Map<string, string>();
