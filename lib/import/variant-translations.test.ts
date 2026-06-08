@@ -291,6 +291,7 @@ describe("inferMislabeledColorAxis — hela icke-färg-klassen under 'Color'", (
     expect(inferMislabeledColorAxis(["Red", "Blue"])).toBeNull();
     expect(inferMislabeledColorAxis(["Champagne", "Ivory"])).toBeNull(); // exotiska färger → orört
     expect(inferMislabeledColorAxis(["EU Plug", "Red"])).toBeNull(); // blandat
+    expect(inferMislabeledColorAxis(["2 PCS Red", "3 PCS Blue"])).toBeNull(); // antal+färg → behåll Färg (audit N1)
     expect(inferMislabeledColorAxis([])).toBeNull();
   });
 });

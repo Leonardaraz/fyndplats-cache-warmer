@@ -436,7 +436,7 @@ export function isSizeLikeAxis(values: ReadonlyArray<string>): boolean {
 // storlekar). Varje regex matchar ett HELT värde i sin klass; omdöpningen kräver
 // att SAMTLIGA värden matchar samma klass → aldrig en falsk positiv på en färg.
 const PLUG_RE = /\bplug\b/i; // "EU Plug", "With US Plug"
-const COUNT_RE = /^(?:\d+\s*(?:pcs?|pieces?|packs?|pairs?|sets?)\b|(?:set|pack)\s+of\s+\d+)/i; // "2 PCS", "Set of 3"
+const COUNT_RE = /^(?:\d+\s*(?:pcs?|pieces?|packs?|pairs?|sets?)|(?:set|pack)\s+of\s+\d+)\s*$/i; // HELA värdet = antal ("2 PCS", "Set of 3"); "2 PCS Red" (blandat m. färg) matchar ej → kvar som "Färg"
 const VOLTAGE_RE = /^\d+\s*v(?:olt)?s?$/i; // "110V", "220 Volt"
 const STORAGE_RE = /^\d+\s*[gtm]b$/i; // "64GB", "1TB"
 const VOLUME_RE = /^\d+(?:[.,]\d+)?\s*(?:ml|cl|dl|l|lit(?:er|re)s?)$/i; // "500ml", "1.5L"
