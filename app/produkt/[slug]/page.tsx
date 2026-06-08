@@ -147,6 +147,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <nav className="crumbs"><a href="/">Hem</a> <span>/</span> <a href="/butik">Butik</a> <span>/</span> <em>{p.name}</em></nav>
 
         <ProductView
+          key={p.id}
           productId={p.id}
           name={p.name}
           price={p.price}

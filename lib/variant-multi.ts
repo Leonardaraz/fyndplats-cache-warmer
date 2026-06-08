@@ -31,6 +31,27 @@ export function defaultSelection(table: ReadonlyArray<ComboVariant>): Record<str
 }
 
 /**
+ * Sätter `choiceLabel` på `axisName` och håller resultatet på en GILTIG kombination:
+ * om {…prev, [axisName]: choiceLabel} inte motsvarar en variant (t.ex. färgen finns
+ * inte i den tidigare valda storleken) snäpps ÖVRIGA axlar till en variant som har
+ * det klickade valet (helst i lager). Undviker återvändsgränder och att baspriset
+ * visas för en obefintlig kombination. Finns valet inte i NÅGON variant → behåll
+ * önskat (kombinationen blir då icke-köpbar, vilket är korrekt).
+ */
+export function reconcileSelection(
+  table: ReadonlyArray<ComboVariant>,
+  axisName: string,
+  choiceLabel: string,
+  prev: Record<string, string>,
+): Record<string, string> {
+  const desired = { ...prev, [axisName]: choiceLabel };
+  if (findVariant(table, desired)) return desired;
+  const candidates = table.filter((v) => v.choices[axisName] === choiceLabel);
+  const best = candidates.find((v) => v.inStock) ?? candidates[0];
+  return best ? { ...best.choices } : desired;
+}
+
+/**
  * Är `choiceLabel` på `axisName` tillgängligt (finns en variant I LAGER) givet de
  * ANDRA redan valda axlarna? Används för att dämpa omöjliga/slutsålda kombinationer
  * — valet går ändå att klicka (visar då slut-läget), så inga åter­vändsgränder.

@@ -5,7 +5,7 @@ import { Gallery } from "./gallery";
 import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
-import { findVariant, defaultSelection, isChoiceAvailable } from "../lib/variant-multi";
+import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } from "../lib/variant-multi";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -182,7 +182,22 @@ export function ProductView({
   // utan att övriga galleribilder (instruktioner etc.) försvinner.
   // Galleri: i multi-axel läggs kombinationernas bilder först och huvudbilden hoppar
   // till den valda kombinationens bild. Annars som förut (single-axel).
-  const comboImages = multiAxis ? Array.from(new Set([...table.map((t) => t.image).filter(Boolean), ...images])) : [];
+  // Deduppa på Wix fil-id (mediaKey) — INTE exakt URL — så samma foto i olika
+  // transform-params inte ger dubbla galleribilder (samma som single-axel-vägen).
+  const comboImages = multiAxis
+    ? (() => {
+        const seen = new Set<string>();
+        const out: string[] = [];
+        for (const u of [...table.map((t) => t.image), ...images]) {
+          if (!u) continue;
+          const k = mediaKey(u);
+          if (seen.has(k)) continue;
+          seen.add(k);
+          out.push(u);
+        }
+        return out;
+      })()
+    : [];
   const galleryImages = multiAxis
     ? comboImages.length
       ? comboImages
@@ -190,7 +205,10 @@ export function ProductView({
     : allHaveImage
       ? mergeGallery(imageChoices, images)
       : images;
-  const multiActive = multiAxis && currentVariant?.image ? Math.max(0, galleryImages.indexOf(currentVariant.image)) : 0;
+  // Matcha på fil-id så rätt slide hittas även om variantens URL har andra params.
+  const multiActive = multiAxis && currentVariant?.image
+    ? Math.max(0, galleryImages.findIndex((u) => mediaKey(u) === mediaKey(currentVariant.image)))
+    : 0;
 
   // Pickern väljer variant + hoppar galleriet dit. Galleribyte speglar tillbaka
   // till pickern bara om bilden är en av variantbilderna (de n första).
@@ -275,7 +293,7 @@ export function ProductView({
                     key={c.label}
                     type="button"
                     className={`varswatch ${mode} ${active ? "active" : ""} ${avail ? "" : "oos"}`}
-                    onClick={() => setPicked((prev) => ({ ...prev, [axis.name]: c.label }))}
+                    onClick={() => setPicked((prev) => reconcileSelection(table, axis.name, c.label, prev))}
                     aria-pressed={active}
                     aria-label={avail ? c.label : `${c.label} – slut i lager`}
                     title={avail ? c.label : `${c.label} – slut i lager`}
