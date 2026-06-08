@@ -7,7 +7,7 @@ import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 import { linkVariantImagesByAltText } from "./variant-color-image";
-import { v3VariantData, type V3VariantData } from "./variant-price";
+import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
 
 export type Product = {
   id: string;
@@ -37,6 +37,12 @@ export type Product = {
   onSale?: boolean;
   descriptionHtml?: string;
   options?: { name: string; choices: { label: string; image: string; color: string; variantId: string; price: string; priceNum: number; originalPrice: string; inStock?: boolean }[] } | null;
+  // Multi-axel-varianter (t.ex. Färg × Storlek): en väljare per axel + en variant-
+  // tabell (hel kombination → variant-id/pris/lager/bild). Sätts BARA för ≥2 axlar;
+  // då är `options` null och PDP:n renderar per-axel-väljaren. Single-axel använder
+  // `options` som förut.
+  variantAxes?: { name: string; choices: { label: string; image: string; color: string }[] }[];
+  variantTable?: { choices: Record<string, string>; variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean; image: string }[];
   // Bildkvalitets-poäng (Claude vision, se lib/image-scores.ts). Styr ordningen
   // på startsida/kategori/alla-produkter. DEFAULT_SCORE för opoängsatta produkter.
   imageScore: number;
@@ -146,6 +152,12 @@ async function fetchV3ChoiceImages(productId: string): Promise<Record<string, Re
 async function fetchV3VariantData(productId: string): Promise<V3VariantData> {
   const product = await fetchV3ProductRaw(productId);
   return product ? v3VariantData(product) : null;
+}
+
+// Multi-axel-variantdata (Färg × Storlek) autentiserat från V3 (delar cachead hämtning).
+async function fetchV3MultiVariantData(productId: string): Promise<V3MultiVariantData> {
+  const product = await fetchV3ProductRaw(productId);
+  return product ? v3MultiVariantData(product) : null;
 }
 
 function stripHtml(h: string): string {
@@ -391,6 +403,29 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
             }
             // Namnen matchade inte (SDK-värde ≠ V3-namn) → bygg från V3 (auktoritativt).
             if (matched === 0) prod.options = { name: v3v.optionName, choices: buildChoices() };
+          }
+        } else {
+          // Multi-axel (Färg × Storlek): det publika SDK:t ger bara FÖRSTA axeln →
+          // kund kunde inte välja t.ex. storlek och alla kombinationer visade
+          // baspriset. Bygg ALLA axlar + en variant-tabell ur V3 (auktoritativ).
+          // V3-namnen är redan svenska (importen skriver svenska) → ingen extra
+          // översättning (bevarar distinkta namn). prod.options nollas så PDP:n
+          // använder per-axel-vägen i stället för SDK:ns enda (buggiga) axel.
+          const multi = await fetchV3MultiVariantData(prod.id);
+          if (multi) {
+            prod.variantAxes = multi.axes.map((ax) => {
+              const isColorOpt = /färg|color|kulör/i.test(ax.name);
+              return {
+                name: ax.name,
+                choices: ax.choices.map((c) => ({
+                  label: c.label,
+                  image: c.image,
+                  color: isColorOpt ? colorOf(c.label) : "",
+                })),
+              };
+            });
+            prod.variantTable = multi.table;
+            prod.options = null;
           }
         }
         // Lägg per-val variantbilder från V3 linkedMedia ÖVERST (mest aktuell källan

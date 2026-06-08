@@ -6,7 +6,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { v3VariantData, formatSek } from "./variant-price.ts";
+import { v3VariantData, v3MultiVariantData, formatSek } from "./variant-price.ts";
 
 // Förenklad spegling av den riktiga V3-produktens shape (ultraljudsrengöraren).
 const product = {
@@ -66,4 +66,43 @@ test("inga varianter / tomt → null (fail-open)", () => {
 
 test("formatSek ger svenskt valutaformat", () => {
   assert.match(formatSek(1082.9), /1.?082,90.?kr/);
+});
+
+// Multi-axel (Färg × Storlek): bygg axlar + variant-tabell ur V3.
+const multiProduct = {
+  options: [
+    { id: "oF", name: "Färg", choicesSettings: { choices: [
+      { id: "fR", name: "Röd", linkedMedia: [{ image: { url: "red.jpg" } }] },
+      { id: "fB", name: "Blå", linkedMedia: [{ image: { url: "blue.jpg" } }] },
+    ] } },
+    { id: "oS", name: "Storlek", choicesSettings: { choices: [
+      { id: "sS", name: "S" },
+      { id: "sM", name: "M" },
+    ] } },
+  ],
+  variantsInfo: { variants: [
+    { id: "v-rs", choices: [{ optionChoiceIds: { optionId: "oF", choiceId: "fR" } }, { optionChoiceIds: { optionId: "oS", choiceId: "sS" } }], price: { actualPrice: { amount: "199" } }, inventoryStatus: { inStock: true } },
+    { id: "v-rm", choices: [{ optionChoiceIds: { optionId: "oF", choiceId: "fR" } }, { optionChoiceIds: { optionId: "oS", choiceId: "sM" } }], price: { actualPrice: { amount: "209" } }, inventoryStatus: { inStock: false } },
+    { id: "v-bs", choices: [{ optionChoiceIds: { optionId: "oF", choiceId: "fB" } }, { optionChoiceIds: { optionId: "oS", choiceId: "sS" } }], price: { actualPrice: { amount: "219" } }, inventoryStatus: { inStock: true } },
+  ] },
+};
+
+test("v3MultiVariantData bygger båda axlarna + variant-tabell med rätt pris/lager/bild", () => {
+  const r = v3MultiVariantData(multiProduct);
+  assert.ok(r);
+  assert.deepEqual(r.axes.map((a) => a.name), ["Färg", "Storlek"]);
+  assert.deepEqual(r.axes[0].choices.map((c) => c.label), ["Röd", "Blå"]);
+  assert.equal(r.axes[0].choices[0].image, "red.jpg"); // färg-valet bär linkedMedia
+  assert.equal(r.axes[1].choices[0].image, ""); // storlek saknar bild
+  assert.equal(r.table.length, 3);
+  const rm = r.table.find((t) => t.variantId === "v-rm");
+  assert.deepEqual(rm.choices, { Färg: "Röd", Storlek: "M" });
+  assert.equal(rm.priceNum, 209);
+  assert.equal(rm.inStock, false); // slut-kombination
+  assert.equal(rm.image, "red.jpg"); // ärver färgens bild
+});
+
+test("v3MultiVariantData returnerar null för single-axel (hanteras av v3VariantData)", () => {
+  assert.equal(v3MultiVariantData(product), null);
+  assert.equal(v3MultiVariantData({ options: [], variantsInfo: { variants: [] } }), null);
 });
