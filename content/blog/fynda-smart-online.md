@@ -22,7 +22,7 @@ Här är vanorna som skiljer ett impulsköp från ett genomtänkt fynd:
 
 - **Räkna på pris per användning.** En något dyrare produkt som du använder varje dag är nästan alltid en bättre affär än en billig som glöms bort efter en vecka.
 - **Läs hela produktbeskrivningen.** Mått, material och kompatibilitet avgör om produkten passar ditt behov – och besparar dig en returrunda.
-- **Jämför frakt och leveranstid.** Ett lågt pris äts snabbt upp av dyr frakt. Hos [Fyndplats](/) är frakten alltid bara 19 kr, oavsett hur mycket du handlar.
+- **Jämför frakt och leveranstid.** Ett lågt pris äts snabbt upp av dyr frakt. Hos [Fyndplats](/) är standardfrakten 19 kr inom Sverige – och helt fri vid köp över 499 kr.
 - **Välj trygg betalning.** Med Klarna får du varan först och betalar sen – så du aldrig betalar för något du inte fått hem.
 - **Tajma köpet.** Säsongsprodukter är ofta billigast strax före eller efter högsäsong. Planera de större köpen.
 - **Läs en köpguide före större köp.** Tjugo minuters research innan du köper gör att du väljer rätt modell från början – se till exempel vår [köpguide till massagepistol](/blogg/massagepistol-kopguide-2026) eller guiden till [bärbar projektor](/blogg/barbar-projektor-kopguide-2026).
@@ -33,7 +33,7 @@ Här är vanorna som skiljer ett impulsköp från ett genomtänkt fynd:
 Hos [Fyndplats](/) hittar du ett brett sortiment för hela familjen samlat under ett och samma tak. Vi väljer ut produkter vi själva skulle köpa hem: prisvärda och gjorda för att användas.
 
 - **Trygg betalning med Klarna** – få varorna först och betala sen.
-- **Låg frakt** – endast 19 kr, alltid.
+- **Fri frakt över 499 kr** – annars bara 19 kr inom Sverige.
 - **Nöjda kunder** – 4,9 av 5 i betyg på Google.
 - **Brett utbud** – produkter för hela familjen, samlade på ett ställe.
 
@@ -52,7 +52,7 @@ Ska du göra ett större köp? Läs en av våra guider först – de hjälper di
 
 ## Så kommer du igång
 
-Redo att fynda? [Utforska hela sortimentet hos Fyndplats](/) – nya favoriter till priser som faktiskt känns som fynd läggs till löpande. Trygg betalning med Klarna, 19 kr frakt och leverans i hela Sverige. Du kan också bläddra bland [alla produkter](/alla-produkter) eller läsa fler tips på [bloggen](/blogg).
+Redo att fynda? [Utforska hela sortimentet hos Fyndplats](/) – nya favoriter till priser som faktiskt känns som fynd läggs till löpande. Trygg betalning med Klarna, fri frakt över 499 kr (annars 19 kr) och leverans i hela Sverige. Du kan också bläddra bland [alla produkter](/alla-produkter) eller läsa fler tips på [bloggen](/blogg).
 
 ## Vanliga frågor om att fynda smart online
 
@@ -66,7 +66,7 @@ Nej. Pris och kvalitet hänger inte alltid ihop. Genom att läsa produktbeskrivn
 
 ### Hur mycket kostar frakten hos Fyndplats?
 
-Frakten är alltid 19 kr, oavsett hur mycket du handlar.
+Standardfrakt är 19 kr inom Sverige. Vid köp över 499 kr är frakten helt fri.
 
 ### Kan jag betala med Klarna?
 
