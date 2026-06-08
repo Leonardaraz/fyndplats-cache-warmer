@@ -193,6 +193,7 @@ export default async function AdminPage() {
         <li><a href="/admin/seo"><b>SEO-migration</b></a> — V1↔V3-matchning, 301-redirects, sitemap, SEO-audit inför headless-cutover</li>
         <li><a href="/admin/profitability"><b>Lönsamhet per produkt</b></a> — sortbar tabell över intäkt/inköp/marginal/sålda enheter (90 dagar default) + CSV-export</li>
         <li><a href="/admin/pricing"><b>Prissättningsregler</b></a> — standard-/kategori-/intervall-multiplikatorer, fast påslag och avrundning (gäller vid import) + förhandsgranskning</li>
+        <li><a href="/admin/variant-translations"><b>Variantöversättningar (AI)</b></a> — stickprova de AI-översatta variantvärdena (engelska → svenska) och fånga felöversättningar tidigt</li>
       </ul>
 
       <h2>Endpoints</h2>

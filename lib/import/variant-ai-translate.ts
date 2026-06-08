@@ -15,8 +15,10 @@
 //      failOpen (tomt). Importen fälls ALDRIG; olösta värden faller på tabell/
 //      råvärde och flaggas för polering.
 
+import crypto from "node:crypto";
 import { completeJsonRouted, TEXT_MODEL } from "../claude/client";
 import { getCachedResult, makeCacheKey, setCachedResult } from "../llm/cache";
+import { logVariantTranslation } from "../llm/variant-log";
 import {
   buildTranslatorFromBase,
   residualEnglishTokens,
@@ -102,6 +104,20 @@ export async function buildVariantTranslatorAI(
         const val = sv.trim();
         aiMap.set(c, val);
         await setCachedResult(cacheKeyFor(c), OP, val, "variant-ai");
+        // Stickprovs-logg: BARA genuina översättningar (val !== c). Oförändrade
+        // (behållna modellnamn/koder) är ingen fel-svensk-risk → skippas, så
+        // listan hålls scanbar. logVariantTranslation är best-effort (sväljer
+        // fel) → loggningen kan aldrig fälla importen.
+        if (val !== c) {
+          await logVariantTranslation({
+            id: variantRowId(c),
+            raw: c,
+            sv: val,
+            productTitle: opts?.productTitle,
+            provider: "variant-ai",
+            at: new Date().toISOString(),
+          });
+        }
       }
     }
   }
@@ -118,6 +134,13 @@ export async function buildVariantTranslatorAI(
 
 function cacheKeyFor(rawValue: string): string {
   return makeCacheKey({ op: OP, name: rawValue, description: "" });
+}
+
+/** Stabilt rad-id för stickprovs-loggen: hashar BARA råvärdet (medvetet frikopplat
+ *  från cache-nyckel-formeln, så rad-id:t inte skiftar om den ändras), vilket
+ *  dedupar till en rad per unikt engelskt värde. */
+function variantRowId(rawValue: string): string {
+  return crypto.createHash("sha256").update(rawValue.trim()).digest("hex");
 }
 
 /** Default-implementationen: ett batchat Haiku-anrop via routern (budgetcap +
