@@ -366,13 +366,15 @@ export async function POST(req: Request) {
     // är opolerad (draft) och måste poleras + godkännas manuellt, oavsett
     // IMPORT_DRAFT_DEFAULT. Normal import följer IMPORT_DRAFT_DEFAULT som förut.
     const needsAiPolish = resultAny.needsAiPolish === true;
-    // PREMIUM: produkten publicerades direkt om kvalitets-judgen godkände
-    // (visible:true sattes i pipelinen). Underkänd premium → needsManualPolish →
-    // granskningskön. Övriga lägen: oförändrat IMPORT_DRAFT_DEFAULT-beteende.
+    // PREMIUM: publiceras direkt om kvalitets-judgen godkände (visible:true sattes
+    // i pipelinen) OCH variantöversättningen är ren. Underkänd judge
+    // (needsManualPolish) ELLER olösta engelska variantvärden (needsAiPolish) →
+    // granskningskön, så vi aldrig auto-publicerar halv-engelska varianter till
+    // kund. Övriga lägen: oförändrat IMPORT_DRAFT_DEFAULT-beteende.
     const isPremiumResult = resultAny.qualityMode === "premium";
     const needsManualPolish = resultAny.needsManualPolish === true;
     const draftStatus = isPremiumResult
-      ? needsManualPolish
+      ? needsManualPolish || needsAiPolish
         ? "pending_review"
         : "published"
       : !needsAiPolish && process.env.IMPORT_DRAFT_DEFAULT === "false"

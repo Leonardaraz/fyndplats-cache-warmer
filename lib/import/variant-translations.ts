@@ -371,6 +371,29 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   regular: "Standard",
   thick: "Tjock",
   thin: "Tunn",
+
+  // --- Fäll-fixar (audit 2026-06): ord som ovan översätts token-vis till en
+  //     FÄRG/SÄSONG men i dessa fasta fraser betyder något annat. Som HEL fras
+  //     vinner de över token-uppdelningen, så "Spring Steel" blir "Fjäderstål"
+  //     i stället för "Vår Stål". Råa engelska bakgrunden står kvar (spring→Vår
+  //     osv.) för sina giltiga färg-/säsongs-användningar. ---
+  "spring steel": "Fjäderstål", // spring(fjäder) ≠ Vår(säsong)
+  "wine glass": "Vinglas", // wine(dryck) ≠ Vinröd(färg)
+  "bone china": "Benporslin", // material, inte "ben"
+  "coffee maker": "Kaffebryggare", // apparat, inte Kaffebrun(färg)
+  "coffee cup": "Kaffekopp",
+  "iron box": "Strykjärn", // apparat, inte Järn(material)
+  "steam iron": "Ångstrykjärn",
+
+  // --- LED-färgtemperatur (mycket vanlig AE-kategori). Fasta fraser så de blir
+  //     HELT svenska ("Warm White" → "Varmvit", inte token-vis "Warm Vit"). ---
+  "warm white": "Varmvit",
+  "cool white": "Kallvit",
+  "natural white": "Naturvit",
+  "neutral white": "Neutralvit",
+  "warm light": "Varmt ljus",
+  "cool light": "Kallt ljus",
+  "white light": "Vitt ljus",
 };
 
 /**
@@ -424,6 +447,34 @@ export function translateValue(raw: string): string {
   // bokstaven (bindeord i tabellen är gemena: "med", "och").
   const norm = out.replace(/\s+/g, " ").trim();
   return norm.charAt(0).toUpperCase() + norm.slice(1);
+}
+
+/**
+ * Returnerar de tokens i ett RÅVÄRDE som den statiska tabellen INTE kunde
+ * översätta och som ser ut som riktig engelska — dvs en bra signal på att värdet
+ * fortfarande är (halv-)engelskt. Tomt = värdet är (fullt) hanterat av tabellen.
+ *
+ * Detektionen körs på RÅVÄRDET (engelska) mot tabellen, inte på utdata, så
+ * giltig svenska (t.ex. "Vit", "Stor") aldrig flaggas. En token räknas som
+ * engelska om den är ≥3 rena ASCII-bokstäver, inte en akronym/kod i versaler
+ * (LED/USB/POE/XXL) och saknas i tabellen. Mått/siffror/koder ("5XL", "33",
+ * "B6AC", "KM-6631") matchar inte → flaggas aldrig.
+ *
+ * Används av variant-ai-translate.ts för att (a) välja vilka värden som skickas
+ * till AI-fallbacken och (b) flagga produkter med kvarvarande engelska för
+ * polering.
+ */
+export function residualEnglishTokens(raw: string): string[] {
+  const trimmed = raw.trim();
+  if (VALUE_TRANSLATIONS[trimmed.toLowerCase()]) return []; // fullt match → hanterat
+  const out: string[] = [];
+  for (const tok of trimmed.split(/[\s-]+/)) {
+    if (!/^[A-Za-z]{3,}$/.test(tok)) continue; // kod/siffra/mått/för kort
+    if (tok === tok.toUpperCase()) continue; // akronym/kod i versaler (LED, USB, XXL)
+    if (VALUE_TRANSLATIONS[tok.toLowerCase()]) continue; // tabellen översätter token
+    out.push(tok);
+  }
+  return out;
 }
 
 /**
@@ -484,8 +535,27 @@ export interface VariantTranslator {
   axisKeyedMap<T>(map: Record<string, Record<string, T>>): Record<string, Record<string, T>>;
 }
 
+/**
+ * Synkron, deterministisk översättare (enbart statisk tabell). Publik API som
+ * används när AI-fallbacken är av. Tunn wrapper över buildTranslatorFromBase.
+ */
 export function buildVariantTranslator(
   variants: ReadonlyArray<{ options: Record<string, string> }>,
+): VariantTranslator {
+  return buildTranslatorFromBase(variants, translateValue, translateAxisName);
+}
+
+/**
+ * Kollisions-säker översättare byggd från en INJICERAD bas-översättning. Den
+ * statiska tabellen (translateValue) är default; AI-fallbacken (variant-ai-
+ * translate.ts) skickar in en baseValue som slår upp Claude-översatta värden
+ * först och faller tillbaka på tabellen. Kollisions-/disambig-logiken är
+ * IDENTISK oavsett bas → ingen variant-kollaps, oavsett källa.
+ */
+export function buildTranslatorFromBase(
+  variants: ReadonlyArray<{ options: Record<string, string> }>,
+  baseValue: (raw: string) => string,
+  baseAxis: (axis: string) => string = translateAxisName,
 ): VariantTranslator {
   // Råvärden per råaxel i stabil först-sedd-ordning.
   const rawValuesByAxis = new Map<string, string[]>();
@@ -500,11 +570,11 @@ export function buildVariantTranslator(
   const axisName = new Map<string, string>();
   const valueByAxis = new Map<string, Map<string, string>>();
   for (const [axis, values] of rawValuesByAxis) {
-    axisName.set(axis, translateAxisName(axis));
+    axisName.set(axis, baseAxis(axis));
     const used = new Set<string>();
     const m = new Map<string, string>();
     for (const raw of values) {
-      const base = translateValue(raw);
+      const base = baseValue(raw);
       let t = base;
       if (used.has(t)) {
         // Kollision: särskilj med råvärdet; om även det är upptaget, löpnummer.
@@ -519,8 +589,8 @@ export function buildVariantTranslator(
     }
     valueByAxis.set(axis, m);
   }
-  const tAxis = (axis: string) => axisName.get(axis) ?? translateAxisName(axis);
-  const tValue = (axis: string, value: string) => valueByAxis.get(axis)?.get(value) ?? translateValue(value);
+  const tAxis = (axis: string) => axisName.get(axis) ?? baseAxis(axis);
+  const tValue = (axis: string, value: string) => valueByAxis.get(axis)?.get(value) ?? baseValue(value);
   return {
     options(raw) {
       const out: Record<string, string> = {};

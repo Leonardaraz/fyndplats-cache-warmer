@@ -76,6 +76,14 @@ export interface FeatureFlags {
   imageAnalysis?: boolean;
   autoCategorize?: boolean;
   /**
+   * AI-fallback för VARIANTÖVERSÄTTNING (Haiku fyller i de variantvärden den
+   * statiska tabellen missar; tabell+cache först → nära $0). FRIKOPPLAD från
+   * enableAI/qualityMode — kan köra även i rå-läget. Saknas/undefined = följ env
+   * VARIANT_AI_TRANSLATION_ENABLED (default på). `false` tvingar AV (hård $0 på
+   * varianter). Se lib/import/variant-ai-translate.ts#variantAiTranslationEnabled.
+   */
+  translateVariants?: boolean;
+  /**
    * Master-override för ALL AI-berikning (text, kategori, bild-ranking, flikar).
    * Saknas/undefined = följ env-flaggan AI_ENRICHMENT_ENABLED (default på).
    * `false` tvingar RÅ import (0 Claude-anrop, $0) även om env säger på.
