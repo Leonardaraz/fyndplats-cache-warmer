@@ -15,6 +15,8 @@ export const LLM_COLLECTIONS = {
   cache: process.env.WIX_DATA_COL_LLM_CACHE ?? "FyndplatsClaudeCache",
   spend: process.env.WIX_DATA_COL_LLM_SPEND ?? "FyndplatsAnthropicSpend",
   stats: process.env.WIX_DATA_COL_LLM_STATS ?? "FyndplatsLlmStats",
+  variantTranslations:
+    process.env.WIX_DATA_COL_LLM_VARIANT_TRANSLATIONS ?? "FyndplatsVariantTranslations",
 } as const;
 
 function useWixBackend(): boolean {

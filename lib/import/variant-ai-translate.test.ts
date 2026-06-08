@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { __clearMemCache } from "../llm/cache";
 import { __resetLlmMemoryStore } from "../llm/storage";
+import { listVariantTranslations } from "../llm/variant-log";
 import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
 
 beforeEach(() => {
@@ -80,6 +81,37 @@ describe("buildVariantTranslatorAI", () => {
     // Anrop 1: ["Glow","Mystery"]. Anrop 2: bara ["Mystery"] (Glow cachat; olöst Mystery retas).
     expect(translateBatch).toHaveBeenCalledTimes(2);
     expect(translateBatch.mock.calls[1][0]).toEqual(["Mystery"]);
+  });
+
+  it("loggar genuina AI-översättningar för stickprov (/admin/variant-translations)", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) if (v === "Glow") out[v] = "Glöd";
+      return out;
+    });
+    await buildVariantTranslatorAI([{ options: { Effect: "Glow" } }], {
+      translateBatch,
+      productTitle: "LED-list 5m",
+    });
+    const logged = await listVariantTranslations();
+    expect(logged).toHaveLength(1);
+    expect(logged[0]).toMatchObject({
+      raw: "Glow",
+      sv: "Glöd",
+      productTitle: "LED-list 5m",
+      provider: "variant-ai",
+    });
+  });
+
+  it("loggar INTE när AI behåller värdet oförändrat (val === råvärde, t.ex. modellnamn)", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) out[v] = v; // behåller allt oförändrat
+      return out;
+    });
+    await buildVariantTranslatorAI([{ options: { Effect: "Glow" } }], { translateBatch });
+    expect(translateBatch).toHaveBeenCalled(); // "Glow" ÄR en kandidat → nådde AI
+    expect(await listVariantTranslations()).toEqual([]); // men oförändrat → inte loggat
   });
 
   it("fäller ALDRIG importen om AI kastar (failOpen → råvärde + olöst)", async () => {

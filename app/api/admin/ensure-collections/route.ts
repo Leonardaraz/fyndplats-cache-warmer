@@ -30,6 +30,7 @@ const COLLECTIONS = [
   "FyndplatsClaudeCache",
   "FyndplatsAnthropicSpend",
   "FyndplatsLlmStats",
+  "FyndplatsVariantTranslations",
   "FyndplatsAlternativeCache",
   "FyndplatsRestockSubscribers",
   "FyndplatsRestockLog",
