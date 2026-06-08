@@ -322,6 +322,55 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   "2pcs 8mp poe camera": "2 st 8MP POE-kamera",
   "3pcs 5mp poe camera": "3 st 5MP POE-kamera",
   "3pcs 8mp poe camera": "3 st 8MP POE-kamera",
+
+  // --- Utökning: fler vanliga AE-variantord → svenska, så att halv-engelska
+  //     värden ("100 inch", "With Battery", "1 Pair") inte slinker igenom.
+  //     ALLA poster här är token-säkra: ord vars svenska översättning är
+  //     entydig oavsett kontext. Tvetydiga adjektiv (deep/light/dark/free,
+  //     left/right, wide) UTELÄMNAS medvetet — de krockar med färg-/vinkel-
+  //     fraser ("Deep Red", "Right Angle", "Wide Angle") och skulle ge FEL
+  //     översättning, vilket är värre än ett kvarvarande engelskt ord.
+  //
+  // Enheter (token-vis; "6 feet" → "6 fot"). cm/mm lämnas orörda (samma på
+  // svenska); inch/inches finns redan ovan.
+  feet: "fot",
+  foot: "fot",
+  // Antal/förpackning (kompletterar pc/pcs ovan). "1 Pair" → "1 par" — vanligt
+  // för handskar/strumpor/örhängen.
+  pair: "par",
+  pairs: "par",
+  // Universalstorlek (FULLT match → ingen token-uppdelning, så "free"/"one"
+  // översätts aldrig löst — bara i dessa fasta fraser).
+  "free size": "Universalstorlek",
+  "one size": "Universalstorlek",
+  onesize: "Universalstorlek",
+  "plus size": "Plusstorlek",
+  // Tillbehör ("With X"-värden). "with"→"med" finns redan, så "With Battery"
+  // → "Med Batteri" (innehållsord behåller sin versal). Höga-frekvens-substantiv.
+  battery: "Batteri",
+  charger: "Laddare",
+  cable: "Kabel",
+  holder: "Hållare",
+  mount: "Fäste",
+  bracket: "Fäste",
+  strap: "Rem",
+  screen: "Skärm",
+  lens: "Lins",
+  // "remote" läggs som HEL fras, inte löst ord: "Fjärrkontroll" rymmer redan
+  // "control", så ett löst "remote" hade gjort "Remote Control" → "Fjärrkontroll
+  // Control" (dubblerat/fel). Som fras träffar bara exakt "Remote Control".
+  "remote control": "Fjärrkontroll",
+  // Kvalificerare (token-säkra adjektiv; entydiga oavsett efterföljande ord).
+  foldable: "Hopfällbar",
+  portable: "Bärbar",
+  adjustable: "Justerbar",
+  waterproof: "Vattentät",
+  wireless: "Trådlös",
+  rechargeable: "Uppladdningsbar",
+  upgraded: "Uppgraderad",
+  regular: "Standard",
+  thick: "Tjock",
+  thin: "Tunn",
 };
 
 /**
