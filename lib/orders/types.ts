@@ -29,6 +29,15 @@ export interface FulfillmentTask {
   aliexpressOrderId?: string;
   /** AliExpress betal-URL när ordern kräver betalning (status pending_payment). */
   paymentUrl?: string;
+  /**
+   * Per-order leverantörsbyte: lägg DENNA orderrad hos en annan AliExpress-källa
+   * än produktens globala mappning, utan att röra mappningen. Sätts via /admin
+   * ("Byt leverantör") och vinner över mappningen i placeAliExpressOrder.
+   */
+  overriddenSupplierProductId?: string;
+  overriddenSupplierVariantId?: string;
+  /** Läsbar etikett (skuProps, t.ex. "Red / M") för UI och audit. */
+  overriddenSupplierLabel?: string;
 }
 
 /** Normaliserad orderhändelse oavsett om den kom som JWT eller rå JSON. */

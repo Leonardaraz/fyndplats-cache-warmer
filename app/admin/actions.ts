@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createOrder } from "@/lib/aliexpress/client";
+import { createOrder, extractAliExpressProductId, getInventory } from "@/lib/aliexpress/client";
 import { getStore } from "@/lib/store/factory";
 import { normalizeCountryCode } from "@/lib/orders/tasks";
 import { assertTransition } from "@/lib/orders/status";
@@ -58,7 +58,26 @@ export async function placeAliExpressOrder(taskId: string) {
     : mapping.variants.find((v) =>
         Object.entries(task.variantChoices).every(([k, val]) => v.choices[k] === val),
       );
-  if (!variant) return { ok: false, error: "Variant kunde inte matchas till AliExpress-SKU" };
+
+  // Säkerhet (betalväg): ett HALVT override (bara produkt ELLER bara SKU) skulle
+  // korsa källor — t.ex. leverantör B:s produkt med leverantör A:s SKU → fel vara
+  // till kund. Kan inte uppstå via UI:t (set-action kräver båda + skriver atomiskt),
+  // men en framtida skrivning/migrering/manuell wix-data-rad skulle kunna → vägra
+  // hellre ordern än att lägga en korsad.
+  if (Boolean(task.overriddenSupplierProductId) !== Boolean(task.overriddenSupplierVariantId)) {
+    return {
+      ok: false,
+      error: "Ofullständigt leverantörsbyte (produkt utan SKU eller tvärtom) — order avbruten.",
+    };
+  }
+
+  // Per-order leverantörsbyte vinner över mappningen. När en override-SKU finns
+  // beställer vi från en ANNAN källa → ingen variant-match mot mappningen krävs.
+  const supplierProductId = task.overriddenSupplierProductId ?? mapping.supplierProductId;
+  const supplierVariantId = task.overriddenSupplierVariantId ?? variant?.supplierVariantId;
+  if (!supplierVariantId) {
+    return { ok: false, error: "Variant kunde inte matchas till AliExpress-SKU" };
+  }
 
   const a = task.shippingAddress;
   // Vägra ordern om landskoden saknas/är ogiltig i stället för att tyst skicka
@@ -72,8 +91,8 @@ export async function placeAliExpressOrder(taskId: string) {
   }
   try {
     const result = await createOrder({
-      productId: mapping.supplierProductId,
-      skuId: variant.supplierVariantId,
+      productId: supplierProductId,
+      skuId: supplierVariantId,
       quantity: task.quantity,
       shippingAddress: {
         name: a.fullName ?? "",
@@ -98,6 +117,15 @@ export async function placeAliExpressOrder(taskId: string) {
       detail: JSON.stringify({
         tradeOrderId: result.tradeOrderId,
         paymentRequired: result.paymentRequired,
+        ...(task.overriddenSupplierProductId
+          ? {
+              overriddenSupplier: {
+                productId: supplierProductId,
+                skuId: supplierVariantId,
+                label: task.overriddenSupplierLabel,
+              },
+            }
+          : {}),
       }),
     });
     revalidatePath("/admin");
@@ -105,4 +133,104 @@ export async function placeAliExpressOrder(taskId: string) {
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
+}
+
+/**
+ * Hämtar en alternativ AliExpress-leverantörs SKU:er så Leonard kan VÄLJA rätt
+ * variant vid ett per-order leverantörsbyte (i stället för att gissa skuId, som
+ * vid fel skulle ge en felaktig order). Server action som returnerar data till
+ * klient-komponenten. Inga skrivningar. (Typen inlinas: en "use server"-fil får
+ * bara exportera async-funktioner.)
+ */
+export async function fetchSupplierVariantsAction(
+  productIdOrUrl: string,
+): Promise<
+  | {
+      ok: true;
+      productId: string;
+      variants: { skuId: string; label: string; price: number; stock: number; shipFrom?: string }[];
+    }
+  | { ok: false; error: string }
+> {
+  const productId = extractAliExpressProductId(productIdOrUrl ?? "");
+  if (!productId) return { ok: false, error: "Kunde inte tolka produkt-id eller URL" };
+  try {
+    const inv = await getInventory(productId);
+    if (inv.length === 0) return { ok: false, error: "Produkten saknar hämtbara varianter" };
+    return {
+      ok: true,
+      productId,
+      variants: inv.map((v) => ({
+        skuId: v.skuId,
+        label: Object.values(v.skuProps).filter(Boolean).join(" / ") || v.skuId,
+        price: v.price,
+        stock: v.stock,
+        shipFrom: v.shipFrom,
+      })),
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Sätter ett per-order leverantörsbyte på en pending task. Påverkar INTE
+ * produktens globala mappning — bara denna orderrad. Vägrar om ordern redan är
+ * lagd (då skulle bytet vara verkningslöst/missvisande).
+ */
+export async function setOrderSupplierOverrideAction(
+  taskId: string,
+  productId: string,
+  skuId: string,
+  label?: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!productId?.trim() || !skuId?.trim()) {
+    return { ok: false, error: "Saknar produkt-id eller SKU" };
+  }
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return { ok: false, error: "Task hittades inte" };
+  if (task.aliexpressOrderId) {
+    return { ok: false, error: "Ordern är redan lagd — kan inte byta leverantör" };
+  }
+  await store.updateTask(taskId, {
+    overriddenSupplierProductId: productId.trim(),
+    overriddenSupplierVariantId: skuId.trim(),
+    overriddenSupplierLabel: label?.trim() || undefined,
+  });
+  await store.appendAudit({
+    at: new Date().toISOString(),
+    kind: "order-supplier-override-set",
+    ref: taskId,
+    detail: JSON.stringify({ productId: productId.trim(), skuId: skuId.trim(), label: label?.trim() }),
+  });
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** Tar bort ett per-order leverantörsbyte → ordern faller tillbaka på produktens mappning. */
+export async function clearOrderSupplierOverrideAction(
+  taskId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return { ok: false, error: "Task hittades inte" };
+  if (task.aliexpressOrderId) {
+    return { ok: false, error: "Ordern är redan lagd" };
+  }
+  // updateTask gör en full-replace-upsert; undefined-fält faller bort vid
+  // JSON.stringify (wix-data) resp. lämnas undefined (memory) → fälten rensas i
+  // båda backends, ingen stale override blir kvar.
+  await store.updateTask(taskId, {
+    overriddenSupplierProductId: undefined,
+    overriddenSupplierVariantId: undefined,
+    overriddenSupplierLabel: undefined,
+  });
+  await store.appendAudit({
+    at: new Date().toISOString(),
+    kind: "order-supplier-override-cleared",
+    ref: taskId,
+  });
+  revalidatePath("/admin");
+  return { ok: true };
 }

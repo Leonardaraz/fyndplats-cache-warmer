@@ -5,6 +5,7 @@ import type { TaskStatus } from "@/lib/orders/types";
 import { paymentFeeFromEnv, pricingConfigFromEnv } from "@/lib/config";
 import { summarizeProductProfit } from "@/lib/analytics/profit";
 import { placeAliExpressOrderAction, markTaskOrderedAction } from "./actions";
+import { SupplierOverrideClient } from "./supplier-override-client";
 
 export const dynamic = "force-dynamic";
 
@@ -104,6 +105,19 @@ export default async function AdminPage() {
                     Lägg AliExpress-order
                   </button>
                 </form>
+                <SupplierOverrideClient
+                  taskId={t.taskId}
+                  variantChoices={t.variantChoices}
+                  override={
+                    t.overriddenSupplierProductId
+                      ? {
+                          productId: t.overriddenSupplierProductId,
+                          skuId: t.overriddenSupplierVariantId,
+                          label: t.overriddenSupplierLabel,
+                        }
+                      : undefined
+                  }
+                />
               </li>
             );
           })}
