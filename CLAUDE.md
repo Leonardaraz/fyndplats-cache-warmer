@@ -17,18 +17,41 @@ Master-switchen är env-variabeln **`AI_ENRICHMENT_ENABLED`** (default `true`).
 
 Sätt `AI_ENRICHMENT_ENABLED=false` i Vercel (production). Då:
 
-- Importen gör **noll Claude-anrop** ($0 Anthropic): ingen SEO-text, ingen
-  FAQ/flik-generering, ingen kategorisering, ingen Sonnet-bildanalys.
+- Importen gör **inga dyra Claude-anrop** (ingen SEO-text, FAQ/flik-generering,
+  kategorisering eller Sonnet-bildanalys). Undantag: **variantöversättningen** har
+  en egen, billig AI-fallback — se nästa avsnitt (kan stängas av för hård $0).
 - Produkten skapas ändå komplett i Wix från rå AliExpress-data: **rå titel/
-  beskrivning**, deterministisk svensk **variant-översättning** (gratis, via
-  `variant-translations.ts`), **prissättning** + **lager** (deterministiskt),
-  bilder, EU-lager-ribbon, spec-fliken från råa specs.
+  beskrivning**, svensk **variant-översättning** (statisk tabell + ev. cachad
+  Haiku-fallback, via `variant-translations.ts` / `variant-ai-translate.ts`),
+  **prissättning** + **lager** (deterministiskt), bilder, EU-lager-ribbon,
+  spec-fliken från råa specs.
 - Produkten blir **draft** (`visible:false`) och hamnar i **`/admin/queue`** med
   badgen **"✨ Behöver AI-polering"** (filter-chip finns).
 - I kön finns knappen **"✨ Be Claude i chatten att polera"** → kopierar
   produkt-info + Wix-ID till urklipp. Klistra in i Cowork-chatten och säg
   *"polera denna"* så skriver Claude SEO/beskrivning/FAQ/kategori gratis i chatten
   istället för via betald API-pipeline.
+
+### Variantöversättning: tabell → cache → Haiku (egen switch `VARIANT_AI_TRANSLATION_ENABLED`)
+
+Variantvärden (t.ex. "Warm White", "100 inch") översätts till svenska FRÅN START
+vid import — viktigt, för i Wix V3 speglar `choice.name` den låsta `choice.key`:en,
+så värden kan inte döpas om i efterhand. Tre lager (`lib/import/variant-ai-translate.ts`):
+
+1. **Statisk tabell** (`variant-translations.ts`, $0): golden-testad, auktoritativ.
+2. **AI-fallback** (Haiku, default PÅ): bara för värden tabellen missar, **ett**
+   batchat anrop per produkt, **cachat per värde för alltid** (→ nära $0; samma
+   råvärde översätts en gång, någonsin). Routas via `completeJsonRouted` → ärver
+   daglig budgetcap + Gemini-fallback + `failOpen` (importen fälls aldrig).
+3. **Olösta värden** (AI av/fail/kvarvarande engelska) → produkten flaggas
+   `needsAiPolish` och hamnar i poleringskön i stället för att nå kunden halv-engelsk.
+
+Switchen är **`VARIANT_AI_TRANSLATION_ENABLED`** (default `true`), FRIKOPPLAD från
+`AI_ENRICHMENT_ENABLED` — variantöversättningen kör alltså även i rå-läget (billig +
+cachad). Sätt `=false` för hård $0 på varianter (svansen lämnas då engelsk + flaggas
+för polering). Explicit `flags.translateVariants` vinner över env. Beslutspunkt:
+`variantAiTranslationEnabled(flags)`. Golden-testet i `variant-translations.test.ts`
+låser kända/fäll-fixade översättningar i CI.
 
 ### Bulk-läge: AI-berikning PÅ (kostar Anthropic-credits)
 

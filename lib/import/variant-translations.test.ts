@@ -5,6 +5,8 @@ import {
   translateVariantOptions,
   translateOptionColorCodes,
   buildVariantTranslator,
+  buildTranslatorFromBase,
+  residualEnglishTokens,
 } from "./variant-translations";
 
 describe("translateAxisName", () => {
@@ -169,5 +171,66 @@ describe("buildVariantTranslator — kollisions-säker (dark/deep blue förblir 
     const t = buildVariantTranslator(raws.map((r) => ({ options: { Color: r } })));
     const out = raws.map((r) => t.options({ Color: r }).Färg);
     expect(new Set(out).size).toBe(4); // alla fyra distinkta → ingen variant-kollaps
+  });
+});
+
+// --- GOLDEN: lås känt-korrekta översättningar + fäll-fixar i CI. Varje framtida
+//     ändring i tabellen som bryter en av dessa fäller bygget. Det här ÄR
+//     "auditen som permanent kod" — den glömmer aldrig en läxa. ---
+describe("golden — fäll-fixar, LED och orörda idiom (lås i CI)", () => {
+  const cases: Array<[string, string]> = [
+    // Fäll-fixar (audit 2026-06): hela frasen vinner över token-vis fel-översättning.
+    ["Spring Steel", "Fjäderstål"],
+    ["Wine Glass", "Vinglas"],
+    ["Bone China", "Benporslin"],
+    ["Coffee Maker", "Kaffebryggare"],
+    ["Coffee Cup", "Kaffekopp"],
+    ["Iron Box", "Strykjärn"],
+    ["Steam Iron", "Ångstrykjärn"],
+    // LED-färgtemperatur (fasta fraser → helt svenska, inte "Warm Vit").
+    ["Warm White", "Varmvit"],
+    ["Cool White", "Kallvit"],
+    ["Natural White", "Naturvit"],
+    ["Warm Light", "Varmt ljus"],
+    ["White Light", "Vitt ljus"],
+    // De omgivande BARA-orden behåller sin giltiga färg-/säsongs-användning.
+    ["Spring", "Vår"],
+    ["Wine", "Vinröd"],
+    ["Coffee", "Kaffebrun"],
+    ["Iron", "Järn"],
+    // Medvetet UTELÄMNADE tvetydiga ord → idiomet lämnas orört (aldrig fel-översatt).
+    ["Right Angle", "Right Angle"],
+    ["Wide Angle", "Wide Angle"],
+  ];
+  it.each(cases)("translateValue(%j) === %j", (input, expected) => {
+    expect(translateValue(input)).toBe(expected);
+  });
+});
+
+describe("residualEnglishTokens", () => {
+  it("tomt för värden som tabellen (fullt) hanterar", () => {
+    expect(residualEnglishTokens("Red")).toEqual([]);
+    expect(residualEnglishTokens("Spring Steel")).toEqual([]); // fras → full match
+    expect(residualEnglishTokens("Warm White")).toEqual([]);
+    expect(residualEnglishTokens("Black with LED")).toEqual([]); // black/with kända, LED = akronym
+  });
+  it("tomt för koder/mått/storlekar (inte engelska ord)", () => {
+    expect(residualEnglishTokens("5XL")).toEqual([]);
+    expect(residualEnglishTokens("M")).toEqual([]);
+    expect(residualEnglishTokens("XXL")).toEqual([]); // versal-akronym
+    expect(residualEnglishTokens("KM-6631")).toEqual([]);
+    expect(residualEnglishTokens("B6AC")).toEqual([]);
+  });
+  it("flaggar genuint oöversatta engelska ord (→ AI-kandidat)", () => {
+    expect(residualEnglishTokens("Glow Mode")).toEqual(["Glow", "Mode"]);
+    expect(residualEnglishTokens("iPhone 15 Pro")).toEqual(["iPhone", "Pro"]);
+  });
+});
+
+describe("buildTranslatorFromBase — injicerbar bas (delas av AI-fallbacken)", () => {
+  it("använder den injicerade översättningen och behåller kollisions-säkerheten", () => {
+    const base = (raw: string) => (raw === "Glow" ? "Glöd" : translateValue(raw));
+    const t = buildTranslatorFromBase([{ options: { Color: "Red", Effect: "Glow" } }], base, translateAxisName);
+    expect(t.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effect: "Glöd" });
   });
 });

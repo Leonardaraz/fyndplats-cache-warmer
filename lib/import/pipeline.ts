@@ -17,6 +17,7 @@ import type { FaqReviewHint } from "./faq-gen";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
 import { buildVariantTranslator } from "./variant-translations";
+import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
   addProductToCollection,
@@ -212,7 +213,16 @@ export async function importProduct(
   // navy/navy blue → "Marinblå") hålls åtskilda så att varianterna inte kollapsar
   // till en choice (deriveOptions Set) → tappad variant/mappning. SAMMA karta
   // används för colorCodes + swatch-bilder nedan så alla nycklar matchar exakt.
-  const translator = buildVariantTranslator(product.variants);
+  // AI-fallback (default på; egen switch via VARIANT_AI_TRANSLATION_ENABLED /
+  // flags.translateVariants): Haiku fyller i de variantvärden som den statiska
+  // tabellen missar — tabell+cache först, så nära $0. Av → ren synkron tabell
+  // ($0). Kvarvarande engelska (olösta värden) flaggar needsAiPolish nedan så de
+  // hamnar i poleringskön i stället för att nå kunden halv-engelska.
+  const translatorResult = variantAiTranslationEnabled(flags)
+    ? await buildVariantTranslatorAI(product.variants, { productTitle: product.rawTitle })
+    : { translator: buildVariantTranslator(product.variants), unresolved: [] as string[] };
+  const translator = translatorResult.translator;
+  const variantsNeedPolish = translatorResult.unresolved.length > 0;
   const variants = product.variants.map((v) => ({
     ...v,
     options: translator.options(v.options),
@@ -813,7 +823,7 @@ export async function importProduct(
     hasEuWarehouse,
     warehouseClass,
     ...(created.slugSuffix ? { slugSuffix: created.slugSuffix } : {}),
-    ...(aiEnabled ? {} : { needsAiPolish: true }),
+    ...((!aiEnabled || variantsNeedPolish) ? { needsAiPolish: true } : {}),
     qualityMode,
     ...(premium && premiumResult ? { qualityScore: premiumResult.score } : {}),
     ...(premium && premiumResult && !premiumResult.passed ? { needsManualPolish: true } : {}),
