@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { matchesColorName, colorBasesIn } from "./color-match";
+import { matchesColorName, colorBasesIn, isColorAxis } from "./color-match";
 
 describe("matchesColorName — riktiga hundvagn-alt-texter (live-data)", () => {
   const alts = {
@@ -60,5 +60,27 @@ describe("colorBasesIn", () => {
     expect(colorBasesIn("Grön modell 1")).toEqual(["grön"]);
     expect(colorBasesIn("Marinblå")).toEqual(["marinblå"]);
     expect(colorBasesIn("Large")).toEqual([]);
+  });
+});
+
+describe("isColorAxis — skilj äkta färgaxel från storlek-under-Color", () => {
+  it("storlekar/volymer är INTE en färgaxel (gazebo-fallet)", () => {
+    expect(isColorAxis(["2 L", "3 L", "6 L", "10 L", "15 L"])).toBe(false);
+    expect(isColorAxis(["S", "M", "L", "XL"])).toBe(false);
+    expect(isColorAxis(["1-pack", "2-pack"])).toBe(false);
+    expect(isColorAxis(["EU-kontakt", "USA-kontakt"])).toBe(false);
+  });
+  it("riktiga färgvärden ÄR en färgaxel (sv + eng)", () => {
+    expect(isColorAxis(["Blå", "Svart", "Röd"])).toBe(true);
+    expect(isColorAxis(["Red", "Blue"])).toBe(true);
+    expect(isColorAxis(["Marinblå", "Vinröd", "Khaki"])).toBe(true);
+  });
+  it("majoritet färger räcker (toleranta mot enstaka okänd färg)", () => {
+    expect(isColorAxis(["Blå", "Svart", "Teal"])).toBe(true); // 2/3 kända → färgaxel
+    expect(isColorAxis(["Blå", "2 L", "3 L"])).toBe(false); // 1/3 → ej färgaxel
+  });
+  it("tomt → false (säkrare som text)", () => {
+    expect(isColorAxis([])).toBe(false);
+    expect(isColorAxis(["", "  "])).toBe(false);
   });
 });

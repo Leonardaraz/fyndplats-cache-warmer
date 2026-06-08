@@ -133,20 +133,11 @@ Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · E
 
 -----
 
-## Steg 5 – PUBLICERA produkten (1 anrop, mutation)
+## Steg 5 – PUBLICERA INTE (lämna som draft)
 
-Rå-importer skapas som **draft** (`visible:false`) och syns inte i butiken. När poleringen ovan är klar och verifierad: gör produkten synlig (hämta färsk `revision` först).
+**Publicera INTE produkten.** När poleringen ovan är klar och verifierad: lämna produkten som **draft** (`visible:false`). **Leonard granskar och publicerar själv i efterhand.** Sätt alltså **inte** `visible:true` och kör inte publicerings-PATCH:en.
 
-```
-GET .../products/{PRODUCT_ID}        // färsk revision
-PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
-```
-
-```json
-{ "product": { "id": "{PRODUCT_ID}", "revision": "{FÄRSK_REVISION}", "visible": true } }
-```
-
-> Hoppa över detta bara om produkten medvetet ska förbli draft. Frontend uppdateras via ISR (ingen redeploy).
+> Referens (körs av **Leonard** senare, inte av dig): `PATCH .../products/{PRODUCT_ID}` med `{ "product": { "id": "{PRODUCT_ID}", "revision": "{FÄRSK_REVISION}", "visible": true } }`. Frontend uppdateras via ISR (ingen redeploy).
 
 -----
 
@@ -192,7 +183,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 - Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
 - Alla bilder har svenska alt-texter och **har kvar sina URL:er**.
-- Produkten är **publicerad** (`visible:true`) – annars syns den inte i butiken.
+- Produkten lämnas som **draft** (`visible:false`) — **publicera inte**; Leonard granskar och publicerar själv i efterhand.
 - (Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)
 
 -----
