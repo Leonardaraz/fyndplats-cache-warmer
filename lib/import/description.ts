@@ -22,8 +22,11 @@ const THIN_DESCRIPTION_CHARS = 200;
 // VÄRDELÖS som produkttext men ofta >200 tecken → den lurade tunn-gränsen så den
 // riktiga beskrivningen aldrig hämtades. En äkta produktbeskrivning nämner aldrig
 // "AliExpress" eller dessa fraser, så de är en säker signal på boilerplate.
+// AE-SPECIFIKA markörer (en äkta produktbeskrivning säger aldrig "AliExpress" och
+// inte AE:s meta-fraser). Medvetet INTE generiska ord som "easy return"/"free
+// shipping" ensamma — de kan finnas i riktig copy och skulle ge falska träffar.
 const AE_META_BOILERPLATE =
-  /\bali[\s-]?express\b|enjoy free shipping|limited time sale|\beasy return\b|\bfind more\b[\s\S]{0,60}\bproducts\b/i;
+  /\bali[\s-]?express\b|enjoy free shipping worldwide|limited time sale|\bfind more\b[\s\S]{0,60}\bproducts\b/i;
 
 /** True om texten är AliExpress generiska meta-boilerplate (inte riktig produkttext). */
 export function looksLikeScrapedBoilerplate(text: string): boolean {
