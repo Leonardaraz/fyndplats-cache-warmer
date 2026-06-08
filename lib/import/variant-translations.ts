@@ -624,6 +624,12 @@ export function buildTranslatorFromBase(
   variants: ReadonlyArray<{ options: Record<string, string> }>,
   baseValue: (raw: string) => string,
   baseAxis: (axis: string) => string = translateAxisName,
+  /**
+   * Per-rå-axel AI-namn för felmärkta "Color"-axlar som de deterministiska
+   * klasserna inte fångar (variant-ai-translate.ts skickar in det). Deterministisk
+   * klass vinner alltid; override används bara när klassen är okänd.
+   */
+  axisOverrides?: ReadonlyMap<string, string>,
 ): VariantTranslator {
   // Råvärden per råaxel i stabil först-sedd-ordning.
   const rawValuesByAxis = new Map<string, string[]>();
@@ -639,15 +645,14 @@ export function buildTranslatorFromBase(
   const valueByAxis = new Map<string, Map<string, string>>();
   for (const [axis, values] of rawValuesByAxis) {
     // Felmärkt "Color"-axel: AE-säljare lägger ofta storlekar/kontakter/antal osv.
-    // under färg-fältet ("Color: 42 in"). Blev axeln "Färg" men är ALLA värden en
-    // entydig icke-färg-klass? → döp om till rätt namn (Storlek/Kontakt/Antal/…) så
-    // kunden inte ser "Färg: 42 tum". deriveOptions släpper redan swatchen för
-    // icke-färgaxlar (isColorAxis); detta fixar det missvisande NAMNET. Konservativt
-    // (samtliga värden måste matcha) → riktiga (även exotiska) färger lämnas orörda.
+    // under färg-fältet ("Color: 42 in"). Blev axeln "Färg"? → 1) deterministisk
+    // klass om ALLA värden matchar en (Storlek/Kontakt/Antal/… , gratis), annars
+    // 2) ev. AI-föreslaget namn (okända klasser/material), annars 3) kvar som "Färg"
+    // (säkert; täcker äkta + exotiska färger). deriveOptions släpper redan swatchen
+    // för icke-färgaxlar (isColorAxis); detta fixar det missvisande NAMNET.
     let resolvedAxis = baseAxis(axis);
     if (resolvedAxis === "Färg") {
-      const inferred = inferMislabeledColorAxis(values);
-      if (inferred) resolvedAxis = inferred;
+      resolvedAxis = inferMislabeledColorAxis(values) ?? axisOverrides?.get(axis) ?? "Färg";
     }
     axisName.set(axis, resolvedAxis);
     const used = new Set<string>();

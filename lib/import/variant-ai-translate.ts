@@ -19,8 +19,10 @@ import crypto from "node:crypto";
 import { completeJsonRouted, TEXT_MODEL } from "../claude/client";
 import { getCachedResult, makeCacheKey, setCachedResult } from "../llm/cache";
 import { logVariantTranslation } from "../llm/variant-log";
+import { isColorAxis } from "./color-match";
 import {
   buildTranslatorFromBase,
+  inferMislabeledColorAxis,
   residualEnglishTokens,
   translateAxisName,
   translateValue,
@@ -29,11 +31,19 @@ import {
 import type { FeatureFlags } from "./types";
 
 const OP = "variant-translate";
+const AXIS_OP = "variant-axis-name";
 
 /** Översätter en batch okända råvärden → svenska (råvärde→svenska). Default
  *  anropar Claude/Haiku via routern; injicerbar i test. */
 export type TranslateBatchFn = (
   values: string[],
+  productTitle?: string,
+) => Promise<Record<string, string>>;
+
+/** Föreslår rätt svenskt AXELNAMN för felmärkta "Color"-axlar (rå-axel→svenska).
+ *  Default anropar Claude/Haiku via routern; injicerbar i test. */
+export type NameAxesFn = (
+  axes: { axis: string; values: string[] }[],
   productTitle?: string,
 ) => Promise<Record<string, string>>;
 
@@ -64,7 +74,7 @@ export function variantAiTranslationEnabled(flags?: FeatureFlags): boolean {
  */
 export async function buildVariantTranslatorAI(
   variants: ReadonlyArray<{ options: Record<string, string> }>,
-  opts?: { productTitle?: string; translateBatch?: TranslateBatchFn },
+  opts?: { productTitle?: string; translateBatch?: TranslateBatchFn; nameAxes?: NameAxesFn },
 ): Promise<AiTranslatorResult> {
   const translateBatch = opts?.translateBatch ?? aiTranslateBatch;
 
@@ -124,13 +134,58 @@ export async function buildVariantTranslatorAI(
     }
   }
 
-  // 5. Bas: AI-värde om finns, annars statiska tabellen. Kollisions-säkerheten
-  //    läggs ovanpå i buildTranslatorFromBase (IDENTISK med synk-vägen).
-  const baseValue = (raw: string) => aiMap.get(raw) ?? translateValue(raw);
-  const translator = buildTranslatorFromBase(variants, baseValue, translateAxisName);
+  // 4b. Axel-naming: en "Color"-axel vars värden varken är färger eller en känd
+  //     deterministisk klass är felmärkt. Låt AI föreslå rätt svenskt axelnamn
+  //     (cachat per axel+värdemängd, samma budget/fail-open som värde-AI:n). AI kan
+  //     även "rädda" exotiska färger ordlistan missar → svarar "Färg" (ingen
+  //     override). Lyckas AI inte → axeln läggs i unresolved (flaggar produkten).
+  const nameAxes = opts?.nameAxes ?? aiNameAxes;
+  const valuesByAxis = new Map<string, string[]>();
+  for (const v of variants)
+    for (const [axis, val] of Object.entries(v.options ?? {})) {
+      const arr = valuesByAxis.get(axis) ?? [];
+      if (!arr.includes(val)) arr.push(val);
+      valuesByAxis.set(axis, arr);
+    }
+  const axisOverrides = new Map<string, string>();
+  const unresolvedAxes: string[] = [];
+  const suspectAxes: { axis: string; values: string[] }[] = [];
+  for (const [axis, vals] of valuesByAxis) {
+    if (translateAxisName(axis) !== "Färg") continue; // bara "Color"-axlar
+    if (isColorAxis(vals)) continue; // riktiga färger → ok
+    if (inferMislabeledColorAxis(vals)) continue; // känd klass → deterministiskt (gratis)
+    const hit = await getCachedResult<string>(axisCacheKeyFor(axis, vals));
+    if (hit && typeof hit.value === "string") {
+      if (hit.value && hit.value !== "Färg") axisOverrides.set(axis, hit.value);
+      continue;
+    }
+    suspectAxes.push({ axis, values: vals });
+  }
+  if (suspectAxes.length > 0) {
+    let named: Record<string, string> = {};
+    try {
+      named = await nameAxes(suspectAxes, opts?.productTitle);
+    } catch {
+      named = {}; // namngivnings-miss får ALDRIG fälla importen
+    }
+    for (const { axis, values } of suspectAxes) {
+      const name = named[axis]?.trim();
+      if (name) {
+        await setCachedResult(axisCacheKeyFor(axis, values), AXIS_OP, name, "variant-ai");
+        if (name !== "Färg") axisOverrides.set(axis, name);
+      } else {
+        unresolvedAxes.push(axis); // AI kunde inte namnge → flagga produkten för polering
+      }
+    }
+  }
 
-  // 6. Olösta = kandidater som varken cache eller AI gav ett värde för.
-  const unresolved = candidates.filter((c) => !aiMap.has(c));
+  // 5. Bas: AI-värde om finns, annars statiska tabellen. Kollisions-säkerheten +
+  //    ev. AI-axelnamn läggs ovanpå i buildTranslatorFromBase (IDENTISK med synk).
+  const baseValue = (raw: string) => aiMap.get(raw) ?? translateValue(raw);
+  const translator = buildTranslatorFromBase(variants, baseValue, translateAxisName, axisOverrides);
+
+  // 6. Olösta = värden + ev. axlar AI inte kunde namnge → needsAiPolish-flaggan.
+  const unresolved = candidates.filter((c) => !aiMap.has(c)).concat(unresolvedAxes);
   return { translator, unresolved };
 }
 
@@ -170,4 +225,38 @@ Regler:
     failOpen: { sv: {} },
   });
   return res.sv ?? {};
+}
+
+/** Cache-nyckel per axel + värdemängd (sorterad → ordnings-oberoende), så samma
+ *  felmärkta "Color"-axel namnges en gång, någonsin. */
+function axisCacheKeyFor(axis: string, values: ReadonlyArray<string>): string {
+  const sig = [...values].map((v) => v.trim()).sort().join("|");
+  return makeCacheKey({ op: AXIS_OP, name: axis, description: sig });
+}
+
+/** Default-implementationen: ett Haiku-anrop som föreslår rätt svenskt axelnamn
+ *  för felmärkta "Color"-axlar. failOpen = tomt → axeln behålls som "Färg" och
+ *  flaggas för polering. */
+async function aiNameAxes(
+  axes: { axis: string; values: string[] }[],
+  productTitle?: string,
+): Promise<Record<string, string>> {
+  const system = `En svensk e-handel importerar AliExpress-produkter. En variant-axel som säljaren döpt till "Color" innehåller ofta INTE färger — säljare lägger storlek, material, modell, kontakt-typ, antal m.m. under färg-fältet. Ge det KORREKTA svenska axelnamnet (ETT enda ord) utifrån värdena.
+Regler:
+- Om värdena FAKTISKT är färger (även ovanliga som Champagne/Ivory/Graphite) → svara "Färg".
+- Annars välj ett kort, passande svenskt namn: Storlek, Material, Modell, Kontakt, Antal, Volym, Effekt, Mönster, Stil, Längd, Typ, Smak, Doft …
+- Svara ENBART JSON: {"names": { "<axelnamn>": "<svenskt namn>" }} med EXAKT samma axelnamn som nycklar.
+- Produktkontext (för att tolka tvetydiga värden): ${productTitle ?? "(okänd)"}.`;
+  const user = JSON.stringify(axes.map((a) => ({ axel: a.axis, värden: a.values })));
+  const res = await completeJsonRouted<{ names?: Record<string, string> }>({
+    system,
+    user,
+    op: AXIS_OP,
+    model: TEXT_MODEL, // Haiku — billigast
+    maxTokens: 120,
+    temperature: 0, // deterministiskt: samma axel+värden → alltid samma namn
+    cacheKey: null, // vi cachar per axel själva
+    failOpen: { names: {} },
+  });
+  return res.names ?? {};
 }

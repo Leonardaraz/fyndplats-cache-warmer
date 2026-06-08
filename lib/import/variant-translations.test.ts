@@ -235,6 +235,16 @@ describe("buildTranslatorFromBase — injicerbar bas (delas av AI-fallbacken)", 
     const t = buildTranslatorFromBase([{ options: { Color: "Red", Effect: "Glow" } }], base, translateAxisName);
     expect(t.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effect: "Glöd" });
   });
+
+  it("axisOverrides namnger okänd icke-färg-axel; deterministisk klass vinner över override", () => {
+    const ov = new Map([["Color", "Material"]]);
+    // okänd klass (material): ingen deterministisk träff → AI-override "Material"
+    const t1 = buildTranslatorFromBase([{ options: { Color: "Cotton" } }], translateValue, translateAxisName, ov);
+    expect(t1.options({ Color: "Cotton" })).toEqual({ Material: "Bomull" });
+    // storlek matchar en deterministisk klass → vinner över override
+    const t2 = buildTranslatorFromBase([{ options: { Color: "42 inch" } }], translateValue, translateAxisName, ov);
+    expect(t2.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
+  });
 });
 
 describe("isSizeLikeAxis — felmärkt 'Color'-axel med storlekar", () => {
