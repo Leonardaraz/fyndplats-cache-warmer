@@ -1,15 +1,37 @@
 "use client";
 import { useState } from "react";
 
+type Status = "idle" | "sending" | "sent" | "error";
+
 export function ContactForm() {
-  const [f, setF] = useState({ fornamn: "", efternamn: "", epost: "", meddelande: "" });
+  const [f, setF] = useState({ fornamn: "", efternamn: "", epost: "", meddelande: "", foretag: "" });
+  const [status, setStatus] = useState<Status>("idle");
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const subject = `Förfrågan från ${f.fornamn} ${f.efternamn}`;
-    const body = `${f.meddelande}\n\nFrån: ${f.fornamn} ${f.efternamn}\nE-post: ${f.epost}`;
-    window.location.href = `mailto:info@fyndplats.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    if (status === "sending") return;
+    setStatus("sending");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(f),
+      });
+      if (!res.ok) throw new Error("send_failed");
+      setStatus("sent");
+      setF({ fornamn: "", efternamn: "", epost: "", meddelande: "", foretag: "" });
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  if (status === "sent") {
+    return (
+      <div className="callout" role="status" aria-live="polite">
+        <p><strong>Tack för ditt meddelande!</strong> Vi har tagit emot det och återkommer normalt inom 24 timmar (vardagar 09–17).</p>
+      </div>
+    );
   }
 
   return (
@@ -20,7 +42,29 @@ export function ContactForm() {
       </div>
       <label>E-post<input type="email" required value={f.epost} onChange={set("epost")} /></label>
       <label>Meddelande<textarea rows={5} required value={f.meddelande} onChange={set("meddelande")} /></label>
-      <button className="buy" type="submit">Skicka meddelande</button>
+
+      {/* Honeypot — dolt för människor, fylls av bottar. */}
+      <input
+        type="text"
+        name="foretag"
+        tabIndex={-1}
+        autoComplete="off"
+        value={f.foretag}
+        onChange={set("foretag")}
+        aria-hidden="true"
+        style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+      />
+
+      <button className="buy" type="submit" disabled={status === "sending"}>
+        {status === "sending" ? "Skickar…" : "Skicka meddelande"}
+      </button>
+
+      {status === "error" && (
+        <p role="alert" style={{ color: "#C2410C", marginTop: 10 }}>
+          Något gick fel när meddelandet skulle skickas. Försök igen, eller mejla oss direkt på{" "}
+          <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>.
+        </p>
+      )}
     </form>
   );
 }
