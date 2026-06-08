@@ -22,15 +22,24 @@ const THIN_DESCRIPTION_CHARS = 200;
 // VÄRDELÖS som produkttext men ofta >200 tecken → den lurade tunn-gränsen så den
 // riktiga beskrivningen aldrig hämtades. En äkta produktbeskrivning nämner aldrig
 // "AliExpress" eller dessa fraser, så de är en säker signal på boilerplate.
-// AE-SPECIFIKA markörer (en äkta produktbeskrivning säger aldrig "AliExpress" och
-// inte AE:s meta-fraser). Medvetet INTE generiska ord som "easy return"/"free
-// shipping" ensamma — de kan finnas i riktig copy och skulle ge falska träffar.
-const AE_META_BOILERPLATE =
-  /\bali[\s-]?express\b|enjoy free shipping worldwide|limited time sale|\bfind more\b[\s\S]{0,60}\bproducts\b/i;
+// Marknadsplatsens namn — en äkta produktbeskrivning säger ALDRIG "AliExpress",
+// så detta ensamt är en säker signal på meta-boilerplate.
+const AE_NAME = /\bali[\s-]?express\b/i;
+// Övriga meta-fraser. Var och en kan förekomma i äkta säljcopy ("limited time sale"),
+// så de räknas bara som boilerplate i KOMBINATION (≥2) — AE-blurben innehåller alla,
+// äkta copy nästan aldrig två. Undviker falska träffar som skulle nedgradera en bra
+// beskrivning.
+const AE_META_PHRASES = [
+  /enjoy free shipping worldwide/i,
+  /limited time sale/i,
+  /\bfind more\b[\s\S]{0,60}\bproducts\b/i,
+];
 
 /** True om texten är AliExpress generiska meta-boilerplate (inte riktig produkttext). */
 export function looksLikeScrapedBoilerplate(text: string): boolean {
-  return AE_META_BOILERPLATE.test(text || "");
+  const t = text || "";
+  if (AE_NAME.test(t)) return true;
+  return AE_META_PHRASES.filter((re) => re.test(t)).length >= 2;
 }
 
 /** Ord/tecken som avslöjar dropship-ursprunget — tas bort ur texten (även i

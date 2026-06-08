@@ -143,6 +143,13 @@ describe("AE-meta-boilerplate (gazebo-fallet — backfill triggade inte)", () =>
     expect(
       looksLikeScrapedBoilerplate("Rymlig pop-up-gazebo för upp till 8 personer i vattentätt oxfordtyg."),
     ).toBe(false);
+    // EN ensam generisk reklamfras i äkta copy → INTE boilerplate (annars nedgradering).
+    expect(looksLikeScrapedBoilerplate("Don't miss our limited time sale on all camping gear!")).toBe(false);
+    expect(looksLikeScrapedBoilerplate("Find more matching home decor products in our collection.")).toBe(false);
+    // Men ≥2 AE-meta-fraser (utan namnet) → boilerplate.
+    expect(
+      looksLikeScrapedBoilerplate("Limited time sale! Enjoy free shipping worldwide on every order."),
+    ).toBe(true);
   });
 
   it("needsDescriptionBackfill = true för boilerplate trots >200 tecken", () => {
