@@ -146,10 +146,9 @@ Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · E
 Importen sköter varianterna automatiskt och deterministiskt (inga AI-anrop) — oftast behöver du inte göra något:
 
 - **Bildbyte per färg/modell är redan kopplat** (`linkedMedia`): huvudbilden byts när kunden väljer t.ex. "Blå". **Rör inte detta när det fungerar** (det gör det i de flesta fall — från skrapans swatch-bilder eller DS-API:ts per-SKU-bilder).
-- **Variantnamn översätts till svenska** deterministiskt ("Color"→"Färg", "Red"→"Röd"). Tabellen täcker dock inte allt — sammansatta/ovanliga värden kan bli klumpiga eller halv-engelska. **Dem får du gärna putsa** till naturlig svenska (samma ton som produktnamnet).
+- **Variantnamn översätts till svenska** deterministiskt vid import ("Color"→"Färg", "Red"→"Röd", "100 inch"→"100 tum"). Tabellen täcker inte allt — ovanliga värden kan bli halv-engelska. Men se A): variant-**värden** går inte att döpa om i efterhand i V3.
 
-**A) Putsa variantnamn (valfritt).** Hämta färsk `revision`, skicka tillbaka **HELA** `options`-arrayen + `variantsInfo` **verbatim** (annars 428), ändra bara `choices[].name`.
-⚠️ Byter du namnet på ett val som har en kopplad bild tappas kopplingen — sätt då om `linkedMedia` (se B) i samma PATCH.
+**A) Variantvärden (t.ex. "100 inch", "Blå") — döp INTE om dem.** I V3 är `choices[].name` låst till `choices[].key`: att ändra bara `name` **fastnar inte**, och att röra `key` riskerar leverantörs-SKU-mappningen (`FP-…`) och fulfillment. Importen lokaliserar redan kända enheter/färger/storlekar vid import (inch→tum, Color→Färg, Red→Röd) → värdet är rätt från start. Ser ett värde ändå fel ut: **flagga till Leonard** så utökas importens översättningstabell — forcera inte ett key-byte. Det polerade produktnamnet/titeln/beskrivningen styr ändå vad kunden främst läser.
 
 **B) Om ett färg-/modellval saknar bildbyte** (text-val utan att huvudbilden ändras) — koppla valet till rätt galleribild. Verifierat mot V3:
 
