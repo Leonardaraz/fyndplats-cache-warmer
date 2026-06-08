@@ -84,10 +84,12 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 Lägg fokussökordet naturligt i texten. Skicka `"description": { "nodes": [...] }` i samma PATCH. Ricos-format:
 
 - Stycke: `{"type":"PARAGRAPH","id":"p1","nodes":[{"type":"TEXT","id":"","nodes":[],"textData":{"text":"…","decorations":[]}}],"paragraphData":{}}`
-- Rubrik: `{"type":"HEADING","id":"h1","nodes":[<TEXT>],"headingData":{"level":2}}`
+- Rubrik (flik-rubrik): `{"type":"HEADING","id":"h1","nodes":[<TEXT utan decorations>],"headingData":{"level":2}}` — TEXT-noden ska vara **helt ren** (`"decorations":[]`), se ⚠️ nedan.
 - Punktlista: `{"type":"BULLETED_LIST","id":"ul1","nodes":[{"type":"LIST_ITEM","id":"li1","nodes":[{"type":"PARAGRAPH","id":"","nodes":[<TEXT>],"paragraphData":{}}]}]}`
-- Fet: `"decorations":[{"type":"BOLD","fontWeightValue":700}]`
+- Fet: `"decorations":[{"type":"BOLD","fontWeightValue":700}]` — använd i **stycken** (t.ex. FAQ-frågor), **aldrig på en flik-rubrik (`HEADING`)**, se ⚠️ nedan.
 - Bra struktur: ingress → **Egenskaper** (punkter) → **Tekniska specifikationer** (punkter) → **Vanliga frågor** (FAQ **i beskrivningen**, INTE som egen info-sektion – siten har ett tak på 400 info-sektioner).
+
+> ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Lägger du `BOLD`-decoration på HEADING-textnoden blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` → matchningen faller och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). FAQ-frågorna får gärna vara feta **stycken** under `<h2>Vanliga frågor</h2>`, men `<h2>`-raden själv ska vara ren.
 
 -----
 
@@ -182,6 +184,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 - Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
 - Alla bilder har svenska alt-texter och **har kvar sina URL:er**.
+- Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - Produkten lämnas som **draft** (`visible:false`) — **publicera inte**; Leonard granskar och publicerar själv i efterhand.
 - (Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)
 
