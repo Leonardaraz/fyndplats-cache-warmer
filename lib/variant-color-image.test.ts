@@ -8,7 +8,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { colorKeysOf, linkVariantImagesByAltText } from "./variant-color-image.ts";
+import { colorKeysOf, linkVariantImagesByAltText, colorOf } from "./variant-color-image.ts";
 
 // Verkliga galleri-alt-texter för hundvagnen (Wix V1, productId 1e1a3869…).
 // De per-färg-bilderna ligger SIST (index 9–11); de generiska saknar färgord.
@@ -117,4 +117,25 @@ test("no-op when there are no media items or no choices", () => {
   linkVariantImagesByAltText(choices, []);
   assert.equal(choices[0].image, "");
   linkVariantImagesByAltText([], HUNDVAGN_MEDIA); // får inte kasta
+});
+
+test("colorOf — böjningar/sammansättningar rätt, inga falska delsträngsträffar (audit M1/M2)", () => {
+  // Enkla färger (sv + eng)
+  assert.equal(colorOf("Röd"), "#dc2626");
+  assert.equal(colorOf("blå"), "#2563eb");
+  assert.equal(colorOf("Black"), "#1c1c1c");
+  // Böjningar + sammansättningar (audit F1 — får INTE tappa pricken)
+  assert.equal(colorOf("Marinblå"), "#1e3a8a"); // marin, inte blå
+  assert.equal(colorOf("Himmelsblå"), "#2563eb"); // suffix → blå
+  assert.equal(colorOf("Rosenröd"), "#dc2626"); // suffix → röd
+  assert.equal(colorOf("Blått"), "#2563eb");
+  assert.equal(colorOf("Ljusgrått"), "#9ca3af"); // suffix → grå
+  assert.equal(colorOf("Vinrött"), "#7f1d1d");
+  assert.equal(colorOf("Blå modell 1"), "#2563eb"); // hela ord
+  // INGA falska träffar (audit M2)
+  assert.equal(colorOf("EU-kontakt"), ""); // tidigare "ko"=cow
+  assert.equal(colorOf("Korall"), "");
+  assert.equal(colorOf("Standard"), ""); // inte "tan"
+  assert.equal(colorOf("2 L"), "");
+  assert.equal(colorOf(""), "");
 });

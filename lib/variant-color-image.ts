@@ -100,6 +100,25 @@ function intersects(a: Set<string>, b: Set<string>): boolean {
   return false;
 }
 
+// Kanonisk bas-färg → CSS-hex för färgpricken i variantväljaren (när per-val-bild
+// saknas). Återanvänder colorKeysOf ovan → samma böjnings-medvetna detektering
+// (exakt + suffix ≥3) utan falska delsträngsträffar.
+const BASE_HEX: Record<string, string> = {
+  grå: "#9ca3af", blå: "#2563eb", röd: "#dc2626", grön: "#16804a", gul: "#fbbc05",
+  vit: "#FFFFFF", svart: "#1c1c1c", beige: "#e8d4b3", khaki: "#c3b091", natur: "#e0d3c1",
+  rosa: "#fbcfe8", lila: "#a855f7", brun: "#92400e", orange: "#f47a35", guld: "#d4af37",
+  silver: "#c0c0c0", turkos: "#06b6d4", marin: "#1e3a8a", vinröd: "#7f1d1d", champagne: "#f7e7ce",
+};
+
+/** CSS-hex för ett färgnamn (böjnings-medvetet via colorKeysOf), annars "". */
+export function colorOf(name: string): string {
+  for (const base of colorKeysOf(name)) {
+    const hex = BASE_HEX[base];
+    if (hex) return hex;
+  }
+  return "";
+}
+
 // Wixstatic-bildens fil-id (samma fil kan levereras med olika transform-params),
 // så vi jämför på id:t — inte hela URL:en. Annars kunde samma bild tilldelas två
 // val bara för att transformerna skiljer sig.

@@ -6,9 +6,8 @@ import local from "../products.json";
 import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
-import { linkVariantImagesByAltText } from "./variant-color-image";
+import { linkVariantImagesByAltText, colorOf } from "./variant-color-image";
 import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
-import { colorOf } from "./color-hex";
 
 export type Product = {
   id: string;
