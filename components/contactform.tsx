@@ -4,7 +4,7 @@ import { useState } from "react";
 type Status = "idle" | "sending" | "sent" | "error";
 
 export function ContactForm() {
-  const [f, setF] = useState({ fornamn: "", efternamn: "", epost: "", meddelande: "", foretag: "" });
+  const [f, setF] = useState({ fornamn: "", efternamn: "", epost: "", meddelande: "", hp: "" });
   const [status, setStatus] = useState<Status>("idle");
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
 
@@ -12,17 +12,22 @@ export function ContactForm() {
     e.preventDefault();
     if (status === "sending") return;
     setStatus("sending");
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 15000);
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(f),
+        signal: ctrl.signal,
       });
       if (!res.ok) throw new Error("send_failed");
       setStatus("sent");
-      setF({ fornamn: "", efternamn: "", epost: "", meddelande: "", foretag: "" });
+      setF({ fornamn: "", efternamn: "", epost: "", meddelande: "", hp: "" });
     } catch {
       setStatus("error");
+    } finally {
+      clearTimeout(t);
     }
   }
 
@@ -43,14 +48,16 @@ export function ContactForm() {
       <label>E-post<input type="email" required value={f.epost} onChange={set("epost")} /></label>
       <label>Meddelande<textarea rows={5} required value={f.meddelande} onChange={set("meddelande")} /></label>
 
-      {/* Honeypot — dolt för människor, fylls av bottar. */}
+      {/* Honeypot — dolt för människor, fylls av bottar. Icke-semantiskt namn +
+          autoComplete="off" så att webbläsar-/lösenordshanterar-autofyll inte
+          råkar fylla det åt en riktig kund (skulle annars tappa meddelandet). */}
       <input
         type="text"
-        name="foretag"
+        name="hp_field"
         tabIndex={-1}
         autoComplete="off"
-        value={f.foretag}
-        onChange={set("foretag")}
+        value={f.hp}
+        onChange={set("hp")}
         aria-hidden="true"
         style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
       />

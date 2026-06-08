@@ -22,7 +22,12 @@ function isValidEmail(e: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 }
 function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export async function POST(request: Request) {
@@ -31,7 +36,7 @@ export async function POST(request: Request) {
     efternamn?: string;
     epost?: string;
     meddelande?: string;
-    foretag?: string; // honeypot — fylls bara av bottar
+    hp?: string; // honeypot — icke-semantiskt namn så webbläsar-autofyll inte rör det
   };
   try {
     body = await request.json();
@@ -41,7 +46,7 @@ export async function POST(request: Request) {
 
   // Honeypot: bottar fyller i det dolda fältet. Låtsas att allt gick bra men
   // skicka inget mejl.
-  if ((body.foretag || "").trim()) {
+  if ((body.hp || "").trim()) {
     return NextResponse.json({ ok: true });
   }
 
