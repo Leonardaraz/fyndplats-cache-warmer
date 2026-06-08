@@ -162,6 +162,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           mainBlur={mainBlur}
           variants={p.variants}
           options={p.options}
+          variantAxes={p.variantAxes}
+          variantTable={p.variantTable}
           category={primaryCol?.name}
         />
       </div>

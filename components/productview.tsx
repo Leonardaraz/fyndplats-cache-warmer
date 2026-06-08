@@ -5,6 +5,7 @@ import { Gallery } from "./gallery";
 import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
+import { findVariant, defaultSelection, isChoiceAvailable } from "../lib/variant-multi";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -119,6 +120,8 @@ export function ProductView({
   mainBlur,
   variants,
   options,
+  variantAxes,
+  variantTable,
   category,
   priceNum,
 }: {
@@ -136,6 +139,8 @@ export function ProductView({
   mainBlur?: string;
   variants: { id: string; label: string }[];
   options?: { name: string; choices: Choice[] } | null;
+  variantAxes?: { name: string; choices: { label: string; image: string; color: string }[] }[];
+  variantTable?: { choices: Record<string, string>; variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean; image: string }[];
   category?: string;
   priceNum: number;
 }) {
@@ -147,6 +152,15 @@ export function ProductView({
   const [sel, setSel] = useState(0);
   const [galleryIdx, setGalleryIdx] = useState(0); // aktiv galleribild
   const [added, setAdded] = useState(false);
+
+  // Multi-axel (Färg × Storlek): en väljare per axel. `picked` = valt val per axel
+  // (startar på första variant i lager). currentVariant = varianten för hela den
+  // valda kombinationen → driver pris/lager/bild/kundvagn nedan.
+  const axes = variantAxes ?? [];
+  const table = variantTable ?? [];
+  const multiAxis = axes.length >= 2 && table.length >= 1;
+  const [picked, setPicked] = useState<Record<string, string>>(() => (multiAxis ? defaultSelection(table) : {}));
+  const currentVariant = multiAxis ? findVariant(table, picked) : undefined;
 
   // GA4 view_item — fires once per produkt-sidvisning. productId i dep-arrayen
   // gör att events skickas korrekt vid client-side route mellan produkter.
@@ -166,42 +180,125 @@ export function ProductView({
   // I bild-läge behåller vi HELA bildserien men lägger variantbilderna först
   // (index 0..n-1 = variant 0..n-1), så val av variant hoppar till rätt bild
   // utan att övriga galleribilder (instruktioner etc.) försvinner.
-  const galleryImages = allHaveImage ? mergeGallery(imageChoices, images) : images;
+  // Galleri: i multi-axel läggs kombinationernas bilder först och huvudbilden hoppar
+  // till den valda kombinationens bild. Annars som förut (single-axel).
+  const comboImages = multiAxis ? Array.from(new Set([...table.map((t) => t.image).filter(Boolean), ...images])) : [];
+  const galleryImages = multiAxis
+    ? comboImages.length
+      ? comboImages
+      : images
+    : allHaveImage
+      ? mergeGallery(imageChoices, images)
+      : images;
+  const multiActive = multiAxis && currentVariant?.image ? Math.max(0, galleryImages.indexOf(currentVariant.image)) : 0;
 
   // Pickern väljer variant + hoppar galleriet dit. Galleribyte speglar tillbaka
   // till pickern bara om bilden är en av variantbilderna (de n första).
   const pickVariant = (i: number) => { setSel(i); setGalleryIdx(i); };
   const onGalleryActive = (j: number) => { setGalleryIdx(j); if (j < imageChoices.length) setSel(j); };
-  const variantId = hasImageVariants
-    ? imageChoices[sel]?.variantId
-    : variants.length > 1
-      ? variants[sel]?.id
-      : variants[0]?.id;
-  const displayPrice = hasImageVariants && imageChoices[sel]?.price ? imageChoices[sel].price : price;
-  const displayOriginal = hasImageVariants ? (imageChoices[sel]?.originalPrice || "") : (onSale ? (originalPrice || "") : "");
-  const needsVariant = hasImageVariants || variants.length > 0;
-  const hasTextVariants = !hasImageVariants && variants.length > 1;
-  // Etikett för vald variant — visas i pickern och i den sticky mobil-knappen.
-  const variantLabel = hasImageVariants ? (imageChoices[sel]?.label || "") : hasTextVariants ? (variants[sel]?.label || "") : "";
+  const hasTextVariants = !multiAxis && !hasImageVariants && variants.length > 1;
+  const variantId = multiAxis
+    ? currentVariant?.variantId
+    : hasImageVariants
+      ? imageChoices[sel]?.variantId
+      : variants.length > 1
+        ? variants[sel]?.id
+        : variants[0]?.id;
+  const displayPrice = multiAxis
+    ? currentVariant?.price || price
+    : hasImageVariants && imageChoices[sel]?.price
+      ? imageChoices[sel].price
+      : price;
+  const displayOriginal = multiAxis
+    ? currentVariant?.originalPrice || ""
+    : hasImageVariants
+      ? imageChoices[sel]?.originalPrice || ""
+      : onSale
+        ? originalPrice || ""
+        : "";
+  const needsVariant = multiAxis ? true : hasImageVariants || variants.length > 0;
+  // Etikett för vald variant/kombination — visas i pickern och sticky-knappen.
+  const variantLabel = multiAxis
+    ? axes.map((a) => picked[a.name]).filter(Boolean).join(" / ")
+    : hasImageVariants
+      ? imageChoices[sel]?.label || ""
+      : hasTextVariants
+        ? variants[sel]?.label || ""
+        : "";
 
-  // Per-variant lager (V3-hydrerat): den VALDA variantens lager styr köp-knappen så
-  // att en slut-variant inte kan läggas i kundvagn (även om andra varianter finns).
-  // inStock===false = explicit slut; undefined/saknat → behandlas som i lager (ingen
-  // regression för produkter/varianter där statusen inte hydrerats).
-  const selVariantInStock = hasImageVariants ? imageChoices[sel]?.inStock !== false : true;
-  const buyable = inStock && selVariantInStock;
-  const variantOnlyOOS = inStock && !selVariantInStock; // produkten finns, men vald variant är slut
+  // Per-variant lager (V3-hydrerat): den VALDA variantens/kombinationens lager styr
+  // köp-knappen så att en slut-variant inte kan läggas i kundvagn. inStock===false =
+  // explicit slut; undefined/saknat → i lager. I multi-axel måste kombinationen
+  // dessutom EXISTERA (currentVariant) för att vara köpbar.
+  const selVariantInStock = multiAxis
+    ? !!currentVariant?.inStock
+    : hasImageVariants
+      ? imageChoices[sel]?.inStock !== false
+      : true;
+  const buyable = inStock && selVariantInStock && (!multiAxis || !!currentVariant);
+  const variantOnlyOOS = inStock && !buyable; // produkten finns men vald variant/kombination ej köpbar
 
   const onAdd = async () => {
     // GA4: skicka add_to_cart med variantens pris om det finns, annars listpris.
-    const itemPrice = hasImageVariants && imageChoices[sel]?.priceNum
-      ? imageChoices[sel].priceNum
-      : priceNum;
+    const itemPrice = multiAxis
+      ? currentVariant?.priceNum || priceNum
+      : hasImageVariants && imageChoices[sel]?.priceNum
+        ? imageChoices[sel].priceNum
+        : priceNum;
     trackAddToCart({ id: productId, name, priceNum: itemPrice, category });
     await add(productId, variantId || undefined);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
+
+  // Multi-axel: en väljare PER axel (t.ex. Färg + Storlek). Återanvänder swatch-
+  // stilen; varje axel får eget läge (bild/färg/text). Slut/omöjliga kombinationer
+  // dämpas men går att klicka (visar då slut-läget) → inga återvändsgränder.
+  const multiVariantPicker = multiAxis ? (
+    <div className="pdp-variants">
+      {axes.map((axis) => {
+        const allImg = axis.choices.every((c) => c.image);
+        const someColor = axis.choices.some((c) => c.color);
+        const mode: "image" | "color" | "text" = allImg ? "image" : someColor ? "color" : "text";
+        return (
+          <div className="pdp-axis" key={axis.name}>
+            <div className="varhead">
+              <span className="varhead-key">{axis.name}</span>
+              <strong className="varhead-val">{picked[axis.name] || ""}</strong>
+            </div>
+            <div className={`varswatches ${mode}`}>
+              {axis.choices.map((c) => {
+                const active = picked[axis.name] === c.label;
+                const avail = isChoiceAvailable(table, axis.name, c.label, picked);
+                return (
+                  <button
+                    key={c.label}
+                    type="button"
+                    className={`varswatch ${mode} ${active ? "active" : ""} ${avail ? "" : "oos"}`}
+                    onClick={() => setPicked((prev) => ({ ...prev, [axis.name]: c.label }))}
+                    aria-pressed={active}
+                    aria-label={avail ? c.label : `${c.label} – slut i lager`}
+                    title={avail ? c.label : `${c.label} – slut i lager`}
+                  >
+                    {mode === "image" ? (
+                      <span className="varswatch-thumb">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={thumbUrl(c.image)} alt="" loading="lazy" width={38} height={38} decoding="async" />
+                      </span>
+                    ) : mode === "color" ? (
+                      <span className="varswatch-dot" style={{ background: c.color || "#e5e7eb" }} />
+                    ) : null}
+                    <span className="varswatch-name">{c.label}</span>
+                    {!avail && <span className="varswatch-oos">Slut</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  ) : null;
 
   // En enhetlig variant-picker (named swatches): cirkelbild/färgprick + namn,
   // tydlig vald-state och dimmade övriga. Renderas en gång; CSS-order lyfter den
@@ -258,12 +355,12 @@ export function ProductView({
         images={galleryImages}
         alt={name}
         mainBlur={mainBlur}
-        active={allHaveImage ? galleryIdx : undefined}
-        onActiveChange={allHaveImage ? onGalleryActive : undefined}
+        active={multiAxis ? multiActive : allHaveImage ? galleryIdx : undefined}
+        onActiveChange={multiAxis ? undefined : allHaveImage ? onGalleryActive : undefined}
         // Förladda variantbilderna (de ligger först i galleryImages) efter LCP så
         // varje variantbyte blir en direkt cache-träff. Galleriets extrabilder
         // (svep-bara, ej i pickern) lämnas lazy.
-        eagerCount={allHaveImage ? imageChoices.length : 1}
+        eagerCount={multiAxis ? Math.min(comboImages.length || 1, 8) : allHaveImage ? imageChoices.length : 1}
       />
 
       <div className="pinfo">
@@ -293,7 +390,7 @@ export function ProductView({
           )}
         </div>
 
-        {variantPicker}
+        {multiAxis ? multiVariantPicker : variantPicker}
 
         <div className="buybox pdp-actions">
           <button

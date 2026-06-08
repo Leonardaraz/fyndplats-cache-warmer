@@ -665,6 +665,8 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
    En enhetlig picker som visar både cirkelbild OCH namn. Tydlig vald-state
    (lyft, scale, kraftig border), dimmade ovalda. Horisontell scroll om många. */
 .pdp-variants{margin:0 0 20px;max-width:420px}
+/* Multi-axel: en väljare per axel (Färg, Storlek …) med luft emellan */
+.pdp-axis + .pdp-axis{margin-top:16px}
 .varhead{font-size:14px;color:var(--soft);margin-bottom:11px}
 .varhead-key::after{content:":"}
 .varhead-val{color:var(--ink);font-weight:700;margin-left:6px}
