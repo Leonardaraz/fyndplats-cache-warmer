@@ -55,6 +55,16 @@ describe("buildSwatchImagesFromDs", () => {
     });
   });
 
+  it("föredrar färg-axeln framför storlek även när storlek står först (audit #6)", () => {
+    // Båda axlarna kvalificerar (varje värde → 1 distinkt bild), men Size står först
+    // i skuProps. Utan färg-preferens skulle Size felaktigt få bilderna.
+    const variants = [
+      dsv("s1", { Size: "S", Color: "Red" }, "red.jpg"),
+      dsv("s2", { Size: "L", Color: "Blue" }, "blue.jpg"),
+    ];
+    expect(buildSwatchImagesFromDs(variants)).toEqual({ Color: { Red: "red.jpg", Blue: "blue.jpg" } });
+  });
+
   it("returnerar undefined när alla SKU:er delar SAMMA bild (ingen riktig swatch-axel)", () => {
     const variants = [
       dsv("s1", { Color: "Red", Size: "S" }, "hero.jpg"),

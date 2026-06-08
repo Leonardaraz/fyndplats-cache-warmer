@@ -40,6 +40,25 @@ describe("trimVariants", () => {
     expect(r.summary).toContain("sales: 0");
   });
 
+  it("behandlar INTE storlekar-under-Färg som färgaxel (audit #4)", () => {
+    // "Färg" men värdena är volymer → ingen "minst 1 per färg"-garanti på pseudo-färger.
+    const vs = [
+      v("1", { Färg: "2 L" }, { stock: 5 }),
+      v("2", { Färg: "3 L" }, { stock: 4 }),
+      v("3", { Färg: "6 L" }, { stock: 3 }),
+    ];
+    expect(trimVariants(vs, 2).summary).not.toContain("täckta"); // ingen färggruppering
+  });
+
+  it("behåller färggruppering för ÄKTA färger under Färg", () => {
+    const vs = [
+      v("1", { Färg: "Röd" }, { stock: 5 }),
+      v("2", { Färg: "Blå" }, { stock: 4 }),
+      v("3", { Färg: "Grön" }, { stock: 3 }),
+    ];
+    expect(trimVariants(vs, 2).summary).toContain("täckta");
+  });
+
   it("behåller minst en variant per huvudfärg (stänger inte ut en hel färg)", () => {
     // 3 färger × 4 storlekar = 12 varianter. Blå har lågt lager men ska ändå
     // få minst en plats kvar när maxCount (4) >= antal färger (3).

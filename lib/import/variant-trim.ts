@@ -16,6 +16,8 @@
 //   • Returnerar ALLTID minst 1 variant (en produkt utan varianter går inte att sälja).
 //   • <= maxCount inkommande varianter → ingen trim (kept = allt, removed = []).
 
+import { isColorAxis } from "./color-match";
+
 /** Minsta variant-form trimVariants behöver. Pipelinens AliExpressVariant uppfyller den. */
 export interface TrimmableVariant {
   supplierVariantId: string;
@@ -39,12 +41,19 @@ export interface TrimResult<T extends TrimmableVariant> {
 /** Axelnamn (case-insensitivt) som tolkas som "färg" — på svenska + engelska. */
 const COLOR_AXIS_NAMES = new Set(["färg", "farg", "color", "colour", "couleur"]);
 
-/** Hittar färgaxelns nyckel i en variants options, eller null om ingen färgaxel finns. */
+/**
+ * Hittar färgaxelns nyckel, eller null om ingen ÄKTA färgaxel finns. Namnet räcker
+ * inte — AE-säljare lägger ofta storlekar/volymer under "Color"-fältet; då ska
+ * "minst 1 per färg"-garantin INTE tillämpas på pseudo-färger (annars behålls fel
+ * varianter). Värdena måste alltså faktiskt vara färger (isColorAxis).
+ */
 function colorAxisKey(variants: TrimmableVariant[]): string | null {
   const keys = new Set<string>();
   for (const v of variants) for (const k of Object.keys(v.options)) keys.add(k);
   for (const k of keys) {
-    if (COLOR_AXIS_NAMES.has(k.trim().toLowerCase())) return k;
+    if (!COLOR_AXIS_NAMES.has(k.trim().toLowerCase())) continue;
+    const values = variants.map((v) => v.options[k]).filter((x): x is string => Boolean(x));
+    if (isColorAxis(values)) return k;
   }
   return null;
 }

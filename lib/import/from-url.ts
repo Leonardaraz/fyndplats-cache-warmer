@@ -11,6 +11,7 @@ import { getProduct as getAliExpressDsProduct } from "../aliexpress/client";
 import type { AliExpressDsProduct, AliExpressDsVariant } from "../aliexpress/types";
 import type { AliExpressProduct, AliExpressVariant } from "./types";
 import { parseAliExpressUrl } from "../bulk-import/url";
+import { isColorAxis } from "./color-match";
 
 export interface FromUrlOptions {
   /** Filter på variantnivå — om angiven importeras endast varianter vars
@@ -108,6 +109,7 @@ export function buildSwatchImagesFromDs(
 ): Record<string, Record<string, string>> | undefined {
   const axisNames = new Set<string>();
   for (const v of variants) for (const k of Object.keys(v.skuProps)) axisNames.add(k);
+  const qualifying: { axis: string; map: Record<string, string> }[] = [];
   for (const axis of axisNames) {
     const byValue: Record<string, Set<string>> = {};
     for (const v of variants) {
@@ -126,9 +128,15 @@ export function buildSwatchImagesFromDs(
     // en storleksaxel där alla SKU:er delar samma hjältebild ger en degenererad
     // karta som skulle koppla samma bild till varje val (linkedMedia-brus).
     if (new Set(Object.values(map)).size < 2) continue;
-    return { [axis]: map };
+    qualifying.push({ axis, map });
   }
-  return undefined;
+  if (qualifying.length === 0) return undefined;
+  // Vid FLERA kvalificerande axlar: föredra FÄRG-axeln (per-färg-bilder är det
+  // normala swatch-fallet) framför t.ex. en storleksaxel vars SKU:er råkar ha
+  // distinkta bilder — annars kunde fel axel få bilderna pga insättningsordning.
+  // En enda axel → oförändrat beteende.
+  const chosen = qualifying.find((q) => isColorAxis(Object.keys(q.map))) ?? qualifying[0];
+  return { [chosen.axis]: chosen.map };
 }
 
 /**
