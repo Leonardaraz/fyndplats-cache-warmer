@@ -133,4 +133,11 @@ describe("buildVariantTranslator — kollisions-säker (dark/deep blue förblir 
     expect(t.options({ Size: "XL" })).toEqual({ Storlek: "XL" });
     expect(t.options({ Size: "S" })).toEqual({ Storlek: "S" });
   });
+
+  it("unik även när disambig-formen själv krockar (audit F1)", () => {
+    const raws = ["Mörkblå 2", "dark blue", "deep blue", "deep blue "]; // sista två är distinkta råsträngar
+    const t = buildVariantTranslator(raws.map((r) => ({ options: { Color: r } })));
+    const out = raws.map((r) => t.options({ Color: r }).Färg);
+    expect(new Set(out).size).toBe(4); // alla fyra distinkta → ingen variant-kollaps
+  });
 });

@@ -450,11 +450,15 @@ export function buildVariantTranslator(
     const used = new Set<string>();
     const m = new Map<string, string>();
     for (const raw of values) {
-      let t = translateValue(raw);
+      const base = translateValue(raw);
+      let t = base;
       if (used.has(t)) {
-        // Kollision: gör distinkt med råvärdet; i värsta fall löpnummer.
-        const disamb = `${t} (${raw.trim()})`;
-        t = used.has(disamb) ? `${t} ${used.size + 1}` : disamb;
+        // Kollision: särskilj med råvärdet; om även det är upptaget, löpnummer.
+        // Loopa tills strängen är FRI — annars kan disambig-formen själv krocka
+        // (t.ex. ett råvärde som bokstavligen heter "Mörkblå 2", eller whitespace-
+        // varianter av samma färg) och unikheten brytas.
+        t = `${base} (${raw.trim()})`;
+        for (let n = 2; used.has(t); n++) t = `${base} ${n}`;
       }
       used.add(t);
       m.set(raw, t);
