@@ -174,7 +174,11 @@ export function ProductView({
   // Rendering-läge för variant-pickern: bild > färg-swatch > text-pill.
   // Färg-swatch är fallback när per-choice-bild saknas (colorOf på namnet).
   const allHaveImage = hasImageVariants && imageChoices.every((c) => c.image);
-  const someHaveColor = hasImageVariants && imageChoices.some((c) => c.color);
+  // Färg-läge bara när MAJORITETEN av valen faktiskt är färger (speglar importens
+  // värde-baserade isColorAxis) — inte vid en enda (ev. falsk) färgträff. Annars
+  // skulle en pseudo-färgaxel (storlekar/kontakttyper) ritas med gråa prickar.
+  const someHaveColor =
+    hasImageVariants && imageChoices.filter((c) => c.color).length >= Math.ceil(imageChoices.length / 2);
   const variantMode: "image" | "color" | "text" = allHaveImage ? "image" : someHaveColor ? "color" : "text";
 
   // I bild-läge behåller vi HELA bildserien men lägger variantbilderna först
@@ -276,7 +280,7 @@ export function ProductView({
     <div className="pdp-variants">
       {axes.map((axis) => {
         const allImg = axis.choices.every((c) => c.image);
-        const someColor = axis.choices.some((c) => c.color);
+        const someColor = axis.choices.filter((c) => c.color).length >= Math.ceil(axis.choices.length / 2);
         const mode: "image" | "color" | "text" = allImg ? "image" : someColor ? "color" : "text";
         return (
           <div className="pdp-axis" key={axis.name}>

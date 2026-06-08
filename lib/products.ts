@@ -6,7 +6,7 @@ import local from "../products.json";
 import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
-import { linkVariantImagesByAltText } from "./variant-color-image";
+import { linkVariantImagesByAltText, colorOf } from "./variant-color-image";
 import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
 
 export type Product = {
@@ -49,43 +49,8 @@ export type Product = {
   imageFlags: string[];
 };
 
-// Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas.
-// V3-migrationen tappade bilder per ch.media på många produkter; vi visar då
-// färgade cirklar baserat på chovärdets namn istället för fula text-pills.
-const COLOR_HEX: Record<string, string> = {
-  vit: "#FFFFFF", white: "#FFFFFF",
-  svart: "#1c1c1c", black: "#1c1c1c",
-  grå: "#9ca3af", grey: "#9ca3af", gray: "#9ca3af",
-  röd: "#dc2626", red: "#dc2626",
-  blå: "#2563eb", blue: "#2563eb",
-  grön: "#16804a", green: "#16804a",
-  gul: "#fbbc05", yellow: "#fbbc05",
-  orange: "#f47a35",
-  rosa: "#fbcfe8", pink: "#fbcfe8",
-  lila: "#a855f7", purple: "#a855f7", violett: "#a855f7",
-  beige: "#e8d4b3", khaki: "#c3b091",
-  brun: "#92400e", brown: "#92400e", tan: "#d2b48c",
-  guld: "#d4af37", gold: "#d4af37",
-  silver: "#c0c0c0",
-  turkos: "#06b6d4", turquoise: "#06b6d4", teal: "#0d9488",
-  petrol: "#005f73",
-  natur: "#e0d3c1", naturlig: "#e0d3c1",
-  marin: "#1e3a8a", navy: "#1e3a8a",
-  vinröd: "#7f1d1d", burgundy: "#7f1d1d", bordeaux: "#7f1d1d",
-  champagne: "#f7e7ce",
-  cream: "#fefce8", creme: "#fefce8",
-  ko: "#fefce8", cow: "#fefce8",
-  tiger: "#f59e0b",
-};
-
-function colorOf(name: string): string {
-  const k = (name || "").toLowerCase().trim();
-  if (COLOR_HEX[k]) return COLOR_HEX[k];
-  for (const [key, hex] of Object.entries(COLOR_HEX)) {
-    if (k.includes(key)) return hex;
-  }
-  return "";
-}
+// Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas. Utbruten
+// till ./color-hex (testbar; exakt/hel-ord-match, inga lösa delsträngsträffar).
 
 // Public Wix Headless OAuth client ID for wix-vibe-site-u4lp (V3 catalog).
 // NOT a secret — it ships client-side via NEXT_PUBLIC_ and is visible to every
