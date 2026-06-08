@@ -6,6 +6,7 @@ import {
   visibleDescriptionLength,
   imageCount,
   isMoreInformative,
+  looksLikeScrapedBoilerplate,
 } from "./description";
 import type { AliExpressProduct } from "./types";
 
@@ -126,5 +127,37 @@ describe("isMoreInformative (audit #1 — ersätt på riktigt innehåll)", () =>
 
   it("tom detail ersätter aldrig", () => {
     expect(isMoreInformative("", { descriptionHtml: "<p></p>" })).toBe(false);
+  });
+});
+
+describe("AE-meta-boilerplate (gazebo-fallet — backfill triggade inte)", () => {
+  // Exakt typen av text importen fick istället för den riktiga beskrivningen.
+  const AE_BLURB =
+    "Buy SucceBuy Pop-up Camping Gazebo Camping Canopy Shelter 6 Sided 12' x 12' / 10' x 10' " +
+    "Sun Shade Tents & Canopies Camping & Hiking at Aliexpress for. Find more 15, 153801 and products. " +
+    "Enjoy Free Shipping Worldwide! Limited Time Sale Easy Return.";
+
+  it("känns igen som boilerplate (inte riktig produkttext)", () => {
+    expect(AE_BLURB.length).toBeGreaterThan(200); // skulle annars passera tunn-gränsen
+    expect(looksLikeScrapedBoilerplate(AE_BLURB)).toBe(true);
+    expect(
+      looksLikeScrapedBoilerplate("Rymlig pop-up-gazebo för upp till 8 personer i vattentätt oxfordtyg."),
+    ).toBe(false);
+    // EN ensam generisk reklamfras i äkta copy → INTE boilerplate (annars nedgradering).
+    expect(looksLikeScrapedBoilerplate("Don't miss our limited time sale on all camping gear!")).toBe(false);
+    expect(looksLikeScrapedBoilerplate("Find more matching home decor products in our collection.")).toBe(false);
+    // Men ≥2 AE-meta-fraser (utan namnet) → boilerplate.
+    expect(
+      looksLikeScrapedBoilerplate("Limited time sale! Enjoy free shipping worldwide on every order."),
+    ).toBe(true);
+  });
+
+  it("needsDescriptionBackfill = true för boilerplate trots >200 tecken", () => {
+    expect(needsDescriptionBackfill(product({ descriptionHtml: `<p>${AE_BLURB}</p>` }))).toBe(true);
+  });
+
+  it("isMoreInformative ersätter boilerplaten med den riktiga (även kortare) DS-detailen", () => {
+    const realDetail = `<p>${"Rymlig pop-up-gazebo för upp till 8 personer. ".repeat(2)}</p>`; // kortare än blurben
+    expect(isMoreInformative(realDetail, { descriptionHtml: `<p>${AE_BLURB}</p>` })).toBe(true);
   });
 });

@@ -17,6 +17,31 @@ export function descriptionBackfillEnabled(): boolean {
 // Under så här många synliga tecken anses den skrapade beskrivningen "tunn".
 const THIN_DESCRIPTION_CHARS = 200;
 
+// AliExpress generiska META-boilerplate ("Buy <titel> at Aliexpress for. Find more
+// <N> products. Enjoy Free Shipping Worldwide! Limited Time Sale Easy Return") är
+// VÄRDELÖS som produkttext men ofta >200 tecken → den lurade tunn-gränsen så den
+// riktiga beskrivningen aldrig hämtades. En äkta produktbeskrivning nämner aldrig
+// "AliExpress" eller dessa fraser, så de är en säker signal på boilerplate.
+// Marknadsplatsens namn — en äkta produktbeskrivning säger ALDRIG "AliExpress",
+// så detta ensamt är en säker signal på meta-boilerplate.
+const AE_NAME = /\bali[\s-]?express\b/i;
+// Övriga meta-fraser. Var och en kan förekomma i äkta säljcopy ("limited time sale"),
+// så de räknas bara som boilerplate i KOMBINATION (≥2) — AE-blurben innehåller alla,
+// äkta copy nästan aldrig två. Undviker falska träffar som skulle nedgradera en bra
+// beskrivning.
+const AE_META_PHRASES = [
+  /enjoy free shipping worldwide/i,
+  /limited time sale/i,
+  /\bfind more\b[\s\S]{0,60}\bproducts\b/i,
+];
+
+/** True om texten är AliExpress generiska meta-boilerplate (inte riktig produkttext). */
+export function looksLikeScrapedBoilerplate(text: string): boolean {
+  const t = text || "";
+  if (AE_NAME.test(t)) return true;
+  return AE_META_PHRASES.filter((re) => re.test(t)).length >= 2;
+}
+
 /** Ord/tecken som avslöjar dropship-ursprunget — tas bort ur texten (även i
  *  alt=/alicdn-URL:er). Täcker latinska + vanliga CJK-varianter. */
 const LEAKY =
@@ -37,9 +62,14 @@ export function visibleDescriptionLength(product: AliExpressProduct): number {
   return descriptionToText(src).length;
 }
 
-/** True när skrapans beskrivning är tunn → värt att hämta DS-detail. */
+/**
+ * True när skrapans beskrivning är tunn ELLER bara AliExpress generiska
+ * meta-boilerplate (som är >200 tecken men värdelös) → värt att hämta DS-detail.
+ */
 export function needsDescriptionBackfill(product: AliExpressProduct): boolean {
-  return visibleDescriptionLength(product) < THIN_DESCRIPTION_CHARS;
+  const src = (product.descriptionHtml || "").trim() || (product.rawDescription || "").trim();
+  const text = descriptionToText(src);
+  return text.length < THIN_DESCRIPTION_CHARS || looksLikeScrapedBoilerplate(text);
 }
 
 /**
@@ -93,8 +123,13 @@ export function isMoreInformative(
   detail: string,
   current: { descriptionHtml?: string; rawDescription?: string },
 ): boolean {
-  if (!detail) return false;
+  const detailText = descriptionToText(detail || "");
+  // Tom DS-detail (sanerad till inget, varken text eller bild) → ersätt aldrig.
+  if (!detailText && imageCount(detail || "") === 0) return false;
   const curHtml = current.descriptionHtml || "";
-  const curVisible = descriptionToText(curHtml || current.rawDescription || "").length;
-  return descriptionToText(detail).length > curVisible || imageCount(detail) > imageCount(curHtml);
+  const curText = descriptionToText(curHtml || current.rawDescription || "");
+  // Generisk AE-meta-boilerplate är värdelös oavsett längd → räkna den som tom så
+  // att DS-detailen (den riktiga beskrivningen) vinner även om boilerplaten är längre.
+  const curVisible = looksLikeScrapedBoilerplate(curText) ? 0 : curText.length;
+  return detailText.length > curVisible || imageCount(detail) > imageCount(curHtml);
 }
