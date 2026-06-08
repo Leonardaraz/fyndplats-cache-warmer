@@ -60,6 +60,8 @@ describe("translateValue", () => {
     expect(translateValue("Black without LED")).toBe("Svart utan LED");
     expect(translateValue("33-Grey")).toBe("33-Grå"); // bindestreck bevaras
     expect(translateValue("B6AC Blue")).toBe("B6AC Blå"); // kod-prefix orört
+    expect(translateValue("100 inch")).toBe("100 tum"); // enhet → svenska vid import
+    expect(translateValue("120 Inches")).toBe("120 tum");
   });
 
   it("översätter djur, instrument och kontakttyper", () => {

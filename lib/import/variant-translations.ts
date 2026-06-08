@@ -275,6 +275,11 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   model: "Modell",
   pc: "st",
   pcs: "st",
+  // Enheter: tum för inch (token-vis → "100 inch" → "100 tum"). Görs vid import så
+  // värdet är svenskt FRÅN START — i V3 speglar choice.name den låsta choice.key:en,
+  // så att döpa om värdet i efterhand fastnar inte och riskerar leverantörs-mappningen.
+  inch: "tum",
+  inches: "tum",
   "s-shaped": "S-formad",
   "y-shaped": "Y-formad",
   "1 tunnels": "1 tunnel",
