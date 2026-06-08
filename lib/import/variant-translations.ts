@@ -410,6 +410,44 @@ export function translateAxisName(raw: string): string {
   return AXIS_TRANSLATIONS[key] ?? raw.trim();
 }
 
+// --- Mått-/storleksdetektering (för felmärkta "Color"-axlar) ----------------
+
+// Värde som ENBART är ett mått: "42 in", "50 inch", "10 cm", `12"`.
+const MEASUREMENT_VALUE_RE =
+  /^\d+(?:[.,]\d+)?\s*(?:inches|inch|in|tum|cm|mm|ft|feet|["“”])$/i;
+// Rent storleks-label: S/M/L/XL-skalan, ord och universalstorlek.
+const SIZE_LABEL_RE =
+  /^(?:xxs|xs|s|m|l|xl|xxl|xxxl|[2-9]xl|small|medium|large|x-?large|free\s?size|one\s?size|onesize|plus\s?size)$/i;
+
+/**
+ * True om SAMTLIGA värden på en axel ser ut som storlekar/mått (tum/cm/S–XL …)
+ * och inga är färger. AE-säljare lägger ofta storlekar under "Color"-fältet
+ * ("Color: 42 in"); detta upptäcker det så importen kan döpa om axeln till
+ * "Storlek" (se buildTranslatorFromBase). Konservativt — kräver att ALLA värden
+ * är storlekslika, så en riktig färg bland värdena avbryter omdöpningen.
+ */
+export function isSizeLikeAxis(values: ReadonlyArray<string>): boolean {
+  const vals = values.map((v) => v.trim()).filter(Boolean);
+  if (vals.length === 0) return false;
+  return vals.every((v) => MEASUREMENT_VALUE_RE.test(v) || SIZE_LABEL_RE.test(v));
+}
+
+/**
+ * Normaliserar tum-enheter i ett värde till svenska "tum" — nummer-ankrat, så ett
+ * löst "in" (preposition) ALDRIG rörs: "42 inch"/`42"` → "42 tum". Bart "in"
+ * konverteras bara när HELA värdet är "<tal> in" ("42 in" → "42 tum"), så
+ * "5 in 1"/"5 in stock" lämnas orörda. cm/mm/fot är samma på svenska.
+ */
+function normalizeUnits(value: string): string {
+  let v = value
+    .replace(/(\d)\s*inches\b/gi, "$1 tum")
+    .replace(/(\d)\s*inch\b/gi, "$1 tum")
+    .replace(/(\d)\s*["“”]/g, "$1 tum");
+  const bare = v.trim().match(/^(\d+(?:[.,]\d+)?)\s*in$/i);
+  if (bare) v = `${bare[1]} tum`;
+  return v;
+}
+
 /**
  * Översätter ett optionsvärde. Prioritet:
  *   1. Fullt match (hela värdet) → full översättning ("Light Blue" → "Ljusblå").
@@ -420,7 +458,7 @@ export function translateAxisName(raw: string): string {
  * därför alltid på steg 3.
  */
 export function translateValue(raw: string): string {
-  const trimmed = raw.trim();
+  const trimmed = normalizeUnits(raw.trim());
   const full = VALUE_TRANSLATIONS[trimmed.toLowerCase()];
   if (full) return full;
 
@@ -570,7 +608,15 @@ export function buildTranslatorFromBase(
   const axisName = new Map<string, string>();
   const valueByAxis = new Map<string, Map<string, string>>();
   for (const [axis, values] of rawValuesByAxis) {
-    axisName.set(axis, baseAxis(axis));
+    // Felmärkt "Color"-axel: AE-säljare lägger ofta storlekar under färg-fältet
+    // ("Color: 42 in"). Blev axeln "Färg" men är ALLA värden storlekar/mått? →
+    // döp om till "Storlek" så kunden inte ser "Färg: 42 tum". deriveOptions
+    // släpper redan swatchen för icke-färgaxlar (isColorAxis); detta fixar bara
+    // det missvisande NAMNET. Bara entydiga fall (samtliga värden storlekslika),
+    // så riktiga färgaxlar lämnas orörda.
+    let resolvedAxis = baseAxis(axis);
+    if (resolvedAxis === "Färg" && isSizeLikeAxis(values)) resolvedAxis = "Storlek";
+    axisName.set(axis, resolvedAxis);
     const used = new Set<string>();
     const m = new Map<string, string>();
     for (const raw of values) {

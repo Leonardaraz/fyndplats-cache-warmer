@@ -7,6 +7,7 @@ import {
   buildVariantTranslator,
   buildTranslatorFromBase,
   residualEnglishTokens,
+  isSizeLikeAxis,
 } from "./variant-translations";
 
 describe("translateAxisName", () => {
@@ -232,5 +233,51 @@ describe("buildTranslatorFromBase — injicerbar bas (delas av AI-fallbacken)", 
     const base = (raw: string) => (raw === "Glow" ? "Glöd" : translateValue(raw));
     const t = buildTranslatorFromBase([{ options: { Color: "Red", Effect: "Glow" } }], base, translateAxisName);
     expect(t.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effect: "Glöd" });
+  });
+});
+
+describe("isSizeLikeAxis — felmärkt 'Color'-axel med storlekar", () => {
+  it("true när ALLA värden är mått/storlekar", () => {
+    expect(isSizeLikeAxis(["42 in", "50 in"])).toBe(true);
+    expect(isSizeLikeAxis(["42 inch", "50 inch"])).toBe(true);
+    expect(isSizeLikeAxis(["10 cm"])).toBe(true);
+    expect(isSizeLikeAxis(["S", "M", "L"])).toBe(true);
+    expect(isSizeLikeAxis(["5XL"])).toBe(true);
+    expect(isSizeLikeAxis(['12"'])).toBe(true);
+  });
+  it("false för färger, blandat och tomt", () => {
+    expect(isSizeLikeAxis(["Red", "Blue"])).toBe(false);
+    expect(isSizeLikeAxis(["42 in", "Black"])).toBe(false); // blandat → orört
+    expect(isSizeLikeAxis(["Style A", "Style B"])).toBe(false);
+    expect(isSizeLikeAxis([])).toBe(false);
+  });
+});
+
+describe("translateValue — tum-enheter (nummer-ankrat, säkert)", () => {
+  it("normaliserar entydiga tum-former", () => {
+    expect(translateValue("42 in")).toBe("42 tum");
+    expect(translateValue("50 inch")).toBe("50 tum");
+    expect(translateValue('12"')).toBe("12 tum");
+  });
+  it("rör INTE löst 'in' (preposition)", () => {
+    expect(translateValue("5 in 1")).toBe("5 in 1");
+    expect(translateValue("Built-in")).toBe("Built-in");
+  });
+});
+
+describe("buildVariantTranslator — döper om felmärkt 'Color'-axel med storlekar", () => {
+  it("storlekar under 'Color' → axeln 'Storlek' (inte 'Färg'), enheter → svenska", () => {
+    const variants = [{ options: { Color: "42 inch" } }, { options: { Color: "50 inch" } }];
+    const t = buildVariantTranslator(variants);
+    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
+    expect(t.options({ Color: "50 inch" })).toEqual({ Storlek: "50 tum" });
+  });
+  it("låter en ÄKTA färgaxel vara 'Färg'", () => {
+    const t = buildVariantTranslator([{ options: { Color: "Red" } }, { options: { Color: "Blue" } }]);
+    expect(t.options({ Color: "Red" })).toEqual({ Färg: "Röd" });
+  });
+  it("rör inte en blandad axel (en riktig färg bland värdena avbryter omdöpningen)", () => {
+    const t = buildVariantTranslator([{ options: { Color: "Red" } }, { options: { Color: "42 inch" } }]);
+    expect(t.options({ Color: "Red" }).Färg).toBe("Röd"); // axeln förblir 'Färg'
   });
 });
