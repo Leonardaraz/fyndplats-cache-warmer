@@ -407,3 +407,77 @@ export function translateOptionColorCodes(
   }
   return out;
 }
+
+/**
+ * Kollisions-SÄKER översättare för EN produkts varianter.
+ *
+ * Problem: translateValue mappar olika råvärden till samma svenska sträng
+ * ("dark blue" + "deep blue" → båda "Mörkblå", "navy" + "navy blue" → "Marinblå").
+ * Om en produkt har BÅDA som distinkta varianter kollapsar de till EN choice i
+ * deriveOptions (Set) → två Wix-varianter med identisk options-kombination → Wix
+ * slår ihop/avvisar → tappad variant + mappning utan wixVariantId (lager/pris/
+ * fulfillment trasig för den varianten).
+ *
+ * Lösning: bygg EN gång per produkt en raw→översatt-karta per axel som garanterar
+ * att distinkta råvärden får distinkta översatta värden (andra+ kollisionen får
+ * "(råvärde)"-suffix; chatten kan polera namnet senare). SAMMA karta används för
+ * variantoptions, colorCodes och swatch-bilder → nycklarna matchar alltid.
+ */
+export interface VariantTranslator {
+  /** Översätter en variants options (axel→värde) kollisions-säkert. */
+  options(raw: Record<string, string>): Record<string, string>;
+  /** Remappar en axel→värde→T-tabell (colorCodes/swatch-bilder) med SAMMA nycklar. */
+  axisKeyedMap<T>(map: Record<string, Record<string, T>>): Record<string, Record<string, T>>;
+}
+
+export function buildVariantTranslator(
+  variants: ReadonlyArray<{ options: Record<string, string> }>,
+): VariantTranslator {
+  // Råvärden per råaxel i stabil först-sedd-ordning.
+  const rawValuesByAxis = new Map<string, string[]>();
+  for (const v of variants) {
+    for (const [axis, value] of Object.entries(v.options ?? {})) {
+      const arr = rawValuesByAxis.get(axis) ?? [];
+      if (!arr.includes(value)) arr.push(value);
+      rawValuesByAxis.set(axis, arr);
+    }
+  }
+  // Per axel: raw→unik översatt värde + raw-axel→översatt-axel.
+  const axisName = new Map<string, string>();
+  const valueByAxis = new Map<string, Map<string, string>>();
+  for (const [axis, values] of rawValuesByAxis) {
+    axisName.set(axis, translateAxisName(axis));
+    const used = new Set<string>();
+    const m = new Map<string, string>();
+    for (const raw of values) {
+      let t = translateValue(raw);
+      if (used.has(t)) {
+        // Kollision: gör distinkt med råvärdet; i värsta fall löpnummer.
+        const disamb = `${t} (${raw.trim()})`;
+        t = used.has(disamb) ? `${t} ${used.size + 1}` : disamb;
+      }
+      used.add(t);
+      m.set(raw, t);
+    }
+    valueByAxis.set(axis, m);
+  }
+  const tAxis = (axis: string) => axisName.get(axis) ?? translateAxisName(axis);
+  const tValue = (axis: string, value: string) => valueByAxis.get(axis)?.get(value) ?? translateValue(value);
+  return {
+    options(raw) {
+      const out: Record<string, string> = {};
+      for (const [axis, value] of Object.entries(raw ?? {})) out[tAxis(axis)] = tValue(axis, value);
+      return out;
+    },
+    axisKeyedMap<T>(map: Record<string, Record<string, T>>) {
+      const out: Record<string, Record<string, T>> = {};
+      for (const [axis, valueMap] of Object.entries(map ?? {})) {
+        const ta = tAxis(axis);
+        const inner: Record<string, T> = {};
+        for (const [value, x] of Object.entries(valueMap)) inner[tValue(axis, value)] = x;
+        out[ta] = { ...(out[ta] ?? {}), ...inner };
+      }
+      return out;
+    },
+  };
+}

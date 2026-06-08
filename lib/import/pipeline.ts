@@ -16,10 +16,7 @@ import { rankProductImages } from "./image-rank";
 import type { FaqReviewHint } from "./faq-gen";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
-import {
-  translateOptionColorCodes,
-  translateVariantOptions,
-} from "./variant-translations";
+import { buildVariantTranslator } from "./variant-translations";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
   addProductToCollection,
@@ -210,11 +207,17 @@ export async function importProduct(
   // identiskt översatta (Wix matchar dem på exakt sträng). Färgkods-tabellen
   // remappas till samma översatta nycklar så swatch-uppslaget i deriveOptions
   // fortsätter träffa. Okända axlar/värden faller tillbaka på råvärdet.
+  // Kollisions-säker översättare byggd EN gång per produkt: distinkta råvärden som
+  // annars skulle översättas till SAMMA svenska sträng (dark/deep blue → "Mörkblå",
+  // navy/navy blue → "Marinblå") hålls åtskilda så att varianterna inte kollapsar
+  // till en choice (deriveOptions Set) → tappad variant/mappning. SAMMA karta
+  // används för colorCodes + swatch-bilder nedan så alla nycklar matchar exakt.
+  const translator = buildVariantTranslator(product.variants);
   const variants = product.variants.map((v) => ({
     ...v,
-    options: translateVariantOptions(v.options),
+    options: translator.options(v.options),
   }));
-  const translatedColorCodes = colorCodes ? translateOptionColorCodes(colorCodes) : undefined;
+  const translatedColorCodes = colorCodes ? translator.axisKeyedMap(colorCodes) : undefined;
   // Variantbild-backfill (bug "kepsen" 2026-06-06): när skrapan inte fångade NÅGON
   // per-färg-bild (lazy-load/annan DOM) får produkten text-val utan bild. Hämta då
   // bilderna från DS-produkt-API:t (sku_image), matchat på SKU-id, med skrapans råa
@@ -275,7 +278,7 @@ export async function importProduct(
   // varianterna (translateOptionColorCodes har exakt rätt shape) så att de matchar
   // de härledda Wix-optionsvalen vid kopplingen nedan.
   const translatedSwatchImages = effectiveSwatchImages
-    ? translateOptionColorCodes(effectiveSwatchImages)
+    ? translator.axisKeyedMap(effectiveSwatchImages)
     : undefined;
 
   const included = variants.filter((v) => v.included);

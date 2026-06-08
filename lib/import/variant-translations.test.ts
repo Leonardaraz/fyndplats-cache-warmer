@@ -4,6 +4,7 @@ import {
   translateValue,
   translateVariantOptions,
   translateOptionColorCodes,
+  buildVariantTranslator,
 } from "./variant-translations";
 
 describe("translateAxisName", () => {
@@ -99,5 +100,37 @@ describe("translateOptionColorCodes", () => {
     expect(
       translateOptionColorCodes({ Color: { Red: "#ff0000", Black: "#000000" } }),
     ).toEqual({ Färg: { Röd: "#ff0000", Svart: "#000000" } });
+  });
+});
+
+describe("buildVariantTranslator — kollisions-säker (dark/deep blue förblir distinkta)", () => {
+  it("håller distinkta råvärden distinkta även när de annars översätts lika", () => {
+    const variants = [
+      { options: { Color: "Dark Blue" } },
+      { options: { Color: "Deep Blue" } },
+      { options: { Color: "Red" } },
+    ];
+    const t = buildVariantTranslator(variants);
+    const a = t.options({ Color: "Dark Blue" }).Färg;
+    const b = t.options({ Color: "Deep Blue" }).Färg;
+    expect(a).not.toBe(b); // INTE samma → varianterna kollapsar inte i deriveOptions
+    expect(a).toBe("Mörkblå"); // första behåller ren översättning
+    expect(b).toContain("Mörkblå"); // andra särskiljs (råvärdet i suffix)
+    expect(t.options({ Color: "Red" }).Färg).toBe("Röd");
+  });
+
+  it("axisKeyedMap remappar colorCodes med SAMMA distinkta nycklar (bägge hex överlever)", () => {
+    const variants = [{ options: { Color: "Dark Blue" } }, { options: { Color: "Deep Blue" } }];
+    const t = buildVariantTranslator(variants);
+    const codes = t.axisKeyedMap({ Color: { "Dark Blue": "#001", "Deep Blue": "#002" } });
+    expect(Object.keys(codes.Färg).length).toBe(2); // ingen "sista vinner"-kollaps
+    expect(codes.Färg[t.options({ Color: "Dark Blue" }).Färg]).toBe("#001");
+    expect(codes.Färg[t.options({ Color: "Deep Blue" }).Färg]).toBe("#002");
+  });
+
+  it("icke-kolliderande/okända värden översätts som vanligt", () => {
+    const t = buildVariantTranslator([{ options: { Size: "XL" } }, { options: { Size: "S" } }]);
+    expect(t.options({ Size: "XL" })).toEqual({ Storlek: "XL" });
+    expect(t.options({ Size: "S" })).toEqual({ Storlek: "S" });
   });
 });
