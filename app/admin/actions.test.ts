@@ -118,6 +118,20 @@ describe("placeAliExpressOrder — leverantörsval", () => {
     expect(res.ok).toBe(false);
     expect(client.createOrder).not.toHaveBeenCalled();
   });
+
+  it("vägrar HALVT override: bara produkt (skulle korsa B:s produkt med A:s SKU)", async () => {
+    const { actions, client } = await setup(baseTask({ overriddenSupplierProductId: "BBB" }));
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("vägrar HALVT override: bara SKU (skulle korsa A:s produkt med B:s SKU)", async () => {
+    const { actions, client } = await setup(baseTask({ overriddenSupplierVariantId: "skuB" }));
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
 });
 
 describe("set/clear leverantörs-override", () => {

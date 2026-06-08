@@ -81,10 +81,16 @@ export function SupplierOverrideClient({
           type="button"
           disabled={pending}
           style={linkBtn}
-          onClick={() => startTransition(async () => { await clearOrderSupplierOverrideAction(taskId); })}
+          onClick={() =>
+            startTransition(async () => {
+              const res = await clearOrderSupplierOverrideAction(taskId);
+              if (!res.ok) setError(res.error ?? "Kunde inte rensa bytet");
+            })
+          }
         >
           Rensa
         </button>
+        {error ? <span style={{ color: "#dc2626", marginLeft: 8 }}>{error}</span> : null}
       </div>
     );
   }

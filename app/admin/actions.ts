@@ -59,6 +59,18 @@ export async function placeAliExpressOrder(taskId: string) {
         Object.entries(task.variantChoices).every(([k, val]) => v.choices[k] === val),
       );
 
+  // Säkerhet (betalväg): ett HALVT override (bara produkt ELLER bara SKU) skulle
+  // korsa källor — t.ex. leverantör B:s produkt med leverantör A:s SKU → fel vara
+  // till kund. Kan inte uppstå via UI:t (set-action kräver båda + skriver atomiskt),
+  // men en framtida skrivning/migrering/manuell wix-data-rad skulle kunna → vägra
+  // hellre ordern än att lägga en korsad.
+  if (Boolean(task.overriddenSupplierProductId) !== Boolean(task.overriddenSupplierVariantId)) {
+    return {
+      ok: false,
+      error: "Ofullständigt leverantörsbyte (produkt utan SKU eller tvärtom) — order avbruten.",
+    };
+  }
+
   // Per-order leverantörsbyte vinner över mappningen. När en override-SKU finns
   // beställer vi från en ANNAN källa → ingen variant-match mot mappningen krävs.
   const supplierProductId = task.overriddenSupplierProductId ?? mapping.supplierProductId;
@@ -206,6 +218,9 @@ export async function clearOrderSupplierOverrideAction(
   if (task.aliexpressOrderId) {
     return { ok: false, error: "Ordern är redan lagd" };
   }
+  // updateTask gör en full-replace-upsert; undefined-fält faller bort vid
+  // JSON.stringify (wix-data) resp. lämnas undefined (memory) → fälten rensas i
+  // båda backends, ingen stale override blir kvar.
   await store.updateTask(taskId, {
     overriddenSupplierProductId: undefined,
     overriddenSupplierVariantId: undefined,
