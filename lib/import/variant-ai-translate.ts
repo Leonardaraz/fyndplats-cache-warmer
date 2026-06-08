@@ -104,11 +104,13 @@ export async function buildVariantTranslatorAI(
         const val = sv.trim();
         aiMap.set(c, val);
         await setCachedResult(cacheKeyFor(c), OP, val, "variant-ai");
-        // Stickprovs-logg: BARA genuina översättningar (val !== c). Oförändrade
-        // (behållna modellnamn/koder) är ingen fel-svensk-risk → skippas, så
-        // listan hålls scanbar. logVariantTranslation är best-effort (sväljer
-        // fel) → loggningen kan aldrig fälla importen.
-        if (val !== c) {
+        // Stickprovs-logg: BARA genuina översättningar (val skiljer sig från
+        // råvärdet). Oförändrade (behållna modellnamn/koder) är ingen
+        // fel-svensk-risk → skippas, så listan hålls scanbar. Jämför mot c.trim()
+        // (samma normalisering som variantRowId) så ett ev. blanksteg inte gör
+        // ett no-op till en "översättning". logVariantTranslation är best-effort
+        // (sväljer fel) → loggningen kan aldrig fälla importen.
+        if (val !== c.trim()) {
           await logVariantTranslation({
             id: variantRowId(c),
             raw: c,
