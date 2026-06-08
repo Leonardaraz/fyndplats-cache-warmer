@@ -64,6 +64,34 @@ describe("translateValue", () => {
     expect(translateValue("120 Inches")).toBe("120 tum");
   });
 
+  it("översätter den utökade ordlistan (enheter, tillbehör, kvalificerare)", () => {
+    // Enheter & antal
+    expect(translateValue("6 Feet")).toBe("6 fot");
+    expect(translateValue("1 Pair")).toBe("1 par");
+    // Universalstorlek (fasta fraser, fullt match)
+    expect(translateValue("Free Size")).toBe("Universalstorlek");
+    expect(translateValue("One Size")).toBe("Universalstorlek");
+    // "With X"-tillbehör (utnyttjar "with"→"med"). Innehållsord behåller sin
+    // versal från tabellen → "Med Batteri" (samma mönster som "Bomull Läder").
+    expect(translateValue("With Battery")).toBe("Med Batteri");
+    expect(translateValue("Wireless Charger")).toBe("Trådlös Laddare");
+    // Kvalificerare
+    expect(translateValue("Foldable")).toBe("Hopfällbar");
+    expect(translateValue("Waterproof")).toBe("Vattentät");
+    // "remote control" som HEL fras (inte löst "remote")
+    expect(translateValue("Remote Control")).toBe("Fjärrkontroll");
+  });
+
+  it("rör INTE tvetydiga fraser där en lös översättning vore fel", () => {
+    // "right"/"left"/"wide"/"deep" är medvetet utelämnade ur tabellen, så dessa
+    // idiom förblir orörda i stället för att fel-översättas token-vis.
+    expect(translateValue("Right Angle")).toBe("Right Angle");
+    expect(translateValue("Wide Angle")).toBe("Wide Angle");
+    // "remote" finns BARA som fras → "With Remote Control" blir "Med Remote
+    // Control" (korrekt halv-översatt), aldrig "Med Fjärrkontroll Control".
+    expect(translateValue("With Remote Control")).toBe("Med Remote Control");
+  });
+
   it("översätter djur, instrument och kontakttyper", () => {
     expect(translateValue("Lion")).toBe("Lejon");
     expect(translateValue("Rabbit")).toBe("Kanin");
