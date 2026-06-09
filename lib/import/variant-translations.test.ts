@@ -371,3 +371,35 @@ describe("buildVariantTranslator — döper om felmärkt 'Color'-axel (hela klas
     expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
   });
 });
+
+describe("buildVariantTranslator — axel-namn-kollisionssäkerhet (två färg-aktiga axlar)", () => {
+  it("kollapsar INTE två axlar som annars båda blir 'Färg' (Color + Color Temperature)", () => {
+    const variants = [
+      { options: { Color: "Black", "Color Temperature": "3000K" } },
+      { options: { Color: "White", "Color Temperature": "6000K" } },
+    ];
+    const t = buildVariantTranslator(variants);
+    const o1 = t.options(variants[0].options);
+    expect(Object.keys(o1)).toHaveLength(2); // BÅDA dimensionerna överlever (ingen överskrivning)
+    expect(o1.Färg).toBe("Svart");
+    const second = Object.keys(o1).find((k) => k !== "Färg")!;
+    expect(second).not.toBe("Färg"); // andra färg-aktiga axeln särskild
+    expect(o1[second]).toBe("3000K");
+    // Distinkta varianter förblir distinkta → ingen variant-kollaps / wixVariantId-desync.
+    expect(t.options(variants[1].options).Färg).toBe("Vit");
+  });
+
+  it("särskiljer även när två axlar landar på samma klass ('Color Size' + 'Size' → Storlek)", () => {
+    const t = buildVariantTranslator([{ options: { "Color Size": "42 inch", Size: "M" } }]);
+    const o = t.options({ "Color Size": "42 inch", Size: "M" });
+    expect(Object.keys(o)).toHaveLength(2); // ingen kollaps trots samma klass-namn
+  });
+
+  it("samma produkt → samma axelnamn varje gång (deterministiskt, V3-key-lås)", () => {
+    const mk = () =>
+      buildVariantTranslator([
+        { options: { Color: "Red", "Color Name": "Vertical type" } },
+      ]).options({ Color: "Red", "Color Name": "Vertical type" });
+    expect(mk()).toEqual(mk());
+  });
+});

@@ -679,6 +679,7 @@ export function buildTranslatorFromBase(
   }
   // Per axel: raw→unik översatt värde + raw-axel→översatt-axel.
   const axisName = new Map<string, string>();
+  const usedAxisNames = new Set<string>();
   const valueByAxis = new Map<string, Map<string, string>>();
   for (const [axis, values] of rawValuesByAxis) {
     // Felmärkt "Color"-axel: AE-säljare lägger ofta storlekar/kontakter/antal osv.
@@ -696,6 +697,21 @@ export function buildTranslatorFromBase(
       // Guarden gör att en ren "Storlek" ALDRIG kan skrivas över av ett strö-svar.
       resolvedAxis = axisOverrides?.get(axis) ?? resolvedAxis;
     }
+    // Axel-namn-kollisionssäkerhet (spegel av per-värde-logiken nedan): två
+    // DISTINKTA råaxlar får aldrig samma svenska namn. Den breda färg-igenkänningen
+    // (LAYER A) kan annars mappa både "Color" och "Color Temperature"/"Color Name"
+    // till "Färg" (och två axlar kan landa på samma klass, t.ex. "Color Size" +
+    // "Size" → "Storlek"). Utan särskiljning skriver out[tAxis] över sig själv i
+    // options() → en hel variantdimension tappas → varianter kollapsar →
+    // wixVariantId-desync. AI ger oftast ett distinkt namn; detta är skyddsnätet när
+    // den inte gör det (råaxeln i suffix, sen löpnummer). Deterministiskt (stabil
+    // axel-ordning) så V3-key-låset inte rubbas mellan importer.
+    if (usedAxisNames.has(resolvedAxis)) {
+      let t = `${resolvedAxis} (${axis.trim()})`;
+      for (let n = 2; usedAxisNames.has(t); n++) t = `${resolvedAxis} ${n}`;
+      resolvedAxis = t;
+    }
+    usedAxisNames.add(resolvedAxis);
     axisName.set(axis, resolvedAxis);
     const used = new Set<string>();
     const m = new Map<string, string>();
