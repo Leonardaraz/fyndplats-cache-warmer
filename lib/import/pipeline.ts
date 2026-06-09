@@ -102,6 +102,13 @@ export interface ImportResult {
    * väntar på manuell polering via /admin/queue → "Be Claude i chatten att polera".
    */
   needsAiPolish?: boolean;
+  /**
+   * Råvärden/axelnamn som förblev (halv-)engelska efter tabell+cache+AI — grunden
+   * för variantdelen av needsAiPolish. Propageras till mappningen så /admin/queue
+   * kan visa VILKA värden som är kvar-engelska (de är key-låsta i Wix V3 → kräver
+   * omimport, inte polering).
+   */
+  unresolvedVariantValues?: string[];
   /** Vilket AI-kvalitetsläge importen kördes i (raw/standard/premium). */
   qualityMode: QualityMode;
   /**
@@ -830,6 +837,9 @@ export async function importProduct(
     warehouseClass,
     ...(created.slugSuffix ? { slugSuffix: created.slugSuffix } : {}),
     ...((!aiEnabled || variantsNeedPolish) ? { needsAiPolish: true } : {}),
+    ...(translatorResult.unresolved.length > 0
+      ? { unresolvedVariantValues: translatorResult.unresolved }
+      : {}),
     qualityMode,
     ...(premium && premiumResult ? { qualityScore: premiumResult.score } : {}),
     ...(premium && premiumResult && !premiumResult.passed ? { needsManualPolish: true } : {}),

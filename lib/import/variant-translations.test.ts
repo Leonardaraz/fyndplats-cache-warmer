@@ -113,8 +113,9 @@ describe("translateValue", () => {
   });
 
   it("översätter den utökade ordlistan (enheter, tillbehör, kvalificerare)", () => {
-    // Enheter & antal
-    expect(translateValue("6 Feet")).toBe("6 fot");
+    // Enheter & antal ("6 Feet" KONVERTERAS numera till meter; feet→fot-posten
+    // är kvar för residual-detektering + icke-numeriska tokens, se ft→m-sviten)
+    expect(translateValue("6 Feet")).toBe("1,8 m");
     expect(translateValue("1 Pair")).toBe("1 par");
     // Universalstorlek (fasta fraser, fullt match)
     expect(translateValue("Free Size")).toBe("Universalstorlek");
@@ -408,5 +409,82 @@ describe("buildVariantTranslator — axel-namn-kollisionssäkerhet (två färg-a
     const t = buildVariantTranslator([{ options: { Color: "Black", "Color Temperature": "3000K" } }]);
     expect(unresolvedAxisNames(t)).toContain("Color Temperature"); // ej kund-klart → flaggad
     expect(unresolvedAxisNames(t)).not.toContain("Color"); // rena färg-axeln är OK
+  });
+});
+
+describe("translateValue — ft→m (nummer-ankrat, aritmetik, NOMINELL/trunkerad avrundning)", () => {
+  it("konverterar enkla fot-värden till meter (trunkerat till 1 decimal, svenskt komma)", () => {
+    expect(translateValue("10 ft")).toBe("3 m"); // 3,048 → "3" (heltal utan ,0)
+    expect(translateValue("12ft")).toBe("3,6 m"); // 3,6576 → trunk 3,6 (EJ 3,7)
+    expect(translateValue("10 Feet")).toBe("3 m");
+    expect(translateValue("1.5 ft")).toBe("0,4 m"); // 0,4572 → trunk 0,4
+  });
+
+  it("konverterar dimensioner — alla tal, kanoniskt ' x ' + ' m'", () => {
+    expect(translateValue("10 x 10 ft")).toBe("3 x 3 m"); // tältet (en avslutande enhet)
+    expect(translateValue("12 x 12 ft")).toBe("3,6 x 3,6 m");
+    expect(translateValue("10ft x 13ft")).toBe("3 m x 3,9 m"); // enhet per tal
+  });
+
+  it("rör ALDRIG icke-numeriska 'foot/ft' (nummer-ankring)", () => {
+    expect(translateValue("Foot Rest")).toBe("Fot Rest"); // token-posten gäller, ingen aritmetik
+    expect(translateValue("5 in 1")).toBe("5 in 1"); // tum-skyddet orört av ft-passet
+  });
+
+  it("halvkonverterar ALDRIG en dimension med omgivande text (audit S1) — hellre orört än fel mått", () => {
+    // "10x3 m Gazebo" vore ett FELAKTIGT mått — guarden lämnar värdet åt AI/flaggan.
+    expect(translateValue("10x10 ft Gazebo")).toBe("10x10 ft Gazebo");
+    expect(translateValue("Tent 10x10ft")).toBe("Tent 10x10ft");
+    expect(translateValue("10x10ft(3x3m)")).toBe("10x10ft(3x3m)");
+    // …men enhet-per-tal utan naken x-adjacens konverteras fortfarande korrekt.
+    expect(translateValue("10ft x 13ft")).toBe("3 m x 3,9 m");
+  });
+});
+
+describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-09)", () => {
+  it("enhet per tal: '32 in x 24 in' → '32 tum x 24 tum'", () => {
+    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum");
+    expect(translateValue("44 in x 44 in")).toBe("44 tum x 44 tum");
+    expect(translateValue("32in x 24in")).toBe("32 tum x 24 tum"); // utan mellanslag
+  });
+
+  it("EN avslutande enhet: '24 x 32 in' → '24 x 32 tum'", () => {
+    expect(translateValue("24 x 32 in")).toBe("24 x 32 tum");
+  });
+
+  it("prepositions-'in' förblir SKYDDAT (hel-värdes-ankringen)", () => {
+    expect(translateValue("5 in 1")).toBe("5 in 1"); // produkttyp, inte tum
+    expect(translateValue("Made in Sweden")).toBe("Made in Sverige"); // 'in' orört (sweden-token översätts)
+    expect(translateValue("42 in")).toBe("42 tum"); // befintliga hel-värdes-regeln kvar
+  });
+});
+
+describe("VALUE_TRANSLATIONS — fordon/cykelställ (incident 2026-06-09)", () => {
+  it("översätter ställ-värdena som skeppades engelska efter Haiku-eko", () => {
+    expect(translateValue("Rear Wheel")).toBe("Bakhjul");
+    expect(translateValue("Front Wheel")).toBe("Framhjul");
+    expect(translateValue("Fork")).toBe("Gaffel");
+    expect(translateValue("U Type L Type Fork")).toBe("U-typ & L-typ gaffel");
+    expect(translateValue("4 Wheels")).toBe("4 Hjul");
+    expect(translateValue("Vertical Type")).toBe("Vertikal");
+  });
+
+  it("tabell-träff gör värdet AI-oberoende (residualEnglishTokens → tomt)", () => {
+    // Låser att de förgiftade cache-posterna blir oåtkomliga: full-match i
+    // tabellen kortsluter kandidat-uttagningen → värdet når aldrig AI/cache igen.
+    expect(residualEnglishTokens("Rear Wheel")).toEqual([]);
+    expect(residualEnglishTokens("U Type L Type Fork")).toEqual([]);
+  });
+
+  it("fraser där lösa tokens annars FEL-översätter vinner som fulla fraser (audit S2)", () => {
+    expect(translateValue("Saddle Brown")).toBe("Sadelbrun"); // färg — inte "Sadel Brun"
+    expect(translateValue("Spring Steel Fork")).toBe("Fjäderstålsgaffel"); // fjäder, inte säsong
+  });
+
+  it("EN=SV-identiska ord är self-maps → aldrig AI-kandidater, aldrig eko-flagg", () => {
+    expect(translateValue("Smart")).toBe("Smart");
+    expect(translateValue("Universal")).toBe("Universal");
+    expect(residualEnglishTokens("Smart")).toEqual([]);
+    expect(residualEnglishTokens("Mini Digital")).toEqual([]);
   });
 });
