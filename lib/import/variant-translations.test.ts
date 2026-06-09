@@ -488,3 +488,22 @@ describe("VALUE_TRANSLATIONS — fordon/cykelställ (incident 2026-06-09)", () =
     expect(residualEnglishTokens("Mini Digital")).toEqual([]);
   });
 });
+
+describe("translateValue — silvery + hopskrivna antal-enheter (buffévärmaren 2026-06-09)", () => {
+  it("'Silvery 4pcs' / 'Gold 4pcs' blir helsvenska ($0, tabell + avgluing)", () => {
+    expect(translateValue("Silvery 4pcs")).toBe("Silver 4 st");
+    expect(translateValue("Gold 4pcs")).toBe("Guld 4 st");
+    expect(translateValue("Silvery")).toBe("Silver");
+    expect(translateValue("4pcs")).toBe("4 st"); // orört av tabellen → avgluade formen
+    expect(translateValue("4Pcs")).toBe("4 st"); // skiftlägesokänsligt
+  });
+
+  it("fras-nycklar med pc/pcs matchar på rå form FÖRE avgluing (golden-skydd)", () => {
+    expect(translateValue("5pc Sets 3")).toBe("5-delars set 3");
+    expect(translateValue("Random Color 1 PC")).toBe("Slumpmässig färg, 1 st");
+  });
+
+  it("silvery-posten gör värdet AI-oberoende → den förgiftade cache-posten oåtkomlig", () => {
+    expect(residualEnglishTokens("Silvery 4pcs")).toEqual([]);
+  });
+});
