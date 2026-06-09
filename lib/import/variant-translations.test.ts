@@ -503,6 +503,19 @@ describe("translateValue — silvery + hopskrivna antal-enheter (buffévärmaren
     expect(translateValue("Random Color 1 PC")).toBe("Slumpmässig färg, 1 st");
   });
 
+  it("avgluar även MITT i värdet (audit S2): '2pcs Red' → '2 st Röd'", () => {
+    expect(translateValue("2pcs Red")).toBe("2 st Röd");
+    expect(translateValue("2pcs Black")).toBe("2 st Svart");
+  });
+
+  it("EN=SV-adjektiv (audit S3) self-mappas → perfekta AI-svar perma-flaggas inte", () => {
+    expect(translateValue("Extra Long")).toBe("Extra Lång");
+    expect(residualEnglishTokens("Extra Long")).toEqual([]);
+    // "Size" är kvar som kandidat (rätt — ordet ÄR engelskt), men "Normal"
+    // flaggar inte längre → AI-svaret "Normal storlek" behåller ingen residual.
+    expect(residualEnglishTokens("Normal Size")).toEqual(["Size"]);
+  });
+
   it("silvery-posten gör värdet AI-oberoende → den förgiftade cache-posten oåtkomlig", () => {
     expect(residualEnglishTokens("Silvery 4pcs")).toEqual([]);
   });

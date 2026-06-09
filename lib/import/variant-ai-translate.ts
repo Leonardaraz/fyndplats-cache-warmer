@@ -234,7 +234,10 @@ export async function buildVariantTranslatorAI(
     const a = aiMap.get(c);
     if (a === undefined) return false;
     if (a.trim().toLowerCase() === c.trim().toLowerCase()) return false; // eko → eko-policyn
-    const answerTokens = new Set(a.toLowerCase().split(/[\s-]+/));
+    // Splitta svaret på ALLT icke-alfanumeriskt (audit S1): "Shimmer, låda"/"Shimmer/låda"
+    // ska fånga behållna "Shimmer" precis som "Shimmer låda" — interpunktion får
+    // inte gömma ett kvarhållet engelskt ord.
+    const answerTokens = new Set(a.toLowerCase().split(/[^\p{L}\p{N}]+/u));
     return residualEnglishTokens(c).some((tok) => answerTokens.has(tok.toLowerCase()));
   });
   const unresolved = [

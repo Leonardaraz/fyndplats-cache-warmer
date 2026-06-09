@@ -217,6 +217,19 @@ describe("buildVariantTranslatorAI — eko-asymmetri för VÄRDEN (incident 2026
     expect(second.unresolved).toContain("Shimmer Box");
   });
 
+  it("interpunktion gömmer INTE ett behållet engelskt ord (audit S1)", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) if (v === "Shimmer Box") out[v] = "Shimmer, låda"; // komma-gömt
+      return out;
+    });
+    const { unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Effect: "Shimmer Box" } }],
+      { translateBatch },
+    );
+    expect(unresolved).toContain("Shimmer Box");
+  });
+
   it("ett HELSVENSKT svar flaggas inte (halvöversättnings-checken ger inga falska positiva)", async () => {
     const translateBatch = vi.fn(async (vals: string[]) => {
       const out: Record<string, string> = {};

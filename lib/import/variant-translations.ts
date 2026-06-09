@@ -430,6 +430,9 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   universal: "Universal",
   digital: "Digital",
   modern: "Modern",
+  extra: "Extra", // audit S3: annars flaggas perfekta svar som "Extra lång"
+  normal: "Normal",
+  maximal: "Maximal",
 };
 
 /**
@@ -611,26 +614,28 @@ function normalizeUnits(value: string): string {
 }
 
 /**
- * Översätter ett optionsvärde. Prioritet:
- *   1. Fullt match (hela värdet) → full översättning ("Light Blue" → "Ljusblå").
- *   2. Första-ord-match → översätt bara första ordet ("Pink Diamond" → "Rosa
- *      Diamond"), resten lämnas orört.
- *   3. Inget match → råvärdet ("5XL" → "5XL").
- * Universella storlekar (S/M/L/XL) och antal finns inte i tabellen och faller
- * därför alltid på steg 3.
- */
-/**
  * Hopskrivna antal-enheter ("4pcs"/"2pc"/"4Pcs") är osynliga för både token-
  * passet (en token, inte i tabellen) och residual-detekteringen (inga 3+-
  * bokstavstokens) → "Guld 4pcs" skeppades tyst (buffévärmaren 2026-06-09).
- * Nummer-ankrat + negativ lookahead för efterföljande ord. Körs EFTER full-
- * match-försöket så fras-nycklar med pc/pcs ("random color 1 pc", "5pc sets 3")
- * matchar på sin råa form först.
+ * Nummer-ankrat; även mitt i värdet ("2pcs Red" → "2 st Red" → token-passet ger
+ * "2 st Röd" — audit S2). Körs EFTER full-match-försöket, så fras-nycklar med
+ * pc/pcs ("random color 1 pc", "5pc sets 3") matchar på sin råa form först —
+ * det är ordningen, inte regexen, som skyddar fraserna.
  */
 function normalizePieceUnits(value: string): string {
-  return value.replace(/(\d)\s*pcs?\b(?!\s*[A-Za-zÅÄÖåäö])/gi, "$1 st");
+  return value.replace(/(\d)\s*pcs?\b/gi, "$1 st");
 }
 
+/**
+ * Översätter ett optionsvärde. Prioritet:
+ *   1. Fullt match (hela värdet) → full översättning ("Light Blue" → "Ljusblå").
+ *   2. Avglua antal-enheter ("4pcs" → "4 st") + nytt full-match-försök.
+ *   3. Token-vis match → översätt varje känt ord ("Pink Diamond" → "Rosa
+ *      Diamond"), resten lämnas orört.
+ *   4. Inget match → (avgluade) råvärdet ("5XL" → "5XL").
+ * Universella storlekar (S/M/L/XL) och antal finns inte i tabellen och faller
+ * därför alltid på steg 4.
+ */
 export function translateValue(raw: string): string {
   const trimmed = normalizeUnits(raw.trim());
   const full = VALUE_TRANSLATIONS[trimmed.toLowerCase()];
