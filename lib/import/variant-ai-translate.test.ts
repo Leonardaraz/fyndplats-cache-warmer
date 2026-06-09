@@ -199,6 +199,50 @@ describe("buildVariantTranslatorAI — eko-asymmetri för VÄRDEN (incident 2026
     expect(second.unresolved).toContain("Shimmer");
   });
 
+  it("HALVÖVERSÄTTNING (svar ≠ råvärde men kvar-engelskt) → svaret används MEN flaggas", async () => {
+    // Buffévärmaren 2026-06-09: "Silvery 4pcs" → "Silvery 4st" — inget eko, men
+    // halv-engelska skeppades oflaggat. Nu: använd svaret (bättre än rått) + flagga.
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) if (v === "Shimmer Box") out[v] = "Shimmer låda"; // halvt
+      return out;
+    });
+    const variants = [{ options: { Effect: "Shimmer Box" } }];
+    const first = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(first.translator.options({ Effect: "Shimmer Box" })).toEqual({ Effekt: "Shimmer låda" });
+    expect(first.unresolved).toContain("Shimmer Box"); // flaggad trots använt svar
+    // Cache-träffen är betrodd (≠ eko) → ingen re-ask, men flaggan består.
+    const second = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translateBatch).toHaveBeenCalledTimes(1);
+    expect(second.unresolved).toContain("Shimmer Box");
+  });
+
+  it("interpunktion gömmer INTE ett behållet engelskt ord (audit S1)", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) if (v === "Shimmer Box") out[v] = "Shimmer, låda"; // komma-gömt
+      return out;
+    });
+    const { unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Effect: "Shimmer Box" } }],
+      { translateBatch },
+    );
+    expect(unresolved).toContain("Shimmer Box");
+  });
+
+  it("ett HELSVENSKT svar flaggas inte (halvöversättnings-checken ger inga falska positiva)", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) if (v === "Shimmer") out[v] = "Skimrande";
+      return out;
+    });
+    const { unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Effect: "Shimmer" } }],
+      { translateBatch },
+    );
+    expect(unresolved).toEqual([]);
+  });
+
   it("siffer-eko är betrott även via CACHE-träff (ingen re-ask)", async () => {
     const translateBatch = vi.fn(async (vals: string[]) => {
       const out: Record<string, string> = {};

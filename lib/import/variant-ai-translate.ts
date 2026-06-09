@@ -221,10 +221,30 @@ export async function buildVariantTranslatorAI(
   // 6. Olösta = (halv-)engelska värden + felmärkta färg-axlar AI inte kunde namnge
   //    + axlar vars SLUTNAMN ändå förblev rå engelska (unresolvedAxisNames →
   //    skyddsnät: AI av/fel/ekade). Dedupar så en axel aldrig listas dubbelt.
+  // HALVÖVERSÄTTNINGAR (buffévärmaren 2026-06-09: "Silvery 4pcs" → "Silvery 4st"):
+  // ett AI-svar som SKILJER sig från råvärdet är inget eko, men kan ändå BEHÅLLA
+  // någon av råvärdets engelska tokens ("Silvery"). Svaret ANVÄNDS (bättre än
+  // rått) men produkten FLAGGAS — annars skeppas halv-engelska tyst till kund.
+  // OBS: vi jämför mot RÅVÄRDETS residual-tokens, inte svarets — att köra
+  // residual-checken på SVARET skulle falsk-flagga äkta svenska ord som inte är
+  // tabellnycklar ("Glöd"). Eko-fall undantas (styrs av isUntrustedEcho: betrodda
+  // siffer-ekon flaggas inte). Modellnamns-svar ("iPhone Blå" behåller "iPhone")
+  // kan ge falsk flagga → accepterat köbrus; badgen visar vilka.
+  const halfTranslated = candidates.filter((c) => {
+    const a = aiMap.get(c);
+    if (a === undefined) return false;
+    if (a.trim().toLowerCase() === c.trim().toLowerCase()) return false; // eko → eko-policyn
+    // Splitta svaret på ALLT icke-alfanumeriskt (audit S1): "Shimmer, låda"/"Shimmer/låda"
+    // ska fånga behållna "Shimmer" precis som "Shimmer låda" — interpunktion får
+    // inte gömma ett kvarhållet engelskt ord.
+    const answerTokens = new Set(a.toLowerCase().split(/[^\p{L}\p{N}]+/u));
+    return residualEnglishTokens(c).some((tok) => answerTokens.has(tok.toLowerCase()));
+  });
   const unresolved = [
     ...new Set(
       candidates
         .filter((c) => !aiMap.has(c))
+        .concat(halfTranslated)
         .concat(unresolvedAxes)
         .concat(unresolvedAxisNames(translator)),
     ),

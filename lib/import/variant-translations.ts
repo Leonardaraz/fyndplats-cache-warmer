@@ -95,6 +95,7 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   grey: "Grå",
   gray: "Grå",
   silver: "Silver",
+  silvery: "Silver", // "Silvery 4pcs"-incidenten 2026-06-09; parar med "Guld" som färgval
   gold: "Guld",
   golden: "Guld",
   beige: "Beige",
@@ -429,6 +430,9 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   universal: "Universal",
   digital: "Digital",
   modern: "Modern",
+  extra: "Extra", // audit S3: annars flaggas perfekta svar som "Extra lång"
+  normal: "Normal",
+  maximal: "Maximal",
 };
 
 /**
@@ -610,18 +614,39 @@ function normalizeUnits(value: string): string {
 }
 
 /**
+ * Hopskrivna antal-enheter ("4pcs"/"2pc"/"4Pcs") är osynliga för både token-
+ * passet (en token, inte i tabellen) och residual-detekteringen (inga 3+-
+ * bokstavstokens) → "Guld 4pcs" skeppades tyst (buffévärmaren 2026-06-09).
+ * Nummer-ankrat; även mitt i värdet ("2pcs Red" → "2 st Red" → token-passet ger
+ * "2 st Röd" — audit S2). Körs EFTER full-match-försöket, så fras-nycklar med
+ * pc/pcs ("random color 1 pc", "5pc sets 3") matchar på sin råa form först —
+ * det är ordningen, inte regexen, som skyddar fraserna.
+ */
+function normalizePieceUnits(value: string): string {
+  return value.replace(/(\d)\s*pcs?\b/gi, "$1 st");
+}
+
+/**
  * Översätter ett optionsvärde. Prioritet:
  *   1. Fullt match (hela värdet) → full översättning ("Light Blue" → "Ljusblå").
- *   2. Första-ord-match → översätt bara första ordet ("Pink Diamond" → "Rosa
+ *   2. Avglua antal-enheter ("4pcs" → "4 st") + nytt full-match-försök.
+ *   3. Token-vis match → översätt varje känt ord ("Pink Diamond" → "Rosa
  *      Diamond"), resten lämnas orört.
- *   3. Inget match → råvärdet ("5XL" → "5XL").
+ *   4. Inget match → (avgluade) råvärdet ("5XL" → "5XL").
  * Universella storlekar (S/M/L/XL) och antal finns inte i tabellen och faller
- * därför alltid på steg 3.
+ * därför alltid på steg 4.
  */
 export function translateValue(raw: string): string {
   const trimmed = normalizeUnits(raw.trim());
   const full = VALUE_TRANSLATIONS[trimmed.toLowerCase()];
   if (full) return full;
+
+  // Hopskrivna "4pcs" → "4 st" (efter fras-uppslaget ovan; se normalizePieceUnits).
+  const unglued = normalizePieceUnits(trimmed);
+  if (unglued !== trimmed) {
+    const fullUnglued = VALUE_TRANSLATIONS[unglued.toLowerCase()];
+    if (fullUnglued) return fullUnglued;
+  }
 
   // Token-vis: översätt VARJE känt ord (inte bara det första) så sammansatta
   // värden blir helt svenska: "Black with LED" → "Svart med LED", "Long Blue"
@@ -629,7 +654,7 @@ export function translateValue(raw: string): string {
   // bevaras. Okända ord (koder, mått, modellnamn som "iPhone 15") lämnas orörda
   // → hela värdet faller tillbaka på råvärdet om inget ord kändes igen.
   let touched = false;
-  const out = trimmed
+  const out = unglued
     .split(/([\s-]+)/)
     .map((tok) => {
       if (/^[\s-]*$/.test(tok)) return tok;
@@ -641,7 +666,9 @@ export function translateValue(raw: string): string {
       return tok;
     })
     .join("");
-  if (!touched) return trimmed;
+  // Orört av tabellen → returnera den AVGLUADE formen ("4pcs" → "4 st" även
+  // när inget ord träffade) i stället för rå-trimmade.
+  if (!touched) return unglued;
   // Normalisera ev. dubbla mellanslag (rörig AE-data) och versalisera första
   // bokstaven (bindeord i tabellen är gemena: "med", "och").
   const norm = out.replace(/\s+/g, " ").trim();

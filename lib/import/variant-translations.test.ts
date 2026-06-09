@@ -488,3 +488,35 @@ describe("VALUE_TRANSLATIONS — fordon/cykelställ (incident 2026-06-09)", () =
     expect(residualEnglishTokens("Mini Digital")).toEqual([]);
   });
 });
+
+describe("translateValue — silvery + hopskrivna antal-enheter (buffévärmaren 2026-06-09)", () => {
+  it("'Silvery 4pcs' / 'Gold 4pcs' blir helsvenska ($0, tabell + avgluing)", () => {
+    expect(translateValue("Silvery 4pcs")).toBe("Silver 4 st");
+    expect(translateValue("Gold 4pcs")).toBe("Guld 4 st");
+    expect(translateValue("Silvery")).toBe("Silver");
+    expect(translateValue("4pcs")).toBe("4 st"); // orört av tabellen → avgluade formen
+    expect(translateValue("4Pcs")).toBe("4 st"); // skiftlägesokänsligt
+  });
+
+  it("fras-nycklar med pc/pcs matchar på rå form FÖRE avgluing (golden-skydd)", () => {
+    expect(translateValue("5pc Sets 3")).toBe("5-delars set 3");
+    expect(translateValue("Random Color 1 PC")).toBe("Slumpmässig färg, 1 st");
+  });
+
+  it("avgluar även MITT i värdet (audit S2): '2pcs Red' → '2 st Röd'", () => {
+    expect(translateValue("2pcs Red")).toBe("2 st Röd");
+    expect(translateValue("2pcs Black")).toBe("2 st Svart");
+  });
+
+  it("EN=SV-adjektiv (audit S3) self-mappas → perfekta AI-svar perma-flaggas inte", () => {
+    expect(translateValue("Extra Long")).toBe("Extra Lång");
+    expect(residualEnglishTokens("Extra Long")).toEqual([]);
+    // "Size" är kvar som kandidat (rätt — ordet ÄR engelskt), men "Normal"
+    // flaggar inte längre → AI-svaret "Normal storlek" behåller ingen residual.
+    expect(residualEnglishTokens("Normal Size")).toEqual(["Size"]);
+  });
+
+  it("silvery-posten gör värdet AI-oberoende → den förgiftade cache-posten oåtkomlig", () => {
+    expect(residualEnglishTokens("Silvery 4pcs")).toEqual([]);
+  });
+});
