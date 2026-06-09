@@ -135,11 +135,22 @@ Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · E
 
 -----
 
-## Steg 5 – PUBLICERA INTE (lämna som draft)
+## Steg 5 – PUBLICERA produkten (1 anrop, mutation)
 
-**Publicera INTE produkten.** När poleringen ovan är klar och verifierad: lämna produkten som **draft** (`visible:false`). **Leonard granskar och publicerar själv i efterhand.** Sätt alltså **inte** `visible:true` och kör inte publicerings-PATCH:en.
+Rå-importer skapas som **draft** (`visible:false`) och syns inte i butiken. När Steg 2–4 är klara och **verifierade** (rena `<h2>`-flikar; alla bilder kvar med `image.url`) och variantkontrollen i **Steg 6** är gjord: publicera produkten (hämta färsk `revision` först).
 
-> Referens (körs av **Leonard** senare, inte av dig): `PATCH .../products/{PRODUCT_ID}` med `{ "product": { "id": "{PRODUCT_ID}", "revision": "{FÄRSK_REVISION}", "visible": true } }`. Frontend uppdateras via ISR (ingen redeploy).
+```
+GET .../products/{PRODUCT_ID}        // färsk revision
+PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
+```
+
+```json
+{ "product": { "id": "{PRODUCT_ID}", "revision": "{FÄRSK_REVISION}", "visible": true } }
+```
+
+> Misslyckas någon verifiering: fixa först, publicera sedan. Hoppa över publiceringen bara om Leonard uttryckligen bett om draft. Frontend uppdateras via ISR (ingen redeploy).
+>
+> *Historik: #134 införde draft-only ("Leonard granskar och publicerar själv"). 2026-06-09 beslutade Leonard att publicera-efter-polering är standard igen — i linje med polish-knappens prompt (`app/admin/queue/polish-button.tsx`), som hela tiden instruerat publicering.*
 
 -----
 
@@ -185,7 +196,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 - Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
 - Alla bilder har svenska alt-texter och **har kvar sina URL:er**.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
-- Produkten lämnas som **draft** (`visible:false`) — **publicera inte**; Leonard granskar och publicerar själv i efterhand.
+- Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
 - (Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)
 
 -----
