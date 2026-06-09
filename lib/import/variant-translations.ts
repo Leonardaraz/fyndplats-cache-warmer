@@ -43,6 +43,7 @@ export const AXIS_TRANSLATIONS: Record<string, string> = {
   voltage: "Spänning",
   power: "Effekt",
   wattage: "Effekt",
+  effect: "Effekt",
   plug: "Kontakt",
   "plug type": "Kontakttyp",
   socket: "Uttag",
@@ -402,12 +403,45 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
  * Faller tillbaka på råvärdet om axeln inte finns i tabellen.
  */
 export function translateAxisName(raw: string): string {
-  const key = raw
+  const key = normalizeAxisKey(raw);
+  const hit = AXIS_TRANSLATIONS[key];
+  if (hit) return hit;
+  // Färg-aktiga axelnamn AE skickar utöver rena "Color" ("Color Name", "Color
+  // Family", "Main Color", "Colour Classification" …) → samma färg-pipeline, så
+  // den befintliga omklassningen/AI-namngivningen fångar dem när värdena INTE är
+  // färger. "colorful"/"tricolor" matchar ej (ordgräns kring color/colour).
+  if (/\bcolou?rs?\b/.test(key)) return "Färg";
+  return raw.trim();
+}
+
+/**
+ * Normaliserar ett axelnamn till uppslagsnyckel: trim + gemener + strip av ev.
+ * ":"-suffix ("Color: F2025" → "color"). Delas av translateAxisName och
+ * axisNameUnresolved så de alltid bedömer samma nyckel.
+ */
+export function normalizeAxisKey(raw: string): string {
+  return raw
     .trim()
     .toLowerCase()
     .replace(/[:：].*$/, "")
     .trim();
-  return AXIS_TRANSLATIONS[key] ?? raw.trim();
+}
+
+/**
+ * True om en axel-ETIKETT fortfarande är det råa engelska AE-namnet — dvs varken
+ * statiska tabellen, färg-igenkänningen, en deterministisk klass eller AI gav den
+ * ett svenskt namn. En tabell-träff räknas som löst (även self-map som
+ * "Material"→"Material") → inga falska positiva på svensk-stavade lånord. Används
+ * för att flagga produkten (needsAiPolish) i stället för att skeppa ett engelskt
+ * axelnamn till kund. Tar slutnamnet så att en redan omklassad/översatt axel
+ * (finalName ≠ rånamnet) alltid räknas som löst.
+ */
+export function axisNameUnresolved(rawAxis: string, finalName: string): boolean {
+  if (finalName.trim() !== rawAxis.trim()) return false; // översatt/omklassat → ok
+  const key = normalizeAxisKey(rawAxis);
+  if (AXIS_TRANSLATIONS[key] !== undefined) return false; // känt namn (self-map ok)
+  if (/\bcolou?rs?\b/.test(key)) return false; // färg-aktig → "Färg" via LAYER A
+  return true; // kvar som rå engelska → flagga
 }
 
 // --- Mått-/storleksdetektering (för felmärkta "Color"-axlar) ----------------
@@ -601,6 +635,12 @@ export interface VariantTranslator {
   options(raw: Record<string, string>): Record<string, string>;
   /** Remappar en axel→värde→T-tabell (colorCodes/swatch-bilder) med SAMMA nycklar. */
   axisKeyedMap<T>(map: Record<string, Record<string, T>>): Record<string, Record<string, T>>;
+  /** Rå-axel → slutgiltigt svenskt axelnamn (efter ev. omklassning/AI-override).
+   *  Källa för polerings-flaggan via axisNameUnresolved/unresolvedAxisNames. */
+  axisNames: ReadonlyMap<string, string>;
+  /** Axlar som fick ett kollisions-särskiljande suffix (t.ex. "Färg (Color
+   *  Temperature)") — inget kund-klart namn → flaggas för polering. */
+  disambiguatedAxes: ReadonlySet<string>;
 }
 
 /**
@@ -642,8 +682,16 @@ export function buildTranslatorFromBase(
   }
   // Per axel: raw→unik översatt värde + raw-axel→översatt-axel.
   const axisName = new Map<string, string>();
+  const usedAxisNames = new Set<string>();
+  const disambiguatedAxes = new Set<string>();
   const valueByAxis = new Map<string, Map<string, string>>();
-  for (const [axis, values] of rawValuesByAxis) {
+  // Stabil ordning för kollisions-tie-break: vilken axel som BEHÅLLER det rena
+  // namnet vid en namn-kollision avgörs på sorterat rå-axelnamn, INTE på feed-
+  // ordningen. AE:s SKU-prop-ordning är inte kontraktuellt stabil — utan detta kunde
+  // två kolliderande axlar byta vilken som blir suffix-särskild mellan importer och
+  // driva isär Wix-namnen (V3-key-låset). Sorterat → samma resultat varje gång.
+  const orderedAxes = [...rawValuesByAxis].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  for (const [axis, values] of orderedAxes) {
     // Felmärkt "Color"-axel: AE-säljare lägger ofta storlekar/kontakter/antal osv.
     // under färg-fältet ("Color: 42 in"). Blev axeln "Färg"? → 1) deterministisk
     // klass om ALLA värden matchar en (Storlek/Kontakt/Antal/… , gratis), annars
@@ -653,7 +701,28 @@ export function buildTranslatorFromBase(
     let resolvedAxis = baseAxis(axis);
     if (resolvedAxis === "Färg") {
       resolvedAxis = inferMislabeledColorAxis(values) ?? axisOverrides?.get(axis) ?? "Färg";
+    } else if (axisNameUnresolved(axis, resolvedAxis)) {
+      // Icke-färg-axel vars namn fortfarande är rå engelska (tabell-miss, t.ex.
+      // "Lighting Mode") → använd ev. AI-översatt namn; annars kvar (flaggas sen).
+      // Guarden gör att en ren "Storlek" ALDRIG kan skrivas över av ett strö-svar.
+      resolvedAxis = axisOverrides?.get(axis) ?? resolvedAxis;
     }
+    // Axel-namn-kollisionssäkerhet (spegel av per-värde-logiken nedan): två
+    // DISTINKTA råaxlar får aldrig samma svenska namn. Den breda färg-igenkänningen
+    // (LAYER A) kan annars mappa både "Color" och "Color Temperature"/"Color Name"
+    // till "Färg" (och två axlar kan landa på samma klass, t.ex. "Color Size" +
+    // "Size" → "Storlek"). Utan särskiljning skriver out[tAxis] över sig själv i
+    // options() → en hel variantdimension tappas → varianter kollapsar →
+    // wixVariantId-desync. AI ger oftast ett distinkt namn; detta är skyddsnätet när
+    // den inte gör det (råaxeln i suffix, sen löpnummer). Deterministiskt (stabil
+    // axel-ordning) så V3-key-låset inte rubbas mellan importer.
+    if (usedAxisNames.has(resolvedAxis)) {
+      let t = `${resolvedAxis} (${axis.trim()})`;
+      for (let n = 2; usedAxisNames.has(t); n++) t = `${resolvedAxis} ${n}`;
+      resolvedAxis = t;
+      disambiguatedAxes.add(axis); // ej kund-klart namn → flaggas för polering
+    }
+    usedAxisNames.add(resolvedAxis);
     axisName.set(axis, resolvedAxis);
     const used = new Set<string>();
     const m = new Map<string, string>();
@@ -676,6 +745,8 @@ export function buildTranslatorFromBase(
   const tAxis = (axis: string) => axisName.get(axis) ?? baseAxis(axis);
   const tValue = (axis: string, value: string) => valueByAxis.get(axis)?.get(value) ?? baseValue(value);
   return {
+    axisNames: axisName,
+    disambiguatedAxes,
     options(raw) {
       const out: Record<string, string> = {};
       for (const [axis, value] of Object.entries(raw ?? {})) out[tAxis(axis)] = tValue(axis, value);
@@ -692,4 +763,20 @@ export function buildTranslatorFromBase(
       return out;
     },
   };
+}
+
+/**
+ * Rå-axlar vars SLUTNAMN inte är kund-klart: antingen fortfarande rå engelska
+ * (tabell-miss utan omklassning/override) ELLER ett kollisions-särskiljande suffix
+ * (två axlar ville ha samma namn). Delas av AI- och sync-vägen för att flagga
+ * needsAiPolish — garantin att ingen produkt skeppas med ett engelskt/felmärkt namn.
+ */
+export function unresolvedAxisNames(
+  translator: Pick<VariantTranslator, "axisNames" | "disambiguatedAxes">,
+): string[] {
+  const out: string[] = [];
+  for (const [raw, final] of translator.axisNames) {
+    if (axisNameUnresolved(raw, final) || translator.disambiguatedAxes.has(raw)) out.push(raw);
+  }
+  return out;
 }

@@ -43,7 +43,7 @@ describe("buildVariantTranslatorAI", () => {
     expect(sent).toContain("Glow");
     expect(sent).not.toContain("Red"); // känt värde → aldrig till AI
     expect(sent).not.toContain("Blue");
-    expect(translator.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effect: "Glöd" });
+    expect(translator.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effekt: "Glöd" });
   });
 
   it("rapporterar olösta värden (AI gav inget svar) för polerings-flaggan", async () => {
@@ -53,7 +53,7 @@ describe("buildVariantTranslatorAI", () => {
       { translateBatch },
     );
     expect(unresolved).toContain("Mystery");
-    expect(translator.options({ Effect: "Mystery" })).toEqual({ Effect: "Mystery" }); // faller på råvärde
+    expect(translator.options({ Effect: "Mystery" })).toEqual({ Effekt: "Mystery" }); // faller på råvärde
   });
 
   it("ett oförändrat AI-svar (behållet modellnamn) räknas som LÖST, inte olöst", async () => {
@@ -123,7 +123,105 @@ describe("buildVariantTranslatorAI", () => {
       { translateBatch },
     );
     expect(unresolved).toContain("Glow");
-    expect(translator.options({ Effect: "Glow" })).toEqual({ Effect: "Glow" });
+    expect(translator.options({ Effect: "Glow" })).toEqual({ Effekt: "Glow" });
+  });
+});
+
+describe("buildVariantTranslatorAI — robust axel-namngivning (utöver exakt 'Color')", () => {
+  // Värden som inte finns i tabellen skickas annars till den riktiga värde-Haikun;
+  // stäng den med en tom translateBatch så testet isolerar AXEL-beteendet.
+  const noValueAI = async () => ({});
+
+  it("'Color Name' med typ-värden → samma felmärkt-färg-väg som 'Color' (LAYER A)", async () => {
+    const nameAxes = vi.fn(async (_axes: { axis: string; values: string[] }[]) => ({ "Color Name": "Typ" }));
+    const variants = [
+      { options: { "Color Name": "Vertical type" } },
+      { options: { "Color Name": "Horizontal type" } },
+    ];
+    const { translator, unresolved } = await buildVariantTranslatorAI(variants, {
+      nameAxes,
+      translateBatch: noValueAI,
+    });
+    expect(nameAxes).toHaveBeenCalledTimes(1);
+    expect(nameAxes.mock.calls[0][0]).toEqual([
+      { axis: "Color Name", values: ["Vertical type", "Horizontal type"] },
+    ]);
+    expect(translator.axisNames.get("Color Name")).toBe("Typ");
+    expect(unresolved).not.toContain("Color Name");
+  });
+
+  it("'Color Name' med riktiga färger → förblir 'Färg', ingen AI, ingen flagga", async () => {
+    const nameAxes = vi.fn(async () => ({}));
+    const variants = [{ options: { "Color Name": "Red" } }, { options: { "Color Name": "Blue" } }];
+    const { translator, unresolved } = await buildVariantTranslatorAI(variants, { nameAxes });
+    expect(nameAxes).not.toHaveBeenCalled(); // isColorAxis fångar → ingen AI
+    expect(translator.options({ "Color Name": "Red" })).toEqual({ Färg: "Röd" });
+    expect(unresolved).not.toContain("Color Name");
+  });
+
+  it("AI EKAR ett engelskt axelnamn → OLÖST (flaggas), till skillnad från ett ekat värde", async () => {
+    // No-op-asymmetrin: ett ekat värde = "behållet med flit", men ett ekat
+    // (kvar-engelskt/färg-aktigt) AXELNAMN får aldrig nå kund.
+    const nameAxes = vi.fn(async () => ({ "Color Name": "Color Name" }));
+    const variants = [
+      { options: { "Color Name": "Vertical type" } },
+      { options: { "Color Name": "Horizontal type" } },
+    ];
+    const { translator, unresolved } = await buildVariantTranslatorAI(variants, {
+      nameAxes,
+      translateBatch: noValueAI,
+    });
+    expect(translator.axisNames.get("Color Name")).toBe("Färg"); // ingen override (eko)
+    expect(unresolved).toContain("Color Name"); // men FLAGGAD
+  });
+
+  it("generellt engelskt icke-färg-namn ('Lighting Mode') → AI översätter namnet (override)", async () => {
+    const nameAxes = vi.fn(async () => ({ "Lighting Mode": "Ljusläge" }));
+    const variants = [
+      { options: { "Lighting Mode": "Strobe" } },
+      { options: { "Lighting Mode": "Fade" } },
+    ];
+    const { translator, unresolved } = await buildVariantTranslatorAI(variants, {
+      nameAxes,
+      translateBatch: noValueAI,
+    });
+    expect(nameAxes).toHaveBeenCalledTimes(1);
+    expect(translator.axisNames.get("Lighting Mode")).toBe("Ljusläge");
+    expect(unresolved).not.toContain("Lighting Mode");
+  });
+
+  it("engelskt namn AI inte kan översätta → slutnamnet kvar engelskt → flaggat", async () => {
+    const nameAxes = vi.fn(async () => ({})); // inget svar
+    const { translator, unresolved } = await buildVariantTranslatorAI(
+      [{ options: { "Lighting Mode": "Strobe" } }],
+      { nameAxes, translateBatch: noValueAI },
+    );
+    expect(translator.axisNames.get("Lighting Mode")).toBe("Lighting Mode");
+    expect(unresolved).toContain("Lighting Mode");
+  });
+
+  it("ren svensk icke-färg-axel ('Storlek') → ingen axel-AI, ingen flagga", async () => {
+    const nameAxes = vi.fn(async () => ({}));
+    const { translator, unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Size: "XL" } }, { options: { Size: "S" } }],
+      { nameAxes },
+    );
+    expect(nameAxes).not.toHaveBeenCalled();
+    expect(translator.axisNames.get("Size")).toBe("Storlek");
+    expect(unresolved).not.toContain("Size");
+  });
+
+  it("cache-poisoning-skydd: ett cachat engelskt eko fortsätter flaggas (AI ej re-anropad)", async () => {
+    const nameAxes = vi.fn(async () => ({ "Lighting Mode": "Lighting Mode" })); // ekar engelska
+    const variants = [{ options: { "Lighting Mode": "Strobe" } }];
+    const first = await buildVariantTranslatorAI(variants, { nameAxes, translateBatch: noValueAI });
+    expect(first.unresolved).toContain("Lighting Mode");
+    expect(nameAxes).toHaveBeenCalledTimes(1);
+    // Andra importen: cache-hit på ekot → AI ej re-anropad, men axeln ändå flaggad.
+    const second = await buildVariantTranslatorAI(variants, { nameAxes, translateBatch: noValueAI });
+    expect(nameAxes).toHaveBeenCalledTimes(1);
+    expect(second.unresolved).toContain("Lighting Mode");
+    expect(second.translator.axisNames.get("Lighting Mode")).toBe("Lighting Mode");
   });
 });
 

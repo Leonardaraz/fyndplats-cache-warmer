@@ -21,11 +21,13 @@ import { getCachedResult, makeCacheKey, setCachedResult } from "../llm/cache";
 import { logVariantTranslation } from "../llm/variant-log";
 import { isColorAxis } from "./color-match";
 import {
+  axisNameUnresolved,
   buildTranslatorFromBase,
   inferMislabeledColorAxis,
   residualEnglishTokens,
   translateAxisName,
   translateValue,
+  unresolvedAxisNames,
   type VariantTranslator,
 } from "./variant-translations";
 import type { FeatureFlags } from "./types";
@@ -134,11 +136,12 @@ export async function buildVariantTranslatorAI(
     }
   }
 
-  // 4b. Axel-naming: en "Color"-axel vars värden varken är färger eller en känd
-  //     deterministisk klass är felmärkt. Låt AI föreslå rätt svenskt axelnamn
-  //     (cachat per axel+värdemängd, samma budget/fail-open som värde-AI:n). AI kan
-  //     även "rädda" exotiska färger ordlistan missar → svarar "Färg" (ingen
-  //     override). Lyckas AI inte → axeln läggs i unresolved (flaggar produkten).
+  // 4b. Axel-naming: AI ger rätt svenskt axelnamn för (a) en "Color"-axel vars
+  //     värden varken är färger eller en känd deterministisk klass (felmärkt), och
+  //     (b) en axel vars namn fortfarande är rå engelska (tabell-miss). Cachat per
+  //     axel+värdemängd, samma budget/fail-open som värde-AI:n. AI kan "rädda"
+  //     exotiska färger → "Färg" (ingen override). Lyckas AI inte / ekar → axeln
+  //     hamnar i unresolved (flaggar produkten) via slutpassen nedan.
   const nameAxes = opts?.nameAxes ?? aiNameAxes;
   const valuesByAxis = new Map<string, string[]>();
   for (const v of variants)
@@ -149,14 +152,37 @@ export async function buildVariantTranslatorAI(
     }
   const axisOverrides = new Map<string, string>();
   const unresolvedAxes: string[] = [];
+  // No-op-ASYMMETRIN: ett ekat VÄRDE = "behållet med flit" (löst), men ett ekat/
+  // odugligt AXELNAMN är OLÖST och får aldrig nå kund. applyAxisName kapslar in
+  // det: för en färg-axel är "Färg" = "det ÄR färger" (löst), ett riktigt svenskt
+  // klassnamn = override, allt annat (tomt/eko/färg-aktigt) = kunde ej omklassa →
+  // flagga; för ett engelskt namn = översätt (override), annars flaggar slutpassen.
+  const applyAxisName = (axis: string, current: string, name: string | undefined) => {
+    if (current === "Färg") {
+      if (name === "Färg") return; // AI: "det ÄR färger" → behåll Färg (löst)
+      if (name && name !== axis.trim() && !/\bcolou?rs?\b/.test(name.toLowerCase())) {
+        axisOverrides.set(axis, name); // riktig svensk omklassning
+      } else {
+        unresolvedAxes.push(axis); // tomt/eko/färg-aktigt → kunde ej omklassa → flagga
+      }
+    } else if (name && name !== current.trim()) {
+      axisOverrides.set(axis, name); // engelskt namn översatt (≠ rå-namnet)
+    }
+    // engelskt namn + tomt/eko → namnet stannar engelskt → slutpassen (LAYER C) flaggar
+  };
   const suspectAxes: { axis: string; values: string[] }[] = [];
   for (const [axis, vals] of valuesByAxis) {
-    if (translateAxisName(axis) !== "Färg") continue; // bara "Color"-axlar
-    if (isColorAxis(vals)) continue; // riktiga färger → ok
-    if (inferMislabeledColorAxis(vals)) continue; // känd klass → deterministiskt (gratis)
+    const current = translateAxisName(axis);
+    const colorish = current === "Färg";
+    const englishName = axisNameUnresolved(axis, current); // tabell-miss, kvar engelska
+    if (!colorish && !englishName) continue; // rent svenskt icke-färg-namn → klart
+    if (colorish) {
+      if (isColorAxis(vals)) continue; // riktiga färger → ok
+      if (inferMislabeledColorAxis(vals)) continue; // känd klass → deterministiskt (gratis)
+    }
     const hit = await getCachedResult<string>(axisCacheKeyFor(axis, vals));
     if (hit && typeof hit.value === "string") {
-      if (hit.value && hit.value !== "Färg") axisOverrides.set(axis, hit.value);
+      applyAxisName(axis, current, hit.value.trim());
       continue;
     }
     suspectAxes.push({ axis, values: vals });
@@ -170,12 +196,8 @@ export async function buildVariantTranslatorAI(
     }
     for (const { axis, values } of suspectAxes) {
       const name = named[axis]?.trim();
-      if (name) {
-        await setCachedResult(axisCacheKeyFor(axis, values), AXIS_OP, name, "variant-ai");
-        if (name !== "Färg") axisOverrides.set(axis, name);
-      } else {
-        unresolvedAxes.push(axis); // AI kunde inte namnge → flagga produkten för polering
-      }
+      if (name) await setCachedResult(axisCacheKeyFor(axis, values), AXIS_OP, name, "variant-ai");
+      applyAxisName(axis, translateAxisName(axis), name);
     }
   }
 
@@ -184,8 +206,17 @@ export async function buildVariantTranslatorAI(
   const baseValue = (raw: string) => aiMap.get(raw) ?? translateValue(raw);
   const translator = buildTranslatorFromBase(variants, baseValue, translateAxisName, axisOverrides);
 
-  // 6. Olösta = värden + ev. axlar AI inte kunde namnge → needsAiPolish-flaggan.
-  const unresolved = candidates.filter((c) => !aiMap.has(c)).concat(unresolvedAxes);
+  // 6. Olösta = (halv-)engelska värden + felmärkta färg-axlar AI inte kunde namnge
+  //    + axlar vars SLUTNAMN ändå förblev rå engelska (unresolvedAxisNames →
+  //    skyddsnät: AI av/fel/ekade). Dedupar så en axel aldrig listas dubbelt.
+  const unresolved = [
+    ...new Set(
+      candidates
+        .filter((c) => !aiMap.has(c))
+        .concat(unresolvedAxes)
+        .concat(unresolvedAxisNames(translator)),
+    ),
+  ];
   return { translator, unresolved };
 }
 
@@ -234,18 +265,19 @@ function axisCacheKeyFor(axis: string, values: ReadonlyArray<string>): string {
   return makeCacheKey({ op: AXIS_OP, name: axis, description: sig });
 }
 
-/** Default-implementationen: ett Haiku-anrop som föreslår rätt svenskt axelnamn
- *  för felmärkta "Color"-axlar. failOpen = tomt → axeln behålls som "Färg" och
- *  flaggas för polering. */
+/** Default-implementationen: ett Haiku-anrop som föreslår rätt svenskt axelnamn —
+ *  för felmärkta "Color"-axlar OCH för axlar med kvarvarande engelskt namn.
+ *  failOpen = tomt → namnet behålls och axeln flaggas för polering. */
 async function aiNameAxes(
   axes: { axis: string; values: string[] }[],
   productTitle?: string,
 ): Promise<Record<string, string>> {
-  const system = `En svensk e-handel importerar AliExpress-produkter. En variant-axel som säljaren döpt till "Color" innehåller ofta INTE färger — säljare lägger storlek, material, modell, kontakt-typ, antal m.m. under färg-fältet. Ge det KORREKTA svenska axelnamnet (ETT enda ord) utifrån värdena.
+  const system = `En svensk e-handel importerar AliExpress-produkter. Ge det KORREKTA svenska AXELNAMNET (ETT enda ord) för en variant-axel, utifrån axelns engelska namn OCH dess värden. Två typfall: (a) säljaren döpte axeln till "Color" men värdena är INTE färger (storlek/material/modell/kontakt/antal m.m. ligger under färg-fältet), eller (b) axelnamnet är engelska och behöver översättas.
 Regler:
 - Om värdena FAKTISKT är färger (även ovanliga som Champagne/Ivory/Graphite) → svara "Färg".
-- Annars välj ett kort, passande svenskt namn: Storlek, Material, Modell, Kontakt, Antal, Volym, Effekt, Mönster, Stil, Längd, Typ, Smak, Doft …
-- Svara ENBART JSON: {"names": { "<axelnamn>": "<svenskt namn>" }} med EXAKT samma axelnamn som nycklar.
+- Annars: om axelnamnet är ett vanligt engelskt attribut, översätt det ("Lighting Mode" → "Ljusläge"). Stämmer namnet inte med värdena, namnge utifrån värdena i stället.
+- Välj ett kort, passande svenskt namn: Storlek, Material, Modell, Kontakt, Antal, Volym, Effekt, Mönster, Stil, Längd, Typ, Smak, Doft …
+- Svara ENBART JSON: {"names": { "<axelnamn>": "<svenskt namn>" }} med EXAKT samma (engelska rå-)axelnamn som nycklar.
 - Produktkontext (för att tolka tvetydiga värden): ${productTitle ?? "(okänd)"}.`;
   const user = JSON.stringify(axes.map((a) => ({ axel: a.axis, värden: a.values })));
   const res = await completeJsonRouted<{ names?: Record<string, string> }>({

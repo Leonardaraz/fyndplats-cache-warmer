@@ -16,7 +16,7 @@ import { rankProductImages } from "./image-rank";
 import type { FaqReviewHint } from "./faq-gen";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
-import { buildVariantTranslator } from "./variant-translations";
+import { buildVariantTranslator, unresolvedAxisNames } from "./variant-translations";
 import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
@@ -220,7 +220,13 @@ export async function importProduct(
   // hamnar i poleringskön i stället för att nå kunden halv-engelska.
   const translatorResult = variantAiTranslationEnabled(flags)
     ? await buildVariantTranslatorAI(product.variants, { productTitle: product.rawTitle })
-    : { translator: buildVariantTranslator(product.variants), unresolved: [] as string[] };
+    : (() => {
+        // Sync-läge (VARIANT_AI av): inga AI-anrop, men flagga ändå produkten om en
+        // axel blev kvar med ett rått engelskt namn (tabell-miss) → ingen produkt
+        // skeppas halv-engelsk ens i hård-$0-läget.
+        const t = buildVariantTranslator(product.variants);
+        return { translator: t, unresolved: unresolvedAxisNames(t) };
+      })();
   const translator = translatorResult.translator;
   const variantsNeedPolish = translatorResult.unresolved.length > 0;
   const variants = product.variants.map((v) => ({
