@@ -34,6 +34,7 @@ import type { FeatureFlags } from "./types";
 
 const OP = "variant-translate";
 const AXIS_OP = "variant-axis-name";
+const VERIFY_OP = "variant-verify-sv";
 
 /** Översätter en batch okända råvärden → svenska (råvärde→svenska). Default
  *  anropar Claude/Haiku via routern; injicerbar i test. */
@@ -48,6 +49,15 @@ export type NameAxesFn = (
   axes: { axis: string; values: string[] }[],
   productTitle?: string,
 ) => Promise<Record<string, string>>;
+
+/** SVENSKHETS-GRINDEN: bedömer vilka av de SLUTLIGA (skeppningsklara) värdena
+ *  som INTE är naturlig svenska. Returnerar delmängden icke-svenska, eller
+ *  null vid fel (skiljs från äkta tom lista så ett transient fel ALDRIG cachas
+ *  som "ok"). Default anropar Claude/Haiku via routern; injicerbar i test. */
+export type VerifySwedishFn = (
+  values: string[],
+  productTitle?: string,
+) => Promise<string[] | null>;
 
 export interface AiTranslatorResult {
   translator: VariantTranslator;
@@ -76,7 +86,12 @@ export function variantAiTranslationEnabled(flags?: FeatureFlags): boolean {
  */
 export async function buildVariantTranslatorAI(
   variants: ReadonlyArray<{ options: Record<string, string> }>,
-  opts?: { productTitle?: string; translateBatch?: TranslateBatchFn; nameAxes?: NameAxesFn },
+  opts?: {
+    productTitle?: string;
+    translateBatch?: TranslateBatchFn;
+    nameAxes?: NameAxesFn;
+    verifySwedish?: VerifySwedishFn;
+  },
 ): Promise<AiTranslatorResult> {
   const translateBatch = opts?.translateBatch ?? aiTranslateBatch;
 
@@ -240,13 +255,57 @@ export async function buildVariantTranslatorAI(
     const answerTokens = new Set(a.toLowerCase().split(/[^\p{L}\p{N}]+/u));
     return residualEnglishTokens(c).some((tok) => answerTokens.has(tok.toLowerCase()));
   });
+  // 7. SVENSKHETS-GRIND (Leonards direktiv 2026-06-09: "verktyget ska SJÄLVT
+  //    känna av när det inte är svenska"): verifiera de FAKTISKA värden/axelnamn
+  //    som skeppas — fångar kategoriskt det heuristiken missar (VERSAL-engelska
+  //    som "STRIPED", exotiska AE-former, framtida okända klasser). Cachat per
+  //    slutvärde (30 d TTL; mest "Röd"/"Svart"-repriser → ≈$0), ETT batchat
+  //    Haiku-anrop för missarna, fail-open (null = inget cachas, inget flaggas —
+  //    heuristik-lagren ovan förblir golvet). Flaggade SLUTVÄRDEN läggs i
+  //    unresolved (badgen visar dem ordagrant).
+  const verifySwedish = opts?.verifySwedish ?? aiVerifySwedish;
+  const finals = new Set<string>();
+  for (const v of variants)
+    for (const val of Object.values(translator.options(v.options ?? {}))) finals.add(val);
+  for (const name of translator.axisNames.values()) finals.add(name);
+  // Bara strängar med något 3+-bokstavsord kan språkbedömas — mått/koder/siffror
+  // ("3,6 x 3,6 m", "KM-6631", "5XL") är språkneutrala och skickas aldrig.
+  const verifiable = [...finals].filter((f) => /[A-Za-zÅÄÖåäö]{3,}/.test(f));
+  const gateFlagged: string[] = [];
+  const verifyMisses: string[] = [];
+  for (const f of verifiable) {
+    const hit = await getCachedResult<string>(verifyKeyFor(f));
+    if (hit && typeof hit.value === "string") {
+      if (hit.value === "flag") gateFlagged.push(f);
+    } else {
+      verifyMisses.push(f);
+    }
+  }
+  for (let i = 0; i < verifyMisses.length; i += CHUNK) {
+    const chunk = verifyMisses.slice(i, i + CHUNK);
+    let notSwedish: string[] | null = null;
+    try {
+      notSwedish = await verifySwedish(chunk, opts?.productTitle);
+    } catch {
+      notSwedish = null; // grinden får ALDRIG fälla importen
+    }
+    if (notSwedish === null) continue; // fel → cacha INGET (annars blir transienta fel "ok")
+    const bad = new Set(notSwedish.map((s) => s.trim()));
+    for (const f of chunk) {
+      const verdict = bad.has(f.trim()) ? "flag" : "ok";
+      await setCachedResult(verifyKeyFor(f), VERIFY_OP, verdict, "variant-ai");
+      if (verdict === "flag") gateFlagged.push(f);
+    }
+  }
+
   const unresolved = [
     ...new Set(
       candidates
         .filter((c) => !aiMap.has(c))
         .concat(halfTranslated)
         .concat(unresolvedAxes)
-        .concat(unresolvedAxisNames(translator)),
+        .concat(unresolvedAxisNames(translator))
+        .concat(gateFlagged),
     ),
   ];
   return { translator, unresolved };
@@ -254,6 +313,38 @@ export async function buildVariantTranslatorAI(
 
 function cacheKeyFor(rawValue: string): string {
   return makeCacheKey({ op: OP, name: rawValue, description: "" });
+}
+
+/** Cache-nyckel per SLUTVÄRDE för svenskhets-grinden ("ok"/"flag", 30 d TTL). */
+function verifyKeyFor(finalValue: string): string {
+  return makeCacheKey({ op: VERIFY_OP, name: finalValue, description: "" });
+}
+
+/** Default-implementationen av svenskhets-grinden: ett Haiku-anrop som pekar ut
+ *  vilka skeppningsklara strängar som INTE är naturlig svenska. null vid fel. */
+async function aiVerifySwedish(
+  values: string[],
+  productTitle?: string,
+): Promise<string[] | null> {
+  const system = `Du kvalitetsgranskar variantvärden för en SVENSK e-handel. Avgör för varje sträng om den är NATURLIG SVENSKA eller språkneutral (mått, koder, modellnamn, siffror, vedertagna lånord som LED/USB/Smart/Premium). Engelska ord ("Wheel", "STRIPED", "Rear", "Silvery") är INTE svenska — även i versaler eller mitt i en sträng.
+Svara ENBART JSON: {"notSwedish": ["<exakt sträng>", ...]} — EXAKT de inskickade strängar som INTE är naturlig svenska. Tom lista om alla är ok.
+Produktkontext: ${productTitle ?? "(okänd)"}.`;
+  try {
+    const res = await completeJsonRouted<{ notSwedish?: string[] }>({
+      system,
+      user: JSON.stringify(values),
+      op: VERIFY_OP,
+      model: TEXT_MODEL,
+      maxTokens: 500,
+      temperature: 0,
+      cacheKey: null, // vi cachar per slutvärde själva
+      // INGEN failOpen: total-fail ska KASTA så grinden returnerar null och
+      // inget cachas (annars skulle ett transient fel bli permanent "ok").
+    });
+    return Array.isArray(res.notSwedish) ? res.notSwedish : [];
+  } catch {
+    return null;
+  }
 }
 
 /** Eko-asymmetrins VÄRDE-regel (incident 2026-06-09 "Rear Wheel"): ett AI-eko

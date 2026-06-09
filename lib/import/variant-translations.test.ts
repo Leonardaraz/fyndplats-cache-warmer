@@ -434,10 +434,35 @@ describe("translateValue — ft→m (nummer-ankrat, aritmetik, NOMINELL/trunkera
   it("halvkonverterar ALDRIG en dimension med omgivande text (audit S1) — hellre orört än fel mått", () => {
     // "10x3 m Gazebo" vore ett FELAKTIGT mått — guarden lämnar värdet åt AI/flaggan.
     expect(translateValue("10x10 ft Gazebo")).toBe("10x10 ft Gazebo");
-    expect(translateValue("Tent 10x10ft")).toBe("Tent 10x10ft");
     expect(translateValue("10x10ft(3x3m)")).toBe("10x10ft(3x3m)");
     // …men enhet-per-tal utan naken x-adjacens konverteras fortfarande korrekt.
     expect(translateValue("10ft x 13ft")).toBe("3 m x 3,9 m");
+  });
+
+  it("SLUT-ankrad kedja med prefix konverteras HELT (aldrig halvt): 'Tent 10x10ft' → 'Tent 3 x 3 m'", () => {
+    // S1-faran var HALV-konvertering; en komplett tal-x-tal-kedja vid slutet är
+    // entydig och konverteras i sin helhet, med prefixet bevarat.
+    expect(translateValue("Tent 10x10ft")).toBe("Tent 3 x 3 m");
+  });
+});
+
+describe("translateValue — hopskrivna in-dimensioner med kodprefix (growtältet 2026-06-09)", () => {
+  it("'2000D48x48x80in' → '2000D48x48x80 tum' (kedjan entydig trots prefix)", () => {
+    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum");
+    expect(translateValue("2000D60x60x80in")).toBe("2000D60x60x80 tum");
+  });
+
+  it("prepositions-skyddet håller fortfarande", () => {
+    expect(translateValue("5 in 1")).toBe("5 in 1"); // slutar på "1" → kan aldrig matcha
+    expect(translateValue("2 in 1 Charger")).toBe("2 in 1 Laddare");
+  });
+
+  it("x-kopplat prefix konverteras ALDRIG (slutpass S-A) — blandade enheter undviks", () => {
+    expect(translateValue("8 ft x 8 x 7 ft")).toBe("8 ft x 8 x 7 ft"); // hör ihop över gränsen
+    expect(translateValue("48in x 48 x 80in")).toBe("48in x 48 x 80in");
+    // …fristående kedjor vid slutet konverteras fortfarande.
+    expect(translateValue("Tent 10x10ft")).toBe("Tent 3 x 3 m");
+    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum");
   });
 });
 

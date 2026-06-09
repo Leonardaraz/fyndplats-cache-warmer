@@ -571,6 +571,27 @@ function convertFeetToMeters(value: string): string {
         .join(" x ") + " m"
     );
   }
+  // SLUT-ankrad dimensionskedja med prefix ("Tent 10x10ft"): kedjan tal-x-tal +
+  // avslutande ft är entydig → konvertera HELA kedjan, behåll prefixet. Körs
+  // FÖRE S1-guarden — guarden skyddar mot HALV-konvertering; en komplett kedja
+  // vid strängens slut är säker.
+  const NUM_FT = /\d+(?:[.,]\d+)?/.source;
+  const endChain = value.match(
+    new RegExp(`^(.*?)(${NUM_FT}(?:\\s*[x×]\\s*${NUM_FT})+)\\s*(?:feet|foot|ft)\\.?$`, "i"),
+  );
+  // Slutpass-guard (S-A): är kedjan x-KOPPLAD till prefixet ("8 ft x 8 x 7 ft")
+  // hör talen ihop över gränsen → konvertering gåve blandade enheter. Lämna åt
+  // S1-guarden/AI:n. En fristående kedja vid slutet förblir säker.
+  if (endChain && !/[x×]\s*$/.test(endChain[1])) {
+    return (
+      endChain[1] +
+      endChain[2]
+        .split(/\s*[x×]\s*/)
+        .map((n) => formatMeters(num(n) * FT_IN_METERS))
+        .join(" x ") +
+      " m"
+    );
+  }
   // AUDIT-GUARD (S1): finns en NAKEN tal-x-tal-dimension ("10x10") som den
   // ankrade regexen INTE fångade (prefix/suffix-text, t.ex. "10x10 ft Gazebo")
   // skulle per-förekomst-passet halvkonvertera ("10x3 m Gazebo" = FELAKTIGT
@@ -605,8 +626,15 @@ function normalizeUnits(value: string): string {
   const NUM = /\d+(?:[.,]\d+)?/.source;
   if (new RegExp(`^${NUM}\\s*in(?:\\s*[x×]\\s*${NUM}\\s*in)+$`, "i").test(t)) {
     v = t.replace(/(\d+(?:[.,]\d+)?)\s*in\b/gi, "$1 tum"); // enhet per tal
-  } else if (new RegExp(`^${NUM}(?:\\s*[x×]\\s*${NUM})+\\s*in$`, "i").test(t)) {
-    v = t.replace(/\s*in$/i, " tum"); // EN avslutande enhet för hela dimensionen
+  } else {
+    // SLUT-ankrad — prefix tillåts ("2000D48x48x80in" → "2000D48x48x80 tum",
+    // growtältet 2026-06-09: densitetskod + dimensioner hopskrivet, osynligt för
+    // både AI-kandidatur och grinden). Kedjan tal-x-tal + avslutande "in" är
+    // entydig oavsett prefix; "5 in 1" slutar på "1" och kan aldrig matcha.
+    // S-A-guarden: x-kopplat prefix ("48in x 48 x 80in") → blandade enheter →
+    // lämna orört.
+    const m2 = t.match(new RegExp(`^(.*?)(${NUM}(?:\\s*[x×]\\s*${NUM})+)\\s*in$`, "i"));
+    if (m2 && !/[x×]\s*$/.test(m2[1])) v = `${m2[1]}${m2[2]} tum`;
   }
   const bare = v.trim().match(/^(\d+(?:[.,]\d+)?)\s*in$/i);
   if (bare) v = `${bare[1]} tum`;

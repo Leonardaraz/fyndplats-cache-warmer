@@ -2,7 +2,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { __clearMemCache } from "../llm/cache";
 import { __resetLlmMemoryStore } from "../llm/storage";
 import { listVariantTranslations } from "../llm/variant-log";
-import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
+import {
+  buildVariantTranslatorAI as buildVariantTranslatorAIRaw,
+  variantAiTranslationEnabled,
+} from "./variant-ai-translate";
+
+/** HERMETIK (audit M1): svenskhets-grindens DEFAULT gör riktiga API-anrop om
+ *  ANTHROPIC_API_KEY råkar vara exporterad i skalet som kör vitest. Wrappa alla
+ *  test-anrop med en no-op-grind (null = cacha/flagga inget); grind-testerna
+ *  injicerar sin egen verifySwedish via ...opts och påverkas inte. */
+const buildVariantTranslatorAI: typeof buildVariantTranslatorAIRaw = (variants, opts) =>
+  buildVariantTranslatorAIRaw(variants, { verifySwedish: async () => null, ...opts });
 
 beforeEach(() => {
   __resetLlmMemoryStore();
@@ -254,6 +264,55 @@ describe("buildVariantTranslatorAI — eko-asymmetri för VÄRDEN (incident 2026
     const second = await buildVariantTranslatorAI(variants, { translateBatch });
     expect(translateBatch).toHaveBeenCalledTimes(1); // import 2 = betrodd cache-träff
     expect(first.unresolved).toEqual([]);
+    expect(second.unresolved).toEqual([]);
+  });
+});
+
+describe("buildVariantTranslatorAI — SVENSKHETS-GRINDEN (slutlig verifiering av skeppade värden)", () => {
+  const noValueAI = async () => ({});
+
+  it("fångar heuristikens blinda fläck: VERSAL-engelska ('STRIPED') flaggas av grinden", async () => {
+    // "STRIPED" är all-caps → residual-heuristiken tolkar det som akronym/kod →
+    // aldrig AI-kandidat → skulle skeppas tyst. Grinden ser SLUTVÄRDET.
+    const verifySwedish = vi.fn(async (vals: string[]) =>
+      vals.filter((v) => v === "STRIPED"),
+    );
+    const { unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Pattern: "STRIPED" } }],
+      { translateBatch: noValueAI, verifySwedish },
+    );
+    expect(verifySwedish).toHaveBeenCalledTimes(1);
+    expect(unresolved).toContain("STRIPED");
+  });
+
+  it("skickar BARA språkbedömbara strängar (mått/koder/siffror aldrig)", async () => {
+    const verifySwedish = vi.fn(async (_vals: string[]) => [] as string[]);
+    await buildVariantTranslatorAI(
+      [{ options: { Size: "5XL" } }, { options: { Size: "KM-6631" } }],
+      { translateBatch: noValueAI, verifySwedish },
+    );
+    // Finals = {"5XL","KM-6631","Storlek"} — bara axelnamnet har ett 3+-bokstavsord.
+    expect(verifySwedish).toHaveBeenCalledTimes(1);
+    expect(verifySwedish.mock.calls[0][0]).toEqual(["Storlek"]);
+  });
+
+  it("cachar verdikt per slutvärde: andra importen frågar inte om", async () => {
+    const verifySwedish = vi.fn(async () => [] as string[]);
+    const variants = [{ options: { Color: "Red" } }];
+    await buildVariantTranslatorAI(variants, { translateBatch: noValueAI, verifySwedish });
+    await buildVariantTranslatorAI(variants, { translateBatch: noValueAI, verifySwedish });
+    expect(verifySwedish).toHaveBeenCalledTimes(1); // "Färg"/"Röd" cachade som ok
+  });
+
+  it("fail-open: null/kast cachar INGET och flaggar inget — nästa import frågar igen", async () => {
+    const verifySwedish = vi.fn(async () => {
+      throw new Error("nät nere");
+    });
+    const variants = [{ options: { Color: "Red" } }];
+    const first = await buildVariantTranslatorAI(variants, { translateBatch: noValueAI, verifySwedish });
+    expect(first.unresolved).toEqual([]); // grinden fäller aldrig importen
+    const second = await buildVariantTranslatorAI(variants, { translateBatch: noValueAI, verifySwedish });
+    expect(verifySwedish).toHaveBeenCalledTimes(2); // transient fel blev INTE cachat "ok"
     expect(second.unresolved).toEqual([]);
   });
 });
