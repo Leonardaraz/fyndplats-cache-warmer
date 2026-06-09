@@ -259,7 +259,7 @@ export async function buildVariantTranslatorAI(
   //    känna av när det inte är svenska"): verifiera de FAKTISKA värden/axelnamn
   //    som skeppas — fångar kategoriskt det heuristiken missar (VERSAL-engelska
   //    som "STRIPED", exotiska AE-former, framtida okända klasser). Cachat per
-  //    slutvärde för alltid (mest "Röd"/"Svart"-repriser → ≈$0), ETT batchat
+  //    slutvärde (30 d TTL; mest "Röd"/"Svart"-repriser → ≈$0), ETT batchat
   //    Haiku-anrop för missarna, fail-open (null = inget cachas, inget flaggas —
   //    heuristik-lagren ovan förblir golvet). Flaggade SLUTVÄRDEN läggs i
   //    unresolved (badgen visar dem ordagrant).
@@ -315,7 +315,7 @@ function cacheKeyFor(rawValue: string): string {
   return makeCacheKey({ op: OP, name: rawValue, description: "" });
 }
 
-/** Cache-nyckel per SLUTVÄRDE för svenskhets-grinden ("ok"/"flag", för alltid). */
+/** Cache-nyckel per SLUTVÄRDE för svenskhets-grinden ("ok"/"flag", 30 d TTL). */
 function verifyKeyFor(finalValue: string): string {
   return makeCacheKey({ op: VERIFY_OP, name: finalValue, description: "" });
 }

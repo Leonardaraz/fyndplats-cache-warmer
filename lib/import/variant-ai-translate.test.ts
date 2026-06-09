@@ -2,7 +2,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { __clearMemCache } from "../llm/cache";
 import { __resetLlmMemoryStore } from "../llm/storage";
 import { listVariantTranslations } from "../llm/variant-log";
-import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
+import {
+  buildVariantTranslatorAI as buildVariantTranslatorAIRaw,
+  variantAiTranslationEnabled,
+} from "./variant-ai-translate";
+
+/** HERMETIK (audit M1): svenskhets-grindens DEFAULT gör riktiga API-anrop om
+ *  ANTHROPIC_API_KEY råkar vara exporterad i skalet som kör vitest. Wrappa alla
+ *  test-anrop med en no-op-grind (null = cacha/flagga inget); grind-testerna
+ *  injicerar sin egen verifySwedish via ...opts och påverkas inte. */
+const buildVariantTranslatorAI: typeof buildVariantTranslatorAIRaw = (variants, opts) =>
+  buildVariantTranslatorAIRaw(variants, { verifySwedish: async () => null, ...opts });
 
 beforeEach(() => {
   __resetLlmMemoryStore();

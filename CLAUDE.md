@@ -50,7 +50,7 @@ så värden kan inte döpas om i efterhand. Fyra lager (`lib/import/variant-ai-t
 4. **Svenskhets-grinden** (slutsteg, AI-läget): de FAKTISKA skeppningsklara
    värdena/axelnamnen språkverifieras av Haiku ("är detta naturlig svenska?") —
    fångar kategoriskt det heuristiken missar (VERSAL-engelska som "STRIPED",
-   exotiska AE-former). Cachat verdikt per slutvärde för alltid (≈$0), fail-open
+   exotiska AE-former). Cachat verdikt per slutvärde (30 d TTL, ≈$0), fail-open
    (transient fel cachas ALDRIG som "ok"), flaggade värden → samma poleringskö +
    kö-badge som listar dem ordagrant.
 

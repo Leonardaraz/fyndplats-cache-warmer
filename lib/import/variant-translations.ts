@@ -571,6 +571,24 @@ function convertFeetToMeters(value: string): string {
         .join(" x ") + " m"
     );
   }
+  // SLUT-ankrad dimensionskedja med prefix ("Tent 10x10ft"): kedjan tal-x-tal +
+  // avslutande ft är entydig → konvertera HELA kedjan, behåll prefixet. Körs
+  // FÖRE S1-guarden — guarden skyddar mot HALV-konvertering; en komplett kedja
+  // vid strängens slut är säker.
+  const NUM_FT = /\d+(?:[.,]\d+)?/.source;
+  const endChain = value.match(
+    new RegExp(`^(.*?)(${NUM_FT}(?:\\s*[x×]\\s*${NUM_FT})+)\\s*(?:feet|foot|ft)\\.?$`, "i"),
+  );
+  if (endChain) {
+    return (
+      endChain[1] +
+      endChain[2]
+        .split(/\s*[x×]\s*/)
+        .map((n) => formatMeters(num(n) * FT_IN_METERS))
+        .join(" x ") +
+      " m"
+    );
+  }
   // AUDIT-GUARD (S1): finns en NAKEN tal-x-tal-dimension ("10x10") som den
   // ankrade regexen INTE fångade (prefix/suffix-text, t.ex. "10x10 ft Gazebo")
   // skulle per-förekomst-passet halvkonvertera ("10x3 m Gazebo" = FELAKTIGT
@@ -605,8 +623,12 @@ function normalizeUnits(value: string): string {
   const NUM = /\d+(?:[.,]\d+)?/.source;
   if (new RegExp(`^${NUM}\\s*in(?:\\s*[x×]\\s*${NUM}\\s*in)+$`, "i").test(t)) {
     v = t.replace(/(\d+(?:[.,]\d+)?)\s*in\b/gi, "$1 tum"); // enhet per tal
-  } else if (new RegExp(`^${NUM}(?:\\s*[x×]\\s*${NUM})+\\s*in$`, "i").test(t)) {
-    v = t.replace(/\s*in$/i, " tum"); // EN avslutande enhet för hela dimensionen
+  } else if (new RegExp(`(${NUM}(?:\\s*[x×]\\s*${NUM})+)\\s*in$`, "i").test(t)) {
+    // SLUT-ankrad — prefix tillåts ("2000D48x48x80in" → "2000D48x48x80 tum",
+    // growtältet 2026-06-09: densitetskod + dimensioner hopskrivet, osynligt för
+    // både AI-kandidatur och grinden). Kedjan tal-x-tal + avslutande "in" är
+    // entydig oavsett prefix; "5 in 1" slutar på "1" och kan aldrig matcha.
+    v = t.replace(new RegExp(`(${NUM}(?:\\s*[x×]\\s*${NUM})+)\\s*in$`, "i"), "$1 tum");
   }
   const bare = v.trim().match(/^(\d+(?:[.,]\d+)?)\s*in$/i);
   if (bare) v = `${bare[1]} tum`;
