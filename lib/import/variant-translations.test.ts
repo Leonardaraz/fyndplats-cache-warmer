@@ -9,6 +9,8 @@ import {
   residualEnglishTokens,
   isSizeLikeAxis,
   inferMislabeledColorAxis,
+  axisNameUnresolved,
+  unresolvedAxisNames,
 } from "./variant-translations";
 
 describe("translateAxisName", () => {
@@ -31,6 +33,48 @@ describe("translateAxisName", () => {
 
   it("faller tillbaka på råvärdet för okänd axel", () => {
     expect(translateAxisName("Sparkle Level")).toBe("Sparkle Level");
+  });
+
+  it("känner igen färg-aktiga axelnamn AE skickar utöver rena 'Color' (LAYER A)", () => {
+    // AE döper färg-axeln olika ("Color Name", "Color Family", "Main Color" …);
+    // alla ska in i färg-pipelinen så omklassningen/AI fångar icke-färg-värden.
+    expect(translateAxisName("Color Name")).toBe("Färg");
+    expect(translateAxisName("Color Family")).toBe("Färg");
+    expect(translateAxisName("Main Color")).toBe("Färg");
+    expect(translateAxisName("Colour Classification")).toBe("Färg");
+  });
+
+  it("färg-regexen är ordgräns-säker (rör inte 'colorful'/'tricolor')", () => {
+    expect(translateAxisName("colorful")).toBe("colorful");
+    expect(translateAxisName("tricolor")).toBe("tricolor");
+  });
+});
+
+describe("axisNameUnresolved — flaggar bara KVAR-engelska namn (ej svenska lånord)", () => {
+  it("self-map-lånord ('Material'→'Material') flaggas INTE (ingen falsk positiv)", () => {
+    expect(axisNameUnresolved("Material", "Material")).toBe(false);
+    expect(axisNameUnresolved("Design", "Design")).toBe(false);
+  });
+  it("ett översatt/omklassat slutnamn (≠ rånamnet) är alltid löst", () => {
+    expect(axisNameUnresolved("Color Name", "Färg")).toBe(false);
+    expect(axisNameUnresolved("Color", "Typ")).toBe(false);
+  });
+  it("färg-aktigt rånamn räknas som löst (→ 'Färg' via LAYER A)", () => {
+    expect(axisNameUnresolved("Color Name", "Color Name")).toBe(false);
+  });
+  it("ett rått engelskt tabell-miss-namn flaggas", () => {
+    expect(axisNameUnresolved("Lighting Mode", "Lighting Mode")).toBe(true);
+  });
+});
+
+describe("unresolvedAxisNames — kvar-engelska axelnamn ur en byggd översättare", () => {
+  it("flaggar en engelsk-namnad axel men inte en svensk", () => {
+    const t = buildVariantTranslator([{ options: { "Lighting Mode": "Strobe", Size: "XL" } }]);
+    expect(unresolvedAxisNames(t)).toEqual(["Lighting Mode"]);
+  });
+  it("'Material'-axel flaggas inte (self-map)", () => {
+    const t = buildVariantTranslator([{ options: { Material: "Cotton" } }]);
+    expect(unresolvedAxisNames(t)).toEqual([]);
   });
 });
 
@@ -233,7 +277,7 @@ describe("buildTranslatorFromBase — injicerbar bas (delas av AI-fallbacken)", 
   it("använder den injicerade översättningen och behåller kollisions-säkerheten", () => {
     const base = (raw: string) => (raw === "Glow" ? "Glöd" : translateValue(raw));
     const t = buildTranslatorFromBase([{ options: { Color: "Red", Effect: "Glow" } }], base, translateAxisName);
-    expect(t.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effect: "Glöd" });
+    expect(t.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effekt: "Glöd" });
   });
 
   it("axisOverrides namnger okänd icke-färg-axel; deterministisk klass vinner över override", () => {

@@ -43,6 +43,7 @@ export const AXIS_TRANSLATIONS: Record<string, string> = {
   voltage: "Spänning",
   power: "Effekt",
   wattage: "Effekt",
+  effect: "Effekt",
   plug: "Kontakt",
   "plug type": "Kontakttyp",
   socket: "Uttag",
@@ -402,12 +403,45 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
  * Faller tillbaka på råvärdet om axeln inte finns i tabellen.
  */
 export function translateAxisName(raw: string): string {
-  const key = raw
+  const key = normalizeAxisKey(raw);
+  const hit = AXIS_TRANSLATIONS[key];
+  if (hit) return hit;
+  // Färg-aktiga axelnamn AE skickar utöver rena "Color" ("Color Name", "Color
+  // Family", "Main Color", "Colour Classification" …) → samma färg-pipeline, så
+  // den befintliga omklassningen/AI-namngivningen fångar dem när värdena INTE är
+  // färger. "colorful"/"tricolor" matchar ej (ordgräns kring color/colour).
+  if (/\bcolou?rs?\b/.test(key)) return "Färg";
+  return raw.trim();
+}
+
+/**
+ * Normaliserar ett axelnamn till uppslagsnyckel: trim + gemener + strip av ev.
+ * ":"-suffix ("Color: F2025" → "color"). Delas av translateAxisName och
+ * axisNameUnresolved så de alltid bedömer samma nyckel.
+ */
+export function normalizeAxisKey(raw: string): string {
+  return raw
     .trim()
     .toLowerCase()
     .replace(/[:：].*$/, "")
     .trim();
-  return AXIS_TRANSLATIONS[key] ?? raw.trim();
+}
+
+/**
+ * True om en axel-ETIKETT fortfarande är det råa engelska AE-namnet — dvs varken
+ * statiska tabellen, färg-igenkänningen, en deterministisk klass eller AI gav den
+ * ett svenskt namn. En tabell-träff räknas som löst (även self-map som
+ * "Material"→"Material") → inga falska positiva på svensk-stavade lånord. Används
+ * för att flagga produkten (needsAiPolish) i stället för att skeppa ett engelskt
+ * axelnamn till kund. Tar slutnamnet så att en redan omklassad/översatt axel
+ * (finalName ≠ rånamnet) alltid räknas som löst.
+ */
+export function axisNameUnresolved(rawAxis: string, finalName: string): boolean {
+  if (finalName.trim() !== rawAxis.trim()) return false; // översatt/omklassat → ok
+  const key = normalizeAxisKey(rawAxis);
+  if (AXIS_TRANSLATIONS[key] !== undefined) return false; // känt namn (self-map ok)
+  if (/\bcolou?rs?\b/.test(key)) return false; // färg-aktig → "Färg" via LAYER A
+  return true; // kvar som rå engelska → flagga
 }
 
 // --- Mått-/storleksdetektering (för felmärkta "Color"-axlar) ----------------
@@ -601,6 +635,9 @@ export interface VariantTranslator {
   options(raw: Record<string, string>): Record<string, string>;
   /** Remappar en axel→värde→T-tabell (colorCodes/swatch-bilder) med SAMMA nycklar. */
   axisKeyedMap<T>(map: Record<string, Record<string, T>>): Record<string, Record<string, T>>;
+  /** Rå-axel → slutgiltigt svenskt axelnamn (efter ev. omklassning/AI-override).
+   *  Källa för polerings-flaggan via axisNameUnresolved/unresolvedAxisNames. */
+  axisNames: ReadonlyMap<string, string>;
 }
 
 /**
@@ -653,6 +690,11 @@ export function buildTranslatorFromBase(
     let resolvedAxis = baseAxis(axis);
     if (resolvedAxis === "Färg") {
       resolvedAxis = inferMislabeledColorAxis(values) ?? axisOverrides?.get(axis) ?? "Färg";
+    } else if (axisNameUnresolved(axis, resolvedAxis)) {
+      // Icke-färg-axel vars namn fortfarande är rå engelska (tabell-miss, t.ex.
+      // "Lighting Mode") → använd ev. AI-översatt namn; annars kvar (flaggas sen).
+      // Guarden gör att en ren "Storlek" ALDRIG kan skrivas över av ett strö-svar.
+      resolvedAxis = axisOverrides?.get(axis) ?? resolvedAxis;
     }
     axisName.set(axis, resolvedAxis);
     const used = new Set<string>();
@@ -676,6 +718,7 @@ export function buildTranslatorFromBase(
   const tAxis = (axis: string) => axisName.get(axis) ?? baseAxis(axis);
   const tValue = (axis: string, value: string) => valueByAxis.get(axis)?.get(value) ?? baseValue(value);
   return {
+    axisNames: axisName,
     options(raw) {
       const out: Record<string, string> = {};
       for (const [axis, value] of Object.entries(raw ?? {})) out[tAxis(axis)] = tValue(axis, value);
@@ -692,4 +735,19 @@ export function buildTranslatorFromBase(
       return out;
     },
   };
+}
+
+/**
+ * Rå-axlar vars SLUTNAMN fortfarande är rå engelska (tabell-miss utan omklassning/
+ * override). Delas av AI- och sync-vägen för att flagga needsAiPolish — garantin
+ * att ingen produkt skeppas med ett engelskt/felmärkt axelnamn.
+ */
+export function unresolvedAxisNames(
+  translator: Pick<VariantTranslator, "axisNames">,
+): string[] {
+  const out: string[] = [];
+  for (const [raw, final] of translator.axisNames) {
+    if (axisNameUnresolved(raw, final)) out.push(raw);
+  }
+  return out;
 }
