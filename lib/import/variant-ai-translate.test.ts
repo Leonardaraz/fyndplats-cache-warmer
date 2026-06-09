@@ -133,7 +133,7 @@ describe("buildVariantTranslatorAI — robust axel-namngivning (utöver exakt 'C
   const noValueAI = async () => ({});
 
   it("'Color Name' med typ-värden → samma felmärkt-färg-väg som 'Color' (LAYER A)", async () => {
-    const nameAxes = vi.fn(async () => ({ "Color Name": "Typ" }));
+    const nameAxes = vi.fn(async (_axes: { axis: string; values: string[] }[]) => ({ "Color Name": "Typ" }));
     const variants = [
       { options: { "Color Name": "Vertical type" } },
       { options: { "Color Name": "Horizontal type" } },
