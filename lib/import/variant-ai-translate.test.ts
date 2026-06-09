@@ -126,3 +126,53 @@ describe("buildVariantTranslatorAI", () => {
     expect(translator.options({ Effect: "Glow" })).toEqual({ Effect: "Glow" });
   });
 });
+
+describe("buildVariantTranslatorAI — AI namnger felmärkta 'Color'-axlar", () => {
+  it("material under 'Color' → AI ger axelnamnet (värdena översätts via tabellen)", async () => {
+    const nameAxes = vi.fn(async () => ({ Color: "Material" }));
+    const variants = [{ options: { Color: "Cotton" } }, { options: { Color: "Polyester" } }];
+    const { translator } = await buildVariantTranslatorAI(variants, { nameAxes });
+    expect(nameAxes).toHaveBeenCalledTimes(1);
+    expect(translator.options({ Color: "Cotton" })).toEqual({ Material: "Bomull" });
+  });
+
+  it("AI 'räddar' exotiska färger → axeln förblir 'Färg' (ingen override)", async () => {
+    const nameAxes = vi.fn(async () => ({ Color: "Färg" }));
+    const variants = [{ options: { Color: "Champagne" } }, { options: { Color: "Ivory" } }];
+    const { translator } = await buildVariantTranslatorAI(variants, { nameAxes });
+    expect(translator.options({ Color: "Champagne" })).toEqual({ Färg: "Champagne" });
+  });
+
+  it("AI kan inte namnge → axeln flaggas (unresolved) och förblir 'Färg'", async () => {
+    const nameAxes = vi.fn(async () => ({})); // inget svar
+    const variants = [{ options: { Color: "Cotton" } }, { options: { Color: "Polyester" } }];
+    const { translator, unresolved } = await buildVariantTranslatorAI(variants, { nameAxes });
+    expect(unresolved).toContain("Color");
+    expect(translator.options({ Color: "Cotton" })).toEqual({ Färg: "Bomull" });
+  });
+
+  it("riktiga färger + känd klass (storlek) → ingen axel-AI alls", async () => {
+    const nameAxes = vi.fn(async () => ({}));
+    await buildVariantTranslatorAI([{ options: { Color: "Red" } }, { options: { Color: "Blue" } }], { nameAxes });
+    await buildVariantTranslatorAI([{ options: { Color: "42 inch" } }], { nameAxes });
+    expect(nameAxes).not.toHaveBeenCalled();
+  });
+
+  it("cachar axelnamnet: andra importen frågar inte AI igen", async () => {
+    const nameAxes = vi.fn(async () => ({ Color: "Material" }));
+    const variants = [{ options: { Color: "Cotton" } }, { options: { Color: "Polyester" } }];
+    await buildVariantTranslatorAI(variants, { nameAxes });
+    await buildVariantTranslatorAI(variants, { nameAxes });
+    expect(nameAxes).toHaveBeenCalledTimes(1); // cachat per axel+värdemängd
+  });
+
+  it("namngivnings-fel fäller aldrig importen (failOpen → 'Färg' + flagga)", async () => {
+    const nameAxes = vi.fn(async () => {
+      throw new Error("nät nere");
+    });
+    const variants = [{ options: { Color: "Cotton" } }, { options: { Color: "Polyester" } }];
+    const { translator, unresolved } = await buildVariantTranslatorAI(variants, { nameAxes });
+    expect(unresolved).toContain("Color");
+    expect(translator.options({ Color: "Cotton" })).toEqual({ Färg: "Bomull" });
+  });
+});
