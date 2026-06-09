@@ -243,7 +243,11 @@ function cacheKeyFor(rawValue: string): string {
  *  är ett misslyckat svar → olöst + re-ask vid cache-träff. Delas av steg 3
  *  (cache-träff) och steg 4 (färskt svar) så bedömningen aldrig glider isär. */
 function isUntrustedEcho(raw: string, answer: string): boolean {
-  if (answer.trim() !== raw.trim()) return false; // riktig översättning
+  // Skiftlägesokänslig eko-detektering (audit S3): "Rear wheel" för råvärdet
+  // "Rear Wheel" är ETT EKO, inte en översättning — annars skulle ett case-
+  // normaliserat eko betros, cachas som "översatt" och ALDRIG självläka
+  // (framtida träffar ≠ råvärdet) = exakt incident-hålet fast permanent.
+  if (answer.trim().toLowerCase() !== raw.trim().toLowerCase()) return false; // riktig översättning
   if (/\d/.test(raw)) return false; // siffra → kod/modell → betrott eko
   return residualEnglishTokens(raw).length > 0; // rena ord, kvar-engelska
 }

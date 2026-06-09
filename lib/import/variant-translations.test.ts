@@ -430,6 +430,15 @@ describe("translateValue — ft→m (nummer-ankrat, aritmetik, NOMINELL/trunkera
     expect(translateValue("Foot Rest")).toBe("Fot Rest"); // token-posten gäller, ingen aritmetik
     expect(translateValue("5 in 1")).toBe("5 in 1"); // tum-skyddet orört av ft-passet
   });
+
+  it("halvkonverterar ALDRIG en dimension med omgivande text (audit S1) — hellre orört än fel mått", () => {
+    // "10x3 m Gazebo" vore ett FELAKTIGT mått — guarden lämnar värdet åt AI/flaggan.
+    expect(translateValue("10x10 ft Gazebo")).toBe("10x10 ft Gazebo");
+    expect(translateValue("Tent 10x10ft")).toBe("Tent 10x10ft");
+    expect(translateValue("10x10ft(3x3m)")).toBe("10x10ft(3x3m)");
+    // …men enhet-per-tal utan naken x-adjacens konverteras fortfarande korrekt.
+    expect(translateValue("10ft x 13ft")).toBe("3 m x 3,9 m");
+  });
 });
 
 describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-09)", () => {
@@ -465,5 +474,17 @@ describe("VALUE_TRANSLATIONS — fordon/cykelställ (incident 2026-06-09)", () =
     // tabellen kortsluter kandidat-uttagningen → värdet når aldrig AI/cache igen.
     expect(residualEnglishTokens("Rear Wheel")).toEqual([]);
     expect(residualEnglishTokens("U Type L Type Fork")).toEqual([]);
+  });
+
+  it("fraser där lösa tokens annars FEL-översätter vinner som fulla fraser (audit S2)", () => {
+    expect(translateValue("Saddle Brown")).toBe("Sadelbrun"); // färg — inte "Sadel Brun"
+    expect(translateValue("Spring Steel Fork")).toBe("Fjäderstålsgaffel"); // fjäder, inte säsong
+  });
+
+  it("EN=SV-identiska ord är self-maps → aldrig AI-kandidater, aldrig eko-flagg", () => {
+    expect(translateValue("Smart")).toBe("Smart");
+    expect(translateValue("Universal")).toBe("Universal");
+    expect(residualEnglishTokens("Smart")).toEqual([]);
+    expect(residualEnglishTokens("Mini Digital")).toEqual([]);
   });
 });

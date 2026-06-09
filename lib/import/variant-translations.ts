@@ -410,11 +410,25 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   handlebar: "Styre",
   saddle: "Sadel",
   "u type l type fork": "U-typ & L-typ gaffel", // exakt observerad fras (ställ-fäste)
+  // Fraser där de lösa tokens ovan annars FEL-översätter (audit S2): fulla fraser
+  // vinner över token-passet och behåller rätt betydelse.
+  "saddle brown": "Sadelbrun", // standardfärg (lädervaror) — inte "Sadel Brun"
+  "spring steel fork": "Fjäderstålsgaffel", // spring=fjäder här, inte säsongen
   // Monteringsriktning (vanlig under felmärkta "Color"-axlar, jfr "Vertical type").
   "vertical type": "Vertikal",
   "horizontal type": "Horisontell",
   vertical: "Vertikal",
   horizontal: "Horisontell",
+
+  // --- EN=SV-identiska ord (self-maps): korrekt svenska är samma ord, men ett
+  //     AI-eko på dem skulle annars perma-flagga produkten + re-fråga varje
+  //     import (eko-asymmetrin). Tabell-träff → aldrig AI-kandidat → $0 + tyst. ---
+  smart: "Smart",
+  mini: "Mini",
+  original: "Original",
+  universal: "Universal",
+  digital: "Digital",
+  modern: "Modern",
 };
 
 /**
@@ -553,6 +567,13 @@ function convertFeetToMeters(value: string): string {
         .join(" x ") + " m"
     );
   }
+  // AUDIT-GUARD (S1): finns en NAKEN tal-x-tal-dimension ("10x10") som den
+  // ankrade regexen INTE fångade (prefix/suffix-text, t.ex. "10x10 ft Gazebo")
+  // skulle per-förekomst-passet halvkonvertera ("10x3 m Gazebo" = FELAKTIGT
+  // mått). Lämna då värdet orört — AI:n/flaggan tar det i stället för att vi
+  // skeppar fel siffror. ("10ft x 13ft" har enhet per tal → ingen naken x-
+  // adjacens → konverteras korrekt nedan.)
+  if (/\d\s*[x×]\s*\d/.test(value)) return value;
   return value.replace(
     /(\d+(?:[.,]\d+)?)\s*(?:feet|foot|ft)\b/gi,
     (_, n: string) => `${formatMeters(num(n) * FT_IN_METERS)} m`,

@@ -351,7 +351,7 @@ function QueueCard({
               <span
                 title={
                   p.unresolvedVariantValues?.length
-                    ? `Olösta (engelska) variantvärden: ${p.unresolvedVariantValues.join(", ")} — key-låsta i Wix; rätta tabellen/AI:n och omimportera.`
+                    ? `Olösta (engelska) variantvärden/axelnamn: ${p.unresolvedVariantValues.join(", ")} — key-låsta i Wix; rätta tabellen/AI:n och omimportera.`
                     : "Importerad RÅ (AI-berikning av) — saknar AI-genererad SEO/beskrivning/kategori. Polera via chatten."
                 }
                 style={{

@@ -184,6 +184,21 @@ describe("buildVariantTranslatorAI — eko-asymmetri för VÄRDEN (incident 2026
     expect(second.unresolved).toContain("Shimmer");
   });
 
+  it("NÄRA-eko (bara skiftläge skiljer) räknas som eko → OLÖST, betros aldrig (audit S3)", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) out[v] = v.toLowerCase(); // "Shimmer" → "shimmer" (case-eko)
+      return out;
+    });
+    const variants = [{ options: { Effect: "Shimmer" } }];
+    const first = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(first.unresolved).toContain("Shimmer"); // betros INTE som översättning
+    // …och cache-träffen på case-ekot självläker (re-ask), fastnar inte för alltid.
+    const second = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translateBatch).toHaveBeenCalledTimes(2);
+    expect(second.unresolved).toContain("Shimmer");
+  });
+
   it("siffer-eko är betrott även via CACHE-träff (ingen re-ask)", async () => {
     const translateBatch = vi.fn(async (vals: string[]) => {
       const out: Record<string, string> = {};
