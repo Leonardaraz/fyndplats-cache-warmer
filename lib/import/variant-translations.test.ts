@@ -395,11 +395,18 @@ describe("buildVariantTranslator — axel-namn-kollisionssäkerhet (två färg-a
     expect(Object.keys(o)).toHaveLength(2); // ingen kollaps trots samma klass-namn
   });
 
-  it("samma produkt → samma axelnamn varje gång (deterministiskt, V3-key-lås)", () => {
-    const mk = () =>
-      buildVariantTranslator([
-        { options: { Color: "Red", "Color Name": "Vertical type" } },
-      ]).options({ Color: "Red", "Color Name": "Vertical type" });
-    expect(mk()).toEqual(mk());
+  it("samma axelnamn oavsett feed-ordning (tie-break på sorterat namn, ej feed-ordning)", () => {
+    // AE:s SKU-prop-ordning är inte stabil → tie-breaken får inte bero på den.
+    const a = buildVariantTranslator([{ options: { Color: "Black", "Color Temperature": "3000K" } }]);
+    const b = buildVariantTranslator([{ options: { "Color Temperature": "3000K", Color: "Black" } }]);
+    expect(a.axisNames.get("Color")).toBe(b.axisNames.get("Color"));
+    expect(a.axisNames.get("Color Temperature")).toBe(b.axisNames.get("Color Temperature"));
+    expect(a.axisNames.get("Color")).toBe("Färg"); // stabil vinnare ("Color" < "Color Temperature")
+  });
+
+  it("flaggar en suffix-särskild axel som olöst även i sync-läget ($0 → needsAiPolish)", () => {
+    const t = buildVariantTranslator([{ options: { Color: "Black", "Color Temperature": "3000K" } }]);
+    expect(unresolvedAxisNames(t)).toContain("Color Temperature"); // ej kund-klart → flaggad
+    expect(unresolvedAxisNames(t)).not.toContain("Color"); // rena färg-axeln är OK
   });
 });
