@@ -571,6 +571,18 @@ function normalizeUnits(value: string): string {
     .replace(/(\d)\s*inches\b/gi, "$1 tum")
     .replace(/(\d)\s*inch\b/gi, "$1 tum")
     .replace(/(\d)\s*["“”]/g, "$1 tum");
+  // Bart "in" som TUM i DIMENSIONER ("32 in x 24 in", "24 x 32 in"): strukturen
+  // (x-separerade tal där "in" följer talen / står sist) gör tolkningen entydig —
+  // utan den ankringen vore prepositions-"in" i "5 in 1" i farozonen. Annars
+  // förstår en svensk kund aldrig att "in" = tum (incident 2026-06-09, lekhage
+  // "Storlek: 32 in x 24 in"). Hel-värdes-test FÖRST, sedan säker global ersättning.
+  const t = v.trim();
+  const NUM = /\d+(?:[.,]\d+)?/.source;
+  if (new RegExp(`^${NUM}\\s*in(?:\\s*[x×]\\s*${NUM}\\s*in)+$`, "i").test(t)) {
+    v = t.replace(/(\d+(?:[.,]\d+)?)\s*in\b/gi, "$1 tum"); // enhet per tal
+  } else if (new RegExp(`^${NUM}(?:\\s*[x×]\\s*${NUM})+\\s*in$`, "i").test(t)) {
+    v = t.replace(/\s*in$/i, " tum"); // EN avslutande enhet för hela dimensionen
+  }
   const bare = v.trim().match(/^(\d+(?:[.,]\d+)?)\s*in$/i);
   if (bare) v = `${bare[1]} tum`;
   return v;

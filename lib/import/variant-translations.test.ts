@@ -432,6 +432,24 @@ describe("translateValue — ft→m (nummer-ankrat, aritmetik, NOMINELL/trunkera
   });
 });
 
+describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-09)", () => {
+  it("enhet per tal: '32 in x 24 in' → '32 tum x 24 tum'", () => {
+    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum");
+    expect(translateValue("44 in x 44 in")).toBe("44 tum x 44 tum");
+    expect(translateValue("32in x 24in")).toBe("32 tum x 24 tum"); // utan mellanslag
+  });
+
+  it("EN avslutande enhet: '24 x 32 in' → '24 x 32 tum'", () => {
+    expect(translateValue("24 x 32 in")).toBe("24 x 32 tum");
+  });
+
+  it("prepositions-'in' förblir SKYDDAT (hel-värdes-ankringen)", () => {
+    expect(translateValue("5 in 1")).toBe("5 in 1"); // produkttyp, inte tum
+    expect(translateValue("Made in Sweden")).toBe("Made in Sverige"); // 'in' orört (sweden-token översätts)
+    expect(translateValue("42 in")).toBe("42 tum"); // befintliga hel-värdes-regeln kvar
+  });
+});
+
 describe("VALUE_TRANSLATIONS — fordon/cykelställ (incident 2026-06-09)", () => {
   it("översätter ställ-värdena som skeppades engelska efter Haiku-eko", () => {
     expect(translateValue("Rear Wheel")).toBe("Bakhjul");
