@@ -456,6 +456,14 @@ describe("translateValue — hopskrivna in-dimensioner med kodprefix (growtälte
     expect(translateValue("5 in 1")).toBe("5 in 1"); // slutar på "1" → kan aldrig matcha
     expect(translateValue("2 in 1 Charger")).toBe("2 in 1 Laddare");
   });
+
+  it("x-kopplat prefix konverteras ALDRIG (slutpass S-A) — blandade enheter undviks", () => {
+    expect(translateValue("8 ft x 8 x 7 ft")).toBe("8 ft x 8 x 7 ft"); // hör ihop över gränsen
+    expect(translateValue("48in x 48 x 80in")).toBe("48in x 48 x 80in");
+    // …fristående kedjor vid slutet konverteras fortfarande.
+    expect(translateValue("Tent 10x10ft")).toBe("Tent 3 x 3 m");
+    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum");
+  });
 });
 
 describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-09)", () => {
