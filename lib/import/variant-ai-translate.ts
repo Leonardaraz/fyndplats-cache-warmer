@@ -87,18 +87,26 @@ export async function buildVariantTranslatorAI(
   // 2. Kandidater = värden med kvarvarande engelska efter statisk översättning.
   const candidates = [...rawValues].filter((r) => residualEnglishTokens(r).length > 0);
 
-  // 3. Per-värde-cache: samla träffar, lista missar.
+  // 3. Per-värde-cache: samla träffar, lista missar. SJÄLVLÄKNING: en cachad
+  //    eko-post utan siffror som fortfarande är (halv-)engelsk är FÖRGIFTAD
+  //    (Haiku ekade ett vanligt ord, t.ex. "Rear Wheel" 2026-06-09) → behandla
+  //    som MISS så värdet re-frågas denna import och cachen skrivs över när AI
+  //    svarar svenska. En svensk träff (svar ≠ råvärde) är alltid betrodd.
   const aiMap = new Map<string, string>();
   const misses: string[] = [];
   for (const c of candidates) {
     const hit = await getCachedResult<string>(cacheKeyFor(c));
-    if (hit && typeof hit.value === "string") aiMap.set(c, hit.value);
-    else misses.push(c);
+    if (hit && typeof hit.value === "string" && !isUntrustedEcho(c, hit.value)) {
+      aiMap.set(c, hit.value);
+    } else {
+      misses.push(c);
+    }
   }
 
-  // 4. Översätt missarna i ETT anrop; cacha varje svar — även oförändrat, vilket
-  //    betyder "Claude beslöt att behålla det" (t.ex. modellnamn) → fråga aldrig
-  //    igen, och flagga det inte som olöst.
+  // 4. Översätt missarna i ETT anrop; cacha varje svar — även oförändrat (=
+  //    "Claude beslöt att behålla det"). Men BETRO ekot bara för koder/modell-
+  //    namn (innehåller siffror); ett rent-ord-eko är ett misslyckat svar →
+  //    olöst (flaggas) och re-frågas vid nästa import (cachen = refresh-markör).
   // Chunka så ETT anrop aldrig blir så stort att svaret trunkeras (patologisk
   // produkt med hundratals unika engelska värden) → bundet utdata per anrop.
   const CHUNK = 50;
@@ -114,8 +122,11 @@ export async function buildVariantTranslatorAI(
       const sv = translated[c];
       if (typeof sv === "string" && sv.trim()) {
         const val = sv.trim();
-        aiMap.set(c, val);
+        // Cacha ALLTID svaret (även eko): vid envist eko refreshas posten och
+        // re-ask:en förblir EN batchad fråga per import (bounded kostnad).
         await setCachedResult(cacheKeyFor(c), OP, val, "variant-ai");
+        if (isUntrustedEcho(c, val)) continue; // rent-ord-eko = misslyckat → olöst
+        aiMap.set(c, val);
         // Stickprovs-logg: BARA genuina översättningar (val skiljer sig från
         // råvärdet). Oförändrade (behållna modellnamn/koder) är ingen
         // fel-svensk-risk → skippas, så listan hålls scanbar. Jämför mot c.trim()
@@ -152,7 +163,8 @@ export async function buildVariantTranslatorAI(
     }
   const axisOverrides = new Map<string, string>();
   const unresolvedAxes: string[] = [];
-  // No-op-ASYMMETRIN: ett ekat VÄRDE = "behållet med flit" (löst), men ett ekat/
+  // No-op-ASYMMETRIN: ett ekat VÄRDE med siffror = "behållet med flit" (kod/
+  // modellnamn, löst via isUntrustedEcho), men ett rent-ord-eko och ett ekat/
   // odugligt AXELNAMN är OLÖST och får aldrig nå kund. applyAxisName kapslar in
   // det: för en färg-axel är "Färg" = "det ÄR färger" (löst), ett riktigt svenskt
   // klassnamn = override, allt annat (tomt/eko/färg-aktigt) = kunde ej omklassa →
@@ -224,6 +236,18 @@ function cacheKeyFor(rawValue: string): string {
   return makeCacheKey({ op: OP, name: rawValue, description: "" });
 }
 
+/** Eko-asymmetrins VÄRDE-regel (incident 2026-06-09 "Rear Wheel"): ett AI-eko
+ *  (svar === råvärde) är betrott BARA när råvärdet innehåller en siffra — äkta
+ *  koder/modellnamn har det ("KM-6631", "iPhone 15 Pro", "B6AC"). Ett rent
+ *  alfabetiskt eko som fortfarande har engelska tokens ("Rear Wheel", "Fork")
+ *  är ett misslyckat svar → olöst + re-ask vid cache-träff. Delas av steg 3
+ *  (cache-träff) och steg 4 (färskt svar) så bedömningen aldrig glider isär. */
+function isUntrustedEcho(raw: string, answer: string): boolean {
+  if (answer.trim() !== raw.trim()) return false; // riktig översättning
+  if (/\d/.test(raw)) return false; // siffra → kod/modell → betrott eko
+  return residualEnglishTokens(raw).length > 0; // rena ord, kvar-engelska
+}
+
 /** Stabilt rad-id för stickprovs-loggen: hashar BARA råvärdet (medvetet frikopplat
  *  från cache-nyckel-formeln, så rad-id:t inte skiftar om den ändras), vilket
  *  dedupar till en rad per unikt engelskt värde. */
@@ -240,7 +264,8 @@ async function aiTranslateBatch(
   const system = `Du översätter engelska AliExpress-variantvärden till svenska för en svensk e-handel. Svara ENBART med JSON: {"sv": { "<råvärde>": "<svensk översättning>" }} med EXAKT samma råvärden som nycklar, och ett värde för VARJE råvärde.
 Regler:
 - Översätt bara riktiga engelska ord till naturlig svenska.
-- Lämna koder, modellnamn (t.ex. "iPhone 15 Pro"), mått (cm/mm), storlekar (S/M/L/XL/5XL) och rena siffror OFÖRÄNDRADE — returnera dem som de är.
+- Behåll ett värde OFÖRÄNDRAT BARA om det innehåller siffror eller är en uppenbar märkes-/modellbeteckning: koder ("KM-6631", "B6AC"), modellnamn med siffror ("iPhone 15 Pro"), mått (cm/mm), storlekar (S/M/L/XL/5XL) och rena siffror.
+- Vanliga engelska substantiv och adjektiv ("Rear Wheel", "Fork", "Glow", "Vertical Type") är ALDRIG modellnamn — de MÅSTE översättas till naturlig svenska ("Bakhjul", "Gaffel", "Glöd", "Vertikal").
 - Behåll ordning och separatorer (bindestreck/mellanslag).
 - Var koncis och konsekvent: samma engelska ord ska alltid ge samma svenska.
 - Produktkontext (för att tolka tvetydiga ord som "Spring"): ${productTitle ?? "(okänd)"}.`;

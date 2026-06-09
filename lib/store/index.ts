@@ -101,6 +101,12 @@ export interface ProductMappingRecord {
    * normalt AI-berikad import (back-compat med äldre rader).
    */
   needsAiPolish?: boolean;
+  /**
+   * Variantvärden/axelnamn som förblev (halv-)engelska vid importen (tabell+
+   * cache+AI löste dem inte). Kö-badgen listar dem — de är key-låsta i Wix V3,
+   * så fixen är omimport efter tabell-/AI-rättning, inte polering i efterhand.
+   */
+  unresolvedVariantValues?: string[];
 }
 
 export interface AuditEntry {

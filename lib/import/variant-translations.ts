@@ -395,6 +395,26 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   "warm light": "Varmt ljus",
   "cool light": "Kallt ljus",
   "white light": "Vitt ljus",
+
+  // --- Fordon/cykelställ (incident 2026-06-09: "Rear Wheel"/"U Type L Type Fork"
+  //     skeppades engelska efter Haiku-eko). Fulla fraser där token-komposition
+  //     ger bruten svenska (sammansatta ord: "Bakhjul", aldrig "Bak Hjul");
+  //     lösa tokens bara där ordet är entydigt ensamt. "rear"/"front"/"type" som
+  //     lösa tokens UTELÄMNAS medvetet (samma policy som right/left/wide ovan). ---
+  "rear wheel": "Bakhjul",
+  "front wheel": "Framhjul",
+  wheel: "Hjul", // token-säkert: "4 Wheel" → "4 Hjul"
+  wheels: "Hjul",
+  fork: "Gaffel", // cykelgaffel OCH bestick = "gaffel" → entydig
+  frame: "Ram", // cykelram/tavelram = "ram" → entydig
+  handlebar: "Styre",
+  saddle: "Sadel",
+  "u type l type fork": "U-typ & L-typ gaffel", // exakt observerad fras (ställ-fäste)
+  // Monteringsriktning (vanlig under felmärkta "Color"-axlar, jfr "Vertical type").
+  "vertical type": "Vertikal",
+  "horizontal type": "Horisontell",
+  vertical: "Vertikal",
+  horizontal: "Horisontell",
 };
 
 /**
@@ -496,14 +516,58 @@ export function inferMislabeledColorAxis(values: ReadonlyArray<string>): string 
   return null;
 }
 
+/** Avrundning för ft→m: NOMINELL/TRUNKERAD till 1 decimal (Leonards beslut
+ *  2026-06-09) — 12 ft → 3,6 m (inte matematiska 3,7), matchar handelspraxis
+ *  ("3,6×3,6-tält") och produkttexterna. Byt till Math.round för matematisk. */
+function roundMeters(m: number): number {
+  return Math.floor(m * 10) / 10;
+}
+
+/** Svenskt decimalkomma; heltal utan ",0" ("3,0" → "3"). */
+function formatMeters(m: number): string {
+  const r = roundMeters(m);
+  return Number.isInteger(r) ? String(r) : r.toFixed(1).replace(".", ",");
+}
+
+const FT_IN_METERS = 0.3048;
+
 /**
- * Normaliserar tum-enheter i ett värde till svenska "tum" — nummer-ankrat, så ett
+ * Konverterar fot→meter med aritmetik (variantval ska vara metriska från start —
+ * V3 key-låser värdena, så enheten går inte att byta i efterhand). Nummer-ankrat:
+ * "Foot Rest" (ingen siffra) rörs aldrig. Två mönster:
+ *   1. Dimension med EN avslutande enhet: "10 x 10 ft"/"10x10x8 Feet" → alla tal
+ *      konverteras, kanoniskt " x " + " m": "3 x 3 m".
+ *   2. Per förekomst: "12ft" → "3,6 m", "10ft x 13ft" → "3 m x 3,9 m".
+ * Känd accepterad edge: "5 ft 6 in" konverterar bara ft-delen (sällsynt i AE-data).
+ */
+function convertFeetToMeters(value: string): string {
+  const num = (s: string) => parseFloat(s.replace(",", "."));
+  const dim = value
+    .trim()
+    .match(/^(\d+(?:[.,]\d+)?(?:\s*[x×]\s*\d+(?:[.,]\d+)?)+)\s*(?:feet|foot|ft)\.?$/i);
+  if (dim) {
+    return (
+      dim[1]
+        .split(/\s*[x×]\s*/)
+        .map((n) => formatMeters(num(n) * FT_IN_METERS))
+        .join(" x ") + " m"
+    );
+  }
+  return value.replace(
+    /(\d+(?:[.,]\d+)?)\s*(?:feet|foot|ft)\b/gi,
+    (_, n: string) => `${formatMeters(num(n) * FT_IN_METERS)} m`,
+  );
+}
+
+/**
+ * Normaliserar enheter i ett värde till svenska/metriskt — nummer-ankrat, så ett
  * löst "in" (preposition) ALDRIG rörs: "42 inch"/`42"` → "42 tum". Bart "in"
  * konverteras bara när HELA värdet är "<tal> in" ("42 in" → "42 tum"), så
- * "5 in 1"/"5 in stock" lämnas orörda. cm/mm/fot är samma på svenska.
+ * "5 in 1"/"5 in stock" lämnas orörda. ft/feet KONVERTERAS till meter (se
+ * convertFeetToMeters); cm/mm är samma på svenska.
  */
 function normalizeUnits(value: string): string {
-  let v = value
+  let v = convertFeetToMeters(value)
     .replace(/(\d)\s*inches\b/gi, "$1 tum")
     .replace(/(\d)\s*inch\b/gi, "$1 tum")
     .replace(/(\d)\s*["“”]/g, "$1 tum");

@@ -56,14 +56,14 @@ describe("buildVariantTranslatorAI", () => {
     expect(translator.options({ Effect: "Mystery" })).toEqual({ Effekt: "Mystery" }); // faller på råvärde
   });
 
-  it("ett oförändrat AI-svar (behållet modellnamn) räknas som LÖST, inte olöst", async () => {
+  it("ett oförändrat AI-svar på kod/modellnamn MED SIFFROR räknas som LÖST, inte olöst", async () => {
     const translateBatch = vi.fn(async (vals: string[]) => {
       const out: Record<string, string> = {};
       for (const v of vals) out[v] = v; // Claude behåller allt som det är (kod/modell)
       return out;
     });
     const { unresolved } = await buildVariantTranslatorAI(
-      [{ options: { Effect: "iPhone Pro" } }],
+      [{ options: { Effect: "iPhone 15 Pro" } }], // siffra → betrott eko (isUntrustedEcho)
       { translateBatch },
     );
     expect(unresolved).toEqual([]); // behållet → inte flaggat för polering
@@ -103,15 +103,19 @@ describe("buildVariantTranslatorAI", () => {
     });
   });
 
-  it("loggar INTE när AI behåller värdet oförändrat (val === råvärde, t.ex. modellnamn)", async () => {
+  it("loggar INTE ett eko — och ett rent-ord-eko räknas numera som OLÖST", async () => {
     const translateBatch = vi.fn(async (vals: string[]) => {
       const out: Record<string, string> = {};
       for (const v of vals) out[v] = v; // behåller allt oförändrat
       return out;
     });
-    await buildVariantTranslatorAI([{ options: { Effect: "Glow" } }], { translateBatch });
+    const { unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Effect: "Glow" } }],
+      { translateBatch },
+    );
     expect(translateBatch).toHaveBeenCalled(); // "Glow" ÄR en kandidat → nådde AI
-    expect(await listVariantTranslations()).toEqual([]); // men oförändrat → inte loggat
+    expect(await listVariantTranslations()).toEqual([]); // eko → aldrig loggat
+    expect(unresolved).toContain("Glow"); // rent-ord-eko (utan siffror) → flaggat
   });
 
   it("fäller ALDRIG importen om AI kastar (failOpen → råvärde + olöst)", async () => {
@@ -124,6 +128,74 @@ describe("buildVariantTranslatorAI", () => {
     );
     expect(unresolved).toContain("Glow");
     expect(translator.options({ Effect: "Glow" })).toEqual({ Effekt: "Glow" });
+  });
+});
+
+describe("buildVariantTranslatorAI — eko-asymmetri för VÄRDEN (incident 2026-06-09 'Rear Wheel')", () => {
+  it("rent-ord-eko (utan siffror) → OLÖST + faller på råvärde", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) out[v] = v; // ekar allt ("Shimmer" är inte i tabellen)
+      return out;
+    });
+    const { translator, unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Effect: "Shimmer" } }],
+      { translateBatch },
+    );
+    expect(unresolved).toContain("Shimmer");
+    expect(translator.options({ Effect: "Shimmer" })).toEqual({ Effekt: "Shimmer" });
+  });
+
+  it("självläkning: förgiftad cache-post re-frågas nästa import och läks av svenskt svar", async () => {
+    let mode: "echo" | "sv" = "echo";
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) out[v] = mode === "echo" ? v : "Skimmer";
+      return out;
+    });
+    const variants = [{ options: { Effect: "Shimmer" } }];
+    // Import 1: eko → cachas som eko-markör, OLÖST.
+    const first = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translateBatch).toHaveBeenCalledTimes(1);
+    expect(first.unresolved).toContain("Shimmer");
+    // Import 2: cache-träffen är ett otrott eko → behandlas som MISS → re-ask → läks.
+    mode = "sv";
+    const second = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translateBatch).toHaveBeenCalledTimes(2);
+    expect(second.unresolved).toEqual([]);
+    expect(second.translator.options({ Effect: "Shimmer" })).toEqual({ Effekt: "Skimmer" });
+    // Import 3: svensk cache-träff (svar ≠ råvärde) är betrodd → INGEN ny fråga.
+    const third = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translateBatch).toHaveBeenCalledTimes(2);
+    expect(third.unresolved).toEqual([]);
+  });
+
+  it("envist eko: re-cachas + förblir olöst — exakt EN batchad re-ask per import", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) out[v] = v; // ekar varje gång
+      return out;
+    });
+    const variants = [{ options: { Effect: "Shimmer" } }];
+    const first = await buildVariantTranslatorAI(variants, { translateBatch });
+    const second = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translateBatch).toHaveBeenCalledTimes(2); // en re-ask per import, aldrig fler
+    expect(first.unresolved).toContain("Shimmer");
+    expect(second.unresolved).toContain("Shimmer");
+  });
+
+  it("siffer-eko är betrott även via CACHE-träff (ingen re-ask)", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) out[v] = v; // ekar modellnamnet
+      return out;
+    });
+    const variants = [{ options: { Effect: "iPhone 15 Pro" } }];
+    const first = await buildVariantTranslatorAI(variants, { translateBatch });
+    const second = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translateBatch).toHaveBeenCalledTimes(1); // import 2 = betrodd cache-träff
+    expect(first.unresolved).toEqual([]);
+    expect(second.unresolved).toEqual([]);
   });
 });
 
