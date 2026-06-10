@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!c) return { title: "Kategori" };
   const base = pageMeta(
     c.name,
-    `Handla ${c.name} hos Fyndplats – noga utvalda fynd till smarta priser. Fri frakt över 499 kr.`,
+    `Köp ${c.name} online hos Fyndplats – prisvärda, noga utvalda fynd till smarta priser. Fri frakt över 499 kr & 30 dagars öppet köp.`,
     `/kategori/${c.slug}`
   );
   // Per-kategori Open Graph-bild: första produktens bild i kategorin
@@ -63,6 +63,14 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // Programmatiska SEO-länkar för kategorin (pris-tiers + bäst-i-test) — bara
   // giltiga sidor, så aldrig en länk till 404.
   const progLinks = await categoryProgrammaticLinks(active.slug);
+  // Korskategori-upptäckt: länka till övriga huvudavdelningar (exkl. den aktuella
+  // avdelningen). Bara giltiga /kategori/{slug}-sidor från getCollections → aldrig
+  // 404. Ger en guidad väg vidare mellan avdelningar (höjer upptäckt + AOV).
+  const currentMainId = active.parentId ?? active.id;
+  const deptLinks = collections
+    .filter((c) => c.parentId === null && c.id !== currentMainId)
+    .sort((a, b) => a.index - b.index)
+    .map((c) => ({ href: `/kategori/${c.slug}`, label: c.name }));
 
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
   // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
@@ -167,6 +175,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
 
       {progLinks.length > 0 && (
         <ProgCrossLinks title={`Fler sätt att handla ${active.name}`} links={progLinks} />
+      )}
+
+      {deptLinks.length > 0 && (
+        <ProgCrossLinks title="Utforska fler avdelningar" links={deptLinks} />
       )}
     </>
   );

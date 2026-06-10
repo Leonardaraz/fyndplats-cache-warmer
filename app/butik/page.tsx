@@ -9,7 +9,7 @@ import { tightFillUrl } from "../../lib/wix-image";
 
 export const metadata = pageMeta(
   "Butik – utforska hela vårt sortiment",
-  "Bläddra Fyndplats butiksavdelningar – hem & inredning, elektronik, hudvård, mode och mer. Noga utvalda fynd, fri frakt över 499 kr.",
+  "Köp prisvärda fynd online hos Fyndplats – elektronik, hem, skönhet, leksaker, husdjur & mer. Fri frakt över 499 kr, Klarna & 30 dagars öppet köp.",
   "/butik",
   "c3bea817cdcb3351"
 );
