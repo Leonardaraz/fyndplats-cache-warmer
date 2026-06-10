@@ -22,14 +22,26 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { audit } from "@/lib/audit";
 import { sendEmail } from "@/lib/email/resend";
-import { llmGet, llmSave } from "@/lib/llm/storage";
+import { llmGet, llmSave, LLM_COLLECTIONS } from "@/lib/llm/storage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const ALERT_TO = process.env.HEALTH_ALERT_EMAIL ?? "info@fyndplats.com";
-const STATE_COL = process.env.WIX_DATA_COL_LLM_SPEND ?? "FyndplatsAnthropicSpend"; // befintlig kv-kollektion
+const STATE_COL = LLM_COLLECTIONS.spend; // befintlig kv-kollektion (audit N3)
 const STATE_ID = "health-check-state";
+
+/** Audit S1: all Wix Data-/audit-I/O i den här routen MÅSTE vara tids-bunden.
+ *  Pingen är 10 s-cappad, men ett HÄNGANDE wixapis (uppkoppling accepterad,
+ *  inget svar) skulle annars äta hela maxDuration innan larmmejlet hinner gå —
+ *  ironiskt nog precis under de incidenter routen finns för. 5 s räcker gott
+ *  för en kv-läsning/skrivning; vid timeout faller vi på fallback-värdet. */
+function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    p.catch(() => fallback),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
 const FAILS_BEFORE_ALERT = 2;
 const ALERT_THROTTLE_MS = 60 * 60 * 1000;
 
@@ -80,14 +92,19 @@ async function pingWixStores(): Promise<{ ok: boolean; detail: string }> {
 
 async function loadState(): Promise<HealthState> {
   if (memState) return memState;
-  const stored = await llmGet<HealthState>(STATE_COL, STATE_ID).catch(() => null);
+  const stored = await withTimeout(llmGet<HealthState>(STATE_COL, STATE_ID), 5000, null);
   return stored ?? { ...EMPTY_STATE };
 }
 
 async function saveState(s: HealthState): Promise<void> {
   memState = s;
-  // Best-effort: under ett Wix-avbrott misslyckas skrivningen — in-memory bär då.
-  await llmSave(STATE_COL, STATE_ID, s as unknown as Record<string, unknown>).catch(() => {});
+  // Best-effort + tids-bunden: under ett Wix-avbrott hänger/misslyckas
+  // skrivningen — in-memory bär då (audit S1).
+  await withTimeout(
+    llmSave(STATE_COL, STATE_ID, s as unknown as Record<string, unknown>),
+    5000,
+    undefined,
+  );
 }
 
 export async function GET(req: NextRequest) {
@@ -105,7 +122,11 @@ export async function GET(req: NextRequest) {
       await saveState({ ...EMPTY_STATE });
     }
     if (wasOpen) {
-      await audit("health-check", "wix-stores", "FRISKT IGEN — Wix Stores-API svarar normalt");
+      await withTimeout(
+        audit("health-check", "wix-stores", "FRISKT IGEN — Wix Stores-API svarar normalt"),
+        5000,
+        undefined,
+      );
       try {
         await sendEmail({
           to: ALERT_TO,
@@ -135,7 +156,8 @@ export async function GET(req: NextRequest) {
   if (shouldAlert) {
     alertOpen = true;
     lastAlertAt = now;
-    await audit("health-check", "wix-stores", `LARM — Wix Stores-API nere (${fails} raka fel: ${ping.detail})`);
+    // MEJLET FÖRST (audit S1): larmet är hela poängen — audit-posten skrivs
+    // efteråt, tids-bunden, så den aldrig kan stå i vägen för mejlet.
     try {
       await sendEmail({
         to: ALERT_TO,
@@ -153,6 +175,11 @@ export async function GET(req: NextRequest) {
     } catch (err) {
       console.warn("[health-check] larm-mejl misslyckades:", (err as Error).message);
     }
+    await withTimeout(
+      audit("health-check", "wix-stores", `LARM — Wix Stores-API nere (${fails} raka fel: ${ping.detail})`),
+      5000,
+      undefined,
+    );
   }
 
   await saveState({ consecutiveFails: fails, alertOpen, lastAlertAt, lastError: ping.detail });
