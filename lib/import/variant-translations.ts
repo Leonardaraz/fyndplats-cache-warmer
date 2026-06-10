@@ -617,13 +617,19 @@ function normalizeUnits(value: string): string {
     .replace(/(\d)\s*inches\b/gi, "$1 tum")
     .replace(/(\d)\s*inch\b/gi, "$1 tum")
     .replace(/(\d)\s*["“”]/g, "$1 tum");
+  const NUM = /\d+(?:[.,]\d+)?/.source;
+  const DIM = `${NUM}(?:\\s*[x×]\\s*${NUM})+`;
+  // REGEL A — värdet INLEDS med en x-dimension följd av "in" + ev. svans
+  // ("11x14 in 12pcs" → "11x14 tum 12pcs", "8x10in 24st" canvas-tavlorna
+  // 2026-06-09). Den ledande x-kedjan gör "in" entydigt = tum (jfr "4 in 1"
+  // som INTE inleds med en kedja → "in" lämnas som idiom). Svansen (antal) rörs ej.
+  v = v.replace(new RegExp(`^(${DIM})\\s*in\\b`, "i"), "$1 tum");
   // Bart "in" som TUM i DIMENSIONER ("32 in x 24 in", "24 x 32 in"): strukturen
   // (x-separerade tal där "in" följer talen / står sist) gör tolkningen entydig —
   // utan den ankringen vore prepositions-"in" i "5 in 1" i farozonen. Annars
   // förstår en svensk kund aldrig att "in" = tum (incident 2026-06-09, lekhage
   // "Storlek: 32 in x 24 in"). Hel-värdes-test FÖRST, sedan säker global ersättning.
   const t = v.trim();
-  const NUM = /\d+(?:[.,]\d+)?/.source;
   if (new RegExp(`^${NUM}\\s*in(?:\\s*[x×]\\s*${NUM}\\s*in)+$`, "i").test(t)) {
     v = t.replace(/(\d+(?:[.,]\d+)?)\s*in\b/gi, "$1 tum"); // enhet per tal
   } else {
@@ -633,9 +639,15 @@ function normalizeUnits(value: string): string {
     // entydig oavsett prefix; "5 in 1" slutar på "1" och kan aldrig matcha.
     // S-A-guarden: x-kopplat prefix ("48in x 48 x 80in") → blandade enheter →
     // lämna orört.
-    const m2 = t.match(new RegExp(`^(.*?)(${NUM}(?:\\s*[x×]\\s*${NUM})+)\\s*in$`, "i"));
+    const m2 = t.match(new RegExp(`^(.*?)(${DIM})\\s*in$`, "i"));
     if (m2 && !/[x×]\s*$/.test(m2[1])) v = `${m2[1]}${m2[2]} tum`;
   }
+  // REGEL B — hopskrivet ENSKILT mått "14in" (UTAN x-dimension) följt av icke-
+  // siffra ("14in Black" → "14 tum Black", vinylskäraren 2026-06-09). Hopskrivning
+  // gör "in" entydigt (en preposition skrivs aldrig ihop med talet); lookahead
+  // skyddar "5in 1". Hoppar över värden med x-dimension (kedje-reglerna ovan
+  // äger dem → undviker blandade enheter, jfr S-A).
+  if (!/\d\s*[x×]\s*\d/.test(v)) v = v.replace(/(\d)in\b(?!\s*\d)/gi, "$1 tum");
   const bare = v.trim().match(/^(\d+(?:[.,]\d+)?)\s*in$/i);
   if (bare) v = `${bare[1]} tum`;
   return v;
