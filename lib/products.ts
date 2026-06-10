@@ -75,11 +75,16 @@ const WIX_SITE_ID = process.env.WIX_SITE_ID || "e6d27e90-4749-4720-9afe-0bbe91c1
  * { [optionName]: { [choiceName]: bild-URL } }. Detta är den ENDA källan som täcker
  * nyimporterade produkter (variant-images.json exporteras från V1-sajten och innehåller
  * dem inte). Fail-open: saknad nyckel / fel / ingen länkad media → {} (statiska filen +
- * colorOf-swatchen tar då över). Cachas en timme (variantbilder ändras sällan).
+ * colorOf-swatchen tar då över). Cachas 5 min (matchar sidans `revalidate = 300`)
+ * så nyimporterade produkters variantbilder syns snabbt i stället för efter 1 h.
  */
 // Hämtar HELA V3-produkten autentiserat (admin-nyckel) EN gång per request. React
 // cache() dedupar så att bild- OCH pris-hydreringen nedan delar samma nätverksanrop.
-// Fail-open: ingen nyckel / fel → null. Edge-cachas en timme (revalidate 3600).
+// Fail-open: ingen nyckel / fel → null. Edge-cachas 5 min (revalidate 300) —
+// matchar sidans egen `revalidate = 300`, så en NYIMPORTERAD produkts länkade
+// variantbilder (linkedMedia kopplas async, sekunder–minuter efter att produkten
+// skapats) syns inom ~5 min i stället för upp till 1 h. Fortfarande ETT V3-anrop
+// per produkt per fönster (delas av pris+bild-hydreringen via cache()).
 const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> => {
   if (!WIX_API_KEY || !productId) return null;
   try {
@@ -87,7 +92,7 @@ const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> =
       `https://www.wixapis.com/stores/v3/products/${productId}?fields=MEDIA_ITEMS_INFO`,
       {
         headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID },
-        next: { revalidate: 3600 },
+        next: { revalidate: 300 },
       },
     );
     if (!res.ok) return null;
