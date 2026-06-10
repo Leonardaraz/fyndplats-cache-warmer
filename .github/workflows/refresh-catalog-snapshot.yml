@@ -1,0 +1,103 @@
+# .github/workflows/refresh-catalog-snapshot.yml
+#
+# Håller fallback-katalogen (products.json) färsk.
+#
+# Vad: dagligen — och vid manual dispatch — hämtas den AKTUELLA mappade
+# katalogen från /api/catalog-snapshot på live-sajten och skrivs till
+# products.json. Ändrad fil committas/pushas till headless-site (triggar
+# Vercel auto-deploy → den nya snapshoten bakas in i bundeln).
+#
+# Varför (kod röd 2026-06-10): när Wix-API:t låg nere föll sajten tillbaka på
+# products.json som innehöll en handfull uråldriga produkter → butiken såg
+# tom ut. Med daglig refresh är fallbacken ≤24 h gammal i stället för veckor.
+#
+# Skydd:
+#   - Routen exporterar BARA när källan är live (503 i fallback-läge) →
+#     snapshoten kan aldrig skrivas över med avbrotts-data.
+#   - Validering här: svar måste vara source=live + minst 20 produkter med
+#     name/slug/img — annars avbryts utan commit.
+#
+# Säkerhet: ADMIN_SECRET ur Repo Secrets (samma som refresh-image-crops).
+
+name: refresh-catalog-snapshot
+
+on:
+  schedule:
+    - cron: "37 4 * * *" # dagligen 04:37 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: refresh-catalog-snapshot
+      cancel-in-progress: false
+    steps:
+      - name: Checkout headless-site
+        uses: actions/checkout@v4
+        with:
+          ref: headless-site
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Fetch live catalog
+        env:
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ADMIN_SECRET:-}" ]; then
+            echo "::error::ADMIN_SECRET saknas i Repo Secrets"
+            exit 1
+          fi
+          mkdir -p outputs
+          # proxy.ts kräver ?key= (cookie+redirect); routen kollar ?token=.
+          URL="https://www.fyndplats.se/api/catalog-snapshot?key=${ADMIN_SECRET}&token=${ADMIN_SECRET}"
+          curl -sS -L --max-time 120 --cookie-jar /tmp/cookies.txt --cookie /tmp/cookies.txt \
+            -o outputs/catalog-response.json -w "HTTP=%{http_code} size=%{size_download}\n" "$URL"
+
+      - name: Validate and write products.json
+        id: write
+        run: |
+          node <<'EOF'
+          const fs = require("fs");
+          const res = JSON.parse(fs.readFileSync("outputs/catalog-response.json", "utf8"));
+          if (res.error) {
+            // 503 = sajten i fallback-läge just nu — hoppa över utan fel (försök i morgon).
+            console.log("Routen vägrade exportera:", res.error, "(source:", res.source + ") — hoppar över.");
+            process.exit(0);
+          }
+          const products = res.products;
+          if (res.source !== "live" || !Array.isArray(products) || products.length < 20) {
+            console.error("::error::Ogiltigt svar (source=" + res.source + ", antal=" + (products?.length ?? "?") + ") — committar INTE.");
+            process.exit(1);
+          }
+          const bad = products.filter((p) => !p?.name || !p?.slug || !p?.img);
+          if (bad.length > products.length * 0.1) {
+            console.error("::error::" + bad.length + " produkter saknar name/slug/img — committar INTE.");
+            process.exit(1);
+          }
+          fs.writeFileSync("products.json", JSON.stringify(products, null, 1) + "\n");
+          console.log("Skrev products.json med", products.length, "produkter.");
+          EOF
+
+      - name: Commit and push if changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- products.json; then
+            echo "Ingen ändring — inget att committa."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add products.json
+          COUNT=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("products.json","utf8")).length)')
+          git commit -m "chore(snapshot): uppdatera fallback-katalogen (${COUNT} produkter)"
+          git push origin headless-site

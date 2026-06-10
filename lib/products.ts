@@ -286,8 +286,70 @@ function optionsForProduct(slug: string, sdkItem: any): Product["options"] {
 
 let productsPromise: Promise<Product[]> | null = null;
 
+// SENASTE LYCKADE katalogen per instans (kod röd 2026-06-10): när Wix-API:t
+// låg nere (503, ~40 min) föll varje omrendering tillbaka på products.json —
+// som bara innehöll en handfull uråldriga produkter → "hela butiken försvann".
+// Varma instanser hade serverat hela katalogen MINUTER innan; nu behåller de
+// den och serverar den vid avbrott. products.json är bara sista golvet för
+// kalla instanser (och hålls i sin tur färsk via refresh-catalog-snapshot-
+// workflowen + /api/catalog-snapshot).
+let lastGoodProducts: Product[] | null = null;
+
+// Varifrån senaste katalogen kom — /api/catalog-snapshot exporterar BARA när
+// källan är "live", så snapshot-workflowen aldrig kan skriva över products.json
+// med fallback-data mitt under ett avbrott.
+let lastFetchSource: "live" | "lastGood" | "snapshot" = "snapshot";
+
+/** För /api/catalog-snapshot: aktuell katalog + varifrån den kom. */
+export async function getCatalogSnapshot(): Promise<{
+  source: "live" | "lastGood" | "snapshot";
+  products: Product[];
+}> {
+  const products = await getProducts();
+  return { source: lastFetchSource, products };
+}
+
+// Larm-throttle för fallback-läget (max 1 mejl/h per instans). Primärlarmet är
+// cache-warmerns /api/cron/health-check; detta är redundansen som även fångar
+// sajt-specifika fel (trasig API-nyckel m.m.) som cronen inte ser.
+let lastFallbackMailAt = 0;
+
+/** Skickar throttlat larmmejl när sajten går in i fallback-läge. Best-effort —
+ *  får ALDRIG påverka renderingen (try/catch + fire-and-forget). */
+function alertFallbackEngaged(reason: string, served: "lastGood" | "snapshot"): void {
+  try {
+    const now = Date.now();
+    if (now - lastFallbackMailAt < 60 * 60 * 1000) return;
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return;
+    lastFallbackMailAt = now;
+    const detail =
+      served === "lastGood"
+        ? "Sajten serverar senaste lyckade katalogen från minnet — kunderna ser fortfarande allt."
+        : "Sajten serverar snapshot-katalogen (products.json) — nyaste produkterna kan saknas tills Wix svarar igen.";
+    void fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM_ADDRESS ?? "Fyndplats <noreply@fyndplats.se>",
+        to: [process.env.HEALTH_ALERT_EMAIL ?? "info@fyndplats.com"],
+        subject: "⚠️ fyndplats.se i fallback-läge — Wix-katalogen kunde inte hämtas",
+        text:
+          `Live-hämtningen av katalogen misslyckades: ${reason}\n\n${detail}\n\n` +
+          "Inget är raderat. Sidorna återgår till live-katalogen automatiskt inom ~5 min efter att Wix svarar igen. " +
+          "Status: https://status.wix.com",
+      }),
+    }).catch(() => {});
+  } catch {
+    // larmet får aldrig fälla sidan
+  }
+}
+
 async function fetchProducts(): Promise<Product[]> {
-  if (!wix) return local as Product[];
+  if (!wix) {
+    lastFetchSource = "snapshot";
+    return local as Product[];
+  }
   try {
     const all: any[] = [];
     let skip = 0;
@@ -309,10 +371,28 @@ async function fetchProducts(): Promise<Product[]> {
     for (const p of mapped) if (p.id && !byId.has(p.id)) byId.set(p.id, p);
     const unique = [...byId.values()];
     console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
-    return unique.length ? unique : (local as Product[]);
+    if (unique.length) {
+      lastGoodProducts = unique; // färsk full katalog → instansens avbrotts-skydd
+      lastFetchSource = "live";
+      return unique;
+    }
+    lastFetchSource = "snapshot";
+    return local as Product[];
   } catch (e) {
-    console.error("[wix] live fetch failed, using local fallback:", (e as Error).message);
+    const reason = (e as Error).message;
     productsPromise = null; // allow retry on a later request
+    if (lastGoodProducts) {
+      console.error(
+        `[wix] live fetch failed — serverar SENASTE LYCKADE katalogen (${lastGoodProducts.length} produkter):`,
+        reason,
+      );
+      alertFallbackEngaged(reason, "lastGood");
+      lastFetchSource = "lastGood";
+      return lastGoodProducts;
+    }
+    console.error("[wix] live fetch failed, using local fallback:", reason);
+    alertFallbackEngaged(reason, "snapshot");
+    lastFetchSource = "snapshot";
     return local as Product[];
   }
 }
