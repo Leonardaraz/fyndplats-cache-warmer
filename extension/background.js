@@ -204,11 +204,18 @@ async function scrapeAndImport(item, featureFlags, pricingOverride) {
   }
   const tabId = tab.id;
   try {
-    await waitForTabComplete(tabId, 35000);
+    // Total skrap-budget (2026-06-10): en död/captcha-spärrad flik ska hoppas
+    // över på ~45 s, inte ~2 min. Både fliklast (≤25 s) och extract-loopen bryts
+    // mot deadlinen så en seg sida aldrig stjäl hela kötiden.
+    const SCRAPE_DEADLINE_MS = 45000;
+    const scrapeStart = Date.now();
+    const budgetLeft = () => SCRAPE_DEADLINE_MS - (Date.now() - scrapeStart);
+    await waitForTabComplete(tabId, Math.min(25000, Math.max(1, budgetLeft())));
     // Ge React-sidan tid att rendera JSON-LD + DOM, sedan skrapa med upprepning.
     let product = null;
     for (let attempt = 0; attempt < 6; attempt++) {
-      await delay(attempt === 0 ? 2500 : 2000);
+      if (budgetLeft() <= 0) break; // skrap-budget slut → ge upp, hoppa vidare
+      await delay(attempt === 0 ? 2000 : 1800);
       const res = await requestExtract(tabId);
       if (res && res.ok && res.product) {
         product = res.product;
@@ -269,15 +276,16 @@ async function resolveBulkPricingOverride() {
 async function runBulkImport(items, featureFlags, originTabId) {
   const results = [];
   const pricingOverride = await resolveBulkPricingOverride();
-  // Hård per-produkt-watchdog (2026-06-10): garanterar att loopen ALLTID går
-  // vidare till nästa produkt även om något framtida obundet await smiter förbi
-  // de inre timeouterna. En skippad produkt visas "✗ Misslyckades" + "Försök
-  // igen" i modalen — hela kön fryser aldrig mer.
-  // 240 s (audit N7): MÅSTE överstiga summerad inre värsta-fallstid (~35 s flik
-  // + ~12,5 s delays + 6×12 s extract + 90 s fetch ≈ 210 s) — annars kan
-  // watchdogen döda en FUNGERANDE import som redan nått servern → "Misslyckades"
-  // i modalen + retry → dubblettrisk. Skyddsnätet ska bara fånga äkta hängningar.
-  const PER_PRODUCT_MS = 240000;
+  // Hård per-produkt-watchdog: garanterar att loopen ALLTID går vidare även om
+  // något obundet await smiter förbi de inre timeouterna. 150 s (2026-06-10):
+  // MÅSTE överstiga summerad inre värsta-fallstid (~45 s skrap-budget + 90 s
+  // import-fetch ≈ 135 s) men inte mer — skyddsnätet ska fånga äkta hängningar
+  // snabbt, inte döda en fungerande import. Skippad produkt visas "✗ Misslyckades".
+  const PER_PRODUCT_MS = 150000;
+  // Paus mellan produkter (2026-06-10): AliExpress bot-spärr triggas av många
+  // snabba sid-laddningar i följd → captcha-interstitials som inte går att skrapa.
+  // En kort paus gör batchen snällare och sänker andelen "Misslyckades".
+  const PACING_MS = 1500;
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index: i, state: "working" });
@@ -299,6 +307,7 @@ async function runBulkImport(items, featureFlags, originTabId) {
       wixProductId: r.wixProductId,
       error: r.error,
     });
+    if (i < items.length - 1) await delay(PACING_MS); // snällare mot AE → färre spärrar
   }
   sendToTab(originTabId, { type: "BULK_DONE", results });
   return results;
