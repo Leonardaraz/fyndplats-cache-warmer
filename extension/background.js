@@ -214,9 +214,10 @@ async function scrapeAndImport(item, featureFlags, pricingOverride) {
     // Ge React-sidan tid att rendera JSON-LD + DOM, sedan skrapa med upprepning.
     let product = null;
     for (let attempt = 0; attempt < 6; attempt++) {
-      if (budgetLeft() <= 0) break; // skrap-budget slut → ge upp, hoppa vidare
+      if (budgetLeft() <= 0) break; // skrap-budget slut (före paus) → ge upp
       await delay(attempt === 0 ? 2000 : 1800);
-      const res = await requestExtract(tabId);
+      if (budgetLeft() <= 0) break; // ...och EFTER pausen, så vi aldrig startar en
+      const res = await requestExtract(tabId); //  dyr 12 s-extract utanför budgeten
       if (res && res.ok && res.product) {
         product = res.product;
         if (product.extractionOk) break; // bra data — sluta försöka
@@ -276,12 +277,13 @@ async function resolveBulkPricingOverride() {
 async function runBulkImport(items, featureFlags, originTabId) {
   const results = [];
   const pricingOverride = await resolveBulkPricingOverride();
-  // Hård per-produkt-watchdog: garanterar att loopen ALLTID går vidare även om
-  // något obundet await smiter förbi de inre timeouterna. 150 s (2026-06-10):
-  // MÅSTE överstiga summerad inre värsta-fallstid (~45 s skrap-budget + 90 s
-  // import-fetch ≈ 135 s) men inte mer — skyddsnätet ska fånga äkta hängningar
-  // snabbt, inte döda en fungerande import. Skippad produkt visas "✗ Misslyckades".
-  const PER_PRODUCT_MS = 150000;
+  // Hård per-produkt-watchdog: backstop för ett ev. framtida obundet await som
+  // smiter förbi de inre timeouterna. 165 s (2026-06-10, audit): inre värsta-fall
+  // för en FUNGERANDE import = skrap tills lyckad extract (≤~45 s) + 90 s import-
+  // fetch ≈ 135 s (en MISSLYCKAD skrap, ≤~57 s, gör ingen import). 165 s ger
+  // ≥25 s marginal → watchdogen kan ALDRIG döda en fungerande import (annars
+  // falsk "✗ Misslyckades" + dubblett vid retry). Skippad produkt visas så ändå.
+  const PER_PRODUCT_MS = 165000;
   // Paus mellan produkter (2026-06-10): AliExpress bot-spärr triggas av många
   // snabba sid-laddningar i följd → captcha-interstitials som inte går att skrapa.
   // En kort paus gör batchen snällare och sänker andelen "Misslyckades".
