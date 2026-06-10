@@ -495,6 +495,14 @@ describe("translateValue — REGEL A: dimension + 'in' + antals-svans (canvas-ta
   it("'4 in 1 32pcs' lämnar 'in' (idiom, inleds INTE med x-kedja)", () => {
     expect(translateValue("4 in 1 32pcs")).toBe("4 in 1 32 st");
   });
+
+  it("prepositions-'in' efter ledande dimension lämnas (audit N1: kräver siffra/slut efter)", () => {
+    expect(translateValue("2 x 3 in stock")).toBe("2 x 3 in stock");
+    expect(translateValue("10 x 20 in total")).toBe("10 x 20 in total");
+    // Ordsvans efter dimensionen → REGEL A avstår medvetet (hellre orört än fel
+    // preposition); slutvärdet är inte ren svenska → svenskhets-grinden flaggar.
+    expect(translateValue("12x16 in White")).toBe("12x16 in Vit");
+  });
 });
 
 describe("translateValue — REGEL B: hopskrivet enskilt mått 'Nin' (vinylskäraren 2026-06-09)", () => {

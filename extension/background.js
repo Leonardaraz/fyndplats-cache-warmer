@@ -171,7 +171,10 @@ function waitForTabComplete(tabId, timeoutMs = 30000) {
 // callbacken eller lastError → Promisen löste ALDRIG → hela bulk-kön frös på
 // "Skrapar…". Racet mot en timeout → resolve(null) → retry-loopen fortsätter och
 // faller till sist på "Sidan svarade inte" i stället för att hänga för evigt.
-function requestExtract(tabId, timeoutMs = 8000) {
+// 12 s (audit N6): content.js:s EXTRACT_PRODUCT väntar själv på enrichDescription
+// (bunden till 10 s) före sendResponse — timeouten måste överstiga den, annars
+// kastas fungerande-men-långsamma försök bort i onödan.
+function requestExtract(tabId, timeoutMs = 12000) {
   return new Promise((resolve) => {
     let settled = false;
     const finish = (v) => {
@@ -270,7 +273,11 @@ async function runBulkImport(items, featureFlags, originTabId) {
   // vidare till nästa produkt även om något framtida obundet await smiter förbi
   // de inre timeouterna. En skippad produkt visas "✗ Misslyckades" + "Försök
   // igen" i modalen — hela kön fryser aldrig mer.
-  const PER_PRODUCT_MS = 120000;
+  // 240 s (audit N7): MÅSTE överstiga summerad inre värsta-fallstid (~35 s flik
+  // + ~12,5 s delays + 6×12 s extract + 90 s fetch ≈ 210 s) — annars kan
+  // watchdogen döda en FUNGERANDE import som redan nått servern → "Misslyckades"
+  // i modalen + retry → dubblettrisk. Skyddsnätet ska bara fånga äkta hängningar.
+  const PER_PRODUCT_MS = 240000;
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index: i, state: "working" });

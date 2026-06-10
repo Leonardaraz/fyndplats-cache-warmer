@@ -622,8 +622,13 @@ function normalizeUnits(value: string): string {
   // REGEL A — värdet INLEDS med en x-dimension följd av "in" + ev. svans
   // ("11x14 in 12pcs" → "11x14 tum 12pcs", "8x10in 24st" canvas-tavlorna
   // 2026-06-09). Den ledande x-kedjan gör "in" entydigt = tum (jfr "4 in 1"
-  // som INTE inleds med en kedja → "in" lämnas som idiom). Svansen (antal) rörs ej.
-  v = v.replace(new RegExp(`^(${DIM})\\s*in\\b`, "i"), "$1 tum");
+  // som INTE inleds med en kedja → "in" lämnas som idiom). Lookahead (audit N1):
+  // konvertera BARA när siffra eller strängslut följer — "2 x 3 in stock" har
+  // prepositions-"in" och lämnas orört. Ordsvansar ("12x16 in White") avstås
+  // medvetet: hellre orört än en deterministiskt felkonverterad preposition;
+  // svenskhets-grinden fångar slutvärdet ("12x16 in Vit" är inte ren svenska)
+  // → poleringskön, aldrig tyst fel till kund.
+  v = v.replace(new RegExp(`^(${DIM})\\s*in\\b(?=\\s*\\d|\\s*$)`, "i"), "$1 tum");
   // Bart "in" som TUM i DIMENSIONER ("32 in x 24 in", "24 x 32 in"): strukturen
   // (x-separerade tal där "in" följer talen / står sist) gör tolkningen entydig —
   // utan den ankringen vore prepositions-"in" i "5 in 1" i farozonen. Annars
