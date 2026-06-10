@@ -96,17 +96,26 @@ async function importProduct(product, featureFlags) {
       : {}),
   };
 
+  // AbortController-timeout (2026-06-10): en stallad /api/import-uppkoppling som
+  // accepteras men aldrig svarar hängde tidigare för evigt (ingen signal) och
+  // frös bulk-kön. 90 s ceiling — en riktig rå-import tar sekunder; en hängning
+  // är oändlig. Avbrottet → catch → { ok:false } → kön går vidare.
+  const ctrl = new AbortController();
+  const importTimer = setTimeout(() => ctrl.abort(), 90000);
   try {
     const res = await fetch(`${apiBase.replace(/\/$/, "")}/api/import`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-fyndplats-token": apiToken },
       body: JSON.stringify(payload),
+      signal: ctrl.signal,
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { ok: false, error: data.message || data.error || `HTTP ${res.status}` };
     return { ok: true, result: data.result };
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: ctrl.signal.aborted ? "Tidsgräns mot /api/import (90 s)" : String(err) };
+  } finally {
+    clearTimeout(importTimer);
   }
 }
 
@@ -157,16 +166,36 @@ function waitForTabComplete(tabId, timeoutMs = 30000) {
 
 // Be content.js (på /item/-sidan) om produktdata. Försöker flera gånger eftersom
 // AliExpress PC-sida renderas klient-sida och JSON-LD/DOM kan dröja.
-function requestExtract(tabId) {
+// TIMEOUT (2026-06-10): om content-scriptet aldrig svarar (captcha/interstitial
+// → ingen injektion, eller service-workern pausas mid-message) sätts varken
+// callbacken eller lastError → Promisen löste ALDRIG → hela bulk-kön frös på
+// "Skrapar…". Racet mot en timeout → resolve(null) → retry-loopen fortsätter och
+// faller till sist på "Sidan svarade inte" i stället för att hänga för evigt.
+// 12 s (audit N6): content.js:s EXTRACT_PRODUCT väntar själv på enrichDescription
+// (bunden till 10 s) före sendResponse — timeouten måste överstiga den, annars
+// kastas fungerande-men-långsamma försök bort i onödan.
+function requestExtract(tabId, timeoutMs = 12000) {
   return new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, { type: "EXTRACT_PRODUCT" }, (res) => {
-      if (chrome.runtime.lastError) return resolve(null);
-      resolve(res);
-    });
+    let settled = false;
+    const finish = (v) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(v);
+    };
+    const timer = setTimeout(() => finish(null), timeoutMs);
+    try {
+      chrome.tabs.sendMessage(tabId, { type: "EXTRACT_PRODUCT" }, (res) => {
+        if (chrome.runtime.lastError) return finish(null);
+        finish(res);
+      });
+    } catch (_) {
+      finish(null);
+    }
   });
 }
 
-async function scrapeAndImport(item, featureFlags) {
+async function scrapeAndImport(item, featureFlags, pricingOverride) {
   let tab;
   try {
     tab = await chrome.tabs.create({ url: item.url, active: false });
@@ -197,6 +226,13 @@ async function scrapeAndImport(item, featureFlags) {
       if (!q.hasPrice) miss.push("pris");
       return { id: item.id, ok: false, error: `Otillräcklig produktdata (saknar: ${miss.join(", ") || "data"}).` };
     }
+    // Bulk-prissättning (2026-06-10): stämpla Leonards förvalda Marginal-tier på
+    // den färskt skrapade produkten så importProduct skickar pricingOverride —
+    // tidigare läste bulk-vägen aldrig tiern → backend föll på default-2.5× trots
+    // att popupen sparat t.ex. 1.2 (egen "custom"-tier).
+    if (pricingOverride && typeof pricingOverride.multiplier === "number") {
+      product.pricingOverride = pricingOverride;
+    }
     const imp = await importProduct(product, featureFlags);
     if (!imp.ok) return { id: item.id, ok: false, error: imp.error };
     return {
@@ -214,12 +250,46 @@ async function scrapeAndImport(item, featureFlags) {
   }
 }
 
+// Läser Leonards förvalda Marginal-tier (samma som popupen sparar i
+// chrome.storage.sync) och bygger pricingOverride för HELA batchen. Speglar
+// popupens buildPricingOverride: premium = fast 2.5×, custom = sparat objekt,
+// standard = null (inget fält → backend default-tier). 2026-06-10.
+const BULK_PREMIUM_MULTIPLIER = 2.5;
+async function resolveBulkPricingOverride() {
+  try {
+    const { pricingTier, customTier } = await chrome.storage.sync.get(["pricingTier", "customTier"]);
+    if (pricingTier === "premium") return { multiplier: BULK_PREMIUM_MULTIPLIER };
+    if (pricingTier === "custom" && customTier && typeof customTier.multiplier === "number") {
+      return customTier;
+    }
+  } catch (_) {}
+  return null; // standard → backend använder default-tiern
+}
+
 async function runBulkImport(items, featureFlags, originTabId) {
   const results = [];
+  const pricingOverride = await resolveBulkPricingOverride();
+  // Hård per-produkt-watchdog (2026-06-10): garanterar att loopen ALLTID går
+  // vidare till nästa produkt även om något framtida obundet await smiter förbi
+  // de inre timeouterna. En skippad produkt visas "✗ Misslyckades" + "Försök
+  // igen" i modalen — hela kön fryser aldrig mer.
+  // 240 s (audit N7): MÅSTE överstiga summerad inre värsta-fallstid (~35 s flik
+  // + ~12,5 s delays + 6×12 s extract + 90 s fetch ≈ 210 s) — annars kan
+  // watchdogen döda en FUNGERANDE import som redan nått servern → "Misslyckades"
+  // i modalen + retry → dubblettrisk. Skyddsnätet ska bara fånga äkta hängningar.
+  const PER_PRODUCT_MS = 240000;
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index: i, state: "working" });
-    const r = await scrapeAndImport(item, featureFlags);
+    const r = await Promise.race([
+      scrapeAndImport(item, featureFlags, pricingOverride),
+      new Promise((resolve) =>
+        setTimeout(
+          () => resolve({ id: item.id, ok: false, error: "Tidsgräns – hoppade över produkten" }),
+          PER_PRODUCT_MS,
+        ),
+      ),
+    ]);
     results.push(r);
     sendToTab(originTabId, {
       type: "BULK_PROGRESS",

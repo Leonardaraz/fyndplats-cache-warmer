@@ -484,6 +484,41 @@ describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-0
   });
 });
 
+describe("translateValue — REGEL A: dimension + 'in' + antals-svans (canvas-tavlorna 2026-06-09)", () => {
+  it("'11x14 in 12pcs' → '11x14 tum 12 st' (in mellan dimension och antal)", () => {
+    expect(translateValue("11x14 in 12pcs")).toBe("11x14 tum 12 st");
+    expect(translateValue("8x10 in 24pcs")).toBe("8x10 tum 24 st");
+    expect(translateValue("11x14in 12Pcs")).toBe("11x14 tum 12 st"); // glued dim+in
+    expect(translateValue("12x16 in 24 st")).toBe("12x16 tum 24 st"); // redan svensk svans
+  });
+
+  it("'4 in 1 32pcs' lämnar 'in' (idiom, inleds INTE med x-kedja)", () => {
+    expect(translateValue("4 in 1 32pcs")).toBe("4 in 1 32 st");
+  });
+
+  it("prepositions-'in' efter ledande dimension lämnas (audit N1: kräver siffra/slut efter)", () => {
+    expect(translateValue("2 x 3 in stock")).toBe("2 x 3 in stock");
+    expect(translateValue("10 x 20 in total")).toBe("10 x 20 in total");
+    // Ordsvans efter dimensionen → REGEL A avstår medvetet (hellre orört än fel
+    // preposition); slutvärdet är inte ren svenska → svenskhets-grinden flaggar.
+    expect(translateValue("12x16 in White")).toBe("12x16 in Vit");
+  });
+});
+
+describe("translateValue — REGEL B: hopskrivet enskilt mått 'Nin' (vinylskäraren 2026-06-09)", () => {
+  it("'14in Black' → '14 tum Svart' (hopskrivning entydig)", () => {
+    expect(translateValue("14in Black")).toBe("14 tum Svart");
+    expect(translateValue("14in")).toBe("14 tum"); // ensamt
+    expect(translateValue("White Orange")).toBe("Vit Orange"); // den andra varianten orörd
+  });
+
+  it("skyddar prepositions-/idiom-former", () => {
+    expect(translateValue("5in 1")).toBe("5in 1"); // siffra efter → lämnas (lookahead)
+    expect(translateValue("5in1")).toBe("5in1"); // ingen ordgräns → lämnas
+    expect(translateValue("48in x 48 x 80in")).toBe("48in x 48 x 80in"); // x-dim → REGEL B hoppar (S-A)
+  });
+});
+
 describe("VALUE_TRANSLATIONS — fordon/cykelställ (incident 2026-06-09)", () => {
   it("översätter ställ-värdena som skeppades engelska efter Haiku-eko", () => {
     expect(translateValue("Rear Wheel")).toBe("Bakhjul");
