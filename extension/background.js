@@ -283,7 +283,7 @@ function reportImportFailure(item, error, pass) {
     void apiCall("/api/import-failure", {
       method: "POST",
       body: JSON.stringify({
-        url: item.url || "",
+        url: (item.url || "").slice(0, 500), // zod-cap 500 server-side (audit N3)
         title: (item.title || "").slice(0, 120),
         error: String(error || "okänt fel").slice(0, 300),
         pass,
@@ -305,6 +305,25 @@ async function runBulkImport(items, featureFlags, originTabId) {
   // sid-laddningar i följd. Pass 2 kör extra långsamt (spärren är ofta färsk).
   const PACING_MS = 1500;
   const RETRY_PACING_MS = 8000;
+
+  // MV3-SW-SÄKER lång paus (audit B1): en ren delay() >30 s får service-workern
+  // DÖDAD mitt i batchen — Chrome idle-terminerar efter 30 s utan events/
+  // extension-API-anrop, och pending timers räknas INTE som aktivitet (det syns
+  // inte vid test med DevTools öppet, som stänger av termineringen). Skiva därför
+  // pausen i 20 s-bitar med ett API-anrop per bit (BULK_NOTICE via
+  // tabs.sendMessage nollställer idle-klockan) — nedräkningen är dessutom bättre
+  // UX än en stum paus.
+  const keepalivePause = async (totalMs, label) => {
+    const SLICE_MS = 20000;
+    for (let left = totalMs; left > 0; left -= SLICE_MS) {
+      sendToTab(originTabId, {
+        type: "BULK_NOTICE",
+        text: `${label} — fortsätter om ${Math.ceil(left / 1000)} s…`,
+      });
+      await delay(Math.min(SLICE_MS, left));
+    }
+    sendToTab(originTabId, { type: "BULK_NOTICE", text: "" });
+  };
 
   const runOne = async (item, index, pass) => {
     sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index, state: "working" });
@@ -348,13 +367,8 @@ async function runBulkImport(items, featureFlags, originTabId) {
     }
     if (i < items.length - 1) {
       if (consecutiveFails >= 2) {
-        sendToTab(originTabId, {
-          type: "BULK_NOTICE",
-          text: `AliExpress bromsar (${consecutiveFails} fel i rad) — pausar ${Math.round(backoffMs / 1000)} s och fortsätter…`,
-        });
-        await delay(backoffMs);
+        await keepalivePause(backoffMs, `AliExpress bromsar (${consecutiveFails} fel i rad), pausar`);
         backoffMs = Math.min(backoffMs * 2, 360000);
-        sendToTab(originTabId, { type: "BULK_NOTICE", text: "" });
       } else {
         await delay(PACING_MS);
       }
@@ -364,19 +378,25 @@ async function runBulkImport(items, featureFlags, originTabId) {
   // --- PASS 2 — automatisk andra chans för misslyckade. AE-spärrar är ofta
   // tillfälliga; några minuters vila + långsam takt räddar i regel resten av
   // batchen utan att Leonard behöver klicka "Försök igen" 12 gånger.
-  const failed = items.filter((it) => !byId.get(it.id)?.ok);
-  if (failed.length > 0) {
-    const waitMs = 120000;
-    sendToTab(originTabId, {
-      type: "BULK_NOTICE",
-      text: `Försök 2 för ${failed.length} misslyckade om ${Math.round(waitMs / 1000)} s (AliExpress-spärrar är ofta tillfälliga)…`,
-    });
-    await delay(waitMs);
-    sendToTab(originTabId, { type: "BULK_NOTICE", text: "" });
+  //
+  // SÄKERHETSFILTER (audit B2): "Tidsgräns…"-fel exkluderas — där kan importen
+  // redan ha NÅTT servern (klient-abort dödar inte Vercel-anropet, och
+  // /api/import saknar dubblettspärr) → automatisk omkörning skulle mynta en
+  // dubblettprodukt i Wix. Rena skrap-fel ("Sidan svarade inte"/"Otillräcklig
+  // produktdata"/"Kunde inte öppna flik") har aldrig lämnat webbläsaren och är
+  // alltid säkra att köra om — de var 12/12 i incidenten 2026-06-11.
+  // Enstaka-produkt-körningar (manuella "Försök igen") får inget pass 2 — de ÄR
+  // redan ett omförsök (audit S1).
+  const failed = items.filter((it) => {
+    const r = byId.get(it.id);
+    return r && !r.ok && !/^Tidsgräns/.test(r.error || "");
+  });
+  if (failed.length > 0 && items.length > 1) {
+    await keepalivePause(120000, `Försök 2 för ${failed.length} misslyckade (AliExpress-spärrar är ofta tillfälliga)`);
     for (let j = 0; j < failed.length; j++) {
       const item = failed[j];
       const r2 = await runOne(item, items.indexOf(item), "pass2");
-      if (r2.ok) byId.set(item.id, r2);
+      byId.set(item.id, r2); // även pass 2-fel sparas → färskaste feltexten visas
       if (j < failed.length - 1) await delay(RETRY_PACING_MS);
     }
   }
