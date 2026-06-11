@@ -274,8 +274,25 @@ async function resolveBulkPricingOverride() {
   return null; // standard → backend använder default-tiern
 }
 
+// Rapporterar ett bulk-skrap-fel till backenden (audit-loggen) — fire-and-forget.
+// Bakgrund (2026-06-11): 12/13 produkter föll i skrapfasen utan att något nådde
+// servern → diagnos krävde Leonards skärmdump av modalen. Nu syns varje ✗ med
+// exakt feltext i /admin-auditloggen i stället.
+function reportImportFailure(item, error, pass) {
+  try {
+    void apiCall("/api/import-failure", {
+      method: "POST",
+      body: JSON.stringify({
+        url: item.url || "",
+        title: (item.title || "").slice(0, 120),
+        error: String(error || "okänt fel").slice(0, 300),
+        pass,
+      }),
+    }).catch(() => {});
+  } catch (_) {}
+}
+
 async function runBulkImport(items, featureFlags, originTabId) {
-  const results = [];
   const pricingOverride = await resolveBulkPricingOverride();
   // Hård per-produkt-watchdog: backstop för ett ev. framtida obundet await som
   // smiter förbi de inre timeouterna. 165 s (2026-06-10, audit): inre värsta-fall
@@ -284,13 +301,13 @@ async function runBulkImport(items, featureFlags, originTabId) {
   // ≥25 s marginal → watchdogen kan ALDRIG döda en fungerande import (annars
   // falsk "✗ Misslyckades" + dubblett vid retry). Skippad produkt visas så ändå.
   const PER_PRODUCT_MS = 165000;
-  // Paus mellan produkter (2026-06-10): AliExpress bot-spärr triggas av många
-  // snabba sid-laddningar i följd → captcha-interstitials som inte går att skrapa.
-  // En kort paus gör batchen snällare och sänker andelen "Misslyckades".
+  // Paus mellan produkter: AliExpress bot-spärr triggas av många snabba
+  // sid-laddningar i följd. Pass 2 kör extra långsamt (spärren är ofta färsk).
   const PACING_MS = 1500;
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index: i, state: "working" });
+  const RETRY_PACING_MS = 8000;
+
+  const runOne = async (item, index, pass) => {
+    sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index, state: "working" });
     const r = await Promise.race([
       scrapeAndImport(item, featureFlags, pricingOverride),
       new Promise((resolve) =>
@@ -300,17 +317,71 @@ async function runBulkImport(items, featureFlags, originTabId) {
         ),
       ),
     ]);
-    results.push(r);
     sendToTab(originTabId, {
       type: "BULK_PROGRESS",
       id: item.id,
-      index: i,
+      index,
       state: r.ok ? "done" : "fail",
       wixProductId: r.wixProductId,
       error: r.error,
     });
-    if (i < items.length - 1) await delay(PACING_MS); // snällare mot AE → färre spärrar
+    if (!r.ok) reportImportFailure(item, r.error, pass);
+    return r;
+  };
+
+  // --- PASS 1 — med adaptiv backoff (2026-06-11: Leonards 13-batch gav 1 lyckad,
+  // 12 raka skrap-fel = AE började servera spärr-/captcha-sidor till de dolda
+  // flikarna; att plöja vidare i full takt förvärrar spärren). Efter 2 raka fel
+  // pausas kön (90 s, dubblas upp till 6 min) och modalen visar varför. En
+  // lyckad produkt nollställer trappan.
+  const byId = new Map();
+  let consecutiveFails = 0;
+  let backoffMs = 90000;
+  for (let i = 0; i < items.length; i++) {
+    const r = await runOne(items[i], i, "pass1");
+    byId.set(items[i].id, r);
+    if (r.ok) {
+      consecutiveFails = 0;
+      backoffMs = 90000;
+    } else {
+      consecutiveFails++;
+    }
+    if (i < items.length - 1) {
+      if (consecutiveFails >= 2) {
+        sendToTab(originTabId, {
+          type: "BULK_NOTICE",
+          text: `AliExpress bromsar (${consecutiveFails} fel i rad) — pausar ${Math.round(backoffMs / 1000)} s och fortsätter…`,
+        });
+        await delay(backoffMs);
+        backoffMs = Math.min(backoffMs * 2, 360000);
+        sendToTab(originTabId, { type: "BULK_NOTICE", text: "" });
+      } else {
+        await delay(PACING_MS);
+      }
+    }
   }
+
+  // --- PASS 2 — automatisk andra chans för misslyckade. AE-spärrar är ofta
+  // tillfälliga; några minuters vila + långsam takt räddar i regel resten av
+  // batchen utan att Leonard behöver klicka "Försök igen" 12 gånger.
+  const failed = items.filter((it) => !byId.get(it.id)?.ok);
+  if (failed.length > 0) {
+    const waitMs = 120000;
+    sendToTab(originTabId, {
+      type: "BULK_NOTICE",
+      text: `Försök 2 för ${failed.length} misslyckade om ${Math.round(waitMs / 1000)} s (AliExpress-spärrar är ofta tillfälliga)…`,
+    });
+    await delay(waitMs);
+    sendToTab(originTabId, { type: "BULK_NOTICE", text: "" });
+    for (let j = 0; j < failed.length; j++) {
+      const item = failed[j];
+      const r2 = await runOne(item, items.indexOf(item), "pass2");
+      if (r2.ok) byId.set(item.id, r2);
+      if (j < failed.length - 1) await delay(RETRY_PACING_MS);
+    }
+  }
+
+  const results = items.map((it) => byId.get(it.id));
   sendToTab(originTabId, { type: "BULK_DONE", results });
   return results;
 }
