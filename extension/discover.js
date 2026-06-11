@@ -1074,6 +1074,14 @@
     prog.append(fill);
     modal.append(prog);
     modal.append(el("div", "fp-modal__counter", `${done} av ${items.length} klara`));
+    // Backoff-/retry-besked från background (BULK_NOTICE): förklarar pauser så
+    // kön inte ser död ut när AliExpress bromsar (2026-06-11).
+    if (modalState.notice) {
+      const note = el("div", "fp-modal__counter", `⏸ ${modalState.notice}`);
+      note.style.color = "#b45309";
+      note.style.fontWeight = "600";
+      modal.append(note);
+    }
 
     const list = el("ul", "fp-list");
     for (const it of items) {
@@ -1200,6 +1208,13 @@
     }
     if (msg.type === "BULK_PROGRESS") {
       applyProgress(msg);
+      return;
+    }
+    if (msg.type === "BULK_NOTICE") {
+      if (modalState) {
+        modalState.notice = msg.text || "";
+        renderModal();
+      }
       return;
     }
     if (msg.type === "BULK_DONE") {
