@@ -306,13 +306,16 @@ async function runBulkImport(items, featureFlags, originTabId) {
   const PACING_MS = 1500;
   const RETRY_PACING_MS = 8000;
 
-  // MV3-SW-SÄKER lång paus (audit B1): en ren delay() >30 s får service-workern
-  // DÖDAD mitt i batchen — Chrome idle-terminerar efter 30 s utan events/
-  // extension-API-anrop, och pending timers räknas INTE som aktivitet (det syns
-  // inte vid test med DevTools öppet, som stänger av termineringen). Skiva därför
+  // MV3-SW-LIVSHÅLLANDE lång paus (audit B1): en ren delay() >30 s får service-
+  // workern DÖDAD mitt i batchen — Chrome idle-terminerar efter 30 s utan
+  // events/extension-API-anrop, och pending timers räknas INTE som aktivitet
+  // (syns inte med DevTools öppet, som stänger av termineringen). Skiva därför
   // pausen i 20 s-bitar med ett API-anrop per bit (BULK_NOTICE via
-  // tabs.sendMessage nollställer idle-klockan) — nedräkningen är dessutom bättre
-  // UX än en stum paus.
+  // tabs.sendMessage nollställer 30 s-idle-klockan) — nedräkningen är dessutom
+  // bättre UX än en stum paus. Tillförlitligt på Chrome ≥110 (5-min-hårdtaket
+  // borttaget där); en patologisk ~80-min all-fail-batch bör verifieras på
+  // riktig enhet en gång. Värsta fall om det ändå dör: synlig död i modalen
+  // (nedräkningen fryser) i stället för tyst frysning som förut.
   const keepalivePause = async (totalMs, label) => {
     const SLICE_MS = 20000;
     for (let left = totalMs; left > 0; left -= SLICE_MS) {
