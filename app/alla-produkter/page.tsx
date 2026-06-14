@@ -80,7 +80,7 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
         <div className="container">
           <CategoryDropdown products={products} collections={collections} activeSlug={active?.slug} />
 
-          <ShopBrowser products={list} />
+          <ShopBrowser products={list} defaultSort="new" />
         </div>
       </section>
     </div>

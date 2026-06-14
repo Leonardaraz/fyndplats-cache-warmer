@@ -24,6 +24,9 @@ const SORTS = [
   // "img" sorterar på intern bildkvalitets-poäng men heter "Rekommenderat" utåt —
   // kunden ska inte exponeras för intern logik ("Bäst bilder" förvirrade). Default.
   { v: "img", label: "Rekommenderat" },
+  // "new" = nyast importerade först (createdAt desc). Standard på /alla-produkter
+  // via defaultSort-propen (Leonard 2026-06-14); valbart överallt.
+  { v: "new", label: "Nyast" },
   { v: "pop", label: "Populärast" },
   { v: "price-asc", label: "Pris: lågt → högt" },
   { v: "price-desc", label: "Pris: högt → lågt" },
@@ -31,19 +34,19 @@ const SORTS = [
 ];
 const SORT_VALUES = new Set(SORTS.map((s) => s.v));
 
-export function ShopBrowser({ products }: { products: Product[] }) {
+export function ShopBrowser({ products, defaultSort = "img" }: { products: Product[]; defaultSort?: string }) {
   // useSearchParams() kräver en Suspense-gräns för att statiska sidor
   // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
   // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
   // rutnätet som fallback så inget hoppar.
   return (
     <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p) => <ProductCard p={p} key={p.slug} />)}</div>}>
-      <ShopBrowserInner products={products} />
+      <ShopBrowserInner products={products} defaultSort={defaultSort} />
     </Suspense>
   );
 }
 
-function ShopBrowserInner({ products }: { products: Product[] }) {
+function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defaultSort: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -51,7 +54,7 @@ function ShopBrowserInner({ products }: { products: Product[] }) {
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
   const [sort, setSort] = useState(() => {
     const s = sp.get("sortera");
-    return s && SORT_VALUES.has(s) ? s : "img";
+    return s && SORT_VALUES.has(s) ? s : defaultSort;
   });
   const [bi, setBi] = useState(() => {
     const p = sp.get("pris");
@@ -67,7 +70,7 @@ function ShopBrowserInner({ products }: { products: Product[] }) {
   // om URL:en faktiskt skiljer sig → ingen onödig history-replace eller loop.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (sort !== "img") params.set("sortera", sort); else params.delete("sortera");
+    if (sort !== defaultSort) params.set("sortera", sort); else params.delete("sortera");
     const slug = BRACKETS[bi]?.slug;
     if (slug) params.set("pris", slug); else params.delete("pris");
     if (onlyInStock) params.set("lager", "1"); else params.delete("lager");
@@ -84,6 +87,7 @@ function ShopBrowserInner({ products }: { products: Product[] }) {
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     if (sort === "img") out = [...out].sort((a, z) => (z.imageScore ?? 60) - (a.imageScore ?? 60));
+    else if (sort === "new") out = [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || a.id.localeCompare(z.id));
     else if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
