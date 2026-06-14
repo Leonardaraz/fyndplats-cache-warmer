@@ -1,4 +1,4 @@
-import { getProducts, getCollections, mixByCategory, forListings } from "../../lib/products";
+import { getProducts, getCollections, sortByNewest, forListings } from "../../lib/products";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { CategoryDropdown } from "../../components/categorydropdown";
 import { pageMeta } from "../../lib/seo";
@@ -15,7 +15,10 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
   const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const active = collections.find((c) => c.slug === kategori);
-  const list = active ? products.filter((p) => p.collectionIds?.includes(active.id)) : mixByCategory(products, collections);
+  // Nyast först (Leonard 2026-06-14): senast importerade produkter överst, både i
+  // hela sortimentet och inom en vald kategori. Ersätter den tidigare kategori-
+  // mixen på den här sidan.
+  const list = sortByNewest(active ? products.filter((p) => p.collectionIds?.includes(active.id)) : products);
 
   // JSON-LD: CollectionPage + BreadcrumbList (samma mönster som /butik) så Google
   // förstår att detta är en produktlistning. När ?kategori= är aktiv beskriver

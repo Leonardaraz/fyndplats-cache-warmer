@@ -15,6 +15,10 @@ export type Product = {
   collectionIds: string[];
   name: string;
   slug: string;
+  // Skapelse-ordning för "nyast först"-sortering (alla-produkter-sidan). Härleds
+  // ur Wix numericId (auto-ökande vid skapande) → createdDate-fallback. 0 = okänt
+  // (sorteras sist). INTE lastUpdated — den ändras vid varje lager-/pris-sync.
+  createdAt: number;
   price: string;
   currency: string;
   priceNum: number;
@@ -189,6 +193,9 @@ function mapProduct(p: any): Product {
   const curatedSeoDesc = curatedSeoTitle && rawSeoDesc ? rawSeoDesc : undefined;
   return {
     id: pid,
+    // Skapelse-ordning: numericId (auto-ökande heltal, schema-konsekvent över
+    // ALLA produkter) → createdDate-parse → 0. Används av sortByNewest.
+    createdAt: Number(p.numericId) || Date.parse(p.createdDate || p._createdDate || "") || 0,
     imageScore: imageScoreOf(pid),
     imageFlags: imageRecordOf(pid)?.flags ?? [],
     variants,
@@ -457,6 +464,15 @@ export function hideOosFromListings(): boolean {
 export function forListings(products: Product[]): Product[] {
   if (!hideOosFromListings()) return products;
   return products.filter((p) => p.inStock);
+}
+
+// Nyast skapade först. Används av /alla-produkter så senast importerade produkter
+// hamnar överst (Leonards önskemål 2026-06-14). Stabil tie-break på id så
+// produkter med okänt createdAt (0) inte hoppar mellan renderingar. (mixByCategory
+// nedan var alla-produkters enda anropare och är nu oanvänd — lämnad orörd; kan
+// städas i en separat cleanup.)
+export function sortByNewest(products: Product[]): Product[] {
+  return [...products].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0) || a.id.localeCompare(b.id));
 }
 
 // Slim produktform för cart-drawerns "Andra köpte också"-block — bara de fält
