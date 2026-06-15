@@ -54,6 +54,7 @@ import {
   isMoreInformative,
 } from "./description";
 import { matchesColorName, isColorAxis } from "./color-match";
+import { sortedSizeChoices } from "./variant-sort";
 import { buildVariantSkus } from "./sku";
 import { audit } from "../audit";
 
@@ -162,7 +163,7 @@ export function deriveOptions(
     }
   }
   return [...map.entries()].map(([name, set]) => {
-    const values = [...set];
+    let values = [...set];
     // Bara en ÄKTA färgaxel får bli färg-swatch. AE-säljare lägger ofta storlekar/
     // volymer/modeller/kontakttyper under "Color"-fältet (med bilder) → de samplas
     // till nästan identiska gråa colorCodes och skulle annars publiceras som
@@ -170,6 +171,15 @@ export function deriveOptions(
     // colorCodes (optionen blir TEXT; per-val-bilderna behålls ändå via linkedMedia).
     const codes = colorCodes?.[name];
     const keepColors = !!codes && isColorAxis(values);
+    // Storleks-sortering minsta→största (Leonard 2026-06-15). BARA icke-färgaxlar
+    // (färgordning är estetisk). sortedSizeChoices returnerar null när ordningen
+    // inte säkert kan avgöras → axeln behålls orörd. Påverkar ENBART
+    // visningsordningen i options-listan; variantposterna (pris/SKU/lager/
+    // linkedMedia) matchas på värde, inte ordning, och är orörda.
+    if (!isColorAxis(values)) {
+      const sorted = sortedSizeChoices(values);
+      if (sorted) values = sorted;
+    }
     return {
       name,
       choices: values.map((choiceName) => ({
