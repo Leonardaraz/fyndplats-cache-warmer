@@ -53,6 +53,25 @@ describe("sortedSizeChoices — blandade enheter inom samma familj (normaliserin
   it("lagring GB/TB", () => {
     expect(sortedSizeChoices(["1TB", "256GB", "512GB"])).toEqual(["256GB", "512GB", "1TB"]);
   });
+  it("utskriven enhet från rå AE-data blandad med förkortad (meter vs cm)", () => {
+    // "1 meter" får INTE faktor 1 och hamna före "80 cm" — meter normaliseras.
+    expect(sortedSizeChoices(["1 meter", "80 cm", "20 cm"])).toEqual([
+      "20 cm",
+      "80 cm",
+      "1 meter",
+    ]);
+  });
+  it("utskriven vikt (Gram/Kilogram) normaliseras", () => {
+    expect(sortedSizeChoices(["1 Kilogram", "500 Gram", "900 Gram"])).toEqual([
+      "500 Gram",
+      "900 Gram",
+      "1 Kilogram",
+    ]);
+  });
+  it("fot konverteras inte i sorteringen men jämförs rätt mot meter", () => {
+    // 6 fot = 1,83 m < 2 m; faktor 304,8 mm gör ordningen korrekt.
+    expect(sortedSizeChoices(["2 m", "6 fot"])).toEqual(["6 fot", "2 m"]);
+  });
 });
 
 describe("sortedSizeChoices — bail (returnerar null → axel lämnas orörd)", () => {
@@ -64,6 +83,9 @@ describe("sortedSizeChoices — bail (returnerar null → axel lämnas orörd)",
   });
   it("korsfamilj (vikt + volym)", () => {
     expect(sortedSizeChoices(["1 kg", "1 L"])).toBeNull();
+  });
+  it("korsfamilj med utskrivna enheter (meter + gram) → orörd", () => {
+    expect(sortedSizeChoices(["1 meter", "2 gram"])).toBeNull();
   });
   it("färger har inga tal → null (rörs aldrig)", () => {
     expect(sortedSizeChoices(["Röd", "Blå", "Svart"])).toBeNull();

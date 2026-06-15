@@ -29,27 +29,32 @@ function clothingOrdinal(value: string): number | null {
 // Enhetsfamiljer med faktor till basenhet. Möjliggör korrekt sortering när EN
 // axel blandar enheter ur samma familj ("500 ml" vs "2 L"). Effekt/spänning/
 // ström/mAh/temperatur normaliseras inte (en axel har bara en enhet → råa tal
-// räcker). Ordningen spelar roll: längre token testas före kortare (ml före l).
+// räcker). Både förkortat OCH utskrivet: standardpipelinen ger förkortat (tum/
+// cm/mm/m/ml/l), men RÅ AE-data kan stava ut enheten ("1 Meter", "500 Gram") →
+// regexarna täcker även det så en utskriven enhet inte får faktor 1 (→ felsort)
+// när den blandas med en förkortad i samma familj. Ankrade ^…$ mot HELA token →
+// ömsesidigt uteslutande, inga falska träffar inuti ord.
 const UNITS: { re: RegExp; family: string; factor: number }[] = [
-  // Längd (bas mm). tum/inch = 25,4 mm.
+  // Längd (bas mm). tum/inch = 25,4 mm; fot = 304,8 mm.
   { re: /^(?:inches|inch|in|tum)$/i, family: "len", factor: 25.4 },
-  { re: /^mm$/i, family: "len", factor: 1 },
-  { re: /^cm$/i, family: "len", factor: 10 },
-  { re: /^dm$/i, family: "len", factor: 100 },
-  { re: /^m$/i, family: "len", factor: 1000 },
+  { re: /^(?:ft|foot|feet|fot)$/i, family: "len", factor: 304.8 },
+  { re: /^(?:mm|millimet(?:er|re)s?)$/i, family: "len", factor: 1 },
+  { re: /^(?:cm|centimet(?:er|re)s?)$/i, family: "len", factor: 10 },
+  { re: /^(?:dm|decimet(?:er|re)s?)$/i, family: "len", factor: 100 },
+  { re: /^(?:m|met(?:er|re)s?)$/i, family: "len", factor: 1000 },
   // Volym (bas ml).
-  { re: /^ml$/i, family: "vol", factor: 1 },
-  { re: /^cl$/i, family: "vol", factor: 10 },
-  { re: /^dl$/i, family: "vol", factor: 100 },
+  { re: /^(?:ml|millilit(?:er|re)s?)$/i, family: "vol", factor: 1 },
+  { re: /^(?:cl|centilit(?:er|re)s?)$/i, family: "vol", factor: 10 },
+  { re: /^(?:dl|decilit(?:er|re)s?)$/i, family: "vol", factor: 100 },
   { re: /^(?:l|lit(?:er|re)s?)$/i, family: "vol", factor: 1000 },
   // Vikt (bas g).
-  { re: /^mg$/i, family: "wt", factor: 0.001 },
-  { re: /^kg$/i, family: "wt", factor: 1000 },
-  { re: /^g$/i, family: "wt", factor: 1 },
+  { re: /^(?:mg|milligram(?:me)?s?)$/i, family: "wt", factor: 0.001 },
+  { re: /^(?:kg|kilos?|kilogram(?:me)?s?)$/i, family: "wt", factor: 1000 },
+  { re: /^(?:g|gram(?:me)?s?)$/i, family: "wt", factor: 1 },
   // Lagring (bas MB).
-  { re: /^mb$/i, family: "stor", factor: 1 },
-  { re: /^gb$/i, family: "stor", factor: 1024 },
-  { re: /^tb$/i, family: "stor", factor: 1048576 },
+  { re: /^(?:mb|megabytes?)$/i, family: "stor", factor: 1 },
+  { re: /^(?:gb|gigabytes?)$/i, family: "stor", factor: 1024 },
+  { re: /^(?:tb|terabytes?)$/i, family: "stor", factor: 1048576 },
 ];
 
 function unitOf(token: string): { family: string; factor: number } | null {

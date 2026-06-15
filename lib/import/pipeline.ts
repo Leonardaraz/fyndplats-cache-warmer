@@ -175,10 +175,16 @@ export function deriveOptions(
     // (färgordning är estetisk). sortedSizeChoices returnerar null när ordningen
     // inte säkert kan avgöras → axeln behålls orörd. Påverkar ENBART
     // visningsordningen i options-listan; variantposterna (pris/SKU/lager/
-    // linkedMedia) matchas på värde, inte ordning, och är orörda.
+    // linkedMedia) matchas på värde, inte ordning, och är orörda. try/catch:
+    // sorteringen får ALDRIG fälla en import (Leonards krav) — oväntat fel →
+    // behåll originalordningen.
     if (!isColorAxis(values)) {
-      const sorted = sortedSizeChoices(values);
-      if (sorted) values = sorted;
+      try {
+        const sorted = sortedSizeChoices(values);
+        if (sorted) values = sorted;
+      } catch {
+        /* behåll originalordningen */
+      }
     }
     return {
       name,
