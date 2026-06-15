@@ -180,7 +180,7 @@ export function deriveOptions(
     // behåll originalordningen.
     if (!isColorAxis(values)) {
       try {
-        const sorted = sortedSizeChoices(values);
+        const sorted = sortedSizeChoices(values, name);
         if (sorted) values = sorted;
       } catch {
         /* behåll originalordningen */

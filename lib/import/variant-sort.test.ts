@@ -32,8 +32,11 @@ describe("sortedSizeChoices — numeriskt/mått (samma enhet)", () => {
   it("ström A (PWM-regulatorer)", () => {
     expect(sortedSizeChoices(["60A", "10A", "20A"])).toEqual(["10A", "20A", "60A"]);
   });
-  it("rena tal (skostorlek)", () => {
-    expect(sortedSizeChoices(["42", "36", "40", "38"])).toEqual(["36", "38", "40", "42"]);
+  it("rena tal (skostorlek) — kräver storleksnamn på axeln", () => {
+    // Enhetslösa tal sorteras BARA om axeln heter något storleksaktigt (annars kan
+    // det vara modellnummer). Med "Storlek" → sorteras; utan namn → orörd (null).
+    expect(sortedSizeChoices(["42", "36", "40", "38"], "Storlek")).toEqual(["36", "38", "40", "42"]);
+    expect(sortedSizeChoices(["42", "36", "40", "38"])).toBeNull();
   });
   it("decimalkomma (meter)", () => {
     expect(sortedSizeChoices(["3,6 x 3,6 m", "3 x 3 m"])).toEqual(["3 x 3 m", "3,6 x 3,6 m"]);
@@ -92,6 +95,26 @@ describe("sortedSizeChoices — bail (returnerar null → axel lämnas orörd)",
   });
   it("ensamt värde → null", () => {
     expect(sortedSizeChoices(["M"])).toBeNull();
+  });
+});
+
+describe("sortedSizeChoices — storleksbevis-grind (bara äkta storleksaxlar)", () => {
+  it("modellkoder med siffror lämnas orörda (Modell/Typ-axel)", () => {
+    expect(sortedSizeChoices(["KM-6631", "B6AC"], "Modell")).toBeNull();
+    expect(sortedSizeChoices(["KID110", "KID220"], "Typ")).toBeNull();
+    expect(sortedSizeChoices(["iPhone 14 Pro", "iPhone 15 Pro"], "Modell")).toBeNull();
+  });
+  it("enhetsbärande värden sorteras oavsett axelnamn (enheten räcker som bevis)", () => {
+    expect(sortedSizeChoices(["260W", "10W", "120W"], "Variant")).toEqual(["10W", "120W", "260W"]);
+    expect(sortedSizeChoices(["1TB", "256GB"], "Kapacitet")).toEqual(["256GB", "1TB"]);
+  });
+  it("rena tal sorteras på storleksnamn men inte på godtyckligt namn", () => {
+    expect(sortedSizeChoices(["36", "40", "38"], "Skostorlek")).toEqual(["36", "38", "40"]);
+    expect(sortedSizeChoices(["36", "40", "38"], "Stil")).toBeNull();
+  });
+  it("upplösning/ratio utan storleksnamn bailar (det fula '4K först' undviks)", () => {
+    expect(sortedSizeChoices(["4K", "1080P", "720P"], "Upplösning")).toBeNull();
+    expect(sortedSizeChoices(["1:2", "2:3"], "Förhållande")).toBeNull();
   });
 });
 

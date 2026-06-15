@@ -62,29 +62,59 @@ function unitOf(token: string): { family: string; factor: number } | null {
   return null;
 }
 
+// Spec-/antal-enheter som SIGNALERAR "detta är ett mått/en spec" men inte
+// normaliseras (en axel bär bara en sådan enhet → råa tal räcker). Används bara
+// för storleksbevis-grinden, inte för sortnyckeln. Matchas mot HELA bokstavslöpan
+// efter talet, så en modellkod som "B6AC" (token "AC") aldrig räknas som enhet.
+const EXTRA_UNITS = new Set([
+  // el
+  "w", "watt", "watts", "kw", "v", "volt", "volts", "kv", "a", "amp", "amps",
+  "ampere", "amperes", "ma", "mah", "wh", "ah",
+  // frekvens
+  "hz", "khz", "mhz", "ghz",
+  // temperatur
+  "k", "kelvin",
+  // antal
+  "st", "stk", "pcs", "pc", "pair", "pairs", "par", "delar", "delars", "pack",
+  "packs", "piece", "pieces",
+  // övriga spec
+  "mp", "dpi", "rpm", "fps",
+]);
+
 // Tolkar ett värde till en numerisk nyckel-tupel. Alla tal i värdet plockas ut
 // (dimensioner + antal blir tupel: "8x10 tum 24 st" → [8,10,24]). Det FÖRSTA
-// igenkända enhets-tokenet ger familj + faktor som normaliserar första talet
-// (faktor 1 om ingen enhet). null = inga tal alls → ej sorterbart.
-function parseNumeric(value: string): { key: number[]; family: string | null } | null {
+// igenkända normaliserings-enhets-tokenet ger familj + faktor som normaliserar
+// första talet (faktor 1 om ingen enhet). `hasUnit` = sant om NÅGOT token är en
+// känd enhet (normalisering ELLER EXTRA_UNITS) → används av storleksbevis-grinden.
+// null = inga tal alls → ej sorterbart.
+function parseNumeric(
+  value: string,
+): { key: number[]; family: string | null; hasUnit: boolean } | null {
   const matches = [...value.matchAll(/(\d+(?:[.,]\d+)?)\s*([\p{L}"]*)/gu)];
   const nums: number[] = [];
   let family: string | null = null;
   let factor = 1;
   let foundUnit = false;
+  let hasUnit = false;
   for (const m of matches) {
     nums.push(parseFloat(m[1].replace(",", ".")));
-    if (!foundUnit && m[2]) {
-      const u = unitOf(m[2]);
+    const token = m[2];
+    if (token) {
+      const u = unitOf(token);
       if (u) {
-        family = u.family;
-        factor = u.factor;
-        foundUnit = true;
+        hasUnit = true;
+        if (!foundUnit) {
+          family = u.family;
+          factor = u.factor;
+          foundUnit = true;
+        }
+      } else if (EXTRA_UNITS.has(token.toLowerCase())) {
+        hasUnit = true;
       }
     }
   }
   if (nums.length === 0) return null;
-  return { key: [nums[0] * factor, ...nums.slice(1)], family };
+  return { key: [nums[0] * factor, ...nums.slice(1)], family, hasUnit };
 }
 
 function tupleCompare(a: number[], b: number[]): number {
@@ -105,15 +135,37 @@ function decorate(values: string[], keys: number[][]): string[] {
     .map((o) => o.v);
 }
 
+// Axelnamn (svenska, efter översättning) som betecknar storlek/mått. "Effekt"
+// UTESLUTS medvetet — i denna kodbas är det oftast den visuella "Effect"
+// (Glow/Shimmer), inte watt; wattvärden fångas via enheten W. Compound-namn
+// (skostorlek, sitthöjd, skärmstorlek) fångas av ändelse-kontrollen.
+const SIZE_AXIS_NAMES = new Set([
+  "storlek", "längd", "bredd", "höjd", "djup", "diameter", "volym", "vikt", "mått",
+  "tjocklek", "omkrets", "spänning", "ström", "lagring", "kapacitet", "antal",
+  "size", "length", "width", "height", "depth", "weight", "volume", "capacity",
+  "voltage", "storage", "quantity", "dimension", "dimensions",
+]);
+const SIZE_AXIS_SUFFIXES = ["storlek", "längd", "höjd", "bredd", "vikt", "volym", "mått", "size"];
+
+function isSizeLikeAxisName(name?: string): boolean {
+  if (!name) return false;
+  const n = name.trim().toLowerCase();
+  if (SIZE_AXIS_NAMES.has(n)) return true;
+  return SIZE_AXIS_SUFFIXES.some((s) => n.endsWith(s));
+}
+
 /**
- * Returnerar `values` sorterade minsta→största, eller `null` om ordningen inte
- * kan avgöras säkert (då ska anroparen behålla originalordningen).
+ * Returnerar `values` sorterade minsta→största, eller `null` om axeln inte säkert
+ * kan sorteras som storlek (då ska anroparen behålla originalordningen).
+ * Sorterar BARA äkta storleksaxlar: klädskala, ELLER varje värde bär en igenkänd
+ * enhet, ELLER `axisName` är ett storleksnamn (för enhetslösa rena tal som
+ * skostorlek). Annars (modell-/kod-/stilaxlar med siffror) → orörd.
  */
-export function sortedSizeChoices(values: string[]): string[] | null {
+export function sortedSizeChoices(values: string[], axisName?: string): string[] | null {
   if (values.length < 2) return null;
   const trimmed = values.map((v) => v.trim());
 
-  // 1) Klädskala — ALLA värden måste vara kända skal-tokens.
+  // 1) Klädskala — ALLA värden måste vara kända skal-tokens (klädskala ÄR storlek).
   const clo = trimmed.map(clothingOrdinal);
   if (clo.every((o) => o !== null)) {
     return decorate(values, clo.map((o) => [o as number]));
@@ -124,5 +176,11 @@ export function sortedSizeChoices(values: string[]): string[] | null {
   if (parsed.some((p) => p === null)) return null; // otolkbart värde → orörd
   const families = new Set(parsed.map((p) => p!.family).filter((f): f is string => f !== null));
   if (families.size > 1) return null; // korsfamilj (t.ex. vikt + volym) → orörd
+
+  // Storleksbevis-grind: sortera bara om VARJE värde bär en igenkänd enhet ELLER
+  // axeln har ett storleksnamn. Annars (rena tal/koder på t.ex. "Modell"/"Stil/Typ"
+  // — KM-6631, iPhone 15) → lämna orörd, så säljarens kurerade ordning inte rörs.
+  if (!parsed.every((p) => p!.hasUnit) && !isSizeLikeAxisName(axisName)) return null;
+
   return decorate(values, parsed.map((p) => p!.key));
 }
