@@ -262,15 +262,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .fcol a{display:block;font-size:14px;color:#cfcac3;margin:8px 0}
 .fcol a:hover{color:#fff}
 .paymarks{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
-.pay{height:27px;min-width:46px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;background:#fff;border-radius:6px;box-shadow:0 2px 7px -2px rgba(0,0,0,.3);font-size:12px;font-weight:800;letter-spacing:.02em;line-height:1}
-.pay-klarna{background:#FFB3C7;color:#17120f}
-.pay-visa{color:#1434CB;font-style:italic;font-size:12px;letter-spacing:.06em}
-.pay-amex{background:#1F72CF;color:#fff;font-size:12px;letter-spacing:.08em}
-.pay-mc{padding:0 13px}
-.pay-mc i{width:16px;height:16px;border-radius:50%;display:block}
-.pay-mc i:first-child{background:#EB001B}
-.pay-mc i:last-child{background:#FF9F00;margin-left:-8px;mix-blend-mode:multiply}
-.pay-apay{gap:3px;color:#000;font-weight:600}
+.pay{height:28px;padding:0 9px;display:inline-flex;align-items:center;justify-content:center;background:#fff;border-radius:6px;box-shadow:0 2px 7px -2px rgba(0,0,0,.3)}
+.pay img{height:18px;width:auto;display:block}
+.pay-klarna{background:#FFB3C7}
 .grat{margin-top:14px;font-size:12px;display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;color:#cfcac3}
 .grat .star{color:#FFC857;letter-spacing:1px}
 .g-badge{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#3c4043;padding:4px 9px 4px 8px;border-radius:999px;font-weight:500;font-size:12px;letter-spacing:.1px;box-shadow:0 1px 2px rgba(0,0,0,.25)}
@@ -378,16 +372,16 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 }
 @media(max-width:540px){
   .catgrid,.cards,.prodgrid{grid-template-columns:1fr}
-  /* Footer: en centrerad kolumn på mobil i stället för vänsterhängd 2-koll */
-  .fgrid{grid-template-columns:1fr;text-align:center;gap:34px 0;justify-items:center}
-  .fgrid>div:first-child{display:flex;flex-direction:column;align-items:center}
+  /* Footer: brand-block centrerat överst (full bredd), länkkolumnerna i 2-koll
+     vänsterställt → kortare sidfot på mobil (mindre scroll). */
+  .fgrid{grid-template-columns:1fr 1fr;gap:26px 20px;padding:36px 0 26px}
+  .fgrid>div:first-child{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center}
   .fbrand{justify-content:center}
   .fgrid>div:first-child p{max-width:34ch}
   .grat{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px}
   .footer-social{display:flex;justify-content:center}
-  .fcol{width:100%}
-  .fcol a{margin:10px 0}
-  .paymarks{justify-content:center}
+  .fcol a{margin:9px 0}
+  .paymarks{justify-content:flex-start}
   .herogrid{padding:40px 0 48px}
 }
 @media(prefers-reduced-motion:reduce){

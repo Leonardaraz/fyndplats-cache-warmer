@@ -152,7 +152,13 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
             <div className="kat-hero-text">
               <div className="eyebrow">Kategori</div>
               <h1>{active.name}</h1>
-              <p>{list.length} {list.length === 1 ? "produkt" : "produkter"} – noga utvalda fynd inom {active.name.toLowerCase()}.</p>
+              <p>
+                {active.slug === "rea"
+                  ? `${list.length} fynd till nedsatt pris just nu.`
+                  : active.slug === "populara"
+                    ? `${list.length} av våra mest populära fynd just nu.`
+                    : `${list.length} ${list.length === 1 ? "produkt" : "produkter"} – noga utvalda fynd inom ${active.name.toLowerCase()}.`}
+              </p>
             </div>
             {heroImg && (
               <div className={`kat-hero-img${heroIsProduct ? " is-product" : ""}`}>

@@ -118,6 +118,15 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   // https://unsplash.com/photos/1483985988355-763728e1935b
   "Mode & Accessoarer": UNSPLASH("1483985988355-763728e1935b"),
 
+  // ── Merchandising-sidor (REA & Populära) ────────────────────────────────
+  // Auto-fyllda säljytor (ej Wix-avdelningar). Egen curated hero så de får SAMMA
+  // breda 5:4 lifestyle-behandling som huvudkategorierna ovan (`.kat-hero-img`)
+  // i stället för subkategori-fallbacken (ensam produktbild). Nyckeln matchar
+  // Wix-katalognamnet exakt (jfr NAV_EXCLUDED). Bilderna är vetterade brand-foton
+  // ur samma set — byt fritt till ett dedikerat foto (en URL-rad).
+  "REA": UNSPLASH("1583454110551-21f2fa2afe61"),     // läderväska/retail — shopping & fynd
+  "Populära": UNSPLASH("1561828995-aa79a2db86dd"),   // guldsmycken flat-lay — eftertraktade favoriter
+
   // ── Underkategori-hero-bilder ───────────────────────────────────────────
   // Curated lifestyle-hero per underkategori (samma kvalité/stil som huvud-
   // kategorierna ovan). Tidigare föll subsidorna tillbaka på första rena

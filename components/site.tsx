@@ -35,11 +35,13 @@ export function Social({ className }: { className?: string }) {
 export function PaymentMarks() {
   return (
     <div className="paymarks" aria-label="Betalsätt vi accepterar">
-      <span className="pay pay-klarna" title="Klarna">Klarna</span>
-      <span className="pay pay-visa" title="Visa">VISA</span>
-      <span className="pay pay-mc" role="img" aria-label="Mastercard" title="Mastercard"><i /><i /></span>
-      <span className="pay pay-amex" title="American Express">AMEX</span>
-      <span className="pay pay-apay" title="Apple Pay"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden><path d="M17.05 12.54c-.03-2.43 1.99-3.6 2.08-3.66-1.13-1.66-2.89-1.89-3.52-1.91-1.5-.15-2.93.88-3.69.88-.76 0-1.93-.86-3.18-.84-1.64.02-3.15.95-3.99 2.42-1.7 2.95-.43 7.32 1.22 9.72.81 1.18 1.77 2.5 3.03 2.45 1.22-.05 1.68-.79 3.15-.79 1.47 0 1.88.79 3.17.76 1.31-.02 2.14-1.2 2.94-2.38.93-1.37 1.31-2.7 1.33-2.77-.03-.01-2.55-.98-2.58-3.88M14.6 5.5c.67-.82 1.13-1.95 1-3.09-.97.04-2.15.65-2.85 1.46-.62.72-1.17 1.88-1.02 2.99 1.08.08 2.19-.55 2.87-1.36" /></svg>Pay</span>
+      {/* Officiella betal-loggor (SVG i /public/payments). Vita chips, Klarna i
+          sin signaturrosa. height/width satta → ingen layout-shift. */}
+      <span className="pay pay-klarna" title="Klarna"><img src="/payments/klarna.svg" alt="Klarna" width={18} height={18} /></span>
+      <span className="pay" title="Visa"><img src="/payments/visa.svg" alt="Visa" width={56} height={18} /></span>
+      <span className="pay" title="Mastercard"><img src="/payments/mastercard.svg" alt="Mastercard" width={23} height={18} /></span>
+      <span className="pay" title="American Express"><img src="/payments/amex.svg" alt="American Express" width={18} height={18} /></span>
+      <span className="pay" title="Apple Pay"><img src="/payments/applepay.svg" alt="Apple Pay" width={44} height={18} /></span>
     </div>
   );
 }
