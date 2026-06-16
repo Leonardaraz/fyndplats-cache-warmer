@@ -120,12 +120,14 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
 
   // ── Merchandising-sidor (REA & Populära) ────────────────────────────────
   // Auto-fyllda säljytor (ej Wix-avdelningar). Egen curated hero så de får SAMMA
-  // breda 5:4 lifestyle-behandling som huvudkategorierna ovan (`.kat-hero-img`)
-  // i stället för subkategori-fallbacken (ensam produktbild). Nyckeln matchar
-  // Wix-katalognamnet exakt (jfr NAV_EXCLUDED). Bilderna är vetterade brand-foton
-  // ur samma set — byt fritt till ett dedikerat foto (en URL-rad).
-  "REA": UNSPLASH("1583454110551-21f2fa2afe61"),     // läderväska/retail — shopping & fynd
-  "Populära": UNSPLASH("1561828995-aa79a2db86dd"),   // guldsmycken flat-lay — eftertraktade favoriter
+  // breda 5:4 lifestyle-behandling som huvudkategorierna ovan (`.kat-hero-img`).
+  // OBS: build-miljön kan INTE nå/förhandsgranska Unsplash (alla bild-värdar 403:ar),
+  // så REA pekar medvetet på Mode-sidans VERIFIERADE foto (kvinna med shoppingkassar)
+  // för att garantera rätt motiv i stället för en blind gissning — byt till valfritt
+  // dedikerat foto på en rad. (Det tidigare "1583454110551"-ID:t var felmärkt "läderväska"
+  // men visar i själva verket en gym-scen → används även av subkat "Väskor & Necessärer".)
+  "REA": UNSPLASH("1483985988355-763728e1935b"),     // shoppingkassar (verifierat, = Mode-sidan)
+  "Populära": UNSPLASH("1561828995-aa79a2db86dd"),   // guldsmycken flat-lay (overifierat — kan bytas)
 
   // ── Underkategori-hero-bilder ───────────────────────────────────────────
   // Curated lifestyle-hero per underkategori (samma kvalité/stil som huvud-
