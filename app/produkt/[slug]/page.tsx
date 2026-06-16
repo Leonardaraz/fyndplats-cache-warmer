@@ -7,6 +7,7 @@ import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
+import { ProgCrossLinks } from "../../../components/programmatic";
 
 // ISR: PDPs cachas på Vercel edge i 5 min. Bakgrundsregenerering på stale.
 // Mätt: SSR ~400ms TTFB → cache-hit ~30-50ms (~10x snabbare för LCP).
@@ -138,6 +139,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .slice(0, 4)
     .map((s) => s.x);
 
+  // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
+  // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.
+  const ownTopCats = new Set(
+    (p.collectionIds || [])
+      .map((cid) => {
+        const c = cols.find((x) => x.id === cid);
+        return c ? (c.parentId ?? c.id) : null;
+      })
+      .filter((x): x is string => Boolean(x)),
+  );
+  const deptLinks = cols
+    .filter((c) => c.parentId === null && !ownTopCats.has(c.id))
+    .sort((a, b) => a.index - b.index)
+    .map((c) => ({ href: `/kategori/${c.slug}`, label: c.name }));
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -202,6 +218,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
           </div>
         </section>
+      )}
+
+      {deptLinks.length > 0 && (
+        <ProgCrossLinks title="Utforska fler avdelningar" links={deptLinks} />
       )}
     </>
   );

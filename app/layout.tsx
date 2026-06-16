@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { CartProvider } from "../components/cart";
-import { getProducts, forListings, cartRecommendations } from "../lib/products";
+import { getProducts, getCollections, forListings, cartRecommendations } from "../lib/products";
 import { SiteHeader, SiteFooter } from "../components/site";
 import { WishlistProvider } from "../components/wishlist";
 // Below-fold / interaction-only components — code-split via next/dynamic so
@@ -104,7 +104,7 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   // Bästsäljar-rekommendationer till cart-drawerns "Andra köpte också"-block.
   // getProducts() är cache:ad så detta delar fetch med övriga server-renders.
-  const cartRecos = cartRecommendations(forListings(await getProducts()));
+  const cartRecos = cartRecommendations(forListings(await getProducts()), await getCollections());
   return (
     <html lang="sv" className={`${geist.variable} ${fraunces.variable}`}>
       <head>

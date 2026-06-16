@@ -83,6 +83,7 @@ export type FullPost = Post & {
   primaryKeyword?: string;
   category?: string;
   faq?: { q: string; a: string }[];   // satt för lokala inlägg med FAQ-sektion
+  products?: { name: string; image: string; url: string }[];   // satt för lokala inlägg med produkt-embeds
 };
 
 export async function getPost(slug: string): Promise<FullPost | null> {
@@ -101,6 +102,7 @@ export async function getPost(slug: string): Promise<FullPost | null> {
       primaryKeyword: local.primaryKeyword,
       category: local.category,
       faq: local.faq,
+      products: local.products,
     };
   }
   if (!wix) return null;

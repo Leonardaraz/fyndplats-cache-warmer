@@ -483,7 +483,7 @@ export type RecoProduct = { id: string; slug: string; name: string; img: string;
 // together"-orderdata, så vi approximerar med bästsäljare / bäst presenterade
 // produkter i lager (ribbon=Bestseller först, därefter högst bild-poäng).
 // dedupeProducts ser till att inga dubbletter eller samma bild listas.
-export function cartRecommendations(products: Product[], limit = 8): RecoProduct[] {
+export function cartRecommendations(products: Product[], collections: Collection[], limit = 8): RecoProduct[] {
   const inStock = products.filter((p) => p.inStock && p.img);
   const ranked = [...inStock].sort((a, b) => {
     const ba = a.ribbon === "Bestseller" ? 1 : 0;
@@ -491,7 +491,11 @@ export function cartRecommendations(products: Product[], limit = 8): RecoProduct
     if (ba !== bb) return bb - ba;
     return (b.imageScore ?? 60) - (a.imageScore ?? 60);
   });
-  return dedupeProducts(ranked).slice(0, limit).map((p) => ({
+  // Sprid rekommendationerna ÖVER avdelningar (round-robin per huvudkategori) i stället
+  // för 8 ur samma kategori → bättre cross-sell. mixByCategory behåller kvalitetsordningen
+  // inom varje bucket, så round-robin plockar "bästa från varje avdelning".
+  const mixed = mixByCategory(ranked, collections);
+  return dedupeProducts(mixed).slice(0, limit).map((p) => ({
     id: p.id,
     slug: p.slug,
     name: p.name,

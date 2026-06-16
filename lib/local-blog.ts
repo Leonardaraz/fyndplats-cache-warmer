@@ -13,6 +13,7 @@ export type LocalPost = {
   primaryKeyword?: string;
   category?: string;
   faq?: { q: string; a: string }[];   // utvunna ur "## Vanliga frågor" → FAQPage-schema
+  products?: { name: string; image: string; url: string }[];   // produkt-embeds → ItemList-schema
 };
 
 const CONTENT_DIR = path.join(process.cwd(), "content", "blog");
@@ -293,6 +294,22 @@ function extractFaq(md: string): { q: string; a: string }[] {
   return faq;
 }
 
+// Plocka produkt-embeds (alt=namn, bild, href) → ItemList-schema. Samma rad-mönster
+// som renderProductImage. Dedupar på url.
+function extractProducts(md: string): { name: string; image: string; url: string }[] {
+  const out: { name: string; image: string; url: string }[] = [];
+  const seen = new Set<string>();
+  for (const raw of md.split(/\r?\n/)) {
+    const m = raw.trim().match(/^\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^\s)]+)(?:\s+"[^"]*")?\)$/);
+    if (!m) continue;
+    const [, alt, image, url] = m;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    out.push({ name: alt.trim(), image: image.trim(), url: url.trim() });
+  }
+  return out;
+}
+
 let cache: Promise<LocalPost[]> | null = null;
 
 export function getLocalPosts(): Promise<LocalPost[]> {
@@ -340,6 +357,7 @@ async function readAllPosts(): Promise<LocalPost[]> {
       primaryKeyword: data.primary_keyword ? String(data.primary_keyword) : undefined,
       category: data.category ? String(data.category) : undefined,
       faq: extractFaq(body),
+      products: extractProducts(body),
     });
   }
   posts.sort((a, b) => (b.date || "").localeCompare(a.date || ""));

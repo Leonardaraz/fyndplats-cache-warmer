@@ -72,6 +72,24 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         }
       : null;
 
+  // ItemList-schema för inlägg som listar produkter (produkt-embeds) → list/carousel-
+  // signal + förstärkta interna länkar. (Pris/betyg kommer från produktsidornas egna
+  // Product/Offer-schema, inte härifrån.)
+  const itemListJsonLd =
+    p.products && p.products.length
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          itemListElement: p.products.map((pr, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            name: pr.name,
+            url: pr.url.startsWith("http") ? pr.url : `https://www.fyndplats.se${pr.url}`,
+            image: pr.image,
+          })),
+        }
+      : null;
+
   return (
     <>
       <script
@@ -82,6 +100,12 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
         />
       )}
       <ContentPage eyebrow={fmtDate(p.date) || "Blogg"} title={p.title} lead={p.excerpt || undefined}>
