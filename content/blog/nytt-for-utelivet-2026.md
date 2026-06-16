@@ -1,14 +1,14 @@
 ---
-title: "Nytt för utelivet: paviljong, solpanel och värmare för husbil och båt (2026)"
+title: "Nytt för utelivet: paviljong, solpanel & värmare"
 slug: nytt-for-utelivet-2026
-meta_description: "Nyinkommet för sommaren och utelivet hos Fyndplats: pop up-paviljong med myggnät, solpanel 12V för husbil och båt, dieselvärmare och utomhus-kopplingsdosa."
+meta_description: "Nyinkommet för utelivet hos Fyndplats: pop up-paviljong med myggnät, solpanel 12V för husbil och båt, dieselvärmare och utomhus-kopplingsdosa."
 category: Säsong & Sommar
 publish_date: 2026-06-16
 cover: https://static.wixstatic.com/media/b379ce_96e99e5a9bcc4d8baf3284a8025c0306~mv2.jpg
 alt: "Nyheter för utelivet hos Fyndplats – paviljong, solpanel och värmare för husbil och båt"
 ---
 
-# Nytt för utelivet: paviljong, solpanel och värmare för husbil och båt (2026)
+# Nytt för utelivet: paviljong, solpanel & värmare
 
 Sommaren är här och vi har fyllt på med smarta nyheter för altanen, campingen och livet på två och fyra hjul. Här är det senaste som landat hos [Fyndplats](/) för dig som gillar att vara ute – oavsett om det är husbilen, båten eller bara baksidan av huset.
 

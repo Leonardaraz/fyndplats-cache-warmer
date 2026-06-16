@@ -82,6 +82,7 @@ export type FullPost = Post & {
   contentHtml?: string;     // satt för lokala inlägg
   primaryKeyword?: string;
   category?: string;
+  faq?: { q: string; a: string }[];   // satt för lokala inlägg med FAQ-sektion
 };
 
 export async function getPost(slug: string): Promise<FullPost | null> {
@@ -99,6 +100,7 @@ export async function getPost(slug: string): Promise<FullPost | null> {
       contentHtml: local.contentHtml,
       primaryKeyword: local.primaryKeyword,
       category: local.category,
+      faq: local.faq,
     };
   }
   if (!wix) return null;

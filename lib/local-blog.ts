@@ -12,6 +12,7 @@ export type LocalPost = {
   contentText: string;      // platt fallback för sökindex etc.
   primaryKeyword?: string;
   category?: string;
+  faq?: { q: string; a: string }[];   // utvunna ur "## Vanliga frågor" → FAQPage-schema
 };
 
 const CONTENT_DIR = path.join(process.cwd(), "content", "blog");
@@ -83,15 +84,25 @@ function renderInline(s: string): string {
 //   [![alt](image-url)](product-url "valfri caption")
 // renderas som <figure> med länkad <img> + valfri caption. Används av blogg-
 // inläggen för att länka in produktbilder från Wix CDN.
+// Sänk payloaden: råa Wix-original (ofta flera tusen px) levereras annars i full
+// upplösning i en 640px-ruta. Lägg på en fill-transform (webp) som matchar CSS:ens
+// 1:1 cover-ruta. Icke-wixstatic eller redan transformerade (/v1/) URL:er lämnas orörda.
+function wixThumb(url: string): string {
+  if (/^https?:\/\/static\.wixstatic\.com\/media\//.test(url) && !url.includes("/v1/")) {
+    return url.replace(/\/+$/, "") + "/v1/fill/w_640,h_640,al_c,q_75/img.webp";
+  }
+  return url;
+}
+
 function renderProductImage(line: string): string | null {
   const m = line.match(/^\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^\s)]+)(?:\s+"([^"]*)")?\)$/);
   if (!m) return null;
   const [, alt, src, href, caption] = m;
   const safeAlt = escapeHtml(alt);
-  const safeSrc = escapeHtml(src);
+  const safeSrc = escapeHtml(wixThumb(src));
   const safeHref = escapeHtml(href);
   const cap = caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : "";
-  return `<figure class="blog-product-img"><a href="${safeHref}"><img src="${safeSrc}" alt="${safeAlt}" loading="lazy" /></a>${cap}</figure>`;
+  return `<figure class="blog-product-img"><a href="${safeHref}"><img src="${safeSrc}" alt="${safeAlt}" loading="lazy" decoding="async" /></a>${cap}</figure>`;
 }
 
 function renderMarkdown(md: string): string {
@@ -242,6 +253,46 @@ function deriveExcerpt(md: string): string {
   return "";
 }
 
+// Plocka FAQ-par ur en "## Vanliga frågor"-sektion (### Fråga → följande stycke)
+// för FAQPage-schema. Markdown-länkar/betoning strippas till ren text.
+function faqPlain(s: string): string {
+  return s
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1$2")
+    .trim();
+}
+function extractFaq(md: string): { q: string; a: string }[] {
+  const faq: { q: string; a: string }[] = [];
+  let inFaq = false;
+  let q: string | null = null;
+  let aLines: string[] = [];
+  const flush = () => {
+    if (q && aLines.length) faq.push({ q: faqPlain(q), a: faqPlain(aLines.join(" ")) });
+    q = null;
+    aLines = [];
+  };
+  for (const raw of md.split(/\r?\n/)) {
+    const t = raw.trim();
+    const h2 = t.match(/^##\s+(.*)$/);
+    if (h2) {
+      flush();
+      inFaq = /vanliga frågor/i.test(h2[1]);
+      continue;
+    }
+    if (!inFaq) continue;
+    const h3 = t.match(/^###\s+(.*)$/);
+    if (h3) {
+      flush();
+      q = h3[1];
+      continue;
+    }
+    if (q && t) aLines.push(t);
+  }
+  flush();
+  return faq;
+}
+
 let cache: Promise<LocalPost[]> | null = null;
 
 export function getLocalPosts(): Promise<LocalPost[]> {
@@ -288,6 +339,7 @@ async function readAllPosts(): Promise<LocalPost[]> {
       contentText,
       primaryKeyword: data.primary_keyword ? String(data.primary_keyword) : undefined,
       category: data.category ? String(data.category) : undefined,
+      faq: extractFaq(body),
     });
   }
   posts.sort((a, b) => (b.date || "").localeCompare(a.date || ""));

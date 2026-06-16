@@ -1,14 +1,14 @@
 ---
-title: "Nytt i verkstaden: fräsbord, svarvstål och svets (juni 2026)"
+title: "Nytt i verkstaden 2026: fräsbord, svarv & svets"
 slug: nytt-i-verkstaden-2026
-meta_description: "Nyinkommet för verkstaden hos Fyndplats: lutbart fräsbord, kryssbord, HSS-svarvstål och MIG-svets 4-i-1. Se nyheterna för dig som fräser, svarvar och svetsar."
+meta_description: "Nyinkommet för verkstaden hos Fyndplats: fräsbord, kryssbord, HSS-svarvstål och MIG-svets 4-i-1 – för dig som fräser, svarvar och svetsar."
 category: Verktyg
 publish_date: 2026-06-16
 cover: https://static.wixstatic.com/media/b379ce_ee44a07d9a9c43d688ed55637e9196ef~mv2.jpg
 alt: "Nya verkstadsmaskiner hos Fyndplats – fräsbord, svarvstål och MIG-svets"
 ---
 
-# Nytt i verkstaden: fräsbord, svarvstål och svets (juni 2026)
+# Nytt i verkstaden 2026: fräsbord, svarv & svets
 
 Vi har fyllt på verkstadshyllorna med tunga nyheter för dig som fräser, svarvar och svetsar på riktigt. Här är de senaste maskinerna och verktygen som landat hos [Fyndplats](/) – utvalda för hobbymakaren och den som bygger i metall hemma.
 
