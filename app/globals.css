@@ -372,16 +372,17 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 }
 @media(max-width:540px){
   .catgrid,.cards,.prodgrid{grid-template-columns:1fr}
-  /* Footer: brand-block centrerat överst (full bredd), länkkolumnerna i 2-koll
-     vänsterställt → kortare sidfot på mobil (mindre scroll). */
-  .fgrid{grid-template-columns:1fr 1fr;gap:26px 20px;padding:36px 0 26px}
-  .fgrid>div:first-child{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center}
+  /* Footer: allt centrerat. Handla + Kundservice delar en rad (2-koll) → kortare
+     sidfot; brand-block och Kontakt & betalning spänner full bredd, centrerade. */
+  .fgrid{grid-template-columns:1fr 1fr;gap:30px 18px;padding:36px 0 26px;text-align:center}
+  .fgrid>div:first-child{grid-column:1/-1;display:flex;flex-direction:column;align-items:center}
+  .fgrid>.fcol:last-child{grid-column:1/-1}
   .fbrand{justify-content:center}
   .fgrid>div:first-child p{max-width:34ch}
   .grat{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px}
   .footer-social{display:flex;justify-content:center}
   .fcol a{margin:9px 0}
-  .paymarks{justify-content:flex-start}
+  .paymarks{justify-content:center}
   .herogrid{padding:40px 0 48px}
 }
 @media(prefers-reduced-motion:reduce){
