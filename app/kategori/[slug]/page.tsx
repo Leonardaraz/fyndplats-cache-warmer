@@ -50,7 +50,15 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // avdelningssidan blir komplett. Subkategori: bara sina egna produkter.
   const childIds = collections.filter((c) => c.parentId === active.id).map((c) => c.id);
   const catIds = new Set([active.id, ...childIds]);
-  const catList = products.filter((p) => (p.collectionIds || []).some((cid) => catIds.has(cid)));
+  // Populära & REA är merchandising-sidor utan egna Wix-tilldelade produkter → auto-fyll
+  // dem från produktflaggor: REA = rea-produkter (onSale), Populära = bästsäljare (ribbon).
+  // Övriga kategorier: collectionIds-membership (kategori + underkategorier).
+  const catList =
+    slug === "rea"
+      ? products.filter((p) => p.onSale)
+      : slug === "populara"
+        ? products.filter((p) => p.ribbon === "Bestseller")
+        : products.filter((p) => (p.collectionIds || []).some((cid) => catIds.has(cid)));
   // Första raden: de 3 högst bild-poängsatta produkterna (lib/image-scores) först
   // — bästa bilderna möter besökaren. Resten behåller katalogordningen.
   const topThree = [...catList].sort((a, b) => b.imageScore - a.imageScore).slice(0, 3);
@@ -68,7 +76,9 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // 404. Ger en guidad väg vidare mellan avdelningar (höjer upptäckt + AOV).
   const currentMainId = active.parentId ?? active.id;
   const deptLinks = collections
-    .filter((c) => c.parentId === null && c.id !== currentMainId)
+    // REA har en egen accent-länk i toppmenyn → exkludera ur strippen (undvik dubbel-
+    // exponering). Populära behålls (rik bästsäljar-sida).
+    .filter((c) => c.parentId === null && c.id !== currentMainId && c.slug !== "rea")
     .sort((a, b) => a.index - b.index)
     .map((c) => ({ href: `/kategori/${c.slug}`, label: c.name }));
 

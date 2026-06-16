@@ -150,7 +150,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       .filter((x): x is string => Boolean(x)),
   );
   const deptLinks = cols
-    .filter((c) => c.parentId === null && !ownTopCats.has(c.id))
+    // REA har egen menylänk → exkludera ur strippen (Populära behålls).
+    .filter((c) => c.parentId === null && !ownTopCats.has(c.id) && c.slug !== "rea")
     .sort((a, b) => a.index - b.index)
     .map((c) => ({ href: `/kategori/${c.slug}`, label: c.name }));
 

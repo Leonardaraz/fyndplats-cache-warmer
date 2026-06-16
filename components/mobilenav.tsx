@@ -53,6 +53,7 @@ export function MobileNav({ tree = [], hasBlog = false }: { tree?: CategoryNode[
         <div className="mm-scroll">
           <nav className="mm-links">
             <a href={shopLink.href} onClick={closeMenu}>{shopLink.label}</a>
+            <a className="mm-rea" href="/kategori/rea" onClick={closeMenu}>REA</a>
           </nav>
           {tree.length > 0 && (
             <div className="mm-cats">

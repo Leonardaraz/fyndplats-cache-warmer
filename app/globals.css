@@ -90,6 +90,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .meganav-link::after{content:"";position:absolute;left:2px;right:2px;bottom:-1px;height:2px;border-radius:2px;background:#C2410C;transform:scaleX(0);transform-origin:left;transition:transform .18s ease}
 .meganav-link:hover::after,.meganav-link.active::after{transform:scaleX(1)}
 .meganav-shop{font-weight:600}
+.meganav-rea{position:relative;padding:6px 2px;white-space:nowrap;font-weight:700;letter-spacing:.04em;color:#C2410C;cursor:pointer;transition:color .15s}
+.meganav-rea:hover{color:#9A2D08}
+.mm-rea{font-weight:700;color:#C2410C !important}
 
 .meganav-panel{position:absolute;top:100%;left:0;right:0;z-index:55;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:0 32px 64px -34px rgba(28,28,28,.4);animation:megaIn .2s cubic-bezier(.2,.7,.2,1)}
 @keyframes megaIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}

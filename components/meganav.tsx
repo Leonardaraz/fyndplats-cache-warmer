@@ -57,6 +57,8 @@ export function MegaNav({ tree }: { tree: CategoryNode[] }) {
         </a>
       ))}
 
+      <a className="meganav-rea" href="/kategori/rea" onClick={close}>REA</a>
+
       {current && (
         <div
           className="meganav-panel"
