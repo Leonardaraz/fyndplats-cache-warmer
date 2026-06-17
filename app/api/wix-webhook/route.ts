@@ -1293,6 +1293,28 @@ async function findOrderIdByNumber(orderNumber: string): Promise<string | null> 
 }
 
 export async function GET(req: NextRequest) {
+  // ENGÅNGS-test: ?test_bounce=1 skickar ett mejl till Resends bounce-simulator
+  // (bounced@resend.dev) → Resend triggar email.bounced → vår resend-webhook
+  // notifierar info@. Använd EN gång för att verifiera webhook-pipeline, ta
+  // sen bort denna handler.
+  if (req.nextUrl.searchParams.get("test_bounce") === "1") {
+    const k = process.env.RESEND_API_KEY;
+    if (!k) return NextResponse.json({ error: "RESEND_API_KEY saknas" }, { status: 500 });
+    try {
+      const r = new Resend(k);
+      const sent = await r.emails.send({
+        from: FROM,
+        to: "bounced@resend.dev",
+        subject: "Fyndplats bounce-test",
+        html: "<p>Bara ett test för att trigga email.bounced-webhook. Mejlet kommer bouncea och vår resend-webhook ska notifiera info@fyndplats.com.</p>",
+      });
+      if (sent.error) return NextResponse.json({ ok: false, error: String(sent.error) }, { status: 500 });
+      return NextResponse.json({ ok: true, resendId: sent.data?.id, expectBounceWithin: "~30s" });
+    } catch (err) {
+      return NextResponse.json({ error: "send failed", details: String(err) }, { status: 500 });
+    }
+  }
+
   // One-time recovery path: ?recover=<orderNumber>
   const recover = req.nextUrl.searchParams.get("recover");
   if (recover && RECOVERY_ALLOWLIST.has(recover)) {
