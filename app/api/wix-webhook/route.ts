@@ -1213,7 +1213,23 @@ export async function POST(req: NextRequest) {
     }
 
     if (kind === "refund") {
-      const built = buildRefundProps(entity);
+      // Wix v2 refund_completed-payloaden innehåller bara {orderId, refund:{…}}
+      // — INGEN kund, inga lineItems. Vi måste fetcha hela ordern från Wix
+      // Orders API innan vi kan bygga refund-mejlet (samma som fulfillments).
+      const refundOrderId = firstStr(entity.orderId as string, entityId);
+      let refundPayload: Record<string, unknown> = entity;
+      if (refundOrderId) {
+        const fetchedOrder = await fetchWixOrder(refundOrderId);
+        if (fetchedOrder) {
+          // Slå ihop: order-fälten (customer, number, priceSummary) + refund-objektet
+          // från webhook-bodyn. buildRefundProps tar `payload.order` ?? payload, så
+          // vi lägger fulla ordern på topp och bifogar refund.
+          refundPayload = { ...fetchedOrder, refund: entity.refund ?? entity };
+        } else {
+          console.warn(`[wix-webhook] refund ${refundOrderId}: kunde inte hämta order från Wix API — försöker bygga från payload`);
+        }
+      }
+      const built = buildRefundProps(refundPayload);
       if (!built) {
         console.warn("[wix-webhook] refund: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
