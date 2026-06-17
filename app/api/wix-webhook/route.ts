@@ -164,9 +164,13 @@ function unwrapDataLayers(payload: unknown): Record<string, unknown> {
     if (!layer || typeof layer !== "object" || Array.isArray(layer)) break;
     const obj = layer as Record<string, unknown>;
     // Real envelope reached as soon as we see the canonical claims directly.
+    // OBS: `eventType` ensam räknas INTE — Wix sätter ofta en sammanfattande
+    // eventType på en yttre wrapper (t.ex. "wix.ecom.v1.order_approved") medan
+    // entityFqdn/slug/entityId/actionEvent ligger ett lager djupare. Stannar vi
+    // på den nivån får vi `entity = {data: "..."}` istället för ordern, vilket
+    // gör att kund-extraktionen failar och mejlet skippas.
     if (
       typeof obj.entityFqdn === "string" ||
-      typeof obj.eventType === "string" ||
       typeof obj.slug === "string" ||
       typeof obj.entityId === "string" ||
       obj.createdEvent !== undefined ||
