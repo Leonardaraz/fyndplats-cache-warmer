@@ -1263,7 +1263,79 @@ export async function POST(req: NextRequest) {
 }
 
 // GET för enkel health-check (Vercel + manuell verifikation).
-export async function GET() {
+// ENGÅNGS-recovery: /api/wix-webhook?recover=10001 (eller 10002) — skickar om
+// orderbekräftelse för specifika order som missades innan webhook-fixet.
+// Allowlist är hårdkodad och tas bort efter användning.
+const RECOVERY_ALLOWLIST = new Set(["10001", "10002"]);
+
+async function findOrderIdByNumber(orderNumber: string): Promise<string | null> {
+  const key = process.env.WIX_API_KEY;
+  const site = process.env.WIX_SITE_ID;
+  if (!key || !site) return null;
+  try {
+    const res = await fetch("https://www.wixapis.com/ecom/v1/orders/search", {
+      method: "POST",
+      headers: {
+        Authorization: key,
+        "wix-site-id": site,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ search: { filter: { number: { $eq: orderNumber } } } }),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { orders?: Array<{ id?: string; _id?: string }> };
+    const o = json.orders?.[0];
+    return o?.id ?? o?._id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function GET(req: NextRequest) {
+  // One-time recovery path: ?recover=<orderNumber>
+  const recover = req.nextUrl.searchParams.get("recover");
+  if (recover && RECOVERY_ALLOWLIST.has(recover)) {
+    const orderId = await findOrderIdByNumber(recover);
+    if (!orderId) {
+      return NextResponse.json({ error: `Order #${recover} hittades inte` }, { status: 404 });
+    }
+    const order = await fetchWixOrder(orderId);
+    if (!order) {
+      return NextResponse.json({ error: `Kunde inte hämta order ${orderId}` }, { status: 502 });
+    }
+    const props = buildOrderConfirmationProps(order);
+    const customer = extractCustomer(order);
+    if (!props || !customer) {
+      return NextResponse.json({ error: "Kunde inte extrahera kund/order-data" }, { status: 422 });
+    }
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      return NextResponse.json({ error: "RESEND_API_KEY saknas" }, { status: 500 });
+    }
+    const resend = new Resend(resendKey);
+    const html = await render(OrderConfirmationEmail(props));
+    const sent = await resend.emails.send({
+      from: FROM,
+      to: customer.email,
+      replyTo: REPLY_TO,
+      subject: `Tack för din beställning ${props.orderNumber}`,
+      html,
+    });
+    if (sent.error) {
+      console.error("[wix-webhook] recovery resend fel", sent.error);
+      return NextResponse.json({ error: "Resend send failed", details: String(sent.error) }, { status: 500 });
+    }
+    console.log(`[wix-webhook] recovery skickade orderbekräftelse #${props.orderNumber} → ${customer.email} (resendId=${sent.data?.id})`);
+    return NextResponse.json({
+      ok: true,
+      orderId,
+      orderNumber: props.orderNumber,
+      email: customer.email,
+      resendId: sent.data?.id,
+    });
+  }
+
   return NextResponse.json({
     status: "ok",
     endpoint: "wix-webhook",
