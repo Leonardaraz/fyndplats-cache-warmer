@@ -12,7 +12,9 @@
 - `ExecuteWixAPI` kräver godkännande. Skriv `fields` i request-**body** vid query/PATCH. **Läs om `revision` precis före varje PATCH.** API-svar är plain strings (skriv ändå `v?.value ?? v`).
 - En PATCH är partiell: **bara fält du skickar ändras**. Skicka aldrig `options`/`variantsInfo` om du inte avser röra varianterna.
 - **Priser slutar på 9, inga decimaler.** Importen sätter redan priset till hela kronor som avrundas **uppåt** till närmaste tal som slutar på 9 (t.ex. 499, 489, 579) — **ingen `.90`**. Ändrar du ett pris: avrunda alltid **uppåt** till närmaste 9-slut och skriv hela kronor (aldrig `,90`).
-- **SKU sätts automatiskt — rör den inte.** Importen ger varje variant ett läsbart artikelnummer (`FP-<produkt>-<variant>`, t.ex. `FP-temperingsmaskin-choklad-17-l`) som syns i kassan/Google och mappar till AliExpress i bakgrunden. SKU:n behöver **inte** ändras vid polering; byt den inte (mappningen till leverantören hänger på den).
+- **SKU sätts automatiskt — rör den normalt inte.** Importen ger varje variant ett läsbart artikelnummer (`FP-<produkt>-<variant>`, t.ex. `FP-temperingsmaskin-choklad-17-l`) som syns i kassan/Google/feed. Importen **strippar märkesordet** ur SKU:n (HOMCOM/SucceBuy/VEVOR …), så den läcker inte märket. Vid polering behöver du **inte** röra SKU:n.
+  - **SKU:n är en ren etikett — den parsas aldrig tillbaka.** Synk och fulfillment nycklar på **`wixVariantId` → `supplierVariantId`** (lagrad mapping i `lib/sync/aliexpress-sync.ts` + `lib/orders/tasks.ts`), **inte** på SKU-strängen. Att döpa om en SKU bryter alltså INTE leverantörskopplingen — formatet är fritt (krav: ≤40 tecken, unik inom produkten).
+  - **Måste du ändå byta en variants SKU live:** skicka `options` **+** `variantsInfo` **verbatim** (som de kom från GET, ändra bara `sku`) + färsk `revision`. Skickar du `variantsInfo` utan `options` på en produkt med varianter → V3 svarar **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`**. (En produkt helt utan optioner behöver inte `options`.)
 
 **Input:** Wix-produkt-ID (+ ev. AliExpress-URL).
 

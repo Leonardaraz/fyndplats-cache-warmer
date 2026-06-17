@@ -7,6 +7,7 @@
 // inom produkten (för snygga, icke-krockande artikelnummer i flöden/feed).
 //
 // Byggs ur produktens slug + variantens optionsvärden, ASCII-säkert (å/ä→a, ö→o).
+// Ett ledande märkes-token (succebuy, vevor, …) strippas så SKU:n aldrig avslöjar märket.
 
 const SKU_MAX = 40; // Wix SKU MAX_LENGTH
 const PRODUCT_PART_MAX = 24;
@@ -20,6 +21,24 @@ export function skuSlugify(s: string): string {
     .replace(/[̀-ͯ]/g, "") // ta bort diakriter (å/ä→a, ö→o, é→e …)
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+// Kända leverantörs-/AliExpress-märken som råimporten alltid lägger FÖRST i
+// titeln (HOMCOM, SucceBuy, VEVOR, …). SKU:n ska aldrig avslöja märket — samma
+// policy som för namn/titel/meta — så vi strippar ett ledande märkes-token innan
+// produkt-delen byggs. (Annars läckte t.ex. "FP-succebuy-…" till feed/kvitto/JSON-LD.)
+const KNOWN_BRAND_TOKENS = new Set([
+  "succebuy", "vevor", "homcom", "pawhut", "outsunny", "giantex", "costway",
+  "tobbi", "aosom", "zeny", "happybuy", "goplus", "vivohome", "kkmoon",
+  "yaheetech", "vingli", "skyshalo", "bentism", "walnew", "moukey",
+]);
+
+/** Tar bort ledande märkes-token ur en redan slugifierad sträng ("succebuy-x-y" → "x-y"). */
+export function stripBrandPrefix(slug: string): string {
+  const parts = (slug || "").split("-").filter(Boolean);
+  // Behåll minst ett token kvar (en produkt som BARA heter märket blir inte tom).
+  while (parts.length > 1 && KNOWN_BRAND_TOKENS.has(parts[0])) parts.shift();
+  return parts.join("-");
 }
 
 /** Kapar en slug på hel-ord-gräns (bindestreck) till ≤max tecken (snyggare än mitt-i-ord). */
@@ -50,8 +69,8 @@ export function buildVariantSkus(
   supplierProductId: string,
 ): Map<string, string> {
   const productPart =
-    truncateSlug(skuSlugify(slug), PRODUCT_PART_MAX) ||
-    truncateSlug(skuSlugify(supplierProductId), PRODUCT_PART_MAX) ||
+    truncateSlug(stripBrandPrefix(skuSlugify(slug)), PRODUCT_PART_MAX) ||
+    truncateSlug(stripBrandPrefix(skuSlugify(supplierProductId)), PRODUCT_PART_MAX) ||
     "produkt";
 
   const out = new Map<string, string>();
