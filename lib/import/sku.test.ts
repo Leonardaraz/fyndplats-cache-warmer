@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildVariantSkus, skuSlugify } from "./sku";
+import { buildVariantSkus, skuSlugify, stripBrandPrefix } from "./sku";
 
 describe("skuSlugify", () => {
   it("ASCII-säkrar svenska tecken och kollapsar separatorer", () => {
@@ -8,6 +8,20 @@ describe("skuSlugify", () => {
     expect(skuSlugify("Stål 20cm")).toBe("stal-20cm");
     expect(skuSlugify("Rosé/Guld")).toBe("rose-guld");
     expect(skuSlugify("  ")).toBe("");
+  });
+});
+
+describe("stripBrandPrefix", () => {
+  it("tar bort ett ledande märkes-token", () => {
+    expect(stripBrandPrefix("succebuy-toddler-ride-on")).toBe("toddler-ride-on");
+    expect(stripBrandPrefix("vevor-13-29-32-pcs")).toBe("13-29-32-pcs");
+  });
+  it("rör inte slugs som inte börjar med ett känt märke", () => {
+    expect(stripBrandPrefix("solpanel-12v-monokristallin")).toBe("solpanel-12v-monokristallin");
+    expect(stripBrandPrefix("200w-panel-solar")).toBe("200w-panel-solar");
+  });
+  it("lämnar minst ett token kvar (produkt som bara heter märket)", () => {
+    expect(stripBrandPrefix("succebuy")).toBe("succebuy");
   });
 });
 
@@ -83,6 +97,16 @@ describe("buildVariantSkus", () => {
   it("utan optionsvärden → bara FP-<produkt>", () => {
     const m = buildVariantSkus([{ supplierVariantId: "solo", options: {} }], slug, "1");
     expect(m.get("solo")).toBe("FP-temperingsmaskin-choklad");
+  });
+
+  it("strippar ledande märkesnamn ur produkt-delen (ingen brand-läcka i SKU)", () => {
+    const m = buildVariantSkus(
+      [{ supplierVariantId: "a", options: { Färg: "Flerfärgad" } }],
+      "succebuy-toddler-ride-on-push-car",
+      "1",
+    );
+    expect(m.get("a")).toBe("FP-toddler-ride-on-push-car-flerfargad");
+    expect(m.get("a")).not.toContain("succebuy");
   });
 
   it("tom slug → fallback till supplierProductId, annars 'produkt'", () => {
