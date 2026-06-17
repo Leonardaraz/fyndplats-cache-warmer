@@ -149,8 +149,52 @@ interface UnwrapResult {
   entityId?: string;
 }
 
+// Wix v2 wraps the real webhook envelope inside `data` (sometimes DOUBLY
+// stringified inside another `data`). The actual envelope — with claims like
+// entityFqdn / slug / entityId / *Event — lives one or two parse-hops deeper.
+// We unwrap until we find that layer. Backward-compat: if payload already has
+// these claims at the top level (legacy v1, test-payloads), we return it as-is.
+function unwrapDataLayers(payload: unknown): Record<string, unknown> {
+  let layer: unknown = payload;
+  // Batched events sometimes arrive as an array at the JWT root — peek at [0].
+  if (Array.isArray(layer) && layer.length > 0) layer = layer[0];
+
+  // Max 5 hops (in practice Wix doubles at most). Guards against pathological loops.
+  for (let i = 0; i < 5; i++) {
+    if (!layer || typeof layer !== "object" || Array.isArray(layer)) break;
+    const obj = layer as Record<string, unknown>;
+    // Real envelope reached as soon as we see the canonical claims directly.
+    if (
+      typeof obj.entityFqdn === "string" ||
+      typeof obj.eventType === "string" ||
+      typeof obj.slug === "string" ||
+      typeof obj.entityId === "string" ||
+      obj.createdEvent !== undefined ||
+      obj.updatedEvent !== undefined ||
+      obj.deletedEvent !== undefined ||
+      obj.actionEvent !== undefined
+    ) {
+      return obj;
+    }
+    // Pure {data:"<json>"} wrapper → parse and dig.
+    if (typeof obj.data === "string") {
+      try {
+        layer = JSON.parse(obj.data);
+        if (Array.isArray(layer) && layer.length > 0) layer = layer[0];
+        continue;
+      } catch {
+        break;
+      }
+    }
+    break;
+  }
+  return (layer && typeof layer === "object" && !Array.isArray(layer)
+    ? (layer as Record<string, unknown>)
+    : (payload as Record<string, unknown>));
+}
+
 function unwrap(payload: Record<string, unknown>): UnwrapResult {
-  const env = payload as WixEventEnvelope;
+  const env = unwrapDataLayers(payload) as WixEventEnvelope;
   const entityFqdn = typeof env.entityFqdn === "string" ? env.entityFqdn : undefined;
   const slug = typeof env.slug === "string" ? env.slug : undefined;
   const entityId = typeof env.entityId === "string" ? env.entityId : undefined;
@@ -577,7 +621,10 @@ function classify(
   const s = (slug ?? "").toLowerCase();
 
   // 1. Exakt composite-matchning (Wix v2 kanoniska events)
-  if (fqdn === "wix.ecom.v1.order" && s === "created") return "order_created";
+  // Order Created skickas i praktiken med slug="approved" (NY checkout godkänd
+  // av Klarna → ordern blir live i Wix). "created" och "placed" är legacy/
+  // alternativa namn. Alla tre behandlas som order_created.
+  if (fqdn === "wix.ecom.v1.order" && (s === "approved" || s === "created" || s === "placed")) return "order_created";
   if (fqdn === "wix.ecom.v1.order" && s === "canceled") return "order_cancelled";
   if (fqdn === "wix.ecom.v1.order" && s === "fulfilled") return "order_shipped";
   if (fqdn === "wix.ecom.v1.fulfillments" && s === "updated") return "order_fulfillments_updated";
