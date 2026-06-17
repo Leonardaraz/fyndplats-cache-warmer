@@ -51,6 +51,27 @@ const REPLY_TO = "info@fyndplats.com";
 
 // JWT-verifiering: Wix skickar antingen en ren JWT-sträng som body, eller
 // ett JSON-objekt som omsluter en payload. Vi hanterar båda.
+//
+// Multi-key (2026-06-17): env-värdet kan vara EN PEM eller FLERA PEMer
+// separerade med `-----END PUBLIC KEY-----` följt av `-----BEGIN PUBLIC KEY-----`
+// (alltså bara klistra in dem efter varandra). Vi provar varje nyckel i
+// ordning — accepterar JWT:n om någon matchar. Detta hanterar nyckel-rotation
+// och flera signing sources (My New App-4, Headless OAuth, etc) utan att
+// vi behöver veta exakt vilken som signerade.
+function splitPublicKeys(pem: string): string[] {
+  if (!pem) return [];
+  // Splitta på "-----END PUBLIC KEY-----" → behåll suffixet på varje del
+  const parts = pem.split(/(-----END PUBLIC KEY-----)/).reduce<string[]>((acc, part, i, arr) => {
+    if (i % 2 === 0 && i + 1 < arr.length) {
+      acc.push((part + arr[i + 1]).trim());
+    } else if (i % 2 === 0 && part.trim()) {
+      // Hängande del utan END-marker — ignorera
+    }
+    return acc;
+  }, []);
+  return parts.filter((p) => /-----BEGIN PUBLIC KEY-----/.test(p));
+}
+
 function verifyJwt(token: string, publicKeyPem: string): Record<string, unknown> | null {
   const parts = token.split(".");
   if (parts.length !== 3) return null;
@@ -67,11 +88,24 @@ function verifyJwt(token: string, publicKeyPem: string): Record<string, unknown>
 
   const data = `${headerB64}.${payloadB64}`;
   const signature = Buffer.from(sigB64, "base64url");
-  const verifier = crypto.createVerify("RSA-SHA256");
-  verifier.update(data);
-  verifier.end();
-  const ok = verifier.verify(publicKeyPem, signature);
-  if (!ok) return null;
+
+  // Prova varje publik nyckel. Accepterar om någon matchar.
+  const keys = splitPublicKeys(publicKeyPem);
+  let matched = false;
+  for (const key of keys) {
+    try {
+      const verifier = crypto.createVerify("RSA-SHA256");
+      verifier.update(data);
+      verifier.end();
+      if (verifier.verify(key, signature)) {
+        matched = true;
+        break;
+      }
+    } catch {
+      // ogiltig PEM — hoppa över
+    }
+  }
+  if (!matched) return null;
 
   try {
     return JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8"));
@@ -716,52 +750,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
 
-  // DEBUG 2026-06-17 (TEMPORARY — remove after right WIX_WEBHOOK_PUBLIC_KEY
-  // installed). De riktiga order_created-eventen ger 401 men ett test-event
-  // från "My New App-4" verifierades OK → de signeras av en annan källa än
-  // vår installerade public key. Vi dekodar JWT-header + payload UTAN signa-
-  // turverifiering här så att Vercel-loggen avslöjar iss/kid/instanceId för
-  // den signerande appen. Ligger FÖRE alla andra guards så det fyrar även
-  // när RESEND_API_KEY/JWT verifiering skulle ha avbrutit requesten.
-  try {
-    const __looksLikeJwt = rawBody.split(".").length === 3 && !rawBody.trim().startsWith("{");
-    const __t = __looksLikeJwt
-      ? rawBody.trim()
-      : (() => {
-          try {
-            const j = JSON.parse(rawBody) as { data?: string };
-            return typeof j.data === "string" ? j.data : "";
-          } catch {
-            return "";
-          }
-        })();
-    if (__t && __t.split(".").length === 3) {
-      const [__h, __p] = __t.split(".");
-      console.error(
-        "[wix-webhook] 401-DEBUG header=",
-        Buffer.from(__h, "base64url").toString("utf8"),
-        "payload=",
-        Buffer.from(__p, "base64url").toString("utf8").slice(0, 500),
-      );
-    } else {
-      console.error(
-        "[wix-webhook] 401-DEBUG body är inte JWT — börjar med:",
-        rawBody.slice(0, 200),
-      );
-    }
-  } catch (e) {
-    console.error("[wix-webhook] 401-DEBUG decode failed", e);
-  }
-
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    console.error("[wix-webhook] RESEND_API_KEY saknas — kan inte skicka mejl");
-    return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
-  }
-
   // Verifiera Wix JWT-signatur om public key finns. Wix skickar antingen
   // ren JWT-sträng som body, eller JSON med JWT som värde.
   const publicKey = process.env.WIX_WEBHOOK_PUBLIC_KEY;
+  // Krismiljö (2026-06-17): när webhook-JWT:erna signeras med en annan nyckel
+  // än den vi installerat (under nyckel-felsökning) ger strikt verifiering 401,
+  // Wix retry:ar och kunderna får aldrig sina bekräftelsemejl. Med
+  // `WIX_WEBHOOK_ALLOW_UNVERIFIED=true` accepterar vi payloaden ändå
+  // (med varningslogg + verified=false) så fanout/order-record/push fortsätter
+  // fungera och Wix slutar retry:a. Default är fortfarande strikt (säkert).
+  const allowUnverified = (process.env.WIX_WEBHOOK_ALLOW_UNVERIFIED || "").toLowerCase() === "true";
   let payload: Record<string, unknown> | null = null;
   let verified = false;
 
@@ -777,14 +775,57 @@ export async function POST(req: NextRequest) {
         }
       })();
 
+  // DEBUG (TEMPORARY 2026-06-17): dekoda JWT-header + första delen av payload
+  // utan signaturkoll så Vercel-loggen avslöjar kid/iss/aud för signing source.
+  // Tas bort när rätt WIX_WEBHOOK_PUBLIC_KEY är installerad.
+  if (jwtToken) {
+    try {
+      const [__h, __p] = jwtToken.split(".");
+      const headerObj = JSON.parse(Buffer.from(__h, "base64url").toString("utf8"));
+      const payloadRaw = Buffer.from(__p, "base64url").toString("utf8");
+      let outerClaims: Record<string, unknown> = {};
+      try {
+        const parsed = JSON.parse(payloadRaw) as Record<string, unknown>;
+        // Plocka bara YTTRE claims (inte den nested data-payloaden)
+        outerClaims = Object.fromEntries(
+          Object.entries(parsed).filter(([k]) => k !== "data" && k !== "payload"),
+        );
+      } catch {}
+      console.error(
+        "[wix-webhook] JWT-DEBUG header=",
+        JSON.stringify(headerObj),
+        "outerClaims=",
+        JSON.stringify(outerClaims),
+        "payloadPreview=",
+        payloadRaw.slice(0, 800),
+      );
+    } catch (e) {
+      console.error("[wix-webhook] JWT-DEBUG decode failed", e);
+    }
+  } else {
+    console.error("[wix-webhook] JWT-DEBUG body är inte JWT — börjar med:", rawBody.slice(0, 200));
+  }
+
   if (jwtToken && publicKey) {
     const verifiedPayload = verifyJwt(jwtToken, publicKey);
     if (verifiedPayload) {
       payload = verifiedPayload;
       verified = true;
+    } else if (allowUnverified) {
+      // Krisläge: acceptera ändå men dekoda payloaden själv utan verifiering.
+      console.warn(
+        "[wix-webhook] JWT-signatur ogiltig MEN WIX_WEBHOOK_ALLOW_UNVERIFIED=true — accepterar overifierat (säkerhetsläckage, stäng av när rätt nyckel är installerad)",
+      );
+      try {
+        const [, __p] = jwtToken.split(".");
+        payload = JSON.parse(Buffer.from(__p, "base64url").toString("utf8")) as Record<string, unknown>;
+      } catch {
+        console.error("[wix-webhook] JWT-signatur ogiltig + payload-decode failed — avvisar");
+        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+      }
     } else {
-      // Signaturen fanns men matchade inte — det är ett HÅRT fel i produktion.
-      console.error("[wix-webhook] JWT-signatur ogiltig — avvisar");
+      // Strikt: avvisa
+      console.error("[wix-webhook] JWT-signatur ogiltig — avvisar (sätt WIX_WEBHOOK_ALLOW_UNVERIFIED=true för krisläge)");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
   } else {
@@ -800,6 +841,14 @@ export async function POST(req: NextRequest) {
       console.error("[wix-webhook] Kunde inte parsa body som JSON");
       return NextResponse.json({ error: "Bad request" }, { status: 400 });
     }
+  }
+
+  // Resend-key kan saknas under setup — då skickar vi inga mejl men resten
+  // av flödet (fanout, order-record, push, ISR) körs ändå så vi inte tappar
+  // data + Wix slutar retry:a.
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    console.error("[wix-webhook] RESEND_API_KEY saknas — webhook bearbetas men INGA MEJL skickas");
   }
 
   if (!payload) {
@@ -864,7 +913,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true, handled: false }, { status: 200 });
   }
 
-  const resend = new Resend(resendKey);
+  // resend null när RESEND_API_KEY saknas — varje emails.send-anrop nedan är
+  // nullsafe så vi loggar "SKIPPED" och fortsätter med fanout/push/recordOrder
+  // istället för att 500:a hela webhooken.
+  const resend = resendKey ? new Resend(resendKey) : null;
 
   try {
     if (kind === "order_created") {
@@ -916,21 +968,29 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true, handled: false, mirrored: true }, { status: 200 });
       }
       const customer = extractCustomer(entity)!;
-      const html = await render(OrderConfirmationEmail(props));
-      const sent = await resend.emails.send({
-        from: FROM,
-        to: customer.email,
-        replyTo: REPLY_TO,
-        subject: `Tack för din beställning ${props.orderNumber}`,
-        html,
-      });
-      if (sent.error) {
-        console.error("[wix-webhook] Resend order_created fel", sent.error);
-        return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+      let resendId: string | undefined;
+      if (resend) {
+        const html = await render(OrderConfirmationEmail(props));
+        const sent = await resend.emails.send({
+          from: FROM,
+          to: customer.email,
+          replyTo: REPLY_TO,
+          subject: `Tack för din beställning ${props.orderNumber}`,
+          html,
+        });
+        if (sent.error) {
+          console.error("[wix-webhook] Resend order_created fel", sent.error);
+          return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+        }
+        resendId = sent.data?.id;
+        console.log(
+          `[wix-webhook] order_created ${props.orderNumber}: bekräftelsemejl skickat (resendId=${resendId})`,
+        );
+      } else {
+        console.warn(
+          `[wix-webhook] order_created ${props.orderNumber}: SKIPPED email (RESEND_API_KEY saknas) — kund ${customer.email} får INGET mejl`,
+        );
       }
-      console.log(
-        `[wix-webhook] order_created ${props.orderNumber}: bekräftelsemejl skickat (resendId=${sent.data?.id})`,
-      );
       await fireMetaPurchase(entity);
       firePush({
         userEmail: customer.email,
@@ -939,7 +999,7 @@ export async function POST(req: NextRequest) {
         body: `Tack för din beställning ${props.orderNumber}. Vi börjar packa direkt.`,
         data: { type: "order_created", orderNumber: props.orderNumber },
       });
-      return NextResponse.json({ received: true, sent: sent.data?.id }, { status: 200 });
+      return NextResponse.json({ received: true, sent: resendId, verified }, { status: 200 });
     }
 
     if (kind === "order_fulfillments_updated") {
@@ -986,17 +1046,28 @@ export async function POST(req: NextRequest) {
           `[wix-webhook] order_fulfillments_updated ${orderId}: ingen tracking_number i fulfillment — hoppar tracking_mapping (preview=${trackingPreview ?? "—"})`,
         );
       }
-      const html = await render(ShippingConfirmationEmail(built.props));
-      const sent = await resend.emails.send({
-        from: FROM,
-        to: built.email,
-        replyTo: REPLY_TO,
-        subject: `Ditt paket är på väg – order ${built.props.orderNumber}`,
-        html,
-      });
-      if (sent.error) {
-        console.error("[wix-webhook] Resend order_fulfillments_updated fel", sent.error);
-        return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+      let resendId: string | undefined;
+      if (resend) {
+        const html = await render(ShippingConfirmationEmail(built.props));
+        const sent = await resend.emails.send({
+          from: FROM,
+          to: built.email,
+          replyTo: REPLY_TO,
+          subject: `Ditt paket är på väg – order ${built.props.orderNumber}`,
+          html,
+        });
+        if (sent.error) {
+          console.error("[wix-webhook] Resend order_fulfillments_updated fel", sent.error);
+          return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+        }
+        resendId = sent.data?.id;
+        console.log(
+          `[wix-webhook] order_fulfillments_updated ${orderId}: shipping-mejl skickat (resendId=${resendId}, trackingMapped=${trackingMapped})`,
+        );
+      } else {
+        console.warn(
+          `[wix-webhook] order_fulfillments_updated ${orderId}: SKIPPED email (RESEND_API_KEY saknas) — kund ${built.email} får INGET shipping-mejl`,
+        );
       }
       firePush({
         userEmail: built.email,
@@ -1011,10 +1082,7 @@ export async function POST(req: NextRequest) {
           trackingNumber: built.props.trackingNumber,
         },
       });
-      console.log(
-        `[wix-webhook] order_fulfillments_updated ${orderId}: shipping-mejl skickat (resendId=${sent.data?.id}, trackingMapped=${trackingMapped})`,
-      );
-      return NextResponse.json({ received: true, sent: sent.data?.id, trackingMapped }, { status: 200 });
+      return NextResponse.json({ received: true, sent: resendId, trackingMapped, verified }, { status: 200 });
     }
 
     if (kind === "order_shipped") {
@@ -1036,17 +1104,23 @@ export async function POST(req: NextRequest) {
       } else {
         console.warn("[wix-webhook] order_shipped: ingen tracking_number — hoppar tracking_mapping");
       }
-      const html = await render(ShippingConfirmationEmail(built.props));
-      const sent = await resend.emails.send({
-        from: FROM,
-        to: built.email,
-        replyTo: REPLY_TO,
-        subject: `Ditt paket är på väg – order ${built.props.orderNumber}`,
-        html,
-      });
-      if (sent.error) {
-        console.error("[wix-webhook] Resend order_shipped fel", sent.error);
-        return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+      let resendId: string | undefined;
+      if (resend) {
+        const html = await render(ShippingConfirmationEmail(built.props));
+        const sent = await resend.emails.send({
+          from: FROM,
+          to: built.email,
+          replyTo: REPLY_TO,
+          subject: `Ditt paket är på väg – order ${built.props.orderNumber}`,
+          html,
+        });
+        if (sent.error) {
+          console.error("[wix-webhook] Resend order_shipped fel", sent.error);
+          return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+        }
+        resendId = sent.data?.id;
+      } else {
+        console.warn(`[wix-webhook] order_shipped: SKIPPED email (RESEND_API_KEY saknas) — kund ${built.email}`);
       }
       firePush({
         userEmail: built.email,
@@ -1057,7 +1131,7 @@ export async function POST(req: NextRequest) {
           : `Order ${built.props.orderNumber} är skickad och på väg till dig.`,
         data: { type: "order_shipped", orderNumber: built.props.orderNumber, trackingNumber: built.props.trackingNumber },
       });
-      return NextResponse.json({ received: true, sent: sent.data?.id, trackingMapped }, { status: 200 });
+      return NextResponse.json({ received: true, sent: resendId, trackingMapped, verified }, { status: 200 });
     }
 
     if (kind === "order_cancelled") {
@@ -1066,19 +1140,25 @@ export async function POST(req: NextRequest) {
         console.warn("[wix-webhook] order_cancelled: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
       }
-      const html = await render(OrderCancellationEmail(built.props));
-      const sent = await resend.emails.send({
-        from: FROM,
-        to: built.email,
-        replyTo: REPLY_TO,
-        subject: `Din beställning ${built.props.orderNumber} är avbruten`,
-        html,
-      });
-      if (sent.error) {
-        console.error("[wix-webhook] Resend order_cancelled fel", sent.error);
-        return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+      let resendId: string | undefined;
+      if (resend) {
+        const html = await render(OrderCancellationEmail(built.props));
+        const sent = await resend.emails.send({
+          from: FROM,
+          to: built.email,
+          replyTo: REPLY_TO,
+          subject: `Din beställning ${built.props.orderNumber} är avbruten`,
+          html,
+        });
+        if (sent.error) {
+          console.error("[wix-webhook] Resend order_cancelled fel", sent.error);
+          return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+        }
+        resendId = sent.data?.id;
+      } else {
+        console.warn(`[wix-webhook] order_cancelled ${built.props.orderNumber}: SKIPPED email (RESEND_API_KEY saknas)`);
       }
-      return NextResponse.json({ received: true, sent: sent.data?.id }, { status: 200 });
+      return NextResponse.json({ received: true, sent: resendId, verified }, { status: 200 });
     }
 
     if (kind === "refund") {
@@ -1087,19 +1167,25 @@ export async function POST(req: NextRequest) {
         console.warn("[wix-webhook] refund: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
       }
-      const html = await render(RefundConfirmationEmail(built.props));
-      const sent = await resend.emails.send({
-        from: FROM,
-        to: built.email,
-        replyTo: REPLY_TO,
-        subject: `Återbetalning bekräftad – order ${built.props.orderNumber}`,
-        html,
-      });
-      if (sent.error) {
-        console.error("[wix-webhook] Resend refund fel", sent.error);
-        return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+      let resendId: string | undefined;
+      if (resend) {
+        const html = await render(RefundConfirmationEmail(built.props));
+        const sent = await resend.emails.send({
+          from: FROM,
+          to: built.email,
+          replyTo: REPLY_TO,
+          subject: `Återbetalning bekräftad – order ${built.props.orderNumber}`,
+          html,
+        });
+        if (sent.error) {
+          console.error("[wix-webhook] Resend refund fel", sent.error);
+          return NextResponse.json({ error: "Email send failed" }, { status: 500 });
+        }
+        resendId = sent.data?.id;
+      } else {
+        console.warn(`[wix-webhook] refund ${built.props.orderNumber}: SKIPPED email (RESEND_API_KEY saknas)`);
       }
-      return NextResponse.json({ received: true, sent: sent.data?.id }, { status: 200 });
+      return NextResponse.json({ received: true, sent: resendId, verified }, { status: 200 });
     }
   } catch (err) {
     console.error("[wix-webhook] Oväntat fel under email-send", err);
@@ -1123,6 +1209,8 @@ export async function GET() {
       "wix.ecom.v1.abandoned_checkout.created",
     ],
     signatureVerification: process.env.WIX_WEBHOOK_PUBLIC_KEY ? "enabled" : "disabled (key missing)",
+    allowUnverified: (process.env.WIX_WEBHOOK_ALLOW_UNVERIFIED || "").toLowerCase() === "true",
+    emailSending: process.env.RESEND_API_KEY ? "enabled" : "DISABLED (RESEND_API_KEY missing)",
     orderFetch: process.env.WIX_API_KEY && process.env.WIX_SITE_ID ? "enabled" : "disabled (WIX_API_KEY/WIX_SITE_ID missing)",
   });
 }
