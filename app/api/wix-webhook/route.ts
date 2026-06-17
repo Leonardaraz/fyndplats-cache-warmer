@@ -317,7 +317,7 @@ function formatSvDate(iso: string | undefined): string {
 
 // Plocka ut kundens första namn + e-post oavsett om ordern kommer som
 // "buyerInfo", "billingInfo", eller "recipientInfo".
-function extractCustomer(order: Record<string, unknown>): { firstName: string; email: string } | null {
+export function extractCustomer(order: Record<string, unknown>): { firstName: string; email: string } | null {
   const buyer = (order.buyerInfo ?? order.buyer) as Record<string, unknown> | undefined;
   const billing = (order.billingInfo ?? order.billing) as Record<string, unknown> | undefined;
   const recipient = (order.recipientInfo ?? order.recipient) as Record<string, unknown> | undefined;
@@ -408,7 +408,7 @@ function extractShippingAddress(order: Record<string, unknown>) {
   };
 }
 
-function buildOrderConfirmationProps(order: Record<string, unknown>): OrderConfirmationProps | null {
+export function buildOrderConfirmationProps(order: Record<string, unknown>): OrderConfirmationProps | null {
   const customer = extractCustomer(order);
   if (!customer) return null;
   const items = extractItems(order);
@@ -657,7 +657,7 @@ function classify(
 // webhook payload only contains { orderId, fulfillments[] } — no customer
 // email or line items. Same auth as lib/order-sync.ts. Returns null on any
 // failure (callers ack 200 + handled:false; we never block the webhook).
-async function fetchWixOrder(orderId: string): Promise<Record<string, unknown> | null> {
+export async function fetchWixOrder(orderId: string): Promise<Record<string, unknown> | null> {
   const key = process.env.WIX_API_KEY;
   const site = process.env.WIX_SITE_ID;
   if (!key || !site || !orderId) {
