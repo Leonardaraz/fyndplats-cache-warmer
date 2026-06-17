@@ -12,7 +12,7 @@
 - `ExecuteWixAPI` kräver godkännande. Skriv `fields` i request-**body** vid query/PATCH. **Läs om `revision` precis före varje PATCH.** API-svar är plain strings (skriv ändå `v?.value ?? v`).
 - En PATCH är partiell: **bara fält du skickar ändras**. Skicka aldrig `options`/`variantsInfo` om du inte avser röra varianterna.
 - **Priser slutar på 9, inga decimaler.** Importen sätter redan priset till hela kronor som avrundas **uppåt** till närmaste tal som slutar på 9 (t.ex. 499, 489, 579) — **ingen `.90`**. Ändrar du ett pris: avrunda alltid **uppåt** till närmaste 9-slut och skriv hela kronor (aldrig `,90`).
-- **SKU sätts automatiskt — rör den normalt inte.** Importen ger varje variant ett läsbart artikelnummer (`FP-<produkt>-<variant>`, t.ex. `FP-temperingsmaskin-choklad-17-l`) som syns i kassan/Google/feed. Importen **strippar märkesordet** ur SKU:n (HOMCOM/SucceBuy/VEVOR …), så den läcker inte märket. Vid polering behöver du **inte** röra SKU:n.
+- **SKU sätts automatiskt vid import** (`FP-<produkt>-<variant>`, t.ex. `FP-temperingsmaskin-choklad-17-l`) och syns i kassan/Google/feed. Importen **strippar märkesordet** (HOMCOM/SucceBuy/VEVOR …) men bygger SKU:n ur den **råa** sluggen — så när du byter slug i Steg 2 ska du **re-synka SKU:n** till den nya svenska sluggen, se **Steg 2b**.
   - **SKU:n är en ren etikett — den parsas aldrig tillbaka.** Synk och fulfillment nycklar på **`wixVariantId` → `supplierVariantId`** (lagrad mapping i `lib/sync/aliexpress-sync.ts` + `lib/orders/tasks.ts`), **inte** på SKU-strängen. Att döpa om en SKU bryter alltså INTE leverantörskopplingen — formatet är fritt (krav: ≤40 tecken, unik inom produkten).
   - **Måste du ändå byta en variants SKU live:** skicka `options` **+** `variantsInfo` **verbatim** (som de kom från GET, ändra bara `sku`) + färsk `revision`. Skickar du `variantsInfo` utan `options` på en produkt med varianter → V3 svarar **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`**. (En produkt helt utan optioner behöver inte `options`.)
 
@@ -95,6 +95,46 @@ Lägg fokussökordet naturligt i texten. Skicka `"description": { "nodes": [...]
 
 -----
 
+## Steg 2b – Re-synka SKU till den nya sluggen (1 anrop, mutation)
+
+Importen byggde SKU:n ur den **råa** (engelska, märkesledda) sluggen, t.ex. `FP-2-4g-remote-control-1-st`. När du bytt slug i Steg 2 stämmer den inte längre — re-synka den så den matchar den **polerade svenska** sluggen, t.ex. `FP-radiostyrd-gravmaskin-1-st`. Ofarligt: synk/fulfillment nycklar på `wixVariantId`, inte på SKU-strängen (se SKU-noten i *Fasta fakta*).
+
+**SKU-format** (= `lib/import/sku.ts`): `FP-<produkt>-<variant>` ur den **polerade sluggen** + variantens optionsvärde. ASCII (å/ä→a, ö→o), ledande **märkesord strippat**, produkt-delen **≤24 tecken** (kapa på bindestreck), variant-delen **≤12 tecken**, hela **≤40 tecken**, **unikt inom produkten**. Saknar produkten optionsvärden → bara `FP-<produkt>`.
+
+```
+GET .../products/{PRODUCT_ID}?fields=VARIANT_OPTION_CHOICE_NAMES   // slug, options, variants (sku + optionsnamn) + färsk revision
+PATCH .../products/{PRODUCT_ID}
+```
+
+Bygg nya SKU:er ur GET-svaret och PATCHa **bara** `sku` (allt annat verbatim):
+
+```js
+// efter GET: const p = res.product; const slug = p.slug, vinfo = p.variantsInfo||{}, variants = vinfo.variants||[], options = p.options||[];
+const BRANDS = new Set(["succebuy","vevor","homcom","pawhut","outsunny","giantex","costway","tobbi","aosom"]); // full lista: lib/import/sku.ts
+const slugify = s => (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const stripBrand = s => { const p = slugify(s).split("-").filter(Boolean); while (p.length>1 && BRANDS.has(p[0])) p.shift(); return p.join("-"); };
+const cut = (s,max) => { if (s.length<=max) return s; let o=""; for (const w of s.split("-")){ if(!w) continue; if(!o){ o = w.length<=max?w:w.slice(0,max); if(w.length>max) break; } else if((o+"-"+w).length<=max){ o+="-"+w; } else break; } return o||s.slice(0,max); };
+const prod = cut(stripBrand(slug), 24) || "produkt";
+const used = new Set();
+const newVariants = variants.map(v => {
+  const val = (v.choices||[]).map(c => c.optionChoiceNames && c.optionChoiceNames.choiceName).filter(Boolean).join(" ");
+  let base = (val ? `FP-${prod}-${cut(slugify(val),12)}` : `FP-${prod}`).slice(0,40).replace(/-+$/g,"");
+  let sku = base; for (let n=2; used.has(sku); n++){ const suf=`-${n}`; sku = base.slice(0,40-suf.length).replace(/-+$/g,"")+suf; }
+  used.add(sku); return { ...v, sku };
+});
+// PATCH body: { product: { id, revision, options, variantsInfo: { ...vinfo, variants: newVariants } } }
+```
+
+⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
+
+> **Spara ett anrop:** lägg `visible: true` i **samma** PATCH → då görs Steg 2b + Steg 5 i ett.
+>
+> **Undantag:** börjar SKU:n med `FYND-XXX-NNN` (kurerat artikelnummer) eller `AE-<hash>` (äldre schema) — **rör den inte**, flagga till Leonard.
+
+**Verifiera:** nya SKU:n innehåller varken engelska råord eller märke och matchar sluggen.
+
+-----
+
 ## Steg 3 – Skriv om ALLA bild-alt-texter (1 anrop, mutation)
 
 Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svenska, sökordsrika, varierade. Koppla ev. variantbilder till sina optionsvärden.
@@ -139,7 +179,7 @@ Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · E
 
 ## Steg 5 – PUBLICERA produkten (1 anrop, mutation)
 
-Rå-importer skapas som **draft** (`visible:false`) och syns inte i butiken. När Steg 2–4 är klara och **verifierade** (rena `<h2>`-flikar; alla bilder kvar med `image.url`) och variantkontrollen i **Steg 6** är gjord: publicera produkten (hämta färsk `revision` först).
+Rå-importer skapas som **draft** (`visible:false`) och syns inte i butiken. När Steg 2–4 är klara och **verifierade** (rena `<h2>`-flikar; alla bilder kvar med `image.url`; **SKU re-synkad i Steg 2b**) och variantkontrollen i **Steg 6** är gjord: publicera produkten (hämta färsk `revision` först). *(Du kan slå ihop detta med Steg 2b — `visible:true` i samma SKU-PATCH.)*
 
 ```
 GET .../products/{PRODUCT_ID}        // färsk revision
@@ -198,6 +238,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 - Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
 - Alla bilder har svenska alt-texter och **har kvar sina URL:er**.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
+- SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget märke (re-synkad i Steg 2b).
 - Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
 - (Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)
 
