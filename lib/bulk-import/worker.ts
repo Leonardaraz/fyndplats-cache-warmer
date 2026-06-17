@@ -327,6 +327,13 @@ export async function finishImport(
   const mappingExtras: Record<string, unknown> = {};
   // RÅ import (AI_ENRICHMENT_ENABLED=false) → markera för polering i /admin/queue.
   if (resultAny.needsAiPolish === true) mappingExtras.needsAiPolish = true;
+  if (Array.isArray(resultAny.unresolvedVariantValues) && resultAny.unresolvedVariantValues.length) {
+    mappingExtras.unresolvedVariantValues = resultAny.unresolvedVariantValues;
+    // Logg-paritet med /api/import (audit-nit): bulk-vägen ska synas likadant.
+    console.warn(
+      `[import:vars] pid=${result.supplierProductId} olösta=[${(resultAny.unresolvedVariantValues as string[]).join(", ")}] → needsAiPolish`,
+    );
+  }
   if (resultAny.imageAnalysis !== undefined) mappingExtras.imageAnalysis = resultAny.imageAnalysis;
   if (resultAny.categorySuggestion !== undefined) mappingExtras.categorySuggestion = resultAny.categorySuggestion;
 

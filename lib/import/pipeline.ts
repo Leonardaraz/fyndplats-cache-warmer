@@ -16,7 +16,7 @@ import { rankProductImages } from "./image-rank";
 import type { FaqReviewHint } from "./faq-gen";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
-import { buildVariantTranslator } from "./variant-translations";
+import { buildVariantTranslator, unresolvedAxisNames } from "./variant-translations";
 import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
@@ -54,6 +54,7 @@ import {
   isMoreInformative,
 } from "./description";
 import { matchesColorName, isColorAxis } from "./color-match";
+import { sortedSizeChoices } from "./variant-sort";
 import { buildVariantSkus } from "./sku";
 import { audit } from "../audit";
 
@@ -102,6 +103,13 @@ export interface ImportResult {
    * väntar på manuell polering via /admin/queue → "Be Claude i chatten att polera".
    */
   needsAiPolish?: boolean;
+  /**
+   * Råvärden/axelnamn som förblev (halv-)engelska efter tabell+cache+AI — grunden
+   * för variantdelen av needsAiPolish. Propageras till mappningen så /admin/queue
+   * kan visa VILKA värden som är kvar-engelska (de är key-låsta i Wix V3 → kräver
+   * omimport, inte polering).
+   */
+  unresolvedVariantValues?: string[];
   /** Vilket AI-kvalitetsläge importen kördes i (raw/standard/premium). */
   qualityMode: QualityMode;
   /**
@@ -155,7 +163,7 @@ export function deriveOptions(
     }
   }
   return [...map.entries()].map(([name, set]) => {
-    const values = [...set];
+    let values = [...set];
     // Bara en ÄKTA färgaxel får bli färg-swatch. AE-säljare lägger ofta storlekar/
     // volymer/modeller/kontakttyper under "Color"-fältet (med bilder) → de samplas
     // till nästan identiska gråa colorCodes och skulle annars publiceras som
@@ -163,6 +171,21 @@ export function deriveOptions(
     // colorCodes (optionen blir TEXT; per-val-bilderna behålls ändå via linkedMedia).
     const codes = colorCodes?.[name];
     const keepColors = !!codes && isColorAxis(values);
+    // Storleks-sortering minsta→största (Leonard 2026-06-15). BARA icke-färgaxlar
+    // (färgordning är estetisk). sortedSizeChoices returnerar null när ordningen
+    // inte säkert kan avgöras → axeln behålls orörd. Påverkar ENBART
+    // visningsordningen i options-listan; variantposterna (pris/SKU/lager/
+    // linkedMedia) matchas på värde, inte ordning, och är orörda. try/catch:
+    // sorteringen får ALDRIG fälla en import (Leonards krav) — oväntat fel →
+    // behåll originalordningen.
+    if (!isColorAxis(values)) {
+      try {
+        const sorted = sortedSizeChoices(values, name);
+        if (sorted) values = sorted;
+      } catch {
+        /* behåll originalordningen */
+      }
+    }
     return {
       name,
       choices: values.map((choiceName) => ({
@@ -220,7 +243,13 @@ export async function importProduct(
   // hamnar i poleringskön i stället för att nå kunden halv-engelska.
   const translatorResult = variantAiTranslationEnabled(flags)
     ? await buildVariantTranslatorAI(product.variants, { productTitle: product.rawTitle })
-    : { translator: buildVariantTranslator(product.variants), unresolved: [] as string[] };
+    : (() => {
+        // Sync-läge (VARIANT_AI av): inga AI-anrop, men flagga ändå produkten om en
+        // axel blev kvar med ett rått engelskt namn (tabell-miss) → ingen produkt
+        // skeppas halv-engelsk ens i hård-$0-läget.
+        const t = buildVariantTranslator(product.variants);
+        return { translator: t, unresolved: unresolvedAxisNames(t) };
+      })();
   const translator = translatorResult.translator;
   const variantsNeedPolish = translatorResult.unresolved.length > 0;
   const variants = product.variants.map((v) => ({
@@ -824,6 +853,9 @@ export async function importProduct(
     warehouseClass,
     ...(created.slugSuffix ? { slugSuffix: created.slugSuffix } : {}),
     ...((!aiEnabled || variantsNeedPolish) ? { needsAiPolish: true } : {}),
+    ...(translatorResult.unresolved.length > 0
+      ? { unresolvedVariantValues: translatorResult.unresolved }
+      : {}),
     qualityMode,
     ...(premium && premiumResult ? { qualityScore: premiumResult.score } : {}),
     ...(premium && premiumResult && !premiumResult.passed ? { needsManualPolish: true } : {}),

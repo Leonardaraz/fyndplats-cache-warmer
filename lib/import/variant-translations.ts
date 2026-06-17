@@ -43,6 +43,7 @@ export const AXIS_TRANSLATIONS: Record<string, string> = {
   voltage: "Spänning",
   power: "Effekt",
   wattage: "Effekt",
+  effect: "Effekt",
   plug: "Kontakt",
   "plug type": "Kontakttyp",
   socket: "Uttag",
@@ -94,6 +95,7 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   grey: "Grå",
   gray: "Grå",
   silver: "Silver",
+  silvery: "Silver", // "Silvery 4pcs"-incidenten 2026-06-09; parar med "Guld" som färgval
   gold: "Guld",
   golden: "Guld",
   beige: "Beige",
@@ -394,6 +396,43 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   "warm light": "Varmt ljus",
   "cool light": "Kallt ljus",
   "white light": "Vitt ljus",
+
+  // --- Fordon/cykelställ (incident 2026-06-09: "Rear Wheel"/"U Type L Type Fork"
+  //     skeppades engelska efter Haiku-eko). Fulla fraser där token-komposition
+  //     ger bruten svenska (sammansatta ord: "Bakhjul", aldrig "Bak Hjul");
+  //     lösa tokens bara där ordet är entydigt ensamt. "rear"/"front"/"type" som
+  //     lösa tokens UTELÄMNAS medvetet (samma policy som right/left/wide ovan). ---
+  "rear wheel": "Bakhjul",
+  "front wheel": "Framhjul",
+  wheel: "Hjul", // token-säkert: "4 Wheel" → "4 Hjul"
+  wheels: "Hjul",
+  fork: "Gaffel", // cykelgaffel OCH bestick = "gaffel" → entydig
+  frame: "Ram", // cykelram/tavelram = "ram" → entydig
+  handlebar: "Styre",
+  saddle: "Sadel",
+  "u type l type fork": "U-typ & L-typ gaffel", // exakt observerad fras (ställ-fäste)
+  // Fraser där de lösa tokens ovan annars FEL-översätter (audit S2): fulla fraser
+  // vinner över token-passet och behåller rätt betydelse.
+  "saddle brown": "Sadelbrun", // standardfärg (lädervaror) — inte "Sadel Brun"
+  "spring steel fork": "Fjäderstålsgaffel", // spring=fjäder här, inte säsongen
+  // Monteringsriktning (vanlig under felmärkta "Color"-axlar, jfr "Vertical type").
+  "vertical type": "Vertikal",
+  "horizontal type": "Horisontell",
+  vertical: "Vertikal",
+  horizontal: "Horisontell",
+
+  // --- EN=SV-identiska ord (self-maps): korrekt svenska är samma ord, men ett
+  //     AI-eko på dem skulle annars perma-flagga produkten + re-fråga varje
+  //     import (eko-asymmetrin). Tabell-träff → aldrig AI-kandidat → $0 + tyst. ---
+  smart: "Smart",
+  mini: "Mini",
+  original: "Original",
+  universal: "Universal",
+  digital: "Digital",
+  modern: "Modern",
+  extra: "Extra", // audit S3: annars flaggas perfekta svar som "Extra lång"
+  normal: "Normal",
+  maximal: "Maximal",
 };
 
 /**
@@ -402,27 +441,257 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
  * Faller tillbaka på råvärdet om axeln inte finns i tabellen.
  */
 export function translateAxisName(raw: string): string {
-  const key = raw
+  const key = normalizeAxisKey(raw);
+  const hit = AXIS_TRANSLATIONS[key];
+  if (hit) return hit;
+  // Färg-aktiga axelnamn AE skickar utöver rena "Color" ("Color Name", "Color
+  // Family", "Main Color", "Colour Classification" …) → samma färg-pipeline, så
+  // den befintliga omklassningen/AI-namngivningen fångar dem när värdena INTE är
+  // färger. "colorful"/"tricolor" matchar ej (ordgräns kring color/colour).
+  if (/\bcolou?rs?\b/.test(key)) return "Färg";
+  return raw.trim();
+}
+
+/**
+ * Normaliserar ett axelnamn till uppslagsnyckel: trim + gemener + strip av ev.
+ * ":"-suffix ("Color: F2025" → "color"). Delas av translateAxisName och
+ * axisNameUnresolved så de alltid bedömer samma nyckel.
+ */
+export function normalizeAxisKey(raw: string): string {
+  return raw
     .trim()
     .toLowerCase()
     .replace(/[:：].*$/, "")
     .trim();
-  return AXIS_TRANSLATIONS[key] ?? raw.trim();
+}
+
+/**
+ * True om en axel-ETIKETT fortfarande är det råa engelska AE-namnet — dvs varken
+ * statiska tabellen, färg-igenkänningen, en deterministisk klass eller AI gav den
+ * ett svenskt namn. En tabell-träff räknas som löst (även self-map som
+ * "Material"→"Material") → inga falska positiva på svensk-stavade lånord. Används
+ * för att flagga produkten (needsAiPolish) i stället för att skeppa ett engelskt
+ * axelnamn till kund. Tar slutnamnet så att en redan omklassad/översatt axel
+ * (finalName ≠ rånamnet) alltid räknas som löst.
+ */
+export function axisNameUnresolved(rawAxis: string, finalName: string): boolean {
+  if (finalName.trim() !== rawAxis.trim()) return false; // översatt/omklassat → ok
+  const key = normalizeAxisKey(rawAxis);
+  if (AXIS_TRANSLATIONS[key] !== undefined) return false; // känt namn (self-map ok)
+  if (/\bcolou?rs?\b/.test(key)) return false; // färg-aktig → "Färg" via LAYER A
+  return true; // kvar som rå engelska → flagga
+}
+
+// --- Mått-/storleksdetektering (för felmärkta "Color"-axlar) ----------------
+
+// Värde som ENBART är ett mått: "42 in", "50 inch", "10 cm", `12"`.
+const MEASUREMENT_VALUE_RE =
+  /^\d+(?:[.,]\d+)?\s*(?:inches|inch|in|tum|cm|mm|ft|feet|["“”])$/i;
+// Rent storleks-label: S/M/L/XL-skalan, ord och universalstorlek.
+const SIZE_LABEL_RE =
+  /^(?:xxs|xs|s|m|l|xl|xxl|xxxl|[2-9]xl|small|medium|large|x-?large|free\s?size|one\s?size|onesize|plus\s?size)$/i;
+
+/**
+ * True om SAMTLIGA värden på en axel ser ut som storlekar/mått (tum/cm/S–XL …)
+ * och inga är färger. AE-säljare lägger ofta storlekar under "Color"-fältet
+ * ("Color: 42 in"); detta upptäcker det så importen kan döpa om axeln till
+ * "Storlek" (se buildTranslatorFromBase). Konservativt — kräver att ALLA värden
+ * är storlekslika, så en riktig färg bland värdena avbryter omdöpningen.
+ */
+export function isSizeLikeAxis(values: ReadonlyArray<string>): boolean {
+  const vals = values.map((v) => v.trim()).filter(Boolean);
+  if (vals.length === 0) return false;
+  return vals.every((v) => MEASUREMENT_VALUE_RE.test(v) || SIZE_LABEL_RE.test(v));
+}
+
+// Övriga icke-färg-klasser som AE-säljare lägger under "Color"-fältet (utöver
+// storlekar). Varje regex matchar ett HELT värde i sin klass; omdöpningen kräver
+// att SAMTLIGA värden matchar samma klass → aldrig en falsk positiv på en färg.
+const PLUG_RE = /\bplug\b/i; // "EU Plug", "With US Plug"
+const COUNT_RE = /^(?:\d+\s*(?:pcs?|pieces?|packs?|pairs?|sets?)|(?:set|pack)\s+of\s+\d+)\s*$/i; // HELA värdet = antal ("2 PCS", "Set of 3"); "2 PCS Red" (blandat m. färg) matchar ej → kvar som "Färg"
+const VOLTAGE_RE = /^\d+\s*v(?:olt)?s?$/i; // "110V", "220 Volt"
+const STORAGE_RE = /^\d+\s*[gtm]b$/i; // "64GB", "1TB"
+const VOLUME_RE = /^\d+(?:[.,]\d+)?\s*(?:ml|cl|dl|l|lit(?:er|re)s?)$/i; // "500ml", "1.5L"
+
+/**
+ * Bästa svenska axelnamn för en axel som översatts till "Färg" men vars värden
+ * INTE är färger — AE-säljare lägger ofta storlekar/kontakter/antal/spänning osv.
+ * under produktens "Color"-fält (så kunden annars ser "Färg: 42 in"). Returnerar
+ * ett namn BARA när samtliga värden entydigt tillhör EN icke-färg-klass (positiv
+ * matchning, aldrig "frånvaro av färg") → inga falska positiva på riktiga färger.
+ * null = behåll "Färg" (säkert; täcker äkta + exotiska färger). Medvetet
+ * konservativt: hellre kvar som "Färg" än en gissad etikett.
+ */
+export function inferMislabeledColorAxis(values: ReadonlyArray<string>): string | null {
+  const vals = values.map((v) => v.trim()).filter(Boolean);
+  if (vals.length === 0) return null;
+  if (isSizeLikeAxis(vals)) return "Storlek";
+  if (vals.every((v) => PLUG_RE.test(v))) return "Kontakt";
+  if (vals.every((v) => COUNT_RE.test(v))) return "Antal";
+  if (vals.every((v) => VOLTAGE_RE.test(v))) return "Spänning";
+  if (vals.every((v) => STORAGE_RE.test(v))) return "Lagring";
+  if (vals.every((v) => VOLUME_RE.test(v))) return "Volym";
+  return null;
+}
+
+/** Avrundning för ft→m: NOMINELL/TRUNKERAD till 1 decimal (Leonards beslut
+ *  2026-06-09) — 12 ft → 3,6 m (inte matematiska 3,7), matchar handelspraxis
+ *  ("3,6×3,6-tält") och produkttexterna. Byt till Math.round för matematisk. */
+function roundMeters(m: number): number {
+  return Math.floor(m * 10) / 10;
+}
+
+/** Svenskt decimalkomma; heltal utan ",0" ("3,0" → "3"). */
+function formatMeters(m: number): string {
+  const r = roundMeters(m);
+  return Number.isInteger(r) ? String(r) : r.toFixed(1).replace(".", ",");
+}
+
+const FT_IN_METERS = 0.3048;
+
+/**
+ * Konverterar fot→meter med aritmetik (variantval ska vara metriska från start —
+ * V3 key-låser värdena, så enheten går inte att byta i efterhand). Nummer-ankrat:
+ * "Foot Rest" (ingen siffra) rörs aldrig. Två mönster:
+ *   1. Dimension med EN avslutande enhet: "10 x 10 ft"/"10x10x8 Feet" → alla tal
+ *      konverteras, kanoniskt " x " + " m": "3 x 3 m".
+ *   2. Per förekomst: "12ft" → "3,6 m", "10ft x 13ft" → "3 m x 3,9 m".
+ * Känd accepterad edge: "5 ft 6 in" konverterar bara ft-delen (sällsynt i AE-data).
+ */
+function convertFeetToMeters(value: string): string {
+  const num = (s: string) => parseFloat(s.replace(",", "."));
+  const dim = value
+    .trim()
+    .match(/^(\d+(?:[.,]\d+)?(?:\s*[x×]\s*\d+(?:[.,]\d+)?)+)\s*(?:feet|foot|ft)\.?$/i);
+  if (dim) {
+    return (
+      dim[1]
+        .split(/\s*[x×]\s*/)
+        .map((n) => formatMeters(num(n) * FT_IN_METERS))
+        .join(" x ") + " m"
+    );
+  }
+  // SLUT-ankrad dimensionskedja med prefix ("Tent 10x10ft"): kedjan tal-x-tal +
+  // avslutande ft är entydig → konvertera HELA kedjan, behåll prefixet. Körs
+  // FÖRE S1-guarden — guarden skyddar mot HALV-konvertering; en komplett kedja
+  // vid strängens slut är säker.
+  const NUM_FT = /\d+(?:[.,]\d+)?/.source;
+  const endChain = value.match(
+    new RegExp(`^(.*?)(${NUM_FT}(?:\\s*[x×]\\s*${NUM_FT})+)\\s*(?:feet|foot|ft)\\.?$`, "i"),
+  );
+  // Slutpass-guard (S-A): är kedjan x-KOPPLAD till prefixet ("8 ft x 8 x 7 ft")
+  // hör talen ihop över gränsen → konvertering gåve blandade enheter. Lämna åt
+  // S1-guarden/AI:n. En fristående kedja vid slutet förblir säker.
+  if (endChain && !/[x×]\s*$/.test(endChain[1])) {
+    return (
+      endChain[1] +
+      endChain[2]
+        .split(/\s*[x×]\s*/)
+        .map((n) => formatMeters(num(n) * FT_IN_METERS))
+        .join(" x ") +
+      " m"
+    );
+  }
+  // AUDIT-GUARD (S1): finns en NAKEN tal-x-tal-dimension ("10x10") som den
+  // ankrade regexen INTE fångade (prefix/suffix-text, t.ex. "10x10 ft Gazebo")
+  // skulle per-förekomst-passet halvkonvertera ("10x3 m Gazebo" = FELAKTIGT
+  // mått). Lämna då värdet orört — AI:n/flaggan tar det i stället för att vi
+  // skeppar fel siffror. ("10ft x 13ft" har enhet per tal → ingen naken x-
+  // adjacens → konverteras korrekt nedan.)
+  if (/\d\s*[x×]\s*\d/.test(value)) return value;
+  return value.replace(
+    /(\d+(?:[.,]\d+)?)\s*(?:feet|foot|ft)\b/gi,
+    (_, n: string) => `${formatMeters(num(n) * FT_IN_METERS)} m`,
+  );
+}
+
+/**
+ * Normaliserar enheter i ett värde till svenska/metriskt — nummer-ankrat, så ett
+ * löst "in" (preposition) ALDRIG rörs: "42 inch"/`42"` → "42 tum". Bart "in"
+ * konverteras bara när HELA värdet är "<tal> in" ("42 in" → "42 tum"), så
+ * "5 in 1"/"5 in stock" lämnas orörda. ft/feet KONVERTERAS till meter (se
+ * convertFeetToMeters); cm/mm är samma på svenska.
+ */
+function normalizeUnits(value: string): string {
+  let v = convertFeetToMeters(value)
+    .replace(/(\d)\s*inches\b/gi, "$1 tum")
+    .replace(/(\d)\s*inch\b/gi, "$1 tum")
+    .replace(/(\d)\s*["“”]/g, "$1 tum");
+  const NUM = /\d+(?:[.,]\d+)?/.source;
+  const DIM = `${NUM}(?:\\s*[x×]\\s*${NUM})+`;
+  // REGEL A — värdet INLEDS med en x-dimension följd av "in" + ev. svans
+  // ("11x14 in 12pcs" → "11x14 tum 12pcs", "8x10in 24st" canvas-tavlorna
+  // 2026-06-09). Den ledande x-kedjan gör "in" entydigt = tum (jfr "4 in 1"
+  // som INTE inleds med en kedja → "in" lämnas som idiom). Lookahead (audit N1):
+  // konvertera BARA när siffra eller strängslut följer — "2 x 3 in stock" har
+  // prepositions-"in" och lämnas orört. Ordsvansar ("12x16 in White") avstås
+  // medvetet: hellre orört än en deterministiskt felkonverterad preposition;
+  // svenskhets-grinden fångar slutvärdet ("12x16 in Vit" är inte ren svenska)
+  // → poleringskön, aldrig tyst fel till kund.
+  v = v.replace(new RegExp(`^(${DIM})\\s*in\\b(?=\\s*\\d|\\s*$)`, "i"), "$1 tum");
+  // Bart "in" som TUM i DIMENSIONER ("32 in x 24 in", "24 x 32 in"): strukturen
+  // (x-separerade tal där "in" följer talen / står sist) gör tolkningen entydig —
+  // utan den ankringen vore prepositions-"in" i "5 in 1" i farozonen. Annars
+  // förstår en svensk kund aldrig att "in" = tum (incident 2026-06-09, lekhage
+  // "Storlek: 32 in x 24 in"). Hel-värdes-test FÖRST, sedan säker global ersättning.
+  const t = v.trim();
+  if (new RegExp(`^${NUM}\\s*in(?:\\s*[x×]\\s*${NUM}\\s*in)+$`, "i").test(t)) {
+    v = t.replace(/(\d+(?:[.,]\d+)?)\s*in\b/gi, "$1 tum"); // enhet per tal
+  } else {
+    // SLUT-ankrad — prefix tillåts ("2000D48x48x80in" → "2000D48x48x80 tum",
+    // growtältet 2026-06-09: densitetskod + dimensioner hopskrivet, osynligt för
+    // både AI-kandidatur och grinden). Kedjan tal-x-tal + avslutande "in" är
+    // entydig oavsett prefix; "5 in 1" slutar på "1" och kan aldrig matcha.
+    // S-A-guarden: x-kopplat prefix ("48in x 48 x 80in") → blandade enheter →
+    // lämna orört.
+    const m2 = t.match(new RegExp(`^(.*?)(${DIM})\\s*in$`, "i"));
+    if (m2 && !/[x×]\s*$/.test(m2[1])) v = `${m2[1]}${m2[2]} tum`;
+  }
+  // REGEL B — hopskrivet ENSKILT mått "14in" (UTAN x-dimension) följt av icke-
+  // siffra ("14in Black" → "14 tum Black", vinylskäraren 2026-06-09). Hopskrivning
+  // gör "in" entydigt (en preposition skrivs aldrig ihop med talet); lookahead
+  // skyddar "5in 1". Hoppar över värden med x-dimension (kedje-reglerna ovan
+  // äger dem → undviker blandade enheter, jfr S-A).
+  if (!/\d\s*[x×]\s*\d/.test(v)) v = v.replace(/(\d)in\b(?!\s*\d)/gi, "$1 tum");
+  const bare = v.trim().match(/^(\d+(?:[.,]\d+)?)\s*in$/i);
+  if (bare) v = `${bare[1]} tum`;
+  return v;
+}
+
+/**
+ * Hopskrivna antal-enheter ("4pcs"/"2pc"/"4Pcs") är osynliga för både token-
+ * passet (en token, inte i tabellen) och residual-detekteringen (inga 3+-
+ * bokstavstokens) → "Guld 4pcs" skeppades tyst (buffévärmaren 2026-06-09).
+ * Nummer-ankrat; även mitt i värdet ("2pcs Red" → "2 st Red" → token-passet ger
+ * "2 st Röd" — audit S2). Körs EFTER full-match-försöket, så fras-nycklar med
+ * pc/pcs ("random color 1 pc", "5pc sets 3") matchar på sin råa form först —
+ * det är ordningen, inte regexen, som skyddar fraserna.
+ */
+function normalizePieceUnits(value: string): string {
+  return value.replace(/(\d)\s*pcs?\b/gi, "$1 st");
 }
 
 /**
  * Översätter ett optionsvärde. Prioritet:
  *   1. Fullt match (hela värdet) → full översättning ("Light Blue" → "Ljusblå").
- *   2. Första-ord-match → översätt bara första ordet ("Pink Diamond" → "Rosa
+ *   2. Avglua antal-enheter ("4pcs" → "4 st") + nytt full-match-försök.
+ *   3. Token-vis match → översätt varje känt ord ("Pink Diamond" → "Rosa
  *      Diamond"), resten lämnas orört.
- *   3. Inget match → råvärdet ("5XL" → "5XL").
+ *   4. Inget match → (avgluade) råvärdet ("5XL" → "5XL").
  * Universella storlekar (S/M/L/XL) och antal finns inte i tabellen och faller
- * därför alltid på steg 3.
+ * därför alltid på steg 4.
  */
 export function translateValue(raw: string): string {
-  const trimmed = raw.trim();
+  const trimmed = normalizeUnits(raw.trim());
   const full = VALUE_TRANSLATIONS[trimmed.toLowerCase()];
   if (full) return full;
+
+  // Hopskrivna "4pcs" → "4 st" (efter fras-uppslaget ovan; se normalizePieceUnits).
+  const unglued = normalizePieceUnits(trimmed);
+  if (unglued !== trimmed) {
+    const fullUnglued = VALUE_TRANSLATIONS[unglued.toLowerCase()];
+    if (fullUnglued) return fullUnglued;
+  }
 
   // Token-vis: översätt VARJE känt ord (inte bara det första) så sammansatta
   // värden blir helt svenska: "Black with LED" → "Svart med LED", "Long Blue"
@@ -430,7 +699,7 @@ export function translateValue(raw: string): string {
   // bevaras. Okända ord (koder, mått, modellnamn som "iPhone 15") lämnas orörda
   // → hela värdet faller tillbaka på råvärdet om inget ord kändes igen.
   let touched = false;
-  const out = trimmed
+  const out = unglued
     .split(/([\s-]+)/)
     .map((tok) => {
       if (/^[\s-]*$/.test(tok)) return tok;
@@ -442,7 +711,9 @@ export function translateValue(raw: string): string {
       return tok;
     })
     .join("");
-  if (!touched) return trimmed;
+  // Orört av tabellen → returnera den AVGLUADE formen ("4pcs" → "4 st" även
+  // när inget ord träffade) i stället för rå-trimmade.
+  if (!touched) return unglued;
   // Normalisera ev. dubbla mellanslag (rörig AE-data) och versalisera första
   // bokstaven (bindeord i tabellen är gemena: "med", "och").
   const norm = out.replace(/\s+/g, " ").trim();
@@ -533,6 +804,12 @@ export interface VariantTranslator {
   options(raw: Record<string, string>): Record<string, string>;
   /** Remappar en axel→värde→T-tabell (colorCodes/swatch-bilder) med SAMMA nycklar. */
   axisKeyedMap<T>(map: Record<string, Record<string, T>>): Record<string, Record<string, T>>;
+  /** Rå-axel → slutgiltigt svenskt axelnamn (efter ev. omklassning/AI-override).
+   *  Källa för polerings-flaggan via axisNameUnresolved/unresolvedAxisNames. */
+  axisNames: ReadonlyMap<string, string>;
+  /** Axlar som fick ett kollisions-särskiljande suffix (t.ex. "Färg (Color
+   *  Temperature)") — inget kund-klart namn → flaggas för polering. */
+  disambiguatedAxes: ReadonlySet<string>;
 }
 
 /**
@@ -556,6 +833,12 @@ export function buildTranslatorFromBase(
   variants: ReadonlyArray<{ options: Record<string, string> }>,
   baseValue: (raw: string) => string,
   baseAxis: (axis: string) => string = translateAxisName,
+  /**
+   * Per-rå-axel AI-namn för felmärkta "Color"-axlar som de deterministiska
+   * klasserna inte fångar (variant-ai-translate.ts skickar in det). Deterministisk
+   * klass vinner alltid; override används bara när klassen är okänd.
+   */
+  axisOverrides?: ReadonlyMap<string, string>,
 ): VariantTranslator {
   // Råvärden per råaxel i stabil först-sedd-ordning.
   const rawValuesByAxis = new Map<string, string[]>();
@@ -568,9 +851,48 @@ export function buildTranslatorFromBase(
   }
   // Per axel: raw→unik översatt värde + raw-axel→översatt-axel.
   const axisName = new Map<string, string>();
+  const usedAxisNames = new Set<string>();
+  const disambiguatedAxes = new Set<string>();
   const valueByAxis = new Map<string, Map<string, string>>();
-  for (const [axis, values] of rawValuesByAxis) {
-    axisName.set(axis, baseAxis(axis));
+  // Stabil ordning för kollisions-tie-break: vilken axel som BEHÅLLER det rena
+  // namnet vid en namn-kollision avgörs på sorterat rå-axelnamn, INTE på feed-
+  // ordningen. AE:s SKU-prop-ordning är inte kontraktuellt stabil — utan detta kunde
+  // två kolliderande axlar byta vilken som blir suffix-särskild mellan importer och
+  // driva isär Wix-namnen (V3-key-låset). Sorterat → samma resultat varje gång.
+  const orderedAxes = [...rawValuesByAxis].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  for (const [axis, values] of orderedAxes) {
+    // Felmärkt "Color"-axel: AE-säljare lägger ofta storlekar/kontakter/antal osv.
+    // under färg-fältet ("Color: 42 in"). Blev axeln "Färg"? → 1) deterministisk
+    // klass om ALLA värden matchar en (Storlek/Kontakt/Antal/… , gratis), annars
+    // 2) ev. AI-föreslaget namn (okända klasser/material), annars 3) kvar som "Färg"
+    // (säkert; täcker äkta + exotiska färger). deriveOptions släpper redan swatchen
+    // för icke-färgaxlar (isColorAxis); detta fixar det missvisande NAMNET.
+    let resolvedAxis = baseAxis(axis);
+    if (resolvedAxis === "Färg") {
+      resolvedAxis = inferMislabeledColorAxis(values) ?? axisOverrides?.get(axis) ?? "Färg";
+    } else if (axisNameUnresolved(axis, resolvedAxis)) {
+      // Icke-färg-axel vars namn fortfarande är rå engelska (tabell-miss, t.ex.
+      // "Lighting Mode") → använd ev. AI-översatt namn; annars kvar (flaggas sen).
+      // Guarden gör att en ren "Storlek" ALDRIG kan skrivas över av ett strö-svar.
+      resolvedAxis = axisOverrides?.get(axis) ?? resolvedAxis;
+    }
+    // Axel-namn-kollisionssäkerhet (spegel av per-värde-logiken nedan): två
+    // DISTINKTA råaxlar får aldrig samma svenska namn. Den breda färg-igenkänningen
+    // (LAYER A) kan annars mappa både "Color" och "Color Temperature"/"Color Name"
+    // till "Färg" (och två axlar kan landa på samma klass, t.ex. "Color Size" +
+    // "Size" → "Storlek"). Utan särskiljning skriver out[tAxis] över sig själv i
+    // options() → en hel variantdimension tappas → varianter kollapsar →
+    // wixVariantId-desync. AI ger oftast ett distinkt namn; detta är skyddsnätet när
+    // den inte gör det (råaxeln i suffix, sen löpnummer). Deterministiskt (stabil
+    // axel-ordning) så V3-key-låset inte rubbas mellan importer.
+    if (usedAxisNames.has(resolvedAxis)) {
+      let t = `${resolvedAxis} (${axis.trim()})`;
+      for (let n = 2; usedAxisNames.has(t); n++) t = `${resolvedAxis} ${n}`;
+      resolvedAxis = t;
+      disambiguatedAxes.add(axis); // ej kund-klart namn → flaggas för polering
+    }
+    usedAxisNames.add(resolvedAxis);
+    axisName.set(axis, resolvedAxis);
     const used = new Set<string>();
     const m = new Map<string, string>();
     for (const raw of values) {
@@ -592,6 +914,8 @@ export function buildTranslatorFromBase(
   const tAxis = (axis: string) => axisName.get(axis) ?? baseAxis(axis);
   const tValue = (axis: string, value: string) => valueByAxis.get(axis)?.get(value) ?? baseValue(value);
   return {
+    axisNames: axisName,
+    disambiguatedAxes,
     options(raw) {
       const out: Record<string, string> = {};
       for (const [axis, value] of Object.entries(raw ?? {})) out[tAxis(axis)] = tValue(axis, value);
@@ -608,4 +932,20 @@ export function buildTranslatorFromBase(
       return out;
     },
   };
+}
+
+/**
+ * Rå-axlar vars SLUTNAMN inte är kund-klart: antingen fortfarande rå engelska
+ * (tabell-miss utan omklassning/override) ELLER ett kollisions-särskiljande suffix
+ * (två axlar ville ha samma namn). Delas av AI- och sync-vägen för att flagga
+ * needsAiPolish — garantin att ingen produkt skeppas med ett engelskt/felmärkt namn.
+ */
+export function unresolvedAxisNames(
+  translator: Pick<VariantTranslator, "axisNames" | "disambiguatedAxes">,
+): string[] {
+  const out: string[] = [];
+  for (const [raw, final] of translator.axisNames) {
+    if (axisNameUnresolved(raw, final) || translator.disambiguatedAxes.has(raw)) out.push(raw);
+  }
+  return out;
 }

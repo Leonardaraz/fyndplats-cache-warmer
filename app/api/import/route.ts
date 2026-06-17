@@ -383,6 +383,18 @@ export async function POST(req: Request) {
     const mappingExtras: Record<string, unknown> = {};
     if (needsAiPolish) mappingExtras.needsAiPolish = true;
     if (needsManualPolish) mappingExtras.needsManualPolish = true;
+    // Olösta variantvärden (kvar-engelska efter tabell+cache+AI): logga synligt +
+    // spara på mappningen så kö-badgen kan visa VILKA — diagnosen 2026-06-09 tog
+    // timmar just för att detta var osynligt i både loggar och kö.
+    const unresolvedVariantValues = Array.isArray(resultAny.unresolvedVariantValues)
+      ? (resultAny.unresolvedVariantValues as string[])
+      : undefined;
+    if (unresolvedVariantValues?.length) {
+      console.warn(
+        `[import:vars] pid=${result.supplierProductId} olösta=[${unresolvedVariantValues.join(", ")}] → needsAiPolish`,
+      );
+      mappingExtras.unresolvedVariantValues = unresolvedVariantValues;
+    }
     if (isPremiumResult) mappingExtras.qualityMode = "premium";
     if (typeof resultAny.qualityScore === "number") mappingExtras.qualityScore = resultAny.qualityScore;
     if (resultAny.imageAnalysis !== undefined) mappingExtras.imageAnalysis = resultAny.imageAnalysis;
