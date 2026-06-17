@@ -708,18 +708,55 @@ async function fireMetaPurchase(order: Record<string, unknown>): Promise<void> {
 }
 
 export async function POST(req: NextRequest) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    console.error("[wix-webhook] RESEND_API_KEY saknas — kan inte skicka mejl");
-    return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
-  }
-
   let rawBody: string;
   try {
     rawBody = await req.text();
   } catch (err) {
     console.error("[wix-webhook] Kunde inte läsa body", err);
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  }
+
+  // DEBUG 2026-06-17 (TEMPORARY — remove after right WIX_WEBHOOK_PUBLIC_KEY
+  // installed). De riktiga order_created-eventen ger 401 men ett test-event
+  // från "My New App-4" verifierades OK → de signeras av en annan källa än
+  // vår installerade public key. Vi dekodar JWT-header + payload UTAN signa-
+  // turverifiering här så att Vercel-loggen avslöjar iss/kid/instanceId för
+  // den signerande appen. Ligger FÖRE alla andra guards så det fyrar även
+  // när RESEND_API_KEY/JWT verifiering skulle ha avbrutit requesten.
+  try {
+    const __looksLikeJwt = rawBody.split(".").length === 3 && !rawBody.trim().startsWith("{");
+    const __t = __looksLikeJwt
+      ? rawBody.trim()
+      : (() => {
+          try {
+            const j = JSON.parse(rawBody) as { data?: string };
+            return typeof j.data === "string" ? j.data : "";
+          } catch {
+            return "";
+          }
+        })();
+    if (__t && __t.split(".").length === 3) {
+      const [__h, __p] = __t.split(".");
+      console.error(
+        "[wix-webhook] 401-DEBUG header=",
+        Buffer.from(__h, "base64url").toString("utf8"),
+        "payload=",
+        Buffer.from(__p, "base64url").toString("utf8").slice(0, 500),
+      );
+    } else {
+      console.error(
+        "[wix-webhook] 401-DEBUG body är inte JWT — börjar med:",
+        rawBody.slice(0, 200),
+      );
+    }
+  } catch (e) {
+    console.error("[wix-webhook] 401-DEBUG decode failed", e);
+  }
+
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    console.error("[wix-webhook] RESEND_API_KEY saknas — kan inte skicka mejl");
+    return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
   }
 
   // Verifiera Wix JWT-signatur om public key finns. Wix skickar antingen
