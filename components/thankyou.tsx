@@ -11,14 +11,19 @@ import { trackPurchase } from "../lib/analytics";
 // Anonymiseringsboundary: vi visar bara ordernumret + generisk leverans-info,
 // INTE några sourcing-detaljer. Wix Ecom skickar order-bekräftelse-mejl med
 // fullständiga detaljer separat.
-export function ThankYou() {
+export function ThankYou({ orderNumber }: { orderNumber?: string | null }) {
   const params = useSearchParams();
-  // Wix Headless redirect-params variera över versioner — prova flera
+  // Wix Headless redirect-params variera över versioner — prova flera. OBS:
+  // detta är orderns interna _id (GUID) — används för GA4/Meta-dedup nedan.
   const orderId =
     params.get("orderId") ||
     params.get("orderNumber") ||
     params.get("order") ||
     params.get("orderID");
+
+  // Synligt ordernummer: det läsbara numret (t.ex. "10003") som /tack-sidan
+  // slår upp server-side, annars GUID:t som fallback så fältet aldrig blir tomt.
+  const displayNo = orderNumber || orderId;
 
   // Slutbelopp (efter frakt/rabatt) om Wix headless appendar det på redirecten.
   // Används för att Purchase-value ska matcha det server-autoritativa webhook-
@@ -66,10 +71,10 @@ export function ThankYou() {
       <div className="eyebrow">Beställning mottagen</div>
       <h1 className="tack-title">Tack för din order!</h1>
 
-      {orderId && (
+      {displayNo && (
         <div className="tack-orderno">
           <span className="tack-orderno-label">Ordernummer</span>
-          <span className="tack-orderno-val">#{orderId}</span>
+          <span className="tack-orderno-val">#{displayNo}</span>
         </div>
       )}
 
