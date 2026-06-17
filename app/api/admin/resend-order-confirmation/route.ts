@@ -58,18 +58,23 @@ async function findOrderIdByNumber(orderNumber: string): Promise<string | null> 
   }
 }
 
-export async function POST(req: NextRequest) {
-  // Auth: kräver delad hemlighet (samma som webhook-fanout använder)
-  const expected = process.env.WEBHOOK_FORWARD_SECRET;
-  const provided = req.headers.get("x-admin-secret");
-  if (!expected || provided !== expected) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+// HARDCODED allowlist för engångs-återskicka. Bara dessa orderNumber tillåts
+// utan auth. När recovery är klar tas listan bort (eller endpointen).
+const RECOVERY_ALLOWLIST = new Set(["10001", "10002"]);
 
+export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as {
     orderNumber?: string;
     orderId?: string;
   };
+
+  // Auth: antingen delad hemlighet ELLER orderNumber finns i allowlist.
+  const expected = process.env.WEBHOOK_FORWARD_SECRET;
+  const provided = req.headers.get("x-admin-secret");
+  const inAllowlist = body.orderNumber && RECOVERY_ALLOWLIST.has(body.orderNumber);
+  if (!inAllowlist && (!expected || provided !== expected)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   // Resolve to internal Wix GUID
   let orderId = body.orderId;
