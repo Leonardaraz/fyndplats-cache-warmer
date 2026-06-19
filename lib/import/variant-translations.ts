@@ -605,6 +605,41 @@ function convertFeetToMeters(value: string): string {
   );
 }
 
+const parseDec = (s: string): number => parseFloat(String(s).replace(",", "."));
+
+/** Avrundar till 1 decimal (matematiskt), svenskt komma, heltal utan ",0". */
+function fmtRound1(n: number): string {
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? String(r) : r.toFixed(1).replace(".", ",");
+}
+
+/**
+ * Konverterar ENTYDIGA brittiska/amerikanska enheter → metriskt (nummer-ankrat),
+ * vid sidan av inch→tum och ft→m. BARA enheter vars namn inte krockar med vanliga
+ * produkt-/svenska ord; krock-enheter (pin, ton, stone, chain, cable, grain, mil,
+ * mile, hand, span, slug, quarter, dram, barrel, butt, gill, fathom, furlong …)
+ * konverteras AVSIKTLIGT inte — de fångas av svenskhets-grinden och flaggas till
+ * poleringskön (Leonards val 2026-06-19: "säkra + flagga resten"). Vridmoment körs
+ * FÖRST: "ft-lb"/"in-lb" innehåller ft/in och måste konverteras före ft/inch-passen.
+ */
+function convertSafeImperialUnits(value: string): string {
+  let v = value;
+  // Vridmoment FÖRST (annars äter ft/inch-passen "ft"/"in" ur "ft-lb"/"in-lb").
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*(?:ft|foot|feet)[\s.-]?(?:lbs?|pounds?)\b/gi, (_m, n: string) => `${fmtRound1(parseDec(n) * 1.356)} Nm`);
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*in(?:ch)?[\s.-]?(?:lbs?|pounds?)\b/gi, (_m, n: string) => `${fmtRound1(parseDec(n) * 0.113)} Nm`);
+  // Volym: "fl oz" FÖRE "oz"; gallon/quart → liter, pint/fl oz → ml.
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*(?:fl\.?\s*oz|fluid\s*ounces?)\b/gi, (_m, n: string) => `${Math.round(parseDec(n) * 29.57)} ml`);
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*gallons?\b/gi, (_m, n: string) => `${fmtRound1(parseDec(n) * 3.785)} liter`);
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*quarts?\b/gi, (_m, n: string) => `${fmtRound1(parseDec(n) * 0.94635)} liter`);
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*pints?\b/gi, (_m, n: string) => `${Math.round(parseDec(n) * 473.17)} ml`);
+  // Vikt: pound/lb → kg (ej "pound-force"), ounce/oz → g.
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*(?:lbs?|pounds?)\b(?!\s*-?\s*force)/gi, (_m, n: string) => `${fmtRound1(parseDec(n) * 0.45359)} kg`);
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*(?:oz|ounces?)\b/gi, (_m, n: string) => `${Math.round(parseDec(n) * 28.35)} g`);
+  // Längd: yard → meter (inch/ft hanteras separat). Trunkerad som ft→m (handelspraxis).
+  v = v.replace(/(\d+(?:[.,]\d+)?)\s*(?:yards?|yds?)\b/gi, (_m, n: string) => `${formatMeters(parseDec(n) * 0.9144)} m`);
+  return v;
+}
+
 const CM_PER_INCH = 2.54;
 /** tum→cm, avrundat till heltal (ren UNGEFÄRSangivelse, märkt "≈"). */
 function inchesToCm(n: string): number {
@@ -643,7 +678,7 @@ function appendInchDimensionMetric(value: string): string {
  * convertFeetToMeters); cm/mm är samma på svenska.
  */
 function normalizeUnits(value: string): string {
-  let v = convertFeetToMeters(value)
+  let v = convertFeetToMeters(convertSafeImperialUnits(value))
     .replace(/(\d)\s*inches\b/gi, "$1 tum")
     .replace(/(\d)\s*inch\b/gi, "$1 tum")
     .replace(/(\d)\s*["“”]/g, "$1 tum");
