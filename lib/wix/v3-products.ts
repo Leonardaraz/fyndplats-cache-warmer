@@ -43,6 +43,10 @@ export interface WixV3ProductSummary {
   brandName?: string;
   inStock?: boolean;
   handle?: string;
+  /** Publicerad? Används för att aldrig pinga/feeda draft-URL:er. */
+  visible?: boolean;
+  /** ISO-tid för senaste ändring — driver IndexNow-cronens "ändrad senaste 48h". */
+  updatedDate?: string;
   existingTags?: Array<Record<string, unknown>>;
   /** HTML-brödtext (PLAIN_DESCRIPTION-fältet) — tomt = saknar beskrivning. */
   plainDescription?: string;
@@ -87,6 +91,8 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         revision?: string;
         name: string;
         slug: string;
+        visible?: boolean;
+        updatedDate?: string;
         description?: string;
         plainDescription?: string;
         media?: { main?: { image?: { url?: string } } };
@@ -128,6 +134,8 @@ export async function listAllV3Products(): Promise<WixV3ProductSummary[]> {
         seoDescription: p.seoDescription,
         priceMin: p.actualPriceRange?.minValue?.amount,
         brandName: p.brand?.name,
+        visible: p.visible,
+        updatedDate: p.updatedDate,
         inStock: p.inventory?.availabilityStatus === "IN_STOCK",
         handle: p.handle,
         existingTags: tags as Array<Record<string, unknown>>,

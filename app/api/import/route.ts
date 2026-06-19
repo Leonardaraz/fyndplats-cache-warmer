@@ -22,6 +22,7 @@ import {
 import { audit } from "@/lib/audit";
 import { describeRouting } from "@/lib/import/trigger-routing";
 import { triggerCropDetection } from "@/lib/headless/trigger-crop-detection";
+import { pingProductSlugs } from "@/lib/seo/indexnow";
 
 const VariantSchema = z.object({
   supplierVariantId: z.string().min(1),
@@ -527,6 +528,13 @@ export async function POST(req: Request) {
     // Fire-and-forget: be headless detektera tight-crop för nya bilder.
     // Se lib/headless/trigger-crop-detection.ts för designbeslut. No-await.
     triggerCropDetection({ source: `import:${result.wixProductId}` });
+
+    // IndexNow: be sökmotorer crawla den nya sidan direkt — MEN bara om den
+    // faktiskt publicerades. Draft-URL:er (pending_review) ska aldrig pingas.
+    // Best-effort/no-await: pingProductSlugs kastar aldrig.
+    if (draftStatus === "published" && result.slug) {
+      void pingProductSlugs([result.slug]);
+    }
 
     return NextResponse.json(
       {

@@ -5,9 +5,11 @@ import {
   enrichAllV3Action,
   migrateDescriptionsAction,
   migrateInfoSectionsAction,
+  pingAllIndexNowAction,
   type EnrichActionResult,
   type MigrateDescriptionsResult,
   type MigrateInfoSectionsResult,
+  type PingIndexNowResult,
 } from "./actions";
 
 interface Props {
@@ -31,6 +33,8 @@ export function SeoTools({
   const [descResult, setDescResult] = useState<MigrateDescriptionsResult | null>(null);
   const [infoPending, startInfoTransition] = useTransition();
   const [infoResult, setInfoResult] = useState<MigrateInfoSectionsResult | null>(null);
+  const [indexNowPending, startIndexNowTransition] = useTransition();
+  const [indexNowResult, setIndexNowResult] = useState<PingIndexNowResult | null>(null);
 
   function runEnrich(dryRun: boolean) {
     setEnrichResult(null);
@@ -53,6 +57,14 @@ export function SeoTools({
     startInfoTransition(async () => {
       const res = await migrateInfoSectionsAction(dryRun);
       setInfoResult(res);
+    });
+  }
+
+  function runIndexNow(dryRun: boolean) {
+    setIndexNowResult(null);
+    startIndexNowTransition(async () => {
+      const res = await pingAllIndexNowAction(dryRun);
+      setIndexNowResult(res);
     });
   }
 
@@ -87,6 +99,8 @@ export function SeoTools({
           style={btn}>📥 Ladda ner sitemap.xml</a>
         <a href={fullConfigUrl} target="_blank" rel="noreferrer"
           style={btnSecondary}>🔍 Full rapport (JSON)</a>
+        <a href="/api/seo/feed" target="_blank" rel="noreferrer"
+          style={btnSecondary}>🛒 Produktfeed (Shopping/Prisjakt)</a>
       </div>
 
       <h3 style={{ marginTop: 24, fontSize: 16 }}>Enricha V3-katalogen med saknade SEO-taggar</h3>
@@ -239,6 +253,57 @@ export function SeoTools({
               </>
             ) : (
               <>Fel: {infoResult.error}</>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      <h3 style={{ marginTop: 24, fontSize: 16 }}>IndexNow — be sökmotorer crawla katalogen nu</h3>
+      <p style={{ fontSize: 13, color: "#666" }}>
+        Pingar IndexNow (Bing/Yandex m.fl.) för <b>alla synliga</b> produkter så
+        de köas för snabb (om)crawl. Ren uppsida — kan bara begära crawl, aldrig
+        sänka ranking. Nya/ändrade produkter pingas automatiskt vid publicering +
+        dagligen via cron; den här knappen är för en engångs-backfill av hela
+        katalogen. Kräver <code>INDEXNOW_KEY</code> i env och nyckelfilen{" "}
+        <code>{`{key}.txt`}</code> på storefront-roten. Dry-run visar URL-listan först.
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => runIndexNow(true)} disabled={indexNowPending}
+          style={btnSecondary}>
+          {indexNowPending ? "Kör..." : "🧪 Dry-run (förhandsgranska)"}
+        </button>
+        <button
+          onClick={() => {
+            if (!confirm("Pingar IndexNow för alla synliga produkter. Fortsätt?")) {
+              return;
+            }
+            runIndexNow(false);
+          }}
+          disabled={indexNowPending}
+          style={btn}>
+          {indexNowPending ? "Pingar..." : "📡 Pinga alla nu"}
+        </button>
+        {indexNowResult ? (
+          <div style={{
+            fontSize: 13, padding: "8px 12px", borderRadius: 4, flexBasis: "100%",
+            background: indexNowResult.ok ? "#e7fde7" : "#fde7e7",
+            color: indexNowResult.ok ? "#070" : "#a00",
+          }}>
+            {indexNowResult.ok ? (
+              <>
+                <b>{indexNowResult.dryRun ? "DRY-RUN" : "PINGAT ✅"}:</b>{" "}
+                {indexNowResult.dryRun ? indexNowResult.toPing : indexNowResult.pinged} av{" "}
+                {indexNowResult.total} synliga produkter
+                {indexNowResult.dryRun ? " skulle pingas" : " pingade"}
+                {!indexNowResult.configured ? " · ⚠️ INDEXNOW_KEY saknas" : ""}
+                {indexNowResult.sampleUrls && indexNowResult.sampleUrls.length > 0 ? (
+                  <ul style={{ marginTop: 6, fontSize: 12 }}>
+                    {indexNowResult.sampleUrls.map((u, i) => (<li key={i}>{u}</li>))}
+                  </ul>
+                ) : null}
+              </>
+            ) : (
+              <>Fel: {indexNowResult.error}</>
             )}
           </div>
         ) : null}

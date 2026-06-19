@@ -10,12 +10,16 @@ import {
   setProductMedia,
   setProductVisibility,
 } from "@/lib/wix/client";
+import { pingProductSlugs } from "@/lib/seo/indexnow";
 
 async function applyAction(
   wixProductIds: string[],
   kind: "publish" | "reject",
 ): Promise<void> {
   const store = getStore();
+  // Slugs för produkter som faktiskt publicerades → pingas till IndexNow efter
+  // loopen (en gång, batchat). snapshot.slug finns redan i GET-svaret → 0 extra anrop.
+  const publishedSlugs: string[] = [];
   for (const id of wixProductIds) {
     try {
       const mapping = await store.getMappingByWixProductId(id);
@@ -25,6 +29,7 @@ async function applyAction(
         const snapshot = await getProduct(id);
         if (snapshot) {
           await setProductVisibility(id, snapshot.revision, true);
+          if (snapshot.slug) publishedSlugs.push(snapshot.slug);
         }
       }
 
@@ -44,6 +49,9 @@ async function applyAction(
       );
     }
   }
+  // IndexNow: snabb crawl-begäran för de nypublicerade sidorna. Best-effort
+  // (kastar aldrig) och no-await så publiceringssvaret inte blockeras.
+  if (publishedSlugs.length > 0) void pingProductSlugs(publishedSlugs);
   revalidatePath("/admin/queue");
 }
 

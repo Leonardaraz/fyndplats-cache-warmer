@@ -9,6 +9,8 @@ import {
 import { listAllV1Products } from "@/lib/wix/v1-products";
 import { generateMissingSeoTags, type V3ProductForEnrich } from "@/lib/seo/enrich";
 import { normalizeName } from "@/lib/seo/migration";
+import { productUrl } from "@/lib/seo/urls";
+import { pingProductSlugs, indexNowConfigured } from "@/lib/seo/indexnow";
 
 export interface EnrichActionResult {
   ok: boolean;
@@ -282,6 +284,75 @@ export async function migrateInfoSectionsAction(
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+export interface PingIndexNowResult {
+  ok: boolean;
+  dryRun: boolean;
+  /** True om INDEXNOW_KEY finns och inte avstängd via env. */
+  configured: boolean;
+  total: number;
+  /** Antal synliga produkter som skulle/blev pingade. */
+  toPing: number;
+  pinged: number;
+  status?: number;
+  sampleUrls?: string[];
+  error?: string;
+}
+
+/**
+ * Engångs-backfill: pingar IndexNow för ALLA synliga produkter i katalogen.
+ * Använd efter att nyckelfilen lagts upp i headless, så hela befintliga
+ * katalogen köas för (om)crawl. Draft-produkter hoppas över.
+ *
+ * dryRun=true bygger bara URL-listan (verifiera innan skarp ping). Best-effort:
+ * pingProductSlugs kastar aldrig.
+ */
+export async function pingAllIndexNowAction(dryRun: boolean): Promise<PingIndexNowResult> {
+  try {
+    const configured = indexNowConfigured();
+    const all = await listAllV3Products();
+    const slugs = all.filter((p) => p.slug && p.visible !== false).map((p) => p.slug);
+    const sampleUrls = slugs.slice(0, 5).map((s) => productUrl(s));
+
+    if (dryRun) {
+      return { ok: true, dryRun: true, configured, total: all.length, toPing: slugs.length, pinged: 0, sampleUrls };
+    }
+    if (!configured) {
+      return {
+        ok: false,
+        dryRun: false,
+        configured,
+        total: all.length,
+        toPing: slugs.length,
+        pinged: 0,
+        sampleUrls,
+        error: "INDEXNOW_KEY saknas (eller INDEXNOW_ENABLED=false) — lägg nyckeln + nyckelfilen först.",
+      };
+    }
+    const res = await pingProductSlugs(slugs);
+    return {
+      ok: res.ok,
+      dryRun: false,
+      configured,
+      total: all.length,
+      toPing: slugs.length,
+      pinged: res.submitted,
+      status: res.status,
+      sampleUrls,
+      error: res.error,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      dryRun,
+      configured: indexNowConfigured(),
+      total: 0,
+      toPing: 0,
+      pinged: 0,
+      error: err instanceof Error ? `${err.name}: ${err.message}` : "okänt fel",
+    };
+  }
 }
 
 export interface MigrateDescriptionsResult {
