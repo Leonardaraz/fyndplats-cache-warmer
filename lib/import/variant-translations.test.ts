@@ -484,6 +484,37 @@ describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-0
   });
 });
 
+describe("translateValue — säkra brittiska/amerikanska enheter → metriskt (2026-06-19)", () => {
+  it("vikt: lb/lbs/pound → kg, oz/ounce → g", () => {
+    expect(translateValue("5 lb")).toBe("2,3 kg");
+    expect(translateValue("10 lbs")).toBe("4,5 kg");
+    expect(translateValue("8 oz")).toBe("227 g");
+  });
+  it("volym: gallon/quart → liter, pint/fl oz → ml", () => {
+    expect(translateValue("5 gallon")).toBe("18,9 liter");
+    expect(translateValue("2 quart")).toBe("1,9 liter");
+    expect(translateValue("1 pint")).toBe("473 ml");
+    expect(translateValue("8 fl oz")).toBe("237 ml");
+  });
+  it("längd: yard → meter", () => {
+    expect(translateValue("5 yard")).toBe("4,5 m");
+  });
+  it("vridmoment: ft-lb / in-lb → Nm (körs FÖRE ft/inch-passen)", () => {
+    expect(translateValue("100 ft-lb")).toBe("135,6 Nm");
+    expect(translateValue("50 in-lb")).toBe("5,7 Nm");
+  });
+  it("ordkrock-enheter konverteras INTE (flaggas av grinden i stället)", () => {
+    expect(translateValue("3 Pin")).not.toMatch(/liter|ml|kg|Nm/i); // kontaktstift, ej ölmått
+    expect(translateValue("2 Ton")).not.toMatch(/kg/i); // 'ton' är redan metriskt på svenska
+    expect(translateValue("3 Quarter")).not.toMatch(/liter/i); // 'quart\b' äter inte 'quarter'
+    expect(translateValue("5 pound-force")).not.toMatch(/kg/i); // kraft (lbf), ej vikt
+  });
+  it("rör inte inch/ft (hanteras separat)", () => {
+    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum (≈81 × 61 cm)");
+    expect(translateValue("10 x 10 ft")).toBe("3 x 3 m");
+  });
+});
+
 describe("translateValue — ≈cm-tillägg på tum-MÅTTKEDJOR (Leonards val 2026-06-19)", () => {
   it("lägger ≈cm efter en x-kedja i tum (möbel/väska/tält)", () => {
     expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum (≈81 × 61 cm)");
