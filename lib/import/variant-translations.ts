@@ -605,6 +605,36 @@ function convertFeetToMeters(value: string): string {
   );
 }
 
+const CM_PER_INCH = 2.54;
+/** tum→cm, avrundat till heltal (ren UNGEFÄRSangivelse, märkt "≈"). */
+function inchesToCm(n: string): number {
+  return Math.round(parseFloat(n.replace(",", ".")) * CM_PER_INCH);
+}
+
+/**
+ * Lägger till en metrisk UNGEFÄRSangivelse efter en TUM-MÅTTKEDJA (x-separerad,
+ * ≥2 tal): "32 tum x 24 tum" → "32 tum x 24 tum (≈81 × 61 cm)". Hjälper köparen
+ * på möbel-/väsk-/tält-mått. Ett FRISTÅENDE tum-värde ("55 tum", "27 tum" — TV,
+ * skärm, hjul, rör, där tum ÄR rätt svensk enhet) lämnas medvetet orört (Leonards
+ * val 2026-06-19: ≈cm bara på måttkedjor). Idempotent (rör inte värde som redan
+ * har "(≈"). Körs sist i normalizeUnits → ft→m (meter, ingen "tum") berörs aldrig.
+ */
+function appendInchDimensionMetric(value: string): string {
+  if (/\(≈/.test(value)) return value;
+  let nums: string[] | null = null;
+  // Form 1: x-kedja följt av EN "tum" ("8x10 tum", "2000D48x48x80 tum").
+  const chain = value.match(/(\d+(?:[.,]\d+)?(?:\s*[x×]\s*\d+(?:[.,]\d+)?)+)\s*tum\b/i);
+  if (chain) {
+    nums = chain[1].split(/\s*[x×]\s*/);
+  } else {
+    // Form 2: "tum" per tal ("32 tum x 24 tum [x 8 tum]").
+    const perNum = value.match(/\d+(?:[.,]\d+)?\s*tum(?:\s*[x×]\s*\d+(?:[.,]\d+)?\s*tum)+/i);
+    if (perNum) nums = perNum[0].split(/\s*[x×]\s*/).map((s) => s.replace(/\s*tum\s*/i, ""));
+  }
+  if (!nums || nums.length < 2) return value; // fristående tum (skärm/hjul) → orört
+  return `${value} (≈${nums.map(inchesToCm).join(" × ")} cm)`;
+}
+
 /**
  * Normaliserar enheter i ett värde till svenska/metriskt — nummer-ankrat, så ett
  * löst "in" (preposition) ALDRIG rörs: "42 inch"/`42"` → "42 tum". Bart "in"
@@ -655,7 +685,7 @@ function normalizeUnits(value: string): string {
   if (!/\d\s*[x×]\s*\d/.test(v)) v = v.replace(/(\d)in\b(?!\s*\d)/gi, "$1 tum");
   const bare = v.trim().match(/^(\d+(?:[.,]\d+)?)\s*in$/i);
   if (bare) v = `${bare[1]} tum`;
-  return v;
+  return appendInchDimensionMetric(v);
 }
 
 /**
