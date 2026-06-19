@@ -447,9 +447,9 @@ describe("translateValue — ft→m (nummer-ankrat, aritmetik, NOMINELL/trunkera
 });
 
 describe("translateValue — hopskrivna in-dimensioner med kodprefix (growtältet 2026-06-09)", () => {
-  it("'2000D48x48x80in' → '2000D48x48x80 tum' (kedjan entydig trots prefix)", () => {
-    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum");
-    expect(translateValue("2000D60x60x80in")).toBe("2000D60x60x80 tum");
+  it("'2000D48x48x80in' → '2000D48x48x80 tum (≈… cm)' (kedjan entydig trots prefix)", () => {
+    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum (≈122 × 122 × 203 cm)");
+    expect(translateValue("2000D60x60x80in")).toBe("2000D60x60x80 tum (≈152 × 152 × 203 cm)");
   });
 
   it("prepositions-skyddet håller fortfarande", () => {
@@ -462,19 +462,19 @@ describe("translateValue — hopskrivna in-dimensioner med kodprefix (growtälte
     expect(translateValue("48in x 48 x 80in")).toBe("48in x 48 x 80in");
     // …fristående kedjor vid slutet konverteras fortfarande.
     expect(translateValue("Tent 10x10ft")).toBe("Tent 3 x 3 m");
-    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum");
+    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum (≈122 × 122 × 203 cm)");
   });
 });
 
 describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-09)", () => {
   it("enhet per tal: '32 in x 24 in' → '32 tum x 24 tum'", () => {
-    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum");
-    expect(translateValue("44 in x 44 in")).toBe("44 tum x 44 tum");
-    expect(translateValue("32in x 24in")).toBe("32 tum x 24 tum"); // utan mellanslag
+    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum (≈81 × 61 cm)");
+    expect(translateValue("44 in x 44 in")).toBe("44 tum x 44 tum (≈112 × 112 cm)");
+    expect(translateValue("32in x 24in")).toBe("32 tum x 24 tum (≈81 × 61 cm)"); // utan mellanslag
   });
 
-  it("EN avslutande enhet: '24 x 32 in' → '24 x 32 tum'", () => {
-    expect(translateValue("24 x 32 in")).toBe("24 x 32 tum");
+  it("EN avslutande enhet: '24 x 32 in' → '24 x 32 tum (≈… cm)'", () => {
+    expect(translateValue("24 x 32 in")).toBe("24 x 32 tum (≈61 × 81 cm)");
   });
 
   it("prepositions-'in' förblir SKYDDAT (hel-värdes-ankringen)", () => {
@@ -484,12 +484,26 @@ describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-0
   });
 });
 
+describe("translateValue — ≈cm-tillägg på tum-MÅTTKEDJOR (Leonards val 2026-06-19)", () => {
+  it("lägger ≈cm efter en x-kedja i tum (möbel/väska/tält)", () => {
+    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum (≈81 × 61 cm)");
+    expect(translateValue("10x10x8 in")).toBe("10x10x8 tum (≈25 × 25 × 20 cm)");
+  });
+  it("RÖR INTE fristående tum (TV/skärm/hjul/rör — tum är rätt svensk enhet)", () => {
+    expect(translateValue("55 inch")).toBe("55 tum");
+    expect(translateValue("27 in")).toBe("27 tum");
+  });
+  it("ft→m berörs aldrig (meter, ingen 'tum')", () => {
+    expect(translateValue("10 x 10 ft")).toBe("3 x 3 m");
+  });
+});
+
 describe("translateValue — REGEL A: dimension + 'in' + antals-svans (canvas-tavlorna 2026-06-09)", () => {
   it("'11x14 in 12pcs' → '11x14 tum 12 st' (in mellan dimension och antal)", () => {
-    expect(translateValue("11x14 in 12pcs")).toBe("11x14 tum 12 st");
-    expect(translateValue("8x10 in 24pcs")).toBe("8x10 tum 24 st");
-    expect(translateValue("11x14in 12Pcs")).toBe("11x14 tum 12 st"); // glued dim+in
-    expect(translateValue("12x16 in 24 st")).toBe("12x16 tum 24 st"); // redan svensk svans
+    expect(translateValue("11x14 in 12pcs")).toBe("11x14 tum 12 st (≈28 × 36 cm)");
+    expect(translateValue("8x10 in 24pcs")).toBe("8x10 tum 24 st (≈20 × 25 cm)");
+    expect(translateValue("11x14in 12Pcs")).toBe("11x14 tum 12 st (≈28 × 36 cm)"); // glued dim+in
+    expect(translateValue("12x16 in 24 st")).toBe("12x16 tum 24 st (≈30 × 41 cm)"); // redan svensk svans
   });
 
   it("'4 in 1 32pcs' lämnar 'in' (idiom, inleds INTE med x-kedja)", () => {
