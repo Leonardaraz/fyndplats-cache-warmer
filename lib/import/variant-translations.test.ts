@@ -496,8 +496,14 @@ describe("translateValue — säkra brittiska/amerikanska enheter → metriskt (
     expect(translateValue("1 pint")).toBe("473 ml");
     expect(translateValue("8 fl oz")).toBe("237 ml");
   });
-  it("längd: yard → meter", () => {
+  it("längd: yard → meter (även i NxN-dimensioner — hela kedjan, ej halv)", () => {
     expect(translateValue("5 yard")).toBe("4,5 m");
+    // Regression 2026-06-19: "3 x 5 yd" halv-konverterades till "3 x 4,5 m"
+    // (blandad enhet, tyst fel). Nu konverteras HELA kedjan via ft-maskineriet.
+    expect(translateValue("3 x 5 yard")).toBe("2,7 x 4,5 m");
+    expect(translateValue("3x5 yards")).toBe("2,7 x 4,5 m");
+    expect(translateValue("3 x 5 yd")).toBe("2,7 x 4,5 m");
+    expect(translateValue("Rug 3x5 yd")).toBe("Rug 2,7 x 4,5 m"); // prefix bevaras (som "Tent 10x10ft")
   });
   it("vridmoment: ft-lb / in-lb → Nm (körs FÖRE ft/inch-passen)", () => {
     expect(translateValue("100 ft-lb")).toBe("135,6 Nm");

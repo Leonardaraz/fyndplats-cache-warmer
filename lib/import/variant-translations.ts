@@ -548,36 +548,42 @@ function formatMeters(m: number): string {
 }
 
 const FT_IN_METERS = 0.3048;
+const YD_IN_METERS = 0.9144;
 
 /**
- * Konverterar fot→meter med aritmetik (variantval ska vara metriska från start —
- * V3 key-låser värdena, så enheten går inte att byta i efterhand). Nummer-ankrat:
- * "Foot Rest" (ingen siffra) rörs aldrig. Två mönster:
- *   1. Dimension med EN avslutande enhet: "10 x 10 ft"/"10x10x8 Feet" → alla tal
+ * Konverterar en LÄNGD-enhet (fot ELLER yard) → meter med aritmetik, kedje-medvetet.
+ * Generaliserad (Leonards val 2026-06-19) så yard får SAMMA guard-maskineri som ft —
+ * annars halv-konverteras "3 x 5 yd" → "3 x 4,5 m" (blandad enhet = tyst fel siffra).
+ * `unitAlt` = regex-alternering (utan grupp, t.ex. "feet|foot|ft"), `factor` = meter
+ * per enhet. Variantval ska vara metriska från start (V3 key-låser värdena, så enheten
+ * går inte att byta i efterhand). Nummer-ankrat: "Foot Rest" (ingen siffra) rörs aldrig.
+ * Två mönster:
+ *   1. Dimension med EN avslutande enhet: "10 x 10 ft"/"3x5 yd" → alla tal
  *      konverteras, kanoniskt " x " + " m": "3 x 3 m".
  *   2. Per förekomst: "12ft" → "3,6 m", "10ft x 13ft" → "3 m x 3,9 m".
  * Känd accepterad edge: "5 ft 6 in" konverterar bara ft-delen (sällsynt i AE-data).
  */
-function convertFeetToMeters(value: string): string {
+function convertLengthChainToMeters(value: string, unitAlt: string, factor: number): string {
   const num = (s: string) => parseFloat(s.replace(",", "."));
+  const NUM = /\d+(?:[.,]\d+)?/.source;
+  const U = `(?:${unitAlt})`;
   const dim = value
     .trim()
-    .match(/^(\d+(?:[.,]\d+)?(?:\s*[x×]\s*\d+(?:[.,]\d+)?)+)\s*(?:feet|foot|ft)\.?$/i);
+    .match(new RegExp(`^(${NUM}(?:\\s*[x×]\\s*${NUM})+)\\s*${U}\\.?$`, "i"));
   if (dim) {
     return (
       dim[1]
         .split(/\s*[x×]\s*/)
-        .map((n) => formatMeters(num(n) * FT_IN_METERS))
+        .map((n) => formatMeters(num(n) * factor))
         .join(" x ") + " m"
     );
   }
   // SLUT-ankrad dimensionskedja med prefix ("Tent 10x10ft"): kedjan tal-x-tal +
-  // avslutande ft är entydig → konvertera HELA kedjan, behåll prefixet. Körs
+  // avslutande enhet är entydig → konvertera HELA kedjan, behåll prefixet. Körs
   // FÖRE S1-guarden — guarden skyddar mot HALV-konvertering; en komplett kedja
   // vid strängens slut är säker.
-  const NUM_FT = /\d+(?:[.,]\d+)?/.source;
   const endChain = value.match(
-    new RegExp(`^(.*?)(${NUM_FT}(?:\\s*[x×]\\s*${NUM_FT})+)\\s*(?:feet|foot|ft)\\.?$`, "i"),
+    new RegExp(`^(.*?)(${NUM}(?:\\s*[x×]\\s*${NUM})+)\\s*${U}\\.?$`, "i"),
   );
   // Slutpass-guard (S-A): är kedjan x-KOPPLAD till prefixet ("8 ft x 8 x 7 ft")
   // hör talen ihop över gränsen → konvertering gåve blandade enheter. Lämna åt
@@ -587,22 +593,26 @@ function convertFeetToMeters(value: string): string {
       endChain[1] +
       endChain[2]
         .split(/\s*[x×]\s*/)
-        .map((n) => formatMeters(num(n) * FT_IN_METERS))
+        .map((n) => formatMeters(num(n) * factor))
         .join(" x ") +
       " m"
     );
   }
-  // AUDIT-GUARD (S1): finns en NAKEN tal-x-tal-dimension ("10x10") som den
-  // ankrade regexen INTE fångade (prefix/suffix-text, t.ex. "10x10 ft Gazebo")
-  // skulle per-förekomst-passet halvkonvertera ("10x3 m Gazebo" = FELAKTIGT
-  // mått). Lämna då värdet orört — AI:n/flaggan tar det i stället för att vi
-  // skeppar fel siffror. ("10ft x 13ft" har enhet per tal → ingen naken x-
-  // adjacens → konverteras korrekt nedan.)
+  // AUDIT-GUARD (S1): finns en NAKEN tal-x-tal-dimension ("10x10") som de ankrade
+  // regexarna INTE fångade (prefix/suffix-text, t.ex. "10x10 ft Gazebo") skulle
+  // per-förekomst-passet halvkonvertera ("10x3 m Gazebo" = FELAKTIGT mått). Lämna
+  // då värdet orört — AI:n/flaggan tar det i stället för att vi skeppar fel siffror.
+  // ("10ft x 13ft" har enhet per tal → ingen naken x-adjacens → konverteras nedan.)
   if (/\d\s*[x×]\s*\d/.test(value)) return value;
   return value.replace(
-    /(\d+(?:[.,]\d+)?)\s*(?:feet|foot|ft)\b/gi,
-    (_, n: string) => `${formatMeters(num(n) * FT_IN_METERS)} m`,
+    new RegExp(`(${NUM})\\s*${U}\\b`, "gi"),
+    (_, n: string) => `${formatMeters(num(n) * factor)} m`,
   );
+}
+
+/** fot→meter (tunn wrapper; se convertLengthChainToMeters). */
+function convertFeetToMeters(value: string): string {
+  return convertLengthChainToMeters(value, "feet|foot|ft", FT_IN_METERS);
 }
 
 const parseDec = (s: string): number => parseFloat(String(s).replace(",", "."));
@@ -635,8 +645,9 @@ function convertSafeImperialUnits(value: string): string {
   // Vikt: pound/lb → kg (ej "pound-force"), ounce/oz → g.
   v = v.replace(/(\d+(?:[.,]\d+)?)\s*(?:lbs?|pounds?)\b(?!\s*-?\s*force)/gi, (_m, n: string) => `${fmtRound1(parseDec(n) * 0.45359)} kg`);
   v = v.replace(/(\d+(?:[.,]\d+)?)\s*(?:oz|ounces?)\b/gi, (_m, n: string) => `${Math.round(parseDec(n) * 28.35)} g`);
-  // Längd: yard → meter (inch/ft hanteras separat). Trunkerad som ft→m (handelspraxis).
-  v = v.replace(/(\d+(?:[.,]\d+)?)\s*(?:yards?|yds?)\b/gi, (_m, n: string) => `${formatMeters(parseDec(n) * 0.9144)} m`);
+  // OBS: yard → meter hanteras INTE här utan via convertLengthChainToMeters i
+  // normalizeUnits — yard är en LÄNGD och kan ingå i NxN-dimensioner ("3 x 5 yd"),
+  // som kräver samma kedje-guard som ft (annars halv-konvertering = tyst fel siffra).
   return v;
 }
 
@@ -678,7 +689,11 @@ function appendInchDimensionMetric(value: string): string {
  * convertFeetToMeters); cm/mm är samma på svenska.
  */
 function normalizeUnits(value: string): string {
-  let v = convertFeetToMeters(convertSafeImperialUnits(value))
+  let v = convertLengthChainToMeters(
+    convertFeetToMeters(convertSafeImperialUnits(value)),
+    "yards?|yds?",
+    YD_IN_METERS,
+  )
     .replace(/(\d)\s*inches\b/gi, "$1 tum")
     .replace(/(\d)\s*inch\b/gi, "$1 tum")
     .replace(/(\d)\s*["“”]/g, "$1 tum");
