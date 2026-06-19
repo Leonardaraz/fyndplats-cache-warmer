@@ -7,11 +7,20 @@
 // inom produkten (för snygga, icke-krockande artikelnummer i flöden/feed).
 //
 // Byggs ur produktens slug + variantens optionsvärden, ASCII-säkert (å/ä→a, ö→o).
-// Ett ledande märkes-token (succebuy, vevor, …) strippas så SKU:n aldrig avslöjar märket.
+// Ett ledande märkes-token (succebuy, vevor, …) strippas så SKU:n aldrig avslöjar
+// märket. Bindeord (med/i/för/…) strippas, och variant-tokens som redan finns i
+// produkt-delen dedupas, så SKU:n blir kort och ren ("…-26-st" inte "…-26-26-st",
+// och "för stativstöd" → "…-stativstod" INTE "…-for"/"…-for-2").
 
 const SKU_MAX = 40; // Wix SKU MAX_LENGTH
 const PRODUCT_PART_MAX = 24;
 const VARIANT_PART_MAX = 12;
+
+// Bindeord/stoppord (i skuSlugify-form: ö→o, å/ä→a) som inte tillför något i en
+// SKU och bara skräpar ner den ("…-med-", "…-i-tra-", och – värst – "för X" som
+// kapat-på-första-bindestrecket kollapsade till "for"). Strippas ur både produkt-
+// och variantdelen. Listan hålls konservativ: bara entydiga bindeord.
+const CONNECTOR_TOKENS = new Set(["for", "med", "i", "och", "the", "with", "pa", "av"]);
 
 /** ASCII-slug: "Blå Läder" → "bla-lader", "17 L" → "17-l". */
 export function skuSlugify(s: string): string {
@@ -41,20 +50,39 @@ export function stripBrandPrefix(slug: string): string {
   return parts.join("-");
 }
 
-/** Kapar en slug på hel-ord-gräns (bindestreck) till ≤max tecken (snyggare än mitt-i-ord). */
-function truncateSlug(slug: string, max: number): string {
-  if (slug.length <= max) return slug;
+/** Slugifierar och delar upp i tokens (tomma bort). */
+function skuTokens(s: string): string[] {
+  return skuSlugify(s).split("-").filter(Boolean);
+}
+
+/** Tar bort rena bindeord — men aldrig ALLT (ett värde som bara är bindeord behålls). */
+function dropConnectors(tokens: string[]): string[] {
+  const kept = tokens.filter((t) => !CONNECTOR_TOKENS.has(t));
+  return kept.length ? kept : tokens;
+}
+
+/** Produkt-tokens: slugifiera → strippa ledande märke → strippa bindeord. */
+function productTokens(s: string): string[] {
+  return dropConnectors(stripBrandPrefix(skuSlugify(s)).split("-").filter(Boolean));
+}
+
+/**
+ * Fogar ihop tokens med bindestreck upp till ≤max tecken — alltid på hel-ords-gräns
+ * (aldrig mitt i ett ord). Ett ensamt token längre än max hård-kapas (annars skulle
+ * delen bli tom). Detta ERSÄTTER tidigare truncateSlug som kapade på FÖRSTA
+ * bindestrecket även för variant-delen → "for-skrivbordsstod" blev "for" (krock).
+ */
+function joinWithinLimit(tokens: string[], max: number): string {
   let out = "";
-  for (const part of slug.split("-")) {
-    if (!part) continue;
-    if (!out) {
-      out = part.length <= max ? part : part.slice(0, max);
-      if (part.length > max) break;
-    } else if (`${out}-${part}`.length <= max) {
-      out += `-${part}`;
-    } else break;
+  for (const t of tokens) {
+    const candidate = out ? `${out}-${t}` : t;
+    if (candidate.length > max) {
+      if (!out) return t.slice(0, max); // ensamt för långt token
+      break;
+    }
+    out = candidate;
   }
-  return out || slug.slice(0, max);
+  return out;
 }
 
 /**
@@ -69,14 +97,22 @@ export function buildVariantSkus(
   supplierProductId: string,
 ): Map<string, string> {
   const productPart =
-    truncateSlug(stripBrandPrefix(skuSlugify(slug)), PRODUCT_PART_MAX) ||
-    truncateSlug(stripBrandPrefix(skuSlugify(supplierProductId)), PRODUCT_PART_MAX) ||
+    joinWithinLimit(productTokens(slug), PRODUCT_PART_MAX) ||
+    joinWithinLimit(productTokens(supplierProductId), PRODUCT_PART_MAX) ||
     "produkt";
+  const productPartTokens = new Set(productPart.split("-"));
 
   const out = new Map<string, string>();
   const used = new Set<string>();
   for (const v of variants) {
-    const variantPart = truncateSlug(skuSlugify(Object.values(v.options ?? {}).join(" ")), VARIANT_PART_MAX);
+    const rawVariantTokens = dropConnectors(skuTokens(Object.values(v.options ?? {}).join(" ")));
+    // Dedupa tokens som redan finns i produkt-delen (undvik "…-26-26-st" /
+    // "…-110-110-st"). Faller tillbaka på hela listan om ALLT är dubbletter, så
+    // variant-delen aldrig blir tom när produkten faktiskt har optionsvärden.
+    const deduped = rawVariantTokens.filter((t) => !productPartTokens.has(t));
+    const variantTokens = deduped.length ? deduped : rawVariantTokens;
+    const variantPart = joinWithinLimit(variantTokens, VARIANT_PART_MAX);
+
     const base = (variantPart ? `FP-${productPart}-${variantPart}` : `FP-${productPart}`)
       .slice(0, SKU_MAX)
       .replace(/-+$/g, "");

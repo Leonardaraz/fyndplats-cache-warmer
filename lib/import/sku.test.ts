@@ -113,4 +113,49 @@ describe("buildVariantSkus", () => {
     expect(buildVariantSkus([{ supplierVariantId: "a", options: {} }], "", "9988").get("a")).toBe("FP-9988");
     expect(buildVariantSkus([{ supplierVariantId: "a", options: {} }], "", "").get("a")).toBe("FP-produkt");
   });
+
+  it("strippar bindeord (med/i/för) ur produkt- och variantdel", () => {
+    const m = buildVariantSkus(
+      [
+        { supplierVariantId: "a", options: { Färg: "Vit" } },
+        { supplierVariantId: "b", options: { Färg: "Grå" } },
+      ],
+      "sedelraknare-med-akthetskontroll",
+      "1",
+    );
+    expect(m.get("a")).toBe("FP-sedelraknare-vit");
+    expect(m.get("b")).toBe("FP-sedelraknare-gra");
+    for (const sku of m.values()) expect(sku).not.toMatch(/-med-|-i-|-for-|-for$/);
+  });
+
+  it("flervärds-variant som inleds med bindeord kollapsar INTE till bindeordet (audit-fynd: rittillbehör)", () => {
+    // Tidigare: "För skrivbordsstöd"/"För stativstöd" → båda kapades till "for"
+    // → "…-for" / "…-for-2" (meningslöst + tvetydigt). Nu strippas "för" först.
+    const m = buildVariantSkus(
+      [
+        { supplierVariantId: "a", options: { Typ: "För skrivbordsstöd" } },
+        { supplierVariantId: "b", options: { Typ: "För stativstöd" } },
+      ],
+      "rittillbehor-for-barn-32-delar",
+      "1",
+    );
+    const a = m.get("a")!;
+    const b = m.get("b")!;
+    expect(a).not.toBe(b);
+    expect(a).not.toMatch(/-for($|-)/);
+    expect(b).not.toMatch(/-for($|-)/);
+    expect(a).toContain("skrivbord");
+    expect(b).toContain("stativ");
+    expect(new Set([a, b]).size).toBe(2);
+  });
+
+  it("dedupar token som redan finns i produktdelen (undvik 26-26-st)", () => {
+    const m = buildVariantSkus(
+      [{ supplierVariantId: "a", options: { Antal: "26 st" } }],
+      "leksaksgrill-i-tra-26-delar",
+      "1",
+    );
+    expect(m.get("a")).toBe("FP-leksaksgrill-tra-26-st");
+    expect(m.get("a")).not.toMatch(/26-26/);
+  });
 });
