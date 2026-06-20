@@ -90,10 +90,7 @@ const WIX_SITE_ID = process.env.WIX_SITE_ID || "e6d27e90-4749-4720-9afe-0bbe91c1
 // skapats) syns inom ~5 min i stället för upp till 1 h. Fortfarande ETT V3-anrop
 // per produkt per fönster (delas av pris+bild-hydreringen via cache()).
 const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> => {
-  if (!WIX_API_KEY || !productId) {
-    console.warn(`[v3raw] saknad config key=${Boolean(WIX_API_KEY)} pid=${Boolean(productId)}`);
-    return null;
-  }
+  if (!WIX_API_KEY || !productId) return null;
   try {
     const res = await fetch(
       `https://www.wixapis.com/stores/v3/products/${productId}?fields=MEDIA_ITEMS_INFO`,
@@ -102,14 +99,9 @@ const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> =
         next: { revalidate: 300 },
       },
     );
-    if (!res.ok) {
-      const t = await res.text().catch(() => "");
-      console.warn(`[v3raw] ${productId} HTTP ${res.status}: ${t.slice(0, 160)}`);
-      return null;
-    }
+    if (!res.ok) return null;
     return (await res.json())?.product ?? null;
-  } catch (e) {
-    console.warn(`[v3raw] ${productId} fel: ${(e as Error).message}`);
+  } catch {
     return null;
   }
 });
@@ -419,7 +411,6 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         // statiska/colorOf-bilden → ingen regression för migrerade produkter.
         if (prod.options) {
           const live = await fetchV3ChoiceImages(prod.id);
-          console.warn(`[pdp-vimg] ${prod.slug} optName=${JSON.stringify(prod.options.name)} liveKeys=${JSON.stringify(Object.keys(live))} liveVals=${JSON.stringify(Object.values(live).map((m) => Object.keys(m)))} labels=${JSON.stringify(prod.options.choices.map((c) => c.label))}`);
           // Primärt: matcha på option-NAMN (som förr). Men SDK:ns option-namn/råvärde
           // matchar inte alltid V3:s svenska nycklar ("Färg" → "Blå"/"Gul") — då missade
           // det förut helt (text-läge, ingen bildväxling). Bygg därför även en
