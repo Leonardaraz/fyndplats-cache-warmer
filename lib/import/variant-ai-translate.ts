@@ -32,7 +32,11 @@ import {
 } from "./variant-translations";
 import type { FeatureFlags } from "./types";
 
-const OP = "variant-translate";
+// Bumpad 2026-06-20 (variant-translate → -2): re-översätt cachade hopmashade
+// compound-svar ("WhitePortable" → "vitBärbar") med den förbättrade prompten nedan.
+// Cachen är per RÅVÄRDE; utan bumpen returnerar en cache-träff det gamla mashade
+// svaret för alltid (det är en "betrodd" översättning, ≠ eko → självläker aldrig).
+const OP = "variant-translate-2";
 const AXIS_OP = "variant-axis-name";
 const VERIFY_OP = "variant-verify-sv";
 
@@ -327,6 +331,7 @@ async function aiVerifySwedish(
   productTitle?: string,
 ): Promise<string[] | null> {
   const system = `Du kvalitetsgranskar variantvärden för en SVENSK e-handel. Avgör för varje sträng om den är NATURLIG SVENSKA eller språkneutral (mått, koder, modellnamn, siffror, vedertagna lånord som LED/USB/Smart/Premium). Engelska ord ("Wheel", "STRIPED", "Rear", "Silvery") är INTE svenska — även i versaler eller mitt i en sträng.
+Två extra fall som ALDRIG är naturlig svenska och som du MÅSTE flagga: (a) två ord hopmashade utan mellanslag, ofta camelCase ("vitBärbar", "svartaDominostenar", "vitKinesiskBärbar"); (b) ett ord hopklistrat med ett ordningstal ("Type1", "Mode2", "Modell2"). Äkta koder/modellnamn med versaler eller siffror inuti ("KM-6631", "USB3", "iPhone 15", "B6AC") är språkneutrala och flaggas INTE.
 Svara ENBART JSON: {"notSwedish": ["<exakt sträng>", ...]} — EXAKT de inskickade strängar som INTE är naturlig svenska. Tom lista om alla är ok.
 Produktkontext: ${productTitle ?? "(okänd)"}.`;
   try {
@@ -381,6 +386,7 @@ Regler:
 - Översätt bara riktiga engelska ord till naturlig svenska.
 - Behåll ett värde OFÖRÄNDRAT BARA om det innehåller siffror eller är en uppenbar märkes-/modellbeteckning: koder ("KM-6631", "B6AC"), modellnamn med siffror ("iPhone 15 Pro"), mått (cm/mm), storlekar (S/M/L/XL/5XL) och rena siffror.
 - Vanliga engelska substantiv och adjektiv ("Rear Wheel", "Fork", "Glow", "Vertical Type") är ALDRIG modellnamn — de MÅSTE översättas till naturlig svenska ("Bakhjul", "Gaffel", "Glöd", "Vertikal").
+- Är råvärdet HOPSKRIVET eller camelCase ("WhitePortable", "BlackDominoes", "WhiteChinesePortable") → dela upp i ord och svara med naturlig svenska MED mellanslag ("Vit bärbar", "Svarta dominobrickor", "Vit kinesisk bärbar"). ALDRIG hopmashat utan mellanslag ("vitBärbar").
 - Behåll ordning och separatorer (bindestreck/mellanslag).
 - Var koncis och konsekvent: samma engelska ord ska alltid ge samma svenska.
 - Produktkontext (för att tolka tvetydiga ord som "Spring"): ${productTitle ?? "(okänd)"}.`;
