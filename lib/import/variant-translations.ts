@@ -752,6 +752,29 @@ function normalizePieceUnits(value: string): string {
 }
 
 /**
+ * Axel-ord som AE klistrar ihop med ett ordningstal ("Type1", "Mode2"). STÄNGD
+ * whitelist → noll falska positiva by construction: bara dessa kända ord följt av
+ * avslutande siffror översätts ("Type1" → "Typ 1"). Koder/modellnamn/storlekar
+ * ("KID110", "5XL", "B6AC", "USB3", "F2025") matchar aldrig eftersom prefixet
+ * inte ligger i listan. Fångar den blinda fläcken där en hopklistrad siffra fick
+ * token att se ut som en kod och slinka förbi tabell + residual-detektor (audit
+ * 2026-06-20: olivträdets "Type1/2/3" skeppades engelska). Okända ord+siffra
+ * ("Glow2") lämnas orörda → svenskhets-grinden flaggar slutvärdet i stället.
+ */
+const ORDINAL_AXIS_WORDS: Record<string, string> = {
+  type: "Typ",
+  model: "Modell",
+  modell: "Modell",
+  mode: "Läge",
+  style: "Stil",
+  version: "Version",
+  variant: "Variant",
+  option: "Alternativ",
+  set: "Set",
+  pack: "Pack",
+};
+
+/**
  * Översätter ett optionsvärde. Prioritet:
  *   1. Fullt match (hela värdet) → full översättning ("Light Blue" → "Ljusblå").
  *   2. Avglua antal-enheter ("4pcs" → "4 st") + nytt full-match-försök.
@@ -787,6 +810,17 @@ export function translateValue(raw: string): string {
       if (hit) {
         touched = true;
         return hit;
+      }
+      // Ord+ordningstal-glue: "Type1" → "Typ 1". Stängd whitelist (ORDINAL_AXIS_WORDS)
+      // → rör aldrig koder/storlekar ("KID110", "5XL", "USB3"): prefixet måste vara
+      // ett känt axel-ord OCH ≥3 bokstäver följt av BARA siffror.
+      const ord = tok.match(/^([A-Za-zÅÄÖåäö]{3,})(\d+)$/);
+      if (ord) {
+        const sv = ORDINAL_AXIS_WORDS[ord[1].toLowerCase()];
+        if (sv) {
+          touched = true;
+          return `${sv} ${ord[2]}`;
+        }
       }
       return tok;
     })

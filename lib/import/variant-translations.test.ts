@@ -254,6 +254,55 @@ describe("golden — fäll-fixar, LED och orörda idiom (lås i CI)", () => {
   });
 });
 
+// --- GOLDEN: ord+ordningstal-glue ("Type1" → "Typ 1"), audit 2026-06-20. Rå-AE
+//     klistrar axel-ord med ett ordningstal; den hopklistrade siffran fick token
+//     att se ut som en kod → tabellen missade + residual-detektorn hoppade över →
+//     värdet skeppades engelska (olivträdet). Deterministisk, STÄNGD whitelist. ---
+describe("golden — ord+ordningstal-glue 'Type1' → 'Typ 1' (audit 2026-06-20)", () => {
+  const cases: Array<[string, string]> = [
+    ["Type1", "Typ 1"],
+    ["Type2", "Typ 2"],
+    ["Type3", "Typ 3"],
+    ["1,2 m Type1", "1,2 m Typ 1"], // verklighetsfallet (olivträdet, axel "Modell")
+    ["Model1", "Modell 1"],
+    ["Modell2", "Modell 2"],
+    ["Mode2", "Läge 2"],
+    ["Style1", "Stil 1"],
+    ["Version2", "Version 2"],
+    ["Variant3", "Variant 3"],
+    ["Option1", "Alternativ 1"],
+    ["Set2", "Set 2"],
+    ["Pack3", "Pack 3"],
+  ];
+  it.each(cases)("translateValue(%j) === %j", (input, expected) => {
+    expect(translateValue(input)).toBe(expected);
+  });
+
+  // NEGATIVA LÅS: regeln får ALDRIG röra koder/modellnamn/storlekar. Prefixet måste
+  // vara ett känt axel-ord (≥3 bokstäver) följt av BARA siffror.
+  const untouched: Array<[string, string]> = [
+    ["KID110", "KID110"], // okänt ord+siffra → orört (whitelist-miss)
+    ["5XL", "5XL"], // siffra först
+    ["B6AC", "B6AC"], // bokstäver EFTER siffran → ingen ren <ord><siffror>-form
+    ["F2025-Sverige", "F2025-Sverige"], // 1-bokstavsprefix < 3
+    ["iPhone 15 Pro", "iPhone 15 Pro"], // mellanslag, ingen glue
+    ["USB3", "USB3"], // versal-akronym, ej i whitelisten
+    ["Glow2", "Glow2"], // 'glow' ej i whitelisten → orört; svenskhets-grinden tar slutvärdet
+  ];
+  it.each(untouched)("rör INTE %j", (input, expected) => {
+    expect(translateValue(input)).toBe(expected);
+  });
+
+  it("gäller även end-to-end via buildVariantTranslator (sync-läget)", () => {
+    const t = buildVariantTranslator([
+      { options: { Modell: "Type1" } },
+      { options: { Modell: "Type2" } },
+    ]);
+    expect(t.options({ Modell: "Type1" })).toEqual({ Modell: "Typ 1" });
+    expect(t.options({ Modell: "Type2" })).toEqual({ Modell: "Typ 2" });
+  });
+});
+
 describe("residualEnglishTokens", () => {
   it("tomt för värden som tabellen (fullt) hanterar", () => {
     expect(residualEnglishTokens("Red")).toEqual([]);
