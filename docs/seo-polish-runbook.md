@@ -139,16 +139,17 @@ const newVariants = variants.map(v => {
 
 Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svenska, sökordsrika, varierade. Koppla ev. variantbilder till sina optionsvärden.
 
-> **Fälla:** skicka tillbaka **hela** media-objektet och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. Sätt både `media.main` och `media.itemsInfo.items`. **Verifiera efteråt** att alla items har kvar `image.url`.
+> **Fälla:** skicka tillbaka **hela** media-objektet och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
+
+> ⚠️ **`media.main` är readOnly i V3** (sätts automatiskt till första item:et). Inkluderar du det i PATCH-bodyn svarar Wix **200 OK men ignorerar tyst hela media-objektet** — revisionen ökar inte och alt-texterna ändras inte (en no-op som *ser ut* att lyckas, men alla bilder ligger kvar med engelsk "…- AliExpress"-text). Patcha **bara** `media.itemsInfo.items`; `main` följer med automatiskt.
 
 Procedur (utgå från `media.itemsInfo.items` från Steg 1):
 
 ```js
 const itemsA = items.map((it, i) => ({ ...it, altText: newAlt[i], image: it.image ? { ...it.image, altText: newAlt[i] } : it.image }));
-const mainIdx = Math.max(0, items.findIndex(it => it.id === media.main?.id));
 // hämta färsk revision, sedan:
 PATCH .../products/{PRODUCT_ID}
-body = { product: { id:"{PRODUCT_ID}", revision:"{FÄRSK}", media: { main: itemsA[mainIdx], itemsInfo: { items: itemsA } } } }
+body = { product: { id:"{PRODUCT_ID}", revision:"{FÄRSK}", media: { itemsInfo: { items: itemsA } } } } // OBS: inget media.main – det är readOnly.
 ```
 
 Verifiera direkt efter:
