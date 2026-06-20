@@ -411,11 +411,25 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         // statiska/colorOf-bilden → ingen regression för migrerade produkter.
         if (prod.options) {
           const live = await fetchV3ChoiceImages(prod.id);
-          const byVal = live[prod.options.name];
-          if (byVal) {
-            for (const ch of prod.options.choices) {
-              if (byVal[ch.label]) ch.image = byVal[ch.label];
+          // Primärt: matcha på option-NAMN (som förr). Men SDK:ns option-namn/råvärde
+          // matchar inte alltid V3:s svenska nycklar ("Färg" → "Blå"/"Gul") — då missade
+          // det förut helt (text-läge, ingen bildväxling). Bygg därför även en
+          // namn-OBEROENDE flat-map (val → URL, gemener) över alla optioner och matcha
+          // varje val på BÅDE råvärdet OCH dess svenska översättning (swedishChoiceValue
+          // bryggar engelskt SDK-råvärde "Blue" → V3:s "Blå"). Strikt additivt.
+          const byVal = live[prod.options.name] || {};
+          const flatImg: Record<string, string> = {};
+          for (const m of Object.values(live)) {
+            for (const [k, url] of Object.entries(m)) {
+              if (k && !(k.toLowerCase() in flatImg)) flatImg[k.toLowerCase()] = url;
             }
+          }
+          for (const ch of prod.options.choices) {
+            const hit =
+              byVal[ch.label] ||
+              flatImg[swedishChoiceValue(ch.label).toLowerCase()] ||
+              flatImg[(ch.label || "").toLowerCase()];
+            if (hit) ch.image = hit;
           }
           // LÄGST prioritet (efter ch.media, variant-images.json och linkedMedia):
           // fyll resterande BILDLÖSA färg-val genom att matcha färgnamnet mot
