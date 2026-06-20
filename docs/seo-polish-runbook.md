@@ -83,15 +83,15 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 ### (Om beskrivningen också ska skrivas om)
 
-Lägg fokussökordet naturligt i texten. Skicka `"description": { "nodes": [...] }` i samma PATCH. Ricos-format:
+**Rekommenderat: skicka beskrivningen som `plainDescription` (ren HTML)** i samma Steg 2-PATCH. Wix **auto-genererar Ricos-`description`** för storefronten (samma väg som importen själv använder — `lib/import/pipeline.ts` skickar `plainDescription`, och V1→V3-migreringen i `lib/wix/v3-products.ts`), och `splitFlikar` läser HTML:ens `<h2>`. Lägre risk än att handbygga Ricos-noder och mycket svårare att göra fel. Lägg fokussökordet naturligt i texten.
 
-- Stycke: `{"type":"PARAGRAPH","id":"p1","nodes":[{"type":"TEXT","id":"","nodes":[],"textData":{"text":"…","decorations":[]}}],"paragraphData":{}}`
-- Rubrik (flik-rubrik): `{"type":"HEADING","id":"h1","nodes":[<TEXT utan decorations>],"headingData":{"level":2}}` — TEXT-noden ska vara **helt ren** (`"decorations":[]`), se ⚠️ nedan.
-- Punktlista: `{"type":"BULLETED_LIST","id":"ul1","nodes":[{"type":"LIST_ITEM","id":"li1","nodes":[{"type":"PARAGRAPH","id":"","nodes":[<TEXT>],"paragraphData":{}}]}]}`
-- Fet: `"decorations":[{"type":"BOLD","fontWeightValue":700}]` — använd i **stycken** (t.ex. FAQ-frågor), **aldrig på en flik-rubrik (`HEADING`)**, se ⚠️ nedan.
-- Bra struktur: ingress → **Egenskaper** (punkter) → **Tekniska specifikationer** (punkter) → **Vanliga frågor** (FAQ **i beskrivningen**, INTE som egen info-sektion – siten har ett tak på 400 info-sektioner).
+PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "<html…>" } }`.
 
-> ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Lägger du `BOLD`-decoration på HEADING-textnoden blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` → matchningen faller och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). FAQ-frågorna får gärna vara feta **stycken** under `<h2>Vanliga frågor</h2>`, men `<h2>`-raden själv ska vara ren.
+- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` (valfritt) → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
+
+> ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
+
+> **Alternativ (Ricos direkt):** vill du hellre skicka `"description": { "nodes": [...] }` — stycke `{"type":"PARAGRAPH","id":"p1","nodes":[{"type":"TEXT","id":"","nodes":[],"textData":{"text":"…","decorations":[]}}],"paragraphData":{}}`, rubrik `{"type":"HEADING","id":"h1","nodes":[<TEXT utan decorations>],"headingData":{"level":2}}` (TEXT-noden **helt ren**), punktlista `{"type":"BULLETED_LIST","id":"ul1","nodes":[{"type":"LIST_ITEM","id":"li1","nodes":[{"type":"PARAGRAPH","id":"","nodes":[<TEXT>],"paragraphData":{}}]}]}`, fet `"decorations":[{"type":"BOLD","fontWeightValue":700}]` (bara i stycken, **aldrig** på HEADING). Samma flik-regel gäller.
 
 -----
 
@@ -174,7 +174,9 @@ POST https://www.wixapis.com/categories/v1/bulk/categories/add-item
   "treeReference": { "appNamespace": "@wix/stores" } }
 ```
 
-Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · Elektronik & Tillbehör `9054fdce-2f3d-4ad4-9cd9-c00645cbabea` · Friluftsliv & Resa `34c37816-2384-49d1-bb47-8d1415daad41` · Verktyg & Hemmafix `43674676-4407-406d-889d-a5eee646d167`. (Fler ID:n finns i den fullständiga poleringsreferensen.)
+Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · Elektronik & Tillbehör `9054fdce-2f3d-4ad4-9cd9-c00645cbabea` · Friluftsliv & Resa `34c37816-2384-49d1-bb47-8d1415daad41` · Verktyg & Hemmafix `43674676-4407-406d-889d-a5eee646d167` · **Hem & Inredning** `3ed832b7-213f-4bd8-bbc4-e95744a9b316` · Sport & Fritid `de100f8d-755f-433d-90b2-9b18edb41b9d`.
+
+> **Hittar du ingen passande?** Hämta alla kategorier och matcha på `name` (read-only): `POST https://www.wixapis.com/categories/v1/categories/query` med body `{ "query": { "paging": { "limit": 100 } }, "treeReference": { "appNamespace": "@wix/stores" } }`. Det finns ~45 (bl.a. Hem & Inredning, Dekoration & Prydnad, Belysning, Hushållsapparater, Husdjur, Träning & Gym, Kök & Husgeråd). Möbler/utemöbler → **Hem & Inredning**.
 
 -----
 
