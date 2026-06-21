@@ -7,10 +7,12 @@ import type { WixV3ProductSummary } from "@/lib/wix/v3-products";
 
 interface Props {
   product: WixV3ProductSummary;
+  /** Satt när produkten REDAN är mappad (Mappade-fliken) — visar källa + "Ändra mappning". */
+  mapping?: { supplierProductId: string; variantCount: number };
   onMapped: (wixProductId: string) => void;
 }
 
-export function MappingCard({ product, onMapped }: Props) {
+export function MappingCard({ product, mapping, onMapped }: Props) {
   const [pending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(product.name);
   const [urlInput, setUrlInput] = useState("");
@@ -19,7 +21,12 @@ export function MappingCard({ product, onMapped }: Props) {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [mapped, setMapped] = useState(false);
+  const [justMapped, setJustMapped] = useState(false);
+
+  const alreadyMapped = Boolean(mapping);
+  const aeUrl = mapping
+    ? `https://www.aliexpress.com/item/${mapping.supplierProductId}.html`
+    : undefined;
 
   function clearMessages() {
     setError(null);
@@ -49,7 +56,8 @@ export function MappingCard({ product, onMapped }: Props) {
       const res = await createMappingAction(product.id, aliexpressInput);
       if (res.ok) {
         setSuccess(res.message);
-        setMapped(true);
+        setJustMapped(true);
+        setShowSearch(false);
         setResults([]);
         onMapped(product.id);
       } else {
@@ -64,7 +72,7 @@ export function MappingCard({ product, onMapped }: Props) {
       border: "1px solid #eee",
       borderRadius: 8,
       marginBottom: 8,
-      background: mapped ? "#f1faf1" : "#fafafa",
+      background: justMapped ? "#f1faf1" : alreadyMapped ? "#f6fbf6" : "#fafafa",
     }}>
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
         {product.imageUrl ? (
@@ -76,18 +84,35 @@ export function MappingCard({ product, onMapped }: Props) {
           <div style={{ fontSize: 12, color: "#666" }}>
             {product.variantCount} varianter · <code>{product.id.slice(0, 8)}</code>
           </div>
+          {alreadyMapped && !justMapped ? (
+            <div style={{ fontSize: 12, color: "#0a6", marginTop: 4 }}>
+              ✓ Källa:{" "}
+              <a href={aeUrl} target="_blank" rel="noreferrer" style={{ color: "#0a6", fontWeight: 600 }}>
+                AliExpress {mapping!.supplierProductId} ↗
+              </a>
+              {" · "}{mapping!.variantCount} variant{mapping!.variantCount === 1 ? "" : "er"} mappade
+            </div>
+          ) : null}
         </div>
-        {mapped ? (
-          <span style={badgeSuccess}>Mappad ✓</span>
-        ) : !showSearch ? (
-          <button onClick={() => setShowSearch(true)} disabled={pending}
-            style={btnPrimary}>
+        {justMapped ? (
+          <span style={badgeSuccess}>{alreadyMapped ? "Ommappad ✓" : "Mappad ✓"}</span>
+        ) : showSearch ? (
+          <button onClick={() => { setShowSearch(false); clearMessages(); setResults([]); }}
+            disabled={pending} style={btn}>
+            Avbryt
+          </button>
+        ) : alreadyMapped ? (
+          <button onClick={() => setShowSearch(true)} disabled={pending} style={btnSecondary}>
+            Ändra mappning
+          </button>
+        ) : (
+          <button onClick={() => setShowSearch(true)} disabled={pending} style={btnPrimary}>
             Mappa
           </button>
-        ) : null}
+        )}
       </div>
 
-      {showSearch && !mapped ? (
+      {showSearch && !justMapped ? (
         <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
           {/* Sök */}
           <div style={{ display: "flex", gap: 6 }}>
@@ -119,7 +144,7 @@ export function MappingCard({ product, onMapped }: Props) {
               style={input} disabled={pending} />
             <button onClick={() => mapTo(urlInput)} disabled={pending || !urlInput.trim()}
               style={btnPrimary}>
-              Mappa
+              {alreadyMapped ? "Spara om" : "Mappa"}
             </button>
           </div>
         </div>
@@ -212,6 +237,10 @@ const btnPrimary: React.CSSProperties = {
   padding: "6px 12px", border: "none", borderRadius: 4, background: "#F47A35", color: "#fff",
   cursor: "pointer", fontSize: 13, fontWeight: 600,
 };
+const btnSecondary: React.CSSProperties = {
+  padding: "6px 12px", border: "1px solid #0a6", borderRadius: 4, background: "#fff",
+  color: "#0a6", cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap",
+};
 const boxError: React.CSSProperties = {
   marginTop: 8, padding: 8, background: "#fde7e7",
   borderRadius: 4, fontSize: 13, color: "#a00",
@@ -226,5 +255,5 @@ const boxSuccess: React.CSSProperties = {
 };
 const badgeSuccess: React.CSSProperties = {
   padding: "4px 10px", background: "#e7fde7", color: "#070",
-  borderRadius: 4, fontSize: 13, fontWeight: 600,
+  borderRadius: 4, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap",
 };
