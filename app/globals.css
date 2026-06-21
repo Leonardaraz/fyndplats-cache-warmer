@@ -135,6 +135,8 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .btn-primary:hover{background:#A8380A;transform:translateY(-2px)}
 .btn-ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
 .btn-ghost:hover{background:var(--warm);border-color:var(--ink)}
+/* Tryck-feedback: knappen pressas ner vid klick (GPU-only, täcks av reduced-motion). */
+.btn-primary:active,.btn-ghost:active{transform:translateY(1px) scale(.985)}
 /* 2×2-rutnät i stället för flex-wrap: kolumn 2 ("Svensk kundtjänst" /
    "Spårbar leverans") får samma bredd och vänsterkant → Spårbar leverans hamnar
    EXAKT under Svensk kundtjänst (Leonards krav). max-content håller det tajt och
@@ -514,6 +516,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pdp-blurb{font-size:16px;color:#4a443d;line-height:1.65;margin-bottom:24px}
 .buy{font:inherit;font-size:16px;font-weight:700;color:#fff;background:#C2410C;border:none;border-radius:13px;padding:16px 32px;cursor:pointer;box-shadow:0 12px 26px -10px rgba(194,65,12,.55);transition:background .2s,transform .15s;width:100%;max-width:340px}
 .buy:hover{background:#A8380A;transform:translateY(-2px)}
+.buy:not(:disabled):active{transform:translateY(1px) scale(.985)}
 .buy:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
 .buy:disabled:hover{background:#C2410C;transform:none}
 .pdp-trust{display:flex;flex-direction:column;gap:8px;margin-top:20px;font-size:14px;color:var(--soft)}
@@ -775,10 +778,13 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 @media(prefers-reduced-motion:reduce){.backtotop{transition:opacity .2s,visibility .2s}}
 
 /* #6 Hover-alt-image on product cards */
-.pimg-main,.pimg-alt{transition:opacity .35s ease}
+.pimg-main,.pimg-alt{transition:opacity .35s ease,transform .55s cubic-bezier(.2,.7,.2,1)}
 .pimg-alt{opacity:0}
 .prod:hover .pimg-alt{opacity:1}
 .prod:hover .pimg-main{opacity:0}
+/* Mjuk zoom på hover (.pimg har overflow:hidden → beskärs rent). GPU-only,
+   ingen reflow; syns bara på pekare-enheter (ingen hover på mobil). */
+.prod:hover .pimg-main,.prod:hover .pimg-alt{transform:scale(1.045)}
 
 /* #11 Wishlist heart on cards */
 .wl-heart{position:absolute;top:10px;right:10px;z-index:3;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.92);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#bdb6ae;box-shadow:0 4px 12px -4px rgba(0,0,0,.18);transition:color .15s,transform .15s,background .15s;backdrop-filter:blur(4px)}
