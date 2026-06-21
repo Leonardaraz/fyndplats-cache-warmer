@@ -148,3 +148,84 @@ describe("WixDataStore — AliExpress-tokens", () => {
     expect(body.dataCollectionId).toBe("CustomTokensCollection");
   });
 });
+
+describe("WixDataStore — paginering (listMappings/listTasks)", () => {
+  beforeEach(() => {
+    vi.stubEnv("WIX_API_TOKEN", "test-wix-token");
+    vi.stubEnv("WIX_SITE_ID", "test-site-id");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    global.fetch = ORIGINAL_FETCH;
+    vi.restoreAllMocks();
+  });
+
+  // Mocka /query sida-för-sida: varje element = en sidas data-rader.
+  function mockQueryPages(pages: Record<string, unknown>[][]) {
+    const fn = vi.fn();
+    for (const page of pages) {
+      fn.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ dataItems: page.map((data) => ({ data })) }),
+        text: async () => "",
+      } as Response);
+    }
+    global.fetch = fn as unknown as typeof fetch;
+    return fn;
+  }
+
+  it("listMappings paginerar förbi 100-taket (100 + 30 = 130)", async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => ({ _id: `m${i}`, wixProductId: `m${i}` }));
+    const page2 = Array.from({ length: 30 }, (_, i) => ({ _id: `m${100 + i}`, wixProductId: `m${100 + i}` }));
+    const fetchMock = mockQueryPages([page1, page2]);
+
+    const all = await new WixDataStore().listMappings();
+
+    expect(all).toHaveLength(130);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    // andra anropet ska be om offset 100 (= fixen som förr saknades)
+    const body2 = JSON.parse((fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string);
+    expect(body2.query.paging.offset).toBe(100);
+    expect(body2.query.paging.limit).toBe(100);
+  });
+
+  it("listMappings gör bara ETT anrop när första sidan är ofullständig (<100)", async () => {
+    const page1 = Array.from({ length: 12 }, (_, i) => ({ _id: `m${i}`, wixProductId: `m${i}` }));
+    const fetchMock = mockQueryPages([page1]);
+
+    const all = await new WixDataStore().listMappings();
+
+    expect(all).toHaveLength(12);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // page-0-anropet utelämnar offset → exakt samma body som tidigare beteende
+    const body0 = JSON.parse((fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(body0.query.paging).toEqual({ limit: 100 });
+  });
+
+  it("listMappings tolererar 404 (saknad/tom collection) → []", async () => {
+    const fn = vi.fn().mockResolvedValue({
+      ok: false, status: 404, json: async () => ({}), text: async () => "{}",
+    } as Response);
+    global.fetch = fn as unknown as typeof fetch;
+
+    expect(await new WixDataStore().listMappings()).toEqual([]);
+  });
+
+  it("listTasks dedupar på _id om sidor överlappar vid samtidig skrivning", async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => ({ _id: `t${i}`, taskId: `t${i}` }));
+    // sida 2 inleds med en dubblett (t99) + 59 nya = 60 rader (<100 → stopp)
+    const page2 = [
+      { _id: "t99", taskId: "t99" },
+      ...Array.from({ length: 59 }, (_, i) => ({ _id: `t${100 + i}`, taskId: `t${100 + i}` })),
+    ];
+    const fetchMock = mockQueryPages([page1, page2]);
+
+    const all = await new WixDataStore().listTasks();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(all).toHaveLength(159); // 100 + 59 unika; dubbletten t99 borttagen
+    expect(new Set(all.map((t) => (t as { taskId: string }).taskId)).size).toBe(159);
+  });
+});
