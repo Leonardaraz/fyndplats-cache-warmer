@@ -71,18 +71,23 @@ async function get<T>(dataCollectionId: string, id: string): Promise<T | null> {
   return body.dataItem?.data ?? null;
 }
 
-async function query<T>(
+/** En sida ur en Wix Data-collection. Saknad kollektion (404 / vissa 400) → []. */
+async function queryPage<T>(
   dataCollectionId: string,
-  filter?: Record<string, unknown>,
-  sort?: { fieldName: string; order: "ASC" | "DESC" }[],
-  limit = 100,
+  filter: Record<string, unknown> | undefined,
+  sort: { fieldName: string; order: "ASC" | "DESC" }[] | undefined,
+  limit: number,
+  offset: number,
 ): Promise<T[]> {
+  // offset utelämnas vid 0 så page-0-anropet ger exakt samma body som förr.
+  const paging: Record<string, number> = { limit };
+  if (offset > 0) paging.offset = offset;
   const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify({
       dataCollectionId,
-      query: { filter: filter ?? {}, sort: sort ?? [], paging: { limit } },
+      query: { filter: filter ?? {}, sort: sort ?? [], paging },
     }),
   });
   if (!res.ok) {
@@ -99,6 +104,48 @@ async function query<T>(
   }
   const body = (await res.json()) as { dataItems?: { data?: T }[] };
   return (body.dataItems ?? []).map((d) => d.data).filter((d): d is T => Boolean(d));
+}
+
+/** Första sidan (≤ limit rader). För topp-N/log-läsningar (t.ex. listAudit). */
+async function query<T>(
+  dataCollectionId: string,
+  filter?: Record<string, unknown>,
+  sort?: { fieldName: string; order: "ASC" | "DESC" }[],
+  limit = 100,
+): Promise<T[]> {
+  return queryPage<T>(dataCollectionId, filter, sort, limit, 0);
+}
+
+/**
+ * ALLA rader i en collection, sid-paginerat (Wix Data-tak = 100/sida). Wix Data
+ * `query` utan paging gav bara de FÖRSTA 100 → listMappings/listTasks tappade tyst
+ * allt därutöver: admin visade "100 mappade" trots 229 rader, stock-syncen +
+ * import-dedupen såg bara 100, och orderläggningen kunde inte hitta en task bortom
+ * de 100 första. Dedupar på _id ifall offset-paging överlappar vid samtidig skrivning.
+ */
+async function queryAll<T>(
+  dataCollectionId: string,
+  filter?: Record<string, unknown>,
+  sort?: { fieldName: string; order: "ASC" | "DESC" }[],
+): Promise<T[]> {
+  const pageSize = 100;
+  const out: T[] = [];
+  const seen = new Set<string>();
+  // Safety-tak: 100 sidor (10 000 rader), långt över nuvarande skala. Skulle det
+  // någonsin överskridas → byt till cursor-paging.
+  for (let offset = 0; offset <= 10_000; offset += pageSize) {
+    const items = await queryPage<T>(dataCollectionId, filter, sort, pageSize, offset);
+    for (const it of items) {
+      const id = (it as { _id?: unknown })._id;
+      if (typeof id === "string") {
+        if (seen.has(id)) continue;
+        seen.add(id);
+      }
+      out.push(it);
+    }
+    if (items.length < pageSize) break;
+  }
+  return out;
 }
 
 export class WixDataStore implements Store {
@@ -120,7 +167,7 @@ export class WixDataStore implements Store {
   }
 
   async listMappings(): Promise<ProductMappingRecord[]> {
-    return query<ProductMappingRecord>(COL.mappings);
+    return queryAll<ProductMappingRecord>(COL.mappings);
   }
 
   async upsertTask(task: FulfillmentTask): Promise<void> {
@@ -136,7 +183,7 @@ export class WixDataStore implements Store {
 
   async listTasks(status?: TaskStatus): Promise<FulfillmentTask[]> {
     const filter = status ? { status } : undefined;
-    return query<FulfillmentTask>(COL.tasks, filter);
+    return queryAll<FulfillmentTask>(COL.tasks, filter);
   }
 
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
