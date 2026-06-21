@@ -69,15 +69,19 @@ test("formatSek ger svenskt valutaformat", () => {
 });
 
 // Multi-axel (Färg × Storlek): bygg axlar + variant-tabell ur V3.
+// OBS: i det riktiga V3-svaret keyas VAL på `choiceId` (inte `id`) — det är samma
+// id som varianternas optionChoiceIds.choiceId pekar på. Fixturen speglar därför
+// `choiceId` så testet matchar produktionsdatan (regression-lås för id/choiceId-buggen
+// som tappade sekundära axlar, t.ex. "Typ" på skjutdörren). OPTIONER har dock `id`.
 const multiProduct = {
   options: [
     { id: "oF", name: "Färg", choicesSettings: { choices: [
-      { id: "fR", name: "Röd", linkedMedia: [{ image: { url: "red.jpg" } }] },
-      { id: "fB", name: "Blå", linkedMedia: [{ image: { url: "blue.jpg" } }] },
+      { choiceId: "fR", name: "Röd", linkedMedia: [{ image: { url: "red.jpg" } }] },
+      { choiceId: "fB", name: "Blå", linkedMedia: [{ image: { url: "blue.jpg" } }] },
     ] } },
     { id: "oS", name: "Storlek", choicesSettings: { choices: [
-      { id: "sS", name: "S" },
-      { id: "sM", name: "M" },
+      { choiceId: "sS", name: "S" },
+      { choiceId: "sM", name: "M" },
     ] } },
   ],
   variantsInfo: { variants: [
