@@ -35,6 +35,8 @@ body{
 }
 a{text-decoration:none;color:inherit}
 img{display:block;max-width:100%}
+/* Branded textmarkering (i stället för default-blå) — liten premium-detalj. */
+::selection{background:var(--peach);color:var(--ink)}
 .container{max-width:1180px;margin:0 auto;padding:0 26px}
 
 .promo{background:var(--char);color:#fff;text-align:center;font-size:12px;font-weight:500;padding:9px}
@@ -185,6 +187,13 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .eyebrow::before,.eyebrow::after{content:"";width:22px;height:2px;background:currentColor;border-radius:2px;opacity:.55}
 .sechead h1,.sechead h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(28px,3.8vw,42px);font-weight:600;letter-spacing:-.018em}
 .sechead p{margin-top:10px;color:var(--soft);font-size:16px}
+
+/* Premium-typografi: balanserade rubrik-radbrytningar (jämn 2–3-radig wrap utan
+   ensamt sista-ord — syns mest på mobil) + inga "orphans" i led-/sektionstexter.
+   text-wrap är progressiv förbättring: äldre webbläsare ignorerar den, ingen
+   layout-risk, noll prestanda-kostnad. */
+.hero h1,.sechead h1,.sechead h2,.homecat-head h2,.kat-hero-text h1,.butik-hero-title{text-wrap:balance}
+.hero p,.sechead p,.homecat-head p,.butik-hero-lede{text-wrap:pretty}
 
 .catgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .cat{position:relative;height:230px;border-radius:18px;overflow:hidden;display:flex;align-items:flex-end}
