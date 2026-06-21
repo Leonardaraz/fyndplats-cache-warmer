@@ -90,7 +90,12 @@ const WIX_SITE_ID = process.env.WIX_SITE_ID || "e6d27e90-4749-4720-9afe-0bbe91c1
 // skapats) syns inom ~5 min i stället för upp till 1 h. Fortfarande ETT V3-anrop
 // per produkt per fönster (delas av pris+bild-hydreringen via cache()).
 const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> => {
-  if (!WIX_API_KEY || !productId) return null;
+  // TILLFÄLLIG DIAGNOSTIK ([v3raw-DIAG]): funktionen svalde tidigare orsaken tyst
+  // (catch→null / !res.ok→null). Loggar nu VARFÖR den ev. returnerar null, så vi kan
+  // se varför stora produkter (många bilder/varianter) tappar variantpris/-bild.
+  // Tas bort när orsaken fastställts. Rör inte logik/nyckel/orderflöde.
+  if (!WIX_API_KEY) { console.error(`[v3raw-DIAG] saknar WIX_API_KEY (pid=${productId})`); return null; }
+  if (!productId) { console.error(`[v3raw-DIAG] saknar productId`); return null; }
   try {
     const res = await fetch(
       `https://www.wixapis.com/stores/v3/products/${productId}?fields=MEDIA_ITEMS_INFO`,
@@ -99,9 +104,24 @@ const fetchV3ProductRaw = cache(async (productId: string): Promise<any | null> =
         next: { revalidate: 300 },
       },
     );
-    if (!res.ok) return null;
-    return (await res.json())?.product ?? null;
-  } catch {
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`[v3raw-DIAG] pid=${productId} HTTP ${res.status} ${res.statusText} body=${body.slice(0, 300)}`);
+      return null;
+    }
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      console.error(`[v3raw-DIAG] pid=${productId} JSON-parse FAIL len=${text.length} err=${(e as Error).message} head=${text.slice(0, 100)} tail=${text.slice(-100)}`);
+      return null;
+    }
+    const product = json?.product ?? null;
+    console.error(`[v3raw-DIAG] pid=${productId} OK len=${text.length} hasProduct=${!!product} media=${product?.media?.itemsInfo?.items?.length ?? 0} variants=${product?.variantsInfo?.variants?.length ?? 0}`);
+    return product;
+  } catch (e) {
+    console.error(`[v3raw-DIAG] pid=${productId} fetch THREW ${(e as Error)?.name}: ${(e as Error)?.message}`);
     return null;
   }
 });
