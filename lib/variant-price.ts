@@ -125,10 +125,15 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
     const choiceImage: Record<string, string> = {};
     const axisChoices: { label: string; image: string }[] = [];
     for (const c of opt?.choicesSettings?.choices || []) {
-      if (!c?.id || !c?.name) continue;
+      // V3 keyar val på `choiceId` (INTE `id`) — varianternas optionChoiceIds.choiceId
+      // pekar hit. Att läsa c.id (alltid undefined i V3-svaret) hoppade över ALLA val
+      // → axeln blev tom → axes < 2 → multi-axel-data null → fleraxlade produkter
+      // (t.ex. skjutdörren Längd × Typ) föll tillbaka till SDK:ns enda axel på live.
+      // Matchar nu variant-loopens cid-uppslag (optionChoiceIds.choiceId) nedan.
+      if (!c?.choiceId || !c?.name) continue;
       const img = c?.linkedMedia?.[0]?.image?.url || "";
-      choiceName[c.id] = c.name;
-      choiceImage[c.id] = img;
+      choiceName[c.choiceId] = c.name;
+      choiceImage[c.choiceId] = img;
       axisChoices.push({ label: c.name, image: img });
     }
     if (axisChoices.length === 0) continue;
