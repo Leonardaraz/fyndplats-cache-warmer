@@ -195,11 +195,20 @@ med `{ "query": { "paging": { "limit": 100 } }, "treeReference": { "appNamespace
 ## 7. SKU-algoritm (Steg 2b, exakt)
 
 Format `FP-<produkt>-<variant>` ur den **polerade sluggen** + variantens optionsvärde(n).
-ASCII (å/ä→a, ö→o), ledande **märkesord strippat**, produkt-del **≤ 24 tecken** (kapa på
-bindestreck), variant-del **≤ 12 tecken**, hela **≤ 40 tecken**, **unik inom produkten**.
-Saknar produkten optionsvärden → bara `FP-<produkt>`. Verbatim implementation finns i
-`lib/import/sku.ts` och i runbookens Steg 2b. SKU:n är en ren etikett — synk/fulfillment
-nycklar på `wixVariantId`, inte SKU-strängen, så det är ofarligt att byta.
+ASCII (å/ä→a, ö→o), ledande **märkesord strippat**, **bindeord strippade** (med/i/för/och…),
+variant-tokens som redan finns i produkt-delen **dedupade**, produkt-del **≤ 24 tecken**
+(kapa på hel-ords-gräns), variant-del **≤ 12 tecken**, hela **≤ 40 tecken** (Wix-gräns),
+**unik inom produkten** (kollision → `-2`/`-3`…). Saknar produkten optionsvärden → bara
+`FP-<produkt>`.
+
+> **Återanvänd `buildVariantSkus` från `lib/import/sku.ts` — reimplementera inte.** Det är
+> den auktoritativa implementationen (märkes-/bindeords-strip + token-dedup +
+> kollisionssuffix, konstanter `SKU_MAX=40`, `PRODUCT_PART_MAX=24`, `VARIANT_PART_MAX=12`).
+> Den inline-JS som finns i runbookens Steg 2b är en **förenklad spegling** för manuell
+> körning; vid skillnad gäller `sku.ts`.
+
+SKU:n är en ren etikett — synk/fulfillment nycklar på `wixVariantId`, inte SKU-strängen, så
+det är ofarligt att byta.
 
 ## 8. Autonomigrindar (innan full autonomi)
 
