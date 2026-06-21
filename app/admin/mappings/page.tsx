@@ -8,13 +8,14 @@
 
 import { listAllV3Products, type WixV3ProductSummary } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
-import { MappingsList } from "./mappings-list";
+import { MappingsList, type MappedProduct } from "./mappings-list";
 
 export const dynamic = "force-dynamic";
 
 export default async function MappingsAdminPage() {
   let allProducts: WixV3ProductSummary[];
-  let mappedSet: Set<string>;
+  let mappingByProductId: Map<string, { supplierProductId: string; variantCount: number }>;
+  let totalMappingRows = 0;
   let loadError: string | null = null;
 
   try {
@@ -23,22 +24,29 @@ export default async function MappingsAdminPage() {
       getStore().listMappings(),
     ]);
     allProducts = products;
-    mappedSet = new Set(mappings.map((m) => m.wixProductId));
+    totalMappingRows = mappings.length;
+    mappingByProductId = new Map(
+      mappings.map((m) => [
+        m.wixProductId,
+        { supplierProductId: m.supplierProductId, variantCount: m.variants?.length ?? 0 },
+      ]),
+    );
   } catch (err) {
     loadError = err instanceof Error ? err.message : "Okänt laddningsfel";
     allProducts = [];
-    mappedSet = new Set();
+    mappingByProductId = new Map();
   }
 
-  // VIKTIGT: mappedSet byggs av ALLA rader i FyndplatsMappings och kan innehålla
-  // "orphans" — mappningar vars wixProductId pekar på en sedan länge raderad
-  // produkt. Att visa mappedSet.size som "mappade" är vilseledande (89 orphans
-  // gjorde att 229 ≠ 140 faktiskt mappade live-produkter). Räkna därför bara
-  // mappningar som matchar en LIVE-produkt, så går matten ihop: mappade + att
-  // mappa = totalt.
-  const mappedLive = allProducts.filter((p) => mappedSet.has(p.id)).length;
-  const unmapped = allProducts.filter((p) => !mappedSet.has(p.id));
-  const orphanCount = mappedSet.size - mappedLive;
+  // mappingByProductId innehåller ALLA rader i FyndplatsMappings; vissa kan vara
+  // "orphans" vars wixProductId pekar på en raderad produkt. "Mappade" räknas som
+  // bara de rader som matchar en LIVE-produkt, så matten går ihop: mappade + att
+  // mappa = totalt. Skillnaden mot totalMappingRows = orphans.
+  const unmapped = allProducts.filter((p) => !mappingByProductId.has(p.id));
+  const mapped: MappedProduct[] = allProducts
+    .filter((p) => mappingByProductId.has(p.id))
+    .map((p) => ({ ...p, mapping: mappingByProductId.get(p.id)! }));
+  const mappedLive = mapped.length;
+  const orphanCount = totalMappingRows - mappedLive;
 
   return (
     <main style={{ maxWidth: 920, margin: "20px auto", padding: "0 16px" }}>
@@ -88,11 +96,11 @@ export default async function MappingsAdminPage() {
       <p style={{ fontSize: 12, color: "#888", margin: "0 0 16px" }}>
         {mappedLive} mappade + {unmapped.length} att mappa = {allProducts.length} produkter.
         {orphanCount > 0
-          ? ` (FyndplatsMappings har ${mappedSet.size} rader totalt, varav ${orphanCount} orphans som pekar på raderade produkter.)`
+          ? ` (FyndplatsMappings har ${totalMappingRows} rader totalt, varav ${orphanCount} orphans som pekar på raderade produkter.)`
           : ""}
       </p>
 
-      <MappingsList initialProducts={unmapped} />
+      <MappingsList unmapped={unmapped} mapped={mapped} />
     </main>
   );
 }
