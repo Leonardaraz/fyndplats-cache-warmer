@@ -488,8 +488,9 @@ function buildShippingProps(payload: Record<string, unknown>): { props: Shipping
     orderLineItems.forEach((oli, idx) => {
       const id = String((oli.id ?? oli._id) ?? "");
       const q = id ? qtyById.get(id) : undefined;
-      if (q != null && allItems[idx]) {
-        items.push({ name: allItems[idx].name, qty: q, imageUrl: allItems[idx].imageUrl });
+      const base = allItems[idx];
+      if (q != null && base) {
+        items.push({ name: base.name, qty: q, imageUrl: base.imageUrl });
       }
     });
     if (items.length === 0) items = allItems.map((it) => ({ name: it.name, qty: it.qty, imageUrl: it.imageUrl }));
