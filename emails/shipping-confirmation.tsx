@@ -8,6 +8,7 @@ export interface ShippingItemSummary {
   name: string;
   qty: number;
   imageUrl?: string;
+  variant?: string;
 }
 
 export interface ShippingConfirmationProps {
@@ -90,6 +91,11 @@ export default function ShippingConfirmationEmail({
                   <Text style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: BRAND.ink }}>
                     {it.name}
                   </Text>
+                  {it.variant ? (
+                    <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>
+                      {it.variant}
+                    </Text>
+                  ) : null}
                   <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>
                     Antal: {it.qty}
                   </Text>

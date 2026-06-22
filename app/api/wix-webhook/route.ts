@@ -477,7 +477,7 @@ function buildShippingProps(payload: Record<string, unknown>): { props: Shipping
   const fulLineItems = firstFulfill?.lineItems as
     | Array<{ id?: string; _id?: string; lineItemId?: string; quantity?: number }>
     | undefined;
-  let items: { name: string; qty: number; imageUrl?: string }[];
+  let items: { name: string; qty: number; imageUrl?: string; variant?: string }[];
   if (Array.isArray(fulLineItems) && fulLineItems.length > 0 && Array.isArray(orderLineItems)) {
     const qtyById = new Map<string, number>();
     for (const fli of fulLineItems) {
@@ -490,12 +490,12 @@ function buildShippingProps(payload: Record<string, unknown>): { props: Shipping
       const q = id ? qtyById.get(id) : undefined;
       const base = allItems[idx];
       if (q != null && base) {
-        items.push({ name: base.name, qty: q, imageUrl: base.imageUrl });
+        items.push({ name: base.name, qty: q, imageUrl: base.imageUrl, variant: base.variant });
       }
     });
-    if (items.length === 0) items = allItems.map((it) => ({ name: it.name, qty: it.qty, imageUrl: it.imageUrl }));
+    if (items.length === 0) items = allItems.map((it) => ({ name: it.name, qty: it.qty, imageUrl: it.imageUrl, variant: it.variant }));
   } else {
-    items = allItems.map((it) => ({ name: it.name, qty: it.qty, imageUrl: it.imageUrl }));
+    items = allItems.map((it) => ({ name: it.name, qty: it.qty, imageUrl: it.imageUrl, variant: it.variant }));
   }
 
   return {
