@@ -83,7 +83,7 @@ const TEMPLATES: Record<string, TemplateEntry> = {
           trackingNumber: "LP00472891SE",
           carrier: "PostNord",
           expectedArrival: "onsdag 4 juni",
-          items: sampleItems.map((i) => ({ name: i.name, qty: i.qty, imageUrl: i.imageUrl })),
+          items: sampleItems.map((i) => ({ name: i.name, qty: i.qty, imageUrl: i.imageUrl, variant: i.variant })),
         }),
       ),
   },
