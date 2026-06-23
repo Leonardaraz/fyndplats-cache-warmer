@@ -11,8 +11,8 @@ secondary_keywords:
   - höstdekoration
 category: Hem & inredning
 publish_date: 2026-05-30
-cover: https://static.wixstatic.com/media/b379ce_356905c0a4ac4269b78aa2c0a5d29c6b~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
-cover_alt: Solnedgångslampa som projicerar orange-rött ljus mot vägg
+cover: https://static.wixstatic.com/media/b379ce_984443a542fb421faec1ac16efe796a3~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Handgjord Tiffanylampa i färgat glas för mysig belysning
 ---
 
 # Mysig höstinredning: så skapar du hemmets bästa hörna
@@ -34,7 +34,7 @@ Lösningen: jobba med ljuskällor i tre nivåer.
 
 När taket är släckt och tre eller fyra mindre källor brinner sänker sig hela rummet i en varmare ton. Det kostar nästan ingenting att börja: ofta en eller två lampor till.
 
-[![Trådlös LED-sensorlampa med rörelsesensor monterad i hall](https://static.wixstatic.com/media/b379ce_941eab482a4b4c06a1eae27321e8c7e1~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/tradlos-led-sensorlampa-usb-laddbar-nattlampa-rorelsesensor "Se i butiken →")
+[![Golvlampa med 3 hyllplan för E27-lampa, modern design i brunt](https://static.wixstatic.com/media/b379ce_f0eb7c05e8a044ce90e68271436e816a~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/golvlampa-med-hyllor "Se i butiken →")
 
 ## 2. Textil — fler lager, varmare material
 
@@ -48,7 +48,7 @@ Höstens enklaste mys-trick är ett par tända ljus. Du behöver inte fyrtio. Tr
 
 LED-ljus med flammeffekt funkar förvånansvärt bra om du har småbarn eller katt och vill undvika levande låga.
 
-[![Liten vit trådlös LED-pucklampa med rörelsesensor på vägg](https://static.wixstatic.com/media/b379ce_8106afbccfe14bf7995aa56960d776e0~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/tradlos-led-nattlampa-med-rorelsesensor-batteridriven "Se i butiken →")
+[![Dekorativ fönsterspegel i guld 60×91 cm med valvform](https://static.wixstatic.com/media/b379ce_7e1a912da38c460f8fbc16bf249c838c~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/fonsterspegel-guld-60x91 "Se i butiken →")
 
 ## 4. Inred med dofter — inte bara med saker
 
@@ -67,7 +67,7 @@ Du behöver inte måla om för att tillföra höstkänsla. En enkel accentkudde 
 
 Tänk så här: behåll grundpaletten, lägg till tre accenter.
 
-[![Beige vintertofflor i mocka med fleecefoder](https://static.wixstatic.com/media/b379ce_3062fafabc85468c96ac20967fdef1d1~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/vintertofflor-i-mockastil-varma-mjuka "Se i butiken →")
+[![Konstgjort olivträd 120 cm med silkesblad, underhållsfri konstväxt](https://static.wixstatic.com/media/b379ce_6d53cfc6bc6b4ae8a00a34969e5d0424~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/konstgjort-olivtrad-120-cm-konstvaxt "Se i butiken →")
 
 ## 6. Naturmaterial in i hemmet
 

@@ -11,8 +11,8 @@ secondary_keywords:
   - basverktyg hemmet
 category: Verktyg
 publish_date: 2026-05-30
-cover: https://static.wixstatic.com/media/b379ce_3ce29e97fa494403a9f70dd70795927e~mv2.png/v1/fit/w_1600,h_1600,q_85/file.png
-cover_alt: Digitalt skjutmått i rostfritt stål med stor LCD-display
+cover: https://static.wixstatic.com/media/b379ce_2d22767fe5024a8090660a8cf1c6c276~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Verktygsväska med 33 fack i slitstark 1680D-polyester
 ---
 
 # DIY-verktyg för nybörjare: grundutrustningen varje hem behöver
@@ -29,7 +29,7 @@ Den här guiden är skriven för dig. En lista över de 14 verktyg som löser 90
 
 **3. Köp i ordning, inte allt på en gång.** Det du behöver i månad ett är inte samma som månad sex. Vi har graderat listan nedan.
 
-[![Mini elektrisk precisionsskruvdragare med bituppsättning i etui](https://static.wixstatic.com/media/b379ce_875f56e5ad4f4f2fa4f91387d6d1e318~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/elektrisk-precisionsskruvdragare "Se i butiken →")
+[![Digital momentmejsel 1/4 tum med LCD och 12 bits](https://static.wixstatic.com/media/b379ce_05dde98f1abe4f5682c060b8617cf3d7~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/digital-momentmejsel-1-4-tum-bits "Se i butiken →")
 
 ## De första 5 — det absoluta minimumet
 
@@ -95,7 +95,7 @@ Tre lim täcker det mesta:
 - Trälim (PVA) för möbler
 - Monteringslim ("no more nails") för speglar eller hyllor man inte vill borra för
 
-[![Taktisk LED-ficklampa i svart aluminium med USB-laddning och zoom](https://static.wixstatic.com/media/b379ce_a9abd47dbd9f4ae6a99203f073b786c8~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/taktisk-led-ficklampa-2000lm-usb-laddbar "Se i butiken →")
+[![Pocket hole-jigg i aluminium för dolda skruvförband](https://static.wixstatic.com/media/b379ce_da907ffbccbd440cbe3bad2bf2e91bba~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/pocket-hole-jigg-fickhalsjigg "Se i butiken →")
 
 ## De sista 4 — när du tar steget till "riktig DIY"
 
@@ -140,7 +140,7 @@ Det är lätt att hamna i fällan att köpa varje cool gadget på köpfest:
 
 Köp specialverktyg när du har en *specifik* uppgift — inte i förebyggande syfte.
 
-[![Mandolinskärare i rostfritt stål med säkerhetsskydd och skivad grönsak](https://static.wixstatic.com/media/b379ce_8b8a5823be4b45cea8ae3c1a4922bf2a~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/mandolinskarare-rostfritt-stal "Se i butiken →")
+[![Verktygsvagn på hjul med 3 hyllplan för verkstaden](https://static.wixstatic.com/media/b379ce_fc57bf38869f44c7a390ec99bed21207~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/verktygsvagn-med-hjul-verkstadsvagn "Se i butiken →")
 
 ## Hur du faktiskt börjar använda dem
 

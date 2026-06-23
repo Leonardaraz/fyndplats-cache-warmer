@@ -11,8 +11,8 @@ secondary_keywords:
   - förvaringsidéer hemmet
 category: Hem & inredning
 publish_date: 2026-05-30
-cover: https://static.wixstatic.com/media/b379ce_4edec22273ee47659532d1414e077f13~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
-cover_alt: Vit 2-vånings utdragbar förvaringshylla under diskbänk
+cover: https://static.wixstatic.com/media/b379ce_4deca44b073c408db7715e7b6d1a4171~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Väggmonterade förvaringslådor, 12 stapelbara sorteringsfack
 ---
 
 # Smarta förvaringslösningar för små lägenheter — 12 idéer som faktiskt funkar
@@ -27,7 +27,7 @@ Den vanligaste missen i en liten lägenhet är att man möblerar i ögonhöjd oc
 
 Tips: en enkel hylla 25 cm under taket runt hela rummet kan rymma allt från reseväskor till säsongskläder och syns knappt visuellt.
 
-[![Grå bagageorganiserare i filt med fack i bagageutrymmet på en bil](https://static.wixstatic.com/media/b379ce_2ce62fd9e00b473a9aa1e43a954d5285~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/bagageorganiserare-bil-filt "Se i butiken →")
+[![Leksaksförvaring med 9 korgar i 3 hyllplan i barnhöjd](https://static.wixstatic.com/media/b379ce_720c1706ed3544e784b3589b4260c217~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/leksaksforvaring-med-korgar "Se i butiken →")
 
 ## 2. Möbler med dolt utrymme
 
@@ -39,7 +39,7 @@ Vill du komma åt fler såna lösningar samlade på ett ställe kan du kika i Fy
 
 En oorganiserad köksdel är ofta inte en yta-fråga utan ett kaos-fråga. Lägg några timmar på att tömma alla kökslådor, slänga sånt du inte använt på ett år och sedan dela in lådorna med justerbara lådorganiserare. Plötsligt rymmer en standardlåda dubbelt så mycket som tidigare, och du hittar köksredskapen på två sekunder.
 
-[![Väggmonterad magnetisk knivlist i akaciaträ med flera knivar](https://static.wixstatic.com/media/b379ce_481e2cfe833748eab9a80a3b69a56beb~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/magnetisk-knivhallare-akacia-vaggmonterad-knivlist "Se i butiken →")
+[![Lyftbart soffbord med dold förvaring i 2 fack, marmormönster](https://static.wixstatic.com/media/b379ce_f9f1bb5c2ee94e0f9ee3169ec38b66a9~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/lyftbart-soffbord-forvaring "Se i butiken →")
 
 ## 4. Magnetlist på insidan av skåpsdörren
 
@@ -49,7 +49,7 @@ En enkel magnetlist på insidan av köksskåpsdörren håller ordning på saxar,
 
 Hallen är där små lägenheter brukar haverera först: jackor, skor, nycklar, paket, mössor, hundkoppel. En väggmonterad krokstång med 5–8 krokar tar fyra centimeter på djupet och löser hälften av problemen direkt. Komplettera med ett smalt skoställ och en bricka för nycklar på en hylla, så har du en hall som klarar tre människor utan att man behöver kliva över saker.
 
-[![Genomskinlig roterande sminkförvaring med 5 fack fylld med smink](https://static.wixstatic.com/media/b379ce_5e6a2f05e24b44239bb57a243fc0f3d2~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/roterande-sminkforvaring-360 "Se i butiken →")
+[![Tvättsorterare i bambu 144 L med 3 fack och uttagbara tygsäckar](https://static.wixstatic.com/media/b379ce_19b8e8599ae34a29a2e8ac6d9cfa825b~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/tvattsorterare-bambu-144l-3-fack "Se i butiken →")
 
 ## 6. Under sängen är guldgruva-yta
 

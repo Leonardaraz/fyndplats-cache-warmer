@@ -11,8 +11,8 @@ secondary_keywords:
   - hemmagym billigt
 category: Träning
 publish_date: 2026-05-30
-cover: https://static.wixstatic.com/media/b379ce_10626c7d858a4bd0a6425fe6d1cfe728~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
-cover_alt: Magtränare AB-hjul i svart med handtag på trägolv
+cover: https://static.wixstatic.com/media/b379ce_a78708dc877841d8b877c0b0cb65bbac~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Justerbar träningsbänk, hopfällbar multibänk i stål för hemmagym
 ---
 
 # Träna hemma utan utrustning: nybörjarguiden som funkar
@@ -30,7 +30,7 @@ Två saker gör hemmaträning *bättre* än ett gym för många nybörjare:
 
 Nackdelen är att utvecklingen i ren styrka stannar av efter några månader om du bara använder kroppsvikten. Men för de första 4–6 månaderna är det inte ett problem — då bygger kroppen muskler från i princip nollnivå.
 
-[![Motståndsband 11-delars set med band i olika färger och tillbehör](https://static.wixstatic.com/media/b379ce_1abd3f8210514bbd9e65750381c63c38~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/motstandsband-11-delars-set "Se i butiken →")
+[![Sissy squat-bänk 3-i-1, justerbar bräda för squats och armhävningar](https://static.wixstatic.com/media/b379ce_5c62a68da17e4a8091c4932d1ad9bf35~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/sissy-squat-bank-3-i-1 "Se i butiken →")
 
 ## De tio basövningarna du behöver kunna
 
@@ -129,7 +129,7 @@ Vila 60 sekunder mellan set. Värm upp 2 minuter med jumping jacks innan.
 
 Upprepa vecka 3 men öka antingen reps med 2 eller vilan minskar med 10 sekunder. När det känns lättare: lägg till ett set.
 
-[![Svart digital hopprep med räknare-display och skumhandtag](https://static.wixstatic.com/media/b379ce_3231e7347ddb4042833add3621aeb792~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/digital-hopprep "Se i butiken →")
+[![Hopfällbar balansbom 210 cm för gymnastik, mockaklädd med skumkärna](https://static.wixstatic.com/media/b379ce_f7a31c035cc14dd68356aec064305bc5~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/hopfallbar-balansbom "Se i butiken →")
 
 ## De vanligaste misstagen
 
@@ -151,7 +151,7 @@ Det blir det. Efter 6–8 veckor kommer många övningar att kännas hanterbara.
 
 Vi har ett urval av enkel hemmaträning-utrustning i kategorin [Träning](https://www.fyndplats.se/kategori/traning-gym) — bra fynd för dig som vill ta steget från ren kroppsviktsträning till lätt motstånd.
 
-[![Lila akupressurmatta med matchande nackkudde och tusentals plast-spikar](https://static.wixstatic.com/media/b379ce_e0b84013d7e8421facceec7045a5ae99~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/spikmatta-akupressurmatta-kudde-rygg-nacke "Se i butiken →")
+[![Motionscykel för hemmet med 8 motståndsnivåer och justerbar sadel](https://static.wixstatic.com/media/b379ce_4c25bb02ae404bf798270f42bb8b3cd8~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/motionscykel-hemma-justerbar-lcd "Se i butiken →")
 
 ## Vad du *faktiskt* behöver — om du vill köpa något
 
