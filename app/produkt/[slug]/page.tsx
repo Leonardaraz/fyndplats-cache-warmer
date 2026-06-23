@@ -2,25 +2,39 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
-import { getProduct, getProductSlugs, getProducts, getCollections } from "../../../lib/products";
+import { getProduct, getProducts, getCollections } from "../../../lib/products";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
 import { ProgCrossLinks } from "../../../components/programmatic";
 
-// ISR: PDPs cachas på Vercel edge i 5 min. Bakgrundsregenerering på stale.
-// Mätt: SSR ~400ms TTFB → cache-hit ~30-50ms (~10x snabbare för LCP).
-// Lager/pris uppdateras direkt via revalidatePath i app/api/wix-webhook/route.ts
-// vid order_created — så 5 min är ett tak, inte en faktisk fördröjning för köp.
-export const revalidate = 300;
-// dynamicParams=true: nya produkter (efter senaste deploy) som inte finns i
-// generateStaticParams renderas on-demand vid första träffen och cachas sen.
+// ISR: PDPs cachas på Vercel edge i 1h. Bakgrundsregenerering på stale (SWR) —
+// besökaren får ALLTID en cachad sida direkt, regenereringen sker i bakgrunden.
+// Lager/pris pushas omgående via revalidatePath i app/api/wix-webhook/route.ts
+// vid order_created — så 1h är bara ett tak för ÖVRIGA (manuella) ändringar, inte
+// en fördröjning vid köp. Höjt 300→3600 (2026-06): den gamla 5-min-ISR:en lät
+// cache-warmern tvinga fram ~en ISR-write per produkt var 10:e minut (dyrt) utan
+// reell färskhetsvinst, eftersom köp ändå revalidateras direkt av webhooken.
+export const revalidate = 3600;
+// dynamicParams=true: produkter utanför generateStaticParams (long-tail + nya
+// efter deploy) renderas on-demand vid första träffen och cachas sen.
 export const dynamicParams = true;
 
+// Kostnadsoptimering: pre-bygg bara topp-N produktsidor vid build (Bestseller →
+// högst bild-poäng). Resten renderas on-demand vid första träffen och cachas —
+// kapar Build CPU rejält utan 404-risk (dynamicParams=true). SEO opåverkat:
+// sitemap.xml listar fortfarande ALLA produkter.
+const SSG_PREBUILD = 40;
 export async function generateStaticParams() {
-  const slugs = await getProductSlugs();
-  return slugs.map((slug) => ({ slug }));
+  const all = await getProducts();
+  const ranked = [...all].sort((a, b) => {
+    const ba = a.ribbon === "Bestseller" ? 1 : 0;
+    const bb = b.ribbon === "Bestseller" ? 1 : 0;
+    if (ba !== bb) return bb - ba;
+    return (b.imageScore ?? 60) - (a.imageScore ?? 60);
+  });
+  return ranked.slice(0, SSG_PREBUILD).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
