@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { pageMeta } from "../../../lib/seo";
 import { getValidTypeSlugs, resolveBestInTest } from "../../../lib/seo/programmatic";
 import { ProgSchemas, ProgHero, ComparisonTable, ProductSection, ProgFaq, ProgCrossLinks } from "../../../components/programmatic";
@@ -9,7 +9,7 @@ export const revalidate = 3600; // 1h ISR (i takt med sitemapen + start/kategori
 // sanningskällan för giltighet. dynamicParams=false frös giltiga slugs vid BUILD,
 // medan sitemap.xml regenereras ~varje timme (produkt-fetch revalidate:3600) — så
 // en tröskel-slug kunde ligga i sitemap men 404:a tills nästa deploy. On-demand +
-// resolverns notFound() ger thin-content-skyddet utan build-tidens drift.
+// resolverns redirect (tunn → /butik) ger thin-content-skyddet utan build-drift.
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
@@ -27,7 +27,9 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
 export default async function BastITestPage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = await params;
   const view = await resolveBestInTest(type);
-  if (!view) notFound();
+  // Tunn/tom "bäst i test" (t.ex. efter Kina-utfasningen) → /butik i stället för
+  // 404. Self-correcting vid nästa ISR-regenerering om typen blir giltig igen.
+  if (!view) permanentRedirect("/butik");
 
   return (
     <>
