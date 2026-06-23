@@ -6,12 +6,12 @@ import { join } from "node:path";
 // leverans). När dessa gamla produkter avpubliceras i Wix 301:as deras
 // /produkt/<slug> till /alla-produkter — länkkraften bevaras och inga döda
 // länkar/404:or uppstår (Googles rekommendation för utgångna produkter).
-// KEEP_LIVE = produkter vi medvetet INTE fasar ut (t.ex. den enda som faktiskt
-// sålt — träningsvästarna — som kan re-sourcas till EU i stället).
+// KEEP_LIVE = ev. undantag som INTE fasas ut. TOM nu — hela Kina-batchen (alla
+// 207, inkl. träningsvästarna) är utfasad; sortimentet är 100 % EU-lager.
 const RETIRED_CHINA_SLUGS: string[] = JSON.parse(
   readFileSync(join(process.cwd(), "data/retired-china-slugs.json"), "utf8"),
 );
-const KEEP_LIVE = new Set<string>(["traningsvastar-for-lag-numrerade-sportvastar"]);
+const KEEP_LIVE = new Set<string>([]);
 const chinaRedirects = RETIRED_CHINA_SLUGS.filter((s) => !KEEP_LIVE.has(s)).map((slug) => ({
   source: `/produkt/${slug}`,
   destination: "/alla-produkter",
