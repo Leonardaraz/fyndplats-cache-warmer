@@ -11,8 +11,8 @@ secondary_keywords:
   - torr hud ansikte
 category: Skönhet & hälsa
 publish_date: 2026-05-30
-cover: https://static.wixstatic.com/media/b379ce_2f4eb3d44446490cb0cb758d215a05ab~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
-cover_alt: Ansiktsmaskborstar-set med skål, spatlar och rosa penslar
+cover: https://static.wixstatic.com/media/b379ce_b66f206810e54f1a84579df0f42921ef~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Hudvårdsset för ansikte i 5 delar med återfuktande och uppljusande produkter
 ---
 
 # Skönhetsrutin för torr hud: morgon och kväll, steg för steg
@@ -32,7 +32,7 @@ Innan vi går in på rutinen — det är bra att veta att "torr hud" kan betyda 
 
 De flesta svenskar har en blandning under vintern: tillfälligt uttorkad hud överlagrad på en kanske helt normal sommarhud. Båda gynnas av samma typ av rutin: mild rengöring, mycket återfuktning, och en barriär som håller fukten kvar.
 
-[![Elektrisk porrensare i vit design med utbytbara munstycken](https://static.wixstatic.com/media/b379ce_722c374c5a1a41ff9bc530763466c92a~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/elektrisk-porrensare "Se i butiken →")
+[![Återfuktande hudvårdsset i 5 delar med rengöring, toner, serum, ögonkräm och kräm](https://static.wixstatic.com/media/b379ce_5f0cabc6cc3940beab825d595f032adb~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/aterfuktande-hudvardsset "Se i butiken →")
 
 ## Morgonrutinen (4 steg, 3–4 minuter)
 
@@ -98,7 +98,7 @@ På kvällen kan du gå lite tjockare än på morgonen. En rik nattkräm med she
 
 Tips: Klassiska oljor som jojoba, marula och avokado funkar utmärkt för torr hud.
 
-[![Röd LED infraröd terapi-pad applicerad på skuldra](https://static.wixstatic.com/media/b379ce_b1677f32b68148f3b329538ebcaaa495~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/infrarod-led-terapi-pad-rodljus "Se i butiken →")
+[![Sheetmask med snigel och kollagen – återfuktande ansiktsmask i 20-pack](https://static.wixstatic.com/media/b379ce_a8ea811f0099410886f7123563e6f11b~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/sheetmask-snigel-kollagen-ansiktsmask-20-pack "Se i butiken →")
 
 ## En gång i veckan: ansiktsmask
 
@@ -116,7 +116,7 @@ En enkel rutin: applicera ett tjockt lager hydrerande mask, vänta 15 minuter, k
 
 Det här betyder inte att de här produkterna är dåliga — bara att de inte passar när huden är i akut behov av återfuktning.
 
-[![Gua Sha massagesten i grön jade och rosa rosenkvarts](https://static.wixstatic.com/media/b379ce_0840f2946dae4aca93a7fc4133788de0~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/gua-sha-massagesten-i-akta-jade "Se i butiken →")
+[![Peel off-mask med 24K guld och snigel – ansiktsmask i 3-pack](https://static.wixstatic.com/media/b379ce_d1514fd264714c0b9e7e4d963afeb4b2~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/peel-off-mask-guld-snigel-ansiktsmask-3-pack "Se i butiken →")
 
 ## Livsstilsfaktorer som gör större skillnad än de flesta produkter
 

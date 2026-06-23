@@ -11,8 +11,8 @@ secondary_keywords:
   - hobby kvällsaktivitet
 category: Hobby & fritid
 publish_date: 2026-05-30
-cover: https://static.wixstatic.com/media/b379ce_4341c7978d664784b0bf78bb3c4a5ab0~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
-cover_alt: POP MART Labubu samlardockor från The Monsters Series
+cover: https://static.wixstatic.com/media/b379ce_8c7d31e89f4446cfa9db863f1446558f~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: 3D-träpussel av en raket – mekanisk rymdfärja med raketramp, ljus och 446 delar
 ---
 
 # 15 hobbyer för vuxna att prova hemma — inspiration för dig som vill börja nytt
@@ -33,7 +33,7 @@ Tre saker:
 
 Med det sagt — här kommer femton kandidater.
 
-[![Svart GameWave X handhållen spelkonsol med retro-spel på skärmen](https://static.wixstatic.com/media/b379ce_ed12a3b28ccc4896a9e4f1aeed99c3ff~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/gamewave-x-handhallen-spelkonsol-med-64gb "Se i butiken →")
+[![Canvaspaneler för målning – vita målardukar för akryl, olja och akvarell](https://static.wixstatic.com/media/b379ce_9369be036df54bdc90829dec4c0b4435~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/canvaspaneler-malning-akryl-olja "Se i butiken →")
 
 ## 1. Pyssel med akvarell
 
@@ -49,7 +49,7 @@ Akvarell är en perfekt nybörjarhobby för vuxna. Du kommer någonstans efter t
 
 Sticka är en av få aktiviteter som faktiskt utförs framför TV utan att det är slöseri med tid. Du har en mössa, en halsduk eller en filt vid säsongens slut. YouTube har timmar med gratis nybörjarguider.
 
-[![Stilren keramisk handgjord vintagekopp för kaffe på fat](https://static.wixstatic.com/media/b379ce_39f637df5ecd4080ac9822e340bcc5e2~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/keramisk-kaffekopp-stilren-handgjord-vintagekopp "Se i butiken →")
+[![Bordslampa i färgat glas – handgjord Tiffanylampa för sovrum och vardagsrum](https://static.wixstatic.com/media/b379ce_984443a542fb421faec1ac16efe796a3~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/bordslampa-fargat-glas "Se i butiken →")
 
 ## 3. Pottplantor och inomhusträdgård
 
@@ -65,7 +65,7 @@ En bra växt-hobby börjar med 2–3 enkla växter (pilea, monstera, sansevieria
 
 Surdeg är inte en eftermiddag — det är en relation. Du matar den, du planerar runt den, och en gång i veckan bakas ett bröd som ingen butik kommer i närheten av. Kräver tålamod men det är en del av charmen.
 
-[![StarBeat samlardockor i K-pop-inspirerade outfits](https://static.wixstatic.com/media/b379ce_52506b0bbc544fe08046a36006706b6f~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/starbeat-fashion-dolls-k-pop-inspirerade "Se i butiken →")
+[![Fiskespö med rulle 2,13 m i kolfiber med multirulle och 7+1 kullager](https://static.wixstatic.com/media/b379ce_067ee1af328c46fba8dde1e2e1e3bd81~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/fiskespo-med-rulle-kolfiber "Se i butiken →")
 
 ## 5. Bygga lego (på riktigt, vuxen-set)
 
