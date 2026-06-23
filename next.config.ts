@@ -1,4 +1,22 @@
 import type { NextConfig } from "next";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+// Utfasade Kina-produkter (2026-06): sortimentet går helt till EU-lager (snabb
+// leverans). När dessa gamla produkter avpubliceras i Wix 301:as deras
+// /produkt/<slug> till /alla-produkter — länkkraften bevaras och inga döda
+// länkar/404:or uppstår (Googles rekommendation för utgångna produkter).
+// KEEP_LIVE = produkter vi medvetet INTE fasar ut (t.ex. den enda som faktiskt
+// sålt — träningsvästarna — som kan re-sourcas till EU i stället).
+const RETIRED_CHINA_SLUGS: string[] = JSON.parse(
+  readFileSync(join(process.cwd(), "data/retired-china-slugs.json"), "utf8"),
+);
+const KEEP_LIVE = new Set<string>(["traningsvastar-for-lag-numrerade-sportvastar"]);
+const chinaRedirects = RETIRED_CHINA_SLUGS.filter((s) => !KEEP_LIVE.has(s)).map((slug) => ({
+  source: `/produkt/${slug}`,
+  destination: "/alla-produkter",
+  permanent: true,
+}));
 
 const nextConfig: NextConfig = {
   images: {
@@ -59,6 +77,10 @@ const nextConfig: NextConfig = {
 
       // Wix-sajtens "blank-7"-sida var omdömessidan.
       { source: "/blank-7", destination: "/omdomen", permanent: true },
+
+      // Utfasade Kina-produkter → /alla-produkter (se RETIRED_CHINA_SLUGS överst).
+      // Specifika /produkt/<slug>-paths; matchar före ev. framtida wildcard.
+      ...chinaRedirects,
     ];
   },
 };
