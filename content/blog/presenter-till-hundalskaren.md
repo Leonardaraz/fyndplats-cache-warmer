@@ -101,7 +101,7 @@ Den hundägare som går ut tre gånger om dagen vinter som sommar i mer eller mi
 
 **Prisklass:** 800–2 500 kr.
 
-På [Kläder & accessoarer](https://www.fyndplats.se/kategori/mode-accessoarer) hittar du många bra ytteralternativ.
+På [Friluftsliv & resa](https://www.fyndplats.se/kategori/friluftsliv-resa) hittar du bra utomhustillbehör för långa hundpromenader i alla väder.
 
 ### 11. Termos med hundmotiv
 

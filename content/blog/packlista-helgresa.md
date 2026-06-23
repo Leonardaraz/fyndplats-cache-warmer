@@ -138,7 +138,7 @@ Att packa i sista sekund är en av de stora stressmakarna i livet. Packa kvälle
 
 En bra helgresa börjar med en bra packning. Använd checklistan, rulla kläderna, separera vått från torrt och håll dig till handbagaget. Investera i ett par packkuber, en bra powerbank och en hopfällbar shoppingkasse — de tre billiga inköpen ger dig 80 % av den smarta packarens upplevelse.
 
-Bra resetillbehör samlas i [Fyndplats avdelning Resor](https://www.fyndplats.se/kategori/friluftsliv-resa), och om du reser i klädnaket-känsliga väder kanske du också vill kika på [Kläder & accessoarer](https://www.fyndplats.se/kategori/mode-accessoarer) — bra ytterplagg är investeringen som lönar sig flest gånger.
+Bra resetillbehör — kylboxar, campingstolar, tält och dragvagnar — samlas i [Fyndplats avdelning Friluftsliv & resa](https://www.fyndplats.se/kategori/friluftsliv-resa), allt för en smidigare helgresa på ett ställe.
 
 ---
 

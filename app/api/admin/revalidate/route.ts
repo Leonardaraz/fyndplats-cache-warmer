@@ -1,5 +1,5 @@
 // Manuell ISR-invalidation. Användning:
-//   curl -X POST "https://www.fyndplats.se/api/admin/revalidate?token=$ADMIN_SECRET&path=/produkt/elektrisk-mjolkskummare"
+//   curl -X POST "https://www.fyndplats.se/api/admin/revalidate?token=$ADMIN_SECRET&path=/produkt/skrivbord-ek-120cm-datorbord"
 //
 // Path-formatet är NEXT.js revalidatePath: konkret URL ('/produkt/<slug>')
 // invalidatear en specifik sida; dynamisk pattern ('/produkt/[slug]') med
