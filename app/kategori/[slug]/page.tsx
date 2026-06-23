@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getProducts, getCollections, forListings, dedupeProducts } from "../../../lib/products";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
@@ -45,7 +45,12 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const active = collections.find((c) => c.slug === slug);
-  if (!active) notFound();
+  // Okänd/tom kategori (t.ex. ännu inte påfylld efter Kina-utfasningen, eller en
+  // kategori vars enda produkter var Kina) → redirect till /butik i stället för 404.
+  // SELF-REVIVE: så fort kategorin får ≥1 synlig produkt finns den i getCollections
+  // → active hittas → sidan renderar normalt igen, utan manuell åtgärd. Därför kan
+  // de hårdkodade kategori-redirectsen i next.config tas bort.
+  if (!active) redirect("/butik");
   // Huvudkategori: visa produkter i kategorin OCH alla dess underkategorier, så
   // avdelningssidan blir komplett. Subkategori: bara sina egna produkter.
   const childIds = collections.filter((c) => c.parentId === active.id).map((c) => c.id);
