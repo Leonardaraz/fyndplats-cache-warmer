@@ -1,10 +1,10 @@
 import Image from "next/image";
-import { getProducts, getCollections, forListings, dedupeProducts } from "../lib/products";
+import { getProducts, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
-import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../lib/image-scores";
+import { getHiddenFromFeatured, PROBLEM_MAX_SCORE } from "../lib/image-scores";
 import { tightFillUrl } from "../lib/wix-image";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../lib/social-proof";
 
@@ -61,24 +61,19 @@ export default async function Home() {
   // när HIDE_OOS_FROM_LISTINGS är på. Default av → oförändrat.
   const allProducts = forListings(allProductsRaw);
 
-  // Hero-mosaik: curated premium-bilder per kategori efter visuell granskning.
-  // Helt skild logik från CATEGORY-mosaiken nedan — denna visar bara 4 stora
-  // bilder överst på sidan ("breadth"-shot av sortimentet).
-  const HERO_CATS = ["Elektronik", "Hem & Inredning", "Kök & Matlagning", "Hudvård & Ansikte", "Mode & Accessoarer", "Husdjur", "Ljud & Hörlurar", "Dator & Gaming"];
-  const HERO_CURATION: Record<string, string[]> = {
-    "Elektronik": ["elektrisk-mjolkskummare", "elektrisk-vinoppnare", "mini-luftfuktare", "usb-koppvarmare"],
-    "Hem & Inredning": ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design", "astronaut-stjarnprojektor", "manuell-mathackare"],
-    "Kök & Matlagning": ["keramisk-kaffekopp-stilren-handgjord-vintagekopp", "vinkylare-med-luftare-och-upphallare-rostfritt", "manuell-mathackare"],
-    "Hudvård & Ansikte": ["gua-sha-massagesten-i-akta-jade", "ansiktsroller-massageverktyg-for-ansikte-och-ogon", "ultratunna-foundationborstar-2-pack-precisionsborste"],
-    "Mode & Accessoarer": [],
-    "Husdjur": [],
-    "Ljud & Hörlurar": [],
-    "Dator & Gaming": [],
-  };
+  // ── Startsidan visar NYTT: hero + Veckans fynd drivs av de 100 senast ──────
+  // skapade produkterna (Leonards önskemål 2026-06-23) i stället för en fast
+  // handplockad slug-lista. Vi sorterar på createdAt (Wix numericId, auto-ökande)
+  // och jobbar i den senaste 100-poolen. Kvaliteten skyddas fortfarande av:
+  //   • MOSAIC_DENYLIST  — kända bilder med text-overlay/logga/förpackning,
+  //   • merchant-gömda    — hidden=true i /admin/image-issues,
+  //   • en MJUK bild-poäng-grind — vi släpper igenom oscorad (default 60) men
+  //     stoppar känt dåliga (< PROBLEM_MAX_SCORE = 50), så en känd ful bild
+  //     aldrig hamnar överst men nya (ännu oscorade) produkter syns direkt.
+  const hiddenFromFeatured = await getHiddenFromFeatured();
 
   // MOSAIC_DENYLIST: produktbilder med text-overlays, brand-loggor eller plast­förpackningar
-  // som inte ska visas som hero. Används av hero-mosaiken nedan (homeCats använder
-  // den centrala buildGroupCards som har sin egen denylist).
+  // som inte ska visas på startsidan (homeCats använder buildGroupCards som har sin egen denylist).
   const MOSAIC_DENYLIST = new Set<string>([
     "sladdlos-handdammsugare-bil", "rgb-led-slinga", "digital-stektermometer",
     "tradlos-ergonomisk-mus-4000-dpi-99", "automatisk-tvaldispenser-touchless-sensor-skum",
@@ -95,33 +90,34 @@ export default async function Home() {
     "roterande-sminkforvaring-360",          // "360° rotating" text
   ]);
 
-  // Bygg hero-mosaikens 4 produkter — curation först, sen denylist-filter,
-  // sen vad som finns. Samma logik som CATEGORY-mosaiken men för enskilda
-  // produkter per HERO_CATS-kategori (visar bredd i sortimentet).
-  const heroProducts: typeof allProducts = [];
+  // Kvalitetsgrind för start-ytorna: har bild, inte denylistad, inte gömd, och
+  // inte KÄNT dålig (oscorad = default 60 → släpps igenom).
+  const isCleanImage = (p: (typeof allProducts)[number]) =>
+    Boolean(p.img) &&
+    !MOSAIC_DENYLIST.has(p.slug) &&
+    !hiddenFromFeatured.has(p.id) &&
+    p.imageScore >= PROBLEM_MAX_SCORE;
+
+  const latest100 = sortByNewest(allProducts).slice(0, 100);
+  const freshClean = latest100.filter(isCleanImage);
+
+  // Hero-mosaik (4 stora bilder): nyaste produkterna spridda över avdelningar för
+  // en "breadth"-shot av nytillskotten. mixByCategory round-robinerar per
+  // huvudkategori och behåller nyast-först inom varje bucket → de 4 första blir
+  // nyaste produkten i var och en av de första avdelningarna.
   const usedHero = new Set<string>();
-  for (const name of HERO_CATS) {
+  const heroProducts: typeof allProducts = [];
+  for (const p of mixByCategory(freshClean, cols)) {
     if (heroProducts.length >= 4) break;
-    const col = cols.find((c) => c.name === name);
-    if (!col) continue;
-    const inCat = allProducts.filter((p) => p.img && (p.collectionIds || []).includes(col.id));
-    const slugMap = new Map(inCat.map((p) => [p.slug, p]));
-    // 1. Försök curated
-    let picked: (typeof allProducts)[number] | undefined;
-    for (const slug of HERO_CURATION[name] || []) {
-      const p = slugMap.get(slug);
-      if (p && !usedHero.has(slug)) { picked = p; break; }
-    }
-    // 2. Annars första non-denylisted
-    if (!picked) picked = inCat.find((p) => !usedHero.has(p.slug) && !MOSAIC_DENYLIST.has(p.slug));
-    // 3. Sista utvägen
-    if (!picked) picked = inCat.find((p) => !usedHero.has(p.slug));
-    if (picked) { heroProducts.push(picked); usedHero.add(picked.slug); }
+    if (usedHero.has(p.slug)) continue;
+    heroProducts.push(p); usedHero.add(p.slug);
   }
-  // Sista fyllning över alla kategorier om vi inte fick 4
-  for (const p of allProducts) {
-    if (heroProducts.length >= 4) break;
-    if (!usedHero.has(p.slug) && p.img && !MOSAIC_DENYLIST.has(p.slug)) {
+  // Defensiv fyllning om de 100 senaste inte räcker till 4 (mycket litet/nytt
+  // sortiment): ta nyaste rena produkten ur hela katalogen.
+  if (heroProducts.length < 4) {
+    for (const p of sortByNewest(allProducts).filter(isCleanImage)) {
+      if (heroProducts.length >= 4) break;
+      if (usedHero.has(p.slug)) continue;
       heroProducts.push(p); usedHero.add(p.slug);
     }
   }
@@ -131,47 +127,22 @@ export default async function Home() {
   // bort den tomma vita rutan på first paint som granskningen flaggade.
   const heroBlur = await getBlurDataURLs(heroProducts.map((p) => p.img));
 
-  // Pinned 8-slug curation för "Veckans fynd" — handplockade clean-bilder.
-  // Speglar HERO_CURATION/PREMIUM_CURATION-mönstret: utan curation gav
-  // mixByCategory().slice(0, 8) ett shufflande urval där bl.a. mus, makeupborste
-  // och massagepistol (alla i MOSAIC_DENYLIST p.g.a. logga/text-overlays) kunde
-  // dyka upp. Fallback faller tillbaka på MOSAIC_DENYLIST-filtrerad round-robin
-  // om en curated slug saknas i katalogen (defensivt mot katalog-ändringar).
-  const VECKANS_CURATION = [
-    "gamewave-x-handhallen-spelkonsol-med-64gb",          // Dator & Gaming
-    "trendigt-snake-chain-kedjehalsband-slat",            // Smycken
-    "mjuk-huva-handduk-i-coral-fleece",                   // Barn & Familj
-    "12-pack-hjarteballonger-roda-och-peach",             // Hem / fest
-    "digital-bagagevag",                                   // Friluftsliv & Resa
-    "elektrisk-vinoppnare",                                // Elektronik / Kök
-    "astronaut-stjarnprojektor",                           // Hem & Inredning
-    "ansiktsroller-massageverktyg-for-ansikte-och-ogon",  // Hudvård
-  ];
-  // Veckans fynd drivs nu av bildkvalitets-poäng (lib/image-scores): bara topp-
-  // nivån (score > 75) får visas, sorterat fallande, och produkter merchant gömt
-  // i /admin/image-issues filtreras bort. Den handplockade VECKANS_CURATION
-  // behålls som prioriterad front NÄR slugarna klarar poängkravet — annars styr
-  // poängen. Faller tillbaka på poäng-sorterad pool om för få passerar baren.
-  const hiddenFromFeatured = await getHiddenFromFeatured();
-  const veckansPool = allProducts.filter(
-    (p) => !usedHero.has(p.slug) && !hiddenFromFeatured.has(p.id) && !MOSAIC_DENYLIST.has(p.slug),
-  );
-  const topTier = veckansPool.filter((p) => p.imageScore > FEATURED_MIN_SCORE);
-  const curatedSet = new Set(VECKANS_CURATION);
-  const curatedFront = VECKANS_CURATION
-    .map((slug) => topTier.find((p) => p.slug === slug))
-    .filter((p): p is (typeof allProducts)[number] => Boolean(p));
-  const byScore = topTier
-    .filter((p) => !curatedSet.has(p.slug))
-    .sort((a, b) => b.imageScore - a.imageScore);
-  const veckansPicks = [...curatedFront, ...byScore];
-  // Säkerhetsfyllning om < 8 produkter klarar > 75: ta de högst poängsatta ur
-  // poolen (fortfarande utan gömda/denylist) så raden aldrig blir gles.
+  // Veckans fynd (8): nyaste produkterna ur de 100 senaste, MED en del REA
+  // (onSale) inblandat — Leonards önskemål. Vi leder med upp till 3 nyaste
+  // REA-fynd och fyller resten med nyaste rena produkter spridda över avdelningar
+  // (mixByCategory). Finns ingen REA bland de 100 senaste blir raden bara nyast.
+  const featPool = latest100.filter((p) => isCleanImage(p) && !usedHero.has(p.slug));
+  const reaPicks = featPool.filter((p) => p.onSale).slice(0, 3);
+  const reaSet = new Set(reaPicks.map((p) => p.slug));
+  const restMixed = mixByCategory(featPool.filter((p) => !reaSet.has(p.slug)), cols);
+  const veckansPicks = [...reaPicks, ...restMixed];
+  // Säkerhetsfyllning om de 100 senaste rena inte ger 8: ta nyaste rena produkter
+  // ur hela katalogen så raden aldrig blir gles.
   if (veckansPicks.length < 8) {
     const used = new Set(veckansPicks.map((p) => p.slug));
-    for (const p of [...veckansPool].sort((a, b) => b.imageScore - a.imageScore)) {
+    for (const p of sortByNewest(allProducts).filter(isCleanImage)) {
       if (veckansPicks.length >= 8) break;
-      if (used.has(p.slug)) continue;
+      if (usedHero.has(p.slug) || used.has(p.slug)) continue;
       veckansPicks.push(p); used.add(p.slug);
     }
   }
