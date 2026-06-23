@@ -177,6 +177,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (!target) {
         target = `https://checkout.fyndplats.se/__ecom/checkout?checkoutId=${encodeURIComponent(checkoutId)}&origin=${encodeURIComponent(thankYouUrl)}&headlessClientId=${HEADLESS_CLIENT_ID}`;
       }
+
+      // Dölj login/logout-baren på den Wix-hostade kassan så kunden alltid checkar
+      // ut som GÄST. Wix-supportens officiella headless-workaround (ticket juni 2026):
+      // ?hideLoginLogoutBar=true på checkout-URL:en. Login → logout-bytet gav annars
+      // en bugg. Läggs på BÅDA vägarna (redirect-session + fallback) via URL-API:t
+      // (idempotent — set() dubblerar inte param). Fail-safe: kan vi inte parsa
+      // URL:en navigerar vi oförändrat → kassan kan aldrig brytas av detta.
+      try {
+        const u = new URL(target);
+        u.searchParams.set("hideLoginLogoutBar", "true");
+        target = u.toString();
+      } catch { /* oparsbar target → navigera ändå */ }
+
       window.location.href = target;
     } catch (e: any) {
       alert("Kassan kunde inte öppnas: " + (e?.message || "okänt fel"));
