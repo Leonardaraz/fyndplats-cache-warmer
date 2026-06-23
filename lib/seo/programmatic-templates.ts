@@ -65,7 +65,7 @@ function cap(s: string): string {
 // ─────────────────────────────────────────────────────────────────────────
 // Leverans och retur återkommer i BÅDE Pattern 1 och 3. Varje svar finns i 6
 // varianter med olika ordval OCH meningsbyggnad, så att två sidor sällan delar
-// samma 3-gram. Fakta hålls konstant: 5–15 arbetsdagar, spårning via mejl,
+// samma 3-gram. Fakta hålls konstant: 3–8 arbetsdagar, spårning via mejl,
 // frakt 19 kr (fri över 499 kr), 30 dagars öppet köp, oanvänd + originalför-
 // packning, info@fyndplats.com. Anroparen ger en unik `salt` så svaret rör sig
 // oberoende av övriga slots på sidan.
@@ -73,12 +73,12 @@ function cap(s: string): string {
 function deliveryAnswer(singular: string, seed: number, salt: number): string {
   const noun = singular ? `din ${singular}` : "ditt paket";
   const v = [
-    `Normal leveranstid är 5–15 arbetsdagar, och du får alltid en spårningskod via mejl när ${noun} skickas. Frakten är 19 kr inom Sverige — eller helt fri vid köp över 499 kr.`,
-    `Räkna med 5–15 arbetsdagar innan ${noun} är framme. Så fort paketet lämnar lagret mejlar vi en spårningslänk. Fri frakt gäller från 499 kr, annars en symbolisk peng på 19 kr.`,
-    `De flesta paket är hos dig inom 5–15 arbetsdagar. Du följer leveransen hela vägen via spårningskoden vi skickar på mejl. Under 499 kr kostar frakten 19 kr; över den gränsen bjuder vi på den.`,
-    `Leveransen tar vanligtvis 5–15 arbetsdagar. Spårning ingår alltid — koden landar i din inkorg när ordern packas. Frakt 19 kr, men gratis så fort du handlar för minst 499 kr.`,
-    `Förvänta dig ${noun} inom 5–15 arbetsdagar. Vi skickar en spårningskod via e-post så du vet exakt var paketet är. Fraktavgiften är 19 kr och försvinner helt vid köp över 499 kr.`,
-    `Vanlig leveranstid ligger på 5–15 arbetsdagar och varje order spåras — länken kommer på mejl vid avsändning. Handlar du för över 499 kr är frakten gratis, annars tillkommer 19 kr.`,
+    `Normal leveranstid är 3–8 arbetsdagar, och du får alltid en spårningskod via mejl när ${noun} skickas. Frakten är 19 kr inom Sverige — eller helt fri vid köp över 499 kr.`,
+    `Räkna med 3–8 arbetsdagar innan ${noun} är framme. Så fort paketet lämnar lagret mejlar vi en spårningslänk. Fri frakt gäller från 499 kr, annars en symbolisk peng på 19 kr.`,
+    `De flesta paket är hos dig inom 3–8 arbetsdagar. Du följer leveransen hela vägen via spårningskoden vi skickar på mejl. Under 499 kr kostar frakten 19 kr; över den gränsen bjuder vi på den.`,
+    `Leveransen tar vanligtvis 3–8 arbetsdagar. Spårning ingår alltid — koden landar i din inkorg när ordern packas. Frakt 19 kr, men gratis så fort du handlar för minst 499 kr.`,
+    `Förvänta dig ${noun} inom 3–8 arbetsdagar. Vi skickar en spårningskod via e-post så du vet exakt var paketet är. Fraktavgiften är 19 kr och försvinner helt vid köp över 499 kr.`,
+    `Vanlig leveranstid ligger på 3–8 arbetsdagar och varje order spåras — länken kommer på mejl vid avsändning. Handlar du för över 499 kr är frakten gratis, annars tillkommer 19 kr.`,
   ];
   return pick(v, seed, salt);
 }

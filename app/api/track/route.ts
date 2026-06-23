@@ -161,7 +161,7 @@ function cleanCarrier(name: string): string {
 
 // 17TRACK ger ETA som datum-sträng ("2026-06-10"). Formatera till svensk
 // läsbar form ("10 juni 2026"). Returnerar null om saknas/ogiltigt → UI:n
-// faller då tillbaka på "5–15 arbetsdagar".
+// faller då tillbaka på "3–8 arbetsdagar".
 function fmtEtaSv(s: string | null | undefined): string | null {
   if (!s) return null;
   const d = new Date(s);

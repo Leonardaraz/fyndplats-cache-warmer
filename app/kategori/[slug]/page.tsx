@@ -57,7 +57,17 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
     slug === "rea"
       ? products.filter((p) => p.onSale)
       : slug === "populara"
-        ? products.filter((p) => p.ribbon === "Bestseller")
+        ? (() => {
+            // Populära = bästsäljare (ribbon === "Bestseller"). Efter Kina-utfasningen
+            // (2026-06) saknas Bestseller-taggade produkter — alla låg på Kina-lagret —
+            // så vi faller tillbaka på de bäst presenterade produkterna (högst bild-
+            // poäng) så sidan aldrig blir tom. Re-taggas EU-produkter som Bestseller
+            // i Wix tar de över igen automatiskt.
+            const tagged = products.filter((p) => p.ribbon === "Bestseller");
+            return tagged.length >= 8
+              ? tagged
+              : [...products].sort((a, b) => b.imageScore - a.imageScore).slice(0, 24);
+          })()
         : products.filter((p) => (p.collectionIds || []).some((cid) => catIds.has(cid)));
   // Första raden: de 3 högst bild-poängsatta produkterna (lib/image-scores) först
   // — bästa bilderna möter besökaren. Resten behåller katalogordningen.

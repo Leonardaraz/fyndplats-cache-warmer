@@ -24,7 +24,7 @@ export default function Kundtjanst() {
       <h2>Snabba fakta</h2>
       <ul>
         <li><strong>Frakt:</strong> 19 kr inom Sverige, fri frakt över 499 kr.</li>
-        <li><strong>Leveranstid:</strong> normalt 5–15 arbetsdagar, med spårning via mejl.</li>
+        <li><strong>Leveranstid:</strong> normalt 3–8 arbetsdagar, med spårning via mejl.</li>
         <li><strong>Betalning:</strong> tryggt med Klarna – direkt, faktura eller delbetalning.</li>
         <li><strong>Öppet köp:</strong> 30 dagar (lagens 14 dagars ångerrätt förlängd av oss).</li>
       </ul>
