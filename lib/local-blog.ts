@@ -102,7 +102,7 @@ function renderProductImage(line: string): string | null {
   const safeAlt = escapeHtml(alt);
   const safeSrc = escapeHtml(wixThumb(src));
   const safeHref = escapeHtml(href);
-  const cap = caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : "";
+  const cap = caption ? `<figcaption><a href="${safeHref}">${escapeHtml(caption)}</a></figcaption>` : "";
   return `<figure class="blog-product-img"><a href="${safeHref}"><img src="${safeSrc}" alt="${safeAlt}" loading="lazy" decoding="async" /></a>${cap}</figure>`;
 }
 
