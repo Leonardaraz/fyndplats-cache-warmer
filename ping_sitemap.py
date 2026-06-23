@@ -21,8 +21,17 @@ import time
 import aiohttp
 
 SITEMAP_INDEX = "https://www.fyndplats.se/sitemap.xml"
-# Landing pages worth keeping warm even if absent from the sitemap.
-SEED_URLS = ["https://www.fyndplats.se/"]
+# Kostnadsoptimering (2026-06): warma BARA nyckelsidor i stället för hela
+# sitemapen. Long-tail-produkter + programmatiska sidor sköts av Next stale-
+# while-revalidate (besökaren får alltid en cachad sida direkt) + webhook-
+# revalidering vid köp. Tillsammans med PDP revalidate=3600 kapar detta Vercels
+# ISR Writes / Function Invocations / Observability kraftigt.
+STATIC_WARM = [
+    "https://www.fyndplats.se/",
+    "https://www.fyndplats.se/butik",
+    "https://www.fyndplats.se/alla-produkter",
+]
+PRODUCT_WARM_CAP = 20  # bara en handfull topp-produkter; resten sköts av SWR
 CONCURRENCY = 3
 REQUEST_TIMEOUT = 20
 MIN_INTERVAL = 0.15
@@ -117,6 +126,15 @@ async def ping_url(session, url, sem):
         return (url, "MAX_RETRIES", 0.0, "")
 
 
+def select_warm_urls(pages):
+    """Reducera sitemapen till nyckelsidor: statiska landningssidor + ALLA
+    kategorisidor + de första PRODUCT_WARM_CAP produktsidorna. Resten värms inte
+    (stale-while-revalidate sköter dem vid första riktiga träff)."""
+    categories = sorted(u for u in pages if "/kategori/" in u)
+    products = sorted(u for u in pages if "/produkt/" in u)[:PRODUCT_WARM_CAP]
+    return sorted(set(STATIC_WARM) | set(categories) | set(products))
+
+
 async def main():
     headers = {"User-Agent": USER_AGENT}
     connector = aiohttp.TCPConnector(limit=CONCURRENCY * 2, ttl_dns_cache=300)
@@ -132,9 +150,10 @@ async def main():
             print("The sitemap is unreachable or its structure changed; check SITEMAP_INDEX.")
             return 1
 
-        urls = from_sitemap | set(SEED_URLS)
-        url_list = sorted(urls)
-        print("Total URLs to warm:", len(url_list))
+        url_list = select_warm_urls(from_sitemap)
+        cats = sum(1 for u in url_list if "/kategori/" in u)
+        prods = sum(1 for u in url_list if "/produkt/" in u)
+        print(f"Total URLs to warm: {len(url_list)} (statiska + {cats} kategorier + topp-{prods} produkter)")
 
         start_run = time.monotonic()
         results = await asyncio.gather(*[ping_url(session, u, sem) for u in url_list])
