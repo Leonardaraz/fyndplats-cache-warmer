@@ -2,7 +2,10 @@ name: Cache Warm Fyndplats
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    # Var 30:e min (sänkt från var 10:e). I kombination med produktsidornas
+    # revalidate=3600 + nyckelsido-urvalet i ping_sitemap.py kapar detta
+    # Vercel ISR Writes / Function Invocations / Observability rejält.
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 concurrency:
