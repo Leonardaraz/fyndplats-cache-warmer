@@ -11,8 +11,8 @@ secondary_keywords:
   - produktivitet hemma
 category: Kontor & arbetsplats
 publish_date: 2026-05-30
-cover: https://static.wixstatic.com/media/b379ce_08b8bdac849b4809a5cfbce4af40a2f2~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
-cover_alt: Stor svart gaming-musmatta med sydd kant under tangentbord och mus
+cover: https://static.wixstatic.com/media/b379ce_aee75fd581c14ece8d521f27f2f531b5~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover_alt: Skrivbord i ek med metallben och justerbara fötter för hemmakontoret
 ---
 
 # Hemmakontor på budget: ergonomiska tips som faktiskt funkar
@@ -29,7 +29,7 @@ Om du bara har råd att investera i en sak: välj stolen. Du tillbringar sex til
 
 Vill du inte köpa ny stol direkt: skaffa ett **svankstöd** att placera bakom ryggen. Det är en 30-minuters investering som kan rädda dig från flera år av låg ryggsmärta.
 
-[![Slimmat trådlöst tangentbord och ergonomisk mus i vit Bluetooth-set](https://static.wixstatic.com/media/b379ce_6b83ae7a7bcd40ab9bc5929e6b8769fe~mv2.png/v1/fit/w_1200,h_1200,q_85/file.png)](/produkt/tradlost-tangentbord-mus-kompakt-bluetooth-set "Se i butiken →")
+[![Snurrbar skrivbordsstol med hjul i svart PU-läder, höj- och sänkbar](https://static.wixstatic.com/media/b379ce_33bcdb673c3e4d2598a5290d656b8190~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/snurrbar-skrivbordsstol "Se i butiken →")
 
 ## 2. Skärmen i ögonhöjd, inte 30 cm ned
 
@@ -43,7 +43,7 @@ När skärmen är i ögonhöjd kan du inte längre använda laptopens tangentbor
 
 Trådlösa varianter är bekvämare och ger ett renare skrivbord. Behöver du inspiration finns flera prisvärda alternativ i kategorin [Kontor & arbetsplats](https://www.fyndplats.se/kategori/hem-inredning).
 
-[![Svart trådlös ergonomisk mus i sidvy](https://static.wixstatic.com/media/b379ce_0c0ea92191df4125bdf50d02248fb889~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/tradlos-ergonomisk-mus-4000-dpi-99 "Se i butiken →")
+[![Golvlampa med två runda avlastningsbord och E27-sockel, vit](https://static.wixstatic.com/media/b379ce_1dc64d5986524dd689d64cf2f95d1c75~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/golvlampa-med-bord "Se i butiken →")
 
 ## 4. Belysning är halva känslan
 
@@ -57,7 +57,7 @@ Det här är det enklaste hälsotipset i världen och det som alla glömmer. Sä
 
 Det här ensamt minskar risken för långsiktig värk i nacke och axlar mer än någon ny stol kan göra.
 
-[![USB-C till USB-C snabbladdningskabel i svart flätad design](https://static.wixstatic.com/media/b379ce_2cef8868da974b7ab9cf77546952d4ae~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/c-till-usb-c-snabbladdningskabel "Se i butiken →")
+[![Arbetspall med hjul i konstläder, höjdjusterbar och 360° vridbar](https://static.wixstatic.com/media/b379ce_8a15aa325e334968af5362ad82ffffd4~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/arbetspall-med-hjul "Se i butiken →")
 
 ## 6. Avgränsa arbetsytan från resten av hemmet
 
