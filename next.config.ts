@@ -18,6 +18,23 @@ const chinaRedirects = RETIRED_CHINA_SLUGS.filter((s) => !KEEP_LIVE.has(s)).map(
   permanent: true,
 }));
 
+// Kategorier som TÖMDES vid Kina-utfasningen (alla deras produkter låg på
+// Kina-lagret → nu dolda → kategorin faller ur getCollections → /kategori/<slug>
+// 404:ar). De låg tidigare i sitemap/kunde vara indexerade, så vi 301:ar dem till
+// /butik (kategori-hubben) i stället för att lämna döda länkar. "populara" ingår:
+// den saknar tilldelade produkter och 404:ade redan. Mainsen + 29 kategorier lever
+// vidare (har EU-produkter) och påverkas inte. Garbage-slugs 404:ar fortsatt korrekt.
+const RETIRED_CATEGORY_SLUGS = [
+  "mode-accessoarer", "kalas-fest", "keps", "servering-glas", "kropp-valbefinnande",
+  "smycken", "mobiltillbehor", "laddare-kablar", "horlurar-ljud", "glasogon",
+  "klockor-solglasogon", "skor", "vaskor-necessarer", "palsvard-skotsel", "populara",
+];
+const categoryRedirects = RETIRED_CATEGORY_SLUGS.map((slug) => ({
+  source: `/kategori/${slug}`,
+  destination: "/butik",
+  permanent: true,
+}));
+
 const nextConfig: NextConfig = {
   images: {
     // Global loader (lib/image-loader.ts): serverar varje <Image> direkt från
@@ -81,6 +98,8 @@ const nextConfig: NextConfig = {
       // Utfasade Kina-produkter → /alla-produkter (se RETIRED_CHINA_SLUGS överst).
       // Specifika /produkt/<slug>-paths; matchar före ev. framtida wildcard.
       ...chinaRedirects,
+      // Tömda kategorier (Kina-utfasning) → /butik (se RETIRED_CATEGORY_SLUGS).
+      ...categoryRedirects,
     ];
   },
 };
