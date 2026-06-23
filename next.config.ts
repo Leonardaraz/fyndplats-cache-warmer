@@ -25,7 +25,7 @@ const chinaRedirects = RETIRED_CHINA_SLUGS.filter((s) => !KEEP_LIVE.has(s)).map(
 // den saknar tilldelade produkter och 404:ade redan. Mainsen + 29 kategorier lever
 // vidare (har EU-produkter) och påverkas inte. Garbage-slugs 404:ar fortsatt korrekt.
 const RETIRED_CATEGORY_SLUGS = [
-  "mode-accessoarer", "kalas-fest", "keps", "servering-glas", "kropp-valbefinnande",
+  "mode-accessoarer", "kalas-fest", "servering-glas", "kropp-valbefinnande",
   "smycken", "mobiltillbehor", "laddare-kablar", "horlurar-ljud", "glasogon",
   "klockor-solglasogon", "skor", "vaskor-necessarer", "palsvard-skotsel", "populara",
 ];
