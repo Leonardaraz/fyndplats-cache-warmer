@@ -18,7 +18,7 @@ function shortLabel(name: string): string {
   return name.split(/\s*&\s*|\s+/)[0];
 }
 
-export function MegaNav({ tree }: { tree: CategoryNode[] }) {
+export function MegaNav({ tree, hasBlog }: { tree: CategoryNode[]; hasBlog?: boolean }) {
   const [active, setActive] = useState<number | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -56,6 +56,11 @@ export function MegaNav({ tree }: { tree: CategoryNode[] }) {
           {shortLabel(m.name)}
         </a>
       ))}
+
+      {/* Blogg-länk i desktop-navet (göms tills minst ett inlägg finns, samma
+          hasBlog-grind som footern/mobilmenyn). Återanvänder .meganav-link-stilen
+          men utan mega-panel (ingen kategori) → bara en vanlig topp-navlänk. */}
+      {hasBlog && <a className="meganav-link" href="/blogg" onClick={close}>Blogg</a>}
 
       <a className="meganav-rea" href="/kategori/rea" onClick={close}>REA</a>
 

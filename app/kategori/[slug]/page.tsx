@@ -6,6 +6,7 @@ import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
 import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
+import { categoryContent } from "../../../lib/category-content";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
@@ -97,6 +98,11 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
     .sort((a, b) => a.index - b.index)
     .map((c) => ({ href: `/kategori/${c.slug}`, label: c.name }));
 
+  // Redaktionellt innehåll (intro + FAQ): bara på en HUVUDkategori-sida
+  // (active.parentId === null) vars slug har curated innehåll i lib/category-content.
+  // Subkategorier, REA/Populära och okända kategorier får inget block (oförändrat).
+  const editorial = !active.parentId ? categoryContent(active.slug) : undefined;
+
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
   // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
   const curatedHero = categoryHero(active.name);
@@ -150,11 +156,26 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
       })),
     },
   };
+  // FAQPage-JSON-LD när huvudkategorin har en FAQ (samma mönster som blogginläggen).
+  // Frågorna/svaren renderas synligt nedan → uppfyller Googles krav på att FAQ-
+  // markup speglar synligt sidinnehåll.
+  const faqLd = editorial?.faq?.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: editorial.faq.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }
+    : null;
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageLd) }} />
+      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
 
       <section className="kat-hero">
         <div className="container">
@@ -203,6 +224,36 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
           <ShopBrowser products={list} />
         </div>
       </section>
+
+      {/* Redaktionellt block (intro + FAQ) under produktnätet — ger huvudkategori-
+          sidorna riktig brödtext + long-tail-SEO. Renderas bara för huvudkategorier
+          med curated innehåll (lib/category-content); subkategorier/REA/Populära får
+          inget. FAQ:n speglas i FAQPage-JSON-LD ovan. */}
+      {editorial && (
+        <section className="sec kat-editorial">
+          <div className="container">
+            <div className="kat-intro">
+              <h2>Om {active.name}</h2>
+              {editorial.intro.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
+            {editorial.faq.length > 0 && (
+              <div className="kat-faq">
+                <h2>Vanliga frågor om {active.name}</h2>
+                <dl>
+                  {editorial.faq.map((f, i) => (
+                    <div className="kat-faq-item" key={i}>
+                      <dt>{f.q}</dt>
+                      <dd>{f.a}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {progLinks.length > 0 && (
         <ProgCrossLinks title={`Fler sätt att handla ${active.name}`} links={progLinks} />

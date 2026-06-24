@@ -69,7 +69,7 @@ export async function SiteHeader() {
         <div className="container hrow">
           <a className="brand" href="/"><Mark />Fyndplats</a>
           <SearchBox />
-          <MegaNav tree={tree} />
+          <MegaNav tree={tree} hasBlog={hasBlog} />
           <WishlistButton />
           <CartButton />
           <MobileNav tree={tree} hasBlog={hasBlog} />
