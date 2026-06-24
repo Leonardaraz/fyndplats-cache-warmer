@@ -6,6 +6,7 @@ import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
 import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } from "../lib/variant-multi";
+import { DELIVERY_TIME } from "../lib/shipping";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -438,6 +439,7 @@ export function ProductView({
 
           <div className="pdp-trust">
             <span>🚚 Fri frakt över 499 kr</span>
+            <span>📦 Leverans {DELIVERY_TIME}</span>
             <span>↩ 30 dagars öppet köp</span>
             <span>🔒 Trygg betalning med Klarna</span>
           </div>

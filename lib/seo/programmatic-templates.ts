@@ -306,10 +306,10 @@ export function priceTierMetaTitle(categoryName: string, price: number, seed: nu
 export function priceTierMetaDesc(categoryName: string, price: number, count: number, seed: number): string {
   const v = [
     `${count} fynd inom ${categoryName.toLowerCase()} för under ${price} kr. Noga utvalda produkter till smarta priser — fri frakt över 499 kr. Handla hos Fyndplats.`,
-    `Spara pengar på ${categoryName.toLowerCase()}: ${count} produkter under ${price} kr, alla handplockade. Snabb leverans och 30 dagars öppet köp hos Fyndplats.`,
+    `Spara pengar på ${categoryName.toLowerCase()}: ${count} produkter under ${price} kr, alla handplockade. Leverans 3–7 arbetsdagar och 30 dagars öppet köp hos Fyndplats.`,
     `Letar du efter prisvärd ${categoryName.toLowerCase()}? Vi har samlat ${count} fynd under ${price} kr. Smarta köp, fri frakt över 499 kr — Fyndplats.`,
     `${count} prisvärda ${categoryName.toLowerCase()}-fynd under ${price} kr, handplockade ur sortimentet. Fri frakt över 499 kr och trygga köp hos Fyndplats.`,
-    `Fynda ${categoryName.toLowerCase()} under ${price} kr — ${count} smarta köp samlade på ett ställe. Snabb leverans, fri frakt över 499 kr. Fyndplats.`,
+    `Fynda ${categoryName.toLowerCase()} under ${price} kr — ${count} smarta köp samlade på ett ställe. Leverans 3–7 arbetsdagar, fri frakt över 499 kr. Fyndplats.`,
   ];
   return pick(v, seed, 11);
 }
@@ -400,9 +400,9 @@ export function interestMetaTitle(verb: string, seed: number): string {
 export function interestMetaDesc(verb: string, count: number, seed: number): string {
   const v = [
     `${count} handplockade fynd för dig som ${verb}. Smarta produkter till bra priser, fri frakt över 499 kr och 30 dagars öppet köp. Handla hos Fyndplats.`,
-    `För dig som ${verb}: vi har samlat ${count} favoriter som gör vardagen enklare. Noga utvalda, prisvärda och snabbt hemma. Fyndplats.`,
+    `För dig som ${verb}: vi har samlat ${count} favoriter som gör vardagen enklare. Noga utvalda, prisvärda och hemma på 3–7 arbetsdagar. Fyndplats.`,
     `Är du en sån som ${verb}? Här är ${count} fynd vi tror du kommer älska — smarta köp till smarta priser hos Fyndplats.`,
-    `${count} utvalda favoriter för dig som ${verb}. Prisvärt, snabb leverans och fri frakt över 499 kr — handplockat hos Fyndplats.`,
+    `${count} utvalda favoriter för dig som ${verb}. Prisvärt, leverans 3–7 arbetsdagar och fri frakt över 499 kr — handplockat hos Fyndplats.`,
     `Fynd som passar dig som ${verb}: ${count} smarta köp samlade på ett ställe. Fri frakt över 499 kr och 30 dagars öppet köp. Fyndplats.`,
   ];
   return pick(v, seed, 11);

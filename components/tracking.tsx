@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { orderEventsNewestFirst } from "@/lib/track-i18n";
+import { DELIVERY_TIME } from "@/lib/shipping";
 
 // Anropar /api/track i headless (Next.js API-route) som proxar till 17TRACK
 // API och bevarar anonymisering (CN/HK/TW/SG/MY-events strippade, kinesiska
@@ -187,7 +188,7 @@ export function TrackingWidget() {
             ) : isException ? (
               <>Spårningen är pausad. Vi följer paketet – hör av dig till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> om du undrar.</>
             ) : (
-              <>Beräknad leverans: <b>{data.eta || "3–7 arbetsdagar"}</b></>
+              <>Beräknad leverans: <b>{data.eta || DELIVERY_TIME}</b></>
             )}
           </div>
 

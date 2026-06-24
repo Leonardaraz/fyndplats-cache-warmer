@@ -28,6 +28,7 @@ import { renderAbandonedCart2 } from "@/emails/abandoned-cart-2";
 import { renderAbandonedCart3 } from "@/emails/abandoned-cart-3";
 import { renderAbandonedCart3NoCode } from "@/emails/abandoned-cart-3-no-code";
 import { unsubscribeUrl } from "@/lib/newsletter";
+import { DELIVERY_TIME } from "@/lib/shipping";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,7 +69,7 @@ const TEMPLATES: Record<string, TemplateEntry> = {
           currency: "SEK",
           shippingAddress: { fullName: "Leonard Araz", addressLine: "Bergviksgatan 10", postalCode: "152 44", city: "Södertälje", country: "Sverige" },
           paymentMethod: "Kort (Visa ••42)",
-          estimatedDelivery: "3–7 arbetsdagar",
+          estimatedDelivery: DELIVERY_TIME,
         }),
       ),
   },
