@@ -514,13 +514,18 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .oos-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:12px 16px;margin:6px 0 16px}
 .oos-banner-chip{display:inline-block;background:#DC2626;color:#fff;font-weight:800;font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:5px 12px;border-radius:999px;flex:none}
 .oos-banner-text{font-size:14px;color:#7F1D1D;line-height:1.4}
-.restock-box{margin-top:16px;max-width:420px;background:#FFF8F3;border:1px solid var(--line);border-radius:13px;padding:16px}
-.restock-label{display:block;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:10px}
-.restock-row{display:flex;gap:8px;flex-wrap:wrap}
-.restock-input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:#fff}
-.restock-input:focus{outline:2px solid #C2410C;outline-offset:1px}
-.restock-btn{width:auto;max-width:none;flex:none;padding:12px 22px;font-size:16px;border-radius:11px;box-shadow:none}
-.restock-error{margin-top:8px;font-size:12px;color:#B91C1C}
+.restock-box{margin-top:16px;max-width:460px;background:linear-gradient(180deg,#FFFBF7,#FFF6EF);border:1px solid #F0E3D6;border-radius:16px;padding:20px 20px 22px;box-shadow:0 10px 30px -22px rgba(122,72,30,.45)}
+.restock-label{display:block;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;line-height:1.35}
+/* Vertikal stack: e-postfältet är den visuella hjälten (stort, full bredd),
+   knappen full bredd under. Robust mot flex-squish — .buy:s width/max-width kan
+   inte längre krympa fältet (tidigare bugg: en knapp tog hela raden, fältet blev
+   en enbokstavs-ruta). Höjd specificitet (.restock-box .restock-*) slår .buy. */
+.restock-row{display:flex;flex-direction:column;gap:12px}
+.restock-box .restock-input{width:100%;min-width:0;font:inherit;font-size:16px;padding:15px 16px;border:1.5px solid #E4D5C6;border-radius:12px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+.restock-box .restock-input::placeholder{color:#a89e93}
+.restock-box .restock-input:focus{outline:none;border-color:#C2410C;box-shadow:0 0 0 3px rgba(194,65,12,.15)}
+.restock-box .restock-btn{width:100%;max-width:none;flex:none;padding:15px 22px;font-size:16px;border-radius:12px;box-shadow:none}
+.restock-error{margin-top:10px;font-size:13px;color:#B91C1C}
 .restock-done{margin-top:16px;max-width:420px;background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600}
 .pdp-blurb{font-size:16px;color:#4a443d;line-height:1.65;margin-bottom:24px}
 .buy{font:inherit;font-size:16px;font-weight:700;color:#fff;background:#C2410C;border:none;border-radius:13px;padding:16px 32px;cursor:pointer;box-shadow:0 12px 26px -10px rgba(194,65,12,.55);transition:background .2s,transform .15s;width:100%;max-width:340px}
