@@ -483,6 +483,11 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pdp-price{font-size:32px;font-weight:800;color:#C2410C;margin-bottom:10px}
 .pdp-price-old{font-size:18px;font-weight:600;color:#7c746b;text-decoration:line-through;margin-left:10px;vertical-align:middle}
 .pdp-sale{display:inline-block;vertical-align:middle;margin-left:10px;background:#F84848;color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:7px}
+/* Klarna-delbetalningsrad under priset (components/klarna-message.tsx). Klarnas
+   rosa märke i ett litet chip + diskret text — säljpunch utan att skrika. */
+.klarna-msg{display:inline-flex;align-items:center;gap:9px;margin:-2px 0 16px;font-size:13.5px;color:#4a443d}
+.klarna-msg img{display:block;height:16px;width:auto;background:#FFB3C7;border-radius:5px;padding:3px 6px;box-sizing:content-box}
+.klarna-msg strong{font-weight:800;color:var(--ink)}
 .pdp-desc{font-size:16px;color:#4a443d;line-height:1.7;margin-bottom:24px;overflow-wrap:break-word}
 /* Wix-beskrivningen är rå HTML → tämja innehåll som annars spiller över skärmbredden */
 .pdp-desc img,.pdp-desc video,.pdp-desc iframe{max-width:100%;height:auto}

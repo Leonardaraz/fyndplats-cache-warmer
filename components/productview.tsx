@@ -8,6 +8,7 @@ import { tightFillUrl } from "../lib/wix-image";
 import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } from "../lib/variant-multi";
 import { DeliveryEstimate } from "./delivery-estimate";
 import { PaymentMarks } from "./payment-marks";
+import { KlarnaMessage } from "./klarna-message";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -251,6 +252,13 @@ export function ProductView({
       : onSale
         ? originalPrice || ""
         : "";
+  // Numeriskt pris för den VALDA varianten/kombinationen → Klarna-delbeloppet
+  // (pris/3) matchar exakt det pris kunden ser. Samma logik som onAdd:s itemPrice.
+  const currentPriceNum = multiAxis
+    ? currentVariant?.priceNum || priceNum
+    : hasImageVariants && imageChoices[sel]?.priceNum
+      ? imageChoices[sel].priceNum
+      : priceNum;
   const needsVariant = multiAxis ? true : hasImageVariants || variants.length > 0;
   // Etikett för vald variant/kombination — visas i pickern och sticky-knappen.
   const variantLabel = multiAxis
@@ -417,6 +425,7 @@ export function ProductView({
             {displayOriginal && <span className="pdp-price-old">{displayOriginal}</span>}
             {displayOriginal && <span className="pdp-sale">Rea</span>}
           </div>
+          <KlarnaMessage priceNum={currentPriceNum} />
           <div className={`stock ${buyable ? "in" : "out"}`}>
             {buyable ? "✓ I lager" : variantOnlyOOS ? "Slut i denna variant" : "Tillfälligt slut"}
           </div>
