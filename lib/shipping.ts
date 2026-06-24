@@ -14,7 +14,13 @@
 // app/omoss, app/anvandarvillkor-app, lib/category-content.ts,
 // lib/seo/programmatic-templates.ts.
 //
-// Ändras leveranstiden: uppdatera DELIVERY_TIME här OCH kör
+// Ändras leveranstiden: uppdatera dagarna nedan här OCH kör
 //   grep -rn "arbetsdagar" app lib
 // för att fånga prosa-meningarna ovan.
-export const DELIVERY_TIME = "3–7 arbetsdagar";
+//
+// Leveransfönstret i arbetsdagar (mån–fre). DELIVERY_TIME härleds ur dem så att
+// fras + konkret datumintervall (components/delivery-estimate.tsx) ALLTID stämmer
+// överens — ändra bara siffrorna.
+export const DELIVERY_MIN_DAYS = 3;
+export const DELIVERY_MAX_DAYS = 7;
+export const DELIVERY_TIME = `${DELIVERY_MIN_DAYS}–${DELIVERY_MAX_DAYS} arbetsdagar`;
