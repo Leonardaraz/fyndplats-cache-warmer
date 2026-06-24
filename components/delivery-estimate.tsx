@@ -31,14 +31,17 @@ function addBusinessDays(from: Date, n: number): Date {
 }
 
 function formatRange(a: Date, b: Date): string {
+  // Kort veckodag ("tis", "fre") för konkretion. Vissa ICU-versioner lägger en
+  // punkt ("tis.") — strippa den defensivt så det alltid blir rent.
+  const wd = (d: Date) => d.toLocaleDateString("sv-SE", { weekday: "short" }).replace(".", "");
   const sameMonth = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
   if (sameMonth) {
-    // "3–7 juli"
+    // "tis 6 – fre 10 juli"
     const month = b.toLocaleDateString("sv-SE", { month: "long" });
-    return `${a.getDate()}–${b.getDate()} ${month}`;
+    return `${wd(a)} ${a.getDate()} – ${wd(b)} ${b.getDate()} ${month}`;
   }
-  // "30 juni – 4 juli"
-  const f = (d: Date) => d.toLocaleDateString("sv-SE", { day: "numeric", month: "long" });
+  // "tis 29 juni – fre 3 juli"
+  const f = (d: Date) => `${wd(d)} ${d.toLocaleDateString("sv-SE", { day: "numeric", month: "long" })}`;
   return `${f(a)} – ${f(b)}`;
 }
 
