@@ -8,6 +8,7 @@ import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
 import { ProgCrossLinks } from "../../../components/programmatic";
+import { NAV_EXCLUDED } from "../../../lib/category-groups";
 
 // ISR: PDPs cachas på Vercel edge i 1h. Bakgrundsregenerering på stale (SWR) —
 // besökaren får ALLTID en cachad sida direkt, regenereringen sker i bakgrunden.
@@ -59,7 +60,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!p) notFound();
 
   const cols = await getCollections();
-  const primaryCol = cols.find((c) => (p.collectionIds || []).includes(c.id));
+  // Brödsmulans/JSON-LD:ns kategori: produktens HUVUDavdelning (parentId null) om
+  // den finns, annars en underkategori — men ALDRIG promo-/rotkollektioner
+  // (All Products, REA, Populära). Används för synlig brödsmula, breadcrumb-JSON-LD
+  // OCH GA4-kategori, så alla tre är konsekventa. Faller tillbaka på "Butik" (visuellt)
+  // / utelämnas (JSON-LD) om produkten saknar en riktig kategori.
+  const ownCats = (p.collectionIds || [])
+    .map((id) => cols.find((c) => c.id === id))
+    .filter((c): c is (typeof cols)[number] => c !== undefined && !NAV_EXCLUDED.has(c.name));
+  const primaryCol = ownCats.find((c) => c.parentId === null) || ownCats[0];
 
   // Riktiga importerade kundrecensioner (social proof + schema.org). Tom om inga.
   const reviewData = await getProductReviews(p.id);
@@ -175,7 +184,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <div className="container">
-        <nav className="crumbs"><a href="/">Hem</a> <span>/</span> <a href="/butik">Butik</a> <span>/</span> <em>{p.name}</em></nav>
+        <nav className="crumbs">
+          <a href="/">Hem</a> <span>/</span>{" "}
+          {primaryCol ? (
+            <><a href={`/kategori/${primaryCol.slug}`}>{primaryCol.name}</a> <span>/</span> </>
+          ) : (
+            <><a href="/butik">Butik</a> <span>/</span> </>
+          )}
+          <em>{p.name}</em>
+        </nav>
 
         <ProductView
           key={p.id}
