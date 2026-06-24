@@ -442,9 +442,31 @@ export function ProductView({
           {inStock && <DeliveryEstimate />}
 
           <div className="pdp-trust">
-            <span>🚚 Fri frakt över 499 kr</span>
-            <span>↩ 30 dagars öppet köp</span>
-            <span>🔒 Trygg betalning med Klarna</span>
+            <span>
+              {/* present = "gratis" (lastbilen äger leverans-callouten ovan) */}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="20 12 20 22 4 22 4 12" />
+                <rect x="2" y="7" width="20" height="5" />
+                <line x1="12" y1="22" x2="12" y2="7" />
+                <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+              </svg>
+              Fri frakt över 499 kr
+            </span>
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 14L4 9l5-5" />
+                <path d="M4 9h11a5 5 0 0 1 5 5v1" />
+              </svg>
+              30 dagars öppet köp
+            </span>
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+              Trygg betalning med Klarna
+            </span>
           </div>
         </div>
 
