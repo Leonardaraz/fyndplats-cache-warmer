@@ -1,24 +1,22 @@
-// "Dela upp i 3 räntefria delar à X kr med Klarna" under priset på produktsidan.
+// "Betala inom 30 dagar – räntefritt med Klarna" under priset på produktsidan.
 //
-// Klarna "Betala i 3" är RÄNTEFRITT → delbeloppet är exakt pris/3 (ingen ränta →
-// ingen representativt-exempel-komplexitet enligt konsumentkreditlagen). Egen
-// uträkning, INGET externt script (snabbt + integritetsvänligt, i linje med resten
-// av sajten — vi consent-gatar tredjeparts-skript). Klarnas rosa märke återanvänds
-// (samma /public/payments/klarna.svg som betal-loggorna).
+// VIKTIGT (verifierat mot Fyndplats Klarna-kassa 2026-06, payments.klarna.com):
+//   • Klarnas MÅNADSFAKTURA (betala hela beloppet inom ~30 dagar) = 0 kr ränta → räntefri.
+//   • Klarnas DELBETALNING (3 resp. 6 betalningar) = 21,90 % effektiv ränta → INTE räntefri.
+// Därför får vi ALDRIG kalla delbetalningen "räntefri" eller visa ett "räntefritt
+// månadsbelopp" — det vore ett felaktigt (och reglerat) kreditpåstående. Vi leder
+// i stället med den ärligt räntefria 30-dagars-optionen (Klarnas "Betala senare").
 //
-// Visas bara över ett litet minimibelopp så vi aldrig "lovar" delbetalning på små
-// köp där det inte är relevant. Vill man senare ha Klarnas officiella On-Site
-// Messaging ("från X kr/mån" med riktiga villkor) byts denna mot <klarna-placement>
-// gated på ett klient-ID — separat uppgradering.
-const KLARNA_MIN_KR = 100;
-
+// Inget externt script (snabbt + integritetsvänligt). Klarnas rosa märke återanvänds
+// (samma /public/payments/klarna.svg som betal-loggorna). Vill man senare visa exakta
+// delbetalnings-/månadsbelopp MÅSTE det göras via Klarnas officiella On-Site Messaging-
+// widget (som hämtar de verkliga villkoren inkl. ränta/representativt exempel).
 export function KlarnaMessage({ priceNum }: { priceNum: number }) {
-  if (!priceNum || priceNum < KLARNA_MIN_KR) return null;
-  const perPart = Math.round(priceNum / 3);
+  if (!priceNum || priceNum <= 0) return null;
   return (
     <div className="klarna-msg">
       <img src="/payments/klarna.svg" alt="Klarna" width={18} height={18} />
-      <span>Dela upp i <strong>3 räntefria delar</strong> à {perPart} kr med Klarna</span>
+      <span>Betala inom <strong>30 dagar</strong> – räntefritt med Klarna</span>
     </div>
   );
 }
