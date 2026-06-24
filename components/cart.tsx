@@ -60,7 +60,7 @@ type Ctx = {
   count: number;
   open: boolean;
   setOpen: (b: boolean) => void;
-  add: (id: string, variantId?: string) => Promise<void>;
+  add: (id: string, variantId?: string, quantity?: number) => Promise<void>;
   remove: (lineId: string) => Promise<void>;
   updateQty: (lineId: string, quantity: number) => Promise<void>;
   checkout: () => Promise<void>;
@@ -103,7 +103,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (Cookies.get("fp_cart")) refresh();
   }, [refresh]);
 
-  const add = useCallback(async (id: string, variantId?: string) => {
+  const add = useCallback(async (id: string, variantId?: string, quantity: number = 1) => {
     setBusy(true);
     try {
       const { client } = await getClient();
@@ -115,7 +115,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       const ref: any = { appId: STORES_APP_ID, catalogItemId: id };
       if (variantId) ref.options = { variantId };
-      const res: any = await client.currentCart.addToCurrentCart({ lineItems: [{ catalogReference: ref, quantity: 1 }] });
+      const res: any = await client.currentCart.addToCurrentCart({ lineItems: [{ catalogReference: ref, quantity: Math.max(1, Math.floor(quantity)) }] });
       setCart(res.cart); persistTokens(client); setOpen(true);
       Cookies.set("fp_cart", "1", { expires: 30 });
     } finally { setBusy(false); }

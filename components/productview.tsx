@@ -155,6 +155,7 @@ export function ProductView({
   const [sel, setSel] = useState(0);
   const [galleryIdx, setGalleryIdx] = useState(0); // aktiv galleribild
   const [added, setAdded] = useState(false);
+  const [qty, setQty] = useState(1); // antal-väljare vid köp
 
   // Multi-axel (Färg × Storlek): en väljare per axel. `picked` = valt val per axel
   // (startar på första variant i lager). currentVariant = varianten för hela den
@@ -289,8 +290,9 @@ export function ProductView({
         ? imageChoices[sel].priceNum
         : priceNum;
     trackAddToCart({ id: productId, name, priceNum: itemPrice, category });
-    await add(productId, variantId || undefined);
+    await add(productId, variantId || undefined, qty);
     setAdded(true);
+    setQty(1); // nollställ antal efter tillagt → nästa köp börjar om på 1
     setTimeout(() => setAdded(false), 1500);
   };
 
@@ -437,6 +439,16 @@ export function ProductView({
         {multiAxis ? multiVariantPicker : variantPicker}
 
         <div className="buybox pdp-actions">
+          {buyable && (
+            <div className="pdp-qty">
+              <span className="pdp-qty-label">Antal</span>
+              <div className="qstep" role="group" aria-label="Antal">
+                <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1 || busy} aria-label="Minska antal">−</button>
+                <span className="qstep-num" aria-live="polite">{qty}</span>
+                <button type="button" onClick={() => setQty((q) => Math.min(99, q + 1))} disabled={busy} aria-label="Öka antal">+</button>
+              </div>
+            </div>
+          )}
           <button
             className="buy"
             disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
