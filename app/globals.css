@@ -536,6 +536,13 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .buy:not(:disabled):active{transform:translateY(1px) scale(.985)}
 .buy:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
 .buy:disabled:hover{background:#C2410C;transform:none}
+/* Premium leverans-callout (components/delivery-estimate.tsx) — egen ruta direkt
+   under köpknappen så det beräknade leveransdatumet sticker ut. Mjuk grön ton +
+   lastbils-ikon signalerar "snabbt & klart" och paras med den gröna I-lager-brickan. */
+.delivery-callout{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 15px;background:linear-gradient(180deg,#F3FBF6,#EBF8F0);border:1px solid #CDEBDB;border-radius:13px;box-shadow:0 8px 20px -14px rgba(11,107,58,.5)}
+.delivery-callout-ic{width:24px;height:24px;flex:none;color:#0B7A43}
+.delivery-callout-text{display:flex;flex-direction:column;font-size:12.5px;font-weight:600;letter-spacing:.01em;color:#4f6b5c;line-height:1.3}
+.delivery-callout-text strong{font-size:15.5px;font-weight:800;letter-spacing:-.01em;color:#0B6B3A;margin-top:1px}
 .pdp-trust{display:flex;flex-direction:column;gap:8px;margin-top:20px;font-size:14px;color:var(--soft)}
 .specbox{margin-top:28px;background:var(--warm);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
 .specbox h2{font-size:16px;font-weight:700;margin-bottom:10px}

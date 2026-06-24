@@ -437,9 +437,12 @@ export function ProductView({
 
           {!buyable && productId && <RestockForm productId={productId} />}
 
+          {/* Premium leverans-callout — högst upp, direkt under köpknappen, egen
+              ruta så den sticker ut (bara i lager). */}
+          {inStock && <DeliveryEstimate />}
+
           <div className="pdp-trust">
             <span>🚚 Fri frakt över 499 kr</span>
-            {inStock && <DeliveryEstimate />}
             <span>↩ 30 dagars öppet köp</span>
             <span>🔒 Trygg betalning med Klarna</span>
           </div>
