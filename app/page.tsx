@@ -191,7 +191,13 @@ export default async function Home() {
                       blurDataURL={heroBlur[i]}
                       sizes="(max-width:880px) 42vw, 22vw"
                     />
-                    {p.price && <span className="htag">{p.price}</span>}
+                    {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
+                    {p.price && (
+                      <span className="htag">
+                        {p.price}
+                        {p.onSale && p.originalPrice && <span className="htag-old">{p.originalPrice}</span>}
+                      </span>
+                    )}
                   </a>
                 ))}
               </div>
@@ -199,7 +205,13 @@ export default async function Home() {
                 {heroProducts.slice(2, 4).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
                     <Image src={tightFillUrl(p.img, 800, 800)} alt={p.name} fill preload placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
-                    {p.price && <span className="htag">{p.price}</span>}
+                    {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
+                    {p.price && (
+                      <span className="htag">
+                        {p.price}
+                        {p.onSale && p.originalPrice && <span className="htag-old">{p.originalPrice}</span>}
+                      </span>
+                    )}
                   </a>
                 ))}
               </div>

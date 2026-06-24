@@ -218,6 +218,17 @@ export function ProductView({
   // till pickern bara om bilden är en av variantbilderna (de n första).
   const pickVariant = (i: number) => { setSel(i); setGalleryIdx(i); };
   const onGalleryActive = (j: number) => { setGalleryIdx(j); if (j < imageChoices.length) setSel(j); };
+  // Multi-axel: galleriet följer vald kombinations bild, men kunden ska ÄVEN kunna
+  // klicka sig till galleriets extrabilder (instruktioner m.m.) som inte hör till
+  // en variant. Vi speglar multiActive → galleryIdx i en effekt och låter Gallery
+  // skriva tillbaka via onActiveChange (nedan), så ett miniatyrklick inte snäpper
+  // tillbaka till variantbilden utan håller tills man byter kombination. (Bugg före
+  // detta: i multi-axel styrdes active av multiActive men UTAN onActiveChange → den
+  // controlled-men-callback-lösa galleribilden gick aldrig att byta, klick på
+  // miniatyrerna gjorde ingenting. Märktes tydligast på slutsålda produkter.)
+  useEffect(() => {
+    if (multiAxis) setGalleryIdx(multiActive);
+  }, [multiAxis, multiActive]);
   const hasTextVariants = !multiAxis && !hasImageVariants && variants.length > 1;
   const variantId = multiAxis
     ? currentVariant?.variantId
@@ -377,8 +388,8 @@ export function ProductView({
         images={galleryImages}
         alt={name}
         mainBlur={mainBlur}
-        active={multiAxis ? multiActive : allHaveImage ? galleryIdx : undefined}
-        onActiveChange={multiAxis ? undefined : allHaveImage ? onGalleryActive : undefined}
+        active={multiAxis || allHaveImage ? galleryIdx : undefined}
+        onActiveChange={multiAxis ? setGalleryIdx : allHaveImage ? onGalleryActive : undefined}
         // Förladda variantbilderna (de ligger först i galleryImages) efter LCP så
         // varje variantbyte blir en direkt cache-träff. Galleriets extrabilder
         // (svep-bara, ej i pickern) lämnas lazy.
