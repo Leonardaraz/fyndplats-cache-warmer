@@ -7,6 +7,7 @@ import { getCategoryTree } from "../lib/category-groups";
 import { getPosts } from "../lib/blog";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "./trustpilot";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../lib/social-proof";
+import { PaymentMarks } from "./payment-marks";
 
 export function GoogleG({ size = 16 }: { size?: number }) {
   return (
@@ -29,20 +30,6 @@ export function Social({ className }: { className?: string }) {
         <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden><path d="M13.4 22v-8.4h2.8l.4-3.3h-3.2V8.2c0-.95.32-1.6 1.7-1.6h1.8V3.65c-.3-.04-1.34-.13-2.55-.13-2.52 0-4.25 1.54-4.25 4.36v2.42H7.3v3.3h2.8V22h3.3Z" /></svg>
       </a>
     </span>
-  );
-}
-
-export function PaymentMarks() {
-  return (
-    <div className="paymarks" aria-label="Betalsätt vi accepterar">
-      {/* Officiella betal-loggor (SVG i /public/payments). Vita chips, Klarna i
-          sin signaturrosa. height/width satta → ingen layout-shift. */}
-      <span className="pay pay-klarna" title="Klarna"><img src="/payments/klarna.svg" alt="Klarna" width={18} height={18} /></span>
-      <span className="pay" title="Visa"><img src="/payments/visa.svg" alt="Visa" width={56} height={18} /></span>
-      <span className="pay" title="Mastercard"><img src="/payments/mastercard.svg" alt="Mastercard" width={23} height={18} /></span>
-      <span className="pay" title="American Express"><img src="/payments/amex.svg" alt="American Express" width={18} height={18} /></span>
-      <span className="pay" title="Apple Pay"><img src="/payments/applepay.svg" alt="Apple Pay" width={44} height={18} /></span>
-    </div>
   );
 }
 

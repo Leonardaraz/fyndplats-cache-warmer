@@ -7,6 +7,7 @@ import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
 import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } from "../lib/variant-multi";
 import { DeliveryEstimate } from "./delivery-estimate";
+import { PaymentMarks } from "./payment-marks";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -468,6 +469,9 @@ export function ProductView({
               Trygg betalning med Klarna
             </span>
           </div>
+
+          {/* Officiella betal-loggor — trygghet i själva köpögonblicket */}
+          <PaymentMarks />
         </div>
 
         <div className="pdp-detail">
