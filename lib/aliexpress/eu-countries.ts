@@ -145,6 +145,31 @@ export function classifyWarehouses(codes: readonly string[]): WarehouseClass {
   return "CN"; // alla icke-EU-warehouses behandlas som "långsam shipping"
 }
 
+// =====================================================================
+// Seller-origin (säljarens REGISTRERINGSLAND) — medvetet SKILD från warehouse.
+// =====================================================================
+// Varför separat: ship-from-warehouse är gameable — en kinesisk säljare hyr ett
+// EU-lager och ser då "EU" ut fast bolaget sitter i Kina. Säljarens
+// registreringsland (store-profilens "Location" / DSA "Business info") går INTE
+// att gama på samma sätt och är det Leonard vill filtrera på: äkta EU-butik vs
+// kinesisk säljare-med-EU-lager. KÄLLAN måste vara säljarprofilen, inte produktens
+// warehouse — annars återinför vi exakt det filter som var värdelöst.
+
+export type SellerOriginClass = "EU_SELLER" | "NON_EU_SELLER" | "UNKNOWN";
+
+/**
+ * Klassificerar säljarens registreringsland (ISO-2 eller fritext som "France"/
+ * "China"/"Madrid") → EU_SELLER | NON_EU_SELLER | UNKNOWN. Återanvänder
+ * `normalizeShipFromCode` (Frankrike→FR, China→CN, Madrid→ES, …) + EU-listan.
+ * Endast välformade 2-bokstavskoder klassas; tomt/oigenkänt → UNKNOWN (vi gissar
+ * ALDRIG till EU/non-EU — då hellre verifiera om senare).
+ */
+export function classifySellerOrigin(rawCountry: unknown): SellerOriginClass {
+  const code = normalizeShipFromCode(rawCountry);
+  if (!/^[A-Z]{2}$/.test(code)) return "UNKNOWN";
+  return isEuCountry(code) ? "EU_SELLER" : "NON_EU_SELLER";
+}
+
 /** Unika, normaliserade koder. */
 export function uniqueShipFromCodes(rawCodes: readonly unknown[]): string[] {
   const set = new Set<string>();

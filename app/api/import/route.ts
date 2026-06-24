@@ -9,6 +9,7 @@ import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
 import { recordSupplierImport } from "@/lib/import/supplier-tracking";
+import { classifySellerOrigin } from "@/lib/aliexpress/eu-countries";
 import { importReviewsForProduct } from "@/lib/import/review-import";
 import { saveProductHash } from "@/lib/store/product-hashes";
 import { pHashFromUrl } from "@/lib/import/phash";
@@ -85,6 +86,9 @@ const ProductSchema = z.object({
       positiveFeedbackPct: z.number().min(0).max(100).optional(),
       yearsOnAE: z.number().int().min(0).max(30).optional(),
       topBrand: z.boolean().optional(),
+      // Säljarens registreringsland (store-profilens "Location"/DSA business-info).
+      // SKILD från ship-from-warehouse — driver "äkta EU-säljare"-filtret.
+      sellerCountry: z.string().optional(),
     })
     .optional(),
   // Full HTML-beskrivning från AE:s Product Description-sektion (renad). Optional
@@ -412,6 +416,12 @@ export async function POST(req: Request) {
     if (supplier) {
       mappingExtras.supplierId = supplier.supplierId;
       if (supplier.supplierName) mappingExtras.supplierName = supplier.supplierName;
+      // Säljar-origin (äkta EU-butik vs kinesisk säljare-med-EU-lager). Lagras på
+      // mappningen för filter/queue; recordSupplierImport speglar det på säljarraden.
+      if (supplier.sellerCountry) {
+        mappingExtras.sellerCountry = supplier.sellerCountry;
+        mappingExtras.sellerCountryClass = classifySellerOrigin(supplier.sellerCountry);
+      }
     }
 
     await getStore().saveMapping({

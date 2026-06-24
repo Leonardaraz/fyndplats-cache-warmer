@@ -932,6 +932,9 @@ function extractSupplier(data) {
     positiveFeedbackPct: 0,
     yearsOnAE: 0,
     topBrand: false,
+    // Säljarens REGISTRERINGSLAND (ISO-2) — store-profilens "Location"/DSA
+    // business-info. SKILD från produktens ship-from-warehouse. "" = ej hittad.
+    sellerCountry: "",
   };
 
   // 1) Inbäddad storeModule/sellerModule (klassisk runParams) — renaste källan.
@@ -970,6 +973,17 @@ function extractSupplier(data) {
     ) {
       sup.topBrand = true;
     }
+    // Säljarland (registrering) ur storeModule — AE varierar fältnamn mellan
+    // versioner, så prova flera. Normalisera via FP_EU (Frankrike→FR, China→CN).
+    // SKILD från warehouse/ship-from (det är säljarens land, inte produktens lager).
+    const rawCountry =
+      storeModule.countryCompleteName ||
+      storeModule.country ||
+      storeModule.companyCountry ||
+      storeModule.sellerCountry ||
+      storeModule.companyAddressCountry ||
+      storeModule.location;
+    if (rawCountry) sup.sellerCountry = normSellerCountry(rawCountry);
   }
 
   // 2) Store-länk (/store/{id}) — id + URL + namn.
@@ -1049,7 +1063,48 @@ function extractSupplier(data) {
     if (badge) sup.topBrand = true;
   }
 
+  // 5) Säljarland-fallback ur DOM: store-info-kortets "Location"-rad (syns på både
+  // produkt- och /store/-sidan, t.ex. "Location: France") + ev. DSA business-info.
+  if (!sup.sellerCountry) sup.sellerCountry = scrapeSellerCountryFromDom();
+
   return sup;
+}
+
+// Normaliserar säljarland (fritext/ISO) → ISO-2 via FP_EU. "" = okänt/ej igenkänt.
+// VIKTIGT: returnerar ALDRIG en gissning — bara en träff i den auktoritativa listan.
+function normSellerCountry(raw) {
+  const up = String(raw || "").trim().toUpperCase();
+  if (!up) return "";
+  if (/^[A-Z]{2}$/.test(up)) return up; // redan ISO-2
+  const EU = globalThis.FP_EU;
+  if (EU && EU.NAME_TO_ISO) {
+    if (EU.NAME_TO_ISO[up]) return EU.NAME_TO_ISO[up];
+    for (const name in EU.NAME_TO_ISO) {
+      if (up.includes(name)) return EU.NAME_TO_ISO[name];
+    }
+  }
+  return "";
+}
+
+// Letar säljarens land i store-info-kortet / DSA-business-info-panelen. AE renderar
+// "Location: <land>" på store-kortet (se Leonards skärmdump). Matchar etiketten
+// (sv/en/es/fr/it) och tar värdet → ISO-2. Tom om inget land hittas.
+function scrapeSellerCountryFromDom() {
+  const blocks = document.querySelectorAll(
+    '[class*="store-info"], [class*="storeInfo"], [class*="seller"], [class*="shop-"], ' +
+      '[class*="store-detail"], [class*="business"], [class*="company"]',
+  );
+  const VALUE_RE =
+    /\b(?:location|country|plats|land|ubicaci[oó]n|pa[íy]s|pays|paese)\b\s*[:：]?\s*([A-Za-zÀ-ÿ .'-]{2,40})/i;
+  for (const el of blocks) {
+    const txt = (el.innerText || el.textContent || "").slice(0, 1500);
+    const m = txt.match(VALUE_RE);
+    if (m) {
+      const iso = normSellerCountry(m[1].split(/[\n,·|/]/)[0]);
+      if (iso) return iso;
+    }
+  }
+  return "";
 }
 
 // Beräknar antal år sedan en öppningsdatum-sträng (ISO eller år).

@@ -95,6 +95,14 @@ export interface ProductMappingRecord {
   /** AE-butikens namn (denormaliserat för admin-vyer, slipper extra uppslag). */
   supplierName?: string;
   /**
+   * Säljarens REGISTRERINGSLAND (ISO-2) — store-profilens "Location"/DSA
+   * business-info. SKILD från ship-from-warehouse (`shipsFromCountries`): driver
+   * "äkta EU-säljare"-filtret (kinesisk säljare med EU-lager exkluderas).
+   */
+  sellerCountry?: string;
+  /** EU_SELLER | NON_EU_SELLER | UNKNOWN — härlett ur sellerCountry vid import. */
+  sellerCountryClass?: "EU_SELLER" | "NON_EU_SELLER" | "UNKNOWN";
+  /**
    * True när produkten importerades RÅ (AI_ENRICHMENT_ENABLED=false): ingen
    * Claude-text/kategori/bild-ranking kördes. /admin/queue visar då en
    * "✨ Behöver AI-polering"-badge + knapp för att polera via chatten. Saknas =

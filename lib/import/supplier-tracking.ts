@@ -33,6 +33,7 @@
 
 import { getStore } from "../store/factory";
 import { audit } from "../audit";
+import { classifySellerOrigin, type SellerOriginClass } from "../aliexpress/eu-countries";
 
 const WIX_BASE = "https://www.wixapis.com";
 
@@ -64,6 +65,11 @@ export interface ScrapedSupplier {
   yearsOnAE?: number;
   /** True om AE:s "Top Brand"-badge syns. Bug 2026-06-02. */
   topBrand?: boolean;
+  /**
+   * Säljarens REGISTRERINGSLAND (store-profilens "Location"/DSA business-info),
+   * ISO-2 eller fritext. SKILD från produktens ship-from-warehouse. Tom = ej skrapad.
+   */
+  sellerCountry?: string;
 }
 
 /** En rad i FyndplatsSuppliers. */
@@ -77,6 +83,10 @@ export interface SupplierRecord {
   positiveFeedbackPct: number | null;
   yearsOnAE: number | null;
   topBrand: boolean;
+  /** Säljarens registreringsland (ISO-2), senast skrapad. "" = okänt. */
+  sellerCountry: string;
+  /** EU_SELLER (ES/IT/FR/…) | NON_EU_SELLER (CN/RU/TR/…) | UNKNOWN. Härlett ur sellerCountry. */
+  sellerCountryClass: SellerOriginClass;
   productsImported: number;
   productsSold: number;
   avgShipDays: number;
@@ -215,6 +225,8 @@ function emptyRecord(supplierId: string, now: string): SupplierRecord {
     positiveFeedbackPct: null,
     yearsOnAE: null,
     topBrand: false,
+    sellerCountry: "",
+    sellerCountryClass: "UNKNOWN",
     productsImported: 0,
     productsSold: 0,
     avgShipDays: 0,
@@ -266,6 +278,12 @@ export class SupplierStore {
           ? supplier.yearsOnAE
           : base.yearsOnAE,
       topBrand: supplier.topBrand === true ? true : base.topBrand,
+      // Säljarland: skriv bara om vi faktiskt skrapade ett land den här gången —
+      // annars behåll tidigare känt värde (en tom scrape ska inte nolla landet).
+      sellerCountry: (supplier.sellerCountry ?? "").trim() || base.sellerCountry,
+      sellerCountryClass: (supplier.sellerCountry ?? "").trim()
+        ? classifySellerOrigin(supplier.sellerCountry)
+        : base.sellerCountryClass,
       productsImported: base.productsImported + 1,
       importCount: base.importCount + 1,
       lastUpdatedAt: now,
