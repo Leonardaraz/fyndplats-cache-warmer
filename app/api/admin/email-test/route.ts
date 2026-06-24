@@ -68,7 +68,7 @@ const TEMPLATES: Record<string, TemplateEntry> = {
           currency: "SEK",
           shippingAddress: { fullName: "Leonard Araz", addressLine: "Bergviksgatan 10", postalCode: "152 44", city: "Södertälje", country: "Sverige" },
           paymentMethod: "Kort (Visa ••42)",
-          estimatedDelivery: "3–8 arbetsdagar",
+          estimatedDelivery: "3–7 arbetsdagar",
         }),
       ),
   },

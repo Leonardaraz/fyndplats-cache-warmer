@@ -33,7 +33,7 @@ rätten att när som helst ändra, pausa eller avsluta hela eller delar av tjän
 
 ## 4. Frakt och leverans
 
-- Normal leveranstid är **5–15 arbetsdagar** från bekräftad beställning.
+- Normal leveranstid är **3–7 arbetsdagar** från bekräftad beställning.
 - Fri frakt vid köp över **499 kr**; vid mindre köp tillkommer en fraktavgift som
   visas i kassan.
 - Vid förseningar över 30 dagar har du rätt att häva köpet och få full

@@ -50,7 +50,7 @@ export default function Kopvillkor() {
       <p>Klarnas fullständiga villkor hittar du på <a href="https://www.klarna.com/se/" target="_blank" rel="noopener noreferrer">klarna.com/se</a>. När du betalar med Klarna sker betalningen direkt till Klarna, och eventuell återbetalning hanteras också av Klarna.</p>
 
       <h2>5. Leverans och leveranstid</h2>
-      <p>Normal leveranstid är <strong>3–8 arbetsdagar</strong> från det att beställningen bekräftats. Leveranstiden kan variera beroende på produkt, lager och säsong. Aktuell leveranstid visas i kassan och uppdaterad status skickas via e-post.</p>
+      <p>Normal leveranstid är <strong>3–7 arbetsdagar</strong> från det att beställningen bekräftats. Leveranstiden kan variera beroende på produkt, lager och säsong. Aktuell leveranstid visas i kassan och uppdaterad status skickas via e-post.</p>
       <p>Fri frakt erbjuds vid köp över <strong>499 kr</strong>. Vid mindre köp tillkommer en fraktavgift som visas tydligt i kassan.</p>
       <p>Vid kraftiga förseningar (mer än 30 dagar) har du alltid rätt att häva köpet och få full återbetalning. Kontakta då <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>.</p>
 

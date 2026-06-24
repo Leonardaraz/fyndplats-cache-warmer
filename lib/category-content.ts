@@ -17,7 +17,7 @@
 // Innehållet är medvetet UNIKT per kategori (egen P1/P2 + egna frågor) för att
 // undvika duplicerad boilerplate; de gemensamma trygghets-/fraktfakta är
 // omformulerade per kategori. Alla påståenden är sanna för Fyndplats: EU-lager
-// med 3–8 arbetsdagars leverans, fri frakt över 499 kr, Klarna, 30 dagars öppet
+// med 3–7 arbetsdagars leverans, fri frakt över 499 kr, Klarna, 30 dagars öppet
 // köp, svensk kundtjänst som svarar inom 24 h på vardagar.
 
 export type CategoryContent = {
@@ -30,7 +30,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Elektronik och smarta tillbehör ska göra vardagen enklare – inte krångligare. Hos Fyndplats hittar du noga utvalda prylar inom mobiltillbehör, laddare och kablar, dator och gaming samt hörlurar och ljud, till priser som inte sticker i ögonen. Vi väljer produkter som faktiskt håller måttet: laddare med rätt effekt, kablar i hållbara material och ljudtillbehör som låter bättre än prislappen antyder.",
       "När du handlar elektronik lönar det sig att tänka på kompatibilitet och anslutningar. Kontrollera vilken kontakt din enhet använder (USB-C, Lightning eller micro-USB), hur många watt din laddare behöver leverera och om tillbehöret ska tåla att slängas i väskan varje dag. I varje produktbeskrivning samlar vi specifikationerna så att du snabbt ser om prylen passar just din telefon, dator eller hörlur.",
-      "Alla beställningar skickas från EU-lager med leverans inom 3–8 arbetsdagar, och du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Alla beställningar skickas från EU-lager med leverans inom 3–7 arbetsdagar, och du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -39,7 +39,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur lång är leveranstiden på elektronik?",
-        a: "Vi skickar från EU-lager, vilket ger en leveranstid på 3–8 arbetsdagar. Du får en spårbar leverans och kan följa paketet hela vägen hem.",
+        a: "Vi skickar från EU-lager, vilket ger en leveranstid på 3–7 arbetsdagar. Du får en spårbar leverans och kan följa paketet hela vägen hem.",
       },
       {
         q: "Vad gäller om en pryl inte fungerar som tänkt?",
@@ -52,7 +52,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Ett hem blir personligt i detaljerna. Hos Fyndplats samlar vi prisvärda fynd för hela hemmet – belysning, förvaring och organisering, dekoration, badrum och hemtextil, smarta hushållsapparater och praktiska verktyg för hemmafixaren. Oavsett om du vill fräscha upp ett rum eller lösa ett vardagsproblem hittar du noga utvalda produkter som gör skillnad utan att kosta en förmögenhet.",
       "Tänk på rummets mått och ljus innan du köper. En golvlampa eller stämningsfull belysning sätter tonen i vardagsrummet, medan förvaringskorgar och hyllor skapar ordning i hallen och garderoben. För badrummet och sovrummet lyfter mjuk hemtextil i rätt färg känslan direkt. Mått och material står i varje produktbeskrivning så att du vet att det passar innan du beställer.",
-      "Du handlar tryggt med Klarna och fri frakt över 499 kr. Beställningarna skickas från EU-lager med 3–8 arbetsdagars leverans, och du har alltid 30 dagars öppet köp om du ändrar dig.",
+      "Du handlar tryggt med Klarna och fri frakt över 499 kr. Beställningarna skickas från EU-lager med 3–7 arbetsdagars leverans, och du har alltid 30 dagars öppet köp om du ändrar dig.",
     ],
     faq: [
       {
@@ -61,7 +61,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Levererar ni större inredningsartiklar?",
-        a: "Ja. Allt skickas från EU-lager med spårbar leverans inom 3–8 arbetsdagar. Frakten är fri vid köp över 499 kr.",
+        a: "Ja. Allt skickas från EU-lager med spårbar leverans inom 3–7 arbetsdagar. Frakten är fri vid köp över 499 kr.",
       },
       {
         q: "Kan jag ångra ett köp om färgen inte blev som jag tänkt mig?",
@@ -74,7 +74,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Rätt redskap gör matlagningen roligare. I Kök & Husgeråd hittar du noga utvalda köksredskap och tillbehör, köksmaskiner och apparater samt servering och glas – prisvärda fynd för både vardagsmiddagen och när du dukar upp för gäster.",
       "När du fyller på köket lönar det sig att tänka långsiktigt. Knivar och skärbrädor i hållbara material håller i åratal, en bra köksmaskin sparar tid varje vecka och matchande glas och serveringsdetaljer lyfter dukningen. Vi anger material, mått och skötselråd i produktbeskrivningarna så att du enkelt väljer rätt – och så att dina favoriter håller länge.",
-      "Alla beställningar skickas från EU-lager med leverans inom 3–8 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Alla beställningar skickas från EU-lager med leverans inom 3–7 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -83,7 +83,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt får jag mina köksprylar?",
-        a: "Leveranstiden är 3–8 arbetsdagar från vårt EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+        a: "Leveranstiden är 3–7 arbetsdagar från vårt EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
       },
       {
         q: "Kan jag returnera en köksmaskin om den inte passar mina behov?",
@@ -96,7 +96,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Det bästa till barnen ska vara tryggt, hållbart och roligt. I Barn & Familj samlar vi genomtänkta favoriter inom baby och småbarn samt leksaker och spel – prisvärda fynd som tål lek och växer med barnet.",
       "När du handlar till barn är säkerhet och ålder viktigast. Kontrollera rekommenderad ålder och materialinnehåll i produktbeskrivningen, särskilt för de allra minsta. Pedagogiska träleksaker, aktivitetsleksaker och spel som tränar motorik och fantasi är populära val som håller längre än en snabb trend.",
-      "Vi skickar från EU-lager med leverans inom 3–8 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp – så att du hinner känna efter att allt blev rätt.",
+      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp – så att du hinner känna efter att allt blev rätt.",
     ],
     faq: [
       {
@@ -109,7 +109,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Vad gäller för leverans och retur?",
-        a: "Leverans sker inom 3–8 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om något inte passar.",
+        a: "Leverans sker inom 3–7 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om något inte passar.",
       },
     ],
   },
@@ -118,7 +118,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Egentid behöver inte vara dyr. I Skönhet & Hälsa hittar du noga utvalda produkter inom hudvård och ansikte, massage och återhämtning, hår och rakning samt kropp och välbefinnande – för en enkel rutin som får dig att må bra i vardagen.",
       "Bygg din rutin utifrån dina behov. Till ansiktet lönar det sig att tänka på hudtyp och vad du vill åstadkomma, oavsett om det är återfuktning, rengöring eller lite extra lyster. Massageverktyg och redskap för återhämtning hjälper mot spänningar efter en lång dag. Vi beskriver användning och innehåll i varje produkt så att du vet vad du köper.",
-      "Beställningarna skickas från EU-lager med 3–8 arbetsdagars leverans. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Beställningarna skickas från EU-lager med 3–7 arbetsdagars leverans. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -127,7 +127,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur lång är leveranstiden?",
-        a: "Vi skickar från EU-lager med en leveranstid på 3–8 arbetsdagar och spårbar frakt. Fri frakt gäller över 499 kr.",
+        a: "Vi skickar från EU-lager med en leveranstid på 3–7 arbetsdagar och spårbar frakt. Fri frakt gäller över 499 kr.",
       },
       {
         q: "Kan jag returnera skönhetsprodukter?",
@@ -140,7 +140,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Våra fyrbenta vänner förtjänar det bästa. I kategorin Husdjur samlar vi prisvärda fynd för hund och katt – allt från lek och tillbehör, selar, koppel och transport till pälsvård, mat- och vattenskålar samt mysiga bäddar och tillbehör.",
       "Tänk på storlek och vikt när du väljer. En sele eller bädd ska sitta rätt för att vara bekväm, och rätt skål eller matautomat gör vardagen smidigare för både dig och djuret. Vi anger mått och material i produktbeskrivningarna så att du hittar något som passar just din hund eller katt.",
-      "Allt skickas från EU-lager med leverans inom 3–8 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -149,7 +149,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt levereras husdjursprodukterna?",
-        a: "Leveranstiden är 3–8 arbetsdagar från vårt EU-lager, med spårning hela vägen. Fri frakt över 499 kr.",
+        a: "Leveranstiden är 3–7 arbetsdagar från vårt EU-lager, med spårning hela vägen. Fri frakt över 499 kr.",
       },
       {
         q: "Kan jag byta om produkten inte passar mitt djur?",
@@ -162,7 +162,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Vare sig du tränar hemma, packar för bilen eller ger dig ut i naturen ska utrustningen funka utan krångel. I Sport & Fritid hittar du smarta fynd inom träning och gym, friluftsliv och resa samt bil och cykel – prisvärt och noga utvalt.",
       "Tänk på hur och var du ska använda produkten. Till hemmaträningen är hållbarhet och rätt vikt avgörande, medan friluftsutrustning gärna ska vara lätt och tåla väder och vind. För bilen och cykeln gör rätt tillbehör resan tryggare och smidigare. Specifikationer som mått, material och kapacitet står i varje produktbeskrivning.",
-      "Vi skickar från EU-lager med leverans inom 3–8 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -171,7 +171,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur lång är leveranstiden?",
-        a: "Leverans sker inom 3–8 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
+        a: "Leverans sker inom 3–7 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt gäller vid köp över 499 kr.",
       },
       {
         q: "Kan jag returnera om produkten inte motsvarar förväntningarna?",
@@ -184,7 +184,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "En fin uteplats och en grönskande odling gör hela skillnaden under den ljusa delen av året. I Trädgård & Utemöbler hittar du prisvärda fynd för balkongen, altanen och trädgården – från odlingslådor och spaljéer till praktiska lösningar som gör uterummet trivsammare.",
       "Tänk på utrymme och väder när du planerar. Mät ytan på balkongen eller altanen innan du köper, och välj material som tål att stå ute. En odlingslåda med spaljé tar vara på höjden i ett litet utrymme, medan smarta odlings- och förvaringslösningar gör det enklare att lyckas med grönsaker, örter och klätterväxter. Mått och material står i varje produktbeskrivning.",
-      "Allt skickas från EU-lager med leverans inom 3–8 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
+      "Allt skickas från EU-lager med leverans inom 3–7 arbetsdagar och spårbar frakt. Du handlar tryggt med Klarna, fri frakt över 499 kr och 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -197,7 +197,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur fungerar leverans och retur?",
-        a: "Leverans sker inom 3–8 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om du ändrar dig.",
+        a: "Leverans sker inom 3–7 arbetsdagar från EU-lager. Du har 30 dagars öppet köp om du ändrar dig.",
       },
     ],
   },
@@ -209,7 +209,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     intro: [
       "Rätt accessoar lyfter en hel outfit. I Mode & Accessoarer hittar du tidlösa fynd inom smycken, klockor och solglasögon, väskor och necessärer samt accessoarer som kompletterar din stil – prisvärt och noga utvalt.",
       "Satsa på det som håller över tid. Ett slätt kedjehalsband, ett par klassiska solglasögon eller en väska i rätt storlek funkar säsong efter säsong. Tänk på material och mått i produktbeskrivningen, särskilt om du är känslig för vissa metaller eller vill ha en väska som rymmer det du bär varje dag.",
-      "Vi skickar från EU-lager med leverans inom 3–8 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+      "Vi skickar från EU-lager med leverans inom 3–7 arbetsdagar. Du betalar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
@@ -218,7 +218,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
       {
         q: "Hur snabbt levereras accessoarerna?",
-        a: "Leveranstiden är 3–8 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt över 499 kr.",
+        a: "Leveranstiden är 3–7 arbetsdagar från EU-lager, med spårbar frakt. Fri frakt över 499 kr.",
       },
       {
         q: "Kan jag returnera om något inte passar?",

@@ -187,7 +187,7 @@ export function TrackingWidget() {
             ) : isException ? (
               <>Spårningen är pausad. Vi följer paketet – hör av dig till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> om du undrar.</>
             ) : (
-              <>Beräknad leverans: <b>{data.eta || "3–8 arbetsdagar"}</b></>
+              <>Beräknad leverans: <b>{data.eta || "3–7 arbetsdagar"}</b></>
             )}
           </div>
 

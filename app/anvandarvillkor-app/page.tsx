@@ -31,7 +31,7 @@ export default function AnvandarvillkorApp() {
       <p>Betalning sker via <strong>Klarna</strong> (faktura, delbetalning, kort, direktbetalning, Apple Pay och Google Pay). Klarnas egna villkor gäller för betalningen och eventuell återbetalning hanteras av Klarna – se <a href="https://www.klarna.com/se/" target="_blank" rel="noopener noreferrer">klarna.com/se</a>. Betalningssteget genomförs i en Wix-hostad kassa.</p>
 
       <h2>4. Frakt och leverans</h2>
-      <p>Normal leveranstid är <strong>3–8 arbetsdagar</strong> från bekräftad beställning. Fri frakt vid köp över <strong>499 kr</strong>; vid mindre köp tillkommer en fraktavgift som visas i kassan. Vid förseningar över 30 dagar har du rätt att häva köpet och få full återbetalning.</p>
+      <p>Normal leveranstid är <strong>3–7 arbetsdagar</strong> från bekräftad beställning. Fri frakt vid köp över <strong>499 kr</strong>; vid mindre köp tillkommer en fraktavgift som visas i kassan. Vid förseningar över 30 dagar har du rätt att häva köpet och få full återbetalning.</p>
 
       <h2>5. Returer och ångerrätt</h2>
       <p>Du har <strong>14 dagars lagstadgad ångerrätt</strong> enligt lagen om distansavtal (2005:59), räknat från den dag du tog emot varan. Utöver detta erbjuder Fyndplats frivilligt <strong>30 dagars öppet köp</strong> på alla produkter. Returfrakten betalas av kunden, utom vid felaktig eller skadad vara. Fullständiga villkor finns på sidan <a href="/returer">Returer &amp; ångerrätt</a>.</p>
