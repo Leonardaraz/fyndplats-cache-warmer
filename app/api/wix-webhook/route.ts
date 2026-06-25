@@ -38,6 +38,7 @@ import { fanoutToCacheWarmer, shouldFanoutToCacheWarmer } from "@/lib/webhook-fa
 import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
+import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
 import { sql } from "@/lib/db";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 import { firePush } from "@/lib/push-send";
@@ -1048,38 +1049,64 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true, handled: false, mirrored: true }, { status: 200 });
       }
       const customer = extractCustomer(entity)!;
+
+      // DEDUP-VAKT mot dubbla orderbekräftelser. Wix fyrar order-eventet flera
+      // gånger för samma order — slug "created" OCH "approved" klassas BÅDA som
+      // order_created, plus Wix at-least-once-retries. Atomiskt anspråk på orderns
+      // GUID: vinner vi → skicka; förlorar vi (redan skickat) → hoppa mejl + push.
+      // Misslyckas mejlet släpper vi anspråket så en retry kan skicka igen (ingen
+      // tappad bekräftelse). Meta Purchase körs ändå (dedupliceras på event_id).
+      const dedupId = firstStr(entity._id, entity.id, props.orderNumber);
+      const firstSend = dedupId ? await claimOrderConfirmation(dedupId, props.orderNumber) : true;
+
       let resendId: string | undefined;
-      if (resend) {
-        const html = await render(OrderConfirmationEmail(props));
-        const sent = await resend.emails.send({
-          from: FROM,
-          to: customer.email,
-          replyTo: REPLY_TO,
-          subject: `Tack för din beställning ${props.orderNumber}`,
-          html,
-        });
-        if (sent.error) {
-          console.error("[wix-webhook] Resend order_created fel", sent.error);
+      if (!firstSend) {
+        console.log(
+          `[wix-webhook] order_created ${props.orderNumber}: dubblett-webhook — bekräftelse redan skickad, hoppar mejl + push (dedup)`,
+        );
+      } else if (resend) {
+        try {
+          const html = await render(OrderConfirmationEmail(props));
+          const sent = await resend.emails.send({
+            from: FROM,
+            to: customer.email,
+            replyTo: REPLY_TO,
+            subject: `Tack för din beställning ${props.orderNumber}`,
+            html,
+          });
+          if (sent.error) {
+            console.error("[wix-webhook] Resend order_created fel", sent.error);
+            throw new Error("Resend send failed");
+          }
+          resendId = sent.data?.id;
+          console.log(
+            `[wix-webhook] order_created ${props.orderNumber}: bekräftelsemejl skickat (resendId=${resendId})`,
+          );
+        } catch (err) {
+          console.error("[wix-webhook] Resend order_created fel", err);
+          // Släpp anspråket så Wix-retryn kan skicka bekräftelsen på nytt.
+          if (dedupId) await releaseOrderConfirmation(dedupId);
           return NextResponse.json({ error: "Email send failed" }, { status: 500 });
         }
-        resendId = sent.data?.id;
-        console.log(
-          `[wix-webhook] order_created ${props.orderNumber}: bekräftelsemejl skickat (resendId=${resendId})`,
-        );
       } else {
+        // Inget Resend-key (sällsynt setup-läge) → släpp anspråket så en framtida
+        // körning med key kan skicka bekräftelsen.
+        if (dedupId) await releaseOrderConfirmation(dedupId);
         console.warn(
           `[wix-webhook] order_created ${props.orderNumber}: SKIPPED email (RESEND_API_KEY saknas) — kund ${customer.email} får INGET mejl`,
         );
       }
       await fireMetaPurchase(entity);
-      firePush({
-        userEmail: customer.email,
-        channel: "order",
-        title: "Order bekräftad! 🎉",
-        body: `Tack för din beställning ${props.orderNumber}. Vi börjar packa direkt.`,
-        data: { type: "order_created", orderNumber: props.orderNumber },
-      });
-      return NextResponse.json({ received: true, sent: resendId, verified }, { status: 200 });
+      if (firstSend) {
+        firePush({
+          userEmail: customer.email,
+          channel: "order",
+          title: "Order bekräftad! 🎉",
+          body: `Tack för din beställning ${props.orderNumber}. Vi börjar packa direkt.`,
+          data: { type: "order_created", orderNumber: props.orderNumber },
+        });
+      }
+      return NextResponse.json({ received: true, sent: resendId, deduped: !firstSend, verified }, { status: 200 });
     }
 
     if (kind === "order_fulfillments_updated") {
