@@ -18,6 +18,7 @@ import { Resend } from "resend";
 import { render } from "@react-email/render";
 
 import { sql } from "./db";
+import { getProducts } from "./products";
 import WithdrawalReceiptEmail from "../emails/withdrawal-receipt";
 
 const FROM = "Fyndplats <orders@fyndplats.se>";
@@ -28,6 +29,37 @@ export interface WithdrawalLineItem {
   name: string;
   qty: number;
   lineMinor?: number;
+  /** Produktbild (matchad mot katalogen på namn) — visas i formuläret + kvittot. */
+  image?: string;
+}
+
+// Normaliserar ett produktnamn för matchning (gemener, kollapsade mellanslag).
+function normName(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+// Berikar order-rader med produktbild genom att matcha radens namn mot katalogen
+// (getProducts → samma bild som visas på PDP/listningar). Bilder är DEKORATIVA:
+// matchar inget (borttagen produkt, namnavvikelse, Wix nere) → raden står utan
+// bild, aldrig ett fel. Återanvänder den cache:ade produktlistan.
+async function attachCatalogImages(items: WithdrawalLineItem[]): Promise<void> {
+  if (items.length === 0) return;
+  try {
+    const products = await getProducts();
+    const imgByName = new Map<string, string>();
+    for (const p of products) {
+      if (p.name && p.img) {
+        const k = normName(p.name);
+        if (!imgByName.has(k)) imgByName.set(k, p.img);
+      }
+    }
+    for (const it of items) {
+      const img = imgByName.get(normName(it.name));
+      if (img) it.image = img;
+    }
+  } catch (err) {
+    console.error("[angra] kunde inte berika bilder (ignorerar)", err instanceof Error ? err.message : err);
+  }
 }
 
 export interface OrderLookupResult {
@@ -65,6 +97,7 @@ export async function lookupOrderItems(
       qty: Number(it?.qty ?? 1) || 1,
       lineMinor: Number(it?.lineMinor ?? 0) || 0,
     }));
+    await attachCatalogImages(items);
     return { found: true, items };
   } catch (err) {
     // DB nere/ej migrerad → "hittades inte" så formuläret faller tillbaka på

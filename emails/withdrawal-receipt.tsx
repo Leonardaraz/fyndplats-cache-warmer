@@ -9,7 +9,7 @@
 // och renderas bara här, server-side. Samma adress/instruktioner som den manuella
 // return-confirmation.tsx, så kund-upplevelsen är en röd tråd oavsett väg.
 
-import { Column, Row, Section, Text } from "@react-email/components";
+import { Column, Img, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
 import { RETURN_ADDRESS } from "../lib/return-address";
 
@@ -17,6 +17,7 @@ export interface WithdrawalReceiptItem {
   name: string;
   qty: number;
   lineMinor?: number;
+  image?: string;
 }
 
 export interface WithdrawalReceiptProps {
@@ -80,6 +81,17 @@ export default function WithdrawalReceiptEmail({
             style={{ borderBottom: `1px solid ${BRAND.line}`, padding: "10px 0" }}
           >
             <Row>
+              {it.image ? (
+                <Column style={{ width: "64px", verticalAlign: "top" }}>
+                  <Img
+                    src={it.image}
+                    alt={it.name}
+                    width="52"
+                    height="52"
+                    style={{ borderRadius: "8px", border: `1px solid ${BRAND.line}`, objectFit: "cover" }}
+                  />
+                </Column>
+              ) : null}
               <Column>
                 <Text style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: BRAND.ink }}>
                   {it.name}

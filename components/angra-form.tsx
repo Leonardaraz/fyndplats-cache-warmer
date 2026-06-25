@@ -11,7 +11,7 @@
 
 import { useState } from "react";
 
-type FetchedItem = { name: string; qty: number; lineMinor?: number };
+type FetchedItem = { name: string; qty: number; lineMinor?: number; image?: string };
 
 type Row = {
   name: string;
@@ -19,6 +19,7 @@ type Row = {
   qty: number;
   selected: boolean;
   lineMinor?: number;
+  image?: string;
 };
 
 function kr(minor?: number): string | null {
@@ -73,6 +74,7 @@ export default function AngraForm() {
             qty: it.qty,
             selected: true,
             lineMinor: it.lineMinor,
+            image: it.image,
           })),
         );
         setManual(false);
@@ -274,6 +276,10 @@ export default function AngraForm() {
               <div className={`angra-item${r.selected ? " is-sel" : ""}`} key={i}>
                 <label className="angra-item-main">
                   <input type="checkbox" checked={r.selected} onChange={() => toggleRow(i)} />
+                  {r.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="angra-item-img" src={r.image} alt="" loading="lazy" />
+                  )}
                   <span className="angra-item-name">
                     {r.name}
                     {kr(r.lineMinor) && <span className="angra-item-price">{kr(r.lineMinor)}</span>}

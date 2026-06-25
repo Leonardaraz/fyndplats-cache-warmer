@@ -807,8 +807,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .angra-allrow{display:inline-flex;gap:8px;align-items:center;color:var(--soft);font-size:13px}
 .angra-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:9px;transition:border-color .15s,background .15s}
 .angra-item.is-sel{border-color:#f3c9b2;background:#fffaf6}
-.angra-item-main{display:flex;align-items:flex-start;gap:11px;cursor:pointer;flex:1;margin:0}
-.angra-item-main input[type=checkbox]{width:19px;height:19px;margin-top:1px;accent-color:#C2410C;cursor:pointer;flex:0 0 auto}
+.angra-item-main{display:flex;align-items:center;gap:11px;cursor:pointer;flex:1;margin:0}
+.angra-item-main input[type=checkbox]{width:19px;height:19px;accent-color:#C2410C;cursor:pointer;flex:0 0 auto}
+.angra-item-img{width:46px;height:46px;flex:0 0 auto;border-radius:9px;border:1px solid var(--line);object-fit:cover;background:#fff}
 .angra-item-name{display:flex;flex-direction:column;gap:2px;font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.35}
 .angra-item-price{font-size:13px;font-weight:700;color:var(--soft)}
 .angra-qty{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;color:var(--soft);font-size:13px}

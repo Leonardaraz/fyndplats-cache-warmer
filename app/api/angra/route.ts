@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
     if (look.found && items.length) {
       enriched = items.map((sel) => {
         const m = look.items.find((o) => o.name === sel.name);
-        return m ? { ...sel, lineMinor: m.lineMinor } : sel;
+        return m ? { ...sel, lineMinor: m.lineMinor, image: m.image } : sel;
       });
     }
   }
