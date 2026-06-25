@@ -47,6 +47,14 @@ export function formatMoney(minor: number, currency: string): string {
   return currency === "SEK" ? `${formatted} kr` : `${formatted} ${currency}`;
 }
 
+// Visad summa: använd den lagrade subtotalen, men faller tillbaka på radpris-summan
+// (priceMinor × antal) om den är 0/saknas. Vissa Wix abandoned-checkout-payloads
+// saknar totals → annars visades "Summa: 0 kr" trots korrekta radpriser. Detta
+// fixar även redan lagrade carts (subtotal_minor=0) vid render.
+function displaySubtotalMinor(items: EmailItem[], subtotalMinor: number): number {
+  return subtotalMinor || items.reduce((s, it) => s + it.priceMinor * it.quantity, 0);
+}
+
 const rowStyle = {
   borderBottom: `1px solid ${BRAND.line}`,
   padding: "12px 0",
@@ -143,7 +151,7 @@ function AbandonedCartBody(opts: LayoutOpts) {
           </Column>
           <Column align="right">
             <Text style={{ margin: 0, fontSize: "16px", fontWeight: 800, color: BRAND.cta }}>
-              {formatMoney(opts.subtotalMinor, opts.currency)}
+              {formatMoney(displaySubtotalMinor(opts.items, opts.subtotalMinor), opts.currency)}
             </Text>
           </Column>
         </Row>
@@ -194,7 +202,7 @@ ${opts.banner ? `\n${opts.banner.title}\n${opts.banner.body}${opts.banner.mono ?
 
 ${itemRowsText(opts.items, opts.currency)}
 
-Summa: ${formatMoney(opts.subtotalMinor, opts.currency)}
+Summa: ${formatMoney(displaySubtotalMinor(opts.items, opts.subtotalMinor), opts.currency)}
 
 ${opts.ctaLabel}: ${opts.ctaUrl}
 

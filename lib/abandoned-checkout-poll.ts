@@ -121,7 +121,12 @@ export async function pollAbandonedCheckouts(opts: PollOptions = {}): Promise<Po
     if (createdAt < cutoff) continue;
     result.considered++;
 
-    const subtotalMinor = toMinor(rec.subtotalPrice) || toMinor(rec.totalPrice);
+    const items = mapItems(rec);
+    // Fallback: query-projektionen saknar ofta subtotal/total → summera radpriserna
+    // så Summan aldrig blir 0 (samma fix som webhook-handlern).
+    const subtotalMinor =
+      toMinor(rec.subtotalPrice) || toMinor(rec.totalPrice) ||
+      items.reduce((s, it) => s + it.priceMinor * (it.quantity || 1), 0);
 
     let enq: EnqueueResult;
     try {
@@ -130,7 +135,7 @@ export async function pollAbandonedCheckouts(opts: PollOptions = {}): Promise<Po
         email,
         phone: rec.buyerInfo?.phone ?? null,
         shippingAddress: null, // not present on the list/query projection
-        items: mapItems(rec),
+        items,
         subtotalMinor,
         currency: rec.currency || 'SEK',
         recoverUrl: recoverUrl(rec),

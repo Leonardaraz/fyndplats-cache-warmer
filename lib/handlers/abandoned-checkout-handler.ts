@@ -115,6 +115,8 @@ export async function handleAbandonedCheckoutCreated(
     '';
   if (!cartId || !email) return { ok: false, reason: 'missing cartId or email' };
 
+  const items = pickItems(payload);
+
   let subtotalMinor = 0;
   if (payload.priceSummary && payload.priceSummary.subtotal) {
     subtotalMinor = toMinor(payload.priceSummary.subtotal.amount);
@@ -122,13 +124,20 @@ export async function handleAbandonedCheckoutCreated(
   if (!subtotalMinor && payload.totals) {
     subtotalMinor = toMinor(payload.totals.subtotal as string | number | undefined);
   }
+  // Wix abandoned-checkout-payloads saknar ofta priceSummary/totals (de fylls i
+  // först vid order) → summera radpriserna så Summan ALDRIG blir 0 när varorna har
+  // pris. (Bug: mejlet visade "Summa: 0 kr" trots korrekta radpriser.) Påverkar
+  // även rabattkods-grinden (MIN_SUBTOTAL_FOR_CODE), som annars trodde att kvarvarande
+  // varukorg var tom och aldrig delade ut kod.
+  if (!subtotalMinor) {
+    subtotalMinor = items.reduce((s, it) => s + it.priceMinor * (it.quantity || 1), 0);
+  }
 
   const fallbackCurrency = payload.currency || 'SEK';
   const currency = (payload.totals && payload.totals.currency) || fallbackCurrency;
   const phone = (payload.buyerInfo && payload.buyerInfo.phone) || null;
   const recoverUrl = payload.recoverUrl || payload.checkoutUrl || null;
   const shippingAddress = pickAddress(payload);
-  const items = pickItems(payload);
   const abandonedAt = payload.abandonTime ? new Date(payload.abandonTime) : new Date();
 
   const result = await enqueueAbandonedCart({
