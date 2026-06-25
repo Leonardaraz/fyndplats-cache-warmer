@@ -217,6 +217,13 @@ export default function OrderConfirmationEmail({
           {BRAND.supportEmail}
         </Link>.
       </Text>
+      <Text style={{ ...text.muted, marginTop: "4px" }}>
+        Ångrat dig? Du har 14 dagars ångerrätt – ångra enkelt på{" "}
+        <Link href="https://www.fyndplats.se/angra-kop" style={{ color: BRAND.orange2 }}>
+          fyndplats.se/angra-kop
+        </Link>
+        .
+      </Text>
     </EmailShell>
   );
 }

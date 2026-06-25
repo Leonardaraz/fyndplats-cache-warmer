@@ -15,8 +15,12 @@ export default function Returer() {
       title="Så här gör du en retur"
       lead="Du har 30 dagars öppet köp på alla produkter (utöver de 14 dagars ångerrätt som svensk konsumentlag kräver)."
     >
+      <div className="callout">
+        <p><strong>Vill du ångra ditt köp?</strong> Enklast gör du det via vår <a href="/angra-kop">ångerfunktion</a> – fyll i din order, välj vilka artiklar du vill ångra och skicka. Du får direkt ett automatiskt mottagningskvitto med returadress och nästa steg. Ångerrätten gäller <strong>även innan paketet hunnit fram</strong>.</p>
+      </div>
+
       <h2>1. Anmäl returen</h2>
-      <p>Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med ditt <strong>ordernummer</strong>, <strong>vilken produkt</strong> du vill returnera och <strong>anledning</strong>. Du får en automatisk bekräftelse med returadressen och nästa steg.</p>
+      <p>Använd vår <a href="/angra-kop">ångerfunktion</a>, eller mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med ditt <strong>ordernummer</strong>, <strong>vilken produkt</strong> du vill returnera och <strong>anledning</strong> (frivilligt). Du får en automatisk bekräftelse med returadressen och nästa steg.</p>
 
       <h2>2. Packa produkten säkert</h2>
       <p>Använd helst originalförpackningen. Lägg med en lapp med ditt ordernummer och namn så vi kan koppla returen rätt.</p>
