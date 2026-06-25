@@ -93,6 +93,79 @@ const WORDS: Record<string, string> = {
   dark: "mörk", set: "set", sets: "set",
 };
 
+// ── Tum → cm ───────────────────────────────────────────────────────────────
+// Lägg till en cm-konvertering efter ett tum-mått, för svensk visning.
+//   "62 tum"        → "62 tum (157 cm)"
+//   "62-65 tum"     → "62-65 tum (157-165 cm)"   (intervall, delad enhet)
+// 1 tum = 2.54 cm, avrundat till närmaste hela cm (Math.round).
+//
+// Robust + idempotent enligt filens nedbrytnings-filosofi:
+//  - Hittas inget tum-mått lämnas strängen oförändrad (kastar aldrig).
+//  - Innehåller strängen redan "cm" (oavsett versaler) returneras den ORÖRD
+//    (aldrig dubbel-konvertering) — täcker katalogens "42x42 tum (≈107 × 107 cm)".
+//  - "tum" matchas BARA som fristående enhetstoken direkt efter ett tal, aldrig
+//    inuti ett annat ord ("tumme" = thumb lämnas i fred) och aldrig utan tal före.
+//  - Dimensioner (NxN / "N tum x N tum" m.fl.) lämnas helt orörda — att
+//    konvertera en enda axel vore vilseledande, och katalogens dimensionsvärden
+//    bär redan sin egen (≈ … cm).
+const INCH_TO_CM = 2.54;
+
+function inchToCm(numStr: string): number | null {
+  // Decimaltecken kan vara punkt ELLER komma ("65.5" / "15,6").
+  const n = parseFloat(numStr.replace(",", "."));
+  return Number.isFinite(n) ? Math.round(n * INCH_TO_CM) : null;
+}
+
+export function appendCmToInch(s: string): string {
+  const str = typeof s === "string" ? s : "";
+  if (!str) return s;
+
+  // Idempotent: redan en cm-siffra någonstans → rör inget.
+  if (/cm/i.test(str)) return str;
+
+  // Enhetstoken: svenska "tum", engelska "inch"/"in", eller tum-symbolen (").
+  const UNIT = String.raw`(?:tum|inch|in|")`;
+  // Mått: heltal eller decimal (punkt eller komma).
+  const NUM = String.raw`\d+(?:[.,]\d+)?`;
+  // Intervall-separator: bindestreck, tankstreck, em-streck, figurstreck eller
+  // minustecken (alla varianter av "–"), valfria mellanslag runt.
+  const RANGE_SEP = String.raw`\s*[-–—‒−]\s*`;
+
+  // Tal (+ valfritt intervall) → valfritt enskilt mellanslag → enhet, där enheten
+  // är en fristående token (inte följd av bokstav/siffra, så "tumme" missas).
+  const re = new RegExp(
+    `(${NUM})(?:(${RANGE_SEP})(${NUM}))?(\\s?)(${UNIT})(?![\\p{L}\\d])`,
+    "iu",
+  );
+  const m = re.exec(str);
+  if (!m) return str;
+
+  // Hoppa över DIMENSIONER (NxN, "N x N tum", "N tum x N tum" …): att konvertera
+  // bara en axel vore vilseledande → lämna hela strängen orörd.
+  if (/[\d.,]["']?\s*[x×]\s*["']?[\d.,]/i.test(str)) return str;
+  const afterIdx = m.index + m[0].length;
+  if (/^\s*[x×]\s*\d/i.test(str.slice(afterIdx))) return str;
+
+  // "in" som antal, inte tum: "4 in 1 …" (token-gränsen släpper igenom "in 1").
+  if (m[5].toLowerCase() === "in" && /^\s+\d/.test(str.slice(afterIdx))) {
+    return str;
+  }
+
+  const cm1 = inchToCm(m[1]);
+  if (cm1 === null) return str;
+
+  let cmText: string;
+  if (m[3] !== undefined) {
+    const cm2 = inchToCm(m[3]);
+    if (cm2 === null) return str;
+    cmText = `${cm1}-${cm2} cm`;
+  } else {
+    cmText = `${cm1} cm`;
+  }
+
+  return `${str.slice(0, afterIdx)} (${cmText})${str.slice(afterIdx)}`;
+}
+
 function capLike(src: string, translated: string): string {
   // Behåll ursprungstokenens versal-mönster (första bokstav).
   if (src && src[0] === src[0].toUpperCase() && src[0] !== src[0].toLowerCase()) {
@@ -115,10 +188,10 @@ function looksLikeKeep(s: string): boolean {
 export function swedishChoiceValue(value: string): string {
   const raw = (value || "").trim();
   if (!raw) return raw;
-  if (looksLikeKeep(raw)) return raw;
+  if (looksLikeKeep(raw)) return appendCmToInch(raw);
 
   const phrase = PHRASES[raw.toLowerCase()];
-  if (phrase) return phrase;
+  if (phrase) return appendCmToInch(phrase);
 
   // Token-för-token: dela på mellanslag och bindestreck men behåll separatorerna.
   let touched = false;
@@ -128,7 +201,8 @@ export function swedishChoiceValue(value: string): string {
     if (hit) { touched = true; return capLike(tok, hit); }
     return tok;
   }).join("");
-  return touched ? out : raw;
+  // Sista steget (efter all svensk översättning): lägg på cm efter tum-mått.
+  return appendCmToInch(touched ? out : raw);
 }
 
 // Option-NAMN: nästan alla är redan svenska i katalogen; bara ett fåtal engelska.
