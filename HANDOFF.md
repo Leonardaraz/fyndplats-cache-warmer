@@ -104,7 +104,7 @@ Tre task-briefer för Vercel-backend-features. Klistra in i nya Claude Code-sess
 - Branch-strategi: `headless-site` = storefront production, `main` = cache-warmer production. Aldrig merga mellan dem.
 
 ### Köpvillkor (företagsinfo)
-- Fyndplats, org.nr `199509144037`, momsregnr `SE199509144037 01`
+- Fyndplats, org.nr `199509144037`, momsregnr `SE9509144037 01`
 - Bergviksgatan 10, 152 44 Södertälje
 - E-post: info@fyndplats.com, Telefon: +46 (0) 73 663 09 90
 
