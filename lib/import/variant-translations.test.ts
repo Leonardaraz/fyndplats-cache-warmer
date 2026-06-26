@@ -694,11 +694,17 @@ describe("stripLeadingSupplierCode — rensar leverantörskod ur variantvärde",
     expect(stripLeadingSupplierCode("FW-5020E-Vit")).toBe("Vit");
   });
 
+  it("strippar HOPSKRIVEN kod utan separator (CamelCase-gräns) — skarpa ET507-importen", () => {
+    expect(stripLeadingSupplierCode("ET507Black")).toBe("Black");
+    expect(stripLeadingSupplierCode("ET507White")).toBe("White");
+    expect(stripLeadingSupplierCode("ET607Black")).toBe("Black");
+  });
+
   it("rör ALDRIG rena värden, storlekar eller specar (inga falska positiver)", () => {
     for (const v of [
       "USB", "USB-C", "USB3", "3D", "4K", "A4", "5XL", "B6AC",
       "EU Plug", "100 tum", "335-Grey", "Type-C", "Black with LED", "3 Pin",
-      "1080P Camera", "S/M", "M/L", "18650", "iPhone 15 Pro",
+      "1080P Camera", "S/M", "M/L", "18650", "iPhone 15 Pro", "T20", "USB3Hub",
     ]) {
       expect(stripLeadingSupplierCode(v)).toBe(v);
     }
@@ -713,6 +719,8 @@ describe("stripLeadingSupplierCode — rensar leverantörskod ur variantvärde",
   it("translateValue: kod strippas OCH värdet blir ren svenska", () => {
     expect(translateValue("AE-FW-T2233-USB Plug")).toBe("USB-kontakt");
     expect(translateValue("ET607/Black")).toBe("Svart"); // kod + färg → ren svenska
+    expect(translateValue("ET507Black")).toBe("Svart"); // hopskriven kod → ren svenska
+    expect(translateValue("ET507White")).toBe("Vit");
     expect(translateValue("FW-5020E-Vit")).toBe("Vit");
     expect(translateValue("USB Plug")).toBe("USB-kontakt");
     expect(translateValue("EU Plug")).toBe("EU-kontakt"); // regression: oförändrat
