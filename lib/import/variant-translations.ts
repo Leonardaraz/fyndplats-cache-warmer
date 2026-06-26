@@ -788,20 +788,26 @@ const ORDINAL_AXIS_WORDS: Record<string, string> = {
 /**
  * Strippar en ledande leverantörs-/modellkod ur ett variantvärde INNAN översättning:
  * "AE-FW-T2233-USB Plug" → "USB Plug", "FW-5020E-Svart" → "Svart",
- * "ET607/Black" → "Black", "F2025 Red" → "Red".
+ * "ET607/Black" → "Black", "ET507White" → "White", "F2025 Red" → "Red".
  *
- * Koden = börjar med en BOKSTAV, slutar i ett segment med ≥3 siffror (modellnummer),
- * ev. bindestreck-segment emellan; följt av separator (-, /, mellanslag) + läsbar rest.
+ * Koden = börjar med en BOKSTAV och innehåller ≥3 siffror (modellnummer). Den följs av
+ * den läsbara resten via antingen (1) en SEPARATOR (-, /, mellanslag), ev. med
+ * bindestreck-segment i koden, eller (2) HOPSKRIVET direkt mot ett Versal-gement ord
+ * (CamelCase-gräns), t.ex. "ET507Black".
+ *
  * Bokstavs-START + ≥3-siffror-krav utesluter rena värden, storlekar och specar:
  *   "1080P Camera" (siffer-start) · "USB3"/"B6AC" (<3 siffror) · "335-Grå"/"S/M"
- *   (ingen bokstav resp. inga siffror) · "USB-C" · "3D" · "4K" · "A4" · "5XL".
- * Ett värde som ÄR en ren kod utan läsbar rest ("KM-6631", "F2025", "KID110") lämnas
- * också orört (flaggas hellre för polering). V3 låser variantvärden efter import, så
- * detta MÅSTE ske vid import — det går inte att städa i efterhand.
+ *   (ingen bokstav resp. inga siffror) · "USB-C" · "3D" · "4K" · "A4" · "5XL" · "T20".
+ * Ett värde som ÄR en ren kod utan läsbar rest ("KM-6631", "F2025", "KID110", "ET607")
+ * lämnas också orört (flaggas hellre för polering). V3 låser variantvärden efter import,
+ * så detta MÅSTE ske vid import — det går inte att städa i efterhand.
  */
 export function stripLeadingSupplierCode(raw: string): string {
   const v = raw.trim();
-  const m = v.match(/^[A-Z](?:[A-Z0-9]+-)*[A-Z0-9]*\d{3,}[A-Z0-9]*[-/\s]+(?=[A-Za-z])/);
+  // 1) Kod + separator (-, /, mellanslag) + läsbar rest.
+  let m = v.match(/^[A-Z](?:[A-Z0-9]+-)*[A-Z0-9]*\d{3,}[A-Z0-9]*[-/\s]+(?=[A-Za-z])/);
+  // 2) Kod hopskriven (ingen separator) direkt mot ett Versal-gement ord: "ET507Black".
+  if (!m) m = v.match(/^[A-Z][A-Z0-9]*?\d{3,}(?=[A-Z][a-z])/);
   if (!m) return v;
   const rest = v.slice(m[0].length).trim();
   return /[A-Za-z]{2,}/.test(rest) ? rest : v;
