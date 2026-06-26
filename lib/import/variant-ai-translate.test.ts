@@ -37,6 +37,21 @@ describe("variantAiTranslationEnabled", () => {
 });
 
 describe("buildVariantTranslatorAI", () => {
+  it("stale-eko-cache för kod-värde kringgås av kod-strippen (regression: AE-FW-T2233-USB Plug)", async () => {
+    // Simulera pre-stripp-AI: ekar tillbaka kod-värdet (betrott pga siffror) → cachas.
+    const echoBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) out[v] = v; // eko
+      return out;
+    });
+    const variants = [{ options: { Kontakt: "AE-FW-T2233-USB Plug" } }];
+    await buildVariantTranslatorAI(variants, { translateBatch: echoBatch }); // cachar ekot
+    // Andra körningen träffar cachen (eko). Trots det ska kod-strippen + tabellen
+    // ge "USB-kontakt", inte det gamla råvärdet.
+    const { translator } = await buildVariantTranslatorAI(variants, { translateBatch: vi.fn(async () => ({})) });
+    expect(translator.options({ Kontakt: "AE-FW-T2233-USB Plug" })).toEqual({ Kontakt: "USB-kontakt" });
+  });
+
   it("skickar BARA residual-engelska värden till AI; kända värden faller på tabellen", async () => {
     const translateBatch = vi.fn(async (vals: string[]) => {
       const out: Record<string, string> = {};

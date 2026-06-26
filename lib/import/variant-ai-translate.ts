@@ -25,6 +25,7 @@ import {
   buildTranslatorFromBase,
   inferMislabeledColorAxis,
   residualEnglishTokens,
+  stripLeadingSupplierCode,
   translateAxisName,
   translateValue,
   unresolvedAxisNames,
@@ -234,7 +235,21 @@ export async function buildVariantTranslatorAI(
 
   // 5. Bas: AI-värde om finns, annars statiska tabellen. Kollisions-säkerheten +
   //    ev. AI-axelnamn läggs ovanpå i buildTranslatorFromBase (IDENTISK med synk).
-  const baseValue = (raw: string) => aiMap.get(raw) ?? translateValue(raw);
+  //
+  // STALE-EKO-SKYDD (2026-06-26): en cachad AI-post som bara EKAR råvärdet (AI
+  // behöll det oförändrat — betrott pga siffror i koden) får INTE blockera den
+  // deterministiska tabellens nya leverantörskod-stripp. Utan detta returnerar en
+  // pre-stripp-cache "AE-FW-T2233-USB Plug" för alltid (ekot är "betrott", ≠
+  // self-healing-fall) och kringgår translateValue. Gäller bara EKO-poster vars
+  // råvärde har en strippbar kod → äkta AI-översättningar (svar ≠ råvärde, t.ex.
+  // "Bakhjul") behålls oförändrat.
+  const baseValue = (raw: string) => {
+    const ai = aiMap.get(raw);
+    if (ai !== undefined && ai.trim() === raw.trim() && stripLeadingSupplierCode(raw) !== raw) {
+      return translateValue(raw);
+    }
+    return ai ?? translateValue(raw);
+  };
   const translator = buildTranslatorFromBase(variants, baseValue, translateAxisName, axisOverrides);
 
   // 6. Olösta = (halv-)engelska värden + felmärkta färg-axlar AI inte kunde namnge
