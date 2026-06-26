@@ -1213,7 +1213,14 @@ export async function POST(req: NextRequest) {
         console.warn("[wix-webhook] order_shipped: ingen tracking_number — hoppar tracking_mapping");
       }
       let resendId: string | undefined;
-      if (resend) {
+      // Dedup: dela SAMMA nyckel (tracking_number) som order_fulfillments_updated.
+      // Wix kan fyra både "Fulfillments Updated" OCH "Order Fulfilled" för samma
+      // sändning → utan detta skickades frakt-mejlet två gånger. "duplicate" =
+      // redan skickat för det spårningsnumret → hoppa mejl + push. ("new"/"error"
+      // = skicka; "skipped" = ingen tracking, kan inte dedupas men är ovanligt.)
+      if (trackingMapped === "duplicate") {
+        console.log(`[wix-webhook] order_shipped ${built.props.orderNumber}: redan skickat för detta spårningsnummer (dedup) — hoppar mejl + push`);
+      } else if (resend) {
         const html = await render(ShippingConfirmationEmail(built.props));
         const sent = await resend.emails.send({
           from: FROM,
@@ -1230,16 +1237,18 @@ export async function POST(req: NextRequest) {
       } else {
         console.warn(`[wix-webhook] order_shipped: SKIPPED email (RESEND_API_KEY saknas) — kund ${built.email}`);
       }
-      firePush({
-        userEmail: built.email,
-        channel: "order",
-        title: "Ditt paket är på väg ✈️",
-        body: built.props.trackingNumber
-          ? `Order ${built.props.orderNumber} är skickad. Spårningsnr: ${built.props.trackingNumber}`
-          : `Order ${built.props.orderNumber} är skickad och på väg till dig.`,
-        data: { type: "order_shipped", orderNumber: built.props.orderNumber, trackingNumber: built.props.trackingNumber },
-      });
-      return NextResponse.json({ received: true, sent: resendId, trackingMapped, verified }, { status: 200 });
+      if (trackingMapped !== "duplicate") {
+        firePush({
+          userEmail: built.email,
+          channel: "order",
+          title: "Ditt paket är på väg ✈️",
+          body: built.props.trackingNumber
+            ? `Order ${built.props.orderNumber} är skickad. Spårningsnr: ${built.props.trackingNumber}`
+            : `Order ${built.props.orderNumber} är skickad och på väg till dig.`,
+          data: { type: "order_shipped", orderNumber: built.props.orderNumber, trackingNumber: built.props.trackingNumber },
+        });
+      }
+      return NextResponse.json({ received: true, sent: resendId, trackingMapped, deduped: trackingMapped === "duplicate", verified }, { status: 200 });
     }
 
     if (kind === "order_cancelled") {

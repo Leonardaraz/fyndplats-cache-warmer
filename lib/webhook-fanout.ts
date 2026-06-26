@@ -44,10 +44,17 @@ const ORDER_FANOUT_EVENT_TYPES = [
 export function shouldFanoutToCacheWarmer(eventType: string): boolean {
   const lower = eventType.toLowerCase();
   if (ORDER_FANOUT_EVENT_TYPES.some((t) => lower === t)) return true;
-  // Suffix-match för FQDN-varianter ("...order.order_paid" etc.)
-  return /\border\.(order_created|order_paid|order_fulfilled|order_refunded)\b/.test(
-    lower,
-  );
+  // Legacy/FQDN-namn ("...order.order_paid" etc.)
+  if (/\border\.(order_created|order_paid|order_fulfilled|order_refunded)\b/.test(lower)) return true;
+  // V2-SLUGS — det Wix FAKTISKT skickar. En ny order kommer i praktiken som
+  // slug "approved" (Klarna-godkänd → live i Wix), dvs eventType
+  // "wix.ecom.v1.order.approved" (bekräftat i prod-logg, order 10010). Plus
+  // created/placed/paid/fulfilled/refunded. Tidigare matchade vi BARA legacy-
+  // namnen → ordrar med slug "approved" forwardades ALDRIG till cache-warmer →
+  // noll fulfillment-tasks → hela auto-leveranskedjan startade aldrig. Speglar
+  // nu samma slugs som wix-webhook/classify behandlar som en order-händelse.
+  if (/\.order\.(approved|created|placed|paid|fulfilled|refunded)\b/.test(lower)) return true;
+  return false;
 }
 
 export interface FanoutOptions {

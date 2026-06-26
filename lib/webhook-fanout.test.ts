@@ -26,6 +26,21 @@ test("shouldFanoutToCacheWarmer matches v2/v3 FQDN variants", () => {
   assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v3.order.order_paid"), true);
 });
 
+test("shouldFanoutToCacheWarmer matches real Wix v2 order slugs (approved/paid/...)", () => {
+  // Wix skickar i PRAKTIKEN slug "approved" för en ny order (Klarna-godkänd →
+  // live i Wix). Bekräftat i prod-logg, order 10010: eventType=
+  // "wix.ecom.v1.order.approved". Den MÅSTE forwardas till cache-warmer —
+  // annars skapas inga fulfillment-tasks och auto-leveranskedjan startar aldrig.
+  // (Tidigare matchade vi bara legacy-namnen order_created/_paid/... → missade
+  // approved → noll tasks. Den här raden låser fast fixen.)
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.approved"), true);
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.created"), true);
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.placed"), true);
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.paid"), true);
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.fulfilled"), true);
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.refunded"), true);
+});
+
 test("shouldFanoutToCacheWarmer is case-insensitive", () => {
   assert.equal(shouldFanoutToCacheWarmer("WIX.ECOM.V1.ORDER.ORDER_CREATED"), true);
 });
