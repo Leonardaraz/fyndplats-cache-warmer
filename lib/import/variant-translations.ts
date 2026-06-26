@@ -242,6 +242,7 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   "us plug": "USA-kontakt",
   "uk plug": "UK-kontakt",
   "au plug": "AU-kontakt",
+  "usb plug": "USB-kontakt",
 
   // --- Övriga vanliga engelska värden / fraser ---
   camera: "Kamera",
@@ -784,8 +785,27 @@ const ORDINAL_AXIS_WORDS: Record<string, string> = {
  * Universella storlekar (S/M/L/XL) och antal finns inte i tabellen och faller
  * därför alltid på steg 4.
  */
+/**
+ * Strippar en ledande leverantörs-/modellkod ur ett variantvärde INNAN översättning:
+ * "AE-FW-T2233-USB Plug" → "USB Plug", "FW72233 USB Plug" → "USB Plug",
+ * "F2025 Red" → "Red". Koden = en ledande run av VERSAL/siffer-segment (bindestreck)
+ * vars sista segment börjar med en BOKSTAV och innehåller ≥3 siffror (modellnummer),
+ * följt av separator + läsbar text. Medvetet konservativ — rör ALDRIG rena värden:
+ * "USB", "USB-C", "USB3", "3D", "4K", "A4", "5XL", "B6AC", "EU Plug", "100 tum",
+ * "335-Grå" lämnas orörda, och ett värde som ÄR en ren kod (ingen läsbar rest, t.ex.
+ * "KM-6631") lämnas också (flaggas hellre för polering). V3 låser variantvärden efter
+ * import, så detta MÅSTE ske vid import — det går inte att städa i efterhand.
+ */
+export function stripLeadingSupplierCode(raw: string): string {
+  const v = raw.trim();
+  const stripped = v
+    .replace(/^(?:[A-Z0-9]+-)*[A-Z][A-Z0-9]*\d{3,}[A-Z0-9]*[-\s]+(?=[A-Za-z])/, "")
+    .trim();
+  return stripped !== v && /[A-Za-z]{2,}/.test(stripped) ? stripped : v;
+}
+
 export function translateValue(raw: string): string {
-  const trimmed = normalizeUnits(raw.trim());
+  const trimmed = normalizeUnits(stripLeadingSupplierCode(raw));
   const full = VALUE_TRANSLATIONS[trimmed.toLowerCase()];
   if (full) return full;
 

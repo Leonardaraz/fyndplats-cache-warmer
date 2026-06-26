@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   translateAxisName,
   translateValue,
+  stripLeadingSupplierCode,
   translateVariantOptions,
   translateOptionColorCodes,
   buildVariantTranslator,
@@ -99,7 +100,7 @@ describe("translateValue", () => {
   });
 
   it("faller tillbaka på råvärdet utan match", () => {
-    expect(translateValue("F2025-Sverige")).toBe("F2025-Sverige");
+    expect(translateValue("F2025")).toBe("F2025"); // ren kod utan läsbar rest → rå
     expect(translateValue("Unicorn")).toBe("Unicorn");
   });
 
@@ -284,7 +285,7 @@ describe("golden — ord+ordningstal-glue 'Type1' → 'Typ 1' (audit 2026-06-20)
     ["KID110", "KID110"], // okänt ord+siffra → orört (whitelist-miss)
     ["5XL", "5XL"], // siffra först
     ["B6AC", "B6AC"], // bokstäver EFTER siffran → ingen ren <ord><siffror>-form
-    ["F2025-Sverige", "F2025-Sverige"], // 1-bokstavsprefix < 3
+    ["F2025", "F2025"], // ren kod utan läsbar rest → varken ordinal-regeln eller kod-strippen rör den
     ["iPhone 15 Pro", "iPhone 15 Pro"], // mellanslag, ingen glue
     ["USB3", "USB3"], // versal-akronym, ej i whitelisten
     ["Glow2", "Glow2"], // 'glow' ej i whitelisten → orört; svenskhets-grinden tar slutvärdet
@@ -678,5 +679,33 @@ describe("translateValue — silvery + hopskrivna antal-enheter (buffévärmaren
 
   it("silvery-posten gör värdet AI-oberoende → den förgiftade cache-posten oåtkomlig", () => {
     expect(residualEnglishTokens("Silvery 4pcs")).toEqual([]);
+  });
+});
+
+describe("stripLeadingSupplierCode — rensar leverantörskod ur variantvärde", () => {
+  it("strippar ledande modellkod (regression: skarpa Fairywall-importen)", () => {
+    expect(stripLeadingSupplierCode("AE-FW-T2233-USB Plug")).toBe("USB Plug");
+    expect(stripLeadingSupplierCode("FW72233 USB Plug")).toBe("USB Plug");
+    expect(stripLeadingSupplierCode("F2025 Red")).toBe("Red");
+  });
+
+  it("rör ALDRIG rena värden (inga falska positiver)", () => {
+    for (const v of [
+      "USB", "USB-C", "USB3", "3D", "4K", "A4", "5XL", "B6AC",
+      "EU Plug", "100 tum", "335-Grey", "Type-C", "Black with LED", "3 Pin",
+    ]) {
+      expect(stripLeadingSupplierCode(v)).toBe(v);
+    }
+  });
+
+  it("lämnar värdet orört om HELA värdet är en kod (ingen läsbar rest → flaggas i stället)", () => {
+    expect(stripLeadingSupplierCode("AE-FW-T2233")).toBe("AE-FW-T2233");
+    expect(stripLeadingSupplierCode("KM-6631")).toBe("KM-6631");
+  });
+
+  it("translateValue: kod strippas OCH värdet blir ren svenska", () => {
+    expect(translateValue("AE-FW-T2233-USB Plug")).toBe("USB-kontakt");
+    expect(translateValue("USB Plug")).toBe("USB-kontakt");
+    expect(translateValue("EU Plug")).toBe("EU-kontakt"); // regression: oförändrat
   });
 });
