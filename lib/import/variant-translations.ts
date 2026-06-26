@@ -787,21 +787,24 @@ const ORDINAL_AXIS_WORDS: Record<string, string> = {
  */
 /**
  * Strippar en ledande leverantörs-/modellkod ur ett variantvärde INNAN översättning:
- * "AE-FW-T2233-USB Plug" → "USB Plug", "FW72233 USB Plug" → "USB Plug",
- * "F2025 Red" → "Red". Koden = en ledande run av VERSAL/siffer-segment (bindestreck)
- * vars sista segment börjar med en BOKSTAV och innehåller ≥3 siffror (modellnummer),
- * följt av separator + läsbar text. Medvetet konservativ — rör ALDRIG rena värden:
- * "USB", "USB-C", "USB3", "3D", "4K", "A4", "5XL", "B6AC", "EU Plug", "100 tum",
- * "335-Grå" lämnas orörda, och ett värde som ÄR en ren kod (ingen läsbar rest, t.ex.
- * "KM-6631") lämnas också (flaggas hellre för polering). V3 låser variantvärden efter
- * import, så detta MÅSTE ske vid import — det går inte att städa i efterhand.
+ * "AE-FW-T2233-USB Plug" → "USB Plug", "FW-5020E-Svart" → "Svart",
+ * "ET607/Black" → "Black", "F2025 Red" → "Red".
+ *
+ * Koden = börjar med en BOKSTAV, slutar i ett segment med ≥3 siffror (modellnummer),
+ * ev. bindestreck-segment emellan; följt av separator (-, /, mellanslag) + läsbar rest.
+ * Bokstavs-START + ≥3-siffror-krav utesluter rena värden, storlekar och specar:
+ *   "1080P Camera" (siffer-start) · "USB3"/"B6AC" (<3 siffror) · "335-Grå"/"S/M"
+ *   (ingen bokstav resp. inga siffror) · "USB-C" · "3D" · "4K" · "A4" · "5XL".
+ * Ett värde som ÄR en ren kod utan läsbar rest ("KM-6631", "F2025", "KID110") lämnas
+ * också orört (flaggas hellre för polering). V3 låser variantvärden efter import, så
+ * detta MÅSTE ske vid import — det går inte att städa i efterhand.
  */
 export function stripLeadingSupplierCode(raw: string): string {
   const v = raw.trim();
-  const stripped = v
-    .replace(/^(?:[A-Z0-9]+-)*[A-Z][A-Z0-9]*\d{3,}[A-Z0-9]*[-\s]+(?=[A-Za-z])/, "")
-    .trim();
-  return stripped !== v && /[A-Za-z]{2,}/.test(stripped) ? stripped : v;
+  const m = v.match(/^[A-Z](?:[A-Z0-9]+-)*[A-Z0-9]*\d{3,}[A-Z0-9]*[-/\s]+(?=[A-Za-z])/);
+  if (!m) return v;
+  const rest = v.slice(m[0].length).trim();
+  return /[A-Za-z]{2,}/.test(rest) ? rest : v;
 }
 
 export function translateValue(raw: string): string {
