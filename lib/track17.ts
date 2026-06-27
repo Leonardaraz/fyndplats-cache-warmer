@@ -61,6 +61,11 @@ export async function registerWith17Track(trackingNumber: string, orderId?: stri
         },
       ]),
       cache: "no-store",
+      // Tidsgräns: registreringen körs i Wix-webhookens request-väg. Ett hängande
+      // 17TRACK får ALDRIG fördröja webhook-svaret (→ Wix-timeout/retry). Samma
+      // 3s-konvention som lib/meta-capi.ts och lib/expo-push.ts. AbortError
+      // fångas av catch nedan → best-effort, kastar aldrig.
+      signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) {
       console.warn(`[track17] register ${trackingNumber}: HTTP ${res.status}`);

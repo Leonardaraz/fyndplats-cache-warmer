@@ -27,6 +27,22 @@ const CARRIER_ALLOW: Array<{ test: RegExp; label: string }> = [
   { test: /fedex/i, label: "FedEx" },
   { test: /\btnt\b/i, label: "TNT" },
   { test: /\b(?:posten|posti)\b/i, label: "Posten" },
+  // Bredare EU-bud: produkterna skickas från EU-lager, så riktiga EU-
+  // transportörer FÅR visas (mer transparent spårning). Varje mönster är
+  // verifierat att INTE matcha "Cainiao"/"AliExpress" (de förblir maskerade).
+  { test: /postnl/i, label: "PostNL" },
+  { test: /inpost/i, label: "InPost" },
+  { test: /colissimo/i, label: "Colissimo" },
+  { test: /chronopost/i, label: "Chronopost" },
+  { test: /mondial\s*relay/i, label: "Mondial Relay" },
+  { test: /deutsche\s*post/i, label: "Deutsche Post" },
+  { test: /poste\s*italiane/i, label: "Poste Italiane" },
+  { test: /royal\s*mail/i, label: "Royal Mail" },
+  { test: /\bevri\b/i, label: "Evri" },
+  { test: /\bhermes\b/i, label: "Hermes" },
+  { test: /bpost/i, label: "Bpost" },
+  { test: /omniva/i, label: "Omniva" },
+  { test: /helthjem/i, label: "Helthjem" },
 ];
 
 /** Neutralt namn för okända/ursprungs-carriers. */

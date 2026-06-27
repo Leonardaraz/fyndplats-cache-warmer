@@ -108,6 +108,22 @@ export async function runMigration(): Promise<{ ok: true }> {
   `;
   await sql/*sql*/`CREATE INDEX IF NOT EXISTS sms_unmatched_received_idx ON sms_unmatched(received_at DESC);`;
 
+  // Leverans-notis-dedup (lib/delivery-dedup.ts). Delad, kanalövergripande
+  // idempotens-vakt mellan 17TRACK-push och vidarebefordrat carrier-SMS:
+  // (tracking_number, status) som PK → varje paket+status mejlas högst en gång
+  // oavsett vilken kanal som fyrar först. Pre-skapad här så claim-vägen aldrig
+  // behöver köra DDL (undviker cold-start CREATE TABLE-race → fail-open-dubbletter).
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS delivery_notifications (
+      tracking_number TEXT NOT NULL,
+      status          TEXT NOT NULL,
+      channel         TEXT,
+      customer_email  TEXT,
+      sent_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (tracking_number, status)
+    );
+  `;
+
   // Newsletter-prenumeranter (lib/newsletter.ts). Kolumnerna speglar de fält som
   // ursprungligen var tänkta för Wix Data-collection FyndplatsNewsletterSubscribers.
   await sql/*sql*/`

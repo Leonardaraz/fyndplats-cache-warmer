@@ -62,6 +62,26 @@ function pushSendableStatus(raw: string | undefined): DeliveryStatus | null {
   }
 }
 
+// Terminala 17TRACK-status: paketet rör sig inte längre (avvikelse, retur,
+// utgången, ej hittad). Vi mejlar inte på dessa, MEN måste flytta mappningen ur
+// 'in_transit' — annars ligger döda paket kvar för evigt och förorenar
+// SMS-FIFO-poolen (findFifoCandidate plockar äldsta in_transit → ett dött paket
+// gissas först → fel kund får notis).
+function isTerminalStatus(raw: string | undefined): boolean {
+  switch (raw) {
+    case "Exception":
+    case "DeliveryFailure":
+    case "Returning":
+    case "Returned":
+    case "Expired":
+    case "NotFound":
+    case "Undelivered":
+      return true;
+    default:
+      return false;
+  }
+}
+
 interface Track17PushRoot {
   number?: string;
   track_info?: {
@@ -84,6 +104,7 @@ async function findMapping(trackingNumber: string): Promise<TrackingMappingRow |
       SELECT tracking_number, order_id, customer_email, customer_name, status
         FROM tracking_mapping
        WHERE tracking_number = ${trackingNumber}
+         AND status <> 'ambiguous'
        LIMIT 1
     `;
     return r.rows[0] ?? null;
@@ -148,8 +169,13 @@ export async function POST(req: NextRequest) {
   // Slå upp kunden (exakt — spårnumret 17TRACK pushar ÄR det registrerade).
   const mapping = await findMapping(trackingNumber);
 
-  // Spegla status i mappningen oavsett om vi mejlar (driver bl.a. /sparning).
-  if (deliveryStatus && mapping) await updateMappingStatus(trackingNumber, deliveryStatus);
+  // Spegla status i mappningen oavsett om vi mejlar (driver bl.a. /sparning OCH
+  // håller SMS-FIFO-poolen ren). Terminala status flyttas till 'exception' så
+  // döda paket inte ligger kvar som in_transit och gissas i FIFO.
+  if (mapping) {
+    if (deliveryStatus) await updateMappingStatus(trackingNumber, deliveryStatus);
+    else if (isTerminalStatus(rawStatus)) await updateMappingStatus(trackingNumber, "exception");
+  }
 
   if (!deliveryStatus) {
     return NextResponse.json({ ok: true, tracked: trackingNumber, status: rawStatus, sent: false, reason: "non_push_status" }, { status: 200 });

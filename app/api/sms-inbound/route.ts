@@ -25,6 +25,7 @@ import { render } from "@react-email/render";
 import { sql } from "@/lib/db";
 import { parseSms, type ParsedSms } from "@/lib/sms-parser";
 import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
+import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
 import DeliveryNotificationEmail, {
   deliverySubject,
   type DeliveryStatus,
@@ -49,9 +50,16 @@ const OPS_ALERT_EMAIL = process.env.OPS_ALERT_EMAIL ?? "info@fyndplats.com";
 //    this many times in the rolling window, stop auto-matching and escalate.
 //    Stops a parser regression (or a sudden volume spike) from quietly
 //    sending the wrong customer notifications all day.
-const MAX_PENDING_FOR_FIFO = 2;
+// FIFO auto-sänder bara när det finns EXAKT ETT paket in_transit (=1). Med två
+// samtidiga paket gick ett "levererat"-SMS om det nyare paketet annars till den
+// äldre kunden (fel-kund-notis). 17TRACK-pushen täcker Delivered/OutForDelivery
+// säkert per order, så FIFO behöver bara fånga enskild-paket-fallet.
+const MAX_PENDING_FOR_FIFO = 1;
 const MAX_FIFO_PER_WINDOW = 3;
 const FIFO_WINDOW_HOURS = 24;
+// Paket äldre än så här räknas inte som FIFO-kandidat — döda/fastnade sändningar
+// får aldrig ligga kvar och "vinna" gissningen (de plockas annars som äldsta).
+const FIFO_MAX_AGE_DAYS = 30;
 
 // Constant-time string compare for the inbound secret. Plain `===` leaks the
 // length of the matching prefix via timing on a sufficiently determined
@@ -142,6 +150,7 @@ async function findMapping(trackingNumber: string): Promise<TrackingMappingRow |
       SELECT tracking_number, order_id, customer_email, customer_name, customer_phone, status
         FROM tracking_mapping
        WHERE tracking_number = ${trackingNumber}
+         AND status <> 'ambiguous'
        LIMIT 1
     `;
     return r.rows[0] ?? null;
@@ -165,6 +174,7 @@ async function findFifoCandidate(): Promise<{ candidate: TrackingMappingRow | nu
       SELECT tracking_number, order_id, customer_email, customer_name, customer_phone, status
         FROM tracking_mapping
        WHERE status = 'in_transit'
+         AND created_at >= NOW() - (${FIFO_MAX_AGE_DAYS} || ' days')::interval
        ORDER BY created_at ASC
        LIMIT 5
     `;
@@ -414,7 +424,12 @@ export async function POST(req: NextRequest) {
     pickupLocation: parsed.pickup_location,
     pickupCode: parsed.pickup_code,
     trackingNumber: effectiveTracking,
-    carrier: parsed.carrier === "Unknown" ? undefined : parsed.carrier,
+    // KRITISKT: maska carrier-namnet. Parsern kan klassa ett AliExpress/Cainiao-
+    // SMS som carrier "Cainiao" — rått hade det blivit "Transportör: Cainiao" i
+    // kundmejlet och röjt dropship-ursprunget. maskCarrierOrUndefined släpper
+    // bara igenom allowlistade EU-bud; Cainiao/AliExpress → undefined (dold rad).
+    // Samma fail-safe-maskering som 17TRACK-push-webhooken använder.
+    carrier: maskCarrierOrUndefined(parsed.carrier),
   };
 
   try {

@@ -599,7 +599,7 @@ async function upsertTrackingMapping(opts: {
   customerEmail: string;
   customerName: string | null;
   customerPhone: string | null;
-}): Promise<"new" | "duplicate" | "error"> {
+}): Promise<"new" | "duplicate" | "error" | "collision"> {
   try {
     // RETURNING ger en rad ENBART när en NY rad faktiskt skrevs (inte vid
     // ON CONFLICT). Det är vår dedup-signal: "new" = första gången vi ser den
@@ -618,14 +618,42 @@ async function upsertTrackingMapping(opts: {
       ON CONFLICT (tracking_number) DO NOTHING
       RETURNING tracking_number
     `;
-    const isNew = rows.length > 0;
-    // Vid NY sändning: registrera spårnumret hos 17TRACK (sv + dest SE) så
-    // push-webhooken (app/api/track17-webhook) fyrar PROAKTIVT vid Delivered/
-    // OutForDelivery — inte först när kunden råkar öppna /sparning. Velo-style.
-    // Idempotent på 17TRACK-sidan; aldrig kastande (fångar internt). En kort
-    // fetch som ändå är billig jämfört med fakturamejlet vi just skickat.
-    if (isNew) await registerWith17Track(opts.trackingNumber, opts.orderId);
-    return isNew ? "new" : "duplicate";
+    if (rows.length > 0) {
+      // NY sändning: registrera spårnumret hos 17TRACK (sv + dest SE) så
+      // push-webhooken (app/api/track17-webhook) fyrar PROAKTIVT vid Delivered/
+      // OutForDelivery — inte först när kunden råkar öppna /sparning. Velo-style.
+      // Idempotent på 17TRACK-sidan; aldrig kastande (fångar internt + 3s timeout).
+      await registerWith17Track(opts.trackingNumber, opts.orderId);
+      return "new";
+    }
+    // Konflikt på tracking_number. Antingen en benign Wix-omfyrning av SAMMA
+    // sändning (→ "duplicate"), ELLER — farligt — två OLIKA kunder på samma
+    // spårnummer (AliExpress återanvänder ibland nummer). I det senare fallet kan
+    // vi inte avgöra vem en framtida push/SMS gäller → KARANTÄN: markera raden
+    // 'ambiguous' så varken push eller SMS auto-notifierar (inkl. hämtkod) fel
+    // kund. findMapping i båda flödena exkluderar 'ambiguous'. Hanteras manuellt.
+    const ex = await sql<{ customer_email: string; status: string }>/*sql*/`
+      SELECT customer_email, status FROM tracking_mapping
+       WHERE tracking_number = ${opts.trackingNumber} LIMIT 1
+    `;
+    const row = ex.rows[0];
+    if (
+      row &&
+      row.status !== "ambiguous" &&
+      row.customer_email &&
+      opts.customerEmail &&
+      row.customer_email.trim().toLowerCase() !== opts.customerEmail.trim().toLowerCase()
+    ) {
+      await sql/*sql*/`
+        UPDATE tracking_mapping SET status = 'ambiguous', updated_at = NOW()
+         WHERE tracking_number = ${opts.trackingNumber}
+      `;
+      console.error(
+        `[wix-webhook] tracking_number-KOLLISION ${opts.trackingNumber}: ${row.customer_email} vs ${opts.customerEmail} → karantän (auto-notiser stoppade, hantera manuellt)`,
+      );
+      return "collision";
+    }
+    return "duplicate";
   } catch (err) {
     console.error("[wix-webhook] tracking_mapping insert failed", err);
     return "error";
@@ -1207,7 +1235,7 @@ export async function POST(req: NextRequest) {
         console.warn("[wix-webhook] order_shipped: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
       }
-      let trackingMapped: "new" | "duplicate" | "error" | "skipped" = "skipped";
+      let trackingMapped: "new" | "duplicate" | "error" | "collision" | "skipped" = "skipped";
       if (built.props.trackingNumber) {
         const orderForCustomer = (entity.order ?? entity) as Record<string, unknown>;
         trackingMapped = await upsertTrackingMapping({
