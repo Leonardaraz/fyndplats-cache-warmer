@@ -95,13 +95,20 @@ async function get(id: string): Promise<RestockSubscriber | null> {
 async function query(
   filter?: Record<string, unknown>,
   limit = 1000,
+  offset = 0,
 ): Promise<RestockSubscriber[]> {
   const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify({
       dataCollectionId: COL,
-      query: { filter: filter ?? {}, sort: [{ fieldName: "subscribedAt", order: "DESC" }], paging: { limit } },
+      query: {
+        filter: filter ?? {},
+        sort: [{ fieldName: "subscribedAt", order: "DESC" }],
+        // Wix Data tillåter MAX limit=1000 per fråga (WDE0077). Större värde
+        // kastar 400 → det gömde tidigare HELA restock-listan i admin-vyn.
+        paging: offset > 0 ? { limit, offset } : { limit },
+      },
     }),
   });
   if (!res.ok) {
@@ -149,9 +156,18 @@ export class RestockStore {
     return rows.filter((r) => r.notifiedAt == null);
   }
 
-  /** Alla prenumeranter (för admin-vyn). */
-  async listAll(limit = 2000): Promise<RestockSubscriber[]> {
-    return query(undefined, limit);
+  /** Alla prenumeranter (för admin-vyn). Paginerar 1000/sida — det tidigare
+   *  `limit = 2000` överskred Wix Datas tak (WDE0077), kastade, och dolde därmed
+   *  HELA listan i /admin/restock-list trots att prenumeranter fanns. */
+  async listAll(max = 10000): Promise<RestockSubscriber[]> {
+    const pageSize = 1000;
+    const out: RestockSubscriber[] = [];
+    for (let offset = 0; offset < max; offset += pageSize) {
+      const page = await query(undefined, pageSize, offset);
+      out.push(...page);
+      if (page.length < pageSize) break;
+    }
+    return out;
   }
 
   /** Stämplar notifiedAt på en lista av prenumeranter (efter skickat mejl). */
