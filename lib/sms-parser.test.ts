@@ -180,3 +180,14 @@ test("`from` is authoritative — body mention of another carrier doesn't reclas
   });
   assert.equal(r.carrier, "PostNord");
 });
+
+test("Imperative 'Hämta med kod' is available_for_pickup (Christer's real SMS)", () => {
+  const r = parseSms({
+    from: "PostNord",
+    text: "Paketet från AliExpress C/o finns på Hållplatsens Lakritshandel. Hämta med kod via: https://l.postnord.com/OgA9f6PIy50u",
+  });
+  assert.equal(r.status, "available_for_pickup");
+  assert.match(r.pickup_location ?? "", /Hållplatsens Lakritshandel/);
+  // En länk, ingen sifferkod → pickup_code ska vara undefined (FIFO blockeras).
+  assert.equal(r.pickup_code, undefined);
+});

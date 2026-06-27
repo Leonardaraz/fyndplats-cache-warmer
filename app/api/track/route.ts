@@ -29,8 +29,15 @@ const GETINFO_URL = "https://api.17track.net/track/v2.2/gettrackinfo";
 const REGISTER_URL = "https://api.17track.net/track/v2.2/register";
 
 // Asiatiska transitländer som ska döljas för kunden — paketet "syns inte"
-// förrän det landar i Sverige eller annat destinationsland.
-const HIDDEN_COUNTRIES = new Set(["CN", "HK", "TW", "SG", "MY", "JP", "KR"]);
+// förrän det landar i Sverige eller annat destinationsland. I paritet med
+// Velo:s ORIGIN_COUNTRIES (canonical) inkl. VN/TH/ID.
+const HIDDEN_COUNTRIES = new Set(["CN", "HK", "TW", "SG", "JP", "KR", "VN", "TH", "MY", "ID"]);
+
+// Backup-mönster (paritet med Velo:s LEAKY_PATTERN) för rader som slinker
+// igenom landfiltret: ursprungs-ord i fri text (event-beskrivning/plats) som
+// röjer dropship-ursprunget. Skrubbas ur beskrivningen + blankar platsen.
+const LEAKY_PATTERN =
+  /\b(china|chinese|kina|hong\s?kong|cainiao|aliexpress|shenzhen|guangzhou|shanghai|beijing|shantou|shatian|yiwu|4px|yanwen)\b/i;
 
 // Tracking-nummer är typiskt 10-30 tecken alfanumeriska. Avvisa skräp tidigt
 // för att skydda 17TRACK-quota mot bottar/spam — billigaste filtret som finns.
@@ -181,6 +188,8 @@ function isHiddenLocation(ev: Track17Event): boolean {
   if (/\b(SHENZHEN|GUANGZHOU|HONGKONG|HONG\s*KONG|SHANGHAI|YIWU)\b/.test(city)) return true;
   const loc = (ev.location || "").toUpperCase();
   if (/\b(CN|CHINA|KINA|SHENZHEN|HONGKONG|HONG\s*KONG|TAIWAN|SINGAPORE|MALAYSIA)\b/.test(loc)) return true;
+  // Sista utväg: ursprungs-ord i fri text (beskrivning/plats) → dölj eventet.
+  if (LEAKY_PATTERN.test(`${ev.description || ""} ${ev.location || ""}`)) return true;
   return false;
 }
 
@@ -198,10 +207,17 @@ function mapEvent(ev: Track17Event): {
   const stage = ev.stage || ev.sub_status || "";
   const base = stage.split("_")[0];
   const label = STAGE_LABEL_SV[stage] || STAGE_LABEL_SV[base] || STAGE_SV[base] || base;
+  // Skrubba ev. ursprungs-ord ur beskrivning + blanka läckande plats (paritet
+  // med Velo:s sanitizeEvents). Belt-and-suspenders: leaky events filtreras
+  // redan bort av isHiddenLocation, men detta garanterar att inget slinker ut.
+  const description = toSwedish(ev.description || ev.sub_status || "", base)
+    .replace(LEAKY_PATTERN, "")
+    .replace(/\s{2,}/g, " ")
+    .trim() || label;
   return {
     time: ev.time_iso || ev.time_utc || "",
-    description: toSwedish(ev.description || ev.sub_status || "", base),
-    location: loc,
+    description,
+    location: LEAKY_PATTERN.test(loc) ? "" : loc,
     status: label,
   };
 }

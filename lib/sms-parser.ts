@@ -153,6 +153,10 @@ const STATUS_PATTERNS: Array<{ status: SmsStatus; pattern: RegExp }> = [
   { status: "available_for_pickup", pattern: /\b(?:vid|hos|på)\s+(?:ditt\s+)?ombud(?:et)?\b/i },
   { status: "available_for_pickup", pattern: /\b(?:available|ready)\s+for\s+pickup\b/i },
   { status: "available_for_pickup", pattern: /\bhämtkod\b/i },
+  // Imperativ "Hämta ditt/paketet/med kod/ut …" — t.ex. PostNords
+  // "Hämta med kod via: <länk>" (Christers SMS) som annars blev `unknown`.
+  { status: "available_for_pickup", pattern: /\bhämta\s+(?:ditt|paketet|ut|med)\b/i },
+  { status: "available_for_pickup", pattern: /\bfinns\s+(?:nu\s+)?(?:att\s+hämta|för\s+upphämtning)\b/i },
 
   // Delivered — "levererat" (PostNord) wins over "på väg".
   { status: "delivered", pattern: /\b(?:är\s+)?(?:nu\s+)?levererat?\b/i },

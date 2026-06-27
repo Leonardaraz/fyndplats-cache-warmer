@@ -335,13 +335,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, matched: false, reason: "fifo_blocked_pickup_code", parsed }, { status: 200 });
     }
 
-    // Säkerhet: gissa aldrig mottagare för en avvikelse ("försenat/problem") —
-    // ett felriktat avvikelse-mejl skapar onödig oro hos fel kund. Eskalera.
-    if (parsed.status === "exception") {
+    // Säkerhet: FIFO-gissning får BARA auto-sända transienta statusar
+    // (levererat / ute för leverans) där en felgissning är låg-regret. För
+    // upphämtning (kunden skickas till fel ombud) och avvikelse (onödig oro hos
+    // fel kund) krävs exakt spårmatchning — annars eskalera till ops. 17TRACK-
+    // pushen (app/api/track17-webhook) äger Delivered/OutForDelivery säkert per
+    // order; pickup-koden kommer via exakt match eller manuell ops-utskick.
+    if (parsed.status === "available_for_pickup" || parsed.status === "exception") {
       const auditId = await logAudit(parsed, false);
-      await logUnmatched(parsed, auditId, "fifo_blocked_exception");
-      if (resend) await sendOpsAlertEmail(resend, "no_tracking_exception_event", parsed, { pendingCount });
-      return NextResponse.json({ received: true, matched: false, reason: "fifo_blocked_exception", parsed }, { status: 200 });
+      await logUnmatched(parsed, auditId, `fifo_blocked_${parsed.status}`);
+      if (resend) await sendOpsAlertEmail(resend, `no_tracking_${parsed.status}_event`, parsed, { pendingCount });
+      return NextResponse.json({ received: true, matched: false, reason: `fifo_blocked_${parsed.status}`, parsed }, { status: 200 });
     }
 
     if (pendingCount > MAX_PENDING_FOR_FIFO) {
