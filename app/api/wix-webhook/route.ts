@@ -64,6 +64,11 @@ const REPLY_TO = "info@fyndplats.com";
 // vi behöver veta exakt vilken som signerade.
 function splitPublicKeys(pem: string): string[] {
   if (!pem) return [];
+  // Normalisera literala "\n" → riktiga radbrytningar. Vanligt env-var-misstag:
+  // klistrar man in PEM:en med "\n" i stället för radbrytningar blir den
+  // oparserbar och verifieringen faller tyst (ser ut som "fel nyckel"). Ofarligt
+  // när värdet redan har riktiga radbrytningar (då finns inga literala "\n").
+  pem = pem.replace(/\\n/g, "\n");
   // Splitta på "-----END PUBLIC KEY-----" → behåll suffixet på varje del
   const parts = pem.split(/(-----END PUBLIC KEY-----)/).reduce<string[]>((acc, part, i, arr) => {
     if (i % 2 === 0 && i + 1 < arr.length) {
