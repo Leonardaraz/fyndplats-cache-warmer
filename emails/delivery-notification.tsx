@@ -25,6 +25,9 @@ export interface DeliveryNotificationProps {
   status: DeliveryStatus;
   pickupLocation?: string;
   pickupCode?: string;
+  /** Upphämtningslänk från transportören (t.ex. PostNords l.postnord.com-länk) när
+   *  SMS:et saknar sifferkod. Renderas som en "Hämta ditt paket"-knapp. */
+  pickupUrl?: string;
   trackingNumber?: string;
   carrier?: string;
 }
@@ -89,6 +92,7 @@ export default function DeliveryNotificationEmail({
   status,
   pickupLocation,
   pickupCode,
+  pickupUrl,
   trackingNumber,
   carrier,
 }: DeliveryNotificationProps) {
@@ -122,6 +126,19 @@ export default function DeliveryNotificationEmail({
           {pickupLocation ? (
             <Text style={{ ...text.muted, margin: "12px 0 0 0", textAlign: "center" }}>
               Hämtas vid <strong style={{ color: BRAND.ink }}>{pickupLocation}</strong>
+            </Text>
+          ) : null}
+        </Section>
+      ) : null}
+
+      {pickupUrl ? (
+        <Section style={{ margin: "16px 0" }}>
+          <Link href={pickupUrl} style={block.ctaButton}>
+            Hämta ditt paket
+          </Link>
+          {carrier ? (
+            <Text style={{ ...text.muted, margin: "10px 0 0 0" }}>
+              Transportör: <strong style={{ color: BRAND.ink }}>{carrier}</strong>
             </Text>
           ) : null}
         </Section>
