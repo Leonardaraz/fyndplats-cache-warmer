@@ -39,6 +39,7 @@ import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkou
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
+import { claimWebhookEmail, releaseWebhookEmail } from "@/lib/webhook-email-dedup";
 import { registerWith17Track } from "@/lib/track17";
 import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
 import { sql } from "@/lib/db";
@@ -1314,6 +1315,13 @@ export async function POST(req: NextRequest) {
         console.warn("[wix-webhook] order_cancelled: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
       }
+      // Dedup: en order avbokas en gång. Wix kan fyra eventet flera gånger →
+      // utan vakt skickas avboknings-mejlet i dubbletter. Nyckel = order-GUID.
+      const cancelKey = `cancel:${firstStr(entityId, entity._id, entity.id) ?? built.props.orderNumber}`;
+      if (!(await claimWebhookEmail(cancelKey))) {
+        console.log(`[wix-webhook] order_cancelled ${built.props.orderNumber}: redan skickat (dedup) — hoppar`);
+        return NextResponse.json({ received: true, deduped: true, verified }, { status: 200 });
+      }
       let resendId: string | undefined;
       if (resend) {
         const html = await render(OrderCancellationEmail(built.props));
@@ -1325,6 +1333,8 @@ export async function POST(req: NextRequest) {
           html,
         });
         if (sent.error) {
+          // Släpp anspråket så en Wix-retry kan skicka mejlet i stället.
+          await releaseWebhookEmail(cancelKey);
           console.error("[wix-webhook] Resend order_cancelled fel", sent.error);
           return NextResponse.json({ error: "Email send failed" }, { status: 500 });
         }
@@ -1357,6 +1367,21 @@ export async function POST(req: NextRequest) {
         console.warn("[wix-webhook] refund: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
       }
+      // Dedup på REFUND-id (inte order-id) — en order kan ha flera legitima
+      // delvis-refunds, var och en med eget id. Wix kan fyra samma refund flera
+      // gånger → utan vakt skickas refund-mejlet i dubbletter. Saknas refund-id:
+      // fall tillbaka på order + belopp (skiljer normalt två olika refunds åt).
+      const refundId = firstStr(
+        (entity.refund as { id?: unknown } | undefined)?.id,
+        (entity.refundIds as unknown[] | undefined)?.[0],
+      );
+      const refundKey = refundId
+        ? `refund:${refundId}`
+        : `refund:${refundOrderId || built.props.orderNumber}:${built.props.refundAmount}`;
+      if (!(await claimWebhookEmail(refundKey))) {
+        console.log(`[wix-webhook] refund ${built.props.orderNumber}: redan skickat (dedup, key=${refundKey}) — hoppar`);
+        return NextResponse.json({ received: true, deduped: true, verified }, { status: 200 });
+      }
       let resendId: string | undefined;
       if (resend) {
         const html = await render(RefundConfirmationEmail(built.props));
@@ -1368,6 +1393,8 @@ export async function POST(req: NextRequest) {
           html,
         });
         if (sent.error) {
+          // Släpp anspråket så en Wix-retry kan skicka mejlet i stället.
+          await releaseWebhookEmail(refundKey);
           console.error("[wix-webhook] Resend refund fel", sent.error);
           return NextResponse.json({ error: "Email send failed" }, { status: 500 });
         }

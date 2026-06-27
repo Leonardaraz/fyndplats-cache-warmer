@@ -124,6 +124,17 @@ export async function runMigration(): Promise<{ ok: true }> {
     );
   `;
 
+  // Idempotens-vakt för refund-/avboknings-mejl (lib/webhook-email-dedup.ts).
+  // Wix fyrar "at-least-once" → utan detta skickades mejlet en gång per fyrning.
+  // event_key = `refund:<refundId>` | `cancel:<orderId>`. Pre-skapad här så
+  // claim-vägen aldrig kör DDL (undviker cold-start-race → fail-open-dubbletter).
+  await sql/*sql*/`
+    CREATE TABLE IF NOT EXISTS webhook_email_sent (
+      event_key TEXT PRIMARY KEY,
+      sent_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+
   // Newsletter-prenumeranter (lib/newsletter.ts). Kolumnerna speglar de fält som
   // ursprungligen var tänkta för Wix Data-collection FyndplatsNewsletterSubscribers.
   await sql/*sql*/`
