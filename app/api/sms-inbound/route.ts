@@ -24,6 +24,7 @@ import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { sql } from "@/lib/db";
 import { parseSms, type ParsedSms } from "@/lib/sms-parser";
+import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
 import DeliveryNotificationEmail, {
   deliverySubject,
   type DeliveryStatus,
@@ -242,32 +243,9 @@ async function updateMappingStatus(trackingNumber: string, status: string): Prom
   }
 }
 
-// Dedup: iOS-genvägen kan vidarebefordra samma SMS två gånger (manuell
-// re-trigger, leveranskvittens), och carriers skickar ibland samma status
-// flera gånger. Skicka inte om vi redan mejlat kunden för samma paket +
-// status nyligen. Nyckel = (effektivt spårnummer, status) inom fönstret.
-async function alreadyNotified(
-  trackingNumber: string | undefined,
-  status: string,
-  hours = 24,
-): Promise<boolean> {
-  if (!trackingNumber) return false;
-  try {
-    const r = await sql<{ n: number }>/*sql*/`
-      SELECT COUNT(*)::int AS n
-        FROM sms_audit
-       WHERE email_sent = true
-         AND tracking_number = ${trackingNumber}
-         AND status = ${status}
-         AND received_at >= NOW() - (${hours} || ' hours')::interval
-    `;
-    return (r.rows[0]?.n ?? 0) > 0;
-  } catch (err) {
-    console.error("[sms-inbound] dedup check failed", err);
-    // Hellre en möjlig dubblett än att tyst missa en riktig notis.
-    return false;
-  }
-}
+// Dedup hanteras nu av lib/delivery-dedup (delad atomisk vakt med 17TRACK-
+// push-flödet) i stället för en lokal sms_audit-räkning — så att kunden aldrig
+// får dubbla notiser oavsett om samma paket+status kommer via SMS eller push.
 
 // Sendable statuses: we don't email on "unknown" or "in_transit" by default —
 // in_transit is too noisy (multiple per shipment), unknown means the parser
@@ -408,8 +386,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true, matched: true, sent: false, error: "resend_not_configured" }, { status: 200 });
   }
 
-  // Dedup: redan mejlat samma paket + status nyligen → skicka inte igen.
-  if (await alreadyNotified(effectiveTracking, parsed.status)) {
+  // Dedup (delad med 17TRACK-push): atomiskt anspråk på (spårnummer, status).
+  // Vinner vi → skicka; förlorar vi → redan mejlat (via SMS eller push) → hoppa.
+  const claimed = effectiveTracking
+    ? await claimDeliveryNotification(effectiveTracking, parsed.status, "sms", mapping.customer_email)
+    : true;
+  if (!claimed) {
     await logAudit(parsed, true, {
       emailSent: false,
       error: "duplicate_suppressed",
@@ -442,6 +424,8 @@ export async function POST(req: NextRequest) {
       html,
     });
     if (sent.error) {
+      // Släpp dedup-anspråket så en retry (eller push) kan ta över.
+      if (effectiveTracking) await releaseDeliveryNotification(effectiveTracking, parsed.status);
       console.error("[sms-inbound] Resend-fel", sent.error);
       await logAudit(parsed, true, {
         emailSent: false,
@@ -469,6 +453,8 @@ export async function POST(req: NextRequest) {
       matchStrategy,
     }, { status: 200 });
   } catch (err) {
+    // Släpp dedup-anspråket så en retry (eller push) kan ta över.
+    if (effectiveTracking) await releaseDeliveryNotification(effectiveTracking, parsed.status);
     console.error("[sms-inbound] oväntat fel under email-send", err);
     await logAudit(parsed, true, {
       emailSent: false,

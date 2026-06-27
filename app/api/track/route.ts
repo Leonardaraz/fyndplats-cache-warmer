@@ -20,6 +20,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { PHRASE_SV } from "@/lib/track-i18n";
+import { maskCarrier } from "@/lib/carrier-mask";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -149,37 +150,9 @@ const STAGE_LABEL_SV: Record<string, string> = {
   NotFound: "Ingen information",
 };
 
-// Carrier-maskering med ALLOWLIST (fail-safe): bara kända EU/SE-transportörer
-// får visas, allt annat (4PX, Yanwen, China Post, Cainiao, okända kinesiska
-// leverantörer …) faller igenom till "Fraktpartner". En denylist missar nya
-// ursprungs-carriers; en allowlist kan aldrig läcka en vi inte räknat med.
-// Varje regel normaliserar även bort landssuffix ("PostNord Sweden" → "PostNord").
-const CARRIER_ALLOW: Array<{ test: RegExp; label: string }> = [
-  { test: /postnord/i, label: "PostNord" },
-  { test: /\bdhl\b/i, label: "DHL" },
-  { test: /\bdpd\b/i, label: "DPD" },
-  { test: /\bgls\b/i, label: "GLS" },
-  { test: /\bdsv\b/i, label: "DSV" },
-  { test: /schenker/i, label: "Schenker" },
-  { test: /\bbring\b/i, label: "Bring" },
-  { test: /instabox/i, label: "Instabox" },
-  { test: /budbee|instabee/i, label: "Budbee" },
-  { test: /airmee/i, label: "Airmee" },
-  { test: /early\s*bird/i, label: "Early Bird" },
-  { test: /\bups\b/i, label: "UPS" },
-  { test: /fedex/i, label: "FedEx" },
-  { test: /\btnt\b/i, label: "TNT" },
-  { test: /\b(?:posten|posti)\b/i, label: "Posten" },
-];
-
-function cleanCarrier(name: string): string {
-  if (!name) return "";
-  for (const { test, label } of CARRIER_ALLOW) {
-    if (test.test(name)) return label;
-  }
-  // Okänd/ursprungs-carrier → maska bakom ett neutralt namn (läck aldrig).
-  return "Fraktpartner";
-}
+// Carrier-maskering delas med 17TRACK-push-webhooken via lib/carrier-mask
+// (allowlist, fail-safe) så de två kanalerna aldrig divergerar i vad de visar.
+const cleanCarrier = maskCarrier;
 
 // 17TRACK ger ETA som datum-sträng ("2026-06-10"). Formatera till svensk
 // läsbar form ("10 juni 2026"). Returnerar null om saknas/ogiltigt → UI:n

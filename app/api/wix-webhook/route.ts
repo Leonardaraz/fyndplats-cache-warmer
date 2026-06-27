@@ -39,6 +39,7 @@ import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkou
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
+import { registerWith17Track } from "@/lib/track17";
 import { sql } from "@/lib/db";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 import { firePush } from "@/lib/push-send";
@@ -617,7 +618,14 @@ async function upsertTrackingMapping(opts: {
       ON CONFLICT (tracking_number) DO NOTHING
       RETURNING tracking_number
     `;
-    return rows.length > 0 ? "new" : "duplicate";
+    const isNew = rows.length > 0;
+    // Vid NY sändning: registrera spårnumret hos 17TRACK (sv + dest SE) så
+    // push-webhooken (app/api/track17-webhook) fyrar PROAKTIVT vid Delivered/
+    // OutForDelivery — inte först när kunden råkar öppna /sparning. Velo-style.
+    // Idempotent på 17TRACK-sidan; aldrig kastande (fångar internt). En kort
+    // fetch som ändå är billig jämfört med fakturamejlet vi just skickat.
+    if (isNew) await registerWith17Track(opts.trackingNumber, opts.orderId);
+    return isNew ? "new" : "duplicate";
   } catch (err) {
     console.error("[wix-webhook] tracking_mapping insert failed", err);
     return "error";

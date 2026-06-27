@@ -36,6 +36,17 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
+  async rewrites() {
+    return [
+      // 17TRACK-push: dashboardens webhook-URL ärvdes från Velo och pekar på
+      // /_functions/track_webhook. Sen DNS-cutovern är fyndplats.se → Vercel, så
+      // vi serverar den legacy-vägen vidare till den nya headless-handlern. Då
+      // återupptas pushen UTAN att röra 17TRACK-dashboarden. (Next behandlar
+      // mappar som börjar med "_" som privata → ingen riktig route kan ligga
+      // där; därför en rewrite i stället för en fil under app/_functions/.)
+      { source: "/_functions/track_webhook", destination: "/api/track17-webhook" },
+    ];
+  },
   async redirects() {
     return [
       // --- SEO-migration: gamla Wix-sajtens produkt-URL:er → headless ---
