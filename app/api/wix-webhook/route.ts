@@ -586,7 +586,12 @@ function buildRefundProps(payload: Record<string, unknown>): { props: RefundConf
   const amount =
     moneyNum(summary.refunded) ||
     moneyNum(summary.requestedRefund) ||
-    moneyNum(refund?.amount ?? refund?.totalRefundedAmount ?? payload.amount);
+    moneyNum(refund?.amount ?? refund?.totalRefundedAmount ?? payload.amount) ||
+    // SISTA utväg om inget belopp-fält finns i payloaden alls: orderns total. Detta
+    // är inte längre default-vägen (summary.refunded läses FÖRST), så det
+    // överrapporterar inte delvis-refunds — men hindrar ett "0 kr"-mejl om Wix
+    // skulle skicka en oväntad payload-shape.
+    moneyNum((order.priceSummary as { total?: unknown } | undefined)?.total);
   const currency = moneyCurrency(summary.refunded ?? refund?.amount ?? order.priceSummary, "SEK");
   const reason = firstStr(refund?.reason as string, payload.reason as string);
 
@@ -755,11 +760,13 @@ export async function fetchWixOrder(orderId: string): Promise<Record<string, unk
         "Content-Type": "application/json",
       },
       cache: "no-store",
-      // Tidsgräns: detta körs i webhookens request-väg (fulfillments/refund).
-      // Ett hängande Wix-API får ALDRIG blockera svaret → Wix-timeout/retry-storm.
-      // Samma 3s-konvention som lib/meta-capi/expo-push/track17. TimeoutError
-      // fångas av catch → null → anroparen ack:ar 200 handled:false.
-      signal: AbortSignal.timeout(3000),
+      // Tidsgräns för att fånga en HÄNGNING (inte normal latens): detta körs i
+      // webhookens request-väg (fulfillments/refund) och en TCP-hängning skulle
+      // annars blockera ända till Vercels function-timeout → Wix-retry-storm.
+      // 8s (inte 3s som de icke-kritiska pingsen i meta-capi/track17): vid timeout
+      // ack:ar vi 200 handled:false UTAN retry, så mejlet tappas — därför tillåter
+      // vi normal/långsam Wix-latens och bryter bara på en äkta hängning.
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) {
       const txt = await res.text().catch(() => "");
@@ -1205,17 +1212,14 @@ export async function POST(req: NextRequest) {
             // Logga men returnera INTE 500: en 500 → Wix retry:ar HELA eventet, och
             // redan skickade sändningar dedupas bort → den misslyckade skulle ändå
             // hoppas över. Hellre logga för manuell omsändning.
+            //
+            // OBS: vi RÖR INTE tracking_mapping-raden här. Att radera den för att
+            // möjliggöra omsändning skulle förlora kund-mappningen som BÅDE SMS-
+            // flödet OCH 17TRACK-pushen behöver för leveransnotiser — och den här
+            // grenen ack:ar 200 (ingen Wix-retry), så raden skulle inte återskapas
+            // automatiskt. Frakt-mejlet hanteras manuellt vid transient Resend-fel;
+            // mappningen (och därmed leveransnotiserna) bevaras.
             console.error(`[wix-webhook] Resend order_fulfillments_updated fel (tracking=${tracking})`, sent.error);
-            // Släpp dedup-anspråket för DENNA sändning så Wix "Order Fulfilled"-
-            // eventet (delar samma tracking_number-nyckel) eller en manuell
-            // omsändning kan skicka fraktmejlet — annars dedupas det bort permanent.
-            if (map === "new") {
-              try {
-                await sql/*sql*/`DELETE FROM tracking_mapping WHERE tracking_number = ${tracking}`;
-              } catch (e) {
-                console.error("[wix-webhook] kunde inte släppa tracking_mapping vid send-fel", e);
-              }
-            }
             continue;
           }
           if (sent.data?.id) sentIds.push(sent.data.id);
@@ -1381,102 +1385,11 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true, handled: false }, { status: 200 });
 }
 
-// GET för enkel health-check (Vercel + manuell verifikation).
-// ENGÅNGS-recovery: /api/wix-webhook?recover=10001 (eller 10002) — skickar om
-// orderbekräftelse för specifika order som missades innan webhook-fixet.
-// Allowlist är hårdkodad och tas bort efter användning.
-const RECOVERY_ALLOWLIST = new Set(["10001", "10002"]);
-
-async function findOrderIdByNumber(orderNumber: string): Promise<string | null> {
-  const key = process.env.WIX_API_KEY;
-  const site = process.env.WIX_SITE_ID;
-  if (!key || !site) return null;
-  try {
-    const res = await fetch("https://www.wixapis.com/ecom/v1/orders/search", {
-      method: "POST",
-      headers: {
-        Authorization: key,
-        "wix-site-id": site,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ search: { filter: { number: { $eq: orderNumber } } } }),
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const json = (await res.json()) as { orders?: Array<{ id?: string; _id?: string }> };
-    const o = json.orders?.[0];
-    return o?.id ?? o?._id ?? null;
-  } catch {
-    return null;
-  }
-}
-
-export async function GET(req: NextRequest) {
-  // ENGÅNGS-test: ?test_bounce=1 skickar ett mejl till Resends bounce-simulator
-  // (bounced@resend.dev) → Resend triggar email.bounced → vår resend-webhook
-  // notifierar info@. Använd EN gång för att verifiera webhook-pipeline, ta
-  // sen bort denna handler.
-  if (req.nextUrl.searchParams.get("test_bounce") === "1") {
-    const k = process.env.RESEND_API_KEY;
-    if (!k) return NextResponse.json({ error: "RESEND_API_KEY saknas" }, { status: 500 });
-    try {
-      const r = new Resend(k);
-      const sent = await r.emails.send({
-        from: FROM,
-        to: "bounced@resend.dev",
-        subject: "Fyndplats bounce-test",
-        html: "<p>Bara ett test för att trigga email.bounced-webhook. Mejlet kommer bouncea och vår resend-webhook ska notifiera info@fyndplats.com.</p>",
-      });
-      if (sent.error) return NextResponse.json({ ok: false, error: String(sent.error) }, { status: 500 });
-      return NextResponse.json({ ok: true, resendId: sent.data?.id, expectBounceWithin: "~30s" });
-    } catch (err) {
-      return NextResponse.json({ error: "send failed", details: String(err) }, { status: 500 });
-    }
-  }
-
-  // One-time recovery path: ?recover=<orderNumber>
-  const recover = req.nextUrl.searchParams.get("recover");
-  if (recover && RECOVERY_ALLOWLIST.has(recover)) {
-    const orderId = await findOrderIdByNumber(recover);
-    if (!orderId) {
-      return NextResponse.json({ error: `Order #${recover} hittades inte` }, { status: 404 });
-    }
-    const order = await fetchWixOrder(orderId);
-    if (!order) {
-      return NextResponse.json({ error: `Kunde inte hämta order ${orderId}` }, { status: 502 });
-    }
-    const props = buildOrderConfirmationProps(order);
-    const customer = extractCustomer(order);
-    if (!props || !customer) {
-      return NextResponse.json({ error: "Kunde inte extrahera kund/order-data" }, { status: 422 });
-    }
-    const resendKey = process.env.RESEND_API_KEY;
-    if (!resendKey) {
-      return NextResponse.json({ error: "RESEND_API_KEY saknas" }, { status: 500 });
-    }
-    const resend = new Resend(resendKey);
-    const html = await render(OrderConfirmationEmail(props));
-    const sent = await resend.emails.send({
-      from: FROM,
-      to: customer.email,
-      replyTo: REPLY_TO,
-      subject: `Tack för din beställning ${props.orderNumber}`,
-      html,
-    });
-    if (sent.error) {
-      console.error("[wix-webhook] recovery resend fel", sent.error);
-      return NextResponse.json({ error: "Resend send failed", details: String(sent.error) }, { status: 500 });
-    }
-    console.log(`[wix-webhook] recovery skickade orderbekräftelse #${props.orderNumber} → ${customer.email} (resendId=${sent.data?.id})`);
-    return NextResponse.json({
-      ok: true,
-      orderId,
-      orderNumber: props.orderNumber,
-      email: customer.email,
-      resendId: sent.data?.id,
-    });
-  }
-
+// GET = health-check (Vercel + manuell verifikation). De tidigare engångs-
+// verktygen (?test_bounce och ?recover=<order>) är borttagna: routen ligger
+// UTANFÖR /api/admin/* (oskyddad), och recover-vägen lät vem som helst trigga
+// om-utskick av orderbekräftelse + Wix-API-anrop för hårdkodade ordernummer.
+export async function GET() {
   return NextResponse.json({
     status: "ok",
     endpoint: "wix-webhook",
