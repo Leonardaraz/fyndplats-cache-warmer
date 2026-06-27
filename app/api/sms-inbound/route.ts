@@ -242,6 +242,33 @@ async function updateMappingStatus(trackingNumber: string, status: string): Prom
   }
 }
 
+// Dedup: iOS-genvägen kan vidarebefordra samma SMS två gånger (manuell
+// re-trigger, leveranskvittens), och carriers skickar ibland samma status
+// flera gånger. Skicka inte om vi redan mejlat kunden för samma paket +
+// status nyligen. Nyckel = (effektivt spårnummer, status) inom fönstret.
+async function alreadyNotified(
+  trackingNumber: string | undefined,
+  status: string,
+  hours = 24,
+): Promise<boolean> {
+  if (!trackingNumber) return false;
+  try {
+    const r = await sql<{ n: number }>/*sql*/`
+      SELECT COUNT(*)::int AS n
+        FROM sms_audit
+       WHERE email_sent = true
+         AND tracking_number = ${trackingNumber}
+         AND status = ${status}
+         AND received_at >= NOW() - (${hours} || ' hours')::interval
+    `;
+    return (r.rows[0]?.n ?? 0) > 0;
+  } catch (err) {
+    console.error("[sms-inbound] dedup check failed", err);
+    // Hellre en möjlig dubblett än att tyst missa en riktig notis.
+    return false;
+  }
+}
+
 // Sendable statuses: we don't email on "unknown" or "in_transit" by default —
 // in_transit is too noisy (multiple per shipment), unknown means the parser
 // gave up and any email would be misleading. Customers care about pickup,
@@ -320,6 +347,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, matched: false, reason: "no_tracking_no_pending", parsed }, { status: 200 });
     }
 
+    // Säkerhet: gissa ALDRIG mottagare när SMS:et bär en hämtkod. Koden är en
+    // referens — skickar vi den till fel (gissad) kund kan denne hämta ut
+    // någon annans paket. Kräv exakt spårmatchning för koder; eskalera annars.
+    if (parsed.pickup_code) {
+      const auditId = await logAudit(parsed, false);
+      await logUnmatched(parsed, auditId, "fifo_blocked_pickup_code");
+      if (resend) await sendOpsAlertEmail(resend, "no_tracking_but_pickup_code_present", parsed, { pendingCount });
+      return NextResponse.json({ received: true, matched: false, reason: "fifo_blocked_pickup_code", parsed }, { status: 200 });
+    }
+
+    // Säkerhet: gissa aldrig mottagare för en avvikelse ("försenat/problem") —
+    // ett felriktat avvikelse-mejl skapar onödig oro hos fel kund. Eskalera.
+    if (parsed.status === "exception") {
+      const auditId = await logAudit(parsed, false);
+      await logUnmatched(parsed, auditId, "fifo_blocked_exception");
+      if (resend) await sendOpsAlertEmail(resend, "no_tracking_exception_event", parsed, { pendingCount });
+      return NextResponse.json({ received: true, matched: false, reason: "fifo_blocked_exception", parsed }, { status: 200 });
+    }
+
     if (pendingCount > MAX_PENDING_FOR_FIFO) {
       // Too many in-flight packages to guess safely — escalate.
       const auditId = await logAudit(parsed, false);
@@ -360,6 +406,20 @@ export async function POST(req: NextRequest) {
     console.error("[sms-inbound] RESEND_API_KEY saknas — kan inte skicka mejl");
     await logAudit(parsed, true, { emailSent: false, error: "resend_key_missing", matchStrategy, trackingNumberOverride: effectiveTracking });
     return NextResponse.json({ received: true, matched: true, sent: false, error: "resend_not_configured" }, { status: 200 });
+  }
+
+  // Dedup: redan mejlat samma paket + status nyligen → skicka inte igen.
+  if (await alreadyNotified(effectiveTracking, parsed.status)) {
+    await logAudit(parsed, true, {
+      emailSent: false,
+      error: "duplicate_suppressed",
+      matchStrategy,
+      trackingNumberOverride: effectiveTracking,
+    });
+    return NextResponse.json(
+      { received: true, matched: true, sent: false, reason: "duplicate_suppressed", matchStrategy },
+      { status: 200 },
+    );
   }
 
   const props = {

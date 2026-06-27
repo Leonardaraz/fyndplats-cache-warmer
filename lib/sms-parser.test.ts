@@ -143,3 +143,40 @@ test("Hämtkod regex prefers labelled code over loose digits in same body", () =
   });
   assert.equal(r.pickup_code, "9876");
 });
+
+// --- Safety regressions ----------------------------------------------------
+
+test("Instabee sender is Budbee, not Instabox (no /instab/ overreach)", () => {
+  // "instabee" must not be swallowed by an Instabox `/instab/` pattern.
+  const r = parseSms({
+    from: "Instabee",
+    text: "Ditt paket är nu klart för upphämtning. Kod: 5566",
+  });
+  assert.equal(r.carrier, "Budbee");
+});
+
+test("Origin leak: 'AliExpress Logistics' must never become pickup_location", () => {
+  // The catch-all "på <name>" fallback used to surface the dropship origin in
+  // the email subject/body. It must be denied while real ombud names survive.
+  const r = parseSms({
+    from: "PostNord",
+    text: "Ditt paket finns nu för upphämtning på AliExpress Logistics. Hämtkod 4455.",
+  });
+  assert.equal(r.pickup_location, undefined);
+});
+
+test("Real ombud not in the brand list still resolves (Christer's SMS)", () => {
+  const r = parseSms({
+    from: "PostNord",
+    text: "Paketet finns på Hållplatsens Lakritshandel. Hämta med kod via länken.",
+  });
+  assert.match(r.pickup_location ?? "", /Hållplatsens Lakritshandel/);
+});
+
+test("`from` is authoritative — body mention of another carrier doesn't reclassify", () => {
+  const r = parseSms({
+    from: "PostNord",
+    text: "Ditt paket har lämnats till DHL Servicepoint för upphämtning.",
+  });
+  assert.equal(r.carrier, "PostNord");
+});

@@ -149,14 +149,36 @@ const STAGE_LABEL_SV: Record<string, string> = {
   NotFound: "Ingen information",
 };
 
-// Maskerar kinesiska transportörer + städar redundanta landssuffix
-// ("PostNord Sweden" → "PostNord"). Tomt → generiskt "Fyndplats Frakt".
+// Carrier-maskering med ALLOWLIST (fail-safe): bara kända EU/SE-transportörer
+// får visas, allt annat (4PX, Yanwen, China Post, Cainiao, okända kinesiska
+// leverantörer …) faller igenom till "Fraktpartner". En denylist missar nya
+// ursprungs-carriers; en allowlist kan aldrig läcka en vi inte räknat med.
+// Varje regel normaliserar även bort landssuffix ("PostNord Sweden" → "PostNord").
+const CARRIER_ALLOW: Array<{ test: RegExp; label: string }> = [
+  { test: /postnord/i, label: "PostNord" },
+  { test: /\bdhl\b/i, label: "DHL" },
+  { test: /\bdpd\b/i, label: "DPD" },
+  { test: /\bgls\b/i, label: "GLS" },
+  { test: /\bdsv\b/i, label: "DSV" },
+  { test: /schenker/i, label: "Schenker" },
+  { test: /\bbring\b/i, label: "Bring" },
+  { test: /instabox/i, label: "Instabox" },
+  { test: /budbee|instabee/i, label: "Budbee" },
+  { test: /airmee/i, label: "Airmee" },
+  { test: /early\s*bird/i, label: "Early Bird" },
+  { test: /\bups\b/i, label: "UPS" },
+  { test: /fedex/i, label: "FedEx" },
+  { test: /\btnt\b/i, label: "TNT" },
+  { test: /\b(?:posten|posti)\b/i, label: "Posten" },
+];
+
 function cleanCarrier(name: string): string {
   if (!name) return "";
-  if (/\b(china|chinese|cn|sf express|yto|sto|yunda|cainiao|aliexpress)\b/i.test(name)) {
-    return "Fraktpartner";
+  for (const { test, label } of CARRIER_ALLOW) {
+    if (test.test(name)) return label;
   }
-  return name.replace(/\s+(Sweden|Sverige)$/i, "").trim();
+  // Okänd/ursprungs-carrier → maska bakom ett neutralt namn (läck aldrig).
+  return "Fraktpartner";
 }
 
 // 17TRACK ger ETA som datum-sträng ("2026-06-10"). Formatera till svensk
@@ -238,21 +260,15 @@ async function gettrackinfo(tn: string, apiKey: string): Promise<Track17Response
   return (await res.json()) as Track17Response;
 }
 
-async function register(tn: string, apiKey: string): Promise<unknown> {
-  // Returnerar parsad body för debug-läget. I normalflödet bryr vi oss inte
-  // om resultatet — eventuella registreringsfel manifesterar sig som tomma
-  // events på nästa gettrackinfo (→ 202 pending).
-  const res = await fetch(REGISTER_URL, {
+async function register(tn: string, apiKey: string): Promise<void> {
+  // I normalflödet bryr vi oss inte om svaret — eventuella registreringsfel
+  // manifesterar sig som tomma events på nästa gettrackinfo (→ 202 pending).
+  await fetch(REGISTER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", "17token": apiKey },
     body: JSON.stringify([{ number: tn }]),
     cache: "no-store",
   });
-  try {
-    return await res.json();
-  } catch {
-    return { status: res.status };
-  }
 }
 
 function buildResponse(json: Track17Response, tn: string): { body: unknown; status: number } {
@@ -322,17 +338,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Debug-läge: ?debug=<TRACK17_API_KEY> returnerar RÅ 17TRACK-respons
-  // (både gettrackinfo + register) så vi kan se exakt struktur/felkoder.
-  // Gated bakom API-keyn så endast vi kan trigga det. Tas bort när tracking
-  // är verifierat stabilt.
-  const debug = req.nextUrl.searchParams.get("debug") === apiKey;
-  const debugDump: Record<string, unknown> = {};
-
   let json: Track17Response;
   try {
     json = await gettrackinfo(tn, apiKey);
-    if (debug) debugDump.firstGetinfo = json;
   } catch {
     return NextResponse.json(
       { error: "Anslutningen till spårningen fungerade inte. Försök igen om en stund." },
@@ -357,21 +365,15 @@ export async function GET(req: NextRequest) {
   let justRegistered = false;
   if (!hasRealEvents(json)) {
     try {
-      const reg = await register(tn, apiKey);
-      if (debug) debugDump.register = reg;
+      await register(tn, apiKey);
       justRegistered = true;
       // 17TRACK behöver tid att hämta data från carriern (PostNord, DHL etc.)
       // — typiskt 30 sek till 2 min. Kort delay (3s) ger oftast första-status.
       await new Promise((r) => setTimeout(r, 3000));
       json = await gettrackinfo(tn, apiKey);
-      if (debug) debugDump.secondGetinfo = json;
     } catch {
       // Tystna — fallback till pending-meddelande nedan.
     }
-  }
-
-  if (debug) {
-    return NextResponse.json({ tn, justRegistered, hasRealEvents: hasRealEvents(json), ...debugDump });
   }
 
   // Om vi fortfarande inte har riktiga events men numret är känt/registrerat

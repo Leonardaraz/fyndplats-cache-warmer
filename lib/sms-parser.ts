@@ -112,7 +112,9 @@ const CARRIERS: CarrierRule[] = [
   },
   {
     carrier: "Instabox",
-    fromPatterns: [/instabox/i, /instab/i],
+    // NB: matcha bara "instabox" — INTE en lös `/instab/` som även fångar
+    // "instabee" (Budbee) och felklassar den som Instabox.
+    fromPatterns: [/instabox/i],
     trackingPatterns: [/\b[A-Z0-9]{6,12}\b/],
   },
   {
@@ -216,6 +218,13 @@ const OMBUD_BRANDS = [
   "DHL Service Point",
 ];
 
+// Ursprungs-/leverantörsord som ALDRIG får hamna i pickup_location (och därmed
+// i mejlets ämne/brödtext). Fångar i synnerhet catch-all-fallbackens läcka
+// "AliExpress Logistics" utan att blockera riktiga ombud ("Hållplatsens
+// Lakritshandel", "ICA Maxi" osv).
+const ORIGIN_LEAK =
+  /\b(?:aliexpress|ali\s*express|alibaba|cainiao|4px|yanwen|china\s*post|chinapost|china|chinese|kina|shenzhen|guangzhou|yiwu|hong\s*kong|hongkong)\b/i;
+
 function findOmbud(text: string): string | undefined {
   for (const brand of OMBUD_BRANDS) {
     // Match the brand plus an optional trailing identifier (e.g. "Maxi Södertälje"),
@@ -230,7 +239,8 @@ function findOmbud(text: string): string | undefined {
     const m = text.match(re);
     if (m && m[0]) {
       // Trim trailing whitespace + commas + the connecting word if it slipped in.
-      return m[0].replace(/\s+$/, "").trim();
+      const candidate = m[0].replace(/\s+$/, "").trim();
+      if (!ORIGIN_LEAK.test(candidate)) return candidate;
     }
   }
   // Fallback: explicit "vid <name>" / "hos <name>" / "på <name>" pattern.
@@ -238,9 +248,15 @@ function findOmbud(text: string): string | undefined {
     /\b(?:vid|hos|på)\s+((?:[A-ZÅÄÖ][\wÅÄÖåäö-]+)(?:\s+[A-ZÅÄÖ0-9][\wÅÄÖåäö0-9-]+){0,4})/,
   );
   if (explicit && explicit[1]) {
-    // Don't accept generic words ("vid din dörr", "vid postlådan").
+    // Don't accept generic words ("vid din dörr", "vid postlådan") and NEVER an
+    // origin-revealing name (the catch-all could otherwise grab "på AliExpress
+    // Logistics" → leak till kunden).
     const candidate = explicit[1].trim();
-    if (!/^(?:din|ditt|dina|er|ert)\b/i.test(candidate) && candidate.length >= 3) {
+    if (
+      !/^(?:din|ditt|dina|er|ert)\b/i.test(candidate) &&
+      candidate.length >= 3 &&
+      !ORIGIN_LEAK.test(candidate)
+    ) {
       return candidate;
     }
   }
@@ -248,9 +264,18 @@ function findOmbud(text: string): string | undefined {
 }
 
 function identifyCarrier(from: string, text: string): { carrier: SmsCarrier; rule?: CarrierRule } {
-  const haystack = `${from} ${text}`;
+  // `from` (avsändar-ID:t) är auktoritativt — det är transportörens egna
+  // sändarnamn. Matcha det FÖRST, så ett namn som råkar nämnas i brödtexten
+  // ("...lämnat till DHL Servicepoint") inte felklassar en PostNord-SMS.
   for (const rule of CARRIERS) {
-    if (rule.fromPatterns.some((p) => p.test(haystack))) {
+    if (rule.fromPatterns.some((p) => p.test(from))) {
+      return { carrier: rule.carrier, rule };
+    }
+  }
+  // Fallback: vissa vidarebefordrare tappar avsändaren → sniffa brödtexten
+  // som sista utväg (t.ex. AliExpress/Cainiao som skickar från en sifferkod).
+  for (const rule of CARRIERS) {
+    if (rule.fromPatterns.some((p) => p.test(text))) {
       return { carrier: rule.carrier, rule };
     }
   }
@@ -287,7 +312,10 @@ function extractTrackingNumber(text: string, rule?: CarrierRule): string | undef
 
   for (const re of patterns) {
     const m = text.match(re);
-    if (m) return m[0];
+    // Kräv minst en siffra: de breda mönstren (t.ex. Instabox/Budbee
+    // `[A-Z0-9]{6,12}`) matchar annars vanliga versala ord ("PAKETET",
+    // "LEVERANS") och skapar fantom-spårnummer. Riktiga spårnummer har siffror.
+    if (m && /\d/.test(m[0])) return m[0];
   }
   return undefined;
 }
