@@ -86,7 +86,11 @@ export async function GET() {
     configured: metaCapiConfigured(),
     pixelIdLen: metaEnv("META_PIXEL_ID").length,
     tokenLen: metaEnv("META_CAPI_ACCESS_TOKEN").length,
+    // Spegla sändaren (lib/meta-capi): test_event_code gatas på VERCEL_ENV, inte
+    // NODE_ENV (Vercel bygger preview som production), annars rapporterar denna
+    // health-check fel på exakt preview-miljön där test-koden faktiskt används.
     testEventMode:
-      process.env.NODE_ENV !== "production" && Boolean(metaEnv("META_TEST_EVENT_CODE")),
+      (process.env.VERCEL_ENV || process.env.NODE_ENV || "").trim() !== "production" &&
+      Boolean(metaEnv("META_TEST_EVENT_CODE")),
   });
 }

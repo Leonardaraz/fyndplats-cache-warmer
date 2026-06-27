@@ -173,6 +173,31 @@ export async function onOrderConverted(input: OrderConversionInput): Promise<{
     }
   }
 
+  // Matcha ÄVEN på e-post. Poller-köade vagnar bär Wix abandoned-checkout-id som
+  // INTE finns på ordern, så id-matchen ovan missar dem helt → kunden skulle
+  // annars få "du glömde din kundvagn / slutför köpet" EFTER ett genomfört köp.
+  // E-post är den enda gemensamma nyckeln mellan vagnen och ordern. Avbryt alla
+  // kundens pending-vagnar och återkalla ev. kuponger.
+  const convEmail = input.email?.toLowerCase().trim() ?? null;
+  if (convEmail) {
+    const rows = await sql/*sql*/`
+      UPDATE abandoned_carts
+         SET status = 'converted', updated_at = NOW()
+       WHERE LOWER(email) = ${convEmail} AND status = 'pending'
+       RETURNING discount_code_wix_id
+    `;
+    if (rows.rowCount && rows.rowCount > 0) {
+      cancelledCart = true;
+      for (const r of rows.rows) {
+        const wixId = r.discount_code_wix_id as string | null;
+        if (wixId) {
+          await revokeCoupon(wixId);
+          revokedCode = true;
+        }
+      }
+    }
+  }
+
   const addrHash = hashAddress(input.shippingAddress);
   const phone = normalisePhone(input.phone);
   const email = input.email?.toLowerCase().trim() ?? null;

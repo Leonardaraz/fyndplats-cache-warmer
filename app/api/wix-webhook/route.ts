@@ -40,6 +40,7 @@ import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversi
 import { recordOrder } from "@/lib/order-record";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
 import { registerWith17Track } from "@/lib/track17";
+import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
 import { sql } from "@/lib/db";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 import { firePush } from "@/lib/push-send";
@@ -463,10 +464,17 @@ function buildShippingProps(payload: Record<string, unknown>): { props: Shipping
     payload.trackingNumber as string,
     firstFulfill?.trackingNumber as string,
   );
-  const carrier = firstStr(
-    trackingInfo?.shippingProvider as string,
-    trackingInfo?.carrier as string,
-    firstFulfill?.shippingProvider as string,
+  // KRITISKT: maska carrier. AliExpress-fulfillment fyller detta fält med
+  // "Cainiao" / "AliExpress Standard Shipping" — rått hade kunden sett
+  // "Transportör: Cainiao" i fraktmejlet och dropship-ursprunget läckt. Samma
+  // fail-safe-maskering som notis-/push-flödena (lib/carrier-mask): okänd/
+  // ursprungs-carrier → undefined (transportör-raden döljs helt).
+  const carrier = maskCarrierOrUndefined(
+    firstStr(
+      trackingInfo?.shippingProvider as string,
+      trackingInfo?.carrier as string,
+      firstFulfill?.shippingProvider as string,
+    ),
   );
 
   // Filtrera till BARA den här sändningens rader. Vid delad leverans har varje
@@ -570,10 +578,16 @@ function buildRefundProps(payload: Record<string, unknown>): { props: RefundConf
     | Record<string, unknown>
     | undefined;
 
+  // Faktiskt återbetalat belopp ligger på refund.summary.refunded (Price) i
+  // Wix RefundCompleted-eventet — INTE på refund.amount. Läs det. Fall ALDRIG
+  // tillbaka på orderns totalsumma: vid DELVIS återbetalning rapporterade det
+  // hela ordersumman till kunden (för högt belopp → tvist).
+  const summary = (refund?.summary ?? {}) as { refunded?: unknown; requestedRefund?: unknown };
   const amount =
-    moneyNum(refund?.amount ?? refund?.totalRefundedAmount ?? payload.amount) ||
-    moneyNum((order.priceSummary as { total?: unknown } | undefined)?.total);
-  const currency = moneyCurrency(refund?.amount ?? order.priceSummary, "SEK");
+    moneyNum(summary.refunded) ||
+    moneyNum(summary.requestedRefund) ||
+    moneyNum(refund?.amount ?? refund?.totalRefundedAmount ?? payload.amount);
+  const currency = moneyCurrency(summary.refunded ?? refund?.amount ?? order.priceSummary, "SEK");
   const reason = firstStr(refund?.reason as string, payload.reason as string);
 
   return {
@@ -741,6 +755,11 @@ export async function fetchWixOrder(orderId: string): Promise<Record<string, unk
         "Content-Type": "application/json",
       },
       cache: "no-store",
+      // Tidsgräns: detta körs i webhookens request-väg (fulfillments/refund).
+      // Ett hängande Wix-API får ALDRIG blockera svaret → Wix-timeout/retry-storm.
+      // Samma 3s-konvention som lib/meta-capi/expo-push/track17. TimeoutError
+      // fångas av catch → null → anroparen ack:ar 200 handled:false.
+      signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) {
       const txt = await res.text().catch(() => "");
@@ -892,37 +911,6 @@ export async function POST(req: NextRequest) {
         }
       })();
 
-  // DEBUG (TEMPORARY 2026-06-17): dekoda JWT-header + första delen av payload
-  // utan signaturkoll så Vercel-loggen avslöjar kid/iss/aud för signing source.
-  // Tas bort när rätt WIX_WEBHOOK_PUBLIC_KEY är installerad.
-  if (jwtToken) {
-    try {
-      const [__h, __p] = jwtToken.split(".");
-      const headerObj = JSON.parse(Buffer.from(__h, "base64url").toString("utf8"));
-      const payloadRaw = Buffer.from(__p, "base64url").toString("utf8");
-      let outerClaims: Record<string, unknown> = {};
-      try {
-        const parsed = JSON.parse(payloadRaw) as Record<string, unknown>;
-        // Plocka bara YTTRE claims (inte den nested data-payloaden)
-        outerClaims = Object.fromEntries(
-          Object.entries(parsed).filter(([k]) => k !== "data" && k !== "payload"),
-        );
-      } catch {}
-      console.error(
-        "[wix-webhook] JWT-DEBUG header=",
-        JSON.stringify(headerObj),
-        "outerClaims=",
-        JSON.stringify(outerClaims),
-        "payloadPreview=",
-        payloadRaw.slice(0, 800),
-      );
-    } catch (e) {
-      console.error("[wix-webhook] JWT-DEBUG decode failed", e);
-    }
-  } else {
-    console.error("[wix-webhook] JWT-DEBUG body är inte JWT — börjar med:", rawBody.slice(0, 200));
-  }
-
   if (jwtToken && publicKey) {
     const verifiedPayload = verifyJwt(jwtToken, publicKey);
     if (verifiedPayload) {
@@ -946,11 +934,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
   } else {
-    // Ingen JWT eller ingen public key → försök parsa som JSON, logga varning.
+    // Hit når vi när body INTE är en JWT (eller ingen public key finns).
+    if (publicKey && !allowUnverified) {
+      // En äkta Wix-webhook är ALLTID JWT-signerad. Saknas JWT trots att vi har
+      // en public key → avvisa. Annars kunde vem som helst POSTa rå JSON och
+      // förfalska order/refund/cancel-event (skicka spoofade mejl, fyra Meta
+      // Purchase, förgifta tracking_mapping, smutsa orders). Krisläge
+      // (WIX_WEBHOOK_ALLOW_UNVERIFIED=true) kan tillfälligt släppa förbi.
+      console.error("[wix-webhook] Body är inte en signerad JWT men public key finns — avvisar (krisläge: sätt WIX_WEBHOOK_ALLOW_UNVERIFIED=true)");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
     if (!publicKey) {
       console.warn("[wix-webhook] WIX_WEBHOOK_PUBLIC_KEY saknas — accepterar OVERIFIERAD payload (bör sättas i Vercel)");
-    } else if (!jwtToken) {
-      console.warn("[wix-webhook] Body är inte en JWT — accepterar OVERIFIERAD payload");
+    } else {
+      console.warn("[wix-webhook] Body är inte en JWT MEN WIX_WEBHOOK_ALLOW_UNVERIFIED=true — accepterar overifierat (krisläge)");
     }
     try {
       payload = JSON.parse(rawBody) as Record<string, unknown>;
@@ -1209,6 +1206,16 @@ export async function POST(req: NextRequest) {
             // redan skickade sändningar dedupas bort → den misslyckade skulle ändå
             // hoppas över. Hellre logga för manuell omsändning.
             console.error(`[wix-webhook] Resend order_fulfillments_updated fel (tracking=${tracking})`, sent.error);
+            // Släpp dedup-anspråket för DENNA sändning så Wix "Order Fulfilled"-
+            // eventet (delar samma tracking_number-nyckel) eller en manuell
+            // omsändning kan skicka fraktmejlet — annars dedupas det bort permanent.
+            if (map === "new") {
+              try {
+                await sql/*sql*/`DELETE FROM tracking_mapping WHERE tracking_number = ${tracking}`;
+              } catch (e) {
+                console.error("[wix-webhook] kunde inte släppa tracking_mapping vid send-fel", e);
+              }
+            }
             continue;
           }
           if (sent.data?.id) sentIds.push(sent.data.id);
@@ -1267,6 +1274,16 @@ export async function POST(req: NextRequest) {
         });
         if (sent.error) {
           console.error("[wix-webhook] Resend order_shipped fel", sent.error);
+          // Släpp dedup-anspråket så Wix-retry (pga 500) kan skicka fraktmejlet
+          // igen i stället för att dedupa bort det permanent. SMS-mappningen
+          // återskapas på retry (upsert → "new" igen, 17TRACK-register idempotent).
+          if (trackingMapped === "new" && built.props.trackingNumber) {
+            try {
+              await sql/*sql*/`DELETE FROM tracking_mapping WHERE tracking_number = ${built.props.trackingNumber}`;
+            } catch (e) {
+              console.error("[wix-webhook] kunde inte släppa tracking_mapping vid send-fel", e);
+            }
+          }
           return NextResponse.json({ error: "Email send failed" }, { status: 500 });
         }
         resendId = sent.data?.id;

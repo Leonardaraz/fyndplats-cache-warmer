@@ -97,12 +97,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Dedupe dubbel-submit.
-  const dkey = `${email}|${orderNumber}`;
-  const prior = RECENT.get(dkey);
+  // Dedupe dubbel-submit — BARA när ordernummer finns. Annars (manuell väg utan
+  // ordernr) kollapsar nyckeln till `email|` för ALLA manuella anmälningar från
+  // samma kund och skulle tyst sluka en andra GILTIG ångran (ingen DB-rad, inget
+  // lagstadgat kvitto). Manuella anmälningar utan ordernr dedupas därför inte.
+  const dkey = orderNumber ? `${email}|${orderNumber}` : null;
   const now = Date.now();
-  if (prior && now - prior.at < DEDUPE_MS) {
-    return NextResponse.json({ ok: true, caseId: prior.caseId, deduped: true }, { status: 200 });
+  if (dkey) {
+    const prior = RECENT.get(dkey);
+    if (prior && now - prior.at < DEDUPE_MS) {
+      return NextResponse.json({ ok: true, caseId: prior.caseId, deduped: true }, { status: 200 });
+    }
   }
 
   // Server-verifiera ägarskap för att sätta matched_order (klientens uppslag
@@ -115,7 +120,15 @@ export async function POST(req: NextRequest) {
     if (look.found && items.length) {
       enriched = items.map((sel) => {
         const m = look.items.find((o) => o.name === sel.name);
-        return m ? { ...sel, lineMinor: m.lineMinor, image: m.image } : sel;
+        if (!m) return sel;
+        // Skala radpriset mot vald (ev. delvis) kvantitet så kvittot inte
+        // överstaterar beloppet när kunden ångrar färre än beställt. m.qty =
+        // beställd kvantitet, m.lineMinor = radens totalpris för hela kvantiteten.
+        const orderedQty = Math.max(1, m.qty ?? 1);
+        const baseMinor = m.lineMinor ?? 0;
+        const lineMinor =
+          sel.qty && sel.qty < orderedQty ? Math.round((baseMinor / orderedQty) * sel.qty) : baseMinor;
+        return { ...sel, lineMinor, image: m.image };
       });
     }
   }
@@ -125,8 +138,10 @@ export async function POST(req: NextRequest) {
 
   // Logga FÖRST (bevis) — sen mejla.
   await recordWithdrawal({ caseId, orderNumber, email, items: enriched, reason, matchedOrder });
-  RECENT.set(dkey, { caseId, at: now });
-  if (RECENT.size > 2000) for (const k of [...RECENT.keys()].slice(0, 200)) RECENT.delete(k);
+  if (dkey) {
+    RECENT.set(dkey, { caseId, at: now });
+    if (RECENT.size > 2000) for (const k of [...RECENT.keys()].slice(0, 200)) RECENT.delete(k);
+  }
 
   const mail = await sendWithdrawalEmails({
     caseId,

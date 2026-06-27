@@ -13,6 +13,7 @@
 //                              hamnar som test.
 
 import crypto from "node:crypto";
+import { normalisePhone } from "./address-hash";
 
 const GRAPH_VERSION = "v18.0";
 
@@ -56,7 +57,11 @@ function hashEmail(raw?: string): string | undefined {
 }
 function hashPhone(raw?: string): string | undefined {
   if (!raw) return undefined;
-  const digits = raw.replace(/[^0-9]/g, "");
+  // Meta vill ha siffror MED landskod (E.164 utan "+"). En svensk order lagrar
+  // ofta nationell form "0736…", som hashad rakt av aldrig matchar Metas
+  // "46736…" → telefon-signalen blev värdelös. normalisePhone gör "0…" → "+46…";
+  // strippa sedan icke-siffror så hashen blir av landskods-formen.
+  const digits = (normalisePhone(raw) ?? raw).replace(/[^0-9]/g, "");
   return digits ? sha256(digits) : undefined;
 }
 

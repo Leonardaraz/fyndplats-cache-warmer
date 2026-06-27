@@ -11,6 +11,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isValidExpoToken } from "@/lib/expo-push";
 import { upsertPushToken, type PushPlatform } from "@/lib/push-tokens";
+import { bearerToken, verifyUserToken } from "@/lib/auth-token";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,12 +45,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid_platform" }, { status: 400 });
   }
 
+  // SÄKERHET: bind e-post till enheten BARA om anroparen bevisar ägarskap via
+  // magic-link-JWT (samma krav som /api/push/preferences). En klient-angiven
+  // `body.email` UTAN giltig token ignoreras — annars kunde vem som helst
+  // registrera sin enhet mot en annans e-post och kapa dennes order-/frakt-
+  // pushar (läcker ordernummer + spårnummer till fel person). Enheten registreras
+  // ändå (utan e-post) så den kan ta emot e-postlösa pushar.
+  const claims = verifyUserToken(bearerToken(req.headers.get("authorization")) ?? "");
+  const verifiedEmail = typeof claims?.email === "string" ? claims.email : undefined;
+
   const result = await upsertPushToken({
     expoToken: body.expoToken.trim(),
     deviceId: body.deviceId.trim(),
     platform,
     appVersion: typeof body.appVersion === "string" ? body.appVersion : "",
-    email: typeof body.email === "string" ? body.email : undefined,
+    email: verifiedEmail,
   });
 
   if (result.ok) return NextResponse.json({ ok: true });
