@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deriveTasks, normalizeOrderEvent, normalizeCountryCode } from "./tasks";
+import { parseWebhookBody } from "./webhook";
 
 describe("normalizeCountryCode", () => {
   it("accepterar och versaliserar giltig ISO alpha-2", () => {
@@ -63,6 +64,59 @@ describe("normalizeOrderEvent", () => {
 
   it("returns null for malformed events", () => {
     expect(normalizeOrderEvent({ foo: "bar" })).toBeNull();
+  });
+});
+
+// Order Created kommer som `createdEvent.entity` (inte actionEvent) och
+// forwardas dubbel-inkapslad (data-i-data). Detta var formen som gav 422 i prod
+// → noll fulfillment-tasks. Låser hela kedjan: parse → normalize → tasks.
+const createdEnvelope = {
+  id: "evt-created-1",
+  entityFqdn: "wix.ecom.v1.order",
+  slug: "created",
+  entityId: "order-created",
+  createdEvent: {
+    entity: {
+      id: "order-created",
+      number: "10133",
+      lineItems: [
+        {
+          id: "l1",
+          productName: { original: "Widget" },
+          quantity: 1,
+          physicalProperties: { sku: "AE-9" },
+          catalogReference: { catalogItemId: "wp-9" },
+        },
+      ],
+      recipientInfo: {
+        address: { addressLine1: "Vägen 2", city: "Göteborg", postalCode: "41100", country: "SE" },
+        contact: { firstName: "Erik", lastName: "Ek" },
+      },
+    },
+  },
+};
+
+describe("normalizeOrderEvent — Order Created + forwarded double-wrap (422-regression)", () => {
+  it("extracts the order from createdEvent.entity", () => {
+    const ev = normalizeOrderEvent(createdEnvelope);
+    expect(ev?.eventId).toBe("evt-created-1");
+    expect(ev?.orderId).toBe("order-created");
+    expect(ev?.order.lineItems).toHaveLength(1);
+  });
+
+  it("survives a doubly-wrapped forwarded body end-to-end (parse → normalize → tasks)", () => {
+    // Exakt prod-formen: forwardad created-order, data-i-data-inkapslad.
+    const doublyWrapped = JSON.stringify({
+      data: JSON.stringify({ data: JSON.stringify(createdEnvelope) }),
+    });
+    const parsed = parseWebhookBody(doublyWrapped, undefined, { trustedForwarded: true });
+    expect(parsed).not.toBeNull();
+    const ev = normalizeOrderEvent(parsed!);
+    expect(ev?.orderId).toBe("order-created");
+    const tasks = deriveTasks(ev!);
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].taskId).toBe("order-created:l1");
+    expect(tasks[0].sku).toBe("AE-9");
   });
 });
 

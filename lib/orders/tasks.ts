@@ -7,20 +7,56 @@ import type {
 } from "./types";
 
 /**
- * Normaliserar en inkommande Wix eCom-webhook (created/approved) till en OrderEvent.
- * Hanterar både `actionEvent.body.order` och `createdEvent.entity`-formerna.
+ * Plockar ut WixOrder ur rätt event-wrapper. Wix lägger entiteten på olika
+ * ställen beroende på event-typ:
+ *   createdEvent.entity         — Order Created
+ *   updatedEvent.currentEntity  — Order/Fulfillments Updated (currentEntity är
+ *                                 den NYA staten; `entity` är en sällsynt variant)
+ *   actionEvent.body[.order]    — Order Approved / Paid / Fulfilled. `body` kan
+ *                                 vara ett objekt ELLER en JSON-strängad payload,
+ *                                 och ordern är ofta wrappad i `.order`.
+ * Returnerar undefined om ingen order hittas.
+ */
+function extractOrder(raw: Record<string, unknown>): WixOrder | undefined {
+  const created = raw.createdEvent as { entity?: WixOrder } | undefined;
+  if (created?.entity) return created.entity;
+
+  const updated = raw.updatedEvent as { currentEntity?: WixOrder; entity?: WixOrder } | undefined;
+  if (updated?.currentEntity) return updated.currentEntity;
+  if (updated?.entity) return updated.entity;
+
+  const action = raw.actionEvent as { body?: unknown } | undefined;
+  if (action?.body !== undefined) {
+    let body: unknown = action.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = undefined;
+      }
+    }
+    if (body && typeof body === "object") {
+      const wrapped = (body as { order?: WixOrder }).order;
+      return wrapped ?? (body as WixOrder);
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Normaliserar en inkommande Wix eCom-webhook (created/approved/paid/fulfilled)
+ * till en OrderEvent. Hanterar createdEvent / updatedEvent / actionEvent-formerna
+ * (se extractOrder).
  */
 export function normalizeOrderEvent(raw: Record<string, unknown>): OrderEvent | null {
   const eventId = typeof raw.id === "string" ? raw.id : "";
   const slug = typeof raw.slug === "string" ? raw.slug : "";
-  const orderId = typeof raw.entityId === "string" ? raw.entityId : "";
+  const entityId = typeof raw.entityId === "string" ? raw.entityId : "";
 
-  const action = raw.actionEvent as { body?: { order?: WixOrder } } | undefined;
-  const created = raw.createdEvent as { entity?: WixOrder } | undefined;
-  const order = action?.body?.order ?? created?.entity;
+  const order = extractOrder(raw);
 
   if (!eventId || !order || !order.id) return null;
-  return { eventId, slug, orderId: orderId || order.id, order };
+  return { eventId, slug, orderId: entityId || order.id, order };
 }
 
 /**
