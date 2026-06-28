@@ -134,6 +134,20 @@ async function fetchV3MultiVariantData(productId: string): Promise<V3MultiVarian
   return product ? v3MultiVariantData(product) : null;
 }
 
+// HELA produktgalleriet från V3 (media.itemsInfo.items). Det publika SDK:t
+// (queryProducts) ger en kapad delmängd och mapProduct skär dessutom till 6 —
+// så importerade produkter med fler än 6 bilder visade bara 6 på PDP:n trots att
+// Wix lagrar alla. fetchV3ProductRaw begär redan `?fields=MEDIA_ITEMS_INFO` och
+// är cache:ad per request, så detta delar samma nätverksanrop som pris-/bild-
+// hydreringen (ingen extra fetch). Fail-open: saknad nyckel/fält → [].
+async function fetchV3Gallery(productId: string): Promise<string[]> {
+  const product = await fetchV3ProductRaw(productId);
+  const items = product?.media?.itemsInfo?.items ?? [];
+  return items
+    .map((it: any) => it?.image?.url)
+    .filter((u: unknown): u is string => typeof u === "string" && u.length > 0);
+}
+
 function stripHtml(h: string): string {
   return (h || "").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -448,6 +462,12 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
           for (const ch of prod.options.choices) ch.label = swedishChoiceValue(ch.label);
           prod.options.name = swedishOptionName(prod.options.name);
         }
+        // PDP:n ska visa ALLA importerade bilder, inte SDK-listans kapade 6.
+        // Hämta hela galleriet auktoritativt från V3 (delar cache:ade anropet).
+        // Strikt additivt: ersätt bara när V3 har FLER bilder → aldrig en regression
+        // för migrerade produkter där V3 saknar itemsInfo (då behålls SDK-galleriet).
+        const fullGallery = await fetchV3Gallery(prod.id);
+        if (fullGallery.length > prod.gallery.length) prod.gallery = fullGallery;
         return prod;
       }
     } catch (e) { console.error("[wix] getProduct failed:", (e as Error).message); }

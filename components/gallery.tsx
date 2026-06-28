@@ -341,7 +341,7 @@ export function Gallery({
 
       {imgs.length > 1 && (
         <div className="gthumbs" role="tablist" aria-label="Fler produktbilder">
-          {imgs.slice(0, 8).map((g, i) => (
+          {imgs.slice(0, 12).map((g, i) => (
             <button
               type="button"
               key={g + i}
@@ -349,7 +349,7 @@ export function Gallery({
               onClick={() => setActive(i)}
               role="tab"
               aria-selected={i === active}
-              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 8)}`}
+              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 12)}`}
             >
               <Image src={tightFillUrl(g, 152, 152)} alt="" fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
             </button>
@@ -360,7 +360,7 @@ export function Gallery({
       {/* Prickindikator — ersätter miniatyrgriden på mobil (renare look), klickbar */}
       {imgs.length > 1 && (
         <div className="gdots" role="tablist" aria-label="Bläddra bland produktbilder">
-          {imgs.slice(0, 8).map((g, i) => (
+          {imgs.slice(0, 12).map((g, i) => (
             <button
               type="button"
               key={"dot" + i}
@@ -368,7 +368,7 @@ export function Gallery({
               onClick={() => setActive(i)}
               role="tab"
               aria-selected={i === active}
-              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 8)}`}
+              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 12)}`}
             />
           ))}
         </div>
