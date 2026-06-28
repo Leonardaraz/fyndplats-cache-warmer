@@ -38,6 +38,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Task hittades inte" }, { status: 404 });
   }
 
+  // F19-backstopp: en task flaggad för manuell granskning (annullering/återbetalning racade
+  // in, eller osäkert orderutfall) får inte skeppas via NÅGON väg — annars skeppas varan till
+  // en kund som annullerat/återbetalat. Rensa flaggan / hantera manuellt i /admin först.
+  if (task.cancelMidOrder || task.refundFlagged || task.orderUncertain) {
+    return NextResponse.json(
+      { error: "Task flaggad för manuell granskning (annullering/återbetalning/osäkert orderutfall) — kan inte skeppas. Hantera i /admin först." },
+      { status: 409 },
+    );
+  }
+
   try {
     assertTransition(task.status, "shipped");
   } catch (err) {

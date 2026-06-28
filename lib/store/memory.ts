@@ -46,6 +46,10 @@ export class MemoryStore implements Store {
     return status ? all.filter((t) => t.status === status) : all;
   }
 
+  async listTasksByOrderId(orderId: string): Promise<FulfillmentTask[]> {
+    return [...this.tasks.values()].filter((t) => t.orderId === orderId);
+  }
+
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
     const task = this.tasks.get(taskId);
     if (task) this.tasks.set(taskId, { ...task, status });
@@ -72,6 +76,16 @@ export class MemoryStore implements Store {
       const { claimToken: _drop, ...rest } = task;
       this.tasks.set(taskId, rest);
     }
+  }
+
+  // CAS: avbryt bara om varken claimad eller beställd (samma villkor som claimTask).
+  // Synkron get+set → atomiskt i en process; speglar wix-data:s conditional PATCH.
+  async cancelTaskIfFree(taskId: string): Promise<"applied" | "blocked" | "not-found"> {
+    const task = this.tasks.get(taskId);
+    if (!task) return "not-found";
+    if (task.aliexpressOrderId || task.claimToken) return "blocked";
+    this.tasks.set(taskId, { ...task, status: "cancelled" });
+    return "applied";
   }
 
   async appendAudit(entry: AuditEntry): Promise<void> {

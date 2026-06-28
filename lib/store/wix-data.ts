@@ -221,6 +221,12 @@ export class WixDataStore implements Store {
     return queryAll<FulfillmentTask>(COL.tasks, filter);
   }
 
+  async listTasksByOrderId(orderId: string): Promise<FulfillmentTask[]> {
+    // Server-side-filter på rot-fältet `orderId` (get() unwrappar dataItem.data →
+    // fälten ligger på rotnivå i filtret, samma konvention som claim-CAS:en).
+    return queryAll<FulfillmentTask>(COL.tasks, { orderId });
+  }
+
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
     // PATCH SET_FIELD i stället för read-then-save full-replace (annars nollar en
     // parallell skrivning claimToken). Saknad task → "not-found" → tyst no-op.
@@ -260,6 +266,26 @@ export class WixDataStore implements Store {
       },
     );
     return r === "applied";
+  }
+
+  async cancelTaskIfFree(taskId: string): Promise<"applied" | "blocked" | "not-found"> {
+    // Samma CAS-villkor som claimTask (empiriskt verifierat) → cancel och orderläggning
+    // utesluter varandra. "applied" = vi avbröt rent; 428/condition-failed = "blocked"
+    // (claimad/beställd → anroparen läser om); 404 = "not-found".
+    const r = await patchItem(
+      COL.tasks,
+      taskId,
+      [{ action: "SET_FIELD", fieldPath: "status", setFieldOptions: { value: "cancelled" } }],
+      {
+        filter: {
+          $and: [
+            { $or: [{ aliexpressOrderId: "" }, { aliexpressOrderId: { $exists: false } }] },
+            { $or: [{ claimToken: "" }, { claimToken: { $exists: false } }] },
+          ],
+        },
+      },
+    );
+    return r === "applied" ? "applied" : r === "not-found" ? "not-found" : "blocked";
   }
 
   async releaseTask(taskId: string, token: string): Promise<void> {

@@ -144,6 +144,12 @@ export interface Store {
   /** Skapar bara om taskId inte redan finns (idempotent per orderrad). */
   createTaskIfAbsent(task: FulfillmentTask): Promise<boolean>;
   listTasks(status?: TaskStatus): Promise<FulfillmentTask[]>;
+  /**
+   * Alla tasks för EN order (`${orderId}:${lineItemId}`-nycklar delar orderId).
+   * Server-side-filtrerat i wix-data ({orderId}) — undviker full-scan per
+   * refund/cancel-event. Används av F19 refund/cancel-grenen.
+   */
+  listTasksByOrderId(orderId: string): Promise<FulfillmentTask[]>;
   setTaskStatus(taskId: string, status: TaskStatus): Promise<void>;
   /** Uppdaterar delmängd av en task (merge). Saknad task = tyst no-op. */
   updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void>;
@@ -156,6 +162,18 @@ export interface Store {
   claimTask(taskId: string, token: string): Promise<boolean>;
   /** Släpper låset om VI håller det (claimToken === token). No-op annars. Kastar aldrig. */
   releaseTask(taskId: string, token: string): Promise<void>;
+  /**
+   * Atomiskt CAS: sätt status="cancelled" ENBART om tasken varken är claimad (pågående
+   * orderläggning) eller redan beställd (aliexpressOrderId tom). Samma villkor som
+   * claimTask → cancel och orderläggning är ÖMSESIDIGT uteslutande (stänger TOCTOU:n där
+   * en cancel på en stale snapshot annars klobbrar en task place-order just hunnit claima).
+   *   - "applied"   → vi avbröt rent (ingen orderläggning på gång).
+   *   - "blocked"   → claimad ELLER redan beställd → anroparen läser om färskt och avgör
+   *                   (avbeställ + AE-larm om order finns; annars flagga cancelMidOrder).
+   *   - "not-found" → tasken finns inte.
+   * Kastar bara vid okänt fel (anroparen avgör fail-open).
+   */
+  cancelTaskIfFree(taskId: string): Promise<"applied" | "blocked" | "not-found">;
 
   // --- Audit-logg (spårbarhet) ---
   appendAudit(entry: AuditEntry): Promise<void>;

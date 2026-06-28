@@ -50,6 +50,22 @@ export interface FulfillmentTask {
    */
   orderUncertain?: boolean;
   uncertainAt?: string;
+  /**
+   * F19: en ÅTERBETALNING (Wix order_transactions.refund_completed) registrerades för
+   * ordern. Tasken avbryts INTE automatiskt (en återbetalning kan vara delvis och eventet
+   * bär inga radnummer) — i stället flaggas den + blockeras för orderläggning tills Leonard
+   * granskat. Hel-annulleringar (order.canceled) avbryts däremot direkt (status=cancelled).
+   */
+  refundFlagged?: boolean;
+  refundFlaggedAt?: string;
+  /**
+   * F19/race: en annullering/återbetalning landade MEDAN en orderläggning pågick (claimToken
+   * satt, ingen aliexpressOrderId än). Tasken avbröts då INTE (place-order äger den tills
+   * claimen släpps/blir ordered) — i stället flaggas den för manuell granskning så Leonard
+   * kan avbeställa på AliExpress om ordern faktiskt gick igenom.
+   */
+  cancelMidOrder?: boolean;
+  cancelMidOrderAt?: string;
 }
 
 /** Normaliserad orderhändelse oavsett om den kom som JWT eller rå JSON. */

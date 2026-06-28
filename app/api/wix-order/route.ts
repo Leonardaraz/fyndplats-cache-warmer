@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseWebhookBody, isTrustedForward } from "@/lib/orders/webhook";
-import { deriveTasks, normalizeOrderEvent } from "@/lib/orders/tasks";
+import { classifyWixEvent, deriveTasks, extractCancelOrderId, normalizeOrderEvent } from "@/lib/orders/tasks";
+import { cancelTasksForOrder, flagTasksForOrderRefund } from "@/lib/orders/cancel-task";
 import { getStore } from "@/lib/store/factory";
 import { audit } from "@/lib/audit";
 import { enqueuePriorityCheck } from "@/lib/sync/bestsellers";
@@ -38,12 +39,53 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Ogiltig eller osignerad webhook" }, { status: 401 });
   }
 
+  const store = getStore();
+
+  // F19: gata på (entityFqdn, slug)-PARET FÖRE create-vägen. Wix fyrar cancel som
+  // `order.canceled` och refund som `order_transactions.refund_completed` (ALDRIG
+  // `order.refunded`). Dessa får ALDRIG gå via normalizeOrderEvent→deriveTasks
+  // (cancel-payloaden skulle annars ÅTERSKAPA orderns tasks; refund-payloaden saknar
+  // order/lineItems → 422 → Wix retry-storm). Allt annat (created/approved/placed/paid/
+  // fulfilled/okänt) faller igenom till den befintliga, oförändrade create-vägen.
+  const kind = classifyWixEvent(parsed);
+  if (kind === "cancel" || kind === "refund") {
+    const eventId = typeof parsed.id === "string" ? parsed.id : "";
+    const orderId = extractCancelOrderId(parsed);
+    if (!orderId) {
+      // Inget order-id → kan inte agera. Ack:a (200) så Wix inte retry-loopar; logga synligt.
+      console.warn(`[wix-order] ${kind}-event utan härledbart order-id (eventId=${eventId || "—"}) — ack:ar utan åtgärd`);
+      await audit("order", "okänd", `${kind}: inget order-id i eventet — ignorerat`);
+      return NextResponse.json({ ok: true, ignored: true, reason: "no-order-id" });
+    }
+    // Idempotens: samma event-id kan levereras flera gånger. cancel/flag är dessutom
+    // idempotenta i sig (terminal-noop / redan-flaggad), så dubbelkörning är ofarlig.
+    if (eventId && (await store.hasSeenEvent(eventId))) {
+      return NextResponse.json({ ok: true, deduped: true });
+    }
+    if (kind === "cancel") {
+      // Hel-annullering: avbryt alla icke-terminala tasks för ordern (entydigt).
+      const summary = await cancelTasksForOrder(store, orderId);
+      if (eventId) await store.markEventSeen(eventId);
+      await audit(
+        "order",
+        orderId,
+        `cancel: ${summary.cancelled} avbrutna, ${summary.terminalSkipped} terminala, ${summary.midOrderFlagged} flaggade (orderläggning pågick)` +
+          (summary.manualAeCancels.length ? ` — MANUELL AE-avbeställning krävs: ${summary.manualAeCancels.join(", ")}` : ""),
+      );
+      return NextResponse.json({ ok: true, orderId, kind, ...summary });
+    }
+    // Återbetalning: avbryt INTE (kan vara delvis, inga radnummer) — flagga + blockera
+    // orderläggning tills manuell granskning.
+    const summary = await flagTasksForOrderRefund(store, orderId);
+    if (eventId) await store.markEventSeen(eventId);
+    await audit("order", orderId, `refund: ${summary.flagged} flaggade för granskning, ${summary.terminalSkipped} terminala`);
+    return NextResponse.json({ ok: true, orderId, kind, ...summary });
+  }
+
   const event = normalizeOrderEvent(parsed);
   if (!event) {
     return NextResponse.json({ error: "Kunde inte tolka orderhändelse" }, { status: 422 });
   }
-
-  const store = getStore();
 
   // Idempotens: samma event-id kan levereras flera gånger.
   if (await store.hasSeenEvent(event.eventId)) {
