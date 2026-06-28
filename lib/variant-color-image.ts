@@ -68,6 +68,10 @@ const COLOR_WORD_TO_KEY: Record<string, string> = {
   "vinröd": "vinröd", "vinrött": "vinröd", "bordeaux": "vinröd", "burgundy": "vinröd",
   // champagne
   "champagne": "champagne",
+  // kräm / gräddvit / elfenben (AE: "Cream"). Egen nyckel — visuellt skild från
+  // beige/vit. "gräddvit"/"gräddvitt" exakt-mappas hit så de INTE suffix-faller till "vit".
+  "kräm": "kräm", "kräme": "kräm", "krämvit": "kräm", "cream": "kräm", "creme": "kräm",
+  "gräddvit": "kräm", "gräddvitt": "kräm", "elfenben": "kräm", "ivory": "kräm",
 };
 
 // Den kortaste nyckeln vi tillåter suffix-fallbacken att matcha på. Färgord är
@@ -108,6 +112,7 @@ const BASE_HEX: Record<string, string> = {
   vit: "#FFFFFF", svart: "#1c1c1c", beige: "#e8d4b3", khaki: "#c3b091", natur: "#e0d3c1",
   rosa: "#fbcfe8", lila: "#a855f7", brun: "#92400e", orange: "#f47a35", guld: "#d4af37",
   silver: "#c0c0c0", turkos: "#06b6d4", marin: "#1e3a8a", vinröd: "#7f1d1d", champagne: "#f7e7ce",
+  kräm: "#f0e4cb",
 };
 
 /** CSS-hex för ett färgnamn (böjnings-medvetet via colorKeysOf), annars "". */

@@ -35,6 +35,14 @@ test("colorKeysOf folds Swedish inflections + English onto one key", () => {
   for (const w of ["gul", "gult", "yellow"]) assert.deepEqual([...colorKeysOf(w)], ["gul"]);
   for (const w of ["vit", "vitt", "white"]) assert.deepEqual([...colorKeysOf(w)], ["vit"]);
   assert.deepEqual([...colorKeysOf("beige")], ["beige"]);
+  // "Kräm" (AE "Cream") — egen nyckel, och gräddvit faller INTE till "vit".
+  for (const w of ["kräm", "cream", "creme"]) assert.deepEqual([...colorKeysOf(w)], ["kräm"]);
+  assert.deepEqual([...colorKeysOf("gräddvit")], ["kräm"]);
+});
+
+test("colorOf ger en hex för Kräm (annars text-läge i variantväljaren)", () => {
+  assert.match(colorOf("Kräm"), /^#/);
+  assert.match(colorOf("Cream"), /^#/);
 });
 
 test("colorKeysOf finds the color word inside a full alt-text sentence", () => {
