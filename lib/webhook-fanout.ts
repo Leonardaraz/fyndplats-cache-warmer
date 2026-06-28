@@ -27,6 +27,12 @@ const ORDER_FANOUT_EVENT_TYPES = [
   "wix.ecom.v1.order.order_paid",
   "wix.ecom.v1.order.order_fulfilled",
   "wix.ecom.v1.order.order_refunded",
+  // F19: cache-warmer avbryter/flaggar fulfillment-tasks aktivt när en order annulleras
+  // eller återbetalas. Wix fyrar cancel som order.canceled (ETT l) och refund som
+  // order_transactions.refund_completed (ALDRIG order.refunded). Refund ligger under
+  // FQDN order_transactions, inte order — därför ett eget mönster nedan.
+  "wix.ecom.v1.order.order_canceled",
+  "wix.ecom.v1.order_transactions.refund_completed",
 ] as const;
 
 /**
@@ -54,6 +60,13 @@ export function shouldFanoutToCacheWarmer(eventType: string): boolean {
   // noll fulfillment-tasks → hela auto-leveranskedjan startade aldrig. Speglar
   // nu samma slugs som wix-webhook/classify behandlar som en order-händelse.
   if (/\.order\.(approved|created|placed|paid|fulfilled|refunded)\b/.test(lower)) return true;
+  // F19 — cancel/refund. Speglar wix-webhook/classify (route.ts): order+canceled och
+  // order_transactions+refund_completed. Cancel ligger under `.order.` men slug `canceled`
+  // (ETT l; även brittisk stavning defensivt). Refund ligger under `.order_transactions.`
+  // (INTE `.order.`) → eget mönster, annars fångas den aldrig. order.refunded fyrar aldrig
+  // i praktiken men matchas redan av raden ovan (ofarligt om den någonsin dyker upp).
+  if (/\.order\.(canceled|cancelled)\b/.test(lower)) return true;
+  if (/\.order_transactions\.refund_completed\b/.test(lower)) return true;
   return false;
 }
 
