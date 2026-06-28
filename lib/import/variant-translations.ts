@@ -113,6 +113,8 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   "wine red": "Vinröd",
   coffee: "Kaffebrun",
   champagne: "Champagne",
+  cream: "Kräm",
+  creme: "Kräm",
   transparent: "Transparent",
   clear: "Transparent",
   multicolor: "Flerfärgad",

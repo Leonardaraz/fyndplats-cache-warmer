@@ -35,7 +35,7 @@ const COLOR_FORMS: Record<string, string[]> = {
   vinröd: ["vinröd", "vinrött", "vinröda", "bordeaux", "burgundy"],
   khaki: ["khaki"],
   brons: ["brons", "bronze"],
-  creme: ["creme", "gräddvit", "cream"],
+  creme: ["creme", "gräddvit", "cream", "kräm"],
   mint: ["mint", "mintgrön"],
   korall: ["korall", "coral"],
   persika: ["persika", "aprikos", "peach"],
