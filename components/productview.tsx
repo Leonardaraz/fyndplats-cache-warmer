@@ -99,15 +99,6 @@ function thumbUrl(url: string): string {
   return tightFillUrl(url, 120, 120, 80);
 }
 
-// Variantbilderna först (index = variant-index), sedan övriga galleribilder
-// (instruktioner etc.) som inte redan är en variantbild.
-function mergeGallery(choices: Choice[], images: string[]): string[] {
-  const variantImgs = choices.map((c) => c.image);
-  const seen = new Set(variantImgs.map(mediaKey));
-  const extras = images.filter((img) => !seen.has(mediaKey(img)));
-  return [...variantImgs, ...extras];
-}
-
 export function ProductView({
   productId,
   name,
@@ -185,54 +176,64 @@ export function ProductView({
     hasImageVariants && imageChoices.filter((c) => c.color).length >= Math.ceil(imageChoices.length / 2);
   const variantMode: "image" | "color" | "text" = allHaveImage ? "image" : someHaveColor ? "color" : "text";
 
-  // I bild-läge behåller vi HELA bildserien men lägger variantbilderna först
-  // (index 0..n-1 = variant 0..n-1), så val av variant hoppar till rätt bild
-  // utan att övriga galleribilder (instruktioner etc.) försvinner.
-  // Galleri: i multi-axel läggs kombinationernas bilder först och huvudbilden hoppar
-  // till den valda kombinationens bild. Annars som förut (single-axel).
-  // Deduppa på Wix fil-id (mediaKey) — INTE exakt URL — så samma foto i olika
-  // transform-params inte ger dubbla galleribilder (samma som single-axel-vägen).
-  const comboImages = multiAxis
-    ? (() => {
-        const seen = new Set<string>();
-        const out: string[] = [];
-        for (const u of [...table.map((t) => t.image), ...images]) {
-          if (!u) continue;
-          const k = mediaKey(u);
-          if (seen.has(k)) continue;
-          seen.add(k);
-          out.push(u);
-        }
-        return out;
-      })()
-    : [];
-  const galleryImages = multiAxis
-    ? comboImages.length
-      ? comboImages
-      : images
+  // Galleriet behåller sin NATURLIGA ordning (huvudbild → detaljbilder, så som Wix
+  // lagrar dem). Variantbilderna hoistas INTE längre först — det skramlade ordningen
+  // vid varje variantbyte. I stället ligger varje variants bild kvar på sin naturliga
+  // plats och vi HOPPAR dit vid val (matchat på Wix fil-id). Ev. variantbild som inte
+  // redan finns i galleriet läggs sist (sällsynt — linkedMedia pekar normalt på en
+  // galleribild). Deduppar på fil-id (mediaKey), inte exakt URL.
+  const variantImgList = multiAxis
+    ? table.map((t) => t.image)
     : allHaveImage
-      ? mergeGallery(imageChoices, images)
-      : images;
-  // Matcha på fil-id så rätt slide hittas även om variantens URL har andra params.
-  const multiActive = multiAxis && currentVariant?.image
-    ? Math.max(0, galleryImages.findIndex((u) => mediaKey(u) === mediaKey(currentVariant.image)))
-    : 0;
+      ? imageChoices.map((c) => c.image)
+      : [];
+  const galleryImages = (() => {
+    if (!variantImgList.length) return images;
+    const seen = new Set(images.map(mediaKey));
+    const missing: string[] = [];
+    for (const u of variantImgList) {
+      if (!u) continue;
+      const k = mediaKey(u);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      missing.push(u);
+    }
+    return missing.length ? [...images, ...missing] : images;
+  })();
+  // Hitta en variants bild på dess naturliga plats i galleriet (fil-id-match så rätt
+  // slide hittas även om variantens URL har andra transform-params). Saknas → 0.
+  const galleryIndexOf = (img?: string): number => {
+    if (!img) return 0;
+    const k = mediaKey(img);
+    const i = galleryImages.findIndex((u) => mediaKey(u) === k);
+    return i >= 0 ? i : 0;
+  };
+  // Den valda variantens/kombinationens bild → dess galleri-index.
+  const selectedVariantImage = multiAxis
+    ? currentVariant?.image
+    : allHaveImage
+      ? imageChoices[sel]?.image
+      : undefined;
+  const variantActive = galleryIndexOf(selectedVariantImage);
 
-  // Pickern väljer variant + hoppar galleriet dit. Galleribyte speglar tillbaka
-  // till pickern bara om bilden är en av variantbilderna (de n första).
-  const pickVariant = (i: number) => { setSel(i); setGalleryIdx(i); };
-  const onGalleryActive = (j: number) => { setGalleryIdx(j); if (j < imageChoices.length) setSel(j); };
-  // Multi-axel: galleriet följer vald kombinations bild, men kunden ska ÄVEN kunna
-  // klicka sig till galleriets extrabilder (instruktioner m.m.) som inte hör till
-  // en variant. Vi speglar multiActive → galleryIdx i en effekt och låter Gallery
-  // skriva tillbaka via onActiveChange (nedan), så ett miniatyrklick inte snäpper
-  // tillbaka till variantbilden utan håller tills man byter kombination. (Bugg före
-  // detta: i multi-axel styrdes active av multiActive men UTAN onActiveChange → den
-  // controlled-men-callback-lösa galleribilden gick aldrig att byta, klick på
-  // miniatyrerna gjorde ingenting. Märktes tydligast på slutsålda produkter.)
+  // Pickern väljer variant + hoppar galleriet till variantens bild (naturliga plats).
+  const pickVariant = (i: number) => { setSel(i); setGalleryIdx(galleryIndexOf(imageChoices[i]?.image)); };
+  // Manuell bläddring speglar tillbaka till pickern OM bilden råkar vara en variant-
+  // bild (vald ruta följer med); annars lämnas valet orört (man tittar på en detaljbild).
+  const onGalleryActive = (j: number) => {
+    setGalleryIdx(j);
+    const k = mediaKey(galleryImages[j] || "");
+    const vi = imageChoices.findIndex((c) => c.image && mediaKey(c.image) === k);
+    if (vi >= 0) setSel(vi);
+  };
+  // Synka galleriet till den valda varianten/kombinationen — även på första render,
+  // så vald ruta och visad bild stämmer. Manuell bläddring (onActiveChange) skriver
+  // tillbaka galleryIdx och hålls kvar: variantActive ändras bara vid ett faktiskt
+  // variantbyte, så effekten fyrar inte vid vanlig bläddring bland detaljbilderna.
   useEffect(() => {
-    if (multiAxis) setGalleryIdx(multiActive);
-  }, [multiAxis, multiActive]);
+    setGalleryIdx(variantActive);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [variantActive]);
   const hasTextVariants = !multiAxis && !hasImageVariants && variants.length > 1;
   const variantId = multiAxis
     ? currentVariant?.variantId
@@ -402,10 +403,10 @@ export function ProductView({
         mainBlur={mainBlur}
         active={multiAxis || allHaveImage ? galleryIdx : undefined}
         onActiveChange={multiAxis ? setGalleryIdx : allHaveImage ? onGalleryActive : undefined}
-        // Förladda variantbilderna (de ligger först i galleryImages) efter LCP så
-        // varje variantbyte blir en direkt cache-träff. Galleriets extrabilder
-        // (svep-bara, ej i pickern) lämnas lazy.
-        eagerCount={multiAxis ? Math.min(comboImages.length || 1, 8) : allHaveImage ? imageChoices.length : 1}
+        // Variantbilderna ligger nu utspridda i galleriet (naturlig ordning), så
+        // förladda hela serien (efter LCP, gated i Gallery) → varje variantbyte blir
+        // en direkt cache-träff oavsett var bilden ligger. Capad så payloaden hålls nere.
+        eagerCount={multiAxis || allHaveImage ? Math.min(galleryImages.length, 12) : 1}
       />
 
       <div className="pinfo">
