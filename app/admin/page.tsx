@@ -34,7 +34,6 @@ export default async function AdminPage() {
     .map((m) => summarizeProductProfit(m, pricing.vatRatePercent, fee))
     .filter((p): p is NonNullable<typeof p> => p !== null)
     .sort((a, b) => b.minProfit - a.minProfit);
-  const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s).length;
   // F19: tasks flaggade för manuell granskning (annullering/återbetalning racade in, eller
   // osäkert orderutfall) lyfts UT ur de normala listorna → de auto-skeppas inte (backstopp i
   // poll-tracking) och visas i en egen varnings-sektion så de aldrig är osynliga.
@@ -45,6 +44,9 @@ export default async function AdminPage() {
       t.status !== "shipped",
   );
   const reviewIds = new Set(needsReview.map((t) => t.taskId));
+  // Statussiffrorna exkluderar review-tasks → en flaggad task räknas EN gång (i
+  // gransknings-sektionen + den egna räknaren), inte dubbelt i både statussiffran och sektionen.
+  const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s && !reviewIds.has(t.taskId)).length;
   const pending = tasks.filter((t) => t.status === "pending" && !reviewIds.has(t.taskId));
   const pendingPayment = tasks.filter((t) => t.status === "pending_payment" && !reviewIds.has(t.taskId));
   const orderedWaitingTracking = tasks.filter(
@@ -75,6 +77,9 @@ export default async function AdminPage() {
         Väntar: <b>{byStatus("pending")}</b> · Väntar betalning: <b>{byStatus("pending_payment")}</b> · Beställda:{" "}
         <b>{byStatus("ordered")}</b> · Skickade: <b>{byStatus("shipped")}</b> · Avbrutna:{" "}
         <b>{byStatus("cancelled")}</b>
+        {needsReview.length > 0 ? (
+          <span style={{ color: "#b91c1c" }}> · ⚠️ Granskning: <b>{needsReview.length}</b></span>
+        ) : null}
       </p>
 
       {needsReview.length > 0 ? (
