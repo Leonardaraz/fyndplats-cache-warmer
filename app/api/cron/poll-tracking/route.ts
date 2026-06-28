@@ -64,11 +64,33 @@ export async function GET(req: NextRequest) {
       checked: 0,
       shipped: 0,
       stillWaiting: 0,
+      heldForReview: 0,
       errors: [] as string[],
     };
 
     for (const task of ordered) {
       if (!task.aliexpressOrderId) continue;
+
+      // F19-BACKSTOPP (kritiskt): en task flaggad för manuell granskning får ALDRIG
+      // auto-skeppas. En annullering/återbetalning kan ha racat in efter att ordern lagts
+      // (status kan då ha klottrats till "ordered" trots flaggan) — skeppning är den
+      // oåterkalleliga handlingen, så vi grindar HÄR oavsett hur skriv-racet föll ut.
+      // Hålls för manuell hantering i /admin (avbeställ på AliExpress + återbetala).
+      if (task.cancelMidOrder || task.refundFlagged || task.orderUncertain) {
+        results.heldForReview = (results.heldForReview as number) + 1;
+        await store.appendAudit({
+          at: new Date().toISOString(),
+          kind: "ship-held-for-review",
+          ref: task.taskId,
+          detail: `Ej auto-skeppad: ${[
+            task.cancelMidOrder ? "cancelMidOrder" : null,
+            task.refundFlagged ? "refundFlagged" : null,
+            task.orderUncertain ? "orderUncertain" : null,
+          ].filter(Boolean).join(", ")} (AE-order ${task.aliexpressOrderId}) — granska manuellt.`,
+        });
+        continue;
+      }
+
       results.checked = (results.checked as number) + 1;
 
       try {

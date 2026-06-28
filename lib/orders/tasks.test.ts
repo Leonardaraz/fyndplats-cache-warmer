@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { deriveTasks, normalizeOrderEvent, normalizeCountryCode } from "./tasks";
+import {
+  classifyWixEvent,
+  deriveTasks,
+  extractCancelOrderId,
+  normalizeOrderEvent,
+  normalizeCountryCode,
+} from "./tasks";
 import { parseWebhookBody } from "./webhook";
 
 describe("normalizeCountryCode", () => {
@@ -117,6 +123,53 @@ describe("normalizeOrderEvent — Order Created + forwarded double-wrap (422-reg
     expect(tasks).toHaveLength(1);
     expect(tasks[0].taskId).toBe("order-created:l1");
     expect(tasks[0].sku).toBe("AE-9");
+  });
+});
+
+// F19: refund fyrar som order_transactions.refund_completed (updatedEvent.currentEntity =
+// {orderId, refund}), cancel som order.canceled (actionEvent.body.order). entityId för
+// refund är TRANSAKTIONENS id — INTE orderns. Wix fyrar ALDRIG order.refunded.
+const refundEvent = {
+  id: "evt-refund-1",
+  entityFqdn: "wix.ecom.v1.order_transactions",
+  slug: "refund_completed",
+  entityId: "txn-xyz", // transaktions-id, inte order-id
+  updatedEvent: {
+    currentEntity: { orderId: "order-abc", refund: { id: "r1", summary: { refunded: { amount: "100", currency: "SEK" } } } },
+  },
+};
+const cancelEvent = {
+  id: "evt-cancel-1",
+  entityFqdn: "wix.ecom.v1.order",
+  slug: "canceled",
+  entityId: "order-abc",
+  actionEvent: { body: { order: { id: "order-abc", number: "10002" } } },
+};
+
+describe("classifyWixEvent (F19 cancel/refund-gate)", () => {
+  it("klassar refund_completed (under order_transactions) som refund", () => {
+    expect(classifyWixEvent(refundEvent)).toBe("refund");
+  });
+  it("klassar order.canceled (ETT l) som cancel", () => {
+    expect(classifyWixEvent(cancelEvent)).toBe("cancel");
+  });
+  it("created/approved/paid/fulfilled → other (går create-vägen)", () => {
+    expect(classifyWixEvent(webhook)).toBe("other"); // slug approved
+    expect(classifyWixEvent(createdEnvelope)).toBe("other"); // slug created
+    expect(classifyWixEvent({ entityFqdn: "wix.ecom.v1.order", slug: "fulfilled" })).toBe("other");
+    expect(classifyWixEvent({ entityFqdn: "wix.ecom.v1.order", slug: "paid" })).toBe("other");
+  });
+});
+
+describe("extractCancelOrderId (F19)", () => {
+  it("refund → order-id ur currentEntity.orderId, INTE entityId (transaktions-id)", () => {
+    expect(extractCancelOrderId(refundEvent)).toBe("order-abc");
+  });
+  it("cancel → order-id ur actionEvent.body.order.id", () => {
+    expect(extractCancelOrderId(cancelEvent)).toBe("order-abc");
+  });
+  it("tomt när inget order-id kan härledas", () => {
+    expect(extractCancelOrderId({ id: "x", entityFqdn: "wix.ecom.v1.order_transactions", slug: "refund_completed" })).toBe("");
   });
 });
 

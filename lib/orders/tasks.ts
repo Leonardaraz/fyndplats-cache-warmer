@@ -43,6 +43,78 @@ function extractOrder(raw: Record<string, unknown>): WixOrder | undefined {
   return undefined;
 }
 
+/** Första icke-tomma strängen ur en lista (defensiv mot olika event-shapes). */
+function firstStr(...vals: unknown[]): string {
+  for (const v of vals) {
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return "";
+}
+
+/**
+ * Den råa entiteten ur valfri event-wrapper, OAVSETT om den är en full order eller
+ * (för refunds) ett `{orderId, refund}`-objekt utan order-fält. Skiljer sig från
+ * extractOrder genom att INTE kräva en WixOrder — refund_completed-payloaden bär
+ * `currentEntity = {orderId, refund:{…}}` (ingen `.order`, inget `id`).
+ */
+function rawEntity(raw: Record<string, unknown>): Record<string, unknown> | undefined {
+  const created = raw.createdEvent as { entity?: unknown } | undefined;
+  if (created?.entity && typeof created.entity === "object") return created.entity as Record<string, unknown>;
+
+  const updated = raw.updatedEvent as { currentEntity?: unknown; entity?: unknown } | undefined;
+  if (updated?.currentEntity && typeof updated.currentEntity === "object") return updated.currentEntity as Record<string, unknown>;
+  if (updated?.entity && typeof updated.entity === "object") return updated.entity as Record<string, unknown>;
+
+  const action = raw.actionEvent as { body?: unknown } | undefined;
+  if (action?.body !== undefined) {
+    let body: unknown = action.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = undefined;
+      }
+    }
+    if (body && typeof body === "object") {
+      const order = (body as { order?: unknown }).order;
+      if (order && typeof order === "object") return order as Record<string, unknown>;
+      return body as Record<string, unknown>;
+    }
+  }
+  return undefined;
+}
+
+export type WixEventKind = "create" | "cancel" | "refund" | "other";
+
+/**
+ * Klassificerar ett (redan uppvecklat) Wix-event på (entityFqdn, slug)-PARET — speglar
+ * headless `classify()`. KRITISKT: refund ligger under FQDN `order_transactions`
+ * (slug `refund_completed`), INTE under `order`, och Wix fyrar ALDRIG `order.refunded`.
+ * En cancel är `order` + slug `canceled` (ETT l). Allt annat (created/approved/paid/
+ * fulfilled/okänt) → "other" och går den befintliga create-vägen (deriveTasks).
+ */
+export function classifyWixEvent(raw: Record<string, unknown>): WixEventKind {
+  const fqdn = firstStr(raw.entityFqdn).toLowerCase();
+  const slug = firstStr(raw.slug).toLowerCase();
+  if (fqdn.includes("order_transactions") && slug === "refund_completed") return "refund";
+  if (slug.includes("refund")) return "refund"; // defensivt: refund-slug oavsett fqdn
+  if (fqdn === "wix.ecom.v1.order" && (slug === "canceled" || slug === "cancelled")) return "cancel";
+  if (slug === "canceled" || slug === "cancelled") return "cancel"; // defensivt
+  return "other";
+}
+
+/**
+ * Order-id ur ett cancel/refund-event, defensivt mot alla shapes. För refund är
+ * `raw.entityId` transaktions-entitetens id (INTE order-id) — därför läses
+ * `entity.orderId` FÖRST. Cancel bär ordern i `actionEvent.body.order` → `entity.id`.
+ * Returnerar "" om inget order-id kan härledas (anroparen ack:ar då eventet utan att
+ * röra några tasks, i stället för att skapa/avbryta fel).
+ */
+export function extractCancelOrderId(raw: Record<string, unknown>): string {
+  const ent = rawEntity(raw);
+  return firstStr(ent?.orderId, ent?.id, raw.entityId);
+}
+
 /**
  * Normaliserar en inkommande Wix eCom-webhook (created/approved/paid/fulfilled)
  * till en OrderEvent. Hanterar createdEvent / updatedEvent / actionEvent-formerna

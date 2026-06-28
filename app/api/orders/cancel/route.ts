@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthorized } from "@/lib/auth";
-import { assertTransition } from "@/lib/orders/status";
+import { cancelOneTask } from "@/lib/orders/cancel-task";
 import { getStore } from "@/lib/store/factory";
-import { audit } from "@/lib/audit";
 
 const Schema = z.object({ taskId: z.string().min(1) });
 
@@ -31,26 +30,23 @@ export async function POST(req: Request) {
   const task = (await store.listTasks()).find((t) => t.taskId === parsed.data.taskId);
   if (!task) return NextResponse.json({ error: "Task hittades inte" }, { status: 404 });
 
-  try {
-    assertTransition(task.status, "cancelled");
-  } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 409 });
-  }
+  // Delad cancel-logik (samma sanning som Wix-cancel-eventet). cancelOneTask kastar
+  // aldrig för terminal/mid-order — den returnerar ett utfall vi mappar till HTTP.
+  const result = await cancelOneTask(store, task);
 
-  const alreadyOrdered = task.status === "ordered";
-  // Om en AliExpress-order redan lagts avbeställs den INTE automatiskt här (DS-API:t
-  // saknar pålitlig cancel) → annars skulle vi tyst återbetala kunden men ändå få
-  // varan skickad/debiterad. Larma högt så Leonard avbeställer manuellt på AliExpress.
-  const aeOrderPlaced = alreadyOrdered && Boolean(task.aliexpressOrderId);
-  await store.setTaskStatus(task.taskId, "cancelled");
-  if (aeOrderPlaced) {
-    await audit(
-      "cancel-manual-ae-required",
-      task.taskId,
-      `MANUELL AVBESTÄLLNING KRÄVS på AliExpress (order ${task.aliexpressOrderId}) + återbetalning till kund — annars skickas/debiteras varan ändå.`,
+  if (result.outcome === "terminal-noop") {
+    // shipped/cancelled går inte att avbryta (bevarar gamla 409-på-terminal-kontraktet).
+    return NextResponse.json(
+      { error: `Kan inte avbryta en task med status "${task.status}".` },
+      { status: 409 },
     );
-  } else {
-    await audit("cancel", task.taskId, alreadyOrdered ? "återbetalning krävs" : undefined);
+  }
+  if (result.outcome === "mid-order-flagged") {
+    // En orderläggning pågår just nu — avbryt inte mitt i. Flaggad för granskning.
+    return NextResponse.json(
+      { error: "Orderläggning pågår för denna rad — kan inte avbryta just nu. Försök igen om en stund eller granska den flaggade tasken." },
+      { status: 409 },
+    );
   }
 
   return NextResponse.json({
@@ -58,9 +54,9 @@ export async function POST(req: Request) {
     taskId: task.taskId,
     status: "cancelled",
     // Om varan redan beställts hos leverantören krävs återbetalning till kunden.
-    refundRequired: alreadyOrdered,
+    refundRequired: result.refundRequired,
     // Ordern var redan lagd hos AliExpress → avbeställ MANUELLT där (sker ej här).
-    manualAliexpressCancelRequired: aeOrderPlaced,
-    aliexpressOrderId: aeOrderPlaced ? task.aliexpressOrderId : undefined,
+    manualAliexpressCancelRequired: result.manualAliexpressCancelRequired,
+    aliexpressOrderId: result.aliexpressOrderId,
   });
 }

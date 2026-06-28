@@ -35,10 +35,20 @@ export default async function AdminPage() {
     .filter((p): p is NonNullable<typeof p> => p !== null)
     .sort((a, b) => b.minProfit - a.minProfit);
   const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s).length;
-  const pending = tasks.filter((t) => t.status === "pending");
-  const pendingPayment = tasks.filter((t) => t.status === "pending_payment");
+  // F19: tasks flaggade för manuell granskning (annullering/återbetalning racade in, eller
+  // osäkert orderutfall) lyfts UT ur de normala listorna → de auto-skeppas inte (backstopp i
+  // poll-tracking) och visas i en egen varnings-sektion så de aldrig är osynliga.
+  const needsReview = tasks.filter(
+    (t) =>
+      (t.refundFlagged || t.cancelMidOrder || t.orderUncertain) &&
+      t.status !== "cancelled" &&
+      t.status !== "shipped",
+  );
+  const reviewIds = new Set(needsReview.map((t) => t.taskId));
+  const pending = tasks.filter((t) => t.status === "pending" && !reviewIds.has(t.taskId));
+  const pendingPayment = tasks.filter((t) => t.status === "pending_payment" && !reviewIds.has(t.taskId));
   const orderedWaitingTracking = tasks.filter(
-    (t) => t.status === "ordered" && t.aliexpressOrderId && !t.sku?.startsWith("shipped"),
+    (t) => t.status === "ordered" && t.aliexpressOrderId && !t.sku?.startsWith("shipped") && !reviewIds.has(t.taskId),
   );
 
   return (
@@ -66,6 +76,35 @@ export default async function AdminPage() {
         <b>{byStatus("ordered")}</b> · Skickade: <b>{byStatus("shipped")}</b> · Avbrutna:{" "}
         <b>{byStatus("cancelled")}</b>
       </p>
+
+      {needsReview.length > 0 ? (
+        <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "12px 14px", margin: "12px 0" }}>
+          <h3 style={{ fontSize: 16, marginTop: 0, color: "#b91c1c" }}>⚠️ Kräver manuell granskning ({needsReview.length})</h3>
+          <p style={{ fontSize: 13, color: "#7f1d1d", marginTop: 0 }}>
+            En annullering/återbetalning kom in kring orderläggningen, eller orderutfallet är osäkert.
+            Dessa <b>auto-skeppas inte</b>. Finns ett AE-order-id: <b>avbeställ manuellt på AliExpress</b> och
+            återbetala kunden. Annars kan tasken avbrytas.
+          </p>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {needsReview.map((t) => (
+              <li key={t.taskId} style={{ padding: "8px 0", borderTop: "1px solid #fecaca", fontSize: 13 }}>
+                <div>
+                  <b>#{t.orderNumber}</b> — {t.productName} ×{t.quantity} <span style={{ color: "#7f1d1d" }}>[{t.status}]</span>
+                </div>
+                <div style={{ color: "#7f1d1d" }}>
+                  {[
+                    t.refundFlagged ? "↩️ återbetalning registrerad" : null,
+                    t.cancelMidOrder ? "⏸️ annullering under orderläggning" : null,
+                    t.orderUncertain ? "❓ osäkert orderutfall" : null,
+                  ].filter(Boolean).join(" · ")}
+                  {t.aliexpressOrderId ? <> · AE-order: <code>{t.aliexpressOrderId}</code> (avbeställ manuellt)</> : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {pending.length > 0 ? (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {pending.map((t) => {

@@ -70,6 +70,62 @@ describe("placeOrderForTask — claim & utfall", () => {
     expect(t?.claimToken).toBeDefined(); // claim ej släppt → ingen auto-reclaim, nytt försök nekas
   });
 
+  it("F19: refundFlagged task → vägrar FÖRE claim (ingen order, ingen claim)", async () => {
+    const store = await seed(task({ refundFlagged: true }));
+    const res = await placeOrderForTask(store, "o1:l1");
+    expect(res.ok).toBe(false);
+    expect(vi.mocked(createOrder)).not.toHaveBeenCalled();
+    expect((await get(store))?.claimToken).toBeUndefined();
+  });
+
+  it("F19: terminal (cancelled) task → vägrar FÖRE claim", async () => {
+    const store = await seed(task({ status: "cancelled" }));
+    const res = await placeOrderForTask(store, "o1:l1");
+    expect(res.ok).toBe(false);
+    expect(vi.mocked(createOrder)).not.toHaveBeenCalled();
+  });
+
+  it("F19/race: cancel landar precis innan claim → re-read avbryter, INGEN order läggs", async () => {
+    // RaceStore simulerar att en cancel hann sätta status=cancelled runt claimen
+    // (claimTask:s CAS gatar inte på status → en cancelled task går att claima).
+    // place-order:s re-read EFTER claim ska då släppa claimen och avbryta FÖRE createOrder.
+    class RaceStore extends MemoryStore {
+      async claimTask(taskId: string, t: string): Promise<boolean> {
+        const ok = await super.claimTask(taskId, t);
+        if (ok) await this.setTaskStatus(taskId, "cancelled");
+        return ok;
+      }
+    }
+    const store = new RaceStore();
+    await store.saveMapping(mapping);
+    await store.upsertTask(task());
+    const res = await placeOrderForTask(store, "o1:l1");
+    expect(res.ok).toBe(false);
+    expect(vi.mocked(createOrder)).not.toHaveBeenCalled();
+    // claimen släpptes (re-read-grenen anropar releaseTask) → låset hänger inte kvar
+    expect((await get(store))?.claimToken).toBeUndefined();
+  });
+
+  it("F19/race: refund landar UNDER createOrder → order sparas (aliexpressOrderId) men status EJ ordered, flaggas", async () => {
+    // Smala fönstret: claim vinner + post-claim re-read passerar, sedan flaggas tasken
+    // refundFlagged MEDAN createOrder kör. Post-order-kollen ska då spara aliexpressOrderId
+    // (dubbel-order-skydd) men INTE skriva status:ordered — i stället flagga cancelMidOrder
+    // + audita för manuell AE-avbeställning.
+    const store = await seed(task());
+    vi.mocked(createOrder).mockImplementation(async () => {
+      await store.updateTask("o1:l1", { refundFlagged: true, refundFlaggedAt: new Date().toISOString() });
+      return { tradeOrderId: "T9", paymentRequired: false };
+    });
+    const res = await placeOrderForTask(store, "o1:l1");
+    expect(res).toMatchObject({ ok: true, tradeOrderId: "T9" });
+    const t = await get(store);
+    expect(t?.aliexpressOrderId).toBe("T9"); // sparad → inget dubbelbeställnings-fönster
+    expect(t?.status).not.toBe("ordered"); // status klobbrades INTE
+    expect(t?.cancelMidOrder).toBe(true); // flaggad för manuell granskning
+    const audits = await store.listAudit();
+    expect(audits.some((a) => a.kind === "order-placed-but-cancelled")).toBe(true);
+  });
+
   it("multi-variant tom choices → vägrar FÖRE claim (ingen claim tagen)", async () => {
     const multi: ProductMappingRecord = {
       supplierProductId: "M", wixProductId: "wix-2",

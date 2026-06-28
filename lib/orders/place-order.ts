@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createOrder, OrderValidationError } from "@/lib/aliexpress/client";
 import { normalizeCountryCode } from "@/lib/orders/tasks";
+import { isTerminal } from "@/lib/orders/status";
 import type { Store } from "@/lib/store";
 
 export type PlaceOrderResult =
@@ -26,6 +27,15 @@ export async function placeOrderForTask(store: Store, taskId: string): Promise<P
   const task = (await store.listTasks()).find((t) => t.taskId === taskId);
   if (!task) return { ok: false, error: "Task hittades inte" };
   if (task.aliexpressOrderId) return { ok: false, error: "Ordern är redan lagd hos AliExpress" };
+  // F19: en avbruten/skickad order får aldrig beställas, och en återbetald order är
+  // blockerad tills Leonard granskat (en återbetalning kan vara delvis → flaggad, ej
+  // auto-avbruten). Vägra hellre än att lägga en order för en död/återbetald kund.
+  if (isTerminal(task.status)) {
+    return { ok: false, error: `Ordern har status "${task.status}" — ingen order läggs.` };
+  }
+  if (task.refundFlagged) {
+    return { ok: false, error: "Återbetalning registrerad för ordern — granska och avbryt manuellt innan en AliExpress-order läggs." };
+  }
   if (!task.wixCatalogItemId) return { ok: false, error: "Saknar wixCatalogItemId — kan inte hitta mappning" };
   if (!task.shippingAddress) return { ok: false, error: "Saknar leveransadress" };
 
@@ -92,6 +102,19 @@ export async function placeOrderForTask(store: Store, taskId: string): Promise<P
     return { ok: false, error: "Ordern hanteras redan (eller är redan lagd) — ladda om sidan och försök igen." };
   }
 
+  // F19/race: en annullering/återbetalning kan ha COMMITTATS innan claimen (claimTask:s
+  // CAS gatar på aliexpressOrderId+claimToken, inte status → en cancelled task går att
+  // claima). Läs om EFTER claimen: är den nu terminal eller återbetalnings-flaggad → släpp
+  // claimen och avbryt FÖRE createOrder (ingen order läggs). Från och med att VI håller
+  // claimen blir cancelTaskIfFree "blocked" → en parallell cancel flaggar (skriver INTE
+  // cancelled), så status kan inte klobbras härefter. Det smala fönstret där en cancel/
+  // refund landar EFTER denna re-read men UNDER createOrder fångas av post-order-kollen nedan.
+  const afterClaim = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!afterClaim || isTerminal(afterClaim.status) || afterClaim.refundFlagged) {
+    await store.releaseTask(taskId, token);
+    return { ok: false, error: "Ordern avbröts eller återbetalades precis — ingen AliExpress-order lades." };
+  }
+
   try {
     const result = await createOrder({
       productId: supplierProductId,
@@ -114,25 +137,40 @@ export async function placeOrderForTask(store: Store, taskId: string): Promise<P
       return { ok: false, error: "AliExpress gav inget order-id — verifiera manuellt på AliExpress innan nytt försök." };
     }
 
-    // Ordern ÄR lagd. Post-order-skrivningen får ALDRIG ge ett retry-bart fel — failar
-    // den är ordern ändå lagd → returnera ok:true + audita skrivfelet (annars 500 → retry → dubbel).
+    // Ordern ÄR lagd. Kolla om en annullering/återbetalning racade in MEDAN createOrder
+    // pågick (cancelMidOrder/refundFlagged satt, eller tasken hann bli terminal). Då får
+    // status INTE klottras till "ordered" — men aliexpressOrderId MÅSTE ändå sparas
+    // (dubbel-order-skydd: annars ser ett nytt försök tasken obeställd → dubbelbeställer).
+    // Flagga i stället loudly för manuell AE-avbeställning.
+    const postOrder = (await store.listTasks()).find((t) => t.taskId === taskId);
+    const racedIn = !!postOrder && (isTerminal(postOrder.status) || postOrder.refundFlagged || postOrder.cancelMidOrder);
+
+    // Post-order-skrivningen får ALDRIG ge ett retry-bart fel — failar den är ordern ändå
+    // lagd → returnera ok:true + audita skrivfelet (annars 500 → retry → dubbel).
     try {
-      await store.updateTask(taskId, {
-        aliexpressOrderId: result.tradeOrderId,
-        status: result.paymentRequired ? "pending_payment" : "ordered",
-        ...(result.paymentRequired && result.paymentUrl ? { paymentUrl: result.paymentUrl } : {}),
-      });
+      await store.updateTask(
+        taskId,
+        racedIn
+          ? { aliexpressOrderId: result.tradeOrderId, cancelMidOrder: true, cancelMidOrderAt: new Date().toISOString() }
+          : {
+              aliexpressOrderId: result.tradeOrderId,
+              status: result.paymentRequired ? "pending_payment" : "ordered",
+              ...(result.paymentRequired && result.paymentUrl ? { paymentUrl: result.paymentUrl } : {}),
+            },
+      );
       await store.appendAudit({
         at: new Date().toISOString(),
-        kind: "aliexpress-order-placed",
+        kind: racedIn ? "order-placed-but-cancelled" : "aliexpress-order-placed",
         ref: taskId,
-        detail: JSON.stringify({
-          tradeOrderId: result.tradeOrderId,
-          paymentRequired: result.paymentRequired,
-          ...(task.overriddenSupplierProductId
-            ? { overriddenSupplier: { productId: supplierProductId, skuId: supplierVariantId, label: task.overriddenSupplierLabel } }
-            : {}),
-        }),
+        detail: racedIn
+          ? `AE-order ${result.tradeOrderId} lagd MEN annullering/återbetalning racade in — avbeställ MANUELLT på AliExpress + återbetala kund.`
+          : JSON.stringify({
+              tradeOrderId: result.tradeOrderId,
+              paymentRequired: result.paymentRequired,
+              ...(task.overriddenSupplierProductId
+                ? { overriddenSupplier: { productId: supplierProductId, skuId: supplierVariantId, label: task.overriddenSupplierLabel } }
+                : {}),
+            }),
       });
     } catch (writeErr) {
       console.error(
