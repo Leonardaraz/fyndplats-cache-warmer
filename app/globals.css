@@ -454,12 +454,18 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .gthumb{width:72px;height:72px;border-radius:12px;border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;padding:0;background:#f6f1ec;transition:border-color .2s,box-shadow .2s,transform .2s}
 .gthumb:hover{border-color:var(--orange)}
 .gthumb.active{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange);transform:translateY(-1px)}
+/* Den valda variantens egna bilder ramas in (mjuk orange ring) så man ser vilka
+   galleribilder som tillhör varianten. Active-thumben behåller sin starkare ring. */
+.gthumb.variant-owned{border-color:var(--orange);box-shadow:0 0 0 2px #C2410C55}
+.gthumb.variant-owned.active{box-shadow:0 0 0 2px var(--orange)}
 /* Prickindikator — visas i stället för miniatyrgriden på mobil (renare look).
    Desktop behåller miniatyrerna; mobil-reglerna nedan växlar synligheten. */
 .gdots{display:none;justify-content:center;align-items:center;gap:8px;margin-top:14px}
 .gdot{width:8px;height:8px;padding:0;border:none;border-radius:50%;background:#d8cdbf;cursor:pointer;transition:background .2s,transform .2s,width .2s}
 .gdot:hover{background:#bba98f}
 .gdot.active{background:#C2410C;transform:scale(1.15);width:20px;border-radius:999px}
+/* Variantens egna bilder: orange prick (vs grå default) så gruppen syns på mobil. */
+.gdot.variant-owned{background:#C2410C}
 .gdot:focus-visible{outline:2px solid #C2410C;outline-offset:2px}
 /* lightbox */
 .lightbox{position:fixed;inset:0;z-index:300;background:rgba(20,18,15,.93);display:flex;align-items:center;justify-content:center;padding:24px;animation:lbIn .2s ease}

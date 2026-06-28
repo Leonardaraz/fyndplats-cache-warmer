@@ -35,12 +35,16 @@ export function Gallery({
   active: activeProp,
   onActiveChange,
   eagerCount,
+  variantImageIndices,
 }: {
   images: string[];
   alt: string;
   mainBlur?: string;
   active?: number;
   onActiveChange?: (i: number) => void;
+  // Galleri-index som tillhör den VALDA varianten → markeras med ram så man ser
+  // att just de bilderna hör till varianten. Tom/utelämnad = ingen markering.
+  variantImageIndices?: number[];
   // Antal bilder från början som ska bakgrundsförladdas efter LCP (variant-
   // bilderna ligger först). Default: alla. Övriga (svep-bara galleriextrabilder,
   // t.ex. instruktioner) mountas lazy vid första visning så vi inte slösar band-
@@ -48,6 +52,8 @@ export function Gallery({
   eagerCount?: number;
 }) {
   const imgs = images.filter(Boolean);
+  // Index (i `images`) som tillhör den valda varianten → ram-markeras i thumb-raden.
+  const variantSet = new Set(variantImageIndices || []);
   const [activeInternal, setActiveInternal] = useState(0);
   const controlled = activeProp !== undefined;
   const active = controlled ? activeProp! : activeInternal;
@@ -345,11 +351,11 @@ export function Gallery({
             <button
               type="button"
               key={g + i}
-              className={`gthumb ${i === active ? "active" : ""}`}
+              className={`gthumb ${i === active ? "active" : ""} ${variantSet.has(i) ? "variant-owned" : ""}`}
               onClick={() => setActive(i)}
               role="tab"
               aria-selected={i === active}
-              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 12)}`}
+              aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 12)}${variantSet.has(i) ? " (vald variant)" : ""}`}
             >
               <Image src={tightFillUrl(g, 152, 152)} alt="" fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
             </button>
@@ -364,7 +370,7 @@ export function Gallery({
             <button
               type="button"
               key={"dot" + i}
-              className={`gdot ${i === active ? "active" : ""}`}
+              className={`gdot ${i === active ? "active" : ""} ${variantSet.has(i) ? "variant-owned" : ""}`}
               onClick={() => setActive(i)}
               role="tab"
               aria-selected={i === active}
