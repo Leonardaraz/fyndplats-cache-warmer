@@ -483,7 +483,10 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
           // annars visa hjältebilden två gånger. Jämför på fil-id (imgKey).
           const mainKey = imgKey(prod.img);
           const deduped = fullGallery.filter((u) => imgKey(u) !== mainKey);
-          prod.gallery = deduped.length ? deduped : fullGallery;
+          // Ersätt BARA om V3 lägger till något UTÖVER hjälten. Är deduped tom (enda
+          // V3-bilden ÄR hjälten) lämnas galleriet orört → page.tsx visar p.img EN gång
+          // (annars hade fallback till fullGallery=[hjälten] gett dubbel hjälte igen).
+          if (deduped.length) prod.gallery = deduped;
         }
         return prod;
       }

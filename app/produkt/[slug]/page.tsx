@@ -83,7 +83,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     "@type": "Product",
     name: p.name,
     sku: p.id,
-    image: p.gallery.length ? p.gallery : [p.img],
+    // Inkludera huvudbilden FÖRST + galleriet (galleriet utesluter numera hjälte-
+    // fil-id:t, så Google får primärbilden här i stället för att den faller bort).
+    image: Array.from(new Set([p.img, ...p.gallery].filter(Boolean))),
     // Samma preferens som meta-descriptionen ovan: kuraterad Wix-SEO när den
     // finns, annars blurb — så strukturerad data och snippet matchar.
     description: p.seoDescription || p.blurb,
