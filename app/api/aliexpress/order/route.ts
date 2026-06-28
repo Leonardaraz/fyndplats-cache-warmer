@@ -15,7 +15,7 @@
 // Om paymentRequired=true öppnar tillägget paymentUrl i en ny flik.
 
 import { type NextRequest, NextResponse } from "next/server";
-import { createOrder } from "@/lib/aliexpress/client";
+import { createOrder, OrderValidationError } from "@/lib/aliexpress/client";
 import { checkToken } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import type { DsOrderCreateParams } from "@/lib/aliexpress/types";
@@ -58,6 +58,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    // Valideringsfel (adress/landskod/kvantitet) = klientfel → 422 (ingen retry).
+    // Tidigare blev allt 500 → order-kö:n kunde retry:a ett permanent fel i evighet.
+    const status = err instanceof OrderValidationError ? 422 : 500;
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : String(err) },
+      { status },
+    );
   }
 }

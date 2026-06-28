@@ -440,26 +440,62 @@ interface RawOrderCreate {
     is_success?: boolean;
 }
 
+/**
+ * Valideringsfel vid orderläggning (landskod/adress/kvantitet). Egen typ så att
+ * HTTP-anropare kan mappa till 4xx (klientfel, ingen retry) i stället för 500
+ * (som order-kö:n annars retry:ar i evighet på ett permanent fel).
+ */
+export class OrderValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "OrderValidationError";
+  }
+}
+
 export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderCreateResult> {
     const addr = params.shippingAddress;
     // Vägra hellre ordern än att skicka till fel land: ISO alpha-2 krävs. Tidigare
     // defaultade anroparen till "SE" när landet saknades → tyst fel destination.
     const country = (addr.countryCode ?? "").trim().toUpperCase();
     if (!/^[A-Z]{2}$/.test(country)) {
-      throw new Error(
+      throw new OrderValidationError(
         `Ogiltig landskod "${addr.countryCode ?? ""}" — order avbruten (kräver ISO alpha-2, t.ex. SE/DE).`,
       );
     }
+    // Leverans-kritiska adressfält måste finnas (annars betald oleverabar order).
+    // OBS: guarden täcker EU/SE-flödet; för länder som kräver delstat (US/CA/BR)
+    // saknar modellen `province` → utöka adressmodellen innan icke-EU stöds.
+    // `contact_person` är kontaktuppgift, inte leverans-kritiskt → defaultas så att
+    // en gäst-order utan namn inte blockeras (leverans styrs av adressen).
+    const line1 = (addr.addressLine1 ?? "").trim();
+    const city = (addr.city ?? "").trim();
+    const zip = (addr.postalCode ?? "").trim();
+    const addrMissing = ([
+      ["addressLine1", line1],
+      ["city", city],
+      ["postalCode", zip],
+    ] as const).filter(([, v]) => !v).map(([k]) => k);
+    if (addrMissing.length) {
+      throw new OrderValidationError(
+        `Ofullständig leveransadress (saknar: ${addrMissing.join(", ")}) — order avbruten.`,
+      );
+    }
+    // Vägra ogiltig kvantitet hellre än att tyst beställa 0 eller 1.
+    if (!Number.isInteger(params.quantity) || params.quantity < 1) {
+      throw new OrderValidationError(`Ogiltig kvantitet (${params.quantity}) — order avbruten.`);
+    }
+    const line2 = (addr.addressLine2 ?? "").trim();
+    const contactPerson = (addr.name ?? "").trim() || "Mottagare";
     const bizParams: Record<string, string> = {
           product_id: params.productId,
           product_count: String(params.quantity),
           sku_id: params.skuId,
           logistics_service_name: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
-          address: addr.addressLine1 + (addr.addressLine2 ? ` ${addr.addressLine2}` : ""),
-          city: addr.city,
+          address: line1 + (line2 ? ` ${line2}` : ""),
+          city,
           country,
-          zip: addr.postalCode,
-          contact_person: addr.name,
+          zip,
+          contact_person: contactPerson,
           ...(addr.phone ? { mobile_no: addr.phone } : {}),
           ...(params.buyerMessage ? { buyer_message: params.buyerMessage } : {}),
     };

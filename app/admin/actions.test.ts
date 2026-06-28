@@ -25,6 +25,16 @@ const mapping: ProductMappingRecord = {
   ],
 };
 
+// Multi-variant mappning (Färg × Storlek) för variant-matchnings-testerna.
+const multiMapping: ProductMappingRecord = {
+  supplierProductId: "MULTI",
+  wixProductId: "wix-2",
+  variants: [
+    { supplierVariantId: "skuRedS", sku: "FP-RS", choices: { Color: "Red", Size: "S" }, costUsd: 1, landedCostSek: 10, grossSek: 20 },
+    { supplierVariantId: "skuRedM", sku: "FP-RM", choices: { Color: "Red", Size: "M" }, costUsd: 1, landedCostSek: 10, grossSek: 20 },
+  ],
+};
+
 function baseTask(patch: Partial<FulfillmentTask> = {}): FulfillmentTask {
   return {
     taskId: "o1:l1",
@@ -50,11 +60,11 @@ function baseTask(patch: Partial<FulfillmentTask> = {}): FulfillmentTask {
 }
 
 // Fräsch memory-store + seeded mapping/task per test (resetModules nollar singleton).
-async function setup(task: FulfillmentTask) {
+async function setup(task: FulfillmentTask, m: ProductMappingRecord = mapping) {
   process.env.STORE_BACKEND = "memory";
   const { getStore } = await import("@/lib/store/factory");
   const store = getStore();
-  await store.saveMapping(mapping);
+  await store.saveMapping(m);
   await store.upsertTask(task);
   const actions = await import("./actions");
   const client = await import("@/lib/aliexpress/client");
@@ -128,6 +138,66 @@ describe("placeAliExpressOrder — leverantörsval", () => {
 
   it("vägrar HALVT override: bara SKU (skulle korsa A:s produkt med B:s SKU)", async () => {
     const { actions, client } = await setup(baseTask({ overriddenSupplierVariantId: "skuB" }));
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+});
+
+describe("placeAliExpressOrder — variant-match & order-guards (audit-fixar)", () => {
+  it("multi-variant + tom choices (ingen sku/override) → vägrar, väljer INTE variants[0]", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", variantChoices: {} }),
+      multiMapping,
+    );
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("multi-variant + tvetydiga choices (matchar flera) → vägrar", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", variantChoices: { Color: "Red" } }),
+      multiMapping,
+    );
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("multi-variant + entydiga choices → beställer rätt variant", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", variantChoices: { Color: "Red", Size: "M" } }),
+      multiMapping,
+    );
+    vi.mocked(client.createOrder).mockResolvedValue({ tradeOrderId: "TM", paymentRequired: false });
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(true);
+    expect(client.createOrder).toHaveBeenCalledWith(expect.objectContaining({ skuId: "skuRedM" }));
+  });
+
+  it("SKU vinner över choices", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", sku: "FP-RS", variantChoices: { Color: "Red", Size: "M" } }),
+      multiMapping,
+    );
+    vi.mocked(client.createOrder).mockResolvedValue({ tradeOrderId: "TS", paymentRequired: false });
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(true);
+    expect(client.createOrder).toHaveBeenCalledWith(expect.objectContaining({ skuId: "skuRedS" }));
+  });
+
+  it("ofullständig adress (saknar gatuadress) → vägrar, ingen order", async () => {
+    const { actions, client } = await setup(
+      baseTask({ shippingAddress: { fullName: "A B", city: "Sthlm", postalCode: "111 22", country: "SE" } }),
+    );
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("ogiltig kvantitet (0) → vägrar, ingen order", async () => {
+    const { actions, client } = await setup(baseTask({ quantity: 0 }));
     const res = await actions.placeAliExpressOrder("o1:l1");
     expect(res.ok).toBe(false);
     expect(client.createOrder).not.toHaveBeenCalled();
