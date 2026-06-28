@@ -78,16 +78,17 @@ export async function GET(req: NextRequest) {
       // Hålls för manuell hantering i /admin (avbeställ på AliExpress + återbetala).
       if (task.cancelMidOrder || task.refundFlagged || task.orderUncertain) {
         results.heldForReview = (results.heldForReview as number) + 1;
-        await store.appendAudit({
-          at: new Date().toISOString(),
-          kind: "ship-held-for-review",
-          ref: task.taskId,
-          detail: `Ej auto-skeppad: ${[
+        // Loggas (EJ persisterad audit-rad) — en oåtgärdad flagga skrevs annars varje
+        // cron-cykel → obegränsad audit-tillväxt. Själva flaggan persisterades redan när
+        // den sattes (cancel-mid-order / refund-flagged / order-uncertain) och syns
+        // bestående i /admin "⚠️ Kräver manuell granskning".
+        console.warn(
+          `[poll-tracking] task ${task.taskId} hålls för granskning (${[
             task.cancelMidOrder ? "cancelMidOrder" : null,
             task.refundFlagged ? "refundFlagged" : null,
             task.orderUncertain ? "orderUncertain" : null,
-          ].filter(Boolean).join(", ")} (AE-order ${task.aliexpressOrderId}) — granska manuellt.`,
-        });
+          ].filter(Boolean).join(", ")}, AE-order ${task.aliexpressOrderId}) — auto-skeppas ej.`,
+        );
         continue;
       }
 
