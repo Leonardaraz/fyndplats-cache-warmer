@@ -20,6 +20,14 @@ describe("matchesColorName — riktiga hundvagn-alt-texter (live-data)", () => {
   it("kopplar Beige → 'i beige'", () => {
     expect(matchesColorName(alts.beige, "Beige")).toBe(true);
   });
+  it("kopplar Kräm (AE 'Cream') → kräm/cream/gräddvit-alt", () => {
+    expect(colorBasesIn("Kräm")).toContain("creme");
+    expect(matchesColorName("Paviljong i kräm", "Kräm")).toBe(true);
+    expect(matchesColorName("Pavilion in cream", "Kräm")).toBe(true);
+    expect(matchesColorName(alts.grått, "Kräm")).toBe(false);
+    // En Färg-axel Grå/Kräm ska klassas som färg (annars text-läge + ingen swatch).
+    expect(isColorAxis(["Grå", "Kräm"])).toBe(true);
+  });
   it("matchar inte en neutral alt-text utan färgord", () => {
     expect(matchesColorName(alts.neutral, "Grå")).toBe(false);
     expect(matchesColorName(alts.neutral, "Blå")).toBe(false);

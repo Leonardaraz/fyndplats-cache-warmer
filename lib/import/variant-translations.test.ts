@@ -85,6 +85,10 @@ describe("translateValue", () => {
     expect(translateValue("Black")).toBe("Svart");
     expect(translateValue("Light Blue")).toBe("Ljusblå");
     expect(translateValue("Stainless Steel")).toBe("Rostfritt stål");
+    // "Cream" deterministiskt → "Kräm" (tidigare AI-gissat → kunde driva isär från
+    // swatch-nyckeln; matchar nu live-produkten + storefrontens färgkarta).
+    expect(translateValue("Cream")).toBe("Kräm");
+    expect(translateValue("Creme")).toBe("Kräm");
   });
 
   it("lämnar universella storlekar oförändrade", () => {
