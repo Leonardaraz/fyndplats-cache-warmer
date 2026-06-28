@@ -58,6 +58,23 @@ test("shouldFanoutToCacheWarmer does NOT match order events outside the fan-out 
   assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.order_archived"), false);
 });
 
+test("F19: shouldFanoutToCacheWarmer forwards cancel + refund_completed", () => {
+  // Cancel = order.canceled (ETT l). Cache-warmer avbryter då orderns fulfillment-tasks.
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.canceled"), true);
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order.cancelled"), true);
+  // Refund = order_transactions.refund_completed (INTE order.refunded — den fyrar aldrig).
+  // Ligger under FQDN order_transactions → kräver det egna mönstret.
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order_transactions.refund_completed"), true);
+  // Case-insensitivt som resten.
+  assert.equal(shouldFanoutToCacheWarmer("WIX.ECOM.V1.ORDER_TRANSACTIONS.REFUND_COMPLETED"), true);
+});
+
+test("F19: shouldFanoutToCacheWarmer does NOT forward andra order_transactions-event", () => {
+  // Bara refund_completed ska forwardas — inte t.ex. payment-/auth-transaktioner.
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order_transactions.payment_completed"), false);
+  assert.equal(shouldFanoutToCacheWarmer("wix.ecom.v1.order_transactions.authorization_completed"), false);
+});
+
 test("fanoutToCacheWarmer POSTs to the configured URL with the raw body", async () => {
   const calls: Array<{ url: string; init: RequestInit }> = [];
   const mockFetch = async (url: string | URL | Request, init?: RequestInit) => {
