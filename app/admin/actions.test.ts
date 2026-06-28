@@ -202,6 +202,26 @@ describe("placeAliExpressOrder — variant-match & order-guards (audit-fixar)", 
     expect(res.ok).toBe(false);
     expect(client.createOrder).not.toHaveBeenCalled();
   });
+
+  it("SKU-miss faller tillbaka till entydiga choices (stale sku räddas)", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", sku: "FINNS-EJ", variantChoices: { Color: "Red", Size: "M" } }),
+      multiMapping,
+    );
+    vi.mocked(client.createOrder).mockResolvedValue({ tradeOrderId: "TF", paymentRequired: false });
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(true);
+    expect(client.createOrder).toHaveBeenCalledWith(expect.objectContaining({ skuId: "skuRedM" }));
+  });
+
+  it("whitespace-only gatuadress → vägrar, ingen order", async () => {
+    const { actions, client } = await setup(
+      baseTask({ shippingAddress: { fullName: "A B", addressLine1: "   ", city: "Sthlm", postalCode: "11122", country: "SE" } }),
+    );
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
 });
 
 describe("set/clear leverantörs-override", () => {

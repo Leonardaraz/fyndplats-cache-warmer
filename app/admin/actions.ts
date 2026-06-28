@@ -57,7 +57,9 @@ export async function placeAliExpressOrder(taskId: string) {
   // varianten (fel SKU för multi-variant-produkt; tom {} är normalfallet när Wix
   // utelämnar options). Enproduktsgenväg bara när choices är tom (valet irrelevant);
   // tvetydiga (matchar flera) eller tomma choices på multi-variant → undefined →
-  // grinden nedan (rad ~78) avbryter ordern i stället för att gissa.
+  // grinden `if (!supplierVariantId)` nedan avbryter ordern i stället för att gissa.
+  // (SKU-MISS faller medvetet vidare till choices/enproduktsfallback — räddar en
+  // stale SKU på en enproduktsorder; kräver fortfarande entydig träff.)
   let variant = task.sku ? mapping.variants.find((v) => v.sku === task.sku) : undefined;
   if (!variant) {
     const choiceEntries = Object.entries(task.variantChoices);

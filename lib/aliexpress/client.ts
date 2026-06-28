@@ -440,6 +440,12 @@ interface RawOrderCreate {
     is_success?: boolean;
 }
 
+// Länder som AliExpress kräver delstat/region för vid leverans. Vår adressmodell
+// saknar `province` → vägra dessa hårt (flödet är SE/EU). Utöka modellen innan de stöds.
+const PROVINCE_REQUIRED_COUNTRIES = new Set([
+  "US", "CA", "AU", "BR", "CN", "IN", "MX", "ID", "RU", "AR", "JP", "MY", "TH",
+]);
+
 /**
  * Valideringsfel vid orderläggning (landskod/adress/kvantitet). Egen typ så att
  * HTTP-anropare kan mappa till 4xx (klientfel, ingen retry) i stället för 500
@@ -460,6 +466,14 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
     if (!/^[A-Z]{2}$/.test(country)) {
       throw new OrderValidationError(
         `Ogiltig landskod "${addr.countryCode ?? ""}" — order avbruten (kräver ISO alpha-2, t.ex. SE/DE).`,
+      );
+    }
+    // Adressmodellen saknar `province`/delstat. Länder som AliExpress kräver delstat
+    // för (US/CA/AU/BR…) skulle annars få en order UTAN delstat → leveransfel. Vägra
+    // dem hårt (inte bara en kommentar) tills modellen har province. Flödet är SE/EU.
+    if (PROVINCE_REQUIRED_COUNTRIES.has(country)) {
+      throw new OrderValidationError(
+        `Land ${country} kräver delstat/region som vår adressmodell ännu inte stöder — order avbruten (hantera manuellt).`,
       );
     }
     // Leverans-kritiska adressfält måste finnas (annars betald oleverabar order).
@@ -486,6 +500,7 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
     }
     const line2 = (addr.addressLine2 ?? "").trim();
     const contactPerson = (addr.name ?? "").trim() || "Mottagare";
+    const phone = (addr.phone ?? "").trim();
     const bizParams: Record<string, string> = {
           product_id: params.productId,
           product_count: String(params.quantity),
@@ -496,7 +511,7 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
           country,
           zip,
           contact_person: contactPerson,
-          ...(addr.phone ? { mobile_no: addr.phone } : {}),
+          ...(phone ? { mobile_no: phone } : {}),
           ...(params.buyerMessage ? { buyer_message: params.buyerMessage } : {}),
     };
 

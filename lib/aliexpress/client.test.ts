@@ -1,6 +1,32 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAccessToken } from "./client";
+import { resolveAccessToken, createOrder, OrderValidationError } from "./client";
 import { MemoryStore } from "../store/memory";
+
+// createOrder-backstoppen (FA/F50/FD): valideringsguarderna kastar OrderValidationError
+// FÖRE något API-anrop, så de kan testas utan nätverk/token. Säkerhetskritiskt: detta
+// är sista grinden innan en riktig betald AliExpress-order.
+describe("createOrder — valideringsguards (backstop)", () => {
+  const addr = { name: "A B", addressLine1: "Gata 1", city: "Sthlm", postalCode: "11122", countryCode: "SE" };
+  const valid = { productId: "P", skuId: "S", quantity: 1, shippingAddress: addr };
+
+  it("kastar OrderValidationError vid ogiltig landskod", async () => {
+    await expect(createOrder({ ...valid, shippingAddress: { ...addr, countryCode: "SWE" } })).rejects.toBeInstanceOf(OrderValidationError);
+  });
+  it("kastar för delstatskrävande land (US) utan province", async () => {
+    await expect(createOrder({ ...valid, shippingAddress: { ...addr, countryCode: "US" } })).rejects.toBeInstanceOf(OrderValidationError);
+  });
+  it("kastar vid whitespace-only gatuadress", async () => {
+    await expect(createOrder({ ...valid, shippingAddress: { ...addr, addressLine1: "   " } })).rejects.toBeInstanceOf(OrderValidationError);
+  });
+  it("kastar vid saknad ort eller postnummer", async () => {
+    await expect(createOrder({ ...valid, shippingAddress: { ...addr, city: "" } })).rejects.toBeInstanceOf(OrderValidationError);
+    await expect(createOrder({ ...valid, shippingAddress: { ...addr, postalCode: "" } })).rejects.toBeInstanceOf(OrderValidationError);
+  });
+  it("kastar vid ogiltig kvantitet (0/negativ)", async () => {
+    await expect(createOrder({ ...valid, quantity: 0 })).rejects.toBeInstanceOf(OrderValidationError);
+    await expect(createOrder({ ...valid, quantity: -1 })).rejects.toBeInstanceOf(OrderValidationError);
+  });
+});
 
 // resolveAccessToken-precedens: store-hit > env-fallback > throw.
 // Notera: factory.ts singleton-cachar Store-instansen. För att få färska
