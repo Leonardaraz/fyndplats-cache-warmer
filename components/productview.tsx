@@ -333,7 +333,7 @@ export function ProductView({
               <span className="varhead-key">{axis.name}</span>
               <strong className="varhead-val">{picked[axis.name] || ""}</strong>
             </div>
-            <div className={`varswatches ${mode}`}>
+            <div className={`varswatches ${mode} ${axis.choices.length >= 4 ? "is-scroll" : ""}`}>
               {axis.choices.map((c) => {
                 const active = picked[axis.name] === c.label;
                 const avail = isChoiceAvailable(table, axis.name, c.label, picked);
@@ -376,7 +376,7 @@ export function ProductView({
         <span className="varhead-key">{hasImageVariants ? (options?.name || "Variant") : "Variant"}</span>
         <strong className="varhead-val">{variantLabel}</strong>
       </div>
-      <div className={`varswatches ${hasImageVariants ? variantMode : "text"}`}>
+      <div className={`varswatches ${hasImageVariants ? variantMode : "text"} ${(hasImageVariants ? imageChoices.length : variants.length) >= 4 ? "is-scroll" : ""}`}>
         {hasImageVariants
           ? imageChoices.map((c, i) => (
               <button

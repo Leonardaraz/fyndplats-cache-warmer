@@ -715,6 +715,14 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .varhead-key::after{content:":"}
 .varhead-val{color:var(--ink);font-weight:700;margin-left:6px}
 .varswatches{display:flex;gap:10px;flex-wrap:wrap}
+/* Premium variant-rullista: när det är MÅNGA varianter (≥4 — is-scroll sätts i
+   markupen) blir raden EN horisontell scroll-strip i stället för att radbrytas:
+   dold scrollbar, scroll-snap, och en mjuk höger-fade (mask) som signalerar "fler
+   åt höger". Vertikal padding så vald-ringen/klick-pop:en inte klipps av overflow-x.
+   Gäller både desktop och mobil; vald variant markeras som vanligt. */
+.varswatches.is-scroll{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:5px 0 11px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent)}
+.varswatches.is-scroll::-webkit-scrollbar{display:none}
+.varswatches.is-scroll .varswatch{scroll-snap-align:start;flex:0 0 auto}
 /* Många varianter → horisontell scroll i stället för radbrytning (mobil) */
 .varswatch{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:6px 15px 6px 6px;cursor:pointer;opacity:.62;transition:opacity .2s,border-color .2s,box-shadow .2s,transform .2s;-webkit-tap-highlight-color:transparent}
 .varswatch.text{padding:9px 18px}
@@ -728,7 +736,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .varswatch.active{opacity:1;border-color:#C2410C;box-shadow:inset 0 0 0 1.5px #C2410C,0 8px 18px -12px rgba(194,65,12,.45);animation:swatchPop .32s cubic-bezier(.34,1.56,.64,1)}
 .varswatch.text.active{background:#C2410C;color:#fff;border-color:#C2410C}
 .varswatch:focus-visible{outline:2px solid #C2410C;outline-offset:2px}
-.varswatch-thumb{width:38px;height:38px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#f6f1ec;display:block}
+.varswatch-thumb{width:44px;height:44px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#f6f1ec;display:block}
 .varswatch-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .varswatch-dot{width:24px;height:24px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);margin-left:6px}
 .varswatch-name{white-space:nowrap}
