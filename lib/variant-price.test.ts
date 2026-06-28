@@ -9,15 +9,18 @@ import assert from "node:assert/strict";
 import { v3VariantData, v3MultiVariantData, formatSek } from "./variant-price.ts";
 
 // Förenklad spegling av den riktiga V3-produktens shape (ultraljudsrengöraren).
+// VAL keyas på `choiceId` (inte `id`) — samma id varianternas optionChoiceIds.choiceId
+// pekar på. Fixturen speglar produktionsdatan så testet låser id/choiceId-regressionen
+// även för single-axel-vägen (den buggen sänkte variantbilderna på t.ex. paviljongen).
 const product = {
   options: [
     {
       name: "Storlek",
       choicesSettings: {
         choices: [
-          { id: "c1", name: "2 L" },
-          { id: "c2", name: "15 L", linkedMedia: [{ image: { url: "https://x/15l.jpg" } }] },
-          { id: "c3", name: "30 L" },
+          { choiceId: "c1", name: "2 L" },
+          { choiceId: "c2", name: "15 L", linkedMedia: [{ image: { url: "https://x/15l.jpg" } }] },
+          { choiceId: "c3", name: "30 L" },
         ],
       },
     },
