@@ -229,3 +229,59 @@ describe("WixDataStore — paginering (listMappings/listTasks)", () => {
     expect(new Set(all.map((t) => (t as { taskId: string }).taskId)).size).toBe(159);
   });
 });
+
+// Låser PATCH-wire-formatet för det atomiska dubbel-order-låset. Bryts URL/body/
+// condition tyst → CAS:en slutar matcha → varje claim "vinner" → dubbla betalda ordrar.
+// Atomiciteten är empiriskt verifierad mot riktig Wix Data (3/3 + fält-löst + TOCTOU).
+describe("WixDataStore — claimTask/releaseTask/updateTask (PATCH CAS wire-format)", () => {
+  beforeEach(() => {
+    vi.stubEnv("WIX_API_TOKEN", "test-wix-token");
+    vi.stubEnv("WIX_SITE_ID", "test-site-id");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    global.fetch = ORIGINAL_FETCH;
+    vi.restoreAllMocks();
+  });
+
+  it("claimTask → PATCH /data/v2/items/{id}, condition.filter $and + SET claimToken; 2xx→true", async () => {
+    const fetchMock = mockFetch({ json: { dataItem: { data: {} } } });
+    expect(await new WixDataStore().claimTask("o1:l1", "tok-123")).toBe(true);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.method).toBe("PATCH");
+    expect(url).toContain("/data/v2/items/o1%3Al1");
+    const body = JSON.parse(init.body as string);
+    expect(body.patch.dataItemId).toBe("o1:l1");
+    expect(body.patch.fieldModifications[0]).toMatchObject({
+      action: "SET_FIELD", fieldPath: "claimToken", setFieldOptions: { value: "tok-123" },
+    });
+    expect(body.condition.filter.$and).toHaveLength(2); // ej beställd ∧ ej claimad
+  });
+
+  it("claimTask → 428 WDE0193 (förlorare) → false", async () => {
+    mockFetch({ status: 428, json: { message: "WDE0193: Update condition not met." } });
+    expect(await new WixDataStore().claimTask("x", "t")).toBe(false);
+  });
+
+  it("claimTask → 404 (task saknas) → false", async () => {
+    mockFetch({ status: 404, json: {} });
+    expect(await new WixDataStore().claimTask("x", "t")).toBe(false);
+  });
+
+  it("updateTask: värde → SET_FIELD, undefined → REMOVE_FIELD (override-clear)", async () => {
+    const fetchMock = mockFetch({ json: { dataItem: { data: {} } } });
+    await new WixDataStore().updateTask("o1:l1", { aliexpressOrderId: "T1", overriddenSupplierProductId: undefined });
+    const body = JSON.parse((fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(body.patch.fieldModifications).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: "SET_FIELD", fieldPath: "aliexpressOrderId" }),
+        expect.objectContaining({ action: "REMOVE_FIELD", fieldPath: "overriddenSupplierProductId" }),
+      ]),
+    );
+  });
+
+  it("releaseTask kastar ALDRIG (även 500) — fail-open", async () => {
+    mockFetch({ status: 500, json: {} });
+    await expect(new WixDataStore().releaseTask("x", "t")).resolves.toBeUndefined();
+  });
+});

@@ -1,26 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Verifierar felmappningen: valideringsfel (OrderValidationError) → 422 (klientfel,
-// ingen retry), allt annat → 500. Tidigare blev allt 500 → order-kö:n kunde retry:a
-// ett permanent fel i evighet. Klienten/auth/store mockas; bara route-grenen testas.
+// Routen är nu en tunn wrapper runt den delade placeOrderForTask. Verifierar att den
+// (a) härleder från taskId (inte body), (b) mappar utfall till rätt 4xx — aldrig 5xx.
 vi.mock("@/lib/auth", () => ({ checkToken: () => null }));
-vi.mock("@/lib/store/factory", () => ({
-  getStore: () => ({ updateTask: vi.fn(), appendAudit: vi.fn() }),
-}));
-vi.mock("@/lib/aliexpress/client", () => {
-  class OrderValidationError extends Error {}
-  return { OrderValidationError, createOrder: vi.fn() };
-});
+vi.mock("@/lib/store/factory", () => ({ getStore: () => ({}) }));
+vi.mock("@/lib/orders/place-order", () => ({ placeOrderForTask: vi.fn() }));
 
-import { createOrder, OrderValidationError } from "@/lib/aliexpress/client";
+import { placeOrderForTask } from "@/lib/orders/place-order";
 import { POST } from "./route";
-
-const validBody = {
-  productId: "P",
-  skuId: "S",
-  quantity: 1,
-  shippingAddress: { name: "A", addressLine1: "Gata 1", city: "Sthlm", postalCode: "11122", countryCode: "SE" },
-};
 
 function makeReq(body: unknown) {
   return new Request("http://localhost/api/aliexpress/order", {
@@ -29,20 +16,35 @@ function makeReq(body: unknown) {
   }) as unknown as Parameters<typeof POST>[0];
 }
 
-describe("/api/aliexpress/order — felmappning", () => {
-  beforeEach(() => {
-    vi.mocked(createOrder).mockReset();
+describe("/api/aliexpress/order — delad orderläggning + felmappning", () => {
+  beforeEach(() => vi.mocked(placeOrderForTask).mockReset());
+
+  it("saknar taskId → 400, anropar inte placeOrderForTask", async () => {
+    const res = await POST(makeReq({ productId: "P", skuId: "S" }));
+    expect(res.status).toBe(400);
+    expect(vi.mocked(placeOrderForTask)).not.toHaveBeenCalled();
   });
 
-  it("OrderValidationError → 422 (ingen retry)", async () => {
-    vi.mocked(createOrder).mockRejectedValue(new OrderValidationError("ofullständig adress"));
-    const res = await POST(makeReq(validBody));
-    expect(res.status).toBe(422);
+  it("ok → 200 med tradeOrderId (härleder från taskId)", async () => {
+    vi.mocked(placeOrderForTask).mockResolvedValue({ ok: true, tradeOrderId: "T1" });
+    const res = await POST(makeReq({ taskId: "o1:l1", productId: "IGNORERAS" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ tradeOrderId: "T1" });
+    expect(vi.mocked(placeOrderForTask)).toHaveBeenCalledWith(expect.anything(), "o1:l1");
   });
 
-  it("annat fel → 500", async () => {
-    vi.mocked(createOrder).mockRejectedValue(new Error("nätverksfel"));
-    const res = await POST(makeReq(validBody));
-    expect(res.status).toBe(500);
+  it("redan lagd → 409", async () => {
+    vi.mocked(placeOrderForTask).mockResolvedValue({ ok: false, error: "Ordern är redan lagd hos AliExpress" });
+    expect((await POST(makeReq({ taskId: "x" }))).status).toBe(409);
+  });
+
+  it("osäkert utfall → 422 (ingen retry)", async () => {
+    vi.mocked(placeOrderForTask).mockResolvedValue({ ok: false, error: "Order-utfall osäkert — verifiera manuellt på AliExpress" });
+    expect((await POST(makeReq({ taskId: "x" }))).status).toBe(422);
+  });
+
+  it("hittades inte → 404", async () => {
+    vi.mocked(placeOrderForTask).mockResolvedValue({ ok: false, error: "Task hittades inte" });
+    expect((await POST(makeReq({ taskId: "x" }))).status).toBe(404);
   });
 });

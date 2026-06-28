@@ -38,6 +38,18 @@ export interface FulfillmentTask {
   overriddenSupplierVariantId?: string;
   /** Läsbar etikett (skuProps, t.ex. "Red / M") för UI och audit. */
   overriddenSupplierLabel?: string;
+  /**
+   * Atomiskt dubbel-order-lås. Sätts via CAS (claimTask) under pågående orderläggning
+   * och hindrar att två samtidiga placeringar (dubbelklick/cron+klick) ger två betalda
+   * ordrar. Rensas av releaseTask vid valideringsfel. Stale claim rensas ENDAST manuellt.
+   */
+  claimToken?: string;
+  /**
+   * Order-utfall OKÄNT (nätverks-/timeout-fel efter createOrder) — AE-ordern KAN ha lagts.
+   * Tasken rörs inte automatiskt; kräver manuell verifiering på AliExpress innan nytt försök.
+   */
+  orderUncertain?: boolean;
+  uncertainAt?: string;
 }
 
 /** Normaliserad orderhändelse oavsett om den kom som JWT eller rå JSON. */

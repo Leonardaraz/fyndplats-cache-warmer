@@ -145,8 +145,17 @@ export interface Store {
   createTaskIfAbsent(task: FulfillmentTask): Promise<boolean>;
   listTasks(status?: TaskStatus): Promise<FulfillmentTask[]>;
   setTaskStatus(taskId: string, status: TaskStatus): Promise<void>;
-  /** Uppdaterar delmängd av en task (merge). */
+  /** Uppdaterar delmängd av en task (merge). Saknad task = tyst no-op. */
   updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void>;
+  /**
+   * Atomiskt dubbel-order-lås (CAS). Sätter `claimToken=token` ENBART om tasken
+   * varken är claimad eller redan beställd (aliexpressOrderId tom). true = vi vann
+   * låset → lägg ordern; false = någon annan håller det / redan lagd → AVBRYT.
+   * Kastar bara vid okänt fel (fail-closed: lägg aldrig ordern på okänt låstillstånd).
+   */
+  claimTask(taskId: string, token: string): Promise<boolean>;
+  /** Släpper låset om VI håller det (claimToken === token). No-op annars. Kastar aldrig. */
+  releaseTask(taskId: string, token: string): Promise<void>;
 
   // --- Audit-logg (spårbarhet) ---
   appendAudit(entry: AuditEntry): Promise<void>;

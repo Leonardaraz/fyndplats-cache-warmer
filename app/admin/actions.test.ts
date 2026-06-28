@@ -8,6 +8,8 @@ vi.mock("@/lib/aliexpress/client", () => ({
   createOrder: vi.fn(),
   getInventory: vi.fn(),
   extractAliExpressProductId: vi.fn(),
+  // place-order.ts gör `err instanceof OrderValidationError` → måste finnas i mocken.
+  OrderValidationError: class OrderValidationError extends Error {},
 }));
 
 const mapping: ProductMappingRecord = {

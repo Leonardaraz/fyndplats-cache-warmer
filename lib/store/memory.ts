@@ -56,6 +56,24 @@ export class MemoryStore implements Store {
     if (task) this.tasks.set(taskId, { ...task, ...patch });
   }
 
+  // CAS-lås: synkron get+set är atomiskt inom EN process (ingen await emellan), så
+  // detta speglar wix-data-semantiken (ej beställd OCH ej claimad → vinn). I prod är
+  // det wix-data:s conditional PATCH som ger atomiciteten mellan processer/instanser.
+  async claimTask(taskId: string, token: string): Promise<boolean> {
+    const task = this.tasks.get(taskId);
+    if (!task || task.aliexpressOrderId || task.claimToken) return false;
+    this.tasks.set(taskId, { ...task, claimToken: token });
+    return true;
+  }
+
+  async releaseTask(taskId: string, token: string): Promise<void> {
+    const task = this.tasks.get(taskId);
+    if (task && task.claimToken === token) {
+      const { claimToken: _drop, ...rest } = task;
+      this.tasks.set(taskId, rest);
+    }
+  }
+
   async appendAudit(entry: AuditEntry): Promise<void> {
     this.audit.push(entry);
   }

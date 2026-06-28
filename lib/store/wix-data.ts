@@ -58,6 +58,41 @@ async function save(dataCollectionId: string, id: string, data: Record<string, u
   }
 }
 
+type PatchResult = "applied" | "condition-failed" | "not-found";
+
+/**
+ * Patch Data Item med valfritt `condition.filter` — atomisk compare-and-set.
+ * Empiriskt verifierat mot riktig Wix Data: två samtidiga conditional-patchar →
+ * exakt EN lyckas, förloraren får HTTP 428 kod WDE0193. Endpoint `/data/v2/items/{id}`
+ * (samma bas som save/get/query, bekräftat fungerande för PATCH). `fieldPath` UTAN
+ * `data.`-prefix (get() unwrappar dataItem.data → fälten ligger på rotnivå i filtret).
+ *  • 2xx → "applied"
+ *  • 428 + WDE0193 (mot OTRUNKERAD body) → "condition-failed" (villkoret matchade inte)
+ *  • 404 → "not-found" (tasken finns inte)
+ *  • annat → THROW (okänt → anroparen avgör fail-closed/open)
+ */
+async function patchItem(
+  dataCollectionId: string,
+  dataItemId: string,
+  fieldModifications: unknown[],
+  condition?: { filter: Record<string, unknown> },
+): Promise<PatchResult> {
+  const res = await fetch(`${WIX_BASE}/data/v2/items/${encodeURIComponent(dataItemId)}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({
+      dataCollectionId,
+      patch: { dataItemId, fieldModifications },
+      ...(condition ? { condition } : {}),
+    }),
+  });
+  if (res.ok) return "applied";
+  if (res.status === 404) return "not-found";
+  const text = await res.text(); // OTRUNKERAD för WDE0193-detektion (wixErrorMessage trunkerar till 300)
+  if (res.status === 428 && /WDE0193/.test(text)) return "condition-failed";
+  throw new Error(wixErrorMessage("patch", dataCollectionId, res.status, text));
+}
+
 async function get<T>(dataCollectionId: string, id: string): Promise<T | null> {
   const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(dataCollectionId)}`;
   const res = await fetch(url, { method: "GET", headers: headers() });
@@ -187,15 +222,59 @@ export class WixDataStore implements Store {
   }
 
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
-    const existing = await get<FulfillmentTask>(COL.tasks, taskId);
-    if (!existing) return;
-    await this.upsertTask({ ...existing, status });
+    // PATCH SET_FIELD i stället för read-then-save full-replace (annars nollar en
+    // parallell skrivning claimToken). Saknad task → "not-found" → tyst no-op.
+    await patchItem(COL.tasks, taskId, [
+      { action: "SET_FIELD", fieldPath: "status", setFieldOptions: { value: status } },
+    ]);
   }
 
   async updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void> {
-    const existing = await get<FulfillmentTask>(COL.tasks, taskId);
-    if (!existing) return;
-    await this.upsertTask({ ...existing, ...patch });
+    // Per-fält-PATCH (rör BARA angivna fält) → bevarar claimToken som annars nollas av
+    // en parallell full-replace som läste före claimen. undefined → REMOVE_FIELD
+    // (override-clear). Iterera patch-objektet direkt (inte JSON-roundtrip — undefined
+    // försvinner då). Saknad task → "not-found" → tyst no-op (bevarar gammalt kontrakt).
+    const mods = Object.entries(patch).map(([k, v]) =>
+      v === undefined
+        ? { action: "REMOVE_FIELD", fieldPath: k }
+        : { action: "SET_FIELD", fieldPath: k, setFieldOptions: { value: v } },
+    );
+    if (mods.length === 0) return;
+    await patchItem(COL.tasks, taskId, mods);
+  }
+
+  async claimTask(taskId: string, token: string): Promise<boolean> {
+    // Atomisk CAS: sätt claimToken ENBART om tasken varken är beställd eller claimad.
+    // Empiriskt verifierat (3/3 + fält-löst + TOCTOU). "applied" = vi vann. 428/404 = false.
+    const r = await patchItem(
+      COL.tasks,
+      taskId,
+      [{ action: "SET_FIELD", fieldPath: "claimToken", setFieldOptions: { value: token } }],
+      {
+        filter: {
+          $and: [
+            { $or: [{ aliexpressOrderId: "" }, { aliexpressOrderId: { $exists: false } }] },
+            { $or: [{ claimToken: "" }, { claimToken: { $exists: false } }] },
+          ],
+        },
+      },
+    );
+    return r === "applied";
+  }
+
+  async releaseTask(taskId: string, token: string): Promise<void> {
+    // Rör bara om VI håller låset (condition {claimToken: token}). Fail-open: ett
+    // release-fel får ALDRIG fälla orderflödet → svälj och logga.
+    try {
+      await patchItem(
+        COL.tasks,
+        taskId,
+        [{ action: "REMOVE_FIELD", fieldPath: "claimToken" }],
+        { filter: { claimToken: token } },
+      );
+    } catch (e) {
+      console.warn(`[wix-data] releaseTask(${taskId}) misslyckades:`, e instanceof Error ? e.message : e);
+    }
   }
 
   async appendAudit(entry: AuditEntry): Promise<void> {
