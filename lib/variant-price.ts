@@ -57,9 +57,15 @@ export function v3VariantData(product: any): V3VariantData {
   const order: string[] = [];
   const meta: Record<string, { name: string; image: string }> = {};
   for (const c of opt?.choicesSettings?.choices || []) {
-    if (!c?.id || !c?.name) continue;
-    order.push(c.id);
-    meta[c.id] = { name: c.name, image: c?.linkedMedia?.[0]?.image?.url || "" };
+    // V3 keyar VAL på `choiceId` (INTE `id`, som alltid är undefined i V3-svaret) —
+    // samma id som varianternas optionChoiceIds.choiceId pekar på. Att läsa c.id
+    // hoppade över ALLA val → choices tom → null → single-axel-produkter (t.ex.
+    // paviljongen Grå/Kräm) föll till SDK:ns text-läge UTAN variantbilder (ingen
+    // bildväxling). v3MultiVariantData fixades redan; detta var samma bugg kvar i
+    // single-axel-vägen.
+    if (!c?.choiceId || !c?.name) continue;
+    order.push(c.choiceId);
+    meta[c.choiceId] = { name: c.name, image: c?.linkedMedia?.[0]?.image?.url || "" };
   }
 
   // choiceId → variantpris/-id/lager (första varianten per val).
