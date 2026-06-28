@@ -116,6 +116,7 @@ export function ProductView({
   options,
   variantAxes,
   variantTable,
+  imageOwners,
   category,
   priceNum,
 }: {
@@ -135,6 +136,7 @@ export function ProductView({
   options?: { name: string; choices: Choice[] } | null;
   variantAxes?: { name: string; choices: { label: string; image: string; color: string }[] }[];
   variantTable?: { choices: Record<string, string>; variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean; image: string }[];
+  imageOwners?: Record<string, string>;
   category?: string;
   priceNum: number;
 }) {
@@ -318,6 +320,27 @@ export function ProductView({
     setTimeout(() => setAdded(false), 1500);
   };
 
+  // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).
+  // En variant kan ha FLERA bilder: imageOwners (mediaKey → variant-etikett) är läst
+  // ur ALLA linkedMedia, inte bara första. Multi-axel: alla valda axel-etiketter;
+  // single/text: den valda variantens etikett. Matchar inget → tom → ingen markering.
+  const selectedVariantLabels = (
+    multiAxis
+      ? Object.values(picked)
+      : hasImageVariants
+        ? [imageChoices[sel]?.label]
+        : hasTextVariants
+          ? [variants[sel]?.label]
+          : []
+  ).filter(Boolean) as string[];
+  const variantImageIndices = imageOwners && selectedVariantLabels.length
+    ? galleryImages.reduce<number[]>((acc, u, i) => {
+        const owner = imageOwners[mediaKey(u)];
+        if (owner && selectedVariantLabels.includes(owner)) acc.push(i);
+        return acc;
+      }, [])
+    : [];
+
   // Multi-axel: en väljare PER axel (t.ex. Färg + Storlek). Återanvänder swatch-
   // stilen; varje axel får eget läge (bild/färg/text). Slut/omöjliga kombinationer
   // dämpas men går att klicka (visar då slut-läget) → inga återvändsgränder.
@@ -428,6 +451,7 @@ export function ProductView({
         // förladda hela serien (efter LCP, gated i Gallery) → varje variantbyte blir
         // en direkt cache-träff oavsett var bilden ligger. Capad så payloaden hålls nere.
         eagerCount={multiAxis || allHaveImage ? Math.min(galleryImages.length, 12) : 1}
+        variantImageIndices={variantImageIndices}
       />
 
       <div className="pinfo">

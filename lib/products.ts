@@ -47,6 +47,10 @@ export type Product = {
   // `options` som förut.
   variantAxes?: { name: string; choices: { label: string; image: string; color: string }[] }[];
   variantTable?: { choices: Record<string, string>; variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean; image: string }[];
+  // Vilken variant varje galleribild tillhör: mediaKey (Wix fil-id) → variant-etikett.
+  // En variant kan ha FLERA bilder (V3 linkedMedia är en lista) → används för att
+  // markera ALLA den valda variantens bilder i galleriet. Tom = ingen koppling.
+  imageOwners?: Record<string, string>;
   // Bildkvalitets-poäng (Claude vision, se lib/image-scores.ts). Styr ordningen
   // på startsida/kategori/alla-produkter. DEFAULT_SCORE för opoängsatta produkter.
   imageScore: number;
@@ -116,6 +120,37 @@ async function fetchV3ChoiceImages(productId: string): Promise<Record<string, Re
     for (const ch of opt?.choicesSettings?.choices || []) {
       const url = ch?.linkedMedia?.[0]?.image?.url;
       if (ch?.name && url) (out[name] ||= {})[ch.name] = url;
+    }
+  }
+  return out;
+}
+
+// Wix fil-id ur en media-URL (.../media/<id>...) — samma nyckel som productview/
+// gallery deduppar på, så markeringen matchar rätt galleri-slide oavsett transform.
+function ownerMediaKey(url: string): string {
+  const m = (url || "").match(/\/media\/([^/]+)/);
+  return m ? m[1] : url || "";
+}
+
+// Vilken variant varje bild tillhör: mediaKey → variant-etikett. Läser ALLA
+// linkedMedia per val (inte bara [0]) så en variants samtliga bilder kan markeras
+// i galleriet när varianten väljs. Etiketten normaliseras med swedishChoiceValue
+// så den matchar väljarens visningsetikett. Första vinnaren per bild behålls (en
+// bild som råkar delas av två val tillskrivs det första). Fail-open: {} utan nyckel.
+async function fetchV3ImageOwners(productId: string): Promise<Record<string, string>> {
+  const product = await fetchV3ProductRaw(productId);
+  if (!product) return {};
+  const out: Record<string, string> = {};
+  for (const opt of product.options || []) {
+    for (const ch of opt?.choicesSettings?.choices || []) {
+      const label = ch?.name ? swedishChoiceValue(ch.name) : "";
+      if (!label) continue;
+      for (const lm of ch?.linkedMedia || []) {
+        const url = lm?.image?.url;
+        if (!url) continue;
+        const k = ownerMediaKey(url);
+        if (k && !(k in out)) out[k] = label;
+      }
     }
   }
   return out;
@@ -488,6 +523,11 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
           // (annars hade fallback till fullGallery=[hjälten] gett dubbel hjälte igen).
           if (deduped.length) prod.gallery = deduped;
         }
+        // Vilken variant varje galleribild tillhör (mediaKey → etikett) — för att
+        // markera ALLA den valda variantens bilder i galleriet. Delar cache:ade V3-
+        // anropet. Fail-open: {} om nyckel/data saknas → ingen markering, allt annat
+        // oförändrat.
+        prod.imageOwners = await fetchV3ImageOwners(prod.id);
         return prod;
       }
     } catch (e) { console.error("[wix] getProduct failed:", (e as Error).message); }
