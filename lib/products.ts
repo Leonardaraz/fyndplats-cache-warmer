@@ -143,9 +143,18 @@ async function fetchV3MultiVariantData(productId: string): Promise<V3MultiVarian
 async function fetchV3Gallery(productId: string): Promise<string[]> {
   const product = await fetchV3ProductRaw(productId);
   const items = product?.media?.itemsInfo?.items ?? [];
-  return items
-    .map((it: any) => it?.image?.url)
-    .filter((u: unknown): u is string => typeof u === "string" && u.length > 0);
+  // Deduppa på fil-id (imgKey) — V3 kan lista samma foto i olika transform-params.
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const it of items) {
+    const url = it?.image?.url;
+    if (typeof url !== "string" || !url) continue;
+    const k = imgKey(url);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(url);
+  }
+  return out;
 }
 
 function stripHtml(h: string): string {
@@ -467,7 +476,15 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         // Strikt additivt: ersätt bara när V3 har FLER bilder → aldrig en regression
         // för migrerade produkter där V3 saknar itemsInfo (då behålls SDK-galleriet).
         const fullGallery = await fetchV3Gallery(prod.id);
-        if (fullGallery.length > prod.gallery.length) prod.gallery = fullGallery;
+        if (fullGallery.length > prod.gallery.length) {
+          // Uteslut den galleribild som är SAMMA FIL som huvudbilden (prod.img).
+          // SDK:ns mainMedia-URL och V3:s itemsInfo-URL skiljer sig i transform-params
+          // men är samma foto → page.tsx:s [p.img, ...gallery] (Set på exakt URL) skulle
+          // annars visa hjältebilden två gånger. Jämför på fil-id (imgKey).
+          const mainKey = imgKey(prod.img);
+          const deduped = fullGallery.filter((u) => imgKey(u) !== mainKey);
+          prod.gallery = deduped.length ? deduped : fullGallery;
+        }
         return prod;
       }
     } catch (e) { console.error("[wix] getProduct failed:", (e as Error).message); }

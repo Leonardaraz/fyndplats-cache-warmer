@@ -144,7 +144,25 @@ export function ProductView({
   // förvaldes billigaste varianten för att matcha "Från X kr" på korten, men då
   // pekade rutan på en variant medan galleriet visade huvudbilden — o-synkat.)
   const [sel, setSel] = useState(0);
-  const [galleryIdx, setGalleryIdx] = useState(0); // aktiv galleribild
+  // Initiera galleriet till förvald variants bild (= variantActive nedan) så det INTE
+  // hoppar hjälte→variant efter mount (flash + LCP-preload-miss). Derivaten (galleryImages
+  // m.fl.) definieras längre ned, så vi speglar uppslaget här med bara props + modul-
+  // helpers (mediaKey/findVariant/defaultSelection). Saknas bild → 0 (huvudbilden).
+  const [galleryIdx, setGalleryIdx] = useState(() => {
+    const ch = options?.choices || [];
+    const ax = variantAxes ?? [];
+    const tb = variantTable ?? [];
+    const firstImg =
+      ax.length >= 2 && tb.length >= 1
+        ? findVariant(tb, defaultSelection(tb))?.image
+        : ch.length >= 2 && ch.every((c) => c.image)
+          ? ch[0]?.image
+          : undefined;
+    if (!firstImg) return 0;
+    const k = mediaKey(firstImg);
+    const idx = images.findIndex((u) => mediaKey(u) === k);
+    return idx >= 0 ? idx : 0;
+  });
   const [added, setAdded] = useState(false);
   const [qty, setQty] = useState(1); // antal-väljare vid köp
 
@@ -218,13 +236,16 @@ export function ProductView({
 
   // Pickern väljer variant + hoppar galleriet till variantens bild (naturliga plats).
   const pickVariant = (i: number) => { setSel(i); setGalleryIdx(galleryIndexOf(imageChoices[i]?.image)); };
-  // Manuell bläddring speglar tillbaka till pickern OM bilden råkar vara en variant-
-  // bild (vald ruta följer med); annars lämnas valet orört (man tittar på en detaljbild).
+  // Manuell bläddring speglar tillbaka till pickern BARA om bilden tillhör EXAKT EN
+  // variant. Delar flera val samma bild (vanligt: 14 val men 6 galleribilder) går det
+  // inte att härleda vilket val som avses → då lämnas valet orört (man tittar bara på
+  // bilden). Annars kunde en delad/detaljbild tyst byta vald variant → fel variantId/
+  // pris/lager i kundvagnen.
   const onGalleryActive = (j: number) => {
     setGalleryIdx(j);
     const k = mediaKey(galleryImages[j] || "");
-    const vi = imageChoices.findIndex((c) => c.image && mediaKey(c.image) === k);
-    if (vi >= 0) setSel(vi);
+    const matches = imageChoices.filter((c) => c.image && mediaKey(c.image) === k);
+    if (matches.length === 1) setSel(imageChoices.indexOf(matches[0]));
   };
   // Synka galleriet till den valda varianten/kombinationen — även på första render,
   // så vald ruta och visad bild stämmer. Manuell bläddring (onActiveChange) skriver
