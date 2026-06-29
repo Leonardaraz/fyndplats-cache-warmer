@@ -560,6 +560,15 @@ export async function importProduct(
   const wixVariantSource = cap.variants;
   if (cap.capped) {
     console.warn(`[import] ${product.supplierProductId}: kapad till Wix-gränser (${cap.summary})`);
+    if (cap.droppedIncluded > 0) {
+      // Pengaväg: en eller flera KÖPBARA varianter fick inte plats inom Wix hårda gränser
+      // (>100 val/axel eller >1000 varianter). De utelämnades hellre än att hela importen 400:ar.
+      // Produkten flaggas needsAiPolish (nedan) → hamnar i kön för manuell granskning/delning.
+      console.warn(
+        `[import] ${product.supplierProductId}: VARNING — ${cap.droppedIncluded} köpbar(a) variant(er) ` +
+          `rymdes inte inom Wix-gränserna och utelämnades. Produkten flaggas för manuell granskning.`,
+      );
+    }
   }
 
   // Per-val bilder (linkedMedia): plocka ut de swatch-bilder vars axel+val faktiskt
