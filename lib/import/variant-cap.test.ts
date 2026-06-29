@@ -37,6 +37,10 @@ function assertWixConsistent(r: ReturnType<typeof capOptionsAndVariants<CapOptT,
   for (const o of r.options) for (const c of o.choices) {
     expect(usedByAxis.get(o.name)?.has(c.name)).toBe(true);
   }
+  // (f) inga två varianter har identisk options-kombination (Wix V3 avvisar dubbletter)
+  const axes = r.options.map((o) => o.name);
+  const tuples = new Set(r.variants.map((x) => JSON.stringify(axes.map((ax) => x.options[ax] ?? ""))));
+  expect(tuples.size).toBe(r.variants.length);
 }
 type CapOptT = { name: string; choices: { name: string; colorCode?: string }[] };
 
@@ -197,6 +201,38 @@ describe("capOptionsAndVariants", () => {
     expect(r.variants).toHaveLength(1);
     expect(r.variants[0].supplierVariantId).toBe("high"); // rank-tiebreak: stock 99 > 5
     expect(r.droppedIncluded).toBe(1); // tappad köpbar variant RÄKNAS (inte tyst)
+    assertWixConsistent(r);
+  });
+
+  it("dedup: identiska variant-kombinationer kollapsar ALLTID (även utan bortkapad axel) — Wix avvisar dubbletter", () => {
+    // Två varianter med exakt samma options-tupel (upstream-dubblett), inget överskrider gränser.
+    const options = [{ name: "Färg", choices: [{ name: "Röd" }, { name: "Blå" }] }];
+    const variants = [
+      v("a", { Färg: "Röd" }, { included: true, stock: 5 }),
+      v("dup", { Färg: "Röd" }, { included: true, stock: 99 }), // dubblett av "Röd"
+      v("c", { Färg: "Blå" }),
+    ];
+    const r = capOptionsAndVariants(options, variants);
+    const reds = r.variants.filter((x) => x.options.Färg === "Röd");
+    expect(reds).toHaveLength(1); // bara EN "Röd" kvar
+    expect(reds[0].supplierVariantId).toBe("dup"); // högst rank (stock 99) överlever
+    expect(r.capped).toBe(true);
+    assertWixConsistent(r);
+  });
+
+  it("dedup-nyckel kollisionssäker: värden med mellanslag kollapsar INTE distinkta tupler", () => {
+    // ["a","b c"] vs ["a b","c"] skulle kollidera med en mellanslags-separator. Får inte hända.
+    const options = [
+      { name: "X", choices: [{ name: "a" }, { name: "a b" }] },
+      { name: "Y", choices: [{ name: "b c" }, { name: "c" }] },
+    ];
+    const variants = [
+      v("p", { X: "a", Y: "b c" }, { included: true }),
+      v("q", { X: "a b", Y: "c" }, { included: true }),
+    ];
+    const r = capOptionsAndVariants(options, variants);
+    expect(r.variants).toHaveLength(2); // båda distinkta tupler behålls
+    expect(r.capped).toBe(false);
     assertWixConsistent(r);
   });
 
