@@ -3,6 +3,7 @@ import { computePriceWithRules } from "./pricing";
 import { deriveFocusKeyword } from "./focus-keyword";
 import { resolveImportStockQty } from "./variant-stock";
 import { trimVariants, variantTrimEnabled, variantTrimMax } from "./variant-trim";
+import { capOptionsAndVariants } from "./variant-cap";
 import { generateProductContent, type ProductContent } from "./generate";
 import {
   resolveQualityMode,
@@ -548,8 +549,18 @@ export async function importProduct(
   );
 
   // Options härleds från ALLA varianter; avbockade varianter skapas men döljs
-  // (visible: false) så att Wix får en komplett variantuppsättning.
-  const options = deriveOptions(variants, translatedColorCodes);
+  // (visible: false) så att Wix får en komplett variantuppsättning. MEN en överlastad
+  // AE-axel (100-tals värden under t.ex. "Color") skulle spränga Wix V3:s hårda gräns
+  // (≤100 val/option) → create-product 400 CHOICES_LIMIT_EXCEEDED. capOptionsAndVariants
+  // kapar ned till Wix-gränserna, behåller ALLTID de valda (included) varianternas värden
+  // och håller options↔varianter konsistenta. Hårdfaller aldrig → kapad produkt flaggas
+  // för polering (needsAiPolish nedan).
+  const cap = capOptionsAndVariants(deriveOptions(variants, translatedColorCodes), variants);
+  const options = cap.options;
+  const wixVariantSource = cap.variants;
+  if (cap.capped) {
+    console.warn(`[import] ${product.supplierProductId}: kapad till Wix-gränser (${cap.summary})`);
+  }
 
   // Per-val bilder (linkedMedia): plocka ut de swatch-bilder vars axel+val faktiskt
   // finns bland de härledda optionsvalen, ladda upp dem till Wix Media Manager och
@@ -582,8 +593,8 @@ export async function importProduct(
   // Läsbara SKU:er ("FP-<produkt>-<variant>") istället för "AE-<hash>". SKU:n är ren
   // etikett (fulfillment går via mappningen), så formatet är fritt. Byggs för ALLA
   // varianter, unikt inom produkten. Endast nya importer påverkas.
-  const skuByVariantId = buildVariantSkus(variants, seo.slug, product.supplierProductId);
-  const wixVariants: WixVariantInput[] = variants.map((v) => {
+  const skuByVariantId = buildVariantSkus(wixVariantSource, seo.slug, product.supplierProductId);
+  const wixVariants: WixVariantInput[] = wixVariantSource.map((v) => {
     const sku = skuByVariantId.get(v.supplierVariantId) ?? makeSku(product.supplierProductId, v.supplierVariantId);
     const price = computePriceWithRules(v.costUsd, rules, categoryName, pricingOverride);
     if (v.included) {
@@ -739,7 +750,7 @@ export async function importProduct(
   // med quantity=stockQty per inkluderad variant. Tidigare separata query→update
   // no-op:ade eftersom Wix INTE skapar lagerposter vid vanlig create — det var
   // därför produkterna fortsatte visas "Slut i lager". Här loggar vi bara utfallet.
-  const includedCount = variants.filter((v) => v.included).length;
+  const includedCount = wixVariantSource.filter((v) => v.included).length;
   await audit(
     "import-initial-stock",
     created.id,
@@ -852,7 +863,7 @@ export async function importProduct(
     hasEuWarehouse,
     warehouseClass,
     ...(created.slugSuffix ? { slugSuffix: created.slugSuffix } : {}),
-    ...((!aiEnabled || variantsNeedPolish) ? { needsAiPolish: true } : {}),
+    ...((!aiEnabled || variantsNeedPolish || cap.capped) ? { needsAiPolish: true } : {}),
     ...(translatorResult.unresolved.length > 0
       ? { unresolvedVariantValues: translatorResult.unresolved }
       : {}),
