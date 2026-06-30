@@ -47,6 +47,7 @@ const STATIC_INFO_PATHS = [
   "/kontaktaoss",
   "/vanliga-fragor",
   "/returer",
+  "/eu-lager-garanti",
   "/kopvillkor",
   "/sekretesspolicy",
   "/vara-butikspolicyer",
