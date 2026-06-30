@@ -885,6 +885,10 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 @keyframes ratingPop{from{opacity:0;transform:scale(.84) translateY(10px)}to{opacity:1;transform:none}}
 @keyframes rstarIn{0%{opacity:0;transform:scale(.2) translateY(6px) rotate(-22deg)}60%{transform:scale(1.18) rotate(4deg)}100%{opacity:1;transform:none}}
 @keyframes greviewIn{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes rstarPop{0%{transform:scale(1)}45%{transform:scale(1.34)}100%{transform:scale(1)}}
+.ratingstars.is-done .rstar{animation:rstarPop .55s ease}
+.ratingbig{transition:filter .5s ease}
+.ratingbig.is-landed{filter:drop-shadow(0 4px 18px rgba(244,122,53,.5))}
 @keyframes glowPulse{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.14)}}
 @keyframes cardSheen{0%{opacity:0;transform:translateX(-130%) skewX(-18deg)}14%{opacity:.5}45%,100%{opacity:0;transform:translateX(240%) skewX(-18deg)}}
 
@@ -922,7 +926,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .greviews-disclaimer{margin:24px auto 0;text-align:center;font-size:12.5px;line-height:1.6;color:var(--soft);max-width:620px}
 .greviews-disclaimer a{color:#C2410C;font-weight:600;white-space:nowrap}
 @media(prefers-reduced-motion:reduce){
-  .ratingbig,.ratingstars .rstar,.greview-card,.ratinghero::before{animation:none}
+  .ratingbig,.ratingstars .rstar,.ratingstars.is-done .rstar,.greview-card,.ratinghero::before{animation:none}
   .greview-card::after{display:none}
 }
 

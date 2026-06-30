@@ -8,20 +8,27 @@ import { useEffect, useState } from "react";
 // direkt (val=null → renderar `rating`); CSS-animationen är också av under reduce.
 export function AnimatedRating({ rating, max = 5 }: { rating: number; max?: number }) {
   const [val, setVal] = useState<number | null>(null);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     const reduce =
       typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return; // lämna null → visar slutvärdet
+    if (reduce) {
+      setDone(true);
+      return; // lämna null → visar slutvärdet
+    }
     let raf = 0;
     const start = performance.now();
-    const dur = 1100;
+    const dur = 2400; // lugn, "premium-dramatisk" uppräkning
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      const eased = 1 - Math.pow(1 - t, 4); // easeOutQuart — dröjer fint på slutet
       setVal(Number((rating * eased).toFixed(2)));
       if (t < 1) raf = requestAnimationFrame(tick);
-      else setVal(rating);
+      else {
+        setVal(rating);
+        setDone(true); // → stjärn-pop när siffran landar
+      }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
@@ -31,8 +38,8 @@ export function AnimatedRating({ rating, max = 5 }: { rating: number; max?: numb
 
   return (
     <>
-      <div className="ratingbig">{shown}</div>
-      <div className="ratingstars" aria-hidden="true">
+      <div className={`ratingbig${done ? " is-landed" : ""}`}>{shown}</div>
+      <div className={`ratingstars${done ? " is-done" : ""}`} aria-hidden="true">
         {Array.from({ length: max }).map((_, i) => (
           <span key={i} className="rstar" style={{ animationDelay: `${120 + i * 95}ms` }}>
             ★
