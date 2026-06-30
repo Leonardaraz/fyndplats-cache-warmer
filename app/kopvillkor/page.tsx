@@ -52,6 +52,7 @@ export default function Kopvillkor() {
       <h2>5. Leverans och leveranstid</h2>
       <p>Normal leveranstid är <strong>3–7 arbetsdagar</strong> från det att beställningen bekräftats. Leveranstiden kan variera beroende på produkt, lager och säsong. Aktuell leveranstid visas i kassan och uppdaterad status skickas via e-post.</p>
       <p>Fri frakt erbjuds vid köp över <strong>499 kr</strong>. Vid mindre köp tillkommer en fraktavgift som visas tydligt i kassan.</p>
+      <p><strong>EU-lager:</strong> samtliga produkter vi säljer skickas från lager <strong>inom EU</strong>. Din beställning omfattas därför inte av EU:s nya importtull eller förtullningsavgift för paket som skickas in i EU utifrån (gäller från och med 1 juli 2026). Detta avser import-/förtullningsavgifter – moms (25 %) ingår alltid i priset och frakt redovisas enligt ovan. Mer information finns på sidan <a href="/eu-lager-garanti">EU-lager-garanti</a>.</p>
       <p>Vid kraftiga förseningar (mer än 30 dagar) har du alltid rätt att häva köpet och få full återbetalning. Kontakta då <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>.</p>
 
       <h2>6. Ej uthämtade paket</h2>
