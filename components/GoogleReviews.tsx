@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { GoogleReview } from "../lib/google-reviews";
 
 // Inlinad Google-G (kopplas inte till site.tsx för att hålla klient-bundlen ren).
@@ -15,10 +15,10 @@ function GoogleG({ size = 16 }: { size?: number }) {
   );
 }
 
-function Stars({ rating }: { rating: number }) {
+function Stars({ rating, className = "greview-stars" }: { rating: number; className?: string }) {
   const full = Math.max(0, Math.min(5, Math.round(rating)));
   return (
-    <span className="greview-stars" aria-label={`${full} av 5 stjärnor`} title={`${full} av 5`}>
+    <span className={className} aria-label={`${full} av 5 stjärnor`} title={`${full} av 5`}>
       {"★".repeat(full)}
       <span className="greview-stars-empty">{"★".repeat(5 - full)}</span>
     </span>
@@ -29,7 +29,6 @@ function initialOf(name: string): string {
   return name.trim().charAt(0).toUpperCase() || "G";
 }
 
-// Deterministisk, behaglig avatarfärg per namn (samma namn → samma färg).
 function avatarColor(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
@@ -47,12 +46,102 @@ function formatDate(iso?: string): string | null {
   }
 }
 
+function shortQuote(t: string): string {
+  const s = t.trim();
+  return s.length > 60 ? `${s.slice(0, 58).trimEnd()}…` : s;
+}
+
+function reducedMotion(): boolean {
+  return typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+function fineHover(): boolean {
+  return typeof matchMedia !== "undefined" && matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
+// Räknar upp 0 → target när komponenten mountar (SSR/no-JS/reduced → target direkt).
+function useCountUp(target: number, durationMs = 1500): number {
+  const [v, setV] = useState<number | null>(null);
+  useEffect(() => {
+    if (reducedMotion()) {
+      setV(target);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const e = 1 - Math.pow(1 - t, 3);
+      setV(Math.round(target * e));
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else setV(target);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, durationMs]);
+  return v ?? target;
+}
+
 function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
+  const ref = useRef<HTMLLIElement>(null);
+  const [reveal, setReveal] = useState<"init" | "armed" | "show">("init");
+
+  // Scroll-reveal: ovanför vikningen = synligt direkt; under = "armed" → tonar in
+  // när det scrollas in. SSR/no-JS/reduced-motion → stannar synligt (init).
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (reducedMotion() || typeof IntersectionObserver === "undefined") return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.9) return; // redan i vy → init (synligt)
+    setReveal("armed");
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setReveal("show");
+            obs.disconnect();
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // 3D-tilt mot muspekaren (bara på dator med riktig hover/pointer).
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !fineHover() || reducedMotion()) return;
+    let raf = 0;
+    const onMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width - 0.5;
+      const py = (e.clientY - rect.top) / rect.height - 0.5;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        el.style.setProperty("--rx", `${(-py * 6).toFixed(2)}deg`);
+        el.style.setProperty("--ry", `${(px * 7).toFixed(2)}deg`);
+      });
+    };
+    const onLeave = () => {
+      cancelAnimationFrame(raf);
+      el.style.setProperty("--rx", "0deg");
+      el.style.setProperty("--ry", "0deg");
+    };
+    el.addEventListener("mousemove", onMove);
+    el.addEventListener("mouseleave", onLeave);
+    return () => {
+      el.removeEventListener("mousemove", onMove);
+      el.removeEventListener("mouseleave", onLeave);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   const d = formatDate(r.date);
-  // CSS-keyframe-entré (greviewIn) körs vid mount → kaskad både vid sidladdning
-  // och när "Visa alla" fäller ut resten. Stagger per position (återställs per rad).
+  const cls = `greview-card greview-tilt${reveal === "armed" ? " is-armed" : reveal === "show" ? " is-show" : ""}`;
   return (
-    <li className="greview-card" style={{ animationDelay: `${(index % 6) * 75}ms` }}>
+    <li ref={ref} className={cls} style={{ animationDelay: `${(index % 3) * 70}ms` }}>
       <div className="greview-head">
         <span className="greview-avatar" style={{ background: avatarColor(r.author) }} aria-hidden="true">
           {initialOf(r.author)}
@@ -73,6 +162,28 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
   );
 }
 
+function Marquee({ reviews }: { reviews: GoogleReview[] }) {
+  const items = reviews.filter((r) => r.text.length <= 120).slice(0, 12);
+  if (items.length < 4) return null;
+  const loop = [...items, ...items];
+  return (
+    <div className="greviews-marquee" aria-hidden="true">
+      <div className="greviews-track">
+        {loop.map((r, i) => (
+          <span className="greviews-chip" key={i}>
+            <span className="greviews-chipav" style={{ background: avatarColor(r.author) }}>
+              {initialOf(r.author)}
+            </span>
+            <span className="greviews-chipname">{r.author}</span>
+            <span className="greviews-chipstars">{"★".repeat(Math.round(r.rating))}</span>
+            <span className="greviews-chipquote">{shortQuote(r.text)}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function GoogleReviews({
   reviews,
   count,
@@ -85,22 +196,37 @@ export function GoogleReviews({
   profileUrl?: string;
 }) {
   const [showAll, setShowAll] = useState(false);
+  const shownCount = useCountUp(count);
   if (reviews.length === 0) return null;
 
   const INITIAL = 6;
   const shown = showAll ? reviews : reviews.slice(0, INITIAL);
   const avg = (average ?? 0).toFixed(1).replace(".", ",");
+  const stack = reviews.slice(0, 6);
 
   return (
     <section className="greviews" aria-labelledby="google-omdomen">
-      <div className="greviews-summary">
-        <span className="greviews-badge">
-          <GoogleG size={18} /> Google
+      <span className="greviews-aurora" aria-hidden="true" />
+
+      <Marquee reviews={reviews} />
+
+      <div className="greviews-topproof">
+        <span className="greviews-stack" aria-hidden="true">
+          {stack.map((r) => (
+            <span className="greviews-stackav" key={r.id} style={{ background: avatarColor(r.author) }}>
+              {initialOf(r.author)}
+            </span>
+          ))}
         </span>
-        <Stars rating={average ?? 5} />
-        <strong className="greviews-avg">{avg}</strong>
-        <span className="greviews-count">· {count} omdömen</span>
-        <span className="greviews-verified">Verifierade</span>
+        <div className="greviews-summary">
+          <span className="greviews-badge">
+            <GoogleG size={18} /> Google
+          </span>
+          <Stars rating={average ?? 5} />
+          <strong className="greviews-avg">{avg}</strong>
+          <span className="greviews-count">· {shownCount} omdömen</span>
+          <span className="greviews-verified">Verifierade</span>
+        </div>
       </div>
 
       <h2 id="google-omdomen" className="greviews-title">
