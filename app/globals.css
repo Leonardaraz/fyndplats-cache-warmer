@@ -876,9 +876,45 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 @media(max-width:540px){.cform .row{grid-template-columns:1fr}}
 /* reviews */
 .ratinghero{text-align:center;padding:10px 0 6px}
-.ratingbig{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ink)}
+.ratingbig{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ink);animation:ratingPop 1s cubic-bezier(.2,.7,.2,1) both}
 .ratingstars{color:#FFB300;font-size:24px;letter-spacing:3px;margin:10px 0 6px}
+.ratingstars .rstar{display:inline-block;color:#FFB300;animation:rstarIn .5s cubic-bezier(.2,1.4,.35,1) backwards}
 .ratingsub{color:var(--soft);font-size:16px}
+@keyframes ratingPop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes rstarIn{from{opacity:0;transform:scale(.35) translateY(5px)}to{opacity:1;transform:none}}
+@keyframes greviewIn{from{opacity:0;transform:translateY(20px) scale(.985)}to{opacity:1;transform:none}}
+
+/* Premium Google-omdömen (/omdomen) */
+.greviews{margin-top:30px}
+.greviews-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:9px 13px;margin:8px 0 6px;font-size:15px;color:var(--ink)}
+.greviews-badge{display:inline-flex;align-items:center;gap:7px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 13px;box-shadow:0 1px 2px rgba(43,38,33,.05)}
+.greviews-avg{font-size:20px;font-weight:800;color:var(--ink)}
+.greviews-count{color:var(--soft)}
+.greviews-verified{display:inline-flex;align-items:center;gap:5px;color:#2e7d32;font-weight:600;font-size:13px}
+.greviews-verified::before{content:"✓";font-weight:800}
+.greviews-stars{color:#FFB300;letter-spacing:1px;white-space:nowrap}
+.greviews-stars-empty{color:#e6ddd2}
+.greviews-title{text-align:center;font-family:var(--font-display),Georgia,serif;font-size:clamp(23px,3vw,32px);font-weight:600;letter-spacing:-.018em;margin:16px 0 26px}
+.greviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;list-style:none;margin:0;padding:0}
+.greview-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 1px 2px rgba(43,38,33,.04),0 16px 32px -24px rgba(43,38,33,.24);transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s;animation:greviewIn .6s cubic-bezier(.2,.7,.2,1) backwards}
+.greview-card:hover{transform:translateY(-4px);box-shadow:0 4px 10px rgba(43,38,33,.06),0 28px 50px -24px rgba(43,38,33,.36)}
+.greview-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.greview-avatar{flex:none;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;box-shadow:0 2px 6px rgba(0,0,0,.14);user-select:none}
+.greview-who{display:flex;flex-direction:column;min-width:0;flex:1}
+.greview-name{font-weight:700;font-size:14.5px;color:var(--ink);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.greview-meta{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:13px}
+.greview-date{color:var(--soft);font-size:12px}
+.greview-gicon{flex:none;margin-top:2px;opacity:.92}
+.greview-text{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
+.greviews-actions{text-align:center;margin-top:26px}
+.greviews-more{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border:0;border-radius:999px;background:linear-gradient(135deg,#C2410C,#F47A35);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 12px 26px -12px rgba(194,65,12,.75);transition:transform .2s,box-shadow .2s,filter .2s}
+.greviews-more:hover{transform:translateY(-2px);box-shadow:0 18px 32px -12px rgba(194,65,12,.85);filter:brightness(1.05)}
+.greviews-more:active{transform:translateY(0)}
+.greviews-disclaimer{margin:22px auto 0;text-align:center;font-size:12.5px;line-height:1.6;color:var(--soft);max-width:620px}
+.greviews-disclaimer a{color:#C2410C;font-weight:600;white-space:nowrap}
+@media(prefers-reduced-motion:reduce){
+  .ratingbig,.ratingstars .rstar,.greview-card{animation:none}
+}
 
 /* ============================================================
    PREMIUM FEATURES — added by Claude
