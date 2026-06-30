@@ -560,6 +560,13 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pdp-trust{display:flex;flex-direction:column;gap:10px;margin-top:20px;font-size:14px;color:var(--soft)}
 .pdp-trust span{display:inline-flex;align-items:center;gap:9px}
 .pdp-trust svg{width:18px;height:18px;flex:none;color:#8a8178}
+/* EU-raden: längre etikett kan radbrytas → toppställ ikonen mot första raden. */
+.pdp-trust-eu{align-items:flex-start}
+.pdp-trust-eu svg{margin-top:1px}
+/* Länken till garanti-sidan ska vara synligt klickbar (inte bara färgskild) → WCAG 1.4.1. */
+.pdp-trust a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(43,38,33,.32)}
+.pdp-trust a:hover{text-decoration-color:currentColor}
+.pdp-trust a:focus-visible{outline:2px solid #C2410C;outline-offset:2px;border-radius:3px}
 .specbox{margin-top:28px;background:var(--warm);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
 .specbox h2{font-size:16px;font-weight:700;margin-bottom:10px}
 .specbox ul{list-style:none;display:flex;flex-direction:column;gap:6px}
@@ -687,9 +694,10 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .drawer-foot .sub{display:flex;justify-content:space-between;font-size:16px;margin-bottom:14px}
 .drawer-foot .buy{width:100%;max-width:none;justify-content:center;display:flex}
 .drawer-note{font-size:12px;color:var(--soft);text-align:center;margin-top:10px}
-.drawer-eu{font-size:12px;color:var(--soft);text-align:center;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px}
-.drawer-eu a{color:inherit;text-decoration:none}
-.drawer-eu a:hover{text-decoration:underline}
+.drawer-eu{font-size:12px;color:var(--soft);text-align:center;margin-top:8px;display:flex;align-items:flex-start;justify-content:center;gap:6px}
+.drawer-eu a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(43,38,33,.32)}
+.drawer-eu a:hover{text-decoration-color:currentColor}
+.drawer-eu a:focus-visible{outline:2px solid #C2410C;outline-offset:2px;border-radius:3px}
 .buybox{max-width:420px}
 .varpick{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:12px;font-weight:600;color:var(--soft)}
 .varpick select{font:inherit;font-size:16px;color:var(--ink);padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;background:#fff;cursor:pointer}
