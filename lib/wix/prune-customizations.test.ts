@@ -1,8 +1,31 @@
 import { describe, it, expect } from "vitest";
-import { buildHeadroomReport, formatHeadroomWarnings, type WixCustomization } from "./prune-customizations";
+import {
+  buildHeadroomReport,
+  formatHeadroomWarnings,
+  planCustomizationPrune,
+  executePrune,
+  type ChoiceUsage,
+  type WixCustomization,
+} from "./prune-customizations";
 
 const c = (name: string, renderType: string, choiceCount: number, type = "PRODUCT_OPTION", id = name + renderType): WixCustomization =>
   ({ id, name, renderType, customizationType: type, choiceCount });
+
+// Helper för prune-tester: customization med faktiska val (id+namn) + revision.
+const withChoices = (
+  id: string,
+  name: string,
+  choiceNames: string[],
+  type = "PRODUCT_OPTION",
+): WixCustomization => ({
+  id,
+  name,
+  renderType: "TEXT_CHOICES",
+  customizationType: type,
+  choiceCount: choiceNames.length,
+  revision: "1",
+  choices: choiceNames.map((n) => ({ choiceId: `${id}:${n}`, name: n })),
+});
 
 describe("buildHeadroomReport", () => {
   // Spegel av live-läget 2026-06-30: två "Färg" (olika renderType), Storlek nära taket.
@@ -71,5 +94,58 @@ describe("buildHeadroomReport", () => {
     expect(r.buckets).toHaveLength(0);
     expect(r.maxChoiceCount).toBe(0);
     expect(formatHeadroomWarnings(r)).toHaveLength(0);
+  });
+});
+
+describe("planCustomizationPrune", () => {
+  it("flaggar tomma PRODUCT_OPTION-hinkar för radering", () => {
+    const custs = [withChoices("a", "Färg", ["Röd"]), withChoices("b", "Länd", [])];
+    const plan = planCustomizationPrune(custs, new Map([["a", new Set(["a:Röd"])]]));
+    expect(plan.emptyToDelete.map((e) => e.name)).toEqual(["Länd"]);
+  });
+
+  it("identifierar föräldralösa val (ej i bruk) men behåller använda", () => {
+    const cust = withChoices("storlek", "Storlek", ["S", "M", "L"]);
+    const usage: ChoiceUsage = new Map([["storlek", new Set(["storlek:S", "storlek:L"])]]); // M oanvänd
+    const plan = planCustomizationPrune([cust], usage);
+    expect(plan.totalOrphanChoices).toBe(1);
+    expect(plan.choicePrunes[0].orphanNames).toEqual(["M"]);
+    expect(plan.choicePrunes[0].keepCount).toBe(2);
+  });
+
+  it("ingen prune när alla val är i bruk", () => {
+    const cust = withChoices("f", "Färg", ["Röd", "Blå"]);
+    const usage: ChoiceUsage = new Map([["f", new Set(["f:Röd", "f:Blå"])]]);
+    const plan = planCustomizationPrune([cust], usage);
+    expect(plan.choicePrunes).toHaveLength(0);
+    expect(plan.emptyToDelete).toHaveLength(0);
+  });
+
+  it("hink utan användnings-post → ALLA dess val räknas som föräldralösa", () => {
+    // (Hela hinken oanvänd — t.ex. efter att produkterna strippats.)
+    const cust = withChoices("x", "Variant", ["a", "b"]);
+    const plan = planCustomizationPrune([cust], new Map());
+    expect(plan.totalOrphanChoices).toBe(2);
+  });
+
+  it("exkluderar MODIFIER", () => {
+    const cust = withChoices("g", "Gravyr", ["Text1"], "MODIFIER");
+    const plan = planCustomizationPrune([cust], new Map());
+    expect(plan.choicePrunes).toHaveLength(0);
+    expect(plan.emptyToDelete).toHaveLength(0);
+  });
+});
+
+describe("executePrune (dry-run)", () => {
+  it("dry-run muterar inget men rapporterar vad som SKULLE tas bort", async () => {
+    const plan = planCustomizationPrune(
+      [withChoices("s", "Storlek", ["S", "M"]), withChoices("e", "Tom", [])],
+      new Map([["s", new Set(["s:S"])]]),
+    );
+    const r = await executePrune(plan, { dryRun: true });
+    expect(r.dryRun).toBe(true);
+    expect(r.emptyDeleted).toBe(1); // skulle radera "Tom"
+    expect(r.choicesRemoved).toBe(1); // skulle ta bort "M"
+    expect(r.failures).toHaveLength(0);
   });
 });
