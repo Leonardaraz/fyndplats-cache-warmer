@@ -9,6 +9,7 @@ import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } 
 import { DeliveryEstimate } from "./delivery-estimate";
 import { PaymentMarks } from "./payment-marks";
 import { KlarnaMessage } from "./klarna-message";
+import { EU_STOCK_NOTE } from "../lib/shipping";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -534,6 +535,16 @@ export function ProductView({
                 <path d="M9 12l2 2 4-4" />
               </svg>
               Trygg betalning med Klarna
+            </span>
+            <span>
+              {/* EU-lager: ingen ny importtull/förtullning (1 juli 2026). Sann för
+                  HELA sortimentet (ägarens garanti). Texten = single source of truth
+                  i lib/shipping.ts; länkar till garanti-sidan med dess gränser. */}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11Z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              <a href="/eu-lager-garanti" style={{ color: "inherit", textDecoration: "none" }}>{EU_STOCK_NOTE}</a>
             </span>
           </div>
 

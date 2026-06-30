@@ -9,6 +9,7 @@ import {
 } from "../lib/analytics";
 import type { RecoProduct } from "../lib/products";
 import { tightFillUrl } from "../lib/wix-image";
+import { EU_STOCK_NOTE_SHORT } from "../lib/shipping";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -330,6 +331,13 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
             <div className="sub"><span>Delsumma</span><b>{subtotal}</b></div>
             <button className="buy" disabled={busy} onClick={checkout}>{busy ? "…" : "Till kassan →"}</button>
             <p className="drawer-note">Frakt och rabatter beräknas i kassan.</p>
+            {/* Sista mikro-trygghet före extern Wix-kassa: ingen ny EU-importtull
+                (1 juli 2026) eftersom allt skickas inom EU. Text = single source
+                of truth (lib/shipping.ts); länkar till garanti-sidan. */}
+            <p className="drawer-eu">
+              <span aria-hidden="true">🇪🇺</span>
+              <a href="/eu-lager-garanti">{EU_STOCK_NOTE_SHORT}</a>
+            </p>
           </div>
         )}
       </aside>
