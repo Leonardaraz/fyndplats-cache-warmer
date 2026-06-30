@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { ContentPage } from "../../components/content";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../../lib/social-proof";
+import { getGoogleReviews } from "../../lib/google-reviews";
+import { GoogleReviews } from "../../components/GoogleReviews";
 
 const ratingDesc = `Fyndplats har ${GOOGLE_RATING} av 5 i betyg på Google, baserat på ${GOOGLE_REVIEWS_LABEL}. Trygg svensk e-handel som kunderna rekommenderar.`;
 
@@ -11,7 +13,11 @@ export const metadata: Metadata = {
   openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/omdomen", title: "Omdömen", description: ratingDesc, images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg"] },
 };
 
-export default function Omdomen() {
+export default async function Omdomen() {
+  // Live Google-omdömen (graceful: tomt tills env är satt → sidan ser ut som innan).
+  const google = await getGoogleReviews();
+  const profileUrl = process.env.GOOGLE_REVIEW_URL || undefined;
+
   return (
     <ContentPage
       eyebrow="Omdömen"
@@ -27,6 +33,13 @@ export default function Omdomen() {
       <div className="callout" style={{ textAlign: "center" }}>
         <p>Tack till alla som handlat hos oss och lämnat ett omdöme. Din feedback hjälper oss att bli bättre – och andra att handla tryggt.</p>
       </div>
+
+      <GoogleReviews
+        reviews={google.reviews}
+        count={google.count}
+        average={google.average}
+        profileUrl={profileUrl}
+      />
 
       <h2>Har du handlat hos oss?</h2>
       <p>Vi blir glada för varje omdöme. Berätta gärna om din upplevelse, eller hör av dig direkt om något inte blev som du förväntade dig – vi löser det.</p>
