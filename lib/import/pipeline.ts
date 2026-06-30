@@ -4,6 +4,7 @@ import { deriveFocusKeyword } from "./focus-keyword";
 import { resolveImportStockQty } from "./variant-stock";
 import { trimVariants, variantTrimEnabled, variantTrimMax } from "./variant-trim";
 import { capOptionsAndVariants } from "./variant-cap";
+import { splitConstantAxes, mergeConstantAxisSpecs } from "./constant-axes";
 import { generateProductContent, type ProductContent } from "./generate";
 import {
   resolveQualityMode,
@@ -258,6 +259,18 @@ export async function importProduct(
     options: translator.options(v.options),
   }));
   const translatedColorCodes = colorCodes ? translator.axisKeyedMap(colorCodes) : undefined;
+  // Icke-differentierande axlar (exakt 1 värde, t.ex. en fast dimension "60X34X70 cm")
+  // är ingen variant → plocka ut dem som SPEC-rader i stället för döda 1-vals-rullistor.
+  // prunedVariants matar options/cap/wixVariants (rena produktsidor); constantAxisSpecs
+  // fogas in i spec-fliken nedan. Premium + hindrar att fasta mått fyller den delade
+  // "Storlek"-listan mot Wix 100-vals-taket. Se lib/import/constant-axes.ts.
+  const { prunedVariants, specs: constantAxisSpecs } = splitConstantAxes(variants);
+  if (constantAxisSpecs.length) {
+    console.log(
+      `[import:axes] ${product.supplierProductId}: ${constantAxisSpecs.length} icke-differentierande ` +
+        `axel/axlar → spec i st.f. variantväljare (${constantAxisSpecs.map((s) => s.label).join(", ")}).`,
+    );
+  }
   // Variantbild-backfill (bug "kepsen" 2026-06-06): när skrapan inte fångade NÅGON
   // per-färg-bild (lazy-load/annan DOM) får produkten text-val utan bild. Hämta då
   // bilderna från DS-produkt-API:t (sku_image), matchat på SKU-id, med skrapans råa
@@ -528,9 +541,15 @@ export async function importProduct(
   // Användning och skötsel) genererades ovan (batchat i ett anrop, eller via
   // generateTabs i legacy-läget) och fogas nu in i beskrivningen som <h2>-block
   // som storefronten splittar till flikar.
+  // Foga in de icke-differentierande axlarna (t.ex. fast mått) som spec-rader i
+  // spec-fliken — så värdet syns trots att det inte längre är en variantväljare.
+  // Dedup mot befintliga specs (AE:s egna mått vinner); värdet är redan översatt.
+  const tabsWithAxisSpecs = constantAxisSpecs.length
+    ? { ...generatedTabs, specs: mergeConstantAxisSpecs(generatedTabs.specs, constantAxisSpecs) }
+    : generatedTabs;
   const enrichedDescriptionHtml = appendTabSections(
     seo.descriptionHtml,
-    buildTabSections(generatedTabs),
+    buildTabSections(tabsWithAxisSpecs),
   ).html;
 
   // Initialt lagersaldo per variant. quantity>0 → availabilityStatus=IN_STOCK.
@@ -555,7 +574,7 @@ export async function importProduct(
   // kapar ned till Wix-gränserna, behåller ALLTID de valda (included) varianternas värden
   // och håller options↔varianter konsistenta. Hårdfaller aldrig → kapad produkt flaggas
   // för polering (needsAiPolish nedan).
-  const cap = capOptionsAndVariants(deriveOptions(variants, translatedColorCodes), variants);
+  const cap = capOptionsAndVariants(deriveOptions(prunedVariants, translatedColorCodes), prunedVariants);
   const options = cap.options;
   const wixVariantSource = cap.variants;
   if (cap.capped) {
