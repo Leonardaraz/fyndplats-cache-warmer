@@ -545,6 +545,10 @@ export async function POST(req: Request) {
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Okant fel";
+    // Logga det FAKTISKA felet (inte bara returnera det till tillägget). Tidigare
+    // syntes import-fel ENBART i HTTP-svaret → omöjligt att diagnostisera i Vercel-
+    // loggarna vad som faktiskt fällde importen (t.ex. Wix create-product-detalj).
+    console.error(`[import:fail] pid=${product.supplierProductId}: ${message}`);
     return NextResponse.json({ error: "Import misslyckades", message }, { status: 500 });
   }
 }

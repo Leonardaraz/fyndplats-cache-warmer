@@ -731,6 +731,13 @@ export async function importProduct(
       : aiEnabled && process.env.IMPORT_DRAFT_DEFAULT === "false",
   };
 
+  // Logga den faktiska payload-formen som skickas till Wix — så att 400:or
+  // (CHOICES_LIMIT/TOO_MANY_*) går att diagnostisera i loggarna utan att gissa.
+  console.log(
+    `[import:wix-payload] pid=${product.supplierProductId} options=${wixInput.options?.length ?? 0} ` +
+      `maxChoices=${(wixInput.options ?? []).reduce((m, o) => Math.max(m, o.choices.length), 0)} ` +
+      `variants=${wixInput.variants.length}`,
+  );
   const created = await createProduct(wixInput);
 
   // Koppla Wix-tilldelade variant-id:n till våra mappningar via SKU.
