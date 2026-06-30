@@ -171,6 +171,7 @@ export default async function Home() {
                 <a className="btn btn-ghost" href="/butik">Se alla kategorier</a>
               </div>
               <div className="herotrust">
+                <span><b style={{ color: "#C2410C" }}>🇪🇺</b> <a href="/blogg/nya-tullreglerna-2026-eu-lager" style={{ color: "inherit", textDecoration: "none" }}>Allt från EU-lager – ingen tull</a></span>
                 <span><b style={{ color: "#C2410C" }}>✓</b> Google {GOOGLE_RATING}★ ({GOOGLE_REVIEWS_LABEL})</span>
                 <span><b style={{ color: "#C2410C" }}>✓</b> Svensk kundtjänst</span>
                 <span><b style={{ color: "#C2410C" }}>✓</b> 30 dagars öppet köp</span>
