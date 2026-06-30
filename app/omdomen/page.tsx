@@ -4,6 +4,7 @@ import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../../lib/social-proof";
 import { getGoogleReviews } from "../../lib/google-reviews";
 import { CURATED_RESULT } from "../../lib/curated-reviews";
 import { GoogleReviews } from "../../components/GoogleReviews";
+import { AnimatedRating } from "../../components/AnimatedRating";
 
 // Publik fallback-länk till Google-profilen (för "Se alla på Google"-knappen)
 // tills exakt profil-URL sätts via GOOGLE_REVIEW_URL.
@@ -33,8 +34,7 @@ export default async function Omdomen() {
       lead="Vi mäter oss i nöjda kunder. Här är vårt samlade betyg – och en inbjudan att dela din egen upplevelse."
     >
       <div className="ratinghero">
-        <div className="ratingbig">{GOOGLE_RATING}</div>
-        <div className="ratingstars">★★★★★</div>
+        <AnimatedRating rating={Number(GOOGLE_RATING.replace(",", ".")) || 5} />
         <div className="ratingsub">Genomsnittligt betyg på Google · baserat på {GOOGLE_REVIEWS_LABEL}</div>
       </div>
 

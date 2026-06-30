@@ -34,6 +34,9 @@ body{
   overflow-x:clip;overscroll-behavior-x:none;
 }
 a{text-decoration:none;color:inherit}
+/* Global tangentbordsfokus-ring (WCAG 2.4.7). :where() håller specificiteten 0 så
+   att komponenternas egna :focus-visible-regler fortsatt vinner där de finns. */
+:where(a,button,select,summary,input,textarea,[tabindex]):focus-visible{outline:2px solid #C2410C;outline-offset:2px;border-radius:3px}
 img{display:block;max-width:100%}
 /* Branded textmarkering (i stället för default-blå) — liten premium-detalj. */
 ::selection{background:var(--peach);color:var(--ink)}
@@ -56,7 +59,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .search{flex:1;display:flex;align-items:center;gap:9px;background:#f5f1ec;border:1px solid var(--line);border-radius:999px;padding:10px 16px;color:#9a948c;font-size:14px;transition:border-color .2s,background .2s}
 .search:focus-within{border-color:var(--orange);background:#fff}
 .search input{flex:1;border:none;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none;padding:0}
-.search input::placeholder{color:#9a948c}
+.search input::placeholder{color:#6b6157}
 /* iOS Safari auto-zoomar in hela sidan när ett fokuserat fält har font-size < 16px.
    Tvinga därför ALLA interaktiva fält till minst 16px på mobil (sök, nyhetsbrev,
    bevaka-i-lager, spårning, kontakt). !important krävs eftersom flera fält har
@@ -255,7 +258,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .nl-form{max-width:540px;margin:0 auto}
 .nl-row{display:flex;gap:10px;flex-wrap:wrap}
 .nl-input{flex:1;min-width:200px;height:52px;padding:0 18px;border:1px solid var(--line);border-radius:13px;background:#fff;font-size:16px;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
-.nl-input::placeholder{color:#a59b8f}
+.nl-input::placeholder{color:#6b6157}
 .nl-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(244,122,53,.16)}
 .nl-btn{height:52px;padding:0 26px;border:none;border-radius:13px;background:#C2410C;color:#fff;font-weight:700;font-size:16px;cursor:pointer;white-space:nowrap;box-shadow:0 14px 28px -12px rgba(194,65,12,.5);transition:transform .2s,box-shadow .2s,opacity .2s}
 .nl-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 18px 34px -12px rgba(194,65,12,.55)}
@@ -461,7 +464,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 /* Prickindikator — visas i stället för miniatyrgriden på mobil (renare look).
    Desktop behåller miniatyrerna; mobil-reglerna nedan växlar synligheten. */
 .gdots{display:none;justify-content:center;align-items:center;gap:8px;margin-top:14px}
-.gdot{width:8px;height:8px;padding:0;border:none;border-radius:50%;background:#d8cdbf;cursor:pointer;transition:background .2s,transform .2s,width .2s}
+.gdot{position:relative;width:8px;height:8px;padding:0;border:none;border-radius:50%;background:#d8cdbf;cursor:pointer;transition:background .2s,transform .2s,width .2s}
+/* Förstora träffytan för de små galleri-prickarna (primär mobilnavigering) till ~44px utan att ändra utseendet. */
+.gdot::after{content:"";position:absolute;inset:-18px -5px}
 .gdot:hover{background:#bba98f}
 .gdot.active{background:#C2410C;transform:scale(1.15);width:20px;border-radius:999px}
 /* Variantens egna bilder: orange prick (vs grå default) så gruppen syns på mobil. */
@@ -875,10 +880,87 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .cform .buy{align-self:flex-start;width:auto;max-width:none}
 @media(max-width:540px){.cform .row{grid-template-columns:1fr}}
 /* reviews */
-.ratinghero{text-align:center;padding:10px 0 6px}
-.ratingbig{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ink)}
-.ratingstars{color:#FFB300;font-size:24px;letter-spacing:3px;margin:10px 0 6px}
+.ratinghero{position:relative;text-align:center;padding:14px 0 6px}
+.ratinghero::before{content:"";position:absolute;left:50%;top:42%;width:min(340px,80%);height:200px;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(244,122,53,.24),transparent 72%);filter:blur(6px);z-index:0;pointer-events:none;animation:glowPulse 5.5s ease-in-out infinite}
+.ratinghero>*{position:relative;z-index:1}
+.ratingbig{font-size:clamp(64px,11vw,82px);font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;color:#C2410C;background:linear-gradient(135deg,#C2410C 0%,#F47A35 55%,#FFB300 120%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ratingPop 1s cubic-bezier(.2,.7,.2,1) both}
+.ratingstars{font-size:26px;letter-spacing:4px;margin:12px 0 6px}
+.ratingstars .rstar{display:inline-block;color:#FFB300;text-shadow:0 2px 10px rgba(255,179,0,.5);animation:rstarIn .55s cubic-bezier(.2,1.5,.35,1) backwards}
 .ratingsub{color:var(--soft);font-size:16px}
+@keyframes ratingPop{from{opacity:0;transform:scale(.84) translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rstarIn{0%{opacity:0;transform:scale(.2) translateY(6px) rotate(-22deg)}60%{transform:scale(1.18) rotate(4deg)}100%{opacity:1;transform:none}}
+@keyframes greviewIn{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes rstarPop{0%{transform:scale(1)}45%{transform:scale(1.34)}100%{transform:scale(1)}}
+.ratingstars.is-done .rstar{animation:rstarPop .55s ease}
+.ratingbig{transition:filter .5s ease}
+.ratingbig.is-landed{filter:drop-shadow(0 4px 18px rgba(244,122,53,.5))}
+@keyframes glowPulse{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.14)}}
+@keyframes cardSheen{0%{opacity:0;transform:translateX(-130%) skewX(-18deg)}14%{opacity:.5}45%,100%{opacity:0;transform:translateX(240%) skewX(-18deg)}}
+
+/* Premium Google-omdömen (/omdomen) */
+.greviews{position:relative;margin-top:34px}
+.greviews-aurora{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;border-radius:24px}
+.greviews-aurora::before,.greviews-aurora::after{content:"";position:absolute;width:48%;height:55%;border-radius:50%;filter:blur(72px);opacity:.42}
+.greviews-aurora::before{top:-8%;left:-6%;background:radial-gradient(circle,rgba(244,122,53,.55),transparent 70%);animation:auroraA 17s ease-in-out infinite}
+.greviews-aurora::after{bottom:-10%;right:-6%;background:radial-gradient(circle,rgba(255,179,0,.45),transparent 70%);animation:auroraB 21s ease-in-out infinite}
+.greviews-marquee,.greviews-topproof,.greviews-title,.greviews-grid,.greviews-actions,.greviews-disclaimer{position:relative;z-index:1}
+@keyframes auroraA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(42px,30px) scale(1.12)}}
+@keyframes auroraB{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-38px,-26px) scale(1.1)}}
+
+/* Wall of love-marquee */
+.greviews-marquee{overflow:hidden;margin:0 0 16px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.greviews-track{display:flex;gap:12px;width:max-content;animation:marquee 44s linear infinite}
+.greviews-marquee:hover .greviews-track{animation-play-state:paused}
+.greviews-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 16px 6px 6px;box-shadow:0 1px 2px rgba(43,38,33,.05);white-space:nowrap;font-size:13px}
+.greviews-chipav{flex:none;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+.greviews-chipname{font-weight:700;color:var(--ink)}
+.greviews-chipstars{color:#FFB300;letter-spacing:.5px;font-size:11px}
+.greviews-chipquote{color:var(--soft);max-width:260px;overflow:hidden;text-overflow:ellipsis}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* Topp-proof: avatar-stack + summering */
+.greviews-topproof{display:flex;flex-direction:column;align-items:center;gap:10px}
+.greviews-stack{display:inline-flex;align-items:center}
+.greviews-stackav{flex:none;width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.16);margin-left:-10px}
+.greviews-stackav:first-child{margin-left:0}
+.greviews-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 14px;width:fit-content;max-width:100%;margin:0 auto;font-size:15px;color:var(--ink);background:linear-gradient(135deg,#fff,var(--warm));border:1px solid var(--line);border-radius:16px;padding:12px 20px;box-shadow:0 1px 2px rgba(43,38,33,.04),0 18px 38px -28px rgba(43,38,33,.32)}
+.greviews-badge{display:inline-flex;align-items:center;gap:7px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 13px;box-shadow:0 1px 2px rgba(43,38,33,.05)}
+.greviews-avg{font-size:21px;font-weight:800;color:var(--ink)}
+.greviews-count{color:var(--soft)}
+.greviews-count-num{display:inline-block;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.greviews-verified{display:inline-flex;align-items:center;gap:5px;color:#2e7d32;font-weight:600;font-size:13px}
+.greviews-verified::before{content:"✓";font-weight:800}
+.greview-stars{color:#FFB300;letter-spacing:1px;white-space:nowrap}
+.greview-stars-empty{color:#e3dcd1}
+.greviews-title{text-align:center;font-family:var(--font-display),Georgia,serif;font-size:clamp(23px,3vw,32px);font-weight:600;letter-spacing:-.018em;margin:18px 0 26px}
+.greviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;list-style:none;margin:0;padding:0}
+
+/* Kort: 3D-tilt + scroll-reveal */
+.greview-card{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 20px 20px;box-shadow:0 1px 2px rgba(43,38,33,.04),0 16px 32px -24px rgba(43,38,33,.24);transition:box-shadow .3s,border-color .3s,transform .2s ease-out;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+.greview-card.is-armed{opacity:0;transform:perspective(900px) translateY(28px)}
+.greview-card.is-show{animation:greviewIn .6s cubic-bezier(.2,.7,.2,1) backwards}
+.greview-card::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,#C2410C,#F47A35,#FFB300);transform:scaleX(0);transform-origin:left;transition:transform .35s ease;z-index:2}
+.greview-card:hover{border-color:rgba(244,122,53,.5);box-shadow:0 8px 18px rgba(194,65,12,.1),0 34px 60px -22px rgba(194,65,12,.36)}
+.greview-card:hover::before{transform:scaleX(1)}
+.greview-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.greview-avatar{position:relative;flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;box-shadow:0 3px 8px rgba(0,0,0,.18),inset 0 0 0 2px rgba(255,255,255,.25);user-select:none}
+.greview-who{display:flex;flex-direction:column;min-width:0;flex:1}
+.greview-name{font-weight:700;font-size:14.5px;color:var(--ink);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.greview-meta{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:13px}
+.greview-date{color:var(--soft);font-size:12px}
+.greview-gicon{flex:none;margin-top:2px;opacity:.92}
+.greview-text{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
+.greviews-actions{text-align:center;margin-top:28px}
+.greviews-more{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border:0;border-radius:999px;background:linear-gradient(135deg,#C2410C,#F47A35);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 12px 26px -12px rgba(194,65,12,.75);transition:transform .2s,box-shadow .2s,filter .2s}
+.greviews-more::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);transition:left .55s ease}
+.greviews-more:hover{transform:translateY(-2px);box-shadow:0 18px 34px -12px rgba(194,65,12,.9);filter:brightness(1.05)}
+.greviews-more:hover::after{left:130%}
+.greviews-more:active{transform:translateY(0)}
+.greviews-disclaimer{margin:24px auto 0;text-align:center;font-size:12.5px;line-height:1.6;color:var(--soft);max-width:620px}
+.greviews-disclaimer a{color:#C2410C;font-weight:600;white-space:nowrap}
+@media(prefers-reduced-motion:reduce){
+  .ratingbig,.ratingstars .rstar,.ratingstars.is-done .rstar,.greview-card.is-show,.ratinghero::before,.greviews-track,.greviews-aurora::before,.greviews-aurora::after{animation:none}
+}
 
 /* ============================================================
    PREMIUM FEATURES — added by Claude
@@ -921,7 +1003,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .wl-drawer .wl-link:hover{color:#C2410C}
 
 /* #3 Low stock badges */
-.low-stock-badge{position:absolute;top:10px;left:10px;z-index:2;background:#FF6B35;color:#fff;font-size:12px;font-weight:700;padding:5px 10px;border-radius:6px;letter-spacing:.02em;box-shadow:0 3px 10px -3px rgba(0,0,0,.3)}
+.low-stock-badge{position:absolute;top:10px;left:10px;z-index:2;background:#C2410C;color:#fff;font-size:12px;font-weight:700;padding:5px 10px;border-radius:6px;letter-spacing:.02em;box-shadow:0 3px 10px -3px rgba(0,0,0,.3)}
 .low-stock-warn{margin:10px 0 6px;padding:10px 14px;background:#FFF4ED;color:#C2410C;font-weight:600;font-size:14px;border-radius:10px;border-left:4px solid #FF6B35;display:inline-block}
 
 /* Slutsåld (OOS) badge on product cards — produkten visas men markeras slutsåld */

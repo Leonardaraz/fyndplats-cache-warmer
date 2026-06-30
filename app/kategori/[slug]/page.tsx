@@ -202,8 +202,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
                   src={heroImg}
                   alt={active.name}
                   fill
-                  preload
-                  fetchPriority="high"
+                  priority
                   placeholder="blur"
                   blurDataURL={heroBlur}
                   sizes="(max-width:760px) 100vw, 480px"

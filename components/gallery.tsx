@@ -13,9 +13,9 @@ import { tightFillUrl } from "../lib/wix-image";
 // redan webp och rätt storlek — ingen optimerar-kallstart i kritiska vägen.
 // Galleriets huvudbild visas i aspect-ratio:1 med object-fit:cover, så en
 // kvadratisk fill (w=h) matchar exakt utan dubbelbeskärning.
-// preload + fetchPriority="high" på <Image> ger fortfarande <link rel=preload>
-// i <head>, och Next genererar preload-href:en via SAMMA loader → webbläsaren
-// förladdar Wix-URL:en direkt, inte optimerar-URL:en.
+// `priority` på initiala lagret (LCP-bilden) genererar <link rel=preload
+// fetchpriority=high> i <head> via SAMMA loader → webbläsaren förladdar
+// rätt URL. (OBS: next/image har ingen `preload`-prop — det är `priority`.)
 function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
   if (!(src || "").includes("static.wixstatic.com")) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
   // q_72 i stället för 82: hjältebilden var en PNG-sourcad produktbild som
@@ -330,7 +330,7 @@ export function Gallery({
               data-idx={i}
               loader={isWix ? wixMainLoader : undefined}
               {...(isInitial
-                ? { preload: true }
+                ? { priority: true as const }
                 : { loading: "eager" as const, fetchPriority: "low" as const })}
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
@@ -401,7 +401,7 @@ export function Gallery({
                 transition: gesturing ? "none" : "transform .28s cubic-bezier(.2,.7,.2,1)",
               }}
             >
-              <Image key={main} src={tightFillUrl(main, 1600, 1600)} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} preload draggable={false} />
+              <Image key={main} src={tightFillUrl(main, 1600, 1600)} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} loading="eager" draggable={false} />
             </div>
           </div>
           {imgs.length > 1 && (
