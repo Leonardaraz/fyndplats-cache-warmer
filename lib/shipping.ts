@@ -30,4 +30,4 @@ export const DELIVERY_TIME = `${DELIVERY_MIN_DAYS}–${DELIVERY_MAX_DAYS} arbets
 // EU. ÄRLIGT avgränsat: gäller importtull/förtullning — moms (25 %) ingår alltid i priset och
 // "pratas aldrig bort"; täcker inte ev. fraktavgift under fri-frakt-gränsen eller returfrakt.
 export const EU_STOCK_NOTE = "Skickas från EU-lager – ingen importtull eller förtullningsavgift.";
-export const EU_STOCK_NOTE_SHORT = "Allt skickas inom EU – inga tullavgifter tillkommer.";
+export const EU_STOCK_NOTE_SHORT = "Skickas från EU-lager – ingen importtull tillkommer.";

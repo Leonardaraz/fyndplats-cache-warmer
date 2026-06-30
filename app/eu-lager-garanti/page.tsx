@@ -4,7 +4,7 @@ import { EU_STOCK_NOTE } from "../../lib/shipping";
 
 const TITLE = "EU-lager-garanti";
 const DESC =
-  "Alla produkter hos Fyndplats kommer garanterat från lager inom EU. Därför tillkommer ingen ny importtull eller förtullningsavgift på din beställning – så här fungerar löftet och dess gränser.";
+  "Alla produkter hos Fyndplats kommer garanterat från lager inom EU – därför tillkommer ingen ny importtull eller förtullningsavgift på din beställning.";
 const URL = "https://www.fyndplats.se/eu-lager-garanti";
 const OG_IMAGE =
   "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg";
