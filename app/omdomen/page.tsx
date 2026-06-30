@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import { ContentPage } from "../../components/content";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../../lib/social-proof";
 import { getGoogleReviews } from "../../lib/google-reviews";
+import { CURATED_RESULT } from "../../lib/curated-reviews";
 import { GoogleReviews } from "../../components/GoogleReviews";
+
+// Publik fallback-länk till Google-profilen (för "Se alla på Google"-knappen)
+// tills exakt profil-URL sätts via GOOGLE_REVIEW_URL.
+const GOOGLE_PROFILE_FALLBACK =
+  "https://www.google.com/search?q=Fyndplats%20S%C3%B6dert%C3%A4lje%20omd%C3%B6men";
 
 const ratingDesc = `Fyndplats har ${GOOGLE_RATING} av 5 i betyg på Google, baserat på ${GOOGLE_REVIEWS_LABEL}. Trygg svensk e-handel som kunderna rekommenderar.`;
 
@@ -14,9 +20,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Omdomen() {
-  // Live Google-omdömen (graceful: tomt tills env är satt → sidan ser ut som innan).
+  // Live Google-omdömen via API:t när det är aktiverat; annars de kurerade
+  // (handinlagda, äkta) omdömena så sidan alltid har riktiga omdömen att läsa.
   const google = await getGoogleReviews();
-  const profileUrl = process.env.GOOGLE_REVIEW_URL || undefined;
+  const data = google.reviews.length > 0 ? google : CURATED_RESULT;
+  const profileUrl = process.env.GOOGLE_REVIEW_URL || GOOGLE_PROFILE_FALLBACK;
 
   return (
     <ContentPage
@@ -35,9 +43,9 @@ export default async function Omdomen() {
       </div>
 
       <GoogleReviews
-        reviews={google.reviews}
-        count={google.count}
-        average={google.average}
+        reviews={data.reviews}
+        count={data.count}
+        average={data.average}
         profileUrl={profileUrl}
       />
 
