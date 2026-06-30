@@ -224,7 +224,9 @@ export function GoogleReviews({
           </span>
           <Stars rating={average ?? 5} />
           <strong className="greviews-avg">{avg}</strong>
-          <span className="greviews-count">· {shownCount} omdömen</span>
+          <span className="greviews-count">
+            · <span className="greviews-count-num">{shownCount}</span> omdömen
+          </span>
           <span className="greviews-verified">Verifierade</span>
         </div>
       </div>
