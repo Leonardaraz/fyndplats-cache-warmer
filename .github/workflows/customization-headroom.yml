@@ -1,0 +1,42 @@
+name: Wix customization headroom
+
+# Pingar /api/cron/customization-headroom en gång i veckan (READ-ONLY). Endpointen
+# loggar hur fulla butikens delade variant-listor (customizations) är och VARNAR för
+# dem som närmar sig Wix:s hårda 100-vals-tak — så vi ser i god tid när en lista riskerar
+# att börja neka importer (i stället för att upptäcka det vid en 400 i kassan).
+#
+# Muterar INGENTING — bara läser + loggar. Senare faser (auto-prune) får egna workflows.
+#
+# Använder GitHub Actions istället för Vercel Cron eftersom Vercel Hobby bara tillåter
+# daglig schemaläggning. Samma pattern som refresh-tokens.yml.
+#
+# Krävs som repository secret (Settings → Secrets and variables → Actions):
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+#
+# URL:en är hardcoded (inte secret — bara Vercel-deploy-URL).
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # måndagar 06:00 UTC
+  workflow_dispatch:
+
+env:
+  HEADROOM_URL: https://fyndplats-cache-warmer.vercel.app/api/cron/customization-headroom
+
+jobs:
+  headroom:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger headroom report
+        run: |
+          response=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "$HEADROOM_URL")
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "$body"
+          if [ "$status" != "200" ]; then
+            echo "::error::Headroom endpoint returned non-200 status"
+            exit 1
+          fi
