@@ -4,8 +4,8 @@ slug: nya-tullreglerna-2026-eu-lager
 meta_description: "Från 1 juli 2026 slopas EU:s tullfrihet på billiga paket utifrån EU. Hos Fyndplats kommer alla produkter garanterat från EU-lager – ingen ny importtull."
 category: Guider
 publish_date: 2026-06-30
-cover: https://static.wixstatic.com/media/b379ce_8d6bc57df5ad4085b875a933335027cc~mv2.jpg
-alt: "Paket redo för leverans från EU-lager – ingen ny importtull 2026"
+cover: https://static.wixstatic.com/media/b379ce_98ea16b3bf6b4ccda4369e9a38166b5c~mv2.jpg
+alt: "Paket från EU-lager redo för leverans – ingen ny importtull 2026"
 ---
 
 # Nya tullreglerna 1 juli 2026 – så slipper du extra avgifter
