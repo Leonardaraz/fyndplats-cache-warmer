@@ -45,12 +45,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Föredra merchantens kuraterade Wix-SEO (korta, Google-anpassade) när de finns;
   // annars dagens name/blurb. seoTitle innehåller redan "| Fyndplats", så vi sätter
   // den som `absolute` för att inte få templaten (%s | Fyndplats) att dubblera den.
-  const desc = p.seoDescription || p.blurb || `${p.name} – köp hos Fyndplats. Fri frakt över 499 kr.`;
+  // Fallback-blurben är rått avhuggen vid 220 tecken (lib/products.ts) — för
+  // meta-description trunkerar vi på ORDgräns ≤155 så SERP-snippeten inte kapar
+  // mitt i ett ord. Kuraterad seoDescription används alltid orörd.
+  const trimDesc = (s: string) => (s.length <= 155 ? s : s.slice(0, 155).replace(/\s+\S*$/, ""));
+  const desc = p.seoDescription || (p.blurb ? trimDesc(p.blurb) : `${p.name} – köp hos Fyndplats. Fri frakt över 499 kr.`);
   return {
     title: p.seoTitle ? { absolute: p.seoTitle } : p.name,
     description: desc,
     alternates: { canonical: `https://www.fyndplats.se/produkt/${p.slug}` },
-    openGraph: { title: p.seoTitle || p.name, description: desc, url: `https://www.fyndplats.se/produkt/${p.slug}`, images: p.img ? [p.img] : [] },
+    // type/locale/siteName måste sättas här: Next ERSÄTTER layoutens openGraph
+    // per fält-grupp (ärver inte), så utan dem tappar PDP og:type/locale/site_name.
+    openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", title: p.seoTitle || p.name, description: desc, url: `https://www.fyndplats.se/produkt/${p.slug}`, images: p.img ? [p.img] : [] },
   };
 }
 

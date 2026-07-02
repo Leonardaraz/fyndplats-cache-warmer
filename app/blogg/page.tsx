@@ -38,7 +38,7 @@ export default async function Blogg() {
               {posts.map((p) => (
                 <a className="prod" key={p.slug} href={`/blogg/${p.slug}`}>
                   <div className="pimg" style={p.cover ? undefined : { background: "linear-gradient(135deg,#FFB078,#F47A35)" }}>
-                    {p.cover && <Image src={p.cover} alt={p.title} fill sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw" style={{ objectFit: "cover" }} />}
+                    {p.cover && <Image src={p.cover} alt={p.alt || p.title} fill sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw" style={{ objectFit: "cover" }} />}
                   </div>
                   <div className="pbody">
                     {p.date && <div style={{ fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>{fmtDate(p.date)}</div>}
