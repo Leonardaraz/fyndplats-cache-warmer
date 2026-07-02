@@ -20,8 +20,11 @@ function loadIndex(): Promise<Hit[]> {
   return inflight;
 }
 
-// Hur många populära produkter vi visar i tomt-fält-läget.
-const POPULAR_COUNT = 8;
+// Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
+// 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
+// blev för hög. Bältet+hängslen: .sugg är dessutom max-height-cappad (dvh) med
+// knappen sticky i botten, så den är klickbar även på låga skärmar.
+const SUGGESTION_COUNT = 7;
 
 export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const [q, setQ] = useState("");
@@ -51,7 +54,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     if (term.length < 2) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
       const idx = await loadIndex();
-      setPopular(idx.slice(0, POPULAR_COUNT));
+      setPopular(idx.slice(0, SUGGESTION_COUNT));
       setHits([]);
       setOpen(true);
       return;
@@ -61,7 +64,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       .map((h) => ({ h, score: nameScore(h.n, term) }))
       .filter((r) => r.score > 0)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 8)
+      .slice(0, SUGGESTION_COUNT)
       .map((r) => r.h);
     setHits(ranked);
     setOpen(true);
@@ -71,7 +74,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const onFocus = async () => {
     const idx = await loadIndex();
     if (q.trim().length >= 2) { setOpen(true); return; }
-    setPopular(idx.slice(0, POPULAR_COUNT));
+    setPopular(idx.slice(0, SUGGESTION_COUNT));
     setOpen(true);
   };
 
