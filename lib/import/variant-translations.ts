@@ -601,10 +601,35 @@ function convertLengthChainToMeters(value: string, unitAlt: string, factor: numb
       " m"
     );
   }
-  // AUDIT-GUARD (S1): finns en NAKEN tal-x-tal-dimension ("10x10") som de ankrade
-  // regexarna INTE fångade (prefix/suffix-text, t.ex. "10x10 ft Gazebo") skulle
-  // per-förekomst-passet halvkonvertera ("10x3 m Gazebo" = FELAKTIGT mått). Lämna
-  // då värdet orört — AI:n/flaggan tar det i stället för att vi skeppar fel siffror.
+  // MITT-I-VÄRDET-kedja med DIREKT vidhängande enhet ("6.5x10FT stand base",
+  // "10x10 ft Gazebo" — backdrop-stativet 2026-07-02): enheten binder HELA
+  // kedjan, så att konvertera kedjan i sin helhet kan aldrig halv-konvertera
+  // (S1-faran gäller nakna kedjor UTAN enhet). Samma S-A-skydd som slutpasset:
+  // x-kopplad granne på någon sida → rör inte (blandade enheter). Värden som
+  // redan bär en metrisk siffra ("10x10ft(3x3m)") lämnas åt grinden — en
+  // dubbel-annotation vore skräp. AI-fallbacken bevarar mått ordagrant, så
+  // utan detta pass skeppades ft till kund (värdena är key-låsta efter create).
+  if (!/\d\s*m\b/i.test(value)) {
+    const chainRe = new RegExp(`(${NUM}(?:\\s*[x×]\\s*${NUM})+)\\s*${U}\\b`, "gi");
+    let converted = false;
+    const out = value.replace(chainRe, (match, chain: string, offset: number, whole: string) => {
+      const before = whole.slice(0, offset);
+      const after = whole.slice(offset + match.length);
+      if (/[x×]\s*$/.test(before) || /^\s*[x×]\s*\d/.test(after)) return match; // x-kopplad → S-A
+      converted = true;
+      return (
+        chain
+          .split(/\s*[x×]\s*/)
+          .map((n) => formatMeters(num(n) * factor))
+          .join(" x ") + " m"
+      );
+    });
+    if (converted) return out;
+  }
+  // AUDIT-GUARD (S1): finns en NAKEN tal-x-tal-dimension ("10x10") UTAN vidhängande
+  // enhet som passen ovan inte fångade, skulle per-förekomst-passet halvkonvertera
+  // ("10x3 m Gazebo" = FELAKTIGT mått). Lämna då värdet orört — AI:n/flaggan tar
+  // det i stället för att vi skeppar fel siffror.
   // ("10ft x 13ft" har enhet per tal → ingen naken x-adjacens → konverteras nedan.)
   if (/\d\s*[x×]\s*\d/.test(value)) return value;
   return value.replace(
@@ -690,8 +715,14 @@ function appendInchDimensionMetric(value: string): string {
  * konverteras bara när HELA värdet är "<tal> in" ("42 in" → "42 tum"), så
  * "5 in 1"/"5 in stock" lämnas orörda. ft/feet KONVERTERAS till meter (se
  * convertFeetToMeters); cm/mm är samma på svenska.
+ *
+ * EXPORTERAD (2026-07-02, backdrop-stativet): variant-ai-translate efterbehandlar
+ * AI-svaren genom denna — Haiku översätter orden men bevarar mått ordagrant
+ * ("Stativbas 6.5x10ft"), så utan efterbehandling kringgår AI-vägen enhets-
+ * konverteringen och ft key-låses i Wix. Idempotent på redan-svenska värden
+ * (nummer-ankrad) → säker även på cachade svar.
  */
-function normalizeUnits(value: string): string {
+export function normalizeUnits(value: string): string {
   let v = convertLengthChainToMeters(
     convertFeetToMeters(convertSafeImperialUnits(value)),
     "yards?|yds?",

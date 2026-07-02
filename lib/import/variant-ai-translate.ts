@@ -24,6 +24,7 @@ import {
   axisNameUnresolved,
   buildTranslatorFromBase,
   inferMislabeledColorAxis,
+  normalizeUnits,
   residualEnglishTokens,
   stripLeadingSupplierCode,
   translateAxisName,
@@ -248,7 +249,13 @@ export async function buildVariantTranslatorAI(
     if (ai !== undefined && ai.trim() === raw.trim() && stripLeadingSupplierCode(raw) !== raw) {
       return translateValue(raw);
     }
-    return ai ?? translateValue(raw);
+    // ENHETS-EFTERBEHANDLING (backdrop-stativet 2026-07-02): Haiku översätter
+    // orden men bevarar mått ordagrant ("Stand base 6.5x10FT" → "Stativbas
+    // 6.5x10ft") → AI-vägen kringgick ft→m/inch→tum och enheten key-låstes i
+    // Wix. Kör därför AI-svaret genom normalizeUnits — nummer-ankrad och
+    // idempotent på redan-svenska värden, så även CACHADE svar självläker vid
+    // nästa import utan cache-bump eller nytt AI-anrop.
+    return ai !== undefined ? normalizeUnits(ai) : translateValue(raw);
   };
   const translator = buildTranslatorFromBase(variants, baseValue, translateAxisName, axisOverrides);
 

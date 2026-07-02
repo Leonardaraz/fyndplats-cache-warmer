@@ -52,6 +52,24 @@ describe("buildVariantTranslatorAI", () => {
     expect(translator.options({ Kontakt: "AE-FW-T2233-USB Plug" })).toEqual({ Kontakt: "USB-kontakt" });
   });
 
+  it("AI-svar med kvarvarande enheter enhets-normaliseras (backdrop-stativet 2026-07-02)", async () => {
+    // Haiku översätter orden men bevarar mått ordagrant ("Stativbas 6.5x10ft") →
+    // utan efterbehandling kringgår AI-vägen ft→m och enheten key-låses i Wix.
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) if (v === "Stand base 6.5x10FT") out[v] = "Stativbas 6.5x10ft";
+      return out;
+    });
+    const variants = [{ options: { Model: "Stand base 6.5x10FT" } }];
+    const { translator } = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translator.options({ Model: "Stand base 6.5x10FT" })).toEqual({ Modell: "Stativbas 1,9 x 3 m" });
+    // …och CACHADE svar självläker likadant vid nästa import (ingen cache-bump).
+    const { translator: t2 } = await buildVariantTranslatorAI(variants, {
+      translateBatch: vi.fn(async () => ({})),
+    });
+    expect(t2.options({ Model: "Stand base 6.5x10FT" })).toEqual({ Modell: "Stativbas 1,9 x 3 m" });
+  });
+
   it("skickar BARA residual-engelska värden till AI; kända värden faller på tabellen", async () => {
     const translateBatch = vi.fn(async (vals: string[]) => {
       const out: Record<string, string> = {};
