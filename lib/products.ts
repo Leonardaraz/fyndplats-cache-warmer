@@ -624,6 +624,44 @@ export function imgKey(url: string): string {
 // produkt-id → galleri-URL:er i Wix-ordning (dedupade på fil-id; första =
 // huvudbilden). Fail-open: tom Map vid saknad nyckel/fel → feeden faller
 // tillbaka på det kapade galleriet (dagens beteende, aldrig sämre).
+// ALLA varianter i katalogen (Read-Only Variants V3) — för Google Merchant-
+// feeden (/feed/google.xml) som listar EN item per variant. Cursor-paginerat
+// med 1000/anrop (~2 anrop för hela katalogen) och retry/backoff: den gamla
+// externa feed-tjänsten gjorde många små Wix-anrop per request, slog i rate
+// limit och levererade olika många produkter varje gång. Fail-open: [] vid
+// fel — feed-rutten svarar då med tom kanal hellre än 500 (Google behåller
+// senast lyckade hämtningen).
+export async function fetchAllVariantsRaw(): Promise<any[]> {
+  if (!WIX_API_KEY) return [];
+  const out: any[] = [];
+  try {
+    let cursor: string | undefined;
+    for (let page = 0; page < 10; page++) { // hård gräns 10 000 varianter
+      let data: any = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetch("https://www.wixapis.com/stores/v3/products/query-variants", {
+            method: "POST",
+            headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID, "Content-Type": "application/json" },
+            body: JSON.stringify({ query: { cursorPaging: cursor ? { limit: 1000, cursor } : { limit: 1000 } } }),
+          });
+          if (res.ok) { data = await res.json(); break; }
+          // 429/5xx → backoff och försök igen; 4xx i övrigt är permanent
+          if (res.status !== 429 && res.status < 500) break;
+        } catch { /* nätverksfel → backoff */ }
+        await new Promise((r) => setTimeout(r, 500 * (attempt + 1) ** 2));
+      }
+      if (!data) break;
+      out.push(...(data.variants || []));
+      cursor = data?.pagingMetadata?.cursors?.next || undefined;
+      if (!cursor || !data?.pagingMetadata?.hasNext) break;
+    }
+  } catch (e) {
+    console.error("[wix] fetchAllVariantsRaw failed:", (e as Error).message);
+  }
+  return out;
+}
+
 export async function fetchFeedGalleries(): Promise<Map<string, string[]>> {
   const out = new Map<string, string[]>();
   if (!WIX_API_KEY) return out;
