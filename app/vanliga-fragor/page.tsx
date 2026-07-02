@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { jsonLdString } from "../../lib/seo";
 import { ContentPage } from "../../components/content";
 
 export const metadata: Metadata = {
   title: "Vanliga frågor",
   description: "Svar på vanliga frågor om beställning, betalning, frakt och returer hos Fyndplats. Hitta hjälpen du behöver snabbt.",
   alternates: { canonical: "https://www.fyndplats.se/vanliga-fragor" },
-  openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/vanliga-fragor", title: "Vanliga frågor", description: "Svar på vanliga frågor om beställning, betalning, frakt och returer hos Fyndplats. Hitta hjälpen du behöver snabbt.", images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg"] },
+  openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/vanliga-fragor", title: "Vanliga frågor", description: "Svar på vanliga frågor om beställning, betalning, frakt och returer hos Fyndplats. Hitta hjälpen du behöver snabbt.", images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg"] },
 };
 
 const faqs: { q: string; a: string }[] = [
@@ -38,7 +39,7 @@ const jsonLd = {
 export default function VanligaFragor() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <ContentPage
         eyebrow="Kundservice"
         title="Vanliga frågor"

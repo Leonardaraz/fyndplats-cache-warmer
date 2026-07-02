@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { jsonLdString } from "../../lib/seo";
 import { redirect } from "next/navigation";
 import { getProducts, getCollections, forListings, dedupeProducts } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
@@ -88,8 +89,8 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(collectionPageLd) }} />
 
       {/* PREMIUM HERO — minimal, typografi-driven, ingen tung bild → snabb LCP */}
       <section className="butik-hero">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLdString } from "../lib/seo";
 import { Geist, Fraunces } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
@@ -116,7 +117,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://static.wixstatic.com" />
       </head>
       <body>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(orgJsonLd) }} />
         <CartProvider>
           <WishlistProvider>
             <ScrollIndicator />

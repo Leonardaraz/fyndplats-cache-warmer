@@ -48,3 +48,12 @@ export function pageMeta(
     },
   };
 }
+
+// JSON-LD-säker serialisering: '<' escapas till \u003c så en '</script>' i
+// tredjepartsdata (t.ex. importerad recensionstext eller produktnamn) aldrig kan
+// terminera script-taggen — vilket både knäcker hela schema-blocket för Google
+// och öppnar stored-XSS. Next.js-dokumenterade mönstret. Använd ALLTID denna i
+// stället för rå JSON.stringify i <script type="application/ld+json">.
+export function jsonLdString(obj: unknown): string {
+  return JSON.stringify(obj).replace(/</g, "\\u003c");
+}

@@ -1,4 +1,5 @@
 import { getProducts, getCollections, sortByNewest, forListings } from "../../lib/products";
+import { jsonLdString } from "../../lib/seo";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { CategoryDropdown } from "../../components/categorydropdown";
 import { pageMeta } from "../../lib/seo";
@@ -51,8 +52,8 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
 
   return (
     <div className="alla-prod">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(collectionPageLd) }} />
       {/* PREMIUM HERO — samma look som /butik (cream, serif, brödsmulor) */}
       <section className="butik-hero alla-prod-hero">
         <div className="container">

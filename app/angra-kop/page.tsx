@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     description:
       "Ångra ditt köp hos Fyndplats direkt på sajten. 14 dagars ångerrätt enligt lag — enkelt och tydligt.",
     images: [
-      "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg",
+      "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg",
     ],
   },
 };
