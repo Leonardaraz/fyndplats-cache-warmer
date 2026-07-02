@@ -141,6 +141,19 @@ export function makeSku(supplierProductId: string, supplierVariantId: string): s
   return `AE-${hash}`; // 3 + 24 = 27 tecken, alltid ≤ 40, unikt per variant
 }
 
+/**
+ * Ska avbockade varianter (included:false) ändå följa med till Wix som dolda?
+ * Default NEJ (Leonards beslut 2026-07-02): ett avbockat val importeras inte alls.
+ * Tidigare skapades de dolda (visible:false) "för komplett variantuppsättning",
+ * men de saknar leverantörsmappning (kan aldrig fulfillas om de slås på), räknas
+ * mot Wix hårda gränser (≤100 val/option, ≤1000 varianter) och fyller butikens
+ * DELADE customization-listor mot 100-taket (se lib/wix/customization-identity.ts)
+ * — ren dödvikt. Legacy-beteendet återställs med IMPORT_KEEP_DESELECTED_VARIANTS=true.
+ */
+export function keepDeselectedVariants(): boolean {
+  return (process.env.IMPORT_KEEP_DESELECTED_VARIANTS ?? "false").toLowerCase() === "true";
+}
+
 /** Färgkoder per option och val: { [optionName]: { [choiceName]: "#hex" } }. */
 export type OptionColorCodes = Record<string, Record<string, string>>;
 
@@ -202,6 +215,10 @@ export function deriveOptions(
  * Kör hela import-flödet för en produkt:
  * SEO-optimering → prissättning (inkl. moms) per inkluderad variant → skapa i Wix.
  * Endast varianter med `included: true` importeras (variant-filter från popupen).
+ * Avbockade varianter utelämnas HELT ur Wix-payloaden (options härleds bara ur de
+ * valda; en axel som därmed får ett enda värde blir spec-rad i st.f. död väljare).
+ * Legacy-beteendet — skapa avbockade som dolda — finns bakom
+ * IMPORT_KEEP_DESELECTED_VARIANTS=true (se keepDeselectedVariants).
  */
 export async function importProduct(
   product: AliExpressProduct,
@@ -243,34 +260,32 @@ export async function importProduct(
   // tabellen missar — tabell+cache först, så nära $0. Av → ren synkron tabell
   // ($0). Kvarvarande engelska (olösta värden) flaggar needsAiPolish nedan så de
   // hamnar i poleringskön i stället för att nå kunden halv-engelska.
+  // Avbockade varianter importeras INTE alls (default, 2026-07-02): de filtreras
+  // bort redan FÖRE översättningen — så AI-fallbacken aldrig betalar för värden
+  // som ändå inte når butiken, och så options/cap/create nedan bara ser de valda.
+  // Legacy (skapa avbockade som dolda): IMPORT_KEEP_DESELECTED_VARIANTS=true.
+  const sourceVariants = keepDeselectedVariants()
+    ? product.variants
+    : product.variants.filter((v) => v.included);
+  if (sourceVariants.filter((v) => v.included).length === 0) {
+    throw new Error("Inga varianter valda för import.");
+  }
   const translatorResult = variantAiTranslationEnabled(flags)
-    ? await buildVariantTranslatorAI(product.variants, { productTitle: product.rawTitle })
+    ? await buildVariantTranslatorAI(sourceVariants, { productTitle: product.rawTitle })
     : (() => {
         // Sync-läge (VARIANT_AI av): inga AI-anrop, men flagga ändå produkten om en
         // axel blev kvar med ett rått engelskt namn (tabell-miss) → ingen produkt
         // skeppas halv-engelsk ens i hård-$0-läget.
-        const t = buildVariantTranslator(product.variants);
+        const t = buildVariantTranslator(sourceVariants);
         return { translator: t, unresolved: unresolvedAxisNames(t) };
       })();
   const translator = translatorResult.translator;
   const variantsNeedPolish = translatorResult.unresolved.length > 0;
-  const variants = product.variants.map((v) => ({
+  let variants = sourceVariants.map((v) => ({
     ...v,
     options: translator.options(v.options),
   }));
   const translatedColorCodes = colorCodes ? translator.axisKeyedMap(colorCodes) : undefined;
-  // Icke-differentierande axlar (exakt 1 värde, t.ex. en fast dimension "60X34X70 cm")
-  // är ingen variant → plocka ut dem som SPEC-rader i stället för döda 1-vals-rullistor.
-  // prunedVariants matar options/cap/wixVariants (rena produktsidor); constantAxisSpecs
-  // fogas in i spec-fliken nedan. Premium + hindrar att fasta mått fyller den delade
-  // "Storlek"-listan mot Wix 100-vals-taket. Se lib/import/constant-axes.ts.
-  const { prunedVariants, specs: constantAxisSpecs } = splitConstantAxes(variants);
-  if (constantAxisSpecs.length) {
-    console.log(
-      `[import:axes] ${product.supplierProductId}: ${constantAxisSpecs.length} icke-differentierande ` +
-        `axel/axlar → spec i st.f. variantväljare (${constantAxisSpecs.map((s) => s.label).join(", ")}).`,
-    );
-  }
   // Variantbild-backfill (bug "kepsen" 2026-06-06): när skrapan inte fångade NÅGON
   // per-färg-bild (lazy-load/annan DOM) får produkten text-val utan bild. Hämta då
   // bilderna från DS-produkt-API:t (sku_image), matchat på SKU-id, med skrapans råa
@@ -335,27 +350,47 @@ export async function importProduct(
     : undefined;
 
   const included = variants.filter((v) => v.included);
-  if (included.length === 0) {
-    throw new Error("Inga varianter valda för import.");
-  }
 
   // Variant pre-trim (Feature 3, 2026-06-02): produkter med fler än maxCount (8)
   // valda varianter trimmas till topp-N (sälj-/lager-rankade, minst 1 per färg)
-  // för en renare PDP. De bortvalda RADERAS inte — de demoteras till
-  // included:false så att Wix får hela variantuppsättningen men bara visar topp-N
-  // (samma mönster som manuellt avbockade). Deterministiskt, inga AI-anrop.
-  // Stäng av med IMPORT_VARIANT_TRIM=false. Loggas i audit efter create.
+  // för en renare PDP. Default-läget utelämnar de trimmade helt (samma öde som
+  // manuellt avbockade — de tar annars kvotplats utan att kunna säljas); legacy-
+  // läget (IMPORT_KEEP_DESELECTED_VARIANTS=true) demoterar dem till included:false
+  // så att Wix får hela variantuppsättningen men bara visar topp-N.
+  // Deterministiskt, inga AI-anrop. Stäng av med IMPORT_VARIANT_TRIM=false.
+  // Loggas i audit efter create.
   let variantTrimSummary: string | null = null;
   if (variantTrimEnabled() && included.length > variantTrimMax()) {
     const { kept, removed, summary } = trimVariants(included, variantTrimMax());
     if (removed.length > 0) {
       const keptIds = new Set(kept.map((k) => k.supplierVariantId));
-      for (const v of variants) {
-        if (v.included && !keptIds.has(v.supplierVariantId)) v.included = false;
+      if (keepDeselectedVariants()) {
+        for (const v of variants) {
+          if (v.included && !keptIds.has(v.supplierVariantId)) v.included = false;
+        }
+      } else {
+        variants = variants.filter((v) => keptIds.has(v.supplierVariantId));
       }
       variantTrimSummary = summary;
       console.log(`[import:variant-trim] pid=${product.supplierProductId} ${summary}`);
     }
+  }
+
+  // Icke-differentierande axlar (exakt 1 värde, t.ex. en fast dimension "60X34X70 cm")
+  // är ingen variant → plocka ut dem som SPEC-rader i stället för döda 1-vals-rullistor.
+  // prunedVariants matar options/cap/wixVariants (rena produktsidor); constantAxisSpecs
+  // fogas in i spec-fliken nedan. Premium + hindrar att fasta mått fyller den delade
+  // "Storlek"-listan mot Wix 100-vals-taket. Se lib/import/constant-axes.ts.
+  // Körs EFTER urval + trim (2026-07-02): en axel som blir enväljare av att kunden
+  // bockade av resten kollapsar då också till spec — ingen död väljare på PDP:n.
+  // (Fixar även en vilande bugg: trim-demoteringen nådde aldrig prunedVariants-
+  // kopiorna när splitten låg före trimmen.)
+  const { prunedVariants, specs: constantAxisSpecs } = splitConstantAxes(variants);
+  if (constantAxisSpecs.length) {
+    console.log(
+      `[import:axes] ${product.supplierProductId}: ${constantAxisSpecs.length} icke-differentierande ` +
+        `axel/axlar → spec i st.f. variantväljare (${constantAxisSpecs.map((s) => s.label).join(", ")}).`,
+    );
   }
 
   // AI-kvalitetsläge (lib/import/quality-mode.ts): raw / standard / premium.
@@ -567,12 +602,13 @@ export async function importProduct(
     orderedImageUrls.map((url, i) => ({ url, displayName: `${seo.slug || "produkt"}-${i + 1}` })),
   );
 
-  // Options härleds från ALLA varianter; avbockade varianter skapas men döljs
-  // (visible: false) så att Wix får en komplett variantuppsättning. MEN en överlastad
-  // AE-axel (100-tals värden under t.ex. "Color") skulle spränga Wix V3:s hårda gräns
-  // (≤100 val/option) → create-product 400 CHOICES_LIMIT_EXCEEDED. capOptionsAndVariants
-  // kapar ned till Wix-gränserna, behåller ALLTID de valda (included) varianternas värden
-  // och håller options↔varianter konsistenta. Hårdfaller aldrig → kapad produkt flaggas
+  // Options härleds ur de varianter som faktiskt importeras (default: bara valda;
+  // legacy-läget IMPORT_KEEP_DESELECTED_VARIANTS=true tar med avbockade som döljs
+  // med visible:false). MEN en överlastad AE-axel (100-tals värden under t.ex.
+  // "Color") skulle spränga Wix V3:s hårda gräns (≤100 val/option) → create-product
+  // 400 CHOICES_LIMIT_EXCEEDED. capOptionsAndVariants kapar ned till Wix-gränserna,
+  // behåller ALLTID de valda (included) varianternas värden och håller
+  // options↔varianter konsistenta. Hårdfaller aldrig → kapad produkt flaggas
   // för polering (needsAiPolish nedan).
   const cap = capOptionsAndVariants(deriveOptions(prunedVariants, translatedColorCodes), prunedVariants);
   const options = cap.options;
