@@ -1,5 +1,6 @@
 ---
 title: "Fynda smart online 2026: så handlar du prisvärt för hela familjen"
+seo_title: "Fynda smart online 2026 – handla prisvärt"
 slug: fynda-smart-online
 meta_description: "Lär dig fynda smart online: jämför pris, kvalitet och frakt och betala tryggt med Klarna. Hitta prisvärda produkter för hela familjen hos Fyndplats."
 category: Köpguider

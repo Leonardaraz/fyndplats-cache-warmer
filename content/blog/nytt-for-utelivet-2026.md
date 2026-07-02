@@ -1,5 +1,6 @@
 ---
 title: "Nytt för utelivet: paviljong, solpanel & värmare"
+seo_title: "Nytt för utelivet: paviljong & solpanel"
 slug: nytt-for-utelivet-2026
 meta_description: "Nyinkommet för utelivet hos Fyndplats: pop up-paviljong med myggnät, solpanel 12V för husbil och båt, dieselvärmare och utomhus-kopplingsdosa."
 category: Säsong & Sommar

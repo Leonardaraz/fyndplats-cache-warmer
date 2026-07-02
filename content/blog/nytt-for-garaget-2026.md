@@ -1,5 +1,6 @@
 ---
 title: "Nytt för garaget: domkraft, MC-stöd & grindöppnare"
+seo_title: "Nytt för garaget: domkraft & MC-stöd"
 slug: nytt-for-garaget-2026
 meta_description: "Nyinkommet för garaget hos Fyndplats: elektrisk domkraft 12V 5 ton, depåstöd för MC och automatisk grindöppnare för skjutgrind."
 category: Verktyg

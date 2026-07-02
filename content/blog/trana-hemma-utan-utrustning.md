@@ -1,5 +1,6 @@
 ---
 title: "Träna hemma utan utrustning: nybörjarguiden som funkar"
+seo_title: "Träna hemma utan utrustning – nybörjarguide"
 slug: trana-hemma-utan-utrustning
 meta_description: "Träna hemma utan utrustning. En enkel nybörjarguide med 10 kroppsviktsövningar och ett 4-veckorsprogram du faktiskt klarar — utan gym eller dyra prylar."
 primary_keyword: träna hemma utan utrustning

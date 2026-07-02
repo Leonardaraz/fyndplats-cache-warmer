@@ -1,5 +1,6 @@
 ---
 title: "Aktivera hunden inomhus: 12 enkla övningar för regniga dagar"
+seo_title: "Aktivera hunden inomhus: 12 övningar"
 slug: aktivera-hunden-inomhus
 meta_description: "Så aktiverar du hunden inomhus när vädret stoppar promenaden. 12 enkla övningar för mental och fysisk aktivering — funkar för valp, vuxen hund och senior."
 primary_keyword: aktivera hunden inomhus

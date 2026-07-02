@@ -9,7 +9,7 @@ import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
 import { categoryContent } from "../../../lib/category-content";
 import { getBlurDataURL } from "../../../lib/lqip";
-import { categoryProgrammaticLinks } from "../../../lib/seo/programmatic";
+import { categoryProgrammaticLinks, blogLinksFor } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
 
 // ISR: kategorisidorna förgenereras (generateStaticParams) men regenereras i
@@ -88,6 +88,9 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // Programmatiska SEO-länkar för kategorin (pris-tiers + bäst-i-test) — bara
   // giltiga sidor, så aldrig en länk till 404.
   const progLinks = await categoryProgrammaticLinks(active.slug);
+  // Blogg-länkar för kategorin (länkflöde pengasidor → blogg, saknades helt).
+  // Äkta-träff-filtrerat: tom lista → inget blogg-block renderas.
+  const blogLinks = await blogLinksFor([active.name, ...(parent ? [parent.name] : [])]);
   // Korskategori-upptäckt: länka till övriga huvudavdelningar (exkl. den aktuella
   // avdelningen). Bara giltiga /kategori/{slug}-sidor från getCollections → aldrig
   // 404. Ger en guidad väg vidare mellan avdelningar (höjer upptäckt + AOV).
@@ -256,7 +259,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
       )}
 
       {progLinks.length > 0 && (
-        <ProgCrossLinks title={`Fler sätt att handla ${active.name}`} links={progLinks} />
+        <ProgCrossLinks title={`Fler sätt att handla ${active.name}`} links={progLinks} blogLinks={blogLinks} />
       )}
 
       {deptLinks.length > 0 && (

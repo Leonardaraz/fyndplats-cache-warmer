@@ -1,5 +1,6 @@
 ---
 title: "Presenter till hundälskaren: 14 idéer som alltid uppskattas"
+seo_title: "Presenter till hundälskaren: 14 idéer"
 slug: presenter-till-hundalskaren
 meta_description: "Presenter till hundälskaren — 14 genomtänkta idéer för hundägaren i ditt liv. Från praktiskt och prisvärt till lite lyx. Perfekt till jul, födelsedag eller bara för att."
 primary_keyword: presenter till hundälskare

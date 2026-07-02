@@ -1,5 +1,6 @@
 ---
 title: "DIY-verktyg för nybörjare: grundutrustningen varje hem behöver"
+seo_title: "DIY-verktyg för nybörjare – grundutrustning"
 slug: verktyg-for-nyborjare
 meta_description: "Verktyg för nybörjare — den kompletta listan med 14 grundverktyg varje hem bör ha. Lär dig vad du faktiskt behöver för att fixa det mesta i lägenheten."
 primary_keyword: verktyg för nybörjare

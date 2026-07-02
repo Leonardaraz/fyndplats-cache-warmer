@@ -19,6 +19,10 @@ export type Product = {
   // ur Wix numericId (auto-ökande vid skapande) → createdDate-fallback. 0 = okänt
   // (sorteras sist). INTE lastUpdated — den ändras vid varje lager-/pris-sync.
   createdAt: number;
+  // Senast-ändrad (Wix updatedDate, epoch-ms). 0 = okänt → sitemapen UTELÄMNAR
+  // då lastmod (ärligare än att stämpla render-tid). Att den rör sig vid lager-/
+  // pris-sync är RÄTT för sitemap-lastmod (sidans innehåll ändrades faktiskt).
+  updatedAt: number;
   price: string;
   currency: string;
   priceNum: number;
@@ -254,6 +258,7 @@ function mapProduct(p: any): Product {
     // Skapelse-ordning: numericId (auto-ökande heltal, schema-konsekvent över
     // ALLA produkter) → createdDate-parse → 0. Används av sortByNewest.
     createdAt: Number(p.numericId) || Date.parse(p.createdDate || p._createdDate || "") || 0,
+    updatedAt: Date.parse(p.updatedDate || p._updatedDate || p.lastUpdated || "") || 0,
     imageScore: imageScoreOf(pid),
     imageFlags: imageRecordOf(pid)?.flags ?? [],
     variants,
@@ -539,6 +544,12 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
 export async function getProductSlugs(): Promise<string[]> {
   const list = await getProducts();
   return list.map((p) => p.slug);
+}
+
+/** Slug + äkta senast-ändrad för sitemapens lastmod (0 = okänt → utelämnas). */
+export async function getProductSitemapEntries(): Promise<{ slug: string; updatedAt: number }[]> {
+  const list = await getProducts();
+  return list.map((p) => ({ slug: p.slug, updatedAt: p.updatedAt }));
 }
 
 // Hybrid slut-i-lager (Feature 1): dölj slutsålda produkter från LISTNINGARNA

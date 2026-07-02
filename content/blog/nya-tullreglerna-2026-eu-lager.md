@@ -36,7 +36,7 @@ Det betyder för dig som kund:
 - ✅ **Snabb leverans** – inga veckor i tull, paketet är redan i Europa.
 - ✅ **Inga tull-överraskningar** – ingen ny importtull eller förtullningsavgift läggs på i efterhand.
 
-Eftersom hela vårt sortiment skickas från lager inom EU tillkommer ingen ny importtull eller förtullningsavgift på din beställning – det fortsätter vara **enkelt och tryggt** att handla hos oss.
+Eftersom hela vårt sortiment skickas från lager inom EU tillkommer ingen ny importtull eller förtullningsavgift på din beställning – det fortsätter vara **enkelt och tryggt** att handla hos oss. Hela löftet, och exakt vad det omfattar, finns svart på vitt på vår [EU-lager-garanti](/eu-lager-garanti).
 
 ## Populära fynd – alla från EU-lager
 
@@ -54,10 +54,10 @@ Du behöver inte leta eller jämföra – **alla våra produkter kommer garanter
 
 ## Vanliga frågor
 
-### Måste jag betala tull när jag handlar hos Fyndplats?
-Nej. Alla våra produkter kommer garanterat från EU-lager, så de nya tull- och avgiftsreglerna för paket utifrån EU gäller inte din beställning.
+### Slipper jag den nya tullen på mina beställningar?
+Ja — hos oss slipper du den. Alla våra produkter kommer garanterat från EU-lager, så de nya tull- och avgiftsreglerna för paket utifrån EU gäller inte din beställning.
 
-### När börjar de nya tullreglerna gälla?
+### Från vilket datum gäller de nya tullreglerna?
 Tullfriheten för billiga paket (under 150 euro) tas bort den 1 juli 2026, med en fast tull på 3 euro per vara som övergångslösning.
 
 ### Vad kostar den nya avgiften för paket utifrån EU?

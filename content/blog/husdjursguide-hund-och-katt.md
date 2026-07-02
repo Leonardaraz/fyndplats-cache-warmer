@@ -1,5 +1,6 @@
 ---
 title: "Husdjursägarens guide: så håller du hund och katt friska, aktiva och trygga"
+seo_title: "Husdjursguide: frisk & trygg hund och katt"
 slug: husdjursguide-hund-och-katt
 meta_description: "En komplett guide till att sköta om hund och katt – mat, pälsvård, klor, lek och promenader, plus utvalda favoriter hos Fyndplats."
 category: Husdjur
@@ -72,6 +73,11 @@ Se hela vårt husdjurssortiment här →
 ## Få fler tips och nyheter
 
 Vill du ha fler guider och våra nyheter först? Prenumerera på Fyndplats nyhetsbrev, så landar tipsen och de senaste favoriterna direkt i din inkorg.
+
+## Utforska mer hos Fyndplats
+
+Allt till din fyrbenta vän finns i [Husdjur](/kategori/husdjur) och [Lek & tillbehör](/kategori/lek-tillbehor-for-husdjur). Läs också [Aktivera hunden inomhus](/blogg/aktivera-hunden-inomhus) och [Presenter till hundälskaren](/blogg/presenter-till-hundalskaren).
+
 
 ## Vanliga frågor om husdjur
 

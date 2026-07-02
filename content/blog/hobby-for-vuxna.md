@@ -1,5 +1,6 @@
 ---
 title: "15 hobbyer för vuxna att prova hemma — inspiration för dig som vill börja nytt"
+seo_title: "15 hobbyer för vuxna att prova hemma"
 slug: hobby-for-vuxna
 meta_description: "Hobby för vuxna — 15 konkreta idéer för dig som vill prova något nytt. Kreativa, lugna, billiga och roliga hobbyer som passar både kvällar och helger."
 primary_keyword: hobby för vuxna
