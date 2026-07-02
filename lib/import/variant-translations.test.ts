@@ -485,12 +485,20 @@ describe("translateValue — ft→m (nummer-ankrat, aritmetik, NOMINELL/trunkera
     expect(translateValue("5 in 1")).toBe("5 in 1"); // tum-skyddet orört av ft-passet
   });
 
-  it("halvkonverterar ALDRIG en dimension med omgivande text (audit S1) — hellre orört än fel mått", () => {
-    // "10x3 m Gazebo" vore ett FELAKTIGT mått — guarden lämnar värdet åt AI/flaggan.
-    expect(translateValue("10x10 ft Gazebo")).toBe("10x10 ft Gazebo");
-    expect(translateValue("10x10ft(3x3m)")).toBe("10x10ft(3x3m)");
-    // …men enhet-per-tal utan naken x-adjacens konverteras fortfarande korrekt.
+  it("kedja med DIREKT vidhängande enhet + omgivande text konverteras HELT (backdrop-stativet 2026-07-02)", () => {
+    // Enheten binder hela kedjan → hel konvertering, aldrig halv. Tidigare lämnades
+    // dessa åt AI:n (S1), men Haiku bevarar mått ordagrant → "ft" key-låstes i Wix.
+    expect(translateValue("10x10 ft Gazebo")).toBe("3 x 3 m Gazebo");
+    expect(translateValue("6.5x10FT stand base")).toBe("1,9 x 3 m stand base");
+    expect(translateValue("8.5x10FT flat base")).toBe("2,5 x 3 m flat base");
+    // …och enhet-per-tal utan naken x-adjacens konverteras som förut.
     expect(translateValue("10ft x 13ft")).toBe("3 m x 3,9 m");
+  });
+
+  it("halvkonverterar ALDRIG (audit S1): naken kedja utan enhet / redan metrisk lämnas orörd", () => {
+    expect(translateValue("10x10 Gazebo")).toBe("10x10 Gazebo"); // ingen enhet → ingen aritmetik
+    expect(translateValue("10x10ft(3x3m)")).toBe("10x10ft(3x3m)"); // bär redan metrisk annotation
+    expect(translateValue("8 ft x 8 x 7 ft")).toBe("8 ft x 8 x 7 ft"); // x-kopplat (S-A) även i mittpasset
   });
 
   it("SLUT-ankrad kedja med prefix konverteras HELT (aldrig halvt): 'Tent 10x10ft' → 'Tent 3 x 3 m'", () => {
