@@ -996,7 +996,33 @@ function normalizeUnits(value: string): string {
   if (setOf) v = `Set om ${setOf[1]}`;
   const packOf = v.trim().match(/^pack\s+of\s+(\d+)$/i);
   if (packOf) v = `${packOf[1]}-pack`;
-  return v;
+  return appendMetric(v);
+}
+
+/**
+ * Lägger metrisk motsvarighet i parentes efter tum-/fot-/kvadrattum-värden:
+ * "48 tum" → "48 tum (122 cm)", "78.7x58.7 tum" → "78.7x58.7 tum (200x149 cm)",
+ * "4500-5500 kvadrattum" → "4500-5500 kvadrattum (2,9-3,5 m²)".
+ * Bakgrund (Leonard 2026-07-02, tomatburarna "48 tum"): nästan ingen i Sverige
+ * vet vad tum är — kunden måste se cm. Deterministisk omräkning (exakta faktorer,
+ * cm avrundas till heltal, m² till en decimal med komma) och BARA när HELA
+ * värdet är ett mått som slutar på enheten → aldrig parenteser mitt i fraser.
+ */
+function appendMetric(value: string): string {
+  const m = value.trim().match(/^([\d.,\sx×*–-]+?)\s*(kvadrattum|kvadratfot|tum|fot)$/i);
+  if (!m) return value;
+  const each = (f: (n: number) => string) =>
+    m[1].replace(/\d+(?:[.,]\d+)?/g, (n) => f(parseFloat(n.replace(",", "."))));
+  const unit = m[2].toLowerCase();
+  const suffix =
+    unit === "tum"
+      ? `(${each((n) => String(Math.round(n * 2.54)))} cm)`
+      : unit === "fot"
+        ? `(${each((n) => String(Math.round(n * 30.48)))} cm)`
+        : unit === "kvadrattum"
+          ? `(${each((n) => (n * 0.00064516).toFixed(1).replace(".", ","))} m²)`
+          : `(${each((n) => (n * 0.09290304).toFixed(1).replace(".", ","))} m²)`;
+  return `${value.trim()} ${suffix}`;
 }
 
 /**

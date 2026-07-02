@@ -64,13 +64,15 @@ describe("translateValue", () => {
     expect(translateValue("Black without LED")).toBe("Svart utan LED");
     expect(translateValue("33-Grey")).toBe("33-Grå"); // bindestreck bevaras
     expect(translateValue("B6AC Blue")).toBe("B6AC Blå"); // kod-prefix orört
-    expect(translateValue("100 inch")).toBe("100 tum"); // enhet → svenska vid import
-    expect(translateValue("120 Inches")).toBe("120 tum");
+    // Enhet → svenska vid import, med metrisk motsvarighet i parentes
+    // (Leonard 2026-07-02: kunder vet inte vad tum är).
+    expect(translateValue("100 inch")).toBe("100 tum (254 cm)");
+    expect(translateValue("120 Inches")).toBe("120 tum (305 cm)");
   });
 
   it("översätter den utökade ordlistan (enheter, tillbehör, kvalificerare)", () => {
     // Enheter & antal
-    expect(translateValue("6 Feet")).toBe("6 fot");
+    expect(translateValue("6 Feet")).toBe("6 fot (183 cm)");
     expect(translateValue("1 Pair")).toBe("1 par");
     // Universalstorlek (fasta fraser, fullt match)
     expect(translateValue("Free Size")).toBe("Universalstorlek");
@@ -214,16 +216,21 @@ describe("golden — fäll-fixar, LED och orörda idiom (lås i CI)", () => {
 describe("golden — enheter, antal & djup utbyggnad (lås i CI)", () => {
   const cases: Array<[string, string]> = [
     // Triggerfallet: kvadrattum-storlekar (lekhagen 147f159f) blev rå-engelska
-    // OCH flaggades aldrig (såg ut som kod). Nu deterministiskt svenska.
-    ["4500-5500sq.in.", "4500-5500 kvadrattum"],
-    ["5500sq.in.", "5500 kvadrattum"],
-    ["3 Square Meters", "3 kvadratmeter"],
+    // OCH flaggades aldrig (såg ut som kod). Nu deterministiskt svenska, med
+    // metrisk motsvarighet i parentes.
+    ["4500-5500sq.in.", "4500-5500 kvadrattum (2,9-3,5 m²)"],
+    ["5500sq.in.", "5500 kvadrattum (3,5 m²)"],
+    ["3 Square Meters", "3 kvadratmeter"], // redan metriskt → ingen parentes
+    // Tomatburs-fallet (Leonard 2026-07-02): tum säger inget för svenska
+    // kunder → cm i parentes, alltid.
+    ["48 inch", "48 tum (122 cm)"],
+    ["63 inch", "63 tum (160 cm)"],
     // Dimensionskedjor & tum-varianter
-    ["78.7x58.7in", "78.7x58.7 tum"],
-    ["42 in.", "42 tum"],
+    ["78.7x58.7in", "78.7x58.7 tum (200x149 cm)"],
+    ["42 in.", "42 tum (107 cm)"],
     // Fot & antal (nummer-ankrat, även glued)
-    ["6ft", "6 fot"],
-    ["3 Feet", "3 fot"],
+    ["6ft", "6 fot (183 cm)"],
+    ["3 Feet", "3 fot (91 cm)"],
     ["2pcs", "2 st"],
     ["25 Pieces", "25 st"],
     ["Set of 3", "Set om 3"],
@@ -306,7 +313,7 @@ describe("buildTranslatorFromBase — injicerbar bas (delas av AI-fallbacken)", 
     expect(t1.options({ Color: "Cotton" })).toEqual({ Material: "Bomull" });
     // storlek matchar en deterministisk klass → vinner över override
     const t2 = buildTranslatorFromBase([{ options: { Color: "42 inch" } }], translateValue, translateAxisName, ov);
-    expect(t2.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
+    expect(t2.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum (107 cm)" });
   });
 });
 
@@ -328,10 +335,10 @@ describe("isSizeLikeAxis — felmärkt 'Color'-axel med storlekar", () => {
 });
 
 describe("translateValue — tum-enheter (nummer-ankrat, säkert)", () => {
-  it("normaliserar entydiga tum-former", () => {
-    expect(translateValue("42 in")).toBe("42 tum");
-    expect(translateValue("50 inch")).toBe("50 tum");
-    expect(translateValue('12"')).toBe("12 tum");
+  it("normaliserar entydiga tum-former (med cm i parentes)", () => {
+    expect(translateValue("42 in")).toBe("42 tum (107 cm)");
+    expect(translateValue("50 inch")).toBe("50 tum (127 cm)");
+    expect(translateValue('12"')).toBe("12 tum (30 cm)");
   });
   it("rör INTE löst 'in' (preposition)", () => {
     expect(translateValue("5 in 1")).toBe("5 in 1");
@@ -360,10 +367,10 @@ describe("inferMislabeledColorAxis — hela icke-färg-klassen under 'Color'", (
 });
 
 describe("buildVariantTranslator — döper om felmärkt 'Color'-axel (hela klassen)", () => {
-  it("storlekar under 'Color' → 'Storlek', enheter → svenska", () => {
+  it("storlekar under 'Color' → 'Storlek', enheter → svenska med cm", () => {
     const t = buildVariantTranslator([{ options: { Color: "42 inch" } }, { options: { Color: "50 inch" } }]);
-    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
-    expect(t.options({ Color: "50 inch" })).toEqual({ Storlek: "50 tum" });
+    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum (107 cm)" });
+    expect(t.options({ Color: "50 inch" })).toEqual({ Storlek: "50 tum (127 cm)" });
   });
   it("kontakttyper under 'Color' → 'Kontakt'", () => {
     const t = buildVariantTranslator([{ options: { Color: "EU Plug" } }, { options: { Color: "US Plug" } }]);
@@ -387,7 +394,7 @@ describe("buildVariantTranslator — döper om felmärkt 'Color'-axel (hela klas
       translateValue,
       translateAxisName,
     );
-    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
+    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum (107 cm)" });
   });
 });
 
@@ -427,19 +434,23 @@ describe("inferMislabeledColorAxis — effekt, färgtemperatur & kapacitet", () 
 });
 
 describe("buildVariantTranslator — lekhage-fallet ände-till-ände", () => {
-  it("kvadrattum-storlekar blir svenska och axeln 'Storlek' behålls/sätts", () => {
+  it("kvadrattum-storlekar blir svenska (med m²) och axeln 'Storlek' behålls/sätts", () => {
     // Som axeln faktiskt kom ("Size") …
     const t1 = buildVariantTranslator([
       { options: { Size: "4500-5500sq.in." } },
       { options: { Size: "5500sq.in." } },
     ]);
-    expect(t1.options({ Size: "4500-5500sq.in." })).toEqual({ Storlek: "4500-5500 kvadrattum" });
-    expect(t1.options({ Size: "5500sq.in." })).toEqual({ Storlek: "5500 kvadrattum" });
+    expect(t1.options({ Size: "4500-5500sq.in." })).toEqual({
+      Storlek: "4500-5500 kvadrattum (2,9-3,5 m²)",
+    });
+    expect(t1.options({ Size: "5500sq.in." })).toEqual({ Storlek: "5500 kvadrattum (3,5 m²)" });
     // … och felmärkt under "Color" → omdöps deterministiskt till "Storlek".
     const t2 = buildVariantTranslator([
       { options: { Color: "4500-5500sq.in." } },
       { options: { Color: "5500sq.in." } },
     ]);
-    expect(t2.options({ Color: "4500-5500sq.in." })).toEqual({ Storlek: "4500-5500 kvadrattum" });
+    expect(t2.options({ Color: "4500-5500sq.in." })).toEqual({
+      Storlek: "4500-5500 kvadrattum (2,9-3,5 m²)",
+    });
   });
 });
