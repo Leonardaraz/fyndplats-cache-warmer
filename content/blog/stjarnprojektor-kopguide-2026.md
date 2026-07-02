@@ -20,7 +20,7 @@ Det finns två huvudtyper på den svenska marknaden:
 - Laserprojektor – enklare modeller som projicerar enfärgade ljuspunkter (oftast gröna). Ofta billigast, men ger en mer monoton upplevelse.
 - Astronaut- och nebulosa-projektor – kombinerar stjärnpunkter med färgade ljuseffekter (grön, blå och röd nebulosa). Ger en mer atmosfärisk helhet och är den vanligaste varianten i barnrum idag.
 
-För barnrum rekommenderar vi nebulosa-modellen. Vår Astronaut Stjärnprojektor är ett klassiskt val i det här segmentet.
+För barnrum rekommenderar vi nebulosa-modellen – astronautformade varianter med kombinerade stjärn- och nebulosaeffekter är klassikern i segmentet och det som oftast blir mest uppskattat.
 
 ## Fyra saker att kolla innan du köper
 
@@ -48,13 +48,14 @@ Minst tre nebulosa-färger (grön, blå och röd) som kan kombineras ger flexibi
 - Lägg på lugn musik eller sömnljud i bakgrunden – effekten upplevs då tydligt starkare.
 - Använd timer-funktionen så projektorn stänger av efter att barnet somnat (sparar batteri och förlänger livslängden).
 
-## Andra nattlampor för barnrummet
+## Fler sätt att skapa mysig belysning hemma
 
-Astronauten är ett populärt val, men det finns fler alternativ:
+Stjärnprojektorn är barnrummets favorit, men stämningsbelysning gör lika stor skillnad i resten av hemmet:
 
-- 3D Kristallkula Nattlampa – en mer subtil lampa med graverad galax i en glaskula, fungerar bra på nattduksbordet.
-- Solnedgångslampa – projektion av solnedgång i flera färger, populär i tonårsrum och vardagsrum.
-- Trådlös LED-sensorlampa – nattlampa med rörelsesensor, praktisk för vägen till badrummet.
+- [Golvlampa boho – dimbar med fjärrkontroll](/produkt/golvlampa-boho-dimbar-fjarrkontroll) – steglös dimning och färgtemperatur från varma 3000K till klara 6500K, perfekt för läshörnan eller kvällsmyset.
+- [Bordslampa i färgat glas](/produkt/bordslampa-fargat-glas) – handgjord lampa i Tiffany-stil som ger ett varmt, färgspelande sken på nattduksbordet eller byrån.
+
+Hela urvalet hittar du under [Belysning](/kategori/belysning).
 
 ## Utforska mer hos Fyndplats
 
@@ -77,7 +78,7 @@ Ja. Projektorn används flitigt även av äldre barn och vuxna för stämningsbe
 
 ### Är den lämplig som present?
 
-Stjärnprojektorer är en av de mer populära presentkategorierna hos oss – till barnkalas, julklappar och högtider.
+Ja, stjärnprojektorn är en av de mest uppskattade presenterna till barnrummet – vanlig till både barnkalas, julklappar och högtider.
 
 ### Hur länge håller en LED-stjärnprojektor?
 
@@ -85,4 +86,4 @@ Själva LED-elementet är enligt tillverkarna specat för 20 000–50 000 timmar
 
 ## Sammanfattning
 
-En stjärnprojektor är ett enkelt sätt att skapa atmosfär i ett rum. För barnrum är fjärrkontroll, timer, USB-laddning och minst tre nebulosa-färger de viktigaste funktionerna att ha med. Se vår Astronaut Stjärnprojektor och resten av vårt sortiment inom nattlampor och stämningsbelysning.
+En stjärnprojektor är ett enkelt sätt att skapa atmosfär i ett rum. För barnrum är fjärrkontroll, timer, USB-laddning och minst tre nebulosa-färger de viktigaste funktionerna att ha med – använd checklistan ovan när du jämför modeller. Fler idéer till mysig belysning hemma hittar du under [Belysning](/kategori/belysning) hos Fyndplats.

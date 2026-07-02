@@ -21,7 +21,7 @@ En massagepistol arbetar med perkussionsmassage – snabba mekaniska slag mot mu
 
 ### 1. Slagfrekvens (RPM)
 
-Bra modeller har minst tre hastighetslägen, gärna 5–30. Vår Massagepistol med LED-skärm har upp till 30 lägen, vilket täcker allt från uppvärmning till djupare återhämtning.
+Bra modeller har minst tre hastighetslägen, gärna 5–30. Fler lägen ger finare kontroll och täcker allt från lätt uppvärmning till djupare återhämtning – men redan 5 väl valda lägen räcker långt för hemmabruk.
 
 ### 2. Amplitud
 
@@ -71,6 +71,15 @@ Daglig användning är OK för de flesta så länge du varierar muskelgrupp och 
 
 Ja. Före träning används den ofta som kort uppvärmning (cirka 30 sekunder per muskelgrupp) på låg frekvens. Efter träning kan du köra en längre och lugnare massage för återhämtning.
 
+## Fler sätt att jobba med återhämtningen
+
+Massagepistolen är punktinsatsen – men den är inte enda vägen till mjukare muskler:
+
+- [Hopfällbar massagebänk i trä, 186 cm](/produkt/hopfallbar-massagebank-tra-186cm) – för dig som ger (eller får) riktig helkroppsmassage hemma. Finns även i [aluminium med nio höjdlägen](/produkt/hopfallbar-massagebank-aluminium-rosa).
+- [Kontorsstol med massage och fotstöd](/produkt/kontorsstol-med-massage-fotstod-ergonomisk) – sexpunktsmassage medan du jobbar, för dig som sitter långa dagar.
+
+Hela urvalet finns i [Massage & Återhämtning](/kategori/massage-aterhamtning).
+
 ## Sammanfattning
 
-En kvalitetsmassagepistol med 5+ hastigheter, borstlös motor och cirka sex massagehuvuden täcker den absoluta majoriteten av hemmabehoven. Se vår Massagepistol med LED-skärm och resten av vårt sortiment inom hälsa och välmående.
+En kvalitetsmassagepistol med 5+ hastigheter, borstlös motor och cirka sex massagehuvuden täcker den absoluta majoriteten av hemmabehoven – använd checklistan ovan när du jämför. Och kika gärna in vårt sortiment inom [Massage & Återhämtning](/kategori/massage-aterhamtning) och [Skönhet & Hälsa](/kategori/skonhet-halsa) för fler sätt att ta hand om kroppen.

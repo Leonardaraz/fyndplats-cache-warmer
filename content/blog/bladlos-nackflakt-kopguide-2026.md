@@ -65,6 +65,10 @@ Många användare i klimakteriet rapporterar att nackfläktar ger upplevd nytta.
 
 Nej. Nackfläkten blåser bara rumstempererad luft och kyler inte aktivt. På vintern fungerar däremot en USB-driven fotvärmare för motsatt effekt.
 
+## Ska hela rummet svalkas i stället?
+
+En nackfläkt kyler dig – inte rummet. Ska hela vardagsrummet eller uteplatsen hållas behaglig i värmen gör en golvfläkt betydligt större skillnad. Vår [golvfläkt med vattendimma](/produkt/golvflakt-med-vattendimma) (90 W) kombinerar luftflödet med en fin vattendimma som sänker den upplevda temperaturen flera grader, och har jonisator, fjärrkontroll och timer – ett starkt alternativ för hela familjen när det är som varmast.
+
 ## Sammanfattning
 
-En bladlös nackfläkt är en av sommarens prisvärdaste investeringar. Räkna med minst tre hastigheter, 4–8 timmars batteritid och en vikt under 300 gram. Vår Bladlösa nackfläkt uppfyller de kraven. Se hela vårt sortiment av svalkande produkter hos Fyndplats – från handfläktar till kylkudde och svalkande dusch-tillbehör.
+En bladlös nackfläkt är en av sommarens prisvärdaste investeringar. Räkna med minst tre hastigheter, 4–8 timmars batteritid och en vikt under 300 gram – då blir den använd hela sommaren. Och ska hela rummet kylas är en [golvfläkt med vattendimma](/produkt/golvflakt-med-vattendimma) det kraftfullare valet. Fler svalkande och praktiska fynd hittar du i [butiken](/butik).
