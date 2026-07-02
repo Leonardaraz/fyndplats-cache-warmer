@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { jsonLdString } from "../../../lib/seo";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { getProducts, getCollections, forListings, dedupeProducts } from "../../../lib/products";
+import { redirect, notFound } from "next/navigation";
+import { getProducts, getCollections, getAllCategorySlugs, forListings, dedupeProducts } from "../../../lib/products";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
 import { ProductIndex } from "../../../components/product-index";
@@ -48,12 +48,18 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const active = collections.find((c) => c.slug === slug);
-  // Okänd/tom kategori (t.ex. ännu inte påfylld efter Kina-utfasningen, eller en
-  // kategori vars enda produkter var Kina) → redirect till /butik i stället för 404.
-  // SELF-REVIVE: så fort kategorin får ≥1 synlig produkt finns den i getCollections
-  // → active hittas → sidan renderar normalt igen, utan manuell åtgärd. Därför kan
-  // de hårdkodade kategori-redirectsen i next.config tas bort.
-  if (!active) redirect("/butik");
+  // KÄND men just nu tom kategori (t.ex. tömd efter Kina-utfasningen) →
+  // redirect till /butik (307, temporärt — SELF-REVIVE: får kategorin ≥1 synlig
+  // produkt finns den i getCollections igen → sidan renderar normalt, utan
+  // manuell åtgärd). OKÄND/skräp-slug → riktig 404: tidigare kunde
+  // /kategori/<vadsomhelst> aldrig 404:a → oändligt "giltigt" URL-utrymme som
+  // Google återcrawlar för evigt. Fail-open: kan fulla kategorilistan inte
+  // hämtas (null) antar vi "känd" — hellre redirect än felaktig 404.
+  if (!active) {
+    const known = await getAllCategorySlugs();
+    if (known && !known.has(slug)) notFound();
+    redirect("/butik");
+  }
   // Huvudkategori: visa produkter i kategorin OCH alla dess underkategorier, så
   // avdelningssidan blir komplett. Subkategori: bara sina egna produkter.
   const childIds = collections.filter((c) => c.parentId === active.id).map((c) => c.id);

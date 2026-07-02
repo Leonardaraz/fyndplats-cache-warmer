@@ -742,3 +742,42 @@ export const getCollections = cache((): Promise<Collection[]> => {
   if (!collectionsPromise) collectionsPromise = fetchCollections();
   return collectionsPromise;
 });
+
+// Alla KÄNDA kategorislugs — även tomma kategorier (getCollections filtrerar
+// bort kategorier utan produkter, vilket självåterupplivnings-designen bygger
+// på). Kategorisidan använder denna för att skilja "känd men just nu tom"
+// (→ självläkande redirect till /butik, som idag) från "okänd/skräp-slug"
+// (→ riktig 404). Utan distinktionen kan /kategori/<vadsomhelst> aldrig 404:a
+// → oändligt "giltigt" URL-utrymme som Google återcrawlar för evigt.
+// Returnerar null vid API-fel (fail-open: hellre redirect än felaktig 404).
+let allCategorySlugsPromise: Promise<Set<string> | null> | null = null;
+async function fetchAllCategorySlugs(): Promise<Set<string> | null> {
+  if (!wix) return null;
+  try {
+    const res = await (wix as any).categories
+      .queryCategories({ treeReference: { appNamespace: "@wix/stores" } })
+      .ne("_id", "00000000-0000-0000-0000-000000000000")
+      .limit(100)
+      .find();
+    const out = new Set<string>();
+    for (const c of res.items || []) {
+      const id = c && (c._id || c.id);
+      if (!c || !c.name || !id) continue;
+      const base = asciiSlug(c.name) || "kategori";
+      out.add(base);
+      // fetchCollections suffixar kolliderande slugs med -{id-svans} — täck
+      // även den varianten så en känd-men-tom suffixad kategori redirectar
+      // (i stället för att felaktigt 404:a) tills den självåterupplivas.
+      out.add(`${base}-${String(id).slice(-4)}`);
+    }
+    return out;
+  } catch (e) {
+    console.error("[wix] fetchAllCategorySlugs failed:", (e as Error).message);
+    allCategorySlugsPromise = null; // tillåt retry vid senare request
+    return null;
+  }
+}
+export const getAllCategorySlugs = cache((): Promise<Set<string> | null> => {
+  if (!allCategorySlugsPromise) allCategorySlugsPromise = fetchAllCategorySlugs();
+  return allCategorySlugsPromise;
+});

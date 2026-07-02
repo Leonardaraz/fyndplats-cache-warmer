@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
   const { type } = await params;
   const view = await resolveBestInTest(type);
   if (!view) return { title: "Bäst i test" };
-  return pageMeta(view.metaTitle, view.metaDescription, view.path);
+  return pageMeta(view.metaTitle, view.metaDescription, view.path, `bit-${type}`);
 }
 
 export default async function BastITestPage({ params }: { params: Promise<{ type: string }> }) {

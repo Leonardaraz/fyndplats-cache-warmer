@@ -620,13 +620,42 @@ export const resolveInterest = cache(async (slug: string): Promise<InterestView 
 // Kategorisid-länkar + sitemap-projektion
 // ─────────────────────────────────────────────────────────────────────────────
 
+// För-dig-som-sidorna var föräldralösa i länkgrafen (enda inlänkar = syskon-
+// sidor). cfg.categories är dessutom TOM för de flesta intressen (produkterna
+// väljs via nyckelord över hela katalogen), så kopplingen kategori→intresse
+// härleds ur de FAKTISKA produkterna: varje giltigt intresse hör hemma i den
+// huvudkategori där flest av dess produkter bor. Garanterar ≥1 kategorisk
+// inlänk per giltigt intresse; subkategorisidor ärver toppens intressen.
+const interestsByTopCategory = cache(async (): Promise<Map<string, InterestConfig[]>> => {
+  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const topOf = new Map<string, string>();
+  for (const c of collections) topOf.set(c.id, c.parentId ?? c.id);
+  const out = new Map<string, InterestConfig[]>();
+  for (const cfg of INTERESTS) {
+    const core = interestCore(products, collections, cfg);
+    if (!core) continue; // ogiltigt intresse (skulle 404:a/redirecta) → länka aldrig
+    const counts = new Map<string, number>();
+    for (const p of core.products) {
+      const tops = new Set((p.collectionIds || []).map((cid) => topOf.get(cid)).filter((t): t is string => !!t));
+      for (const t of tops) counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    let best: string | null = null;
+    let bestN = 0;
+    for (const [t, n] of counts) if (n > bestN) { best = t; bestN = n; }
+    if (!best) continue;
+    out.set(best, [...(out.get(best) || []), cfg]);
+  }
+  return out;
+});
+
 // Programmatiska länkar att visa PÅ en kategorisida (/kategori/{slug}). Bara
 // giltiga (icke-404) länkar. Tom array → kategorisidan renderar inget block.
 export const categoryProgrammaticLinks = cache(async (categorySlug: string): Promise<CrossLink[]> => {
-  const [collections, tierParams, typeSlugs] = await Promise.all([
+  const [collections, tierParams, typeSlugs, interestsByTop] = await Promise.all([
     getCollections(),
     getValidPriceTierParams(),
     getValidTypeSlugs(),
+    interestsByTopCategory(),
   ]);
   const cat = collections.find((c) => c.slug === categorySlug);
   if (!cat) return [];
@@ -638,6 +667,9 @@ export const categoryProgrammaticLinks = cache(async (categorySlug: string): Pro
   }
   for (const cfg of TYPES.filter((c) => c.category === cat.name && typeSlugs.includes(c.slug)).slice(0, 3)) {
     links.push({ href: `/basta-i-test/${cfg.slug}`, label: `Bäst i test: ${cfg.label}` });
+  }
+  for (const cfg of (interestsByTop.get(cat.parentId ?? cat.id) || []).slice(0, 2)) {
+    links.push({ href: `/for-dig-som/${cfg.slug}`, label: `För dig som ${cfg.verb}` });
   }
   return links;
 });
@@ -651,7 +683,17 @@ export const getProgrammaticUrls = cache(async (): Promise<ProgrammaticUrl[]> =>
   ]);
   const urls: ProgrammaticUrl[] = [];
   for (const s of typeSlugs) urls.push({ path: `/basta-i-test/${s}`, changeFrequency: "weekly", priority: 0.6 });
-  for (const t of tierParams) urls.push({ path: `/under-${t.price}-kr/${t.categorySlug}`, changeFrequency: "weekly", priority: 0.6 });
+  // Bara HÖGSTA giltiga pristrappan per kategori i sitemapen: /under-500 är en
+  // strikt delmängd av /under-1000 (samma sortering) → nästlade dubbletter som
+  // kannibaliserar. Lägre trappor renderar fortfarande men kanonaliserar till
+  // den högsta (se priceTierMetadata) — sitemapen ska bara bära kanoniska URL:er.
+  const highestByCat = new Map<string, number>();
+  for (const t of tierParams) {
+    if ((highestByCat.get(t.categorySlug) || 0) < t.price) highestByCat.set(t.categorySlug, t.price);
+  }
+  for (const [catSlug, price] of highestByCat) {
+    urls.push({ path: `/under-${price}-kr/${catSlug}`, changeFrequency: "weekly", priority: 0.6 });
+  }
   for (const s of interestSlugs) urls.push({ path: `/for-dig-som/${s}`, changeFrequency: "weekly", priority: 0.6 });
   return urls;
 });
