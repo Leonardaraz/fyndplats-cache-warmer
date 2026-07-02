@@ -5,7 +5,7 @@ import AngraForm from "../../components/angra-form";
 export const metadata: Metadata = {
   title: "Ångra köp",
   description:
-    "Ångra ditt köp hos Fyndplats direkt på sajten. Du har 14 dagars ångerrätt enligt lag — välj order och artiklar, så skickar vi ett mottagningskvitto med returadress och nästa steg.",
+    "Ångra ditt köp hos Fyndplats direkt på sajten. 14 dagars ångerrätt enligt lag — välj order och artiklar, så får du mottagningskvitto med returadress.",
   alternates: { canonical: "https://www.fyndplats.se/angra-kop" },
   openGraph: {
     type: "website",

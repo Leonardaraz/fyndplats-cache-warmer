@@ -111,6 +111,10 @@ function relatedPosts(posts: Post[], keywords: string[], limit = 3): { title: st
       const score = kw.reduce((s, k) => (k && hay.includes(k) ? s + 1 : s), 0);
       return { p, score };
     })
+    // Bara ÄKTA träffar: noll-poängare gav tidigare topikalt irrelevanta
+    // "Läs mer på bloggen"-länkar (senaste inlägget oavsett ämne). Tom lista är
+    // bättre än fel lista — ProgCrossLinks hoppar över blocket när den är tom.
+    .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score || (b.p.date || "").localeCompare(a.p.date || ""));
   return scored.slice(0, limit).map(({ p }) => ({ title: p.title, slug: p.slug }));
 }

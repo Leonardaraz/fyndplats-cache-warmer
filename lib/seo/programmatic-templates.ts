@@ -128,7 +128,9 @@ export function bestInTestMetaDesc(label: string, count: number, priceRange: str
     `Bäst i test ${label} ${YEAR}: ${count} noga utvalda fynd jämförda sida vid sida. Pris från ${priceRange}, fri frakt över 499 kr. Hitta ditt val hos Fyndplats.`,
     `Letar du efter ${label}? Vår jämförelse av ${count} modeller (${priceRange}) hjälper dig välja rätt. Bäst i test, mest prisvärt och budgetval — allt samlat.`,
     `${count} ${label} testade och rankade ${YEAR}. Pris ${priceRange}, betyg och köpguide i ett — plus fri frakt över 499 kr. Se topplistan hos Fyndplats.`,
-    `Vilken ${label.replace(/r$/, "")} är bäst i test ${YEAR}? Vi jämför ${count} favoriter (${priceRange}) med betyg och tips. Allt samlat hos Fyndplats.`,
+    // Plural ("Vilka X är bäst…") — den gamla naiva singulariseringen
+    // (label.replace(/r$/,"")) gav trasig svenska ("massagepistole").
+    `Vilka ${label.toLowerCase()} är bäst i test ${YEAR}? Vi jämför ${count} favoriter (${priceRange}) med betyg och tips. Allt samlat hos Fyndplats.`,
   ];
   return pick(v, seed, 11);
 }

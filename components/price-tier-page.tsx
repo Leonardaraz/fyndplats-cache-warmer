@@ -9,7 +9,7 @@
 // under-1000-kr/) som alla delegerar hit. Vill man lägga till en nivå: skapa en
 // mapp till + lägg priset i PRICE_TIERS.
 import type { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { pageMeta } from "../lib/seo";
 import { getValidPriceTierParams, resolvePriceTier } from "../lib/seo/programmatic";
 import { ProductCard } from "./productcard";
@@ -28,11 +28,12 @@ export async function priceTierMetadata(price: number, category: string): Promis
 
 export async function PriceTierPage({ price, category }: { price: number; category: string }) {
   const view = await resolvePriceTier(price, category);
-  // Tunn/tom pris-tier (t.ex. tömd efter Kina-utfasningen) → 301 till kategorin
-  // i stället för 404. Kategorin lever (eller redirectar i sin tur till /butik).
+  // Tunn/tom pris-tier (t.ex. tömd efter Kina-utfasningen) → redirect till
+  // kategorin i stället för 404. Kategorin lever (eller redirectar i sin tur).
   // Self-correcting: blir tiern giltig igen (nya EU-produkter) renderas den vid
-  // nästa ISR-regenerering.
-  if (!view) permanentRedirect(`/kategori/${category}`);
+  // nästa ISR-regenerering — därför 307 (temporär), inte 308/301: en permanent
+  // redirect lär Google att URL:en är borta för gott, vilket motsäger designen.
+  if (!view) redirect(`/kategori/${category}`);
 
   return (
     <>

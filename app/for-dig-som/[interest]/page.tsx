@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { pageMeta } from "../../../lib/seo";
 import { getValidInterestSlugs, resolveInterest } from "../../../lib/seo/programmatic";
 import { ProductCard } from "../../../components/productcard";
@@ -29,8 +29,9 @@ export default async function ForDigSomPage({ params }: { params: Promise<{ inte
   const { interest } = await params;
   const view = await resolveInterest(interest);
   // Tunn/tom "för dig som" (t.ex. efter Kina-utfasningen) → /butik i stället för
-  // 404. Self-correcting vid nästa ISR-regenerering om intresset blir giltigt igen.
-  if (!view) permanentRedirect("/butik");
+  // 404. Self-correcting vid nästa ISR-regenerering om intresset blir giltigt igen —
+  // därför 307 (redirect), inte 308: tillståndet är uttryckligen temporärt.
+  if (!view) redirect("/butik");
 
   return (
     <>

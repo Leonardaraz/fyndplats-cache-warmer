@@ -6,6 +6,9 @@ import { nameScore, normalize } from "../../lib/search";
 export const metadata: Metadata = {
   title: "Sök",
   robots: { index: false, follow: true },
+  // Egen canonical — annars ärvs root-layoutens (= startsidan), vilket ger den
+  // noindexade söksidan en motsägelsefull "jag är startsidan"-signal.
+  alternates: { canonical: "https://www.fyndplats.se/sok" },
 };
 
 export default async function Sok({ searchParams }: { searchParams: Promise<{ q?: string }> }) {

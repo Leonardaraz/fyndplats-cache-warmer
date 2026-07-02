@@ -4,6 +4,8 @@ import { unsubscribe } from "../../lib/newsletter";
 export const metadata: Metadata = {
   title: "Avregistrera nyhetsbrev",
   robots: { index: false, follow: false },
+  // Egen canonical — annars ärvs root-layoutens (= startsidan).
+  alternates: { canonical: "https://www.fyndplats.se/avregistrera" },
 };
 
 export const dynamic = "force-dynamic";

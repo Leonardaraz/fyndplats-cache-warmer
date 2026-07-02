@@ -111,7 +111,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       <ContentPage eyebrow={fmtDate(p.date) || "Blogg"} title={p.title} lead={p.excerpt || undefined}>
         {p.cover && (
           <div style={{ borderRadius: 18, overflow: "hidden", margin: "0 0 28px", border: "1px solid var(--line)" }}>
-            <Image src={p.cover} alt={p.title} width={1200} height={630} sizes="(max-width:760px) 100vw, 720px" style={{ width: "100%", height: "auto", display: "block" }} />
+            <Image src={p.cover} alt={p.alt || p.title} width={1200} height={630} sizes="(max-width:760px) 100vw, 720px" style={{ width: "100%", height: "auto", display: "block" }} />
           </div>
         )}
         {p.contentHtml ? (
