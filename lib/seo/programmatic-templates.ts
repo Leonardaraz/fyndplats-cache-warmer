@@ -60,6 +60,19 @@ function cap(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
+// Seedat variantval för META-TITLAR med längdbudget. Layouten suffixar varje
+// titel med " | Fyndplats" (12 tecken) och Google kapar vid ~60 → titeldelen
+// får max ~48 tecken. Varianterna slot-fylls med kategori-/typnamn av okänd
+// längd, så en enskild variant kan svälla förbi budgeten ("Billig
+// lek-tillbehör för husdjur under 1000 kr – smarta fynd" → kapad SERP-titel).
+// Väljer därför seedat BLAND varianterna som ryms; ryms ingen tas den kortaste
+// (hellre en kort kapning än en lång). Fortfarande deterministiskt per slug.
+function pickTitle(v: string[], seed: number, salt: number, max = 48): string {
+  const fits = v.filter((t) => t.length <= max);
+  if (fits.length > 0) return pick(fits, seed, salt);
+  return v.reduce((a, b) => (b.length < a.length ? b : a));
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // Återanvändbara FAQ-svarsbanker (frakt/leverans + retur)
 // ─────────────────────────────────────────────────────────────────────────
@@ -119,7 +132,7 @@ export function bestInTestMetaTitle(label: string, seed: number): string {
     `Bäst i test ${label} ${YEAR} – jämförelse`,
     `${cap(label)} ${YEAR}: vår topplista`,
   ];
-  return pick(v, seed, 7);
+  return pickTitle(v, seed, 7);
 }
 
 export function bestInTestMetaDesc(label: string, count: number, priceRange: string, seed: number): string {
@@ -302,7 +315,7 @@ export function priceTierMetaTitle(categoryName: string, price: number, seed: nu
     `${categoryName} under ${price} kr – smarta fynd`,
     `Fynda ${categoryName.toLowerCase()} under ${price} kr`,
   ];
-  return pick(v, seed, 7);
+  return pickTitle(v, seed, 7);
 }
 
 export function priceTierMetaDesc(categoryName: string, price: number, count: number, seed: number): string {
@@ -396,7 +409,7 @@ export function interestMetaTitle(verb: string, seed: number): string {
     `För dig som ${verb} – våra favoriter`,
     `Handplockat för dig som ${verb}`,
   ];
-  return pick(v, seed, 7);
+  return pickTitle(v, seed, 7);
 }
 
 export function interestMetaDesc(verb: string, count: number, seed: number): string {

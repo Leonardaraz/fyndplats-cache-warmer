@@ -23,7 +23,20 @@ export async function priceTierStaticParams(price: number): Promise<{ category: 
 export async function priceTierMetadata(price: number, category: string): Promise<Metadata> {
   const view = await resolvePriceTier(price, category);
   if (!view) return { title: `Under ${price} kr` };
-  return pageMeta(view.metaTitle, view.metaDescription, view.path);
+  const meta = pageMeta(view.metaTitle, view.metaDescription, view.path, `under-${price}-${category}`);
+  // Pristrapporna är nästlade delmängder ("under 200" ⊂ "under 500" ⊂ "under
+  // 1000") — sitemapen listar bara den HÖGSTA giltiga trappan per kategori (se
+  // getProgrammaticUrls). Lägre trappor renderar fortfarande via interna länkar,
+  // men kanonaliserar till supersetet så länkkraften samlas på EN sida i stället
+  // för att splittras över nära-identiska doorway-varianter.
+  const params = await getValidPriceTierParams();
+  const highest = Math.max(price, ...params.filter((p) => p.categorySlug === category).map((p) => p.price));
+  if (highest > price) {
+    const canonical = `https://www.fyndplats.se/under-${highest}-kr/${category}`;
+    meta.alternates = { canonical };
+    if (meta.openGraph) meta.openGraph.url = canonical;
+  }
+  return meta;
 }
 
 export async function PriceTierPage({ price, category }: { price: number; category: string }) {

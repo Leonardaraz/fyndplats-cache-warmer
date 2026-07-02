@@ -623,10 +623,11 @@ export const resolveInterest = cache(async (slug: string): Promise<InterestView 
 // Programmatiska länkar att visa PÅ en kategorisida (/kategori/{slug}). Bara
 // giltiga (icke-404) länkar. Tom array → kategorisidan renderar inget block.
 export const categoryProgrammaticLinks = cache(async (categorySlug: string): Promise<CrossLink[]> => {
-  const [collections, tierParams, typeSlugs] = await Promise.all([
+  const [collections, tierParams, typeSlugs, interestSlugs] = await Promise.all([
     getCollections(),
     getValidPriceTierParams(),
     getValidTypeSlugs(),
+    getValidInterestSlugs(),
   ]);
   const cat = collections.find((c) => c.slug === categorySlug);
   if (!cat) return [];
@@ -638,6 +639,11 @@ export const categoryProgrammaticLinks = cache(async (categorySlug: string): Pro
   }
   for (const cfg of TYPES.filter((c) => c.category === cat.name && typeSlugs.includes(c.slug)).slice(0, 3)) {
     links.push({ href: `/basta-i-test/${cfg.slug}`, label: `Bäst i test: ${cfg.label}` });
+  }
+  // För-dig-som-sidorna var föräldralösa i länkgrafen (enda inlänkar = syskon-
+  // sidor). Länka in dem från de kategorier de själva bygger på.
+  for (const cfg of INTERESTS.filter((c) => c.categories.includes(cat.name) && interestSlugs.includes(c.slug)).slice(0, 2)) {
+    links.push({ href: `/for-dig-som/${cfg.slug}`, label: `För dig som ${cfg.verb}` });
   }
   return links;
 });
@@ -651,7 +657,17 @@ export const getProgrammaticUrls = cache(async (): Promise<ProgrammaticUrl[]> =>
   ]);
   const urls: ProgrammaticUrl[] = [];
   for (const s of typeSlugs) urls.push({ path: `/basta-i-test/${s}`, changeFrequency: "weekly", priority: 0.6 });
-  for (const t of tierParams) urls.push({ path: `/under-${t.price}-kr/${t.categorySlug}`, changeFrequency: "weekly", priority: 0.6 });
+  // Bara HÖGSTA giltiga pristrappan per kategori i sitemapen: /under-500 är en
+  // strikt delmängd av /under-1000 (samma sortering) → nästlade dubbletter som
+  // kannibaliserar. Lägre trappor renderar fortfarande men kanonaliserar till
+  // den högsta (se priceTierMetadata) — sitemapen ska bara bära kanoniska URL:er.
+  const highestByCat = new Map<string, number>();
+  for (const t of tierParams) {
+    if ((highestByCat.get(t.categorySlug) || 0) < t.price) highestByCat.set(t.categorySlug, t.price);
+  }
+  for (const [catSlug, price] of highestByCat) {
+    urls.push({ path: `/under-${price}-kr/${catSlug}`, changeFrequency: "weekly", priority: 0.6 });
+  }
   for (const s of interestSlugs) urls.push({ path: `/for-dig-som/${s}`, changeFrequency: "weekly", priority: 0.6 });
   return urls;
 });

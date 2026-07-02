@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ interest:
   const { interest } = await params;
   const view = await resolveInterest(interest);
   if (!view) return { title: "För dig som" };
-  return pageMeta(view.metaTitle, view.metaDescription, view.path);
+  return pageMeta(view.metaTitle, view.metaDescription, view.path, `fds-${interest}`);
 }
 
 export default async function ForDigSomPage({ params }: { params: Promise<{ interest: string }> }) {
