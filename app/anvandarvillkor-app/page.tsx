@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Användarvillkor för appen",
   description: DESC,
   alternates: { canonical: "https://www.fyndplats.se/anvandarvillkor-app" },
-  openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/anvandarvillkor-app", title: "Användarvillkor för appen", description: DESC, images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg"] },
+  openGraph: { type: "website", locale: "sv_SE", siteName: "Fyndplats", url: "https://www.fyndplats.se/anvandarvillkor-app", title: "Användarvillkor för appen", description: DESC, images: ["https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg"] },
 };
 
 export default function AnvandarvillkorApp() {

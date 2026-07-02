@@ -336,9 +336,12 @@ export const resolveBestInTest = cache(async (slug: string): Promise<BestInTestV
     label: b.title,
   }));
 
+  // Mellansmulan MÅSTE matcha den synliga brödsmulan (Hem → Butik → sida) och
+  // får inte peka på /basta-i-test — den hub-routen finns inte (404), vilket
+  // både bryter Googles breadcrumb-krav och matar crawlern en död URL.
   const crumbs = [
     { name: "Hem", path: "/" },
-    { name: "Bäst i test", path: "/basta-i-test" },
+    { name: "Butik", path: "/butik" },
     { name: cfg.label, path: core.path },
   ];
   const schemas = [
@@ -563,17 +566,23 @@ export const resolveInterest = cache(async (slug: string): Promise<InterestView 
     label: b.title,
   }));
 
+  // Samma regel som bäst-i-test: mellansmulan matchar synliga brödsmulan
+  // (Hem → Butik → sida); /for-dig-som-hubben finns inte (404).
   const crumbs = [
     { name: "Hem", path: "/" },
-    { name: "För dig som", path: "/for-dig-som" },
+    { name: "Butik", path: "/butik" },
     { name: cfg.verb, path: core.path },
   ];
   const schemas = [
     breadcrumbSchema(crumbs),
     itemListSchema(`För dig som ${cfg.verb}`, `${SITE}${core.path}`, core.products),
+    // FAQ:n renderas synligt (ProgFaq) → markup med perfekt paritet, som Pattern 1.
+    faqSchema(core.faqs),
     {
       "@context": "https://schema.org",
-      "@type": "AboutPage",
+      // CollectionPage, inte AboutPage: sidan ÄR en produktlista — AboutPage är
+      // för "om oss"-innehåll och var semantiskt fel typ här.
+      "@type": "CollectionPage",
       name: `För dig som ${cfg.verb}`,
       url: `${SITE}${core.path}`,
       description: core.intro.join(" ").slice(0, 300),

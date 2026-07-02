@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { jsonLdString } from "../lib/seo";
 import { getProducts, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 import { buildGroupCards } from "../lib/category-groups";
@@ -156,8 +157,8 @@ export default async function Home() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(websiteJsonLd) }} />
 
       <section className="hero">
         <div className="container">

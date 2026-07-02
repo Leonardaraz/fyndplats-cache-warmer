@@ -4,6 +4,7 @@
 // dessa komponenter renderar bara. Återanvänder globala klasser (.container,
 // .sec, .eyebrow, .crumbs, .faq, .prodgrid) + .prog-*-klasser i globals.css.
 import Image from "next/image";
+import { jsonLdString } from "../lib/seo";
 import type { ResolvedProduct, CrossLink } from "../lib/seo/programmatic";
 import { SHIMMER_BLUR } from "../lib/lqip";
 
@@ -11,7 +12,7 @@ export function ProgSchemas({ schemas }: { schemas: object[] }) {
   return (
     <>
       {schemas.map((s, i) => (
-        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(s) }} />
       ))}
     </>
   );

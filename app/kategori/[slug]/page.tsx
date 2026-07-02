@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { jsonLdString } from "../../../lib/seo";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getProducts, getCollections, forListings, dedupeProducts } from "../../../lib/products";
@@ -173,9 +174,9 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageLd) }} />
-      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(collectionPageLd) }} />
+      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqLd) }} />}
 
       <section className="kat-hero">
         <div className="container">

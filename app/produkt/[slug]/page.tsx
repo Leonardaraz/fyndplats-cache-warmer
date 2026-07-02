@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLdString } from "../../../lib/seo";
 import { notFound } from "next/navigation";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
@@ -9,6 +10,7 @@ import { ProductReviews } from "../../../components/ProductReviews";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
 import { ProgCrossLinks } from "../../../components/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
+import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS } from "../../../lib/shipping";
 
 // ISR: PDPs cachas på Vercel edge i 1h. Bakgrundsregenerering på stale (SWR) —
 // besökaren får ALLTID en cachad sida direkt, regenereringen sker i bakgrunden.
@@ -100,9 +102,32 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       "@type": "Offer",
       priceCurrency: p.currency,
       price: p.priceNum,
+      // Merchant-listing-rekommenderade fält (Search Console varnar annars).
+      // priceValidUntil rullar 30 dagar framåt vid varje ISR-regenerering.
+      priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
       availability: p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       url: `https://www.fyndplats.se/produkt/${p.slug}`,
+      // Fraktvillkoren speglar kassan exakt: fri frakt ≥ 499 kr, annars 19 kr,
+      // leverans 3–7 arbetsdagar (samma sanningskälla som resten av sajten).
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: p.priceNum >= 499 ? 0 : 19,
+          currency: p.currency,
+        },
+        shippingDestination: { "@type": "DefinedRegion", addressCountry: "SE" },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          transitTime: {
+            "@type": "QuantitativeValue",
+            minValue: DELIVERY_MIN_DAYS,
+            maxValue: DELIVERY_MAX_DAYS,
+            unitCode: "DAY",
+          },
+        },
+      },
       hasMerchantReturnPolicy: {
         "@type": "MerchantReturnPolicy",
         applicableCountry: "SE",
@@ -143,7 +168,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     breadcrumbItems.push({ "@type": "ListItem", position: 2, name: primaryCol.name, item: `https://www.fyndplats.se/kategori/${primaryCol.slug}` });
     breadcrumbItems.push({ "@type": "ListItem", position: 3, name: p.name, item: `https://www.fyndplats.se/produkt/${p.slug}` });
   } else {
-    breadcrumbItems.push({ "@type": "ListItem", position: 2, name: p.name, item: `https://www.fyndplats.se/produkt/${p.slug}` });
+    // Matcha den SYNLIGA brödsmulan (Hem → Butik → produkt) — schemat hoppade
+    // tidigare över Butik-steget för okategoriserade produkter.
+    breadcrumbItems.push({ "@type": "ListItem", position: 2, name: "Butik", item: "https://www.fyndplats.se/butik" });
+    breadcrumbItems.push({ "@type": "ListItem", position: 3, name: p.name, item: `https://www.fyndplats.se/produkt/${p.slug}` });
   }
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -188,8 +216,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
 
       <div className="container">
         <nav className="crumbs">

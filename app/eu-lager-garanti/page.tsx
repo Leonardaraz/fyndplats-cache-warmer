@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLdString } from "../../lib/seo";
 import { ContentPage } from "../../components/content";
 import { EU_STOCK_NOTE } from "../../lib/shipping";
 
@@ -7,7 +8,7 @@ const DESC =
   "Alla produkter hos Fyndplats kommer garanterat från lager inom EU – därför tillkommer ingen ny importtull eller förtullningsavgift på din beställning.";
 const URL = "https://www.fyndplats.se/eu-lager-garanti";
 const OG_IMAGE =
-  "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,enc_avif/file.jpg";
+  "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -89,7 +90,7 @@ const jsonLd = {
 export default function EuLagerGaranti() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <ContentPage
         eyebrow="Trygghet"
         title="EU-lager-garanti"

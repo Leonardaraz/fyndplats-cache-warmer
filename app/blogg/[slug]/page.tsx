@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLdString } from "../../../lib/seo";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ContentPage } from "../../../components/content";
@@ -42,7 +43,9 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     "@type": "Article",
     headline: p.title,
     description: p.excerpt || p.title,
-    image: p.cover || "https://www.fyndplats.se/logo.svg",
+    // Fallback = riktig 1200×630-foto (samma som OG-standarden) — en logo-SVG
+    // uppfyller inte Googles Article-bildkrav (foto, rätt bildförhållanden).
+    image: p.cover || "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg",
     author: { "@type": "Organization", name: "Fyndplats" },
     publisher: {
       "@type": "Organization",
@@ -50,6 +53,9 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       logo: { "@type": "ImageObject", url: "https://www.fyndplats.se/logo.svg" },
     },
     datePublished: p.date || undefined,
+    // dateModified rekommenderas av Google; = publiceringsdatum tills inlägget
+    // faktiskt uppdateras (ärligt — vi stämplar inte om utan verklig ändring).
+    dateModified: p.date || undefined,
     inLanguage: "sv-SE",
     mainEntityOfPage: {
       "@type": "WebPage",
@@ -94,18 +100,18 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString(articleJsonLd) }}
       />
       {faqJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdString(faqJsonLd) }}
         />
       )}
       {itemListJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdString(itemListJsonLd) }}
         />
       )}
       <ContentPage eyebrow={fmtDate(p.date) || "Blogg"} title={p.title} lead={p.excerpt || undefined}>
