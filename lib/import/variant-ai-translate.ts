@@ -39,7 +39,11 @@ import type { FeatureFlags } from "./types";
 // svaret för alltid (det är en "betrodd" översättning, ≠ eko → självläker aldrig).
 const OP = "variant-translate-2";
 const AXIS_OP = "variant-axis-name";
-const VERIFY_OP = "variant-verify-sv";
+// Bumpad 2026-07-02 (variant-verify-sv → -2): re-pröva cachade "ok"-domslut med den
+// härdade prompten (Sångarbracket-incidenten: en blandspråks-sammansättning med en
+// engelsk orddel INUTI ordet passerade grinden och bakades in i ett key-låst
+// variantvärde). Per-slutvärde-cachen fylls om till ≈$0 (mest "Röd"/"Svart"-repriser).
+const VERIFY_OP = "variant-verify-sv-2";
 
 /** Översätter en batch okända råvärden → svenska (råvärde→svenska). Default
  *  anropar Claude/Haiku via routern; injicerbar i test. */
@@ -346,7 +350,7 @@ async function aiVerifySwedish(
   productTitle?: string,
 ): Promise<string[] | null> {
   const system = `Du kvalitetsgranskar variantvärden för en SVENSK e-handel. Avgör för varje sträng om den är NATURLIG SVENSKA eller språkneutral (mått, koder, modellnamn, siffror, vedertagna lånord som LED/USB/Smart/Premium). Engelska ord ("Wheel", "STRIPED", "Rear", "Silvery") är INTE svenska — även i versaler eller mitt i en sträng.
-Två extra fall som ALDRIG är naturlig svenska och som du MÅSTE flagga: (a) två ord hopmashade utan mellanslag, ofta camelCase ("vitBärbar", "svartaDominostenar", "vitKinesiskBärbar"); (b) ett ord hopklistrat med ett ordningstal ("Type1", "Mode2", "Modell2"). Äkta koder/modellnamn med versaler eller siffror inuti ("KM-6631", "USB3", "iPhone 15", "B6AC") är språkneutrala och flaggas INTE.
+Tre extra fall som ALDRIG är naturlig svenska och som du MÅSTE flagga: (a) två ord hopmashade utan mellanslag, ofta camelCase ("vitBärbar", "svartaDominostenar", "vitKinesiskBärbar"); (b) ett ord hopklistrat med ett ordningstal ("Type1", "Mode2", "Modell2"); (c) blandspråks-sammansättningar där en svensk och en engelsk orddel skrivits ihop till ETT ord ("Sångarbracket", "Fjäderclamp", "Väggmount") — en engelsk orddel INUTI ett sammansatt ord gör hela strängen icke-svensk, även när ordet vid första anblick ser svenskt ut. Äkta koder/modellnamn med versaler eller siffror inuti ("KM-6631", "USB3", "iPhone 15", "B6AC") är språkneutrala och flaggas INTE.
 Svara ENBART JSON: {"notSwedish": ["<exakt sträng>", ...]} — EXAKT de inskickade strängar som INTE är naturlig svenska. Tom lista om alla är ok.
 Produktkontext: ${productTitle ?? "(okänd)"}.`;
   try {
@@ -402,6 +406,8 @@ Regler:
 - Behåll ett värde OFÖRÄNDRAT BARA om det innehåller siffror eller är en uppenbar märkes-/modellbeteckning: koder ("KM-6631", "B6AC"), modellnamn med siffror ("iPhone 15 Pro"), mått (cm/mm), storlekar (S/M/L/XL/5XL) och rena siffror.
 - Vanliga engelska substantiv och adjektiv ("Rear Wheel", "Fork", "Glow", "Vertical Type") är ALDRIG modellnamn — de MÅSTE översättas till naturlig svenska ("Bakhjul", "Gaffel", "Glöd", "Vertikal").
 - Är råvärdet HOPSKRIVET eller camelCase ("WhitePortable", "BlackDominoes", "WhiteChinesePortable") → dela upp i ord och svara med naturlig svenska MED mellanslag ("Vit bärbar", "Svarta dominobrickor", "Vit kinesisk bärbar"). ALDRIG hopmashat utan mellanslag ("vitBärbar").
+- Blanda ALDRIG språk i samma ord: en svensk och en engelsk orddel får inte skrivas ihop ("Sångarbracket", "Fjäderclamp" är FEL). Varje ord i svaret ska vara antingen riktig svenska eller ett avsiktligt behållet kod-/modellnamn.
+- Hittar du ingen säker svensk översättning av ett ord → behåll HELA värdet exakt oförändrat (det flaggas då för manuell granskning; ett oförändrat värde är alltid bättre än en gissning).
 - Behåll ordning och separatorer (bindestreck/mellanslag).
 - Var koncis och konsekvent: samma engelska ord ska alltid ge samma svenska.
 - Produktkontext (för att tolka tvetydiga ord som "Spring"): ${productTitle ?? "(okänd)"}.`;
