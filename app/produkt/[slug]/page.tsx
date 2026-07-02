@@ -7,7 +7,7 @@ import { getProduct, getProducts, getCollections } from "../../../lib/products";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
-import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
+import { PdpReviewsSection } from "../../../components/pdp-reviews-section";
 import { ProgCrossLinks } from "../../../components/programmatic";
 import { blogLinksFor } from "../../../lib/seo/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
@@ -261,21 +261,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       {trustpilotBU ? (
-        <section className="sec revsec" id="recensioner">
-          <div className="container">
-            <div className="sechead">
-              <div className="eyebrow">Vad kunderna säger</div>
-              <h2>Kundrecensioner</h2>
-            </div>
-            <TrustBox
-              businessUnitId={trustpilotBU}
-              templateId={TRUSTBOX_TEMPLATES.productReviews}
-              height="500px"
-              sku={p.id}
-              className="pdp-trustbox"
-            />
-          </div>
-        </section>
+        // Självdöljande: rubrik + tom TrustBox blev annars en död vit yta på
+        // produkter utan Trustpilot-recensioner (visuell rond 2026-07-02).
+        <PdpReviewsSection businessUnitId={trustpilotBU} sku={p.id} />
       ) : (
         <ProductReviews
           reviews={reviewData.reviews}

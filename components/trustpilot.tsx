@@ -51,6 +51,8 @@ interface TrustBoxProps {
   sku?: string;
   /** data-stars-filter, t.ex. "4,5" för att bara visa 4–5-stjärniga. */
   stars?: string;
+  /** data-no-reviews: "hide" kollapsar widgeten när SKU:n saknar recensioner. */
+  noReviews?: "hide" | "collapse";
   locale?: string;
 }
 
@@ -63,6 +65,7 @@ export function TrustBox({
   className,
   sku,
   stars,
+  noReviews,
   locale = "sv-SE",
 }: TrustBoxProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -91,6 +94,7 @@ export function TrustBox({
         data-theme={theme}
         {...(sku ? { "data-sku": sku } : {})}
         {...(stars ? { "data-stars": stars } : {})}
+        {...(noReviews ? { "data-no-reviews": noReviews } : {})}
       >
         {/* Fallback-länk medan scriptet laddar (och för no-JS / crawlers). */}
         <a
