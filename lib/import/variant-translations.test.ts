@@ -56,7 +56,7 @@ describe("translateValue", () => {
 
   it("faller tillbaka på råvärdet utan match", () => {
     expect(translateValue("F2025-Sverige")).toBe("F2025-Sverige");
-    expect(translateValue("Unicorn")).toBe("Unicorn");
+    expect(translateValue("Vortex")).toBe("Vortex");
   });
 
   it("översätter ALLA kända ord token-vis, inte bara det första", () => {
@@ -209,6 +209,69 @@ describe("golden — fäll-fixar, LED och orörda idiom (lås i CI)", () => {
   });
 });
 
+// --- GOLDEN 2 (djup utbyggnad 2026-07, lekhage-fyndet): enheter, antal och
+//     de nya fäll-fixarna. Samma kontrakt som ovan — bryts en rad fälls CI. ---
+describe("golden — enheter, antal & djup utbyggnad (lås i CI)", () => {
+  const cases: Array<[string, string]> = [
+    // Triggerfallet: kvadrattum-storlekar (lekhagen 147f159f) blev rå-engelska
+    // OCH flaggades aldrig (såg ut som kod). Nu deterministiskt svenska.
+    ["4500-5500sq.in.", "4500-5500 kvadrattum"],
+    ["5500sq.in.", "5500 kvadrattum"],
+    ["3 Square Meters", "3 kvadratmeter"],
+    // Dimensionskedjor & tum-varianter
+    ["78.7x58.7in", "78.7x58.7 tum"],
+    ["42 in.", "42 tum"],
+    // Fot & antal (nummer-ankrat, även glued)
+    ["6ft", "6 fot"],
+    ["3 Feet", "3 fot"],
+    ["2pcs", "2 st"],
+    ["25 Pieces", "25 st"],
+    ["Set of 3", "Set om 3"],
+    ["Pack of 2", "2-pack"],
+    // Vikt kräver OMRÄKNING (inte namnbyte) → lämnas medvetet → AI/polering.
+    ["5 lbs", "5 lbs"],
+    // Fras-skydd: fasta fraser med pc/pcs-former bryts INTE av count-regeln
+    // (fullt uppslag på råvärdet sker FÖRE normalizeUnits).
+    ["1pc 8MP POE Camera", "1 st 8MP POE-kamera"],
+    ["5pc Sets 3", "5-delars set 3"],
+    // Nya fäll-fixar: hel fras vinner över token-vis fel-översättning.
+    ["Solid Wood", "Massivt trä"],
+    ["Solid Color", "Enfärgad"],
+    ["Solid", "Solid"], // ensamt tvetydigt → orört
+    ["Hot Dog", "Varmkorv"],
+    ["Cat 6", "Cat 6"], // nätverkskabel, inte "Katt 6"
+    ["Apple Watch", "Apple Watch"], // varumärke orört (apple medvetet utelämnat)
+    ["New York", "New York"], // stadsnamn, inte "Ny York"
+    ["Type-C", "Type-C"], // USB-namn skyddat som fras …
+    ["Type A", "Typ A"], // … men generisk stil-variant token-översätts
+    ["USB Type-C", "USB Type-C"],
+    ["Spare Parts", "Reservdelar"], // kompound-fras, inte "Reserv delar"
+    ["Ice Cream", "Glass"], // inte "Ice Gräddvit"; bart "Cream" lämnas orört …
+    ["Cream", "Cream"], // … (färg/glass/hudkräm är tvetydigt → AI/polering)
+    ["Mat Black", "Mattsvart"], // AE-stavfel för matte, inte "Matta Svart"
+    ["Hook and Loop", "Kardborre"], // stängningstyp, inte "Krok och Loop"
+    // Nya ord & fraser (stickprov över grupperna)
+    ["Cat", "Katt"],
+    ["Unicorn", "Enhörning"],
+    ["Dinosaur", "Dinosaurie"],
+    ["Tempered Glass", "Härdat glas"],
+    ["Aluminum Alloy", "Aluminiumlegering"],
+    ["As Picture", "Som på bilden"],
+    ["Machine Washable", "Maskintvättbar"],
+    ["Cordless", "Sladdlös"],
+    ["With Light", "Med belysning"], // fras, inte token-vis "med Ljus"
+    ["With Lid", "Med lock"],
+    ["3 Tier", "3 våningar"],
+    ["Mute", "Tyst"],
+    ["Dimmable", "Dimbar"],
+    ["Lake Blue", "Sjöblå"],
+    ["Off White", "Benvit"],
+  ];
+  it.each(cases)("translateValue(%j) === %j", (input, expected) => {
+    expect(translateValue(input)).toBe(expected);
+  });
+});
+
 describe("residualEnglishTokens", () => {
   it("tomt för värden som tabellen (fullt) hanterar", () => {
     expect(residualEnglishTokens("Red")).toEqual([]);
@@ -325,5 +388,58 @@ describe("buildVariantTranslator — döper om felmärkt 'Color'-axel (hela klas
       translateAxisName,
     );
     expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
+  });
+});
+
+// --- Djup utbyggnad 2026-07: nya axelnamn, axelklasser och måttformer ---
+
+describe("translateAxisName — utökade axlar", () => {
+  it("översätter de nya AE-axlarna", () => {
+    expect(translateAxisName("Emitting Color")).toBe("Ljusfärg");
+    expect(translateAxisName("Cable Length")).toBe("Kabellängd");
+    expect(translateAxisName("Applicable Age")).toBe("Ålder");
+    expect(translateAxisName("Load Capacity")).toBe("Maxbelastning");
+    expect(translateAxisName("Wood Type")).toBe("Träslag");
+    expect(translateAxisName("Compatible Model")).toBe("Passar modell");
+  });
+});
+
+describe("isSizeLikeAxis — dimensionskedjor, intervall & ytenheter", () => {
+  it("true för lekhage-fallets värden och dimensionskedjor", () => {
+    expect(isSizeLikeAxis(["4500-5500sq.in.", "5500sq.in."])).toBe(true);
+    expect(isSizeLikeAxis(["78.7x58.7in", "78.7x70.3in"])).toBe(true);
+    expect(isSizeLikeAxis(["50-60 inch"])).toBe(true);
+  });
+  it("false förblir false för färger/stilar", () => {
+    expect(isSizeLikeAxis(["Lake Blue", "Off White"])).toBe(false);
+  });
+});
+
+describe("inferMislabeledColorAxis — effekt, färgtemperatur & kapacitet", () => {
+  it("klassificerar W/K/mAh-värden under 'Color'", () => {
+    expect(inferMislabeledColorAxis(["10W", "20W"])).toBe("Effekt");
+    expect(inferMislabeledColorAxis(["3000K", "6500K"])).toBe("Ljusfärg");
+    expect(inferMislabeledColorAxis(["2000mAh", "5000mAh"])).toBe("Kapacitet");
+  });
+  it("guldkarat ('18K') träffas INTE av Kelvin-klassen", () => {
+    expect(inferMislabeledColorAxis(["18K", "24K"])).toBeNull();
+  });
+});
+
+describe("buildVariantTranslator — lekhage-fallet ände-till-ände", () => {
+  it("kvadrattum-storlekar blir svenska och axeln 'Storlek' behålls/sätts", () => {
+    // Som axeln faktiskt kom ("Size") …
+    const t1 = buildVariantTranslator([
+      { options: { Size: "4500-5500sq.in." } },
+      { options: { Size: "5500sq.in." } },
+    ]);
+    expect(t1.options({ Size: "4500-5500sq.in." })).toEqual({ Storlek: "4500-5500 kvadrattum" });
+    expect(t1.options({ Size: "5500sq.in." })).toEqual({ Storlek: "5500 kvadrattum" });
+    // … och felmärkt under "Color" → omdöps deterministiskt till "Storlek".
+    const t2 = buildVariantTranslator([
+      { options: { Color: "4500-5500sq.in." } },
+      { options: { Color: "5500sq.in." } },
+    ]);
+    expect(t2.options({ Color: "4500-5500sq.in." })).toEqual({ Storlek: "4500-5500 kvadrattum" });
   });
 });
