@@ -610,9 +610,56 @@ export function cartRecommendations(products: Product[], collections: Collection
 }
 
 // Wixstatic-bildens fil-id (samma fil kan levereras med olika transform-params,
-// w_400 vs w_800), så vi jämför på id:t — inte hela URL:en.
-function imgKey(url: string): string {
+// w_400 vs w_800), så vi jämför på id:t — inte hela URL:en. Exporterad så
+// produktfeeden kan deduppa extra-bilder mot huvudbilden på samma nyckel.
+export function imgKey(url: string): string {
   return (url || "").match(/\/media\/([^/?]+)/)?.[1] || url || "";
+}
+
+// HELA katalogens gallerier i EN batchad svep — för produktfeeden
+// (/feed/products.xml). List-frågans galleri kapas till 6 bilder (mapProduct),
+// så feeden kunde bara skicka max 5 extra-bilder trots att Wix lagrar upp till
+// 15. V3-query med fields MEDIA_ITEMS_INFO ger allt på ~4 cursor-paginerade
+// anrop (100/sida) i stället för ett GET per produkt (378 st). Returnerar
+// produkt-id → galleri-URL:er i Wix-ordning (dedupade på fil-id; första =
+// huvudbilden). Fail-open: tom Map vid saknad nyckel/fel → feeden faller
+// tillbaka på det kapade galleriet (dagens beteende, aldrig sämre).
+export async function fetchFeedGalleries(): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>();
+  if (!WIX_API_KEY) return out;
+  try {
+    let cursor: string | undefined;
+    for (let page = 0; page < 12; page++) { // hård gräns ~1200 produkter
+      const res = await fetch("https://www.wixapis.com/stores/v3/products/query", {
+        method: "POST",
+        headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: ["MEDIA_ITEMS_INFO"],
+          query: { cursorPaging: cursor ? { limit: 100, cursor } : { limit: 100 } },
+        }),
+      });
+      if (!res.ok) break;
+      const data = await res.json();
+      for (const p of data?.products || []) {
+        const seen = new Set<string>();
+        const urls: string[] = [];
+        for (const it of p?.media?.itemsInfo?.items || []) {
+          const url = it?.image?.url;
+          if (typeof url !== "string" || !url) continue;
+          const k = imgKey(url);
+          if (seen.has(k)) continue;
+          seen.add(k);
+          urls.push(url);
+        }
+        if (p?.id && urls.length) out.set(p.id, urls);
+      }
+      cursor = data?.pagingMetadata?.cursors?.next || undefined;
+      if (!cursor || !data?.pagingMetadata?.hasNext) break;
+    }
+  } catch (e) {
+    console.error("[wix] fetchFeedGalleries failed:", (e as Error).message);
+  }
+  return out;
 }
 
 // Defensiv render-lags-dedup för produktrader. getProducts() kollapsar redan

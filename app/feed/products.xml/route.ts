@@ -13,7 +13,7 @@
 // Återanvänder getProducts() (cachad, visible-filtrerad) + getCollections()
 // (för product_type = huvudkategori). Cache:as 1h (matchar katalog-revalidate).
 
-import { getProducts, getCollections, type Product, type Collection } from "@/lib/products";
+import { getProducts, getCollections, fetchFeedGalleries, imgKey, type Product, type Collection } from "@/lib/products";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
@@ -59,7 +59,7 @@ function parsePriceSv(s?: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function feedItem(p: Product, mainCategory?: string): string {
+function feedItem(p: Product, mainCategory?: string, fullGallery?: string[]): string {
   const url = `${SITE}/produkt/${p.slug}`;
   const description =
     stripHtml(p.descriptionHtml || "") || p.seoDescription || p.blurb || p.name;
@@ -78,8 +78,19 @@ function feedItem(p: Product, mainCategory?: string): string {
     priceLine = `${p.priceNum.toFixed(2)} ${cur}`;
   }
 
-  const additional = (p.gallery || [])
-    .filter((g) => g && g !== p.img)
+  // Extra-bilder: HELA V3-galleriet när det finns (list-frågans p.gallery är
+  // kapad till 6 → max 5 extra), annars p.gallery som förr. Dedupe på FIL-ID
+  // (imgKey) — huvudbild och galleri-poster kan vara samma foto med olika
+  // transform-params, då missade exakta URL-jämförelsen dubbletten.
+  const seenImgs = new Set<string>([imgKey(p.img)]);
+  const additional = ((fullGallery?.length ? fullGallery : p.gallery) || [])
+    .filter((g) => {
+      if (!g) return false;
+      const k = imgKey(g);
+      if (seenImgs.has(k)) return false;
+      seenImgs.add(k);
+      return true;
+    })
     .slice(0, 10)
     .map((g) => `\n      <g:additional_image_link>${xmlEscape(g)}</g:additional_image_link>`)
     .join("");
@@ -123,10 +134,14 @@ export async function GET() {
     return (cols.find((c) => c.parentId === null) ?? cols[0])?.name;
   };
 
+  // Fulla gallerier i en batchad V3-svep (id → URL:er). Fail-open: tom Map →
+  // varje item faller tillbaka på p.gallery precis som före ändringen.
+  const galleries = await fetchFeedGalleries();
+
   // Bara produkter med ett giltigt positivt pris (Meta avvisar pris 0).
   const items = products
     .filter((p) => p.priceNum > 0 && p.img && p.slug)
-    .map((p) => feedItem(p, mainCategoryOf(p)));
+    .map((p) => feedItem(p, mainCategoryOf(p), galleries.get(p.id)));
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
