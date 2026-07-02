@@ -2,6 +2,7 @@ import { getProducts, getCollections, sortByNewest, forListings } from "../../li
 import { jsonLdString } from "../../lib/seo";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { CategoryDropdown } from "../../components/categorydropdown";
+import { ProductIndex } from "../../components/product-index";
 import { pageMeta } from "../../lib/seo";
 
 export const metadata = pageMeta(
@@ -82,6 +83,13 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
           <CategoryDropdown products={products} collections={collections} activeSlug={active?.slug} />
 
           <ShopBrowser products={list} defaultSort="new" />
+
+          {/* Crawlbart A–Ö-index över HELA sortimentet: gridden ovan visar 24
+              (perf-gräns) och "Visa fler" är en JS-knapp — utan denna lista
+              saknade ~330 produkter interna ankarlänkar helt. Alltid hela
+              sortimentet (även vid ?kategori=): sidans canonical är
+              /alla-produkter, så hubben ska bära alla länkar. */}
+          <ProductIndex products={products} />
         </div>
       </section>
     </div>

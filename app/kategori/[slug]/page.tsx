@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getProducts, getCollections, forListings, dedupeProducts } from "../../../lib/products";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
+import { ProductIndex } from "../../../components/product-index";
 import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
 import { categoryContent } from "../../../lib/category-content";
@@ -225,6 +226,12 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               lager-/rea-toggles, paginering och delbart filter-tillstånd i URL:en
               — samma verktyg som /alla-produkter. (Audit 2026-06-02 #7) */}
           <ShopBrowser products={list} />
+
+          {/* Crawlbart A–Ö-index för kategorin: gridden visar 24 (perf-gräns) och
+              på statiskt renderade kategorisidor saknas "Visa fler"-knappen helt
+              i server-HTML (Suspense-fallback) → utan denna lista fick svans-
+              produkterna inga kategori-ankarlänkar alls. Ren text = noll perf. */}
+          <ProductIndex products={list} title={`Alla inom ${active.name} A–Ö`} />
         </div>
       </section>
 

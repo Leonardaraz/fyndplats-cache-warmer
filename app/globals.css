@@ -962,6 +962,18 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .ratingbig,.ratingstars .rstar,.ratingstars.is-done .rstar,.greview-card.is-show,.ratinghero::before,.greviews-track,.greviews-aurora::before,.greviews-aurora::after{animation:none}
 }
 
+/* Crawlbart A–Ö-produktindex (ren text — ger svansprodukterna interna länkar
+   utan bildkortens perf-kostnad; se components/product-index.tsx) */
+.prodindex{margin-top:34px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.prodindex summary{cursor:pointer;padding:14px 18px;font-size:14px;font-weight:600;color:var(--soft);list-style:none;display:flex;align-items:center;gap:9px}
+.prodindex summary::-webkit-details-marker{display:none}
+.prodindex summary::before{content:"+";font-weight:700;color:#C2410C;width:14px;text-align:center}
+.prodindex[open] summary::before{content:"–"}
+.prodindex ul{list-style:none;margin:0;padding:2px 18px 16px;columns:240px auto;column-gap:28px}
+.prodindex li{break-inside:avoid;padding:3px 0}
+.prodindex a{font-size:13px;color:var(--soft)}
+.prodindex a:hover{color:#C2410C;text-decoration:underline}
+
 /* ============================================================
    PREMIUM FEATURES — added by Claude
    ============================================================ */
