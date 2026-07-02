@@ -9,6 +9,7 @@ import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "../../../components/trustpilot";
 import { ProgCrossLinks } from "../../../components/programmatic";
+import { blogLinksFor } from "../../../lib/seo/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
 import { DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS } from "../../../lib/shipping";
 
@@ -213,6 +214,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .filter((c) => c.parentId === null && !ownTopCats.has(c.id) && c.slug !== "rea")
     .sort((a, b) => a.index - b.index)
     .map((c) => ({ href: `/kategori/${c.slug}`, label: c.name }));
+  // Blogg-länkar matchade på produktens kategori + första ordet i namnet
+  // (länkflöde PDP → blogg; äkta-träff-filtrerat, tom lista → inget block).
+  const blogLinks = await blogLinksFor(
+    [primaryCol?.name || "", p.name.split(/\s+/)[0] || ""].filter(Boolean),
+  );
 
   return (
     <>
@@ -290,7 +296,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       )}
 
       {deptLinks.length > 0 && (
-        <ProgCrossLinks title="Utforska fler avdelningar" links={deptLinks} />
+        <ProgCrossLinks title="Utforska fler avdelningar" links={deptLinks} blogLinks={blogLinks} />
       )}
     </>
   );

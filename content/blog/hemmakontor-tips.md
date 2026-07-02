@@ -1,5 +1,6 @@
 ---
 title: "Hemmakontor på budget: ergonomiska tips som faktiskt funkar"
+seo_title: "Hemmakontor på budget – ergonomiska tips"
 slug: hemmakontor-tips
 meta_description: "Hemmakontor tips för dig som vill jobba ergonomiskt utan att spendera tusenlappar. Smarta lösningar för stol, skrivbord, ljus, ljud och en mer produktiv vardag."
 primary_keyword: hemmakontor tips

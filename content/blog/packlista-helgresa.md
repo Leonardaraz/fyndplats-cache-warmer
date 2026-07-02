@@ -1,5 +1,6 @@
 ---
 title: "Packlistan för en helgresa: så packar du smart för 2–3 dagar"
+seo_title: "Packlista helgresa: packa smart 2–3 dagar"
 slug: packlista-helgresa
 meta_description: "Packlista för helgresa — så packar du smart och lätt för 2–3 dagar. Komplett lista plus de smarta tillbehören som gör resan lättare och rymmer i handbagaget."
 primary_keyword: packlista helgresa

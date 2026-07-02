@@ -79,6 +79,8 @@ async function fetchPosts(): Promise<Post[]> {
 
 export type FullPost = Post & {
   contentText: string;
+  /** Kort SERP-titel ur frontmatter (seo_title) — synliga rubriken orörd. */
+  seoTitle?: string;
   contentHtml?: string;     // satt för lokala inlägg
   primaryKeyword?: string;
   category?: string;
@@ -92,6 +94,7 @@ export async function getPost(slug: string): Promise<FullPost | null> {
   if (local) {
     return {
       title: local.title,
+      seoTitle: local.seoTitle,
       slug: local.slug,
       excerpt: local.excerpt,
       date: local.date,

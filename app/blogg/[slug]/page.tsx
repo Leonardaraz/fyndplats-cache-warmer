@@ -18,7 +18,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const p = await getPost(slug);
   if (!p) return { title: "Inlägg" };
   return {
-    title: p.title,
+    // seo_title (frontmatter) = kort SERP-titel så " | Fyndplats" ryms under
+    // ~60 tecken; synliga rubriken (p.title) förblir orörd på sidan.
+    title: p.seoTitle || p.title,
     description: p.excerpt || p.title,
     alternates: { canonical: `https://www.fyndplats.se/blogg/${p.slug}` },
     openGraph: {

@@ -1,5 +1,6 @@
 ---
 title: "Smarta förvaringslösningar för små lägenheter — 12 idéer som faktiskt funkar"
+seo_title: "Smart förvaring för små lägenheter – 12 idéer"
 slug: smarta-forvaringslosningar-sma-lagenheter
 meta_description: "Smarta förvaringslösningar för små lägenheter. 12 praktiska idéer som frigör golvyta i hall, sovrum, kök och badrum — utan att det blir trångt eller stökigt."
 primary_keyword: smarta förvaringslösningar

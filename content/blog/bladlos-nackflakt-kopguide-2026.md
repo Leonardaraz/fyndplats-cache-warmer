@@ -46,6 +46,11 @@ Under 300 gram upplevs sällan som besvärande. Tyngre modeller börjar belasta 
 - Börja på låg hastighet och öka vid behov – det förlänger drifttiden.
 - Använd inte i regn (få modeller är vattentäta) och rengör luftintaget från damm med jämna mellanrum för bästa luftflöde.
 
+## Utforska mer hos Fyndplats
+
+Håll dig sval i sommar med fler fynd inom [Skönhet & Hälsa](/kategori/skonhet-halsa) och [Elektronik & Tillbehör](/kategori/elektronik-tillbehor) — eller gör hela uteplatsen redo med [Gör uteplatsen sommarklar](/blogg/gor-uteplatsen-sommarklar-2026).
+
+
 ## Vanliga frågor
 
 ### Får jag ha med nackfläkten på flyget?

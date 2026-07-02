@@ -3,6 +3,9 @@ import path from "path";
 
 export type LocalPost = {
   title: string;
+  /** Kort SERP-titel (≤ ~48 tecken så " | Fyndplats"-suffixet ryms under 60).
+      Synliga rubriken (title) förblir orörd — bara <title>-taggen använder denna. */
+  seoTitle?: string;
   slug: string;
   excerpt: string;
   date: string;             // ISO datum (YYYY-MM-DD eller full ISO)
@@ -275,6 +278,10 @@ function extractFaq(md: string): { q: string; a: string }[] {
   };
   for (const raw of md.split(/\r?\n/)) {
     const t = raw.trim();
+    // Stanna vid horizontal rule — precis som renderMarkdown. Allt efter "---"
+    // renderas ALDRIG synligt, så utan detta stopp läckte dold text in i
+    // FAQPage-markupen (bryter Googles paritetskrav synligt ↔ schema).
+    if (/^---\s*$/.test(t)) break;
     const h2 = t.match(/^##\s+(.*)$/);
     if (h2) {
       flush();
@@ -347,6 +354,7 @@ async function readAllPosts(): Promise<LocalPost[]> {
     const date = String(data.publish_date || data.publish_date_suggestion || "");
     posts.push({
       title,
+      seoTitle: data.seo_title ? String(data.seo_title) : undefined,
       slug,
       excerpt,
       date,

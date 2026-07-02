@@ -1,5 +1,6 @@
 ---
 title: "Skönhetsrutin för torr hud: morgon och kväll, steg för steg"
+seo_title: "Skönhetsrutin för torr hud – steg för steg"
 slug: skonhetsrutin-torr-hud
 meta_description: "Skönhetsrutin för torr hud — så bygger du en morgon- och kvällsrutin som tillför fukt, lugnar och håller. Konkreta steg och produkttyper som faktiskt funkar."
 primary_keyword: skönhetsrutin torr hud

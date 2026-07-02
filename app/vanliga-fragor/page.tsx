@@ -26,6 +26,22 @@ const faqs: { q: string; a: string }[] = [
   { q: "Hur kontaktar jag kundtjänst?", a: "Snabbast når du oss via mejl: info@fyndplats.com. Du kan också ringa 073-663 09 90 vardagar 09:00–17:00, eller använda kontaktformuläret på sidan Kontakta oss. Vi svarar normalt inom 24 timmar." },
 ];
 
+// Gör "fyndplats.se/x"-omnämnanden i de SYNLIGA svaren till riktiga länkar
+// (crawlbara + klickbara). FAQPage-schemat nedan använder fortsatt f.a som ren
+// text — Googles FAQ-regler tillåter inte HTML i acceptedAnswer, och paritet
+// synligt ↔ schema bevaras (texten är densamma, bara ankartaggen tillkommer).
+function linkifyAnswer(a: string): React.ReactNode {
+  const parts = a.split(/(fyndplats\.se\/[a-z0-9-]+)/g);
+  if (parts.length === 1) return a;
+  return parts.map((part, i) =>
+    /^fyndplats\.se\/[a-z0-9-]+$/.test(part) ? (
+      <a key={i} href={part.replace("fyndplats.se", "")}>{part}</a>
+    ) : (
+      part
+    ),
+  );
+}
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -49,7 +65,7 @@ export default function VanligaFragor() {
           {faqs.map((f, i) => (
             <details key={i} {...(i === 0 ? { open: true } : {})}>
               <summary>{f.q}</summary>
-              <div className="ans">{f.a}</div>
+              <div className="ans">{linkifyAnswer(f.a)}</div>
             </details>
           ))}
         </div>

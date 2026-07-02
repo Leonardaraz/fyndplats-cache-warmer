@@ -103,8 +103,8 @@ export default function EuLagerGaranti() {
           </p>
         </div>
 
-        <h2>Vad ändras den 1 juli 2026?</h2>
-        <p>EU tar bort den så kallade <strong>&quot;de minimis&quot;-regeln</strong> – tullfriheten som hittills låtit billiga paket (under 150 euro) komma in i EU helt utan tull. I stället införs en <strong>fast tull på 3 euro per vara</strong> för paket som skickas <strong>in i EU utifrån</strong> (övergångsregel enligt rådets förordning (EU) 2026/382), och senare under 2026 en planerad <strong>hanteringsavgift</strong>. Därtill lägger transportörer ofta på en egen <strong>förtullningsavgift</strong> för paket utifrån EU.</p>
+        <h2>Vad ändrades den 1 juli 2026?</h2>
+        <p>Den 1 juli 2026 avskaffades EU:s <strong>&quot;de minimis&quot;-undantag</strong>, som tidigare gjorde paket värda under 150 euro tullfria vid import till EU. I stället gäller nu en <strong>fast tull på 3 euro per vara</strong> (för paket värda upp till 150 euro) som skickas <strong>in i EU utifrån</strong>, enligt övergångsregeln i rådets förordning (EU) 2026/382. Senare under 2026 planeras även en <strong>hanteringsavgift</strong>, och transportörer lägger ofta på en egen <strong>förtullningsavgift</strong> för paket utifrån EU.</p>
         <p>De nya avgifterna gäller alltså bara varor som skickas <strong>in i EU utifrån</strong>. Varor som redan finns i lager <strong>inom EU</strong> berörs inte.</p>
 
         <h2>Därför påverkas din beställning inte</h2>

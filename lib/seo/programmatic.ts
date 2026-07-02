@@ -119,6 +119,17 @@ function relatedPosts(posts: Post[], keywords: string[], limit = 3): { title: st
   return scored.slice(0, limit).map(({ p }) => ({ title: p.title, slug: p.slug }));
 }
 
+/**
+ * Topikalt matchade blogg-länkar för en godtycklig yta (kategori-/produktsida).
+ * Samma äkta-träff-filter som programmatiska sidorna: tom lista när inget inlägg
+ * matchar (ProgCrossLinks renderar då inget blogg-block). Ger länkflödet
+ * pengasidor → blogg som tidigare helt saknades.
+ */
+export async function blogLinksFor(keywords: string[], limit = 2): Promise<CrossLink[]> {
+  const posts = await getPosts();
+  return relatedPosts(posts, keywords, limit).map((b) => ({ href: `/blogg/${b.slug}`, label: b.title }));
+}
+
 const wordCount = (parts: string[]): number => T.countWords(parts.join(" "));
 const listWords = (list: Product[]): number => T.countWords(list.map((p) => `${p.name} ${p.price}`).join(" "));
 

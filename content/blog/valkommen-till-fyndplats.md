@@ -1,5 +1,6 @@
 ---
 title: "Välkommen till Fyndplats – smarta fynd för hela familjen"
+seo_title: "Välkommen till Fyndplats"
 slug: valkommen-till-fyndplats
 meta_description: "Hej och välkommen till Fyndplats! Vi är glada att du hittat hit."
 category: Nyheter
@@ -46,3 +47,8 @@ Här på bloggen delar vi köptips, guider och inspiration som hjälper dig att 
 - Leksaker till barn – så väljer du rätt →
 - Husdjursägarens guide för hund och katt →
 - Bärbar projektor till hemmabio – köpguide →
+
+## Börja utforska
+
+Kliv in i [butiken](/butik), läs om vår [EU-lager-garanti](/eu-lager-garanti) — och få ut mesta möjliga av varje krona med guiden [Fynda smart online](/blogg/fynda-smart-online).
+

@@ -1,5 +1,6 @@
 ---
 title: "Mysig höstinredning: så skapar du hemmets bästa hörna"
+seo_title: "Mysig höstinredning – hemmets bästa hörna"
 slug: mysig-hostinredning
 meta_description: "Mysig höstinredning utan att göra om allt. 10 enkla idéer för ljus, textil, dofter och färger som lyfter hemmet när mörkret kommer — utan stor budget."
 primary_keyword: mysig höstinredning

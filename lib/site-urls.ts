@@ -13,7 +13,7 @@
 //
 // What's OUT (deliberately): /sok (search results — thin/duplicate, noindex),
 // /tack and /sparning (transient/private order pages), /admin/* (proxy-gated).
-import { getProductSlugs, getCollections } from "./products";
+import { getProductSitemapEntries, getCollections } from "./products";
 import { getPosts } from "./blog";
 import { getProgrammaticUrls } from "./seo/programmatic";
 
@@ -33,7 +33,8 @@ export type SiteUrl = {
   path: string; // "" for home, otherwise leading-slash path
   url: string; // absolute
   type: SiteUrlType;
-  lastModified: Date;
+  /** Bara satt när ett ÄKTA ändringsdatum finns (produkt/blogg) — aldrig "nu". */
+  lastModified?: Date;
   changeFrequency: "daily" | "weekly" | "monthly";
   priority: number;
 };
@@ -62,21 +63,24 @@ const STATIC_INFO_PATHS = [
  * loaders the storefront uses, so it costs nothing extra per request.
  */
 export async function getSiteUrls(): Promise<SiteUrl[]> {
-  const [slugs, collections, posts, programmatic] = await Promise.all([
-    getProductSlugs(),
+  const [prodEntries, collections, posts, programmatic] = await Promise.all([
+    getProductSitemapEntries(),
     getCollections(),
     getPosts(),
     getProgrammaticUrls(),
   ]);
 
-  const now = new Date();
+  // lastModified sätts BARA när vi har ett äkta ändringsdatum (produkternas
+  // Wix-updatedDate, blogginläggens publish_date). Tidigare stämplades ALLT med
+  // render-tidpunkten → 419/442 URL:er "nyss ändrade" vid varje ISR → Google lär
+  // sig ignorera sajtens lastmod helt. Att utelämna är bättre än att ljuga.
   const entry = (
     path: string,
     type: SiteUrlType,
     changeFrequency: SiteUrl["changeFrequency"],
     priority: number,
-    lastModified: Date = now,
-  ): SiteUrl => ({ path, url: `${SITE}${path}`, type, lastModified, changeFrequency, priority });
+    lastModified?: Date,
+  ): SiteUrl => ({ path, url: `${SITE}${path}`, type, ...(lastModified ? { lastModified } : {}), changeFrequency, priority });
 
   const urls: SiteUrl[] = [
     entry("", "home", "daily", 1),
@@ -90,10 +94,14 @@ export async function getSiteUrls(): Promise<SiteUrl[]> {
   for (const p of STATIC_INFO_PATHS) urls.push(entry(p, "sida", "monthly", 0.7));
 
   for (const c of collections) urls.push(entry(`/kategori/${c.slug}`, "kategori", "weekly", 0.7));
-  for (const slug of slugs) urls.push(entry(`/produkt/${slug}`, "produkt", "weekly", 0.8));
+  for (const p of prodEntries) {
+    urls.push(
+      entry(`/produkt/${p.slug}`, "produkt", "weekly", 0.8, p.updatedAt > 0 ? new Date(p.updatedAt) : undefined),
+    );
+  }
   for (const post of posts) {
     urls.push(
-      entry(`/blogg/${post.slug}`, "blogg", "monthly", 0.6, post.date ? new Date(post.date) : now),
+      entry(`/blogg/${post.slug}`, "blogg", "monthly", 0.6, post.date ? new Date(post.date) : undefined),
     );
   }
 
