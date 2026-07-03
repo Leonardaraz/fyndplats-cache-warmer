@@ -35,61 +35,72 @@ export async function GET(req: Request) {
   if (!key || !site) {
     return Response.json({ error: "saknar env" }, { status: 500 });
   }
-  // ?files=1 → kompakt inventering av ALLA filer i Media Manager (media-root +
-  // undermappar): id, namn, storlek, mapp. Underlag för föräldralösa-bilder-
-  // analysen (metadata, inga skrivvägar).
+  // ?files=1 → kompakt inventering av filer i Media Manager: id, namn, storlek,
+  // mapp. Underlag för föräldralösa-bilder-analysen (metadata, inga skrivvägar).
+  // media-root visade sig ha >8000 filer → en enda request hinner inte paga allt
+  // inom serverless-timeouten (504). Därför CURSOR-CHUNKAD: varje anrop tar max
+  // 40 sidor (4000 filer) och returnerar nextCursor; klienten loopar tills null.
+  //   ?files=1                     → mapplistan + första chunken av media-root
+  //   ?files=1&folder=<id>         → första chunken av given mapp
+  //   ?files=1&folder=<id>&cursor= → fortsättning från cursorn
   if (sp.get("files") === "1") {
     const hdrs = { Authorization: key, "wix-site-id": site };
+    const folderId = sp.get("folder") || "media-root";
+    const startCursor = sp.get("cursor") || undefined;
     // Mappar under media-root (en nivå räcker — uploads skapar inga djupare träd).
     const folders: { id: string; name: string }[] = [{ id: "media-root", name: "media-root" }];
-    try {
-      const fres = await fetch("https://www.wixapis.com/site-media/v1/folders?paging.limit=100", {
-        headers: hdrs,
-        cache: "no-store",
-      });
-      if (fres.ok) {
-        const fdata: any = await fres.json();
-        for (const f of fdata?.folders || [])
-          if (f?.id) folders.push({ id: f.id, name: f?.displayName || f.id });
-      }
-    } catch {
-      /* mapplistning fail-open: media-root täcker default-uploads */
-    }
-    const files: { id: string; name: string; size: number; folder: string }[] = [];
-    for (const folder of folders) {
-      let cursor: string | undefined;
-      // 400 sidor à 100 = 40k filer per mapp. 80 räckte inte: media-root visade
-      // sig ha >8000 filer och inventeringen kapades tyst vid taket.
-      for (let page = 0; page < 400; page++) {
-        const qs = cursor
-          ? `paging.cursor=${encodeURIComponent(cursor)}`
-          : `parentFolderId=${encodeURIComponent(folder.id)}&paging.limit=100`;
-        const res = await fetch(`https://www.wixapis.com/site-media/v1/files?${qs}`, {
+    if (!startCursor) {
+      try {
+        const fres = await fetch("https://www.wixapis.com/site-media/v1/folders?paging.limit=100", {
           headers: hdrs,
           cache: "no-store",
         });
-        if (!res.ok) {
-          return Response.json(
-            { error: `wix ${res.status} (${folder.name})`, partial: files.length },
-            { status: 502 },
-          );
+        if (fres.ok) {
+          const fdata: any = await fres.json();
+          for (const f of fdata?.folders || [])
+            if (f?.id) folders.push({ id: f.id, name: f?.displayName || f.id });
         }
-        const data: any = await res.json();
-        for (const f of data?.files || []) {
-          if (f?.id)
-            files.push({
-              id: f.id,
-              name: f?.displayName || "",
-              size: Number(f?.sizeInBytes || 0),
-              folder: folder.name,
-            });
-        }
-        cursor = data?.nextCursor?.cursors?.next || undefined;
-        if (!cursor || !data?.nextCursor?.hasNext) break;
+      } catch {
+        /* mapplistning fail-open: media-root täcker default-uploads */
       }
     }
+    const folderName = folders.find((f) => f.id === folderId)?.name || folderId;
+    const files: { id: string; name: string; size: number; folder: string }[] = [];
+    let cursor: string | undefined = startCursor;
+    let nextCursor: string | null = null;
+    for (let page = 0; page < 40; page++) {
+      const qs = cursor
+        ? `paging.cursor=${encodeURIComponent(cursor)}`
+        : `parentFolderId=${encodeURIComponent(folderId)}&paging.limit=100`;
+      const res = await fetch(`https://www.wixapis.com/site-media/v1/files?${qs}`, {
+        headers: hdrs,
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        return Response.json(
+          { error: `wix ${res.status} (${folderName})`, partial: files.length },
+          { status: 502 },
+        );
+      }
+      const data: any = await res.json();
+      for (const f of data?.files || []) {
+        if (f?.id)
+          files.push({
+            id: f.id,
+            name: f?.displayName || "",
+            size: Number(f?.sizeInBytes || 0),
+            folder: folderName,
+          });
+      }
+      cursor = data?.nextCursor?.cursors?.next || undefined;
+      if (!cursor || !data?.nextCursor?.hasNext) {
+        cursor = undefined;
+        break;
+      }
+    }
+    nextCursor = cursor || null;
     return Response.json(
-      { count: files.length, files },
+      { count: files.length, files, nextCursor, folders: startCursor ? undefined : folders },
       { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } },
     );
   }
