@@ -35,6 +35,32 @@ export async function GET(req: Request) {
   if (!key || !site) {
     return Response.json({ error: "saknar env" }, { status: 500 });
   }
+  // ?trash=1 → kompakt lista över fil-id:n i Media Managers papperskorg —
+  // verifieringsunderlag för media-städningen (id:n är harmlös metadata).
+  if (sp.get("trash") === "1") {
+    const ids: string[] = [];
+    let cursor: string | undefined;
+    for (let page = 0; page < 60; page++) {
+      const qs = cursor
+        ? `paging.cursor=${encodeURIComponent(cursor)}`
+        : "paging.limit=100";
+      const res = await fetch(`https://www.wixapis.com/site-media/v1/trash-bin/files?${qs}`, {
+        headers: { Authorization: key, "wix-site-id": site },
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        return Response.json({ error: `wix ${res.status}`, partial: ids.length }, { status: 502 });
+      }
+      const data: any = await res.json();
+      for (const f of data?.files || []) if (f?.id) ids.push(f.id);
+      cursor = data?.nextCursor?.cursors?.next || undefined;
+      if (!cursor || !data?.nextCursor?.hasNext) break;
+    }
+    return Response.json(
+      { count: ids.length, ids },
+      { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } },
+    );
+  }
   const out: any[] = [];
   try {
     let cursor: string | undefined;
