@@ -35,6 +35,16 @@ export async function GET(req: Request) {
   if (!key || !site) {
     return Response.json({ error: "saknar env" }, { status: 500 });
   }
+  // Metadata-parametrarna (?files/?trash/?hidden) listar mer än det som redan
+  // är publikt på produktsidorna. Sätt CURATION_TOOL_TOKEN i Vercel så krävs
+  // ?token=<värdet> för dem (fail-open: utan env behålls dagens öppna beteende
+  // så verktyget inte bryts innan env:en är satt).
+  const toolToken = process.env.CURATION_TOOL_TOKEN;
+  if (toolToken && (sp.get("files") === "1" || sp.get("trash") === "1" || wantHidden)) {
+    if (sp.get("token") !== toolToken) {
+      return Response.json({ error: "token krävs" }, { status: 401 });
+    }
+  }
   // ?files=1 → kompakt inventering av filer i Media Manager: id, namn, storlek,
   // mapp. Underlag för föräldralösa-bilder-analysen (metadata, inga skrivvägar).
   // media-root visade sig ha >8000 filer → en enda request hinner inte paga allt
@@ -48,21 +58,22 @@ export async function GET(req: Request) {
     const folderId = sp.get("folder") || "media-root";
     const startCursor = sp.get("cursor") || undefined;
     // Mappar under media-root (en nivå räcker — uploads skapar inga djupare träd).
+    // Hämtas ALLTID (även på cursor-fortsättningar, +1 billigt anrop) så att
+    // folderName inte faller tillbaka till rå mapp-GUID mellan chunkar — samma
+    // mapp ska ha samma folder-etikett i hela den ihopsatta inventeringen.
     const folders: { id: string; name: string }[] = [{ id: "media-root", name: "media-root" }];
-    if (!startCursor) {
-      try {
-        const fres = await fetch("https://www.wixapis.com/site-media/v1/folders?paging.limit=100", {
-          headers: hdrs,
-          cache: "no-store",
-        });
-        if (fres.ok) {
-          const fdata: any = await fres.json();
-          for (const f of fdata?.folders || [])
-            if (f?.id) folders.push({ id: f.id, name: f?.displayName || f.id });
-        }
-      } catch {
-        /* mapplistning fail-open: media-root täcker default-uploads */
+    try {
+      const fres = await fetch("https://www.wixapis.com/site-media/v1/folders?paging.limit=100", {
+        headers: hdrs,
+        cache: "no-store",
+      });
+      if (fres.ok) {
+        const fdata: any = await fres.json();
+        for (const f of fdata?.folders || [])
+          if (f?.id) folders.push({ id: f.id, name: f?.displayName || f.id });
       }
+    } catch {
+      /* mapplistning fail-open: media-root täcker default-uploads */
     }
     const folderName = folders.find((f) => f.id === folderId)?.name || folderId;
     const files: { id: string; name: string; size: number; folder: string }[] = [];
@@ -84,7 +95,9 @@ export async function GET(req: Request) {
       }
       const data: any = await res.json();
       for (const f of data?.files || []) {
-        if (f?.id)
+        // Privata filer listas aldrig (rutten är publik; privata uppladdningar
+        // ska inte kunna enumereras — de lämnas också orörda av städ-analysen).
+        if (f?.id && !f?.private)
           files.push({
             id: f.id,
             name: f?.displayName || "",
@@ -106,10 +119,15 @@ export async function GET(req: Request) {
   }
   // ?trash=1 → kompakt lista över fil-id:n i Media Managers papperskorg —
   // verifieringsunderlag för media-städningen (id:n är harmlös metadata).
+  // CURSOR-CHUNKAD som ?files=1 (max 40 sidor/anrop, nextCursor i svaret):
+  // papperskorgen kan hålla >6000 filer under en städrunda, och det gamla
+  // 60-sidorstaket trunkerade då tyst — exakt den bugg som bet ?files=1.
+  //   ?trash=1            → första chunken
+  //   ?trash=1&cursor=<c> → fortsättning tills nextCursor är null
   if (sp.get("trash") === "1") {
     const ids: string[] = [];
-    let cursor: string | undefined;
-    for (let page = 0; page < 60; page++) {
+    let cursor: string | undefined = sp.get("cursor") || undefined;
+    for (let page = 0; page < 40; page++) {
       const qs = cursor
         ? `paging.cursor=${encodeURIComponent(cursor)}`
         : "paging.limit=100";
@@ -123,10 +141,13 @@ export async function GET(req: Request) {
       const data: any = await res.json();
       for (const f of data?.files || []) if (f?.id) ids.push(f.id);
       cursor = data?.nextCursor?.cursors?.next || undefined;
-      if (!cursor || !data?.nextCursor?.hasNext) break;
+      if (!cursor || !data?.nextCursor?.hasNext) {
+        cursor = undefined;
+        break;
+      }
     }
     return Response.json(
-      { count: ids.length, ids },
+      { count: ids.length, ids, nextCursor: cursor || null },
       { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } },
     );
   }
