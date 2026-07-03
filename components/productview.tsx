@@ -100,6 +100,51 @@ function thumbUrl(url: string): string {
   return tightFillUrl(url, 120, 120, 80);
 }
 
+// Visuell putsning av måttetiketter: 590x790 → 590 × 790. Endast siffra-x-siffra
+// byts (multiplikationstecken), så färgnamn m.m. ("Blue-Green") aldrig mangas.
+function fmtDim(s: string): string {
+  return (s || "").replace(/(\d)\s*[xX]\s*(\d)/g, "$1 × $2");
+}
+
+type VariantCardItem = {
+  key: string;
+  label: string;
+  active: boolean;
+  avail: boolean;
+  price?: string;
+  onPick: () => void;
+};
+
+// Staplade valkort för TEXT-/måttvarianter (långa etiketter): en rad per val,
+// allt synligt på en gång, tydligt markerat — ersätter den scrollande pill-raden
+// som dolde att det fanns fler än ~2 val. Pris per rad visas bara när varianterna
+// faktiskt skiljer sig i pris (annars vore det bara upprepat brus).
+function renderVariantCards(items: VariantCardItem[]) {
+  const priceVaries = new Set(items.map((it) => it.price).filter(Boolean)).size > 1;
+  return (
+    <div className="varcards">
+      {items.map((it) => (
+        <button
+          key={it.key}
+          type="button"
+          className={`varcard ${it.active ? "active" : ""} ${it.avail ? "" : "oos"}`}
+          onClick={it.onPick}
+          aria-pressed={it.active}
+          aria-label={it.avail ? it.label : `${it.label} – slut i lager`}
+          title={it.avail ? it.label : `${it.label} – slut i lager`}
+        >
+          <span className="varcard-radio" aria-hidden="true" />
+          <span className="varcard-main">
+            <span className="varcard-label">{fmtDim(it.label)}</span>
+            {!it.avail && <span className="varcard-oos">Slut i lager</span>}
+          </span>
+          {priceVaries && it.price ? <span className="varcard-price">{it.price}</span> : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function ProductView({
   productId,
   name,
@@ -355,36 +400,53 @@ export function ProductView({
           <div className="pdp-axis" key={axis.name}>
             <div className="varhead">
               <span className="varhead-key">{axis.name}</span>
-              <strong className="varhead-val">{picked[axis.name] || ""}</strong>
+              <strong className="varhead-val">{fmtDim(picked[axis.name] || "")}</strong>
+              {axis.choices.length >= 3 && <span className="varcount">{axis.choices.length} val</span>}
             </div>
-            <div className={`varswatches ${mode} ${axis.choices.length >= 4 ? "is-scroll" : ""}`}>
-              {axis.choices.map((c) => {
-                const active = picked[axis.name] === c.label;
-                const avail = isChoiceAvailable(table, axis.name, c.label, picked);
-                return (
-                  <button
-                    key={c.label}
-                    type="button"
-                    className={`varswatch ${mode} ${active ? "active" : ""} ${avail ? "" : "oos"}`}
-                    onClick={() => setPicked((prev) => reconcileSelection(table, axis.name, c.label, prev))}
-                    aria-pressed={active}
-                    aria-label={avail ? c.label : `${c.label} – slut i lager`}
-                    title={avail ? c.label : `${c.label} – slut i lager`}
-                  >
-                    {mode === "image" ? (
-                      <span className="varswatch-thumb">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={thumbUrl(c.image)} alt="" loading="lazy" width={38} height={38} decoding="async" />
-                      </span>
-                    ) : mode === "color" ? (
-                      <span className="varswatch-dot" style={{ background: c.color || "#e5e7eb" }} />
-                    ) : null}
-                    <span className="varswatch-name">{c.label}</span>
-                    {!avail && <span className="varswatch-oos">Slut</span>}
-                  </button>
-                );
-              })}
-            </div>
+            {mode === "text" ? (
+              renderVariantCards(
+                axis.choices.map((c) => {
+                  const active = picked[axis.name] === c.label;
+                  const avail = isChoiceAvailable(table, axis.name, c.label, picked);
+                  return {
+                    key: c.label,
+                    label: c.label,
+                    active,
+                    avail,
+                    onPick: () => setPicked((prev) => reconcileSelection(table, axis.name, c.label, prev)),
+                  };
+                }),
+              )
+            ) : (
+              <div className={`varswatches ${mode}`}>
+                {axis.choices.map((c) => {
+                  const active = picked[axis.name] === c.label;
+                  const avail = isChoiceAvailable(table, axis.name, c.label, picked);
+                  return (
+                    <button
+                      key={c.label}
+                      type="button"
+                      className={`varswatch ${mode} ${active ? "active" : ""} ${avail ? "" : "oos"}`}
+                      onClick={() => setPicked((prev) => reconcileSelection(table, axis.name, c.label, prev))}
+                      aria-pressed={active}
+                      aria-label={avail ? c.label : `${c.label} – slut i lager`}
+                      title={avail ? c.label : `${c.label} – slut i lager`}
+                    >
+                      {mode === "image" ? (
+                        <span className="varswatch-thumb">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={thumbUrl(c.image)} alt="" loading="lazy" width={38} height={38} decoding="async" />
+                        </span>
+                      ) : mode === "color" ? (
+                        <span className="varswatch-dot" style={{ background: c.color || "#e5e7eb" }} />
+                      ) : null}
+                      <span className="varswatch-name">{c.label}</span>
+                      {!avail && <span className="varswatch-oos">Slut</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
@@ -394,15 +456,39 @@ export function ProductView({
   // En enhetlig variant-picker (named swatches): cirkelbild/färgprick + namn,
   // tydlig vald-state och dimmade övriga. Renderas en gång; CSS-order lyfter den
   // direkt under hero-bilden på mobil men håller den kvar på höger sida på desktop.
+  const singleCount = hasImageVariants ? imageChoices.length : variants.length;
+  // Hybrid: TEXT-/måttvarianter → staplade valkort (allt synligt, långa etiketter
+  // läsbara); bild-/färgvarianter → radbrytande swatch-rutor (ingen dold scroll).
+  const singleCards = hasImageVariants ? variantMode === "text" : true;
   const variantPicker = (hasImageVariants || hasTextVariants) ? (
     <div className="pdp-variants">
       <div className="varhead">
         <span className="varhead-key">{hasImageVariants ? (options?.name || "Variant") : "Variant"}</span>
-        <strong className="varhead-val">{variantLabel}</strong>
+        <strong className="varhead-val">{fmtDim(variantLabel)}</strong>
+        {singleCount >= 3 && <span className="varcount">{singleCount} val</span>}
       </div>
-      <div className={`varswatches ${hasImageVariants ? variantMode : "text"} ${(hasImageVariants ? imageChoices.length : variants.length) >= 4 ? "is-scroll" : ""}`}>
-        {hasImageVariants
-          ? imageChoices.map((c, i) => (
+      {singleCards
+        ? renderVariantCards(
+            hasImageVariants
+              ? imageChoices.map((c, i) => ({
+                  key: c.variantId,
+                  label: c.label,
+                  active: sel === i,
+                  avail: c.inStock !== false,
+                  price: c.price,
+                  onPick: () => pickVariant(i),
+                }))
+              : variants.map((v, i) => ({
+                  key: v.id,
+                  label: v.label,
+                  active: sel === i,
+                  avail: true,
+                  onPick: () => setSel(i),
+                })),
+          )
+        : (
+          <div className={`varswatches ${variantMode}`}>
+            {imageChoices.map((c, i) => (
               <button
                 key={c.variantId}
                 type="button"
@@ -423,19 +509,9 @@ export function ProductView({
                 <span className="varswatch-name">{c.label}</span>
                 {c.inStock === false && <span className="varswatch-oos">Slut</span>}
               </button>
-            ))
-          : variants.map((v, i) => (
-              <button
-                key={v.id}
-                type="button"
-                className={`varswatch text ${sel === i ? "active" : ""}`}
-                onClick={() => setSel(i)}
-                aria-pressed={sel === i}
-              >
-                <span className="varswatch-name">{v.label}</span>
-              </button>
             ))}
-      </div>
+          </div>
+        )}
     </div>
   ) : null;
 
