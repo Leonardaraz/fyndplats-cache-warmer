@@ -24,6 +24,7 @@ export interface GoogleReview {
   text: string; // kan vara tom (stjärn-bara omdöme) → filtreras bort ur listan
   author: string; // reviewer.displayName (publikt på Google)
   date?: string; // createTime (ISO)
+  photo?: string; // reviewerns publika Google-profilbild (Places ger den; GBP → saknas → initial-fallback)
 }
 
 export interface GoogleReviewsResult {
@@ -101,6 +102,7 @@ interface PlacesReview {
   rating?: number;
   text?: string;
   time?: number; // unix-sekunder
+  profile_photo_url?: string;
 }
 
 async function getPlacesReviews(): Promise<GoogleReviewsResult> {
@@ -135,6 +137,7 @@ async function getPlacesReviews(): Promise<GoogleReviewsResult> {
         text: preferOriginal(String(rv.text || "")),
         author: String(rv.author_name || "").trim() || "Google-användare",
         date: rv.time ? new Date(rv.time * 1000).toISOString() : undefined,
+        photo: rv.profile_photo_url || undefined,
       }))
       .filter((rv) => rv.rating > 0 && rv.text.length > 0)
       .sort((a, b) => (Date.parse(b.date || "") || 0) - (Date.parse(a.date || "") || 0));

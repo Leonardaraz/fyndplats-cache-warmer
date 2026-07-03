@@ -35,6 +35,34 @@ function avatarColor(name: string): string {
   return `hsl(${h} 50% 42%)`;
 }
 
+// Recensent-avatar: reviewerns riktiga Google-profilbild när den finns (max äkthet),
+// annars en färgad initial-cirkel. Bryts bilden (borttagen/blockerad) → initial-fallback.
+// Samma className som tidigare span → ärver storlek/rundning/stapel-överlapp från CSS.
+function Avatar({ r, className }: { r: GoogleReview; className: string }) {
+  const [broken, setBroken] = useState(false);
+  if (r.photo && !broken) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        className={className}
+        src={r.photo}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        onError={() => setBroken(true)}
+        style={{ objectFit: "cover" }}
+        aria-hidden="true"
+      />
+    );
+  }
+  return (
+    <span className={className} style={{ background: avatarColor(r.author) }} aria-hidden="true">
+      {initialOf(r.author)}
+    </span>
+  );
+}
+
 function formatDate(iso?: string): string | null {
   if (!iso) return null;
   const t = Date.parse(iso);
@@ -143,9 +171,7 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
   return (
     <li ref={ref} className={cls} style={{ animationDelay: `${(index % 3) * 70}ms` }}>
       <div className="greview-head">
-        <span className="greview-avatar" style={{ background: avatarColor(r.author) }} aria-hidden="true">
-          {initialOf(r.author)}
-        </span>
+        <Avatar r={r} className="greview-avatar" />
         <span className="greview-who">
           <span className="greview-name">{r.author}</span>
           <span className="greview-meta">
@@ -171,9 +197,7 @@ function Marquee({ reviews }: { reviews: GoogleReview[] }) {
       <div className="greviews-track">
         {loop.map((r, i) => (
           <span className="greviews-chip" key={i}>
-            <span className="greviews-chipav" style={{ background: avatarColor(r.author) }}>
-              {initialOf(r.author)}
-            </span>
+            <Avatar r={r} className="greviews-chipav" />
             <span className="greviews-chipname">{r.author}</span>
             <span className="greviews-chipstars">{"★".repeat(Math.round(r.rating))}</span>
             <span className="greviews-chipquote">{shortQuote(r.text)}</span>
@@ -213,9 +237,7 @@ export function GoogleReviews({
       <div className="greviews-topproof">
         <span className="greviews-stack" aria-hidden="true">
           {stack.map((r) => (
-            <span className="greviews-stackav" key={r.id} style={{ background: avatarColor(r.author) }}>
-              {initialOf(r.author)}
-            </span>
+            <Avatar key={r.id} r={r} className="greviews-stackav" />
           ))}
         </span>
         <div className="greviews-summary">
