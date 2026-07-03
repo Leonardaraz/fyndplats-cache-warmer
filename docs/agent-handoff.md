@@ -104,6 +104,9 @@ Cheat-sheet (runbooken styr i detalj):
 - **Steg 1 – Läs produkten** (read-only GET, fält
   `DESCRIPTION,PLAIN_DESCRIPTION,URL,MEDIA_ITEMS_INFO,VARIANT_OPTION_CHOICE_NAMES`). Spara
   `revision`, `visible`, namn, slug, seoData, hela `media`, options, variants.
+- **Steg 1b – ANALYSERA alla bilder FÖRST** (previews via wix-transform, se runbook Steg 1b):
+  den visuella förståelsen styr fokussökord, beskrivning, alt-texter, huvudbildsval och
+  tvätt-behov. Görs INNAN någon copy skrivs.
 - **Steg 2 – PATCH namn + slug + seoData + `plainDescription`** (1 mutation):
   - **name (H1)** börjar med fokussökordet, **≤ 80 tecken** (hård gräns → 400-fel annars).
   - **slug**: ASCII (å/ä→a, ö→o), gemener, bindestreck, innehåller fokussökordet.
@@ -119,14 +122,19 @@ Cheat-sheet (runbooken styr i detalj):
 - **Steg 2b – Re-synka SKU** till nya sluggen (se §7). Skicka `options` + `variantsInfo`
   **verbatim** (ändra bara `sku`) + färsk revision → annars 428
   `MISSING_OPTIONS_ON_UPDATE_VARIANTS`.
-- **Steg 3 – Skriv om ALLA bild-alt-texter** till varierad, sökordsrik svenska. Se §6.1/§6.7.
+- **Steg 3 – Skriv om ALLA bild-alt-texter** till varierad, sökordsrik svenska utifrån det
+  som faktiskt syns (granskningen i Steg 1b). Se §6.1/§6.7.
+- **Steg 3b – Tvätta bort dropship-loggor/vattenstämplar/inbränd text** (spanska, engelska,
+  kinesiska …) där bakgrunden är slät; rörig bakgrund/infografik → ta bort ur galleriet eller
+  flagga. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3b.
 - **Steg 4 – Kategori** (se §6 + ID-tabell). 1 anrop.
 - **Steg 5 – Publicera** (`visible:true`) — först efter att Steg 2–4 verifierats.
 - **Steg 6 – Varianter:** kontrollera. **Döp ALDRIG om variantvärden** (V3 key-lock, §6.5).
 
 ### Fas E — Verifiera (Klart-kriterium, per produkt)
 - ✅ Fokussökordet finns i **titel, H1, slug, beskrivning OCH meta**.
-- ✅ Alla bilder har svenska alt-texter och **kvar sina `image.url`**, antal oförändrat.
+- ✅ Alla bilder har svenska alt-texter och **kvar sina `image.url`**; antal oförändrat utom
+  bilder som medvetet togs bort/ersattes i Steg 3b (borttagen `linkedMedia`-bild → valet omkopplat).
 - ✅ Flik-rubrikerna är **rena `<h2>`** (renderas som flikar, inte inline).
 - ✅ SKU matchar polerade sluggen (inget engelskt råord, inget märke).
 - ✅ `visible:true`. Pris slutar på 9.
