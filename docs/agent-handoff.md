@@ -119,7 +119,11 @@ Cheat-sheet (runbooken styr i detalj):
 - **Steg 2b – Re-synka SKU** till nya sluggen (se §7). Skicka `options` + `variantsInfo`
   **verbatim** (ändra bara `sku`) + färsk revision → annars 428
   `MISSING_OPTIONS_ON_UPDATE_VARIANTS`.
-- **Steg 3 – Skriv om ALLA bild-alt-texter** till varierad, sökordsrik svenska. Se §6.1/§6.7.
+- **Steg 3 – GRANSKA bilderna visuellt + skriv om ALLA bild-alt-texter** till varierad,
+  sökordsrik svenska utifrån det som faktiskt syns (hämta previews, se runbook Steg 3). Se §6.1/§6.7.
+- **Steg 3b – Tvätta bort dropship-loggor/vattenstämplar/inbränd text** (spanska, engelska,
+  kinesiska …) där bakgrunden är slät; rörig bakgrund/infografik → ta bort ur galleriet eller
+  flagga. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3b.
 - **Steg 4 – Kategori** (se §6 + ID-tabell). 1 anrop.
 - **Steg 5 – Publicera** (`visible:true`) — först efter att Steg 2–4 verifierats.
 - **Steg 6 – Varianter:** kontrollera. **Döp ALDRIG om variantvärden** (V3 key-lock, §6.5).

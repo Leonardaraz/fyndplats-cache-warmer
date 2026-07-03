@@ -23,7 +23,9 @@ export function PolishButton({
   const payload = [
     "SEO-polera denna RÅ-importerade produkt.",
     "FÖRST: läs och följ instruktionerna i docs/seo-polish-runbook.md (exakt, i ordning) —",
-    "inkl. att PUBLICERA produkten (visible:true) när poleringen är klar och verifierad.",
+    "inkl. Steg 3/3b: GRANSKA alla bilder visuellt och TVÄTTA bort dropship-loggor och",
+    "inbränd text (spanska/engelska/kinesiska) där det går, samt att PUBLICERA",
+    "produkten (visible:true) när poleringen är klar och verifierad.",
     "",
     `Wix-produkt-ID: ${wixProductId}`,
     title ? `Titel (rå): ${title}` : null,
