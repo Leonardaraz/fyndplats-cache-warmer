@@ -1,8 +1,11 @@
-// Google Business Profile-omdömen för /omdomen. Hämtar ALLA omdömen via det
-// officiella Business Profile-API:t (accounts.locations.reviews.list, v4) server-
-// side, ISR-cachat. Kräver env (OAuth refresh token + konto/plats-ID). Saknas env
-// eller failar anropet → tom lista och sidan ser ut precis som innan (graceful,
-// fail-open — exakt samma mönster som lib/reviews.ts).
+// Google Business Profile-omdömen för /omdomen. Två vägar, server-side + ISR-cachat:
+//   1) Business Profile-API:t (v4) — ALLA omdömen, kräver OAuth (client id/secret +
+//      refresh token) + konto/plats-ID. Bäst, men kräver Google-godkännande + OAuth.
+//   2) Places API (fallback) — bara EN API-nyckel (GOOGLE_PLACES_API_KEY) + Place ID
+//      (GOOGLE_PLACE_ID). Snabbt att aktivera; visar snittbetyg, totalt antal och upp
+//      till 5 omdömen (Googles Places-tak). Används automatiskt när (1) saknar env.
+// Saknas bägge eller failar anropet → tom lista och sidan ser ut precis som innan
+// (graceful, fail-open — de kurerade äkta omdömena visas i stället).
 //
 // Integritet/ToS: visar reviewerns PUBLIKA visningsnamn (som det står på Google)
 // + "via Google"-attribution. Vi modifierar inte texten (utöver att föredra
@@ -87,14 +90,69 @@ interface RawReview {
   reviewer?: { displayName?: string };
 }
 
+// Fallback-väg: Google Places API (Place Details). Bara EN nyckel + Place ID,
+// ingen OAuth eller Business-Profile-godkännande → snabbast att aktivera. Google
+// returnerar snittbetyg, totalt antal omdömen och upp till 5 omdömen; "Se alla på
+// Google"-länken på /omdomen tar besökaren till hela listan. Fail-open.
+const PLACES_URL = "https://maps.googleapis.com/maps/api/place/details/json";
+
+interface PlacesReview {
+  author_name?: string;
+  rating?: number;
+  text?: string;
+  time?: number; // unix-sekunder
+}
+
+async function getPlacesReviews(): Promise<GoogleReviewsResult> {
+  const key = process.env.GOOGLE_PLACES_API_KEY;
+  const placeId = process.env.GOOGLE_PLACE_ID;
+  if (!key || !placeId) return EMPTY;
+  try {
+    const url = new URL(PLACES_URL);
+    url.searchParams.set("place_id", placeId);
+    url.searchParams.set("fields", "rating,user_ratings_total,reviews");
+    url.searchParams.set("reviews_sort", "newest");
+    url.searchParams.set("reviews_no_translations", "true");
+    url.searchParams.set("language", "sv");
+    url.searchParams.set("key", key);
+    const res = await fetch(url.toString(), {
+      // 6 h ISR → ett Places-anrop var 6:e timme oavsett trafik = nära $0.
+      next: { revalidate: 21600, tags: ["google-reviews"] },
+    });
+    if (!res.ok) return EMPTY;
+    const body = (await res.json()) as {
+      status?: string;
+      result?: { rating?: number; user_ratings_total?: number; reviews?: PlacesReview[] };
+    };
+    if (body.status !== "OK" || !body.result) return EMPTY;
+    const r = body.result;
+    const average = typeof r.rating === "number" ? Math.round(r.rating * 10) / 10 : null;
+    const count = typeof r.user_ratings_total === "number" ? r.user_ratings_total : 0;
+    const reviews: GoogleReview[] = (r.reviews || [])
+      .map((rv) => ({
+        id: `${rv.time || ""}-${String(rv.author_name || "").slice(0, 16)}`,
+        rating: Math.round(Number(rv.rating || 0)),
+        text: preferOriginal(String(rv.text || "")),
+        author: String(rv.author_name || "").trim() || "Google-användare",
+        date: rv.time ? new Date(rv.time * 1000).toISOString() : undefined,
+      }))
+      .filter((rv) => rv.rating > 0 && rv.text.length > 0)
+      .sort((a, b) => (Date.parse(b.date || "") || 0) - (Date.parse(a.date || "") || 0));
+    return { count: count || reviews.length, average, reviews };
+  } catch {
+    return EMPTY;
+  }
+}
+
 /**
  * Alla omdömen (med text) från Google-företagsprofilen, senaste först. ISR-cachat
- * 6 h. Returnerar tomt om env saknas eller anropet failar → /omdomen fungerar då
- * precis som innan (ingen omdömes-sektion renderas).
+ * 6 h. Föredrar Business-Profile-API:t (alla omdömen); saknas den OAuth-env:en
+ * faller vi tillbaka på Places API (en nyckel + Place ID). Saknas bägge → tomt →
+ * /omdomen visar de kurerade äkta omdömena precis som innan.
  */
 export async function getGoogleReviews(): Promise<GoogleReviewsResult> {
   const c = cfg();
-  if (!c) return EMPTY;
+  if (!c) return getPlacesReviews();
   const token = await getAccessToken(c);
   if (!token) return EMPTY;
 
