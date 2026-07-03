@@ -170,12 +170,12 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 Noterade du i Steg 1b **dropship-logga** (SucceBuy/VEVOR/HOMCOM …), **vattenstämpel** eller **inbränd marknadsföringstext** (engelska, spanska, kinesiska …) på en bild — åtgärda det i samma polering i stället för att bara flagga:
 
 1. Hämta **originalupplösningen** (utan transform): `curl -o orig.jpg "https://static.wixstatic.com/media/{FILE_ID}"`.
-2. **Slät/enfärgad bakgrund** (typisk studiobild): täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). **Rörig bakgrund** eller ren infografik-bild (mest text): tvätta inte — **ta bort bilden ur galleriet** i stället, eller flagga till Leonard om galleriet blir för tunt utan den.
+2. **Slät/enfärgad bakgrund** (typisk studiobild): täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). **Rörig bakgrund** eller ren infografik-bild (mest text): tvätta inte — **ta bort bilden ur galleriet** i stället, eller flagga till Leonard om galleriet blir för tunt utan den. **Innan du tar bort en bild:** kontrollera om den är `linkedMedia` för ett variantval — koppla i så fall om valet till en annan lämplig galleribild (Steg 6B) eller flagga, annars tappar färg-/modellvalet sitt bildbyte tyst.
 3. Ladda upp den tvättade filen med `mcp__Wix__UploadImageToWixSite` → ny `static.wixstatic.com`-URL.
 4. Ersätt item:et på **samma position** i `itemsInfo.items` med `{ "url": "<ny wixstatic-url>", "altText": "<svensk alt>" }` i Steg 3-PATCH:en — samma mönster som importen (`lib/wix/client.ts`). Wix ingest:ar från URL **asynkront** (~5 s); verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
 5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
 
-> **Rör inte** etablerade märkens logga på själva produkten (t.ex. Pagani Design på urtavlan) — det är produkten, inte brus. Osäker på om något ska tvättas? Flagga till Leonard med före/efter-preview i chatten.
+> **Rör inte loggor som sitter fysiskt PÅ produkten** — varken etablerade märken (t.ex. Pagani Design på urtavlan) eller dropship-märken som är tryckta/graverade på själva varan: kunden får produkten med loggan, och en bortretuscherad logga vore vilseledande. Tvätten gäller **overlay-grafik** (pålagd text/logga/vattenstämpel i bildfilen, inte på varan). Är en dropship-logga tryckt på varan: flagga till Leonard (produkten kanske ska bytas ut i sortimentet). Osäker på om något ska tvättas? Flagga med före/efter-preview i chatten.
 
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
@@ -193,7 +193,7 @@ body = { product: { id:"{PRODUCT_ID}", revision:"{FÄRSK}", media: { itemsInfo: 
 Verifiera direkt efter:
 
 ```
-GET .../products/{PRODUCT_ID}?fields=MEDIA_ITEMS_INFO   // alla items ska ha image.url, count oförändrad
+GET .../products/{PRODUCT_ID}?fields=MEDIA_ITEMS_INFO   // alla items ska ha image.url; count oförändrad — utom bilder som MEDVETET togs bort/ersattes i Steg 3b
 ```
 
 -----
@@ -248,7 +248,7 @@ Importen sköter varianterna automatiskt och deterministiskt (inga AI-anrop) —
 
 **B) Om ett färg-/modellval saknar bildbyte** (text-val utan att huvudbilden ändras) — koppla valet till rätt galleribild. Verifierat mot V3:
 
-1. **GET** produkten med `fields=MEDIA_ITEMS_INFO`, hitta rätt bilds `media.itemsInfo.items[].id` — hämta previews och **titta** på bilderna (samma curl-metod som i Steg 3) så att rätt färg/modell kopplas; matcha inte enbart på `altText`. Läs färsk `revision`.
+1. **GET** produkten med `fields=MEDIA_ITEMS_INFO`, hitta rätt bilds `media.itemsInfo.items[].id` — hämta previews och **titta** på bilderna (samma curl-metod som i Steg 1b) så att rätt färg/modell kopplas; matcha inte enbart på `altText`. Läs färsk `revision`.
 2. **PATCH**: sätt `linkedMedia: [{ "id": "<media-item-id>" }]` på rätt `choices[]`. Skicka **HELA** `options` + `variantsInfo` **verbatim** + färsk `revision`.
 3. Wix ingest:ar bilder **asynkront** (~5 s) — verifiera via re-GET att `linkedMedia` sitter kvar; annars PATCHa om med ny `revision`.
 

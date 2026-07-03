@@ -133,7 +133,8 @@ Cheat-sheet (runbooken styr i detalj):
 
 ### Fas E — Verifiera (Klart-kriterium, per produkt)
 - ✅ Fokussökordet finns i **titel, H1, slug, beskrivning OCH meta**.
-- ✅ Alla bilder har svenska alt-texter och **kvar sina `image.url`**, antal oförändrat.
+- ✅ Alla bilder har svenska alt-texter och **kvar sina `image.url`**; antal oförändrat utom
+  bilder som medvetet togs bort/ersattes i Steg 3b (borttagen `linkedMedia`-bild → valet omkopplat).
 - ✅ Flik-rubrikerna är **rena `<h2>`** (renderas som flikar, inte inline).
 - ✅ SKU matchar polerade sluggen (inget engelskt råord, inget märke).
 - ✅ `visible:true`. Pris slutar på 9.
