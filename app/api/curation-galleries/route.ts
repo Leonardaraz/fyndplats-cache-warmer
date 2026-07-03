@@ -58,7 +58,9 @@ export async function GET(req: Request) {
     const files: { id: string; name: string; size: number; folder: string }[] = [];
     for (const folder of folders) {
       let cursor: string | undefined;
-      for (let page = 0; page < 80; page++) {
+      // 400 sidor à 100 = 40k filer per mapp. 80 räckte inte: media-root visade
+      // sig ha >8000 filer och inventeringen kapades tyst vid taket.
+      for (let page = 0; page < 400; page++) {
         const qs = cursor
           ? `paging.cursor=${encodeURIComponent(cursor)}`
           : `parentFolderId=${encodeURIComponent(folder.id)}&paging.limit=100`;
