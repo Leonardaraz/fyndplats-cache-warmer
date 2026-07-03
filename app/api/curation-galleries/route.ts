@@ -5,7 +5,12 @@
 // infografik sist; rensa leverantörs-reklamblad). Behövs för att V3-produkter
 // med fullt media-objekt är för tunga att läsa via begränsade kanaler; den här
 // routen kokar ner till just det kurateringen behöver:
-//   [{ id, slug, revision, items: ["b379ce_..~mv2.jpg", ...] }]
+//   [{ id, slug, revision, items: [{id, url}, ...], options, variants }]
+//
+// Utökad för variantbild-auditen: options (val + linkedMedia-id:n) och
+// varianter (skrivbara fält, ekas tillbaka vid options-PATCH — Update Product
+// kräver hela options+variants-arrayerna tillsammans). Read-only-fält på
+// varianten (media, inventoryStatus) skalas bort här så eko-kroppen blir ren.
 //
 // Medvetet publik: galleriordningen är redan publik på produktsidorna och
 // revision är ett harmlöst versionsnummer. Ingen cache (alltid färsk revision
@@ -22,7 +27,7 @@ export async function GET() {
   if (!key || !site) {
     return Response.json({ error: "saknar env" }, { status: 500 });
   }
-  const out: { id: string; slug: string; revision: string; items: string[] }[] = [];
+  const out: any[] = [];
   try {
     let cursor: string | undefined;
     for (let page = 0; page < 12; page++) {
@@ -41,12 +46,46 @@ export async function GET() {
       const data: any = await res.json();
       for (const p of data?.products || []) {
         if (p?.visible === false) continue;
-        const items: string[] = [];
+        const items: { id: string; url: string }[] = [];
         for (const it of p?.media?.itemsInfo?.items || []) {
           const id = it?.image?.id || it?.id;
-          if (typeof id === "string" && id) items.push(id);
+          if (typeof id === "string" && id) items.push({ id, url: it?.image?.url || "" });
         }
-        out.push({ id: p.id, slug: p.slug || "", revision: String(p.revision || ""), items });
+        // Options: val + länkade bild-id:n (räcker för audit + PATCH-bygge).
+        const options = (p?.options || []).map((o: any) => ({
+          id: o?.id,
+          name: o?.name,
+          optionRenderType: o?.optionRenderType,
+          key: o?.key,
+          choices: (o?.choicesSettings?.choices || []).map((c: any) => ({
+            choiceId: c?.choiceId,
+            key: c?.key,
+            name: c?.name,
+            choiceType: c?.choiceType,
+            colorCode: c?.colorCode,
+            linkedMedia: (c?.linkedMedia || [])
+              .map((lm: any) => lm?.image?.id || lm?.id)
+              .filter(Boolean),
+            linkedMediaUrls: (c?.linkedMedia || [])
+              .map((lm: any) => lm?.image?.url || "")
+              .filter(Boolean),
+          })),
+        }));
+        // Varianter: exakt det som ska ekas i en options-PATCH — read-only-fält
+        // (media, inventoryStatus) bort, resten orört.
+        const variants = (p?.variantsInfo?.variants || []).map((v: any) => {
+          const { media, inventoryStatus, ...writable } = v || {};
+          return writable;
+        });
+        out.push({
+          id: p.id,
+          slug: p.slug || "",
+          name: p.name || "",
+          revision: String(p.revision || ""),
+          items,
+          options,
+          variants,
+        });
       }
       cursor = data?.pagingMetadata?.cursors?.next || undefined;
       if (!cursor || !data?.pagingMetadata?.hasNext) break;
