@@ -143,6 +143,16 @@ const newVariants = variants.map(v => {
 
 Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svenska, sökordsrika, varierade. Koppla ev. variantbilder till sina optionsvärden.
 
+> **Titta på bilderna först (chatten kan se bilder).** Skriv inte alt-texter i blindo — hämta en liten preview av varje galleribild och läs den visuellt innan du formulerar texten:
+>
+> ```
+> curl -s -o <scratchpad>/img-01.jpg "https://static.wixstatic.com/media/{FILE_ID}/v1/fit/w_320,h_320,q_70/preview.jpg"
+> ```
+>
+> (`{FILE_ID}` = `image.url`:ens filnamn, t.ex. `b379ce_…~mv2.jpg`; `Read` på den sparade filen visar bilden.) Alt-texten ska beskriva **det som faktiskt syns** — motiv, färg, vinkel, miljö/detalj — med fokussökordet naturligt invävt; inte samma generiska mall × N bilder.
+>
+> Flagga samtidigt till Leonard om du ser: inbränd engelsk/kinesisk text eller vattenstämpel, fel produkt/motiv, dubbletter, eller att **första bilden** (= `media.main`, produktkortets bild i butiken) inte är den renaste produktbilden. Vill Leonard byta huvudbild: ordna om `itemsInfo.items` (första item blir automatiskt `main`) — skicka **hela** arrayen i ny ordning i samma Steg 3-PATCH, ändra inget annat i items.
+
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
@@ -214,7 +224,7 @@ Importen sköter varianterna automatiskt och deterministiskt (inga AI-anrop) —
 
 **B) Om ett färg-/modellval saknar bildbyte** (text-val utan att huvudbilden ändras) — koppla valet till rätt galleribild. Verifierat mot V3:
 
-1. **GET** produkten med `fields=MEDIA_ITEMS_INFO`, hitta rätt bilds `media.itemsInfo.items[].id` (matcha på motiv/`altText`) och läs färsk `revision`.
+1. **GET** produkten med `fields=MEDIA_ITEMS_INFO`, hitta rätt bilds `media.itemsInfo.items[].id` — hämta previews och **titta** på bilderna (samma curl-metod som i Steg 3) så att rätt färg/modell kopplas; matcha inte enbart på `altText`. Läs färsk `revision`.
 2. **PATCH**: sätt `linkedMedia: [{ "id": "<media-item-id>" }]` på rätt `choices[]`. Skicka **HELA** `options` + `variantsInfo` **verbatim** + färsk `revision`.
 3. Wix ingest:ar bilder **asynkront** (~5 s) — verifiera via re-GET att `linkedMedia` sitter kvar; annars PATCHa om med ny `revision`.
 
@@ -243,7 +253,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 ## Klart-kriterium
 
 - Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
-- Alla bilder har svenska alt-texter och **har kvar sina URL:er**.
+- Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 3) och **har kvar sina URL:er**.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
 - Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
