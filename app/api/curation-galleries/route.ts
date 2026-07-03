@@ -35,6 +35,62 @@ export async function GET(req: Request) {
   if (!key || !site) {
     return Response.json({ error: "saknar env" }, { status: 500 });
   }
+  // ?files=1 → kompakt inventering av ALLA filer i Media Manager (media-root +
+  // undermappar): id, namn, storlek, mapp. Underlag för föräldralösa-bilder-
+  // analysen (metadata, inga skrivvägar).
+  if (sp.get("files") === "1") {
+    const hdrs = { Authorization: key, "wix-site-id": site };
+    // Mappar under media-root (en nivå räcker — uploads skapar inga djupare träd).
+    const folders: { id: string; name: string }[] = [{ id: "media-root", name: "media-root" }];
+    try {
+      const fres = await fetch("https://www.wixapis.com/site-media/v1/folders?paging.limit=100", {
+        headers: hdrs,
+        cache: "no-store",
+      });
+      if (fres.ok) {
+        const fdata: any = await fres.json();
+        for (const f of fdata?.folders || [])
+          if (f?.id) folders.push({ id: f.id, name: f?.displayName || f.id });
+      }
+    } catch {
+      /* mapplistning fail-open: media-root täcker default-uploads */
+    }
+    const files: { id: string; name: string; size: number; folder: string }[] = [];
+    for (const folder of folders) {
+      let cursor: string | undefined;
+      for (let page = 0; page < 80; page++) {
+        const qs = cursor
+          ? `paging.cursor=${encodeURIComponent(cursor)}`
+          : `parentFolderId=${encodeURIComponent(folder.id)}&paging.limit=100`;
+        const res = await fetch(`https://www.wixapis.com/site-media/v1/files?${qs}`, {
+          headers: hdrs,
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          return Response.json(
+            { error: `wix ${res.status} (${folder.name})`, partial: files.length },
+            { status: 502 },
+          );
+        }
+        const data: any = await res.json();
+        for (const f of data?.files || []) {
+          if (f?.id)
+            files.push({
+              id: f.id,
+              name: f?.displayName || "",
+              size: Number(f?.sizeInBytes || 0),
+              folder: folder.name,
+            });
+        }
+        cursor = data?.nextCursor?.cursors?.next || undefined;
+        if (!cursor || !data?.nextCursor?.hasNext) break;
+      }
+    }
+    return Response.json(
+      { count: files.length, files },
+      { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } },
+    );
+  }
   // ?trash=1 → kompakt lista över fil-id:n i Media Managers papperskorg —
   // verifieringsunderlag för media-städningen (id:n är harmlös metadata).
   if (sp.get("trash") === "1") {
