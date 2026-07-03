@@ -26,7 +26,7 @@
 
 ## Steg 0 – Välj fokussökord (avgör allt annat)
 
-Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`.
+Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`. **Lås inte valet förrän du sett bilderna (Steg 1b)** — bilderna avgör ofta vad produkten *faktiskt* är.
 **Ringa in den exakta produkttypen, inte den breda kategorin.** Använd ordet för vad produkten *faktiskt är* (formen/typen), inte en generisk grupp – t.ex. `sadelstol` (inte "arbetsstol"), `hopfällbar massagebänk` (inte "möbel"). Det specifika ordet har oftast högre köpintention och mindre konkurrens, och matchar vad köparen söker.
 **Regel:** båda orden MÅSTE hamna i **titel, produktnamn (H1) och slug** – annars flaggar Wix SEO-assistenten dem som röda. Ordet finns redan grönt i beskrivning/meta om det står i texten.
 Specs får bara komma från känd importdata eller `web_search` (AliExpress-sidor är JS-blockerade). **Hitta inte på siffror.**
@@ -42,6 +42,24 @@ GET https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}?fields=DESCRIPTION&f
 Spara: `revision`, nuvarande `name`, `slug`, `seoData`, **`visible`**, samt **hela `media`** (du behöver `media.main` + alla `media.itemsInfo.items` med deras `id`, `uploadId`, `image` till Steg 3).
 
 -----
+
+## Steg 1b – Titta på ALLA bilder FÖRST (innan du skriver något)
+
+Chatten kan se bilder — **analysera galleriet innan du väljer sökord eller skriver copy**. Hämta en liten preview av varje galleribild och läs den visuellt:
+
+```
+curl -s -o <scratchpad>/img-01.jpg "https://static.wixstatic.com/media/{FILE_ID}/v1/fit/w_320,h_320,q_70/preview.jpg"
+```
+
+(`{FILE_ID}` = `image.url`:ens filnamn, t.ex. `b379ce_…~mv2.jpg`; `Read` på den sparade filen visar bilden.)
+
+Den visuella förståelsen styr **allt nedströms** — det är därför steget ligger först:
+
+- **Fokussökordet (Steg 0):** bilderna avslöjar produktens exakta form/typ (t.ex. `sadelstol`, inte "arbetsstol").
+- **Beskrivningen (Steg 2):** skriv utifrån det som faktiskt syns — material, detaljer, användningsmiljö — i stället för att gissa från rå-titeln.
+- **Alt-texterna (Steg 3):** formuleras per bild utifrån denna granskning.
+- **Huvudbilden:** notera om första bilden (= `media.main`, produktkortet) inte är den renaste produktbilden — byt ordning i Steg 3.
+- **Tvätt-behov (Steg 3b):** notera dropship-loggor, vattenstämplar, inbränd text (engelska/spanska/kinesiska), fel motiv och dubbletter.
 
 ## Steg 2 – PATCH namn + slug + seoData (1 anrop, mutation)
 
@@ -143,19 +161,13 @@ const newVariants = variants.map(v => {
 
 Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svenska, sökordsrika, varierade. Koppla ev. variantbilder till sina optionsvärden.
 
-> **Titta på bilderna först (chatten kan se bilder).** Skriv inte alt-texter i blindo — hämta en liten preview av varje galleribild och läs den visuellt innan du formulerar texten:
+> **Utgå från bildgranskningen i Steg 1b** (har du hoppat över den: gör den nu). Alt-texten ska beskriva **det som faktiskt syns** — motiv, färg, vinkel, miljö/detalj — med fokussökordet naturligt invävt; inte samma generiska mall × N bilder.
 >
-> ```
-> curl -s -o <scratchpad>/img-01.jpg "https://static.wixstatic.com/media/{FILE_ID}/v1/fit/w_320,h_320,q_70/preview.jpg"
-> ```
->
-> (`{FILE_ID}` = `image.url`:ens filnamn, t.ex. `b379ce_…~mv2.jpg`; `Read` på den sparade filen visar bilden.) Alt-texten ska beskriva **det som faktiskt syns** — motiv, färg, vinkel, miljö/detalj — med fokussökordet naturligt invävt; inte samma generiska mall × N bilder.
->
-> Flagga samtidigt: fel produkt/motiv, dubbletter, eller att **första bilden** (= `media.main`, produktkortets bild i butiken) inte är den renaste produktbilden — byt huvudbild genom att ordna om `itemsInfo.items` (första item blir automatiskt `main`); skicka **hela** arrayen i ny ordning i samma Steg 3-PATCH, ändra inget annat i items.
+> Åtgärda samtidigt det du noterade i Steg 1b: fel produkt/motiv, dubbletter, eller att **första bilden** (= `media.main`, produktkortets bild i butiken) inte är den renaste produktbilden — byt huvudbild genom att ordna om `itemsInfo.items` (första item blir automatiskt `main`); skicka **hela** arrayen i ny ordning i samma Steg 3-PATCH, ändra inget annat i items.
 
 ### Steg 3b – Tvätta bort loggor och inbränd text (vid behov)
 
-Ser du **dropship-logga** (SucceBuy/VEVOR/HOMCOM …), **vattenstämpel** eller **inbränd marknadsföringstext** (engelska, spanska, kinesiska …) på en bild — åtgärda det i samma polering i stället för att bara flagga:
+Noterade du i Steg 1b **dropship-logga** (SucceBuy/VEVOR/HOMCOM …), **vattenstämpel** eller **inbränd marknadsföringstext** (engelska, spanska, kinesiska …) på en bild — åtgärda det i samma polering i stället för att bara flagga:
 
 1. Hämta **originalupplösningen** (utan transform): `curl -o orig.jpg "https://static.wixstatic.com/media/{FILE_ID}"`.
 2. **Slät/enfärgad bakgrund** (typisk studiobild): täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). **Rörig bakgrund** eller ren infografik-bild (mest text): tvätta inte — **ta bort bilden ur galleriet** i stället, eller flagga till Leonard om galleriet blir för tunt utan den.
@@ -265,7 +277,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 ## Klart-kriterium
 
 - Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
-- Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 3) och **har kvar sina URL:er**.
+- Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 1b) och **har kvar sina URL:er**.
 - Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
