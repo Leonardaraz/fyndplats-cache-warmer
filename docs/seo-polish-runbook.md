@@ -60,6 +60,7 @@ Den visuella förståelsen styr **allt nedströms** — det är därför steget 
 - **Alt-texterna (Steg 3):** formuleras per bild utifrån denna granskning.
 - **Huvudbilden:** notera om första bilden (= `media.main`, produktkortet) inte är den renaste produktbilden — byt ordning i Steg 3.
 - **Tvätt-behov (Steg 3b):** notera dropship-loggor, vattenstämplar, inbränd text (engelska/spanska/kinesiska), fel motiv och dubbletter.
+- **Bakgrundsbyte (Steg 3c):** notera vilka bilder som är rena produktbilder på ful/mörk/rörig bakgrund (→ vit hjältebild) vs nyttiga kontextbilder (behålls) vs infografik (bort/flagga).
 
 ## Steg 2 – PATCH namn + slug + seoData (1 anrop, mutation)
 
@@ -193,8 +194,53 @@ body = { product: { id:"{PRODUCT_ID}", revision:"{FÄRSK}", media: { itemsInfo: 
 Verifiera direkt efter:
 
 ```
-GET .../products/{PRODUCT_ID}?fields=MEDIA_ITEMS_INFO   // alla items ska ha image.url; count oförändrad — utom bilder som MEDVETET togs bort/ersattes i Steg 3b
+GET .../products/{PRODUCT_ID}?fields=MEDIA_ITEMS_INFO   // alla items ska ha image.url; count oförändrad — utom bilder som MEDVETET togs bort/ersattes i Steg 3b/3c
 ```
+
+-----
+
+### Steg 3c – Ren vit hjältebild (premium-look, vid behov)
+
+Leverantörsbilderna har ofta fula/mörka/röriga bakgrunder (ibland med hörn-logga). Det som får katalogen att se ut som ett **riktigt varumärke** är **enhetlighet** — inte att varje bild är vit. Regel: **hjältebilden (första item = `media.main` = produktkortet) ska vara en ren produktbild på vit studio-bakgrund med mjuk skugga.** Konsekvent inramning mellan produkter = proffsigt.
+
+Klassa varje bild utifrån Steg 1b-granskningen:
+
+- **Ren enskild produktbild på ful/mörk/rörig bakgrund** (ev. hörn-logga i bakgrunden) → **klipp ut produkten och lägg på vit + mjuk kontaktskugga**. En overlay-logga i bakgrunden försvinner automatiskt (den ligger utanför produktens silhuett).
+- **Nyttig kontextbild** (detalj, i-bruk, skala, storleksjämförelse) → **behåll**, tvätta bara logga/inbränd text (Steg 3b). **Vitmåla inte** — kontexten säljer, och komplexa bilder är där urklippet riskerar klippa kablar/smådelar.
+- **Text-tung infografik** → ta bort/flagga (som Steg 3b).
+
+**Metod (bakgrundsbyte → vit):**
+
+```bash
+# u2net-modellen (rembg) hämtas EN gång och cachas i ~/.u2net/u2net.onnx.
+# GitHub-releasen är egress-blockad (403) → hämta från Hugging Face-spegeln:
+mkdir -p ~/.u2net
+curl -sL "https://huggingface.co/tomjackson2023/rembg/resolve/main/u2net.onnx" -o ~/.u2net/u2net.onnx
+pip install -q rembg onnxruntime pillow
+```
+
+```python
+from rembg import remove
+from PIL import Image, ImageFilter
+src = Image.open("orig.jpg").convert("RGB")     # originalupplösning, utan transform
+cut = remove(src)                                # RGBA – produkten urklippt
+prod = cut.crop(cut.getbbox())
+side = int(max(prod.size) / 0.82)                # produkten ~82 % av en 1:1-ruta
+canvas = Image.new("RGB", (side, side), (255, 255, 255))
+ox, oy = (side - prod.width) // 2, (side - prod.height) // 2
+# mjuk, dämpad kontaktskugga (djup + studiokänsla; INTE platt utklipp):
+sh = Image.new("RGBA", (side, side), (0, 0, 0, 0)); m = prod.split()[3]
+tmp = Image.new("RGBA", prod.size, (0, 0, 0, 0)); tmp.putalpha(m)
+sh.paste(tmp, (ox, oy + int(prod.height * 0.03)), tmp)
+sh = sh.filter(ImageFilter.GaussianBlur(18))
+r, g, b, a = sh.split(); a = a.point(lambda v: int(v * 0.28)); sh = Image.merge("RGBA", (r, g, b, a))
+canvas.paste(sh, (0, 0), sh); canvas.paste(prod, (ox, oy), prod)
+canvas.convert("RGB").save("white.jpg", quality=92)
+```
+
+Ladda upp `white.jpg` via `mcp__Wix__UploadImageToWixSite` → ersätt item:et på **samma position** i `itemsInfo.items` med `{ "url": "<ny wixstatic-url>", "altText": "<svensk alt>" }` (samma mönster som Steg 3b). Position 0 = `media.main` = produktkortet. Skicka **hela** arrayen, patcha **inte** `media.main` (readOnly — se fällan i Steg 3b).
+
+> **Guardrail (obligatoriskt):** öppna resultatet med `Read` och **titta** innan du ersätter. Tunna kablar/lösa smådelar kan klippas fel (halo eller avklippt del). Ser det fel ut → **behåll originalet** och flagga (före/efter-preview i chatten). **Radera aldrig originalfilen** (städas i orphan-svepen). Var bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B).
 
 -----
 
@@ -279,6 +325,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 - Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
 - Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 1b) och **har kvar sina URL:er**.
 - Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
+- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
 - Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
