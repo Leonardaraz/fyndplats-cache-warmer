@@ -27,7 +27,11 @@ export async function GET(req: Request) {
   // Varianthämtningen fan-outar ~1 Wix-anrop per flervalsprodukt (~90 st) och
   // är bara till för audit-verktyget — kräv ?full=1 så ett vanligt anrop stannar
   // vid de ~5 katalogsvepen (skydd mot att en publik träff bränner rate limit).
-  const full = new URL(req.url).searchParams.get("full") === "1";
+  const sp = new URL(req.url).searchParams;
+  const full = sp.get("full") === "1";
+  // ?hidden=1 → returnera ENBART dolda produkter (gamla katalogen) — underlag
+  // för media-städning. Dolda produkter är ändå inte hemliga (harmlös metadata).
+  const wantHidden = sp.get("hidden") === "1";
   if (!key || !site) {
     return Response.json({ error: "saknar env" }, { status: 500 });
   }
@@ -49,7 +53,7 @@ export async function GET(req: Request) {
       }
       const data: any = await res.json();
       for (const p of data?.products || []) {
-        if (p?.visible === false) continue;
+        if ((p?.visible === false) !== wantHidden) continue;
         const items: { id: string; url: string }[] = [];
         for (const it of p?.media?.itemsInfo?.items || []) {
           const id = it?.image?.id || it?.id;
