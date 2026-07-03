@@ -103,7 +103,9 @@ function thumbUrl(url: string): string {
 // Visuell putsning av måttetiketter: 590x790 → 590 × 790. Endast siffra-x-siffra
 // byts (multiplikationstecken), så färgnamn m.m. ("Blue-Green") aldrig mangas.
 function fmtDim(s: string): string {
-  return (s || "").replace(/(\d)\s*[xX]\s*(\d)/g, "$1 × $2");
+  // Lookahead på nästa siffra så mellansiffran INTE konsumeras — annars blir
+  // kedjor med ensiffriga segment halvkonverterade ("3x3x3" → "3 × 3x3").
+  return (s || "").replace(/(\d)\s*[xX]\s*(?=\d)/g, "$1 × ");
 }
 
 type VariantCardItem = {
@@ -120,7 +122,7 @@ type VariantCardItem = {
 // Hybrid-beslut: långa etiketter (mått, flerordsvärden som "590x790x40 mm-1 st")
 // blir svårlästa som pillar och döljer lätt att det finns fler val → staplade
 // valkort. Korta etiketter (färger, "M/L/40") funkar utmärkt som kompakta swatches.
-function useVariantCards(labels: string[]): boolean {
+function shouldUseCards(labels: string[]): boolean {
   return labels.reduce((m, l) => Math.max(m, (l || "").length), 0) > 14;
 }
 
@@ -147,6 +149,7 @@ function renderVariantCards(items: VariantCardItem[]) {
     <div className="varcards">
       {items.map((it) => {
         const media = variantMediaLeft(it, "varcard");
+        const shown = fmtDim(it.label);
         return (
           <button
             key={it.key}
@@ -154,12 +157,12 @@ function renderVariantCards(items: VariantCardItem[]) {
             className={`varcard ${media ? "has-media" : ""} ${it.active ? "active" : ""} ${it.avail ? "" : "oos"}`}
             onClick={it.onPick}
             aria-pressed={it.active}
-            aria-label={it.avail ? it.label : `${it.label} – slut i lager`}
-            title={it.avail ? it.label : `${it.label} – slut i lager`}
+            aria-label={it.avail ? shown : `${shown} – slut i lager`}
+            title={it.avail ? shown : `${shown} – slut i lager`}
           >
             {media || <span className="varcard-radio" aria-hidden="true" />}
             <span className="varcard-main">
-              <span className="varcard-label">{fmtDim(it.label)}</span>
+              <span className="varcard-label">{shown}</span>
               {!it.avail && <span className="varcard-oos">Slut i lager</span>}
             </span>
             {priceVaries && it.price ? <span className="varcard-price">{it.price}</span> : null}
@@ -177,6 +180,7 @@ function renderVariantSwatches(items: VariantCardItem[]) {
     <div className="varswatches">
       {items.map((it) => {
         const media = variantMediaLeft(it, "varswatch");
+        const shown = fmtDim(it.label);
         return (
           <button
             key={it.key}
@@ -184,11 +188,11 @@ function renderVariantSwatches(items: VariantCardItem[]) {
             className={`varswatch ${it.thumb ? "image" : it.dot ? "color" : "text"} ${it.active ? "active" : ""} ${it.avail ? "" : "oos"}`}
             onClick={it.onPick}
             aria-pressed={it.active}
-            aria-label={it.avail ? it.label : `${it.label} – slut i lager`}
-            title={it.avail ? it.label : `${it.label} – slut i lager`}
+            aria-label={it.avail ? shown : `${shown} – slut i lager`}
+            title={it.avail ? shown : `${shown} – slut i lager`}
           >
             {media}
-            <span className="varswatch-name">{fmtDim(it.label)}</span>
+            <span className="varswatch-name">{shown}</span>
             {!it.avail && <span className="varswatch-oos">Slut</span>}
           </button>
         );
@@ -464,7 +468,7 @@ export function ProductView({
               <strong className="varhead-val">{fmtDim(picked[axis.name] || "")}</strong>
               {axis.choices.length >= 3 && <span className="varcount">{axis.choices.length} val</span>}
             </div>
-            {useVariantCards(axis.choices.map((c) => c.label))
+            {shouldUseCards(axis.choices.map((c) => c.label))
               ? renderVariantCards(axisItems)
               : renderVariantSwatches(axisItems)}
           </div>
@@ -496,7 +500,7 @@ export function ProductView({
       }));
   const singleCount = singleItems.length;
   // Hybrid: långa etiketter → staplade valkort (med ev. miniatyr), korta → swatches.
-  const singleCards = useVariantCards(singleItems.map((it) => it.label));
+  const singleCards = shouldUseCards(singleItems.map((it) => it.label));
   const variantPicker = (hasImageVariants || hasTextVariants) ? (
     <div className="pdp-variants">
       <div className="varhead">
@@ -669,7 +673,7 @@ export function ProductView({
       <div className="sticky-buy-inner">
         <div className="sticky-buy-info">
           <div className="sticky-buy-price">{displayPrice}</div>
-          <div className="sticky-buy-name">{variantLabel ? `${name} · ${variantLabel}` : name}</div>
+          <div className="sticky-buy-name">{variantLabel ? `${name} · ${fmtDim(variantLabel)}` : name}</div>
         </div>
         <button
           className="buy sticky-buy-btn"
