@@ -151,7 +151,19 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 >
 > (`{FILE_ID}` = `image.url`:ens filnamn, t.ex. `b379ce_…~mv2.jpg`; `Read` på den sparade filen visar bilden.) Alt-texten ska beskriva **det som faktiskt syns** — motiv, färg, vinkel, miljö/detalj — med fokussökordet naturligt invävt; inte samma generiska mall × N bilder.
 >
-> Flagga samtidigt till Leonard om du ser: inbränd engelsk/kinesisk text eller vattenstämpel, fel produkt/motiv, dubbletter, eller att **första bilden** (= `media.main`, produktkortets bild i butiken) inte är den renaste produktbilden. Vill Leonard byta huvudbild: ordna om `itemsInfo.items` (första item blir automatiskt `main`) — skicka **hela** arrayen i ny ordning i samma Steg 3-PATCH, ändra inget annat i items.
+> Flagga samtidigt: fel produkt/motiv, dubbletter, eller att **första bilden** (= `media.main`, produktkortets bild i butiken) inte är den renaste produktbilden — byt huvudbild genom att ordna om `itemsInfo.items` (första item blir automatiskt `main`); skicka **hela** arrayen i ny ordning i samma Steg 3-PATCH, ändra inget annat i items.
+
+### Steg 3b – Tvätta bort loggor och inbränd text (vid behov)
+
+Ser du **dropship-logga** (SucceBuy/VEVOR/HOMCOM …), **vattenstämpel** eller **inbränd marknadsföringstext** (engelska, spanska, kinesiska …) på en bild — åtgärda det i samma polering i stället för att bara flagga:
+
+1. Hämta **originalupplösningen** (utan transform): `curl -o orig.jpg "https://static.wixstatic.com/media/{FILE_ID}"`.
+2. **Slät/enfärgad bakgrund** (typisk studiobild): täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). **Rörig bakgrund** eller ren infografik-bild (mest text): tvätta inte — **ta bort bilden ur galleriet** i stället, eller flagga till Leonard om galleriet blir för tunt utan den.
+3. Ladda upp den tvättade filen med `mcp__Wix__UploadImageToWixSite` → ny `static.wixstatic.com`-URL.
+4. Ersätt item:et på **samma position** i `itemsInfo.items` med `{ "url": "<ny wixstatic-url>", "altText": "<svensk alt>" }` i Steg 3-PATCH:en — samma mönster som importen (`lib/wix/client.ts`). Wix ingest:ar från URL **asynkront** (~5 s); verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
+5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
+
+> **Rör inte** etablerade märkens logga på själva produkten (t.ex. Pagani Design på urtavlan) — det är produkten, inte brus. Osäker på om något ska tvättas? Flagga till Leonard med före/efter-preview i chatten.
 
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
@@ -254,6 +266,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 - Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
 - Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 3) och **har kvar sina URL:er**.
+- Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
 - Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
