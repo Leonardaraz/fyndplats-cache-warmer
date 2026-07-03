@@ -21,9 +21,13 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export async function GET() {
+export async function GET(req: Request) {
   const key = process.env.WIX_API_KEY;
   const site = process.env.WIX_SITE_ID;
+  // Varianthämtningen fan-outar ~1 Wix-anrop per flervalsprodukt (~90 st) och
+  // är bara till för audit-verktyget — kräv ?full=1 så ett vanligt anrop stannar
+  // vid de ~5 katalogsvepen (skydd mot att en publik träff bränner rate limit).
+  const full = new URL(req.url).searchParams.get("full") === "1";
   if (!key || !site) {
     return Response.json({ error: "saknar env" }, { status: 500 });
   }
@@ -88,9 +92,11 @@ export async function GET() {
     // GET inkluderar den) för produkter där länkning är aktuell (något val-par
     // med ≥2 alternativ). Read-only-fält (media, inventoryStatus) skalas bort
     // så listan kan ekas rakt av i en options-PATCH. Begränsad parallelism.
-    const needsVariants = out.filter(
-      (p) => p.options.some((o: any) => (o.choices?.length || 0) >= 2) && !p.variants.length,
-    );
+    const needsVariants = full
+      ? out.filter(
+          (p) => p.options.some((o: any) => (o.choices?.length || 0) >= 2) && !p.variants.length,
+        )
+      : [];
     const CHUNK = 10;
     for (let i = 0; i < needsVariants.length; i += CHUNK) {
       await Promise.all(
