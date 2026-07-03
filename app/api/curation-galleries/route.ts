@@ -71,12 +71,6 @@ export async function GET() {
               .filter(Boolean),
           })),
         }));
-        // Varianter: exakt det som ska ekas i en options-PATCH — read-only-fält
-        // (media, inventoryStatus) bort, resten orört.
-        const variants = (p?.variantsInfo?.variants || []).map((v: any) => {
-          const { media, inventoryStatus, ...writable } = v || {};
-          return writable;
-        });
         out.push({
           id: p.id,
           slug: p.slug || "",
@@ -84,11 +78,41 @@ export async function GET() {
           revision: String(p.revision || ""),
           items,
           options,
-          variants,
+          variants: (p?.variantsInfo?.variants || []) as any[],
         });
       }
       cursor = data?.pagingMetadata?.cursors?.next || undefined;
       if (!cursor || !data?.pagingMetadata?.hasNext) break;
+    }
+    // Query-endpointen utelämnar variantsInfo — hämta den per produkt (enskild
+    // GET inkluderar den) för produkter där länkning är aktuell (något val-par
+    // med ≥2 alternativ). Read-only-fält (media, inventoryStatus) skalas bort
+    // så listan kan ekas rakt av i en options-PATCH. Begränsad parallelism.
+    const needsVariants = out.filter(
+      (p) => p.options.some((o: any) => (o.choices?.length || 0) >= 2) && !p.variants.length,
+    );
+    const CHUNK = 10;
+    for (let i = 0; i < needsVariants.length; i += CHUNK) {
+      await Promise.all(
+        needsVariants.slice(i, i + CHUNK).map(async (p) => {
+          try {
+            const res = await fetch(`https://www.wixapis.com/stores/v3/products/${p.id}`, {
+              headers: { Authorization: key, "wix-site-id": site },
+              cache: "no-store",
+            });
+            if (!res.ok) return;
+            const full: any = (await res.json())?.product;
+            p.variants = (full?.variantsInfo?.variants || []).map((v: any) => {
+              const { media, inventoryStatus, ...writable } = v || {};
+              return writable;
+            });
+            // Färskast möjliga revision för skrivningar.
+            if (full?.revision) p.revision = String(full.revision);
+          } catch {
+            /* fail-open: variants lämnas tom → produkten hoppas över vid skrivning */
+          }
+        }),
+      );
     }
   } catch (e) {
     return Response.json({ error: (e as Error).message, partial: out.length }, { status: 502 });
