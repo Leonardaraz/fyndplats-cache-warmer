@@ -602,14 +602,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   /* Miniatyrgriden ersätts av prickindikatorn på mobil (ingen dubblering) */
   .gallery .gthumbs{display:none}
   .gdots{display:flex}
-  /* Många swatches → horisontell scroll i stället för radbrytning */
-  /* margin:0 (ej -2px) → första pillens vänsterkant ligger i linje med hero-bilden
-     och titeln, inte 2 px utanför (Leonards utstick-rapport). */
-  .varswatches{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin:0;scrollbar-width:none}
-  .varswatches::-webkit-scrollbar{display:none}
-  .varswatch{scroll-snap-align:start;flex:0 0 auto}
-  /* lyft-skugga får inte klippas av overflow:auto */
-  .varswatches{padding-top:4px}
+  /* Swatches radbryter (ingen dold sidled-scroll) — alla val syns även på mobil.
+     margin:0 → första pillens vänsterkant i linje med hero-bilden och titeln. */
+  .varswatches{flex-wrap:wrap;padding:4px 0;margin:0}
 }
 
 /* cart */
@@ -740,19 +735,41 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pdp-variants{margin:0 0 20px;max-width:420px}
 /* Multi-axel: en väljare per axel (Färg, Storlek …) med luft emellan */
 .pdp-axis + .pdp-axis{margin-top:16px}
-.varhead{font-size:14px;color:var(--soft);margin-bottom:11px}
+.varhead{font-size:14px;color:var(--soft);margin-bottom:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .varhead-key::after{content:":"}
-.varhead-val{color:var(--ink);font-weight:700;margin-left:6px}
+.varhead-val{color:var(--ink);font-weight:700}
+/* Antal-räknare ("5 val") i variant-rubriken: gör direkt tydligt att det finns
+   fler val, utan att man ska behöva upptäcka en scroll. Skjuts till högerkanten. */
+.varcount{margin-left:auto;font-size:12px;font-weight:700;letter-spacing:.01em;color:#C2410C;background:#C2410C12;border:1px solid #C2410C3a;border-radius:999px;padding:2px 10px;font-variant-numeric:tabular-nums}
 .varswatches{display:flex;gap:10px;flex-wrap:wrap}
-/* Premium variant-rullista: när det är MÅNGA varianter (≥4 — is-scroll sätts i
-   markupen) blir raden EN horisontell scroll-strip i stället för att radbrytas:
-   dold scrollbar, scroll-snap, och en mjuk höger-fade (mask) som signalerar "fler
-   åt höger". Vertikal padding så vald-ringen/klick-pop:en inte klipps av overflow-x.
-   Gäller både desktop och mobil; vald variant markeras som vanligt. */
-.varswatches.is-scroll{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:5px 0 11px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent)}
-.varswatches.is-scroll::-webkit-scrollbar{display:none}
-.varswatches.is-scroll .varswatch{scroll-snap-align:start;flex:0 0 auto}
-/* Många varianter → horisontell scroll i stället för radbrytning (mobil) */
+/* Staplade valkort för TEXT-/måttvarianter: en rad per val, allt synligt på en
+   gång, valt kort inramat med ifylld radio. Ersätter den scrollande pill-raden
+   som dolde att det fanns fler än ~2 val (Leonards rapport). */
+.varcards{display:flex;flex-direction:column;gap:9px}
+.varcard{display:flex;align-items:center;gap:13px;width:100%;text-align:left;font:inherit;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px 15px;cursor:pointer;transition:border-color .18s,background .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent}
+.varcard:hover{border-color:#C2410C66}
+.varcard.active{border-color:#C2410C;background:#C2410C0a;box-shadow:inset 0 0 0 1px #C2410C,0 10px 22px -16px rgba(194,65,12,.5)}
+.varcard:focus-visible{outline:2px solid #C2410C;outline-offset:2px}
+.varcard-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:0 0 auto;display:grid;place-items:center;transition:border-color .16s}
+.varcard.active .varcard-radio{border-color:#C2410C}
+.varcard.active .varcard-radio::after{content:"";width:10px;height:10px;border-radius:50%;background:#C2410C}
+.varcard-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.varcard-label{font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.varcard-price{font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 auto;margin-left:6px}
+.varcard-oos{font-size:11.5px;font-weight:700;color:#b91c1c}
+.varcard.oos{opacity:.64}
+.varcard.oos .varcard-label{text-decoration:line-through;text-decoration-color:#c9a9a2}
+.varcard.oos.active{opacity:.92}
+/* Miniatyr/färgprick i valkortet (variant har en bild/färg). Ersätter radion —
+   markering visas då via kortets ram + bock-badgen till höger. */
+.varcard-thumb{width:46px;height:46px;border-radius:10px;overflow:hidden;flex:0 0 auto;background:#f6f1ec;display:block}
+.varcard-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.varcard-dot{width:26px;height:26px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.varcard-check{width:20px;height:20px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800;line-height:1;background:transparent;transition:background .16s}
+.varcard-check::after{content:"✓";opacity:0;transition:opacity .16s}
+.varcard.active .varcard-check{background:#C2410C}
+.varcard.active .varcard-check::after{opacity:1}
+.varcard:not(.has-media) .varcard-check{display:none}
 .varswatch{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:6px 15px 6px 6px;cursor:pointer;opacity:.62;transition:opacity .2s,border-color .2s,box-shadow .2s,transform .2s;-webkit-tap-highlight-color:transparent}
 .varswatch.text{padding:9px 18px}
 .varswatch:hover{opacity:.85;border-color:#C2410C66}
