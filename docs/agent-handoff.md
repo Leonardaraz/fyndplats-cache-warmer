@@ -127,6 +127,11 @@ Cheat-sheet (runbooken styr i detalj):
 - **Steg 3b – Tvätta bort dropship-loggor/vattenstämplar/inbränd text** (spanska, engelska,
   kinesiska …) där bakgrunden är slät; rörig bakgrund/infografik → ta bort ur galleriet eller
   flagga. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3b.
+- **Steg 3c – Ren vit hjältebild** (premium): är hjältebilden en ren produktbild på ful/mörk/rörig
+  bakgrund → klipp ut produkten (rembg/u2net) och lägg på **vit + mjuk skugga**, ~82 % av en 1:1-ruta;
+  loggan i bakgrunden försvinner automatiskt. Nyttiga kontextbilder behålls (bara tvättade),
+  infografik bort/flaggas. **Guardrail:** `Read` resultatet — behåll originalet vid felklipp (tunna
+  kablar/smådelar). Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3c.
 - **Steg 4 – Kategori** (se §6 + ID-tabell). 1 anrop.
 - **Steg 5 – Publicera** (`visible:true`) — först efter att Steg 2–4 verifierats.
 - **Steg 6 – Varianter:** kontrollera. **Döp ALDRIG om variantvärden** (V3 key-lock, §6.5).
@@ -134,7 +139,9 @@ Cheat-sheet (runbooken styr i detalj):
 ### Fas E — Verifiera (Klart-kriterium, per produkt)
 - ✅ Fokussökordet finns i **titel, H1, slug, beskrivning OCH meta**.
 - ✅ Alla bilder har svenska alt-texter och **kvar sina `image.url`**; antal oförändrat utom
-  bilder som medvetet togs bort/ersattes i Steg 3b (borttagen `linkedMedia`-bild → valet omkopplat).
+  bilder som medvetet togs bort/ersattes i Steg 3b/3c (borttagen `linkedMedia`-bild → valet omkopplat).
+- ✅ Hjältebilden är ren produktbild på **vit studio-bakgrund + mjuk skugga** när originalet hade
+  ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad, original behållet vid felklipp.
 - ✅ Flik-rubrikerna är **rena `<h2>`** (renderas som flikar, inte inline).
 - ✅ SKU matchar polerade sluggen (inget engelskt råord, inget märke).
 - ✅ `visible:true`. Pris slutar på 9.
