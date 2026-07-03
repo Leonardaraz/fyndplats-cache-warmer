@@ -124,6 +124,9 @@ Cheat-sheet (runbooken styr i detalj):
   `MISSING_OPTIONS_ON_UPDATE_VARIANTS`.
 - **Steg 3 – Skriv om ALLA bild-alt-texter** till varierad, sökordsrik svenska utifrån det
   som faktiskt syns (granskningen i Steg 1b). Se §6.1/§6.7.
+- **Dubbletter:** exakt identiska galleribilder → behåll **en**, ta bort resten (kolla
+  `linkedMedia` FÖRST, koppla om valet). Radera **inte** filen direkt — borttagen blir den
+  föräldralös och frigörs i orphan-svepen. Se runbook Steg 3.
 - **Steg 3b – Tvätta bort dropship-loggor/vattenstämplar/inbränd text** (spanska, engelska,
   kinesiska …) där bakgrunden är slät; rörig bakgrund/infografik → ta bort ur galleriet eller
   flagga. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3b.
