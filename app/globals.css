@@ -760,6 +760,16 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .varcard.oos{opacity:.64}
 .varcard.oos .varcard-label{text-decoration:line-through;text-decoration-color:#c9a9a2}
 .varcard.oos.active{opacity:.92}
+/* Miniatyr/färgprick i valkortet (variant har en bild/färg). Ersätter radion —
+   markering visas då via kortets ram + bock-badgen till höger. */
+.varcard-thumb{width:46px;height:46px;border-radius:10px;overflow:hidden;flex:0 0 auto;background:#f6f1ec;display:block}
+.varcard-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.varcard-dot{width:26px;height:26px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.varcard-check{width:20px;height:20px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800;line-height:1;background:transparent;transition:background .16s}
+.varcard-check::after{content:"✓";opacity:0;transition:opacity .16s}
+.varcard.active .varcard-check{background:#C2410C}
+.varcard.active .varcard-check::after{opacity:1}
+.varcard:not(.has-media) .varcard-check{display:none}
 .varswatch{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:6px 15px 6px 6px;cursor:pointer;opacity:.62;transition:opacity .2s,border-color .2s,box-shadow .2s,transform .2s;-webkit-tap-highlight-color:transparent}
 .varswatch.text{padding:9px 18px}
 .varswatch:hover{opacity:.85;border-color:#C2410C66}
