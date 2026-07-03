@@ -27,9 +27,129 @@ export async function GET(req: Request) {
   // Varianthämtningen fan-outar ~1 Wix-anrop per flervalsprodukt (~90 st) och
   // är bara till för audit-verktyget — kräv ?full=1 så ett vanligt anrop stannar
   // vid de ~5 katalogsvepen (skydd mot att en publik träff bränner rate limit).
-  const full = new URL(req.url).searchParams.get("full") === "1";
+  const sp = new URL(req.url).searchParams;
+  const full = sp.get("full") === "1";
+  // ?hidden=1 → returnera ENBART dolda produkter (gamla katalogen) — underlag
+  // för media-städning. Dolda produkter är ändå inte hemliga (harmlös metadata).
+  const wantHidden = sp.get("hidden") === "1";
   if (!key || !site) {
     return Response.json({ error: "saknar env" }, { status: 500 });
+  }
+  // Metadata-parametrarna (?files/?trash/?hidden) listar mer än det som redan
+  // är publikt på produktsidorna. Sätt CURATION_TOOL_TOKEN i Vercel så krävs
+  // ?token=<värdet> för dem (fail-open: utan env behålls dagens öppna beteende
+  // så verktyget inte bryts innan env:en är satt).
+  const toolToken = process.env.CURATION_TOOL_TOKEN;
+  if (toolToken && (sp.get("files") === "1" || sp.get("trash") === "1" || wantHidden)) {
+    if (sp.get("token") !== toolToken) {
+      return Response.json({ error: "token krävs" }, { status: 401 });
+    }
+  }
+  // ?files=1 → kompakt inventering av filer i Media Manager: id, namn, storlek,
+  // mapp. Underlag för föräldralösa-bilder-analysen (metadata, inga skrivvägar).
+  // media-root visade sig ha >8000 filer → en enda request hinner inte paga allt
+  // inom serverless-timeouten (504). Därför CURSOR-CHUNKAD: varje anrop tar max
+  // 40 sidor (4000 filer) och returnerar nextCursor; klienten loopar tills null.
+  //   ?files=1                     → mapplistan + första chunken av media-root
+  //   ?files=1&folder=<id>         → första chunken av given mapp
+  //   ?files=1&folder=<id>&cursor= → fortsättning från cursorn
+  if (sp.get("files") === "1") {
+    const hdrs = { Authorization: key, "wix-site-id": site };
+    const folderId = sp.get("folder") || "media-root";
+    const startCursor = sp.get("cursor") || undefined;
+    // Mappar under media-root (en nivå räcker — uploads skapar inga djupare träd).
+    // Hämtas ALLTID (även på cursor-fortsättningar, +1 billigt anrop) så att
+    // folderName inte faller tillbaka till rå mapp-GUID mellan chunkar — samma
+    // mapp ska ha samma folder-etikett i hela den ihopsatta inventeringen.
+    const folders: { id: string; name: string }[] = [{ id: "media-root", name: "media-root" }];
+    try {
+      const fres = await fetch("https://www.wixapis.com/site-media/v1/folders?paging.limit=100", {
+        headers: hdrs,
+        cache: "no-store",
+      });
+      if (fres.ok) {
+        const fdata: any = await fres.json();
+        for (const f of fdata?.folders || [])
+          if (f?.id) folders.push({ id: f.id, name: f?.displayName || f.id });
+      }
+    } catch {
+      /* mapplistning fail-open: media-root täcker default-uploads */
+    }
+    const folderName = folders.find((f) => f.id === folderId)?.name || folderId;
+    const files: { id: string; name: string; size: number; folder: string }[] = [];
+    let cursor: string | undefined = startCursor;
+    let nextCursor: string | null = null;
+    for (let page = 0; page < 40; page++) {
+      const qs = cursor
+        ? `paging.cursor=${encodeURIComponent(cursor)}`
+        : `parentFolderId=${encodeURIComponent(folderId)}&paging.limit=100`;
+      const res = await fetch(`https://www.wixapis.com/site-media/v1/files?${qs}`, {
+        headers: hdrs,
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        return Response.json(
+          { error: `wix ${res.status} (${folderName})`, partial: files.length },
+          { status: 502 },
+        );
+      }
+      const data: any = await res.json();
+      for (const f of data?.files || []) {
+        // Privata filer listas aldrig (rutten är publik; privata uppladdningar
+        // ska inte kunna enumereras — de lämnas också orörda av städ-analysen).
+        if (f?.id && !f?.private)
+          files.push({
+            id: f.id,
+            name: f?.displayName || "",
+            size: Number(f?.sizeInBytes || 0),
+            folder: folderName,
+          });
+      }
+      cursor = data?.nextCursor?.cursors?.next || undefined;
+      if (!cursor || !data?.nextCursor?.hasNext) {
+        cursor = undefined;
+        break;
+      }
+    }
+    nextCursor = cursor || null;
+    return Response.json(
+      { count: files.length, files, nextCursor, folders: startCursor ? undefined : folders },
+      { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } },
+    );
+  }
+  // ?trash=1 → kompakt lista över fil-id:n i Media Managers papperskorg —
+  // verifieringsunderlag för media-städningen (id:n är harmlös metadata).
+  // CURSOR-CHUNKAD som ?files=1 (max 40 sidor/anrop, nextCursor i svaret):
+  // papperskorgen kan hålla >6000 filer under en städrunda, och det gamla
+  // 60-sidorstaket trunkerade då tyst — exakt den bugg som bet ?files=1.
+  //   ?trash=1            → första chunken
+  //   ?trash=1&cursor=<c> → fortsättning tills nextCursor är null
+  if (sp.get("trash") === "1") {
+    const ids: string[] = [];
+    let cursor: string | undefined = sp.get("cursor") || undefined;
+    for (let page = 0; page < 40; page++) {
+      const qs = cursor
+        ? `paging.cursor=${encodeURIComponent(cursor)}`
+        : "paging.limit=100";
+      const res = await fetch(`https://www.wixapis.com/site-media/v1/trash-bin/files?${qs}`, {
+        headers: { Authorization: key, "wix-site-id": site },
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        return Response.json({ error: `wix ${res.status}`, partial: ids.length }, { status: 502 });
+      }
+      const data: any = await res.json();
+      for (const f of data?.files || []) if (f?.id) ids.push(f.id);
+      cursor = data?.nextCursor?.cursors?.next || undefined;
+      if (!cursor || !data?.nextCursor?.hasNext) {
+        cursor = undefined;
+        break;
+      }
+    }
+    return Response.json(
+      { count: ids.length, ids, nextCursor: cursor || null },
+      { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } },
+    );
   }
   const out: any[] = [];
   try {
@@ -49,7 +169,7 @@ export async function GET(req: Request) {
       }
       const data: any = await res.json();
       for (const p of data?.products || []) {
-        if (p?.visible === false) continue;
+        if ((p?.visible === false) !== wantHidden) continue;
         const items: { id: string; url: string }[] = [];
         for (const it of p?.media?.itemsInfo?.items || []) {
           const id = it?.image?.id || it?.id;
