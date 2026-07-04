@@ -6,10 +6,10 @@ import { CURATED_RESULT } from "../../lib/curated-reviews";
 import { GoogleReviews } from "../../components/GoogleReviews";
 import { AnimatedRating } from "../../components/AnimatedRating";
 
-// Publik fallback-länk till Google-profilen (för "Se alla på Google"-knappen)
-// tills exakt profil-URL sätts via GOOGLE_REVIEW_URL.
-const GOOGLE_PROFILE_FALLBACK =
-  "https://www.google.com/search?q=Fyndplats%20S%C3%B6dert%C3%A4lje%20omd%C3%B6men";
+// "Se alla på Google"-knappen → Fyndplats officiella Google-företagsprofil
+// (delningslänken från profilen). Verifierbart: besökaren klickar och ser alla
+// 27 riktiga omdömena på Google. Kan överstyras via GOOGLE_REVIEW_URL.
+const GOOGLE_PROFILE_FALLBACK = "https://share.google/vFyQAMJtWN51kboYA";
 
 const ratingDesc = `Fyndplats har ${GOOGLE_RATING} av 5 i betyg på Google, baserat på ${GOOGLE_REVIEWS_LABEL}. Trygg svensk e-handel som kunderna rekommenderar.`;
 
