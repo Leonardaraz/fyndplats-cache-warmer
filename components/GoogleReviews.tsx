@@ -227,7 +227,7 @@ export function GoogleReviews({
           <span className="greviews-count">
             · <span className="greviews-count-num">{shownCount}</span> omdömen
           </span>
-          <span className="greviews-verified">Verifierade</span>
+          <span className="greviews-verified">Publika på Google</span>
         </div>
       </div>
 
