@@ -212,7 +212,29 @@ Klassa varje bild utifrån Steg 1b-granskningen:
 - **Nyttig kontextbild** (detalj, i-bruk, skala, storleksjämförelse) → **behåll**, tvätta bara logga/inbränd text (Steg 3b). **Vitmåla inte** — kontexten säljer, och komplexa bilder är där urklippet riskerar klippa kablar/smådelar.
 - **Text-tung infografik** → ta bort/flagga (som Steg 3b).
 
-**Metod (bakgrundsbyte → vit):**
+**Metod A – Wix Generate Image (REKOMMENDERAD – server-side AI, ingen uppladdning):**
+
+Wix egen AI byter bakgrund **server-side** och sparar resultatet **direkt i Media Manager** (du får ett `fileId` – **ingen base64-uppladdning**). Fördelar: den klarar det u2net INTE klarar — **mörk-på-mörk + tunna slangar/kablar/lösa klämmor** renderas rent — och utdata blir **~1024 px** (skarpare än en 800 px-källa). Detta är standardvägen för vita hjältar.
+
+```
+POST https://www.wixapis.com/social-publisher/v1/generate-image
+  body: { "userInput": "<prompt nedan>", "imageUrl": "<wixstatic-url på originalhjälten, UTAN transform>" }
+  → { executionId }
+GET  https://www.wixapis.com/social-publisher/v1/generated-image/{executionId}   // polla tills status=READY (async ~10–30 s)
+  → { status:"READY", imageUrl, fileId }
+```
+
+Prompt-mall (låser produkten, byter bara bakgrund — fyll i produktspecifika delar):
+
+> Replace ONLY the background with a clean pure white (#FFFFFF) studio background and add a soft realistic contact shadow beneath the product. Keep the product itself completely unchanged and identical: same shape, proportions, display, buttons, **&lt;slang/klämmor/lins/portar…&gt;**, text, logos and colors. Do not add, remove, redraw, or restyle any part of the product. Professional e-commerce product photo, product centered, high resolution.
+
+Sätt sedan `fileId` som hjälte-item (position 0) i `media.itemsInfo.items` (samma PATCH-mönster som nedan) — ingen uppladdning behövs.
+
+> **Guardrail (obligatoriskt – generativ AI):** ladda ner resultatet, `Read` det och **jämför sida-vid-sida mot originalet**. Verifiera att INGEN produktdetalj ändrats (knappar, text, form, färg, antal delar, loggor). Ser något omritat/tillagt/borttaget ut → generera om med skarpare prompt, annars behåll originalet. **Faktatrohet går alltid före vit bakgrund.** *(Verifierat troget på Baseus kompressor `1dbdec91`, startbooster `86408870`/`63b38487`, bilkamera `e3c3df4c` — inkl. slang/klämmor som u2net ghostade/tappade.)*
+
+**Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
+
+Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
 
 ```bash
 # u2net-modellen (rembg) hämtas EN gång och cachas i ~/.u2net/u2net.onnx.
@@ -244,8 +266,6 @@ canvas.convert("RGB").save("white.jpg", quality=92)
 Ladda upp `white.jpg` via `mcp__Wix__UploadImageToWixSite` → ersätt item:et på **samma position** i `itemsInfo.items` med `{ "url": "<ny wixstatic-url>", "altText": "<svensk alt>" }` (samma mönster som Steg 3b). Position 0 = `media.main` = produktkortet. Skicka **hela** arrayen, patcha **inte** `media.main` (readOnly — se fällan i Steg 3b).
 
 > **Guardrail (obligatoriskt):** öppna resultatet med `Read` och **titta** innan du ersätter. Tunna kablar/lösa smådelar kan klippas fel (halo eller avklippt del). Ser det fel ut → **behåll originalet** och flagga (före/efter-preview i chatten). **Radera aldrig originalfilen** (städas i orphan-svepen). Var bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B).
-
-> **När vit hjälte INTE går rent (mörk-på-mörk):** är produkten mörk mot en mörk/moody bakgrund OCH har tunna utskott (slang, flätad kabel, lösa startklämmor) klarar u2net det inte — slangen blir ett **genomskinligt spöke**, lösa delar **tappas**, mörka bakgrundsrester blir kvar (även med `alpha_matting=True`). Den modell som klarar det (`isnet-general-use`) är egress-blockad (GitHub 403). Ordning då: **(1)** leta en **native vit-bakgrundsbild** i leverantörskällan (mappningens `imageAnalysis[].url`) — etablerade märken (Baseus m.fl.) har ofta officiella vit-studio-shots; använd den som hjälte. **(2)** Finns ingen → **behåll den mörka premiumbilden** och flagga till Leonard. Mörka officiella varumärkesbilder är en **accepterad, flaggad avvikelse** — tvinga aldrig fram ett trasigt urklipp; en ren bild går före enhetlighet. *(Verifierat på Baseus GoTrip-kompressor `1dbdec91` + 1000A-startbooster `86408870`: båda leverantörsset saknade vit-bg-bilder och urklippet ghostade slang/tappade klämmor → mörk hjälte behölls medvetet.)*
 
 -----
 
@@ -343,7 +363,7 @@ Läs `data.variants[].supplierVariantId` (t.ex. `14:29#3.2 m;…` → varianten 
 - Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 1b) och **har kvar sina URL:er**.
 - Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
 - **Inga exakta dubblettbilder** kvar i galleriet — behåll en, ta bort resten (`linkedMedia` omkopplat först); de borttagna frigörs i orphan-svepen.
-- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad. *(Undantag: mörk-på-mörk produkt med tunna slangar/kablar där rent urklipp inte går och ingen vit-bg-källa finns → mörk premiumbild behålls och flaggas.)*
+- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad. *(Vit hjälte skapas via Steg 3c Metod A – Wix Generate Image – även för mörk-på-mörk med slang/kablar; resultatet jämförs mot originalet för faktatrohet.)*
 - På **multi-modell-listningar**: bara den **lagerförda variantens** bilder/spec-ark finns kvar — övriga modellers spec-ark borttagna, matchat mot mappningens `supplierVariantId` (Steg 6C), och inga inbrända siffror på kvarvarande bilder motsäger varianten.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
