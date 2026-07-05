@@ -245,6 +245,8 @@ Ladda upp `white.jpg` via `mcp__Wix__UploadImageToWixSite` → ersätt item:et p
 
 > **Guardrail (obligatoriskt):** öppna resultatet med `Read` och **titta** innan du ersätter. Tunna kablar/lösa smådelar kan klippas fel (halo eller avklippt del). Ser det fel ut → **behåll originalet** och flagga (före/efter-preview i chatten). **Radera aldrig originalfilen** (städas i orphan-svepen). Var bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B).
 
+> **När vit hjälte INTE går rent (mörk-på-mörk):** är produkten mörk mot en mörk/moody bakgrund OCH har tunna utskott (slang, flätad kabel, lösa startklämmor) klarar u2net det inte — slangen blir ett **genomskinligt spöke**, lösa delar **tappas**, mörka bakgrundsrester blir kvar (även med `alpha_matting=True`). Den modell som klarar det (`isnet-general-use`) är egress-blockad (GitHub 403). Ordning då: **(1)** leta en **native vit-bakgrundsbild** i leverantörskällan (mappningens `imageAnalysis[].url`) — etablerade märken (Baseus m.fl.) har ofta officiella vit-studio-shots; använd den som hjälte. **(2)** Finns ingen → **behåll den mörka premiumbilden** och flagga till Leonard. Mörka officiella varumärkesbilder är en **accepterad, flaggad avvikelse** — tvinga aldrig fram ett trasigt urklipp; en ren bild går före enhetlighet. *(Verifierat på Baseus GoTrip-kompressor `1dbdec91` + 1000A-startbooster `86408870`: båda leverantörsset saknade vit-bg-bilder och urklippet ghostade slang/tappade klämmor → mörk hjälte behölls medvetet.)*
+
 -----
 
 ## Steg 4 (rekommenderat) – koppla rätt kategori
@@ -321,6 +323,18 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 > Skicka `options` **komplett** (alla optioner och val, inte bara det du ändrar) och `variantsInfo` exakt som det kom från GET — annars svarar V3 428 `MISSING_VARIANT_OPTION_CHOICE`. Bilden måste redan ligga i produktens media-pool (den gör den efter import).
 
+**C) Ta bort bilder för modeller/varianter som inte finns eller är slutsålda.** Rå-importer buntar ibland flera modeller/storlekar under EN listning och släpar med leverantörens **spec-ark för varianter som inte säljs**. Regel: när du SEO-polerar och en variant/modell **inte finns eller är slut hos leverantören**, ta bort **både** valet (om det finns som option) **och dess bilder** — spec-ark, variantfoton och ev. `linkedMedia` — och skriv SEO/specar efter bara det som är kvar.
+
+**Facit för vad som faktiskt lagerförs = `supplierVariantId` i mappningen — INTE marknadsbilderna** (de delas ofta mellan alla varianter i annonsen och ljuger om storlek/modell). Slå upp mappningen (read-only):
+
+```
+GET https://www.wixapis.com/data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings
+```
+
+Läs `data.variants[].supplierVariantId` (t.ex. `14:29#3.2 m;…` → varianten som skeppas är **3,2 m**). Behåll bara den variantens spec-ark + de hjälte-/livsstilsbilder som stämmer; ta bort spec-arken för övriga modeller. **Kolla även inbrända siffror** på behållna livsstils-/förpackningsbilder — motsäger de kvarvarande varianten (t.ex. bärväske-mått/vikt för fel storlek) → ta bort dem också, annars krockar bilden med beskrivningen.
+
+> **Lärdom (tält `2d83ad12`):** listningen buntade **6 tältmodeller** som spec-bilder men bara **3,2 m**-varianten (`14:29#3.2 m`) var mappad/lagerförd. En delad bärväske-marknadsbild matchade 4,0 m och lurade första bedömningen — `supplierVariantId` var facit. Kolla ALLTID mappningen på multi-modell-listningar **innan** du väljer bilder och låser specar.
+
 -----
 
 ## Klart-kriterium
@@ -329,7 +343,8 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 - Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 1b) och **har kvar sina URL:er**.
 - Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
 - **Inga exakta dubblettbilder** kvar i galleriet — behåll en, ta bort resten (`linkedMedia` omkopplat först); de borttagna frigörs i orphan-svepen.
-- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad.
+- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad. *(Undantag: mörk-på-mörk produkt med tunna slangar/kablar där rent urklipp inte går och ingen vit-bg-källa finns → mörk premiumbild behålls och flaggas.)*
+- På **multi-modell-listningar**: bara den **lagerförda variantens** bilder/spec-ark finns kvar — övriga modellers spec-ark borttagna, matchat mot mappningens `supplierVariantId` (Steg 6C), och inga inbrända siffror på kvarvarande bilder motsäger varianten.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
 - Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
