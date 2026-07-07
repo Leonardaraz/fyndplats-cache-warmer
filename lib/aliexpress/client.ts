@@ -437,6 +437,11 @@ interface RawOrderCreate {
           // Batch-svarsvarianten lägger order-id:t i order_list.number[] (eller en
           // ren array). Vi läser båda formerna i createOrder.
           order_list?: { number?: Array<string | number> } | Array<string | number>;
+          // DS-svaret bär affärsstatusen INNE i result (inte som top-level `code`),
+          // så callApi:s generiska code-koll ser den inte → vi läser den här.
+          is_success?: boolean;
+          error_code?: string | number;
+          error_msg?: string;
           payment_required?: boolean;
           pay_url?: string;
     };
@@ -531,13 +536,20 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
   const raw = await callApi<RawOrderCreate>("aliexpress.ds.order.create", bizParams);
     const result = raw.result ?? {};
 
+    // AFFÄRSSTATUS-GRIND: DS-svaret bär `is_success` INNE i result, så callApi:s
+    // generiska top-level-code-koll fångar den inte. Litar vi enbart på ett order-id
+    // riskerar vi en falsk "lagd" om AliExpress skulle eka ett id på ett misslyckat
+    // svar → tasken markeras `ordered`, re-order hoppas, kunden får aldrig varan.
+    // Är is_success uttryckligen false → behandla som INGET id → FC-vägen
+    // (markUncertain) flaggar för manuell verifiering i stället.
+    const isSuccess = result.is_success ?? raw.is_success;
     // Order-id kan komma som `order_id` (singel) eller `order_list.number[]`
-    // (batch-shape) beroende på AliExpress-svarsvariant. Läs båda; tomt → FC-vägen
-    // (markUncertain) i place-order flaggar för manuell verifiering.
+    // (batch-shape) beroende på AliExpress-svarsvariant. Läs båda.
     const ol = result.order_list;
     const orderIdRaw =
-      result.order_id ??
-      (Array.isArray(ol) ? ol[0] : ol?.number?.[0]);
+      isSuccess === false
+        ? undefined
+        : (result.order_id ?? (Array.isArray(ol) ? ol[0] : ol?.number?.[0]));
 
   return {
         tradeOrderId: orderIdRaw != null ? String(orderIdRaw) : "",
