@@ -1,6 +1,52 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAccessToken, createOrder, OrderValidationError } from "./client";
+import { resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto } from "./client";
 import { MemoryStore } from "../store/memory";
+
+// Låser DTO-formen för aliexpress.ds.order.create. Fel form → AliExpress svarade
+// "MissingParameter: param_place_order_request4_open_api_dto" och ordern lades ALDRIG.
+describe("buildPlaceOrderDto — aliexpress.ds.order.create request-shape", () => {
+  it("bygger logistics_address + product_items med rätt fältnamn", () => {
+    const dto = buildPlaceOrderDto({
+      productId: "1005012371572537",
+      quantity: 1,
+      skuId: "14:193;200007763:201336104",
+      logisticsServiceName: "CAINIAO_ECONOMY_GLOBAL",
+      address: "Norrgårdsvägen 49",
+      city: "Åkersberga",
+      country: "SE",
+      zip: "184 36",
+      contactPerson: "Ann-Sofie Sjöström",
+      phone: "0704806968",
+    });
+    expect(dto.logistics_address).toMatchObject({
+      address: "Norrgårdsvägen 49",
+      city: "Åkersberga",
+      country: "SE",
+      zip: "184 36",
+      contact_person: "Ann-Sofie Sjöström",
+      full_name: "Ann-Sofie Sjöström",
+      mobile_no: "0704806968",
+    });
+    expect(dto.product_items).toHaveLength(1);
+    expect(dto.product_items[0]).toMatchObject({
+      product_id: "1005012371572537",
+      product_count: 1,
+      sku_attr: "14:193;200007763:201336104",
+      logistics_service_name: "CAINIAO_ECONOMY_GLOBAL",
+    });
+    // Måste vara JSON-serialiserbart (skickas som en enda string-param).
+    expect(() => JSON.stringify(dto)).not.toThrow();
+  });
+
+  it("utelämnar mobile_no när telefon saknas", () => {
+    const dto = buildPlaceOrderDto({
+      productId: "P", quantity: 2, skuId: "S", logisticsServiceName: "X",
+      address: "A", city: "C", country: "SE", zip: "1", contactPerson: "N", phone: "",
+    });
+    expect(dto.logistics_address).not.toHaveProperty("mobile_no");
+    expect(dto.product_items[0].product_count).toBe(2);
+  });
+});
 
 // createOrder-backstoppen (FA/F50/FD): valideringsguarderna kastar OrderValidationError
 // FÖRE något API-anrop, så de kan testas utan nätverk/token. Säkerhetskritiskt: detta
@@ -74,5 +120,50 @@ describe("resolveAccessToken — precedens", () => {
 
     const { resolveAccessToken: freshResolve } = await import("./client");
     await expect(freshResolve()).rejects.toThrow(/access_token saknas/);
+  });
+});
+
+// Affärsstatus-grinden: ett order-id ensamt räcker INTE — is_success:false → tomt
+// tradeOrderId → place-order flaggar osäkert i stället för falsk "lagd".
+describe("createOrder — affärsstatus (is_success) före order-id", () => {
+  const addr = { name: "A B", addressLine1: "Gata 1", city: "Sthlm", postalCode: "11122", countryCode: "SE" };
+  const params = { productId: "1005012371572537", skuId: "14:193;200007763:201336104", quantity: 1, shippingAddress: addr };
+  const stubEnv = () => {
+    vi.stubEnv("STORE_BACKEND", "memory");
+    vi.stubEnv("ALIEXPRESS_APP_KEY", "k");
+    vi.stubEnv("ALIEXPRESS_APP_SECRET", "s");
+    vi.stubEnv("ALIEXPRESS_ACCESS_TOKEN", "t");
+  };
+  const mockAeResponse = (result: Record<string, unknown>) =>
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ aliexpress_ds_order_create_response: { result } }),
+    })));
+
+  beforeEach(() => { vi.resetModules(); vi.unstubAllEnvs(); });
+  afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
+
+  it("is_success:false med ekat order_id → tomt tradeOrderId (ingen falsk lagd)", async () => {
+    stubEnv();
+    mockAeResponse({ is_success: false, error_code: "B_BLACKLIST", order_id: "ECHOED123" });
+    const { createOrder: freshCreate } = await import("./client");
+    const res = await freshCreate(params);
+    expect(res.tradeOrderId).toBe("");
+  });
+
+  it("äkta framgång → returnerar order_id", async () => {
+    stubEnv();
+    mockAeResponse({ is_success: true, order_id: 8000123 });
+    const { createOrder: freshCreate } = await import("./client");
+    const res = await freshCreate(params);
+    expect(res.tradeOrderId).toBe("8000123");
+  });
+
+  it("order_list.number[] batch-shape → returnerar första order_id", async () => {
+    stubEnv();
+    mockAeResponse({ is_success: true, order_list: { number: ["8000999"] } });
+    const { createOrder: freshCreate } = await import("./client");
+    const res = await freshCreate(params);
+    expect(res.tradeOrderId).toBe("8000999");
   });
 });
