@@ -434,6 +434,9 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
 interface RawOrderCreate {
     result?: {
           order_id?: string | number;
+          // Batch-svarsvarianten lägger order-id:t i order_list.number[] (eller en
+          // ren array). Vi läser båda formerna i createOrder.
+          order_list?: { number?: Array<string | number> } | Array<string | number>;
           payment_required?: boolean;
           pay_url?: string;
     };
@@ -501,27 +504,92 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
     const line2 = (addr.addressLine2 ?? "").trim();
     const contactPerson = (addr.name ?? "").trim() || "Mottagare";
     const phone = (addr.phone ?? "").trim();
+
+    // aliexpress.ds.order.create tar ALLA orderfält i ETT enda JSON-inkapslat
+    // affärsparameter: `param_place_order_request4_open_api_dto` med
+    // `logistics_address` + `product_items`. Tidigare skickades fälten platt
+    // (product_id/sku_id/address/...) → AliExpress svarade "MissingParameter:
+    // param_place_order_request4_open_api_dto" och INGEN order lades. Byggs som
+    // ren funktion (buildPlaceOrderDto) så DTO-formen kan låsas i test.
+    const dto = buildPlaceOrderDto({
+      productId: params.productId,
+      quantity: params.quantity,
+      skuId: params.skuId,
+      logisticsServiceName: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
+      address: line1 + (line2 ? ` ${line2}` : ""),
+      city,
+      country,
+      zip,
+      contactPerson,
+      phone,
+      buyerMessage: params.buyerMessage,
+    });
     const bizParams: Record<string, string> = {
-          product_id: params.productId,
-          product_count: String(params.quantity),
-          sku_id: params.skuId,
-          logistics_service_name: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
-          address: line1 + (line2 ? ` ${line2}` : ""),
-          city,
-          country,
-          zip,
-          contact_person: contactPerson,
-          ...(phone ? { mobile_no: phone } : {}),
-          ...(params.buyerMessage ? { buyer_message: params.buyerMessage } : {}),
+      param_place_order_request4_open_api_dto: JSON.stringify(dto),
     };
 
   const raw = await callApi<RawOrderCreate>("aliexpress.ds.order.create", bizParams);
     const result = raw.result ?? {};
 
+    // Order-id kan komma som `order_id` (singel) eller `order_list.number[]`
+    // (batch-shape) beroende på AliExpress-svarsvariant. Läs båda; tomt → FC-vägen
+    // (markUncertain) i place-order flaggar för manuell verifiering.
+    const ol = result.order_list;
+    const orderIdRaw =
+      result.order_id ??
+      (Array.isArray(ol) ? ol[0] : ol?.number?.[0]);
+
   return {
-        tradeOrderId: String(result.order_id ?? ""),
+        tradeOrderId: orderIdRaw != null ? String(orderIdRaw) : "",
         paymentRequired: result.payment_required ?? true,
         paymentUrl: result.pay_url,
+  };
+}
+
+/**
+ * Bygger DTO:t för aliexpress.ds.order.create. Ren funktion → enhetstestbar
+ * (låser fältnamnen som AliExpress kräver: sku_attr = leverantörens SKU-attr-
+ * sträng, product_id/product_count per rad, logistics_address för leverans).
+ * `province`/`phone_country` skickas tomma (SE/EU-flödet; delstatskrävande
+ * länder blockeras redan ovan) så fälten finns men inte gissas.
+ */
+export function buildPlaceOrderDto(p: {
+  productId: string;
+  quantity: number;
+  skuId: string;
+  logisticsServiceName: string;
+  address: string;
+  city: string;
+  country: string;
+  zip: string;
+  contactPerson: string;
+  phone: string;
+  buyerMessage?: string;
+}): {
+  logistics_address: Record<string, string>;
+  product_items: Array<Record<string, string | number>>;
+} {
+  return {
+    logistics_address: {
+      address: p.address,
+      city: p.city,
+      province: "",
+      zip: p.zip,
+      country: p.country,
+      contact_person: p.contactPerson,
+      full_name: p.contactPerson,
+      ...(p.phone ? { mobile_no: p.phone } : {}),
+      phone_country: "",
+    },
+    product_items: [
+      {
+        product_id: p.productId,
+        product_count: p.quantity,
+        sku_attr: p.skuId,
+        logistics_service_name: p.logisticsServiceName,
+        ...(p.buyerMessage ? { order_memo: p.buyerMessage } : {}),
+      },
+    ],
   };
 }
 
