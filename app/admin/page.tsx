@@ -4,8 +4,9 @@ import { getStore } from "@/lib/store/factory";
 import type { TaskStatus } from "@/lib/orders/types";
 import { paymentFeeFromEnv, pricingConfigFromEnv } from "@/lib/config";
 import { summarizeProductProfit } from "@/lib/analytics/profit";
-import { placeAliExpressOrderAction, markTaskOrderedAction } from "./actions";
+import { markTaskOrderedAction } from "./actions";
 import { SupplierOverrideClient } from "./supplier-override-client";
+import { PlaceOrderButton } from "./place-order-button";
 
 export const dynamic = "force-dynamic";
 
@@ -113,7 +114,6 @@ export default async function AdminPage() {
       {pending.length > 0 ? (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {pending.map((t) => {
-            const placeAction = placeAliExpressOrderAction.bind(null, t.taskId);
             const a = t.shippingAddress;
             return (
               <li key={t.taskId} style={{ padding: "12px 0", borderBottom: "1px solid #eee" }}>
@@ -132,23 +132,7 @@ export default async function AdminPage() {
                     {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.country}
                   </div>
                 ) : null}
-                <form action={placeAction} style={{ marginTop: 6 }}>
-                  <button
-                    type="submit"
-                    style={{
-                      background: "#F47A35",
-                      color: "#fff",
-                      border: "none",
-                      padding: "6px 12px",
-                      borderRadius: 6,
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Lägg AliExpress-order
-                  </button>
-                </form>
+                <PlaceOrderButton taskId={t.taskId} />
                 <SupplierOverrideClient
                   taskId={t.taskId}
                   variantChoices={t.variantChoices}

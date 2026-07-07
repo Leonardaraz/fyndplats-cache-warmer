@@ -4,11 +4,18 @@ import { revalidatePath } from "next/cache";
 import { extractAliExpressProductId, getInventory } from "@/lib/aliexpress/client";
 import { getStore } from "@/lib/store/factory";
 import { assertTransition } from "@/lib/orders/status";
-import { placeOrderForTask } from "@/lib/orders/place-order";
+import { placeOrderForTask, type PlaceOrderResult } from "@/lib/orders/place-order";
 
 /** Form-action-wrapper — returnerar inget och funkar med <form action>. */
 export async function placeAliExpressOrderAction(taskId: string): Promise<void> {
   await placeAliExpressOrder(taskId);
+}
+
+/** Klient-action som RETURNERAR utfallet så admin-knappen kan visa fel/framgång
+ *  i stället för att göra "ingenting" (form-action-wrappern ovan sväljer allt).
+ *  All logik + guards ligger i den delade placeOrderForTask. */
+export async function placeAliExpressOrderResultAction(taskId: string): Promise<PlaceOrderResult> {
+  return placeAliExpressOrder(taskId);
 }
 
 /**

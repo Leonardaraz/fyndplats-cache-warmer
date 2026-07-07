@@ -148,7 +148,7 @@ export function deriveTasks(event: OrderEvent): FulfillmentTask[] {
     productName: li.productName?.translated || li.productName?.original || "",
     sku: extractSku(li),
     wixCatalogItemId: li.catalogReference?.catalogItemId,
-    variantChoices: li.catalogReference?.options?.options ?? {},
+    variantChoices: extractVariantChoices(li),
     quantity: li.quantity ?? 1,
     status: "pending",
     shippingAddress: address,
@@ -158,6 +158,46 @@ export function deriveTasks(event: OrderEvent): FulfillmentTask[] {
 
 function extractSku(li: WixLineItem): string | undefined {
   return li.physicalProperties?.sku || undefined;
+}
+
+/**
+ * Variantval (t.ex. { Färg: "Blå" }) från en orderrad. KRITISKT för att kunna
+ * matcha rätt AliExpress-SKU vid orderläggning (placeOrderForTask F49): utan
+ * choices och utan SKU-träff kan varianten inte härledas → ordern blockeras.
+ *
+ * Wix lägger valen i `descriptionLines` på riktiga ordrar (COLOR-rad → `color`/
+ * `colorInfo`, text-rad → `plainText`), INTE i `catalogReference.options.options`
+ * som bara bär ett variantId. Vi läser catalog-options FÖRST (bakåtkompat med
+ * äldre/test-shapes) och faller tillbaka på descriptionLines. Nyckel = radens
+ * `name`, värdet trimmas.
+ */
+function extractVariantChoices(li: WixLineItem): Record<string, string> {
+  const clean = (s: string | undefined): string => (s ?? "").trim();
+
+  const fromCatalog = li.catalogReference?.options?.options;
+  if (fromCatalog) {
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(fromCatalog)) {
+      const kk = clean(k);
+      const vv = clean(typeof v === "string" ? v : String(v ?? ""));
+      if (kk && vv) out[kk] = vv;
+    }
+    if (Object.keys(out).length > 0) return out;
+  }
+
+  const out: Record<string, string> = {};
+  for (const dl of li.descriptionLines ?? []) {
+    const key = clean(dl.name?.original) || clean(dl.name?.translated);
+    // COLOR-rader har värdet i `color`/`colorInfo`; text-rader i `plainText`.
+    const val =
+      clean(dl.color) ||
+      clean(dl.colorInfo?.original) ||
+      clean(dl.colorInfo?.translated) ||
+      clean(dl.plainText?.original) ||
+      clean(dl.plainText?.translated);
+    if (key && val) out[key] = val;
+  }
+  return out;
 }
 
 /**
@@ -171,21 +211,41 @@ export function normalizeCountryCode(raw: string | undefined | null): string | n
   return /^[A-Z]{2}$/.test(s) ? s : null;
 }
 
+/** Trimma + tomma-strängar-till-undefined. Wix padd:ar ofta värden med blanksteg
+ *  ("Åkersberga ", "184 36 ") → utan trim läcker de in i AliExpress-ordern. */
+function clean(s: string | undefined): string | undefined {
+  const t = (s ?? "").trim();
+  return t || undefined;
+}
+
 function extractAddress(order: WixOrder): ShippingAddress | undefined {
-  const addr =
-    order.shippingInfo?.logistics?.shippingDestination?.address ?? order.recipientInfo?.address;
+  const dest = order.shippingInfo?.logistics?.shippingDestination;
+  // Adress: leverans → mottagare → faktura (första som finns).
+  const addr = dest?.address ?? order.recipientInfo?.address ?? order.billingInfo?.address;
+  // Kontakt: Wix använder `contactDetails` på nuvarande V1-ordrar, `contact` på
+  // äldre — acceptera båda, samma prioritetsordning som adressen.
   const contact =
-    order.shippingInfo?.logistics?.shippingDestination?.contact ?? order.recipientInfo?.contact;
+    dest?.contactDetails ?? dest?.contact ??
+    order.recipientInfo?.contactDetails ?? order.recipientInfo?.contact ??
+    order.billingInfo?.contactDetails ?? order.billingInfo?.contact;
   if (!addr && !contact) return undefined;
 
-  const fullName = [contact?.firstName, contact?.lastName].filter(Boolean).join(" ") || undefined;
+  // Gatan: `addressLine1` (om satt) → `addressLine` (Fyndplats-ordrarnas fält) →
+  // strukturerad `streetAddress` (namn + nummer). KRITISKT: utan denna fallback
+  // tappas gatan och F50-adressspärren blockerar AliExpress-ordern.
+  const street =
+    clean(addr?.addressLine1) ??
+    clean(addr?.addressLine) ??
+    clean([addr?.streetAddress?.name, addr?.streetAddress?.number].filter(Boolean).join(" "));
+
+  const fullName = [clean(contact?.firstName), clean(contact?.lastName)].filter(Boolean).join(" ") || undefined;
   return {
     fullName,
-    addressLine1: addr?.addressLine1,
-    addressLine2: addr?.addressLine2,
-    city: addr?.city,
-    postalCode: addr?.postalCode,
-    country: addr?.country,
-    phone: contact?.phone,
+    addressLine1: street,
+    addressLine2: clean(addr?.addressLine2),
+    city: clean(addr?.city),
+    postalCode: clean(addr?.postalCode),
+    country: clean(addr?.country),
+    phone: clean(contact?.phone),
   };
 }
