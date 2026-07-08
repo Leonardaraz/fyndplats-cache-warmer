@@ -7,6 +7,8 @@ import { summarizeProductProfit } from "@/lib/analytics/profit";
 import { markTaskOrderedAction } from "./actions";
 import { SupplierOverrideClient } from "./supplier-override-client";
 import { PlaceOrderButton } from "./place-order-button";
+import { EditAddressClient } from "./edit-address-client";
+import { TaskRecoveryClient } from "./task-recovery-client";
 
 export const dynamic = "force-dynamic";
 
@@ -105,6 +107,7 @@ export default async function AdminPage() {
                   ].filter(Boolean).join(" · ")}
                   {t.aliexpressOrderId ? <> · AE-order: <code>{t.aliexpressOrderId}</code> (avbeställ manuellt)</> : null}
                 </div>
+                <TaskRecoveryClient taskId={t.taskId} hasAeOrder={Boolean(t.aliexpressOrderId)} />
               </li>
             ))}
           </ul>
@@ -126,12 +129,18 @@ export default async function AdminPage() {
                     Variant: {Object.entries(t.variantChoices).map(([k, v]) => `${k}: ${v}`).join(", ")}
                   </div>
                 ) : null}
-                {a ? (
+                {a && a.addressLine1 && a.city && a.postalCode ? (
                   <div style={{ fontSize: 13, color: "#666" }}>
                     Skickas till: {a.fullName}, {a.addressLine1}
                     {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.country}
                   </div>
-                ) : null}
+                ) : (
+                  <div style={{ fontSize: 13, color: "#b45309" }}>
+                    ⚠️ Ofullständig leveransadress
+                    {a ? `: ${[a.fullName, a.addressLine1, a.postalCode, a.city, a.country].filter(Boolean).join(", ")}` : ""} — komplettera med “Ändra adress” innan du lägger ordern.
+                  </div>
+                )}
+                <EditAddressClient taskId={t.taskId} address={t.shippingAddress} />
                 <PlaceOrderButton taskId={t.taskId} />
                 <SupplierOverrideClient
                   taskId={t.taskId}
