@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin } from "./client";
+import { resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin, sanitizeZip } from "./client";
 import { MemoryStore } from "../store/memory";
+
+describe("sanitizeZip — AliExpress postnummer: bara siffror/-//", () => {
+  it("tar bort mellanslag i svenska postnummer", () => {
+    expect(sanitizeZip("184 36")).toBe("18436");
+    expect(sanitizeZip("11122")).toBe("11122");
+    expect(sanitizeZip("SE-184 36")).toBe("-18436");
+  });
+});
 
 describe("toAsciiLatin — AliExpress kräver engelska/ASCII", () => {
   it("translittererar svenska tecken (å/ä/ö) till ASCII", () => {
@@ -38,7 +46,7 @@ describe("buildPlaceOrderDto — aliexpress.ds.order.create request-shape", () =
       city: "Akersberga",
       province: "Stockholm",
       country: "SE",
-      zip: "184 36",
+      zip: "18436",
       contact_person: "Ann-Sofie Sjostrom",
       full_name: "Ann-Sofie Sjostrom",
       mobile_no: "0704806968",
