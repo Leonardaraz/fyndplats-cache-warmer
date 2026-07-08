@@ -106,7 +106,7 @@ Nu — och först nu — skriver Steg 2 (copy), Steg 2b (SKU) och Steg 3/3d (bil
 
 Bygg innehållet:
 
-- **name (H1):** svenskt, sökordsrikt, börjar med fokussökordet (huvud + kvalificerare).
+- **name (H1):** svenskt, sökordsrikt, börjar med fokussökordet (huvud + kvalificerare). **≤ 80 tecken** (hård Wix-gräns — längre ger 400-fel).
 - **slug:** **ASCII** (inte å/ä/ö), gemener, bindestreck, innehåller fokussökordet inkl. kvalificeraren. (ASCII undviker kodningskrångel på headless-frontenden; Google klarar ändå båda.)
   - ⚠️ **Slug-varning (headless):** byt slug **bara på produkter som inte gått live än** (nyimporterade draft-produkter). Wix auto-redirect (`preventAutoRedirect:false`) gäller **bara Wix-hostade sajter, inte din headless** – så att byta slug på en redan indexerad produkt gör att den gamla URL:en **404:ar** och ranking tappas. För en redan publicerad produkt: **behåll befintlig slug**.
 - **title-tagg:** ≤ ~60 tecken, fokussökord först, ev. `| Fyndplats`.
@@ -208,6 +208,17 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 
 > **Dubbletter (identiska bilder):** är två eller fler galleri-items **exakt samma motiv** (vanligt från skrapan/DS-API:t) — behåll **en**, ta bort resten ur `itemsInfo.items` (skicka hela arrayen utan dubbletterna). **Kontrollera `linkedMedia` FÖRST:** pekar ett variantval på en kopia du tar bort → koppla om valet till den kvarvarande bilden (Steg 6B), annars tappar valet sitt bildbyte tyst. **Radera INTE filen direkt** i Media Manager — borttagen ur galleriet blir den föräldralös och **frigörs automatiskt i de återkommande orphan-städsvepen** (minnet återtas helt, utan risk att radera en fil som `linkedMedia`:as eller används av en annan produkt). Vill du bekräfta exakt likhet: jämför fil-id:t i `image.url` (samma id = samma fil) eller previews sida vid sida med `Read`.
 
+**Bild-arbete — vilken metod?** Åtgärda det du flaggade i Steg 1b. Välj per bild:
+
+| Bilden är… | Gör |
+|---|---|
+| Foto med inbränd text/logga/vattenstämpel | **Tvätta** (Steg 3b) |
+| Hjältebild — ren produkt på ful/mörk/rörig bakgrund | **Vit studio-hjälte** (Steg 3c) |
+| Mörkt AliExpress feature-collage / engelskt spec-blad (inte enskilt produktfoto) | **Bygg eget svenskt kort** (Steg 3d) |
+| Ren infografik / text-diagram | **Ta bort ur galleriet** (info hör hemma som text under "Tekniska specifikationer") |
+
+Två regler gäller ALLA metoder: **radera aldrig originalfilen** ur Media Manager (borttagen ur galleriet blir den föräldralös och städas i orphan-svepen), och är en bild `linkedMedia` för ett variantval — **koppla om valet först** (Steg 6B), annars tappar valet sitt bildbyte tyst.
+
 ### Steg 3b – Tvätta bort loggor och inbränd text (vid behov)
 
 Noterade du i Steg 1b **dropship-logga** (SucceBuy/VEVOR/HOMCOM …), **vattenstämpel** eller **inbränd marknadsföringstext** (engelska, spanska, kinesiska …) på en bild — åtgärda det i samma polering i stället för att bara flagga:
@@ -226,7 +237,7 @@ Samma `POST .../generate-image` → polla `GET .../generated-image/{executionId}
 
 Samma **guardrail som Steg 3c gäller alltid**: `Read` resultatet sida-vid-sida mot originalet innan det används — faktatrohet går alltid före ren bild.
 
-> **Verifierat (2026-07-08):** 19 bilder tvättade troget över ett helt produktbatch (cykelhandtag, cykelpump, sadelväska, cykelverktyg, sadel, kolfiberpedaler, glasögon, ryggsäck) — handhållna närbilder, person i rörelse, regn, trä-/stenbakgrund. Text/banderoller borta, produkt och bakgrund identiska i alla sida-vid-sida-jämförelser.
+> **Beprövat (2026-07-08):** troget över 19 bilder — handhållna närbilder, person i rörelse, regn, trä-/stenbakgrund; text/banderoller borta, produkt + bakgrund identiska i alla sida-vid-sida-jämförelser.
 
 > **Hastighetsgräns:** `generate-image`-endpointen kan bli hastighetsbegränsad efter många anrop i rad, och avkylningen kan ta **flera minuter** (upplevt: >10 min, inte bara en kort burst-gräns) — planera batchar om **3–6 anrop åt gången**. Misslyckas ett jobb (`status:"FAILED"`): försök om **en gång**; misslyckas det igen → **ta bort bilden** ur galleriet i stället för att fastna i en retry-loop mot en fortsatt begränsad endpoint. Den kan alltid läggas till igen senare.
 
