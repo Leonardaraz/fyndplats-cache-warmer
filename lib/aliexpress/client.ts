@@ -507,6 +507,7 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
       throw new OrderValidationError(`Ogiltig kvantitet (${params.quantity}) — order avbruten.`);
     }
     const line2 = (addr.addressLine2 ?? "").trim();
+    const province = (addr.province ?? "").trim();
     const contactPerson = (addr.name ?? "").trim() || "Mottagare";
     const phone = (addr.phone ?? "").trim();
 
@@ -526,6 +527,7 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
       logisticsServiceName: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
       address: line1 + (line2 ? ` ${line2}` : ""),
       city,
+      province,
       country,
       zip,
       contactPerson,
@@ -616,6 +618,7 @@ export function buildPlaceOrderDto(p: {
   logisticsServiceName: string;
   address: string;
   city: string;
+  province: string;
   country: string;
   zip: string;
   contactPerson: string;
@@ -631,7 +634,8 @@ export function buildPlaceOrderDto(p: {
       // AliExpress kräver engelska/ASCII → translitterera fritextfälten.
       address: toAsciiLatin(p.address),
       city: toAsciiLatin(p.city),
-      province: "",
+      // AliExpress kräver "state/province/region" (län) — annars avvisas ordern.
+      province: toAsciiLatin(p.province),
       zip: p.zip,
       country: p.country,
       contact_person: toAsciiLatin(p.contactPerson),

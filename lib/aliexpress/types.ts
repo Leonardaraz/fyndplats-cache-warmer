@@ -49,6 +49,10 @@ export interface DsOrderCreateParams {
     addressLine1: string;
     addressLine2?: string;
     city: string;
+    /** Delstat/region (län). AliExpress kräver detta för leverans (annars
+     *  "Please select a state/province/region"). AliExpress-vänligt namn, t.ex.
+     *  "Stockholm" för Åkersberga (Stockholms län). */
+    province?: string;
     postalCode: string;
     countryCode: string;
     phone?: string;

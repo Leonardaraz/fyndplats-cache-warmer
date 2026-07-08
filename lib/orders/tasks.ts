@@ -2,6 +2,7 @@ import type {
   FulfillmentTask,
   OrderEvent,
   ShippingAddress,
+  WixAddress,
   WixLineItem,
   WixOrder,
 } from "./types";
@@ -218,6 +219,30 @@ function clean(s: string | undefined): string | undefined {
   return t || undefined;
 }
 
+// AliExpress kräver en "state/province/region" vid orderläggning. För Sverige
+// mappar vi Wix ISO 3166-2 (SE-XX) → AliExpress läns-namn (ASCII, som deras
+// adress-dropdown använder). Åkersberga (SE-AB) → "Stockholm".
+const SE_SUBDIVISION_TO_PROVINCE: Record<string, string> = {
+  "SE-AB": "Stockholm", "SE-AC": "Vasterbotten", "SE-BD": "Norrbotten",
+  "SE-C": "Uppsala", "SE-D": "Sodermanland", "SE-E": "Ostergotland",
+  "SE-F": "Jonkoping", "SE-G": "Kronoberg", "SE-H": "Kalmar", "SE-I": "Gotland",
+  "SE-K": "Blekinge", "SE-M": "Skane", "SE-N": "Halland", "SE-O": "Vastra Gotaland",
+  "SE-S": "Varmland", "SE-T": "Orebro", "SE-U": "Vastmanland", "SE-W": "Dalarna",
+  "SE-X": "Gavleborg", "SE-Y": "Vasternorrland", "SE-Z": "Jamtland",
+};
+
+/** Härleder en AliExpress-vänlig provins/län från Wix-adressens subdivision. */
+export function deriveProvince(addr: WixAddress | undefined): string | undefined {
+  if (!addr) return undefined;
+  const code = clean(addr.subdivision)?.toUpperCase();
+  if (code && SE_SUBDIVISION_TO_PROVINCE[code]) return SE_SUBDIVISION_TO_PROVINCE[code];
+  // Fallback: läns-namnet utan " län"/" county"-suffix (translittereras till ASCII
+  // i DTO-bygget). Bättre än tomt → AliExpress avvisar annars med "select a region".
+  const full = clean(addr.subdivisionFullname);
+  if (full) return full.replace(/\s+(län|lan|county)\s*$/i, "").trim() || full;
+  return undefined;
+}
+
 function extractAddress(order: WixOrder): ShippingAddress | undefined {
   const dest = order.shippingInfo?.logistics?.shippingDestination;
   // Adress: leverans → mottagare → faktura (första som finns).
@@ -244,6 +269,7 @@ function extractAddress(order: WixOrder): ShippingAddress | undefined {
     addressLine1: street,
     addressLine2: clean(addr?.addressLine2),
     city: clean(addr?.city),
+    province: deriveProvince(addr),
     postalCode: clean(addr?.postalCode),
     country: clean(addr?.country),
     phone: clean(contact?.phone),

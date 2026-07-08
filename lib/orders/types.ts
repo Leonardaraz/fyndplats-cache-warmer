@@ -3,6 +3,9 @@ export interface ShippingAddress {
   addressLine1?: string;
   addressLine2?: string;
   city?: string;
+  /** Delstat/region (län) — AliExpress-vänligt namn, t.ex. "Stockholm".
+   *  AliExpress kräver detta vid orderläggning ("state/province/region"). */
+  province?: string;
   postalCode?: string;
   country?: string;
   phone?: string;
@@ -121,7 +124,10 @@ export interface WixAddress {
   city?: string;
   postalCode?: string;
   country?: string;
+  /** ISO 3166-2, t.ex. "SE-AB" (Stockholms län). */
   subdivision?: string;
+  /** Läsbart län-namn, t.ex. "Stockholms län". */
+  subdivisionFullname?: string;
 }
 
 export interface WixContact {

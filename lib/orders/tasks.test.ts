@@ -2,11 +2,28 @@ import { describe, expect, it } from "vitest";
 import {
   classifyWixEvent,
   deriveTasks,
+  deriveProvince,
   extractCancelOrderId,
   normalizeOrderEvent,
   normalizeCountryCode,
 } from "./tasks";
 import { parseWebhookBody } from "./webhook";
+
+describe("deriveProvince — AliExpress kräver län/state", () => {
+  it("mappar svenska ISO 3166-2-koder till AliExpress-läns-namn (ASCII)", () => {
+    expect(deriveProvince({ subdivision: "SE-AB" })).toBe("Stockholm");
+    expect(deriveProvince({ subdivision: "SE-M" })).toBe("Skane");
+    expect(deriveProvince({ subdivision: "SE-O" })).toBe("Vastra Gotaland");
+  });
+  it("faller tillbaka på subdivisionFullname utan län-suffix", () => {
+    expect(deriveProvince({ subdivisionFullname: "Stockholms län" })).toBe("Stockholms");
+    expect(deriveProvince({ subdivisionFullname: "Gotland County" })).toBe("Gotland");
+  });
+  it("saknat allt → undefined", () => {
+    expect(deriveProvince({})).toBeUndefined();
+    expect(deriveProvince(undefined)).toBeUndefined();
+  });
+});
 
 describe("normalizeCountryCode", () => {
   it("accepterar och versaliserar giltig ISO alpha-2", () => {
@@ -252,6 +269,7 @@ describe("extractAddress — riktig order-shape (addressLine/contactDetails, #10
       addressLine1: "Norrgårdsvägen 49",
       addressLine2: undefined,
       city: "Åkersberga",
+      province: "Stockholm", // härlett från subdivision SE-AB (AliExpress kräver län)
       postalCode: "184 36",
       country: "SE",
       phone: "0704806968",
