@@ -1,13 +1,5 @@
 # Fyndplats cache-warmer — projektanvisningar
 
-## Utvecklingsrutin: AUDIT FÖRE MERGE (obligatoriskt)
-
-Innan en PR mergas **SKA** dess diff auditeras och fynden rapporteras till Leonard
-— korrekthet, edge-cases, regressioner och säkerhet. Merga först när granskningen
-är ren, eller efter att fynden åtgärdats. Detta gäller **varje** PR, utan undantag
-(även små/triviala ändringar). Bakgrund: en oauditerad merge (#97) införde en
-regression som bröt alla imports — därför är detta en hård grind.
-
 ## Import-arbetsflöde & AI-kostnad (`AI_ENRICHMENT_ENABLED`)
 
 Import-pipelinen (`lib/import/pipeline.ts → importProduct`) kan köras i två lägen.
