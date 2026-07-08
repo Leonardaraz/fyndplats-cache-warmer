@@ -8,6 +8,8 @@ vi.mock("@/lib/aliexpress/client", () => ({
   createOrder: vi.fn(),
   getInventory: vi.fn(),
   extractAliExpressProductId: vi.fn(),
+  // place-order.ts gör `err instanceof OrderValidationError` → måste finnas i mocken.
+  OrderValidationError: class OrderValidationError extends Error {},
 }));
 
 const mapping: ProductMappingRecord = {
@@ -22,6 +24,16 @@ const mapping: ProductMappingRecord = {
       landedCostSek: 10,
       grossSek: 20,
     },
+  ],
+};
+
+// Multi-variant mappning (Färg × Storlek) för variant-matchnings-testerna.
+const multiMapping: ProductMappingRecord = {
+  supplierProductId: "MULTI",
+  wixProductId: "wix-2",
+  variants: [
+    { supplierVariantId: "skuRedS", sku: "FP-RS", choices: { Color: "Red", Size: "S" }, costUsd: 1, landedCostSek: 10, grossSek: 20 },
+    { supplierVariantId: "skuRedM", sku: "FP-RM", choices: { Color: "Red", Size: "M" }, costUsd: 1, landedCostSek: 10, grossSek: 20 },
   ],
 };
 
@@ -50,11 +62,11 @@ function baseTask(patch: Partial<FulfillmentTask> = {}): FulfillmentTask {
 }
 
 // Fräsch memory-store + seeded mapping/task per test (resetModules nollar singleton).
-async function setup(task: FulfillmentTask) {
+async function setup(task: FulfillmentTask, m: ProductMappingRecord = mapping) {
   process.env.STORE_BACKEND = "memory";
   const { getStore } = await import("@/lib/store/factory");
   const store = getStore();
-  await store.saveMapping(mapping);
+  await store.saveMapping(m);
   await store.upsertTask(task);
   const actions = await import("./actions");
   const client = await import("@/lib/aliexpress/client");
@@ -134,6 +146,86 @@ describe("placeAliExpressOrder — leverantörsval", () => {
   });
 });
 
+describe("placeAliExpressOrder — variant-match & order-guards (audit-fixar)", () => {
+  it("multi-variant + tom choices (ingen sku/override) → vägrar, väljer INTE variants[0]", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", variantChoices: {} }),
+      multiMapping,
+    );
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("multi-variant + tvetydiga choices (matchar flera) → vägrar", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", variantChoices: { Color: "Red" } }),
+      multiMapping,
+    );
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("multi-variant + entydiga choices → beställer rätt variant", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", variantChoices: { Color: "Red", Size: "M" } }),
+      multiMapping,
+    );
+    vi.mocked(client.createOrder).mockResolvedValue({ tradeOrderId: "TM", paymentRequired: false });
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(true);
+    expect(client.createOrder).toHaveBeenCalledWith(expect.objectContaining({ skuId: "skuRedM" }));
+  });
+
+  it("SKU vinner över choices", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", sku: "FP-RS", variantChoices: { Color: "Red", Size: "M" } }),
+      multiMapping,
+    );
+    vi.mocked(client.createOrder).mockResolvedValue({ tradeOrderId: "TS", paymentRequired: false });
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(true);
+    expect(client.createOrder).toHaveBeenCalledWith(expect.objectContaining({ skuId: "skuRedS" }));
+  });
+
+  it("ofullständig adress (saknar gatuadress) → vägrar, ingen order", async () => {
+    const { actions, client } = await setup(
+      baseTask({ shippingAddress: { fullName: "A B", city: "Sthlm", postalCode: "111 22", country: "SE" } }),
+    );
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("ogiltig kvantitet (0) → vägrar, ingen order", async () => {
+    const { actions, client } = await setup(baseTask({ quantity: 0 }));
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("SKU-miss faller tillbaka till entydiga choices (stale sku räddas)", async () => {
+    const { actions, client } = await setup(
+      baseTask({ wixCatalogItemId: "wix-2", sku: "FINNS-EJ", variantChoices: { Color: "Red", Size: "M" } }),
+      multiMapping,
+    );
+    vi.mocked(client.createOrder).mockResolvedValue({ tradeOrderId: "TF", paymentRequired: false });
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(true);
+    expect(client.createOrder).toHaveBeenCalledWith(expect.objectContaining({ skuId: "skuRedM" }));
+  });
+
+  it("whitespace-only gatuadress → vägrar, ingen order", async () => {
+    const { actions, client } = await setup(
+      baseTask({ shippingAddress: { fullName: "A B", addressLine1: "   ", city: "Sthlm", postalCode: "11122", country: "SE" } }),
+    );
+    const res = await actions.placeAliExpressOrder("o1:l1");
+    expect(res.ok).toBe(false);
+    expect(client.createOrder).not.toHaveBeenCalled();
+  });
+});
+
 describe("set/clear leverantörs-override", () => {
   it("setOrderSupplierOverrideAction sätter fälten + auditar", async () => {
     const { actions, store } = await setup(baseTask());
@@ -169,6 +261,68 @@ describe("set/clear leverantörs-override", () => {
     expect(res.ok).toBe(true);
     const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
     expect(t?.overriddenSupplierProductId).toBeUndefined();
+  });
+});
+
+describe("updateTaskAddressAction — redigera leveransadress", () => {
+  it("sparar en rättad adress (trimmar + versaliserar land) + auditar", async () => {
+    const { actions, store } = await setup(baseTask({ shippingAddress: undefined }));
+    const res = await actions.updateTaskAddressAction("o1:l1", {
+      fullName: " Ann-Sofie Sjöström ",
+      addressLine1: " Norrgårdsvägen 49 ",
+      postalCode: " 184 36 ",
+      city: " Åkersberga ",
+      country: " se ",
+      phone: " 0704806968 ",
+    });
+    expect(res.ok).toBe(true);
+    const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
+    expect(t?.shippingAddress).toEqual({
+      fullName: "Ann-Sofie Sjöström",
+      addressLine1: "Norrgårdsvägen 49",
+      addressLine2: undefined,
+      postalCode: "184 36",
+      city: "Åkersberga",
+      country: "SE",
+      phone: "0704806968",
+    });
+    const audit = await store.listAudit();
+    expect(audit.some((a) => a.kind === "address-edited" && a.ref === "o1:l1")).toBe(true);
+  });
+
+  it("vägrar när ordern redan är lagd hos AliExpress", async () => {
+    const { actions, store } = await setup(baseTask({ aliexpressOrderId: "T9", status: "ordered" }));
+    const res = await actions.updateTaskAddressAction("o1:l1", { addressLine1: "Ny gata 1" });
+    expect(res.ok).toBe(false);
+    const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
+    expect(t?.shippingAddress?.addressLine1).toBe("Street 1"); // oförändrad
+  });
+});
+
+describe("releaseTaskAction — släpp fastlåst task", () => {
+  it("rensar lås + granskningsflaggor + auditar", async () => {
+    const { actions, store } = await setup(
+      baseTask({ claimToken: "tok", orderUncertain: true, uncertainAt: "x", cancelMidOrder: true }),
+    );
+    const res = await actions.releaseTaskAction("o1:l1");
+    expect(res.ok).toBe(true);
+    const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
+    expect(t?.claimToken).toBeUndefined();
+    expect(t?.orderUncertain).toBeUndefined();
+    expect(t?.cancelMidOrder).toBeUndefined();
+    const audit = await store.listAudit();
+    expect(audit.some((a) => a.kind === "task-unlocked" && a.ref === "o1:l1")).toBe(true);
+  });
+
+  it("VÄGRAR släppa när ett AE-order-id finns (dubbel-order-skydd)", async () => {
+    const { actions, store } = await setup(
+      baseTask({ aliexpressOrderId: "T7", orderUncertain: true, claimToken: "tok" }),
+    );
+    const res = await actions.releaseTaskAction("o1:l1");
+    expect(res.ok).toBe(false);
+    const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
+    expect(t?.claimToken).toBe("tok"); // låset kvar
+    expect(t?.orderUncertain).toBe(true);
   });
 });
 

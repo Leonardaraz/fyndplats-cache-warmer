@@ -1,14 +1,29 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createOrder, extractAliExpressProductId, getInventory } from "@/lib/aliexpress/client";
+import { extractAliExpressProductId, getInventory } from "@/lib/aliexpress/client";
 import { getStore } from "@/lib/store/factory";
-import { normalizeCountryCode } from "@/lib/orders/tasks";
 import { assertTransition } from "@/lib/orders/status";
+import { placeOrderForTask, type PlaceOrderResult } from "@/lib/orders/place-order";
+import type { ShippingAddress } from "@/lib/orders/types";
+
+type ActionResult = { ok: true } | { ok: false; error: string };
+
+const cleanStr = (s: string | undefined): string | undefined => {
+  const t = (s ?? "").trim();
+  return t || undefined;
+};
 
 /** Form-action-wrapper — returnerar inget och funkar med <form action>. */
 export async function placeAliExpressOrderAction(taskId: string): Promise<void> {
   await placeAliExpressOrder(taskId);
+}
+
+/** Klient-action som RETURNERAR utfallet så admin-knappen kan visa fel/framgång
+ *  i stället för att göra "ingenting" (form-action-wrappern ovan sväljer allt).
+ *  All logik + guards ligger i den delade placeOrderForTask. */
+export async function placeAliExpressOrderResultAction(taskId: string): Promise<PlaceOrderResult> {
+  return placeAliExpressOrder(taskId);
 }
 
 /**
@@ -36,103 +51,86 @@ export async function markTaskOrderedAction(taskId: string): Promise<void> {
 }
 
 /**
- * Hämtar en task ur store, slår upp leverantörsmappningen,
- * matchar rätt variant och placerar ordern via AliExpress DS API.
- * Sparar tradeOrderId på tasken så cron-jobbet kan polla för spårning.
+ * Redigerar en tasks leveransadress manuellt (t.ex. om Wix-ordern saknade gata,
+ * eller kunden hörde av sig med en rättelse) INNAN AliExpress-ordern läggs.
+ * Trimmar + tomma-till-undefined. Vägrar när ordern redan är lagd (adressen
+ * ligger då hos AliExpress). F50-adressspärren i placeOrderForTask fångar ändå
+ * en ofullständig adress vid orderläggningen, så en delvis sparad adress kan
+ * aldrig ge en oleverabar order.
+ */
+export async function updateTaskAddressAction(
+  taskId: string,
+  address: ShippingAddress,
+): Promise<ActionResult> {
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return { ok: false, error: "Task hittades inte" };
+  if (task.aliexpressOrderId) {
+    return { ok: false, error: "Ordern är redan lagd hos AliExpress — adressen kan inte ändras här." };
+  }
+  const next: ShippingAddress = {
+    fullName: cleanStr(address.fullName),
+    addressLine1: cleanStr(address.addressLine1),
+    addressLine2: cleanStr(address.addressLine2),
+    postalCode: cleanStr(address.postalCode),
+    city: cleanStr(address.city),
+    country: cleanStr(address.country)?.toUpperCase(),
+    phone: cleanStr(address.phone),
+  };
+  await store.updateTask(taskId, { shippingAddress: next });
+  await store.appendAudit({
+    at: new Date().toISOString(),
+    kind: "address-edited",
+    ref: taskId,
+    detail: `leveransadress ändrad manuellt via admin (${next.fullName ?? "?"}, ${next.addressLine1 ?? "?"}, ${next.postalCode ?? ""} ${next.city ?? ""})`,
+  });
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/**
+ * Släpper ett fastlåst task-claim + rensar granskningsflaggorna (osäkert utfall /
+ * annullering-race) så en fastnad task kan hanteras/läggas om i appen i stället
+ * för databas-kirurgi. SÄKERHET: vägrar när ett AE-order-id finns — då KAN en
+ * order redan vara lagd, och att släppa låset skulle riskera en dubbelbeställning.
+ * Verifiera/avbeställ på AliExpress först i det fallet.
+ */
+export async function releaseTaskAction(taskId: string): Promise<ActionResult> {
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return { ok: false, error: "Task hittades inte" };
+  if (task.aliexpressOrderId) {
+    return {
+      ok: false,
+      error: "Tasken har ett AliExpress-order-id — verifiera/avbeställ ordern på AliExpress först. Låset släpps inte (dubbel-order-risk).",
+    };
+  }
+  await store.updateTask(taskId, {
+    claimToken: undefined,
+    orderUncertain: undefined,
+    uncertainAt: undefined,
+    cancelMidOrder: undefined,
+    cancelMidOrderAt: undefined,
+  });
+  await store.appendAudit({
+    at: new Date().toISOString(),
+    kind: "task-unlocked",
+    ref: taskId,
+    detail: "lås + granskningsflaggor rensade manuellt via admin",
+  });
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/**
+ * Lägger AliExpress-ordern för en task. Tunn wrapper runt den DELADE
+ * `placeOrderForTask` (samma kod som /api/aliexpress/order kör) — guards,
+ * variant-match, atomisk dubbel-order-claim och utfallshantering ligger där.
  */
 export async function placeAliExpressOrder(taskId: string) {
-  const store = getStore();
-  const tasks = await store.listTasks();
-  const task = tasks.find((t) => t.taskId === taskId);
-  if (!task) return { ok: false, error: "Task hittades inte" };
-  if (task.aliexpressOrderId) return { ok: false, error: "Ordern är redan lagd hos AliExpress" };
-  if (!task.wixCatalogItemId) return { ok: false, error: "Saknar wixCatalogItemId — kan inte hitta mappning" };
-  if (!task.shippingAddress) return { ok: false, error: "Saknar leveransadress" };
-
-  const mapping = await store.getMappingByWixProductId(task.wixCatalogItemId);
-  if (!mapping) return { ok: false, error: "Ingen AliExpress-mappning för produkten" };
-
-  // Matcha variant via SKU eller via choices.
-  const variant = task.sku
-    ? mapping.variants.find((v) => v.sku === task.sku)
-    : mapping.variants.find((v) =>
-        Object.entries(task.variantChoices).every(([k, val]) => v.choices[k] === val),
-      );
-
-  // Säkerhet (betalväg): ett HALVT override (bara produkt ELLER bara SKU) skulle
-  // korsa källor — t.ex. leverantör B:s produkt med leverantör A:s SKU → fel vara
-  // till kund. Kan inte uppstå via UI:t (set-action kräver båda + skriver atomiskt),
-  // men en framtida skrivning/migrering/manuell wix-data-rad skulle kunna → vägra
-  // hellre ordern än att lägga en korsad.
-  if (Boolean(task.overriddenSupplierProductId) !== Boolean(task.overriddenSupplierVariantId)) {
-    return {
-      ok: false,
-      error: "Ofullständigt leverantörsbyte (produkt utan SKU eller tvärtom) — order avbruten.",
-    };
-  }
-
-  // Per-order leverantörsbyte vinner över mappningen. När en override-SKU finns
-  // beställer vi från en ANNAN källa → ingen variant-match mot mappningen krävs.
-  const supplierProductId = task.overriddenSupplierProductId ?? mapping.supplierProductId;
-  const supplierVariantId = task.overriddenSupplierVariantId ?? variant?.supplierVariantId;
-  if (!supplierVariantId) {
-    return { ok: false, error: "Variant kunde inte matchas till AliExpress-SKU" };
-  }
-
-  const a = task.shippingAddress;
-  // Vägra ordern om landskoden saknas/är ogiltig i stället för att tyst skicka
-  // till Sverige (tidigare `?? "SE"`-default).
-  const countryCode = normalizeCountryCode(a.country);
-  if (!countryCode) {
-    return {
-      ok: false,
-      error: `Saknar/ogiltig landskod i leveransadressen ("${a.country ?? ""}") — order avbruten. Kontrollera Wix-ordern.`,
-    };
-  }
-  try {
-    const result = await createOrder({
-      productId: supplierProductId,
-      skuId: supplierVariantId,
-      quantity: task.quantity,
-      shippingAddress: {
-        name: a.fullName ?? "",
-        addressLine1: a.addressLine1 ?? "",
-        addressLine2: a.addressLine2,
-        city: a.city ?? "",
-        postalCode: a.postalCode ?? "",
-        countryCode,
-        phone: a.phone,
-      },
-    });
-
-    await store.updateTask(taskId, {
-      aliexpressOrderId: result.tradeOrderId,
-      status: result.paymentRequired ? "pending_payment" : "ordered",
-      ...(result.paymentRequired && result.paymentUrl ? { paymentUrl: result.paymentUrl } : {}),
-    });
-    await store.appendAudit({
-      at: new Date().toISOString(),
-      kind: "aliexpress-order-placed",
-      ref: taskId,
-      detail: JSON.stringify({
-        tradeOrderId: result.tradeOrderId,
-        paymentRequired: result.paymentRequired,
-        ...(task.overriddenSupplierProductId
-          ? {
-              overriddenSupplier: {
-                productId: supplierProductId,
-                skuId: supplierVariantId,
-                label: task.overriddenSupplierLabel,
-              },
-            }
-          : {}),
-      }),
-    });
-    revalidatePath("/admin");
-    return { ok: true, tradeOrderId: result.tradeOrderId, paymentUrl: result.paymentUrl };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
-  }
+  const result = await placeOrderForTask(getStore(), taskId);
+  if (result.ok) revalidatePath("/admin");
+  return result;
 }
 
 /**

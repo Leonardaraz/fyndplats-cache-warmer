@@ -73,21 +73,60 @@ export function decodeJwtUnsafe(token: string): Record<string, unknown> | null {
 }
 
 /**
- * Vecklar ut ett ev. inbäddat data-fält (sträng eller objekt) ur Wix-payload.
- * Wix lägger ofta själva händelsen i ett `data`-fält som JSON-sträng.
+ * Vecklar ut den riktiga Wix-event-envelopen ur ett ev. inbäddat `data`-fält.
+ *
+ * Wix v2 lägger själva händelsen i ett `data`-fält — och paketerar den ibland
+ * DUBBELT (en `data`-sträng inuti ännu en `data`-sträng). Den faktiska envelopen
+ * — med claims som `entityFqdn`/`slug`/`entityId`/`*Event` — ligger då ett ELLER
+ * TVÅ parse-hopp djupare. Tidigare packade vi upp `data` exakt EN gång; landade
+ * envelopen ett lager till in fick anroparen mellanlagret (utan `createdEvent`)
+ * → `normalizeOrderEvent` returnerade null → 422 på varje forwardad order.
+ * Vi packar nu upp tills vi når lagret med de kanoniska claims:en (max 5 hopp).
+ * Bakåtkompatibelt: ligger claims:en redan på toppnivå (legacy v1, testpayloads)
+ * returneras objektet orört. Speglar headless `unwrapDataLayers`.
  */
-function unwrapDataField(outer: Record<string, unknown>): Record<string, unknown> {
-  if (typeof outer.data === "string") {
-    try {
-      return JSON.parse(outer.data) as Record<string, unknown>;
-    } catch {
-      return outer;
+function unwrapDataLayers(payload: Record<string, unknown>): Record<string, unknown> {
+  let layer: unknown = payload;
+  // Batchade event kommer ibland som en array i roten — kika på första elementet.
+  if (Array.isArray(layer) && layer.length > 0) layer = layer[0];
+
+  for (let i = 0; i < 5; i++) {
+    if (!layer || typeof layer !== "object" || Array.isArray(layer)) break;
+    const obj = layer as Record<string, unknown>;
+    // Envelopen är nådd så fort vi ser ett kanoniskt claim direkt. OBS: `eventType`
+    // ensam räknas INTE — Wix sätter ofta en sammanfattande eventType på en yttre
+    // wrapper medan entityFqdn/slug/entityId/*Event ligger ett lager djupare.
+    if (
+      typeof obj.entityFqdn === "string" ||
+      typeof obj.slug === "string" ||
+      typeof obj.entityId === "string" ||
+      obj.createdEvent !== undefined ||
+      obj.updatedEvent !== undefined ||
+      obj.deletedEvent !== undefined ||
+      obj.actionEvent !== undefined
+    ) {
+      return obj;
     }
+    // Ren {data:"<json>"}-wrapper → parsa och gräv vidare.
+    if (typeof obj.data === "string") {
+      try {
+        layer = JSON.parse(obj.data);
+        if (Array.isArray(layer) && layer.length > 0) layer = layer[0];
+        continue;
+      } catch {
+        break;
+      }
+    }
+    // {data:{...}} som objekt → kliv in ett lager.
+    if (obj.data && typeof obj.data === "object" && !Array.isArray(obj.data)) {
+      layer = obj.data;
+      continue;
+    }
+    break;
   }
-  if (outer.data && typeof outer.data === "object") {
-    return outer.data as Record<string, unknown>;
-  }
-  return outer;
+  return layer && typeof layer === "object" && !Array.isArray(layer)
+    ? (layer as Record<string, unknown>)
+    : payload;
 }
 
 /**
@@ -132,5 +171,5 @@ export function parseWebhookBody(
     }
   }
 
-  return unwrapDataField(outer);
+  return unwrapDataLayers(outer);
 }

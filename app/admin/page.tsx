@@ -4,8 +4,11 @@ import { getStore } from "@/lib/store/factory";
 import type { TaskStatus } from "@/lib/orders/types";
 import { paymentFeeFromEnv, pricingConfigFromEnv } from "@/lib/config";
 import { summarizeProductProfit } from "@/lib/analytics/profit";
-import { placeAliExpressOrderAction, markTaskOrderedAction } from "./actions";
+import { markTaskOrderedAction } from "./actions";
 import { SupplierOverrideClient } from "./supplier-override-client";
+import { PlaceOrderButton } from "./place-order-button";
+import { EditAddressClient } from "./edit-address-client";
+import { TaskRecoveryClient } from "./task-recovery-client";
 
 export const dynamic = "force-dynamic";
 
@@ -34,11 +37,23 @@ export default async function AdminPage() {
     .map((m) => summarizeProductProfit(m, pricing.vatRatePercent, fee))
     .filter((p): p is NonNullable<typeof p> => p !== null)
     .sort((a, b) => b.minProfit - a.minProfit);
-  const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s).length;
-  const pending = tasks.filter((t) => t.status === "pending");
-  const pendingPayment = tasks.filter((t) => t.status === "pending_payment");
+  // F19: tasks flaggade för manuell granskning (annullering/återbetalning racade in, eller
+  // osäkert orderutfall) lyfts UT ur de normala listorna → de auto-skeppas inte (backstopp i
+  // poll-tracking) och visas i en egen varnings-sektion så de aldrig är osynliga.
+  const needsReview = tasks.filter(
+    (t) =>
+      (t.refundFlagged || t.cancelMidOrder || t.orderUncertain) &&
+      t.status !== "cancelled" &&
+      t.status !== "shipped",
+  );
+  const reviewIds = new Set(needsReview.map((t) => t.taskId));
+  // Statussiffrorna exkluderar review-tasks → en flaggad task räknas EN gång (i
+  // gransknings-sektionen + den egna räknaren), inte dubbelt i både statussiffran och sektionen.
+  const byStatus = (s: TaskStatus) => tasks.filter((t) => t.status === s && !reviewIds.has(t.taskId)).length;
+  const pending = tasks.filter((t) => t.status === "pending" && !reviewIds.has(t.taskId));
+  const pendingPayment = tasks.filter((t) => t.status === "pending_payment" && !reviewIds.has(t.taskId));
   const orderedWaitingTracking = tasks.filter(
-    (t) => t.status === "ordered" && t.aliexpressOrderId && !t.sku?.startsWith("shipped"),
+    (t) => t.status === "ordered" && t.aliexpressOrderId && !t.sku?.startsWith("shipped") && !reviewIds.has(t.taskId),
   );
 
   return (
@@ -65,11 +80,43 @@ export default async function AdminPage() {
         Väntar: <b>{byStatus("pending")}</b> · Väntar betalning: <b>{byStatus("pending_payment")}</b> · Beställda:{" "}
         <b>{byStatus("ordered")}</b> · Skickade: <b>{byStatus("shipped")}</b> · Avbrutna:{" "}
         <b>{byStatus("cancelled")}</b>
+        {needsReview.length > 0 ? (
+          <span style={{ color: "#b91c1c" }}> · ⚠️ Granskning: <b>{needsReview.length}</b></span>
+        ) : null}
       </p>
+
+      {needsReview.length > 0 ? (
+        <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "12px 14px", margin: "12px 0" }}>
+          <h3 style={{ fontSize: 16, marginTop: 0, color: "#b91c1c" }}>⚠️ Kräver manuell granskning ({needsReview.length})</h3>
+          <p style={{ fontSize: 13, color: "#7f1d1d", marginTop: 0 }}>
+            En annullering/återbetalning kom in kring orderläggningen, eller orderutfallet är osäkert.
+            Dessa <b>auto-skeppas inte</b>. Finns ett AE-order-id: <b>avbeställ manuellt på AliExpress</b> och
+            återbetala kunden. Annars kan tasken avbrytas.
+          </p>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {needsReview.map((t) => (
+              <li key={t.taskId} style={{ padding: "8px 0", borderTop: "1px solid #fecaca", fontSize: 13 }}>
+                <div>
+                  <b>#{t.orderNumber}</b> — {t.productName} ×{t.quantity} <span style={{ color: "#7f1d1d" }}>[{t.status}]</span>
+                </div>
+                <div style={{ color: "#7f1d1d" }}>
+                  {[
+                    t.refundFlagged ? "↩️ återbetalning registrerad" : null,
+                    t.cancelMidOrder ? "⏸️ annullering under orderläggning" : null,
+                    t.orderUncertain ? "❓ osäkert orderutfall" : null,
+                  ].filter(Boolean).join(" · ")}
+                  {t.aliexpressOrderId ? <> · AE-order: <code>{t.aliexpressOrderId}</code> (avbeställ manuellt)</> : null}
+                </div>
+                <TaskRecoveryClient taskId={t.taskId} hasAeOrder={Boolean(t.aliexpressOrderId)} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {pending.length > 0 ? (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {pending.map((t) => {
-            const placeAction = placeAliExpressOrderAction.bind(null, t.taskId);
             const a = t.shippingAddress;
             return (
               <li key={t.taskId} style={{ padding: "12px 0", borderBottom: "1px solid #eee" }}>
@@ -82,29 +129,19 @@ export default async function AdminPage() {
                     Variant: {Object.entries(t.variantChoices).map(([k, v]) => `${k}: ${v}`).join(", ")}
                   </div>
                 ) : null}
-                {a ? (
+                {a && a.addressLine1 && a.city && a.postalCode ? (
                   <div style={{ fontSize: 13, color: "#666" }}>
                     Skickas till: {a.fullName}, {a.addressLine1}
                     {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.country}
                   </div>
-                ) : null}
-                <form action={placeAction} style={{ marginTop: 6 }}>
-                  <button
-                    type="submit"
-                    style={{
-                      background: "#F47A35",
-                      color: "#fff",
-                      border: "none",
-                      padding: "6px 12px",
-                      borderRadius: 6,
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Lägg AliExpress-order
-                  </button>
-                </form>
+                ) : (
+                  <div style={{ fontSize: 13, color: "#b45309" }}>
+                    ⚠️ Ofullständig leveransadress
+                    {a ? `: ${[a.fullName, a.addressLine1, a.postalCode, a.city, a.country].filter(Boolean).join(", ")}` : ""} — komplettera med “Ändra adress” innan du lägger ordern.
+                  </div>
+                )}
+                <EditAddressClient taskId={t.taskId} address={t.shippingAddress} />
+                <PlaceOrderButton taskId={t.taskId} />
                 <SupplierOverrideClient
                   taskId={t.taskId}
                   variantChoices={t.variantChoices}

@@ -1,24 +1,18 @@
 // POST /api/aliexpress/order
-// Lägger en beställning på AliExpress via DS API för en väntande fulfillment-task.
-// Kallas från tilläggets order-kö (eller manuellt från admin).
+// Lägger AliExpress-ordern för en väntande fulfillment-task. Body: { taskId }.
 //
-// Body: {
-//   taskId: string;          — FyndplatsTasks-id
-//   productId: string;
-//   skuId: string;
-//   quantity: number;
-//   shippingAddress: { name, addressLine1, city, postalCode, countryCode, phone? }
-//   logisticsServiceName?: string;
-// }
+// SÄKERHET: ordern läggs ENBART via den DELADE placeOrderForTask (samma atomiska
+// dubbel-order-claim + guards som admin-vägen) och härleds från TASKEN — INTE från
+// klient-body. Tidigare tog routen productId/skuId/shippingAddress direkt och anropade
+// createOrder utan claim/guard → en oskyddad parallell betalväg. Den är nu stängd.
 //
-// Svar: { tradeOrderId, paymentRequired, paymentUrl? }
-// Om paymentRequired=true öppnar tillägget paymentUrl i en ny flik.
+// Svar: { tradeOrderId, paymentUrl? } vid 200. Fel mappas till 4xx (aldrig 5xx →
+// ingen retry-loop på ett permanent/osäkert utfall).
 
 import { type NextRequest, NextResponse } from "next/server";
-import { createOrder } from "@/lib/aliexpress/client";
 import { checkToken } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
-import type { DsOrderCreateParams } from "@/lib/aliexpress/types";
+import { placeOrderForTask } from "@/lib/orders/place-order";
 
 export const runtime = "nodejs";
 
@@ -26,38 +20,26 @@ export async function POST(req: NextRequest) {
   const authErr = checkToken(req);
   if (authErr) return authErr;
 
-  let body: DsOrderCreateParams & { taskId?: string };
+  let body: { taskId?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Ogiltig JSON" }, { status: 400 });
   }
-
-  if (!body.productId || !body.skuId || !body.quantity || !body.shippingAddress) {
-    return NextResponse.json({ error: "productId, skuId, quantity och shippingAddress krävs" }, { status: 400 });
+  if (!body.taskId) {
+    return NextResponse.json({ error: "taskId krävs" }, { status: 400 });
   }
 
-  try {
-    const result = await createOrder(body);
-
-    // Uppdatera task med AliExpress-ordernumret om taskId skickades med.
-    if (body.taskId) {
-      const store = getStore();
-      await store.updateTask(body.taskId, {
-        aliexpressOrderId: result.tradeOrderId,
-        status: result.paymentRequired ? "pending_payment" : "ordered",
-        ...(result.paymentRequired && result.paymentUrl ? { paymentUrl: result.paymentUrl } : {}),
-      });
-      await store.appendAudit({
-        at: new Date().toISOString(),
-        kind: "order_created",
-        ref: body.taskId,
-        detail: JSON.stringify({ tradeOrderId: result.tradeOrderId, paymentRequired: result.paymentRequired }),
-      });
-    }
-
-    return NextResponse.json(result);
-  } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+  const result = await placeOrderForTask(getStore(), body.taskId);
+  if (result.ok) {
+    return NextResponse.json({ tradeOrderId: result.tradeOrderId, paymentUrl: result.paymentUrl });
   }
+  // Alla fel → 4xx (klientfel/osäkert utfall, ingen retry): hittades inte → 404,
+  // redan lagd / hanteras redan → 409, annat (validering/osäkert) → 422.
+  const status = /hittades inte/i.test(result.error)
+    ? 404
+    : /redan lagd|hanteras redan/i.test(result.error)
+      ? 409
+      : 422;
+  return NextResponse.json({ error: result.error }, { status });
 }

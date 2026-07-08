@@ -3,7 +3,9 @@
 // https://dev.wix.com/docs/api-reference/business-solutions/stores/catalog-v3/products-v3/create-product
 import { isDryRun } from "../audit";
 
-const WIX_BASE = "https://www.wixapis.com";
+// Exporterad så read-only-moduler (t.ex. lib/wix/prune-customizations.ts) kan
+// återanvända bas-URL + auth-headers utan att duplicera dem.
+export const WIX_BASE = "https://www.wixapis.com";
 
 export interface WixVariantInput {
   sku: string;
@@ -70,7 +72,7 @@ export interface WixCreateProductResult {
   slugSuffix?: string;
 }
 
-function wixHeaders(): Record<string, string> {
+export function wixHeaders(): Record<string, string> {
   const token = process.env.WIX_API_TOKEN;
   const siteId = process.env.WIX_SITE_ID;
   if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");

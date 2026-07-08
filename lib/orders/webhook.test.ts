@@ -44,6 +44,23 @@ describe("parseWebhookBody", () => {
     expect(parseWebhookBody(token, publicPem)).toEqual(inner);
   });
 
+  it("unwraps a DOUBLY-wrapped data envelope down to the canonical envelope", () => {
+    // Wix v2 paketerar ibland envelopen som en data-sträng inuti ÄNNU en
+    // data-sträng. Den gamla en-hopps-avpackningen lämnade mellanlagret (utan
+    // createdEvent) → normalizeOrderEvent null → 422 på varje forwardad order.
+    // Lås multi-hoppet: vi måste nå envelopen med de kanoniska claims:en.
+    const envelope = {
+      id: "evt-dw",
+      entityFqdn: "wix.ecom.v1.order",
+      slug: "created",
+      entityId: "order-dw",
+      createdEvent: { entity: { id: "order-dw" } },
+    };
+    const doublyWrapped = { data: JSON.stringify({ data: JSON.stringify(envelope) }) };
+    const token = signJwt(doublyWrapped);
+    expect(parseWebhookBody(token, publicPem)).toEqual(envelope);
+  });
+
   it("returns null when signature is invalid and a key is configured", () => {
     const token = signJwt({ data: "{}" }).slice(0, -4) + "AAAA";
     expect(parseWebhookBody(token, publicPem)).toBeNull();

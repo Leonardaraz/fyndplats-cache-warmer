@@ -32,19 +32,27 @@ Sätt `AI_ENRICHMENT_ENABLED=false` i Vercel (production). Då:
   *"polera denna"* så skriver Claude SEO/beskrivning/FAQ/kategori gratis i chatten
   istället för via betald API-pipeline.
 
-### Variantöversättning: tabell → cache → Haiku (egen switch `VARIANT_AI_TRANSLATION_ENABLED`)
+### Variantöversättning: tabell → cache → Haiku → svenskhets-grind (egen switch `VARIANT_AI_TRANSLATION_ENABLED`)
 
 Variantvärden (t.ex. "Warm White", "100 inch") översätts till svenska FRÅN START
 vid import — viktigt, för i Wix V3 speglar `choice.name` den låsta `choice.key`:en,
-så värden kan inte döpas om i efterhand. Tre lager (`lib/import/variant-ai-translate.ts`):
+så värden kan inte döpas om i efterhand. Fyra lager (`lib/import/variant-ai-translate.ts`):
 
 1. **Statisk tabell** (`variant-translations.ts`, $0): golden-testad, auktoritativ.
 2. **AI-fallback** (Haiku, default PÅ): bara för värden tabellen missar, **ett**
    batchat anrop per produkt, **cachat per värde för alltid** (→ nära $0; samma
    råvärde översätts en gång, någonsin). Routas via `completeJsonRouted` → ärver
    daglig budgetcap + Gemini-fallback + `failOpen` (importen fälls aldrig).
+   Eko-asymmetri: rent-ord-ekon misstros (flaggas + självläker); halvöversättningar
+   som behåller engelska tokens flaggas.
 3. **Olösta värden** (AI av/fail/kvarvarande engelska) → produkten flaggas
    `needsAiPolish` och hamnar i poleringskön i stället för att nå kunden halv-engelsk.
+4. **Svenskhets-grinden** (slutsteg, AI-läget): de FAKTISKA skeppningsklara
+   värdena/axelnamnen språkverifieras av Haiku ("är detta naturlig svenska?") —
+   fångar kategoriskt det heuristiken missar (VERSAL-engelska som "STRIPED",
+   exotiska AE-former). Cachat verdikt per slutvärde (30 d TTL, ≈$0), fail-open
+   (transient fel cachas ALDRIG som "ok"), flaggade värden → samma poleringskö +
+   kö-badge som listar dem ordagrant.
 
 Switchen är **`VARIANT_AI_TRANSLATION_ENABLED`** (default `true`), FRIKOPPLAD från
 `AI_ENRICHMENT_ENABLED` — variantöversättningen kör alltså även i rå-läget (billig +

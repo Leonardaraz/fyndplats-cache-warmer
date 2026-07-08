@@ -46,6 +46,10 @@ export class MemoryStore implements Store {
     return status ? all.filter((t) => t.status === status) : all;
   }
 
+  async listTasksByOrderId(orderId: string): Promise<FulfillmentTask[]> {
+    return [...this.tasks.values()].filter((t) => t.orderId === orderId);
+  }
+
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
     const task = this.tasks.get(taskId);
     if (task) this.tasks.set(taskId, { ...task, status });
@@ -54,6 +58,34 @@ export class MemoryStore implements Store {
   async updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void> {
     const task = this.tasks.get(taskId);
     if (task) this.tasks.set(taskId, { ...task, ...patch });
+  }
+
+  // CAS-lås: synkron get+set är atomiskt inom EN process (ingen await emellan), så
+  // detta speglar wix-data-semantiken (ej beställd OCH ej claimad → vinn). I prod är
+  // det wix-data:s conditional PATCH som ger atomiciteten mellan processer/instanser.
+  async claimTask(taskId: string, token: string): Promise<boolean> {
+    const task = this.tasks.get(taskId);
+    if (!task || task.aliexpressOrderId || task.claimToken) return false;
+    this.tasks.set(taskId, { ...task, claimToken: token });
+    return true;
+  }
+
+  async releaseTask(taskId: string, token: string): Promise<void> {
+    const task = this.tasks.get(taskId);
+    if (task && task.claimToken === token) {
+      const { claimToken: _drop, ...rest } = task;
+      this.tasks.set(taskId, rest);
+    }
+  }
+
+  // CAS: avbryt bara om varken claimad eller beställd (samma villkor som claimTask).
+  // Synkron get+set → atomiskt i en process; speglar wix-data:s conditional PATCH.
+  async cancelTaskIfFree(taskId: string): Promise<"applied" | "blocked" | "not-found"> {
+    const task = this.tasks.get(taskId);
+    if (!task) return "not-found";
+    if (task.aliexpressOrderId || task.claimToken) return "blocked";
+    this.tasks.set(taskId, { ...task, status: "cancelled" });
+    return "applied";
   }
 
   async appendAudit(entry: AuditEntry): Promise<void> {

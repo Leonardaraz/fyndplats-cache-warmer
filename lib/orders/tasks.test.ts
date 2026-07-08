@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { deriveTasks, normalizeOrderEvent, normalizeCountryCode } from "./tasks";
+import {
+  classifyWixEvent,
+  deriveTasks,
+  extractCancelOrderId,
+  normalizeOrderEvent,
+  normalizeCountryCode,
+} from "./tasks";
+import { parseWebhookBody } from "./webhook";
 
 describe("normalizeCountryCode", () => {
   it("accepterar och versaliserar giltig ISO alpha-2", () => {
@@ -66,6 +73,106 @@ describe("normalizeOrderEvent", () => {
   });
 });
 
+// Order Created kommer som `createdEvent.entity` (inte actionEvent) och
+// forwardas dubbel-inkapslad (data-i-data). Detta var formen som gav 422 i prod
+// → noll fulfillment-tasks. Låser hela kedjan: parse → normalize → tasks.
+const createdEnvelope = {
+  id: "evt-created-1",
+  entityFqdn: "wix.ecom.v1.order",
+  slug: "created",
+  entityId: "order-created",
+  createdEvent: {
+    entity: {
+      id: "order-created",
+      number: "10133",
+      lineItems: [
+        {
+          id: "l1",
+          productName: { original: "Widget" },
+          quantity: 1,
+          physicalProperties: { sku: "AE-9" },
+          catalogReference: { catalogItemId: "wp-9" },
+        },
+      ],
+      recipientInfo: {
+        address: { addressLine1: "Vägen 2", city: "Göteborg", postalCode: "41100", country: "SE" },
+        contact: { firstName: "Erik", lastName: "Ek" },
+      },
+    },
+  },
+};
+
+describe("normalizeOrderEvent — Order Created + forwarded double-wrap (422-regression)", () => {
+  it("extracts the order from createdEvent.entity", () => {
+    const ev = normalizeOrderEvent(createdEnvelope);
+    expect(ev?.eventId).toBe("evt-created-1");
+    expect(ev?.orderId).toBe("order-created");
+    expect(ev?.order.lineItems).toHaveLength(1);
+  });
+
+  it("survives a doubly-wrapped forwarded body end-to-end (parse → normalize → tasks)", () => {
+    // Exakt prod-formen: forwardad created-order, data-i-data-inkapslad.
+    const doublyWrapped = JSON.stringify({
+      data: JSON.stringify({ data: JSON.stringify(createdEnvelope) }),
+    });
+    const parsed = parseWebhookBody(doublyWrapped, undefined, { trustedForwarded: true });
+    expect(parsed).not.toBeNull();
+    const ev = normalizeOrderEvent(parsed!);
+    expect(ev?.orderId).toBe("order-created");
+    const tasks = deriveTasks(ev!);
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].taskId).toBe("order-created:l1");
+    expect(tasks[0].sku).toBe("AE-9");
+  });
+});
+
+// F19: refund fyrar som order_transactions.refund_completed (updatedEvent.currentEntity =
+// {orderId, refund}), cancel som order.canceled (actionEvent.body.order). entityId för
+// refund är TRANSAKTIONENS id — INTE orderns. Wix fyrar ALDRIG order.refunded.
+const refundEvent = {
+  id: "evt-refund-1",
+  entityFqdn: "wix.ecom.v1.order_transactions",
+  slug: "refund_completed",
+  entityId: "txn-xyz", // transaktions-id, inte order-id
+  updatedEvent: {
+    currentEntity: { orderId: "order-abc", refund: { id: "r1", summary: { refunded: { amount: "100", currency: "SEK" } } } },
+  },
+};
+const cancelEvent = {
+  id: "evt-cancel-1",
+  entityFqdn: "wix.ecom.v1.order",
+  slug: "canceled",
+  entityId: "order-abc",
+  actionEvent: { body: { order: { id: "order-abc", number: "10002" } } },
+};
+
+describe("classifyWixEvent (F19 cancel/refund-gate)", () => {
+  it("klassar refund_completed (under order_transactions) som refund", () => {
+    expect(classifyWixEvent(refundEvent)).toBe("refund");
+  });
+  it("klassar order.canceled (ETT l) som cancel", () => {
+    expect(classifyWixEvent(cancelEvent)).toBe("cancel");
+  });
+  it("created/approved/paid/fulfilled → other (går create-vägen)", () => {
+    expect(classifyWixEvent(webhook)).toBe("other"); // slug approved
+    expect(classifyWixEvent(createdEnvelope)).toBe("other"); // slug created
+    expect(classifyWixEvent({ entityFqdn: "wix.ecom.v1.order", slug: "fulfilled" })).toBe("other");
+    expect(classifyWixEvent({ entityFqdn: "wix.ecom.v1.order", slug: "paid" })).toBe("other");
+  });
+});
+
+describe("extractCancelOrderId (F19)", () => {
+  it("refund → order-id ur currentEntity.orderId, INTE entityId (transaktions-id)", () => {
+    expect(extractCancelOrderId(refundEvent)).toBe("order-abc");
+  });
+  it("cancel → order-id ur actionEvent.body.order.id", () => {
+    expect(extractCancelOrderId(cancelEvent)).toBe("order-abc");
+  });
+  it("tomt när inget order-id kan härledas", () => {
+    expect(extractCancelOrderId({ id: "x", entityFqdn: "wix.ecom.v1.order_transactions", slug: "refund_completed" })).toBe("");
+  });
+});
+
 describe("deriveTasks", () => {
   it("creates one task per line item (multi-supplier order)", () => {
     const ev = normalizeOrderEvent(webhook)!;
@@ -90,5 +197,95 @@ describe("deriveTasks", () => {
       country: "SE",
       phone: "+46700000000",
     });
+  });
+});
+
+// REGRESSION (order #10012): riktiga Fyndplats-ordrar lägger gatan i
+// `shippingInfo.logistics.shippingDestination.address.addressLine` (singular, INTE
+// addressLine1) och namnet i `contactDetails` (INTE contact), ofta med padding-
+// blanksteg. Den gamla extraktorn läste addressLine1/contact → tappade gata + namn
+// → tomt gatufält → F50-adressspärren blockerade AliExpress-ordern (tyst).
+const realOrderEnvelope = {
+  id: "evt-10012",
+  entityFqdn: "wix.ecom.v1.order",
+  slug: "approved",
+  entityId: "order-10012",
+  createdEvent: {
+    entity: {
+      id: "order-10012",
+      number: "10012",
+      lineItems: [
+        {
+          id: "l1",
+          productName: { original: "Hundvagn" },
+          quantity: 1,
+          physicalProperties: { sku: "FP-hundvagn-liten-hund-bla" },
+          // Riktig shape: options bär bara variantId, färgen ligger i descriptionLines.
+          catalogReference: { catalogItemId: "wp-1", options: { variantId: "4930dcb9" } },
+          descriptionLines: [{ name: { original: "Färg" }, color: "Blå", lineType: "COLOR" }],
+        },
+      ],
+      shippingInfo: {
+        logistics: {
+          shippingDestination: {
+            address: {
+              country: "SE",
+              subdivision: "SE-AB",
+              city: "Åkersberga ",
+              postalCode: "184 36 ",
+              addressLine: "Norrgårdsvägen 49 ",
+            },
+            contactDetails: { firstName: "Ann-Sofie ", lastName: "Sjöström ", phone: "0704806968" },
+          },
+        },
+      },
+    },
+  },
+};
+
+describe("extractAddress — riktig order-shape (addressLine/contactDetails, #10012-regression)", () => {
+  it("läser gata från addressLine, namn från contactDetails och trimmar padding", () => {
+    const ev = normalizeOrderEvent(realOrderEnvelope)!;
+    const tasks = deriveTasks(ev);
+    expect(tasks[0].shippingAddress).toEqual({
+      fullName: "Ann-Sofie Sjöström",
+      addressLine1: "Norrgårdsvägen 49",
+      addressLine2: undefined,
+      city: "Åkersberga",
+      postalCode: "184 36",
+      country: "SE",
+      phone: "0704806968",
+    });
+  });
+
+  it("läser variantval (färg) från descriptionLines när options bara har variantId", () => {
+    const ev = normalizeOrderEvent(realOrderEnvelope)!;
+    const tasks = deriveTasks(ev);
+    // Utan denna extraktion blir variantChoices {} → placeOrderForTask kan inte
+    // matcha rätt AliExpress-SKU (Svart vs Blå) → ordern blockeras (silent).
+    expect(tasks[0].variantChoices).toEqual({ Färg: "Blå" });
+  });
+
+  it("läser gata från strukturerad streetAddress {name, number} som fallback", () => {
+    const env = {
+      ...realOrderEnvelope,
+      createdEvent: {
+        entity: {
+          ...realOrderEnvelope.createdEvent.entity,
+          shippingInfo: {
+            logistics: {
+              shippingDestination: {
+                address: { country: "SE", city: "Malmö", postalCode: "21100", streetAddress: { name: "Storgatan", number: "5" } },
+                contactDetails: { firstName: "Kim", lastName: "Berg" },
+              },
+            },
+          },
+        },
+      },
+    };
+    const ev = normalizeOrderEvent(env)!;
+    const tasks = deriveTasks(ev);
+    expect(tasks[0].shippingAddress?.addressLine1).toBe("Storgatan 5");
+    expect(tasks[0].shippingAddress?.fullName).toBe("Kim Berg");
   });
 });

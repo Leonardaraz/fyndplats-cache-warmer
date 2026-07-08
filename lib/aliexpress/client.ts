@@ -434,10 +434,36 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
 interface RawOrderCreate {
     result?: {
           order_id?: string | number;
+          // Batch-svarsvarianten lägger order-id:t i order_list.number[] (eller en
+          // ren array). Vi läser båda formerna i createOrder.
+          order_list?: { number?: Array<string | number> } | Array<string | number>;
+          // DS-svaret bär affärsstatusen INNE i result (inte som top-level `code`),
+          // så callApi:s generiska code-koll ser den inte → vi läser den här.
+          is_success?: boolean;
+          error_code?: string | number;
+          error_msg?: string;
           payment_required?: boolean;
           pay_url?: string;
     };
     is_success?: boolean;
+}
+
+// Länder som AliExpress kräver delstat/region för vid leverans. Vår adressmodell
+// saknar `province` → vägra dessa hårt (flödet är SE/EU). Utöka modellen innan de stöds.
+const PROVINCE_REQUIRED_COUNTRIES = new Set([
+  "US", "CA", "AU", "BR", "CN", "IN", "MX", "ID", "RU", "AR", "JP", "MY", "TH",
+]);
+
+/**
+ * Valideringsfel vid orderläggning (landskod/adress/kvantitet). Egen typ så att
+ * HTTP-anropare kan mappa till 4xx (klientfel, ingen retry) i stället för 500
+ * (som order-kö:n annars retry:ar i evighet på ett permanent fel).
+ */
+export class OrderValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "OrderValidationError";
+  }
 }
 
 export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderCreateResult> {
@@ -446,31 +472,139 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
     // defaultade anroparen till "SE" när landet saknades → tyst fel destination.
     const country = (addr.countryCode ?? "").trim().toUpperCase();
     if (!/^[A-Z]{2}$/.test(country)) {
-      throw new Error(
+      throw new OrderValidationError(
         `Ogiltig landskod "${addr.countryCode ?? ""}" — order avbruten (kräver ISO alpha-2, t.ex. SE/DE).`,
       );
     }
+    // Adressmodellen saknar `province`/delstat. Länder som AliExpress kräver delstat
+    // för (US/CA/AU/BR…) skulle annars få en order UTAN delstat → leveransfel. Vägra
+    // dem hårt (inte bara en kommentar) tills modellen har province. Flödet är SE/EU.
+    if (PROVINCE_REQUIRED_COUNTRIES.has(country)) {
+      throw new OrderValidationError(
+        `Land ${country} kräver delstat/region som vår adressmodell ännu inte stöder — order avbruten (hantera manuellt).`,
+      );
+    }
+    // Leverans-kritiska adressfält måste finnas (annars betald oleverabar order).
+    // OBS: guarden täcker EU/SE-flödet; för länder som kräver delstat (US/CA/BR)
+    // saknar modellen `province` → utöka adressmodellen innan icke-EU stöds.
+    // `contact_person` är kontaktuppgift, inte leverans-kritiskt → defaultas så att
+    // en gäst-order utan namn inte blockeras (leverans styrs av adressen).
+    const line1 = (addr.addressLine1 ?? "").trim();
+    const city = (addr.city ?? "").trim();
+    const zip = (addr.postalCode ?? "").trim();
+    const addrMissing = ([
+      ["addressLine1", line1],
+      ["city", city],
+      ["postalCode", zip],
+    ] as const).filter(([, v]) => !v).map(([k]) => k);
+    if (addrMissing.length) {
+      throw new OrderValidationError(
+        `Ofullständig leveransadress (saknar: ${addrMissing.join(", ")}) — order avbruten.`,
+      );
+    }
+    // Vägra ogiltig kvantitet hellre än att tyst beställa 0 eller 1.
+    if (!Number.isInteger(params.quantity) || params.quantity < 1) {
+      throw new OrderValidationError(`Ogiltig kvantitet (${params.quantity}) — order avbruten.`);
+    }
+    const line2 = (addr.addressLine2 ?? "").trim();
+    const contactPerson = (addr.name ?? "").trim() || "Mottagare";
+    const phone = (addr.phone ?? "").trim();
+
+    // aliexpress.ds.order.create tar ALLA orderfält i ETT enda JSON-inkapslat
+    // affärsparameter med `logistics_address` + `product_items`. VIKTIGT om namnet:
+    // AliExpress snake_case:ar Java-fältet `paramPlaceOrderRequest4OpenApiDTO` genom
+    // att sätta "_" före VARJE versal → wire-namnet blir
+    // `param_place_order_request4_open_api_d_t_o` (D, T, O var för sig), INTE
+    // `...api_dto` som docs skriver för läsbarhet. Skickade vi `...api_dto` svarade
+    // AliExpress "MissingParameter: param_place_order_request4_open_api_d_t_o" och
+    // ingen order lades. Byggs som ren funktion (buildPlaceOrderDto) så DTO-formen
+    // kan låsas i test.
+    const dto = buildPlaceOrderDto({
+      productId: params.productId,
+      quantity: params.quantity,
+      skuId: params.skuId,
+      logisticsServiceName: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
+      address: line1 + (line2 ? ` ${line2}` : ""),
+      city,
+      country,
+      zip,
+      contactPerson,
+      phone,
+      buyerMessage: params.buyerMessage,
+    });
     const bizParams: Record<string, string> = {
-          product_id: params.productId,
-          product_count: String(params.quantity),
-          sku_id: params.skuId,
-          logistics_service_name: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
-          address: addr.addressLine1 + (addr.addressLine2 ? ` ${addr.addressLine2}` : ""),
-          city: addr.city,
-          country,
-          zip: addr.postalCode,
-          contact_person: addr.name,
-          ...(addr.phone ? { mobile_no: addr.phone } : {}),
-          ...(params.buyerMessage ? { buyer_message: params.buyerMessage } : {}),
+      param_place_order_request4_open_api_d_t_o: JSON.stringify(dto),
     };
 
   const raw = await callApi<RawOrderCreate>("aliexpress.ds.order.create", bizParams);
     const result = raw.result ?? {};
 
+    // AFFÄRSSTATUS-GRIND: DS-svaret bär `is_success` INNE i result, så callApi:s
+    // generiska top-level-code-koll fångar den inte. Litar vi enbart på ett order-id
+    // riskerar vi en falsk "lagd" om AliExpress skulle eka ett id på ett misslyckat
+    // svar → tasken markeras `ordered`, re-order hoppas, kunden får aldrig varan.
+    // Är is_success uttryckligen false → behandla som INGET id → FC-vägen
+    // (markUncertain) flaggar för manuell verifiering i stället.
+    const isSuccess = result.is_success ?? raw.is_success;
+    // Order-id kan komma som `order_id` (singel) eller `order_list.number[]`
+    // (batch-shape) beroende på AliExpress-svarsvariant. Läs båda.
+    const ol = result.order_list;
+    const orderIdRaw =
+      isSuccess === false
+        ? undefined
+        : (result.order_id ?? (Array.isArray(ol) ? ol[0] : ol?.number?.[0]));
+
   return {
-        tradeOrderId: String(result.order_id ?? ""),
+        tradeOrderId: orderIdRaw != null ? String(orderIdRaw) : "",
         paymentRequired: result.payment_required ?? true,
         paymentUrl: result.pay_url,
+  };
+}
+
+/**
+ * Bygger DTO:t för aliexpress.ds.order.create. Ren funktion → enhetstestbar
+ * (låser fältnamnen som AliExpress kräver: sku_attr = leverantörens SKU-attr-
+ * sträng, product_id/product_count per rad, logistics_address för leverans).
+ * `province`/`phone_country` skickas tomma (SE/EU-flödet; delstatskrävande
+ * länder blockeras redan ovan) så fälten finns men inte gissas.
+ */
+export function buildPlaceOrderDto(p: {
+  productId: string;
+  quantity: number;
+  skuId: string;
+  logisticsServiceName: string;
+  address: string;
+  city: string;
+  country: string;
+  zip: string;
+  contactPerson: string;
+  phone: string;
+  buyerMessage?: string;
+}): {
+  logistics_address: Record<string, string>;
+  product_items: Array<Record<string, string | number>>;
+} {
+  return {
+    logistics_address: {
+      address: p.address,
+      city: p.city,
+      province: "",
+      zip: p.zip,
+      country: p.country,
+      contact_person: p.contactPerson,
+      full_name: p.contactPerson,
+      ...(p.phone ? { mobile_no: p.phone } : {}),
+      phone_country: "",
+    },
+    product_items: [
+      {
+        product_id: p.productId,
+        product_count: p.quantity,
+        sku_attr: p.skuId,
+        logistics_service_name: p.logisticsServiceName,
+        ...(p.buyerMessage ? { order_memo: p.buyerMessage } : {}),
+      },
+    ],
   };
 }
 

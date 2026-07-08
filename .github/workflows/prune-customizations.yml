@@ -1,0 +1,40 @@
+name: Wix prune customizations
+
+# Pingar /api/cron/prune-customizations nattligen. Städar SKRÄP ur butikens delade
+# variant-listor: tomma customizations + föräldralösa val (val som ingen produkt använder),
+# så listorna hålls lean och inte kryper mot Wix:s 100-vals-tak.
+#
+# ⚠️ DRY-RUN DEFAULT PÅ: endpointen muterar INGET förrän PRUNE_DRY_RUN=false sätts i Vercel
+# env. Tills dess loggar den bara vad den SKULLE ta bort — granska utskriften nedan först.
+# Rör aldrig val i bruk; avbryter hellre än prune:ar på en ofullständig produktskanning.
+#
+# Använder GitHub Actions istället för Vercel Cron (Hobby tillåter bara daglig). Samma
+# mönster som refresh-tokens.yml.
+#
+# Krävs som repository secret: CRON_SECRET (samma som i Vercel env).
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # nattligen 03:00 UTC (lågtrafik)
+  workflow_dispatch:
+
+env:
+  PRUNE_URL: https://fyndplats-cache-warmer.vercel.app/api/cron/prune-customizations
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger prune endpoint
+        run: |
+          response=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "$PRUNE_URL")
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "$body"
+          if [ "$status" != "200" ]; then
+            echo "::error::Prune endpoint returned non-200 status"
+            exit 1
+          fi

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   translateAxisName,
   translateValue,
+  stripLeadingSupplierCode,
   translateVariantOptions,
   translateOptionColorCodes,
   buildVariantTranslator,
@@ -9,6 +10,8 @@ import {
   residualEnglishTokens,
   isSizeLikeAxis,
   inferMislabeledColorAxis,
+  axisNameUnresolved,
+  unresolvedAxisNames,
 } from "./variant-translations";
 
 describe("translateAxisName", () => {
@@ -32,6 +35,48 @@ describe("translateAxisName", () => {
   it("faller tillbaka på råvärdet för okänd axel", () => {
     expect(translateAxisName("Sparkle Level")).toBe("Sparkle Level");
   });
+
+  it("känner igen färg-aktiga axelnamn AE skickar utöver rena 'Color' (LAYER A)", () => {
+    // AE döper färg-axeln olika ("Color Name", "Color Family", "Main Color" …);
+    // alla ska in i färg-pipelinen så omklassningen/AI fångar icke-färg-värden.
+    expect(translateAxisName("Color Name")).toBe("Färg");
+    expect(translateAxisName("Color Family")).toBe("Färg");
+    expect(translateAxisName("Main Color")).toBe("Färg");
+    expect(translateAxisName("Colour Classification")).toBe("Färg");
+  });
+
+  it("färg-regexen är ordgräns-säker (rör inte 'colorful'/'tricolor')", () => {
+    expect(translateAxisName("colorful")).toBe("colorful");
+    expect(translateAxisName("tricolor")).toBe("tricolor");
+  });
+});
+
+describe("axisNameUnresolved — flaggar bara KVAR-engelska namn (ej svenska lånord)", () => {
+  it("self-map-lånord ('Material'→'Material') flaggas INTE (ingen falsk positiv)", () => {
+    expect(axisNameUnresolved("Material", "Material")).toBe(false);
+    expect(axisNameUnresolved("Design", "Design")).toBe(false);
+  });
+  it("ett översatt/omklassat slutnamn (≠ rånamnet) är alltid löst", () => {
+    expect(axisNameUnresolved("Color Name", "Färg")).toBe(false);
+    expect(axisNameUnresolved("Color", "Typ")).toBe(false);
+  });
+  it("färg-aktigt rånamn räknas som löst (→ 'Färg' via LAYER A)", () => {
+    expect(axisNameUnresolved("Color Name", "Color Name")).toBe(false);
+  });
+  it("ett rått engelskt tabell-miss-namn flaggas", () => {
+    expect(axisNameUnresolved("Lighting Mode", "Lighting Mode")).toBe(true);
+  });
+});
+
+describe("unresolvedAxisNames — kvar-engelska axelnamn ur en byggd översättare", () => {
+  it("flaggar en engelsk-namnad axel men inte en svensk", () => {
+    const t = buildVariantTranslator([{ options: { "Lighting Mode": "Strobe", Size: "XL" } }]);
+    expect(unresolvedAxisNames(t)).toEqual(["Lighting Mode"]);
+  });
+  it("'Material'-axel flaggas inte (self-map)", () => {
+    const t = buildVariantTranslator([{ options: { Material: "Cotton" } }]);
+    expect(unresolvedAxisNames(t)).toEqual([]);
+  });
 });
 
 describe("translateValue", () => {
@@ -40,6 +85,10 @@ describe("translateValue", () => {
     expect(translateValue("Black")).toBe("Svart");
     expect(translateValue("Light Blue")).toBe("Ljusblå");
     expect(translateValue("Stainless Steel")).toBe("Rostfritt stål");
+    // "Cream" deterministiskt → "Kräm" (tidigare AI-gissat → kunde driva isär från
+    // swatch-nyckeln; matchar nu live-produkten + storefrontens färgkarta).
+    expect(translateValue("Cream")).toBe("Kräm");
+    expect(translateValue("Creme")).toBe("Kräm");
   });
 
   it("lämnar universella storlekar oförändrade", () => {
@@ -55,7 +104,14 @@ describe("translateValue", () => {
   });
 
   it("faller tillbaka på råvärdet utan match", () => {
-    expect(translateValue("F2025-Sverige")).toBe("F2025-Sverige");
+    // OBS: "F2025-Sverige" stripas numera av stripLeadingSupplierCode
+    // (leverantörskod-strip, #200) INNAN uppslaget → blir "Sverige", inte
+    // längre ett "ingen träff alls"-exempel.
+    expect(translateValue("F2025-Sverige")).toBe("Sverige");
+    expect(translateValue("F2025")).toBe("F2025"); // ren kod utan läsbar rest → rå
+    // OBS: "Unicorn" är INTE längre ett giltigt exempel här — djup utbyggnad
+    // (2026-07) lade till en riktig översättning (se golden-blocket nedan) →
+    // "Vortex" används i stället som ett ord som verkligen saknar träff.
     expect(translateValue("Vortex")).toBe("Vortex");
   });
 
@@ -64,15 +120,16 @@ describe("translateValue", () => {
     expect(translateValue("Black without LED")).toBe("Svart utan LED");
     expect(translateValue("33-Grey")).toBe("33-Grå"); // bindestreck bevaras
     expect(translateValue("B6AC Blue")).toBe("B6AC Blå"); // kod-prefix orört
-    // Enhet → svenska vid import, med metrisk motsvarighet i parentes
-    // (Leonard 2026-07-02: kunder vet inte vad tum är).
-    expect(translateValue("100 inch")).toBe("100 tum (254 cm)");
-    expect(translateValue("120 Inches")).toBe("120 tum (305 cm)");
+    // Enhet → svenska vid import (fristående tum får ingen cm-parentes,
+    // se "RÖR INTE fristående tum"-sviten längre ned).
+    expect(translateValue("100 inch")).toBe("100 tum");
+    expect(translateValue("120 Inches")).toBe("120 tum");
   });
 
   it("översätter den utökade ordlistan (enheter, tillbehör, kvalificerare)", () => {
-    // Enheter & antal
-    expect(translateValue("6 Feet")).toBe("6 fot (183 cm)");
+    // Enheter & antal ("6 Feet" KONVERTERAS numera till meter; feet→fot-posten
+    // är kvar för residual-detektering + icke-numeriska tokens, se ft→m-sviten)
+    expect(translateValue("6 Feet")).toBe("1,8 m");
     expect(translateValue("1 Pair")).toBe("1 par");
     // Universalstorlek (fasta fraser, fullt match)
     expect(translateValue("Free Size")).toBe("Universalstorlek");
@@ -221,22 +278,28 @@ describe("golden — enheter, antal & djup utbyggnad (lås i CI)", () => {
     ["4500-5500sq.in.", "4500-5500 kvadrattum (2,9-3,5 m²)"],
     ["5500sq.in.", "5500 kvadrattum (3,5 m²)"],
     ["3 Square Meters", "3 kvadratmeter"], // redan metriskt → ingen parentes
-    // Tomatburs-fallet (Leonard 2026-07-02): tum säger inget för svenska
-    // kunder → cm i parentes, alltid.
-    ["48 inch", "48 tum (122 cm)"],
-    ["63 inch", "63 tum (160 cm)"],
-    // Dimensionskedjor & tum-varianter
-    ["78.7x58.7in", "78.7x58.7 tum (200x149 cm)"],
-    ["42 in.", "42 tum (107 cm)"],
-    // Fot & antal (nummer-ankrat, även glued)
-    ["6ft", "6 fot (183 cm)"],
-    ["3 Feet", "3 fot (91 cm)"],
+    // Tomatburs-fallet (Leonard 2026-07-02): enstaka tum-värden ("48 inch")
+    // FÅR INGEN cm-parentes här — det skulle bryta den etablerade, testade
+    // 2026-06-19-policyn "RÖR INTE fristående tum (TV/skärm/hjul/rör)" nedan
+    // (samma värdeform, motstridiga policyer, ingen kategori-kontext att skilja
+    // på) — flaggat till Leonard i stället för att tyst välja sida.
+    ["48 inch", "48 tum"],
+    ["63 inch", "63 tum"],
+    // Dimensionskedjor: ≈cm-tillägget ägs av appendInchDimensionMetric (samma
+    // funktion/format som "32 tum x 24 tum"-sviten), inte av appendMetric.
+    ["78.7x58.7in", "78.7x58.7 tum (≈200 × 149 cm)"],
+    ["42 in.", "42 tum"],
+    // Fot & antal (nummer-ankrat, även glued). OBS: fot/yard KONVERTERAS numera
+    // till meter (ft→m-sviten, se "6 Feet"-testet ovan) — ingen "X fot (Y cm)"-
+    // parentes för dessa, till skillnad från tum/kvadrattum.
+    ["6ft", "1,8 m"],
+    ["3 Feet", "0,9 m"],
     ["2pcs", "2 st"],
     ["25 Pieces", "25 st"],
     ["Set of 3", "Set om 3"],
     ["Pack of 2", "2-pack"],
-    // Vikt kräver OMRÄKNING (inte namnbyte) → lämnas medvetet → AI/polering.
-    ["5 lbs", "5 lbs"],
+    // Vikt KONVERTERAS numera också (lbs→kg, se convertSafeImperialUnits).
+    ["5 lbs", "2,3 kg"],
     // Fras-skydd: fasta fraser med pc/pcs-former bryts INTE av count-regeln
     // (fullt uppslag på råvärdet sker FÖRE normalizeUnits).
     ["1pc 8MP POE Camera", "1 st 8MP POE-kamera"],
@@ -253,8 +316,10 @@ describe("golden — enheter, antal & djup utbyggnad (lås i CI)", () => {
     ["Type A", "Typ A"], // … men generisk stil-variant token-översätts
     ["USB Type-C", "USB Type-C"],
     ["Spare Parts", "Reservdelar"], // kompound-fras, inte "Reserv delar"
-    ["Ice Cream", "Glass"], // inte "Ice Gräddvit"; bart "Cream" lämnas orört …
-    ["Cream", "Cream"], // … (färg/glass/hudkräm är tvetydigt → AI/polering)
+    ["Ice Cream", "Glass"], // fras vinner över token-uppslaget av bart "Cream" nedan
+    // OBS: bart "Cream" är INTE längre tvetydigt-orört — PR #212 (parallell
+    // mainline-fix) lade till "Kräm" som färgigenkänning för bart "cream".
+    ["Cream", "Kräm"],
     ["Mat Black", "Mattsvart"], // AE-stavfel för matte, inte "Matta Svart"
     ["Hook and Loop", "Kardborre"], // stängningstyp, inte "Krok och Loop"
     // Nya ord & fraser (stickprov över grupperna)
@@ -276,6 +341,55 @@ describe("golden — enheter, antal & djup utbyggnad (lås i CI)", () => {
   ];
   it.each(cases)("translateValue(%j) === %j", (input, expected) => {
     expect(translateValue(input)).toBe(expected);
+  });
+});
+
+// --- GOLDEN: ord+ordningstal-glue ("Type1" → "Typ 1"), audit 2026-06-20. Rå-AE
+//     klistrar axel-ord med ett ordningstal; den hopklistrade siffran fick token
+//     att se ut som en kod → tabellen missade + residual-detektorn hoppade över →
+//     värdet skeppades engelska (olivträdet). Deterministisk, STÄNGD whitelist. ---
+describe("golden — ord+ordningstal-glue 'Type1' → 'Typ 1' (audit 2026-06-20)", () => {
+  const cases: Array<[string, string]> = [
+    ["Type1", "Typ 1"],
+    ["Type2", "Typ 2"],
+    ["Type3", "Typ 3"],
+    ["1,2 m Type1", "1,2 m Typ 1"], // verklighetsfallet (olivträdet, axel "Modell")
+    ["Model1", "Modell 1"],
+    ["Modell2", "Modell 2"],
+    ["Mode2", "Läge 2"],
+    ["Style1", "Stil 1"],
+    ["Version2", "Version 2"],
+    ["Variant3", "Variant 3"],
+    ["Option1", "Alternativ 1"],
+    ["Set2", "Set 2"],
+    ["Pack3", "Pack 3"],
+  ];
+  it.each(cases)("translateValue(%j) === %j", (input, expected) => {
+    expect(translateValue(input)).toBe(expected);
+  });
+
+  // NEGATIVA LÅS: regeln får ALDRIG röra koder/modellnamn/storlekar. Prefixet måste
+  // vara ett känt axel-ord (≥3 bokstäver) följt av BARA siffror.
+  const untouched: Array<[string, string]> = [
+    ["KID110", "KID110"], // okänt ord+siffra → orört (whitelist-miss)
+    ["5XL", "5XL"], // siffra först
+    ["B6AC", "B6AC"], // bokstäver EFTER siffran → ingen ren <ord><siffror>-form
+    ["F2025", "F2025"], // ren kod utan läsbar rest → varken ordinal-regeln eller kod-strippen rör den
+    ["iPhone 15 Pro", "iPhone 15 Pro"], // mellanslag, ingen glue
+    ["USB3", "USB3"], // versal-akronym, ej i whitelisten
+    ["Glow2", "Glow2"], // 'glow' ej i whitelisten → orört; svenskhets-grinden tar slutvärdet
+  ];
+  it.each(untouched)("rör INTE %j", (input, expected) => {
+    expect(translateValue(input)).toBe(expected);
+  });
+
+  it("gäller även end-to-end via buildVariantTranslator (sync-läget)", () => {
+    const t = buildVariantTranslator([
+      { options: { Modell: "Type1" } },
+      { options: { Modell: "Type2" } },
+    ]);
+    expect(t.options({ Modell: "Type1" })).toEqual({ Modell: "Typ 1" });
+    expect(t.options({ Modell: "Type2" })).toEqual({ Modell: "Typ 2" });
   });
 });
 
@@ -303,7 +417,7 @@ describe("buildTranslatorFromBase — injicerbar bas (delas av AI-fallbacken)", 
   it("använder den injicerade översättningen och behåller kollisions-säkerheten", () => {
     const base = (raw: string) => (raw === "Glow" ? "Glöd" : translateValue(raw));
     const t = buildTranslatorFromBase([{ options: { Color: "Red", Effect: "Glow" } }], base, translateAxisName);
-    expect(t.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effect: "Glöd" });
+    expect(t.options({ Color: "Red", Effect: "Glow" })).toEqual({ Färg: "Röd", Effekt: "Glöd" });
   });
 
   it("axisOverrides namnger okänd icke-färg-axel; deterministisk klass vinner över override", () => {
@@ -313,7 +427,7 @@ describe("buildTranslatorFromBase — injicerbar bas (delas av AI-fallbacken)", 
     expect(t1.options({ Color: "Cotton" })).toEqual({ Material: "Bomull" });
     // storlek matchar en deterministisk klass → vinner över override
     const t2 = buildTranslatorFromBase([{ options: { Color: "42 inch" } }], translateValue, translateAxisName, ov);
-    expect(t2.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum (107 cm)" });
+    expect(t2.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
   });
 });
 
@@ -335,10 +449,10 @@ describe("isSizeLikeAxis — felmärkt 'Color'-axel med storlekar", () => {
 });
 
 describe("translateValue — tum-enheter (nummer-ankrat, säkert)", () => {
-  it("normaliserar entydiga tum-former (med cm i parentes)", () => {
-    expect(translateValue("42 in")).toBe("42 tum (107 cm)");
-    expect(translateValue("50 inch")).toBe("50 tum (127 cm)");
-    expect(translateValue('12"')).toBe("12 tum (30 cm)");
+  it("normaliserar entydiga tum-former", () => {
+    expect(translateValue("42 in")).toBe("42 tum");
+    expect(translateValue("50 inch")).toBe("50 tum");
+    expect(translateValue('12"')).toBe("12 tum");
   });
   it("rör INTE löst 'in' (preposition)", () => {
     expect(translateValue("5 in 1")).toBe("5 in 1");
@@ -367,10 +481,10 @@ describe("inferMislabeledColorAxis — hela icke-färg-klassen under 'Color'", (
 });
 
 describe("buildVariantTranslator — döper om felmärkt 'Color'-axel (hela klassen)", () => {
-  it("storlekar under 'Color' → 'Storlek', enheter → svenska med cm", () => {
+  it("storlekar under 'Color' → 'Storlek', enheter → svenska", () => {
     const t = buildVariantTranslator([{ options: { Color: "42 inch" } }, { options: { Color: "50 inch" } }]);
-    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum (107 cm)" });
-    expect(t.options({ Color: "50 inch" })).toEqual({ Storlek: "50 tum (127 cm)" });
+    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
+    expect(t.options({ Color: "50 inch" })).toEqual({ Storlek: "50 tum" });
   });
   it("kontakttyper under 'Color' → 'Kontakt'", () => {
     const t = buildVariantTranslator([{ options: { Color: "EU Plug" } }, { options: { Color: "US Plug" } }]);
@@ -394,7 +508,7 @@ describe("buildVariantTranslator — döper om felmärkt 'Color'-axel (hela klas
       translateValue,
       translateAxisName,
     );
-    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum (107 cm)" });
+    expect(t.options({ Color: "42 inch" })).toEqual({ Storlek: "42 tum" });
   });
 });
 
@@ -452,5 +566,325 @@ describe("buildVariantTranslator — lekhage-fallet ände-till-ände", () => {
     expect(t2.options({ Color: "4500-5500sq.in." })).toEqual({
       Storlek: "4500-5500 kvadrattum (2,9-3,5 m²)",
     });
+  });
+});
+
+describe("buildVariantTranslator — axel-namn-kollisionssäkerhet (två färg-aktiga axlar)", () => {
+  it("kollapsar INTE två axlar som annars båda blir 'Färg' (Color + Color Temperature)", () => {
+    const variants = [
+      { options: { Color: "Black", "Color Temperature": "3000K" } },
+      { options: { Color: "White", "Color Temperature": "6000K" } },
+    ];
+    const t = buildVariantTranslator(variants);
+    const o1 = t.options(variants[0].options);
+    expect(Object.keys(o1)).toHaveLength(2); // BÅDA dimensionerna överlever (ingen överskrivning)
+    expect(o1.Färg).toBe("Svart");
+    const second = Object.keys(o1).find((k) => k !== "Färg")!;
+    expect(second).not.toBe("Färg"); // andra färg-aktiga axeln särskild
+    expect(o1[second]).toBe("3000K");
+    // Distinkta varianter förblir distinkta → ingen variant-kollaps / wixVariantId-desync.
+    expect(t.options(variants[1].options).Färg).toBe("Vit");
+  });
+
+  it("särskiljer även när två axlar landar på samma klass ('Color Size' + 'Size' → Storlek)", () => {
+    const t = buildVariantTranslator([{ options: { "Color Size": "42 inch", Size: "M" } }]);
+    const o = t.options({ "Color Size": "42 inch", Size: "M" });
+    expect(Object.keys(o)).toHaveLength(2); // ingen kollaps trots samma klass-namn
+  });
+
+  it("samma axelnamn oavsett feed-ordning (tie-break på sorterat namn, ej feed-ordning)", () => {
+    // AE:s SKU-prop-ordning är inte stabil → tie-breaken får inte bero på den.
+    const a = buildVariantTranslator([{ options: { Color: "Black", "Color Temperature": "3000K" } }]);
+    const b = buildVariantTranslator([{ options: { "Color Temperature": "3000K", Color: "Black" } }]);
+    expect(a.axisNames.get("Color")).toBe(b.axisNames.get("Color"));
+    expect(a.axisNames.get("Color Temperature")).toBe(b.axisNames.get("Color Temperature"));
+    expect(a.axisNames.get("Color")).toBe("Färg"); // stabil vinnare ("Color" < "Color Temperature")
+  });
+
+  it("flaggar en suffix-särskild axel som olöst även i sync-läget ($0 → needsAiPolish)", () => {
+    // OBS: axeln får INTE vara "Color Temperature" längre — djup utbyggnad
+    // (2026-07) gav den axeln en direkt AXIS_TRANSLATIONS-träff ("Färgtemperatur"),
+    // så den kolliderar inte längre med "Color"/kräver suffix-särskiljning.
+    // "Color Name" saknar fortfarande en egen axel-översättning → kolliderar
+    // fortfarande på "Färg" (samma mekanism testet ursprungligen övade på).
+    const t = buildVariantTranslator([{ options: { Color: "Black", "Color Name": "Glossy" } }]);
+    expect(unresolvedAxisNames(t)).toContain("Color Name"); // ej kund-klart → flaggad
+    expect(unresolvedAxisNames(t)).not.toContain("Color"); // rena färg-axeln är OK
+  });
+});
+
+describe("translateValue — ft→m (nummer-ankrat, aritmetik, NOMINELL/trunkerad avrundning)", () => {
+  it("konverterar enkla fot-värden till meter (trunkerat till 1 decimal, svenskt komma)", () => {
+    expect(translateValue("10 ft")).toBe("3 m"); // 3,048 → "3" (heltal utan ,0)
+    expect(translateValue("12ft")).toBe("3,6 m"); // 3,6576 → trunk 3,6 (EJ 3,7)
+    expect(translateValue("10 Feet")).toBe("3 m");
+    expect(translateValue("1.5 ft")).toBe("0,4 m"); // 0,4572 → trunk 0,4
+  });
+
+  it("konverterar dimensioner — alla tal, kanoniskt ' x ' + ' m'", () => {
+    expect(translateValue("10 x 10 ft")).toBe("3 x 3 m"); // tältet (en avslutande enhet)
+    expect(translateValue("12 x 12 ft")).toBe("3,6 x 3,6 m");
+    expect(translateValue("10ft x 13ft")).toBe("3 m x 3,9 m"); // enhet per tal
+  });
+
+  it("rör ALDRIG icke-numeriska 'foot/ft' (nummer-ankring)", () => {
+    expect(translateValue("Foot Rest")).toBe("Fot Rest"); // token-posten gäller, ingen aritmetik
+    expect(translateValue("5 in 1")).toBe("5 in 1"); // tum-skyddet orört av ft-passet
+  });
+
+  it("kedja med DIREKT vidhängande enhet + omgivande text konverteras HELT (backdrop-stativet 2026-07-02)", () => {
+    // Enheten binder hela kedjan → hel konvertering, aldrig halv. Tidigare lämnades
+    // dessa åt AI:n (S1), men Haiku bevarar mått ordagrant → "ft" key-låstes i Wix.
+    expect(translateValue("10x10 ft Gazebo")).toBe("3 x 3 m Gazebo");
+    // "stand" är numera ett känt ord (djup utbyggnad 2026-07, "with stand" →
+    // "Med ställ") och token-passet översätter ALLA kända ord — inte bara
+    // dimensionsprefixet detta test ursprungligen handlade om.
+    expect(translateValue("6.5x10FT stand base")).toBe("1,9 x 3 m Ställ base");
+    expect(translateValue("8.5x10FT flat base")).toBe("2,5 x 3 m flat base");
+    // …och enhet-per-tal utan naken x-adjacens konverteras som förut.
+    expect(translateValue("10ft x 13ft")).toBe("3 m x 3,9 m");
+  });
+
+  it("halvkonverterar ALDRIG (audit S1): naken kedja utan enhet / redan metrisk lämnas orörd", () => {
+    expect(translateValue("10x10 Gazebo")).toBe("10x10 Gazebo"); // ingen enhet → ingen aritmetik
+    expect(translateValue("10x10ft(3x3m)")).toBe("10x10ft(3x3m)"); // bär redan metrisk annotation
+    expect(translateValue("8 ft x 8 x 7 ft")).toBe("8 ft x 8 x 7 ft"); // x-kopplat (S-A) även i mittpasset
+  });
+
+  it("SLUT-ankrad kedja med prefix konverteras HELT (aldrig halvt): 'Tent 10x10ft' → 'Tent 3 x 3 m'", () => {
+    // S1-faran var HALV-konvertering; en komplett tal-x-tal-kedja vid slutet är
+    // entydig och konverteras i sin helhet, med prefixet bevarat.
+    expect(translateValue("Tent 10x10ft")).toBe("Tent 3 x 3 m");
+  });
+});
+
+describe("translateValue — hopskrivna in-dimensioner med kodprefix (growtältet 2026-06-09)", () => {
+  it("'2000D48x48x80in' → '2000D48x48x80 tum (≈… cm)' (kedjan entydig trots prefix)", () => {
+    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum (≈122 × 122 × 203 cm)");
+    expect(translateValue("2000D60x60x80in")).toBe("2000D60x60x80 tum (≈152 × 152 × 203 cm)");
+  });
+
+  it("prepositions-skyddet håller fortfarande", () => {
+    expect(translateValue("5 in 1")).toBe("5 in 1"); // slutar på "1" → kan aldrig matcha
+    expect(translateValue("2 in 1 Charger")).toBe("2 in 1 Laddare");
+  });
+
+  it("x-kopplat prefix konverteras ALDRIG (slutpass S-A) — blandade enheter undviks", () => {
+    expect(translateValue("8 ft x 8 x 7 ft")).toBe("8 ft x 8 x 7 ft"); // hör ihop över gränsen
+    expect(translateValue("48in x 48 x 80in")).toBe("48in x 48 x 80in");
+    // …fristående kedjor vid slutet konverteras fortfarande.
+    expect(translateValue("Tent 10x10ft")).toBe("Tent 3 x 3 m");
+    expect(translateValue("2000D48x48x80in")).toBe("2000D48x48x80 tum (≈122 × 122 × 203 cm)");
+  });
+});
+
+describe("translateValue — bart 'in' som tum i DIMENSIONER (lekhagen 2026-06-09)", () => {
+  it("enhet per tal: '32 in x 24 in' → '32 tum x 24 tum'", () => {
+    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum (≈81 × 61 cm)");
+    expect(translateValue("44 in x 44 in")).toBe("44 tum x 44 tum (≈112 × 112 cm)");
+    expect(translateValue("32in x 24in")).toBe("32 tum x 24 tum (≈81 × 61 cm)"); // utan mellanslag
+  });
+
+  it("EN avslutande enhet: '24 x 32 in' → '24 x 32 tum (≈… cm)'", () => {
+    expect(translateValue("24 x 32 in")).toBe("24 x 32 tum (≈61 × 81 cm)");
+  });
+
+  it("prepositions-'in' förblir SKYDDAT (hel-värdes-ankringen)", () => {
+    expect(translateValue("5 in 1")).toBe("5 in 1"); // produkttyp, inte tum
+    expect(translateValue("Made in Sweden")).toBe("Made in Sverige"); // 'in' orört (sweden-token översätts)
+    expect(translateValue("42 in")).toBe("42 tum"); // befintliga hel-värdes-regeln kvar
+  });
+});
+
+describe("translateValue — säkra brittiska/amerikanska enheter → metriskt (2026-06-19)", () => {
+  it("vikt: lb/lbs/pound → kg, oz/ounce → g", () => {
+    expect(translateValue("5 lb")).toBe("2,3 kg");
+    expect(translateValue("10 lbs")).toBe("4,5 kg");
+    expect(translateValue("8 oz")).toBe("227 g");
+  });
+  it("volym: gallon/quart → liter, pint/fl oz → ml", () => {
+    expect(translateValue("5 gallon")).toBe("18,9 liter");
+    expect(translateValue("2 quart")).toBe("1,9 liter");
+    expect(translateValue("1 pint")).toBe("473 ml");
+    expect(translateValue("8 fl oz")).toBe("237 ml");
+  });
+  it("längd: yard → meter (även i NxN-dimensioner — hela kedjan, ej halv)", () => {
+    expect(translateValue("5 yard")).toBe("4,5 m");
+    // Regression 2026-06-19: "3 x 5 yd" halv-konverterades till "3 x 4,5 m"
+    // (blandad enhet, tyst fel). Nu konverteras HELA kedjan via ft-maskineriet.
+    expect(translateValue("3 x 5 yard")).toBe("2,7 x 4,5 m");
+    expect(translateValue("3x5 yards")).toBe("2,7 x 4,5 m");
+    expect(translateValue("3 x 5 yd")).toBe("2,7 x 4,5 m");
+    expect(translateValue("Rug 3x5 yd")).toBe("Rug 2,7 x 4,5 m"); // prefix bevaras (som "Tent 10x10ft")
+  });
+  it("vridmoment: ft-lb / in-lb → Nm (körs FÖRE ft/inch-passen)", () => {
+    expect(translateValue("100 ft-lb")).toBe("135,6 Nm");
+    expect(translateValue("50 in-lb")).toBe("5,7 Nm");
+  });
+  it("ordkrock-enheter konverteras INTE (flaggas av grinden i stället)", () => {
+    expect(translateValue("3 Pin")).not.toMatch(/liter|ml|kg|Nm/i); // kontaktstift, ej ölmått
+    expect(translateValue("2 Ton")).not.toMatch(/kg/i); // 'ton' är redan metriskt på svenska
+    expect(translateValue("3 Quarter")).not.toMatch(/liter/i); // 'quart\b' äter inte 'quarter'
+    expect(translateValue("5 pound-force")).not.toMatch(/kg/i); // kraft (lbf), ej vikt
+  });
+  it("rör inte inch/ft (hanteras separat)", () => {
+    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum (≈81 × 61 cm)");
+    expect(translateValue("10 x 10 ft")).toBe("3 x 3 m");
+  });
+});
+
+describe("translateValue — ≈cm-tillägg på tum-MÅTTKEDJOR (Leonards val 2026-06-19)", () => {
+  it("lägger ≈cm efter en x-kedja i tum (möbel/väska/tält)", () => {
+    expect(translateValue("32 in x 24 in")).toBe("32 tum x 24 tum (≈81 × 61 cm)");
+    expect(translateValue("10x10x8 in")).toBe("10x10x8 tum (≈25 × 25 × 20 cm)");
+  });
+  it("RÖR INTE fristående tum (TV/skärm/hjul/rör — tum är rätt svensk enhet)", () => {
+    expect(translateValue("55 inch")).toBe("55 tum");
+    expect(translateValue("27 in")).toBe("27 tum");
+  });
+  it("ft→m berörs aldrig (meter, ingen 'tum')", () => {
+    expect(translateValue("10 x 10 ft")).toBe("3 x 3 m");
+  });
+});
+
+describe("translateValue — REGEL A: dimension + 'in' + antals-svans (canvas-tavlorna 2026-06-09)", () => {
+  it("'11x14 in 12pcs' → '11x14 tum 12 st' (in mellan dimension och antal)", () => {
+    expect(translateValue("11x14 in 12pcs")).toBe("11x14 tum 12 st (≈28 × 36 cm)");
+    expect(translateValue("8x10 in 24pcs")).toBe("8x10 tum 24 st (≈20 × 25 cm)");
+    expect(translateValue("11x14in 12Pcs")).toBe("11x14 tum 12 st (≈28 × 36 cm)"); // glued dim+in
+    expect(translateValue("12x16 in 24 st")).toBe("12x16 tum 24 st (≈30 × 41 cm)"); // redan svensk svans
+  });
+
+  it("'4 in 1 32pcs' lämnar 'in' (idiom, inleds INTE med x-kedja)", () => {
+    expect(translateValue("4 in 1 32pcs")).toBe("4 in 1 32 st");
+  });
+
+  it("prepositions-'in' efter ledande dimension lämnas (audit N1: kräver siffra/slut efter)", () => {
+    expect(translateValue("2 x 3 in stock")).toBe("2 x 3 in stock");
+    expect(translateValue("10 x 20 in total")).toBe("10 x 20 in total");
+    // Ordsvans efter dimensionen → REGEL A avstår medvetet (hellre orört än fel
+    // preposition); slutvärdet är inte ren svenska → svenskhets-grinden flaggar.
+    expect(translateValue("12x16 in White")).toBe("12x16 in Vit");
+  });
+});
+
+describe("translateValue — REGEL B: hopskrivet enskilt mått 'Nin' (vinylskäraren 2026-06-09)", () => {
+  it("'14in Black' → '14 tum Svart' (hopskrivning entydig)", () => {
+    expect(translateValue("14in Black")).toBe("14 tum Svart");
+    expect(translateValue("14in")).toBe("14 tum"); // ensamt
+    expect(translateValue("White Orange")).toBe("Vit Orange"); // den andra varianten orörd
+  });
+
+  it("skyddar prepositions-/idiom-former", () => {
+    expect(translateValue("5in 1")).toBe("5in 1"); // siffra efter → lämnas (lookahead)
+    expect(translateValue("5in1")).toBe("5in1"); // ingen ordgräns → lämnas
+    expect(translateValue("48in x 48 x 80in")).toBe("48in x 48 x 80in"); // x-dim → REGEL B hoppar (S-A)
+  });
+});
+
+describe("VALUE_TRANSLATIONS — fordon/cykelställ (incident 2026-06-09)", () => {
+  it("översätter ställ-värdena som skeppades engelska efter Haiku-eko", () => {
+    expect(translateValue("Rear Wheel")).toBe("Bakhjul");
+    expect(translateValue("Front Wheel")).toBe("Framhjul");
+    expect(translateValue("Fork")).toBe("Gaffel");
+    expect(translateValue("U Type L Type Fork")).toBe("U-typ & L-typ gaffel");
+    expect(translateValue("4 Wheels")).toBe("4 Hjul");
+    expect(translateValue("Vertical Type")).toBe("Vertikal");
+  });
+
+  it("tabell-träff gör värdet AI-oberoende (residualEnglishTokens → tomt)", () => {
+    // Låser att de förgiftade cache-posterna blir oåtkomliga: full-match i
+    // tabellen kortsluter kandidat-uttagningen → värdet når aldrig AI/cache igen.
+    expect(residualEnglishTokens("Rear Wheel")).toEqual([]);
+    expect(residualEnglishTokens("U Type L Type Fork")).toEqual([]);
+  });
+
+  it("fraser där lösa tokens annars FEL-översätter vinner som fulla fraser (audit S2)", () => {
+    expect(translateValue("Saddle Brown")).toBe("Sadelbrun"); // färg — inte "Sadel Brun"
+    expect(translateValue("Spring Steel Fork")).toBe("Fjäderstålsgaffel"); // fjäder, inte säsong
+  });
+
+  it("EN=SV-identiska ord är self-maps → aldrig AI-kandidater, aldrig eko-flagg", () => {
+    expect(translateValue("Smart")).toBe("Smart");
+    expect(translateValue("Universal")).toBe("Universal");
+    expect(residualEnglishTokens("Smart")).toEqual([]);
+    expect(residualEnglishTokens("Mini Digital")).toEqual([]);
+  });
+});
+
+describe("translateValue — silvery + hopskrivna antal-enheter (buffévärmaren 2026-06-09)", () => {
+  it("'Silvery 4pcs' / 'Gold 4pcs' blir helsvenska ($0, tabell + avgluing)", () => {
+    expect(translateValue("Silvery 4pcs")).toBe("Silver 4 st");
+    expect(translateValue("Gold 4pcs")).toBe("Guld 4 st");
+    expect(translateValue("Silvery")).toBe("Silver");
+    expect(translateValue("4pcs")).toBe("4 st"); // orört av tabellen → avgluade formen
+    expect(translateValue("4Pcs")).toBe("4 st"); // skiftlägesokänsligt
+  });
+
+  it("fras-nycklar med pc/pcs matchar på rå form FÖRE avgluing (golden-skydd)", () => {
+    expect(translateValue("5pc Sets 3")).toBe("5-delars set 3");
+    expect(translateValue("Random Color 1 PC")).toBe("Slumpmässig färg, 1 st");
+  });
+
+  it("avgluar även MITT i värdet (audit S2): '2pcs Red' → '2 st Röd'", () => {
+    expect(translateValue("2pcs Red")).toBe("2 st Röd");
+    expect(translateValue("2pcs Black")).toBe("2 st Svart");
+  });
+
+  it("EN=SV-adjektiv (audit S3) self-mappas → perfekta AI-svar perma-flaggas inte", () => {
+    expect(translateValue("Extra Long")).toBe("Extra Lång");
+    expect(residualEnglishTokens("Extra Long")).toEqual([]);
+    // "Size" är kvar som kandidat (rätt — ordet ÄR engelskt), men "Normal"
+    // flaggar inte längre → AI-svaret "Normal storlek" behåller ingen residual.
+    expect(residualEnglishTokens("Normal Size")).toEqual(["Size"]);
+  });
+
+  it("silvery-posten gör värdet AI-oberoende → den förgiftade cache-posten oåtkomlig", () => {
+    expect(residualEnglishTokens("Silvery 4pcs")).toEqual([]);
+  });
+});
+
+describe("stripLeadingSupplierCode — rensar leverantörskod ur variantvärde", () => {
+  it("strippar ledande modellkod — bindestreck, mellanslag OCH snedstreck-separator", () => {
+    // Skarpa importer: Fairywill-tandborste + de 3 senaste produkterna Leonard visade.
+    expect(stripLeadingSupplierCode("AE-FW-T2233-USB Plug")).toBe("USB Plug");
+    expect(stripLeadingSupplierCode("FW72233 USB Plug")).toBe("USB Plug");
+    expect(stripLeadingSupplierCode("F2025 Red")).toBe("Red");
+    expect(stripLeadingSupplierCode("ET607/Black")).toBe("Black"); // "/"-separator
+    expect(stripLeadingSupplierCode("ET607/White")).toBe("White");
+    expect(stripLeadingSupplierCode("FW-5020E-Svart")).toBe("Svart"); // modellnr i eget siffer-lett segment
+    expect(stripLeadingSupplierCode("FW-5020E-Vit")).toBe("Vit");
+  });
+
+  it("strippar HOPSKRIVEN kod utan separator (CamelCase-gräns) — skarpa ET507-importen", () => {
+    expect(stripLeadingSupplierCode("ET507Black")).toBe("Black");
+    expect(stripLeadingSupplierCode("ET507White")).toBe("White");
+    expect(stripLeadingSupplierCode("ET607Black")).toBe("Black");
+  });
+
+  it("rör ALDRIG rena värden, storlekar eller specar (inga falska positiver)", () => {
+    for (const v of [
+      "USB", "USB-C", "USB3", "3D", "4K", "A4", "5XL", "B6AC",
+      "EU Plug", "100 tum", "335-Grey", "Type-C", "Black with LED", "3 Pin",
+      "1080P Camera", "S/M", "M/L", "18650", "iPhone 15 Pro", "T20", "USB3Hub",
+    ]) {
+      expect(stripLeadingSupplierCode(v)).toBe(v);
+    }
+  });
+
+  it("lämnar värdet orört om HELA värdet är en kod (ingen läsbar rest → flaggas i stället)", () => {
+    expect(stripLeadingSupplierCode("AE-FW-T2233")).toBe("AE-FW-T2233");
+    expect(stripLeadingSupplierCode("KM-6631")).toBe("KM-6631");
+    expect(stripLeadingSupplierCode("ET607")).toBe("ET607");
+  });
+
+  it("translateValue: kod strippas OCH värdet blir ren svenska", () => {
+    expect(translateValue("AE-FW-T2233-USB Plug")).toBe("USB-kontakt");
+    expect(translateValue("ET607/Black")).toBe("Svart"); // kod + färg → ren svenska
+    expect(translateValue("ET507Black")).toBe("Svart"); // hopskriven kod → ren svenska
+    expect(translateValue("ET507White")).toBe("Vit");
+    expect(translateValue("FW-5020E-Vit")).toBe("Vit");
+    expect(translateValue("USB Plug")).toBe("USB-kontakt");
+    expect(translateValue("EU Plug")).toBe("EU-kontakt"); // regression: oförändrat
   });
 });

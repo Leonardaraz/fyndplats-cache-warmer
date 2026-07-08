@@ -85,6 +85,11 @@ export async function runOperation<T>(opts: RunOptions<T>): Promise<RunResult<T>
         latencyMs: 0,
         detail: "budget_cap_exceeded",
       });
+      // Synlig i Vercel-loggarna — budget-skippet var tidigare HELT tyst, vilket
+      // gjorde "varför översattes inget?"-diagnoser onödigt svåra (2026-06-09).
+      console.warn(
+        `[llm-router] ${opts.op}: Claude hoppas över — daglig budgetcap nådd; provar Gemini/failOpen.`,
+      );
       // Fall igenom till Gemini.
     } else {
       const tried = await tryClaude(opts);
@@ -101,6 +106,13 @@ export async function runOperation<T>(opts: RunOptions<T>): Promise<RunResult<T>
 
   // --- 5. Båda failade — failOpen eller kasta --------------------------
   if (opts.failOpen !== undefined) {
+    // Synlig i Vercel-loggarna — failOpen utan provider-svar var tidigare HELT
+    // tyst (t.ex. båda nycklarna saknas, eller budgetcap + ingen Gemini).
+    console.warn(
+      `[llm-router] ${opts.op}: failOpen — inget provider-svar ` +
+        `(claude=${claudeOk ? "försökt/failad-eller-budgetcap" : "otillgänglig"}, ` +
+        `gemini=${geminiOk ? "försökt/failad" : "otillgänglig"}).`,
+    );
     return { result: opts.failOpen, provider: "fail-open", cacheHit: false };
   }
   throw new Error(`[llm-router] ${opts.op}: alla providers failade och inget failOpen-värde.`);

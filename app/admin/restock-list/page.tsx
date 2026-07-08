@@ -11,17 +11,20 @@ export default async function RestockListPage() {
   let loadError: string | null = null;
   const nameById = new Map<string, string>();
 
+  // Prenumeranterna är det väsentliga — läs dem fristående. Mappnings-läsningen
+  // (bara för läsbara produktnamn) får ALDRIG fälla hela vyn: tidigare bundlades
+  // de i en Promise.all, så ett fel i endera dolde prenumeranterna helt.
   try {
-    const [subs, mappings] = await Promise.all([
-      getRestockStore().listAll(),
-      getStore().listMappings(),
-    ]);
-    counts = countByProduct(subs);
-    for (const m of mappings) {
-      nameById.set(m.wixProductId, m.seoTitle ?? m.wixProductId);
-    }
+    counts = countByProduct(await getRestockStore().listAll());
   } catch (err) {
     loadError = err instanceof Error ? err.message : String(err);
+  }
+  try {
+    for (const m of await getStore().listMappings()) {
+      nameById.set(m.wixProductId, m.seoTitle ?? m.wixProductId);
+    }
+  } catch {
+    // Namn-uppslag misslyckades → visa produkt-id i stället, men dölj inte listan.
   }
 
   const totalPending = counts.reduce((s, c) => s + c.pending, 0);

@@ -96,17 +96,26 @@ async function importProduct(product, featureFlags) {
       : {}),
   };
 
+  // AbortController-timeout (2026-06-10): en stallad /api/import-uppkoppling som
+  // accepteras men aldrig svarar hängde tidigare för evigt (ingen signal) och
+  // frös bulk-kön. 90 s ceiling — en riktig rå-import tar sekunder; en hängning
+  // är oändlig. Avbrottet → catch → { ok:false } → kön går vidare.
+  const ctrl = new AbortController();
+  const importTimer = setTimeout(() => ctrl.abort(), 90000);
   try {
     const res = await fetch(`${apiBase.replace(/\/$/, "")}/api/import`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-fyndplats-token": apiToken },
       body: JSON.stringify(payload),
+      signal: ctrl.signal,
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { ok: false, error: data.message || data.error || `HTTP ${res.status}` };
     return { ok: true, result: data.result };
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: ctrl.signal.aborted ? "Tidsgräns mot /api/import (90 s)" : String(err) };
+  } finally {
+    clearTimeout(importTimer);
   }
 }
 
@@ -157,16 +166,36 @@ function waitForTabComplete(tabId, timeoutMs = 30000) {
 
 // Be content.js (på /item/-sidan) om produktdata. Försöker flera gånger eftersom
 // AliExpress PC-sida renderas klient-sida och JSON-LD/DOM kan dröja.
-function requestExtract(tabId) {
+// TIMEOUT (2026-06-10): om content-scriptet aldrig svarar (captcha/interstitial
+// → ingen injektion, eller service-workern pausas mid-message) sätts varken
+// callbacken eller lastError → Promisen löste ALDRIG → hela bulk-kön frös på
+// "Skrapar…". Racet mot en timeout → resolve(null) → retry-loopen fortsätter och
+// faller till sist på "Sidan svarade inte" i stället för att hänga för evigt.
+// 12 s (audit N6): content.js:s EXTRACT_PRODUCT väntar själv på enrichDescription
+// (bunden till 10 s) före sendResponse — timeouten måste överstiga den, annars
+// kastas fungerande-men-långsamma försök bort i onödan.
+function requestExtract(tabId, timeoutMs = 12000) {
   return new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, { type: "EXTRACT_PRODUCT" }, (res) => {
-      if (chrome.runtime.lastError) return resolve(null);
-      resolve(res);
-    });
+    let settled = false;
+    const finish = (v) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(v);
+    };
+    const timer = setTimeout(() => finish(null), timeoutMs);
+    try {
+      chrome.tabs.sendMessage(tabId, { type: "EXTRACT_PRODUCT" }, (res) => {
+        if (chrome.runtime.lastError) return finish(null);
+        finish(res);
+      });
+    } catch (_) {
+      finish(null);
+    }
   });
 }
 
-async function scrapeAndImport(item, featureFlags) {
+async function scrapeAndImport(item, featureFlags, pricingOverride) {
   let tab;
   try {
     tab = await chrome.tabs.create({ url: item.url, active: false });
@@ -175,12 +204,20 @@ async function scrapeAndImport(item, featureFlags) {
   }
   const tabId = tab.id;
   try {
-    await waitForTabComplete(tabId, 35000);
+    // Total skrap-budget (2026-06-10): en död/captcha-spärrad flik ska hoppas
+    // över på ~45 s, inte ~2 min. Både fliklast (≤25 s) och extract-loopen bryts
+    // mot deadlinen så en seg sida aldrig stjäl hela kötiden.
+    const SCRAPE_DEADLINE_MS = 45000;
+    const scrapeStart = Date.now();
+    const budgetLeft = () => SCRAPE_DEADLINE_MS - (Date.now() - scrapeStart);
+    await waitForTabComplete(tabId, Math.min(25000, Math.max(1, budgetLeft())));
     // Ge React-sidan tid att rendera JSON-LD + DOM, sedan skrapa med upprepning.
     let product = null;
     for (let attempt = 0; attempt < 6; attempt++) {
-      await delay(attempt === 0 ? 2500 : 2000);
-      const res = await requestExtract(tabId);
+      if (budgetLeft() <= 0) break; // skrap-budget slut (före paus) → ge upp
+      await delay(attempt === 0 ? 2000 : 1800);
+      if (budgetLeft() <= 0) break; // ...och EFTER pausen, så vi aldrig startar en
+      const res = await requestExtract(tabId); //  dyr 12 s-extract utanför budgeten
       if (res && res.ok && res.product) {
         product = res.product;
         if (product.extractionOk) break; // bra data — sluta försöka
@@ -196,6 +233,13 @@ async function scrapeAndImport(item, featureFlags) {
       if (!q.hasImages) miss.push("bild");
       if (!q.hasPrice) miss.push("pris");
       return { id: item.id, ok: false, error: `Otillräcklig produktdata (saknar: ${miss.join(", ") || "data"}).` };
+    }
+    // Bulk-prissättning (2026-06-10): stämpla Leonards förvalda Marginal-tier på
+    // den färskt skrapade produkten så importProduct skickar pricingOverride —
+    // tidigare läste bulk-vägen aldrig tiern → backend föll på default-2.5× trots
+    // att popupen sparat t.ex. 1.2 (egen "custom"-tier).
+    if (pricingOverride && typeof pricingOverride.multiplier === "number") {
+      product.pricingOverride = pricingOverride;
     }
     const imp = await importProduct(product, featureFlags);
     if (!imp.ok) return { id: item.id, ok: false, error: imp.error };
@@ -214,22 +258,153 @@ async function scrapeAndImport(item, featureFlags) {
   }
 }
 
+// Läser Leonards förvalda Marginal-tier (samma som popupen sparar i
+// chrome.storage.sync) och bygger pricingOverride för HELA batchen. Speglar
+// popupens buildPricingOverride: premium = fast 2.5×, custom = sparat objekt,
+// standard = null (inget fält → backend default-tier). 2026-06-10.
+const BULK_PREMIUM_MULTIPLIER = 2.5;
+async function resolveBulkPricingOverride() {
+  try {
+    const { pricingTier, customTier } = await chrome.storage.sync.get(["pricingTier", "customTier"]);
+    if (pricingTier === "premium") return { multiplier: BULK_PREMIUM_MULTIPLIER };
+    if (pricingTier === "custom" && customTier && typeof customTier.multiplier === "number") {
+      return customTier;
+    }
+  } catch (_) {}
+  return null; // standard → backend använder default-tiern
+}
+
+// Rapporterar ett bulk-skrap-fel till backenden (audit-loggen) — fire-and-forget.
+// Bakgrund (2026-06-11): 12/13 produkter föll i skrapfasen utan att något nådde
+// servern → diagnos krävde Leonards skärmdump av modalen. Nu syns varje ✗ med
+// exakt feltext i /admin-auditloggen i stället.
+function reportImportFailure(item, error, pass) {
+  try {
+    void apiCall("/api/import-failure", {
+      method: "POST",
+      body: JSON.stringify({
+        url: (item.url || "").slice(0, 500), // zod-cap 500 server-side (audit N3)
+        title: (item.title || "").slice(0, 120),
+        error: String(error || "okänt fel").slice(0, 300),
+        pass,
+      }),
+    }).catch(() => {});
+  } catch (_) {}
+}
+
 async function runBulkImport(items, featureFlags, originTabId) {
-  const results = [];
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index: i, state: "working" });
-    const r = await scrapeAndImport(item, featureFlags);
-    results.push(r);
+  const pricingOverride = await resolveBulkPricingOverride();
+  // Hård per-produkt-watchdog: backstop för ett ev. framtida obundet await som
+  // smiter förbi de inre timeouterna. 165 s (2026-06-10, audit): inre värsta-fall
+  // för en FUNGERANDE import = skrap tills lyckad extract (≤~45 s) + 90 s import-
+  // fetch ≈ 135 s (en MISSLYCKAD skrap, ≤~57 s, gör ingen import). 165 s ger
+  // ≥25 s marginal → watchdogen kan ALDRIG döda en fungerande import (annars
+  // falsk "✗ Misslyckades" + dubblett vid retry). Skippad produkt visas så ändå.
+  const PER_PRODUCT_MS = 165000;
+  // Paus mellan produkter: AliExpress bot-spärr triggas av många snabba
+  // sid-laddningar i följd. Pass 2 kör extra långsamt (spärren är ofta färsk).
+  const PACING_MS = 1500;
+  const RETRY_PACING_MS = 8000;
+
+  // MV3-SW-LIVSHÅLLANDE lång paus (audit B1): en ren delay() >30 s får service-
+  // workern DÖDAD mitt i batchen — Chrome idle-terminerar efter 30 s utan
+  // events/extension-API-anrop, och pending timers räknas INTE som aktivitet
+  // (syns inte med DevTools öppet, som stänger av termineringen). Skiva därför
+  // pausen i 20 s-bitar med ett API-anrop per bit (BULK_NOTICE via
+  // tabs.sendMessage nollställer 30 s-idle-klockan) — nedräkningen är dessutom
+  // bättre UX än en stum paus. Tillförlitligt på Chrome ≥110 (5-min-hårdtaket
+  // borttaget där); en patologisk ~80-min all-fail-batch bör verifieras på
+  // riktig enhet en gång. Värsta fall om det ändå dör: synlig död i modalen
+  // (nedräkningen fryser) i stället för tyst frysning som förut.
+  const keepalivePause = async (totalMs, label) => {
+    const SLICE_MS = 20000;
+    for (let left = totalMs; left > 0; left -= SLICE_MS) {
+      sendToTab(originTabId, {
+        type: "BULK_NOTICE",
+        text: `${label} — fortsätter om ${Math.ceil(left / 1000)} s…`,
+      });
+      await delay(Math.min(SLICE_MS, left));
+    }
+    sendToTab(originTabId, { type: "BULK_NOTICE", text: "" });
+  };
+
+  const runOne = async (item, index, pass) => {
+    sendToTab(originTabId, { type: "BULK_PROGRESS", id: item.id, index, state: "working" });
+    const r = await Promise.race([
+      scrapeAndImport(item, featureFlags, pricingOverride),
+      new Promise((resolve) =>
+        setTimeout(
+          () => resolve({ id: item.id, ok: false, error: "Tidsgräns – hoppade över produkten" }),
+          PER_PRODUCT_MS,
+        ),
+      ),
+    ]);
     sendToTab(originTabId, {
       type: "BULK_PROGRESS",
       id: item.id,
-      index: i,
+      index,
       state: r.ok ? "done" : "fail",
       wixProductId: r.wixProductId,
       error: r.error,
     });
+    if (!r.ok) reportImportFailure(item, r.error, pass);
+    return r;
+  };
+
+  // --- PASS 1 — med adaptiv backoff (2026-06-11: Leonards 13-batch gav 1 lyckad,
+  // 12 raka skrap-fel = AE började servera spärr-/captcha-sidor till de dolda
+  // flikarna; att plöja vidare i full takt förvärrar spärren). Efter 2 raka fel
+  // pausas kön (90 s, dubblas upp till 6 min) och modalen visar varför. En
+  // lyckad produkt nollställer trappan.
+  const byId = new Map();
+  let consecutiveFails = 0;
+  let backoffMs = 90000;
+  for (let i = 0; i < items.length; i++) {
+    const r = await runOne(items[i], i, "pass1");
+    byId.set(items[i].id, r);
+    if (r.ok) {
+      consecutiveFails = 0;
+      backoffMs = 90000;
+    } else {
+      consecutiveFails++;
+    }
+    if (i < items.length - 1) {
+      if (consecutiveFails >= 2) {
+        await keepalivePause(backoffMs, `AliExpress bromsar (${consecutiveFails} fel i rad), pausar`);
+        backoffMs = Math.min(backoffMs * 2, 360000);
+      } else {
+        await delay(PACING_MS);
+      }
+    }
   }
+
+  // --- PASS 2 — automatisk andra chans för misslyckade. AE-spärrar är ofta
+  // tillfälliga; några minuters vila + långsam takt räddar i regel resten av
+  // batchen utan att Leonard behöver klicka "Försök igen" 12 gånger.
+  //
+  // SÄKERHETSFILTER (audit B2): "Tidsgräns…"-fel exkluderas — där kan importen
+  // redan ha NÅTT servern (klient-abort dödar inte Vercel-anropet, och
+  // /api/import saknar dubblettspärr) → automatisk omkörning skulle mynta en
+  // dubblettprodukt i Wix. Rena skrap-fel ("Sidan svarade inte"/"Otillräcklig
+  // produktdata"/"Kunde inte öppna flik") har aldrig lämnat webbläsaren och är
+  // alltid säkra att köra om — de var 12/12 i incidenten 2026-06-11.
+  // Enstaka-produkt-körningar (manuella "Försök igen") får inget pass 2 — de ÄR
+  // redan ett omförsök (audit S1).
+  const failed = items.filter((it) => {
+    const r = byId.get(it.id);
+    return r && !r.ok && !/^Tidsgräns/.test(r.error || "");
+  });
+  if (failed.length > 0 && items.length > 1) {
+    await keepalivePause(120000, `Försök 2 för ${failed.length} misslyckade (AliExpress-spärrar är ofta tillfälliga)`);
+    for (let j = 0; j < failed.length; j++) {
+      const item = failed[j];
+      const r2 = await runOne(item, items.indexOf(item), "pass2");
+      byId.set(item.id, r2); // även pass 2-fel sparas → färskaste feltexten visas
+      if (j < failed.length - 1) await delay(RETRY_PACING_MS);
+    }
+  }
+
+  const results = items.map((it) => byId.get(it.id));
   sendToTab(originTabId, { type: "BULK_DONE", results });
   return results;
 }
