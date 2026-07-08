@@ -63,6 +63,26 @@ Den visuella förståelsen styr **allt nedströms** — det är därför steget 
 - **Tvätt-behov (Steg 3b):** notera dropship-loggor, vattenstämplar, inbränd text (engelska/spanska/kinesiska), fel motiv och dubbletter.
 - **Bakgrundsbyte (Steg 3c):** notera vilka bilder som är rena produktbilder på ful/mörk/rörig bakgrund (→ vit hjältebild) vs nyttiga kontextbilder (behålls) vs infografik (bort/flagga).
 
+-----
+
+## Steg 1c – Sanera varianter FÖRST (innan du skriver copy)
+
+Avgör vilka varianter som faktiskt ska säljas **innan** Steg 2 — annars skriver du beskrivning, bygger spec-kort och alt-texter för en variant som ändå ska bort (dyrt dubbeljobb). **Facit = mappningen, inte marknadsbilderna.**
+
+1. **Läs facit ur mappningen** (read-only) — det som verkligen lagerförs är `supplierVariantId`:
+   ```
+   GET https://www.wixapis.com/data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings
+   ```
+   Jämför varje `data.variants[].supplierVariantId` (finns den = riktig, mappad variant) med Wix-produktens `variantsInfo.variants[].inventoryStatus.inStock`.
+
+2. **Ta bort döda varianter NU:** en variant som är **phantom** (ingen `supplierVariantId`) ELLER **slut** (`inStock:false`) ska bort — valet, variantraden och (i Steg 3) dess bilder. Full PATCH-mekanik + "delade-marknadsbilder-ljuger"-fällan står i **Steg 6C**.
+
+3. **Blir bara EN variant kvar → kollapsa till enkel-variant-produkt** direkt (inte en option med ett enda val): `options:[]` + `variantsInfo.variants:[{ id:<kvar>, choices:[], sku, price, inventoryStatus }]`.
+
+Nu — och först nu — skriver Steg 2 (copy), Steg 2b (SKU) och Steg 3/3d (bilder/spec-kort) **bara** för det som är kvar. Ingen omskrivning, inga spec-kort som slängs.
+
+-----
+
 ## Steg 2 – PATCH namn + slug + seoData (1 anrop, mutation)
 
 Bygg innehållet:
@@ -381,6 +401,8 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 -----
 
 ## Steg 6 – Varianter (kontrollera, fixa bara vid behov)
+
+> **Borttagning av döda/slutsålda varianter görs redan i Steg 1c** (före copy). Här återstår att koppla variantbilder (`linkedMedia`, 6B) och slutverifiera. 6C nedan är den fullständiga mekaniken som Steg 1c hänvisar till.
 
 Importen sköter varianterna automatiskt och deterministiskt (inga AI-anrop) — oftast behöver du inte göra något:
 
