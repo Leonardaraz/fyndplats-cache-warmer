@@ -338,6 +338,13 @@ describe("golden — enheter, antal & djup utbyggnad (lås i CI)", () => {
     ["Dimmable", "Dimbar"],
     ["Lake Blue", "Sjöblå"],
     ["Off White", "Benvit"],
+    // Sadelskenor: "Bow" (弓) = skenor. Fullvärde → ingen halv-översättning.
+    ["Carbon Bow", "Kolfiber"],
+    ["Cr-Mo Bow", "Cr-Mo-stål"],
+    ["Titanium Alloy Bow", "Titanlegering"], // token-vis blev annars "Titanium Legering Bow"
+    ["Steel Bow", "Stål"],
+    ["Titanium Bow", "Titan"],
+    ["Manganese Steel Bow", "Manganstål"],
   ];
   it.each(cases)("translateValue(%j) === %j", (input, expected) => {
     expect(translateValue(input)).toBe(expected);
