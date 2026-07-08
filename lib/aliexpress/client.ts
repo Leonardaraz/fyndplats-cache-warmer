@@ -611,6 +611,16 @@ export function toAsciiLatin(input: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
+/**
+ * AliExpress postnummer-fält accepterar BARA siffror, "-" och "/". Svenska
+ * postnummer skrivs "184 36" (med mellanslag) → AliExpress avvisar ("use only
+ * digits and/or dash and/or slash"). Ta bort allt annat → "18436". Endast för
+ * AliExpress-anropet; vår lagrade adress behåller "184 36".
+ */
+export function sanitizeZip(zip: string): string {
+  return (zip ?? "").replace(/[^0-9/-]/g, "");
+}
+
 export function buildPlaceOrderDto(p: {
   productId: string;
   quantity: number;
@@ -636,7 +646,8 @@ export function buildPlaceOrderDto(p: {
       city: toAsciiLatin(p.city),
       // AliExpress kräver "state/province/region" (län) — annars avvisas ordern.
       province: toAsciiLatin(p.province),
-      zip: p.zip,
+      // Postnummer: bara siffror/-/ (svenska "184 36" → "18436").
+      zip: sanitizeZip(p.zip),
       country: p.country,
       contact_person: toAsciiLatin(p.contactPerson),
       full_name: toAsciiLatin(p.contactPerson),
