@@ -24,6 +24,25 @@
 
 -----
 
+## Arbetsordning (röd tråd)
+
+Kör i denna ordning. **Publicering är ALLTID sista handlingen** — allt annat verifierat först.
+
+1. **Steg 0** – Välj fokussökord (preliminärt; låses i Steg 2 efter bildkollen).
+2. **Steg 1** – Läs produkten (GET: `revision`, `name`, `slug`, `seoData`, `visible`, `media`).
+3. **Steg 1b** – Titta på ALLA bilder — styr sökord, copy, alt-texter och tvätt-/kort-behov.
+4. **Steg 1c** – Sanera varianter FÖRST: ta bort döda/slutsålda (mappningen = facit) **innan** du skriver copy.
+5. **Steg 2** – PATCH namn + slug + `seoData` (+ beskrivning); lås fokussökordet.
+6. **Steg 2b** – Re-synka SKU till den nya sluggen.
+7. **Steg 3** – Skriv om alla alt-texter (svenska); fixa dubbletter + huvudbild. Vid behov: **3b** tvätta loggor/inbränd text · **3c** vit hjältebild · **3d** egna svenska feature-/spec-kort.
+8. **Steg 4** – Koppla rätt kategori.
+9. **Steg 6** – Variantkontroll: koppla variantbilder (`linkedMedia`, 6B) + slutkoll. *(Borttagningen gjordes redan i 1c.)* Görs **före** publiceringen.
+10. **Steg 5** – PUBLICERA (`visible:true`) — **sista steget**, när allt är verifierat mot Klart-kriteriet.
+
+*(Sifferordningen är historisk: Steg 6 utförs före Steg 5. Enkla produkter utan bild-/kategori-/variantarbete kan slå ihop Steg 2b + publicering — se Steg 2b.)*
+
+-----
+
 ## Steg 0 – Välj fokussökord (avgör allt annat)
 
 Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`. **Lås inte valet förrän du sett bilderna (Steg 1b)** — bilderna avgör ofta vad produkten *faktiskt* är.
@@ -171,7 +190,7 @@ const newVariants = variants.map(v => {
 
 ⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
 
-> **Spara ett anrop:** lägg `visible: true` i **samma** PATCH → då görs Steg 2b + Steg 5 i ett.
+> **Spara ett anrop — men BARA om inget mer återstår:** har produkten inga bilder att fixa (Steg 3/3b/3c/3d), ingen kategori (Steg 4) och ingen variantkoppling (Steg 6) kvar → lägg `visible: true` i **samma** PATCH så görs 2b + publicering i ett. Återstår något av dessa: **publicera SIST** (Steg 5), aldrig här — annars går produkten live innan bilder/kategori/varianter är klara.
 >
 > **Undantag:** börjar SKU:n med `FYND-XXX-NNN` (kurerat artikelnummer) eller `AE-<hash>` (äldre schema) — **rör den inte**, flagga till Leonard.
 
@@ -383,7 +402,7 @@ Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · E
 
 ## Steg 5 – PUBLICERA produkten (1 anrop, mutation)
 
-Rå-importer skapas som **draft** (`visible:false`) och syns inte i butiken. När Steg 2–4 är klara och **verifierade** (rena `<h2>`-flikar; alla bilder kvar med `image.url`; **SKU re-synkad i Steg 2b**) och variantkontrollen i **Steg 6** är gjord: publicera produkten (hämta färsk `revision` först). *(Du kan slå ihop detta med Steg 2b — `visible:true` i samma SKU-PATCH.)*
+Rå-importer skapas som **draft** (`visible:false`) och syns inte i butiken. Detta är **sista steget** — kör det när Steg 1c (variantsanering), Steg 2–4 och variantkoppling (Steg 6) är klara och **verifierade** (rena `<h2>`-flikar; alla bilder kvar med `image.url`; **SKU re-synkad i Steg 2b**; variantbilder kopplade). Hämta färsk `revision` först. *(Genväg bara för en produkt UTAN bild-/kategori-/variantarbete: slå ihop med Steg 2b — se noten där.)*
 
 ```
 GET .../products/{PRODUCT_ID}        // färsk revision
@@ -462,10 +481,10 @@ Läs `data.variants[].supplierVariantId` (t.ex. `14:29#3.2 m;…` → varianten 
 - Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
 - **Inga exakta dubblettbilder** kvar i galleriet — behåll en, ta bort resten (`linkedMedia` omkopplat först); de borttagna frigörs i orphan-svepen.
 - **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad. *(Vit hjälte skapas via Steg 3c Metod A – Wix Generate Image – även för mörk-på-mörk med slang/kablar; resultatet jämförs mot originalet för faktatrohet.)*
-- På **multi-modell-listningar**: bara den **lagerförda variantens** bilder/spec-ark finns kvar — övriga modellers spec-ark borttagna, matchat mot mappningens `supplierVariantId` (Steg 6C), och inga inbrända siffror på kvarvarande bilder motsäger varianten.
+- På **multi-modell-listningar**: bara den **lagerförda variantens** bilder/spec-ark finns kvar — döda/slutsålda varianter borttagna redan i **Steg 1c**, matchat mot mappningens `supplierVariantId` (mekanik i Steg 6C), och inga inbrända siffror på kvarvarande bilder motsäger varianten.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
-- Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
+- Variantsaneringen (**Steg 1c**) och variantbildkopplingen (**Steg 6**) är gjorda, och produkten är **publicerad** (`visible:true`) som sista steg — annars syns den inte i butiken.
 - (Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)
 
 -----
