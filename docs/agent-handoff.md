@@ -128,13 +128,17 @@ Cheat-sheet (runbooken styr i detalj):
   `linkedMedia` FÖRST, koppla om valet). Radera **inte** filen direkt — borttagen blir den
   föräldralös och frigörs i orphan-svepen. Se runbook Steg 3.
 - **Steg 3b – Tvätta bort dropship-loggor/vattenstämplar/inbränd text** (spanska, engelska,
-  kinesiska …) där bakgrunden är slät; rörig bakgrund/infografik → ta bort ur galleriet eller
-  flagga. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3b.
+  kinesiska …): **Metod A** (Wix Generate Image, server-side, samma mekanism som Steg 3c)
+  är numera rekommenderad väg och funkar även på **röriga/komplexa bakgrunder** (person,
+  regn, trä/sten) — inte bara släta. Ren infografik/spec-diagram (inget egentligt
+  produktfoto) → ta bort ur galleriet i stället. Original raderas aldrig; `linkedMedia`
+  kopplas om. Se runbook Steg 3b för alla tre metoderna (A/B/C) och guardrails.
 - **Steg 3c – Ren vit hjältebild** (premium): är hjältebilden en ren produktbild på ful/mörk/rörig
-  bakgrund → klipp ut produkten (rembg/u2net) och lägg på **vit + mjuk skugga**, ~82 % av en 1:1-ruta;
-  loggan i bakgrunden försvinner automatiskt. Nyttiga kontextbilder behålls (bara tvättade),
-  infografik bort/flaggas. **Guardrail:** `Read` resultatet — behåll originalet vid felklipp (tunna
-  kablar/smådelar). Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3c.
+  bakgrund → **Metod A** (Wix Generate Image, server-side, inget uppladdnings-steg) är
+  rekommenderad väg — klarar mörk-på-mörk + tunna slangar/kablar som rembg/u2net (Metod B,
+  fallback) missar. Loggan i bakgrunden försvinner automatiskt. Nyttiga kontextbilder behålls
+  (bara tvättade), infografik bort/flaggas. **Guardrail:** `Read` resultatet — behåll
+  originalet vid fel. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3c.
 - **Steg 4 – Kategori** (se §6 + ID-tabell). 1 anrop.
 - **Steg 5 – Publicera** (`visible:true`) — först efter att Steg 2–4 verifierats.
 - **Steg 6 – Varianter:** kontrollera. **Döp ALDRIG om variantvärden** (V3 key-lock, §6.5).
