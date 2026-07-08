@@ -787,6 +787,84 @@ export async function fetchWixOrder(orderId: string): Promise<Record<string, unk
   }
 }
 
+// ---------------------------------------------------------------------------
+// Autentisering via Wix-API-lookup (när JWT-signaturen inte kan verifieras)
+//
+// Bakgrund (2026-06/07): Wix signerar order-webhookarna med en nyckel vars `kid`
+// (BvAsX-sT) INTE matchar den publika nyckeln Dev Center exponerar → RS256-
+// verifieringen faller för VARJE äkta webhook (Wix-plattformsproblem). Utan en
+// väg runt detta står valet mellan att avvisa allt (kunder får inga mejl) eller
+// släppa förbi ALLT overifierat (WIX_WEBHOOK_ALLOW_UNVERIFIED=true → spoofbart).
+//
+// Fallback: när signaturen inte kan verifieras, dekoda payloaden ändå, plocka ut
+// order-GUID:t och SLÅ UPP ordern i Wix eCom API. Finns ordern → eventet gäller
+// en RIKTIG order i vår butik. En angripare kan inte hitta på ett giltigt Wix-
+// order-GUID (oskrivbara UUID:n som bara går att få genom att själv lägga ordern
+// eller bryta sig in i Wix) → detta autentiserar eventet UTAN signaturen och
+// låter oss återgå till WIX_WEBHOOK_ALLOW_UNVERIFIED=false (säkert default).
+// ---------------------------------------------------------------------------
+
+// Dekoda JWT-payloaden UTAN signaturverifiering. Enbart för lookup-autentiseringen
+// nedan — payloaden litas INTE på förrän ordern bekräftats finnas i Wix.
+function decodeJwtPayloadUnverified(token: string): Record<string, unknown> | null {
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  try {
+    return JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8")) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+// Vilket order-GUID ska slås upp för att autentisera detta event?
+//   order_created/shipped/cancelled → entity ÄR ordern (entityId / _id / id)
+//   order_fulfillments_updated      → entityId = fulfillment-id; order i entity.orderId
+//   refund                          → transaktion; order i entity.orderId (entityId = tx-id)
+//   abandoned_checkout/unknown      → ingen order → går ej att lookup-verifiera
+//     (abandoned-cart-flödet drivs redan av pollern lib/abandoned-checkout-poll,
+//      webhooken var aldrig kopplad i prod → ett 401 här tappar inget).
+function orderIdForVerification(
+  kind: EventKind,
+  entity: Record<string, unknown>,
+  entityId: string | undefined,
+): string | undefined {
+  switch (kind) {
+    case "order_created":
+    case "order_shipped":
+    case "order_cancelled":
+      return firstStr(entityId, entity._id as string, entity.id as string);
+    case "order_fulfillments_updated":
+      return firstStr(entity.orderId as string);
+    case "refund":
+      return firstStr(entity.orderId as string, entityId);
+    default:
+      return undefined;
+  }
+}
+
+// Positiv, minnesbunden cache: order-GUID → hämtad order. Lookup-autentiseringen
+// fyrar för SAMMA order flera gånger (Wix skickar created+approved + at-least-
+// once-retries) → utan cache blir det ett Wix-API-anrop per fyrning. Endast
+// POSITIVA träffar cachas: en order som finns fortsätter finnas, medan transienta
+// fel (timeout/5xx → null) ALDRIG cachas så att en Wix-retry kan självläka. Cachen
+// lever per (kortlivad) serverless-instans och är storleksbegränsad för minnet.
+const wixOrderVerifyCache = new Map<string, Record<string, unknown>>();
+const WIX_VERIFY_CACHE_MAX = 1000;
+
+async function lookupOrderForVerification(
+  orderId: string | undefined,
+): Promise<Record<string, unknown> | null> {
+  if (!orderId) return null;
+  const cached = wixOrderVerifyCache.get(orderId);
+  if (cached) return cached;
+  const order = await fetchWixOrder(orderId);
+  if (order) {
+    if (wixOrderVerifyCache.size >= WIX_VERIFY_CACHE_MAX) wixOrderVerifyCache.clear();
+    wixOrderVerifyCache.set(orderId, order);
+  }
+  return order;
+}
+
 // Meta-content_ids ur orderns rader. Wix lägger produkt-ID:t på
 // catalogReference.catalogItemId (samma fält PDP/cart skickar i view_item/
 // add_to_cart), med fallbacks för äldre/andra shapes.
@@ -911,6 +989,18 @@ export async function POST(req: NextRequest) {
   const allowUnverified = (process.env.WIX_WEBHOOK_ALLOW_UNVERIFIED || "").toLowerCase() === "true";
   let payload: Record<string, unknown> | null = null;
   let verified = false;
+  // Hur eventet autentiserades (för loggning/observability):
+  //   jwt_signature     — RS256-signaturen verifierades mot vår publika nyckel
+  //   wix_lookup        — signaturen kunde inte verifieras, men ordern bekräftades
+  //                       finnas i Wix via API-lookup (autentiserar utan signatur)
+  //   unverified_stopgap — WIX_WEBHOOK_ALLOW_UNVERIFIED=true släppte förbi overifierat
+  //   no_public_key     — ingen publik nyckel installerad (setup-läge)
+  //   none              — ännu inte avgjort
+  let verifyMethod = "none";
+  // Ordern som hämtades under lookup-autentiseringen (om den vägen togs) —
+  // återanvänds som AUTORITATIV källa för order_created-mejlet så att innehållet
+  // kommer från Wix och inte den overifierade payloaden.
+  let authoritativeOrder: Record<string, unknown> | null = null;
 
   const looksLikeJwt = rawBody.split(".").length === 3 && !rawBody.trim().startsWith("{");
   const jwtToken = looksLikeJwt
@@ -929,22 +1019,47 @@ export async function POST(req: NextRequest) {
     if (verifiedPayload) {
       payload = verifiedPayload;
       verified = true;
-    } else if (allowUnverified) {
-      // Krisläge: acceptera ändå men dekoda payloaden själv utan verifiering.
-      console.warn(
-        "[wix-webhook] JWT-signatur ogiltig MEN WIX_WEBHOOK_ALLOW_UNVERIFIED=true — accepterar overifierat (säkerhetsläckage, stäng av när rätt nyckel är installerad)",
-      );
-      try {
-        const [, __p] = jwtToken.split(".");
-        payload = JSON.parse(Buffer.from(__p, "base64url").toString("utf8")) as Record<string, unknown>;
-      } catch {
-        console.error("[wix-webhook] JWT-signatur ogiltig + payload-decode failed — avvisar");
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
+      verifyMethod = "jwt_signature";
     } else {
-      // Strikt: avvisa
-      console.error("[wix-webhook] JWT-signatur ogiltig — avvisar (sätt WIX_WEBHOOK_ALLOW_UNVERIFIED=true för krisläge)");
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+      // Signaturen kunde inte verifieras (Wix kid-mismatch, se fetchWixOrder-blocket
+      // ovan). Försök AUTENTISERA VIA WIX-API-LOOKUP innan vi faller till stopgap/
+      // avvisning: dekoda payloaden, klassificera eventet, plocka order-GUID:t och
+      // bekräfta att ordern finns i Wix. Finns den → äkta event (en angripare kan
+      // inte hitta på ett giltigt order-GUID) → autentiserat utan signatur.
+      const decoded = decodeJwtPayloadUnverified(jwtToken);
+      if (decoded) {
+        const u = unwrap(decoded);
+        const k = classify(u.eventType, u.entityFqdn, u.slug, u.entity);
+        const oid = orderIdForVerification(k, u.entity, u.entityId);
+        const order = await lookupOrderForVerification(oid);
+        if (order) {
+          payload = decoded;
+          verified = true;
+          verifyMethod = "wix_lookup";
+          authoritativeOrder = order;
+          console.log(
+            `[wix-webhook] JWT-signatur overifierbar men order ${oid} finns i Wix → autentiserad via API-lookup (kind=${k})`,
+          );
+        }
+      }
+      if (!verified) {
+        // Lookup kunde inte autentisera: inget order-GUID (abandoned_checkout/
+        // unknown), ordern hittades inte, ELLER ett transient Wix-API-fel (Wix
+        // retry:ar → självläker nästa runda). Fall till stopgap om påslaget,
+        // annars avvisa strikt.
+        if (decoded && allowUnverified) {
+          console.warn(
+            "[wix-webhook] JWT-signatur ogiltig + lookup misslyckades MEN WIX_WEBHOOK_ALLOW_UNVERIFIED=true — accepterar overifierat (säkerhetsläckage, stäng av när rätt nyckel är installerad)",
+          );
+          payload = decoded;
+          verifyMethod = "unverified_stopgap";
+        } else {
+          console.error(
+            "[wix-webhook] JWT-signatur ogiltig och ordern kunde inte bekräftas via Wix API — avvisar (order-event? kontrollera Wix-nyckeln. abandoned_checkout/unknown lookup-verifieras inte — abandoned drivs av pollern)",
+          );
+          return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+        }
+      }
     }
   } else {
     // Hit når vi när body INTE är en JWT (eller ingen public key finns).
@@ -959,8 +1074,10 @@ export async function POST(req: NextRequest) {
     }
     if (!publicKey) {
       console.warn("[wix-webhook] WIX_WEBHOOK_PUBLIC_KEY saknas — accepterar OVERIFIERAD payload (bör sättas i Vercel)");
+      verifyMethod = "no_public_key";
     } else {
       console.warn("[wix-webhook] Body är inte en JWT MEN WIX_WEBHOOK_ALLOW_UNVERIFIED=true — accepterar overifierat (krisläge)");
+      verifyMethod = "unverified_stopgap";
     }
     try {
       payload = JSON.parse(rawBody) as Record<string, unknown>;
@@ -982,14 +1099,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Empty payload" }, { status: 400 });
   }
 
-  const { eventType, entity, entityFqdn, slug, entityId } = unwrap(payload);
-  const kind = classify(eventType, entityFqdn, slug, entity);
+  const { eventType, entity: rawEntity, entityFqdn, slug, entityId } = unwrap(payload);
+  const kind = classify(eventType, entityFqdn, slug, rawEntity);
+
+  // Autentiserades eventet via Wix-lookup (signaturen kunde inte verifieras)?
+  // Använd då den HÄMTADE ordern som autoritativ källa i stället för den overifierade
+  // payloaden — kund/rader/pris kommer från Wix och kan inte manipuleras av en
+  // påhittad payload med giltigt order-GUID. Gäller order_created OCH order_cancelled:
+  // båda mejlen behöver bara mottagare + ordernummer, som ordern-GET:en har.
+  //   • order_shipped: substitueras INTE (ordern-GET:en saknar fulfillments/spårnr) —
+  //     mottagaren autentiseras i stället i handlern nedan mot autoritativ köpar-mejl.
+  //   • refund/fulfillments_updated: hämtar redan ordern själva → mottagaren är redan
+  //     autoritativ; endast belopp/spårnr från payloaden kvarstår (lägre residual).
+  // Autoritativ köpar-mejl för lookup-autentiserade event (mottagargrind i handlers).
+  const trustedRecipientEmail =
+    verifyMethod === "wix_lookup" && authoritativeOrder
+      ? (extractCustomer(authoritativeOrder)?.email ?? "").trim().toLowerCase() || null
+      : null;
+  const entity =
+    verifyMethod === "wix_lookup" &&
+    authoritativeOrder &&
+    (kind === "order_created" || kind === "order_cancelled")
+      ? authoritativeOrder
+      : rawEntity;
 
   // Strukturerad logg per event — gör det möjligt att i Vercel-loggen filtrera
   // på `kind=` och se exakt vad vi gjorde med varje webhook. Skriv ut FÖRE
   // dispatch så att en handler-krasch ändå syns kopplad till rätt event.
   console.log(
-    `[wix-webhook] dispatch fqdn=${entityFqdn ?? "—"} slug=${slug ?? "—"} entityId=${entityId ?? "—"} eventType=${eventType || "—"} → kind=${kind} verified=${verified}`,
+    `[wix-webhook] dispatch fqdn=${entityFqdn ?? "—"} slug=${slug ?? "—"} entityId=${entityId ?? "—"} eventType=${eventType || "—"} → kind=${kind} verified=${verified} via=${verifyMethod}`,
   );
 
   // ---------------------------------------------------------------------------
@@ -1252,6 +1390,22 @@ export async function POST(req: NextRequest) {
         console.warn("[wix-webhook] order_shipped: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
       }
+      // Mottagargrind för lookup-autentiserade event: order_shipped tar mottagare +
+      // spårnr från den overifierade payloaden (ordern-GET:en saknar fulfillments, så
+      // vi kan inte substituera hela ordern som för created/cancelled). Utan denna grind
+      // kan ett förfalskat event med giltigt order-GUID skicka ett Fyndplats-brandat
+      // "på väg"-mejl till valfri adress + förgifta tracking_mapping. Kräv därför att
+      // payload-mottagaren matchar orderns AUTORITATIVA köparmejl (från lookupen).
+      // Grindas på verifyMethod (INTE på trustedRecipientEmail truthy) → FAIL-CLOSED:
+      // kan vi inte extrahera köparmejl ur den autoritativa ordern (trustedRecipientEmail
+      // null) avvisas ändå i lookup-läget i stället för att släppa förbi payload-mottagaren.
+      // Signaturverifierade event (verifyMethod!="wix_lookup") passerar orörda.
+      if (verifyMethod === "wix_lookup" && built.email.trim().toLowerCase() !== trustedRecipientEmail) {
+        console.error(
+          `[wix-webhook] order_shipped: payload-mottagare matchar INTE orderns köparmejl — avvisar (möjligt förfalskat event, order ${built.props.orderNumber})`,
+        );
+        return NextResponse.json({ received: true, handled: false, reason: "recipient mismatch" }, { status: 200 });
+      }
       let trackingMapped: "new" | "duplicate" | "error" | "collision" | "skipped" = "skipped";
       if (built.props.trackingNumber) {
         const orderForCustomer = (entity.order ?? entity) as Record<string, unknown>;
@@ -1371,6 +1525,19 @@ export async function POST(req: NextRequest) {
       if (!built) {
         console.warn("[wix-webhook] refund: kunde inte extrahera kund — skippar");
         return NextResponse.json({ received: true, handled: false }, { status: 200 });
+      }
+      // Mottagargrind (lookup-autentiserade event): om re-fetchen ovan misslyckades
+      // (transient Wix-fel — angripar-inducerbart via rate-limit) faller refundPayload
+      // tillbaka på den overifierade payloaden → mottagaren blir angripar-styrd. Kräv
+      // därför att mottagaren matchar orderns AUTORITATIVA köparmejl (från lookupen);
+      // fail-closed när den saknas. Signaturverifierade event passerar orörda.
+      // (Beloppet kan i lookup-läget fortfarande komma från payloaden → når bara den
+      // ÄKTA kunden, känd lägre residual.)
+      if (verifyMethod === "wix_lookup" && built.email.trim().toLowerCase() !== trustedRecipientEmail) {
+        console.error(
+          `[wix-webhook] refund: mottagare matchar INTE orderns köparmejl — avvisar (möjligt förfalskat event, order ${built.props.orderNumber})`,
+        );
+        return NextResponse.json({ received: true, handled: false, reason: "recipient mismatch" }, { status: 200 });
       }
       // Dedup på REFUND-id (inte order-id) — en order kan ha flera legitima
       // delvis-refunds, var och en med eget id. Wix kan fyra samma refund flera
