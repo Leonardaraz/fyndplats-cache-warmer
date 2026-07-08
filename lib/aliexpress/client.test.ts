@@ -26,6 +26,7 @@ describe("buildPlaceOrderDto — aliexpress.ds.order.create request-shape", () =
       logisticsServiceName: "CAINIAO_ECONOMY_GLOBAL",
       address: "Norrgårdsvägen 49",
       city: "Åkersberga",
+      province: "Stockholm",
       country: "SE",
       zip: "184 36",
       contactPerson: "Ann-Sofie Sjöström",
@@ -35,6 +36,7 @@ describe("buildPlaceOrderDto — aliexpress.ds.order.create request-shape", () =
     expect(dto.logistics_address).toMatchObject({
       address: "Norrgardsvagen 49",
       city: "Akersberga",
+      province: "Stockholm",
       country: "SE",
       zip: "184 36",
       contact_person: "Ann-Sofie Sjostrom",
@@ -55,9 +57,10 @@ describe("buildPlaceOrderDto — aliexpress.ds.order.create request-shape", () =
   it("utelämnar mobile_no när telefon saknas", () => {
     const dto = buildPlaceOrderDto({
       productId: "P", quantity: 2, skuId: "S", logisticsServiceName: "X",
-      address: "A", city: "C", country: "SE", zip: "1", contactPerson: "N", phone: "",
+      address: "A", city: "C", province: "Stockholm", country: "SE", zip: "1", contactPerson: "N", phone: "",
     });
     expect(dto.logistics_address).not.toHaveProperty("mobile_no");
+    expect(dto.logistics_address.province).toBe("Stockholm");
     expect(dto.product_items[0].product_count).toBe(2);
   });
 });

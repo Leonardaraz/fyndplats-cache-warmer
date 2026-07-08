@@ -125,6 +125,7 @@ export async function placeOrderForTask(store: Store, taskId: string): Promise<P
         addressLine1: a.addressLine1 ?? "",
         addressLine2: a.addressLine2,
         city: a.city ?? "",
+        province: a.province,
         postalCode: a.postalCode ?? "",
         countryCode,
         phone: a.phone,
