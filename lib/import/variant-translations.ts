@@ -636,6 +636,18 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   "aluminum alloy": "Aluminiumlegering",
   "aluminium alloy": "Aluminiumlegering",
   "zinc alloy": "Zinklegering",
+  // Sadelskenor: AliExpress "Bow" (弓) = sadelns skenor. MÅSTE ligga som
+  // fullvärde-entries — annars halv-översätter token-matchen "Titanium Alloy Bow"
+  // till "Titanium Legering Bow" (bara "alloy" träffar). Axeln är "Material" →
+  // vi anger materialnamnet som värde (naturligast för kunden).
+  "carbon bow": "Kolfiber",
+  "cr-mo bow": "Cr-Mo-stål",
+  "cr-mo steel bow": "Cr-Mo-stål",
+  "chromoly bow": "Cr-Mo-stål",
+  "steel bow": "Stål",
+  "titanium bow": "Titan",
+  "titanium alloy bow": "Titanlegering",
+  "manganese steel bow": "Manganstål",
   microfiber: "Mikrofiber",
   flannel: "Flanell",
   corduroy: "Manchester",
