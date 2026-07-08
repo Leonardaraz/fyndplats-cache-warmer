@@ -173,10 +173,32 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 
 Noterade du i Steg 1b **dropship-logga** (SucceBuy/VEVOR/HOMCOM …), **vattenstämpel** eller **inbränd marknadsföringstext** (engelska, spanska, kinesiska …) på en bild — åtgärda det i samma polering i stället för att bara flagga:
 
-1. Hämta **originalupplösningen** (utan transform): `curl -o orig.jpg "https://static.wixstatic.com/media/{FILE_ID}"`.
-2. **Slät/enfärgad bakgrund** (typisk studiobild): täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). **Rörig bakgrund** eller ren infografik-bild (mest text): tvätta inte — **ta bort bilden ur galleriet** i stället, eller flagga till Leonard om galleriet blir för tunt utan den. **Innan du tar bort en bild:** kontrollera om den är `linkedMedia` för ett variantval — koppla i så fall om valet till en annan lämplig galleribild (Steg 6B) eller flagga, annars tappar färg-/modellvalet sitt bildbyte tyst.
-3. Ladda upp den tvättade filen med `mcp__Wix__UploadImageToWixSite` → ny `static.wixstatic.com`-URL.
-4. Ersätt item:et på **samma position** i `itemsInfo.items` med `{ "url": "<ny wixstatic-url>", "altText": "<svensk alt>" }` i Steg 3-PATCH:en — samma mönster som importen (`lib/wix/client.ts`). Wix ingest:ar från URL **asynkront** (~5 s); verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
+1. Hämta **originalupplösningen** (utan transform): `curl -o orig.jpg "https://static.wixstatic.com/media/{FILE_ID}"` och `Read` den.
+2. Klassa bilden:
+   - **Ren produktbild ELLER nyttig kontextbild** (detalj, i-bruk, skala — bakgrunden må vara slät ELLER rörig/komplex, med personer/miljö) → **tvätta med Metod A** nedan. Skillnaden mot tidigare: detta är **inte längre begränsat till släta studiobakgrunder** — AI:n klarar numera att ta bort text/loggor/banderoller från komplexa foton (person som använder produkten, regn, trä-/stenbakgrund) och lämna resten helt orört.
+   - **Ren infografik/spec-diagram** (mätdiagram, storleksjämförelse, mest text och pilar — inget egentligt produktfoto) → **ta bort bilden ur galleriet** i stället för att tvätta; informationen hör hemma som text under "Tekniska specifikationer", inte som bild.
+   - **Innan du tar bort en bild:** kontrollera om den är `linkedMedia` för ett variantval — koppla i så fall om valet till en annan lämplig galleribild (Steg 6B) eller flagga, annars tappar färg-/modellvalet sitt bildbyte tyst.
+
+**Metod A – Wix Generate Image (REKOMMENDERAD, samma mekanism som Steg 3c):**
+
+Samma `POST .../generate-image` → polla `GET .../generated-image/{executionId}` som i Steg 3c, men med en **tvätt-prompt** som uttryckligen **bevarar** bakgrunden i stället för att byta till vit:
+
+> Remove ALL burned-in text, captions, labels, callouts, banners, badges, and graphic overlays from this photo. Keep the photographed product (**&lt;beskriv produkten kort&gt;**), its real background, lighting, shadows, and any people or hands shown, completely unchanged and identical — do not add, remove, redraw, recolor, or restyle any physical part. The final image must be the plain, clean original photograph with zero text or graphic overlays anywhere. Do NOT change the background to white — preserve the original background exactly as photographed. High resolution, professional product photography.
+
+Samma **guardrail som Steg 3c gäller alltid**: `Read` resultatet sida-vid-sida mot originalet innan det används — faktatrohet går alltid före ren bild.
+
+> **Verifierat (2026-07-08):** 19 bilder tvättade troget över ett helt produktbatch (cykelhandtag, cykelpump, sadelväska, cykelverktyg, sadel, kolfiberpedaler, glasögon, ryggsäck) — handhållna närbilder, person i rörelse, regn, trä-/stenbakgrund. Text/banderoller borta, produkt och bakgrund identiska i alla sida-vid-sida-jämförelser.
+
+> **Hastighetsgräns:** `generate-image`-endpointen kan bli hastighetsbegränsad efter många anrop i rad, och avkylningen kan ta **flera minuter** (upplevt: >10 min, inte bara en kort burst-gräns) — planera batchar om **3–6 anrop åt gången**. Misslyckas ett jobb (`status:"FAILED"`): försök om **en gång**; misslyckas det igen → **ta bort bilden** ur galleriet i stället för att fastna i en retry-loop mot en fortsatt begränsad endpoint. Den kan alltid läggas till igen senare.
+
+**Metod B – manuell text-täckning (fallback – bara om Metod A är otillgänglig/hastighetsbegränsad och bakgrunden är helt slät/enfärgad):**
+
+Täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). Fungerar bara för släta studiobakgrunder — för komplexa/röriga bakgrunder utan Metod A tillgänglig, ta bort bilden i stället för att riskera ett klumpigt manuellt utklipp.
+
+**Så här sätts resultatet in (båda metoderna):**
+
+3. Metod A ger ett `fileId` direkt (ingen uppladdning behövs); Metod B laddas upp med `mcp__Wix__UploadImageToWixSite` → ny `static.wixstatic.com`-URL/fileId.
+4. Ersätt item:et på **samma position** i `itemsInfo.items` med det **fullständiga item-objektet** (inte bara `url`+`altText` — det är det verifierat fungerande formatet från denna sessions PATCH:ar): `{ "id": "<fileId>", "altText": "<svensk alt>", "mediaType": "IMAGE", "image": { "id": "<fileId>", "url": "https://static.wixstatic.com/media/<fileId>", "altText": "<svensk alt>" } }` i Steg 3-PATCH:en. Verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
 5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
 
 > **Rör inte loggor som sitter fysiskt PÅ produkten** — varken etablerade märken (t.ex. Pagani Design på urtavlan) eller dropship-märken som är tryckta/graverade på själva varan: kunden får produkten med loggan, och en bortretuscherad logga vore vilseledande. Tvätten gäller **overlay-grafik** (pålagd text/logga/vattenstämpel i bildfilen, inte på varan). Är en dropship-logga tryckt på varan: flagga till Leonard (produkten kanske ska bytas ut i sortimentet). Osäker på om något ska tvättas? Flagga med före/efter-preview i chatten.
