@@ -1,6 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto } from "./client";
+import { resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin } from "./client";
 import { MemoryStore } from "../store/memory";
+
+describe("toAsciiLatin — AliExpress kräver engelska/ASCII", () => {
+  it("translittererar svenska tecken (å/ä/ö) till ASCII", () => {
+    expect(toAsciiLatin("Norrgårdsvägen 49")).toBe("Norrgardsvagen 49");
+    expect(toAsciiLatin("Åkersberga")).toBe("Akersberga");
+    expect(toAsciiLatin("Ann-Sofie Sjöström")).toBe("Ann-Sofie Sjostrom");
+  });
+  it("hanterar nordiska/europeiska diakriter + slänger kvarvarande icke-ASCII", () => {
+    expect(toAsciiLatin("Malmö Øst æ ü é ñ ç")).toBe("Malmo Ost ae u e n c");
+    expect(toAsciiLatin("北京 Beijing")).toBe("Beijing");
+    expect(toAsciiLatin("ren ascii 123")).toBe("ren ascii 123");
+  });
+});
 
 // Låser DTO-formen för aliexpress.ds.order.create. Fel form → AliExpress svarade
 // "MissingParameter: param_place_order_request4_open_api_dto" och ordern lades ALDRIG.
@@ -18,13 +31,14 @@ describe("buildPlaceOrderDto — aliexpress.ds.order.create request-shape", () =
       contactPerson: "Ann-Sofie Sjöström",
       phone: "0704806968",
     });
+    // Fritextfälten translittereras till ASCII (AliExpress: "Please use English only").
     expect(dto.logistics_address).toMatchObject({
-      address: "Norrgårdsvägen 49",
-      city: "Åkersberga",
+      address: "Norrgardsvagen 49",
+      city: "Akersberga",
       country: "SE",
       zip: "184 36",
-      contact_person: "Ann-Sofie Sjöström",
-      full_name: "Ann-Sofie Sjöström",
+      contact_person: "Ann-Sofie Sjostrom",
+      full_name: "Ann-Sofie Sjostrom",
       mobile_no: "0704806968",
     });
     expect(dto.product_items).toHaveLength(1);
