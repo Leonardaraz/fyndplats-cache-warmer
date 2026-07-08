@@ -318,6 +318,27 @@ Ladda upp `white.jpg` via `mcp__Wix__UploadImageToWixSite` → ersätt item:et p
 
 -----
 
+### Steg 3d – Egna feature-kort (när leverantörens feature-slides är mörka AliExpress-collage)
+
+Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mörka collage/infografik/i-bruk-foton** — inte enskilda produktbilder. De går alltså inte att vitmåla (Steg 3c) och textborttagning (Steg 3b) lämnar dem fortfarande "AliExpress-iga". Då kan du **bygga egna rena, svenska feature-kort** på ljus bakgrund av de RIKTIGA produktfotona — hela katalogen ser då ut som ett eget varumärke. Verifierat på CNC-fräsen (2026-07-08): 5 mörka slides → 5 rena kort.
+
+**Pipeline (helt lokalt + gratis, ingen Wix-AI):**
+1. **Klipp tillgångar** ur bilder som redan har **vit/ren bakgrund** (oftast hjältebilden): maskin, kontroller, spindel osv. Rektangulär beskärning räcker — vit bakgrund smälter sömlöst in i ett vitt kort (ingen urklippning behövs). Beskär SNÄVT så inga tillbehör/skuggor följer med. Foton från mörka källor (t.ex. en i-bruk-bild) presenteras som **rundad foto-banner** (rundade hörn + mjuk skugga) i stället för full-bleed — då krockar de inte med de ljusa korten.
+2. **Skriv korten som HTML/CSS** (1600×1600), bädda in fotona som base64 data-URI (self-contained). Konsekvent mall = premium: liten orange kicker-etikett, produktfoto, tunn orange regel, svensk rubrik (bold), grå undertext, litet "Fyndplats"-ordmärke. Variera layout (feature / rundad banner / stort tal / bildrutnät) men håll typografi + marginaler identiska mellan korten.
+3. **Rendera → PNG via förinstallerad Chromium** (ingen Wix-AI, ingen hastighetsgräns):
+   ```bash
+   CHROME=/opt/pw-browsers/chromium-*/chrome-linux/chrome
+   "$CHROME" --headless --disable-gpu --no-sandbox --hide-scrollbars \
+     --force-device-scale-factor=1 --window-size=1600,1600 \
+     --screenshot=out.png "file://$PWD/card.html"
+   ```
+4. **Granska ALLTID med `Read`** (helhet + inzoomat). Vanliga fel: text kapas (sätt `.photo{flex:1;min-height:0}` så textblocket aldrig trängs bort), och **små källurklipp (<~500 px) blir suddiga** när de skalas upp 2–3× → använd i stället en högupplöst i-bruk-bild som rundad banner, eller acceptera medelstor "spotlight". `object-fit:contain` skalar INTE upp av sig själv; `max-width/height:100%` visar bilden i sin naturliga storlek (små blir små).
+5. **Ladda upp** alla kort i ETT `UploadImageToWixSite`-anrop (GitHub-branch-vägen, se Steg 3b) och byt in dem i galleriet.
+
+> ⚠️ **Kritisk gotcha (hände denna gång):** en `media.itemsInfo.items`-PATCH som byter galleriet **nollställer `linkedMedia` på alla variantval** (blir `[]`) — även om du inte rör `options`. Efter gallery-bytet MÅSTE du därför köra en separat PATCH som återställer `options[].choicesSettings.choices[].linkedMedia` (peka på de kvarvarande variant-bildernas id) **med `variantsInfo` skickat verbatim** (annars 428 `MISSING_VARIANT_OPTION_CHOICE`). Verifiera med re-GET att varje val har rätt `linkedMedia.id`. Behåll variant-bilderna (t.ex. spec-blad) i galleriet så id:na är stabila.
+
+-----
+
 ## Steg 4 (rekommenderat) – koppla rätt kategori
 
 Om produkten bara ligger i "All Products", koppla en riktig kategori (1 anrop, mutation):
