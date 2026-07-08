@@ -53,8 +53,10 @@ const STATIC_INFO_PATHS = [
   "/kopvillkor",
   "/sekretesspolicy",
   "/vara-butikspolicyer",
-  "/integritetspolicy-app",
-  "/anvandarvillkor-app",
+  // App-juridiksidorna (/integritetspolicy-app, /anvandarvillkor-app) finns kvar
+  // som filer för framtida app-lansering (App Store/Play kräver publika URL:er),
+  // men listas INTE i sitemappen förrän appen finns — annars indexeras app-sidor
+  // för en app som inte existerar. Länkarna är även borttagna ur footern.
 ];
 
 /**
