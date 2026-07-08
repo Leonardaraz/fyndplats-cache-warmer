@@ -28,6 +28,7 @@
 
 Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`. **Lås inte valet förrän du sett bilderna (Steg 1b)** — bilderna avgör ofta vad produkten *faktiskt* är.
 **Ringa in den exakta produkttypen, inte den breda kategorin.** Använd ordet för vad produkten *faktiskt är* (formen/typen), inte en generisk grupp – t.ex. `sadelstol` (inte "arbetsstol"), `hopfällbar massagebänk` (inte "möbel"). Det specifika ordet har oftast högre köpintention och mindre konkurrens, och matchar vad köparen söker.
+**Validera ordet mot verklig sökdata innan du låser det.** Gör en snabb `web_search` på 2–4 svenska kandidatord och se vilket **etablerade svenska återförsäljare använder som kategori-/produktnamn** (Biltema, Jula, Clas Ohlson, Mekonomen, Thule, Amazon.se, branschspecialister) samt Googles autocomplete/relaterade sökningar. Kategoriordet de stora aktörerna använder i sina titlar har oftast högst sökvolym → välj det som huvudord (`isMain`), lägg de näst bästa som relaterade sökord. Exempel: `taklastkorg` är en giltig sammansättning, men återförsäljarna kategoriserar produkten som **takkorg / lastkorg** → huvudord blir `takkorg bil`, med `lastkorg`/`taklastkorg` som relaterade.
 **Regel:** båda orden MÅSTE hamna i **titel, produktnamn (H1) och slug** – annars flaggar Wix SEO-assistenten dem som röda. Ordet finns redan grönt i beskrivning/meta om det står i texten.
 Specs får bara komma från känd importdata eller `web_search` (AliExpress-sidor är JS-blockerade). **Hitta inte på siffror.**
 
@@ -172,10 +173,32 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 
 Noterade du i Steg 1b **dropship-logga** (SucceBuy/VEVOR/HOMCOM …), **vattenstämpel** eller **inbränd marknadsföringstext** (engelska, spanska, kinesiska …) på en bild — åtgärda det i samma polering i stället för att bara flagga:
 
-1. Hämta **originalupplösningen** (utan transform): `curl -o orig.jpg "https://static.wixstatic.com/media/{FILE_ID}"`.
-2. **Slät/enfärgad bakgrund** (typisk studiobild): täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). **Rörig bakgrund** eller ren infografik-bild (mest text): tvätta inte — **ta bort bilden ur galleriet** i stället, eller flagga till Leonard om galleriet blir för tunt utan den. **Innan du tar bort en bild:** kontrollera om den är `linkedMedia` för ett variantval — koppla i så fall om valet till en annan lämplig galleribild (Steg 6B) eller flagga, annars tappar färg-/modellvalet sitt bildbyte tyst.
-3. Ladda upp den tvättade filen med `mcp__Wix__UploadImageToWixSite` → ny `static.wixstatic.com`-URL.
-4. Ersätt item:et på **samma position** i `itemsInfo.items` med `{ "url": "<ny wixstatic-url>", "altText": "<svensk alt>" }` i Steg 3-PATCH:en — samma mönster som importen (`lib/wix/client.ts`). Wix ingest:ar från URL **asynkront** (~5 s); verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
+1. Hämta **originalupplösningen** (utan transform): `curl -o orig.jpg "https://static.wixstatic.com/media/{FILE_ID}"` och `Read` den.
+2. Klassa bilden:
+   - **Ren produktbild ELLER nyttig kontextbild** (detalj, i-bruk, skala — bakgrunden må vara slät ELLER rörig/komplex, med personer/miljö) → **tvätta med Metod A** nedan. Skillnaden mot tidigare: detta är **inte längre begränsat till släta studiobakgrunder** — AI:n klarar numera att ta bort text/loggor/banderoller från komplexa foton (person som använder produkten, regn, trä-/stenbakgrund) och lämna resten helt orört.
+   - **Ren infografik/spec-diagram** (mätdiagram, storleksjämförelse, mest text och pilar — inget egentligt produktfoto) → **ta bort bilden ur galleriet** i stället för att tvätta; informationen hör hemma som text under "Tekniska specifikationer", inte som bild.
+   - **Innan du tar bort en bild:** kontrollera om den är `linkedMedia` för ett variantval — koppla i så fall om valet till en annan lämplig galleribild (Steg 6B) eller flagga, annars tappar färg-/modellvalet sitt bildbyte tyst.
+
+**Metod A – Wix Generate Image (REKOMMENDERAD, samma mekanism som Steg 3c):**
+
+Samma `POST .../generate-image` → polla `GET .../generated-image/{executionId}` som i Steg 3c, men med en **tvätt-prompt** som uttryckligen **bevarar** bakgrunden i stället för att byta till vit:
+
+> Remove ALL burned-in text, captions, labels, callouts, banners, badges, and graphic overlays from this photo. Keep the photographed product (**&lt;beskriv produkten kort&gt;**), its real background, lighting, shadows, and any people or hands shown, completely unchanged and identical — do not add, remove, redraw, recolor, or restyle any physical part. The final image must be the plain, clean original photograph with zero text or graphic overlays anywhere. Do NOT change the background to white — preserve the original background exactly as photographed. High resolution, professional product photography.
+
+Samma **guardrail som Steg 3c gäller alltid**: `Read` resultatet sida-vid-sida mot originalet innan det används — faktatrohet går alltid före ren bild.
+
+> **Verifierat (2026-07-08):** 19 bilder tvättade troget över ett helt produktbatch (cykelhandtag, cykelpump, sadelväska, cykelverktyg, sadel, kolfiberpedaler, glasögon, ryggsäck) — handhållna närbilder, person i rörelse, regn, trä-/stenbakgrund. Text/banderoller borta, produkt och bakgrund identiska i alla sida-vid-sida-jämförelser.
+
+> **Hastighetsgräns:** `generate-image`-endpointen kan bli hastighetsbegränsad efter många anrop i rad, och avkylningen kan ta **flera minuter** (upplevt: >10 min, inte bara en kort burst-gräns) — planera batchar om **3–6 anrop åt gången**. Misslyckas ett jobb (`status:"FAILED"`): försök om **en gång**; misslyckas det igen → **ta bort bilden** ur galleriet i stället för att fastna i en retry-loop mot en fortsatt begränsad endpoint. Den kan alltid läggas till igen senare.
+
+**Metod B – manuell text-täckning (fallback – bara om Metod A är otillgänglig/hastighetsbegränsad och bakgrunden är helt slät/enfärgad):**
+
+Täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). Fungerar bara för släta studiobakgrunder — för komplexa/röriga bakgrunder utan Metod A tillgänglig, ta bort bilden i stället för att riskera ett klumpigt manuellt utklipp.
+
+**Så här sätts resultatet in (båda metoderna):**
+
+3. Metod A ger ett `fileId` direkt (ingen uppladdning behövs); Metod B laddas upp med `mcp__Wix__UploadImageToWixSite` → ny `static.wixstatic.com`-URL/fileId.
+4. Ersätt item:et på **samma position** i `itemsInfo.items` med det **fullständiga item-objektet** (inte bara `url`+`altText` — det är det verifierat fungerande formatet från denna sessions PATCH:ar): `{ "id": "<fileId>", "altText": "<svensk alt>", "mediaType": "IMAGE", "image": { "id": "<fileId>", "url": "https://static.wixstatic.com/media/<fileId>", "altText": "<svensk alt>" } }` i Steg 3-PATCH:en. Verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
 5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
 
 > **Rör inte loggor som sitter fysiskt PÅ produkten** — varken etablerade märken (t.ex. Pagani Design på urtavlan) eller dropship-märken som är tryckta/graverade på själva varan: kunden får produkten med loggan, och en bortretuscherad logga vore vilseledande. Tvätten gäller **overlay-grafik** (pålagd text/logga/vattenstämpel i bildfilen, inte på varan). Är en dropship-logga tryckt på varan: flagga till Leonard (produkten kanske ska bytas ut i sortimentet). Osäker på om något ska tvättas? Flagga med före/efter-preview i chatten.
@@ -211,7 +234,29 @@ Klassa varje bild utifrån Steg 1b-granskningen:
 - **Nyttig kontextbild** (detalj, i-bruk, skala, storleksjämförelse) → **behåll**, tvätta bara logga/inbränd text (Steg 3b). **Vitmåla inte** — kontexten säljer, och komplexa bilder är där urklippet riskerar klippa kablar/smådelar.
 - **Text-tung infografik** → ta bort/flagga (som Steg 3b).
 
-**Metod (bakgrundsbyte → vit):**
+**Metod A – Wix Generate Image (REKOMMENDERAD – server-side AI, ingen uppladdning):**
+
+Wix egen AI byter bakgrund **server-side** och sparar resultatet **direkt i Media Manager** (du får ett `fileId` – **ingen base64-uppladdning**). Fördelar: den klarar det u2net INTE klarar — **mörk-på-mörk + tunna slangar/kablar/lösa klämmor** renderas rent — och utdata blir **~1024 px** (skarpare än en 800 px-källa). Detta är standardvägen för vita hjältar.
+
+```
+POST https://www.wixapis.com/social-publisher/v1/generate-image
+  body: { "userInput": "<prompt nedan>", "imageUrl": "<wixstatic-url på originalhjälten, UTAN transform>" }
+  → { executionId }
+GET  https://www.wixapis.com/social-publisher/v1/generated-image/{executionId}   // polla tills status=READY (async ~10–30 s)
+  → { status:"READY", imageUrl, fileId }
+```
+
+Prompt-mall (låser produkten, byter bara bakgrund — fyll i produktspecifika delar):
+
+> Replace ONLY the background with a clean pure white (#FFFFFF) studio background and add a soft realistic contact shadow beneath the product. Keep the product itself completely unchanged and identical: same shape, proportions, display, buttons, **&lt;slang/klämmor/lins/portar…&gt;**, text, logos and colors. Do not add, remove, redraw, or restyle any part of the product. Professional e-commerce product photo, product centered, high resolution.
+
+Sätt sedan `fileId` som hjälte-item (position 0) i `media.itemsInfo.items` (samma PATCH-mönster som nedan) — ingen uppladdning behövs.
+
+> **Guardrail (obligatoriskt – generativ AI):** ladda ner resultatet, `Read` det och **jämför sida-vid-sida mot originalet**. Verifiera att INGEN produktdetalj ändrats (knappar, text, form, färg, antal delar, loggor). Ser något omritat/tillagt/borttaget ut → generera om med skarpare prompt, annars behåll originalet. **Faktatrohet går alltid före vit bakgrund.** *(Verifierat troget på Baseus kompressor `1dbdec91`, startbooster `86408870`/`63b38487`, bilkamera `e3c3df4c` — inkl. slang/klämmor som u2net ghostade/tappade.)*
+
+**Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
+
+Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
 
 ```bash
 # u2net-modellen (rembg) hämtas EN gång och cachas i ~/.u2net/u2net.onnx.
@@ -320,6 +365,18 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 > Skicka `options` **komplett** (alla optioner och val, inte bara det du ändrar) och `variantsInfo` exakt som det kom från GET — annars svarar V3 428 `MISSING_VARIANT_OPTION_CHOICE`. Bilden måste redan ligga i produktens media-pool (den gör den efter import).
 
+**C) Ta bort bilder för modeller/varianter som inte finns eller är slutsålda.** Rå-importer buntar ibland flera modeller/storlekar under EN listning och släpar med leverantörens **spec-ark för varianter som inte säljs**. Regel: när du SEO-polerar och en variant/modell **inte finns eller är slut hos leverantören**, ta bort **både** valet (om det finns som option) **och dess bilder** — spec-ark, variantfoton och ev. `linkedMedia` — och skriv SEO/specar efter bara det som är kvar.
+
+**Facit för vad som faktiskt lagerförs = `supplierVariantId` i mappningen — INTE marknadsbilderna** (de delas ofta mellan alla varianter i annonsen och ljuger om storlek/modell). Slå upp mappningen (read-only):
+
+```
+GET https://www.wixapis.com/data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings
+```
+
+Läs `data.variants[].supplierVariantId` (t.ex. `14:29#3.2 m;…` → varianten som skeppas är **3,2 m**). Behåll bara den variantens spec-ark + de hjälte-/livsstilsbilder som stämmer; ta bort spec-arken för övriga modeller. **Kolla även inbrända siffror** på behållna livsstils-/förpackningsbilder — motsäger de kvarvarande varianten (t.ex. bärväske-mått/vikt för fel storlek) → ta bort dem också, annars krockar bilden med beskrivningen.
+
+> **Lärdom (tält `2d83ad12`):** listningen buntade **6 tältmodeller** som spec-bilder men bara **3,2 m**-varianten (`14:29#3.2 m`) var mappad/lagerförd. En delad bärväske-marknadsbild matchade 4,0 m och lurade första bedömningen — `supplierVariantId` var facit. Kolla ALLTID mappningen på multi-modell-listningar **innan** du väljer bilder och låser specar.
+
 -----
 
 ## Klart-kriterium
@@ -328,7 +385,8 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 - Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 1b) och **har kvar sina URL:er**.
 - Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
 - **Inga exakta dubblettbilder** kvar i galleriet — behåll en, ta bort resten (`linkedMedia` omkopplat först); de borttagna frigörs i orphan-svepen.
-- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad.
+- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad. *(Vit hjälte skapas via Steg 3c Metod A – Wix Generate Image – även för mörk-på-mörk med slang/kablar; resultatet jämförs mot originalet för faktatrohet.)*
+- På **multi-modell-listningar**: bara den **lagerförda variantens** bilder/spec-ark finns kvar — övriga modellers spec-ark borttagna, matchat mot mappningens `supplierVariantId` (Steg 6C), och inga inbrända siffror på kvarvarande bilder motsäger varianten.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
 - Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
