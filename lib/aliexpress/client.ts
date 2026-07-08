@@ -511,11 +511,14 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
     const phone = (addr.phone ?? "").trim();
 
     // aliexpress.ds.order.create tar ALLA orderfält i ETT enda JSON-inkapslat
-    // affärsparameter: `param_place_order_request4_open_api_dto` med
-    // `logistics_address` + `product_items`. Tidigare skickades fälten platt
-    // (product_id/sku_id/address/...) → AliExpress svarade "MissingParameter:
-    // param_place_order_request4_open_api_dto" och INGEN order lades. Byggs som
-    // ren funktion (buildPlaceOrderDto) så DTO-formen kan låsas i test.
+    // affärsparameter med `logistics_address` + `product_items`. VIKTIGT om namnet:
+    // AliExpress snake_case:ar Java-fältet `paramPlaceOrderRequest4OpenApiDTO` genom
+    // att sätta "_" före VARJE versal → wire-namnet blir
+    // `param_place_order_request4_open_api_d_t_o` (D, T, O var för sig), INTE
+    // `...api_dto` som docs skriver för läsbarhet. Skickade vi `...api_dto` svarade
+    // AliExpress "MissingParameter: param_place_order_request4_open_api_d_t_o" och
+    // ingen order lades. Byggs som ren funktion (buildPlaceOrderDto) så DTO-formen
+    // kan låsas i test.
     const dto = buildPlaceOrderDto({
       productId: params.productId,
       quantity: params.quantity,
@@ -530,7 +533,7 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
       buyerMessage: params.buyerMessage,
     });
     const bizParams: Record<string, string> = {
-      param_place_order_request4_open_api_dto: JSON.stringify(dto),
+      param_place_order_request4_open_api_d_t_o: JSON.stringify(dto),
     };
 
   const raw = await callApi<RawOrderCreate>("aliexpress.ds.order.create", bizParams);
