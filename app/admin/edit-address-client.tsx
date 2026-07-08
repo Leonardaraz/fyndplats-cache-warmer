@@ -15,6 +15,7 @@ const FIELDS: { key: keyof ShippingAddress; label: string; placeholder?: string 
   { key: "addressLine2", label: "Adressrad 2 (valfri)" },
   { key: "postalCode", label: "Postnummer" },
   { key: "city", label: "Ort" },
+  { key: "province", label: "Län / region (AliExpress kräver)", placeholder: "t.ex. Stockholm" },
   { key: "country", label: "Land (t.ex. SE)", placeholder: "SE" },
   { key: "phone", label: "Telefon (valfri)" },
 ];
