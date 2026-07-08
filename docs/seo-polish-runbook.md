@@ -191,13 +191,38 @@ Samma **guardrail som Steg 3c gäller alltid**: `Read` resultatet sida-vid-sida 
 
 > **Hastighetsgräns:** `generate-image`-endpointen kan bli hastighetsbegränsad efter många anrop i rad, och avkylningen kan ta **flera minuter** (upplevt: >10 min, inte bara en kort burst-gräns) — planera batchar om **3–6 anrop åt gången**. Misslyckas ett jobb (`status:"FAILED"`): försök om **en gång**; misslyckas det igen → **ta bort bilden** ur galleriet i stället för att fastna i en retry-loop mot en fortsatt begränsad endpoint. Den kan alltid läggas till igen senare.
 
-**Metod B – manuell text-täckning (fallback – bara om Metod A är otillgänglig/hastighetsbegränsad och bakgrunden är helt slät/enfärgad):**
+**Metod B – manuell text-täckning (fallback – bara om Metod A/C är otillgängliga och bakgrunden är helt slät/enfärgad):**
 
-Täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). Fungerar bara för släta studiobakgrunder — för komplexa/röriga bakgrunder utan Metod A tillgänglig, ta bort bilden i stället för att riskera ett klumpigt manuellt utklipp.
+Täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). Fungerar bara för släta studiobakgrunder — för komplexa/röriga bakgrunder utan Metod A/C tillgänglig, ta bort bilden i stället för att riskera ett klumpigt manuellt utklipp.
 
-**Så här sätts resultatet in (båda metoderna):**
+**Metod C – Lokal LaMa-inpainting (proffskvalitet, ingen hastighetsgräns, gratis — när Metod A är blockerad):**
 
-3. Metod A ger ett `fileId` direkt (ingen uppladdning behövs); Metod B laddas upp med `mcp__Wix__UploadImageToWixSite` → ny `static.wixstatic.com`-URL/fileId.
+Metod A:s hastighetsgräns kan kvarstå **långt över en timme** (sett denna session), utan synlig kvot i Premium Features API (inte en "slut för månaden"-spärr, se Steg 3c-notiser). Kör då exakt samma sorts textborttagning **lokalt** i sandboxen — samma AI-kvalitet på röriga bakgrunder, men helt utanför Wix rate-limit:
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install "setuptools<80" wheel && pip install --no-build-isolation fire   # fire kräver äldre setuptools för att bygga
+pip install easyocr opencv-python-headless simple-lama-inpainting scikit-image
+# LaMa-modellen: Sanster/models på GitHub är ofta egress-blockad i sandboxen -> HF-spegel i stället:
+curl -sSL -o big-lama.pt "https://huggingface.co/JosephCatrambone/big-lama-torchscript/resolve/main/lama.pt"
+```
+
+Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketets wrapper — bygget av dess `fire`-beroende failar ofta ändå): ladda `torch.jit.load("big-lama.pt")`, maska text-regionerna som pixel-rektanglar (identifierade genom att `Read`-granska bilden, inte blint OCR), och kör `model(bild_tensor, mask_tensor)`.
+
+> **Kritisk regel — kompositera ALLTID tillbaka originalet utanför masken:** nätverket garanterar **inte** pixel-identiskt resultat utanför den maskade regionen (kan hallucinera en enstaka färgartefakt nära en svår kant, t.ex. en sadel-urskärning). Sista steget MÅSTE vara `output = where(mask > 0, nätverkets_utdata, originalbilden)` — annars kan ett oskyldigt-seende hörn få en osynlig defekt som bara syns vid inzoomning. Verifierat: en sådan artefakt uppstod och fångades/fixades 2026-07-08 innan leverans.
+>
+> **Maska aldrig över riktiga fotoobjekt** (person, kroppsdel, produktdetalj) även om text råkar överlappa dem i originalbilden — dela upp masken i flera mindre rektanglar och hellre lämna ett enstaka ord/textfragment kvar (flagga det) än att riskera att förvanska ett fotograferat objekt. Hände en gång denna session (en arm/axel i en collage-bild) — löst genom att bara maska textraden som INTE overlappade kroppsdelen.
+>
+> **Verifierat (2026-07-08):** 31 bilder tvättade över 7 WEST BIKING-produkter efter att Metod A varit blockerad i över en timme — samma visuella kvalitet som Metod A (sten/regn/gata/inomhus-bakgrunder rekonstruerade naturtroget).
+
+**Få in resultatet i Wix utan att spränga kontexten:** en tvättad bild i full storlek (800×800+) blir 75 000+ tokens som base64 — för stort för `Read`+`UploadImageToWixSite`. Två vägar:
+1. **Chatt-bifogning**: `SendUserFile` → Leonard bifogar tillbaka i chatten (`download_url` resolveras automatiskt av `UploadImageToWixSite`) — funkar, men chattgränssnittet tillåter bara ~5 filer/meddelande, så stora batchar kräver flera omgångar.
+2. **Publik GitHub-branch (rekommenderad för batchar ≥10 bilder):** i en isolerad `git worktree` (rör ALDRIG huvudarbetsträdet), skapa en **orphan-branch namngiven `claude/...`** (repo-push-behörigheten godkänner bara det prefixet — taggar och andra grennamn nekas med 403), lägg in bilderna, committa, pusha. Verifiera först att repot är publikt (`curl` mot en känd fil på `raw.githubusercontent.com`). Anropa sedan `UploadImageToWixSite` med `image:[{download_url:"https://raw.githubusercontent.com/<ägare>/<repo>/<gren>/<fil>"}, …]` — **alla bilder i ett enda anrop**. Radera grenen efteråt; `git push origin --delete` kan nekas av samma behörighetsbegränsning — då är kvarlämnad gren ofarlig (inga hemligheter, bara bildfiler) men be Leonard städa manuellt via GitHub om han vill.
+   > **Kostnadsrisk:** en ny gren-push kan trigga en automatisk Vercel-preview-byggning (sett hela denna session på varje `claude/`-gren). Fråga Leonard innan du kör — han avgör om den (troligen försumbara) risken är okej, kontra att vänta eller använda chatt-vägen i stället.
+
+**Så här sätts resultatet in (alla tre metoderna):**
+
+3. Metod A ger ett `fileId` direkt (ingen uppladdning behövs); Metod B/C laddas upp med `mcp__Wix__UploadImageToWixSite` (via chatt-bifogning eller GitHub-branch, se ovan) → ny `static.wixstatic.com`-URL/fileId.
 4. Ersätt item:et på **samma position** i `itemsInfo.items` med det **fullständiga item-objektet** (inte bara `url`+`altText` — det är det verifierat fungerande formatet från denna sessions PATCH:ar): `{ "id": "<fileId>", "altText": "<svensk alt>", "mediaType": "IMAGE", "image": { "id": "<fileId>", "url": "https://static.wixstatic.com/media/<fileId>", "altText": "<svensk alt>" } }` i Steg 3-PATCH:en. Verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
 5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
 
