@@ -128,8 +128,11 @@ Cheat-sheet (runbooken styr i detalj):
   `linkedMedia` FÖRST, koppla om valet). Radera **inte** filen direkt — borttagen blir den
   föräldralös och frigörs i orphan-svepen. Se runbook Steg 3.
 - **Steg 3b – Tvätta bort dropship-loggor/vattenstämplar/inbränd text** (spanska, engelska,
-  kinesiska …) där bakgrunden är slät; rörig bakgrund/infografik → ta bort ur galleriet eller
-  flagga. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3b.
+  kinesiska …) med **Metod A (Wix Generate Image)** — klarar numera även **röriga/komplexa
+  bakgrunder** (person, regn, trä/sten), inte bara släta studiobakgrunder; Metod B (manuell
+  täckning) är fallback endast för släta bakgrunder. Ren **infografik/spec-diagram** → ta bort
+  ur galleriet (info hör hemma som text). Original raderas aldrig; `linkedMedia` kopplas om.
+  Se runbook Steg 3b.
 - **Steg 3c – Ren vit hjältebild** (premium): är hjältebilden en ren produktbild på ful/mörk/rörig
   bakgrund → klipp ut produkten (rembg/u2net) och lägg på **vit + mjuk skugga**, ~82 % av en 1:1-ruta;
   loggan i bakgrunden försvinner automatiskt. Nyttiga kontextbilder behålls (bara tvättade),
