@@ -586,6 +586,29 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
  * `province`/`phone_country` skickas tomma (SE/EU-flödet; delstatskrävande
  * länder blockeras redan ovan) så fälten finns men inte gissas.
  */
+/**
+ * Translittererar till ren ASCII (Latin). AliExpress order-create avvisar
+ * icke-engelska tecken ("Please use English only") → svenska adresser med å/ä/ö
+ * (Norrgårdsvägen, Åkersberga, Sjöström) fälls annars. Paketet levereras ändå:
+ * postnumret routar det och ASCII-translitterering är standard för internationell
+ * frakt till Sverige. OBS: används ENBART för AliExpress-anropet — vår egen
+ * lagrade adress/mejl behåller den korrekta svenska stavningen.
+ */
+export function toAsciiLatin(input: string): string {
+  if (!input) return input;
+  const map: Record<string, string> = {
+    å: "a", ä: "a", ö: "o", Å: "A", Ä: "A", Ö: "O",
+    ø: "o", Ø: "O", æ: "ae", Æ: "AE", ß: "ss", đ: "d", Đ: "D", ł: "l", Ł: "L",
+  };
+  // 1) Explicita mappningar för ligaturer/egna bokstäver som NFD INTE delar upp
+  //    (æ, ø, ß, đ, ł). 2) NFD delar upp diakriter (é→e+́, ü→u+̈, ñ, ç, å, ä, ö …)
+  //    och en enda ASCII-grind slänger allt icke-utskrivbart-ASCII (kombinations-
+  //    tecknen + ev. kvarvarande icke-latinska tecken). Kvar: ren ASCII.
+  let s = input.replace(/[åäöÅÄÖøØæÆßđĐłŁ]/g, (c) => map[c] ?? c);
+  s = s.normalize("NFD").replace(/[^\x20-\x7E]/g, "");
+  return s.replace(/\s+/g, " ").trim();
+}
+
 export function buildPlaceOrderDto(p: {
   productId: string;
   quantity: number;
@@ -602,15 +625,17 @@ export function buildPlaceOrderDto(p: {
   logistics_address: Record<string, string>;
   product_items: Array<Record<string, string | number>>;
 } {
+  const memo = p.buyerMessage ? toAsciiLatin(p.buyerMessage) : "";
   return {
     logistics_address: {
-      address: p.address,
-      city: p.city,
+      // AliExpress kräver engelska/ASCII → translitterera fritextfälten.
+      address: toAsciiLatin(p.address),
+      city: toAsciiLatin(p.city),
       province: "",
       zip: p.zip,
       country: p.country,
-      contact_person: p.contactPerson,
-      full_name: p.contactPerson,
+      contact_person: toAsciiLatin(p.contactPerson),
+      full_name: toAsciiLatin(p.contactPerson),
       ...(p.phone ? { mobile_no: p.phone } : {}),
       phone_country: "",
     },
@@ -620,7 +645,7 @@ export function buildPlaceOrderDto(p: {
         product_count: p.quantity,
         sku_attr: p.skuId,
         logistics_service_name: p.logisticsServiceName,
-        ...(p.buyerMessage ? { order_memo: p.buyerMessage } : {}),
+        ...(memo ? { order_memo: memo } : {}),
       },
     ],
   };
