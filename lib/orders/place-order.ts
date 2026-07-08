@@ -131,10 +131,21 @@ export async function placeOrderForTask(store: Store, taskId: string): Promise<P
       },
     });
 
-    // FC: tomt order_id = OSÄKERT utfall (AE kan ha skapat ordern) → skriv inte status, flagga.
+    // Tomt order_id. Två fall:
+    //  a) AliExpress svarade UTTRYCKLIGEN misslyckat (is_success=false / felkod) →
+    //     INGEN order lades → släpp claimen så Leonard kan rätta + försöka igen direkt
+    //     (ingen låst task, ingen dubbel-order-risk). Orsaken visas i felmeddelandet.
+    //  b) Oklart svar (inget id, ingen felsignal) → en order KAN finnas → FC-vägen:
+    //     lås + flagga för manuell verifiering.
     if (!result.tradeOrderId) {
-      await markUncertain(store, taskId, "AliExpress gav inget order-id");
-      return { ok: false, error: "AliExpress gav inget order-id — verifiera manuellt på AliExpress innan nytt försök." };
+      const why = result.aeError ? ` (${result.aeError})` : "";
+      if (result.orderDefinitelyNotPlaced) {
+        await store.releaseTask(taskId, token);
+        await safeAudit(store, taskId, "order-rejected", `AliExpress avvisade ordern${why}`);
+        return { ok: false, error: `AliExpress avvisade ordern${why} — ingen order lades. Åtgärda och försök igen.` };
+      }
+      await markUncertain(store, taskId, `AliExpress gav inget order-id${why}`);
+      return { ok: false, error: `AliExpress svarade utan order-id${why} — verifiera manuellt på AliExpress innan nytt försök.` };
     }
 
     // Ordern ÄR lagd. Kolla om en annullering/återbetalning racade in MEDAN createOrder

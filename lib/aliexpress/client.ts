@@ -554,8 +554,26 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
         ? undefined
         : (result.order_id ?? (Array.isArray(ol) ? ol[0] : ol?.number?.[0]));
 
+    // Gav AliExpress inget order-id? Fånga ORSAKEN (error_msg/error_code) så den
+    // syns i admin + audit i stället för det intetsägande "inget order-id". Och
+    // avgör om vi VET att ingen order lades (is_success=false eller en felkod) →
+    // då kan claimen släppas för en säker retry i stället för att låsa tasken.
+    let aeError: string | undefined;
+    let orderDefinitelyNotPlaced = false;
+    if (orderIdRaw == null) {
+      const emsg = result.error_msg ? String(result.error_msg).trim() : "";
+      const ecode = result.error_code != null ? String(result.error_code) : "";
+      aeError = emsg || (ecode ? `felkod ${ecode}` : `oväntat svar (is_success=${String(isSuccess)})`);
+      orderDefinitelyNotPlaced = isSuccess === false || (ecode !== "" && ecode !== "0");
+      console.error(
+        `[aliexpress] createOrder: inget order_id. is_success=${String(isSuccess)} error_code=${ecode} error_msg=${emsg} result=${JSON.stringify(result).slice(0, 700)}`,
+      );
+    }
+
   return {
         tradeOrderId: orderIdRaw != null ? String(orderIdRaw) : "",
+        ...(aeError ? { aeError } : {}),
+        ...(orderDefinitelyNotPlaced ? { orderDefinitelyNotPlaced: true } : {}),
         paymentRequired: result.payment_required ?? true,
         paymentUrl: result.pay_url,
   };
