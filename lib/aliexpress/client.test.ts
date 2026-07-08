@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin, sanitizeZip } from "./client";
+import { resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin, sanitizeZip, phoneDialCode, normalizeMobile } from "./client";
 import { MemoryStore } from "../store/memory";
 
 describe("sanitizeZip — AliExpress postnummer: bara siffror/-//", () => {
@@ -7,6 +7,25 @@ describe("sanitizeZip — AliExpress postnummer: bara siffror/-//", () => {
     expect(sanitizeZip("184 36")).toBe("18436");
     expect(sanitizeZip("11122")).toBe("11122");
     expect(sanitizeZip("SE-184 36")).toBe("-18436");
+  });
+});
+
+describe("phoneDialCode / normalizeMobile — AliExpress phone_country ('enter a country code')", () => {
+  it("mappar land → dial-kod med plus", () => {
+    expect(phoneDialCode("SE")).toBe("+46");
+    expect(phoneDialCode("se")).toBe("+46"); // case-insensitiv
+    expect(phoneDialCode(" DE ")).toBe("+49"); // trimmas
+    expect(phoneDialCode("NO")).toBe("+47");
+    expect(phoneDialCode("GB")).toBe("+44");
+  });
+  it("returnerar undefined för omappat land (→ telefon utelämnas, inte fälld order)", () => {
+    expect(phoneDialCode("ZZ")).toBeUndefined();
+    expect(phoneDialCode("")).toBeUndefined();
+  });
+  it("tar bort landskod-nolla + icke-siffror ur numret", () => {
+    expect(normalizeMobile("0704806968")).toBe("704806968");
+    expect(normalizeMobile("070-480 69 68")).toBe("704806968");
+    expect(normalizeMobile("736630990")).toBe("736630990");
   });
 });
 
@@ -49,7 +68,9 @@ describe("buildPlaceOrderDto — aliexpress.ds.order.create request-shape", () =
       zip: "18436",
       contact_person: "Ann-Sofie Sjostrom",
       full_name: "Ann-Sofie Sjostrom",
-      mobile_no: "0704806968",
+      // Telefon: landskod-nolla bort + dial-kod separat (AliExpress "enter a country code").
+      mobile_no: "704806968",
+      phone_country: "+46",
     });
     expect(dto.product_items).toHaveLength(1);
     expect(dto.product_items[0]).toMatchObject({
@@ -62,14 +83,24 @@ describe("buildPlaceOrderDto — aliexpress.ds.order.create request-shape", () =
     expect(() => JSON.stringify(dto)).not.toThrow();
   });
 
-  it("utelämnar mobile_no när telefon saknas", () => {
+  it("utelämnar mobile_no + phone_country när telefon saknas", () => {
     const dto = buildPlaceOrderDto({
       productId: "P", quantity: 2, skuId: "S", logisticsServiceName: "X",
       address: "A", city: "C", province: "Stockholm", country: "SE", zip: "1", contactPerson: "N", phone: "",
     });
     expect(dto.logistics_address).not.toHaveProperty("mobile_no");
+    expect(dto.logistics_address).not.toHaveProperty("phone_country");
     expect(dto.logistics_address.province).toBe("Stockholm");
     expect(dto.product_items[0].product_count).toBe(2);
+  });
+
+  it("utelämnar telefonen för omappat land (ingen phone_country att skicka)", () => {
+    const dto = buildPlaceOrderDto({
+      productId: "P", quantity: 1, skuId: "S", logisticsServiceName: "X",
+      address: "A", city: "C", province: "P", country: "ZZ", zip: "1", contactPerson: "N", phone: "0701234567",
+    });
+    expect(dto.logistics_address).not.toHaveProperty("mobile_no");
+    expect(dto.logistics_address).not.toHaveProperty("phone_country");
   });
 });
 

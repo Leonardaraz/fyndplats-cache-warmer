@@ -585,8 +585,8 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
  * Bygger DTO:t för aliexpress.ds.order.create. Ren funktion → enhetstestbar
  * (låser fältnamnen som AliExpress kräver: sku_attr = leverantörens SKU-attr-
  * sträng, product_id/product_count per rad, logistics_address för leverans).
- * `province`/`phone_country` skickas tomma (SE/EU-flödet; delstatskrävande
- * länder blockeras redan ovan) så fälten finns men inte gissas.
+ * `mobile_no` + `phone_country` (dial-kod, ex "+46") skickas som PAR när telefon
+ * finns; saknas dial-kod för landet utelämnas telefonen helt.
  */
 /**
  * Translittererar till ren ASCII (Latin). AliExpress order-create avvisar
@@ -621,6 +621,38 @@ export function sanitizeZip(zip: string): string {
   return (zip ?? "").replace(/[^0-9/-]/g, "");
 }
 
+/**
+ * Telefonens landskod (dial code) per ISO alpha-2-land. AliExpress order-create
+ * KRÄVER `phone_country` när `mobile_no` skickas — annars svaras "Please enter a
+ * country code" och ingen order läggs. Formatet är dial-koden MED plus ("+46"),
+ * verifierat mot AliExpress DS-API-exempel (phone_country:"+1"). Täcker hela
+ * EU/EES + Norden + UK + US/CA så vilken kund som helst fungerar; ett omappat
+ * land ger `undefined` → telefonen utelämnas helt (icke-kritisk för leverans)
+ * i stället för att fälla ordern på den här grinden.
+ */
+const PHONE_DIAL_CODES: Record<string, string> = {
+  SE: "+46", NO: "+47", DK: "+45", FI: "+358", IS: "+354",
+  DE: "+49", FR: "+33", NL: "+31", BE: "+32", LU: "+352",
+  ES: "+34", IT: "+39", PT: "+351", GR: "+30",
+  PL: "+48", CZ: "+420", SK: "+421", HU: "+36", RO: "+40",
+  BG: "+359", HR: "+385", SI: "+386", AT: "+43", CH: "+41",
+  IE: "+353", GB: "+44", EE: "+372", LV: "+371", LT: "+370",
+  MT: "+356", CY: "+357", US: "+1", CA: "+1",
+};
+
+export function phoneDialCode(country: string): string | undefined {
+  return PHONE_DIAL_CODES[(country ?? "").trim().toUpperCase()];
+}
+
+/**
+ * Nationellt telefonnummer utan landskod: siffror + ev. nationell trunk-nolla
+ * bort (svensk "0704806968" → "704806968"), eftersom landskoden skickas separat
+ * i `phone_country`. AliExpress vill ha numret utan landskod (ex: "123-456-7890").
+ */
+export function normalizeMobile(phone: string): string {
+  return (phone ?? "").replace(/\D/g, "").replace(/^0/, "");
+}
+
 export function buildPlaceOrderDto(p: {
   productId: string;
   quantity: number;
@@ -639,6 +671,12 @@ export function buildPlaceOrderDto(p: {
   product_items: Array<Record<string, string | number>>;
 } {
   const memo = p.buyerMessage ? toAsciiLatin(p.buyerMessage) : "";
+  // Telefon skickas BARA tillsammans med sin landskod (phone_country) — AliExpress
+  // kräver "country code" när mobile_no finns. Saknas dial-kod för landet (omappat)
+  // utelämnas telefonen helt (icke-kritisk för leverans) hellre än att fälla ordern.
+  const dial = phoneDialCode(p.country);
+  const mobileNo = p.phone ? normalizeMobile(p.phone) : "";
+  const includePhone = Boolean(mobileNo && dial);
   return {
     logistics_address: {
       // AliExpress kräver engelska/ASCII → translitterera fritextfälten.
@@ -651,8 +689,8 @@ export function buildPlaceOrderDto(p: {
       country: p.country,
       contact_person: toAsciiLatin(p.contactPerson),
       full_name: toAsciiLatin(p.contactPerson),
-      ...(p.phone ? { mobile_no: p.phone } : {}),
-      phone_country: "",
+      // mobile_no + phone_country skickas som par (dial-kod "+46"), aldrig ensamt.
+      ...(includePhone ? { mobile_no: mobileNo, phone_country: dial } : {}),
     },
     product_items: [
       {
