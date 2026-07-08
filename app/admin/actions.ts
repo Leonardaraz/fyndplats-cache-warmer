@@ -74,6 +74,7 @@ export async function updateTaskAddressAction(
     addressLine2: cleanStr(address.addressLine2),
     postalCode: cleanStr(address.postalCode),
     city: cleanStr(address.city),
+    province: cleanStr(address.province),
     country: cleanStr(address.country)?.toUpperCase(),
     phone: cleanStr(address.phone),
   };

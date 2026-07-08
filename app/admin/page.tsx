@@ -129,15 +129,16 @@ export default async function AdminPage() {
                     Variant: {Object.entries(t.variantChoices).map(([k, v]) => `${k}: ${v}`).join(", ")}
                   </div>
                 ) : null}
-                {a && a.addressLine1 && a.city && a.postalCode ? (
+                {a && a.addressLine1 && a.city && a.postalCode && a.province ? (
                   <div style={{ fontSize: 13, color: "#666" }}>
                     Skickas till: {a.fullName}, {a.addressLine1}
-                    {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.country}
+                    {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.province}, {a.country}
                   </div>
                 ) : (
                   <div style={{ fontSize: 13, color: "#b45309" }}>
                     ⚠️ Ofullständig leveransadress
-                    {a ? `: ${[a.fullName, a.addressLine1, a.postalCode, a.city, a.country].filter(Boolean).join(", ")}` : ""} — komplettera med “Ändra adress” innan du lägger ordern.
+                    {a ? `: ${[a.fullName, a.addressLine1, a.postalCode, a.city, a.province, a.country].filter(Boolean).join(", ")}` : ""}
+                    {a && !a.province ? " (saknar län/region — AliExpress kräver det)" : ""} — komplettera med “Ändra adress” innan du lägger ordern.
                   </div>
                 )}
                 <EditAddressClient taskId={t.taskId} address={t.shippingAddress} />
