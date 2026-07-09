@@ -12,6 +12,11 @@
 
 import relatedFile from "../data/related-products.json";
 
+// Ren urvalslogik (universell-kategori-exkludering, pickRelated m.fl.) ligger i
+// ./related-pick (utan JSON/IO-import → enhetstestbar). Re-exporteras här så PDP:n
+// kan importera allt från ett ställe.
+export { pickRelated, universalCollectionIds, sharedCategoryCount } from "./related-pick";
+
 type RelatedFile = {
   generatedAt: string;
   model: string;

@@ -128,14 +128,28 @@ async function loadCatalog() {
 const catsOf = (p, catName) =>
   (p.collectionIds || []).map((c) => catName[c]).filter(Boolean).join(", ") || "okänd";
 
-// Kandidatmängd för en produkt: samma-kategori, i lager, förrankad på antal delade
-// kategorier och därefter prisnärhet. Kapad till MAX_CANDIDATES.
-function candidatesFor(p, all) {
-  const own = new Set(p.collectionIds || []);
+// "All Products"-liknande kategorier sitter på ~alla produkter och bär ingen
+// relevanssignal (audit 2026-07: en kategori täckte alla 420 produkter). Hitta dem
+// dynamiskt (≥90 % täckning) och räkna dem INTE som "samma kategori" — annars blir
+// kandidatmängden utspädd med orelaterade pris-grannar. Speglar universalCollectionIds
+// i lib/related-products.ts (samma logik på båda sidor).
+function universalIds(all) {
+  const count = new Map();
+  for (const p of all) for (const c of p.collectionIds || []) count.set(c, (count.get(c) || 0) + 1);
+  const threshold = all.length * 0.9;
+  const uni = new Set();
+  for (const [c, n] of count) if (n >= threshold) uni.add(c);
+  return uni;
+}
+
+// Kandidatmängd för en produkt: samma MENINGSFULLA kategori, i lager, förrankad på
+// antal delade kategorier och därefter prisnärhet. Kapad till MAX_CANDIDATES.
+function candidatesFor(p, all, universal) {
+  const own = new Set((p.collectionIds || []).filter((c) => !universal.has(c)));
   if (own.size === 0) return [];
   return all
     .filter((x) => x.slug !== p.slug && x.inStock)
-    .map((x) => ({ x, shared: (x.collectionIds || []).filter((c) => own.has(c)).length }))
+    .map((x) => ({ x, shared: (x.collectionIds || []).filter((c) => !universal.has(c) && own.has(c)).length }))
     .filter((r) => r.shared > 0)
     .sort((a, b) =>
       b.shared - a.shared ||
@@ -239,7 +253,8 @@ async function main() {
   console.log(`[related] model=${MODEL} effort=${EFFORT} budget=$${BUDGET} concurrency=${CONCURRENCY}${PROBE ? " PROBE" : ""}`);
   console.log("[related] laddar katalog…");
   const { products, catName } = await loadCatalog();
-  console.log(`[related] ${products.length} synliga produkter, ${Object.keys(catName).length} kategorier`);
+  const universal = universalIds(products);
+  console.log(`[related] ${products.length} synliga produkter, ${Object.keys(catName).length} kategorier, ${universal.size} universell(a) kategori(er) exkluderad(e)`);
 
   let queue = products;
   if (LIMIT !== Infinity) queue = queue.slice(0, LIMIT);
@@ -253,7 +268,7 @@ async function main() {
     if (spent >= BUDGET) { console.warn(`[related] BUDGET-CAP $${BUDGET} nådd vid ${i}/${queue.length} — avbryter`); break; }
     const chunk = queue.slice(i, i + CONCURRENCY);
     const results = await Promise.all(chunk.map(async (p) => {
-      const cands = candidatesFor(p, products);
+      const cands = candidatesFor(p, products, universal);
       if (cands.length < MIN_CANDIDATES) return { p, skip: true };
       try {
         const r = await pickFor(anthropic, p, cands, catName);
