@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
@@ -244,8 +245,21 @@ export function Gallery({
       const s = clamp(g.startScale * (dist(a, b) / g.startDist), 1, 4);
       setView((v) => ({ ...v, s }));
     } else if (g.mode === "pan") {
-      setView({ s: view.s, x: g.bx + (e.clientX - g.sx), y: g.by + (e.clientY - g.sy) });
-      g.moved = true;
+      // Klampa panoreringen så bildlagret ALLTID täcker scenen. Utan gräns kunde
+      // man dra bilden hur långt som helst → den mörka lightbox-bakgrunden blottas
+      // i kanterna ("grå bakgrund-rester på bilden", Leonards desktop-rapport). Vid
+      // skala s får lagret dras max (s−1)·halva scenen åt varje håll (samma gräns
+      // som toggleZoomAt:s hörn-zoom ger), annars glider en kant in i vyn.
+      const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const maxX = ((view.s - 1) * r.width) / 2;
+      const maxY = ((view.s - 1) * r.height) / 2;
+      const nx = clamp(g.bx + (e.clientX - g.sx), -maxX, maxX);
+      const ny = clamp(g.by + (e.clientY - g.sy), -maxY, maxY);
+      setView({ s: view.s, x: nx, y: ny });
+      // Räkna bara som "flyttad" över en liten tröskel. Annars markeras ett stilla
+      // klick (0–några px muspekar-jitter) som en pan, och toggle-ut-zoomen nedan
+      // körs aldrig → man fastnar inzoomad (Leonards desktop-buggrapport).
+      if (Math.abs(e.clientX - g.sx) > 8 || Math.abs(e.clientY - g.sy) > 8) g.moved = true;
     } else if (g.mode === "swipe") {
       if (Math.abs(e.clientX - g.sx) > 8 || Math.abs(e.clientY - g.sy) > 8) g.moved = true;
     }
@@ -261,7 +275,10 @@ export function Gallery({
       if (view.s <= 1.05) resetView(); // snäpp tillbaka om man nästan zoomat ut
       return;
     }
-    if (g.mode === "pan") return;
+    // pan: en riktig dragning panorerade redan under move → gör inget på up. Men ett
+    // stilla klick (moved=false) medan man är inzoomad ska toggla UT zoomen igen
+    // (toggleZoomAt nollställer när s>1.05) — annars går det bara att zooma in, aldrig ut.
+    if (g.mode === "pan") { if (!g.moved) toggleZoomAt(e); return; }
     // swipe: ren tap → toggla zoom kring tap-punkten; annars navigera/stäng
     if (!g.moved) { toggleZoomAt(e); return; }
     const dx = e.clientX - g.sx, dy = e.clientY - g.sy;
@@ -380,7 +397,16 @@ export function Gallery({
         </div>
       )}
 
-      {lightbox && (
+      {/* Lightboxen PORTAS till <body>. Annars renderas den som barn till den
+          sticky `.pdp>.gallery` (desktop) — och position:sticky bildar en egen
+          stacking-context som FÅNGAR lightboxens z-index:300 lokalt. Då kan den
+          inte lägga sig över gallerets PDP-syskon (rubrik-eyebrown "— FYNDPLATS —",
+          titeln, antal-minusknappen), som målas ovanpå den inzoomade bilden
+          (Leonards rapport: sidelement "följer med" in i zoomen). Via portal
+          hamnar den i rot-kontexten och täcker allt (inget annat når z-index 300).
+          Portalen når bara hit när lightbox===true, dvs efter klick på klienten,
+          så document.body finns alltid — ingen SSR-/hydrerings-risk. */}
+      {lightbox && createPortal(
         <div className="lightbox" onClick={() => setLightbox(false)} role="dialog" aria-modal="true" aria-label={alt}>
           <button className="lb-close" onClick={() => setLightbox(false)} aria-label="Stäng">✕</button>
           {imgs.length > 1 && (
@@ -409,7 +435,8 @@ export function Gallery({
           )}
           {imgs.length > 1 && <div className="lb-count">{active + 1} / {imgs.length}</div>}
           <div className="lb-hint" aria-hidden>Nyp för att zooma · svep ned för att stänga</div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
