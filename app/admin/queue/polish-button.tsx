@@ -3,6 +3,41 @@
 import { useState } from "react";
 
 /**
+ * Bygger polerings-prompten som kopieras till urklipp. Ren funktion → testbar +
+ * EN sanningskälla.
+ *
+ * DRIFT-SKYDD (varför den ser ut så här): prompten pekar på
+ * `docs/seo-polish-runbook.md` som ENDA auktoritet och räknar MEDVETET INTE upp
+ * runbookens steg med nummer. Tidigare listade den bara "Steg 1b/3b/3c + publicera"
+ * och hamnade ur synk när runbooken växte — chatten missade då sökordsvalidering
+ * (Steg 0), SKU-resync (2b), kategori (4) och varianter (6). Nu påminner den bara
+ * om de lätt-missade MOMENTEN (koncept, inte stegnummer), så den håller sig i synk
+ * även när runbooken numreras om.
+ */
+export function buildPolishPrompt(wixProductId: string, title?: string, sourceUrl?: string): string {
+  return [
+    "SEO-polera denna RÅ-importerade produkt.",
+    "FÖRST: läs HELA docs/seo-polish-runbook.md och följ ALLA steg i ordning, EXAKT —",
+    "hoppa inte över något. Runbooken (inte den här texten) är sanningskällan; listan",
+    "nedan är bara en påminnelse om de lätt-missade momenten:",
+    "• validera fokussökordet mot verklig sökdata INNAN du skriver något",
+    "• analysera ALLA bilder visuellt INNAN sökord/beskrivning/alt-texter",
+    "• tvätta bort dropship-loggor och inbränd text (spanska/engelska/kinesiska) där det går",
+    "• gör HJÄLTEBILDEN till en ren produktbild på vit studio-bakgrund (mjuk skugga) vid ful/mörk/rörig bakgrund — behåll nyttiga kontextbilder, släng infografik",
+    "• re-synka SKU till den nya sluggen",
+    "• koppla rätt kategori",
+    "• kontrollera varianterna (lager/dubbletter/koppling)",
+    "Granska resultatet med Read och PUBLICERA produkten (visible:true) först när allt är klart och verifierat.",
+    "",
+    `Wix-produkt-ID: ${wixProductId}`,
+    title ? `Titel (rå): ${title}` : null,
+    sourceUrl ? `AliExpress-källa: ${sourceUrl}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+/**
  * Knapp för RÅ-importerade produkter (AI_ENRICHMENT_ENABLED=false). Kopierar
  * produkt-info + Wix-ID till urklipp och visar instruktionen att klistra in i
  * Cowork-chatten och säga "polera denna". Poleringen körs gratis i chatten
@@ -20,32 +55,7 @@ export function PolishButton({
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const payload = [
-    "SEO-polera denna RÅ-importerade produkt.",
-    "FÖRST: läs och följ HELA docs/seo-polish-runbook.md, steg för steg, i den ordning de",
-    "står (Steg 0 t.o.m. Steg 6 + Klart-kriterium-listan sist) — hoppa inte över något steg",
-    "bara för att det inte räknas upp här. Särskilt lätta att missa om man jobbar från",
-    "minnet i stället för att läsa runbooken på nytt: Steg 0 (validera fokussökordet mot",
-    "verklig sökdata INNAN det låses), Steg 1b (ANALYSERA alla bilder visuellt INNAN du",
-    "skriver sökord/beskrivning/alt-texter), Steg 1c (ta bort döda/slutsålda varianter FÖRST",
-    "— kolla mappningens supplierVariantId + inStock; skriv aldrig copy eller spec-kort för en",
-    "variant som ändå ska bort; blir bara en kvar → kollapsa till enkel-variant-produkt),",
-    "Steg 2b (re-synka SKU:n till den NYA sluggen —",
-    "glöms lätt bort), Steg 3b (TVÄTTA bort dropship-loggor/vattenstämplar/inbränd text på",
-    "spanska/engelska/kinesiska där det går — funkar numera även på röriga/komplexa",
-    "bakgrunder, inte bara släta), Steg 3c (gör HJÄLTEBILDEN till en ren produktbild på vit",
-    "studio-bakgrund med mjuk skugga om originalet har ful/mörk/rörig bakgrund — behåll",
-    "nyttiga kontextbilder, släng ren infografik, granska ALLTID resultatet med Read före",
-    "det används), Steg 4 (koppla rätt kategori), Steg 6 (kolla lagerstatus/dubbletter/att",
-    "variant-bilder är korrekt kopplade), samt att PUBLICERA produkten (visible:true) när",
-    "allt är klart och verifierat.",
-    "",
-    `Wix-produkt-ID: ${wixProductId}`,
-    title ? `Titel (rå): ${title}` : null,
-    sourceUrl ? `AliExpress-källa: ${sourceUrl}` : null,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const payload = buildPolishPrompt(wixProductId, title, sourceUrl);
 
   async function onClick() {
     setFailed(false);

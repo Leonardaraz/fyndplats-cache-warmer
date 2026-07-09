@@ -476,26 +476,6 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 >
 > **Blir bara EN variant kvar → kollapsa hela optionen till en enkel-variant-produkt** (inte en option med ett enda val — ful dropdown). PATCH: `options:[]` + `variantsInfo.variants:[{ id:<behållna variantens id>, choices:[], sku, price, inventoryStatus }]` (V3 accepterar det; SKU blir `FP-<produkt>` utan variant-del). Byt **också** ut ev. feature-/hjältebilder som visar den BORTTAGNA variantens exemplar (t.ex. ett urklipp gjort ur den slutsålda modellens bild) mot den kvarvarande variantens — annars visar galleriet en produkt kunden inte kan köpa. Ta bort "två storlekar"/"Typ A/B"-språk ur namn, meta, beskrivning och FAQ.
 
-**Facit för vad som faktiskt lagerförs = `supplierVariantId` i mappningen — INTE marknadsbilderna** (de delas ofta mellan alla varianter i annonsen och ljuger om storlek/modell). Slå upp mappningen (read-only):
-
-```
-GET https://www.wixapis.com/data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings
-```
-
-Läs `data.variants[].supplierVariantId` (t.ex. `14:29#3.2 m;…` → varianten som skeppas är **3,2 m**). Behåll bara den variantens spec-ark + de hjälte-/livsstilsbilder som stämmer; ta bort spec-arken för övriga modeller. **Kolla även inbrända siffror** på behållna livsstils-/förpackningsbilder — motsäger de kvarvarande varianten (t.ex. bärväske-mått/vikt för fel storlek) → ta bort dem också, annars krockar bilden med beskrivningen.
-
-> **Lärdom (tält `2d83ad12`):** listningen buntade **6 tältmodeller** som spec-bilder men bara **3,2 m**-varianten (`14:29#3.2 m`) var mappad/lagerförd. En delad bärväske-marknadsbild matchade 4,0 m och lurade första bedömningen — `supplierVariantId` var facit. Kolla ALLTID mappningen på multi-modell-listningar **innan** du väljer bilder och låser specar.
-
------
-
-## Klart-kriterium
-
-- Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
-- Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 1b) och **har kvar sina URL:er**.
-- Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
-- **Inga exakta dubblettbilder** kvar i galleriet — behåll en, ta bort resten (`linkedMedia` omkopplat först); de borttagna frigörs i orphan-svepen.
-- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad. *(Vit hjälte skapas via Steg 3c Metod A – Wix Generate Image – även för mörk-på-mörk med slang/kablar; resultatet jämförs mot originalet för faktatrohet.)*
-- På **multi-modell-listningar**: bara den **lagerförda variantens** bilder/spec-ark finns kvar — döda/slutsålda varianter borttagna redan i **Steg 1c**, matchat mot mappningens `supplierVariantId` (mekanik i Steg 6C), och inga inbrända siffror på kvarvarande bilder motsäger varianten.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
 - Variantsaneringen (**Steg 1c**) och variantbildkopplingen (**Steg 6**) är gjorda, och produkten är **publicerad** (`visible:true`) som sista steg — annars syns den inte i butiken.

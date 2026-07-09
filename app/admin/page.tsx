@@ -4,8 +4,11 @@ import { getStore } from "@/lib/store/factory";
 import type { TaskStatus } from "@/lib/orders/types";
 import { paymentFeeFromEnv, pricingConfigFromEnv } from "@/lib/config";
 import { summarizeProductProfit } from "@/lib/analytics/profit";
-import { placeAliExpressOrderAction, markTaskOrderedAction } from "./actions";
+import { markTaskOrderedAction } from "./actions";
 import { SupplierOverrideClient } from "./supplier-override-client";
+import { PlaceOrderButton } from "./place-order-button";
+import { EditAddressClient } from "./edit-address-client";
+import { TaskRecoveryClient } from "./task-recovery-client";
 
 export const dynamic = "force-dynamic";
 
@@ -104,6 +107,7 @@ export default async function AdminPage() {
                   ].filter(Boolean).join(" · ")}
                   {t.aliexpressOrderId ? <> · AE-order: <code>{t.aliexpressOrderId}</code> (avbeställ manuellt)</> : null}
                 </div>
+                <TaskRecoveryClient taskId={t.taskId} hasAeOrder={Boolean(t.aliexpressOrderId)} />
               </li>
             ))}
           </ul>
@@ -113,7 +117,6 @@ export default async function AdminPage() {
       {pending.length > 0 ? (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {pending.map((t) => {
-            const placeAction = placeAliExpressOrderAction.bind(null, t.taskId);
             const a = t.shippingAddress;
             return (
               <li key={t.taskId} style={{ padding: "12px 0", borderBottom: "1px solid #eee" }}>
@@ -126,29 +129,20 @@ export default async function AdminPage() {
                     Variant: {Object.entries(t.variantChoices).map(([k, v]) => `${k}: ${v}`).join(", ")}
                   </div>
                 ) : null}
-                {a ? (
+                {a && a.addressLine1 && a.city && a.postalCode && a.province ? (
                   <div style={{ fontSize: 13, color: "#666" }}>
                     Skickas till: {a.fullName}, {a.addressLine1}
-                    {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.country}
+                    {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.province}, {a.country}
                   </div>
-                ) : null}
-                <form action={placeAction} style={{ marginTop: 6 }}>
-                  <button
-                    type="submit"
-                    style={{
-                      background: "#F47A35",
-                      color: "#fff",
-                      border: "none",
-                      padding: "6px 12px",
-                      borderRadius: 6,
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Lägg AliExpress-order
-                  </button>
-                </form>
+                ) : (
+                  <div style={{ fontSize: 13, color: "#b45309" }}>
+                    ⚠️ Ofullständig leveransadress
+                    {a ? `: ${[a.fullName, a.addressLine1, a.postalCode, a.city, a.province, a.country].filter(Boolean).join(", ")}` : ""}
+                    {a && !a.province ? " (saknar län/region — AliExpress kräver det)" : ""} — komplettera med “Ändra adress” innan du lägger ordern.
+                  </div>
+                )}
+                <EditAddressClient taskId={t.taskId} address={t.shippingAddress} />
+                <PlaceOrderButton taskId={t.taskId} />
                 <SupplierOverrideClient
                   taskId={t.taskId}
                   variantChoices={t.variantChoices}

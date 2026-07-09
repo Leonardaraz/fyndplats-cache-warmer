@@ -2,11 +2,28 @@ import { describe, expect, it } from "vitest";
 import {
   classifyWixEvent,
   deriveTasks,
+  deriveProvince,
   extractCancelOrderId,
   normalizeOrderEvent,
   normalizeCountryCode,
 } from "./tasks";
 import { parseWebhookBody } from "./webhook";
+
+describe("deriveProvince — AliExpress kräver län/state", () => {
+  it("mappar svenska ISO 3166-2-koder till AliExpress-läns-namn (ASCII)", () => {
+    expect(deriveProvince({ subdivision: "SE-AB" })).toBe("Stockholm");
+    expect(deriveProvince({ subdivision: "SE-M" })).toBe("Skane");
+    expect(deriveProvince({ subdivision: "SE-O" })).toBe("Vastra Gotaland");
+  });
+  it("faller tillbaka på subdivisionFullname utan län-suffix", () => {
+    expect(deriveProvince({ subdivisionFullname: "Stockholms län" })).toBe("Stockholms");
+    expect(deriveProvince({ subdivisionFullname: "Gotland County" })).toBe("Gotland");
+  });
+  it("saknat allt → undefined", () => {
+    expect(deriveProvince({})).toBeUndefined();
+    expect(deriveProvince(undefined)).toBeUndefined();
+  });
+});
 
 describe("normalizeCountryCode", () => {
   it("accepterar och versaliserar giltig ISO alpha-2", () => {
@@ -197,5 +214,96 @@ describe("deriveTasks", () => {
       country: "SE",
       phone: "+46700000000",
     });
+  });
+});
+
+// REGRESSION (order #10012): riktiga Fyndplats-ordrar lägger gatan i
+// `shippingInfo.logistics.shippingDestination.address.addressLine` (singular, INTE
+// addressLine1) och namnet i `contactDetails` (INTE contact), ofta med padding-
+// blanksteg. Den gamla extraktorn läste addressLine1/contact → tappade gata + namn
+// → tomt gatufält → F50-adressspärren blockerade AliExpress-ordern (tyst).
+const realOrderEnvelope = {
+  id: "evt-10012",
+  entityFqdn: "wix.ecom.v1.order",
+  slug: "approved",
+  entityId: "order-10012",
+  createdEvent: {
+    entity: {
+      id: "order-10012",
+      number: "10012",
+      lineItems: [
+        {
+          id: "l1",
+          productName: { original: "Hundvagn" },
+          quantity: 1,
+          physicalProperties: { sku: "FP-hundvagn-liten-hund-bla" },
+          // Riktig shape: options bär bara variantId, färgen ligger i descriptionLines.
+          catalogReference: { catalogItemId: "wp-1", options: { variantId: "4930dcb9" } },
+          descriptionLines: [{ name: { original: "Färg" }, color: "Blå", lineType: "COLOR" }],
+        },
+      ],
+      shippingInfo: {
+        logistics: {
+          shippingDestination: {
+            address: {
+              country: "SE",
+              subdivision: "SE-AB",
+              city: "Åkersberga ",
+              postalCode: "184 36 ",
+              addressLine: "Norrgårdsvägen 49 ",
+            },
+            contactDetails: { firstName: "Ann-Sofie ", lastName: "Sjöström ", phone: "0704806968" },
+          },
+        },
+      },
+    },
+  },
+};
+
+describe("extractAddress — riktig order-shape (addressLine/contactDetails, #10012-regression)", () => {
+  it("läser gata från addressLine, namn från contactDetails och trimmar padding", () => {
+    const ev = normalizeOrderEvent(realOrderEnvelope)!;
+    const tasks = deriveTasks(ev);
+    expect(tasks[0].shippingAddress).toEqual({
+      fullName: "Ann-Sofie Sjöström",
+      addressLine1: "Norrgårdsvägen 49",
+      addressLine2: undefined,
+      city: "Åkersberga",
+      province: "Stockholm", // härlett från subdivision SE-AB (AliExpress kräver län)
+      postalCode: "184 36",
+      country: "SE",
+      phone: "0704806968",
+    });
+  });
+
+  it("läser variantval (färg) från descriptionLines när options bara har variantId", () => {
+    const ev = normalizeOrderEvent(realOrderEnvelope)!;
+    const tasks = deriveTasks(ev);
+    // Utan denna extraktion blir variantChoices {} → placeOrderForTask kan inte
+    // matcha rätt AliExpress-SKU (Svart vs Blå) → ordern blockeras (silent).
+    expect(tasks[0].variantChoices).toEqual({ Färg: "Blå" });
+  });
+
+  it("läser gata från strukturerad streetAddress {name, number} som fallback", () => {
+    const env = {
+      ...realOrderEnvelope,
+      createdEvent: {
+        entity: {
+          ...realOrderEnvelope.createdEvent.entity,
+          shippingInfo: {
+            logistics: {
+              shippingDestination: {
+                address: { country: "SE", city: "Malmö", postalCode: "21100", streetAddress: { name: "Storgatan", number: "5" } },
+                contactDetails: { firstName: "Kim", lastName: "Berg" },
+              },
+            },
+          },
+        },
+      },
+    };
+    const ev = normalizeOrderEvent(env)!;
+    const tasks = deriveTasks(ev);
+    expect(tasks[0].shippingAddress?.addressLine1).toBe("Storgatan 5");
+    expect(tasks[0].shippingAddress?.fullName).toBe("Kim Berg");
   });
 });

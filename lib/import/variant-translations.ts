@@ -77,6 +77,115 @@ export const AXIS_TRANSLATIONS: Record<string, string> = {
   finish: "Finish",
   texture: "Textur",
   feature: "Egenskap",
+
+  // --- Djup utbyggnad (2026-07): fler verkliga AE-axelnamn. Axlar matchas
+  //     alltid FULLT (efter kolon-strip) → noll risk för token-krock; en okänd
+  //     axel faller som förut tillbaka på råvärdet. ---
+  // Belysning & el
+  "emitting color": "Ljusfärg",
+  "light color": "Ljusfärg",
+  "lamp color": "Ljusfärg",
+  "led color": "Ljusfärg",
+  "color temperature": "Färgtemperatur",
+  "bulb type": "Lamptyp",
+  "base type": "Sockel",
+  "lamp base": "Sockel",
+  "power source": "Strömkälla",
+  "power supply": "Strömförsörjning",
+  "battery type": "Batterityp",
+  "battery capacity": "Batterikapacitet",
+  "charging type": "Laddningstyp",
+  "charging method": "Laddningstyp",
+  frequency: "Frekvens",
+  current: "Strömstyrka",
+  amperage: "Strömstyrka",
+  "socket type": "Uttagstyp",
+  // Kablar & anslutning
+  connectivity: "Anslutning",
+  connection: "Anslutning",
+  "interface type": "Anslutning",
+  "wire length": "Kabellängd",
+  "cable length": "Kabellängd",
+  "cord length": "Kabellängd",
+  "hose length": "Slanglängd",
+  // Kompatibilitet (tillbehör/reservdelar)
+  compatibility: "Kompatibilitet",
+  "compatible model": "Passar modell",
+  "compatible models": "Passar modell",
+  "applicable model": "Passar modell",
+  "applicable models": "Passar modell",
+  "compatible brand": "Passar märke",
+  "phone model": "Telefonmodell",
+  "car model": "Bilmodell",
+  // Kläder, skor & smycken
+  "sleeve length": "Ärmlängd",
+  "heel height": "Klackhöjd",
+  "cup size": "Kupstorlek",
+  "shoe size": "Skostorlek",
+  "ring size": "Ringstorlek",
+  "metal color": "Metallfärg",
+  "stone color": "Stenfärg",
+  "gem color": "Stenfärg",
+  "main stone color": "Stenfärg",
+  "chain length": "Kedjelängd",
+  "band color": "Bandfärg",
+  "band width": "Bandbredd",
+  "band length": "Bandlängd",
+  "dial color": "Urtavlans färg",
+  "strap type": "Remtyp",
+  "hair color": "Hårfärg",
+  "hair length": "Hårlängd",
+  density: "Densitet",
+  fabric: "Tyg",
+  "fabric type": "Tyg",
+  // Möbler & material
+  "wood type": "Träslag",
+  "frame material": "Rammaterial",
+  "frame color": "Ramfärg",
+  "shaft material": "Skaftmaterial",
+  filling: "Fyllning",
+  firmness: "Fasthet",
+  hardness: "Hårdhet",
+  "load capacity": "Maxbelastning",
+  "max load": "Maxbelastning",
+  "bearing weight": "Maxbelastning",
+  "weight capacity": "Maxbelastning",
+  // Målgrupp & tillfälle
+  "applicable age": "Ålder",
+  "age range": "Ålder",
+  "recommended age": "Ålder",
+  "applicable gender": "Kön",
+  "applicable season": "Säsong",
+  occasion: "Tillfälle",
+  "applicable scene": "Tillfälle",
+  theme: "Tema",
+  character: "Figur",
+  // Övrigt vanligt
+  "wheel size": "Hjulstorlek",
+  "screen size": "Skärmstorlek",
+  "lens color": "Linsfärg",
+  "lenses color": "Linsfärg",
+  "item type": "Typ",
+  "product type": "Typ",
+  function: "Funktion",
+  mode: "Läge",
+  speed: "Hastighet",
+  level: "Nivå",
+  angle: "Vinkel",
+  side: "Sida",
+  temperature: "Temperatur",
+  packing: "Förpackning",
+  packaging: "Förpackning",
+  combination: "Kombination",
+  configuration: "Utförande",
+  "control type": "Styrning",
+  "mount type": "Fästtyp",
+  "filter type": "Filtertyp",
+  grit: "Kornstorlek",
+  language: "Språk",
+  certification: "Certifiering",
+  brand: "Märke",
+  print: "Tryck",
 };
 
 export const VALUE_TRANSLATIONS: Record<string, string> = {
@@ -400,6 +509,399 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   "cool light": "Kallt ljus",
   "white light": "Vitt ljus",
 
+  // ==========================================================================
+  // Djup utbyggnad (2026-07, efter lekhage-fyndet "4500-5500sq.in."): täck de
+  // vanligaste kvarvarande engelska AE-värdena. Samma regler som ovan gäller:
+  // ALLA lösa ord är token-säkra (entydiga oavsett kontext); allt tvetydigt
+  // ligger som HEL fras eller utelämnas medvetet (fel översättning är värre än
+  // kvarvarande engelska — svansen fångas av AI-fallbacken/poleringskön).
+  // Medvetet utelämnade + varför:
+  //   apple/cherry  → "Apple Watch"/"Cherry MX" (varumärken i kompat-värden)
+  //   plane         → hyvel vs flygplan ("airplane" finns i stället)
+  //   bag/box/case  → väska/påse/ask/fodral beror helt på produkten
+  //   cup/plate     → kopp vs kupa (BH), tallrik vs plätering ("Gold Plate")
+  //   lbs/lb/oz     → kräver OMRÄKNING (inte 1:1-namnbyte som inch→tum);
+  //                   lämnas → flaggas som engelska → AI/polering avgör
+  //   light/dark/deep/free/left/right/wide → sedan tidigare (se ovan)
+  // ==========================================================================
+
+  // --- Fler färger (fasta nyanser som annars blir halv-engelska) ---
+  apricot: "Aprikos",
+  peach: "Persika",
+  coral: "Korall",
+  salmon: "Laxrosa",
+  lavender: "Lavendel",
+  lilac: "Syrenlila",
+  teal: "Blågrön",
+  emerald: "Smaragdgrön",
+  "emerald green": "Smaragdgrön",
+  olive: "Olivgrön",
+  "olive green": "Olivgrön",
+  mustard: "Senapsgul",
+  // Bart "cream" är tvetydigt (färg/glass/hudkräm) → BARA fraser; ensamt värde
+  // lämnas → AI/polering. "Ice Cream" är egen fäll-fix längre ned.
+  "cream white": "Gräddvit",
+  "creamy white": "Gräddvit",
+  "off white": "Benvit",
+  "off-white": "Benvit",
+  "milk white": "Mjölkvit",
+  "milky white": "Mjölkvit",
+  "pearl white": "Pärlvit",
+  "snow white": "Snövit",
+  "pure white": "Helvit",
+  "matte white": "Mattvit",
+  "matte black": "Mattsvart",
+  // AE-stavfel för matte ("Mat Black") — annars token-fel via mat→Matta.
+  "mat black": "Mattsvart",
+  "mat white": "Mattvit",
+  "jet black": "Kolsvart",
+  "pure black": "Helsvart",
+  "glossy black": "Blanksvart",
+  "gloss black": "Blanksvart",
+  "dark red": "Mörkröd",
+  "dark brown": "Mörkbrun",
+  "light brown": "Ljusbrun",
+  "light yellow": "Ljusgul",
+  "baby blue": "Babyblå",
+  "baby pink": "Babyrosa",
+  "lake blue": "Sjöblå",
+  "ice blue": "Isblå",
+  "midnight blue": "Midnattsblå",
+  "sapphire blue": "Safirblå",
+  "cobalt blue": "Koboltblå",
+  "denim blue": "Jeansblå",
+  "grass green": "Gräsgrön",
+  "fruit green": "Äppelgrön",
+  "apple green": "Äppelgrön",
+  "dusty pink": "Gammalrosa",
+  "rose pink": "Rosenrosa",
+  bronze: "Brons",
+  graphite: "Grafitgrå",
+  charcoal: "Kolgrå",
+  gunmetal: "Stålgrå",
+  chrome: "Krom",
+  "smoke grey": "Rökgrå",
+  "smoke gray": "Rökgrå",
+  "antique brass": "Antik mässing",
+  "antique bronze": "Antik brons",
+  rainbow: "Regnbågsfärgad",
+  random: "Slumpmässig",
+  "random color": "Slumpmässig färg",
+  mixed: "Blandad",
+  "mixed color": "Blandade färger",
+  "mix color": "Blandade färger",
+
+  // --- "Som på bilden"-familjen (extremt vanlig på AE) ---
+  "as picture": "Som på bilden",
+  "as pictures": "Som på bilden",
+  "as shown": "Som på bilden",
+  "as picture shown": "Som på bilden",
+  "as the picture": "Som på bilden",
+  "picture color": "Som på bilden",
+  "photo color": "Som på bilden",
+  "same as picture": "Som på bilden",
+  "same as photo": "Som på bilden",
+
+  // --- Mönster ---
+  "leopard print": "Leopardmönster",
+  "zebra print": "Zebramönster",
+  camo: "Kamouflage",
+  floral: "Blommig",
+  flower: "Blomma",
+  striped: "Randig",
+  stripe: "Randig",
+  stripes: "Randig",
+  plaid: "Rutig",
+  checkered: "Rutig",
+  checked: "Rutig",
+  "polka dot": "Prickig",
+  dotted: "Prickig",
+  gradient: "Tonad",
+  "wood grain": "Trämönster",
+  marble: "Marmor",
+  // Fäll-fix: "solid" ensamt är tvetydigt (enfärgad vs massiv) → BARA fraser.
+  "solid color": "Enfärgad",
+  "solid wood": "Massivt trä",
+
+  // --- Fler material ---
+  oak: "Ek",
+  pine: "Furu",
+  walnut: "Valnöt",
+  birch: "Björk",
+  beech: "Bok",
+  "tempered glass": "Härdat glas",
+  "carbon fiber": "Kolfiber",
+  "carbon fibre": "Kolfiber",
+  alloy: "Legering",
+  "aluminum alloy": "Aluminiumlegering",
+  "aluminium alloy": "Aluminiumlegering",
+  "zinc alloy": "Zinklegering",
+  // Sadelskenor: AliExpress "Bow" (弓) = sadelns skenor. MÅSTE ligga som
+  // fullvärde-entries — annars halv-översätter token-matchen "Titanium Alloy Bow"
+  // till "Titanium Legering Bow" (bara "alloy" träffar). Axeln är "Material" →
+  // vi anger materialnamnet som värde (naturligast för kunden).
+  "carbon bow": "Kolfiber",
+  "cr-mo bow": "Cr-Mo-stål",
+  "cr-mo steel bow": "Cr-Mo-stål",
+  "chromoly bow": "Cr-Mo-stål",
+  "steel bow": "Stål",
+  "titanium bow": "Titan",
+  "titanium alloy bow": "Titanlegering",
+  "manganese steel bow": "Manganstål",
+  microfiber: "Mikrofiber",
+  flannel: "Flanell",
+  corduroy: "Manchester",
+  chiffon: "Chiffong",
+  lace: "Spets",
+  "faux leather": "Konstläder",
+  "artificial leather": "Konstläder",
+  "synthetic leather": "Konstläder",
+  "faux fur": "Fuskpäls",
+  fur: "Päls",
+  plush: "Plysch",
+  felt: "Filt",
+  foam: "Skum",
+  "memory foam": "Memoryskum",
+  resin: "Harts",
+  crystal: "Kristall",
+  rhinestone: "Strass",
+  "oxford cloth": "Oxfordväv",
+  "oxford fabric": "Oxfordväv",
+  "particle board": "Spånskiva",
+
+  // --- El, belysning & drivning ---
+  wired: "Trådbunden",
+  dimmable: "Dimbar",
+  "non-dimmable": "Ej dimbar",
+  "not dimmable": "Ej dimbar",
+  "with light": "Med belysning",
+  "with lights": "Med belysning",
+  "without light": "Utan belysning",
+  "with led": "Med LED",
+  "with led light": "Med LED-belysning",
+  "with music": "Med musik",
+  "with sound": "Med ljud",
+  music: "Musik",
+  batteries: "Batterier",
+  "no battery": "Utan batteri",
+  "battery powered": "Batteridriven",
+  "battery operated": "Batteridriven",
+  corded: "Med sladd",
+  cordless: "Sladdlös",
+  "plug in": "Nätdriven",
+  "plug-in": "Nätdriven",
+  "with plug": "Med kontakt",
+  "no plug": "Utan kontakt",
+  "without plug": "Utan kontakt",
+  "european plug": "EU-kontakt",
+  "no remote": "Utan fjärrkontroll",
+  solar: "Soldriven",
+  "app control": "Appstyrning",
+  "voice control": "Röststyrning",
+  "touch control": "Touchstyrning",
+  // Fäll-fix: skydda USB-namnen som HELA fraser, så generiska "Type A/B"
+  // (stil-varianter) kan token-översättas till "Typ A/B" utan att USB-värden
+  // blir "Typ-C".
+  "type-c": "Type-C",
+  "type c": "Type-C",
+  "type-a": "Type-A",
+  "type-b": "Type-B",
+  "usb type-c": "USB Type-C",
+  "usb type c": "USB Type-C",
+  type: "typ",
+
+  // --- Kvalificerare & egenskaper ---
+  "heavy duty": "Extra kraftig",
+  heavy: "Tung",
+  lightweight: "Lättvikt",
+  "light weight": "Lättvikt",
+  compact: "Kompakt",
+  big: "Stor",
+  "big size": "Stor",
+  "large size": "Stor",
+  "medium size": "Mellan",
+  "small size": "Liten",
+  "extra small": "Extra liten",
+  new: "Ny",
+  // Fäll-fix: stadsnamn ska inte token-översättas ("New York" ≠ "Ny York").
+  "new york": "New York",
+  style: "Stil",
+  upgrade: "Uppgraderad",
+  magnetic: "Magnetisk",
+  "self-adhesive": "Självhäftande",
+  adhesive: "Självhäftande",
+  "non-slip": "Halkfri",
+  "non slip": "Halkfri",
+  "anti-slip": "Halkfri",
+  "anti slip": "Halkfri",
+  shockproof: "Stöttålig",
+  dustproof: "Dammtät",
+  windproof: "Vindtät",
+  breathable: "Andningsbar",
+  washable: "Tvättbar",
+  "machine washable": "Maskintvättbar",
+  reusable: "Återanvändbar",
+  silent: "Tyst",
+  quiet: "Tyst",
+  mute: "Tyst", // AE-engelska för "tystgående" (fläktar/pumpar)
+  automatic: "Automatisk",
+  manual: "Manuell",
+  electric: "Elektrisk",
+  electronic: "Elektronisk",
+  mechanical: "Mekanisk",
+  hydraulic: "Hydraulisk",
+  heated: "Uppvärmd",
+  single: "Enkel",
+  double: "Dubbel",
+  dual: "Dubbel",
+  triple: "Trippel",
+  only: "endast",
+  none: "Ingen",
+  other: "Annan",
+
+  // --- Antal, delar & tillbehör ---
+  accessories: "Tillbehör",
+  accessory: "Tillbehör",
+  replacement: "Reserv",
+  spare: "Reserv",
+  "spare parts": "Reservdelar",
+  parts: "delar",
+  part: "del",
+  pieces: "st",
+  piece: "st",
+  sets: "set",
+  "full set": "Komplett set",
+  "complete set": "Komplett set",
+  rolls: "rullar",
+  roll: "rulle",
+  sheets: "ark",
+  layers: "lager",
+  layer: "lager",
+  "1 tier": "1 våning",
+  "2 tier": "2 våningar",
+  "3 tier": "3 våningar",
+  "4 tier": "4 våningar",
+  "5 tier": "5 våningar",
+  "6 tier": "6 våningar",
+  "with box": "Med ask",
+  "without box": "Utan ask",
+  "with gift box": "Med presentask",
+  "left side": "Vänster sida",
+  "right side": "Höger sida",
+
+  // --- Barnteman, djur & fordon (leksakskategorin) ---
+  boy: "Pojke",
+  girl: "Flicka",
+  boys: "Pojkar",
+  girls: "Flickor",
+  dinosaur: "Dinosaurie",
+  unicorn: "Enhörning",
+  butterfly: "Fjäril",
+  bee: "Bi",
+  ladybug: "Nyckelpiga",
+  owl: "Uggla",
+  giraffe: "Giraff",
+  shark: "Haj",
+  whale: "Val",
+  dolphin: "Delfin",
+  turtle: "Sköldpadda",
+  frog: "Groda",
+  horse: "Häst",
+  sheep: "Får",
+  cat: "Katt",
+  dog: "Hund",
+  // Fäll-fixar: lekmat + nätverkskablar ska inte bli djur.
+  "hot dog": "Varmkorv",
+  "cat 5": "Cat 5",
+  "cat 5e": "Cat 5e",
+  "cat 6": "Cat 6",
+  "cat 6a": "Cat 6a",
+  "cat 7": "Cat 7",
+  "cat 8": "Cat 8",
+  mouse: "Mus", // både djuret och datormusen heter "mus" på svenska
+  deer: "Hjort",
+  wolf: "Varg",
+  swan: "Svan",
+  hedgehog: "Igelkott",
+  octopus: "Bläckfisk",
+  crab: "Krabba",
+  fish: "Fisk",
+  bird: "Fågel",
+  snake: "Orm",
+  chicken: "Kyckling",
+  mermaid: "Sjöjungfru",
+  princess: "Prinsessa",
+  pirate: "Pirat",
+  car: "Bil",
+  truck: "Lastbil",
+  train: "Tåg",
+  airplane: "Flygplan",
+  rocket: "Raket",
+  boat: "Båt",
+  excavator: "Grävmaskin",
+  "fire truck": "Brandbil",
+  "police car": "Polisbil",
+  ambulance: "Ambulans",
+  star: "Stjärna",
+  moon: "Måne",
+  sun: "Sol",
+  heart: "Hjärta",
+  crown: "Krona",
+
+  // --- Kök & hem (vanliga värden i set-/tillbehörsaxlar) ---
+  bowl: "Skål",
+  spoon: "Sked",
+  knife: "Kniv",
+  chopsticks: "Ätpinnar",
+  mug: "Mugg",
+  teapot: "Tekanna",
+  kettle: "Vattenkokare",
+  lid: "Lock",
+  "with lid": "Med lock",
+  handle: "Handtag",
+  "with handle": "Med handtag",
+  "with wheels": "Med hjul",
+  shelf: "Hylla",
+  shelves: "Hyllor",
+  drawer: "Låda",
+  drawers: "Lådor",
+  hook: "Krok",
+  hooks: "Krokar",
+  // Fäll-fix: "Hook and Loop" = kardborre (stängningstyp), inte "Krok och Loop".
+  "hook and loop": "Kardborre",
+  "hook & loop": "Kardborre",
+  stand: "Ställ",
+  "with stand": "Med ställ",
+  tray: "Bricka",
+  basket: "Korg",
+  pillow: "Kudde",
+  cushion: "Dyna",
+  blanket: "Filt",
+  towel: "Handduk",
+  curtain: "Gardin",
+  mat: "Matta",
+  mirror: "Spegel",
+  lamp: "Lampa",
+  clock: "Klocka",
+  vase: "Vas",
+  "photo frame": "Fotoram",
+  "air fryer": "Airfryer",
+  blender: "Mixer",
+  "vacuum cleaner": "Dammsugare",
+  "hair dryer": "Hårtork",
+  // Fäll-fix: lekmat/glass — inte "Ice Gräddvit" (bart "cream" är uteslutet).
+  "ice cream": "Glass",
+
+  // --- Smaker & dofter (entydiga; apple/cherry utelämnade, se ovan) ---
+  vanilla: "Vanilj",
+  jasmine: "Jasmin",
+  lemon: "Citron",
+  strawberry: "Jordgubbe",
+  banana: "Banan",
+  grape: "Druva",
+  coconut: "Kokos",
+  chocolate: "Choklad",
+
   // --- Fordon/cykelställ (incident 2026-06-09: "Rear Wheel"/"U Type L Type Fork"
   //     skeppades engelska efter Haiku-eko). Fulla fraser där token-komposition
   //     ger bruten svenska (sammansatta ord: "Bakhjul", aldrig "Bak Hjul");
@@ -487,12 +989,14 @@ export function axisNameUnresolved(rawAxis: string, finalName: string): boolean 
 
 // --- Mått-/storleksdetektering (för felmärkta "Color"-axlar) ----------------
 
-// Värde som ENBART är ett mått: "42 in", "50 inch", "10 cm", `12"`.
+// Värde som ENBART är ett mått: "42 in", "50 inch", "10 cm", `12"` — samt
+// dimensionskedjor/intervall ("78.7x58.7in", "50-60 inch") och ytenheter
+// ("4500-5500sq.in.", lekhage-fyndet 2026-07).
 const MEASUREMENT_VALUE_RE =
-  /^\d+(?:[.,]\d+)?\s*(?:inches|inch|in|tum|cm|mm|ft|feet|["“”])$/i;
+  /^\d+(?:[.,]\d+)?(?:\s*[x×*\-–]\s*\d+(?:[.,]\d+)?)*\s*(?:inches|inch|in|tum|cm|mm|m|ft|feet|fot|sq\.?\s*in\.?|sq\.?\s*ft\.?|kvadrattum|kvadratfot|["“”])\.?$/i;
 // Rent storleks-label: S/M/L/XL-skalan, ord och universalstorlek.
 const SIZE_LABEL_RE =
-  /^(?:xxs|xs|s|m|l|xl|xxl|xxxl|[2-9]xl|small|medium|large|x-?large|free\s?size|one\s?size|onesize|plus\s?size)$/i;
+  /^(?:xxs|xs|s|m|l|xl|xxl|xxxl|[2-9]xl|(?:extra\s+)?small|medium|(?:extra\s+)?large|x-?large|free\s?size|one\s?size|onesize|plus\s?size)$/i;
 
 /**
  * True om SAMTLIGA värden på en axel ser ut som storlekar/mått (tum/cm/S–XL …)
@@ -515,6 +1019,9 @@ const COUNT_RE = /^(?:\d+\s*(?:pcs?|pieces?|packs?|pairs?|sets?)|(?:set|pack)\s+
 const VOLTAGE_RE = /^\d+\s*v(?:olt)?s?$/i; // "110V", "220 Volt"
 const STORAGE_RE = /^\d+\s*[gtm]b$/i; // "64GB", "1TB"
 const VOLUME_RE = /^\d+(?:[.,]\d+)?\s*(?:ml|cl|dl|l|lit(?:er|re)s?)$/i; // "500ml", "1.5L"
+const WATT_RE = /^\d+(?:[.,]\d+)?\s*w(?:att)?s?$/i; // "10W", "60 Watt"
+const KELVIN_RE = /^\d{3,5}\s*k$/i; // "3000K", "6500K" (LED-färgtemperatur; 3+ siffror så "18K"-guld inte träffas)
+const CAPACITY_RE = /^\d+(?:[.,]\d+)?\s*m?ah$/i; // "2000mAh", "5Ah" (batterier)
 
 /**
  * Bästa svenska axelnamn för en axel som översatts till "Färg" men vars värden
@@ -534,6 +1041,9 @@ export function inferMislabeledColorAxis(values: ReadonlyArray<string>): string 
   if (vals.every((v) => VOLTAGE_RE.test(v))) return "Spänning";
   if (vals.every((v) => STORAGE_RE.test(v))) return "Lagring";
   if (vals.every((v) => VOLUME_RE.test(v))) return "Volym";
+  if (vals.every((v) => WATT_RE.test(v))) return "Effekt";
+  if (vals.every((v) => KELVIN_RE.test(v))) return "Ljusfärg";
+  if (vals.every((v) => CAPACITY_RE.test(v))) return "Kapacitet";
   return null;
 }
 
@@ -552,6 +1062,38 @@ function formatMeters(m: number): string {
 
 const FT_IN_METERS = 0.3048;
 const YD_IN_METERS = 0.9144;
+
+/**
+ * Lägger m²-motsvarighet i parentes efter ett kvadrattum-/kvadratfot-värde
+ * (ev. x-separerad dimensionskedja med EN avslutande enhet):
+ * "4500-5500 kvadrattum" → "4500-5500 kvadrattum (2,9-3,5 m²)".
+ * Deterministisk omräkning (exakta faktorer, en decimal med komma) och BARA
+ * när HELA värdet är ett mått som slutar på enheten → aldrig parenteser mitt
+ * i fraser.
+ *
+ * OMFATTAR MEDVETET INTE tum/fot (bara kvadrattum/kvadratfot): tum/fot-kedjor
+ * äger appendInchDimensionMetric redan (samma cm-tillägg, annan formatering),
+ * och ENSTAKA tum-/fot-värden ska INTE få en parentes — det skulle krocka med
+ * den etablerade, testade policyn "RÖR INTE fristående tum (TV/skärm/hjul/rör
+ * — tum är rätt svensk enhet)" (Leonards val 2026-06-19). Leonards senare
+ * tomatstöd-önskemål (2026-07-02: "48 tum" borde få en cm-parentes) står
+ * alltså i olöst spänning mot 2026-06-19-policyn — samma värdeform ("48 tum")
+ * kan inte samtidigt få OCH inte få en parentes utan produktkategori-kontext
+ * som translateValue inte har. Flaggat till Leonard i stället för att tyst
+ * välja sida; se PR-beskrivningen.
+ */
+function appendMetric(value: string): string {
+  const m = value.trim().match(/^([\d.,\sx×*–-]+?)\s*(kvadrattum|kvadratfot)$/i);
+  if (!m) return value;
+  const each = (f: (n: number) => string) =>
+    m[1].replace(/\d+(?:[.,]\d+)?/g, (n) => f(parseFloat(n.replace(",", "."))));
+  const unit = m[2].toLowerCase();
+  const suffix =
+    unit === "kvadrattum"
+      ? `(${each((n) => (n * 0.00064516).toFixed(1).replace(".", ","))} m²)`
+      : `(${each((n) => (n * 0.09290304).toFixed(1).replace(".", ","))} m²)`;
+  return `${value.trim()} ${suffix}`;
+}
 
 /**
  * Konverterar en LÄNGD-enhet (fot ELLER yard) → meter med aritmetik, kedje-medvetet.
@@ -721,6 +1263,21 @@ function appendInchDimensionMetric(value: string): string {
  * ("Stativbas 6.5x10ft"), så utan efterbehandling kringgår AI-vägen enhets-
  * konverteringen och ft key-låses i Wix. Idempotent på redan-svenska värden
  * (nummer-ankrad) → säker även på cachade svar.
+ *
+ * Djup utbyggnad (2026-07, lekhage-fyndet "4500-5500sq.in."): ytenheter
+ * (sq.in./sq.ft/sq.m → kvadrattum/kvadratfot/kvadratmeter) körs FÖRE tum-passet
+ * så de inte äts upp, och glued antal/set-/pack-fraser normaliseras sist.
+ * Avslutas med metrisk parentes: appendMetric (kvadrattum/kvadratfot → m²) och
+ * appendInchDimensionMetric (tum-kedjor → ≈cm) är disjunkta i vilken enhet de
+ * matchar och krockar därför aldrig.
+ *
+ * OBS (olöst spänning, flaggad till Leonard): appendMetric lägger MEDVETET
+ * INTE en cm-parentes på enstaka tum-/fot-värden ("48 tum") — det skulle bryta
+ * den etablerade, testade policyn "RÖR INTE fristående tum (TV/skärm/hjul/rör)"
+ * (2026-06-19). Leonards senare tomatstöd-önskemål (2026-07-02: "48 tum" borde
+ * synas som cm) kräver egentligen produktkategori-kontext (tum är rätt enhet
+ * för en TV, fel för en tomatstödslängd) som denna rent värde-baserade funktion
+ * inte har — se appendMetric.
  */
 export function normalizeUnits(value: string): string {
   let v = convertLengthChainToMeters(
@@ -728,6 +1285,10 @@ export function normalizeUnits(value: string): string {
     "yards?|yds?",
     YD_IN_METERS,
   )
+    // Ytenheter FÖRE längdenheter, så "sq.in."/"square inch" inte äts upp som tum.
+    .replace(/(\d)\s*(?:sq\.?\s*in\.?|square\s+inch(?:es)?)/gi, "$1 kvadrattum")
+    .replace(/(\d)\s*(?:sq\.?\s*ft\.?|square\s+(?:feet|foot))/gi, "$1 kvadratfot")
+    .replace(/(\d)\s*(?:sq\.?\s*m\b\.?|square\s+met(?:er|re)s?)/gi, "$1 kvadratmeter")
     .replace(/(\d)\s*inches\b/gi, "$1 tum")
     .replace(/(\d)\s*inch\b/gi, "$1 tum")
     .replace(/(\d)\s*["“”]/g, "$1 tum");
@@ -767,9 +1328,25 @@ export function normalizeUnits(value: string): string {
   // skyddar "5in 1". Hoppar över värden med x-dimension (kedje-reglerna ovan
   // äger dem → undviker blandade enheter, jfr S-A).
   if (!/\d\s*[x×]\s*\d/.test(v)) v = v.replace(/(\d)in\b(?!\s*\d)/gi, "$1 tum");
-  const bare = v.trim().match(/^(\d+(?:[.,]\d+)?)\s*in$/i);
+  // Bart "NN in"/"NN in."/dimensionskedja+"in" som REGEL A/B ovan inte redan
+  // fångat (t.ex. mellanslag+avslutande punkt, "42 in."): bredare än REGEL B:s
+  // hopskrivna form — tillåter mellanslag OCH valfri avslutande punkt.
+  const bare = v
+    .trim()
+    .match(/^(\d+(?:[.,]\d+)?(?:\s*[x×*]\s*\d+(?:[.,]\d+)?)*)\s*in\.?$/i);
   if (bare) v = `${bare[1]} tum`;
-  return appendInchDimensionMetric(v);
+  // Hopskrivna antal ("2pcs"/"25 Pieces" → "2 st"/"25 st").
+  v = v.replace(/(\d)\s*(?:pcs\b|pc\b|pieces\b|piece\b)\.?/gi, "$1 st");
+  // Hela värdet är en set-/pack-fras → svensk form ("Set of 3" → "Set om 3",
+  // "Pack of 2" → "2-pack").
+  const setOf = v.trim().match(/^set\s+of\s+(\d+)$/i);
+  if (setOf) v = `Set om ${setOf[1]}`;
+  const packOf = v.trim().match(/^pack\s+of\s+(\d+)$/i);
+  if (packOf) v = `${packOf[1]}-pack`;
+  // appendMetric (kvadrattum/kvadratfot) och appendInchDimensionMetric (tum-
+  // kedjor) är disjunkta i vilken enhet de matchar → säkra att köra i valfri
+  // ordning, ingen dubbel-annotering.
+  return appendInchDimensionMetric(appendMetric(v));
 }
 
 /**
@@ -847,7 +1424,15 @@ export function stripLeadingSupplierCode(raw: string): string {
 }
 
 export function translateValue(raw: string): string {
-  const trimmed = normalizeUnits(stripLeadingSupplierCode(raw));
+  // Strippa ev. leverantörskod FÖRST ("ET507Black" → "Black"), sedan fullt
+  // match på RÅVÄRDET före all enhets-normalisering — skyddar fasta fraser som
+  // själva innehåller enhets-/antalsformer ("1pc 8mp poe camera", "5pc sets 3")
+  // från att brytas sönder av normalizeUnits count-regler.
+  const rawTrimmed = stripLeadingSupplierCode(raw).trim();
+  const fullRaw = VALUE_TRANSLATIONS[rawTrimmed.toLowerCase()];
+  if (fullRaw) return fullRaw;
+
+  const trimmed = normalizeUnits(rawTrimmed);
   const full = VALUE_TRANSLATIONS[trimmed.toLowerCase()];
   if (full) return full;
 

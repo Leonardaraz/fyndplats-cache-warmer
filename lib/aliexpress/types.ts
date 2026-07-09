@@ -49,6 +49,10 @@ export interface DsOrderCreateParams {
     addressLine1: string;
     addressLine2?: string;
     city: string;
+    /** Delstat/region (län). AliExpress kräver detta för leverans (annars
+     *  "Please select a state/province/region"). AliExpress-vänligt namn, t.ex.
+     *  "Stockholm" för Åkersberga (Stockholms län). */
+    province?: string;
     postalCode: string;
     countryCode: string;
     phone?: string;
@@ -65,6 +69,11 @@ export interface DsOrderCreateResult {
   /** Om true måste betalning göras manuellt i kassan */
   paymentRequired: boolean;
   paymentUrl?: string;
+  /** AliExpress fel-detalj (error_msg/error_code) när inget order-id gavs. */
+  aeError?: string;
+  /** true när AliExpress uttryckligen svarade misslyckat (is_success=false eller
+   *  felkod utan order-id) → INGEN order lades → säkert att släppa claimen. */
+  orderDefinitelyNotPlaced?: boolean;
 }
 
 export interface DsTrackingResult {

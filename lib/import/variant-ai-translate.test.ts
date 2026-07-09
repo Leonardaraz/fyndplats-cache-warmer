@@ -304,18 +304,21 @@ describe("buildVariantTranslatorAI — eko-asymmetri för VÄRDEN (incident 2026
 describe("buildVariantTranslatorAI — SVENSKHETS-GRINDEN (slutlig verifiering av skeppade värden)", () => {
   const noValueAI = async () => ({});
 
-  it("fångar heuristikens blinda fläck: VERSAL-engelska ('STRIPED') flaggas av grinden", async () => {
-    // "STRIPED" är all-caps → residual-heuristiken tolkar det som akronym/kod →
+  it("fångar heuristikens blinda fläck: VERSAL-engelska ('IRIDESCENT') flaggas av grinden", async () => {
+    // "IRIDESCENT" är all-caps → residual-heuristiken tolkar det som akronym/kod →
     // aldrig AI-kandidat → skulle skeppas tyst. Grinden ser SLUTVÄRDET.
+    // OBS: "STRIPED" funkar inte längre som exempel här — djup utbyggnad
+    // (2026-07) lade till "striped"/"stripe"/"stripes" → "Randig" i tabellen,
+    // så det värdet är numera en riktig, deterministisk träff (når aldrig grinden).
     const verifySwedish = vi.fn(async (vals: string[]) =>
-      vals.filter((v) => v === "STRIPED"),
+      vals.filter((v) => v === "IRIDESCENT"),
     );
     const { unresolved } = await buildVariantTranslatorAI(
-      [{ options: { Pattern: "STRIPED" } }],
+      [{ options: { Pattern: "IRIDESCENT" } }],
       { translateBatch: noValueAI, verifySwedish },
     );
     expect(verifySwedish).toHaveBeenCalledTimes(1);
-    expect(unresolved).toContain("STRIPED");
+    expect(unresolved).toContain("IRIDESCENT");
   });
 
   it("skickar BARA språkbedömbara strängar (mått/koder/siffror aldrig)", async () => {

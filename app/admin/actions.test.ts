@@ -264,6 +264,68 @@ describe("set/clear leverantörs-override", () => {
   });
 });
 
+describe("updateTaskAddressAction — redigera leveransadress", () => {
+  it("sparar en rättad adress (trimmar + versaliserar land) + auditar", async () => {
+    const { actions, store } = await setup(baseTask({ shippingAddress: undefined }));
+    const res = await actions.updateTaskAddressAction("o1:l1", {
+      fullName: " Ann-Sofie Sjöström ",
+      addressLine1: " Norrgårdsvägen 49 ",
+      postalCode: " 184 36 ",
+      city: " Åkersberga ",
+      country: " se ",
+      phone: " 0704806968 ",
+    });
+    expect(res.ok).toBe(true);
+    const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
+    expect(t?.shippingAddress).toEqual({
+      fullName: "Ann-Sofie Sjöström",
+      addressLine1: "Norrgårdsvägen 49",
+      addressLine2: undefined,
+      postalCode: "184 36",
+      city: "Åkersberga",
+      country: "SE",
+      phone: "0704806968",
+    });
+    const audit = await store.listAudit();
+    expect(audit.some((a) => a.kind === "address-edited" && a.ref === "o1:l1")).toBe(true);
+  });
+
+  it("vägrar när ordern redan är lagd hos AliExpress", async () => {
+    const { actions, store } = await setup(baseTask({ aliexpressOrderId: "T9", status: "ordered" }));
+    const res = await actions.updateTaskAddressAction("o1:l1", { addressLine1: "Ny gata 1" });
+    expect(res.ok).toBe(false);
+    const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
+    expect(t?.shippingAddress?.addressLine1).toBe("Street 1"); // oförändrad
+  });
+});
+
+describe("releaseTaskAction — släpp fastlåst task", () => {
+  it("rensar lås + granskningsflaggor + auditar", async () => {
+    const { actions, store } = await setup(
+      baseTask({ claimToken: "tok", orderUncertain: true, uncertainAt: "x", cancelMidOrder: true }),
+    );
+    const res = await actions.releaseTaskAction("o1:l1");
+    expect(res.ok).toBe(true);
+    const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
+    expect(t?.claimToken).toBeUndefined();
+    expect(t?.orderUncertain).toBeUndefined();
+    expect(t?.cancelMidOrder).toBeUndefined();
+    const audit = await store.listAudit();
+    expect(audit.some((a) => a.kind === "task-unlocked" && a.ref === "o1:l1")).toBe(true);
+  });
+
+  it("VÄGRAR släppa när ett AE-order-id finns (dubbel-order-skydd)", async () => {
+    const { actions, store } = await setup(
+      baseTask({ aliexpressOrderId: "T7", orderUncertain: true, claimToken: "tok" }),
+    );
+    const res = await actions.releaseTaskAction("o1:l1");
+    expect(res.ok).toBe(false);
+    const t = (await store.listTasks()).find((x) => x.taskId === "o1:l1");
+    expect(t?.claimToken).toBe("tok"); // låset kvar
+    expect(t?.orderUncertain).toBe(true);
+  });
+});
+
 describe("fetchSupplierVariantsAction", () => {
   it("returnerar leverantörens SKU:er med läsbar etikett från skuProps", async () => {
     const { actions, client } = await setup(baseTask());

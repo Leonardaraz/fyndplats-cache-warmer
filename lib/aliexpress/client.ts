@@ -434,6 +434,14 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
 interface RawOrderCreate {
     result?: {
           order_id?: string | number;
+          // Batch-svarsvarianten lägger order-id:t i order_list.number[] (eller en
+          // ren array). Vi läser båda formerna i createOrder.
+          order_list?: { number?: Array<string | number> } | Array<string | number>;
+          // DS-svaret bär affärsstatusen INNE i result (inte som top-level `code`),
+          // så callApi:s generiska code-koll ser den inte → vi läser den här.
+          is_success?: boolean;
+          error_code?: string | number;
+          error_msg?: string;
           payment_required?: boolean;
           pay_url?: string;
     };
@@ -499,29 +507,200 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
       throw new OrderValidationError(`Ogiltig kvantitet (${params.quantity}) — order avbruten.`);
     }
     const line2 = (addr.addressLine2 ?? "").trim();
+    const province = (addr.province ?? "").trim();
     const contactPerson = (addr.name ?? "").trim() || "Mottagare";
     const phone = (addr.phone ?? "").trim();
+
+    // aliexpress.ds.order.create tar ALLA orderfält i ETT enda JSON-inkapslat
+    // affärsparameter med `logistics_address` + `product_items`. VIKTIGT om namnet:
+    // AliExpress snake_case:ar Java-fältet `paramPlaceOrderRequest4OpenApiDTO` genom
+    // att sätta "_" före VARJE versal → wire-namnet blir
+    // `param_place_order_request4_open_api_d_t_o` (D, T, O var för sig), INTE
+    // `...api_dto` som docs skriver för läsbarhet. Skickade vi `...api_dto` svarade
+    // AliExpress "MissingParameter: param_place_order_request4_open_api_d_t_o" och
+    // ingen order lades. Byggs som ren funktion (buildPlaceOrderDto) så DTO-formen
+    // kan låsas i test.
+    const dto = buildPlaceOrderDto({
+      productId: params.productId,
+      quantity: params.quantity,
+      skuId: params.skuId,
+      logisticsServiceName: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
+      address: line1 + (line2 ? ` ${line2}` : ""),
+      city,
+      province,
+      country,
+      zip,
+      contactPerson,
+      phone,
+      buyerMessage: params.buyerMessage,
+    });
     const bizParams: Record<string, string> = {
-          product_id: params.productId,
-          product_count: String(params.quantity),
-          sku_id: params.skuId,
-          logistics_service_name: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
-          address: line1 + (line2 ? ` ${line2}` : ""),
-          city,
-          country,
-          zip,
-          contact_person: contactPerson,
-          ...(phone ? { mobile_no: phone } : {}),
-          ...(params.buyerMessage ? { buyer_message: params.buyerMessage } : {}),
+      param_place_order_request4_open_api_d_t_o: JSON.stringify(dto),
     };
 
   const raw = await callApi<RawOrderCreate>("aliexpress.ds.order.create", bizParams);
     const result = raw.result ?? {};
 
+    // AFFÄRSSTATUS-GRIND: DS-svaret bär `is_success` INNE i result, så callApi:s
+    // generiska top-level-code-koll fångar den inte. Litar vi enbart på ett order-id
+    // riskerar vi en falsk "lagd" om AliExpress skulle eka ett id på ett misslyckat
+    // svar → tasken markeras `ordered`, re-order hoppas, kunden får aldrig varan.
+    // Är is_success uttryckligen false → behandla som INGET id → FC-vägen
+    // (markUncertain) flaggar för manuell verifiering i stället.
+    const isSuccess = result.is_success ?? raw.is_success;
+    // Order-id kan komma som `order_id` (singel) eller `order_list.number[]`
+    // (batch-shape) beroende på AliExpress-svarsvariant. Läs båda.
+    const ol = result.order_list;
+    const orderIdRaw =
+      isSuccess === false
+        ? undefined
+        : (result.order_id ?? (Array.isArray(ol) ? ol[0] : ol?.number?.[0]));
+
+    // Gav AliExpress inget order-id? Fånga ORSAKEN (error_msg/error_code) så den
+    // syns i admin + audit i stället för det intetsägande "inget order-id". Och
+    // avgör om vi VET att ingen order lades (is_success=false eller en felkod) →
+    // då kan claimen släppas för en säker retry i stället för att låsa tasken.
+    let aeError: string | undefined;
+    let orderDefinitelyNotPlaced = false;
+    if (orderIdRaw == null) {
+      const emsg = result.error_msg ? String(result.error_msg).trim() : "";
+      const ecode = result.error_code != null ? String(result.error_code) : "";
+      aeError = emsg || (ecode ? `felkod ${ecode}` : `oväntat svar (is_success=${String(isSuccess)})`);
+      orderDefinitelyNotPlaced = isSuccess === false || (ecode !== "" && ecode !== "0");
+      console.error(
+        `[aliexpress] createOrder: inget order_id. is_success=${String(isSuccess)} error_code=${ecode} error_msg=${emsg} result=${JSON.stringify(result).slice(0, 700)}`,
+      );
+    }
+
   return {
-        tradeOrderId: String(result.order_id ?? ""),
+        tradeOrderId: orderIdRaw != null ? String(orderIdRaw) : "",
+        ...(aeError ? { aeError } : {}),
+        ...(orderDefinitelyNotPlaced ? { orderDefinitelyNotPlaced: true } : {}),
         paymentRequired: result.payment_required ?? true,
         paymentUrl: result.pay_url,
+  };
+}
+
+/**
+ * Bygger DTO:t för aliexpress.ds.order.create. Ren funktion → enhetstestbar
+ * (låser fältnamnen som AliExpress kräver: sku_attr = leverantörens SKU-attr-
+ * sträng, product_id/product_count per rad, logistics_address för leverans).
+ * `mobile_no` + `phone_country` (dial-kod, ex "+46") skickas som PAR när telefon
+ * finns; saknas dial-kod för landet utelämnas telefonen helt.
+ */
+/**
+ * Translittererar till ren ASCII (Latin). AliExpress order-create avvisar
+ * icke-engelska tecken ("Please use English only") → svenska adresser med å/ä/ö
+ * (Norrgårdsvägen, Åkersberga, Sjöström) fälls annars. Paketet levereras ändå:
+ * postnumret routar det och ASCII-translitterering är standard för internationell
+ * frakt till Sverige. OBS: används ENBART för AliExpress-anropet — vår egen
+ * lagrade adress/mejl behåller den korrekta svenska stavningen.
+ */
+export function toAsciiLatin(input: string): string {
+  if (!input) return input;
+  const map: Record<string, string> = {
+    å: "a", ä: "a", ö: "o", Å: "A", Ä: "A", Ö: "O",
+    ø: "o", Ø: "O", æ: "ae", Æ: "AE", ß: "ss", đ: "d", Đ: "D", ł: "l", Ł: "L",
+  };
+  // 1) Explicita mappningar för ligaturer/egna bokstäver som NFD INTE delar upp
+  //    (æ, ø, ß, đ, ł). 2) NFD delar upp diakriter (é→e+́, ü→u+̈, ñ, ç, å, ä, ö …)
+  //    och en enda ASCII-grind slänger allt icke-utskrivbart-ASCII (kombinations-
+  //    tecknen + ev. kvarvarande icke-latinska tecken). Kvar: ren ASCII.
+  let s = input.replace(/[åäöÅÄÖøØæÆßđĐłŁ]/g, (c) => map[c] ?? c);
+  s = s.normalize("NFD").replace(/[^\x20-\x7E]/g, "");
+  return s.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * AliExpress postnummer-fält accepterar BARA siffror, "-" och "/". Svenska
+ * postnummer skrivs "184 36" (med mellanslag) → AliExpress avvisar ("use only
+ * digits and/or dash and/or slash"). Ta bort allt annat → "18436". Endast för
+ * AliExpress-anropet; vår lagrade adress behåller "184 36".
+ */
+export function sanitizeZip(zip: string): string {
+  return (zip ?? "").replace(/[^0-9/-]/g, "");
+}
+
+/**
+ * Telefonens landskod (dial code) per ISO alpha-2-land. AliExpress order-create
+ * KRÄVER `phone_country` när `mobile_no` skickas — annars svaras "Please enter a
+ * country code" och ingen order läggs. Formatet är dial-koden MED plus ("+46"),
+ * verifierat mot AliExpress DS-API-exempel (phone_country:"+1"). Täcker hela
+ * EU/EES + Norden + UK + US/CA så vilken kund som helst fungerar; ett omappat
+ * land ger `undefined` → telefonen utelämnas helt (icke-kritisk för leverans)
+ * i stället för att fälla ordern på den här grinden.
+ */
+const PHONE_DIAL_CODES: Record<string, string> = {
+  SE: "+46", NO: "+47", DK: "+45", FI: "+358", IS: "+354",
+  DE: "+49", FR: "+33", NL: "+31", BE: "+32", LU: "+352",
+  ES: "+34", IT: "+39", PT: "+351", GR: "+30",
+  PL: "+48", CZ: "+420", SK: "+421", HU: "+36", RO: "+40",
+  BG: "+359", HR: "+385", SI: "+386", AT: "+43", CH: "+41",
+  IE: "+353", GB: "+44", EE: "+372", LV: "+371", LT: "+370",
+  MT: "+356", CY: "+357", US: "+1", CA: "+1",
+};
+
+export function phoneDialCode(country: string): string | undefined {
+  return PHONE_DIAL_CODES[(country ?? "").trim().toUpperCase()];
+}
+
+/**
+ * Nationellt telefonnummer utan landskod: siffror + ev. nationell trunk-nolla
+ * bort (svensk "0704806968" → "704806968"), eftersom landskoden skickas separat
+ * i `phone_country`. AliExpress vill ha numret utan landskod (ex: "123-456-7890").
+ */
+export function normalizeMobile(phone: string): string {
+  return (phone ?? "").replace(/\D/g, "").replace(/^0/, "");
+}
+
+export function buildPlaceOrderDto(p: {
+  productId: string;
+  quantity: number;
+  skuId: string;
+  logisticsServiceName: string;
+  address: string;
+  city: string;
+  province: string;
+  country: string;
+  zip: string;
+  contactPerson: string;
+  phone: string;
+  buyerMessage?: string;
+}): {
+  logistics_address: Record<string, string>;
+  product_items: Array<Record<string, string | number>>;
+} {
+  const memo = p.buyerMessage ? toAsciiLatin(p.buyerMessage) : "";
+  // Telefon skickas BARA tillsammans med sin landskod (phone_country) — AliExpress
+  // kräver "country code" när mobile_no finns. Saknas dial-kod för landet (omappat)
+  // utelämnas telefonen helt (icke-kritisk för leverans) hellre än att fälla ordern.
+  const dial = phoneDialCode(p.country);
+  const mobileNo = p.phone ? normalizeMobile(p.phone) : "";
+  const includePhone = Boolean(mobileNo && dial);
+  return {
+    logistics_address: {
+      // AliExpress kräver engelska/ASCII → translitterera fritextfälten.
+      address: toAsciiLatin(p.address),
+      city: toAsciiLatin(p.city),
+      // AliExpress kräver "state/province/region" (län) — annars avvisas ordern.
+      province: toAsciiLatin(p.province),
+      // Postnummer: bara siffror/-/ (svenska "184 36" → "18436").
+      zip: sanitizeZip(p.zip),
+      country: p.country,
+      contact_person: toAsciiLatin(p.contactPerson),
+      full_name: toAsciiLatin(p.contactPerson),
+      // mobile_no + phone_country skickas som par (dial-kod "+46"), aldrig ensamt.
+      ...(includePhone ? { mobile_no: mobileNo, phone_country: dial } : {}),
+    },
+    product_items: [
+      {
+        product_id: p.productId,
+        product_count: p.quantity,
+        sku_attr: p.skuId,
+        logistics_service_name: p.logisticsServiceName,
+        ...(memo ? { order_memo: memo } : {}),
+      },
+    ],
   };
 }
 
