@@ -244,7 +244,17 @@ export function Gallery({
       const s = clamp(g.startScale * (dist(a, b) / g.startDist), 1, 4);
       setView((v) => ({ ...v, s }));
     } else if (g.mode === "pan") {
-      setView({ s: view.s, x: g.bx + (e.clientX - g.sx), y: g.by + (e.clientY - g.sy) });
+      // Klampa panoreringen så bildlagret ALLTID täcker scenen. Utan gräns kunde
+      // man dra bilden hur långt som helst → den mörka lightbox-bakgrunden blottas
+      // i kanterna ("grå bakgrund-rester på bilden", Leonards desktop-rapport). Vid
+      // skala s får lagret dras max (s−1)·halva scenen åt varje håll (samma gräns
+      // som toggleZoomAt:s hörn-zoom ger), annars glider en kant in i vyn.
+      const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const maxX = ((view.s - 1) * r.width) / 2;
+      const maxY = ((view.s - 1) * r.height) / 2;
+      const nx = clamp(g.bx + (e.clientX - g.sx), -maxX, maxX);
+      const ny = clamp(g.by + (e.clientY - g.sy), -maxY, maxY);
+      setView({ s: view.s, x: nx, y: ny });
       // Räkna bara som "flyttad" över en liten tröskel. Annars markeras ett stilla
       // klick (0–några px muspekar-jitter) som en pan, och toggle-ut-zoomen nedan
       // körs aldrig → man fastnar inzoomad (Leonards desktop-buggrapport).
