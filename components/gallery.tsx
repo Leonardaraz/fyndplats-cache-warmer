@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
@@ -396,7 +397,16 @@ export function Gallery({
         </div>
       )}
 
-      {lightbox && (
+      {/* Lightboxen PORTAS till <body>. Annars renderas den som barn till den
+          sticky `.pdp>.gallery` (desktop) — och position:sticky bildar en egen
+          stacking-context som FÅNGAR lightboxens z-index:300 lokalt. Då kan den
+          inte lägga sig över gallerets PDP-syskon (rubrik-eyebrown "— FYNDPLATS —",
+          titeln, antal-minusknappen), som målas ovanpå den inzoomade bilden
+          (Leonards rapport: sidelement "följer med" in i zoomen). Via portal
+          hamnar den i rot-kontexten och täcker allt (inget annat når z-index 300).
+          Portalen når bara hit när lightbox===true, dvs efter klick på klienten,
+          så document.body finns alltid — ingen SSR-/hydrerings-risk. */}
+      {lightbox && createPortal(
         <div className="lightbox" onClick={() => setLightbox(false)} role="dialog" aria-modal="true" aria-label={alt}>
           <button className="lb-close" onClick={() => setLightbox(false)} aria-label="Stäng">✕</button>
           {imgs.length > 1 && (
@@ -425,7 +435,8 @@ export function Gallery({
           )}
           {imgs.length > 1 && <div className="lb-count">{active + 1} / {imgs.length}</div>}
           <div className="lb-hint" aria-hidden>Nyp för att zooma · svep ned för att stänga</div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
