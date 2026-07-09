@@ -1,7 +1,2795 @@
 {
-  "generatedAt": "",
-  "model": "",
-  "effort": "",
-  "count": 0,
-  "related": {}
+  "generatedAt": "2026-07-09T21:10:03.310Z",
+  "model": "claude-opus-4-8",
+  "effort": "curated",
+  "count": 415,
+  "related": {
+    "garagedomkraft-2-5-ton-lag-profil": [
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "magnetisk-hylshallare-3-pack",
+      "elektrisk-domkraft-12v-bil-5-ton",
+      "arbetspall-med-hjul",
+      "baseus-1000a-startbooster-bil-kompressor",
+      "verktygsvagn-med-hjul-verkstadsvagn"
+    ],
+    "pakethallarvaska-cykel-expanderbar-west-biking": [
+      "ramvaska-cykel-mobilhallare-west-biking",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "pakethallarvaska-3-i-1-20-35l-regnskydd-west-biking",
+      "cykellas-med-kod-hopfallbart-78-cm",
+      "cykelpump-160-psi-golvfot-manometer-west-biking",
+      "cykelhandskar-halvfinger-west-biking"
+    ],
+    "mtb-styrhorn-mountainbike-west-biking": [
+      "ergonomiska-cykelhandtag-med-stotdampning-west-biking",
+      "cykelhandskar-halvfinger-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "mtb-pedaler-aluminium-krommolybdenaxel-west-biking",
+      "cykelglasogon-uv400-polariserade-west-biking",
+      "cykelryggsack-10l-hydreringssystem-mtb-west-biking"
+    ],
+    "cykelhandskar-halvfinger-west-biking": [
+      "cykelglasogon-uv400-polariserade-west-biking",
+      "cykelryggsack-10l-hydreringssystem-mtb-west-biking",
+      "ergonomiska-cykelhandtag-med-stotdampning-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "ramvaska-cykel-mobilhallare-west-biking",
+      "komfortsadel-stotdampning-touringcykel-west-biking"
+    ],
+    "ramvaska-cykel-mobilhallare-west-biking": [
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "cykelryggsack-10l-hydreringssystem-mtb-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelhandskar-halvfinger-west-biking",
+      "vikbart-cykellas-west-biking-6-delat"
+    ],
+    "elektrisk-cykelpump-150psi-west-biking": [
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelpump-160-psi-golvfot-manometer-west-biking",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "ramvaska-cykel-mobilhallare-west-biking",
+      "cykellas-med-kod-hopfallbart-78-cm"
+    ],
+    "cykelvagn-for-hund-hopfallbar": [
+      "hopfallbar-hundvagn-svangbara-hjul",
+      "hundvagn-stor-hund-30-kg",
+      "cykelvagn-for-hund-2-i-1-hundvagn",
+      "hundramp-bil-155-cm",
+      "vikbar-husdjurstrappa-4-steg"
+    ],
+    "cykelvagn-for-hund-2-i-1-hundvagn": [
+      "cykelvagn-for-hund-hopfallbar",
+      "hundvagn-stor-hund-30-kg",
+      "hopfallbar-hundvagn-svangbara-hjul",
+      "hundramp-bil-155-cm",
+      "cykelvagn-last-cykelkarra-2-hjul"
+    ],
+    "nivautjamnare-stege-trappa-sluttning": [
+      "teleskopstege-aluminium",
+      "hopfallbar-stegpall",
+      "bryggestege-infallbar",
+      "led-stralkastare-utomhus-4250-lumen",
+      "verktygsbalte-magnetiskt-28-fickor"
+    ],
+    "racingstativ-ratt-pedaler-hopfallbart": [
+      "gamingstol-med-fotpall",
+      "gamingbord-led-110-cm-rgb",
+      "gamingstol-med-fotstod-kattoron",
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "snurrbar-skrivbordsstol"
+    ],
+    "cnc-fras-3-axlig-grbl-gravyrmaskin": [
+      "maskinskruvstad-125mm-fras-cnc",
+      "kryssbord-fras-borrmaskin-185x100",
+      "lutbart-frasbord-gjutjarn",
+      "hopfallbar-arbetsbank",
+      "digital-momentmejsel-1-4-tum-bits"
+    ],
+    "ergonomiska-cykelhandtag-med-stotdampning-west-biking": [
+      "mtb-styrhorn-mountainbike-west-biking",
+      "cykelhandskar-halvfinger-west-biking",
+      "cykelsadel-west-biking-stadscykel-stotdampare",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelglasogon-uv400-polariserade-west-biking"
+    ],
+    "cykelpump-160-psi-golvfot-manometer-west-biking": [
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "elektrisk-cykelpump-150psi-west-biking",
+      "reparationsstall-cykel-west-biking-mekstall",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "cykelhandskar-halvfinger-west-biking"
+    ],
+    "vattentat-sadelvaska-600d-tpu-vredlas-west-biking": [
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "ramvaska-cykel-mobilhallare-west-biking",
+      "cykelryggsack-10l-hydreringssystem-mtb-west-biking",
+      "vikbart-cykellas-west-biking-6-delat",
+      "elektrisk-cykelpump-150psi-west-biking"
+    ],
+    "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking": [
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "cykelpump-160-psi-golvfot-manometer-west-biking",
+      "ramvaska-cykel-mobilhallare-west-biking",
+      "elektrisk-cykelpump-150psi-west-biking",
+      "cykelhandskar-halvfinger-west-biking"
+    ],
+    "komfortsadel-stotdampning-touringcykel-west-biking": [
+      "cykelsadel-west-biking-stadscykel-stotdampare",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "cykelryggsack-10l-hydreringssystem-mtb-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelhandskar-halvfinger-west-biking"
+    ],
+    "kolfiberpedaler-racercykel-titanaxel-3-lager-west-biking": [
+      "lattviktspedaler-7075-aluminium-3-lager-west-biking",
+      "3d-printad-sadel-hexagonal-gitterstruktur-west-biking",
+      "cykelglasogon-uv400-polariserade-west-biking",
+      "cykelhandskar-halvfinger-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking"
+    ],
+    "cykelglasogon-uv400-polariserade-west-biking": [
+      "cykelhandskar-halvfinger-west-biking",
+      "cykelryggsack-10l-hydreringssystem-mtb-west-biking",
+      "ramvaska-cykel-mobilhallare-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "ergonomiska-cykelhandtag-med-stotdampning-west-biking"
+    ],
+    "cykelryggsack-10l-hydreringssystem-mtb-west-biking": [
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelhandskar-halvfinger-west-biking",
+      "cykelglasogon-uv400-polariserade-west-biking",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "mtb-pedaler-aluminium-krommolybdenaxel-west-biking"
+    ],
+    "cykellas-med-kod-hopfallbart-78-cm": [
+      "vikbart-cykellas-west-biking-6-delat",
+      "golvstall-cykel-west-biking-forvaringsstall",
+      "cykelstall-golv-west-biking-hojdjusterbart",
+      "cykellyft-tak",
+      "ramvaska-cykel-mobilhallare-west-biking"
+    ],
+    "mtb-pedaler-aluminium-krommolybdenaxel-west-biking": [
+      "lattviktspedaler-7075-aluminium-3-lager-west-biking",
+      "mtb-styrhorn-mountainbike-west-biking",
+      "ergonomiska-cykelhandtag-med-stotdampning-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelryggsack-10l-hydreringssystem-mtb-west-biking"
+    ],
+    "3d-printad-sadel-hexagonal-gitterstruktur-west-biking": [
+      "kolfiberpedaler-racercykel-titanaxel-3-lager-west-biking",
+      "cykelsadel-west-biking-stadscykel-stotdampare",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "cykelglasogon-uv400-polariserade-west-biking",
+      "lattviktspedaler-7075-aluminium-3-lager-west-biking"
+    ],
+    "pakethallarvaska-3-i-1-20-35l-regnskydd-west-biking": [
+      "pakethallarvaska-cykel-expanderbar-west-biking",
+      "ramvaska-cykel-mobilhallare-west-biking",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "cykellas-med-kod-hopfallbart-78-cm",
+      "cykelryggsack-10l-hydreringssystem-mtb-west-biking"
+    ],
+    "lattviktspedaler-7075-aluminium-3-lager-west-biking": [
+      "mtb-pedaler-aluminium-krommolybdenaxel-west-biking",
+      "kolfiberpedaler-racercykel-titanaxel-3-lager-west-biking",
+      "ergonomiska-cykelhandtag-med-stotdampning-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelglasogon-uv400-polariserade-west-biking"
+    ],
+    "skank-sideboard-120-cm-vit-guldben": [
+      "fonsterspegel-guld-60x91",
+      "lyftbart-soffbord-forvaring",
+      "golvlampa-med-bord",
+      "satsbord-runt-2-pack-industriellt",
+      "vitrinskap-vagg"
+    ],
+    "parasollfot-cement-12-kg-brons-rund": [
+      "svart-parasollfot-12-kg-38-48-mm",
+      "tradgardsbord-glas-parasollhal",
+      "runt-tradgardsbord-mosaik",
+      "parasollvikter-hangparasoll-2-pack",
+      "markis-med-vev-200x150"
+    ],
+    "svart-parasollfot-12-kg-38-48-mm": [
+      "parasollfot-cement-12-kg-brons-rund",
+      "tradgardsbord-glas-parasollhal",
+      "runt-tradgardsbord-mosaik",
+      "parasollvikter-hangparasoll-2-pack",
+      "skuggvav-pergola-90-solskydd-hdpe"
+    ],
+    "litet-vaxthus-4-hyllor-rullhjul": [
+      "litet-vaxthus-180",
+      "reservoverdrag-vaxthus-3x2x2",
+      "tomatstod-metall-6-pack",
+      "odlingslada-med-spalje",
+      "spalje-klattervaxter"
+    ],
+    "justerbara-hantlar-4-i-1-2-pack": [
+      "hantelset-med-vaska",
+      "multifunktionell-traningsbrada-pilates",
+      "justerbar-stepbrada",
+      "balanstraner-halvboll-58",
+      "studsmatta-traning"
+    ],
+    "cykelsadel-west-biking-stadscykel-stotdampare": [
+      "komfortsadel-stotdampning-touringcykel-west-biking",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "ergonomiska-cykelhandtag-med-stotdampning-west-biking",
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelhandskar-halvfinger-west-biking"
+    ],
+    "reparationsstall-cykel-west-biking-mekstall": [
+      "9-i-1-cykelverktyg-insexnycklar-co2-ventil-west-biking",
+      "cykelpump-160-psi-golvfot-manometer-west-biking",
+      "golvstall-cykel-west-biking-forvaringsstall",
+      "cykellyft-tak",
+      "elektrisk-cykelpump-150psi-west-biking"
+    ],
+    "golvstall-cykel-west-biking-forvaringsstall": [
+      "cykelstall-golv-west-biking-hojdjusterbart",
+      "cykelstall-golv-justerbart-stal",
+      "cykellyft-tak",
+      "reparationsstall-cykel-west-biking-mekstall",
+      "cykellas-med-kod-hopfallbart-78-cm"
+    ],
+    "vikbart-cykellas-west-biking-6-delat": [
+      "cykellas-med-kod-hopfallbart-78-cm",
+      "cykelstall-golv-west-biking-hojdjusterbart",
+      "cykelstall-golv-justerbart-stal",
+      "vattentat-sadelvaska-600d-tpu-vredlas-west-biking",
+      "ramvaska-cykel-mobilhallare-west-biking"
+    ],
+    "cykelstall-golv-west-biking-hojdjusterbart": [
+      "cykelstall-golv-justerbart-stal",
+      "cykellyft-tak",
+      "golvstall-cykel-west-biking-forvaringsstall",
+      "vikbart-cykellas-west-biking-6-delat",
+      "reparationsstall-cykel-west-biking-mekstall"
+    ],
+    "baseus-starthjalp-2000a-powerbank-bil": [
+      "baseus-1000a-startbooster-bil-kompressor",
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "garagedomkraft-2-5-ton-lag-profil",
+      "elektrisk-domkraft-12v-bil-5-ton",
+      "snoborste-med-isskrapa"
+    ],
+    "baseus-1000a-startbooster-bil-kompressor": [
+      "baseus-starthjalp-2000a-powerbank-bil",
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "garagedomkraft-2-5-ton-lag-profil",
+      "elektrisk-domkraft-12v-bil-5-ton",
+      "snoborste-med-isskrapa"
+    ],
+    "baseus-gotrip-va1-bilkompressor-sladdlos": [
+      "baseus-1000a-startbooster-bil-kompressor",
+      "baseus-starthjalp-2000a-powerbank-bil",
+      "garagedomkraft-2-5-ton-lag-profil",
+      "snoborste-med-isskrapa",
+      "elektrisk-domkraft-12v-bil-5-ton"
+    ],
+    "maskinskruvstad-125mm-fras-cnc": [
+      "kryssbord-fras-borrmaskin-185x100",
+      "lutbart-frasbord-gjutjarn",
+      "cnc-fras-3-axlig-grbl-gravyrmaskin",
+      "hopfallbar-arbetsbank",
+      "rorskruvstad-stativ-katting-1-8-5"
+    ],
+    "magnetisk-hylshallare-3-pack": [
+      "verktygsbalte-magnetiskt-28-fickor",
+      "verktygsvagn-med-hjul-verkstadsvagn",
+      "digital-momentmejsel-1-4-tum-bits",
+      "garagedomkraft-2-5-ton-lag-profil",
+      "arbetspall-med-hjul"
+    ],
+    "rorskruvstad-stativ-katting-1-8-5": [
+      "manuell-rorgangningssats",
+      "pressback-th-16-32",
+      "maskinskruvstad-125mm-fras-cnc",
+      "hopfallbar-arbetsbank",
+      "verktygsvagn-med-hjul-verkstadsvagn"
+    ],
+    "varmtalt-tipi-4-personer-kaminuttag": [
+      "dubbel-sovsack",
+      "hopfallbar-campingstol",
+      "portabel-campingtoalett-5l-innerhink",
+      "dieselvarmare-12v-8kw",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "campingstol-hopfallbar-armstod-2-pack"
+    ],
+    "verktygsbalte-magnetiskt-28-fickor": [
+      "magnetisk-hylshallare-3-pack",
+      "verktygsvaska-elektriker-33-fack",
+      "digital-momentmejsel-1-4-tum-bits",
+      "led-stralkastare-utomhus-4250-lumen",
+      "verktygsvagn-med-hjul-verkstadsvagn"
+    ],
+    "takkorg-bil-lastkorg-vaska": [
+      "baseus-starthjalp-2000a-powerbank-bil",
+      "snoborste-med-isskrapa",
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "dubbel-sovsack",
+      "hopfallbar-campingstol"
+    ],
+    "gungdjur-svan-plysch": [
+      "gunghast-barn-med-ljud",
+      "gungdjur-giraff-plysch-baby",
+      "gunghast-elefant",
+      "gunghast-dinosaurie",
+      "babygunga-stativ-barngunga"
+    ],
+    "nyckelinkast-genom-dorren": [
+      "skjutdorrsbeslag-skena",
+      "imilab-babyvakt-kamera-ai-morkerseende",
+      "grindoppnare-skjutgrind-600kg",
+      "kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling",
+      "lasbar-kattlucka"
+    ],
+    "tomatstod-metall-6-pack": [
+      "spalje-klattervaxter",
+      "odlingslada-metall",
+      "litet-vaxthus-180",
+      "odlingslada-med-spalje",
+      "godselgrep-5-klor-glasfiber",
+      "spalje-tra-utdragbar-2-pack"
+    ],
+    "hopfallbar-hundhage-metall-8-paneler": [
+      "hopfallbar-hundhage",
+      "hopfallbar-hundgard-med-soltak",
+      "justerbar-hundgrind",
+      "fristaende-hundgrind-154",
+      "agilityset-hund-3-delar"
+    ],
+    "hundvagn-stor-hund-30-kg": [
+      "hopfallbar-hundvagn-svangbara-hjul",
+      "cykelvagn-for-hund-2-i-1-hundvagn",
+      "hundramp-bil-155-cm",
+      "cykelvagn-for-hund-hopfallbar",
+      "vikbar-husdjurstrappa-4-steg"
+    ],
+    "forvaringsbehallare-torrvaror-2x15l": [
+      "stapelbar-varukorg-21l-handtag",
+      "vaggmonterade-forvaringslador-12-st",
+      "utdragbar-sopsorterare",
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "kastrullset-induktion"
+    ],
+    "godselgrep-5-klor-glasfiber": [
+      "tomatstod-metall-6-pack",
+      "odlingslada-metall",
+      "spalje-klattervaxter",
+      "krukvagn-med-hjul-griparm",
+      "litet-vaxthus-180"
+    ],
+    "reptilinkubator-25l-digital": [
+      "automatisk-honslucka-timer-ljussensor",
+      "modular-smadjursbur",
+      "hamsterbur-med-tunnel-tillbehor",
+      "fagelbur-med-tillbehor"
+    ],
+    "lekhage-baby-xxl-50-bollar": [
+      "babygunga-stativ-barngunga",
+      "skumklossar-barn",
+      "barnrutschkana-5-i-1-inomhus-smabarn",
+      "mjuka-klatterblock-barn",
+      "leksaksforvaring-med-korgar"
+    ],
+    "stapelbar-varukorg-21l-handtag": [
+      "vaggmonterade-forvaringslador-12-st",
+      "forvaringsbehallare-torrvaror-2x15l",
+      "smal-forvaringsvagn-4-plan",
+      "gallervagg-natstall-exponering-2-pack",
+      "leksaksforvaring-med-korgar"
+    ],
+    "leksaksmotor-motorcykel-25-delar": [
+      "leksaksmotor-barn",
+      "verktygsbank-barn-leksaksset-181-delar",
+      "robotleksak-barn-radiostyrd-robot",
+      "radiostyrd-gravmaskin-1-20",
+      "3d-trapussel-raket-rymdfarja"
+    ],
+    "akbar-barnresvaska-26l-handbagage": [
+      "sparkbil-barn-med-musik",
+      "akbil-barn-fyrhjuling",
+      "springcykel-barn-18-48-manader",
+      "gabil-mercedes-g350",
+      "svangbil-barn-wigglebil"
+    ],
+    "portabel-campingtoalett-5l-innerhink": [
+      "barbar-campingvask-vattentank-tvalpump",
+      "hopfallbar-campingstol",
+      "dubbel-sovsack",
+      "varmtalt-tipi-4-personer-kaminuttag",
+      "campingstol-hopfallbar-armstod-2-pack"
+    ],
+    "flyttfiltar-mobler-6-12-pack": [
+      "flatat-polyesterrep-allroundrep",
+      "hopfallbar-dragvagn-trappvagn-36l",
+      "stapelbar-varukorg-21l-handtag",
+      "smal-forvaringsvagn-4-plan",
+      "vaggmonterade-forvaringslador-12-st"
+    ],
+    "portabel-elbilsladdare-typ-2-16a": [
+      "baseus-starthjalp-2000a-powerbank-bil",
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "baseus-1000a-startbooster-bil-kompressor",
+      "snoborste-med-isskrapa",
+      "takkorg-bil-lastkorg-vaska"
+    ],
+    "elbil-barn-polisbil-12v-fjarrkontroll": [
+      "toyota-land-cruiser-elbil-barn",
+      "elbil-barn-utv",
+      "elbil-barn-audi",
+      "elmotorcykel-barn-6v",
+      "lamborghini-elbil-barn"
+    ],
+    "springcykel-barn-18-48-manader": [
+      "springcykel-barn",
+      "barncykel-stodhjul-2-i-1",
+      "sparkcykel-barn-trehjulig-led",
+      "trehjulig-sparkcykel",
+      "barncykel-16-tum"
+    ],
+    "hopfallbar-massagebank-aluminium-rosa": [
+      "arbetsstol-salong-hoj-och-sankbar",
+      "hopfallbar-massagebank-tra-186cm",
+      "elektrisk-vakuumterapi",
+      "arbetspall-med-hjul",
+      "sminkkoffert-med-las-proffs-4-lager"
+    ],
+    "skobank-med-dyna-forvaring-bambu": [
+      "kladhangare-med-bank-bambu",
+      "smalt-skoskap-2-luckor",
+      "skobank-bambu-med-sittdyna",
+      "byra-med-tyglador",
+      "stapelbara-pallar"
+    ],
+    "satsbord-runt-2-pack-industriellt": [
+      "industriellt-konsolbord-2-lador-hylla-brun",
+      "lyftbart-soffbord-forvaring",
+      "golvlampa-boho-dimbar-fjarrkontroll",
+      "konstgjort-olivtrad-120-cm-konstvaxt",
+      "bordslampa-fargat-glas"
+    ],
+    "industriellt-konsolbord-2-lador-hylla-brun": [
+      "satsbord-runt-2-pack-industriellt",
+      "fonsterspegel-guld-60x91",
+      "konstgjord-vaxt-dracaena-160",
+      "golvlampa-med-bord",
+      "lyftbart-soffbord-forvaring"
+    ],
+    "hopfallbart-symaskinsbord-hjul": [
+      "arbetspall-med-hjul",
+      "sacksymaskin-batteri",
+      "primartyg-for-tuftning",
+      "smal-forvaringsvagn-4-plan",
+      "canvaspaneler-malning-akryl-olja"
+    ],
+    "skrivarbord-hjul-skrivarvagn-2-plan": [
+      "skrivbord-120-cm",
+      "kontorsstol-mesh",
+      "ergonomisk-kontorsstol-nackstod",
+      "smal-forvaringsvagn-4-plan"
+    ],
+    "tvattkorg-bambu-120l-2-fack": [
+      "tvattsorterare-bambu-144l-3-fack",
+      "torkstallning-pa-hjul",
+      "tvattkorg-bambu-lock-2-fack-100l",
+      "staende-kladangare-1950w",
+      "angstation-2800w"
+    ],
+    "kapphast-enhorning-ljud-hjul": [
+      "gunghast-barn-tra",
+      "balansbage-barn-6-delar",
+      "balansbana-barn-balansbrador-motorik",
+      "musikinstrument-i-tra",
+      "kulbana-byggsats-110-delar"
+    ],
+    "hornskrivbord-eluttag-skarmstall-128cm": [
+      "gamingstol-med-fotpall",
+      "gamingbord-led-110-cm-rgb",
+      "gamingstol-med-fotstod-kattoron",
+      "snurrbar-skrivbordsstol",
+      "bordsstativ-tv-32-70-tum"
+    ],
+    "ljusterapilampa-15000-lux": [
+      "hudvardsset-ansikte-5-delar",
+      "aterfuktande-hudvardsset",
+      "ipl-harborttagning",
+      "sheetmask-snigel-kollagen-ansiktsmask-20-pack"
+    ],
+    "multifunktionell-traningsbrada-pilates": [
+      "balanstraner-halvboll-58",
+      "justerbar-stepbrada",
+      "hantelset-med-vaska",
+      "studsmatta-traning",
+      "justerbar-traningsbank"
+    ],
+    "sacksymaskin-batteri": [
+      "hopfallbart-symaskinsbord-hjul",
+      "primartyg-for-tuftning",
+      "forvaringsbehallare-torrvaror-2x15l",
+      "arbetspall-med-hjul"
+    ],
+    "badrumsflakt-fjarrkontroll": [
+      "hornhylla-badrum-glas",
+      "spegelskap-badrum",
+      "smalt-badrumsskap",
+      "duschmatta-tra-akacia-91x51",
+      "tvattstallsskap-60-cm"
+    ],
+    "primartyg-for-tuftning": [
+      "canvaspaneler-malning-akryl-olja",
+      "stentrumla-for-barn",
+      "arbetspall-med-hjul",
+      "smal-forvaringsvagn-4-plan"
+    ],
+    "automatisk-honslucka-timer-ljussensor": [
+      "reptilinkubator-25l-digital",
+      "godselgrep-5-klor-glasfiber",
+      "odlingslada-metall",
+      "tomatstod-metall-6-pack"
+    ],
+    "gamingbord-led-110-cm-rgb": [
+      "gamingstol-med-fotstod-kattoron",
+      "gamingstol-med-fotpall",
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "snurrbar-skrivbordsstol",
+      "bordsstativ-tv-32-70-tum"
+    ],
+    "klostrad-140-cm": [
+      "tackt-kattlada",
+      "kloskrapa-katt-soffa-kartong",
+      "klattervagg-for-katt-med-hangmatta",
+      "kattrad-med-klospelare",
+      "lasbar-kattlucka"
+    ],
+    "barnfatolj-med-fotpall": [
+      "bokhylla-barn-3-i-1",
+      "sminkbord-barn-pall-spegel",
+      "leksaksforvaring-med-korgar",
+      "barnskrivbord-med-stol",
+      "barnbord-med-stol"
+    ],
+    "vat-och-torrdammsugare-1200w": [
+      "sladdlos-dammsugare-23kpa-led-display",
+      "verktygsvagn-med-hjul-verkstadsvagn",
+      "hopfallbar-arbetsbank",
+      "arbetspall-med-hjul"
+    ],
+    "trehjuling-barn-motorcykel-musik": [
+      "elmotorcykel-barn-6v",
+      "trehjulig-sparkcykel",
+      "svangbil-barn-wigglebil",
+      "akbil-barn-fyrhjuling",
+      "springcykel-barn-18-48-manader"
+    ],
+    "popup-paviljong-3-6x3-6-m-natvaggar": [
+      "pop-up-paviljong-myggnat-6-sidig",
+      "paviljong-3x3",
+      "kylbox-pa-hjul-56l",
+      "markis-med-vev-200x150",
+      "hammock-med-tak-3-sits"
+    ],
+    "sockervaddsmaskin-hemma": [
+      "stolband-med-rosett",
+      "stretch-stolsoverdrag",
+      "rund-bordsduk",
+      "kylbox-pa-hjul-56l"
+    ],
+    "trampbil-barn-gokart": [
+      "elbil-barn-polisbil-12v-fjarrkontroll",
+      "barncykel-16-tum",
+      "sparkcykel-barn-5-12-ar",
+      "toyota-land-cruiser-elbil-barn",
+      "akgravmaskin-barn"
+    ],
+    "gunghast-barn-tra": [
+      "gunghast-dinosaurie",
+      "kapphast-enhorning-ljud-hjul",
+      "gungdjur-giraff-plysch-baby",
+      "gunghast-elefant",
+      "musikinstrument-i-tra"
+    ],
+    "hogt-badrumsskap-182": [
+      "tvattstallsskap-60-cm",
+      "spegelskap-badrum",
+      "badrumsskap-vagg",
+      "smalt-badrumsskap",
+      "hogt-badrumsskap-3-luckor"
+    ],
+    "agilityset-hund-3-delar": [
+      "fristaende-hundgrind-154",
+      "hopfallbar-hundhage",
+      "upphojt-hundmatstall-med-forvaring",
+      "justerbar-hundgrind",
+      "hopfallbar-hundgard-med-soltak"
+    ],
+    "barnskrivbord-med-stol": [
+      "bokhylla-barn-3-i-1",
+      "leksaksforvaring-med-korgar",
+      "rittillbehor-for-barn-32-delar",
+      "barnstaffli-tra-3-i-1",
+      "barnfatolj-med-fotpall"
+    ],
+    "fagelbur-med-tillbehor": [
+      "stor-fagelbur",
+      "fagelbur-undulat-40x40x59",
+      "fagelmatare-med-kamera"
+    ],
+    "fristaende-boxningssack-160-230-cm": [
+      "smart-boxningsdyna",
+      "justerbar-traningsbank",
+      "justerbar-skivstang-20-kg",
+      "hantelset-med-vaska",
+      "sissy-squat-bank-3-i-1"
+    ],
+    "litet-vaxthus-180": [
+      "litet-vaxthus-4-hyllor-rullhjul",
+      "odlingslada-med-spalje",
+      "tomatstod-metall-6-pack",
+      "spalje-klattervaxter",
+      "godselgrep-5-klor-glasfiber"
+    ],
+    "leksakskok-med-tillbehor": [
+      "leksaksgrill-i-tra-26-delar",
+      "glassvagn-leksak-27-delar",
+      "leksaksaffar-tra-mataffar-lekset",
+      "leksakskundvagn-barn-docka",
+      "leksakskok-for-barn"
+    ],
+    "skrivbord-120-cm": [
+      "kontorsstol-mesh",
+      "ergonomisk-kontorsstol-nackstod",
+      "skrivarbord-hjul-skrivarvagn-2-plan",
+      "kontorsstol-vit-konstlader",
+      "smal-forvaringsvagn-4-plan"
+    ],
+    "sminkbord-barn-pall-spegel": [
+      "barnfatolj-med-fotpall",
+      "bokhylla-barn-3-i-1",
+      "leksaksforvaring-med-korgar",
+      "kapphast-enhorning-ljud-hjul",
+      "barnbord-med-stol"
+    ],
+    "vikbar-husdjurstrappa-4-steg": [
+      "hundtrappa-med-forvaring",
+      "hundramp-bil-155-cm",
+      "hundsoffa-stor-hund-upphojd",
+      "upphojt-hundmatstall-med-forvaring"
+    ],
+    "stegpall-barn-2-steg-badrum-kok": [
+      "hopfallbar-stegpall",
+      "barnbord-med-stol",
+      "bokhylla-barn-3-i-1",
+      "leksaksforvaring-med-korgar"
+    ],
+    "golvlampa-boho-dimbar-fjarrkontroll": [
+      "bordslampa-fargat-glas",
+      "golvlampa-med-bord",
+      "satsbord-runt-2-pack-industriellt",
+      "konstgjort-olivtrad-120-cm-konstvaxt",
+      "hopfallbar-rumsavdelare"
+    ],
+    "cykelstall-golv-justerbart-stal": [
+      "cykelstall-golv-west-biking-hojdjusterbart",
+      "golvstall-cykel-west-biking-forvaringsstall",
+      "cykellyft-tak",
+      "vikbart-cykellas-west-biking-6-delat",
+      "reparationsstall-cykel-west-biking-mekstall"
+    ],
+    "serveringsvagn-med-hjul-barvagn-3-plan": [
+      "vinstall-bambu-stapelbart-flaskor",
+      "kylbox-pa-hjul-56l",
+      "matstolar-2-pack",
+      "kastrullset-induktion"
+    ],
+    "ipl-harborttagning": [
+      "aterfuktande-hudvardsset",
+      "hudvardsset-ansikte-5-delar",
+      "peel-off-mask-guld-snigel-ansiktsmask-3-pack",
+      "elektrisk-vakuumterapi",
+      "sminkkoffert-med-las-proffs-4-lager"
+    ],
+    "sladdlos-dammsugare-23kpa-led-display": [
+      "vat-och-torrdammsugare-1200w",
+      "soptunna-med-sensor",
+      "utdragbar-sopsorterare",
+      "angstation-2800w",
+      "staende-kladangare-1950w"
+    ],
+    "fagelmatare-med-kamera": [
+      "tradlos-vaderstation-wifi-7-i-1-sensor-solcell",
+      "solpanel-12v-monokristallin",
+      "odlingslada-metall",
+      "tradgardsfontan-med-pump"
+    ],
+    "duschstol-med-ryggstod": [
+      "toalettforhojning-med-armstod-9-cm",
+      "duschmatta-tra-akacia-91x51",
+      "hornhylla-badrum-glas",
+      "hopfallbar-stegpall"
+    ],
+    "hopfallbart-hundbadkar": [
+      "hundsoffa-stor-hund-upphojd",
+      "hundramp-bil-155-cm",
+      "upphojt-hundmatstall-slow-feeder",
+      "vikbar-husdjurstrappa-4-steg",
+      "hundtrappa-med-forvaring"
+    ],
+    "konstgjort-trad": [
+      "konstgjord-bananvaxt",
+      "konstgjord-vaxt-dracaena-160",
+      "konstgjort-olivtrad-120-cm-konstvaxt",
+      "golvlampa-boho-dimbar-fjarrkontroll"
+    ],
+    "rund-bordsduk": [
+      "stretch-stolsoverdrag",
+      "stolband-med-rosett",
+      "chafing-dish-set-4-pack-rostfri",
+      "transparent-bordsskydd"
+    ],
+    "krukvagn-med-hjul-griparm": [
+      "tradgardspall-pa-hjul",
+      "odlingslada-metall",
+      "odlingslada-med-spalje",
+      "spalje-klattervaxter",
+      "godselgrep-5-klor-glasfiber"
+    ],
+    "transparent-bordsskydd": [
+      "rund-bordsduk",
+      "stretch-stolsoverdrag",
+      "matstolar-2-pack",
+      "stolband-med-rosett",
+      "fallbart-matbord-klaffbord"
+    ],
+    "balanstraner-halvboll-58": [
+      "justerbar-stepbrada",
+      "multifunktionell-traningsbrada-pilates",
+      "hantelset-med-vaska",
+      "studsmatta-traning",
+      "justerbara-hantlar-4-i-1-2-pack"
+    ],
+    "studsmatta-traning": [
+      "balanstraner-halvboll-58",
+      "justerbar-stepbrada",
+      "multifunktionell-traningsbrada-pilates",
+      "hantelset-med-vaska",
+      "motionscykel-hemma-justerbar-lcd"
+    ],
+    "hopfallbar-arbetsbank": [
+      "verktygsvagn-med-hjul-verkstadsvagn",
+      "arbetspall-med-hjul",
+      "pocket-hole-jigg-fickhalsjigg",
+      "digital-momentmejsel-1-4-tum-bits",
+      "rostfritt-arbetsbord"
+    ],
+    "stapelbara-pallar": [
+      "matstolar-2-pack",
+      "fallbart-matbord-klaffbord",
+      "satsbord-runt-2-pack-industriellt",
+      "stoppad-sangbank-80-cm",
+      "skobank-bambu-med-sittdyna"
+    ],
+    "angstation-2800w": [
+      "staende-kladangare-1950w",
+      "torkstallning-pa-hjul",
+      "tvattkorg-bambu-120l-2-fack",
+      "kompakt-torktumlare",
+      "tvattsorterare-bambu-144l-3-fack"
+    ],
+    "kladhangare-med-bank-bambu": [
+      "skobank-med-dyna-forvaring-bambu",
+      "smalt-skoskap-2-luckor",
+      "skobank-bambu-med-sittdyna",
+      "byra-med-tyglador",
+      "fonsterspegel-guld-60x91"
+    ],
+    "byra-6-tyglador": [
+      "byra-med-tyglador",
+      "stoppad-sangbank-80-cm",
+      "vaggmonterade-forvaringslador-12-st",
+      "smalt-skoskap-2-luckor",
+      "fonsterspegel-guld-60x91"
+    ],
+    "byra-med-tyglador": [
+      "byra-6-tyglador",
+      "vaggmonterade-forvaringslador-12-st",
+      "stoppad-sangbank-80-cm",
+      "smalt-skoskap-2-luckor",
+      "kladhangare-med-bank-bambu"
+    ],
+    "smalt-skoskap-2-luckor": [
+      "kladhangare-med-bank-bambu",
+      "skobank-med-dyna-forvaring-bambu",
+      "skobank-bambu-med-sittdyna",
+      "byra-med-tyglador",
+      "fonsterspegel-guld-60x91"
+    ],
+    "odlingslada-metall-180x90": [
+      "odlingslada-metall",
+      "odlingslada-med-spalje",
+      "tomatstod-metall-6-pack",
+      "litet-vaxthus-180",
+      "spalje-klattervaxter"
+    ],
+    "matstolar-2-pack": [
+      "fallbart-matbord-klaffbord",
+      "stapelbara-pallar",
+      "transparent-bordsskydd",
+      "stoppad-sangbank-80-cm",
+      "rund-bordsduk"
+    ],
+    "utdragbar-sopsorterare": [
+      "soptunna-med-sensor",
+      "forvaringsbehallare-torrvaror-2x15l",
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "kastrullset-induktion",
+      "vinstall-bambu-stapelbart-flaskor"
+    ],
+    "gabil-mercedes-g350": [
+      "mercedes-g350-akbil-barn",
+      "akbil-barn-fyrhjuling",
+      "svangbil-barn-wigglebil",
+      "sparkbil-barn-med-musik",
+      "elmotorcykel-barn-6v"
+    ],
+    "sparkcykel-barn-5-12-ar": [
+      "barncykel-16-tum",
+      "barncykel-stodhjul-2-i-1",
+      "sparkcykel-barn-trehjulig-led",
+      "studsnat-fotboll",
+      "uppblasbar-bumperboll-zorb-1-2m"
+    ],
+    "badrumsskap-vagg": [
+      "spegelskap-badrum",
+      "tvattstallsskap-60-cm",
+      "smalt-badrumsskap",
+      "hornhylla-badrum-glas",
+      "hogt-badrumsskap-3-luckor"
+    ],
+    "smalt-badrumsskap": [
+      "badrumsskap-vagg",
+      "spegelskap-badrum",
+      "tvattstallsskap-60-cm",
+      "hornhylla-badrum-glas",
+      "hogt-badrumsskap-3-luckor"
+    ],
+    "hantelset-med-vaska": [
+      "multifunktionell-traningsbrada-pilates",
+      "justerbar-stepbrada",
+      "balanstraner-halvboll-58",
+      "studsmatta-traning",
+      "justerbara-hantlar-4-i-1-2-pack"
+    ],
+    "tvattstallsskap-60-cm": [
+      "spegelskap-badrum",
+      "badrumsskap-vagg",
+      "smalt-badrumsskap",
+      "hornhylla-badrum-glas",
+      "hogt-badrumsskap-3-luckor"
+    ],
+    "fristaende-hundgrind-154": [
+      "justerbar-hundgrind",
+      "hopfallbar-hundgard-med-soltak",
+      "hopfallbar-hundhage-metall-8-paneler",
+      "hundvagn-liten-hund",
+      "hundtrappa-med-forvaring"
+    ],
+    "bokhylla-barn-3-i-1": [
+      "leksaksforvaring-med-korgar",
+      "barnbord-med-stol",
+      "sminkbord-barn-pall-spegel",
+      "barnfatolj-med-fotpall",
+      "barnskrivbord-med-stol"
+    ],
+    "konstgjord-julgran-150-cm": [
+      "konstgjord-julgirlang",
+      "konstgjord-julgran-med-sno",
+      "konstgjort-olivtrad",
+      "konstgjort-olivtrad-120-cm-konstvaxt"
+    ],
+    "hundvagn-liten-hund": [
+      "hopfallbar-hundvagn-svangbara-hjul",
+      "fristaende-hundgrind-154",
+      "hopfallbar-hundgard-med-soltak",
+      "upphojt-hundmatstall-med-forvaring",
+      "hundtrappa-med-forvaring"
+    ],
+    "skyddsoverdrag-hammock": [
+      "hammock-med-tak-3-sits",
+      "hangstol-med-stativ-fristaende-morkgra",
+      "hopfallbar-solsang-ansiktshal",
+      "vandbar-utomhusmatta",
+      "skuggvav-pergola-90-solskydd-hdpe"
+    ],
+    "musikinstrument-i-tra": [
+      "barnpiano-37-tangenter",
+      "trumset-for-barn",
+      "aktivitetsbord-barn-musik",
+      "aktivitetsbord-barn-montessori"
+    ],
+    "barnpiano-37-tangenter": [
+      "trumset-for-barn",
+      "musikinstrument-i-tra",
+      "trumset-barn-3-delar-pall-cymbal",
+      "aktivitetsbord-barn-musik"
+    ],
+    "kastrullset-induktion": [
+      "airfryer-dubbla-korgar-9l-varmluftsfritos",
+      "miniugn-32-liter",
+      "airfryer-7-liter",
+      "forvaringsbehallare-torrvaror-2x15l",
+      "serveringsvagn-med-hjul-barvagn-3-plan"
+    ],
+    "stretch-stolsoverdrag": [
+      "stolband-med-rosett",
+      "rund-bordsduk",
+      "transparent-bordsskydd"
+    ],
+    "stor-fagelbur": [
+      "fagelbur-med-tillbehor",
+      "fagelbur-undulat-40x40x59"
+    ],
+    "spalje-klattervaxter": [
+      "spalje-tra-utdragbar-2-pack",
+      "tomatstod-metall-6-pack",
+      "odlingslada-med-spalje",
+      "odlingslada-metall",
+      "godselgrep-5-klor-glasfiber"
+    ],
+    "stolband-med-rosett": [
+      "stretch-stolsoverdrag",
+      "rund-bordsduk",
+      "transparent-bordsskydd"
+    ],
+    "snoborste-med-isskrapa": [
+      "snokappar-glasfiber",
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "baseus-1000a-startbooster-bil-kompressor",
+      "baseus-starthjalp-2000a-powerbank-bil"
+    ],
+    "konstgjord-julgirlang": [
+      "konstgjord-julgran-150-cm",
+      "konstgjord-julgran-med-sno",
+      "konstgjort-olivtrad",
+      "konstgjord-bananvaxt"
+    ],
+    "kabelsax-med-sparr": [
+      "verktygsvaska-elektriker-33-fack",
+      "verktygsbalte-magnetiskt-28-fickor",
+      "magnetisk-hylshallare-3-pack",
+      "digital-momentmejsel-1-4-tum-bits",
+      "kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling"
+    ],
+    "teleskopstege-aluminium": [
+      "nivautjamnare-stege-trappa-sluttning",
+      "hopfallbar-arbetsbank",
+      "airless-fargspruta",
+      "led-stralkastare-utomhus-4250-lumen",
+      "verktygsvagn-med-hjul-verkstadsvagn"
+    ],
+    "tradgardspall-pa-hjul": [
+      "krukvagn-med-hjul-griparm",
+      "godselgrep-5-klor-glasfiber",
+      "odlingslada-metall",
+      "slangvagn-tradgard",
+      "tomatstod-metall-6-pack"
+    ],
+    "snokappar-glasfiber": [
+      "snoborste-med-isskrapa",
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "led-stralkastare-utomhus-4250-lumen",
+      "baseus-1000a-startbooster-bil-kompressor"
+    ],
+    "hopfallbar-campingstol": [
+      "campingstol-hopfallbar-armstod-2-pack",
+      "dubbel-sovsack",
+      "varmtalt-tipi-4-personer-kaminuttag",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "portabel-campingtoalett-5l-innerhink"
+    ],
+    "vaggfras-4800w": [
+      "vaggfras-4000w",
+      "hopfallbar-arbetsbank",
+      "led-stralkastare-utomhus-4250-lumen",
+      "verktygsvagn-med-hjul-verkstadsvagn"
+    ],
+    "bordsstativ-tv-32-70-tum": [
+      "projektorduk-med-stativ-100-tum",
+      "satsbord-runt-2-pack-industriellt",
+      "golvlampa-boho-dimbar-fjarrkontroll",
+      "bordslampa-fargat-glas"
+    ],
+    "pressback-th-16-32": [
+      "manuell-rorgangningssats",
+      "rorskruvstad-stativ-katting-1-8-5",
+      "membranpump-12v-sjalvsugande-vattenpump",
+      "digital-momentmejsel-1-4-tum-bits"
+    ],
+    "barncykel-16-tum": [
+      "sparkcykel-barn-5-12-ar",
+      "barncykel-stodhjul-2-i-1",
+      "sparkcykel-barn-trehjulig-led",
+      "studsnat-fotboll"
+    ],
+    "forvarmningsplatta-lodning": [
+      "verktygsvaska-elektriker-33-fack",
+      "kabelsax-med-sparr",
+      "digital-momentmejsel-1-4-tum-bits",
+      "magnetisk-hylshallare-3-pack"
+    ],
+    "frisorvaska-med-las": [
+      "arbetsstol-salong-hoj-och-sankbar",
+      "sminkkoffert-med-las-proffs-4-lager",
+      "arbetspall-med-hjul",
+      "ipl-harborttagning"
+    ],
+    "manuell-rorgangningssats": [
+      "pressback-th-16-32",
+      "rorskruvstad-stativ-katting-1-8-5",
+      "membranpump-12v-sjalvsugande-vattenpump",
+      "digital-momentmejsel-1-4-tum-bits"
+    ],
+    "vaggfras-4000w": [
+      "vaggfras-4800w",
+      "hopfallbar-arbetsbank",
+      "led-stralkastare-utomhus-4250-lumen",
+      "verktygsvagn-med-hjul-verkstadsvagn"
+    ],
+    "elektrisk-vakuumterapi": [
+      "ipl-harborttagning",
+      "hopfallbar-massagebank-aluminium-rosa",
+      "hopfallbar-massagebank-tra-186cm",
+      "sminkkoffert-med-las-proffs-4-lager"
+    ],
+    "hydraulisk-handbroms-drift": [
+      "racingstativ-ratt-pedaler-hopfallbart",
+      "garagedomkraft-2-5-ton-lag-profil",
+      "baseus-1000a-startbooster-bil-kompressor",
+      "depastod-mc-hjulstod"
+    ],
+    "klocklada-24-klockor": [
+      "smyckesskap-spegel-led",
+      "displayram-matchtroja",
+      "sminkkoffert-med-las-proffs-4-lager"
+    ],
+    "uppblasbart-babybadkar": [
+      "hopfallbart-babybadkar",
+      "babybadkar-med-stallning",
+      "hopfallbart-babybadkar-termometer",
+      "vaggmonterat-skotbord"
+    ],
+    "stentrumla-for-barn": [
+      "3d-trapussel-raket-rymdfarja",
+      "kulbana-byggsats-110-delar",
+      "rittillbehor-for-barn-32-delar",
+      "aktivitetstavla-barn-montessori"
+    ],
+    "hornhylla-badrum-glas": [
+      "spegelskap-badrum",
+      "badrumsskap-vagg",
+      "smalt-badrumsskap",
+      "duschmatta-tra-akacia-91x51",
+      "tvattstallsskap-60-cm"
+    ],
+    "cykellyft-tak": [
+      "cykelstall-golv-justerbart-stal",
+      "cykelstall-golv-west-biking-hojdjusterbart",
+      "golvstall-cykel-west-biking-forvaringsstall",
+      "reparationsstall-cykel-west-biking-mekstall"
+    ],
+    "lasbar-kattlucka": [
+      "kattlada-med-tak",
+      "kloskrapa-katt-soffa-kartong",
+      "klostrad-med-koja",
+      "hopfallbar-kattkoja",
+      "katthus-tv-design-med-kudde"
+    ],
+    "smal-forvaringsvagn-4-plan": [
+      "vaggmonterade-forvaringslador-12-st",
+      "forvaringsbehallare-torrvaror-2x15l",
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "utdragbar-sopsorterare"
+    ],
+    "smart-boxningsdyna": [
+      "justerbara-hantlar-4-i-1-2-pack",
+      "justerbar-stepbrada",
+      "balanstraner-halvboll-58",
+      "multifunktionell-traningsbrada-pilates"
+    ],
+    "sittgrupp-for-barn": [
+      "barngunga-tradgard-med-tak",
+      "gungbrada-for-barn",
+      "klatterstallning-barn",
+      "mudkok-barn-tra-utomhus-lekkok",
+      "studsnat-fotboll"
+    ],
+    "hammock-med-tak-3-sits": [
+      "skyddsoverdrag-hammock",
+      "hangstol-med-stativ-fristaende-morkgra",
+      "hopfallbar-solsang-2-pack",
+      "parasoll-med-led",
+      "tradgardsbord-aluminium"
+    ],
+    "odlingslada-med-spalje": [
+      "tomatstod-metall-6-pack",
+      "spalje-klattervaxter",
+      "godselgrep-5-klor-glasfiber",
+      "odlingslada-metall",
+      "tradgardspall-pa-hjul"
+    ],
+    "sparkbil-barn-med-musik": [
+      "sparkbil-barn-gabil-musik",
+      "svangbil-barn-wigglebil",
+      "akbil-barn-fyrhjuling",
+      "springcykel-barn",
+      "trehjulig-sparkcykel"
+    ],
+    "trumset-for-barn": [
+      "barnpiano-37-tangenter",
+      "musikinstrument-i-tra",
+      "trumset-barn-3-delar-pall-cymbal",
+      "aktivitetsbord-barn-musik"
+    ],
+    "konstgjord-vaxt-dracaena-160": [
+      "konstgjord-bananvaxt",
+      "konstgjort-olivtrad-120-cm-konstvaxt",
+      "konstgjort-trad",
+      "konstgjort-olivtrad",
+      "golvlampa-med-bord"
+    ],
+    "spegelskap-badrum": [
+      "badrumsskap-vagg",
+      "tvattstallsskap-60-cm",
+      "smalt-badrumsskap",
+      "hornhylla-badrum-glas",
+      "hogt-badrumsskap-3-luckor"
+    ],
+    "gungbrada-for-barn": [
+      "barngunga-tradgard-med-tak",
+      "sittgrupp-for-barn",
+      "klatterstallning-barn",
+      "klattertriangel-barn-naturtra",
+      "babygunga-stativ-barngunga"
+    ],
+    "tradgardsbord-glas-parasollhal": [
+      "parasollfot-cement-12-kg-brons-rund",
+      "svart-parasollfot-12-kg-38-48-mm",
+      "parasoll-med-led",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "runt-tradgardsbord-mosaik"
+    ],
+    "golvlampa-med-bord": [
+      "bordslampa-fargat-glas",
+      "golvlampa-boho-dimbar-fjarrkontroll",
+      "satsbord-runt-2-pack-industriellt",
+      "konstgjord-vaxt-dracaena-160",
+      "lyftbart-soffbord-forvaring"
+    ],
+    "hopfallbar-rumsavdelare": [
+      "konstgjord-vaxt-dracaena-160",
+      "golvlampa-med-bord",
+      "konstgjord-bananvaxt",
+      "byra-med-tyglador",
+      "kladhangare-med-bank-bambu"
+    ],
+    "markis-med-vev-200x150": [
+      "skuggvav-pergola-90-solskydd-hdpe",
+      "parasoll-med-led",
+      "hopfallbar-solsang-ansiktshal",
+      "tradgardsbord-glas-parasollhal",
+      "vandbar-utomhusmatta"
+    ],
+    "kaninbur-utomhus-tra-rastgard": [
+      "modular-smadjursbur",
+      "hamsterbur-med-tunnel-tillbehor",
+      "hopfallbar-hundgard-med-soltak",
+      "fristaende-hundgrind-154"
+    ],
+    "kattrad-med-klospelare": [
+      "klattervagg-for-katt-med-hangmatta",
+      "kloskrapa-katt-soffa-kartong",
+      "takhogt-katttrad",
+      "tackt-kattlada",
+      "katthjul-i-tra"
+    ],
+    "tradgardsfontan-med-pump": [
+      "tradgardsbank-utomhus-metall-tra",
+      "spalje-klattervaxter",
+      "runt-tradgardsbord-mosaik",
+      "konstgjort-trad",
+      "odlingslada-med-spalje"
+    ],
+    "konstgjord-bananvaxt": [
+      "konstgjord-vaxt-dracaena-160",
+      "konstgjort-olivtrad-120-cm-konstvaxt",
+      "konstgjort-trad",
+      "konstgjort-olivtrad",
+      "golvlampa-med-bord"
+    ],
+    "kloskrapa-katt-soffa-kartong": [
+      "klostrad-med-koja",
+      "hopfallbar-kattkoja",
+      "kattrad-med-klospelare",
+      "klattervagg-for-katt-med-hangmatta",
+      "kattlada-med-tak"
+    ],
+    "klattervagg-for-katt-med-hangmatta": [
+      "kattrad-med-klospelare",
+      "klostrad-140-cm",
+      "katthjul-i-tra",
+      "kloskrapa-katt-soffa-kartong",
+      "tackt-kattlada",
+      "lasbar-kattlucka"
+    ],
+    "akbil-barn-fyrhjuling": [
+      "gabil-mercedes-g350",
+      "mercedes-g350-akbil-barn",
+      "elmotorcykel-barn-6v",
+      "svangbil-barn-wigglebil",
+      "akgravmaskin-barn"
+    ],
+    "leksakskok-for-barn": [
+      "leksaksgrill-i-tra-26-delar",
+      "leksakskundvagn-barn-docka",
+      "glassvagn-leksak-27-delar",
+      "leksakskok-barn-38-delar-ljud",
+      "mudkok-barn-tra-utomhus-lekkok"
+    ],
+    "skrivbord-ek-120cm-datorbord": [
+      "ergonomisk-kontorsstol-nackstod",
+      "kontorsstol-mesh",
+      "skrivarbord-hjul-skrivarvagn-2-plan",
+      "kontorsstol-bred-sits",
+      "golvlampa-med-bord"
+    ],
+    "hopfallbar-solsang-ansiktshal": [
+      "hopfallbar-solsang-2-pack",
+      "vandbar-utomhusmatta",
+      "runt-tradgardsbord",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "skuggvav-pergola-90-solskydd-hdpe"
+    ],
+    "justerbar-hundgrind": [
+      "fristaende-hundgrind-154",
+      "hopfallbar-hundhage-metall-8-paneler",
+      "hopfallbar-hundhage",
+      "hundtrappa-med-forvaring",
+      "upphojt-hundmatstall-med-forvaring"
+    ],
+    "sparkcykel-barn-trehjulig-led": [
+      "trehjulig-sparkcykel",
+      "springcykel-barn-18-48-manader",
+      "barncykel-stodhjul-2-i-1",
+      "trehjuling-barn-motorcykel-musik",
+      "sparkcykel-barn-5-12-ar"
+    ],
+    "snurrbar-skrivbordsstol": [
+      "skrivbord-ek-120cm-datorbord",
+      "skrivbord-120-cm",
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "gamingbord-led-110-cm-rgb",
+      "bordsstativ-tv-32-70-tum"
+    ],
+    "upphojt-hundmatstall-slow-feeder": [
+      "upphojt-hundmatstall-med-forvaring",
+      "hundsoffa-stor-hund-upphojd",
+      "hundtrappa-med-forvaring",
+      "justerbar-hundgrind",
+      "agilityset-hund-3-delar"
+    ],
+    "loungeset-rotting-5-delar": [
+      "parasoll-med-led",
+      "hangstol-med-stativ-fristaende-morkgra",
+      "kylbox-pa-hjul-56l",
+      "fyrfat-utomhus-67-cm",
+      "hammock-med-tak-3-sits"
+    ],
+    "soptunna-med-sensor": [
+      "utdragbar-sopsorterare",
+      "forvaringsbehallare-torrvaror-2x15l",
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "kastrullset-induktion",
+      "sladdlos-dammsugare-23kpa-led-display"
+    ],
+    "lyftbart-soffbord-forvaring": [
+      "satsbord-runt-2-pack-industriellt",
+      "industriellt-konsolbord-2-lador-hylla-brun",
+      "golvlampa-med-bord",
+      "skank-sideboard-120-cm-vit-guldben",
+      "vitrinskap-vagg"
+    ],
+    "babygunga-stativ-barngunga": [
+      "gungdjur-giraff-plysch-baby",
+      "barngunga-tradgard-med-tak",
+      "gunghast-barn-tra",
+      "gungdjur-svan-plysch",
+      "barnrutschkana-5-i-1-inomhus-smabarn"
+    ],
+    "miniugn-32-liter": [
+      "airfryer-dubbla-korgar-9l-varmluftsfritos",
+      "airfryer-7-liter",
+      "kastrullset-induktion",
+      "soptunna-med-sensor",
+      "serveringsvagn-med-hjul-barvagn-3-plan"
+    ],
+    "staende-kladangare-1950w": [
+      "angstation-2800w",
+      "torkstallning-pa-hjul",
+      "tvattsorterare-bambu-144l-3-fack",
+      "kladhangare-med-bank-bambu",
+      "tvattkorg-bambu-120l-2-fack"
+    ],
+    "trehjulig-sparkcykel": [
+      "sparkcykel-barn-trehjulig-led",
+      "trehjuling-barn-motorcykel-musik",
+      "springcykel-barn-18-48-manader",
+      "trehjuling-barn-sufflett",
+      "barncykel-stodhjul-2-i-1"
+    ],
+    "trehjuling-barn-sufflett": [
+      "trehjuling-barn-motorcykel-musik",
+      "trehjulig-sparkcykel",
+      "gabil-mercedes-g350",
+      "mercedes-g350-akbil-barn",
+      "springcykel-barn-18-48-manader"
+    ],
+    "smyckesskap-spegel-led": [
+      "sminkkoffert-med-las-proffs-4-lager",
+      "fonsterspegel-guld-60x91",
+      "klocklada-24-klockor",
+      "byra-med-tyglador",
+      "bordslampa-fargat-glas"
+    ],
+    "katthus-tv-design-med-kudde": [
+      "hopfallbar-kattkoja",
+      "kloskrapa-katt-soffa-kartong",
+      "klostrad-med-koja",
+      "kattlada-med-tak",
+      "klostrad-140-cm"
+    ],
+    "kontorsstol-med-fotstod": [
+      "skrivbord-ek-120cm-datorbord",
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "skrivbord-120-cm",
+      "kontorsstol-fotstod-sammet",
+      "gamingbord-led-110-cm-rgb"
+    ],
+    "kompakt-torktumlare": [
+      "staende-kladangare-1950w",
+      "angstation-2800w",
+      "torkstallning-pa-hjul",
+      "tvattsorterare-bambu-144l-3-fack",
+      "tvattkorg-bambu-120l-2-fack"
+    ],
+    "fonsterspegel-guld-60x91": [
+      "bordslampa-fargat-glas",
+      "golvlampa-med-bord",
+      "industriellt-konsolbord-2-lador-hylla-brun",
+      "konstgjort-olivtrad-120-cm-konstvaxt",
+      "golvlampa-boho-dimbar-fjarrkontroll"
+    ],
+    "kontorsstol-fotstod-sammet": [
+      "skrivbord-ek-120cm-datorbord",
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "skrivbord-120-cm",
+      "kontorsstol-med-fotstod",
+      "gamingbord-led-110-cm-rgb"
+    ],
+    "justerbar-skivstang-20-kg": [
+      "justerbar-traningsbank",
+      "hantelset-med-vaska",
+      "sissy-squat-bank-3-i-1",
+      "justerbara-hantlar-4-i-1-2-pack",
+      "balanstraner-halvboll-58"
+    ],
+    "tackt-kattlada": [
+      "kattladeskap-forvaring",
+      "tackt-kattlada-xxl",
+      "kattlada-med-tak",
+      "klostrad-140-cm",
+      "lasbar-kattlucka"
+    ],
+    "cykelvagn-last-cykelkarra-2-hjul": [
+      "cykelvagn-for-hund-hopfallbar",
+      "reparationsstall-cykel-west-biking-mekstall",
+      "pakethallarvaska-cykel-expanderbar-west-biking",
+      "cykelpump-160-psi-golvfot-manometer-west-biking",
+      "golvstall-cykel-west-biking-forvaringsstall"
+    ],
+    "bordslampa-fargat-glas": [
+      "golvlampa-boho-dimbar-fjarrkontroll",
+      "golvlampa-med-bord",
+      "fonsterspegel-guld-60x91",
+      "satsbord-runt-2-pack-industriellt",
+      "konstgjort-olivtrad-120-cm-konstvaxt"
+    ],
+    "sissy-squat-bank-3-i-1": [
+      "justerbar-traningsbank",
+      "justerbar-skivstang-20-kg",
+      "multifunktionell-traningsbrada-pilates",
+      "hantelset-med-vaska",
+      "justerbar-stepbrada"
+    ],
+    "led-stralkastare-utomhus-4250-lumen": [
+      "verktygsbalte-magnetiskt-28-fickor",
+      "verktygsvaska-elektriker-33-fack",
+      "magnetisk-hylshallare-3-pack",
+      "vagglampa-utomhus-retro-e27-ip45",
+      "hopfallbar-arbetsbank"
+    ],
+    "liggande-motionscykel-ryggstod": [
+      "motionscykel-ryggstod",
+      "hopfallbar-motionscykel-ryggstod",
+      "hopfallbart-gaband-lopband-1-6kmh",
+      "magnetisk-motionscykel-lcd",
+      "justerbar-traningsbank"
+    ],
+    "svangbil-barn-wigglebil": [
+      "akbil-barn-fyrhjuling",
+      "gravmaskin-akbil-barn",
+      "akgravmaskin-barn",
+      "trehjuling-barn-motorcykel-musik",
+      "mercedes-g350-akbil-barn"
+    ],
+    "upphojt-hundmatstall-med-forvaring": [
+      "upphojt-hundmatstall-slow-feeder",
+      "hundsoffa-stor-hund-upphojd",
+      "hundtrappa-med-forvaring",
+      "justerbar-hundgrind",
+      "agilityset-hund-3-delar"
+    ],
+    "hopfallbar-motionscykel-ryggstod": [
+      "motionscykel-hemma-justerbar-lcd",
+      "magnetisk-motionscykel-lcd",
+      "motionscykel-ryggstod",
+      "hopfallbart-gaband-lopband-1-6kmh",
+      "justerbar-traningsbank"
+    ],
+    "hopfallbart-gaband-lopband-1-6kmh": [
+      "motionscykel-ryggstod",
+      "hopfallbar-motionscykel-ryggstod",
+      "magnetisk-motionscykel-lcd",
+      "justerbar-traningsbank",
+      "multifunktionell-traningsbrada-pilates"
+    ],
+    "spalje-tra-utdragbar-2-pack": [
+      "spalje-klattervaxter",
+      "odlingslada-med-spalje",
+      "tomatstod-metall-6-pack",
+      "odlingslada-metall",
+      "litet-vaxthus-180"
+    ],
+    "duschmatta-tra-akacia-91x51": [
+      "duschstol-med-ryggstod",
+      "hornhylla-badrum-glas",
+      "spegelskap-badrum",
+      "tvattstallsskap-60-cm",
+      "badrumsskap-vagg"
+    ],
+    "vandbar-utomhusmatta": [
+      "hopfallbar-solsang-ansiktshal",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "runt-tradgardsbord",
+      "tradgardsbord-glas-parasollhal",
+      "parasollfot-cement-12-kg-brons-rund"
+    ],
+    "tvattsorterare-bambu-144l-3-fack": [
+      "tvattkorg-bambu-lock-2-fack-100l",
+      "tvattkorg-bambu-120l-2-fack",
+      "torkstallning-pa-hjul",
+      "staende-kladangare-1950w",
+      "kladhangare-med-bank-bambu"
+    ],
+    "barngunga-tradgard-med-tak": [
+      "babygunga-stativ-barngunga",
+      "sittgrupp-for-barn",
+      "gungbrada-for-barn",
+      "klatterstallning-barn",
+      "barnrutschkana-5-i-1-inomhus-smabarn"
+    ],
+    "odlingslada-metall": [
+      "odlingslada-metall-180x90",
+      "odlingslada-med-spalje",
+      "tomatstod-metall-6-pack",
+      "spalje-tra-utdragbar-2-pack",
+      "godselgrep-5-klor-glasfiber"
+    ],
+    "parasollvikter-hangparasoll-2-pack": [
+      "parasoll-med-led",
+      "parasollfot-cement-12-kg-brons-rund",
+      "svart-parasollfot-12-kg-38-48-mm",
+      "tradgardsbord-glas-parasollhal",
+      "hopfallbar-solsang-ansiktshal"
+    ],
+    "odlingslada-med-spalje-3-plan-grantra": [
+      "odlingslada-med-spalje",
+      "odlingslada-metall-180x90",
+      "spalje-tra-utdragbar-2-pack",
+      "tomatstod-metall-6-pack",
+      "odlingslada-metall"
+    ],
+    "parasoll-med-led": [
+      "parasollvikter-hangparasoll-2-pack",
+      "parasollfot-cement-12-kg-brons-rund",
+      "hopfallbar-solsang-2-pack",
+      "tradgardsbord-aluminium",
+      "svart-parasollfot-12-kg-38-48-mm"
+    ],
+    "fyrfat-utomhus-67-cm": [
+      "eldkorg-med-gnistskydd",
+      "eldkorg-gnistskydd-grill",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "tradgardsbank-utomhus-metall-tra"
+    ],
+    "eldkorg-gnistskydd-grill": [
+      "eldkorg-med-gnistskydd",
+      "fyrfat-utomhus-67-cm",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "tradgardsbank-utomhus-metall-tra"
+    ],
+    "eldkorg-med-gnistskydd": [
+      "eldkorg-gnistskydd-grill",
+      "fyrfat-utomhus-67-cm",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "tradgardsbank-utomhus-metall-tra"
+    ],
+    "hangstol-med-stativ-fristaende-morkgra": [
+      "hammock-med-tak-3-sits",
+      "hopfallbar-solsang-2-pack",
+      "parasoll-med-led",
+      "vandbar-utomhusmatta",
+      "loungeset-rotting-5-delar"
+    ],
+    "tradgardsbord-aluminium": [
+      "campingstol-hopfallbar-armstod-2-pack",
+      "tradgardsbord-aluminium-utomhus-8-personer",
+      "parasoll-med-led",
+      "parasollfot-cement-12-kg-brons-rund",
+      "tradgardsbank-utomhus-metall-tra"
+    ],
+    "runt-tradgardsbord-mosaik": [
+      "campingstol-hopfallbar-armstod-2-pack",
+      "runt-tradgardsbord",
+      "tradgardsbord-glas-parasollhal",
+      "hopfallbar-campingstol",
+      "parasollfot-cement-12-kg-brons-rund"
+    ],
+    "tradgardsbord-aluminium-utomhus-8-personer": [
+      "tradgardsbord-aluminium",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "parasoll-med-led",
+      "parasollvikter-hangparasoll-2-pack",
+      "tradgardsbank-utomhus-metall-tra"
+    ],
+    "runt-tradgardsbord": [
+      "hopfallbar-campingstol",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "runt-tradgardsbord-mosaik",
+      "vandbar-utomhusmatta",
+      "hopfallbar-solsang-ansiktshal"
+    ],
+    "motionscykel-ryggstod": [
+      "magnetisk-motionscykel-lcd",
+      "hopfallbar-motionscykel-ryggstod",
+      "motionscykel-hemma-justerbar-lcd",
+      "hopfallbart-gaband-lopband-1-6kmh",
+      "liggande-motionscykel-ryggstod"
+    ],
+    "magnetisk-motionscykel-lcd": [
+      "motionscykel-hemma-justerbar-lcd",
+      "hopfallbar-motionscykel-ryggstod",
+      "motionscykel-ryggstod",
+      "hopfallbart-gaband-lopband-1-6kmh",
+      "justerbar-traningsbank"
+    ],
+    "motionscykel-hemma-justerbar-lcd": [
+      "magnetisk-motionscykel-lcd",
+      "hopfallbar-motionscykel-ryggstod",
+      "motionscykel-ryggstod",
+      "hopfallbart-gaband-lopband-1-6kmh",
+      "justerbar-traningsbank"
+    ],
+    "arbetspall-med-hjul": [
+      "arbetsstol-salong-hoj-och-sankbar",
+      "verktygsvagn-med-hjul-verkstadsvagn",
+      "hopfallbar-arbetsbank",
+      "rostfritt-arbetsbord",
+      "frisorvaska-med-las"
+    ],
+    "elementskydd-med-hylla": [
+      "skobank-med-dyna-forvaring-bambu",
+      "kladhangare-med-bank-bambu",
+      "smalt-skoskap-2-luckor",
+      "vitrinskap-vagg",
+      "stoppad-sangbank-80-cm"
+    ],
+    "sminkkoffert-med-las-proffs-4-lager": [
+      "ipl-harborttagning",
+      "frisorvaska-med-las",
+      "smyckesskap-spegel-led",
+      "hudvardsset-ansikte-5-delar",
+      "klocklada-24-klockor"
+    ],
+    "gunghast-barn-med-ljud": [
+      "gunghast-dinosaurie",
+      "gunghast-elefant",
+      "gungdjur-giraff-plysch-baby",
+      "gungdjur-svan-plysch",
+      "gunghast-barn-tra"
+    ],
+    "gamingstol-med-fotpall": [
+      "gamingbord-led-110-cm-rgb",
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "gamingstol-med-fotstod-kattoron",
+      "skrivbord-ek-120cm-datorbord",
+      "bordsstativ-tv-32-70-tum"
+    ],
+    "hundramp-bil-155-cm": [
+      "hundtrappa-med-forvaring",
+      "vikbar-husdjurstrappa-4-steg",
+      "hundsoffa-stor-hund-upphojd",
+      "justerbar-hundgrind",
+      "upphojt-hundmatstall-med-forvaring"
+    ],
+    "fallbart-matbord-klaffbord": [
+      "matstolar-2-pack",
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "stretch-stolsoverdrag",
+      "transparent-bordsskydd",
+      "skank-sideboard-120-cm-vit-guldben"
+    ],
+    "tvattkorg-bambu-lock-2-fack-100l": [
+      "torkstallning-pa-hjul",
+      "tvattsorterare-bambu-144l-3-fack",
+      "tvattkorg-bambu-120l-2-fack",
+      "staende-kladangare-1950w",
+      "angstation-2800w"
+    ],
+    "golvflakt-med-vattendimma": [
+      "markis-med-vev-200x150",
+      "hopfallbar-solsang-2-pack",
+      "hammock-med-tak-3-sits",
+      "kylbox-pa-hjul-56l",
+      "hangstol-med-stativ-fristaende-morkgra"
+    ],
+    "hopfallbar-kattkoja": [
+      "klostrad-med-koja",
+      "kattlada-med-tak",
+      "kloskrapa-katt-soffa-kartong",
+      "lasbar-kattlucka",
+      "katthus-tv-design-med-kudde"
+    ],
+    "mercedes-g350-akbil-barn": [
+      "gabil-mercedes-g350",
+      "akbil-barn-fyrhjuling",
+      "elmotorcykel-barn-6v",
+      "svangbil-barn-wigglebil",
+      "sparkbil-barn-med-musik"
+    ],
+    "konstgjord-julgran-med-sno": [
+      "konstgjord-julgran-150-cm",
+      "konstgjord-julgirlang",
+      "bordslampa-fargat-glas",
+      "golvlampa-boho-dimbar-fjarrkontroll"
+    ],
+    "torkstallning-pa-hjul": [
+      "tvattkorg-bambu-lock-2-fack-100l",
+      "tvattsorterare-bambu-144l-3-fack",
+      "staende-kladangare-1950w",
+      "angstation-2800w",
+      "tvattkorg-bambu-120l-2-fack"
+    ],
+    "toyota-land-cruiser-elbil-barn": [
+      "elbil-barn-utv",
+      "elbil-barn-audi",
+      "elbil-barn-polisbil-12v-fjarrkontroll",
+      "lamborghini-elbil-barn",
+      "trampbil-barn-gokart"
+    ],
+    "barbar-campingvask-vattentank-tvalpump": [
+      "portabel-campingtoalett-5l-innerhink",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "dubbel-sovsack",
+      "kylbox-pa-hjul-56l"
+    ],
+    "elmotorcykel-barn-6v": [
+      "elmotorcykel-barn",
+      "akbil-barn-fyrhjuling",
+      "mercedes-g350-akbil-barn",
+      "trehjuling-barn-motorcykel-musik",
+      "gabil-mercedes-g350"
+    ],
+    "hopfallbar-balansbom": [
+      "balansbana-barn-balansbrador-motorik",
+      "balansstenar-barn-stapelbara-halkfria",
+      "klatterstallning-barn",
+      "balansbage-barn-6-delar",
+      "klattertriangel-barn-naturtra"
+    ],
+    "klattertriangel-barn-naturtra": [
+      "mjuka-klatterblock-barn",
+      "barnrutschkana-5-i-1-inomhus-smabarn",
+      "skumklossar-barn",
+      "klatterstallning-barn",
+      "hopfallbar-balansbom"
+    ],
+    "leksakskok-barn-38-delar-ljud": [
+      "leksaksgrill-i-tra-26-delar",
+      "glassvagn-leksak-27-delar",
+      "leksakskundvagn-barn-docka",
+      "leksakskok-for-barn",
+      "leksaksaffar-tra-mataffar-lekset"
+    ],
+    "kattlada-med-tak": [
+      "tackt-kattlada",
+      "kattladeskap-forvaring",
+      "lasbar-kattlucka",
+      "kloskrapa-katt-soffa-kartong",
+      "klostrad-med-koja"
+    ],
+    "hopfallbar-hundhage": [
+      "hopfallbar-hundhage-metall-8-paneler",
+      "justerbar-hundgrind",
+      "fristaende-hundgrind-154",
+      "agilityset-hund-3-delar",
+      "hopfallbar-hundgard-med-soltak"
+    ],
+    "kontorsstol-vit-konstlader": [
+      "skrivbord-120-cm",
+      "skrivbord-ek-120cm-datorbord",
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "ergonomisk-kontorsstol-nackstod"
+    ],
+    "verktygsvagn-med-hjul-verkstadsvagn": [
+      "hopfallbar-arbetsbank",
+      "verktygsbalte-magnetiskt-28-fickor",
+      "magnetisk-hylshallare-3-pack",
+      "arbetspall-med-hjul",
+      "verktygsvaska-elektriker-33-fack"
+    ],
+    "modular-smadjursbur": [
+      "hamsterbur-med-tunnel-tillbehor",
+      "kaninbur-utomhus-tra-rastgard",
+      "hopfallbar-hundgard-med-soltak",
+      "fagelbur-undulat-40x40x59"
+    ],
+    "justerbar-traningsbank": [
+      "justerbar-skivstang-20-kg",
+      "hantelset-med-vaska",
+      "justerbara-hantlar-4-i-1-2-pack",
+      "sissy-squat-bank-3-i-1",
+      "multifunktionell-traningsbrada-pilates"
+    ],
+    "gamingstol-med-fotstod-kattoron": [
+      "gamingbord-led-110-cm-rgb",
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "gamingstol-med-fotpall",
+      "kontorsstol-med-massage-fotstod-ergonomisk"
+    ],
+    "fagelbur-undulat-40x40x59": [
+      "fagelbur-med-tillbehor",
+      "stor-fagelbur",
+      "fagelmatare-med-kamera",
+      "hamsterbur-med-tunnel-tillbehor",
+      "modular-smadjursbur"
+    ],
+    "katthus-utomhus-tra-3-vaningar": [
+      "takhogt-katttrad",
+      "kattrad-med-klospelare",
+      "klostrad-140-cm",
+      "klattervagg-for-katt-med-hangmatta",
+      "lasbar-kattlucka"
+    ],
+    "leksaksforvaring-med-korgar": [
+      "bokhylla-barn-3-i-1",
+      "barnbord-med-stol",
+      "barnstaffli-tra-3-i-1",
+      "barnskrivbord-med-stol",
+      "barnfatolj-med-fotpall"
+    ],
+    "justerbar-stepbrada": [
+      "balanstraner-halvboll-58",
+      "multifunktionell-traningsbrada-pilates",
+      "studsmatta-traning",
+      "justerbara-hantlar-4-i-1-2-pack",
+      "hantelset-med-vaska"
+    ],
+    "stoppad-sangbank-80-cm": [
+      "skobank-med-dyna-forvaring-bambu",
+      "kladhangare-med-bank-bambu",
+      "byra-med-tyglador",
+      "skobank-bambu-med-sittdyna",
+      "fonsterspegel-guld-60x91"
+    ],
+    "konstgjort-olivtrad-120-cm-konstvaxt": [
+      "konstgjort-olivtrad",
+      "konstgjord-bananvaxt",
+      "konstgjord-vaxt-dracaena-160",
+      "konstgjort-trad"
+    ],
+    "akgravmaskin-barn": [
+      "gravmaskin-akbil-barn",
+      "radiostyrd-gravmaskin-1-20",
+      "radiostyrd-gravmaskin-rc-3-i-1",
+      "akbil-barn-fyrhjuling",
+      "sparkbil-barn-med-musik"
+    ],
+    "campingstol-hopfallbar-armstod-2-pack": [
+      "hopfallbar-campingstol",
+      "dubbel-sovsack",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "portabel-campingtoalett-5l-innerhink",
+      "barbar-campingvask-vattentank-tvalpump"
+    ],
+    "skobank-bambu-med-sittdyna": [
+      "skobank-med-dyna-forvaring-bambu",
+      "kladhangare-med-bank-bambu",
+      "smalt-skoskap-2-luckor",
+      "stoppad-sangbank-80-cm",
+      "fonsterspegel-guld-60x91"
+    ],
+    "vitrinskap-vagg": [
+      "industriellt-konsolbord-2-lador-hylla-brun",
+      "satsbord-runt-2-pack-industriellt",
+      "vinstall-bambu-stapelbart-flaskor",
+      "klocklada-24-klockor",
+      "skank-sideboard-120-cm-vit-guldben"
+    ],
+    "uppblasbart-talt": [
+      "uppblasbart-campingtalt",
+      "dubbel-sovsack",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "kylbox-pa-hjul-56l",
+      "barbar-campingvask-vattentank-tvalpump"
+    ],
+    "studsnat-fotboll": [
+      "baseball-traningsnat",
+      "volleybollnat-set",
+      "tradgardsgolf-barn-hinkgolf-utomhus",
+      "uppblasbar-bumperboll-zorb-1-2m",
+      "portabelt-volleybollnat"
+    ],
+    "kylbox-pa-hjul-56l": [
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "eldkorg-med-gnistskydd",
+      "vinstall-bambu-stapelbart-flaskor"
+    ],
+    "dubbel-sovsack": [
+      "uppblasbart-talt",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "portabel-campingtoalett-5l-innerhink",
+      "hopfallbar-kolgrill-barbar-campinggrill",
+      "varmtalt-tipi-4-personer-kaminuttag"
+    ],
+    "paviljong-3x3": [
+      "markis-med-vev-200x150",
+      "skuggvav-pergola-90-solskydd-hdpe",
+      "tradgardsbord-aluminium",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "eldkorg-med-gnistskydd"
+    ],
+    "reservoverdrag-vaxthus-3x2x2": [
+      "reservholje-vaxthus-overdrag-pe",
+      "litet-vaxthus-180",
+      "litet-vaxthus-4-hyllor-rullhjul",
+      "odlingslada-metall-180x90",
+      "tomatstod-metall-6-pack"
+    ],
+    "reservholje-vaxthus-overdrag-pe": [
+      "reservoverdrag-vaxthus-3x2x2",
+      "litet-vaxthus-4-hyllor-rullhjul",
+      "litet-vaxthus-180",
+      "tomatstod-metall-6-pack",
+      "odlingslada-metall"
+    ],
+    "klostrad-med-koja": [
+      "klostrad-140-cm",
+      "kattrad-med-klospelare",
+      "kloskrapa-katt-soffa-kartong",
+      "hopfallbar-kattkoja",
+      "klattervagg-for-katt-med-hangmatta"
+    ],
+    "takhogt-katttrad": [
+      "kattrad-med-klospelare",
+      "klostrad-140-cm",
+      "klattervagg-for-katt-med-hangmatta",
+      "katthjul-i-tra",
+      "kloskrapa-katt-soffa-kartong"
+    ],
+    "hogt-badrumsskap-3-luckor": [
+      "badrumsskap-vagg",
+      "smalt-badrumsskap",
+      "tvattstallsskap-60-cm",
+      "spegelskap-badrum",
+      "hornhylla-badrum-glas"
+    ],
+    "kontorsstol-mesh": [
+      "skrivbord-120-cm",
+      "skrivbord-ek-120cm-datorbord",
+      "ergonomisk-kontorsstol-nackstod",
+      "kontorsstol-bred-sits",
+      "arbetspall-med-hjul"
+    ],
+    "kontorsstol-med-massage-fotstod-ergonomisk": [
+      "hornskrivbord-eluttag-skarmstall-128cm",
+      "skrivbord-120-cm",
+      "kontorsstol-med-fotstod",
+      "kontorsstol-fotstod-sammet",
+      "snurrbar-skrivbordsstol"
+    ],
+    "kontorsstol-bred-sits": [
+      "skrivbord-120-cm",
+      "skrivbord-ek-120cm-datorbord",
+      "kontorsstol-mesh",
+      "ergonomisk-kontorsstol-nackstod",
+      "arbetspall-med-hjul"
+    ],
+    "ergonomisk-kontorsstol-nackstod": [
+      "skrivbord-120-cm",
+      "skrivbord-ek-120cm-datorbord",
+      "kontorsstol-mesh",
+      "kontorsstol-bred-sits",
+      "hornskrivbord-eluttag-skarmstall-128cm"
+    ],
+    "barnstaffli-tra-3-i-1": [
+      "rittavla-barn-dubbelsidig-staffli",
+      "rittillbehor-for-barn-32-delar",
+      "canvaspaneler-malning-akryl-olja",
+      "barnbord-med-stol",
+      "leksaksforvaring-med-korgar"
+    ],
+    "leksaksmotor-barn": [
+      "leksaksmotor-motorcykel-25-delar",
+      "verktygsbank-barn-leksaksset-181-delar",
+      "robotleksak-barn-radiostyrd-robot",
+      "3d-trapussel-raket-rymdfarja",
+      "tagbana-i-tra-70-delar"
+    ],
+    "balansstenar-barn-stapelbara-halkfria": [
+      "balansbana-barn-balansbrador-motorik",
+      "balansbage-barn-6-delar",
+      "balansstenar-barn-6-st-sensorisk",
+      "klatterstallning-barn",
+      "hopfallbar-balansbom"
+    ],
+    "klatterstallning-barn": [
+      "balansbana-barn-balansbrador-motorik",
+      "balansstenar-barn-stapelbara-halkfria",
+      "hopfallbar-balansbom",
+      "balansbage-barn-6-delar",
+      "klattertriangel-barn-naturtra"
+    ],
+    "balansbana-barn-balansbrador-motorik": [
+      "balansstenar-barn-stapelbara-halkfria",
+      "balansbage-barn-6-delar",
+      "balansstenar-barn-6-st-sensorisk",
+      "klatterstallning-barn",
+      "hopfallbar-balansbom"
+    ],
+    "balansbage-barn-6-delar": [
+      "balansbana-barn-balansbrador-motorik",
+      "balansstenar-barn-stapelbara-halkfria",
+      "balansstenar-barn-6-st-sensorisk",
+      "klatterstallning-barn",
+      "hopfallbar-balansbom"
+    ],
+    "springcykel-barn": [
+      "springcykel-barn-18-48-manader",
+      "barncykel-stodhjul-2-i-1",
+      "sparkcykel-barn-trehjulig-led",
+      "trehjulig-sparkcykel",
+      "trehjuling-barn-motorcykel-musik"
+    ],
+    "barncykel-stodhjul-2-i-1": [
+      "barncykel-16-tum",
+      "springcykel-barn-18-48-manader",
+      "sparkcykel-barn-trehjulig-led",
+      "trehjulig-sparkcykel",
+      "sparkcykel-barn-5-12-ar"
+    ],
+    "hopfallbar-kolgrill-barbar-campinggrill": [
+      "eldkorg-gnistskydd-grill",
+      "eldkorg-med-gnistskydd",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "kylbox-pa-hjul-56l",
+      "barbar-campingvask-vattentank-tvalpump"
+    ],
+    "barnbord-med-stol": [
+      "barnstaffli-tra-3-i-1",
+      "rittavla-barn-dubbelsidig-staffli",
+      "rittillbehor-for-barn-32-delar",
+      "leksaksforvaring-med-korgar",
+      "bokhylla-barn-3-i-1"
+    ],
+    "gungdjur-giraff-plysch-baby": [
+      "gunghast-dinosaurie",
+      "gunghast-elefant",
+      "gungdjur-svan-plysch",
+      "gunghast-barn-med-ljud",
+      "gungbrada-for-barn"
+    ],
+    "gunghast-dinosaurie": [
+      "gunghast-elefant",
+      "gungdjur-giraff-plysch-baby",
+      "gunghast-barn-med-ljud",
+      "gungdjur-svan-plysch",
+      "gungbrada-for-barn"
+    ],
+    "skumklossar-barn": [
+      "mjuka-klatterblock-barn",
+      "barnrutschkana-5-i-1-inomhus-smabarn",
+      "klattertriangel-barn-naturtra",
+      "lekhage-baby-xxl-50-bollar",
+      "klatterstallning-barn"
+    ],
+    "barnrutschkana-5-i-1-inomhus-smabarn": [
+      "klattertriangel-barn-naturtra",
+      "mjuka-klatterblock-barn",
+      "skumklossar-barn",
+      "klatterstallning-barn",
+      "lekhage-baby-xxl-50-bollar"
+    ],
+    "gunghast-elefant": [
+      "gunghast-dinosaurie",
+      "gungdjur-giraff-plysch-baby",
+      "gunghast-barn-med-ljud",
+      "gungdjur-svan-plysch",
+      "gunghast-barn-tra"
+    ],
+    "lamborghini-elbil-barn": [
+      "elbil-barn-audi",
+      "elbil-barn-utv",
+      "toyota-land-cruiser-elbil-barn",
+      "elbil-barn-polisbil-12v-fjarrkontroll",
+      "trampbil-barn-gokart"
+    ],
+    "tackt-kattlada-xxl": [
+      "kattladeskap-forvaring",
+      "tackt-kattlada",
+      "kattrad-med-klospelare",
+      "lasbar-kattlucka",
+      "klostrad-140-cm"
+    ],
+    "elbil-barn-utv": [
+      "toyota-land-cruiser-elbil-barn",
+      "elbil-barn-polisbil-12v-fjarrkontroll",
+      "elbil-barn-audi",
+      "trampbil-barn-gokart",
+      "akgravmaskin-barn"
+    ],
+    "elmotorcykel-barn": [
+      "elmotorcykel-barn-6v",
+      "akbil-barn-fyrhjuling",
+      "trehjuling-barn-motorcykel-musik",
+      "springcykel-barn-18-48-manader"
+    ],
+    "hamsterbur-med-tunnel-tillbehor": [
+      "modular-smadjursbur",
+      "fagelbur-undulat-40x40x59",
+      "stor-fagelbur",
+      "reptilinkubator-25l-digital"
+    ],
+    "elbil-barn-audi": [
+      "lamborghini-elbil-barn",
+      "elbil-barn-utv",
+      "toyota-land-cruiser-elbil-barn",
+      "elbil-barn-polisbil-12v-fjarrkontroll",
+      "trampbil-barn-gokart"
+    ],
+    "hopfallbar-solsang-2-pack": [
+      "hopfallbar-solsang-ansiktshal",
+      "vandbar-utomhusmatta",
+      "hammock-med-tak-3-sits",
+      "kylbox-pa-hjul-56l",
+      "tradgardsbord-glas-parasollhal"
+    ],
+    "peel-off-mask-guld-snigel-ansiktsmask-3-pack": [
+      "sheetmask-snigel-kollagen-ansiktsmask-20-pack",
+      "hudvardsset-ansikte",
+      "aterfuktande-hudvardsset",
+      "hudvardsset-ansikte-5-delar"
+    ],
+    "hudvardsset-ansikte-5-delar": [
+      "aterfuktande-hudvardsset",
+      "hudvardsset-ansikte",
+      "sheetmask-snigel-kollagen-ansiktsmask-20-pack",
+      "peel-off-mask-guld-snigel-ansiktsmask-3-pack",
+      "ipl-harborttagning"
+    ],
+    "aterfuktande-hudvardsset": [
+      "hudvardsset-ansikte-5-delar",
+      "hudvardsset-ansikte",
+      "sheetmask-snigel-kollagen-ansiktsmask-20-pack",
+      "peel-off-mask-guld-snigel-ansiktsmask-3-pack"
+    ],
+    "hudvardsset-ansikte": [
+      "aterfuktande-hudvardsset",
+      "hudvardsset-ansikte-5-delar",
+      "sheetmask-snigel-kollagen-ansiktsmask-20-pack",
+      "peel-off-mask-guld-snigel-ansiktsmask-3-pack"
+    ],
+    "sheetmask-snigel-kollagen-ansiktsmask-20-pack": [
+      "peel-off-mask-guld-snigel-ansiktsmask-3-pack",
+      "hudvardsset-ansikte",
+      "aterfuktande-hudvardsset",
+      "hudvardsset-ansikte-5-delar"
+    ],
+    "vagglampa-utomhus-retro-e27-ip45": [
+      "led-stralkastare-utomhus-4250-lumen",
+      "tradgardsbank-utomhus-metall-tra",
+      "tradgardsfontan-med-pump",
+      "konstgjort-olivtrad"
+    ],
+    "airfryer-7-liter": [
+      "airfryer-dubbla-korgar-9l-varmluftsfritos",
+      "miniugn-32-liter",
+      "kastrullset-induktion",
+      "forvaringsbehallare-torrvaror-2x15l"
+    ],
+    "airfryer-dubbla-korgar-9l-varmluftsfritos": [
+      "airfryer-7-liter",
+      "miniugn-32-liter",
+      "kastrullset-induktion",
+      "forvaringsbehallare-torrvaror-2x15l"
+    ],
+    "kattladeskap-forvaring": [
+      "tackt-kattlada-xxl",
+      "tackt-kattlada",
+      "kattrad-med-klospelare",
+      "lasbar-kattlucka",
+      "klostrad-140-cm"
+    ],
+    "konstgjort-olivtrad": [
+      "konstgjort-olivtrad-120-cm-konstvaxt",
+      "konstgjord-bananvaxt",
+      "konstgjord-vaxt-dracaena-160",
+      "konstgjort-trad"
+    ],
+    "hundtrappa-med-forvaring": [
+      "vikbar-husdjurstrappa-4-steg",
+      "hundsoffa-stor-hund-upphojd",
+      "hundramp-bil-155-cm",
+      "upphojt-hundmatstall-slow-feeder"
+    ],
+    "hundsoffa-stor-hund-upphojd": [
+      "hundtrappa-med-forvaring",
+      "upphojt-hundmatstall-slow-feeder",
+      "hundramp-bil-155-cm",
+      "hopfallbart-hundbadkar",
+      "vikbar-husdjurstrappa-4-steg"
+    ],
+    "vaggmonterat-skotbord": [
+      "babybadkar-med-stallning",
+      "hopfallbart-babybadkar-termometer",
+      "brostpumpsvaska-ryggsack-kylfack",
+      "babygunga-stativ-barngunga"
+    ],
+    "hopfallbart-babybadkar": [
+      "babybadkar-med-stallning",
+      "vaggmonterat-skotbord",
+      "brostpumpsvaska-ryggsack-kylfack",
+      "babygunga-stativ-barngunga"
+    ],
+    "hopfallbart-babybadkar-termometer": [
+      "hopfallbart-babybadkar",
+      "babybadkar-med-stallning",
+      "vaggmonterat-skotbord",
+      "brostpumpsvaska-ryggsack-kylfack"
+    ],
+    "babybadkar-med-stallning": [
+      "hopfallbart-babybadkar-termometer",
+      "vaggmonterat-skotbord",
+      "brostpumpsvaska-ryggsack-kylfack",
+      "babygunga-stativ-barngunga"
+    ],
+    "hopfallbar-stegpall": [
+      "stegpall-barn-2-steg-badrum-kok",
+      "torkstallning-pa-hjul",
+      "smal-forvaringsvagn-4-plan",
+      "teleskopstege-aluminium"
+    ],
+    "displayram-matchtroja": [
+      "klocklada-24-klockor",
+      "vitrinskap-vagg",
+      "gallervagg-natstall-exponering-2-pack",
+      "fonsterspegel-guld-60x91"
+    ],
+    "mobelben-hairpin-metall-bordsben-4-pack": [
+      "ladskenor-kullager-teleskop-2-pack",
+      "skjutdorrsbeslag-skena",
+      "pocket-hole-jigg-fickhalsjigg",
+      "vaggmonterade-forvaringslador-12-st"
+    ],
+    "membranpump-12v-sjalvsugande-vattenpump": [
+      "solpanel-12v-monokristallin",
+      "stodben-husvagn-husbil-4-pack",
+      "dieselvarmare-12v-8kw",
+      "barbar-campingvask-vattentank-tvalpump"
+    ],
+    "vinstall-bambu-stapelbart-flaskor": [
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "kylbox-pa-hjul-56l",
+      "chafing-dish-set-4-pack-rostfri",
+      "forvaringsbehallare-torrvaror-2x15l"
+    ],
+    "skjutdorrsbeslag-skena": [
+      "ladskenor-kullager-teleskop-2-pack",
+      "mobelben-hairpin-metall-bordsben-4-pack",
+      "pocket-hole-jigg-fickhalsjigg",
+      "vaggmonterade-forvaringslador-12-st"
+    ],
+    "katthjul-i-tra": [
+      "kattrad-med-klospelare",
+      "takhogt-katttrad",
+      "klattervagg-for-katt-med-hangmatta",
+      "klostrad-140-cm"
+    ],
+    "basketspel-inomhus": [
+      "basketstallning-portabel-justerbar-hojd-160-305-cm",
+      "studsnat-fotboll",
+      "portabelt-volleybollnat",
+      "tradgardsgolf-barn-hinkgolf-utomhus"
+    ],
+    "hopfallbart-mahjongbord": [
+      "matstolar-2-pack",
+      "stapelbara-pallar",
+      "basketspel-inomhus",
+      "serveringsvagn-med-hjul-barvagn-3-plan"
+    ],
+    "rostfritt-arbetsbord": [
+      "verktygsvagn-med-hjul-verkstadsvagn",
+      "arbetspall-med-hjul",
+      "hopfallbar-arbetsbank",
+      "verktygsbalte-magnetiskt-28-fickor"
+    ],
+    "uppblasbart-campingtalt": [
+      "dubbel-sovsack",
+      "hopfallbar-campingstol",
+      "dieselvarmare-12v-8kw",
+      "portabel-campingtoalett-5l-innerhink",
+      "barbar-campingvask-vattentank-tvalpump"
+    ],
+    "digital-momentmejsel-1-4-tum-bits": [
+      "magnetisk-hylshallare-3-pack",
+      "verktygsvaska-elektriker-33-fack",
+      "verktygsbalte-magnetiskt-28-fickor",
+      "inspektionskamera-borescope-5-tum-ledad-sond"
+    ],
+    "gallervagg-natstall-exponering-2-pack": [
+      "stapelbar-varukorg-21l-handtag",
+      "sedelraknare-med-akthetskontroll",
+      "displayram-matchtroja",
+      "vitrinskap-vagg"
+    ],
+    "baseball-traningsnat": [
+      "studsnat-fotboll",
+      "portabelt-volleybollnat",
+      "basketstallning-portabel-justerbar-hojd-160-305-cm",
+      "tradgardsgolf-barn-hinkgolf-utomhus"
+    ],
+    "frekvensomriktare-1-fas-3-fas": [
+      "cnc-fras-3-axlig-grbl-gravyrmaskin",
+      "maskinskruvstad-125mm-fras-cnc",
+      "kryssbord-fras-borrmaskin-185x100",
+      "lutbart-frasbord-gjutjarn"
+    ],
+    "portabelt-volleybollnat": [
+      "volleybollnat-set",
+      "studsnat-fotboll",
+      "baseball-traningsnat",
+      "tradgardsgolf-barn-hinkgolf-utomhus"
+    ],
+    "airless-fargspruta": [
+      "teleskopstege-aluminium",
+      "hopfallbar-arbetsbank",
+      "flyttfiltar-mobler-6-12-pack",
+      "nivautjamnare-stege-trappa-sluttning"
+    ],
+    "laserstativ-justerbart": [
+      "teleskopstege-aluminium",
+      "nivautjamnare-stege-trappa-sluttning",
+      "hopfallbar-arbetsbank",
+      "verktygsbalte-magnetiskt-28-fickor"
+    ],
+    "skuggvav-pergola-90-solskydd-hdpe": [
+      "spalje-tra-utdragbar-2-pack",
+      "spalje-klattervaxter",
+      "markis-med-vev-200x150",
+      "vandbar-utomhusmatta"
+    ],
+    "tradgardsbank-utomhus-metall-tra": [
+      "runt-tradgardsbord-mosaik",
+      "tradgardsbord-glas-parasollhal",
+      "tradgardsfontan-med-pump",
+      "vagglampa-utomhus-retro-e27-ip45"
+    ],
+    "pcp-handpump-luftgevar-4500-psi-3-stegs": [
+      "vapenkoffert-gevar-vattentat-hjul",
+      "led-stralkastare-utomhus-4250-lumen",
+      "tradlos-vaderstation-wifi-7-i-1-sensor-solcell"
+    ],
+    "bryggestege-infallbar": [
+      "bogserbar-ring-bat",
+      "tube-for-bat-2-personer-towable-draglek",
+      "draglek-bat-uppblasbar-towable",
+      "membranpump-12v-sjalvsugande-vattenpump"
+    ],
+    "slangvagn-tradgard": [
+      "tradgardspall-pa-hjul",
+      "krukvagn-med-hjul-griparm",
+      "godselgrep-5-klor-glasfiber",
+      "odlingslada-metall-180x90"
+    ],
+    "bogserbar-ring-bat": [
+      "tube-for-bat-2-personer-towable-draglek",
+      "draglek-bat-uppblasbar-towable",
+      "flatat-polyesterrep-allroundrep",
+      "bryggestege-infallbar"
+    ],
+    "draglek-bat-uppblasbar-towable": [
+      "tube-for-bat-2-personer-towable-draglek",
+      "bogserbar-ring-bat",
+      "flatat-polyesterrep-allroundrep",
+      "bryggestege-infallbar"
+    ],
+    "tube-for-bat-2-personer-towable-draglek": [
+      "bogserbar-ring-bat",
+      "draglek-bat-uppblasbar-towable",
+      "flatat-polyesterrep-allroundrep",
+      "bryggestege-infallbar"
+    ],
+    "radiostyrd-amfibiebil-land-vatten-stuntbil": [
+      "radiostyrd-gravmaskin-1-20",
+      "robotleksak-barn-radiostyrd-robot",
+      "radiostyrd-gravmaskin-rc-3-i-1",
+      "radiostyrd-terrangbil-1-24-4wd-rc-bil"
+    ],
+    "ladskenor-kullager-teleskop-2-pack": [
+      "skjutdorrsbeslag-skena",
+      "mobelben-hairpin-metall-bordsben-4-pack",
+      "pocket-hole-jigg-fickhalsjigg",
+      "vaggmonterade-forvaringslador-12-st"
+    ],
+    "verktygsvaska-elektriker-33-fack": [
+      "verktygsbalte-magnetiskt-28-fickor",
+      "kabelsax-med-sparr",
+      "digital-momentmejsel-1-4-tum-bits",
+      "magnetisk-hylshallare-3-pack",
+      "kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling"
+    ],
+    "tradlos-vaderstation-wifi-7-i-1-sensor-solcell": [
+      "fagelmatare-med-kamera",
+      "automatisk-honslucka-timer-ljussensor",
+      "vagglampa-utomhus-retro-e27-ip45",
+      "solpanel-12v-monokristallin"
+    ],
+    "volleybollnat-set": [
+      "portabelt-volleybollnat",
+      "studsnat-fotboll",
+      "baseball-traningsnat",
+      "tradgardsgolf-barn-hinkgolf-utomhus"
+    ],
+    "dronare-4k-gimbal-gps": [
+      "radiostyrd-terrangbil-1-24-4wd-rc-bil",
+      "tradlos-vaderstation-wifi-7-i-1-sensor-solcell",
+      "radiostyrd-amfibiebil-land-vatten-stuntbil",
+      "projektorduk-med-stativ-100-tum"
+    ],
+    "trumset-barn-3-delar-pall-cymbal": [
+      "trumset-for-barn",
+      "barnpiano-37-tangenter",
+      "musikinstrument-i-tra",
+      "robotleksak-barn-radiostyrd-robot"
+    ],
+    "fiskespo-med-rulle-kolfiber": [
+      "hopfallbar-campingstol",
+      "kylbox-pa-hjul-56l",
+      "campingstol-hopfallbar-armstod-2-pack",
+      "dubbel-sovsack"
+    ],
+    "basketstallning-portabel-justerbar-hojd-160-305-cm": [
+      "basketspel-inomhus",
+      "portabelt-volleybollnat",
+      "studsnat-fotboll",
+      "baseball-traningsnat"
+    ],
+    "leksakskundvagn-barn-docka": [
+      "leksaksaffar-tra-mataffar-lekset",
+      "leksakskok-for-barn",
+      "glassvagn-leksak-27-delar",
+      "leksakskok-med-tillbehor"
+    ],
+    "radiostyrd-gravmaskin-1-20": [
+      "radiostyrd-gravmaskin-rc-3-i-1",
+      "radiostyrd-amfibiebil-land-vatten-stuntbil",
+      "robotleksak-barn-radiostyrd-robot",
+      "akgravmaskin-barn"
+    ],
+    "mudkok-barn-tra-utomhus-lekkok": [
+      "leksakskok-tra-barn-hornkok",
+      "leksaksgrill-i-tra-26-delar",
+      "sittgrupp-for-barn",
+      "leksakskok-for-barn"
+    ],
+    "gravmaskin-akbil-barn": [
+      "akgravmaskin-barn",
+      "radiostyrd-gravmaskin-1-20",
+      "svangbil-barn-wigglebil",
+      "akbil-barn-fyrhjuling",
+      "sparkbil-barn-med-musik"
+    ],
+    "aktivitetstavla-barn-montessori": [
+      "aktivitetsbord-barn-montessori",
+      "aktivitetsbord-barn-musik",
+      "balansstenar-barn-6-st-sensorisk",
+      "balansbage-barn-6-delar",
+      "balansbana-barn-balansbrador-motorik"
+    ],
+    "leksakskok-tra-barn-hornkok": [
+      "leksakskok-i-tra-10-stationer",
+      "leksaksaffar-tra-mataffar-lekset",
+      "leksaksgrill-i-tra-26-delar",
+      "mudkok-barn-tra-utomhus-lekkok",
+      "leksakskundvagn-barn-docka"
+    ],
+    "leksaksaffar-tra-mataffar-lekset": [
+      "leksakskundvagn-barn-docka",
+      "leksakskok-med-tillbehor",
+      "glassvagn-leksak-27-delar",
+      "leksaksgrill-i-tra-26-delar",
+      "leksakskok-i-tra-10-stationer"
+    ],
+    "robotleksak-barn-radiostyrd-robot": [
+      "radiostyrd-amfibiebil-land-vatten-stuntbil",
+      "radiostyrd-gravmaskin-1-20",
+      "leksaksmotor-barn",
+      "verktygsbank-barn-leksaksset-181-delar",
+      "radiostyrd-gravmaskin-rc-3-i-1"
+    ],
+    "verktygsbank-barn-leksaksset-181-delar": [
+      "leksaksmotor-barn",
+      "leksaksmotor-motorcykel-25-delar",
+      "leksakskok-barn-38-delar-ljud",
+      "aktivitetstavla-barn-montessori",
+      "leksaksgrill-i-tra-26-delar"
+    ],
+    "uppblasbar-bumperboll-zorb-1-2m": [
+      "studsnat-fotboll",
+      "tradgardsgolf-barn-hinkgolf-utomhus",
+      "portabelt-volleybollnat",
+      "klatterstallning-barn"
+    ],
+    "mjuka-klatterblock-barn": [
+      "skumklossar-barn",
+      "klattertriangel-barn-naturtra",
+      "barnrutschkana-5-i-1-inomhus-smabarn",
+      "klatterstallning-barn",
+      "hopfallbar-balansbom"
+    ],
+    "rittavla-barn-dubbelsidig-staffli": [
+      "rittillbehor-for-barn-32-delar",
+      "barnstaffli-tra-3-i-1",
+      "canvaspaneler-malning-akryl-olja",
+      "barnbord-med-stol"
+    ],
+    "leksakskok-i-tra-10-stationer": [
+      "leksakskok-tra-barn-hornkok",
+      "leksaksaffar-tra-mataffar-lekset",
+      "mudkok-barn-tra-utomhus-lekkok",
+      "leksaksgrill-i-tra-26-delar",
+      "leksakskundvagn-barn-docka"
+    ],
+    "3d-trapussel-raket-rymdfarja": [
+      "kulbana-byggsats-110-delar",
+      "tagbana-i-tra-70-delar",
+      "aktivitetsbord-barn-musik",
+      "radiostyrd-terrangbil-1-24-4wd-rc-bil"
+    ],
+    "aktivitetsbord-barn-montessori": [
+      "aktivitetsbord-barn-musik",
+      "aktivitetstavla-barn-montessori",
+      "balansbage-barn-6-delar",
+      "balansstenar-barn-6-st-sensorisk",
+      "balansbana-barn-balansbrador-motorik"
+    ],
+    "hopfallbar-dragvagn-trappvagn-36l": [
+      "smal-forvaringsvagn-4-plan",
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "torkstallning-pa-hjul",
+      "vaggmonterade-forvaringslador-12-st",
+      "krukvagn-med-hjul-griparm"
+    ],
+    "aktivitetsbord-barn-musik": [
+      "aktivitetsbord-barn-montessori",
+      "aktivitetstavla-barn-montessori",
+      "musikinstrument-i-tra",
+      "barnpiano-37-tangenter",
+      "balansstenar-barn-6-st-sensorisk"
+    ],
+    "stallbar-kilkudde-sang-minnesskum": [
+      "laskudde-med-armstod",
+      "toalettforhojning-med-armstod-9-cm",
+      "duschstol-med-ryggstod",
+      "ljusterapilampa-15000-lux"
+    ],
+    "radiostyrd-terrangbil-1-24-4wd-rc-bil": [
+      "radiostyrd-gravmaskin-rc-3-i-1",
+      "radiostyrd-amfibiebil-land-vatten-stuntbil",
+      "radiostyrd-gravmaskin-1-20",
+      "robotleksak-barn-radiostyrd-robot"
+    ],
+    "glassvagn-leksak-27-delar": [
+      "leksaksgrill-i-tra-26-delar",
+      "leksakskundvagn-barn-docka",
+      "musikinstrument-i-tra",
+      "leksakskok-med-tillbehor"
+    ],
+    "radiostyrd-gravmaskin-rc-3-i-1": [
+      "radiostyrd-gravmaskin-1-20",
+      "akgravmaskin-barn",
+      "gravmaskin-akbil-barn",
+      "radiostyrd-terrangbil-1-24-4wd-rc-bil",
+      "robotleksak-barn-radiostyrd-robot"
+    ],
+    "flatat-polyesterrep-allroundrep": [
+      "flyttfiltar-mobler-6-12-pack",
+      "stodben-husvagn-husbil-4-pack",
+      "hopfallbar-campingstol",
+      "dubbel-sovsack"
+    ],
+    "brostpumpsvaska-ryggsack-kylfack": [
+      "imilab-babyvakt-kamera-ai-morkerseende",
+      "hopfallbart-babybadkar-termometer",
+      "babybadkar-med-stallning",
+      "hopfallbart-babybadkar",
+      "uppblasbart-babybadkar"
+    ],
+    "stodben-husvagn-husbil-4-pack": [
+      "solpanel-12v-monokristallin",
+      "membranpump-12v-sjalvsugande-vattenpump",
+      "dieselvarmare-12v-8kw",
+      "portabel-campingtoalett-5l-innerhink",
+      "barbar-campingvask-vattentank-tvalpump"
+    ],
+    "tradgardsgolf-barn-hinkgolf-utomhus": [
+      "studsnat-fotboll",
+      "uppblasbar-bumperboll-zorb-1-2m",
+      "volleybollnat-set",
+      "portabelt-volleybollnat"
+    ],
+    "tagbana-i-tra-70-delar": [
+      "kulbana-byggsats-110-delar",
+      "aktivitetsbord-barn-montessori",
+      "leksaksgrill-i-tra-26-delar",
+      "3d-trapussel-raket-rymdfarja",
+      "musikinstrument-i-tra"
+    ],
+    "toalettforhojning-med-armstod-9-cm": [
+      "duschstol-med-ryggstod",
+      "laskudde-med-armstod",
+      "stallbar-kilkudde-sang-minnesskum",
+      "duschmatta-tra-akacia-91x51",
+      "hopfallbar-stegpall"
+    ],
+    "kulbana-byggsats-110-delar": [
+      "tagbana-i-tra-70-delar",
+      "aktivitetsbord-barn-montessori",
+      "leksaksmotor-barn",
+      "3d-trapussel-raket-rymdfarja",
+      "balansbana-barn-balansbrador-motorik"
+    ],
+    "balansstenar-barn-6-st-sensorisk": [
+      "balansbana-barn-balansbrador-motorik",
+      "balansstenar-barn-stapelbara-halkfria",
+      "balansbage-barn-6-delar",
+      "hopfallbar-balansbom",
+      "klatterstallning-barn"
+    ],
+    "pocket-hole-jigg-fickhalsjigg": [
+      "digital-momentmejsel-1-4-tum-bits",
+      "hopfallbar-arbetsbank",
+      "svarvstal-hss-12-delars-set-med-tralada",
+      "lutbart-frasbord-gjutjarn",
+      "ladskenor-kullager-teleskop-2-pack"
+    ],
+    "laskudde-med-armstod": [
+      "stallbar-kilkudde-sang-minnesskum",
+      "toalettforhojning-med-armstod-9-cm",
+      "duschstol-med-ryggstod",
+      "ljusterapilampa-15000-lux"
+    ],
+    "vaggmonterade-forvaringslador-12-st": [
+      "smal-forvaringsvagn-4-plan",
+      "verktygsvaska-elektriker-33-fack",
+      "magnetisk-hylshallare-3-pack",
+      "verktygsbalte-magnetiskt-28-fickor",
+      "verktygsvagn-med-hjul-verkstadsvagn"
+    ],
+    "leksaksgrill-i-tra-26-delar": [
+      "leksakskok-barn-38-delar-ljud",
+      "glassvagn-leksak-27-delar",
+      "mudkok-barn-tra-utomhus-lekkok",
+      "leksakskundvagn-barn-docka"
+    ],
+    "sparkbil-barn-gabil-musik": [
+      "sparkbil-barn-med-musik",
+      "springcykel-barn",
+      "svangbil-barn-wigglebil",
+      "akbil-barn-fyrhjuling",
+      "gravmaskin-akbil-barn"
+    ],
+    "solpanel-12v-monokristallin": [
+      "stodben-husvagn-husbil-4-pack",
+      "membranpump-12v-sjalvsugande-vattenpump",
+      "dieselvarmare-12v-8kw",
+      "kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling",
+      "baseus-starthjalp-2000a-powerbank-bil"
+    ],
+    "rittillbehor-for-barn-32-delar": [
+      "rittavla-barn-dubbelsidig-staffli",
+      "barnstaffli-tra-3-i-1",
+      "canvaspaneler-malning-akryl-olja",
+      "barnbord-med-stol"
+    ],
+    "canvaspaneler-malning-akryl-olja": [
+      "barnstaffli-tra-3-i-1",
+      "rittavla-barn-dubbelsidig-staffli",
+      "rittillbehor-for-barn-32-delar",
+      "primartyg-for-tuftning"
+    ],
+    "chafing-dish-set-4-pack-rostfri": [
+      "serveringsvagn-med-hjul-barvagn-3-plan",
+      "rund-bordsduk",
+      "stretch-stolsoverdrag",
+      "rostfritt-arbetsbord",
+      "stolband-med-rosett"
+    ],
+    "svarvstal-hss-12-delars-set-med-tralada": [
+      "pocket-hole-jigg-fickhalsjigg",
+      "lutbart-frasbord-gjutjarn",
+      "hopfallbar-arbetsbank",
+      "digital-momentmejsel-1-4-tum-bits",
+      "maskinskruvstad-125mm-fras-cnc"
+    ],
+    "lutbart-frasbord-gjutjarn": [
+      "kryssbord-fras-borrmaskin-185x100",
+      "maskinskruvstad-125mm-fras-cnc",
+      "pocket-hole-jigg-fickhalsjigg",
+      "hopfallbar-arbetsbank",
+      "svarvstal-hss-12-delars-set-med-tralada"
+    ],
+    "depastod-mc-hjulstod": [
+      "garagedomkraft-2-5-ton-lag-profil",
+      "hydraulisk-handbroms-drift",
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "baseus-1000a-startbooster-bil-kompressor",
+      "racingstativ-ratt-pedaler-hopfallbart"
+    ],
+    "hopfallbar-hundgard-med-soltak": [
+      "hopfallbar-hundhage-metall-8-paneler",
+      "fristaende-hundgrind-154",
+      "agilityset-hund-3-delar",
+      "justerbar-hundgrind",
+      "hopfallbar-hundhage"
+    ],
+    "elektrisk-domkraft-12v-bil-5-ton": [
+      "garagedomkraft-2-5-ton-lag-profil",
+      "baseus-1000a-startbooster-bil-kompressor",
+      "baseus-starthjalp-2000a-powerbank-bil",
+      "baseus-gotrip-va1-bilkompressor-sladdlos",
+      "snoborste-med-isskrapa"
+    ],
+    "inspektionskamera-borescope-5-tum-ledad-sond": [
+      "digital-momentmejsel-1-4-tum-bits",
+      "verktygsvaska-elektriker-33-fack",
+      "verktygsvagn-med-hjul-verkstadsvagn",
+      "magnetisk-hylshallare-3-pack",
+      "forvarmningsplatta-lodning"
+    ],
+    "mig-svets-multifunktion-4-i-1": [
+      "maskinskruvstad-125mm-fras-cnc",
+      "rorskruvstad-stativ-katting-1-8-5",
+      "hopfallbar-arbetsbank",
+      "verktygsvagn-med-hjul-verkstadsvagn",
+      "airless-fargspruta"
+    ],
+    "destillationssats-labbglas": [
+      "destillationsapparat-rostfri",
+      "digital-ultraljudstvatt-2-15l",
+      "vaxsmaltare-for-ljus",
+      "forvarmningsplatta-lodning"
+    ],
+    "destillationsapparat-rostfri": [
+      "destillationssats-labbglas",
+      "digital-ultraljudstvatt-2-15l",
+      "vaxsmaltare-for-ljus",
+      "forvarmningsplatta-lodning"
+    ],
+    "sedelraknare-med-akthetskontroll": [
+      "gallervagg-natstall-exponering-2-pack",
+      "stapelbar-varukorg-21l-handtag",
+      "nyckelinkast-genom-dorren",
+      "rostfritt-arbetsbord"
+    ],
+    "pop-up-paviljong-myggnat-6-sidig": [
+      "popup-paviljong-3-6x3-6-m-natvaggar",
+      "paviljong-3x3",
+      "markis-med-vev-200x150",
+      "kylbox-pa-hjul-56l",
+      "hammock-med-tak-3-sits"
+    ],
+    "dieselvarmare-12v-8kw": [
+      "solpanel-12v-monokristallin",
+      "stodben-husvagn-husbil-4-pack",
+      "membranpump-12v-sjalvsugande-vattenpump",
+      "barbar-campingvask-vattentank-tvalpump",
+      "varmtalt-tipi-4-personer-kaminuttag"
+    ],
+    "kryssbord-fras-borrmaskin-185x100": [
+      "maskinskruvstad-125mm-fras-cnc",
+      "lutbart-frasbord-gjutjarn",
+      "verktygsvagn-med-hjul-verkstadsvagn",
+      "digital-momentmejsel-1-4-tum-bits"
+    ],
+    "grindoppnare-skjutgrind-600kg": [
+      "skjutdorrsbeslag-skena",
+      "kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling",
+      "nyckelinkast-genom-dorren",
+      "led-stralkastare-utomhus-4250-lumen",
+      "snokappar-glasfiber"
+    ],
+    "kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling": [
+      "verktygsvaska-elektriker-33-fack",
+      "kabelsax-med-sparr",
+      "led-stralkastare-utomhus-4250-lumen",
+      "solpanel-12v-monokristallin"
+    ],
+    "vapenkoffert-gevar-vattentat-hjul": [
+      "pcp-handpump-luftgevar-4500-psi-3-stegs",
+      "fiskespo-med-rulle-kolfiber",
+      "dubbel-sovsack",
+      "led-stralkastare-utomhus-4250-lumen"
+    ],
+    "digital-ultraljudstvatt-2-15l": [
+      "magnetisk-hylshallare-3-pack",
+      "forvarmningsplatta-lodning",
+      "inspektionskamera-borescope-5-tum-ledad-sond",
+      "klocklada-24-klockor"
+    ],
+    "arbetsstol-salong-hoj-och-sankbar": [
+      "hopfallbar-massagebank-tra-186cm",
+      "hopfallbar-massagebank-aluminium-rosa",
+      "frisorvaska-med-las",
+      "sminkkoffert-med-las-proffs-4-lager",
+      "elektrisk-vakuumterapi"
+    ],
+    "hopfallbar-massagebank-tra-186cm": [
+      "hopfallbar-massagebank-aluminium-rosa",
+      "arbetsstol-salong-hoj-och-sankbar",
+      "elektrisk-vakuumterapi",
+      "ipl-harborttagning",
+      "frisorvaska-med-las"
+    ],
+    "hopfallbar-hundvagn-svangbara-hjul": [
+      "hundvagn-liten-hund",
+      "hundvagn-stor-hund-30-kg",
+      "cykelvagn-for-hund-hopfallbar",
+      "hundramp-bil-155-cm",
+      "vikbar-husdjurstrappa-4-steg"
+    ],
+    "imilab-babyvakt-kamera-ai-morkerseende": [
+      "brostpumpsvaska-ryggsack-kylfack",
+      "hopfallbart-babybadkar-termometer",
+      "babybadkar-med-stallning",
+      "babygunga-stativ-barngunga",
+      "uppblasbart-babybadkar"
+    ]
+  }
 }
