@@ -12,9 +12,26 @@ const RETIRED_CHINA_SLUGS: string[] = JSON.parse(
   readFileSync(join(process.cwd(), "data/retired-china-slugs.json"), "utf8"),
 );
 const KEEP_LIVE = new Set<string>([]);
+
+// Utfasade produkter med FAKTISK Google-ranking/exponeringar pekas till närmaste
+// RELEVANTA kategori i stället för generiska /alla-produkter. Skäl: Google
+// behandlar ofta "många döda URL:er → en generisk samlingssida" som en soft-404
+// och släpper rankingen ändå; en topikalt relevant kategori bevarar länkkraften
+// OCH landar köparen på rätt EU-hylla (bättre konvertering än en 400+ produkters
+// vägg). Bara sluggar med reella exponeringar kureras här — resten faller på
+// /alla-produkter nedan. Alla mål verifierade som levande kategorier (≥1 produkt)
+// 2026-07-09. Örhängen har inget relevant mål (smycken-kategorin är tom → /butik),
+// så den lämnas medvetet på /alla-produkter.
+const RETIRED_REDIRECT_OVERRIDES: Record<string, string> = {
+  "robust-paraply-med-uv-skydd": "/kategori/tradgard-utemobler",
+  "traningsvastar-for-lag-numrerade-sportvastar": "/kategori/traning-gym",
+  "vikbar-skotbadd-vattentat-och-portabel-skotmatta": "/kategori/baby-smabarn",
+  "vagghangd-utfallbar-kladhangare-i-tra-platsbesparande": "/kategori/forvaring-organisering",
+  "elektrisk-aggkokare": "/kategori/koksmaskiner-apparater",
+};
 const chinaRedirects = RETIRED_CHINA_SLUGS.filter((s) => !KEEP_LIVE.has(s)).map((slug) => ({
   source: `/produkt/${slug}`,
-  destination: "/alla-produkter",
+  destination: RETIRED_REDIRECT_OVERRIDES[slug] ?? "/alla-produkter",
   permanent: true,
 }));
 
