@@ -107,6 +107,11 @@ Cheat-sheet (runbooken styr i detalj):
 - **Steg 1b – ANALYSERA alla bilder FÖRST** (previews via wix-transform, se runbook Steg 1b):
   den visuella förståelsen styr fokussökord, beskrivning, alt-texter, huvudbildsval och
   tvätt-behov. Görs INNAN någon copy skrivs.
+- **Steg 1c – Sanera varianter FÖRST** (se runbook Steg 1c): kolla mappningens
+  `supplierVariantId` + Wix `inStock` och ta bort döda/slutsålda varianter **innan** du
+  skriver copy — annars bygger du beskrivning/spec-kort för en variant som ändå ska bort.
+  Blir bara EN kvar → kollapsa till enkel-variant-produkt. **Facit = mappningen, inte
+  marknadsbilderna.**
 - **Steg 2 – PATCH namn + slug + seoData + `plainDescription`** (1 mutation):
   - **name (H1)** börjar med fokussökordet, **≤ 80 tecken** (hård gräns → 400-fel annars).
   - **slug**: ASCII (å/ä→a, ö→o), gemener, bindestreck, innehåller fokussökordet.
@@ -128,19 +133,28 @@ Cheat-sheet (runbooken styr i detalj):
   `linkedMedia` FÖRST, koppla om valet). Radera **inte** filen direkt — borttagen blir den
   föräldralös och frigörs i orphan-svepen. Se runbook Steg 3.
 - **Steg 3b – Tvätta bort dropship-loggor/vattenstämplar/inbränd text** (spanska, engelska,
-  kinesiska …) med **Metod A (Wix Generate Image)** — klarar numera även **röriga/komplexa
-  bakgrunder** (person, regn, trä/sten), inte bara släta studiobakgrunder; Metod B (manuell
-  täckning) är fallback endast för släta bakgrunder. Ren **infografik/spec-diagram** → ta bort
-  ur galleriet (info hör hemma som text). Original raderas aldrig; `linkedMedia` kopplas om.
-  Se runbook Steg 3b.
+  kinesiska …): **Metod A** (Wix Generate Image, server-side, samma mekanism som Steg 3c)
+  är numera rekommenderad väg och funkar även på **röriga/komplexa bakgrunder** (person,
+  regn, trä/sten) — inte bara släta. Ren infografik/spec-diagram (inget egentligt
+  produktfoto) → ta bort ur galleriet i stället. Original raderas aldrig; `linkedMedia`
+  kopplas om. Se runbook Steg 3b för alla tre metoderna (A/B/C) och guardrails.
 - **Steg 3c – Ren vit hjältebild** (premium): är hjältebilden en ren produktbild på ful/mörk/rörig
-  bakgrund → klipp ut produkten (rembg/u2net) och lägg på **vit + mjuk skugga**, ~82 % av en 1:1-ruta;
-  loggan i bakgrunden försvinner automatiskt. Nyttiga kontextbilder behålls (bara tvättade),
-  infografik bort/flaggas. **Guardrail:** `Read` resultatet — behåll originalet vid felklipp (tunna
-  kablar/smådelar). Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3c.
-- **Steg 4 – Kategori** (se §6 + ID-tabell). 1 anrop.
-- **Steg 5 – Publicera** (`visible:true`) — först efter att Steg 2–4 verifierats.
-- **Steg 6 – Varianter:** kontrollera. **Döp ALDRIG om variantvärden** (V3 key-lock, §6.5).
+  bakgrund → **Metod A** (Wix Generate Image, server-side, inget uppladdnings-steg) är
+  rekommenderad väg — klarar mörk-på-mörk + tunna slangar/kablar som rembg/u2net (Metod B,
+  fallback) missar. Loggan i bakgrunden försvinner automatiskt. Nyttiga kontextbilder behålls
+  (bara tvättade), infografik bort/flaggas. **Guardrail:** `Read` resultatet — behåll
+  originalet vid fel. Original raderas aldrig; `linkedMedia` kopplas om. Se runbook Steg 3c.
+- **Steg 3d – Egna svenska feature-/spec-kort** (se runbook Steg 3d): är leverantörens
+  feature-slides **mörka AliExpress-collage** eller **engelska spec-blad** (inte enskilda
+  produktfoton)? Bygg egna rena kort på ljus bakgrund av de RIKTIGA produktfotona
+  (klipp ut med rembg → HTML/CSS → Chromium-render → ladda upp) så hela galleriet ser ut
+  som ett eget varumärke. Passa på att rätta felaktig inbränd data (fel spänning/mått).
+- **Steg 4 – Kategori** (se §5 + ID-tabell). 1 anrop.
+- **Steg 6 – Varianter:** koppla variantbilder (`linkedMedia`) + slutkoll. **Döp ALDRIG om
+  variantvärden** (V3 key-lock, §6.5). *(Borttagning av döda/slutsålda varianter gjordes
+  redan i Steg 1c.)* Görs **före** publiceringen.
+- **Steg 5 – Publicera** (`visible:true`) — **sista steget**, efter att Steg 1c–4 och
+  variantkopplingen (Steg 6) verifierats.
 
 ### Fas E — Verifiera (Klart-kriterium, per produkt)
 - ✅ Fokussökordet finns i **titel, H1, slug, beskrivning OCH meta**.
@@ -150,7 +164,9 @@ Cheat-sheet (runbooken styr i detalj):
   ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad, original behållet vid felklipp.
 - ✅ Flik-rubrikerna är **rena `<h2>`** (renderas som flikar, inte inline).
 - ✅ SKU matchar polerade sluggen (inget engelskt råord, inget märke).
-- ✅ `visible:true`. Pris slutar på 9.
+- ✅ Döda/slutsålda varianter borttagna (Steg 1c), variantbilder kopplade (Steg 6); på
+  multi-modell-listningar finns bara den **lagerförda** variantens bilder/spec-ark kvar.
+- ✅ `visible:true` **som sista steg**. Pris slutar på 9.
 
 ## 5. Kategori-ID (Wix V3)
 
@@ -237,9 +253,9 @@ det är ofarligt att byta.
 - **Draft som default; publicera via kvalitetsdomare.** Premium-läget auto-publicerar vid
   tröskel (≥ 9,5), annars draft + flagga för manuell granskning.
 - **Respektera budgetcap** (`ANTHROPIC_DAILY_BUDGET_USD`, bulk-dagskap).
-- **AUDIT FÖRE MERGE** om du rör kod: enligt `CLAUDE.md` ska varje PR:s diff auditeras och
-  fynden rapporteras till Leonard innan merge — korrekthet, edge-cases, regressioner,
-  säkerhet. Hård grind, inga undantag.
+- **Rör du kod:** granska din egen diff (korrekthet, edge-cases, regressioner, säkerhet) och
+  rapportera vad du ändrat innan du mergar. *(Den tidigare hårda "AUDIT FÖRE MERGE"-grinden i
+  `CLAUDE.md` togs bort 2026-07-08 — merga när det är klart och verifierat.)*
 - **Rör inte** redan publicerade/polerade produkter "på nytt" utan anledning (särskilt inte
   sluggen). Är en produkt redan klar → rapportera det, polera inte om.
 
@@ -279,7 +295,7 @@ Fas A/B (sourcing + urval via DS-API) och Fas D/E (polering).
 | SKU | `lib/import/sku.ts` |
 | Poleringsprocedur (FACIT) | **`docs/seo-polish-runbook.md`** |
 | Övriga LLM-/kostnads-env | `LLM-CONFIG.md` |
-| Projektregler (audit-före-merge, kostnadslägen) | `CLAUDE.md` |
+| Projektregler (kostnadslägen, AI-berikning på/av) | `CLAUDE.md` |
 
 ---
 

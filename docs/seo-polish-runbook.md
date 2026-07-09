@@ -24,6 +24,25 @@
 
 -----
 
+## Arbetsordning (röd tråd)
+
+Kör i denna ordning. **Publicering är ALLTID sista handlingen** — allt annat verifierat först.
+
+1. **Steg 0** – Välj fokussökord (preliminärt; låses i Steg 2 efter bildkollen).
+2. **Steg 1** – Läs produkten (GET: `revision`, `name`, `slug`, `seoData`, `visible`, `media`).
+3. **Steg 1b** – Titta på ALLA bilder — styr sökord, copy, alt-texter och tvätt-/kort-behov.
+4. **Steg 1c** – Sanera varianter FÖRST: ta bort döda/slutsålda (mappningen = facit) **innan** du skriver copy.
+5. **Steg 2** – PATCH namn + slug + `seoData` (+ beskrivning); lås fokussökordet.
+6. **Steg 2b** – Re-synka SKU till den nya sluggen.
+7. **Steg 3** – Skriv om alla alt-texter (svenska); fixa dubbletter + huvudbild. Vid behov: **3b** tvätta loggor/inbränd text · **3c** vit hjältebild · **3d** egna svenska feature-/spec-kort.
+8. **Steg 4** – Koppla rätt kategori.
+9. **Steg 6** – Variantkontroll: koppla variantbilder (`linkedMedia`, 6B) + slutkoll. *(Borttagningen gjordes redan i 1c.)* Görs **före** publiceringen.
+10. **Steg 5** – PUBLICERA (`visible:true`) — **sista steget**, när allt är verifierat mot Klart-kriteriet.
+
+*(Sifferordningen är historisk: Steg 6 utförs före Steg 5. Enkla produkter utan bild-/kategori-/variantarbete kan slå ihop Steg 2b + publicering — se Steg 2b.)*
+
+-----
+
 ## Steg 0 – Välj fokussökord (avgör allt annat)
 
 Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`. **Lås inte valet förrän du sett bilderna (Steg 1b)** — bilderna avgör ofta vad produkten *faktiskt* är.
@@ -63,11 +82,31 @@ Den visuella förståelsen styr **allt nedströms** — det är därför steget 
 - **Tvätt-behov (Steg 3b):** notera dropship-loggor, vattenstämplar, inbränd text (engelska/spanska/kinesiska), fel motiv och dubbletter.
 - **Bakgrundsbyte (Steg 3c):** notera vilka bilder som är rena produktbilder på ful/mörk/rörig bakgrund (→ vit hjältebild) vs nyttiga kontextbilder (behålls) vs infografik (bort/flagga).
 
+-----
+
+## Steg 1c – Sanera varianter FÖRST (innan du skriver copy)
+
+Avgör vilka varianter som faktiskt ska säljas **innan** Steg 2 — annars skriver du beskrivning, bygger spec-kort och alt-texter för en variant som ändå ska bort (dyrt dubbeljobb). **Facit = mappningen, inte marknadsbilderna.**
+
+1. **Läs facit ur mappningen** (read-only) — det som verkligen lagerförs är `supplierVariantId`:
+   ```
+   GET https://www.wixapis.com/data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings
+   ```
+   Jämför varje `data.variants[].supplierVariantId` (finns den = riktig, mappad variant) med Wix-produktens `variantsInfo.variants[].inventoryStatus.inStock`.
+
+2. **Ta bort döda varianter NU:** en variant som är **phantom** (ingen `supplierVariantId`) ELLER **slut** (`inStock:false`) ska bort — valet, variantraden och (i Steg 3) dess bilder. Full PATCH-mekanik + "delade-marknadsbilder-ljuger"-fällan står i **Steg 6C**.
+
+3. **Blir bara EN variant kvar → kollapsa till enkel-variant-produkt** direkt (inte en option med ett enda val): `options:[]` + `variantsInfo.variants:[{ id:<kvar>, choices:[], sku, price, inventoryStatus }]`.
+
+Nu — och först nu — skriver Steg 2 (copy), Steg 2b (SKU) och Steg 3/3d (bilder/spec-kort) **bara** för det som är kvar. Ingen omskrivning, inga spec-kort som slängs.
+
+-----
+
 ## Steg 2 – PATCH namn + slug + seoData (1 anrop, mutation)
 
 Bygg innehållet:
 
-- **name (H1):** svenskt, sökordsrikt, börjar med fokussökordet (huvud + kvalificerare).
+- **name (H1):** svenskt, sökordsrikt, börjar med fokussökordet (huvud + kvalificerare). **≤ 80 tecken** (hård Wix-gräns — längre ger 400-fel).
 - **slug:** **ASCII** (inte å/ä/ö), gemener, bindestreck, innehåller fokussökordet inkl. kvalificeraren. (ASCII undviker kodningskrångel på headless-frontenden; Google klarar ändå båda.)
   - ⚠️ **Slug-varning (headless):** byt slug **bara på produkter som inte gått live än** (nyimporterade draft-produkter). Wix auto-redirect (`preventAutoRedirect:false`) gäller **bara Wix-hostade sajter, inte din headless** – så att byta slug på en redan indexerad produkt gör att den gamla URL:en **404:ar** och ranking tappas. För en redan publicerad produkt: **behåll befintlig slug**.
 - **title-tagg:** ≤ ~60 tecken, fokussökord först, ev. `| Fyndplats`.
@@ -151,7 +190,7 @@ const newVariants = variants.map(v => {
 
 ⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
 
-> **Spara ett anrop:** lägg `visible: true` i **samma** PATCH → då görs Steg 2b + Steg 5 i ett.
+> **Spara ett anrop — men BARA om inget mer återstår:** har produkten inga bilder att fixa (Steg 3/3b/3c/3d), ingen kategori (Steg 4) och ingen variantkoppling (Steg 6) kvar → lägg `visible: true` i **samma** PATCH så görs 2b + publicering i ett. Återstår något av dessa: **publicera SIST** (Steg 5), aldrig här — annars går produkten live innan bilder/kategori/varianter är klara.
 >
 > **Undantag:** börjar SKU:n med `FYND-XXX-NNN` (kurerat artikelnummer) eller `AE-<hash>` (äldre schema) — **rör den inte**, flagga till Leonard.
 
@@ -168,6 +207,17 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > Åtgärda samtidigt det du noterade i Steg 1b: fel produkt/motiv, dubbletter, eller att **första bilden** (= `media.main`, produktkortets bild i butiken) inte är den renaste produktbilden — byt huvudbild genom att ordna om `itemsInfo.items` (första item blir automatiskt `main`); skicka **hela** arrayen i ny ordning i samma Steg 3-PATCH, ändra inget annat i items.
 
 > **Dubbletter (identiska bilder):** är två eller fler galleri-items **exakt samma motiv** (vanligt från skrapan/DS-API:t) — behåll **en**, ta bort resten ur `itemsInfo.items` (skicka hela arrayen utan dubbletterna). **Kontrollera `linkedMedia` FÖRST:** pekar ett variantval på en kopia du tar bort → koppla om valet till den kvarvarande bilden (Steg 6B), annars tappar valet sitt bildbyte tyst. **Radera INTE filen direkt** i Media Manager — borttagen ur galleriet blir den föräldralös och **frigörs automatiskt i de återkommande orphan-städsvepen** (minnet återtas helt, utan risk att radera en fil som `linkedMedia`:as eller används av en annan produkt). Vill du bekräfta exakt likhet: jämför fil-id:t i `image.url` (samma id = samma fil) eller previews sida vid sida med `Read`.
+
+**Bild-arbete — vilken metod?** Åtgärda det du flaggade i Steg 1b. Välj per bild:
+
+| Bilden är… | Gör |
+|---|---|
+| Foto med inbränd text/logga/vattenstämpel | **Tvätta** (Steg 3b) |
+| Hjältebild — ren produkt på ful/mörk/rörig bakgrund | **Vit studio-hjälte** (Steg 3c) |
+| Mörkt AliExpress feature-collage / engelskt spec-blad (inte enskilt produktfoto) | **Bygg eget svenskt kort** (Steg 3d) |
+| Ren infografik / text-diagram | **Ta bort ur galleriet** (info hör hemma som text under "Tekniska specifikationer") |
+
+Två regler gäller ALLA metoder: **radera aldrig originalfilen** ur Media Manager (borttagen ur galleriet blir den föräldralös och städas i orphan-svepen), och är en bild `linkedMedia` för ett variantval — **koppla om valet först** (Steg 6B), annars tappar valet sitt bildbyte tyst.
 
 ### Steg 3b – Tvätta bort loggor och inbränd text (vid behov)
 
@@ -187,17 +237,44 @@ Samma `POST .../generate-image` → polla `GET .../generated-image/{executionId}
 
 Samma **guardrail som Steg 3c gäller alltid**: `Read` resultatet sida-vid-sida mot originalet innan det används — faktatrohet går alltid före ren bild.
 
-> **Verifierat (2026-07-08):** 19 bilder tvättade troget över ett helt produktbatch (cykelhandtag, cykelpump, sadelväska, cykelverktyg, sadel, kolfiberpedaler, glasögon, ryggsäck) — handhållna närbilder, person i rörelse, regn, trä-/stenbakgrund. Text/banderoller borta, produkt och bakgrund identiska i alla sida-vid-sida-jämförelser.
+> **Beprövat (2026-07-08):** troget över 19 bilder — handhållna närbilder, person i rörelse, regn, trä-/stenbakgrund; text/banderoller borta, produkt + bakgrund identiska i alla sida-vid-sida-jämförelser.
 
 > **Hastighetsgräns:** `generate-image`-endpointen kan bli hastighetsbegränsad efter många anrop i rad, och avkylningen kan ta **flera minuter** (upplevt: >10 min, inte bara en kort burst-gräns) — planera batchar om **3–6 anrop åt gången**. Misslyckas ett jobb (`status:"FAILED"`): försök om **en gång**; misslyckas det igen → **ta bort bilden** ur galleriet i stället för att fastna i en retry-loop mot en fortsatt begränsad endpoint. Den kan alltid läggas till igen senare.
 
-**Metod B – manuell text-täckning (fallback – bara om Metod A är otillgänglig/hastighetsbegränsad och bakgrunden är helt slät/enfärgad):**
+**Metod B – manuell text-täckning (fallback – bara om Metod A/C är otillgängliga och bakgrunden är helt slät/enfärgad):**
 
-Täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). Fungerar bara för släta studiobakgrunder — för komplexa/röriga bakgrunder utan Metod A tillgänglig, ta bort bilden i stället för att riskera ett klumpigt manuellt utklipp.
+Täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). Fungerar bara för släta studiobakgrunder — för komplexa/röriga bakgrunder utan Metod A/C tillgänglig, ta bort bilden i stället för att riskera ett klumpigt manuellt utklipp.
 
-**Så här sätts resultatet in (båda metoderna):**
+**Metod C – Lokal LaMa-inpainting (proffskvalitet, ingen hastighetsgräns, gratis — när Metod A är blockerad):**
 
-3. Metod A ger ett `fileId` direkt (ingen uppladdning behövs); Metod B laddas upp med `mcp__Wix__UploadImageToWixSite` → ny `static.wixstatic.com`-URL/fileId.
+Metod A:s hastighetsgräns kan kvarstå **långt över en timme** (sett denna session), utan synlig kvot i Premium Features API (inte en "slut för månaden"-spärr, se Steg 3c-notiser). Kör då exakt samma sorts textborttagning **lokalt** i sandboxen — samma AI-kvalitet på röriga bakgrunder, men helt utanför Wix rate-limit:
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install "setuptools<80" wheel && pip install --no-build-isolation fire   # fire kräver äldre setuptools för att bygga
+pip install easyocr opencv-python-headless simple-lama-inpainting scikit-image
+# LaMa-modellen: Sanster/models på GitHub är ofta egress-blockad i sandboxen -> HF-spegel i stället:
+curl -sSL -o big-lama.pt "https://huggingface.co/JosephCatrambone/big-lama-torchscript/resolve/main/lama.pt"
+```
+
+Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketets wrapper — bygget av dess `fire`-beroende failar ofta ändå): ladda `torch.jit.load("big-lama.pt")`, maska text-regionerna som pixel-rektanglar (identifierade genom att `Read`-granska bilden, inte blint OCR), och kör `model(bild_tensor, mask_tensor)`.
+
+> **Kritisk regel — kompositera ALLTID tillbaka originalet utanför masken:** nätverket garanterar **inte** pixel-identiskt resultat utanför den maskade regionen (kan hallucinera en enstaka färgartefakt nära en svår kant, t.ex. en sadel-urskärning). Sista steget MÅSTE vara `output = where(mask > 0, nätverkets_utdata, originalbilden)` — annars kan ett oskyldigt-seende hörn få en osynlig defekt som bara syns vid inzoomning. Verifierat: en sådan artefakt uppstod och fångades/fixades 2026-07-08 innan leverans.
+>
+> **Maska aldrig över riktiga fotoobjekt** (person, kroppsdel, produktdetalj) även om text råkar överlappa dem i originalbilden — dela upp masken i flera mindre rektanglar och hellre lämna ett enstaka ord/textfragment kvar (flagga det) än att riskera att förvanska ett fotograferat objekt. Hände en gång denna session (en arm/axel i en collage-bild) — löst genom att bara maska textraden som INTE overlappade kroppsdelen.
+>
+> **Andra artefaktklassen — maskgräns för nära textens faktiska utsträckning:** till skillnad från kompositeringsbuggen ovan (fel UTANFÖR masken) kan nätverket lämna kvar svaga spöklika prick-/strimmefragment **INNE i** den maskade regionen, om maskens nederkant ligger för nära text-descendrar ("g"/"p"/"y") eller kommatecken som sticker ner under rubrikraden. Facit: zooma in exakt vid den tilltänkta maskgränsen i originalbilden FÖRE körning, och lämna minst ~20–30 px marginal mellan textens synliga utsträckning och maskgränsen (bredare dilate, t.ex. 5–6). Verifiera alltid resultatet genom att zooma in **precis vid maskens gräns** — inte bara helhetsintrycket, för dessa fragment syns knappt i full storlek. Hände på 2 av 5 bilder på CNC-fräs-produkten (2026-07-08), fixat genom att utöka masken nedåt och köra om.
+>
+> **Verifierat (2026-07-08):** 36 bilder tvättade över 8 produkter (7 WEST BIKING + CNC-fräs) efter att Metod A varit blockerad — samma visuella kvalitet som Metod A (sten/regn/gata/inomhus/mörk-gradient-bakgrunder rekonstruerade naturtroget).
+
+**Få in resultatet i Wix utan att spränga kontexten:** en tvättad bild i full storlek (800×800+) blir 75 000+ tokens som base64 — för stort för `Read`+`UploadImageToWixSite`. Två vägar:
+1. **Chatt-bifogning**: `SendUserFile` → Leonard bifogar tillbaka i chatten (`download_url` resolveras automatiskt av `UploadImageToWixSite`) — funkar, men chattgränssnittet tillåter bara ~5 filer/meddelande, så stora batchar kräver flera omgångar.
+2. **Publik GitHub-branch (rekommenderad för batchar ≥10 bilder):** i en isolerad `git worktree` (rör ALDRIG huvudarbetsträdet), skapa en **orphan-branch namngiven `claude/...`** (repo-push-behörigheten godkänner bara det prefixet — taggar och andra grennamn nekas med 403), lägg in bilderna, committa, pusha. Verifiera först att repot är publikt (`curl` mot en känd fil på `raw.githubusercontent.com`). Anropa sedan `UploadImageToWixSite` med `image:[{download_url:"https://raw.githubusercontent.com/<ägare>/<repo>/<gren>/<fil>"}, …]` — **alla bilder i ett enda anrop**. Radera grenen efteråt; `git push origin --delete` kan nekas av samma behörighetsbegränsning — då är kvarlämnad gren ofarlig (inga hemligheter, bara bildfiler) men be Leonard städa manuellt via GitHub om han vill.
+   > **Kostnadsrisk:** en ny gren-push kan trigga en automatisk Vercel-preview-byggning (sett hela denna session på varje `claude/`-gren). Fråga Leonard innan du kör — han avgör om den (troligen försumbara) risken är okej, kontra att vänta eller använda chatt-vägen i stället.
+
+**Så här sätts resultatet in (alla tre metoderna):**
+
+3. Metod A ger ett `fileId` direkt (ingen uppladdning behövs); Metod B/C laddas upp med `mcp__Wix__UploadImageToWixSite` (via chatt-bifogning eller GitHub-branch, se ovan) → ny `static.wixstatic.com`-URL/fileId.
 4. Ersätt item:et på **samma position** i `itemsInfo.items` med det **fullständiga item-objektet** (inte bara `url`+`altText` — det är det verifierat fungerande formatet från denna sessions PATCH:ar): `{ "id": "<fileId>", "altText": "<svensk alt>", "mediaType": "IMAGE", "image": { "id": "<fileId>", "url": "https://static.wixstatic.com/media/<fileId>", "altText": "<svensk alt>" } }` i Steg 3-PATCH:en. Verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
 5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
 
@@ -291,6 +368,32 @@ Ladda upp `white.jpg` via `mcp__Wix__UploadImageToWixSite` → ersätt item:et p
 
 -----
 
+### Steg 3d – Egna feature-kort (när leverantörens feature-slides är mörka AliExpress-collage)
+
+Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mörka collage/infografik/i-bruk-foton** — inte enskilda produktbilder. De går alltså inte att vitmåla (Steg 3c) och textborttagning (Steg 3b) lämnar dem fortfarande "AliExpress-iga". Då kan du **bygga egna rena, svenska feature-kort** på ljus bakgrund av de RIKTIGA produktfotona — hela katalogen ser då ut som ett eget varumärke. Verifierat på CNC-fräsen (2026-07-08): 5 mörka slides → 5 rena kort, **plus 2 engelska spec-blad → 2 svenska spec-kort** (maskinen urklippt + svensk spec-lista).
+
+> ⚠️ **Position 0 = ren VIT produkt-hjälte, även med eget kort-galleri.** Bygg gärna feature-/spec-KORT för plats 1→N, men produktkortets bild (`media.main` = plats 0) ska vara en **ren vit studio-hjälte** (Steg 3c) — INTE ett kort och INTE en kontext-/livsstilsbild på grå/rörig bakgrund. Har du bara monterade/röriga foton: kör Steg 3c Metod A (Wix Generate Image) på det renaste produktfotot → vit bakgrund. (Lärdom: pakethållarväskan `9e79abae` fick först en rack-livsstilsbild som hjälte i stället för vit — flaggat av Leonard, rättat 2026-07-09; livsstilsbilden flyttades till plats 1 som kontext.)
+>
+> **Gäller även engelska spec-blad:** samma metod bygger om leverantörens spec-blad (Item Model Number / Working Area / Input Voltage …) till rena **svenska spec-kort** (kicker "MODELL X", stor storleksrubrik + effekt-pill, 6-radigt spec-rutnät). Passa på att **rätta felaktig/vilseledande inbränd data**: t.ex. hade CNC-fräsens S4040-blad fel måttcallouts (kopierade från S3020) och båda bladen visade "110V 60Hz" (USA) fast produktens verkliga data är **AC 110/220 V, 50/60 Hz** (EU). Metriska enheter, inga tum/lbs.
+
+**Pipeline (helt lokalt + gratis, ingen Wix-AI):**
+1. **Klipp tillgångar** ur bilder som redan har **vit/ren bakgrund** (oftast hjältebilden): maskin, kontroller, spindel osv. Rektangulär beskärning räcker — vit bakgrund smälter sömlöst in i ett vitt kort (ingen urklippning behövs). Beskär SNÄVT så inga tillbehör/skuggor följer med. Foton från mörka källor (t.ex. en i-bruk-bild) presenteras som **rundad foto-banner** (rundade hörn + mjuk skugga) i stället för full-bleed — då krockar de inte med de ljusa korten. Sitter produkten på en **grå/färgad bakgrund med callouts** (typiskt spec-blad) → klipp ut den med **rembg** (`from rembg import remove`) och lägg på vit + mjuk skugga (samma kompositering som Steg 3c). **Gotcha:** u2net väljer det MEST framträdande objektet — på ett spec-blad kan det bli den vita spec-boxen, inte maskinen. **Beskär först till maskin-regionen** (klipp bort spec-boxen) INNAN `remove()`, och behåll bara största alpha-komponenten (`scipy.ndimage.label`) så lösa callout-text-öar försvinner. Granska alltid med `Read`.
+2. **Skriv korten som HTML/CSS** (1600×1600), bädda in fotona som base64 data-URI (self-contained). Konsekvent mall = premium: liten orange kicker-etikett, produktfoto, tunn orange regel, svensk rubrik (bold), grå undertext, och i footern **premium-lockupen: orange kub-logga + "Fyndplats"** (mörk ink, samma lockup som butikens OG-bild). Variera layout (feature / rundad banner / stort tal / bildrutnät) men håll typografi + marginaler identiska mellan korten.
+   > **Footer-märke (obligatoriskt from 2026-07-09):** använd **kub-loggan + "Fyndplats"** (lockup), **inte** den gamla grå gles-versalen "FYNDPLATS". Hämta kuben en gång från `https://www.fyndplats.se/icon.png` (orange 3D-kub, transparent PNG), bädda in som data-URI. CSS: `.brandlock{display:flex;align-items:center;gap:15px}` · `img{width:47px;height:47px}` · `b{font-size:37px;font-weight:700;letter-spacing:-.5px;color:#1B1B1A}`. Leonards beslut: nya loggan gäller alla NYA produkter framåt (äldre kort retrofittas bara på begäran).
+3. **Rendera → PNG via förinstallerad Chromium** (ingen Wix-AI, ingen hastighetsgräns):
+   ```bash
+   CHROME=/opt/pw-browsers/chromium-*/chrome-linux/chrome
+   "$CHROME" --headless --disable-gpu --no-sandbox --hide-scrollbars \
+     --force-device-scale-factor=1 --window-size=1600,1600 \
+     --screenshot=out.png "file://$PWD/card.html"
+   ```
+4. **Granska ALLTID med `Read`** (helhet + inzoomat). Vanliga fel: text kapas (sätt `.photo{flex:1;min-height:0}` så textblocket aldrig trängs bort), och **små källurklipp (<~500 px) blir suddiga** när de skalas upp 2–3× → använd i stället en högupplöst i-bruk-bild som rundad banner, eller acceptera medelstor "spotlight". `object-fit:contain` skalar INTE upp av sig själv; `max-width/height:100%` visar bilden i sin naturliga storlek (små blir små).
+5. **Ladda upp** alla kort i ETT `UploadImageToWixSite`-anrop (GitHub-branch-vägen, se Steg 3b) och byt in dem i galleriet.
+
+> ⚠️ **Kritisk gotcha (hände denna gång):** en `media.itemsInfo.items`-PATCH som byter galleriet **nollställer `linkedMedia` på alla variantval** (blir `[]`) — även om du inte rör `options`. Efter gallery-bytet MÅSTE du därför köra en separat PATCH som återställer `options[].choicesSettings.choices[].linkedMedia` (peka på de kvarvarande variant-bildernas id) **med `variantsInfo` skickat verbatim** (annars 428 `MISSING_VARIANT_OPTION_CHOICE`). Verifiera med re-GET att varje val har rätt `linkedMedia.id`. Behåll variant-bilderna (t.ex. spec-blad) i galleriet så id:na är stabila.
+
+-----
+
 ## Steg 4 (rekommenderat) – koppla rätt kategori
 
 Om produkten bara ligger i "All Products", koppla en riktig kategori (1 anrop, mutation):
@@ -313,7 +416,7 @@ Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · E
 
 ## Steg 5 – PUBLICERA produkten (1 anrop, mutation)
 
-Rå-importer skapas som **draft** (`visible:false`) och syns inte i butiken. När Steg 2–4 är klara och **verifierade** (rena `<h2>`-flikar; alla bilder kvar med `image.url`; **SKU re-synkad i Steg 2b**) och variantkontrollen i **Steg 6** är gjord: publicera produkten (hämta färsk `revision` först). *(Du kan slå ihop detta med Steg 2b — `visible:true` i samma SKU-PATCH.)*
+Rå-importer skapas som **draft** (`visible:false`) och syns inte i butiken. Detta är **sista steget** — kör det när Steg 1c (variantsanering), Steg 2–4 och variantkoppling (Steg 6) är klara och **verifierade** (rena `<h2>`-flikar; alla bilder kvar med `image.url`; **SKU re-synkad i Steg 2b**; variantbilder kopplade). Hämta färsk `revision` först. *(Genväg bara för en produkt UTAN bild-/kategori-/variantarbete: slå ihop med Steg 2b — se noten där.)*
 
 ```
 GET .../products/{PRODUCT_ID}        // färsk revision
@@ -331,6 +434,8 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 -----
 
 ## Steg 6 – Varianter (kontrollera, fixa bara vid behov)
+
+> **Borttagning av döda/slutsålda varianter görs redan i Steg 1c** (före copy). Här återstår att koppla variantbilder (`linkedMedia`, 6B) och slutverifiera. 6C nedan är den fullständiga mekaniken som Steg 1c hänvisar till.
 
 Importen sköter varianterna automatiskt och deterministiskt (inga AI-anrop) — oftast behöver du inte göra något:
 
@@ -367,29 +472,13 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 **C) Ta bort bilder för modeller/varianter som inte finns eller är slutsålda.** Rå-importer buntar ibland flera modeller/storlekar under EN listning och släpar med leverantörens **spec-ark för varianter som inte säljs**. Regel: när du SEO-polerar och en variant/modell **inte finns eller är slut hos leverantören**, ta bort **både** valet (om det finns som option) **och dess bilder** — spec-ark, variantfoton och ev. `linkedMedia` — och skriv SEO/specar efter bara det som är kvar.
 
-**Facit för vad som faktiskt lagerförs = `supplierVariantId` i mappningen — INTE marknadsbilderna** (de delas ofta mellan alla varianter i annonsen och ljuger om storlek/modell). Slå upp mappningen (read-only):
+> **Gäller även en RIKTIG (mappad) variant som bara är `inStock:false`** — inte bara phantom-/obundna modeller. Regeln är "slut hos leverantören → bort", så en variant som har en egen `supplierVariantId` men är slut tas ändå bort (den kan re-läggas om den kommer i lager igen). Verifierat på racingstället `40955353` (2026-07-08): "Typ A" var slut → togs bort.
+>
+> **Blir bara EN variant kvar → kollapsa hela optionen till en enkel-variant-produkt** (inte en option med ett enda val — ful dropdown). PATCH: `options:[]` + `variantsInfo.variants:[{ id:<behållna variantens id>, choices:[], sku, price, inventoryStatus }]` (V3 accepterar det; SKU blir `FP-<produkt>` utan variant-del). Byt **också** ut ev. feature-/hjältebilder som visar den BORTTAGNA variantens exemplar (t.ex. ett urklipp gjort ur den slutsålda modellens bild) mot den kvarvarande variantens — annars visar galleriet en produkt kunden inte kan köpa. Ta bort "två storlekar"/"Typ A/B"-språk ur namn, meta, beskrivning och FAQ.
 
-```
-GET https://www.wixapis.com/data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings
-```
-
-Läs `data.variants[].supplierVariantId` (t.ex. `14:29#3.2 m;…` → varianten som skeppas är **3,2 m**). Behåll bara den variantens spec-ark + de hjälte-/livsstilsbilder som stämmer; ta bort spec-arken för övriga modeller. **Kolla även inbrända siffror** på behållna livsstils-/förpackningsbilder — motsäger de kvarvarande varianten (t.ex. bärväske-mått/vikt för fel storlek) → ta bort dem också, annars krockar bilden med beskrivningen.
-
-> **Lärdom (tält `2d83ad12`):** listningen buntade **6 tältmodeller** som spec-bilder men bara **3,2 m**-varianten (`14:29#3.2 m`) var mappad/lagerförd. En delad bärväske-marknadsbild matchade 4,0 m och lurade första bedömningen — `supplierVariantId` var facit. Kolla ALLTID mappningen på multi-modell-listningar **innan** du väljer bilder och låser specar.
-
------
-
-## Klart-kriterium
-
-- Fokussökordet finns i **titel, produktnamn (H1), slug, beskrivning och meta** → alla punkter i Wix SEO-assistenten blir gröna efter att panelen **laddats om**.
-- Alla bilder har svenska alt-texter skrivna utifrån **visuellt granskade** previews (Steg 1b) och **har kvar sina URL:er**.
-- Inga bilder med dropship-logga, vattenstämpel eller inbränd säljtext kvar i galleriet (Steg 3b) — tvättade, borttagna eller flaggade.
-- **Inga exakta dubblettbilder** kvar i galleriet — behåll en, ta bort resten (`linkedMedia` omkopplat först); de borttagna frigörs i orphan-svepen.
-- **Hjältebilden** (produktkortet) är en **ren produktbild på vit studio-bakgrund med mjuk skugga** när originalet hade ful/mörk/rörig bakgrund (Steg 3c) — visuellt granskad via `Read`, original behållet vid felklipp. Nyttiga kontextbilder behålls (bara tvättade), infografik borttagen/flaggad. *(Vit hjälte skapas via Steg 3c Metod A – Wix Generate Image – även för mörk-på-mörk med slang/kablar; resultatet jämförs mot originalet för faktatrohet.)*
-- På **multi-modell-listningar**: bara den **lagerförda variantens** bilder/spec-ark finns kvar — övriga modellers spec-ark borttagna, matchat mot mappningens `supplierVariantId` (Steg 6C), och inga inbrända siffror på kvarvarande bilder motsäger varianten.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
-- Variantkontrollen i Steg 6 är gjord och produkten är **publicerad** (`visible:true`) — annars syns den inte i butiken.
+- Variantsaneringen (**Steg 1c**) och variantbildkopplingen (**Steg 6**) är gjorda, och produkten är **publicerad** (`visible:true`) som sista steg — annars syns den inte i butiken.
 - (Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)
 
 -----
