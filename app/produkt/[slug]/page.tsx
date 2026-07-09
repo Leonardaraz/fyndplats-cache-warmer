@@ -3,7 +3,8 @@ import { jsonLdString } from "../../../lib/seo";
 import { notFound } from "next/navigation";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
-import { getProduct, getProducts, getCollections } from "../../../lib/products";
+import { getProduct, getProducts, getCollections, type Product } from "../../../lib/products";
+import { curatedRelatedSlugs } from "../../../lib/related-products";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
@@ -188,16 +189,31 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // En riktig blur av produktbilden visar en igenkännbar förhandsbild direkt.
   const mainBlur = await getBlurDataURL(images[0] || "");
 
-  // "Liknande produkter" – ranked by how many collections they share with this product
-  // (most relevant first). No random global filler — only genuinely related products.
+  // "Liknande produkter" – två lager:
+  //   1. Kuraterad LLM-karta (data/related-products.json, scripts/score-related.mjs):
+  //      Claude Opus 4.8 väljer med butiks-merchandiser-logik — komplement +
+  //      prispassning + samma användningsområde, inte bara samma-kategori-kopior.
+  //      Filtreras till i-lager + fortfarande existerande produkter.
+  //   2. Fallback (som förr): kategori-överlapp, rankat på antal delade kategorier.
+  //      Fyller på till 4 om den kuraterade listan är kort, eller täcker helt när en
+  //      produkt saknas i kartan (t.ex. innan skriptet körts). → blocket blir aldrig tomt.
   const all = await getProducts();
-  const related = all
-    .filter((x) => x.slug !== p.slug)
-    .map((x) => ({ x, shared: (x.collectionIds || []).filter((c) => (p.collectionIds || []).includes(c)).length }))
-    .filter((s) => s.shared > 0)
-    .sort((a, b) => b.shared - a.shared)
-    .slice(0, 4)
-    .map((s) => s.x);
+  const bySlug = new Map(all.map((x) => [x.slug, x]));
+  const related: Product[] = curatedRelatedSlugs(p.slug)
+    .map((s) => bySlug.get(s))
+    .filter((x): x is Product => Boolean(x) && x!.slug !== p.slug && x!.inStock)
+    .slice(0, 4);
+  if (related.length < 4) {
+    const seen = new Set(related.map((r) => r.slug));
+    const overlap = all
+      .filter((x) => x.slug !== p.slug && !seen.has(x.slug))
+      .map((x) => ({ x, shared: (x.collectionIds || []).filter((c) => (p.collectionIds || []).includes(c)).length }))
+      .filter((s) => s.shared > 0)
+      // Fler delade kategorier först; vid lika, i-lager före slutsåld.
+      .sort((a, b) => b.shared - a.shared || (b.x.inStock ? 1 : 0) - (a.x.inStock ? 1 : 0))
+      .map((s) => s.x);
+    for (const o of overlap) { if (related.length >= 4) break; related.push(o); seen.add(o.slug); }
+  }
 
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
   // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.
