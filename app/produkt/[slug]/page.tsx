@@ -3,7 +3,8 @@ import { jsonLdString } from "../../../lib/seo";
 import { notFound } from "next/navigation";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
-import { getProduct, getProducts, getCollections } from "../../../lib/products";
+import { getProduct, getProducts, getCollections, type Product } from "../../../lib/products";
+import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { ProductReviews } from "../../../components/ProductReviews";
@@ -188,16 +189,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // En riktig blur av produktbilden visar en igenkännbar förhandsbild direkt.
   const mainBlur = await getBlurDataURL(images[0] || "");
 
-  // "Liknande produkter" – ranked by how many collections they share with this product
-  // (most relevant first). No random global filler — only genuinely related products.
+  // "Liknande produkter" – kuraterade LLM-val (data/related-products.json,
+  // scripts/score-related.mjs: Opus 4.8 butiks-merchandiser — komplement +
+  // prispassning) med meningsfullt kategori-överlapp som fallback/påfyllning.
+  // All logik (universell-kategori-exkludering, i-lager, dedup, aldrig tomt) i den
+  // testade rena pickRelated(). Se lib/related-products.test.ts.
   const all = await getProducts();
-  const related = all
-    .filter((x) => x.slug !== p.slug)
-    .map((x) => ({ x, shared: (x.collectionIds || []).filter((c) => (p.collectionIds || []).includes(c)).length }))
-    .filter((s) => s.shared > 0)
-    .sort((a, b) => b.shared - a.shared)
-    .slice(0, 4)
-    .map((s) => s.x);
+  const related: Product[] = pickRelated(p, all, curatedRelatedSlugs(p.slug), 4);
 
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
   // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.
