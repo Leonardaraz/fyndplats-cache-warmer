@@ -245,7 +245,10 @@ export function Gallery({
       setView((v) => ({ ...v, s }));
     } else if (g.mode === "pan") {
       setView({ s: view.s, x: g.bx + (e.clientX - g.sx), y: g.by + (e.clientY - g.sy) });
-      g.moved = true;
+      // Räkna bara som "flyttad" över en liten tröskel. Annars markeras ett stilla
+      // klick (0–några px muspekar-jitter) som en pan, och toggle-ut-zoomen nedan
+      // körs aldrig → man fastnar inzoomad (Leonards desktop-buggrapport).
+      if (Math.abs(e.clientX - g.sx) > 8 || Math.abs(e.clientY - g.sy) > 8) g.moved = true;
     } else if (g.mode === "swipe") {
       if (Math.abs(e.clientX - g.sx) > 8 || Math.abs(e.clientY - g.sy) > 8) g.moved = true;
     }
@@ -261,7 +264,10 @@ export function Gallery({
       if (view.s <= 1.05) resetView(); // snäpp tillbaka om man nästan zoomat ut
       return;
     }
-    if (g.mode === "pan") return;
+    // pan: en riktig dragning panorerade redan under move → gör inget på up. Men ett
+    // stilla klick (moved=false) medan man är inzoomad ska toggla UT zoomen igen
+    // (toggleZoomAt nollställer när s>1.05) — annars går det bara att zooma in, aldrig ut.
+    if (g.mode === "pan") { if (!g.moved) toggleZoomAt(e); return; }
     // swipe: ren tap → toggla zoom kring tap-punkten; annars navigera/stäng
     if (!g.moved) { toggleZoomAt(e); return; }
     const dx = e.clientX - g.sx, dy = e.clientY - g.sy;
