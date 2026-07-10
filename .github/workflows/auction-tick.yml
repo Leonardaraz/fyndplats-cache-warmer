@@ -1,0 +1,32 @@
+name: Fyndauktion tick
+
+# Pingar /api/cron/auction-tick varje timme: stegar auktionspriser nedåt,
+# upptäcker köp (→ rotera in nästa produkt ur kön), återställer priser vid
+# sold/expired. All logik ligger i appen — workflow:n är bara väckarklockan.
+#
+# Återanvänder befintlig repository secret:
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+# (URL:en är inte hemlig — auth sker via Bearer-headern.)
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger auction-tick endpoint
+        run: |
+          response=$(curl -sS -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://fyndplats-cache-warmer.vercel.app/api/cron/auction-tick")
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "$body"
+          if [ "$status" != "200" ]; then
+            echo "::error::Endpoint returned non-200 status"
+            exit 1
+          fi
