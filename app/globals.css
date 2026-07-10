@@ -1558,3 +1558,33 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rev-more{margin-top:18px;display:inline-block;padding:11px 22px;border:1px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
 .rev-more:hover{background:var(--ink);color:#fff}
 .rev-disclaimer{margin-top:18px;font-size:12px;line-height:1.5;color:var(--soft);max-width:640px}
+
+/* ── Fyndauktionen ─────────────────────────────────────────────────────── */
+.auction-hero .sechead p{max-width:640px;margin:0 auto}
+.auction-how{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:22px 0 30px}
+.auction-how div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:14px;color:#3f3a34}
+.auction-how b{color:#C2410C;margin-right:6px}
+.auction-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.auction-card .pbody{display:flex;flex-direction:column;gap:6px}
+.auction-price-row{display:flex;align-items:baseline;gap:10px}
+.auction-price{font-size:22px;font-weight:800;color:#C2410C}
+.auction-old{font-size:14px;color:var(--soft);text-decoration:line-through}
+.auction-timer{font-size:13px;color:#3f3a34;background:#FDF3E7;border:1px solid #F3DEC2;border-radius:8px;padding:5px 9px;width:fit-content}
+.auction-timer b{font-variant-numeric:tabular-nums;color:#C2410C}
+.auction-timer-soon{background:#FFF8E6;border-color:#F0E2B6}
+.auction-floor{background:#FDEBEB;border-color:#F2C9C9;color:#B42318;font-weight:600}
+.auction-cta{font-size:13px;font-weight:700;color:#C2410C;margin-top:2px}
+.auction-fineprint{font-size:12px;color:var(--soft);margin-top:26px;text-align:center;max-width:620px;margin-left:auto;margin-right:auto}
+.auction-empty{text-align:center;color:var(--soft);padding:26px 0}
+.auction-sold-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;max-width:640px}
+.auction-sold-list li{display:flex;justify-content:space-between;gap:14px;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.auction-sold-list a{color:var(--ink);font-weight:600;text-decoration:none}
+.auction-sold-list a:hover{color:#C2410C}
+.auction-sold-list em{color:#1B7A3D;font-style:normal;font-weight:700}
+.auction-banner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(90deg,#1B1B1A,#3A2A1D);color:#fff;border-radius:16px;padding:16px 22px;text-decoration:none;box-shadow:0 14px 34px -16px rgba(28,28,28,.5)}
+.auction-banner:hover .auction-banner-cta{transform:translateX(4px)}
+.auction-banner-badge{background:#C2410C;color:#fff;font-weight:800;font-size:13px;padding:6px 12px;border-radius:999px;letter-spacing:.02em}
+.auction-banner-text{font-size:15px}
+.auction-banner-text b{color:#FFB300}
+.auction-banner-cta{margin-left:auto;font-weight:700;color:#FFB300;transition:transform .2s}
+@media(max-width:600px){.auction-banner-cta{margin-left:0}}
