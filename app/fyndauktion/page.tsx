@@ -16,6 +16,18 @@ export const metadata: Metadata = {
   description:
     "Varje dag kl 07 startar fem auktioner på ordinarie pris. Sedan sjunker priset varje timme fram till kl 19 – tills någon slår till. Vänta för ett bättre pris, eller köp innan någon annan hinner före.",
   alternates: { canonical: "https://www.fyndplats.se/fyndauktion" },
+  openGraph: {
+    title: "Fyndauktionen – priset sjunker varje timme tills någon köper",
+    description:
+      "Nya fynd varje dag kl 07–19. Priset faller varje timme – vänta för ett bättre pris, eller köp innan någon annan hinner före.",
+    url: "https://www.fyndplats.se/fyndauktion",
+    images: [{ url: "https://www.fyndplats.se/og-fyndauktion.jpg", width: 1200, height: 630, alt: "Fyndauktionen – priset sjunker varje timme" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["https://www.fyndplats.se/og-fyndauktion.jpg"],
+  },
 };
 
 export default async function Fyndauktion() {

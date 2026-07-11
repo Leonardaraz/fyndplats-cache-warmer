@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { SearchBox } from "./searchbox";
+import { AuctionDot } from "./auction-dot";
 import type { CategoryNode } from "../lib/category-groups";
 
 // Kategorierna ligger högt upp (direkt efter "Butik"), före info-sidorna —
@@ -53,6 +54,7 @@ export function MobileNav({ tree = [], hasBlog = false }: { tree?: CategoryNode[
         <div className="mm-scroll">
           <nav className="mm-links">
             <a href={shopLink.href} onClick={closeMenu}>{shopLink.label}</a>
+            <a className="mm-auktion" href="/fyndauktion" onClick={closeMenu}>Fyndauktionen<AuctionDot /></a>
             <a className="mm-rea" href="/kategori/rea" onClick={closeMenu}>REA</a>
           </nav>
           {tree.length > 0 && (

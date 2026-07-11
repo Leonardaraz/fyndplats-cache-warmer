@@ -1743,3 +1743,11 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .a-odo-stack,.a-odo-col,.a-odo-sep{transition:none !important}
   .a-embers,.a-flash{display:none !important}
 }
+
+/* ── Fyndauktionen i navet: länk + pulserande glödprick under auktionsdagen ── */
+.meganav-auktion{position:relative;display:inline-flex;align-items:center;gap:6px;padding:6px 2px;white-space:nowrap;font-weight:700;color:#C2410C;cursor:pointer;transition:color .15s}
+.meganav-auktion:hover{color:#E5560F}
+.mm-auktion{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:#C2410C !important}
+.nav-adot{width:7px;height:7px;border-radius:50%;background:#F84848;box-shadow:0 0 0 0 rgba(248,72,72,.6);animation:navDot 1.6s ease-in-out infinite;flex:0 0 auto}
+@keyframes navDot{0%,100%{box-shadow:0 0 0 0 rgba(248,72,72,.55)}50%{box-shadow:0 0 0 5px rgba(248,72,72,0)}}
+@media (prefers-reduced-motion:reduce){.nav-adot{animation:none}}

@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import type { CategoryNode } from "../lib/category-groups";
+import { AuctionDot } from "./auction-dot";
 
 // Desktop-nav: 8 huvudkategorier inline (korta etiketter) + en full-bredds
 // mega-meny som fälls ut under headern när man hovrar/fokuserar en kategori.
@@ -61,6 +62,11 @@ export function MegaNav({ tree, hasBlog }: { tree: CategoryNode[]; hasBlog?: boo
           hasBlog-grind som footern/mobilmenyn). Återanvänder .meganav-link-stilen
           men utan mega-panel (ingen kategori) → bara en vanlig topp-navlänk. */}
       {hasBlog && <a className="meganav-link" href="/blogg" onClick={close}>Blogg</a>}
+
+      {/* Fyndauktionen — glödpricken pulserar under auktionsdagen 07–19. */}
+      <a className="meganav-auktion" href="/fyndauktion" onClick={close}>
+        Fyndauktionen<AuctionDot />
+      </a>
 
       <a className="meganav-rea" href="/kategori/rea" onClick={close}>REA</a>
 
