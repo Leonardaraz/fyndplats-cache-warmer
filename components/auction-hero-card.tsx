@@ -58,7 +58,10 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
             sizes="(max-width:760px) 100vw, 40vw"
             placeholder="blur"
             blurDataURL={SHIMMER_BLUR}
-            style={{ objectFit: "cover" }}
+            // contain (inte cover): produktbilderna är kvadratiska och ramen är
+            // det inte — cover beskar produkten (t.ex. kamerans topp). Vit botten
+            // i .a-hc-img gör letterbox-banden osynliga.
+            style={{ objectFit: "contain", padding: "4%" }}
             priority
           />
         )}

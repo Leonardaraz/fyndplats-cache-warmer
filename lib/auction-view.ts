@@ -44,6 +44,8 @@ export type LiveAuctionView = {
   slug: string;
   name: string;
   img: string;
+  /** Andra galleribild — hover-bytet på korten (samma mönster som butikskorten). */
+  img2: string;
   priceNum: number;
   priceFormatted: string;
   listPrice: number;
@@ -133,6 +135,7 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
         slug: p.slug,
         name: p.name,
         img: p.img,
+        img2: p.gallery?.find((g) => g !== p.img) ?? "",
         priceNum: p.priceNum,
         priceFormatted: fmtKr(p.priceNum),
         listPrice: r.listPrice,
