@@ -33,9 +33,14 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
   const target = preStart ? startMs : a.nextDropAt ? Date.parse(a.nextDropAt) : null;
   const msLeft = target ? target - now : null;
   const dropped = a.priceNum < a.listPrice;
+  // Timmens progress som en tunn linje i pillens botten (100 % = nästa sänkning;
+  // vid golvet ligger den fulltecknad). Före start: hur nära 07 vi är (12h-fönster).
+  const windowMs = preStart ? 12 * 3_600_000 : 3_600_000;
+  const progress = msLeft === null ? 100 : Math.min(100, Math.max(0, (1 - msLeft / windowMs) * 100));
 
   return (
     <a className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled}>
+      <span className="a-lb-progress" style={{ width: `${progress}%` }} aria-hidden="true" />
       <span className="a-lb-flame" aria-hidden="true">🔥</span>
       <span className="a-lb-price">{Math.round(a.priceNum).toLocaleString("sv-SE")} kr</span>
       {dropped && <span className="a-lb-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}

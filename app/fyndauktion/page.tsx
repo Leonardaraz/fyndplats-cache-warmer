@@ -47,17 +47,19 @@ export default async function Fyndauktion() {
       <AuctionStage startAt={startAt}>
         <section className="sec auction-hero">
           <div className="container">
-            <div className="sechead">
+            {/* Lede-texten ligger som SYSKON till sechead så mobilen kan
+                komponera om ordningen med flex-order (produkten först). */}
+            <div className="sechead a-sechead">
               <div className="eyebrow a-eyebrow">Fyndauktionen</div>
               <h1 className="a-title">
                 Priset sjunker <span className="a-hot">varje timme</span> – tills någon köper
               </h1>
-              <p className="a-lede">
-                Varje dag kl 07 startar dagens fynd på ordinarie pris. Sedan sänks priset varje
-                timme fram till kl 19 – tills någon slår till. Väntar du får du det billigare.
-                Väntar du för länge hinner någon annan före.
-              </p>
             </div>
+            <p className="a-lede">
+              Varje dag kl 07 startar dagens fynd på ordinarie pris. Sedan sänks priset varje
+              timme fram till kl 19 – tills någon slår till. Väntar du får du det billigare.
+              Väntar du för länge hinner någon annan före.
+            </p>
 
             <div className="auction-how a-how">
               <div><b>1.</b> Kl 07 – ordinarie pris</div>
