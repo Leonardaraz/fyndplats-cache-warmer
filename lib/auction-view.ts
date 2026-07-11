@@ -111,7 +111,10 @@ function nextDropAtOf(row: AuctionRow, nowMs: number): string | null {
   return null;
 }
 
-const fmtKr = (n: number) => `${n.toLocaleString("sv-SE")},00kr`;
+// Auktionspriser är alltid hela 9-kronor → visa "369 kr" (rent/premium), inte
+// "369,00 kr". Vi formaterar alltid ur priceNum (Wix `p.price`-strängen bär med
+// sig ören som vi inte vill visa här).
+const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
 /** Live-auktioner (max 5), joinade mot katalogen. Fail-open: tom lista. */
 export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
@@ -128,7 +131,7 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
         name: p.name,
         img: p.img,
         priceNum: p.priceNum,
-        priceFormatted: p.price || fmtKr(p.priceNum),
+        priceFormatted: fmtKr(p.priceNum),
         listPrice: r.listPrice,
         discountPercent: discount,
         nextDropAt: nextDropAtOf(r, now),

@@ -72,7 +72,7 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
         <div className="pname">{a.name}</div>
         <div className="auction-price-row">
           <span className="auction-price">{a.priceFormatted}</span>
-          {dropped && <span className="auction-old">{a.listPrice.toLocaleString("sv-SE")},00kr</span>}
+          {dropped && <span className="auction-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
         </div>
         {preStart && msLeft !== null && msLeft > 0 ? (
           <div className="auction-timer" suppressHydrationWarning>
