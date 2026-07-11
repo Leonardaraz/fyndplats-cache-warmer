@@ -17,11 +17,30 @@
 // imponera — rankas på produktens BÄSTA variantrabatt), resten i deterministiskt
 // blandad ordning (FNV-hash av productId) — ser slumpad ut men är stabil mellan
 // omkörningar, och garanterar att inget upprepas förrän hela poolen gått varvet.
+//
+// MOMS PÅ INKÖP: de lagrade inköpspriserna (FyndplatsMappings.landedCostSek)
+// kommer från import när köpen gjordes som privatperson — AliExpress-priset är
+// INKL. moms. Som momsregistrerat företag med B2B-köp är momsen aldrig en
+// verklig kostnad: EU-säljare fakturerar utan moms (omvänd skattskyldighet),
+// och importmoms på Kina-köp är avdragsgill. Den VERKLIGA kostnaden är därför
+// NETTOPRISET. Golvet räknas ur nettokostnaden — se netSupplierCost().
 
 import { buildVariantTracks, minTrack, type AuctionVariantTrack } from "./engine";
 
 /** Minsta rabatt (bästa variants golv vs. dess lista) för auktionsvärdhet. */
 export const MIN_AUCTION_DISCOUNT = 0.1;
+
+/** Momssats i de lagrade (inkl. moms) inköpspriserna. */
+export const SUPPLIER_VAT_RATE = 0.25;
+
+/**
+ * Verklig inköpskostnad för ett momsregistrerat B2B-företag: den lagrade
+ * kostnaden är inkl. moms, men momsen bärs aldrig (omvänd skattskyldighet på
+ * EU-köp / avdragsgill importmoms på Kina-köp) ⇒ nettopriset.
+ */
+export function netSupplierCost(landedCostInclVat: number): number {
+  return landedCostInclVat / (1 + SUPPLIER_VAT_RATE);
+}
 
 export type SeedRejection = "hidden" | "outOfStock" | "noVariants" | "existingSale" | "noCost" | "thinMargin";
 
@@ -29,7 +48,7 @@ export interface SeedVariantInput {
   wixVariantId: string;
   /** Ordinariepris inkl. moms (LIVE-priset i katalogen). */
   listPrice: number;
-  /** Landad kostnad exkl. moms för just denna variant. */
+  /** Landad kostnad INKL. moms (som lagrad) — konverteras till netto internt. */
   landedCostSek: number | null;
 }
 
@@ -69,8 +88,9 @@ export function evaluateCandidate(p: SeedInput): SeedVerdict {
   // garantera dess golv, och en okänd-kostnads-variant får aldrig auktioneras.
   if (priced.some((v) => v.landedCostSek == null || v.landedCostSek <= 0)) return { ok: false, reason: "noCost" };
 
+  // Golvet räknas ur NETTOkostnaden (momsen bärs aldrig, se filhuvudet).
   const tracks = buildVariantTracks(
-    priced.map((v) => ({ wixVariantId: v.wixVariantId, listPrice: v.listPrice, landedCostSek: v.landedCostSek! })),
+    priced.map((v) => ({ wixVariantId: v.wixVariantId, listPrice: v.listPrice, landedCostSek: netSupplierCost(v.landedCostSek!) })),
   );
   const best = Math.max(...tracks.map((t) => 1 - t.floorPrice / t.listPrice));
   if (best < MIN_AUCTION_DISCOUNT) return { ok: false, reason: "thinMargin" };

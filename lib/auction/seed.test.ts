@@ -25,7 +25,8 @@ describe("evaluateCandidate — enkel variant", () => {
     const v = evaluateCandidate(single);
     if (!v.ok) throw new Error(`oväntat avslag: ${v.reason}`);
     expect(v.doc.listPrice).toBe(1549);
-    expect(v.doc.floorPrice).toBe(819);
+    // Golv ur NETTOkostnad: 696/1,25 = 556,8 → ×1,25/1,07 → 659 (= 696/1,07).
+    expect(v.doc.floorPrice).toBe(659);
     expect(v.doc.variantPrices).toHaveLength(1);
     expect(v.doc.variantPrices[0].wixVariantId).toBe("v1");
     expect(v.doc.variantPrices[0].ladder).toHaveLength(LADDER_STEPS + 1);
@@ -42,7 +43,8 @@ describe("evaluateCandidate — enkel variant", () => {
   });
 
   it("avvisar thinMargin när golvet ger under 10 % rabatt", () => {
-    const v = evaluateCandidate({ ...single, variants: [{ wixVariantId: "v1", listPrice: 1549, landedCostSek: 1200 }] });
+    // Netto 1500/1,25 = 1200 → golv 1409, list 1549 ⇒ ~9 % rabatt < 10 %.
+    const v = evaluateCandidate({ ...single, variants: [{ wixVariantId: "v1", listPrice: 1549, landedCostSek: 1500 }] });
     expect(v).toEqual({ ok: false, reason: "thinMargin" });
     expect(MIN_AUCTION_DISCOUNT).toBe(0.1);
   });
@@ -54,8 +56,8 @@ describe("evaluateCandidate — per variant (prisspann)", () => {
     ...single,
     productId: "p2",
     variants: [
-      { wixVariantId: "billig", listPrice: 1049, landedCostSek: 471 }, // golv 559 → −47 %
-      { wixVariantId: "dyr", listPrice: 1549, landedCostSek: 1028 }, // golv 1209 → −22 %
+      { wixVariantId: "billig", listPrice: 1049, landedCostSek: 471 }, // netto → golv 449 → −57 %
+      { wixVariantId: "dyr", listPrice: 1549, landedCostSek: 1028 }, // netto → golv 969 → −37 %
     ],
   };
 
@@ -88,8 +90,8 @@ describe("evaluateCandidate — per variant (prisspann)", () => {
     const v = evaluateCandidate({
       ...single,
       variants: [
-        { wixVariantId: "tunn", listPrice: 1549, landedCostSek: 1200 }, // <10 %
-        { wixVariantId: "bra", listPrice: 1049, landedCostSek: 471 }, // −47 %
+        { wixVariantId: "tunn", listPrice: 1549, landedCostSek: 1500 }, // netto → <10 %
+        { wixVariantId: "bra", listPrice: 1049, landedCostSek: 471 }, // netto → −57 %
       ],
     });
     expect(v.ok).toBe(true);
