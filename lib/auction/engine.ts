@@ -2,11 +2,19 @@
 //
 // Fyndauktionen — ren prislogik (inga sidoeffekter, fullt enhetstestbar).
 //
-// Modellen är en holländsk auktion ("priset sjunker tills någon köper"):
-// varje auktion har en PRISSTEGE (ladder) från listpris ner till ett golv,
-// och priset kliver nedåt ett steg var `stepMinutes`:e minut från `startAt`.
-// Golvet räknas ur VERKLIG landad kostnad (FyndplatsMappings.landedCostSek)
-// så varje försäljning är vinstskyddad — se buildFloor().
+// Modellen är en DAGLIG holländsk auktion ("priset sjunker tills någon köper"):
+//
+//   07:00 svensk tid  →  start på ORDINARIE pris (marknadsföringslagen: start-
+//                        priset måste vara det verkliga ordinarie priset)
+//   varje hel timme   →  priset kliver nedåt ett steg i PRISSTEGEN (ladder)
+//   18:00             →  golvet nås (max −7 % marginal, se buildFloor)
+//   18:00–19:00       →  sista timmen ligger på golvet — "först till kvarn"
+//   19:00             →  dagen är slut, priset återställs och nästa produkt
+//                        i kön schemaläggs för nästa 07:00
+//
+// Golvet räknas ur VERKLIG landad kostnad (FyndplatsMappings.landedCostSek,
+// exkl. moms): Leonard accepterar max −7 % marginal på nettot, dvs.
+// brutto ≥ kostnad × 1,25 / 1,07. Klarna-avgift (~2–3 %) tillkommer utanpå.
 //
 // Tick-cronen (app/api/cron/auction-tick) läser stegen och PATCH:ar Wix-priset
 // när målsteget ändras; storefronten visar Wix-priset (källan till sanning)
@@ -22,18 +30,22 @@ export interface AuctionDoc {
   name: string;
   /** Ordinarie pris (inkl. moms) när auktionen skapades. Återställs vid slut. */
   listPrice: number;
-  /** Lägsta tillåtna pris (inkl. moms) — vinstskyddat, visas ALDRIG för kund. */
+  /** Lägsta tillåtna pris (inkl. moms) — max −7 % marginal, visas ALDRIG för kund. */
   floorPrice: number;
-  /** Fallande prisstege, [0] = listPrice … sista = floorPrice. Alla slutar på 9. */
+  /**
+   * Timindexerad prisstege: ladder[i] gäller timmen startAt + i·stepMinutes.
+   * [0] = listPrice (07:00) … sista = floorPrice (18:00). Icke-stigande;
+   * dubbletter betyder "ingen sänkning den timmen" (9-slutsavrundningen).
+   */
   ladder: number[];
-  /** Minuter mellan prissteg. */
+  /** Minuter mellan prissteg (60 = en sänkning i timmen). */
   stepMinutes: number;
   /** 1–5 för live-auktioner, 0 för kö. */
   slot: number;
   status: AuctionStatus;
   /** Kösortering (lägst främjas först). */
   queueOrder: number;
-  /** ISO — sätts när auktionen blir live. */
+  /** ISO — auktionsdagens 07:00. Kan ligga i framtiden (schemalagd i förväg). */
   startAt?: string;
   /** ISO — sätts vid sold/expired. */
   endedAt?: string;
@@ -43,6 +55,15 @@ export interface AuctionDoc {
   lastPatchedPrice?: number;
 }
 
+/** Auktionsdagens längd i timmar: 07:00 → 19:00. */
+export const AUCTION_DAY_HOURS = 12;
+
+/** Antal sänksteg: en per timme 08:00–18:00; sista timmen ligger på golvet. */
+export const LADDER_STEPS = AUCTION_DAY_HOURS - 1;
+
+/** Svensk väggklockstimme då auktionsdagen börjar. */
+export const AUCTION_START_HOUR = 7;
+
 /** Avrunda UPPÅT till närmaste heltal som slutar på 9 (butikens prisregel). */
 export function up9(n: number): number {
   let v = Math.ceil(n);
@@ -51,30 +72,31 @@ export function up9(n: number): number {
 }
 
 /**
- * Vinstskyddat golv ur verklig landad kostnad (exkl. moms).
- * Krav: nettointäkt (pris/1,25) minus ~3 % avgiftsbuffert (Klarna m.m.) ska
- * fortfarande täcka kostnaden ⇒ pris ≥ landedCost × 1,25 / 0,97 ≈ × 1,29.
- * Avrundas upp till 9-slut och klampas till högst listpriset.
+ * Golv ur verklig landad kostnad (exkl. moms) vid max −7 % marginal:
+ * nettointäkt (pris/1,25) får understiga kostnaden med högst 7 %
+ * ⇒ pris ≥ kostnad × 1,25 / 1,07 (≈ × 1,168). Avrundas upp till 9-slut
+ * (så verklig förlust blir strax UNDER 7 %) och klampas till högst listpriset.
+ * OBS: Klarna-avgiften (~2–3 %) ligger utanför — värsta fallet ≈ −9–10 % allt-i-allt.
  */
 export function buildFloor(listPrice: number, landedCostSek: number): number {
-  const minProfitable = up9(landedCostSek * 1.29);
-  return Math.min(minProfitable, listPrice);
+  const minAllowed = up9((landedCostSek * 1.25) / 1.07);
+  return Math.min(minAllowed, listPrice);
 }
 
 /**
- * Fallande prisstege list → floor med `steps` steg, alla 9-slut, strikt
- * fallande (dubbletter från avrundningen slås ihop). Alltid minst [list].
+ * Timindexerad prisstege list → floor med exakt `steps`+1 rungor:
+ * [0] = listPrice (07:00, ordinarie — rundas ALDRIG upp), [steps] = floorPrice
+ * (18:00). Mellansteg 9-slutsavrundas och klampas icke-stigande; dubbletter
+ * (= ingen sänkning den timmen) är tillåtna och hoppas över av nextDropAt.
  */
-export function buildLadder(listPrice: number, floorPrice: number, steps = 16): number[] {
-  const list = up9(listPrice - 1 + 1) === listPrice ? listPrice : up9(listPrice);
-  const floor = Math.min(up9(floorPrice), list);
-  const out: number[] = [list];
+export function buildLadder(listPrice: number, floorPrice: number, steps = LADDER_STEPS): number[] {
+  const floor = Math.min(floorPrice, listPrice);
+  const out: number[] = [listPrice];
   for (let i = 1; i <= steps; i++) {
-    const raw = list - ((list - floor) * i) / steps;
-    const p = up9(raw);
-    if (p < out[out.length - 1] && p >= floor) out.push(p);
+    const raw = listPrice - ((listPrice - floor) * i) / steps;
+    out.push(Math.max(Math.min(up9(raw), out[i - 1]), floor));
   }
-  if (out[out.length - 1] !== floor && floor < out[out.length - 1]) out.push(floor);
+  out[steps] = floor;
   return out;
 }
 
@@ -92,24 +114,54 @@ export function priceAt(doc: Pick<AuctionDoc, "startAt" | "stepMinutes" | "ladde
   return doc.ladder[stepIndexAt(doc, nowMs)];
 }
 
-/** ISO-tid för NÄSTA prissänkning, eller null om golvet är nått. */
+/**
+ * ISO-tid för NÄSTA faktiska prissänkning (dubblettrungor hoppas över),
+ * eller null om inga lägre rungor återstår (golvet är nått).
+ */
 export function nextDropAt(doc: Pick<AuctionDoc, "startAt" | "stepMinutes" | "ladder">, nowMs: number): string | null {
   if (!doc.startAt) return null;
   const idx = stepIndexAt(doc, nowMs);
-  if (idx >= doc.ladder.length - 1) return null;
-  return new Date(Date.parse(doc.startAt) + (idx + 1) * doc.stepMinutes * 60_000).toISOString();
+  const current = doc.ladder[idx];
+  for (let j = idx + 1; j < doc.ladder.length; j++) {
+    if (doc.ladder[j] < current) {
+      return new Date(Date.parse(doc.startAt) + j * doc.stepMinutes * 60_000).toISOString();
+    }
+  }
+  return null;
 }
 
 /**
- * Har auktionen legat på golvet längre än fristen (⇒ ska förfalla + roteras)?
- * Fristen räknas från när sista steget nåddes.
+ * Är auktionsdagen slut (19:00)? Varje runga får ett stepMinutes-intervall,
+ * så dagens slut = startAt + ladder.length · stepMinutes (12 rungor × 60 min
+ * = 12 h efter 07:00). Ett framtida startAt är per definition inte förfallet.
  */
-export function isExpired(
-  doc: Pick<AuctionDoc, "startAt" | "stepMinutes" | "ladder">,
-  nowMs: number,
-  graceHours = 24,
-): boolean {
+export function isExpired(doc: Pick<AuctionDoc, "startAt" | "stepMinutes" | "ladder">, nowMs: number): boolean {
   if (!doc.startAt) return false;
-  const floorReachedMs = Date.parse(doc.startAt) + (doc.ladder.length - 1) * doc.stepMinutes * 60_000;
-  return nowMs > floorReachedMs + graceHours * 3_600_000;
+  const dayEndMs = Date.parse(doc.startAt) + doc.ladder.length * doc.stepMinutes * 60_000;
+  return nowMs >= dayEndMs;
+}
+
+/** Svensk väggklockstimme (0–23) för en given tidpunkt — DST-säkert via Intl. */
+function stockholmHour(ms: number): number {
+  const formatted = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    hour: "numeric",
+    hour12: false,
+  }).format(new Date(ms));
+  return Number.parseInt(formatted, 10);
+}
+
+/**
+ * Nästa 07:00 svensk väggklocka som ISO — DST-säkert (Sverige ligger alltid på
+ * heltimmesoffset, så 07:00 sammanfaller med en hel UTC-timme; vi vandrar
+ * timgränserna framåt tills Stockholmsklockan visar 07). Om `nowMs` är EXAKT
+ * 07:00 returneras den tidpunkten (dagen kan börja direkt).
+ */
+export function nextStartAt(nowMs: number): string {
+  const HOUR = 3_600_000;
+  let t = Math.ceil(nowMs / HOUR) * HOUR;
+  for (let i = 0; i <= 49; i++, t += HOUR) {
+    if (stockholmHour(t) === AUCTION_START_HOUR) return new Date(t).toISOString();
+  }
+  throw new Error("nextStartAt: ingen 07:00 hittades inom 49 timmar (borde vara omöjligt)");
 }
