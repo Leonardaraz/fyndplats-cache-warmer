@@ -6,6 +6,7 @@ import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
 import { getHiddenFromFeatured, PROBLEM_MAX_SCORE } from "../lib/image-scores";
+import { getLiveAuctions } from "../lib/auction-view";
 import { tightFillUrl } from "../lib/wix-image";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../lib/social-proof";
 
@@ -57,7 +58,11 @@ const websiteJsonLd = {
 };
 
 export default async function Home() {
-  const [allProductsRaw, cols] = await Promise.all([getProducts(), getCollections()]);
+  const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions()]);
+  // Auktionsdagen går 07–19; nattetid är auktionerna schemalagda (startsAt satt)
+  // och bannern ska då säga "startar kl 07" i stället för "sjunker just nu".
+  const runningAuctions = liveAuctions.filter((a) => !a.startsAt);
+  const maxAuctionDiscount = runningAuctions.reduce((m, a) => Math.max(m, a.discountPercent), 0);
   // Dölj ev. slutsålda från alla kund-ytor på startsidan (hero + Veckans fynd)
   // när HIDE_OOS_FROM_LISTINGS är på. Default av → oförändrat.
   const allProducts = forListings(allProductsRaw);
@@ -272,6 +277,35 @@ export default async function Home() {
             <div className="homecat-allwrap">
               <a className="homecat-alllink" href="/butik">Se alla kategorier <span aria-hidden="true">→</span></a>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* Fyndauktionen-banner: visas bara när det finns live-auktioner (fail-open:
+          tom lista → ingen banner, startsidan opåverkad). Data hämtas server-side
+          med 60s-revalidate via lib/auction-view. */}
+      {liveAuctions.length > 0 && (
+        <section className="sec" style={{ paddingTop: 0 }}>
+          <div className="container">
+            <a className="auction-banner" href="/fyndauktion">
+              {runningAuctions.length > 0 ? (
+                <>
+                  <span className="auction-banner-badge">🔨 Fyndauktionen pågår</span>
+                  <span className="auction-banner-text">
+                    {runningAuctions.length} produkter vars pris sjunker just nu
+                    {maxAuctionDiscount > 0 && <> – största rabatt <b>−{maxAuctionDiscount}%</b></>}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="auction-banner-badge">🔨 Fyndauktionen</span>
+                  <span className="auction-banner-text">
+                    Dagens {liveAuctions.length} fynd startar kl 07 – priset faller varje timme till kl 19
+                  </span>
+                </>
+              )}
+              <span className="auction-banner-cta">Till auktionen →</span>
+            </a>
           </div>
         </section>
       )}
