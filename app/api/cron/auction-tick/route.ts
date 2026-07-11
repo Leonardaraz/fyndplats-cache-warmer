@@ -28,8 +28,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { fetchOrders, aggregateOrders } from "@/lib/wix/orders";
-import { isExpired, nextStartAt, priceAt, type AuctionDoc } from "@/lib/auction/engine";
-import { patchProductPrice, queryAuctions, saveAuction } from "@/lib/auction/store";
+import { isExpired, nextStartAt, priceAt, stepIndexAt, variantPricesAt, type AuctionDoc } from "@/lib/auction/engine";
+import { patchProductPrice, patchProductVariants, queryAuctions, saveAuction } from "@/lib/auction/store";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -41,6 +41,33 @@ function isCronAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
   return (req.headers.get("authorization") ?? "") === `Bearer ${secret}`;
+}
+
+/** Återställ produkten till ordinariepris (per variant om trackar finns). */
+async function restoreListPrice(a: AuctionDoc): Promise<void> {
+  if (a.variantPrices?.length) {
+    const byVariant = new Map(a.variantPrices.map((t) => [t.wixVariantId, { price: t.listPrice, compareAt: null }]));
+    await patchProductVariants(a.productId, byVariant);
+  } else {
+    await patchProductPrice(a.productId, a.listPrice, null);
+  }
+}
+
+/** Sätt aktuellt auktionspris (per variant om trackar finns). */
+async function applyStepPrice(a: AuctionDoc, nowMs: number): Promise<void> {
+  if (a.variantPrices?.length) {
+    const byVariant = new Map(
+      variantPricesAt(a, nowMs).map((v) => [
+        v.wixVariantId,
+        { price: v.price, compareAt: v.price < v.listPrice ? v.listPrice : null },
+      ]),
+    );
+    await patchProductVariants(a.productId, byVariant);
+  } else {
+    const target = priceAt(a, nowMs);
+    // requireUniform: enkel-pris-läget får aldrig platta ett prisspann.
+    await patchProductPrice(a.productId, target, target < a.listPrice ? a.listPrice : null, true);
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -69,7 +96,7 @@ export async function GET(req: NextRequest) {
         const soldAfterStart = hit?.lastSoldAt && a.startAt && Date.parse(hit.lastSoldAt) >= Date.parse(a.startAt);
         if (soldAfterStart) {
           try {
-            await patchProductPrice(a.productId, a.listPrice, null); // återställ
+            await restoreListPrice(a); // återställ till ordinariepris
             await saveAuction({ ...a, status: "sold", endedAt: new Date(now).toISOString(), soldPrice: a.lastPatchedPrice ?? a.listPrice });
             push("sold", { slug: a.slug, soldPrice: a.lastPatchedPrice ?? a.listPrice });
             a.status = "sold";
@@ -85,7 +112,7 @@ export async function GET(req: NextRequest) {
     for (const a of live) {
       if (isExpired(a, now)) {
         try {
-          await patchProductPrice(a.productId, a.listPrice, null);
+          await restoreListPrice(a);
           await saveAuction({ ...a, status: "expired", endedAt: new Date(now).toISOString() });
           push("expired", a.slug);
           a.status = "expired";
@@ -96,18 +123,19 @@ export async function GET(req: NextRequest) {
     }
     live = live.filter((a) => a.status === "live");
 
-    // 3) Prissteg för kvarvarande live (framtida startAt ⇒ målet är redan
-    //    listpriset = lastPatchedPrice, så ingen PATCH sker före 07:00).
+    // 3) Prissteg för kvarvarande live. Gate: per-variant på stegindex (så alla
+    //    trackar följer med även om visningsstegen står stilla en timme),
+    //    enkel-pris på visningspriset (bakåtkompat). Framtida startAt ⇒ idx=0
+    //    och priset är redan ordinarie, så ingen PATCH sker före 07:00.
     for (const a of live) {
-      const target = priceAt(a, now);
-      if (target !== a.lastPatchedPrice) {
+      const idx = stepIndexAt(a, now);
+      const displayTarget = priceAt(a, now);
+      const needPatch = a.variantPrices?.length ? idx !== (a.lastPatchedStep ?? -1) : displayTarget !== a.lastPatchedPrice;
+      if (needPatch) {
         try {
-          // Vid första steget (target === listPrice) behövs ingen strike-through.
-          const compareAt = target < a.listPrice ? a.listPrice : null;
-          // requireUniform: sänk aldrig priset om varianterna slutat dela ETT pris.
-          await patchProductPrice(a.productId, target, compareAt, true);
-          await saveAuction({ ...a, lastPatchedPrice: target });
-          push("priced", { slug: a.slug, price: target });
+          await applyStepPrice(a, now);
+          await saveAuction({ ...a, lastPatchedStep: idx, lastPatchedPrice: displayTarget });
+          push("priced", { slug: a.slug, price: displayTarget });
         } catch (e) {
           push("errors", `price ${a.slug}: ${(e as Error).message}`);
         }
@@ -141,6 +169,7 @@ export async function GET(req: NextRequest) {
           slot,
           startAt,
           lastPatchedPrice: next.listPrice, // start = listpris, ingen PATCH behövs
+          lastPatchedStep: 0,
           endedAt: undefined,
           soldPrice: undefined,
         };

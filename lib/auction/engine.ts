@@ -22,6 +22,20 @@
 
 export type AuctionStatus = "queued" | "live" | "sold" | "expired";
 
+/**
+ * En varianttrack: en egen fallande prisstege från variantens ordinariepris
+ * till dess −7 %-golv. Alla trackar i en produkt delar steg-timingen (samma
+ * startAt/stepMinutes), men varje variant faller oberoende från SITT pris.
+ * Skickas ALDRIG till klienten (avslöjar golvet).
+ */
+export interface AuctionVariantTrack {
+  /** Wix-variant-id (variantsInfo.variants[].id) — måltavla för PATCH. */
+  wixVariantId: string;
+  listPrice: number;
+  floorPrice: number;
+  ladder: number[];
+}
+
 export interface AuctionDoc {
   /** Wix Data _id (auto). */
   _id?: string;
@@ -33,11 +47,19 @@ export interface AuctionDoc {
   /** Lägsta tillåtna pris (inkl. moms) — max −7 % marginal, visas ALDRIG för kund. */
   floorPrice: number;
   /**
-   * Timindexerad prisstege: ladder[i] gäller timmen startAt + i·stepMinutes.
+   * VISNINGSSTEGE (det kunden ser): element-vis min över alla varianttrackar
+   * = "från"-priset. ladder[i] gäller timmen startAt + i·stepMinutes.
    * [0] = listPrice (07:00) … sista = floorPrice (18:00). Icke-stigande;
    * dubbletter betyder "ingen sänkning den timmen" (9-slutsavrundningen).
+   * För enkel-variant-produkter är detta variantens egen stege.
    */
   ladder: number[];
+  /**
+   * Per-variant-stegar (den FAKTISKA prissättningen). Saknas ⇒ enkel-pris-
+   * läge: hela produkten PATCH:as till `ladder`-priset (bakåtkompatibelt med
+   * äldre dokument). Finns ⇒ varje variant PATCH:as till sin egen track.
+   */
+  variantPrices?: AuctionVariantTrack[];
   /** Minuter mellan prissteg (60 = en sänkning i timmen). */
   stepMinutes: number;
   /** 1–5 för live-auktioner, 0 för kö. */
@@ -49,10 +71,12 @@ export interface AuctionDoc {
   startAt?: string;
   /** ISO — sätts vid sold/expired. */
   endedAt?: string;
-  /** Priset affären gick på (sold). */
+  /** Priset affären gick på (sold) — visningspriset (från-priset). */
   soldPrice?: number;
-  /** Senast PATCH:at pris i Wix — undviker onödiga PATCH-anrop. */
+  /** Senast PATCH:at visningspris i Wix (för sold-rapportering/legacy-gate). */
   lastPatchedPrice?: number;
+  /** Senast PATCH:at stegindex — gate för per-variant-läget (alla trackar). */
+  lastPatchedStep?: number;
 }
 
 /** Auktionsdagens längd i timmar: 07:00 → 19:00. */
@@ -98,6 +122,46 @@ export function buildLadder(listPrice: number, floorPrice: number, steps = LADDE
   }
   out[steps] = floor;
   return out;
+}
+
+/**
+ * Bygger per-variant-trackar: varje variant får sin egen stege list → −7 %-golv
+ * ur SIN landade kostnad. Detta är kärnan i per-variant-auktionen — en produkt
+ * med prisspann (t.ex. 13- vs 32-delars destillationssats) prissätts korrekt
+ * per variant i stället för att plattas till ett gemensamt pris.
+ */
+export function buildVariantTracks(
+  variants: Array<{ wixVariantId: string; listPrice: number; landedCostSek: number }>,
+  steps = LADDER_STEPS,
+): AuctionVariantTrack[] {
+  return variants.map((v) => {
+    const floorPrice = buildFloor(v.listPrice, v.landedCostSek);
+    return { wixVariantId: v.wixVariantId, listPrice: v.listPrice, floorPrice, ladder: buildLadder(v.listPrice, floorPrice, steps) };
+  });
+}
+
+/**
+ * Visningsstege = element-vis min över trackarnas stegar (= "från"-priset kunden
+ * ser falla). Korrekt även om trackar korsar varandra. Kräver att alla trackar
+ * har samma längd (byggda med samma `steps`).
+ */
+export function minTrack(tracks: AuctionVariantTrack[]): { listPrice: number; floorPrice: number; ladder: number[] } {
+  const len = tracks[0].ladder.length;
+  const ladder = Array.from({ length: len }, (_, i) => Math.min(...tracks.map((t) => t.ladder[i])));
+  return { listPrice: ladder[0], floorPrice: ladder[len - 1], ladder };
+}
+
+/** Varje variants målpris vid tidpunkten `nowMs` (samma stegindex för alla). */
+export function variantPricesAt(
+  doc: Pick<AuctionDoc, "startAt" | "stepMinutes" | "ladder" | "variantPrices">,
+  nowMs: number,
+): Array<{ wixVariantId: string; price: number; listPrice: number }> {
+  const idx = stepIndexAt(doc, nowMs);
+  return (doc.variantPrices ?? []).map((t) => ({
+    wixVariantId: t.wixVariantId,
+    price: t.ladder[Math.min(idx, t.ladder.length - 1)],
+    listPrice: t.listPrice,
+  }));
 }
 
 /** Aktuellt stegindex för en live-auktion vid tidpunkten `nowMs`. */

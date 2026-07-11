@@ -82,22 +82,18 @@ interface RawVariant {
   [k: string]: unknown;
 }
 
+/** Nytt pris (och ev. jämförpris) för en variant. compareAt null = rensa. */
+type VariantTarget = { price: number; compareAt: number | null };
+
 /**
- * Sätter auktionspriset på ALLA produktens varianter. `compareAt` = listpris
- * under auktion, null för att rensa (återställning). Läser färsk revision +
- * echo:ar options.
- *
- * `requireUniform` (pris-SÄNKNINGAR i ticken): vägra om varianterna inte
- * längre delar ETT pris — poolen seedas bara med enhetsprisade produkter,
- * men skulle en variant med avvikande pris tillkomma efteråt får auktionen
- * inte platta prisspannet (fel pris/förlust på dyraste varianten).
- * Återställningar skickar false så priset aldrig fastnar på auktionsnivå.
+ * Delad GET→map→PATCH mot Stores V3. `resolve` returnerar nytt pris per variant
+ * (eller null = lämna variantens pris orört). Följer runbookens hårda regler:
+ * färsk revision, options + variantsInfo skickas ihop (428), visible:true.
  */
-export async function patchProductPrice(
+async function applyVariantPatch(
   productId: string,
-  newPrice: number,
-  compareAt: number | null,
-  requireUniform = false,
+  resolve: (v: RawVariant) => VariantTarget | null,
+  precheck?: (variants: RawVariant[]) => void,
 ): Promise<void> {
   const getRes = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
     method: "GET",
@@ -105,33 +101,28 @@ export async function patchProductPrice(
   });
   if (!getRes.ok) {
     const text = await getRes.text();
-    throw new Error(`patchProductPrice GET ${getRes.status}: ${text.slice(0, 200)}`);
+    throw new Error(`patch GET ${getRes.status}: ${text.slice(0, 200)}`);
   }
   const data = (await getRes.json()) as {
     product?: { revision?: string; options?: unknown[]; variantsInfo?: { variants?: RawVariant[] } };
   };
   const p = data.product;
   if (!p?.revision || !p.variantsInfo?.variants?.length) {
-    throw new Error(`patchProductPrice(${productId}): saknar revision/varianter`);
+    throw new Error(`patch(${productId}): saknar revision/varianter`);
   }
-  if (requireUniform) {
-    const distinct = new Set(p.variantsInfo.variants.map((v) => v.price?.actualPrice?.amount ?? ""));
-    if (distinct.size > 1) {
-      throw new Error(
-        `patchProductPrice(${productId}): varianterna har olika priser (${[...distinct].join(", ")}) — vägrar sänka`,
-      );
-    }
-  }
-  const variants = p.variantsInfo.variants.map((v) => ({
-    ...v,
-    price: {
-      ...(v.price ?? {}),
-      actualPrice: { amount: String(newPrice) },
-      ...(compareAt != null
-        ? { compareAtPrice: { amount: String(compareAt) } }
-        : { compareAtPrice: null }),
-    },
-  }));
+  precheck?.(p.variantsInfo.variants);
+  const variants = p.variantsInfo.variants.map((v) => {
+    const t = resolve(v);
+    if (!t) return v;
+    return {
+      ...v,
+      price: {
+        ...(v.price ?? {}),
+        actualPrice: { amount: String(t.price) },
+        ...(t.compareAt != null ? { compareAtPrice: { amount: String(t.compareAt) } } : { compareAtPrice: null }),
+      },
+    };
+  });
   const body: Record<string, unknown> = {
     product: {
       id: productId,
@@ -150,6 +141,48 @@ export async function patchProductPrice(
   });
   if (!patchRes.ok) {
     const text = await patchRes.text();
-    throw new Error(`patchProductPrice PATCH ${patchRes.status}: ${text.slice(0, 300)}`);
+    throw new Error(`patch PATCH ${patchRes.status}: ${text.slice(0, 300)}`);
   }
+}
+
+/**
+ * ENKEL-PRIS-läge (legacy + enkel-variant): sätter samma pris på ALLA varianter.
+ * `compareAt` = listpris under auktion, null för att rensa (återställning).
+ *
+ * `requireUniform` (pris-SÄNKNINGAR i ticken): vägra om varianterna inte längre
+ * delar ETT pris — enkel-pris-läget får aldrig platta ett prisspann (fel pris/
+ * förlust på dyraste varianten). Återställningar skickar false så priset aldrig
+ * fastnar på auktionsnivå. Multi-variant-produkter använder patchProductVariants.
+ */
+export async function patchProductPrice(
+  productId: string,
+  newPrice: number,
+  compareAt: number | null,
+  requireUniform = false,
+): Promise<void> {
+  const precheck = requireUniform
+    ? (variants: RawVariant[]) => {
+        const distinct = new Set(variants.map((v) => v.price?.actualPrice?.amount ?? ""));
+        if (distinct.size > 1) {
+          throw new Error(
+            `patchProductPrice(${productId}): varianterna har olika priser (${[...distinct].join(", ")}) — vägrar sänka`,
+          );
+        }
+      }
+    : undefined;
+  await applyVariantPatch(productId, () => ({ price: newPrice, compareAt }), precheck);
+}
+
+/**
+ * PER-VARIANT-läge: varje variant sätts till sitt eget pris (och jämförpris).
+ * `byVariantId`: wixVariantId → {price, compareAt}. Varianter som saknas i
+ * mappen lämnas orörda (skulle en ny variant dyka upp mellan seed och tick).
+ */
+export async function patchProductVariants(
+  productId: string,
+  byVariantId: Map<string, VariantTarget>,
+): Promise<void> {
+  await applyVariantPatch(productId, (v) => byVariantId.get(v.id) ?? null).catch((e) => {
+    throw new Error(`patchProductVariants ${(e as Error).message}`);
+  });
 }

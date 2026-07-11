@@ -4,12 +4,15 @@ import {
   LADDER_STEPS,
   buildFloor,
   buildLadder,
+  buildVariantTracks,
   isExpired,
+  minTrack,
   nextDropAt,
   nextStartAt,
   priceAt,
   stepIndexAt,
   up9,
+  variantPricesAt,
 } from "./engine";
 
 describe("up9", () => {
@@ -109,6 +112,44 @@ describe("isExpired (dagen slutar 19:00 = start + 12 h)", () => {
   });
   it("förfallen exakt vid dagens slut (19:00)", () => {
     expect(isExpired(doc, t0 + AUCTION_DAY_HOURS * h)).toBe(true);
+  });
+});
+
+describe("buildVariantTracks / minTrack / variantPricesAt", () => {
+  const tracks = buildVariantTracks([
+    { wixVariantId: "billig", listPrice: 1049, landedCostSek: 471 },
+    { wixVariantId: "dyr", listPrice: 1549, landedCostSek: 1028 },
+  ]);
+
+  it("en track per variant, var och en list→eget golv", () => {
+    expect(tracks).toHaveLength(2);
+    expect(tracks[0].ladder[0]).toBe(1049);
+    expect(tracks[1].ladder[0]).toBe(1549);
+    expect(tracks[0].floorPrice).toBe(buildFloor(1049, 471));
+    expect(tracks[1].floorPrice).toBe(buildFloor(1549, 1028));
+    for (const t of tracks) expect(t.ladder).toHaveLength(LADDER_STEPS + 1);
+  });
+
+  it("minTrack = element-vis min (från-priset), icke-stigande", () => {
+    const top = minTrack(tracks);
+    expect(top.listPrice).toBe(1049);
+    expect(top.floorPrice).toBe(Math.min(tracks[0].floorPrice, tracks[1].floorPrice));
+    for (let i = 0; i < top.ladder.length; i++) {
+      expect(top.ladder[i]).toBe(Math.min(tracks[0].ladder[i], tracks[1].ladder[i]));
+    }
+    for (let i = 1; i < top.ladder.length; i++) expect(top.ladder[i]).toBeLessThanOrEqual(top.ladder[i - 1]);
+  });
+
+  it("variantPricesAt ger varje variants pris vid stegindex", () => {
+    const doc = { startAt: "2026-07-12T05:00:00.000Z", stepMinutes: 60, ladder: minTrack(tracks).ladder, variantPrices: tracks };
+    const t0 = Date.parse(doc.startAt);
+    const h = 3_600_000;
+    const atStart = variantPricesAt(doc, t0);
+    expect(atStart.find((v) => v.wixVariantId === "billig")!.price).toBe(1049);
+    expect(atStart.find((v) => v.wixVariantId === "dyr")!.price).toBe(1549);
+    const atFloor = variantPricesAt(doc, t0 + 11 * h);
+    expect(atFloor.find((v) => v.wixVariantId === "billig")!.price).toBe(tracks[0].floorPrice);
+    expect(atFloor.find((v) => v.wixVariantId === "dyr")!.price).toBe(tracks[1].floorPrice);
   });
 });
 

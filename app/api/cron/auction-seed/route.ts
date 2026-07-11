@@ -3,19 +3,21 @@
 // Fyller/uppdaterar Fyndauktionens pool ur HELA katalogen. Utan ?apply=1 körs
 // en torrkörning som bara rapporterar vad som SKULLE hända — kör den först.
 //
-// För varje katalogprodukt avgör lib/auction/seed om den kvalar in (synlig,
-// i lager, enhetligt variantpris, ingen befintlig rea, känd landad kostnad,
-// ≥10 % rabattutrymme vid −7 %-golvet) och bygger golv + timstege. Sedan:
+// Varje produkt byggs som PER-VARIANT-auktion: varje variant får sin egen stege
+// från sitt ordinariepris (LIVE-priset i katalogen) till sitt eget −7 %-golv
+// (ur variantens landade kostnad i FyndplatsMappings). Enkel-variant-produkter
+// blir en en-element-track. lib/auction/seed avgör kvalificering (synlig, i
+// lager, ingen befintlig rea, känd kostnad per variant, ≥10 % rabatt på minst
+// en variant) och köordning. Sedan:
 //
 //   • LIVE-auktioner rörs ALDRIG (mitt i sin auktionsdag)
-//   • sold/expired behåller status/historik men får färska priser/stegar
-//     (så recycling aldrig återanvänder inaktuella priser)
-//   • köade + nya får status queued och ny köordning: största rabatterna
-//     som 1–5 (lanseringsfemman), resten deterministiskt blandade
+//   • sold/expired behåller status/historik men får färska stegar
+//   • köade + nya får status queued och ny köordning
 //   • köade dokument som inte längre kvalar in TAS BORT (rapporteras)
 //
-// Idempotent och omkörningsbar: trigga via GitHub Actions "auction-seed"
-// (workflow_dispatch) när katalogen fått nya produkter eller priser ändrats.
+// Live per-variant-priser hämtas med en GET per FLER-variant-produkt (≈90 st,
+// väl under maxDuration); enkel-variant-produkter använder katalogens min-pris
+// direkt (ingen extra GET). Idempotent och omkörningsbar via GitHub Actions.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -25,11 +27,12 @@ import type { AuctionDoc } from "@/lib/auction/engine";
 import { queryAuctions, removeAuction, saveAuction } from "@/lib/auction/store";
 import {
   assignQueueOrder,
-  discountOf,
   evaluateCandidate,
+  headlineDiscount,
   type SeedCandidate,
   type SeedInput,
   type SeedRejection,
+  type SeedVariantInput,
 } from "@/lib/auction/seed";
 
 export const runtime = "nodejs";
@@ -37,6 +40,16 @@ export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 const WIX_BASE = "https://www.wixapis.com";
+
+function wixHeaders(): Record<string, string> {
+  const token = process.env.WIX_API_TOKEN;
+  if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");
+  return {
+    "Content-Type": "application/json",
+    Authorization: token,
+    "wix-site-id": process.env.HEADLESS_WIX_SITE_ID || "e6d27e90-4749-4720-9afe-0bbe91c1b3d3",
+  };
+}
 
 function isCronAuthorized(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -51,20 +64,14 @@ interface CatalogRow {
   name: string;
   visible: boolean;
   inStock: boolean;
-  priceMin: number;
-  priceMax: number;
+  variantCount: number;
   hasCompareAt: boolean;
+  priceMin: number;
 }
 
-/** Lättviktig V3-listning med exakt de fält urvalet behöver. */
+/** Lättviktig V3-listning (utan varianter) för hela katalogen. */
 async function fetchCatalog(): Promise<CatalogRow[]> {
-  const token = process.env.WIX_API_TOKEN;
-  if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: token,
-    "wix-site-id": process.env.HEADLESS_WIX_SITE_ID || "e6d27e90-4749-4720-9afe-0bbe91c1b3d3",
-  };
+  const headers = wixHeaders();
   const all: CatalogRow[] = [];
   let cursor: string | undefined;
   for (let page = 0; page < 50; page++) {
@@ -86,8 +93,9 @@ async function fetchCatalog(): Promise<CatalogRow[]> {
         name: string;
         visible?: boolean;
         inventory?: { availabilityStatus?: string };
-        actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
-        compareAtPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+        variantSummary?: { variantCount?: number };
+        actualPriceRange?: { minValue?: { amount?: string } };
+        compareAtPriceRange?: { maxValue?: { amount?: string } };
       }>;
       pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
     };
@@ -98,9 +106,9 @@ async function fetchCatalog(): Promise<CatalogRow[]> {
         name: p.name,
         visible: p.visible !== false,
         inStock: p.inventory?.availabilityStatus !== "OUT_OF_STOCK",
-        priceMin: Number(p.actualPriceRange?.minValue?.amount ?? Number.NaN),
-        priceMax: Number(p.actualPriceRange?.maxValue?.amount ?? Number.NaN),
+        variantCount: p.variantSummary?.variantCount ?? 1,
         hasCompareAt: Number(p.compareAtPriceRange?.maxValue?.amount ?? 0) > 0,
+        priceMin: Number(p.actualPriceRange?.minValue?.amount ?? Number.NaN),
       });
     }
     cursor = data.pagingMetadata?.cursors?.next;
@@ -109,7 +117,19 @@ async function fetchCatalog(): Promise<CatalogRow[]> {
   return all;
 }
 
-/** Kör `fn` över alla items med begränsad parallellism. */
+/** Live per-variant-priser för en fler-variant-produkt (en GET). */
+async function fetchProductVariants(productId: string): Promise<Array<{ id: string; price: number }>> {
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, { method: "GET", headers: wixHeaders() });
+  if (!res.ok) throw new Error(`GET ${productId} ${res.status}`);
+  const data = (await res.json()) as {
+    product?: { variantsInfo?: { variants?: Array<{ id: string; price?: { actualPrice?: { amount?: string } } }> } };
+  };
+  return (data.product?.variantsInfo?.variants ?? [])
+    .map((v) => ({ id: v.id, price: Number(v.price?.actualPrice?.amount ?? Number.NaN) }))
+    .filter((v) => v.id && Number.isFinite(v.price) && v.price > 0);
+}
+
+/** Kör `fn` över alla items med begränsad parallellism; samlar fel. */
 async function pool<T>(items: T[], limit: number, fn: (t: T) => Promise<void>): Promise<string[]> {
   const errors: string[] = [];
   let i = 0;
@@ -143,23 +163,35 @@ export async function GET(req: NextRequest) {
       queryAuctions(["queued", "live", "sold", "expired"]),
     ]);
 
-    // Högsta landade kostnaden per produkt (värsta varianten sätter golvet).
-    const costByProduct = new Map<string, number>();
+    // Per-variant landad kostnad (variantId → kostnad) och produkt-override.
+    const costByVariant = new Map<string, Map<string, number>>();
+    const mappingVariants = new Map<string, Array<{ wixVariantId: string; landedCostSek: number }>>();
     for (const m of mappings) {
-      const costs = (m.variants ?? [])
-        .map((v) => v.landedCostSek)
-        .filter((c): c is number => typeof c === "number" && c > 0);
-      if (costs.length > 0) costByProduct.set(m.wixProductId, Math.max(...costs));
+      const per = new Map<string, number>();
+      const list: Array<{ wixVariantId: string; landedCostSek: number }> = [];
+      for (const v of m.variants ?? []) {
+        if (v.wixVariantId && typeof v.landedCostSek === "number" && v.landedCostSek > 0) {
+          per.set(v.wixVariantId, v.landedCostSek);
+          list.push({ wixVariantId: v.wixVariantId, landedCostSek: v.landedCostSek });
+        }
+      }
+      if (per.size > 0) costByVariant.set(m.wixProductId, per);
+      if (list.length > 0) mappingVariants.set(m.wixProductId, list);
     }
-    for (const o of overrides) {
-      if (o.costSek > 0) costByProduct.set(o.productId, o.costSek);
-    }
+    const overrideCost = new Map<string, number>();
+    for (const o of overrides) if (o.costSek > 0) overrideCost.set(o.productId, o.costSek);
+
+    // Fler-variant-produkter kräver live per-variant-priser (en GET var).
+    const multiRows = catalog.filter((r) => r.variantCount > 1 || (mappingVariants.get(r.id)?.length ?? 0) > 1);
+    const liveVariants = new Map<string, Array<{ id: string; price: number }>>();
+    const fetchErrors = await pool(multiRows, 6, async (r) => {
+      liveVariants.set(r.id, await fetchProductVariants(r.id));
+    });
 
     const excluded: Record<SeedRejection, number> = {
       hidden: 0,
       outOfStock: 0,
-      noPrice: 0,
-      variantPriceSpread: 0,
+      noVariants: 0,
       existingSale: 0,
       noCost: 0,
       thinMargin: 0,
@@ -168,20 +200,45 @@ export async function GET(req: NextRequest) {
     const included: SeedCandidate[] = [];
 
     for (const row of catalog) {
+      const override = overrideCost.get(row.id);
+      let variants: SeedVariantInput[];
+      const live = liveVariants.get(row.id);
+      if (live && live.length > 0) {
+        // Fler-variant: LIVE-pris per variant, kostnad joinad på variant-id.
+        const per = costByVariant.get(row.id);
+        variants = live.map((lv) => ({
+          wixVariantId: lv.id,
+          listPrice: lv.price,
+          landedCostSek: override ?? per?.get(lv.id) ?? null,
+        }));
+      } else {
+        // Enkel-variant: katalogens min-pris + mappningens (enda) variant/kostnad.
+        const mv = mappingVariants.get(row.id)?.[0];
+        variants = [
+          {
+            wixVariantId: mv?.wixVariantId ?? "",
+            listPrice: row.priceMin,
+            landedCostSek: override ?? mv?.landedCostSek ?? null,
+          },
+        ];
+      }
+
       const input: SeedInput = {
         productId: row.id,
         slug: row.slug,
         name: row.name,
         visible: row.visible,
         inStock: row.inStock,
-        priceMin: row.priceMin,
-        priceMax: row.priceMax,
         hasCompareAt: row.hasCompareAt,
-        landedCostSek: costByProduct.get(row.id) ?? null,
+        variants,
       };
       const verdict = evaluateCandidate(input);
-      if (verdict.ok) {
+      if (verdict.ok && input.variants.every((v) => v.wixVariantId)) {
         included.push(verdict.doc);
+      } else if (verdict.ok) {
+        // Kvalificerad men saknar variant-id (produkt utan mappning) → hoppa.
+        excluded.noCost++;
+        (excludedSamples.noCost ??= []).length < 20 && excludedSamples.noCost!.push(row.slug);
       } else {
         excluded[verdict.reason]++;
         (excludedSamples[verdict.reason] ??= []).length < 20 &&
@@ -211,14 +268,14 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Köade dokument vars produkt inte längre kvalar in → bort ur kön.
     const includedIds = new Set(included.map((c) => c.productId));
     const toRemove = existing.filter((e) => e.status === "queued" && !includedIds.has(e.productId));
 
     const report: Record<string, unknown> = {
       apply,
       catalogTotal: catalog.length,
-      mappingsWithCost: costByProduct.size,
+      multiVariantProducts: multiRows.length,
+      fetchErrors: fetchErrors.slice(0, 5),
       included: included.length,
       excluded,
       excludedSamples,
@@ -230,9 +287,8 @@ export async function GET(req: NextRequest) {
         .map((d) => ({
           queueOrder: d.queueOrder,
           slug: d.slug,
-          listPrice: d.listPrice,
-          floorPrice: d.floorPrice,
-          discount: `-${Math.round(discountOf(d) * 100)}%`,
+          variants: d.variantPrices?.length ?? 1,
+          bestDiscount: `-${Math.round(headlineDiscount(d) * 100)}%`,
         })),
     };
 
