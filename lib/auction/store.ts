@@ -31,7 +31,9 @@ export async function queryAuctions(statuses: string[]): Promise<AuctionDoc[]> {
       query: {
         filter: { status: { $in: statuses } },
         sort: [{ fieldName: "queueOrder", order: "ASC" }],
-        paging: { limit: 100 },
+        // Hela katalogen kan ligga i kön (400+ dokument) — 100 skulle tyst
+        // tappa slutet av kön och göra recycling blind för äldre poster.
+        paging: { limit: 1000 },
       },
     }),
   });
@@ -59,6 +61,18 @@ export async function saveAuction(doc: AuctionDoc): Promise<void> {
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`saveAuction(${doc.slug}) ${res.status}: ${text.slice(0, 200)}`);
+  }
+}
+
+/** Tar bort ett auktionsdokument (används när en köad produkt diskvalificeras). */
+export async function removeAuction(id: string): Promise<void> {
+  const res = await fetch(
+    `${WIX_BASE}/wix-data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${AUCTION_COLLECTION}`,
+    { method: "DELETE", headers: headers() },
+  );
+  if (!res.ok && res.status !== 404) {
+    const text = await res.text();
+    throw new Error(`removeAuction(${id}) ${res.status}: ${text.slice(0, 200)}`);
   }
 }
 

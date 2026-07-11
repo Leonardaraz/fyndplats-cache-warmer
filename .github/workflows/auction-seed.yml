@@ -1,0 +1,30 @@
+# Fyndauktionen: fyll/uppdatera auktionspoolen ur hela katalogen.
+# Manuell körning (Actions → auction-seed → Run workflow). Kör först utan
+# apply för en torrkörning, granska rapporten i loggen, kör sedan med apply.
+name: auction-seed
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Skriv ändringar (annars torrkörning)"
+        type: boolean
+        default: false
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Anropa seed-endpointen
+        run: |
+          APPLY=""
+          if [ "${{ inputs.apply }}" = "true" ]; then APPLY="?apply=1"; fi
+          curl --fail-with-body --max-time 300 -sS \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://fyndplats-cache-warmer.vercel.app/api/cron/auction-seed${APPLY}" | tee seed-report.json
+      - name: Spara rapporten som artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: seed-report
+          path: seed-report.json
