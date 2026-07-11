@@ -52,6 +52,9 @@ export type LiveAuctionView = {
   nextDropAt: string | null;
   /** ISO när auktionsdagen börjar (07:00) om den ligger i framtiden, annars null. */
   startsAt: string | null;
+  /** ISO för dagens start (07:00) — även när den passerat. Driver dramaturgin
+   *  (färgtemperatur, tändning kl 18). Avslöjar inget: starttiden är publik. */
+  startAt: string | null;
   slot: number;
   inStock: boolean;
 };
@@ -136,6 +139,7 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
         discountPercent: discount,
         nextDropAt: nextDropAtOf(r, now),
         startsAt: r.startAt && Date.parse(r.startAt) > now ? r.startAt : null,
+        startAt: r.startAt ?? null,
         slot: r.slot ?? 0,
         inStock: p.inStock,
       } satisfies LiveAuctionView;

@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { AuctionCard } from "../../components/auction-card";
+import { AuctionHeroCard } from "../../components/auction-hero-card";
+import { AuctionStage } from "../../components/auction-stage";
+import { AuctionFuse } from "../../components/auction-fuse";
+import { AuctionClimax } from "../../components/auction-climax";
 import { Newsletter } from "../../components/newsletter";
 import { getLiveAuctions, getSoldAuctions } from "../../lib/auction-view";
 
@@ -17,69 +21,89 @@ export const metadata: Metadata = {
 export default async function Fyndauktion() {
   const [live, sold] = await Promise.all([getLiveAuctions(), getSoldAuctions(6)]);
 
+  // Flaggskeppet (störst rabatt just nu) blir hjältekort; resten i rutnätet.
+  // Före första sänkningen (alla 0 %) leder första platsen (kurerad ordning).
+  const sorted = [...live].sort((a, b) => b.discountPercent - a.discountPercent || a.slot - b.slot);
+  const hero = sorted[0] ?? null;
+  const rest = sorted.slice(1);
+  // Dagsdramaturgins klocka: dagens startAt (alla live delar samma auktionsdag).
+  const startAt = hero?.startAt ?? null;
+
   return (
     <>
-      <section className="sec auction-hero">
-        <div className="container">
-          <div className="sechead">
-            <div className="eyebrow">Fyndauktionen</div>
-            <h1>Priset sjunker varje timme – tills någon köper</h1>
-            <p>
-              Varje dag kl 07 startar fem auktioner på ordinarie pris. Sedan sänks priset varje
-              timme fram till kl 19 – tills någon slår till. Väntar du får du det billigare. Väntar
-              du för länge hinner någon annan före.
-            </p>
-          </div>
-
-          <div className="auction-how">
-            <div><b>1.</b> Kl 07 startar dagens fem fynd på ordinarie pris</div>
-            <div><b>2.</b> Priset sänks varje timme – lägst mellan 18 och 19</div>
-            <div><b>3.</b> Köp när priset känns rätt – först till kvarn</div>
-          </div>
-
-          {live.length > 0 ? (
-            <div className="grid auction-grid">
-              {live.map((a) => (
-                <AuctionCard a={a} key={a.slug} />
-              ))}
-            </div>
-          ) : (
-            <p className="auction-empty">
-              Nästa auktionsdag startar kl 07 — titta tillbaka då, eller prenumerera nedan så
-              missar du inget.
-            </p>
-          )}
-
-          <p className="auction-fineprint">
-            Startpriset är produktens ordinarie pris hos oss. Auktionsdagen pågår kl 07–19; säljs
-            inget återgår priset till ordinarie och nya fynd startar nästa morgon. Auktionspriset
-            gäller så länge produkten finns i lager – först till kvarn. Vanlig ångerrätt och 30
-            dagars öppet köp gäller precis som på allt annat hos Fyndplats.
-          </p>
-        </div>
-      </section>
-
-      {sold.length > 0 && (
-        <section className="sec" style={{ paddingTop: 0 }}>
+      <AuctionStage startAt={startAt}>
+        <section className="sec auction-hero">
           <div className="container">
             <div className="sechead">
-              <div className="eyebrow">Nyss avgjorda</div>
-              <h2>Senast sålda fynd</h2>
+              <div className="eyebrow a-eyebrow">Fyndauktionen</div>
+              <h1 className="a-title">
+                Priset sjunker <span className="a-hot">varje timme</span> – tills någon köper
+              </h1>
+              <p className="a-lede">
+                Varje dag kl 07 startar dagens fynd på ordinarie pris. Sedan sänks priset varje
+                timme fram till kl 19 – tills någon slår till. Väntar du får du det billigare.
+                Väntar du för länge hinner någon annan före.
+              </p>
             </div>
-            <ul className="auction-sold-list">
-              {sold.map((s) => (
-                <li key={s.slug + s.endedAt}>
-                  <a href={`/produkt/${s.slug}`}>{s.name}</a>
-                  <span>
-                    såld för <b>{s.soldPrice.toLocaleString("sv-SE")} kr</b>
-                    {s.discountPercent > 0 && <em> (−{s.discountPercent}%)</em>}
-                  </span>
-                </li>
-              ))}
-            </ul>
+
+            <div className="auction-how a-how">
+              <div><b>1.</b> Kl 07 – ordinarie pris</div>
+              <div><b>2.</b> Sänks varje timme</div>
+              <div><b>3.</b> Lägst 18–19 · först till kvarn</div>
+            </div>
+
+            <AuctionClimax startAt={startAt} />
+            <AuctionFuse startAt={startAt} />
+
+            {hero ? (
+              <>
+                <AuctionHeroCard a={hero} />
+                {rest.length > 0 && (
+                  <div className="grid auction-grid a-grid">
+                    {rest.map((a) => (
+                      <AuctionCard a={a} key={a.slug} />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="auction-empty a-empty">
+                Nästa auktionsdag startar kl 07 — titta tillbaka då, eller prenumerera nedan så
+                missar du inget.
+              </p>
+            )}
+
+            <p className="auction-fineprint a-fineprint">
+              Startpriset är produktens ordinarie pris hos oss. Auktionsdagen pågår kl 07–19; säljs
+              inget återgår priset till ordinarie och nya fynd startar nästa morgon. Auktionspriset
+              gäller så länge produkten finns i lager – först till kvarn. Vanlig ångerrätt och 30
+              dagars öppet köp gäller precis som på allt annat hos Fyndplats.
+            </p>
           </div>
         </section>
-      )}
+
+        {sold.length > 0 && (
+          <section className="sec" style={{ paddingTop: 0 }}>
+            <div className="container">
+              <div className="sechead">
+                <div className="eyebrow a-eyebrow">Nyss avgjorda</div>
+                <h2 className="a-title">Senast sålda fynd</h2>
+              </div>
+              <ul className="auction-sold-list a-sold">
+                {sold.map((s) => (
+                  <li key={s.slug + s.endedAt}>
+                    <a href={`/produkt/${s.slug}`}>{s.name}</a>
+                    <span>
+                      såld för <b>{s.soldPrice.toLocaleString("sv-SE")} kr</b>
+                      {s.discountPercent > 0 && <em> (−{s.discountPercent}%)</em>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+      </AuctionStage>
 
       <Newsletter />
     </>
