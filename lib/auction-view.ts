@@ -66,7 +66,10 @@ export type SoldAuctionView = {
   endedAt: string;
 };
 
-async function queryAuctionRows(statuses: string[]): Promise<AuctionRow[]> {
+async function queryAuctionRows(
+  statuses: string[],
+  sort?: Array<{ fieldName: string; order: "ASC" | "DESC" }>,
+): Promise<AuctionRow[]> {
   const h = wixDataHeaders();
   if (!h) return [];
   try {
@@ -75,7 +78,7 @@ async function queryAuctionRows(statuses: string[]): Promise<AuctionRow[]> {
       headers: h,
       body: JSON.stringify({
         dataCollectionId: COL,
-        query: { filter: { status: { $in: statuses } }, paging: { limit: 50 } },
+        query: { filter: { status: { $in: statuses } }, ...(sort ? { sort } : {}), paging: { limit: 50 } },
       }),
       next: { revalidate: 60, tags: ["auctions"] },
     });
@@ -140,7 +143,12 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
 
 /** Senast sålda fynd (för social proof-listan). */
 export async function getSoldAuctions(limit = 6): Promise<SoldAuctionView[]> {
-  const [rows, products] = await Promise.all([queryAuctionRows(["sold"]), getProducts()]);
+  // Sortera i queryn: med hela katalogen i collectionen räcker det inte att
+  // klient-sortera 50 rader hämtade i godtycklig ordning.
+  const [rows, products] = await Promise.all([
+    queryAuctionRows(["sold"], [{ fieldName: "endedAt", order: "DESC" }]),
+    getProducts(),
+  ]);
   const bySlug = new Map<string, Product>(products.map((p) => [p.slug, p]));
   return rows
     .filter((r) => r.soldPrice && r.listPrice && r.endedAt)
