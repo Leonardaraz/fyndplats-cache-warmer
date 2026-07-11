@@ -1817,3 +1817,48 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 @media (max-width:600px) and (prefers-reduced-motion:reduce){
   .a-live-bar{transition:none}
 }
+
+/* ── Fyndauktionen 10/10-mobil: produkten först, tryckkänsla, progress ── */
+/* Lede som syskon till sechead (för mobil-order); desktop = som sechead p. */
+.a-lede{max-width:600px;margin:-24px auto 0;text-align:center;font-size:15.5px;text-wrap:pretty}
+.a-stage .a-sechead{margin-bottom:32px}
+
+/* Progresslinje i live-pillen: hur långt in i timmen vi är (guld i ember). */
+.a-lb-progress{position:absolute;left:0;bottom:0;height:3px;border-radius:0 3px 3px 0;
+  background:linear-gradient(90deg,var(--a-accent2,#F47A35),var(--a-accent,#C2410C));
+  opacity:.85;transition:width 1s linear}
+.a-stage.a-final .a-lb-progress{background:linear-gradient(90deg,#FFB300,#FF7A2F)}
+
+@media (max-width:600px){
+  /* Omkomposition: rubrik → stubin → banner → HJÄLTEKORT → grid → hur → lede.
+     Produkten syns i första skärmen i stället för tre stycken text. */
+  .a-stage .auction-hero .container{display:flex;flex-direction:column}
+  .a-stage .a-sechead{order:1;margin-bottom:2px}
+  .a-fuse{order:2;margin:12px 2px 0}
+  .a-climax{order:3}
+  .a-hero-card{order:4;margin:16px 0 12px}
+  .a-stage .auction-empty{order:4}
+  .a-stage .auction-grid{order:5;margin-bottom:6px}
+  .a-stage .a-how{order:6;margin:16px -22px 0;padding:2px 22px 6px}
+  .a-lede{order:7;font-size:13px;margin:14px auto 0;color:var(--a-soft);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .a-stage .a-fineprint{order:8;margin-top:18px}
+  .a-stage .auction-hero h1{font-size:29px;line-height:1.06}
+  .a-stage .a-eyebrow{margin-bottom:8px;font-size:11px}
+  .a-stage .auction-hero.sec{padding-top:26px}
+
+  /* Tryckkänsla: allt klickbart svarar på fingret */
+  .a-card,.a-hero-card,.a-live-bar,.a-hc-btn{transition-property:transform,box-shadow,background,border-color;transition-duration:.18s}
+  .a-card:active{transform:scale(.97)}
+  .a-hero-card:active{transform:scale(.985)}
+  .a-live-bar.show:active{transform:scale(.97)}
+  .a-hc-btn:active{transform:scale(.96)}
+
+  /* Lättare glödblobbar på mobil (GPU-vänligt, samma stämning) */
+  .a-blob{width:60vw;height:60vw;filter:blur(56px)}
+  .a-stage.a-final .a-blob{opacity:.38}
+}
+@media (max-width:600px) and (prefers-reduced-motion:reduce){
+  .a-card:active,.a-hero-card:active,.a-live-bar.show:active,.a-hc-btn:active{transform:none}
+}
+@media (max-width:600px){ .a-live-bar{overflow:hidden} }

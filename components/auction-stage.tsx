@@ -137,7 +137,10 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
       if (disposed || !ctx) return;
       const heat = parseFloat(getComputedStyle(stage!).getPropertyValue("--a-heat")) || 0;
       ctx.clearRect(0, 0, W, H);
-      const spawn = heat * heat * 3;
+      // Mobiltrimmat: färre partiklar på små skärmar (svaga GPU:er) — samma känsla,
+      // bråkdelen av arbetet. Caps längre ner skalas likadant.
+      const mobile = innerWidth < 600;
+      const spawn = heat * heat * (mobile ? 1.6 : 3);
       for (let k = 0; k < spawn; k++)
         if (Math.random() < heat)
           parts.push({ x: Math.random() * W, y: H + 10, vx: (Math.random() - 0.5) * 0.6 * dpr, vy: -(0.6 + Math.random() * 1.6) * dpr * (0.6 + heat), r: (1 + Math.random() * 2.4) * dpr, life: 1 });
@@ -153,7 +156,8 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 3, 0, 7); ctx.fill();
         return true;
       });
-      if (parts.length > 500) parts = parts.slice(-500);
+      const cap = mobile ? 240 : 500;
+      if (parts.length > cap) parts = parts.slice(-cap);
       if (bolts.length) {
         ctx.lineJoin = "round";
         bolts.forEach((b) => {
