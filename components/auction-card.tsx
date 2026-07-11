@@ -1,9 +1,11 @@
 "use client";
 // Fyndauktionens produktkort: aktuellt pris (= Wix-priset, det som debiteras),
 // överstruket startpris när priset fallit, och en live-nedräkning till NÄSTA
-// prissänkning. När nedräkningen når noll uppdateras sidan (router.refresh) —
-// upp till ett par gånger, eftersom cron-ticken + ISR (60 s) kan ligga någon
-// minut efter steggränsen. Golvet/prisstegen finns aldrig i klienten.
+// prissänkning. Auktionsdagen går 07:00–19:00; en auktion som är schemalagd
+// men inte startat visar "startar om …" i stället för prisnedräkningen.
+// När nedräkningen når noll uppdateras sidan (router.refresh) — upp till ett
+// par gånger, eftersom cron-ticken + ISR (60 s) kan ligga någon minut efter
+// steggränsen. Golvet/prisstegen finns aldrig i klienten.
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -31,7 +33,10 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
     return () => clearInterval(t);
   }, []);
 
-  const target = a.nextDropAt ? Date.parse(a.nextDropAt) : null;
+  // Före 07:00 räknar vi ner till starten i stället för till nästa sänkning.
+  const startMs = a.startsAt ? Date.parse(a.startsAt) : null;
+  const preStart = startMs !== null && startMs > now;
+  const target = preStart ? startMs : a.nextDropAt ? Date.parse(a.nextDropAt) : null;
   const msLeft = target ? target - now : null;
 
   // Steggränsen passerad → hämta nytt pris från servern (max 3 försök à 20 s).
@@ -69,7 +74,11 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
           <span className="auction-price">{a.priceFormatted}</span>
           {dropped && <span className="auction-old">{a.listPrice.toLocaleString("sv-SE")},00kr</span>}
         </div>
-        {msLeft !== null && msLeft > 0 ? (
+        {preStart && msLeft !== null && msLeft > 0 ? (
+          <div className="auction-timer" suppressHydrationWarning>
+            Startar kl 07 — om <b>{fmtLeft(msLeft)}</b>
+          </div>
+        ) : msLeft !== null && msLeft > 0 ? (
           <div className="auction-timer" suppressHydrationWarning>
             Nästa prissänkning om <b>{fmtLeft(msLeft)}</b>
           </div>
@@ -78,7 +87,9 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
         ) : (
           <div className="auction-timer auction-floor">Lägsta pris — först till kvarn!</div>
         )}
-        <span className="auction-cta">Köp nu — innan någon annan gör det</span>
+        <span className="auction-cta">
+          {preStart ? "Priset faller varje timme 07–19" : "Köp nu — innan någon annan gör det"}
+        </span>
       </div>
     </a>
   );

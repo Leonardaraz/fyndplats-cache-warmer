@@ -50,6 +50,8 @@ export type LiveAuctionView = {
   discountPercent: number;
   /** ISO för nästa prissänkning, null = golvet nått (sista pris). */
   nextDropAt: string | null;
+  /** ISO när auktionsdagen börjar (07:00) om den ligger i framtiden, annars null. */
+  startsAt: string | null;
   slot: number;
   inStock: boolean;
 };
@@ -85,7 +87,12 @@ async function queryAuctionRows(statuses: string[]): Promise<AuctionRow[]> {
   }
 }
 
-/** Nästa steggräns ur stegen — samma matematik som motorns nextDropAt. */
+/**
+ * Nästa FAKTISKA prissänkning ur stegen — samma matematik som motorns
+ * nextDropAt. Stegen är timindexerad och kan innehålla dubblettrungor
+ * (= ingen sänkning den timmen, 9-slutsavrundningen); de hoppas över så
+ * nedräkningen aldrig lovar en sänkning som inte kommer.
+ */
 function nextDropAtOf(row: AuctionRow, nowMs: number): string | null {
   const ladder = row.ladder ?? [];
   if (!row.startAt || !row.stepMinutes || ladder.length < 2) return null;
@@ -93,8 +100,12 @@ function nextDropAtOf(row: AuctionRow, nowMs: number): string | null {
     Math.floor(Math.max(0, nowMs - Date.parse(row.startAt)) / (row.stepMinutes * 60_000)),
     ladder.length - 1,
   );
-  if (idx >= ladder.length - 1) return null;
-  return new Date(Date.parse(row.startAt) + (idx + 1) * row.stepMinutes * 60_000).toISOString();
+  for (let j = idx + 1; j < ladder.length; j++) {
+    if (ladder[j] < ladder[idx]) {
+      return new Date(Date.parse(row.startAt) + j * row.stepMinutes * 60_000).toISOString();
+    }
+  }
+  return null;
 }
 
 const fmtKr = (n: number) => `${n.toLocaleString("sv-SE")},00kr`;
@@ -118,6 +129,7 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
         listPrice: r.listPrice,
         discountPercent: discount,
         nextDropAt: nextDropAtOf(r, now),
+        startsAt: r.startAt && Date.parse(r.startAt) > now ? r.startAt : null,
         slot: r.slot ?? 0,
         inStock: p.inStock,
       } satisfies LiveAuctionView;

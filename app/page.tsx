@@ -59,7 +59,10 @@ const websiteJsonLd = {
 
 export default async function Home() {
   const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions()]);
-  const maxAuctionDiscount = liveAuctions.reduce((m, a) => Math.max(m, a.discountPercent), 0);
+  // Auktionsdagen går 07–19; nattetid är auktionerna schemalagda (startsAt satt)
+  // och bannern ska då säga "startar kl 07" i stället för "sjunker just nu".
+  const runningAuctions = liveAuctions.filter((a) => !a.startsAt);
+  const maxAuctionDiscount = runningAuctions.reduce((m, a) => Math.max(m, a.discountPercent), 0);
   // Dölj ev. slutsålda från alla kund-ytor på startsidan (hero + Veckans fynd)
   // när HIDE_OOS_FROM_LISTINGS är på. Default av → oförändrat.
   const allProducts = forListings(allProductsRaw);
@@ -285,11 +288,22 @@ export default async function Home() {
         <section className="sec" style={{ paddingTop: 0 }}>
           <div className="container">
             <a className="auction-banner" href="/fyndauktion">
-              <span className="auction-banner-badge">🔨 Fyndauktionen pågår</span>
-              <span className="auction-banner-text">
-                {liveAuctions.length} produkter vars pris sjunker just nu
-                {maxAuctionDiscount > 0 && <> – största rabatt <b>−{maxAuctionDiscount}%</b></>}
-              </span>
+              {runningAuctions.length > 0 ? (
+                <>
+                  <span className="auction-banner-badge">🔨 Fyndauktionen pågår</span>
+                  <span className="auction-banner-text">
+                    {runningAuctions.length} produkter vars pris sjunker just nu
+                    {maxAuctionDiscount > 0 && <> – största rabatt <b>−{maxAuctionDiscount}%</b></>}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="auction-banner-badge">🔨 Fyndauktionen</span>
+                  <span className="auction-banner-text">
+                    Dagens {liveAuctions.length} fynd startar kl 07 – priset faller varje timme till kl 19
+                  </span>
+                </>
+              )}
               <span className="auction-banner-cta">Till auktionen →</span>
             </a>
           </div>
