@@ -104,7 +104,8 @@ export async function GET(req: NextRequest) {
         try {
           // Vid första steget (target === listPrice) behövs ingen strike-through.
           const compareAt = target < a.listPrice ? a.listPrice : null;
-          await patchProductPrice(a.productId, target, compareAt);
+          // requireUniform: sänk aldrig priset om varianterna slutat dela ETT pris.
+          await patchProductPrice(a.productId, target, compareAt, true);
           await saveAuction({ ...a, lastPatchedPrice: target });
           push("priced", { slug: a.slug, price: target });
         } catch (e) {
