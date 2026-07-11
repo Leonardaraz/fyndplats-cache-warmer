@@ -1862,3 +1862,10 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .a-card:active,.a-hero-card:active,.a-live-bar.show:active,.a-hc-btn:active{transform:none}
 }
 @media (max-width:600px){ .a-live-bar{overflow:hidden} }
+
+/* ── Fyndauktionen: bildfixar ─────────────── */
+/* Hjältebilden visas med contain (kvadratisk bild i icke-kvadratisk ram) —
+   vit botten gör letterbox-banden osynliga (produktfotona har vit bakgrund). */
+.a-hc-img{background:#fff}
+/* Auktionskort utan andra galleribild: tona aldrig bort huvudbilden på hover. */
+.prod.noswap:hover .pimg-main{opacity:1}

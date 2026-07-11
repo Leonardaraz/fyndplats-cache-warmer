@@ -53,7 +53,7 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
   const dropped = a.priceNum < a.listPrice;
 
   return (
-    <a className="prod auction-card a-card" href={`/produkt/${a.slug}`}>
+    <a className={`prod auction-card a-card${a.img2 ? "" : " noswap"}`} href={`/produkt/${a.slug}`}>
       <div className="pimg">
         {dropped && <span className="sale-badge">−{a.discountPercent}%</span>}
         {a.img && (
@@ -65,6 +65,18 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 20vw"
             placeholder="blur"
             blurDataURL={SHIMMER_BLUR}
+            style={{ objectFit: "cover" }}
+          />
+        )}
+        {/* Hover-bytet: andra galleribilden, samma mönster som butikskorten.
+            Utan img2 får kortet .noswap så första bilden aldrig tonas bort. */}
+        {a.img2 && (
+          <Image
+            className="pimg-alt"
+            src={tightFillUrl(a.img2, 600, 600)}
+            alt={a.name}
+            fill
+            sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 20vw"
             style={{ objectFit: "cover" }}
           />
         )}
