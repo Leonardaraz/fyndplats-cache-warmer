@@ -4,6 +4,7 @@ import { AuctionHeroCard } from "../../components/auction-hero-card";
 import { AuctionStage } from "../../components/auction-stage";
 import { AuctionFuse } from "../../components/auction-fuse";
 import { AuctionClimax } from "../../components/auction-climax";
+import { AuctionLiveBar } from "../../components/auction-live-bar";
 import { Newsletter } from "../../components/newsletter";
 import { getLiveAuctions, getSoldAuctions } from "../../lib/auction-view";
 
@@ -70,6 +71,7 @@ export default async function Fyndauktion() {
             {hero ? (
               <>
                 <AuctionHeroCard a={hero} />
+                <AuctionLiveBar a={hero} />
                 {rest.length > 0 && (
                   <div className="grid auction-grid a-grid">
                     {rest.map((a) => (
