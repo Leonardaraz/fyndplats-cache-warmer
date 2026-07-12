@@ -22,12 +22,16 @@ export const metadata: Metadata = {
     description:
       "Nya fynd varje dag kl 07–19. Priset faller varje timme – vänta för ett bättre pris, eller köp innan någon annan hinner före.",
     url: "https://www.fyndplats.se/fyndauktion",
-    images: [{ url: "https://www.fyndplats.se/og-fyndauktion.jpg", width: 1200, height: 630, alt: "Fyndauktionen – priset sjunker varje timme" }],
+    // v2: allt innehåll i bildens mittkvadrat — chattappar (Snapchat/WhatsApp/
+    // iMessage) visar og-bilden som LITEN KVADRAT, mittbeskuren, och v1:s
+    // fullbredds-rubrik kapades. Nytt filnamn medvetet: delnings-scrapers
+    // cachear per URL, gamla URL:en hade fortsatt servera den beskurna.
+    images: [{ url: "https://www.fyndplats.se/og-fyndauktion2.jpg", width: 1200, height: 630, alt: "Fyndauktionen – priset sjunker varje timme" }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    images: ["https://www.fyndplats.se/og-fyndauktion.jpg"],
+    images: ["https://www.fyndplats.se/og-fyndauktion2.jpg"],
   },
 };
 
