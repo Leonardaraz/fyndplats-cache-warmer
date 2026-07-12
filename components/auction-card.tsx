@@ -98,7 +98,7 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
         ) : msLeft !== null ? (
           <div className="auction-timer auction-timer-soon">Priset uppdateras…</div>
         ) : (
-          <div className="auction-timer auction-floor">Lägsta pris — först till kvarn!</div>
+          <div className="auction-timer auction-floor">Lägsta pris — första köparen tar det!</div>
         )}
         <span className="auction-cta">
           {preStart ? "Priset faller varje timme 07–19" : "Köp nu — innan någon annan gör det"}

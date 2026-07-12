@@ -17,7 +17,7 @@
 // returnerar 200 (ack — vi vill inte att Wix ska spamma retries).
 
 import { NextResponse, type NextRequest } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "node:crypto";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
@@ -46,6 +46,7 @@ import { sql } from "@/lib/db";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 import { firePush } from "@/lib/push-send";
 import { getProducts } from "@/lib/products";
+import { endLiveAuctionsForProducts } from "@/lib/auction-sold";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1226,6 +1227,31 @@ export async function POST(req: NextRequest) {
         }
       } catch (err) {
         console.error("[wix-webhook] revalidatePath fel (ignorerar)", err);
+      }
+      // FYNDAUKTIONEN — direkt-försvinnande: är någon orderrad ett live-fynd
+      // avslutas auktionen HÄR (pris tillbaka till ordinarie + status=sold) i
+      // stället för att vänta på timcronen, och auktionssidan revalideras så
+      // fyndet försvinner ur gridden inom sekunder. Idempotent (bara live-
+      // dokument träffas trots Wix dubbelfyrningar) och best-effort: failar
+      // det tar timcronens sold-detektering över — därför får det ALDRIG
+      // blockera bekräftelsemejlet. Körs FÖRE mejlbygget: order_created har
+      // flera tidiga returns (saknad kund, Resend-fel) som annars hoppat över.
+      try {
+        const ids = extractContentIds(entity);
+        if (ids.length > 0) {
+          const endedSlugs = await endLiveAuctionsForProducts(ids);
+          if (endedSlugs.length > 0) {
+            // { expire: 0 } (inte "max"): stale-while-revalidate hade serverat
+            // det sålda fyndet till NÄSTA besökare — vi vill ha blockerande
+            // färskhämtning så det är borta direkt. (updateTag är Server
+            // Actions-only och kan inte användas i en Route Handler.)
+            revalidateTag("auctions", { expire: 0 });
+            revalidatePath("/fyndauktion");
+            console.log(`[wix-webhook] Fyndauktionen: direktsåld → ${endedSlugs.join(", ")}`);
+          }
+        }
+      } catch (err) {
+        console.error("[wix-webhook] Fyndauktionen direktsåld-fel (ignorerar — timcronen tar det)", err);
       }
       const props = buildOrderConfirmationProps(entity);
       if (!props) {
