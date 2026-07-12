@@ -24,7 +24,7 @@ import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
 import type { AuctionDoc } from "@/lib/auction/engine";
-import { queryAuctions, removeAuction, saveAuction } from "@/lib/auction/store";
+import { queryAuctions, removeAuctionsBulk, saveAuctionsBulk } from "@/lib/auction/store";
 import {
   assignQueueOrder,
   evaluateCandidate,
@@ -293,8 +293,10 @@ export async function GET(req: NextRequest) {
     };
 
     if (apply) {
-      const saveErrors = await pool(toSave, 8, (d) => saveAuction(d));
-      const removeErrors = await pool(toRemove, 8, (d) => removeAuction(d._id!));
+      // Bulk (100/anrop): ~400 enskilda saves sprängde Wix Datas per-minut-kvot
+      // (WDE0014) och lämnade kön halvskriven — 279/399 sparade, 0 borttagna.
+      const saveErrors = await saveAuctionsBulk(toSave);
+      const removeErrors = await removeAuctionsBulk(toRemove.map((d) => d._id!));
       report.saved = toSave.length - saveErrors.length;
       report.removed = toRemove.length - removeErrors.length;
       report.errors = [...saveErrors, ...removeErrors].slice(0, 10);
