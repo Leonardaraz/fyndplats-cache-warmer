@@ -64,6 +64,57 @@ export async function saveAuction(doc: AuctionDoc): Promise<void> {
   }
 }
 
+/**
+ * Bulk-save i chunkar om 100. Seedens ~400 enskilda saves sprängde Wix Datas
+ * per-minut-kvot (WDE0014: 279/399 sparade, resten 429 — kön halvskriven).
+ * Bulk-endpointen tar 100 dokument per anrop → hela kön på 4 anrop.
+ * Returnerar felbeskrivningar (tom lista = allt sparat).
+ */
+export async function saveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
+  const errors: string[] = [];
+  for (let i = 0; i < docs.length; i += 100) {
+    const chunk = docs.slice(i, i + 100);
+    const res = await fetch(`${WIX_BASE}/wix-data/v2/bulk/items/save`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({
+        dataCollectionId: AUCTION_COLLECTION,
+        dataItems: chunk.map((d) => ({ id: d._id, dataCollectionId: AUCTION_COLLECTION, data: d })),
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      errors.push(`bulkSave[${i}–${i + chunk.length - 1}] ${res.status}: ${text.slice(0, 200)}`);
+      continue;
+    }
+    const body = (await res.json()) as { bulkActionMetadata?: { totalFailures?: number } };
+    const failures = body.bulkActionMetadata?.totalFailures ?? 0;
+    if (failures > 0) errors.push(`bulkSave[${i}–${i + chunk.length - 1}]: ${failures} items misslyckades`);
+  }
+  return errors;
+}
+
+/**
+ * Bulk-borttagning i chunkar om 100 (samma kvot-skäl som saveAuctionsBulk).
+ * Returnerar felbeskrivningar (tom lista = allt borttaget).
+ */
+export async function removeAuctionsBulk(ids: string[]): Promise<string[]> {
+  const errors: string[] = [];
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100);
+    const res = await fetch(`${WIX_BASE}/wix-data/v2/bulk/items/remove`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ dataCollectionId: AUCTION_COLLECTION, dataItemIds: chunk }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      errors.push(`bulkRemove[${i}–${i + chunk.length - 1}] ${res.status}: ${text.slice(0, 200)}`);
+    }
+  }
+  return errors;
+}
+
 /** Tar bort ett auktionsdokument (används när en köad produkt diskvalificeras). */
 export async function removeAuction(id: string): Promise<void> {
   const res = await fetch(
