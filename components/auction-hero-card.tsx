@@ -86,7 +86,7 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
           <div className="a-hc-timer">Priset uppdateras…</div>
         ) : (
           <div className="a-hc-timer a-floor">
-            Lägsta pris – <b>först till kvarn!</b>
+            Lägsta pris – <b>första köparen tar det!</b>
           </div>
         )}
         <span className="a-hc-btn">Köp nu – innan någon annan gör det →</span>

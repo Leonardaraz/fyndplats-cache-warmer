@@ -5,13 +5,16 @@ slug: fyndauktionen-sa-funkar-det
 meta_description: "Nu lanserar vi Fyndauktionen: fem utvalda fynd varje dag där priset sjunker varje timme från kl 07 till 19 – tills någon slår till. Så funkar det, och så fyndar du smartast."
 category: Nyheter
 publish_date: 2026-07-11
-cover: https://www.fyndplats.se/og-fyndauktion.jpg
+# 1200×900 med allt innehåll i mittkvadraten: bloggkortens 1:1-beskärning
+# (aspect-ratio:1 + cover) kapade 1200×630-delningsbilden mitt i rubriken.
+# OG-bilden för /fyndauktion-SIDAN är fortsatt og-fyndauktion.jpg (1,91:1).
+cover: https://www.fyndplats.se/blog-fyndauktion.jpg
 alt: "Fyndauktionen på Fyndplats – priset sjunker varje timme tills någon köper"
 ---
 
 # Fyndauktionen är här: priset sjunker varje timme – tills någon köper
 
-Idag lanserar vi något vi är riktigt stolta över – och som vi tror är först i sitt slag bland svenska nätbutiker: **[Fyndauktionen](/fyndauktion)**. Varje morgon kl 07 startar fem utvalda produkter på sitt vanliga pris. Sedan sjunker priset, varje timme, hela dagen – tills någon slår till. Den som köper får varan till det pris som gäller just då. Först till kvarn.
+Idag lanserar vi något vi är riktigt stolta över – och som vi tror är först i sitt slag bland svenska nätbutiker: **[Fyndauktionen](/fyndauktion)**. Varje morgon kl 07 startar fem utvalda produkter på sitt vanliga pris. Sedan sjunker priset, varje timme, hela dagen – tills någon slår till. Den som köper får varan till det pris som gäller just då – och i samma stund försvinner fyndet från auktionen.
 
 Det är en gammal och beprövad idé – holländsk auktion, samma modell som blomsterauktionerna i Amsterdam kört i över hundra år – fast omvänd mot vanliga auktioner: i stället för att buda **upp** priset tävlar du mot klockan medan priset går **ner**.
 
@@ -41,7 +44,7 @@ Vi vill att Fyndauktionen ska kännas lika trygg som allt annat hos oss:
 - **Startpriset är det riktiga ordinarie priset** – vi höjer aldrig först för att kunna "sänka" sedan.
 - **Vanlig ångerrätt och 30 dagars öppet köp** gäller precis som vanligt, oavsett vilket pris du fyndade till.
 - **Nedräkningarna är äkta.** Priset styrs av klockan, inte av vem som tittar.
-- Auktionspriset gäller så länge produkten finns i lager – därav *först till kvarn*.
+- **Varje fynd säljs bara en gång.** I samma ögonblick som någon köper det försvinner det från auktionen – ingen kö, inga "flera kvar till auktionspris".
 
 ## Fem nya fynd – varje dag, året om
 

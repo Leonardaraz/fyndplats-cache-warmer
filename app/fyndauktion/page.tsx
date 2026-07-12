@@ -64,7 +64,7 @@ export default async function Fyndauktion() {
             <div className="auction-how a-how">
               <div><b>1.</b> Kl 07 – ordinarie pris</div>
               <div><b>2.</b> Sänks varje timme</div>
-              <div><b>3.</b> Lägst 18–19 · först till kvarn</div>
+              <div><b>3.</b> Köpt = borta direkt</div>
             </div>
 
             <AuctionClimax startAt={startAt} />
@@ -91,9 +91,10 @@ export default async function Fyndauktion() {
 
             <p className="auction-fineprint a-fineprint">
               Startpriset är produktens ordinarie pris hos oss. Auktionsdagen pågår kl 07–19; säljs
-              inget återgår priset till ordinarie och nya fynd startar nästa morgon. Auktionspriset
-              gäller så länge produkten finns i lager – först till kvarn. Vanlig ångerrätt och 30
-              dagars öppet köp gäller precis som på allt annat hos Fyndplats.
+              inget återgår priset till ordinarie och nya fynd startar nästa morgon. Varje fynd
+              säljs bara en gång – i samma stund som någon köper det försvinner det från auktionen.
+              Vanlig ångerrätt och 30 dagars öppet köp gäller precis som på allt annat hos
+              Fyndplats.
             </p>
           </div>
         </section>
