@@ -5,7 +5,10 @@ slug: fyndauktionen-sa-funkar-det
 meta_description: "Nu lanserar vi Fyndauktionen: fem utvalda fynd varje dag där priset sjunker varje timme från kl 07 till 19 – tills någon slår till. Så funkar det, och så fyndar du smartast."
 category: Nyheter
 publish_date: 2026-07-11
-cover: https://www.fyndplats.se/og-fyndauktion.jpg
+# 1200×900 med allt innehåll i mittkvadraten: bloggkortens 1:1-beskärning
+# (aspect-ratio:1 + cover) kapade 1200×630-delningsbilden mitt i rubriken.
+# OG-bilden för /fyndauktion-SIDAN är fortsatt og-fyndauktion.jpg (1,91:1).
+cover: https://www.fyndplats.se/blog-fyndauktion.jpg
 alt: "Fyndauktionen på Fyndplats – priset sjunker varje timme tills någon köper"
 ---
 
