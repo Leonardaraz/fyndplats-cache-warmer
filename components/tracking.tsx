@@ -218,7 +218,14 @@ export function TrackingWidget() {
           </div>
 
           <h3 className="track-h">Spårningshistorik</h3>
-          <div className="track-sub">🚚 Levereras med {carrier}</div>
+          <div className="track-sub">
+            🚚 Levereras med {carrier}
+            {/* Senast uppdaterad = nyaste händelsens tid — visar kunden att
+                spårningen lever även när stegen står stilla en dag. */}
+            {(data.updatedAt || events[0]?.time) && (
+              <> · Uppdaterad {fmtTime(data.updatedAt) || events[0]?.time}</>
+            )}
+          </div>
           {events.length === 0 ? (
             <p className="track-empty">Vi väntar på första skanningen från fraktbolaget. Det kommer normalt inom 1–2 dagar efter att paketet skickats.</p>
           ) : (

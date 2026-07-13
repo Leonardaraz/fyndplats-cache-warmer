@@ -21,23 +21,21 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { PHRASE_SV } from "@/lib/track-i18n";
 import { maskCarrier } from "@/lib/carrier-mask";
+import { LEAKY_PATTERN, deriveAeStatus, translateAeDescription, type AeStatus } from "@/lib/ae-track";
+import { registerWith17Track } from "@/lib/track17";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const GETINFO_URL = "https://api.17track.net/track/v2.2/gettrackinfo";
-const REGISTER_URL = "https://api.17track.net/track/v2.2/register";
 
 // Asiatiska transitländer som ska döljas för kunden — paketet "syns inte"
 // förrän det landar i Sverige eller annat destinationsland. I paritet med
 // Velo:s ORIGIN_COUNTRIES (canonical) inkl. VN/TH/ID.
 const HIDDEN_COUNTRIES = new Set(["CN", "HK", "TW", "SG", "JP", "KR", "VN", "TH", "MY", "ID"]);
 
-// Backup-mönster (paritet med Velo:s LEAKY_PATTERN) för rader som slinker
-// igenom landfiltret: ursprungs-ord i fri text (event-beskrivning/plats) som
-// röjer dropship-ursprunget. Skrubbas ur beskrivningen + blankar platsen.
-const LEAKY_PATTERN =
-  /\b(china|chinese|kina|hong\s?kong|cainiao|aliexpress|shenzhen|guangzhou|shanghai|beijing|shantou|shatian|yiwu|4px|yanwen)\b/i;
+// LEAKY_PATTERN (ursprungs-skrubben) importeras från lib/track-i18n — delad
+// med AliExpress-källans översättning så kanalerna aldrig divergerar.
 
 // Tracking-nummer är typiskt 10-30 tecken alfanumeriska. Avvisa skräp tidigt
 // för att skydda 17TRACK-quota mot bottar/spam — billigaste filtret som finns.
@@ -249,16 +247,9 @@ async function gettrackinfo(tn: string, apiKey: string): Promise<Track17Response
   return (await res.json()) as Track17Response;
 }
 
-async function register(tn: string, apiKey: string): Promise<void> {
-  // I normalflödet bryr vi oss inte om svaret — eventuella registreringsfel
-  // manifesterar sig som tomma events på nästa gettrackinfo (→ 202 pending).
-  await fetch(REGISTER_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "17token": apiKey },
-    body: JSON.stringify([{ number: tn }]),
-    cache: "no-store",
-  });
-}
+// Registrering delas med wix-webhookens proaktiva väg via lib/track17:s
+// registerWith17Track — samma sv-översättning, SE-destination OCH
+// carrier-hint-retry när auto-detekteringen går bet (PostNord parcel connect).
 
 // ---------------------------------------------------------------------------
 // AliExpress-källan (via cache-warmern): 17TRACK klarar inte alla EU-frakt-
@@ -271,27 +262,13 @@ const AE_EVENTS_URL =
   process.env.CACHE_WARMER_TRACKING_URL
   ?? "https://fyndplats-cache-warmer.vercel.app/api/tracking-events";
 
-// Svenska etiketter för AliExpress vanligaste händelsetexter. Okända texter
-// passerar LEAKY_PATTERN-skrubben och visas som de är (oftast vettig engelska).
-const AE_PHRASE_SV: Array<[RegExp, string]> = [
-  [/order shipped|seller has shipped/i, "Säljaren har skickat ditt paket"],
-  [/collected by carrier/i, "Paketet har hämtats upp av transportören"],
-  [/international transit/i, "Paketet är i internationell transit"],
-  [/shipment on the way|is in transit/i, "Paketet är på väg"],
-  [/shipping update/i, "Transportuppdatering"],
-  [/out for delivery/i, "Paketet är ute för leverans"],
-  [/delivered/i, "Paketet är levererat"],
-  [/package is being prepared|being prepared/i, "Paketet förbereds"],
-];
-
-function translateAeDescription(raw: string): string {
-  for (const [re, sv] of AE_PHRASE_SV) if (re.test(raw)) return sv;
-  return raw.replace(LEAKY_PATTERN, "").replace(/\s{2,}/g, " ").trim();
-}
+// Svenska etiketter (AE_PHRASE_SV) + status-härledning bor i lib/ae-track —
+// ren, enhetstestad modul. Importeras ovan.
 
 async function fetchAliExpressEvents(tn: string): Promise<{
   carrier: string;
   eta: string | null;
+  status: AeStatus;
   events: Array<{ time: string; description: string; location: string; status: string }>;
 } | null> {
   try {
@@ -305,7 +282,8 @@ async function fetchAliExpressEvents(tn: string): Promise<{
       etaTimestamp?: number | null;
       events?: Array<{ time?: string; description?: string }>;
     };
-    const events = (body.events ?? [])
+    const rawEvents = body.events ?? [];
+    const events = rawEvents
       .map((e) => ({
         time: e.time ?? "",
         description: translateAeDescription(e.description ?? ""),
@@ -319,10 +297,27 @@ async function fetchAliExpressEvents(tn: string): Promise<{
     const rawCarrier = body.carrier ?? "";
     const carrier = /seller shipping/i.test(rawCarrier) ? "Transportör" : cleanCarrier(rawCarrier);
     const eta = body.etaTimestamp ? fmtEtaSv(new Date(body.etaTimestamp).toISOString()) : null;
-    return { carrier, eta, events };
+    // Status härleds ur RÅA texterna (före översättning) — levererade paket
+    // ska visa "Levererad", inte fastna på "På väg" (AliExpress saknar enum).
+    const status = deriveAeStatus(rawEvents.map((e) => e.description ?? ""));
+    return { carrier, eta, status, events };
   } catch {
     return null;
   }
+}
+
+/** Bygger /api/track-svaret ur AliExpress-källan (samma JSON-format som
+ *  17TRACK-vägen så TrackingWidget inte ser skillnad på källorna). */
+function buildAeBody(tn: string, ae: NonNullable<Awaited<ReturnType<typeof fetchAliExpressEvents>>>) {
+  return {
+    events: ae.events,
+    status: ae.status,
+    delivered: ae.status === "Delivered",
+    eta: ae.eta,
+    carrier: ae.carrier,
+    trackingNumber: tn,
+    updatedAt: ae.events[0]?.time || new Date().toISOString(),
+  };
 }
 
 /** Direktlänkar till de transportörer våra EU-leverantörer använder sist i
@@ -401,15 +396,7 @@ export async function GET(req: NextRequest) {
     // vi ger upp med 503.
     const ae = await fetchAliExpressEvents(tn);
     if (ae && ae.events.length > 0) {
-      const body = {
-        events: ae.events,
-        status: "InTransit",
-        delivered: false,
-        eta: ae.eta,
-        carrier: ae.carrier,
-        trackingNumber: tn,
-        updatedAt: ae.events[0]?.time || new Date().toISOString(),
-      };
+      const body = buildAeBody(tn, ae);
       cacheSet(tn, body, 200);
       return NextResponse.json(body, { status: 200 });
     }
@@ -446,7 +433,7 @@ export async function GET(req: NextRequest) {
   let justRegistered = false;
   if (!hasRealEvents(json)) {
     try {
-      await register(tn, apiKey);
+      await registerWith17Track(tn);
       justRegistered = true;
       // 17TRACK behöver tid att hämta data från carriern (PostNord, DHL etc.)
       // — typiskt 30 sek till 2 min. Kort delay (3s) ger oftast första-status.
@@ -464,15 +451,7 @@ export async function GET(req: NextRequest) {
   if (!hasRealEvents(json)) {
     const ae = await fetchAliExpressEvents(tn);
     if (ae && ae.events.length > 0) {
-      const body = {
-        events: ae.events,
-        status: "InTransit",
-        delivered: false,
-        eta: ae.eta,
-        carrier: ae.carrier,
-        trackingNumber: tn,
-        updatedAt: ae.events[0]?.time || new Date().toISOString(),
-      };
+      const body = buildAeBody(tn, ae);
       cacheSet(tn, body, 200);
       return NextResponse.json(body, { status: 200 });
     }
