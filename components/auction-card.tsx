@@ -51,6 +51,7 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
   }, [msLeft === null || msLeft > 0, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dropped = a.priceNum < a.listPrice;
+  const saved = Math.round(a.listPrice - a.priceNum);
 
   return (
     <a className={`prod auction-card a-card${a.img2 ? "" : " noswap"}`} href={`/produkt/${a.slug}`}>
@@ -87,6 +88,11 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
           <AuctionOdometer value={a.priceNum} className="auction-price" />
           {dropped && <span className="auction-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
         </div>
+        {/* Samma "Du sparar"-rad som hjältekortet — kronor säljer bättre än
+            procent, och utan den såg småkorten tommare ut än flaggskeppet. */}
+        {dropped && saved > 0 && (
+          <div className="auction-save">Du sparar {saved.toLocaleString("sv-SE")} kr</div>
+        )}
         {preStart && msLeft !== null && msLeft > 0 ? (
           <div className="auction-timer" suppressHydrationWarning>
             Startar kl 07 — om <b>{fmtLeft(msLeft)}</b>
