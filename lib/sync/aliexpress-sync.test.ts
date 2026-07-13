@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  ERROR_STRIKES_AS_REMOVED,
+  classifyFetchError,
   decideSyncOutcome,
   projectedMarginAtPrice,
   resolveInventoryQuantities,
@@ -395,5 +397,22 @@ describe("resolveInventoryQuantities (per-variant lager, ingen oversälj)", () =
     const q = resolveInventoryQuantities(items, supplierByVariantId, 8, { "sku-other": 8 });
     expect(q.get("v-red")).toBe(4);
     expect(q.get("v-blue")).toBe(4);
+  });
+});
+
+describe("classifyFetchError — oklassade hämtningsfel fryser inte rotationen", () => {
+  it("bumpar sviten och tolkar som borttagen först vid ERROR_STRIKES_AS_REMOVED", () => {
+    expect(classifyFetchError(undefined)).toEqual({ errorStreak: 1, treatAsRemoved: false });
+    expect(classifyFetchError(0)).toEqual({ errorStreak: 1, treatAsRemoved: false });
+    expect(classifyFetchError(ERROR_STRIKES_AS_REMOVED - 2)).toEqual({
+      errorStreak: ERROR_STRIKES_AS_REMOVED - 1,
+      treatAsRemoved: false,
+    });
+    // Sedelräknar-fallet (13 juli): död listning med oigenkänt felsvar ska
+    // till slut behandlas som borttagen så dölj-mekaniken tar över.
+    expect(classifyFetchError(ERROR_STRIKES_AS_REMOVED - 1)).toEqual({
+      errorStreak: ERROR_STRIKES_AS_REMOVED,
+      treatAsRemoved: true,
+    });
   });
 });
