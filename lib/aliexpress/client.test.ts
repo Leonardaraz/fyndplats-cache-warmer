@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin, sanitizeZip, phoneDialCode, normalizeMobile } from "./client";
+import { parseTrackingResponse, resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin, sanitizeZip, phoneDialCode, normalizeMobile } from "./client";
 import { MemoryStore } from "../store/memory";
 
 describe("sanitizeZip — AliExpress postnummer: bara siffror/-//", () => {
@@ -221,5 +221,48 @@ describe("createOrder — affärsstatus (is_success) före order-id", () => {
     const { createOrder: freshCreate } = await import("./client");
     const res = await freshCreate(params);
     expect(res.tradeOrderId).toBe("8000999");
+  });
+});
+
+describe("parseTrackingResponse — nya API-svarsformen (revision ~12 juli 2026)", () => {
+  it("parsar mail_no/carrier_name/detail_node ur result.data-formen", () => {
+    // Verifierat mot rå-svar från prod 13 juli (order 3074780350563058).
+    const t = parseTrackingResponse("3074780350563058", {
+      result: {
+        data: {
+          tracking_detail_line_list: {
+            tracking_detail: [
+              {
+                mail_no: "07084026870677",
+                carrier_name: "Seller Shipping ES Local",
+                eta_time_stamps: 1784559795150,
+                detail_node_list: {
+                  detail_node: [
+                    { time_stamp: 1783942091000, tracking_name: "Shipping update" },
+                    { time_stamp: 1783663200000, tracking_detail_desc: "Package collected by carrier.", tracking_name: "Collected by carrier" },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+    expect(t.trackingNumber).toBe("07084026870677");
+    expect(t.shippingProvider).toBe("Seller Shipping ES Local");
+    expect(t.events).toHaveLength(2);
+    expect(t.events[1].description).toBe("Package collected by carrier.");
+    expect(t.events[0].time).toBe(new Date(1783942091000).toISOString());
+  });
+
+  it("faller tillbaka på gamla logistics_order_list-formen", () => {
+    const t = parseTrackingResponse("x", {
+      result: {
+        logistics_order_list: [{ tracking_number: "ABC123", logistics_company: "PostNord" }],
+        order_status: "SHIPPED",
+      },
+    });
+    expect(t.trackingNumber).toBe("ABC123");
+    expect(t.shippingProvider).toBe("PostNord");
   });
 });
