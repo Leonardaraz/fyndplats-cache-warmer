@@ -737,6 +737,16 @@ export async function getTracking(tradeOrderId: string): Promise<DsTrackingResul
   const logisticsOrders = raw.result?.logistics_order_list ?? [];
     const first = logisticsOrders[0];
 
+    // Diagnostik: API-revisionen ~12 juli bytte request-parametrar — om svaret
+    // saknar spårningsnummer kan även SVARS-formen ha ändrats. Logga rå-svaret
+    // (trunkerat) så Vercel-loggen visar den faktiska strukturen i stället för
+    // att felet göms bakom ett evigt "stillWaiting".
+    if (!first?.tracking_number) {
+          console.warn(
+                `[aliexpress] tracking.get ${tradeOrderId}: inget tracking_number i svaret — rå form: ${JSON.stringify(raw).slice(0, 1500)}`,
+          );
+    }
+
   return {
         tradeOrderId,
         trackingNumber: first?.tracking_number,
