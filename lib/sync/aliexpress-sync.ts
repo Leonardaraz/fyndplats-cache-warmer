@@ -17,7 +17,8 @@
 
 import { computePrice } from "../import/pricing";
 import type { PricingConfig } from "../import/types";
-import { getProduct as getAliExpressProduct } from "../aliexpress/client";
+import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
+import { checkMappingShippability, isShippabilityStale, type ShippabilityBudget } from "./shippability";
 import {
   getProduct as getWixProduct,
   queryInventoryItemsByProductId,
@@ -361,6 +362,9 @@ export interface SyncSummary {
   unchanged: number;
   /** Per-produkt-fel som inte avbröt körningen. */
   errors: { productId: string; aliexpressId: string; error: string }[];
+  /** Fraktbarhetskontroller: antal API-anrop resp. ofraktbara varianter. */
+  shippabilityChecked?: number;
+  shippabilityUnshippable?: number;
   /** True om körningen var dry-run. */
   dryRun: boolean;
   /** Körningens början/slut i ISO. */
@@ -388,6 +392,8 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     oosEvents: [],
     unchanged: 0,
     errors: [],
+    shippabilityChecked: 0,
+    shippabilityUnshippable: 0,
     dryRun: opts.dryRun,
     startedAt,
     finishedAt: startedAt,
@@ -397,6 +403,15 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // Används både för bestseller-prioritet (Feature 4) och för "X sålda"-raden
   // i real-tids-OOS-mejlet (Feature 2). Best-effort: failar order-API:t kör vi
   // vidare med tomt data (mejlet visar då 0 sålda, prioriteringen rör inget).
+  // Fraktbarhetskontrollens delade anropsbudget (SucceBuy-fallet 2026-07-13:
+  // lager finns men ingen fraktväg till SE). Hålls liten — kontrollen är en
+  // långsam bakgrundsrotation (7-dygns omkontroll per variant), inte en
+  // per-körning-plikt. 0 stänger av.
+  const shipBudgetEnv = Number(process.env.SYNC_SHIPPABILITY_CHECKS_PER_RUN);
+  const shippabilityBudget: ShippabilityBudget = {
+    remaining: Number.isFinite(shipBudgetEnv) && shipBudgetEnv >= 0 ? shipBudgetEnv : 15,
+  };
+
   let salesByProduct: Record<string, number> = {};
   try {
     const orders = await fetchOrders(isoDaysAgo(30));
@@ -472,8 +487,11 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
         sales30d: salesByProduct[mapping.wixProductId] ?? 0,
         baseUrl: opts.baseUrl,
         opsAlertEmail: opts.opsAlertEmail,
+        shippabilityBudget,
       });
       summary.checked++;
+      summary.shippabilityChecked = (summary.shippabilityChecked ?? 0) + (result.shippabilityCalls ?? 0);
+      summary.shippabilityUnshippable = (summary.shippabilityUnshippable ?? 0) + (result.shippabilityUnshippable ?? 0);
       switch (result.actionTaken) {
         case "hidden": summary.hidden++; break;
         case "marked_oos": summary.markedOos++; break;
@@ -512,6 +530,8 @@ interface SyncOneOpts {
   baseUrl: string;
   /** Mottagare för real-tids-OOS-larm. Saknas = larma inte. */
   opsAlertEmail?: string;
+  /** Delad budget för fraktbarhetskontroller denna körning (muteras). */
+  shippabilityBudget?: ShippabilityBudget;
 }
 
 interface SyncOneResult {
@@ -522,6 +542,9 @@ interface SyncOneResult {
   oosEvent?: { productName: string; aliexpressId: string; sales30d: number };
   /** Antal restock-mejl som skickades till bevakare. */
   restockSent?: number;
+  /** Antal fraktbarhets-API-anrop resp. ofraktbara varianter denna produkt. */
+  shippabilityCalls?: number;
+  shippabilityUnshippable?: number;
 }
 
 async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
@@ -535,6 +558,8 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // Används av applyInventoryTarget för att spegla VERKLIGT lager per variant i Wix
   // istället för att jämnt fördela aggregatet (bug 2026-06-01).
   let aeStockBySupplierId: Record<string, number> = {};
+  // SKU:er (numeriskt id + egenskaper) för fraktbarhetskontrollen (steg 3.5).
+  let aeVariantsForShippability: Array<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }> = [];
   // Sätts om AE-svaret klassas som "borttagen listning" (för strike-räkningen
   // som kräver REMOVED_STRIKES_REQUIRED körningar i rad innan vi döljer).
   let removedClassified = false;
@@ -562,6 +587,9 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
         .filter((v) => v.skuId)
         .map((v) => [String(v.skuId), Math.max(0, Math.trunc(v.stock ?? 0))]),
     );
+    aeVariantsForShippability = product.variants
+      .filter((v) => v.skuId)
+      .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
     aliExpress = {
       title: product.title,
       images: product.images,
@@ -668,6 +696,51 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     marginFloorPercent,
     removedStreak,
   });
+
+  // 3.5) Fraktbarhetskontroll (SucceBuy-fallet 2026-07-13): leverantören kan
+  // ha LAGER på en SKU som ändå saknar fraktväg till Sverige — kassan vägrar.
+  // Körs live, för aktiva listningar, inom körningens delade anropsbudget och
+  // bara för varianter vars kontroll är äldre än 7 dygn (eller aldrig gjord).
+  // Uppdaterade shippableToSe-flaggor plockas upp av applyInventoryTarget i
+  // steg 4 → ofraktbara varianter tvingas till 0 i samma körning. Best-effort:
+  // ett fel här får aldrig fälla synk-checken.
+  let shippabilityCalls = 0;
+  let shippabilityUnshippable = 0;
+  const shipBudget = opts.shippabilityBudget;
+  if (
+    !dryRun
+    && shipBudget
+    && shipBudget.remaining > 0
+    && aliExpress
+    && decision.listingStatus === "active"
+    && aeVariantsForShippability.length > 0
+    && mapping.variants.some((v) => isShippabilityStale(v, Date.parse(checkedAt)))
+  ) {
+    try {
+      const check = await checkMappingShippability({
+        mapping,
+        aeVariants: aeVariantsForShippability,
+        nowMs: Date.parse(checkedAt),
+        budget: shipBudget,
+        queryFn: (productId, skuId) => queryFreightToCountry(productId, skuId, "SE", 1),
+      });
+      shippabilityCalls = check.apiCalls;
+      shippabilityUnshippable = check.unshippable;
+      if (check.changed) {
+        mapping.variants = check.variants;
+        await getStore().saveMapping(mapping);
+        if (check.unshippable > 0) {
+          console.warn(
+            `[sync] fraktbarhet ${mapping.wixProductId}: ${check.unshippable} variant(er) utan fraktväg till SE — lagret tvingas till 0.`,
+          );
+        }
+      }
+    } catch (err) {
+      console.warn(
+        `[sync] fraktbarhetskontroll misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+      );
+    }
+  }
 
   // 4) Sidoeffekter — Wix-skrivningar.
   if (!dryRun) {
@@ -894,7 +967,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     }
   }
 
-  return { actionTaken: logEntry.actionTaken, oosAlertSent, oosEvent, restockSent };
+  return { actionTaken: logEntry.actionTaken, oosAlertSent, oosEvent, restockSent, shippabilityCalls, shippabilityUnshippable };
 }
 
 /**
@@ -925,6 +998,10 @@ export function resolveInventoryQuantities(
   supplierByVariantId: Map<string, string>,
   target: number,
   stockBySupplierId: Record<string, number>,
+  // Varianter (Wix variantId) utan fraktväg till Sverige — tvingas ALLTID
+  // till 0 oavsett leverantörens lager (fraktbarhetskontrollen, 2026-07-13:
+  // SucceBuy-SKU:er hade 26 st i lager men kunde inte skickas hit).
+  unshippableVariantIds: ReadonlySet<string> = new Set(),
 ): Map<string, number> {
   const out = new Map<string, number>();
   const evenSplit = Math.max(0, Math.trunc(target / Math.max(1, items.length)));
@@ -936,7 +1013,9 @@ export function resolveInventoryQuantities(
   });
   const usePerVariant = target > 0 && Object.keys(stockBySupplierId).length > 0 && anyMatch;
   for (const it of items) {
-    if (target === 0) {
+    if (unshippableVariantIds.has(it.variantId)) {
+      out.set(it.variantId, 0);
+    } else if (target === 0) {
       out.set(it.variantId, 0);
     } else if (usePerVariant) {
       const supplierId = supplierByVariantId.get(it.variantId);
@@ -965,7 +1044,14 @@ async function applyInventoryTarget(
   for (const v of mapping.variants ?? []) {
     if (v.wixVariantId) supplierByVariantId.set(v.wixVariantId, v.supplierVariantId);
   }
-  const qtyByVariant = resolveInventoryQuantities(items, supplierByVariantId, target, stockBySupplierId);
+  // Ofraktbara varianter (fraktbarhetskontrollen) tvingas till 0 vid varje
+  // spegling — lagersaldo hos leverantören spelar ingen roll om kassan vägrar.
+  const unshippableVariantIds = new Set(
+    (mapping.variants ?? [])
+      .filter((v) => v.shippableToSe === false && v.wixVariantId)
+      .map((v) => v.wixVariantId as string),
+  );
+  const qtyByVariant = resolveInventoryQuantities(items, supplierByVariantId, target, stockBySupplierId, unshippableVariantIds);
   const updates = items.map((it) => ({
     id: it.id,
     revision: it.revision,

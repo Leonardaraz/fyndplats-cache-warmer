@@ -380,6 +380,18 @@ describe("resolveInventoryQuantities (per-variant lager, ingen oversälj)", () =
     expect(q.get("v-blue")).toBe(0);
   });
 
+  it("ofraktbar variant tvingas till 0 trots leverantörslager (SucceBuy-fallet)", () => {
+    const q = resolveInventoryQuantities(
+      items,
+      supplierByVariantId,
+      100,
+      { "sku-red": 26, "sku-blue": 15 },
+      new Set(["v-red"]),
+    );
+    expect(q.get("v-red")).toBe(0); // 26 st hos AE men ingen fraktväg till SE
+    expect(q.get("v-blue")).toBe(15);
+  });
+
   it("target=0 nollar hela linjen", () => {
     const q = resolveInventoryQuantities(items, supplierByVariantId, 0, { "sku-red": 50 });
     expect(q.get("v-red")).toBe(0);

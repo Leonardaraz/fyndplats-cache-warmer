@@ -70,6 +70,15 @@ export interface VariantMapping {
   costUsd: number;
   landedCostSek: number;
   grossSek: number;
+  /**
+   * false = AliExpress fraktAPI säger att SKU:n SAKNAR fraktväg till Sverige
+   * (kan ha lager men kassan vägrar — SucceBuy-fallet 2026-07-13). Synken
+   * tvingar då Wix-lagret till 0 för varianten och /admin/queue varnar.
+   * true/saknas = fraktbar eller ännu inte kontrollerad.
+   */
+  shippableToSe?: boolean;
+  /** ISO-tid för senaste fraktbarhetskontrollen (styr omkontroll-intervall). */
+  shippabilityCheckedAt?: string;
 }
 
 export interface ImportResult {

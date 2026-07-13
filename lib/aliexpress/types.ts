@@ -2,6 +2,9 @@
 
 export interface AliExpressDsVariant {
   skuId: string;
+  /** AliExpress attribut-sträng ("14:350853#39 Drawers;…") — samma format som
+   *  extension-importens supplierVariantId → exakt variant-matchning. */
+  skuAttr?: string;
   /** Egenskaper, t.ex. { "color": "Red", "size": "M" } */
   skuProps: Record<string, string>;
   /** Bild-URL för swatch (om satt av leverantören) */
