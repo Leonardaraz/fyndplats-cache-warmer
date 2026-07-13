@@ -597,6 +597,45 @@ export async function getProduct(productId: string): Promise<WixProductSnapshot 
   };
 }
 
+export interface WixProductSummary {
+  id: string;
+  name?: string;
+  slug?: string;
+  visible?: boolean;
+}
+
+/**
+ * Batch-uppslag av namn/slug/synlighet för många produkt-id:n på en gång —
+ * admin-vyer (t.ex. /admin/sync-alerts) länkar till live-sidan och visar
+ * produktnamn utan ett API-anrop per rad. Chunkar på 100 (V3-searchens
+ * sidgräns). Okända id:n saknas bara i svaret — kastar aldrig för dem.
+ */
+export async function searchProductSummaries(ids: string[]): Promise<Map<string, WixProductSummary>> {
+  const map = new Map<string, WixProductSummary>();
+  const unique = [...new Set(ids.filter(Boolean))];
+  for (let i = 0; i < unique.length; i += 100) {
+    const chunk = unique.slice(i, i + 100);
+    const res = await fetch(`${WIX_BASE}/stores/v3/products/search`, {
+      method: "POST",
+      headers: wixHeaders(),
+      body: JSON.stringify({
+        search: { filter: { id: { $in: chunk } }, cursorPaging: { limit: 100 } },
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Wix product-search misslyckades (${res.status}): ${text.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      products?: { id?: string; name?: string; slug?: string; visible?: boolean }[];
+    };
+    for (const p of data.products ?? []) {
+      if (p.id) map.set(p.id, { id: p.id, name: p.name, slug: p.slug, visible: p.visible });
+    }
+  }
+  return map;
+}
+
 export interface WixProductEnrichInfo {
   id: string;
   revision: string;

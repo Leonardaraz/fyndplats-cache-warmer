@@ -120,6 +120,10 @@ export interface SyncAlert {
   // Gemensamt
   productName?: string;
   imageUrl?: string;
+  /** Wix-produktens slug — låter admin länka direkt till live-sidan
+   *  (fyndplats.se/produkt/<slug>). Saknas på alerts skapade före fältet;
+   *  admin-sidan faller då tillbaka på ett batch-uppslag mot Wix. */
+  productSlug?: string;
   createdAt: string;
   resolvedAt?: string;
   resolvedBy?: string;
@@ -219,6 +223,26 @@ export class SyncStore {
 
   async saveState(entry: SyncStateEntry): Promise<void> {
     await save(COL.state, entry.wixProductId, entry);
+  }
+
+  /**
+   * Produkter i problemläge — det admin-sidans "Lager & synlighet"-sektion
+   * visar: slut i lager, dolda (listning borttagen) eller mitt i en felsvit
+   * (errorStreak > 0, på väg att klassas som borttagen). Sorterat på senast
+   * kollad (nyast först).
+   */
+  async listProblemStates(limit = 500): Promise<SyncStateEntry[]> {
+    return query<SyncStateEntry>(
+      COL.state,
+      {
+        $or: [
+          { listingStatus: { $in: ["out_of_stock", "removed"] } },
+          { errorStreak: { $gt: 0 } },
+        ],
+      },
+      [{ fieldName: "lastCheckedAt", order: "DESC" }],
+      limit,
+    );
   }
 
   // --- Alerts -------------------------------------------------------------

@@ -693,6 +693,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       createdAt: checkedAt,
       productName: mapping.seoTitle ?? wixSnapshot.name,
       imageUrl: mapping.imageAnalysis?.find((i) => i.verdict === "ok")?.url,
+      productSlug: wixSnapshot.slug,
       ...decision.alert,
     });
   } else {
