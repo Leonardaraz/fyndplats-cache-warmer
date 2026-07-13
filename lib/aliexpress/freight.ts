@@ -40,8 +40,17 @@ export interface FreightVerdict {
 const OPTION_LIST_KEY = /delivery_option|freight_calculate_result|delivery_options|logistics_service/i;
 
 // Felmeddelanden som betyder "ingen fraktväg" (inte transient strul).
+// Matchas på UNDERSCORE-normaliserad text — skarpt verifierat svar 2026-07-13:
+// ds.freight.query svarar "DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS" för SKU:er
+// utan fraktväg (SucceBuy-lådskåpet, alla 5 varianter; kontrollprodukten
+// hundvagnen fick shippable=true med samma metod).
 const NO_ROUTE_ERROR =
-  /(no|not|unable|unavailable|can.?t|cannot)[^.]{0,60}(ship|deliver|logistics|freight|route)|delivery.{0,20}(unavailable|not support)|not support.{0,20}(ship|deliver|country)/i;
+  /(no|not|unable|unavailable|can.?t|cannot)[^.]{0,60}(ship|deliver|logistics|freight|route)|delivery.{0,20}(unavailable|not support)|not support.{0,20}(ship|deliver|country)|deliver\w*[^.]{0,40}not[\s]?available|not[\s]?available[^.]{0,40}(address|country|region)/i;
+
+/** AliExpress felkoder/meddelanden använder ofta UNDERSCORE_FORM. */
+function normalizeMsg(s: string): string {
+  return s.replace(/_/g, " ");
+}
 
 /** Plockar alla arrayer vars nyckel ser ut som en fraktalternativ-lista,
  *  inklusive en nivå singel-nyckel-wrapper ({delivery_option_d_t_o: [...]}). */
@@ -79,7 +88,7 @@ function findFailureMessage(node: unknown, depth = 0): string | null {
 
 export function parseFreightOutcome(outcome: FreightQueryOutcome): FreightVerdict {
   if (outcome.error) {
-    if (NO_ROUTE_ERROR.test(outcome.error)) {
+    if (NO_ROUTE_ERROR.test(normalizeMsg(outcome.error))) {
       return { known: true, shippable: false, optionCount: 0, note: outcome.error.slice(0, 160) };
     }
     return { known: false, shippable: null, optionCount: 0, note: outcome.error.slice(0, 160) };
@@ -94,7 +103,7 @@ export function parseFreightOutcome(outcome: FreightQueryOutcome): FreightVerdic
 
   const failure = findFailureMessage(outcome.raw);
   if (failure) {
-    if (NO_ROUTE_ERROR.test(failure)) {
+    if (NO_ROUTE_ERROR.test(normalizeMsg(failure))) {
       return { known: true, shippable: false, optionCount: 0, note: failure.slice(0, 160) };
     }
     return { known: false, shippable: null, optionCount: 0, note: failure.slice(0, 160) };

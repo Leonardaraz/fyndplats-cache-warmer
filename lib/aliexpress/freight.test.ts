@@ -63,6 +63,22 @@ describe("parseFreightOutcome — logistics.buyer.freight.calculate-formen", () 
   });
 });
 
+describe("parseFreightOutcome — skarpt verifierade AliExpress-svar", () => {
+  it("DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS → bevisat ofraktbar (live-svar 2026-07-13)", () => {
+    const v = parseFreightOutcome({
+      method: "aliexpress.ds.freight.query",
+      raw: { result: { success: false, msg: "DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS" } },
+    });
+    expect(v).toMatchObject({ known: true, shippable: false });
+    // Samma sträng via fel-vägen (callApi kastade) ska ge samma dom.
+    const v2 = parseFreightOutcome({
+      method: "aliexpress.ds.freight.query",
+      error: "AliExpress API-fel 200: DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS",
+    });
+    expect(v2).toMatchObject({ known: true, shippable: false });
+  });
+});
+
 describe("parseFreightOutcome — fel från API-anropet", () => {
   it("'ingen fraktväg'-fel → ofraktbar", () => {
     const v = parseFreightOutcome({
