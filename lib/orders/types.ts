@@ -14,6 +14,10 @@ export interface ShippingAddress {
 export type TaskStatus = "pending" | "pending_payment" | "ordered" | "shipped" | "cancelled";
 
 export interface FulfillmentTask {
+  /** Spårningsnummer från AliExpress — sätts när tasken skeppas. Låter
+   *  /api/tracking-events slå upp AliExpress-ordern från ett spårningsnummer
+   *  (kundens /sparning-sida visar då AliExpress egna händelser). */
+  trackingNumber?: string;
   /** Stabil nyckel per orderrad: `${orderId}:${lineItemId}`. */
   taskId: string;
   orderId: string;

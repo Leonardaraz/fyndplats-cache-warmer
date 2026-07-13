@@ -81,5 +81,7 @@ export interface DsTrackingResult {
   trackingNumber?: string;
   shippingProvider?: string;
   status: string;
+  /** Beräknad leverans (epoch ms) — bara i nya API-svarsformen. */
+  etaTimestamp?: number;
   events: { time: string; description: string; location?: string }[];
 }
