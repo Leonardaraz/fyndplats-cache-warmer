@@ -71,7 +71,7 @@ export function isShippabilityStale(v: VariantMapping, nowMs: number): boolean {
  */
 export async function checkMappingShippability(opts: {
   mapping: Pick<ProductMappingRecord, "supplierProductId" | "variants">;
-  aeVariants: ReadonlyArray<{ skuId: string; skuProps: Record<string, string> }>;
+  aeVariants: ReadonlyArray<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }>;
   nowMs: number;
   budget: ShippabilityBudget;
   queryFn: (productId: string, skuId: string) => Promise<FreightQueryOutcome>;

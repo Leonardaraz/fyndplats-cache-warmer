@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
     const product = await getAliExpressProduct(mapping.supplierProductId);
     const aeVariants = product.variants
       .filter((v) => v.skuId)
-      .map((v) => ({ skuId: String(v.skuId), skuProps: v.skuProps ?? {} }));
+      .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
 
     const check = await checkMappingShippability({
       mapping: {

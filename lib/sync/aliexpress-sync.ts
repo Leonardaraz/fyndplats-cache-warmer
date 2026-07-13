@@ -559,7 +559,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // istället för att jämnt fördela aggregatet (bug 2026-06-01).
   let aeStockBySupplierId: Record<string, number> = {};
   // SKU:er (numeriskt id + egenskaper) för fraktbarhetskontrollen (steg 3.5).
-  let aeVariantsForShippability: Array<{ skuId: string; skuProps: Record<string, string> }> = [];
+  let aeVariantsForShippability: Array<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }> = [];
   // Sätts om AE-svaret klassas som "borttagen listning" (för strike-räkningen
   // som kräver REMOVED_STRIKES_REQUIRED körningar i rad innan vi döljer).
   let removedClassified = false;
@@ -589,7 +589,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     );
     aeVariantsForShippability = product.variants
       .filter((v) => v.skuId)
-      .map((v) => ({ skuId: String(v.skuId), skuProps: v.skuProps ?? {} }));
+      .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
     aliExpress = {
       title: product.title,
       images: product.images,

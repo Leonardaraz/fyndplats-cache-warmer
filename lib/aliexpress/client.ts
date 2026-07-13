@@ -300,6 +300,12 @@ interface RawSkuProp {
 }
 interface RawSku {
   id?: string;
+  // DS-API:t använder ofta sku_id (inte id) — och sku_attr är attribut-
+  // strängen ("14:350853#39 Drawers;…") som extension-importens mappningar
+  // lagrar som supplierVariantId. Båda behövs för robust variant-matchning
+  // (fraktbarhetskontrollen).
+  sku_id?: string | number;
+  sku_attr?: string;
   sku_stock?: boolean;
   sku_available_stock?: number;
   s_k_u_available_stock?: number;
@@ -403,7 +409,8 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         const variantShipFrom = normalizeShipFromCode(variantShipFromRaw)
           || productDefaultShipFrom;
         return {
-                skuId: String(sku.id ?? ""),
+                skuId: String(sku.sku_id ?? sku.id ?? ""),
+                skuAttr: sku.sku_attr,
                 skuProps: props,
                 imageUrl,
                 price,

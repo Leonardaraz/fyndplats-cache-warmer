@@ -95,6 +95,14 @@ describe("matchAeVariant", () => {
     { skuId: "12000059000000003", skuProps: { Color: "39 Drawers", "Ships From": "France" } },
   ];
 
+  it("sku_attr → exakt likhet (extension-importens id ÄR AliExpress sku_attr)", () => {
+    const withAttr = [
+      { skuId: "9001", skuAttr: "14:350853#39 Drawers;200007763:201336106", skuProps: {} },
+      { skuId: "9002", skuAttr: "14:200006155#22 Drawers;200007763:201336106", skuProps: {} },
+    ];
+    expect(matchAeVariant("14:350853#39 Drawers;200007763:201336106", withAttr)).toBe("9001");
+  });
+
   it("numerisk sku_id → exakt likhet", () => {
     expect(matchAeVariant("12000059000000002", AE)).toBe("12000059000000002");
   });

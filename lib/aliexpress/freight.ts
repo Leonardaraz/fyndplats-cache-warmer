@@ -124,12 +124,15 @@ export function parseFreightOutcome(outcome: FreightQueryOutcome): FreightVerdic
  */
 export function matchAeVariant(
   supplierVariantId: string,
-  aeVariants: ReadonlyArray<{ skuId: string; skuProps: Record<string, string> }>,
+  aeVariants: ReadonlyArray<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }>,
 ): string | null {
   const id = (supplierVariantId || "").trim();
   if (!id) return null;
 
-  const exact = aeVariants.find((v) => v.skuId === id);
+  // Exakt träff på numeriskt sku_id ELLER attribut-strängen (sku_attr) —
+  // extension-importens supplierVariantId ÄR AliExpress sku_attr, så detta
+  // är den robusta huvudvägen; värde-matchningen nedan är fallback.
+  const exact = aeVariants.find((v) => v.skuId === id || (v.skuAttr && v.skuAttr.trim() === id));
   if (exact) return exact.skuId;
 
   const namedValues = id
