@@ -706,6 +706,7 @@ export function buildPlaceOrderDto(p: {
 
 interface RawTracking {
     result?: {
+          // GAMLA formen (före API-revisionen ~12 juli 2026).
           logistics_order_list?: Array<{
                   tracking_number?: string;
                   logistics_company?: string;
@@ -718,6 +719,26 @@ interface RawTracking {
                   };
           }>;
           order_status?: string;
+          // NYA formen (verifierad mot rå-svar 13 juli 2026): spårningsnumret
+          // heter mail_no, transportören carrier_name, händelserna ligger i
+          // detail_node_list med epoch-ms-timestamps, och eta_time_stamps ger
+          // beräknad leverans.
+          data?: {
+                tracking_detail_line_list?: {
+                      tracking_detail?: Array<{
+                            mail_no?: string;
+                            carrier_name?: string;
+                            eta_time_stamps?: number;
+                            detail_node_list?: {
+                                  detail_node?: Array<{
+                                        time_stamp?: number;
+                                        tracking_name?: string;
+                                        tracking_detail_desc?: string;
+                                  }>;
+                            };
+                      }>;
+                };
+          };
     };
 }
 
@@ -734,30 +755,53 @@ export async function getTracking(tradeOrderId: string): Promise<DsTrackingResul
           language: "en_US",
     });
 
-  const logisticsOrders = raw.result?.logistics_order_list ?? [];
-    const first = logisticsOrders[0];
+  const parsed = parseTrackingResponse(tradeOrderId, raw);
 
-    // Diagnostik: API-revisionen ~12 juli bytte request-parametrar — om svaret
-    // saknar spårningsnummer kan även SVARS-formen ha ändrats. Logga rå-svaret
+    // Diagnostik: om INGEN av formerna gav ett spårningsnummer, logga rå-svaret
     // (trunkerat) så Vercel-loggen visar den faktiska strukturen i stället för
     // att felet göms bakom ett evigt "stillWaiting".
-    if (!first?.tracking_number) {
+    if (!parsed.trackingNumber) {
           console.warn(
                 `[aliexpress] tracking.get ${tradeOrderId}: inget tracking_number i svaret — rå form: ${JSON.stringify(raw).slice(0, 1500)}`,
           );
     }
+    return parsed;
+}
 
-  return {
-        tradeOrderId,
-        trackingNumber: first?.tracking_number,
-        shippingProvider: first?.logistics_company,
-        status: raw.result?.order_status ?? "UNKNOWN",
-        events: (first?.details?.tracking_detail ?? []).map((e) => ({
+/**
+ * Ren parser för aliexpress.ds.order.tracking.get — NYA svarsformen först
+ * (API-revisionen ~12 juli 2026: mail_no/carrier_name/detail_node_list med
+ * epoch-ms-timestamps, verifierad mot rå-svar från prod), gamla
+ * logistics_order_list-formen som fallback. Exporterad för test.
+ */
+export function parseTrackingResponse(tradeOrderId: string, raw: RawTracking): DsTrackingResult {
+    const line = raw.result?.data?.tracking_detail_line_list?.tracking_detail?.[0];
+    if (line?.mail_no) {
+          return {
+                tradeOrderId,
+                trackingNumber: line.mail_no,
+                shippingProvider: line.carrier_name,
+                status: "SHIPPED",
+                events: (line.detail_node_list?.detail_node ?? []).map((e) => ({
+                      time: e.time_stamp ? new Date(e.time_stamp).toISOString() : "",
+                      description: e.tracking_detail_desc ?? e.tracking_name ?? "",
+                      location: undefined,
+                })),
+          };
+    }
+
+    const first = (raw.result?.logistics_order_list ?? [])[0];
+    return {
+          tradeOrderId,
+          trackingNumber: first?.tracking_number,
+          shippingProvider: first?.logistics_company,
+          status: raw.result?.order_status ?? "UNKNOWN",
+          events: (first?.details?.tracking_detail ?? []).map((e) => ({
                 time: e.event_date ?? "",
                 description: e.event_desc ?? "",
                 location: e.signed_name,
-        })),
-  };
+          })),
+    };
 }
 
 export async function getInventory(
