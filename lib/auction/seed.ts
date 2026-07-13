@@ -11,7 +11,10 @@
 //   • ingen befintlig rea (compareAtPrice satt — auktionen skulle skriva över
 //     och sedan RADERA den vid dagens slut)
 //   • VARJE variant har känd landad kostnad (annars kan inget golv räknas)
-//   • MINST en variant får ≥10 % rabatt vid sitt golv (annars för trist)
+//   • VISNINGSPRISET (billigaste varianten — det auktionskortet visar) faller
+//     ≥10 % till sitt golv. Att någon DYR variant faller räcker inte: 13 juli
+//     hade solpanelen −70 % på stora panelen men platt billigaste variant →
+//     kortet stod stilla på listpris hela dagen med "Lägsta pris!" från kl 07.
 //
 // Köordningen: de 5 största rabatterna först (lanseringsdagens uppställning ska
 // imponera — rankas på produktens BÄSTA variantrabatt), resten i deterministiskt
@@ -92,10 +95,10 @@ export function evaluateCandidate(p: SeedInput): SeedVerdict {
   const tracks = buildVariantTracks(
     priced.map((v) => ({ wixVariantId: v.wixVariantId, listPrice: v.listPrice, landedCostSek: netSupplierCost(v.landedCostSek!) })),
   );
-  const best = Math.max(...tracks.map((t) => 1 - t.floorPrice / t.listPrice));
-  if (best < MIN_AUCTION_DISCOUNT) return { ok: false, reason: "thinMargin" };
-
+  // Grinden går på VISNINGSSTEGEN (min per steg över trackarna) — det är den
+  // kortets pris följer. En bäst-variant-grind räckte inte (se filhuvudet).
   const top = minTrack(tracks);
+  if (discountOf(top) < MIN_AUCTION_DISCOUNT) return { ok: false, reason: "thinMargin" };
   return {
     ok: true,
     doc: {
