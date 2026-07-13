@@ -62,6 +62,24 @@ export const DEFAULT_SYNC_TIME_BUDGET_MS = 240_000;
 // dessutom inte auto-återställs (eftersom wixVisible då blir false).
 export const REMOVED_STRIKES_REQUIRED = 2;
 
+/**
+ * Antal OKLASSADE hämtningsfel i RAD innan felet behandlas som borttagen
+ * listning (och dölj-mekaniken via removedStreak tar över). Döda listningar
+ * svarar ibland med felkoder/tomma svar vi inte känner igen — utan detta tak
+ * kunde de säljas vidare i veckor (sedelräknaren, 13 juli: listning död sedan
+ * ~9 juli, 91 produkter fast i felslingan, äldsta sedan 5 juni).
+ */
+export const ERROR_STRIKES_AS_REMOVED = 5;
+
+/** Ren hjälpare: nästa errorStreak + om felet nu ska tolkas som borttagen listning. */
+export function classifyFetchError(prevErrorStreak: number | undefined): {
+  errorStreak: number;
+  treatAsRemoved: boolean;
+} {
+  const errorStreak = (prevErrorStreak ?? 0) + 1;
+  return { errorStreak, treatAsRemoved: errorStreak >= ERROR_STRIKES_AS_REMOVED };
+}
+
 export interface SyncInputs {
   /** Vad vi sparade förra gången vi körde syncen (null = första körningen). */
   prevState: SyncStateEntry | null;
@@ -520,6 +538,8 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // Sätts om AE-svaret klassas som "borttagen listning" (för strike-räkningen
   // som kräver REMOVED_STRIKES_REQUIRED körningar i rad innan vi döljer).
   let removedClassified = false;
+  // >0 när hämtningen felade oklassat denna körning (persisteras i newState).
+  let fetchErrorStreak = 0;
   try {
     const product = await getAliExpressProduct(mapping.supplierProductId);
     // Skydd mot degraderat 200-svar: ett giltigt svar med TOM variant-lista
@@ -570,7 +590,39 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
         listingRemoved: true,
       };
     } else {
-      throw err;
+      // OKLASSAT fel. Tidigare: re-throw → state rördes aldrig → produkten låg
+      // kvar FÖRST i äldst-först-kön och brände kvot varje körning, tyst.
+      // Nu: bumpa lastCheckedAt + errorStreak så rotationen går vidare, och
+      // vid ERROR_STRIKES_AS_REMOVED behandlas felet som borttagen listning
+      // (removedStreak-mekaniken döljer sedan som vanligt, och en senare
+      // lyckad aktiv observation återställer produkten).
+      const verdict = classifyFetchError(state?.errorStreak);
+      fetchErrorStreak = verdict.errorStreak;
+      if (verdict.treatAsRemoved) {
+        removedClassified = true;
+        aliExpress = { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true };
+      } else {
+        if (!dryRun) {
+          await getSyncStore().saveState({
+            currentCostSek: state?.currentCostSek ?? null,
+            currentCostUsd: state?.currentCostUsd ?? null,
+            currentStock: state?.currentStock ?? null,
+            listingStatus: state?.listingStatus ?? "unknown",
+            titleHash: state?.titleHash ?? null,
+            imageHash: state?.imageHash ?? null,
+            lastOosAlertAt: state?.lastOosAlertAt ?? null,
+            outOfStockSince: state?.outOfStockSince ?? null,
+            removedStreak: state?.removedStreak ?? 0,
+            wixProductId: mapping.wixProductId,
+            aliexpressId: mapping.supplierProductId,
+            lastCheckedAt: checkedAt,
+            errorStreak: fetchErrorStreak,
+          });
+        }
+        // Räknas som fel i körningens summering (samma som förr), men utan
+        // att blockera rotationen.
+        throw err;
+      }
     }
   }
   // Strike-räkning: +1 per körning i rad som klassar borttagning, nollas annars.
@@ -801,6 +853,9 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     outOfStockSince: dryRun ? (state?.outOfStockSince ?? null) : outOfStockSince,
     // Frys i dry-run så en torrkörning inte "konsumerar" en strike.
     removedStreak: dryRun ? (state?.removedStreak ?? 0) : removedStreak,
+    // Lyckad hämtning nollställer felsviten; föll vi hit via
+    // ERROR_STRIKES_AS_REMOVED persisteras den vidare-räknade sviten.
+    errorStreak: dryRun ? (state?.errorStreak ?? 0) : fetchErrorStreak,
   };
   await syncStore.saveState(newState);
 

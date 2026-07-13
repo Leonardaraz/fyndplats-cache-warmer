@@ -83,6 +83,15 @@ export interface SyncStateEntry {
    * produkt. Saknas/0 = inga obekräftade borttagnings-observationer.
    */
   removedStreak?: number;
+  /**
+   * Antal körningar i RAD där AliExpress-hämtningen felade OKLASSAT (nätfel,
+   * throttling, degraderat svar — eller en död listning vars felsvar vi inte
+   * känner igen, t.ex. 200 med 0 varianter). Rotationen går ändå vidare
+   * (lastCheckedAt bumpas — tidigare frös produkten längst fram i äldst-först-
+   * kön och brände kvot varje körning). Vid ERROR_STRIKES_AS_REMOVED behandlas
+   * felet som borttagen listning. Nollställs vid lyckad hämtning.
+   */
+  errorStreak?: number;
 }
 
 export type AlertType = "price_increase" | "content_change";
