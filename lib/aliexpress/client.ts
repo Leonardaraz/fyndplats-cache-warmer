@@ -782,6 +782,7 @@ export function parseTrackingResponse(tradeOrderId: string, raw: RawTracking): D
                 trackingNumber: line.mail_no,
                 shippingProvider: line.carrier_name,
                 status: "SHIPPED",
+                etaTimestamp: line.eta_time_stamps,
                 events: (line.detail_node_list?.detail_node ?? []).map((e) => ({
                       time: e.time_stamp ? new Date(e.time_stamp).toISOString() : "",
                       description: e.tracking_detail_desc ?? e.tracking_name ?? "",

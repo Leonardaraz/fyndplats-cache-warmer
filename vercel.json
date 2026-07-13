@@ -20,6 +20,10 @@
     {
       "path": "/api/cron/auction-tick",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/poll-tracking",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

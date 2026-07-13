@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
           shippingProvider: tracking.shippingProvider,
         });
 
-        await store.updateTask(task.taskId, { status: "shipped" });
+        await store.updateTask(task.taskId, { status: "shipped", trackingNumber: tracking.trackingNumber });
         await store.appendAudit({
           at: new Date().toISOString(),
           kind: "wix-fulfillment-created",
