@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { buildCreateProductBody, createProduct, type WixProductInput } from "./client";
+import { buildBulkInventoryUpdateBody, buildCreateProductBody, createProduct, type WixProductInput } from "./client";
 
 const base: WixProductInput = {
   name: "Test",
@@ -292,5 +292,24 @@ describe("createProduct — DUPLICATE_SLUG_ERROR retry", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(result.slugSuffix).toBeUndefined();
     expect(result.slug).toBe("testprodukt-rod");
+  });
+});
+
+describe("buildBulkInventoryUpdateBody — lagersaldot ska ligga DIREKT på inventoryItem", () => {
+  // INCIDENT 2026-07-13: quantity låg nästlad i ett påhittat trackingMethod-
+  // objekt som Wix tyst ignorerade → slut-i-lager-produkter förblev köpbara.
+  it("bygger Wix-schemats platta form med quantity + trackQuantity", () => {
+    const body = buildBulkInventoryUpdateBody([
+      { id: "inv-1", revision: "7", quantity: 0 },
+      { id: "inv-2", revision: "3", quantity: 42 },
+    ]);
+    expect(body).toEqual({
+      inventoryItems: [
+        { inventoryItem: { id: "inv-1", revision: "7", trackQuantity: true, quantity: 0 } },
+        { inventoryItem: { id: "inv-2", revision: "3", trackQuantity: true, quantity: 42 } },
+      ],
+    });
+    // Regressionsvakt: den gamla buggen får aldrig komma tillbaka.
+    expect(JSON.stringify(body)).not.toContain("trackingMethod");
   });
 });

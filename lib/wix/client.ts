@@ -243,6 +243,30 @@ export interface InventoryQuantityUpdate {
   quantity: number;
 }
 
+/**
+ * Request-body för bulk-lageruppdateringen — bruten till ren funktion så
+ * formen kan regressionstestas. INCIDENT 2026-07-13: kvantiteten låg tidigare
+ * nästlad i ett påhittat `trackingMethod`-objekt som Wix tyst ignorerade —
+ * varje "uppdatering" bumpade bara revision utan att röra saldot, så
+ * slut-i-lager-produkter förblev köpbara i veckor. Per Wix-schemat ska
+ * `quantity` ligga DIREKT på inventoryItem (verifierat mot både docs och
+ * skarpt anrop).
+ */
+export function buildBulkInventoryUpdateBody(updates: InventoryQuantityUpdate[]): {
+  inventoryItems: Array<{ inventoryItem: { id: string; revision: string; trackQuantity: true; quantity: number } }>;
+} {
+  return {
+    inventoryItems: updates.map((u) => ({
+      inventoryItem: {
+        id: u.id,
+        revision: u.revision,
+        trackQuantity: true,
+        quantity: u.quantity,
+      },
+    })),
+  };
+}
+
 /** Sätter absoluta lagersaldon för flera varianter i en request. */
 export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUpdate[]): Promise<void> {
   if (updates.length === 0) return;
@@ -250,16 +274,7 @@ export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUp
   const res = await fetch(`${WIX_BASE}/stores/v3/bulk/inventory-items/update`, {
     method: "POST",
     headers: wixHeaders(),
-    body: JSON.stringify({
-      inventoryItems: updates.map((u) => ({
-        inventoryItem: {
-          id: u.id,
-          revision: u.revision,
-          trackQuantity: true,
-          trackingMethod: { quantity: u.quantity },
-        },
-      })),
-    }),
+    body: JSON.stringify(buildBulkInventoryUpdateBody(updates)),
   });
   if (!res.ok) {
     const text = await res.text();
