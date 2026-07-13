@@ -33,11 +33,30 @@ export function Social({ className }: { className?: string }) {
   );
 }
 
+// Kub-loggan i favicon-looken (app/icon.png): färgerna är pixel-samplade ur
+// ikonen så header, webbläsarflik och Google-ruta visar samma varma kub.
+// Statiska gradient-id:n är OK trots att Mark renderas två gånger per sida
+// (header + footer): definitionerna är identiska, så första vinner utan
+// synlig skillnad.
 export const Mark = ({ size = 34 }: { size?: number }) => (
   <svg className="mark" viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-    <polygon points="12,2.4 21.6,7.5 12,12.6 2.4,7.5" fill="#FFB078" />
-    <polygon points="2.4,7.5 12,12.6 12,21.6 2.4,16.5" fill="#F84848" />
-    <polygon points="21.6,7.5 12,12.6 12,21.6 21.6,16.5" fill="#F88048" />
+    <defs>
+      <linearGradient id="fpmk-top" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stopColor="#FC7E26" />
+        <stop offset="1" stopColor="#FF9838" />
+      </linearGradient>
+      <linearGradient id="fpmk-left" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#FF4210" />
+        <stop offset="1" stopColor="#FA3A0B" />
+      </linearGradient>
+      <linearGradient id="fpmk-right" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#FF852B" />
+        <stop offset="1" stopColor="#FF6B1E" />
+      </linearGradient>
+    </defs>
+    <polygon points="12,1 21.6,6.5 12,12.1 2.4,6.5" fill="url(#fpmk-top)" />
+    <polygon points="2.4,6.5 12,12.1 12,23 2.4,17.3" fill="url(#fpmk-left)" />
+    <polygon points="21.6,6.5 12,12.1 12,23 21.6,17.3" fill="url(#fpmk-right)" />
   </svg>
 );
 

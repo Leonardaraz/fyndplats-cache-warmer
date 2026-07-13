@@ -12,10 +12,13 @@ import { ImageResponse } from "next/og";
 export const runtime = "edge";
 export const contentType = "image/png";
 
-const ORANGE = "#F47A35";
-const ORANGE_LIGHT = "#FFB078";
-const ORANGE_DARK = "#E5681F";
-const RED = "#F84848";
+// Kubens ytfärger — pixel-samplade mellantoner ur faviconen (app/icon.png)
+// så mejl-loggan matchar header/flik/Google. Flata fyllningar (inte gradient):
+// Satori/ImageResponse-stödet för SVG-gradienter är opålitligt, och på 56 px
+// syns ingen skillnad.
+const CUBE_TOP = "#FF8D30";
+const CUBE_LEFT = "#FF3D0C";
+const CUBE_RIGHT = "#FF7A26";
 const HEADER_BG = "#222018";
 
 export async function GET() {
@@ -35,9 +38,9 @@ export async function GET() {
         }}
       >
         <svg width="56" height="56" viewBox="0 0 24 24">
-          <polygon points="12,2.4 21.6,7.5 12,12.6 2.4,7.5" fill={ORANGE_LIGHT} />
-          <polygon points="2.4,7.5 12,12.6 12,21.6 2.4,16.5" fill={RED} />
-          <polygon points="21.6,7.5 12,12.6 12,21.6 21.6,16.5" fill={ORANGE} />
+          <polygon points="12,1 21.6,6.5 12,12.1 2.4,6.5" fill={CUBE_TOP} />
+          <polygon points="2.4,6.5 12,12.1 12,23 2.4,17.3" fill={CUBE_LEFT} />
+          <polygon points="21.6,6.5 12,12.1 12,23 21.6,17.3" fill={CUBE_RIGHT} />
         </svg>
         <div
           style={{
