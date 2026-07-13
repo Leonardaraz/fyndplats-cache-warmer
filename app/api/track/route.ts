@@ -260,6 +260,81 @@ async function register(tn: string, apiKey: string): Promise<void> {
   });
 }
 
+// ---------------------------------------------------------------------------
+// AliExpress-källan (via cache-warmern): 17TRACK klarar inte alla EU-frakt-
+// kedjor, men AliExpress känner alltid sin egen order. Cache-warmerns
+// /api/tracking-events slår upp spårningsnumret → AliExpress-ordern → deras
+// egna händelser + beräknad leverans. Svaren är rena transportdata.
+// ---------------------------------------------------------------------------
+
+const AE_EVENTS_URL =
+  process.env.CACHE_WARMER_TRACKING_URL
+  ?? "https://fyndplats-cache-warmer.vercel.app/api/tracking-events";
+
+// Svenska etiketter för AliExpress vanligaste händelsetexter. Okända texter
+// passerar LEAKY_PATTERN-skrubben och visas som de är (oftast vettig engelska).
+const AE_PHRASE_SV: Array<[RegExp, string]> = [
+  [/order shipped|seller has shipped/i, "Säljaren har skickat ditt paket"],
+  [/collected by carrier/i, "Paketet har hämtats upp av transportören"],
+  [/international transit/i, "Paketet är i internationell transit"],
+  [/shipment on the way|is in transit/i, "Paketet är på väg"],
+  [/shipping update/i, "Transportuppdatering"],
+  [/out for delivery/i, "Paketet är ute för leverans"],
+  [/delivered/i, "Paketet är levererat"],
+  [/package is being prepared|being prepared/i, "Paketet förbereds"],
+];
+
+function translateAeDescription(raw: string): string {
+  for (const [re, sv] of AE_PHRASE_SV) if (re.test(raw)) return sv;
+  return raw.replace(LEAKY_PATTERN, "").replace(/\s{2,}/g, " ").trim();
+}
+
+async function fetchAliExpressEvents(tn: string): Promise<{
+  carrier: string;
+  eta: string | null;
+  events: Array<{ time: string; description: string; location: string; status: string }>;
+} | null> {
+  try {
+    const res = await fetch(`${AE_EVENTS_URL}?tn=${encodeURIComponent(tn)}`, {
+      signal: AbortSignal.timeout(6000),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as {
+      carrier?: string | null;
+      etaTimestamp?: number | null;
+      events?: Array<{ time?: string; description?: string }>;
+    };
+    const events = (body.events ?? [])
+      .map((e) => ({
+        time: e.time ?? "",
+        description: translateAeDescription(e.description ?? ""),
+        location: "",
+        status: "",
+      }))
+      // Origin-anonymisering: rader vars text ändå röjer dropship-ursprunget
+      // filtreras bort helt (samma policy som 17TRACK-flödets isHiddenLocation).
+      .filter((e) => e.description && !LEAKY_PATTERN.test(e.description));
+    // AliExpress "Seller Shipping …"-namn är inte kundvänliga → generisk etikett.
+    const rawCarrier = body.carrier ?? "";
+    const carrier = /seller shipping/i.test(rawCarrier) ? "Transportör" : cleanCarrier(rawCarrier);
+    const eta = body.etaTimestamp ? fmtEtaSv(new Date(body.etaTimestamp).toISOString()) : null;
+    return { carrier, eta, events };
+  } catch {
+    return null;
+  }
+}
+
+/** Direktlänkar till de transportörer våra EU-leverantörer använder sist i
+ *  kedjan — visas när ingen källa har händelser än, så kunden aldrig är fast. */
+function carrierFallbackLinks(tn: string): Array<{ name: string; url: string }> {
+  return [
+    { name: "PostNord", url: `https://www.postnord.se/vara-verktyg/spara-brev-paket-och-pall?shipmentId=${encodeURIComponent(tn)}` },
+    { name: "GLS", url: `https://gls-group.eu/EU/en/parcel-tracking?match=${encodeURIComponent(tn)}` },
+    { name: "DHL", url: `https://www.dhl.com/se-sv/home/sparning.html?tracking-id=${encodeURIComponent(tn)}` },
+  ];
+}
+
 function buildResponse(json: Track17Response, tn: string): { body: unknown; status: number } {
   const accepted = json.data?.accepted?.[0];
 
@@ -365,10 +440,31 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Om vi fortfarande inte har riktiga events men numret är känt/registrerat
-  // → 202 pending ("aktiveras snart") istället för rött 404-fel. Detta täcker
-  // både PostNord "Vi väntar på ditt paket" (pre-registrerat, inga scans än)
-  // och paket vi precis registrerade.
+  // Om 17TRACK inte har riktiga events: fråga AliExpress-källan (cache-warmern
+  // slår upp spårningsnumret → AliExpress-ordern → deras EGNA händelser + ETA).
+  // 17TRACK klarar inte alla EU-fraktkedjor ("Carrier cannot be detected" för
+  // t.ex. PostNord parcel connect) — AliExpress känner alltid sin egen order.
+  if (!hasRealEvents(json)) {
+    const ae = await fetchAliExpressEvents(tn);
+    if (ae && ae.events.length > 0) {
+      const body = {
+        events: ae.events,
+        status: "InTransit",
+        delivered: false,
+        eta: ae.eta,
+        carrier: ae.carrier,
+        trackingNumber: tn,
+        updatedAt: ae.events[0]?.time || new Date().toISOString(),
+      };
+      cacheSet(tn, body, 200);
+      return NextResponse.json(body, { status: 200 });
+    }
+  }
+
+  // Fortfarande inga events men numret är känt/registrerat → 202 pending med
+  // ÄRLIG copy + direktlänkar till transportörerna (kunden är aldrig fast i en
+  // tom vy). Täcker både PostNord "Vi väntar på ditt paket" (pre-registrerat,
+  // inga scans än) och paket vi precis registrerade.
   if (!hasRealEvents(json)) {
     const accepted0 = json.data?.accepted?.[0];
     // Numret är "känt" om det ligger i accepted (även utan events) eller om
@@ -378,7 +474,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           pending: true,
-          message: "Paketet är registrerat men transportören har inte skannat det ännu. Spårningen uppdateras automatiskt — kika tillbaka om en stund.",
+          message: "Vi har inte fått några spårningshändelser ännu — det kan ta upp till en dag efter att paketet skickats. Du kan också söka direkt hos transportören:",
+          fallbackLinks: carrierFallbackLinks(tn),
           trackingNumber: tn,
         },
         { status: 202 },

@@ -340,6 +340,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 /* Pending = paketet är registrerat hos 17TRACK men carrier-data inte synkroniserad ännu.
    Info-färg (brand-orange) istället för fel-röd så kunden förstår att det fungerar. */
 .track-pending{color:#C2410C;font-weight:600;font-size:14px;margin-top:10px;background:#FFF4ED;padding:10px 14px;border-radius:8px;border-left:3px solid #C2410C}
+/* Transportörslänkar under pending-meddelandet — kunden är aldrig fast i tom vy. */
+.track-fallback{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.track-fallback a{font-size:14px;font-weight:700;color:#C2410C;text-decoration:underline;text-underline-offset:3px}
 .track-result{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:0 1px 2px rgba(37,37,37,.04),0 18px 40px -22px rgba(37,37,37,.22);position:relative;overflow:hidden}
 .track-result::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:linear-gradient(90deg,var(--peach),var(--orange),#F84848)}
 .track-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:8px 0 18px}

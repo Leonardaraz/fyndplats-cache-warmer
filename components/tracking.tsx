@@ -89,12 +89,13 @@ export function TrackingWidget() {
   const [data, setData] = useState<TrackResp | null>(null);
   const [err, setErr] = useState("");
   const [pending, setPending] = useState("");
+  const [fallbackLinks, setFallbackLinks] = useState<Array<{ name: string; url: string }>>([]);
   const [loading, setLoading] = useState(false);
 
   const track = useCallback(async (id: string) => {
     const clean = id.replace(/\s+/g, "").replace(/^#/, "").toUpperCase();
     if (clean.length < 5) { setErr("Skriv in ditt spårningsnummer."); setData(null); return; }
-    setErr(""); setPending(""); setLoading(true); setData(null);
+    setErr(""); setPending(""); setFallbackLinks([]); setLoading(true); setData(null);
     try {
       const res = await fetch(`${TRACK_API}?tn=${encodeURIComponent(clean)}`, {
         method: "GET",
@@ -107,10 +108,12 @@ export function TrackingWidget() {
         setLoading(false); return;
       }
       const json: TrackResp = await res.json();
-      // 202 Accepted = paketet är registrerat hos 17TRACK men data har inte
-      // kommit från carriern ännu. Visa info-meddelande istället för rött fel.
+      // 202 Accepted = paketet är registrerat men ingen källa har händelser
+      // ännu. Visa info-meddelande + direktlänkar till transportörerna i
+      // stället för rött fel — kunden ska aldrig vara fast i en tom vy.
       if (res.status === 202 || (json as TrackResp & { pending?: boolean }).pending) {
         setPending(json.message || "Spårningen aktiveras inom några minuter. Uppdatera sidan om en stund.");
+        setFallbackLinks((json as TrackResp & { fallbackLinks?: Array<{ name: string; url: string }> }).fallbackLinks ?? []);
         setLoading(false);
         return;
       }
@@ -169,6 +172,15 @@ export function TrackingWidget() {
       <p className="track-hint">Numret hittar du i leveransbekräftelsen vi mejlade dig när paketet skickades.</p>
       {err && <p className="track-err">{err}</p>}
       {pending && <p className="track-pending">{pending}</p>}
+      {pending && fallbackLinks.length > 0 && (
+        <p className="track-fallback">
+          {fallbackLinks.map((l) => (
+            <a key={l.name} href={l.url} target="_blank" rel="noopener noreferrer">
+              Spåra hos {l.name} →
+            </a>
+          ))}
+        </p>
+      )}
 
       {data && !err && (
         <div className="track-result">
