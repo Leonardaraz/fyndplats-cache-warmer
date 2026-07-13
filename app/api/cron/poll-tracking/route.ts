@@ -1,6 +1,6 @@
 // GET /api/cron/poll-tracking
 //
-// Körs av Vercel Cron var 3:e timme (se vercel.json). Loopar igenom alla
+// Körs av Vercel Cron var 15:e minut (se vercel.json). Loopar igenom alla
 // fulfillment-tasks som har fått en AliExpress-ordernummer men ännu inte
 // ett spårningsnummer, frågar AliExpress DS API efter spårningsnumret, och
 // — om det finns — skapar en fulfillment i Wix Stores med trackingnumret.

@@ -1,8 +1,8 @@
 // POST /api/cron/aliexpress-sync
 //
-// Daglig AliExpress-sync. Körs av Vercel Cron 06:00 UTC (07:00/08:00 Stockholm
-// beroende på sommartid) så att rapporten ligger i Leonards inkorg när han
-// vaknar.
+// AliExpress-sync. Körs av Vercel Cron var 4:e timme (vercel.json) så att
+// katalogen rullar igenom snabbare — ordervakten (/api/cron/order-guard)
+// sammanfattar dygnets körningar i morgonmejlet.
 //
 // Vad rutten gör:
 //   1. Loopar igenom alla FyndplatsMappings (upp till MAX_API_CALLS per körning)
