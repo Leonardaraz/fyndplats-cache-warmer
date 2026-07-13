@@ -48,6 +48,20 @@ describe("evaluateCandidate — enkel variant", () => {
     expect(v).toEqual({ ok: false, reason: "thinMargin" });
     expect(MIN_AUCTION_DISCOUNT).toBe(0.1);
   });
+
+  it("avvisar thinMargin när VISNINGSPRISET är platt trots djup rabatt på dyr variant", () => {
+    // Solpanel-fallet 13 juli: billigaste varianten (kortets pris) utan
+    // marginalutrymme → platt visningsstege, medan dyra varianten faller −50 %+.
+    // Bäst-variant-rabatt räcker INTE — kortet skulle stå stilla hela dagen.
+    const v = evaluateCandidate({
+      ...single,
+      variants: [
+        { wixVariantId: "billig-platt", listPrice: 369, landedCostSek: 460 }, // netto 368 → golv ≈ list → platt
+        { wixVariantId: "dyr-fallande", listPrice: 2859, landedCostSek: 1000 }, // faller djupt
+      ],
+    });
+    expect(v).toEqual({ ok: false, reason: "thinMargin" });
+  });
 });
 
 describe("evaluateCandidate — per variant (prisspann)", () => {
