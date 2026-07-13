@@ -724,6 +724,11 @@ interface RawTracking {
 export async function getTracking(tradeOrderId: string): Promise<DsTrackingResult> {
     const raw = await callApi<RawTracking>("aliexpress.ds.order.tracking.get", {
           order_id: tradeOrderId,
+          // AliExpress gjorde `language` obligatorisk (~12 juli 2026): utan den
+          // svarar API:t MissingParameter och VARJE tracking-poll failade tyst
+          // → inga fulfillments → inga leveransmejl (order #10012 låg utan
+          // spårning i 5 dagar trots att paketet var skickat).
+          language: "en_US",
     });
 
   const logisticsOrders = raw.result?.logistics_order_list ?? [];
