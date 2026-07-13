@@ -396,6 +396,23 @@ export async function GET(req: NextRequest) {
 
   const apiKey = process.env.TRACK17_API_KEY;
   if (!apiKey) {
+    // Utan 17TRACK-nyckel (t.ex. preview-miljöer, eller om nyckeln roteras
+    // fel) är AliExpress-källan fortfarande fullt kapabel — prova den innan
+    // vi ger upp med 503.
+    const ae = await fetchAliExpressEvents(tn);
+    if (ae && ae.events.length > 0) {
+      const body = {
+        events: ae.events,
+        status: "InTransit",
+        delivered: false,
+        eta: ae.eta,
+        carrier: ae.carrier,
+        trackingNumber: tn,
+        updatedAt: ae.events[0]?.time || new Date().toISOString(),
+      };
+      cacheSet(tn, body, 200);
+      return NextResponse.json(body, { status: 200 });
+    }
     return NextResponse.json(
       { error: "Spårning är inte konfigurerad", details: "TRACK17_API_KEY saknas i miljön" },
       { status: 503 },
