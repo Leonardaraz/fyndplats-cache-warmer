@@ -347,6 +347,26 @@ function QueueCard({
                 Slug auto-justerad ({p.slugSuffix})
               </span>
             ) : null}
+            {p.variants.some((v) => v.shippableToSe === false) ? (
+              <span
+                title={`Varianter utan fraktväg till Sverige (AliExpress fraktAPI): ${p.variants
+                  .filter((v) => v.shippableToSe === false)
+                  .map((v) => Object.values(v.choices).join("/") || v.sku)
+                  .join(", ")}. Synken håller deras lager på 0 — överväg att ta bort dem i Wix-editorn före publicering.`}
+                style={{
+                  display: "inline-block",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "#fee2e2",
+                  color: "#991b1b",
+                  border: "1px solid #fca5a5",
+                }}
+              >
+                🚫 {p.variants.filter((v) => v.shippableToSe === false).length} variant(er) ej fraktbara till SE
+              </span>
+            ) : null}
             {p.needsAiPolish ? (
               <span
                 title={

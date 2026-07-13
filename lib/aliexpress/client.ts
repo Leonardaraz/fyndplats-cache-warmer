@@ -34,6 +34,7 @@ import type {
     DsTokenResponse,
     DsTrackingResult,
 } from "./types";
+import type { FreightQueryOutcome } from "./freight";
 
 const API_BASE = "https://api-sg.aliexpress.com/sync";
 const REST_BASE = "https://api-sg.aliexpress.com/rest";
@@ -740,6 +741,64 @@ interface RawTracking {
                 };
           };
     };
+}
+
+/**
+ * Frågar AliExpress om fraktvägar för en SKU till ett land. Returnerar det RÅA
+ * svaret (eller felsträngen) — tolkningen är ren och bor i lib/aliexpress/
+ * freight.ts (parseFreightOutcome) så den kan enhetstestas.
+ *
+ * Provar den moderna DS-metoden först; svarar plattformen att metoden inte
+ * finns/inte är tillåten för vår app provas det klassiska freight-API:t
+ * (samma tvåstegsmönster som tracking-API-revisionen #297/#298 lärde oss).
+ *
+ * OBS: sku_id skickas ALLTID som sträng — AliExpress sku_id:n (t.ex.
+ * 12000058218136832) överskrider Number.MAX_SAFE_INTEGER.
+ */
+export async function queryFreightToCountry(
+  productId: string,
+  skuId: string,
+  country = "SE",
+  quantity = 1,
+): Promise<FreightQueryOutcome> {
+  try {
+    const raw = await callApi<unknown>("aliexpress.ds.freight.query", {
+      queryDeliveryReq: JSON.stringify({
+        productId: Number(productId),
+        quantity,
+        shipToCountry: country,
+        selectedSkuId: skuId,
+        language: "en_US",
+        locale: "en_US",
+        currency: "SEK",
+      }),
+    });
+    return { method: "aliexpress.ds.freight.query", raw };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Bara "metoden finns inte/ej behörig" motiverar fallback — affärsfel
+    // (t.ex. ingen fraktväg) ska tolkas, inte maskeras av ett andra anrop.
+    if (!/invalid.{0,12}(api|method)|method.{0,12}(invalid|not)|api.{0,12}not.{0,12}(exist|found)|no.{0,12}api.{0,12}permission|InvalidApiPath/i.test(msg)) {
+      return { method: "aliexpress.ds.freight.query", error: msg };
+    }
+  }
+  try {
+    const raw = await callApi<unknown>("aliexpress.logistics.buyer.freight.calculate", {
+      param_aeop_freight_calculate_for_buyer_d_t_o: JSON.stringify({
+        product_id: Number(productId),
+        product_num: quantity,
+        country_code: country,
+        sku_id: skuId,
+        price_currency: "SEK",
+      }),
+    });
+    return { method: "aliexpress.logistics.buyer.freight.calculate", raw };
+  } catch (err) {
+    return {
+      method: "aliexpress.logistics.buyer.freight.calculate",
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
 
 export async function getTracking(tradeOrderId: string): Promise<DsTrackingResult> {

@@ -1,0 +1,46 @@
+name: Fraktbarhetskontroll (manuell trigger)
+
+# Manuell trigger för /api/admin/freight-check — kontrollerar EN produkts
+# varianter mot AliExpress fraktAPI (fraktväg till Sverige) och skriver
+# per-variant-utfallet i jobb-loggen. Ordinarie kontroll sker löpande i
+# aliexpress-sync-cronen (budgeterad rotation) — den här workflown finns för
+# verifiering och ad-hoc-felsökning av enskilda produkter.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      product_id:
+        description: "wixProductId ELLER AliExpress-produkt-id"
+        required: true
+        type: string
+      apply:
+        description: "Spara domarna + nolla ofraktbara varianters lager"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  freight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör fraktbarhetskontrollen
+        run: |
+          url="${{ secrets.POLL_TRACKING_URL }}"
+          url="${url%/api/cron/poll-tracking}/api/admin/freight-check"
+          apply=""
+          if [ "${{ inputs.apply }}" = "true" ]; then apply="&apply=1"; fi
+          response=$(curl -sS -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${url}?productId=${{ inputs.product_id }}${apply}")
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "$body"
+          if [ "$status" != "200" ]; then
+            echo "::error::Endpoint returned non-200 status"
+            exit 1
+          fi
