@@ -15,7 +15,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
-import { getProduct as getAliExpressProduct, queryFreightToCountry } from "@/lib/aliexpress/client";
+import {
+  getProduct as getAliExpressProduct,
+  queryFreightToCountry,
+  debugRawProductGet,
+} from "@/lib/aliexpress/client";
 import { checkMappingShippability, zeroUnshippableInventory } from "@/lib/sync/shippability";
 
 export const runtime = "nodejs";
@@ -35,6 +39,7 @@ export async function GET(req: NextRequest) {
 
   const id = (req.nextUrl.searchParams.get("productId") || "").trim();
   const apply = req.nextUrl.searchParams.get("apply") === "1";
+  const raw = req.nextUrl.searchParams.get("raw") === "1";
   if (!id) {
     return NextResponse.json({ error: "productId krävs (wixProductId eller AliExpress-id)." }, { status: 400 });
   }
@@ -55,6 +60,28 @@ export async function GET(req: NextRequest) {
     const aeVariants = product.variants
       .filter((v) => v.skuId)
       .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
+
+    // Lager-diagnos (SucceBuy-utredningen 2026-07-14): synken läste lager 0 på
+    // levande, köpbara produkter. Dumpa hur dropship-API:t FAKTISKT rapporterar
+    // lager + warehouse per SKU så vi kan skilja "verkligt 0" från "vi tappar
+    // EU-lagrets SKU". `product`-summeringen är alltid med; hela råsvaret bara
+    // med raw=1 (kan vara stort).
+    const productSummary = {
+      title: product.title,
+      shipsFromCountries: product.shipsFromCountries,
+      hasEuWarehouse: product.hasEuWarehouse,
+      totalStock: product.variants.reduce((s, v) => s + (v.stock ?? 0), 0),
+      variantCount: product.variants.length,
+      variants: product.variants.map((v) => ({
+        skuId: v.skuId,
+        skuAttr: v.skuAttr,
+        stock: v.stock,
+        price: v.price,
+        shipFrom: v.shipFrom,
+        skuProps: v.skuProps,
+      })),
+    };
+    const rawProduct = raw ? await debugRawProductGet(mapping.supplierProductId) : undefined;
 
     const check = await checkMappingShippability({
       mapping: {
@@ -80,10 +107,12 @@ export async function GET(req: NextRequest) {
       ok: true,
       wixProductId: mapping.wixProductId,
       aliexpressId: mapping.supplierProductId,
+      product: productSummary,
       apiCalls: check.apiCalls,
       unshippable: check.unshippable,
       applied,
       variants: check.details,
+      ...(rawProduct !== undefined ? { rawProduct } : {}),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
