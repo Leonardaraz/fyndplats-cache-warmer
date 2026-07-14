@@ -903,7 +903,13 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
 
   // Feature 2 + 3: skicka real-tids-larm — ENDAST live (kostar AE-sök + ev.
   // Haiku + mejl). Debounce: larma inte igen inom 24h.
-  if (decision.justWentOos && opts.opsAlertEmail && !dryRun) {
+  //
+  // AV som standard sedan 2026-07-14: en körning gav 7 separata mejl i
+  // Leonards inkorg. Dygnets OOS-händelser sammanställs i stället i
+  // morgonmejlet (ordervakten) med AliExpress- + sajtlänk per produkt.
+  // Sätt SYNC_REALTIME_OOS_EMAIL=true för att få tillbaka per-produkt-mejlen.
+  const realtimeOosEmail = process.env.SYNC_REALTIME_OOS_EMAIL === "true";
+  if (decision.justWentOos && opts.opsAlertEmail && !dryRun && realtimeOosEmail) {
     const within24h = lastOosAlertAt
       ? Date.parse(checkedAt) - Date.parse(lastOosAlertAt) < 24 * 3600 * 1000
       : false;

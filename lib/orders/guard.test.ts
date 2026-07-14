@@ -4,13 +4,17 @@ import {
   PENDING_PAYMENT_REMINDER_MS,
   PENDING_REMINDER_MS,
   POLL_ERROR_WINDOW_MS,
+  SYNC_DIGEST_MAX_ROWS,
+  SYNC_DIGEST_WINDOW_MS,
   TASK_GRACE_MS,
   buildGuardEmail,
   buildGuardFindings,
+  buildSyncDigest,
   rollupSyncRuns,
   type GuardAuditInput,
   type GuardOrderInput,
 } from "./guard";
+import type { SyncLogEntry } from "@/lib/sync/sync-log";
 import type { FulfillmentTask, TaskStatus } from "./types";
 
 const NOW = Date.parse("2026-07-13T05:00:00.000Z");
@@ -162,6 +166,84 @@ describe("rollupSyncRuns", () => {
   });
 });
 
+function logEntry(overrides: Partial<SyncLogEntry> & { productId: string; actionTaken: SyncLogEntry["actionTaken"] }): SyncLogEntry {
+  return {
+    id: `${overrides.productId}-${overrides.checkedAt ?? iso(HOUR)}`,
+    aliexpressId: "1005001111111111",
+    checkedAt: iso(HOUR),
+    prevCostSek: null,
+    newCostSek: null,
+    prevStock: null,
+    newStock: null,
+    listingStatus: "active",
+    ...overrides,
+  };
+}
+
+describe("buildSyncDigest", () => {
+  const info = new Map([
+    ["p1", { name: "Airfryer 9L", slug: "airfryer-9l" }],
+    ["p2", { name: "Hundvagn", slug: "hundvagn" }],
+  ]);
+
+  it("sorterar in händelser i rätt sektion med länkar till AliExpress + sajten", () => {
+    const d = buildSyncDigest({
+      logEntries: [
+        logEntry({ productId: "p1", actionTaken: "marked_oos", aliexpressId: "1005009995481212" }),
+        logEntry({ productId: "p2", actionTaken: "restored" }),
+      ],
+      productInfo: info,
+      nowMs: NOW,
+    });
+    expect(d.oos).toHaveLength(1);
+    expect(d.oos[0]).toMatchObject({
+      name: "Airfryer 9L",
+      aliexpressUrl: "https://www.aliexpress.com/item/1005009995481212.html",
+      productUrl: "https://fyndplats.se/produkt/airfryer-9l",
+    });
+    expect(d.restored).toHaveLength(1);
+    expect(d.hidden).toHaveLength(0);
+    expect(d.errors).toHaveLength(0);
+  });
+
+  it("dedupar per produkt — senaste raden vinner, antalet bevaras (fel loggas per körning)", () => {
+    const d = buildSyncDigest({
+      logEntries: [
+        logEntry({ productId: "p1", actionTaken: "error", checkedAt: iso(20 * HOUR), notes: "äldst" }),
+        logEntry({ productId: "p1", actionTaken: "error", checkedAt: iso(2 * HOUR), notes: "nyast" }),
+        logEntry({ productId: "p1", actionTaken: "error", checkedAt: iso(10 * HOUR), notes: "mitten" }),
+      ],
+      productInfo: info,
+      nowMs: NOW,
+    });
+    expect(d.errors).toHaveLength(1);
+    expect(d.errors[0]).toMatchObject({ count: 3, note: "nyast" });
+  });
+
+  it("ignorerar rader utanför dygnsfönstret och none/dry_run-rader", () => {
+    const d = buildSyncDigest({
+      logEntries: [
+        logEntry({ productId: "p1", actionTaken: "marked_oos", checkedAt: iso(SYNC_DIGEST_WINDOW_MS + HOUR) }),
+        logEntry({ productId: "p2", actionTaken: "none" }),
+        logEntry({ productId: "p2", actionTaken: "dry_run" }),
+      ],
+      productInfo: info,
+      nowMs: NOW,
+    });
+    expect(d.oos).toHaveLength(0);
+    expect(d.restored).toHaveLength(0);
+  });
+
+  it("okänd produkt → AliExpress-id som namn, ingen sajtlänk", () => {
+    const d = buildSyncDigest({
+      logEntries: [logEntry({ productId: "okand", actionTaken: "marked_oos", aliexpressId: "42" })],
+      productInfo: new Map(),
+      nowMs: NOW,
+    });
+    expect(d.oos[0]).toMatchObject({ name: "42", productUrl: undefined });
+  });
+});
+
 describe("buildGuardEmail", () => {
   const extras = { sectionErrors: [], baseUrl: "https://example.test" };
 
@@ -191,6 +273,51 @@ describe("buildGuardEmail", () => {
     );
     expect(email.subject).toContain("⚠️");
     expect(email.html).toContain("kunde inte läsa");
+  });
+
+  it("dygns-digesten renderas med klickbara länkar och syns i ämnesraden", () => {
+    const digest = buildSyncDigest({
+      logEntries: [
+        logEntry({ productId: "p1", actionTaken: "marked_oos", aliexpressId: "1005009995481212" }),
+        logEntry({ productId: "p2", actionTaken: "error", notes: "AliExpress API-fel 604: All SKU Unsaleable" }),
+      ],
+      productInfo: new Map([
+        ["p1", { name: "Airfryer 9L", slug: "airfryer-9l" }],
+        ["p2", { name: "Hundvagn", slug: "hundvagn" }],
+      ]),
+      nowMs: NOW,
+    });
+    const email = buildGuardEmail(findings({}), { ...extras, syncDigest: digest }, NOW);
+    // Ämnesraden: OOS-antal syns utan att mejlet öppnas, ✅ behålls (ingen order-åtgärd).
+    expect(email.subject).toContain("✅");
+    expect(email.subject).toContain("1 slut hos leverantör");
+    // HTML: rubrik + båda länkarna per produkt.
+    expect(email.html).toContain("Slut hos leverantör senaste dygnet");
+    expect(email.html).toContain('href="https://www.aliexpress.com/item/1005009995481212.html"');
+    expect(email.html).toContain('href="https://fyndplats.se/produkt/airfryer-9l"');
+    // Felsektionen med 604-noten.
+    expect(email.html).toContain("Hämtningsfel");
+    expect(email.html).toContain("604");
+    // Text-fallback har URL:erna i klartext.
+    expect(email.text).toContain("AliExpress: https://www.aliexpress.com/item/1005009995481212.html");
+    expect(email.text).toContain("Sajten: https://fyndplats.se/produkt/airfryer-9l");
+  });
+
+  it("digest-sektion cappas vid SYNC_DIGEST_MAX_ROWS med '+N till'", () => {
+    const entries = Array.from({ length: SYNC_DIGEST_MAX_ROWS + 5 }, (_, i) =>
+      logEntry({ productId: `p${i}`, actionTaken: "marked_oos", aliexpressId: `${i}` }),
+    );
+    const digest = buildSyncDigest({ logEntries: entries, productInfo: new Map(), nowMs: NOW });
+    const email = buildGuardEmail(findings({}), { ...extras, syncDigest: digest }, NOW);
+    expect(email.subject).toContain(`${SYNC_DIGEST_MAX_ROWS + 5} slut hos leverantör`);
+    expect(email.html).toContain("+5 till");
+  });
+
+  it("tom digest → inga synk-sektioner och orörd ämnesrad", () => {
+    const digest = buildSyncDigest({ logEntries: [], productInfo: new Map(), nowMs: NOW });
+    const email = buildGuardEmail(findings({}), { ...extras, syncDigest: digest }, NOW);
+    expect(email.subject).toBe("✅ Fyndplats morgonkoll: allt rullar");
+    expect(email.html).not.toContain("Slut hos leverantör senaste dygnet");
   });
 
   it("statusraden visar synk/larm/auktion", () => {

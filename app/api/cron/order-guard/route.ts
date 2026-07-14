@@ -10,6 +10,9 @@
 //   - Beställda men oskickade i 5+ dagar (sen säljare)
 //   - Tasks flaggade för manuell granskning (annullering/återbetalning/osäker)
 //   - poll-tracking-fel senaste dygnet (syntes tidigare BARA i FyndplatsAudit)
+//   - Dygnets synk-digest: slut hos leverantör / återställda / dolda /
+//     hämtningsfel — en rad per produkt med AliExpress- + sajtlänk (ersätter
+//     per-produkt- och per-körnings-mejlen som stängdes av 2026-07-14)
 //   - Status: synk-rollup, öppna sync-larm, auktionens live/kö
 //
 // Mejlet skickas ÄVEN när allt är grönt — uteblivet morgonmejl är i sig
@@ -26,10 +29,13 @@ import { queryAuctions } from "@/lib/auction/store";
 import {
   buildGuardEmail,
   buildGuardFindings,
+  buildSyncDigest,
   rollupSyncRuns,
+  SYNC_DIGEST_WINDOW_MS,
   type GuardExtras,
   type GuardOrderInput,
 } from "@/lib/orders/guard";
+import { searchProductSummaries } from "@/lib/wix/client";
 import { sendEmail } from "@/lib/email/resend";
 import { audit } from "@/lib/audit";
 
@@ -100,6 +106,29 @@ export async function GET(req: NextRequest) {
       extras.openAlerts = (await getSyncStore().listAlerts("open")).length;
     } catch (err) {
       sectionErrors.push(`Sync-larmen gick inte att räkna: ${(err as Error).message.slice(0, 150)}`);
+    }
+    // Dygnets synk-digest: slut hos leverantör / återställda / dolda / fel,
+    // med AliExpress- + sajtlänk per produkt. Serverfiltrerad query — vanliga
+    // none-rader (en per kollad produkt) skulle annars tränga ut händelserna.
+    try {
+      const sinceIso = new Date(now - SYNC_DIGEST_WINDOW_MS).toISOString();
+      const recent = await getSyncStore().listEventLogSince(sinceIso);
+      // Namn + slug slås upp best-effort — utan dem faller digesten tillbaka
+      // på AliExpress-id:t som rubrik (hellre en ful rad än ingen alls).
+      let productInfo = new Map<string, { name?: string; slug?: string }>();
+      const ids = [...new Set(recent.map((e) => e.productId))];
+      if (ids.length > 0) {
+        try {
+          productInfo = await searchProductSummaries(ids);
+        } catch (err) {
+          sectionErrors.push(
+            `Produktnamn till synk-digesten gick inte att slå upp: ${(err as Error).message.slice(0, 150)}`,
+          );
+        }
+      }
+      extras.syncDigest = buildSyncDigest({ logEntries: recent, productInfo, nowMs: now });
+    } catch (err) {
+      sectionErrors.push(`Synk-loggen gick inte att läsa: ${(err as Error).message.slice(0, 150)}`);
     }
     try {
       const auctions = await queryAuctions(["live", "queued"]);

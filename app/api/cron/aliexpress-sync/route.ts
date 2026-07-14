@@ -11,8 +11,8 @@
 //   3. Auto-actions: hide produkter där listningen försvunnit; sätt oos när
 //      lagret är slut; återställ inventory när lagret kommer tillbaka.
 //   4. Alerts för Leonard: prishöjning som hotar marginalen, innehållsändring.
-//   5. Skickar sammanfattnings-mejl till OPS_ALERT_EMAIL via Resend (om något
-//      flaggats — annars ingen email-spam).
+//   5. Mejl: dygnets händelser sammanställs i morgonmejlet (ordervakten) —
+//      per-körnings-rapporten är AV om inte SYNC_PER_RUN_EMAIL=true.
 //
 // Säkerhet:
 //   - SYNC_DRY_RUN=true (default) → kör allt utom Wix-skrivningar.
@@ -107,8 +107,14 @@ async function handle(req: NextRequest): Promise<NextResponse> {
       }),
     );
 
-    // Email-rapport — bara om något hände eller om fel uppstod.
-    const opsEmail = process.env.OPS_ALERT_EMAIL;
+    // Email-rapport per körning — AV som standard sedan 2026-07-14. Cronen
+    // kör var 4:e timme = upp till 6 rapporter/dygn i inkorgen; Leonard ville
+    // ha ETT mejl om dagen. Dygnets händelser sammanställs numera i morgon-
+    // mejlet (ordervakten, /api/cron/order-guard). Sätt SYNC_PER_RUN_EMAIL=true
+    // för att få tillbaka per-körnings-rapporten.
+    const opsEmail = process.env.SYNC_PER_RUN_EMAIL === "true"
+      ? process.env.OPS_ALERT_EMAIL
+      : undefined;
     if (opsEmail) {
       try {
         const alertsUrl = `${baseUrl}/admin/sync-alerts`;

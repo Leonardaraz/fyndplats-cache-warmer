@@ -12,6 +12,7 @@
 // låsa dem.
 
 import type { FulfillmentTask } from "@/lib/orders/types";
+import type { SyncLogEntry } from "@/lib/sync/sync-log";
 import { isTerminal } from "@/lib/orders/status";
 
 const HOUR = 60 * 60 * 1000;
@@ -188,8 +189,115 @@ export function rollupSyncRuns(auditEntries: GuardAuditInput[], nowMs: number): 
   return rollup;
 }
 
+// --- Dygns-digest av synkens händelser (2026-07-14) -------------------------
+//
+// Leonard fick tidigare ETT mejl PER produkt som gick slut hos leverantören
+// (+ en rapport per körning, 6/dygn). Nu är de utskicken avstängda och dygnets
+// händelser sammanställs här i stället — en rad per produkt med länk till både
+// AliExpress-listningen och produktsidan på sajten, så besluten (byt
+// leverantör / ta bort) kan tas direkt ur morgonmejlet.
+
+/** Max antal rader per digest-sektion i mejlet — resten blir "+N till". */
+export const SYNC_DIGEST_MAX_ROWS = 30;
+/** Digesten täcker senaste dygnet (vakten kör dagligen). */
+export const SYNC_DIGEST_WINDOW_MS = 24 * HOUR;
+
+export interface SyncDigestItem {
+  productId: string;
+  aliexpressId: string;
+  /** Produktnamn ur Wix-katalogen — fallback: AliExpress-id:t. */
+  name: string;
+  aliexpressUrl: string;
+  /** Produktsidan på butiken — saknas när slug inte gick att slå upp. */
+  productUrl?: string;
+  /** Antal logg-rader bakom posten (fel loggas per körning — upp till 6/dygn). */
+  count: number;
+  note?: string;
+}
+
+export interface SyncDigest {
+  /** Gick till slut-i-lager hos leverantören under dygnet. */
+  oos: SyncDigestItem[];
+  /** Tillbaka i lager (lagret återställt på sajten). */
+  restored: SyncDigestItem[];
+  /** Dolda av synken — listningen borttagen hos AliExpress. */
+  hidden: SyncDigestItem[];
+  /** Hämtningsfel (inkl. 604 All SKU Unsaleable) — synkas inte just nu. */
+  errors: SyncDigestItem[];
+}
+
+const DIGEST_ACTIONS = {
+  marked_oos: "oos",
+  restored: "restored",
+  hidden: "hidden",
+  error: "errors",
+} as const satisfies Partial<Record<SyncLogEntry["actionTaken"], keyof SyncDigest>>;
+
+/**
+ * Bygger dygns-digesten ur sync-loggens rader. Ren funktion: raderna och
+ * produktnamnen (Wix-uppslag) matas in av routen. En produkt visas EN gång per
+ * sektion även om den loggats flera gånger under dygnet (fel-rader skrivs per
+ * körning) — senaste raden vinner, antalet bevaras i `count`.
+ */
+export function buildSyncDigest(input: {
+  logEntries: SyncLogEntry[];
+  productInfo: Map<string, { name?: string; slug?: string }>;
+  nowMs: number;
+  /** Butikens bas-URL för produktlänkar (default https://fyndplats.se). */
+  storeBaseUrl?: string;
+}): SyncDigest {
+  const { logEntries, productInfo, nowMs } = input;
+  const storeBase = (input.storeBaseUrl ?? "https://fyndplats.se").replace(/\/$/, "");
+
+  const buckets: Record<keyof SyncDigest, Map<string, { entry: SyncLogEntry; count: number }>> = {
+    oos: new Map(),
+    restored: new Map(),
+    hidden: new Map(),
+    errors: new Map(),
+  };
+
+  for (const entry of logEntries) {
+    const bucketKey = DIGEST_ACTIONS[entry.actionTaken as keyof typeof DIGEST_ACTIONS];
+    if (!bucketKey) continue;
+    const at = Date.parse(entry.checkedAt);
+    if (!Number.isFinite(at) || nowMs - at > SYNC_DIGEST_WINDOW_MS) continue;
+    const bucket = buckets[bucketKey];
+    const cur = bucket.get(entry.productId);
+    if (!cur) {
+      bucket.set(entry.productId, { entry, count: 1 });
+    } else {
+      cur.count++;
+      if (entry.checkedAt > cur.entry.checkedAt) cur.entry = entry;
+    }
+  }
+
+  const toItems = (bucket: Map<string, { entry: SyncLogEntry; count: number }>): SyncDigestItem[] =>
+    [...bucket.values()]
+      .sort((a, b) => (a.entry.checkedAt < b.entry.checkedAt ? 1 : -1))
+      .map(({ entry, count }) => {
+        const info = productInfo.get(entry.productId);
+        return {
+          productId: entry.productId,
+          aliexpressId: entry.aliexpressId,
+          name: info?.name || entry.aliexpressId,
+          aliexpressUrl: `https://www.aliexpress.com/item/${entry.aliexpressId}.html`,
+          productUrl: info?.slug ? `${storeBase}/produkt/${info.slug}` : undefined,
+          count,
+          note: entry.notes,
+        };
+      });
+
+  return {
+    oos: toItems(buckets.oos),
+    restored: toItems(buckets.restored),
+    hidden: toItems(buckets.hidden),
+    errors: toItems(buckets.errors),
+  };
+}
+
 export interface GuardExtras {
   syncRollup?: SyncRollup;
+  syncDigest?: SyncDigest;
   openAlerts?: number;
   auction?: { live: number; queued: number };
   /** Datakällor som inte gick att läsa (vakten larmar hellre än döljer). */
@@ -221,9 +329,15 @@ export function buildGuardEmail(
   nowMs: number,
 ): { subject: string; html: string; text: string } {
   const issues = findings.actionCount + (extras.sectionErrors.length > 0 ? 1 : 0);
-  const subject = issues === 0
+  // Slut-hos-leverantör i ämnesraden så dygnets viktigaste synk-nyhet syns
+  // utan att mejlet behöver öppnas (räknas inte som "behöver dig" — sajten
+  // skyddas automatiskt; beslutet byt/ta bort kan vänta till morgonkaffet).
+  const oosSuffix = (extras.syncDigest?.oos.length ?? 0) > 0
+    ? ` · ${extras.syncDigest!.oos.length} slut hos leverantör`
+    : "";
+  const subject = (issues === 0
     ? "✅ Fyndplats morgonkoll: allt rullar"
-    : `⚠️ Fyndplats morgonkoll: ${issues} ${issues === 1 ? "sak" : "saker"} behöver dig`;
+    : `⚠️ Fyndplats morgonkoll: ${issues} ${issues === 1 ? "sak" : "saker"} behöver dig`) + oosSuffix;
 
   const html: string[] = [];
   const text: string[] = [];
@@ -311,6 +425,54 @@ export function buildGuardEmail(
       `<p style="margin:0 0 12px;font-size:14px;">Inga fastnade ordrar, inga obetalda AliExpress-ordrar, inga spårningsfel. Ingen åtgärd behövs.</p>`,
     );
     text.push("Inga fastnade ordrar, inga obetalda AliExpress-ordrar, inga spårningsfel.");
+  }
+
+  // --- Dygnets synk-händelser: en rad per produkt med AliExpress- + sajtlänk.
+  // Länkarna byggs av oss (id/slug) men escapas ändå; namnen kommer ur Wix.
+  const digestSection = (
+    emoji: string,
+    title: string,
+    items: SyncDigestItem[],
+    opts?: { showCount?: boolean; showNote?: boolean },
+  ) => {
+    if (items.length === 0) return;
+    const shown = items.slice(0, SYNC_DIGEST_MAX_ROWS);
+    html.push(`<h3 style="margin:18px 0 6px;font-size:15px;">${emoji} ${esc(title)} (${items.length})</h3>`);
+    html.push(
+      `<ul style="margin:0;padding-left:20px;font-size:13px;">${shown
+        .map((it) => {
+          const links = [
+            `<a href="${esc(it.aliexpressUrl)}" style="color:#F47A35;">AliExpress ↗</a>`,
+            it.productUrl ? `<a href="${esc(it.productUrl)}" style="color:#F47A35;">Sajten ↗</a>` : null,
+          ].filter(Boolean).join(" · ");
+          const count = opts?.showCount && it.count > 1
+            ? ` <span style="color:#6b7280;">(${it.count} körningar)</span>` : "";
+          const note = opts?.showNote && it.note
+            ? `<div style="color:#9ca3af;font-size:12px;">${esc(it.note.slice(0, 140))}</div>` : "";
+          return `<li style="margin:2px 0;"><b>${esc(it.name)}</b>${count} — ${links}${note}</li>`;
+        })
+        .join("")}${
+        items.length > shown.length
+          ? `<li style="color:#6b7280;">+${items.length - shown.length} till — se admin/sync-alerts</li>`
+          : ""
+      }</ul>`,
+    );
+    text.push("", `${title.toUpperCase()} (${items.length}):`);
+    for (const it of shown) {
+      text.push(`  - ${it.name}${opts?.showCount && it.count > 1 ? ` (${it.count} körningar)` : ""}`);
+      text.push(`    AliExpress: ${it.aliexpressUrl}`);
+      if (it.productUrl) text.push(`    Sajten: ${it.productUrl}`);
+    }
+    if (items.length > shown.length) text.push(`  … +${items.length - shown.length} till`);
+  };
+  if (extras.syncDigest) {
+    digestSection("🟠", "Slut hos leverantör senaste dygnet", extras.syncDigest.oos);
+    digestSection("🟢", "Tillbaka i lager hos leverantör", extras.syncDigest.restored);
+    digestSection("🙈", "Dolda — listning borttagen hos AliExpress", extras.syncDigest.hidden);
+    digestSection("⛔", "Hämtningsfel — synkas inte just nu", extras.syncDigest.errors, {
+      showCount: true,
+      showNote: true,
+    });
   }
 
   // Statusrad — alltid med, som kvitto på att alla system rapporterar.
