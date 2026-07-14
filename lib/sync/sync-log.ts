@@ -228,6 +228,25 @@ export class SyncStore {
     );
   }
 
+  /**
+   * Händelse-rader (allt utom none/dry_run) sedan `sinceIso` — morgonmejlets
+   * dygns-digest. Serverfiltrerat: vanliga none-rader (en per kollad produkt,
+   * ~600/dygn vid 6 körningar × 100) skulle annars äta paging-limiten så att
+   * dygnets tidiga händelser föll utanför. ISO-strängar jämförs lexikografiskt
+   * = kronologiskt.
+   */
+  async listEventLogSince(sinceIso: string, limit = 500): Promise<SyncLogEntry[]> {
+    return query<SyncLogEntry>(
+      COL.log,
+      {
+        actionTaken: { $in: ["hidden", "marked_oos", "restored", "error"] },
+        checkedAt: { $gt: sinceIso },
+      },
+      [{ fieldName: "checkedAt", order: "DESC" }],
+      limit,
+    );
+  }
+
   // --- State --------------------------------------------------------------
   async getState(wixProductId: string): Promise<SyncStateEntry | null> {
     return get<SyncStateEntry>(COL.state, wixProductId);
