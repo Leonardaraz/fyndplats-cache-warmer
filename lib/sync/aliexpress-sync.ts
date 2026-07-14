@@ -403,13 +403,14 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // Används både för bestseller-prioritet (Feature 4) och för "X sålda"-raden
   // i real-tids-OOS-mejlet (Feature 2). Best-effort: failar order-API:t kör vi
   // vidare med tomt data (mejlet visar då 0 sålda, prioriteringen rör inget).
-  // Fraktbarhetskontrollens delade anropsbudget (SucceBuy-fallet 2026-07-13:
-  // lager finns men ingen fraktväg till SE). Hålls liten — kontrollen är en
-  // långsam bakgrundsrotation (7-dygns omkontroll per variant), inte en
-  // per-körning-plikt. 0 stänger av.
+  // Fraktbarhetskontrollens delade anropsbudget. PAUSAD (default 0) sedan
+  // 2026-07-14: fraktAPI:ts nej-svar visade sig opålitliga per anrop och
+  // nollade 8 fraktbara produkter under en natt (kod röd). Återaktiveras via
+  // SYNC_SHIPPABILITY_CHECKS_PER_RUN när frågan verifierats med hårdare
+  // beviskrav (flera oberoende nej + full adresskontext).
   const shipBudgetEnv = Number(process.env.SYNC_SHIPPABILITY_CHECKS_PER_RUN);
   const shippabilityBudget: ShippabilityBudget = {
-    remaining: Number.isFinite(shipBudgetEnv) && shipBudgetEnv >= 0 ? shipBudgetEnv : 15,
+    remaining: Number.isFinite(shipBudgetEnv) && shipBudgetEnv >= 0 ? shipBudgetEnv : 0,
   };
 
   let salesByProduct: Record<string, number> = {};
@@ -1044,12 +1045,17 @@ async function applyInventoryTarget(
   for (const v of mapping.variants ?? []) {
     if (v.wixVariantId) supplierByVariantId.set(v.wixVariantId, v.supplierVariantId);
   }
-  // Ofraktbara varianter (fraktbarhetskontrollen) tvingas till 0 vid varje
-  // spegling — lagersaldo hos leverantören spelar ingen roll om kassan vägrar.
+  // Ofraktbara varianter tvingas till 0 vid spegling — men BARA när
+  // SYNC_SHIPPABILITY_ENFORCE=true. Grindad av (kod röd 2026-07-14): flaggor
+  // satta av opålitliga API-nej får inte nolla säljbara varianter. Kvarvarande
+  // gamla flaggor är inerta tills kontrollen v2 är bevisad.
+  const enforceShippability = process.env.SYNC_SHIPPABILITY_ENFORCE === "true";
   const unshippableVariantIds = new Set(
-    (mapping.variants ?? [])
-      .filter((v) => v.shippableToSe === false && v.wixVariantId)
-      .map((v) => v.wixVariantId as string),
+    enforceShippability
+      ? (mapping.variants ?? [])
+          .filter((v) => v.shippableToSe === false && v.wixVariantId)
+          .map((v) => v.wixVariantId as string)
+      : [],
   );
   const qtyByVariant = resolveInventoryQuantities(items, supplierByVariantId, target, stockBySupplierId, unshippableVariantIds);
   const updates = items.map((it) => ({

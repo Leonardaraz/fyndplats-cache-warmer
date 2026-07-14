@@ -46,7 +46,7 @@ describe("isShippabilityStale", () => {
 });
 
 describe("checkMappingShippability", () => {
-  it("ofraktbar SKU markeras och räknas; budget dras per anrop", async () => {
+  it("nej-svar markerar INTE (unknown efter kod röd 2026-07-14); ja-svar markerar fraktbar", async () => {
     const budget = { remaining: 10 };
     const res = await checkMappingShippability({
       mapping: {
@@ -61,11 +61,13 @@ describe("checkMappingShippability", () => {
     });
     expect(res.apiCalls).toBe(2);
     expect(budget.remaining).toBe(8);
-    expect(res.changed).toBe(true);
-    expect(res.unshippable).toBe(1);
-    expect(res.variants[0]).toMatchObject({ shippableToSe: false });
+    expect(res.unshippable).toBe(0);
+    // sku-1: tomt/nekande svar → orörd + fortsatt stale (ingen stämpel).
+    expect(res.variants[0].shippableToSe).toBeUndefined();
+    expect(res.variants[0].shippabilityCheckedAt).toBeUndefined();
+    // sku-2: positiv evidens → fraktbar + stämplad.
     expect(res.variants[1]).toMatchObject({ shippableToSe: true });
-    expect(res.variants[0].shippabilityCheckedAt).toBeTruthy();
+    expect(res.variants[1].shippabilityCheckedAt).toBeTruthy();
   });
 
   it("färska varianter hoppar kontrollen — inga anrop", async () => {
@@ -95,7 +97,7 @@ describe("checkMappingShippability", () => {
       nowMs: NOW,
       budget: { remaining: 1 },
       delayMs: 0,
-      queryFn: () => unshippableOutcome(),
+      queryFn: () => shippableOutcome(),
     });
     expect(res.apiCalls).toBe(1);
     expect(res.variants[1].shippabilityCheckedAt).toBeUndefined();

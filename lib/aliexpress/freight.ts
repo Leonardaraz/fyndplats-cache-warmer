@@ -13,10 +13,15 @@
 //   - aliexpress.ds.freight.query           → delivery_options-lista
 //   - aliexpress.logistics.buyer.freight.calculate
 //                                            → aeop_freight_calculate_result_…-lista
-// Tolkningen är MEDVETET försiktig: bara när svaret bevisligen innehåller en
-// fraktalternativ-lista (även tom) eller ett tydligt "ingen fraktväg"-fel
-// fäller vi ett avgörande. Allt annat → unknown (null) — vi nollar ALDRIG en
-// variant på ett obevisat svar (samma princip som synkens transient-skydd).
+// LÄRDOM 2026-07-14 (kod röd): API:ts NEJ-svar är INTE pålitliga per anrop.
+// Nattens rotation gav DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS för enskilda
+// färgvarianter hos säljare som bevisligen levererar (Aosom ES — samma
+// säljare som hundvagnen — fick "Beige ok, Grå nej" på samma vägghylla).
+// 8 produkter nollades felaktigt. Därför gäller nu: ENDAST POSITIV EVIDENS
+// (icke-tom alternativlista) ger en dom. Alla nej/fel/tomma svar → unknown,
+// och unknown ändrar aldrig någonting. En framtida v2 kan återinföra
+// nej-domar med hårdare beviskrav (t.ex. flera oberoende nej över flera dygn
+// + full adresskontext i frågan).
 
 /** Utfall från klientens fraktanrop (rått svar ELLER felsträng). */
 export interface FreightQueryOutcome {
@@ -39,18 +44,6 @@ export interface FreightVerdict {
 // Nyckelmönster för listor med fraktalternativ i kända svarsformer.
 const OPTION_LIST_KEY = /delivery_option|freight_calculate_result|delivery_options|logistics_service/i;
 
-// Felmeddelanden som betyder "ingen fraktväg" (inte transient strul).
-// Matchas på UNDERSCORE-normaliserad text — skarpt verifierat svar 2026-07-13:
-// ds.freight.query svarar "DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS" för SKU:er
-// utan fraktväg (SucceBuy-lådskåpet, alla 5 varianter; kontrollprodukten
-// hundvagnen fick shippable=true med samma metod).
-const NO_ROUTE_ERROR =
-  /(no|not|unable|unavailable|can.?t|cannot)[^.]{0,60}(ship|deliver|logistics|freight|route)|delivery.{0,20}(unavailable|not support)|not support.{0,20}(ship|deliver|country)|deliver\w*[^.]{0,40}not[\s]?available|not[\s]?available[^.]{0,40}(address|country|region)/i;
-
-/** AliExpress felkoder/meddelanden använder ofta UNDERSCORE_FORM. */
-function normalizeMsg(s: string): string {
-  return s.replace(/_/g, " ");
-}
 
 /** Plockar alla arrayer vars nyckel ser ut som en fraktalternativ-lista,
  *  inklusive en nivå singel-nyckel-wrapper ({delivery_option_d_t_o: [...]}). */
@@ -87,26 +80,28 @@ function findFailureMessage(node: unknown, depth = 0): string | null {
 }
 
 export function parseFreightOutcome(outcome: FreightQueryOutcome): FreightVerdict {
+  // Fel från anropet (inkl. AliExpress "nej"-strängar) → unknown. Aldrig
+  // en negativ dom på ett enskilt svar — se lärdomen i filhuvudet.
   if (outcome.error) {
-    if (NO_ROUTE_ERROR.test(normalizeMsg(outcome.error))) {
-      return { known: true, shippable: false, optionCount: 0, note: outcome.error.slice(0, 160) };
-    }
     return { known: false, shippable: null, optionCount: 0, note: outcome.error.slice(0, 160) };
   }
 
   const lists: unknown[][] = [];
   collectOptionArrays(outcome.raw, "", lists);
-  if (lists.length > 0) {
-    const optionCount = lists.reduce((s, l) => s + l.length, 0);
-    return { known: true, shippable: optionCount > 0, optionCount };
+  const optionCount = lists.reduce((s, l) => s + l.length, 0);
+  if (optionCount > 0) {
+    return { known: true, shippable: true, optionCount };
   }
 
   const failure = findFailureMessage(outcome.raw);
   if (failure) {
-    if (NO_ROUTE_ERROR.test(normalizeMsg(failure))) {
-      return { known: true, shippable: false, optionCount: 0, note: failure.slice(0, 160) };
-    }
     return { known: false, shippable: null, optionCount: 0, note: failure.slice(0, 160) };
+  }
+
+  // Tom lista utan felindikation: API:t har visat sig ge tomma/nekande svar
+  // även för fraktbara SKU:er — unknown, inte en dom.
+  if (lists.length > 0) {
+    return { known: false, shippable: null, optionCount: 0, note: "tom alternativlista — obevisat" };
   }
 
   // Inget alternativ-fält alls i svaret → vi VET inte (klassa aldrig som
