@@ -47,6 +47,89 @@ export const PHRASE_SV: Array<[RegExp, string]> = [
     "Paketet är på väg genom transportnätet."],
 ];
 
+// Land: ISO-2 ELLER engelskt namn (versaler) → svenskt namn. Täcker EU/EES +
+// Norden + vanliga dropship-transitländer, så platspinnen på /sparning står på
+// svenska ("Tyskland" i stället för "Germany"). Okänt land → originalet (så en
+// stad felmärkt som land, eller ett omappat land, aldrig försvinner).
+export const COUNTRY_SV: Record<string, string> = {
+  SE: "Sverige", SWEDEN: "Sverige",
+  DE: "Tyskland", GERMANY: "Tyskland",
+  ES: "Spanien", SPAIN: "Spanien",
+  FR: "Frankrike", FRANCE: "Frankrike",
+  NL: "Nederländerna", NETHERLANDS: "Nederländerna",
+  PL: "Polen", POLAND: "Polen",
+  BE: "Belgien", BELGIUM: "Belgien",
+  IT: "Italien", ITALY: "Italien",
+  CZ: "Tjeckien", CZECHIA: "Tjeckien", "CZECH REPUBLIC": "Tjeckien",
+  DK: "Danmark", DENMARK: "Danmark",
+  NO: "Norge", NORWAY: "Norge",
+  FI: "Finland", FINLAND: "Finland",
+  GB: "Storbritannien", UK: "Storbritannien", "UNITED KINGDOM": "Storbritannien",
+  AT: "Österrike", AUSTRIA: "Österrike",
+  CH: "Schweiz", SWITZERLAND: "Schweiz",
+  PT: "Portugal", PORTUGAL: "Portugal",
+  IE: "Irland", IRELAND: "Irland",
+  HU: "Ungern", HUNGARY: "Ungern",
+  SK: "Slovakien", SLOVAKIA: "Slovakien",
+  SI: "Slovenien", SLOVENIA: "Slovenien",
+  RO: "Rumänien", ROMANIA: "Rumänien",
+  BG: "Bulgarien", BULGARIA: "Bulgarien",
+  HR: "Kroatien", CROATIA: "Kroatien",
+  GR: "Grekland", GREECE: "Grekland",
+  LT: "Litauen", LITHUANIA: "Litauen",
+  LV: "Lettland", LATVIA: "Lettland",
+  EE: "Estland", ESTONIA: "Estland",
+  LU: "Luxemburg", LUXEMBOURG: "Luxemburg",
+  US: "USA", USA: "USA", "UNITED STATES": "USA",
+};
+
+/** Översätter ett enskilt land (ISO-2 eller engelskt namn) till svenska.
+ *  Okänt land → originaltexten (trimmad). Tom → tom. */
+export function svCountry(input: string | undefined | null): string {
+  const s = (input ?? "").trim();
+  if (!s) return "";
+  return COUNTRY_SV[s.toUpperCase()] ?? s;
+}
+
+/**
+ * Bygger den svenska plats-etiketten för en spårningshändelse. Föredrar
+ * strukturerad adress (stad + land) när 17TRACK ger den — då syns "exakt vart
+ * paketet är" (t.ex. "Årsta, Sverige") — och faller annars tillbaka på fri-
+ * text-platsen där varje land-segment översätts ("Germany" → "Tyskland",
+ * "Frankfurt, Germany" → "Frankfurt, Tyskland"). Städer passerar oförändrade.
+ */
+export function svLocation(
+  rawLocation: string | undefined | null,
+  address?: { city?: string; state?: string; country?: string } | null,
+): string {
+  const place = (address?.city ?? "").trim() || (address?.state ?? "").trim();
+  const countrySv = svCountry(address?.country);
+  if (place || countrySv) return [place, countrySv].filter(Boolean).join(", ");
+  const raw = (rawLocation ?? "").trim();
+  if (!raw) return "";
+  return raw.split(",").map((seg) => svCountry(seg)).filter(Boolean).join(", ");
+}
+
+/**
+ * Tar bort exakta dubbletter (samma tid + beskrivning + plats) ur en
+ * händelselista och bevarar ordningen. 17TRACK dubblerar ibland samma scan
+ * (t.ex. två identiska "10 juli 08:00 · Spanien"-rader) vilket ser oproffsigt
+ * ut i tidslinjen.
+ */
+export function dedupeEvents<
+  T extends { time?: string; description?: string; location?: string },
+>(events: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const e of events) {
+    const key = `${e.time ?? ""}|${e.description ?? ""}|${e.location ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(e);
+  }
+  return out;
+}
+
 /**
  * Översätter en 17TRACK-händelsetext till svenska via PHRASE_SV. Returnerar
  * null om ingen fras matchar (anroparen faller då tillbaka på stage-text).
