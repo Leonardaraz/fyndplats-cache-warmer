@@ -1136,6 +1136,22 @@ export async function debugRawTextSearch(query: string): Promise<unknown> {
   return callApi<unknown>("aliexpress.ds.text.search", bizParams);
 }
 
+/**
+ * DEBUG (read-only): RÅSVARET från aliexpress.ds.product.get, otolkat — samma
+ * params som getProduct (ship_to_country SE). Används av /api/admin/freight-
+ * check?raw=1 för att se AliExpress FAKTISKA per-SKU-lager + warehouse-fält när
+ * synkens tolkade lager (0) inte matchar konsumentsidan (SucceBuy-mönstret:
+ * dropship-flödet säger 0, konsumentsidan visar tiotal, skickas från EU-lager).
+ */
+export async function debugRawProductGet(productId: string): Promise<unknown> {
+  return callApi<unknown>("aliexpress.ds.product.get", {
+    product_id: productId,
+    target_currency: "USD",
+    target_language: "EN",
+    ship_to_country: "SE",
+  });
+}
+
 export async function searchAliExpressByText(
     query: string,
     options: AliExpressSearchOptions = {},

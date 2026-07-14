@@ -63,6 +63,15 @@ export const DEFAULT_SYNC_TIME_BUDGET_MS = 240_000;
 // dessutom inte auto-återställs (eftersom wixVisible då blir false).
 export const REMOVED_STRIKES_REQUIRED = 2;
 
+// Antal körningar i RAD med dropship-lager 0 innan vi faktiskt nollar Wix-
+// lagret. En ENSTAKA 0-läsning är opålitlig: SucceBuy-väggskåpen (2026-07-14)
+// visade lager 10 i två dygn, tappades till 0 i EN körning medan konsument-
+// sidan hade kvar 10 st (skickas från EU-lager), och nollades direkt → syntes
+// som "Slut i lager" fast de gick att köpa. Samma KOD RÖD-princip som frakt-
+// nej:en: agera inte på en enda opålitlig negativ signal. En riktig
+// utförsäljning bekräftas nästa körning (~4 h) och nollas då.
+export const STOCK_ZERO_STRIKES_REQUIRED = 2;
+
 /**
  * Antal OKLASSADE hämtningsfel i RAD innan felet behandlas som borttagen
  * listning (och dölj-mekaniken via removedStreak tar över). Döda listningar
@@ -145,6 +154,13 @@ export interface SyncInputs {
   /** True när synken själv dolt produkten (state.hiddenBySync) — tillåter
    *  auto-restore trots att wixVisible är false. */
   hiddenBySync?: boolean;
+  /**
+   * Hur många körningar i rad (inkl. denna) som dropship-lagret läst 0 för en
+   * levande listning. Vi nollar Wix-lagret först vid STOCK_ZERO_STRIKES_REQUIRED
+   * (skydd mot en enstaka opålitlig 0-läsning). Saknas (äldre anropare/tester) →
+   * behandlas som bekräftad (bakåtkompatibelt — nollar direkt som förut).
+   */
+  zeroStreak?: number;
 }
 
 export interface SyncDecision {
@@ -225,6 +241,31 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
   // kvar, listningarna filtreras bort på headless-sajten via inventory=0).
   if (aliExpress.totalStock <= 0) {
     const wasOos = prevState?.listingStatus === "out_of_stock";
+    // Bekräfta 0-lager innan vi nollar (KOD RÖD-principen: en enstaka dropship-
+    // 0-läsning är opålitlig). Analogt med removedStreak: en produkt som läste
+    // lager förra körningen men 0 nu kräver STOCK_ZERO_STRIKES_REQUIRED
+    // körningar i rad med 0. En redan-oos produkt (wasOos) är i steady state →
+    // ingen om-bekräftelse behövs. Saknas zeroStreak (äldre anropare/tester) →
+    // behandlas som bekräftad direkt (bakåtkompatibelt).
+    const streak = inputs.zeroStreak ?? STOCK_ZERO_STRIKES_REQUIRED;
+    const confirmed = wasOos || streak >= STOCK_ZERO_STRIKES_REQUIRED;
+    if (!confirmed) {
+      // Obekräftad (strike < tröskel): rör INTE Wix-lagret (produkten förblir
+      // köpbar) och behåll tidigare status. En riktig utförsäljning bekräftas
+      // och nollas nästa körning.
+      return {
+        listingStatus: prevState?.listingStatus ?? "active",
+        actionTaken: "none",
+        shouldHide: false,
+        shouldRestore: false,
+        inventoryTarget: null,
+        alert: null,
+        newCostSek,
+        notes: `Möjlig slut i lager (${streak}/${STOCK_ZERO_STRIKES_REQUIRED}) — dropship läste 0 men bekräftas inte än (lagret behålls, produkten är köpbar på AliExpress).`,
+        justWentOos: false,
+        justRestocked: false,
+      };
+    }
     return {
       listingStatus: "out_of_stock",
       actionTaken: "marked_oos",
@@ -752,6 +793,15 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // decideSyncOutcome döljer först vid REMOVED_STRIKES_REQUIRED.
   const removedStreak = removedClassified ? (state?.removedStreak ?? 0) + 1 : 0;
 
+  // Lager-0-strike: +1 per körning i rad där en LEVANDE listning läst lager 0,
+  // nollas när lager > 0. decideSyncOutcome nollar Wix-lagret först vid
+  // STOCK_ZERO_STRIKES_REQUIRED (skydd mot en enstaka opålitlig 0-läsning).
+  // Capas vid tröskeln så räknaren inte växer obegränsat för permanent slut.
+  const stockIsZero = aliExpress != null && !aliExpress.listingRemoved && aliExpress.totalStock <= 0;
+  const zeroStreak = stockIsZero
+    ? Math.min((state?.zeroStreak ?? 0) + 1, STOCK_ZERO_STRIKES_REQUIRED)
+    : 0;
+
   // 2) Hämta Wix-snapshot (för visibility + nuvarande pris).
   const wixSnapshot = await getWixProduct(mapping.wixProductId);
   if (!wixSnapshot) {
@@ -791,6 +841,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     pricing,
     marginFloorPercent,
     removedStreak,
+    zeroStreak,
   });
 
   // 3.5) Fraktbarhetskontroll (SucceBuy-fallet 2026-07-13): leverantören kan
@@ -1029,6 +1080,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     outOfStockSince: dryRun ? (state?.outOfStockSince ?? null) : outOfStockSince,
     // Frys i dry-run så en torrkörning inte "konsumerar" en strike.
     removedStreak: dryRun ? (state?.removedStreak ?? 0) : removedStreak,
+    zeroStreak: dryRun ? (state?.zeroStreak ?? 0) : zeroStreak,
     // Lyckad hämtning nollställer felsviten; föll vi hit via
     // ERROR_STRIKES_AS_REMOVED persisteras den vidare-räknade sviten.
     errorStreak: dryRun ? (state?.errorStreak ?? 0) : fetchErrorStreak,

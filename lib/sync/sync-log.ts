@@ -104,6 +104,15 @@ export interface SyncStateEntry {
    * false UTAN denna flagga) respekteras fortfarande. Nollas vid restore.
    */
   hiddenBySync?: boolean;
+  /**
+   * Antal körningar i RAD där dropship-lagret läst 0 (för en levande listning).
+   * Vi nollar INTE Wix-lagret förrän STOCK_ZERO_STRIKES_REQUIRED (skydd mot en
+   * enstaka opålitlig dropship-0-läsning — SucceBuy-väggskåpen 2026-07-14 hade
+   * lager 10 i två dygn, tappades till 0 EN körning medan konsumentsidan hade
+   * kvar 10, och nollades direkt). Nollställs vid lager > 0. Analogt med
+   * removedStreak. Saknas/0 = inga obekräftade 0-observationer.
+   */
+  zeroStreak?: number;
 }
 
 export type AlertType = "price_increase" | "content_change";

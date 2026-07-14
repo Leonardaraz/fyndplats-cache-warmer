@@ -69,6 +69,65 @@ describe("decideSyncOutcome", () => {
     expect(out.inventoryTarget).toBe(0);
   });
 
+  describe("lager-0 kräver bekräftelse (STOCK_ZERO_STRIKES_REQUIRED)", () => {
+    const oosAe = { title: "x", images: [], minCostUsd: 10, totalStock: 0, listingRemoved: false };
+
+    it("EN 0-läsning efter aktivt lager nollar INTE — behåller köpbar", () => {
+      const out = decideSyncOutcome(
+        baseInputs({
+          prevState: { listingStatus: "active", currentStock: 10 } as never,
+          aliExpress: oosAe,
+          zeroStreak: 1,
+        }),
+      );
+      expect(out.listingStatus).toBe("active");
+      expect(out.actionTaken).toBe("none");
+      // Kritiskt: rör INTE Wix-lagret (null = ändra inte) → produkten är kvar köpbar.
+      expect(out.inventoryTarget).toBeNull();
+      expect(out.justWentOos).toBe(false);
+      expect(out.notes).toContain("1/2");
+    });
+
+    it("TVÅ 0-läsningar i rad bekräftar → marked_oos + nollar", () => {
+      const out = decideSyncOutcome(
+        baseInputs({
+          prevState: { listingStatus: "active", currentStock: 10 } as never,
+          aliExpress: oosAe,
+          zeroStreak: 2,
+        }),
+      );
+      expect(out.listingStatus).toBe("out_of_stock");
+      expect(out.actionTaken).toBe("marked_oos");
+      expect(out.inventoryTarget).toBe(0);
+      expect(out.justWentOos).toBe(true);
+    });
+
+    it("redan slut (wasOos) förblir slut redan vid strike 1 — ingen om-bekräftelse", () => {
+      const out = decideSyncOutcome(
+        baseInputs({
+          prevState: { listingStatus: "out_of_stock", currentStock: 0 } as never,
+          aliExpress: oosAe,
+          zeroStreak: 1,
+        }),
+      );
+      expect(out.listingStatus).toBe("out_of_stock");
+      expect(out.actionTaken).toBe("marked_oos");
+      expect(out.inventoryTarget).toBe(0);
+      expect(out.justWentOos).toBe(false);
+    });
+
+    it("utan zeroStreak (äldre anropare) nollar direkt — bakåtkompatibelt", () => {
+      const out = decideSyncOutcome(
+        baseInputs({
+          prevState: { listingStatus: "active", currentStock: 10 } as never,
+          aliExpress: oosAe,
+        }),
+      );
+      expect(out.actionTaken).toBe("marked_oos");
+      expect(out.inventoryTarget).toBe(0);
+    });
+  });
+
   it("flaggar prishöjning som hotar 20%-marginalen", () => {
     // Tidigare cost = 5 USD = 50 SEK. Nuvarande pris i Wix = 199 kr inkl. moms.
     // Netto = 199/1.25 = 159.2. Marginal vid 50 SEK kost = (159.2-50)/159.2 = 68%

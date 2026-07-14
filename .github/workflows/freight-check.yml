@@ -22,6 +22,11 @@ on:
         required: false
         default: false
         type: boolean
+      raw:
+        description: "Dumpa RÅ ds.product.get-svar (lager-diagnos)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   freight:
@@ -33,9 +38,11 @@ jobs:
           url="${url%/api/cron/poll-tracking}/api/admin/freight-check"
           apply=""
           if [ "${{ inputs.apply }}" = "true" ]; then apply="&apply=1"; fi
+          raw=""
+          if [ "${{ inputs.raw }}" = "true" ]; then raw="&raw=1"; fi
           response=$(curl -sS -w "\n%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "${url}?productId=${{ inputs.product_id }}${apply}")
+            "${url}?productId=${{ inputs.product_id }}${apply}${raw}")
           body=$(echo "$response" | sed '$d')
           status=$(echo "$response" | tail -n1)
           echo "HTTP $status"
