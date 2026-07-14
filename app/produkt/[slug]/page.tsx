@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { jsonLdString } from "../../../lib/seo";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { getProductRedirect } from "../../../lib/redirects";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
 import { getProduct, getProducts, getCollections, type Product } from "../../../lib/products";
@@ -67,7 +68,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const p = await getProduct(slug);
-  if (!p) notFound();
+  if (!p) {
+    // Permanent borttagen produkt? Slå upp redirect-tabellen (Wix CMS) och
+    // svara 308 till närmaste levande produkt/kategori i stället för 404 —
+    // bevarar länkvärde och räddar besökare från gamla länkar/annonser.
+    const target = await getProductRedirect(slug);
+    if (target) permanentRedirect(target);
+    notFound();
+  }
 
   const cols = await getCollections();
   // Brödsmulans/JSON-LD:ns kategori: produktens HUVUDavdelning (parentId null) om
