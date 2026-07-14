@@ -58,6 +58,7 @@ const ACTION_SV: Record<SyncLogEntry["actionTaken"], { label: string; color: str
   flagged_price: { label: "Prishöjning flaggad", color: "#d97706" },
   flagged_content: { label: "Innehållsändring flaggad", color: "#0891b2" },
   dry_run: { label: "Dry-run", color: "#94a3b8" },
+  error: { label: "Fel vid hämtning", color: "#dc2626" },
 };
 
 function aeUrl(aliexpressId: string): string {

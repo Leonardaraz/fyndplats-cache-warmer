@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { buildBulkInventoryUpdateBody, buildCreateProductBody, createProduct, type WixProductInput } from "./client";
+import { buildBulkInventoryUpdateBody, buildCreateProductBody, createProduct, summarizeBulkInventoryResult, type WixProductInput } from "./client";
 
 const base: WixProductInput = {
   name: "Test",
@@ -311,5 +311,33 @@ describe("buildBulkInventoryUpdateBody — lagersaldot ska ligga DIREKT på inve
     });
     // Regressionsvakt: den gamla buggen får aldrig komma tillbaka.
     expect(JSON.stringify(body)).not.toContain("trackingMethod");
+  });
+});
+
+
+describe("summarizeBulkInventoryResult — HTTP 200 är inte samma sak som lyckat (audit-fynd 4)", () => {
+  it("alla rader ok → 0 failures", () => {
+    const r = summarizeBulkInventoryResult({
+      results: [{ itemMetadata: { success: true } }, { itemMetadata: { success: true } }],
+      bulkActionMetadata: { totalFailures: 0 },
+    });
+    expect(r.failures).toBe(0);
+  });
+
+  it("revisionskonflikt på en rad → failures + felbeskrivning", () => {
+    const r = summarizeBulkInventoryResult({
+      results: [
+        { itemMetadata: { success: true } },
+        { itemMetadata: { success: false, error: { description: "WRONG_REVISION" } } },
+      ],
+      bulkActionMetadata: { totalFailures: 1 },
+    });
+    expect(r.failures).toBe(1);
+    expect(r.firstError).toContain("WRONG_REVISION");
+  });
+
+  it("tomt/oväntat svar → 0 failures (kastar inte)", () => {
+    expect(summarizeBulkInventoryResult(null).failures).toBe(0);
+    expect(summarizeBulkInventoryResult({}).failures).toBe(0);
   });
 });

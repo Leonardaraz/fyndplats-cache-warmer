@@ -81,6 +81,36 @@ export function classifyFetchError(prevErrorStreak: number | undefined): {
   return { errorStreak, treatAsRemoved: errorStreak >= ERROR_STRIKES_AS_REMOVED };
 }
 
+/**
+ * AliExpress-fel 604 "All SKU Unsaleable": produkten säljs (troligen) inte via
+ * dropship-kanalen längre, men KAN vara köpbar för konsumenter. Efter kod
+ * röd-lärdomen 2026-07-14 (opålitliga kanalsignaler) får detta ALDRIG driva
+ * auto-döljning via felsviten — det kräver Leonards manuella beslut. Felet
+ * loggas synligt och produkten roterar vidare utan strike.
+ */
+export function isUnsaleableError(msg: string): boolean {
+  return /all\s+sku\s+unsaleable/i.test(msg) || /api-fel\s*604\b/i.test(msg);
+}
+
+/**
+ * Per-variant-lager nycklat på BÅDE numeriskt sku_id och attribut-strängen
+ * (sku_attr). Audit-fynd 3 (2026-07-14): mappningarnas supplierVariantId är
+ * attribut-strängar (extension-importen) men kartan nycklades bara på sku_id →
+ * ingen match → tyst even-split-fallback → en slutsåld variant kunde få lager
+ * (samma översäljklass som bugg 2026-06-07).
+ */
+export function buildStockBySupplierId(
+  variants: ReadonlyArray<{ skuId?: string; skuAttr?: string; stock?: number }>,
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const v of variants) {
+    const stock = Math.max(0, Math.trunc(v.stock ?? 0));
+    if (v.skuId) out[String(v.skuId)] = stock;
+    if (v.skuAttr && v.skuAttr.trim()) out[v.skuAttr.trim()] = stock;
+  }
+  return out;
+}
+
 export interface SyncInputs {
   /** Vad vi sparade förra gången vi körde syncen (null = första körningen). */
   prevState: SyncStateEntry | null;
@@ -112,6 +142,9 @@ export interface SyncInputs {
    * behandlas som bekräftad (bakåtkompatibelt — döljer direkt som förut).
    */
   removedStreak?: number;
+  /** True när synken själv dolt produkten (state.hiddenBySync) — tillåter
+   *  auto-restore trots att wixVisible är false. */
+  hiddenBySync?: boolean;
 }
 
 export interface SyncDecision {
@@ -212,10 +245,14 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     listingStatus: "active",
     actionTaken: "none",
     shouldHide: false,
-    // Om föregående status var removed och vi nu ser aktiv listning → restore
-    // (men ENDAST om Wix-produkten själv är synlig så vi inte överröstar en
-    // manuell unpublish från Leonard).
-    shouldRestore: prevState?.listingStatus === "removed" && inputs.wixVisible,
+    // Om föregående status var removed och vi nu ser aktiv listning → restore.
+    // Tillåtet när produkten är synlig ELLER när det var SYNKEN som dolde den
+    // (hiddenBySync) — audit-fynd 2: utan det senare kunde synkens egen
+    // döljning aldrig ångras (visible är ju false då). En MANUELL unpublish
+    // (visible=false utan hiddenBySync) respekteras fortfarande.
+    shouldRestore:
+      prevState?.listingStatus === "removed"
+      && (inputs.wixVisible || inputs.hiddenBySync === true),
     inventoryTarget: aliExpress.totalStock,
     alert: null,
     newCostSek,
@@ -507,10 +544,13 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
       if (result.oosEvent) summary.oosEvents.push(result.oosEvent);
       if (result.restockSent) summary.restockNotificationsSent += result.restockSent;
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message.slice(0, 300) : String(err);
+      // Synlig i Vercel-loggen (audit-fynd 6) — summeringen persisterar bara antalet.
+      console.warn(`[sync] fel ${mapping.wixProductId} (${mapping.supplierProductId}): ${errMsg}`);
       summary.errors.push({
         productId: mapping.wixProductId,
         aliexpressId: mapping.supplierProductId,
-        error: err instanceof Error ? err.message.slice(0, 300) : String(err),
+        error: errMsg,
       });
     }
   }
@@ -583,11 +623,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       .filter((v) => (v.stock ?? 0) > 0 && v.price > 0)
       .reduce((min, v) => (min === 0 ? v.price : Math.min(min, v.price)), 0);
     const totalStock = product.variants.reduce((s, v) => s + (v.stock ?? 0), 0);
-    aeStockBySupplierId = Object.fromEntries(
-      product.variants
-        .filter((v) => v.skuId)
-        .map((v) => [String(v.skuId), Math.max(0, Math.trunc(v.stock ?? 0))]),
-    );
+    aeStockBySupplierId = buildStockBySupplierId(product.variants);
     aeVariantsForShippability = product.variants
       .filter((v) => v.skuId)
       .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
@@ -618,6 +654,46 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
         totalStock: 0,
         listingRemoved: true,
       };
+    } else if (isUnsaleableError(msg)) {
+      // 604 "All SKU Unsaleable": egen OFARLIG klassificering (audit-fynd 1).
+      // Får ALDRIG driva errorStreak→removed→hidden — produkten kan vara fullt
+      // köpbar för konsumenter (21 levande produkter var på väg att auto-döljas
+      // 2026-07-14). Rotationen går vidare, sviten fryses, felet loggas synligt
+      // och räknas i körningens fel — beslutet är Leonards.
+      if (!dryRun) {
+        await getSyncStore().saveState({
+          currentCostSek: state?.currentCostSek ?? null,
+          currentCostUsd: state?.currentCostUsd ?? null,
+          currentStock: state?.currentStock ?? null,
+          listingStatus: state?.listingStatus ?? "unknown",
+          titleHash: state?.titleHash ?? null,
+          imageHash: state?.imageHash ?? null,
+          lastOosAlertAt: state?.lastOosAlertAt ?? null,
+          outOfStockSince: state?.outOfStockSince ?? null,
+          removedStreak: state?.removedStreak ?? 0,
+          hiddenBySync: state?.hiddenBySync ?? false,
+          wixProductId: mapping.wixProductId,
+          aliexpressId: mapping.supplierProductId,
+          lastCheckedAt: checkedAt,
+          errorStreak: state?.errorStreak ?? 0,
+        });
+        try {
+          await getSyncStore().appendLog({
+            id: `${mapping.wixProductId}-${checkedAt}`,
+            productId: mapping.wixProductId,
+            aliexpressId: mapping.supplierProductId,
+            checkedAt,
+            prevCostSek: state?.currentCostSek ?? null,
+            newCostSek: null,
+            prevStock: state?.currentStock ?? null,
+            newStock: null,
+            listingStatus: state?.listingStatus ?? "unknown",
+            actionTaken: "error",
+            notes: "AliExpress 604: All SKU Unsaleable — säljs möjligen inte via dropship-kanalen. Döljs INTE automatiskt; kräver manuellt beslut.",
+          });
+        } catch { /* loggning är best-effort */ }
+      }
+      throw err;
     } else {
       // OKLASSAT fel. Tidigare: re-throw → state rördes aldrig → produkten låg
       // kvar FÖRST i äldst-först-kön och brände kvot varje körning, tyst.
@@ -642,11 +718,29 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
             lastOosAlertAt: state?.lastOosAlertAt ?? null,
             outOfStockSince: state?.outOfStockSince ?? null,
             removedStreak: state?.removedStreak ?? 0,
+            hiddenBySync: state?.hiddenBySync ?? false,
             wixProductId: mapping.wixProductId,
             aliexpressId: mapping.supplierProductId,
             lastCheckedAt: checkedAt,
             errorStreak: fetchErrorStreak,
           });
+          // Synlig loggrad (audit-fynd 6): tidigare fanns felet BARA som en
+          // siffra i körningens summering — odiagnostiserbart i efterhand.
+          try {
+            await getSyncStore().appendLog({
+              id: `${mapping.wixProductId}-${checkedAt}`,
+              productId: mapping.wixProductId,
+              aliexpressId: mapping.supplierProductId,
+              checkedAt,
+              prevCostSek: state?.currentCostSek ?? null,
+              newCostSek: null,
+              prevStock: state?.currentStock ?? null,
+              newStock: null,
+              listingStatus: state?.listingStatus ?? "unknown",
+              actionTaken: "error",
+              notes: `Hämtningsfel (svit ${fetchErrorStreak}/${ERROR_STRIKES_AS_REMOVED}): ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+            });
+          } catch { /* loggning är best-effort */ }
         }
         // Räknas som fel i körningens summering (samma som förr), men utan
         // att blockera rotationen.
@@ -690,6 +784,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     prevState: state,
     aliExpress,
     wixVisible: wixSnapshot.visible,
+    hiddenBySync: state?.hiddenBySync,
     currentPriceSek,
     newTitleHash,
     newImageHash,
@@ -931,6 +1026,14 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     // Lyckad hämtning nollställer felsviten; föll vi hit via
     // ERROR_STRIKES_AS_REMOVED persisteras den vidare-räknade sviten.
     errorStreak: dryRun ? (state?.errorStreak ?? 0) : fetchErrorStreak,
+    // Kom ihåg när DET VAR VI som dolde (→ auto-restore tillåten, fynd 2).
+    hiddenBySync: dryRun
+      ? (state?.hiddenBySync ?? false)
+      : decision.shouldHide
+        ? true
+        : decision.shouldRestore
+          ? false
+          : (state?.hiddenBySync ?? false),
   };
   await syncStore.saveState(newState);
 
