@@ -20,20 +20,20 @@ describe("parseFreightOutcome — ds.freight.query-formen", () => {
     expect(v).toMatchObject({ known: true, shippable: true, optionCount: 2 });
   });
 
-  it("TOM alternativ-lista → bevisat ofraktbar", () => {
+  it("TOM alternativ-lista → unknown (API:t ger tomma svar även för fraktbara SKU:er)", () => {
     const v = parseFreightOutcome({
       method: "aliexpress.ds.freight.query",
       raw: { result: { success: true, delivery_options: { delivery_option_d_t_o: [] } } },
     });
-    expect(v).toMatchObject({ known: true, shippable: false, optionCount: 0 });
+    expect(v).toMatchObject({ known: false, shippable: null, optionCount: 0 });
   });
 
-  it("success=false med fraktvägs-fel → ofraktbar", () => {
+  it("success=false med fraktvägs-fel → unknown (nej-svar är opålitliga per anrop)", () => {
     const v = parseFreightOutcome({
       method: "aliexpress.ds.freight.query",
       raw: { result: { success: false, msg: "Seller does not support delivery to this country" } },
     });
-    expect(v).toMatchObject({ known: true, shippable: false });
+    expect(v).toMatchObject({ known: false, shippable: null });
   });
 
   it("success=false med okänt fel → unknown (nollar aldrig på obevisat)", () => {
@@ -64,28 +64,29 @@ describe("parseFreightOutcome — logistics.buyer.freight.calculate-formen", () 
 });
 
 describe("parseFreightOutcome — skarpt verifierade AliExpress-svar", () => {
-  it("DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS → bevisat ofraktbar (live-svar 2026-07-13)", () => {
+  it("DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS → unknown (kod röd 2026-07-14: falska nej i drift)", () => {
+    // Nattens rotation gav detta svar för enskilda färgvarianter hos säljare
+    // som bevisligen levererar (Aosom ES) — nej-svar får ALDRIG ge en dom.
     const v = parseFreightOutcome({
       method: "aliexpress.ds.freight.query",
       raw: { result: { success: false, msg: "DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS" } },
     });
-    expect(v).toMatchObject({ known: true, shippable: false });
-    // Samma sträng via fel-vägen (callApi kastade) ska ge samma dom.
+    expect(v).toMatchObject({ known: false, shippable: null });
     const v2 = parseFreightOutcome({
       method: "aliexpress.ds.freight.query",
       error: "AliExpress API-fel 200: DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS",
     });
-    expect(v2).toMatchObject({ known: true, shippable: false });
+    expect(v2).toMatchObject({ known: false, shippable: null });
   });
 });
 
 describe("parseFreightOutcome — fel från API-anropet", () => {
-  it("'ingen fraktväg'-fel → ofraktbar", () => {
+  it("'ingen fraktväg'-fel → unknown (endast positiv evidens ger dom)", () => {
     const v = parseFreightOutcome({
       method: "aliexpress.ds.freight.query",
       error: "AliExpress API-fel: the seller cannot ship to SE for this sku",
     });
-    expect(v).toMatchObject({ known: true, shippable: false });
+    expect(v).toMatchObject({ known: false, shippable: null });
   });
 
   it("transient/okänt fel → unknown", () => {
