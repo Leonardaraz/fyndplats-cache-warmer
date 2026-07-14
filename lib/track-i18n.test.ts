@@ -1,7 +1,44 @@
 // Run: node --test --experimental-strip-types lib/track-i18n.test.ts
 import test from "node:test";
 import assert from "node:assert/strict";
-import { matchPhrase, orderEventsNewestFirst } from "./track-i18n.ts";
+import { matchPhrase, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents } from "./track-i18n.ts";
+
+test("svCountry – ISO-2 och engelskt namn → svenska; okänt passerar", () => {
+  assert.equal(svCountry("Germany"), "Tyskland");
+  assert.equal(svCountry("DE"), "Tyskland");
+  assert.equal(svCountry("spain"), "Spanien");
+  assert.equal(svCountry("SE"), "Sverige");
+  assert.equal(svCountry("Narnia"), "Narnia"); // okänt land → oförändrat
+  assert.equal(svCountry(""), "");
+  assert.equal(svCountry(undefined), "");
+});
+
+test("svLocation – översätter land, föredrar strukturerad stad+land", () => {
+  // Fri-text-land (17TRACK la landet i location) → svenska.
+  assert.equal(svLocation("Germany"), "Tyskland");
+  assert.equal(svLocation("Spain", {}), "Spanien");
+  // Stad + land ur fri-text.
+  assert.equal(svLocation("Frankfurt, Germany"), "Frankfurt, Tyskland");
+  // Strukturerad adress vinner (visar exakt stad) + land översätts.
+  assert.equal(svLocation("", { city: "Årsta", country: "SE" }), "Årsta, Sverige");
+  assert.equal(svLocation("Germany", { country: "DE" }), "Tyskland");
+  // Bara stad → passerar.
+  assert.equal(svLocation("", { city: "Årsta" }), "Årsta");
+  assert.equal(svLocation(""), "");
+});
+
+test("dedupeEvents – tar bort exakta dubbletter, bevarar ordning + distinkta", () => {
+  const evs = [
+    { time: "2026-07-14T06:37:00+01:00", description: "På väg", location: "Tyskland" },
+    { time: "2026-07-10T08:00:00+01:00", description: "På väg", location: "Spanien" },
+    { time: "2026-07-10T08:00:00+01:00", description: "På väg", location: "Spanien" }, // dubblett
+    { time: "2026-07-10T10:13:00+01:00", description: "På väg", location: "Spanien" }, // annan tid → behålls
+  ];
+  const out = dedupeEvents(evs);
+  assert.equal(out.length, 3);
+  assert.equal(out[0].location, "Tyskland");
+  assert.equal(out[2].time, "2026-07-10T10:13:00+01:00");
+});
 
 test("orderEventsNewestFirst – nyast först (aktiv markör hamnar på nuvarande steg)", () => {
   const evs = [

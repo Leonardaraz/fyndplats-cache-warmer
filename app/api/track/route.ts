@@ -19,7 +19,7 @@
 //   TRACK17_API_KEY  — API-key från https://api.17track.net/
 
 import { NextResponse, type NextRequest } from "next/server";
-import { PHRASE_SV } from "@/lib/track-i18n";
+import { PHRASE_SV, svLocation, dedupeEvents } from "@/lib/track-i18n";
 import { maskCarrier } from "@/lib/carrier-mask";
 import { LEAKY_PATTERN, deriveAeStatus, translateAeDescription, type AeStatus } from "@/lib/ae-track";
 import { registerWith17Track } from "@/lib/track17";
@@ -197,9 +197,9 @@ function mapEvent(ev: Track17Event): {
   location: string;
   status: string;
 } {
-  const loc = ev.location
-    || [ev.address?.city, ev.address?.state].filter(Boolean).join(", ")
-    || "";
+  // Plats på svenska: strukturerad stad + land när 17TRACK ger det (exakt vart
+  // paketet är), annars fri-textens land översatt ("Germany" → "Tyskland").
+  const loc = svLocation(ev.location, ev.address);
   // 17TRACK sub_status kan ha suffix (t.ex. "InTransit_PickedUp") — slå upp
   // exakt, annars på bas-stagen före "_". Garanterar svensk etikett.
   const stage = ev.stage || ev.sub_status || "";
@@ -283,16 +283,18 @@ async function fetchAliExpressEvents(tn: string): Promise<{
       events?: Array<{ time?: string; description?: string }>;
     };
     const rawEvents = body.events ?? [];
-    const events = rawEvents
-      .map((e) => ({
-        time: e.time ?? "",
-        description: translateAeDescription(e.description ?? ""),
-        location: "",
-        status: "",
-      }))
-      // Origin-anonymisering: rader vars text ändå röjer dropship-ursprunget
-      // filtreras bort helt (samma policy som 17TRACK-flödets isHiddenLocation).
-      .filter((e) => e.description && !LEAKY_PATTERN.test(e.description));
+    const events = dedupeEvents(
+      rawEvents
+        .map((e) => ({
+          time: e.time ?? "",
+          description: translateAeDescription(e.description ?? ""),
+          location: "",
+          status: "",
+        }))
+        // Origin-anonymisering: rader vars text ändå röjer dropship-ursprunget
+        // filtreras bort helt (samma policy som 17TRACK-flödets isHiddenLocation).
+        .filter((e) => e.description && !LEAKY_PATTERN.test(e.description)),
+    );
     // AliExpress "Seller Shipping …"-namn är inte kundvänliga → generisk etikett.
     const rawCarrier = body.carrier ?? "";
     const carrier = /seller shipping/i.test(rawCarrier) ? "Transportör" : cleanCarrier(rawCarrier);
@@ -346,9 +348,11 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
   const ti = accepted.track_info;
   // Events ligger i tracking.providers[].events[] (17TRACK v2.2). Filtrera bort
   // asiatiska transit-events, kronologisk ordning (nyast först som 17TRACK ger).
-  const visibleEvents = allEventsOf(ti)
-    .filter((ev) => !isHiddenLocation(ev))
-    .map(mapEvent);
+  const visibleEvents = dedupeEvents(
+    allEventsOf(ti)
+      .filter((ev) => !isHiddenLocation(ev))
+      .map(mapEvent),
+  );
 
   const rawStatus = ti.latest_status?.status;
   const status = mapStatus(rawStatus);
