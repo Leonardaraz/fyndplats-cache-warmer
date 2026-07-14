@@ -267,6 +267,26 @@ export function buildBulkInventoryUpdateBody(updates: InventoryQuantityUpdate[])
   };
 }
 
+/**
+ * Ren summering av bulk-svaret — HTTP 200 betyder INTE att alla rader gick
+ * igenom (audit-fynd 4, 2026-07-14): per-rad-fel (t.ex. revisionskonflikt när
+ * en kund köper samtidigt som synken skriver) rapporteras i results[] och
+ * bulkActionMetadata, inte i statuskoden.
+ */
+export function summarizeBulkInventoryResult(json: unknown): { failures: number; firstError?: string } {
+  const obj = (json ?? {}) as {
+    results?: Array<{ itemMetadata?: { success?: boolean; error?: { description?: string; message?: string } } }>;
+    bulkActionMetadata?: { totalFailures?: number };
+  };
+  const failedRows = (obj.results ?? []).filter((r) => r.itemMetadata?.success === false);
+  const failures = Math.max(obj.bulkActionMetadata?.totalFailures ?? 0, failedRows.length);
+  const firstErr = failedRows[0]?.itemMetadata?.error;
+  return {
+    failures,
+    firstError: firstErr ? (firstErr.description ?? firstErr.message ?? "okänt radfel") : undefined,
+  };
+}
+
 /** Sätter absoluta lagersaldon för flera varianter i en request. */
 export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUpdate[]): Promise<void> {
   if (updates.length === 0) return;
@@ -279,6 +299,15 @@ export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUp
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Wix bulk-update-inventory misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const json = (await res.json().catch(() => null)) as unknown;
+  const { failures, firstError } = summarizeBulkInventoryResult(json);
+  if (failures > 0) {
+    // Kasta så anroparen (synk-loopen) räknar och loggar felet i stället för
+    // att tro att lagret speglades.
+    throw new Error(
+      `Wix bulk-update-inventory: ${failures}/${updates.length} rader misslyckades${firstError ? ` — första: ${firstError.slice(0, 200)}` : ""}`,
+    );
   }
 }
 
@@ -731,7 +760,20 @@ export async function setProductVisibility(
     const text = await res.text();
     throw new Error(`Wix set-visibility misslyckades (${res.status}): ${text.slice(0, 400)}`);
   }
-  const data = (await res.json()) as { product?: { revision?: string } };
+  const data = (await res.json()) as { product?: { revision?: string; visible?: boolean } };
+  // Verifiera att ändringen faktiskt TILLÄMPADES (audit-fynd 5, 2026-07-14):
+  // lagerbuggen (#307) lärde oss att Wix tyst ignorerar okända fält och ändå
+  // svarar 200 + bumpar revision. Denna skrivväg har aldrig exercerats i
+  // drift — utan echo-kontrollen skulle en trasig body se lyckad ut.
+  const got = data.product?.visible;
+  if (typeof got === "boolean" && got !== visible) {
+    throw new Error(
+      `Wix set-visibility: svaret ekar visible=${got} trots begärt ${visible} — uppdateringen tillämpades inte (fältmasken ignorerad?).`,
+    );
+  }
+  if (got === undefined) {
+    console.warn(`[wix] set-visibility ${productId}: svaret saknar visible-fältet — kan inte verifiera att ändringen tillämpades.`);
+  }
   return { revision: data.product?.revision ?? revision };
 }
 

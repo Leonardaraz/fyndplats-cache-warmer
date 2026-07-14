@@ -1,3 +1,4 @@
+import { buildStockBySupplierId, isUnsaleableError } from "./aliexpress-sync";
 import { describe, expect, it } from "vitest";
 import {
   ERROR_STRIKES_AS_REMOVED,
@@ -426,5 +427,68 @@ describe("classifyFetchError — oklassade hämtningsfel fryser inte rotationen"
       errorStreak: ERROR_STRIKES_AS_REMOVED,
       treatAsRemoved: true,
     });
+  });
+});
+
+
+describe("buildStockBySupplierId — nycklar på BÅDE sku_id och sku_attr (audit-fynd 3)", () => {
+  it("attribut-strängs-mappningar matchar per-variant-lagret (ingen even-split)", () => {
+    const map = buildStockBySupplierId([
+      { skuId: "12000058218136832", skuAttr: "14:350853#39 Drawers;200007763:201336106", stock: 26 },
+      { skuId: "12000058218136833", skuAttr: "14:10#40 Drawers;200007763:201336106", stock: 0 },
+    ]);
+    expect(map["12000058218136832"]).toBe(26);
+    expect(map["14:350853#39 Drawers;200007763:201336106"]).toBe(26);
+    expect(map["14:10#40 Drawers;200007763:201336106"]).toBe(0);
+  });
+
+  it("negativt/saknat lager blir 0; tomma nycklar hoppar", () => {
+    const map = buildStockBySupplierId([{ skuId: "1", stock: -5 }, { skuAttr: "  ", stock: 9 }]);
+    expect(map["1"]).toBe(0);
+    expect(Object.keys(map)).toEqual(["1"]);
+  });
+});
+
+describe("isUnsaleableError — 604 får aldrig driva auto-döljning (audit-fynd 1)", () => {
+  it("matchar det skarpa felet", () => {
+    expect(isUnsaleableError("AliExpress API-fel 604: All SKU Unsaleable")).toBe(true);
+    expect(isUnsaleableError("all sku unsaleable")).toBe(true);
+  });
+  it("matchar inte vanliga fel eller 604 i produkt-id", () => {
+    expect(isUnsaleableError("AliExpress API HTTP-fel: 502")).toBe(false);
+    expect(isUnsaleableError("product 16042 not available")).toBe(false);
+  });
+});
+
+describe("shouldRestore — synkens egen döljning kan ångras (audit-fynd 2)", () => {
+  const base = {
+    aliExpress: { title: "t", images: [], minCostUsd: 10, totalStock: 50, listingRemoved: false },
+    currentPriceSek: 199,
+    newTitleHash: "h1",
+    newImageHash: "h2",
+    pricing: { usdToSek: 10.5, vatRatePercent: 25, markup: 2.5 } as never,
+    marginFloorPercent: 20,
+  };
+  const prevRemoved = {
+    wixProductId: "p", aliexpressId: "a", currentCostSek: 100, currentCostUsd: 10,
+    currentStock: 0, listingStatus: "removed" as const, titleHash: "h1", imageHash: "h2",
+    lastCheckedAt: "2026-07-01T00:00:00.000Z",
+  };
+
+  it("dold AV SYNKEN (hiddenBySync) → restore trots visible=false", () => {
+    const d = decideSyncOutcome({ ...base, prevState: prevRemoved, wixVisible: false, hiddenBySync: true });
+    expect(d.shouldRestore).toBe(true);
+  });
+
+  it("MANUELLT dold (ingen hiddenBySync) → ingen restore (Leonards unpublish respekteras)", () => {
+    const d = decideSyncOutcome({ ...base, prevState: prevRemoved, wixVisible: false, hiddenBySync: false });
+    expect(d.shouldRestore).toBe(false);
+    const d2 = decideSyncOutcome({ ...base, prevState: prevRemoved, wixVisible: false });
+    expect(d2.shouldRestore).toBe(false);
+  });
+
+  it("synlig produkt med prev=removed → restore som förut", () => {
+    const d = decideSyncOutcome({ ...base, prevState: prevRemoved, wixVisible: true });
+    expect(d.shouldRestore).toBe(true);
   });
 });

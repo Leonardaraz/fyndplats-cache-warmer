@@ -36,7 +36,11 @@ export type SyncAction =
   | "restored"
   | "flagged_price"
   | "flagged_content"
-  | "dry_run";
+  | "dry_run"
+  // Hämtningen felade (oklassat eller 604 All SKU Unsaleable) — raden gör
+  // felet SYNLIGT i loggen/admin (audit-fynd 6, 2026-07-14: 21 produkter
+  // felade tyst i 8 dagar utan spår någonstans).
+  | "error";
 
 export interface SyncLogEntry {
   /** Unik nyckel: `${productId}-${checkedAt}` */
@@ -92,6 +96,14 @@ export interface SyncStateEntry {
    * felet som borttagen listning. Nollställs vid lyckad hämtning.
    */
   errorStreak?: number;
+  /**
+   * True när det är SYNKEN som dolt produkten (listning borttagen/felsvit).
+   * Utan denna kunde en produkt synken dolt aldrig auto-återställas —
+   * shouldRestore krävde wixVisible=true, men synkens egen döljning gör ju
+   * produkten osynlig (audit-fynd 2, 2026-07-14). Manuell unpublish (visible=
+   * false UTAN denna flagga) respekteras fortfarande. Nollas vid restore.
+   */
+  hiddenBySync?: boolean;
 }
 
 export type AlertType = "price_increase" | "content_change";

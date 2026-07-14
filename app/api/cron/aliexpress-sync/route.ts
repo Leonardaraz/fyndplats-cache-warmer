@@ -101,6 +101,8 @@ async function handle(req: NextRequest): Promise<NextResponse> {
         restored: summary.restored,
         oosRealtimeAlerts: summary.oosRealtimeAlerts,
         restockNotificationsSent: summary.restockNotificationsSent,
+        shippabilityChecked: summary.shippabilityChecked ?? 0,
+        shippabilityUnshippable: summary.shippabilityUnshippable ?? 0,
         errors: summary.errors.length,
       }),
     );
