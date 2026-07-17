@@ -26,10 +26,13 @@ import {
 import {
   runSupplierWatch,
   supplierWatchConfigFromEnv,
+  type SupplierWatchConfig,
   type SupplierWatchDeps,
   type SupplierWatchMatch,
   type SupplierWatchSummary,
 } from "@/lib/discover/supplier-watch";
+import { gatherSellerCandidates } from "@/lib/discover/seller-catalog";
+import { buildSellerSources } from "@/lib/discover/seller-sources";
 import { createBulkImportJob, BulkImportLimitError } from "@/lib/bulk-import/service";
 import type { ParsedCsv } from "@/lib/bulk-import/csv";
 import { buildSupplierWatchEmail, sendEmail } from "@/lib/email/resend";
@@ -62,9 +65,18 @@ function matchesToCsv(matches: SupplierWatchMatch[]): ParsedCsv {
   };
 }
 
-function buildDeps(): SupplierWatchDeps {
+function buildDeps(config: SupplierWatchConfig): SupplierWatchDeps {
   return {
+    // Keyword-läget (default): bred text.search per kategoriterm.
     search: (term) => searchAliExpressByText(term, { pageSize: SEARCH_PAGE_SIZE, sortBy: "orders,desc" }),
+    // Seller-läget: säljar-scopad katalog per butik (storefront + api-filter).
+    discoverCandidates:
+      config.mode === "seller"
+        ? (storeIds) =>
+            gatherSellerCandidates(buildSellerSources(), storeIds, {
+              totalCap: config.maxDetailCalls * 4,
+            })
+        : undefined,
     getDetail: (id) => getProduct(id),
     listExistingSupplierProductIds: async () => {
       const mappings = await getStore().listMappings();
@@ -105,7 +117,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
 
   let summary: SupplierWatchSummary;
   try {
-    summary = await runSupplierWatch(buildDeps(), config);
+    summary = await runSupplierWatch(buildDeps(config), config);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await audit("supplier_watch_error", undefined, msg.slice(0, 400));
@@ -116,6 +128,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     "supplier_watch_run",
     summary.enqueue && "jobId" in summary.enqueue ? summary.enqueue.jobId : undefined,
     JSON.stringify({
+      mode: summary.mode,
       terms: summary.termsUsed,
       matches: summary.matches.length,
       detailCalls: summary.detailCalls,

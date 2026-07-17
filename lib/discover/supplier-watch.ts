@@ -79,6 +79,14 @@ export interface SupplierWatchConfig {
   seenTtlDays: number;
   /** true = rapportera bara, köa inget. */
   dryRun: boolean;
+  /**
+   * Kandidat-källa:
+   *   "keyword" — text.search på kategoritermer (bred, kräver inga scopes).
+   *   "seller"  — säljar-scopad bindning (butiks-katalog per store_id).
+   * Oavsett läge detalj-verifieras store_id nedan, så korrektheten är samma —
+   * seller-läget är bara effektivare/mer heltäckande PER säljare.
+   */
+  mode: "keyword" | "seller";
 }
 
 export const DEFAULT_TERMS_PER_RUN = 6;
@@ -114,6 +122,9 @@ export function supplierWatchConfigFromEnv(
     seenTtlDays: parsePositiveInt(env.SUPPLIER_WATCH_SEEN_TTL_DAYS, DEFAULT_SEEN_TTL_DAYS),
     // Dry-run är default — kräver explicit "false" för att börja köa.
     dryRun: env.SUPPLIER_WATCH_DRY_RUN !== "false",
+    // Keyword är default (kräver inga scopes/skrapning). "seller" aktiveras
+    // explicit när butiks-katalog-källan verifierats i prod (se seller-probe).
+    mode: env.SUPPLIER_WATCH_MODE === "seller" ? "seller" : "keyword",
   };
 }
 
@@ -145,9 +156,25 @@ export interface SupplierWatchMatch {
   foundByTerm: string;
 }
 
+/** En kandidat-produkt att detalj-verifiera, med var den kom ifrån. */
+export interface CandidateRef {
+  aeProductId: string;
+  /** Ursprung: en sökterm (keyword) eller "store:{id}" / källnamn (seller). */
+  foundBy: string;
+}
+
+/** Resultat från kandidat-insamlingen i seller-läget. */
+export interface CandidateDiscovery {
+  candidates: CandidateRef[];
+  /** Antal råa kandidater per källa/butik (för rapporten). */
+  sourceStats: Record<string, number>;
+  errors: string[];
+}
+
 export interface SupplierWatchSummary {
+  mode: "keyword" | "seller";
   termsUsed: string[];
-  /** Sökträffar per term (för att se döda termer). */
+  /** Sökträffar per term (keyword) eller råa kandidater per källa (seller). */
   hitsPerTerm: Record<string, number>;
   searchErrors: string[];
   detailCalls: number;
@@ -167,7 +194,13 @@ export interface SupplierWatchSummary {
 }
 
 export interface SupplierWatchDeps {
-  search(term: string): Promise<AliExpressSearchResult[]>;
+  /** Keyword-läget: text.search per kategoriterm. Krävs när mode="keyword". */
+  search?(term: string): Promise<AliExpressSearchResult[]>;
+  /**
+   * Seller-läget: samlar kandidat-produkt-id per bevakad butik (butiks-katalog).
+   * Krävs när mode="seller". Kastar inte — fel rapporteras i `errors`.
+   */
+  discoverCandidates?(storeIds: string[]): Promise<CandidateDiscovery>;
   getDetail(productId: string): Promise<AliExpressDsProduct>;
   /** supplierProductId för allt som redan importerats (FyndplatsMappings). */
   listExistingSupplierProductIds(): Promise<Set<string>>;
@@ -202,7 +235,8 @@ export async function runSupplierWatch(
   const terms = selectTermsForRun(config.terms, config.termsPerRun, dayIndex);
 
   const summary: SupplierWatchSummary = {
-    termsUsed: terms,
+    mode: config.mode,
+    termsUsed: config.mode === "keyword" ? terms : [],
     hitsPerTerm: {},
     searchErrors: [],
     detailCalls: 0,
@@ -225,7 +259,38 @@ export async function runSupplierWatch(
     deps.listSeen(config.seenTtlDays),
   ]);
 
-  // Dubblettskydd INOM körningen — samma produkt kan träffa flera termer.
+  // --- Steg 1: samla kandidater (läges-beroende) --------------------------
+  // Ordnad lista; dubbletter (samma id via flera termer/källor) filtreras i
+  // verifieringsloopen. Fel per term/källa fäller inte körningen.
+  const candidates: CandidateRef[] = [];
+  if (config.mode === "seller") {
+    if (!deps.discoverCandidates) {
+      summary.searchErrors.push("seller-läge saknar discoverCandidates-dep");
+    } else {
+      const disc = await deps.discoverCandidates([...config.sellerIds]);
+      candidates.push(...disc.candidates);
+      summary.hitsPerTerm = disc.sourceStats;
+      summary.searchErrors.push(...disc.errors);
+    }
+  } else {
+    for (const term of terms) {
+      let hits: AliExpressSearchResult[];
+      try {
+        hits = (await deps.search?.(term)) ?? [];
+      } catch (err) {
+        summary.searchErrors.push(
+          `${term}: ${err instanceof Error ? err.message.slice(0, 160) : String(err)}`,
+        );
+        continue;
+      }
+      summary.hitsPerTerm[term] = hits.length;
+      for (const hit of hits) {
+        if (hit.productId) candidates.push({ aeProductId: hit.productId, foundBy: term });
+      }
+    }
+  }
+
+  // --- Steg 2: verifiera + samla matchningar (delad, läges-oberoende) ------
   const checkedThisRun = new Set<string>();
   const newSeen: SupplierWatchSeenRecord[] = [];
 
@@ -244,78 +309,65 @@ export async function runSupplierWatch(
     });
   };
 
-  outer: for (const term of terms) {
-    let hits: AliExpressSearchResult[];
-    try {
-      hits = await deps.search(term);
-    } catch (err) {
-      summary.searchErrors.push(
-        `${term}: ${err instanceof Error ? err.message.slice(0, 160) : String(err)}`,
-      );
+  for (const cand of candidates) {
+    const id = cand.aeProductId;
+    if (!id || checkedThisRun.has(id)) continue;
+    if (existing.has(id)) {
+      summary.skipped.alreadyImported++;
       continue;
     }
-    summary.hitsPerTerm[term] = hits.length;
-
-    for (const hit of hits) {
-      const id = hit.productId;
-      if (!id || checkedThisRun.has(id)) continue;
-      if (existing.has(id)) {
-        summary.skipped.alreadyImported++;
-        continue;
-      }
-      if (seen.has(id)) {
-        summary.skipped.seenCache++;
-        continue;
-      }
-      // Kapacitetstak: sluta detalj-kolla när köandet ändå är fullt.
-      if (summary.matches.length >= config.maxEnqueues) break outer;
-      if (summary.detailCalls >= config.maxDetailCalls) break outer;
-
-      checkedThisRun.add(id);
-      summary.detailCalls++;
-
-      let detail: AliExpressDsProduct;
-      try {
-        detail = await deps.getDetail(id);
-      } catch {
-        // Transient? Cacha INTE — låt nästa körning försöka igen.
-        summary.detailErrors++;
-        continue;
-      }
-
-      if (!detail.storeId || !config.sellerIds.has(detail.storeId)) {
-        summary.skipped.wrongSeller++;
-        reject(id, "wrong_seller", detail);
-        continue;
-      }
-      if (!detail.hasEuWarehouse) {
-        summary.skipped.noEu++;
-        reject(id, "no_eu", detail);
-        continue;
-      }
-      const minCost = minInStockCostUsd(detail);
-      if (!Number.isFinite(minCost)) {
-        summary.skipped.noStock++;
-        reject(id, "no_stock", detail);
-        continue;
-      }
-      if (minCost > config.maxCostUsd) {
-        summary.skipped.tooExpensive++;
-        reject(id, "too_expensive", detail);
-        continue;
-      }
-
-      summary.matches.push({
-        aeProductId: id,
-        title: detail.title,
-        storeId: detail.storeId,
-        storeName: detail.storeName,
-        minCostUsd: minCost,
-        hasEuWarehouse: true,
-        sourceUrl: productUrl(id),
-        foundByTerm: term,
-      });
+    if (seen.has(id)) {
+      summary.skipped.seenCache++;
+      continue;
     }
+    // Kapacitetstak: sluta detalj-kolla när köandet ändå är fullt.
+    if (summary.matches.length >= config.maxEnqueues) break;
+    if (summary.detailCalls >= config.maxDetailCalls) break;
+
+    checkedThisRun.add(id);
+    summary.detailCalls++;
+
+    let detail: AliExpressDsProduct;
+    try {
+      detail = await deps.getDetail(id);
+    } catch {
+      // Transient? Cacha INTE — låt nästa körning försöka igen.
+      summary.detailErrors++;
+      continue;
+    }
+
+    if (!detail.storeId || !config.sellerIds.has(detail.storeId)) {
+      summary.skipped.wrongSeller++;
+      reject(id, "wrong_seller", detail);
+      continue;
+    }
+    if (!detail.hasEuWarehouse) {
+      summary.skipped.noEu++;
+      reject(id, "no_eu", detail);
+      continue;
+    }
+    const minCost = minInStockCostUsd(detail);
+    if (!Number.isFinite(minCost)) {
+      summary.skipped.noStock++;
+      reject(id, "no_stock", detail);
+      continue;
+    }
+    if (minCost > config.maxCostUsd) {
+      summary.skipped.tooExpensive++;
+      reject(id, "too_expensive", detail);
+      continue;
+    }
+
+    summary.matches.push({
+      aeProductId: id,
+      title: detail.title,
+      storeId: detail.storeId,
+      storeName: detail.storeName,
+      minCostUsd: minCost,
+      hasEuWarehouse: true,
+      sourceUrl: productUrl(id),
+      foundByTerm: cand.foundBy,
+    });
   }
 
   // Persistera avslag — best effort: en trasig cache-write ska inte fälla

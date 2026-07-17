@@ -880,6 +880,13 @@ export interface AliExpressSearchOptions {
   maxPriceUsd?: number;
   /** Kategori-id om vi vill begränsa. */
   categoryId?: string;
+  /**
+   * AliExpress-butiks-id (store_id) att begränsa träffarna till. Best-effort —
+   * skickas i searchExtend. Om API-gruppen ignorerar det är sökningen bara
+   * osäljar-scopad (samma som utan filter); nedströms detalj-verifieras säljaren
+   * ändå, så korrektheten påverkas inte. Används av supplier-watchens seller-läge.
+   */
+  sellerId?: string;
 }
 
 function parseFloatSafe(s: unknown): number | undefined {
@@ -1021,16 +1028,24 @@ export async function searchAliExpressByText(
     const page = Math.max(1, options.page ?? 1);
     const pageSize = Math.min(50, Math.max(1, options.pageSize ?? 20));
 
+    const searchExtend: Record<string, unknown> = { sortBy };
+    // Best-effort säljarfilter (seller-läget). AE-grupper använder olika nycklar
+    // → skicka de vanligaste; okända ignoreras tyst av API:t.
+    if (options.sellerId) {
+      searchExtend.sellerId = options.sellerId;
+      searchExtend.storeId = options.sellerId;
+    }
     const bizParams: Record<string, string> = {
       keyWord: query,
       local: "en_US",
       countryCode: "SE",
       currency: "USD",
-      searchExtend: JSON.stringify({ sortBy }),
+      searchExtend: JSON.stringify(searchExtend),
       pageSize: String(pageSize),
       pageIndex: String(page),
     };
     if (options.categoryId) bizParams.categoryId = options.categoryId;
+    if (options.sellerId) bizParams.sellerId = options.sellerId;
     if (options.maxPriceUsd !== undefined) {
       // AliExpress text-search stöder maxPrice i vissa app-grupper.
       // Skicka som extra param; om API:t ignorerar det filtrerar vi nedan.

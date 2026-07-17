@@ -36,6 +36,7 @@ function baseConfig(over: Partial<SupplierWatchConfig> = {}): SupplierWatchConfi
     maxCostUsd: 250,
     seenTtlDays: 45,
     dryRun: false,
+    mode: "keyword",
     ...over,
   };
 }
@@ -274,6 +275,71 @@ describe("runSupplierWatch", () => {
   });
 });
 
+describe("runSupplierWatch — seller-läge (butiks-katalog-bindning)", () => {
+  it("använder discoverCandidates istället för search och verifierar likadant", async () => {
+    const search = vi.fn(async () => [hit("should-not-run")]);
+    const summary = await runSupplierWatch(
+      makeDeps({
+        search,
+        discoverCandidates: async (storeIds) => {
+          expect(storeIds).toContain("1104096404");
+          return {
+            candidates: [
+              { aeProductId: "s-ok", foundBy: "storefront:1104096404" },
+              { aeProductId: "s-wrong", foundBy: "storefront:1104096404" },
+            ],
+            sourceStats: { "storefront:1104096404": 2 },
+            errors: [],
+          };
+        },
+        getDetail: async (id) =>
+          id === "s-ok"
+            ? detail({ productId: "s-ok", storeId: "1104096404" })
+            : detail({ productId: "s-wrong", storeId: "000" }),
+      }),
+      baseConfig({ mode: "seller" }),
+    );
+    expect(search).not.toHaveBeenCalled();
+    expect(summary.mode).toBe("seller");
+    expect(summary.matches.map((m) => m.aeProductId)).toEqual(["s-ok"]);
+    expect(summary.matches[0].foundByTerm).toBe("storefront:1104096404");
+    expect(summary.skipped.wrongSeller).toBe(1);
+    expect(summary.hitsPerTerm).toEqual({ "storefront:1104096404": 2 });
+  });
+
+  it("seller-läge utan discoverCandidates → rapporterar fel, kör inget", async () => {
+    const summary = await runSupplierWatch(
+      makeDeps({ search: async () => [hit("x")] }),
+      baseConfig({ mode: "seller" }),
+    );
+    expect(summary.matches).toHaveLength(0);
+    expect(summary.searchErrors.join(" ")).toMatch(/discoverCandidates/);
+  });
+
+  it("dedupar id från flera källor och respekterar maxDetailCalls i seller-läge", async () => {
+    const getDetail = vi.fn(async (id: string) => detail({ productId: id, storeId: "999" }));
+    const summary = await runSupplierWatch(
+      makeDeps({
+        discoverCandidates: async () => ({
+          candidates: [
+            { aeProductId: "d1", foundBy: "storefront:1" },
+            { aeProductId: "d1", foundBy: "api-search-extend:1" }, // dubblett
+            { aeProductId: "d2", foundBy: "storefront:1" },
+            { aeProductId: "d3", foundBy: "storefront:1" },
+          ],
+          sourceStats: {},
+          errors: [],
+        }),
+        getDetail,
+      }),
+      baseConfig({ mode: "seller", maxDetailCalls: 2 }),
+    );
+    // d1 en gång (dedup) + d2 → 2 detalj-anrop, sedan tak
+    expect(getDetail).toHaveBeenCalledTimes(2);
+    expect(summary.detailCalls).toBe(2);
+  });
+});
+
 describe("supplierWatchConfigFromEnv", () => {
   it("dry-run är default PÅ (kräver explicit false)", () => {
     expect(supplierWatchConfigFromEnv({} as NodeJS.ProcessEnv).dryRun).toBe(true);
@@ -294,5 +360,15 @@ describe("supplierWatchConfigFromEnv", () => {
     const cfg = supplierWatchConfigFromEnv({} as NodeJS.ProcessEnv);
     expect(cfg.sellerIds.has("1104096404")).toBe(true); // Aosom
     expect(cfg.terms.length).toBeGreaterThan(10);
+  });
+
+  it("mode är keyword som default, seller bara vid explicit env", () => {
+    expect(supplierWatchConfigFromEnv({} as NodeJS.ProcessEnv).mode).toBe("keyword");
+    expect(
+      supplierWatchConfigFromEnv({ SUPPLIER_WATCH_MODE: "seller" } as unknown as NodeJS.ProcessEnv).mode,
+    ).toBe("seller");
+    expect(
+      supplierWatchConfigFromEnv({ SUPPLIER_WATCH_MODE: "garbage" } as unknown as NodeJS.ProcessEnv).mode,
+    ).toBe("keyword");
   });
 });

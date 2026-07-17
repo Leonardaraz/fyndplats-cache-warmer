@@ -432,9 +432,14 @@ export function buildSupplierWatchEmail(
 
   const subject = `Fyndplats: ${n} ny${n === 1 ? "" : "a"} leverantörsprodukt${n === 1 ? "" : "er"} hittad${n === 1 ? "" : "e"}${summary.dryRun ? " (dry-run)" : ""}`;
 
+  const provenance =
+    summary.mode === "seller"
+      ? `Seller-läge · butiks-katalog (${Object.keys(summary.hitsPerTerm).join(", ") || "inga källor svarade"})`
+      : `Keyword-läge · ${summary.termsUsed.join(", ")}`;
+
   const html = `
     <h2 style="margin:0 0 4px;font-size:18px;">Nya produkter från dina leverantörer</h2>
-    <p style="margin:0 0 16px;color:${BRAND.muted};font-size:13px;">${escapeHtml(summary.termsUsed.join(", "))}</p>
+    <p style="margin:0 0 16px;color:${BRAND.muted};font-size:13px;">${escapeHtml(provenance)}</p>
     ${statusNote}
     <ul style="font-size:14px;padding-left:18px;margin:0 0 16px;">${items}</ul>
     <p style="font-size:12px;color:${BRAND.muted};margin:0;border-top:1px solid ${BRAND.border};padding-top:12px;">
