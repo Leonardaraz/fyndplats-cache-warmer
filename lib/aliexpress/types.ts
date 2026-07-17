@@ -33,6 +33,10 @@ export interface AliExpressDsProduct {
   shipsFromCountries?: string[];
   /** True om någon SKU skickas från EU-warehouse (för snabbfilterring). */
   hasEuWarehouse?: boolean;
+  /** AliExpress-butikens id (ae_store_info.store_id) — supplier-watchens säljarfilter. */
+  storeId?: string;
+  /** Butikens visningsnamn (ae_store_info.store_name). */
+  storeName?: string;
 }
 
 export interface DsTokenResponse {

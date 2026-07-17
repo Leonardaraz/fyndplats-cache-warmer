@@ -70,6 +70,45 @@ describe("getProduct — response parser", () => {
     expect(p.variants[0].imageUrl).toBe("https://img/red.jpg");
   });
 
+  it("parsar ae_store_info → storeId/storeName (supplier-watchens säljarfilter)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        aliexpress_ds_product_get_response: {
+          result: {
+            ae_item_base_info_dto: { product_id: 1005008079900702, subject: "Cat tree", detail: "x" },
+            ae_store_info: { store_id: 1104096404, store_name: "Aosom ES (EU) Store" },
+            ae_item_sku_info_dtos: [
+              { id: "s1", sku_available_stock: 3, offer_sale_price: "40.00", ship_from_code: "ES" },
+            ],
+          },
+        },
+      }),
+    }));
+    const { getProduct } = await import("./client");
+    const p = await getProduct("1005008079900702");
+    // store_id kommer som number från AE → normaliseras till string (matchar mappnings supplierId).
+    expect(p.storeId).toBe("1104096404");
+    expect(p.storeName).toBe("Aosom ES (EU) Store");
+  });
+
+  it("saknad ae_store_info → storeId undefined (fälls som wrong_seller nedströms)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        aliexpress_ds_product_get_response: {
+          result: {
+            ae_item_base_info_dto: { product_id: 42, subject: "No store", detail: "x" },
+            ae_item_sku_info_dtos: [{ id: "s", sku_available_stock: 1, offer_sale_price: "5" }],
+          },
+        },
+      }),
+    }));
+    const { getProduct } = await import("./client");
+    const p = await getProduct("42");
+    expect(p.storeId).toBeUndefined();
+  });
+
   it("parsar simplified DS-svar (platt array under ae_item_sku_info_dtos)", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: true,

@@ -338,6 +338,8 @@ interface RawProduct {
     logistics_info_dto?: { ship_from?: string; ship_from_code?: string };
     package_info_dto?: { ship_from?: string };
     ship_from?: string;
+    // Säljar-/butiksinfo — supplier-watchens säljarfilter läser store_id härifrån.
+    ae_store_info?: { store_id?: number | string; store_name?: string };
   };
 }
 
@@ -427,6 +429,8 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
   if (productDefaultShipFrom) allCodes.push(productDefaultShipFrom);
   const shipsFromCountries = uniqueShipFromCodes(allCodes);
 
+  const storeIdRaw = r.ae_store_info?.store_id;
+
   return {
         productId: String(base.product_id ?? productId),
         title: base.subject ?? "",
@@ -436,6 +440,8 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         shipFrom: productDefaultShipFrom || undefined,
         shipsFromCountries,
         hasEuWarehouse: hasAnyEuWarehouse(shipsFromCountries),
+        storeId: storeIdRaw != null && String(storeIdRaw) !== "" ? String(storeIdRaw) : undefined,
+        storeName: r.ae_store_info?.store_name || undefined,
   };
 }
 
@@ -1003,6 +1009,13 @@ export interface AliExpressSearchOptions {
   maxPriceUsd?: number;
   /** Kategori-id om vi vill begränsa. */
   categoryId?: string;
+  /**
+   * AliExpress-butiks-id (store_id) att begränsa träffarna till. Best-effort —
+   * skickas i searchExtend. Om API-gruppen ignorerar det är sökningen bara
+   * osäljar-scopad (samma som utan filter); nedströms detalj-verifieras säljaren
+   * ändå, så korrektheten påverkas inte. Används av supplier-watchens seller-läge.
+   */
+  sellerId?: string;
 }
 
 function parseFloatSafe(s: unknown): number | undefined {
@@ -1160,12 +1173,21 @@ export async function searchAliExpressByText(
     const page = Math.max(1, options.page ?? 1);
     const pageSize = Math.min(50, Math.max(1, options.pageSize ?? 20));
 
+    const searchExtend: Record<string, unknown> = { sortBy };
+    // Best-effort säljarfilter (seller-läget) — ENDAST i searchExtend (freeform
+    // JSON som AE tolkar tolerant). Vi skickar det INTE som top-level biz-param:
+    // alla biz-params signeras, och en okänd top-level-param kan få vissa
+    // API-grupper att avvisa hela sökningen (IncompleteSignature/param-fel).
+    if (options.sellerId) {
+      searchExtend.sellerId = options.sellerId;
+      searchExtend.storeId = options.sellerId;
+    }
     const bizParams: Record<string, string> = {
       keyWord: query,
       local: "en_US",
       countryCode: "SE",
       currency: "USD",
-      searchExtend: JSON.stringify({ sortBy }),
+      searchExtend: JSON.stringify(searchExtend),
       pageSize: String(pageSize),
       pageIndex: String(page),
     };
