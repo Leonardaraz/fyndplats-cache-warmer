@@ -87,6 +87,12 @@ export interface SupplierWatchConfig {
    * seller-läget är bara effektivare/mer heltäckande PER säljare.
    */
   mode: "keyword" | "seller";
+  /**
+   * Seller-läget: antal butiker att bearbeta per körning (roteras deterministiskt
+   * som termerna). Håller nere AliExpress-anrop/körning så vi inte slår i
+   * lambda-timeout eller rate-limit. Full täckning över flera dagar.
+   */
+  storesPerRun: number;
 }
 
 export const DEFAULT_TERMS_PER_RUN = 6;
@@ -94,6 +100,7 @@ export const DEFAULT_MAX_DETAIL_CALLS = 60;
 export const DEFAULT_MAX_ENQUEUES = 8;
 export const DEFAULT_MAX_COST_USD = 250;
 export const DEFAULT_SEEN_TTL_DAYS = 45;
+export const DEFAULT_STORES_PER_RUN = 4;
 
 function parsePositiveInt(raw: string | undefined, fallback: number): number {
   const n = Number(raw);
@@ -125,6 +132,7 @@ export function supplierWatchConfigFromEnv(
     // Keyword är default (kräver inga scopes/skrapning). "seller" aktiveras
     // explicit när butiks-katalog-källan verifierats i prod (se seller-probe).
     mode: env.SUPPLIER_WATCH_MODE === "seller" ? "seller" : "keyword",
+    storesPerRun: parsePositiveInt(env.SUPPLIER_WATCH_STORES_PER_RUN, DEFAULT_STORES_PER_RUN),
   };
 }
 
@@ -267,7 +275,11 @@ export async function runSupplierWatch(
     if (!deps.discoverCandidates) {
       summary.searchErrors.push("seller-läge saknar discoverCandidates-dep");
     } else {
-      const disc = await deps.discoverCandidates([...config.sellerIds]);
+      // Rotera butikerna precis som termerna → begränsad AE-belastning/körning,
+      // full täckning över flera dagar. selectTermsForRun är generisk över string[].
+      const stores = selectTermsForRun([...config.sellerIds], config.storesPerRun, dayIndex);
+      summary.termsUsed = stores.map((s) => `store:${s}`);
+      const disc = await deps.discoverCandidates(stores);
       candidates.push(...disc.candidates);
       summary.hitsPerTerm = disc.sourceStats;
       summary.searchErrors.push(...disc.errors);

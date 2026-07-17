@@ -1029,8 +1029,10 @@ export async function searchAliExpressByText(
     const pageSize = Math.min(50, Math.max(1, options.pageSize ?? 20));
 
     const searchExtend: Record<string, unknown> = { sortBy };
-    // Best-effort säljarfilter (seller-läget). AE-grupper använder olika nycklar
-    // → skicka de vanligaste; okända ignoreras tyst av API:t.
+    // Best-effort säljarfilter (seller-läget) — ENDAST i searchExtend (freeform
+    // JSON som AE tolkar tolerant). Vi skickar det INTE som top-level biz-param:
+    // alla biz-params signeras, och en okänd top-level-param kan få vissa
+    // API-grupper att avvisa hela sökningen (IncompleteSignature/param-fel).
     if (options.sellerId) {
       searchExtend.sellerId = options.sellerId;
       searchExtend.storeId = options.sellerId;
@@ -1045,7 +1047,6 @@ export async function searchAliExpressByText(
       pageIndex: String(page),
     };
     if (options.categoryId) bizParams.categoryId = options.categoryId;
-    if (options.sellerId) bizParams.sellerId = options.sellerId;
     if (options.maxPriceUsd !== undefined) {
       // AliExpress text-search stöder maxPrice i vissa app-grupper.
       // Skicka som extra param; om API:t ignorerar det filtrerar vi nedan.

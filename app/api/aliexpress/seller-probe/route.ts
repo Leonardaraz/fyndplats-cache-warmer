@@ -9,6 +9,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
+import { getProduct } from "@/lib/aliexpress/client";
 import { buildSellerSources, storefrontUrl } from "@/lib/discover/seller-sources";
 import { DEFAULT_WATCHED_SELLER_IDS } from "@/lib/discover/supplier-watch";
 
@@ -28,7 +29,35 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   const storeId = req.nextUrl.searchParams.get("storeId") ?? DEFAULT_WATCHED_SELLER_IDS[0];
-  const sources = buildSellerSources();
+
+  // Namnrymds-diagnos (F1): ta en KÄND importerad produkt-id och slå upp dess
+  // DS-store_id. Matchar den din mappnings supplierId → säljarfiltret biter.
+  // Annars säger svaret exakt vilket id du ska lägga i SUPPLIER_WATCH_SELLER_IDS.
+  const sampleProductId = req.nextUrl.searchParams.get("productId");
+  let namespaceCheck: unknown = null;
+  if (sampleProductId) {
+    try {
+      const p = await getProduct(sampleProductId);
+      namespaceCheck = {
+        productId: sampleProductId,
+        resolvedStoreId: p.storeId ?? null,
+        resolvedStoreName: p.storeName ?? null,
+        matchesRequestedStore: p.storeId === storeId,
+        verdict:
+          p.storeId == null
+            ? "DS-svaret saknade ae_store_info.store_id — säljarfiltret kan inte fungera; hör av dig."
+            : p.storeId === storeId
+              ? "OK — DS store_id matchar. Säljarfiltret biter."
+              : `MISMATCH — DS store_id=${p.storeId}. Lägg DET id:t i SUPPLIER_WATCH_SELLER_IDS (inte mappnings-supplierId).`,
+      };
+    } catch (err) {
+      namespaceCheck = { productId: sampleProductId, error: err instanceof Error ? err.message.slice(0, 200) : String(err) };
+    }
+  }
+
+  // Probe:a ALLTID båda källorna (oavsett cron-konfig) så man kan jämföra
+  // storefront vs api-search-extend innan man bestämmer SUPPLIER_WATCH_SOURCES.
+  const sources = buildSellerSources({ ...process.env, SUPPLIER_WATCH_SOURCES: "storefront,api" });
 
   const results = await Promise.all(
     sources.map(async (source) => {
@@ -60,8 +89,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     ok: true,
     storeId,
     storefrontUrl: storefrontUrl(storeId),
+    namespaceCheck,
     sources: results,
     hint:
-      "Om storefront ger 0 id blockerar AliExpress troligen datacenter-IP:t → sätt SUPPLIER_WATCH_SCRAPE_PROXY_URL. api-search-extend bör ge id oavsett (officiellt API).",
+      "1) Kör med ?productId=<känd-Aosom/SucceBuy-produkt> för att bekräfta att DS store_id matchar din supplierId (namespaceCheck). " +
+      "2) Om storefront ger 0 id blockerar AliExpress troligen datacenter-IP:t → sätt SUPPLIER_WATCH_SCRAPE_PROXY_URL.",
   });
 }

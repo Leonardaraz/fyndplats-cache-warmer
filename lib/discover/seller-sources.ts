@@ -31,17 +31,26 @@ export async function fetchStorefront(
   const target = storefrontUrl(storeId, env);
   const proxy = env.SUPPLIER_WATCH_SCRAPE_PROXY_URL;
   const url = proxy ? `${proxy}${encodeURIComponent(target)}` : target;
-  const res = await fetchImpl(url, {
-    headers: {
-      "User-Agent":
-        env.SUPPLIER_WATCH_UA ??
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-      "Accept-Language": "sv-SE,sv;q=0.9,en;q=0.8",
-      Accept: "text/html,application/json;q=0.9,*/*;q=0.8",
-    },
-  });
-  if (!res.ok) throw new Error(`storefront ${res.status}`);
-  return await res.text();
+  // Hård timeout så en hängande storefront-hämtning inte äter hela lambda-budgeten.
+  const timeoutMs = Number(env.SUPPLIER_WATCH_FETCH_TIMEOUT_MS) || 12_000;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetchImpl(url, {
+      signal: ctrl.signal,
+      headers: {
+        "User-Agent":
+          env.SUPPLIER_WATCH_UA ??
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept-Language": "sv-SE,sv;q=0.9,en;q=0.8",
+        Accept: "text/html,application/json;q=0.9,*/*;q=0.8",
+      },
+    });
+    if (!res.ok) throw new Error(`storefront ${res.status}`);
+    return await res.text();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** Söktermer för api-källan (env-override eller inbyggd nisch-lista). */
@@ -61,7 +70,11 @@ export function buildSellerSources(
   env: NodeJS.ProcessEnv = process.env,
   fetchImpl: typeof fetch = fetch,
 ): SellerCatalogSource[] {
-  const enabled = (env.SUPPLIER_WATCH_SOURCES ?? "storefront,api")
+  // Default = ENDAST storefront. api-search-extend multiplicerar sökanrop per
+  // butik och ger bara nytta OM AE:s searchExtend-säljarfilter faktiskt smalnar
+  // träffarna (annars = keyword-sök × antal butiker = bortkastade detalj-anrop).
+  // Slå på "api" explicit först när seller-probe bekräftat att filtret biter.
+  const enabled = (env.SUPPLIER_WATCH_SOURCES ?? "storefront")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);

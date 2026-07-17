@@ -37,6 +37,7 @@ function baseConfig(over: Partial<SupplierWatchConfig> = {}): SupplierWatchConfi
     seenTtlDays: 45,
     dryRun: false,
     mode: "keyword",
+    storesPerRun: 4,
     ...over,
   };
 }
@@ -305,6 +306,26 @@ describe("runSupplierWatch — seller-läge (butiks-katalog-bindning)", () => {
     expect(summary.matches[0].foundByTerm).toBe("storefront:1104096404");
     expect(summary.skipped.wrongSeller).toBe(1);
     expect(summary.hitsPerTerm).toEqual({ "storefront:1104096404": 2 });
+  });
+
+  it("roterar butiker per körning (storesPerRun) så AE-belastningen begränsas", async () => {
+    let received: string[] = [];
+    await runSupplierWatch(
+      makeDeps({
+        discoverCandidates: async (storeIds) => {
+          received = storeIds;
+          return { candidates: [], sourceStats: {}, errors: [] };
+        },
+      }),
+      baseConfig({
+        mode: "seller",
+        storesPerRun: 2,
+        sellerIds: new Set(["s1", "s2", "s3", "s4"]),
+      }),
+    );
+    // Rotationen skickar en delmängd på 2 (inte alla 4) per körning.
+    expect(received).toHaveLength(2);
+    for (const s of received) expect(["s1", "s2", "s3", "s4"]).toContain(s);
   });
 
   it("seller-läge utan discoverCandidates → rapporterar fel, kör inget", async () => {
