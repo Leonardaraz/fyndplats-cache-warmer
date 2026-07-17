@@ -331,6 +331,8 @@ interface RawProduct {
     logistics_info_dto?: { ship_from?: string; ship_from_code?: string };
     package_info_dto?: { ship_from?: string };
     ship_from?: string;
+    // Säljar-/butiksinfo — supplier-watchens säljarfilter läser store_id härifrån.
+    ae_store_info?: { store_id?: number | string; store_name?: string };
   };
 }
 
@@ -419,6 +421,8 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
   if (productDefaultShipFrom) allCodes.push(productDefaultShipFrom);
   const shipsFromCountries = uniqueShipFromCodes(allCodes);
 
+  const storeIdRaw = r.ae_store_info?.store_id;
+
   return {
         productId: String(base.product_id ?? productId),
         title: base.subject ?? "",
@@ -428,6 +432,8 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         shipFrom: productDefaultShipFrom || undefined,
         shipsFromCountries,
         hasEuWarehouse: hasAnyEuWarehouse(shipsFromCountries),
+        storeId: storeIdRaw != null && String(storeIdRaw) !== "" ? String(storeIdRaw) : undefined,
+        storeName: r.ae_store_info?.store_name || undefined,
   };
 }
 

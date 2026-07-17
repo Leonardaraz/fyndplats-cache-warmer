@@ -389,3 +389,65 @@ export function buildRestockNotificationEmail(input: RestockEmailInput): {
 
   return { subject, html, text };
 }
+
+// =====================================================================
+// Supplier-watch — rapport när nya leverantörsprodukter köats för import
+// =====================================================================
+
+import type { SupplierWatchSummary } from "../discover/supplier-watch";
+
+/**
+ * Bygger rapportmejlet för supplier-watch-cronen. Anropas bara när det finns
+ * minst en matchning (rutten skippar tom-rapporter). Innehåller de köade
+ * produkterna + en kort skip-sammanfattning så termlistan kan utvärderas.
+ */
+export function buildSupplierWatchEmail(
+  summary: SupplierWatchSummary,
+): { subject: string; html: string; text: string } {
+  const n = summary.matches.length;
+
+  let statusNote: string;
+  if (summary.dryRun) {
+    statusNote = `<p style="background:#fff4e5;padding:10px 12px;border-radius:8px;font-size:13px;color:#92400e;margin:0 0 16px;">Dry-run — produkterna köades <b>inte</b>. Sätt <code>SUPPLIER_WATCH_DRY_RUN=false</code> för att börja auto-importera som drafts.</p>`;
+  } else if (summary.enqueue && "jobId" in summary.enqueue) {
+    statusNote = `<p style="background:#ecfdf5;padding:10px 12px;border-radius:8px;font-size:13px;color:#065f46;margin:0 0 16px;"><b>${summary.enqueue.itemCount}</b> produkter köade i bulk-importen (jobb <code>${escapeHtml(summary.enqueue.jobId)}</code>) → dyker upp som drafts i <b>/admin/queue</b> för polering.</p>`;
+  } else if (summary.enqueue && "error" in summary.enqueue) {
+    statusNote = `<p style="background:#fef2f2;padding:10px 12px;border-radius:8px;font-size:13px;color:#b91c1c;margin:0 0 16px;">Kunde inte köa denna körning: ${escapeHtml(summary.enqueue.error)}. Matchningarna nedan köas nästa körning.</p>`;
+  } else {
+    statusNote = "";
+  }
+
+  const items = summary.matches
+    .map((m) => {
+      const store = escapeHtml(m.storeName ?? m.storeId);
+      return `<li style="margin-bottom:8px;">
+        <a href="${escapeHtml(m.sourceUrl)}" style="color:${BRAND.primary};text-decoration:none;font-weight:600;">${escapeHtml(truncate(m.title, 90))}</a>
+        <br><span style="font-size:12px;color:${BRAND.muted};">${store} · ~$${m.minCostUsd.toFixed(2)} · EU-lager · hittad via "${escapeHtml(m.foundByTerm)}"</span>
+      </li>`;
+    })
+    .join("");
+
+  const s = summary.skipped;
+  const skipLine = `Redan importerad: ${s.alreadyImported} · Cache: ${s.seenCache} · Fel säljare: ${s.wrongSeller} · Ej EU: ${s.noEu} · Slut: ${s.noStock} · För dyr: ${s.tooExpensive}`;
+
+  const subject = `Fyndplats: ${n} ny${n === 1 ? "" : "a"} leverantörsprodukt${n === 1 ? "" : "er"} hittad${n === 1 ? "" : "e"}${summary.dryRun ? " (dry-run)" : ""}`;
+
+  const html = `
+    <h2 style="margin:0 0 4px;font-size:18px;">Nya produkter från dina leverantörer</h2>
+    <p style="margin:0 0 16px;color:${BRAND.muted};font-size:13px;">${escapeHtml(summary.termsUsed.join(", "))}</p>
+    ${statusNote}
+    <ul style="font-size:14px;padding-left:18px;margin:0 0 16px;">${items}</ul>
+    <p style="font-size:12px;color:${BRAND.muted};margin:0;border-top:1px solid ${BRAND.border};padding-top:12px;">
+      ${summary.detailCalls} detalj-anrop · överhoppade: ${skipLine}
+    </p>`;
+
+  const text = [
+    `Nya produkter från dina leverantörer (${n})`,
+    summary.dryRun ? "[DRY-RUN — inget köades]" : "",
+    ...summary.matches.map((m) => `- ${truncate(m.title, 90)} (${m.storeName ?? m.storeId}, ~$${m.minCostUsd.toFixed(2)}) ${m.sourceUrl}`),
+    "",
+    `Överhoppade: ${skipLine}`,
+  ].filter(Boolean).join("\n");
+
+  return { subject, html: wrapInBrandShell(html), text };
+}
