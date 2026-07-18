@@ -207,7 +207,7 @@ eftersom GitHub-releases är blockerade i sessionen):
    nyckelvärden) och `feature_card` (produktbild + 4 fördelar). **Alla siffror ska vara
    avlästa ur källbilder/beskrivning — aldrig gissade.** Vid flera varianter med olika
    mått: ett spec-kort per variant, länkat till respektive choice (Steg 6-reglerna).
-6. **Ta bort dropship-branding även I bilder** (VEVOR-logga på väska/produktfoto →
+6. **Ta bort dropship-branding även i bilder** (VEVOR-logga på väska/produktfoto →
    LaMa bort). Produktens egen förpackning i bild är OK.
 7. **Uppladdning:** committa bilderna till branchen `claude/tmp-image-upload`
    (git worktree, force-push OK) → `UploadImageToWixSite` med raw-GitHub-URL →
