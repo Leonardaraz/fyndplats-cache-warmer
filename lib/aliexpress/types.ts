@@ -2,6 +2,9 @@
 
 export interface AliExpressDsVariant {
   skuId: string;
+  /** AliExpress attribut-sträng ("14:350853#39 Drawers;…") — samma format som
+   *  extension-importens supplierVariantId → exakt variant-matchning. */
+  skuAttr?: string;
   /** Egenskaper, t.ex. { "color": "Red", "size": "M" } */
   skuProps: Record<string, string>;
   /** Bild-URL för swatch (om satt av leverantören) */
@@ -30,6 +33,10 @@ export interface AliExpressDsProduct {
   shipsFromCountries?: string[];
   /** True om någon SKU skickas från EU-warehouse (för snabbfilterring). */
   hasEuWarehouse?: boolean;
+  /** AliExpress-butikens id (ae_store_info.store_id) — supplier-watchens säljarfilter. */
+  storeId?: string;
+  /** Butikens visningsnamn (ae_store_info.store_name). */
+  storeName?: string;
 }
 
 export interface DsTokenResponse {
@@ -49,6 +56,10 @@ export interface DsOrderCreateParams {
     addressLine1: string;
     addressLine2?: string;
     city: string;
+    /** Delstat/region (län). AliExpress kräver detta för leverans (annars
+     *  "Please select a state/province/region"). AliExpress-vänligt namn, t.ex.
+     *  "Stockholm" för Åkersberga (Stockholms län). */
+    province?: string;
     postalCode: string;
     countryCode: string;
     phone?: string;
@@ -65,6 +76,11 @@ export interface DsOrderCreateResult {
   /** Om true måste betalning göras manuellt i kassan */
   paymentRequired: boolean;
   paymentUrl?: string;
+  /** AliExpress fel-detalj (error_msg/error_code) när inget order-id gavs. */
+  aeError?: string;
+  /** true när AliExpress uttryckligen svarade misslyckat (is_success=false eller
+   *  felkod utan order-id) → INGEN order lades → säkert att släppa claimen. */
+  orderDefinitelyNotPlaced?: boolean;
 }
 
 export interface DsTrackingResult {
@@ -72,5 +88,7 @@ export interface DsTrackingResult {
   trackingNumber?: string;
   shippingProvider?: string;
   status: string;
+  /** Beräknad leverans (epoch ms) — bara i nya API-svarsformen. */
+  etaTimestamp?: number;
   events: { time: string; description: string; location?: string }[];
 }

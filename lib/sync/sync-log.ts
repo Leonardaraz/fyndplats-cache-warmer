@@ -36,7 +36,11 @@ export type SyncAction =
   | "restored"
   | "flagged_price"
   | "flagged_content"
-  | "dry_run";
+  | "dry_run"
+  // Hämtningen felade (oklassat eller 604 All SKU Unsaleable) — raden gör
+  // felet SYNLIGT i loggen/admin (audit-fynd 6, 2026-07-14: 21 produkter
+  // felade tyst i 8 dagar utan spår någonstans).
+  | "error";
 
 export interface SyncLogEntry {
   /** Unik nyckel: `${productId}-${checkedAt}` */
@@ -83,6 +87,32 @@ export interface SyncStateEntry {
    * produkt. Saknas/0 = inga obekräftade borttagnings-observationer.
    */
   removedStreak?: number;
+  /**
+   * Antal körningar i RAD där AliExpress-hämtningen felade OKLASSAT (nätfel,
+   * throttling, degraderat svar — eller en död listning vars felsvar vi inte
+   * känner igen, t.ex. 200 med 0 varianter). Rotationen går ändå vidare
+   * (lastCheckedAt bumpas — tidigare frös produkten längst fram i äldst-först-
+   * kön och brände kvot varje körning). Vid ERROR_STRIKES_AS_REMOVED behandlas
+   * felet som borttagen listning. Nollställs vid lyckad hämtning.
+   */
+  errorStreak?: number;
+  /**
+   * True när det är SYNKEN som dolt produkten (listning borttagen/felsvit).
+   * Utan denna kunde en produkt synken dolt aldrig auto-återställas —
+   * shouldRestore krävde wixVisible=true, men synkens egen döljning gör ju
+   * produkten osynlig (audit-fynd 2, 2026-07-14). Manuell unpublish (visible=
+   * false UTAN denna flagga) respekteras fortfarande. Nollas vid restore.
+   */
+  hiddenBySync?: boolean;
+  /**
+   * Antal körningar i RAD där dropship-lagret läst 0 (för en levande listning).
+   * Vi nollar INTE Wix-lagret förrän STOCK_ZERO_STRIKES_REQUIRED (skydd mot en
+   * enstaka opålitlig dropship-0-läsning — SucceBuy-väggskåpen 2026-07-14 hade
+   * lager 10 i två dygn, tappades till 0 EN körning medan konsumentsidan hade
+   * kvar 10, och nollades direkt). Nollställs vid lager > 0. Analogt med
+   * removedStreak. Saknas/0 = inga obekräftade 0-observationer.
+   */
+  zeroStreak?: number;
 }
 
 export type AlertType = "price_increase" | "content_change";
@@ -111,6 +141,10 @@ export interface SyncAlert {
   // Gemensamt
   productName?: string;
   imageUrl?: string;
+  /** Wix-produktens slug — låter admin länka direkt till live-sidan
+   *  (fyndplats.se/produkt/<slug>). Saknas på alerts skapade före fältet;
+   *  admin-sidan faller då tillbaka på ett batch-uppslag mot Wix. */
+  productSlug?: string;
   createdAt: string;
   resolvedAt?: string;
   resolvedBy?: string;
@@ -203,6 +237,25 @@ export class SyncStore {
     );
   }
 
+  /**
+   * Händelse-rader (allt utom none/dry_run) sedan `sinceIso` — morgonmejlets
+   * dygns-digest. Serverfiltrerat: vanliga none-rader (en per kollad produkt,
+   * ~600/dygn vid 6 körningar × 100) skulle annars äta paging-limiten så att
+   * dygnets tidiga händelser föll utanför. ISO-strängar jämförs lexikografiskt
+   * = kronologiskt.
+   */
+  async listEventLogSince(sinceIso: string, limit = 500): Promise<SyncLogEntry[]> {
+    return query<SyncLogEntry>(
+      COL.log,
+      {
+        actionTaken: { $in: ["hidden", "marked_oos", "restored", "error"] },
+        checkedAt: { $gt: sinceIso },
+      },
+      [{ fieldName: "checkedAt", order: "DESC" }],
+      limit,
+    );
+  }
+
   // --- State --------------------------------------------------------------
   async getState(wixProductId: string): Promise<SyncStateEntry | null> {
     return get<SyncStateEntry>(COL.state, wixProductId);
@@ -210,6 +263,26 @@ export class SyncStore {
 
   async saveState(entry: SyncStateEntry): Promise<void> {
     await save(COL.state, entry.wixProductId, entry);
+  }
+
+  /**
+   * Produkter i problemläge — det admin-sidans "Lager & synlighet"-sektion
+   * visar: slut i lager, dolda (listning borttagen) eller mitt i en felsvit
+   * (errorStreak > 0, på väg att klassas som borttagen). Sorterat på senast
+   * kollad (nyast först).
+   */
+  async listProblemStates(limit = 500): Promise<SyncStateEntry[]> {
+    return query<SyncStateEntry>(
+      COL.state,
+      {
+        $or: [
+          { listingStatus: { $in: ["out_of_stock", "removed"] } },
+          { errorStreak: { $gt: 0 } },
+        ],
+      },
+      [{ fieldName: "lastCheckedAt", order: "DESC" }],
+      limit,
+    );
   }
 
   // --- Alerts -------------------------------------------------------------

@@ -52,6 +52,24 @@ describe("buildVariantTranslatorAI", () => {
     expect(translator.options({ Kontakt: "AE-FW-T2233-USB Plug" })).toEqual({ Kontakt: "USB-kontakt" });
   });
 
+  it("AI-svar med kvarvarande enheter enhets-normaliseras (backdrop-stativet 2026-07-02)", async () => {
+    // Haiku översätter orden men bevarar mått ordagrant ("Stativbas 6.5x10ft") →
+    // utan efterbehandling kringgår AI-vägen ft→m och enheten key-låses i Wix.
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) if (v === "Stand base 6.5x10FT") out[v] = "Stativbas 6.5x10ft";
+      return out;
+    });
+    const variants = [{ options: { Model: "Stand base 6.5x10FT" } }];
+    const { translator } = await buildVariantTranslatorAI(variants, { translateBatch });
+    expect(translator.options({ Model: "Stand base 6.5x10FT" })).toEqual({ Modell: "Stativbas 1,9 x 3 m" });
+    // …och CACHADE svar självläker likadant vid nästa import (ingen cache-bump).
+    const { translator: t2 } = await buildVariantTranslatorAI(variants, {
+      translateBatch: vi.fn(async () => ({})),
+    });
+    expect(t2.options({ Model: "Stand base 6.5x10FT" })).toEqual({ Modell: "Stativbas 1,9 x 3 m" });
+  });
+
   it("skickar BARA residual-engelska värden till AI; kända värden faller på tabellen", async () => {
     const translateBatch = vi.fn(async (vals: string[]) => {
       const out: Record<string, string> = {};
@@ -286,18 +304,21 @@ describe("buildVariantTranslatorAI — eko-asymmetri för VÄRDEN (incident 2026
 describe("buildVariantTranslatorAI — SVENSKHETS-GRINDEN (slutlig verifiering av skeppade värden)", () => {
   const noValueAI = async () => ({});
 
-  it("fångar heuristikens blinda fläck: VERSAL-engelska ('STRIPED') flaggas av grinden", async () => {
-    // "STRIPED" är all-caps → residual-heuristiken tolkar det som akronym/kod →
+  it("fångar heuristikens blinda fläck: VERSAL-engelska ('IRIDESCENT') flaggas av grinden", async () => {
+    // "IRIDESCENT" är all-caps → residual-heuristiken tolkar det som akronym/kod →
     // aldrig AI-kandidat → skulle skeppas tyst. Grinden ser SLUTVÄRDET.
+    // OBS: "STRIPED" funkar inte längre som exempel här — djup utbyggnad
+    // (2026-07) lade till "striped"/"stripe"/"stripes" → "Randig" i tabellen,
+    // så det värdet är numera en riktig, deterministisk träff (når aldrig grinden).
     const verifySwedish = vi.fn(async (vals: string[]) =>
-      vals.filter((v) => v === "STRIPED"),
+      vals.filter((v) => v === "IRIDESCENT"),
     );
     const { unresolved } = await buildVariantTranslatorAI(
-      [{ options: { Pattern: "STRIPED" } }],
+      [{ options: { Pattern: "IRIDESCENT" } }],
       { translateBatch: noValueAI, verifySwedish },
     );
     expect(verifySwedish).toHaveBeenCalledTimes(1);
-    expect(unresolved).toContain("STRIPED");
+    expect(unresolved).toContain("IRIDESCENT");
   });
 
   it("skickar BARA språkbedömbara strängar (mått/koder/siffror aldrig)", async () => {

@@ -34,6 +34,7 @@ import type {
     DsTokenResponse,
     DsTrackingResult,
 } from "./types";
+import type { FreightQueryOutcome } from "./freight";
 
 const API_BASE = "https://api-sg.aliexpress.com/sync";
 const REST_BASE = "https://api-sg.aliexpress.com/rest";
@@ -299,6 +300,12 @@ interface RawSkuProp {
 }
 interface RawSku {
   id?: string;
+  // DS-API:t använder ofta sku_id (inte id) — och sku_attr är attribut-
+  // strängen ("14:350853#39 Drawers;…") som extension-importens mappningar
+  // lagrar som supplierVariantId. Båda behövs för robust variant-matchning
+  // (fraktbarhetskontrollen).
+  sku_id?: string | number;
+  sku_attr?: string;
   sku_stock?: boolean;
   sku_available_stock?: number;
   s_k_u_available_stock?: number;
@@ -331,6 +338,8 @@ interface RawProduct {
     logistics_info_dto?: { ship_from?: string; ship_from_code?: string };
     package_info_dto?: { ship_from?: string };
     ship_from?: string;
+    // Säljar-/butiksinfo — supplier-watchens säljarfilter läser store_id härifrån.
+    ae_store_info?: { store_id?: number | string; store_name?: string };
   };
 }
 
@@ -402,7 +411,8 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         const variantShipFrom = normalizeShipFromCode(variantShipFromRaw)
           || productDefaultShipFrom;
         return {
-                skuId: String(sku.id ?? ""),
+                skuId: String(sku.sku_id ?? sku.id ?? ""),
+                skuAttr: sku.sku_attr,
                 skuProps: props,
                 imageUrl,
                 price,
@@ -419,6 +429,8 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
   if (productDefaultShipFrom) allCodes.push(productDefaultShipFrom);
   const shipsFromCountries = uniqueShipFromCodes(allCodes);
 
+  const storeIdRaw = r.ae_store_info?.store_id;
+
   return {
         productId: String(base.product_id ?? productId),
         title: base.subject ?? "",
@@ -428,12 +440,22 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         shipFrom: productDefaultShipFrom || undefined,
         shipsFromCountries,
         hasEuWarehouse: hasAnyEuWarehouse(shipsFromCountries),
+        storeId: storeIdRaw != null && String(storeIdRaw) !== "" ? String(storeIdRaw) : undefined,
+        storeName: r.ae_store_info?.store_name || undefined,
   };
 }
 
 interface RawOrderCreate {
     result?: {
           order_id?: string | number;
+          // Batch-svarsvarianten lägger order-id:t i order_list.number[] (eller en
+          // ren array). Vi läser båda formerna i createOrder.
+          order_list?: { number?: Array<string | number> } | Array<string | number>;
+          // DS-svaret bär affärsstatusen INNE i result (inte som top-level `code`),
+          // så callApi:s generiska code-koll ser den inte → vi läser den här.
+          is_success?: boolean;
+          error_code?: string | number;
+          error_msg?: string;
           payment_required?: boolean;
           pay_url?: string;
     };
@@ -499,34 +521,206 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
       throw new OrderValidationError(`Ogiltig kvantitet (${params.quantity}) — order avbruten.`);
     }
     const line2 = (addr.addressLine2 ?? "").trim();
+    const province = (addr.province ?? "").trim();
     const contactPerson = (addr.name ?? "").trim() || "Mottagare";
     const phone = (addr.phone ?? "").trim();
+
+    // aliexpress.ds.order.create tar ALLA orderfält i ETT enda JSON-inkapslat
+    // affärsparameter med `logistics_address` + `product_items`. VIKTIGT om namnet:
+    // AliExpress snake_case:ar Java-fältet `paramPlaceOrderRequest4OpenApiDTO` genom
+    // att sätta "_" före VARJE versal → wire-namnet blir
+    // `param_place_order_request4_open_api_d_t_o` (D, T, O var för sig), INTE
+    // `...api_dto` som docs skriver för läsbarhet. Skickade vi `...api_dto` svarade
+    // AliExpress "MissingParameter: param_place_order_request4_open_api_d_t_o" och
+    // ingen order lades. Byggs som ren funktion (buildPlaceOrderDto) så DTO-formen
+    // kan låsas i test.
+    const dto = buildPlaceOrderDto({
+      productId: params.productId,
+      quantity: params.quantity,
+      skuId: params.skuId,
+      logisticsServiceName: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
+      address: line1 + (line2 ? ` ${line2}` : ""),
+      city,
+      province,
+      country,
+      zip,
+      contactPerson,
+      phone,
+      buyerMessage: params.buyerMessage,
+    });
     const bizParams: Record<string, string> = {
-          product_id: params.productId,
-          product_count: String(params.quantity),
-          sku_id: params.skuId,
-          logistics_service_name: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
-          address: line1 + (line2 ? ` ${line2}` : ""),
-          city,
-          country,
-          zip,
-          contact_person: contactPerson,
-          ...(phone ? { mobile_no: phone } : {}),
-          ...(params.buyerMessage ? { buyer_message: params.buyerMessage } : {}),
+      param_place_order_request4_open_api_d_t_o: JSON.stringify(dto),
     };
 
   const raw = await callApi<RawOrderCreate>("aliexpress.ds.order.create", bizParams);
     const result = raw.result ?? {};
 
+    // AFFÄRSSTATUS-GRIND: DS-svaret bär `is_success` INNE i result, så callApi:s
+    // generiska top-level-code-koll fångar den inte. Litar vi enbart på ett order-id
+    // riskerar vi en falsk "lagd" om AliExpress skulle eka ett id på ett misslyckat
+    // svar → tasken markeras `ordered`, re-order hoppas, kunden får aldrig varan.
+    // Är is_success uttryckligen false → behandla som INGET id → FC-vägen
+    // (markUncertain) flaggar för manuell verifiering i stället.
+    const isSuccess = result.is_success ?? raw.is_success;
+    // Order-id kan komma som `order_id` (singel) eller `order_list.number[]`
+    // (batch-shape) beroende på AliExpress-svarsvariant. Läs båda.
+    const ol = result.order_list;
+    const orderIdRaw =
+      isSuccess === false
+        ? undefined
+        : (result.order_id ?? (Array.isArray(ol) ? ol[0] : ol?.number?.[0]));
+
+    // Gav AliExpress inget order-id? Fånga ORSAKEN (error_msg/error_code) så den
+    // syns i admin + audit i stället för det intetsägande "inget order-id". Och
+    // avgör om vi VET att ingen order lades (is_success=false eller en felkod) →
+    // då kan claimen släppas för en säker retry i stället för att låsa tasken.
+    let aeError: string | undefined;
+    let orderDefinitelyNotPlaced = false;
+    if (orderIdRaw == null) {
+      const emsg = result.error_msg ? String(result.error_msg).trim() : "";
+      const ecode = result.error_code != null ? String(result.error_code) : "";
+      aeError = emsg || (ecode ? `felkod ${ecode}` : `oväntat svar (is_success=${String(isSuccess)})`);
+      orderDefinitelyNotPlaced = isSuccess === false || (ecode !== "" && ecode !== "0");
+      console.error(
+        `[aliexpress] createOrder: inget order_id. is_success=${String(isSuccess)} error_code=${ecode} error_msg=${emsg} result=${JSON.stringify(result).slice(0, 700)}`,
+      );
+    }
+
   return {
-        tradeOrderId: String(result.order_id ?? ""),
+        tradeOrderId: orderIdRaw != null ? String(orderIdRaw) : "",
+        ...(aeError ? { aeError } : {}),
+        ...(orderDefinitelyNotPlaced ? { orderDefinitelyNotPlaced: true } : {}),
         paymentRequired: result.payment_required ?? true,
         paymentUrl: result.pay_url,
   };
 }
 
+/**
+ * Bygger DTO:t för aliexpress.ds.order.create. Ren funktion → enhetstestbar
+ * (låser fältnamnen som AliExpress kräver: sku_attr = leverantörens SKU-attr-
+ * sträng, product_id/product_count per rad, logistics_address för leverans).
+ * `mobile_no` + `phone_country` (dial-kod, ex "+46") skickas som PAR när telefon
+ * finns; saknas dial-kod för landet utelämnas telefonen helt.
+ */
+/**
+ * Translittererar till ren ASCII (Latin). AliExpress order-create avvisar
+ * icke-engelska tecken ("Please use English only") → svenska adresser med å/ä/ö
+ * (Norrgårdsvägen, Åkersberga, Sjöström) fälls annars. Paketet levereras ändå:
+ * postnumret routar det och ASCII-translitterering är standard för internationell
+ * frakt till Sverige. OBS: används ENBART för AliExpress-anropet — vår egen
+ * lagrade adress/mejl behåller den korrekta svenska stavningen.
+ */
+export function toAsciiLatin(input: string): string {
+  if (!input) return input;
+  const map: Record<string, string> = {
+    å: "a", ä: "a", ö: "o", Å: "A", Ä: "A", Ö: "O",
+    ø: "o", Ø: "O", æ: "ae", Æ: "AE", ß: "ss", đ: "d", Đ: "D", ł: "l", Ł: "L",
+  };
+  // 1) Explicita mappningar för ligaturer/egna bokstäver som NFD INTE delar upp
+  //    (æ, ø, ß, đ, ł). 2) NFD delar upp diakriter (é→e+́, ü→u+̈, ñ, ç, å, ä, ö …)
+  //    och en enda ASCII-grind slänger allt icke-utskrivbart-ASCII (kombinations-
+  //    tecknen + ev. kvarvarande icke-latinska tecken). Kvar: ren ASCII.
+  let s = input.replace(/[åäöÅÄÖøØæÆßđĐłŁ]/g, (c) => map[c] ?? c);
+  s = s.normalize("NFD").replace(/[^\x20-\x7E]/g, "");
+  return s.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * AliExpress postnummer-fält accepterar BARA siffror, "-" och "/". Svenska
+ * postnummer skrivs "184 36" (med mellanslag) → AliExpress avvisar ("use only
+ * digits and/or dash and/or slash"). Ta bort allt annat → "18436". Endast för
+ * AliExpress-anropet; vår lagrade adress behåller "184 36".
+ */
+export function sanitizeZip(zip: string): string {
+  return (zip ?? "").replace(/[^0-9/-]/g, "");
+}
+
+/**
+ * Telefonens landskod (dial code) per ISO alpha-2-land. AliExpress order-create
+ * KRÄVER `phone_country` när `mobile_no` skickas — annars svaras "Please enter a
+ * country code" och ingen order läggs. Formatet är dial-koden MED plus ("+46"),
+ * verifierat mot AliExpress DS-API-exempel (phone_country:"+1"). Täcker hela
+ * EU/EES + Norden + UK + US/CA så vilken kund som helst fungerar; ett omappat
+ * land ger `undefined` → telefonen utelämnas helt (icke-kritisk för leverans)
+ * i stället för att fälla ordern på den här grinden.
+ */
+const PHONE_DIAL_CODES: Record<string, string> = {
+  SE: "+46", NO: "+47", DK: "+45", FI: "+358", IS: "+354",
+  DE: "+49", FR: "+33", NL: "+31", BE: "+32", LU: "+352",
+  ES: "+34", IT: "+39", PT: "+351", GR: "+30",
+  PL: "+48", CZ: "+420", SK: "+421", HU: "+36", RO: "+40",
+  BG: "+359", HR: "+385", SI: "+386", AT: "+43", CH: "+41",
+  IE: "+353", GB: "+44", EE: "+372", LV: "+371", LT: "+370",
+  MT: "+356", CY: "+357", US: "+1", CA: "+1",
+};
+
+export function phoneDialCode(country: string): string | undefined {
+  return PHONE_DIAL_CODES[(country ?? "").trim().toUpperCase()];
+}
+
+/**
+ * Nationellt telefonnummer utan landskod: siffror + ev. nationell trunk-nolla
+ * bort (svensk "0704806968" → "704806968"), eftersom landskoden skickas separat
+ * i `phone_country`. AliExpress vill ha numret utan landskod (ex: "123-456-7890").
+ */
+export function normalizeMobile(phone: string): string {
+  return (phone ?? "").replace(/\D/g, "").replace(/^0/, "");
+}
+
+export function buildPlaceOrderDto(p: {
+  productId: string;
+  quantity: number;
+  skuId: string;
+  logisticsServiceName: string;
+  address: string;
+  city: string;
+  province: string;
+  country: string;
+  zip: string;
+  contactPerson: string;
+  phone: string;
+  buyerMessage?: string;
+}): {
+  logistics_address: Record<string, string>;
+  product_items: Array<Record<string, string | number>>;
+} {
+  const memo = p.buyerMessage ? toAsciiLatin(p.buyerMessage) : "";
+  // Telefon skickas BARA tillsammans med sin landskod (phone_country) — AliExpress
+  // kräver "country code" när mobile_no finns. Saknas dial-kod för landet (omappat)
+  // utelämnas telefonen helt (icke-kritisk för leverans) hellre än att fälla ordern.
+  const dial = phoneDialCode(p.country);
+  const mobileNo = p.phone ? normalizeMobile(p.phone) : "";
+  const includePhone = Boolean(mobileNo && dial);
+  return {
+    logistics_address: {
+      // AliExpress kräver engelska/ASCII → translitterera fritextfälten.
+      address: toAsciiLatin(p.address),
+      city: toAsciiLatin(p.city),
+      // AliExpress kräver "state/province/region" (län) — annars avvisas ordern.
+      province: toAsciiLatin(p.province),
+      // Postnummer: bara siffror/-/ (svenska "184 36" → "18436").
+      zip: sanitizeZip(p.zip),
+      country: p.country,
+      contact_person: toAsciiLatin(p.contactPerson),
+      full_name: toAsciiLatin(p.contactPerson),
+      // mobile_no + phone_country skickas som par (dial-kod "+46"), aldrig ensamt.
+      ...(includePhone ? { mobile_no: mobileNo, phone_country: dial } : {}),
+    },
+    product_items: [
+      {
+        product_id: p.productId,
+        product_count: p.quantity,
+        sku_attr: p.skuId,
+        logistics_service_name: p.logisticsServiceName,
+        ...(memo ? { order_memo: memo } : {}),
+      },
+    ],
+  };
+}
+
 interface RawTracking {
     result?: {
+          // GAMLA formen (före API-revisionen ~12 juli 2026).
           logistics_order_list?: Array<{
                   tracking_number?: string;
                   logistics_company?: string;
@@ -539,28 +733,148 @@ interface RawTracking {
                   };
           }>;
           order_status?: string;
+          // NYA formen (verifierad mot rå-svar 13 juli 2026): spårningsnumret
+          // heter mail_no, transportören carrier_name, händelserna ligger i
+          // detail_node_list med epoch-ms-timestamps, och eta_time_stamps ger
+          // beräknad leverans.
+          data?: {
+                tracking_detail_line_list?: {
+                      tracking_detail?: Array<{
+                            mail_no?: string;
+                            carrier_name?: string;
+                            eta_time_stamps?: number;
+                            detail_node_list?: {
+                                  detail_node?: Array<{
+                                        time_stamp?: number;
+                                        tracking_name?: string;
+                                        tracking_detail_desc?: string;
+                                  }>;
+                            };
+                      }>;
+                };
+          };
     };
 }
 
+/**
+ * Frågar AliExpress om fraktvägar för en SKU till ett land. Returnerar det RÅA
+ * svaret (eller felsträngen) — tolkningen är ren och bor i lib/aliexpress/
+ * freight.ts (parseFreightOutcome) så den kan enhetstestas.
+ *
+ * Provar den moderna DS-metoden först; svarar plattformen att metoden inte
+ * finns/inte är tillåten för vår app provas det klassiska freight-API:t
+ * (samma tvåstegsmönster som tracking-API-revisionen #297/#298 lärde oss).
+ *
+ * OBS: sku_id skickas ALLTID som sträng — AliExpress sku_id:n (t.ex.
+ * 12000058218136832) överskrider Number.MAX_SAFE_INTEGER.
+ */
+export async function queryFreightToCountry(
+  productId: string,
+  skuId: string,
+  country = "SE",
+  quantity = 1,
+): Promise<FreightQueryOutcome> {
+  try {
+    const raw = await callApi<unknown>("aliexpress.ds.freight.query", {
+      queryDeliveryReq: JSON.stringify({
+        productId: Number(productId),
+        quantity,
+        shipToCountry: country,
+        selectedSkuId: skuId,
+        language: "en_US",
+        locale: "en_US",
+        currency: "SEK",
+      }),
+    });
+    return { method: "aliexpress.ds.freight.query", raw };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Bara "metoden finns inte/ej behörig" motiverar fallback — affärsfel
+    // (t.ex. ingen fraktväg) ska tolkas, inte maskeras av ett andra anrop.
+    if (!/invalid.{0,12}(api|method)|method.{0,12}(invalid|not)|api.{0,12}not.{0,12}(exist|found)|no.{0,12}api.{0,12}permission|InvalidApiPath/i.test(msg)) {
+      return { method: "aliexpress.ds.freight.query", error: msg };
+    }
+  }
+  try {
+    const raw = await callApi<unknown>("aliexpress.logistics.buyer.freight.calculate", {
+      param_aeop_freight_calculate_for_buyer_d_t_o: JSON.stringify({
+        product_id: Number(productId),
+        product_num: quantity,
+        country_code: country,
+        sku_id: skuId,
+        price_currency: "SEK",
+      }),
+    });
+    return { method: "aliexpress.logistics.buyer.freight.calculate", raw };
+  } catch (err) {
+    return {
+      method: "aliexpress.logistics.buyer.freight.calculate",
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 export async function getTracking(tradeOrderId: string): Promise<DsTrackingResult> {
+    // AliExpress reviderade tracking-API:t (~12 juli 2026): `language` blev
+    // obligatorisk OCH order-parametern bytte namn till `ae_order_id`. Utan
+    // dem svarar API:t MissingParameter och VARJE tracking-poll failade tyst
+    // → inga fulfillments → inga leveransmejl (order #10012 låg utan spårning
+    // i 5 dagar trots att paketet var skickat). Gamla `order_id` skickas med
+    // som bakåtkompatibilitet ifall API:t rullas tillbaka.
     const raw = await callApi<RawTracking>("aliexpress.ds.order.tracking.get", {
+          ae_order_id: tradeOrderId,
           order_id: tradeOrderId,
+          language: "en_US",
     });
 
-  const logisticsOrders = raw.result?.logistics_order_list ?? [];
-    const first = logisticsOrders[0];
+  const parsed = parseTrackingResponse(tradeOrderId, raw);
 
-  return {
-        tradeOrderId,
-        trackingNumber: first?.tracking_number,
-        shippingProvider: first?.logistics_company,
-        status: raw.result?.order_status ?? "UNKNOWN",
-        events: (first?.details?.tracking_detail ?? []).map((e) => ({
+    // Diagnostik: om INGEN av formerna gav ett spårningsnummer, logga rå-svaret
+    // (trunkerat) så Vercel-loggen visar den faktiska strukturen i stället för
+    // att felet göms bakom ett evigt "stillWaiting".
+    if (!parsed.trackingNumber) {
+          console.warn(
+                `[aliexpress] tracking.get ${tradeOrderId}: inget tracking_number i svaret — rå form: ${JSON.stringify(raw).slice(0, 1500)}`,
+          );
+    }
+    return parsed;
+}
+
+/**
+ * Ren parser för aliexpress.ds.order.tracking.get — NYA svarsformen först
+ * (API-revisionen ~12 juli 2026: mail_no/carrier_name/detail_node_list med
+ * epoch-ms-timestamps, verifierad mot rå-svar från prod), gamla
+ * logistics_order_list-formen som fallback. Exporterad för test.
+ */
+export function parseTrackingResponse(tradeOrderId: string, raw: RawTracking): DsTrackingResult {
+    const line = raw.result?.data?.tracking_detail_line_list?.tracking_detail?.[0];
+    if (line?.mail_no) {
+          return {
+                tradeOrderId,
+                trackingNumber: line.mail_no,
+                shippingProvider: line.carrier_name,
+                status: "SHIPPED",
+                etaTimestamp: line.eta_time_stamps,
+                events: (line.detail_node_list?.detail_node ?? []).map((e) => ({
+                      time: e.time_stamp ? new Date(e.time_stamp).toISOString() : "",
+                      description: e.tracking_detail_desc ?? e.tracking_name ?? "",
+                      location: undefined,
+                })),
+          };
+    }
+
+    const first = (raw.result?.logistics_order_list ?? [])[0];
+    return {
+          tradeOrderId,
+          trackingNumber: first?.tracking_number,
+          shippingProvider: first?.logistics_company,
+          status: raw.result?.order_status ?? "UNKNOWN",
+          events: (first?.details?.tracking_detail ?? []).map((e) => ({
                 time: e.event_date ?? "",
                 description: e.event_desc ?? "",
                 location: e.signed_name,
-        })),
-  };
+          })),
+    };
 }
 
 export async function getInventory(
@@ -695,6 +1009,13 @@ export interface AliExpressSearchOptions {
   maxPriceUsd?: number;
   /** Kategori-id om vi vill begränsa. */
   categoryId?: string;
+  /**
+   * AliExpress-butiks-id (store_id) att begränsa träffarna till. Best-effort —
+   * skickas i searchExtend. Om API-gruppen ignorerar det är sökningen bara
+   * osäljar-scopad (samma som utan filter); nedströms detalj-verifieras säljaren
+   * ändå, så korrektheten påverkas inte. Används av supplier-watchens seller-läge.
+   */
+  sellerId?: string;
 }
 
 function parseFloatSafe(s: unknown): number | undefined {
@@ -828,6 +1149,22 @@ export async function debugRawTextSearch(query: string): Promise<unknown> {
   return callApi<unknown>("aliexpress.ds.text.search", bizParams);
 }
 
+/**
+ * DEBUG (read-only): RÅSVARET från aliexpress.ds.product.get, otolkat — samma
+ * params som getProduct (ship_to_country SE). Används av /api/admin/freight-
+ * check?raw=1 för att se AliExpress FAKTISKA per-SKU-lager + warehouse-fält när
+ * synkens tolkade lager (0) inte matchar konsumentsidan (SucceBuy-mönstret:
+ * dropship-flödet säger 0, konsumentsidan visar tiotal, skickas från EU-lager).
+ */
+export async function debugRawProductGet(productId: string): Promise<unknown> {
+  return callApi<unknown>("aliexpress.ds.product.get", {
+    product_id: productId,
+    target_currency: "USD",
+    target_language: "EN",
+    ship_to_country: "SE",
+  });
+}
+
 export async function searchAliExpressByText(
     query: string,
     options: AliExpressSearchOptions = {},
@@ -836,12 +1173,21 @@ export async function searchAliExpressByText(
     const page = Math.max(1, options.page ?? 1);
     const pageSize = Math.min(50, Math.max(1, options.pageSize ?? 20));
 
+    const searchExtend: Record<string, unknown> = { sortBy };
+    // Best-effort säljarfilter (seller-läget) — ENDAST i searchExtend (freeform
+    // JSON som AE tolkar tolerant). Vi skickar det INTE som top-level biz-param:
+    // alla biz-params signeras, och en okänd top-level-param kan få vissa
+    // API-grupper att avvisa hela sökningen (IncompleteSignature/param-fel).
+    if (options.sellerId) {
+      searchExtend.sellerId = options.sellerId;
+      searchExtend.storeId = options.sellerId;
+    }
     const bizParams: Record<string, string> = {
       keyWord: query,
       local: "en_US",
       countryCode: "SE",
       currency: "USD",
-      searchExtend: JSON.stringify({ sortBy }),
+      searchExtend: JSON.stringify(searchExtend),
       pageSize: String(pageSize),
       pageIndex: String(page),
     };

@@ -17,7 +17,8 @@
 
 import { computePrice } from "../import/pricing";
 import type { PricingConfig } from "../import/types";
-import { getProduct as getAliExpressProduct } from "../aliexpress/client";
+import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
+import { checkMappingShippability, isShippabilityStale, type ShippabilityBudget } from "./shippability";
 import {
   getProduct as getWixProduct,
   queryInventoryItemsByProductId,
@@ -62,6 +63,63 @@ export const DEFAULT_SYNC_TIME_BUDGET_MS = 240_000;
 // dessutom inte auto-återställs (eftersom wixVisible då blir false).
 export const REMOVED_STRIKES_REQUIRED = 2;
 
+// Antal körningar i RAD med dropship-lager 0 innan vi faktiskt nollar Wix-
+// lagret. En ENSTAKA 0-läsning är opålitlig: SucceBuy-väggskåpen (2026-07-14)
+// visade lager 10 i två dygn, tappades till 0 i EN körning medan konsument-
+// sidan hade kvar 10 st (skickas från EU-lager), och nollades direkt → syntes
+// som "Slut i lager" fast de gick att köpa. Samma KOD RÖD-princip som frakt-
+// nej:en: agera inte på en enda opålitlig negativ signal. En riktig
+// utförsäljning bekräftas nästa körning (~4 h) och nollas då.
+export const STOCK_ZERO_STRIKES_REQUIRED = 2;
+
+/**
+ * Antal OKLASSADE hämtningsfel i RAD innan felet behandlas som borttagen
+ * listning (och dölj-mekaniken via removedStreak tar över). Döda listningar
+ * svarar ibland med felkoder/tomma svar vi inte känner igen — utan detta tak
+ * kunde de säljas vidare i veckor (sedelräknaren, 13 juli: listning död sedan
+ * ~9 juli, 91 produkter fast i felslingan, äldsta sedan 5 juni).
+ */
+export const ERROR_STRIKES_AS_REMOVED = 5;
+
+/** Ren hjälpare: nästa errorStreak + om felet nu ska tolkas som borttagen listning. */
+export function classifyFetchError(prevErrorStreak: number | undefined): {
+  errorStreak: number;
+  treatAsRemoved: boolean;
+} {
+  const errorStreak = (prevErrorStreak ?? 0) + 1;
+  return { errorStreak, treatAsRemoved: errorStreak >= ERROR_STRIKES_AS_REMOVED };
+}
+
+/**
+ * AliExpress-fel 604 "All SKU Unsaleable": produkten säljs (troligen) inte via
+ * dropship-kanalen längre, men KAN vara köpbar för konsumenter. Efter kod
+ * röd-lärdomen 2026-07-14 (opålitliga kanalsignaler) får detta ALDRIG driva
+ * auto-döljning via felsviten — det kräver Leonards manuella beslut. Felet
+ * loggas synligt och produkten roterar vidare utan strike.
+ */
+export function isUnsaleableError(msg: string): boolean {
+  return /all\s+sku\s+unsaleable/i.test(msg) || /api-fel\s*604\b/i.test(msg);
+}
+
+/**
+ * Per-variant-lager nycklat på BÅDE numeriskt sku_id och attribut-strängen
+ * (sku_attr). Audit-fynd 3 (2026-07-14): mappningarnas supplierVariantId är
+ * attribut-strängar (extension-importen) men kartan nycklades bara på sku_id →
+ * ingen match → tyst even-split-fallback → en slutsåld variant kunde få lager
+ * (samma översäljklass som bugg 2026-06-07).
+ */
+export function buildStockBySupplierId(
+  variants: ReadonlyArray<{ skuId?: string; skuAttr?: string; stock?: number }>,
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const v of variants) {
+    const stock = Math.max(0, Math.trunc(v.stock ?? 0));
+    if (v.skuId) out[String(v.skuId)] = stock;
+    if (v.skuAttr && v.skuAttr.trim()) out[v.skuAttr.trim()] = stock;
+  }
+  return out;
+}
+
 export interface SyncInputs {
   /** Vad vi sparade förra gången vi körde syncen (null = första körningen). */
   prevState: SyncStateEntry | null;
@@ -93,6 +151,16 @@ export interface SyncInputs {
    * behandlas som bekräftad (bakåtkompatibelt — döljer direkt som förut).
    */
   removedStreak?: number;
+  /** True när synken själv dolt produkten (state.hiddenBySync) — tillåter
+   *  auto-restore trots att wixVisible är false. */
+  hiddenBySync?: boolean;
+  /**
+   * Hur många körningar i rad (inkl. denna) som dropship-lagret läst 0 för en
+   * levande listning. Vi nollar Wix-lagret först vid STOCK_ZERO_STRIKES_REQUIRED
+   * (skydd mot en enstaka opålitlig 0-läsning). Saknas (äldre anropare/tester) →
+   * behandlas som bekräftad (bakåtkompatibelt — nollar direkt som förut).
+   */
+  zeroStreak?: number;
 }
 
 export interface SyncDecision {
@@ -173,6 +241,31 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
   // kvar, listningarna filtreras bort på headless-sajten via inventory=0).
   if (aliExpress.totalStock <= 0) {
     const wasOos = prevState?.listingStatus === "out_of_stock";
+    // Bekräfta 0-lager innan vi nollar (KOD RÖD-principen: en enstaka dropship-
+    // 0-läsning är opålitlig). Analogt med removedStreak: en produkt som läste
+    // lager förra körningen men 0 nu kräver STOCK_ZERO_STRIKES_REQUIRED
+    // körningar i rad med 0. En redan-oos produkt (wasOos) är i steady state →
+    // ingen om-bekräftelse behövs. Saknas zeroStreak (äldre anropare/tester) →
+    // behandlas som bekräftad direkt (bakåtkompatibelt).
+    const streak = inputs.zeroStreak ?? STOCK_ZERO_STRIKES_REQUIRED;
+    const confirmed = wasOos || streak >= STOCK_ZERO_STRIKES_REQUIRED;
+    if (!confirmed) {
+      // Obekräftad (strike < tröskel): rör INTE Wix-lagret (produkten förblir
+      // köpbar) och behåll tidigare status. En riktig utförsäljning bekräftas
+      // och nollas nästa körning.
+      return {
+        listingStatus: prevState?.listingStatus ?? "active",
+        actionTaken: "none",
+        shouldHide: false,
+        shouldRestore: false,
+        inventoryTarget: null,
+        alert: null,
+        newCostSek,
+        notes: `Möjlig slut i lager (${streak}/${STOCK_ZERO_STRIKES_REQUIRED}) — dropship läste 0 men bekräftas inte än (lagret behålls, produkten är köpbar på AliExpress).`,
+        justWentOos: false,
+        justRestocked: false,
+      };
+    }
     return {
       listingStatus: "out_of_stock",
       actionTaken: "marked_oos",
@@ -193,10 +286,14 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     listingStatus: "active",
     actionTaken: "none",
     shouldHide: false,
-    // Om föregående status var removed och vi nu ser aktiv listning → restore
-    // (men ENDAST om Wix-produkten själv är synlig så vi inte överröstar en
-    // manuell unpublish från Leonard).
-    shouldRestore: prevState?.listingStatus === "removed" && inputs.wixVisible,
+    // Om föregående status var removed och vi nu ser aktiv listning → restore.
+    // Tillåtet när produkten är synlig ELLER när det var SYNKEN som dolde den
+    // (hiddenBySync) — audit-fynd 2: utan det senare kunde synkens egen
+    // döljning aldrig ångras (visible är ju false då). En MANUELL unpublish
+    // (visible=false utan hiddenBySync) respekteras fortfarande.
+    shouldRestore:
+      prevState?.listingStatus === "removed"
+      && (inputs.wixVisible || inputs.hiddenBySync === true),
     inventoryTarget: aliExpress.totalStock,
     alert: null,
     newCostSek,
@@ -343,6 +440,9 @@ export interface SyncSummary {
   unchanged: number;
   /** Per-produkt-fel som inte avbröt körningen. */
   errors: { productId: string; aliexpressId: string; error: string }[];
+  /** Fraktbarhetskontroller: antal API-anrop resp. ofraktbara varianter. */
+  shippabilityChecked?: number;
+  shippabilityUnshippable?: number;
   /** True om körningen var dry-run. */
   dryRun: boolean;
   /** Körningens början/slut i ISO. */
@@ -370,6 +470,8 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     oosEvents: [],
     unchanged: 0,
     errors: [],
+    shippabilityChecked: 0,
+    shippabilityUnshippable: 0,
     dryRun: opts.dryRun,
     startedAt,
     finishedAt: startedAt,
@@ -379,6 +481,16 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // Används både för bestseller-prioritet (Feature 4) och för "X sålda"-raden
   // i real-tids-OOS-mejlet (Feature 2). Best-effort: failar order-API:t kör vi
   // vidare med tomt data (mejlet visar då 0 sålda, prioriteringen rör inget).
+  // Fraktbarhetskontrollens delade anropsbudget. PAUSAD (default 0) sedan
+  // 2026-07-14: fraktAPI:ts nej-svar visade sig opålitliga per anrop och
+  // nollade 8 fraktbara produkter under en natt (kod röd). Återaktiveras via
+  // SYNC_SHIPPABILITY_CHECKS_PER_RUN när frågan verifierats med hårdare
+  // beviskrav (flera oberoende nej + full adresskontext).
+  const shipBudgetEnv = Number(process.env.SYNC_SHIPPABILITY_CHECKS_PER_RUN);
+  const shippabilityBudget: ShippabilityBudget = {
+    remaining: Number.isFinite(shipBudgetEnv) && shipBudgetEnv >= 0 ? shipBudgetEnv : 0,
+  };
+
   let salesByProduct: Record<string, number> = {};
   try {
     const orders = await fetchOrders(isoDaysAgo(30));
@@ -454,8 +566,11 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
         sales30d: salesByProduct[mapping.wixProductId] ?? 0,
         baseUrl: opts.baseUrl,
         opsAlertEmail: opts.opsAlertEmail,
+        shippabilityBudget,
       });
       summary.checked++;
+      summary.shippabilityChecked = (summary.shippabilityChecked ?? 0) + (result.shippabilityCalls ?? 0);
+      summary.shippabilityUnshippable = (summary.shippabilityUnshippable ?? 0) + (result.shippabilityUnshippable ?? 0);
       switch (result.actionTaken) {
         case "hidden": summary.hidden++; break;
         case "marked_oos": summary.markedOos++; break;
@@ -470,10 +585,13 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
       if (result.oosEvent) summary.oosEvents.push(result.oosEvent);
       if (result.restockSent) summary.restockNotificationsSent += result.restockSent;
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message.slice(0, 300) : String(err);
+      // Synlig i Vercel-loggen (audit-fynd 6) — summeringen persisterar bara antalet.
+      console.warn(`[sync] fel ${mapping.wixProductId} (${mapping.supplierProductId}): ${errMsg}`);
       summary.errors.push({
         productId: mapping.wixProductId,
         aliexpressId: mapping.supplierProductId,
-        error: err instanceof Error ? err.message.slice(0, 300) : String(err),
+        error: errMsg,
       });
     }
   }
@@ -494,6 +612,8 @@ interface SyncOneOpts {
   baseUrl: string;
   /** Mottagare för real-tids-OOS-larm. Saknas = larma inte. */
   opsAlertEmail?: string;
+  /** Delad budget för fraktbarhetskontroller denna körning (muteras). */
+  shippabilityBudget?: ShippabilityBudget;
 }
 
 interface SyncOneResult {
@@ -504,6 +624,9 @@ interface SyncOneResult {
   oosEvent?: { productName: string; aliexpressId: string; sales30d: number };
   /** Antal restock-mejl som skickades till bevakare. */
   restockSent?: number;
+  /** Antal fraktbarhets-API-anrop resp. ofraktbara varianter denna produkt. */
+  shippabilityCalls?: number;
+  shippabilityUnshippable?: number;
 }
 
 async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
@@ -517,9 +640,13 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // Används av applyInventoryTarget för att spegla VERKLIGT lager per variant i Wix
   // istället för att jämnt fördela aggregatet (bug 2026-06-01).
   let aeStockBySupplierId: Record<string, number> = {};
+  // SKU:er (numeriskt id + egenskaper) för fraktbarhetskontrollen (steg 3.5).
+  let aeVariantsForShippability: Array<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }> = [];
   // Sätts om AE-svaret klassas som "borttagen listning" (för strike-räkningen
   // som kräver REMOVED_STRIKES_REQUIRED körningar i rad innan vi döljer).
   let removedClassified = false;
+  // >0 när hämtningen felade oklassat denna körning (persisteras i newState).
+  let fetchErrorStreak = 0;
   try {
     const product = await getAliExpressProduct(mapping.supplierProductId);
     // Skydd mot degraderat 200-svar: ett giltigt svar med TOM variant-lista
@@ -537,11 +664,10 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       .filter((v) => (v.stock ?? 0) > 0 && v.price > 0)
       .reduce((min, v) => (min === 0 ? v.price : Math.min(min, v.price)), 0);
     const totalStock = product.variants.reduce((s, v) => s + (v.stock ?? 0), 0);
-    aeStockBySupplierId = Object.fromEntries(
-      product.variants
-        .filter((v) => v.skuId)
-        .map((v) => [String(v.skuId), Math.max(0, Math.trunc(v.stock ?? 0))]),
-    );
+    aeStockBySupplierId = buildStockBySupplierId(product.variants);
+    aeVariantsForShippability = product.variants
+      .filter((v) => v.skuId)
+      .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
     aliExpress = {
       title: product.title,
       images: product.images,
@@ -569,13 +695,112 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
         totalStock: 0,
         listingRemoved: true,
       };
-    } else {
+    } else if (isUnsaleableError(msg)) {
+      // 604 "All SKU Unsaleable": egen OFARLIG klassificering (audit-fynd 1).
+      // Får ALDRIG driva errorStreak→removed→hidden — produkten kan vara fullt
+      // köpbar för konsumenter (21 levande produkter var på väg att auto-döljas
+      // 2026-07-14). Rotationen går vidare, sviten fryses, felet loggas synligt
+      // och räknas i körningens fel — beslutet är Leonards.
+      if (!dryRun) {
+        await getSyncStore().saveState({
+          currentCostSek: state?.currentCostSek ?? null,
+          currentCostUsd: state?.currentCostUsd ?? null,
+          currentStock: state?.currentStock ?? null,
+          listingStatus: state?.listingStatus ?? "unknown",
+          titleHash: state?.titleHash ?? null,
+          imageHash: state?.imageHash ?? null,
+          lastOosAlertAt: state?.lastOosAlertAt ?? null,
+          outOfStockSince: state?.outOfStockSince ?? null,
+          removedStreak: state?.removedStreak ?? 0,
+          hiddenBySync: state?.hiddenBySync ?? false,
+          wixProductId: mapping.wixProductId,
+          aliexpressId: mapping.supplierProductId,
+          lastCheckedAt: checkedAt,
+          errorStreak: state?.errorStreak ?? 0,
+        });
+        try {
+          await getSyncStore().appendLog({
+            id: `${mapping.wixProductId}-${checkedAt}`,
+            productId: mapping.wixProductId,
+            aliexpressId: mapping.supplierProductId,
+            checkedAt,
+            prevCostSek: state?.currentCostSek ?? null,
+            newCostSek: null,
+            prevStock: state?.currentStock ?? null,
+            newStock: null,
+            listingStatus: state?.listingStatus ?? "unknown",
+            actionTaken: "error",
+            notes: "AliExpress 604: All SKU Unsaleable — säljs möjligen inte via dropship-kanalen. Döljs INTE automatiskt; kräver manuellt beslut.",
+          });
+        } catch { /* loggning är best-effort */ }
+      }
       throw err;
+    } else {
+      // OKLASSAT fel. Tidigare: re-throw → state rördes aldrig → produkten låg
+      // kvar FÖRST i äldst-först-kön och brände kvot varje körning, tyst.
+      // Nu: bumpa lastCheckedAt + errorStreak så rotationen går vidare, och
+      // vid ERROR_STRIKES_AS_REMOVED behandlas felet som borttagen listning
+      // (removedStreak-mekaniken döljer sedan som vanligt, och en senare
+      // lyckad aktiv observation återställer produkten).
+      const verdict = classifyFetchError(state?.errorStreak);
+      fetchErrorStreak = verdict.errorStreak;
+      if (verdict.treatAsRemoved) {
+        removedClassified = true;
+        aliExpress = { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true };
+      } else {
+        if (!dryRun) {
+          await getSyncStore().saveState({
+            currentCostSek: state?.currentCostSek ?? null,
+            currentCostUsd: state?.currentCostUsd ?? null,
+            currentStock: state?.currentStock ?? null,
+            listingStatus: state?.listingStatus ?? "unknown",
+            titleHash: state?.titleHash ?? null,
+            imageHash: state?.imageHash ?? null,
+            lastOosAlertAt: state?.lastOosAlertAt ?? null,
+            outOfStockSince: state?.outOfStockSince ?? null,
+            removedStreak: state?.removedStreak ?? 0,
+            hiddenBySync: state?.hiddenBySync ?? false,
+            wixProductId: mapping.wixProductId,
+            aliexpressId: mapping.supplierProductId,
+            lastCheckedAt: checkedAt,
+            errorStreak: fetchErrorStreak,
+          });
+          // Synlig loggrad (audit-fynd 6): tidigare fanns felet BARA som en
+          // siffra i körningens summering — odiagnostiserbart i efterhand.
+          try {
+            await getSyncStore().appendLog({
+              id: `${mapping.wixProductId}-${checkedAt}`,
+              productId: mapping.wixProductId,
+              aliexpressId: mapping.supplierProductId,
+              checkedAt,
+              prevCostSek: state?.currentCostSek ?? null,
+              newCostSek: null,
+              prevStock: state?.currentStock ?? null,
+              newStock: null,
+              listingStatus: state?.listingStatus ?? "unknown",
+              actionTaken: "error",
+              notes: `Hämtningsfel (svit ${fetchErrorStreak}/${ERROR_STRIKES_AS_REMOVED}): ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+            });
+          } catch { /* loggning är best-effort */ }
+        }
+        // Räknas som fel i körningens summering (samma som förr), men utan
+        // att blockera rotationen.
+        throw err;
+      }
     }
   }
   // Strike-räkning: +1 per körning i rad som klassar borttagning, nollas annars.
   // decideSyncOutcome döljer först vid REMOVED_STRIKES_REQUIRED.
   const removedStreak = removedClassified ? (state?.removedStreak ?? 0) + 1 : 0;
+
+  // Lager-0-strike: +1 per körning i rad där en LEVANDE listning läst lager 0,
+  // nollas när lager > 0. decideSyncOutcome nollar Wix-lagret först vid
+  // STOCK_ZERO_STRIKES_REQUIRED (skydd mot en enstaka opålitlig 0-läsning).
+  // Capas vid tröskeln så räknaren inte växer obegränsat för permanent slut.
+  const stockIsZero = aliExpress != null && !aliExpress.listingRemoved && aliExpress.totalStock <= 0;
+  const zeroStreak = stockIsZero
+    ? Math.min((state?.zeroStreak ?? 0) + 1, STOCK_ZERO_STRIKES_REQUIRED)
+    : 0;
 
   // 2) Hämta Wix-snapshot (för visibility + nuvarande pris).
   const wixSnapshot = await getWixProduct(mapping.wixProductId);
@@ -609,13 +834,60 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     prevState: state,
     aliExpress,
     wixVisible: wixSnapshot.visible,
+    hiddenBySync: state?.hiddenBySync,
     currentPriceSek,
     newTitleHash,
     newImageHash,
     pricing,
     marginFloorPercent,
     removedStreak,
+    zeroStreak,
   });
+
+  // 3.5) Fraktbarhetskontroll (SucceBuy-fallet 2026-07-13): leverantören kan
+  // ha LAGER på en SKU som ändå saknar fraktväg till Sverige — kassan vägrar.
+  // Körs live, för aktiva listningar, inom körningens delade anropsbudget och
+  // bara för varianter vars kontroll är äldre än 7 dygn (eller aldrig gjord).
+  // Uppdaterade shippableToSe-flaggor plockas upp av applyInventoryTarget i
+  // steg 4 → ofraktbara varianter tvingas till 0 i samma körning. Best-effort:
+  // ett fel här får aldrig fälla synk-checken.
+  let shippabilityCalls = 0;
+  let shippabilityUnshippable = 0;
+  const shipBudget = opts.shippabilityBudget;
+  if (
+    !dryRun
+    && shipBudget
+    && shipBudget.remaining > 0
+    && aliExpress
+    && decision.listingStatus === "active"
+    && aeVariantsForShippability.length > 0
+    && mapping.variants.some((v) => isShippabilityStale(v, Date.parse(checkedAt)))
+  ) {
+    try {
+      const check = await checkMappingShippability({
+        mapping,
+        aeVariants: aeVariantsForShippability,
+        nowMs: Date.parse(checkedAt),
+        budget: shipBudget,
+        queryFn: (productId, skuId) => queryFreightToCountry(productId, skuId, "SE", 1),
+      });
+      shippabilityCalls = check.apiCalls;
+      shippabilityUnshippable = check.unshippable;
+      if (check.changed) {
+        mapping.variants = check.variants;
+        await getStore().saveMapping(mapping);
+        if (check.unshippable > 0) {
+          console.warn(
+            `[sync] fraktbarhet ${mapping.wixProductId}: ${check.unshippable} variant(er) utan fraktväg till SE — lagret tvingas till 0.`,
+          );
+        }
+      }
+    } catch (err) {
+      console.warn(
+        `[sync] fraktbarhetskontroll misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+      );
+    }
+  }
 
   // 4) Sidoeffekter — Wix-skrivningar.
   if (!dryRun) {
@@ -641,6 +913,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       createdAt: checkedAt,
       productName: mapping.seoTitle ?? wixSnapshot.name,
       imageUrl: mapping.imageAnalysis?.find((i) => i.verdict === "ok")?.url,
+      productSlug: wixSnapshot.slug,
       ...decision.alert,
     });
   } else {
@@ -681,7 +954,13 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
 
   // Feature 2 + 3: skicka real-tids-larm — ENDAST live (kostar AE-sök + ev.
   // Haiku + mejl). Debounce: larma inte igen inom 24h.
-  if (decision.justWentOos && opts.opsAlertEmail && !dryRun) {
+  //
+  // AV som standard sedan 2026-07-14: en körning gav 7 separata mejl i
+  // Leonards inkorg. Dygnets OOS-händelser sammanställs i stället i
+  // morgonmejlet (ordervakten) med AliExpress- + sajtlänk per produkt.
+  // Sätt SYNC_REALTIME_OOS_EMAIL=true för att få tillbaka per-produkt-mejlen.
+  const realtimeOosEmail = process.env.SYNC_REALTIME_OOS_EMAIL === "true";
+  if (decision.justWentOos && opts.opsAlertEmail && !dryRun && realtimeOosEmail) {
     const within24h = lastOosAlertAt
       ? Date.parse(checkedAt) - Date.parse(lastOosAlertAt) < 24 * 3600 * 1000
       : false;
@@ -801,6 +1080,18 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     outOfStockSince: dryRun ? (state?.outOfStockSince ?? null) : outOfStockSince,
     // Frys i dry-run så en torrkörning inte "konsumerar" en strike.
     removedStreak: dryRun ? (state?.removedStreak ?? 0) : removedStreak,
+    zeroStreak: dryRun ? (state?.zeroStreak ?? 0) : zeroStreak,
+    // Lyckad hämtning nollställer felsviten; föll vi hit via
+    // ERROR_STRIKES_AS_REMOVED persisteras den vidare-räknade sviten.
+    errorStreak: dryRun ? (state?.errorStreak ?? 0) : fetchErrorStreak,
+    // Kom ihåg när DET VAR VI som dolde (→ auto-restore tillåten, fynd 2).
+    hiddenBySync: dryRun
+      ? (state?.hiddenBySync ?? false)
+      : decision.shouldHide
+        ? true
+        : decision.shouldRestore
+          ? false
+          : (state?.hiddenBySync ?? false),
   };
   await syncStore.saveState(newState);
 
@@ -838,7 +1129,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     }
   }
 
-  return { actionTaken: logEntry.actionTaken, oosAlertSent, oosEvent, restockSent };
+  return { actionTaken: logEntry.actionTaken, oosAlertSent, oosEvent, restockSent, shippabilityCalls, shippabilityUnshippable };
 }
 
 /**
@@ -869,6 +1160,10 @@ export function resolveInventoryQuantities(
   supplierByVariantId: Map<string, string>,
   target: number,
   stockBySupplierId: Record<string, number>,
+  // Varianter (Wix variantId) utan fraktväg till Sverige — tvingas ALLTID
+  // till 0 oavsett leverantörens lager (fraktbarhetskontrollen, 2026-07-13:
+  // SucceBuy-SKU:er hade 26 st i lager men kunde inte skickas hit).
+  unshippableVariantIds: ReadonlySet<string> = new Set(),
 ): Map<string, number> {
   const out = new Map<string, number>();
   const evenSplit = Math.max(0, Math.trunc(target / Math.max(1, items.length)));
@@ -880,7 +1175,9 @@ export function resolveInventoryQuantities(
   });
   const usePerVariant = target > 0 && Object.keys(stockBySupplierId).length > 0 && anyMatch;
   for (const it of items) {
-    if (target === 0) {
+    if (unshippableVariantIds.has(it.variantId)) {
+      out.set(it.variantId, 0);
+    } else if (target === 0) {
       out.set(it.variantId, 0);
     } else if (usePerVariant) {
       const supplierId = supplierByVariantId.get(it.variantId);
@@ -909,7 +1206,19 @@ async function applyInventoryTarget(
   for (const v of mapping.variants ?? []) {
     if (v.wixVariantId) supplierByVariantId.set(v.wixVariantId, v.supplierVariantId);
   }
-  const qtyByVariant = resolveInventoryQuantities(items, supplierByVariantId, target, stockBySupplierId);
+  // Ofraktbara varianter tvingas till 0 vid spegling — men BARA när
+  // SYNC_SHIPPABILITY_ENFORCE=true. Grindad av (kod röd 2026-07-14): flaggor
+  // satta av opålitliga API-nej får inte nolla säljbara varianter. Kvarvarande
+  // gamla flaggor är inerta tills kontrollen v2 är bevisad.
+  const enforceShippability = process.env.SYNC_SHIPPABILITY_ENFORCE === "true";
+  const unshippableVariantIds = new Set(
+    enforceShippability
+      ? (mapping.variants ?? [])
+          .filter((v) => v.shippableToSe === false && v.wixVariantId)
+          .map((v) => v.wixVariantId as string)
+      : [],
+  );
+  const qtyByVariant = resolveInventoryQuantities(items, supplierByVariantId, target, stockBySupplierId, unshippableVariantIds);
   const updates = items.map((it) => ({
     id: it.id,
     revision: it.revision,

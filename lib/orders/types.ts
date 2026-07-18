@@ -3,6 +3,9 @@ export interface ShippingAddress {
   addressLine1?: string;
   addressLine2?: string;
   city?: string;
+  /** Delstat/region (län) — AliExpress-vänligt namn, t.ex. "Stockholm".
+   *  AliExpress kräver detta vid orderläggning ("state/province/region"). */
+  province?: string;
   postalCode?: string;
   country?: string;
   phone?: string;
@@ -11,6 +14,10 @@ export interface ShippingAddress {
 export type TaskStatus = "pending" | "pending_payment" | "ordered" | "shipped" | "cancelled";
 
 export interface FulfillmentTask {
+  /** Spårningsnummer från AliExpress — sätts när tasken skeppas. Låter
+   *  /api/tracking-events slå upp AliExpress-ordern från ett spårningsnummer
+   *  (kundens /sparning-sida visar då AliExpress egna händelser). */
+  trackingNumber?: string;
   /** Stabil nyckel per orderrad: `${orderId}:${lineItemId}`. */
   taskId: string;
   orderId: string;
@@ -76,12 +83,19 @@ export interface OrderEvent {
   order: WixOrder;
 }
 
+// OBS: Wix eCom kan leverera kontakten på BÅDE `contactDetails` (nuvarande V1-
+// shape, verifierat på riktiga ordrar) OCH det äldre `contact`. Vi accepterar
+// båda i extraktorn. Samma sak för adress: gatan ligger i `addressLine`/
+// `streetAddress`, INTE `addressLine1` (se WixAddress).
+type WixDestination = { address?: WixAddress; contactDetails?: WixContact; contact?: WixContact };
+
 export interface WixOrder {
   id: string;
   number?: string;
   lineItems?: WixLineItem[];
-  recipientInfo?: { address?: WixAddress; contact?: WixContact };
-  shippingInfo?: { logistics?: { shippingDestination?: { address?: WixAddress; contact?: WixContact } } };
+  recipientInfo?: WixDestination;
+  shippingInfo?: { logistics?: { shippingDestination?: WixDestination } };
+  billingInfo?: WixDestination;
   buyerInfo?: { email?: string };
 }
 
@@ -91,15 +105,33 @@ export interface WixLineItem {
   quantity?: number;
   physicalProperties?: { sku?: string };
   catalogReference?: { catalogItemId?: string; options?: { options?: Record<string, string> } };
-  descriptionLines?: { name?: { original?: string }; plainText?: { original?: string } }[];
+  // Variantval (färg/storlek) ligger i praktiken HÄR på riktiga ordrar, inte i
+  // catalogReference.options.options. COLOR-rader bär värdet i `color`/`colorInfo`,
+  // text-rader i `plainText`. Nyckeln är `name` (t.ex. "Färg").
+  descriptionLines?: {
+    name?: { original?: string; translated?: string };
+    plainText?: { original?: string; translated?: string };
+    color?: string;
+    colorInfo?: { original?: string; translated?: string };
+    lineType?: string;
+  }[];
 }
 
 export interface WixAddress {
+  // Gatan kan komma i tre former beroende på checkout/version. På riktiga
+  // Fyndplats-ordrar (Headless-checkout) ligger den i `addressLine` (singular),
+  // INTE `addressLine1`. `streetAddress` är den strukturerade varianten.
   addressLine1?: string;
+  addressLine?: string;
+  streetAddress?: { name?: string; number?: string; apt?: string };
   addressLine2?: string;
   city?: string;
   postalCode?: string;
   country?: string;
+  /** ISO 3166-2, t.ex. "SE-AB" (Stockholms län). */
+  subdivision?: string;
+  /** Läsbart län-namn, t.ex. "Stockholms län". */
+  subdivisionFullname?: string;
 }
 
 export interface WixContact {

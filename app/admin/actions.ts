@@ -4,11 +4,26 @@ import { revalidatePath } from "next/cache";
 import { extractAliExpressProductId, getInventory } from "@/lib/aliexpress/client";
 import { getStore } from "@/lib/store/factory";
 import { assertTransition } from "@/lib/orders/status";
-import { placeOrderForTask } from "@/lib/orders/place-order";
+import { placeOrderForTask, type PlaceOrderResult } from "@/lib/orders/place-order";
+import type { ShippingAddress } from "@/lib/orders/types";
+
+type ActionResult = { ok: true } | { ok: false; error: string };
+
+const cleanStr = (s: string | undefined): string | undefined => {
+  const t = (s ?? "").trim();
+  return t || undefined;
+};
 
 /** Form-action-wrapper — returnerar inget och funkar med <form action>. */
 export async function placeAliExpressOrderAction(taskId: string): Promise<void> {
   await placeAliExpressOrder(taskId);
+}
+
+/** Klient-action som RETURNERAR utfallet så admin-knappen kan visa fel/framgång
+ *  i stället för att göra "ingenting" (form-action-wrappern ovan sväljer allt).
+ *  All logik + guards ligger i den delade placeOrderForTask. */
+export async function placeAliExpressOrderResultAction(taskId: string): Promise<PlaceOrderResult> {
+  return placeAliExpressOrder(taskId);
 }
 
 /**
@@ -33,6 +48,79 @@ export async function markTaskOrderedAction(taskId: string): Promise<void> {
     detail: "manuellt markerad som betald/lagd via admin",
   });
   revalidatePath("/admin");
+}
+
+/**
+ * Redigerar en tasks leveransadress manuellt (t.ex. om Wix-ordern saknade gata,
+ * eller kunden hörde av sig med en rättelse) INNAN AliExpress-ordern läggs.
+ * Trimmar + tomma-till-undefined. Vägrar när ordern redan är lagd (adressen
+ * ligger då hos AliExpress). F50-adressspärren i placeOrderForTask fångar ändå
+ * en ofullständig adress vid orderläggningen, så en delvis sparad adress kan
+ * aldrig ge en oleverabar order.
+ */
+export async function updateTaskAddressAction(
+  taskId: string,
+  address: ShippingAddress,
+): Promise<ActionResult> {
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return { ok: false, error: "Task hittades inte" };
+  if (task.aliexpressOrderId) {
+    return { ok: false, error: "Ordern är redan lagd hos AliExpress — adressen kan inte ändras här." };
+  }
+  const next: ShippingAddress = {
+    fullName: cleanStr(address.fullName),
+    addressLine1: cleanStr(address.addressLine1),
+    addressLine2: cleanStr(address.addressLine2),
+    postalCode: cleanStr(address.postalCode),
+    city: cleanStr(address.city),
+    province: cleanStr(address.province),
+    country: cleanStr(address.country)?.toUpperCase(),
+    phone: cleanStr(address.phone),
+  };
+  await store.updateTask(taskId, { shippingAddress: next });
+  await store.appendAudit({
+    at: new Date().toISOString(),
+    kind: "address-edited",
+    ref: taskId,
+    detail: `leveransadress ändrad manuellt via admin (${next.fullName ?? "?"}, ${next.addressLine1 ?? "?"}, ${next.postalCode ?? ""} ${next.city ?? ""})`,
+  });
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/**
+ * Släpper ett fastlåst task-claim + rensar granskningsflaggorna (osäkert utfall /
+ * annullering-race) så en fastnad task kan hanteras/läggas om i appen i stället
+ * för databas-kirurgi. SÄKERHET: vägrar när ett AE-order-id finns — då KAN en
+ * order redan vara lagd, och att släppa låset skulle riskera en dubbelbeställning.
+ * Verifiera/avbeställ på AliExpress först i det fallet.
+ */
+export async function releaseTaskAction(taskId: string): Promise<ActionResult> {
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return { ok: false, error: "Task hittades inte" };
+  if (task.aliexpressOrderId) {
+    return {
+      ok: false,
+      error: "Tasken har ett AliExpress-order-id — verifiera/avbeställ ordern på AliExpress först. Låset släpps inte (dubbel-order-risk).",
+    };
+  }
+  await store.updateTask(taskId, {
+    claimToken: undefined,
+    orderUncertain: undefined,
+    uncertainAt: undefined,
+    cancelMidOrder: undefined,
+    cancelMidOrderAt: undefined,
+  });
+  await store.appendAudit({
+    at: new Date().toISOString(),
+    kind: "task-unlocked",
+    ref: taskId,
+    detail: "lås + granskningsflaggor rensade manuellt via admin",
+  });
+  revalidatePath("/admin");
+  return { ok: true };
 }
 
 /**
