@@ -895,3 +895,54 @@ describe("stripLeadingSupplierCode — rensar leverantörskod ur variantvärde",
     expect(translateValue("EU Plug")).toBe("EU-kontakt"); // regression: oförändrat
   });
 });
+
+describe("VALUE_TRANSLATIONS — fäste-/stativ-familjen (Sångarbracket-incidenten 2026-07-02)", () => {
+  it("bracket-kombinationerna översätts som HELA fraser med rätt böjning", () => {
+    // TV-vagnen 1005009191951211: "Single Bracket" nådde AI:n som hittade på
+    // blandspråks-ordet "Sångarbracket" → key-låst i Wix, går aldrig att rätta.
+    expect(translateValue("Single Bracket")).toBe("Enkelt fäste");
+    expect(translateValue("Double Bracket")).toBe("Dubbelt fäste");
+    expect(translateValue("Dual Bracket")).toBe("Dubbelt fäste");
+    expect(translateValue("Single Bracket Tray")).toBe("Enkelt fäste med bricka");
+    expect(translateValue("Double Bracket Tray")).toBe("Dubbelt fäste med bricka");
+    expect(translateValue("Four Brackets")).toBe("Fyra fästen");
+    expect(translateValue("Stand")).toBe("Stativ");
+  });
+
+  it("hela familjen är AI-oberoende (residual → tomt) → förgiftad cache oåtkomlig", () => {
+    // "Single Bracket" → "Sångarbracket" ligger kvar i per-värde-cachen som en
+    // "betrodd" översättning (svar ≠ råvärde). Tabell-täckningen kortsluter
+    // kandidat-uttagningen så posten aldrig konsulteras igen.
+    expect(residualEnglishTokens("Single Bracket")).toEqual([]);
+    expect(residualEnglishTokens("Single Bracket Tray")).toEqual([]);
+    expect(residualEnglishTokens("Double Bracket")).toEqual([]);
+    expect(residualEnglishTokens("Four Brackets")).toEqual([]);
+    expect(residualEnglishTokens("Stand")).toEqual([]);
+  });
+
+  it("stativ-fraser: möbel-fällan och sammansättningar", () => {
+    expect(translateValue("Floor Stand")).toBe("Golvstativ");
+    expect(translateValue("TV Stand")).toBe("TV-stativ");
+    expect(translateValue("TV Cart")).toBe("TV-vagn");
+    expect(translateValue("Night Stand")).toBe("Sängbord"); // stand ≠ stativ (möbeln)
+    expect(translateValue("Plant Stand")).toBe("Växtställ");
+    expect(translateValue("Wall Mount")).toBe("Väggfäste");
+    expect(translateValue("Tripod")).toBe("Stativ");
+  });
+
+  it("token-säkra lösa ord i familjen (multiplicitet, plan/lager, hjul-tillbehör)", () => {
+    expect(translateValue("Double Layer")).toBe("Två lager"); // fras vinner
+    expect(translateValue("3 Tier")).toBe("3 Plan"); // "plan" böjs inte → aldrig fel form
+    expect(translateValue("Single Red")).toBe("Enkel Röd"); // token-vis
+    expect(translateValue("4 Hooks")).toBe("4 Krokar");
+    expect(translateValue("2 Shelves")).toBe("2 Hyllor");
+    expect(translateValue("With Casters")).toBe("Med Länkhjul");
+  });
+
+  it("self-maps i familjen flaggar aldrig perfekta svar (eko-asymmetrin)", () => {
+    expect(translateValue("Single Arm")).toBe("Enkel arm");
+    expect(translateValue("Adapter")).toBe("Adapter");
+    expect(residualEnglishTokens("Single Arm")).toEqual([]);
+    expect(residualEnglishTokens("Adapter")).toEqual([]);
+  });
+});

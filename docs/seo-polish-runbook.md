@@ -313,6 +313,64 @@ GET .../products/{PRODUCT_ID}?fields=MEDIA_ITEMS_INFO   // alla items ska ha ima
 
 -----
 
+## Steg 3b – Bild-polering till proffsnivå (rensa utländsk text + Fyndplats-kort)
+
+Rå-importens sekundärbilder (pos 1+) är ofta leverantörs-infographics med engelsk/
+kinesisk text, VEVOR-branding, måttpilar och insatscirklar. Målet: **varje bild ska
+se ut som ett eget professionellt foto — retuschen får inte synas överhuvudtaget.**
+Signalen "produkten är bildpolerad" = galleriet innehåller **Fyndplats spec-/feature-kort**
+(gräddvit `(250,248,243)` + orange logga).
+
+**Arbetsgång per produkt** (verktyg: `scratchpad/pro.py`, `cardlib.py`, LaMa via
+`simple-lama-inpainting` — modellen `big-lama.pt` hämtas från HuggingFace
+`JosephCatrambone/big-lama-torchscript` till `~/.cache/torch/hub/checkpoints/`
+eftersom GitHub-releases är blockerade i sessionen):
+
+1. **Ladda ner galleriet i full upplösning** och gör en kontaktkarta. Identifiera per
+   bild: ren produktbild (behåll orörd) / foto med textoverlay (rensa) / ren
+   leverantörs-spec (ersätt med svenskt kort) / dubblett eller fel variant (släng).
+2. **Mät koordinater med rutnät** — rita 0.1-linjer på bilden och läs av exakta boxar.
+   Gissa ALDRIG koordinater ur minnet; det är största felkällan.
+3. **Välj teknik per zon** (i fallande prioritet):
+   - **Komponentrekonstruktion** (vit-bakgrundscollage): behåll stora sammanhängande
+     regioner (foton/produkt), släng små (text), bygg om på vit duk. Pixelperfekt,
+     ingen retusch alls → använd alltid när bakgrunden är vit. Fungerar EJ när
+     pilar/streck binder ihop text med produkten till en komponent.
+   - **LaMa-inpainting** för text/loggor/piller över foton. Regler: **smala masker
+     per element** (aldrig en stor box över flera element — ger dimma/plattor);
+     maskmarginal ~10–15 px UTANFÖR elementets kant (annars förlänger LaMa
+     elementets färg); färgpredikat (`m_orange`, `m_dark(t)`, ljus-mask) hellre än
+     `m_all` när elementet ligger nära produkt; kompositera resultatet in i
+     originalet (bara maskzonen ändras).
+   - **Exakt bandbeskärning** när texten ligger i ett rent kant-band/kolumn utan
+     produkt/person: skär EXAKT vid bandets kant, inget mer. Aldrig hårda inzoomningar
+     som kapar människor eller produkt.
+   - **Planpassning + kornighet** (`plane_fill`) för stora ytor på släta väggar/gradienter.
+   - **Klonstämpel/HF-transplantat** för texturer (gräs/trä) — verifiera att källan är
+     ren och på samma skärpedjup; spegla inte riktade texturer (chevron-artefakter).
+4. **QC vid 100 % zoom på varje redigerad zon före publicering.** Leta: spökbokstäver
+   (vita halos — öka dilation), färgtoner, dimfläckar, brutna kantlinjer, tile-skarvar.
+   Iterera tills osynligt. **Går det inte att göra osynligt → bilden utgår.** Hellre
+   färre perfekta bilder än en synlig retusch.
+5. **Bygg Fyndplats-kort** med `cardlib.py`: `spec_card` (produktbild + 6 verifierade
+   nyckelvärden) och `feature_card` (produktbild + 4 fördelar). **Alla siffror ska vara
+   avlästa ur källbilder/beskrivning — aldrig gissade.** Vid flera varianter med olika
+   mått: ett spec-kort per variant, länkat till respektive choice (Steg 6-reglerna).
+6. **Ta bort dropship-branding även i bilder** (VEVOR-logga på väska/produktfoto →
+   LaMa bort). Produktens egen förpackning i bild är OK.
+7. **Uppladdning:** committa bilderna till branchen `claude/tmp-image-upload`
+   (git worktree, force-push OK) → `UploadImageToWixSite` med raw-GitHub-URL →
+   patcha `media.itemsInfo.items` (hela arrayen + svenska alt-texter, ALDRIG
+   `media.main`) och omlänka ev. variant-choice-bilder (options + variantsInfo
+   ordagrant tillsammans).
+
+**Beslutsträd vid problemzoner:** text över slät bakgrund → LaMa · text i kantpanel →
+bandbeskärning · stort grafikelement mitt i strukturerad bakgrund (handtag, bordskant,
+gräs) → försök LaMa/geometrisk omritning, max ~3 iterationer, annars utgår bilden ·
+element som täcker både produkt och bakgrund → LaMa med produkt-skonande färgpredikat.
+
+-----
+
 ### Steg 3c – Ren vit hjältebild (premium-look, vid behov)
 
 Leverantörsbilderna har ofta fula/mörka/röriga bakgrunder (ibland med hörn-logga). Det som får katalogen att se ut som ett **riktigt varumärke** är **enhetlighet** — inte att varje bild är vit. Regel: **hjältebilden (första item = `media.main` = produktkortet) ska vara en ren produktbild på vit studio-bakgrund med mjuk skugga.** Konsekvent inramning mellan produkter = proffsigt.

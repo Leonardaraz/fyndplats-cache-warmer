@@ -938,6 +938,125 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   extra: "Extra", // audit S3: annars flaggas perfekta svar som "Extra lång"
   normal: "Normal",
   maximal: "Maximal",
+
+  // --- Fäste-/stativ-/vagn-familjen (Sångarbracket-incidenten 2026-07-02).
+  //     "Single Bracket" saknades i tabellen → AI-kandidat → Haiku hittade på
+  //     blandspråks-ordet "Sångarbracket", som varken eko-regeln (svar ≠ råvärde),
+  //     halvöversättnings-detektorn (jämför HELA tokens — "bracket" låg INUTI
+  //     sammansättningen) eller svenskhets-grinden fångade. V3 key-låser värdet →
+  //     går aldrig att rätta i efterhand. Därför täcks HELA familjen deterministiskt:
+  //     fulla fraser först (rätt böjning/sammansättning), token-säkra lösa ord för
+  //     svansen. "twin" (= enkelsäng i bäddtextil), "base"/"rod"/"cover" (fler-
+  //     tydiga) och lösa "wall"/"floor" (ger brutna substantiv-kompositioner som
+  //     "Vägg Hängare") UTELÄMNAS medvetet — samma policy som deep/light ovan. ---
+  // Multiplicitet (token-säkra adjektiv/räkneord; "one"/"free" får ALDRIG bli
+  // lösa tokens — se universalstorleks-noten ovan).
+  single: "Enkel",
+  double: "Dubbel",
+  dual: "Dubbel",
+  triple: "Trippel",
+  two: "Två",
+  three: "Tre",
+  four: "Fyra",
+  five: "Fem",
+  six: "Sex",
+  // Fäste-/stativ-substantiv (bracket/mount/holder/frame/fork/wheel finns ovan i
+  // singular; här pluralerna + resten av familjen).
+  brackets: "Fästen",
+  mounts: "Fästen",
+  holders: "Hållare",
+  stand: "Stativ",
+  stands: "Stativ",
+  shelf: "Hylla",
+  shelves: "Hyllor",
+  tray: "Bricka",
+  trays: "Brickor",
+  hook: "Krok",
+  hooks: "Krokar",
+  clamp: "Klämma",
+  clamps: "Klämmor",
+  clip: "Klämma",
+  clips: "Klämmor",
+  rack: "Ställ",
+  racks: "Ställ",
+  pole: "Stång",
+  poles: "Stänger",
+  leg: "Ben",
+  legs: "Ben",
+  support: "Stöd",
+  supports: "Stöd",
+  layer: "Lager",
+  layers: "Lager",
+  tier: "Plan", // "3 Tier" → "3 Plan" ("plan" böjs inte i plural → aldrig fel form)
+  tiers: "Plan",
+  caster: "Länkhjul",
+  casters: "Länkhjul",
+  cart: "Vagn",
+  carts: "Vagnar",
+  handle: "Handtag",
+  handles: "Handtag",
+  hanger: "Hängare",
+  hangers: "Hängare",
+  trellis: "Spaljé",
+  cage: "Bur",
+  cages: "Burar",
+  // Pluraler av redan-kända tillbehörs-substantiv (singular ovan).
+  batteries: "Batterier",
+  chargers: "Laddare",
+  cables: "Kablar",
+  straps: "Remmar",
+  screens: "Skärmar",
+  lenses: "Linser",
+  frames: "Ramar",
+  forks: "Gafflar",
+  // EN=SV-identiska i familjen (self-maps, jfr smart/mini ovan).
+  arm: "Arm",
+  arms: "Armar",
+  adapter: "Adapter",
+  adapters: "Adaptrar",
+  // Fulla fraser: substantiv-sammansättningar och böjda kombinationer där token-
+  // komposition ger bruten svenska ("Enkelt fäste", aldrig "Enkel Fäste").
+  "single bracket": "Enkelt fäste",
+  "double bracket": "Dubbelt fäste",
+  "dual bracket": "Dubbelt fäste",
+  "triple bracket": "Trippelfäste",
+  "two brackets": "Två fästen",
+  "three brackets": "Tre fästen",
+  "four brackets": "Fyra fästen",
+  "single bracket tray": "Enkelt fäste med bricka",
+  "double bracket tray": "Dubbelt fäste med bricka",
+  "single bracket with tray": "Enkelt fäste med bricka",
+  "double bracket with tray": "Dubbelt fäste med bricka",
+  "with tray": "Med bricka",
+  "single arm": "Enkel arm",
+  "double arm": "Dubbel arm",
+  "dual arm": "Dubbel arm",
+  "single layer": "Ett lager",
+  "double layer": "Två lager",
+  "triple layer": "Tre lager",
+  "wall mount": "Väggfäste",
+  "wall bracket": "Väggfäste",
+  "wall shelf": "Vägghylla",
+  "wall hook": "Väggkrok",
+  "ceiling mount": "Takfäste",
+  "desk mount": "Skrivbordsfäste",
+  "floor stand": "Golvstativ",
+  "table stand": "Bordsstativ",
+  "desk stand": "Bordsstativ",
+  "tv stand": "TV-stativ",
+  "tv cart": "TV-vagn",
+  "plant stand": "Växtställ",
+  "night stand": "Sängbord", // stand ≠ stativ här — möbeln
+  nightstand: "Sängbord",
+  "music stand": "Notställ",
+  "mic stand": "Mikrofonstativ",
+  "microphone stand": "Mikrofonstativ",
+  "monitor stand": "Skärmställ",
+  "laptop stand": "Laptopställ",
+  "phone stand": "Telefonställ",
+  "tablet stand": "Surfplatteställ",
+  tripod: "Stativ",
+  "tripod stand": "Stativ",
 };
 
 /**
