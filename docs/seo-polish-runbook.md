@@ -328,7 +328,8 @@ eftersom GitHub-releases är blockerade i sessionen):
 
 1. **Ladda ner galleriet i full upplösning** och gör en kontaktkarta. Identifiera per
    bild: ren produktbild (behåll orörd) / foto med textoverlay (rensa) / ren
-   leverantörs-spec (ersätt med svenskt kort) / dubblett eller fel variant (släng).
+   leverantörs-spec (ersätt med svenskt kort) / **variant-/måttblad som visar en specifik
+   variant (behåll & städa — se variant-regeln nedan, släng ALDRIG)** / äkta dubblett (släng en).
 2. **Mät koordinater med rutnät** — rita 0.1-linjer på bilden och läs av exakta boxar.
    Gissa ALDRIG koordinater ur minnet; det är största felkällan.
 3. **Välj teknik per zon** (i fallande prioritet):
@@ -363,6 +364,25 @@ eftersom GitHub-releases är blockerade i sessionen):
    patcha `media.itemsInfo.items` (hela arrayen + svenska alt-texter, ALDRIG
    `media.main`) och omlänka ev. variant-choice-bilder (options + variantsInfo
    ordagrant tillsammans).
+
+> ⚠️ **Variantbilder — varje variant som SER OLIKA UT ska ha sin EGEN bild (Leonard-krav, 2026-07-19, hårt).**
+> Skiljer sig varianternas *utseende* (olika modell/design/form/storlek — t.ex. bänkar med olika
+> ryggstöd, stege med 4 vs 5 steg, väska 16" vs 20", basketställning med olika backboard) → du får
+> **ALDRIG** kollapsa dem till en gemensam bild eller ersätta de olika variant-/måttbladen med **ETT
+> gemensamt kort byggt ur hero**. Kunden måste se exakt den variant hen väljer.
+> - **Behåll (eller återställ) leverantörens differentierade variant-/måttblad — ett per variant.**
+>   Original hämtas från `https://static.wixstatic.com/media/<mediaId>~mv2.jpg` **även efter** att de
+>   tagits ur galleriet (filen lever kvar i Media Manager tills orphan-svepen).
+> - Städa bara bort **VEVOR-loggan** (vit boxfyll `ImageDraw.rectangle` på vit bg, annars LaMa) och
+>   ev. stor **engelsk marknads-/spec-panel** (beskär bort halva bilden). **Måtten (cm/tum/mm)
+>   BEHÅLLS — de är inte fula och behövs för att skilja varianterna.**
+> - Länka varje choice till sin egen bild: `linkedMedia:[hero, <variant-egen-bild>]` (Steg 6B).
+> - **Undantag där gemensam bild ÄR rätt:** varianten ändrar inte utseendet — ren **färgvariant utan
+>   separat källfoto** (t.ex. PCP svart/silver, bara en pump fotad) eller **kapacitets-/måttvariant på
+>   fysiskt identisk produkt** (t.ex. slangvagn 76/91 m — samma vagn). Då räcker gemensam bild + värdet i texten.
+> - **Verifiera efteråt:** GET `VARIANT_OPTION_CHOICE_NAMES` och kontrollera att varje choice har ett
+>   **unikt** `linkedMedia`-id (utöver hero). Två olika-seende varianter som pekar på samma icke-hero-id
+>   = fel. (Rättat i efterhand på bänk/stege/väska/basket 2026-07-19 — gör aldrig om det.)
 
 **Beslutsträd vid problemzoner:** text över slät bakgrund → LaMa · text i kantpanel →
 bandbeskärning · stort grafikelement mitt i strukturerad bakgrund (handtag, bordskant,
