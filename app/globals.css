@@ -6,6 +6,16 @@
   --ink:#1c1c1c; --soft:#6b6157; --text-muted:#6b6157; --line:#EFE7DE;
   --orange:#F47A35; --orange2:#E5681F; --peach:#FFB078; --char:#222018; --warm:#FFF6EF;
 
+  /* ── Fyllnadstoner: brand-färg UNDER vit text ─────────────────────────
+     --orange och sale-rött är rätt som ACCENT (färgad text mot ljus botten,
+     eller mot auktionens mörka hjälte). Som FYLLNAD under vit text är de för
+     ljusa: #F47A35 ger vit text 2,7:1 och #F84848 ger 3,5:1 — båda under
+     WCAG AA:s 4,5. Det syntes på köpknappar, rea-etiketter och promo-bandet.
+     De här två tonerna ligger i samma kulör men med ljushet som klarar vit
+     text. Regel: färgad TEXT → --orange/--sale. Vit text PÅ färg → *-fill. */
+  --orange-fill:#C24E0D;   /* vit text 4,8:1 */
+  --sale-fill:#D02020;     /* vit text 5,4:1 — och 5,4:1 som röd text på vitt */
+
   /* ── Typografisk skala ────────────────────────────────────────────────
      Audit 2026-06-02 (#3): sajten använde ~22 distinkta font-storlekar,
      11 av dem inom ett 6px-spann → visuellt brus utan hierarki. Vi snäpper
@@ -227,7 +237,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .prod .pprice{font-size:16px;font-weight:800;color:#C2410C;width:100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;line-height:1.25}
 .pprice-now{white-space:nowrap}
 .pprice-old{font-size:12px;font-weight:600;color:#7c746b;text-decoration:line-through}
-.sale-badge{position:absolute;top:10px;left:10px;z-index:2;background:#F84848;color:#fff;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:7px;box-shadow:0 4px 10px -3px rgba(248,72,72,.6)}
+.sale-badge{position:absolute;top:10px;left:10px;z-index:2;background:var(--sale-fill);color:#fff;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:7px;box-shadow:0 4px 10px -3px rgba(248,72,72,.6)}
 .prod .pbtn{flex:0 0 auto;white-space:nowrap;font-size:12px;font-weight:700;color:#fff;background:var(--ink);border-radius:9px;padding:8px 12px}
 .center{text-align:center;margin-top:34px}
 .linkbtn{display:inline-block;border:1.5px solid var(--ink);border-radius:12px;padding:13px 28px;font-weight:700;font-size:14px;transition:background .2s,color .2s}
@@ -246,7 +256,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .card h3{font-size:16px;font-weight:700;margin-bottom:7px}
 .card p{font-size:14px;color:var(--soft);line-height:1.6}
 
-.band{background:linear-gradient(120deg,#F47A35,#E5681F);color:#fff;border-radius:24px;padding:48px 40px;text-align:center}
+.band{background:linear-gradient(120deg,var(--orange-fill),#9E320A);color:#fff;border-radius:24px;padding:48px 40px;text-align:center}
 .bandwrap{max-width:1180px;margin:0 auto;padding:0 26px}
 .band h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(26px,3.4vw,38px);font-weight:600;letter-spacing:-.015em;margin-bottom:10px}
 .band p{opacity:.92;font-size:16px;margin-bottom:24px}
@@ -336,7 +346,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .track-form input:focus{border-color:var(--orange)}
 .track-form .buy{width:auto;max-width:none;white-space:nowrap}
 .track-hint{font-size:12px;color:var(--soft);margin-top:10px}
-.track-err{color:#F84848;font-weight:600;font-size:14px;margin-top:10px}
+.track-err{color:var(--sale-fill);font-weight:600;font-size:14px;margin-top:10px}
 /* Pending = paketet är registrerat hos 17TRACK men carrier-data inte synkroniserad ännu.
    Info-färg (brand-orange) istället för fel-röd så kunden förstår att det fungerar. */
 .track-pending{color:#C2410C;font-weight:600;font-size:14px;margin-top:10px;background:#FFF4ED;padding:10px 14px;border-radius:8px;border-left:3px solid #C2410C}
@@ -360,10 +370,10 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .step .slbl{font-size:12px;font-weight:600;color:var(--soft)}
 .step::before{content:"";position:absolute;top:15px;left:-50%;width:100%;height:2px;background:var(--line);z-index:1}
 .step:first-child::before{display:none}
-.step.on .dot{background:var(--orange);border-color:var(--orange)}
+.step.on .dot{background:var(--orange-fill);border-color:var(--orange-fill)}
 .step.on .slbl{color:var(--ink);font-weight:700}
 .step.on::before{background:var(--orange)}
-.step.current .dot{background:#F84848;border-color:#F84848;box-shadow:0 0 0 5px rgba(248,72,72,.16)}
+.step.current .dot{background:var(--sale-fill);border-color:var(--sale-fill);box-shadow:0 0 0 5px rgba(248,72,72,.16)}
 .step.done-all .dot{background:#1E9E57;border-color:#1E9E57}
 .step.done-all::before{background:#1E9E57}
 .track-h{font-size:18px;font-weight:700;margin:30px 0 3px}
@@ -503,7 +513,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pinfo h1{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px}
 .pdp-price{font-size:32px;font-weight:800;color:#C2410C;margin-bottom:10px}
 .pdp-price-old{font-size:18px;font-weight:600;color:#7c746b;text-decoration:line-through;margin-left:10px;vertical-align:middle}
-.pdp-sale{display:inline-block;vertical-align:middle;margin-left:10px;background:#F84848;color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:7px}
+.pdp-sale{display:inline-block;vertical-align:middle;margin-left:10px;background:var(--sale-fill);color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:7px}
 /* Klarna-delbetalningsrad under priset (components/klarna-message.tsx). Klarnas
    rosa märke i ett litet chip + diskret text — säljpunch utan att skrika. */
 .klarna-msg{display:inline-flex;align-items:center;gap:9px;margin:-2px 0 16px;font-size:13.5px;color:#4a443d}
@@ -991,7 +1001,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .greview-gicon{flex:none;margin-top:2px;opacity:.92}
 .greview-text{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
 .greviews-actions{text-align:center;margin-top:28px}
-.greviews-more{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border:0;border-radius:999px;background:linear-gradient(135deg,#C2410C,#F47A35);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 12px 26px -12px rgba(194,65,12,.75);transition:transform .2s,box-shadow .2s,filter .2s}
+.greviews-more{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--orange-fill),#9E320A);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 12px 26px -12px rgba(194,65,12,.75);transition:transform .2s,box-shadow .2s,filter .2s}
 .greviews-more::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);transition:left .55s ease}
 .greviews-more:hover{transform:translateY(-2px);box-shadow:0 18px 34px -12px rgba(194,65,12,.9);filter:brightness(1.05)}
 .greviews-more:hover::after{left:130%}
@@ -1676,7 +1686,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .a-climax-inner{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;text-align:center;
   background:linear-gradient(100deg,#2a0f04,#5a1e06);border:1px solid #7a3312;border-radius:16px;padding:13px 22px;
   box-shadow:0 20px 50px -20px rgba(255,90,20,.6), inset 0 0 30px rgba(255,120,40,.12)}
-.a-climax-badge{font-weight:900;font-size:13px;letter-spacing:.06em;color:#fff;background:#F84848;
+.a-climax-badge{font-weight:900;font-size:13px;letter-spacing:.06em;color:#fff;background:var(--sale-fill);
   padding:6px 13px;border-radius:999px;animation:aPulseBadge 1.3s ease-in-out infinite}
 .a-climax-txt{color:#FFE7CE;font-size:15px;font-weight:600}
 .a-climax-txt b{color:var(--a-gold);font-variant-numeric:tabular-nums}
@@ -1703,7 +1713,7 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   background:linear-gradient(180deg, rgba(70,25,5,.10), rgba(42,14,4,.16)),
              radial-gradient(120% 100% at 50% 0%, transparent 55%, rgba(50,15,2,.28) 100%);mix-blend-mode:multiply}
 .a-stage.a-final .a-hc-img::after{opacity:1}
-.a-hc-badge{position:absolute;top:16px;left:16px;z-index:3;background:#F84848;color:#fff;font-weight:900;font-size:16px;
+.a-hc-badge{position:absolute;top:16px;left:16px;z-index:3;background:var(--sale-fill);color:#fff;font-weight:900;font-size:16px;
   padding:7px 13px;border-radius:10px;box-shadow:0 8px 18px -6px rgba(248,72,72,.7);font-variant-numeric:tabular-nums}
 .a-hc-info{padding:28px 32px;display:flex;flex-direction:column;gap:12px;justify-content:center}
 .a-hc-label{font-size:11.5px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;color:var(--a-accent);
@@ -1789,7 +1799,15 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
   .a-lb-old{font-size:12px;color:var(--a-soft,#6b6157);text-decoration:line-through;white-space:nowrap}
   .a-lb-timer{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--a-cardink,#241c16);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-  .a-lb-cta{font-weight:800;font-size:13px;color:#fff;background:linear-gradient(180deg,var(--a-accent2,#F47A35),var(--a-accent,#C2410C));
+  /* Köpknappen i den mobila sticky-raden. Gradienten gick från #F47A35, vilket
+     ger vit text 2,7:1 — underkänt, och toppen av knappen blev tvättad mot den
+     vita raden. Den ljusa orangen är rätt i auktionens hjälte (accent MOT mörk
+     botten) men fel som fyllnad UNDER vit text.
+     Nu #C24E0D → #9E320A: 4,8:1 i toppen, 7,2:1 i botten, och samma djup mot
+     den vita raden så knappen läses som en massiv primärknapp i stället för en
+     rea-etikett. Tonen ligger kvar i varumärkets orangeröda familj (--a-accent
+     är #C2410C), så inget byte av kulör — bara rätt ljushet för vit text. */
+  .a-lb-cta{font-weight:800;font-size:13px;color:#fff;background:linear-gradient(180deg,#C24E0D,#9E320A);
     padding:7px 14px;border-radius:999px;white-space:nowrap;flex:0 0 auto}
   .a-stage.a-final .a-live-bar{box-shadow:0 0 22px rgba(255,110,30,.45),0 14px 34px -12px rgba(0,0,0,.6)}
   .a-stage.a-final .a-lb-timer{color:#FFC9A0}
