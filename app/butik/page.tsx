@@ -139,7 +139,14 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                       alt={g.main.name}
                       fill
                       sizes="(max-width:760px) 100vw, (max-width:1100px) 50vw, 560px"
-                      priority={idx < 2}
+                      // `priority` utfasad i Next 16. HÄR blir ersättningen inte
+                      // `preload`: korten ligger i ett responsivt rutnät där
+                      // olika bilder är LCP beroende på skärmbredd, och Next-
+                      // doken avråder uttryckligen från preload i just det
+                      // läget. `loading="eager"` bevarar det som spelade roll
+                      // (de två översta lazy-laddas inte), och fetchPriority
+                      // pekar fortsatt ut den enda säkra kandidaten.
+                      loading={idx < 2 ? "eager" : undefined}
                       fetchPriority={idx === 0 ? "high" : undefined}
                     />
                   )}

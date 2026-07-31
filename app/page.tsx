@@ -192,7 +192,9 @@ export default async function Home() {
                       src={tightFillUrl(p.img, 800, 800)}
                       alt={p.name}
                       fill
-                      {...(i === 0 ? { priority: true } : {})}
+                      // `priority` utfasad i Next 16 → `preload`. Bara första
+                      // brickan: den är startsidans LCP-element.
+                      {...(i === 0 ? { preload: true as const, fetchPriority: "high" as const } : {})}
                       placeholder="blur"
                       blurDataURL={heroBlur[i]}
                       sizes="(max-width:880px) 42vw, 22vw"

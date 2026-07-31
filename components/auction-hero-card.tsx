@@ -62,7 +62,12 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
             // det inte — cover beskar produkten (t.ex. kamerans topp). Vit botten
             // i .a-hc-img gör letterbox-banden osynliga.
             style={{ objectFit: "contain", padding: "4%" }}
-            priority
+            // `priority` är utfasad i Next 16 → `preload`. fetchPriority sätts
+            // separat eftersom next/image inte härleder den ur preload (samma
+            // resonemang som components/gallery.tsx). Auktionsbilden är sidans
+            // entydiga LCP-element, så den ska både förladdas och prioriteras.
+            preload
+            fetchPriority="high"
           />
         )}
       </div>
