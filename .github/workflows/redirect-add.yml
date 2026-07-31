@@ -1,0 +1,67 @@
+name: Lägg till 301-redirect (manuell trigger)
+
+# Skriver en redirect för en borttagen produkt till FyndplatsRedirects, som
+# storefronten läser när /produkt/<slug> inte längre finns (404 → 308).
+#
+# Använd när en produkt raderats ur Wix: peka den mot närmaste levande produkt,
+# annars mot kategorin. Undvik startsidan (Google räknar mass-redirects dit som
+# "soft 404").
+#
+# Kör utan from_slug för att bara LISTA befintliga redirects.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET       — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      from_slug:
+        description: "Produkt-slug som ska omdirigeras (utan /produkt/). Tomt = lista bara."
+        required: false
+        type: string
+      to_path:
+        description: "Mål, intern sökväg (t.ex. /produkt/ny-produkt eller /kategori/leksaker-spel)"
+        required: false
+        type: string
+      reason:
+        description: "Anteckning (valfri)"
+        required: false
+        type: string
+
+jobs:
+  redirect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skriv/lista redirect
+        run: |
+          base="${{ secrets.POLL_TRACKING_URL }}"
+          url="${base%/api/cron/poll-tracking}/api/admin/redirects"
+          if [ -z "${{ inputs.from_slug }}" ]; then
+            echo "Listar befintliga redirects…"
+            response=$(curl -sS -w "\n%{http_code}" \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "$url")
+          else
+            if [ -z "${{ inputs.to_path }}" ]; then
+              echo "::error::to_path krävs när from_slug anges"
+              exit 1
+            fi
+            payload=$(jq -nc \
+              --arg f "${{ inputs.from_slug }}" \
+              --arg t "${{ inputs.to_path }}" \
+              --arg r "${{ inputs.reason }}" \
+              '{redirects:[{fromSlug:$f,toPath:$t,reason:$r}]}')
+            echo "Skriver: $payload"
+            response=$(curl -sS -w "\n%{http_code}" -X POST \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d "$payload" "$url")
+          fi
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "$body"
+          if [ "$status" != "200" ]; then
+            echo "::error::Endpoint returned non-200 status"
+            exit 1
+          fi

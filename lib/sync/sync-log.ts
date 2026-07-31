@@ -165,6 +165,24 @@ async function save(collection: string, id: string, data: object): Promise<void>
   }
 }
 
+/**
+ * Raderar alla rader i en collection som matchar ett filter (Wix async-jobb).
+ * Returnerar jobId. Används av retention-städningen nedan.
+ */
+async function removeByFilter(collection: string, filter: Record<string, unknown>): Promise<string> {
+  const res = await fetch(`${WIX_BASE}/data/v2/bulk/items/async-remove-by-filter`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ dataCollectionId: collection, filter }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix Data remove-by-filter ${collection} (${res.status}): ${text.slice(0, 300)}`);
+  }
+  const body = (await res.json()) as { jobId?: string };
+  return body.jobId ?? "";
+}
+
 async function get<T>(collection: string, id: string): Promise<T | null> {
   const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(collection)}`;
   const res = await fetch(url, { method: "GET", headers: headers() });
@@ -244,6 +262,22 @@ export class SyncStore {
    * dygnets tidiga händelser föll utanför. ISO-strängar jämförs lexikografiskt
    * = kronologiskt.
    */
+  /**
+   * Retention: raderar loggrader äldre än `days` dygn. Loggen är append-only och
+   * växte till 21 000 rader (~600/dygn) innan detta fanns — 73 % av HELA Wix
+   * Data-utrymmet, vilket till slut slår i sajtens item-tak och då blockeras
+   * ALLA nya rader (inklusive nya order-tasks). Inget läser äldre rader:
+   * morgonmejlet tittar på senaste dygnet, admin på de 200 senaste och
+   * produkthistoriken på de 50 senaste.
+   *
+   * Best-effort: fel loggas av anroparen och får aldrig fälla synk-körningen.
+   * Returnerar Wix jobId (tomt vid okänt svar).
+   */
+  async pruneLogOlderThan(days: number, nowMs = Date.now()): Promise<string> {
+    const cutoff = new Date(nowMs - days * 24 * 60 * 60 * 1000).toISOString();
+    return removeByFilter(COL.log, { checkedAt: { $lt: cutoff } });
+  }
+
   async listEventLogSince(sinceIso: string, limit = 500): Promise<SyncLogEntry[]> {
     return query<SyncLogEntry>(
       COL.log,
