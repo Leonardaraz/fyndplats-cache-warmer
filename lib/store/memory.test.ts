@@ -48,6 +48,55 @@ describe("MemoryStore", () => {
     expect(log[1].kind).toBe("import");
   });
 
+  // Audit-loggen glömdes när synk-loggen fick retention i #332 och hade vuxit
+  // till 4 723 rader. Gränsfallen här är de som faktiskt kan förlora data.
+  describe("pruneAuditOlderThan", () => {
+    const NOW = Date.parse("2026-07-31T12:00:00Z");
+    const daysAgo = (d: number) => new Date(NOW - d * 24 * 60 * 60 * 1000).toISOString();
+
+    it("raderar bara rader äldre än fönstret", async () => {
+      const s = new MemoryStore();
+      await s.appendAudit({ at: daysAgo(120), kind: "gammal" });
+      await s.appendAudit({ at: daysAgo(91), kind: "precis-for-gammal" });
+      await s.appendAudit({ at: daysAgo(89), kind: "behalls" });
+      await s.appendAudit({ at: daysAgo(1), kind: "farsk" });
+
+      await s.pruneAuditOlderThan(90, NOW);
+
+      const kvar = (await s.listAudit()).map((e) => e.kind).sort();
+      expect(kvar).toEqual(["behalls", "farsk"]);
+    });
+
+    it("behåller rader med oparsbart datum hellre än att gissa", async () => {
+      const s = new MemoryStore();
+      await s.appendAudit({ at: "inte-ett-datum", kind: "trasig" });
+      await s.appendAudit({ at: daysAgo(200), kind: "gammal" });
+
+      await s.pruneAuditOlderThan(90, NOW);
+
+      expect((await s.listAudit()).map((e) => e.kind)).toEqual(["trasig"]);
+    });
+
+    it("rapporterar antal raderade och är idempotent", async () => {
+      const s = new MemoryStore();
+      await s.appendAudit({ at: daysAgo(200), kind: "gammal" });
+      await s.appendAudit({ at: daysAgo(2), kind: "farsk" });
+
+      expect(await s.pruneAuditOlderThan(90, NOW)).toBe("1 rader");
+      expect(await s.pruneAuditOlderThan(90, NOW)).toBe("0 rader");
+      expect(await s.listAudit()).toHaveLength(1);
+    });
+
+    it("rör ingenting när allt ryms i fönstret", async () => {
+      const s = new MemoryStore();
+      await s.appendAudit({ at: daysAgo(3), kind: "a" });
+      await s.appendAudit({ at: daysAgo(4), kind: "b" });
+
+      expect(await s.pruneAuditOlderThan(90, NOW)).toBe("0 rader");
+      expect(await s.listAudit()).toHaveLength(2);
+    });
+  });
+
   it("returns null AliExpress tokens before any save", async () => {
     const s = new MemoryStore();
     expect(await s.getAliExpressTokens()).toBeNull();
