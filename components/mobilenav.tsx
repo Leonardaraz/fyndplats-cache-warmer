@@ -16,7 +16,7 @@ const infoLinks = [
   { href: "/kundtjanst", label: "Kundtjänst" },
 ];
 
-export function MobileNav({ tree = [], hasBlog = false }: { tree?: CategoryNode[]; hasBlog?: boolean }) {
+export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tree?: CategoryNode[]; hasBlog?: boolean; hasSale?: boolean }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   // Vilka huvudkategorier som är utfällda (accordion). Set → flera kan vara
@@ -55,7 +55,9 @@ export function MobileNav({ tree = [], hasBlog = false }: { tree?: CategoryNode[
           <nav className="mm-links">
             <a href={shopLink.href} onClick={closeMenu}>{shopLink.label}</a>
             <a className="mm-auktion" href="/fyndauktion" onClick={closeMenu}>Fyndauktionen<AuctionDot /></a>
-            <a className="mm-rea" href="/kategori/rea" onClick={closeMenu}>REA</a>
+            {/* Se kommentaren i meganav.tsx: /kategori/rea finns inte, och
+                knappen göms när inget är nedsatt. */}
+            {hasSale && <a className="mm-rea" href="/alla-produkter?rea=1" onClick={closeMenu}>REA</a>}
           </nav>
           {tree.length > 0 && (
             <div className="mm-cats">

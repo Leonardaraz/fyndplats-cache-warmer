@@ -5,6 +5,7 @@ import { MobileNav } from "./mobilenav";
 import { MegaNav } from "./meganav";
 import { getCategoryTree } from "../lib/category-groups";
 import { getPosts } from "../lib/blog";
+import { getProducts } from "../lib/products";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "./trustpilot";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../lib/social-proof";
 import { PaymentMarks } from "./payment-marks";
@@ -63,6 +64,11 @@ export const Mark = ({ size = 34 }: { size?: number }) => (
 export async function SiteHeader() {
   const tree = await getCategoryTree();
   const hasBlog = (await getPosts()).length > 0; // dölj blogg-länk tills det finns inlägg
+  // Dölj REA-knappen tills något faktiskt ÄR nedsatt — annars leder den till en
+  // tom lista. Kräver inStock också: en nedsatt slutsåld vara är inget fynd.
+  // getProducts är React-cache:ad, så headern delar hämtning med sidan under
+  // samma render och det här kostar inget extra anrop.
+  const hasSale = (await getProducts()).some((p) => p.onSale && p.inStock);
   return (
     <>
       <div className="promo">
@@ -75,10 +81,10 @@ export async function SiteHeader() {
         <div className="container hrow">
           <a className="brand" href="/"><Mark />Fyndplats</a>
           <SearchBox />
-          <MegaNav tree={tree} hasBlog={hasBlog} />
+          <MegaNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
           <WishlistButton />
           <CartButton />
-          <MobileNav tree={tree} hasBlog={hasBlog} />
+          <MobileNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
         </div>
         {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
         <div className="hsearch-mobile">
