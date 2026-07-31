@@ -27,6 +27,14 @@ export const runtime = "nodejs";
 export const revalidate = 3600;
 
 const SITE = "https://www.fyndplats.se";
+// Hårdkodat med flit, inte av lättja: 452 av 454 produkter har INGET varumärke
+// satt i Wix (räknat 2026-07-31). Det är omärkta dropship-varor, och för dem är
+// säljaren det närmaste ett varumärke som finns — g:identifier_exists=no säger
+// redan åt Google att GTIN/MPN saknas.
+// Bara 2 produkter (HOMCOM, IMILAB) har ett riktigt märke, och varken
+// lib/products.ts Product eller productData i query-variants bär fältet, så att
+// plumba igenom det vore ny hämtningslogik för två rader. Börjar Leonard fylla
+// i varumärken i Wix är det värt att ta då — inte förrän.
 const BRAND = "Fyndplats";
 
 function xmlEscape(s: string): string {
@@ -83,6 +91,19 @@ function feedItem(v: any, product: Product | undefined, gallery: string[]): stri
   const amount = Number(v?.price?.actualPrice?.amount);
   if (!Number.isFinite(amount) || amount <= 0) return null;
 
+  // Rea: Google vill ha ORDINARIE pris i g:price och det nedsatta i
+  // g:sale_price — då ritas överstrykningen i Shopping. Feeden skickade förut
+  // bara actualPrice som g:price: rätt belopp (kunden luras aldrig), men utan
+  // "förut 2 999 kr" syns inte att det ÄR ett fynd.
+  //
+  // compareAtPrice ligger redan i svaret från query-variants som feeden ändå
+  // anropar → noll extra requests. Kravet cmp > amount är medvetet strikt:
+  // ett compareAt som är lika med eller lägre än priset är inte en rea, och
+  // Google avvisar sale_price >= price.
+  const cmp = Number(v?.price?.compareAtPrice?.amount);
+  const onSale = Number.isFinite(cmp) && cmp > amount;
+  const regular = onSale ? cmp : amount;
+
   const mainImg: string = product?.img || gallery[0] || "";
   const image: string = v?.media?.image?.url || mainImg;
   if (!image) return null;
@@ -134,7 +155,7 @@ function feedItem(v: any, product: Product | undefined, gallery: string[]): stri
       <g:link>${xmlEscape(`${SITE}/produkt/${slug}`)}</g:link>
       <g:image_link>${xmlEscape(image)}</g:image_link>${additional}
       <g:availability>${inStock ? "in_stock" : "out_of_stock"}</g:availability>
-      <g:price>${amount.toFixed(2)} SEK</g:price>
+      <g:price>${regular.toFixed(2)} SEK</g:price>${onSale ? `\n      <g:sale_price>${amount.toFixed(2)} SEK</g:sale_price>` : ""}
       <g:brand>${BRAND}</g:brand>
       <g:condition>new</g:condition>
       <g:identifier_exists>no</g:identifier_exists>${sku ? `\n      <g:mpn>${xmlEscape(sku)}</g:mpn>` : ""}${attrLines}
