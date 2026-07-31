@@ -32,6 +32,7 @@ import {
   DEFAULT_SYNC_TIME_BUDGET_MS,
 } from "@/lib/sync/aliexpress-sync";
 import { audit } from "@/lib/audit";
+import { getSyncStore } from "@/lib/sync/sync-log";
 import { buildDailySummaryEmail, sendEmail } from "@/lib/email/resend";
 
 export const runtime = "nodejs";
@@ -87,6 +88,23 @@ async function handle(req: NextRequest): Promise<NextResponse> {
       baseUrl,
       opsAlertEmail: opsEmailForAlerts,
     });
+
+    // Retention: håll synk-loggen kort. Utan detta växte den till 21 000 rader
+    // (~600/dygn) = 73 % av hela Wix Data-utrymmet, och när sajtens item-tak nås
+    // blockeras ALLA nya rader — även nya order-tasks. Körs bara i nattkörningen
+    // (00-cronen) så vi inte lägger ett raderingsjobb på var fjärde timme.
+    // Best-effort: ett fel här får aldrig fälla synken.
+    const retentionDays = numberFromEnv("SYNC_LOG_RETENTION_DAYS", 21);
+    if (new Date().getUTCHours() < 4) {
+      try {
+        const jobId = await getSyncStore().pruneLogOlderThan(retentionDays);
+        console.log(`[sync] loggstädning startad (>${retentionDays} dygn), jobId=${jobId}`);
+      } catch (pruneErr) {
+        console.warn(
+          `[sync] loggstädning misslyckades: ${pruneErr instanceof Error ? pruneErr.message.slice(0, 200) : String(pruneErr)}`,
+        );
+      }
+    }
 
     await audit(
       "aliexpress-sync-run",
