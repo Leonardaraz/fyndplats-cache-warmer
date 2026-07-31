@@ -36,7 +36,10 @@ export function ProductCard({ p }: { p: Product }) {
           <Image
             className="pimg-alt"
             src={tightFillUrl(altImg, 600, 600)}
-            alt={p.name}
+            // Dekorativ: samma länk visar redan huvudbilden med alt={p.name} och
+            // produktnamnet som text. Med alt här läste skärmläsare namnet två
+            // gånger per kort. Tom alt = hoppa över dubbletten.
+            alt=""
             fill
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
             style={{ objectFit: "cover" }}

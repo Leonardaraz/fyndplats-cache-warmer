@@ -262,6 +262,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           variantAxes={p.variantAxes}
           variantTable={p.variantTable}
           imageOwners={p.imageOwners}
+          imageAlts={p.imageAlts}
           category={primaryCol?.name}
         />
       </div>

@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
+import { altForImage } from "../lib/image-alt";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -32,6 +33,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 export function Gallery({
   images,
   alt,
+  imageAlts,
   mainBlur,
   active: activeProp,
   onActiveChange,
@@ -40,6 +42,10 @@ export function Gallery({
 }: {
   images: string[];
   alt: string;
+  // Wix alt-texter per bild (mediaKey → altText). Nyckeln är bildens fil-id, så
+  // mappningen håller även om listan filtreras/omordnas. Saknas en bild faller
+  // altForImage tillbaka på "<produktnamn> – bild N".
+  imageAlts?: Record<string, string>;
   mainBlur?: string;
   active?: number;
   onActiveChange?: (i: number) => void;
@@ -341,13 +347,15 @@ export function Gallery({
             <Image
               key={i}
               src={src}
-              alt={i === active ? alt : ""}
+              // Endast det AKTIVA lagret bär alt-text — de andra ligger kvar
+              // osynliga (opacity 0) och skulle annars läsas upp som dubbletter.
+              alt={i === active ? altForImage(src, i, alt, imageAlts) : ""}
               width={800}
               height={800}
               data-idx={i}
               loader={isWix ? wixMainLoader : undefined}
               {...(isInitial
-                ? { priority: true as const }
+                ? { priority: true as const, fetchPriority: "high" as const }
                 : { loading: "eager" as const, fetchPriority: "low" as const })}
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
@@ -374,7 +382,10 @@ export function Gallery({
               aria-selected={i === active}
               aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 12)}${variantSet.has(i) ? " (vald variant)" : ""}`}
             >
-              <Image src={tightFillUrl(g, 152, 152)} alt="" fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
+              {/* Miniatyren bar tidigare alt="" → 5–10 osynliga bilder per PDP för
+                  Google Bilder. Knappen har redan aria-label ("Visa bild N av M"),
+                  så bilden får den beskrivande Wix-alten (eller produktnamn + nr). */}
+              <Image src={tightFillUrl(g, 152, 152)} alt={altForImage(g, i, alt, imageAlts)} fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
             </button>
           ))}
         </div>
@@ -427,7 +438,7 @@ export function Gallery({
                 transition: gesturing ? "none" : "transform .28s cubic-bezier(.2,.7,.2,1)",
               }}
             >
-              <Image key={main} src={tightFillUrl(main, 1600, 1600)} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} loading="eager" draggable={false} />
+              <Image key={main} src={tightFillUrl(main, 1600, 1600)} alt={altForImage(main, active, alt, imageAlts)} fill sizes="92vw" style={{ objectFit: "contain" }} loading="eager" draggable={false} />
             </div>
           </div>
           {imgs.length > 1 && (

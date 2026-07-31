@@ -20,7 +20,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     // seo_title (frontmatter) = kort SERP-titel så " | Fyndplats" ryms under
     // ~60 tecken; synliga rubriken (p.title) förblir orörd på sidan.
-    title: p.seoTitle || p.title,
+    // Layoutens titel-mall lägger på " | Fyndplats". Skriver någon suffixet
+    // redan i frontmatterns seo_title blir det "… | Fyndplats | Fyndplats"
+    // (inträffade för fyndauktionen-inlägget) → strippa ett avslutande suffix
+    // här så mallen förblir enda källan.
+    title: (p.seoTitle || p.title).replace(/\s*\|\s*Fyndplats\s*$/i, ""),
     description: p.excerpt || p.title,
     alternates: { canonical: `https://www.fyndplats.se/blogg/${p.slug}` },
     openGraph: {

@@ -219,6 +219,7 @@ export function ProductView({
   variantAxes,
   variantTable,
   imageOwners,
+  imageAlts,
   category,
   priceNum,
 }: {
@@ -239,6 +240,8 @@ export function ProductView({
   variantAxes?: { name: string; choices: { label: string; image: string; color: string }[] }[];
   variantTable?: { choices: Record<string, string>; variantId: string; price: string; priceNum: number; originalPrice: string; inStock: boolean; image: string }[];
   imageOwners?: Record<string, string>;
+  // Wix alt-texter per bild (mediaKey → altText) — skickas vidare till Gallery.
+  imageAlts?: Record<string, string>;
   category?: string;
   priceNum: number;
 }) {
@@ -518,6 +521,7 @@ export function ProductView({
       <Gallery
         images={galleryImages}
         alt={name}
+        imageAlts={imageAlts}
         mainBlur={mainBlur}
         active={multiAxis || allHaveImage ? galleryIdx : undefined}
         onActiveChange={multiAxis ? setGalleryIdx : allHaveImage ? onGalleryActive : undefined}

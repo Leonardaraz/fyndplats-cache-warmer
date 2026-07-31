@@ -161,7 +161,10 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                         <a className="butik-subchip" key={s.id} href={`/kategori/${s.slug}`}>
                           {s.img && (
                             <span className="butik-subchip-thumb">
-                              <Image src={tightFillUrl(s.img, 96, 96)} alt="" fill sizes="48px" />
+                              {/* Kategorinamnet står som text i samma länk, så bilden är
+                                  strikt sett dekorativ — men med alt blir de 25 chip-
+                                  bilderna sökbara i Google Bilder i stället för osynliga. */}
+                              <Image src={tightFillUrl(s.img, 96, 96)} alt={s.name} fill sizes="48px" />
                             </span>
                           )}
                           <span className="butik-subchip-text">

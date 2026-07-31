@@ -53,7 +53,7 @@ export function ProductReviews({
               <p className="rev-text">{r.text}</p>
               {r.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img className="rev-photo" src={r.imageUrl} alt="Kundbild" loading="lazy" />
+                <img className="rev-photo" src={r.imageUrl} alt={`Kundbild från ${r.displayName || "kund"}`} loading="lazy" />
               ) : null}
             </li>
           ))}

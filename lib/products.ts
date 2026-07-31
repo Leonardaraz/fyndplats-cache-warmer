@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { imgKey } from "./image-alt";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
@@ -55,6 +56,12 @@ export type Product = {
   // En variant kan ha FLERA bilder (V3 linkedMedia är en lista) → används för att
   // markera ALLA den valda variantens bilder i galleriet. Tom = ingen koppling.
   imageOwners?: Record<string, string>;
+  // Wix alt-texter per bild: mediaKey (fil-id) → altText. Nycklas på fil-id
+  // (INTE parallell array) eftersom galleriet dedupas, kapas och kan ersättas av
+  // V3-varianten — en index-baserad lista skulle glida isär. Samma mönster som
+  // imageOwners ovan. Tom/saknad nyckel → anroparen faller tillbaka på
+  // "<produktnamn> – bild N". Se altForImage().
+  imageAlts?: Record<string, string>;
   // Bildkvalitets-poäng (Claude vision, se lib/image-scores.ts). Styr ordningen
   // på startsida/kategori/alla-produkter. DEFAULT_SCORE för opoängsatta produkter.
   imageScore: number;
@@ -179,21 +186,26 @@ async function fetchV3MultiVariantData(productId: string): Promise<V3MultiVarian
 // Wix lagrar alla. fetchV3ProductRaw begär redan `?fields=MEDIA_ITEMS_INFO` och
 // är cache:ad per request, så detta delar samma nätverksanrop som pris-/bild-
 // hydreringen (ingen extra fetch). Fail-open: saknad nyckel/fält → [].
-async function fetchV3Gallery(productId: string): Promise<string[]> {
+async function fetchV3Gallery(productId: string): Promise<{ urls: string[]; alts: Record<string, string> }> {
   const product = await fetchV3ProductRaw(productId);
   const items = product?.media?.itemsInfo?.items ?? [];
   // Deduppa på fil-id (imgKey) — V3 kan lista samma foto i olika transform-params.
   const seen = new Set<string>();
   const out: string[] = [];
+  // Wix alt-texter följer med samma svep (image.altText) → PDP-galleriet slipper
+  // tomma alt="". Nycklas på fil-id så de överlever dedup/kapning nedströms.
+  const alts: Record<string, string> = {};
   for (const it of items) {
     const url = it?.image?.url;
     if (typeof url !== "string" || !url) continue;
     const k = imgKey(url);
+    const alt = typeof it?.image?.altText === "string" ? it.image.altText.trim() : "";
+    if (alt && !(k in alts)) alts[k] = alt;
     if (seen.has(k)) continue;
     seen.add(k);
     out.push(url);
   }
-  return out;
+  return { urls: out, alts };
 }
 
 function stripHtml(h: string): string {
@@ -202,9 +214,19 @@ function stripHtml(h: string): string {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function mapProduct(p: any): Product {
-  const gallery: string[] = ((p.media && p.media.items) || [])
-    .map((it: any) => it?.image?.url)
-    .filter(Boolean);
+  const mediaItems: any[] = (p.media && p.media.items) || [];
+  const gallery: string[] = mediaItems.map((it: any) => it?.image?.url).filter(Boolean);
+  // Wix alt-texter per bild (mediaKey → altText). Behålls genom hela modellen så
+  // listkort/PDP kan sätta riktig alt i stället för tom sträng.
+  const imageAlts: Record<string, string> = {};
+  const mainMediaImage = p.media && p.media.mainMedia && p.media.mainMedia.image;
+  for (const it of [...mediaItems, { image: mainMediaImage }]) {
+    const url = it?.image?.url;
+    const alt = typeof it?.image?.altText === "string" ? it.image.altText.trim() : "";
+    if (!url || !alt) continue;
+    const k = imgKey(url);
+    if (k && !(k in imageAlts)) imageAlts[k] = alt;
+  }
   const specsSection = ((p.additionalInfoSections) || []).find((s: any) => /specifikation/i.test(s.title || ""));
   const firstP = (p.description || "").match(/<p[^>]*>([\s\S]*?)<\/p>/i);
   // label är endast för VISNING (cart/PDP matchar på v.id, inte på texten), så
@@ -274,6 +296,7 @@ function mapProduct(p: any): Product {
     hasRange,
     img: (p.media && p.media.mainMedia && p.media.mainMedia.image && p.media.mainMedia.image.url) || gallery[0] || "",
     gallery: gallery.slice(0, 6),
+    imageAlts,
     blurb: stripHtml(firstP ? firstP[1] : p.description || "").slice(0, 220),
     specs: stripHtml(specsSection ? specsSection.description : "").slice(0, 400),
     seoTitle: curatedSeoTitle,
@@ -515,7 +538,13 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         // Hämta hela galleriet auktoritativt från V3 (delar cache:ade anropet).
         // Strikt additivt: ersätt bara när V3 har FLER bilder → aldrig en regression
         // för migrerade produkter där V3 saknar itemsInfo (då behålls SDK-galleriet).
-        const fullGallery = await fetchV3Gallery(prod.id);
+        const { urls: fullGallery, alts: v3Alts } = await fetchV3Gallery(prod.id);
+        // V3:s alt-texter slås ihop med SDK-listans (V3 vinner — den är
+        // auktoritativ för PDP-galleriet). Sker oavsett om galleriet ersätts
+        // nedan, så även produkter där SDK-galleriet behålls får sina alt-texter.
+        if (Object.keys(v3Alts).length) {
+          prod.imageAlts = { ...(prod.imageAlts || {}), ...v3Alts };
+        }
         if (fullGallery.length > prod.gallery.length) {
           // Uteslut den galleribild som är SAMMA FIL som huvudbilden (prod.img).
           // SDK:ns mainMedia-URL och V3:s itemsInfo-URL skiljer sig i transform-params
@@ -612,9 +641,9 @@ export function cartRecommendations(products: Product[], collections: Collection
 // Wixstatic-bildens fil-id (samma fil kan levereras med olika transform-params,
 // w_400 vs w_800), så vi jämför på id:t — inte hela URL:en. Exporterad så
 // produktfeeden kan deduppa extra-bilder mot huvudbilden på samma nyckel.
-export function imgKey(url: string): string {
-  return (url || "").match(/\/media\/([^/?]+)/)?.[1] || url || "";
-}
+// imgKey bor i lib/image-alt (beroendefri, delas med klientkomponenter) men
+// re-exporteras här eftersom flera moduler redan importerar den härifrån.
+export { imgKey };
 
 // HELA katalogens gallerier i EN batchad svep — för produktfeeden
 // (/feed/products.xml). List-frågans galleri kapas till 6 bilder (mapProduct),
