@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
+import { altForImage } from "../lib/image-alt";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -14,9 +15,12 @@ import { tightFillUrl } from "../lib/wix-image";
 // redan webp och rätt storlek — ingen optimerar-kallstart i kritiska vägen.
 // Galleriets huvudbild visas i aspect-ratio:1 med object-fit:cover, så en
 // kvadratisk fill (w=h) matchar exakt utan dubbelbeskärning.
-// `priority` på initiala lagret (LCP-bilden) genererar <link rel=preload
-// fetchpriority=high> i <head> via SAMMA loader → webbläsaren förladdar
-// rätt URL. (OBS: next/image har ingen `preload`-prop — det är `priority`.)
+// `preload` på initiala lagret (LCP-bilden) genererar <link rel=preload> i
+// <head> via SAMMA loader → webbläsaren förladdar rätt URL. fetchPriority
+// sätts SEPARAT: next/image härleder den inte ur preload/priority, så utan
+// den saknade både länken och <img> fetchpriority=high (SEO-granskningen
+// 2026-07-31). OBS: `priority` är utfasad i Next 16 till förmån för `preload`
+// — och de två får inte kombineras (get-img-props kastar).
 function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
   if (!(src || "").includes("static.wixstatic.com")) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
   // q_72 i stället för 82: hjältebilden var en PNG-sourcad produktbild som
@@ -32,6 +36,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 export function Gallery({
   images,
   alt,
+  imageAlts,
   mainBlur,
   active: activeProp,
   onActiveChange,
@@ -40,6 +45,10 @@ export function Gallery({
 }: {
   images: string[];
   alt: string;
+  // Wix alt-texter per bild (mediaKey → altText). Nyckeln är bildens fil-id, så
+  // mappningen håller även om listan filtreras/omordnas. Saknas en bild faller
+  // altForImage tillbaka på "<produktnamn> – bild N".
+  imageAlts?: Record<string, string>;
   mainBlur?: string;
   active?: number;
   onActiveChange?: (i: number) => void;
@@ -341,13 +350,15 @@ export function Gallery({
             <Image
               key={i}
               src={src}
-              alt={i === active ? alt : ""}
+              // Endast det AKTIVA lagret bär alt-text — de andra ligger kvar
+              // osynliga (opacity 0) och skulle annars läsas upp som dubbletter.
+              alt={i === active ? altForImage(src, i, alt, imageAlts) : ""}
               width={800}
               height={800}
               data-idx={i}
               loader={isWix ? wixMainLoader : undefined}
               {...(isInitial
-                ? { priority: true as const }
+                ? { preload: true as const, fetchPriority: "high" as const }
                 : { loading: "eager" as const, fetchPriority: "low" as const })}
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
@@ -374,7 +385,10 @@ export function Gallery({
               aria-selected={i === active}
               aria-label={`Visa bild ${i + 1} av ${Math.min(imgs.length, 12)}${variantSet.has(i) ? " (vald variant)" : ""}`}
             >
-              <Image src={tightFillUrl(g, 152, 152)} alt="" fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
+              {/* Miniatyren bar tidigare alt="" → 5–10 osynliga bilder per PDP för
+                  Google Bilder. Knappen har redan aria-label ("Visa bild N av M"),
+                  så bilden får den beskrivande Wix-alten (eller produktnamn + nr). */}
+              <Image src={tightFillUrl(g, 152, 152)} alt={altForImage(g, i, alt, imageAlts)} fill placeholder="blur" blurDataURL={SHIMMER_BLUR} sizes="76px" style={{ objectFit: "cover" }} />
             </button>
           ))}
         </div>
@@ -427,7 +441,7 @@ export function Gallery({
                 transition: gesturing ? "none" : "transform .28s cubic-bezier(.2,.7,.2,1)",
               }}
             >
-              <Image key={main} src={tightFillUrl(main, 1600, 1600)} alt={alt} fill sizes="92vw" style={{ objectFit: "contain" }} loading="eager" draggable={false} />
+              <Image key={main} src={tightFillUrl(main, 1600, 1600)} alt={altForImage(main, active, alt, imageAlts)} fill sizes="92vw" style={{ objectFit: "contain" }} loading="eager" draggable={false} />
             </div>
           </div>
           {imgs.length > 1 && (

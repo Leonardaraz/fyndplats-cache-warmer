@@ -88,6 +88,11 @@ export async function getSiteUrls(): Promise<SiteUrl[]> {
     entry("", "home", "daily", 1),
     entry("/butik", "butik", "daily", 0.8),
     entry("/alla-produkter", "alla-produkter", "daily", 0.8),
+    // Fyndauktionen: indexerbar (index,follow + self-canonical) och innehållet
+    // roterar varje timme, men sidan saknades i sitemapen — och därmed även i
+    // IndexNow-pingen. daily räcker; auktionen är en återkommande sida, inte
+    // en ny URL per drop.
+    entry("/fyndauktion", "sida", "daily", 0.7),
   ];
 
   // /blogg index only once there's at least one post (else it's noindex).
