@@ -13,9 +13,14 @@ import { getLiveAuctions, getSoldAuctions } from "../../lib/auction-view";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Fyndauktionen – priset sjunker varje timme tills någon köper",
+  // Titeln får INTE innehålla "| Fyndplats" — layoutens mall lägger på det, och
+  // summan måste rymmas under Googles ~60 tecken. Förra titeln var 59 tecken
+  // och blev 72 med suffixet, alltså kapad i sökresultatet.
+  title: "Fyndauktionen – priset sjunker varje timme",
+  // ~155 tecken: Google klipper snippeten runt 160 och den gamla var 198, så
+  // sista meningen syntes aldrig. Uppmaningen ligger nu tidigt i stället.
   description:
-    "Varje dag kl 07 startar fem auktioner på ordinarie pris. Sedan sjunker priset varje timme fram till kl 19 – tills någon slår till. Vänta för ett bättre pris, eller köp innan någon annan hinner före.",
+    "Fem fynd varje dag kl 07–19. Priset sjunker varje timme tills någon slår till – vänta för ett bättre pris, eller köp innan någon hinner före.",
   alternates: { canonical: "https://www.fyndplats.se/fyndauktion" },
   openGraph: {
     title: "Fyndauktionen – priset sjunker varje timme tills någon köper",

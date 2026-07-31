@@ -2,7 +2,7 @@
 title: "Fyndauktionen är här: priset sjunker varje timme – tills någon köper"
 seo_title: "Fyndauktionen – daglig auktion där priset sjunker"
 slug: fyndauktionen-sa-funkar-det
-meta_description: "Nu lanserar vi Fyndauktionen: fem utvalda fynd varje dag där priset sjunker varje timme från kl 07 till 19 – tills någon slår till. Så funkar det, och så fyndar du smartast."
+meta_description: "Fyndauktionen: fem utvalda fynd varje dag där priset sjunker varje timme från kl 07 till 19 – tills någon slår till. Så funkar det."
 category: Nyheter
 publish_date: 2026-07-11
 # 1200×900 med allt innehåll i mittkvadraten: bloggkortens 1:1-beskärning
