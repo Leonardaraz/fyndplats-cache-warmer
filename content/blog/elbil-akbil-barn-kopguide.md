@@ -21,11 +21,11 @@ Den här guiden delar upp fordonen i tre grupper efter hur barnet faktiskt tar s
 
 Under tre år handlar det inte om motorer. Det handlar om att komma framåt med fötterna, sitta stadigt och inte välta. Fordonen är låga, breda och lätta.
 
-En **sparkbil** är den enklaste formen: barnet sitter grensle och sparkar ifrån. Den är svår att välta och kräver ingen laddning, inga batterier och ingen tillsyn utöver den vanliga.
+En **sparkbil** är den enklaste formen: barnet sitter på sätet, håller i ratten och sparkar ifrån med fötterna. Den är svår att välta och kräver ingen laddning, inga batterier och ingen tillsyn utöver den vanliga. Vår modell är en brandbil med öppningsbart säte för förvaring — och en brandbil är sällan fel vid två års ålder.
 
-[![Sparkbil för barn med musikratt, förvaring under sätet och ryggstöd](https://static.wixstatic.com/media/b379ce_c7c064bf27ba409da6574daa0c15b931~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/sparkbil-barn-med-musik "Se i butiken →")
+[![Röd sparkbil för barn i form av en brandbil, med ratt, öppningsbart säte och handtag baktill](https://static.wixstatic.com/media/b379ce_c7c064bf27ba409da6574daa0c15b931~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/sparkbil-barn-med-musik "Se i butiken →")
 
-Vill du ha något med lite mer form finns samma princip som fyrhjuling eller grävmaskin. Grävmaskinen har en rörlig grävarm, vilket förlänger leken långt bortom själva åkandet — barn som tröttnar på att köra fortsätter gräva.
+Fyrhjulingen fungerar annorlunda: där sitter barnet **grensle** med styre i stället för ratt, vilket tränar balansen mer. Grävmaskinen har i sin tur en rörlig grävarm med skopa, vilket förlänger leken långt bortom själva åkandet — barn som tröttnar på att köra fortsätter gräva. Hjälm ingår.
 
 [![Åkbil för barn i form av en fyrhjuling med ljus och tre melodier](https://static.wixstatic.com/media/b379ce_4db07f524e394d7fbdd20d7fb11327bf~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/akbil-barn-fyrhjuling "Se i butiken →")
 
@@ -69,9 +69,9 @@ Audin är riktad mot 3–5 år med en topphastighet på 3–5 km/h och mjukstart
 
 [![Licensierad Mercedes-Benz SLC 300 elbil för barn med LED och musik](https://static.wixstatic.com/media/b379ce_dc10d5586f234c5dbc3f54472778a1ee~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/elbil-barn-mercedes-benz-slc-300-12v "Se i butiken →")
 
-[![Licensierad Lamborghini Sian elbil för barn med öppningsbara dörrar](https://static.wixstatic.com/media/b379ce_15677ce4c18c43d7a42f01a0f8c15269~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/lamborghini-elbil-barn "Se i butiken →")
+[![Rosa licensierad Lamborghini Sian elbil för barn med uppfällda saxdörrar och tänd LED-belysning](https://static.wixstatic.com/media/b379ce_15677ce4c18c43d7a42f01a0f8c15269~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/lamborghini-elbil-barn "Se i butiken →")
 
-Lamborghinin är den dyraste, och det man betalar för är licensen och detaljerna — öppningsbara dörrar gör mer för upplevelsen än man tror när barnet ska "kliva in i sin bil".
+Lamborghinin är den dyraste, och det man betalar för är licensen och detaljerna. Dörrarna är **saxdörrar** som fälls uppåt precis som på den riktiga Sian — det gör mer för upplevelsen än man tror när barnet ska "kliva in i sin bil".
 
 ## Licensierad eller inte?
 
