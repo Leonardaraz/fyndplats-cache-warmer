@@ -16,7 +16,13 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
-import { listRedirects, upsertRedirect, validateRedirect, type RedirectRow } from "@/lib/wix/redirects";
+import {
+  findRedirectConflicts,
+  listRedirects,
+  upsertRedirect,
+  validateRedirect,
+  type RedirectRow,
+} from "@/lib/wix/redirects";
 import { audit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -75,6 +81,26 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Katalogkontroll INNAN något skrivs: en 301 bort från en levande produkt är
+  // permanent och kostar en säljande sida i Google. Samma allt-eller-inget som
+  // formatvalideringen ovan. `force=1` finns för det sällsynta fallet att man
+  // medvetet vill omdirigera en synlig produkt (t.ex. en dubblett-listning).
+  const force = new URL(req.url).searchParams.get("force") === "1";
+  if (!force) {
+    const conflicts = await findRedirectConflicts(rows);
+    if (conflicts.length) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Redirects avvisade — källa eller mål lever fortfarande",
+          details: conflicts.map((c) => `${c.fromSlug}: ${c.problem}`),
+          hint: "Verifiera i Wix först. Lägg till ?force=1 bara om du är säker.",
+        },
+        { status: 409 },
+      );
+    }
+  }
+
   const written: string[] = [];
   const failed: { fromSlug: string; error: string }[] = [];
   for (const row of rows) {
@@ -92,7 +118,7 @@ export async function POST(req: NextRequest) {
   await audit(
     "redirects-upsert",
     "admin",
-    JSON.stringify({ written: written.length, failed: failed.length, slugs: written.slice(0, 20) }),
+    JSON.stringify({ written: written.length, failed: failed.length, force, slugs: written.slice(0, 20) }),
   );
 
   return NextResponse.json(

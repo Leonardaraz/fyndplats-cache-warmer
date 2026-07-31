@@ -8,6 +8,8 @@
 // Läsvägen bor i headless-appen; HÄR ligger skrivvägen, eftersom motorn har
 // Wix-admin-nyckeln och är den som upptäcker borttagna produkter.
 
+import { listAllV3Products } from "./v3-products";
+
 const WIX_BASE = "https://www.wixapis.com";
 const COLLECTION = process.env.WIX_DATA_COL_REDIRECTS ?? "FyndplatsRedirects";
 
@@ -49,6 +51,83 @@ export function validateRedirect(row: RedirectRow): string | null {
   if (/[\s\r\n]/.test(to)) return "toPath får inte innehålla mellanslag eller radbrytningar";
   if (from === to.replace(/^\/produkt\//, "")) return "fromSlug och toPath pekar på samma sida";
   return null;
+}
+
+export interface RedirectConflict {
+  fromSlug: string;
+  problem: string;
+}
+
+/**
+ * Andra försvarslinjen: stoppar redirects som pekar BORT från levande sidor.
+ *
+ * validateRedirect() ser bara på strängarna. Den kan inte veta om slugen
+ * fortfarande är en säljbar produkt — och det är precis det som gick fel
+ * 2026-07-31: två rader skrevs för produkter som råkade svara 404 för stunden
+ * (utgången ISR-cache), fast båda var `visible: true` och i lager. En 308 är
+ * PERMANENT; hade den hunnit fyra hade Google avindexerat två säljande
+ * produktsidor. En tredje rad från 2026-07-14 hade blivit inaktuell på samma
+ * sätt när produkten återkom.
+ *
+ * Lärdomen: HTTP-status är ett för svagt bevis för att en produkt är död.
+ * Katalogen är facit. listAllV3Products() returnerar bara synliga produkter
+ * (query:t sätter inte returnNonVisibleProducts), så en träff = levande sida.
+ *
+ * Två kontroller:
+ *   1. fromSlug får inte vara en levande produkt (annars kapar vi en säljande sida).
+ *   2. toPath som pekar på /produkt/<slug> måste vara en levande produkt
+ *      (annars omdirigerar vi från en död sida till en annan död sida).
+ *
+ * Fail-CLOSED med flit: går katalogen inte att läsa vet vi inget och skriver
+ * inget. Motsatsen — skriva i blindo — är just det som orsakade incidenten.
+ * Läsvägen i storefronten är fortfarande fail-open; att INTE kunna lägga till
+ * en redirect är ofarligt, att lägga till fel redirect är det inte.
+ */
+export async function findRedirectConflicts(rows: RedirectRow[]): Promise<RedirectConflict[]> {
+  if (!rows.length) return [];
+
+  let liveSlugs: Set<string>;
+  try {
+    const products = await listAllV3Products();
+    liveSlugs = new Set(products.map((p) => (p.slug || "").trim().toLowerCase()).filter(Boolean));
+  } catch (err) {
+    const detail = err instanceof Error ? err.message.slice(0, 200) : String(err);
+    return rows.map((r) => ({
+      fromSlug: r.fromSlug,
+      problem: `kunde inte verifiera mot produktkatalogen, skriver inget: ${detail}`,
+    }));
+  }
+  // Tom katalog = misslyckat uppslag som såg ut att lyckas. Vore den sann
+  // skulle varenda rad godkännas, vilket är exakt fel utfall.
+  if (liveSlugs.size === 0) {
+    return rows.map((r) => ({
+      fromSlug: r.fromSlug,
+      problem: "produktkatalogen kom tillbaka tom — vägrar skriva utan facit",
+    }));
+  }
+
+  const conflicts: RedirectConflict[] = [];
+  for (const row of rows) {
+    const from = (row.fromSlug || "").trim().toLowerCase();
+    if (liveSlugs.has(from)) {
+      conflicts.push({
+        fromSlug: row.fromSlug,
+        problem: `"${row.fromSlug}" är fortfarande en synlig produkt — en 301 hade kapat en säljande sida`,
+      });
+      continue;
+    }
+    const to = (row.toPath || "").trim();
+    const targetSlug = to.startsWith("/produkt/")
+      ? to.slice("/produkt/".length).split(/[?#]/)[0].toLowerCase()
+      : "";
+    if (targetSlug && !liveSlugs.has(targetSlug)) {
+      conflicts.push({
+        fromSlug: row.fromSlug,
+        problem: `målet ${to} är ingen synlig produkt — redirecten hade lett till en 404`,
+      });
+    }
+  }
+  return conflicts;
 }
 
 /**

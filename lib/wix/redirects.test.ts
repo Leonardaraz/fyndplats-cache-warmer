@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { upsertRedirect, validateRedirect } from "./redirects";
+import { findRedirectConflicts, upsertRedirect, validateRedirect } from "./redirects";
+import * as v3 from "./v3-products";
 
 // Valideringen är sista försvarslinjen innan en rad hamnar i den tabell som
 // storefronten omdirigerar besökare med — en trasig rad kan i värsta fall peka
@@ -106,5 +107,86 @@ describe("upsertRedirect auth-headers", () => {
 
     await expect(upsertRedirect({ fromSlug: "x", toPath: "https://evil.example" })).rejects.toThrow(/Ogiltig redirect/);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+// Regression för incidenten 2026-07-31: tre 301-rader skrevs mot slugs som
+// "svarade 404" — men två av dem var levande, säljbara produkter vars ISR-cache
+// bara var utgången. HTTP-status duger inte som bevis; katalogen är facit.
+describe("findRedirectConflicts", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  function catalog(...slugs: string[]) {
+    return vi
+      .spyOn(v3, "listAllV3Products")
+      .mockResolvedValue(slugs.map((slug, i) => ({
+        id: `id-${i}`,
+        name: slug,
+        slug,
+        variantCount: 1,
+        hasSeoTitle: true,
+        hasSeoDescription: true,
+        hasJsonLd: true,
+        hasOgTags: true,
+        hasImage: true,
+        hasDescription: true,
+      })) as Awaited<ReturnType<typeof v3.listAllV3Products>>);
+  }
+
+  it("släpper igenom en död källa mot en levande kategori", async () => {
+    catalog("levande-produkt");
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad-produkt", toPath: "/kategori/leksaker-spel" },
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  it("stoppar redirect FRÅN en synlig produkt (det som gick fel skarpt)", async () => {
+    catalog("verktygsbank-barn-leksaksset-181-delar");
+    const out = await findRedirectConflicts([
+      { fromSlug: "verktygsbank-barn-leksaksset-181-delar", toPath: "/produkt/leksaksmotor-barn" },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].problem).toMatch(/fortfarande en synlig produkt/);
+  });
+
+  it("stoppar redirect TILL en produkt som inte finns (404 → 404)", async () => {
+    catalog("levande-produkt");
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad", toPath: "/produkt/finns-inte" },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].problem).toMatch(/ingen synlig produkt/);
+  });
+
+  it("bryr sig inte om att kategorimål inte står i produktkatalogen", async () => {
+    catalog("levande-produkt");
+    const out = await findRedirectConflicts([
+      { fromSlug: "raderad", toPath: "/kategori/vad-som-helst" },
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  it("fail-closed när katalogen inte går att läsa", async () => {
+    vi.spyOn(v3, "listAllV3Products").mockRejectedValue(new Error("Wix nere"));
+    const out = await findRedirectConflicts([{ fromSlug: "raderad", toPath: "/butik" }]);
+    expect(out).toHaveLength(1);
+    expect(out[0].problem).toMatch(/kunde inte verifiera/);
+  });
+
+  it("fail-closed när katalogen kommer tillbaka tom", async () => {
+    catalog();
+    const out = await findRedirectConflicts([{ fromSlug: "raderad", toPath: "/butik" }]);
+    expect(out).toHaveLength(1);
+    expect(out[0].problem).toMatch(/tom/);
+  });
+
+  it("jämför skiftlägesokänsligt och rör inte nätet för en tom lista", async () => {
+    const spy = catalog("Levande-Produkt");
+    expect(await findRedirectConflicts([])).toEqual([]);
+    expect(spy).not.toHaveBeenCalled();
+
+    const out = await findRedirectConflicts([{ fromSlug: "LEVANDE-produkt", toPath: "/butik" }]);
+    expect(out).toHaveLength(1);
   });
 });
