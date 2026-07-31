@@ -28,6 +28,11 @@ on:
         description: "Anteckning (valfri)"
         required: false
         type: string
+      force:
+        description: "Skriv även om slugen fortfarande är en SYNLIG produkt (kapar en säljande sida — använd bara vid dubbletter)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   redirect:
@@ -51,16 +56,25 @@ jobs:
               --arg t "${{ inputs.to_path }}" \
               --arg r "${{ inputs.reason }}" \
               '{redirects:[{fromSlug:$f,toPath:$t,reason:$r}]}')
+            write_url="$url"
+            if [ "${{ inputs.force }}" = "true" ]; then
+              write_url="$url?force=1"
+              echo "::warning::force=1 — katalogkontrollen hoppas över"
+            fi
             echo "Skriver: $payload"
             response=$(curl -sS -w "\n%{http_code}" -X POST \
               -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
               -H "Content-Type: application/json" \
-              -d "$payload" "$url")
+              -d "$payload" "$write_url")
           fi
           body=$(echo "$response" | sed '$d')
           status=$(echo "$response" | tail -n1)
           echo "HTTP $status"
           echo "$body"
+          if [ "$status" = "409" ]; then
+            echo "::error::Avvisad: källan eller målet lever fortfarande (se details ovan). Kontrollera i Wix — kör om med force=true bara om du är säker."
+            exit 1
+          fi
           if [ "$status" != "200" ]; then
             echo "::error::Endpoint returned non-200 status"
             exit 1
