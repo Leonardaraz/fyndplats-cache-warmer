@@ -19,7 +19,7 @@ function shortLabel(name: string): string {
   return name.split(/\s*&\s*|\s+/)[0];
 }
 
-export function MegaNav({ tree, hasBlog }: { tree: CategoryNode[]; hasBlog?: boolean }) {
+export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasBlog?: boolean; hasSale?: boolean }) {
   const [active, setActive] = useState<number | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -68,7 +68,14 @@ export function MegaNav({ tree, hasBlog }: { tree: CategoryNode[]; hasBlog?: boo
         Fyndauktionen<AuctionDot />
       </a>
 
-      <a className="meganav-rea" href="/kategori/rea" onClick={close}>REA</a>
+      {/* REA pekade på /kategori/rea — en kategori som ALDRIG funnits. Länken
+          307:ade vidare till /butik, så kunden som klickade REA fick hela
+          sortimentet i stället för nedsatta varor. Rätt mål är rea-filtret på
+          /alla-produkter, som redan finns (shopbrowser läser ?rea=1) och fylls
+          automatiskt av `onSale` — ingen manuell taggning behövs.
+          Grindad på hasSale av samma skäl som Blogg-länken: är inget nedsatt
+          leder knappen till en tom lista, vilket är sämre än ingen knapp. */}
+      {hasSale && <a className="meganav-rea" href="/alla-produkter?rea=1" onClick={close}>REA</a>}
 
       {current && (
         <div
