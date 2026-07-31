@@ -11,11 +11,16 @@
 const WIX_BASE = "https://www.wixapis.com";
 const COLLECTION = process.env.WIX_DATA_COL_REDIRECTS ?? "FyndplatsRedirects";
 
+// Samma auth-form som lib/sync/sync-log.ts och lib/wix/client.ts: token i
+// WIX_API_TOKEN (INTE WIX_API_KEY — det namnet finns inte i miljön) och
+// wix-site-id bara när det är satt.
 function headers(): Record<string, string> {
-  const key = process.env.WIX_API_KEY;
-  const site = process.env.WIX_SITE_ID;
-  if (!key || !site) throw new Error("WIX_API_KEY och WIX_SITE_ID krävs för redirect-skrivning.");
-  return { Authorization: key, "wix-site-id": site, "Content-Type": "application/json" };
+  const token = process.env.WIX_API_TOKEN;
+  if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");
+  const h: Record<string, string> = { Authorization: token, "Content-Type": "application/json" };
+  const siteId = process.env.WIX_SITE_ID;
+  if (siteId) h["wix-site-id"] = siteId;
+  return h;
 }
 
 export interface RedirectRow {
