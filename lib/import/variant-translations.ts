@@ -973,7 +973,12 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   supports: "Stöd",
   layer: "Lager",
   layers: "Lager",
-  tier: "Plan", // "3 Tier" → "3 Plan" ("plan" böjs inte i plural → aldrig fel form)
+  // Token-fallback för udda kombinationer ("Tier Rack" o.d.). Kommentaren här
+  // påstod tidigare att "3 Tier" → "3 Plan"; det är FEL och var precis det som
+  // fick ett test att asserta fel värde. "1–6 tier" finns som egna fras-nycklar
+  // ovan ("3 våningar") och fraser matchar före tokens, så den här raden nås
+  // aldrig för de vanliga siffer-varianterna.
+  tier: "Plan",
   tiers: "Plan",
   caster: "Länkhjul",
   casters: "Länkhjul",
