@@ -216,16 +216,23 @@ function stripHtml(h: string): string {
 function mapProduct(p: any): Product {
   const mediaItems: any[] = (p.media && p.media.items) || [];
   const gallery: string[] = mediaItems.map((it: any) => it?.image?.url).filter(Boolean);
-  // Wix alt-texter per bild (mediaKey → altText). Behålls genom hela modellen så
-  // listkort/PDP kan sätta riktig alt i stället för tom sträng.
-  const imageAlts: Record<string, string> = {};
   const mainMediaImage = p.media && p.media.mainMedia && p.media.mainMedia.image;
+  // Wix alt-texter per bild (mediaKey → altText) så galleriet slipper tomma alt="".
+  // BEGRÄNSAD till de bilder som faktiskt överlever mappningen (samma 6 som
+  // gallery kapas till + huvudbilden): Product-objektet serialiseras i sin helhet
+  // till klienten på listsidorna (/alla-produkter, /kategori/*, /sok renderar
+  // ~370 produkter), och en okapad karta hade lagt på vikt där ingen läser den.
+  // PDP:n fyller ändå på med hela V3-galleriets alt-texter i getProduct.
+  const keptImageKeys = new Set(
+    [...gallery.slice(0, 6), mainMediaImage?.url].filter(Boolean).map((u: string) => imgKey(u)),
+  );
+  const imageAlts: Record<string, string> = {};
   for (const it of [...mediaItems, { image: mainMediaImage }]) {
     const url = it?.image?.url;
     const alt = typeof it?.image?.altText === "string" ? it.image.altText.trim() : "";
     if (!url || !alt) continue;
     const k = imgKey(url);
-    if (k && !(k in imageAlts)) imageAlts[k] = alt;
+    if (k && keptImageKeys.has(k) && !(k in imageAlts)) imageAlts[k] = alt;
   }
   const specsSection = ((p.additionalInfoSections) || []).find((s: any) => /specifikation/i.test(s.title || ""));
   const firstP = (p.description || "").match(/<p[^>]*>([\s\S]*?)<\/p>/i);

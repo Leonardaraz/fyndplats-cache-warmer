@@ -15,9 +15,12 @@ import { altForImage } from "../lib/image-alt";
 // redan webp och rätt storlek — ingen optimerar-kallstart i kritiska vägen.
 // Galleriets huvudbild visas i aspect-ratio:1 med object-fit:cover, så en
 // kvadratisk fill (w=h) matchar exakt utan dubbelbeskärning.
-// `priority` på initiala lagret (LCP-bilden) genererar <link rel=preload
-// fetchpriority=high> i <head> via SAMMA loader → webbläsaren förladdar
-// rätt URL. (OBS: next/image har ingen `preload`-prop — det är `priority`.)
+// `preload` på initiala lagret (LCP-bilden) genererar <link rel=preload> i
+// <head> via SAMMA loader → webbläsaren förladdar rätt URL. fetchPriority
+// sätts SEPARAT: next/image härleder den inte ur preload/priority, så utan
+// den saknade både länken och <img> fetchpriority=high (SEO-granskningen
+// 2026-07-31). OBS: `priority` är utfasad i Next 16 till förmån för `preload`
+// — och de två får inte kombineras (get-img-props kastar).
 function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
   if (!(src || "").includes("static.wixstatic.com")) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
   // q_72 i stället för 82: hjältebilden var en PNG-sourcad produktbild som
@@ -355,7 +358,7 @@ export function Gallery({
               data-idx={i}
               loader={isWix ? wixMainLoader : undefined}
               {...(isInitial
-                ? { priority: true as const, fetchPriority: "high" as const }
+                ? { preload: true as const, fetchPriority: "high" as const }
                 : { loading: "eager" as const, fetchPriority: "low" as const })}
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}

@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // redan i frontmatterns seo_title blir det "… | Fyndplats | Fyndplats"
     // (inträffade för fyndauktionen-inlägget) → strippa ett avslutande suffix
     // här så mallen förblir enda källan.
-    title: (p.seoTitle || p.title).replace(/\s*\|\s*Fyndplats\s*$/i, ""),
+    title: (p.seoTitle || p.title).replace(/(\s*\|\s*Fyndplats)+\s*$/i, ""),
     description: p.excerpt || p.title,
     alternates: { canonical: `https://www.fyndplats.se/blogg/${p.slug}` },
     openGraph: {

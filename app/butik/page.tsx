@@ -161,10 +161,12 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
                         <a className="butik-subchip" key={s.id} href={`/kategori/${s.slug}`}>
                           {s.img && (
                             <span className="butik-subchip-thumb">
-                              {/* Kategorinamnet står som text i samma länk, så bilden är
-                                  strikt sett dekorativ — men med alt blir de 25 chip-
-                                  bilderna sökbara i Google Bilder i stället för osynliga. */}
-                              <Image src={tightFillUrl(s.img, 96, 96)} alt={s.name} fill sizes="48px" />
+                              {/* Dekorativ MED FLIT: bilden är en godtycklig produktbild ur
+                                  underkategorin (lib/category-groups.ts), inte en bild PÅ
+                                  kategorin — ett alt med kategorinamnet hade beskrivit
+                                  länkmålet i stället för bilden (fel enligt WCAG 1.1.1) och
+                                  dessutom upprepat texten som redan står i samma länk. */}
+                              <Image src={tightFillUrl(s.img, 96, 96)} alt="" fill sizes="48px" />
                             </span>
                           )}
                           <span className="butik-subchip-text">
