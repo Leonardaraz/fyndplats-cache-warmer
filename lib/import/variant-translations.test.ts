@@ -643,10 +643,15 @@ describe("translateValue — ft→m (nummer-ankrat, aritmetik, NOMINELL/trunkera
     // Enheten binder hela kedjan → hel konvertering, aldrig halv. Tidigare lämnades
     // dessa åt AI:n (S1), men Haiku bevarar mått ordagrant → "ft" key-låstes i Wix.
     expect(translateValue("10x10 ft Gazebo")).toBe("3 x 3 m Gazebo");
-    // "stand" är numera ett känt ord (djup utbyggnad 2026-07, "with stand" →
-    // "Med ställ") och token-passet översätter ALLA kända ord — inte bara
-    // dimensionsprefixet detta test ursprungligen handlade om.
-    expect(translateValue("6.5x10FT stand base")).toBe("1,9 x 3 m Ställ base");
+    // "stand" är numera ett känt ord och token-passet översätter ALLA kända ord
+    // — inte bara dimensionsprefixet detta test ursprungligen handlade om.
+    // Ordet blir "Stativ", inte "Ställ": tabellen hade länge BÅDA som dubblett-
+    // nycklar, och i ett JS-objekt vinner den sista — alltså "Stativ" redan
+    // innan #320 städade bort den döda raden. Testet påstod "Ställ" och har
+    // därför varit rött hela tiden (verifierat mot abd0727~1). "Stativ" är
+    // dessutom rätt ord för ett backdrop-stativ; "ställ" är ett ställ man
+    // hänger saker i.
+    expect(translateValue("6.5x10FT stand base")).toBe("1,9 x 3 m Stativ base");
     expect(translateValue("8.5x10FT flat base")).toBe("2,5 x 3 m flat base");
     // …och enhet-per-tal utan naken x-adjacens konverteras som förut.
     expect(translateValue("10ft x 13ft")).toBe("3 m x 3,9 m");
@@ -932,7 +937,12 @@ describe("VALUE_TRANSLATIONS — fäste-/stativ-familjen (Sångarbracket-inciden
 
   it("token-säkra lösa ord i familjen (multiplicitet, plan/lager, hjul-tillbehör)", () => {
     expect(translateValue("Double Layer")).toBe("Två lager"); // fras vinner
-    expect(translateValue("3 Tier")).toBe("3 Plan"); // "plan" böjs inte → aldrig fel form
+    // Fras före token, precis som raden ovan: "3 tier" finns som EGEN nyckel
+    // ("3 våningar") och matchar före token-fallbacken tier → "Plan". Testet
+    // påstod "3 Plan" och har varit rött sedan det skrevs. "3 våningar" är
+    // idiomatiskt för hyllor/vagnar/tårtfat, så frasen får stå — det är
+    // token-fallbacken som är reservutgången för udda kombinationer.
+    expect(translateValue("3 Tier")).toBe("3 våningar");
     expect(translateValue("Single Red")).toBe("Enkel Röd"); // token-vis
     expect(translateValue("4 Hooks")).toBe("4 Krokar");
     expect(translateValue("2 Shelves")).toBe("2 Hyllor");
