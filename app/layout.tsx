@@ -76,7 +76,15 @@ export const metadata: Metadata = {
     description:
       "Svensk webbutik med noga utvalda fynd till smarta priser. Klarna och fri frakt över 499 kr.",
   },
-  robots: { index: true, follow: true },
+  // INGEN global robots-tagg med flit. "index, follow" är webbens standard —
+  // taggen tillför ingenting när den säger ja, men den ÄRVS ner i varje sida,
+  // inklusive 404:an. Next lägger automatiskt noindex på not-found, så sidan
+  // fick två motstridiga direktiv samtidigt:
+  //     <meta name="robots" content="noindex"/>
+  //     <meta name="robots" content="index, follow"/>
+  // Sidor som faktiskt ska hållas ur indexet (/sok, /sparning, /avregistrera,
+  // /admin/*, tom /blogg) sätter sin egen robots i respektive page.tsx och
+  // fungerar oförändrat — de skrev redan över den här raden.
   alternates: { canonical: "https://www.fyndplats.se/" },
   verification: {
     ...(process.env.GOOGLE_SEARCH_CONSOLE_TOKEN && {

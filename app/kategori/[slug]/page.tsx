@@ -213,7 +213,11 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
                   src={heroImg}
                   alt={active.name}
                   fill
-                  priority
+                  // `priority` utfasad i Next 16 → `preload`; kategorihjälten är
+                  // sidans LCP-element. fetchPriority sätts separat (next/image
+                  // härleder den inte ur preload).
+                  preload
+                  fetchPriority="high"
                   placeholder="blur"
                   blurDataURL={heroBlur}
                   sizes="(max-width:760px) 100vw, 480px"
