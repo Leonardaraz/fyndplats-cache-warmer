@@ -96,6 +96,18 @@ export class MemoryStore implements Store {
     return this.audit.slice(-limit).reverse();
   }
 
+  async pruneAuditOlderThan(days: number, nowMs = Date.now()): Promise<string> {
+    const cutoff = nowMs - days * 24 * 60 * 60 * 1000;
+    const before = this.audit.length;
+    // Rader med oparsbart `at` behålls med flit: hellre en kvarglömd rad än en
+    // raderad som vi inte kunde datera.
+    this.audit = this.audit.filter((e) => {
+      const t = Date.parse(e.at);
+      return Number.isNaN(t) || t >= cutoff;
+    });
+    return `${before - this.audit.length} rader`;
+  }
+
   async getAliExpressTokens(): Promise<AliExpressTokenRecord | null> {
     return this.aliExpressTokens;
   }

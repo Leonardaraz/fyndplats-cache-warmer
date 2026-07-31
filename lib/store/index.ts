@@ -178,6 +178,15 @@ export interface Store {
   // --- Audit-logg (spårbarhet) ---
   appendAudit(entry: AuditEntry): Promise<void>;
   listAudit(limit?: number): Promise<AuditEntry[]>;
+  /**
+   * Raderar audit-rader äldre än `days` dygn. Utan den växer loggen obegränsat:
+   * synk-loggen fick retention i #332, audit-loggen glömdes och stod på 4 723
+   * rader. Ingen läser äldre rader — listAudit() hämtar de N senaste.
+   *
+   * Returnerar en kort statussträng för loggning (Wix svarar med ett jobId,
+   * minnes-storen med antal raderade rader).
+   */
+  pruneAuditOlderThan(days: number, nowMs?: number): Promise<string>;
 
   // --- AliExpress OAuth-tokens ---
   /** Returnerar persisterade tokens, eller null om inga finns än (cold bootstrap). */

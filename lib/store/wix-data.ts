@@ -58,6 +58,24 @@ async function save(dataCollectionId: string, id: string, data: Record<string, u
   }
 }
 
+/**
+ * Asynkron massradering. Wix kör jobbet i bakgrunden och svarar direkt med ett
+ * jobId — raderingen är alltså INTE klar när anropet returnerar. Samma endpoint
+ * som synk-loggens retention (lib/sync/sync-log.ts).
+ */
+async function removeByFilter(dataCollectionId: string, filter: Record<string, unknown>): Promise<string> {
+  const res = await fetch(`${WIX_BASE}/data/v2/bulk/items/async-remove-by-filter`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ dataCollectionId, filter }),
+  });
+  if (!res.ok) {
+    throw new Error(wixErrorMessage("remove-by-filter", dataCollectionId, res.status, await res.text()));
+  }
+  const body = (await res.json()) as { jobId?: string };
+  return body.jobId ?? "";
+}
+
 type PatchResult = "applied" | "condition-failed" | "not-found";
 
 /**
@@ -310,6 +328,13 @@ export class WixDataStore implements Store {
 
   async listAudit(limit = 100): Promise<AuditEntry[]> {
     return query<AuditEntry>(COL.audit, undefined, [{ fieldName: "at", order: "DESC" }], limit);
+  }
+
+  async pruneAuditOlderThan(days: number, nowMs = Date.now()): Promise<string> {
+    // Filtrerar på `at` (vårt eget ISO-fält, samma som listAudit sorterar på),
+    // inte Wix `_createdDate` — `at` är det appen faktiskt äger och sätter.
+    const cutoff = new Date(nowMs - days * 24 * 60 * 60 * 1000).toISOString();
+    return removeByFilter(COL.audit, { at: { $lt: cutoff } });
   }
 
   async getAliExpressTokens(): Promise<AliExpressTokenRecord | null> {
