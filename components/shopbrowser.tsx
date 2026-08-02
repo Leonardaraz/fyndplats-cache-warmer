@@ -87,7 +87,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     if (sort === "img") out = [...out].sort((a, z) => (z.imageScore ?? 60) - (a.imageScore ?? 60));
-    else if (sort === "new") out = [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || a.id.localeCompare(z.id));
+    else if (sort === "new") out = [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
     else if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));

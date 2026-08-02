@@ -386,8 +386,40 @@ function optionsForProduct(slug: string, sdkItem: any): Product["options"] {
 
 let productsPromise: Promise<Product[]> | null = null;
 
+// Nödkatalogen products.json är en minimal, GAMMAL snapshot (3 produkter i ett
+// äldre schema utan id/createdAt/collectionIds/imageScore). Den släpptes förr in
+// rå via en `as Product[]`-cast — och när Wix låg nere 2026-08-01/02 kraschade
+// varje yta som rörde de saknade fälten: sortByNewest föll på id.localeCompare
+// (3 051 serverfel, 70 besökare fick 500 på /alla-produkter och startsidans
+// revalidering) och produktfeeden på collectionIds.map. Alltså: reservvägen som
+// finns för att hålla sajten uppe under ett Wix-avbrott var det som fällde den.
+// Normalisera därför till KOMPLETT Product-form — tsc tvingar varje
+// obligatoriskt fält, så en framtida typutökning bryter bygget här i stället
+// för att krascha i produktion — och släpp aldrig igenom en post utan slug+bild.
+const FALLBACK_PRODUCTS: Product[] = (local as Array<Record<string, unknown>>)
+  .map((p): Product => ({
+    id: String(p.id || `local-${String(p.slug ?? "")}`),
+    variants: [],
+    collectionIds: [],
+    name: String(p.name ?? ""),
+    slug: String(p.slug ?? ""),
+    createdAt: 0,
+    updatedAt: 0,
+    price: String(p.price ?? ""),
+    currency: String(p.currency ?? "SEK"),
+    priceNum: Number(p.priceNum) || 0,
+    img: String(p.img ?? ""),
+    gallery: Array.isArray(p.gallery) ? (p.gallery as string[]).filter((g) => typeof g === "string") : [],
+    blurb: String(p.blurb ?? ""),
+    specs: String(p.specs ?? ""),
+    inStock: p.inStock !== false,
+    imageScore: 0,
+    imageFlags: [],
+  }))
+  .filter((p) => p.slug && p.img);
+
 async function fetchProducts(): Promise<Product[]> {
-  if (!wix) return local as Product[];
+  if (!wix) return FALLBACK_PRODUCTS;
   try {
     const all: any[] = [];
     let skip = 0;
@@ -409,11 +441,11 @@ async function fetchProducts(): Promise<Product[]> {
     for (const p of mapped) if (p.id && !byId.has(p.id)) byId.set(p.id, p);
     const unique = [...byId.values()];
     console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
-    return unique.length ? unique : (local as Product[]);
+    return unique.length ? unique : FALLBACK_PRODUCTS;
   } catch (e) {
     console.error("[wix] live fetch failed, using local fallback:", (e as Error).message);
     productsPromise = null; // allow retry on a later request
-    return local as Product[];
+    return FALLBACK_PRODUCTS;
   }
 }
 
@@ -613,7 +645,7 @@ export function forListings(products: Product[]): Product[] {
 // nedan var alla-produkters enda anropare och är nu oanvänd — lämnad orörd; kan
 // städas i en separat cleanup.)
 export function sortByNewest(products: Product[]): Product[] {
-  return [...products].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0) || a.id.localeCompare(b.id));
+  return [...products].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(b.id ?? "")));
 }
 
 // Slim produktform för cart-drawerns "Andra köpte också"-block — bara de fält
