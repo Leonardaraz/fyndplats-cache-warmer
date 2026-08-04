@@ -552,9 +552,9 @@ export function ProductView({
             {displayOriginal && <span className="pdp-sale">Rea</span>}
           </div>
           <KlarnaMessage priceNum={currentPriceNum} />
-          <div className={`stock ${buyable ? "in" : "out"}`}>
-            {buyable ? "✓ I lager" : variantOnlyOOS ? "Slut i denna variant" : "Tillfälligt slut"}
-          </div>
+          {/* Lagerstatus visas i leveransboxen ("✓ I lager · Beräknad leverans…")
+              — en fristående pill här såg övergiven ut. Slut-i-lager-läget bärs
+              redan av oos-bannern ovan + köpknappens text. */}
           {buyable && typeof stockQuantity === "number" && stockQuantity > 0 && stockQuantity <= 5 && (
             <div className="low-stock-warn">🔥 Endast <strong>{stockQuantity}</strong> kvar i lager</div>
           )}
@@ -585,7 +585,7 @@ export function ProductView({
 
           {/* Premium leverans-callout — högst upp, direkt under köpknappen, egen
               ruta så den sticker ut (bara i lager). */}
-          {inStock && <DeliveryEstimate />}
+          {inStock && <DeliveryEstimate showStock={buyable} />}
 
           <div className="pdp-trust">
             <span>

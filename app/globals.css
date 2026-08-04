@@ -550,9 +550,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pdp-flik-body a{color:#C2410C;text-decoration:underline}
 .pdp-section{margin-top:26px;border-top:1px solid var(--line);padding-top:22px}
 .pdp-section h2{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:12px}
-.stock{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:6px 12px;margin-bottom:18px}
-.stock.in{background:#E4F5EC;color:#0B6B3A}
-.stock.out{background:#EDE7E0;color:#5a544c}
+/* Lagerstatus bor i leveransboxen (delivery-callout) sedan 2026-08-04 —
+   den gamla fristående .stock-pillen är borttagen. */
+.delivery-callout-stock{color:#157a43;font-weight:800}
 
 /* Hybrid slut-i-lager (Feature 1) — prominent banner + bevakningsformulär */
 .oos-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:12px 16px;margin:6px 0 16px}
