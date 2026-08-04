@@ -18,6 +18,11 @@
 //   4. PÅFYLLNING: färre än 5 live ⇒ främja kö-produkter (lägst queueOrder)
 //      med startAt = NÄSTA 07:00 svensk tid. Sinar kön återvinns avslutade
 //      auktioner (äldst endedAt först) — hjulet snurrar för evigt.
+//   5. SJÄLVLÄKNING: en auktion vars produkt RADERATS ur katalogen (pris-
+//      PATCH:en 404:ar) tas bort och sloten frigörs samma tick. Utan detta
+//      fastnar raden som evig live-zombie — varken expire eller prissteg kan
+//      genomföras — och dagens lineup krymper (så /fyndauktion hamnade på 2
+//      produkter i aug 2026: tre raderade produkter höll slot 1, 2 och 5).
 //
 // Designval: butiken (headless) visar WIX-priset som källa till sanning och
 // använder stegen bara för "nästa sänkning om…"-nedräkningen. Failar en tick
@@ -29,7 +34,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { fetchOrders, aggregateOrders } from "@/lib/wix/orders";
 import { isExpired, nextStartAt, priceAt, stepIndexAt, variantPricesAt, type AuctionDoc } from "@/lib/auction/engine";
-import { patchProductPrice, patchProductVariants, queryAuctions, saveAuction } from "@/lib/auction/store";
+import {
+  isProductGone,
+  patchProductPrice,
+  patchProductVariants,
+  productExists,
+  queryAuctions,
+  removeAuction,
+  saveAuction,
+} from "@/lib/auction/store";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -75,8 +88,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Otillåten" }, { status: 401 });
   }
 
-  const report: Record<string, unknown> = { sold: [], expired: [], priced: [], promoted: [], errors: [] };
+  const report: Record<string, unknown> = { sold: [], expired: [], priced: [], promoted: [], removedDead: [], errors: [] };
   const push = (k: string, v: unknown) => (report[k] as unknown[]).push(v);
+
+  /**
+   * Produkten är raderad ur katalogen → auktionsdokumentet är meningslöst och
+   * FARLIGT: en live-rad vars pris-PATCH alltid 404:ar kan varken stega,
+   * säljas eller avslutas — den blir en evig zombie som blockerar sin slot.
+   * Släng dokumentet och markera raden avslutad i minnet så sloten frigörs
+   * redan i detta tick (påfyllningen i steg 4 ser den som ledig).
+   */
+  const retireDead = async (a: AuctionDoc) => {
+    try {
+      await removeAuction(a._id ?? `auction-${a.productId}`);
+      push("removedDead", a.slug);
+      a.status = "expired";
+    } catch (e) {
+      push("errors", `removeDead ${a.slug}: ${(e as Error).message}`);
+    }
+  };
 
   try {
     const now = Date.now();
@@ -96,7 +126,13 @@ export async function GET(req: NextRequest) {
         const soldAfterStart = hit?.lastSoldAt && a.startAt && Date.parse(hit.lastSoldAt) >= Date.parse(a.startAt);
         if (soldAfterStart) {
           try {
-            await restoreListPrice(a); // återställ till ordinariepris
+            try {
+              await restoreListPrice(a); // återställ till ordinariepris
+            } catch (e) {
+              // Produkt raderad efter köpet ⇒ inget pris att återställa, men
+              // affären är verklig — spara sold-historiken ändå.
+              if (!isProductGone(e)) throw e;
+            }
             await saveAuction({ ...a, status: "sold", endedAt: new Date(now).toISOString(), soldPrice: a.lastPatchedPrice ?? a.listPrice });
             push("sold", { slug: a.slug, soldPrice: a.lastPatchedPrice ?? a.listPrice });
             a.status = "sold";
@@ -117,7 +153,8 @@ export async function GET(req: NextRequest) {
           push("expired", a.slug);
           a.status = "expired";
         } catch (e) {
-          push("errors", `expire ${a.slug}: ${(e as Error).message}`);
+          if (isProductGone(e)) await retireDead(a);
+          else push("errors", `expire ${a.slug}: ${(e as Error).message}`);
         }
       }
     }
@@ -137,10 +174,12 @@ export async function GET(req: NextRequest) {
           await saveAuction({ ...a, lastPatchedStep: idx, lastPatchedPrice: displayTarget });
           push("priced", { slug: a.slug, price: displayTarget });
         } catch (e) {
-          push("errors", `price ${a.slug}: ${(e as Error).message}`);
+          if (isProductGone(e)) await retireDead(a);
+          else push("errors", `price ${a.slug}: ${(e as Error).message}`);
         }
       }
     }
+    live = live.filter((a) => a.status === "live");
 
     // 4) Påfyllning: främja kö tills 5 platser är fyllda, start nästa 07:00.
     //    Sinar kön återvinns avslutade auktioner (äldst avslutad först) —
@@ -160,7 +199,14 @@ export async function GET(req: NextRequest) {
     const startAt = freeSlots.length > 0 ? nextStartAt(now) : undefined;
     let qi = 0;
     for (const slot of freeSlots) {
-      const next = pool[qi++];
+      // Kandidater vars produkt raderats ur katalogen hoppar vi över (och
+      // slänger dokumentet) — en blind främjning ger annars en död auktion
+      // som bränner sloten en hel dag innan retireDead städar den.
+      let next: AuctionDoc | undefined;
+      while ((next = pool[qi++]) !== undefined) {
+        if (await productExists(next.productId)) break;
+        await retireDead(next);
+      }
       if (!next) break;
       try {
         const promoted: AuctionDoc = {
