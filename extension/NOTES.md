@@ -1,6 +1,15 @@
 # Fyndplats AliExpress Import — extension-anteckningar
 
-## Ladda om tillägget efter en kodändring
+## Uppdatera tillägget (Leonards väg — inga nedladdningar)
+
+1. Dubbelklicka på **`uppdatera.bat`** i den här mappen. Den hämtar senaste
+   koden själv (git pull om mappen är en klon, annars zip från GitHub — repo:t
+   är publikt) och skriver "KLART! Tillägget är nu version X".
+2. `chrome://extensions` → klicka **↻ (uppdatera-pilen)** på Fyndplats Import —
+   versionen i rutan ska stiga.
+3. Ladda om AliExpress-fliken (F5).
+
+## Ladda om tillägget efter en kodändring (detaljer)
 
 `content.js` är ett **content-script** — Chrome cachar det tills tillägget laddas
 om. Efter en `git pull`/kodändring:
