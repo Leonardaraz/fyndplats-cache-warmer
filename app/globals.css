@@ -516,7 +516,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pdp-sale{display:inline-block;vertical-align:middle;margin-left:10px;background:var(--sale-fill);color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:7px}
 /* Klarna-delbetalningsrad under priset (components/klarna-message.tsx). Klarnas
    rosa märke i ett litet chip + diskret text — säljpunch utan att skrika. */
-.klarna-msg{display:inline-flex;align-items:center;gap:9px;margin:-2px 0 16px;font-size:13.5px;color:#4a443d}
+/* display:flex (inte inline-flex): raden ska ÄGA sin rad — som inline la sig
+   "✓ I lager"-pillen bredvid på bred skärm, osnyggt hängande mot textbaslinjen. */
+.klarna-msg{display:flex;align-items:center;gap:9px;margin:-2px 0 14px;font-size:13.5px;color:#4a443d}
 .klarna-msg img{display:block;height:16px;width:auto;background:#FFB3C7;border-radius:5px;padding:3px 6px;box-sizing:content-box}
 .klarna-msg strong{font-weight:800;color:var(--ink)}
 .pdp-desc{font-size:16px;color:#4a443d;line-height:1.7;margin-bottom:24px;overflow-wrap:break-word}
