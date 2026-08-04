@@ -546,6 +546,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         method: "GET",
       }).then(sendResponse);
       return true;
+    case "DS_PRODUCT":
+      // Räddningsväg (2026-08-04): nya AliExpress-PC-sidan saknar ofta inbäddad
+      // SKU-JSON och byter pris-markup mellan A/B-varianter → skrapan får inget
+      // pris. Backendens DS-API-uppslag är auktoritativt (per-SKU-pris i USD).
+      apiCall(`/api/aliexpress/product?id=${encodeURIComponent(msg.productId)}`, {
+        method: "GET",
+      }).then(sendResponse);
+      return true;
     case "CHECK_DUPLICATE": {
       // Dubblett-detektor (Feature 1) — kollar titel/bild/AE-id mot butiken.
       const q = new URLSearchParams();
