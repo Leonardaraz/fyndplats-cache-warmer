@@ -45,7 +45,15 @@ function formatRange(a: Date, b: Date): string {
   return `${f(a)} – ${f(b)}`;
 }
 
-export function DeliveryEstimate() {
+/**
+ * `showStock`: prefixar etikettraden med "✓ I lager · " (grönt, fetstilt).
+ * Lagerstatus + leveransestimat är samma sak för kunden (uppfyllnad) och bor
+ * därför i SAMMA box — den fristående lager-pillen under priset såg övergiven
+ * ut på egen rad (Leonards feedback 2026-08-04). Skickas variant-nivåns
+ * buyable (inte produkt-nivåns inStock) så en slutsåld variant aldrig visar
+ * "✓ I lager" bredvid en "Slut i denna variant"-banner.
+ */
+export function DeliveryEstimate({ showStock = false }: { showStock?: boolean }) {
   const [range, setRange] = useState<string | null>(null);
   useEffect(() => {
     const now = new Date();
@@ -59,7 +67,10 @@ export function DeliveryEstimate() {
         <circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" />
       </svg>
       <span className="delivery-callout-text">
-        Beräknad leverans
+        <span>
+          {showStock && <span className="delivery-callout-stock">✓ I lager · </span>}
+          Beräknad leverans
+        </span>
         <strong>{range || DELIVERY_TIME}</strong>
       </span>
     </div>
