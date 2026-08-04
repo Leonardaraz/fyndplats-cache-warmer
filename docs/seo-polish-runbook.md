@@ -477,6 +477,11 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
      --force-device-scale-factor=2 --window-size=1600,1600 \
      --screenshot=out.png "file://$PWD/card.html"   # 2× → 3200² retina (skarpare i Wix)
    ```
+   > ⚠️ **Två renderingsfällor som båda ser ut som designfel men är Chromium-beteende (2026-08-04, kostade två omrenderingar).**
+   > 1. **Viewporten blir ~87,5 CSS px LÄGRE än `--window-size`.** Ligger gradienten på `<body>` med `height:1600px` blir bakgrundens positioneringsyta viewporthöjden → gradienten **tilar**, och kortets nedersta ~90 px blir vita medan foten kapas mitt i "Fyndplats". Lägg gradienten på ett **fast `.card`-element** (1600×1600, `overflow:hidden`), rendera med **högre fönsterhöjd** (t.ex. `--window-size=1600,1780`) och **kapa till exakt kvadrat i PIL** efteråt.
+   > 2. **Utan `<meta charset="utf-8">` blir å/ä/ö mojibake** (`Ã¥`/`Ã¤`/`Ã¶`) — och inkonsekvent, så några kort ser rätt ut och lurar ögat. Skriv filen med `encoding="utf-8"` OCH sätt meta-taggen.
+   >
+   > Båda är låsta i **`scripts/cardkit.py`** — importera den i stället för att bygga om mallen (den föregående sessionens kortmallar låg bara i scratchpad och försvann när containern återskapades).
 4. **Granska ALLTID med `Read`** (helhet + inzoomat). Vanliga fel: text kapas (sätt `.photo{flex:1;min-height:0}` så textblocket aldrig trängs bort), och **små källurklipp (<~500 px) blir suddiga** när de skalas upp 2–3× → använd i stället en högupplöst i-bruk-bild som rundad banner, eller acceptera medelstor "spotlight". `object-fit:contain` skalar INTE upp av sig själv; `max-width/height:100%` visar bilden i sin naturliga storlek (små blir små).
 5. **Ladda upp** alla kort i ETT `UploadImageToWixSite`-anrop (GitHub-branch-vägen, se Steg 3b) och byt in dem i galleriet.
 
@@ -522,6 +527,8 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 ```
 
 > Misslyckas någon verifiering: fixa först, publicera sedan. Hoppa över publiceringen bara om Leonard uttryckligen bett om draft. Frontend uppdateras via ISR (ingen redeploy).
+>
+> ⚠️ **`visible` kan flippa av sig självt under polerings-kedjan — kontrollera det, lita inte på att draft förblir draft (2026-08-04).** Efter Steg 2 → 2b → 3 på sex nyimporterade drafts stod **fem av sex på `visible:true`** redan innan Steg 5 kördes, medan orörda produkter ur samma import fortfarande låg som draft. Den sjätte — den enda med optioner, vars Steg 6-PATCH skickade `options` + `variantsInfo` — stod tvärtom kvar på `false`. Praktisk regel: **läs `visible` i slutkontrollen** och sätt den explicit i Steg 5 i stället för att anta något. Är produkten inte klar än (bilder/kategori/varianter kvar) och har flippat till `true` i förtid: PATCHa tillbaka `visible:false` direkt.
 >
 > *Historik: #134 införde draft-only ("Leonard granskar och publicerar själv"). 2026-06-09 beslutade Leonard att publicera-efter-polering är standard igen — i linje med polish-knappens prompt (`app/admin/queue/polish-button.tsx`), som hela tiden instruerat publicering.*
 
