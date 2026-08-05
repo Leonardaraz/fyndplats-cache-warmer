@@ -23,6 +23,12 @@ describe("stripBrandPrefix", () => {
   it("lämnar minst ett token kvar (produkt som bara heter märket)", () => {
     expect(stripBrandPrefix("succebuy")).toBe("succebuy");
   });
+  it("strippar Aosoms fitness-/möbel-/leksakshusmärken", () => {
+    // Dessa läckte tidigare in i SKU:er, t.ex. FP-sportnow-aerobic-step.
+    expect(stripBrandPrefix("sportnow-aerobic-step-non-slip")).toBe("aerobic-step-non-slip");
+    expect(stripBrandPrefix("vinsetto-folding-painting-easel")).toBe("folding-painting-easel");
+    expect(stripBrandPrefix("aiyaplay-toy-dressing-table")).toBe("toy-dressing-table");
+  });
 });
 
 describe("buildVariantSkus", () => {
