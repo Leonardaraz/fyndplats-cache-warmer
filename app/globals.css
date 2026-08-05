@@ -90,6 +90,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .sugg-name{flex:1;font-size:14px;color:var(--ink);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sugg-name b{color:#C2410C;font-weight:700}
 .sugg-price{font-size:14px;font-weight:800;color:#C2410C;white-space:nowrap}
+/* Slutsåld-etikett i sökförslagen: grå (samma familj som kortens .oos-badge),
+   aldrig röd — rött läser som REA i den här butiken. 4.6:1 mot vitt. */
+.sugg-oos{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:5px;background:#EDEFF2;color:#52606D;font-size:11px;font-weight:700;letter-spacing:.02em;vertical-align:1px}
 .sugg-all{display:block;width:100%;text-align:left;padding:12px;margin-top:4px;border-top:1px solid var(--line);font-size:12px;font-weight:700;color:var(--ink);background:#fff;cursor:pointer;position:sticky;bottom:-6px;border-radius:0 0 10px 10px}
 .sugg-all:hover{color:#C2410C}
 .sugg-empty{padding:18px 12px;font-size:14px;color:var(--soft);text-align:center}

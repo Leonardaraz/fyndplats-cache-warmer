@@ -23,7 +23,24 @@ Storefront-delen av Feature 1 (resten ligger i `fyndplats-cache-warmer`).
 | Var | Default | Funktion |
 |---|---|---|
 | `NEXT_PUBLIC_RESTOCK_API` | `https://fyndplats-cache-warmer.vercel.app/api/restock-subscribe` | Endpoint som bevakningsformuläret postar till. |
-| `HIDE_OOS_FROM_LISTINGS` | _(av)_ | `1` = dölj slutsålda produkter från listningarna. **Default AV** så inget i den live:a butiken ändras förrän du aktiverar det. Produktsidan + dess OOS-UI påverkas aldrig av flaggan. |
+| `SHOW_OOS_IN_LISTINGS` | _(av)_ | `1` = visa slutsålda i listningarna igen (gamla beteendet). **Döljning är PÅ som default sedan 2026-08-04.** Produktsidan + dess OOS-UI påverkas aldrig av flaggan. |
+
+## Var slutsålt syns — och var det inte gör det (2026-08-04)
+
+| Yta | Slutsålt | Varför |
+|---|---|---|
+| Kategori, /butik, /alla-produkter, startsidan | **Dolt** | Bläddring — slutsålt är återvändsgränder (39 av 452 = vart elfte kort) |
+| Sökresultat (`/sok`) | **Visas sist**, med badge | Sökning är avsiktsstyrd: hittar man inte varan man såg är det värre än en märkt träff |
+| Autocomplete, skriven sökning | **Visas sist**, med etikett | Samma skäl |
+| Autocomplete, "Populära produkter" (tomt fält) | **Dolt** | Tomt fält = bläddring, inte sökning |
+| "Liknande produkter" på PDP | **Aldrig** | Ett förslag är ett aktivt tips — hellre 3 köpbara än 4 med en död länk |
+| Meny-/kategoriantal | **Räknas inte** | Siffran är ett löfte; den måste matcha vad sidan visar |
+| Kategori vars ALLA varor är slut | **Försvinner ur menyn**, sidan 307:ar till `/butik` | Självläker när varan fylls på (befintlig mekanik) |
+| Produktsidan | **Visas alltid** | Bevakningsformulär + Google-värdet bevaras |
+| Sitemap, Google-/Meta-feed | **Med, markerad slut** | Feeds ska markera lagerstatus, inte utelämna artikeln |
+
+"I lager"-filtret i verktygsraden visas bara när listan faktiskt innehåller
+något slutsålt (dvs. i sök) — annars vore det ett reglage utan verkan.
 
 ## Designbeslut
 
