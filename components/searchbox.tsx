@@ -67,6 +67,12 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       return;
     }
     const idx = await loadIndex();
+    // ORDNINGEN ÄR VIKTIG: klipp på RELEVANS först, sänk slutsålda EFTERÅT.
+    // Sänker man slutsålda före klippet kan en exakt namnträff som råkar vara
+    // slut tryckas ut ur listan av sju svaga träffar som råkar finnas i lager —
+    // dvs. söker man på varan man just sett hittar man den inte. Nu visas alltid
+    // de 7 mest relevanta; slutsålda bland dem hamnar längst ned. (sort är stabil
+    // i JS, så relevansordningen består inom varje grupp.)
     const ranked = idx
       .map((h) => ({ h, score: nameScore(h.n, term) }))
       .filter((r) => r.score > 0)
@@ -74,6 +80,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       // att hitta på namn, men aldrig knuffa undan något man faktiskt kan köpa.
       .sort((a, b) => (a.h.o ? 1 : 0) - (b.h.o ? 1 : 0) || b.score - a.score)
       .slice(0, SUGGESTION_COUNT)
+      .sort((a, b) => (a.h.o ? 1 : 0) - (b.h.o ? 1 : 0))
       .map((r) => r.h);
     setHits(ranked);
     setOpen(true);
