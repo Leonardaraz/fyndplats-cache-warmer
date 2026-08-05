@@ -56,7 +56,13 @@ export function ProductCard({ p }: { p: Product }) {
             <span className="pprice-now">{p.hasRange ? `Från ${p.priceFrom}` : p.price}</span>
             {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
           </span>
-          <span className="pbtn" style={{ background: "#C2410C" }}>Köp</span>
+          {/* Slutsålt kort får ALDRIG säga "Köp" — knappen är ett löfte, och på en
+              vara som är slut spricker det vid första klicket. "Bevaka" är exakt
+              vad produktsidan erbjuder (bevakningsformuläret), och dämpad grå så
+              den aldrig konkurrerar med de köpbara korten. */}
+          <span className="pbtn" style={{ background: p.inStock ? "#C2410C" : "#52606D" }}>
+            {p.inStock ? "Köp" : "Bevaka"}
+          </span>
         </div>
       </div>
     </a>
