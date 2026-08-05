@@ -22,6 +22,13 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // "akacia"). Så snart riktiga namn-träffar finns visar vi bara dem — annars
   // drar en lös omnämning i en produkttext in fel resultat (re-audit: "halsband"
   // tog tidigare med en halloween-kattdräkt vars text nämnde ordet).
+  //
+  // LAGER I SÖK: till skillnad från bläddring (kategori/butik) filtreras slutsålda
+  // INTE bort här. En sökning är avsiktsstyrd — skriver någon in produktnamnet de
+  // just sett ska varan hittas, med "Slutsåld"-badge + bevakningsformulär på
+  // produktsidan. Att svara "inga resultat" på en vara som finns vore sämre. Men
+  // de köpbara går alltid först (stabil partition, relevansordningen behålls inom
+  // varje grupp) så det man faktiskt kan handla möter ögat överst.
   let results: typeof all = [];
   if (term) {
     const scored = all
@@ -36,6 +43,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
         (p) => normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase)
       );
     }
+    results = [...results.filter((p) => p.inStock), ...results.filter((p) => !p.inStock)];
   }
 
   return (

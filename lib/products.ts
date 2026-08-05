@@ -625,12 +625,20 @@ export async function getProductSitemapEntries(): Promise<{ slug: string; update
 // renderar med "Slutsåld"-banner + bevakningsformulär). Wix sätter inventory=0
 // på slutsålda produkter via sync-cronen; här filtrerar vi bort dem ur listor.
 //
-// Opt-in via HIDE_OOS_FROM_LISTINGS=1 — default AV så att inget i den live:a
-// butiken ändras förrän Leonard aktiverar det (matchar SYNC_DRY_RUN-andan:
-// produktsidans OOS-UI är redan säker eftersom den bara syns när en produkt
-// faktiskt är slut). Produktsidan påverkas ALDRIG av detta filter.
+// SEDAN 2026-08-04: PÅ som default. Slutsålda produkter är återvändsgränder när
+// man bläddrar (39 av 452 = vart elfte kort), och de bästa butikerna visar dem
+// inte i bläddringsflödet. Nödbroms: SHOW_OOS_IN_LISTINGS=1 återställer det
+// gamla beteendet utan deploy. (Gamla HIDE_OOS_FROM_LISTINGS=1 accepteras
+// fortfarande, men är nu en no-op eftersom det redan är default.)
+//
+// Vad filtret INTE rör — medvetet:
+//   • produktsidan (renderar alltid, med "Slutsåld"-banner + bevakningsformulär)
+//   • sitemap + Google/Meta-feeds (feeds ska MARKERA slutsålt, inte utelämna det
+//     — utelämnade artiklar tappar sin historik hos Google)
+//   • SÖK: en sökning är avsiktsstyrd ("jag vill ha JUST den varan"), så träffen
+//     ska hittas — men rankas sist och märkt (se app/sok + components/searchbox).
 export function hideOosFromListings(): boolean {
-  return process.env.HIDE_OOS_FROM_LISTINGS === "1";
+  return process.env.SHOW_OOS_IN_LISTINGS !== "1";
 }
 
 /** Filtrerar bort slutsålda produkter ur en listning om flaggan är på. */
@@ -857,9 +865,13 @@ async function fetchCollections(): Promise<Collection[]> {
         .find(),
       getProducts(),
     ]);
-    // Collection ids that actually contain ≥1 product (drop empty categories entirely).
+    // Collection ids som innehåller ≥1 KÖPBAR produkt (tomma kategorier tas bort
+    // helt). forListings gör att en kategori vars enda produkter är slutsålda
+    // också försvinner ur navigationen — annars leder menyn till en sida utan
+    // ett enda köpbart kort. Kategorisidan 307:ar då till /butik och SJÄLVLÄKER:
+    // fylls varan på finns kategorin här igen vid nästa revalidate.
     const used = new Set<string>();
-    for (const p of products) for (const cid of (p.collectionIds || [])) used.add(cid);
+    for (const p of forListings(products)) for (const cid of (p.collectionIds || [])) used.add(cid);
 
     const seen = new Set<string>();
     const list: Collection[] = (res.items || [])

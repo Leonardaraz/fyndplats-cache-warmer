@@ -5,7 +5,7 @@
 // 2) en kort tagline per kategori, 3) en uttalad underkategori-grupp.
 
 import { cache } from "react";
-import { getProducts, getCollections } from "./products";
+import { getProducts, getCollections, forListings } from "./products";
 import type { Product, Collection } from "./products";
 
 export type MainGroup = {
@@ -284,7 +284,11 @@ export function buildCategoryTree(products: Product[], collections: Collection[]
 // dessutom själva träd-bygget per request.
 export const getCategoryTree = cache(async (): Promise<CategoryNode[]> => {
   const [products, collections] = await Promise.all([getProducts(), getCollections()]);
-  return buildCategoryTree(products, collections);
+  // forListings: menyns antal MÅSTE räkna samma produkter som kategorisidan
+  // visar. Utan filtret lovade mega-menyn "56 produkter" medan sidan visade 55
+  // — siffran är ett löfte, och ett löfte som spricker vid första klicket
+  // kostar mer förtroende än det vinner i uppmärksamhet.
+  return buildCategoryTree(forListings(products), collections);
 });
 
 // Bygger upp alla huvudgrupper med hero-bild + sub-kategorier från live-katalogen.

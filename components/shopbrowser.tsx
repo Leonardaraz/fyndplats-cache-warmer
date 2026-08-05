@@ -94,7 +94,13 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     return out;
   }, [products, sort, bi, onlyInStock, onlyOnSale]);
 
-  const activeFilters = (bi > 0 ? 1 : 0) + (onlyInStock ? 1 : 0) + (onlyOnSale ? 1 : 0);
+  // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
+  // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
+  // så det stämmer per sida: kategori = nej, sökresultat = ofta ja.
+  const hasOos = useMemo(() => products.some((p) => !p.inStock), [products]);
+  // En dold reglage får inte spöka i filterräknaren ("1 aktivt filter" utan att
+  // något syns) om en gammal delad länk bär ?lager=1.
+  const activeFilters = (bi > 0 ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
   const reset = () => { setBi(0); setOnlyInStock(false); setOnlyOnSale(false); };
 
   // Paginering: visa PAGE_SIZE kort, "Visa fler" laddar nästa batch. Återställs
@@ -152,10 +158,17 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
           <div className="filter-group">
             <span className="filter-label">Tillgänglighet</span>
             <div className="filter-toggles">
-              <label className={`toggle ${onlyInStock ? "on" : ""}`}>
-                <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} />
-                <span>I lager</span>
-              </label>
+              {/* "I lager" visas bara när listan FAKTISKT innehåller något
+                  slutsålt att filtrera bort. På kategori-/butikssidorna göms
+                  slutsålt redan bort, och en reglage som inte kan ändra något
+                  är brus som får kunden att tvivla på det den ser. I sök (där
+                  slutsålda träffar behålls) dyker den upp av sig själv igen. */}
+              {hasOos && (
+                <label className={`toggle ${onlyInStock ? "on" : ""}`}>
+                  <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} />
+                  <span>I lager</span>
+                </label>
+              )}
               <label className={`toggle ${onlyOnSale ? "on" : ""}`}>
                 <input type="checkbox" checked={onlyOnSale} onChange={(e) => setOnlyOnSale(e.target.checked)} />
                 <span>Rea</span>

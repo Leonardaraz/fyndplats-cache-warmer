@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { nameScore } from "../lib/search";
 
-type Hit = { n: string; s: string; i: string; p: string };
+// o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
+type Hit = { n: string; s: string; i: string; p: string; o?: 1 };
 
 // Module-level cache so the header + mobile SearchBox share ONE fetch of the index.
 let cache: Hit[] | null = null;
@@ -25,6 +26,12 @@ function loadIndex(): Promise<Hit[]> {
 // blev för hög. Bältet+hängslen: .sugg är dessutom max-height-cappad (dvh) med
 // knappen sticky i botten, så den är klickbar även på låga skärmar.
 const SUGGESTION_COUNT = 7;
+
+// "Populära produkter" (tomt sökfält) är BLÄDDRING, inte sökning — där ska
+// slutsålt aldrig med, precis som i kategorierna. Skrivna sökningar behåller dem
+// (avsikt), men sist. Fail-open: saknar indexet o-fältet (äldre cache) filtreras
+// inget bort och listan ser ut som förut.
+const inStockOnly = (hits: Hit[]) => hits.filter((h) => !h.o);
 
 export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const [q, setQ] = useState("");
@@ -54,7 +61,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     if (term.length < 2) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
       const idx = await loadIndex();
-      setPopular(idx.slice(0, SUGGESTION_COUNT));
+      setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       setHits([]);
       setOpen(true);
       return;
@@ -63,7 +70,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     const ranked = idx
       .map((h) => ({ h, score: nameScore(h.n, term) }))
       .filter((r) => r.score > 0)
-      .sort((a, b) => b.score - a.score)
+      // Köpbara först, sedan relevans inom varje grupp: en slutsåld vara ska gå
+      // att hitta på namn, men aldrig knuffa undan något man faktiskt kan köpa.
+      .sort((a, b) => (a.h.o ? 1 : 0) - (b.h.o ? 1 : 0) || b.score - a.score)
       .slice(0, SUGGESTION_COUNT)
       .map((r) => r.h);
     setHits(ranked);
@@ -74,7 +83,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const onFocus = async () => {
     const idx = await loadIndex();
     if (q.trim().length >= 2) { setOpen(true); return; }
-    setPopular(idx.slice(0, SUGGESTION_COUNT));
+    setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
     setOpen(true);
   };
 
@@ -157,7 +166,11 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               <span className="sugg-img">
                 {h.i && <Image src={h.i} alt="" fill sizes="46px" style={{ objectFit: "cover" }} />}
               </span>
-              <span className="sugg-name">{highlight(h.n)}</span>
+              <span className="sugg-name">
+                {highlight(h.n)}
+                {/* Slutsålt syns FÖRE klicket — annars är förslaget en fälla. */}
+                {h.o && <span className="sugg-oos">Slutsåld</span>}
+              </span>
               {h.p && <span className="sugg-price">{h.p}</span>}
             </a>
           ))}

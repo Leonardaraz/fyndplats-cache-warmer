@@ -52,12 +52,16 @@ export function pickRelated(p: Product, all: Product[], curatedSlugs: string[], 
     const x = bySlug.get(s);
     if (x && x.inStock) add(x);
   }
-  // 2) Meningsfullt kategori-överlapp som fallback/påfyllning.
+  // 2) Meningsfullt kategori-överlapp som fallback/påfyllning. Bara varor i
+  //    lager: ett förslag är ett aktivt tips från butiken, och att tipsa om
+  //    något man inte kan köpa är sämre än att visa tre förslag i stället för
+  //    fyra. (Tidigare sorterades slutsålda bara sist — de kom ändå med när
+  //    överlappet var tunt.) Kuraterade valet ovan kräver redan inStock.
   if (out.length < limit) {
     const overlap = all
       .map((x) => ({ x, shared: sharedCategoryCount(p, x, universal) }))
-      .filter((s) => s.shared > 0 && !seen.has(s.x.slug))
-      .sort((a, b) => b.shared - a.shared || (b.x.inStock ? 1 : 0) - (a.x.inStock ? 1 : 0));
+      .filter((s) => s.shared > 0 && s.x.inStock && !seen.has(s.x.slug))
+      .sort((a, b) => b.shared - a.shared);
     for (const s of overlap) { if (out.length >= limit) break; add(s.x); }
   }
   return out;

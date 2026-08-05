@@ -110,3 +110,22 @@ test("fallback föredrar i-lager vid lika kategori-överlapp", () => {
   // Bara "instock" och "oos" delar "bike"; i-lager ska rankas först.
   assert.equal(related[0].slug, "instock");
 });
+
+// 2026-08-04: fallback-påfyllningen sorterade slutsålda sist men tog ändå med
+// dem när överlappet var tunt → PDP:n tipsade om varor man inte kan köpa.
+test("fallback föreslår ALDRIG en slutsåld produkt", () => {
+  const all = [
+    mk("bike-0", ["ALL", "bike"]),
+    mk("bike-slut", ["ALL", "bike"], false),
+    mk("bike-1", ["ALL", "bike"]),
+  ];
+  const rel = pickRelated(mk("bike-mig", ["ALL", "bike"]), all, []);
+  assert.ok(!rel.some((p) => !p.inStock), "slutsåld produkt slank in i förslagen");
+  assert.deepEqual(rel.map((p) => p.slug).sort(), ["bike-0", "bike-1"]);
+});
+
+test("hellre färre förslag än ett som inte går att köpa", () => {
+  const all = [mk("bike-0", ["ALL", "bike"]), mk("bike-slut", ["ALL", "bike"], false)];
+  const rel = pickRelated(mk("bike-mig", ["ALL", "bike"]), all, [], 4);
+  assert.equal(rel.length, 1);
+});
