@@ -955,4 +955,18 @@ describe("VALUE_TRANSLATIONS — fäste-/stativ-familjen (Sångarbracket-inciden
     expect(residualEnglishTokens("Single Arm")).toEqual([]);
     expect(residualEnglishTokens("Adapter")).toEqual([]);
   });
+
+  it("'Red Wine' blir Vinröd, inte dubblerat 'Röd Vinröd' (fältfynd: rollatorn)", () => {
+    // Token-vis översättning gav red→Röd + wine→Vinröd = "Röd Vinröd", som
+    // gick live och inte kunde döpas om (choice.name speglar en låst key).
+    expect(translateValue("Red Wine")).toBe("Vinröd");
+    expect(translateValue("Red Wine Red")).toBe("Vinröd");
+    // Ordningen åt andra hållet fungerade redan och får inte regressera.
+    expect(translateValue("Wine Red")).toBe("Vinröd");
+  });
+
+  it("spanska materialord från Aosoms EU-listningar (fältfynd: 'Roble')", () => {
+    expect(translateValue("Roble")).toBe("Ek");
+    expect(residualEnglishTokens("Roble")).toEqual([]);
+  });
 });

@@ -40,6 +40,8 @@ const KNOWN_BRAND_TOKENS = new Set([
   "succebuy", "vevor", "homcom", "pawhut", "outsunny", "giantex", "costway",
   "tobbi", "aosom", "zeny", "happybuy", "goplus", "vivohome", "kkmoon",
   "yaheetech", "vingli", "skyshalo", "bentism", "walnew", "moukey",
+  // Aosom-husmärken som saknades och läckte in i SKU:er (t.ex. FP-sportnow-aerobic-step)
+  "sportnow", "vinsetto", "aiyaplay",
 ]);
 
 /** Tar bort ledande märkes-token ur en redan slugifierad sträng ("succebuy-x-y" → "x-y"). */

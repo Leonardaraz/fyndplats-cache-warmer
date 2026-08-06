@@ -11,6 +11,10 @@
   - **Etablerade tredjepartsmärken med eget sökvärde** (t.ex. **Pagani Design**, **LAIKOU**): **behåll** märket i name/titel/slug/sökord/SKU – det har eget sökvärde. Lägg det generiska sökordet bredvid (t.ex. `Pagani Design 007 – automatklocka herr`). Dessa märken ligger medvetet **inte** i strip-listan, så SKU-algoritmen behåller dem automatiskt.
   - Sätt **inga** separata märkesfält. Behålls märket: lämna ev. `brand`-fält. Strippas märket och ett gammalt `brand`-fält finns ifyllt: rensa det i samma Steg 2-PATCH (`"brand": null`).
   - Osäker på om ett märke är husmärke eller etablerat? **Behåll det och flagga till Leonard.**
+- 🔒 **Bildpolering rör bakgrunden, aldrig varan** (Leonards regel 2026-08-06). Vi tvättar bort det som är **pålagt i bildfilen** — overlay-text, banderoller, vattenstämplar, callouts, rörig bakgrund. Varan själv ska synas exakt som kunden får den: form, färg, ytfinish, alla delar, och **loggor som sitter fysiskt på produkten** (tryckta/graverade/gjutna — både Pagani Design på urtavlan och VEVOR på en paviljongduk).
+  - **Ett husmärke på varan är inget problem och ska inte flaggas** (Leonards beslut 2026-08-06): *"om märket sitter fysiskt på varan så gör vi inget åt det, det är så produkten ser ut."* Märket strippas ur texten enligt märkesregeln ovan, men på godset får det sitta kvar. Ingen retusch, ingen flagga, ingen sortimentsåtgärd — gå vidare.
+  - **Avgörande-test:** skulle det synas om du fotade varan själv efter uppackning? → rör den inte. Syns det bara för att någon lagt på det i efterhand? → tvätta bort. Osäker → utgå från att det sitter på varan och flagga.
+  - ⚠️ **Regeln bryts nästan alltid av misstag, inte med flit.** Ingen retuscherar bort en logga med vilje — men **för snäv beskärning kapar produktens kanter** (barncykelns hjul, 2026-07-09), **`rembg` äter tunna delar** (kablar, smala ben, genomskinliga partier), och en bandbeskärning som ska ta bort text kan skära in i varan. Resultatet är detsamma: kunden ser en annan produkt än den som kommer. Granska därför ALLTID med `Read` — helhet **och** inzoomat på varje kant — innan bilden går upp. Detta är det verkliga skälet till granskningskravet i Steg 3b/3c/3d.
 - Frontend är headless Next.js/Vercel och uppdateras automatiskt via ISR – **ingen redeploy**.
 - **Verifierat (2026-06-05):** frontend läser `seoData`-taggarna `title` + `meta description` → de blir sidans `<title>` och meta. `Product`-JSON-LD (namn, pris, lager, betyg) och OpenGraph **genereras automatiskt** av frontend från produktfälten – du behöver alltså INTE sätta `og:`-taggar i `seoData`.
 - `ExecuteWixAPI` kräver godkännande. Skriv `fields` i request-**body** vid query/PATCH. **Läs om `revision` precis före varje PATCH.** API-svar är plain strings (skriv ändå `v?.value ?? v`).
@@ -290,11 +294,22 @@ Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketet
 4. Ersätt item:et på **samma position** i `itemsInfo.items` med det **fullständiga item-objektet** (inte bara `url`+`altText` — det är det verifierat fungerande formatet från denna sessions PATCH:ar): `{ "id": "<fileId>", "altText": "<svensk alt>", "mediaType": "IMAGE", "image": { "id": "<fileId>", "url": "https://static.wixstatic.com/media/<fileId>", "altText": "<svensk alt>" } }` i Steg 3-PATCH:en. Verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
 5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
 
-> **Rör inte loggor som sitter fysiskt PÅ produkten** — varken etablerade märken (t.ex. Pagani Design på urtavlan) eller dropship-märken som är tryckta/graverade på själva varan: kunden får produkten med loggan, och en bortretuscherad logga vore vilseledande. Tvätten gäller **overlay-grafik** (pålagd text/logga/vattenstämpel i bildfilen, inte på varan). Är en dropship-logga tryckt på varan: flagga till Leonard (produkten kanske ska bytas ut i sortimentet). Osäker på om något ska tvättas? Flagga med före/efter-preview i chatten.
+> 🔒 **Tvätten gäller bara overlay-grafik, aldrig varan** — se den fasta regeln högst upp (inkl. avgörande-testet och misstagsfallen: för snäv beskärning, `rembg` som äter tunna delar). Ett husmärke tryckt på varan lämnas orört **utan att flaggas** — så ser produkten ut. Osäker på om något är pålagt eller sitter på varan? Flagga med före/efter-preview i chatten.
 
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
+>
+> ⚠️ **PATCH-svaret innehåller INTE `media.itemsInfo`** (det fältet returneras bara när du
+> begär `fields=MEDIA_ITEMS_INFO`, vilket PATCH inte tar). Räknar du items i PATCH-svaret får
+> du `0` och tror att galleriet raderats. **Verifiera alltid med en separat re-GET** med
+> `?fields=MEDIA_ITEMS_INFO`, inte på PATCH-svaret.
+
+> **Katalogsvep — tomma alt-texter.** Rå-importer som aldrig polerats lämnar `altText: ""`
+> på hela galleriet, vilket inte syns någonstans i admin. Kör svepet regelbundet:
+> `POST /stores/v3/products/search` med `fields:["MEDIA_ITEMS_INFO"]`, paginera på
+> `cursorPaging`, och lista produkter där `items.some(m => !m.altText)`. 2026-08-06 gav det
+> **13 publicerade produkter / 82 bilder** helt utan alt-text.
 
 Procedur (utgå från `media.itemsInfo.items` från Steg 1):
 
@@ -474,7 +489,7 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
    ```bash
    CHROME=/opt/pw-browsers/chromium-*/chrome-linux/chrome
    "$CHROME" --headless --disable-gpu --no-sandbox --hide-scrollbars \
-     --force-device-scale-factor=2 --window-size=1600,1600 \
+     --force-device-scale-factor=2 --window-size=1600,1690 \
      --screenshot=out.png "file://$PWD/card.html"   # 2× → 3200² retina (skarpare i Wix)
    ```
    > ⚠️ **Två renderingsfällor som båda ser ut som designfel men är Chromium-beteende (2026-08-04, kostade två omrenderingar).**
@@ -482,6 +497,16 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
    > 2. **Utan `<meta charset="utf-8">` blir å/ä/ö mojibake** (`Ã¥`/`Ã¤`/`Ã¶`) — och inkonsekvent, så några kort ser rätt ut och lurar ögat. Skriv filen med `encoding="utf-8"` OCH sätt meta-taggen.
    >
    > Båda är låsta i **`scripts/cardkit.py`** — importera den i stället för att bygga om mallen (den föregående sessionens kortmallar låg bara i scratchpad och försvann när containern återskapades).
+   >
+   > **Samma viewport-fälla i SVART variant (2026-08-06, hittad i efterhand på 9 publicerade kort/7 produkter):** renderas med `--window-size=1600,1600` och beskärs till 3200² fylls de saknade ~174 px längst ner med **svart band** under lockupen (i stället för det vita/tilade fallet ovan — beror på bakgrunden). Verifiera därför ALLTID att slutbilden är exakt 3200×3200 **utan** mörka rader i nederkant:
+   > ```python
+   > a = np.asarray(Image.open(p).convert("RGB")); n = 0
+   > for y in range(a.shape[0] - 1, -1, -1):
+   >     if a[y].mean() < 40: n += 1
+   >     else: break
+   > assert n == 0, f"{p}: {n} svarta rader i nederkant — fel window-size"
+   > ```
+   > Redan drabbade kort lagades utan ombyggnad: bandet är rent tomrum, så bakgrundsgradienten förlängdes ner över det (global lutning + sidled-utjämnad basrad — per-kolumn-extrapolation ger lodräta strimmor).
 4. **Granska ALLTID med `Read`** (helhet + inzoomat). Vanliga fel: text kapas (sätt `.photo{flex:1;min-height:0}` så textblocket aldrig trängs bort), och **små källurklipp (<~500 px) blir suddiga** när de skalas upp 2–3× → använd i stället en högupplöst i-bruk-bild som rundad banner, eller acceptera medelstor "spotlight". `object-fit:contain` skalar INTE upp av sig själv; `max-width/height:100%` visar bilden i sin naturliga storlek (små blir små).
 5. **Ladda upp** alla kort i ETT `UploadImageToWixSite`-anrop (GitHub-branch-vägen, se Steg 3b) och byt in dem i galleriet.
 
@@ -573,6 +598,12 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 ```
 
 > Skicka `options` **komplett** (alla optioner och val, inte bara det du ändrar) och `variantsInfo` exakt som det kom från GET — annars svarar V3 428 `MISSING_VARIANT_OPTION_CHOICE`. Bilden måste redan ligga i produktens media-pool (den gör den efter import). **Skicka ALLTID `visible:true` i samma PATCH** — en `variantsInfo`-PATCH på en publicerad produkt kan annars flippa den till draft (`visible:false`) och ta bort den ur butiken (hände bordsskyddet 2026-07-09).
+>
+> ⚠️ **Flippen slår åt BÅDA hållen (batch-lärdom 2026-08-04, 5 av 11 produkter):** en `variantsInfo`-PATCH (t.ex. Steg 2b:s SKU-resynk) på en **draft** kan tyst flippa den till `visible:true` — produkten går live innan poleringen är klar. **Re-GET:a `visible` direkt efter VARJE PATCH som innehåller `variantsInfo`** och återställ omedelbart om den flippat (skicka `visible:false` med färsk revision). Gäller alltså även opublicerade produkter där du "inte rör" synligheten.
+>
+> ☠️ **FÖLJDBUGGEN — produkten blir OSÄLJBAR (2026-08-05):** när du sätter tillbaka `visible:false` på produkten **kaskaderar det ned till `variantsInfo.variants[].visible:false`**. Att sedan publicera (`visible:true`) återställer INTE varianten — produkten syns i butiken men går inte att lägga i varukorgen. Drabbade 2 produkter i batch 1 (köksön `07a6b8bf`, slangvindan `3995dfd4`) innan det upptäcktes.
+>
+> **Obligatorisk kontroll före publicering:** GET med `fields=VARIANT_OPTION_CHOICE_NAMES` och verifiera att **varje** `variantsInfo.variants[].visible === true`. Är någon `false`: PATCHa `variantsInfo` med `visible:true` på alla varianter (skicka `options` verbatim om produkten har optioner) och re-GET-verifiera. Gör detta som sista steg efter publiceringen också.
 
 > ⚠️ **Varje variant har sin EGEN bild — slå ALDRIG ihop två varianter på samma bild. Lärdom 2026-07-09 (Leonard fångade det två gånger).** Frestelsen: två storlekar/modeller ser "nästan lika" ut → peka bådas `linkedMedia` på samma hjälte. Fel — kunden ska se exakt den variant hen väljer. Volleybollnätet (**gult** nät 1,25 tum vs **orange** nät 1,75 tum) och hund-cykelvagnen (liten boxig PTS101/30 kg vs stor avlång PTS21-C/40 kg) har genuint olika exemplar. Har du bara EN bild:
 > - **Återskapa den saknade varianten ur källan.** Käll-bilderna ligger i CMS: `GET /data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings` → fältet `imageAnalysis` listar AliExpress käll-URL:er (`ae01.alicdn.com`, hämtas **direkt med curl** — till skillnad från produktsidan som är JS-blockerad). Klipp rätt exemplar ur rätt spec-/variantbild, AI-tvätta bort engelsk text (Steg 3b `generate-image` — **vänta ut hastighetsgränsen** mellan anrop), grunda på vit, ladda upp, koppla per variant.
