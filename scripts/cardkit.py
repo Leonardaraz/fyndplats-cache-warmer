@@ -16,10 +16,9 @@ Anvandning (kor fran en scratchpad-katalog med bilderna i ./crops):
                  [("Langd", '215&nbsp;<span class=u>cm</span>')])
     ck.render(["k1a", "k1s"])
 
-Assets (assets/inter-400.woff2, assets/icon.png) hamtas en gang:
-
-    curl -sS -o assets/icon.png https://www.fyndplats.se/icon.png
-    # Inter: hamta latin-subsetens woff2 via fonts.googleapis.com/css2?family=Inter
+Assets (Inter latin-subset + kub-loggan) ligger i scripts/assets/ och behover
+inte hamtas. Vill du byta dem: satt FYNDPLATS_CARD_ASSETS till en egen katalog,
+eller lagg en assets/-katalog i den katalog du kor ifran.
 
 Tva renderings-fallor som kostade tid 2026-08-04, bada lasta har inne:
   1. Chromium-viewporten blir ~87,5 CSS px LAGRE an --window-size. Lagger man
@@ -32,7 +31,19 @@ import base64, os, re, subprocess
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ASSETS = os.path.join(HERE, "assets")
+
+# Typsnitt + logga ligger i scripts/assets/ sa motorn funkar direkt efter en
+# klon. Satt FYNDPLATS_CARD_ASSETS, eller lagg en egen assets/-katalog i cwd,
+# for att peka nagon annanstans.
+def _assets_dir():
+    for d in (os.environ.get("FYNDPLATS_CARD_ASSETS"),
+              os.path.join(os.getcwd(), "assets"),
+              os.path.join(HERE, "assets")):
+        if d and os.path.isfile(os.path.join(d, "inter-400.woff2")):
+            return d
+    return os.path.join(HERE, "assets")
+
+ASSETS = _assets_dir()
 CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
 
 ORANGE = "#D9600C"      # lasbar orange for text pa gradden
