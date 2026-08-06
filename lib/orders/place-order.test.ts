@@ -4,10 +4,11 @@ import type { FulfillmentTask } from "@/lib/orders/types";
 
 vi.mock("@/lib/aliexpress/client", () => ({
   createOrder: vi.fn(),
+  getProduct: vi.fn(),
   OrderValidationError: class OrderValidationError extends Error {},
 }));
 
-import { createOrder } from "@/lib/aliexpress/client";
+import { createOrder, getProduct } from "@/lib/aliexpress/client";
 import { placeOrderForTask } from "./place-order";
 import { MemoryStore } from "@/lib/store/memory";
 
@@ -34,7 +35,23 @@ async function seed(t: FulfillmentTask, m: ProductMappingRecord = mapping) {
 }
 const get = async (store: MemoryStore) => (await store.listTasks()).find((x) => x.taskId === "o1:l1");
 
-beforeEach(() => vi.mocked(createOrder).mockReset());
+beforeEach(() => {
+  vi.mocked(createOrder).mockReset();
+  // Prisvakten är fail-open: default-mocken kastar ("API nere") → vakten står
+  // ned och alla befintliga tester kör exakt som före vakten. Vakt-testerna
+  // nedan sätter en riktig produkt.
+  vi.mocked(getProduct).mockReset();
+  vi.mocked(getProduct).mockRejectedValue(new Error("pris-API nere (testdefault)"));
+});
+
+/** Produktsvar för prisvakts-testerna: variantens DS-pris just nu. */
+function dsProductNow(priceUsd: number) {
+  return {
+    productId: "AAA", title: "X", description: "", images: [], variants: [
+      { skuId: "skuA", skuAttr: "attrA", skuProps: { Color: "Red" }, price: priceUsd, stock: 5 },
+    ], shipsFromCountries: [], hasEuWarehouse: false,
+  } as Awaited<ReturnType<typeof getProduct>>;
+}
 
 describe("placeOrderForTask — claim & utfall", () => {
   it("redan claimad av annan → ingen order läggs", async () => {
@@ -159,5 +176,68 @@ describe("MemoryStore claimTask/releaseTask", () => {
   it("claim nekas på en redan beställd task (aliexpressOrderId satt)", async () => {
     const store = await seed(task({ aliexpressOrderId: "EXISTING" }));
     expect(await store.claimTask("o1:l1", "A")).toBe(false);
+  });
+});
+
+// ── Prisvakten (garderobs-incidenten 2026-08-06) ────────────────────────────
+// DS-API:t kan aldrig få kampanjpriser/kuponger → när DS-priset stuckit iväg
+// mot importbaslinjen (costUsd) ska Leonard få välja väg INNAN order skapas.
+describe("placeOrderForTask — prisvakt", () => {
+  // Mappningens costUsd är 1 (se `mapping` överst) → 2 = +100 %... men
+  // MIN_USD-tröskeln ($2) kräver större absolut diff → använd egen mappning.
+  const priceyMapping = {
+    ...mapping,
+    variants: [{ ...mapping.variants[0], costUsd: 78 }],
+  };
+
+  it("stoppar med priceStop när DS-priset är märkbart över importpriset — ingen order, ingen claim", async () => {
+    vi.mocked(getProduct).mockResolvedValue(dsProductNow(92)); // +18 %, +$14
+    const store = await seed(task(), priceyMapping);
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(false);
+    if (r.ok) throw new Error("unreachable");
+    expect(r.priceStop).toBeDefined();
+    expect(r.priceStop?.dsPriceUsd).toBe(92);
+    expect(r.priceStop?.importCostUsd).toBe(78);
+    expect(r.priceStop?.productUrl).toContain("/item/AAA.html");
+    expect(createOrder).not.toHaveBeenCalled();
+    // Ingen claim togs → tasken är fri att hantera direkt.
+    expect((await get(store))?.claimToken).toBeUndefined();
+  });
+
+  it("acceptPrice: true kringgår vakten och lägger ordern", async () => {
+    vi.mocked(getProduct).mockResolvedValue(dsProductNow(92));
+    vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T1" } as Awaited<ReturnType<typeof createOrder>>);
+    const store = await seed(task(), priceyMapping);
+    const r = await placeOrderForTask(store, "o1:l1", { acceptPrice: true });
+    expect(r.ok).toBe(true);
+    expect(createOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it("normalpris passerar vakten", async () => {
+    vi.mocked(getProduct).mockResolvedValue(dsProductNow(79)); // +1.3 % → ok
+    vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T2" } as Awaited<ReturnType<typeof createOrder>>);
+    const store = await seed(task(), priceyMapping);
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(true);
+  });
+
+  it("prishämtningsfel är fail-open — ordern läggs som vanligt", async () => {
+    // beforeEach-defaulten: getProduct kastar.
+    vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T3" } as Awaited<ReturnType<typeof createOrder>>);
+    const store = await seed(task(), priceyMapping);
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(true);
+  });
+
+  it("leverantörsbyte (override) saknar jämförbar baslinje — vakten står ned", async () => {
+    vi.mocked(getProduct).mockResolvedValue(dsProductNow(920)); // absurt dyrt, men annan leverantör
+    vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T4" } as Awaited<ReturnType<typeof createOrder>>);
+    const store = await seed(
+      task({ overriddenSupplierProductId: "BBB", overriddenSupplierVariantId: "skuB" }),
+      priceyMapping,
+    );
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(true);
   });
 });

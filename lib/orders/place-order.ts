@@ -1,12 +1,23 @@
 import { randomUUID } from "node:crypto";
-import { createOrder, OrderValidationError } from "@/lib/aliexpress/client";
+import { createOrder, getProduct, OrderValidationError } from "@/lib/aliexpress/client";
 import { normalizeCountryCode } from "@/lib/orders/tasks";
 import { isTerminal } from "@/lib/orders/status";
+import { assessDsPrice } from "@/lib/orders/price-check";
 import type { Store } from "@/lib/store";
 
 export type PlaceOrderResult =
   | { ok: true; tradeOrderId: string; paymentUrl?: string }
-  | { ok: false; error: string };
+  | {
+      ok: false;
+      error: string;
+      /**
+       * Satt när PRISVAKTEN stoppade (inte ett fel — ett beslut åt Leonard):
+       * dagens DS-pris är märkbart över importbaslinjen. UI:t visar siffrorna +
+       * produktlänk och erbjuder "Lägg ändå" (acceptPrice: true). Ingen claim
+       * togs, ingen order lades — helt säkert att försöka igen.
+       */
+      priceStop?: { dsPriceUsd: number; importCostUsd: number; diffPct: number; productUrl: string };
+    };
 
 /**
  * Lägger AliExpress-ordern för EN fulfillment-task. DELAD av admin-action OCH
@@ -23,7 +34,11 @@ export type PlaceOrderResult =
  *     okänt fel / tomt id  → release INTE (AE-order kan finnas), flagga orderUncertain +
  *                            audit, "verifiera manuellt". Claimen stannar → ingen auto-reclaim.
  */
-export async function placeOrderForTask(store: Store, taskId: string): Promise<PlaceOrderResult> {
+export async function placeOrderForTask(
+  store: Store,
+  taskId: string,
+  opts: { acceptPrice?: boolean } = {},
+): Promise<PlaceOrderResult> {
   const task = (await store.listTasks()).find((t) => t.taskId === taskId);
   if (!task) return { ok: false, error: "Task hittades inte" };
   if (task.aliexpressOrderId) return { ok: false, error: "Ordern är redan lagd hos AliExpress" };
@@ -88,6 +103,49 @@ export async function placeOrderForTask(store: Store, taskId: string): Promise<P
       ok: false,
       error: `Saknar/ogiltig landskod i leveransadressen ("${a.country ?? ""}") — order avbruten. Kontrollera Wix-ordern.`,
     };
+  }
+
+  // ── PRISVAKT (garderobs-incidenten 2026-08-06) ──
+  // DS-API:t kan aldrig få kampanjpriser/kuponger, så när DS-priset stuckit
+  // iväg mot importbaslinjen ska Leonard få välja väg INNAN någon order skapas.
+  // Baslinjen gäller bara produktens egen mappning — vid leverantörsbyte
+  // (override) finns ingen jämförbar costUsd → vakten står ned (unknown).
+  // Fail-open: kan dagspriset inte hämtas läggs ordern som vanligt — en
+  // pris-API-hicka får aldrig blockera en kundleverans. Ligger FÖRE claimen:
+  // ett prisstopp låser ingenting och kan alltid provas om.
+  if (!opts.acceptPrice) {
+    try {
+      const baseline = task.overriddenSupplierProductId ? undefined : variant?.costUsd;
+      if (baseline && baseline > 0) {
+        const now = await getProduct(supplierProductId);
+        const skuNow = now.variants.find(
+          (v) => v.skuId === supplierVariantId || v.skuAttr === supplierVariantId,
+        );
+        const price = assessDsPrice(baseline, skuNow?.price);
+        if (price.verdict === "expensive") {
+          await safeAudit(
+            store, taskId, "price-guard-stop",
+            `DS-pris $${price.dsPriceUsd} mot importpris $${price.importCostUsd} (+${price.diffPct} %)`,
+          );
+          return {
+            ok: false,
+            error:
+              `Prisvakt: AliExpress-priset är just nu $${price.dsPriceUsd!.toFixed(2)} — ` +
+              `${price.diffPct} % över importpriset $${price.importCostUsd!.toFixed(2)}. ` +
+              `Kolla produktsidan: finns kampanj/kupong är manuell beställning ofta billigare ` +
+              `(koppla den sedan med ordernumret här i kön). Vill du ändå beställa via API:t: "Lägg ändå".`,
+            priceStop: {
+              dsPriceUsd: price.dsPriceUsd!,
+              importCostUsd: price.importCostUsd!,
+              diffPct: price.diffPct!,
+              productUrl: `https://www.aliexpress.com/item/${supplierProductId}.html`,
+            },
+          };
+        }
+      }
+    } catch {
+      // Rådgivande vakt — prishämtningsfel får inte stoppa ordern.
+    }
   }
 
   // ── ATOMISK CLAIM (dubbel-order-skydd), sist före createOrder ──

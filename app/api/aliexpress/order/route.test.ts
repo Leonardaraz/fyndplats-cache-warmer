@@ -30,7 +30,9 @@ describe("/api/aliexpress/order — delad orderläggning + felmappning", () => {
     const res = await POST(makeReq({ taskId: "o1:l1", productId: "IGNORERAS" }));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ tradeOrderId: "T1" });
-    expect(vi.mocked(placeOrderForTask)).toHaveBeenCalledWith(expect.anything(), "o1:l1");
+    // acceptPrice defaultar till false — bara ett uttryckligt `acceptPrice: true`
+    // i request-bodyn får kringgå prisvakten.
+    expect(vi.mocked(placeOrderForTask)).toHaveBeenCalledWith(expect.anything(), "o1:l1", { acceptPrice: false });
   });
 
   it("redan lagd → 409", async () => {
