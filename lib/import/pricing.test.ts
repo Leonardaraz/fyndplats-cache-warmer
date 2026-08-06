@@ -102,30 +102,32 @@ describe("resolveMarkup", () => {
 
 describe("computePriceWithRules", () => {
   it("uses category multiplier in the full price calc", () => {
-    // 5 USD * 10 = 50 SEK; category 3.0 → net 150; gross *1.25 = 187.5
+    // 5 USD × 10 = 50 SEK; kategori 3.0× → slutpris 150 (ingen moms ovanpå).
     const b = computePriceWithRules(5, rules, "Skönhet & Hälsa");
     expect(b.costSek).toBe(50);
-    expect(b.grossSek).toBe(187.5);
+    expect(b.grossSek).toBe(150);
   });
   it("uses default multiplier without a category", () => {
     const b = computePriceWithRules(5, rules, null);
-    // 50 * 2.0 = 100; *1.25 = 125
-    expect(b.grossSek).toBe(125);
+    // 50 × 2.0 = 100 — multiplikatorn ger slutpriset direkt.
+    expect(b.grossSek).toBe(100);
   });
 });
 
 describe("computePrice", () => {
   it("produces a consistent net + VAT = gross breakdown", () => {
-    const b = computePrice(5, config); // 5 USD * 10 = 50 SEK cost
-    // net = 50 * 2.5 = 125; gross = 156.25
+    const b = computePrice(5, config); // 5 USD × 10 = 50 SEK kostnad
+    // Slutpris = 50 × 2.5 = 125. Momsen är en DEL av priset (125/1,25 = 100
+    // netto + 25 moms), inte ett påslag ovanpå — Leonards beslut 2026-08-06.
     expect(b.costSek).toBe(50);
-    expect(b.grossSek).toBe(156.25);
+    expect(b.grossSek).toBe(125);
+    expect(b.netSek).toBe(100);
     expect(round2(b.netSek + b.vatSek)).toBe(b.grossSek);
   });
 
   it("keeps net+VAT consistent after charm rounding", () => {
     const b = computePrice(5, { ...config, rounding: "charm90" });
-    expect(b.grossSek).toBe(155.9);
+    expect(b.grossSek).toBe(124.9);
     expect(round2(b.netSek + b.vatSek)).toBe(b.grossSek);
   });
 });
@@ -158,41 +160,43 @@ describe("exceedsIossThreshold", () => {
 describe("computePriceWithRules — pricingOverride (Marginal-tier)", () => {
   // rules.defaultMultiplier=2.0, usdToSek=10, VAT 25%, rounding "none".
   it("Custom 3.5× åsidosätter default-multiplikatorn", () => {
-    // cost $10 → 100 SEK; ×3.5 = 350 netto; ×1.25 moms = 437.5 brutto.
+    // cost $10 → 100 SEK; ×3.5 = 350 SLUTPRIS (netto 280 + moms 70 UR priset).
     const p = computePriceWithRules(10, rules, null, { multiplier: 3.5 });
     expect(p.costSek).toBe(100);
-    expect(p.netSek).toBe(350);
-    expect(p.grossSek).toBe(437.5);
+    expect(p.netSek).toBe(280);
+    expect(p.grossSek).toBe(350);
   });
 
   it("override vinner även över en matchande kategori-regel", () => {
     // Utan override skulle "Skönhet & Hälsa" ge 3.0×; override tvingar 2.0×.
     const p = computePriceWithRules(10, rules, "Skönhet & Hälsa", { multiplier: 2.0 });
-    expect(p.grossSek).toBe(250); // 100 × 2.0 × 1.25
+    expect(p.grossSek).toBe(200); // 100 × 2.0 — ingen moms ovanpå
   });
 
   it("floorSek höjer priset så att minsta vinst nås", () => {
-    // cost 100, 1.5× → 150 netto (vinst 50). Floor 120 → minsta netto 220 → brutto 275.
+    // cost 100, 1.5× → 150 brutto (vinst 150/1,25 − 100 = 20 kr).
+    // Floor 120 → minsta netto 220 → brutto 275. Vinsten räknas alltid
+    // exkl. moms — floor-garantin är oförändrad av nya prisformeln.
     const p = computePriceWithRules(10, rules, null, { multiplier: 1.5, floorSek: 120 });
     expect(p.netSek).toBe(220);
     expect(p.grossSek).toBe(275);
   });
 
   it("floorSek rör inte priset när vinsten redan räcker", () => {
-    // 3.5× → 350 netto (vinst 250) ≥ floor 100 → oförändrat.
+    // 3.5× → 350 brutto (vinst 350/1,25 − 100 = 180) ≥ floor 100 → oförändrat.
     const p = computePriceWithRules(10, rules, null, { multiplier: 3.5, floorSek: 100 });
-    expect(p.grossSek).toBe(437.5);
+    expect(p.grossSek).toBe(350);
   });
 
   it("ceilingSek kapar slutpriset hårt", () => {
-    // 3.5× → 437.5 brutto; tak 300 → kapas till 300.
+    // 3.5× → 350 brutto; tak 300 → kapas till 300.
     const p = computePriceWithRules(10, rules, null, { multiplier: 3.5, ceilingSek: 300 });
     expect(p.grossSek).toBe(300);
     expect(round2(p.netSek + p.vatSek)).toBe(300); // netto + moms = brutto
   });
 
   it("ceiling vinner över floor (kan underskrida min vinst med för lågt tak)", () => {
-    // floor 200 → minst 437.5 brutto, men ceiling 260 kapar sist → 260.
+    // floor 200 → minst (100+200)×1,25 = 375 brutto, men ceiling 260 kapar sist → 260.
     const p = computePriceWithRules(10, rules, null, { multiplier: 3.5, floorSek: 200, ceilingSek: 260 });
     expect(p.grossSek).toBe(260);
   });

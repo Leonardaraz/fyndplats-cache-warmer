@@ -292,8 +292,14 @@ function reportImportFailure(item, error, pass) {
   } catch (_) {}
 }
 
-async function runBulkImport(items, featureFlags, originTabId) {
-  const pricingOverride = await resolveBulkPricingOverride();
+async function runBulkImport(items, featureFlags, originTabId, explicitPricingOverride) {
+  // Bulk-barens marginalfält (2026-08-06) VINNER när det är ifyllt — det är
+  // ett uttryckligt per-omgång-val. Tomt fält → sparade Marginal-tiern
+  // (popup-dropdownen via chrome.storage.sync) precis som förut.
+  const pricingOverride =
+    explicitPricingOverride && typeof explicitPricingOverride.multiplier === "number"
+      ? explicitPricingOverride
+      : await resolveBulkPricingOverride();
   // Hård per-produkt-watchdog: backstop för ett ev. framtida obundet await som
   // smiter förbi de inre timeouterna. 165 s (2026-06-10, audit): inre värsta-fall
   // för en FUNGERANDE import = skrap tills lyckad extract (≤~45 s) + 90 s import-
@@ -534,7 +540,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return true;
       }
       sendResponse({ ok: true, started: items.length });
-      runBulkImport(items, msg.featureFlags, originTabId);
+      runBulkImport(items, msg.featureFlags, originTabId, msg.pricingOverride);
       return true;
     }
     case "SAMPLE_COLORS":

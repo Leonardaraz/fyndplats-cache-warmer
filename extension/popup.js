@@ -158,9 +158,11 @@ function buildPricingOverride() {
     const mult = parseFloat(document.getElementById("ctMultiplier").value);
     const floor = parseFloat(document.getElementById("ctFloor").value);
     const ceiling = parseFloat(document.getElementById("ctCeiling").value);
-    // Multiplier krävs (1–5). Saknas/ogiltig → fall tillbaka på premium-default
-    // så vi aldrig skickar en trasig override.
-    const multiplier = Number.isFinite(mult) ? Math.min(5, Math.max(1, mult)) : PREMIUM_MULTIPLIER;
+    // FRI marginal (Leonards beslut 2026-08-06) — gamla taket 5× är borta.
+    // Kvar finns bara feltrycks-vakter: under 0.1 eller över 50 är aldrig en
+    // avsedd multiplikator (t.ex. "105" i stället för "1,05"). Saknas/ogiltig
+    // → premium-default så vi aldrig skickar en trasig override.
+    const multiplier = Number.isFinite(mult) ? Math.min(50, Math.max(0.1, mult)) : PREMIUM_MULTIPLIER;
     const override = { multiplier };
     if (Number.isFinite(floor) && floor > 0) override.floorSek = floor;
     if (Number.isFinite(ceiling) && ceiling > 0) override.ceilingSek = ceiling;
@@ -191,7 +193,9 @@ function loadPricingHint() {
     const tiers = r.tiersEnabled && Array.isArray(r.tiers) && r.tiers.length
       ? `, intervall-tiers PÅ (${r.tiers.length} steg)`
       : "";
-    hint.textContent = `Din default: ${r.defaultMultiplier}× på inköp, ${r.vatRatePercent}% moms${tiers}.`;
+    // Sedan 2026-08-06: multiplikatorn ger SLUTPRISET direkt — ingen moms
+    // läggs på ovanpå (inköpspriset är redan inkl. moms på EU-lagret).
+    hint.textContent = `Din default: ${r.defaultMultiplier}× på inköp = slutpris (ingen moms ovanpå)${tiers}.`;
   });
 }
 
