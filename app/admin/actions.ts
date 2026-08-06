@@ -270,10 +270,17 @@ export async function linkAliExpressOrderAction(
   if (task.aliexpressOrderId) {
     return { ok: false, message: `Ordern är redan kopplad till AE-order ${task.aliexpressOrderId}.` };
   }
-  try {
-    assertTransition(task.status, "ordered");
-  } catch {
-    return { ok: false, message: `Ordern har status "${task.status}" och kan inte kopplas.` };
+  // Redan "ordered" utan ordernummer (t.ex. manuellt markerad som lagd) är ett
+  // GILTIGT kopplingsläge — det är id:t som saknas, inte statusen. Audit
+  // 2026-08-06: assertTransition(ordered→ordered) skulle annars vägra exakt
+  // det fall fältet finns för. Övriga statusar måste kunna GÅ till ordered.
+  const alreadyOrdered = task.status === "ordered";
+  if (!alreadyOrdered) {
+    try {
+      assertTransition(task.status, "ordered");
+    } catch {
+      return { ok: false, message: `Ordern har status "${task.status}" och kan inte kopplas.` };
+    }
   }
 
   // Probe FÖRE skrivning — men utfallet påverkar bara beskedet, inte kopplingen.
@@ -289,8 +296,10 @@ export async function linkAliExpressOrderAction(
       "Kopplingen är gjord — dyker spårningen inte upp av sig själv inom ett dygn, klistra in den i Wix som vanligt.";
   }
 
-  await store.updateTask(taskId, { aliexpressOrderId: orderId });
-  await store.setTaskStatus(taskId, "ordered");
+  // Id + status i EN skrivning (updateTask är full-replace-upsert i båda
+  // backends) — ett delskrivet läge "id utan ordered" skulle varken pollas
+  // eller gå att lägga om, och syns inte i någon vy.
+  await store.updateTask(taskId, { aliexpressOrderId: orderId, status: "ordered" });
   await store.appendAudit({
     at: new Date().toISOString(),
     kind: "ae-order-linked",
