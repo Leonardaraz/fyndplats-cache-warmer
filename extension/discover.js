@@ -989,6 +989,22 @@
     bar.append(thumbs);
     if (items.length > 5) bar.append(el("span", "fp-bulkbar__more", `+${items.length - 5}`));
 
+    // Marginal för HELA bulk-omgången (Leonards önskan 2026-08-06): tomt =
+    // din sparade default-tier; ifyllt tal (t.ex. 1,8) blir multiplikator för
+    // varje vald produkt (pricingOverride per import — samma fält som
+    // popupens Custom-tier). Värdet minns mellan renderingar av baren.
+    const marginWrap = el("span", "fp-bulkbar__margin");
+    const marginInput = document.createElement("input");
+    marginInput.type = "text";
+    marginInput.inputMode = "decimal";
+    marginInput.placeholder = "Marginal × (tomt = standard)";
+    marginInput.title = "Multiplikator på inköpspriset = slutpris, t.ex. 1,8. Tomt = din sparade default.";
+    marginInput.value = bulkMarginValue;
+    marginInput.style.cssText = "width:170px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px";
+    marginInput.addEventListener("input", () => { bulkMarginValue = marginInput.value; });
+    marginWrap.append(marginInput);
+    bar.append(marginWrap);
+
     const go = el("button", "fp-bulkbar__btn", `Importera alla valda (${selected.size})`);
     go.onclick = () => startBulkImport([...selected.values()]);
     bar.append(go);
@@ -996,6 +1012,21 @@
     const clr = el("button", "fp-btn-text fp-bulkbar__clear", "Rensa val");
     clr.onclick = clearSelection;
     bar.append(clr);
+  }
+
+  // Bulk-marginalens fältvärde (persisterar över barens omrenderingar, som
+  // sker vid varje val/avval). Parsas först vid importstart.
+  let bulkMarginValue = "";
+
+  /** Tolkar bulk-marginalfältet → pricingOverride eller null (= default-tier).
+   *  Svenskt decimalkomma accepteras ("1,8"). Feltrycks-vakt 0.1–50, samma
+   *  gränser som popupens Custom-tier. */
+  function bulkPricingOverride() {
+    const raw = String(bulkMarginValue || "").trim().replace(",", ".");
+    if (!raw) return null;
+    const mult = parseFloat(raw);
+    if (!Number.isFinite(mult) || mult <= 0) return null;
+    return { multiplier: Math.min(50, Math.max(0.1, mult)) };
   }
 
   // ======================================================================
@@ -1018,7 +1049,14 @@
     // förlitar oss INTE på att detta svars-callback överlever hela jobbet, då
     // MV3-service-workern kan pausas under en flerminuters import.
     chrome.runtime.sendMessage(
-      { type: "BULK_IMPORT", items: items.map((i) => ({ id: i.id, url: i.url, title: i.title, thumb: i.thumb })), featureFlags },
+      {
+        type: "BULK_IMPORT",
+        items: items.map((i) => ({ id: i.id, url: i.url, title: i.title, thumb: i.thumb })),
+        featureFlags,
+        // Bulk-marginalen (fältet i baren): null = default-tier, annars
+        // {multiplier} som appliceras på VARJE produkt i omgången.
+        pricingOverride: bulkPricingOverride(),
+      },
       (ack) => {
         if (chrome.runtime.lastError || !ack || !ack.ok) {
           bulkInProgress = false;
