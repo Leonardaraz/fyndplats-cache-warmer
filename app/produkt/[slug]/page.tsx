@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { jsonLdString } from "../../../lib/seo";
+import { faqPageJsonLd } from "../../../lib/faq-jsonld";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getProductRedirect } from "../../../lib/redirects";
 import { ProductView } from "../../../components/productview";
@@ -226,10 +227,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     [primaryCol?.name || "", p.name.split(/\s+/)[0] || ""].filter(Boolean),
   );
 
+  // FAQPage-schema ur beskrivningens "Vanliga frågor"-sektion (modulen kommer
+  // från motorn där generatorn bor — se docs/faq-jsonld-handover.md i det
+  // repot; verifierad mot alla 510 produkter). null när sektionen saknas →
+  // ingen script-tagg alls (tom FAQPage flaggas av Google som strukturfel).
+  const faqLd = faqPageJsonLd(p.descriptionHtml || "");
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
+      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqLd) }} />}
 
       <div className="container">
         <nav className="crumbs">
