@@ -220,6 +220,10 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
   burgundy: "Vinröd",
   wine: "Vinröd",
   "wine red": "Vinröd",
+  // Helfras krävs: token-vis översättning gjorde "Red Wine" till "Röd Vinröd"
+  // (red→Röd + wine→Vinröd) på rollatorn. Full match fångar den före tokenlyftet.
+  "red wine": "Vinröd",
+  "red wine red": "Vinröd",
   coffee: "Kaffebrun",
   champagne: "Champagne",
   cream: "Kräm",
@@ -625,6 +629,7 @@ export const VALUE_TRANSLATIONS: Record<string, string> = {
 
   // --- Fler material ---
   oak: "Ek",
+  roble: "Ek", // spanska — Aosoms EU-listningar skickar ofta spanska materialord
   pine: "Furu",
   walnut: "Valnöt",
   birch: "Björk",
