@@ -26,6 +26,20 @@ chrome.storage.sync.get(["apiBase", "apiToken", "agentImportEnabled"], (syncCfg)
 document.getElementById("save").addEventListener("click", () => {
   const apiBase = $base.value.trim();
   const apiToken = $token.value.trim();
+  // VÄRDBEHÖRIGHETEN för API-basen begärs HÄR — Spara-klicket är en riktig
+  // användargest, vilket chrome.permissions.request kräver. Bakgrunds- och
+  // agent-flöden (FP_IMPORT) har ingen gest och kan bara ÅTERANVÄNDA en redan
+  // beviljad behörighet. Audit 2026-08-06: efter en ominstallation (nytt
+  // tilläggs-ID) är behörigheterna nollställda — utan denna begäran kunde en
+  // session där bara agent-läget används sakna nätverk → alla importer faller.
+  if (apiBase) {
+    try {
+      const origin = new URL(apiBase).origin + "/*";
+      chrome.permissions.contains({ origins: [origin] }, (has) => {
+        if (!has) chrome.permissions.request({ origins: [origin] });
+      });
+    } catch (_) { /* ogiltig URL fångas av fetch-felen senare */ }
+  }
   // apiBase i sync, token endast lokalt. Rensa även ev. kvarvarande molnkopia.
   chrome.storage.sync.set({ apiBase, agentImportEnabled: $agent.checked });
   chrome.storage.sync.remove("apiToken");
