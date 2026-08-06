@@ -16,6 +16,12 @@
     <input id="apiBase" placeholder="https://fyndplats-dropship.vercel.app" />
     <label for="apiToken">API-token (EXTENSION_API_TOKEN)</label>
     <input id="apiToken" type="password" placeholder="samma som i serverns miljö" />
+    <label style="display:flex;align-items:center;gap:8px;margin-top:16px;cursor:pointer">
+      <input id="agentImport" type="checkbox" style="width:auto" />
+      <span>Sidstyrd import (agent-läge) — låter en AI-agent i webbläsaren trigga
+      importen via sidan (<code>FP_IMPORT</code>). Importer landar alltid som
+      utkast i granskningskön, aldrig direkt i butiken.</span>
+    </label>
     <div>
       <button id="save">Spara</button>
       <span id="saved"></span>
