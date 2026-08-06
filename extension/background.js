@@ -523,6 +523,48 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     case "IMPORT_PRODUCT":
       importProduct(msg.product, msg.featureFlags).then(sendResponse);
       return true;
+    case "AGENT_IMPORT":
+      // Sidstyrd import (agent-läget, 2026-08-06). Samma importväg som popupen,
+      // plus DS-API-räddningen när skrapan är ofullständig (nya PC-sidan) —
+      // en agent kan inte klicka i popupen, så räddningen måste ske här.
+      (async () => {
+        try {
+          let product = msg.product || {};
+          if (!product.extractionOk && /^\d{6,}$/.test(String(product.supplierProductId || ""))) {
+            const r = await apiCall(
+              `/api/aliexpress/product?id=${encodeURIComponent(product.supplierProductId)}`,
+              { method: "GET" },
+            );
+            const ds = r && r.ok && r.data;
+            const dsVariants = (ds && Array.isArray(ds.variants) ? ds.variants : []).filter(
+              (v) => Number(v.costUsd) > 0,
+            );
+            if (dsVariants.length) {
+              // API:t är facit för varianter/pris/lager; skrapans media/copy
+              // behålls där den finns (DOM:en är rikare). Agentens marginal
+              // (pricingOverride) sitter redan på product och följer med.
+              product = { ...product, variants: dsVariants };
+              if (!product.rawTitle && ds.rawTitle) product.rawTitle = ds.rawTitle;
+              if (!product.rawDescription && ds.rawDescription) product.rawDescription = ds.rawDescription;
+              if ((!product.imageUrls || !product.imageUrls.length) && Array.isArray(ds.imageUrls)) {
+                product.imageUrls = ds.imageUrls;
+              }
+              if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
+                product.shipsFrom = [...new Set([...(product.shipsFrom || []), ...ds.shipsFrom])].sort();
+              }
+              product.extractionOk = Boolean(product.rawTitle && (product.imageUrls || []).length);
+            }
+          }
+          if (!product.extractionOk) {
+            sendResponse({ ok: false, error: "Produktdatan kunde inte läsas (varken skrap eller API-uppslag) — importen avbruten." });
+            return;
+          }
+          sendResponse(await importProduct(product, msg.featureFlags));
+        } catch (err) {
+          sendResponse({ ok: false, error: String(err) });
+        }
+      })();
+      return true;
     case "FETCH_DESCRIPTION":
       fetchDescriptionHtml(msg.url).then(sendResponse);
       return true;

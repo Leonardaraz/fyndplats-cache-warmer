@@ -1537,6 +1537,67 @@ async function enrichDescription(product) {
   }
 }
 
+// ── Agent-läge: sidstyrd import (FP_IMPORT) ────────────────────────────────
+// Verktygsfältets popup ligger utanför sid-DOM:en och kan inte nås av en
+// DOM-agent (t.ex. Claude i webbläsaren). Denna brygga låter SIDAN trigga
+// samma importflöde som popupen. Protokoll (från sidans konsol/skript):
+//
+//   window.postMessage({ type: "FP_IMPORT", multiplier: 1.8 }, "*")
+//     multiplier är valfri (clampas 0.1–50); utelämnad → sparade default-tiern.
+//   Svar: { type: "FP_IMPORT_RESULT", ok, wixProductId?, note?, error? }
+//   Under arbetet: { type: "FP_IMPORT_STATUS", text }
+//
+// SÄKERHET — medvetna gränser:
+//   • AV som default: kräver att "Sidstyrd import" slagits på i inställningarna.
+//   • Kör bara på AliExpress-värdar (content-scriptets matchning i manifestet).
+//   • Varje import landar som UTKAST i granskningskön (pending_review,
+//     visible:false i Wix) — inget når butiken utan Leonards publicering.
+//   • En import åt gången; API-token lämnar aldrig bakgrundsskriptet.
+let agentImportBusy = false;
+window.addEventListener("message", (ev) => {
+  if (ev.source !== window) return; // bara sidans egen kontext, inga iframes
+  const msg = ev.data;
+  if (!msg || msg.type !== "FP_IMPORT") return;
+  const reply = (payload) => window.postMessage({ type: "FP_IMPORT_RESULT", ...payload }, "*");
+  const status = (text) => window.postMessage({ type: "FP_IMPORT_STATUS", text }, "*");
+  if (agentImportBusy) {
+    reply({ ok: false, error: "En import pågår redan — vänta på FP_IMPORT_RESULT." });
+    return;
+  }
+  agentImportBusy = true;
+  (async () => {
+    try {
+      const cfg = await chrome.storage.sync.get(["agentImportEnabled"]);
+      if (cfg.agentImportEnabled !== true) {
+        reply({ ok: false, error: 'Agent-läget är avstängt — bocka i "Sidstyrd import" i tilläggets inställningar och försök igen.' });
+        return;
+      }
+      status("Skrapar produktsidan…");
+      const product = extract();
+      await enrichDescription(product);
+      const mult = Number(msg.multiplier);
+      if (Number.isFinite(mult) && mult > 0) {
+        product.pricingOverride = { multiplier: Math.min(50, Math.max(0.1, mult)) };
+      }
+      status("Importerar till Fyndplats…");
+      const res = await chrome.runtime.sendMessage({ type: "AGENT_IMPORT", product });
+      if (res && res.ok) {
+        reply({
+          ok: true,
+          wixProductId: res.result && res.result.wixProductId,
+          note: "Importerad som utkast — publicera i granskningskön (/admin/queue).",
+        });
+      } else {
+        reply({ ok: false, error: (res && res.error) || "okänt fel" });
+      }
+    } catch (err) {
+      reply({ ok: false, error: String(err) });
+    } finally {
+      agentImportBusy = false;
+    }
+  })();
+});
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.type === "EXTRACT_PRODUCT") {
     (async () => {

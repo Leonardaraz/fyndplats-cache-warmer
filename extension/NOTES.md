@@ -9,6 +9,22 @@
    versionen i rutan ska stiga.
 3. Ladda om AliExpress-fliken (F5).
 
+## Agent-läge: sidstyrd import (FP_IMPORT)
+
+AV som default — slås på med "Sidstyrd import" i inställningarna. Låter en
+DOM-agent (t.ex. Claude i webbläsaren) trigga importen från produktsidan:
+
+```js
+window.postMessage({ type: "FP_IMPORT", multiplier: 1.8 }, "*"); // multiplier valfri
+window.addEventListener("message", (e) => {
+  if (e.data?.type === "FP_IMPORT_RESULT") console.log(e.data); // { ok, wixProductId?, error? }
+  if (e.data?.type === "FP_IMPORT_STATUS") console.log(e.data.text);
+});
+```
+
+Samma flöde som popupen inkl. DS-API-räddningen. Importer landar ALLTID som
+utkast i granskningskön (pending_review) — inget når butiken utan publicering.
+
 ## Ladda om tillägget efter en kodändring (detaljer)
 
 `content.js` är ett **content-script** — Chrome cachar det tills tillägget laddas
