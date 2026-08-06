@@ -9,6 +9,8 @@ import { SupplierOverrideClient } from "./supplier-override-client";
 import { PlaceOrderButton } from "./place-order-button";
 import { EditAddressClient } from "./edit-address-client";
 import { TaskRecoveryClient } from "./task-recovery-client";
+import { PriceCheckClient } from "./price-check-client";
+import { LinkAeOrderClient } from "./link-ae-order-client";
 
 export const dynamic = "force-dynamic";
 
@@ -142,6 +144,10 @@ export default async function AdminPage() {
                   </div>
                 )}
                 <EditAddressClient taskId={t.taskId} address={t.shippingAddress} />
+                {/* Prisjämförelse FÖRE beslutet: DS-API:t kan aldrig få kampanj-
+                    priser/kuponger — är produktsidan billigare beställer Leonard
+                    manuellt och kopplar ordernumret nedan i stället. */}
+                <PriceCheckClient taskId={t.taskId} />
                 <PlaceOrderButton taskId={t.taskId} />
                 <SupplierOverrideClient
                   taskId={t.taskId}
@@ -156,6 +162,7 @@ export default async function AdminPage() {
                       : undefined
                   }
                 />
+                <LinkAeOrderClient taskId={t.taskId} />
               </li>
             );
           })}

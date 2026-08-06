@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const authErr = checkToken(req);
   if (authErr) return authErr;
 
-  let body: { taskId?: string };
+  let body: { taskId?: string; acceptPrice?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -30,9 +30,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "taskId krävs" }, { status: 400 });
   }
 
-  const result = await placeOrderForTask(getStore(), body.taskId);
+  // acceptPrice: anroparen har sett prisvaktens stopp och valt API-vägen ändå.
+  const result = await placeOrderForTask(getStore(), body.taskId, { acceptPrice: body.acceptPrice === true });
   if (result.ok) {
     return NextResponse.json({ tradeOrderId: result.tradeOrderId, paymentUrl: result.paymentUrl });
+  }
+  // Prisvaktens stopp är ett BESLUT, inte ett fel → 409 med strukturerad payload
+  // så tilläggets orderläge kan visa siffrorna + "Lägg ändå" (acceptPrice: true).
+  if (result.priceStop) {
+    return NextResponse.json({ error: result.error, priceStop: result.priceStop }, { status: 409 });
   }
   // Alla fel → 4xx (klientfel/osäkert utfall, ingen retry): hittades inte → 404,
   // redan lagd / hanteras redan → 409, annat (validering/osäkert) → 422.
