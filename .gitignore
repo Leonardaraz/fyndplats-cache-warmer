@@ -34,3 +34,4 @@ extension.pem
 extension.crx
 __push_*.
 scratchpad/
+scripts/__pycache__/
