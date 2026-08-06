@@ -76,9 +76,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     const ranked = idx
       .map((h) => ({ h, score: nameScore(h.n, term) }))
       .filter((r) => r.score > 0)
-      // Köpbara först, sedan relevans inom varje grupp: en slutsåld vara ska gå
-      // att hitta på namn, men aldrig knuffa undan något man faktiskt kan köpa.
-      .sort((a, b) => (a.h.o ? 1 : 0) - (b.h.o ? 1 : 0) || b.score - a.score)
+      .sort((a, b) => b.score - a.score)
       .slice(0, SUGGESTION_COUNT)
       .sort((a, b) => (a.h.o ? 1 : 0) - (b.h.o ? 1 : 0))
       .map((r) => r.h);

@@ -8,5 +8,5 @@
 // som Googles riktlinjer förbjuder (kan ge manuell åtgärd). Äkta produktbetyg
 // ligger på produktsidorna och byggs från riktig recensionsdata.
 export const GOOGLE_RATING = "4,9";
-export const GOOGLE_REVIEW_COUNT = 29;
+export const GOOGLE_REVIEW_COUNT = 30;
 export const GOOGLE_REVIEWS_LABEL = `${GOOGLE_REVIEW_COUNT} omdömen`;
