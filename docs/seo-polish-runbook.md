@@ -295,6 +295,17 @@ Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketet
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
+>
+> ⚠️ **PATCH-svaret innehåller INTE `media.itemsInfo`** (det fältet returneras bara när du
+> begär `fields=MEDIA_ITEMS_INFO`, vilket PATCH inte tar). Räknar du items i PATCH-svaret får
+> du `0` och tror att galleriet raderats. **Verifiera alltid med en separat re-GET** med
+> `?fields=MEDIA_ITEMS_INFO`, inte på PATCH-svaret.
+
+> **Katalogsvep — tomma alt-texter.** Rå-importer som aldrig polerats lämnar `altText: ""`
+> på hela galleriet, vilket inte syns någonstans i admin. Kör svepet regelbundet:
+> `POST /stores/v3/products/search` med `fields:["MEDIA_ITEMS_INFO"]`, paginera på
+> `cursorPaging`, och lista produkter där `items.some(m => !m.altText)`. 2026-08-06 gav det
+> **13 publicerade produkter / 82 bilder** helt utan alt-text.
 
 Procedur (utgå från `media.itemsInfo.items` från Steg 1):
 
@@ -474,9 +485,24 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
    ```bash
    CHROME=/opt/pw-browsers/chromium-*/chrome-linux/chrome
    "$CHROME" --headless --disable-gpu --no-sandbox --hide-scrollbars \
-     --force-device-scale-factor=2 --window-size=1600,1600 \
+     --force-device-scale-factor=2 --window-size=1600,1690 \
      --screenshot=out.png "file://$PWD/card.html"   # 2× → 3200² retina (skarpare i Wix)
    ```
+   > ⚠️ **`--window-size=1600,1600` ger INTE 1600 CSS px viewport** — Chromium drar av ~87 px
+   > för fönsterkrom, så sidan renderas ~1513 px hög. Beskär du sedan till 1600×1600 (3200²)
+   > fylls de saknade **174 px längst ner med svart**. Det syns som ett svart band under
+   > Fyndplats-lockupen på det publicerade kortet. Använd därför **`1600,1690`** och
+   > kontrollera i steg 4 att bilden är exakt 3200×3200 **utan** mörka rader i nederkant:
+   > ```python
+   > a = np.asarray(Image.open(p).convert("RGB")); n = 0
+   > for y in range(a.shape[0] - 1, -1, -1):
+   >     if a[y].mean() < 40: n += 1
+   >     else: break
+   > assert n == 0, f"{p}: {n} svarta rader i nederkant — fel window-size"
+   > ```
+   > Hittat i efterhand 2026-08-06 på 9 publicerade kort (7 produkter). De lagades utan
+   > ombyggnad: bandet är rent tomrum, så bakgrundsgradienten förlängdes ner över det
+   > (global lutning + sidled-utjämnad basrad — per-kolumn-extrapolation ger lodräta strimmor).
 4. **Granska ALLTID med `Read`** (helhet + inzoomat). Vanliga fel: text kapas (sätt `.photo{flex:1;min-height:0}` så textblocket aldrig trängs bort), och **små källurklipp (<~500 px) blir suddiga** när de skalas upp 2–3× → använd i stället en högupplöst i-bruk-bild som rundad banner, eller acceptera medelstor "spotlight". `object-fit:contain` skalar INTE upp av sig själv; `max-width/height:100%` visar bilden i sin naturliga storlek (små blir små).
 5. **Ladda upp** alla kort i ETT `UploadImageToWixSite`-anrop (GitHub-branch-vägen, se Steg 3b) och byt in dem i galleriet.
 
