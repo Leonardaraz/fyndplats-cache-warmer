@@ -1557,9 +1557,32 @@ let agentImportBusy = false;
 window.addEventListener("message", (ev) => {
   if (ev.source !== window) return; // bara sidans egen kontext, inga iframes
   const msg = ev.data;
-  if (!msg || msg.type !== "FP_IMPORT") return;
-  const reply = (payload) => window.postMessage({ type: "FP_IMPORT_RESULT", ...payload }, "*");
-  const status = (text) => window.postMessage({ type: "FP_IMPORT_STATUS", text }, "*");
+  if (!msg || (msg.type !== "FP_IMPORT" && msg.type !== "FP_PING")) return;
+  // requestId (valfritt) ekas i alla svar så en agent som kör flera anrop kan
+  // para ihop fråga och svar utan att gissa på ordning.
+  const rid = msg.requestId != null ? { requestId: msg.requestId } : {};
+  const reply = (payload) => window.postMessage({ type: "FP_IMPORT_RESULT", ...rid, ...payload }, "*");
+  const status = (text) => window.postMessage({ type: "FP_IMPORT_STATUS", ...rid, text }, "*");
+
+  // FP_PING → FP_PONG: läskoll utan sidoeffekter. Låter agenten verifiera att
+  // bryggan finns, att agent-läget är PÅ och vilken produkt sidan visar INNAN
+  // den försöker importera (och utan att bränna ett importförsök på en
+  // felkonfigurerad flik).
+  if (msg.type === "FP_PING") {
+    (async () => {
+      let enabled = false;
+      let version = "";
+      try {
+        version = chrome.runtime.getManifest().version;
+        const cfg = await chrome.storage.sync.get(["agentImportEnabled"]);
+        enabled = cfg.agentImportEnabled === true;
+      } catch (_) { /* invaliderad kontext → enabled förblir false */ }
+      const productId = (location.pathname.match(/item\/(\d+)\.html/) || [])[1] || null;
+      window.postMessage({ type: "FP_PONG", ...rid, version, agentEnabled: enabled, productId, busy: agentImportBusy }, "*");
+    })();
+    return;
+  }
+
   if (agentImportBusy) {
     reply({ ok: false, error: "En import pågår redan — vänta på FP_IMPORT_RESULT." });
     return;
@@ -1580,7 +1603,9 @@ window.addEventListener("message", (ev) => {
         product.pricingOverride = { multiplier: Math.min(50, Math.max(0.1, mult)) };
       }
       status("Importerar till Fyndplats…");
-      const res = await chrome.runtime.sendMessage({ type: "AGENT_IMPORT", product });
+      // force: true hoppar över dubblettstoppet (efter att agenten sett
+      // FP_IMPORT_RESULT med duplicates och medvetet valt att fortsätta).
+      const res = await chrome.runtime.sendMessage({ type: "AGENT_IMPORT", product, force: msg.force === true });
       if (res && res.ok) {
         reply({
           ok: true,
@@ -1588,10 +1613,16 @@ window.addEventListener("message", (ev) => {
           note: "Importerad som utkast — publicera i granskningskön (/admin/queue).",
         });
       } else {
-        reply({ ok: false, error: (res && res.error) || "okänt fel" });
+        reply({ ok: false, error: (res && res.error) || "okänt fel", duplicates: res && res.duplicates });
       }
     } catch (err) {
-      reply({ ok: false, error: String(err) });
+      const s = String(err);
+      // Tillägget uppdaterades/laddades om medan sidan var öppen → content-
+      // scriptets kanal till bakgrunden är död. F5 återinjicerar allt.
+      const friendly = /Extension context invalidated|message port closed|Receiving end does not exist/i.test(s)
+        ? "Tillägget laddades om — ladda om sidan (F5) och försök igen."
+        : s;
+      reply({ ok: false, error: friendly });
     } finally {
       agentImportBusy = false;
     }

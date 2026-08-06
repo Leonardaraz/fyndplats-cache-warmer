@@ -559,6 +559,31 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             sendResponse({ ok: false, error: "Produktdatan kunde inte läsas (varken skrap eller API-uppslag) — importen avbruten." });
             return;
           }
+          // DUBBLETTGRIND (audit 2026-08-06): popupen visar en bekräftelse-modal
+          // vid möjliga dubbletter — en agent har ingen modal, så grinden måste
+          // sitta här. Stoppar med matchlistan; agenten kan medvetet gå förbi
+          // med force: true. Fail-open: svarar dubblettkollen inte (nät/API)
+          // blockeras inte importen — hellre en extra granskningsrad än en
+          // agent som fastnar på en trasig sidokontroll.
+          if (msg.force !== true) {
+            try {
+              const q = new URLSearchParams();
+              if (product.rawTitle) q.set("title", product.rawTitle);
+              if (Array.isArray(product.imageUrls) && product.imageUrls[0]) q.set("imageUrl", product.imageUrls[0]);
+              if (product.supplierProductId) q.set("aeId", String(product.supplierProductId));
+              const dup = await apiCall(`/api/check-duplicate?${q.toString()}`, { method: "GET" });
+              const matches = dup && dup.ok && dup.data && Array.isArray(dup.data.matches) ? dup.data.matches : [];
+              if (matches.length > 0) {
+                const names = matches.slice(0, 3).map((m) => m.productName).filter(Boolean).join(", ");
+                sendResponse({
+                  ok: false,
+                  error: `Möjlig dubblett i butiken: ${names || matches.length + " träffar"} — importen stoppad. Skicka force: true i FP_IMPORT om du vill importera ändå.`,
+                  duplicates: matches,
+                });
+                return;
+              }
+            } catch (_) { /* rådgivande grind — fortsätt vid kontrollfel */ }
+          }
           sendResponse(await importProduct(product, msg.featureFlags));
         } catch (err) {
           sendResponse({ ok: false, error: String(err) });

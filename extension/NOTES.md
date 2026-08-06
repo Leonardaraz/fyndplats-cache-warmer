@@ -15,15 +15,22 @@ AV som default — slås på med "Sidstyrd import" i inställningarna. Låter en
 DOM-agent (t.ex. Claude i webbläsaren) trigga importen från produktsidan:
 
 ```js
-window.postMessage({ type: "FP_IMPORT", multiplier: 1.8 }, "*"); // multiplier valfri
+// Läskoll utan sidoeffekter (rekommenderas före import):
+window.postMessage({ type: "FP_PING", requestId: 1 }, "*");
+// → { type: "FP_PONG", requestId, version, agentEnabled, productId, busy }
+
+// Import (multiplier + requestId valfria; force hoppar över dubblettstoppet):
+window.postMessage({ type: "FP_IMPORT", multiplier: 1.8, requestId: 2 }, "*");
 window.addEventListener("message", (e) => {
-  if (e.data?.type === "FP_IMPORT_RESULT") console.log(e.data); // { ok, wixProductId?, error? }
+  if (e.data?.type === "FP_IMPORT_RESULT") console.log(e.data); // { ok, wixProductId?, error?, duplicates? }
   if (e.data?.type === "FP_IMPORT_STATUS") console.log(e.data.text);
 });
 ```
 
-Samma flöde som popupen inkl. DS-API-räddningen. Importer landar ALLTID som
-utkast i granskningskön (pending_review) — inget når butiken utan publicering.
+Samma flöde som popupen inkl. DS-API-räddningen OCH dubblettgrinden (popupens
+modal ersätts av ett stopp med `duplicates` — gå förbi med `force: true`).
+Importer landar ALLTID som utkast i granskningskön (pending_review) — inget
+når butiken utan publicering.
 
 ## Ladda om tillägget efter en kodändring (detaljer)
 
