@@ -1537,6 +1537,98 @@ async function enrichDescription(product) {
   }
 }
 
+// ── Agent-läge: sidstyrd import (FP_IMPORT) ────────────────────────────────
+// Verktygsfältets popup ligger utanför sid-DOM:en och kan inte nås av en
+// DOM-agent (t.ex. Claude i webbläsaren). Denna brygga låter SIDAN trigga
+// samma importflöde som popupen. Protokoll (från sidans konsol/skript):
+//
+//   window.postMessage({ type: "FP_IMPORT", multiplier: 1.8 }, "*")
+//     multiplier är valfri (clampas 0.1–50); utelämnad → sparade default-tiern.
+//   Svar: { type: "FP_IMPORT_RESULT", ok, wixProductId?, note?, error? }
+//   Under arbetet: { type: "FP_IMPORT_STATUS", text }
+//
+// SÄKERHET — medvetna gränser:
+//   • AV som default: kräver att "Sidstyrd import" slagits på i inställningarna.
+//   • Kör bara på AliExpress-värdar (content-scriptets matchning i manifestet).
+//   • Varje import landar som UTKAST i granskningskön (pending_review,
+//     visible:false i Wix) — inget når butiken utan Leonards publicering.
+//   • En import åt gången; API-token lämnar aldrig bakgrundsskriptet.
+let agentImportBusy = false;
+window.addEventListener("message", (ev) => {
+  if (ev.source !== window) return; // bara sidans egen kontext, inga iframes
+  const msg = ev.data;
+  if (!msg || (msg.type !== "FP_IMPORT" && msg.type !== "FP_PING")) return;
+  // requestId (valfritt) ekas i alla svar så en agent som kör flera anrop kan
+  // para ihop fråga och svar utan att gissa på ordning.
+  const rid = msg.requestId != null ? { requestId: msg.requestId } : {};
+  const reply = (payload) => window.postMessage({ type: "FP_IMPORT_RESULT", ...rid, ...payload }, "*");
+  const status = (text) => window.postMessage({ type: "FP_IMPORT_STATUS", ...rid, text }, "*");
+
+  // FP_PING → FP_PONG: läskoll utan sidoeffekter. Låter agenten verifiera att
+  // bryggan finns, att agent-läget är PÅ och vilken produkt sidan visar INNAN
+  // den försöker importera (och utan att bränna ett importförsök på en
+  // felkonfigurerad flik).
+  if (msg.type === "FP_PING") {
+    (async () => {
+      let enabled = false;
+      let version = "";
+      try {
+        version = chrome.runtime.getManifest().version;
+        const cfg = await chrome.storage.sync.get(["agentImportEnabled"]);
+        enabled = cfg.agentImportEnabled === true;
+      } catch (_) { /* invaliderad kontext → enabled förblir false */ }
+      const productId = (location.pathname.match(/item\/(\d+)\.html/) || [])[1] || null;
+      window.postMessage({ type: "FP_PONG", ...rid, version, agentEnabled: enabled, productId, busy: agentImportBusy }, "*");
+    })();
+    return;
+  }
+
+  if (agentImportBusy) {
+    reply({ ok: false, error: "En import pågår redan — vänta på FP_IMPORT_RESULT." });
+    return;
+  }
+  agentImportBusy = true;
+  (async () => {
+    try {
+      const cfg = await chrome.storage.sync.get(["agentImportEnabled"]);
+      if (cfg.agentImportEnabled !== true) {
+        reply({ ok: false, error: 'Agent-läget är avstängt — bocka i "Sidstyrd import" i tilläggets inställningar och försök igen.' });
+        return;
+      }
+      status("Skrapar produktsidan…");
+      const product = extract();
+      await enrichDescription(product);
+      const mult = Number(msg.multiplier);
+      if (Number.isFinite(mult) && mult > 0) {
+        product.pricingOverride = { multiplier: Math.min(50, Math.max(0.1, mult)) };
+      }
+      status("Importerar till Fyndplats…");
+      // force: true hoppar över dubblettstoppet (efter att agenten sett
+      // FP_IMPORT_RESULT med duplicates och medvetet valt att fortsätta).
+      const res = await chrome.runtime.sendMessage({ type: "AGENT_IMPORT", product, force: msg.force === true });
+      if (res && res.ok) {
+        reply({
+          ok: true,
+          wixProductId: res.result && res.result.wixProductId,
+          note: "Importerad som utkast — publicera i granskningskön (/admin/queue).",
+        });
+      } else {
+        reply({ ok: false, error: (res && res.error) || "okänt fel", duplicates: res && res.duplicates });
+      }
+    } catch (err) {
+      const s = String(err);
+      // Tillägget uppdaterades/laddades om medan sidan var öppen → content-
+      // scriptets kanal till bakgrunden är död. F5 återinjicerar allt.
+      const friendly = /Extension context invalidated|message port closed|Receiving end does not exist/i.test(s)
+        ? "Tillägget laddades om — ladda om sidan (F5) och försök igen."
+        : s;
+      reply({ ok: false, error: friendly });
+    } finally {
+      agentImportBusy = false;
+    }
+  })();
+});
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.type === "EXTRACT_PRODUCT") {
     (async () => {

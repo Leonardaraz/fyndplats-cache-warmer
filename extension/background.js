@@ -292,8 +292,14 @@ function reportImportFailure(item, error, pass) {
   } catch (_) {}
 }
 
-async function runBulkImport(items, featureFlags, originTabId) {
-  const pricingOverride = await resolveBulkPricingOverride();
+async function runBulkImport(items, featureFlags, originTabId, explicitPricingOverride) {
+  // Bulk-barens marginalfält (2026-08-06) VINNER när det är ifyllt — det är
+  // ett uttryckligt per-omgång-val. Tomt fält → sparade Marginal-tiern
+  // (popup-dropdownen via chrome.storage.sync) precis som förut.
+  const pricingOverride =
+    explicitPricingOverride && typeof explicitPricingOverride.multiplier === "number"
+      ? explicitPricingOverride
+      : await resolveBulkPricingOverride();
   // Hård per-produkt-watchdog: backstop för ett ev. framtida obundet await som
   // smiter förbi de inre timeouterna. 165 s (2026-06-10, audit): inre värsta-fall
   // för en FUNGERANDE import = skrap tills lyckad extract (≤~45 s) + 90 s import-
@@ -517,6 +523,73 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     case "IMPORT_PRODUCT":
       importProduct(msg.product, msg.featureFlags).then(sendResponse);
       return true;
+    case "AGENT_IMPORT":
+      // Sidstyrd import (agent-läget, 2026-08-06). Samma importväg som popupen,
+      // plus DS-API-räddningen när skrapan är ofullständig (nya PC-sidan) —
+      // en agent kan inte klicka i popupen, så räddningen måste ske här.
+      (async () => {
+        try {
+          let product = msg.product || {};
+          if (!product.extractionOk && /^\d{6,}$/.test(String(product.supplierProductId || ""))) {
+            const r = await apiCall(
+              `/api/aliexpress/product?id=${encodeURIComponent(product.supplierProductId)}`,
+              { method: "GET" },
+            );
+            const ds = r && r.ok && r.data;
+            const dsVariants = (ds && Array.isArray(ds.variants) ? ds.variants : []).filter(
+              (v) => Number(v.costUsd) > 0,
+            );
+            if (dsVariants.length) {
+              // API:t är facit för varianter/pris/lager; skrapans media/copy
+              // behålls där den finns (DOM:en är rikare). Agentens marginal
+              // (pricingOverride) sitter redan på product och följer med.
+              product = { ...product, variants: dsVariants };
+              if (!product.rawTitle && ds.rawTitle) product.rawTitle = ds.rawTitle;
+              if (!product.rawDescription && ds.rawDescription) product.rawDescription = ds.rawDescription;
+              if ((!product.imageUrls || !product.imageUrls.length) && Array.isArray(ds.imageUrls)) {
+                product.imageUrls = ds.imageUrls;
+              }
+              if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
+                product.shipsFrom = [...new Set([...(product.shipsFrom || []), ...ds.shipsFrom])].sort();
+              }
+              product.extractionOk = Boolean(product.rawTitle && (product.imageUrls || []).length);
+            }
+          }
+          if (!product.extractionOk) {
+            sendResponse({ ok: false, error: "Produktdatan kunde inte läsas (varken skrap eller API-uppslag) — importen avbruten." });
+            return;
+          }
+          // DUBBLETTGRIND (audit 2026-08-06): popupen visar en bekräftelse-modal
+          // vid möjliga dubbletter — en agent har ingen modal, så grinden måste
+          // sitta här. Stoppar med matchlistan; agenten kan medvetet gå förbi
+          // med force: true. Fail-open: svarar dubblettkollen inte (nät/API)
+          // blockeras inte importen — hellre en extra granskningsrad än en
+          // agent som fastnar på en trasig sidokontroll.
+          if (msg.force !== true) {
+            try {
+              const q = new URLSearchParams();
+              if (product.rawTitle) q.set("title", product.rawTitle);
+              if (Array.isArray(product.imageUrls) && product.imageUrls[0]) q.set("imageUrl", product.imageUrls[0]);
+              if (product.supplierProductId) q.set("aeId", String(product.supplierProductId));
+              const dup = await apiCall(`/api/check-duplicate?${q.toString()}`, { method: "GET" });
+              const matches = dup && dup.ok && dup.data && Array.isArray(dup.data.matches) ? dup.data.matches : [];
+              if (matches.length > 0) {
+                const names = matches.slice(0, 3).map((m) => m.productName).filter(Boolean).join(", ");
+                sendResponse({
+                  ok: false,
+                  error: `Möjlig dubblett i butiken: ${names || matches.length + " träffar"} — importen stoppad. Skicka force: true i FP_IMPORT om du vill importera ändå.`,
+                  duplicates: matches,
+                });
+                return;
+              }
+            } catch (_) { /* rådgivande grind — fortsätt vid kontrollfel */ }
+          }
+          sendResponse(await importProduct(product, msg.featureFlags));
+        } catch (err) {
+          sendResponse({ ok: false, error: String(err) });
+        }
+      })();
+      return true;
     case "FETCH_DESCRIPTION":
       fetchDescriptionHtml(msg.url).then(sendResponse);
       return true;
@@ -534,7 +607,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return true;
       }
       sendResponse({ ok: true, started: items.length });
-      runBulkImport(items, msg.featureFlags, originTabId);
+      runBulkImport(items, msg.featureFlags, originTabId, msg.pricingOverride);
       return true;
     }
     case "SAMPLE_COLORS":
@@ -543,6 +616,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     case "SUPPLIER_STATUS":
       // Slår upp säljarens score/status före import (Feature 6).
       apiCall(`/api/supplier-status?supplierId=${encodeURIComponent(msg.supplierId)}`, {
+        method: "GET",
+      }).then(sendResponse);
+      return true;
+    case "DS_PRODUCT":
+      // Räddningsväg (2026-08-04): nya AliExpress-PC-sidan saknar ofta inbäddad
+      // SKU-JSON och byter pris-markup mellan A/B-varianter → skrapan får inget
+      // pris. Backendens DS-API-uppslag är auktoritativt (per-SKU-pris i USD).
+      apiCall(`/api/aliexpress/product?id=${encodeURIComponent(msg.productId)}`, {
         method: "GET",
       }).then(sendResponse);
       return true;

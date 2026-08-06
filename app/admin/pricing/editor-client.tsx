@@ -116,7 +116,7 @@ export function PricingEditor({
             checked={useFixed}
             onChange={(e) => setUseFixed(e.target.checked)}
           />
-          <span style={{ flex: "1 1 auto" }}>Lägg på fast påslag (exkl. moms)</span>
+          <span style={{ flex: "1 1 auto" }}>Lägg på fast påslag (kronor, rakt på slutpriset)</span>
           <input
             type="number"
             step="1"

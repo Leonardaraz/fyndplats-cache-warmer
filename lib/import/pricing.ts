@@ -6,7 +6,7 @@ export function costToSek(costUsd: number, usdToSek: number): number {
   return round2(costUsd * usdToSek);
 }
 
-/** Försäljningspris exkl. moms = landad kostnad × multiplikator + fast påslag. */
+/** Pris efter påslag = landad kostnad × multiplikator + fast påslag. */
 export function applyMarkup(costSek: number, markup: MarkupRule): number {
   return round2(costSek * markup.multiplier + markup.fixedSek);
 }
@@ -38,10 +38,15 @@ export function roundPrice(gross: number, strategy: PricingConfig["rounding"]): 
 
 export function computePrice(costUsd: number, config: PricingConfig): PriceBreakdown {
   const costSek = costToSek(costUsd, config.usdToSek);
-  const netSek = applyMarkup(costSek, config.markup);
-  const grossRaw = addVat(netSek, config.vatRatePercent);
+  // 2026-08-06 (Leonards beslut): multiplikatorn ger SLUTPRISET direkt —
+  // ingen moms läggs på ovanpå. EU-lagrets inköpspris är redan inkl. moms
+  // ("Price includes VAT" i AliExpress-kassan) och butikspriset är inkl.
+  // moms, så gamla formeln (påslag × 1,25) gjorde varje import ~20 % dyrare
+  // än den valda marginalen. vatRatePercent används numera BARA för
+  // REDOVISNINGSBROTTET nedan (momsen UR priset, netto + moms = brutto) och
+  // för vinstberäkningen (computeProfit) — aldrig som prispåslag.
+  const grossRaw = applyMarkup(costSek, config.markup);
   const grossSek = roundPrice(grossRaw, config.rounding);
-  // Härled momsbeloppet från det avrundade bruttopriset så att netto + moms = brutto.
   const netFromGross = round2(grossSek / (1 + config.vatRatePercent / 100));
   const vatSek = round2(grossSek - netFromGross);
   return { costUsd, costSek, netSek: netFromGross, vatSek, grossSek };

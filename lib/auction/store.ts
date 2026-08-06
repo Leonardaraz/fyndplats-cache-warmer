@@ -115,6 +115,36 @@ export async function removeAuctionsBulk(ids: string[]): Promise<string[]> {
   return errors;
 }
 
+/**
+ * Känner igen "produkten är raderad"-fel från pris-PATCH:arna. applyVariantPatch
+ * gör alltid en GET före PATCH; svarar den 404 finns produkten inte längre i
+ * katalogen. Sådana fel är INTE transienta — auktionsdokumentet måste bort,
+ * annars fastnar raden som evig live-zombie och blockerar sin slot (det var
+ * exakt så /fyndauktion krympte till 2 produkter: tre raderade produkter höll
+ * slot 1, 2 och 5 gisslan i veckor).
+ */
+export function isProductGone(e: unknown): boolean {
+  const msg = e instanceof Error ? e.message : String(e);
+  return /patch GET 404\b/.test(msg);
+}
+
+/**
+ * Finns produkten kvar i katalogen? 404 = raderad. Alla andra svar (även fel)
+ * tolkas som "finns" — ett transient Wix-fel får aldrig leda till att
+ * kö-dokument slängs eller att en främjning hoppar över en levande produkt.
+ */
+export async function productExists(productId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
+      method: "GET",
+      headers: headers(),
+    });
+    return res.status !== 404;
+  } catch {
+    return true;
+  }
+}
+
 /** Tar bort ett auktionsdokument (används när en köad produkt diskvalificeras). */
 export async function removeAuction(id: string): Promise<void> {
   const res = await fetch(

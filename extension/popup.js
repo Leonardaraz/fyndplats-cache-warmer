@@ -158,9 +158,11 @@ function buildPricingOverride() {
     const mult = parseFloat(document.getElementById("ctMultiplier").value);
     const floor = parseFloat(document.getElementById("ctFloor").value);
     const ceiling = parseFloat(document.getElementById("ctCeiling").value);
-    // Multiplier krävs (1–5). Saknas/ogiltig → fall tillbaka på premium-default
-    // så vi aldrig skickar en trasig override.
-    const multiplier = Number.isFinite(mult) ? Math.min(5, Math.max(1, mult)) : PREMIUM_MULTIPLIER;
+    // FRI marginal (Leonards beslut 2026-08-06) — gamla taket 5× är borta.
+    // Kvar finns bara feltrycks-vakter: under 0.1 eller över 50 är aldrig en
+    // avsedd multiplikator (t.ex. "105" i stället för "1,05"). Saknas/ogiltig
+    // → premium-default så vi aldrig skickar en trasig override.
+    const multiplier = Number.isFinite(mult) ? Math.min(50, Math.max(0.1, mult)) : PREMIUM_MULTIPLIER;
     const override = { multiplier };
     if (Number.isFinite(floor) && floor > 0) override.floorSek = floor;
     if (Number.isFinite(ceiling) && ceiling > 0) override.ceilingSek = ceiling;
@@ -191,7 +193,9 @@ function loadPricingHint() {
     const tiers = r.tiersEnabled && Array.isArray(r.tiers) && r.tiers.length
       ? `, intervall-tiers PÅ (${r.tiers.length} steg)`
       : "";
-    hint.textContent = `Din default: ${r.defaultMultiplier}× på inköp, ${r.vatRatePercent}% moms${tiers}.`;
+    // Sedan 2026-08-06: multiplikatorn ger SLUTPRISET direkt — ingen moms
+    // läggs på ovanpå (inköpspriset är redan inkl. moms på EU-lagret).
+    hint.textContent = `Din default: ${r.defaultMultiplier}× på inköp = slutpris (ingen moms ovanpå)${tiers}.`;
   });
 }
 
@@ -274,8 +278,78 @@ async function load() {
     if (product.extractionOk) {
       sampleColors();
       checkSupplierStatus();
+    } else {
+      // Skrapan misslyckades (nya PC-sidan saknar ofta inbäddad SKU-JSON och
+      // byter pris-markup mellan A/B-varianter) → försök API-räddningen.
+      void rescueViaDsApi();
     }
   });
+}
+
+// Räddningsväg när skrapan inte fick ut komplett produktdata: hämta det
+// auktoritativa svaret via backendens /api/aliexpress/product (officiella
+// DS-API:t — per-SKU-pris i USD, lagersaldo, lagerland). Skrapade fält behålls
+// där de finns (DOM:ens bilder/beskrivning/recensioner är rikare än API:ts);
+// API:t är facit för varianter/pris/lager.
+async function rescueViaDsApi() {
+  const id = String((product && product.supplierProductId) || "");
+  // content.js sätter ett syntetiskt Date.now()-id när URL:en inte matchar
+  // /item/<id>.html — då finns inget att slå upp.
+  if (!/^\d{6,}$/.test(id)) return;
+  setStatus("Sidan kunde inte läsas — hämtar produktdata via AliExpress-API…", "warn");
+  const res = await sendMessageAsync({ type: "DS_PRODUCT", productId: id });
+  const ds = res && res.ok && res.data;
+  const dsVariants = (ds && Array.isArray(ds.variants) ? ds.variants : []).filter(
+    (v) => Number(v.costUsd) > 0,
+  );
+  if (!dsVariants.length) {
+    const why = (res && res.error) || (ds ? "API:t gav inga priser" : "tomt svar");
+    setStatus(
+      `AliExpress-sidan kunde inte läsas, och API-uppslaget misslyckades (${why}).\n` +
+        'Försök ladda om sidan, eller använd "Öppna orderläge" för manuell inmatning.',
+      "err",
+    );
+    return;
+  }
+  product.variants = dsVariants;
+  if (!product.rawTitle && ds.rawTitle) product.rawTitle = ds.rawTitle;
+  if (!product.rawDescription && ds.rawDescription) product.rawDescription = ds.rawDescription;
+  if ((!product.imageUrls || !product.imageUrls.length) && Array.isArray(ds.imageUrls)) {
+    product.imageUrls = ds.imageUrls;
+  }
+  if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
+    product.shipsFrom = [...new Set([...(product.shipsFrom || []), ...ds.shipsFrom])].sort();
+  }
+  const stocks = dsVariants.map((v) => v.stock).filter((s) => typeof s === "number");
+  if (stocks.length) product.inStock = stocks.some((s) => s > 0);
+  product.quality = {
+    hasTitle: !!product.rawTitle,
+    hasImages: (product.imageUrls || []).length > 0,
+    hasPrice: true,
+    hasRealVariants: dsVariants.length > 1,
+  };
+  product.extractionOk = product.quality.hasTitle && product.quality.hasImages;
+  // Skrapans "saknar pris"-varning är åtgärdad; rendera om med API-datan.
+  product._warnings = [];
+  render();
+  if (product.extractionOk) {
+    setStatus(
+      "Priser & lager hämtade via AliExpress-API:t (sidan kunde inte skrapas). " +
+        "Kontrollera varianterna som vanligt före import.",
+      "ok",
+    );
+    sampleColors();
+    checkSupplierStatus();
+  } else {
+    const missing = [];
+    if (!product.quality.hasTitle) missing.push("titel");
+    if (!product.quality.hasImages) missing.push("bild");
+    setStatus(
+      `API:t gav priser men produktdata saknas fortfarande (${missing.join(", ")}).\n` +
+        'Använd "Öppna orderläge" för manuell inmatning.',
+      "err",
+    );
+  }
 }
 
 // Hämtar säljarens score/status (Feature 6) och visar en varning före import:

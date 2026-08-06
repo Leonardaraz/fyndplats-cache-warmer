@@ -46,8 +46,9 @@ describe("evaluatePriceChange", () => {
   it("auto-adjusts the gross price instead of flagging", () => {
     const r = evaluatePriceChange(10, 12, pricing, { thresholdPercent: 10, autoAdjust: true });
     expect(r.flagged).toBe(false);
-    // 12 USD * 10 = 120 cost; *2.5 = 300 net; *1.25 = 375 gross
-    expect(r.newGrossSek).toBe(375);
+    // 12 USD × 10 = 120 kostnad; ×2.5 = 300 SLUTPRIS (nya formeln 2026-08-06:
+    // multiplikatorn ger slutpriset direkt, ingen moms ovanpå).
+    expect(r.newGrossSek).toBe(300);
   });
 
   it("does not auto-adjust below threshold", () => {

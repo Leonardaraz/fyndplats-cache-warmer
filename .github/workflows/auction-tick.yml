@@ -30,3 +30,10 @@ jobs:
             echo "::error::Endpoint returned non-200 status"
             exit 1
           fi
+          # ok:false = tick-fel per rad (t.ex. misslyckad PATCH) bakom HTTP 200.
+          # Utan denna koll gick zombie-auktionerna obemärkta i veckor — kravet
+          # är att körningen blir RÖD så felet syns i Actions-historiken.
+          if echo "$body" | grep -q '"ok":false'; then
+            echo "::error::Ticken rapporterade ok:false — se rapporten ovan"
+            exit 1
+          fi

@@ -33,7 +33,12 @@ export async function GET(req: NextRequest) {
         stock: v.stock,
         included: true,
         swatchImageUrl: v.imageUrl,
+        // Per-variant lagerland — driver EU/CN-badgen i popupen (samma fält
+        // som content-scriptets skrapade varianter bär).
+        shipFrom: v.shipFrom,
       })),
+      shipsFrom: product.shipsFromCountries,
+      inStock: product.variants.some((v) => (v.stock ?? 0) > 0),
     });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });

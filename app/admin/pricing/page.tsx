@@ -62,7 +62,7 @@ export default async function PricingPage() {
       <h1>Prissättningsregler</h1>
       <p style={{ fontSize: 14, color: "#444" }}>
         Styr hur säljpriset räknas fram vid varje import. Inköpspriset (USD) →
-        landad kostnad (SEK) → multiplikator + ev. fast påslag → moms → avrundning.
+        landad kostnad (SEK) → multiplikator + ev. fast påslag → avrundning. Multiplikatorn ger slutpriset direkt — ingen moms läggs på ovanpå (inköpspriset är redan inkl. moms).
         Sparas i <code>FyndplatsPricingConfig</code> och gäller från nästa import.
       </p>
 

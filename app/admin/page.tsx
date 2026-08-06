@@ -9,6 +9,8 @@ import { SupplierOverrideClient } from "./supplier-override-client";
 import { PlaceOrderButton } from "./place-order-button";
 import { EditAddressClient } from "./edit-address-client";
 import { TaskRecoveryClient } from "./task-recovery-client";
+import { PriceCheckClient } from "./price-check-client";
+import { LinkAeOrderClient } from "./link-ae-order-client";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +56,15 @@ export default async function AdminPage() {
   const pendingPayment = tasks.filter((t) => t.status === "pending_payment" && !reviewIds.has(t.taskId));
   const orderedWaitingTracking = tasks.filter(
     (t) => t.status === "ordered" && t.aliexpressOrderId && !t.sku?.startsWith("shipped") && !reviewIds.has(t.taskId),
+  );
+  // Lagd men UTAN AliExpress-ordernummer: manuellt markerad som lagd, eller ett
+  // felaktigt nummer rensat (t.ex. #10014 2026-08-06 som bar den döda obetalda
+  // API-orderns nummer). Utan egen sektion är dessa OSYNLIGA i admin — de ligger
+  // varken i pending-listan (fel status) eller spårningslistan (kräver id) —
+  // och spårningscronen kan aldrig plocka upp dem. Kopplingsfältet nedan är
+  // enda vägen tillbaka in i det automatiska flödet.
+  const orderedUnlinked = tasks.filter(
+    (t) => t.status === "ordered" && !t.aliexpressOrderId && !reviewIds.has(t.taskId),
   );
 
   return (
@@ -142,6 +153,10 @@ export default async function AdminPage() {
                   </div>
                 )}
                 <EditAddressClient taskId={t.taskId} address={t.shippingAddress} />
+                {/* Prisjämförelse FÖRE beslutet: DS-API:t kan aldrig få kampanj-
+                    priser/kuponger — är produktsidan billigare beställer Leonard
+                    manuellt och kopplar ordernumret nedan i stället. */}
+                <PriceCheckClient taskId={t.taskId} />
                 <PlaceOrderButton taskId={t.taskId} />
                 <SupplierOverrideClient
                   taskId={t.taskId}
@@ -156,6 +171,7 @@ export default async function AdminPage() {
                       : undefined
                   }
                 />
+                <LinkAeOrderClient taskId={t.taskId} />
               </li>
             );
           })}
@@ -225,6 +241,32 @@ export default async function AdminPage() {
             {orderedWaitingTracking.map((t) => (
               <li key={t.taskId}>
                 #{t.orderNumber} — AliExpress: <code>{t.aliexpressOrderId}</code>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+
+      {orderedUnlinked.length > 0 ? (
+        <>
+          <h3 style={{ fontSize: 16, marginTop: 18 }}>Lagd — men AliExpress-ordernumret saknas</h3>
+          <p style={{ fontSize: 13, color: "#666" }}>
+            Beställningen är gjord men systemet vet inte vilket AliExpress-ordernummer den har —
+            spårning och kundmejl kan därför inte hämtas automatiskt. Klistra in ordernumret
+            (”Ref. Number” i din AliExpress-orderlista) så tar automatiken över.
+          </p>
+          <ul style={{ listStyle: "none", padding: 0, fontSize: 13 }}>
+            {orderedUnlinked.map((t) => (
+              <li key={t.taskId} style={{ padding: "8px 0", borderBottom: "1px solid #eee" }}>
+                <div>
+                  <b>#{t.orderNumber}</b> — {t.productName} ×{t.quantity}
+                </div>
+                {t.shippingAddress?.fullName ? (
+                  <div style={{ color: "#666" }}>
+                    Kund: {t.shippingAddress.fullName}, {t.shippingAddress.city}
+                  </div>
+                ) : null}
+                <LinkAeOrderClient taskId={t.taskId} />
               </li>
             ))}
           </ul>
