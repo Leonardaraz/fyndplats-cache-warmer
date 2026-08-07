@@ -25,12 +25,32 @@ window.addEventListener("message", (e) => {
   if (e.data?.type === "FP_IMPORT_RESULT") console.log(e.data); // { ok, wixProductId?, error?, duplicates? }
   if (e.data?.type === "FP_IMPORT_STATUS") console.log(e.data.text);
 });
+
+// Valfritt: sätt variantnamnen själv (0.1.32+). Nyckel = RÅTT optionsvärde
+// exakt som sidan visar det; värde = namnet som key-låses i Wix (max 60 tecken).
+// Utelämnade värden auto-översätts som vanligt.
+window.postMessage({
+  type: "FP_IMPORT",
+  requestId: 3,
+  variantNames: { "Polar Night Black": "Polarsvart", "chameleon": "Kameleont" },
+}, "*");
 ```
 
 Samma flöde som popupen inkl. DS-API-räddningen OCH dubblettgrinden (popupens
 modal ersätts av ett stopp med `duplicates` — gå förbi med `force: true`).
 Importer landar ALLTID som utkast i granskningskön (pending_review) — inget
 når butiken utan publicering.
+
+## Manuella variantnamn (0.1.32)
+
+Popupen har sektionen **"✏️ Variantnamn i butiken"** under variantlistan: ett
+textfält per unikt optionsvärde (grupperat per axel). Det du skriver blir
+variantens **permanenta** namn i Wix — V3 key-låser `choice.name` när produkten
+skapas, så namn kan aldrig ändras i efterhand utan att variantmappningen går
+sönder. Tomt fält = automatisk svensk översättning (tabell → cache → Haiku)
+precis som förut. Manuella namn betros av svenskhets-grinden (hamnar aldrig i
+poleringskön) och kostar $0. Skickas som `variantNameOverrides` i payloaden;
+agent-läget skickar samma sak via `variantNames` (se ovan).
 
 ## Ladda om tillägget efter en kodändring (detaljer)
 

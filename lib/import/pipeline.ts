@@ -18,7 +18,7 @@ import { rankProductImages } from "./image-rank";
 import type { FaqReviewHint } from "./faq-gen";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
-import { buildVariantTranslator, unresolvedAxisNames } from "./variant-translations";
+import { buildTranslatorFromBase, translateValue, unresolvedAxisNames } from "./variant-translations";
 import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
@@ -279,13 +279,32 @@ export async function importProduct(
   if (sourceVariants.filter((v) => v.included).length === 0) {
     throw new Error("Inga varianter valda för import.");
   }
+  // LAGER 0 — manuella variantnamn från importverktyget (variantNameOverrides):
+  // Leonard kan döpa värden själv FÖRE importen (enda tillfället — Wix V3
+  // key-låser namnet vid skapandet). Kartan filtreras mot de faktiska råvärdena
+  // så en förlegad/felskickad nyckel aldrig gör något, och trimmas/cappas med
+  // samma 60-teckensgräns som API-schemat. Manuella namn vinner över tabell,
+  // cache och AI i BÅDA lägena nedan.
+  const manualNames = new Map<string, string>();
+  if (product.variantNameOverrides) {
+    const rawVals = new Set<string>();
+    for (const v of sourceVariants) for (const val of Object.values(v.options ?? {})) rawVals.add(val);
+    for (const [raw, name] of Object.entries(product.variantNameOverrides)) {
+      const trimmed = typeof name === "string" ? name.trim().slice(0, 60) : "";
+      if (trimmed && rawVals.has(raw)) manualNames.set(raw, trimmed);
+    }
+  }
   const translatorResult = variantAiTranslationEnabled(flags)
-    ? await buildVariantTranslatorAI(sourceVariants, { productTitle: product.rawTitle })
+    ? await buildVariantTranslatorAI(sourceVariants, {
+        productTitle: product.rawTitle,
+        valueOverrides: manualNames,
+      })
     : (() => {
         // Sync-läge (VARIANT_AI av): inga AI-anrop, men flagga ändå produkten om en
         // axel blev kvar med ett rått engelskt namn (tabell-miss) → ingen produkt
-        // skeppas halv-engelsk ens i hård-$0-läget.
-        const t = buildVariantTranslator(sourceVariants);
+        // skeppas halv-engelsk ens i hård-$0-läget. Manuella namn går före tabellen
+        // (samma lager 0 som AI-vägen); kollisions-säkerheten är identisk.
+        const t = buildTranslatorFromBase(sourceVariants, (raw) => manualNames.get(raw) ?? translateValue(raw));
         return { translator: t, unresolved: unresolvedAxisNames(t) };
       })();
   const translator = translatorResult.translator;
