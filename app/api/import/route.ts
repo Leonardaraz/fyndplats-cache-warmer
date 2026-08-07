@@ -115,6 +115,10 @@ const ProductSchema = z.object({
       ceilingSek: z.number().positive().optional(),
     })
     .optional(),
+  // Medvetet förbi dubblett-spärren nedan. Sätts bara när Leonard uttryckligen
+  // vill importera om en listning som redan finns (t.ex. efter att den gamla
+  // produkten raderats men mappningsraden blivit kvar).
+  allowDuplicate: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -134,7 +138,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Valideringsfel", details: parsed.error.flatten() }, { status: 422 });
   }
 
-  const { optionColorCodes, featureFlags, supplier, reviewsToImport, pricingOverride, ...product } = parsed.data;
+  const { optionColorCodes, featureFlags, supplier, reviewsToImport, pricingOverride, allowDuplicate, ...product } =
+    parsed.data;
 
   // Skydd: källan MÅSTE vara en AliExpress-produkt-URL. Hindrar att en
   // felskrapad sida (t.ex. fyndplats.se i en annan flik) importeras.
@@ -193,6 +198,48 @@ export async function POST(req: Request) {
       { error: "Ogiltig produktdata", reason: rejection.reason, message: rejection.message },
       { status: 422 },
     );
+  }
+
+  // Skydd: samma AliExpress-listning får inte importeras två gånger. Bulk-vägen
+  // (lib/bulk-import/worker.ts → scrapeAndDedupe) har alltid haft den här spärren;
+  // extension-vägen hade den INTE, så /api/check-duplicate var enda skyddet — och
+  // det är bara en varning som går att klicka förbi. Resultatet blev åtta listningar
+  // importerade i dubbel uppsättning (städat 2026-08-07). Samma uppslag, samma
+  // nyckel, samma fail-open som bulk-vägen — men här blockerar vi i stället för att
+  // hoppa över, så tillägget kan visa varför.
+  if (!allowDuplicate) {
+    try {
+      const mappings = await getStore().listMappings();
+      const existing = mappings.find((m) => m.supplierProductId === product.supplierProductId);
+      if (existing) {
+        await audit(
+          "import-rejected-duplicate",
+          product.supplierProductId,
+          `finns redan som ${existing.wixProductId}: ${product.rawTitle.slice(0, 80)}`,
+        );
+        console.warn(
+          `[import] AVVISAD (duplicate) pid=${product.supplierProductId} finns som ${existing.wixProductId}`,
+        );
+        return NextResponse.json(
+          {
+            error: "Redan importerad",
+            reason: "duplicate",
+            message:
+              `Den här AliExpress-listningen är redan importerad som Wix-produkt ${existing.wixProductId}. ` +
+              "Skicka allowDuplicate: true om du ändå vill importera den.",
+            wixProductId: existing.wixProductId,
+          },
+          { status: 409 },
+        );
+      }
+    } catch (lookupErr) {
+      // Fail-open, precis som bulk-vägen: ett trasigt uppslag får inte blockera
+      // en i övrigt giltig import. Dubbletter kan städas i efterhand.
+      console.warn(
+        "[import] dubblett-uppslag failade, fortsätter med import:",
+        lookupErr instanceof Error ? lookupErr.message : lookupErr,
+      );
+    }
   }
 
   try {
