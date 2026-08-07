@@ -89,8 +89,19 @@ let supplierStatus = null;
 
 const $title = document.getElementById("title");
 const $variants = document.getElementById("variants");
+const $nameEdit = document.getElementById("nameEdit");
 const $import = document.getElementById("import");
 const $status = document.getElementById("status");
+
+// --- Manuella variantnamn (rått värde → Leonards namn) -------------------
+// Wix V3 key-låser choice.name när produkten skapas — variantnamn kan ALDRIG
+// ändras i efterhand utan att mappningen (wixVariantId ↔ AE-SKU) går sönder.
+// Därför är popupen enda tillfället att döpa dem. Kartan lever på modulnivå så
+// ifyllda namn överlever en re-render (t.ex. DS-API-räddningen som byter ut
+// variantlistan) och skickas som variantNameOverrides i import-payloaden.
+// Tomt fält = auto-översättning (tabell → cache → Haiku) precis som förut.
+let nameOverrides = {};
+let nameEditOpen = false;
 
 // --- Feature toggles (persisteras i chrome.storage.sync) -----------------
 // Alla PÅ som default för nya användare. Skickas i payloaden som featureFlags
@@ -424,6 +435,8 @@ function render() {
     $variants.append(row);
   });
 
+  renderNameEdit();
+
   // Vägra import om skrapningen inte gav användbar produktdata. Hellre stoppa
   // här än att skapa en spökprodukt med 0,9 kr och butikscopy (bug 2026-05-31).
   if (!product.extractionOk) {
@@ -445,6 +458,96 @@ function render() {
     setStatus(product._warnings.join("\n"), "warn");
   }
   $import.disabled = false;
+}
+
+/**
+ * Sektionen "✏️ Variantnamn i butiken": ett textfält per UNIKT rått optionsvärde
+ * (grupperat per axel när produkten har flera). Det Leonard skriver blir
+ * variantens permanenta namn i Wix — tomt fält = auto-översättning som vanligt.
+ * Byggs om vid varje render (DS-räddningen kan byta variantlista); ifyllda namn
+ * återfylls från nameOverrides så inget tappas.
+ */
+function renderNameEdit() {
+  $nameEdit.innerHTML = "";
+  if (!product || !Array.isArray(product.variants) || product.variants.length === 0) return;
+
+  // Unika råvärden per axel, i först-sedd-ordning (samma som variantlistan).
+  const valuesByAxis = new Map();
+  for (const v of product.variants) {
+    for (const [axis, val] of Object.entries(v.options || {})) {
+      if (!valuesByAxis.has(axis)) valuesByAxis.set(axis, []);
+      const arr = valuesByAxis.get(axis);
+      if (!arr.includes(val)) arr.push(val);
+    }
+  }
+  if (valuesByAxis.size === 0) return; // enda-variant-produkt utan options
+
+  const details = document.createElement("details");
+  details.className = "name-edit";
+  details.open = nameEditOpen;
+  details.addEventListener("toggle", () => (nameEditOpen = details.open));
+  const summary = document.createElement("summary");
+  summary.textContent = "✏️ Variantnamn i butiken (valfritt)";
+  details.append(summary);
+  const hint = document.createElement("div");
+  hint.className = "ne-hint";
+  hint.textContent =
+    "Namnet låses i Wix vid importen och kan inte ändras efteråt. " +
+    "Tomt fält = automatisk svensk översättning.";
+  details.append(hint);
+
+  for (const [axis, values] of valuesByAxis) {
+    if (valuesByAxis.size > 1) {
+      const axisEl = document.createElement("div");
+      axisEl.className = "ne-axis";
+      axisEl.textContent = axis;
+      details.append(axisEl);
+    }
+    for (const raw of values) {
+      const row = document.createElement("div");
+      row.className = "ne-row";
+      const rawEl = document.createElement("span");
+      rawEl.className = "ne-raw";
+      rawEl.textContent = raw;
+      rawEl.title = raw;
+      const input = document.createElement("input");
+      input.type = "text";
+      input.maxLength = 60;
+      input.placeholder = "auto (svensk översättning)";
+      if (nameOverrides[raw]) {
+        input.value = nameOverrides[raw];
+        input.classList.add("ne-set");
+      }
+      input.addEventListener("input", () => {
+        const t = input.value;
+        if (t.trim()) nameOverrides[raw] = t;
+        else delete nameOverrides[raw];
+        input.classList.toggle("ne-set", Boolean(t.trim()));
+      });
+      row.append(rawEl, input);
+      details.append(row);
+    }
+  }
+  $nameEdit.append(details);
+}
+
+/**
+ * Samlar ihop de manuella namnen för payloaden — bara värden som faktiskt
+ * förekommer i de VALDA varianterna skickas (avbockade varianters värden och
+ * förlegade nycklar efter en DS-räddning filtreras bort), trimmade och cappade
+ * till samma 60 tecken som API-schemat kräver.
+ */
+function collectNameOverrides(chosenVariants) {
+  const chosenValues = new Set();
+  for (const v of chosenVariants) {
+    for (const val of Object.values(v.options || {})) chosenValues.add(val);
+  }
+  const out = {};
+  for (const [raw, name] of Object.entries(nameOverrides)) {
+    const t = String(name || "").trim().slice(0, 60);
+    if (t && chosenValues.has(raw)) out[raw] = t;
+  }
+  return Object.keys(out).length ? out : null;
 }
 
 // --- Pre-import-check: dubblett (Feature 1) ----------------------------------
@@ -582,6 +685,12 @@ $import.addEventListener("click", async () => {
   const override = buildPricingOverride();
   if (override) product.pricingOverride = override;
   else delete product.pricingOverride;
+
+  // Manuella variantnamn (bara för de valda varianterna) → payloaden. Namnen
+  // key-låses i Wix vid skapandet, så detta är enda stället de kan sättas.
+  const names = collectNameOverrides(chosen);
+  if (names) product.variantNameOverrides = names;
+  else delete product.variantNameOverrides;
 
   chrome.runtime.sendMessage({ type: "IMPORT_PRODUCT", product, featureFlags: flagsWithMode() }, (res) => {
     if (chrome.runtime.lastError || !res) {

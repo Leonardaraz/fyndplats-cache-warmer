@@ -88,6 +88,12 @@ async function importProduct(product, featureFlags) {
     ...(product.pricingOverride && typeof product.pricingOverride.multiplier === "number"
       ? { pricingOverride: product.pricingOverride }
       : {}),
+    // Manuella variantnamn { rått värde → Leonards namn } från popupens
+    // "✏️ Variantnamn"-sektion (eller agent-lägets variantNames). Vinner över
+    // hela översättningskedjan server-side; namnet key-låses i Wix vid skapandet.
+    ...(product.variantNameOverrides && Object.keys(product.variantNameOverrides).length
+      ? { variantNameOverrides: product.variantNameOverrides }
+      : {}),
     // Skrapade AliExpress-recensioner (social proof). Översätts server-side via
     // DeepL (GRATIS) och sparas i FyndplatsImportedReviews. Skickas bara när
     // skrapan faktiskt hittade recensioner (annars utelämnas fältet helt).

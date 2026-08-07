@@ -1544,6 +1544,9 @@ async function enrichDescription(product) {
 //
 //   window.postMessage({ type: "FP_IMPORT", multiplier: 1.8 }, "*")
 //     multiplier är valfri (clampas 0.1–50); utelämnad → sparade default-tiern.
+//     variantNames är valfri: { "<rått optionsvärde>": "Svenskt namn" } — sätter
+//     variantens PERMANENTA namn i Wix (key-låses vid skapandet, kan aldrig
+//     ändras efteråt). Utelämnad → automatisk svensk översättning som vanligt.
 //   Svar: { type: "FP_IMPORT_RESULT", ok, wixProductId?, note?, error? }
 //   Under arbetet: { type: "FP_IMPORT_STATUS", text }
 //
@@ -1601,6 +1604,18 @@ window.addEventListener("message", (ev) => {
       const mult = Number(msg.multiplier);
       if (Number.isFinite(mult) && mult > 0) {
         product.pricingOverride = { multiplier: Math.min(50, Math.max(0.1, mult)) };
+      }
+      // Valfria manuella variantnamn från agenten — samma sanering som API-
+      // schemat (strängar, trim, max 60 tecken, max 100 poster). Ogiltiga
+      // poster hoppas tyst över; servern filtrerar dessutom mot de faktiska
+      // råvärdena så en felstavad nyckel aldrig gör något.
+      if (msg.variantNames && typeof msg.variantNames === "object") {
+        const names = {};
+        for (const [raw, name] of Object.entries(msg.variantNames).slice(0, 100)) {
+          const t = typeof name === "string" ? name.trim().slice(0, 60) : "";
+          if (t && typeof raw === "string" && raw) names[raw] = t;
+        }
+        if (Object.keys(names).length) product.variantNameOverrides = names;
       }
       status("Importerar till Fyndplats…");
       // force: true hoppar över dubblettstoppet (efter att agenten sett
