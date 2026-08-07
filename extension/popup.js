@@ -545,7 +545,9 @@ function collectNameOverrides(chosenVariants) {
   const out = {};
   for (const [raw, name] of Object.entries(nameOverrides)) {
     const t = String(name || "").trim().slice(0, 60);
-    if (t && chosenValues.has(raw)) out[raw] = t;
+    // raw ≤160: API-schemats nyckeltak — en override på ett extremt långt
+    // råvärde ska hoppas över tyst, inte fälla HELA importen med 422.
+    if (t && raw.length <= 160 && chosenValues.has(raw)) out[raw] = t;
   }
   return Object.keys(out).length ? out : null;
 }
@@ -577,10 +579,20 @@ async function preImportCheck(p) {
   const dup = dupRes && dupRes.ok && dupRes.data ? dupRes.data : null;
   const matches = (dup && Array.isArray(dup.matches) ? dup.matches : []);
 
-  // Ingen dubblett → ingen modal, fortsätt direkt.
-  if (matches.length === 0) return true;
+  // Ingen dubblett → ingen modal, fortsätt direkt (och ingen kringgångs-flagga).
+  if (matches.length === 0) {
+    delete p.allowDuplicate;
+    return true;
+  }
 
-  return showPreImportModal(matches);
+  const proceed = await showPreImportModal(matches);
+  // "Importera ändå" = MEDVETET val att importera trots dubblettvarning →
+  // flaggan följer med payloaden så serverns hårda dubblett-spärr (409 på
+  // samma supplierProductId, PR #369) också kliver åt sidan. Dagens server
+  // utan spärren ignorerar okända fält — ofarligt tills den landar.
+  if (proceed) p.allowDuplicate = true;
+  else delete p.allowDuplicate;
+  return proceed;
 }
 
 function el(tag, cls, text) {

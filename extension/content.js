@@ -1613,7 +1613,8 @@ window.addEventListener("message", (ev) => {
         const names = {};
         for (const [raw, name] of Object.entries(msg.variantNames).slice(0, 100)) {
           const t = typeof name === "string" ? name.trim().slice(0, 60) : "";
-          if (t && typeof raw === "string" && raw) names[raw] = t;
+          // raw ≤160 = API-schemats nyckeltak; längre nycklar skulle 422:a hela importen.
+          if (t && typeof raw === "string" && raw && raw.length <= 160) names[raw] = t;
         }
         if (Object.keys(names).length) product.variantNameOverrides = names;
       }
