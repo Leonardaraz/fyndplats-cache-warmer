@@ -38,6 +38,8 @@ window.postMessage({
 
 Samma flöde som popupen inkl. DS-API-räddningen OCH dubblettgrinden (popupens
 modal ersätts av ett stopp med `duplicates` — gå förbi med `force: true`).
+`force` skickar även `allowDuplicate: true` till servern så den hårda
+supplierProductId-spärren (PR #369) också kliver åt sidan när den landat.
 Importer landar ALLTID som utkast i granskningskön (pending_review) — inget
 når butiken utan publicering.
 
