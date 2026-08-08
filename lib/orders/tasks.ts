@@ -231,15 +231,79 @@ const SE_SUBDIVISION_TO_PROVINCE: Record<string, string> = {
   "SE-X": "Gavleborg", "SE-Y": "Vasternorrland", "SE-Z": "Jamtland",
 };
 
-/** Härleder en AliExpress-vänlig provins/län från Wix-adressens subdivision. */
+// Postnummer → län (sista fallback — order #10015, 2026-08-08): svenska kassor
+// skickar ofta INGEN subdivision alls → province blev tom → AliExpress avvisade
+// ordern ("Selecciona un estado/provincia/región"). Svenska postnummer pekar ut
+// länet deterministiskt: tvåsiffrigt prefix räcker för det mesta; de kända
+// blandzonerna (län som delar prefix) särskiljs på tre siffror. Ett fel-län i
+// någon obskyr kantzon är kosmetiskt — PostNord routar på postnummer+ort, och
+// AliExpress vill bara ha ett giltigt värde i fältet — men tabellen träffar
+// rätt i praktiken. Namnen matchar AliExpress dropdown (ASCII, som
+// SE_SUBDIVISION_TO_PROVINCE ovan).
+const SE_ZIP3_EXCEPTIONS: Record<string, string> = {
+  "361": "Kalmar", "577": "Kalmar", "579": "Kalmar", "598": "Kalmar",
+  "611": "Sodermanland", "613": "Sodermanland", "619": "Sodermanland",
+  "662": "Vastra Gotaland", "666": "Vastra Gotaland", "668": "Vastra Gotaland",
+  "814": "Uppsala", "815": "Uppsala", "819": "Uppsala",
+  "841": "Vasternorrland",
+  "933": "Norrbotten", "938": "Norrbotten",
+};
+const SE_ZIP2_LAN: Record<string, string> = {
+  "10": "Stockholm", "11": "Stockholm", "12": "Stockholm", "13": "Stockholm",
+  "14": "Stockholm", "15": "Stockholm", "16": "Stockholm", "17": "Stockholm",
+  "18": "Stockholm", "19": "Stockholm",
+  "20": "Skane", "21": "Skane", "22": "Skane", "23": "Skane", "24": "Skane",
+  "25": "Skane", "26": "Skane", "27": "Skane", "28": "Skane", "29": "Skane",
+  "30": "Halland", "31": "Halland",
+  "33": "Jonkoping",
+  "34": "Kronoberg", "35": "Kronoberg", "36": "Kronoberg",
+  "37": "Blekinge",
+  "38": "Kalmar", "39": "Kalmar",
+  "40": "Vastra Gotaland", "41": "Vastra Gotaland", "42": "Vastra Gotaland",
+  "43": "Vastra Gotaland", "44": "Vastra Gotaland", "45": "Vastra Gotaland",
+  "46": "Vastra Gotaland", "47": "Vastra Gotaland",
+  "50": "Vastra Gotaland", "51": "Vastra Gotaland", "52": "Vastra Gotaland",
+  "53": "Vastra Gotaland", "54": "Vastra Gotaland",
+  "55": "Jonkoping", "56": "Jonkoping", "57": "Jonkoping",
+  "58": "Ostergotland", "59": "Ostergotland", "60": "Ostergotland", "61": "Ostergotland",
+  "62": "Gotland",
+  "63": "Sodermanland", "64": "Sodermanland",
+  "65": "Varmland", "66": "Varmland", "67": "Varmland", "68": "Varmland",
+  "69": "Orebro", "70": "Orebro", "71": "Orebro",
+  "72": "Vastmanland", "73": "Vastmanland",
+  "74": "Uppsala", "75": "Uppsala",
+  "76": "Stockholm", // Norrtälje/Rimbo/Hallstavik — Stockholms län trots 7-serien
+  "77": "Dalarna", "78": "Dalarna", "79": "Dalarna",
+  "80": "Gavleborg", "81": "Gavleborg", "82": "Gavleborg",
+  "83": "Jamtland", "84": "Jamtland",
+  "85": "Vasternorrland", "86": "Vasternorrland", "87": "Vasternorrland",
+  "88": "Vasternorrland", "89": "Vasternorrland",
+  "90": "Vasterbotten", "91": "Vasterbotten", "92": "Vasterbotten", "93": "Vasterbotten",
+  "94": "Norrbotten", "95": "Norrbotten", "96": "Norrbotten", "97": "Norrbotten",
+  "98": "Norrbotten",
+};
+
+/** Län ur ett svenskt postnummer (5 siffror, ev. mellanslag). undefined när
+ *  postnumret inte är svenskt-formaterat eller prefixet är okänt. */
+export function provinceFromSwedishPostalCode(postalCode: string | undefined): string | undefined {
+  const digits = (postalCode ?? "").replace(/\D/g, "");
+  if (digits.length !== 5) return undefined;
+  return SE_ZIP3_EXCEPTIONS[digits.slice(0, 3)] ?? SE_ZIP2_LAN[digits.slice(0, 2)];
+}
+
+/** Härleder en AliExpress-vänlig provins/län från Wix-adressens subdivision,
+ *  med postnumret som sista fallback för svenska adresser. */
 export function deriveProvince(addr: WixAddress | undefined): string | undefined {
   if (!addr) return undefined;
   const code = clean(addr.subdivision)?.toUpperCase();
   if (code && SE_SUBDIVISION_TO_PROVINCE[code]) return SE_SUBDIVISION_TO_PROVINCE[code];
-  // Fallback: läns-namnet utan " län"/" county"-suffix (translittereras till ASCII
+  // Fallback 1: läns-namnet utan " län"/" county"-suffix (translittereras till ASCII
   // i DTO-bygget). Bättre än tomt → AliExpress avvisar annars med "select a region".
   const full = clean(addr.subdivisionFullname);
   if (full) return full.replace(/\s+(län|lan|county)\s*$/i, "").trim() || full;
+  // Fallback 2: postnumret (bara SE — saknat land antas SE, butiken säljer dit).
+  const country = clean(addr.country)?.toUpperCase();
+  if (!country || country === "SE") return provinceFromSwedishPostalCode(addr.postalCode);
   return undefined;
 }
 

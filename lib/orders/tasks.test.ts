@@ -6,6 +6,7 @@ import {
   extractCancelOrderId,
   normalizeOrderEvent,
   normalizeCountryCode,
+  provinceFromSwedishPostalCode,
 } from "./tasks";
 import { parseWebhookBody } from "./webhook";
 
@@ -305,5 +306,43 @@ describe("extractAddress — riktig order-shape (addressLine/contactDetails, #10
     const tasks = deriveTasks(ev);
     expect(tasks[0].shippingAddress?.addressLine1).toBe("Storgatan 5");
     expect(tasks[0].shippingAddress?.fullName).toBe("Kim Berg");
+  });
+});
+
+// Postnummer → län (order #10015, 2026-08-08: Ytterby-adress utan subdivision →
+// AliExpress avvisade med "Selecciona un estado/provincia/región").
+describe("provinceFromSwedishPostalCode", () => {
+  it("pekar ut länet ur tvåsiffriga prefix", () => {
+    expect(provinceFromSwedishPostalCode("44253")).toBe("Vastra Gotaland"); // Ytterby (#10015)
+    expect(provinceFromSwedishPostalCode("111 22")).toBe("Stockholm"); // mellanslag tolereras
+    expect(provinceFromSwedishPostalCode("21119")).toBe("Skane");
+    expect(provinceFromSwedishPostalCode("90325")).toBe("Vasterbotten");
+    expect(provinceFromSwedishPostalCode("83134")).toBe("Jamtland");
+  });
+
+  it("kända blandzoner särskiljs på tre siffror", () => {
+    expect(provinceFromSwedishPostalCode("76130")).toBe("Stockholm"); // Norrtälje (7-serien)
+    expect(provinceFromSwedishPostalCode("81532")).toBe("Uppsala"); // Tierp (8-serien)
+    expect(provinceFromSwedishPostalCode("84131")).toBe("Vasternorrland"); // Ånge (Jämtland-prefix)
+    expect(provinceFromSwedishPostalCode("66231")).toBe("Vastra Gotaland"); // Åmål (Värmland-prefix)
+    expect(provinceFromSwedishPostalCode("61130")).toBe("Sodermanland"); // Nyköping (Östergötland-prefix)
+    expect(provinceFromSwedishPostalCode("93331")).toBe("Norrbotten"); // Arvidsjaur (Västerbotten-prefix)
+  });
+
+  it("undefined för icke-svenska/ogiltiga postnummer", () => {
+    expect(provinceFromSwedishPostalCode(undefined)).toBeUndefined();
+    expect(provinceFromSwedishPostalCode("")).toBeUndefined();
+    expect(provinceFromSwedishPostalCode("1234")).toBeUndefined(); // för kort
+    expect(provinceFromSwedishPostalCode("123456")).toBeUndefined(); // för långt
+    expect(provinceFromSwedishPostalCode("99999")).toBeUndefined(); // okänt prefix
+    expect(provinceFromSwedishPostalCode("SW1A 1AA")).toBeUndefined(); // brittiskt
+  });
+
+  it("deriveProvince faller tillbaka på postnumret när subdivision saknas (SE)", () => {
+    expect(deriveProvince({ postalCode: "44253", country: "SE" } as never)).toBe("Vastra Gotaland");
+    expect(deriveProvince({ postalCode: "44253" } as never)).toBe("Vastra Gotaland"); // land saknas → SE antas
+    expect(deriveProvince({ postalCode: "44253", country: "DE" } as never)).toBeUndefined(); // annat land → aldrig gissa
+    // subdivision vinner alltid över postnumret
+    expect(deriveProvince({ subdivision: "SE-AB", postalCode: "44253" } as never)).toBe("Stockholm");
   });
 });
