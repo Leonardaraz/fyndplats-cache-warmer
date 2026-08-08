@@ -6,6 +6,7 @@ import { categories as wixCategories } from "@wix/categories";
 import local from "../products.json";
 import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
+import { getSoldUnits } from "./popularity";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 import { linkVariantImagesByAltText, colorOf } from "./variant-color-image";
 import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
@@ -66,6 +67,10 @@ export type Product = {
   // på startsida/kategori/alla-produkter. DEFAULT_SCORE för opoängsatta produkter.
   imageScore: number;
   imageFlags: string[];
+  // Sålda enheter senaste 90 dagarna (verkliga Wix-ordrar via lib/popularity).
+  // Driver "Populärast" och väger tyngst i "Rekommenderat". 0 = ingen försäljning
+  // (eller orderdata otillgänglig — sorteringen faller då tillbaka på nyhet).
+  popularity: number;
 };
 
 // Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas. Utbruten
@@ -290,6 +295,8 @@ function mapProduct(p: any): Product {
     updatedAt: Date.parse(p.updatedDate || p._updatedDate || p.lastUpdated || "") || 0,
     imageScore: imageScoreOf(pid),
     imageFlags: imageRecordOf(pid)?.flags ?? [],
+    popularity: 0, // fylls i av fetchProducts (getSoldUnits) — 0 tills dess
+
     variants,
     collectionIds: p.collectionIds || [],
     name: p.name || "",
@@ -415,6 +422,7 @@ const FALLBACK_PRODUCTS: Product[] = (local as Array<Record<string, unknown>>)
     inStock: p.inStock !== false,
     imageScore: 0,
     imageFlags: [],
+    popularity: 0,
   }))
   .filter((p) => p.slug && p.img);
 
@@ -440,6 +448,12 @@ async function fetchProducts(): Promise<Product[]> {
     const byId = new Map<string, Product>();
     for (const p of mapped) if (p.id && !byId.has(p.id)) byId.set(p.id, p);
     const unique = [...byId.values()];
+    // Popularitet (verkliga ordrar, 90 d) → "Populärast"/"Rekommenderat".
+    // Fail-open: otillgänglig orderdata → alla 0 (sorteringen faller på nyhet).
+    try {
+      const sold = await getSoldUnits();
+      if (sold.size) for (const p of unique) p.popularity = sold.get(p.id) ?? 0;
+    } catch { /* popularitet får aldrig fälla produktlistan */ }
     console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
     return unique.length ? unique : FALLBACK_PRODUCTS;
   } catch (e) {
