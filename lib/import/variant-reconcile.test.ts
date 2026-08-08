@@ -164,6 +164,31 @@ describe("reconcileVariantsWithDs", () => {
     expect(r.variants[0].supplierVariantId).toBe("77");
   });
 
+  it("pumpen efter sanering: tvetydiga DS-signaturer (två SKU:er per värde) matchas via skuId", () => {
+    // Saneringen tog bort den tomma Plug-axeln och slog ihop dubbletterna →
+    // 3 skrapade varianter med riktiga skuId:n. DS-listan har kvar alla 6
+    // (Plug EU/US per spänning) → värdesignaturen är TVETYDIG på DS-sidan.
+    // skuId-matchningen ska ändå ge full träff och rätt priser.
+    const scraped = [
+      sv("9001", { Voltage: "60LPM 45W-6m" }, 63.75),
+      sv("9003", { Voltage: "50LPM 22W-4m" }, 63.75),
+      sv("9005", { Voltage: "67LPM 60W-8m" }, 63.75), // uniformt → avstämning triggas
+    ];
+    const ds = [
+      dv("9001", { Voltage: "60LPM 45W-6m", Plug: "EU" }, 63.75),
+      dv("9002", { Voltage: "60LPM 45W-6m", Plug: "US" }, 63.75),
+      dv("9003", { Voltage: "50LPM 22W-4m", Plug: "EU" }, 63.75),
+      dv("9004", { Voltage: "50LPM 22W-4m", Plug: "US" }, 63.75),
+      dv("9005", { Voltage: "67LPM 60W-8m", Plug: "EU" }, 78.75),
+      dv("9006", { Voltage: "67LPM 60W-8m", Plug: "US" }, 78.75),
+    ];
+    const r = reconcileVariantsWithDs(scraped, ds);
+    expect(r.aborted).toBe(false);
+    expect(r.matched).toBe(3);
+    expect(r.ghostsDropped).toBe(0);
+    expect(r.variants.map((v) => v.costUsd)).toEqual([63.75, 63.75, 78.75]); // 67LPM korrigerad
+  });
+
   it("muterar aldrig indata", () => {
     const scraped = [sv("dom-0", { C: "x" }, 5)];
     reconcileVariantsWithDs(scraped, [dv("1", { C: "x" }, 9)]);
@@ -178,4 +203,5 @@ describe("dsPriceReconcileEnabled", () => {
     process.env.DS_PRICE_RECONCILE_ENABLED = "false";
     expect(dsPriceReconcileEnabled()).toBe(false);
   });
+
 });
