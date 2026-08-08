@@ -329,6 +329,16 @@ describe("provinceFromSwedishPostalCode", () => {
     expect(provinceFromSwedishPostalCode("93331")).toBe("Norrbotten"); // Arvidsjaur (Västerbotten-prefix)
   });
 
+  it("folktäta Halland-kommuner under Göteborgs-prefixet 43 (audit 2026-08-08)", () => {
+    expect(provinceFromSwedishPostalCode("43230")).toBe("Halland"); // Varberg
+    expect(provinceFromSwedishPostalCode("43432")).toBe("Halland"); // Kungsbacka
+    expect(provinceFromSwedishPostalCode("43931")).toBe("Halland"); // Onsala
+    expect(provinceFromSwedishPostalCode("43151")).toBe("Vastra Gotaland"); // Mölndal — kvar i VG
+    expect(provinceFromSwedishPostalCode("28531")).toBe("Kronoberg"); // Markaryd (Skåne-prefix)
+    expect(provinceFromSwedishPostalCode("29331")).toBe("Blekinge"); // Olofström
+    expect(provinceFromSwedishPostalCode("29431")).toBe("Blekinge"); // Sölvesborg
+  });
+
   it("undefined för icke-svenska/ogiltiga postnummer", () => {
     expect(provinceFromSwedishPostalCode(undefined)).toBeUndefined();
     expect(provinceFromSwedishPostalCode("")).toBeUndefined();

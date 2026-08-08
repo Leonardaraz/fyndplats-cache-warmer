@@ -241,7 +241,13 @@ const SE_SUBDIVISION_TO_PROVINCE: Record<string, string> = {
 // rätt i praktiken. Namnen matchar AliExpress dropdown (ASCII, som
 // SE_SUBDIVISION_TO_PROVINCE ovan).
 const SE_ZIP3_EXCEPTIONS: Record<string, string> = {
+  "285": "Kronoberg", // Markaryd (Skåne-prefix)
+  "293": "Blekinge", "294": "Blekinge", // Olofström, Sölvesborg (Skåne-prefix)
   "361": "Kalmar", "577": "Kalmar", "579": "Kalmar", "598": "Kalmar",
+  // Kungsbacka-/Varberg-området ligger i HALLAND trots Göteborgs-prefixet 43 —
+  // folktäta kommuner (audit 2026-08-08), inte kuriosa-kantzoner.
+  "430": "Halland", "432": "Halland", "434": "Halland", "439": "Halland",
+  "610": "Sodermanland", // Nyköpings omland (Vrena/Ålberga/Jönåker)
   "611": "Sodermanland", "613": "Sodermanland", "619": "Sodermanland",
   "662": "Vastra Gotaland", "666": "Vastra Gotaland", "668": "Vastra Gotaland",
   "814": "Uppsala", "815": "Uppsala", "819": "Uppsala",
