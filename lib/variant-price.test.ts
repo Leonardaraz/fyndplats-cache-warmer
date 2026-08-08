@@ -113,3 +113,54 @@ test("v3MultiVariantData returnerar null för single-axel (hanteras av v3Variant
   assert.equal(v3MultiVariantData(product), null);
   assert.equal(v3MultiVariantData({ options: [], variantsInfo: { variants: [] } }), null);
 });
+
+// Förvaringskistan 2026-08-08: Storlek-axeln låg FÖRST och dess länkade
+// storlekskort ("100 cm bred") blev kombinationens bild — kunden valde
+// "Mörk Khaki" men såg den vita kistan. Färgen ska äga variantbilden;
+// andra axlars bilder är bara fallback när ingen färgbild finns.
+const chestProduct = {
+  options: [
+    { id: "oS", name: "Storlek", choicesSettings: { choices: [
+      { choiceId: "sM", name: "M", linkedMedia: [{ image: { url: "card-80cm.jpg" } }] },
+      { choiceId: "sL", name: "L", linkedMedia: [{ image: { url: "card-100cm.jpg" } }] },
+    ] } },
+    { id: "oF", name: "Färg", choicesSettings: { choices: [
+      { choiceId: "fK", name: "Mörk Khaki", linkedMedia: [{ image: { url: "khaki.jpg" } }] },
+      { choiceId: "fV", name: "Vit", linkedMedia: [{ image: { url: "white.jpg" } }] },
+    ] } },
+  ],
+  variantsInfo: { variants: [
+    { id: "v-lk", choices: [{ optionChoiceIds: { optionId: "oS", choiceId: "sL" } }, { optionChoiceIds: { optionId: "oF", choiceId: "fK" } }], price: { actualPrice: { amount: "1459" } } },
+    { id: "v-lv", choices: [{ optionChoiceIds: { optionId: "oS", choiceId: "sL" } }, { optionChoiceIds: { optionId: "oF", choiceId: "fV" } }], price: { actualPrice: { amount: "1459" } } },
+  ] },
+};
+
+test("färgens bild vinner över tidigare axels bild (förvaringskistan: Storlek × Färg)", () => {
+  const r = v3MultiVariantData(chestProduct);
+  assert.ok(r);
+  const lk = r.table.find((t) => t.variantId === "v-lk");
+  assert.equal(lk.image, "khaki.jpg"); // INTE card-100cm.jpg (storlekskortet)
+  const lv = r.table.find((t) => t.variantId === "v-lv");
+  assert.equal(lv.image, "white.jpg");
+});
+
+test("utan färg-axel gäller första-bild-fallbacken (Längd × Typ-produkter)", () => {
+  const noColor = {
+    options: [
+      { id: "oL", name: "Längd", choicesSettings: { choices: [
+        { choiceId: "l1", name: "2 m", linkedMedia: [{ image: { url: "2m.jpg" } }] },
+      ] } },
+      { id: "oT", name: "Typ", choicesSettings: { choices: [
+        { choiceId: "t1", name: "Enkel" },
+        { choiceId: "t2", name: "Dubbel" },
+      ] } },
+    ],
+    variantsInfo: { variants: [
+      { id: "v1", choices: [{ optionChoiceIds: { optionId: "oL", choiceId: "l1" } }, { optionChoiceIds: { optionId: "oT", choiceId: "t1" } }], price: { actualPrice: { amount: "500" } } },
+      { id: "v2", choices: [{ optionChoiceIds: { optionId: "oL", choiceId: "l1" } }, { optionChoiceIds: { optionId: "oT", choiceId: "t2" } }], price: { actualPrice: { amount: "600" } } },
+    ] },
+  };
+  const r = v3MultiVariantData(noColor);
+  assert.ok(r);
+  assert.equal(r.table[0].image, "2m.jpg");
+});
