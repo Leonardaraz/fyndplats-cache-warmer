@@ -20,6 +20,11 @@ import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
 import { buildTranslatorFromBase, translateValue, unresolvedAxisNames } from "./variant-translations";
 import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
+import {
+  dsPriceReconcileEnabled,
+  needsDsPriceReconcile,
+  reconcileVariantsWithDs,
+} from "./variant-reconcile";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
   addProductToCollection,
@@ -273,11 +278,51 @@ export async function importProduct(
   // bort redan FÖRE översättningen — så AI-fallbacken aldrig betalar för värden
   // som ändå inte når butiken, och så options/cap/create nedan bara ser de valda.
   // Legacy (skapa avbockade som dolda): IMPORT_KEEP_DESELECTED_VARIANTS=true.
-  const sourceVariants = keepDeselectedVariants()
+  let sourceVariants = keepDeselectedVariants()
     ? product.variants
     : product.variants.filter((v) => v.included);
   if (sourceVariants.filter((v) => v.included).length === 0) {
     throw new Error("Inga varianter valda för import.");
+  }
+  // Memoiserat DS-anrop: prisavstämningen, variantbild- OCH beskrivnings-
+  // backfillen kan alla behöva DS-produkten — då hämtas den bara EN gång.
+  let dsProductPromise: ReturnType<typeof getProduct> | undefined;
+  const getProductOnce = (id: string) => (dsProductPromise ??= getProduct(id));
+
+  // DS-PRISAVSTÄMNING (Leonards fynd 2026-08-07): DOM-fallbacken i skrapan
+  // sätter sidans synliga pris på ALLA varianter (dom-N-id:n) — dyrare
+  // varianter blir underprisade, mappningen saknar riktiga skuId:n och
+  // kartesiska spökvarianter kan uppstå. Stäm av mot DS-API:t (facit) INNAN
+  // översättning/prissättning. Konservativ (<50 % match → orört) och
+  // fail-open — ett API-fel får aldrig fälla importen; då gäller skrapans
+  // data precis som innan, och unifoma priser flaggas enbart i loggen.
+  if (
+    dsPriceReconcileEnabled() &&
+    needsDsPriceReconcile(sourceVariants) &&
+    /^\d{6,}$/.test(String(product.supplierProductId || ""))
+  ) {
+    try {
+      const ds = await getProductOnce(product.supplierProductId);
+      const rec = reconcileVariantsWithDs(sourceVariants, ds.variants ?? []);
+      if (!rec.aborted) {
+        sourceVariants = rec.variants;
+        console.log(
+          `[import:price-reconcile] pid=${product.supplierProductId} DS-avstämning: ` +
+            `${rec.matched} matchade, ${rec.pricesCorrected} priser korrigerade, ` +
+            `${rec.idsRepaired} id reparerade, ${rec.ghostsDropped} spökvarianter borttagna.`,
+        );
+      } else {
+        console.warn(
+          `[import:price-reconcile] pid=${product.supplierProductId} avstämning AVBRUTEN ` +
+            `(för osäker matchning) — skrapade varianter används orörda. KONTROLLERA PRISERNA.`,
+        );
+      }
+    } catch (err) {
+      console.warn(
+        `[import:price-reconcile] pid=${product.supplierProductId} DS-uppslag misslyckades: ` +
+          `${err instanceof Error ? err.message.slice(0, 160) : String(err)} — skrapade priser används.`,
+      );
+    }
   }
   // LAGER 0 — manuella variantnamn från importverktyget (variantNameOverrides):
   // Leonard kan döpa värden själv FÖRE importen (enda tillfället — Wix V3
@@ -319,11 +364,6 @@ export async function importProduct(
   // bilderna från DS-produkt-API:t (sku_image), matchat på SKU-id, med skrapans råa
   // namn. Hoppar API-anropet helt när skrapan redan gav swatch-bilder → ingen extra
   // kostnad/regression. Best-effort — fäller aldrig importen.
-  // Memoiserat DS-anrop: variantbild- OCH beskrivnings-backfillen kan båda behöva
-  // DS-produkten — då hämtas den bara EN gång per import.
-  let dsProductPromise: ReturnType<typeof getProduct> | undefined;
-  const getProductOnce = (id: string) => (dsProductPromise ??= getProduct(id));
-
   let effectiveSwatchImages = product.swatchImages;
   if (variantImageBackfillEnabled() && needsSwatchBackfill(product)) {
     const backfilled = await enrichSwatchImagesFromApi(product, { getProduct: getProductOnce });

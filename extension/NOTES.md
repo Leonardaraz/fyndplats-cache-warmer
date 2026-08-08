@@ -43,6 +43,16 @@ supplierProductId-spärren (PR #369) också kliver åt sidan när den landat.
 Importer landar ALLTID som utkast i granskningskön (pending_review) — inget
 når butiken utan publicering.
 
+## Per-variant-priser vid DOM-fallback (0.1.34)
+
+Nya PC-sidan saknar ofta inbäddad SKU-JSON → skrapan bygger varianter ur DOM:en
+med SIDANS synliga pris på ALLA varianter (dom-N-id:n). Popupen hämtar då
+automatiskt per-SKU-facit via DS-API:t och byter ut listan innan import
+("Per-variant-priser & lager hämtade…"). Servern gör dessutom SAMMA avstämning
+vid varje import (env-switch `DS_PRICE_RECONCILE_ENABLED`, default på) — den
+korrigerar priser, reparerar dom-id:n till riktiga skuId:n och släpper
+kartesiska spökvarianter. Agent-/bulkvägen skyddas alltså även utan popupen.
+
 ## Manuella variantnamn (0.1.32)
 
 Popupen har sektionen **"✏️ Variantnamn i butiken"** under variantlistan: ett

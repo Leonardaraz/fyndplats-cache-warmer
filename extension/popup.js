@@ -289,6 +289,11 @@ async function load() {
     if (product.extractionOk) {
       sampleColors();
       checkSupplierStatus();
+      // DOM-fallback-varianter (dom-/idx-id) bär sidans synliga pris på ALLA
+      // varianter — hämta riktiga per-SKU-priser så listan visar sanningen.
+      if (product.variants.some((v) => /^(dom-|idx-)/.test(String(v.supplierVariantId || "")))) {
+        void refreshVariantPricesViaDsApi();
+      }
     } else {
       // Skrapan misslyckades (nya PC-sidan saknar ofta inbäddad SKU-JSON och
       // byter pris-markup mellan A/B-varianter) → försök API-räddningen.
@@ -361,6 +366,44 @@ async function rescueViaDsApi() {
       "err",
     );
   }
+}
+
+/**
+ * Pris-verifiering när skrapan föll på DOM-fallbacken (dom-/idx-varianter):
+ * sidan visar bara den VALDA variantens pris, så alla varianter fick samma
+ * costUsd — dyrare varianter skulle underprisas rejält. Hämta per-SKU-facit
+ * via DS-API:t och ersätt variantlistan INNAN Leonard hinner bocka/importera.
+ * Servern gör samma avstämning vid import (fail-open där med), men här ser
+ * Leonard dessutom rätt priser i listan när han väljer marginal.
+ * Best-effort: misslyckas uppslaget behålls DOM-varianterna + skrapans varning.
+ */
+async function refreshVariantPricesViaDsApi() {
+  const id = String((product && product.supplierProductId) || "");
+  if (!/^\d{6,}$/.test(id)) return;
+  const res = await sendMessageAsync({ type: "DS_PRODUCT", productId: id });
+  const ds = res && res.ok && res.data;
+  const dsVariants = (ds && Array.isArray(ds.variants) ? ds.variants : []).filter(
+    (v) => Number(v.costUsd) > 0,
+  );
+  if (!dsVariants.length) {
+    setStatus(
+      "OBS: kunde inte verifiera per-variant-priserna via AliExpress-API:t — " +
+        "alla varianter visar sidans baspris. Kontrollera priserna extra noga.",
+      "warn",
+    );
+    return;
+  }
+  // API:t är facit för varianter/pris/lager; skrapans media/copy behålls.
+  product.variants = dsVariants;
+  if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
+    product.shipsFrom = [...new Set([...(product.shipsFrom || []), ...ds.shipsFrom])].sort();
+  }
+  const stocks = dsVariants.map((v) => v.stock).filter((s) => typeof s === "number");
+  if (stocks.length) product.inStock = stocks.some((s) => s > 0);
+  // DOM-varningen om baspris är åtgärdad — rensa så den inte skrämmer i onödan.
+  product._warnings = (product._warnings || []).filter((w) => !/baspriset/.test(w));
+  render();
+  setStatus("Per-variant-priser & lager hämtade via AliExpress-API:t.", "ok");
 }
 
 // Hämtar säljarens score/status (Feature 6) och visar en varning före import:
