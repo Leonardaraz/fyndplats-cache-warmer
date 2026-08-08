@@ -306,6 +306,12 @@ export async function importProduct(
       const rec = reconcileVariantsWithDs(sourceVariants, ds.variants ?? []);
       if (!rec.aborted) {
         sourceVariants = rec.variants;
+        // Spegla även på product.variants (audit 2026-08-08): variantbild-
+        // backfillen (enrichSwatchImagesFromApi) matchar DS sku_image på
+        // product.variants[].supplierVariantId — utan spegeln ser den kvar de
+        // syntetiska dom-id:na och missar per-variant-bilderna för exakt de
+        // produkter som behövde räddningen.
+        product.variants = rec.variants;
         console.log(
           `[import:price-reconcile] pid=${product.supplierProductId} DS-avstämning: ` +
             `${rec.matched} matchade, ${rec.pricesCorrected} priser korrigerade, ` +
