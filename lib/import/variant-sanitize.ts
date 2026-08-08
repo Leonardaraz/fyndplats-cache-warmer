@@ -17,6 +17,21 @@
 // för kunden än en import som fäller sig själv. Orderflödet mappar den kvar-
 // hållna variantens skuId som vanligt.
 
+// Tecken som är OSYNLIGA men som String.trim() INTE tar bort: Unicode-
+// formattecken (Cf: zero-width space, LTR/RTL-markörer, soft hyphen, BOM …)
+// och kontrolltecken (Cc utanför \s-mängden). AE-sidor strör LRM/RLM i
+// variantetiketter och bild-swatchar utan text kan ge rena ZWSP-värden. Wix
+// normaliserar serverside och ser längd 0 → 400 "name has size 0" — trots att
+// värdet passerade en naiv .trim()-koll. (Batch-fyndet 2026-08-08: två
+// produkter föll EFTER #378 exakt så här.)
+const INVISIBLE_ONLY_RE = /^[\p{Cc}\p{Cf}\p{Zs}\p{Zl}\p{Zp}]*$/u;
+
+/** Sant när strängen saknar synligt innehåll: tom, whitespace, eller enbart
+ *  format-/kontrolltecken som .trim() släpper igenom men Wix räknar som tomma. */
+export function isEffectivelyEmpty(s: string): boolean {
+  return INVISIBLE_ONLY_RE.test(String(s ?? ""));
+}
+
 export interface SanitizeResult<V> {
   variants: V[];
   /** Axlar som togs bort för att de bar tomma värden (eller själva saknade namn). */
@@ -28,11 +43,12 @@ export interface SanitizeResult<V> {
 export function sanitizeVariantOptions<
   V extends { options: Record<string, string>; included: boolean },
 >(variants: ReadonlyArray<V>): SanitizeResult<V> {
-  // 1. Hitta ogiltiga axlar: tomt/whitespace-namn ELLER minst ett tomt värde.
+  // 1. Hitta ogiltiga axlar: effektivt tomt namn ELLER minst ett effektivt tomt
+  //    värde (inkl. osynliga format-/kontrolltecken som .trim() missar).
   const badAxes = new Set<string>();
   for (const v of variants) {
     for (const [axis, val] of Object.entries(v.options ?? {})) {
-      if (!axis.trim() || !String(val ?? "").trim()) badAxes.add(axis);
+      if (isEffectivelyEmpty(axis) || isEffectivelyEmpty(String(val ?? ""))) badAxes.add(axis);
     }
   }
   if (badAxes.size === 0) {

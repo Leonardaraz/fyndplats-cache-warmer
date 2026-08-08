@@ -719,7 +719,28 @@ export async function importProduct(
   // behåller ALLTID de valda (included) varianternas värden och håller
   // options↔varianter konsistenta. Hårdfaller aldrig → kapad produkt flaggas
   // för polering (needsAiPolish nedan).
-  const cap = capOptionsAndVariants(deriveOptions(prunedVariants, translatedColorCodes), prunedVariants);
+  // PAYLOAD-VAKT (batch-fyndet 2026-08-08): saneringen körs en ANDRA gång på de
+  // FÄRDIGÖVERSATTA varianterna, precis innan options härleds. Första passet ser
+  // bara råvärdena — skulle något mellansteg (översättning, remap, trim) lämna
+  // ett effektivt tomt värde vidare är detta sista utposten före Wix-payloaden.
+  // Samma felklass som #378 men senare i kedjan: hellre en borttagen axel + en
+  // flaggad produkt än ett create-product-400 som fäller hela importen.
+  let wixReadyVariants = prunedVariants;
+  let payloadGuardTriggered = false;
+  {
+    const guard = sanitizeVariantOptions(prunedVariants);
+    if (guard.removedAxes.length > 0) {
+      wixReadyVariants = guard.variants;
+      payloadGuardTriggered = true;
+      console.warn(
+        `[import:payload-guard] pid=${product.supplierProductId} effektivt tomma variantvärden ` +
+          `överlevde till payload-steget — axlar borttagna: ` +
+          `${guard.removedAxes.map((a) => JSON.stringify(a)).join(", ")}; ` +
+          `${guard.mergedDuplicates} dubblettvarianter sammanslagna. Produkten flaggas för granskning.`,
+      );
+    }
+  }
+  const cap = capOptionsAndVariants(deriveOptions(wixReadyVariants, translatedColorCodes), wixReadyVariants);
   const options = cap.options;
   const wixVariantSource = cap.variants;
   if (cap.capped) {
@@ -1043,7 +1064,9 @@ export async function importProduct(
     hasEuWarehouse,
     warehouseClass,
     ...(created.slugSuffix ? { slugSuffix: created.slugSuffix } : {}),
-    ...((!aiEnabled || variantsNeedPolish || cap.capped) ? { needsAiPolish: true } : {}),
+    ...((!aiEnabled || variantsNeedPolish || cap.capped || payloadGuardTriggered)
+      ? { needsAiPolish: true }
+      : {}),
     ...(translatorResult.unresolved.length > 0
       ? { unresolvedVariantValues: translatorResult.unresolved }
       : {}),
