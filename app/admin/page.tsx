@@ -1,6 +1,7 @@
 // Admin-vy: konfigurationsstatus + översikt av fulfillment-tasks.
 // Läser lagringen direkt server-side (ingen HTTP/token behövs här).
 import { getStore } from "@/lib/store/factory";
+import { provinceFromSwedishPostalCode } from "@/lib/orders/tasks";
 import type { TaskStatus } from "@/lib/orders/types";
 import { paymentFeeFromEnv, pricingConfigFromEnv } from "@/lib/config";
 import { summarizeProductProfit } from "@/lib/analytics/profit";
@@ -140,18 +141,28 @@ export default async function AdminPage() {
                     Variant: {Object.entries(t.variantChoices).map(([k, v]) => `${k}: ${v}`).join(", ")}
                   </div>
                 ) : null}
-                {a && a.addressLine1 && a.city && a.postalCode && a.province ? (
-                  <div style={{ fontSize: 13, color: "#666" }}>
-                    Skickas till: {a.fullName}, {a.addressLine1}
-                    {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {a.province}, {a.country}
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 13, color: "#b45309" }}>
-                    ⚠️ Ofullständig leveransadress
-                    {a ? `: ${[a.fullName, a.addressLine1, a.postalCode, a.city, a.province, a.country].filter(Boolean).join(", ")}` : ""}
-                    {a && !a.province ? " (saknar län/region — AliExpress kräver det)" : ""} — komplettera med “Ändra adress” innan du lägger ordern.
-                  </div>
-                )}
+                {(() => {
+                  // Länet självläker vid orderläggning (postnummer → län för SE) —
+                  // visa det härledda värdet i stället för att varna i onödan.
+                  const province =
+                    a?.province ??
+                    ((!a?.country || /^se$/i.test(a.country.trim()))
+                      ? provinceFromSwedishPostalCode(a?.postalCode)
+                      : undefined);
+                  return a && a.addressLine1 && a.city && a.postalCode && province ? (
+                    <div style={{ fontSize: 13, color: "#666" }}>
+                      Skickas till: {a.fullName}, {a.addressLine1}
+                      {a.addressLine2 ? `, ${a.addressLine2}` : ""}, {a.postalCode} {a.city}, {province}
+                      {!a.province ? " (län härlett från postnumret)" : ""}, {a.country}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 13, color: "#b45309" }}>
+                      ⚠️ Ofullständig leveransadress
+                      {a ? `: ${[a.fullName, a.addressLine1, a.postalCode, a.city, province, a.country].filter(Boolean).join(", ")}` : ""}
+                      {a && !province ? " (saknar län/region — AliExpress kräver det)" : ""} — komplettera med “Ändra adress” innan du lägger ordern.
+                    </div>
+                  );
+                })()}
                 <EditAddressClient taskId={t.taskId} address={t.shippingAddress} />
                 {/* Prisjämförelse FÖRE beslutet: DS-API:t kan aldrig få kampanj-
                     priser/kuponger — är produktsidan billigare beställer Leonard

@@ -71,6 +71,21 @@ const ProductSchema = z.object({
   // Per-val bild-URL:er { [optionName]: { [choiceName]: "https://…alicdn.jpg" } }.
   // Laddas upp + kopplas till Wix-optionsval (linkedMedia) → huvudbild byts vid färgval.
   swatchImages: z.record(z.record(z.string())).optional(),
+  // Manuella variantnamn från verktyget: { [rått optionsvärde]: "Svenskt namn" }.
+  // Vinner över hela översättningskedjan — namnet key-låses i Wix V3 vid skapandet
+  // och kan aldrig ändras i efterhand utan att variantmappningen går sönder.
+  // Max 60 tecken per namn (samma tak som verktyget) och max 100 poster (en
+  // produkt har aldrig fler distinkta optionsvärden än så efter variant-cappen).
+  variantNameOverrides: z
+    .record(z.string().max(160), z.string().min(1).max(60))
+    .refine((o) => Object.keys(o).length <= 100, "för många variantnamn")
+    .optional(),
+  // Manuella AXELNAMN ({ "Color": "Kulör" }) — samma lager 0 som värdena ovan.
+  // En produkt har aldrig fler än en handfull axlar → 20 räcker med marginal.
+  axisNameOverrides: z
+    .record(z.string().max(80), z.string().min(1).max(60))
+    .refine((o) => Object.keys(o).length <= 20, "för många axelnamn")
+    .optional(),
   // Säljardata (Feature 6 — säljar-score). supplierId obligatoriskt om fältet
   // skickas; övriga AE-fält valfria. Saknas helt = säljaren kunde inte skrapas.
   // Utökade fält (bug 2026-06-02): positiveFeedbackPct, yearsOnAE, topBrand
@@ -108,9 +123,12 @@ const ProductSchema = z.object({
   // Per-import-prisoverride (extension-dropdownen "Marginal-tier" → Premium/Custom).
   // Saknas = default-tier via FyndplatsPricingConfig (bakåtkompatibelt). Vinner
   // över default-/kategori-/intervallregeln för just den här importen.
+  // Multiplier-gränserna speglar verktygets feltrycks-clamp (0.1–50, fri marginal
+  // 2026-08-06) — det gamla taket 1–5 gav 422 "Valideringsfel" för t.ex. 8× på
+  // billiga produkter trots att popupen tillät värdet.
   pricingOverride: z
     .object({
-      multiplier: z.number().min(1).max(5),
+      multiplier: z.number().min(0.1).max(50),
       floorSek: z.number().nonnegative().optional(),
       ceilingSek: z.number().positive().optional(),
     })

@@ -18,8 +18,13 @@ import { rankProductImages } from "./image-rank";
 import type { FaqReviewHint } from "./faq-gen";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
-import { buildVariantTranslator, unresolvedAxisNames } from "./variant-translations";
+import { buildTranslatorFromBase, translateValue, unresolvedAxisNames } from "./variant-translations";
 import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
+import {
+  dsPriceReconcileEnabled,
+  needsDsPriceReconcile,
+  reconcileVariantsWithDs,
+} from "./variant-reconcile";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
   addProductToCollection,
@@ -273,19 +278,102 @@ export async function importProduct(
   // bort redan FÖRE översättningen — så AI-fallbacken aldrig betalar för värden
   // som ändå inte når butiken, och så options/cap/create nedan bara ser de valda.
   // Legacy (skapa avbockade som dolda): IMPORT_KEEP_DESELECTED_VARIANTS=true.
-  const sourceVariants = keepDeselectedVariants()
+  let sourceVariants = keepDeselectedVariants()
     ? product.variants
     : product.variants.filter((v) => v.included);
   if (sourceVariants.filter((v) => v.included).length === 0) {
     throw new Error("Inga varianter valda för import.");
   }
+  // Memoiserat DS-anrop: prisavstämningen, variantbild- OCH beskrivnings-
+  // backfillen kan alla behöva DS-produkten — då hämtas den bara EN gång.
+  let dsProductPromise: ReturnType<typeof getProduct> | undefined;
+  const getProductOnce = (id: string) => (dsProductPromise ??= getProduct(id));
+
+  // DS-PRISAVSTÄMNING (Leonards fynd 2026-08-07): DOM-fallbacken i skrapan
+  // sätter sidans synliga pris på ALLA varianter (dom-N-id:n) — dyrare
+  // varianter blir underprisade, mappningen saknar riktiga skuId:n och
+  // kartesiska spökvarianter kan uppstå. Stäm av mot DS-API:t (facit) INNAN
+  // översättning/prissättning. Konservativ (<50 % match → orört) och
+  // fail-open — ett API-fel får aldrig fälla importen; då gäller skrapans
+  // data precis som innan, och unifoma priser flaggas enbart i loggen.
+  if (
+    dsPriceReconcileEnabled() &&
+    needsDsPriceReconcile(sourceVariants) &&
+    /^\d{6,}$/.test(String(product.supplierProductId || ""))
+  ) {
+    try {
+      const ds = await getProductOnce(product.supplierProductId);
+      const rec = reconcileVariantsWithDs(sourceVariants, ds.variants ?? []);
+      if (!rec.aborted) {
+        sourceVariants = rec.variants;
+        // Spegla även på product.variants (audit 2026-08-08): variantbild-
+        // backfillen (enrichSwatchImagesFromApi) matchar DS sku_image på
+        // product.variants[].supplierVariantId — utan spegeln ser den kvar de
+        // syntetiska dom-id:na och missar per-variant-bilderna för exakt de
+        // produkter som behövde räddningen.
+        product.variants = rec.variants;
+        console.log(
+          `[import:price-reconcile] pid=${product.supplierProductId} DS-avstämning: ` +
+            `${rec.matched} matchade, ${rec.pricesCorrected} priser korrigerade, ` +
+            `${rec.idsRepaired} id reparerade, ${rec.ghostsDropped} spökvarianter borttagna.`,
+        );
+      } else {
+        console.warn(
+          `[import:price-reconcile] pid=${product.supplierProductId} avstämning AVBRUTEN ` +
+            `(för osäker matchning) — skrapade varianter används orörda. KONTROLLERA PRISERNA.`,
+        );
+      }
+    } catch (err) {
+      console.warn(
+        `[import:price-reconcile] pid=${product.supplierProductId} DS-uppslag misslyckades: ` +
+          `${err instanceof Error ? err.message.slice(0, 160) : String(err)} — skrapade priser används.`,
+      );
+    }
+  }
+  // LAGER 0 — manuella variantnamn från importverktyget (variantNameOverrides):
+  // Leonard kan döpa värden själv FÖRE importen (enda tillfället — Wix V3
+  // key-låser namnet vid skapandet). Kartan filtreras mot de faktiska råvärdena
+  // så en förlegad/felskickad nyckel aldrig gör något, och trimmas/cappas med
+  // samma 60-teckensgräns som API-schemat. Manuella namn vinner över tabell,
+  // cache och AI i BÅDA lägena nedan.
+  const manualNames = new Map<string, string>();
+  if (product.variantNameOverrides) {
+    const rawVals = new Set<string>();
+    for (const v of sourceVariants) for (const val of Object.values(v.options ?? {})) rawVals.add(val);
+    for (const [raw, name] of Object.entries(product.variantNameOverrides)) {
+      const trimmed = typeof name === "string" ? name.trim().slice(0, 60) : "";
+      if (trimmed && rawVals.has(raw)) manualNames.set(raw, trimmed);
+    }
+  }
+  // Samma lager 0 för AXELNAMN (axisNameOverrides): filtreras mot produktens
+  // faktiska rå-axlar så en förlegad nyckel aldrig gör något.
+  const manualAxisNames = new Map<string, string>();
+  if (product.axisNameOverrides) {
+    const rawAxes = new Set<string>();
+    for (const v of sourceVariants) for (const axis of Object.keys(v.options ?? {})) rawAxes.add(axis);
+    for (const [raw, name] of Object.entries(product.axisNameOverrides)) {
+      const trimmed = typeof name === "string" ? name.trim().slice(0, 60) : "";
+      if (trimmed && rawAxes.has(raw)) manualAxisNames.set(raw, trimmed);
+    }
+  }
   const translatorResult = variantAiTranslationEnabled(flags)
-    ? await buildVariantTranslatorAI(sourceVariants, { productTitle: product.rawTitle })
+    ? await buildVariantTranslatorAI(sourceVariants, {
+        productTitle: product.rawTitle,
+        valueOverrides: manualNames,
+        axisNameOverrides: manualAxisNames,
+      })
     : (() => {
         // Sync-läge (VARIANT_AI av): inga AI-anrop, men flagga ändå produkten om en
         // axel blev kvar med ett rått engelskt namn (tabell-miss) → ingen produkt
-        // skeppas halv-engelsk ens i hård-$0-läget.
-        const t = buildVariantTranslator(sourceVariants);
+        // skeppas halv-engelsk ens i hård-$0-läget. Manuella namn går före tabellen
+        // (samma lager 0 som AI-vägen); kollisions-säkerheten är identisk.
+        const t = buildTranslatorFromBase(
+          sourceVariants,
+          (raw) => manualNames.get(raw) ?? translateValue(raw),
+          undefined,
+          undefined,
+          manualAxisNames,
+        );
         return { translator: t, unresolved: unresolvedAxisNames(t) };
       })();
   const translator = translatorResult.translator;
@@ -300,11 +388,6 @@ export async function importProduct(
   // bilderna från DS-produkt-API:t (sku_image), matchat på SKU-id, med skrapans råa
   // namn. Hoppar API-anropet helt när skrapan redan gav swatch-bilder → ingen extra
   // kostnad/regression. Best-effort — fäller aldrig importen.
-  // Memoiserat DS-anrop: variantbild- OCH beskrivnings-backfillen kan båda behöva
-  // DS-produkten — då hämtas den bara EN gång per import.
-  let dsProductPromise: ReturnType<typeof getProduct> | undefined;
-  const getProductOnce = (id: string) => (dsProductPromise ??= getProduct(id));
-
   let effectiveSwatchImages = product.swatchImages;
   if (variantImageBackfillEnabled() && needsSwatchBackfill(product)) {
     const backfilled = await enrichSwatchImagesFromApi(product, { getProduct: getProductOnce });

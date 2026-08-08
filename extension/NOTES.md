@@ -25,12 +25,52 @@ window.addEventListener("message", (e) => {
   if (e.data?.type === "FP_IMPORT_RESULT") console.log(e.data); // { ok, wixProductId?, error?, duplicates? }
   if (e.data?.type === "FP_IMPORT_STATUS") console.log(e.data.text);
 });
+
+// Valfritt: sätt variantnamnen själv (0.1.32+). Nyckel = RÅTT optionsvärde
+// exakt som sidan visar det; värde = namnet som key-låses i Wix (max 60 tecken).
+// Utelämnade värden auto-översätts som vanligt.
+window.postMessage({
+  type: "FP_IMPORT",
+  requestId: 3,
+  variantNames: { "Polar Night Black": "Polarsvart", "chameleon": "Kameleont" },
+}, "*");
 ```
 
 Samma flöde som popupen inkl. DS-API-räddningen OCH dubblettgrinden (popupens
 modal ersätts av ett stopp med `duplicates` — gå förbi med `force: true`).
+`force` skickar även `allowDuplicate: true` till servern så den hårda
+supplierProductId-spärren (PR #369) också kliver åt sidan när den landat.
 Importer landar ALLTID som utkast i granskningskön (pending_review) — inget
 når butiken utan publicering.
+
+## Per-variant-priser vid DOM-fallback (0.1.34)
+
+Nya PC-sidan saknar ofta inbäddad SKU-JSON → skrapan bygger varianter ur DOM:en
+med SIDANS synliga pris på ALLA varianter (dom-N-id:n). Popupen hämtar då
+automatiskt per-SKU-facit via DS-API:t och byter ut listan innan import
+("Per-variant-priser & lager hämtade…"). Servern gör dessutom SAMMA avstämning
+vid varje import (env-switch `DS_PRICE_RECONCILE_ENABLED`, default på) — den
+korrigerar priser, reparerar dom-id:n till riktiga skuId:n och släpper
+kartesiska spökvarianter. Agent-/bulkvägen skyddas alltså även utan popupen.
+
+## Manuella AXELNAMN (0.1.35)
+
+Varje axelrubrik i "✏️ Variantnamn"-sektionen har ett eget namnfält — "Color"/
+"Size" kan döpas om (t.ex. "Kulör"/"Antal") innan importen, precis som värdena.
+Skickas som `axisNameOverrides`; agent-läget skickar `axisNames` i FP_IMPORT:
+`{ type: "FP_IMPORT", axisNames: { "Color": "Kulör" } }`. Frakt-axlar ("Ships
+From") visas inte längre i sektionen — de är inga döpbara valaxlar.
+
+## Manuella variantnamn (0.1.32)
+
+Popupen har sektionen **"✏️ Variantnamn i butiken"** under variantlistan: ett
+textfält per unikt optionsvärde (grupperat per axel). Det du skriver blir
+variantens **permanenta** namn i Wix — V3 key-låser `choice.name` när produkten
+skapas, så namn kan aldrig ändras i efterhand utan att variantmappningen går
+sönder. Tomt fält = automatisk svensk översättning (tabell → cache → Haiku)
+precis som förut. Manuella namn betros av svenskhets-grinden (hamnar aldrig i
+poleringskön) och kostar $0. Skickas som `variantNameOverrides` i payloaden;
+agent-läget skickar samma sak via `variantNames` (se ovan).
 
 ## Ladda om tillägget efter en kodändring (detaljer)
 

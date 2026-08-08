@@ -501,6 +501,133 @@ describe("buildVariantTranslatorAI — AI namnger felmärkta 'Color'-axlar", () 
   });
 });
 
+// Manuella variantnamn från importverktyget (LAGER 0, 2026-08-07): Leonard
+// döper värden själv i popupen FÖRE importen — enda tillfället, eftersom Wix V3
+// key-låser choice.name vid skapandet. Överridet ska vinna över allt, kosta $0
+// och aldrig hamna i poleringskön.
+describe("buildVariantTranslatorAI · valueOverrides (manuella namn)", () => {
+  it("vinner över statiska tabellen", async () => {
+    const { translator } = await buildVariantTranslatorAI([{ options: { Color: "Red" } }], {
+      translateBatch: vi.fn(async () => ({})),
+      valueOverrides: new Map([["Red", "Eldröd"]]),
+    });
+    // Tabellen hade sagt "Röd" — det manuella namnet vinner.
+    expect(translator.options({ Color: "Red" })).toEqual({ Färg: "Eldröd" });
+  });
+
+  it("skickas aldrig till AI och hamnar aldrig i unresolved", async () => {
+    const translateBatch = vi.fn(async (vals: string[]) => {
+      const out: Record<string, string> = {};
+      for (const v of vals) if (v === "Glow") out[v] = "Glöd";
+      return out;
+    });
+    const variants = [
+      { options: { Effect: "Glow" } },
+      { options: { Effect: "Polar Night Black" } },
+    ];
+    const { translator, unresolved } = await buildVariantTranslatorAI(variants, {
+      translateBatch,
+      valueOverrides: new Map([["Polar Night Black", "Polarsvart"]]),
+    });
+    // Bara det icke-överridade värdet går till Haiku.
+    expect(translateBatch.mock.calls[0][0]).toEqual(["Glow"]);
+    expect(translator.options({ Effect: "Polar Night Black" })).toEqual({ Effekt: "Polarsvart" });
+    expect(unresolved).toEqual([]);
+  });
+
+  it("betros av svenskhets-grinden (skickas inte dit), övriga slutvärden granskas som vanligt", async () => {
+    const verifySwedish = vi.fn(async (vals: string[]) => vals.filter((v) => v === "Chameleon"));
+    const { unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Color: "Tungsten steel color" } }, { options: { Color: "Chameleon" } }],
+      {
+        // AI "misslyckas" för Chameleon (eko utan siffror) → värdet står kvar rått
+        // och når grinden; det manuella värdet ska aldrig synas där.
+        translateBatch: vi.fn(async (vals: string[]) => {
+          const out: Record<string, string> = {};
+          for (const v of vals) out[v] = v;
+          return out;
+        }),
+        verifySwedish,
+        valueOverrides: new Map([["Tungsten steel color", "Volframgrå"]]),
+      },
+    );
+    const inspected = verifySwedish.mock.calls.flatMap((c) => c[0]);
+    expect(inspected).not.toContain("Volframgrå");
+    expect(inspected).toContain("Chameleon");
+    expect(unresolved).toContain("Chameleon");
+    expect(unresolved).not.toContain("Tungsten steel color");
+  });
+
+  it("kollisions-säkerheten gäller även manuella namn (två råvärden → samma namn)", async () => {
+    const { translator } = await buildVariantTranslatorAI(
+      [{ options: { Color: "dark blue" } }, { options: { Color: "deep blue" } }],
+      {
+        translateBatch: vi.fn(async () => ({})),
+        valueOverrides: new Map([
+          ["dark blue", "Mörkblå"],
+          ["deep blue", "Mörkblå"],
+        ]),
+      },
+    );
+    const a = translator.options({ Color: "dark blue" }).Färg;
+    const b = translator.options({ Color: "deep blue" }).Färg;
+    expect(a).toBe("Mörkblå");
+    expect(b).not.toBe(a); // särskiljs — annars kollapsar varianterna i Wix
+  });
+});
+
+// Manuella AXELNAMN (Leonards begäran 2026-08-08: "jag kan ändra variantnamnet
+// men inte själva huvudkategori-alternativet 'color' och 'size'").
+describe("buildVariantTranslatorAI · axisNameOverrides (manuella axelnamn)", () => {
+  it("vinner över tabellen ('Color' hade blivit 'Färg') och flaggas aldrig", async () => {
+    const { translator, unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Color: "Red" } }, { options: { Color: "Blue" } }],
+      {
+        translateBatch: vi.fn(async () => ({})),
+        axisNameOverrides: new Map([["Color", "Kulör"]]),
+      },
+    );
+    expect(translator.options({ Color: "Red" })).toEqual({ Kulör: "Röd" });
+    expect(unresolved).toEqual([]);
+  });
+
+  it("skickas aldrig till axel-AI:n och betros av svenskhets-grinden", async () => {
+    const nameAxes = vi.fn(async () => ({}));
+    const verifySwedish = vi.fn(async (_vals: string[]) => [] as string[]);
+    // "Lighting Mode" är en tabell-miss som annars hade gått till axel-AI:n.
+    const { unresolved } = await buildVariantTranslatorAI(
+      [{ options: { "Lighting Mode": "Red" } }, { options: { "Lighting Mode": "Blue" } }],
+      {
+        translateBatch: vi.fn(async () => ({})),
+        nameAxes,
+        verifySwedish,
+        axisNameOverrides: new Map([["Lighting Mode", "Ljusläge"]]),
+      },
+    );
+    expect(nameAxes).not.toHaveBeenCalled();
+    const inspected = verifySwedish.mock.calls.flatMap((c) => c[0]);
+    expect(inspected).not.toContain("Ljusläge");
+    expect(unresolved).toEqual([]);
+  });
+
+  it("kollisions-suffix flaggar även manuellt döpta axlar (suffix är aldrig kund-klart)", async () => {
+    const { translator, unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Color: "Red", "Color Family": "Warm" } }],
+      {
+        translateBatch: vi.fn(async () => ({})),
+        axisNameOverrides: new Map([
+          ["Color", "Färg"],
+          ["Color Family", "Färg"], // krockar med flit
+        ]),
+      },
+    );
+    const names = [...translator.axisNames.values()];
+    expect(new Set(names).size).toBe(2); // särskiljda
+    expect(unresolved.length).toBeGreaterThan(0); // suffix-axeln flaggad
+  });
+});
+
+
 describe("färg-grind: rätt svenska men fel betydelse", () => {
   it("flaggar 'Nät' som färg trots att svenskhets-grinden godkänner ordet", async () => {
     // Åkbilen 2026-08-08: tredje färgen var röd men skeppades som "Nät". Ordet är
@@ -529,5 +656,23 @@ describe("färg-grind: rätt svenska men fel betydelse", () => {
       verifySwedish: async () => [],
     });
     expect(unresolved).not.toContain("Röd");
+  });
+});
+
+describe("färg-grind · LAGER 0", () => {
+  it("rör inte ett manuellt namngivet färgvärde utan färgord", async () => {
+    // Leonard döper värdet med flit i importpopupen — det ska aldrig till kön,
+    // varken via svenskhets-grinden (steg 7) eller färg-grinden (steg 8).
+    const variants: { options: Record<string, string> }[] = [
+      { options: { Färg: "Rosa" } },
+      { options: { Färg: "Vit" } },
+      { options: { Färg: "Mesh" } },
+    ];
+    const { unresolved } = await buildVariantTranslatorAIRaw(variants, {
+      translateBatch: async () => ({}),
+      verifySwedish: async () => [],
+      valueOverrides: new Map([["Mesh", "Nordlys"]]),
+    });
+    expect(unresolved).not.toContain("Nordlys");
   });
 });
