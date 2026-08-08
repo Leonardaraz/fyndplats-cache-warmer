@@ -151,7 +151,13 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
   const table: NonNullable<V3MultiVariantData>["table"] = [];
   for (const v of variants) {
     const choices: Record<string, string> = {};
-    let image = "";
+    // FÄRGEN äger variantbilden (Leonards regel 2026-08-08): på en Storlek × Färg-
+    // produkt låg storleks-axeln först och dess länkade storlekskort blev
+    // kombinationens bild — kunden valde "Mörk Khaki" men såg den vita kistan.
+    // Prioritera därför bilden från en färg-axel; övriga axlars bilder är bara
+    // fallback när ingen färgbild finns (t.ex. Längd × Typ-produkter utan färg).
+    let colorImage = "";
+    let firstImage = "";
     let ok = true;
     for (const ch of v?.choices || []) {
       const oid = ch?.optionChoiceIds?.optionId;
@@ -160,8 +166,13 @@ export function v3MultiVariantData(product: any): V3MultiVariantData {
       const name = o && cid ? o.choiceName[cid] : undefined;
       if (!o || !name) { ok = false; break; }
       choices[o.name] = name;
-      if (!image && cid) image = o.choiceImage[cid] || ""; // första val med bild (typ. färgen)
+      const img = cid ? o.choiceImage[cid] || "" : "";
+      if (img) {
+        if (!colorImage && /färg|color|kulör/i.test(o.name)) colorImage = img;
+        if (!firstImage) firstImage = img;
+      }
     }
+    const image = colorImage || firstImage;
     // Varianten måste täcka ALLA axlar för att kombinationen ska gå att matcha entydigt.
     if (!ok || Object.keys(choices).length !== axes.length) continue;
     const num = Number(v?.price?.actualPrice?.amount);
