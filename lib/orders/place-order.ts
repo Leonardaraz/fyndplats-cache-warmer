@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createOrder, getProduct, OrderValidationError } from "@/lib/aliexpress/client";
-import { normalizeCountryCode } from "@/lib/orders/tasks";
+import { normalizeCountryCode, provinceFromSwedishPostalCode } from "@/lib/orders/tasks";
 import { isTerminal } from "@/lib/orders/status";
 import { assessDsPrice } from "@/lib/orders/price-check";
 import type { Store } from "@/lib/store";
@@ -104,6 +104,13 @@ export async function placeOrderForTask(
       error: `Saknar/ogiltig landskod i leveransadressen ("${a.country ?? ""}") — order avbruten. Kontrollera Wix-ordern.`,
     };
   }
+  // Läns-självläkning (order #10015, 2026-08-08): svenska kassaadresser saknar
+  // ofta län — AliExpress avvisade ordern ("Selecciona un estado/provincia/
+  // región"). Postnumret pekar ut länet deterministiskt → härled vid order-
+  // läggning så även ÄLDRE tasks (skapade före fixen) läker utan att Leonard
+  // behöver "Ändra adress". Bara SE; övriga länder kräver explicit province.
+  const province =
+    a.province ?? (countryCode === "SE" ? provinceFromSwedishPostalCode(a.postalCode) : undefined);
 
   // ── PRISVAKT (garderobs-incidenten 2026-08-06) ──
   // DS-API:t kan aldrig få kampanjpriser/kuponger, så när DS-priset stuckit
@@ -183,7 +190,7 @@ export async function placeOrderForTask(
         addressLine1: a.addressLine1 ?? "",
         addressLine2: a.addressLine2,
         city: a.city ?? "",
-        province: a.province,
+        province,
         postalCode: a.postalCode ?? "",
         countryCode,
         phone: a.phone,
