@@ -94,6 +94,10 @@ async function importProduct(product, featureFlags) {
     ...(product.variantNameOverrides && Object.keys(product.variantNameOverrides).length
       ? { variantNameOverrides: product.variantNameOverrides }
       : {}),
+    // Manuella AXELNAMN ({ "Color": "Kulör" }) — samma lager 0 server-side.
+    ...(product.axisNameOverrides && Object.keys(product.axisNameOverrides).length
+      ? { axisNameOverrides: product.axisNameOverrides }
+      : {}),
     // Medveten dubblett-kringgång (popupens "Importera ändå" / agentens force):
     // låter serverns hårda supplierProductId-spärr (PR #369) kliva åt sidan.
     // Skickas BARA vid uttryckligt val; server utan spärren ignorerar fältet.

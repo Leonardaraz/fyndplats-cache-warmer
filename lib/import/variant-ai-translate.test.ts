@@ -575,3 +575,54 @@ describe("buildVariantTranslatorAI · valueOverrides (manuella namn)", () => {
     expect(b).not.toBe(a); // särskiljs — annars kollapsar varianterna i Wix
   });
 });
+
+// Manuella AXELNAMN (Leonards begäran 2026-08-08: "jag kan ändra variantnamnet
+// men inte själva huvudkategori-alternativet 'color' och 'size'").
+describe("buildVariantTranslatorAI · axisNameOverrides (manuella axelnamn)", () => {
+  it("vinner över tabellen ('Color' hade blivit 'Färg') och flaggas aldrig", async () => {
+    const { translator, unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Color: "Red" } }, { options: { Color: "Blue" } }],
+      {
+        translateBatch: vi.fn(async () => ({})),
+        axisNameOverrides: new Map([["Color", "Kulör"]]),
+      },
+    );
+    expect(translator.options({ Color: "Red" })).toEqual({ Kulör: "Röd" });
+    expect(unresolved).toEqual([]);
+  });
+
+  it("skickas aldrig till axel-AI:n och betros av svenskhets-grinden", async () => {
+    const nameAxes = vi.fn(async () => ({}));
+    const verifySwedish = vi.fn(async (_vals: string[]) => [] as string[]);
+    // "Lighting Mode" är en tabell-miss som annars hade gått till axel-AI:n.
+    const { unresolved } = await buildVariantTranslatorAI(
+      [{ options: { "Lighting Mode": "Red" } }, { options: { "Lighting Mode": "Blue" } }],
+      {
+        translateBatch: vi.fn(async () => ({})),
+        nameAxes,
+        verifySwedish,
+        axisNameOverrides: new Map([["Lighting Mode", "Ljusläge"]]),
+      },
+    );
+    expect(nameAxes).not.toHaveBeenCalled();
+    const inspected = verifySwedish.mock.calls.flatMap((c) => c[0]);
+    expect(inspected).not.toContain("Ljusläge");
+    expect(unresolved).toEqual([]);
+  });
+
+  it("kollisions-suffix flaggar även manuellt döpta axlar (suffix är aldrig kund-klart)", async () => {
+    const { translator, unresolved } = await buildVariantTranslatorAI(
+      [{ options: { Color: "Red", "Color Family": "Warm" } }],
+      {
+        translateBatch: vi.fn(async () => ({})),
+        axisNameOverrides: new Map([
+          ["Color", "Färg"],
+          ["Color Family", "Färg"], // krockar med flit
+        ]),
+      },
+    );
+    const names = [...translator.axisNames.values()];
+    expect(new Set(names).size).toBe(2); // särskiljda
+    expect(unresolved.length).toBeGreaterThan(0); // suffix-axeln flaggad
+  });
+});

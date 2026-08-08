@@ -339,17 +339,35 @@ export async function importProduct(
       if (trimmed && rawVals.has(raw)) manualNames.set(raw, trimmed);
     }
   }
+  // Samma lager 0 för AXELNAMN (axisNameOverrides): filtreras mot produktens
+  // faktiska rå-axlar så en förlegad nyckel aldrig gör något.
+  const manualAxisNames = new Map<string, string>();
+  if (product.axisNameOverrides) {
+    const rawAxes = new Set<string>();
+    for (const v of sourceVariants) for (const axis of Object.keys(v.options ?? {})) rawAxes.add(axis);
+    for (const [raw, name] of Object.entries(product.axisNameOverrides)) {
+      const trimmed = typeof name === "string" ? name.trim().slice(0, 60) : "";
+      if (trimmed && rawAxes.has(raw)) manualAxisNames.set(raw, trimmed);
+    }
+  }
   const translatorResult = variantAiTranslationEnabled(flags)
     ? await buildVariantTranslatorAI(sourceVariants, {
         productTitle: product.rawTitle,
         valueOverrides: manualNames,
+        axisNameOverrides: manualAxisNames,
       })
     : (() => {
         // Sync-läge (VARIANT_AI av): inga AI-anrop, men flagga ändå produkten om en
         // axel blev kvar med ett rått engelskt namn (tabell-miss) → ingen produkt
         // skeppas halv-engelsk ens i hård-$0-läget. Manuella namn går före tabellen
         // (samma lager 0 som AI-vägen); kollisions-säkerheten är identisk.
-        const t = buildTranslatorFromBase(sourceVariants, (raw) => manualNames.get(raw) ?? translateValue(raw));
+        const t = buildTranslatorFromBase(
+          sourceVariants,
+          (raw) => manualNames.get(raw) ?? translateValue(raw),
+          undefined,
+          undefined,
+          manualAxisNames,
+        );
         return { translator: t, unresolved: unresolvedAxisNames(t) };
       })();
   const translator = translatorResult.translator;

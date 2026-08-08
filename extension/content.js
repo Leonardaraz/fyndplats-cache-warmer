@@ -1618,6 +1618,16 @@ window.addEventListener("message", (ev) => {
         }
         if (Object.keys(names).length) product.variantNameOverrides = names;
       }
+      // Valfria manuella AXELNAMN ({ "Color": "Kulör" }) — samma sanering,
+      // nyckeltak 80 och max 20 poster som API-schemat.
+      if (msg.axisNames && typeof msg.axisNames === "object") {
+        const axes = {};
+        for (const [raw, name] of Object.entries(msg.axisNames).slice(0, 20)) {
+          const t = typeof name === "string" ? name.trim().slice(0, 60) : "";
+          if (t && typeof raw === "string" && raw && raw.length <= 80) axes[raw] = t;
+        }
+        if (Object.keys(axes).length) product.axisNameOverrides = axes;
+      }
       status("Importerar till Fyndplats…");
       // force: true hoppar över dubblettstoppet (efter att agenten sett
       // FP_IMPORT_RESULT med duplicates och medvetet valt att fortsätta).

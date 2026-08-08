@@ -1686,6 +1686,9 @@ export interface VariantTranslator {
   /** Axlar som fick ett kollisions-särskiljande suffix (t.ex. "Färg (Color
    *  Temperature)") — inget kund-klart namn → flaggas för polering. */
   disambiguatedAxes: ReadonlySet<string>;
+  /** Axlar vars namn sattes MANUELLT i importverktyget — betrodda, flaggas
+   *  aldrig av unresolvedAxisNames (utom vid kollisions-suffix). */
+  manualAxes?: ReadonlySet<string>;
 }
 
 /**
@@ -1715,6 +1718,14 @@ export function buildTranslatorFromBase(
    * klass vinner alltid; override används bara när klassen är okänd.
    */
   axisOverrides?: ReadonlyMap<string, string>,
+  /**
+   * MANUELLA axelnamn från importverktyget (rå axel → Leonards namn). Vinner
+   * OVILLKORLIGT över tabell, färg-omklassning och AI-override — Leonard skrev
+   * namnet med flit. Kollisions-säkerheten gäller fortfarande (suffix-särskilda
+   * axlar flaggas som vanligt). Axeln hamnar i `manualAxes` så
+   * unresolvedAxisNames aldrig flaggar den betrodda namngivningen.
+   */
+  manualAxisNames?: ReadonlyMap<string, string>,
 ): VariantTranslator {
   // Råvärden per råaxel i stabil först-sedd-ordning.
   const rawValuesByAxis = new Map<string, string[]>();
@@ -1729,6 +1740,7 @@ export function buildTranslatorFromBase(
   const axisName = new Map<string, string>();
   const usedAxisNames = new Set<string>();
   const disambiguatedAxes = new Set<string>();
+  const manualAxes = new Set<string>();
   const valueByAxis = new Map<string, Map<string, string>>();
   // Stabil ordning för kollisions-tie-break: vilken axel som BEHÅLLER det rena
   // namnet vid en namn-kollision avgörs på sorterat rå-axelnamn, INTE på feed-
@@ -1744,7 +1756,12 @@ export function buildTranslatorFromBase(
     // (säkert; täcker äkta + exotiska färger). deriveOptions släpper redan swatchen
     // för icke-färgaxlar (isColorAxis); detta fixar det missvisande NAMNET.
     let resolvedAxis = baseAxis(axis);
-    if (resolvedAxis === "Färg") {
+    const manual = manualAxisNames?.get(axis);
+    if (manual !== undefined) {
+      // LAGER 0: manuellt axelnamn vinner över allt (tabell/omklassning/AI).
+      resolvedAxis = manual;
+      manualAxes.add(axis);
+    } else if (resolvedAxis === "Färg") {
       resolvedAxis = inferMislabeledColorAxis(values) ?? axisOverrides?.get(axis) ?? "Färg";
     } else if (axisNameUnresolved(axis, resolvedAxis)) {
       // Icke-färg-axel vars namn fortfarande är rå engelska (tabell-miss, t.ex.
@@ -1792,6 +1809,7 @@ export function buildTranslatorFromBase(
   return {
     axisNames: axisName,
     disambiguatedAxes,
+    manualAxes,
     options(raw) {
       const out: Record<string, string> = {};
       for (const [axis, value] of Object.entries(raw ?? {})) out[tAxis(axis)] = tValue(axis, value);
@@ -1817,10 +1835,13 @@ export function buildTranslatorFromBase(
  * needsAiPolish — garantin att ingen produkt skeppas med ett engelskt/felmärkt namn.
  */
 export function unresolvedAxisNames(
-  translator: Pick<VariantTranslator, "axisNames" | "disambiguatedAxes">,
+  translator: Pick<VariantTranslator, "axisNames" | "disambiguatedAxes" | "manualAxes">,
 ): string[] {
   const out: string[] = [];
   for (const [raw, final] of translator.axisNames) {
+    // Manuellt namngiven axel är betrodd (Leonard skrev namnet med flit) —
+    // flaggas BARA om kollisions-suffixet slog till (suffix är aldrig kund-klart).
+    if (translator.manualAxes?.has(raw) && !translator.disambiguatedAxes.has(raw)) continue;
     if (axisNameUnresolved(raw, final) || translator.disambiguatedAxes.has(raw)) out.push(raw);
   }
   return out;

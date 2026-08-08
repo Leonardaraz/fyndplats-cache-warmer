@@ -53,6 +53,14 @@ vid varje import (env-switch `DS_PRICE_RECONCILE_ENABLED`, default på) — den
 korrigerar priser, reparerar dom-id:n till riktiga skuId:n och släpper
 kartesiska spökvarianter. Agent-/bulkvägen skyddas alltså även utan popupen.
 
+## Manuella AXELNAMN (0.1.35)
+
+Varje axelrubrik i "✏️ Variantnamn"-sektionen har ett eget namnfält — "Color"/
+"Size" kan döpas om (t.ex. "Kulör"/"Antal") innan importen, precis som värdena.
+Skickas som `axisNameOverrides`; agent-läget skickar `axisNames` i FP_IMPORT:
+`{ type: "FP_IMPORT", axisNames: { "Color": "Kulör" } }`. Frakt-axlar ("Ships
+From") visas inte längre i sektionen — de är inga döpbara valaxlar.
+
 ## Manuella variantnamn (0.1.32)
 
 Popupen har sektionen **"✏️ Variantnamn i butiken"** under variantlistan: ett

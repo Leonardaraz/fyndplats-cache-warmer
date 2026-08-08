@@ -72,6 +72,14 @@ export interface AliExpressProduct {
    * variantmappningen (wixVariantId ↔ AE-SKU) går sönder.
    */
   variantNameOverrides?: Record<string, string>;
+  /**
+   * Manuella AXELNAMN från importverktyget: { [rå axel]: "Svenskt namn" },
+   * t.ex. { "Color": "Kulör", "Size": "Antal" }. Samma lager 0-regler som
+   * variantNameOverrides — vinner över tabell/omklassning/AI och betros av
+   * grinden. Key-låses i Wix precis som värdena (options-namnet sätts vid
+   * skapandet).
+   */
+  axisNameOverrides?: Record<string, string>;
 }
 
 /**
