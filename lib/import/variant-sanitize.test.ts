@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeVariantOptions } from "./variant-sanitize";
+import { isEffectivelyEmpty, sanitizeVariantOptions } from "./variant-sanitize";
 
 // VEVOR-pumpen 2026-08-08: en axel med tomma värden nådde Wix → 400
 // "choicesSettings.choices[].name has size 0" och importen föll.
@@ -71,5 +71,54 @@ describe("sanitizeVariantOptions", () => {
       v({ X: "", A: "b", B: "c d" }),
     ]);
     expect(r.variants).toHaveLength(2); // olika kombon — får ALDRIG slås ihop
+  });
+
+  it("batch-fyndet 2026-08-08: OSYNLIGA värden (ZWSP/LRM/kontrolltecken) räknas som tomma", () => {
+    // Två produkter föll EFTER #378 med samma Wix-400: värdena passerade .trim()
+    // (zero-width space m.fl. är inte whitespace i JS) men Wix ser längd 0.
+    const r = sanitizeVariantOptions([
+      v({ Färg: "\u200b", Voltage: "60LPM 45W-6m" }, true, "1"),
+      v({ Färg: "\u200b", Voltage: "50LPM 22W-4m" }, true, "2"),
+      v({ Färg: "\u200e\u200f", Voltage: "67LPM 60W-8m" }, true, "3"),
+      v({ Färg: "\u0007", Voltage: "67LPM 60W-8m" }, true, "4"),
+    ]);
+    expect(r.removedAxes).toEqual(["Färg"]);
+    expect(r.mergedDuplicates).toBe(1); // 67LPM-dubbletten kollapsar
+    expect(r.variants.map((x) => x.options)).toEqual([
+      { Voltage: "60LPM 45W-6m" },
+      { Voltage: "50LPM 22W-4m" },
+      { Voltage: "67LPM 60W-8m" },
+    ]);
+  });
+
+  it("osynligt AXELNAMN tas också bort; synligt värde MED inbäddade osynliga tecken behålls", () => {
+    const r = sanitizeVariantOptions([
+      v({ "\u200b": "x", Kontakt: "EU\u200bplug" }),
+      v({ "\u200b": "y", Kontakt: "US plug" }),
+    ]);
+    expect(r.removedAxes).toEqual(["\u200b"]);
+    // "EU\u200bplug" har synligt innehåll → axeln Kontakt är giltig och rörs inte.
+    expect(r.variants.map((x) => x.options)).toEqual([
+      { Kontakt: "EU\u200bplug" },
+      { Kontakt: "US plug" },
+    ]);
+  });
+});
+
+describe("isEffectivelyEmpty", () => {
+  it("tomt/whitespace/osynligt → true; synligt innehåll → false", () => {
+    expect(isEffectivelyEmpty("")).toBe(true);
+    expect(isEffectivelyEmpty("   ")).toBe(true);
+    expect(isEffectivelyEmpty("\u00a0")).toBe(true); // NBSP
+    expect(isEffectivelyEmpty("\u200b")).toBe(true); // zero-width space
+    expect(isEffectivelyEmpty("\u200e")).toBe(true); // LTR-markör (vanlig i AE-data)
+    expect(isEffectivelyEmpty("\ufeff")).toBe(true); // BOM
+    expect(isEffectivelyEmpty("\u00ad")).toBe(true); // soft hyphen
+    expect(isEffectivelyEmpty("\u0001\u0007")).toBe(true); // kontrolltecken
+    expect(isEffectivelyEmpty("\u200b \u200e")).toBe(true); // blandning
+    expect(isEffectivelyEmpty("A")).toBe(false);
+    expect(isEffectivelyEmpty("60LPM 45W-6m")).toBe(false);
+    expect(isEffectivelyEmpty("\u200bEU")).toBe(false); // synlig kärna → inte tomt
+    expect(isEffectivelyEmpty("Röd")).toBe(false);
   });
 });
