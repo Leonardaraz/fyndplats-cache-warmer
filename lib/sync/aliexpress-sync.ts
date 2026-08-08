@@ -923,9 +923,19 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // 4) Sidoeffekter — Wix-skrivningar.
   if (!dryRun) {
     if (decision.shouldHide) {
+      // HÖGLJUDD logg (SEO-sessions-förvirringen 2026-08-08: tyst döljning såg
+      // ut som ett spöke — en annan session ompublicerade en död produkt i
+      // dragkamp med synken var 4:e timme). Runtime-loggen ska förklara sig
+      // själv: VAD, VARFÖR och rätt åtgärd.
+      console.warn(
+        `[sync] DÖLJER ${mapping.wixProductId} (AE ${mapping.supplierProductId}): ${decision.notes} ` +
+          `Ompublicering hjälper INTE — synken döljer igen nästa körning. ` +
+          `Åtgärd: byt leverantörskälla i /admin (AliExpress-mappning) eller låt produkten vara dold.`,
+      );
       await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, false);
     } else if (decision.shouldRestore) {
       // Bara om vi inte redan döljer pga annan policy.
+      console.log(`[sync] ÅTERSTÄLLER synlighet ${mapping.wixProductId}: ${decision.notes}`);
       await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, true);
     }
     if (decision.inventoryTarget !== null) {
