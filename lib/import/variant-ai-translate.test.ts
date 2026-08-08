@@ -500,3 +500,34 @@ describe("buildVariantTranslatorAI — AI namnger felmärkta 'Color'-axlar", () 
     expect(translator.options({ Color: "Cotton" })).toEqual({ Färg: "Bomull" });
   });
 });
+
+describe("färg-grind: rätt svenska men fel betydelse", () => {
+  it("flaggar 'Nät' som färg trots att svenskhets-grinden godkänner ordet", async () => {
+    // Åkbilen 2026-08-08: tredje färgen var röd men skeppades som "Nät". Ordet är
+    // invändningsfri svenska → verifySwedish säger ok → bara färg-grinden fångar det.
+    const variants = [
+      { options: { Färg: "Rosa" } },
+      { options: { Färg: "Vit" } },
+      { options: { Färg: "Nät" } },
+    ];
+    const { unresolved } = await buildVariantTranslatorAIRaw(variants, {
+      translateBatch: async () => ({}),
+      verifySwedish: async () => [], // inget är osvenskt
+    });
+    expect(unresolved).toContain("Nät");
+  });
+
+  it("flaggar inte en äkta färg på samma axel", async () => {
+    // Samma uppsättning som ovan men med rätt tredje färg: grinden ska tiga.
+    const variants = [
+      { options: { Färg: "Rosa" } },
+      { options: { Färg: "Vit" } },
+      { options: { Färg: "Röd" } },
+    ];
+    const { unresolved } = await buildVariantTranslatorAIRaw(variants, {
+      translateBatch: async () => ({}),
+      verifySwedish: async () => [],
+    });
+    expect(unresolved).not.toContain("Röd");
+  });
+});
