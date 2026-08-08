@@ -25,6 +25,7 @@ import {
   needsDsPriceReconcile,
   reconcileVariantsWithDs,
 } from "./variant-reconcile";
+import { sanitizeVariantOptions } from "./variant-sanitize";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
   addProductToCollection,
@@ -283,6 +284,22 @@ export async function importProduct(
     : product.variants.filter((v) => v.included);
   if (sourceVariants.filter((v) => v.included).length === 0) {
     throw new Error("Inga varianter valda för import.");
+  }
+  // SANERING FÖRST (VEVOR-pumpen 2026-08-08): en axel med tomma värden (skrapan
+  // kunde inte läsa etiketterna, t.ex. bild-swatchar utan text) nådde Wix orört
+  // → 400 "choices[].name has size 0" och hela importen föll. Axlar med tomma
+  // värden tas bort helt (Wix kräver alla options på alla varianter) och
+  // varianter som därmed blir identiska slås ihop. Körs FÖRE prisavstämningen
+  // så dess värdesignatur-matchning aldrig ser tomma värden.
+  const clean = sanitizeVariantOptions(sourceVariants);
+  if (clean.removedAxes.length > 0) {
+    sourceVariants = clean.variants;
+    product.variants = clean.variants; // spegel — samma skäl som prisavstämningen
+    console.log(
+      `[import:sanitize] pid=${product.supplierProductId} tog bort axlar med tomma värden ` +
+        `(${clean.removedAxes.map((a) => JSON.stringify(a)).join(", ")}); ` +
+        `${clean.mergedDuplicates} dubblettvarianter sammanslagna.`,
+    );
   }
   // Memoiserat DS-anrop: prisavstämningen, variantbild- OCH beskrivnings-
   // backfillen kan alla behöva DS-produkten — då hämtas den bara EN gång.
