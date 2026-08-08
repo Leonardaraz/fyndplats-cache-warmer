@@ -101,7 +101,14 @@ const $status = document.getElementById("status");
 // variantlistan) och skickas som variantNameOverrides i import-payloaden.
 // Tomt fält = auto-översättning (tabell → cache → Haiku) precis som förut.
 let nameOverrides = {};
+// Manuella AXELNAMN (rå axel → Leonards namn), t.ex. { Color: "Kulör" }.
+// Samma lager 0-regler server-side som värdena; key-låses i Wix vid skapandet.
+let axisNameEdits = {};
 let nameEditOpen = false;
+
+// Frakt-axlar ("Ships From" m.fl.) importeras inte som riktiga valaxlar och
+// ska aldrig gå att döpa i sektionen (bug: tom "SHIPS FROM"-rad 2026-08-08).
+const SHIP_AXIS_EDIT_RE = /ships?\s*from|ship\s*country/i;
 
 // --- Feature toggles (persisteras i chrome.storage.sync) -----------------
 // Alla PÅ som default för nya användare. Skickas i payloaden som featureFlags
@@ -515,9 +522,13 @@ function renderNameEdit() {
   if (!product || !Array.isArray(product.variants) || product.variants.length === 0) return;
 
   // Unika råvärden per axel, i först-sedd-ordning (samma som variantlistan).
+  // Frakt-axlar och tomma värden hoppas över — de är inte döpbara valaxlar
+  // (buggen 2026-08-08: en tom "SHIPS FROM"-rad renderades med namnfält).
   const valuesByAxis = new Map();
   for (const v of product.variants) {
     for (const [axis, val] of Object.entries(v.options || {})) {
+      if (SHIP_AXIS_EDIT_RE.test(axis)) continue;
+      if (!String(val || "").trim()) continue;
       if (!valuesByAxis.has(axis)) valuesByAxis.set(axis, []);
       const arr = valuesByAxis.get(axis);
       if (!arr.includes(val)) arr.push(val);
@@ -540,12 +551,31 @@ function renderNameEdit() {
   details.append(hint);
 
   for (const [axis, values] of valuesByAxis) {
-    if (valuesByAxis.size > 1) {
-      const axisEl = document.createElement("div");
-      axisEl.className = "ne-axis";
-      axisEl.textContent = axis;
-      details.append(axisEl);
+    // Axelrubriken är också redigerbar (Leonards begäran 2026-08-08): rå-namnet
+    // till vänster, namnfält till höger — precis som värderaderna, alltid synlig
+    // även för en-axel-produkter så "Color"/"Size" går att döpa om före importen.
+    const axisRow = document.createElement("div");
+    axisRow.className = "ne-row ne-axis-row";
+    const axisLabel = document.createElement("span");
+    axisLabel.className = "ne-raw ne-axis";
+    axisLabel.textContent = axis;
+    axisLabel.title = `Axelnamn: ${axis}`;
+    const axisInput = document.createElement("input");
+    axisInput.type = "text";
+    axisInput.maxLength = 60;
+    axisInput.placeholder = "axelnamn: auto";
+    if (axisNameEdits[axis]) {
+      axisInput.value = axisNameEdits[axis];
+      axisInput.classList.add("ne-set");
     }
+    axisInput.addEventListener("input", () => {
+      const t = axisInput.value;
+      if (t.trim()) axisNameEdits[axis] = t;
+      else delete axisNameEdits[axis];
+      axisInput.classList.toggle("ne-set", Boolean(t.trim()));
+    });
+    axisRow.append(axisLabel, axisInput);
+    details.append(axisRow);
     for (const raw of values) {
       const row = document.createElement("div");
       row.className = "ne-row";
@@ -591,6 +621,23 @@ function collectNameOverrides(chosenVariants) {
     // raw ≤160: API-schemats nyckeltak — en override på ett extremt långt
     // råvärde ska hoppas över tyst, inte fälla HELA importen med 422.
     if (t && raw.length <= 160 && chosenValues.has(raw)) out[raw] = t;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+/** Samma insamling för AXELNAMN — bara axlar som förekommer i de valda
+ *  varianterna, aldrig frakt-axlar, nyckeltak 80 (API-schemats gräns). */
+function collectAxisOverrides(chosenVariants) {
+  const chosenAxes = new Set();
+  for (const v of chosenVariants) {
+    for (const axis of Object.keys(v.options || {})) {
+      if (!SHIP_AXIS_EDIT_RE.test(axis)) chosenAxes.add(axis);
+    }
+  }
+  const out = {};
+  for (const [axis, name] of Object.entries(axisNameEdits)) {
+    const t = String(name || "").trim().slice(0, 60);
+    if (t && axis.length <= 80 && chosenAxes.has(axis)) out[axis] = t;
   }
   return Object.keys(out).length ? out : null;
 }
@@ -746,6 +793,9 @@ $import.addEventListener("click", async () => {
   const names = collectNameOverrides(chosen);
   if (names) product.variantNameOverrides = names;
   else delete product.variantNameOverrides;
+  const axisNames = collectAxisOverrides(chosen);
+  if (axisNames) product.axisNameOverrides = axisNames;
+  else delete product.axisNameOverrides;
 
   chrome.runtime.sendMessage({ type: "IMPORT_PRODUCT", product, featureFlags: flagsWithMode() }, (res) => {
     if (chrome.runtime.lastError || !res) {

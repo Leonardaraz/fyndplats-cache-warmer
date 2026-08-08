@@ -107,10 +107,15 @@ export async function buildVariantTranslatorAI(
      *  Leonard skrev det med flit. Kollisions-säkerheten gäller fortfarande
      *  (två råvärden → samma namn särskiljs som vanligt). */
     valueOverrides?: ReadonlyMap<string, string>;
+    /** LAGER 0 för AXELNAMN (rå axel → Leonards namn): vinner över tabell,
+     *  färg-omklassning och AI-namngivning; axeln skickas aldrig till
+     *  axel-AI:n och betros av grinden. */
+    axisNameOverrides?: ReadonlyMap<string, string>;
   },
 ): Promise<AiTranslatorResult> {
   const translateBatch = opts?.translateBatch ?? aiTranslateBatch;
   const manual = opts?.valueOverrides;
+  const manualAxis = opts?.axisNameOverrides;
 
   // 1. Unika råvärden över alla axlar.
   const rawValues = new Set<string>();
@@ -220,6 +225,7 @@ export async function buildVariantTranslatorAI(
   };
   const suspectAxes: { axis: string; values: string[] }[] = [];
   for (const [axis, vals] of valuesByAxis) {
+    if (manualAxis?.has(axis)) continue; // manuellt döpt → aldrig axel-AI, aldrig flagga
     const current = translateAxisName(axis);
     const colorish = current === "Färg";
     const englishName = axisNameUnresolved(axis, current); // tabell-miss, kvar engelska
@@ -276,7 +282,13 @@ export async function buildVariantTranslatorAI(
     // nästa import utan cache-bump eller nytt AI-anrop.
     return ai !== undefined ? normalizeUnits(ai) : translateValue(raw);
   };
-  const translator = buildTranslatorFromBase(variants, baseValue, translateAxisName, axisOverrides);
+  const translator = buildTranslatorFromBase(
+    variants,
+    baseValue,
+    translateAxisName,
+    axisOverrides,
+    manualAxis,
+  );
 
   // 6. Olösta = (halv-)engelska värden + felmärkta färg-axlar AI inte kunde namnge
   //    + axlar vars SLUTNAMN ändå förblev rå engelska (unresolvedAxisNames →
@@ -320,7 +332,9 @@ export async function buildVariantTranslatorAI(
   // inte lägga hans avsiktliga val i poleringskön. OBS: ett kollisions-
   // särskilt slutvärde ("Namn (råvärde)") matchar inte här och granskas som
   // vanligt — suffixformen är aldrig kund-klar.
-  const trustedManual = new Set([...(manual?.values() ?? [])].map((s) => s.trim()));
+  const trustedManual = new Set(
+    [...(manual?.values() ?? []), ...(manualAxis?.values() ?? [])].map((s) => s.trim()),
+  );
   const verifiable = [...finals].filter(
     (f) => !trustedManual.has(f.trim()) && /[A-Za-zÅÄÖåäö]{3,}/.test(f),
   );

@@ -80,6 +80,12 @@ const ProductSchema = z.object({
     .record(z.string().max(160), z.string().min(1).max(60))
     .refine((o) => Object.keys(o).length <= 100, "för många variantnamn")
     .optional(),
+  // Manuella AXELNAMN ({ "Color": "Kulör" }) — samma lager 0 som värdena ovan.
+  // En produkt har aldrig fler än en handfull axlar → 20 räcker med marginal.
+  axisNameOverrides: z
+    .record(z.string().max(80), z.string().min(1).max(60))
+    .refine((o) => Object.keys(o).length <= 20, "för många axelnamn")
+    .optional(),
   // Säljardata (Feature 6 — säljar-score). supplierId obligatoriskt om fältet
   // skickas; övriga AE-fält valfria. Saknas helt = säljaren kunde inte skrapas.
   // Utökade fält (bug 2026-06-02): positiveFeedbackPct, yearsOnAE, topBrand
