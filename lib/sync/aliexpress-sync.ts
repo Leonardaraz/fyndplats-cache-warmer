@@ -16,6 +16,8 @@
 // content-drift och alert-handoff till Leonard. Båda kan samexistera.
 
 import { computePrice } from "../import/pricing";
+import { translateValue } from "../import/variant-translations";
+import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
 import type { PricingConfig } from "../import/types";
 import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
 import { checkMappingShippability, isShippabilityStale, type ShippabilityBudget } from "./shippability";
@@ -664,6 +666,35 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       .filter((v) => (v.stock ?? 0) > 0 && v.price > 0)
       .reduce((min, v) => (min === 0 ? v.price : Math.min(min, v.price)), 0);
     const totalStock = product.variants.reduce((s, v) => s + (v.stock ?? 0), 0);
+    // SJÄLVLÄKNING av syntetiska variant-id:n (audit 2026-08-08: 85 mappningar
+    // med dom-/default-id → orderläggning skickar påhittat sku_attr och lager-
+    // synken kan aldrig matcha per variant). DS-produkten är redan hämtad —
+    // reparera ENTYDIGA träffar och spara innan lagerkartan byggs, så repare-
+    // rade id:n matchar per-variant-saldot i SAMMA körning. Konservativ +
+    // best-effort: tvetydigt lämnas orört (loggat), fel fäller aldrig synken.
+    if (mapping.variants.some((v) => isSyntheticMappingId(v.supplierVariantId))) {
+      try {
+        const rep = repairSyntheticVariantIds(mapping.variants, product.variants, translateValue);
+        if (rep.repaired > 0) {
+          mapping.variants = rep.variants;
+          if (!dryRun) await getStore().saveMapping(mapping);
+          console.log(
+            `[sync] mappnings-reparation ${mapping.wixProductId}: ${rep.repaired} syntetiska ` +
+              `variant-id ersatta med riktiga AE-skuId${rep.ambiguous.length ? `; kvar olösta: ${rep.ambiguous.join(", ")}` : ""}.`,
+          );
+        } else if (rep.ambiguous.length > 0) {
+          console.warn(
+            `[sync] mappnings-reparation ${mapping.wixProductId}: kunde inte matcha ${rep.ambiguous.join(", ")} ` +
+              `entydigt mot DS-SKU:erna — auto-order kräver manuell åtgärd för dessa varianter.`,
+          );
+        }
+      } catch (err) {
+        console.warn(
+          `[sync] mappnings-reparation misslyckades för ${mapping.wixProductId}: ` +
+            `${err instanceof Error ? err.message.slice(0, 160) : String(err)}`,
+        );
+      }
+    }
     aeStockBySupplierId = buildStockBySupplierId(product.variants);
     aeVariantsForShippability = product.variants
       .filter((v) => v.skuId)
