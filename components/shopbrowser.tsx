@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
+import { compareByPopularity, compareByRecommended } from "../lib/sort-products";
 import type { Product } from "../lib/products";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
@@ -21,8 +22,11 @@ const BRACKETS = [
 ];
 
 const SORTS = [
-  // "img" sorterar på intern bildkvalitets-poäng men heter "Rekommenderat" utåt —
-  // kunden ska inte exponeras för intern logik ("Bäst bilder" förvirrade). Default.
+  // "img" heter "Rekommenderat" utåt och är butikens egen mix (bästsäljare +
+  // färskhets-skjuts + REA-knuff — se lib/sort-products). URL-värdet "img" är
+  // kvar av bakåtkompatibilitet med delade länkar; bildpoängen den en gång
+  // sorterade på var 60 för samtliga produkter → tre val gav samma ordning
+  // (Leonard 2026-08-08).
   { v: "img", label: "Rekommenderat" },
   // "new" = nyast importerade först (createdAt desc). Standard på /alla-produkter
   // via defaultSort-propen (Leonard 2026-06-14); valbart överallt.
@@ -86,7 +90,11 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     let out = products.filter((p) => p.priceNum >= b.min && p.priceNum < b.max);
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
-    if (sort === "img") out = [...out].sort((a, z) => (z.imageScore ?? 60) - (a.imageScore ?? 60));
+    // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
+    // (sekund-precision hade gett hydration-hopp i Rekommenderat-poängen).
+    const dayMs = Math.floor(Date.now() / 86_400_000) * 86_400_000;
+    if (sort === "img") out = [...out].sort(compareByRecommended(dayMs));
+    else if (sort === "pop") out = [...out].sort(compareByPopularity);
     else if (sort === "new") out = [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
     else if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
