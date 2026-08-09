@@ -19,7 +19,7 @@ import type { FaqReviewHint } from "./faq-gen";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
 import { buildTranslatorFromBase, translateValue, unresolvedAxisNames } from "./variant-translations";
-import { buildVariantTranslatorAI, variantAiTranslationEnabled } from "./variant-ai-translate";
+import { buildVariantTranslatorAI, colorGateFlags, variantAiTranslationEnabled } from "./variant-ai-translate";
 import {
   dsPriceReconcileEnabled,
   needsDsPriceReconcile,
@@ -384,6 +384,9 @@ export async function importProduct(
         // axel blev kvar med ett rått engelskt namn (tabell-miss) → ingen produkt
         // skeppas halv-engelsk ens i hård-$0-läget. Manuella namn går före tabellen
         // (samma lager 0 som AI-vägen); kollisions-säkerheten är identisk.
+        // FÄRG-GRINDEN körs också här (audit 2026-08-09): den är deterministisk
+        // och gratis — utan den skeppade hård-$0-läget fel-betydelse-färger
+        // ("Nät" på en röd bil) oflaggade, trots att grinden byggdes för exakt det.
         const t = buildTranslatorFromBase(
           sourceVariants,
           (raw) => manualNames.get(raw) ?? translateValue(raw),
@@ -391,7 +394,13 @@ export async function importProduct(
           undefined,
           manualAxisNames,
         );
-        return { translator: t, unresolved: unresolvedAxisNames(t) };
+        const trusted = new Set(
+          [...manualNames.values(), ...manualAxisNames.values()].map((s) => s.trim()),
+        );
+        const unresolved = [
+          ...new Set([...unresolvedAxisNames(t), ...colorGateFlags(sourceVariants, t, trusted)]),
+        ];
+        return { translator: t, unresolved };
       })();
   const translator = translatorResult.translator;
   const variantsNeedPolish = translatorResult.unresolved.length > 0;

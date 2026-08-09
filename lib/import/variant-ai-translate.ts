@@ -83,6 +83,38 @@ export interface AiTranslatorResult {
  * flags.translateVariants vinner över env. Default PÅ; env
  * VARIANT_AI_TRANSLATION_ENABLED=false stänger av.
  */
+/**
+ * FÄRG-GRINDEN fristående (deterministisk, $0): kontrollerar de SLUTGILTIGA
+ * värdena per axel — på en axel vars värden i majoritet är färger flaggas det
+ * som varken är färg eller yta. Delas av AI-vägen (steg 8) och sync-läget i
+ * pipeline: grinden är gratis och får aldrig bero på att AI-läget är på
+ * (audit 2026-08-09: hård-$0-läget skeppade annars exakt de fel-betydelse-
+ * färger grinden byggdes för — "Nät" på en röd bil — oflaggade). `trusted`
+ * (manuella namn, LAGER 0) undantas: Leonard skrev dem med flit.
+ */
+export function colorGateFlags(
+  variants: ReadonlyArray<{ options: Record<string, string> }>,
+  translator: VariantTranslator,
+  trusted: ReadonlySet<string>,
+): string[] {
+  const byAxis = new Map<string, Set<string>>();
+  for (const v of variants) {
+    for (const [axis, val] of Object.entries(translator.options(v.options ?? {}))) {
+      let set = byAxis.get(axis);
+      if (!set) {
+        set = new Set<string>();
+        byAxis.set(axis, set);
+      }
+      set.add(val);
+    }
+  }
+  const flagged: string[] = [];
+  for (const vals of byAxis.values()) {
+    flagged.push(...nonColorValuesOnColorAxis([...vals]).filter((x) => !trusted.has(x.trim())));
+  }
+  return flagged;
+}
+
 export function variantAiTranslationEnabled(flags?: FeatureFlags): boolean {
   if (typeof flags?.translateVariants === "boolean") return flags.translateVariants;
   return (process.env.VARIANT_AI_TRANSLATION_ENABLED ?? "true").toLowerCase() !== "false";
@@ -373,22 +405,7 @@ export async function buildVariantTranslatorAI(
   //    i majoritet är färger flaggas det som varken är färg eller yta. Manuellt
   //    namngivna värden (LAGER 0) undantas på samma grund som i steg 7 — Leonard
   //    skrev dem med flit och de ska aldrig hamna i kön.
-  const finalValuesByAxis = new Map<string, Set<string>>();
-  for (const v of variants) {
-    for (const [axis, val] of Object.entries(translator.options(v.options ?? {}))) {
-      let set = finalValuesByAxis.get(axis);
-      if (!set) {
-        set = new Set<string>();
-        finalValuesByAxis.set(axis, set);
-      }
-      set.add(val);
-    }
-  }
-  const colorFlagged: string[] = [];
-  for (const vals of finalValuesByAxis.values())
-    colorFlagged.push(
-      ...nonColorValuesOnColorAxis([...vals]).filter((v) => !trustedManual.has(v.trim())),
-    );
+  const colorFlagged = colorGateFlags(variants, translator, trustedManual);
 
   const unresolved = [
     ...new Set(

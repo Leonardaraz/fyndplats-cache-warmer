@@ -61,7 +61,9 @@ export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {}
     const skip: string[] = [];
     try {
       for (let guard = 0; guard < 30; guard++) {
-        const r: RepairBatchResult = await repairSyntheticMappingsAction(skip);
+        // brokenIds som allowlist → servern bearbetar samma LIVE-mängd som
+        // totalen räknar (orphans för raderade produkter hoppas över).
+        const r: RepairBatchResult = await repairSyntheticMappingsAction(skip, brokenIds);
         acc.processed += r.processed;
         acc.repaired.push(...r.repaired);
         acc.ambiguous.push(...r.ambiguous);

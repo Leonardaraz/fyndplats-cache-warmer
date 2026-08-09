@@ -300,14 +300,15 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     listingStatus: "active",
     actionTaken: "none",
     shouldHide: false,
-    // Om föregående status var removed och vi nu ser aktiv listning → restore.
-    // Tillåtet när produkten är synlig ELLER när det var SYNKEN som dolde den
-    // (hiddenBySync) — audit-fynd 2: utan det senare kunde synkens egen
-    // döljning aldrig ångras (visible är ju false då). En MANUELL unpublish
-    // (visible=false utan hiddenBySync) respekteras fortfarande.
+    // Om föregående status var removed och vi nu ser aktiv listning → restore,
+    // men BARA när det var SYNKEN som dolde produkten (hiddenBySync, legacy
+    // före #369:s aldrig-dölj-policy). Under nya policyn förblir produkten
+    // synlig vid removed → utan hiddenBySync-kravet gav varje removed→active-
+    // övergång en spök-restore: en onödig Wix-skrivning + en "ÅTERSTÄLLER"-
+    // logg för en produkt som aldrig doldes (audit 2026-08-09). En MANUELL
+    // unpublish (visible=false utan hiddenBySync) respekteras som förut.
     shouldRestore:
-      prevState?.listingStatus === "removed"
-      && (inputs.wixVisible || inputs.hiddenBySync === true),
+      prevState?.listingStatus === "removed" && inputs.hiddenBySync === true,
     inventoryTarget: aliExpress.totalStock,
     alert: null,
     newCostSek,
@@ -316,6 +317,10 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     // Tillbaka i lager efter att ha varit slut → trigga restock-mejl.
     justRestocked: prevState?.listingStatus === "out_of_stock",
   };
+  // Notera comebacken i loggen (pris-/innehållsflaggor nedan får skriva över).
+  if (prevState?.listingStatus === "removed") {
+    decision.notes = "Listningen är tillbaka hos AliExpress.";
+  }
 
   // 4) Prishöjning som hotar marginalen? → flagga.
   if (prevState?.currentCostUsd && prevState.currentCostUsd > 0) {
@@ -933,21 +938,18 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   }
 
   // 4) Sidoeffekter — Wix-skrivningar.
+  // Sedan #369 (SEO-bevarande policy) DÖLJER synken aldrig: en borttagen
+  // listning nollar lagret (marked_oos) men sidan behålls synlig — att
+  // avpublicera gör URL:en till en 404 och kastar bort ranking/inlänkar.
+  // shouldHide finns kvar i beslutsstrukturen (alltid false) för state-
+  // bokföringen; shouldRestore gäller enbart LEGACY-produkter som synken
+  // hann dölja före policybytet (hiddenBySync) och loggas högljutt.
   if (!dryRun) {
-    if (decision.shouldHide) {
-      // HÖGLJUDD logg (SEO-sessions-förvirringen 2026-08-08: tyst döljning såg
-      // ut som ett spöke — en annan session ompublicerade en död produkt i
-      // dragkamp med synken var 4:e timme). Runtime-loggen ska förklara sig
-      // själv: VAD, VARFÖR och rätt åtgärd.
-      console.warn(
-        `[sync] DÖLJER ${mapping.wixProductId} (AE ${mapping.supplierProductId}): ${decision.notes} ` +
-          `Ompublicering hjälper INTE — synken döljer igen nästa körning. ` +
-          `Åtgärd: byt leverantörskälla i /admin (AliExpress-mappning) eller låt produkten vara dold.`,
+    if (decision.shouldRestore) {
+      console.log(
+        `[sync] ÅTERSTÄLLER synlighet ${mapping.wixProductId} (AE ${mapping.supplierProductId}): ` +
+          `${decision.notes} Produkten doldes av synken före aldrig-dölj-policyn (#369).`,
       );
-      await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, false);
-    } else if (decision.shouldRestore) {
-      // Bara om vi inte redan döljer pga annan policy.
-      console.log(`[sync] ÅTERSTÄLLER synlighet ${mapping.wixProductId}: ${decision.notes}`);
       await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, true);
     }
     if (decision.inventoryTarget !== null) {

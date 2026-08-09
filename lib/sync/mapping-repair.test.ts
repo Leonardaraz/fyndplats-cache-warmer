@@ -140,6 +140,50 @@ describe("repairSyntheticVariantIds", () => {
     expect(r.ambiguous).toEqual(["default"]);
   });
 
+  it("ensam rad med EGNA motsägande värden tvångsmappas ALDRIG mot enhetlig DS-grupp (audit 2026-08-09)", () => {
+    // Raden säger 'Gul' men alla lediga DS-SKU:er är 'Rosa' — motsägelse är
+    // tvetydighet, inte en matchning (fel SKU på kundorder annars).
+    const r = repairSyntheticVariantIds(
+      [mv("111", { Färg: "Blå" }), mv("dom-3", { Färg: "Gul" })],
+      [
+        dv("p-es", { Color: "Rosa", "Ships From": "Spain" }, 10, 5, "ES"),
+        dv("p-cn", { Color: "Rosa", "Ships From": "China" }, 9, 50, "CN"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(0);
+    expect(r.ambiguous).toEqual(["dom-3"]);
+    expect(r.variants[1].supplierVariantId).toBe("dom-3");
+  });
+
+  it("svensk frakt-axel ('Skickas från') på mappningssidan ignoreras i signaturen", () => {
+    // Importen översätter 'Ships From' → 'Skickas från' — mappningens choices
+    // bär den svenska formen och signaturen måste vara symmetrisk med DS-sidan.
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Färg: "Blå", "Skickas från": "Spanien" })],
+      [
+        dv("1", { Color: "Blå", "Ships From": "Spain" }, 12, 3, "ES"),
+        dv("2", { Color: "Grön", "Ships From": "Spain" }, 12, 3, "ES"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("1");
+  });
+
+  it("EU-lager UTAN saldo väljs inte före lager MED saldo (audit 2026-08-09)", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("default", {})],
+      [
+        dv("es0", { Voltage: "220V", "Ships From": "Spain" }, 63, 0, "ES"),
+        dv("cn500", { Voltage: "220V", "Ships From": "China" }, 60, 500, "CN"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("cn500"); // saldo slår EU-preferens
+  });
+
   it("frakt-axlar och tomma värden ignoreras i signaturen; no-op utan syntetiska id:n", () => {
     const r1 = repairSyntheticVariantIds(
       [mv("dom-0", { Färg: "Röd" })],

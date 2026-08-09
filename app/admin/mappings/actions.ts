@@ -95,17 +95,25 @@ export interface RepairBatchResult {
  * `skipIds`: wixProductId som redan försökts i denna körning (tvetydiga/döda)
  * — annars skulle samma olösbara mappningar återkomma i varje batch och
  * loopen aldrig terminera.
+ *
+ * `onlyIds`: LIVE-produkternas id från sidladdningen — utan filtret bearbetades
+ * även orphan-mappningar (raderade produkter) som klienten varken räknar i
+ * totalen eller kan namnge ("Lagar… 8/5", audit 2026-08-09). Att reparera en
+ * mappning vars produkt är raderad är dessutom meningslöst.
  */
 export async function repairSyntheticMappingsAction(
   skipIds: string[],
+  onlyIds?: string[],
   batchSize = 8,
 ): Promise<RepairBatchResult> {
   const skip = new Set(skipIds);
+  const only = onlyIds ? new Set(onlyIds) : null;
   const store = getStore();
   const all = await store.listMappings();
   const broken = all.filter(
     (m) =>
       !skip.has(m.wixProductId) &&
+      (only ? only.has(m.wixProductId) : true) &&
       (m.variants ?? []).some((v) => isSyntheticMappingId(v.supplierVariantId)),
   );
   const batch = broken.slice(0, Math.max(1, Math.min(batchSize, 20)));
@@ -120,7 +128,17 @@ export async function repairSyntheticMappingsAction(
   for (const mapping of batch) {
     try {
       const ds = await getProduct(mapping.supplierProductId);
-      const rep = repairSyntheticVariantIds(mapping.variants, ds.variants ?? [], translateValue);
+      if (!ds.variants?.length) {
+        // Degraderat DS-svar (0 varianter) → repair blir en tyst no-op som
+        // varken hamnar i repaired/ambiguous → utan denna vakt återkom samma
+        // mappning i varje batch tills guard-taket (audit 2026-08-09).
+        result.failed.push({
+          wixProductId: mapping.wixProductId,
+          reason: "AliExpress gav 0 varianter (degraderat svar) — försök igen senare eller byt källa.",
+        });
+        continue;
+      }
+      const rep = repairSyntheticVariantIds(mapping.variants, ds.variants, translateValue);
       if (rep.repaired > 0) {
         mapping.variants = rep.variants;
         await store.saveMapping(mapping);
