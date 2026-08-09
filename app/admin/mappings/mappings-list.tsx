@@ -107,7 +107,10 @@ export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {}
     return [...list].sort((a, b) => rank(b.id) - rank(a.id));
   }, [mapped, q, onlyIssues, onlyOos, syncIssues, oosIssues]);
 
-  const unmappedCount = unmapped.length - sessionMapped.size;
+  // Bara sessionMapped-id:n som faktiskt låg i Att mappa-listan får dras av —
+  // en OMMAPPNING av en redan mappad produkt hamnar också i sessionMapped och
+  // gav annars negativa fliksiffror ("Att mappa -1", Leonards skärmdump 2026-08-09).
+  const unmappedCount = unmapped.filter((p) => !sessionMapped.has(p.id)).length;
 
   function handleMapped(id: string) {
     setSessionMapped((prev) => new Set(prev).add(id));
