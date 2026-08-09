@@ -16,12 +16,21 @@
 // (och loggat) än fel SKU på en kundorder.
 //
 // Matchningsordning per syntetisk mappningsvariant:
-//   1. Ensam variant på BÅDA sidor → matcha direkt (vanligaste fallet: ~60 av 85).
+//   1. Ensam variant på BÅDA sidor → matcha direkt.
 //   2. Options-signatur: DS-råvärden översätts med samma statiska tabell som
 //      importen (translateValue) och jämförs mot mappningens svenska choices
-//      (ordnings- och skiftlägesokänsligt på VÄRDEN). Unik träff på båda sidor krävs.
-//   3. Pris: exakt en DS-SKU vars pris ligger inom 1 % av mappningens costUsd.
+//      (ordnings- och skiftlägesokänsligt på VÄRDEN). Unik träff på mappnings-
+//      sidan krävs; flera DS-träffar med SAMMA signatur är per konstruktion
+//      samma vara i olika lager (frakt-axeln ingår inte i signaturen) → välj
+//      föredragen: EU-lager först, sedan högst saldo, sedan först-sedd.
+//   3. Ensam SYNTETISK mappningsvariant + ALLA lediga DS-SKU:er delar EN
+//      signatur → samma vara oavsett val (första nattens facit 2026-08-09:
+//      "default"-mappningar med tomma choices mot flerlager-listningar var
+//      18 av 19 tvetydiga) → välj föredragen enligt samma preferens.
+//   4. Pris: exakt en DS-SKU vars pris ligger inom 1 % av mappningens costUsd.
 //   Ingen entydig träff → lämnas orörd + rapporteras (ambiguous).
+
+import { isEuCountry, normalizeShipFromCode } from "../aliexpress/eu-countries";
 
 export interface RepairableMappingVariant {
   supplierVariantId: string;
@@ -33,6 +42,9 @@ export interface RepairDsVariant {
   skuId?: string;
   skuProps?: Record<string, string>;
   price?: number;
+  stock?: number;
+  /** Normaliserad landskod ("ES", "CN"…) när DS-API:t gav den per SKU. */
+  shipFrom?: string;
 }
 
 export interface RepairResult<V> {
@@ -63,6 +75,25 @@ function valueSignature(
     .join(" ");
 }
 
+/** Landskod för en DS-SKU: fältet shipFrom om satt, annars frakt-axelns värde. */
+function shipCode(d: RepairDsVariant): string {
+  const raw =
+    d.shipFrom ??
+    Object.entries(d.skuProps ?? {}).find(([axis]) => SHIP_AXIS_RE.test(axis))?.[1];
+  return normalizeShipFromCode(raw);
+}
+
+/** Välj bland DS-SKU:er som är SAMMA vara (identisk icke-frakt-signatur):
+ *  EU-lager först (snabb frakt till kund), sedan högst saldo, sedan först-sedd
+ *  (stabil sort → deterministiskt). */
+function pickPreferred(candidates: RepairDsVariant[]): RepairDsVariant | undefined {
+  return [...candidates].sort(
+    (a, b) =>
+      (isEuCountry(shipCode(b)) ? 1 : 0) - (isEuCountry(shipCode(a)) ? 1 : 0) ||
+      (b.stock ?? 0) - (a.stock ?? 0),
+  )[0];
+}
+
 export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
   mappingVariants: ReadonlyArray<V>,
   dsVariants: ReadonlyArray<RepairDsVariant>,
@@ -84,11 +115,15 @@ export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
   );
   const free = ds.filter((d) => !taken.has(String(d.skuId)));
 
-  // DS-signaturer, bara UNIKA får användas (samma spärr som prisavstämningen).
-  const bySig = new Map<string, RepairDsVariant | null>();
+  // DS-SKU:er grupperade per signatur. Flera SKU:er med SAMMA signatur är per
+  // konstruktion samma vara i olika lager (frakt-axeln ingår inte) → gruppen är
+  // en giltig träff där pickPreferred väljer lager.
+  const bySig = new Map<string, RepairDsVariant[]>();
   for (const d of free) {
     const sig = valueSignature(d.skuProps, translate);
-    bySig.set(sig, bySig.has(sig) ? null : d);
+    const arr = bySig.get(sig) ?? [];
+    arr.push(d);
+    bySig.set(sig, arr);
   }
   const mappingSigCount = new Map<string, number>();
   for (const v of synthetic) {
@@ -97,8 +132,10 @@ export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
     mappingSigCount.set(sig, (mappingSigCount.get(sig) ?? 0) + 1);
   }
 
-  const singlePair = synthetic.length === 1 && free.length === 1;
+  const singleSynthetic = synthetic.length === 1;
+  const singlePair = singleSynthetic && free.length === 1;
   const claimed = new Set<string>(); // skuId:n som reparerats i DENNA körning
+  const unclaimed = (list: RepairDsVariant[]) => list.filter((d) => !claimed.has(String(d.skuId)));
 
   let repaired = 0;
   const ambiguous: string[] = [];
@@ -110,13 +147,21 @@ export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
     } else {
       const sig = valueSignature(v.choices, (s) => s);
       if (mappingSigCount.get(sig) === 1) {
-        const cand = bySig.get(sig);
-        if (cand && !claimed.has(String(cand.skuId))) hit = cand;
+        // Signatur-träff: unik på mappningssidan; DS-gruppen kan ha flera
+        // lager-SKU:er av samma vara → pickPreferred avgör.
+        hit = pickPreferred(unclaimed(bySig.get(sig) ?? []));
+      }
+      if (!hit && singleSynthetic) {
+        // Ensam syntetisk rad + ALLA lediga DS-SKU:er är samma vara (en enda
+        // signatur) → vilken som helst är rätt vara; välj föredraget lager.
+        // Täcker "default"-mappningar med tomma choices mot flerlager-listningar.
+        const left = unclaimed(free);
+        const sigs = new Set(left.map((d) => valueSignature(d.skuProps, translate)));
+        if (left.length > 0 && sigs.size === 1) hit = pickPreferred(left);
       }
       if (!hit && typeof v.costUsd === "number" && v.costUsd > 0) {
-        const near = free.filter(
+        const near = unclaimed(free).filter(
           (d) =>
-            !claimed.has(String(d.skuId)) &&
             typeof d.price === "number" &&
             d.price > 0 &&
             Math.abs(d.price - (v.costUsd as number)) / (v.costUsd as number) <= 0.01,

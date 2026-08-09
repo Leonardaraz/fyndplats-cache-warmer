@@ -8,10 +8,18 @@ const mv = (id: string, choices: Record<string, string> = {}, costUsd?: number) 
   choices,
   costUsd,
 });
-const dv = (skuId: string, skuProps: Record<string, string> = {}, price?: number) => ({
+const dv = (
+  skuId: string,
+  skuProps: Record<string, string> = {},
+  price?: number,
+  stock?: number,
+  shipFrom?: string,
+) => ({
   skuId,
   skuProps,
   price,
+  stock,
+  shipFrom,
 });
 const identity = (s: string) => s;
 
@@ -89,6 +97,47 @@ describe("repairSyntheticVariantIds", () => {
     expect(r.variants[0].supplierVariantId).toBe("1");
     expect(r.variants[1].supplierVariantId).toBe("dom-1");
     expect(r.ambiguous).toEqual(["dom-1"]);
+  });
+
+  it("samma vara i flera lager (identisk signatur) → EU-lagret väljs framför Kina", () => {
+    // Nattens facit 2026-08-09: dubbla lager-SKU:er gjorde signaturen "tvetydig"
+    // fast det är SAMMA vara — nu väljs föredraget lager i stället.
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Färg: "Blå" })],
+      [
+        dv("1", { Color: "Blå", "Ships From": "China" }, 10, 50, "CN"),
+        dv("2", { Color: "Blå", "Ships From": "Spain" }, 12, 3, "ES"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("2"); // EU vinner trots lägre saldo
+  });
+
+  it("ensam default-rad mot flerlager-listning där ALLA SKU:er är samma vara → föredragen väljs", () => {
+    // 18 av 19 i första nattkörningen: "default" med tomma choices mot en
+    // listning med flera lager. En enda signatur på DS-sidan = samma vara.
+    const r = repairSyntheticVariantIds(
+      [mv("default", {})],
+      [
+        dv("cn", { Voltage: "220V", "Ships From": "China" }, 60, 50, "CN"),
+        dv("es", { Voltage: "220V", "Ships From": "Spain" }, 63, 1, "ES"),
+        dv("pl", { Voltage: "220V", "Ships From": "Poland" }, 63, 9, "PL"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("pl"); // EU först, sedan högst saldo
+  });
+
+  it("ensam default-rad men DS har OLIKA varor (två signaturer) → fortfarande tvetydig", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("default", {})],
+      [dv("1", { Size: "12 L" }, 60), dv("2", { Size: "50 L" }, 90)],
+      identity,
+    );
+    expect(r.repaired).toBe(0);
+    expect(r.ambiguous).toEqual(["default"]);
   });
 
   it("frakt-axlar och tomma värden ignoreras i signaturen; no-op utan syntetiska id:n", () => {

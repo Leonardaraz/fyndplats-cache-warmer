@@ -6,14 +6,23 @@ import { getV3ProductVariants } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
 import { pricingConfigFromEnv } from "@/lib/config";
 import { computePrice } from "@/lib/import/pricing";
+import { translateValue } from "@/lib/import/variant-translations";
+import { repairSyntheticVariantIds } from "@/lib/sync/mapping-repair";
 
 export type MappingActionResult =
   | { ok: true; message: string }
   | { ok: false; error: string };
 
 /**
- * Skapar mappning från Wix-produkt till AliExpress-URL/ID. Positionell
- * variantmappning. Bumpar revalidatePath så listan uppdateras direkt.
+ * Skapar mappning från Wix-produkt till AliExpress-URL/ID.
+ *
+ * VÄRDEBASERAD variantparning (destillatorn 2026-08-09: 4 Wix-varianter mot
+ * 24 AE-SKU:er parades förr positionellt = blint på listordning → fel SKU:er
+ * med riktiga id:n som självläkningen aldrig rör). Nu återanvänds synkens
+ * matchningsmaskineri (repairSyntheticVariantIds): svenska Wix-choices matchas
+ * mot översatta AE-skuProps per värdesignatur, samma-vara-i-flera-lager väljs
+ * med EU-preferens. Positionell parning finns kvar ENBART som sista utväg för
+ * omatchade rader — och räknas + varnas i svaret så det aldrig sker tyst.
  */
 export async function createMappingAction(
   wixProductId: string,
@@ -32,21 +41,39 @@ export async function createMappingAction(
       getV3ProductVariants(wixProductId),
       getProduct(supplierProductId),
     ]);
-    const pairs = Math.min(wixVariants.length, aeProduct.variants.length);
+    const aeVariants = aeProduct.variants;
     const pricing = pricingConfigFromEnv();
-    const variantMappings = Array.from({ length: pairs }, (_, i) => {
-      const ae = aeProduct.variants[i];
+
+    // 1) Värdeparning: tomma id:n är per definition syntetiska → matcharen
+    //    fyller i AE-skuId där signaturen (eller samma-vara-regeln) är entydig.
+    const seed = wixVariants.map((wv) => ({ supplierVariantId: "", choices: wv.choices }));
+    const rep = repairSyntheticVariantIds(seed, aeVariants, translateValue);
+    const aeById = new Map(aeVariants.map((a) => [String(a.skuId), a]));
+    const assigned = new Set(rep.variants.map((v) => v.supplierVariantId).filter(Boolean));
+    // 2) Positionell RESERV för omatchade Wix-varianter: kvarvarande AE-SKU:er
+    //    i listordning (gamla beteendet, nu bara för resten + högljutt räknad).
+    const remaining = aeVariants.filter((a) => !assigned.has(String(a.skuId)));
+    let positional = 0;
+
+    const variantMappings = wixVariants.flatMap((wv, i) => {
+      let ae = aeById.get(rep.variants[i].supplierVariantId);
+      if (!ae) {
+        ae = remaining.shift();
+        if (!ae) return []; // fler Wix-varianter än AE-SKU:er → raden får ingen källa
+        positional++;
+      }
       const breakdown = computePrice(ae.price, pricing);
-      return {
+      return [{
         supplierVariantId: ae.skuId,
-        sku: wixVariants[i].sku || `${supplierProductId}-${i}`,
-        wixVariantId: wixVariants[i].id,
-        choices: wixVariants[i].choices,
+        sku: wv.sku || `${supplierProductId}-${i}`,
+        wixVariantId: wv.id,
+        choices: wv.choices,
         costUsd: ae.price,
         landedCostSek: breakdown.costSek,
         grossSek: breakdown.grossSek,
-      };
+      }];
     });
+    const matched = variantMappings.length - positional;
 
     const store = getStore();
     await store.saveMapping({ supplierProductId, wixProductId, variants: variantMappings });
@@ -54,16 +81,17 @@ export async function createMappingAction(
       at: new Date().toISOString(),
       kind: "mapping-created",
       ref: wixProductId,
-      detail: `supplierProductId=${supplierProductId} variants=${variantMappings.length}`,
+      detail: `supplierProductId=${supplierProductId} variants=${variantMappings.length} `
+        + `värdematchade=${matched} positionella=${positional}`,
     });
     revalidatePath("/admin/mappings");
     return {
       ok: true,
-      message: `Mappad ✓ (${variantMappings.length} varianter${
-        wixVariants.length !== aeProduct.variants.length
-          ? `, varning: Wix har ${wixVariants.length}, AE har ${aeProduct.variants.length}`
-          : ""
-      })`,
+      message: `Mappad ✓ (${variantMappings.length} varianter: ${matched} värdematchade`
+        + `${positional > 0 ? `, ${positional} positionsgissade — KONTROLLERA att rätt AE-variant valdes` : ""}`
+        + `${wixVariants.length !== aeVariants.length
+          ? `; Wix har ${wixVariants.length}, AE har ${aeVariants.length}`
+          : ""})`,
     };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Okänt fel" };
