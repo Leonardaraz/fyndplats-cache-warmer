@@ -408,7 +408,21 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
           ?? sku.ship_from
           ?? sku.warehouse_code
           ?? "";
+        // Flerlager-listningar lägger ofta lagret som SKU-PROPERTY ("Ships From":
+        // "Poland") i stället för de dedikerade fälten — utan denna fallback blev
+        // shipFrom tomt och popupens EU/Kina-badge visade "?" för exakt de
+        // produkter där valet spelar störst roll (lasertag-fyndet 2026-08-09).
+        // Bara ett rent 2-bokstavsresultat accepteras från propen — okända
+        // ortnamn ska inte smitta shipFrom med godtycklig text.
+        const shipPropNorm = (() => {
+          const entry = Object.entries(props).find(([k]) =>
+            /ships?\s*from|ship\s*country|warehouse/i.test(k),
+          );
+          const norm = normalizeShipFromCode(entry?.[1] ?? "");
+          return /^[A-Z]{2}$/.test(norm) ? norm : "";
+        })();
         const variantShipFrom = normalizeShipFromCode(variantShipFromRaw)
+          || shipPropNorm
           || productDefaultShipFrom;
         return {
                 skuId: String(sku.sku_id ?? sku.id ?? ""),

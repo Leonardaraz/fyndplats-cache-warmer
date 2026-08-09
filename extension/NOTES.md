@@ -43,6 +43,21 @@ supplierProductId-spärren (PR #369) också kliver åt sidan när den landat.
 Importer landar ALLTID som utkast i granskningskön (pending_review) — inget
 når butiken utan publicering.
 
+## EU-först-import + lager-badge per rad (0.1.36)
+
+Flerlager-listningar (samma färg i flera warehouses) visade "?"-badge på alla
+rader och förbockade allt — Kina-SKU:er kunde importeras oavsiktligt trots
+EU-leveranslöftet i butiken. Nu:
+
+- **Lagerkoden härleds även ur frakt-axelns VÄRDE** ("Ships From": "Poland" →
+  PL via FP_EU.NAME_TO_ISO) när det dedikerade shipFrom-fältet saknas — både
+  server-side (DS-API-svaret) och i popupen. Badgen visar EU/Kina korrekt.
+- **EU-först-default:** finns minst en EU-lager-rad förbockas BARA EU-raderna;
+  Kina/okänt avbockas automatiskt med en varning i statusraden. Att importera
+  icke-EU kräver ett aktivt kryss. Körs EN gång per produkt (efter att
+  variantlistan är slutgiltig) — användarens egna bockar skrivs aldrig över.
+- Produkter helt utan EU-lager berörs inte (allt förbockat som förut).
+
 ## Per-variant-priser vid DOM-fallback (0.1.34)
 
 Nya PC-sidan saknar ofta inbäddad SKU-JSON → skrapan bygger varianter ur DOM:en
