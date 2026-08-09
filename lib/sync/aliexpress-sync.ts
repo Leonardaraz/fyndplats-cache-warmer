@@ -207,16 +207,27 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     const streak = inputs.removedStreak ?? REMOVED_STRIKES_REQUIRED;
     const confirmed = streak >= REMOVED_STRIKES_REQUIRED;
     if (confirmed) {
+      // SEO-BESLUT (2026-08-09): en borttagen listning nollar lagret men
+      // AVPUBLICERAR INTE produkten. Att dölja sidan gör URL:en till en 404 och
+      // kastar bort all upparbetad ranking och alla inlänkar — för en produkt
+      // som mycket väl kan komma tillbaka hos en annan leverantör. Branschpraxis
+      // för utgången vara är att låta sidan ligga kvar med status "slut i lager"
+      // och hänvisa vidare, inte att radera den ur indexet.
+      //
+      // Produkten blir ändå omöjlig att köpa (lager 0), syns som removed i
+      // /admin/sync-alerts och kan hanteras manuellt: behåll som
+      // informationssida, byt leverantör, eller 301:a till en ersättare där en
+      // sådan faktiskt finns.
       return {
         listingStatus: "removed",
-        actionTaken: inputs.wixVisible ? "hidden" : "none",
-        shouldHide: inputs.wixVisible,
+        actionTaken: "marked_oos",
+        shouldHide: false,
         shouldRestore: false,
-        inventoryTarget: null,
+        inventoryTarget: 0,
         alert: null,
         newCostSek: null,
-        notes: "AliExpress-listning borttagen — produkten döljs i butiken.",
-        justWentOos: false,
+        notes: "AliExpress-listning borttagen — lagret nollas, sidan behålls publicerad (SEO).",
+        justWentOos: prevState?.listingStatus !== "out_of_stock" && prevState?.listingStatus !== "removed",
         justRestocked: false,
       };
     }
