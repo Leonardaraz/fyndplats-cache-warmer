@@ -25,6 +25,7 @@ import {
   needsDsPriceReconcile,
   reconcileVariantsWithDs,
 } from "./variant-reconcile";
+import { sanitizeVariantOptions } from "./variant-sanitize";
 import type { AliExpressProduct, FeatureFlags, PricingOverride, PricingRules } from "./types";
 import {
   addProductToCollection,
@@ -283,6 +284,22 @@ export async function importProduct(
     : product.variants.filter((v) => v.included);
   if (sourceVariants.filter((v) => v.included).length === 0) {
     throw new Error("Inga varianter valda för import.");
+  }
+  // SANERING FÖRST (VEVOR-pumpen 2026-08-08): en axel med tomma värden (skrapan
+  // kunde inte läsa etiketterna, t.ex. bild-swatchar utan text) nådde Wix orört
+  // → 400 "choices[].name has size 0" och hela importen föll. Axlar med tomma
+  // värden tas bort helt (Wix kräver alla options på alla varianter) och
+  // varianter som därmed blir identiska slås ihop. Körs FÖRE prisavstämningen
+  // så dess värdesignatur-matchning aldrig ser tomma värden.
+  const clean = sanitizeVariantOptions(sourceVariants);
+  if (clean.removedAxes.length > 0) {
+    sourceVariants = clean.variants;
+    product.variants = clean.variants; // spegel — samma skäl som prisavstämningen
+    console.log(
+      `[import:sanitize] pid=${product.supplierProductId} tog bort axlar med tomma värden ` +
+        `(${clean.removedAxes.map((a) => JSON.stringify(a)).join(", ")}); ` +
+        `${clean.mergedDuplicates} dubblettvarianter sammanslagna.`,
+    );
   }
   // Memoiserat DS-anrop: prisavstämningen, variantbild- OCH beskrivnings-
   // backfillen kan alla behöva DS-produkten — då hämtas den bara EN gång.
@@ -702,7 +719,28 @@ export async function importProduct(
   // behåller ALLTID de valda (included) varianternas värden och håller
   // options↔varianter konsistenta. Hårdfaller aldrig → kapad produkt flaggas
   // för polering (needsAiPolish nedan).
-  const cap = capOptionsAndVariants(deriveOptions(prunedVariants, translatedColorCodes), prunedVariants);
+  // PAYLOAD-VAKT (batch-fyndet 2026-08-08): saneringen körs en ANDRA gång på de
+  // FÄRDIGÖVERSATTA varianterna, precis innan options härleds. Första passet ser
+  // bara råvärdena — skulle något mellansteg (översättning, remap, trim) lämna
+  // ett effektivt tomt värde vidare är detta sista utposten före Wix-payloaden.
+  // Samma felklass som #378 men senare i kedjan: hellre en borttagen axel + en
+  // flaggad produkt än ett create-product-400 som fäller hela importen.
+  let wixReadyVariants = prunedVariants;
+  let payloadGuardTriggered = false;
+  {
+    const guard = sanitizeVariantOptions(prunedVariants);
+    if (guard.removedAxes.length > 0) {
+      wixReadyVariants = guard.variants;
+      payloadGuardTriggered = true;
+      console.warn(
+        `[import:payload-guard] pid=${product.supplierProductId} effektivt tomma variantvärden ` +
+          `överlevde till payload-steget — axlar borttagna: ` +
+          `${guard.removedAxes.map((a) => JSON.stringify(a)).join(", ")}; ` +
+          `${guard.mergedDuplicates} dubblettvarianter sammanslagna. Produkten flaggas för granskning.`,
+      );
+    }
+  }
+  const cap = capOptionsAndVariants(deriveOptions(wixReadyVariants, translatedColorCodes), wixReadyVariants);
   const options = cap.options;
   const wixVariantSource = cap.variants;
   if (cap.capped) {
@@ -1026,7 +1064,9 @@ export async function importProduct(
     hasEuWarehouse,
     warehouseClass,
     ...(created.slugSuffix ? { slugSuffix: created.slugSuffix } : {}),
-    ...((!aiEnabled || variantsNeedPolish || cap.capped) ? { needsAiPolish: true } : {}),
+    ...((!aiEnabled || variantsNeedPolish || cap.capped || payloadGuardTriggered)
+      ? { needsAiPolish: true }
+      : {}),
     ...(translatorResult.unresolved.length > 0
       ? { unresolvedVariantValues: translatorResult.unresolved }
       : {}),
