@@ -82,9 +82,10 @@ export interface SyncStateEntry {
   outOfStockSince?: string | null;
   /**
    * Antal körningar i RAD som klassat produkten som "borttagen" hos AliExpress.
-   * Nollställs så fort produkten ses igen. Vi döljer först vid
-   * REMOVED_STRIKES_REQUIRED så ett transient "not found" inte gömmer en levande
-   * produkt. Saknas/0 = inga obekräftade borttagnings-observationer.
+   * Nollställs så fort produkten ses igen. Först vid REMOVED_STRIKES_REQUIRED
+   * agerar synken (sedan #369: lagret nollas, sidan förblir synlig — SEO-
+   * bevarande; tidigare doldes produkten) så ett transient "not found" aldrig
+   * slår mot en levande produkt. Saknas/0 = inga obekräftade observationer.
    */
   removedStreak?: number;
   /**

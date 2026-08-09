@@ -134,11 +134,34 @@ const FINISH_WORDS = [
  * Returnerar värdena att flagga för polering; flaggar aldrig hela axeln och
  * fäller aldrig importen.
  */
+/**
+ * Bär värdet ett färgord som SUFFIX i en sammansättning? Svenska färgkompositer
+ * är huvud-finala — "Himmelsblå", "Ljusrosa", "Turkosgrön", "Mörkgrön" — och
+ * golden-tabellen producerar många sådana som INTE finns som egna baser i
+ * COLOR_FORMS. Utan suffix-igenkänningen flaggade grinden tabellens egna
+ * korrekta översättningar som icke-färger → poleringskön svämmade över med
+ * felfria produkter (audit 2026-08-09). Bara för grinden: bild-matchningen
+ * (matchesColorName) ska fortsatt kräva exakt form ("Blå" ≠ "marinblå").
+ */
+function bearsColorSuffix(value: string): boolean {
+  for (const t of words(value)) {
+    for (const forms of Object.values(COLOR_FORMS)) {
+      if (forms.some((f) => f.length >= 3 && t.length > f.length && t.endsWith(f))) return true;
+    }
+  }
+  return false;
+}
+
 export function nonColorValuesOnColorAxis(values: ReadonlyArray<string>): string[] {
   const vals = values.map((v) => v.trim()).filter(Boolean);
+  // Majoriteten räknas med EXAKTA former (isColorAxis, oförändrad — suffix-
+  // breddning här gjorde halvfärgade axlar som "Effekt: Glöd/Polarsvart" till
+  // färgaxlar och skapade nya falska flaggor). Suffix-igenkänningen används
+  // enbart på VÄRDE-sidan nedan: på en redan igenkänd färgaxel ska tabellens
+  // kompositer ("Ljusrosa") aldrig flaggas. Konservativt åt båda håll.
   if (!isColorAxis(vals)) return [];
   return vals.filter((v) => {
-    if (colorBasesIn(v).length > 0) return false;
+    if (colorBasesIn(v).length > 0 || bearsColorSuffix(v)) return false;
     if (!/[A-Za-zÅÄÖåäö]{3,}/.test(v)) return false;
     const tokens = [...words(v)];
     return !FINISH_WORDS.some((f) => tokens.some((t) => t === f || t.startsWith(f)));

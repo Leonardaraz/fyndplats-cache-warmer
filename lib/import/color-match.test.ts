@@ -110,6 +110,16 @@ describe("nonColorValuesOnColorAxis — fångar rätt svenska, fel betydelse", (
     expect(nonColorValuesOnColorAxis(["Svart", "Vit", "Ljusgrå"])).toEqual([]);
     expect(nonColorValuesOnColorAxis(["Kräm", "Vinröd", "Marinblå"])).toEqual([]);
   });
+  it("golden-tabellens sammansatta färger flaggas ALDRIG (audit 2026-08-09)", () => {
+    // Tabellen producerar huvud-finala kompositer som inte är egna baser i
+    // COLOR_FORMS — suffix-igenkänningen släpper dem ("Ljusrosa" slutar på rosa).
+    expect(nonColorValuesOnColorAxis(["Röd", "Vit", "Ljusrosa"])).toEqual([]);
+    expect(nonColorValuesOnColorAxis(["Himmelsblå", "Mörkgrön", "Svart"])).toEqual([]);
+    // Majoriteten räknas fortsatt på EXAKTA former (konservativt): en axel som
+    // bara känns igen via kompositer blir ingen färgaxel → fail-open, ingen
+    // flagga. Hellre en missad "Nät" här än falska flaggor på effekt-axlar.
+    expect(nonColorValuesOnColorAxis(["Turkosgrön", "Vit", "Nät"])).toEqual([]);
+  });
   it("släpper igenom ytor och material på färgaxeln", () => {
     expect(nonColorValuesOnColorAxis(["Ekdekor", "Svart", "Vit"])).toEqual([]);
     expect(nonColorValuesOnColorAxis(["Naturligt trä", "Grå", "Vit"])).toEqual([]);

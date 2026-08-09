@@ -23,10 +23,11 @@
 //      sidan krävs; flera DS-träffar med SAMMA signatur är per konstruktion
 //      samma vara i olika lager (frakt-axeln ingår inte i signaturen) → välj
 //      föredragen: EU-lager först, sedan högst saldo, sedan först-sedd.
-//   3. Ensam SYNTETISK mappningsvariant + ALLA lediga DS-SKU:er delar EN
-//      signatur → samma vara oavsett val (första nattens facit 2026-08-09:
-//      "default"-mappningar med tomma choices mot flerlager-listningar var
-//      18 av 19 tvetydiga) → välj föredragen enligt samma preferens.
+//   3. Ensam SYNTETISK mappningsvariant med TOMMA choices + ALLA lediga
+//      DS-SKU:er delar EN signatur → samma vara oavsett val (första nattens
+//      facit 2026-08-09: "default"-mappningar mot flerlager-listningar var
+//      18 av 19 tvetydiga) → välj föredragen enligt samma preferens. En rad
+//      med EGNA motsägande värden lämnas tvetydig (aldrig tvångsmappning).
 //   4. Pris: exakt en DS-SKU vars pris ligger inom 1 % av mappningens costUsd.
 //   Ingen entydig träff → lämnas orörd + rapporteras (ambiguous).
 
@@ -62,7 +63,11 @@ export function isSyntheticMappingId(id: string): boolean {
   return SYNTHETIC_RE.test(s) || s === "default" || s === "";
 }
 
-const SHIP_AXIS_RE = /ships?\s*from|ship\s*country/i;
+// OBS: mappnings-/Wix-sidan bär SVENSKA axelnamn (importen översätter
+// "Ships From" → "Skickas från") — utan de svenska formerna blev signaturen
+// asymmetrisk (frakt-axeln exkluderad på DS-sidan men kvar på mappningssidan)
+// och flerlager-produkter kunde aldrig värdematchas (audit 2026-08-09).
+const SHIP_AXIS_RE = /ships?\s*from|ship\s*country|skickas\s*från|levereras\s*från/i;
 
 function valueSignature(
   options: Record<string, string> | undefined,
@@ -83,14 +88,18 @@ function shipCode(d: RepairDsVariant): string {
   return normalizeShipFromCode(raw);
 }
 
-/** Välj bland DS-SKU:er som är SAMMA vara (identisk icke-frakt-signatur):
- *  EU-lager först (snabb frakt till kund), sedan högst saldo, sedan först-sedd
- *  (stabil sort → deterministiskt). */
+/** Välj bland DS-SKU:er som är SAMMA vara (identisk icke-frakt-signatur).
+ *  Ordning: EU-lager MED saldo > valfritt lager med saldo > EU utan saldo >
+ *  övriga; högst saldo bryter lika, sedan först-sedd (stabil sort →
+ *  deterministiskt). Saldo okänt (fältet saknas) räknas som i lager — annars
+ *  skulle degraderad DS-data straffa alla kandidater lika godtyckligt.
+ *  (Audit 2026-08-09: ren EU-först låste mappningen på ett TOMT EU-lager
+ *  medan CN-lagret hade 500 st → varianten blev osäljbar i butiken.) */
 function pickPreferred(candidates: RepairDsVariant[]): RepairDsVariant | undefined {
+  const score = (d: RepairDsVariant) =>
+    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCountry(shipCode(d)) ? 1 : 0);
   return [...candidates].sort(
-    (a, b) =>
-      (isEuCountry(shipCode(b)) ? 1 : 0) - (isEuCountry(shipCode(a)) ? 1 : 0) ||
-      (b.stock ?? 0) - (a.stock ?? 0),
+    (a, b) => score(b) - score(a) || (b.stock ?? 0) - (a.stock ?? 0),
   )[0];
 }
 
@@ -151,10 +160,13 @@ export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
         // lager-SKU:er av samma vara → pickPreferred avgör.
         hit = pickPreferred(unclaimed(bySig.get(sig) ?? []));
       }
-      if (!hit && singleSynthetic) {
-        // Ensam syntetisk rad + ALLA lediga DS-SKU:er är samma vara (en enda
-        // signatur) → vilken som helst är rätt vara; välj föredraget lager.
-        // Täcker "default"-mappningar med tomma choices mot flerlager-listningar.
+      if (!hit && singleSynthetic && sig === "") {
+        // Ensam syntetisk rad UTAN egna värden ("default"-mappningarnas tomma
+        // choices) + ALLA lediga DS-SKU:er är samma vara (en enda signatur) →
+        // vilken som helst är rätt vara; välj föredraget lager. Kravet sig===""
+        // är avsiktligt (audit 2026-08-09): en rad som SJÄLV säger "Gul" får
+        // ALDRIG tvångsmappas till en enhetlig "Rosa"-grupp bara för att den är
+        // ensam — motsägande värden är tvetydighet, inte en matchning.
         const left = unclaimed(free);
         const sigs = new Set(left.map((d) => valueSignature(d.skuProps, translate)));
         if (left.length > 0 && sigs.size === 1) hit = pickPreferred(left);

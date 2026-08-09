@@ -245,7 +245,10 @@ describe("decideSyncOutcome", () => {
     expect(out.alert?.alertType).toBe("price_increase");
   });
 
-  it("föreslår restore när tidigare status var removed men nu är aktiv (och Wix-produkten är visible)", () => {
+  it("removed→aktiv på SYNLIG produkt → ingen restore-skrivning, bara logg-not (#369-policyn)", () => {
+    // Produkten doldes aldrig (aldrig-dölj sedan #369) → inget att återställa.
+    // Legacy-fallet (synken hann dölja före policybytet) täcks av
+    // hiddenBySync-testerna längre ner.
     const out = decideSyncOutcome(
       baseInputs({
         prevState: {
@@ -262,7 +265,8 @@ describe("decideSyncOutcome", () => {
         wixVisible: true,
       }),
     );
-    expect(out.shouldRestore).toBe(true);
+    expect(out.shouldRestore).toBe(false);
+    expect(out.notes).toContain("tillbaka");
   });
 
   it("rör INTE Wix-visibility vid restore om produkten manuellt dolts", () => {
@@ -551,8 +555,13 @@ describe("shouldRestore — synkens egen döljning kan ångras (audit-fynd 2)", 
     expect(d2.shouldRestore).toBe(false);
   });
 
-  it("synlig produkt med prev=removed → restore som förut", () => {
+  it("SYNLIG produkt med prev=removed → INGEN restore (aldrig-dölj-policyn #369)", () => {
+    // Under #369 förblir produkten synlig när listningen försvinner — en
+    // removed→active-övergång på en synlig produkt behöver ingen visibility-
+    // skrivning. Utan detta gav varje comeback en spök-restore i loggen
+    // (audit 2026-08-09). Comebacken noteras i decision.notes i stället.
     const d = decideSyncOutcome({ ...base, prevState: prevRemoved, wixVisible: true });
-    expect(d.shouldRestore).toBe(true);
+    expect(d.shouldRestore).toBe(false);
+    expect(d.notes).toContain("tillbaka");
   });
 });

@@ -61,7 +61,9 @@ export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {}
     const skip: string[] = [];
     try {
       for (let guard = 0; guard < 30; guard++) {
-        const r: RepairBatchResult = await repairSyntheticMappingsAction(skip);
+        // brokenIds som allowlist → servern bearbetar samma LIVE-mängd som
+        // totalen räknar (orphans för raderade produkter hoppas över).
+        const r: RepairBatchResult = await repairSyntheticMappingsAction(skip, brokenIds);
         acc.processed += r.processed;
         acc.repaired.push(...r.repaired);
         acc.ambiguous.push(...r.ambiguous);
@@ -107,7 +109,10 @@ export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {}
     return [...list].sort((a, b) => rank(b.id) - rank(a.id));
   }, [mapped, q, onlyIssues, onlyOos, syncIssues, oosIssues]);
 
-  const unmappedCount = unmapped.length - sessionMapped.size;
+  // Bara sessionMapped-id:n som faktiskt låg i Att mappa-listan får dras av —
+  // en OMMAPPNING av en redan mappad produkt hamnar också i sessionMapped och
+  // gav annars negativa fliksiffror ("Att mappa -1", Leonards skärmdump 2026-08-09).
+  const unmappedCount = unmapped.filter((p) => !sessionMapped.has(p.id)).length;
 
   function handleMapped(id: string) {
     setSessionMapped((prev) => new Set(prev).add(id));

@@ -24,11 +24,13 @@ Sätt `AI_ENRICHMENT_ENABLED=false` i Vercel (production). Då:
   *"polera denna"* så skriver Claude SEO/beskrivning/FAQ/kategori gratis i chatten
   istället för via betald API-pipeline.
 
-### Variantöversättning: tabell → cache → Haiku → svenskhets-grind (egen switch `VARIANT_AI_TRANSLATION_ENABLED`)
+### Variantöversättning: tabell → cache → Haiku → svenskhets-grind → färg-grind (egen switch `VARIANT_AI_TRANSLATION_ENABLED`)
 
 Variantvärden (t.ex. "Warm White", "100 inch") översätts till svenska FRÅN START
 vid import — viktigt, för i Wix V3 speglar `choice.name` den låsta `choice.key`:en,
-så värden kan inte döpas om i efterhand. Fyra lager (`lib/import/variant-ai-translate.ts`):
+så värden kan inte döpas om i efterhand. Fem lager (`lib/import/variant-ai-translate.ts`);
+färg-grinden (5) körs sedan 2026-08-09 i BÅDA lägena — även hård-$0/sync-läget
+(`colorGateFlags` i pipeline-else-grenen), eftersom den är deterministisk och gratis:
 
 1. **Statisk tabell** (`variant-translations.ts`, $0): golden-testad, auktoritativ.
 2. **AI-fallback** (Haiku, default PÅ): bara för värden tabellen missar, **ett**
