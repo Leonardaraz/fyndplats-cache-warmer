@@ -3,8 +3,9 @@
 // Listar alla Wix V3-produkter på headless-sajten som inte har en
 // AliExpress-mappning i FyndplatsMappings-collectionen. För varje produkt
 // kan operatorn (a) söka AliExpress på text och välja en träff, eller
-// (b) klistra in AliExpress-URL/ID direkt. Mappning sparas med positionell
-// variantparning.
+// (b) klistra in AliExpress-URL/ID direkt. Varianter paras på VÄRDESIGNATUR
+// (pairVariantMappings — positionellt bara som reserv, högljutt räknad).
+// "Laga trasiga variant-id"-knappen kör synkens självläkning på begäran.
 
 import { listAllV3Products, type WixV3ProductSummary } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
