@@ -544,7 +544,12 @@ function render() {
     cb.addEventListener("change", () => (product.variants[i].included = cb.checked));
     const label = document.createElement("label");
     label.htmlFor = `v${i}`;
-    const optText = Object.values(v.options).join(" / ") || "Standard";
+    // Tomma värden filtreras (flerlager-listningar utan visningsnamn gav
+    // rader som bara hette "/ ($37.43)" — VATOS-lastbilen 2026-08-09).
+    const optText =
+      Object.values(v.options)
+        .filter((x) => String(x || "").trim())
+        .join(" / ") || (product.variants.length > 1 ? `Variant ${i + 1}` : "Standard");
     label.innerHTML = `${optText} <span class="cost">($${v.costUsd})</span>`;
     row.append(cb, label);
     // Per-variant EU/CN-badge (härledd ur shipFrom ELLER frakt-axelns värde).
