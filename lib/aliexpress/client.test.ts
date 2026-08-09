@@ -1,6 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { parseTrackingResponse, resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin, sanitizeZip, phoneDialCode, normalizeMobile } from "./client";
+import { parseSkuAttr, parseTrackingResponse, resolveAccessToken, createOrder, OrderValidationError, buildPlaceOrderDto, toAsciiLatin, sanitizeZip, phoneDialCode, normalizeMobile } from "./client";
 import { MemoryStore } from "../store/memory";
+
+describe("parseSkuAttr — sista datakällan för visningsnamn + lagerland", () => {
+  it("VATOS-fallet 2026-08-09: värden och Ships From ur sku_attr", () => {
+    const r = parseSkuAttr("14:29#Blue;200007763:201336103#Germany");
+    expect(r.segments).toEqual([
+      { propId: "14", display: "Blue" },
+      { propId: "200007763", display: "Germany" },
+    ]);
+    expect(r.shipFromText).toBe("Germany");
+  });
+  it("segment utan #display och tom input hanteras", () => {
+    const r = parseSkuAttr("14:29;200007763:201336100#China");
+    expect(r.segments[0]).toEqual({ propId: "14", display: "" });
+    expect(r.shipFromText).toBe("China");
+    expect(parseSkuAttr("")).toEqual({ segments: [], shipFromText: "" });
+    expect(parseSkuAttr(undefined)).toEqual({ segments: [], shipFromText: "" });
+  });
+  it("display med '#' i texten kapas inte fel (allt efter FÖRSTA #)", () => {
+    const r = parseSkuAttr("14:29#Bla #2");
+    expect(r.segments[0].display).toBe("Bla #2");
+  });
+});
 
 describe("sanitizeZip — AliExpress postnummer: bara siffror/-//", () => {
   it("tar bort mellanslag i svenska postnummer", () => {

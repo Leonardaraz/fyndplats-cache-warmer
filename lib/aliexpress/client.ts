@@ -343,6 +343,35 @@ interface RawProduct {
   };
 }
 
+/**
+ * Parsar sku_attr-strängen — "14:29#Blue;200007763:201336103#Germany" — som
+ * SISTA datakälla för visningsnamn. Flerlager-listningar skickar ofta
+ * ae_sku_property_dtos HELT utan värdenamn (VATOS-lastbilen 2026-08-09: alla
+ * rader visade "/ ($37.43)" i popupen), men sku_attr bär både värdenas
+ * display-text efter '#' och lagerlandet: egenskaps-id 200007763 är
+ * AliExpress fasta id för "Ships From".
+ */
+export function parseSkuAttr(attr: unknown): {
+  /** Segment i ordning: { propId, display } — display kan vara "". */
+  segments: { propId: string; display: string }[];
+  /** "Ships From"-segmentets display-text ("Germany", "China", …) eller "". */
+  shipFromText: string;
+} {
+  const segments: { propId: string; display: string }[] = [];
+  let shipFromText = "";
+  for (const seg of String(attr ?? "").split(";")) {
+    if (!seg.trim()) continue;
+    const hashIdx = seg.indexOf("#");
+    const ids = hashIdx === -1 ? seg : seg.slice(0, hashIdx);
+    const display = hashIdx === -1 ? "" : seg.slice(hashIdx + 1).trim();
+    const propId = (ids.split(":")[0] ?? "").trim();
+    if (!propId) continue;
+    if (propId === "200007763") shipFromText = display;
+    segments.push({ propId, display });
+  }
+  return { segments, shipFromText };
+}
+
 function unwrapArray<T>(value: unknown, wrapperKey: string): T[] {
   if (Array.isArray(value)) return value as T[];
   if (value && typeof value === "object") {
@@ -390,9 +419,18 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         let imageUrl: string | undefined;
         const propList = sku.aeop_s_k_u_propertys
           ?? unwrapArray<RawSkuProp>(sku.ae_sku_property_dtos, "ae_sku_property_d_t_o");
-        for (const prop of propList) {
+        const attrInfo = parseSkuAttr(sku.sku_attr);
+        for (let pi = 0; pi < propList.length; pi++) {
+                const prop = propList[pi];
                 const name = prop.sku_property_name ?? "Option";
-                const value = prop.property_value_definition_name ?? prop.property_value_name ?? "";
+                let value = prop.property_value_definition_name ?? prop.property_value_name ?? "";
+                // Sista utvägen: dto:n saknar värdenamn → ta display-texten ur
+                // sku_attr-segmentet på samma position (listorna beskriver samma
+                // SKU-definition i samma ordning; fylls bara när längderna matchar
+                // så en förskjutning aldrig kan para fel värde med fel axel).
+                if (!value.trim() && attrInfo.segments.length === propList.length) {
+                  value = attrInfo.segments[pi].display;
+                }
                 props[name] = value;
                 if (prop.sku_image) imageUrl = prop.sku_image;
         }
@@ -421,8 +459,15 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
           const norm = normalizeShipFromCode(entry?.[1] ?? "");
           return /^[A-Z]{2}$/.test(norm) ? norm : "";
         })();
+        // sku_attr:s "Ships From"-display (id 200007763) — täcker listningar
+        // där varken dedikerade fält eller property-dtos bär lagerlandet.
+        const attrShipNorm = (() => {
+          const norm = normalizeShipFromCode(attrInfo.shipFromText);
+          return /^[A-Z]{2}$/.test(norm) ? norm : "";
+        })();
         const variantShipFrom = normalizeShipFromCode(variantShipFromRaw)
           || shipPropNorm
+          || attrShipNorm
           || productDefaultShipFrom;
         return {
                 skuId: String(sku.sku_id ?? sku.id ?? ""),
