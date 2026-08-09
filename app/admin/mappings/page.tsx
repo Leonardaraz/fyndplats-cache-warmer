@@ -32,6 +32,16 @@ function syncIssueLabel(s: SyncStateEntry): string | null {
   return null;
 }
 
+/** Slut hos leverantören (synken fungerar — saldot är bara 0). Egen gul kategori
+ *  bredvid röda "Tappat synk" så båda lägena syns där mappningarna åtgärdas. */
+function oosLabel(s: SyncStateEntry): string | null {
+  if (s.listingStatus !== "out_of_stock") return null;
+  const since = s.outOfStockSince
+    ? ` sedan ${new Date(s.outOfStockSince).toLocaleDateString("sv-SE", { day: "numeric", month: "short" })}`
+    : "";
+  return `Slut hos leverantören${since} — lagret nollat i butiken. Byt källa eller invänta påfyllning.`;
+}
+
 export default async function MappingsAdminPage() {
   let allProducts: WixV3ProductSummary[];
   let mappingByProductId: Map<string, { supplierProductId: string; variantCount: number }>;
@@ -77,11 +87,16 @@ export default async function MappingsAdminPage() {
   // filtreras bort automatiskt eftersom nyckeln bara sätts för listade id:n).
   const liveIds = new Set(allProducts.map((p) => p.id));
   const syncIssues: Record<string, string> = {};
+  const oosIssues: Record<string, string> = {};
   for (const s of problemStates) {
-    const label = syncIssueLabel(s);
-    if (label && liveIds.has(s.wixProductId)) syncIssues[s.wixProductId] = label;
+    if (!liveIds.has(s.wixProductId)) continue;
+    const issue = syncIssueLabel(s);
+    if (issue) syncIssues[s.wixProductId] = issue;
+    const oos = oosLabel(s);
+    if (oos && !issue) oosIssues[s.wixProductId] = oos;
   }
   const issueCount = Object.keys(syncIssues).length;
+  const oosCount = Object.keys(oosIssues).length;
 
   return (
     <main style={{ maxWidth: 920, margin: "20px auto", padding: "0 16px" }}>
@@ -125,6 +140,12 @@ export default async function MappingsAdminPage() {
           color={issueCount > 0 ? "#c00" : "#070"}
           hint="Mappade produkter vars synk inte fungerar: AliExpress-listningen borttagen (ev. redan dold av synken) eller minst 3 synkfel i rad. Filtrera fram dem under Mappade-fliken."
         />
+        <Stat
+          label="Slut hos leverantör"
+          value={oosCount}
+          color={oosCount > 0 ? "#d97706" : "#070"}
+          hint="Synken fungerar men leverantörens saldo är 0 — lagret är nollat i butiken. Filtrera fram dem under Mappade-fliken."
+        />
         {orphanCount > 0 ? (
           <Stat
             label="Orphan-mappningar"
@@ -141,7 +162,7 @@ export default async function MappingsAdminPage() {
           : ""}
       </p>
 
-      <MappingsList unmapped={unmapped} mapped={mapped} syncIssues={syncIssues} />
+      <MappingsList unmapped={unmapped} mapped={mapped} syncIssues={syncIssues} oosIssues={oosIssues} />
     </main>
   );
 }

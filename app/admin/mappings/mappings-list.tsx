@@ -16,15 +16,19 @@ interface Props {
   /** wixProductId → orsakstext för produkter som TAPPAT SYNK (listning
    *  borttagen / dold av synken / felsvit). Driver ⚠️-filtret + rad-badgen. */
   syncIssues?: Record<string, string>;
+  /** wixProductId → orsakstext för SLUT HOS LEVERANTÖREN (synken fungerar,
+   *  saldot är 0). Egen gul chip/badge — skild från röda tappat synk. */
+  oosIssues?: Record<string, string>;
 }
 
 type Tab = "unmapped" | "mapped";
 
-export function MappingsList({ unmapped, mapped, syncIssues = {} }: Props) {
+export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {} }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("unmapped");
   const [filter, setFilter] = useState("");
   const [onlyIssues, setOnlyIssues] = useState(false);
+  const [onlyOos, setOnlyOos] = useState(false);
   // Produkter som mappats i denna session — döljs direkt ur "Att mappa" för
   // snabb feedback; router.refresh() reconcilerar serverlistorna strax efter.
   const [sessionMapped, setSessionMapped] = useState<Set<string>>(new Set());
@@ -34,20 +38,26 @@ export function MappingsList({ unmapped, mapped, syncIssues = {} }: Props) {
     () => mapped.filter((p) => syncIssues[p.id]).length,
     [mapped, syncIssues],
   );
+  const oosCount = useMemo(
+    () => mapped.filter((p) => oosIssues[p.id]).length,
+    [mapped, oosIssues],
+  );
 
   const unmappedVisible = useMemo(
     () => unmapped.filter((p) => !sessionMapped.has(p.id) && p.name.toLowerCase().includes(q)),
     [unmapped, sessionMapped, q],
   );
   const mappedVisible = useMemo(() => {
-    const list = mapped.filter(
-      (p) => p.name.toLowerCase().includes(q) && (!onlyIssues || syncIssues[p.id]),
-    );
-    // Tappat synk överst så problemen aldrig gömmer sig långt ner i listan.
-    return [...list].sort(
-      (a, b) => (syncIssues[b.id] ? 1 : 0) - (syncIssues[a.id] ? 1 : 0),
-    );
-  }, [mapped, q, onlyIssues, syncIssues]);
+    // Chip-filter: båda av → allt; annars UNION av de påslagna kategorierna.
+    const chipMatch = (id: string) =>
+      (!onlyIssues && !onlyOos) ||
+      (onlyIssues && syncIssues[id]) ||
+      (onlyOos && oosIssues[id]);
+    const list = mapped.filter((p) => p.name.toLowerCase().includes(q) && chipMatch(p.id));
+    // Problem överst (tappat synk före slut-i-lager) så de aldrig gömmer sig.
+    const rank = (id: string) => (syncIssues[id] ? 2 : oosIssues[id] ? 1 : 0);
+    return [...list].sort((a, b) => rank(b.id) - rank(a.id));
+  }, [mapped, q, onlyIssues, onlyOos, syncIssues, oosIssues]);
 
   const unmappedCount = unmapped.length - sessionMapped.size;
 
@@ -81,21 +91,40 @@ export function MappingsList({ unmapped, mapped, syncIssues = {} }: Props) {
         />
       </div>
 
-      {/* Tappat synk-filter (bara relevant i Mappade-fliken) */}
-      {tab === "mapped" && issueCount > 0 ? (
-        <button
-          onClick={() => setOnlyIssues((v) => !v)}
-          aria-pressed={onlyIssues}
-          style={{
-            marginBottom: 10, padding: "5px 12px", borderRadius: 999, fontSize: 13,
-            fontWeight: 600, cursor: "pointer",
-            border: `1px solid ${onlyIssues ? "#c00" : "#e0b4b4"}`,
-            background: onlyIssues ? "#c00" : "#fff5f5",
-            color: onlyIssues ? "#fff" : "#c00",
-          }}
-        >
-          ⚠️ Tappat synk ({issueCount}){onlyIssues ? " ✕" : ""}
-        </button>
+      {/* Problem-filter (bara relevanta i Mappade-fliken) */}
+      {tab === "mapped" && (issueCount > 0 || oosCount > 0) ? (
+        <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+          {issueCount > 0 ? (
+            <button
+              onClick={() => setOnlyIssues((v) => !v)}
+              aria-pressed={onlyIssues}
+              style={{
+                padding: "5px 12px", borderRadius: 999, fontSize: 13,
+                fontWeight: 600, cursor: "pointer",
+                border: `1px solid ${onlyIssues ? "#c00" : "#e0b4b4"}`,
+                background: onlyIssues ? "#c00" : "#fff5f5",
+                color: onlyIssues ? "#fff" : "#c00",
+              }}
+            >
+              ⚠️ Tappat synk ({issueCount}){onlyIssues ? " ✕" : ""}
+            </button>
+          ) : null}
+          {oosCount > 0 ? (
+            <button
+              onClick={() => setOnlyOos((v) => !v)}
+              aria-pressed={onlyOos}
+              style={{
+                padding: "5px 12px", borderRadius: 999, fontSize: 13,
+                fontWeight: 600, cursor: "pointer",
+                border: `1px solid ${onlyOos ? "#d97706" : "#ecd3ac"}`,
+                background: onlyOos ? "#d97706" : "#fffaf0",
+                color: onlyOos ? "#fff" : "#b45309",
+              }}
+            >
+              🟡 Slut hos leverantör ({oosCount}){onlyOos ? " ✕" : ""}
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       {/* Sök */}
@@ -133,6 +162,7 @@ export function MappingsList({ unmapped, mapped, syncIssues = {} }: Props) {
                 product={p}
                 mapping={p.mapping}
                 syncIssue={syncIssues[p.id]}
+                oosIssue={oosIssues[p.id]}
                 onMapped={handleMapped}
               />
             ))}
