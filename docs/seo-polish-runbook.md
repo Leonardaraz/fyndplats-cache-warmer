@@ -520,7 +520,20 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 
 ## Steg 4 (rekommenderat) – koppla rätt kategori
 
-Om produkten bara ligger i "All Products", koppla en riktig kategori (1 anrop, mutation):
+### 4A – Läs ALLTID hela trädet först (read-only, 1 anrop)
+
+⚠️ **Gissa aldrig på en kategori ur minnet, och nöj dig aldrig med en toppkategori.** Trädet har **46 kategorier i tre nivåer** och de flesta produkter hör hemma i ett *löv*, inte i roten. Detta gick fel 2026-08-09: hamsterburen hamnade i "Hem & Inredning" och torkhuven i "Elektronik & Tillbehör" trots att **Husdjur → Burar, Kläder & Tillbehör** och **Skönhet & Hälsa → Hår & Rakning** fanns hela tiden — en kortlista från tidigare i sessionen användes i stället för trädet.
+
+```
+POST https://www.wixapis.com/categories/v1/categories/query
+{ "treeReference": { "appNamespace": "@wix/stores" }, "query": { "paging": { "limit": 100 } } }
+```
+
+Svaret ger `id`, `name` och `parentCategory.id` per kategori. Toppnivåerna är **Hem & Inredning · Kök & Husgeråd · Elektronik & Tillbehör · Sport & Fritid · Barn & Familj · Mode & Accessoarer · Skönhet & Hälsa · Husdjur · Trädgård & Utemöbler · Populära · REA · All Products** — under dem ligger löven (t.ex. Hushållsapparater, Badrum & Hemtextil, Förvaring & Organisering, Belysning, Dekoration & Prydnad, Hår & Rakning, Kropp & Välbefinnande, Burar Kläder & Tillbehör, Mat & Vattenskålar, Bil & Cykel, Träning & Gym, Mobiltillbehör, Leksaker & Spel, Baby & Småbarn).
+
+**Regel:** koppla **förälder + löv** (t.ex. `Husdjur` + `Burar, Kläder & Tillbehör`). Finns inget löv som passar räcker toppkategorin.
+
+### 4B – Koppla (mutation)
 
 ```
 POST https://www.wixapis.com/categories/v1/bulk/categories/add-item
@@ -528,13 +541,17 @@ POST https://www.wixapis.com/categories/v1/bulk/categories/add-item
 
 ```json
 { "item": { "catalogItemId": "{PRODUCT_ID}", "appId": "215238eb-22a5-4c36-9e7b-e7c08025e04e" },
-  "categoryIds": ["{CATEGORY_ID}"],
+  "categoryIds": ["{FÖRÄLDER_ID}", "{LÖV_ID}"],
   "treeReference": { "appNamespace": "@wix/stores" } }
 ```
 
-Vanliga kategori-ID: **Bil & Cykel** `b02b889a-a80e-414e-ad12-00ba5722244b` · Elektronik & Tillbehör `9054fdce-2f3d-4ad4-9cd9-c00645cbabea` · Friluftsliv & Resa `34c37816-2384-49d1-bb47-8d1415daad41` · Verktyg & Hemmafix `43674676-4407-406d-889d-a5eee646d167` · **Hem & Inredning** `3ed832b7-213f-4bd8-bbc4-e95744a9b316` · Sport & Fritid `de100f8d-755f-433d-90b2-9b18edb41b9d`.
+Ligger produkten redan i en **för bred eller fel** kategori — ta bort den, samma body:
 
-> **Hittar du ingen passande?** Hämta alla kategorier och matcha på `name` (read-only): `POST https://www.wixapis.com/categories/v1/categories/query` med body `{ "query": { "paging": { "limit": 100 } }, "treeReference": { "appNamespace": "@wix/stores" } }`. Det finns ~45 (bl.a. Hem & Inredning, Dekoration & Prydnad, Belysning, Hushållsapparater, Husdjur, Träning & Gym, Kök & Husgeråd). Möbler/utemöbler → **Hem & Inredning**.
+```
+POST https://www.wixapis.com/categories/v1/bulk/categories/remove-item
+```
+
+> ⚠️ **`directCategoriesInfo` släpar efter.** En GET direkt efter add/remove visar ofta det gamla värdet. Läs i stället `bulkActionMetadata` i svaret: `totalSuccesses` räknar det som gick igenom, och `ALREADY_EXISTS` / `ITEM_NOT_IN_CATEGORY` bland `results[].itemMetadata.error` betyder att målläget redan gäller — alltså inget fel. Vill du verifiera med en GET: vänta några sekunder först.
 
 -----
 
