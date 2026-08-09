@@ -13,28 +13,41 @@ export type MappedProduct = WixV3ProductSummary & {
 interface Props {
   unmapped: WixV3ProductSummary[];
   mapped: MappedProduct[];
+  /** wixProductId → orsakstext för produkter som TAPPAT SYNK (listning
+   *  borttagen / dold av synken / felsvit). Driver ⚠️-filtret + rad-badgen. */
+  syncIssues?: Record<string, string>;
 }
 
 type Tab = "unmapped" | "mapped";
 
-export function MappingsList({ unmapped, mapped }: Props) {
+export function MappingsList({ unmapped, mapped, syncIssues = {} }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("unmapped");
   const [filter, setFilter] = useState("");
+  const [onlyIssues, setOnlyIssues] = useState(false);
   // Produkter som mappats i denna session — döljs direkt ur "Att mappa" för
   // snabb feedback; router.refresh() reconcilerar serverlistorna strax efter.
   const [sessionMapped, setSessionMapped] = useState<Set<string>>(new Set());
 
   const q = filter.trim().toLowerCase();
+  const issueCount = useMemo(
+    () => mapped.filter((p) => syncIssues[p.id]).length,
+    [mapped, syncIssues],
+  );
 
   const unmappedVisible = useMemo(
     () => unmapped.filter((p) => !sessionMapped.has(p.id) && p.name.toLowerCase().includes(q)),
     [unmapped, sessionMapped, q],
   );
-  const mappedVisible = useMemo(
-    () => mapped.filter((p) => p.name.toLowerCase().includes(q)),
-    [mapped, q],
-  );
+  const mappedVisible = useMemo(() => {
+    const list = mapped.filter(
+      (p) => p.name.toLowerCase().includes(q) && (!onlyIssues || syncIssues[p.id]),
+    );
+    // Tappat synk överst så problemen aldrig gömmer sig långt ner i listan.
+    return [...list].sort(
+      (a, b) => (syncIssues[b.id] ? 1 : 0) - (syncIssues[a.id] ? 1 : 0),
+    );
+  }, [mapped, q, onlyIssues, syncIssues]);
 
   const unmappedCount = unmapped.length - sessionMapped.size;
 
@@ -68,6 +81,23 @@ export function MappingsList({ unmapped, mapped }: Props) {
         />
       </div>
 
+      {/* Tappat synk-filter (bara relevant i Mappade-fliken) */}
+      {tab === "mapped" && issueCount > 0 ? (
+        <button
+          onClick={() => setOnlyIssues((v) => !v)}
+          aria-pressed={onlyIssues}
+          style={{
+            marginBottom: 10, padding: "5px 12px", borderRadius: 999, fontSize: 13,
+            fontWeight: 600, cursor: "pointer",
+            border: `1px solid ${onlyIssues ? "#c00" : "#e0b4b4"}`,
+            background: onlyIssues ? "#c00" : "#fff5f5",
+            color: onlyIssues ? "#fff" : "#c00",
+          }}
+        >
+          ⚠️ Tappat synk ({issueCount}){onlyIssues ? " ✕" : ""}
+        </button>
+      ) : null}
+
       {/* Sök */}
       <div style={{ marginBottom: 12 }}>
         <input
@@ -98,7 +128,13 @@ export function MappingsList({ unmapped, mapped }: Props) {
               <MappingCard key={p.id} product={p} onMapped={handleMapped} />
             ))
           : mappedVisible.map((p) => (
-              <MappingCard key={p.id} product={p} mapping={p.mapping} onMapped={handleMapped} />
+              <MappingCard
+                key={p.id}
+                product={p}
+                mapping={p.mapping}
+                syncIssue={syncIssues[p.id]}
+                onMapped={handleMapped}
+              />
             ))}
       </ul>
 
