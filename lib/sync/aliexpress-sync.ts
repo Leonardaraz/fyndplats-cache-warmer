@@ -60,9 +60,10 @@ export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
 // dödas mitt i en Wix-skrivning (= partiella skrivningar / state-divergens).
 export const DEFAULT_SYNC_TIME_BUDGET_MS = 240_000;
 // Antal körningar i RAD som måste klassa en produkt som "borttagen" innan vi
-// faktiskt döljer den. Skyddar mot att ett transient "product not found"-svar
-// (AE svarar ofta så tillfälligt) felaktigt döljer en levande produkt — som
-// dessutom inte auto-återställs (eftersom wixVisible då blir false).
+// nollar lagret. Skyddar mot att ett transient "product not found"-svar (AE
+// svarar ofta så tillfälligt) felaktigt tar en levande produkt ur försäljning.
+// Sedan 2026-08-09 AVPUBLICERAS produkten inte längre vid bekräftad borttagning
+// — sidan behålls indexerad och markeras slut i lager (se decideSyncOutcome).
 export const REMOVED_STRIKES_REQUIRED = 2;
 
 // Antal körningar i RAD med dropship-lager 0 innan vi faktiskt nollar Wix-
