@@ -108,7 +108,55 @@ let nameEditOpen = false;
 
 // Frakt-axlar ("Ships From" m.fl.) importeras inte som riktiga valaxlar och
 // ska aldrig gå att döpa i sektionen (bug: tom "SHIPS FROM"-rad 2026-08-08).
-const SHIP_AXIS_EDIT_RE = /ships?\s*from|ship\s*country/i;
+const SHIP_AXIS_EDIT_RE = /ships?\s*from|ship\s*country|warehouse/i;
+
+// Lagerkod (ISO-2) för en variant: explicit shipFrom-fält först, annars
+// härledd ur variantens frakt-axel-VÄRDE ("Ships From": "Poland" → PL via
+// FP_EU.NAME_TO_ISO). Flerlager-listningar bär ofta lagret bara som property
+// (lasertag-fyndet 2026-08-09: alla rader visade "?" trots olika lager).
+function variantShipCode(v) {
+  const explicit = String((v && v.shipFrom) || "").trim().toUpperCase();
+  if (/^[A-Z]{2}$/.test(explicit)) return explicit;
+  if (explicit && globalThis.FP_EU.NAME_TO_ISO[explicit]) return globalThis.FP_EU.NAME_TO_ISO[explicit];
+  for (const [axis, val] of Object.entries((v && v.options) || {})) {
+    if (!SHIP_AXIS_EDIT_RE.test(axis)) continue;
+    const raw = String(val || "").trim().toUpperCase();
+    if (!raw) continue;
+    if (/^[A-Z]{2}$/.test(raw)) return raw;
+    if (globalThis.FP_EU.NAME_TO_ISO[raw]) return globalThis.FP_EU.NAME_TO_ISO[raw];
+    for (const [name, iso] of Object.entries(globalThis.FP_EU.NAME_TO_ISO)) {
+      if (raw.includes(name)) return iso;
+    }
+  }
+  return "";
+}
+
+// EU-FÖRST-DEFAULT (Leonards regel 2026-08-09): finns minst en EU-lager-rad
+// förbockas BARA EU-raderna — Kina/okänt kräver ett aktivt val. Körs EN gång
+// per produkt (efter att variantlistan är slutgiltig) så användarens egna
+// bockar aldrig skrivs över av en senare re-render.
+let euDefaultApplied = false;
+/** Returnerar ett statusmeddelande (eller null) — anroparen bakar in det i sin
+ *  egen setStatus så EU-varningen inte skrivs över av senare statusrader. */
+function applyEuFirstDefaults() {
+  if (euDefaultApplied || !product || !Array.isArray(product.variants)) return null;
+  const codes = product.variants.map((v) => variantShipCode(v));
+  if (!codes.some((c) => c && EU_WAREHOUSE_CODES.has(c))) return null; // inga EU-rader → rör inget
+  euDefaultApplied = true;
+  let unchecked = 0;
+  product.variants.forEach((v, i) => {
+    const isEu = codes[i] && EU_WAREHOUSE_CODES.has(codes[i]);
+    if (!isEu && v.included) {
+      v.included = false;
+      unchecked++;
+    }
+  });
+  if (unchecked === 0) return null;
+  return (
+    `EU-först: ${unchecked} rad(er) från Kina/okänt lager avbockade automatiskt. ` +
+    "Bocka i dem manuellt om du verkligen vill importera icke-EU-lager."
+  );
+}
 
 // --- Feature toggles (persisteras i chrome.storage.sync) -----------------
 // Alla PÅ som default för nya användare. Skickas i payloaden som featureFlags
@@ -291,17 +339,26 @@ async function load() {
       return;
     }
     product = res.product;
-    render();
     // Bild-färgsampling är bara meningsfull om vi faktiskt fick produktdata.
     if (product.extractionOk) {
-      sampleColors();
-      checkSupplierStatus();
       // DOM-fallback-varianter (dom-/idx-id) bär sidans synliga pris på ALLA
       // varianter — hämta riktiga per-SKU-priser så listan visar sanningen.
-      if (product.variants.some((v) => /^(dom-|idx-)/.test(String(v.supplierVariantId || "")))) {
+      const needsDsRefresh = product.variants.some((v) =>
+        /^(dom-|idx-)/.test(String(v.supplierVariantId || "")),
+      );
+      // EU-först appliceras när variantlistan är SLUTGILTIG: direkt här om
+      // ingen DS-uppfräschning väntar, annars inne i refresh-flödet (som byter
+      // ut listan) så användarens bockar aldrig nollas av en senare re-render.
+      const euMsg = needsDsRefresh ? null : applyEuFirstDefaults();
+      render();
+      if (euMsg) setStatus(euMsg, "warn");
+      sampleColors();
+      checkSupplierStatus();
+      if (needsDsRefresh) {
         void refreshVariantPricesViaDsApi();
       }
     } else {
+      render();
       // Skrapan misslyckades (nya PC-sidan saknar ofta inbäddad SKU-JSON och
       // byter pris-markup mellan A/B-varianter) → försök API-räddningen.
       void rescueViaDsApi();
@@ -354,12 +411,14 @@ async function rescueViaDsApi() {
   product.extractionOk = product.quality.hasTitle && product.quality.hasImages;
   // Skrapans "saknar pris"-varning är åtgärdad; rendera om med API-datan.
   product._warnings = [];
+  const euMsg = applyEuFirstDefaults();
   render();
   if (product.extractionOk) {
     setStatus(
       "Priser & lager hämtade via AliExpress-API:t (sidan kunde inte skrapas). " +
-        "Kontrollera varianterna som vanligt före import.",
-      "ok",
+        "Kontrollera varianterna som vanligt före import." +
+        (euMsg ? `\n${euMsg}` : ""),
+      euMsg ? "warn" : "ok",
     );
     sampleColors();
     checkSupplierStatus();
@@ -393,15 +452,20 @@ async function refreshVariantPricesViaDsApi() {
     (v) => Number(v.costUsd) > 0,
   );
   if (!dsVariants.length) {
+    // Listan förblir skrapans — den är nu slutgiltig → EU-först får köra.
+    const euMsg = applyEuFirstDefaults();
+    render();
     setStatus(
       "OBS: kunde inte verifiera per-variant-priserna via AliExpress-API:t — " +
-        "alla varianter visar sidans baspris. Kontrollera priserna extra noga.",
+        "alla varianter visar sidans baspris. Kontrollera priserna extra noga." +
+        (euMsg ? `\n${euMsg}` : ""),
       "warn",
     );
     return;
   }
   // API:t är facit för varianter/pris/lager; skrapans media/copy behålls.
   product.variants = dsVariants;
+  const euMsg = applyEuFirstDefaults();
   if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
     product.shipsFrom = [...new Set([...(product.shipsFrom || []), ...ds.shipsFrom])].sort();
   }
@@ -410,7 +474,10 @@ async function refreshVariantPricesViaDsApi() {
   // DOM-varningen om baspris är åtgärdad — rensa så den inte skrämmer i onödan.
   product._warnings = (product._warnings || []).filter((w) => !/baspriset/.test(w));
   render();
-  setStatus("Per-variant-priser & lager hämtade via AliExpress-API:t.", "ok");
+  setStatus(
+    "Per-variant-priser & lager hämtade via AliExpress-API:t." + (euMsg ? `\n${euMsg}` : ""),
+    euMsg ? "warn" : "ok",
+  );
 }
 
 // Hämtar säljarens score/status (Feature 6) och visar en varning före import:
@@ -480,8 +547,8 @@ function render() {
     const optText = Object.values(v.options).join(" / ") || "Standard";
     label.innerHTML = `${optText} <span class="cost">($${v.costUsd})</span>`;
     row.append(cb, label);
-    // Per-variant EU/CN-badge
-    row.append(badgeForShipFrom(v.shipFrom));
+    // Per-variant EU/CN-badge (härledd ur shipFrom ELLER frakt-axelns värde).
+    row.append(badgeForShipFrom(variantShipCode(v) || v.shipFrom));
     $variants.append(row);
   });
 
