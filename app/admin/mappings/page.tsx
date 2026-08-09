@@ -8,23 +8,48 @@
 
 import { listAllV3Products, type WixV3ProductSummary } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
+import { getSyncStore, type SyncStateEntry } from "@/lib/sync/sync-log";
 import { MappingsList, type MappedProduct } from "./mappings-list";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Produkter som TAPPAT SYNK (Leonards fråga 2026-08-09): synken kan inte längre
+ * uppdatera pris/lager från AliExpress. Klassar ett problemläge till en
+ * människoläsbar orsak + åtgärd. OOS ("slut hos leverantör") räknas INTE hit —
+ * de synkas ju fortfarande, lagret är bara 0.
+ */
+function syncIssueLabel(s: SyncStateEntry): string | null {
+  if (s.hiddenBySync) {
+    return "Dold av synken — AliExpress-listningen är borttagen. Byt källa (Ändra mappning) eller låt den vara dold.";
+  }
+  if (s.listingStatus === "removed") {
+    return "AliExpress-listningen borttagen — pris/lager kan inte synkas. Byt källa (Ändra mappning).";
+  }
+  if ((s.errorStreak ?? 0) >= 3) {
+    return `${s.errorStreak} synkfel i rad — pris/lager uppdateras inte. Kontrollera AliExpress-källan.`;
+  }
+  return null;
+}
 
 export default async function MappingsAdminPage() {
   let allProducts: WixV3ProductSummary[];
   let mappingByProductId: Map<string, { supplierProductId: string; variantCount: number }>;
   let totalMappingRows = 0;
   let loadError: string | null = null;
+  // wixProductId → orsakstext för produkter som tappat synk. Best-effort:
+  // hämtningen får aldrig fälla sidan (mappningsverktyget funkar utan).
+  let problemStates: SyncStateEntry[] = [];
 
   try {
-    const [products, mappings] = await Promise.all([
+    const [products, mappings, problems] = await Promise.all([
       listAllV3Products(),
       getStore().listMappings(),
+      getSyncStore().listProblemStates().catch(() => [] as SyncStateEntry[]),
     ]);
     allProducts = products;
     totalMappingRows = mappings.length;
+    problemStates = problems;
     mappingByProductId = new Map(
       mappings.map((m) => [
         m.wixProductId,
@@ -47,6 +72,16 @@ export default async function MappingsAdminPage() {
     .map((p) => ({ ...p, mapping: mappingByProductId.get(p.id)! }));
   const mappedLive = mapped.length;
   const orphanCount = totalMappingRows - mappedLive;
+
+  // Tappat synk-orsak per LIVE-produkt (spökrader för raderade produkter
+  // filtreras bort automatiskt eftersom nyckeln bara sätts för listade id:n).
+  const liveIds = new Set(allProducts.map((p) => p.id));
+  const syncIssues: Record<string, string> = {};
+  for (const s of problemStates) {
+    const label = syncIssueLabel(s);
+    if (label && liveIds.has(s.wixProductId)) syncIssues[s.wixProductId] = label;
+  }
+  const issueCount = Object.keys(syncIssues).length;
 
   return (
     <main style={{ maxWidth: 920, margin: "20px auto", padding: "0 16px" }}>
@@ -84,6 +119,12 @@ export default async function MappingsAdminPage() {
           color={unmapped.length > 0 ? "#F47A35" : "#070"}
           hint="Produkter utan AliExpress-källa. Auto-pipelinen är AV för dessa tills de mappas."
         />
+        <Stat
+          label="Tappat synk"
+          value={issueCount}
+          color={issueCount > 0 ? "#c00" : "#070"}
+          hint="Mappade produkter vars synk inte fungerar: AliExpress-listningen borttagen (ev. redan dold av synken) eller minst 3 synkfel i rad. Filtrera fram dem under Mappade-fliken."
+        />
         {orphanCount > 0 ? (
           <Stat
             label="Orphan-mappningar"
@@ -100,7 +141,7 @@ export default async function MappingsAdminPage() {
           : ""}
       </p>
 
-      <MappingsList unmapped={unmapped} mapped={mapped} />
+      <MappingsList unmapped={unmapped} mapped={mapped} syncIssues={syncIssues} />
     </main>
   );
 }
