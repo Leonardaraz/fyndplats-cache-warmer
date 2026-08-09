@@ -454,6 +454,18 @@ Två fällor, båda sedda på hudvårdssetet `e50235e7`:
 
 **Ingen slagskugga på den här sorten.** Produkterna bär redan leverantörens egen 3D-skuggning och ligger i en solfjäder utan underlag. Med skugga blir den vita konturen synlig som en dekal-kant; utan skugga försvinner den helt mot vitt. Konturen ska däremot **inte** eroderas bort — vit på vitt syns den ändå inte, och erosion äter produktens egna kanter.
 
+> 🔍 **Läs etiketten i källbilden INNAN du väljer den som hjälte.** Leverantörsfiler kan vara trasiga. Hudvårdssetets bild 2 hade en förstörd tub: finstilta raderna utsmetade och `100g/` bortsuddat (`(/3.53oz.`). Maskningen var perfekt och felet följde ändå med hela vägen till butiken — Leonard såg det på tio sekunder. Zooma in varje etikett med `Read` **på källan**, inte bara på resultatet, och byt källa om texten inte går att läsa.
+
+**Metod E – per-produkt-rembg ur en flatlay (när enda hela källan är en full-bleed miljöbild):**
+
+Kör **inte** rembg på hela flatlayen — modellen letar ETT dominant motiv och gav mos på fem varor (behöll rosa papper, tonade bort tre produkter). Kör den i stället på **en generös låda runt varje produkt** och komponera ihop dem efteråt. Behåll lådornas inbördes placering: det är leverantörens komposition, och varje varas vinkel och ljus hör ihop med den.
+
+Två saker gör metoden ren:
+- **Kastskuggan skiljs på ALPHA, inte på luminans.** rembg tar med skuggan på pappret men ger den låg alpha — varan låg på 246–254, skuggan på 113–216. Ett luminanströskel-försök åt i stället upp flaskans mörka bottenband och hade ätit den mörkgröna tuben helt (lum ≈ 123). Ta kärnan på `alpha > 225`, största komponenten, `fill_holes`.
+- **Bygg om kanten, ärv den inte.** Originalets yttersta pixlar är halvt papper; behåller man dem mot vitt syns en rosa/grön brätte längs varje vara. Erodera en pixel in i varan och gör en egen mjuk kant (`gaussian_filter(0.8)`), så överlever ingen pappersfärgad pixel.
+
+Kontrollera till sist att ingen produkts slutliga bbox rör sin lådkant — då är den beskuren och lådan måste växa.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
