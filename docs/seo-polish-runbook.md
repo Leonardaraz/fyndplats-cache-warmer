@@ -436,6 +436,24 @@ Sätt sedan `fileId` som hjälte-item (position 0) i `media.itemsInfo.items` (sa
 
 > **Guardrail (obligatoriskt – generativ AI):** ladda ner resultatet, `Read` det och **jämför sida-vid-sida mot originalet**. Verifiera att INGEN produktdetalj ändrats (knappar, text, form, färg, antal delar, loggor). Ser något omritat/tillagt/borttaget ut → generera om med skarpare prompt, annars behåll originalet. **Faktatrohet går alltid före vit bakgrund.** *(Verifierat troget på Baseus kompressor `1dbdec91`, startbooster `86408870`/`63b38487`, bilkamera `e3c3df4c` — inkl. slang/klämmor som u2net ghostade/tappade.)*
 
+> ⛔ **Använd INTE Metod A på produkter vars etikett bär text du säljer på** (kosmetik, kosttillskott, kemi, allt med innehåll/volym/vikt tryckt på förpackningen). Modellen ritar om etiketten: på hudvårdssetet `e50235e7` blev finstilta ingredienslistor rent nonsens och **"100g/3.53oz" blev "100g/2.53oz"** — en felaktig viktuppgift i huvudbilden. Guardrailen fångade det och resultatet slängdes. För sådana produkter: geometrisk maskning enligt Metod B/D, aldrig generativ.
+
+**Metod D – vit klisterkontur som maskeringsnyckel (när leverantören redan friställt åt dig):**
+
+Många leverantörsbilder (särskilt kosmetik/småvaror) visar produkterna som "dekaler" med en **vit kontur** runt varje vara mot en färgad bakgrund. Konturen är en gratis, pixelperfekt mask — och till skillnad från både rembg och generativ AI rör den inte en enda produktpixel:
+
+```python
+vit    = (lum > 225) & (sat < 0.10)                 # konturen + vita partier
+kontur = ndimage.binary_closing(vit, iterations=3)
+m      = största komponenten av ndimage.binary_fill_holes(kontur)
+```
+
+Två fällor, båda sedda på hudvårdssetet `e50235e7`:
+- **Instängd bakgrund.** Ligger två produkter kant i kant sluter deras konturer ihop en ficka av bakgrunden som `fill_holes` fyller. Hitta den som en liten **inre** komponent (`m & ~vit`) — produktinsidorna är 100 000+ px, fickorna några tusen — och radera allt under tröskeln, med några px utvidgning för antialias-fransen.
+- **Testa mot `vit`, inte mot `kontur`.** Slutningen bryggar över smala springor och sväljer just de fransar du vill bli av med, så de aldrig dyker upp som egen inre komponent. Med `kontur` låg tre orange flisor kvar längs sömmen; med råa `vit` försvann de.
+
+**Ingen slagskugga på den här sorten.** Produkterna bär redan leverantörens egen 3D-skuggning och ligger i en solfjäder utan underlag. Med skugga blir den vita konturen synlig som en dekal-kant; utan skugga försvinner den helt mot vitt. Konturen ska däremot **inte** eroderas bort — vit på vitt syns den ändå inte, och erosion äter produktens egna kanter.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
