@@ -11,10 +11,12 @@ interface Props {
   mapping?: { supplierProductId: string; variantCount: number };
   /** Orsakstext när produkten TAPPAT SYNK — röd badge + varningskant på kortet. */
   syncIssue?: string;
+  /** Orsakstext när produkten är SLUT HOS LEVERANTÖREN — gul badge + kant. */
+  oosIssue?: string;
   onMapped: (wixProductId: string) => void;
 }
 
-export function MappingCard({ product, mapping, syncIssue, onMapped }: Props) {
+export function MappingCard({ product, mapping, syncIssue, oosIssue, onMapped }: Props) {
   const [pending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(product.name);
   const [urlInput, setUrlInput] = useState("");
@@ -71,11 +73,14 @@ export function MappingCard({ product, mapping, syncIssue, onMapped }: Props) {
   return (
     <li style={{
       padding: 12,
-      border: syncIssue ? "1px solid #e8b0b0" : "1px solid #eee",
-      borderLeft: syncIssue ? "4px solid #c00" : undefined,
+      border: syncIssue ? "1px solid #e8b0b0" : oosIssue ? "1px solid #ecd3ac" : "1px solid #eee",
+      borderLeft: syncIssue ? "4px solid #c00" : oosIssue ? "4px solid #d97706" : undefined,
       borderRadius: 8,
       marginBottom: 8,
-      background: justMapped ? "#f1faf1" : syncIssue ? "#fff8f8" : alreadyMapped ? "#f6fbf6" : "#fafafa",
+      background: justMapped ? "#f1faf1"
+        : syncIssue ? "#fff8f8"
+        : oosIssue ? "#fffdf7"
+        : alreadyMapped ? "#f6fbf6" : "#fafafa",
     }}>
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
         {product.imageUrl ? (
@@ -102,6 +107,14 @@ export function MappingCard({ product, mapping, syncIssue, onMapped }: Props) {
               fontSize: 12, color: "#a00", fontWeight: 600,
             }}>
               ⚠️ Tappat synk: <span style={{ fontWeight: 400 }}>{syncIssue}</span>
+            </div>
+          ) : null}
+          {oosIssue && !syncIssue && !justMapped ? (
+            <div style={{
+              marginTop: 6, padding: "5px 8px", background: "#fef3e2", borderRadius: 4,
+              fontSize: 12, color: "#b45309", fontWeight: 600,
+            }}>
+              🟡 <span style={{ fontWeight: 400 }}>{oosIssue}</span>
             </div>
           ) : null}
         </div>
