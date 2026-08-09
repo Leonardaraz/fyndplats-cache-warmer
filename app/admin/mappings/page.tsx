@@ -9,9 +9,12 @@
 import { listAllV3Products, type WixV3ProductSummary } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
 import { getSyncStore, type SyncStateEntry } from "@/lib/sync/sync-log";
+import { isSyntheticMappingId } from "@/lib/sync/mapping-repair";
 import { MappingsList, type MappedProduct } from "./mappings-list";
 
 export const dynamic = "force-dynamic";
+// Laga-knappens server action gör upp till ~20 AliExpress-uppslag per batch.
+export const maxDuration = 120;
 
 /**
  * Produkter som TAPPAT SYNK (Leonards fråga 2026-08-09): synken kan inte längre
@@ -44,7 +47,7 @@ function oosLabel(s: SyncStateEntry): string | null {
 
 export default async function MappingsAdminPage() {
   let allProducts: WixV3ProductSummary[];
-  let mappingByProductId: Map<string, { supplierProductId: string; variantCount: number }>;
+  let mappingByProductId: Map<string, { supplierProductId: string; variantCount: number; broken: boolean }>;
   let totalMappingRows = 0;
   let loadError: string | null = null;
   // wixProductId → orsakstext för produkter som tappat synk. Best-effort:
@@ -63,7 +66,13 @@ export default async function MappingsAdminPage() {
     mappingByProductId = new Map(
       mappings.map((m) => [
         m.wixProductId,
-        { supplierProductId: m.supplierProductId, variantCount: m.variants?.length ?? 0 },
+        {
+          supplierProductId: m.supplierProductId,
+          variantCount: m.variants?.length ?? 0,
+          // Trasig = minst ett syntetiskt variant-id (dom-/idx-/default/tomt) →
+          // kan varken auto-beställas eller lagermatchas per variant.
+          broken: (m.variants ?? []).some((v) => isSyntheticMappingId(v.supplierVariantId)),
+        },
       ]),
     );
   } catch (err) {
@@ -97,6 +106,9 @@ export default async function MappingsAdminPage() {
   }
   const issueCount = Object.keys(syncIssues).length;
   const oosCount = Object.keys(oosIssues).length;
+  // Live-produkter vars mappning bär trasiga (syntetiska) variant-id — driver
+  // "Laga trasiga variant-id"-knappen i listan.
+  const brokenIds = mapped.filter((p) => p.mapping.broken).map((p) => p.id);
 
   return (
     <main style={{ maxWidth: 920, margin: "20px auto", padding: "0 16px" }}>
@@ -162,7 +174,13 @@ export default async function MappingsAdminPage() {
           : ""}
       </p>
 
-      <MappingsList unmapped={unmapped} mapped={mapped} syncIssues={syncIssues} oosIssues={oosIssues} />
+      <MappingsList
+        unmapped={unmapped}
+        mapped={mapped}
+        syncIssues={syncIssues}
+        oosIssues={oosIssues}
+        brokenIds={brokenIds}
+      />
     </main>
   );
 }
