@@ -46,15 +46,17 @@ describe("decideSyncOutcome", () => {
     expect(out.shouldHide).toBe(false);
   });
 
-  it("döljer produkten när listningen är borttagen", () => {
+  it("nollar lagret men BEHÅLLER sidan publicerad när listningen är borttagen", () => {
+    // SEO: att avpublicera gör URL:en till en 404 och kastar bort rankingen.
     const out = decideSyncOutcome(
       baseInputs({
         aliExpress: { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true },
       }),
     );
     expect(out.listingStatus).toBe("removed");
-    expect(out.actionTaken).toBe("hidden");
-    expect(out.shouldHide).toBe(true);
+    expect(out.actionTaken).toBe("marked_oos");
+    expect(out.shouldHide).toBe(false);
+    expect(out.inventoryTarget).toBe(0);
   });
 
   it("markerar oos (men döljer inte) vid totalStock=0", () => {
@@ -369,13 +371,15 @@ describe("decideSyncOutcome", () => {
 describe("decideSyncOutcome — strike-guard mot transient borttagning (E#5)", () => {
   const removed = { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true };
 
-  it("döljer DIREKT när removedStreak saknas (bakåtkompatibelt)", () => {
+  it("bekräftar DIREKT när removedStreak saknas (bakåtkompatibelt)", () => {
     const out = decideSyncOutcome(baseInputs({ aliExpress: removed }));
-    expect(out.shouldHide).toBe(true);
+    expect(out.shouldHide).toBe(false);
+    expect(out.actionTaken).toBe("marked_oos");
+    expect(out.inventoryTarget).toBe(0);
     expect(out.listingStatus).toBe("removed");
   });
 
-  it("döljer INTE vid strike 1 — väntar på bekräftelse", () => {
+  it("rör inget vid strike 1 — väntar på bekräftelse", () => {
     const out = decideSyncOutcome(baseInputs({ aliExpress: removed, removedStreak: 1 }));
     expect(out.shouldHide).toBe(false);
     expect(out.actionTaken).toBe("none");
@@ -383,9 +387,10 @@ describe("decideSyncOutcome — strike-guard mot transient borttagning (E#5)", (
     expect(out.listingStatus).toBe("active"); // prevState null → fallback, inte "removed"
   });
 
-  it("döljer vid strike 2 (REMOVED_STRIKES_REQUIRED)", () => {
+  it("nollar lagret vid strike 2 (REMOVED_STRIKES_REQUIRED) — men döljer aldrig", () => {
     const out = decideSyncOutcome(baseInputs({ aliExpress: removed, removedStreak: 2 }));
-    expect(out.shouldHide).toBe(true);
+    expect(out.shouldHide).toBe(false);
+    expect(out.inventoryTarget).toBe(0);
     expect(out.listingStatus).toBe("removed");
   });
 

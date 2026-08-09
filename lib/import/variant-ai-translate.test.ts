@@ -626,3 +626,53 @@ describe("buildVariantTranslatorAI · axisNameOverrides (manuella axelnamn)", ()
     expect(unresolved.length).toBeGreaterThan(0); // suffix-axeln flaggad
   });
 });
+
+
+describe("färg-grind: rätt svenska men fel betydelse", () => {
+  it("flaggar 'Nät' som färg trots att svenskhets-grinden godkänner ordet", async () => {
+    // Åkbilen 2026-08-08: tredje färgen var röd men skeppades som "Nät". Ordet är
+    // invändningsfri svenska → verifySwedish säger ok → bara färg-grinden fångar det.
+    const variants = [
+      { options: { Färg: "Rosa" } },
+      { options: { Färg: "Vit" } },
+      { options: { Färg: "Nät" } },
+    ];
+    const { unresolved } = await buildVariantTranslatorAIRaw(variants, {
+      translateBatch: async () => ({}),
+      verifySwedish: async () => [], // inget är osvenskt
+    });
+    expect(unresolved).toContain("Nät");
+  });
+
+  it("flaggar inte en äkta färg på samma axel", async () => {
+    // Samma uppsättning som ovan men med rätt tredje färg: grinden ska tiga.
+    const variants = [
+      { options: { Färg: "Rosa" } },
+      { options: { Färg: "Vit" } },
+      { options: { Färg: "Röd" } },
+    ];
+    const { unresolved } = await buildVariantTranslatorAIRaw(variants, {
+      translateBatch: async () => ({}),
+      verifySwedish: async () => [],
+    });
+    expect(unresolved).not.toContain("Röd");
+  });
+});
+
+describe("färg-grind · LAGER 0", () => {
+  it("rör inte ett manuellt namngivet färgvärde utan färgord", async () => {
+    // Leonard döper värdet med flit i importpopupen — det ska aldrig till kön,
+    // varken via svenskhets-grinden (steg 7) eller färg-grinden (steg 8).
+    const variants: { options: Record<string, string> }[] = [
+      { options: { Färg: "Rosa" } },
+      { options: { Färg: "Vit" } },
+      { options: { Färg: "Mesh" } },
+    ];
+    const { unresolved } = await buildVariantTranslatorAIRaw(variants, {
+      translateBatch: async () => ({}),
+      verifySwedish: async () => [],
+      valueOverrides: new Map([["Mesh", "Nordlys"]]),
+    });
+    expect(unresolved).not.toContain("Nordlys");
+  });
+});

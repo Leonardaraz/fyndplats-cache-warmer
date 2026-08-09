@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { matchesColorName, colorBasesIn, isColorAxis } from "./color-match";
+import {
+  matchesColorName,
+  colorBasesIn,
+  isColorAxis,
+  nonColorValuesOnColorAxis,
+} from "./color-match";
 
 describe("matchesColorName — riktiga hundvagn-alt-texter (live-data)", () => {
   const alts = {
@@ -90,5 +95,37 @@ describe("isColorAxis — skilj äkta färgaxel från storlek-under-Color", () =
   it("tomt → false (säkrare som text)", () => {
     expect(isColorAxis([])).toBe(false);
     expect(isColorAxis(["", "  "])).toBe(false);
+  });
+});
+
+describe("nonColorValuesOnColorAxis — fångar rätt svenska, fel betydelse", () => {
+  it("flaggar 'Nät' bland äkta färger (åkbilen 2026-08-08)", () => {
+    // Haikus svenskhets-grind godkände "Nät" — ordet ÄR svenska. Bilen var röd.
+    expect(nonColorValuesOnColorAxis(["Rosa", "Vit", "Nät"])).toEqual(["Nät"]);
+  });
+  it("flaggar oöversatt spanska som saknar engelska tokens (paviljongtaket)", () => {
+    expect(nonColorValuesOnColorAxis(["Naranja", "Ljusgrå", "Grön"])).toEqual(["Naranja"]);
+  });
+  it("släpper igenom äkta färger, även böjda och sammansatta", () => {
+    expect(nonColorValuesOnColorAxis(["Svart", "Vit", "Ljusgrå"])).toEqual([]);
+    expect(nonColorValuesOnColorAxis(["Kräm", "Vinröd", "Marinblå"])).toEqual([]);
+  });
+  it("släpper igenom ytor och material på färgaxeln", () => {
+    expect(nonColorValuesOnColorAxis(["Ekdekor", "Svart", "Vit"])).toEqual([]);
+    expect(nonColorValuesOnColorAxis(["Naturligt trä", "Grå", "Vit"])).toEqual([]);
+    expect(nonColorValuesOnColorAxis(["Krom", "Svart", "Guld"])).toEqual([]);
+  });
+  it("rör INTE en axel där värdena inte är färger (storlek under Color)", () => {
+    // Annars skulle varje värde på en felmärkt axel flaggas.
+    expect(nonColorValuesOnColorAxis(["2 L", "3 L", "6 L"])).toEqual([]);
+    expect(nonColorValuesOnColorAxis(["S", "M", "L", "XL"])).toEqual([]);
+    expect(nonColorValuesOnColorAxis(["Blå", "2 L", "3 L"])).toEqual([]);
+  });
+  it("språkneutrala värden bedöms inte (mått och modellkoder)", () => {
+    expect(nonColorValuesOnColorAxis(["Svart", "Vit", "KM-6631"])).toEqual([]);
+    expect(nonColorValuesOnColorAxis(["Svart", "Vit", "5XL"])).toEqual([]);
+  });
+  it("tom axel ger inget", () => {
+    expect(nonColorValuesOnColorAxis([])).toEqual([]);
   });
 });

@@ -19,7 +19,7 @@ import crypto from "node:crypto";
 import { completeJsonRouted, TEXT_MODEL } from "../claude/client";
 import { getCachedResult, makeCacheKey, setCachedResult } from "../llm/cache";
 import { logVariantTranslation } from "../llm/variant-log";
-import { isColorAxis } from "./color-match";
+import { isColorAxis, nonColorValuesOnColorAxis } from "./color-match";
 import {
   axisNameUnresolved,
   buildTranslatorFromBase,
@@ -365,6 +365,31 @@ export async function buildVariantTranslatorAI(
     }
   }
 
+  // 8. FÄRG-GRIND (deterministisk, $0): den språkliga grinden i steg 7 godkänner
+  //    varje äkta svenskt ord — även när betydelsen är fel. "Nät" som färg på en
+  //    röd bil (2026-08-08) är invändningsfri svenska och passerade därför, precis
+  //    som oöversatt "Naranja" aldrig ens blev AI-kandidat (inga engelska tokens).
+  //    Kontrollera därför de SLUTGILTIGA värdena per axel: på en axel vars värden
+  //    i majoritet är färger flaggas det som varken är färg eller yta. Manuellt
+  //    namngivna värden (LAGER 0) undantas på samma grund som i steg 7 — Leonard
+  //    skrev dem med flit och de ska aldrig hamna i kön.
+  const finalValuesByAxis = new Map<string, Set<string>>();
+  for (const v of variants) {
+    for (const [axis, val] of Object.entries(translator.options(v.options ?? {}))) {
+      let set = finalValuesByAxis.get(axis);
+      if (!set) {
+        set = new Set<string>();
+        finalValuesByAxis.set(axis, set);
+      }
+      set.add(val);
+    }
+  }
+  const colorFlagged: string[] = [];
+  for (const vals of finalValuesByAxis.values())
+    colorFlagged.push(
+      ...nonColorValuesOnColorAxis([...vals]).filter((v) => !trustedManual.has(v.trim())),
+    );
+
   const unresolved = [
     ...new Set(
       candidates
@@ -372,7 +397,8 @@ export async function buildVariantTranslatorAI(
         .concat(halfTranslated)
         .concat(unresolvedAxes)
         .concat(unresolvedAxisNames(translator))
-        .concat(gateFlagged),
+        .concat(gateFlagged)
+        .concat(colorFlagged),
     ),
   ];
   return { translator, unresolved };
