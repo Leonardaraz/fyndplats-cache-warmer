@@ -17,9 +17,11 @@
 
 import {
   getProducts,
+  getCollections,
   fetchAllVariantsRaw,
   fetchFeedGalleries,
   imgKey,
+  type Collection,
   type Product,
 } from "@/lib/products";
 
@@ -60,6 +62,72 @@ function decodeEntities(s: string): string {
     .trim();
 }
 
+// Kategorislug → Googles produkttaxonomi-ID (audit 2026-08-11: attributet
+// saknades helt, 0/916 items — Google fick gissa kategori själv). BARA säkra,
+// vedertagna toppnivå-/välkända ID:n; blandkategorier (barn-familj, bil-cykel)
+// utelämnas MEDVETET — fel kategori är sämre än ingen (Google gissar då rätt
+// oftare själv). Fullständig taxonomi: google.com/basepages/producttype/taxonomy.txt
+const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
+  // Hem & trädgård (536 = Home & Garden)
+  "hem-inredning": 536,
+  "dekoration-prydnad": 696,        // Home & Garden > Decor
+  "forvaring-organisering": 536,
+  "badrum-hemtextil": 536,
+  "tradgard-utemobler": 536,
+  belysning: 594,                    // Home & Garden > Lighting
+  hushallsapparater: 604,            // Home & Garden > Household Appliances
+  "kok-husgerad": 638,               // Home & Garden > Kitchen & Dining
+  "koksredskap-tillbehor": 638,
+  "koksmaskiner-apparater": 730,     // … > Kitchen Appliances
+  "servering-glas": 638,
+  // Husdjur (1 = Animals & Pet Supplies, 2 = … > Pet Supplies)
+  husdjur: 1,
+  "burar-klader-tillbehor": 2,
+  "lek-tillbehor-for-husdjur": 2,
+  "mat-vattenskalar": 2,
+  "selar-koppel-transport": 2,
+  // Barn & leksaker
+  "leksaker-spel": 1239,             // Toys & Games
+  "baby-smabarn": 537,               // Baby & Toddler
+  "kalas-fest": 96,                  // Arts & Entertainment > Party & Celebration
+  // Skönhet & hälsa (469 = Health & Beauty)
+  "skonhet-halsa": 469,
+  "hudvard-ansikte": 469,
+  "har-rakning": 469,
+  "kropp-valbefinnande": 469,
+  "massage-aterhamtning": 469,
+  // Sport & fritid (988 = Sporting Goods)
+  "sport-fritid": 988,
+  "traning-gym": 990,                // Sporting Goods > Exercise & Fitness
+  "friluftsliv-resa": 988,
+  // Elektronik & verktyg
+  "elektronik-tillbehor": 222,       // Electronics
+  "dator-gaming": 222,
+  mobiltillbehor: 222,
+  "verktyg-hemmafix": 632,           // Hardware
+  // Mode
+  "mode-accessoarer": 166,           // Apparel & Accessories
+  "vaskor-necessarer": 5181,         // Luggage & Bags
+};
+
+/** Produktens taxonomi för feeden: g:product_type = kategoristigen ("Husdjur >
+ *  Burar, kläder & tillbehör" — barnkategori föredras, den är mest specifik)
+ *  och g:google_product_category via slug-mappningen ovan. */
+function taxonomyFor(
+  product: Product | undefined,
+  byColId: Map<string, Collection>,
+): { productType?: string; googleCategory?: number } {
+  const ids = product?.collectionIds || [];
+  const mine = ids.map((id) => byColId.get(id)).filter((c): c is Collection => Boolean(c));
+  if (mine.length === 0) return {};
+  const child = mine.find((c) => c.parentId) || mine[0];
+  const parent = child.parentId ? byColId.get(child.parentId) : undefined;
+  const productType = parent && parent.id !== child.id ? `${parent.name} > ${child.name}` : child.name;
+  const googleCategory =
+    GOOGLE_CATEGORY_BY_SLUG[child.slug] ?? (parent ? GOOGLE_CATEGORY_BY_SLUG[parent.slug] : undefined);
+  return { productType, googleCategory };
+}
+
 // Google-attribut per optionsnamn. Svenska (katalogens options är översatta
 // vid import) + engelska råformer som säkerhetsnät för äldre produkter.
 function googleAttr(optionName: string): "color" | "size" | "material" | "pattern" | null {
@@ -72,7 +140,12 @@ function googleAttr(optionName: string): "color" | "size" | "material" | "patter
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function feedItem(v: any, product: Product | undefined, gallery: string[]): string | null {
+function feedItem(
+  v: any,
+  product: Product | undefined,
+  gallery: string[],
+  taxonomy: { productType?: string; googleCategory?: number },
+): string | null {
   const pd = v?.productData || {};
   const slug: string = pd.slug || product?.slug || "";
   if (!slug || pd.visible === false || v?.visible === false) return null;
@@ -123,9 +196,24 @@ function feedItem(v: any, product: Product | undefined, gallery: string[]): stri
     .map((g) => `\n      <g:additional_image_link>${xmlEscape(g)}</g:additional_image_link>`)
     .join("");
 
-  const description = decodeEntities(
-    product?.seoDescription || pd.seoDescription || productName,
-  ).slice(0, 5000);
+  // RIKARE beskrivning (audit 2026-08-11): feeden skickade bara seoDescription —
+  // metabeskrivningen på ~150 tecken — vilket gav Google nästan inget att matcha
+  // sökfrågor mot (median 147 tecken över hela feeden). blurb (första stycket ur
+  // produktbeskrivningen) och specs (specifikationssektionen) finns redan i
+  // Product utan extra API-anrop. Dubblettskydd: en del som redan ingår i den
+  // ackumulerade texten hoppas över (seoDescription inleder ofta som blurb).
+  const descParts: string[] = [];
+  const pushDesc = (t?: string) => {
+    const clean = decodeEntities(t || "");
+    if (clean.length < 20) return;
+    const acc = descParts.join(" ").toLowerCase();
+    if (acc.includes(clean.slice(0, 60).toLowerCase())) return;
+    descParts.push(clean);
+  };
+  pushDesc(product?.seoDescription || pd.seoDescription);
+  pushDesc(product?.blurb);
+  pushDesc(product?.specs);
+  const description = (descParts.join(" ") || decodeEntities(productName)).slice(0, 5000);
 
   // Variant-attribut: Färg→color, Storlek/Längd→size, Material→material,
   // Mönster→pattern. Custom-options (Modell, Paket …) ligger redan i titeln;
@@ -158,7 +246,7 @@ function feedItem(v: any, product: Product | undefined, gallery: string[]): stri
       <g:price>${regular.toFixed(2)} SEK</g:price>${onSale ? `\n      <g:sale_price>${amount.toFixed(2)} SEK</g:sale_price>` : ""}
       <g:brand>${BRAND}</g:brand>
       <g:condition>new</g:condition>
-      <g:identifier_exists>no</g:identifier_exists>${sku ? `\n      <g:mpn>${xmlEscape(sku)}</g:mpn>` : ""}${attrLines}
+      <g:identifier_exists>no</g:identifier_exists>${sku ? `\n      <g:mpn>${xmlEscape(sku)}</g:mpn>` : ""}${attrLines}${taxonomy.productType ? `\n      <g:product_type>${xmlEscape(taxonomy.productType)}</g:product_type>` : ""}${taxonomy.googleCategory ? `\n      <g:google_product_category>${taxonomy.googleCategory}</g:google_product_category>` : ""}
     </item>`;
 }
 
@@ -170,13 +258,26 @@ export async function GET() {
   let products: Product[] = [];
   try { products = await getProducts(); } catch { products = []; }
   const byId = new Map(products.map((p) => [p.id, p]));
+  // Kollektioner → g:product_type + g:google_product_category. Best-effort:
+  // utan kollektioner skickas items som förut (bara utan taxonomi-fälten).
+  let byColId = new Map<string, Collection>();
+  try {
+    const collections = await getCollections();
+    byColId = new Map(collections.map((c: Collection) => [c.id, c]));
+  } catch { /* taxonomin är berikning — får aldrig fälla feeden */ }
   const galleries = await fetchFeedGalleries();
   const variants = await fetchAllVariantsRaw();
 
   const items: string[] = [];
+  const taxonomyCache = new Map<string, { productType?: string; googleCategory?: number }>();
   for (const v of variants) {
     const pid = v?.productData?.productId || "";
-    const line = feedItem(v, byId.get(pid), galleries.get(pid) || []);
+    let taxonomy = taxonomyCache.get(pid);
+    if (!taxonomy) {
+      taxonomy = taxonomyFor(byId.get(pid), byColId);
+      taxonomyCache.set(pid, taxonomy);
+    }
+    const line = feedItem(v, byId.get(pid), galleries.get(pid) || [], taxonomy);
     if (line) items.push(line);
   }
 
