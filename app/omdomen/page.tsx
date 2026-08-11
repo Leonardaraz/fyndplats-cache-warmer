@@ -8,7 +8,8 @@ import { AnimatedRating } from "../../components/AnimatedRating";
 
 // "Se alla på Google"-knappen → Fyndplats officiella Google-företagsprofil
 // (delningslänken från profilen). Verifierbart: besökaren klickar och ser alla
-// 28 riktiga omdömena på Google. Kan överstyras via GOOGLE_REVIEW_URL.
+// riktiga omdömen på Google (antalet: GOOGLE_REVIEW_COUNT i lib/social-proof).
+// Kan överstyras via GOOGLE_REVIEW_URL.
 const GOOGLE_PROFILE_FALLBACK = "https://share.google/vFyQAMJtWN51kboYA";
 
 const ratingDesc = `Fyndplats har ${GOOGLE_RATING} av 5 i betyg på Google, baserat på ${GOOGLE_REVIEWS_LABEL}. Trygg svensk e-handel som kunderna rekommenderar.`;
