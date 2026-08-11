@@ -47,6 +47,10 @@ Kör i denna ordning. **Publicering är ALLTID sista handlingen** — allt annat
 
 -----
 
+> 🗂️ **Poleringskön ljuger — verifiera mot Wix innan du väljer produkt.** `needsAiPolish` nollställs inte alltid när en produkt polerats, så kön blandar riktigt råa utkast med sedan länge färdiga produkter. 2026-08-11 låg 49 poster i kön varav bara **13 var verkligt opolerade**; resten var publicerade produkter med kvarglömd flagga. Filtrera därför på `visible === false` **och** att namnet saknar å/ä/ö innan du tar "nästa". Nollställ flaggan (`needsAiPolish:false`, `draftStatus:"published"`) som sista steg efter publicering, annars kommer produkten tillbaka i kön.
+>
+> ⚠️ **Läs om produkten precis innan du börjar — någon annan kan ha hunnit före.** Arbetsstolen `7e730857` stod som rå engelsk draft i kölistan och var fullt polerad och publicerad fyrtio minuter senare, utan att den här sessionen rört den. Hämta alltid `name` + `visible` på nytt i Steg 1 i stället för att lita på listan du hämtade tidigare.
+
 ## Steg 0 – Välj fokussökord (avgör allt annat)
 
 Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`. **Lås inte valet förrän du sett bilderna (Steg 1b)** — bilderna avgör ofta vad produkten *faktiskt* är.
