@@ -42,8 +42,9 @@ const skipSpeculative = (): boolean =>
 // vid varje bildbyte, så cleanup-funktionen måste kunna avboka ett fönster som
 // inte hunnit köra (annars ligger inaktuella fönster kvar efter en snabb
 // svepserie — ofarligt men onödigt). Safari saknar requestIdleCallback →
-// setTimeout-fallback med kortare delay (timeout/5, dvs samma ~300 ms som förr
-// för grunt idle, proportionellt senare för djupt).
+// setTimeout-fallback: aldrig tidigare än 300 ms (samma post-LCP-marginal som
+// förladdningen alltid haft — Safari är butikens största mobilväg), djupare
+// idle proportionellt senare (timeout/5 → 600 ms för bulk-fasen).
 const onIdle = (cb: () => void, timeout: number): (() => void) => {
   const w = window as unknown as {
     requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
@@ -53,7 +54,7 @@ const onIdle = (cb: () => void, timeout: number): (() => void) => {
     const id = w.requestIdleCallback(cb, { timeout });
     return () => w.cancelIdleCallback?.(id);
   }
-  const t = setTimeout(cb, Math.max(150, timeout / 5));
+  const t = setTimeout(cb, Math.max(300, timeout / 5));
   return () => clearTimeout(t);
 };
 
@@ -128,10 +129,24 @@ export function Gallery({
   const [mounted, setMounted] = useState<number[]>([active]);
   const [loaded, setLoaded] = useState<Record<number, boolean>>({});
   const [shown, setShown] = useState(active);
+
+  // Identitetsstabil mount-union: returnerar SAMMA referens när inget nytt
+  // tillkommer (mounted är dep i complete-scan-effekten nedan — en ny array per
+  // retrigger hade gett scan → setLoaded → effekt → … i onödan). Append-only,
+  // och sortera ALDRIG: det initiala lagret (.ghero-base, position:relative) ger
+  // .gmain sin höjd (regressionen i d53c186: hero kollapsade 321→130 px).
+  // ENDA vägen in i `mounted` — håll invarianterna på ett ställe.
+  const addMounted = useCallback((targets: number[]) => {
+    setMounted((m) => {
+      const add = targets.filter((t) => !m.includes(t));
+      return add.length ? [...m, ...add] : m;
+    });
+  }, []);
+
   useEffect(() => {
-    setMounted((m) => (m.includes(active) ? m : [...m, active]));
+    addMounted([active]);
     if (loaded[active]) setShown(active); // byt först när målbilden är dekodad
-  }, [active, loaded]);
+  }, [active, loaded, addMounted]);
 
   // Pålitlig "dekodad"-detektering. next/image:s onLoad fyrar INTE för en bild
   // som redan låg i webbläsarcachen när lagret mountas (klassisk next/image-fälla,
@@ -175,18 +190,6 @@ export function Gallery({
   //    skjuta grannarna på obestämd tid medan galleriet strömmar.
   const lcpDone = !!loaded[initialActive];
 
-  // Identitetsstabil mount-union: returnerar SAMMA referens när inget nytt
-  // tillkommer (mounted är dep i complete-scan-effekten ovan — en ny array per
-  // retrigger hade gett scan → setLoaded → effekt → … i onödan). Append-only,
-  // och sortera ALDRIG: det initiala lagret (.ghero-base, position:relative) ger
-  // .gmain sin höjd (regressionen i d53c186: hero kollapsade 321→130 px).
-  const addMounted = useCallback((targets: number[]) => {
-    setMounted((m) => {
-      const add = targets.filter((t) => !m.includes(t));
-      return add.length ? [...m, ...add] : m;
-    });
-  }, []);
-
   // Fas 1 — GRANNARNA, retriggas vid varje bildbyte. Fönster: 2 framåt, 1 bakåt
   // (nearWindow). Ignorerar eagerCount helt: även produkter utan bildvarianter
   // (eagerCount=1, där Fas 2 är en ren no-op) får sina grannar varma → svep utan
@@ -213,10 +216,14 @@ export function Gallery({
     const n = eagerCount && eagerCount > 0 ? Math.min(eagerCount, imgs.length) : imgs.length;
     addMounted(Array.from({ length: n }, (_, i) => i));
   }, [imgs.length, eagerCount, addMounted]);
+  // `active` som dep är avsiktligt: skipSpeculative() läses vid körning, så en
+  // TILLFÄLLIG 2g-/sparläges-avläsning vid sidladdning får inte stänga av bulk-
+  // värmningen för hela sidvisningen — nästa bildbyte omprövar vakten (samma
+  // återhämtning som Fas 1 har). preloadedAll spärrar dubbelkörning.
   useEffect(() => {
     if (!lcpDone || skipSpeculative()) return;
     return onIdle(doPreload, 3000);
-  }, [lcpDone, doPreload]);
+  }, [lcpDone, doPreload, active]);
 
   // Subtil laddningsindikator: man har bytt till ett lager vars bild ännu inte
   // dekodats (det gamla ligger kvar tills det nya är redo — äkta crossfade). Utan
