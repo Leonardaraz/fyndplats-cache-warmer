@@ -20,9 +20,8 @@
 - `ExecuteWixAPI` kräver godkännande. Skriv `fields` i request-**body** vid query/PATCH. **Läs om `revision` precis före varje PATCH.** API-svar är plain strings (skriv ändå `v?.value ?? v`).
   - ⚠️ **`fields`-fällan.** På **GET** fungerar ett enkelt `?fields=X` och repeterade params `?fields=A&fields=B`. En **kommaseparerad lista** (`?fields=A,B,C`) 400:ar med det missvisande `Failed to parse JSON or deserialize protobuf message` — felet ser ut att handla om bodyn, men det är URL:en. På **query**-endpointen ligger `fields:["A","B"]` i bodyn.
   - **`VARIANTS_INFO` finns INTE i enum:et** (varianterna kommer med ändå, utan att begäras). Giltiga värden du oftast vill ha: `PLAIN_DESCRIPTION` · `DESCRIPTION` · `MEDIA_ITEMS_INFO` · `DIRECT_CATEGORIES_INFO` · `VARIANT_OPTION_CHOICE_NAMES` · `URL` · `INFO_SECTION` · `BREADCRUMBS_INFO`. Skickar du ett ogiltigt värde listar felsvaret hela enum:et — läs det i stället för att gissa vidare.
-- **Marginalgrind: ≥18 % innan publicering.** Räkna `(pris − kostnad) / pris`. Under 18 % → höj priset till **närmaste 9-slut som klarar gränsen** (samma avrundningsregel som nedan) innan Steg 5. *(Fiskbordet låg på 15 % — 1899 → 1999 kr, 2026-08-10.)* Går marginalen inte att rädda utan att priset blir orimligt mot marknaden: publicera inte, flagga till Leonard.
-  - **Var kostnaden ligger.** `revenueDetails.cost` är tomt på råimporterade utkast — leta inte där. Kostnaden står i **CMS-mappningen**, per variant: `FyndplatsMappings → variants[] → landedCostSek` (jämte `grossSek`, `costUsd`, `wixVariantId` och `supplierVariantId`). Hämta den med `POST /wix-data/v2/items/query` på `dataCollectionId: "FyndplatsMappings"` — raden har samma `_id` som produktens Wix-id, så du kan filtrera klientsidigt på id-strängen. *(Grinden gick inte att köra på ~20 produkter innan detta skrevs ned, 2026-08-12.)*
-  - Samma rad bär också `shipsFromCountries`, `warehouseClass` och `supplierName` — använd dem i spec-tabellens *Skickas från* i stället för att gissa lagerland.
+- **Rör inte priset.** Importen sätter priset (se avrundningsregeln nedan) och prissättningen är Leonards beslut, inte poleringens. Räkna ingen marginal och höj inget pris på eget bevåg. *(Marginalgrinden togs bort 2026-08-12 på Leonards begäran.)*
+- **Mappningsraden i `FyndplatsMappings`** (samma `_id` som produktens Wix-id, hämtas med `POST /wix-data/v2/items/query`) bär `shipsFromCountries`, `warehouseClass` och `supplierName` — använd dem i spec-tabellens *Skickas från* i stället för att gissa lagerland.
 - En PATCH är partiell: **bara fält du skickar ändras**. Skicka aldrig `options`/`variantsInfo` om du inte avser röra varianterna.
 - **Priser slutar på 9, inga decimaler.** Importen sätter redan priset till hela kronor som avrundas **uppåt** till närmaste tal som slutar på 9 (t.ex. 499, 489, 579) — **ingen `.90`**. Ändrar du ett pris: avrunda alltid **uppåt** till närmaste 9-slut och skriv hela kronor (aldrig `,90`).
 - **SKU sätts automatiskt vid import** (`FP-<produkt>-<variant>`, t.ex. `FP-temperingsmaskin-choklad-17-l`) och syns i kassan/Google/feed. Importen **strippar märkesordet** (HOMCOM/SucceBuy/VEVOR …) men bygger SKU:n ur den **råa** sluggen — så när du byter slug i Steg 2 ska du **re-synka SKU:n** till den nya svenska sluggen, se **Steg 2b**.
@@ -771,7 +770,7 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
 
 **Data**
 - SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord; re-synkad i Steg 2b.
-- **Marginalen är ≥18 %** på varje variant, och priset slutar på 9 utan decimaler.
+- Priset är **orört** — importens pris står kvar (hela kronor med 9-slut).
 - Kategori kopplad som **förälder + löv** (Steg 4A) — inte bara lövet, inte bara toppen.
 - Variantsaneringen (**Steg 1c**) och variantbildkopplingen (**Steg 6B**) är gjorda; varje choice som ser olika ut har ett **unikt** `linkedMedia`-id.
 - **`visible:true` på produkten OCH på varje `variantsInfo.variants[].visible`** — annars syns produkten men går inte att lägga i varukorgen (se dödskalle-noten i Steg 6).
