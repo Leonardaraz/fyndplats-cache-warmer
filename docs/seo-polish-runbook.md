@@ -505,6 +505,22 @@ Innan du bygger något: **kontrollera om leverantören redan har en hel bild mot
 
 > ℹ️ **Människor i hjälten är rätt val ibland.** För en barnprodukt vars titel lovar "kompisgunga" visar bilden med två barn i både hela varan OCH påståendet. Den döljer dessutom sitsduken, vilket är en fördel när färgen är osäker — vi lovar bara det vi vet.
 
+**Metod I – flera rembg-körningar som slås ihop till en mask:** `scripts/hero/flerdelsmask-hero.py`
+
+När produkten består av flera delar i olika färg och ljushet klarar u2net sällan hela scenen i ett svep — och vilken del som tappas beror på beskärningen. Bilbanan `4b127cb9` gav:
+
+| körning | resultat |
+|---|---|
+| hela bilden | ramp, målbåge och förvaringslåda bra — **startboxen genomskinlig** (mörk plast mot mörkblå vägg) |
+| utsnitt runt rampen | startboxen solid — **målbågen tappad** |
+| tätt utsnitt runt huset | huset solid |
+
+Lösningen är inte att hitta den enda rätta körningen utan att **köra flera och unionera maskerna**, var och en begränsad till den del den är bra på (`mask_a | mask_b | mask_c`, där b och c maskeras ned till sin egen ruta). Regeln från Metod E gäller alltså även inom en och samma bild: ju mer föremålet dominerar sin ruta, desto bättre alfa.
+
+Två vinster på köpet när man maskerar produkten i stället för att radera bakgrunden: leverantörens rubriktext, inzoomade cirklar och miljö försvinner av sig självt, och **de lösa golvbilarna med dem**. Det senare är viktigt — leverantören visar ofta samma fem bilar två gånger, både på banan och bredvid den, och i en hjälte läser kunden det som tio. Vi säljer fem.
+
+> ⛔ **Metod A är förbjuden även här** — "5 banor" och "5 bilar" står i titeln, och generativ omritning räknar fel på antal. Samma regel som för hexagonlampan.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
