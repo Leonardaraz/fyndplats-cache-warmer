@@ -474,6 +474,21 @@ Två saker gör metoden ren:
 
 Kontrollera till sist att ingen produkts slutliga bbox rör sin lådkant — då är den beskuren och lådan måste växa.
 
+**Metod F – bygg om ljuset (produkter som SJÄLVA lyser):** `scripts/hero/lyshero-vit.py`
+
+Regeln "en tänd LED-produkt mot mörk botten går inte att flytta till vitt" står kvar — men den betyder inte att produkten saknar vit hjälte. Den betyder att man måste **bygga om ljuset i stället för att flytta det**.
+
+Urklipp misslyckas här av två skäl samtidigt: glöden finns bara som ljus tillagt i mörker, och själva varan är vit. Hexagonlampan `f267a4e2` hade dessutom bara två hela källor — ett beskuret garagefoto och leverantörens 3D-render mot marinblå botten. Rakt urklipp av rendern mot vitt gav ett spöke: vita rör på vit botten syns inte alls.
+
+Gör så här i stället:
+
+1. **Mät hur varan faktiskt ser ut mot LJUST underlag** i något av leverantörens egna foton. Lägg ett tvärsnitt vinkelrätt genom röret och skriv ut luminansen. På hexagonlampan (a3, x=700/780/860) mättes: tak ~190 → ljusspill upp mot 235 → **mörk kåpkant ned till ~90–165** → mättad vit kärna 255 i ~15 px → spill faller av mot ~155.
+2. **Den mörka kanten är hela bilden.** Ett lysande vitt rör syns mot ljus botten tack vare plastkåpans skuggade fläns — inte tack vare glöden. Första försöket satte kanten på 196–212 och lampan försvann; 132–154 gjorde den till ett fysiskt föremål.
+3. **Botten får inte vara 255.** Ljus kan bara visas som något ljusare än sin omgivning. Lägg hörnen runt 218 och lyft mot 255 närmast varan (brett spill σ≈110 för rummet, tajt σ≈22 för halon). Kunden läser det som vitt, och det är fysiskt sammanhängande.
+4. **Geometrin tas ur leverantörens render, pixel för pixel.** Största ljusa komponenten är lampan; måttpilar och text ligger som egna komponenter och faller bort av sig själva. Rendern är nedtonad mot sin mörka botten — lyft med `255 − (255 − rgb) · 0,5` så rören blir vita men silverdetaljen i kopplingsnoderna överlever.
+
+> ⛔ **Metod A är förbjuden även här**, trots att lampan saknar tryckt text. Vi säljer på **antal** och **mått** — "fem hexagoner", "24 LED-rör", "244 × 170 cm" — och en generativ omritning räknar fel på precis den sortens saker, exakt som den skrev om finstilen på hudvårdstuben. Etikettregeln gäller allt som är räknebart eller mätbart i bilden, inte bara bokstäver.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
