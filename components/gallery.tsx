@@ -5,6 +5,7 @@ import Image, { type ImageLoaderProps } from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import { altForImage } from "../lib/image-alt";
+import { nearWindow, prefersDataSaving } from "../lib/gallery-preload";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -33,6 +34,29 @@ function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+// Spekulativ förladdning avstängd? (Data Saver / 2g — se lib/gallery-preload.)
+const skipSpeculative = (): boolean =>
+  prefersDataSaving((navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection);
+
+// Schemalägg på browser-idle, med AVBRYTBARHET: grann-förladdningen retriggas
+// vid varje bildbyte, så cleanup-funktionen måste kunna avboka ett fönster som
+// inte hunnit köra (annars ligger inaktuella fönster kvar efter en snabb
+// svepserie — ofarligt men onödigt). Safari saknar requestIdleCallback →
+// setTimeout-fallback med kortare delay (timeout/5, dvs samma ~300 ms som förr
+// för grunt idle, proportionellt senare för djupt).
+const onIdle = (cb: () => void, timeout: number): (() => void) => {
+  const w = window as unknown as {
+    requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+  if (w.requestIdleCallback) {
+    const id = w.requestIdleCallback(cb, { timeout });
+    return () => w.cancelIdleCallback?.(id);
+  }
+  const t = setTimeout(cb, Math.max(150, timeout / 5));
+  return () => clearTimeout(t);
+};
+
 export function Gallery({
   images,
   alt,
@@ -58,7 +82,9 @@ export function Gallery({
   // Antal bilder från början som ska bakgrundsförladdas efter LCP (variant-
   // bilderna ligger först). Default: alla. Övriga (svep-bara galleriextrabilder,
   // t.ex. instruktioner) mountas lazy vid första visning så vi inte slösar band-
-  // bredd på bilder pickern aldrig hoppar till.
+  // bredd på bilder pickern aldrig hoppar till. OBS: styr bara BULK-fasen (Fas 2)
+  // — grann-fönstret runt aktiv bild (Fas 1) värms alltid, även vid eagerCount=1,
+  // så svep 3, 4, … är varma också på produkter utan bildvarianter.
   eagerCount?: number;
 }) {
   const imgs = images.filter(Boolean);
@@ -135,37 +161,62 @@ export function Gallery({
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [mounted]);
 
-  // ── Ivrig förladdning av ALLA variant-/galleribilder (Leonards rapport:
-  //    "när man byter variant händer inget om bilden inte laddats"). Tidigare
-  //    mountades ett bildlager först VID variantbytet → första bytet till varje
-  //    variant väntade på en kall fetch (1–3 s på 4G, ingen feedback). Nu mountar
-  //    vi resten av lagren (opacity:0) SÅ FORT hjältebilden/LCP-bilden dekodats,
-  //    via requestIdleCallback så de aldrig konkurrerar med LCP i kritiska vägen.
-  //    Lagren hämtas+dekodas på exakt den srcset-kandidat ett kommande byte visar
-  //    → variantbytet blir en direkt cache-träff (mätt: 0 nya fetchar, <100 ms).
+  // ── Förladdning i två faser (Leonards rapporter: "när man byter variant händer
+  //    inget om bilden inte laddats" + "bild 3, 4 o vidare laddar långsamt").
+  //    Båda faserna gate:as på att hjältebilden (LCP) faktiskt dekodats — annars
+  //    stal variant-fetcharna bandbredd från LCP-bilden på 4G (mätt: sportflaskans
+  //    LCP sköt 2,0→3,0 s när förladdningen råkade starta för tidigt). loaded-
+  //    detekteringen ovan är pålitlig (synk-scan för cache-träff, onLoad för kall
+  //    fetch). Slår förladdningen fel uteblir den bara → svep faller tillbaka på
+  //    on-demand-mount med spinner, dvs det gamla beteendet.
+  //
+  //    Grinden läses som BOOLEAN (inte hela `loaded` som dep) — annars
+  //    omschemaläggs idle-callbacken varje gång NÅGON bild laddar, vilket kan
+  //    skjuta grannarna på obestämd tid medan galleriet strömmar.
+  const lcpDone = !!loaded[initialActive];
+
+  // Identitetsstabil mount-union: returnerar SAMMA referens när inget nytt
+  // tillkommer (mounted är dep i complete-scan-effekten ovan — en ny array per
+  // retrigger hade gett scan → setLoaded → effekt → … i onödan). Append-only,
+  // och sortera ALDRIG: det initiala lagret (.ghero-base, position:relative) ger
+  // .gmain sin höjd (regressionen i d53c186: hero kollapsade 321→130 px).
+  const addMounted = useCallback((targets: number[]) => {
+    setMounted((m) => {
+      const add = targets.filter((t) => !m.includes(t));
+      return add.length ? [...m, ...add] : m;
+    });
+  }, []);
+
+  // Fas 1 — GRANNARNA, retriggas vid varje bildbyte. Fönster: 2 framåt, 1 bakåt
+  // (nearWindow). Ignorerar eagerCount helt: även produkter utan bildvarianter
+  // (eagerCount=1, där Fas 2 är en ren no-op) får sina grannar varma → svep utan
+  // spinner. Grunt idle (timeout 600) så fönstret alltid vinner bandbredden över
+  // bulk-fasen nedan. Lagren initieras dessutom på fetchPriority "auto" i stället
+  // för "low" (se render) — webbläsare OMPRIORITERAR inte en pågående fetch, så
+  // grannarna får aldrig starta strypta.
+  useEffect(() => {
+    if (!lcpDone || imgs.length <= 1 || skipSpeculative()) return;
+    return onIdle(() => addMounted(nearWindow(active, imgs.length)), 600);
+  }, [active, lcpDone, imgs.length, addMounted]);
+
+  // Fas 2 — BULK-WARM av variantserien (bevarad från variantfixen). Behövs
+  // fortfarande: ett variantklick kan hoppa VAR SOM HELST i galleriet
+  // (variantbilder hoistas inte — productview bevarar naturlig ordning), och
+  // grann-fönstret täcker bara ±. Flyttad till DJUPARE idle (timeout 3000) så
+  // grannarna hinner först. Lagren hämtas+dekodas på exakt den srcset-kandidat
+  // ett kommande byte visar → bytet blir en direkt cache-träff (mätt: 0 nya
+  // fetchar, <100 ms). eagerCount ≤ 1 gör fasen till en naturlig no-op.
   const preloadedAll = useRef(false);
   const doPreload = useCallback(() => {
     if (preloadedAll.current || imgs.length <= 1) return;
     preloadedAll.current = true;
     const n = eagerCount && eagerCount > 0 ? Math.min(eagerCount, imgs.length) : imgs.length;
-    const targets = Array.from({ length: n }, (_, i) => i);
-    setMounted((m) => [...new Set([...m, ...targets])]);
-  }, [imgs.length, eagerCount]);
-  // Gate:as på att hjältebilden (LCP) faktiskt dekodats — annars stal de 5
-  // variant-fetcharna bandbredd från LCP-bilden på 4G (mätt: sportflaskans LCP
-  // sköt från 2,0→3,0 s när förladdningen råkade starta för tidigt). loaded-
-  // detekteringen ovan är pålitlig (synk-scan för cache-träff, onLoad för kall
-  // fetch), så detta fyrar säkert. requestIdleCallback skjuter dessutom upp till
-  // browser-idle. Inget separat skyddsnät → förladdningen kan ALDRIG ligga före
-  // LCP. (Slår förladdningen fel uteblir den bara → svep faller tillbaka på
-  // on-demand-mount med spinner, dvs det gamla beteendet.)
+    addMounted(Array.from({ length: n }, (_, i) => i));
+  }, [imgs.length, eagerCount, addMounted]);
   useEffect(() => {
-    if (!loaded[initialActive]) return;
-    const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void };
-    if (w.requestIdleCallback) { w.requestIdleCallback(doPreload, { timeout: 1500 }); return; }
-    const t = setTimeout(doPreload, 300);
-    return () => clearTimeout(t);
-  }, [loaded, initialActive, doPreload]);
+    if (!lcpDone || skipSpeculative()) return;
+    return onIdle(doPreload, 3000);
+  }, [lcpDone, doPreload]);
 
   // Subtil laddningsindikator: man har bytt till ett lager vars bild ännu inte
   // dekodats (det gamla ligger kvar tills det nya är redo — äkta crossfade). Utan
@@ -326,6 +377,11 @@ export function Gallery({
     );
   }
 
+  // Grann-fönstret runt aktiv bild — styr både Fas 1-mounten (effekten ovan) och
+  // fetchPriority-nivån "auto" i lager-rendern nedan. Samma rena funktion på båda
+  // ställena → mount och prioritet kan aldrig glida isär.
+  const near = nearWindow(active, imgs.length);
+
   return (
     <div className="gallery">
       <button
@@ -338,9 +394,14 @@ export function Gallery({
         onTouchEnd={onHeroTouchEnd}
         aria-label="Förstora bilden"
       >
-        {/* Crossfade-lager: ett <Image> per bild som hunnit bli aktiv. Bara det
-            initiala lagret preloadas (LCP-bilden); övriga laddas eager först när
-            man växlar dit. `is-shown` tonar in det lager vars bild laddat klart. */}
+        {/* Crossfade-lager: ett <Image> per bild som hunnit bli aktiv eller för-
+            laddats. `is-shown` tonar in det lager vars bild laddat klart.
+            fetchPriority i tre nivåer — initial (LCP) high+preload, aktivt lager
+            high (hjälper thumb-hopp: färskt lager INITIERAS på high; en redan
+            pågående fetch omprioriteras inte av webbläsaren), grann-fönstret auto
+            (normal heuristik, svälts inte), övriga low. Prioritetsbyte på ett
+            redan monterat lager är bara en attribut-uppdatering (samma key) —
+            ingen refetch. */}
         {mounted.map((i) => {
           const src = imgs[i];
           if (!src) return null;
@@ -359,10 +420,22 @@ export function Gallery({
               loader={isWix ? wixMainLoader : undefined}
               {...(isInitial
                 ? { preload: true as const, fetchPriority: "high" as const }
-                : { loading: "eager" as const, fetchPriority: "low" as const })}
+                : {
+                    loading: "eager" as const,
+                    fetchPriority: (i === active ? "high" : near.includes(i) ? "auto" : "low") as
+                      | "high"
+                      | "auto"
+                      | "low",
+                  })}
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
-              sizes="(max-width:760px) 100vw, 45vw"
+              // Desktop-kolumnen är i verkligheten FAST 544 px (.container 1180 −
+              // padding 52 − gap 40, delat på 2; box-sizing:border-box) — utan
+              // capen härledde 45vw w_1920/w_3840 på breda skärmar där w_1200
+              // räcker (544×DPR2=1088; hover-zoomen 1.07× → 1164 < 1200). OBS:
+              // aldrig calc() här — Next parsar sizes med regexen (^|\s)\d+vw
+              // och tappar tyst kandidatlistan om 100vw göms i en calc().
+              sizes="(max-width:760px) 100vw, (max-width:1180px) 45vw, 544px"
               className={`ghero-layer ${isInitial ? "ghero-base" : ""} ${i === shown ? "is-shown" : ""}`}
               draggable={false}
               onLoad={() => setLoaded((l) => (l[i] ? l : { ...l, [i]: true }))}
