@@ -489,6 +489,14 @@ Gör så här i stället:
 
 > ⛔ **Metod A är förbjuden även här**, trots att lampan saknar tryckt text. Vi säljer på **antal** och **mått** — "fem hexagoner", "24 LED-rör", "244 × 170 cm" — och en generativ omritning räknar fel på precis den sortens saker, exakt som den skrev om finstilen på hudvårdstuben. Etikettregeln gäller allt som är räknebart eller mätbart i bilden, inte bara bokstäver.
 
+**Metod G – vit hjälte ur en bokeh-bild (rembg + separat mask för mörka delar):** `scripts/hero/bokeh-hero.py`
+
+Den snyggaste produktbilden ligger ofta INTE på vit botten. Julgranståget `91de8b52` hade sin hjälte hämtad ur en vit remsa på 3,7:1 — varan fyllde en tredjedel av kvadraten och remsan släpade dessutom med leverantörens gyllene notgrafik och en avskuren gran. Den största, skarpaste bilden av hela ekipaget låg i stället mot bokeh, på 1,7:1. Ta den och byt botten.
+
+- **rembg ensamt räcker inte när varan har svarta delar.** u2net gav rälsen alpha ≈ 0,5, och halvgenomskinligt svart mot vit botten blir **grått**. Rälsen såg urblekt ut fastän masken "fungerade". Lägg en egen luminansmask ovanpå: här låg rälsen under 130 och bokehn aldrig under 181, så `np.maximum(rembg_alpha, lum < 130)` gav den solid. Mät alltid bakgrundens minsta luminans innan du väljer tröskel.
+- **Låt det som bleder i källan fortsätta bleda.** Rälsen går ut ur vänsterkanten och nederkanten i originalet. Ankra kompositionen mot dukens nederkant så den gör det även i hjälten — klipper man av rälsen mitt i den vita ytan hänger den i luften.
+- **Kolla efter fragment ur grannbilden.** Beskärningen tog med underkanten av ringen ovanför, som blev en rad sliprar svävande över tåget. Behåll bara den största sammanhängande komponenten.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
