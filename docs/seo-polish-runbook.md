@@ -497,6 +497,14 @@ Den snyggaste produktbilden ligger ofta INTE på vit botten. Julgranståget `91d
 - **Låt det som bleder i källan fortsätta bleda.** Rälsen går ut ur vänsterkanten och nederkanten i originalet. Ankra kompositionen mot dukens nederkant så den gör det även i hjälten — klipper man av rälsen mitt i den vita ytan hänger den i luften.
 - **Kolla efter fragment ur grannbilden.** Beskärningen tog med underkanten av ringen ovanför, som blev en rad sliprar svävande över tåget. Behåll bara den största sammanhängande komponenten.
 
+**Metod H – hjälten fanns redan, fel bild var vald:** `scripts/hero/vitbotten-hero.py`
+
+Innan du bygger något: **kontrollera om leverantören redan har en hel bild mot ren vit botten.** Fågelbogungan `560760da` hade sin hjälte beskuren ur MÅTTSKISSEN — sitsen kapad av bildkanten, två tredjedelar rep och tomrum, och en kvarglömd streckad måttlinje uppe till höger. Hela gungan låg samtidigt i en annan leverantörsbild mot exakt 255-vitt. Där behövs ingen maskering alls: mät varans bbox, beskär, skala och klistra på en vit duk. Kolla bakgrundens faktiska värden först (`a.min(axis=2) < 235` + största komponenterna) — är den redan 255 rakt igenom är arbetet gjort.
+
+> ⚠️ **Två färgvägar i samma bildset är en fälla.** Gungans måttskiss visar en BRUN sitsduk (RGB ≈ 50,33,26); alla övriga leverantörsbilder och vårt eget materialkort visar en SVART (≈ 37,37,37). Den gamla hjälten ledde alltså med undantaget. Mät sitsens/ytans faktiska RGB i varje källa innan du väljer hjälte, och led aldrig med den variant som bara förekommer i en enda bild. Notera avvikelsen till Leonard i stället för att gissa vilken som skeppas.
+
+> ℹ️ **Människor i hjälten är rätt val ibland.** För en barnprodukt vars titel lovar "kompisgunga" visar bilden med två barn i både hela varan OCH påståendet. Den döljer dessutom sitsduken, vilket är en fördel när färgen är osäker — vi lovar bara det vi vet.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
