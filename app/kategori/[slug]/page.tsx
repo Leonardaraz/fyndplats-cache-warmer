@@ -9,6 +9,7 @@ import { ProductIndex } from "../../../components/product-index";
 import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
 import { categoryContent } from "../../../lib/category-content";
+import { categorySeo } from "../../../lib/category-seo";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks, blogLinksFor } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
@@ -30,9 +31,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const [cols, products] = await Promise.all([getCollections(), getProducts()]);
   const c = cols.find((x) => x.slug === slug);
   if (!c) return { title: "Kategori" };
+  // Sökordsanpassad titel/beskrivning när kategorin har en (lib/category-seo):
+  // kategorinamnet är Wix interna hyllskylt ("Friluftsliv & Resa") som ingen
+  // googlar, medan titeln ska vara kundens sökord ("Campingutrustning …").
+  // Namnet lever kvar oförändrat i meny, brödsmulor och <h1>. Saknas posten
+  // faller sidan tillbaka på den gamla mallen → nya kategorier funkar direkt.
+  const seo = categorySeo(c.slug);
   const base = pageMeta(
-    c.name,
-    `Köp ${c.name} online hos Fyndplats – prisvärda, noga utvalda fynd till smarta priser. Fri frakt över 499 kr & 30 dagars öppet köp.`,
+    seo?.title ?? c.name,
+    seo?.description ??
+      `Köp ${c.name} online hos Fyndplats – prisvärda, noga utvalda fynd till smarta priser. Fri frakt över 499 kr & 30 dagars öppet köp.`,
     `/kategori/${c.slug}`
   );
   // Per-kategori Open Graph-bild: första produktens bild i kategorin
@@ -109,10 +117,12 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
     .sort((a, b) => a.index - b.index)
     .map((c) => ({ href: `/kategori/${c.slug}`, label: c.name }));
 
-  // Redaktionellt innehåll (intro + FAQ): bara på en HUVUDkategori-sida
-  // (active.parentId === null) vars slug har curated innehåll i lib/category-content.
-  // Subkategorier, REA/Populära och okända kategorier får inget block (oförändrat).
-  const editorial = !active.parentId ? categoryContent(active.slug) : undefined;
+  // Redaktionellt innehåll (intro + FAQ) för kategorier som har curated innehåll
+  // i lib/category-content. KARTAN är gaten — tidigare krävdes dessutom att det
+  // var en huvudkategori (parentId === null), vilket lämnade de 27 under-
+  // kategorierna helt utan brödtext (0 ord → såg för Google ut som varianter av
+  // /alla-produkter). REA/Populära och okända slugs saknas i kartan → inget block.
+  const editorial = categoryContent(active.slug);
 
   // Hero-bild: curated Unsplash-lifestyle per huvudkategori (categoryHero), annars
   // den högst bild-poängsatta non-denylisted produktbilden i kategorin.
