@@ -34,6 +34,14 @@ function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+// Hjältelagrens sizes — desktopkolumnen är FAST 544 px (.container 1180 − padding
+// 52 − gap 40, ÷2; box-sizing:border-box), så w_1200 räcker även på breda skärmar
+// (544×DPR2=1088; hover-zoom 1.07× → 1164 < 1200). Delas med lightboxens baslager
+// så det VÄLJER SAMMA srcset-kandidat som hjälten → öppning är en ren cache-träff.
+// Aldrig calc() här — Next parsar sizes med regexen (^|\s)\d+vw och tappar tyst
+// kandidatlistan om 100vw göms i en calc().
+const HERO_SIZES = "(max-width:760px) 100vw, (max-width:1180px) 45vw, 544px";
+
 // Spekulativ förladdning avstängd? (Data Saver / 2g — se lib/gallery-preload.)
 const skipSpeculative = (): boolean =>
   prefersDataSaving((navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection);
@@ -112,6 +120,50 @@ export function Gallery({
   const [view, setView] = useState({ s: 1, x: 0, y: 0 });
   const resetView = useCallback(() => setView({ s: 1, x: 0, y: 0 }), []);
   const main = imgs[active] || imgs[0] || "";
+
+  // ── Progressiv lightbox-upplösning ──────────────────────────────────────────
+  // Lightboxen hämtade tidigare en EGEN jätte-URL per öppning: den globala
+  // loadern (lib/image-loader.ts) skalade om fill/w_1600 till srcset-kandidaten,
+  // som vid 92vw på retina-desktop blev w_3840 — trots att hjältebildens w_1200
+  // redan låg dekodad i cachen. Nu i två lager:
+  //   Bas   — SAMMA URL som hjältelagret (loader + HERO_SIZES → samma srcset-
+  //           kandidat) → öppning och pilnavigering är rena cache-träffar,
+  //           bilden syns direkt (grannarna är redan varma via förladdningen).
+  //   Hi-res — fast w_1600 (unoptimized → ingen loader-uppskalning) monteras
+  //           FÖRST NÄR man zoomar (s > 1.05) och tonas in när den dekodats.
+  //           Ozoomad fullskärm på w_1200 är samma skärpa som PDP-hjälten;
+  //           det är zoomen som behöver mer pixlar. Sparläge behöver ingen
+  //           egen vakt — utan zoom hämtas aldrig något nytt.
+  // Hi-res spåras per BILD-URL (inte som boolean): en boolean överlever bildbytet
+  // en render för länge — pilnavigering efter en zoom monterade då ett hi-res-
+  // lager för den NYA bilden och sköt iväg en bortkastad w_1600-fetch innan
+  // reset-effekten hann köra (uppmätt på preview). Med URL:en som nyckel blir
+  // render-villkoret `lbHiFor === main` falskt I SAMMA render som bytet — ingen
+  // effekt-race, ingen spökfetch.
+  const [lbHiFor, setLbHiFor] = useState<string | null>(null);
+  const [lbHiReadyFor, setLbHiReadyFor] = useState<string | null>(null);
+  const lbWrapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!lightbox) { setLbHiFor(null); setLbHiReadyFor(null); }
+  }, [lightbox]);
+  useEffect(() => {
+    if (lightbox && view.s > 1.05) setLbHiFor(main); // no-op-render när oförändrad
+  }, [lightbox, view.s, main]);
+  // Cache-träffs-detektering för hi-res-lagret: onLoad fyrar inte för en bild som
+  // redan låg i cachen vid mount (samma next/image-fälla som hjältelagren, samma
+  // botemedel: synk-scan + sena svep med setTimeout — inte rAF, som pausas i dold
+  // flik).
+  useEffect(() => {
+    if (!lbHiFor) return;
+    const scan = () => {
+      const im = lbWrapRef.current?.querySelector<HTMLImageElement>("img.lb-hi");
+      if (im && im.complete && im.naturalWidth > 0) setLbHiReadyFor(lbHiFor);
+    };
+    scan();
+    const t1 = setTimeout(scan, 60);
+    const t2 = setTimeout(scan, 400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [lbHiFor]);
 
   // ── Hjälte-crossfade (ersätter <Image key={main}>) ──────────────────────────
   // Tidigare remountade en enda <Image> via key={src} vid varje variant-/bildbyte.
@@ -436,13 +488,7 @@ export function Gallery({
                   })}
               placeholder="blur"
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
-              // Desktop-kolumnen är i verkligheten FAST 544 px (.container 1180 −
-              // padding 52 − gap 40, delat på 2; box-sizing:border-box) — utan
-              // capen härledde 45vw w_1920/w_3840 på breda skärmar där w_1200
-              // räcker (544×DPR2=1088; hover-zoomen 1.07× → 1164 < 1200). OBS:
-              // aldrig calc() här — Next parsar sizes med regexen (^|\s)\d+vw
-              // och tappar tyst kandidatlistan om 100vw göms i en calc().
-              sizes="(max-width:760px) 100vw, (max-width:1180px) 45vw, 544px"
+              sizes={HERO_SIZES}
               className={`ghero-layer ${isInitial ? "ghero-base" : ""} ${i === shown ? "is-shown" : ""}`}
               draggable={false}
               onLoad={() => setLoaded((l) => (l[i] ? l : { ...l, [i]: true }))}
@@ -516,12 +562,42 @@ export function Gallery({
           >
             <div
               className="lb-imgwrap"
+              ref={lbWrapRef}
               style={{
                 transform: `translate(${view.x}px, ${view.y}px) scale(${view.s})`,
                 transition: gesturing ? "none" : "transform .28s cubic-bezier(.2,.7,.2,1)",
               }}
             >
-              <Image key={main} src={tightFillUrl(main, 1600, 1600)} alt={altForImage(main, active, alt, imageAlts)} fill sizes="92vw" style={{ objectFit: "contain" }} loading="eager" draggable={false} />
+              {/* Bas: hjältens exakta URL (cache-träff → syns direkt). Samma
+                  kvadratiska fill-familj som hi-res → pixeljusterad uppgradering. */}
+              <Image
+                key={"b" + main}
+                src={main}
+                loader={main.includes("static.wixstatic.com") ? wixMainLoader : undefined}
+                alt={altForImage(main, active, alt, imageAlts)}
+                fill
+                sizes={HERO_SIZES}
+                style={{ objectFit: "contain" }}
+                loading="eager"
+                draggable={false}
+              />
+              {/* Hi-res: monteras först vid zoom, tonas in när den dekodats.
+                  unoptimized → src:en används ordagrant (w_1600), den globala
+                  loadern får inte skala upp den till w_3840 igen. Tom alt —
+                  baslagret bär bildens alt-text. */}
+              {lbHiFor === main && (
+                <Image
+                  key={"h" + main}
+                  src={tightFillUrl(main, 1600, 1600)}
+                  unoptimized
+                  alt=""
+                  fill
+                  className="lb-hi"
+                  style={{ objectFit: "contain", opacity: lbHiReadyFor === main ? 1 : 0, transition: "opacity .25s ease" }}
+                  onLoad={() => setLbHiReadyFor(main)}
+                  draggable={false}
+                />
+              )}
             </div>
           </div>
           {imgs.length > 1 && (
