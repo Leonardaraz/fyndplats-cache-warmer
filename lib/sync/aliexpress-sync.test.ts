@@ -1,6 +1,7 @@
 import { buildStockBySupplierId, isUnsaleableError } from "./aliexpress-sync";
 import { describe, expect, it } from "vitest";
 import {
+  scopeMappings,
   ERROR_STRIKES_AS_REMOVED,
   classifyFetchError,
   decideSyncOutcome,
@@ -563,5 +564,37 @@ describe("shouldRestore — synkens egen döljning kan ångras (audit-fynd 2)", 
     const d = decideSyncOutcome({ ...base, prevState: prevRemoved, wixVisible: true });
     expect(d.shouldRestore).toBe(false);
     expect(d.notes).toContain("tillbaka");
+  });
+});
+
+describe("scopeMappings — enproduktskörning från 'Ändra mappning'", () => {
+  const all = [
+    { wixProductId: "a", supplierProductId: "1" },
+    { wixProductId: "b", supplierProductId: "2" },
+    { wixProductId: "c", supplierProductId: "3" },
+  ];
+
+  it("utan onlyIds körs HELA katalogen (cronens väg får aldrig scopas bort)", () => {
+    expect(scopeMappings(all, undefined)).toHaveLength(3);
+    expect(scopeMappings(all, undefined)).toBe(all);
+  });
+
+  it("med onlyIds körs exakt de mappningarna", () => {
+    const out = scopeMappings(all, new Set(["b"]));
+    expect(out).toHaveLength(1);
+    expect(out[0].wixProductId).toBe("b");
+  });
+
+  it("rör inte övriga produkter — ett källbyte ska bara påverka sin egen rad", () => {
+    const out = scopeMappings(all, new Set(["c"]));
+    expect(out.map((m) => m.wixProductId)).toEqual(["c"]);
+  });
+
+  it("okänt id ger tom körning (fel hos anroparen — loggas högljutt, inte tyst)", () => {
+    expect(scopeMappings(all, new Set(["finns-inte"]))).toHaveLength(0);
+  });
+
+  it("tom mängd betyder ingenting, inte allt", () => {
+    expect(scopeMappings(all, new Set())).toHaveLength(0);
   });
 });
