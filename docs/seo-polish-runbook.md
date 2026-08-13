@@ -359,6 +359,8 @@ Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketet
 
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
+> ☠️ **En PATCH av `media.itemsInfo` NOLLSTÄLLER `linkedMedia` på alla variantval (2026-08-13).** Det räcker alltså **inte** att låta de låsta bild-id:na följa med i det nya galleriet — Wix svarar `200 OK`, behåller bilderna, men skriver `linkedMedia: []` på varje choice. Resultatet: alla färgval visar första galleribilden, och kunden som väljer "Blå" ser den gröna produkten. Hände på hollywoodgungan `39a5c0bf`. **Åtgärd:** har produkten optioner → skicka en **andra** PATCH direkt efter galleribytet med hela `options` (inkl. `linkedMedia`) + `variantsInfo` (inkl. varje variants `choices`) + `visible:true` + färsk `revision`, och re-GET-verifiera att varje choice har rätt id. Alternativt: lägg `options` + `variantsInfo` i **samma** PATCH som `media`.
+>
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
 >
 > ⚠️ **PATCH-svaret innehåller INTE `media.itemsInfo`** (det fältet returneras bara när du
