@@ -9,6 +9,7 @@ import { pairVariantMappings } from "@/lib/import/pair-variant-mappings";
 import { translateValue } from "@/lib/import/variant-translations";
 import { isSyntheticMappingId, repairSyntheticVariantIds } from "@/lib/sync/mapping-repair";
 import { runDailySync, DEFAULT_MARGIN_FLOOR_PERCENT } from "@/lib/sync/aliexpress-sync";
+import { getSyncStore } from "@/lib/sync/sync-log";
 
 export type MappingActionResult =
   | { ok: true; message: string }
@@ -52,11 +53,6 @@ export async function createMappingAction(
     );
 
     const store = getStore();
-    // Läs FÖRE skrivningen: bara ett verkligt källbyte ska trigga omsynken.
-    // Mappar man om till samma listning (t.ex. för att laga variantparningen)
-    // är tillståndet redan korrekt och en extra AE-hämtning vore slöseri.
-    const prevMapping = await store.getMappingByWixProductId(wixProductId);
-    const sourceChanged = prevMapping?.supplierProductId !== supplierProductId;
     await store.saveMapping({ supplierProductId, wixProductId, variants: variantMappings });
     await store.appendAudit({
       at: new Date().toISOString(),
@@ -66,45 +62,62 @@ export async function createMappingAction(
         + `värdematchade=${matched} positionella=${positional}`,
     });
 
-    // Källbyte → synka OM produkten direkt (Leonards rapport 2026-08-13:
-    // övervakningskameran låg kvar som "Slut hos leverantören sedan 27 juli"
-    // efter en lyckad ommappning). Orsak: listingStatus/outOfStockSince/lagret
-    // är sparat per WIX-PRODUKT, inte per AE-listning — ommappningen bytte källa
-    // men lämnade tillståndet från den gamla. Raden ljög alltså, OCH lagret låg
-    // kvar nollat (produkten gick inte att köpa) tills 4-timmarsrotationen råkade
-    // nå produkten — den sorteras äldst-först, så en nyss kontrollerad produkt
+    // Synka OM produkten direkt (Leonards rapport 2026-08-13: övervakningskameran
+    // låg kvar som "Slut hos leverantören sedan 27 juli" efter en lyckad
+    // ommappning). Orsak: listingStatus/outOfStockSince/lagret är sparat per
+    // WIX-PRODUKT, inte per AE-listning — ommappningen bytte källa men lämnade
+    // tillståndet från den gamla. Raden ljög alltså, OCH lagret låg kvar nollat
+    // (produkten gick inte att köpa) tills 4-timmarsrotationen råkade nå
+    // produkten — den sorteras äldst-först, så en nyss kontrollerad produkt
     // hamnar sist i kön.
+    //
+    // Körs ALLTID, även när källan är oförändrad. Första versionen gjorde det
+    // bara vid källbyte ("samma källa ⇒ tillståndet är redan korrekt"), men det
+    // antagandet är fel precis när man behöver knappen som mest: tillståndet kan
+    // vara inaktuellt för samma källa också (leverantören har fyllt på, eller
+    // state skrevs före en tidigare ommappning). Utan detta finns ingen väg alls
+    // att tvinga fram en färsk kontroll från admin — man får vänta på rotationen.
+    // Kostnaden är ETT AE-anrop per manuellt klick.
     //
     // Vi kör synkens EGEN logik scopad till produkten (onlyIds) i stället för en
     // halv kopia här: då uppdateras lager, pris, tillstånd, restock-utskick och
     // OOS-klassning enligt exakt samma regler som cronen. opsAlertEmail utelämnas
     // medvetet — ett admin-klick ska inte trigga ops-larm.
     let syncNote = "";
-    if (sourceChanged) {
-      try {
-        const summary = await runDailySync({
-          pricing,
-          dryRun: (process.env.SYNC_DRY_RUN ?? "true").toLowerCase() !== "false",
-          maxApiCalls: 5,
-          timeBudgetMs: 30_000,
-          marginFloorPercent: DEFAULT_MARGIN_FLOOR_PERCENT,
-          baseUrl: (
-            process.env.NEXT_PUBLIC_APP_URL
-            ?? process.env.VERCEL_URL
-            ?? "https://fyndplats-cache-warmer.vercel.app"
-          ).replace(/^https?:\/\//, "https://").replace(/\/$/, ""),
-          onlyIds: new Set([wixProductId]),
-        });
-        if (summary.markedOos > 0) {
-          syncNote = " — OBS: även den NYA listningen är slut hos leverantören";
-        } else if (summary.restored > 0 || summary.checked > 0) {
-          syncNote = " — lager och pris hämtat från den nya källan";
-        }
-      } catch {
-        // Fail-open: mappningen är sparad och det är huvudjobbet. Rotationen
-        // hämtar lagret inom 4 h ändå.
-        syncNote = " — mappningen sparad, men lagret kunde inte hämtas nu (synken tar det inom 4 h)";
+    try {
+      await runDailySync({
+        pricing,
+        dryRun: (process.env.SYNC_DRY_RUN ?? "true").toLowerCase() !== "false",
+        maxApiCalls: 5,
+        timeBudgetMs: 30_000,
+        marginFloorPercent: DEFAULT_MARGIN_FLOOR_PERCENT,
+        baseUrl: (
+          process.env.NEXT_PUBLIC_APP_URL
+          ?? process.env.VERCEL_URL
+          ?? "https://fyndplats-cache-warmer.vercel.app"
+        ).replace(/^https?:\/\//, "https://").replace(/\/$/, ""),
+        onlyIds: new Set([wixProductId]),
+      });
+      // Läs det FÄRSKA tillståndet och rapportera saldot i klartext. Utan siffran
+      // går det inte att skilja "synken har inte hunnit" från "leverantören har
+      // faktiskt 0" — och det är exakt den tvetydigheten som gjorde kameran
+      // omöjlig att felsöka. OBS: produktSIDAN på AliExpress kan se tillgänglig
+      // ut medan dropshipping-API:t rapporterar 0 för de SKU:er vi kan beställa.
+      const fresh = await getSyncStore().getState(wixProductId);
+      if (!fresh) {
+        syncNote = " — men inget synk-tillstånd skrevs, kontrollera synkloggen";
+      } else if (fresh.listingStatus === "out_of_stock" || (fresh.currentStock ?? 0) <= 0) {
+        syncNote = " — OBS: leverantörens API rapporterar 0 i lager för den här"
+          + " listningen just nu, även om produktsidan ser tillgänglig ut";
+      } else if (fresh.listingStatus === "removed") {
+        syncNote = " — OBS: leverantören svarar att listningen är borttagen";
+      } else {
+        syncNote = ` — lager hämtat: ${fresh.currentStock} st hos leverantören`;
       }
+    } catch {
+      // Fail-open: mappningen är sparad och det är huvudjobbet. Rotationen
+      // hämtar lagret inom 4 h ändå.
+      syncNote = " — mappningen sparad, men lagret kunde inte hämtas nu (synken tar det inom 4 h)";
     }
 
     revalidatePath("/admin/mappings");
