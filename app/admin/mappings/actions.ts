@@ -8,6 +8,7 @@ import { pricingConfigFromEnv } from "@/lib/config";
 import { pairVariantMappings } from "@/lib/import/pair-variant-mappings";
 import { translateValue } from "@/lib/import/variant-translations";
 import { isSyntheticMappingId, repairSyntheticVariantIds } from "@/lib/sync/mapping-repair";
+import { runDailySync, DEFAULT_MARGIN_FLOOR_PERCENT } from "@/lib/sync/aliexpress-sync";
 
 export type MappingActionResult =
   | { ok: true; message: string }
@@ -51,6 +52,11 @@ export async function createMappingAction(
     );
 
     const store = getStore();
+    // Läs FÖRE skrivningen: bara ett verkligt källbyte ska trigga omsynken.
+    // Mappar man om till samma listning (t.ex. för att laga variantparningen)
+    // är tillståndet redan korrekt och en extra AE-hämtning vore slöseri.
+    const prevMapping = await store.getMappingByWixProductId(wixProductId);
+    const sourceChanged = prevMapping?.supplierProductId !== supplierProductId;
     await store.saveMapping({ supplierProductId, wixProductId, variants: variantMappings });
     await store.appendAudit({
       at: new Date().toISOString(),
@@ -59,6 +65,48 @@ export async function createMappingAction(
       detail: `supplierProductId=${supplierProductId} variants=${variantMappings.length} `
         + `värdematchade=${matched} positionella=${positional}`,
     });
+
+    // Källbyte → synka OM produkten direkt (Leonards rapport 2026-08-13:
+    // övervakningskameran låg kvar som "Slut hos leverantören sedan 27 juli"
+    // efter en lyckad ommappning). Orsak: listingStatus/outOfStockSince/lagret
+    // är sparat per WIX-PRODUKT, inte per AE-listning — ommappningen bytte källa
+    // men lämnade tillståndet från den gamla. Raden ljög alltså, OCH lagret låg
+    // kvar nollat (produkten gick inte att köpa) tills 4-timmarsrotationen råkade
+    // nå produkten — den sorteras äldst-först, så en nyss kontrollerad produkt
+    // hamnar sist i kön.
+    //
+    // Vi kör synkens EGEN logik scopad till produkten (onlyIds) i stället för en
+    // halv kopia här: då uppdateras lager, pris, tillstånd, restock-utskick och
+    // OOS-klassning enligt exakt samma regler som cronen. opsAlertEmail utelämnas
+    // medvetet — ett admin-klick ska inte trigga ops-larm.
+    let syncNote = "";
+    if (sourceChanged) {
+      try {
+        const summary = await runDailySync({
+          pricing,
+          dryRun: (process.env.SYNC_DRY_RUN ?? "true").toLowerCase() !== "false",
+          maxApiCalls: 5,
+          timeBudgetMs: 30_000,
+          marginFloorPercent: DEFAULT_MARGIN_FLOOR_PERCENT,
+          baseUrl: (
+            process.env.NEXT_PUBLIC_APP_URL
+            ?? process.env.VERCEL_URL
+            ?? "https://fyndplats-cache-warmer.vercel.app"
+          ).replace(/^https?:\/\//, "https://").replace(/\/$/, ""),
+          onlyIds: new Set([wixProductId]),
+        });
+        if (summary.markedOos > 0) {
+          syncNote = " — OBS: även den NYA listningen är slut hos leverantören";
+        } else if (summary.restored > 0 || summary.checked > 0) {
+          syncNote = " — lager och pris hämtat från den nya källan";
+        }
+      } catch {
+        // Fail-open: mappningen är sparad och det är huvudjobbet. Rotationen
+        // hämtar lagret inom 4 h ändå.
+        syncNote = " — mappningen sparad, men lagret kunde inte hämtas nu (synken tar det inom 4 h)";
+      }
+    }
+
     revalidatePath("/admin/mappings");
     return {
       ok: true,
@@ -66,7 +114,7 @@ export async function createMappingAction(
         + `${positional > 0 ? `, ${positional} positionsgissade — KONTROLLERA att rätt AE-variant valdes` : ""}`
         + `${wixVariants.length !== aeVariants.length
           ? `; Wix har ${wixVariants.length}, AE har ${aeVariants.length}`
-          : ""})`,
+          : ""})${syncNote}`,
     };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Okänt fel" };

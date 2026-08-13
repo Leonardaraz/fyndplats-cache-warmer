@@ -418,6 +418,19 @@ export interface RunDailySyncOptions {
   timeBudgetMs?: number;
   /** Mappnings-id:er att hoppa över (för åter-körning av en partiell körning). */
   skipIds?: Set<string>;
+  /**
+   * Kör ENBART dessa wixProductId (allt annat lämnas orört). Används av
+   * "Ändra mappning" i admin: efter ett källbyte är det sparade tillståndet
+   * (listingStatus/outOfStockSince/lager) kvar från den GAMLA listningen, så
+   * raden visar en falsk "slut hos leverantören"-varning och lagret ligger
+   * nollat tills 4-timmarsrotationen råkar nå produkten. Med det här filtret
+   * kör admin-åtgärden synkens riktiga logik för just den produkten direkt —
+   * ingen halv duplikat-implementation av lager/pris/tillstånd.
+   *
+   * Filtreras FÖRE tillståndsuppslagen nedan: annars skulle en enproduktskörning
+   * läsa state för hela katalogen (~800 uppslag) i onödan.
+   */
+  onlyIds?: Set<string>;
   /** Marginal-golv för pris-alert. */
   marginFloorPercent: number;
   /**
@@ -469,11 +482,38 @@ export interface SyncSummary {
   finishedAt: string;
 }
 
+/**
+ * Begränsar en körning till `onlyIds`. Utbruten som ren funktion för att låsa
+ * semantiken i test: `undefined` = hela katalogen (cronens väg — får ALDRIG
+ * råka scopas bort), en ifylld mängd = exakt de mappningarna, en TOM mängd =
+ * ingenting (anroparens fel, loggas högljutt av anroparen).
+ */
+export function scopeMappings<T extends { wixProductId: string }>(
+  mappings: T[],
+  onlyIds: Set<string> | undefined,
+): T[] {
+  if (!onlyIds) return mappings;
+  return mappings.filter((m) => onlyIds.has(m.wixProductId));
+}
+
 export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSummary> {
   const startedAt = new Date().toISOString();
   const store = getStore();
   const syncStore = getSyncStore();
-  const mappings = await store.listMappings();
+  const allMappings = await store.listMappings();
+  // Scoped körning (onlyIds) filtreras här, före både summary.total och
+  // tillståndsuppslagen — så siffrorna beskriver den faktiska körningen och en
+  // enproduktskörning kostar ett state-uppslag i stället för hela katalogens.
+  const mappings = scopeMappings(allMappings, opts.onlyIds);
+  if (opts.onlyIds && mappings.length === 0) {
+    // Loud, aldrig tyst: en scoped körning som inte matchar någon mappning är
+    // alltid ett fel hos anroparen (fel id, oskapad mappning). Tyst nollkörning
+    // är precis den felmod som brände oss förr — 21 produkter felade osynligt i
+    // 8 dagar (audit 2026-07-14).
+    console.warn(
+      `[sync] scoped körning matchade INGEN mappning: ${[...opts.onlyIds].join(", ")}`,
+    );
+  }
 
   const summary: SyncSummary = {
     total: mappings.length,
@@ -526,8 +566,14 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // --- Bestseller-prioritet (Feature 4) -----------------------------------
   // Sätter priority=high på top-50 sålda. Muterar in-memory mappings så
   // sorteringen nedan ser ny prioritet; skriver till store endast om !dryRun.
+  // Hoppas över i scoped körningar (onlyIds): prioritetsplanen ska bygga på HELA
+  // katalogen. Faller 30-dagarshämtningen ovan blir salesByProduct tom, och en
+  // enproduktskörning skulle då kunna degradera en bestseller på ofullständigt
+  // underlag. Ett källbyte ska inte röra prioriteter.
   try {
-    await applyBestsellerPriority({ store, mappings, salesByProduct, dryRun: opts.dryRun });
+    if (!opts.onlyIds) {
+      await applyBestsellerPriority({ store, mappings, salesByProduct, dryRun: opts.dryRun });
+    }
   } catch (err) {
     console.warn(
       `[sync] bestseller-prioritet misslyckades: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
