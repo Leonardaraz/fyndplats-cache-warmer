@@ -540,6 +540,26 @@ Regeln blir: **ta silhuetten, inte alfan.** För ett genomskinligt föremål ska
 
 Ligger produkten i stället mot mörk eller färgad botten går det inte: då bär skivan den bakgrundens färg och måste fotograferas om. Leta i så fall efter en annan leverantörsbild med ljus vägg innan du ger upp.
 
+**Metod K – hitta varan på TEXTUR när luminansen inte räcker:** `scripts/hero/textur-hero.py`
+
+Mattan `14987bb4` hade en närbild i ett rum som hjälte, beskuren på alla fyra kanter — man såg luggen men aldrig varan. En 160 × 120-matta måste visa sin form.
+
+Leverantörens måttbild visade hela mattan platt, men mot en botten som ligger nästan på samma ljushet: **matta ~199, botten ~227**. Ingen luminanströskel i världen hittar den kanten rent. Textur gör det direkt: luggens **lokala standardavvikelse är ~7,9 medan den släta bottnen ligger på exakt 0**.
+
+```python
+lok = ndimage.uniform_filter(lum, 9)
+std = np.sqrt(np.clip(ndimage.uniform_filter(lum * lum, 9) - lok * lok, 0, None))
+m = ndimage.binary_opening(std > 3.0, iterations=4)
+```
+
+Varan är en fylld rektangel, så ingen mask behövs — rad- och kolumnprofil på `m` ger de fyra kanterna. Begränsa profilen till ett grovt område först, annars drar måttpilarna och möbelskissen ut rutan (mitt första försök gav kvot 1,53 i stället för 1,36 av just det skälet).
+
+> ✅ **Gratis rättningsprov: jämför rutans kvot mot måtten i titeln.** 1550 × 1143 px = 1,356 mot 160/120 = 1,333. Två procents skillnad är luggens mjuka kant. Hade jag fått 1,53 hade rutan varit fel — och det märks utan att man ens tittar på bilden.
+
+Lägg en mjuk kontaktskugga under (offset ~16 px, `gaussian_filter(26)`, 17 % styrka), annars svävar en platt vara mot vitt.
+
+**Ta bort ett slutsålt variantval (V3):** filtrera bort valet ur `options[].choicesSettings.choices` OCH dess variant ur `variantsInfo.variants` i **samma** PATCH med `fieldMask: ["options", "variantsInfo"]` — delar man upp det blir det 428 `MISSING_VARIANT_OPTION_CHOICE`. Den kvarvarande varianten **behåller sitt id**, så lagersaldo, pris, SKU och mappningens `wixVariantId` överlever orörda (verifierat på klösträdet `30e1851b`: 100 st och 859 kr kvar efter). Wix städar dessutom bort den föräldralösa lagerposten själv — ett `DELETE` på den svarar 404 efteråt. Kom ihåg att ta bort raden ur mappningens `variants` också, annars letar lagersynken efter en variant som inte finns.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
