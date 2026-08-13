@@ -521,6 +521,25 @@ Två vinster på köpet när man maskerar produkten i stället för att radera b
 
 > ⛔ **Metod A är förbjuden även här** — "5 banor" och "5 bilar" står i titeln, och generativ omritning räknar fel på antal. Samma regel som för hexagonlampan.
 
+**Metod J – genomskinlig produkt mot vitt: mät väggen först:** `scripts/hero/genomskinlig-hero.py`
+
+En klar skiva visar det som ligger bakom den, så normalt gäller samma varning som för LED (Metod F): flyttar man den till vitt försvinner den. **Men det är ett mätbart påstående, inte en regel — mät innan du drar slutsatsen.**
+
+Skärmtaket `fbef53b8` var monterat på en gräddvit husvägg:
+
+| | värde |
+|---|---|
+| väggen bakom | ~244 |
+| polykarbonatskivan | ~223 |
+| skivans räfflor | ned mot 184 |
+| vitt | 255 |
+
+Skillnaden mellan väggen och vitt är alltså **elva nivåer**. Skivans utseende ändras knappt av bytet, och räfflorna, reflexerna, den svarta ramen och aluminiumlisten bär bilden. Då behövs ingen rekonstruktion alls: hämta silhuetten med rembg, behåll originalpixlarna innanför, lägg vitt utanför.
+
+Regeln blir: **ta silhuetten, inte alfan.** För ett genomskinligt föremål ska man inte alfa-blanda mot den nya bottnen — det tunnar ut skivan en gång till. Tröskla masken (`alfa > 0,43`), behåll största komponenten, och kopiera in originalets RGB rakt av.
+
+Ligger produkten i stället mot mörk eller färgad botten går det inte: då bär skivan den bakgrundens färg och måste fotograferas om. Leta i så fall efter en annan leverantörsbild med ljus vägg innan du ger upp.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
