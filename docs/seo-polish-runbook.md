@@ -560,6 +560,22 @@ Lägg en mjuk kontaktskugga under (offset ~16 px, `gaussian_filter(26)`, 17 % st
 
 **Ta bort ett slutsålt variantval (V3):** filtrera bort valet ur `options[].choicesSettings.choices` OCH dess variant ur `variantsInfo.variants` i **samma** PATCH med `fieldMask: ["options", "variantsInfo"]` — delar man upp det blir det 428 `MISSING_VARIANT_OPTION_CHOICE`. Den kvarvarande varianten **behåller sitt id**, så lagersaldo, pris, SKU och mappningens `wixVariantId` överlever orörda (verifierat på klösträdet `30e1851b`: 100 st och 859 kr kvar efter). Wix städar dessutom bort den föräldralösa lagerposten själv — ett `DELETE` på den svarar 404 efteråt. Kom ihåg att ta bort raden ur mappningens `variants` också, annars letar lagersynken efter en variant som inte finns.
 
+**Metod L – hjälten var redan vit men fel beskuren:** `scripts/hero/miniatyr-hero.py`
+
+En vit botten betyder inte att hjälten är gjord. Paviljongen `d78f7211` låg redan mot 255-vitt men var en dålig beskärning av leverantörens original: högra sidan och möblernas underkant kapades av bildkanten, **och uppe i högra hörnet låg ett löst fragment kvar av den inzoomade miniatyr som originalet har där**. Originalet visar hela varan.
+
+Miniatyren och varan går att skilja åt utan risk med komponentmärkning — paviljongen 1,26 Mpx, miniatyren 0,15 Mpx. **Men verifiera överlappningen innan du raderar**, för deras y-intervall snuddar vid varandra (varan börjar y 488, miniatyren slutar y 535) även om de inte möts i x-led:
+
+```python
+overlapp = int(vara[my0:my1, mx0:mx1].sum())
+if overlapp:
+    raise SystemExit("varan ligger i miniatyrens ruta – radera inte blint")
+```
+
+> 🔁 **Leta efter samma fel i KORTEN.** Spec-kortet för paviljongen var byggt av exakt samma trasiga beskärning och bar därför samma svävande fragment. Har du hittat en defekt i en beskärning, sök igenom galleriets övriga bilder efter den innan du släpper produkten — den följer med överallt där samma urklipp återanvänts.
+
+När kortets foto byggs om: fotorutan i `card_spec` har kvot 1,64 medan paviljongen är 1,36. **Fyll ut i SIDLED med vitt** i stället för att beskära — en beskärning hade kapat taket.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
