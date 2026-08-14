@@ -16,6 +16,8 @@
 // content-drift och alert-handoff till Leonard. Båda kan samexistera.
 
 import { computePrice } from "../import/pricing";
+import { translateValue } from "../import/variant-translations";
+import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
 import type { PricingConfig } from "../import/types";
 import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
 import { checkMappingShippability, isShippabilityStale, type ShippabilityBudget } from "./shippability";
@@ -58,9 +60,10 @@ export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
 // dödas mitt i en Wix-skrivning (= partiella skrivningar / state-divergens).
 export const DEFAULT_SYNC_TIME_BUDGET_MS = 240_000;
 // Antal körningar i RAD som måste klassa en produkt som "borttagen" innan vi
-// faktiskt döljer den. Skyddar mot att ett transient "product not found"-svar
-// (AE svarar ofta så tillfälligt) felaktigt döljer en levande produkt — som
-// dessutom inte auto-återställs (eftersom wixVisible då blir false).
+// nollar lagret. Skyddar mot att ett transient "product not found"-svar (AE
+// svarar ofta så tillfälligt) felaktigt tar en levande produkt ur försäljning.
+// Sedan 2026-08-09 AVPUBLICERAS produkten inte längre vid bekräftad borttagning
+// — sidan behålls indexerad och markeras slut i lager (se decideSyncOutcome).
 export const REMOVED_STRIKES_REQUIRED = 2;
 
 // Antal körningar i RAD med dropship-lager 0 innan vi faktiskt nollar Wix-
@@ -207,16 +210,27 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     const streak = inputs.removedStreak ?? REMOVED_STRIKES_REQUIRED;
     const confirmed = streak >= REMOVED_STRIKES_REQUIRED;
     if (confirmed) {
+      // SEO-BESLUT (2026-08-09): en borttagen listning nollar lagret men
+      // AVPUBLICERAR INTE produkten. Att dölja sidan gör URL:en till en 404 och
+      // kastar bort all upparbetad ranking och alla inlänkar — för en produkt
+      // som mycket väl kan komma tillbaka hos en annan leverantör. Branschpraxis
+      // för utgången vara är att låta sidan ligga kvar med status "slut i lager"
+      // och hänvisa vidare, inte att radera den ur indexet.
+      //
+      // Produkten blir ändå omöjlig att köpa (lager 0), syns som removed i
+      // /admin/sync-alerts och kan hanteras manuellt: behåll som
+      // informationssida, byt leverantör, eller 301:a till en ersättare där en
+      // sådan faktiskt finns.
       return {
         listingStatus: "removed",
-        actionTaken: inputs.wixVisible ? "hidden" : "none",
-        shouldHide: inputs.wixVisible,
+        actionTaken: "marked_oos",
+        shouldHide: false,
         shouldRestore: false,
-        inventoryTarget: null,
+        inventoryTarget: 0,
         alert: null,
         newCostSek: null,
-        notes: "AliExpress-listning borttagen — produkten döljs i butiken.",
-        justWentOos: false,
+        notes: "AliExpress-listning borttagen — lagret nollas, sidan behålls publicerad (SEO).",
+        justWentOos: prevState?.listingStatus !== "out_of_stock" && prevState?.listingStatus !== "removed",
         justRestocked: false,
       };
     }
@@ -286,14 +300,15 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     listingStatus: "active",
     actionTaken: "none",
     shouldHide: false,
-    // Om föregående status var removed och vi nu ser aktiv listning → restore.
-    // Tillåtet när produkten är synlig ELLER när det var SYNKEN som dolde den
-    // (hiddenBySync) — audit-fynd 2: utan det senare kunde synkens egen
-    // döljning aldrig ångras (visible är ju false då). En MANUELL unpublish
-    // (visible=false utan hiddenBySync) respekteras fortfarande.
+    // Om föregående status var removed och vi nu ser aktiv listning → restore,
+    // men BARA när det var SYNKEN som dolde produkten (hiddenBySync, legacy
+    // före #369:s aldrig-dölj-policy). Under nya policyn förblir produkten
+    // synlig vid removed → utan hiddenBySync-kravet gav varje removed→active-
+    // övergång en spök-restore: en onödig Wix-skrivning + en "ÅTERSTÄLLER"-
+    // logg för en produkt som aldrig doldes (audit 2026-08-09). En MANUELL
+    // unpublish (visible=false utan hiddenBySync) respekteras som förut.
     shouldRestore:
-      prevState?.listingStatus === "removed"
-      && (inputs.wixVisible || inputs.hiddenBySync === true),
+      prevState?.listingStatus === "removed" && inputs.hiddenBySync === true,
     inventoryTarget: aliExpress.totalStock,
     alert: null,
     newCostSek,
@@ -302,6 +317,10 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
     // Tillbaka i lager efter att ha varit slut → trigga restock-mejl.
     justRestocked: prevState?.listingStatus === "out_of_stock",
   };
+  // Notera comebacken i loggen (pris-/innehållsflaggor nedan får skriva över).
+  if (prevState?.listingStatus === "removed") {
+    decision.notes = "Listningen är tillbaka hos AliExpress.";
+  }
 
   // 4) Prishöjning som hotar marginalen? → flagga.
   if (prevState?.currentCostUsd && prevState.currentCostUsd > 0) {
@@ -399,6 +418,19 @@ export interface RunDailySyncOptions {
   timeBudgetMs?: number;
   /** Mappnings-id:er att hoppa över (för åter-körning av en partiell körning). */
   skipIds?: Set<string>;
+  /**
+   * Kör ENBART dessa wixProductId (allt annat lämnas orört). Används av
+   * "Ändra mappning" i admin: efter ett källbyte är det sparade tillståndet
+   * (listingStatus/outOfStockSince/lager) kvar från den GAMLA listningen, så
+   * raden visar en falsk "slut hos leverantören"-varning och lagret ligger
+   * nollat tills 4-timmarsrotationen råkar nå produkten. Med det här filtret
+   * kör admin-åtgärden synkens riktiga logik för just den produkten direkt —
+   * ingen halv duplikat-implementation av lager/pris/tillstånd.
+   *
+   * Filtreras FÖRE tillståndsuppslagen nedan: annars skulle en enproduktskörning
+   * läsa state för hela katalogen (~800 uppslag) i onödan.
+   */
+  onlyIds?: Set<string>;
   /** Marginal-golv för pris-alert. */
   marginFloorPercent: number;
   /**
@@ -450,11 +482,38 @@ export interface SyncSummary {
   finishedAt: string;
 }
 
+/**
+ * Begränsar en körning till `onlyIds`. Utbruten som ren funktion för att låsa
+ * semantiken i test: `undefined` = hela katalogen (cronens väg — får ALDRIG
+ * råka scopas bort), en ifylld mängd = exakt de mappningarna, en TOM mängd =
+ * ingenting (anroparens fel, loggas högljutt av anroparen).
+ */
+export function scopeMappings<T extends { wixProductId: string }>(
+  mappings: T[],
+  onlyIds: Set<string> | undefined,
+): T[] {
+  if (!onlyIds) return mappings;
+  return mappings.filter((m) => onlyIds.has(m.wixProductId));
+}
+
 export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSummary> {
   const startedAt = new Date().toISOString();
   const store = getStore();
   const syncStore = getSyncStore();
-  const mappings = await store.listMappings();
+  const allMappings = await store.listMappings();
+  // Scoped körning (onlyIds) filtreras här, före både summary.total och
+  // tillståndsuppslagen — så siffrorna beskriver den faktiska körningen och en
+  // enproduktskörning kostar ett state-uppslag i stället för hela katalogens.
+  const mappings = scopeMappings(allMappings, opts.onlyIds);
+  if (opts.onlyIds && mappings.length === 0) {
+    // Loud, aldrig tyst: en scoped körning som inte matchar någon mappning är
+    // alltid ett fel hos anroparen (fel id, oskapad mappning). Tyst nollkörning
+    // är precis den felmod som brände oss förr — 21 produkter felade osynligt i
+    // 8 dagar (audit 2026-07-14).
+    console.warn(
+      `[sync] scoped körning matchade INGEN mappning: ${[...opts.onlyIds].join(", ")}`,
+    );
+  }
 
   const summary: SyncSummary = {
     total: mappings.length,
@@ -507,8 +566,14 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // --- Bestseller-prioritet (Feature 4) -----------------------------------
   // Sätter priority=high på top-50 sålda. Muterar in-memory mappings så
   // sorteringen nedan ser ny prioritet; skriver till store endast om !dryRun.
+  // Hoppas över i scoped körningar (onlyIds): prioritetsplanen ska bygga på HELA
+  // katalogen. Faller 30-dagarshämtningen ovan blir salesByProduct tom, och en
+  // enproduktskörning skulle då kunna degradera en bestseller på ofullständigt
+  // underlag. Ett källbyte ska inte röra prioriteter.
   try {
-    await applyBestsellerPriority({ store, mappings, salesByProduct, dryRun: opts.dryRun });
+    if (!opts.onlyIds) {
+      await applyBestsellerPriority({ store, mappings, salesByProduct, dryRun: opts.dryRun });
+    }
   } catch (err) {
     console.warn(
       `[sync] bestseller-prioritet misslyckades: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
@@ -664,6 +729,35 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       .filter((v) => (v.stock ?? 0) > 0 && v.price > 0)
       .reduce((min, v) => (min === 0 ? v.price : Math.min(min, v.price)), 0);
     const totalStock = product.variants.reduce((s, v) => s + (v.stock ?? 0), 0);
+    // SJÄLVLÄKNING av syntetiska variant-id:n (audit 2026-08-08: 85 mappningar
+    // med dom-/default-id → orderläggning skickar påhittat sku_attr och lager-
+    // synken kan aldrig matcha per variant). DS-produkten är redan hämtad —
+    // reparera ENTYDIGA träffar och spara innan lagerkartan byggs, så repare-
+    // rade id:n matchar per-variant-saldot i SAMMA körning. Konservativ +
+    // best-effort: tvetydigt lämnas orört (loggat), fel fäller aldrig synken.
+    if (mapping.variants.some((v) => isSyntheticMappingId(v.supplierVariantId))) {
+      try {
+        const rep = repairSyntheticVariantIds(mapping.variants, product.variants, translateValue);
+        if (rep.repaired > 0) {
+          mapping.variants = rep.variants;
+          if (!dryRun) await getStore().saveMapping(mapping);
+          console.log(
+            `[sync] mappnings-reparation ${mapping.wixProductId}: ${rep.repaired} syntetiska ` +
+              `variant-id ersatta med riktiga AE-skuId${rep.ambiguous.length ? `; kvar olösta: ${rep.ambiguous.join(", ")}` : ""}.`,
+          );
+        } else if (rep.ambiguous.length > 0) {
+          console.warn(
+            `[sync] mappnings-reparation ${mapping.wixProductId}: kunde inte matcha ${rep.ambiguous.join(", ")} ` +
+              `entydigt mot DS-SKU:erna — auto-order kräver manuell åtgärd för dessa varianter.`,
+          );
+        }
+      } catch (err) {
+        console.warn(
+          `[sync] mappnings-reparation misslyckades för ${mapping.wixProductId}: ` +
+            `${err instanceof Error ? err.message.slice(0, 160) : String(err)}`,
+        );
+      }
+    }
     aeStockBySupplierId = buildStockBySupplierId(product.variants);
     aeVariantsForShippability = product.variants
       .filter((v) => v.skuId)
@@ -890,11 +984,18 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   }
 
   // 4) Sidoeffekter — Wix-skrivningar.
+  // Sedan #369 (SEO-bevarande policy) DÖLJER synken aldrig: en borttagen
+  // listning nollar lagret (marked_oos) men sidan behålls synlig — att
+  // avpublicera gör URL:en till en 404 och kastar bort ranking/inlänkar.
+  // shouldHide finns kvar i beslutsstrukturen (alltid false) för state-
+  // bokföringen; shouldRestore gäller enbart LEGACY-produkter som synken
+  // hann dölja före policybytet (hiddenBySync) och loggas högljutt.
   if (!dryRun) {
-    if (decision.shouldHide) {
-      await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, false);
-    } else if (decision.shouldRestore) {
-      // Bara om vi inte redan döljer pga annan policy.
+    if (decision.shouldRestore) {
+      console.log(
+        `[sync] ÅTERSTÄLLER synlighet ${mapping.wixProductId} (AE ${mapping.supplierProductId}): ` +
+          `${decision.notes} Produkten doldes av synken före aldrig-dölj-policyn (#369).`,
+      );
       await setProductVisibility(mapping.wixProductId, wixSnapshot.revision, true);
     }
     if (decision.inventoryTarget !== null) {

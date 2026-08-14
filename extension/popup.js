@@ -89,8 +89,74 @@ let supplierStatus = null;
 
 const $title = document.getElementById("title");
 const $variants = document.getElementById("variants");
+const $nameEdit = document.getElementById("nameEdit");
 const $import = document.getElementById("import");
 const $status = document.getElementById("status");
+
+// --- Manuella variantnamn (rått värde → Leonards namn) -------------------
+// Wix V3 key-låser choice.name när produkten skapas — variantnamn kan ALDRIG
+// ändras i efterhand utan att mappningen (wixVariantId ↔ AE-SKU) går sönder.
+// Därför är popupen enda tillfället att döpa dem. Kartan lever på modulnivå så
+// ifyllda namn överlever en re-render (t.ex. DS-API-räddningen som byter ut
+// variantlistan) och skickas som variantNameOverrides i import-payloaden.
+// Tomt fält = auto-översättning (tabell → cache → Haiku) precis som förut.
+let nameOverrides = {};
+// Manuella AXELNAMN (rå axel → Leonards namn), t.ex. { Color: "Kulör" }.
+// Samma lager 0-regler server-side som värdena; key-låses i Wix vid skapandet.
+let axisNameEdits = {};
+let nameEditOpen = false;
+
+// Frakt-axlar ("Ships From" m.fl.) importeras inte som riktiga valaxlar och
+// ska aldrig gå att döpa i sektionen (bug: tom "SHIPS FROM"-rad 2026-08-08).
+const SHIP_AXIS_EDIT_RE = /ships?\s*from|ship\s*country|warehouse/i;
+
+// Lagerkod (ISO-2) för en variant: explicit shipFrom-fält först, annars
+// härledd ur variantens frakt-axel-VÄRDE ("Ships From": "Poland" → PL via
+// FP_EU.NAME_TO_ISO). Flerlager-listningar bär ofta lagret bara som property
+// (lasertag-fyndet 2026-08-09: alla rader visade "?" trots olika lager).
+function variantShipCode(v) {
+  const explicit = String((v && v.shipFrom) || "").trim().toUpperCase();
+  if (/^[A-Z]{2}$/.test(explicit)) return explicit;
+  if (explicit && globalThis.FP_EU.NAME_TO_ISO[explicit]) return globalThis.FP_EU.NAME_TO_ISO[explicit];
+  for (const [axis, val] of Object.entries((v && v.options) || {})) {
+    if (!SHIP_AXIS_EDIT_RE.test(axis)) continue;
+    const raw = String(val || "").trim().toUpperCase();
+    if (!raw) continue;
+    if (/^[A-Z]{2}$/.test(raw)) return raw;
+    if (globalThis.FP_EU.NAME_TO_ISO[raw]) return globalThis.FP_EU.NAME_TO_ISO[raw];
+    for (const [name, iso] of Object.entries(globalThis.FP_EU.NAME_TO_ISO)) {
+      if (raw.includes(name)) return iso;
+    }
+  }
+  return "";
+}
+
+// EU-FÖRST-DEFAULT (Leonards regel 2026-08-09): finns minst en EU-lager-rad
+// förbockas BARA EU-raderna — Kina/okänt kräver ett aktivt val. Körs EN gång
+// per produkt (efter att variantlistan är slutgiltig) så användarens egna
+// bockar aldrig skrivs över av en senare re-render.
+let euDefaultApplied = false;
+/** Returnerar ett statusmeddelande (eller null) — anroparen bakar in det i sin
+ *  egen setStatus så EU-varningen inte skrivs över av senare statusrader. */
+function applyEuFirstDefaults() {
+  if (euDefaultApplied || !product || !Array.isArray(product.variants)) return null;
+  const codes = product.variants.map((v) => variantShipCode(v));
+  if (!codes.some((c) => c && EU_WAREHOUSE_CODES.has(c))) return null; // inga EU-rader → rör inget
+  euDefaultApplied = true;
+  let unchecked = 0;
+  product.variants.forEach((v, i) => {
+    const isEu = codes[i] && EU_WAREHOUSE_CODES.has(codes[i]);
+    if (!isEu && v.included) {
+      v.included = false;
+      unchecked++;
+    }
+  });
+  if (unchecked === 0) return null;
+  return (
+    `EU-först: ${unchecked} rad(er) från Kina/okänt lager avbockade automatiskt. ` +
+    "Bocka i dem manuellt om du verkligen vill importera icke-EU-lager."
+  );
+}
 
 // --- Feature toggles (persisteras i chrome.storage.sync) -----------------
 // Alla PÅ som default för nya användare. Skickas i payloaden som featureFlags
@@ -273,12 +339,26 @@ async function load() {
       return;
     }
     product = res.product;
-    render();
     // Bild-färgsampling är bara meningsfull om vi faktiskt fick produktdata.
     if (product.extractionOk) {
+      // DOM-fallback-varianter (dom-/idx-id) bär sidans synliga pris på ALLA
+      // varianter — hämta riktiga per-SKU-priser så listan visar sanningen.
+      const needsDsRefresh = product.variants.some((v) =>
+        /^(dom-|idx-)/.test(String(v.supplierVariantId || "")),
+      );
+      // EU-först appliceras när variantlistan är SLUTGILTIG: direkt här om
+      // ingen DS-uppfräschning väntar, annars inne i refresh-flödet (som byter
+      // ut listan) så användarens bockar aldrig nollas av en senare re-render.
+      const euMsg = needsDsRefresh ? null : applyEuFirstDefaults();
+      render();
+      if (euMsg) setStatus(euMsg, "warn");
       sampleColors();
       checkSupplierStatus();
+      if (needsDsRefresh) {
+        void refreshVariantPricesViaDsApi();
+      }
     } else {
+      render();
       // Skrapan misslyckades (nya PC-sidan saknar ofta inbäddad SKU-JSON och
       // byter pris-markup mellan A/B-varianter) → försök API-räddningen.
       void rescueViaDsApi();
@@ -331,12 +411,14 @@ async function rescueViaDsApi() {
   product.extractionOk = product.quality.hasTitle && product.quality.hasImages;
   // Skrapans "saknar pris"-varning är åtgärdad; rendera om med API-datan.
   product._warnings = [];
+  const euMsg = applyEuFirstDefaults();
   render();
   if (product.extractionOk) {
     setStatus(
       "Priser & lager hämtade via AliExpress-API:t (sidan kunde inte skrapas). " +
-        "Kontrollera varianterna som vanligt före import.",
-      "ok",
+        "Kontrollera varianterna som vanligt före import." +
+        (euMsg ? `\n${euMsg}` : ""),
+      euMsg ? "warn" : "ok",
     );
     sampleColors();
     checkSupplierStatus();
@@ -350,6 +432,52 @@ async function rescueViaDsApi() {
       "err",
     );
   }
+}
+
+/**
+ * Pris-verifiering när skrapan föll på DOM-fallbacken (dom-/idx-varianter):
+ * sidan visar bara den VALDA variantens pris, så alla varianter fick samma
+ * costUsd — dyrare varianter skulle underprisas rejält. Hämta per-SKU-facit
+ * via DS-API:t och ersätt variantlistan INNAN Leonard hinner bocka/importera.
+ * Servern gör samma avstämning vid import (fail-open där med), men här ser
+ * Leonard dessutom rätt priser i listan när han väljer marginal.
+ * Best-effort: misslyckas uppslaget behålls DOM-varianterna + skrapans varning.
+ */
+async function refreshVariantPricesViaDsApi() {
+  const id = String((product && product.supplierProductId) || "");
+  if (!/^\d{6,}$/.test(id)) return;
+  const res = await sendMessageAsync({ type: "DS_PRODUCT", productId: id });
+  const ds = res && res.ok && res.data;
+  const dsVariants = (ds && Array.isArray(ds.variants) ? ds.variants : []).filter(
+    (v) => Number(v.costUsd) > 0,
+  );
+  if (!dsVariants.length) {
+    // Listan förblir skrapans — den är nu slutgiltig → EU-först får köra.
+    const euMsg = applyEuFirstDefaults();
+    render();
+    setStatus(
+      "OBS: kunde inte verifiera per-variant-priserna via AliExpress-API:t — " +
+        "alla varianter visar sidans baspris. Kontrollera priserna extra noga." +
+        (euMsg ? `\n${euMsg}` : ""),
+      "warn",
+    );
+    return;
+  }
+  // API:t är facit för varianter/pris/lager; skrapans media/copy behålls.
+  product.variants = dsVariants;
+  const euMsg = applyEuFirstDefaults();
+  if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
+    product.shipsFrom = [...new Set([...(product.shipsFrom || []), ...ds.shipsFrom])].sort();
+  }
+  const stocks = dsVariants.map((v) => v.stock).filter((s) => typeof s === "number");
+  if (stocks.length) product.inStock = stocks.some((s) => s > 0);
+  // DOM-varningen om baspris är åtgärdad — rensa så den inte skrämmer i onödan.
+  product._warnings = (product._warnings || []).filter((w) => !/baspriset/.test(w));
+  render();
+  setStatus(
+    "Per-variant-priser & lager hämtade via AliExpress-API:t." + (euMsg ? `\n${euMsg}` : ""),
+    euMsg ? "warn" : "ok",
+  );
 }
 
 // Hämtar säljarens score/status (Feature 6) och visar en varning före import:
@@ -416,13 +544,20 @@ function render() {
     cb.addEventListener("change", () => (product.variants[i].included = cb.checked));
     const label = document.createElement("label");
     label.htmlFor = `v${i}`;
-    const optText = Object.values(v.options).join(" / ") || "Standard";
+    // Tomma värden filtreras (flerlager-listningar utan visningsnamn gav
+    // rader som bara hette "/ ($37.43)" — VATOS-lastbilen 2026-08-09).
+    const optText =
+      Object.values(v.options)
+        .filter((x) => String(x || "").trim())
+        .join(" / ") || (product.variants.length > 1 ? `Variant ${i + 1}` : "Standard");
     label.innerHTML = `${optText} <span class="cost">($${v.costUsd})</span>`;
     row.append(cb, label);
-    // Per-variant EU/CN-badge
-    row.append(badgeForShipFrom(v.shipFrom));
+    // Per-variant EU/CN-badge (härledd ur shipFrom ELLER frakt-axelns värde).
+    row.append(badgeForShipFrom(variantShipCode(v) || v.shipFrom));
     $variants.append(row);
   });
+
+  renderNameEdit();
 
   // Vägra import om skrapningen inte gav användbar produktdata. Hellre stoppa
   // här än att skapa en spökprodukt med 0,9 kr och butikscopy (bug 2026-05-31).
@@ -445,6 +580,138 @@ function render() {
     setStatus(product._warnings.join("\n"), "warn");
   }
   $import.disabled = false;
+}
+
+/**
+ * Sektionen "✏️ Variantnamn i butiken": ett textfält per UNIKT rått optionsvärde
+ * (grupperat per axel när produkten har flera). Det Leonard skriver blir
+ * variantens permanenta namn i Wix — tomt fält = auto-översättning som vanligt.
+ * Byggs om vid varje render (DS-räddningen kan byta variantlista); ifyllda namn
+ * återfylls från nameOverrides så inget tappas.
+ */
+function renderNameEdit() {
+  $nameEdit.innerHTML = "";
+  if (!product || !Array.isArray(product.variants) || product.variants.length === 0) return;
+
+  // Unika råvärden per axel, i först-sedd-ordning (samma som variantlistan).
+  // Frakt-axlar och tomma värden hoppas över — de är inte döpbara valaxlar
+  // (buggen 2026-08-08: en tom "SHIPS FROM"-rad renderades med namnfält).
+  const valuesByAxis = new Map();
+  for (const v of product.variants) {
+    for (const [axis, val] of Object.entries(v.options || {})) {
+      if (SHIP_AXIS_EDIT_RE.test(axis)) continue;
+      if (!String(val || "").trim()) continue;
+      if (!valuesByAxis.has(axis)) valuesByAxis.set(axis, []);
+      const arr = valuesByAxis.get(axis);
+      if (!arr.includes(val)) arr.push(val);
+    }
+  }
+  if (valuesByAxis.size === 0) return; // enda-variant-produkt utan options
+
+  const details = document.createElement("details");
+  details.className = "name-edit";
+  details.open = nameEditOpen;
+  details.addEventListener("toggle", () => (nameEditOpen = details.open));
+  const summary = document.createElement("summary");
+  summary.textContent = "✏️ Variantnamn i butiken (valfritt)";
+  details.append(summary);
+  const hint = document.createElement("div");
+  hint.className = "ne-hint";
+  hint.textContent =
+    "Namnet låses i Wix vid importen och kan inte ändras efteråt. " +
+    "Tomt fält = automatisk svensk översättning.";
+  details.append(hint);
+
+  for (const [axis, values] of valuesByAxis) {
+    // Axelrubriken är också redigerbar (Leonards begäran 2026-08-08): rå-namnet
+    // till vänster, namnfält till höger — precis som värderaderna, alltid synlig
+    // även för en-axel-produkter så "Color"/"Size" går att döpa om före importen.
+    const axisRow = document.createElement("div");
+    axisRow.className = "ne-row ne-axis-row";
+    const axisLabel = document.createElement("span");
+    axisLabel.className = "ne-raw ne-axis";
+    axisLabel.textContent = axis;
+    axisLabel.title = `Axelnamn: ${axis}`;
+    const axisInput = document.createElement("input");
+    axisInput.type = "text";
+    axisInput.maxLength = 60;
+    axisInput.placeholder = "axelnamn: auto";
+    if (axisNameEdits[axis]) {
+      axisInput.value = axisNameEdits[axis];
+      axisInput.classList.add("ne-set");
+    }
+    axisInput.addEventListener("input", () => {
+      const t = axisInput.value;
+      if (t.trim()) axisNameEdits[axis] = t;
+      else delete axisNameEdits[axis];
+      axisInput.classList.toggle("ne-set", Boolean(t.trim()));
+    });
+    axisRow.append(axisLabel, axisInput);
+    details.append(axisRow);
+    for (const raw of values) {
+      const row = document.createElement("div");
+      row.className = "ne-row";
+      const rawEl = document.createElement("span");
+      rawEl.className = "ne-raw";
+      rawEl.textContent = raw;
+      rawEl.title = raw;
+      const input = document.createElement("input");
+      input.type = "text";
+      input.maxLength = 60;
+      input.placeholder = "auto (svensk översättning)";
+      if (nameOverrides[raw]) {
+        input.value = nameOverrides[raw];
+        input.classList.add("ne-set");
+      }
+      input.addEventListener("input", () => {
+        const t = input.value;
+        if (t.trim()) nameOverrides[raw] = t;
+        else delete nameOverrides[raw];
+        input.classList.toggle("ne-set", Boolean(t.trim()));
+      });
+      row.append(rawEl, input);
+      details.append(row);
+    }
+  }
+  $nameEdit.append(details);
+}
+
+/**
+ * Samlar ihop de manuella namnen för payloaden — bara värden som faktiskt
+ * förekommer i de VALDA varianterna skickas (avbockade varianters värden och
+ * förlegade nycklar efter en DS-räddning filtreras bort), trimmade och cappade
+ * till samma 60 tecken som API-schemat kräver.
+ */
+function collectNameOverrides(chosenVariants) {
+  const chosenValues = new Set();
+  for (const v of chosenVariants) {
+    for (const val of Object.values(v.options || {})) chosenValues.add(val);
+  }
+  const out = {};
+  for (const [raw, name] of Object.entries(nameOverrides)) {
+    const t = String(name || "").trim().slice(0, 60);
+    // raw ≤160: API-schemats nyckeltak — en override på ett extremt långt
+    // råvärde ska hoppas över tyst, inte fälla HELA importen med 422.
+    if (t && raw.length <= 160 && chosenValues.has(raw)) out[raw] = t;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+/** Samma insamling för AXELNAMN — bara axlar som förekommer i de valda
+ *  varianterna, aldrig frakt-axlar, nyckeltak 80 (API-schemats gräns). */
+function collectAxisOverrides(chosenVariants) {
+  const chosenAxes = new Set();
+  for (const v of chosenVariants) {
+    for (const axis of Object.keys(v.options || {})) {
+      if (!SHIP_AXIS_EDIT_RE.test(axis)) chosenAxes.add(axis);
+    }
+  }
+  const out = {};
+  for (const [axis, name] of Object.entries(axisNameEdits)) {
+    const t = String(name || "").trim().slice(0, 60);
+    if (t && axis.length <= 80 && chosenAxes.has(axis)) out[axis] = t;
+  }
+  return Object.keys(out).length ? out : null;
 }
 
 // --- Pre-import-check: dubblett (Feature 1) ----------------------------------
@@ -474,10 +741,20 @@ async function preImportCheck(p) {
   const dup = dupRes && dupRes.ok && dupRes.data ? dupRes.data : null;
   const matches = (dup && Array.isArray(dup.matches) ? dup.matches : []);
 
-  // Ingen dubblett → ingen modal, fortsätt direkt.
-  if (matches.length === 0) return true;
+  // Ingen dubblett → ingen modal, fortsätt direkt (och ingen kringgångs-flagga).
+  if (matches.length === 0) {
+    delete p.allowDuplicate;
+    return true;
+  }
 
-  return showPreImportModal(matches);
+  const proceed = await showPreImportModal(matches);
+  // "Importera ändå" = MEDVETET val att importera trots dubblettvarning →
+  // flaggan följer med payloaden så serverns hårda dubblett-spärr (409 på
+  // samma supplierProductId, PR #369) också kliver åt sidan. Dagens server
+  // utan spärren ignorerar okända fält — ofarligt tills den landar.
+  if (proceed) p.allowDuplicate = true;
+  else delete p.allowDuplicate;
+  return proceed;
 }
 
 function el(tag, cls, text) {
@@ -582,6 +859,15 @@ $import.addEventListener("click", async () => {
   const override = buildPricingOverride();
   if (override) product.pricingOverride = override;
   else delete product.pricingOverride;
+
+  // Manuella variantnamn (bara för de valda varianterna) → payloaden. Namnen
+  // key-låses i Wix vid skapandet, så detta är enda stället de kan sättas.
+  const names = collectNameOverrides(chosen);
+  if (names) product.variantNameOverrides = names;
+  else delete product.variantNameOverrides;
+  const axisNames = collectAxisOverrides(chosen);
+  if (axisNames) product.axisNameOverrides = axisNames;
+  else delete product.axisNameOverrides;
 
   chrome.runtime.sendMessage({ type: "IMPORT_PRODUCT", product, featureFlags: flagsWithMode() }, (res) => {
     if (chrome.runtime.lastError || !res) {

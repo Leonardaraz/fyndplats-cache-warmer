@@ -62,6 +62,24 @@ export interface AliExpressProduct {
    * de översatta optionsvalen.
    */
   swatchImages?: Record<string, Record<string, string>>;
+  /**
+   * Manuella variantnamn från importverktyget: { [rått optionsvärde]: "Svenskt
+   * namn" }, t.ex. { "Polar Night Black": "Polarsvart" }. Vinner över HELA
+   * översättningskedjan (statisk tabell → cache → Haiku) och betros av
+   * svenskhets-grinden — Leonard skrev namnet med flit. Skälet till att det
+   * måste ske FÖRE importen: i Wix V3 speglar choice.name den låsta
+   * choice.key:en, så ett variantnamn kan aldrig döpas om i efterhand utan att
+   * variantmappningen (wixVariantId ↔ AE-SKU) går sönder.
+   */
+  variantNameOverrides?: Record<string, string>;
+  /**
+   * Manuella AXELNAMN från importverktyget: { [rå axel]: "Svenskt namn" },
+   * t.ex. { "Color": "Kulör", "Size": "Antal" }. Samma lager 0-regler som
+   * variantNameOverrides — vinner över tabell/omklassning/AI och betros av
+   * grinden. Key-låses i Wix precis som värdena (options-namnet sätts vid
+   * skapandet).
+   */
+  axisNameOverrides?: Record<string, string>;
 }
 
 /**

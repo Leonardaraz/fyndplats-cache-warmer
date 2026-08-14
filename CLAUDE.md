@@ -24,11 +24,13 @@ Sätt `AI_ENRICHMENT_ENABLED=false` i Vercel (production). Då:
   *"polera denna"* så skriver Claude SEO/beskrivning/FAQ/kategori gratis i chatten
   istället för via betald API-pipeline.
 
-### Variantöversättning: tabell → cache → Haiku → svenskhets-grind (egen switch `VARIANT_AI_TRANSLATION_ENABLED`)
+### Variantöversättning: tabell → cache → Haiku → svenskhets-grind → färg-grind (egen switch `VARIANT_AI_TRANSLATION_ENABLED`)
 
 Variantvärden (t.ex. "Warm White", "100 inch") översätts till svenska FRÅN START
 vid import — viktigt, för i Wix V3 speglar `choice.name` den låsta `choice.key`:en,
-så värden kan inte döpas om i efterhand. Fyra lager (`lib/import/variant-ai-translate.ts`):
+så värden kan inte döpas om i efterhand. Fem lager (`lib/import/variant-ai-translate.ts`);
+färg-grinden (5) körs sedan 2026-08-09 i BÅDA lägena — även hård-$0/sync-läget
+(`colorGateFlags` i pipeline-else-grenen), eftersom den är deterministisk och gratis:
 
 1. **Statisk tabell** (`variant-translations.ts`, $0): golden-testad, auktoritativ.
 2. **AI-fallback** (Haiku, default PÅ): bara för värden tabellen missar, **ett**
@@ -45,6 +47,14 @@ så värden kan inte döpas om i efterhand. Fyra lager (`lib/import/variant-ai-t
    exotiska AE-former). Cachat verdikt per slutvärde (30 d TTL, ≈$0), fail-open
    (transient fel cachas ALDRIG som "ok"), flaggade värden → samma poleringskö +
    kö-badge som listar dem ordagrant.
+5. **Färg-grinden** (deterministisk, $0, `nonColorValuesOnColorAxis` i
+   `color-match.ts`): svenskhets-grinden godkänner varje äkta svenskt ord — även
+   när betydelsen är fel. En röd bil skeppades som färgen **"Nät"** (2026-08-08);
+   ordet är invändningsfri svenska och passerade. Oöversatt spanska utan engelska
+   tokens ("Naranja") blir dessutom aldrig AI-kandidat. Grinden tittar därför på de
+   SLUTGILTIGA värdena per axel: på en axel vars värden i majoritet är färger
+   (`isColorAxis`) flaggas det som varken är färg eller yta. Konservativ — rör inte
+   axlar där AE lagt storlekar under "Color", och släpper språkneutrala mått/koder.
 
 Switchen är **`VARIANT_AI_TRANSLATION_ENABLED`** (default `true`), FRIKOPPLAD från
 `AI_ENRICHMENT_ENABLED` — variantöversättningen kör alltså även i rå-läget (billig +
@@ -72,5 +82,21 @@ trots env=true. Flaggan är default men inte hård (`aiEnrichmentEnabled()`).
 När AI är av: `runSeo/runImageAnalysis/runCategory/batched` blir alla `false`,
 `importProduct` returnerar `needsAiPolish:true`, och `lib/bulk-import/worker.ts`
 tvingar realtidsvägen (ingen Batch API-pre-generering som annars kostar).
+
+## Dubblett-spärr vid import
+
+**Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
+med `supplierProductId` som nyckel:
+
+- Bulk/CSV: `lib/bulk-import/worker.ts → scrapeAndDedupe` — hoppar över raden.
+- Extension: `app/api/import/route.ts` — svarar **409** med den befintliga
+  produktens `wixProductId`. Skicka `allowDuplicate: true` för att medvetet
+  importera ändå (t.ex. när produkten raderats men mappningsraden blivit kvar).
+
+Båda är **fail-open**: ett trasigt mappnings-uppslag blockerar aldrig en i övrigt
+giltig import. `/api/check-duplicate` (pHash + titel, `lib/import/duplicate-check.ts`)
+finns kvar som en *rådgivande* varning i tillägget och fångar dessutom det spärren
+inte kan se: samma fysiska produkt såld under en **annan** listning. Den varningen
+går att klicka förbi — så den ersätter inte spärren, den kompletterar den.
 
 Övriga LLM-/kostnads-env-variabler dokumenteras i **`LLM-CONFIG.md`**.

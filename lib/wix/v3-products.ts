@@ -341,12 +341,21 @@ export async function bulkUpdateV3ProductDescriptions(
   return { successes, failures, firstErrors };
 }
 
-/** Hämtar fullständig variant-data för en produkt (för positionsmappning). */
+/** Hämtar fullständig variant-data för en produkt (för variantmappning).
+ *
+ *  fields=VARIANT_OPTION_CHOICE_NAMES är OBLIGATORISK (destillatorn 2026-08-09):
+ *  utan den utelämnar V3-GET `optionChoiceNames` ur varianternas choices →
+ *  parsern gav tomma {} → mappningsverktygets värdematchning hade inget att
+ *  matcha på och föll tillbaka positionellt, och mappningen sparades utan
+ *  choices (vilket även gör synkens signatur-självläkning blind). */
 export async function getV3ProductVariants(productId: string): Promise<WixV3Variant[]> {
-  const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
-    method: "GET",
-    headers: headers(),
-  });
+  const res = await fetch(
+    `${WIX_BASE}/stores/v3/products/${productId}?fields=VARIANT_OPTION_CHOICE_NAMES`,
+    {
+      method: "GET",
+      headers: headers(),
+    },
+  );
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`V3 get product ${productId} (${res.status}): ${text.slice(0, 300)}`);

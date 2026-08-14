@@ -19,7 +19,7 @@ import crypto from "node:crypto";
 import { completeJsonRouted, TEXT_MODEL } from "../claude/client";
 import { getCachedResult, makeCacheKey, setCachedResult } from "../llm/cache";
 import { logVariantTranslation } from "../llm/variant-log";
-import { isColorAxis } from "./color-match";
+import { isColorAxis, nonColorValuesOnColorAxis } from "./color-match";
 import {
   axisNameUnresolved,
   buildTranslatorFromBase,
@@ -83,6 +83,38 @@ export interface AiTranslatorResult {
  * flags.translateVariants vinner över env. Default PÅ; env
  * VARIANT_AI_TRANSLATION_ENABLED=false stänger av.
  */
+/**
+ * FÄRG-GRINDEN fristående (deterministisk, $0): kontrollerar de SLUTGILTIGA
+ * värdena per axel — på en axel vars värden i majoritet är färger flaggas det
+ * som varken är färg eller yta. Delas av AI-vägen (steg 8) och sync-läget i
+ * pipeline: grinden är gratis och får aldrig bero på att AI-läget är på
+ * (audit 2026-08-09: hård-$0-läget skeppade annars exakt de fel-betydelse-
+ * färger grinden byggdes för — "Nät" på en röd bil — oflaggade). `trusted`
+ * (manuella namn, LAGER 0) undantas: Leonard skrev dem med flit.
+ */
+export function colorGateFlags(
+  variants: ReadonlyArray<{ options: Record<string, string> }>,
+  translator: VariantTranslator,
+  trusted: ReadonlySet<string>,
+): string[] {
+  const byAxis = new Map<string, Set<string>>();
+  for (const v of variants) {
+    for (const [axis, val] of Object.entries(translator.options(v.options ?? {}))) {
+      let set = byAxis.get(axis);
+      if (!set) {
+        set = new Set<string>();
+        byAxis.set(axis, set);
+      }
+      set.add(val);
+    }
+  }
+  const flagged: string[] = [];
+  for (const vals of byAxis.values()) {
+    flagged.push(...nonColorValuesOnColorAxis([...vals]).filter((x) => !trusted.has(x.trim())));
+  }
+  return flagged;
+}
+
 export function variantAiTranslationEnabled(flags?: FeatureFlags): boolean {
   if (typeof flags?.translateVariants === "boolean") return flags.translateVariants;
   return (process.env.VARIANT_AI_TRANSLATION_ENABLED ?? "true").toLowerCase() !== "false";
@@ -101,16 +133,32 @@ export async function buildVariantTranslatorAI(
     translateBatch?: TranslateBatchFn;
     nameAxes?: NameAxesFn;
     verifySwedish?: VerifySwedishFn;
+    /** LAGER 0 — manuella variantnamn från importverktyget (rått värde → namn).
+     *  Vinner över tabell, cache OCH AI; värdet skickas aldrig till Haiku (ingen
+     *  kostnad), flaggas aldrig som olöst och betros av svenskhets-grinden —
+     *  Leonard skrev det med flit. Kollisions-säkerheten gäller fortfarande
+     *  (två råvärden → samma namn särskiljs som vanligt). */
+    valueOverrides?: ReadonlyMap<string, string>;
+    /** LAGER 0 för AXELNAMN (rå axel → Leonards namn): vinner över tabell,
+     *  färg-omklassning och AI-namngivning; axeln skickas aldrig till
+     *  axel-AI:n och betros av grinden. */
+    axisNameOverrides?: ReadonlyMap<string, string>;
   },
 ): Promise<AiTranslatorResult> {
   const translateBatch = opts?.translateBatch ?? aiTranslateBatch;
+  const manual = opts?.valueOverrides;
+  const manualAxis = opts?.axisNameOverrides;
 
   // 1. Unika råvärden över alla axlar.
   const rawValues = new Set<string>();
   for (const v of variants) for (const val of Object.values(v.options ?? {})) rawValues.add(val);
 
   // 2. Kandidater = värden med kvarvarande engelska efter statisk översättning.
-  const candidates = [...rawValues].filter((r) => residualEnglishTokens(r).length > 0);
+  //    Manuellt namngivna värden är redan LÖSTA → aldrig AI-kandidater (och kan
+  //    därmed aldrig hamna i unresolved/halfTranslated nedan).
+  const candidates = [...rawValues].filter(
+    (r) => !manual?.has(r) && residualEnglishTokens(r).length > 0,
+  );
 
   // 3. Per-värde-cache: samla träffar, lista missar. SJÄLVLÄKNING: en cachad
   //    eko-post utan siffror som fortfarande är (halv-)engelsk är FÖRGIFTAD
@@ -209,6 +257,7 @@ export async function buildVariantTranslatorAI(
   };
   const suspectAxes: { axis: string; values: string[] }[] = [];
   for (const [axis, vals] of valuesByAxis) {
+    if (manualAxis?.has(axis)) continue; // manuellt döpt → aldrig axel-AI, aldrig flagga
     const current = translateAxisName(axis);
     const colorish = current === "Färg";
     const englishName = axisNameUnresolved(axis, current); // tabell-miss, kvar engelska
@@ -249,6 +298,10 @@ export async function buildVariantTranslatorAI(
   // råvärde har en strippbar kod → äkta AI-översättningar (svar ≠ råvärde, t.ex.
   // "Bakhjul") behålls oförändrat.
   const baseValue = (raw: string) => {
+    // LAGER 0: manuellt namn vinner över allt — returneras ORDAGRANT (ingen
+    // enhetsnormalisering/tabell; Leonards text är facit och key-låses i Wix).
+    const named = manual?.get(raw);
+    if (named !== undefined) return named;
     const ai = aiMap.get(raw);
     if (ai !== undefined && ai.trim() === raw.trim() && stripLeadingSupplierCode(raw) !== raw) {
       return translateValue(raw);
@@ -261,7 +314,13 @@ export async function buildVariantTranslatorAI(
     // nästa import utan cache-bump eller nytt AI-anrop.
     return ai !== undefined ? normalizeUnits(ai) : translateValue(raw);
   };
-  const translator = buildTranslatorFromBase(variants, baseValue, translateAxisName, axisOverrides);
+  const translator = buildTranslatorFromBase(
+    variants,
+    baseValue,
+    translateAxisName,
+    axisOverrides,
+    manualAxis,
+  );
 
   // 6. Olösta = (halv-)engelska värden + felmärkta färg-axlar AI inte kunde namnge
   //    + axlar vars SLUTNAMN ändå förblev rå engelska (unresolvedAxisNames →
@@ -300,7 +359,17 @@ export async function buildVariantTranslatorAI(
   for (const name of translator.axisNames.values()) finals.add(name);
   // Bara strängar med något 3+-bokstavsord kan språkbedömas — mått/koder/siffror
   // ("3,6 x 3,6 m", "KM-6631", "5XL") är språkneutrala och skickas aldrig.
-  const verifiable = [...finals].filter((f) => /[A-Za-zÅÄÖåäö]{3,}/.test(f));
+  // Manuellt satta namn BETROS ordagrant (skickas inte till grinden): Leonard
+  // kan medvetet vilja behålla t.ex. ett engelskt modellnamn, och grinden får
+  // inte lägga hans avsiktliga val i poleringskön. OBS: ett kollisions-
+  // särskilt slutvärde ("Namn (råvärde)") matchar inte här och granskas som
+  // vanligt — suffixformen är aldrig kund-klar.
+  const trustedManual = new Set(
+    [...(manual?.values() ?? []), ...(manualAxis?.values() ?? [])].map((s) => s.trim()),
+  );
+  const verifiable = [...finals].filter(
+    (f) => !trustedManual.has(f.trim()) && /[A-Za-zÅÄÖåäö]{3,}/.test(f),
+  );
   const gateFlagged: string[] = [];
   const verifyMisses: string[] = [];
   for (const f of verifiable) {
@@ -328,6 +397,16 @@ export async function buildVariantTranslatorAI(
     }
   }
 
+  // 8. FÄRG-GRIND (deterministisk, $0): den språkliga grinden i steg 7 godkänner
+  //    varje äkta svenskt ord — även när betydelsen är fel. "Nät" som färg på en
+  //    röd bil (2026-08-08) är invändningsfri svenska och passerade därför, precis
+  //    som oöversatt "Naranja" aldrig ens blev AI-kandidat (inga engelska tokens).
+  //    Kontrollera därför de SLUTGILTIGA värdena per axel: på en axel vars värden
+  //    i majoritet är färger flaggas det som varken är färg eller yta. Manuellt
+  //    namngivna värden (LAGER 0) undantas på samma grund som i steg 7 — Leonard
+  //    skrev dem med flit och de ska aldrig hamna i kön.
+  const colorFlagged = colorGateFlags(variants, translator, trustedManual);
+
   const unresolved = [
     ...new Set(
       candidates
@@ -335,7 +414,8 @@ export async function buildVariantTranslatorAI(
         .concat(halfTranslated)
         .concat(unresolvedAxes)
         .concat(unresolvedAxisNames(translator))
-        .concat(gateFlagged),
+        .concat(gateFlagged)
+        .concat(colorFlagged),
     ),
   ];
   return { translator, unresolved };

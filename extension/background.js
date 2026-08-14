@@ -88,6 +88,20 @@ async function importProduct(product, featureFlags) {
     ...(product.pricingOverride && typeof product.pricingOverride.multiplier === "number"
       ? { pricingOverride: product.pricingOverride }
       : {}),
+    // Manuella variantnamn { rått värde → Leonards namn } från popupens
+    // "✏️ Variantnamn"-sektion (eller agent-lägets variantNames). Vinner över
+    // hela översättningskedjan server-side; namnet key-låses i Wix vid skapandet.
+    ...(product.variantNameOverrides && Object.keys(product.variantNameOverrides).length
+      ? { variantNameOverrides: product.variantNameOverrides }
+      : {}),
+    // Manuella AXELNAMN ({ "Color": "Kulör" }) — samma lager 0 server-side.
+    ...(product.axisNameOverrides && Object.keys(product.axisNameOverrides).length
+      ? { axisNameOverrides: product.axisNameOverrides }
+      : {}),
+    // Medveten dubblett-kringgång (popupens "Importera ändå" / agentens force):
+    // låter serverns hårda supplierProductId-spärr (PR #369) kliva åt sidan.
+    // Skickas BARA vid uttryckligt val; server utan spärren ignorerar fältet.
+    ...(product.allowDuplicate === true ? { allowDuplicate: true } : {}),
     // Skrapade AliExpress-recensioner (social proof). Översätts server-side via
     // DeepL (GRATIS) och sparas i FyndplatsImportedReviews. Skickas bara när
     // skrapan faktiskt hittade recensioner (annars utelämnas fältet helt).
@@ -584,6 +598,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
               }
             } catch (_) { /* rådgivande grind — fortsätt vid kontrollfel */ }
           }
+          // force = agentens medvetna dubblett-kringgång: hoppar över grinden
+          // ovan OCH flaggar payloaden så serverns hårda spärr (PR #369) också
+          // släpper igenom. Utan force skickas ingen flagga.
+          if (msg.force === true) product.allowDuplicate = true;
           sendResponse(await importProduct(product, msg.featureFlags));
         } catch (err) {
           sendResponse({ ok: false, error: String(err) });

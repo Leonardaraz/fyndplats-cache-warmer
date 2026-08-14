@@ -3,32 +3,77 @@
 // Listar alla Wix V3-produkter på headless-sajten som inte har en
 // AliExpress-mappning i FyndplatsMappings-collectionen. För varje produkt
 // kan operatorn (a) söka AliExpress på text och välja en träff, eller
-// (b) klistra in AliExpress-URL/ID direkt. Mappning sparas med positionell
-// variantparning.
+// (b) klistra in AliExpress-URL/ID direkt. Varianter paras på VÄRDESIGNATUR
+// (pairVariantMappings — positionellt bara som reserv, högljutt räknad).
+// "Laga trasiga variant-id"-knappen kör synkens självläkning på begäran.
 
 import { listAllV3Products, type WixV3ProductSummary } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
+import { getSyncStore, type SyncStateEntry } from "@/lib/sync/sync-log";
+import { isSyntheticMappingId } from "@/lib/sync/mapping-repair";
 import { MappingsList, type MappedProduct } from "./mappings-list";
 
 export const dynamic = "force-dynamic";
+// Laga-knappens server action gör upp till ~20 AliExpress-uppslag per batch.
+export const maxDuration = 120;
+
+/**
+ * Produkter som TAPPAT SYNK (Leonards fråga 2026-08-09): synken kan inte längre
+ * uppdatera pris/lager från AliExpress. Klassar ett problemläge till en
+ * människoläsbar orsak + åtgärd. OOS ("slut hos leverantör") räknas INTE hit —
+ * de synkas ju fortfarande, lagret är bara 0.
+ */
+function syncIssueLabel(s: SyncStateEntry): string | null {
+  if (s.hiddenBySync) {
+    return "Dold av synken — AliExpress-listningen är borttagen. Byt källa (Ändra mappning) eller låt den vara dold.";
+  }
+  if (s.listingStatus === "removed") {
+    return "AliExpress-listningen borttagen — pris/lager kan inte synkas. Byt källa (Ändra mappning).";
+  }
+  if ((s.errorStreak ?? 0) >= 3) {
+    return `${s.errorStreak} synkfel i rad — pris/lager uppdateras inte. Kontrollera AliExpress-källan.`;
+  }
+  return null;
+}
+
+/** Slut hos leverantören (synken fungerar — saldot är bara 0). Egen gul kategori
+ *  bredvid röda "Tappat synk" så båda lägena syns där mappningarna åtgärdas. */
+function oosLabel(s: SyncStateEntry): string | null {
+  if (s.listingStatus !== "out_of_stock") return null;
+  const since = s.outOfStockSince
+    ? ` sedan ${new Date(s.outOfStockSince).toLocaleDateString("sv-SE", { day: "numeric", month: "short" })}`
+    : "";
+  return `Slut hos leverantören${since} — lagret nollat i butiken. Byt källa eller invänta påfyllning.`;
+}
 
 export default async function MappingsAdminPage() {
   let allProducts: WixV3ProductSummary[];
-  let mappingByProductId: Map<string, { supplierProductId: string; variantCount: number }>;
+  let mappingByProductId: Map<string, { supplierProductId: string; variantCount: number; broken: boolean }>;
   let totalMappingRows = 0;
   let loadError: string | null = null;
+  // wixProductId → orsakstext för produkter som tappat synk. Best-effort:
+  // hämtningen får aldrig fälla sidan (mappningsverktyget funkar utan).
+  let problemStates: SyncStateEntry[] = [];
 
   try {
-    const [products, mappings] = await Promise.all([
+    const [products, mappings, problems] = await Promise.all([
       listAllV3Products(),
       getStore().listMappings(),
+      getSyncStore().listProblemStates().catch(() => [] as SyncStateEntry[]),
     ]);
     allProducts = products;
     totalMappingRows = mappings.length;
+    problemStates = problems;
     mappingByProductId = new Map(
       mappings.map((m) => [
         m.wixProductId,
-        { supplierProductId: m.supplierProductId, variantCount: m.variants?.length ?? 0 },
+        {
+          supplierProductId: m.supplierProductId,
+          variantCount: m.variants?.length ?? 0,
+          // Trasig = minst ett syntetiskt variant-id (dom-/idx-/default/tomt) →
+          // kan varken auto-beställas eller lagermatchas per variant.
+          broken: (m.variants ?? []).some((v) => isSyntheticMappingId(v.supplierVariantId)),
+        },
       ]),
     );
   } catch (err) {
@@ -47,6 +92,24 @@ export default async function MappingsAdminPage() {
     .map((p) => ({ ...p, mapping: mappingByProductId.get(p.id)! }));
   const mappedLive = mapped.length;
   const orphanCount = totalMappingRows - mappedLive;
+
+  // Tappat synk-orsak per LIVE-produkt (spökrader för raderade produkter
+  // filtreras bort automatiskt eftersom nyckeln bara sätts för listade id:n).
+  const liveIds = new Set(allProducts.map((p) => p.id));
+  const syncIssues: Record<string, string> = {};
+  const oosIssues: Record<string, string> = {};
+  for (const s of problemStates) {
+    if (!liveIds.has(s.wixProductId)) continue;
+    const issue = syncIssueLabel(s);
+    if (issue) syncIssues[s.wixProductId] = issue;
+    const oos = oosLabel(s);
+    if (oos && !issue) oosIssues[s.wixProductId] = oos;
+  }
+  const issueCount = Object.keys(syncIssues).length;
+  const oosCount = Object.keys(oosIssues).length;
+  // Live-produkter vars mappning bär trasiga (syntetiska) variant-id — driver
+  // "Laga trasiga variant-id"-knappen i listan.
+  const brokenIds = mapped.filter((p) => p.mapping.broken).map((p) => p.id);
 
   return (
     <main style={{ maxWidth: 920, margin: "20px auto", padding: "0 16px" }}>
@@ -84,6 +147,18 @@ export default async function MappingsAdminPage() {
           color={unmapped.length > 0 ? "#F47A35" : "#070"}
           hint="Produkter utan AliExpress-källa. Auto-pipelinen är AV för dessa tills de mappas."
         />
+        <Stat
+          label="Tappat synk"
+          value={issueCount}
+          color={issueCount > 0 ? "#c00" : "#070"}
+          hint="Mappade produkter vars synk inte fungerar: AliExpress-listningen borttagen (ev. redan dold av synken) eller minst 3 synkfel i rad. Filtrera fram dem under Mappade-fliken."
+        />
+        <Stat
+          label="Slut hos leverantör"
+          value={oosCount}
+          color={oosCount > 0 ? "#d97706" : "#070"}
+          hint="Synken fungerar men leverantörens saldo är 0 — lagret är nollat i butiken. Filtrera fram dem under Mappade-fliken."
+        />
         {orphanCount > 0 ? (
           <Stat
             label="Orphan-mappningar"
@@ -100,7 +175,13 @@ export default async function MappingsAdminPage() {
           : ""}
       </p>
 
-      <MappingsList unmapped={unmapped} mapped={mapped} />
+      <MappingsList
+        unmapped={unmapped}
+        mapped={mapped}
+        syncIssues={syncIssues}
+        oosIssues={oosIssues}
+        brokenIds={brokenIds}
+      />
     </main>
   );
 }

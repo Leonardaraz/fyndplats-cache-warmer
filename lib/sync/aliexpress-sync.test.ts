@@ -1,6 +1,7 @@
 import { buildStockBySupplierId, isUnsaleableError } from "./aliexpress-sync";
 import { describe, expect, it } from "vitest";
 import {
+  scopeMappings,
   ERROR_STRIKES_AS_REMOVED,
   classifyFetchError,
   decideSyncOutcome,
@@ -46,15 +47,17 @@ describe("decideSyncOutcome", () => {
     expect(out.shouldHide).toBe(false);
   });
 
-  it("döljer produkten när listningen är borttagen", () => {
+  it("nollar lagret men BEHÅLLER sidan publicerad när listningen är borttagen", () => {
+    // SEO: att avpublicera gör URL:en till en 404 och kastar bort rankingen.
     const out = decideSyncOutcome(
       baseInputs({
         aliExpress: { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true },
       }),
     );
     expect(out.listingStatus).toBe("removed");
-    expect(out.actionTaken).toBe("hidden");
-    expect(out.shouldHide).toBe(true);
+    expect(out.actionTaken).toBe("marked_oos");
+    expect(out.shouldHide).toBe(false);
+    expect(out.inventoryTarget).toBe(0);
   });
 
   it("markerar oos (men döljer inte) vid totalStock=0", () => {
@@ -243,7 +246,10 @@ describe("decideSyncOutcome", () => {
     expect(out.alert?.alertType).toBe("price_increase");
   });
 
-  it("föreslår restore när tidigare status var removed men nu är aktiv (och Wix-produkten är visible)", () => {
+  it("removed→aktiv på SYNLIG produkt → ingen restore-skrivning, bara logg-not (#369-policyn)", () => {
+    // Produkten doldes aldrig (aldrig-dölj sedan #369) → inget att återställa.
+    // Legacy-fallet (synken hann dölja före policybytet) täcks av
+    // hiddenBySync-testerna längre ner.
     const out = decideSyncOutcome(
       baseInputs({
         prevState: {
@@ -260,7 +266,8 @@ describe("decideSyncOutcome", () => {
         wixVisible: true,
       }),
     );
-    expect(out.shouldRestore).toBe(true);
+    expect(out.shouldRestore).toBe(false);
+    expect(out.notes).toContain("tillbaka");
   });
 
   it("rör INTE Wix-visibility vid restore om produkten manuellt dolts", () => {
@@ -369,13 +376,15 @@ describe("decideSyncOutcome", () => {
 describe("decideSyncOutcome — strike-guard mot transient borttagning (E#5)", () => {
   const removed = { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true };
 
-  it("döljer DIREKT när removedStreak saknas (bakåtkompatibelt)", () => {
+  it("bekräftar DIREKT när removedStreak saknas (bakåtkompatibelt)", () => {
     const out = decideSyncOutcome(baseInputs({ aliExpress: removed }));
-    expect(out.shouldHide).toBe(true);
+    expect(out.shouldHide).toBe(false);
+    expect(out.actionTaken).toBe("marked_oos");
+    expect(out.inventoryTarget).toBe(0);
     expect(out.listingStatus).toBe("removed");
   });
 
-  it("döljer INTE vid strike 1 — väntar på bekräftelse", () => {
+  it("rör inget vid strike 1 — väntar på bekräftelse", () => {
     const out = decideSyncOutcome(baseInputs({ aliExpress: removed, removedStreak: 1 }));
     expect(out.shouldHide).toBe(false);
     expect(out.actionTaken).toBe("none");
@@ -383,9 +392,10 @@ describe("decideSyncOutcome — strike-guard mot transient borttagning (E#5)", (
     expect(out.listingStatus).toBe("active"); // prevState null → fallback, inte "removed"
   });
 
-  it("döljer vid strike 2 (REMOVED_STRIKES_REQUIRED)", () => {
+  it("nollar lagret vid strike 2 (REMOVED_STRIKES_REQUIRED) — men döljer aldrig", () => {
     const out = decideSyncOutcome(baseInputs({ aliExpress: removed, removedStreak: 2 }));
-    expect(out.shouldHide).toBe(true);
+    expect(out.shouldHide).toBe(false);
+    expect(out.inventoryTarget).toBe(0);
     expect(out.listingStatus).toBe("removed");
   });
 
@@ -546,8 +556,45 @@ describe("shouldRestore — synkens egen döljning kan ångras (audit-fynd 2)", 
     expect(d2.shouldRestore).toBe(false);
   });
 
-  it("synlig produkt med prev=removed → restore som förut", () => {
+  it("SYNLIG produkt med prev=removed → INGEN restore (aldrig-dölj-policyn #369)", () => {
+    // Under #369 förblir produkten synlig när listningen försvinner — en
+    // removed→active-övergång på en synlig produkt behöver ingen visibility-
+    // skrivning. Utan detta gav varje comeback en spök-restore i loggen
+    // (audit 2026-08-09). Comebacken noteras i decision.notes i stället.
     const d = decideSyncOutcome({ ...base, prevState: prevRemoved, wixVisible: true });
-    expect(d.shouldRestore).toBe(true);
+    expect(d.shouldRestore).toBe(false);
+    expect(d.notes).toContain("tillbaka");
+  });
+});
+
+describe("scopeMappings — enproduktskörning från 'Ändra mappning'", () => {
+  const all = [
+    { wixProductId: "a", supplierProductId: "1" },
+    { wixProductId: "b", supplierProductId: "2" },
+    { wixProductId: "c", supplierProductId: "3" },
+  ];
+
+  it("utan onlyIds körs HELA katalogen (cronens väg får aldrig scopas bort)", () => {
+    expect(scopeMappings(all, undefined)).toHaveLength(3);
+    expect(scopeMappings(all, undefined)).toBe(all);
+  });
+
+  it("med onlyIds körs exakt de mappningarna", () => {
+    const out = scopeMappings(all, new Set(["b"]));
+    expect(out).toHaveLength(1);
+    expect(out[0].wixProductId).toBe("b");
+  });
+
+  it("rör inte övriga produkter — ett källbyte ska bara påverka sin egen rad", () => {
+    const out = scopeMappings(all, new Set(["c"]));
+    expect(out.map((m) => m.wixProductId)).toEqual(["c"]);
+  });
+
+  it("okänt id ger tom körning (fel hos anroparen — loggas högljutt, inte tyst)", () => {
+    expect(scopeMappings(all, new Set(["finns-inte"]))).toHaveLength(0);
+  });
+
+  it("tom mängd betyder ingenting, inte allt", () => {
+    expect(scopeMappings(all, new Set())).toHaveLength(0);
   });
 });

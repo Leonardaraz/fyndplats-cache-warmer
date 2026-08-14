@@ -84,3 +84,86 @@ export function isColorAxis(values: ReadonlyArray<string>): boolean {
   const colored = vals.filter((v) => colorBasesIn(v).length > 0).length;
   return colored >= Math.ceil(vals.length / 2);
 }
+
+/**
+ * Ytor/material som är giltiga svar på "vilken färg?" utan att bära ett färgord
+ * ("Ekdekor", "Naturligt trä", "Krom"). Matchas som helt ord ELLER ordprefix så
+ * att sammansättningar täcks — avsiktligt tillåtande: en miss här ger bara en
+ * utebliven flagga, medan en falsk träff skickar en korrekt produkt till kön.
+ */
+const FINISH_WORDS = [
+  "trä",
+  "ek",
+  "valnöt",
+  "furu",
+  "bambu",
+  "rotting",
+  "natur",
+  "krom",
+  "stål",
+  "metall",
+  "marmor",
+  "betong",
+  "läder",
+  "antracit",
+  "koppar",
+  "mässing",
+  "transparent",
+  "genomskinlig",
+  "flerfärg",
+  "regnbåge",
+  "kamouflage",
+];
+
+/**
+ * Värden på en färgaxel som varken beskriver en färg eller en yta.
+ *
+ * Kompletterar den språkliga grinden i variant-ai-translate: den frågar Haiku
+ * "är detta naturlig svenska?" och kan därför per konstruktion inte fånga ett
+ * värde som ÄR svenska men betyder fel — "Nät" på en röd bil (2026-08-08) är
+ * invändningsfri svenska. Den missar också oöversatt spanska som saknar engelska
+ * tokens och därför aldrig blir AI-kandidat ("Naranja"). Den här grinden är
+ * deterministisk ($0) och fångar båda som "udda värdet ut".
+ *
+ * Konservativ i samma anda som inferMislabeledColorAxis: kräver att axeln
+ * FAKTISKT är en färgaxel (isColorAxis → majoriteten av värdena bär ett färgord)
+ * innan ett avvikande värde flaggas. Annars skulle en axel där AE lagt storlekar
+ * under "Color" flagga varenda värde. Språkneutrala värden (mått, modellkoder)
+ * passerar — de bedöms inte språkligt någon annanstans heller.
+ *
+ * Returnerar värdena att flagga för polering; flaggar aldrig hela axeln och
+ * fäller aldrig importen.
+ */
+/**
+ * Bär värdet ett färgord som SUFFIX i en sammansättning? Svenska färgkompositer
+ * är huvud-finala — "Himmelsblå", "Ljusrosa", "Turkosgrön", "Mörkgrön" — och
+ * golden-tabellen producerar många sådana som INTE finns som egna baser i
+ * COLOR_FORMS. Utan suffix-igenkänningen flaggade grinden tabellens egna
+ * korrekta översättningar som icke-färger → poleringskön svämmade över med
+ * felfria produkter (audit 2026-08-09). Bara för grinden: bild-matchningen
+ * (matchesColorName) ska fortsatt kräva exakt form ("Blå" ≠ "marinblå").
+ */
+function bearsColorSuffix(value: string): boolean {
+  for (const t of words(value)) {
+    for (const forms of Object.values(COLOR_FORMS)) {
+      if (forms.some((f) => f.length >= 3 && t.length > f.length && t.endsWith(f))) return true;
+    }
+  }
+  return false;
+}
+
+export function nonColorValuesOnColorAxis(values: ReadonlyArray<string>): string[] {
+  const vals = values.map((v) => v.trim()).filter(Boolean);
+  // Majoriteten räknas med EXAKTA former (isColorAxis, oförändrad — suffix-
+  // breddning här gjorde halvfärgade axlar som "Effekt: Glöd/Polarsvart" till
+  // färgaxlar och skapade nya falska flaggor). Suffix-igenkänningen används
+  // enbart på VÄRDE-sidan nedan: på en redan igenkänd färgaxel ska tabellens
+  // kompositer ("Ljusrosa") aldrig flaggas. Konservativt åt båda håll.
+  if (!isColorAxis(vals)) return [];
+  return vals.filter((v) => {
+    if (colorBasesIn(v).length > 0 || bearsColorSuffix(v)) return false;
+    if (!/[A-Za-zÅÄÖåäö]{3,}/.test(v)) return false;
+    const tokens = [...words(v)];
+    return !FINISH_WORDS.some((f) => tokens.some((t) => t === f || t.startsWith(f)));
+  });
+}

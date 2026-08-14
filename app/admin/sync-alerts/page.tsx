@@ -349,7 +349,7 @@ function StateBadge({ state }: { state: SyncStateEntry }) {
     return <Badge color="#d97706">Slut i lager{since}</Badge>;
   }
   if ((state.errorStreak ?? 0) > 0) {
-    return <Badge color="#dc2626">⚠ {state.errorStreak} raka fel (5 ⇒ döljs)</Badge>;
+    return <Badge color="#dc2626">⚠ {state.errorStreak} raka fel (5 ⇒ behandlas som borttagen, lagret nollas)</Badge>;
   }
   return <Badge color="#94a3b8">{state.listingStatus}</Badge>;
 }

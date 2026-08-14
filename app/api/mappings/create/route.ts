@@ -1,7 +1,9 @@
 // POST /api/mappings/create
 //
 // Skapar en AliExpress↔Wix produktmappning för en redan importerad Wix-produkt.
-// Matchar varianter POSITIONELLT (Wix-variant[0] ↔ AE-variant[0]).
+// Varianter paras på VÄRDESIGNATUR (delad hjälpare med admin-verktyget —
+// destillatorn 2026-08-09); positionell parning bara som reserv för omatchade
+// rader, räknad i svaret.
 //
 // Body: { wixProductId, aliexpressInput } där aliexpressInput är antingen
 // en URL eller ett rent productId.
@@ -12,7 +14,7 @@ import { getV3ProductVariants } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
 import { isAuthorized } from "@/lib/auth";
 import { pricingConfigFromEnv } from "@/lib/config";
-import { computePrice } from "@/lib/import/pricing";
+import { pairVariantMappings } from "@/lib/import/pair-variant-mappings";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -61,25 +63,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Positionell mappning. Om antalet skiljer sig flaggar vi men sparar ändå
-  // det överlappande sortimentet.
   const aeVariants = aeProduct.variants;
-  const pairCount = Math.min(wixVariants.length, aeVariants.length);
   const pricing = pricingConfigFromEnv();
-  const variantMappings = Array.from({ length: pairCount }, (_, i) => {
-    const wv = wixVariants[i];
-    const av = aeVariants[i];
-    const breakdown = computePrice(av.price, pricing);
-    return {
-      supplierVariantId: av.skuId,
-      sku: wv.sku || `${supplierProductId}-${i}`,
-      wixVariantId: wv.id,
-      choices: wv.choices,
-      costUsd: av.price,
-      landedCostSek: breakdown.costSek,
-      grossSek: breakdown.grossSek,
-    };
-  });
+  const { variants: variantMappings, matched, positional } = pairVariantMappings(
+    wixVariants,
+    aeVariants,
+    pricing,
+    supplierProductId,
+  );
 
   const store = getStore();
   try {
@@ -101,15 +92,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const warnings: string[] = [];
+  if (positional > 0) {
+    warnings.push(`${positional} variant(er) parades positionellt (ingen värdematch) — KONTROLLERA.`);
+  }
+  if (wixVariants.length !== aeVariants.length) {
+    warnings.push(`Variant-antal skiljer sig (Wix: ${wixVariants.length}, AE: ${aeVariants.length}). Bara ${variantMappings.length} mappades.`);
+  }
   return NextResponse.json({
     ok: true,
     wixProductId,
     supplierProductId,
     mappedVariants: variantMappings.length,
+    valueMatched: matched,
+    positional,
     wixVariantCount: wixVariants.length,
     aliexpressVariantCount: aeVariants.length,
-    warning: wixVariants.length !== aeVariants.length
-      ? `Variant-antal skiljer sig (Wix: ${wixVariants.length}, AE: ${aeVariants.length}). Bara ${pairCount} mappades.`
-      : undefined,
+    warning: warnings.length ? warnings.join(" ") : undefined,
   });
 }
