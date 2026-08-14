@@ -124,6 +124,15 @@ GET https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}?fields=DESCRIPTION&f
 
 Spara: `revision`, nuvarande `name`, `slug`, `seoData`, **`visible`**, samt **hela `media`** (du behöver `media.main` + alla `media.itemsInfo.items` med deras `id`, `uploadId`, `image` till Steg 3).
 
+> ⚠️ **Katalogsvep bränner Wix-kvoten — sidbrytningen är den dolda kostnaden.** Ett `ExecuteWixAPI`-anrop som bläddrar igenom hela katalogen (777 produkter, 100 per sida) är **åtta** REST-anrop, inte ett. Två–tre sådana svep i följd ger `Rate limit exceeded` i ungefär en kvart. Svep **en gång**, spara träffarna, och hämta sedan bara de produkter du ska röra med ett id-filter i **ett** anrop:
+>
+> ```js
+> body = { query: { filter: { id: { $in: [ ...ids ] } }, cursorPaging: { limit: 100 } },
+>          fields: ["PLAIN_DESCRIPTION"] }
+> ```
+>
+> Samma sak gäller `/products/search`. Planera svepet så att det returnerar allt du behöver första gången — id, revision OCH textutdraget — annars får du betala hela sidbrytningen igen för att hämta det du glömde.
+
 -----
 
 ## Steg 1b – Titta på ALLA bilder FÖRST (innan du skriver något)
@@ -230,11 +239,56 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "<html…>" } }`.
 
-- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → **Det du bör veta innan du köper** (samma inline-form) → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` (valfritt) → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
+- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → *(vid behov: en kort passar-det-dig-rad, se nedan)* → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` (valfritt) → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
 
-> 🎯 **"Det du bör veta innan du köper" är obligatoriskt och är sidans mest värdefulla block.** Här skriver du ut det du fångade i Steg 1b/1c som leverantören tiger om eller har fel om — 3–5 punkter, fet ingress + en mening som förklarar konsekvensen för kunden. Det bygger förtroende och kapar returer, och det är den enda platsen felet får stå. Verkliga exempel: *"6K 12 MP" är tre 4-megapixelsensorer* · *4G-modemet saknar band 20/28 — det som bär svensk landsbygdstäckning* · *alla produktbilder visar UK-kontakt fast varan skickas från Spanien* · *"växthus" är bara duken, stommen ingår inte* · *"wooden" är MDF* · *hastighetsmätaren är dekor* · *hjulet på 13 cm är för litet för någon hamsterart*. Hittar du inget att skriva har du förmodligen inte läst leverantörsdatan mot bilderna — gå tillbaka till Steg 1b.
+> 🛑 **Skriv INTE ett "Det du bör veta innan du köper"-block.** *(Leonards beslut 2026-08-14, ersätter den tidigare regeln som gjorde blocket obligatoriskt.)* Ordagrant: **"Vi ska ju försöka sälja produkter, inte försöka få dom att skita i att köpa."** Ett varningsblock högt upp på sidan läser kunden som en lista över skäl att avstå. De flesta produkter ska inte ha något sådant alls.
 >
-> Skriv **rakt, inte ursäktande**: konstatera avvikelsen och vad den betyder praktiskt. Rätta samtidigt siffran i `<h2>Tekniska specifikationer</h2>` så tabellen aldrig upprepar leverantörens fel.
+> **Fel att ta itu med — men på rätt ställe.** Leverantörens felaktiga påståenden ska fortfarande aldrig gå vidare till kunden. Skillnaden är att du **rättar påståendet** i stycket och i spec-tabellen i stället för att lägga till en brasklapp: skriv *"tre 4-megapixelsensorer"* i texten, inte *"leverantören kallar det 6K men…"*. Är varan bara duken utan stomme → titeln och ingressen säger "reservduk", inte "växthus". Är den MDF → skriv MDF. Ingen varnande sidoruta behövs när själva texten är sann från början.
+>
+> **Undvik särskilt:**
+> - **Att skriva att vi inte vet.** *"Leverantören uppger inte …"* · *"vi har inga uppgifter om …"*. Mot kunden är **vi** leverantören. Vet vi inte — utelämna, eller ta reda på det.
+> - **Att upprepa ett mått som redan står i spec-tabellen** och hänga en tveksamhet på det. Leonards exempel: *"Öppningen till hålan är 15 cm hög. En stor eller kraftig katt kommer inte in bekvämt. Mät din katt om du är osäker."* Måttet finns i tabellen; resten är bara tvivel.
+> - **Att be kunden mäta, väga eller kontrollera** för att avgöra om varan duger.
+>
+> **När en rad ändå är befogad** — och bara då: om varan **inte fungerar alls** utan något kunden måste ha (fabriksmonterad CarPlay, eluttag, batterier, borrmaskin, egen stomme), eller om det finns en **hård gräns som är en del av köpet** (maxlast, måste förankras i vägg). Skriv den då som ett **positivt villkor med egen rubrik** — *"Passar bilar med fabriksmonterad CarPlay"*, *"Batterier: 3 × AA, ingår inte"* — inte som en varning under en generisk rubrik.
+
+> 🔍 **Städar du regeln i efterhand över hela katalogen: gör sökmönstret SNÄVT.** Ett brett mönster flaggar allt utom det som är fel. Mitt första svep gav 134 träffar av 777 — nästan alla falska: vanliga monteringsanvisningar (*"kontrollera att låssprintarna sitter i innan du lastar bänken"*), passformskrav som ÄR köpbeslutet (*"kontrollera att bilen har upphöjda takrails"*) och lagstadgad åldersmärkning (*"inte lämplig för barn under 3 år"*). Ett omedvetet delsträngsfel gjorde dessutom att `står inte` matchade mitt inne i **ro**`star inte`. Snävt omskrivet gav samma katalog **7** träffar — den riktiga svansen. Leta efter de tre faktiska brotten:
+>
+> | Sort | Mönster som faktiskt bär |
+> |---|---|
+> | Vi som inte vet | `anges inte`, `uppges inte`, `framgår inte`, `specificeras inte`, `saknas uppgift` |
+> | Vi som gardar oss | `vi har inte fått`, `vi lovar ingenting`, `vi kan inte lova`, `vi hellre säger` |
+> | Trasig korsreferens | `läs stycket … under <borttagen rubrik>` |
+>
+> Ordgränser räcker inte alltid: `\bleverantören\b` missar genitivformen *leverantörens* — använd `leverantör[a-zé]*`. Och radera aldrig en träff blint; hämta HTML-kontexten runt den och skriv om för hand. **Monterings- och säkerhetsinstruktioner är nödvändiga och ska stå kvar** — regeln är "bara det nödvändiga", inte "ingenting".
+
+> 🩹 **Varje massborttagning lämnar ärr — städa typografin efteråt, annars syns operationen för kunden.** Att stryka en mening ur löptext lämnar tre spår som inget stavningsprogram fångar, och alla tre låg ute live efter mina svep:
+>
+> | Ärr | Exempel som gick i produktion |
+> |---|---|
+> | Mellanslag före skiljetecken | *"17,6 kvadratmeter odlingsyta ."* · *"0,72 m² golvyta ."* |
+> | Punkt utan mellanslag efter | *"…undan regnet.Vi säljer den inte som…"* |
+> | Hängande halvmening | *"Upprullbar dörr i gaveln för att komma in. **Vi skriver därför bara att den är upprullbar och lämnar bredden osagd.**"* |
+>
+> De två första lagas mekaniskt och riskfritt — men **bara inuti textnoder**, aldrig över hela HTML-strängen (`style="font-weight: 700"` innehåller kolon och mellanslag som inte får röras):
+>
+> ```js
+> const stada = h => h.replace(/>([^<]+)</g, (_, t) => ">" + t
+>   .replace(/\s+([.,;:!?])/g, "$1")                       // mellanslag före skiljetecken
+>   .replace(/([a-zåäö,])([.!?])([A-ZÅÄÖ])/g, "$1$2 $3")   // saknat mellanslag efter punkt
+>   .replace(/ {2,}/g, " ") + "<");
+> ```
+>
+> Den tredje går inte att laga mekaniskt: den borttagna meningen bar en syftning som nästa mening hänger på (*"därför"*, *"det"*, *"den"*). Sök efter kvarvarande syftningar — `vi skriver`, `därför bara att`, `lämnar … osagd` — och skriv om för hand. **Kör städningen som ett eget steg efter varje svep, inte som en del av det** — annars städar du bara de produkter svepet råkade träffa.
+>
+> ⚠️ **Mät inte typografi på taggstrippad text — du mäter din egen strippning.** `h.replace(/<[^>]+>/g, " ")` sätter ett mellanslag där taggen stod, så korrekt HTML som `<span>odlingsyta</span>.` blir `"odlingsyta ."` och ser ut som en defekt. Min slutkontroll rapporterade 32 träffar på det viset; **alla var falska**. Testa mot textnoderna i stället, samma avgränsning som städningen använder:
+>
+> ```js
+> const re = />([^<]+)</g; let m;
+> while ((m = re.exec(h)) !== null) if (/\S\s+[.,;:!?]/.test(m[1])) { /* äkta defekt */ }
+> ```
+
+> ⚖️ **Allt som låter defensivt är inte självsabotage.** Marsvinshyddan säger *"Vi säljer den inte som det, för den uppfyller inte det svenska kravet"* och hänvisar till Jordbruksverkets SJVFS 2019:15 (L80). Det är en **laglig upplysning enligt Steg 0b**, inte en ursäkt — den ska stå kvar. Skilj på *"vi vet inte"* (bort) och *"så här får varan lagligen säljas"* (kvar).
 
 > ✍️ **Svensk sifferstil.** **Decimalkomma**, aldrig punkt: `4,5 Ah` · `1,8 m` · `0,31 m²`. Skriv **aldrig** en kommalista av tal med enheten sist — `"10, 20, 30 och 40 cm"` läses som fyra olika mått med oklar enhet. Använd snedstreck: **`10/20/30/40 cm`**. Samma sak för gradlägen: `0/45/60°`, inte `"0, 45 och 60 grader"`. Mått multipliceras med `×` och mellanslag: `72 × 57 × 56 cm`. Intervall får tankstreck: `18–36 månader`, `8–10 timmar`. *(Regeln fällde min egen copy tre gånger på en session — kontrollera den i slutkollen, inte bara när du skriver.)*
 
