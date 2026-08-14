@@ -29,6 +29,9 @@ next-env.d.ts
 # migration progress-filer (genereras lokalt, ej i repo)
 /migration/_work/
 
+# renderade produktkort (byggutdata fran scripts/cardkit.py, laddas upp till Wix)
+/cards/
+
 # extension build artifacts
 extension.pem
 extension.crx

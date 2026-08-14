@@ -10,11 +10,21 @@ Anvandning (kor fran en scratchpad-katalog med bilderna i ./crops):
 
     import sys; sys.path.insert(0, "scripts")
     import cardkit as ck
+    ck.hero_white("orig/o01.jpg", "out/hjalte.jpg")      # vit studio-hjalte, plats 0
+    ck.crop("orig/o05.jpg", "crops/detalj.jpg", .15, .34, .24, .43)
     ck.card_photo("k1a", "crops/detalj.jpg", "HOJD 61-84 CM",
                   "Nio lagen", "En rad brodtext.", note="9 hojdlagen")
-    ck.card_spec("k1s", "crops/hjalte.jpg", "Specifikation", "Massagebank",
+    ck.card_grid("k1b", ["crops/a.jpg", "crops/b.jpg"], ["Vanster", "Hoger"],
+                 "REGLAGE", "Tva knappar", "En rad brodtext.")
+    ck.card_spec("k1s", "out/hjalte.jpg", "Specifikation", "Massagebank",
                  [("Langd", '215&nbsp;<span class=u>cm</span>')])
-    ck.render(["k1a", "k1s"])
+    ck.render(["k1a", "k1b", "k1s"])
+
+Bildhjalpare: hero_white (vit studio-hjalte) · crop (relativa koordinater) ·
+grid_overlay (rutnat for att lasa av exakta crop-granser).
+Kort: card_photo (ett stort foto) · card_grid (2-4 foton) · card_spec (foto +
+spec-rutnat). Rendera med render(). hero_white kraver numpy + scipy; korten
+kraver bara PIL.
 
 Assets (Inter latin-subset + kub-loggan) ligger i scripts/assets/ och behover
 inte hamtas. Vill du byta dem: satt FYNDPLATS_CARD_ASSETS till en egen katalog,
@@ -187,6 +197,46 @@ def render(names, scale=2):
         if im.size != (side, side):
             im.convert("RGB").crop((0, 0, side, side)).save(f"cards/{n}.png")
     return [f"cards/{n}.png" for n in names]
+
+
+def hero_white(src, dst, canvas=2000, fyll=0.90, trosk=245):
+    """Vit studio-hjalte ur en bild som REDAN har vit bakgrund.
+
+    Troskla bort det gragula ljusbruset, beskar till produktens bbox, centrera pa
+    en ren vit duk och skarpa lite. Gratis, deterministisk och trognare an ett
+    rembg-urklipp — u2net ater tunna delar (kablar, speglar, smala ben), det har
+    ror aldrig pixlarna inuti silhuetten.
+
+    Anvand som Steg 3c Metod 0: prova ALLTID denna forst. Ar bakgrunden rorig,
+    mork eller fotograferad i en miljo — ga till Metod A (Wix generate-image).
+
+    trosk = hur ljus en pixel maste vara for att raknas som bakgrund (min over
+    R/G/B). Sank den om en ljus produkt aker med i bakgrunden; hoj den om en
+    gragul studiobakgrund blir kvar. Granska ALLTID resultatet med Read.
+
+    Returnerar (bredd, hojd) pa den inplacerade produkten.
+    """
+    import numpy as np
+    from PIL import ImageFilter
+    from scipy import ndimage
+
+    a = np.asarray(Image.open(src).convert("RGB")).astype(np.uint8)
+    mn = a.min(axis=2)
+    ren = np.where((mn > trosk)[:, :, None], np.uint8(255), a)
+    prod = ndimage.binary_opening(mn <= trosk, np.ones((3, 3)))
+    ys, xs = np.where(prod)
+    if not len(ys):
+        raise ValueError(f"{src}: hittade ingen produkt — sank trosk")
+    k = ren[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    ph, pw = k.shape[:2]
+    s = (canvas * fyll) / max(ph, pw)
+    nw, nh = int(pw * s), int(ph * s)
+    pil = (Image.fromarray(k).resize((nw, nh), Image.LANCZOS)
+           .filter(ImageFilter.UnsharpMask(2, 30, 3)))
+    duk = Image.new("RGB", (canvas, canvas), (255, 255, 255))
+    duk.paste(pil, ((canvas - nw) // 2, (canvas - nh) // 2))
+    duk.save(dst, quality=96)
+    return (nw, nh)
 
 
 def crop(src, dst, x0, x1, y0, y1, q=95):

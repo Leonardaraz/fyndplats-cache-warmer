@@ -18,11 +18,18 @@
 - Frontend är headless Next.js/Vercel och uppdateras automatiskt via ISR – **ingen redeploy**.
 - **Verifierat (2026-06-05):** frontend läser `seoData`-taggarna `title` + `meta description` → de blir sidans `<title>` och meta. `Product`-JSON-LD (namn, pris, lager, betyg) och OpenGraph **genereras automatiskt** av frontend från produktfälten – du behöver alltså INTE sätta `og:`-taggar i `seoData`.
 - `ExecuteWixAPI` kräver godkännande. Skriv `fields` i request-**body** vid query/PATCH. **Läs om `revision` precis före varje PATCH.** API-svar är plain strings (skriv ändå `v?.value ?? v`).
+  - ⚠️ **`fields`-fällan.** På **GET** fungerar ett enkelt `?fields=X` och repeterade params `?fields=A&fields=B`. En **kommaseparerad lista** (`?fields=A,B,C`) 400:ar med det missvisande `Failed to parse JSON or deserialize protobuf message` — felet ser ut att handla om bodyn, men det är URL:en. På **query**-endpointen ligger `fields:["A","B"]` i bodyn.
+  - **`VARIANTS_INFO` finns INTE i enum:et** (varianterna kommer med ändå, utan att begäras). Giltiga värden du oftast vill ha: `PLAIN_DESCRIPTION` · `DESCRIPTION` · `MEDIA_ITEMS_INFO` · `DIRECT_CATEGORIES_INFO` · `VARIANT_OPTION_CHOICE_NAMES` · `URL` · `INFO_SECTION` · `BREADCRUMBS_INFO`. Skickar du ett ogiltigt värde listar felsvaret hela enum:et — läs det i stället för att gissa vidare.
+  - ⚠️ **`fields` måste med på VARJE cursor-sida.** `cursor` får inte samsas med `filter`/`sort` (→ `400 INVALID_CURSOR`), men `fields` är tillåtet och **måste** upprepas. Utelämnar du det på sida 2+ kommer fältet tillbaka **tomt i stället för att fela** — ett katalogsvep över 8 sidor rapporterade då 650 produkter med noll bilder, inklusive produkter som just patchats till 5. Tyst fel, trovärdig siffra: verifiera alltid mot en produkt du vet svaret för innan du litar på ett svep.
+- **Rör inte priset.** Importen sätter priset (se avrundningsregeln nedan) och prissättningen är Leonards beslut, inte poleringens. Räkna ingen marginal och höj inget pris på eget bevåg. *(Marginalgrinden togs bort 2026-08-12 på Leonards begäran.)*
+- **Mappningsraden i `FyndplatsMappings`** (samma `_id` som produktens Wix-id, hämtas med `POST /wix-data/v2/items/query`) bär `shipsFromCountries`, `warehouseClass` och `supplierName` — använd dem i spec-tabellens *Skickas från* i stället för att gissa lagerland.
 - En PATCH är partiell: **bara fält du skickar ändras**. Skicka aldrig `options`/`variantsInfo` om du inte avser röra varianterna.
 - **Priser slutar på 9, inga decimaler.** Importen sätter redan priset till hela kronor som avrundas **uppåt** till närmaste tal som slutar på 9 (t.ex. 499, 489, 579) — **ingen `.90`**. Ändrar du ett pris: avrunda alltid **uppåt** till närmaste 9-slut och skriv hela kronor (aldrig `,90`).
 - **SKU sätts automatiskt vid import** (`FP-<produkt>-<variant>`, t.ex. `FP-temperingsmaskin-choklad-17-l`) och syns i kassan/Google/feed. Importen **strippar märkesordet** (HOMCOM/SucceBuy/VEVOR …) men bygger SKU:n ur den **råa** sluggen — så när du byter slug i Steg 2 ska du **re-synka SKU:n** till den nya svenska sluggen, se **Steg 2b**.
   - **SKU:n är en ren etikett — den parsas aldrig tillbaka.** Synk och fulfillment nycklar på **`wixVariantId` → `supplierVariantId`** (lagrad mapping i `lib/sync/aliexpress-sync.ts` + `lib/orders/tasks.ts`), **inte** på SKU-strängen. Att döpa om en SKU bryter alltså INTE leverantörskopplingen — formatet är fritt (krav: ≤40 tecken, unik inom produkten).
   - **Måste du ändå byta en variants SKU live:** skicka `options` **+** `variantsInfo` **verbatim** (som de kom från GET, ändra bara `sku`) + färsk `revision`. Skickar du `variantsInfo` utan `options` på en produkt med varianter → V3 svarar **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`**. (En produkt helt utan optioner behöver inte `options`.)
+  - ☠️ **Varje variantobjekt ERSÄTTS i sin helhet — det slås inte ihop (2026-08-14).** PATCH:en är partiell på **fältnivå i produkten**, men inuti `variantsInfo.variants[]` gäller motsatsen: skickar du `{id, price}` för att bara ändra priset svarar Wix `200 OK` och **raderar variantens `sku` och `media`**. SKU:n är etiketten kunden, kassan och feeden ser — och den måste dessutom matcha mappningsraden. **Regel: läs varianten med GET, ändra bara det fält du menar, och skicka tillbaka hela objektet verbatim.** Upptäckt vid omprissättningen av sidobordet `c9a0f88d`; `sku` gick att skriva tillbaka, men variantens `media`-pekare tog Wix inte emot igen (harmlöst där, eftersom produkten saknar optioner — men på en produkt med färgval hade bildbytet varit borta).
+  - ⚠️ **Spegelvändningen gäller också: `options` utan `variantsInfo` 428:ar.** *"Variant choice not found in product options"* — Wix jämför de skickade optionerna mot de lagrade varianterna och hittar ingen koppling. **De två fälten reser tillsammans eller inte alls.** Vid en ren bild-PATCH på en produkt med optioner: skicka bara `media` + `revision` + `visible`, aldrig `options` "för säkerhets skull". Kontrollera först att `linkedMedia` är tomt på alla choices — är det det, finns inget att förlora på `linkedMedia`-fällan (2026-08-14, IMILAB-babyvakten).
 
 **Input:** Wix-produkt-ID (+ ev. AliExpress-URL).
 
@@ -33,15 +40,16 @@
 Kör i denna ordning. **Publicering är ALLTID sista handlingen** — allt annat verifierat först.
 
 1. **Steg 0** – Välj fokussökord (preliminärt; låses i Steg 2 efter bildkollen).
-2. **Steg 1** – Läs produkten (GET: `revision`, `name`, `slug`, `seoData`, `visible`, `media`).
-3. **Steg 1b** – Titta på ALLA bilder — styr sökord, copy, alt-texter och tvätt-/kort-behov.
-4. **Steg 1c** – Sanera varianter FÖRST: ta bort döda/slutsålda (mappningen = facit) **innan** du skriver copy.
-5. **Steg 2** – PATCH namn + slug + `seoData` (+ beskrivning); lås fokussökordet.
-6. **Steg 2b** – Re-synka SKU till den nya sluggen.
-7. **Steg 3** – Skriv om alla alt-texter (svenska); fixa dubbletter + huvudbild. Vid behov: **3b** tvätta loggor/inbränd text · **3c** vit hjältebild · **3d** egna svenska feature-/spec-kort.
-8. **Steg 4** – Koppla rätt kategori.
-9. **Steg 6** – Variantkontroll: koppla variantbilder (`linkedMedia`, 6B) + slutkoll. *(Borttagningen gjordes redan i 1c.)* Görs **före** publiceringen.
-10. **Steg 5** – PUBLICERA (`visible:true`) — **sista steget**, när allt är verifierat mot Klart-kriteriet.
+2. **Steg 0b** – Laglighets-/säkerhetsgrind: får produkten alls säljas? **Före allt arbete.**
+3. **Steg 1** – Läs produkten (GET: `revision`, `name`, `slug`, `seoData`, `visible`, `media`).
+4. **Steg 1b** – Titta på ALLA bilder — styr sökord, copy, alt-texter och tvätt-/kort-behov.
+5. **Steg 1c** – Sanera varianter FÖRST: ta bort döda/slutsålda (mappningen = facit) **innan** du skriver copy.
+6. **Steg 2** – PATCH namn + slug + `seoData` (+ beskrivning); lås fokussökordet.
+7. **Steg 2b** – Re-synka SKU till den nya sluggen.
+8. **Steg 3** – Skriv om alla alt-texter (svenska); fixa dubbletter + huvudbild. Vid behov: **3b** tvätta loggor/inbränd text · **3c** vit hjältebild · **3d** egna svenska feature-/spec-kort · **3e** avancerad retusch (flera problemzoner).
+9. **Steg 4** – Koppla rätt kategori (**förälder + löv**).
+10. **Steg 6** – Variantkontroll: koppla variantbilder (`linkedMedia`, 6B) + slutkoll. *(Borttagningen gjordes redan i 1c.)* Görs **före** publiceringen.
+11. **Steg 5** – PUBLICERA (`visible:true`) — **sista steget**, när allt är verifierat mot Klart-kriteriet.
 
 *(Sifferordningen är historisk: Steg 6 utförs före Steg 5. Enkla produkter utan bild-/kategori-/variantarbete kan slå ihop Steg 2b + publicering — se Steg 2b.)*
 
@@ -51,9 +59,56 @@ Kör i denna ordning. **Publicering är ALLTID sista handlingen** — allt annat
 
 Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`. **Lås inte valet förrän du sett bilderna (Steg 1b)** — bilderna avgör ofta vad produkten *faktiskt* är.
 **Ringa in den exakta produkttypen, inte den breda kategorin.** Använd ordet för vad produkten *faktiskt är* (formen/typen), inte en generisk grupp – t.ex. `sadelstol` (inte "arbetsstol"), `hopfällbar massagebänk` (inte "möbel"). Det specifika ordet har oftast högre köpintention och mindre konkurrens, och matchar vad köparen söker.
-**Validera ordet mot verklig sökdata innan du låser det.** Gör en snabb `web_search` på 2–4 svenska kandidatord och se vilket **etablerade svenska återförsäljare använder som kategori-/produktnamn** (Biltema, Jula, Clas Ohlson, Mekonomen, Thule, Amazon.se, branschspecialister) samt Googles autocomplete/relaterade sökningar. Kategoriordet de stora aktörerna använder i sina titlar har oftast högst sökvolym → välj det som huvudord (`isMain`), lägg de näst bästa som relaterade sökord. Exempel: `taklastkorg` är en giltig sammansättning, men återförsäljarna kategoriserar produkten som **takkorg / lastkorg** → huvudord blir `takkorg bil`, med `lastkorg`/`taklastkorg` som relaterade.
+**Validera ordet mot verklig sökdata — men bara när det behövs.** `web_search` på 2–4 svenska kandidatord kostar mer än det ger på självklara produkter (`golvlampa`, `trehjuling`, `dammsugare`). **Kör den bara vid (a) tveksam produkttyp** — flera rimliga svenska ord, eller du är osäker på vad varan egentligen är — **eller (b) sökordskrock** (se nedan). Då: se vilket ord **etablerade svenska återförsäljare använder som kategori-/produktnamn** (Biltema, Jula, Clas Ohlson, Mekonomen, Thule, Amazon.se, branschspecialister) samt Googles autocomplete/relaterade sökningar. Kategoriordet de stora aktörerna använder i sina titlar har oftast högst sökvolym → välj det som huvudord (`isMain`), lägg de näst bästa som relaterade sökord. Exempel: `taklastkorg` är en giltig sammansättning, men återförsäljarna kategoriserar produkten som **takkorg / lastkorg** → huvudord blir `takkorg bil`, med `lastkorg`/`taklastkorg` som relaterade.
+
+> ⚠️ **Kolla ALLTID sökordskrock mot katalogen innan du låser ordet — detta steget hoppas aldrig över.** Två produkter som slåss om samma sökord kannibaliserar varandras ranking, och det upptäcks inte förrän båda ligger live. Fyra krockar på en session (2026-08-10/11): två snurrstolar, två julgranar, två växthus, **tre** barnmotorcyklar.
+>
+> ```
+> POST /stores/v3/products/query   { "query": { "filter": { "slug": { "$in": ["<kandidat-slug>", …] } } } }
+> ```
+> Sluggen är filtrerbar (`name` är det INTE). Träff, eller en produkt du vet ligger nära → **separera med en kvalificerare som står i BÅDE namn, slug och titel**, inte bara i texten. Fungerande exempel: `arbetsstol med hjul` vs `sadelstol med ryggstöd` · `konstgjord julgran` vs `konstgjord julgran med pynt` · `litet växthus` vs `växthusduk` · `elmotorcykel barn` vs `elmotorcykel 6v barn` vs `eldriven trehjuling barn`. Är produkterna i praktiken samma vara → det är en dubblett, inte ett sökordsproblem: flagga till Leonard.
+
 **Regel:** båda orden MÅSTE hamna i **titel, produktnamn (H1) och slug** – annars flaggar Wix SEO-assistenten dem som röda. Ordet finns redan grönt i beskrivning/meta om det står i texten.
 Specs får bara komma från känd importdata eller `web_search` (AliExpress-sidor är JS-blockerade). **Hitta inte på siffror.**
+
+-----
+
+## Steg 0b – Laglighets- och säkerhetsgrind (före allt annat arbete)
+
+**Kör den här FÖRE bildarbete och copy.** Tre produkter raderades under sessionen 2026-08-10/11 efter att de redan var halvpolerade — grinden hade sparat hela det arbetet. Gäller bara produktklasserna nedan; känner du inte igen någon av dem, gå vidare till Steg 1.
+
+- **Djurbostäder (burar, hus, inhägnader)** → Jordbruksverkets föreskrifter **SJVFS 2019:15 (L80)**. Minimimåtten är bindande i Sverige, och de flesta AliExpress-burar är för små. Verifierade gränser:
+  - **Fågelbur**, fåglar ≤20 cm: **0,31 m² golvyta**, **längsta sida ≥0,7 m**, **höjd ≥0,6 m**.
+  - **Guldhamster:** **0,12 m² golvyta**, kortaste sida **≥25 cm**, höjd **≥20 cm**. Hjuldiameter **≥28 cm** (dvärghamster ≥20 cm).
+  - **Kanin** (sällskap), golvyta per viktklass — ensam / per djur i grupp:
+    | Vikt | Ensam | I grupp |
+    |---|---|---|
+    | ≤ 2 kg | 0,5 m² | 0,3 m² |
+    | 2–3,5 kg | **0,7 m²** | 0,35 m² |
+    | 3,5–4,5 kg | 0,8 m² | 0,40 m² |
+    | 4,5–6 kg | 0,9 m² | 0,45 m² |
+    | > 6 kg | 1,0 m² | 0,5 m² |
+
+    Minsta höjd **0,5 m** (liten kanin) till **0,9 m** (stor). Utgå från **0,7 m²** när
+    leverantören inte anger vikt — det är normalstor sällskapskanin. Marknadsför
+    leverantören buren för "1–2 kaniner" gäller ändå 0,7 m² (2 × 0,35). Kaninen ska
+    dessutom ha en **hylla** att sitta på och under (8 kap. 21 §) — men hyllan räknas
+    inte in i ytan. *(Källa: Jordbruksverket, "Kaniner som sällskapsdjur"; måtten står i
+    bilaga 1:3 till L80, som 8 kap. 10 § hänvisar till.)*
+  - ⚠️ **Hyllplan och våningar räknas INTE** in i golvytan — bara bottenytan. Jordbruksverket
+    skriver ut det uttryckligen. På en tvåvåningsbur räknas alltså markplanet, inte huset ovanpå.
+    Kontrollera också höjden på varje delyta separat: en yta under ett upphöjt hus som bara är
+    32 cm hög uppfyller inte höjdkravet och bör inte räknas med.
+  - **Hobbyhöns:** ingen verifierad siffra ännu. Leverantörernas antalspåståenden är ofta
+    orimliga — ett hönshus vars hushållsdel är 0,656 m² marknadsfördes för "10–15 höns"
+    (2026-08-13, `28b359af`, parkerad). Publicera aldrig leverantörens antal utan att först
+    kontrollera SJVFS 2019:15 respektive 2019:23.
+  - Under gränsen → **importera/polera inte**. Radera produkten, markera mappningsraden `rejected` med den rättsliga orsaken, och berätta för Leonard varför. *(Två fågelburar 2026-08-10: 0,15 m² och 0,26 m², längsta sidor 44,5 cm och 52 cm. Tre kaninburar 2026-08-13: 0,179 m², 0,523 m² och 0,566 m².)*
+- **Vapen och vapenrepliker** → stopp och flagga. Airsoft/soft air har 18-årsgräns, och polisen påpekar att repliker förväxlas med skarpa vapen. *(En 1:1-replik av en Glock 17 med `AUSTRIA`/`9x19`-gravyr och utan orange mynning raderades 2026-08-10.)*
+- **Leksaker** → **EN71**-märkningen och **åldersgränsen** ska stå i produkttexten. Saknas certifieringen i leverantörsdatan: flagga hellre än att skriva ut en gissad märkning.
+- **El till kroppen / medicintekniskt / kosttillskott** → flagga till Leonard i stället för att polera.
+
+> Grinden är en **stopp**-kontroll, inte en textkontroll. Passerar produkten men har en säkerhetsrelevant begränsning (max vikt, ålder, ej för trafikerad väg) → den hör hemma i "Det du bör veta innan du köper" i Steg 2.
 
 -----
 
@@ -69,13 +124,30 @@ Spara: `revision`, nuvarande `name`, `slug`, `seoData`, **`visible`**, samt **he
 
 ## Steg 1b – Titta på ALLA bilder FÖRST (innan du skriver något)
 
-Chatten kan se bilder — **analysera galleriet innan du väljer sökord eller skriver copy**. Hämta en liten preview av varje galleribild och läs den visuellt:
+Chatten kan se bilder — **analysera galleriet innan du väljer sökord eller skriver copy**. Hämta en liten preview av varje galleribild:
 
 ```
 curl -s -o <scratchpad>/img-01.jpg "https://static.wixstatic.com/media/{FILE_ID}/v1/fit/w_320,h_320,q_70/preview.jpg"
 ```
 
-(`{FILE_ID}` = `image.url`:ens filnamn, t.ex. `b379ce_…~mv2.jpg`; `Read` på den sparade filen visar bilden.)
+(`{FILE_ID}` = `image.url`:ens filnamn, t.ex. `b379ce_…~mv2.jpg`.)
+
+> 💰 **Montera dem till EN kontaktkarta och `Read` den — inte N separata `Read`.** Ett galleri på 10 bilder blir 1 bild i stället för 10, med samma informationsvärde. Detta är den enskilt största tokenbesparingen i hela flödet. Hämta full upplösning **bara** för de bilder du faktiskt ska beskära eller bygga kort av.
+>
+> ```python
+> from PIL import Image, ImageDraw
+> import glob, math
+> f = sorted(glob.glob("img-*.jpg")); k = math.ceil(len(f) ** .5); s = 340
+> ark = Image.new("RGB", (k * s, math.ceil(len(f) / k) * s), (255, 255, 255))
+> d = ImageDraw.Draw(ark)
+> for i, p in enumerate(f):
+>     im = Image.open(p).convert("RGB"); im.thumbnail((s - 20, s - 20))
+>     x, y = (i % k) * s, (i // k) * s
+>     ark.paste(im, (x + 10, y + 26)); d.text((x + 10, y + 6), f"{i+1:02d}", fill=(200, 60, 0))
+> ark.save("kontaktkarta.jpg", quality=88)
+> ```
+>
+> Numreringen på arket motsvarar ordningen i `media.itemsInfo.items`, så du kan hänvisa till "bild 04" rakt igenom Steg 3.
 
 Den visuella förståelsen styr **allt nedströms** — det är därför steget ligger först:
 
@@ -154,7 +226,13 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "<html…>" } }`.
 
-- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` (valfritt) → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
+- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → **Det du bör veta innan du köper** (samma inline-form) → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` (valfritt) → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
+
+> 🎯 **"Det du bör veta innan du köper" är obligatoriskt och är sidans mest värdefulla block.** Här skriver du ut det du fångade i Steg 1b/1c som leverantören tiger om eller har fel om — 3–5 punkter, fet ingress + en mening som förklarar konsekvensen för kunden. Det bygger förtroende och kapar returer, och det är den enda platsen felet får stå. Verkliga exempel: *"6K 12 MP" är tre 4-megapixelsensorer* · *4G-modemet saknar band 20/28 — det som bär svensk landsbygdstäckning* · *alla produktbilder visar UK-kontakt fast varan skickas från Spanien* · *"växthus" är bara duken, stommen ingår inte* · *"wooden" är MDF* · *hastighetsmätaren är dekor* · *hjulet på 13 cm är för litet för någon hamsterart*. Hittar du inget att skriva har du förmodligen inte läst leverantörsdatan mot bilderna — gå tillbaka till Steg 1b.
+>
+> Skriv **rakt, inte ursäktande**: konstatera avvikelsen och vad den betyder praktiskt. Rätta samtidigt siffran i `<h2>Tekniska specifikationer</h2>` så tabellen aldrig upprepar leverantörens fel.
+
+> ✍️ **Svensk sifferstil.** **Decimalkomma**, aldrig punkt: `4,5 Ah` · `1,8 m` · `0,31 m²`. Skriv **aldrig** en kommalista av tal med enheten sist — `"10, 20, 30 och 40 cm"` läses som fyra olika mått med oklar enhet. Använd snedstreck: **`10/20/30/40 cm`**. Samma sak för gradlägen: `0/45/60°`, inte `"0, 45 och 60 grader"`. Mått multipliceras med `×` och mellanslag: `72 × 57 × 56 cm`. Intervall får tankstreck: `18–36 månader`, `8–10 timmar`. *(Regeln fällde min egen copy tre gånger på en session — kontrollera den i slutkollen, inte bara när du skriver.)*
 
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
 
@@ -223,9 +301,9 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 
 > **Behåll så många ANVÄNDBARA bilder som möjligt — ju fler bra bilder desto bättre (Leonard 2026-07-10).** En rik produktsida säljer mer än en med 2–3 bilder. Släng BARA exakta dubbletter och bilder utan något användbart visuellt (140px-thumbnails, rena text-/mätdiagram). Leverantörens engelska/tyska feature-collage, i-bruk-foton och spec-blad **byggs om till svenska foto-kort** (Steg 3d) — kastas inte. Då behåller katalogen bilderna, men snyggt och på svenska. Exempel (2026-07-10): låset 10 råbilder → 6 (2 produktvinklar + i-bruk + 3 foto-kort, bara 3 dubbletter + en 140px-thumb slängd); slangen 11 → 6; stegen 18 → 7.
 >
-> **Aldrig ett rent text-kort. VARJE kort måste ha ett riktigt foto** (produkt, detalj eller i-bruk) med texten som bildtext — inte en textruta man inte kan titta på (Leonard 2026-07-10). Bygg foto-kort med `card_banner` (foto överst + kort rubrik + en rad), inte enbart ett `card_spec`-textrutnät. Spec/feature-text är OK men alltid **ovanpå eller under en bild**. *(Låset fick först fyra rena text-`card_spec`-kort — underkänt; byggdes om till foto-kort med handklovslås, kombinationshjul, väska och i-bruk-scen.)*
+> **Aldrig ett rent text-kort. VARJE kort måste ha ett riktigt foto** (produkt, detalj eller i-bruk) med texten som bildtext — inte en textruta man inte kan titta på (Leonard 2026-07-10). Bygg foto-kort med `card_photo` (ett stort foto + rubrik + en rad) eller `card_grid` (2–4 foton med etiketter), inte enbart ett `card_spec`-textrutnät. Spec/feature-text är OK men alltid **ovanpå eller under en bild** — `card_spec` tar därför också ett foto som första argument. *(Låset fick först fyra rena text-`card_spec`-kort — underkänt; byggdes om till foto-kort med handklovslås, kombinationshjul, väska och i-bruk-scen.)*
 >
-> **Fotot på kortet ska vara STORT — fyll kortet, inte en liten chip (Leonard 2026-07-10).** Kapa INTE bannern med ett litet `banner_maxh` (då blir bilden en tunn remsa med stor död yta nedtill). Låt bannern fylla höjden (`flex:1`, dvs. lämna `banner_maxh` tomt) och använd `card_banner(..., fit="contain")` så HELA produkten visas stor och obeskuren. *(Spec-korten för verktygssats/baklyktor/insynsskydd hade först produkten onödigt liten i ett litet chip med tom yta under — byggdes om med full banner + `contain`.)*
+> **Fotot på kortet ska vara STORT — fyll kortet, inte en liten chip (Leonard 2026-07-10).** Panelen (`.pane`) fyller höjden av sig själv (`flex:1`) — du behöver inte sätta någon maxhöjd. Styr i stället **hur** fotot fyller den med `fit`: `fit=False` (default på `card_photo`/`card_grid`) = `object-fit:cover`, fyller hela panelen men **beskär** — bara för kontext-/livsstilsfoton. `fit=True` = `object-fit:contain`, HELA produkten syns obeskuren — använd alltid för produktbilder. Är källbilden liten (<~500 px) blir den suddig uppskalad: beskär hellre större ur originalet. *(Spec-korten för verktygssats/baklyktor/insynsskydd hade först produkten onödigt liten i ett litet chip med tom yta under — byggdes om med full panel + `contain`.)*
 
 Två regler gäller ALLA metoder: **radera aldrig originalfilen** ur Media Manager (borttagen ur galleriet blir den föräldralös och städas i orphan-svepen), och är en bild `linkedMedia` för ett variantval — **koppla om valet först** (Steg 6B), annars tappar valet sitt bildbyte tyst.
 
@@ -257,13 +335,21 @@ Samma **guardrail som Steg 3c gäller alltid**: `Read` resultatet sida-vid-sida 
 
 > **Hastighetsgräns:** `generate-image`-endpointen kan bli hastighetsbegränsad efter många anrop i rad, och avkylningen kan ta **flera minuter** (upplevt: >10 min, inte bara en kort burst-gräns) — planera batchar om **3–6 anrop åt gången**. Misslyckas ett jobb (`status:"FAILED"`): försök om **en gång**; misslyckas det igen → **ta bort bilden** ur galleriet i stället för att fastna i en retry-loop mot en fortsatt begränsad endpoint. Den kan alltid läggas till igen senare.
 
+> ⚠️ **Ledarlinjer och callout-streck: korsar linjen PRODUKTEN — retuschera inte, byt crop.** Leverantörens feature-bilder drar tunna streck från en textetikett fram till detaljen de pekar på, så linjen slutar nästan alltid **ovanpå** varan. Ligger den på slät bakgrund: tvätta bort den. Ligger den över produkten: **välj ett annat utsnitt, en annan källbild, eller släng bilden** — laga den inte.
+>
+> Kostade fyra försök på **en** linje över en framåt/back-vippknapp (2026-08-11): `cv2.inpaint` med TELEA och NS lämnade grå utsmetningar på den blanka plasten, och en kolumn-blend mellan rena rader ovanför/nedanför suddade ut symbolen `◀0▶` som satt under linjen. Facit blev att inte visa knappen alls och beskriva funktionen i texten i stället — kunden förlorade ingenting, och ingen bild ljuger. Regeln är samma som den fasta bildregeln högst upp: **hellre en bild mindre än en förvanskad vara.**
+>
+> Praktiskt: mät linjens exakta utsträckning med `grid_overlay` **innan** du bestämmer dig. Slutar den före silhuetten kan ett crop som börjar strax efter linjens slut rädda bilden utan en enda retuscherad pixel.
+
 **Metod B – manuell text-täckning (fallback – bara om Metod A/C är otillgängliga och bakgrunden är helt slät/enfärgad):**
 
 Täck text-/loggregionen med bakgrundsfärgen (PIL eller ImageMagick; `tesseract` ger bbox:ar om regionen är svår att ringa in manuellt). Fungerar bara för släta studiobakgrunder — för komplexa/röriga bakgrunder utan Metod A/C tillgänglig, ta bort bilden i stället för att riskera ett klumpigt manuellt utklipp.
 
-**Metod C – Lokal LaMa-inpainting (proffskvalitet, ingen hastighetsgräns, gratis — när Metod A är blockerad):**
+**Metod C – Lokal LaMa-inpainting (SISTA UTVÄGEN — installera bara vid faktiskt behov):**
 
-Metod A:s hastighetsgräns kan kvarstå **långt över en timme** (sett denna session), utan synlig kvot i Premium Features API (inte en "slut för månaden"-spärr, se Steg 3c-notiser). Kör då exakt samma sorts textborttagning **lokalt** i sandboxen — samma AI-kvalitet på röriga bakgrunder, men helt utanför Wix rate-limit:
+> ⏱️ **Kostnadsnot:** ~200 MB modellnedladdning plus torch/easyocr/opencv-installation, och den har **inte behövts en enda gång på ~40 produkter** (2026-07 → 2026-08). Gå hit först när Metod A är bevisat blockerad *och* bilden är värd att rädda. Är alternativet att bara ta bort bilden ur galleriet — gör det i stället.
+
+Metod A:s hastighetsgräns kan kvarstå **långt över en timme** (sett en tidigare session), utan synlig kvot i Premium Features API (inte en "slut för månaden"-spärr, se Steg 3c-notiser). Kör då exakt samma sorts textborttagning **lokalt** i sandboxen — samma AI-kvalitet på röriga bakgrunder, men helt utanför Wix rate-limit:
 
 ```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
@@ -298,6 +384,8 @@ Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketet
 
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
+> ☠️ **En PATCH av `media.itemsInfo` NOLLSTÄLLER `linkedMedia` på alla variantval (2026-08-13).** Det räcker alltså **inte** att låta de låsta bild-id:na följa med i det nya galleriet — Wix svarar `200 OK`, behåller bilderna, men skriver `linkedMedia: []` på varje choice. Resultatet: alla färgval visar första galleribilden, och kunden som väljer "Blå" ser den gröna produkten. Hände på hollywoodgungan `39a5c0bf`. **Åtgärd:** har produkten optioner → skicka en **andra** PATCH direkt efter galleribytet med hela `options` (inkl. `linkedMedia`) + `variantsInfo` (inkl. varje variants `choices`) + `visible:true` + färsk `revision`, och re-GET-verifiera att varje choice har rätt id. Alternativt: lägg `options` + `variantsInfo` i **samma** PATCH som `media`.
+>
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
 >
 > ⚠️ **PATCH-svaret innehåller INTE `media.itemsInfo`** (det fältet returneras bara när du
@@ -310,6 +398,15 @@ Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketet
 > `POST /stores/v3/products/search` med `fields:["MEDIA_ITEMS_INFO"]`, paginera på
 > `cursorPaging`, och lista produkter där `items.some(m => !m.altText)`. 2026-08-06 gav det
 > **13 publicerade produkter / 82 bilder** helt utan alt-text.
+>
+> **Katalogsvep — löv utan förälder.** Samma sorts tysta drift i kategoriträdet: en produkt
+> kopplad till bara lövet syns inte när kunden browsar från toppnivån. Kör bredvid alt-text-svepet:
+> hämta trädet (`/categories/v1/categories/query`) → `parent[löv] = förälder`, paginera katalogen
+> med `fields:["DIRECT_CATEGORIES_INFO"]`, och flagga varje produkt där `parent[c]` saknas bland
+> dess egna kategorier. Åtgärda med `add-item` per förälder (bodyn tar **`item` singular** — plural
+> `items` avvisas, så det blir ett anrop per produkt, men alla ryms i **ett** `ExecuteWixAPI`-anrop).
+> 2026-08-11 gav svepet **359 av 631 produkter / 366 saknade kopplingar**, med tyngdpunkt i
+> Hem & Inredning (124), Sport & Fritid (110) och Barn & Familj (85).
 
 Procedur (utgå från `media.itemsInfo.items` från Steg 1):
 
@@ -328,84 +425,6 @@ GET .../products/{PRODUCT_ID}?fields=MEDIA_ITEMS_INFO   // alla items ska ha ima
 
 -----
 
-## Steg 3b – Bild-polering till proffsnivå (rensa utländsk text + Fyndplats-kort)
-
-Rå-importens sekundärbilder (pos 1+) är ofta leverantörs-infographics med engelsk/
-kinesisk text, VEVOR-branding, måttpilar och insatscirklar. Målet: **varje bild ska
-se ut som ett eget professionellt foto — retuschen får inte synas överhuvudtaget.**
-Signalen "produkten är bildpolerad" = galleriet innehåller **Fyndplats spec-/feature-kort**
-(gräddvit `(250,248,243)` + orange logga).
-
-**Arbetsgång per produkt** (verktyg: `scratchpad/pro.py`, `cardlib.py`, LaMa via
-`simple-lama-inpainting` — modellen `big-lama.pt` hämtas från HuggingFace
-`JosephCatrambone/big-lama-torchscript` till `~/.cache/torch/hub/checkpoints/`
-eftersom GitHub-releases är blockerade i sessionen):
-
-1. **Ladda ner galleriet i full upplösning** och gör en kontaktkarta. Identifiera per
-   bild: ren produktbild (behåll orörd) / foto med textoverlay (rensa) / ren
-   leverantörs-spec (ersätt med svenskt kort) / **variant-/måttblad som visar en specifik
-   variant (behåll & städa — se variant-regeln nedan, släng ALDRIG)** / äkta dubblett (släng en).
-2. **Mät koordinater med rutnät** — rita 0.1-linjer på bilden och läs av exakta boxar.
-   Gissa ALDRIG koordinater ur minnet; det är största felkällan.
-3. **Välj teknik per zon** (i fallande prioritet):
-   - **Komponentrekonstruktion** (vit-bakgrundscollage): behåll stora sammanhängande
-     regioner (foton/produkt), släng små (text), bygg om på vit duk. Pixelperfekt,
-     ingen retusch alls → använd alltid när bakgrunden är vit. Fungerar EJ när
-     pilar/streck binder ihop text med produkten till en komponent.
-   - **LaMa-inpainting** för text/loggor/piller över foton. Regler: **smala masker
-     per element** (aldrig en stor box över flera element — ger dimma/plattor);
-     maskmarginal ~10–15 px UTANFÖR elementets kant (annars förlänger LaMa
-     elementets färg); färgpredikat (`m_orange`, `m_dark(t)`, ljus-mask) hellre än
-     `m_all` när elementet ligger nära produkt; kompositera resultatet in i
-     originalet (bara maskzonen ändras).
-   - **Exakt bandbeskärning** när texten ligger i ett rent kant-band/kolumn utan
-     produkt/person: skär EXAKT vid bandets kant, inget mer. Aldrig hårda inzoomningar
-     som kapar människor eller produkt.
-   - **Planpassning + kornighet** (`plane_fill`) för stora ytor på släta väggar/gradienter.
-   - **Klonstämpel/HF-transplantat** för texturer (gräs/trä) — verifiera att källan är
-     ren och på samma skärpedjup; spegla inte riktade texturer (chevron-artefakter).
-4. **QC vid 100 % zoom på varje redigerad zon före publicering.** Leta: spökbokstäver
-   (vita halos — öka dilation), färgtoner, dimfläckar, brutna kantlinjer, tile-skarvar.
-   Iterera tills osynligt. **Går det inte att göra osynligt → bilden utgår.** Hellre
-   färre perfekta bilder än en synlig retusch.
-5. **Bygg Fyndplats-kort** med `cardlib.py`: `spec_card` (produktbild + 6 verifierade
-   nyckelvärden) och `feature_card` (produktbild + 4 fördelar). **Alla siffror ska vara
-   avlästa ur källbilder/beskrivning — aldrig gissade.** Vid flera varianter med olika
-   mått: ett spec-kort per variant, länkat till respektive choice (Steg 6-reglerna).
-6. **Ta bort dropship-branding även i bilder** (VEVOR-logga på väska/produktfoto →
-   LaMa bort). Produktens egen förpackning i bild är OK.
-7. **Uppladdning:** committa bilderna till branchen `claude/tmp-image-upload`
-   (git worktree, force-push OK) → `UploadImageToWixSite` med raw-GitHub-URL →
-   patcha `media.itemsInfo.items` (hela arrayen + svenska alt-texter, ALDRIG
-   `media.main`) och omlänka ev. variant-choice-bilder (options + variantsInfo
-   ordagrant tillsammans).
-
-> ⚠️ **Variantbilder — varje variant som SER OLIKA UT ska ha sin EGEN bild (Leonard-krav, 2026-07-19, hårt).**
-> Skiljer sig varianternas *utseende* (olika modell/design/form/storlek — t.ex. bänkar med olika
-> ryggstöd, stege med 4 vs 5 steg, väska 16" vs 20", basketställning med olika backboard) → du får
-> **ALDRIG** kollapsa dem till en gemensam bild eller ersätta de olika variant-/måttbladen med **ETT
-> gemensamt kort byggt ur hero**. Kunden måste se exakt den variant hen väljer.
-> - **Behåll (eller återställ) leverantörens differentierade variant-/måttblad — ett per variant.**
->   Original hämtas från `https://static.wixstatic.com/media/<mediaId>~mv2.jpg` **även efter** att de
->   tagits ur galleriet (filen lever kvar i Media Manager tills orphan-svepen).
-> - Städa bara bort **VEVOR-loggan** (vit boxfyll `ImageDraw.rectangle` på vit bg, annars LaMa) och
->   ev. stor **engelsk marknads-/spec-panel** (beskär bort halva bilden). **Måtten (cm/tum/mm)
->   BEHÅLLS — de är inte fula och behövs för att skilja varianterna.**
-> - Länka varje choice till sin egen bild: `linkedMedia:[hero, <variant-egen-bild>]` (Steg 6B).
-> - **Undantag där gemensam bild ÄR rätt:** varianten ändrar inte utseendet — ren **färgvariant utan
->   separat källfoto** (t.ex. PCP svart/silver, bara en pump fotad) eller **kapacitets-/måttvariant på
->   fysiskt identisk produkt** (t.ex. slangvagn 76/91 m — samma vagn). Då räcker gemensam bild + värdet i texten.
-> - **Verifiera efteråt:** GET `VARIANT_OPTION_CHOICE_NAMES` och kontrollera att varje choice har ett
->   **unikt** `linkedMedia`-id (utöver hero). Två olika-seende varianter som pekar på samma icke-hero-id
->   = fel. (Rättat i efterhand på bänk/stege/väska/basket 2026-07-19 — gör aldrig om det.)
-
-**Beslutsträd vid problemzoner:** text över slät bakgrund → LaMa · text i kantpanel →
-bandbeskärning · stort grafikelement mitt i strukturerad bakgrund (handtag, bordskant,
-gräs) → försök LaMa/geometrisk omritning, max ~3 iterationer, annars utgår bilden ·
-element som täcker både produkt och bakgrund → LaMa med produkt-skonande färgpredikat.
-
------
-
 ### Steg 3c – Ren vit hjältebild (premium-look, vid behov)
 
 Leverantörsbilderna har ofta fula/mörka/röriga bakgrunder (ibland med hörn-logga). Det som får katalogen att se ut som ett **riktigt varumärke** är **enhetlighet** — inte att varje bild är vit. Regel: **hjältebilden (första item = `media.main` = produktkortet) ska vara en ren produktbild på vit studio-bakgrund med mjuk skugga.** Konsekvent inramning mellan produkter = proffsigt.
@@ -416,7 +435,22 @@ Klassa varje bild utifrån Steg 1b-granskningen:
 - **Nyttig kontextbild** (detalj, i-bruk, skala, storleksjämförelse) → **behåll**, tvätta bara logga/inbränd text (Steg 3b). **Vitmåla inte** — kontexten säljer, och komplexa bilder är där urklippet riskerar klippa kablar/smådelar.
 - **Text-tung infografik** → ta bort/flagga (som Steg 3b).
 
-**Metod A – Wix Generate Image (REKOMMENDERAD – server-side AI, ingen uppladdning):**
+**Metod 0 – `hero_white()` (PROVA ALLTID FÖRST — gratis, deterministisk, ingen AI):**
+
+Merparten av leverantörsbilderna från HOMCOM/Outsunny/PawHut/Sportnow ligger **redan** på vit studiobakgrund — de är bara snedcentrerade, har olika marginal och ett gråaktigt ljusbrus. Då behövs varken AI eller urklipp: tröskla bort bruset, beskär till produktens bbox och centrera på ren vit duk.
+
+```python
+import sys; sys.path.insert(0, "scripts")
+import cardkit as ck
+ck.hero_white("orig/o01.jpg", "out/hjalte.jpg")          # → (bredd, höjd) på produkten
+ck.hero_white("orig/o02.jpg", "out/h2.jpg", fyll=0.94)   # smal produkt: fyll mer av duken
+```
+
+Utdata är 2000×2000 med produkten på ~90 % av duken. Fördelen mot både Metod A och B: den **rör aldrig en pixel innanför silhuetten**, så inga tunna delar kan ätas och inget kan omritas. Parametern `trosk` (default 245) är hur ljus en pixel måste vara för att räknas som bakgrund — sänk den om en ljus produkt åker med i bakgrunden, höj den om en gråaktig studiobakgrund blir kvar. **Granska ändå med `Read`.**
+
+Funkar bara när bakgrunden faktiskt är vit/nästan vit. Är den rörig, mörk eller en miljöbild → Metod A.
+
+**Metod A – Wix Generate Image (för rörig/mörk bakgrund – server-side AI, ingen uppladdning):**
 
 Wix egen AI byter bakgrund **server-side** och sparar resultatet **direkt i Media Manager** (du får ett `fileId` – **ingen base64-uppladdning**). Fördelar: den klarar det u2net INTE klarar — **mörk-på-mörk + tunna slangar/kablar/lösa klämmor** renderas rent — och utdata blir **~1024 px** (skarpare än en 800 px-källa). Detta är standardvägen för vita hjältar.
 
@@ -436,9 +470,9 @@ Sätt sedan `fileId` som hjälte-item (position 0) i `media.itemsInfo.items` (sa
 
 > **Guardrail (obligatoriskt – generativ AI):** ladda ner resultatet, `Read` det och **jämför sida-vid-sida mot originalet**. Verifiera att INGEN produktdetalj ändrats (knappar, text, form, färg, antal delar, loggor). Ser något omritat/tillagt/borttaget ut → generera om med skarpare prompt, annars behåll originalet. **Faktatrohet går alltid före vit bakgrund.** *(Verifierat troget på Baseus kompressor `1dbdec91`, startbooster `86408870`/`63b38487`, bilkamera `e3c3df4c` — inkl. slang/klämmor som u2net ghostade/tappade.)*
 
-**Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
+**Metod B – rembg-urklipp + uppladdning (sista utvägen – bara om Metod 0 och A båda är uteslutna):**
 
-Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
+Tre begränsningar: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net; (3) den ritar om alfakanten, alltså varan. Är bakgrunden redan vit → Metod 0 är både gratis och trognare. Är den rörig → Metod A.
 
 ```bash
 # u2net-modellen (rembg) hämtas EN gång och cachas i ~/.u2net/u2net.onnx.
@@ -483,7 +517,29 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 
 **Pipeline (helt lokalt + gratis, ingen Wix-AI):**
 1. **Klipp tillgångar** ur bilder som redan har **vit/ren bakgrund** (oftast hjältebilden): maskin, kontroller, spindel osv. Rektangulär beskärning räcker — vit bakgrund smälter sömlöst in i ett vitt kort (ingen urklippning behövs). Beskär SNÄVT så inga tillbehör/skuggor följer med. Foton från mörka källor (t.ex. en i-bruk-bild) presenteras som **rundad foto-banner** (rundade hörn + mjuk skugga) i stället för full-bleed — då krockar de inte med de ljusa korten. Sitter produkten på en **grå/färgad bakgrund med callouts** (typiskt spec-blad) → klipp ut den med **rembg** (`from rembg import remove`) och lägg på vit + mjuk skugga (samma kompositering som Steg 3c). **Gotcha:** u2net väljer det MEST framträdande objektet — på ett spec-blad kan det bli den vita spec-boxen, inte maskinen. **Beskär först till maskin-regionen** (klipp bort spec-boxen) INNAN `remove()`, och behåll bara största alpha-komponenten (`scipy.ndimage.label`) så lösa callout-text-öar försvinner. Granska alltid med `Read`.
-2. **Skriv korten som HTML/CSS** (1600×1600), bädda in fotona som base64 data-URI (self-contained). **Låst premium-mall (from 2026-07-09, `cardkit`-motorn):** typsnitt **Inter** (bädda in `@font-face` som base64-woff2 — Chromium saknar bra default-sans), **varm radial-gradient-bakgrund** i stället för platt vit (`radial-gradient(130% 105% at 50% 20%, #FFF 0%, #FAF7F2 50%, #ECE6DC 100%)` — platt vit såg "billig" ut, Leonard 2026-07-09), centrerad poster-layout, och orange **enhets-accent** (talet i svart ink, enheten i orange: `280–435&nbsp;<span class=u>mm</span>`). Håll typografi + marginaler identiska mellan kort-typerna (banner / stort tal / spec-rutnät); footer-lockupen se nedan. Bygg EN återanvändbar modul (`cardkit.py` — `whitekey` / `ground_shadow` / `hero_white` / `card_banner` / `card_number` / `card_spec`) och importera per produkt så hela katalogen blir pixel-konsekvent.
+2. **Skriv korten som HTML/CSS** (1600×1600), bädda in fotona som base64 data-URI (self-contained). **Låst premium-mall (from 2026-07-09, `cardkit`-motorn):** typsnitt **Inter** (bädda in `@font-face` som base64-woff2 — Chromium saknar bra default-sans), **varm radial-gradient-bakgrund** i stället för platt vit (`radial-gradient(130% 105% at 50% 20%, #FFF 0%, #FAF7F2 50%, #ECE6DC 100%)` — platt vit såg "billig" ut, Leonard 2026-07-09), centrerad poster-layout, och orange **enhets-accent** (talet i svart ink, enheten i orange: `280–435&nbsp;<span class=u>mm</span>`). Håll typografi + marginaler identiska mellan kort-typerna; footer-lockupen se nedan. **Skriv inte HTML:en för hand — importera `scripts/cardkit.py`**, där mallen redan är låst, så hela katalogen blir pixel-konsekvent:
+
+   ```python
+   import sys; sys.path.insert(0, "scripts")
+   import cardkit as ck
+   U = lambda s: f'<span class=u>{s}</span>'                       # orange enhets-accent
+
+   ck.hero_white("orig/o01.jpg", "out/hjalte.jpg")                  # plats 0 (Steg 3c Metod 0)
+   ck.grid_overlay("orig/o05.jpg", "g/o05.jpg", 0.05)               # läs av crop-gränser
+   ck.crop("orig/o05.jpg", "crops/detalj.jpg", .15, .34, .24, .43)  # relativa koordinater
+
+   ck.card_photo("k1", "crops/detalj.jpg", "KICKER", "Rubrik",
+                 "En rad brödtext.", note="fotnot", fit=True)
+   ck.card_grid("k2", ["crops/a.jpg", "crops/b.jpg"], ["Vänster", "Höger"],
+                "KICKER", "Rubrik", "En rad brödtext.", note="fotnot", rows=1)
+   ck.card_spec("k3", "out/hjalte.jpg", "Specifikation", "Produktnamn",
+                [("Höjd", f"156&nbsp;{U('cm')}"), ("Sockel", "E27")], note="fotnot")
+   ck.render(["k1", "k2", "k3"])                                    # → cards/*.png, 3200²
+   ```
+
+   `card_grid` tar 2–4 foton (`rows=2` ger 2×2). `card_spec` lägger raderna i två
+   kolumner — 6–10 rader ser bäst ut. `fit=True` = hela produkten syns (contain);
+   `fit=False` = fyller panelen men beskär (bara kontextfoton).
    > **Footer-märke (obligatoriskt from 2026-07-09):** använd **kub-loggan + "Fyndplats"** (lockup), **inte** den gamla grå gles-versalen "FYNDPLATS". Hämta kuben en gång från `https://www.fyndplats.se/icon.png` (orange 3D-kub, transparent PNG), bädda in som data-URI. CSS: `.brandlock{display:flex;align-items:center;gap:15px}` · `img{width:47px;height:47px}` · `b{font-size:37px;font-weight:700;letter-spacing:-.5px;color:#1B1B1A}`. Leonards beslut: nya loggan gäller alla NYA produkter framåt (äldre kort retrofittas bara på begäran).
 3. **Rendera → PNG via förinstallerad Chromium** (ingen Wix-AI, ingen hastighetsgräns):
    ```bash
@@ -510,11 +566,98 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 4. **Granska ALLTID med `Read`** (helhet + inzoomat). Vanliga fel: text kapas (sätt `.photo{flex:1;min-height:0}` så textblocket aldrig trängs bort), och **små källurklipp (<~500 px) blir suddiga** när de skalas upp 2–3× → använd i stället en högupplöst i-bruk-bild som rundad banner, eller acceptera medelstor "spotlight". `object-fit:contain` skalar INTE upp av sig själv; `max-width/height:100%` visar bilden i sin naturliga storlek (små blir små).
 5. **Ladda upp** alla kort i ETT `UploadImageToWixSite`-anrop (GitHub-branch-vägen, se Steg 3b) och byt in dem i galleriet.
 
-> ⚠️ **Produkten grundas — beskär den ALDRIG (cover-crop). Lärdom 2026-07-09 (barncykeln).** En **produkt** (cykel, stol, maskin) ska alltid ligga `object-fit:contain` på en grundad scen: hela produkten synlig, "stående" på en **äkta komposit-kontaktskugga** (`ground_shadow` — inte CSS `drop-shadow`, inte en platt `.floor`-oval). `object-fit:cover` (full-bleed banner) är BARA för **kontext-/livsstilsfoton** (en husvagn, en trädgård), aldrig för själva produkten — cover **kapar kanterna** (barncykelns hjul klipptes fram/bak). Två följdregler Leonard tryckte på samma dag:
+> ⚠️ **Produkten grundas — beskär den ALDRIG (cover-crop). Lärdom 2026-07-09 (barncykeln).** En **produkt** (cykel, stol, maskin) ska alltid ligga `object-fit:contain` på en grundad scen — i `cardkit` betyder det **`fit=True`**, och produktbilden bör vara körd genom `hero_white()` så den redan står på ren vit botten med luft runt om. `fit=False` (`object-fit:cover`, full-bleed) är BARA för **kontext-/livsstilsfoton** (en husvagn, en trädgård), aldrig för själva produkten — cover **kapar kanterna** (barncykelns hjul klipptes fram/bak). Två följdregler Leonard tryckte på samma dag:
 > - **Beskär källan med marginal runt HELA produkten.** Ett för snävt käll-crop (`x[175:1410]`) klippte hjulkanterna redan innan kortet byggdes — vidga tills det finns luft runt varenda kant, granska sedan med `Read`.
 > - **Hjälten ska FYLLA rutan (~80 %).** En liten produkt mitt i en stor tom ruta försvinner i katalog-gridden — skala den grundade produkten så den täcker ~80 % av 1600²-rutan (behåll ändå luft + skugga runt om). Gäller BÅDE plats-0-hjälten och produkt-hjälten på feature-korten.
 
 > ⚠️ **Kritisk gotcha (hände denna gång):** en `media.itemsInfo.items`-PATCH som byter galleriet **nollställer `linkedMedia` på alla variantval** (blir `[]`) — även om du inte rör `options`. Efter gallery-bytet MÅSTE du därför köra en separat PATCH som återställer `options[].choicesSettings.choices[].linkedMedia` (peka på de kvarvarande variant-bildernas id) **med `variantsInfo` skickat verbatim** (annars 428 `MISSING_VARIANT_OPTION_CHOICE`). Verifiera med re-GET att varje val har rätt `linkedMedia.id`. Behåll variant-bilderna (t.ex. spec-blad) i galleriet så id:na är stabila.
+
+-----
+
+## Steg 3e – Avancerad retusch och kortbygge (svår bakgrund, flera zoner)
+
+> Detta är **fördjupningen**. Vanliga fall klaras av Steg 3b (tvätta text/logga),
+> 3c (vit hjälte) och 3d (bygg svenska kort). Läs hit när en bild har flera
+> problemzoner samtidigt, eller när en zon ligger ovanpå strukturerad bakgrund.
+
+Rå-importens sekundärbilder (pos 1+) är ofta leverantörs-infographics med engelsk/
+kinesisk text, VEVOR-branding, måttpilar och insatscirklar. Målet: **varje bild ska
+se ut som ett eget professionellt foto — retuschen får inte synas överhuvudtaget.**
+Signalen "produkten är bildpolerad" = galleriet innehåller **Fyndplats spec-/feature-kort**
+(gräddvit `(250,248,243)` + orange logga).
+
+**Arbetsgång per produkt.** Verktyget är **`scripts/cardkit.py`** (`hero_white` ·
+`crop` · `grid_overlay` · `card_photo` · `card_grid` · `card_spec` · `render`).
+Behövs LaMa-inpainting utöver det, se Metod C i Steg 3b — den installeras bara vid
+faktiskt behov och har inte krävts på ~40 produkter.
+
+1. **Ladda ner galleriet i full upplösning** och gör en kontaktkarta (se Steg 1b —
+   **en** rutnätsbild, inte N separata `Read`). Identifiera per
+   bild: ren produktbild (behåll orörd) / foto med textoverlay (rensa) / ren
+   leverantörs-spec (ersätt med svenskt kort) / **variant-/måttblad som visar en specifik
+   variant (behåll & städa — se variant-regeln nedan, släng ALDRIG)** / äkta dubblett (släng en).
+2. **Mät koordinater med rutnät** — `ck.grid_overlay(src, dst, 0.05)` ritar linjer med
+   procent-etiketter; läs av exakta boxar ur den och beskär med `ck.crop(src, dst,
+   x0, x1, y0, y1)` (relativa 0–1-koordinater).
+   Gissa ALDRIG koordinater ur minnet; det är största felkällan.
+3. **Välj teknik per zon** (i fallande prioritet):
+   - **Komponentrekonstruktion** (vit-bakgrundscollage): behåll stora sammanhängande
+     regioner (foton/produkt), släng små (text), bygg om på vit duk. Pixelperfekt,
+     ingen retusch alls → använd alltid när bakgrunden är vit. Fungerar EJ när
+     pilar/streck binder ihop text med produkten till en komponent.
+   - **LaMa-inpainting** för text/loggor/piller över foton. Regler: **smala masker
+     per element** (aldrig en stor box över flera element — ger dimma/plattor);
+     maskmarginal ~10–15 px UTANFÖR elementets kant (annars förlänger LaMa
+     elementets färg); färgpredikat (`m_orange`, `m_dark(t)`, ljus-mask) hellre än
+     `m_all` när elementet ligger nära produkt; kompositera resultatet in i
+     originalet (bara maskzonen ändras).
+   - **Exakt bandbeskärning** när texten ligger i ett rent kant-band/kolumn utan
+     produkt/person: skär EXAKT vid bandets kant, inget mer. Aldrig hårda inzoomningar
+     som kapar människor eller produkt.
+   - **Planpassning + kornighet** (`plane_fill`) för stora ytor på släta väggar/gradienter.
+   - **Klonstämpel/HF-transplantat** för texturer (gräs/trä) — verifiera att källan är
+     ren och på samma skärpedjup; spegla inte riktade texturer (chevron-artefakter).
+4. **QC vid 100 % zoom på varje redigerad zon före publicering.** Leta: spökbokstäver
+   (vita halos — öka dilation), färgtoner, dimfläckar, brutna kantlinjer, tile-skarvar.
+   Iterera tills osynligt. **Går det inte att göra osynligt → bilden utgår.** Hellre
+   färre perfekta bilder än en synlig retusch.
+5. **Bygg Fyndplats-kort** med `scripts/cardkit.py`: `card_spec(out, foto, kicker,
+   titel, [(nyckel, värde), …])` (produktbild + verifierat spec-rutnät, 6–10 rader)
+   och `card_photo` / `card_grid` för feature-kort. **Alla siffror ska vara
+   avlästa ur källbilder/beskrivning — aldrig gissade.** Vid flera varianter med olika
+   mått: ett spec-kort per variant, länkat till respektive choice (Steg 6-reglerna).
+6. **Ta bort dropship-branding även i bilder** (VEVOR-logga på väska/produktfoto →
+   LaMa bort). Produktens egen förpackning i bild är OK.
+7. **Uppladdning:** committa bilderna till branchen `claude/tmp-image-upload`
+   (git worktree, force-push OK) → `UploadImageToWixSite` med raw-GitHub-URL →
+   patcha `media.itemsInfo.items` (hela arrayen + svenska alt-texter, ALDRIG
+   `media.main`) och omlänka ev. variant-choice-bilder (options + variantsInfo
+   ordagrant tillsammans).
+
+> ⚠️ **Variantbilder — varje variant som SER OLIKA UT ska ha sin EGEN bild (Leonard-krav, 2026-07-19, hårt).**
+> Skiljer sig varianternas *utseende* (olika modell/design/form/storlek — t.ex. bänkar med olika
+> ryggstöd, stege med 4 vs 5 steg, väska 16" vs 20", basketställning med olika backboard) → du får
+> **ALDRIG** kollapsa dem till en gemensam bild eller ersätta de olika variant-/måttbladen med **ETT
+> gemensamt kort byggt ur hero**. Kunden måste se exakt den variant hen väljer.
+> - **Behåll (eller återställ) leverantörens differentierade variant-/måttblad — ett per variant.**
+>   Original hämtas från `https://static.wixstatic.com/media/<mediaId>~mv2.jpg` **även efter** att de
+>   tagits ur galleriet (filen lever kvar i Media Manager tills orphan-svepen).
+> - Städa bara bort **VEVOR-loggan** (vit boxfyll `ImageDraw.rectangle` på vit bg, annars LaMa) och
+>   ev. stor **engelsk marknads-/spec-panel** (beskär bort halva bilden). **Måtten (cm/tum/mm)
+>   BEHÅLLS — de är inte fula och behövs för att skilja varianterna.**
+> - Länka varje choice till sin egen bild: `linkedMedia:[hero, <variant-egen-bild>]` (Steg 6B).
+> - **Undantag där gemensam bild ÄR rätt:** varianten ändrar inte utseendet — ren **färgvariant utan
+>   separat källfoto** (t.ex. PCP svart/silver, bara en pump fotad) eller **kapacitets-/måttvariant på
+>   fysiskt identisk produkt** (t.ex. slangvagn 76/91 m — samma vagn). Då räcker gemensam bild + värdet i texten.
+> - **Verifiera efteråt:** GET `VARIANT_OPTION_CHOICE_NAMES` och kontrollera att varje choice har ett
+>   **unikt** `linkedMedia`-id (utöver hero). Två olika-seende varianter som pekar på samma icke-hero-id
+>   = fel. (Rättat i efterhand på bänk/stege/väska/basket 2026-07-19 — gör aldrig om det.)
+
+**Beslutsträd vid problemzoner:** text över slät bakgrund → LaMa · text i kantpanel →
+bandbeskärning · stort grafikelement mitt i strukturerad bakgrund (handtag, bordskant,
+gräs) → försök LaMa/geometrisk omritning, max ~3 iterationer, annars utgår bilden ·
+element som täcker både produkt och bakgrund → LaMa med produkt-skonande färgpredikat.
+
 
 -----
 
@@ -634,10 +777,32 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 >
 > **Blir bara EN variant kvar → kollapsa hela optionen till en enkel-variant-produkt** (inte en option med ett enda val — ful dropdown). PATCH: `options:[]` + `variantsInfo.variants:[{ id:<behållna variantens id>, choices:[], sku, price, inventoryStatus }]` (V3 accepterar det; SKU blir `FP-<produkt>` utan variant-del). Byt **också** ut ev. feature-/hjältebilder som visar den BORTTAGNA variantens exemplar (t.ex. ett urklipp gjort ur den slutsålda modellens bild) mot den kvarvarande variantens — annars visar galleriet en produkt kunden inte kan köpa. Ta bort "två storlekar"/"Typ A/B"-språk ur namn, meta, beskrivning och FAQ.
 
+-----
+
+## Klart-kriterium (checklista före publicering)
+
+Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
+
+**Text**
+- Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inkl. kvalificeraren. Inget dropship-märke kvar (etablerade märken som Pagani Design/LAIKOU behålls).
+- Sökordet **krockar inte** med en annan produkt i katalogen (Steg 0).
+- Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
+- **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
-- SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord, inget **dropship-märke** (etablerade märken som Pagani Design/LAIKOU behålls); re-synkad i Steg 2b.
-- Variantsaneringen (**Steg 1c**) och variantbildkopplingen (**Steg 6**) är gjorda, och produkten är **publicerad** (`visible:true`) som sista steg — annars syns den inte i butiken.
-- (Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)
+
+**Bilder**
+- Plats 0 är en **ren vit studio-hjälte** (Steg 3c) — inte ett kort, inte en livsstilsbild.
+- Alla items har kvar `image.url` efter media-PATCH:en (verifiera med separat re-GET, **inte** på PATCH-svaret), och **varje** alt-text är svensk, unik och beskriver det som faktiskt syns.
+- Ingen bild innehåller kvarlämnad utländsk text — och ingen bild har en **retuscherad vara** (kapade kanter, vita hack, borttagna delar).
+
+**Data**
+- SKU:n matchar den **polerade sluggen** (`FP-<svensk-slug>-<variant>`) — inga engelska råord; re-synkad i Steg 2b.
+- Priset är **orört** — importens pris står kvar (hela kronor med 9-slut).
+- Kategori kopplad som **förälder + löv** (Steg 4A) — inte bara lövet, inte bara toppen.
+- Variantsaneringen (**Steg 1c**) och variantbildkopplingen (**Steg 6B**) är gjorda; varje choice som ser olika ut har ett **unikt** `linkedMedia`-id.
+- **`visible:true` på produkten OCH på varje `variantsInfo.variants[].visible`** — annars syns produkten men går inte att lägga i varukorgen (se dödskalle-noten i Steg 6).
+
+*(Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)*
 
 -----
 
