@@ -58,12 +58,59 @@ export function msToDayEnd(startAtMs: number | null, nowMs: number): number | nu
 }
 
 /**
- * Klientens refresh-backoff när en steggräns passerats (kort/hjältekort/pill):
- * täcker ~28 min sen tick i stället för ~1 min som förr. Skälet är uppmätt
- * (audit 2026-08-14): väckarklockan är en GitHub Actions-cron som driver
- * 9–57 min per timme, så nedräkningen nådde noll utan att priset hunnit
- * PATCH:as — korten fastnade på "Priset uppdateras…" efter tre snabba försök
- * och gav upp. Stegen är stigande så tidiga träffar är snabba när ticken är i
- * tid, och sena träffar fångar drift utan att spamma servern.
+ * Klientens refresh-backoff när en steggräns passerats (kort/hjältekort):
+ * stegen KEDJAS av useAuctionClock — varje utlöst försök schemalägger nästa
+ * tills servern levererat ett framtida mål eller stegen är slut, och räknaren
+ * NOLLSTÄLLS när ett färskt mål kommit. Summan ~28 min täcker väckarklockans
+ * uppmätta drift (audit 2026-08-14: GitHub Actions-cron 9–57 min sen; nu tätad
+ * till var 10:e minut — backoffen är säkerhetsbältet om en körning uteblir).
+ * Granskningen 2026-08-14 fällde första versionen på exakt detta: en
+ * dependency på enbart "har målet passerats?" ändras inte av ett misslyckat
+ * refresh-försök, så stege utan kedjning = ETT försök, inte sex.
  */
 export const REFRESH_BACKOFF_MS = [5_000, 30_000, 90_000, 180_000, 420_000, 960_000] as const;
+
+/** Auktionsdagens längd i ms + dagens slut för ett givet startAt. Håller
+ *  07→19-matten i EN modul — komponenterna hade börjat inline:a 3_600_000. */
+export const AUCTION_DAY_MS = AUCTION_DAY_HOURS * HOUR_MS;
+export function dayEndMs(startAtMs: number | null): number | null {
+  return startAtMs == null ? null : startAtMs + AUCTION_DAY_MS;
+}
+
+/** Nedräkningsformat H:MM:SS / M:SS — delades tidigare som fyra kopior. */
+export function fmtLeft(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
+}
+
+/**
+ * Klientlägets tillståndsmaskin — REN funktion så den kan golden-testas i
+ * node --test (komponenterna täcks inte av testsviten). Faserna:
+ *
+ *   pre       — före 07:00: räkna ner till start (target = startsAt)
+ *   countdown — nästa sänkning känd och i framtiden (target = nextDropAt)
+ *   stale     — målet passerat men servern har inte hunnit: "Priset uppdateras…"
+ *               (target = det passerade målet → refresh-kedjan jobbar)
+ *   floor     — golvet nått (ingen nextDropAt), dagen pågår: "Lägsta pris!"
+ *               (target = dagens slut → 19:00-väckningen)
+ *   ended     — ≥19:00: "Stängt för idag" (target = det passerade dagsslutet
+ *               → refresh-kedjan hämtar morgondagens lineup)
+ */
+export type AuctionPhase = "pre" | "countdown" | "stale" | "floor" | "ended";
+export function auctionPhase(
+  nowMs: number,
+  t: { startsAtMs: number | null; dayStartMs: number | null; nextDropAtMs: number | null },
+): { phase: AuctionPhase; targetMs: number | null } {
+  if (t.startsAtMs !== null && t.startsAtMs > nowMs) {
+    return { phase: "pre", targetMs: t.startsAtMs };
+  }
+  if (isDayOver(t.dayStartMs, nowMs)) {
+    return { phase: "ended", targetMs: dayEndMs(t.dayStartMs) };
+  }
+  if (t.nextDropAtMs !== null) {
+    return { phase: t.nextDropAtMs > nowMs ? "countdown" : "stale", targetMs: t.nextDropAtMs };
+  }
+  return { phase: "floor", targetMs: dayEndMs(t.dayStartMs) };
+}
