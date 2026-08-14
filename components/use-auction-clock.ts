@@ -1,55 +1,67 @@
 "use client";
 // Delad klocka + hämtningslogik för auktionskomponenterna (hjältekort, småkort,
-// live-pill). Granskningarna 2026-08-14 fällde två tidigare varianter; den här
-// filen är resultatet av båda och kommenterar därför varför det ser ut så här.
+// live-pill). Tre granskningar 2026-08-14 formade den här filen; kommentarerna
+// nedan säger varför varje del ser ut som den gör, så ingen "förenklar" tillbaka.
 //
-// VARJE KORT ÄGER SIN EGEN KLOCKA. Första försöket lät bara hjältekortet driva
-// hämtningen ("router.refresh() uppdaterar ändå hela rutten"). Det var fel:
-// varje auktionsrad har en EGEN stege, och nextDropAtOf hoppar över dubblett-
-// rungor, så raderna får olika sänkningstider. Ett småkort vars sänkning kom
-// först fastnade då på "Priset uppdateras…" i timmar eftersom hjälten ännu
-// räknade ned — och när hjälten nått sitt golv (nextDropAt=null) hämtades
-// ingenting alls resten av dagen. Nu begär varje instans själv, och en
-// MODULNIVÅ-strypning gör att fem samtidiga begäran ändå blir en hämtning.
+// FAS FÖRE MOUNT KOMMER FRÅN SERVERNS KLOCKA. `phase` är aldrig null: innan
+// klockan startat används a.serverNowMs, alltså samma tidpunkt servern
+// renderade med. SSR-HTML och klientens första render blir därmed identiska,
+// och HTML:en är korrekt redan för crawlers. Efter mount tar den levande
+// klockan över. Tidigare varianter hade en färdig `closed`-boolean plus
+// handrullade ternärer i komponenterna — de hann säga emot fasmaskinen.
 //
-// KEDJAN DÖR ALDRIG. Backoff-stegen (REFRESH_BACKOFF_MS) täcker ~28 min sen
-// tick; därefter fortsätter en långsam puls (SLOW_POLL_MS) i stället för att
-// sluta för gott. Ett längre cron-avbrott lämnade annars sidan låst på
+// VARJE KORT ÄGER SIN EGEN KLOCKA. Att bara låta hjältekortet hämta var fel:
+// varje auktionsrad har en EGEN stege (nextDropAtOf hoppar över dubblettrungor),
+// så ett småkort kan bli sent medan hjälten räknar ned. En modulnivå-strypning
+// ser till att fem samtidiga begäran ändå bara blir en route-hämtning.
+//
+// VI POLLAR ÄVEN UNDER NEDRÄKNING. Varan kan bli SÅLD när som helst — då
+// försvinner den ur getLiveAuctions och webhooken revalididerar rutten för nya
+// besökare, men en redan öppen flik visste inget. Nedräkning är ~55 av 60
+// minuter, så utan puls kunde en flik visa "Köp nu" för något sålt i nästan en
+// timme. Pulsen är långsam (5 min) och pausas när fliken är dold.
+//
+// KEDJAN DÖR ALDRIG. Efter de sex backoff-stegen fortsätter samma långsamma
+// puls i stället för att sluta — ett längre cron-avbrott låste annars sidan på
 // "Priset uppdateras…" utan väg tillbaka för en flik som står synlig.
-//
-// GOLVLÄGET PULSAR OCKSÅ. På golvet finns ingen kommande sänkning, men varan
-// kan bli SÅLD — då försvinner den ur getLiveAuctions. Utan puls fortsatte en
-// öppen flik visa "Köp nu – innan någon annan gör det" för något som var borta.
-//
-// HYDRERING: klockan startar null och komponenterna renderar då serverns egna
-// besked (startsAt / closed). Server och klientens första render är alltså
-// alltid identiska; den levande klockan tar över först efter mount.
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { LiveAuctionView } from "../lib/auction-view";
 import { auctionPhase, REFRESH_BACKOFF_MS, type AuctionPhase } from "../lib/auction-day";
 
-/** Långsam puls när backoffen är slut, och i golvläget (fånga "såld"). */
+/** Långsam puls: efter backoffen, och löpande för att fånga "såld". */
 const SLOW_POLL_MS = 5 * 60_000;
 /** Minsta tid mellan FAKTISKA hämtningar, delat av alla instanser. */
 const MIN_REFRESH_GAP_MS = 4_000;
 
-let lastRefreshAt = 0;
-/** Strypt hämtning: fem kort som blir sena samtidigt ger EN route-hämtning. */
-function requestRefresh(refresh: () => void): void {
-  const now = Date.now();
-  if (now - lastRefreshAt < MIN_REFRESH_GAP_MS) return;
-  lastRefreshAt = now;
+// Monoton tidsstämpel: performance.now() går aldrig bakåt. Med Date.now() kunde
+// en bakåtjusterad klocka (NTP/tidszon) lägga `lastRefreshAt` i framtiden och
+// tysta ALLA hämtningar tills klockan hunnit ikapp (granskningsfynd).
+const monoNow = () =>
+  typeof performance !== "undefined" && typeof performance.now === "function"
+    ? performance.now()
+    : Date.now();
+
+let lastRefreshAt = -Infinity;
+/** Strypt hämtning. Returnerar false när anropet slogs bort — anroparen ska då
+ *  INTE avancera sin backoff, annars vandrar ett kort genom hela stegen utan
+ *  att någonsin ha hämtat något (granskningsfynd). */
+function requestRefresh(refresh: () => void): boolean {
+  const t = monoNow();
+  if (t - lastRefreshAt < MIN_REFRESH_GAP_MS) return false;
+  lastRefreshAt = t;
   refresh();
+  return true;
 }
 
 export function useAuctionClock(
-  a: Pick<LiveAuctionView, "startsAt" | "startAt" | "nextDropAt">,
-): { phase: AuctionPhase | null; msLeft: number | null } {
+  a: Pick<LiveAuctionView, "startsAt" | "startAt" | "nextDropAt" | "serverNowMs">,
+): { phase: AuctionPhase; msLeft: number | null } {
   const router = useRouter();
   const [now, setNow] = useState<number | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     setNow(Date.now());
@@ -57,53 +69,53 @@ export function useAuctionClock(
     return () => clearInterval(t);
   }, []);
 
-  const pt = now === null
-    ? null
-    : auctionPhase(now, {
-        startsAtMs: a.startsAt ? Date.parse(a.startsAt) : null,
-        dayStartMs: a.startAt ? Date.parse(a.startAt) : null,
-        nextDropAtMs: a.nextDropAt ? Date.parse(a.nextDropAt) : null,
-      });
-  const phase = pt?.phase ?? null;
-  const msLeft = pt?.targetMs != null && now !== null ? pt.targetMs - now : null;
+  const times = {
+    startsAtMs: a.startsAt ? Date.parse(a.startsAt) : null,
+    dayStartMs: a.startAt ? Date.parse(a.startAt) : null,
+    nextDropAtMs: a.nextDropAt ? Date.parse(a.nextDropAt) : null,
+  };
+  // Före mount: serverns klocka → identisk render på server och klient.
+  const pt = auctionPhase(now ?? a.serverNowMs, times);
+  // msLeft bara efter mount: en serverberäknad nedräkning vore fel i samma
+  // sekund den renderades, och digits i SSR-HTML garanterar hydreringsbråk.
+  const msLeft = now !== null && pt.targetMs != null ? pt.targetMs - now : null;
 
-  // Målet passerat (sänkning sen, eller dagen slut och rotationen inte klar)
-  // → hämta med stigande backoff. Golvläget pulsar långsamt för att fånga att
-  // varan blivit såld. pre/countdown har framtida mål och sköter sig själva.
-  const overdue = phase === "stale" || phase === "ended";
-  const poll = overdue || phase === "floor";
+  const overdue = pt.phase === "stale" || pt.phase === "ended";
 
   // Färskt framtida mål → nollställ kedjan inför nästa gräns.
   useEffect(() => {
     if (!overdue && attempt !== 0) setAttempt(0);
   }, [overdue, attempt]);
 
+  // visibilitychange fyrar bara vid ÖVERGÅNGAR, så en sidladdning triggar
+  // ingen hämtning här (sidan är ju nyss serverrenderad). Startvärdet läses
+  // separat vid mount utan att hämta.
   useEffect(() => {
-    if (!poll) return;
-    const delay = overdue
-      ? (REFRESH_BACKOFF_MS[attempt] ?? SLOW_POLL_MS)
-      : SLOW_POLL_MS;
-    const t = setTimeout(() => {
-      requestRefresh(() => router.refresh());
-      setAttempt((n) => n + 1);
-    }, delay);
-    return () => clearTimeout(t);
-  }, [poll, overdue, attempt, router]);
-
-  // Fliken tillbaka i förgrunden EFTER att något blivit sent → hämta direkt.
-  // Gate:at på `poll`: utan det gav varje flikväxling en full route-hämtning
-  // mitt i en nedräkning där ingenting ändrats (granskningsfynd).
-  useEffect(() => {
-    if (!poll) return;
+    setHidden(document.hidden);
     const onVis = () => {
-      if (!document.hidden) {
+      const h = document.hidden;
+      setHidden(h);
+      if (!h) {
         setAttempt(0);
         requestRefresh(() => router.refresh());
       }
     };
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
-  }, [poll, router]);
+  }, [router]);
 
-  return { phase, msLeft };
+  // Puls. Snabb backoff när något är sent, annars långsam bevakning av "såld".
+  // Pausad medan fliken är dold — effekten kör om när `hidden` slår om, och
+  // återkomsten hämtar dessutom direkt (nedan).
+  useEffect(() => {
+    if (now === null || hidden) return;
+    const delay = overdue ? (REFRESH_BACKOFF_MS[attempt] ?? SLOW_POLL_MS) : SLOW_POLL_MS;
+    const t = setTimeout(() => {
+      // Avancera bara steget om hämtningen FAKTISKT gick iväg.
+      if (requestRefresh(() => router.refresh())) setAttempt((n) => n + 1);
+    }, delay);
+    return () => clearTimeout(t);
+  }, [now === null, hidden, overdue, attempt, router]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { phase: pt.phase, msLeft };
 }

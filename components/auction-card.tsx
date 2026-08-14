@@ -21,12 +21,11 @@ import { fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionCard({ a }: { a: LiveAuctionView }) {
+  // phase är aldrig null: före mount kommer den från serverns klocka, så SSR
+  // och klientens första render är identiska. Fasmaskinen är enda beslutspunkten.
   const { phase, msLeft } = useAuctionClock(a);
-  // Före mount (phase null) styr SERVERNS besked (a.closed / a.startsAt), så
-  // SSR och klientens första render är identiska OCH html:en är korrekt redan
-  // för crawlers och pre-hydreringspaint.
-  const ended = phase === null ? a.closed : phase === "ended";
-  const preStart = phase === null ? a.startsAt !== null : phase === "pre";
+  const ended = phase === "ended";
+  const preStart = phase === "pre";
 
   const dropped = !ended && a.priceNum < a.listPrice;
   const saved = Math.round(a.listPrice - a.priceNum);
@@ -71,25 +70,17 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
         {dropped && saved > 0 && (
           <div className="auction-save">Du sparar {saved.toLocaleString("sv-SE")} kr</div>
         )}
-        {phase === null ? (
-          <div className="auction-timer">
-            {a.closed
-              ? "Stängt för idag — nya fynd kl 07"
-              : a.startsAt
-                ? "Startar kl 07"
-                : a.nextDropAt
-                  ? "Priset sjunker varje timme"
-                  : "Lägsta pris — första köparen tar det!"}
-          </div>
-        ) : phase === "pre" && msLeft !== null ? (
+        {phase === "pre" ? (
           <div className="auction-timer" suppressHydrationWarning>
-            Startar kl 07 — om <b>{fmtLeft(msLeft)}</b>
+            {msLeft !== null ? <>Startar kl 07 — om <b>{fmtLeft(msLeft)}</b></> : "Startar kl 07"}
           </div>
         ) : ended ? (
           <div className="auction-timer">Stängt för idag — nya fynd kl 07</div>
-        ) : phase === "countdown" && msLeft !== null ? (
+        ) : phase === "countdown" ? (
           <div className="auction-timer" suppressHydrationWarning>
-            Nästa prissänkning om <b>{fmtLeft(msLeft)}</b>
+            {msLeft !== null
+              ? <>Nästa prissänkning om <b>{fmtLeft(msLeft)}</b></>
+              : "Priset sjunker varje timme"}
           </div>
         ) : phase === "stale" ? (
           <div className="auction-timer auction-timer-soon">Priset uppdateras…</div>

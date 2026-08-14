@@ -7,6 +7,7 @@ import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
 import { getHiddenFromFeatured, PROBLEM_MAX_SCORE } from "../lib/image-scores";
 import { getLiveAuctions } from "../lib/auction-view";
+import { auctionPhase } from "../lib/auction-day";
 import { tightFillUrl } from "../lib/wix-image";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../lib/social-proof";
 
@@ -61,7 +62,21 @@ export default async function Home() {
   const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions()]);
   // Auktionsdagen går 07–19; nattetid är auktionerna schemalagda (startsAt satt)
   // och bannern ska då säga "startar kl 07" i stället för "sjunker just nu".
-  const runningAuctions = liveAuctions.filter((a) => !a.startsAt);
+  // EFTER 19:00 ligger raderna kvar som `live` med startsAt=null tills ticken
+  // roterat — utan fas-kollen skröt bannern "pågår just nu, största rabatt
+  // −62 %" hela kvällen medan /fyndauktion sa "Stängt för idag" (granskning
+  // 2026-08-14). Samma fasmaskin som korten. OBS: startsidans ISR-fönster är
+  // en timme, så beskedet kan släpa så länge efter stängning — men det är
+  // samma fördröjning som rabattsiffran bredvid redan har.
+  const runningAuctions = liveAuctions.filter(
+    (a) =>
+      !a.startsAt &&
+      auctionPhase(a.serverNowMs, {
+        startsAtMs: null,
+        dayStartMs: a.startAt ? Date.parse(a.startAt) : null,
+        nextDropAtMs: a.nextDropAt ? Date.parse(a.nextDropAt) : null,
+      }).phase !== "ended",
+  );
   const maxAuctionDiscount = runningAuctions.reduce((m, a) => Math.max(m, a.discountPercent), 0);
   // Dölj ev. slutsålda från alla kund-ytor på startsidan (hero + Veckans fynd)
   // när HIDE_OOS_FROM_LISTINGS är på. Default av → oförändrat.
