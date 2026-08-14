@@ -576,6 +576,24 @@ if overlapp:
 
 När kortets foto byggs om: fotorutan i `card_spec` har kvot 1,64 medan paviljongen är 1,36. **Fyll ut i SIDLED med vitt** i stället för att beskära — en beskärning hade kapat taket.
 
+**Metod M – när varje vit källa har något ivägen, ta miljöbilden i stället:** `scripts/hero/miljobild-hero.py`
+
+Reflexen är att välja den källa som redan ligger mot vitt. Pop-up-tältet `3eb52634` visar varför det kan vara fel val. Mät ÖVERLAPPNINGEN innan du bestämmer dig:
+
+| källa | botten | problem |
+|---|---|---|
+| a0, collage | vitt | den gula infällda cirkeln (centrum 1510, 1630, radie 284) skär in i tältväggen — väggens underkant ligger på y ≈ 1447, så bågen döljer en lins **434 px bred och upp till 101 px djup** |
+| a2, måttbild | ljusgrön | måttstapeln "1,82 m" ligger tvärs över dörröppningen |
+| a1, miljöbild | gräs och himmel | inget ivägen — tältet helt och oskymt |
+
+De två vita källorna hade krävt att man **hittar på produktpixlar** för att fylla igen. Miljöbilden krävde bara en bakgrundsborttagning, och gräs mot mörkgrå duk är hög kontrast som u2net klarar utmärkt. Räkna ut hur stor rekonstruktionen skulle bli innan du väljer — 434 × 101 px påhittad vägg är dyrare än en rembg-körning.
+
+> ⚠️ **Kantbrätten: filtrera inte på färg, bygg om.** Första försöket tog bort gräsgröna pixlar i en 7 px-remsa längs alfakanten. Det åt upp antialiasingen där duken möter gräset och gav en **sågtandad vägg**. Rätt åtgärd är Metod E:s regel: erodera 2 px in i varan och gör en helt egen mjuk kant (`gaussian_filter(0.9) * 1.18`). Då överlever ingen gräsfärgad pixel, och kanten blir rak.
+
+Ett urklipp ur en miljöbild behåller det man ser genom varan — här bord, stolar och huset genom tältets dörröppning. Det är sant och läses som genomsikt, så låt det vara.
+
+Även här gällde regeln från Metod L: **spec-kortet var byggt av samma trasiga beskärning** och bar samma gula fragment. Ombyggt.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
