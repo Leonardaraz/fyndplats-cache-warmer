@@ -37,4 +37,6 @@ extension.pem
 extension.crx
 __push_*.
 scratchpad/
-scripts/__pycache__/
+# Python-bytecode, var som helst i trädet. Regeln var tidigare bunden
+# till scripts/ och missade scripts/hero/ som tillkom i #389.
+__pycache__/
