@@ -124,6 +124,15 @@ GET https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}?fields=DESCRIPTION&f
 
 Spara: `revision`, nuvarande `name`, `slug`, `seoData`, **`visible`**, samt **hela `media`** (du behöver `media.main` + alla `media.itemsInfo.items` med deras `id`, `uploadId`, `image` till Steg 3).
 
+> ⚠️ **Katalogsvep bränner Wix-kvoten — sidbrytningen är den dolda kostnaden.** Ett `ExecuteWixAPI`-anrop som bläddrar igenom hela katalogen (777 produkter, 100 per sida) är **åtta** REST-anrop, inte ett. Två–tre sådana svep i följd ger `Rate limit exceeded` i ungefär en kvart. Svep **en gång**, spara träffarna, och hämta sedan bara de produkter du ska röra med ett id-filter i **ett** anrop:
+>
+> ```js
+> body = { query: { filter: { id: { $in: [ ...ids ] } }, cursorPaging: { limit: 100 } },
+>          fields: ["PLAIN_DESCRIPTION"] }
+> ```
+>
+> Samma sak gäller `/products/search`. Planera svepet så att det returnerar allt du behöver första gången — id, revision OCH textutdraget — annars får du betala hela sidbrytningen igen för att hämta det du glömde.
+
 -----
 
 ## Steg 1b – Titta på ALLA bilder FÖRST (innan du skriver något)
@@ -242,6 +251,16 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > - **Att be kunden mäta, väga eller kontrollera** för att avgöra om varan duger.
 >
 > **När en rad ändå är befogad** — och bara då: om varan **inte fungerar alls** utan något kunden måste ha (fabriksmonterad CarPlay, eluttag, batterier, borrmaskin, egen stomme), eller om det finns en **hård gräns som är en del av köpet** (maxlast, måste förankras i vägg). Skriv den då som ett **positivt villkor med egen rubrik** — *"Passar bilar med fabriksmonterad CarPlay"*, *"Batterier: 3 × AA, ingår inte"* — inte som en varning under en generisk rubrik.
+
+> 🔍 **Städar du regeln i efterhand över hela katalogen: gör sökmönstret SNÄVT.** Ett brett mönster flaggar allt utom det som är fel. Mitt första svep gav 134 träffar av 777 — nästan alla falska: vanliga monteringsanvisningar (*"kontrollera att låssprintarna sitter i innan du lastar bänken"*), passformskrav som ÄR köpbeslutet (*"kontrollera att bilen har upphöjda takrails"*) och lagstadgad åldersmärkning (*"inte lämplig för barn under 3 år"*). Ett omedvetet delsträngsfel gjorde dessutom att `står inte` matchade mitt inne i **ro**`star inte`. Snävt omskrivet gav samma katalog **7** träffar — den riktiga svansen. Leta efter de tre faktiska brotten:
+>
+> | Sort | Mönster som faktiskt bär |
+> |---|---|
+> | Vi som inte vet | `anges inte`, `uppges inte`, `framgår inte`, `specificeras inte`, `saknas uppgift` |
+> | Vi som gardar oss | `vi har inte fått`, `vi lovar ingenting`, `vi kan inte lova`, `vi hellre säger` |
+> | Trasig korsreferens | `läs stycket … under <borttagen rubrik>` |
+>
+> Ordgränser räcker inte alltid: `\bleverantören\b` missar genitivformen *leverantörens* — använd `leverantör[a-zé]*`. Och radera aldrig en träff blint; hämta HTML-kontexten runt den och skriv om för hand. **Monterings- och säkerhetsinstruktioner är nödvändiga och ska stå kvar** — regeln är "bara det nödvändiga", inte "ingenting".
 
 > ✍️ **Svensk sifferstil.** **Decimalkomma**, aldrig punkt: `4,5 Ah` · `1,8 m` · `0,31 m²`. Skriv **aldrig** en kommalista av tal med enheten sist — `"10, 20, 30 och 40 cm"` läses som fyra olika mått med oklar enhet. Använd snedstreck: **`10/20/30/40 cm`**. Samma sak för gradlägen: `0/45/60°`, inte `"0, 45 och 60 grader"`. Mått multipliceras med `×` och mellanslag: `72 × 57 × 56 cm`. Intervall får tankstreck: `18–36 månader`, `8–10 timmar`. *(Regeln fällde min egen copy tre gånger på en session — kontrollera den i slutkollen, inte bara när du skriver.)*
 
