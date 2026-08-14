@@ -14,6 +14,7 @@
 // pris + tidpunkt för NÄSTA sänkning.
 
 import { getProducts, type Product } from "./products";
+import { isDayOver } from "./auction-day";
 
 const WIX_BASE = "https://www.wixapis.com";
 const COL = "FyndplatsAuctions";
@@ -57,6 +58,16 @@ export type LiveAuctionView = {
   /** ISO för dagens start (07:00) — även när den passerat. Driver dramaturgin
    *  (färgtemperatur, tändning kl 18). Avslöjar inget: starttiden är publik. */
   startAt: string | null;
+  /**
+   * Auktionsdagen är slut (≥19:00) men raden ligger kvar som `live` tills
+   * ticken hunnit rotera. Räknas ut PÅ SERVERN: gjordes det bara på klienten
+   * efter mount (granskning 2026-08-14) skeppade SSR/ISR-HTML:en fortfarande
+   * golvpriset med "−34 %" och "Du sparar" — det som Googlebot indexerar och
+   * det som syns före hydrering. Klientens FÖRSTA render använder detta värde,
+   * så server och klient är alltid överens; därefter tar den levande klockan
+   * över (kan hinna slå om inom ISR-fönstret på 60 s).
+   */
+  closed: boolean;
   slot: number;
   inStock: boolean;
 };
@@ -143,6 +154,7 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
         nextDropAt: nextDropAtOf(r, now),
         startsAt: r.startAt && Date.parse(r.startAt) > now ? r.startAt : null,
         startAt: r.startAt ?? null,
+        closed: isDayOver(r.startAt ? Date.parse(r.startAt) : null, now),
         slot: r.slot ?? 0,
         inStock: p.inStock,
       } satisfies LiveAuctionView;

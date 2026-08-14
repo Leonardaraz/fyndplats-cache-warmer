@@ -1,14 +1,17 @@
 "use client";
 // "Dagens hetaste fynd" — hjältekortet: flaggskeppet (störst rabatt) i stort
 // format med rullande odometer-pris, "Du sparar X kr", nedräkning och stor CTA.
-// All klocklogik (faser, nedräkning, refresh-kedja) bor i useAuctionClock —
-// hjältekortet är kortens enda refresh-ägare (driveRefresh), eftersom
-// router.refresh() uppdaterar hela rutten och därmed även småkorten.
+// All klocklogik (faser, nedräkning, hämtningskedja) bor i useAuctionClock.
+// Varje kort äger sin egen klocka — raderna har olika stegar, så ett småkort
+// kan bli sent medan hjälten räknar ned; hooken stryper hämtningarna på
+// modulnivå så alla korten tillsammans ändå bara ger en route-hämtning.
 //
-// EFTER STÄNGNING (fas ended) visas LISTPRISET utan badge/spara-rad:
-// granskningen 2026-08-14 fällde första stängt-läget för att det bara bytte
-// texterna — golvpris, "−34%" och "Du sparar…" låg kvar från stale props och
-// annonserade en rabatt som Wix redan återställt och ingen kunde få.
+// EFTER STÄNGNING (fas ended) döljs rabattbadgen och "Du sparar"-raden — de
+// beskriver en rabatt som Wix håller på att återställa och som ingen längre kan
+// få. PRISET självt visas alltid som a.priceNum: det är Wix-priset, alltså det
+// som faktiskt debiteras i kassan (lib/auction-view.ts:9-10). En tidigare
+// version visade listPrice här och bröt just den invarianten under de minuter
+// det tar för ticken att återställa priset (granskning 2026-08-14).
 
 import Image from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
@@ -19,16 +22,15 @@ import { fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
-  const { phase, msLeft } = useAuctionClock(a, { driveRefresh: true });
-  const ended = phase === "ended";
-  // Före mount (phase null) används serverns eget förstart-besked (startsAt
-  // sätts bara av servern före 07) så SSR-HTML och klientens första render
-  // alltid är identiska — inga tidsgrenar i hydreringen.
+  const { phase, msLeft } = useAuctionClock(a);
+  // Före mount (phase null) styr SERVERNS besked (a.closed / a.startsAt), så
+  // SSR-HTML och klientens första render alltid är identiska — och HTML:en är
+  // korrekt redan för crawlers och pre-hydreringspaint.
+  const ended = phase === null ? a.closed : phase === "ended";
   const preStart = phase === null ? a.startsAt !== null : phase === "pre";
 
   const dropped = !ended && a.priceNum < a.listPrice;
   const saved = Math.round(a.listPrice - a.priceNum);
-  const shownPrice = ended ? a.listPrice : a.priceNum;
 
   return (
     <a className="a-hero-card" href={`/produkt/${a.slug}`}>
@@ -61,14 +63,23 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
         </div>
         <div className="a-hc-name">{a.name}</div>
         <div className="a-hc-price-row">
-          <AuctionOdometer value={shownPrice} className="a-hc-price" />
+          <AuctionOdometer value={a.priceNum} className="a-hc-price" />
           {dropped && <span className="a-hc-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
           {dropped && saved > 0 && <span className="a-hc-save">Du sparar {saved.toLocaleString("sv-SE")} kr</span>}
         </div>
-        {/* Fas null (före mount) → radhög platshållare så layouten inte hoppar
-            när texten dyker upp efter hydrering (samma mönster som climax). */}
+        {/* Fas null (före mount): rendera SERVERNS besked i stället för en tom
+            platshållare — en bordad tom pill blinkade förbi vid varje kall
+            laddning och crawlern fick ingen text alls (granskning 2026-08-14). */}
         {phase === null ? (
-          <div className="a-hc-timer">{" "}</div>
+          <div className="a-hc-timer">
+            {a.closed
+              ? "Stängt för idag — nya fynd kl 07"
+              : a.startsAt
+                ? "Startar kl 07"
+                : a.nextDropAt
+                  ? "Priset sjunker varje timme"
+                  : "Lägsta pris – första köparen tar det!"}
+          </div>
         ) : phase === "pre" && msLeft !== null ? (
           <div className="a-hc-timer" suppressHydrationWarning>
             Startar kl 07 — om <b>{fmtLeft(msLeft)}</b>

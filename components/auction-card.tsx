@@ -1,13 +1,16 @@
 "use client";
 // Fyndauktionens produktkort: aktuellt pris (= Wix-priset, det som debiteras),
 // överstruket startpris när priset fallit, och en live-nedräkning till NÄSTA
-// prissänkning. All klocklogik bor i useAuctionClock; refresh drivs ENBART av
-// hjältekortet (router.refresh() uppdaterar hela rutten, så korten får färska
-// props av samma hämtning — sex parallella kedjor var bara slöseri).
+// prissänkning. All klocklogik bor i useAuctionClock, och VARJE kort äger sin
+// egen — raderna har olika stegar (dubblettrungor hoppas över), så ett kort kan
+// bli sent medan hjälten fortfarande räknar ned. Hooken stryper hämtningarna på
+// modulnivå så fem samtidiga begäran ändå bara blir en route-hämtning.
 //
-// EFTER STÄNGNING (fas ended) visas LISTPRISET utan badge/spara-rad — det
-// stale golvpriset annonserade en rabatt som Wix redan återställt (audit
-// 2026-08-14). Golvet/prisstegen finns aldrig i klienten.
+// EFTER STÄNGNING (fas ended) döljs rabattbadgen och "Du sparar"-raden — de
+// beskriver en rabatt Wix håller på att återställa. PRISET visas alltid som
+// a.priceNum (= Wix-priset, det som debiteras); en tidigare version visade
+// listPrice och bröt den invarianten i minuterna innan ticken hann återställa.
+// Golvet/prisstegen finns aldrig i klienten.
 
 import Image from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
@@ -19,14 +22,14 @@ import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionCard({ a }: { a: LiveAuctionView }) {
   const { phase, msLeft } = useAuctionClock(a);
-  const ended = phase === "ended";
-  // Före mount (phase null): serverns eget förstart-besked (startsAt) så SSR
-  // och klientens första render är identiska — inga tidsgrenar i hydreringen.
+  // Före mount (phase null) styr SERVERNS besked (a.closed / a.startsAt), så
+  // SSR och klientens första render är identiska OCH html:en är korrekt redan
+  // för crawlers och pre-hydreringspaint.
+  const ended = phase === null ? a.closed : phase === "ended";
   const preStart = phase === null ? a.startsAt !== null : phase === "pre";
 
   const dropped = !ended && a.priceNum < a.listPrice;
   const saved = Math.round(a.listPrice - a.priceNum);
-  const shownPrice = ended ? a.listPrice : a.priceNum;
 
   return (
     <a className={`prod auction-card a-card${a.img2 ? "" : " noswap"}`} href={`/produkt/${a.slug}`}>
@@ -60,7 +63,7 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
       <div className="pbody">
         <div className="pname">{a.name}</div>
         <div className="auction-price-row">
-          <AuctionOdometer value={shownPrice} className="auction-price" />
+          <AuctionOdometer value={a.priceNum} className="auction-price" />
           {dropped && <span className="auction-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
         </div>
         {/* Samma "Du sparar"-rad som hjältekortet — kronor säljer bättre än
@@ -69,7 +72,15 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
           <div className="auction-save">Du sparar {saved.toLocaleString("sv-SE")} kr</div>
         )}
         {phase === null ? (
-          <div className="auction-timer">{" "}</div>
+          <div className="auction-timer">
+            {a.closed
+              ? "Stängt för idag — nya fynd kl 07"
+              : a.startsAt
+                ? "Startar kl 07"
+                : a.nextDropAt
+                  ? "Priset sjunker varje timme"
+                  : "Lägsta pris — första köparen tar det!"}
+          </div>
         ) : phase === "pre" && msLeft !== null ? (
           <div className="auction-timer" suppressHydrationWarning>
             Startar kl 07 — om <b>{fmtLeft(msLeft)}</b>

@@ -94,3 +94,25 @@ test("REFRESH_BACKOFF_MS: stigande och täcker väckarklockans drift", () => {
   const sum = REFRESH_BACKOFF_MS.reduce((a, b) => a + b, 0);
   assert.ok(sum >= 25 * 60_000, `summan ${sum} ska täcka minst 25 min drift`);
 });
+
+// Regression: `closed` i LiveAuctionView räknas ut PÅ SERVERN med samma
+// isDayOver som klienten använder — annars skeppar SSR/ISR-HTML:en golvpris
+// med rabattbadge efter stängning (granskning 2026-08-14). Testet låser att
+// serverns och klientens svar aldrig kan gå isär för samma tidpunkt.
+test("isDayOver: server och klient ger samma stängt-besked", () => {
+  const cases = [
+    [START - H, false],          // före start
+    [START, false],              // 07:00
+    [START + 11 * H, false],     // 18:00, sista timmen
+    [START + 12 * H - 1, false], // 18:59:59.999
+    [START + 12 * H, true],      // 19:00 exakt
+    [START + 20 * H, true],      // natten
+  ] as const;
+  for (const [nowMs, expected] of cases) {
+    assert.equal(isDayOver(START, nowMs), expected, `vid ${(nowMs - START) / H} h`);
+    // Samma indata måste ge samma fas-beslut (ended) i klientmaskinen.
+    const p = auctionPhase(nowMs, { startsAtMs: null, dayStartMs: START, nextDropAtMs: null });
+    assert.equal(p.phase === "ended", expected, `fasmaskinen vid ${(nowMs - START) / H} h`);
+  }
+  assert.equal(isDayOver(null, START + 20 * H), false, "utan startAt: aldrig stängt");
+});

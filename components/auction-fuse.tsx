@@ -3,7 +3,7 @@
 // Ren klientklocka — kosmetisk, priserna påverkas aldrig härifrån.
 
 import { useEffect, useState } from "react";
-import { AUCTION_DAY_HOURS } from "../lib/auction-day";
+import { AUCTION_DAY_MS } from "../lib/auction-day";
 
 export function AuctionFuse({ startAt }: { startAt: string | null }) {
   // Renderas först efter mount: bredden beror på klockan och skulle annars
@@ -15,7 +15,7 @@ export function AuctionFuse({ startAt }: { startAt: string | null }) {
     return () => clearInterval(t);
   }, []);
   if (!startAt || now === null) return null;
-  const p = Math.min(1, Math.max(0, (now - Date.parse(startAt)) / (AUCTION_DAY_HOURS * 3_600_000)));
+  const p = Math.min(1, Math.max(0, (now - Date.parse(startAt)) / AUCTION_DAY_MS));
   return (
     <div className="a-fuse" aria-hidden="true" suppressHydrationWarning>
       <span className="a-fcap">07</span>

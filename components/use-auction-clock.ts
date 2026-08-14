@@ -1,40 +1,52 @@
 "use client";
-// Delad klocka + refresh-kedja för auktionskomponenterna (hjältekort, småkort,
-// live-pill). Granskningen 2026-08-14 fällde den kopierade varianten på fyra
-// punkter som hooken löser på ETT ställe:
+// Delad klocka + hämtningslogik för auktionskomponenterna (hjältekort, småkort,
+// live-pill). Granskningarna 2026-08-14 fällde två tidigare varianter; den här
+// filen är resultatet av båda och kommenterar därför varför det ser ut så här.
 //
-//   1. KEDJNING. Dependencyn "har målet passerats?" ändras inte av ett
-//      misslyckat refresh-försök, så den gamla koden gjorde ETT försök och gav
-//      upp — "Priset uppdateras…" för evigt om ISR-svaret råkade vara 60 s
-//      gammalt. Räknaren är nu STATE: varje utlöst försök re-armar effekten,
-//      så backoff-stegen (REFRESH_BACKOFF_MS, ~28 min) faktiskt kedjas tills
-//      servern levererat ett framtida mål.
-//   2. NOLLSTÄLLNING. Räknaren var en livstidsbudget per mount — en flik som
-//      stod öppen förbrukade den på dagens första steggränser och stod sedan
-//      död resten av dagen. Nu nollställs den så fort ett färskt mål kommit.
-//   3. EN ÄGARE. router.refresh() uppdaterar hela rutten, så alla kort får
-//      färska props av EN refresh — ändå drev hjältekortet OCH alla fem
-//      småkort varsin kedja (6 parallella hämtningar per steggräns). Nu driver
-//      bara hjältekortet (driveRefresh); övriga konsumerar bara klockan.
-//   4. HYDRERING. Klockan startar som null (samma mönster som climax/fuse) så
-//      serverns och klientens första render är identiska — tidsberoende grenar
-//      slår om först efter mount, aldrig mitt i hydreringen.
+// VARJE KORT ÄGER SIN EGEN KLOCKA. Första försöket lät bara hjältekortet driva
+// hämtningen ("router.refresh() uppdaterar ändå hela rutten"). Det var fel:
+// varje auktionsrad har en EGEN stege, och nextDropAtOf hoppar över dubblett-
+// rungor, så raderna får olika sänkningstider. Ett småkort vars sänkning kom
+// först fastnade då på "Priset uppdateras…" i timmar eftersom hjälten ännu
+// räknade ned — och när hjälten nått sitt golv (nextDropAt=null) hämtades
+// ingenting alls resten av dagen. Nu begär varje instans själv, och en
+// MODULNIVÅ-strypning gör att fem samtidiga begäran ändå blir en hämtning.
 //
-// Dessutom: när fliken blir synlig igen efter att ha varit gömd (mobilen ur
-// fickan morgonen efter) nollställs kedjan och en refresh körs direkt — annars
-// kunde en övernattad flik visa "Stängt för idag" mitt i en live-dag med
-// förbrukad backoff.
+// KEDJAN DÖR ALDRIG. Backoff-stegen (REFRESH_BACKOFF_MS) täcker ~28 min sen
+// tick; därefter fortsätter en långsam puls (SLOW_POLL_MS) i stället för att
+// sluta för gott. Ett längre cron-avbrott lämnade annars sidan låst på
+// "Priset uppdateras…" utan väg tillbaka för en flik som står synlig.
+//
+// GOLVLÄGET PULSAR OCKSÅ. På golvet finns ingen kommande sänkning, men varan
+// kan bli SÅLD — då försvinner den ur getLiveAuctions. Utan puls fortsatte en
+// öppen flik visa "Köp nu – innan någon annan gör det" för något som var borta.
+//
+// HYDRERING: klockan startar null och komponenterna renderar då serverns egna
+// besked (startsAt / closed). Server och klientens första render är alltså
+// alltid identiska; den levande klockan tar över först efter mount.
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { LiveAuctionView } from "../lib/auction-view";
 import { auctionPhase, REFRESH_BACKOFF_MS, type AuctionPhase } from "../lib/auction-day";
 
+/** Långsam puls när backoffen är slut, och i golvläget (fånga "såld"). */
+const SLOW_POLL_MS = 5 * 60_000;
+/** Minsta tid mellan FAKTISKA hämtningar, delat av alla instanser. */
+const MIN_REFRESH_GAP_MS = 4_000;
+
+let lastRefreshAt = 0;
+/** Strypt hämtning: fem kort som blir sena samtidigt ger EN route-hämtning. */
+function requestRefresh(refresh: () => void): void {
+  const now = Date.now();
+  if (now - lastRefreshAt < MIN_REFRESH_GAP_MS) return;
+  lastRefreshAt = now;
+  refresh();
+}
+
 export function useAuctionClock(
   a: Pick<LiveAuctionView, "startsAt" | "startAt" | "nextDropAt">,
-  opts?: { driveRefresh?: boolean },
 ): { phase: AuctionPhase | null; msLeft: number | null } {
-  const drive = opts?.driveRefresh === true;
   const router = useRouter();
   const [now, setNow] = useState<number | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -52,40 +64,46 @@ export function useAuctionClock(
         dayStartMs: a.startAt ? Date.parse(a.startAt) : null,
         nextDropAtMs: a.nextDropAt ? Date.parse(a.nextDropAt) : null,
       });
+  const phase = pt?.phase ?? null;
   const msLeft = pt?.targetMs != null && now !== null ? pt.targetMs - now : null;
-  // Refresh behövs när målet passerats: stale (sänkning sen) eller ended
-  // (dagen slut → hämta morgondagens lineup). pre/countdown/floor har framtida
-  // mål och glider själva över i rätt fas när klockan hinner ikapp.
-  const overdue = pt !== null && (pt.phase === "stale" || pt.phase === "ended");
 
-  // Färskt framtida mål från servern → kedjan är klar, nollställ.
-  useEffect(() => {
-    if (drive && !overdue && attempt !== 0) setAttempt(0);
-  }, [drive, overdue, attempt]);
+  // Målet passerat (sänkning sen, eller dagen slut och rotationen inte klar)
+  // → hämta med stigande backoff. Golvläget pulsar långsamt för att fånga att
+  // varan blivit såld. pre/countdown har framtida mål och sköter sig själva.
+  const overdue = phase === "stale" || phase === "ended";
+  const poll = overdue || phase === "floor";
 
-  // Kedjande backoff: attempt är state, så varje utlöst steg re-armar effekten
-  // för nästa. Avbryts (cleanup) i samma stund servern gett ett framtida mål.
+  // Färskt framtida mål → nollställ kedjan inför nästa gräns.
   useEffect(() => {
-    if (!drive || !overdue || attempt >= REFRESH_BACKOFF_MS.length) return;
+    if (!overdue && attempt !== 0) setAttempt(0);
+  }, [overdue, attempt]);
+
+  useEffect(() => {
+    if (!poll) return;
+    const delay = overdue
+      ? (REFRESH_BACKOFF_MS[attempt] ?? SLOW_POLL_MS)
+      : SLOW_POLL_MS;
     const t = setTimeout(() => {
-      router.refresh();
+      requestRefresh(() => router.refresh());
       setAttempt((n) => n + 1);
-    }, REFRESH_BACKOFF_MS[attempt]);
+    }, delay);
     return () => clearTimeout(t);
-  }, [drive, overdue, attempt, router]);
+  }, [poll, overdue, attempt, router]);
 
-  // Fliken tillbaka i förgrunden → nollställ och hämta färskt direkt.
+  // Fliken tillbaka i förgrunden EFTER att något blivit sent → hämta direkt.
+  // Gate:at på `poll`: utan det gav varje flikväxling en full route-hämtning
+  // mitt i en nedräkning där ingenting ändrats (granskningsfynd).
   useEffect(() => {
-    if (!drive) return;
+    if (!poll) return;
     const onVis = () => {
       if (!document.hidden) {
         setAttempt(0);
-        router.refresh();
+        requestRefresh(() => router.refresh());
       }
     };
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
-  }, [drive, router]);
+  }, [poll, router]);
 
-  return { phase: pt?.phase ?? null, msLeft };
+  return { phase, msLeft };
 }
