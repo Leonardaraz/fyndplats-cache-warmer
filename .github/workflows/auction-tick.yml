@@ -1,8 +1,17 @@
 name: Fyndauktion tick
 
-# Pingar /api/cron/auction-tick varje timme: stegar auktionspriser nedåt,
-# upptäcker köp (→ rotera in nästa produkt ur kön), återställer priser vid
-# sold/expired. All logik ligger i appen — workflow:n är bara väckarklockan.
+# Pingar /api/cron/auction-tick: stegar auktionspriser nedåt, upptäcker köp
+# (→ rotera in nästa produkt ur kön), återställer priser vid sold/expired.
+# All logik ligger i appen — workflow:n är bara väckarklockan.
+#
+# VAR 10:e MINUT, inte varje timme (audit 2026-08-14): GitHub Actions-cron
+# driver 9–57 min (uppmätt: körningar 05:29, 03:57, 01:09 för "0 * * * *"),
+# och Vercel-cronen i vercel.json täcker inte upp på hobby-planen. Med timvis
+# schemaläggning landade prissänkningarna upp till en timme sena — kundernas
+# nedräkning nådde noll utan att något hände och korten fastnade på "Priset
+# uppdateras…". Ticken är idempotent och billig (PATCH:ar bara när målsteget
+# ändrats), så tätare väckning kostar sekunder per körning och gör att varje
+# sänkning landar minuter efter timslaget i stället för uppåt en timme.
 #
 # Återanvänder befintlig repository secret:
 #   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
@@ -10,7 +19,7 @@ name: Fyndauktion tick
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "*/10 * * * *"
   workflow_dispatch:
 
 jobs:
