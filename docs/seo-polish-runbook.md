@@ -594,6 +594,22 @@ Ett urklipp ur en miljöbild behåller det man ser genom varan — här bord, st
 
 Även här gällde regeln från Metod L: **spec-kortet var byggt av samma trasiga beskärning** och bar samma gula fragment. Ombyggt.
 
+**Metod N – variantbilder: en per färg, identiska så när som på färgen:** `scripts/hero/varianter-hero.py`
+
+När produkten har färgval är hjälten inte en bild utan en uppsättning. **Den enda regel som spelar roll är att de ska vara utbytbara** — samma skala, samma placering, samma botten — så att bilden inte hoppar när kunden klickar mellan färgerna. CarPlay-adaptern `e932fcb2` hade silver på 823 px bredd och orange på 858; varan flyttade och skalade om sig vid varje färgbyte.
+
+Bygg alla ur samma sorts källa i en och samma loop, med samma måltal, och **lägg in ett poseprov**: källornas rutor ska ha samma kvot efter normering, annars är det inte samma vinkel och då får de inte skalas efter varandra.
+
+```python
+kvoter = [w / h for w, h in rutor.values()]
+if max(kvoter) - min(kvoter) > 0.04:
+    raise SystemExit("källornas rutor har olika kvot – inte samma pose")
+```
+
+> ⚠️ **Grå gloria kommer oftast av vår egen bearbetning, inte av källan.** Mät innan du skyller på leverantören: de gamla bilderna hade bakgrund 254 och en kant som tonade ut över ett tiotal pixlar (249 → 242 → …), medan originalet är rent — 255 rakt in, 6 px mjuk kant, sedan produkten på 3. Glorian uppstod i uppskalningen till 1400 px från en 336 px-källa.
+
+> 🔒 **Byt variantbilder i TRE steg — Wix låser dem.** Ett försök att ersätta dem rakt av ger `404 PRODUCT_MEDIA_NOT_EXIST: Products must include media files linked to choices`, eftersom `linkedMedia` fortfarande pekar på de gamla. Ordningen är: (1) PATCH:a in de nya bilderna **utan** att ta bort de gamla, (2) peka om `options[].choicesSettings.choices[].linkedMedia` till de nya (skicka `variantsInfo` verbatim i samma PATCH, annars 428), (3) PATCH:a bort de gamla — nu när inget längre länkar dem. Media-ingesten är asynkron, så verifiera med en re-GET och försök om tills alla val pekar rätt.
+
 **Metod B – rembg-urklipp + uppladdning (fallback – bara om Metod A inte är tillgänglig):**
 
 Två begränsningar mot Metod A: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net. Har du något av dessa → använd Metod A.
