@@ -12,7 +12,7 @@
 // prefers-reduced-motion ⇒ ingen canvas, inga pulser; färgläget sätts statiskt.
 
 import { useEffect, useRef } from "react";
-import { dayHeat, isFinalHour, hourIndex } from "../lib/auction-day";
+import { dayHeat, isDayOver, isFinalHour, hourIndex } from "../lib/auction-day";
 
 // Färgstopp för dagen (ljust läge) + ember-läget för sista timmen.
 const LIGHT = [
@@ -105,8 +105,12 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
     }
 
     function applyTheme(now: number) {
-      const heat = dayHeat(startMs, now);
-      const final = isFinalHour(startMs, now);
+      // Efter 19:00: lugnt läge (isDayOver:s hela poäng — priserna är
+      // återställda). dayHeat ligger annars kvar på 1 och sidan fortsatte se
+      // "kokande het" ut hela kvällen fast auktionen var stängd.
+      const over = isDayOver(startMs, now);
+      const heat = over ? 0 : dayHeat(startMs, now);
+      const final = !over && isFinalHour(startMs, now);
       const c = final ? EMBER : paletteAt(heat);
       const s = stage!.style;
       s.setProperty("--a-bg1", c.bg1); s.setProperty("--a-bg2", c.bg2);

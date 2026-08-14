@@ -11,6 +11,7 @@ import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import type { LiveAuctionView } from "../lib/auction-view";
 import { AuctionOdometer } from "./auction-odometer";
+import { AUCTION_DAY_HOURS, isDayOver, REFRESH_BACKOFF_MS } from "../lib/auction-day";
 
 function fmtLeft(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -30,16 +31,30 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
   }, []);
 
   const startMs = a.startsAt ? Date.parse(a.startsAt) : null;
+  const dayMs = a.startAt ? Date.parse(a.startAt) : null;
   const preStart = startMs !== null && startMs > now;
-  const target = preStart ? startMs : a.nextDropAt ? Date.parse(a.nextDropAt) : null;
+  // Dagen slut (≥19:00) med kvarliggande dagsprops — fliken som stått öppen
+  // sedan kvällen. Utan grenen fortsatte kortet ropa "Lägsta pris – första
+  // köparen tar det!" hela natten med ett pris som Wix redan återställt.
+  const ended = !preStart && isDayOver(dayMs, now);
+  // Mål för nedräkning/refresh: start (före 07) → nästa sänkning → dagens slut.
+  // Sista ledet är nytt: när 19:00 passeras korsar msLeft noll → refresh-loopen
+  // hämtar morgondagens lineup i stället för att kortet fryser i golv-läget.
+  const target = preStart
+    ? startMs
+    : a.nextDropAt
+      ? Date.parse(a.nextDropAt)
+      : dayMs !== null
+        ? dayMs + AUCTION_DAY_HOURS * 3_600_000
+        : null;
   const msLeft = target ? target - now : null;
 
   useEffect(() => {
-    if (msLeft === null || msLeft > 0 || refreshes.current >= 3) return;
+    if (msLeft === null || msLeft > 0 || refreshes.current >= REFRESH_BACKOFF_MS.length) return;
     const t = setTimeout(() => {
       refreshes.current += 1;
       router.refresh();
-    }, 4000 + refreshes.current * 20_000);
+    }, REFRESH_BACKOFF_MS[refreshes.current]);
     return () => clearTimeout(t);
   }, [msLeft === null || msLeft > 0, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -72,7 +87,8 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
         )}
       </div>
       <div className="a-hc-info">
-        <div className="a-hc-label">Dagens hetaste fynd</div>
+        {/* Före start är inget "hetast" — allt står på ordinarie pris. */}
+        <div className="a-hc-label">{preStart ? "Startar kl 07" : "Dagens hetaste fynd"}</div>
         <div className="a-hc-name">{a.name}</div>
         <div className="a-hc-price-row">
           <AuctionOdometer value={a.priceNum} className="a-hc-price" />
@@ -83,18 +99,28 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
           <div className="a-hc-timer" suppressHydrationWarning>
             Startar kl 07 — om <b>{fmtLeft(msLeft)}</b>
           </div>
-        ) : msLeft !== null && msLeft > 0 ? (
+        ) : ended ? (
+          <div className="a-hc-timer">Stängt för idag — nya fynd kl 07</div>
+        ) : a.nextDropAt && msLeft !== null && msLeft > 0 ? (
           <div className="a-hc-timer" suppressHydrationWarning>
             Nästa prissänkning om <b>{fmtLeft(msLeft)}</b>
           </div>
-        ) : msLeft !== null ? (
+        ) : a.nextDropAt ? (
           <div className="a-hc-timer">Priset uppdateras…</div>
         ) : (
           <div className="a-hc-timer a-floor">
             Lägsta pris – <b>första köparen tar det!</b>
           </div>
         )}
-        <span className="a-hc-btn">Köp nu – innan någon annan gör det →</span>
+        {/* Brådske-CTA:n hör hemma under pågående dag. Före start och efter
+            stängning finns inget att hinna före — då säljer lugnet bättre. */}
+        <span className="a-hc-btn">
+          {preStart
+            ? "Se fyndet — priset faller från kl 07 →"
+            : ended
+              ? "Nya fynd kl 07 →"
+              : "Köp nu – innan någon annan gör det →"}
+        </span>
       </div>
     </a>
   );
