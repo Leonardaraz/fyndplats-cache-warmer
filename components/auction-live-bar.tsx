@@ -4,8 +4,8 @@
 // CSS-variabler (ligger i .a-stage-trädet) så den glöder i ember-läget.
 // Visas efter att man scrollat förbi hjältekortet; mount-gated (klockan).
 //
-// Klockan kommer från useAuctionClock (utan driveRefresh — hjältekortet äger
-// refresh-kedjan och router.refresh() uppdaterar hela rutten). Granskningen
+// Klockan kommer från useAuctionClock (som stryper hämtningarna på modulnivå
+// så alla korten tillsammans ändå bara ger en route-hämtning). Granskningen
 // 2026-08-14 fällde pillens gamla fallback: när en sänkning var SEN visade
 // den "lägsta pris!" mitt på dagen (falskt golv-påstående) medan korten
 // intill sa "Priset uppdateras…". Nu delar alla samma fasmaskin. Efter
@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from "react";
 import type { LiveAuctionView } from "../lib/auction-view";
-import { fmtLeft } from "../lib/auction-day";
+import { AUCTION_DAY_MS, fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
@@ -32,7 +32,7 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
   const dropped = a.priceNum < a.listPrice;
   // Timmens progress som en tunn linje i pillens botten (100 % = nästa sänkning;
   // vid golvet ligger den fulltecknad). Före start: hur nära 07 vi är (12h-fönster).
-  const windowMs = preStart ? 12 * 3_600_000 : 3_600_000;
+  const windowMs = preStart ? AUCTION_DAY_MS : 3_600_000;
   const progress =
     phase === "floor" || phase === "stale" || msLeft === null
       ? 100
