@@ -6,7 +6,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, FINAL_HOUR } from "./auction-day.ts";
+import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, FINAL_HOUR, auctionPhase, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS } from "./auction-day.ts";
 
 const H = 3_600_000;
 const START = Date.parse("2026-07-12T05:00:00.000Z"); // 07:00 svensk sommartid
@@ -45,4 +45,52 @@ test("msToDayEnd: räknar ner till 19:00, null efter", () => {
   assert.equal(msToDayEnd(START, START + 11 * H), H);
   assert.equal(msToDayEnd(START, START + AUCTION_DAY_HOURS * H), null);
   assert.equal(msToDayEnd(null, START), null);
+});
+
+test("auctionPhase: hela dygnsresan i rätt ordning", () => {
+  const start = START;                       // 07:00
+  const t = (nextDropAtMs: number | null, startsAtMs: number | null = null) =>
+    ({ startsAtMs, dayStartMs: start, nextDropAtMs });
+
+  // Natt: startsAt i framtiden vinner över allt annat.
+  assert.deepEqual(auctionPhase(start - 2 * H, t(start + H, start)), { phase: "pre", targetMs: start });
+  // Dag med känd framtida sänkning.
+  assert.equal(auctionPhase(start + H, t(start + 2 * H)).phase, "countdown");
+  // Målet passerat men dagen pågår → stale (refresh-kedjan jobbar).
+  assert.equal(auctionPhase(start + 2 * H + 60_000, t(start + 2 * H)).phase, "stale");
+  // Golv utan nextDrop, dagen pågår → floor med dagens slut som mål.
+  assert.deepEqual(auctionPhase(start + 11.5 * H, t(null)), {
+    phase: "floor", targetMs: start + AUCTION_DAY_HOURS * H,
+  });
+  // ≥19:00 → ended, oavsett kvarvarande stale-mål från dagen.
+  assert.equal(auctionPhase(start + 12 * H, t(start + 9 * H)).phase, "ended");
+  assert.equal(auctionPhase(start + 15 * H, t(null)).phase, "ended");
+});
+
+test("auctionPhase: ended vinner inte över en NY dags pre-läge", () => {
+  const yesterday = START;
+  const tomorrow = START + 24 * H;
+  // Efter rotation: dayStart = i morgon (framtid) → isDayOver false → pre.
+  const out = auctionPhase(START + 15 * H, { startsAtMs: tomorrow, dayStartMs: tomorrow, nextDropAtMs: tomorrow + H });
+  assert.deepEqual(out, { phase: "pre", targetMs: tomorrow });
+  // Stale props (gammal dag) + inget startsAt → ended, target = gårdagens slut.
+  const stale = auctionPhase(START + 15 * H, { startsAtMs: null, dayStartMs: yesterday, nextDropAtMs: null });
+  assert.deepEqual(stale, { phase: "ended", targetMs: yesterday + AUCTION_DAY_HOURS * H });
+});
+
+test("dayEndMs + fmtLeft: gränsvärden", () => {
+  assert.equal(dayEndMs(null), null);
+  assert.equal(dayEndMs(START), START + AUCTION_DAY_HOURS * H);
+  assert.equal(fmtLeft(0), "0:00");
+  assert.equal(fmtLeft(-5000), "0:00");          // klampas, aldrig negativt
+  assert.equal(fmtLeft(65_000), "1:05");
+  assert.equal(fmtLeft(3 * H + 62_000), "3:01:02");
+});
+
+test("REFRESH_BACKOFF_MS: stigande och täcker väckarklockans drift", () => {
+  for (let i = 1; i < REFRESH_BACKOFF_MS.length; i++) {
+    assert.ok(REFRESH_BACKOFF_MS[i] > REFRESH_BACKOFF_MS[i - 1], "stegen ska vara stigande");
+  }
+  const sum = REFRESH_BACKOFF_MS.reduce((a, b) => a + b, 0);
+  assert.ok(sum >= 25 * 60_000, `summan ${sum} ska täcka minst 25 min drift`);
 });

@@ -58,3 +58,4 @@ store-*.jpg
 .wix-key-tmp
 .wix-env-body.json
 .wix-runtime-env
+outputs/pdp-hero-diag/

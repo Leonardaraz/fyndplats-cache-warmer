@@ -3,44 +3,40 @@
 // med när man scrollar, som i en riktig auktions-app. Ärver scenens
 // CSS-variabler (ligger i .a-stage-trädet) så den glöder i ember-läget.
 // Visas efter att man scrollat förbi hjältekortet; mount-gated (klockan).
+//
+// Klockan kommer från useAuctionClock (utan driveRefresh — hjältekortet äger
+// refresh-kedjan och router.refresh() uppdaterar hela rutten). Granskningen
+// 2026-08-14 fällde pillens gamla fallback: när en sänkning var SEN visade
+// den "lägsta pris!" mitt på dagen (falskt golv-påstående) medan korten
+// intill sa "Priset uppdateras…". Nu delar alla samma fasmaskin. Efter
+// stängning (ended) döljs pillen helt — det finns inget att jaga.
 
 import { useEffect, useState } from "react";
 import type { LiveAuctionView } from "../lib/auction-view";
-import { isDayOver } from "../lib/auction-day";
-
-function fmtLeft(ms: number): string {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
-}
+import { fmtLeft } from "../lib/auction-day";
+import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
-  const [now, setNow] = useState<number | null>(null);
+  const { phase, msLeft } = useAuctionClock(a);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    setNow(Date.now());
-    const t = setInterval(() => setNow(Date.now()), 1000);
     const onScroll = () => setScrolled(window.scrollY > 480);
     onScroll();
     addEventListener("scroll", onScroll, { passive: true });
-    return () => { clearInterval(t); removeEventListener("scroll", onScroll); };
+    return () => removeEventListener("scroll", onScroll);
   }, []);
 
-  if (now === null) return null;
-  const startMs = a.startsAt ? Date.parse(a.startsAt) : null;
-  const preStart = startMs !== null && startMs > now;
-  // Efter 19:00 finns inget att jaga — en "live"-pill vore ren dekoration som
-  // pekar på ett pris Wix redan återställt. Bort med den tills nästa dag.
-  if (!preStart && isDayOver(a.startAt ? Date.parse(a.startAt) : null, now)) return null;
-  const target = preStart ? startMs : a.nextDropAt ? Date.parse(a.nextDropAt) : null;
-  const msLeft = target ? target - now : null;
+  if (phase === null || phase === "ended") return null;
+  const preStart = phase === "pre";
   const dropped = a.priceNum < a.listPrice;
   // Timmens progress som en tunn linje i pillens botten (100 % = nästa sänkning;
   // vid golvet ligger den fulltecknad). Före start: hur nära 07 vi är (12h-fönster).
   const windowMs = preStart ? 12 * 3_600_000 : 3_600_000;
-  const progress = msLeft === null ? 100 : Math.min(100, Math.max(0, (1 - msLeft / windowMs) * 100));
+  const progress =
+    phase === "floor" || phase === "stale" || msLeft === null
+      ? 100
+      : Math.min(100, Math.max(0, (1 - msLeft / windowMs) * 100));
 
   return (
     <a className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled}>
@@ -49,11 +45,13 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
       <span className="a-lb-price">{Math.round(a.priceNum).toLocaleString("sv-SE")} kr</span>
       {dropped && <span className="a-lb-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
       <span className="a-lb-timer" suppressHydrationWarning>
-        {preStart && msLeft !== null && msLeft > 0
+        {preStart && msLeft !== null
           ? `startar om ${fmtLeft(msLeft)}`
-          : msLeft !== null && msLeft > 0
+          : phase === "countdown" && msLeft !== null
             ? `faller om ${fmtLeft(msLeft)}`
-            : "lägsta pris!"}
+            : phase === "stale"
+              ? "uppdateras…"
+              : "lägsta pris!"}
       </span>
       <span className="a-lb-cta">Köp →</span>
     </a>

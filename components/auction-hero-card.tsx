@@ -1,65 +1,34 @@
 "use client";
 // "Dagens hetaste fynd" — hjältekortet: flaggskeppet (störst rabatt) i stort
 // format med rullande odometer-pris, "Du sparar X kr", nedräkning och stor CTA.
-// Samma refresh-mekanik som småkorten: när steggränsen passeras hämtas nytt
-// pris från servern (Wix-priset är alltid det som visas och debiteras).
+// All klocklogik (faser, nedräkning, refresh-kedja) bor i useAuctionClock —
+// hjältekortet är kortens enda refresh-ägare (driveRefresh), eftersom
+// router.refresh() uppdaterar hela rutten och därmed även småkorten.
+//
+// EFTER STÄNGNING (fas ended) visas LISTPRISET utan badge/spara-rad:
+// granskningen 2026-08-14 fällde första stängt-läget för att det bara bytte
+// texterna — golvpris, "−34%" och "Du sparar…" låg kvar från stale props och
+// annonserade en rabatt som Wix redan återställt och ingen kunde få.
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import type { LiveAuctionView } from "../lib/auction-view";
 import { AuctionOdometer } from "./auction-odometer";
-import { AUCTION_DAY_HOURS, isDayOver, REFRESH_BACKOFF_MS } from "../lib/auction-day";
-
-function fmtLeft(ms: number): string {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
-}
+import { fmtLeft } from "../lib/auction-day";
+import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
-  const router = useRouter();
-  const [now, setNow] = useState(() => Date.now());
-  const refreshes = useRef(0);
+  const { phase, msLeft } = useAuctionClock(a, { driveRefresh: true });
+  const ended = phase === "ended";
+  // Före mount (phase null) används serverns eget förstart-besked (startsAt
+  // sätts bara av servern före 07) så SSR-HTML och klientens första render
+  // alltid är identiska — inga tidsgrenar i hydreringen.
+  const preStart = phase === null ? a.startsAt !== null : phase === "pre";
 
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const startMs = a.startsAt ? Date.parse(a.startsAt) : null;
-  const dayMs = a.startAt ? Date.parse(a.startAt) : null;
-  const preStart = startMs !== null && startMs > now;
-  // Dagen slut (≥19:00) med kvarliggande dagsprops — fliken som stått öppen
-  // sedan kvällen. Utan grenen fortsatte kortet ropa "Lägsta pris – första
-  // köparen tar det!" hela natten med ett pris som Wix redan återställt.
-  const ended = !preStart && isDayOver(dayMs, now);
-  // Mål för nedräkning/refresh: start (före 07) → nästa sänkning → dagens slut.
-  // Sista ledet är nytt: när 19:00 passeras korsar msLeft noll → refresh-loopen
-  // hämtar morgondagens lineup i stället för att kortet fryser i golv-läget.
-  const target = preStart
-    ? startMs
-    : a.nextDropAt
-      ? Date.parse(a.nextDropAt)
-      : dayMs !== null
-        ? dayMs + AUCTION_DAY_HOURS * 3_600_000
-        : null;
-  const msLeft = target ? target - now : null;
-
-  useEffect(() => {
-    if (msLeft === null || msLeft > 0 || refreshes.current >= REFRESH_BACKOFF_MS.length) return;
-    const t = setTimeout(() => {
-      refreshes.current += 1;
-      router.refresh();
-    }, REFRESH_BACKOFF_MS[refreshes.current]);
-    return () => clearTimeout(t);
-  }, [msLeft === null || msLeft > 0, router]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const dropped = a.priceNum < a.listPrice;
+  const dropped = !ended && a.priceNum < a.listPrice;
   const saved = Math.round(a.listPrice - a.priceNum);
+  const shownPrice = ended ? a.listPrice : a.priceNum;
 
   return (
     <a className="a-hero-card" href={`/produkt/${a.slug}`}>
@@ -87,25 +56,30 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
         )}
       </div>
       <div className="a-hc-info">
-        {/* Före start är inget "hetast" — allt står på ordinarie pris. */}
-        <div className="a-hc-label">{preStart ? "Startar kl 07" : "Dagens hetaste fynd"}</div>
+        <div className="a-hc-label">
+          {preStart ? "Startar kl 07" : ended ? "Stängt för idag" : "Dagens hetaste fynd"}
+        </div>
         <div className="a-hc-name">{a.name}</div>
         <div className="a-hc-price-row">
-          <AuctionOdometer value={a.priceNum} className="a-hc-price" />
+          <AuctionOdometer value={shownPrice} className="a-hc-price" />
           {dropped && <span className="a-hc-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
           {dropped && saved > 0 && <span className="a-hc-save">Du sparar {saved.toLocaleString("sv-SE")} kr</span>}
         </div>
-        {preStart && msLeft !== null && msLeft > 0 ? (
+        {/* Fas null (före mount) → radhög platshållare så layouten inte hoppar
+            när texten dyker upp efter hydrering (samma mönster som climax). */}
+        {phase === null ? (
+          <div className="a-hc-timer">{" "}</div>
+        ) : phase === "pre" && msLeft !== null ? (
           <div className="a-hc-timer" suppressHydrationWarning>
             Startar kl 07 — om <b>{fmtLeft(msLeft)}</b>
           </div>
         ) : ended ? (
           <div className="a-hc-timer">Stängt för idag — nya fynd kl 07</div>
-        ) : a.nextDropAt && msLeft !== null && msLeft > 0 ? (
+        ) : phase === "countdown" && msLeft !== null ? (
           <div className="a-hc-timer" suppressHydrationWarning>
             Nästa prissänkning om <b>{fmtLeft(msLeft)}</b>
           </div>
-        ) : a.nextDropAt ? (
+        ) : phase === "stale" ? (
           <div className="a-hc-timer">Priset uppdateras…</div>
         ) : (
           <div className="a-hc-timer a-floor">
