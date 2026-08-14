@@ -6,7 +6,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, FINAL_HOUR, auctionPhase, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS } from "./auction-day.ts";
+import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, AUCTION_DAY_MS, PRESTART_WINDOW_MS, FINAL_HOUR, auctionPhase, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS } from "./auction-day.ts";
 
 const H = 3_600_000;
 const START = Date.parse("2026-07-12T05:00:00.000Z"); // 07:00 svensk sommartid
@@ -95,24 +95,35 @@ test("REFRESH_BACKOFF_MS: stigande och täcker väckarklockans drift", () => {
   assert.ok(sum >= 25 * 60_000, `summan ${sum} ska täcka minst 25 min drift`);
 });
 
-// Regression: `closed` i LiveAuctionView räknas ut PÅ SERVERN med samma
-// isDayOver som klienten använder — annars skeppar SSR/ISR-HTML:en golvpris
-// med rabattbadge efter stängning (granskning 2026-08-14). Testet låser att
-// serverns och klientens svar aldrig kan gå isär för samma tidpunkt.
-test("isDayOver: server och klient ger samma stängt-besked", () => {
-  const cases = [
-    [START - H, false],          // före start
-    [START, false],              // 07:00
-    [START + 11 * H, false],     // 18:00, sista timmen
-    [START + 12 * H - 1, false], // 18:59:59.999
-    [START + 12 * H, true],      // 19:00 exakt
-    [START + 20 * H, true],      // natten
-  ] as const;
-  for (const [nowMs, expected] of cases) {
-    assert.equal(isDayOver(START, nowMs), expected, `vid ${(nowMs - START) / H} h`);
-    // Samma indata måste ge samma fas-beslut (ended) i klientmaskinen.
-    const p = auctionPhase(nowMs, { startsAtMs: null, dayStartMs: START, nextDropAtMs: null });
-    assert.equal(p.phase === "ended", expected, `fasmaskinen vid ${(nowMs - START) / H} h`);
+// Kontraktet efter granskningen 2026-08-14: servern skickar sin KLOCKA
+// (serverNowMs), inte ett färdigt "closed"-beslut, och komponenterna kör samma
+// auctionPhase före som efter hydrering. Testet låser att en och samma tidpunkt
+// alltid ger samma fas oavsett vilken klocka den kom ifrån — det var just en
+// handrullad parallell ternär som hann säga emot maskinen.
+test("auctionPhase: serverklocka och klientklocka ger identisk fas", () => {
+  const times = { startsAtMs: null, dayStartMs: START, nextDropAtMs: START + 3 * H };
+  for (const at of [START - H, START, START + 2 * H, START + 3 * H + 1, START + 12 * H, START + 20 * H]) {
+    const serverRender = auctionPhase(at, times); // före hydrering
+    const clientRender = auctionPhase(at, times); // efter mount, samma instant
+    assert.deepEqual(serverRender, clientRender, `divergens vid ${(at - START) / H} h`);
   }
-  assert.equal(isDayOver(null, START + 20 * H), false, "utan startAt: aldrig stängt");
+});
+
+test("auctionPhase: stängt-beslutet följer dagslängden, inte en separat flagga", () => {
+  const t = (nextDropAtMs: number | null) => ({ startsAtMs: null, dayStartMs: START, nextDropAtMs });
+  // Sista sekunden av dagen är INTE stängt; exakt 19:00 är det.
+  assert.notEqual(auctionPhase(START + AUCTION_DAY_HOURS * H - 1, t(null)).phase, "ended");
+  assert.equal(auctionPhase(START + AUCTION_DAY_HOURS * H, t(null)).phase, "ended");
+  // Stängt vinner över ett kvarliggande (passerat) sänkningsmål.
+  assert.equal(auctionPhase(START + 13 * H, t(START + 9 * H)).phase, "ended");
+  // Utan dagsstart kan inget vara stängt (defensivt: rad utan startAt).
+  assert.notEqual(
+    auctionPhase(START + 20 * H, { startsAtMs: null, dayStartMs: null, nextDropAtMs: null }).phase,
+    "ended",
+  );
+});
+
+test("PRESTART_WINDOW_MS: natten, inte dagen", () => {
+  assert.equal(PRESTART_WINDOW_MS, 24 * H - AUCTION_DAY_HOURS * H);
+  assert.equal(AUCTION_DAY_MS + PRESTART_WINDOW_MS, 24 * H, "dag + natt = ett dygn");
 });

@@ -22,12 +22,12 @@ import { fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
+  // phase är aldrig null: före mount kommer den från serverns klocka, så
+  // SSR-HTML och klientens första render är identiska (och HTML:en korrekt för
+  // crawlers). Ingen egen ternär här — fasmaskinen är enda beslutspunkten.
   const { phase, msLeft } = useAuctionClock(a);
-  // Före mount (phase null) styr SERVERNS besked (a.closed / a.startsAt), så
-  // SSR-HTML och klientens första render alltid är identiska — och HTML:en är
-  // korrekt redan för crawlers och pre-hydreringspaint.
-  const ended = phase === null ? a.closed : phase === "ended";
-  const preStart = phase === null ? a.startsAt !== null : phase === "pre";
+  const ended = phase === "ended";
+  const preStart = phase === "pre";
 
   const dropped = !ended && a.priceNum < a.listPrice;
   const saved = Math.round(a.listPrice - a.priceNum);
@@ -67,28 +67,17 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
           {dropped && <span className="a-hc-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
           {dropped && saved > 0 && <span className="a-hc-save">Du sparar {saved.toLocaleString("sv-SE")} kr</span>}
         </div>
-        {/* Fas null (före mount): rendera SERVERNS besked i stället för en tom
-            platshållare — en bordad tom pill blinkade förbi vid varje kall
-            laddning och crawlern fick ingen text alls (granskning 2026-08-14). */}
-        {phase === null ? (
-          <div className="a-hc-timer">
-            {a.closed
-              ? "Stängt för idag — nya fynd kl 07"
-              : a.startsAt
-                ? "Startar kl 07"
-                : a.nextDropAt
-                  ? "Priset sjunker varje timme"
-                  : "Lägsta pris – första köparen tar det!"}
-          </div>
-        ) : phase === "pre" && msLeft !== null ? (
+        {phase === "pre" ? (
           <div className="a-hc-timer" suppressHydrationWarning>
-            Startar kl 07 — om <b>{fmtLeft(msLeft)}</b>
+            {msLeft !== null ? <>Startar kl 07 — om <b>{fmtLeft(msLeft)}</b></> : "Startar kl 07"}
           </div>
         ) : ended ? (
           <div className="a-hc-timer">Stängt för idag — nya fynd kl 07</div>
-        ) : phase === "countdown" && msLeft !== null ? (
+        ) : phase === "countdown" ? (
           <div className="a-hc-timer" suppressHydrationWarning>
-            Nästa prissänkning om <b>{fmtLeft(msLeft)}</b>
+            {msLeft !== null
+              ? <>Nästa prissänkning om <b>{fmtLeft(msLeft)}</b></>
+              : "Priset sjunker varje timme"}
           </div>
         ) : phase === "stale" ? (
           <div className="a-hc-timer">Priset uppdateras…</div>

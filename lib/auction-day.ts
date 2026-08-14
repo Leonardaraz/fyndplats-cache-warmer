@@ -73,6 +73,10 @@ export const REFRESH_BACKOFF_MS = [5_000, 30_000, 90_000, 180_000, 420_000, 960_
 /** Auktionsdagens längd i ms + dagens slut för ett givet startAt. Håller
  *  07→19-matten i EN modul — komponenterna hade börjat inline:a 3_600_000. */
 export const AUCTION_DAY_MS = AUCTION_DAY_HOURS * HOUR_MS;
+/** Nattens längd (19→07) — fönstret en förstart-nedräkning mäts mot. EGEN
+ *  konstant: den är lika med dagslängden bara så länge dagen råkar vara 12 h,
+ *  och pillen använde tidigare AUCTION_DAY_MS här (granskning 2026-08-14). */
+export const PRESTART_WINDOW_MS = 24 * HOUR_MS - AUCTION_DAY_MS;
 export function dayEndMs(startAtMs: number | null): number | null {
   return startAtMs == null ? null : startAtMs + AUCTION_DAY_MS;
 }

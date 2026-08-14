@@ -14,7 +14,6 @@
 // pris + tidpunkt för NÄSTA sänkning.
 
 import { getProducts, type Product } from "./products";
-import { isDayOver } from "./auction-day";
 
 const WIX_BASE = "https://www.wixapis.com";
 const COL = "FyndplatsAuctions";
@@ -59,15 +58,16 @@ export type LiveAuctionView = {
    *  (färgtemperatur, tändning kl 18). Avslöjar inget: starttiden är publik. */
   startAt: string | null;
   /**
-   * Auktionsdagen är slut (≥19:00) men raden ligger kvar som `live` tills
-   * ticken hunnit rotera. Räknas ut PÅ SERVERN: gjordes det bara på klienten
-   * efter mount (granskning 2026-08-14) skeppade SSR/ISR-HTML:en fortfarande
-   * golvpriset med "−34 %" och "Du sparar" — det som Googlebot indexerar och
-   * det som syns före hydrering. Klientens FÖRSTA render använder detta värde,
-   * så server och klient är alltid överens; därefter tar den levande klockan
-   * över (kan hinna slå om inom ISR-fönstret på 60 s).
+   * Serverns klocka när vyn byggdes. Skickas i stället för färdiga flaggor så
+   * att ALLA konsumenter (kort, hjältekort, pill, startsidans banner) kan köra
+   * samma rena fasmaskin — `auctionPhase(serverNowMs, …)` före hydrering,
+   * `auctionPhase(clientNow, …)` efter. Två tidigare varianter hade i stället
+   * en `closed`-boolean plus handrullade ternärer i komponenterna; de hann
+   * hinna säga emot maskinen (granskning 2026-08-14) och glömdes bort på
+   * startsidan. OBS: värdet är lika gammalt som sidans ISR-fönster — på
+   * /fyndauktion 60 s, på startsidan upp till en timme.
    */
-  closed: boolean;
+  serverNowMs: number;
   slot: number;
   inStock: boolean;
 };
@@ -154,7 +154,7 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
         nextDropAt: nextDropAtOf(r, now),
         startsAt: r.startAt && Date.parse(r.startAt) > now ? r.startAt : null,
         startAt: r.startAt ?? null,
-        closed: isDayOver(r.startAt ? Date.parse(r.startAt) : null, now),
+        serverNowMs: now,
         slot: r.slot ?? 0,
         inStock: p.inStock,
       } satisfies LiveAuctionView;

@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from "react";
 import type { LiveAuctionView } from "../lib/auction-view";
-import { AUCTION_DAY_MS, fmtLeft } from "../lib/auction-day";
+import { PRESTART_WINDOW_MS, fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
@@ -27,12 +27,14 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
     return () => removeEventListener("scroll", onScroll);
   }, []);
 
-  if (phase === null || phase === "ended") return null;
+  if (phase === "ended") return null;
   const preStart = phase === "pre";
   const dropped = a.priceNum < a.listPrice;
   // Timmens progress som en tunn linje i pillens botten (100 % = nästa sänkning;
   // vid golvet ligger den fulltecknad). Före start: hur nära 07 vi är (12h-fönster).
-  const windowMs = preStart ? AUCTION_DAY_MS : 3_600_000;
+  // Före start mäts hur nära 07 vi är över NATTENS längd (19→07), inte dagens
+  // — de är lika bara så länge dagen råkar vara 12 h (granskningsfynd).
+  const windowMs = preStart ? PRESTART_WINDOW_MS : 3_600_000;
   const progress =
     phase === "floor" || phase === "stale" || msLeft === null
       ? 100
