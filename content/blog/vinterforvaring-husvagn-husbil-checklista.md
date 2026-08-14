@@ -92,6 +92,8 @@ Vårt [husvagnsöverdrag i 4 lager](/produkt/husvagnsoverdrag-4-lager-med-dacksk
 
 Alla behöver inte ställa av i oktober. Med värme ombord är september och oktober några av årets bästa campingmånader – tomma ställplatser, färger i skogen och inga myggor. En [dieselvärmare för husbil och husvagn](/produkt/dieselvarmare-husbil-8kw-allt-i-ett) på 8 kW värmer 15–20 m² och drar bara några deciliter i timmen, med egen tank och fjärrkontroll. **Från 1 469 kr.** Då kan checklistan ovan vänta till november.
 
+Osäker på vilken effekt du behöver, eller hur avgasröret ska dras? Vi går igenom effektval, förbrukning, montering och säkerheten i vår [köpguide för dieselvärmare](/blogg/dieselvarmare-kopguide-2026).
+
 ## Utforska mer hos Fyndplats
 
 Mer till vagnen och turen hittar du inom [Friluftsliv & Resa](/kategori/friluftsliv-resa) och [Bil & Cykel](/kategori/bil-cykel). Läs gärna vår [köpguide för uppblåsbara tält](/blogg/uppblasbart-talt-kopguide-2026) om du campar vidare i höst, och [vad de nya tullreglerna betyder](/blogg/nya-tullreglerna-2026-eu-lager) för leveranser från EU-lager.
