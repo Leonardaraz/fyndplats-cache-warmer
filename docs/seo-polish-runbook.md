@@ -77,8 +77,30 @@ Specs får bara komma från känd importdata eller `web_search` (AliExpress-sido
 - **Djurbostäder (burar, hus, inhägnader)** → Jordbruksverkets föreskrifter **SJVFS 2019:15 (L80)**. Minimimåtten är bindande i Sverige, och de flesta AliExpress-burar är för små. Verifierade gränser:
   - **Fågelbur**, fåglar ≤20 cm: **0,31 m² golvyta**, **längsta sida ≥0,7 m**, **höjd ≥0,6 m**.
   - **Guldhamster:** **0,12 m² golvyta**, kortaste sida **≥25 cm**, höjd **≥20 cm**. Hjuldiameter **≥28 cm** (dvärghamster ≥20 cm).
-  - ⚠️ **Hyllplan och våningar räknas INTE** in i golvytan — bara bottenytan.
-  - Under gränsen → **importera/polera inte**. Radera produkten, markera mappningsraden `rejected` med den rättsliga orsaken, och berätta för Leonard varför. *(Två fågelburar 2026-08-10: 0,15 m² och 0,26 m², längsta sidor 44,5 cm och 52 cm.)*
+  - **Kanin** (sällskap), golvyta per viktklass — ensam / per djur i grupp:
+    | Vikt | Ensam | I grupp |
+    |---|---|---|
+    | ≤ 2 kg | 0,5 m² | 0,3 m² |
+    | 2–3,5 kg | **0,7 m²** | 0,35 m² |
+    | 3,5–4,5 kg | 0,8 m² | 0,40 m² |
+    | 4,5–6 kg | 0,9 m² | 0,45 m² |
+    | > 6 kg | 1,0 m² | 0,5 m² |
+
+    Minsta höjd **0,5 m** (liten kanin) till **0,9 m** (stor). Utgå från **0,7 m²** när
+    leverantören inte anger vikt — det är normalstor sällskapskanin. Marknadsför
+    leverantören buren för "1–2 kaniner" gäller ändå 0,7 m² (2 × 0,35). Kaninen ska
+    dessutom ha en **hylla** att sitta på och under (8 kap. 21 §) — men hyllan räknas
+    inte in i ytan. *(Källa: Jordbruksverket, "Kaniner som sällskapsdjur"; måtten står i
+    bilaga 1:3 till L80, som 8 kap. 10 § hänvisar till.)*
+  - ⚠️ **Hyllplan och våningar räknas INTE** in i golvytan — bara bottenytan. Jordbruksverket
+    skriver ut det uttryckligen. På en tvåvåningsbur räknas alltså markplanet, inte huset ovanpå.
+    Kontrollera också höjden på varje delyta separat: en yta under ett upphöjt hus som bara är
+    32 cm hög uppfyller inte höjdkravet och bör inte räknas med.
+  - **Hobbyhöns:** ingen verifierad siffra ännu. Leverantörernas antalspåståenden är ofta
+    orimliga — ett hönshus vars hushållsdel är 0,656 m² marknadsfördes för "10–15 höns"
+    (2026-08-13, `28b359af`, parkerad). Publicera aldrig leverantörens antal utan att först
+    kontrollera SJVFS 2019:15 respektive 2019:23.
+  - Under gränsen → **importera/polera inte**. Radera produkten, markera mappningsraden `rejected` med den rättsliga orsaken, och berätta för Leonard varför. *(Två fågelburar 2026-08-10: 0,15 m² och 0,26 m², längsta sidor 44,5 cm och 52 cm. Tre kaninburar 2026-08-13: 0,179 m², 0,523 m² och 0,566 m².)*
 - **Vapen och vapenrepliker** → stopp och flagga. Airsoft/soft air har 18-årsgräns, och polisen påpekar att repliker förväxlas med skarpa vapen. *(En 1:1-replik av en Glock 17 med `AUSTRIA`/`9x19`-gravyr och utan orange mynning raderades 2026-08-10.)*
 - **Leksaker** → **EN71**-märkningen och **åldersgränsen** ska stå i produkttexten. Saknas certifieringen i leverantörsdatan: flagga hellre än att skriva ut en gissad märkning.
 - **El till kroppen / medicintekniskt / kosttillskott** → flagga till Leonard i stället för att polera.
