@@ -11,7 +11,7 @@ import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
 import { categoryContent } from "../../../lib/category-content";
 import { categorySeo } from "../../../lib/category-seo";
 import { getBlurDataURL } from "../../../lib/lqip";
-import { categoryProgrammaticLinks, blogLinksFor } from "../../../lib/seo/programmatic";
+import { categoryProgrammaticLinks, blogLinksForPage } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
 
 // ISR: kategorisidorna förgenereras (generateStaticParams) men regenereras i
@@ -104,8 +104,14 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // giltiga sidor, så aldrig en länk till 404.
   const progLinks = await categoryProgrammaticLinks(active.slug);
   // Blogg-länkar för kategorin (länkflöde pengasidor → blogg, saknades helt).
+  // Ömsesidiga först: en guide som länkar hit ("Mer till vagnen hittar du inom
+  // Friluftsliv & Resa") visas på kategorisidan även när kategorinamnet saknas
+  // i guidens rubrik. Kategorinamn + förälder är kvar som påfyllning.
   // Äkta-träff-filtrerat: tom lista → inget blogg-block renderas.
-  const blogLinks = await blogLinksFor([active.name, ...(parent ? [parent.name] : [])]);
+  const blogLinks = await blogLinksForPage(`/kategori/${active.slug}`, [
+    active.name,
+    ...(parent ? [parent.name] : []),
+  ]);
   // Korskategori-upptäckt: länka till övriga huvudavdelningar (exkl. den aktuella
   // avdelningen). Bara giltiga /kategori/{slug}-sidor från getCollections → aldrig
   // 404. Ger en guidad väg vidare mellan avdelningar (höjer upptäckt + AOV).

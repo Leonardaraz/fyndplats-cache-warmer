@@ -23,6 +23,8 @@
 import { cache } from "react";
 import { getProducts, getCollections, dedupeProducts, type Product, type Collection } from "../products";
 import { getPosts, type Post } from "../blog";
+import { getLocalPosts } from "../local-blog";
+import { buildBlogLinkIndex, type LinkingPost } from "./blog-link-index";
 import typesJson from "./programmatic-types.json";
 import interestsJson from "./programmatic-interests.json";
 import * as T from "./programmatic-templates";
@@ -128,6 +130,62 @@ function relatedPosts(posts: Post[], keywords: string[], limit = 3): { title: st
 export async function blogLinksFor(keywords: string[], limit = 2): Promise<CrossLink[]> {
   const posts = await getPosts();
   return relatedPosts(posts, keywords, limit).map((b) => ({ href: `/blogg/${b.slug}`, label: b.title }));
+}
+
+/**
+ * Det omvända länkindexet över lokala inlägg. `cache` = en gång per request
+ * (samma mönster som getValidTypeSlugs); getLocalPosts har dessutom sin egen
+ * modul-cache i produktion, så kostnaden är en HTML-skanning per bygge.
+ * Själva indexbygget bor i blog-link-index.ts, som hålls beroendefri för att
+ * kunna testas — inläsningen från disk kan bara ske här.
+ */
+const blogLinkIndex = cache(async (): Promise<Map<string, LinkingPost[]>> => {
+  return buildBlogLinkIndex(await getLocalPosts());
+});
+
+/** Inlägg som länkar till en given sökväg (t.ex. "/produkt/stodben-…"). */
+async function postsLinkingTo(path: string): Promise<LinkingPost[]> {
+  return (await blogLinkIndex()).get(path.toLowerCase()) || [];
+}
+
+/**
+ * Blogg-länkar för en KONKRET sida (produkt-/kategorisida), med ömsesidighet
+ * först: inlägg som faktiskt LÄNKAR HIT visas före nyckelordsgissningarna.
+ *
+ * Varför inte bara nyckelord: `relatedPosts` matchar mot inläggets titel +
+ * excerpt, vilket missar det starkaste sambandet vi har. Vinterförvarings-
+ * guiden har ett eget avsnitt om dieselvärmaren och länkar till produktsidan —
+ * men ordet finns varken i rubriken eller meta-beskrivningen, så produktsidan
+ * länkade tillbaka till en helt orelaterad guide. Reverse-indexet läser guidens
+ * egen länk baklänges: exakt, aldrig en felträff, och det gäller varje inlägg
+ * utan nyckelordsunderhåll.
+ *
+ * Nyckelorden är kvar som PÅFYLLNING, inte som ersättning: sidor som ingen guide
+ * länkar till behåller exakt dagens beteende (och tom lista → inget block alls),
+ * och en sida med bara en inlänk får ändå två förslag. Dedupar på href så samma
+ * inlägg aldrig visas två gånger när båda vägarna pekar på det.
+ */
+export async function blogLinksForPage(
+  path: string,
+  fallbackKeywords: string[],
+  limit = 2,
+): Promise<CrossLink[]> {
+  const linking = await postsLinkingTo(path);
+  const out: CrossLink[] = linking
+    .slice(0, limit)
+    .map((b) => ({ href: `/blogg/${b.slug}`, label: b.title }));
+  if (out.length >= limit) return out;
+  const seen = new Set(out.map((l) => l.href));
+  // Hämta med marginal: fallbacken kan innehålla samma inlägg som redan ligger
+  // i listan, och utan marginal hade dedupen kunnat lämna en lucka.
+  const filler = await blogLinksFor(fallbackKeywords, limit + out.length);
+  for (const l of filler) {
+    if (out.length >= limit) break;
+    if (seen.has(l.href)) continue;
+    seen.add(l.href);
+    out.push(l);
+  }
+  return out;
 }
 
 const wordCount = (parts: string[]): number => T.countWords(parts.join(" "));
