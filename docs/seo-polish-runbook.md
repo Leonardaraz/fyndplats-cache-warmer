@@ -55,6 +55,10 @@ Kör i denna ordning. **Publicering är ALLTID sista handlingen** — allt annat
 
 -----
 
+> 🗂️ **Poleringskön ljuger — verifiera mot Wix innan du väljer produkt.** `needsAiPolish` nollställs inte alltid när en produkt polerats, så kön blandar riktigt råa utkast med sedan länge färdiga produkter. 2026-08-11 låg 49 poster i kön varav bara **13 var verkligt opolerade**; resten var publicerade produkter med kvarglömd flagga. Filtrera därför på `visible === false` **och** att namnet saknar å/ä/ö innan du tar "nästa". Nollställ flaggan (`needsAiPolish:false`, `draftStatus:"published"`) som sista steg efter publicering, annars kommer produkten tillbaka i kön.
+>
+> ⚠️ **Läs om produkten precis innan du börjar — någon annan kan ha hunnit före.** Arbetsstolen `7e730857` stod som rå engelsk draft i kölistan och var fullt polerad och publicerad fyrtio minuter senare, utan att den här sessionen rört den. Hämta alltid `name` + `visible` på nytt i Steg 1 i stället för att lita på listan du hämtade tidigare.
+
 ## Steg 0 – Välj fokussökord (avgör allt annat)
 
 Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + kvalificerare**, t.ex. `starthjälp bil`. **Lås inte valet förrän du sett bilderna (Steg 1b)** — bilderna avgör ofta vad produkten *faktiskt* är.
@@ -470,6 +474,176 @@ Sätt sedan `fileId` som hjälte-item (position 0) i `media.itemsInfo.items` (sa
 
 > **Guardrail (obligatoriskt – generativ AI):** ladda ner resultatet, `Read` det och **jämför sida-vid-sida mot originalet**. Verifiera att INGEN produktdetalj ändrats (knappar, text, form, färg, antal delar, loggor). Ser något omritat/tillagt/borttaget ut → generera om med skarpare prompt, annars behåll originalet. **Faktatrohet går alltid före vit bakgrund.** *(Verifierat troget på Baseus kompressor `1dbdec91`, startbooster `86408870`/`63b38487`, bilkamera `e3c3df4c` — inkl. slang/klämmor som u2net ghostade/tappade.)*
 
+> ⛔ **Använd INTE Metod A på produkter vars etikett bär text du säljer på** (kosmetik, kosttillskott, kemi, allt med innehåll/volym/vikt tryckt på förpackningen). Modellen ritar om etiketten: på hudvårdssetet `e50235e7` blev finstilta ingredienslistor rent nonsens och **"100g/3.53oz" blev "100g/2.53oz"** — en felaktig viktuppgift i huvudbilden. Guardrailen fångade det och resultatet slängdes. För sådana produkter: geometrisk maskning enligt Metod B/D, aldrig generativ.
+
+**Metod D – vit klisterkontur som maskeringsnyckel (när leverantören redan friställt åt dig):**
+
+Många leverantörsbilder (särskilt kosmetik/småvaror) visar produkterna som "dekaler" med en **vit kontur** runt varje vara mot en färgad bakgrund. Konturen är en gratis, pixelperfekt mask — och till skillnad från både rembg och generativ AI rör den inte en enda produktpixel:
+
+```python
+vit    = (lum > 225) & (sat < 0.10)                 # konturen + vita partier
+kontur = ndimage.binary_closing(vit, iterations=3)
+m      = största komponenten av ndimage.binary_fill_holes(kontur)
+```
+
+Två fällor, båda sedda på hudvårdssetet `e50235e7`:
+- **Instängd bakgrund.** Ligger två produkter kant i kant sluter deras konturer ihop en ficka av bakgrunden som `fill_holes` fyller. Hitta den som en liten **inre** komponent (`m & ~vit`) — produktinsidorna är 100 000+ px, fickorna några tusen — och radera allt under tröskeln, med några px utvidgning för antialias-fransen.
+- **Testa mot `vit`, inte mot `kontur`.** Slutningen bryggar över smala springor och sväljer just de fransar du vill bli av med, så de aldrig dyker upp som egen inre komponent. Med `kontur` låg tre orange flisor kvar längs sömmen; med råa `vit` försvann de.
+
+**Ingen slagskugga på den här sorten.** Produkterna bär redan leverantörens egen 3D-skuggning och ligger i en solfjäder utan underlag. Med skugga blir den vita konturen synlig som en dekal-kant; utan skugga försvinner den helt mot vitt. Konturen ska däremot **inte** eroderas bort — vit på vitt syns den ändå inte, och erosion äter produktens egna kanter.
+
+> 🔍 **Läs etiketten i källbilden INNAN du väljer den som hjälte.** Leverantörsfiler kan vara trasiga. Hudvårdssetets bild 2 hade en förstörd tub: finstilta raderna utsmetade och `100g/` bortsuddat (`(/3.53oz.`). Maskningen var perfekt och felet följde ändå med hela vägen till butiken — Leonard såg det på tio sekunder. Zooma in varje etikett med `Read` **på källan**, inte bara på resultatet, och byt källa om texten inte går att läsa.
+
+> 🔑 **Saknar galleriet en användbar källbild — hämta leverantörens original ur mappningen.** `FyndplatsMappings.imageAnalysis` sparar URL:erna till alla leverantörsbilder vid import. **AliExpress mediadomän (`ae-pic-a1.aliexpress-media.com`) svarar 200 härifrån även om produktsidan är blockerad (302, 0 byte)** — så originalen går att ladda ner när galleriet bara innehåller beskurna varianter. Växelriktaren `043bd5c8` hade ett enda produktfoto i galleriet, en extrem närbild av framsidans vänstra hörn; sex original låg kvar i mappningen och ett av dem visade hela enheten. Upplösningen är dock leverantörens: 800×800 var maxvärdet, alla storlekssuffix (`_960x960.jpg`, `_2200x2200.jpg` …) ger samma fil. Räkna därför fram hjältens sida ur varans NATIVA bredd i stället för att slentrianmässigt ta 1600 — här blev 1400 rätt (1,7× uppskalning + lätt oskarp mask).
+
+> ℹ️ **Nyansering av "u2net klarar inte mörkt-på-mörkt":** det som fälls är **tunna utskott** mot mörk bakgrund (slang, flätad kabel, lösa klämmor). En solid mörk kropp mot mörk bakgrund går ofta utmärkt — växelriktaren, nästan svart mot mörkblått, gav en enda komponent med 100 % av alfan och alla ventilgaller och flänsar intakta. Testa innan du drar slutsatsen att Metod A behövs; här var Metod A dessutom förbjuden av etikettregeln ovan, eftersom effektangivelsen står tryckt på höljet.
+
+**Metod E – per-produkt-rembg ur en flatlay (när enda hela källan är en full-bleed miljöbild):**
+
+Kör **inte** rembg på hela flatlayen — modellen letar ETT dominant motiv och gav mos på fem varor (behöll rosa papper, tonade bort tre produkter). Kör den i stället på **en generös låda runt varje produkt** och komponera ihop dem efteråt. Behåll lådornas inbördes placering: det är leverantörens komposition, och varje varas vinkel och ljus hör ihop med den.
+
+Två saker gör metoden ren:
+- **Kastskuggan skiljs på ALPHA, inte på luminans.** rembg tar med skuggan på pappret men ger den låg alpha — varan låg på 246–254, skuggan på 113–216. Ett luminanströskel-försök åt i stället upp flaskans mörka bottenband och hade ätit den mörkgröna tuben helt (lum ≈ 123). Ta kärnan på `alpha > 225`, största komponenten, `fill_holes`.
+- **Bygg om kanten, ärv den inte.** Originalets yttersta pixlar är halvt papper; behåller man dem mot vitt syns en rosa/grön brätte längs varje vara. Erodera en pixel in i varan och gör en egen mjuk kant (`gaussian_filter(0.8)`), så överlever ingen pappersfärgad pixel.
+
+Kontrollera till sist att ingen produkts slutliga bbox rör sin lådkant — då är den beskuren och lådan måste växa.
+
+**Metod F – bygg om ljuset (produkter som SJÄLVA lyser):** `scripts/hero/lyshero-vit.py`
+
+Regeln "en tänd LED-produkt mot mörk botten går inte att flytta till vitt" står kvar — men den betyder inte att produkten saknar vit hjälte. Den betyder att man måste **bygga om ljuset i stället för att flytta det**.
+
+Urklipp misslyckas här av två skäl samtidigt: glöden finns bara som ljus tillagt i mörker, och själva varan är vit. Hexagonlampan `f267a4e2` hade dessutom bara två hela källor — ett beskuret garagefoto och leverantörens 3D-render mot marinblå botten. Rakt urklipp av rendern mot vitt gav ett spöke: vita rör på vit botten syns inte alls.
+
+Gör så här i stället:
+
+1. **Mät hur varan faktiskt ser ut mot LJUST underlag** i något av leverantörens egna foton. Lägg ett tvärsnitt vinkelrätt genom röret och skriv ut luminansen. På hexagonlampan (a3, x=700/780/860) mättes: tak ~190 → ljusspill upp mot 235 → **mörk kåpkant ned till ~90–165** → mättad vit kärna 255 i ~15 px → spill faller av mot ~155.
+2. **Den mörka kanten är hela bilden.** Ett lysande vitt rör syns mot ljus botten tack vare plastkåpans skuggade fläns — inte tack vare glöden. Första försöket satte kanten på 196–212 och lampan försvann; 132–154 gjorde den till ett fysiskt föremål.
+3. **Botten får inte vara 255.** Ljus kan bara visas som något ljusare än sin omgivning. Lägg hörnen runt 218 och lyft mot 255 närmast varan (brett spill σ≈110 för rummet, tajt σ≈22 för halon). Kunden läser det som vitt, och det är fysiskt sammanhängande.
+4. **Geometrin tas ur leverantörens render, pixel för pixel.** Största ljusa komponenten är lampan; måttpilar och text ligger som egna komponenter och faller bort av sig själva. Rendern är nedtonad mot sin mörka botten — lyft med `255 − (255 − rgb) · 0,5` så rören blir vita men silverdetaljen i kopplingsnoderna överlever.
+
+> ⛔ **Metod A är förbjuden även här**, trots att lampan saknar tryckt text. Vi säljer på **antal** och **mått** — "fem hexagoner", "24 LED-rör", "244 × 170 cm" — och en generativ omritning räknar fel på precis den sortens saker, exakt som den skrev om finstilen på hudvårdstuben. Etikettregeln gäller allt som är räknebart eller mätbart i bilden, inte bara bokstäver.
+
+**Metod G – vit hjälte ur en bokeh-bild (rembg + separat mask för mörka delar):** `scripts/hero/bokeh-hero.py`
+
+Den snyggaste produktbilden ligger ofta INTE på vit botten. Julgranståget `91de8b52` hade sin hjälte hämtad ur en vit remsa på 3,7:1 — varan fyllde en tredjedel av kvadraten och remsan släpade dessutom med leverantörens gyllene notgrafik och en avskuren gran. Den största, skarpaste bilden av hela ekipaget låg i stället mot bokeh, på 1,7:1. Ta den och byt botten.
+
+- **rembg ensamt räcker inte när varan har svarta delar.** u2net gav rälsen alpha ≈ 0,5, och halvgenomskinligt svart mot vit botten blir **grått**. Rälsen såg urblekt ut fastän masken "fungerade". Lägg en egen luminansmask ovanpå: här låg rälsen under 130 och bokehn aldrig under 181, så `np.maximum(rembg_alpha, lum < 130)` gav den solid. Mät alltid bakgrundens minsta luminans innan du väljer tröskel.
+- **Låt det som bleder i källan fortsätta bleda.** Rälsen går ut ur vänsterkanten och nederkanten i originalet. Ankra kompositionen mot dukens nederkant så den gör det även i hjälten — klipper man av rälsen mitt i den vita ytan hänger den i luften.
+- **Kolla efter fragment ur grannbilden.** Beskärningen tog med underkanten av ringen ovanför, som blev en rad sliprar svävande över tåget. Behåll bara den största sammanhängande komponenten.
+
+**Metod H – hjälten fanns redan, fel bild var vald:** `scripts/hero/vitbotten-hero.py`
+
+Innan du bygger något: **kontrollera om leverantören redan har en hel bild mot ren vit botten.** Fågelbogungan `560760da` hade sin hjälte beskuren ur MÅTTSKISSEN — sitsen kapad av bildkanten, två tredjedelar rep och tomrum, och en kvarglömd streckad måttlinje uppe till höger. Hela gungan låg samtidigt i en annan leverantörsbild mot exakt 255-vitt. Där behövs ingen maskering alls: mät varans bbox, beskär, skala och klistra på en vit duk. Kolla bakgrundens faktiska värden först (`a.min(axis=2) < 235` + största komponenterna) — är den redan 255 rakt igenom är arbetet gjort.
+
+> ⚠️ **Två färgvägar i samma bildset är en fälla.** Gungans måttskiss visar en BRUN sitsduk (RGB ≈ 50,33,26); alla övriga leverantörsbilder och vårt eget materialkort visar en SVART (≈ 37,37,37). Den gamla hjälten ledde alltså med undantaget. Mät sitsens/ytans faktiska RGB i varje källa innan du väljer hjälte, och led aldrig med den variant som bara förekommer i en enda bild. Notera avvikelsen till Leonard i stället för att gissa vilken som skeppas.
+
+> ℹ️ **Människor i hjälten är rätt val ibland.** För en barnprodukt vars titel lovar "kompisgunga" visar bilden med två barn i både hela varan OCH påståendet. Den döljer dessutom sitsduken, vilket är en fördel när färgen är osäker — vi lovar bara det vi vet.
+
+**Metod I – flera rembg-körningar som slås ihop till en mask:** `scripts/hero/flerdelsmask-hero.py`
+
+När produkten består av flera delar i olika färg och ljushet klarar u2net sällan hela scenen i ett svep — och vilken del som tappas beror på beskärningen. Bilbanan `4b127cb9` gav:
+
+| körning | resultat |
+|---|---|
+| hela bilden | ramp, målbåge och förvaringslåda bra — **startboxen genomskinlig** (mörk plast mot mörkblå vägg) |
+| utsnitt runt rampen | startboxen solid — **målbågen tappad** |
+| tätt utsnitt runt huset | huset solid |
+
+Lösningen är inte att hitta den enda rätta körningen utan att **köra flera och unionera maskerna**, var och en begränsad till den del den är bra på (`mask_a | mask_b | mask_c`, där b och c maskeras ned till sin egen ruta). Regeln från Metod E gäller alltså även inom en och samma bild: ju mer föremålet dominerar sin ruta, desto bättre alfa.
+
+Två vinster på köpet när man maskerar produkten i stället för att radera bakgrunden: leverantörens rubriktext, inzoomade cirklar och miljö försvinner av sig självt, och **de lösa golvbilarna med dem**. Det senare är viktigt — leverantören visar ofta samma fem bilar två gånger, både på banan och bredvid den, och i en hjälte läser kunden det som tio. Vi säljer fem.
+
+> ⛔ **Metod A är förbjuden även här** — "5 banor" och "5 bilar" står i titeln, och generativ omritning räknar fel på antal. Samma regel som för hexagonlampan.
+
+**Metod J – genomskinlig produkt mot vitt: mät väggen först:** `scripts/hero/genomskinlig-hero.py`
+
+En klar skiva visar det som ligger bakom den, så normalt gäller samma varning som för LED (Metod F): flyttar man den till vitt försvinner den. **Men det är ett mätbart påstående, inte en regel — mät innan du drar slutsatsen.**
+
+Skärmtaket `fbef53b8` var monterat på en gräddvit husvägg:
+
+| | värde |
+|---|---|
+| väggen bakom | ~244 |
+| polykarbonatskivan | ~223 |
+| skivans räfflor | ned mot 184 |
+| vitt | 255 |
+
+Skillnaden mellan väggen och vitt är alltså **elva nivåer**. Skivans utseende ändras knappt av bytet, och räfflorna, reflexerna, den svarta ramen och aluminiumlisten bär bilden. Då behövs ingen rekonstruktion alls: hämta silhuetten med rembg, behåll originalpixlarna innanför, lägg vitt utanför.
+
+Regeln blir: **ta silhuetten, inte alfan.** För ett genomskinligt föremål ska man inte alfa-blanda mot den nya bottnen — det tunnar ut skivan en gång till. Tröskla masken (`alfa > 0,43`), behåll största komponenten, och kopiera in originalets RGB rakt av.
+
+Ligger produkten i stället mot mörk eller färgad botten går det inte: då bär skivan den bakgrundens färg och måste fotograferas om. Leta i så fall efter en annan leverantörsbild med ljus vägg innan du ger upp.
+
+**Metod K – hitta varan på TEXTUR när luminansen inte räcker:** `scripts/hero/textur-hero.py`
+
+Mattan `14987bb4` hade en närbild i ett rum som hjälte, beskuren på alla fyra kanter — man såg luggen men aldrig varan. En 160 × 120-matta måste visa sin form.
+
+Leverantörens måttbild visade hela mattan platt, men mot en botten som ligger nästan på samma ljushet: **matta ~199, botten ~227**. Ingen luminanströskel i världen hittar den kanten rent. Textur gör det direkt: luggens **lokala standardavvikelse är ~7,9 medan den släta bottnen ligger på exakt 0**.
+
+```python
+lok = ndimage.uniform_filter(lum, 9)
+std = np.sqrt(np.clip(ndimage.uniform_filter(lum * lum, 9) - lok * lok, 0, None))
+m = ndimage.binary_opening(std > 3.0, iterations=4)
+```
+
+Varan är en fylld rektangel, så ingen mask behövs — rad- och kolumnprofil på `m` ger de fyra kanterna. Begränsa profilen till ett grovt område först, annars drar måttpilarna och möbelskissen ut rutan (mitt första försök gav kvot 1,53 i stället för 1,36 av just det skälet).
+
+> ✅ **Gratis rättningsprov: jämför rutans kvot mot måtten i titeln.** 1550 × 1143 px = 1,356 mot 160/120 = 1,333. Två procents skillnad är luggens mjuka kant. Hade jag fått 1,53 hade rutan varit fel — och det märks utan att man ens tittar på bilden.
+
+Lägg en mjuk kontaktskugga under (offset ~16 px, `gaussian_filter(26)`, 17 % styrka), annars svävar en platt vara mot vitt.
+
+**Ta bort ett slutsålt variantval (V3):** filtrera bort valet ur `options[].choicesSettings.choices` OCH dess variant ur `variantsInfo.variants` i **samma** PATCH med `fieldMask: ["options", "variantsInfo"]` — delar man upp det blir det 428 `MISSING_VARIANT_OPTION_CHOICE`. Den kvarvarande varianten **behåller sitt id**, så lagersaldo, pris, SKU och mappningens `wixVariantId` överlever orörda (verifierat på klösträdet `30e1851b`: 100 st och 859 kr kvar efter). Wix städar dessutom bort den föräldralösa lagerposten själv — ett `DELETE` på den svarar 404 efteråt. Kom ihåg att ta bort raden ur mappningens `variants` också, annars letar lagersynken efter en variant som inte finns.
+
+**Metod L – hjälten var redan vit men fel beskuren:** `scripts/hero/miniatyr-hero.py`
+
+En vit botten betyder inte att hjälten är gjord. Paviljongen `d78f7211` låg redan mot 255-vitt men var en dålig beskärning av leverantörens original: högra sidan och möblernas underkant kapades av bildkanten, **och uppe i högra hörnet låg ett löst fragment kvar av den inzoomade miniatyr som originalet har där**. Originalet visar hela varan.
+
+Miniatyren och varan går att skilja åt utan risk med komponentmärkning — paviljongen 1,26 Mpx, miniatyren 0,15 Mpx. **Men verifiera överlappningen innan du raderar**, för deras y-intervall snuddar vid varandra (varan börjar y 488, miniatyren slutar y 535) även om de inte möts i x-led:
+
+```python
+overlapp = int(vara[my0:my1, mx0:mx1].sum())
+if overlapp:
+    raise SystemExit("varan ligger i miniatyrens ruta – radera inte blint")
+```
+
+> 🔁 **Leta efter samma fel i KORTEN.** Spec-kortet för paviljongen var byggt av exakt samma trasiga beskärning och bar därför samma svävande fragment. Har du hittat en defekt i en beskärning, sök igenom galleriets övriga bilder efter den innan du släpper produkten — den följer med överallt där samma urklipp återanvänts.
+
+När kortets foto byggs om: fotorutan i `card_spec` har kvot 1,64 medan paviljongen är 1,36. **Fyll ut i SIDLED med vitt** i stället för att beskära — en beskärning hade kapat taket.
+
+**Metod M – när varje vit källa har något ivägen, ta miljöbilden i stället:** `scripts/hero/miljobild-hero.py`
+
+Reflexen är att välja den källa som redan ligger mot vitt. Pop-up-tältet `3eb52634` visar varför det kan vara fel val. Mät ÖVERLAPPNINGEN innan du bestämmer dig:
+
+| källa | botten | problem |
+|---|---|---|
+| a0, collage | vitt | den gula infällda cirkeln (centrum 1510, 1630, radie 284) skär in i tältväggen — väggens underkant ligger på y ≈ 1447, så bågen döljer en lins **434 px bred och upp till 101 px djup** |
+| a2, måttbild | ljusgrön | måttstapeln "1,82 m" ligger tvärs över dörröppningen |
+| a1, miljöbild | gräs och himmel | inget ivägen — tältet helt och oskymt |
+
+De två vita källorna hade krävt att man **hittar på produktpixlar** för att fylla igen. Miljöbilden krävde bara en bakgrundsborttagning, och gräs mot mörkgrå duk är hög kontrast som u2net klarar utmärkt. Räkna ut hur stor rekonstruktionen skulle bli innan du väljer — 434 × 101 px påhittad vägg är dyrare än en rembg-körning.
+
+> ⚠️ **Kantbrätten: filtrera inte på färg, bygg om.** Första försöket tog bort gräsgröna pixlar i en 7 px-remsa längs alfakanten. Det åt upp antialiasingen där duken möter gräset och gav en **sågtandad vägg**. Rätt åtgärd är Metod E:s regel: erodera 2 px in i varan och gör en helt egen mjuk kant (`gaussian_filter(0.9) * 1.18`). Då överlever ingen gräsfärgad pixel, och kanten blir rak.
+
+Ett urklipp ur en miljöbild behåller det man ser genom varan — här bord, stolar och huset genom tältets dörröppning. Det är sant och läses som genomsikt, så låt det vara.
+
+Även här gällde regeln från Metod L: **spec-kortet var byggt av samma trasiga beskärning** och bar samma gula fragment. Ombyggt.
+
+**Metod N – variantbilder: en per färg, identiska så när som på färgen:** `scripts/hero/varianter-hero.py`
+
+När produkten har färgval är hjälten inte en bild utan en uppsättning. **Den enda regel som spelar roll är att de ska vara utbytbara** — samma skala, samma placering, samma botten — så att bilden inte hoppar när kunden klickar mellan färgerna. CarPlay-adaptern `e932fcb2` hade silver på 823 px bredd och orange på 858; varan flyttade och skalade om sig vid varje färgbyte.
+
+Bygg alla ur samma sorts källa i en och samma loop, med samma måltal, och **lägg in ett poseprov**: källornas rutor ska ha samma kvot efter normering, annars är det inte samma vinkel och då får de inte skalas efter varandra.
+
+```python
+kvoter = [w / h for w, h in rutor.values()]
+if max(kvoter) - min(kvoter) > 0.04:
+    raise SystemExit("källornas rutor har olika kvot – inte samma pose")
+```
+
+> ⚠️ **Grå gloria kommer oftast av vår egen bearbetning, inte av källan.** Mät innan du skyller på leverantören: de gamla bilderna hade bakgrund 254 och en kant som tonade ut över ett tiotal pixlar (249 → 242 → …), medan originalet är rent — 255 rakt in, 6 px mjuk kant, sedan produkten på 3. Glorian uppstod i uppskalningen till 1400 px från en 336 px-källa.
+
+> 🔒 **Byt variantbilder i TRE steg — Wix låser dem.** Ett försök att ersätta dem rakt av ger `404 PRODUCT_MEDIA_NOT_EXIST: Products must include media files linked to choices`, eftersom `linkedMedia` fortfarande pekar på de gamla. Ordningen är: (1) PATCH:a in de nya bilderna **utan** att ta bort de gamla, (2) peka om `options[].choicesSettings.choices[].linkedMedia` till de nya (skicka `variantsInfo` verbatim i samma PATCH, annars 428), (3) PATCH:a bort de gamla — nu när inget längre länkar dem. Media-ingesten är asynkron, så verifiera med en re-GET och försök om tills alla val pekar rätt.
+
 **Metod B – rembg-urklipp + uppladdning (sista utvägen – bara om Metod 0 och A båda är uteslutna):**
 
 Tre begränsningar: (1) base64-upp via `UploadImageToWixSite` klarar i praktiken bara **~800 px / ~18 kB** innan strängen blir för stor att överföras rent; (2) **mörk-på-mörk med tunna utskott** (slang, flätad kabel, lösa klämmor) ghostas/tappas av u2net; (3) den ritar om alfakanten, alltså varan. Är bakgrunden redan vit → Metod 0 är både gratis och trognare. Är den rörig → Metod A.
@@ -512,6 +686,32 @@ Ladda upp `white.jpg` via `mcp__Wix__UploadImageToWixSite` → ersätt item:et p
 Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mörka collage/infografik/i-bruk-foton** — inte enskilda produktbilder. De går alltså inte att vitmåla (Steg 3c) och textborttagning (Steg 3b) lämnar dem fortfarande "AliExpress-iga". Då kan du **bygga egna rena, svenska feature-kort** på ljus bakgrund av de RIKTIGA produktfotona — hela katalogen ser då ut som ett eget varumärke. Verifierat på CNC-fräsen (2026-07-08): 5 mörka slides → 5 rena kort, **plus 2 engelska spec-blad → 2 svenska spec-kort** (maskinen urklippt + svensk spec-lista).
 
 > ⚠️ **Position 0 = ren VIT produkt-hjälte, även med eget kort-galleri.** Bygg gärna feature-/spec-KORT för plats 1→N, men produktkortets bild (`media.main` = plats 0) ska vara en **ren vit studio-hjälte** (Steg 3c) — INTE ett kort och INTE en kontext-/livsstilsbild på grå/rörig bakgrund. Har du bara monterade/röriga foton: kör Steg 3c Metod A (Wix Generate Image) på det renaste produktfotot → vit bakgrund. (Lärdom: pakethållarväskan `9e79abae` fick först en rack-livsstilsbild som hjälte i stället för vit — flaggat av Leonard, rättat 2026-07-09; livsstilsbilden flyttades till plats 1 som kontext.)
+>
+> **Tredje felläget: hjälten är en NÄRBILD.** Vit bakgrund räcker inte — hjälten måste visa HELA varan. Musikbordet `67b738c7` hade en 1780×960-detaljbild som plats 0: benen bortklippta, vindspelet kapat i vänsterkant, tvåtonsblocket i högerkant. Wix beskär dessutom till kvadrat i produktkortet, så en bred bild zoomas in ytterligare. **Mät hjälten:** är den inte ungefär kvadratisk, eller rör varan bildkanten, är den fel. Måttskissen är ofta enda hela studiofotot i galleriet — måttpilarna är overlay och tas bort enligt Steg 3b.
+>
+> ⚠️ **Klassa overlay per KOMPONENT, inte per pixel, när varan har samma färg som overlayen.** Musikbordets måttpilar är orange — och bordet har orange fötter, orange xylofontangent och orange band på tvåtonsblocket. Ett pixelfilter på orange hade skalperat varan. Etikettera i stället sammanhängande komponenter och släng de vars MEDELFÄRG är overlayens platta vektorton (här (254,155,87) i var och en av 14 komponenter); varans orange sitter inbäddat i den stora produktkomponenten och kan då aldrig råka följa med. Utvidga overlay-masken några pixlar så antialias-brämen runt siffror och pilspetsar går med.
+>
+> ⚠️ **"Behåll största komponenten" är FEL på produkter med hängande delar.** Vindspelets rör hänger i vita snören som inte överlever bakgrundströskeln — rören blev tre egna komponenter à ~10 000 px och hade fallit bort. Behåll allt utom det du aktivt identifierat som overlay.
+
+> 📐 **`card_spec`-fotot ska ha PANELENS proportion (≈1,64:1) — aldrig 1:1.** Panelen renderas med `object-fit: contain`, så ett kvadratiskt foto skalas efter höjden och krymper. Lasertag-setets kort matades med den kvadratiska hjältebilden, där pistolerna upptar 88 % av bredden men bara 31 % av höjden — resultatet blev att de fyllde **51,6 %** av panelen och såg små ut. Inget fel på kortmotorn, felet låg i indata. Beskär fotot till panelens proportion först: samma bild fyllde då **87,5 %** (1 398 → 2 373 px). Mät före och efter i stället för att titta — skillnaden är lätt att underskatta i miniatyr.
+
+### Döpa om variantalternativ i efterhand (Wix V3)
+
+Rå AliExpress-varianter kan bära namn som är obegripliga eller direkt vilseledande. Mediahyllan `1dd82a63` hade en option som hette **"Färg"** men innehöll fem möbeltyper, och suffixen **TypeA/TypeB betydde motsatta saker beroende på färg**: `24 rader Svart TypeB` var en bred hylla för 1 899 kr, `24 rader Brun TypeB` ett skåp med dörrar för 3 939 kr. **Priset följer möbeln, bokstaven gör det inte** — använd priset som facit när du avkodar leverantörens etiketter, och titta på varje variantbild innan du döper om.
+
+**Omdöpning på plats går INTE.** `choice.name` speglar den låsta `choice.key`. Ett försök att PATCH:a nya namn med bevarade `choiceId` ger `428 MISSING_VARIANT_OPTION_CHOICE` med `optionsMissingChoice: ["färg","modell"]` — Wix tolkar det som "ta bort optionen, skapa en ny" och hittar då varken gamla eller nya val. PATCH:en faller atomiskt, så inget går sönder av försöket.
+
+**Rätt väg — ersätt optionen och laga följdskadorna i ordning:**
+
+1. **Säkerhetskopiera först** till scratchpad: per variant `sku`, `wixVariantId`, pris, synlighet, lagersaldo och lagerpostens id. Utan den kan du inte återställa.
+2. **PATCH `options` + `variantsInfo`** (`fieldMask: ["options","variantsInfo"]`). Skicka optionen HELT utan id:n — nytt `name`, nya `choices` med bara `name` + `choiceType` — och identifiera varje variant med `optionChoiceNames` (`optionName` + `choiceName` + `renderType`, alla tre krävs). **Behåll varje `sku` och pris exakt.** `linkedMedia: [{id}]` kan skickas inline med de nya valen och överlever — variantbilderna behöver alltså inte länkas om separat.
+3. **Skapa lagerposterna på nytt.** `/stores/v3/products` skapar dem INTE (bara `/products-with-inventory` gör det vid create). Efter steg 2 har produkten noll lagerposter medan den ligger publicerad. Kör `POST /stores/v3/bulk/inventory-items/create` med `{productId, variantId, trackQuantity:true, quantity}` och verifiera saldo mot säkerhetskopian.
+4. **Peka om mappningen.** Allt nedströms nycklar på `wixVariantId`: lagersynken (`lib/sync/inventory.ts:27`), `lib/sync/shippability.ts:151` och auktionsmotorn (`lib/auction/seed.ts:96`). Missar du det slutar lagret tyst att uppdateras — varianterna hamnar i `unmatched`, ingen krasch.
+5. **Skriv om mappningens `choices` också.** `lib/orders/place-order.ts:66` matchar order → AliExpress-SKU på `v.choices[optionNamn] === valt värde`. Byter optionen namn från "Färg" till "Modell" matchar inget. **Räddningen är att SKU testas först** (rad 62) — därför är regeln: byt aldrig SKU i samma operation.
+
+**Kontrollera till sist** att `FyndplatsAuctions` inte har state med gamla variant-ID (tomt = inget att så om), och att synken inte skriver tillbaka de gamla namnen — `lib/sync/aliexpress-sync.ts` rör varken `options` eller `variantsInfo`, så omdöpningen är beständig.
+
+**Sajten visar gamla namn i upp till 5 minuter** efteråt: headless-PDP:n är ISR med `x-nextjs-stale-time: 300`. Verifiera mot Wix-API:t direkt, och kontrollera sidan igen efter cachefönstret innan du rapporterar klart.
 >
 > **Gäller även engelska spec-blad:** samma metod bygger om leverantörens spec-blad (Item Model Number / Working Area / Input Voltage …) till rena **svenska spec-kort** (kicker "MODELL X", stor storleksrubrik + effekt-pill, 6-radigt spec-rutnät). Passa på att **rätta felaktig/vilseledande inbränd data**: t.ex. hade CNC-fräsens S4040-blad fel måttcallouts (kopierade från S3020) och båda bladen visade "110V 60Hz" (USA) fast produktens verkliga data är **AC 110/220 V, 50/60 Hz** (EU). Metriska enheter, inga tum/lbs.
 
