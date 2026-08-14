@@ -6,7 +6,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, AUCTION_DAY_MS, PRESTART_WINDOW_MS, FINAL_HOUR, auctionPhase, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS } from "./auction-day.ts";
+import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, AUCTION_DAY_MS, PRESTART_WINDOW_MS, FINAL_HOUR, auctionPhase, phaseOf, isActivelyDropping, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS } from "./auction-day.ts";
 
 const H = 3_600_000;
 const START = Date.parse("2026-07-12T05:00:00.000Z"); // 07:00 svensk sommartid
@@ -95,18 +95,48 @@ test("REFRESH_BACKOFF_MS: stigande och täcker väckarklockans drift", () => {
   assert.ok(sum >= 25 * 60_000, `summan ${sum} ska täcka minst 25 min drift`);
 });
 
-// Kontraktet efter granskningen 2026-08-14: servern skickar sin KLOCKA
-// (serverNowMs), inte ett färdigt "closed"-beslut, och komponenterna kör samma
-// auctionPhase före som efter hydrering. Testet låser att en och samma tidpunkt
-// alltid ger samma fas oavsett vilken klocka den kom ifrån — det var just en
-// handrullad parallell ternär som hann säga emot maskinen.
-test("auctionPhase: serverklocka och klientklocka ger identisk fas", () => {
-  const times = { startsAtMs: null, dayStartMs: START, nextDropAtMs: START + 3 * H };
-  for (const at of [START - H, START, START + 2 * H, START + 3 * H + 1, START + 12 * H, START + 20 * H]) {
-    const serverRender = auctionPhase(at, times); // före hydrering
-    const clientRender = auctionPhase(at, times); // efter mount, samma instant
-    assert.deepEqual(serverRender, clientRender, `divergens vid ${(at - START) / H} h`);
+// Kontraktet: fasmaskinens "ended" måste följa SAMMA dygnsgräns som isDayOver,
+// och phaseOf (adaptern som både korten och startsidan går via) måste ge samma
+// svar som den råa maskinen. Föregående version av det här testet jämförde
+// auctionPhase mot sig själv med identiska argument — en tautologi som aldrig
+// kunde falla (granskning 2026-08-14). Nu korsas två OBEROENDE vägar.
+test("auctionPhase.ended följer isDayOver — inte en egen gräns", () => {
+  for (const at of [START - H, START, START + 6 * H, START + 12 * H - 1, START + 12 * H, START + 30 * H]) {
+    const viaMaskin = auctionPhase(at, { startsAtMs: null, dayStartMs: START, nextDropAtMs: null }).phase === "ended";
+    const viaDygn = isDayOver(START, at);
+    assert.equal(viaMaskin, viaDygn, `divergens vid ${(at - START) / H} h`);
   }
+});
+
+test("phaseOf: adaptern ger samma svar som råa maskinen", () => {
+  const iso = (ms: number) => new Date(ms).toISOString();
+  const cases = [
+    { startsAt: iso(START), startAt: iso(START), nextDropAt: null, at: START - H, vantad: "pre" },
+    { startsAt: null, startAt: iso(START), nextDropAt: iso(START + 4 * H), at: START + H, vantad: "countdown" },
+    { startsAt: null, startAt: iso(START), nextDropAt: iso(START + H), at: START + 2 * H, vantad: "stale" },
+    { startsAt: null, startAt: iso(START), nextDropAt: null, at: START + 11 * H, vantad: "floor" },
+    { startsAt: null, startAt: iso(START), nextDropAt: null, at: START + 13 * H, vantad: "ended" },
+  ] as const;
+  for (const c of cases) {
+    const via = phaseOf({ startsAt: c.startsAt, startAt: c.startAt, nextDropAt: c.nextDropAt }, c.at);
+    assert.equal(via.phase, c.vantad, `phaseOf vid ${(c.at - START) / H} h`);
+    const rakt = auctionPhase(c.at, {
+      startsAtMs: c.startsAt ? Date.parse(c.startsAt) : null,
+      dayStartMs: c.startAt ? Date.parse(c.startAt) : null,
+      nextDropAtMs: c.nextDropAt ? Date.parse(c.nextDropAt) : null,
+    });
+    assert.deepEqual(via, rakt, "adapter och maskin måste vara överens");
+  }
+});
+
+// Startsidans banner sa "priset sjunker just nu" även på GOLVET (18–19), där
+// inget sjunker mer — och tidigare även efter stängning (granskning 2026-08-14).
+test("isActivelyDropping: bara nedräkning och sen sänkning", () => {
+  assert.equal(isActivelyDropping("countdown"), true);
+  assert.equal(isActivelyDropping("stale"), true, "sen sänkning är fortfarande en pågående dag");
+  assert.equal(isActivelyDropping("floor"), false, "på golvet sjunker inget mer");
+  assert.equal(isActivelyDropping("ended"), false);
+  assert.equal(isActivelyDropping("pre"), false);
 });
 
 test("auctionPhase: stängt-beslutet följer dagslängden, inte en separat flagga", () => {

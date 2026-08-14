@@ -7,7 +7,7 @@ import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
 import { getHiddenFromFeatured, PROBLEM_MAX_SCORE } from "../lib/image-scores";
 import { getLiveAuctions } from "../lib/auction-view";
-import { auctionPhase } from "../lib/auction-day";
+import { AuctionBannerText } from "../components/auction-banner-text";
 import { tightFillUrl } from "../lib/wix-image";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../lib/social-proof";
 
@@ -60,24 +60,10 @@ const websiteJsonLd = {
 
 export default async function Home() {
   const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions()]);
-  // Auktionsdagen går 07–19; nattetid är auktionerna schemalagda (startsAt satt)
-  // och bannern ska då säga "startar kl 07" i stället för "sjunker just nu".
-  // EFTER 19:00 ligger raderna kvar som `live` med startsAt=null tills ticken
-  // roterat — utan fas-kollen skröt bannern "pågår just nu, största rabatt
-  // −62 %" hela kvällen medan /fyndauktion sa "Stängt för idag" (granskning
-  // 2026-08-14). Samma fasmaskin som korten. OBS: startsidans ISR-fönster är
-  // en timme, så beskedet kan släpa så länge efter stängning — men det är
-  // samma fördröjning som rabattsiffran bredvid redan har.
-  const runningAuctions = liveAuctions.filter(
-    (a) =>
-      !a.startsAt &&
-      auctionPhase(a.serverNowMs, {
-        startsAtMs: null,
-        dayStartMs: a.startAt ? Date.parse(a.startAt) : null,
-        nextDropAtMs: a.nextDropAt ? Date.parse(a.nextDropAt) : null,
-      }).phase !== "ended",
-  );
-  const maxAuctionDiscount = runningAuctions.reduce((m, a) => Math.max(m, a.discountPercent), 0);
+  // Bannerns "pågår"-läge avgörs i AuctionBannerText (klientkomponent): den här
+  // sidan har ISR-fönster på en timme och auktionsrotationen kl 19 invaliderar
+  // den inte, så en serverberäknad flagga frös in och kunde påstå "sjunker just
+  // nu" efter stängning (granskning 2026-08-14). Servern skickar bara raderna.
   // Dölj ev. slutsålda från alla kund-ytor på startsidan (hero + Veckans fynd)
   // när HIDE_OOS_FROM_LISTINGS är på. Default av → oförändrat.
   const allProducts = forListings(allProductsRaw);
@@ -305,22 +291,7 @@ export default async function Home() {
         <section className="sec" style={{ paddingTop: 0 }}>
           <div className="container">
             <a className="auction-banner" href="/fyndauktion">
-              {runningAuctions.length > 0 ? (
-                <>
-                  <span className="auction-banner-badge">🔨 Fyndauktionen pågår</span>
-                  <span className="auction-banner-text">
-                    {runningAuctions.length} produkter vars pris sjunker just nu
-                    {maxAuctionDiscount > 0 && <> – största rabatt <b>−{maxAuctionDiscount}%</b></>}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="auction-banner-badge">🔨 Fyndauktionen</span>
-                  <span className="auction-banner-text">
-                    Dagens {liveAuctions.length} fynd startar kl 07 – priset faller varje timme till kl 19
-                  </span>
-                </>
-              )}
+              <AuctionBannerText rows={liveAuctions} />
               <span className="auction-banner-cta">Till auktionen →</span>
             </a>
           </div>
