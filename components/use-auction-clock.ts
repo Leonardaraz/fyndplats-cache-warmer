@@ -28,7 +28,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { LiveAuctionView } from "../lib/auction-view";
-import { phaseOf, REFRESH_BACKOFF_MS, type AuctionPhase } from "../lib/auction-day";
+import { phaseOf, tickerStepMs, REFRESH_BACKOFF_MS, type AuctionPhase } from "../lib/auction-day";
+import { useClientNow } from "./use-client-now";
 
 /** Långsam puls: efter backoffen, och löpande för att fånga "såld". */
 const SLOW_POLL_MS = 5 * 60_000;
@@ -57,85 +58,64 @@ function requestRefresh(refresh: () => void): boolean {
 
 export function useAuctionClock(
   a: Pick<LiveAuctionView, "startsAt" | "startAt" | "nextDropAt" | "serverNowMs">,
-): { phase: AuctionPhase; msLeft: number | null } {
+): { phase: AuctionPhase; msLeft: number | null; mounted: boolean } {
   const router = useRouter();
-  const [now, setNow] = useState<number | null>(null);
   const [attempt, setAttempt] = useState(0);
-  // Bumpad när en hämtning ströps: tvingar omschemaläggning utan att flytta
-  // backoff-steget (steget ska bara röra sig när vi faktiskt hämtat).
-  const [retry, setRetry] = useState(0);
-  const [hidden, setHidden] = useState(false);
+
+  // Fasen avgör takten, takten uppdaterar klockan, klockan avgör fasen — men
+  // takten är ALLTID ändlig, så cykeln kan inte frysa. Första varvet använder
+  // serverns klocka (serverNowMs) → identisk SSR/hydrering.
+  const [step, setStep] = useState(1_000);
+  const { nowMs, mounted } = useClientNow(a.serverNowMs, step);
+
+  const pt = phaseOf(a, nowMs);
+  const msLeft = mounted && pt.targetMs != null ? pt.targetMs - nowMs : null;
+  const overdue = pt.phase === "stale" || pt.phase === "ended";
 
   useEffect(() => {
-    setNow(Date.now());
-  }, []);
-
-  // Före mount: serverns klocka → identisk render på server och klient.
-  const pt = phaseOf(a, now ?? a.serverNowMs);
-  // msLeft bara efter mount: en serverberäknad nedräkning vore fel i samma
-  // sekund den renderades, och digits i SSR-HTML garanterar hydreringsbråk.
-  const msLeft = now !== null && pt.targetMs != null ? pt.targetMs - now : null;
-
-  const overdue = pt.phase === "stale" || pt.phase === "ended";
-  // Läses av visibility-lyssnaren, som annars skulle fånga en gammal fas i sin
-  // closure (lyssnaren registreras en gång).
-  const phaseRef = useRef(pt.phase);
-  phaseRef.current = pt.phase;
+    setStep(tickerStepMs(pt.phase));
+  }, [pt.phase]);
 
   // Färskt framtida mål → nollställ kedjan inför nästa gräns.
   useEffect(() => {
     if (!overdue && attempt !== 0) setAttempt(0);
   }, [overdue, attempt]);
 
-  // visibilitychange fyrar bara vid ÖVERGÅNGAR, så en sidladdning triggar
-  // ingen hämtning här (sidan är ju nyss serverrenderad). Startvärdet läses
-  // separat vid mount utan att hämta.
+  // Puls. Snabb backoff när något är sent, annars långsam bevakning av "såld"
+  // (varan kan försvinna ur lineupen när som helst). INTE i pre-läget: före
+  // start är målet en fast tidsstämpel och inget är säljbart.
+  //
+  // Steget avanceras ÄVEN när strypningen slog till: router.refresh() är
+  // rutt-bred, så en annan instans hämtning uppdaterade redan våra props —
+  // begäran blev alltså utförd, bara inte av oss. Att inte avancera gav
+  // i stället sex hämtningar per steg (granskning 2026-08-14), och att varken
+  // avancera eller schemalägga om dödade kedjan helt.
   useEffect(() => {
-    setHidden(document.hidden);
+    if (!mounted || pt.phase === "pre") return;
+    const delay = overdue ? (REFRESH_BACKOFF_MS[attempt] ?? SLOW_POLL_MS) : SLOW_POLL_MS;
+    const t = setTimeout(() => {
+      requestRefresh(() => router.refresh());
+      setAttempt((n) => n + 1);
+    }, delay);
+    return () => clearTimeout(t);
+  }, [mounted, pt.phase, overdue, attempt, router]);
+
+  // Flik tillbaka i förgrunden → hämta ikapp, om något kan ha ändrats. Fasen
+  // beräknas ur en FÄRSK tidsstämpel, inte ur en möjligen efterbliven `nowMs`:
+  // en flik som legat dold över 07:00 hade annars läst sin gamla pre-fas och
+  // hoppat över just den hämtning den behövde (granskningsfynd).
+  const aRef = useRef(a);
+  useEffect(() => { aRef.current = a; }, [a]);
+  useEffect(() => {
     const onVis = () => {
-      const h = document.hidden;
-      setHidden(h);
-      // Hämta vid återkomst — men inte i pre-läget, där målet är en fast
-      // tidsstämpel och ingenting kan ha ändrats. Utan den grinden gav varje
-      // app-växling/skärmupplåsning en full route-hämtning mitt i natten
-      // (granskningsfynd; grinden fanns i #406 och föll bort i #407).
-      if (!h && phaseRef.current !== "pre") {
-        setAttempt(0);
-        requestRefresh(() => router.refresh());
-      }
+      if (document.hidden) return;
+      if (phaseOf(aRef.current, Date.now()).phase === "pre") return;
+      setAttempt(0);
+      requestRefresh(() => router.refresh());
     };
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
   }, [router]);
 
-  // Sekundklocka BARA när nedräkningssiffror faktiskt visas (pre/countdown) och
-  // fliken är synlig. I floor/stale/ended beror ingen text på `now`, så en
-  // per-sekund-render där producerade 12 h identisk utdata över natten.
-  const needsTicker = pt.phase === "pre" || pt.phase === "countdown";
-  useEffect(() => {
-    if (hidden || !needsTicker) return;
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, [hidden, needsTicker]);
-
-  // Puls. Snabb backoff när något är sent, annars långsam bevakning av "såld".
-  // INTE i pre-läget: före start är målet en fast tidsstämpel och inget är
-  // säljbart — en nattöppen flik hämtade annars ~144 gånger i onödan.
-  // Pausad medan fliken är dold; återkomsten hämtar direkt (nedan).
-  useEffect(() => {
-    if (now === null || hidden || pt.phase === "pre") return;
-    const delay = overdue ? (REFRESH_BACKOFF_MS[attempt] ?? SLOW_POLL_MS) : SLOW_POLL_MS;
-    const t = setTimeout(() => {
-      // Avancera backoff-steget bara vid VERKLIG hämtning. Blev anropet strypt
-      // (en annan instans hann före) måste vi ändå schemalägga om — annars
-      // finns ingen timer kvar och kedjan dör tyst. Sex instanser schemalägger
-      // samma delay, så fem stryps varje gång; utan omschemaläggning frös hela
-      // sidan på "Priset uppdateras…" (granskning 2026-08-14).
-      if (requestRefresh(() => router.refresh())) setAttempt((n) => n + 1);
-      else setRetry((n) => n + 1);
-    }, delay);
-    return () => clearTimeout(t);
-  }, [now === null, hidden, pt.phase, overdue, attempt, retry, router]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return { phase: pt.phase, msLeft };
+  return { phase: pt.phase, msLeft, mounted };
 }

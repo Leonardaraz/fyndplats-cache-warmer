@@ -17,7 +17,7 @@ import { PRESTART_WINDOW_MS, fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
 
 export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
-  const { phase, msLeft } = useAuctionClock(a);
+  const { phase, msLeft, mounted } = useAuctionClock(a);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -27,11 +27,12 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
     return () => removeEventListener("scroll", onScroll);
   }, []);
 
-  // Före mount saknas msLeft (den beror på klientklockan). Utan den här grinden
-  // föll rendern igenom till "lägsta pris!" — alltså ett falskt golvpåstående i
-  // serverns HTML mitt under en nedräkning, samma fel pillen fällts för förut
-  // (granskning 2026-08-14). Pillen är ändå dold tills man scrollat.
-  if (phase === "ended" || msLeft === null) return null;
+  // Före mount saknas klientklockan, och utan nedräkning föll rendern igenom
+  // till "lägsta pris!" — ett falskt golvpåstående i serverns HTML mitt under
+  // en nedräkning (granskning 2026-08-14). Vi gate:ar på `mounted`, INTE på
+  // msLeft===null: det värdet är null även för en rad utan startAt, vilket
+  // hade dolt pillen permanent på mobil.
+  if (!mounted || phase === "ended") return null;
   const preStart = phase === "pre";
   const dropped = a.priceNum < a.listPrice;
   // Timmens progress som en tunn linje i pillens botten (100 % = nästa sänkning;
@@ -43,6 +44,7 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
     phase === "floor" || phase === "stale" || msLeft === null
       ? 100
       : Math.min(100, Math.max(0, (1 - msLeft / windowMs) * 100));
+
 
   return (
     <a className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled}>
