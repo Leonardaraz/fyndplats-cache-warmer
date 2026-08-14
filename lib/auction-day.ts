@@ -56,3 +56,14 @@ export function msToDayEnd(startAtMs: number | null, nowMs: number): number | nu
   const left = startAtMs + AUCTION_DAY_HOURS * HOUR_MS - nowMs;
   return left > 0 ? left : null;
 }
+
+/**
+ * Klientens refresh-backoff när en steggräns passerats (kort/hjältekort/pill):
+ * täcker ~28 min sen tick i stället för ~1 min som förr. Skälet är uppmätt
+ * (audit 2026-08-14): väckarklockan är en GitHub Actions-cron som driver
+ * 9–57 min per timme, så nedräkningen nådde noll utan att priset hunnit
+ * PATCH:as — korten fastnade på "Priset uppdateras…" efter tre snabba försök
+ * och gav upp. Stegen är stigande så tidiga träffar är snabba när ticken är i
+ * tid, och sena träffar fångar drift utan att spamma servern.
+ */
+export const REFRESH_BACKOFF_MS = [5_000, 30_000, 90_000, 180_000, 420_000, 960_000] as const;

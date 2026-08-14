@@ -21,7 +21,9 @@ export function AuctionFuse({ startAt }: { startAt: string | null }) {
       <span className="a-fcap">07</span>
       <div className="a-ftrack">
         <div className="a-fburn" style={{ width: `${p * 100}%` }} />
-        <div className="a-ftip" style={{ left: `${p * 100}%` }} />
+        {/* Glödspetsen släcks när luntan brunnit klart (dagen slut) —
+            en flackande glöd på en färdigbrunnen lunta ser trasig ut. */}
+        {p < 1 && <div className="a-ftip" style={{ left: `${p * 100}%` }} />}
       </div>
       <span className="a-fcap">19</span>
     </div>

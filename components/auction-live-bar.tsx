@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import type { LiveAuctionView } from "../lib/auction-view";
+import { isDayOver } from "../lib/auction-day";
 
 function fmtLeft(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -30,6 +31,9 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
   if (now === null) return null;
   const startMs = a.startsAt ? Date.parse(a.startsAt) : null;
   const preStart = startMs !== null && startMs > now;
+  // Efter 19:00 finns inget att jaga — en "live"-pill vore ren dekoration som
+  // pekar på ett pris Wix redan återställt. Bort med den tills nästa dag.
+  if (!preStart && isDayOver(a.startAt ? Date.parse(a.startAt) : null, now)) return null;
   const target = preStart ? startMs : a.nextDropAt ? Date.parse(a.nextDropAt) : null;
   const msLeft = target ? target - now : null;
   const dropped = a.priceNum < a.listPrice;
