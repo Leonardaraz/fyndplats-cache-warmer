@@ -262,6 +262,27 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 >
 > Ordgränser räcker inte alltid: `\bleverantören\b` missar genitivformen *leverantörens* — använd `leverantör[a-zé]*`. Och radera aldrig en träff blint; hämta HTML-kontexten runt den och skriv om för hand. **Monterings- och säkerhetsinstruktioner är nödvändiga och ska stå kvar** — regeln är "bara det nödvändiga", inte "ingenting".
 
+> 🩹 **Varje massborttagning lämnar ärr — städa typografin efteråt, annars syns operationen för kunden.** Att stryka en mening ur löptext lämnar tre spår som inget stavningsprogram fångar, och alla tre låg ute live efter mina svep:
+>
+> | Ärr | Exempel som gick i produktion |
+> |---|---|
+> | Mellanslag före skiljetecken | *"17,6 kvadratmeter odlingsyta ."* · *"0,72 m² golvyta ."* |
+> | Punkt utan mellanslag efter | *"…undan regnet.Vi säljer den inte som…"* |
+> | Hängande halvmening | *"Upprullbar dörr i gaveln för att komma in. **Vi skriver därför bara att den är upprullbar och lämnar bredden osagd.**"* |
+>
+> De två första lagas mekaniskt och riskfritt — men **bara inuti textnoder**, aldrig över hela HTML-strängen (`style="font-weight: 700"` innehåller kolon och mellanslag som inte får röras):
+>
+> ```js
+> const stada = h => h.replace(/>([^<]+)</g, (_, t) => ">" + t
+>   .replace(/\s+([.,;:!?])/g, "$1")                       // mellanslag före skiljetecken
+>   .replace(/([a-zåäö,])([.!?])([A-ZÅÄÖ])/g, "$1$2 $3")   // saknat mellanslag efter punkt
+>   .replace(/ {2,}/g, " ") + "<");
+> ```
+>
+> Den tredje går inte att laga mekaniskt: den borttagna meningen bar en syftning som nästa mening hänger på (*"därför"*, *"det"*, *"den"*). Sök efter kvarvarande syftningar — `vi skriver`, `därför bara att`, `lämnar … osagd` — och skriv om för hand. **Kör städningen som ett eget steg efter varje svep, inte som en del av det** — annars städar du bara de produkter svepet råkade träffa.
+
+> ⚖️ **Allt som låter defensivt är inte självsabotage.** Marsvinshyddan säger *"Vi säljer den inte som det, för den uppfyller inte det svenska kravet"* och hänvisar till Jordbruksverkets SJVFS 2019:15 (L80). Det är en **laglig upplysning enligt Steg 0b**, inte en ursäkt — den ska stå kvar. Skilj på *"vi vet inte"* (bort) och *"så här får varan lagligen säljas"* (kvar).
+
 > ✍️ **Svensk sifferstil.** **Decimalkomma**, aldrig punkt: `4,5 Ah` · `1,8 m` · `0,31 m²`. Skriv **aldrig** en kommalista av tal med enheten sist — `"10, 20, 30 och 40 cm"` läses som fyra olika mått med oklar enhet. Använd snedstreck: **`10/20/30/40 cm`**. Samma sak för gradlägen: `0/45/60°`, inte `"0, 45 och 60 grader"`. Mått multipliceras med `×` och mellanslag: `72 × 57 × 56 cm`. Intervall får tankstreck: `18–36 månader`, `8–10 timmar`. *(Regeln fällde min egen copy tre gånger på en session — kontrollera den i slutkollen, inte bara när du skriver.)*
 
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
