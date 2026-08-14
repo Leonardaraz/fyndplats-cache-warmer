@@ -103,6 +103,30 @@ export function fmtLeft(ms: number): string {
  *               → refresh-kedjan hämtar morgondagens lineup)
  */
 export type AuctionPhase = "pre" | "countdown" | "stale" | "floor" | "ended";
+
+/**
+ * Fas för en auktionsvy vid en given tidpunkt. ENDA vägen från vyns
+ * ISO-strängar till fasmaskinen — adaptern låg tidigare kopierad i både
+ * useAuctionClock och startsidan, och det var startsidans kopia som glömdes
+ * bort när stängt-läget infördes (granskning 2026-08-14).
+ */
+export function phaseOf(
+  a: { startsAt: string | null; startAt: string | null; nextDropAt: string | null },
+  nowMs: number,
+): { phase: AuctionPhase; targetMs: number | null } {
+  return auctionPhase(nowMs, {
+    startsAtMs: a.startsAt ? Date.parse(a.startsAt) : null,
+    dayStartMs: a.startAt ? Date.parse(a.startAt) : null,
+    nextDropAtMs: a.nextDropAt ? Date.parse(a.nextDropAt) : null,
+  });
+}
+
+/** Auktionen sänker priser AKTIVT just nu (nedräkning eller sen sänkning).
+ *  Golvet räknas INTE hit: då sjunker inget mer, då gäller "först till kvarn".
+ *  Startsidans banner påstod "priset sjunker just nu" även på golvet 18–19. */
+export function isActivelyDropping(phase: AuctionPhase): boolean {
+  return phase === "countdown" || phase === "stale";
+}
 export function auctionPhase(
   nowMs: number,
   t: { startsAtMs: number | null; dayStartMs: number | null; nextDropAtMs: number | null },

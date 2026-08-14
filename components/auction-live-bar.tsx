@@ -27,7 +27,11 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
     return () => removeEventListener("scroll", onScroll);
   }, []);
 
-  if (phase === "ended") return null;
+  // Före mount saknas msLeft (den beror på klientklockan). Utan den här grinden
+  // föll rendern igenom till "lägsta pris!" — alltså ett falskt golvpåstående i
+  // serverns HTML mitt under en nedräkning, samma fel pillen fällts för förut
+  // (granskning 2026-08-14). Pillen är ändå dold tills man scrollat.
+  if (phase === "ended" || msLeft === null) return null;
   const preStart = phase === "pre";
   const dropped = a.priceNum < a.listPrice;
   // Timmens progress som en tunn linje i pillens botten (100 % = nästa sänkning;
