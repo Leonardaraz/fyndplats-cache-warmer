@@ -291,7 +291,18 @@ export default async function Home() {
         <section className="sec" style={{ paddingTop: 0 }}>
           <div className="container">
             <a className="auction-banner" href="/fyndauktion">
-              <AuctionBannerText rows={liveAuctions} />
+              <AuctionBannerText
+                // Bara fälten bannern läser — hela vyn (bild-URL:er, namn,
+                // priser) hamnade annars i flight-payloaden på startsidans
+                // LCP-kritiska väg (granskning 2026-08-14).
+                rows={liveAuctions.map((a) => ({
+                  startsAt: a.startsAt,
+                  startAt: a.startAt,
+                  nextDropAt: a.nextDropAt,
+                  discountPercent: a.discountPercent,
+                  serverNowMs: a.serverNowMs,
+                }))}
+              />
               <span className="auction-banner-cta">Till auktionen →</span>
             </a>
           </div>

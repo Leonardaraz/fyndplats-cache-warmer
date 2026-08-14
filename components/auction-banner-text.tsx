@@ -11,9 +11,9 @@
 // så att SSR-HTML och klientens första render är identiska — ingen hydrerings-
 // mismatch, och crawlern får riktig text.
 
-import { useEffect, useState } from "react";
 import type { LiveAuctionView } from "../lib/auction-view";
 import { isActivelyDropping, phaseOf } from "../lib/auction-day";
+import { useClientNow } from "./use-client-now";
 
 type Row = Pick<
   LiveAuctionView,
@@ -21,33 +21,42 @@ type Row = Pick<
 >;
 
 function view(rows: Row[], nowMs: number) {
-  const dropping = rows.filter((a) => isActivelyDropping(phaseOf(a, nowMs).phase));
+  const phases = rows.map((a) => phaseOf(a, nowMs).phase);
+  const dropping = rows.filter((_, i) => isActivelyDropping(phases[i]));
   return {
     count: dropping.length,
     maxDiscount: dropping.reduce((m, a) => Math.max(m, a.discountPercent), 0),
+    // Golvtimmen (18–19): inget sjunker mer, men auktionen PÅGÅR och varorna
+    // är köpbara till dagens lägsta. Utan den här grenen föll bannern tillbaka
+    // på "startar kl 07" mitt i pågående auktion (granskning 2026-08-14).
+    onFloor: phases.some((p) => p === "floor"),
   };
 }
 
 export function AuctionBannerText({ rows }: { rows: Row[] }) {
   // Startvärde = serverns klocka → identisk första render på båda sidor.
-  const serverNow = rows[0]?.serverNowMs ?? 0;
-  const [nowMs, setNowMs] = useState(serverNow);
-  useEffect(() => {
-    setNowMs(Date.now());
-    // Minutupplösning räcker: bannern byter läge vid 07 och 19, inte per sekund.
-    const t = setInterval(() => setNowMs(Date.now()), 60_000);
-    return () => clearInterval(t);
-  }, []);
-
-  const { count, maxDiscount } = view(rows, nowMs);
+  // Minutupplösning räcker: bannern byter läge vid 07, 18 och 19 — inte per
+  // sekund. useClientNow äger hydreringsmönstret och pausar i dold flik.
+  const { nowMs } = useClientNow(rows[0]?.serverNowMs ?? 0, 60_000);
+  const { count, maxDiscount, onFloor } = view(rows, nowMs);
 
   if (count > 0) {
     return (
       <>
         <span className="auction-banner-badge">🔨 Fyndauktionen pågår</span>
-        <span className="auction-banner-text" suppressHydrationWarning>
+        <span className="auction-banner-text">
           {count} produkter vars pris sjunker just nu
           {maxDiscount > 0 && <> – största rabatt <b>−{maxDiscount}%</b></>}
+        </span>
+      </>
+    );
+  }
+  if (onFloor) {
+    return (
+      <>
+        <span className="auction-banner-badge">🔨 Fyndauktionen pågår</span>
+        <span className="auction-banner-text">
+          Lägsta priset just nu – först till kvarn, stänger kl 19
         </span>
       </>
     );

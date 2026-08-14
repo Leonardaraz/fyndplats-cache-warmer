@@ -121,6 +121,19 @@ export function phaseOf(
   });
 }
 
+/**
+ * Klockans uppdateringstakt per fas. Nedräkningssiffror behöver sekundtakt;
+ * övriga lägen behöver bara upptäcka NÄSTA fasövergång, vilket 20 s räcker för.
+ *
+ * KRITISKT: aldrig 0/Infinity/null. `now` är det som driver fasövergångarna, så
+ * en stoppad klocka betyder att 19:00 aldrig inträffar för en öppen flik —
+ * exakt den regression som infördes när tickern gate:ades bort i floor/stale/
+ * ended (granskning 2026-08-14). Testet nedan låser att alla faser tickar.
+ */
+export function tickerStepMs(phase: AuctionPhase): number {
+  return phase === "pre" || phase === "countdown" ? 1_000 : 20_000;
+}
+
 /** Auktionen sänker priser AKTIVT just nu (nedräkning eller sen sänkning).
  *  Golvet räknas INTE hit: då sjunker inget mer, då gäller "först till kvarn".
  *  Startsidans banner påstod "priset sjunker just nu" även på golvet 18–19. */

@@ -6,7 +6,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, AUCTION_DAY_MS, PRESTART_WINDOW_MS, FINAL_HOUR, auctionPhase, phaseOf, isActivelyDropping, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS } from "./auction-day.ts";
+import { dayHeat, isFinalHour, isDayOver, hourIndex, msToDayEnd, AUCTION_DAY_HOURS, AUCTION_DAY_MS, PRESTART_WINDOW_MS, FINAL_HOUR, auctionPhase, phaseOf, isActivelyDropping, tickerStepMs, dayEndMs, fmtLeft, REFRESH_BACKOFF_MS } from "./auction-day.ts";
 
 const H = 3_600_000;
 const START = Date.parse("2026-07-12T05:00:00.000Z"); // 07:00 svensk sommartid
@@ -156,4 +156,45 @@ test("auctionPhase: stängt-beslutet följer dagslängden, inte en separat flagg
 test("PRESTART_WINDOW_MS: natten, inte dagen", () => {
   assert.equal(PRESTART_WINDOW_MS, 24 * H - AUCTION_DAY_HOURS * H);
   assert.equal(AUCTION_DAY_MS + PRESTART_WINDOW_MS, 24 * H, "dag + natt = ett dygn");
+});
+
+// REGRESSION (granskning 2026-08-14, allvarligaste fyndet i serien): tickern
+// gate:ades bort i floor/stale/ended med motiveringen "ingen text beror på
+// klockan där". Men klockan är det som DRIVER fasövergångarna — när den frös
+// vid 18:00 inträffade 19:00 aldrig för en öppen flik, och kortet satt kvar på
+// "Lägsta pris — första köparen tar det!" hela kvällen med en CTA till en
+// produkt vars pris Wix redan återställt.
+test("tickerStepMs: klockan går i ALLA faser — aldrig 0, aldrig oändlig", () => {
+  const faser = ["pre", "countdown", "stale", "floor", "ended"] as const;
+  for (const f of faser) {
+    const step = tickerStepMs(f);
+    assert.ok(Number.isFinite(step), `${f}: takten måste vara ändlig`);
+    assert.ok(step > 0, `${f}: takten måste vara > 0 — en stoppad klocka fryser fasen`);
+    assert.ok(step <= 60_000, `${f}: max en minut, annars missas gränsen för länge`);
+  }
+});
+
+test("tickerStepMs: sekundtakt bara där siffror räknas ned", () => {
+  assert.equal(tickerStepMs("pre"), 1_000);
+  assert.equal(tickerStepMs("countdown"), 1_000);
+  // Övriga behöver inte sekundtakt, men MÅSTE ticka (se testet ovan).
+  assert.ok(tickerStepMs("floor") > 1_000);
+  assert.ok(tickerStepMs("ended") > 1_000);
+});
+
+// Simulerar en öppen flik över dygnsgränsen med den faktiska takten: fasen ska
+// nå "ended" inom en tickperiod efter 19:00, inte fastna i floor.
+test("en öppen flik når ended strax efter 19:00", () => {
+  const t = { startsAtMs: null, dayStartMs: START, nextDropAtMs: null };
+  let now = START + 11 * H; // 18:00, golvet — här frös klockan i den trasiga versionen
+  let phase = auctionPhase(now, t).phase;
+  assert.equal(phase, "floor");
+  // Kör klockan framåt med fasens egen takt, som hooken gör.
+  for (let i = 0; i < 5000 && phase !== "ended"; i++) {
+    now += tickerStepMs(phase);
+    phase = auctionPhase(now, t).phase;
+  }
+  assert.equal(phase, "ended", "fliken måste nå stängt läge");
+  const slack = now - (START + AUCTION_DAY_HOURS * H);
+  assert.ok(slack >= 0 && slack <= 20_000, `nådde ended ${slack} ms efter 19:00 (max 20 s)`);
 });
