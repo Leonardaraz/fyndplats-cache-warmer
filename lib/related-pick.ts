@@ -73,14 +73,54 @@ export function priceFit(a: number | undefined, b: number | undefined): number {
 }
 
 /**
- * Produktens "typ" = första meningsfulla ordet i namnet. Katalogens namn börjar
- * med substantivet ("Hundgrind 75–103 cm…", "Spegelskåp badrum 60 cm…"), så det
- * är en billig och träffsäker typmarkör. Samma mönster används redan för
- * blogg-nyckelord i PDP:n.
+ * Namnets ord, gemener, bara bokstäver. Siffror och mått försvinner av sig
+ * själva (tokeniseringen delar på icke-bokstäver), och ord under tre tecken
+ * släpps — de bär ingen produktbetydelse.
  */
-export function typeToken(name: string): string {
-  const first = (name || "").trim().split(/\s+/)[0] || "";
-  return first.toLowerCase().replace(/[^a-zà-ÿ0-9]/gi, "");
+export function nameTokens(name: string): string[] {
+  return (name || "")
+    .toLowerCase()
+    .split(/[^a-zà-öø-ÿ]+/i)
+    .filter((t) => t.length >= 3);
+}
+
+/** IDF över produktnamnens ord — samma sällsynthetsidé som categoryWeights. */
+export function tokenWeights(all: Product[]): Map<string, number> {
+  const freq = new Map<string, number>();
+  for (const p of all) for (const t of new Set(nameTokens(p.name))) freq.set(t, (freq.get(t) || 0) + 1);
+  const w = new Map<string, number>();
+  for (const [t, n] of freq) w.set(t, Math.log((all.length + 1) / (n + 1)) + 1);
+  return w;
+}
+
+/**
+ * Hur lika två produktnamn är, 0–1, viktat på ordens sällsynthet (cosinus).
+ *
+ * ERSÄTTER en förstaords-"typ" som granskningen 2026-08-15 fällde. Att ta
+ * första ordet antog att katalogens namn börjar med substantivet. Uppmätt gör
+ * de inte det: 91 av 756 produkter börjar med ett ADJEKTIV, och det vanligaste
+ * "typ"-ordet var `hopfällbar` — 22 produkter, däribland en arbetsbänk, en
+ * bardisk och en dragvagn i SAMMA kategori, som därmed trycktes ner mot
+ * varandra fast de inte har något med varandra att göra. Samtidigt missades
+ * fallet regeln fanns för: "Cykelpump 160 PSI" och "Elektrisk cykelpump
+ * 150PSI" fick olika förstaord och dämpades inte alls.
+ *
+ * Sällsyntheten löser båda: `hopfällbar` finns överallt → nästan ingen vikt,
+ * medan `cykelpump` är ovanligt → hög vikt. Ordets PLATS i namnet spelar
+ * ingen roll längre.
+ */
+export function nameSimilarity(a: string, b: string, w: Map<string, number>): number {
+  const ta = new Set(nameTokens(a));
+  const tb = new Set(nameTokens(b));
+  if (!ta.size || !tb.size) return 0;
+  const wt = (t: string) => w.get(t) ?? 1;
+  let shared = 0;
+  for (const t of ta) if (tb.has(t)) shared += wt(t);
+  let na = 0;
+  for (const t of ta) na += wt(t);
+  let nb = 0;
+  for (const t of tb) nb += wt(t);
+  return shared / Math.sqrt(na * nb);
 }
 
 /**
@@ -126,24 +166,23 @@ export function pickRelated(p: Product, all: Product[], curatedSlugs: string[], 
       .sort((a, b) => b.score - a.score);
 
     // Greedy med variationsdämpning: merchandisern skulle ta "en eller två
-    // äkta alternativ, inte fem av samma sak". Efter att en produkt av samma TYP
-    // valts halveras vikten för fler av den typen — de utesluts aldrig (annars
-    // skulle en produkt vars enda grannar är syskonmodeller bli tom), de får
-    // bara stå tillbaka för ett komplement när ett sådant finns.
-    const ownType = typeToken(p.name);
-    const typeCount = new Map<string, number>();
-    typeCount.set(ownType, 1); // produkten själv räknas — så syskonmodeller dämpas direkt
+    // äkta alternativ, inte fem av samma sak". Varje redan vald produkt (och
+    // produkten man tittar på) drar ner kandidater som LIKNAR den, viktat på
+    // namnlikhet. Dämpning, aldrig uteslutning — en produkt vars enda grannar
+    // är syskonmodeller ska inte få tom lista.
+    const tw = tokenWeights(all);
+    const against: string[] = [p.name]; // syskonmodeller dämpas direkt mot produkten själv
     while (out.length < limit) {
       let best: { x: Product; adj: number } | null = null;
       for (const s of cands) {
         if (seen.has(s.x.slug)) continue;
-        const t = typeToken(s.x.name);
-        const adj = s.score * Math.pow(0.5, typeCount.get(t) || 0);
+        let damp = 1;
+        for (const other of against) damp *= 1 - 0.6 * nameSimilarity(s.x.name, other, tw);
+        const adj = s.score * damp;
         if (!best || adj > best.adj) best = { x: s.x, adj };
       }
       if (!best) break;
-      const t = typeToken(best.x.name);
-      typeCount.set(t, (typeCount.get(t) || 0) + 1);
+      against.push(best.x.name);
       add(best.x);
     }
   }
