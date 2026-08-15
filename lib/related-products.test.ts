@@ -129,3 +129,116 @@ test("hellre färre förslag än ett som inte går att köpa", () => {
   const rel = pickRelated(mk("bike-mig", ["ALL", "bike"]), all, [], 4);
   assert.equal(rel.length, 1);
 });
+
+// ── Merchandiser-rankad fallback (2026-08-15) ───────────────────────────────
+// Fallbacken rankade förr på ENBART antal delade kategorier. Testerna nedan
+// låser de tre signaler som ersatte det, alla gratis ur Wix-datan.
+
+import { categoryWeights, priceFit, typeToken } from "./related-pick.ts";
+
+function mkFull(
+  slug: string,
+  collectionIds: string[],
+  opts: { name?: string; priceNum?: number; pop?: number; inStock?: boolean } = {},
+): Product {
+  return {
+    slug,
+    collectionIds,
+    inStock: opts.inStock ?? true,
+    id: slug,
+    name: opts.name ?? slug,
+    priceNum: opts.priceNum ?? 0,
+    popularity: opts.pop ?? 0,
+    imageScore: 0,
+  } as unknown as Product;
+}
+
+test("priceFit – lika pris ger full poäng, upp till 1,5× är gratis", () => {
+  assert.equal(priceFit(500, 500), 1);
+  assert.equal(priceFit(500, 750), 1); // exakt 1,5×
+  assert.ok(priceFit(500, 5000) < 0.35, "10× ska straffas hårt");
+  assert.ok(priceFit(500, 1500) < priceFit(500, 800), "större kvot = lägre poäng");
+});
+
+test("priceFit – mäter kvot, inte kronor (samma felsteg i olika prisklass)", () => {
+  assert.equal(priceFit(200, 400), priceFit(2000, 4000));
+});
+
+test("priceFit – saknat pris är neutralt, aldrig ett straff", () => {
+  assert.equal(priceFit(undefined, 500), 1);
+  assert.equal(priceFit(0, 500), 1);
+});
+
+test("typeToken – första ordet, gemener, utan skiljetecken", () => {
+  assert.equal(typeToken("Hundgrind 75–103 cm med kattlucka"), "hundgrind");
+  assert.equal(typeToken("Spegelskåp badrum 60 cm"), "spegelskåp");
+  assert.equal(typeToken(""), "");
+});
+
+test("categoryWeights – sällsynt kategori väger mer än katalogtäckande", () => {
+  const all = [
+    // "ALL" ligger på ALLA 60; "stor" på 50; "liten" på 2 → strikt fallande bredd.
+    ...Array.from({ length: 48 }, (_, i) => mkFull(`b-${i}`, ["ALL", "stor"])),
+    mkFull("smal-1", ["ALL", "stor", "liten"]),
+    mkFull("smal-2", ["ALL", "stor", "liten"]),
+    ...Array.from({ length: 10 }, (_, i) => mkFull(`bara-all-${i}`, ["ALL"])),
+  ];
+  const w = categoryWeights(all);
+  assert.ok(w.get("liten")! > w.get("stor")!, "smal kategori ska väga tyngre");
+  assert.ok(w.get("stor")! > w.get("ALL")!, "ALL täcker allt → lägst vikt");
+});
+
+test("fallback – specifik delad underkategori slår bred huvudkategori", () => {
+  const all = [
+    mkFull("jag", ["ALL", "hem", "badrum"], { name: "Spegelskåp badrum 60 cm" }),
+    mkFull("badrumssyskon", ["ALL", "hem", "badrum"], { name: "Väggskåp badrum 60 cm" }),
+    ...Array.from({ length: 40 }, (_, i) =>
+      mkFull(`hem-${i}`, ["ALL", "hem"], { name: `Soffbord ${i}` })),
+  ];
+  const rel = pickRelated(all[0], all, [], 1);
+  assert.equal(rel[0].slug, "badrumssyskon", "den som delar den smala kategorin ska först");
+});
+
+test("fallback – prispassning väljer bort vansinnig prisklass", () => {
+  const all = [
+    mkFull("jag", ["ALL", "k"], { name: "Spegelskåp badrum", priceNum: 1000 }),
+    mkFull("rimlig", ["ALL", "k"], { name: "Väggskåp badrum", priceNum: 1200 }),
+    mkFull("orimlig", ["ALL", "k"], { name: "Tvålkopp mini", priceNum: 39 }),
+  ];
+  const rel = pickRelated(all[0], all, [], 1);
+  assert.equal(rel[0].slug, "rimlig");
+});
+
+test("fallback – komplement före en tredje syskonmodell (variation)", () => {
+  const all = [
+    mkFull("jag", ["ALL", "k"], { name: "Cykelpump golv 160 PSI", priceNum: 400 }),
+    mkFull("pump-2", ["ALL", "k"], { name: "Cykelpump elektrisk 150 PSI", priceNum: 400 }),
+    mkFull("pump-3", ["ALL", "k"], { name: "Cykelpump mini hand", priceNum: 400 }),
+    mkFull("sadelvaska", ["ALL", "k"], { name: "Sadelväska vattentät", priceNum: 400 }),
+  ];
+  const rel = pickRelated(all[0], all, [], 2);
+  assert.ok(rel.some((r) => r.slug === "sadelvaska"), "komplementet ska med bland två");
+  assert.equal(rel.filter((r) => typeToken(r.name) === "cykelpump").length, 1, "bara EN syskonmodell");
+});
+
+test("fallback – syskonmodeller dämpas men utesluts aldrig (svälter inte listan)", () => {
+  const all = [
+    mkFull("jag", ["ALL", "k"], { name: "Cykelpump golv" }),
+    mkFull("p2", ["ALL", "k"], { name: "Cykelpump elektrisk" }),
+    mkFull("p3", ["ALL", "k"], { name: "Cykelpump mini" }),
+    mkFull("p4", ["ALL", "k"], { name: "Cykelpump fot" }),
+  ];
+  const rel = pickRelated(all[0], all, [], 3);
+  assert.equal(rel.length, 3, "finns inget komplement ska syskonen ändå fylla listan");
+});
+
+test("fallback – popularitet skiljer likvärdiga kandidater, kör inte över relevans", () => {
+  const all = [
+    mkFull("jag", ["ALL", "smal"], { name: "Spegelskåp badrum", priceNum: 1000 }),
+    mkFull("smal-trog", ["ALL", "smal"], { name: "Väggskåp badrum", priceNum: 1000, pop: 0 }),
+    mkFull("bred-hit", ["ALL", "bred"], { name: "Soffbord ek", priceNum: 1000, pop: 999 }),
+    ...Array.from({ length: 30 }, (_, i) => mkFull(`f-${i}`, ["ALL", "bred"], { name: `Fyllnad ${i}` })),
+  ];
+  const rel = pickRelated(all[0], all, [], 1);
+  assert.equal(rel[0].slug, "smal-trog", "relevans slår popularitet");
+});
