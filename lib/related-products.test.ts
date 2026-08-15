@@ -134,7 +134,7 @@ test("hellre färre förslag än ett som inte går att köpa", () => {
 // Fallbacken rankade förr på ENBART antal delade kategorier. Testerna nedan
 // låser de tre signaler som ersatte det, alla gratis ur Wix-datan.
 
-import { categoryWeights, priceFit, typeToken } from "./related-pick.ts";
+import { categoryWeights, priceFit, nameTokens, tokenWeights, nameSimilarity } from "./related-pick.ts";
 
 function mkFull(
   slug: string,
@@ -169,10 +169,46 @@ test("priceFit – saknat pris är neutralt, aldrig ett straff", () => {
   assert.equal(priceFit(0, 500), 1);
 });
 
-test("typeToken – första ordet, gemener, utan skiljetecken", () => {
-  assert.equal(typeToken("Hundgrind 75–103 cm med kattlucka"), "hundgrind");
-  assert.equal(typeToken("Spegelskåp badrum 60 cm"), "spegelskåp");
-  assert.equal(typeToken(""), "");
+test("nameTokens – bara ord, siffror och mått faller bort", () => {
+  assert.deepEqual(nameTokens("Cykelpump 160 PSI golvfot"), ["cykelpump", "psi", "golvfot"]);
+  assert.deepEqual(nameTokens("Hundgrind 75–103 cm med kattlucka"), ["hundgrind", "med", "kattlucka"]);
+  assert.deepEqual(nameTokens(""), []);
+});
+
+// Granskningen 2026-08-15 fällde den tidigare förstaords-"typen": 91 av 756
+// produkter börjar med ett ADJEKTIV. Vanligast var "hopfällbar" (22 st) — en
+// arbetsbänk, en bardisk och en dragvagn i samma kategori räknades som samma
+// typ. Sällsyntheten löser det; ordets plats i namnet spelar ingen roll.
+test("nameSimilarity – vanligt adjektiv gör INTE två olika produkter lika", () => {
+  const all = [
+    mkFull("a", [], { name: "Hopfällbar arbetsbänk" }),
+    mkFull("b", [], { name: "Hopfällbar bardisk portabel" }),
+    mkFull("c", [], { name: "Hopfällbar dragvagn trappvagn" }),
+    mkFull("d", [], { name: "Hopfällbar campingstol" }),
+    mkFull("e", [], { name: "Hopfällbar hundbur" }),
+    ...Array.from({ length: 20 }, (_, i) => mkFull(`x-${i}`, [], { name: `Soffbord modell ${i}` })),
+  ];
+  const w = tokenWeights(all);
+  const sim = nameSimilarity("Hopfällbar arbetsbänk", "Hopfällbar bardisk portabel", w);
+  assert.ok(sim < 0.5, `delar bara ett vanligt adjektiv → låg likhet, fick ${sim.toFixed(2)}`);
+});
+
+test("nameSimilarity – ovanligt substantiv gör två varianter lika, oavsett ordföljd", () => {
+  const all = [
+    mkFull("a", [], { name: "Cykelpump 160 PSI golvfot manometer" }),
+    mkFull("b", [], { name: "Elektrisk cykelpump 150 PSI" }),
+    ...Array.from({ length: 20 }, (_, i) => mkFull(`x-${i}`, [], { name: `Elektrisk lampa ${i}` })),
+  ];
+  const w = tokenWeights(all);
+  // Det HÄR är fallet förstaords-typen missade: olika första ord, samma sak.
+  const sim = nameSimilarity("Cykelpump 160 PSI golvfot manometer", "Elektrisk cykelpump 150 PSI", w);
+  assert.ok(sim > 0.3, `delar det ovanliga "cykelpump" → hög likhet, fick ${sim.toFixed(2)}`);
+});
+
+test("nameSimilarity – tomt namn ger 0, kraschar inte", () => {
+  const w = tokenWeights([mkFull("a", [], { name: "Soffbord ek" })]);
+  assert.equal(nameSimilarity("", "Soffbord ek", w), 0);
+  assert.equal(nameSimilarity("Soffbord ek", "", w), 0);
 });
 
 test("categoryWeights – sällsynt kategori väger mer än katalogtäckande", () => {
@@ -218,7 +254,7 @@ test("fallback – komplement före en tredje syskonmodell (variation)", () => {
   ];
   const rel = pickRelated(all[0], all, [], 2);
   assert.ok(rel.some((r) => r.slug === "sadelvaska"), "komplementet ska med bland två");
-  assert.equal(rel.filter((r) => typeToken(r.name) === "cykelpump").length, 1, "bara EN syskonmodell");
+  assert.equal(rel.filter((r) => /cykelpump/i.test(r.name)).length, 1, "bara EN syskonmodell");
 });
 
 test("fallback – syskonmodeller dämpas men utesluts aldrig (svälter inte listan)", () => {
