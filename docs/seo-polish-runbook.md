@@ -493,6 +493,20 @@ Klassa varje bild utifrån Steg 1b-granskningen:
 - **Nyttig kontextbild** (detalj, i-bruk, skala, storleksjämförelse) → **behåll**, tvätta bara logga/inbränd text (Steg 3b). **Vitmåla inte** — kontexten säljer, och komplexa bilder är där urklippet riskerar klippa kablar/smådelar.
 - **Text-tung infografik** → ta bort/flagga (som Steg 3b).
 
+> 🚨 **AI-genererad HJÄLTEBILD gör produkten "Begränsad" i Google Merchant Center och tappar de kostnadsfria listningarna.** *(Uppmätt 2026-08-14 efter Leonards rapport.)* Wix `generate-image` (Metod A) bäddar in **C2PA-manifest** (`jumb`-box) och **IPTC `digitalSourceType: trainedAlgorithmicMedia`** i filen. Google läser det och flaggar **"AI-etikett för tillgångar"**. Sitter etiketten på **huvudbilden** försvinner produkten ur kostnadsfria listningar helt; sitter den på en annan bild i galleriet visas produkten fortfarande, men just den bilden döljs.
+>
+> Katalogsvep 2026-08-14: **28 av 756 produkter** hade AI-märkt huvudbild — 20 av dem WEST BIKING-batchen, alltså EN poleringsomgång som slog ut en hel kategori ur gratistrafiken. Alla 28 hade redan minst en ren bild i galleriet.
+>
+> **Konsekvens för metodvalet:** Metod 0 är inte bara billigare och trognare — den är **den enda som håller produkten kvar i kostnadsfria listningar**. Den tröskar och beskär en riktig fotografi och är inte generativ AI, så ingen provenance-stämpel skrivs. Rangordningen för hjälten är därför hård: **Metod 0 → ren leverantörsbild → Metod A först när de två är uttömda** — och väljer du Metod A, lägg resultatet **någon annanstans än position 0**.
+>
+> **Kontrollera före publicering** (markören ligger inom första 64 KB):
+>
+> ```bash
+> curl -sS -r 0-65536 "<wixstatic-url>" | grep -qa trainedAlgorithmicMedia && echo "AI-märkt — får INTE bli hjälte"
+> ```
+>
+> ⛔ **Strippa aldrig C2PA/IPTC-taggen för att komma förbi filtret.** Är bilden genuint AI-genererad är taggen en upplysning, och att ta bort den för att nå gratislistningarna är att kringgå ett upplysningskrav — det riskerar hela Merchant Center-kontot. Rätt åtgärd är att byta bilden, inte att dölja hur den gjordes.
+
 **Metod 0 – `hero_white()` (PROVA ALLTID FÖRST — gratis, deterministisk, ingen AI):**
 
 Merparten av leverantörsbilderna från HOMCOM/Outsunny/PawHut/Sportnow ligger **redan** på vit studiobakgrund — de är bara snedcentrerade, har olika marginal och ett gråaktigt ljusbrus. Då behövs varken AI eller urklipp: tröskla bort bruset, beskär till produktens bbox och centrera på ren vit duk.
