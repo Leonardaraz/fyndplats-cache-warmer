@@ -32,11 +32,63 @@ export function sharedCategoryCount(a: Product, b: Product, universal: Set<strin
   return n;
 }
 
+// ── Merchandiser-signaler (gratis: allt kommer ur Wix-produktdatan) ──────────
+//
+// Fallbacken rankade förr på ENBART antal delade kategorier. Det gör att en
+// produkt i "Hem & Inredning" (hundratals varor) ser exakt likadan ut som en i
+// "Badrum & Hemtextil" (ett fåtal) — och att en skruvmejsel för 79 kr kan
+// föreslås under en möbel för 3 000 kr. Den betalda merchandiser-modellen fick
+// fyra instruktioner (scripts/score-related.mjs): komplement före dubbletter,
+// PRISPASSNING, samma användningsområde, variation. Tre av dem går att räkna
+// fram deterministiskt ur data vi redan har — gratis, för varje produkt, utan
+// att en genererad ögonblicksbild kan bli inaktuell.
+
+/**
+ * Kategorisärskiljning som vikt: en kategori som få produkter delar bär mycket
+ * mer signal än en som halva katalogen ligger i (klassisk IDF). Det ersätter
+ * "räkna delade kategorier", där alla kategorier vägde lika mycket.
+ *
+ * Behöver INTE kategoriträdet — sällsyntheten mäts direkt i katalogen, så en
+ * underkategori får automatiskt högre vikt än sin förälder.
+ */
+export function categoryWeights(all: Product[]): Map<string, number> {
+  const freq = new Map<string, number>();
+  for (const p of all) for (const c of p.collectionIds || []) freq.set(c, (freq.get(c) || 0) + 1);
+  const w = new Map<string, number>();
+  for (const [c, n] of freq) w.set(c, Math.log((all.length + 1) / (n + 1)) + 1);
+  return w;
+}
+
+/**
+ * Prispassning, 1.0 = perfekt. Mäter KVOT, inte krondifferens — "many times its
+ * price" i merchandiser-prompten är multiplikativt: 200 vs 400 kr är samma
+ * felsteg som 2 000 vs 4 000. Upp till 1,5× är gratis (normal prisspridning
+ * inom en kategori), därefter faller den mjukt. Saknat pris → neutral (1.0),
+ * så en produkt utan prisdata aldrig straffas.
+ */
+export function priceFit(a: number | undefined, b: number | undefined): number {
+  if (!a || !b || a <= 0 || b <= 0) return 1;
+  const ratio = Math.max(a, b) / Math.min(a, b);
+  return 1 / (1 + Math.max(0, ratio - 1.5) / 2);
+}
+
+/**
+ * Produktens "typ" = första meningsfulla ordet i namnet. Katalogens namn börjar
+ * med substantivet ("Hundgrind 75–103 cm…", "Spegelskåp badrum 60 cm…"), så det
+ * är en billig och träffsäker typmarkör. Samma mönster används redan för
+ * blogg-nyckelord i PDP:n.
+ */
+export function typeToken(name: string): string {
+  const first = (name || "").trim().split(/\s+/)[0] || "";
+  return first.toLowerCase().replace(/[^a-zà-ÿ0-9]/gi, "");
+}
+
 /**
  * Slutgiltig "Liknande produkter"-lista för PDP:n. Två lager:
  *   1. Kuraterade LLM-val (bäst först) — bara i lager + fortfarande existerande.
- *   2. Fallback/påfyllning: meningsfullt kategori-överlapp (flest delade först,
- *      i lager före slutsåld). Täcker HELT när kuraterad lista saknas.
+ *   2. Fallback/påfyllning: merchandiser-rankat kategori-överlapp (se ovan).
+ *      Täcker HELT när kuraterad lista saknas — vilket den gör för 45 % av
+ *      katalogen, eftersom den kuraterade kartan är en ögonblicksbild.
  * Aldrig produkten själv, aldrig dubbletter, max `limit`. Ren funktion → testbar.
  */
 export function pickRelated(p: Product, all: Product[], curatedSlugs: string[], limit = 4): Product[] {
@@ -52,17 +104,48 @@ export function pickRelated(p: Product, all: Product[], curatedSlugs: string[], 
     const x = bySlug.get(s);
     if (x && x.inStock) add(x);
   }
-  // 2) Meningsfullt kategori-överlapp som fallback/påfyllning. Bara varor i
-  //    lager: ett förslag är ett aktivt tips från butiken, och att tipsa om
-  //    något man inte kan köpa är sämre än att visa tre förslag i stället för
-  //    fyra. (Tidigare sorterades slutsålda bara sist — de kom ändå med när
-  //    överlappet var tunt.) Kuraterade valet ovan kräver redan inStock.
+  // 2) Merchandiser-rankad fallback/påfyllning. Bara varor i lager: ett förslag
+  //    är ett aktivt tips från butiken, och att tipsa om något man inte kan köpa
+  //    är sämre än att visa tre förslag i stället för fyra. (Tidigare sorterades
+  //    slutsålda bara sist — de kom ändå med när överlappet var tunt.)
   if (out.length < limit) {
-    const overlap = all
-      .map((x) => ({ x, shared: sharedCategoryCount(p, x, universal) }))
-      .filter((s) => s.shared > 0 && s.x.inStock && !seen.has(s.x.slug))
-      .sort((a, b) => b.shared - a.shared);
-    for (const s of overlap) { if (out.length >= limit) break; add(s.x); }
+    const w = categoryWeights(all);
+    const maxPop = Math.max(1, ...all.map((x) => x.popularity || 0));
+    const cands = all
+      .map((x) => {
+        const bs = new Set((x.collectionIds || []).filter((c) => !universal.has(c)));
+        let affinity = 0;
+        for (const c of p.collectionIds || []) if (!universal.has(c) && bs.has(c)) affinity += w.get(c) || 1;
+        // Popularitet är verklig försäljning (90 dagar) — den signalen hade den
+        // betalda modellen aldrig ens tillgång till. Den viktas lätt: den ska
+        // skilja mellan likvärdiga kandidater, inte köra över relevansen.
+        const boost = 1 + 0.2 * ((x.popularity || 0) / maxPop) + 0.05 * ((x.imageScore || 0) / 100);
+        return { x, score: affinity * priceFit(p.priceNum, x.priceNum) * boost, affinity };
+      })
+      .filter((s) => s.affinity > 0 && s.x.inStock && !seen.has(s.x.slug))
+      .sort((a, b) => b.score - a.score);
+
+    // Greedy med variationsdämpning: merchandisern skulle ta "en eller två
+    // äkta alternativ, inte fem av samma sak". Efter att en produkt av samma TYP
+    // valts halveras vikten för fler av den typen — de utesluts aldrig (annars
+    // skulle en produkt vars enda grannar är syskonmodeller bli tom), de får
+    // bara stå tillbaka för ett komplement när ett sådant finns.
+    const ownType = typeToken(p.name);
+    const typeCount = new Map<string, number>();
+    typeCount.set(ownType, 1); // produkten själv räknas — så syskonmodeller dämpas direkt
+    while (out.length < limit) {
+      let best: { x: Product; adj: number } | null = null;
+      for (const s of cands) {
+        if (seen.has(s.x.slug)) continue;
+        const t = typeToken(s.x.name);
+        const adj = s.score * Math.pow(0.5, typeCount.get(t) || 0);
+        if (!best || adj > best.adj) best = { x: s.x, adj };
+      }
+      if (!best) break;
+      const t = typeToken(best.x.name);
+      typeCount.set(t, (typeCount.get(t) || 0) + 1);
+      add(best.x);
+    }
   }
   return out;
 }
