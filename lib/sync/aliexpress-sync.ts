@@ -20,7 +20,8 @@ import { translateValue } from "../import/variant-translations";
 import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
 import type { PricingConfig } from "../import/types";
 import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
-import { checkMappingShippability, isShippabilityStale, type ShippabilityBudget } from "./shippability";
+import { checkMappingShippability, isShippabilityStale, NEGATIVE_CONFIRMATIONS, type ShippabilityBudget } from "./shippability";
+import type { VariantMapping } from "../import/pipeline";
 import {
   getProduct as getWixProduct,
   queryInventoryItemsByProductId,
@@ -540,14 +541,25 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // Används både för bestseller-prioritet (Feature 4) och för "X sålda"-raden
   // i real-tids-OOS-mejlet (Feature 2). Best-effort: failar order-API:t kör vi
   // vidare med tomt data (mejlet visar då 0 sålda, prioriteringen rör inget).
-  // Fraktbarhetskontrollens delade anropsbudget. PAUSAD (default 0) sedan
-  // 2026-07-14: fraktAPI:ts nej-svar visade sig opålitliga per anrop och
-  // nollade 8 fraktbara produkter under en natt (kod röd). Återaktiveras via
-  // SYNC_SHIPPABILITY_CHECKS_PER_RUN när frågan verifierats med hårdare
-  // beviskrav (flera oberoende nej + full adresskontext).
+  // Fraktbarhetskontrollens delade anropsbudget. Pausad (default 0) från
+  // 2026-07-14 till 2026-08-16: fraktAPI:ts nej-svar var opålitliga per anrop
+  // och nollade 8 fraktbara produkter under en natt (kod röd). Villkoret för
+  // återaktivering var "hårdare beviskrav" — det är nu byggt (kontroll v2):
+  // ett nej måste vara UTTRYCKLIGT, upprepas minst två gånger med minst ett
+  // dygns spridning, och får inte stå bredvid ett fraktbart syskon.
+  //
+  // Default höjd till 20 anrop/körning (Leonards begäran 2026-08-16). Med
+  // körning var 4:e timme blir det ~120 kontroller/dygn — en första svep över
+  // de ~822 aldrig kontrollerade varianterna tar drygt en vecka. Medvetet
+  // långsamt: beviskravet kostar tid, och det är priset för att inte upprepa
+  // kod röd. Sätt SYNC_SHIPPABILITY_CHECKS_PER_RUN för att ändra takten, 0
+  // för att pausa igen.
+  const DEFAULT_SHIPPABILITY_CHECKS_PER_RUN = 20;
   const shipBudgetEnv = Number(process.env.SYNC_SHIPPABILITY_CHECKS_PER_RUN);
   const shippabilityBudget: ShippabilityBudget = {
-    remaining: Number.isFinite(shipBudgetEnv) && shipBudgetEnv >= 0 ? shipBudgetEnv : 0,
+    remaining: Number.isFinite(shipBudgetEnv) && shipBudgetEnv >= 0
+      ? shipBudgetEnv
+      : DEFAULT_SHIPPABILITY_CHECKS_PER_RUN,
   };
 
   let salesByProduct: Record<string, number> = {};
@@ -1256,6 +1268,48 @@ function productPageUrl(slug?: string): string {
  *   i svaret (helt inaktuell mappning) → even-split av aggregatet. (Att nolla allt
  *   när ingenting matchar vore falsk mass-OOS; even-split är säkrare gissning.)
  */
+/**
+ * Vilka Wix-varianter som ska tvingas till 0 lager för att de saknar fraktväg
+ * till Sverige. Ren funktion → testbar.
+ *
+ * TVÅ KÄLLOR med olika tillit:
+ *  • MANUELLT verdikt (`shippabilityManual`) — en människa har läst "This
+ *    product can't be shipped to your address" på leverantörens egen sida.
+ *    Lyder ALDRIG under env-flaggan.
+ *  • Automatiskt verdikt från frakt-API:t — gatas av
+ *    `SYNC_SHIPPABILITY_ENFORCE`, avstängt sedan kod röd 2026-07-14 då
+ *    kontrollen nollade 8 SÄLJBARA produkter på en natt. De ~9 kvarvarande
+ *    flaggorna från den natten förblir därför inerta.
+ *
+ * Utan uppdelningen fanns ingen väg alls att stoppa en vara vi VET inte går att
+ * skicka: sparkbilen (SucceBuy, samma säljare som fallet 2026-07-13) låg kvar
+ * med ~60 i lager, såldes och fick återbetalas (Leonards rapport 2026-08-16).
+ */
+export function unshippableVariantIdsFor(
+  variants: readonly VariantMapping[],
+  enforceAutomatic: boolean,
+): Set<string> {
+  return new Set(
+    variants
+      .filter((v) => {
+        if (v.shippableToSe !== false || !v.wixVariantId) return false;
+        // Människa har kontrollerat leverantörens sida.
+        if (v.shippabilityManual === true) return true;
+        // BEVISAD v2-dom: bär en bekräftelseserie, vilket per konstruktion
+        // betyder ≥2 uttryckliga nej spridda över minst ett dygn utan något
+        // fraktbart syskon. Den behöver inte env-flaggan — beviskravet ÄR
+        // grinden. Granskning 2026-08-16: utan detta undantag var v2 helt
+        // inert, domen skrevs men nollade aldrig något.
+        if ((v.shippabilityNegativeStreak ?? 0) >= NEGATIVE_CONFIRMATIONS) return true;
+        // Kvar: v1-flaggor från kod röd 2026-07-14 (uppmätt: 13 varianter,
+        // ingen med serie). De saknar bevis och förblir inerta tills någon
+        // uttryckligen sätter env-flaggan.
+        return enforceAutomatic;
+      })
+      .map((v) => v.wixVariantId as string),
+  );
+}
+
 export function resolveInventoryQuantities(
   items: ReadonlyArray<{ variantId: string }>,
   supplierByVariantId: Map<string, string>,
@@ -1311,13 +1365,9 @@ async function applyInventoryTarget(
   // SYNC_SHIPPABILITY_ENFORCE=true. Grindad av (kod röd 2026-07-14): flaggor
   // satta av opålitliga API-nej får inte nolla säljbara varianter. Kvarvarande
   // gamla flaggor är inerta tills kontrollen v2 är bevisad.
-  const enforceShippability = process.env.SYNC_SHIPPABILITY_ENFORCE === "true";
-  const unshippableVariantIds = new Set(
-    enforceShippability
-      ? (mapping.variants ?? [])
-          .filter((v) => v.shippableToSe === false && v.wixVariantId)
-          .map((v) => v.wixVariantId as string)
-      : [],
+  const unshippableVariantIds = unshippableVariantIdsFor(
+    mapping.variants ?? [],
+    process.env.SYNC_SHIPPABILITY_ENFORCE === "true",
   );
   const qtyByVariant = resolveInventoryQuantities(items, supplierByVariantId, target, stockBySupplierId, unshippableVariantIds);
   const updates = items.map((it) => ({
