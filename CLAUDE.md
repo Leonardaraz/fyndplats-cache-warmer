@@ -99,4 +99,47 @@ finns kvar som en *rådgivande* varning i tillägget och fångar dessutom det sp
 inte kan se: samma fysiska produkt såld under en **annan** listning. Den varningen
 går att klicka förbi — så den ersätter inte spärren, den kompletterar den.
 
+## Recensioner: hämtas server-side från AliExpress (DeepL, inte Claude)
+
+Recensionskedjan (filtrering → DeepL-översättning → `FyndplatsImportedReviews` →
+produktsidans "Kundrecensioner") har funnits sedan 2026-07-08 men stod **tom på
+876 produkter** fram till 2026-08-16. Orsaken var inmatningen, inte kedjan:
+
+- Enda vägen in var tilläggets DOM-skrapa (`extension/content.js → scrapeReviews`),
+  och AE **lazy-laddar** recensionssektionen — klickar man importera högst upp på
+  sidan har den oftast inte renderats, så skrapan returnerade `[]`.
+- **Bulk-/CSV-importen rör aldrig recensioner** (`lib/bulk-import/worker.ts` har
+  ingen webbläsare). Katalogens senaste ~800 produkter kom in den vägen.
+
+`lib/aliexpress/reviews.ts` hämtar dem nu i stället från AE:s feedback-endpoint
+(ren JSON, inget tillägg, $0). Två äkthetsspärrar sitter i mappningen och ska inte
+tas bort: recensioner som AE själv markerar som **AI-genererade** (`aigc`) och
+sådana som inte är publicerade hos AE (`status !== "1"`) släpps aldrig igenom.
+Anonyma konton ("AliExpress Shopper") får inget namn vidare — annars blir varenda
+rad "A.S." och sidan ser förfalskad ut.
+
+### Så körs den
+
+| Vad | Anrop |
+|---|---|
+| En produkt | `POST /api/reviews/import` med `{ wixProductId }` — utan `reviews` hämtar rutten själv |
+| Hela katalogen | `GET /api/cron/review-backfill` |
+
+`review-backfill` är **torrkörning som default** — utan `?dryRun=false` skrivs
+ingenting, du får bara siffrorna. Importerade recensioner auto-godkänns och syns
+direkt på produktsidan, så skarpt läge är ett publiceringsbeslut. Rutten är
+medvetet **inte** schemalagd i `vercel.json`. Parametrar: `limit` (produkter per
+körning, default 25), `maxPerProduct` (default 8), `includeExisting`, `onlyPublished`.
+
+### Kostnaden är DeepL-tecken, inte credits
+
+Ingen Claude-användning alls. Taket är DeepL Free: **500 000 tecken/månad**
+(`DEEPL_MONTHLY_BUDGET`, stoppmarginal 450 000). Mätt på 20 produkter 2026-08-16,
+efter det riktiga filtret: ~1 025 tecken/produkt vid tak 15, ~518 vid tak 5 — hela
+katalogen kostar alltså **~900k respektive ~450k tecken**. Backfillen kollar därför
+budgeten **före** varje produkt och stannar med `stoppedBy: "budget"`; nästa körning
+tar vid. Skälet är att `importReviewsForProduct` vid budgetslut faller tillbaka på
+**originaltexten** — engelska recensioner på en svensk sida — vilket är fel utfall
+för en backfill.
+
 Övriga LLM-/kostnads-env-variabler dokumenteras i **`LLM-CONFIG.md`**.
