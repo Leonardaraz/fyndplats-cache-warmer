@@ -66,8 +66,7 @@ export function ProductReviews({
         ) : null}
 
         <p className="rev-disclaimer">
-          Recensioner visas med initialer för att skydda kundernas integritet. Importerade
-          recensioner från verifierade köpare av samma produkt är översatta från ursprungsspråk.
+          Omdömen om produkten, skrivna av verifierade köpare.
         </p>
       </div>
     </section>
