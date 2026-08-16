@@ -41,6 +41,14 @@ export interface ReviewBackfillDeps {
   importReviews: (wixProductId: string, reviews: AERReview[]) => Promise<ReviewBackfillImportResult>;
   /** Tecken kvar av månadens DeepL-budget. */
   budgetRemaining: () => Promise<number>;
+  /**
+   * Stämplar produkten som genomsökt. Anropas ENBART i skarpt läge och ENBART
+   * när AE faktiskt svarade — en strypt hämtning får inte se ut som ett svar,
+   * då skulle produkten hoppas över i en månad på grund av rate-limiting.
+   * Utan stämpeln hämtar en schemalagd körning om samma recensionslösa
+   * produkter för alltid.
+   */
+  markChecked?: (wixProductId: string, atIso: string) => Promise<void>;
   now?: () => Date;
 }
 
@@ -169,6 +177,17 @@ export async function runReviewBackfill(
       continue;
     }
     if (wasThrottled) throttled++;
+
+    // AE svarade → stämpla, oavsett om det fanns något. Det är just
+    // "svarade men hade inget" som annars hämtas om i all evighet.
+    if (!dryRun && deps.markChecked) {
+      try {
+        await deps.markChecked(c.wixProductId, now().toISOString());
+      } catch {
+        // Stämpeln är en optimering, inte en förutsättning — ett fel här får
+        // inte hindra att recensionerna sparas.
+      }
+    }
 
     const eligible = filterAndRankReviews(fetched, now(), { max: maxPerProduct });
     const chars = eligible.reduce((s, r) => s + r.text.length, 0);

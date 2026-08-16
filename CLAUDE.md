@@ -127,9 +127,31 @@ rad "A.S." och sidan ser förfalskad ut.
 
 `review-backfill` är **torrkörning som default** — utan `?dryRun=false` skrivs
 ingenting, du får bara siffrorna. Importerade recensioner auto-godkänns och syns
-direkt på produktsidan, så skarpt läge är ett publiceringsbeslut. Rutten är
-medvetet **inte** schemalagd i `vercel.json`. Parametrar: `limit` (produkter per
-körning, default 25), `maxPerProduct` (default 8), `includeExisting`, `onlyPublished`.
+direkt på produktsidan, så skarpt läge är ett publiceringsbeslut. Parametrar:
+`limit` (produkter per körning, default 25), `maxPerProduct` (default 8),
+`includeExisting`, `onlyPublished`, `ignoreCheckedAt`.
+
+Sedan 2026-08-16 ligger rutten **schemalagd** i `vercel.json` (var 10:e minut,
+skarpt läge, 25 produkter, bara publicerade) eftersom Leonard bad om att slippa
+trycka själv. Vercel skickar sin egen cron-auth, så ingen token behöver hanteras.
+Vill du stoppa den: ta bort cron-raden.
+
+Körningen **konvergerar**. Varje produkt AE svarat på stämplas med
+`reviewsCheckedAt` i mappningen — även när AE inte hade några recensioner. Utan
+den stämpeln skulle de ~40 % recensionslösa produkterna hämtas om vid varje
+körning i all evighet. Produkter som redan har recensioner hoppas över helt, och
+en **strypt** hämtning stämplas aldrig (då hade rate-limiting dolt produkten i en
+månad). Omkontroll efter `REVIEW_RECHECK_DAYS` (30) — nya recensioner dyker upp
+hos AE över tid.
+
+### Betygen skickas INTE till Google
+
+Butiken (`headless-site`) har `PRODUCT_REVIEW_SCHEMA`, **default av**. Recensions-
+texten visas för kunden, men `aggregateRating`/`Review` läggs inte i produktsidans
+JSON-LD medan omdömena är AliExpress-köpares. Googles riktlinjer för review
+snippets vill ha betyg från sajtens egna användare. Sätt `=on` först när datan är
+förstahands (Trustpilot Product Reviews / egna kundrecensioner). Se
+`lib/review-schema.ts` i butiksrepot.
 
 ### Kostnaden är DeepL-tecken, inte credits
 

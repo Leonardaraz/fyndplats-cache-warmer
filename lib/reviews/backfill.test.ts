@@ -151,6 +151,45 @@ describe("runReviewBackfill — budgetgrinden", () => {
   });
 });
 
+describe("runReviewBackfill — genomsökt-stämpeln", () => {
+  // Utan stämpeln hämtar en schemalagd körning om de ~40 % recensionslösa
+  // produkterna vid varje körning, för alltid.
+  it("stämplar även produkter där AE inte hade några recensioner", async () => {
+    const markChecked = vi.fn(async () => {});
+    await runReviewBackfill(
+      deps({ markChecked, fetchReviews: async () => ({ reviews: [], throttled: false }) }),
+      { dryRun: false },
+    );
+    expect(markChecked).toHaveBeenCalledTimes(3);
+  });
+
+  // Strypt är inte ett svar. Stämplas den skulle rate-limiting dölja produkten
+  // i en månad.
+  it("stämplar INTE en strypt produkt", async () => {
+    const markChecked = vi.fn(async () => {});
+    await runReviewBackfill(
+      deps({ markChecked, fetchReviews: async () => ({ reviews: [], throttled: true }) }),
+      { dryRun: false },
+    );
+    expect(markChecked).not.toHaveBeenCalled();
+  });
+
+  it("torrkörning stämplar ingenting", async () => {
+    const markChecked = vi.fn(async () => {});
+    await runReviewBackfill(deps({ markChecked }), { dryRun: true });
+    expect(markChecked).not.toHaveBeenCalled();
+  });
+
+  it("ett fel på stämpeln hindrar inte importen", async () => {
+    const s = await runReviewBackfill(
+      deps({ markChecked: async () => { throw new Error("Wix 500"); } }),
+      { dryRun: false },
+    );
+    expect(s.reviewsImported).toBe(15);
+    expect(s.errors).toBe(0);
+  });
+});
+
 describe("runReviewBackfill — motståndskraft", () => {
   // Strypt är inte samma sak som recensionslös: den ena ska tas om, den andra inte.
   it("strypt produkt får egen status och skrivs inte av som tom", async () => {
