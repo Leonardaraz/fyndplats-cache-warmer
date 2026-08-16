@@ -112,7 +112,7 @@ Specs får bara komma från känd importdata eller `web_search` (AliExpress-sido
 - **Leksaker** → **EN71**-märkningen och **åldersgränsen** ska stå i produkttexten. Saknas certifieringen i leverantörsdatan: flagga hellre än att skriva ut en gissad märkning.
 - **El till kroppen / medicintekniskt / kosttillskott** → flagga till Leonard i stället för att polera.
 
-> Grinden är en **stopp**-kontroll, inte en textkontroll. Passerar produkten men har en säkerhetsrelevant begränsning (max vikt, ålder, ej för trafikerad väg) → den hör hemma i "Det du bör veta innan du köper" i Steg 2.
+> Grinden är en **stopp**-kontroll, inte en textkontroll. Passerar produkten men har en säkerhetsrelevant begränsning (max vikt, åldersgräns, ej för trafikerad väg) → skriv den som ett **positivt villkor med egen rubrik** i Steg 2 — *"Från 14 år"*, *"Maxlast 120 kg"* — inte som en varning under en generisk rubrik. Se textregeln i Steg 2.
 
 -----
 
@@ -896,8 +896,9 @@ faktiskt behov och har inte krävts på ~40 produkter.
    mått: ett spec-kort per variant, länkat till respektive choice (Steg 6-reglerna).
 6. **Ta bort dropship-branding även i bilder** (VEVOR-logga på väska/produktfoto →
    LaMa bort). Produktens egen förpackning i bild är OK.
-7. **Uppladdning:** committa bilderna till branchen `claude/tmp-image-upload`
-   (git worktree, force-push OK) → `UploadImageToWixSite` med raw-GitHub-URL →
+7. **Uppladdning:** committa bilderna till en orphan-gren med prefixet `claude/img-…`
+   (git worktree, force-push OK — push-behörigheten godkänner bara `claude/`-prefixet,
+   se Steg 3b) → `UploadImageToWixSite` med raw-GitHub-URL →
    patcha `media.itemsInfo.items` (hela arrayen + svenska alt-texter, ALDRIG
    `media.main`) och omlänka ev. variant-choice-bilder (options + variantsInfo
    ordagrant tillsammans).
@@ -1054,7 +1055,8 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
 **Text**
 - Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inkl. kvalificeraren. Inget dropship-märke kvar (etablerade märken som Pagani Design/LAIKOU behålls).
 - Sökordet **krockar inte** med en annan produkt i katalogen (Steg 0).
-- Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
+- Beskrivningen har **inget varningsblock** ("Det du bör veta innan du köper" eller liknande rubrik). Leverantörens felaktiga påståenden är **rättade i löptexten och spec-tabellen** — inte bemötta i en brasklapp. Texten säger aldrig att vi inte vet, upprepar inte ett mått för att hänga en tveksamhet på det, och ber inte kunden mäta eller väga för att avgöra om varan duger.
+- Är ett villkor genuint avgörande för köpet (varan fungerar inte alls utan något kunden måste ha, eller en hård gräns som maxlast/åldersgräns) står det som ett **positivt villkor med egen rubrik** — *"Passar bilar med fabriksmonterad CarPlay"*, *"Från 14 år"*.
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 
