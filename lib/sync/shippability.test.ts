@@ -184,3 +184,95 @@ describe("unshippableVariantIdsFor", () => {
     expect(s.size).toBe(0);
   });
 });
+
+// ── Kontroll v2: ett nej måste BEVISAS (2026-08-16) ────────────────────────
+// Före v2 kunde kedjan bara sätta shippableToSe:true — parseFreightOutcome
+// returnerade aldrig false. Insamlingen var alltså säker men värdelös: den
+// hade aldrig fångat sparkbilen. v2 återinför nejet med kod rödens lärdom
+// inbyggd: upprepning över dygn, och aldrig bredvid ett fraktbart syskon.
+
+function explicitNoOutcome(): Promise<FreightQueryOutcome> {
+  return Promise.resolve({
+    method: "aliexpress.ds.freight.query",
+    raw: { result: { success: false, msg: "DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS" } },
+  });
+}
+const DAY = 24 * 60 * 60 * 1000;
+const one = (v: Partial<VariantMapping>) => ({ supplierProductId: "p1", variants: [variant(v)] });
+
+describe("kontroll v2 — beviskrav för automatiskt nej", () => {
+  it("ETT uttryckligt nej dömer inte — det startar bara en serie", async () => {
+    const r = await checkMappingShippability({
+      mapping: one({}), aeVariants: AE, nowMs: NOW,
+      budget: { remaining: 5 }, queryFn: explicitNoOutcome, delayMs: 0,
+    });
+    expect(r.variants[0].shippableToSe).toBeUndefined();
+    expect(r.variants[0].shippabilityNegativeStreak).toBe(1);
+    expect(r.unshippable).toBe(0);
+  });
+
+  it("två nej spridda över ett dygn ger dom → lagret får nollas", async () => {
+    const r = await checkMappingShippability({
+      mapping: one({ shippabilityNegativeStreak: 1, shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString() }),
+      aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: explicitNoOutcome, delayMs: 0,
+    });
+    expect(r.variants[0].shippableToSe).toBe(false);
+    expect(r.unshippable).toBe(1);
+  });
+
+  it("två nej för tätt inpå varandra dömer INTE (kräver oberoende observationer)", async () => {
+    const r = await checkMappingShippability({
+      mapping: one({ shippabilityNegativeStreak: 1, shippabilityNegativeSince: new Date(NOW - 60_000).toISOString() }),
+      aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: explicitNoOutcome, delayMs: 0,
+    });
+    expect(r.variants[0].shippableToSe).toBeUndefined();
+    expect(r.variants[0].shippabilityNegativeStreak).toBe(2);
+  });
+
+  // Exakt kod röd-mönstret: Aosom-hyllan fick "Beige ok, Grå nej" och nollades.
+  it("nej bredvid ett fraktbart syskon dömer ALDRIG — kod röd 2026-07-14", async () => {
+    const mapping = {
+      supplierProductId: "p1",
+      variants: [
+        variant({ supplierVariantId: "sku-1", sku: "FP-a", wixVariantId: "wix-a",
+          shippabilityNegativeStreak: 1, shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString() }),
+        variant({ supplierVariantId: "sku-2", sku: "FP-b", wixVariantId: "wix-b" }),
+      ],
+    };
+    const r = await checkMappingShippability({
+      mapping, aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, delayMs: 0,
+      queryFn: (_p, skuId) => (skuId === "sku-1" ? explicitNoOutcome() : shippableOutcome()),
+    });
+    expect(r.variants[0].shippableToSe).toBeUndefined();
+    expect(r.variants[1].shippableToSe).toBe(true);
+    expect(r.unshippable).toBe(0);
+  });
+
+  it("ett ja nollar serien och läker varianten", async () => {
+    const r = await checkMappingShippability({
+      mapping: one({ shippableToSe: false, shippabilityNegativeStreak: 5, shippabilityNegativeSince: new Date(NOW - 9 * DAY).toISOString() }),
+      aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: shippableOutcome, delayMs: 0,
+    });
+    expect(r.variants[0].shippableToSe).toBe(true);
+    expect(r.variants[0].shippabilityNegativeStreak).toBeUndefined();
+  });
+
+  it("HTTP-fel och tom lista är BRUS — startar ingen serie", async () => {
+    for (const q of [
+      () => Promise.resolve({ method: "x", error: "AliExpress API HTTP-fel: 502" }),
+      unshippableOutcome,
+    ]) {
+      const r = await checkMappingShippability({
+        mapping: one({}), aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: q, delayMs: 0,
+      });
+      expect(r.variants[0].shippabilityNegativeStreak).toBeUndefined();
+      expect(r.variants[0].shippableToSe).toBeUndefined();
+    }
+  });
+
+  it("öppen nej-serie kontrolleras om efter ett dygn, inte efter sju", () => {
+    const nyss = new Date(NOW - 2 * DAY).toISOString();
+    expect(isShippabilityStale(variant({ shippabilityCheckedAt: nyss }), NOW)).toBe(false);
+    expect(isShippabilityStale(variant({ shippabilityCheckedAt: nyss, shippabilityNegativeStreak: 1 }), NOW)).toBe(true);
+  });
+});

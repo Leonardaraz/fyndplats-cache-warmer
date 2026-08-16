@@ -103,6 +103,15 @@ export interface VariantMapping {
    * någon faktiskt tittat på.
    */
   shippabilityManual?: boolean;
+  /**
+   * Antal på varandra följande körningar där fraktAPI:t gett ett UTTRYCKLIGT
+   * adress-nej för den här SKU:n. Nollas så fort ett positivt svar kommer.
+   * Ett enskilt nej är brus (kod röd 2026-07-14) — det är upprepningen som
+   * bär bevisvärdet.
+   */
+  shippabilityNegativeStreak?: number;
+  /** ISO-tid för det FÖRSTA nejet i pågående serie (mäter seriens spännvidd). */
+  shippabilityNegativeSince?: string;
 }
 
 export interface ImportResult {

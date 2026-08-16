@@ -57,11 +57,62 @@ export interface ShippabilityCheckResult {
   details: VariantShippabilityResult[];
 }
 
+/**
+ * Beviskrav för ett AUTOMATISKT nej (kontroll v2, 2026-08-16). Kod röd
+ * 2026-07-14 kom av att ETT nej räckte: nattens rotation gav
+ * DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS för enstaka färgvarianter hos
+ * säljare som bevisligen levererar, och 8 säljbara produkter nollades.
+ *
+ * Skillnaden mellan ett flaxigt nej och ett äkta: det äkta upprepar sig.
+ */
+export const NEGATIVE_CONFIRMATIONS = 2;
+/** …och upprepningarna måste vara OBEROENDE, alltså spridda över tid. */
+export const NEGATIVE_MIN_SPAN_MS = 24 * 60 * 60 * 1000;
+/** Öppen nej-serie kontrolleras oftare än 7 dygn så den hinner bekräftas. */
+export const NEGATIVE_RECHECK_MS = 24 * 60 * 60 * 1000;
+
 /** true om varianten behöver (om)kontrolleras. */
 export function isShippabilityStale(v: VariantMapping, nowMs: number): boolean {
   if (!v.shippabilityCheckedAt) return true;
   const t = Date.parse(v.shippabilityCheckedAt);
-  return !Number.isFinite(t) || nowMs - t >= SHIPPABILITY_RECHECK_MS;
+  if (!Number.isFinite(t)) return true;
+  // Pågående nej-serie → kortare intervall, annars skulle en bekräftelse ta
+  // två veckor (7 dygn × 2) och varan sälja vidare under tiden.
+  const interval = (v.shippabilityNegativeStreak ?? 0) > 0 ? NEGATIVE_RECHECK_MS : SHIPPABILITY_RECHECK_MS;
+  return nowMs - t >= interval;
+}
+
+/**
+ * Uppdaterar en variants nej-serie utifrån ETT svar och avgör om serien nu
+ * räcker som dom. Ren funktion → testbar utan nät.
+ *
+ * `siblingPositive` = någon ANNAN SKU på samma produkt svarade fraktbar i
+ * samma körning. Det var exakt kod röd-mönstret (Aosom: "Beige ok, Grå nej"
+ * på samma vägghylla), så ett nej bredvid ett ja får aldrig bli en dom —
+ * serien får ackumuleras, men domen kräver att bruset inte motsägs direkt.
+ * Ett äkta ofraktbart fall (hela listningen går inte att skicka) har inga
+ * positiva syskon och passerar därför.
+ */
+export function escalateNegative(
+  v: VariantMapping,
+  nowMs: number,
+  siblingPositive: boolean,
+): { streak: number; since: string; verdict: boolean | null; reason: string } {
+  const streak = (v.shippabilityNegativeStreak ?? 0) + 1;
+  const since = v.shippabilityNegativeSince ?? new Date(nowMs).toISOString();
+  const spanMs = nowMs - Date.parse(since);
+  const spanOk = Number.isFinite(spanMs) && spanMs >= NEGATIVE_MIN_SPAN_MS;
+
+  if (siblingPositive) {
+    return { streak, since, verdict: null, reason: "nej bredvid ett fraktbart syskon — räknas men dömer inte" };
+  }
+  if (streak < NEGATIVE_CONFIRMATIONS) {
+    return { streak, since, verdict: null, reason: `nej ${streak}/${NEGATIVE_CONFIRMATIONS} — obekräftat` };
+  }
+  if (!spanOk) {
+    return { streak, since, verdict: null, reason: "nejen ligger för tätt — kräver spridning över dygn" };
+  }
+  return { streak, since, verdict: false, reason: `bekräftat nej ×${streak} över ${Math.round(spanMs / 3600000)} h` };
 }
 
 /**
@@ -86,6 +137,9 @@ export async function checkMappingShippability(opts: {
   let apiCalls = 0;
   let changed = false;
 
+  // Svar samlas i pass 1 och tolkas i pass 2 — domen behöver veta om något
+  // syskon på samma produkt svarade fraktbar i samma körning.
+  const pending: { index: number; v: VariantMapping; verdict: ReturnType<typeof parseFreightOutcome> }[] = [];
   const variants: VariantMapping[] = [];
   for (const v of mapping.variants) {
     if (!isShippabilityStale(v, nowMs) || budget.remaining <= 0) {
@@ -119,19 +173,49 @@ export async function checkMappingShippability(opts: {
       method: outcome.method,
     });
 
-    if (!verdict.known) {
-      // Obevisat svar → rör ingenting; varianten förblir stale.
-      variants.push(v);
+    pending.push({ index: variants.length, v, verdict });
+    variants.push(v); // platshållare — ersätts i pass 2 när syskonen är kända
+  }
+
+  // PASS 2: nu vet vi om NÅGON SKU på produkten svarade fraktbar den här
+  // körningen. Utan den kontexten kunde ett flaxigt nej bredvid ett ja bli en
+  // dom — precis kod röd-mönstret 2026-07-14.
+  const siblingPositive = pending.some((p) => p.verdict.shippable === true);
+  for (const { index, v, verdict } of pending) {
+    if (verdict.shippable === true) {
+      // Positivt svar dömer direkt OCH nollar en pågående nej-serie
+      // (självläkande: fraktmallen kan ha rättats hos säljaren).
+      changed = true;
+      variants[index] = {
+        ...v,
+        shippableToSe: true,
+        shippabilityCheckedAt: checkedAt,
+        shippabilityNegativeStreak: undefined,
+        shippabilityNegativeSince: undefined,
+      };
       continue;
     }
 
-    // Känt utfall → persistera dom + tidsstämpel (stämpeln ändras alltid).
-    changed = true;
-    variants.push({
-      ...v,
-      shippableToSe: verdict.shippable === true,
-      shippabilityCheckedAt: checkedAt,
-    });
+    if (verdict.negativeSignal) {
+      const esc = escalateNegative(v, nowMs, siblingPositive);
+      changed = true;
+      const d = details.find((x) => x.sku === v.sku);
+      if (d) d.note = `${d.note ? d.note + " · " : ""}${esc.reason}`;
+      variants[index] = {
+        ...v,
+        // Domen sätts BARA när serien räcker; annars lämnas det gamla värdet
+        // orört (unknown ändrar aldrig något).
+        ...(esc.verdict === false ? { shippableToSe: false } : {}),
+        shippabilityCheckedAt: checkedAt,
+        shippabilityNegativeStreak: esc.streak,
+        shippabilityNegativeSince: esc.since,
+      };
+      continue;
+    }
+
+    // Brus (timeout, tom lista, oväntad form) → rör ingenting alls; varianten
+    // förblir stale och provas igen nästa körning.
+    variants[index] = v;
   }
 
   const unshippable = variants.filter((v) => v.shippableToSe === false).length;

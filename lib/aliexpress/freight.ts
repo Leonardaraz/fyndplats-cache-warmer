@@ -39,6 +39,25 @@ export interface FreightVerdict {
   optionCount: number;
   /** Kort diagnos för logg/felsökning (aldrig kundexponerad). */
   note?: string;
+  /**
+   * true när svaret UTTRYCKLIGEN säger att adressen inte kan levereras till —
+   * inte bara "tomt" eller "fel". Ett enskilt sådant svar är fortfarande INTE
+   * en dom (`shippable` förblir null); det är en signal som måste bekräftas
+   * över flera oberoende körningar innan den får nolla lager. Skiljer kod röd-
+   * fallet (flaxiga nej hos säljare som bevisligen levererar) från ett äkta
+   * nej: ett äkta nej upprepar sig, ett flaxigt gör det inte.
+   */
+  negativeSignal: boolean;
+}
+
+// Uttryckliga "går inte att leverera hit"-svar. Allt ANNAT (timeout, HTTP 502,
+// oväntad svarsform, tom lista) är brus och får aldrig räknas som ett nej.
+const EXPLICIT_NEGATIVE =
+  /DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS|not\s+available\s+to\s+your\s+address|can(?:no|')t\s+be\s+shipped\s+to\s+your\s+address/i;
+
+/** true när texten är ett uttryckligt adress-nej (inte ett generellt fel). */
+export function isExplicitNegative(text: string | undefined | null): boolean {
+  return Boolean(text && EXPLICIT_NEGATIVE.test(text));
 }
 
 // Nyckelmönster för listor med fraktalternativ i kända svarsformer.
@@ -83,25 +102,39 @@ export function parseFreightOutcome(outcome: FreightQueryOutcome): FreightVerdic
   // Fel från anropet (inkl. AliExpress "nej"-strängar) → unknown. Aldrig
   // en negativ dom på ett enskilt svar — se lärdomen i filhuvudet.
   if (outcome.error) {
-    return { known: false, shippable: null, optionCount: 0, note: outcome.error.slice(0, 160) };
+    return {
+      known: false,
+      shippable: null,
+      optionCount: 0,
+      note: outcome.error.slice(0, 160),
+      negativeSignal: isExplicitNegative(outcome.error),
+    };
   }
 
   const lists: unknown[][] = [];
   collectOptionArrays(outcome.raw, "", lists);
   const optionCount = lists.reduce((s, l) => s + l.length, 0);
   if (optionCount > 0) {
-    return { known: true, shippable: true, optionCount };
+    return { known: true, shippable: true, optionCount, negativeSignal: false };
   }
 
   const failure = findFailureMessage(outcome.raw);
   if (failure) {
-    return { known: false, shippable: null, optionCount: 0, note: failure.slice(0, 160) };
+    return {
+      known: false,
+      shippable: null,
+      optionCount: 0,
+      note: failure.slice(0, 160),
+      negativeSignal: isExplicitNegative(failure),
+    };
   }
 
   // Tom lista utan felindikation: API:t har visat sig ge tomma/nekande svar
   // även för fraktbara SKU:er — unknown, inte en dom.
   if (lists.length > 0) {
-    return { known: false, shippable: null, optionCount: 0, note: "tom alternativlista — obevisat" };
+    // Tom lista är INTE ett nej — API:t har gett tomma svar för fraktbara
+    // SKU:er. Räknas aldrig som negativ signal.
+    return { known: false, shippable: null, optionCount: 0, note: "tom alternativlista — obevisat", negativeSignal: false };
   }
 
   // Inget alternativ-fält alls i svaret → vi VET inte (klassa aldrig som
@@ -111,6 +144,7 @@ export function parseFreightOutcome(outcome: FreightQueryOutcome): FreightVerdic
     shippable: null,
     optionCount: 0,
     note: `oväntad svarsform: ${JSON.stringify(outcome.raw).slice(0, 160)}`,
+    negativeSignal: false,
   };
 }
 
