@@ -9,6 +9,7 @@ import { getProduct, getProducts, getCollections, type Product } from "../../../
 import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
+import { reviewSchemaMode, shouldEmitReviewSchema } from "../../../lib/review-schema";
 import { ProductReviews } from "../../../components/ProductReviews";
 import { PdpReviewsSection } from "../../../components/pdp-reviews-section";
 import { ProgCrossLinks } from "../../../components/programmatic";
@@ -151,13 +152,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     },
   };
 
-  // AggregateRating + Review markup BARA när vi har riktiga recensioner. Google
-  // straffar fejkade/hårdkodade betyg (review snippet spam) — tidigare låg här
-  // ett statiskt 4.9/20 som nu ersätts av verklig data eller utelämnas helt.
-  if (reviewData.count > 0 && reviewData.average != null) {
+  // AggregateRating + Review markup BARA när vi har riktiga recensioner OCH
+  // switchen är på. Google straffar fejkade/hårdkodade betyg (review snippet
+  // spam) — tidigare låg här ett statiskt 4.9/20.
+  //
+  // Switchen tillkom 2026-08-16: recensionerna är AliExpress-köpares omdömen om
+  // samma produkt, inte våra egna kunders. Texten visas för kunden, men vi
+  // lämnar inget maskinläsbart betygspåstående till Google förrän datan är
+  // förstahands (Trustpilot Product Reviews / egna kundrecensioner).
+  // Se lib/review-schema.ts.
+  const reviewAverage = reviewData.average;
+  if (
+    reviewAverage != null
+    && shouldEmitReviewSchema(reviewSchemaMode(process.env.PRODUCT_REVIEW_SCHEMA), reviewData.count, reviewAverage)
+  ) {
     jsonLd.aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: reviewData.average.toFixed(1),
+      ratingValue: reviewAverage.toFixed(1),
       reviewCount: String(reviewData.count),
       bestRating: "5",
       worstRating: "1",
