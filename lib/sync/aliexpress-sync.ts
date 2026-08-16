@@ -20,7 +20,7 @@ import { translateValue } from "../import/variant-translations";
 import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
 import type { PricingConfig } from "../import/types";
 import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
-import { checkMappingShippability, isShippabilityStale, type ShippabilityBudget } from "./shippability";
+import { checkMappingShippability, isShippabilityStale, NEGATIVE_CONFIRMATIONS, type ShippabilityBudget } from "./shippability";
 import type { VariantMapping } from "../import/pipeline";
 import {
   getProduct as getWixProduct,
@@ -1280,12 +1280,21 @@ export function unshippableVariantIdsFor(
 ): Set<string> {
   return new Set(
     variants
-      .filter(
-        (v) =>
-          v.shippableToSe === false
-          && Boolean(v.wixVariantId)
-          && (v.shippabilityManual === true || enforceAutomatic),
-      )
+      .filter((v) => {
+        if (v.shippableToSe !== false || !v.wixVariantId) return false;
+        // Människa har kontrollerat leverantörens sida.
+        if (v.shippabilityManual === true) return true;
+        // BEVISAD v2-dom: bär en bekräftelseserie, vilket per konstruktion
+        // betyder ≥2 uttryckliga nej spridda över minst ett dygn utan något
+        // fraktbart syskon. Den behöver inte env-flaggan — beviskravet ÄR
+        // grinden. Granskning 2026-08-16: utan detta undantag var v2 helt
+        // inert, domen skrevs men nollade aldrig något.
+        if ((v.shippabilityNegativeStreak ?? 0) >= NEGATIVE_CONFIRMATIONS) return true;
+        // Kvar: v1-flaggor från kod röd 2026-07-14 (uppmätt: 13 varianter,
+        // ingen med serie). De saknar bevis och förblir inerta tills någon
+        // uttryckligen sätter env-flaggan.
+        return enforceAutomatic;
+      })
       .map((v) => v.wixVariantId as string),
   );
 }

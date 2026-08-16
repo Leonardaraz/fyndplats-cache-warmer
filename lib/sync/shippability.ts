@@ -139,7 +139,7 @@ export async function checkMappingShippability(opts: {
 
   // Svar samlas i pass 1 och tolkas i pass 2 — domen behöver veta om något
   // syskon på samma produkt svarade fraktbar i samma körning.
-  const pending: { index: number; v: VariantMapping; verdict: ReturnType<typeof parseFreightOutcome> }[] = [];
+  const pending: { index: number; detailIndex: number; v: VariantMapping; verdict: ReturnType<typeof parseFreightOutcome> }[] = [];
   const variants: VariantMapping[] = [];
   for (const v of mapping.variants) {
     if (!isShippabilityStale(v, nowMs) || budget.remaining <= 0) {
@@ -173,7 +173,7 @@ export async function checkMappingShippability(opts: {
       method: outcome.method,
     });
 
-    pending.push({ index: variants.length, v, verdict });
+    pending.push({ index: variants.length, detailIndex: details.length - 1, v, verdict });
     variants.push(v); // platshållare — ersätts i pass 2 när syskonen är kända
   }
 
@@ -181,7 +181,7 @@ export async function checkMappingShippability(opts: {
   // körningen. Utan den kontexten kunde ett flaxigt nej bredvid ett ja bli en
   // dom — precis kod röd-mönstret 2026-07-14.
   const siblingPositive = pending.some((p) => p.verdict.shippable === true);
-  for (const { index, v, verdict } of pending) {
+  for (const { index, detailIndex, v, verdict } of pending) {
     if (verdict.shippable === true) {
       // Positivt svar dömer direkt OCH nollar en pågående nej-serie
       // (självläkande: fraktmallen kan ha rättats hos säljaren).
@@ -199,7 +199,8 @@ export async function checkMappingShippability(opts: {
     if (verdict.negativeSignal) {
       const esc = escalateNegative(v, nowMs, siblingPositive);
       changed = true;
-      const d = details.find((x) => x.sku === v.sku);
+      // Koppla på INDEX, inte sku — sku är inte garanterat unik per variant.
+      const d = details[detailIndex];
       if (d) d.note = `${d.note ? d.note + " · " : ""}${esc.reason}`;
       variants[index] = {
         ...v,
@@ -218,7 +219,14 @@ export async function checkMappingShippability(opts: {
     variants[index] = v;
   }
 
-  const unshippable = variants.filter((v) => v.shippableToSe === false).length;
+  // Räkna bara de domar som FAKTISKT nollar lager (manuella + bevisade serier).
+  // Gamla v1-flaggor är inerta; att räkna med dem fick synkloggen att påstå att
+  // "lagret tvingas till 0" för varianter den inte rörde (granskning 2026-08-16).
+  const unshippable = variants.filter(
+    (v) =>
+      v.shippableToSe === false
+      && (v.shippabilityManual === true || (v.shippabilityNegativeStreak ?? 0) >= NEGATIVE_CONFIRMATIONS),
+  ).length;
   return { apiCalls, unshippable, changed, variants, details };
 }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { unshippableVariantIdsFor } from "./aliexpress-sync";
 import type { VariantMapping } from "../import/pipeline";
-import { checkMappingShippability, isShippabilityStale, SHIPPABILITY_RECHECK_MS } from "./shippability";
+import { checkMappingShippability, isShippabilityStale, NEGATIVE_CONFIRMATIONS, SHIPPABILITY_RECHECK_MS } from "./shippability";
 import type { FreightQueryOutcome } from "../aliexpress/freight";
 
 const NOW = Date.parse("2026-07-13T22:00:00.000Z");
@@ -274,5 +274,36 @@ describe("kontroll v2 — beviskrav för automatiskt nej", () => {
     const nyss = new Date(NOW - 2 * DAY).toISOString();
     expect(isShippabilityStale(variant({ shippabilityCheckedAt: nyss }), NOW)).toBe(false);
     expect(isShippabilityStale(variant({ shippabilityCheckedAt: nyss, shippabilityNegativeStreak: 1 }), NOW)).toBe(true);
+  });
+});
+
+// ── Granskning 2026-08-16: gör domen faktiskt något? ───────────────────────
+// Fyndet: en v2-dom satte shippableToSe:false men INTE shippabilityManual, och
+// grinden krävde manual ELLER env-flaggan. v2 var alltså helt inert — domen
+// skrevs men nollade aldrig lager. Och att slå på env-flaggan för att laga det
+// hade samtidigt aktiverat de 13 kvarvarande v1-flaggorna från kod röd.
+// Bevisserien ÄR grinden; v1-flaggorna saknar serie och förblir inerta.
+describe("bevisad v2-dom nollar utan env-flaggan; v1-flaggor gör det inte", () => {
+  const v = (id: string, extra: Partial<VariantMapping>) =>
+    ({ wixVariantId: id, supplierVariantId: `s-${id}`, shippableToSe: false, ...extra }) as VariantMapping;
+
+  it("bevisad serie (≥2) nollar även när env-flaggan är av", () => {
+    const s = unshippableVariantIdsFor([v("a", { shippabilityNegativeStreak: NEGATIVE_CONFIRMATIONS })], false);
+    expect([...s]).toEqual(["a"]);
+  });
+
+  it("påbörjad men obekräftad serie (1) nollar INTE", () => {
+    const s = unshippableVariantIdsFor([v("a", { shippabilityNegativeStreak: 1 })], false);
+    expect(s.size).toBe(0);
+  });
+
+  it("gammal v1-flagga utan serie förblir inert utan env-flaggan", () => {
+    const s = unshippableVariantIdsFor([v("a", {})], false);
+    expect(s.size).toBe(0);
+  });
+
+  it("…men aktiveras när env-flaggan uttryckligen slås på", () => {
+    const s = unshippableVariantIdsFor([v("a", {})], true);
+    expect([...s]).toEqual(["a"]);
   });
 });
