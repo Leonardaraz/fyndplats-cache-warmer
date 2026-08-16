@@ -131,10 +131,12 @@ direkt på produktsidan, så skarpt läge är ett publiceringsbeslut. Parametrar
 `limit` (produkter per körning, default 25), `maxPerProduct` (default 8),
 `includeExisting`, `onlyPublished`, `ignoreCheckedAt`.
 
-Sedan 2026-08-16 ligger rutten **schemalagd** i `vercel.json` (var 10:e minut,
-skarpt läge, 25 produkter, bara publicerade) eftersom Leonard bad om att slippa
-trycka själv. Vercel skickar sin egen cron-auth, så ingen token behöver hanteras.
-Vill du stoppa den: ta bort cron-raden.
+Rutten är **inte schemalagd**. Den var det en kort stund 2026-08-16, men Leonard
+valde bort DeepL helt ("skit i deep l") — översättningarna görs i stället av
+Claude i chatten, gratis, och skrivs direkt till `FyndplatsImportedReviews`. En
+DeepL-cron i bakgrunden hade motverkat det beslutet. Maskineriet (rutt + admin-
+knapp + översättningsgrind) ligger kvar och fungerar om du vill tillbaka: lägg
+in cron-raden igen.
 
 Körningen **konvergerar**. Varje produkt AE svarat på stämplas med
 `reviewsCheckedAt` i mappningen — även när AE inte hade några recensioner. Utan

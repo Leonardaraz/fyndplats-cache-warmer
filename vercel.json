@@ -32,10 +32,6 @@
     {
       "path": "/api/cron/order-guard",
       "schedule": "45 4 * * *"
-    },
-    {
-      "path": "/api/cron/review-backfill?dryRun=false&limit=25&maxPerProduct=8&onlyPublished=1",
-      "schedule": "*/10 * * * *"
     }
   ],
   "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_CEca1mZt6bjVcL4FqUWxCshYUvNL\" ] && exit 0 || exit 1"
