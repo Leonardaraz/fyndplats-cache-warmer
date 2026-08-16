@@ -10,6 +10,7 @@ import { SupplierOverrideClient } from "./supplier-override-client";
 import { PlaceOrderButton } from "./place-order-button";
 import { EditAddressClient } from "./edit-address-client";
 import { TaskRecoveryClient } from "./task-recovery-client";
+import { TaskCloseClient } from "./task-close-client";
 import { PriceCheckClient } from "./price-check-client";
 import { LinkAeOrderClient } from "./link-ae-order-client";
 
@@ -120,6 +121,7 @@ export default async function AdminPage() {
                   {t.aliexpressOrderId ? <> · AE-order: <code>{t.aliexpressOrderId}</code> (avbeställ manuellt)</> : null}
                 </div>
                 <TaskRecoveryClient taskId={t.taskId} hasAeOrder={Boolean(t.aliexpressOrderId)} />
+                <TaskCloseClient taskId={t.taskId} hasAeOrder={Boolean(t.aliexpressOrderId)} />
               </li>
             ))}
           </ul>
@@ -183,6 +185,7 @@ export default async function AdminPage() {
                   }
                 />
                 <LinkAeOrderClient taskId={t.taskId} />
+                <TaskCloseClient taskId={t.taskId} />
               </li>
             );
           })}
@@ -278,6 +281,7 @@ export default async function AdminPage() {
                   </div>
                 ) : null}
                 <LinkAeOrderClient taskId={t.taskId} />
+                <TaskCloseClient taskId={t.taskId} />
               </li>
             ))}
           </ul>

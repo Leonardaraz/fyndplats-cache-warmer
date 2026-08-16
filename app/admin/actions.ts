@@ -7,7 +7,7 @@ import { assertTransition } from "@/lib/orders/status";
 import { placeOrderForTask, type PlaceOrderResult } from "@/lib/orders/place-order";
 import { assessDsPrice, normalizeAeOrderId } from "@/lib/orders/price-check";
 import { pricingConfigFromEnv } from "@/lib/config";
-import type { ShippingAddress } from "@/lib/orders/types";
+import type { ShippingAddress, TaskStatus } from "@/lib/orders/types";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -376,4 +376,67 @@ export async function checkDsPriceAction(taskId: string): Promise<
   } catch (e) {
     return { ok: false, error: `Kunde inte hämta pris: ${e instanceof Error ? e.message : String(e)}` };
   }
+}
+
+/**
+ * Stänger en task som redan är HANTERAD UTANFÖR systemet, så den lämnar kön och
+ * order-guarden slutar påminna om den.
+ *
+ * Luckan den täpper till (Leonards rapport 2026-08-15): granskningsrutan säger
+ * ordagrant "Annars kan tasken avbrytas" — men det fanns ingen knapp som kunde
+ * göra det. Enda åtgärden var "Släpp lås", som gör MOTSATSEN: den rensar låset
+ * så tasken kan läggas som order igen. På en task där kunden redan fått
+ * återbetalning är det aktivt farligt — nästa klick kan lägga en AliExpress-order
+ * för en order som inte längre finns.
+ *
+ * Två utfall, båda terminala:
+ *   • "cancelled"  — kunden återbetalad/ordern annullerad. Ingen vara ska skickas.
+ *   • "fulfilled"  — varan ÄR beställd/skickad manuellt. Vi kliver via `ordered`
+ *     till `shipped` (båda övergångarna lagliga var för sig — statusmaskinen
+ *     tillåter inte pending→shipped i ett hopp) så tasken blir terminal i stället
+ *     för att ligga kvar som "beställd utan spårning" och larma efter 5 dagar.
+ *
+ * Skriver alltid en audit-rad med orsak — en task som lämnar kön utan spår är
+ * värre än en som ligger kvar.
+ */
+export async function closeTaskAction(
+  taskId: string,
+  outcome: "cancelled" | "fulfilled",
+): Promise<ActionResult> {
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return { ok: false, error: "Task hittades inte" };
+  if (task.status === "shipped" || task.status === "cancelled") {
+    return { ok: false, error: `Tasken är redan ${task.status} — inget att stänga.` };
+  }
+
+  const steps: ("ordered" | "shipped" | "cancelled")[] =
+    outcome === "cancelled"
+      ? ["cancelled"]
+      : task.status === "ordered"
+        ? ["shipped"]
+        : ["ordered", "shipped"];
+
+  let from: TaskStatus = task.status;
+  for (const to of steps) {
+    try {
+      assertTransition(from, to);
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
+    await store.setTaskStatus(taskId, to);
+    from = to;
+  }
+
+  await store.appendAudit({
+    at: new Date().toISOString(),
+    kind: "task-closed",
+    ref: taskId,
+    detail:
+      outcome === "cancelled"
+        ? "stängd manuellt via admin: kunden återbetalad/ordern annullerad — ingen vara skickas"
+        : "stängd manuellt via admin: hanterad utanför systemet (beställd/skickad för hand)",
+  });
+  revalidatePath("/admin");
+  return { ok: true };
 }
