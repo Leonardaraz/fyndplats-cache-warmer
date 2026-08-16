@@ -5,9 +5,11 @@
 import { getReviewStore, type ReviewStatus, type StoredReview } from "@/lib/store/reviews";
 import { getStore } from "@/lib/store/factory";
 import { reviewDisplayMode } from "@/lib/import/review-display";
-import { setReviewStatus, editReviewText } from "./actions";
+import { setReviewStatus, editReviewText, runReviewBackfillAction } from "./actions";
 
 export const dynamic = "force-dynamic";
+// Hämtningen gör ett AE-anrop per produkt + DeepL — 25 produkter tar ~1 min.
+export const maxDuration = 300;
 
 const STATUS_STYLE: Record<ReviewStatus, { bg: string; fg: string; label: string }> = {
   pending: { bg: "#fef9c3", fg: "#854d0e", label: "Väntar" },
@@ -25,7 +27,59 @@ function StatusPill({ status }: { status: ReviewStatus }) {
   );
 }
 
-export default async function ReviewsAdminPage() {
+/** Resultatbanner efter en körning (siffrorna kommer tillbaka via query). */
+function BackfillResult({ sp }: { sp: Record<string, string | string[] | undefined> }) {
+  const get = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
+  const kind = get("k");
+  if (kind !== "dry" && kind !== "live") return null;
+
+  const n = (k: string) => Number(get(k) ?? 0);
+  const dry = kind === "dry";
+  const stopText: Record<string, string> = {
+    klar: "hela urvalet gicks igenom",
+    gräns: "antalsgränsen nåddes — kör igen för nästa omgång",
+    budget: "DeepL-budgeten tog slut — resten tas nästa körning",
+  };
+
+  return (
+    <div
+      style={{
+        background: dry ? "#eff6ff" : "#f0fdf4",
+        border: `1px solid ${dry ? "#bfdbfe" : "#bbf7d0"}`,
+        borderRadius: 8,
+        padding: "12px 14px",
+        margin: "14px 0",
+        fontSize: 14,
+      }}
+    >
+      <b>{dry ? "Torrkörning klar — inget sparades." : "Hämtning klar."}</b>
+      <br />
+      Produkter genomgångna: <b>{n("p")}</b> · med recensioner: <b>{n("w")}</b> ·{" "}
+      {dry ? (
+        <>
+          skulle spara: <b>{n("e")}</b> recensioner · DeepL-behov: <b>{n("c")}</b> tecken
+        </>
+      ) : (
+        <>
+          sparade: <b>{n("i")}</b> recensioner · DeepL: <b>{n("c")}</b> tecken
+        </>
+      )}
+      {n("t") > 0 ? <> · strypta av AE: <b>{n("t")}</b> (tas om nästa körning)</> : null}
+      {n("f") > 0 ? <> · fel: <b>{n("f")}</b></> : null}
+      <br />
+      <span style={{ color: "#555" }}>
+        Stopp: {stopText[get("s") ?? ""] ?? get("s")} · DeepL kvar denna månad: {n("b")} tecken
+      </span>
+    </div>
+  );
+}
+
+export default async function ReviewsAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
   let reviews: StoredReview[] = [];
   let loadError: string | null = null;
   const nameById = new Map<string, string>();
@@ -72,6 +126,54 @@ export default async function ReviewsAdminPage() {
           <code>node scripts/ensure-reviews-collection.mjs</code> — tom tills första importen.)
         </p>
       ) : null}
+
+      <BackfillResult sp={sp} />
+
+      <form
+        action={runReviewBackfillAction}
+        style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: "12px 14px", margin: "14px 0" }}
+      >
+        <b style={{ fontSize: 15 }}>Hämta recensioner från AliExpress</b>
+        <p style={{ color: "#555", fontSize: 13, margin: "6px 0 10px" }}>
+          Hämtar för produkter som <b>saknar</b> recensioner. Torrkör först — den räknar
+          utan att spara. Skarpt läge <b>publicerar direkt</b> (importerade auto-godkänns)
+          och tänder <code>aggregateRating</code> i produktsidans strukturerade data.
+          Kostar DeepL-tecken, inga Claude-credits.
+        </p>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center", fontSize: 13 }}>
+          <label>
+            Produkter:{" "}
+            <select name="limit" defaultValue="25">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </label>
+          <label>
+            Max per produkt:{" "}
+            <select name="maxPerProduct" defaultValue="8">
+              <option value="5">5</option>
+              <option value="8">8</option>
+              <option value="15">15</option>
+            </select>
+          </label>
+          <label>
+            <input type="checkbox" name="onlyPublished" value="1" defaultChecked /> Bara publicerade
+          </label>
+          <button type="submit" name="mode" value="dry" style={{ padding: "6px 12px", fontWeight: 600 }}>
+            Torrkör (räkna)
+          </button>
+          <button
+            type="submit"
+            name="mode"
+            value="live"
+            style={{ padding: "6px 12px", fontWeight: 700, background: "#166534", color: "#fff", border: 0, borderRadius: 6 }}
+          >
+            Kör skarpt (publicerar)
+          </button>
+        </div>
+      </form>
 
       <p style={{ fontSize: 14 }}>
         Totalt: <b>{reviews.length}</b> · Väntar: <b>{counts.pending ?? 0}</b> · Godkända:{" "}

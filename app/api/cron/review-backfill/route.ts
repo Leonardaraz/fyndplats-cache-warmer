@@ -26,16 +26,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { getStore } from "@/lib/store/factory";
-import { fetchAeReviews } from "@/lib/aliexpress/reviews";
-import { importReviewsForProduct } from "@/lib/import/review-import";
-import { getReviewStore } from "@/lib/store/reviews";
-import { getTranslationUsageStore, monthKey, monthlyBudget } from "@/lib/translate/usage";
+import { buildReviewBackfillDeps } from "@/lib/reviews/backfill-deps";
 import {
   runReviewBackfill,
   DEFAULT_BACKFILL_LIMIT,
   DEFAULT_MAX_PER_PRODUCT,
-  type ReviewBackfillCandidate,
 } from "@/lib/reviews/backfill";
 
 export const runtime = "nodejs";
@@ -69,43 +64,9 @@ async function handle(req: NextRequest) {
   const includeExisting = boolParam(req, "includeExisting");
   const onlyPublished = boolParam(req, "onlyPublished");
 
-  const reviewStore = getReviewStore();
-  const usageStore = getTranslationUsageStore();
-
   try {
     const summary = await runReviewBackfill(
-      {
-        listCandidates: async (): Promise<ReviewBackfillCandidate[]> => {
-          const mappings = await getStore().listMappings();
-          return mappings
-            .filter((m) => m.supplierProductId && m.wixProductId)
-            // Utkast syns inte för kund — recensioner på dem kan vänta.
-            .filter((m) => !onlyPublished || (m.draftStatus ?? "published") === "published")
-            .map((m) => ({
-              wixProductId: m.wixProductId,
-              supplierProductId: m.supplierProductId,
-              title: m.seoTitle,
-            }));
-        },
-        countExisting: async (wixProductId) => (await reviewStore.listByProduct(wixProductId, 1)).length,
-        fetchReviews: async (supplierProductId) => {
-          const r = await fetchAeReviews(supplierProductId);
-          return { reviews: r.reviews, throttled: r.throttled };
-        },
-        importReviews: async (wixProductId, reviews) => {
-          const r = await importReviewsForProduct(wixProductId, reviews);
-          return {
-            imported: r.imported,
-            skippedExisting: r.skippedExisting,
-            charsUsed: r.charsUsed,
-            budgetExceeded: r.budgetExceeded,
-          };
-        },
-        budgetRemaining: async () => {
-          const used = await usageStore.getMonthlyUsage(monthKey(new Date()));
-          return Math.max(0, monthlyBudget() - used);
-        },
-      },
+      buildReviewBackfillDeps({ onlyPublished }),
       { dryRun, limit, maxPerProduct, includeExisting },
     );
 
