@@ -433,12 +433,24 @@ async function fetchProducts(): Promise<Product[]> {
     const all: any[] = [];
     let skip = 0;
     const limit = 100;
-    for (let i = 0; i < 10; i++) {
+    let rapporteratTotalt: number | null = null;
+    // EN KORT SIDA ÄR INTE SAMMA SAK SOM SISTA SIDAN (Leonards rapport
+    // 2026-08-16). Loopen bröt förr på `items.length < limit`, så en enda
+    // degraderad sida kapade katalogen tyst: uppmätt 716 av 778 produkter på
+    // /alla-produkter — sju hela sidor plus en som gav 16 i stället för 78, och
+    // 62 produkter försvann ur butiken utan ett enda felmeddelande. Sitemapen,
+    // byggd vid en komplett hämtning, listade dem fortfarande.
+    //
+    // Nu: gå vidare tills en sida är HELT tom, och stega med det antal vi
+    // faktiskt fick (inte med `limit` — annars hoppar en kort sida över
+    // resten av fönstret). Taket är rymligt men ändå ett tak.
+    for (let i = 0; i < 40; i++) {
       const res: any = await (wix as any).products.queryProducts().limit(limit).skip(skip).find();
       const items = res.items || [];
+      if (typeof res.totalCount === "number") rapporteratTotalt = res.totalCount;
+      if (items.length === 0) break;
       all.push(...items);
-      if (items.length < limit) break;
-      skip += limit;
+      skip += items.length;
     }
     const mapped = all.filter((p) => p.visible !== false).map(mapProduct).filter((p) => p.img);
     // Dedupe by product id. After the V3 restructure a product belongs to a main
@@ -456,6 +468,18 @@ async function fetchProducts(): Promise<Product[]> {
       if (sold.size) for (const p of unique) p.popularity = sold.get(p.id) ?? 0;
     } catch { /* popularitet får aldrig fälla produktlistan */ }
     console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
+    // CACHA ALDRIG EN KAPAD KATALOG. productsPromise lever hela lambdans
+    // livstid, så en degraderad hämtning frös förr det lägre antalet tills
+    // instansen återvanns — och eftersom kategorimenyn byggs ur samma lista
+    // kunde den samtidigt tappa kategorier. Rapporterar API:t ett totalantal
+    // och vi fick färre: släpp cachen så nästa request hämtar om.
+    if (rapporteratTotalt !== null && all.length < rapporteratTotalt) {
+      console.error(
+        `[wix] KAPAD produkthämtning: fick ${all.length} av ${rapporteratTotalt} `
+          + "— cachar INTE, nästa request försöker igen.",
+      );
+      productsPromise = null;
+    }
     return unique.length ? unique : FALLBACK_PRODUCTS;
   } catch (e) {
     console.error("[wix] live fetch failed, using local fallback:", (e as Error).message);
