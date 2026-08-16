@@ -541,14 +541,25 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // Används både för bestseller-prioritet (Feature 4) och för "X sålda"-raden
   // i real-tids-OOS-mejlet (Feature 2). Best-effort: failar order-API:t kör vi
   // vidare med tomt data (mejlet visar då 0 sålda, prioriteringen rör inget).
-  // Fraktbarhetskontrollens delade anropsbudget. PAUSAD (default 0) sedan
-  // 2026-07-14: fraktAPI:ts nej-svar visade sig opålitliga per anrop och
-  // nollade 8 fraktbara produkter under en natt (kod röd). Återaktiveras via
-  // SYNC_SHIPPABILITY_CHECKS_PER_RUN när frågan verifierats med hårdare
-  // beviskrav (flera oberoende nej + full adresskontext).
+  // Fraktbarhetskontrollens delade anropsbudget. Pausad (default 0) från
+  // 2026-07-14 till 2026-08-16: fraktAPI:ts nej-svar var opålitliga per anrop
+  // och nollade 8 fraktbara produkter under en natt (kod röd). Villkoret för
+  // återaktivering var "hårdare beviskrav" — det är nu byggt (kontroll v2):
+  // ett nej måste vara UTTRYCKLIGT, upprepas minst två gånger med minst ett
+  // dygns spridning, och får inte stå bredvid ett fraktbart syskon.
+  //
+  // Default höjd till 20 anrop/körning (Leonards begäran 2026-08-16). Med
+  // körning var 4:e timme blir det ~120 kontroller/dygn — en första svep över
+  // de ~822 aldrig kontrollerade varianterna tar drygt en vecka. Medvetet
+  // långsamt: beviskravet kostar tid, och det är priset för att inte upprepa
+  // kod röd. Sätt SYNC_SHIPPABILITY_CHECKS_PER_RUN för att ändra takten, 0
+  // för att pausa igen.
+  const DEFAULT_SHIPPABILITY_CHECKS_PER_RUN = 20;
   const shipBudgetEnv = Number(process.env.SYNC_SHIPPABILITY_CHECKS_PER_RUN);
   const shippabilityBudget: ShippabilityBudget = {
-    remaining: Number.isFinite(shipBudgetEnv) && shipBudgetEnv >= 0 ? shipBudgetEnv : 0,
+    remaining: Number.isFinite(shipBudgetEnv) && shipBudgetEnv >= 0
+      ? shipBudgetEnv
+      : DEFAULT_SHIPPABILITY_CHECKS_PER_RUN,
   };
 
   let salesByProduct: Record<string, number> = {};
