@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { categorySignalIsUsable, keepCategory } from "./category-filter";
 import { imgKey } from "./image-alt";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
@@ -887,6 +888,28 @@ async function fetchCollections(): Promise<Collection[]> {
     const used = new Set<string>();
     for (const p of forListings(products)) for (const cid of (p.collectionIds || [])) used.add(cid);
 
+    // TOM-FILTRET FÅR ALDRIG BLANKA NAVIGATIONEN (Leonards rapport 2026-08-16:
+    // "0 kategorier" på startsidan och /alla-produkter, som kom och gick).
+    //
+    // Filtret finns för att dölja ENSKILDA kategorier utan köpbara produkter.
+    // Men `used` byggs ur produktlistan, och när den kommer tillbaka utan
+    // collectionIds — nödkatalogen har alltid tomma, och SDK:ns queryProducts
+    // har visat sig tappa fält — blir `used` tom och då sållas ALLA kategorier
+    // bort. "Vi vet inte vilka kategorier som används" är inte samma sak som
+    // "ingen kategori används", och skillnaden syntes direkt för kunden: hela
+    // kategorimenyn försvann.
+    //
+    // Kan vi inte se en enda kategorianvändning är signalen värdelös → hoppa
+    // över filtret och visa kategorierna. Hellre en kategori som råkar vara tom
+    // än ingen navigation alls.
+    const kategoriSignalFinns = categorySignalIsUsable(used.size);
+    if (!kategoriSignalFinns) {
+      console.error(
+        `[wix] getCollections: ${products.length} produkter men NOLL collectionIds — `
+          + "tom-filtret hoppas över för att inte blanka kategorimenyn.",
+      );
+    }
+
     const seen = new Set<string>();
     const list: Collection[] = (res.items || [])
       .map((c: any) => ({
@@ -895,7 +918,8 @@ async function fetchCollections(): Promise<Collection[]> {
         parentId: (c.parentCategory && c.parentCategory._id) || null,
         index: (c.parentCategory && typeof c.parentCategory.index === "number") ? c.parentCategory.index : 0,
       }))
-      .filter((c: { id: string; name: string }) => c.id && c.name && !/all products/i.test(c.name) && used.has(c.id))
+      .filter((c: { id: string; name: string }) =>
+        c.id && c.name && !/all products/i.test(c.name) && keepCategory(c.id, used))
       .map((c: { id: string; name: string; parentId: string | null; index: number }) => {
         let slug = asciiSlug(c.name);
         while (!slug || seen.has(slug)) slug = (slug || "kategori") + "-" + c.id.slice(-4);
@@ -909,6 +933,18 @@ async function fetchCollections(): Promise<Collection[]> {
       if (ib !== -1) return 1;
       return a.name.localeCompare(b.name, "sv");
     });
+    // CACHA ALDRIG EN TOM KATEGORILISTA. collectionsPromise lever hela lambdans
+    // livstid, så en enda dålig hämtning frös förr "0 kategorier" tills just den
+    // instansen återvanns — därav att menyn försvann, kom tillbaka och försvann
+    // igen beroende på vilken instans som svarade. Katalogen har alltid
+    // kategorier; tomt betyder att något gick fel, inte att de är borta.
+    if (list.length === 0) {
+      console.error(
+        `[wix] getCollections gav 0 kategorier (${(res.items || []).length} råa, `
+          + `${products.length} produkter) — cachar INTE, nästa request försöker igen.`,
+      );
+      collectionsPromise = null;
+    }
     return list;
   } catch (e) {
     console.error("[wix] getCollections failed:", (e as Error).message);
