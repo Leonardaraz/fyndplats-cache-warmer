@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { categorySignalIsUsable, keepCategory } from "./category-filter";
 import { imgKey } from "./image-alt";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
@@ -432,12 +433,24 @@ async function fetchProducts(): Promise<Product[]> {
     const all: any[] = [];
     let skip = 0;
     const limit = 100;
-    for (let i = 0; i < 10; i++) {
+    let rapporteratTotalt: number | null = null;
+    // EN KORT SIDA ÄR INTE SAMMA SAK SOM SISTA SIDAN (Leonards rapport
+    // 2026-08-16). Loopen bröt förr på `items.length < limit`, så en enda
+    // degraderad sida kapade katalogen tyst: uppmätt 716 av 778 produkter på
+    // /alla-produkter — sju hela sidor plus en som gav 16 i stället för 78, och
+    // 62 produkter försvann ur butiken utan ett enda felmeddelande. Sitemapen,
+    // byggd vid en komplett hämtning, listade dem fortfarande.
+    //
+    // Nu: gå vidare tills en sida är HELT tom, och stega med det antal vi
+    // faktiskt fick (inte med `limit` — annars hoppar en kort sida över
+    // resten av fönstret). Taket är rymligt men ändå ett tak.
+    for (let i = 0; i < 40; i++) {
       const res: any = await (wix as any).products.queryProducts().limit(limit).skip(skip).find();
       const items = res.items || [];
+      if (typeof res.totalCount === "number") rapporteratTotalt = res.totalCount;
+      if (items.length === 0) break;
       all.push(...items);
-      if (items.length < limit) break;
-      skip += limit;
+      skip += items.length;
     }
     const mapped = all.filter((p) => p.visible !== false).map(mapProduct).filter((p) => p.img);
     // Dedupe by product id. After the V3 restructure a product belongs to a main
@@ -455,6 +468,18 @@ async function fetchProducts(): Promise<Product[]> {
       if (sold.size) for (const p of unique) p.popularity = sold.get(p.id) ?? 0;
     } catch { /* popularitet får aldrig fälla produktlistan */ }
     console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
+    // CACHA ALDRIG EN KAPAD KATALOG. productsPromise lever hela lambdans
+    // livstid, så en degraderad hämtning frös förr det lägre antalet tills
+    // instansen återvanns — och eftersom kategorimenyn byggs ur samma lista
+    // kunde den samtidigt tappa kategorier. Rapporterar API:t ett totalantal
+    // och vi fick färre: släpp cachen så nästa request hämtar om.
+    if (rapporteratTotalt !== null && all.length < rapporteratTotalt) {
+      console.error(
+        `[wix] KAPAD produkthämtning: fick ${all.length} av ${rapporteratTotalt} `
+          + "— cachar INTE, nästa request försöker igen.",
+      );
+      productsPromise = null;
+    }
     return unique.length ? unique : FALLBACK_PRODUCTS;
   } catch (e) {
     console.error("[wix] live fetch failed, using local fallback:", (e as Error).message);
@@ -887,6 +912,28 @@ async function fetchCollections(): Promise<Collection[]> {
     const used = new Set<string>();
     for (const p of forListings(products)) for (const cid of (p.collectionIds || [])) used.add(cid);
 
+    // TOM-FILTRET FÅR ALDRIG BLANKA NAVIGATIONEN (Leonards rapport 2026-08-16:
+    // "0 kategorier" på startsidan och /alla-produkter, som kom och gick).
+    //
+    // Filtret finns för att dölja ENSKILDA kategorier utan köpbara produkter.
+    // Men `used` byggs ur produktlistan, och när den kommer tillbaka utan
+    // collectionIds — nödkatalogen har alltid tomma, och SDK:ns queryProducts
+    // har visat sig tappa fält — blir `used` tom och då sållas ALLA kategorier
+    // bort. "Vi vet inte vilka kategorier som används" är inte samma sak som
+    // "ingen kategori används", och skillnaden syntes direkt för kunden: hela
+    // kategorimenyn försvann.
+    //
+    // Kan vi inte se en enda kategorianvändning är signalen värdelös → hoppa
+    // över filtret och visa kategorierna. Hellre en kategori som råkar vara tom
+    // än ingen navigation alls.
+    const kategoriSignalFinns = categorySignalIsUsable(used.size);
+    if (!kategoriSignalFinns) {
+      console.error(
+        `[wix] getCollections: ${products.length} produkter men NOLL collectionIds — `
+          + "tom-filtret hoppas över för att inte blanka kategorimenyn.",
+      );
+    }
+
     const seen = new Set<string>();
     const list: Collection[] = (res.items || [])
       .map((c: any) => ({
@@ -895,7 +942,8 @@ async function fetchCollections(): Promise<Collection[]> {
         parentId: (c.parentCategory && c.parentCategory._id) || null,
         index: (c.parentCategory && typeof c.parentCategory.index === "number") ? c.parentCategory.index : 0,
       }))
-      .filter((c: { id: string; name: string }) => c.id && c.name && !/all products/i.test(c.name) && used.has(c.id))
+      .filter((c: { id: string; name: string }) =>
+        c.id && c.name && !/all products/i.test(c.name) && keepCategory(c.id, used))
       .map((c: { id: string; name: string; parentId: string | null; index: number }) => {
         let slug = asciiSlug(c.name);
         while (!slug || seen.has(slug)) slug = (slug || "kategori") + "-" + c.id.slice(-4);
@@ -909,6 +957,18 @@ async function fetchCollections(): Promise<Collection[]> {
       if (ib !== -1) return 1;
       return a.name.localeCompare(b.name, "sv");
     });
+    // CACHA ALDRIG EN TOM KATEGORILISTA. collectionsPromise lever hela lambdans
+    // livstid, så en enda dålig hämtning frös förr "0 kategorier" tills just den
+    // instansen återvanns — därav att menyn försvann, kom tillbaka och försvann
+    // igen beroende på vilken instans som svarade. Katalogen har alltid
+    // kategorier; tomt betyder att något gick fel, inte att de är borta.
+    if (list.length === 0) {
+      console.error(
+        `[wix] getCollections gav 0 kategorier (${(res.items || []).length} råa, `
+          + `${products.length} produkter) — cachar INTE, nästa request försöker igen.`,
+      );
+      collectionsPromise = null;
+    }
     return list;
   } catch (e) {
     console.error("[wix] getCollections failed:", (e as Error).message);
