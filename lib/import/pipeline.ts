@@ -85,6 +85,24 @@ export interface VariantMapping {
   shippableToSe?: boolean;
   /** ISO-tid för senaste fraktbarhetskontrollen (styr omkontroll-intervall). */
   shippabilityCheckedAt?: string;
+  /**
+   * true = verdiktet är satt MANUELLT av en människa som kontrollerat
+   * leverantörens produktsida ("This product can't be shipped to your address"),
+   * inte av frakt-API:t.
+   *
+   * Varför skillnaden finns (Leonards rapport 2026-08-16): den automatiska
+   * kontrollen är avstängd sedan kod röd 2026-07-14 — den nollade 8 SÄLJBARA
+   * produkter på en natt, så `SYNC_SHIPPABILITY_ENFORCE` står av och alla
+   * `shippableToSe:false` är inerta. Men då finns ingen väg alls att stoppa en
+   * vara vi VET inte går att skicka: sparkbilen (SucceBuy, samma säljare som
+   * fallet 2026-07-13) låg kvar med ~60 i lager, såldes, och fick återbetalas.
+   *
+   * Ett manuellt verdikt är inte samma sak som ett opålitligt API-nej och
+   * behöver därför inte vänta på att kontrollen v2 bevisas. Det tvingar lagret
+   * till 0 vid varje spegling OAVSETT env-flaggan — men bara för den variant
+   * någon faktiskt tittat på.
+   */
+  shippabilityManual?: boolean;
 }
 
 export interface ImportResult {

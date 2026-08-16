@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { unshippableVariantIdsFor } from "./aliexpress-sync";
 import type { VariantMapping } from "../import/pipeline";
 import { checkMappingShippability, isShippabilityStale, SHIPPABILITY_RECHECK_MS } from "./shippability";
 import type { FreightQueryOutcome } from "../aliexpress/freight";
@@ -146,5 +147,40 @@ describe("checkMappingShippability", () => {
     });
     expect(res.variants[0]).toMatchObject({ shippableToSe: true });
     expect(res.unshippable).toBe(0);
+  });
+});
+
+// ── Manuellt verdikt vs automatiskt (Leonards rapport 2026-08-16) ───────────
+// Sparkbilen (SucceBuy) låg med ~60 i lager fast leverantörens sida sa "can't be
+// shipped to your address". Den automatiska kontrollen är avstängd sedan kod röd
+// 2026-07-14, så det fanns ingen väg att stoppa varan — den såldes och fick
+// återbetalas. Manuella verdikt lyder därför inte under env-flaggan.
+describe("unshippableVariantIdsFor", () => {
+  const v = (id: string, shippableToSe?: boolean, manual?: boolean) =>
+    ({ wixVariantId: id, supplierVariantId: `sku-${id}`, shippableToSe, shippabilityManual: manual }) as never;
+
+  it("manuellt nej nollar varianten ÄVEN när env-flaggan är av", () => {
+    const s = unshippableVariantIdsFor([v("a", false, true)], false);
+    expect([...s]).toEqual(["a"]);
+  });
+
+  it("automatiskt nej är inert när env-flaggan är av (de 9 gamla flaggorna)", () => {
+    const s = unshippableVariantIdsFor([v("a", false)], false);
+    expect(s.size).toBe(0);
+  });
+
+  it("automatiskt nej biter när env-flaggan slås på", () => {
+    const s = unshippableVariantIdsFor([v("a", false)], true);
+    expect([...s]).toEqual(["a"]);
+  });
+
+  it("fraktbara och okontrollerade rörs aldrig", () => {
+    const s = unshippableVariantIdsFor([v("a", true, true), v("b", undefined, true), v("c")], true);
+    expect(s.size).toBe(0);
+  });
+
+  it("variant utan wixVariantId hoppas över (går inte att spegla)", () => {
+    const s = unshippableVariantIdsFor([{ shippableToSe: false, shippabilityManual: true } as never], true);
+    expect(s.size).toBe(0);
   });
 });
