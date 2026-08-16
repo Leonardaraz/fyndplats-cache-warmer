@@ -63,3 +63,135 @@ test("aggregateSoldUnits: summerar per catalogItemId, hoppar annullerade och kat
   assert.equal(sold.get("p2"), 3);
   assert.equal(sold.get("p3"), 1);
 });
+
+// ── Kategoriblandning (2026-08-16) ─────────────────────────────────────────
+// Leonard: "Nyast", "Rekommenderat" och "Populärast" visade samma lista.
+// Uppmätt orsak: bara createdAt varierar (popularity 0 för 711 av 716,
+// imageScore 60 för alla 716). Blandningen ger de två senare egen karaktär.
+import { interleaveByGroup, groupKeyForMix } from "./sort-products.ts";
+
+test("interleaveByGroup – turas om mellan grupper", () => {
+  const items = [
+    { g: "a", n: 1 }, { g: "a", n: 2 }, { g: "a", n: 3 },
+    { g: "b", n: 4 }, { g: "b", n: 5 },
+    { g: "c", n: 6 },
+  ];
+  assert.deepEqual(
+    interleaveByGroup(items, (x) => x.g).map((x) => x.n),
+    [1, 4, 6, 2, 5, 3],
+  );
+});
+
+test("interleaveByGroup – tappar aldrig element", () => {
+  const items = Array.from({ length: 97 }, (_, i) => ({ g: `g${i % 7}`, n: i }));
+  const ut = interleaveByGroup(items, (x) => x.g);
+  assert.equal(ut.length, 97);
+  assert.deepEqual(new Set(ut.map((x) => x.n)).size, 97);
+});
+
+test("interleaveByGroup – behåller ordningen inom en grupp", () => {
+  const items = [{ g: "a", n: 1 }, { g: "b", n: 9 }, { g: "a", n: 2 }, { g: "a", n: 3 }];
+  const a = interleaveByGroup(items, (x) => x.g).filter((x) => x.g === "a").map((x) => x.n);
+  assert.deepEqual(a, [1, 2, 3]);
+});
+
+test("interleaveByGroup – deterministisk och tål tom lista", () => {
+  const items = [{ g: "b", n: 1 }, { g: "a", n: 2 }];
+  assert.deepEqual(interleaveByGroup(items, (x) => x.g), interleaveByGroup(items, (x) => x.g));
+  assert.deepEqual(interleaveByGroup([], () => "x"), []);
+});
+
+test("interleaveByGroup – en enda grupp lämnas orörd", () => {
+  const items = [{ g: "a", n: 1 }, { g: "a", n: 2 }, { g: "a", n: 3 }];
+  assert.deepEqual(interleaveByGroup(items, (x) => x.g).map((x) => x.n), [1, 2, 3]);
+});
+
+test("groupKeyForMix – hoppar över universella kategorier", () => {
+  const uni = new Set(["ALL"]);
+  assert.equal(groupKeyForMix({ id: "p1", collectionIds: ["ALL", "husdjur"] }, uni), "husdjur");
+});
+
+test("groupKeyForMix – produkt utan meningsfull kategori får en EGEN grupp", () => {
+  const uni = new Set(["ALL"]);
+  const a = groupKeyForMix({ id: "p1", collectionIds: ["ALL"] }, uni);
+  const b = groupKeyForMix({ id: "p2", collectionIds: [] }, uni);
+  assert.notEqual(a, b, "okategoriserade får inte klumpas ihop till en enda grupp");
+});
+
+test("interleaveByGroup – gruppvikt lyfter tunga grupper först", () => {
+  const items = [
+    { g: "tom", n: 1 }, { g: "tom", n: 2 },
+    { g: "saljer", n: 3 }, { g: "saljer", n: 4 },
+  ];
+  const vikt = (g: string) => (g === "saljer" ? 5 : 0);
+  assert.deepEqual(
+    interleaveByGroup(items, (x) => x.g, vikt).map((x) => x.n),
+    [3, 1, 4, 2],
+    "gruppen med vikt ska öppna listan",
+  );
+});
+
+test("interleaveByGroup – lika vikt behåller ursprunglig gruppordning", () => {
+  const items = [{ g: "a", n: 1 }, { g: "b", n: 2 }, { g: "a", n: 3 }, { g: "b", n: 4 }];
+  assert.deepEqual(
+    interleaveByGroup(items, (x) => x.g, () => 0).map((x) => x.n),
+    interleaveByGroup(items, (x) => x.g).map((x) => x.n),
+  );
+});
+
+// Beviset som den lokala miljön inte kan ge: utan Wix-nyckel är popularity 0
+// för allt, och då ÄR de två listorna identiska. Med verklig säljdata — fem
+// produkter med en såld var, precis som i butiken — måste de skilja sig.
+import { orderRecommended, orderPopular } from "./sort-products.ts";
+
+function katalog() {
+  const p: { id: string; createdAt: number; popularity: number; collectionIds: string[] }[] = [];
+  const kategorier = ["kok", "husdjur", "tradgard", "verktyg"];
+  for (let i = 0; i < 40; i++) {
+    p.push({
+      id: `p${i}`,
+      createdAt: 1_000_000 - i,               // fallande = p0 nyast
+      popularity: 0,
+      collectionIds: ["ALL", kategorier[i % 4]],
+    });
+  }
+  // Fem säljare, alla i "verktyg" — en kategori som annars ligger sist.
+  for (const i of [7, 11, 15, 19, 23]) p[i].popularity = 1;
+  return p;
+}
+
+test("orderPopular skiljer sig från orderRecommended när det FINNS försäljning", () => {
+  const alla = katalog();
+  const uni = new Set(["ALL"]);
+  const rek = orderRecommended(alla, uni, 1_000_000).map((x) => x.id);
+  const pop = orderPopular(alla, uni).map((x) => x.id);
+  assert.notDeepEqual(rek, pop, "listorna måste skilja sig när säljdata finns");
+  assert.equal(rek.length, pop.length);
+  assert.equal(new Set(pop).size, alla.length, "ingen produkt får tappas");
+});
+
+test("orderPopular sätter faktiska säljare först", () => {
+  const alla = katalog();
+  const pop = orderPopular(alla, new Set(["ALL"]));
+  const forst5 = pop.slice(0, 5).map((x) => x.id).sort();
+  assert.deepEqual(forst5, ["p11", "p15", "p19", "p23", "p7"]);
+});
+
+test("orderPopular lyfter kategorier där det sålts före kategorier utan", () => {
+  const alla = katalog();
+  const pop = orderPopular(alla, new Set(["ALL"]));
+  // Direkt efter de fem säljarna ska en verktygsprodukt komma — dess kategori
+  // bär all försäljning och ska därför öppna blandningen.
+  const efterSaljarna = pop[5];
+  assert.equal(efterSaljarna.collectionIds[1], "verktyg");
+});
+
+test("utan försäljning ÄR listorna identiska — och det är korrekt", () => {
+  const alla = katalog().map((p) => ({ ...p, popularity: 0 }));
+  const uni = new Set(["ALL"]);
+  assert.deepEqual(
+    orderRecommended(alla, uni, 1_000_000).map((x) => x.id),
+    orderPopular(alla, uni).map((x) => x.id),
+    "utan data finns inget att skilja dem åt med",
+  );
+});

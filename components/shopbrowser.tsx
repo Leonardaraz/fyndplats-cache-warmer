@@ -2,7 +2,8 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
-import { compareByPopularity, compareByRecommended } from "../lib/sort-products";
+import { orderRecommended, orderPopular } from "../lib/sort-products";
+import { universalCollectionIds } from "../lib/related-pick";
 import type { Product } from "../lib/products";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
@@ -93,8 +94,14 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
     // (sekund-precision hade gett hydration-hopp i Rekommenderat-poängen).
     const dayMs = Math.floor(Date.now() / 86_400_000) * 86_400_000;
-    if (sort === "img") out = [...out].sort(compareByRecommended(dayMs));
-    else if (sort === "pop") out = [...out].sort(compareByPopularity);
+    // Rekommenderat och Populärast blandar kategorier (Leonard 2026-08-16).
+    // Utan blandningen blev båda i praktiken "Nyast": popularity är 0 för 711
+    // av 716 produkter och imageScore 60 för alla, så createdAt var enda
+    // signalen med variation. Ordningarna är rena funktioner i
+    // lib/sort-products — där ligger också mätningen och testerna.
+    const universal = universalCollectionIds(products);
+    if (sort === "img") out = orderRecommended(out, universal, dayMs);
+    else if (sort === "pop") out = orderPopular(out, universal);
     else if (sort === "new") out = [...out].sort((a, z) => (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? "")));
     else if (sort === "price-asc") out = [...out].sort((a, z) => a.priceNum - z.priceNum);
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
