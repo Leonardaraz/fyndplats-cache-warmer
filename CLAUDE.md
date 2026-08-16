@@ -134,12 +134,29 @@ körning, default 25), `maxPerProduct` (default 8), `includeExisting`, `onlyPubl
 ### Kostnaden är DeepL-tecken, inte credits
 
 Ingen Claude-användning alls. Taket är DeepL Free: **500 000 tecken/månad**
-(`DEEPL_MONTHLY_BUDGET`, stoppmarginal 450 000). Mätt på 20 produkter 2026-08-16,
-efter det riktiga filtret: ~1 025 tecken/produkt vid tak 15, ~518 vid tak 5 — hela
-katalogen kostar alltså **~900k respektive ~450k tecken**. Backfillen kollar därför
-budgeten **före** varje produkt och stannar med `stoppedBy: "budget"`; nästa körning
-tar vid. Skälet är att `importReviewsForProduct` vid budgetslut faller tillbaka på
-**originaltexten** — engelska recensioner på en svensk sida — vilket är fel utfall
-för en backfill.
+(`DEEPL_MONTHLY_BUDGET`, stoppmarginal 450 000).
+
+Mätt 2026-08-16 genom det riktiga filtret, på **40 slumpade publicerade** produkter
+ur mitten av katalogen (692 publicerade mappningar av 876 totalt — 148 är `rejected`
+och 23 väntar i kön, de ska inte räknas):
+
+| Tak per produkt | Träffkvot | Tecken/produkt | Hela butiken (692) |
+|---|---|---|---|
+| 5 | 60 % | 207 | **143k** |
+| 8 (default) | 60 % | 240 | **166k** |
+| 15 | 60 % | 293 | **203k** |
+
+Alltså: hela butiken ryms i **en** månadskvot, med god marginal, även vid tak 15.
+Cirka 40 % av produkterna får inga recensioner alls — mest nya Aosom-EU-listningar
+som inte hunnit få några hos AE.
+
+> Ett tidigare estimat på ~900k tecken byggde på de 20 ÄLDSTA produkterna, som är
+> ovanligt recensionsrika (upp till 236 recensioner styck). Det urvalet var inte
+> representativt för katalogen.
+
+Backfillen kollar ändå budgeten **före** varje produkt och stannar med
+`stoppedBy: "budget"`; nästa körning tar vid. Skälet är att `importReviewsForProduct`
+vid budgetslut faller tillbaka på **originaltexten** — engelska recensioner på en
+svensk sida — vilket är fel utfall för en backfill.
 
 Övriga LLM-/kostnads-env-variabler dokumenteras i **`LLM-CONFIG.md`**.
