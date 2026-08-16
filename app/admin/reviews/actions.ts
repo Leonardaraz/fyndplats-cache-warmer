@@ -61,6 +61,7 @@ export async function runReviewBackfillAction(formData: FormData): Promise<void>
     f: String(summary.errors),
     s: summary.stoppedBy,
     b: String(summary.budgetRemainingAtEnd),
+    ...(summary.blockedReason ? { r: summary.blockedReason } : {}),
   });
   revalidatePath("/admin/reviews");
   redirect(`/admin/reviews?${q.toString()}`);

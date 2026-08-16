@@ -151,6 +151,66 @@ describe("runReviewBackfill — budgetgrinden", () => {
   });
 });
 
+describe("runReviewBackfill — översättningsgrinden", () => {
+  // Felläget vi bygger bort: review-importen faller vid översättningsfel
+  // tillbaka på ORIGINALTEXTEN. En saknad DeepL-nyckel skulle alltså publicera
+  // engelska recensioner på hundratals svenska produktsidor, tyst.
+  it("vägrar starta skarpt när översättningen inte svarar", async () => {
+    const importReviews = vi.fn();
+    const fetchReviews = vi.fn();
+    const s = await runReviewBackfill(
+      deps({
+        importReviews,
+        fetchReviews,
+        translationHealthy: async () => ({ ok: false, reason: "DEEPL_API_KEY saknas i miljön" }),
+      }),
+      { dryRun: false },
+    );
+    expect(fetchReviews).not.toHaveBeenCalled();
+    expect(importReviews).not.toHaveBeenCalled();
+    expect(s.stoppedBy).toBe("översättning");
+    expect(s.blockedReason).toMatch(/DEEPL_API_KEY/);
+    expect(s.considered).toBe(0);
+  });
+
+  it("torrkörning bryr sig inte om grinden — den publicerar ingenting", async () => {
+    const s = await runReviewBackfill(
+      deps({ translationHealthy: async () => ({ ok: false, reason: "nyckel saknas" }) }),
+      { dryRun: true },
+    );
+    expect(s.stoppedBy).toBe("klar");
+    expect(s.considered).toBe(3);
+  });
+
+  it("frisk översättning släpper igenom körningen", async () => {
+    const s = await runReviewBackfill(
+      deps({ translationHealthy: async () => ({ ok: true }) }),
+      { dryRun: false },
+    );
+    expect(s.reviewsImported).toBe(15);
+  });
+
+  // Nyckeln kan sluta fungera MITT i en körning — andra försvarslinjen.
+  it("stannar direkt om översättningen fallerar under körningen", async () => {
+    const s = await runReviewBackfill(
+      deps({
+        listCandidates: async () => candidates(5),
+        importReviews: async (_id, revs) => ({
+          imported: revs.length,
+          skippedExisting: 0,
+          charsUsed: 0,
+          budgetExceeded: false,
+          translationFailed: true,
+        }),
+      }),
+      { dryRun: false },
+    );
+    expect(s.considered).toBe(1);
+    expect(s.stoppedBy).toBe("översättning");
+    expect(s.products[0].note).toMatch(/oöversatt/);
+  });
+});
+
 describe("runReviewBackfill — genomsökt-stämpeln", () => {
   // Utan stämpeln hämtar en schemalagd körning om de ~40 % recensionslösa
   // produkterna vid varje körning, för alltid.

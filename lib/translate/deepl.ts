@@ -95,6 +95,39 @@ export async function translateBatchDetailed(
   return out;
 }
 
+const FREE_USAGE_ENDPOINT = "https://api-free.deepl.com/v2/usage";
+const PRO_USAGE_ENDPOINT = "https://api.deepl.com/v2/usage";
+
+/**
+ * Kontrollerar att översättningen FAKTISKT fungerar, utan att bränna quota
+ * (/v2/usage kostar noll tecken).
+ *
+ * Finns för att `importReviewsForProduct` vid översättningsfel faller tillbaka
+ * på ORIGINALTEXTEN. För en enstaka import är det rätt — en översättningsmiss
+ * ska aldrig fälla produktimporten. För en obevakad backfill över hundratals
+ * produkter är det fel: en saknad eller spärrad nyckel skulle tyst publicera
+ * engelska recensioner på en svensk sajt, på löpande band.
+ *
+ * Backfillen kör den EN gång före körningen och vägrar starta om den säger nej.
+ */
+export async function checkDeeplHealth(
+  apiKey = process.env.DEEPL_API_KEY,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ ok: boolean; reason?: string }> {
+  if (!apiKey) return { ok: false, reason: "DEEPL_API_KEY saknas i miljön" };
+  const endpoint = apiKey.trim().endsWith(":fx") ? FREE_USAGE_ENDPOINT : PRO_USAGE_ENDPOINT;
+  try {
+    const res = await fetchImpl(endpoint, {
+      headers: { Authorization: `DeepL-Auth-Key ${apiKey}` },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return { ok: false, reason: `DeepL svarade ${res.status}` };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: err instanceof Error ? err.message : "okänt fel" };
+  }
+}
+
 /** Bekvämlighet: bara de översatta texterna (ordningsbevarande). */
 export async function translateBatch(
   texts: string[],

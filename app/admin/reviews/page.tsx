@@ -39,21 +39,39 @@ function BackfillResult({ sp }: { sp: Record<string, string | string[] | undefin
     klar: "hela urvalet gicks igenom",
     gräns: "antalsgränsen nåddes — kör igen för nästa omgång",
     budget: "DeepL-budgeten tog slut — resten tas nästa körning",
+    översättning: "STOPPAD — översättningen fungerar inte",
   };
+  const blocked = get("s") === "översättning";
 
   return (
     <div
       style={{
-        background: dry ? "#eff6ff" : "#f0fdf4",
-        border: `1px solid ${dry ? "#bfdbfe" : "#bbf7d0"}`,
+        background: blocked ? "#fef2f2" : dry ? "#eff6ff" : "#f0fdf4",
+        border: `1px solid ${blocked ? "#fecaca" : dry ? "#bfdbfe" : "#bbf7d0"}`,
         borderRadius: 8,
         padding: "12px 14px",
         margin: "14px 0",
         fontSize: 14,
       }}
     >
-      <b>{dry ? "Torrkörning klar — inget sparades." : "Hämtning klar."}</b>
+      <b>
+        {blocked
+          ? "Ingenting publicerades — översättningen fungerar inte."
+          : dry
+            ? "Torrkörning klar — inget sparades."
+            : "Hämtning klar."}
+      </b>
       <br />
+      {blocked ? (
+        <>
+          <span style={{ color: "#b91c1c" }}>
+            Orsak: <code>{get("r") || "okänd"}</code>. Utan översättning skulle recensionerna
+            sparas på originalspråk — engelsk text på svenska produktsidor. Kontrollera{" "}
+            <code>DEEPL_API_KEY</code> i Vercel och kör igen.
+          </span>
+          <br />
+        </>
+      ) : null}
       Produkter genomgångna: <b>{n("p")}</b> · med recensioner: <b>{n("w")}</b> ·{" "}
       {dry ? (
         <>

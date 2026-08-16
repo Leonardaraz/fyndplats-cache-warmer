@@ -9,6 +9,7 @@ import { fetchAeReviews } from "../aliexpress/reviews";
 import { importReviewsForProduct } from "../import/review-import";
 import { getReviewStore } from "../store/reviews";
 import { getTranslationUsageStore, monthKey, monthlyBudget } from "../translate/usage";
+import { checkDeeplHealth } from "../translate/deepl";
 import type { ReviewBackfillCandidate, ReviewBackfillDeps } from "./backfill";
 
 /**
@@ -79,5 +80,8 @@ export function buildReviewBackfillDeps(opts: BackfillDepsOptions = {}): ReviewB
       const used = await usageStore.getMonthlyUsage(monthKey(new Date()));
       return Math.max(0, monthlyBudget() - used);
     },
+    // Kostar noll tecken (/v2/usage) — men hindrar att en saknad eller spärrad
+    // nyckel tyst publicerar engelsk text på hundratals svenska produktsidor.
+    translationHealthy: () => checkDeeplHealth(),
   };
 }

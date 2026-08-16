@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { countChars, MAX_TEXTS_PER_REQUEST, translateBatch } from "./deepl";
+import { checkDeeplHealth, countChars, MAX_TEXTS_PER_REQUEST, translateBatch } from "./deepl";
 
 describe("countChars", () => {
   it("summerar tecken över alla texter", () => {
@@ -62,5 +62,51 @@ describe("translateBatch", () => {
       text: async () => "Quota exceeded",
     } as unknown as Response);
     await expect(translateBatch(["x"], "SV", "key:fx", fetchMock as never)).rejects.toThrow(/456/);
+  });
+});
+
+describe("checkDeeplHealth", () => {
+  // Grinden finns för att review-importen vid översättningsfel faller tillbaka
+  // på originaltexten. Utan kontrollen publicerar en obevakad backfill engelsk
+  // text på svenska produktsidor, tyst.
+  it("saknad nyckel → inte ok, med läsbar orsak", async () => {
+    const r = await checkDeeplHealth(undefined, (async () => {
+      throw new Error("skulle aldrig anropas");
+    }) as unknown as typeof fetch);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/DEEPL_API_KEY/);
+  });
+
+  it("giltig nyckel → ok", async () => {
+    const fetchImpl = (async () => ({ ok: true, status: 200 })) as unknown as typeof fetch;
+    expect(await checkDeeplHealth("abc:fx", fetchImpl)).toEqual({ ok: true });
+  });
+
+  it("spärrad nyckel (403) → inte ok", async () => {
+    const fetchImpl = (async () => ({ ok: false, status: 403 })) as unknown as typeof fetch;
+    const r = await checkDeeplHealth("abc:fx", fetchImpl);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/403/);
+  });
+
+  it("nätverksfel kastas inte vidare — grinden ska svara, inte krascha", async () => {
+    const fetchImpl = (async () => {
+      throw new Error("ECONNRESET");
+    }) as unknown as typeof fetch;
+    const r = await checkDeeplHealth("abc:fx", fetchImpl);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe("ECONNRESET");
+  });
+
+  it("Free-nyckel (:fx) och Pro-nyckel går till olika värdar", async () => {
+    const seen: string[] = [];
+    const fetchImpl = (async (url: string) => {
+      seen.push(url);
+      return { ok: true, status: 200 };
+    }) as unknown as typeof fetch;
+    await checkDeeplHealth("free-key:fx", fetchImpl);
+    await checkDeeplHealth("pro-key", fetchImpl);
+    expect(seen[0]).toContain("api-free.deepl.com");
+    expect(seen[1]).toContain("api.deepl.com");
   });
 });

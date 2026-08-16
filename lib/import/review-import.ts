@@ -216,6 +216,13 @@ export interface ReviewImportResult {
   charsUsed: number;
   /** True om budgeten var slut → originaltext användes istället för svensk. */
   budgetExceeded: boolean;
+  /**
+   * True om SJÄLVA översättningen fallerade (saknad/spärrad nyckel, DeepL nere)
+   * och originaltexten sparades i stället. Skiljs från budgetExceeded eftersom
+   * felen kräver olika svar: budget läker nästa månad, en trasig nyckel gör det
+   * inte. En obevakad backfill måste kunna stanna på den här.
+   */
+  translationFailed: boolean;
   reviews: StoredReview[];
 }
 
@@ -240,7 +247,7 @@ export async function importReviewsForProduct(
 
   const ranked = filterAndRankReviews(rawReviews ?? [], now);
   if (ranked.length === 0) {
-    return { imported: 0, skippedExisting: 0, charsUsed: 0, budgetExceeded: false, reviews: [] };
+    return { imported: 0, skippedExisting: 0, charsUsed: 0, budgetExceeded: false, translationFailed: false, reviews: [] };
   }
 
   const texts = ranked.map((r) => r.text);
@@ -258,6 +265,7 @@ export async function importReviewsForProduct(
 
   let translated: DeeplTranslation[];
   let charsUsed = 0;
+  let translationFailed = false;
   if (budgetExceeded) {
     console.warn(
       `[review-import] DeepL-budget skulle överskridas (${usage}+${needChars} > ${budget}). ` +
@@ -278,6 +286,7 @@ export async function importReviewsForProduct(
         "[review-import] DeepL-översättning misslyckades, faller tillbaka på originaltext:",
         err instanceof Error ? err.message : err,
       );
+      translationFailed = true;
       translated = texts.map((t) => ({ text: t }));
     }
   }
@@ -325,5 +334,5 @@ export async function importReviewsForProduct(
     }
   }
 
-  return { imported, skippedExisting, charsUsed, budgetExceeded, reviews };
+  return { imported, skippedExisting, charsUsed, budgetExceeded, translationFailed, reviews };
 }
