@@ -61,7 +61,7 @@ jobs:
 
             candidates=$(echo "$body" | jq -r '.kandidater // 0')
             checked=$(echo "$body" | jq -r '.kontrollerade // 0')
-            queued=$(echo "$body" | jq -r '.köade // 0')
+            queued=$(echo "$body" | jq -r '.["köade"] // 0')
             throttled=$(echo "$body" | jq -r '.strypta // 0')
             echo "Runda $i: $candidates kandidater, $checked kontrollerade, $queued köade, $throttled strypta"
 
