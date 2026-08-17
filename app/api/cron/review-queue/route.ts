@@ -15,6 +15,15 @@
 // äldre än REVIEW_RECHECK_DAYS. En STRYPT hämtning stämplas aldrig — annars
 // hade rate-limiting gömt produkten i en månad.
 //
+// Takt (rättad 2026-08-17): DAGLIGEN 40 produkter. Veckovis räckte inte — med
+// REVIEW_RECHECK_DAYS=30 behöver ~693 publicerade produkter ~23 kontroller per
+// dygn för att hållas färska, och 40 i veckan är 5,7. Cronen hade alltså aldrig
+// hunnit ikapp sitt eget omkontroll-intervall.
+//
+// FÖRSTA svepet görs inte av cronen utan av .github/workflows/review-queue.yml,
+// som kör rutten i rundor tills katalogen är genombetad. Cronen håller den
+// sedan färsk.
+//
 // Auth: Vercel Cron skickar "Authorization: Bearer $CRON_SECRET". Saknas
 // CRON_SECRET släpper vi igenom (samma mönster som övriga cron-routes).
 

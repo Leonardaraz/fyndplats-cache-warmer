@@ -1,0 +1,95 @@
+name: Recensionskö (svep katalogen)
+
+# Manuell trigger för /api/cron/review-queue — letar recensioner hos AliExpress
+# och lägger dem i översättningskön (status `pending`, tom svensk text →
+# osynliga för kund tills de översatts och godkänts).
+#
+# Varför en workflow och inte bara Vercel-cronen: rutten tar högst ~40 produkter
+# per anrop (maxDuration 300 s), och katalogen är ~693 publicerade produkter.
+# Den här kör anropet i RUNDOR tills det inte finns fler produkter att beta av,
+# alltså hela katalogen i ett svep. Vercel-cronen håller den sedan färsk.
+#
+# Kostar ingenting: AE:s feedback-endpoint är ett öppet JSON-anrop och ingen
+# översättningstjänst rörs. Översättningen görs i chatten, gratis och kurerad.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      rounds:
+        description: "Max antal rundor (stannar tidigare när katalogen är genombetad)"
+        required: false
+        default: "20"
+        type: string
+      limit:
+        description: "Produkter per runda (rutten tar högst 200, 40 håller körtiden trygg)"
+        required: false
+        default: "40"
+        type: string
+      dry_run:
+        description: "Torrkörning — hitta och räkna, skriv ingenting"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  queue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sveper katalogen efter nya recensioner
+        run: |
+          base="${{ secrets.POLL_TRACKING_URL }}"
+          base="${base%/api/cron/poll-tracking}/api/cron/review-queue"
+          dry=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then dry="&dryRun=true"; fi
+
+          total_köade=0
+          total_kontrollerade=0
+          total_strypta=0
+
+          for i in $(seq 1 ${{ inputs.rounds }}); do
+            url="${base}?limit=${{ inputs.limit }}${dry}"
+            body=$(curl -sS -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "$url")
+            ok=$(echo "$body" | jq -r '.ok // false')
+            if [ "$ok" != "true" ]; then
+              echo "::error::Runda $i misslyckades: $(echo "$body" | head -c 400)"
+              exit 1
+            fi
+
+            kandidater=$(echo "$body" | jq -r '.kandidater // 0')
+            kontrollerade=$(echo "$body" | jq -r '.kontrollerade // 0')
+            köade=$(echo "$body" | jq -r '.köade // 0')
+            strypta=$(echo "$body" | jq -r '.strypta // 0')
+            echo "Runda $i: $kandidater kandidater, $kontrollerade kontrollerade, $köade köade, $strypta strypta"
+
+            total_köade=$((total_köade + köade))
+            total_kontrollerade=$((total_kontrollerade + kontrollerade))
+            total_strypta=$((total_strypta + strypta))
+
+            # Inga kandidater kvar → hela katalogen är genombetad.
+            if [ "$kandidater" = "0" ]; then
+              echo "Katalogen genombetad efter $i rundor."
+              break
+            fi
+            # Strypning betyder att AE ber oss sakta ner — vila längre.
+            if [ "$strypta" -gt 0 ]; then sleep 60; else sleep 10; fi
+          done
+
+          {
+            echo "### Recensionskö"
+            echo ""
+            echo "- Kontrollerade produkter: **$total_kontrollerade**"
+            echo "- Köade recensioner: **$total_köade**"
+            echo "- Strypta hämtningar: **$total_strypta** (tas nästa körning)"
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo ""
+              echo "_Torrkörning — ingenting skrevs._"
+            else
+              echo ""
+              echo "Köade recensioner ligger som \`pending\` med tom svensk text och syns"
+              echo "INTE för kund. Be Claude i chatten översätta dem."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
