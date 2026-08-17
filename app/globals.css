@@ -236,6 +236,14 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
    en horisontell space-between-layout, men priset (nowrap "Från X" + ev. överstruket
    gammalt pris) kunde då flöda ut ur sitt flex-utrymme och hamna OVANPÅ knappen.
    Stacken garanterar separerat, icke-överlappande pris + alltid synlig knapp. */
+/* Betygsraden på produktkortet. min-height reserverar utrymmet även när
+   produkten saknar omdömen, så pris och köpknapp ligger i linje mellan
+   grannkort (samma grepp som .pname). Stjärnorna ärver .rev-stars-färgen från
+   produktsidan — ett och samma gula. */
+.prod .prating{display:flex;align-items:center;gap:6px;min-height:20px;margin-top:6px;font-size:13px;line-height:1}
+.prod .prating-stars{font-size:13px;letter-spacing:.5px}
+.prod .prating-val{font-weight:700;color:var(--ink)}
+.prod .prating-count{color:var(--soft)}
 .prod .prow{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:12px}
 .prod .pprice{font-size:16px;font-weight:800;color:#C2410C;width:100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;line-height:1.25}
 .pprice-now{white-space:nowrap}
@@ -1583,8 +1591,15 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rev-summary{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);margin-bottom:22px}
 .rev-summary strong{font-size:20px}
 .rev-count{color:var(--soft)}
-.rev-stars{color:#f5a623;letter-spacing:1px;font-size:15px;white-space:nowrap}
-.rev-stars-empty{color:#dcd6cd}
+/* Stjärnraden: två lager, grått i botten och gult ovanpå klippt med width i
+   procent (se components/stars.tsx). Topplagret måste ha exakt samma text,
+   font och letter-spacing som bottenlagret, annars hamnar stjärnorna i otakt. */
+.rev-stars{position:relative;display:inline-block;white-space:nowrap;letter-spacing:1px;font-size:15px;line-height:1;vertical-align:middle}
+/* Tonen är vald i en A/B mot #e0dad1/#c9c0b2/#bdb3a3: tillräckligt tydlig
+   för att den ofyllda delen ska synas (annars är delvis fyllning
+   meningslös), men fortfarande i den varma paletten i stället för grått. */
+.rev-stars-bg{color:#d6cec2}
+.rev-stars-fg{position:absolute;inset:0 auto 0 0;overflow:hidden;color:#f5a623;width:0}
 .rev-list{list-style:none;margin:0;padding:0;display:grid;gap:14px}
 .rev-item{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff}
 .rev-item-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}

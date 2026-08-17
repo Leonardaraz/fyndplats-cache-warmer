@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getProductRedirect } from "../../../lib/redirects";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
+import { attachRatings } from "../../../lib/review-aggregates";
 import { getProduct, getProducts, getCollections, type Product } from "../../../lib/products";
 import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
 import { getBlurDataURL } from "../../../lib/lqip";
@@ -215,7 +216,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // All logik (universell-kategori-exkludering, i-lager, dedup, aldrig tomt) i den
   // testade rena pickRelated(). Se lib/related-products.test.ts.
   const all = await getProducts();
-  const related: Product[] = pickRelated(p, all, curatedRelatedSlugs(p.slug), 4);
+  const related: Product[] = await attachRatings(pickRelated(p, all, curatedRelatedSlugs(p.slug), 4));
 
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
   // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.

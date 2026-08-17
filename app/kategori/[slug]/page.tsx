@@ -5,6 +5,7 @@ import { redirect, notFound } from "next/navigation";
 import { getProducts, getCollections, getAllCategorySlugs, forListings, dedupeProducts } from "../../../lib/products";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
+import { attachRatings } from "../../../lib/review-aggregates";
 import { ProductIndex } from "../../../components/product-index";
 import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero } from "../../../lib/category-groups";
@@ -97,7 +98,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   const topIds = new Set(topThree.map((p) => p.id));
   // dedupeProducts: defensivt skydd så två kort aldrig visar samma produkt/bild
   // bredvid varandra (Leonards "samma bild två gånger i rad" i Mobiltillbehör).
-  const list = dedupeProducts([...topThree, ...catList.filter((p) => !topIds.has(p.id))]);
+  const list = await attachRatings(dedupeProducts([...topThree, ...catList.filter((p) => !topIds.has(p.id))]));
   // Förälder (om detta är en subkategori) → för brödsmulor.
   const parent = active.parentId ? collections.find((c) => c.id === active.parentId) : undefined;
   // Programmatiska SEO-länkar för kategorin (pris-tiers + bäst-i-test) — bara

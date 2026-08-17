@@ -3,6 +3,8 @@ import type { Product } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
+import { Stars } from "./stars";
+import { reviewCountLabel } from "../lib/rating";
 
 export function ProductCard({ p }: { p: Product }) {
   // Hover-alt-image: använd andra bilden i galleriet (om finns) som "swap"-bild
@@ -48,6 +50,32 @@ export function ProductCard({ p }: { p: Product }) {
       </div>
       <div className="pbody">
         <div className="pname">{p.name}</div>
+        {/* Betyget sitter mellan namn och pris: kunden ser vad andra tyckt i
+            samma ögonkast som priset, i stället för först efter ett klick in på
+            produktsidan.
+
+            Raden renderas ALLTID, men står tom för produkter utan omdömen. Runt
+            hälften av katalogen saknar betyg, och utan reserverad höjd (min-height
+            i .prating, samma grepp som .pname redan använder) hade priset och
+            köpknappen hamnat på olika höjd i grannkorten. Tom rad = inget synligt
+            innehåll, bara utrymmet. */}
+        {p.rating ? (
+          // role="img" + aria-label gör raden till EN uppläsning. Utan den läste
+          // skärmläsaren "4,5 av 5 stjärnor · 4,5 · (2)" — värdet två gånger och
+          // antalet som ett naket "(2)" utan sammanhang. Barnen döljs därför för
+          // hjälpmedel; de är rent visuella.
+          <div
+            className="prating"
+            role="img"
+            aria-label={`Betyg ${p.rating.value} av 5, ${reviewCountLabel(p.rating.count)}`}
+          >
+            <Stars rating={p.rating.exact} className="prating-stars" aria-hidden />
+            <span className="prating-val" aria-hidden="true">{p.rating.value}</span>
+            <span className="prating-count" aria-hidden="true">({p.rating.count})</span>
+          </div>
+        ) : (
+          <div className="prating" aria-hidden="true" />
+        )}
         <div className="prow">
           <span className="pprice">
             {/* pprice-now håller "Från X" / priset ihop på en rad (nowrap) så det

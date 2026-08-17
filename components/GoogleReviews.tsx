@@ -222,7 +222,10 @@ export function GoogleReviews({
           <span className="greviews-badge">
             <GoogleG size={18} /> Google
           </span>
-          <Stars rating={average ?? 5} />
+          {/* Saknas snittet ritas noll fyllda stjärnor, inte fem. Den gamla
+              `average ?? 5` hittade på toppbetyg när datan uteblev — samma
+              fälla som ratingSummary() redan stängt på produktsidan. */}
+          <Stars rating={average ?? 0} />
           <strong className="greviews-avg">{avg}</strong>
           <span className="greviews-count">
             · <span className="greviews-count-num">{shownCount}</span> omdömen

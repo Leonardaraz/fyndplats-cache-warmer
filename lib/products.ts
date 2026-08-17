@@ -72,6 +72,12 @@ export type Product = {
   // Driver "Populärast" och väger tyngst i "Rekommenderat". 0 = ingen försäljning
   // (eller orderdata otillgänglig — sorteringen faller då tillbaka på nyhet).
   popularity: number;
+  // Betygssammandrag för produktkortet. Sätts INTE av produkthämtningen utan av
+  // attachRatings() (lib/review-aggregates.ts) i serverkomponenten, precis innan
+  // listan skickas vidare — så att recensionerna aldrig kopplas in i den heta
+  // produktvägen. Saknas när produkten inte har omdömen eller när Trustpilot är
+  // påslaget (då visar produktsidan inte heller våra egna omdömen).
+  rating?: { stars: number; exact: number; value: string; count: number };
 };
 
 // Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas. Utbruten

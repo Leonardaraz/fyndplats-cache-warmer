@@ -51,7 +51,7 @@ export function ProductReviews({
 
         {summary && (
           <div className="rev-summary">
-            <Stars rating={summary.stars} />
+            <Stars rating={summary.exact} />
             <strong>{summary.value}</strong> av 5
             <span className="rev-count"> · {summary.label}</span>
           </div>
