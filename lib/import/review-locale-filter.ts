@@ -50,6 +50,11 @@ const FOREIGN_PLACE = new RegExp(
     // Baltikum, Ukraina, Ryssland
     "litauen", "lithuania", "lietuv", "lettland", "latvia", "estland", "estonia",
     "ukraina", "ukraine", "укра", "ryssland", "russia", "росси",
+    // Kyrilliska landsnamn — recensioner på ryska/ukrainska skriver dem så, och
+    // en ren latinsk lista missade "в германию" (till Tyskland), 2026-08-17.
+    "герман", "німеччин", "франц", "іспан", "испан", "італі", "итали", "польщ",
+    "польш", "чехі", "чехи", "румун", "латв", "литв", "естон", "грец", "болгар",
+    "португал", "нідерланд", "нидерланд", "бельг", "австрі", "австри", "угорщ", "венгр",
     // Utanför Europa
     "usa", "united states", "estados unidos", "kanada", "canada", "australien", "australia",
     "mexiko", "mexico", "m[eé]xico", "peru", "per[uú]", "turkiet", "turkey", "t[uü]rkiye",

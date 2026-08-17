@@ -83,3 +83,18 @@ describe("originalspråk (före översättning)", () => {
     expect(mentionsForeignDelivery("Але заплатив за розмитнення це 330 крон")).toBe(true);
   });
 });
+
+// Lucka upptäckt 2026-08-17: en rysk recension skrev "Посылка пришла в германию"
+// (paketet kom till Tyskland) och slank igenom en rent latinsk landslista.
+describe("kyrilliska landsnamn", () => {
+  it("fäller mottagarland skrivet med kyrilliska", () => {
+    expect(mentionsForeignDelivery("Посылка пришла в германию за два дня")).toBe(true);
+    expect(mentionsForeignDelivery("Заказ в Латвию пришёл за 5 дней")).toBe(true);
+    expect(mentionsForeignDelivery("доставка в Польщу була швидка")).toBe(true);
+  });
+
+  it("vanliga ryska omdömen utan land går fortfarande igenom", () => {
+    expect(mentionsForeignDelivery("Товар пришел быстро, все хорошо запаковано. Рекомендую.")).toBe(false);
+    expect(mentionsForeignDelivery("Продавца рекомендую! Все ок.")).toBe(false);
+  });
+});
