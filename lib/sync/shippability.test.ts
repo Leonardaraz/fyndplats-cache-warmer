@@ -379,3 +379,40 @@ describe("lager-failover", () => {
     expect(r.variants[0].supplierVariantId).toBe("de");
   });
 });
+
+// Granskning av failovern (2026-08-17): två fel i första versionen.
+describe("lager-failover — granskningsfynden", () => {
+  // 1. Failovern kördes på ALLT som inte var ett ja, alltså även på unknown.
+  //    En timeout på vår SKU kunde då peka om varianten till ett annat lager —
+  //    annan SKU på nästa kundorder, annat inköpspris — utan att något
+  //    faktiskt sagt nej. Modulens grundregel är att unknown inte ändrar något.
+  it("unknown på vår SKU rör ingenting och kostar inga extra anrop", async () => {
+    const r = await checkMappingShippability({
+      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      budget: { remaining: 5 }, queryFn: unshippableOutcome, delayMs: 0,
+    });
+    expect(r.apiCalls).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("de");
+    expect(r.variants[0].shippableToSe).toBeUndefined();
+    expect(r.variants[0].shippabilityCheckedAt).toBeUndefined();
+    expect(r.changed).toBe(false);
+  });
+
+  // 2. Domens motivering skrevs på sista raden i detaljlistan, vilket efter
+  //    failovern är ett ALTERNATIV — inte varianten domen gäller.
+  it("domens motivering hamnar på vår egen rad, inte på ett alternativs", async () => {
+    const r = await checkMappingShippability({
+      mapping: enLagervariant({
+        shippabilityNegativeStreak: 1,
+        shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString(),
+      }),
+      aeVariants: AE_LAGER, nowMs: NOW,
+      budget: { remaining: 5 }, queryFn: nejUtom([]), delayMs: 0,
+    });
+    const vår = r.details.find((d) => d.skuId === "de");
+    expect(vår?.note).toContain("bekräftat nej");
+    for (const alt of r.details.filter((d) => d.skuId !== "de")) {
+      expect(alt.note).not.toContain("bekräftat nej");
+    }
+  });
+});

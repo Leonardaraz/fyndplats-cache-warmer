@@ -20,7 +20,7 @@ import {
   queryFreightToCountry,
   debugRawProductGet,
 } from "@/lib/aliexpress/client";
-import { checkMappingShippability, zeroUnshippableInventory } from "@/lib/sync/shippability";
+import { checkMappingShippability, SHIP_FROM_FAILOVER_MAX, zeroUnshippableInventory } from "@/lib/sync/shippability";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -57,9 +57,17 @@ export async function GET(req: NextRequest) {
     }
 
     const product = await getAliExpressProduct(mapping.supplierProductId);
+    // stock + shipFrom följer med så lager-failovern kan prioritera samma sätt
+    // som synken gör (lager med saldo först, EU före icke-EU).
     const aeVariants = product.variants
       .filter((v) => v.skuId)
-      .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
+      .map((v) => ({
+        skuId: String(v.skuId),
+        skuAttr: v.skuAttr,
+        skuProps: v.skuProps ?? {},
+        stock: v.stock,
+        shipFrom: v.shipFrom,
+      }));
 
     // Lager-diagnos (SucceBuy-utredningen 2026-07-14): synken läste lager 0 på
     // levande, köpbara produkter. Dumpa hur dropship-API:t FAKTISKT rapporterar
@@ -91,7 +99,12 @@ export async function GET(req: NextRequest) {
       },
       aeVariants,
       nowMs: Date.now(),
-      budget: { remaining: mapping.variants.length },
+      // Plats för failoverns extra anrop. Med bara en per variant kunde
+      // debug-rutten aldrig prova de andra lagren — och för en produkt med EN
+      // variant (stödbenen) hade den rapporterat samma nej som synken utan att
+      // ens titta åt ES/FR/CZ/PL. Det är precis den frågan man öppnar rutten för.
+      // Taket håller rutten inom sin maxDuration (600 ms paus per anrop).
+      budget: { remaining: Math.min(mapping.variants.length * (1 + SHIP_FROM_FAILOVER_MAX), 40) },
       queryFn: (productId, skuId) => queryFreightToCountry(productId, skuId, "SE", 1),
     });
 

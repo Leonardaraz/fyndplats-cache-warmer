@@ -197,6 +197,11 @@ export async function checkMappingShippability(opts: {
       note: verdict.note,
       method: outcome.method,
     });
+    // Radens plats MÅSTE fångas här: failovern nedan lägger till fler rader,
+    // och pass 2 skriver domens motivering på detta index. Utan detta hamnade
+    // "bekräftat nej ×2" på ett ALTERNATIVS rad — vilseledande i precis den
+    // utskrift man felsöker med.
+    const primärDetailIndex = details.length - 1;
 
     // LAGER-FAILOVER. Ett nej på VÅR SKU är inte ett nej på produkten:
     // lagerlandet är en del av SKU:n, och säljaren kan ha lagt ner just det
@@ -205,7 +210,12 @@ export async function checkMappingShippability(opts: {
     // Innan nejet får räknas provar vi därför samma vara i andra lager.
     let effektivDom = verdict;
     let switchTo: { skuId: string; skuAttr?: string } | undefined;
-    if (verdict.shippable !== true) {
+    // BARA på ett UTTRYCKLIGT adress-nej. Ett unknown (timeout, HTTP-fel,
+    // oväntad svarsform) betyder att vi inte vet något — och modulens
+    // grundregel är att unknown aldrig ändrar någonting. Kördes failovern på
+    // unknown kunde en enda flaxig timeout peka om varianten till ett annat
+    // lager, med annat inköpspris och annan SKU på nästa kundorder.
+    if (verdict.negativeSignal) {
       const alternativ = warehouseAlternativeSkuIds(
         { skuId, choiceValues: namedValuesFromVariantId(v.supplierVariantId) },
         aeVariants,
@@ -237,7 +247,7 @@ export async function checkMappingShippability(opts: {
       }
     }
 
-    pending.push({ index: variants.length, detailIndex: details.length - 1, v, verdict: effektivDom, switchTo });
+    pending.push({ index: variants.length, detailIndex: primärDetailIndex, v, verdict: effektivDom, switchTo });
     variants.push(v); // platshållare — ersätts i pass 2 när syskonen är kända
   }
 
