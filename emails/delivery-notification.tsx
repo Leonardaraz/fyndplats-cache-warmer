@@ -36,6 +36,9 @@ export interface DeliveryNotificationProps {
   orderNumber?: string;
   /** Raderna i ordern, samma form som orderbekräftelsen använder. */
   items?: OrderLineItem[];
+  /** Signerad länk till omdömesformuläret. Utelämnas → ingen knapp (funktionen
+   *  är avstängd utan REVIEW_TOKEN_SECRET). Visas bara vid levererat. */
+  reviewUrl?: string;
 }
 
 function statusHeadline(status: DeliveryStatus, pickupLocation?: string): string {
@@ -103,6 +106,7 @@ export default function DeliveryNotificationEmail({
   carrier,
   orderNumber,
   items,
+  reviewUrl,
 }: DeliveryNotificationProps) {
   const headline = statusHeadline(status, pickupLocation);
   const body = statusBody(status, pickupLocation);
@@ -208,6 +212,25 @@ export default function DeliveryNotificationEmail({
               Transportör: <strong style={{ color: BRAND.ink }}>{carrier}</strong>
             </Text>
           ) : null}
+        </Section>
+      ) : null}
+
+      {/* Omdömesfrågan ställs BARA när paketet är framme. Att fråga medan det
+          fortfarande är på väg vore att be om ett omdöme om något kunden inte
+          sett. Länken är signerad och personlig — bara den som fått mejlet kan
+          skriva, vilket är hela grunden för att kalla omdömet ett verifierat
+          köp. */}
+      {reviewUrl && status === "delivered" ? (
+        <Section style={{ margin: "22px 0 6px" }}>
+          <Text style={{ ...text.body, marginBottom: "10px" }}>
+            Hur blev det? Ditt omdöme hjälper nästa kund att välja rätt – det tar en minut.
+          </Text>
+          <Link href={reviewUrl} style={block.ctaButton}>
+            Lämna ett omdöme
+          </Link>
+          <Text style={{ ...text.muted, margin: "10px 0 0 0" }}>
+            Vi visar bara dina initialer, aldrig hela namnet.
+          </Text>
         </Section>
       ) : null}
 

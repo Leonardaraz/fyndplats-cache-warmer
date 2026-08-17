@@ -1605,6 +1605,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rev-item-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}
 .rev-author{font-weight:600;font-size:13.5px;color:var(--ink)}
 .rev-date{font-size:12px;color:var(--soft);margin-left:auto}
+/* Märket för egna kunders omdömen. Dämpat grönt — ska läsas som ett faktum,
+   inte som en utmärkelse. */
+.rev-verified{font-size:11.5px;font-weight:700;color:#2f6f3e;background:#eef7f0;border:1px solid #cfe6d6;border-radius:999px;padding:2px 8px;white-space:nowrap}
 .rev-text{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink)}
 /* Kundbilden är klickbar: knappen är bara en osynlig ram runt tumnageln. */
 .rev-photo-btn{display:block;margin-top:10px;padding:0;border:0;background:none;cursor:zoom-in;line-height:0;border-radius:10px}
@@ -1943,3 +1946,30 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .a-hc-img{background:#fff}
 /* Auktionskort utan andra galleribild: tona aldrig bort huvudbilden på hover. */
 .prod.noswap:hover .pimg-main{opacity:1}
+
+/* --- Omdömesformuläret (/omdome/[token]) ------------------------------- */
+.rf-list{display:grid;gap:20px;margin-top:22px}
+.rf-card{border:1px solid var(--line);border-radius:16px;padding:20px;background:#fff}
+.rf-head{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+.rf-img{width:60px;height:60px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
+.rf-name{font-weight:700;font-size:15px;line-height:1.35;color:var(--ink)}
+.rf-variant{font-size:13px;color:var(--soft);margin-top:2px}
+.rf-legend{font-size:13px;font-weight:600;color:var(--ink);padding:0}
+/* Stjärnorna är radioknappar: själva inputen göms visuellt men behåller fokus
+   och tangentbordsnavigering. */
+.rf-stars{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:4px 0 16px}
+.rf-stars .rf-legend{flex:0 0 100%;margin-bottom:6px}
+.rf-star{cursor:pointer;font-size:30px;line-height:1;color:#d6cec2;transition:color .12s}
+.rf-star:hover,.rf-star-on{color:#f5a623}
+.rf-star input{position:absolute;opacity:0;width:1px;height:1px}
+.rf-star:focus-within span[aria-hidden]{outline:2px solid var(--ink);outline-offset:3px;border-radius:4px}
+.rf-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.rf-label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin:12px 0 6px}
+.rf-hint{font-weight:400;color:var(--soft)}
+.rf-textarea,.rf-input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 13px;font:inherit;font-size:14.5px;color:var(--ink);background:#fff;box-sizing:border-box}
+.rf-textarea:focus,.rf-input:focus{outline:2px solid var(--ink);outline-offset:1px;border-color:var(--ink)}
+.rf-textarea{resize:vertical;line-height:1.5}
+.rf-error{color:#b3261e;font-size:13.5px;margin:12px 0 0}
+.rf-submit{margin-top:16px;background:#C2410C;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-size:14.5px;cursor:pointer}
+.rf-submit:disabled{opacity:.6;cursor:default}
+.rf-done{background:#f6fbf6;border-color:#cfe6cf}

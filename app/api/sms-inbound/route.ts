@@ -28,6 +28,7 @@ import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/de
 import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
 import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
 import type { OrderLineItem } from "@/emails/order-confirmation";
+import { reviewFormUrl } from "@/lib/review-token";
 import DeliveryNotificationEmail, {
   deliverySubject,
   type DeliveryStatus,
@@ -434,8 +435,14 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Omdömeslänken. Null utan REVIEW_TOKEN_SECRET → ingen knapp i mejlet.
+  const reviewUrl = mapping.order_id
+    ? reviewFormUrl(mapping.order_id, "https://www.fyndplats.se", process.env.REVIEW_TOKEN_SECRET) ?? undefined
+    : undefined;
+
   const props = {
     ...orderSummary,
+    reviewUrl,
     firstName: firstName(mapping.customer_name),
     status: deliveryStatus,
     pickupLocation: parsed.pickup_location,

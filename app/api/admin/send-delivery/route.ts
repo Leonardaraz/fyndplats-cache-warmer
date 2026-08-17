@@ -23,6 +23,7 @@ import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
 import type { OrderLineItem } from "@/emails/order-confirmation";
+import { reviewFormUrl } from "@/lib/review-token";
 import DeliveryNotificationEmail, {
   deliverySubject,
   type DeliveryStatus,
@@ -89,8 +90,13 @@ async function handle(p: Params) {
     }
   }
 
+  const reviewUrl = p.orderId?.trim()
+    ? reviewFormUrl(p.orderId.trim(), "https://www.fyndplats.se", process.env.REVIEW_TOKEN_SECRET) ?? undefined
+    : undefined;
+
   const props = {
     ...orderSummary,
+    reviewUrl,
     firstName: (p.firstName || "kund").trim(),
     status,
     pickupLocation: p.pickupLocation?.trim() || undefined,
