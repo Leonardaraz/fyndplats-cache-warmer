@@ -15,6 +15,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getTracking } from "@/lib/aliexpress/client";
 import { createFulfillment } from "@/lib/wix/client";
+import { sparningsLank } from "@/lib/tracking-link";
 import { getStore } from "@/lib/store/factory";
 import { isAuthorized } from "@/lib/auth";
 
@@ -103,11 +104,17 @@ export async function GET(req: NextRequest) {
 
         // Skicka trackingnumret till Wix Stores → fyrar Velo-eventet →
         // "På väg!"-mejlet + 17TRACK-registrering sker automatiskt.
+        //
+        // Spårlänken sätts ALLTID av oss. Wix genererar en egen bara för
+        // fraktbolag den känner igen, och AE svarar ofta med något annat
+        // ("Seller Shipping ES Local" för EU-lagren) — då blev det ingen länk
+        // alls i leveransbekräftelsen. Se lib/tracking-link.
         await createFulfillment({
           orderId: task.orderId,
           lineItems: [{ id: task.lineItemId, quantity: task.quantity }],
           trackingNumber: tracking.trackingNumber,
           shippingProvider: tracking.shippingProvider,
+          trackingLink: sparningsLank(tracking.trackingNumber),
         });
 
         await store.updateTask(task.taskId, { status: "shipped", trackingNumber: tracking.trackingNumber });
