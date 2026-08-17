@@ -25,6 +25,7 @@ import { getStore } from "../store/factory";
 import { getImportCostStore } from "../store/import-costs";
 import { audit } from "../audit";
 import { addProductToCollection, getCollections } from "../wix/client";
+import { fetchAndQueueForImport } from "../reviews/queue";
 
 const ITEM_DELAY_MS = 3000;
 const MAX_ATTEMPTS = 2;
@@ -386,6 +387,34 @@ export async function finishImport(
         err instanceof Error ? err.message : err,
       );
     }
+  }
+
+  // Recensioner → översättningskön. Bulk-importen har ingen webbläsare och kunde
+  // därför aldrig få med recensioner alls (granskning 2026-08-16: katalogens
+  // senaste ~800 produkter kom in den här vägen och stod tomma). Vi hämtar dem
+  // i stället server-side från AE:s feedback-endpoint — gratis — och lägger dem
+  // som `pending`, osynliga för kund tills någon översatt dem.
+  //
+  // Best-effort och medvetet EFTER audit-loggen: recensioner får aldrig fälla
+  // en i övrigt lyckad produktimport.
+  try {
+    // Tidsbegränsad: workern har 50 s för 10 produkter. Hinner hämtningen inte
+    // är det ofarligt — produkten saknar reviewsCheckedAt och veckocronet tar
+    // den då i stället.
+    const kö = await fetchAndQueueForImport(result.wixProductId, result.supplierProductId, { timeoutMs: 3000 });
+    if (kö.queued > 0) {
+      await audit(
+        "reviews-queued",
+        result.wixProductId,
+        `${kö.queued} recensioner köade för översättning`,
+      );
+    }
+  } catch (err) {
+    console.warn(
+      "[bulk-import] kunde inte köa recensioner för",
+      result.wixProductId,
+      err instanceof Error ? err.message : err,
+    );
   }
 
   await audit("bulk-import-item-done", result.wixProductId, result.seo.title);

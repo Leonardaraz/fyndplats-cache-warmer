@@ -10,6 +10,7 @@ import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
 import { recordSupplierImport } from "@/lib/import/supplier-tracking";
 import { importReviewsForProduct } from "@/lib/import/review-import";
+import { fetchAndQueueForImport } from "@/lib/reviews/queue";
 import { saveProductHash } from "@/lib/store/product-hashes";
 import { pHashFromUrl } from "@/lib/import/phash";
 import {
@@ -559,6 +560,31 @@ export async function POST(req: Request) {
     // och spara i FyndplatsImportedReviews. Best-effort — recensionsfel (DeepL
     // nere, kollektion saknas, budget slut) får ALDRIG fälla produktimporten.
     let reviewsResult: { imported: number; skippedExisting: number; charsUsed: number; budgetExceeded: boolean } | undefined;
+    let reviewsQueued = 0;
+
+    // Tilläggets DOM-skrapa returnerar nästan alltid [] eftersom AE lazy-laddar
+    // recensionssektionen — klickar man importera högst upp på sidan har den
+    // inte renderats. Då hämtar vi dem server-side i stället och lägger dem i
+    // översättningskön (status pending, osynliga för kund). Gratis anrop, ingen
+    // DeepL. Skrapade recensioner (när de faktiskt finns) går kvar den gamla
+    // vägen nedan.
+    if (!reviewsToImport || reviewsToImport.length === 0) {
+      try {
+        // Tidsbegränsad — en människa väntar på svaret. Missas den tar
+        // veckocronet produkten i stället (den saknar reviewsCheckedAt).
+        const kö = await fetchAndQueueForImport(result.wixProductId, result.supplierProductId, { timeoutMs: 4000 });
+        reviewsQueued = kö.queued;
+        if (kö.queued > 0) {
+          await audit("reviews-queued", result.wixProductId, `${kö.queued} recensioner köade för översättning`);
+        }
+      } catch (err) {
+        console.warn(
+          "[import] kunde inte köa recensioner:",
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+
     if (reviewsToImport && reviewsToImport.length > 0) {
       try {
         const r = await importReviewsForProduct(result.wixProductId, reviewsToImport);
@@ -599,6 +625,9 @@ export async function POST(req: Request) {
         result,
         draftStatus,
         reviews: reviewsResult,
+        // Recensioner som lagts i översättningskön (syns för kund först när
+        // de översatts i chatten och godkänts).
+        reviews_queued: reviewsQueued || undefined,
         // Bekvämligheter på toppnivå för smoke-tester och extension-UI (om
         // pipelinen producerade dem — annars undefined).
         image_analysis: resultAny.imageAnalysis,
