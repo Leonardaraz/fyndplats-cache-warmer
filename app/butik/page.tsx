@@ -3,6 +3,7 @@ import { jsonLdString } from "../../lib/seo";
 import { redirect } from "next/navigation";
 import { getProducts, getCollections, forListings, dedupeProducts } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
+import { attachRatings } from "../../lib/review-aggregates";
 import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/category-groups";
 import { pageMeta } from "../../lib/seo";
 import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../../lib/image-scores";
@@ -64,7 +65,7 @@ export default async function Butik({ searchParams }: { searchParams: Promise<{ 
       veckansPicks.push(p); used.add(p.slug);
     }
   }
-  const veckans = dedupeProducts(veckansPicks).slice(0, 8);
+  const veckans = await attachRatings(dedupeProducts(veckansPicks).slice(0, 8));
 
   const breadcrumbLd = {
     "@context": "https://schema.org",

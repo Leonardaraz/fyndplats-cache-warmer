@@ -13,6 +13,7 @@ import { redirect } from "next/navigation";
 import { pageMeta } from "../lib/seo";
 import { getValidPriceTierParams, resolvePriceTier } from "../lib/seo/programmatic";
 import { ProductCard } from "./productcard";
+import { attachRatings } from "../lib/review-aggregates";
 import { ProgSchemas, ProgHero, ProgCrossLinks } from "./programmatic";
 
 export async function priceTierStaticParams(price: number): Promise<{ category: string }[]> {
@@ -48,6 +49,8 @@ export async function PriceTierPage({ price, category }: { price: number; catego
   // redirect lär Google att URL:en är borta för gott, vilket motsäger designen.
   if (!view) redirect(`/kategori/${category}`);
 
+  const produkter = await attachRatings(view.products);
+
   return (
     <>
       <ProgSchemas schemas={view.schemas} />
@@ -66,7 +69,7 @@ export async function PriceTierPage({ price, category }: { price: number; catego
       <section className="sec" style={{ paddingTop: 36 }}>
         <div className="container">
           <div className="prodgrid">
-            {view.products.map((p) => (
+            {produkter.map((p) => (
               <ProductCard p={p} key={p.slug} />
             ))}
           </div>

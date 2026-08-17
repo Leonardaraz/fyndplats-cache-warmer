@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getProducts } from "../../lib/products";
 import { ShopBrowser } from "../../components/shopbrowser";
+import { attachRatings } from "../../lib/review-aggregates";
 import { nameScore, normalize } from "../../lib/search";
 
 export const metadata: Metadata = {
@@ -43,7 +44,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
         (p) => normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase)
       );
     }
-    results = [...results.filter((p) => p.inStock), ...results.filter((p) => !p.inStock)];
+    results = await attachRatings([...results.filter((p) => p.inStock), ...results.filter((p) => !p.inStock)]);
   }
 
   return (

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { jsonLdString } from "../lib/seo";
 import { getProducts, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
+import { attachRatings } from "../lib/review-aggregates";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
@@ -153,7 +154,7 @@ export default async function Home() {
       veckansPicks.push(p); used.add(p.slug);
     }
   }
-  const products = dedupeProducts(veckansPicks).slice(0, 8);
+  const products = await attachRatings(dedupeProducts(veckansPicks).slice(0, 8));
 
   // Topp-4 huvudgrupper för hemsidan (sorterade efter produktantal). Använder samma
   // groupbuild som /butik så curated hero-bilder matchar — användaren ser samma

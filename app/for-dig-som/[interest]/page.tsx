@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { pageMeta } from "../../../lib/seo";
 import { getValidInterestSlugs, resolveInterest } from "../../../lib/seo/programmatic";
 import { ProductCard } from "../../../components/productcard";
+import { attachRatings } from "../../../lib/review-aggregates";
 import { ProgSchemas, ProgHero, ProgFaq, ProgCrossLinks } from "../../../components/programmatic";
 
 export const revalidate = 3600; // 1h ISR (i takt med sitemapen + start/kategori)
@@ -33,6 +34,8 @@ export default async function ForDigSomPage({ params }: { params: Promise<{ inte
   // därför 307 (redirect), inte 308: tillståndet är uttryckligen temporärt.
   if (!view) redirect("/butik");
 
+  const produkter = await attachRatings(view.products);
+
   return (
     <>
       <ProgSchemas schemas={view.schemas} />
@@ -52,7 +55,7 @@ export default async function ForDigSomPage({ params }: { params: Promise<{ inte
         <div className="container">
           <h2 className="prog-h2">Trendar nu</h2>
           <div className="prodgrid">
-            {view.products.map((p) => (
+            {produkter.map((p) => (
               <ProductCard p={p} key={p.slug} />
             ))}
           </div>

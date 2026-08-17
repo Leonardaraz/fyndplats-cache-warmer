@@ -236,6 +236,14 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
    en horisontell space-between-layout, men priset (nowrap "Från X" + ev. överstruket
    gammalt pris) kunde då flöda ut ur sitt flex-utrymme och hamna OVANPÅ knappen.
    Stacken garanterar separerat, icke-överlappande pris + alltid synlig knapp. */
+/* Betygsraden på produktkortet. min-height reserverar utrymmet även när
+   produkten saknar omdömen, så pris och köpknapp ligger i linje mellan
+   grannkort (samma grepp som .pname). Stjärnorna ärver .rev-stars-färgen från
+   produktsidan — ett och samma gula. */
+.prod .prating{display:flex;align-items:center;gap:6px;min-height:20px;margin-top:6px;font-size:13px;line-height:1}
+.prod .prating-stars{font-size:13px;letter-spacing:.5px}
+.prod .prating-val{font-weight:700;color:var(--ink)}
+.prod .prating-count{color:var(--soft)}
 .prod .prow{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:12px}
 .prod .pprice{font-size:16px;font-weight:800;color:#C2410C;width:100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;line-height:1.25}
 .pprice-now{white-space:nowrap}
