@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
+import { isSyntheticMappingId, repairSyntheticVariantIds, warehouseAlternativeSkuIds } from "./mapping-repair";
 
 // Audit 2026-08-08: 85 mappningar med dom-/default-id kan varken auto-beställas
 // (sku_attr blir påhittat) eller lagermatchas per variant. Synken självläker dem.
@@ -195,5 +195,38 @@ describe("repairSyntheticVariantIds", () => {
     const r2 = repairSyntheticVariantIds(clean, [dv("1")], identity);
     expect(r2.repaired).toBe(0);
     expect(r2.variants[0].supplierVariantId).toBe("12000051057228918");
+  });
+});
+
+// ── Lager-failover (stödbenen 2026-08-17) ─────────────────────────────────
+// AliExpress bakar in lagerlandet i SKU:n. Läggs vårt lager ner blir vår
+// sparade SKU död medan produkten fortsätter skickas från andra länder.
+describe("warehouseAlternativeSkuIds", () => {
+  const DS = [
+    { skuId: "de", skuProps: { Color: "4 PCS", "Ships From": "Germany" }, shipFrom: "DE", stock: 0 },
+    { skuId: "es", skuProps: { Color: "4 PCS", "Ships From": "Spain" }, shipFrom: "ES", stock: 12 },
+    { skuId: "pl", skuProps: { Color: "4 PCS", "Ships From": "Poland" }, shipFrom: "PL", stock: 4 },
+    { skuId: "annan", skuProps: { Color: "2 PCS", "Ships From": "Spain" }, shipFrom: "ES", stock: 9 },
+  ];
+
+  it("hittar samma vara i andra lager och utesluter utgångspunkten", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "de" }, DS)).toEqual(["es", "pl"]);
+  });
+
+  it("rör aldrig en ANNAN vara — bara identisk valsignatur räknas", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "de" }, DS)).not.toContain("annan");
+  });
+
+  it("lager med saldo kommer först — den vi helst byter till", () => {
+    const tomtEs = DS.map((d) => (d.skuId === "es" ? { ...d, stock: 0 } : d));
+    expect(warehouseAlternativeSkuIds({ skuId: "de" }, tomtEs)[0]).toBe("pl");
+  });
+
+  it("död SKU: signaturen kan tas ur mappningens egna valvärden i stället", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "borta", choiceValues: ["4 pcs"] }, DS)).toEqual(["es", "pl", "de"]);
+  });
+
+  it("utan både känd SKU och valvärden gissar vi ALDRIG", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "borta" }, DS)).toEqual([]);
   });
 });

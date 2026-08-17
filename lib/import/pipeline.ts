@@ -112,6 +112,14 @@ export interface VariantMapping {
   shippabilityNegativeStreak?: number;
   /** ISO-tid för det FÖRSTA nejet i pågående serie (mäter seriens spännvidd). */
   shippabilityNegativeSince?: string;
+  /**
+   * Sattes när fraktkontrollen pekade om varianten till SAMMA vara i ett annat
+   * lager (stödbenen 2026-08-17). Lagerlandet är en del av AliExpress SKU, så
+   * ett nerlagt lager gör vår sparade SKU död utan att produkten blir det.
+   */
+  shipFromSwitchedAt?: string;
+  /** Variant-id:t vi pekade om FRÅN — spårbarhet och väg tillbaka. */
+  previousSupplierVariantId?: string;
 }
 
 export interface ImportResult {

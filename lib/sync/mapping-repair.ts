@@ -103,6 +103,53 @@ function pickPreferred(candidates: RepairDsVariant[]): RepairDsVariant | undefin
   )[0];
 }
 
+/**
+ * SKU:er som är SAMMA vara som utgångspunkten men ligger i ETT ANNAT LAGER.
+ *
+ * Bakgrund (stödbenen 2026-08-17): AliExpress bakar in lagerlandet i själva
+ * SKU:n — "4-pack från Spanien" och "4-pack från Polen" är olika SKU:er. Vi
+ * sparar EN av dem vid import, och när säljaren lägger ner det lagret svarar
+ * fraktAPI:t nej för vår sparade SKU medan listningen fortfarande skickas från
+ * fyra andra länder. Nejet är korrekt för SKU:n och fel för produkten.
+ *
+ * Signaturen är densamma som reparationen använder: valen UTAN frakt-axeln.
+ * Ordningen är pickPreferred:s — lager med saldo först, EU före icke-EU — så
+ * den första kandidaten är den vi helst vill byta till.
+ *
+ * `base.skuId` utesluts alltid. Saknas den bland DS-SKU:erna (död SKU) går det
+ * att ange `choiceValues` i stället — mappningens egna valvärden, som
+ * namedValuesFromVariantId ger ur ett sku_attr.
+ */
+export function warehouseAlternativeSkuIds(
+  base: { skuId?: string | null; choiceValues?: ReadonlyArray<string> },
+  dsVariants: ReadonlyArray<RepairDsVariant>,
+): string[] {
+  const ds = dsVariants.filter((d) => d.skuId && String(d.skuId).trim());
+  if (ds.length === 0) return [];
+
+  const baseId = String(base.skuId ?? "").trim();
+  const self = baseId ? ds.find((d) => String(d.skuId) === baseId) : undefined;
+
+  // Signaturen tas i första hand ur DS-datan för vår egen SKU (exakt), annars
+  // ur de sparade valvärdena. Utan bådadera vore varje SKU en "kandidat" och
+  // vi kunde peka om till fel vara — då hellre inget.
+  const sig = self
+    ? valueSignature(self.skuProps, (s) => s)
+    : (base.choiceValues ?? []).length > 0
+      ? [...(base.choiceValues ?? [])].map((s) => String(s).trim().toLowerCase()).sort().join(" ")
+      : null;
+  if (sig === null) return [];
+
+  const candidates = ds.filter(
+    (d) => String(d.skuId) !== baseId && valueSignature(d.skuProps, (s) => s) === sig,
+  );
+  const score = (d: RepairDsVariant) =>
+    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCountry(shipCode(d)) ? 1 : 0);
+  return [...candidates]
+    .sort((a, b) => score(b) - score(a) || (b.stock ?? 0) - (a.stock ?? 0))
+    .map((d) => String(d.skuId));
+}
+
 export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
   mappingVariants: ReadonlyArray<V>,
   dsVariants: ReadonlyArray<RepairDsVariant>,

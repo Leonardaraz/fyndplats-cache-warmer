@@ -718,7 +718,13 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // istället för att jämnt fördela aggregatet (bug 2026-06-01).
   let aeStockBySupplierId: Record<string, number> = {};
   // SKU:er (numeriskt id + egenskaper) för fraktbarhetskontrollen (steg 3.5).
-  let aeVariantsForShippability: Array<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }> = [];
+  let aeVariantsForShippability: Array<{
+    skuId: string;
+    skuAttr?: string;
+    skuProps: Record<string, string>;
+    stock?: number;
+    shipFrom?: string;
+  }> = [];
   // Sätts om AE-svaret klassas som "borttagen listning" (för strike-räkningen
   // som kräver REMOVED_STRIKES_REQUIRED körningar i rad innan vi döljer).
   let removedClassified = false;
@@ -773,7 +779,16 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     aeStockBySupplierId = buildStockBySupplierId(product.variants);
     aeVariantsForShippability = product.variants
       .filter((v) => v.skuId)
-      .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
+      // stock + shipFrom följer med för lager-failovern: får vår sparade SKU
+      // nej provas samma vara i andra lager, och då vill vi börja med det som
+      // har saldo och ligger i EU.
+      .map((v) => ({
+        skuId: String(v.skuId),
+        skuAttr: v.skuAttr,
+        skuProps: v.skuProps ?? {},
+        stock: v.stock,
+        shipFrom: v.shipFrom,
+      }));
     aliExpress = {
       title: product.title,
       images: product.images,
@@ -980,6 +995,16 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       shippabilityCalls = check.apiCalls;
       shippabilityUnshippable = check.unshippable;
       if (check.changed) {
+        // Lagerbyten loggas högljutt: de ändrar VILKEN SKU en kundorder läggs
+        // på, och inköpspriset kan skilja mellan lager.
+        for (const v of check.variants) {
+          if (v.shipFromSwitchedAt === checkedAt && v.previousSupplierVariantId) {
+            console.warn(
+              `[sync] lagerbyte ${mapping.wixProductId} (${v.sku}): ${v.previousSupplierVariantId} → ${v.supplierVariantId} ` +
+                `— gamla lagret svarade nej, det nya skickar till SE. Kontrollera inköpspriset.`,
+            );
+          }
+        }
         mapping.variants = check.variants;
         await getStore().saveMapping(mapping);
         if (check.unshippable > 0) {
