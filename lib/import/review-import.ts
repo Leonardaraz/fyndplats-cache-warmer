@@ -20,6 +20,7 @@ import {
 import { getReviewStore, type ReviewStore, type StoredReview } from "../store/reviews";
 import { isEuCountry as isEuWarehouseCode } from "../aliexpress/eu-countries";
 import { mentionsForeignDelivery } from "./review-locale-filter";
+import { ownImageUrlForReview } from "../wix/media-import";
 
 /** Rå recension som skrapan (extension/content.js) eller AE-API:t levererar. */
 export interface AERReview {
@@ -312,6 +313,10 @@ export async function importReviewsForProduct(
       console.warn("[review-import] exists-koll misslyckades, fortsätter:", err instanceof Error ? err.message : err);
     }
     const t = translated[i];
+    // Kundbilden hämtas hem till vår egen mediahantering. Misslyckas det
+    // sparas ingen bild alls — hellre en recension utan foto än en länk som
+    // pekar ut leverantören på produktsidan. Se lib/wix/media-import.ts.
+    const egenBild = await ownImageUrlForReview(r.imageUrl, reviewIdAE);
     const stored: StoredReview = {
       productId,
       reviewIdAE,
@@ -323,8 +328,8 @@ export async function importReviewsForProduct(
       initials: deriveInitials(r.customerName, reviewIdAE),
       customerCountry: r.customerCountry,
       date: r.date,
-      hasImage: Boolean(r.hasImage),
-      imageUrl: r.imageUrl,
+      hasImage: Boolean(egenBild),
+      imageUrl: egenBild,
       // Importerade AE-recensioner auto-godkänns (spec 2026-06-02); framtida
       // riktiga kundrecensioner får "pending" och kräver Leonards godkännande.
       status: "approved",
