@@ -10,8 +10,7 @@ import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
 import { recordSupplierImport } from "@/lib/import/supplier-tracking";
 import { importReviewsForProduct } from "@/lib/import/review-import";
-import { fetchAeReviews } from "@/lib/aliexpress/reviews";
-import { queueReviewsForProduct } from "@/lib/reviews/queue";
+import { fetchAndQueueForImport } from "@/lib/reviews/queue";
 import { saveProductHash } from "@/lib/store/product-hashes";
 import { pHashFromUrl } from "@/lib/import/phash";
 import {
@@ -571,13 +570,12 @@ export async function POST(req: Request) {
     // vägen nedan.
     if (!reviewsToImport || reviewsToImport.length === 0) {
       try {
-        const ae = await fetchAeReviews(result.supplierProductId, { pages: 2 });
-        if (!ae.throttled && ae.reviews.length) {
-          const kö = await queueReviewsForProduct(result.wixProductId, ae.reviews);
-          reviewsQueued = kö.queued;
-          if (kö.queued > 0) {
-            await audit("reviews-queued", result.wixProductId, `${kö.queued} recensioner köade för översättning`);
-          }
+        // Tidsbegränsad — en människa väntar på svaret. Missas den tar
+        // veckocronet produkten i stället (den saknar reviewsCheckedAt).
+        const kö = await fetchAndQueueForImport(result.wixProductId, result.supplierProductId, { timeoutMs: 4000 });
+        reviewsQueued = kö.queued;
+        if (kö.queued > 0) {
+          await audit("reviews-queued", result.wixProductId, `${kö.queued} recensioner köade för översättning`);
         }
       } catch (err) {
         console.warn(

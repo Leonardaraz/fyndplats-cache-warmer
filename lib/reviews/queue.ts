@@ -154,3 +154,45 @@ export function groupAwaitingTranslation(rows: StoredReview[]): Map<string, Queu
   }
   return ut;
 }
+
+/**
+ * Hämtar från AE och köar — TIDSBEGRÄNSAT, för importvägarna.
+ *
+ * Varför en egen väg i stället för att anropa fetchAeReviews direkt: bulk-
+ * workern processar 10 produkter på en 50-sekundersbudget (3 s/produkt av
+ * AE-rate-limit-skäl). En ogränsad hämtning med tre återförsök per produkt kan
+ * äta upp marginalen och få körningen kapad mitt i. Tilläggsimporten har samma
+ * problem fast mot en väntande människa.
+ *
+ * Därför: EN sida, INGA återförsök, hård tidsgräns. Hinner den inte är det
+ * ofarligt — produkten saknar `reviewsCheckedAt`, så veckocronet plockar upp
+ * den ändå. Bättre att missa några omdömen i sekunden än att fälla importen.
+ */
+export async function fetchAndQueueForImport(
+  productId: string,
+  supplierProductId: string,
+  opts: { timeoutMs?: number } = {},
+): Promise<QueueResult & { timedOut: boolean }> {
+  const timeoutMs = opts.timeoutMs ?? 4000;
+  if (!productId || !supplierProductId) return { ...TOM, timedOut: false };
+
+  try {
+    const { fetchAeReviews } = await import("../aliexpress/reviews");
+    const hämtning = fetchAeReviews(supplierProductId, { pages: 1, retries: 0 });
+    const klocka = new Promise<null>((r) => setTimeout(() => r(null), timeoutMs));
+    const res = await Promise.race([hämtning, klocka]);
+
+    if (!res) return { ...TOM, timedOut: true };
+    if (res.throttled || !res.reviews.length) return { ...TOM, timedOut: false };
+
+    const kö = await queueReviewsForProduct(productId, res.reviews);
+    return { ...kö, timedOut: false };
+  } catch (err) {
+    console.warn(
+      "[review-queue] hämtning vid import misslyckades för",
+      productId,
+      err instanceof Error ? err.message : err,
+    );
+    return { ...TOM, timedOut: false };
+  }
+}

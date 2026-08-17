@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { queueReviewsForProduct, isAwaitingTranslation, groupAwaitingTranslation } from "./queue";
 import type { StoredReview } from "../store/reviews";
 import type { AERReview } from "../import/review-import";
@@ -119,5 +119,32 @@ describe("groupAwaitingTranslation", () => {
   it("tar inte med redan översatta", () => {
     const g = groupAwaitingTranslation([rad({ textSwedish: "Klar.", status: "approved" })]);
     expect(g.size).toBe(0);
+  });
+});
+
+describe("fetchAndQueueForImport", () => {
+  it("ger upp inom tidsgränsen i stället för att hålla upp importen", async () => {
+    const { fetchAndQueueForImport } = await import("./queue");
+    // Modulen laddas dynamiskt inuti funktionen; vi mockar hämtningen så att
+    // den aldrig svarar och kontrollerar att vi ändå släpper igenom snabbt.
+    vi.doMock("../aliexpress/reviews", () => ({
+      fetchAeReviews: () => new Promise(() => {}),
+    }));
+    vi.resetModules();
+    const { fetchAndQueueForImport: fn } = await import("./queue");
+    const start = Date.now();
+    const r = await fn("p1", "123", { timeoutMs: 60 });
+    expect(r.timedOut).toBe(true);
+    expect(r.queued).toBe(0);
+    expect(Date.now() - start).toBeLessThan(1500);
+    vi.doUnmock("../aliexpress/reviews");
+    vi.resetModules();
+    expect(typeof fetchAndQueueForImport).toBe("function");
+  });
+
+  it("utan produkt-id eller leverantörs-id görs ingenting", async () => {
+    const { fetchAndQueueForImport } = await import("./queue");
+    expect(await fetchAndQueueForImport("", "123")).toEqual({ queued: 0, skippedExisting: 0, filtered: 0, timedOut: false });
+    expect(await fetchAndQueueForImport("p1", "")).toEqual({ queued: 0, skippedExisting: 0, filtered: 0, timedOut: false });
   });
 });

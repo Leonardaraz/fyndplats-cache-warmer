@@ -25,8 +25,7 @@ import { getStore } from "../store/factory";
 import { getImportCostStore } from "../store/import-costs";
 import { audit } from "../audit";
 import { addProductToCollection, getCollections } from "../wix/client";
-import { fetchAeReviews } from "../aliexpress/reviews";
-import { queueReviewsForProduct } from "../reviews/queue";
+import { fetchAndQueueForImport } from "../reviews/queue";
 
 const ITEM_DELAY_MS = 3000;
 const MAX_ATTEMPTS = 2;
@@ -399,16 +398,16 @@ export async function finishImport(
   // Best-effort och medvetet EFTER audit-loggen: recensioner får aldrig fälla
   // en i övrigt lyckad produktimport.
   try {
-    const ae = await fetchAeReviews(result.supplierProductId, { pages: 2 });
-    if (!ae.throttled && ae.reviews.length) {
-      const kö = await queueReviewsForProduct(result.wixProductId, ae.reviews);
-      if (kö.queued > 0) {
-        await audit(
-          "reviews-queued",
-          result.wixProductId,
-          `${kö.queued} recensioner köade för översättning`,
-        );
-      }
+    // Tidsbegränsad: workern har 50 s för 10 produkter. Hinner hämtningen inte
+    // är det ofarligt — produkten saknar reviewsCheckedAt och veckocronet tar
+    // den då i stället.
+    const kö = await fetchAndQueueForImport(result.wixProductId, result.supplierProductId, { timeoutMs: 3000 });
+    if (kö.queued > 0) {
+      await audit(
+        "reviews-queued",
+        result.wixProductId,
+        `${kö.queued} recensioner köade för översättning`,
+      );
     }
   } catch (err) {
     console.warn(
