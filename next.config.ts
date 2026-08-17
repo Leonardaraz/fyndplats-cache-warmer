@@ -166,8 +166,26 @@ const nextConfig: NextConfig = {
       { source: "/post/bladlos-nackflakt-kopguide-2026", destination: "/blogg/bladlos-nackflakt-kopguide-2026", permanent: true },
       { source: "/post/b%C3%A4rbar-projektor-till-hemmabio-s%C3%A5-v%C3%A4ljer-du-r%C3%A4tt-k%C3%B6pguide-2026", destination: "/blogg/barbar-projektor-kopguide-2026", permanent: true },
       { source: "/post/v%C3%A4lkommen-till-fyndplats-smarta-fynd-f%C3%B6r-hela-familjen", destination: "/blogg/valkommen-till-fyndplats", permanent: true },
-      // Resten av /blog/… (index, /categories/…, /tags/…) saknar motsvarighet i
-      // headless — bloggen har inga taxonomisidor — så de samlas på /blogg.
+      // Tre av Wix-taggarna har ett entydigt ämnesmatchande inlägg kvar. De pekas
+      // dit i stället för till bloggindexet: Google behandlar ofta "många döda
+      // URL:er → en generisk samlingssida" som soft-404 och släpper värdet ändå
+      // (samma skäl som RETIRED_REDIRECT_OVERRIDES överst). Måste ligga FÖRE
+      // /blog/:path* — Next matchar i ordning, första träff vinner.
+      //
+      // "projektor" matchar i dag TVÅ guider (bärbar projektor + stjärnprojektor).
+      // Den pekas mot den bärbara: taggen är från Wix-tiden, då stjärnprojektor-
+      // guiden inte fanns, och det är den bärbara som ligger i GSC-listan.
+      //
+      // Övriga taggar lämnas på /blogg med flit: "sommar-2026" matchar tre inlägg
+      // (cykel, uteplats, uteliv) och "återhämtning" har ingen tagg-lista att luta
+      // sig mot — där vore ett enskilt inlägg en gissning, inte en matchning.
+      { source: "/blog/tags/projektor", destination: "/blogg/barbar-projektor-kopguide-2026", permanent: true },
+      { source: "/blog/tags/hemmabio", destination: "/blogg/barbar-projektor-kopguide-2026", permanent: true },
+      { source: "/blog/tags/nackfl%C3%A4kt", destination: "/blogg/bladlos-nackflakt-kopguide-2026", permanent: true },
+
+      // Resten av /blog/… (index, /categories/…, övriga /tags/…) saknar
+      // motsvarighet i headless — bloggen har inga taxonomisidor — så de samlas
+      // på /blogg.
       // Båda raderna behövs: :path* garanterar inte bara-/blog utan efterföljande segment.
       { source: "/blog", destination: "/blogg", permanent: true },
       { source: "/blog/:path*", destination: "/blogg", permanent: true },
