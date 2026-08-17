@@ -296,6 +296,11 @@ interface RawSkuProp {
   sku_property_name?: string;
   property_value_definition_name?: string;
   property_value_name?: string;
+  /** Aosom/Outsunny-listningarna bär värdet HÄR och inget annat fält är satt
+   *  (babygungan 2026-08-17: {"sku_property_value":"Orange", …}). Utan det blev
+   *  varje färgnamn tomt, och importen kunde inte para våra varianter mot rätt
+   *  SKU — grön pekade på AE:s orange. */
+  sku_property_value?: string;
   sku_image?: string;
 }
 interface RawSku {
@@ -423,7 +428,7 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         for (let pi = 0; pi < propList.length; pi++) {
                 const prop = propList[pi];
                 const name = prop.sku_property_name ?? "Option";
-                let value = prop.property_value_definition_name ?? prop.property_value_name ?? "";
+                let value = prop.property_value_definition_name ?? prop.property_value_name ?? prop.sku_property_value ?? "";
                 // Sista utvägen: dto:n saknar värdenamn → ta display-texten ur
                 // sku_attr-segmentet på samma position (listorna beskriver samma
                 // SKU-definition i samma ordning; fylls bara när längderna matchar

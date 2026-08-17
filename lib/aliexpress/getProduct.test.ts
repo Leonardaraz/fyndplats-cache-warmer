@@ -166,3 +166,62 @@ describe("getProduct — response parser", () => {
     await expect(getProduct("1")).rejects.toThrow(/AliExpress API-fel 1001/);
   });
 });
+
+// Babygungan 2026-08-17: Aosom/Outsunny-listningarna bär färgnamnet i
+// `sku_property_value` och lämnar de två fält vi läste tomma. Följden blev
+// tomma färgnamn → importen kunde inte para våra varianter mot rätt SKU, och
+// grön i butiken pekade på AliExpress orange (fel färg i kundens paket).
+describe("getProduct — sku_property_value", () => {
+  it("läser färgnamnet när DS bara skickar sku_property_value", async () => {
+    vi.stubEnv("ALIEXPRESS_APP_KEY", "k");
+    vi.stubEnv("ALIEXPRESS_APP_SECRET", "s");
+    vi.stubEnv("ALIEXPRESS_ACCESS_TOKEN", "t");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        aliexpress_ds_product_get_response: {
+          rsp_code: 200,
+          result: {
+            ae_item_base_info_dto: { product_id: 1005007907990730, subject: "Swing" },
+            ae_multimedia_info_dto: { image_urls: "https://img/a.jpg" },
+            ae_item_sku_info_dtos: {
+              ae_item_sku_info_d_t_o: [
+                {
+                  sku_id: "12000056381686078",
+                  sku_attr: "14:350852;200007763:201336104",
+                  sku_available_stock: 63,
+                  offer_sale_price: "82.83",
+                  ae_sku_property_dtos: {
+                    ae_sku_property_d_t_o: [
+                      { sku_property_name: "Color", sku_property_value: "Orange", property_value_id: 350852 },
+                      { sku_property_name: "Ships From", sku_property_value: "spain", property_value_id: 201336104 },
+                    ],
+                  },
+                },
+                {
+                  sku_id: "12000042950047843",
+                  sku_attr: "14:-1;200007763:201336104",
+                  sku_available_stock: 0,
+                  offer_sale_price: "76.15",
+                  ae_sku_property_dtos: {
+                    ae_sku_property_d_t_o: [
+                      { sku_property_name: "Color", sku_property_value: "Green", property_value_id: -1 },
+                      { sku_property_name: "Ships From", sku_property_value: "spain", property_value_id: 201336104 },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      }),
+    }));
+
+    const { getProduct } = await import("./client");
+    const p = await getProduct("1005007907990730");
+    expect(p.variants.map((v) => v.skuProps.Color)).toEqual(["Orange", "Green"]);
+    // Och lagret hänger ihop med rätt färg — det var precis det som var korsat.
+    expect(p.variants.find((v) => v.skuProps.Color === "Orange")?.stock).toBe(63);
+    expect(p.variants.find((v) => v.skuProps.Color === "Green")?.stock).toBe(0);
+  });
+});
