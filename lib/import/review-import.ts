@@ -19,6 +19,7 @@ import {
 } from "../translate/usage";
 import { getReviewStore, type ReviewStore, type StoredReview } from "../store/reviews";
 import { isEuCountry as isEuWarehouseCode } from "../aliexpress/eu-countries";
+import { mentionsForeignDelivery } from "./review-locale-filter";
 
 /** Rå recension som skrapan (extension/content.js) eller AE-API:t levererar. */
 export interface AERReview {
@@ -120,6 +121,10 @@ export function filterAndRankReviews(
     if (r.rating < REVIEW_FILTER.minRating) continue;
     if (text.length < REVIEW_FILTER.minLength || text.length > REVIEW_FILTER.maxLength) continue;
     if (isSpam(text)) continue;
+    // "Kom snabbt till Tjeckien" hör inte hemma på en svensk produktsida
+    // (Leonards rapport 2026-08-16). Vi tar bort dem i stället för att skriva
+    // om dem — att byta land vore att förfalska ett kundomdöme.
+    if (mentionsForeignDelivery(text)) continue;
     const key = dedupKey(text);
     if (!key || seen.has(key)) continue;
     seen.add(key);
@@ -216,6 +221,13 @@ export interface ReviewImportResult {
   charsUsed: number;
   /** True om budgeten var slut → originaltext användes istället för svensk. */
   budgetExceeded: boolean;
+  /**
+   * True om SJÄLVA översättningen fallerade (saknad/spärrad nyckel, DeepL nere)
+   * och originaltexten sparades i stället. Skiljs från budgetExceeded eftersom
+   * felen kräver olika svar: budget läker nästa månad, en trasig nyckel gör det
+   * inte. En obevakad backfill måste kunna stanna på den här.
+   */
+  translationFailed: boolean;
   reviews: StoredReview[];
 }
 
@@ -240,7 +252,7 @@ export async function importReviewsForProduct(
 
   const ranked = filterAndRankReviews(rawReviews ?? [], now);
   if (ranked.length === 0) {
-    return { imported: 0, skippedExisting: 0, charsUsed: 0, budgetExceeded: false, reviews: [] };
+    return { imported: 0, skippedExisting: 0, charsUsed: 0, budgetExceeded: false, translationFailed: false, reviews: [] };
   }
 
   const texts = ranked.map((r) => r.text);
@@ -258,6 +270,7 @@ export async function importReviewsForProduct(
 
   let translated: DeeplTranslation[];
   let charsUsed = 0;
+  let translationFailed = false;
   if (budgetExceeded) {
     console.warn(
       `[review-import] DeepL-budget skulle överskridas (${usage}+${needChars} > ${budget}). ` +
@@ -278,6 +291,7 @@ export async function importReviewsForProduct(
         "[review-import] DeepL-översättning misslyckades, faller tillbaka på originaltext:",
         err instanceof Error ? err.message : err,
       );
+      translationFailed = true;
       translated = texts.map((t) => ({ text: t }));
     }
   }
@@ -325,5 +339,5 @@ export async function importReviewsForProduct(
     }
   }
 
-  return { imported, skippedExisting, charsUsed, budgetExceeded, reviews };
+  return { imported, skippedExisting, charsUsed, budgetExceeded, translationFailed, reviews };
 }

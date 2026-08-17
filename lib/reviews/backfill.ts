@@ -31,6 +31,8 @@ export interface ReviewBackfillImportResult {
   skippedExisting: number;
   charsUsed: number;
   budgetExceeded: boolean;
+  /** Översättningen fallerade → originaltexten sparades (engelsk text). */
+  translationFailed?: boolean;
 }
 
 export interface ReviewBackfillDeps {
@@ -41,6 +43,23 @@ export interface ReviewBackfillDeps {
   importReviews: (wixProductId: string, reviews: AERReview[]) => Promise<ReviewBackfillImportResult>;
   /** Tecken kvar av månadens DeepL-budget. */
   budgetRemaining: () => Promise<number>;
+  /**
+   * Stämplar produkten som genomsökt. Anropas ENBART i skarpt läge och ENBART
+   * när AE faktiskt svarade — en strypt hämtning får inte se ut som ett svar,
+   * då skulle produkten hoppas över i en månad på grund av rate-limiting.
+   * Utan stämpeln hämtar en schemalagd körning om samma recensionslösa
+   * produkter för alltid.
+   */
+  markChecked?: (wixProductId: string, atIso: string) => Promise<void>;
+  /**
+   * Kontrollerar att översättningen fungerar INNAN något publiceras.
+   *
+   * Utan den här grinden är felläget tyst och stort: review-importen faller vid
+   * översättningsfel tillbaka på originaltexten, så en saknad eller spärrad
+   * DeepL-nyckel skulle publicera engelska recensioner på hundratals svenska
+   * produktsidor, en körning i taget, utan att något ser trasigt ut.
+   */
+  translationHealthy?: () => Promise<{ ok: boolean; reason?: string }>;
   now?: () => Date;
 }
 
@@ -85,8 +104,10 @@ export interface ReviewBackfillSummary {
   charsEstimated: number;
   throttled: number;
   errors: number;
-  /** Varför körningen slutade — "klar", "gräns", "budget". */
-  stoppedBy: "klar" | "gräns" | "budget";
+  /** Varför körningen slutade. */
+  stoppedBy: "klar" | "gräns" | "budget" | "översättning";
+  /** Satt när körningen stoppades av översättningsgrinden. */
+  blockedReason?: string;
   budgetRemainingAtEnd: number;
   products: ReviewBackfillProductResult[];
 }
@@ -116,6 +137,23 @@ export async function runReviewBackfill(
   let throttled = 0;
   let errors = 0;
   let stoppedBy: ReviewBackfillSummary["stoppedBy"] = "klar";
+  let blockedReason: string | undefined;
+
+  // Översättningsgrinden FÖRE allt annat i skarpt läge: hellre en körning som
+  // inte gör någonting än hundratals sidor med engelsk text.
+  if (!dryRun && deps.translationHealthy) {
+    const health = await deps.translationHealthy();
+    if (!health.ok) {
+      return {
+        dryRun, considered: 0, withReviews: 0, reviewsImported: 0, reviewsEligible: 0,
+        charsSpent: 0, charsEstimated: 0, throttled: 0, errors: 0,
+        stoppedBy: "översättning",
+        blockedReason: health.reason ?? "översättningen svarar inte",
+        budgetRemainingAtEnd: await deps.budgetRemaining().catch(() => 0),
+        products: [],
+      };
+    }
+  }
 
   let remaining = await deps.budgetRemaining();
   const candidates = await deps.listCandidates();
@@ -170,6 +208,17 @@ export async function runReviewBackfill(
     }
     if (wasThrottled) throttled++;
 
+    // AE svarade → stämpla, oavsett om det fanns något. Det är just
+    // "svarade men hade inget" som annars hämtas om i all evighet.
+    if (!dryRun && deps.markChecked) {
+      try {
+        await deps.markChecked(c.wixProductId, now().toISOString());
+      } catch {
+        // Stämpeln är en optimering, inte en förutsättning — ett fel här får
+        // inte hindra att recensionerna sparas.
+      }
+    }
+
     const eligible = filterAndRankReviews(fetched, now(), { max: maxPerProduct });
     const chars = eligible.reduce((s, r) => s + r.text.length, 0);
     if (eligible.length === 0) {
@@ -206,8 +255,18 @@ export async function runReviewBackfill(
         imported: res.imported,
         skippedExisting: res.skippedExisting,
         status: "imported",
-        note: res.budgetExceeded ? "DeepL-budget slut — texten sparades oöversatt" : undefined,
+        note: res.translationFailed
+          ? "översättningen fallerade — texten sparades oöversatt"
+          : res.budgetExceeded
+            ? "DeepL-budget slut — texten sparades oöversatt"
+            : undefined,
       });
+      // Andra försvarslinjen: nyckeln kan sluta fungera MITT i en körning.
+      if (res.translationFailed) {
+        stoppedBy = "översättning";
+        blockedReason = "DeepL slutade svara mitt i körningen";
+        break;
+      }
       if (res.budgetExceeded) {
         stoppedBy = "budget";
         break;
@@ -229,6 +288,7 @@ export async function runReviewBackfill(
     throttled,
     errors,
     stoppedBy,
+    blockedReason,
     budgetRemainingAtEnd: remaining,
     products,
   };

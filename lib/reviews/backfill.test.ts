@@ -151,6 +151,105 @@ describe("runReviewBackfill — budgetgrinden", () => {
   });
 });
 
+describe("runReviewBackfill — översättningsgrinden", () => {
+  // Felläget vi bygger bort: review-importen faller vid översättningsfel
+  // tillbaka på ORIGINALTEXTEN. En saknad DeepL-nyckel skulle alltså publicera
+  // engelska recensioner på hundratals svenska produktsidor, tyst.
+  it("vägrar starta skarpt när översättningen inte svarar", async () => {
+    const importReviews = vi.fn();
+    const fetchReviews = vi.fn();
+    const s = await runReviewBackfill(
+      deps({
+        importReviews,
+        fetchReviews,
+        translationHealthy: async () => ({ ok: false, reason: "DEEPL_API_KEY saknas i miljön" }),
+      }),
+      { dryRun: false },
+    );
+    expect(fetchReviews).not.toHaveBeenCalled();
+    expect(importReviews).not.toHaveBeenCalled();
+    expect(s.stoppedBy).toBe("översättning");
+    expect(s.blockedReason).toMatch(/DEEPL_API_KEY/);
+    expect(s.considered).toBe(0);
+  });
+
+  it("torrkörning bryr sig inte om grinden — den publicerar ingenting", async () => {
+    const s = await runReviewBackfill(
+      deps({ translationHealthy: async () => ({ ok: false, reason: "nyckel saknas" }) }),
+      { dryRun: true },
+    );
+    expect(s.stoppedBy).toBe("klar");
+    expect(s.considered).toBe(3);
+  });
+
+  it("frisk översättning släpper igenom körningen", async () => {
+    const s = await runReviewBackfill(
+      deps({ translationHealthy: async () => ({ ok: true }) }),
+      { dryRun: false },
+    );
+    expect(s.reviewsImported).toBe(15);
+  });
+
+  // Nyckeln kan sluta fungera MITT i en körning — andra försvarslinjen.
+  it("stannar direkt om översättningen fallerar under körningen", async () => {
+    const s = await runReviewBackfill(
+      deps({
+        listCandidates: async () => candidates(5),
+        importReviews: async (_id, revs) => ({
+          imported: revs.length,
+          skippedExisting: 0,
+          charsUsed: 0,
+          budgetExceeded: false,
+          translationFailed: true,
+        }),
+      }),
+      { dryRun: false },
+    );
+    expect(s.considered).toBe(1);
+    expect(s.stoppedBy).toBe("översättning");
+    expect(s.products[0].note).toMatch(/oöversatt/);
+  });
+});
+
+describe("runReviewBackfill — genomsökt-stämpeln", () => {
+  // Utan stämpeln hämtar en schemalagd körning om de ~40 % recensionslösa
+  // produkterna vid varje körning, för alltid.
+  it("stämplar även produkter där AE inte hade några recensioner", async () => {
+    const markChecked = vi.fn(async () => {});
+    await runReviewBackfill(
+      deps({ markChecked, fetchReviews: async () => ({ reviews: [], throttled: false }) }),
+      { dryRun: false },
+    );
+    expect(markChecked).toHaveBeenCalledTimes(3);
+  });
+
+  // Strypt är inte ett svar. Stämplas den skulle rate-limiting dölja produkten
+  // i en månad.
+  it("stämplar INTE en strypt produkt", async () => {
+    const markChecked = vi.fn(async () => {});
+    await runReviewBackfill(
+      deps({ markChecked, fetchReviews: async () => ({ reviews: [], throttled: true }) }),
+      { dryRun: false },
+    );
+    expect(markChecked).not.toHaveBeenCalled();
+  });
+
+  it("torrkörning stämplar ingenting", async () => {
+    const markChecked = vi.fn(async () => {});
+    await runReviewBackfill(deps({ markChecked }), { dryRun: true });
+    expect(markChecked).not.toHaveBeenCalled();
+  });
+
+  it("ett fel på stämpeln hindrar inte importen", async () => {
+    const s = await runReviewBackfill(
+      deps({ markChecked: async () => { throw new Error("Wix 500"); } }),
+      { dryRun: false },
+    );
+    expect(s.reviewsImported).toBe(15);
+    expect(s.errors).toBe(0);
+  });
+});
+
 describe("runReviewBackfill — motståndskraft", () => {
   // Strypt är inte samma sak som recensionslös: den ena ska tas om, den andra inte.
   it("strypt produkt får egen status och skrivs inte av som tom", async () => {
