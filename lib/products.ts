@@ -77,7 +77,7 @@ export type Product = {
   // listan skickas vidare — så att recensionerna aldrig kopplas in i den heta
   // produktvägen. Saknas när produkten inte har omdömen eller när Trustpilot är
   // påslaget (då visar produktsidan inte heller våra egna omdömen).
-  rating?: { stars: number; value: string; count: number };
+  rating?: { stars: number; exact: number; value: string; count: number };
 };
 
 // Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas. Utbruten

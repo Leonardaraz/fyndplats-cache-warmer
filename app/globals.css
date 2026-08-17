@@ -1591,8 +1591,15 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rev-summary{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);margin-bottom:22px}
 .rev-summary strong{font-size:20px}
 .rev-count{color:var(--soft)}
-.rev-stars{color:#f5a623;letter-spacing:1px;font-size:15px;white-space:nowrap}
-.rev-stars-empty{color:#dcd6cd}
+/* Stjärnraden: två lager, grått i botten och gult ovanpå klippt med width i
+   procent (se components/stars.tsx). Topplagret måste ha exakt samma text,
+   font och letter-spacing som bottenlagret, annars hamnar stjärnorna i otakt. */
+.rev-stars{position:relative;display:inline-block;white-space:nowrap;letter-spacing:1px;font-size:15px;line-height:1;vertical-align:middle}
+/* Tonen är vald i en A/B mot #e0dad1/#c9c0b2/#bdb3a3: tillräckligt tydlig
+   för att den ofyllda delen ska synas (annars är delvis fyllning
+   meningslös), men fortfarande i den varma paletten i stället för grått. */
+.rev-stars-bg{color:#d6cec2}
+.rev-stars-fg{position:absolute;inset:0 auto 0 0;overflow:hidden;color:#f5a623;width:0}
 .rev-list{list-style:none;margin:0;padding:0;display:grid;gap:14px}
 .rev-item{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff}
 .rev-item-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}

@@ -549,7 +549,7 @@ export function ProductView({
               med själva omdömena, som ligger längre ner på sidan. */}
           {ratingHead && (
             <a className="pdp-rating" href="#recensioner">
-              <Stars rating={ratingHead.stars} />
+              <Stars rating={ratingHead.exact} />
               <strong>{ratingHead.value}</strong>
               {/* Skiljetecken: utan det står "5,0" och "11" intill varandra och
                   läses ett ögonblick som ett enda tal. Samma prick som

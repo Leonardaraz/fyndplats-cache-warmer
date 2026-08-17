@@ -61,7 +61,7 @@ export function ProductCard({ p }: { p: Product }) {
         <div className="prating">
           {p.rating && (
             <>
-              <Stars rating={p.rating.stars} className="prating-stars" />
+              <Stars rating={p.rating.exact} className="prating-stars" />
               <span className="prating-val">{p.rating.value}</span>
               <span className="prating-count">({p.rating.count})</span>
             </>

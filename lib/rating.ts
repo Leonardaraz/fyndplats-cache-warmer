@@ -11,8 +11,11 @@
 // svensk sida. Bara siffran formateras om — stjärnorna är oförändrade.
 
 export interface RatingSummary {
-  /** Snittet avrundat till närmaste heltal, för stjärnraden (0–5). */
+  /** Snittet avrundat till närmaste heltal. Kvar för text/etiketter — stjärn-
+   *  raden ritas numera på `exact`, som fyller den sista stjärnan delvis. */
   stars: number;
+  /** Snittet oavrundat, klampat till 0–5. Det är detta stjärnraden ritar. */
+  exact: number;
   /** Snittet med en decimal och svenskt komma, t.ex. "4,7". */
   value: string;
   /** "1 omdöme" / "14 omdömen". */
@@ -42,6 +45,7 @@ export function ratingSummary(count: number, average: number | null): RatingSumm
   const clamped = Math.max(0, Math.min(5, average));
   return {
     stars: Math.round(clamped),
+    exact: clamped,
     value: formatAverage(clamped),
     label: reviewCountLabel(count),
   };
@@ -66,7 +70,10 @@ import type { Product } from "./products";
  * visa olika siffror för samma produkt.
  */
 export interface CardRating {
+  /** Avrundat heltal. Kvar för ev. textbruk; stjärnorna ritas på `exact`. */
   stars: number;
+  /** Snittet oavrundat (0–5) — fyller sista stjärnan delvis. */
+  exact: number;
   value: string;
   count: number;
 }
@@ -93,7 +100,7 @@ export function mapAggregateRows(rows: AggregateRow[]): RatingMap {
     const average = typeof rad?.snitt === "number" ? rad.snitt : null;
     const sammandrag = ratingSummary(count, average);
     if (!sammandrag) continue;
-    ut[id] = { stars: sammandrag.stars, value: sammandrag.value, count };
+    ut[id] = { stars: sammandrag.stars, exact: sammandrag.exact, value: sammandrag.value, count };
   }
   return ut;
 }
