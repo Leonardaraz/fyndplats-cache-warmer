@@ -435,6 +435,18 @@ Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketet
 **Så här sätts resultatet in (alla tre metoderna):**
 
 3. Metod A ger ett `fileId` direkt (ingen uppladdning behövs); Metod B/C laddas upp med `mcp__Wix__UploadImageToWixSite` (via chatt-bifogning eller GitHub-branch, se ovan) → ny `static.wixstatic.com`-URL/fileId.
+
+   > ☠️ **`UploadImageToWixSite` svarar `success: true` även när uppladdningen sedan MISSLYCKAS — och en PATCH mot en icke-klar fil släpps TYST.** Svaret innehåller `operationStatus: "PENDING"`: Wix har tagit emot uppdraget, inte utfört det. Hämtar Wix din URL medan raw.githubusercontent strypter (429) eller svarar 500 hamnar filen i `state: "FAILED"` — men du har redan fått ditt `fileId`. Patchar du in det svarar V3 `200 OK`, **utelämnar item:et** och du upptäcker det först när galleriet gått från 6 bilder till 5. Hände 2026-08-17 på lasertag-hjälten: den gamla hjälten hann raderas i samma PATCH, så produkten låg en stund helt utan hjältebild.
+   >
+   > **Regel: kontrollera filens status före PATCH:en, inte efter.**
+   >
+   > ```js
+   > const f = await wix.request({ scope:"site", siteId, method:"GET",
+   >                               url:"/site-media/v1/files/" + fileId });
+   > if ((f.file.operationStatus || f.file.state) !== "READY") return { avbrutet:true };
+   > ```
+   >
+   > Ett snabbt `curl` mot `…/v1/fit/w_300,h_300,q_70/preview.jpg` duger som förkontroll: **403 = inte klar**, 200 = klar. Två saker minskar risken att det händer alls: håll filen liten (2000² JPEG på 380 kB föll, 1600² på 198 kB gick igenom) och **byt filnamn vid omförsök** — samma URL kan ligga kvar strypt en stund.
 4. Ersätt item:et på **samma position** i `itemsInfo.items` med det **fullständiga item-objektet** (inte bara `url`+`altText` — det är det verifierat fungerande formatet från denna sessions PATCH:ar): `{ "id": "<fileId>", "altText": "<svensk alt>", "mediaType": "IMAGE", "image": { "id": "<fileId>", "url": "https://static.wixstatic.com/media/<fileId>", "altText": "<svensk alt>" } }` i Steg 3-PATCH:en. Verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
 5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
 
