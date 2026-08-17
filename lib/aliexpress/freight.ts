@@ -160,6 +160,24 @@ export function parseFreightOutcome(outcome: FreightQueryOutcome): FreightVerdic
  *     SKU:ns skuProps-VÄRDEN; kräver ENTYDIG träff (annars null — hellre
  *     ingen kontroll än fel varianters dom).
  */
+/**
+ * Namngivna VAL ur ett sku_attr ("14:350850#4 PCS;200007763:201336106" →
+ * ["4 pcs"]). Bara delar med "#" bär ett läsbart värde; lager-axeln
+ * (200007763 = "Ships From") skrivs utan "#" och faller därför bort av sig
+ * själv — vilket är precis vad vi vill när samma vara ska hittas i ett annat
+ * lager.
+ */
+export function namedValuesFromVariantId(supplierVariantId: string): string[] {
+  return (supplierVariantId || "")
+    .trim()
+    .split(";")
+    .map((part) => {
+      const hash = part.indexOf("#");
+      return hash >= 0 ? part.slice(hash + 1).trim().toLowerCase() : null;
+    })
+    .filter((v): v is string => Boolean(v));
+}
+
 export function matchAeVariant(
   supplierVariantId: string,
   aeVariants: ReadonlyArray<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }>,
@@ -173,13 +191,7 @@ export function matchAeVariant(
   const exact = aeVariants.find((v) => v.skuId === id || (v.skuAttr && v.skuAttr.trim() === id));
   if (exact) return exact.skuId;
 
-  const namedValues = id
-    .split(";")
-    .map((part) => {
-      const hash = part.indexOf("#");
-      return hash >= 0 ? part.slice(hash + 1).trim().toLowerCase() : null;
-    })
-    .filter((v): v is string => Boolean(v));
+  const namedValues = namedValuesFromVariantId(id);
 
   if (namedValues.length === 0) {
     // Enproduktsgenväg: en enda SKU utan namngivna val är entydig.

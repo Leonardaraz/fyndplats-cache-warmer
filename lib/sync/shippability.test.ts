@@ -307,3 +307,75 @@ describe("bevisad v2-dom nollar utan env-flaggan; v1-flaggor gör det inte", () 
     expect([...s]).toEqual(["a"]);
   });
 });
+
+// ── Lager-failover (stödbenen 2026-08-17) ─────────────────────────────────
+// Bästsäljaren "Stödben för husvagn" nollades på två nej. Listningen var
+// levande hela tiden: säljaren hade lagt ner DE-lagret vi sparade vid import
+// och skickade från ES/FR/CZ/PL. Ett nej på VÅR SKU är inte ett nej på varan.
+
+const AE_LAGER = [
+  { skuId: "de", skuAttr: "14:350850#4 PCS;200007763:201336106", skuProps: { Color: "4 PCS", "Ships From": "Germany" }, shipFrom: "DE", stock: 0 },
+  { skuId: "es", skuAttr: "14:350850#4 PCS;200007763:201336104", skuProps: { Color: "4 PCS", "Ships From": "Spain" }, shipFrom: "ES", stock: 12 },
+  { skuId: "pl", skuAttr: "14:350850#4 PCS;200007763:203372089", skuProps: { Color: "4 PCS", "Ships From": "Poland" }, shipFrom: "PL", stock: 4 },
+];
+const enLagervariant = (v: Partial<VariantMapping> = {}) => ({
+  supplierProductId: "p1",
+  variants: [variant({ supplierVariantId: "de", choices: { Antal: "4 st" }, ...v })],
+});
+/** Nej för allt utom de skuId:n som listas. */
+const nejUtom = (ja: string[]) => (_p: string, skuId: string) =>
+  ja.includes(skuId) ? shippableOutcome() : explicitNoOutcome();
+
+describe("lager-failover", () => {
+  it("vårt lager säger nej, ett annat säger ja → varianten är fraktbar", async () => {
+    const r = await checkMappingShippability({
+      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      budget: { remaining: 5 }, queryFn: nejUtom(["es"]), delayMs: 0,
+    });
+    expect(r.variants[0].shippableToSe).toBe(true);
+    expect(r.unshippable).toBe(0);
+    expect(r.variants[0].shippabilityNegativeStreak).toBeUndefined();
+  });
+
+  it("varianten pekas om till lagret som svarade ja — annars frågar vi den döda SKU:n för alltid", async () => {
+    const r = await checkMappingShippability({
+      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      budget: { remaining: 5 }, queryFn: nejUtom(["es"]), delayMs: 0,
+    });
+    expect(r.variants[0].supplierVariantId).toBe("14:350850#4 PCS;200007763:201336104");
+    expect(r.variants[0].previousSupplierVariantId).toBe("de");
+    expect(r.variants[0].shipFromSwitchedAt).toBe(new Date(NOW).toISOString());
+  });
+
+  it("lagret med saldo provas först — ett anrop räcker", async () => {
+    const r = await checkMappingShippability({
+      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      budget: { remaining: 5 }, queryFn: nejUtom(["es"]), delayMs: 0,
+    });
+    expect(r.apiCalls).toBe(2); // vår egen SKU + första alternativet
+  });
+
+  it("säger ALLA lager nej står domen kvar — serien eskalerar som förut", async () => {
+    const r = await checkMappingShippability({
+      mapping: enLagervariant({
+        shippabilityNegativeStreak: 1,
+        shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString(),
+      }),
+      aeVariants: AE_LAGER, nowMs: NOW,
+      budget: { remaining: 5 }, queryFn: nejUtom([]), delayMs: 0,
+    });
+    expect(r.variants[0].shippableToSe).toBe(false);
+    expect(r.unshippable).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("de"); // ingen ompekning på ett nej
+  });
+
+  it("slut budget → inga failover-anrop, ingen dom smygs in", async () => {
+    const r = await checkMappingShippability({
+      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      budget: { remaining: 1 }, queryFn: nejUtom(["es"]), delayMs: 0,
+    });
+    expect(r.apiCalls).toBe(1);
+    expect(r.variants[0].shippableToSe).toBeUndefined();
+    expect(r.variants[0].supplierVariantId).toBe("de");
+  });
+});
