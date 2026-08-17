@@ -16,9 +16,11 @@
 // key>). Vi verifierar mot TRACK17_API_KEY (lib/track17) → forged/felställda
 // pushar avvisas med 403. Ingen annan auth behövs.
 //
-// Maskering: mejlet visar BARA generisk status + (allowlistad) transportör +
-// ev. /sparning-länk. Inga events, ingen ursprungs-carrier, inget land → kan
-// inte läcka dropship-ursprunget. Carrier maskas via lib/carrier-mask.
+// Maskering: mejlet visar generisk status + (allowlistad) transportör + ev.
+// /sparning-länk. Inga events, ingen ursprungs-carrier, inget land → kan inte
+// läcka dropship-ursprunget. Carrier maskas via lib/carrier-mask.
+// Ordersammanfattningen (ordernummer + rader) hämtas ur VÅR Wix-order, alltså
+// svenska titlar och vår egen media — den bär ingen leverantörsdata.
 //
 // Dedup: delar lib/delivery-dedup med SMS-flödet (app/api/sms-inbound) så att
 // kunden aldrig får två "levererat"-mejl (ett per kanal) för samma paket.
@@ -36,6 +38,9 @@ import { sql } from "@/lib/db";
 import { verify17TrackSign } from "@/lib/track17";
 import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
 import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
+import { reviewFormUrl } from "@/lib/review-token";
+import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
+import type { OrderLineItem } from "@/emails/order-confirmation";
 import DeliveryNotificationEmail, {
   deliverySubject,
   type DeliveryStatus,
@@ -197,8 +202,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "duplicate_suppressed" }, { status: 200 });
   }
 
+  // Ordersammanfattning + omdömeslänk — SAMMA innehåll som SMS-vägen bygger.
+  // Att bara SMS-vägen hade dem var en verklig lucka: push är den väg som
+  // faktiskt skickar "levererat" för de flesta paket (SMS äger bara upphämtning
+  // med kod), så merparten av kunderna hade fått det tunna mejlet utan
+  // ordernummer och utan möjlighet att lämna omdöme.
+  //
+  // Best-effort, precis som i SMS-vägen: misslyckas Wix-uppslaget skickas
+  // mejlet ändå, bara utan sammanfattningen.
+  let orderSummary: { orderNumber?: string; items?: OrderLineItem[] } = {};
+  if (mapping.order_id) {
+    try {
+      const order = await fetchWixOrder(mapping.order_id);
+      const built = order ? buildOrderConfirmationProps(order) : null;
+      if (built) orderSummary = { orderNumber: built.orderNumber, items: built.items };
+    } catch (err) {
+      console.warn("[track17-webhook] kunde inte hämta order för mejlet:", err instanceof Error ? err.message : err);
+    }
+  }
+
+  // Null utan REVIEW_TOKEN_SECRET → ingen knapp. Mallen visar den dessutom bara
+  // vid levererat, så "på väg"-mejlet frågar aldrig om omdöme.
+  const reviewUrl = mapping.order_id
+    ? reviewFormUrl(mapping.order_id, "https://www.fyndplats.se", process.env.REVIEW_TOKEN_SECRET) ?? undefined
+    : undefined;
+
   const carrier = maskCarrierOrUndefined(root.track_info?.tracking?.providers?.[0]?.provider?.name);
   const props = {
+    ...orderSummary,
+    reviewUrl,
     firstName: firstName(mapping.customer_name),
     status: deliveryStatus,
     // Spåra-knapp bara för "på väg" (meningslös efter levererat).
