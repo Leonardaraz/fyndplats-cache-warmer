@@ -230,3 +230,35 @@ describe("warehouseAlternativeSkuIds", () => {
     expect(warehouseAlternativeSkuIds({ skuId: "borta" }, DS)).toEqual([]);
   });
 });
+
+// Babygungan 2026-08-17: DS-svaret gav TOMMA egenskapstexter för båda SKU:erna
+// ({Color:"", "Ships From":""}), så värdesignaturen blev tom för båda och grön
+// såg ut som samma vara som orange. sku_attr skiljer dem åt.
+describe("warehouseAlternativeSkuIds — olika FÄRG får aldrig bli lager-syskon", () => {
+  const BABYGUNGA = [
+    { skuId: "orange", skuAttr: "14:350852;200007763:201336104", skuProps: { Color: "", "Ships From": "" }, stock: 63 },
+    { skuId: "gron", skuAttr: "14:-1;200007763:201336104", skuProps: { Color: "", "Ships From": "" }, stock: 0 },
+  ];
+
+  it("grön och orange är olika varor — inga alternativ", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "gron" }, BABYGUNGA)).toEqual([]);
+    expect(warehouseAlternativeSkuIds({ skuId: "orange" }, BABYGUNGA)).toEqual([]);
+  });
+
+  it("samma val i olika lager är däremot syskon", () => {
+    const flerLager = [
+      { skuId: "es", skuAttr: "14:350850#4 PCS;200007763:201336104", skuProps: {}, stock: 70 },
+      { skuId: "pl", skuAttr: "14:350850#4 PCS;200007763:203372089", skuProps: {}, stock: 3 },
+      { skuId: "cz", skuAttr: "14:350850#4 PCS;200007763:203287806", skuProps: {}, stock: 70 },
+    ];
+    expect(warehouseAlternativeSkuIds({ skuId: "es" }, flerLager).sort()).toEqual(["cz", "pl"]);
+  });
+
+  it("utan sku_attr OCH utan kända val gissar vi aldrig", () => {
+    const utanNågot = [
+      { skuId: "a", skuProps: { Color: "" }, stock: 5 },
+      { skuId: "b", skuProps: { Color: "" }, stock: 5 },
+    ];
+    expect(warehouseAlternativeSkuIds({ skuId: "a" }, utanNågot)).toEqual([]);
+  });
+});
