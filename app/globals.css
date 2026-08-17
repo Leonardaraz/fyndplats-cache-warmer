@@ -515,8 +515,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 @media(max-width:540px){.lb-nav{width:42px;height:42px;font-size:24px}.lb-prev{left:8px}.lb-next{right:8px}}
 .pinfo h1{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px}
 /* Betyget under rubriken, ovanför priset: liten rad som hoppar till omdömena. */
-.pdp-rating{display:inline-flex;align-items:center;gap:7px;margin:0 0 12px;text-decoration:none;color:var(--ink);font-size:14px}
+.pdp-rating{display:inline-flex;align-items:center;gap:6px;margin:0 0 12px;text-decoration:none;color:var(--ink);font-size:14px}
 .pdp-rating strong{font-weight:700}
+.pdp-rating-dot{color:var(--soft)}
 .pdp-rating-count{color:var(--soft);text-decoration:underline;text-underline-offset:2px}
 .pdp-rating:hover .pdp-rating-count{color:var(--ink)}
 .pdp-price{font-size:32px;font-weight:800;color:#C2410C;margin-bottom:10px}

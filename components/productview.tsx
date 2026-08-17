@@ -551,6 +551,10 @@ export function ProductView({
             <a className="pdp-rating" href="#recensioner">
               <Stars rating={ratingHead.stars} />
               <strong>{ratingHead.value}</strong>
+              {/* Skiljetecken: utan det står "5,0" och "11" intill varandra och
+                  läses ett ögonblick som ett enda tal. Samma prick som
+                  sammandraget i recensionssektionen. */}
+              <span className="pdp-rating-dot" aria-hidden="true">·</span>
               <span className="pdp-rating-count">{ratingHead.label}</span>
             </a>
           )}
