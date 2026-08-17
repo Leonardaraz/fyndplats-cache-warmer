@@ -196,12 +196,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "resend_not_configured" }, { status: 200 });
   }
 
-  // Dedup mot SMS-flödet: först till (number, status) vinner.
-  const won = await claimDeliveryNotification(trackingNumber, deliveryStatus, "track17", mapping.customer_email);
-  if (!won) {
-    return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "duplicate_suppressed" }, { status: 200 });
-  }
-
   // Ordersammanfattning + omdömeslänk — SAMMA innehåll som SMS-vägen bygger.
   // Att bara SMS-vägen hade dem var en verklig lucka: push är den väg som
   // faktiskt skickar "levererat" för de flesta paket (SMS äger bara upphämtning
@@ -210,6 +204,12 @@ export async function POST(req: NextRequest) {
   //
   // Best-effort, precis som i SMS-vägen: misslyckas Wix-uppslaget skickas
   // mejlet ändå, bara utan sammanfattningen.
+  //
+  // FÖRE dedup-anspråket, inte efter. Anspråket är ett löfte att vi skickar:
+  // dör funktionen mellan anspråk och utskick ligger det kvar och mejlet
+  // uteblir tyst. Uppslaget får ta upp till 8 s (fetchWixOrder:s tidsgräns) och
+  // hade förlängt just det fönstret. Här kostar det på sin höjd ett bortkastat
+  // Wix-anrop när en dubblettpush ändå skulle förlora anspråket.
   let orderSummary: { orderNumber?: string; items?: OrderLineItem[] } = {};
   if (mapping.order_id) {
     try {
@@ -226,6 +226,14 @@ export async function POST(req: NextRequest) {
   const reviewUrl = mapping.order_id
     ? reviewFormUrl(mapping.order_id, "https://www.fyndplats.se", process.env.REVIEW_TOKEN_SECRET) ?? undefined
     : undefined;
+
+  // Dedup mot SMS-flödet: först till (number, status) vinner. Allt tungt är
+  // gjort — härifrån till send() är det bara rendering, precis som innan
+  // ordersammanfattningen fanns.
+  const won = await claimDeliveryNotification(trackingNumber, deliveryStatus, "track17", mapping.customer_email);
+  if (!won) {
+    return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "duplicate_suppressed" }, { status: 200 });
+  }
 
   const carrier = maskCarrierOrUndefined(root.track_info?.tracking?.providers?.[0]?.provider?.name);
   const props = {

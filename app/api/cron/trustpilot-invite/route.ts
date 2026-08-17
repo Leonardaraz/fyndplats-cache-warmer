@@ -11,6 +11,12 @@
 //   • TRUSTPILOT_API_KEY satt → Trustpilot AFS-inbjudan (Trustpilot mejlar).
 //   • Annars → branded Resend-mejl med en evaluate-länk (gratis-vägen).
 //
+// AVSCHEMALAGD 2026-08-17: Leonard valde bort Trustpilot ("Jag vill inte ha
+// trustpilot") och egna kundomdömen bär den rollen nu (/omdome + /admin/reviews).
+// Cron-raden är borta ur vercel.json — rutten låg och kördes dagligen 08/09 och
+// hade börjat mejla inbjudningar i samma stund som en BUSINESS_UNIT_ID dök upp i
+// miljön. Koden ligger kvar och fungerar: lägg tillbaka cron-raden om du ändrar dig.
+//
 // No-op-säker: utan TRUSTPILOT_BUSINESS_UNIT_ID, utan Wix-nyckel eller utan
 // matchande ordrar svarar routen 200 med en förklarande summary.
 //
