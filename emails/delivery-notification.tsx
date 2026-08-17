@@ -8,8 +8,9 @@
 // the order/shipping/refund mails). Status drives the headline, body copy, and
 // whether the pickup-code card is shown.
 
-import { Link, Section, Text } from "@react-email/components";
+import { Column, Img, Link, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
+import type { OrderLineItem } from "./order-confirmation";
 
 // Mirrors lib/sms-parser SmsStatus — duplicated here so the email package has
 // no upstream dependency on the parser internals.
@@ -30,6 +31,11 @@ export interface DeliveryNotificationProps {
   pickupUrl?: string;
   trackingNumber?: string;
   carrier?: string;
+  /** Orderns läsbara nummer, t.ex. "10042". Utelämnas → ordersammanfattningen
+   *  renderas inte alls (mejlet ser då ut som förut). */
+  orderNumber?: string;
+  /** Raderna i ordern, samma form som orderbekräftelsen använder. */
+  items?: OrderLineItem[];
 }
 
 function statusHeadline(status: DeliveryStatus, pickupLocation?: string): string {
@@ -95,6 +101,8 @@ export default function DeliveryNotificationEmail({
   pickupUrl,
   trackingNumber,
   carrier,
+  orderNumber,
+  items,
 }: DeliveryNotificationProps) {
   const headline = statusHeadline(status, pickupLocation);
   const body = statusBody(status, pickupLocation);
@@ -107,6 +115,52 @@ export default function DeliveryNotificationEmail({
       <Text style={text.h1}>Hej {firstName}!</Text>
       <Text style={text.h2}>{headline}</Text>
       <Text style={text.body}>{body}</Text>
+
+      {/* Ordersammanfattning. Saknades tidigare helt: kunden fick "ditt paket
+          har levererats" utan att mejlet sa VILKET paket — förvirrande om man
+          har flera beställningar på gång, och omöjligt att svara på utan att
+          leta upp ordernumret själv. Samma artikelrad som orderbekräftelsen
+          använder, så de två mejlen känns igen som samma familj.
+
+          Renderas bara när ordern gick att hämta; utan den ser mejlet ut
+          exakt som förut. */}
+      {orderNumber ? (
+        <Section style={block.card}>
+          <Text style={{ ...text.muted, margin: 0 }}>Order</Text>
+          <Text style={{ fontSize: "18px", fontWeight: 800, margin: "2px 0 0 0", color: BRAND.ink }}>
+            {orderNumber}
+          </Text>
+
+          {(items ?? []).map((it, i) => (
+            <Row key={i} style={{ marginTop: "14px" }}>
+              {it.imageUrl ? (
+                <Column style={{ width: "64px", verticalAlign: "top" }}>
+                  <Img
+                    src={it.imageUrl}
+                    alt={it.name}
+                    width="56"
+                    height="56"
+                    style={{ borderRadius: "8px", border: `1px solid ${BRAND.line}`, objectFit: "cover" }}
+                  />
+                </Column>
+              ) : null}
+              <Column style={{ verticalAlign: "top" }}>
+                <Text style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: BRAND.ink }}>
+                  {it.name}
+                </Text>
+                {it.variant ? (
+                  <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>
+                    {it.variant}
+                  </Text>
+                ) : null}
+                <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>
+                  Antal: {it.qty}
+                </Text>
+              </Column>
+            </Row>
+          ))}
+        </Section>
+      ) : null}
 
       {pickupCode ? (
         <Section style={block.card}>

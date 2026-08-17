@@ -21,6 +21,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
+import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
+import type { OrderLineItem } from "@/emails/order-confirmation";
 import DeliveryNotificationEmail, {
   deliverySubject,
   type DeliveryStatus,
@@ -50,6 +52,8 @@ interface Params {
   pickupUrl?: string;
   trackingNumber?: string;
   carrier?: string;
+  /** Wix-order-GUID. Anges det hämtas ordernummer + rader till mejlet. */
+  orderId?: string;
 }
 
 async function handle(p: Params) {
@@ -72,7 +76,21 @@ async function handle(p: Params) {
     ? (p.status as DeliveryStatus)
     : "available_for_pickup";
 
+  // Samma ordersammanfattning som den SMS-utlösta vägen. Best-effort: utan
+  // orderId eller vid fel skickas mejlet precis som förut.
+  let orderSummary: { orderNumber?: string; items?: OrderLineItem[] } = {};
+  if (p.orderId?.trim()) {
+    try {
+      const order = await fetchWixOrder(p.orderId.trim());
+      const built = order ? buildOrderConfirmationProps(order) : null;
+      if (built) orderSummary = { orderNumber: built.orderNumber, items: built.items };
+    } catch (err) {
+      console.warn("[send-delivery] kunde inte hämta order:", err instanceof Error ? err.message : err);
+    }
+  }
+
   const props = {
+    ...orderSummary,
     firstName: (p.firstName || "kund").trim(),
     status,
     pickupLocation: p.pickupLocation?.trim() || undefined,
@@ -116,6 +134,7 @@ export async function GET(request: Request) {
   return handle({
     to: q.get("to") ?? undefined,
     firstName: q.get("firstName") ?? undefined,
+    orderId: q.get("orderId") ?? undefined,
     status: q.get("status") ?? undefined,
     pickupLocation: q.get("pickupLocation") ?? undefined,
     pickupCode: q.get("pickupCode") ?? undefined,
