@@ -111,6 +111,67 @@ const nextConfig: NextConfig = {
       // Wix-sajtens "blank-7"-sida var omdömessidan.
       { source: "/blank-7", destination: "/omdomen", permanent: true },
 
+      // --- GSC-städning 2026-08-17: de 37 kvarvarande 404:orna ---
+      // Search Console rapporterade 183 adresser. 130 /product-page/… 308:ar redan
+      // (föråldrad GSC-data) och 7 /produkt/… är lagade via CMS-kollektionen
+      // FyndplatsRedirects. 8 är crawler-skräp (/$, /&, /_next/…) som SKA fortsätta
+      // 404:a — en redirect där är brus som döljer verkliga fel i GSC. Resterande 37
+      // kräver regler HÄR: FyndplatsRedirects slås bara upp av /produkt/[slug] och
+      // når alltså varken /kategori/…, roten eller /blog/… (mätt: en testrad gav 308
+      // på /produkt/hem-och-inredning men /kategori/hem-och-inredning fortsatte 404:a).
+      //
+      // OBS åäö: source matchas mot den URL-KODADE sökvägen — samma fallgrop som
+      // /product-page-raderna ovan. ä = %C3%A4, å = %C3%A5, ö = %C3%B6. Elva av
+      // raderna nedan har svenska tecken (två av dem är bloggposter).
+      // Alla mål verifierade som levande (HTTP 200) mot produktion 2026-08-17.
+
+      // Kategorier: gamla "-och-"-formen samt nedlagda kategorier vars sortiment
+      // flyttat. musmatta/tangentbord slogs ihop till dator-gaming, ljud-horlurar
+      // till elektronik-tillbehor. "ovrigt" har inget tematiskt mål → /alla-produkter.
+      { source: "/kategori/hem-och-inredning", destination: "/kategori/hem-inredning", permanent: true },
+      { source: "/kategori/mode-och-accessoarer", destination: "/kategori/mode-accessoarer", permanent: true },
+      { source: "/kategori/skonhet-och-halsa", destination: "/kategori/skonhet-halsa", permanent: true },
+      { source: "/kategori/ljud-horlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
+      { source: "/kategori/musmatta", destination: "/kategori/dator-gaming", permanent: true },
+      { source: "/kategori/tangentbord", destination: "/kategori/dator-gaming", permanent: true },
+      { source: "/kategori/ovrigt", destination: "/alla-produkter", permanent: true },
+
+      // Gamla Wix-sajtens rot-adresser (ihopskrivna slugs, ofta med åäö).
+      { source: "/barn-och-familj", destination: "/kategori/barn-familj", permanent: true },
+      { source: "/hem-elektronik", destination: "/kategori/elektronik-tillbehor", permanent: true },
+      { source: "/heminredning", destination: "/kategori/hem-inredning", permanent: true },
+      { source: "/horlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
+      { source: "/h%C3%B6rlurar", destination: "/kategori/elektronik-tillbehor", permanent: true },
+      { source: "/konstgjordablommor", destination: "/kategori/dekoration-prydnad", permanent: true },
+      { source: "/leksakerbarnbebisar", destination: "/kategori/leksaker-spel", permanent: true },
+      // GSC listar även /mobiltillbehör?page=2. Query-strängar ingår inte i source-
+      // matchningen och följer automatiskt med till destination, så raden nedan
+      // fångar båda (page=2 är ofarlig på kategorisidan — verifierad 200).
+      { source: "/mobiltillbeh%C3%B6r", destination: "/kategori/mobiltillbehor", permanent: true },
+      { source: "/modeochaccessoarer", destination: "/kategori/mode-accessoarer", permanent: true },
+      { source: "/sk%C3%B6nhetochh%C3%A4lsa", destination: "/kategori/skonhet-halsa", permanent: true },
+      { source: "/shop", destination: "/butik", permanent: true },
+      { source: "/kundtj%C3%A4nst", destination: "/kundtjanst", permanent: true },
+      { source: "/vanligafr%C3%A5gor", destination: "/vanliga-fragor", permanent: true },
+      { source: "/v%C3%A5rabutikpolicyer", destination: "/vara-butikspolicyer", permanent: true },
+      // /basta-i-test och /for-dig-som har bara dynamiska barn ([type] resp.
+      // [interest]) och saknar indexsida → roten 404:ar. Exakt source träffar bara
+      // roten, så /basta-i-test/<type> och /for-dig-som/<interest> är orörda.
+      { source: "/basta-i-test", destination: "/blogg", permanent: true },
+      { source: "/for-dig-som", destination: "/butik", permanent: true },
+
+      // Bloggen ligger på /blogg, inte /blog. De fyra inläggen finns kvar men med
+      // andra sluggar — de måste ligga FÖRE en ev. framtida generell /post/-regel.
+      { source: "/post/barbar-projektor-kopguide-2026", destination: "/blogg/barbar-projektor-kopguide-2026", permanent: true },
+      { source: "/post/bladlos-nackflakt-kopguide-2026", destination: "/blogg/bladlos-nackflakt-kopguide-2026", permanent: true },
+      { source: "/post/b%C3%A4rbar-projektor-till-hemmabio-s%C3%A5-v%C3%A4ljer-du-r%C3%A4tt-k%C3%B6pguide-2026", destination: "/blogg/barbar-projektor-kopguide-2026", permanent: true },
+      { source: "/post/v%C3%A4lkommen-till-fyndplats-smarta-fynd-f%C3%B6r-hela-familjen", destination: "/blogg/valkommen-till-fyndplats", permanent: true },
+      // Resten av /blog/… (index, /categories/…, /tags/…) saknar motsvarighet i
+      // headless — bloggen har inga taxonomisidor — så de samlas på /blogg.
+      // Båda raderna behövs: :path* garanterar inte bara-/blog utan efterföljande segment.
+      { source: "/blog", destination: "/blogg", permanent: true },
+      { source: "/blog/:path*", destination: "/blogg", permanent: true },
+
       // Utfasade Kina-produkter → /alla-produkter (se RETIRED_CHINA_SLUGS överst).
       // Specifika /produkt/<slug>-paths; matchar före ev. framtida wildcard.
       ...chinaRedirects,
