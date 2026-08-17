@@ -88,13 +88,17 @@ export async function POST(req: Request) {
   });
 
   try {
-    // save = upsert på _id. Skickar kunden formuläret två gånger uppdateras
-    // omdömet i stället för att bli en dubblett (id:t är härlett ur order +
-    // produkt, inte slumpat).
-    const res = await fetch(`${WIX_BASE}/data/v2/items/${encodeURIComponent(rad._id)}`, {
-      method: "PUT",
+    // /items/save är upsert. PUT /items/{id} vore FEL här: den uppdaterar bara
+    // befintliga rader och svarar 404 för en ny — alltså hade varje FÖRSTA
+    // omdöme fallerat. (Hittades i granskningen 2026-08-17.)
+    //
+    // Att id:t är härlett ur order + produkt gör dessutom att en kund som
+    // skickar formuläret två gånger uppdaterar sitt omdöme i stället för att
+    // skapa en dubblett.
+    const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
+      method: "POST",
       headers: h,
-      body: JSON.stringify({ dataCollectionId: COL, dataItem: { id: rad._id, data: rad } }),
+      body: JSON.stringify({ dataCollectionId: COL, dataItem: { id: rad._id, dataCollectionId: COL, data: rad } }),
       cache: "no-store",
     });
     if (!res.ok) {
