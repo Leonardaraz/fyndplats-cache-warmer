@@ -19,7 +19,17 @@
 
 const FULL = "★★★★★";
 
-export function Stars({ rating, className }: { rating: number; className?: string }) {
+export function Stars({
+  rating,
+  className,
+  "aria-hidden": ariaHidden,
+}: {
+  rating: number;
+  className?: string;
+  /** Sätts när en omgivande behållare redan bär hela betygets etikett — annars
+   *  läses värdet två gånger (se kommentaren i productcard.tsx). */
+  "aria-hidden"?: boolean;
+}) {
   const v = Math.max(0, Math.min(5, Number(rating) || 0));
   // En decimal räcker: 4,75 och 4,8 är omöjliga att skilja åt vid 13–15 px.
   const andel = Math.round((v / 5) * 1000) / 10;
@@ -27,8 +37,9 @@ export function Stars({ rating, className }: { rating: number; className?: strin
   return (
     <span
       className={className ? `rev-stars ${className}` : "rev-stars"}
-      role="img"
-      aria-label={`${text} av 5 stjärnor`}
+      {...(ariaHidden
+        ? { "aria-hidden": true as const }
+        : { role: "img", "aria-label": `${text} av 5 stjärnor` })}
       title={`${text} av 5`}
     >
       <span className="rev-stars-bg" aria-hidden="true">
