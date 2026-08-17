@@ -5,8 +5,20 @@
       "slug": "massagepistoler",
       "label": "massagepistoler",
       "singular": "massagepistol",
-      "keywords": ["massagepistol", "massageapparat", "shiatsu", "nackmassage", "fotmassage", "massage"],
-      "exclude": ["massagesten", "massageset", "massageolja", "massageroller"],
+      "keywords": [
+        "massagepistol",
+        "massageapparat",
+        "shiatsu",
+        "nackmassage",
+        "fotmassage",
+        "massage"
+      ],
+      "exclude": [
+        "massagesten",
+        "massageset",
+        "massageolja",
+        "massageroller"
+      ],
       "category": "Massage & Återhämtning",
       "audience": "dig som vill lösa upp stela muskler hemma",
       "painpoint": "spänd nacke och ömma muskler efter träning eller en lång dag vid skrivbordet",
@@ -16,8 +28,18 @@
       "slug": "ansiktsverktyg",
       "label": "ansiktsverktyg",
       "singular": "ansiktsverktyg",
-      "keywords": ["gua sha", "ansiktsroller", "ansiktsrengöring", "porrensare", "jaderoller", "massageset", "ansiktsborste"],
-      "exclude": ["massagepistol"],
+      "keywords": [
+        "gua sha",
+        "ansiktsroller",
+        "ansiktsrengöring",
+        "porrensare",
+        "jaderoller",
+        "massageset",
+        "ansiktsborste"
+      ],
+      "exclude": [
+        "massagepistol"
+      ],
       "category": "Hudvård & Ansikte",
       "audience": "dig som vill ge huden lite extra omtanke hemma",
       "painpoint": "trött hud, svullnad på morgonen och porer som behöver en djuprengöring",
@@ -27,7 +49,11 @@
       "slug": "tradlosa-horlurar",
       "label": "trådlösa hörlurar",
       "singular": "trådlösa hörlurar",
-      "keywords": ["hörlur", "earbuds", "sovhörlurar"],
+      "keywords": [
+        "hörlur",
+        "earbuds",
+        "sovhörlurar"
+      ],
       "exclude": [],
       "category": "Hörlurar & Ljud",
       "audience": "dig som vill ha musiken med dig överallt",
@@ -38,8 +64,19 @@
       "slug": "laddare-och-kablar",
       "label": "laddare och kablar",
       "singular": "laddare",
-      "keywords": ["laddare", "laddkabel", "laddstation", "powerbank", "snabbladdning", "usb-c"],
-      "exclude": [],
+      "keywords": [
+        "laddare",
+        "laddkabel",
+        "laddstation",
+        "powerbank",
+        "snabbladdning",
+        "usb-c"
+      ],
+      "exclude": [
+        "lasertag",
+        "leksak",
+        "laddstation 4 spelare"
+      ],
       "category": "Laddare & Kablar",
       "audience": "dig som är less på att ladda långsamt",
       "painpoint": "ett urladdat batteri vid fel tillfälle och kablar som slutar funka efter någon månad",
@@ -49,7 +86,12 @@
       "slug": "mobilhallare",
       "label": "mobilhållare",
       "singular": "mobilhållare",
-      "keywords": ["mobilhållare", "telefonhållare", "cykelhållare", "magsafe"],
+      "keywords": [
+        "mobilhållare",
+        "telefonhållare",
+        "cykelhållare",
+        "magsafe"
+      ],
       "exclude": [],
       "category": "Mobiltillbehör",
       "audience": "dig som vill ha mobilen säkert på plats",
@@ -60,7 +102,14 @@
       "slug": "nattlampor-och-projektorer",
       "label": "nattlampor och projektorer",
       "singular": "nattlampa",
-      "keywords": ["nattlampa", "projektor", "stjärnprojektor", "sensorlampa", "led-slinga", "ljusslinga"],
+      "keywords": [
+        "nattlampa",
+        "projektor",
+        "stjärnprojektor",
+        "sensorlampa",
+        "led-slinga",
+        "ljusslinga"
+      ],
       "exclude": [],
       "category": "Belysning",
       "audience": "dig som vill skapa rätt stämning hemma",
@@ -71,8 +120,17 @@
       "slug": "kaffetillbehor",
       "label": "kaffetillbehör",
       "singular": "kaffetillbehör",
-      "keywords": ["kaffe", "mjölkskummare", "koppvärmare", "espresso", "termos"],
-      "exclude": ["kaffemaskin i trä", "leksak"],
+      "keywords": [
+        "kaffe",
+        "mjölkskummare",
+        "koppvärmare",
+        "espresso",
+        "termos"
+      ],
+      "exclude": [
+        "kaffemaskin i trä",
+        "leksak"
+      ],
       "category": "Köksmaskiner & Apparater",
       "audience": "dig som tar kaffepausen på allvar",
       "painpoint": "kallnat kaffe och platt mjölk som aldrig blir som på caféet",
@@ -82,7 +140,10 @@
       "slug": "montessorileksaker",
       "label": "montessori- och träleksaker",
       "singular": "montessorileksak",
-      "keywords": ["montessori", "träleksak"],
+      "keywords": [
+        "montessori",
+        "träleksak"
+      ],
       "exclude": [],
       "category": "Leksaker & Spel",
       "audience": "dig som vill ge barnet lek som också utvecklar",
@@ -93,7 +154,12 @@
       "slug": "babytillbehor",
       "label": "babytillbehör",
       "singular": "babytillbehör",
-      "keywords": ["napphållare", "bitring", "babygym", "nappkedja"],
+      "keywords": [
+        "napphållare",
+        "bitring",
+        "babygym",
+        "nappkedja"
+      ],
       "exclude": [],
       "category": "Baby & Småbarn",
       "audience": "dig som vill ha trygga, genomtänkta favoriter till de minsta",
@@ -104,8 +170,16 @@
       "slug": "hundselar-och-koppel",
       "label": "hundselar och koppel",
       "singular": "hundsele",
-      "keywords": ["hundsele", "hundkoppel", "koppel", "sele"],
-      "exclude": ["kattunnel", "kattleksak"],
+      "keywords": [
+        "hundsele",
+        "hundkoppel",
+        "koppel",
+        "sele"
+      ],
+      "exclude": [
+        "kattunnel",
+        "kattleksak"
+      ],
       "category": "Selar, Koppel & Transport",
       "audience": "dig som vill ha trygga och sköna promenader med hunden",
       "painpoint": "selar som skaver, koppel som drar och en hund som glider ur",
@@ -115,7 +189,14 @@
       "slug": "kattleksaker",
       "label": "kattleksaker",
       "singular": "kattleksak",
-      "keywords": ["kattleksak", "kattunnel", "kattkanon", "kattmöss", "kattmus", "fjäderleksak"],
+      "keywords": [
+        "kattleksak",
+        "kattunnel",
+        "kattkanon",
+        "kattmöss",
+        "kattmus",
+        "fjäderleksak"
+      ],
       "exclude": [],
       "category": "Lek & Tillbehör för husdjur",
       "audience": "dig som vill ha en aktiv och nöjd katt",
@@ -126,7 +207,13 @@
       "slug": "sminktillbehor",
       "label": "sminktillbehör",
       "singular": "sminktillbehör",
-      "keywords": ["makeupborste", "sminkborste", "sminkspegel", "sminkförvaring", "makeupset"],
+      "keywords": [
+        "makeupborste",
+        "sminkborste",
+        "sminkspegel",
+        "sminkförvaring",
+        "makeupset"
+      ],
       "exclude": [],
       "category": "Hudvård & Ansikte",
       "audience": "dig som vill ha ordning och rätt verktyg framför spegeln",
@@ -137,7 +224,14 @@
       "slug": "smycken",
       "label": "smycken",
       "singular": "smycke",
-      "keywords": ["halsband", "örhängen", "armband", "krucifix", "berlock", "kedjehalsband"],
+      "keywords": [
+        "halsband",
+        "örhängen",
+        "armband",
+        "krucifix",
+        "berlock",
+        "kedjehalsband"
+      ],
       "exclude": [],
       "category": "Smycken",
       "audience": "dig som vill lyfta looken med en detalj",
@@ -148,8 +242,18 @@
       "slug": "solglasogon-och-klockor",
       "label": "solglasögon och klockor",
       "singular": "accessoar",
-      "keywords": ["solglasögon", "armbandsur", "herrklocka", "polariserade", "digital klocka för herr"],
-      "exclude": ["dörrklocka", "laddstation", "väckarklocka"],
+      "keywords": [
+        "solglasögon",
+        "armbandsur",
+        "herrklocka",
+        "polariserade",
+        "digital klocka för herr"
+      ],
+      "exclude": [
+        "dörrklocka",
+        "laddstation",
+        "väckarklocka"
+      ],
       "category": "Klockor & Solglasögon",
       "audience": "dig som vill toppa stilen med rätt accessoar",
       "painpoint": "billiga bågar som spricker och klockor som ser tråkiga ut",
@@ -159,7 +263,13 @@
       "slug": "vaskor-och-necessarer",
       "label": "väskor och necessärer",
       "singular": "väska",
-      "keywords": ["necessär", "ryggsäck", "sminkväska", "resenäcessär", "axelväska"],
+      "keywords": [
+        "necessär",
+        "ryggsäck",
+        "sminkväska",
+        "resenäcessär",
+        "axelväska"
+      ],
       "exclude": [],
       "category": "Väskor & Necessärer",
       "audience": "dig som vill ha ordning på prylarna var du än är",
@@ -170,7 +280,15 @@
       "slug": "traningsutrustning",
       "label": "träningsutrustning för hemmet",
       "singular": "träningsredskap",
-      "keywords": ["sportflaska", "hopprep", "spikmatta", "hållningskorrigerare", "träningsband", "yogamatta", "vattenflaska"],
+      "keywords": [
+        "sportflaska",
+        "hopprep",
+        "spikmatta",
+        "hållningskorrigerare",
+        "träningsband",
+        "yogamatta",
+        "vattenflaska"
+      ],
       "exclude": [],
       "category": "Träning & Gym",
       "audience": "dig som vill träna smart hemma",
@@ -181,8 +299,17 @@
       "slug": "rakning-och-trimning",
       "label": "rakning och trimning",
       "singular": "trimmer",
-      "keywords": ["trimmer", "skäggtrimmer", "rakapparat", "skägg"],
-      "exclude": ["klovård", "klädvård", "klädvårdsrak"],
+      "keywords": [
+        "trimmer",
+        "skäggtrimmer",
+        "rakapparat",
+        "skägg"
+      ],
+      "exclude": [
+        "klovård",
+        "klädvård",
+        "klädvårdsrak"
+      ],
       "category": "Hår & Rakning",
       "audience": "dig som vill sköta skägget och stylingen själv",
       "painpoint": "ojämn trimning, irriterad hud och apparater som tappar laddning",
@@ -192,7 +319,16 @@
       "slug": "koksredskap",
       "label": "köksredskap och smarta hjälpmedel",
       "singular": "köksredskap",
-      "keywords": ["knivslip", "knivhållare", "mathackare", "skärbräda", "oljesprayer", "vinöppnare", "pepparkvarn", "mikrovågslock"],
+      "keywords": [
+        "knivslip",
+        "knivhållare",
+        "mathackare",
+        "skärbräda",
+        "oljesprayer",
+        "vinöppnare",
+        "pepparkvarn",
+        "mikrovågslock"
+      ],
       "exclude": [],
       "category": "Köksredskap & Tillbehör",
       "audience": "dig som vill laga mat snabbare och snyggare",
