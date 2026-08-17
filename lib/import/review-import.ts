@@ -19,6 +19,7 @@ import {
 } from "../translate/usage";
 import { getReviewStore, type ReviewStore, type StoredReview } from "../store/reviews";
 import { isEuCountry as isEuWarehouseCode } from "../aliexpress/eu-countries";
+import { mentionsForeignDelivery } from "./review-locale-filter";
 
 /** Rå recension som skrapan (extension/content.js) eller AE-API:t levererar. */
 export interface AERReview {
@@ -120,6 +121,10 @@ export function filterAndRankReviews(
     if (r.rating < REVIEW_FILTER.minRating) continue;
     if (text.length < REVIEW_FILTER.minLength || text.length > REVIEW_FILTER.maxLength) continue;
     if (isSpam(text)) continue;
+    // "Kom snabbt till Tjeckien" hör inte hemma på en svensk produktsida
+    // (Leonards rapport 2026-08-16). Vi tar bort dem i stället för att skriva
+    // om dem — att byta land vore att förfalska ett kundomdöme.
+    if (mentionsForeignDelivery(text)) continue;
     const key = dedupKey(text);
     if (!key || seen.has(key)) continue;
     seen.add(key);
