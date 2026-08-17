@@ -46,9 +46,9 @@ jobs:
           dry=""
           if [ "${{ inputs.dry_run }}" = "true" ]; then dry="&dryRun=true"; fi
 
-          total_köade=0
-          total_kontrollerade=0
-          total_strypta=0
+          total_queued=0
+          total_checked=0
+          total_throttled=0
 
           for i in $(seq 1 ${{ inputs.rounds }}); do
             url="${base}?limit=${{ inputs.limit }}${dry}"
@@ -59,31 +59,31 @@ jobs:
               exit 1
             fi
 
-            kandidater=$(echo "$body" | jq -r '.kandidater // 0')
-            kontrollerade=$(echo "$body" | jq -r '.kontrollerade // 0')
-            köade=$(echo "$body" | jq -r '.köade // 0')
-            strypta=$(echo "$body" | jq -r '.strypta // 0')
-            echo "Runda $i: $kandidater kandidater, $kontrollerade kontrollerade, $köade köade, $strypta strypta"
+            candidates=$(echo "$body" | jq -r '.kandidater // 0')
+            checked=$(echo "$body" | jq -r '.kontrollerade // 0')
+            queued=$(echo "$body" | jq -r '.köade // 0')
+            throttled=$(echo "$body" | jq -r '.strypta // 0')
+            echo "Runda $i: $candidates kandidater, $checked kontrollerade, $queued köade, $throttled strypta"
 
-            total_köade=$((total_köade + köade))
-            total_kontrollerade=$((total_kontrollerade + kontrollerade))
-            total_strypta=$((total_strypta + strypta))
+            total_queued=$((total_queued + queued))
+            total_checked=$((total_checked + checked))
+            total_throttled=$((total_throttled + throttled))
 
             # Inga kandidater kvar → hela katalogen är genombetad.
-            if [ "$kandidater" = "0" ]; then
+            if [ "$candidates" = "0" ]; then
               echo "Katalogen genombetad efter $i rundor."
               break
             fi
             # Strypning betyder att AE ber oss sakta ner — vila längre.
-            if [ "$strypta" -gt 0 ]; then sleep 60; else sleep 10; fi
+            if [ "$throttled" -gt 0 ]; then sleep 60; else sleep 10; fi
           done
 
           {
             echo "### Recensionskö"
             echo ""
-            echo "- Kontrollerade produkter: **$total_kontrollerade**"
-            echo "- Köade recensioner: **$total_köade**"
-            echo "- Strypta hämtningar: **$total_strypta** (tas nästa körning)"
+            echo "- Kontrollerade produkter: **$total_checked**"
+            echo "- Köade recensioner: **$total_queued**"
+            echo "- Strypta hämtningar: **$total_throttled** (tas nästa körning)"
             if [ "${{ inputs.dry_run }}" = "true" ]; then
               echo ""
               echo "_Torrkörning — ingenting skrevs._"
