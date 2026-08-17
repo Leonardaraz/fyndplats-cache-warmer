@@ -7,6 +7,7 @@
 // navigerar med tangentbord eller skärmläsare ska kunna sätta betyg utan mus.
 
 import { useState } from "react";
+import { validateCustomerReview, FELTEXT } from "../lib/customer-review";
 
 interface Vara {
   productId: string;
@@ -17,6 +18,10 @@ interface Vara {
 
 type Läge = { typ: "vilar" } | { typ: "skickar" } | { typ: "klar" } | { typ: "fel"; text: string };
 
+// Ordet under betyget. Bara dekor för seendet — radioknapparna säger redan
+// "n av 5 stjärnor" till skärmläsaren.
+const BETYGSORD = ["", "Inte alls bra", "Mindre bra", "Helt okej", "Bra", "Mycket bra"];
+
 function Stjärnval({
   värde,
   onChange,
@@ -26,22 +31,36 @@ function Stjärnval({
   onChange: (n: number) => void;
   namn: string;
 }) {
+  // Att peka på fjärde stjärnan ska tända fyra, inte bara den fjärde. Ren
+  // CSS-:hover tänder bara den man är på, vilket får det att kännas trasigt.
+  const [hovrad, setHovrad] = useState(0);
+  const visat = hovrad || värde;
+
   return (
     <fieldset className="rf-stars" style={{ border: 0, padding: 0, margin: 0 }}>
       <legend className="rf-legend">Ditt betyg</legend>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <label key={n} className={`rf-star ${n <= värde ? "rf-star-on" : ""}`}>
-          <input
-            type="radio"
-            name={namn}
-            value={n}
-            checked={värde === n}
-            onChange={() => onChange(n)}
-          />
-          <span aria-hidden="true">★</span>
-          <span className="rf-sr">{n} av 5 stjärnor</span>
-        </label>
-      ))}
+      <div className="rf-star-row" onMouseLeave={() => setHovrad(0)}>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <label
+            key={n}
+            className={`rf-star ${n <= visat ? "rf-star-on" : ""}`}
+            onMouseEnter={() => setHovrad(n)}
+          >
+            <input
+              type="radio"
+              name={namn}
+              value={n}
+              checked={värde === n}
+              onChange={() => onChange(n)}
+            />
+            <span aria-hidden="true">★</span>
+            <span className="rf-sr">{n} av 5 stjärnor</span>
+          </label>
+        ))}
+      </div>
+      <span className="rf-rating-word" aria-hidden="true">
+        {BETYGSORD[visat] || " "}
+      </span>
     </fieldset>
   );
 }
@@ -54,6 +73,17 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
 
   async function skicka(e: React.FormEvent) {
     e.preventDefault();
+
+    // Samma kontroll som rutten kör, samma feltexter — importerade, inte
+    // omskrivna, så de aldrig kan glida isär. Kunden slipper vänta på ett
+    // serversvar för att få veta att stjärnorna saknas. Servern kontrollerar
+    // ändå: det här är bekvämlighet, inte skyddet.
+    const kontroll = validateCustomerReview({ rating: betyg || "", text, name: namn });
+    if (!kontroll.ok) {
+      setLäge({ typ: "fel", text: FELTEXT[kontroll.error] });
+      return;
+    }
+
     setLäge({ typ: "skickar" });
     try {
       const res = await fetch("/api/omdome", {

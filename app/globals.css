@@ -1957,12 +1957,19 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rf-legend{font-size:13px;font-weight:600;color:var(--ink);padding:0}
 /* Stjärnorna är radioknappar: själva inputen göms visuellt men behåller fokus
    och tangentbordsnavigering. */
-.rf-stars{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:4px 0 16px}
+.rf-stars{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:4px 0 18px}
 .rf-stars .rf-legend{flex:0 0 100%;margin-bottom:6px}
-.rf-star{cursor:pointer;font-size:30px;line-height:1;color:#d6cec2;transition:color .12s}
-.rf-star:hover,.rf-star-on{color:#f5a623}
+.rf-star-row{display:flex;align-items:center;gap:6px}
+/* Ifyllnaden 1..n styrs av React (hover + valt värde), inte av :hover — annars
+   tänds bara stjärnan man pekar på och plockaren känns trasig. */
+.rf-star{cursor:pointer;font-size:32px;line-height:1;color:#d6cec2;transition:color .12s,transform .12s}
+.rf-star-on{color:#f5a623}
+.rf-star:active{transform:scale(.94)}
 .rf-star input{position:absolute;opacity:0;width:1px;height:1px}
 .rf-star:focus-within span[aria-hidden]{outline:2px solid var(--ink);outline-offset:3px;border-radius:4px}
+/* Ordet bredvid stjärnorna. Fast minsta bredd så raden inte hoppar när man
+   sveper över betygen. */
+.rf-rating-word{font-size:13.5px;font-weight:600;color:var(--soft);min-width:96px;white-space:nowrap}
 .rf-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .rf-label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin:12px 0 6px}
 .rf-hint{font-weight:400;color:var(--soft)}
@@ -1970,6 +1977,12 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .rf-textarea:focus,.rf-input:focus{outline:2px solid var(--ink);outline-offset:1px;border-color:var(--ink)}
 .rf-textarea{resize:vertical;line-height:1.5}
 .rf-error{color:#b3261e;font-size:13.5px;margin:12px 0 0}
-.rf-submit{margin-top:16px;background:#C2410C;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-size:14.5px;cursor:pointer}
-.rf-submit:disabled{opacity:.6;cursor:default}
+.rf-submit{margin-top:18px;background:#C2410C;color:#fff;border:0;border-radius:10px;padding:13px 22px;font-weight:700;font-size:14.5px;cursor:pointer;box-shadow:0 10px 22px -12px rgba(194,65,12,.55);transition:background .12s,transform .12s}
+.rf-submit:hover{background:#a83809}
+.rf-submit:active{transform:translateY(1px)}
+.rf-submit:disabled{opacity:.6;cursor:default;box-shadow:none}
 .rf-done{background:#f6fbf6;border-color:#cfe6cf}
+@media (max-width:560px){
+  .rf-card{padding:18px 16px}
+  .rf-submit{width:100%}
+}

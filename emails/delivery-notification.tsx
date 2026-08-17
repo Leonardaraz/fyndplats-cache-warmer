@@ -113,6 +113,7 @@ export default function DeliveryNotificationEmail({
   const trackingUrl = trackingNumber
     ? `${BRAND.siteUrl}/sparning?tn=${encodeURIComponent(trackingNumber)}`
     : null;
+  const visarOmdomesfraga = Boolean(reviewUrl) && status === "delivered";
 
   return (
     <EmailShell preview={headline}>
@@ -204,7 +205,10 @@ export default function DeliveryNotificationEmail({
 
       {trackingUrl ? (
         <Section style={{ margin: "16px 0" }}>
-          <Link href={trackingUrl} style={block.ctaButton}>
+          {/* Sekundär när omdömesfrågan står i samma mejl: paketet är redan
+              framme, så spårningen är uppslagsverk, inte det vi ber om. Två
+              lika starka orange knappar hade gjort båda svagare. */}
+          <Link href={trackingUrl} style={visarOmdomesfraga ? block.ctaGhost : block.ctaButton}>
             Spåra ditt paket
           </Link>
           {carrier ? (
@@ -220,15 +224,33 @@ export default function DeliveryNotificationEmail({
           sett. Länken är signerad och personlig — bara den som fått mejlet kan
           skriva, vilket är hela grunden för att kalla omdömet ett verifierat
           köp. */}
-      {reviewUrl && status === "delivered" ? (
-        <Section style={{ margin: "22px 0 6px" }}>
-          <Text style={{ ...text.body, marginBottom: "10px" }}>
-            Hur blev det? Ditt omdöme hjälper nästa kund att välja rätt – det tar en minut.
+      {visarOmdomesfraga ? (
+        // Egen panel i stället för ännu ett stycke löptext: frågan är mejlets
+        // huvudhandling när paketet är framme och ska läsas som en inbjudan.
+        // Stjärnorna är TOMMA (samma dova ton som butikens ofyllda stjärnor) —
+        // fem orange hade sett ut som en beställning på femma.
+        <Section
+          style={{
+            ...block.card,
+            background: "#ffffff",
+            textAlign: "center" as const,
+            padding: "24px 20px",
+            margin: "24px 0 6px",
+          }}
+        >
+          <Text style={{ fontSize: "24px", letterSpacing: "0.16em", color: "#d6cec2", margin: 0, lineHeight: "1" }}>
+            ★★★★★
+          </Text>
+          <Text style={{ fontSize: "17px", fontWeight: 800, color: BRAND.ink, margin: "14px 0 6px 0" }}>
+            Hur blev det?
+          </Text>
+          <Text style={{ ...text.body, margin: "0 0 18px 0" }}>
+            Ditt omdöme hjälper nästa kund att välja rätt – det tar en minut.
           </Text>
           <Link href={reviewUrl} style={block.ctaButton}>
             Lämna ett omdöme
           </Link>
-          <Text style={{ ...text.muted, margin: "10px 0 0 0" }}>
+          <Text style={{ ...text.muted, margin: "14px 0 0 0" }}>
             Vi visar bara dina initialer, aldrig hela namnet.
           </Text>
         </Section>
