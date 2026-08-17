@@ -41,6 +41,9 @@ export interface RepairableMappingVariant {
 
 export interface RepairDsVariant {
   skuId?: string;
+  /** AE:s sku_attr, t.ex. "14:350852;200007763:201336104". Bär valen som ID:n
+   *  och är därför läsbar även när DS-svaret utelämnar egenskapernas TEXT. */
+  skuAttr?: string;
   skuProps?: Record<string, string>;
   price?: number;
   stock?: number;
@@ -103,6 +106,31 @@ function pickPreferred(candidates: RepairDsVariant[]): RepairDsVariant | undefin
   )[0];
 }
 
+/** AliExpress egenskaps-id för "Ships From" — lagret, alltså den axel som ska
+ *  IGNORERAS när vi avgör om två SKU:er är samma vara. */
+const SHIP_FROM_PROPERTY_ID = "200007763";
+
+/**
+ * "Vilken vara är detta?" ur ett sku_attr, med lager-axeln bortplockad.
+ * "14:350852;200007763:201336104" → "14:350852"
+ * Etiketten efter # ignoreras (samma val kan bära olika text per språk).
+ */
+function goodsKeyFromSkuAttr(skuAttr: string): string {
+  return String(skuAttr)
+    .split(";")
+    .map((s) => s.split("#")[0].trim())
+    .filter((s) => s && !s.startsWith(`${SHIP_FROM_PROPERTY_ID}:`))
+    .sort()
+    .join(";");
+}
+
+/** Lager med saldo först, EU före icke-EU, högst saldo bryter lika. */
+function sortByWarehousePreference(list: ReadonlyArray<RepairDsVariant>): RepairDsVariant[] {
+  const score = (d: RepairDsVariant) =>
+    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCountry(shipCode(d)) ? 1 : 0);
+  return [...list].sort((a, b) => score(b) - score(a) || (b.stock ?? 0) - (a.stock ?? 0));
+}
+
 /**
  * SKU:er som är SAMMA vara som utgångspunkten men ligger i ETT ANNAT LAGER.
  *
@@ -130,6 +158,19 @@ export function warehouseAlternativeSkuIds(
   const baseId = String(base.skuId ?? "").trim();
   const self = baseId ? ds.find((d) => String(d.skuId) === baseId) : undefined;
 
+  // FÖRSTA HAND: sku_attr. Babygungan 2026-08-17 visade varför — DS-svaret gav
+  // `skuProps: {Color: "", "Ships From": ""}` för BÅDA SKU:erna (texterna finns
+  // bara i råsvaret), så värdesignaturen blev tom för båda och grön såg ut som
+  // samma vara som orange. sku_attr bär valen som ID:n ("14:350852" mot
+  // "14:-1") och skiljer dem åt även när texten saknas.
+  if (self?.skuAttr) {
+    const nyckel = goodsKeyFromSkuAttr(self.skuAttr);
+    const träffar = ds.filter(
+      (d) => String(d.skuId) !== baseId && d.skuAttr && goodsKeyFromSkuAttr(d.skuAttr) === nyckel,
+    );
+    return sortByWarehousePreference(träffar).map((d) => String(d.skuId));
+  }
+
   // Signaturen tas i första hand ur DS-datan för vår egen SKU (exakt), annars
   // ur de sparade valvärdena. Utan bådadera vore varje SKU en "kandidat" och
   // vi kunde peka om till fel vara — då hellre inget.
@@ -139,15 +180,14 @@ export function warehouseAlternativeSkuIds(
       ? [...(base.choiceValues ?? [])].map((s) => String(s).trim().toLowerCase()).sort().join(" ")
       : null;
   if (sig === null) return [];
+  // TOM signatur = vi känner inga val alls. Då kan vi inte skilja "samma vara,
+  // annat lager" från "annan färg vars text saknas" → gissa aldrig.
+  if (sig === "" && ds.length > 1) return [];
 
   const candidates = ds.filter(
     (d) => String(d.skuId) !== baseId && valueSignature(d.skuProps, (s) => s) === sig,
   );
-  const score = (d: RepairDsVariant) =>
-    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCountry(shipCode(d)) ? 1 : 0);
-  return [...candidates]
-    .sort((a, b) => score(b) - score(a) || (b.stock ?? 0) - (a.stock ?? 0))
-    .map((d) => String(d.skuId));
+  return sortByWarehousePreference(candidates).map((d) => String(d.skuId));
 }
 
 export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
