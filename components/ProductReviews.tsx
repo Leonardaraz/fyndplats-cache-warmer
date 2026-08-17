@@ -65,6 +65,14 @@ export function ProductReviews({
                 <div className="rev-item-head">
                   <Stars rating={r.rating} />
                   <span className="rev-author">{r.displayName}</span>
+                  {/* Egna kunders omdömen märks ut. Skillnaden mot de importerade
+                      är verklig — de här är skrivna av någon som handlat här — och
+                      då ska den synas i stället för att alla ser likadana ut. */}
+                  {r.firstParty ? (
+                    <span className="rev-verified" title="Skrivet av en kund som handlat hos Fyndplats">
+                      ✓ Verifierat köp
+                    </span>
+                  ) : null}
                   {r.date ? <span className="rev-date">{r.date.slice(0, 10)}</span> : null}
                 </div>
                 <p className="rev-text">{r.text}</p>

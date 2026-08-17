@@ -224,6 +224,20 @@ export const block = {
     textDecoration: "none" as const,
     boxShadow: "0 10px 22px -8px rgba(194,65,12,0.45)",
   },
+  // Sekundär knapp. Används när mejlet har TVÅ handlingar och bara den ena är
+  // den vi ber om: två fyllda orange knappar bredvid varandra gör att ingen av
+  // dem läser som huvudsaken.
+  ctaGhost: {
+    display: "inline-block" as const,
+    background: "#ffffff",
+    color: BRAND.ink,
+    fontWeight: 700,
+    fontSize: "14px",
+    padding: "11px 20px",
+    borderRadius: "10px",
+    textDecoration: "none" as const,
+    border: `1px solid ${BRAND.line}`,
+  },
 } as const;
 
 export function formatSEK(amount: number, currency = "SEK"): string {

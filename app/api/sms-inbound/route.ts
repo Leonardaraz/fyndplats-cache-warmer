@@ -26,6 +26,9 @@ import { sql } from "@/lib/db";
 import { parseSms, type ParsedSms } from "@/lib/sms-parser";
 import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
 import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
+import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
+import type { OrderLineItem } from "@/emails/order-confirmation";
+import { reviewFormUrl } from "@/lib/review-token";
 import DeliveryNotificationEmail, {
   deliverySubject,
   type DeliveryStatus,
@@ -418,7 +421,28 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Ordersammanfattning till mejlet (ordernummer + rader med bild). Kunden fick
+  // tidigare "ditt paket har levererats" utan att mejlet sa VILKET paket.
+  // Best-effort: misslyckas hämtningen skickas mejlet precis som förut.
+  let orderSummary: { orderNumber?: string; items?: OrderLineItem[] } = {};
+  if (mapping.order_id) {
+    try {
+      const order = await fetchWixOrder(mapping.order_id);
+      const built = order ? buildOrderConfirmationProps(order) : null;
+      if (built) orderSummary = { orderNumber: built.orderNumber, items: built.items };
+    } catch (err) {
+      console.warn("[sms-inbound] kunde inte hämta order för mejlet:", err instanceof Error ? err.message : err);
+    }
+  }
+
+  // Omdömeslänken. Null utan REVIEW_TOKEN_SECRET → ingen knapp i mejlet.
+  const reviewUrl = mapping.order_id
+    ? reviewFormUrl(mapping.order_id, "https://www.fyndplats.se", process.env.REVIEW_TOKEN_SECRET) ?? undefined
+    : undefined;
+
   const props = {
+    ...orderSummary,
+    reviewUrl,
     firstName: firstName(mapping.customer_name),
     status: deliveryStatus,
     pickupLocation: parsed.pickup_location,

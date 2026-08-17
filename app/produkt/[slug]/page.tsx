@@ -165,17 +165,26 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const reviewAverage = reviewData.average;
   if (
     reviewAverage != null
-    && shouldEmitReviewSchema(reviewSchemaMode(process.env.PRODUCT_REVIEW_SCHEMA), reviewData.count, reviewAverage)
+    // FÖRSTAHANDS-siffrorna, inte de synliga. De importerade omdömena får
+    // visas för kunden men aldrig utge sig för att vara vårt betyg i Googles
+    // ögon — det var hela poängen med att bygga egna omdömen.
+    && shouldEmitReviewSchema(
+      reviewSchemaMode(process.env.PRODUCT_REVIEW_SCHEMA),
+      reviewData.firstPartyCount,
+      reviewData.firstPartyAverage,
+    )
   ) {
     jsonLd.aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: reviewAverage.toFixed(1),
-      reviewCount: String(reviewData.count),
+      ratingValue: (reviewData.firstPartyAverage ?? 0).toFixed(1),
+      reviewCount: String(reviewData.firstPartyCount),
       bestRating: "5",
       worstRating: "1",
     };
-    // Upp till 10 enskilda Review-objekt för rich snippets.
-    jsonLd.review = reviewData.reviews.slice(0, 10).map((r) => ({
+    // Upp till 10 enskilda Review-objekt för rich snippets — BARA egna kunders.
+    // Ett importerat omdöme i listan hade gjort hela markeringen osann även om
+    // snittet ovan var rätt räknat.
+    jsonLd.review = reviewData.reviews.filter((r) => r.firstParty).slice(0, 10).map((r) => ({
       "@type": "Review",
       reviewRating: { "@type": "Rating", ratingValue: String(r.rating), bestRating: "5", worstRating: "1" },
       author: { "@type": "Person", name: r.displayName },

@@ -8,8 +8,9 @@
 // the order/shipping/refund mails). Status drives the headline, body copy, and
 // whether the pickup-code card is shown.
 
-import { Link, Section, Text } from "@react-email/components";
+import { Column, Img, Link, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
+import type { OrderLineItem } from "./order-confirmation";
 
 // Mirrors lib/sms-parser SmsStatus — duplicated here so the email package has
 // no upstream dependency on the parser internals.
@@ -30,6 +31,14 @@ export interface DeliveryNotificationProps {
   pickupUrl?: string;
   trackingNumber?: string;
   carrier?: string;
+  /** Orderns läsbara nummer, t.ex. "10042". Utelämnas → ordersammanfattningen
+   *  renderas inte alls (mejlet ser då ut som förut). */
+  orderNumber?: string;
+  /** Raderna i ordern, samma form som orderbekräftelsen använder. */
+  items?: OrderLineItem[];
+  /** Signerad länk till omdömesformuläret. Utelämnas → ingen knapp (funktionen
+   *  är avstängd utan REVIEW_TOKEN_SECRET). Visas bara vid levererat. */
+  reviewUrl?: string;
 }
 
 function statusHeadline(status: DeliveryStatus, pickupLocation?: string): string {
@@ -95,18 +104,68 @@ export default function DeliveryNotificationEmail({
   pickupUrl,
   trackingNumber,
   carrier,
+  orderNumber,
+  items,
+  reviewUrl,
 }: DeliveryNotificationProps) {
   const headline = statusHeadline(status, pickupLocation);
   const body = statusBody(status, pickupLocation);
   const trackingUrl = trackingNumber
     ? `${BRAND.siteUrl}/sparning?tn=${encodeURIComponent(trackingNumber)}`
     : null;
+  const visarOmdomesfraga = Boolean(reviewUrl) && status === "delivered";
 
   return (
     <EmailShell preview={headline}>
       <Text style={text.h1}>Hej {firstName}!</Text>
       <Text style={text.h2}>{headline}</Text>
       <Text style={text.body}>{body}</Text>
+
+      {/* Ordersammanfattning. Saknades tidigare helt: kunden fick "ditt paket
+          har levererats" utan att mejlet sa VILKET paket — förvirrande om man
+          har flera beställningar på gång, och omöjligt att svara på utan att
+          leta upp ordernumret själv. Samma artikelrad som orderbekräftelsen
+          använder, så de två mejlen känns igen som samma familj.
+
+          Renderas bara när ordern gick att hämta; utan den ser mejlet ut
+          exakt som förut. */}
+      {orderNumber ? (
+        <Section style={block.card}>
+          <Text style={{ ...text.muted, margin: 0 }}>Order</Text>
+          <Text style={{ fontSize: "18px", fontWeight: 800, margin: "2px 0 0 0", color: BRAND.ink }}>
+            {orderNumber}
+          </Text>
+
+          {(items ?? []).map((it, i) => (
+            <Row key={i} style={{ marginTop: "14px" }}>
+              {it.imageUrl ? (
+                <Column style={{ width: "64px", verticalAlign: "top" }}>
+                  <Img
+                    src={it.imageUrl}
+                    alt={it.name}
+                    width="56"
+                    height="56"
+                    style={{ borderRadius: "8px", border: `1px solid ${BRAND.line}`, objectFit: "cover" }}
+                  />
+                </Column>
+              ) : null}
+              <Column style={{ verticalAlign: "top" }}>
+                <Text style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: BRAND.ink }}>
+                  {it.name}
+                </Text>
+                {it.variant ? (
+                  <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>
+                    {it.variant}
+                  </Text>
+                ) : null}
+                <Text style={{ fontSize: "12px", color: BRAND.muted, margin: "2px 0 0 0" }}>
+                  Antal: {it.qty}
+                </Text>
+              </Column>
+            </Row>
+          ))}
+        </Section>
+      ) : null}
 
       {pickupCode ? (
         <Section style={block.card}>
@@ -146,7 +205,10 @@ export default function DeliveryNotificationEmail({
 
       {trackingUrl ? (
         <Section style={{ margin: "16px 0" }}>
-          <Link href={trackingUrl} style={block.ctaButton}>
+          {/* Sekundär när omdömesfrågan står i samma mejl: paketet är redan
+              framme, så spårningen är uppslagsverk, inte det vi ber om. Två
+              lika starka orange knappar hade gjort båda svagare. */}
+          <Link href={trackingUrl} style={visarOmdomesfraga ? block.ctaGhost : block.ctaButton}>
             Spåra ditt paket
           </Link>
           {carrier ? (
@@ -154,6 +216,43 @@ export default function DeliveryNotificationEmail({
               Transportör: <strong style={{ color: BRAND.ink }}>{carrier}</strong>
             </Text>
           ) : null}
+        </Section>
+      ) : null}
+
+      {/* Omdömesfrågan ställs BARA när paketet är framme. Att fråga medan det
+          fortfarande är på väg vore att be om ett omdöme om något kunden inte
+          sett. Länken är signerad och personlig — bara den som fått mejlet kan
+          skriva, vilket är hela grunden för att kalla omdömet ett verifierat
+          köp. */}
+      {visarOmdomesfraga ? (
+        // Egen panel i stället för ännu ett stycke löptext: frågan är mejlets
+        // huvudhandling när paketet är framme och ska läsas som en inbjudan.
+        // Stjärnorna är TOMMA (samma dova ton som butikens ofyllda stjärnor) —
+        // fem orange hade sett ut som en beställning på femma.
+        <Section
+          style={{
+            ...block.card,
+            background: "#ffffff",
+            textAlign: "center" as const,
+            padding: "24px 20px",
+            margin: "24px 0 6px",
+          }}
+        >
+          <Text style={{ fontSize: "24px", letterSpacing: "0.16em", color: "#d6cec2", margin: 0, lineHeight: "1" }}>
+            ★★★★★
+          </Text>
+          <Text style={{ fontSize: "17px", fontWeight: 800, color: BRAND.ink, margin: "14px 0 6px 0" }}>
+            Hur blev det?
+          </Text>
+          <Text style={{ ...text.body, margin: "0 0 18px 0" }}>
+            Ditt omdöme hjälper nästa kund att välja rätt – det tar en minut.
+          </Text>
+          <Link href={reviewUrl} style={block.ctaButton}>
+            Lämna ett omdöme
+          </Link>
+          <Text style={{ ...text.muted, margin: "14px 0 0 0" }}>
+            Vi visar bara dina initialer, aldrig hela namnet.
+          </Text>
         </Section>
       ) : null}
 

@@ -12,6 +12,8 @@ const COL = process.env.WIX_DATA_COL_REVIEWS || "FyndplatsImportedReviews";
 
 export interface ProductReview {
   reviewIdAE: string;
+  /** True när omdömet är skrivet av en kund hos oss, inte importerat. */
+  firstParty: boolean;
   rating: number;
   text: string;
   /** Visningsnamn enligt REVIEW_DISPLAY_MODE — "M.K." eller "Verifierad köpare". */
@@ -26,6 +28,10 @@ export interface ProductReviews {
   /** Snittbetyg (1 decimal) eller null om inga recensioner. */
   average: number | null;
   reviews: ProductReview[];
+  /** Antal omdömen skrivna av VÅRA kunder (source: "customer"). */
+  firstPartyCount: number;
+  /** Snittet för enbart dessa, eller null. */
+  firstPartyAverage: number | null;
 }
 
 function reviewDisplayName(initials: string): string {
@@ -51,9 +57,11 @@ interface WixReviewRow {
   hasImage?: boolean;
   imageUrl?: string;
   status?: string;
+  /** "customer" = skrivet av en kund hos oss. Saknas → gammal AE-import. */
+  source?: string;
 }
 
-const EMPTY: ProductReviews = { count: 0, average: null, reviews: [] };
+const EMPTY: ProductReviews = { count: 0, average: null, reviews: [], firstPartyCount: 0, firstPartyAverage: null };
 const VISIBLE = new Set(["approved", "edited"]);
 
 /**
@@ -84,6 +92,7 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
 
     const reviews: ProductReview[] = rows.map((r) => ({
       reviewIdAE: String(r.reviewIdAE || ""),
+      firstParty: String(r.source || "") === "customer",
       rating: Math.max(1, Math.min(5, Math.round(Number(r.rating) || 5))),
       text: String(r.textSwedish || r.textOriginal || ""),
       displayName: reviewDisplayName(String(r.initials || "")),
@@ -104,7 +113,18 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
     const count = reviews.length;
     const average =
       count > 0 ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / count) * 10) / 10 : null;
-    return { count, average, reviews };
+
+    // Egna kunders omdömen räknas SEPARAT. Bara de får någonsin bli
+    // aggregateRating mot Google — importerade omdömen visas för kunden men
+    // är inte vårt eget betyg, och att skicka dem som det vore att ljuga.
+    const egna = reviews.filter((r) => r.firstParty);
+    const firstPartyCount = egna.length;
+    const firstPartyAverage =
+      firstPartyCount > 0
+        ? Math.round((egna.reduce((s, r) => s + r.rating, 0) / firstPartyCount) * 10) / 10
+        : null;
+
+    return { count, average, reviews, firstPartyCount, firstPartyAverage };
   } catch {
     return EMPTY;
   }
