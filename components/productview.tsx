@@ -10,6 +10,8 @@ import { DeliveryEstimate } from "./delivery-estimate";
 import { PaymentMarks } from "./payment-marks";
 import { KlarnaMessage } from "./klarna-message";
 import { EU_STOCK_NOTE } from "../lib/shipping";
+import { ratingSummary } from "../lib/rating";
+import { Stars } from "./stars";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -222,6 +224,8 @@ export function ProductView({
   imageAlts,
   category,
   priceNum,
+  reviewCount,
+  reviewAverage,
 }: {
   productId: string;
   name: string;
@@ -244,8 +248,13 @@ export function ProductView({
   imageAlts?: Record<string, string>;
   category?: string;
   priceNum: number;
+  // Betygssammandraget. Samma siffror som recensionssektionen längre ner —
+  // sidan hämtar dem en gång och skickar hit, inget extra anrop.
+  reviewCount?: number;
+  reviewAverage?: number | null;
 }) {
   const { add, busy } = useCart();
+  const ratingHead = ratingSummary(reviewCount ?? 0, reviewAverage ?? null);
   // Förvälj FÖRSTA varianten (index 0) — samma som galleriets startbild nedan,
   // så vald ruta och visad bild alltid stämmer när sidan öppnas. (Tidigare
   // förvaldes billigaste varianten för att matcha "Från X kr" på korten, men då
@@ -536,6 +545,19 @@ export function ProductView({
         <div className="pdp-head">
           <div className="eyebrow" style={{ marginBottom: 10 }}>Fyndplats</div>
           <h1>{name}</h1>
+          {/* Betyget hör hemma FÖRE köpknappen. Länken hoppar till sektionen
+              med själva omdömena, som ligger längre ner på sidan. */}
+          {ratingHead && (
+            <a className="pdp-rating" href="#recensioner">
+              <Stars rating={ratingHead.stars} />
+              <strong>{ratingHead.value}</strong>
+              {/* Skiljetecken: utan det står "5,0" och "11" intill varandra och
+                  läses ett ögonblick som ett enda tal. Samma prick som
+                  sammandraget i recensionssektionen. */}
+              <span className="pdp-rating-dot" aria-hidden="true">·</span>
+              <span className="pdp-rating-count">{ratingHead.label}</span>
+            </a>
+          )}
           {!buyable && (
             <div className="oos-banner" role="status">
               <span className="oos-banner-chip">Slutsåld</span>

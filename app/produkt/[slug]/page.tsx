@@ -288,6 +288,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           imageOwners={p.imageOwners}
           imageAlts={p.imageAlts}
           category={primaryCol?.name}
+          // Med Trustpilot påslaget renderas våra egna omdömen inte alls
+          // (se villkoret nedan) — då får betyget inte stå kvar i huvudet
+          // och länka till en sektion som inte finns.
+          reviewCount={trustpilotBU ? 0 : reviewData.count}
+          reviewAverage={trustpilotBU ? null : reviewData.average}
         />
       </div>
 

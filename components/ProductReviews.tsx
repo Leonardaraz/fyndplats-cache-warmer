@@ -2,16 +2,8 @@
 
 import { useState } from "react";
 import type { ProductReview } from "../lib/reviews";
-
-function Stars({ rating }: { rating: number }) {
-  const full = Math.max(0, Math.min(5, Math.round(rating)));
-  return (
-    <span className="rev-stars" aria-label={`${full} av 5 stjärnor`} title={`${full} av 5`}>
-      {"★".repeat(full)}
-      <span className="rev-stars-empty">{"★".repeat(5 - full)}</span>
-    </span>
-  );
-}
+import { ratingSummary } from "../lib/rating";
+import { Stars } from "./stars";
 
 export function ProductReviews({
   reviews,
@@ -27,6 +19,7 @@ export function ProductReviews({
 
   const INITIAL = 5;
   const shown = showAll ? reviews : reviews.slice(0, INITIAL);
+  const summary = ratingSummary(count, average);
 
   return (
     <section className="sec revsec" id="recensioner">
@@ -36,11 +29,13 @@ export function ProductReviews({
           <h2>Kundrecensioner</h2>
         </div>
 
-        <div className="rev-summary">
-          <Stars rating={average ?? 5} />
-          <strong>{(average ?? 0).toFixed(1)}</strong> av 5
-          <span className="rev-count"> · {count} {count === 1 ? "recension" : "recensioner"}</span>
-        </div>
+        {summary && (
+          <div className="rev-summary">
+            <Stars rating={summary.stars} />
+            <strong>{summary.value}</strong> av 5
+            <span className="rev-count"> · {summary.label}</span>
+          </div>
+        )}
 
         <ul className="rev-list">
           {shown.map((r) => (
