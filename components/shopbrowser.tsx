@@ -94,11 +94,13 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
     // (sekund-precision hade gett hydration-hopp i Rekommenderat-poängen).
     const dayMs = Math.floor(Date.now() / 86_400_000) * 86_400_000;
-    // Rekommenderat och Populärast blandar kategorier (Leonard 2026-08-16).
-    // Utan blandningen blev båda i praktiken "Nyast": popularity är 0 för 711
-    // av 716 produkter och imageScore 60 för alla, så createdAt var enda
-    // signalen med variation. Ordningarna är rena funktioner i
-    // lib/sort-products — där ligger också mätningen och testerna.
+    // Rekommenderat blandar kategorier; Populärast rankar produkter med
+    // signal (egna sälj + omdömen) rakt av och blandar bara svansen (Leonard
+    // 2026-08-16 resp. 2026-08-18). Omdömessignalen läses ur p.rating, som
+    // serverkomponenterna hängt på via attachRatings INNAN listan når hit —
+    // saknas den är signalen 0 och ordningen faller tillbaka på kategori-
+    // blandning + nyhet. Ordningarna är rena funktioner i lib/sort-products —
+    // där ligger också mätningarna, vikterna och testerna.
     const universal = universalCollectionIds(products);
     if (sort === "img") out = orderRecommended(out, universal, dayMs);
     else if (sort === "pop") out = orderPopular(out, universal);
