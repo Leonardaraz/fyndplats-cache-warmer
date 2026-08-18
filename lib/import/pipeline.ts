@@ -5,6 +5,7 @@ import { resolveImportStockQty } from "./variant-stock";
 import { trimVariants, variantTrimEnabled, variantTrimMax } from "./variant-trim";
 import { capOptionsAndVariants } from "./variant-cap";
 import { splitConstantAxes, mergeConstantAxisSpecs } from "./constant-axes";
+import { collapseShipFromAxis } from "./ship-axis";
 import { generateProductContent, type ProductContent } from "./generate";
 import {
   resolveQualityMode,
@@ -538,7 +539,21 @@ export async function importProduct(
   // bockade av resten kollapsar då också till spec — ingen död väljare på PDP:n.
   // (Fixar även en vilande bugg: trim-demoteringen nådde aldrig prunedVariants-
   // kopiorna när splitten låg före trimmen.)
-  const { prunedVariants, specs: constantAxisSpecs } = splitConstantAxes(variants);
+  // Lager-axeln är aldrig ett kundval. Flera EU-lager i samma listning (samma
+  // vara, olika land) blir EN variant per vara — annars får produktsidan en
+  // rullista "Skickas från: Frankrike / Tjeckien / …" och den delade Storlek-
+  // listan fylls med varianter som sync ändå anser vara samma vara. Ett enda
+  // lager rörs inte: då gör splitConstantAxes nedan sin vanliga spec-rad.
+  const lager = collapseShipFromAxis(variants);
+  if (lager.applied) {
+    console.log(
+      `[import:lager] ${product.supplierProductId}: ${lager.collapsed} SKU:er var samma vara i ` +
+        `annat lager → en variant per vara (${variants.length} → ${lager.variants.length}). ` +
+        `Valda lager: ${lager.warehouses.join(", ") || "okänt"}.`,
+    );
+  }
+
+  const { prunedVariants, specs: constantAxisSpecs } = splitConstantAxes(lager.variants);
   if (constantAxisSpecs.length) {
     console.log(
       `[import:axes] ${product.supplierProductId}: ${constantAxisSpecs.length} icke-differentierande ` +
