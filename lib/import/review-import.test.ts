@@ -255,3 +255,22 @@ describe("dedupKey", () => {
     expect(dedupKey("  Hej,   Världen!! ")).toBe("hej världen");
   });
 });
+
+// Torktumlaren 2026-08-18: en rysk recension skriven utan blanksteg efter punkt
+// klistrades ihop av dedupKey ("отлично.быстрая" → ett ord) och föll på
+// isSpam:s fyra-ords-krav. Att skriva tätt efter punkt är inte spam.
+describe("dedupKey och isSpam vid text utan blanksteg efter punkt", () => {
+  it("skiljetecken separerar ord i stället för att klistra ihop dem", () => {
+    expect(dedupKey("Bra produkt.Snabb leverans")).toBe("bra produkt snabb leverans");
+  });
+
+  it("en vettig recension utan blanksteg efter punkt klassas inte som spam", () => {
+    expect(isSpam("отлично.быстрая доставка.работает.спасибо продавцу.рекомендую")).toBe(false);
+    expect(isSpam("Bra kvalitet.Snabb frakt.Fungerar precis som beskrivet")).toBe(false);
+  });
+
+  it("riktig upprepningsspam fastnar fortfarande", () => {
+    expect(isSpam("bra bra bra bra bra bra")).toBe(true);
+    expect(isSpam("nice")).toBe(true);
+  });
+});
