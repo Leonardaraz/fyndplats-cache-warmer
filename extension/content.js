@@ -669,6 +669,143 @@ function extractSpecifications() {
   return specs;
 }
 
+// ── Fäll ut sidan INNAN vi skrapar ─────────────────────────────────────────
+//
+// Bug 2026-08-18 (Leonards måleritält, AE 1005007857803500): produkten kom in
+// med `infoSections: []` — alltså NOLL specrader. Varken embedded specsModule
+// eller extractSpecifications() hittade något, och utan specs blir både
+// spec-fliken och senare SEO-poleringen fattigare än vad listningen faktiskt
+// innehåller.
+//
+// Orsaken är att vi läser DOM:en i det skick användaren lämnade den. AliExpress
+// gör två saker som gömmer innehåll för en sådan läsning:
+//
+//   1. Lazy-rendering. Spec-blocket monteras först när det scrollas in. Klickar
+//      man importera högst upp på sidan finns det inte i DOM:en alls. Exakt
+//      samma felmod som gjorde att recensionsskrapan returnerade [] på 876
+//      produkter (se CLAUDE.md) — vi lagade symptomet där men inte orsaken.
+//   2. Kollaps. Det som ÄR renderat visas i en avkortad batch bakom en
+//      "View more"/"Visa mer"-knapp; resten monteras vid klick.
+//
+// Därför scrollar vi igenom sidan och fäller ut kollapsade sektioner innan
+// extract() läser. Bounded i både antal klick och total tid — en import får
+// aldrig hänga sig på en sida som beter sig oväntat.
+
+/** Text som betyder "visa resten". Kort lista med flit: allt vi inte känner
+ *  igen lämnas oklickat. */
+const FP_EXPAND_TEXT_RE = /^(?:view|see|show)\s+more\b|^more\b|^visa\s+(?:mer|fler|allt)\b|^läs\s+mer\b|^mer\b|^ver\s+más\b/i;
+
+/** Spärrlista. Vi klickar på en LEVANDE butikssida — allt som kan lägga en
+ *  order, öppna kassan eller lösa en kupong är otänkbart oavsett hur texten
+ *  matchar ovan. Kontrolleras FÖRE utfällningsmönstret. */
+const FP_EXPAND_FORBIDDEN_RE =
+  /cart|checkout|buy|order|pay|coupon|köp|varukorg|kassa|beställ|betala|kupong|comprar|carrito/i;
+
+/**
+ * Är det här en utfällningskontroll vi vågar klicka på?
+ *
+ * Ren funktion (ingen DOM) så beslutet går att testa — det är den enda delen
+ * där ett fel får riktiga konsekvenser på en levande sida.
+ */
+function fpIsExpandControl(text) {
+  const t = String(text || "").replace(/\s+/g, " ").trim();
+  // Långa texter är brödtext eller hela sektioner, inte knappetiketter.
+  if (!t || t.length > 30) return false;
+  if (FP_EXPAND_FORBIDDEN_RE.test(t)) return false;
+  return FP_EXPAND_TEXT_RE.test(t);
+}
+
+/** Containrar vars innehåll är värt att fälla ut: specar och beskrivning. */
+const FP_EXPANDABLE_CONTAINERS =
+  '[class*="specification"], [class*="product-specs"], [class*="productSpec"], ' +
+  '[class*="prop-list"], [class*="product-prop"], [class*="extend-info"], ' +
+  '[class*="specs--"], [class*="specsTable"], [class*="propertyList"], ' +
+  '[class*="description"], [class*="detailmodule"], [id*="specification" i], ' +
+  '[data-pl*="specification" i], [data-pl*="description" i]';
+
+const FP_SCRAPE_PREP_BUDGET_MS = 6000;
+const FP_MAX_EXPAND_CLICKS = 8;
+
+const fpVila = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Syns elementet? Osynliga träffar är gamla noder eller mät-attrapper. */
+function fpSynlig(el) {
+  if (!el || !el.getBoundingClientRect) return false;
+  const r = el.getBoundingClientRect();
+  return r.width > 0 && r.height > 0;
+}
+
+/**
+ * Scrollar igenom sidan så lazy-sektioner monteras, och klickar sedan på
+ * "View more"/"Visa mer" i spec-/beskrivningsblocken tills det inte finns fler
+ * (eller taket nås). Återställer scrollpositionen efteråt.
+ *
+ * Fail-open i varje steg: en sida som inte går att fälla ut ska ge samma
+ * resultat som före den här funktionen fanns, aldrig ett kastat fel.
+ */
+async function fpPrepareForScrape() {
+  const start = Date.now();
+  const budgetKvar = () => Date.now() - start < FP_SCRAPE_PREP_BUDGET_MS;
+  const ursprungligY = window.scrollY;
+
+  try {
+    // 1. Scrolla ned i steg → lazy-blocken monteras. Ett hopp rakt till botten
+    //    missar sektioner som bara renderas när de passerar viewporten.
+    const steg = Math.max(1, Math.ceil(document.body.scrollHeight / window.innerHeight));
+    for (let i = 1; i <= Math.min(steg, 12) && budgetKvar(); i++) {
+      window.scrollTo(0, i * window.innerHeight);
+      await fpVila(120);
+    }
+    await fpVila(250);
+
+    // 2. Fäll ut. Varje klick kan montera nytt innehåll (och nya knappar), så
+    //    vi går om tills inget nytt hittas.
+    //
+    //    Redan klickade spåras på NYCKEL (container + etikett), inte på
+    //    nod-identitet: AliExpress är React och byter gärna ut noden vid
+    //    omrendering, så `Set` av element hade sett samma knapp som ny varje
+    //    varv och klickat tills taket slog i. Containerns index ingår så att
+    //    spec- och beskrivningsblockets egna "Visa mer" räknas var för sig.
+    const klickade = new Set();
+    let klick = 0;
+    while (klick < FP_MAX_EXPAND_CLICKS && budgetKvar()) {
+      let träff = null;
+      let nyckel = "";
+      const containrar = document.querySelectorAll(FP_EXPANDABLE_CONTAINERS);
+      for (let ci = 0; ci < containrar.length && !träff; ci++) {
+        for (const el of containrar[ci].querySelectorAll('button, [role="button"], a:not([href]), span, div')) {
+          // Bara bladnoder — annars matchar en wrapper vars textContent råkar
+          // börja med "Visa mer", och klicket hamnar fel.
+          if (el.childElementCount > 0) continue;
+          if (!fpIsExpandControl(el.textContent)) continue;
+          if (!fpSynlig(el)) continue;
+          const k = `${ci}|${String(el.textContent).replace(/\s+/g, " ").trim().toLowerCase()}`;
+          if (klickade.has(k)) continue;
+          träff = el;
+          nyckel = k;
+          break;
+        }
+      }
+      if (!träff) break;
+      klickade.add(nyckel);
+      try {
+        träff.click();
+      } catch (_) {
+        /* en knapp som vägrar klickas är inte värd att fälla importen */
+      }
+      klick++;
+      await fpVila(350);
+    }
+
+    if (klick > 0) console.log(`[fyndplats] fällde ut ${klick} kollapsad(e) sektion(er) före skrap.`);
+  } catch (err) {
+    console.warn("[fyndplats] kunde inte fälla ut sidan före skrap:", err);
+  } finally {
+    window.scrollTo(0, ursprungligY);
+    await fpVila(80);
+  }
+}
+
 // Säljpunkter/funktioner → array av strängar. AE visar dem som "key-features"-
 // listor, sales-bullets nära beskrivningen, ELLER som bullet points i
 // Product Description-sektionen (vanligaste — bug 2026-06-02: tomt features-
@@ -1598,6 +1735,8 @@ window.addEventListener("message", (ev) => {
         reply({ ok: false, error: 'Agent-läget är avstängt — bocka i "Sidstyrd import" i tilläggets inställningar och försök igen.' });
         return;
       }
+      status("Fäller ut produktsidan…");
+      await fpPrepareForScrape();
       status("Skrapar produktsidan…");
       const product = extract();
       await enrichDescription(product);
@@ -1659,6 +1798,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.type === "EXTRACT_PRODUCT") {
     (async () => {
       try {
+        // Fäll ut lazy-/kollapsade sektioner först — annars läser vi bara den
+        // första spec-batchen (eller ingen alls, om blocket aldrig scrollats in).
+        await fpPrepareForScrape();
         const product = extract();
         await enrichDescription(product);
         sendResponse({ ok: true, product });
