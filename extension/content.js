@@ -672,10 +672,10 @@ function extractSpecifications() {
 // ── Fäll ut sidan INNAN vi skrapar ─────────────────────────────────────────
 //
 // Bug 2026-08-18 (Leonards måleritält, AE 1005007857803500): produkten kom in
-// med `infoSections: []` — alltså NOLL specrader. Varken embedded specsModule
-// eller extractSpecifications() hittade något, och utan specs blir både
-// spec-fliken och senare SEO-poleringen fattigare än vad listningen faktiskt
-// innehåller.
+// med TRE specrader — "High-concerned chemical: None", "Brand Name: SucceBuy",
+// "Type: Awnings". Alltså exakt den första kollapsade batchen AliExpress visar,
+// och inget av det en köpare (eller SEO-poleringen) faktiskt behöver: material,
+// mått, effekt, filterklass.
 //
 // Orsaken är att vi läser DOM:en i det skick användaren lämnade den. AliExpress
 // gör två saker som gömmer innehåll för en sådan läsning:
@@ -728,6 +728,10 @@ const FP_MAX_EXPAND_CLICKS = 8;
 
 const fpVila = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** Sidhöjden vid förra scrollsvepet. Content-scriptet lever hela sidans
+ *  livstid, så det här överlever mellan EXTRACT_PRODUCT-anrop på samma flik. */
+let fpSveptHöjd = 0;
+
 /** Syns elementet? Osynliga träffar är gamla noder eller mät-attrapper. */
 function fpSynlig(el) {
   if (!el || !el.getBoundingClientRect) return false;
@@ -751,12 +755,20 @@ async function fpPrepareForScrape() {
   try {
     // 1. Scrolla ned i steg → lazy-blocken monteras. Ett hopp rakt till botten
     //    missar sektioner som bara renderas när de passerar viewporten.
-    const steg = Math.max(1, Math.ceil(document.body.scrollHeight / window.innerHeight));
-    for (let i = 1; i <= Math.min(steg, 12) && budgetKvar(); i++) {
+    //
+    //    Bulk-vägen ber om EXTRACT_PRODUCT upp till sex gånger per flik. Att
+    //    svepa om en sida som redan är utfälld kostar ~1,8 s per försök och
+    //    åt upp skrap-budgeten (audit 2026-08-18). Oförändrad sidhöjd betyder
+    //    att inget nytt monterats sedan förra svepet → hoppa över det och gå
+    //    direkt på utfällningen, som ändå är billig när den inte hittar något.
+    const höjd = document.body.scrollHeight;
+    const redanSvept = fpSveptHöjd === höjd;
+    const steg = Math.max(1, Math.ceil(höjd / window.innerHeight));
+    for (let i = 1; !redanSvept && i <= Math.min(steg, 12) && budgetKvar(); i++) {
       window.scrollTo(0, i * window.innerHeight);
       await fpVila(120);
     }
-    await fpVila(250);
+    if (!redanSvept) await fpVila(250);
 
     // 2. Fäll ut. Varje klick kan montera nytt innehåll (och nya knappar), så
     //    vi går om tills inget nytt hittas.
@@ -798,6 +810,9 @@ async function fpPrepareForScrape() {
     }
 
     if (klick > 0) console.log(`[fyndplats] fällde ut ${klick} kollapsad(e) sektion(er) före skrap.`);
+    // Stämpla den höjd sidan HAR efter utfällningen — nästa försök jämför mot
+    // den och hoppar över svepet bara om ingenting nytt monterats sedan dess.
+    fpSveptHöjd = document.body.scrollHeight;
   } catch (err) {
     console.warn("[fyndplats] kunde inte fälla ut sidan före skrap:", err);
   } finally {

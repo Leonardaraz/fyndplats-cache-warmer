@@ -288,3 +288,57 @@ describe("parseTrackingResponse — nya API-svarsformen (revision ~12 juli 2026)
     expect(t.shippingProvider).toBe("PostNord");
   });
 });
+
+// --- Produktegenskaper → specs (audit 2026-08-18) ---------------------------
+//
+// `specifications` fylldes tidigare BARA av tillägget, ur sidans DOM. Serverns
+// väg (CSV-/bulk-import via fetchAliExpressProductFromUrl) har ingen webbläsare
+// och byggde produkten utan ett enda spec-fält — tom spec-flik på varje produkt
+// som kom in den vägen. DS-svaret bär egenskaperna; vi läste dem aldrig.
+import { parseItemProperties } from "./client";
+
+describe("parseItemProperties — specar ur DS-svaret", () => {
+  const RADER = [
+    { attr_name: "Material", attr_value: "Oxford Cloth" },
+    { attr_name: "Brand Name", attr_value: "SucceBuy" },
+  ];
+
+  it("läser båda formerna AliExpress levererar (simplify på och av)", () => {
+    const väntat = { Material: "Oxford Cloth", "Brand Name": "SucceBuy" };
+    expect(parseItemProperties(RADER)).toEqual(väntat);
+    expect(parseItemProperties({ ae_item_property: RADER })).toEqual(väntat);
+  });
+
+  it("saknat fält ger tom karta — importen ska bete sig precis som förut", () => {
+    for (const x of [undefined, null, {}, [], "", 0, { fel: "form" }]) {
+      expect(parseItemProperties(x)).toEqual({});
+    }
+  });
+
+  it("städar blanksteg och hoppar över halva rader", () => {
+    expect(
+      parseItemProperties([
+        { attr_name: "  Material \n ", attr_value: " Oxford   Cloth " },
+        { attr_name: "Utan värde", attr_value: "" },
+        { attr_name: "", attr_value: "Utan namn" },
+        {},
+      ]),
+    ).toEqual({ Material: "Oxford Cloth" });
+  });
+
+  it("första förekomsten vinner när AE upprepar ett attribut", () => {
+    expect(
+      parseItemProperties([
+        { attr_name: "Färg", attr_value: "Blå" },
+        { attr_name: "Färg", attr_value: "Röd" },
+      ]),
+    ).toEqual({ Färg: "Blå" });
+  });
+
+  it("samma rimlighetsgränser som DOM-skrapan — en spec-rad ser likadan ut oavsett väg", () => {
+    expect(parseItemProperties([{ attr_name: "x".repeat(61), attr_value: "v" }])).toEqual({});
+    expect(parseItemProperties([{ attr_name: "n", attr_value: "v".repeat(301) }])).toEqual({});
+    // Label identisk med värdet = mis-parsad rad.
+    expect(parseItemProperties([{ attr_name: "Oxford", attr_value: "oxford" }])).toEqual({});
+  });
+});

@@ -37,6 +37,16 @@ export interface AliExpressDsProduct {
   storeId?: string;
   /** Butikens visningsnamn (ae_store_info.store_name). */
   storeName?: string;
+  /**
+   * Produktegenskaper ur DS-svarets `ae_item_properties` (attr_name → attr_value).
+   *
+   * Bakgrund (audit 2026-08-18): `specifications` fylldes BARA av tillägget, ur
+   * sidans DOM. Serverns väg (CSV-/bulk-importen via fetchAliExpressProductFromUrl)
+   * har ingen webbläsare och byggde produkten utan ett enda spec-fält — alltså
+   * tom spec-flik på varje produkt som kom in den vägen, och magrare underlag
+   * för SEO-poleringen. DS-svaret bär egenskaperna; vi läste dem bara aldrig.
+   */
+  properties?: Record<string, string>;
 }
 
 export interface DsTokenResponse {
