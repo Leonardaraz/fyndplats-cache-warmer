@@ -7,6 +7,7 @@ vi.mock("@/lib/store/factory", () => ({ getStore: () => store }));
 vi.mock("@/lib/aliexpress/reviews", () => ({ fetchAeReviews: vi.fn() }));
 vi.mock("@/lib/reviews/queue", () => ({ queueReviewsForProduct: vi.fn() }));
 vi.mock("@/lib/audit", () => ({ audit: vi.fn() }));
+vi.mock("@/lib/wix/v3-products", () => ({ listVisibleV3ProductIds: vi.fn() }));
 
 import { fetchAeReviews } from "@/lib/aliexpress/reviews";
 import { queueReviewsForProduct } from "@/lib/reviews/queue";
@@ -42,6 +43,9 @@ beforeEach(() => {
     skippedExisting: 0,
     filtered: 0,
   });
+  // Befintliga test bryr sig inte om synlighet → låt listningen fela så att
+  // den gamla draftStatus-regeln gäller, precis som före ändringen.
+  vi.mocked(listVisibleV3ProductIds).mockReset().mockRejectedValue(new Error("ingen token i test"));
 });
 
 // Bakgrund: dedupKey-buggen (#450) sorterade bort fullt vettiga recensioner som
@@ -104,5 +108,52 @@ describe("review-queue: checkedBefore", () => {
       kandidater: number;
     };
     expect(runda2.kandidater).toBe(0);
+  });
+});
+
+// --- Synlighet i butiken avgör, inte mappningens draftStatus ---------------
+//
+// Campingtoaletten (AE 1005008392536188) står som `rejected` i mappningen men är
+// publicerad, polerad på svenska och kostar 599 kr. Den har 107 omdömen hos
+// leverantören varav 15 klarar filtret — och fick noll, för svepet tittade
+// aldrig på den. 162 mappningar bär den statusen (uppmätt 2026-08-18).
+//
+// draftStatus speglar bara vad som hände i granskningskön VID IMPORTEN och
+// följer inte med när produkten senare publiceras. Wix `visible` är sanningen.
+
+import { listVisibleV3ProductIds } from "@/lib/wix/v3-products";
+
+describe("review-queue: synliga produkter styr urvalet", () => {
+  it("en rejected mappning tas med när produkten SYNS i butiken", async () => {
+    vi.mocked(listVisibleV3ProductIds).mockResolvedValue(new Set(["w1"]));
+    await store.saveMapping(mapping({ wixProductId: "w1", draftStatus: "rejected" }));
+
+    const body = (await (await GET(req())).json()) as { kandidater: number };
+    expect(body.kandidater).toBe(1);
+  });
+
+  it("en published mappning hoppas över när produkten INTE syns längre", async () => {
+    vi.mocked(listVisibleV3ProductIds).mockResolvedValue(new Set(["nagon-annan"]));
+    await store.saveMapping(mapping({ wixProductId: "w1", draftStatus: "published" }));
+
+    const body = (await (await GET(req())).json()) as { kandidater: number };
+    expect(body.kandidater).toBe(0);
+  });
+
+  it("går listningen inte att hämta faller vi tillbaka på draftStatus", async () => {
+    vi.mocked(listVisibleV3ProductIds).mockRejectedValue(new Error("WIX_API_TOKEN saknas"));
+    await store.saveMapping(mapping({ wixProductId: "w1", draftStatus: "published" }));
+    await store.saveMapping(mapping({ wixProductId: "w2", draftStatus: "rejected" }));
+
+    const body = (await (await GET(req())).json()) as { kandidater: number };
+    expect(body.kandidater).toBe(1); // bara den publicerade — gamla regeln
+  });
+
+  it("mappning utan wixProductId tas aldrig med", async () => {
+    vi.mocked(listVisibleV3ProductIds).mockResolvedValue(new Set(["w1"]));
+    await store.saveMapping(mapping({ wixProductId: "", draftStatus: "published" }));
+
+    const body = (await (await GET(req())).json()) as { kandidater: number };
+    expect(body.kandidater).toBe(0);
   });
 });

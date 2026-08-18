@@ -56,6 +56,50 @@ export interface WixV3Variant {
 }
 
 /**
+ * Id:n för de produkter som faktiskt SYNS i butiken.
+ *
+ * Bakgrund (2026-08-18): recensionssvepet valde kandidater på mappningens
+ * `draftStatus`, men det fältet speglar bara vad som hände i granskningskön vid
+ * importen — inte vad som står i butiken i dag. Campingtoaletten
+ * (AE 1005008392536188) har `draftStatus: "rejected"` men är publicerad,
+ * polerad på svenska och kostar 599 kr. Den har 107 omdömen hos leverantören
+ * varav 15 klarar filtret, och fick noll eftersom svepet aldrig tittade på den.
+ * 162 mappningar bär den statusen.
+ *
+ * Wix `visible` är sanningen. Den här listningen är avsiktligt mager — inga
+ * tunga fält, bara id + visible — så den kostar ett par anrop per körning.
+ */
+export async function listVisibleV3ProductIds(): Promise<Set<string>> {
+  const ut = new Set<string>();
+  let cursor: string | undefined;
+  for (let page = 0; page < 50; page++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ query: { cursorPaging } }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`V3 visible-query failed (${res.status}): ${text.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      products?: Array<{ id?: string; visible?: boolean }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+    for (const p of data.products ?? []) {
+      // visible saknas i svaret → räkna som synlig. Att tyst utesluta en produkt
+      // för att ett fält inte kom med vore samma fel som draftStatus-filtret.
+      if (p.id && p.visible !== false) ut.add(p.id);
+    }
+    cursor = data.pagingMetadata?.cursors?.next;
+    if (!cursor || !data.pagingMetadata?.hasNext) break;
+  }
+  return ut;
+}
+
+/**
  * Listar alla produkter i V3-katalogen med minimal data (id, name, slug, image).
  * Pagination hanteras automatiskt via cursor.
  */
