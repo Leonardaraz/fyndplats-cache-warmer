@@ -60,9 +60,25 @@ export async function GET(req: Request) {
   // Torrkörning: hitta och räkna, men skriv ingenting. Bra för att se vad en
   // skarp körning SKULLE göra innan man släpper på den.
   const dryRun = url.searchParams.get("dryRun") === "true";
+  // Flyttar omkontroll-gränsen framåt i tiden. Behövs när ett filter rättats:
+  // recensionen som sorterades bort av buggen finns kvar hos AE, men stämpeln
+  // säger "kollad" och gömmer produkten i RECHECK_DAYS dygn. Så förlorade
+  // torktumlaren en fullt vettig recension 2026-08-17 (dedupKey klistrade ihop
+  // ord → falsk spam-dom, rättat i #450).
+  //
+  // Sätt `checkedBefore` till klockslaget då svepet STARTADE, samma värde i
+  // varje runda. Då betas katalogen av precis en gång och rundorna konvergerar
+  // mot 0 kandidater av sig själva — till skillnad från ett trubbigt
+  // "strunta i stämpeln", som aldrig tar slut.
+  const checkedBeforeRaw = url.searchParams.get("checkedBefore");
+  const checkedBefore = checkedBeforeRaw ? Date.parse(checkedBeforeRaw) : NaN;
 
   const nu = Date.now();
-  const gräns = nu - RECHECK_DAYS * 24 * 3600 * 1000;
+  // Ett uttryckligt `checkedBefore` vinner över standardintervallet, men bara
+  // framåt: ett datum längre bak än RECHECK_DAYS skulle SNÄVA IN svepet, och
+  // ett skrivfel ska inte tyst göra en körning mindre än den normala.
+  const standardGräns = nu - RECHECK_DAYS * 24 * 3600 * 1000;
+  const gräns = Number.isFinite(checkedBefore) ? Math.max(standardGräns, checkedBefore) : standardGräns;
 
   let mappings;
   try {
@@ -131,6 +147,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: true,
     dryRun,
+    omkontrollGräns: new Date(gräns).toISOString(),
     kandidater: kandidater.length,
     kontrollerade,
     strypta,
