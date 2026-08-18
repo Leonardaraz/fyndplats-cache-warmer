@@ -31,6 +31,7 @@ import { NextResponse } from "next/server";
 import { fetchAeReviews } from "@/lib/aliexpress/reviews";
 import { queueReviewsForProduct } from "@/lib/reviews/queue";
 import { getStore } from "@/lib/store/factory";
+import { listVisibleV3ProductIds } from "@/lib/wix/v3-products";
 import type { ProductMappingRecord } from "@/lib/store";
 import { audit } from "@/lib/audit";
 
@@ -90,10 +91,36 @@ export async function GET(req: Request) {
     );
   }
 
+  // VILKA PRODUKTER RÄKNAS? Wix `visible`, inte mappningens draftStatus.
+  //
+  // draftStatus speglar bara vad som hände i granskningskön VID IMPORTEN. Den
+  // följer inte med när en produkt senare publiceras eller poleras. Uppmätt
+  // 2026-08-18: campingtoaletten står som `rejected` men är publicerad, polerad
+  // och kostar 599 kr — den har 107 omdömen hos leverantören varav 15 klarar
+  // filtret, och fick noll eftersom svepet aldrig tittade på den. 162 mappningar
+  // bär den statusen.
+  //
+  // Fail-open: går listningen inte att hämta faller vi tillbaka på den gamla
+  // draftStatus-regeln i stället för att svepa noll produkter.
+  let synliga: Set<string> | null = null;
+  try {
+    synliga = await listVisibleV3ProductIds();
+    console.log(`[review-queue] ${synliga.size} synliga produkter i butiken.`);
+  } catch (err) {
+    console.warn(
+      "[review-queue] kunde inte lista synliga produkter, faller tillbaka på draftStatus:",
+      err instanceof Error ? err.message : err,
+    );
+  }
+  const räknasMed = (m: ProductMappingRecord) =>
+    synliga
+      ? synliga.has(String(m.wixProductId))
+      // Rader utan draftStatus är gamla och räknas som publicerade (samma
+      // regel som backfill-deps använder).
+      : (m.draftStatus ?? "published") === "published";
+
   const kandidater = ((mappings ?? []) as ProductMappingRecord[])
-    // Rader utan draftStatus är gamla och räknas som publicerade (samma
-    // regel som backfill-deps använder).
-    .filter((m) => (m.draftStatus ?? "published") === "published" && m.supplierProductId && m.wixProductId)
+    .filter((m) => m.supplierProductId && m.wixProductId && räknasMed(m))
     .filter((m) => {
       const stämpel = m.reviewsCheckedAt ? Date.parse(m.reviewsCheckedAt) : 0;
       return !stämpel || stämpel < gräns;
@@ -155,7 +182,7 @@ export async function GET(req: Request) {
     produkterMedNytt: produkterMedNytt.slice(0, 50),
     // Så nästa körning vet om det finns mer att beta av.
     kvarAttKontrollera: Math.max(0, ((mappings ?? []) as ProductMappingRecord[]).filter(
-      (m) => (m.draftStatus ?? "published") === "published" && m.supplierProductId,
+      (m) => m.supplierProductId && m.wixProductId && räknasMed(m),
     ).length - kontrollerade),
   });
 }
