@@ -92,6 +92,14 @@ export function convertDsToAliExpressProduct(
     imageUrls: ds.images,
     variants,
     ...(swatchFromDs ? { swatchImages: swatchFromDs } : {}),
+    // Specar från DS-svaret. Den här vägen (CSV-/bulk-import) har ingen
+    // webbläsare, så innan detta byggdes produkten helt utan spec-fält —
+    // tom spec-flik och magert underlag för SEO-poleringen på varje produkt
+    // som kom in så (audit 2026-08-18). Saknas egenskaperna i svaret blir
+    // fältet utelämnat, precis som förut.
+    ...(ds.properties && Object.keys(ds.properties).length
+      ? { specifications: ds.properties }
+      : {}),
   };
 
   return { product, excludedCount, supplierProductId: ds.productId };

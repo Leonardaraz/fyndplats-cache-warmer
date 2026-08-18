@@ -363,6 +363,9 @@ interface RawProduct {
     ship_from?: string;
     // Säljar-/butiksinfo — supplier-watchens säljarfilter läser store_id härifrån.
     ae_store_info?: { store_id?: number | string; store_name?: string };
+    // Produktegenskaper ("Material", "Brand", "Model Number" …). Arrayen kommer
+    // antingen direkt eller inslagen, precis som SKU-listorna ovan.
+    ae_item_properties?: { ae_item_property?: RawItemProperty[] } | RawItemProperty[];
   };
 }
 
@@ -402,6 +405,37 @@ function unwrapArray<T>(value: unknown, wrapperKey: string): T[] {
     if (Array.isArray(inner)) return inner as T[];
   }
   return [];
+}
+
+/** En egenskapsrad ur DS-svarets `ae_item_properties`. */
+interface RawItemProperty {
+  attr_name?: string;
+  attr_value?: string;
+}
+
+/**
+ * Produktegenskaper → { "Material": "Oxford-tyg", … }.
+ *
+ * Samma defensiva avwrappning som SKU-listorna: DS-svaret levererar arrayen
+ * antingen direkt eller inslagen i `ae_item_property` beroende på om appen är
+ * satt till simplify. Rader utan både namn och värde hoppas över, och första
+ * förekomsten vinner (AE upprepar ibland samma attribut).
+ *
+ * Returnerar {} när fältet saknas — den här vägen får aldrig fälla en import,
+ * och en tom karta ger exakt samma beteende som innan funktionen fanns.
+ */
+export function parseItemProperties(raw: unknown): Record<string, string> {
+  const ut: Record<string, string> = {};
+  for (const p of unwrapArray<RawItemProperty>(raw, "ae_item_property")) {
+    const namn = String(p?.attr_name ?? "").replace(/\s+/g, " ").trim();
+    const värde = String(p?.attr_value ?? "").replace(/\s+/g, " ").trim();
+    // Samma rimlighetsgränser som tilläggets DOM-skrapa, så en spec-rad ser
+    // likadan ut oavsett vilken väg produkten kom in.
+    if (!namn || !värde || namn.length > 60 || värde.length > 300) continue;
+    if (namn.toLowerCase() === värde.toLowerCase()) continue;
+    if (!(namn in ut)) ut[namn] = värde;
+  }
+  return ut;
 }
 
 export async function getProduct(productId: string): Promise<AliExpressDsProduct> {
@@ -512,6 +546,7 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
   const shipsFromCountries = uniqueShipFromCodes(allCodes);
 
   const storeIdRaw = r.ae_store_info?.store_id;
+  const properties = parseItemProperties(r.ae_item_properties);
 
   return {
         productId: String(base.product_id ?? productId),
@@ -524,6 +559,7 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         hasEuWarehouse: hasAnyEuWarehouse(shipsFromCountries),
         storeId: storeIdRaw != null && String(storeIdRaw) !== "" ? String(storeIdRaw) : undefined,
         storeName: r.ae_store_info?.store_name || undefined,
+        ...(Object.keys(properties).length ? { properties } : {}),
   };
 }
 

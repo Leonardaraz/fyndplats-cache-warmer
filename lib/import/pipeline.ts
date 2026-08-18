@@ -496,6 +496,40 @@ export async function importProduct(
     }
   }
 
+  // Spec-backfill (audit 2026-08-18): måleritältet importerades med tre
+  // innehållslösa specrader ("Type: Awnings") — den första kollapsade batchen.
+  // Spec-blocket lazy-renderas hos AE och ligger dessutom avkortat bakom
+  // "View more", så en skrapa som läser DOM:en i befintligt skick får i bästa
+  // fall toppen av listan och ibland ingenting alls. Tillägget fäller numera ut sidan först, men det är en
+  // klient vi inte styr versionen på — och tom spec-flik ger dessutom magert
+  // underlag för SEO-poleringen, vilket är svårt att upptäcka i efterhand.
+  //
+  // DS-svaret bär egenskaperna. Kostar inget extra när DS redan hämtats ovan
+  // (memoiserat), och en extra hämtning är billig jämfört med en produkt utan
+  // specar. Samma best-effort-hållning som beskrivnings-backfillen: fäller
+  // aldrig importen, och rör ingenting när skrapan faktiskt gav specar.
+  if (
+    Object.keys(product.specifications || {}).length === 0 &&
+    /^\d{6,}$/.test(String(product.supplierProductId || ""))
+  ) {
+    try {
+      const ds = await getProductOnce(product.supplierProductId);
+      const fromDs = ds.properties || {};
+      if (Object.keys(fromDs).length > 0) {
+        product.specifications = fromDs;
+        console.log(
+          `[import:specs] pid=${product.supplierProductId} backfill via DS-API ` +
+            `(${Object.keys(fromDs).length} specrader; skrapan gav inga).`,
+        );
+      }
+    } catch (err) {
+      console.warn(
+        `[import:specs] pid=${product.supplierProductId} DS-spec-backfill misslyckades: ` +
+          `${err instanceof Error ? err.message.slice(0, 160) : String(err)}`,
+      );
+    }
+  }
+
   // Per-val bild-URL:er översätts till samma svenska axel-/val-nycklar som
   // varianterna (translateOptionColorCodes har exakt rätt shape) så att de matchar
   // de härledda Wix-optionsvalen vid kopplingen nedan.

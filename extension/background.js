@@ -188,7 +188,14 @@ function waitForTabComplete(tabId, timeoutMs = 30000) {
 // 12 s (audit N6): content.js:s EXTRACT_PRODUCT väntar själv på enrichDescription
 // (bunden till 10 s) före sendResponse — timeouten måste överstiga den, annars
 // kastas fungerande-men-långsamma försök bort i onödan.
-function requestExtract(tabId, timeoutMs = 12000) {
+//
+// 18 s (audit 2026-08-18): EXTRACT_PRODUCT kör numera fpPrepareForScrape FÖRE
+// extract — scrollsvepet som monterar lazy-laddade specar, bundet till 6 s.
+// Värsta fallet är alltså 6 + 10 s och 12 s hade kastat bort varje sådan
+// körning som "Sidan svarade inte". Efterföljande försök på samma flik är
+// billiga (content.js kör bara ett snabbt svep när sidhöjden är oförändrad),
+// så taket träffar i praktiken bara det första försöket.
+function requestExtract(tabId, timeoutMs = 18000) {
   return new Promise((resolve) => {
     let settled = false;
     const finish = (v) => {
@@ -221,7 +228,13 @@ async function scrapeAndImport(item, featureFlags, pricingOverride) {
     // Total skrap-budget (2026-06-10): en död/captcha-spärrad flik ska hoppas
     // över på ~45 s, inte ~2 min. Både fliklast (≤25 s) och extract-loopen bryts
     // mot deadlinen så en seg sida aldrig stjäl hela kötiden.
-    const SCRAPE_DEADLINE_MS = 45000;
+    //
+    // 55 s (audit 2026-08-18): det FÖRSTA extract-försöket bär nu utfällnings-
+    // svepet (upp till 6 s). Med 45 s rymdes bara ett försök efter en långsam
+    // fliklast, och en sida som behövde ett andra försök föll på "Sidan svarade
+    // inte" trots att den var fullt läsbar. Taket för en död flik höjs alltså
+    // med 10 s för att inte tappa fungerande sidor.
+    const SCRAPE_DEADLINE_MS = 55000;
     const scrapeStart = Date.now();
     const budgetLeft = () => SCRAPE_DEADLINE_MS - (Date.now() - scrapeStart);
     await waitForTabComplete(tabId, Math.min(25000, Math.max(1, budgetLeft())));
