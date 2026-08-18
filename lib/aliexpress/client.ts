@@ -20,6 +20,7 @@
 
 import { createHmac } from "node:crypto";
 import { getStore } from "../store/factory";
+import { isRateLimitError, rateLimitWaitMs, RATE_LIMIT_MAX_RETRIES } from "./rate-limit";
 import {
     classifyWarehouses,
     hasAnyEuWarehouse,
@@ -115,15 +116,32 @@ async function callApi<T>(
   const accessToken = await resolveAccessToken();
   const params = buildParams(method, bizParams, appKey, appSecret, accessToken);
 
-  const res = await fetch(`${API_BASE}?${params.toString()}`, { method: "POST" });
+  let json: Record<string, unknown>;
+  // Frekvensspärren (ApiCallLimit) är en gateway-avvisning som varar sekunder —
+  // anropet nådde aldrig AE:s affärslogik, så det är säkert att göra om även för
+  // order.create. Utan omförsöket kostade den en hel pollcykel och skickade ett
+  // larm i vaktmejlet fyra gånger på två dygn (2026-08-16/17). Se rate-limit.ts.
+  for (let försök = 0; ; försök++) {
+    const res = await fetch(`${API_BASE}?${params.toString()}`, { method: "POST" });
     if (!res.ok) throw new Error(`AliExpress API HTTP-fel: ${res.status}`);
 
-  const json = (await res.json()) as Record<string, unknown>;
+    json = (await res.json()) as Record<string, unknown>;
     // Top-level fel ({error_response: {...}}) hanteras separat — annars
     // riskerar vi att returnera ett tomt data-objekt och få oklar nedströms-error.
-    if ("error_response" in json) {
-          throw new Error(`AliExpress API-fel: ${JSON.stringify(json.error_response)}`);
+    if (!("error_response" in json)) break;
+
+    const fel = json.error_response;
+    if (isRateLimitError(fel) && försök < RATE_LIMIT_MAX_RETRIES) {
+      const väntaMs = rateLimitWaitMs((fel as { msg?: unknown })?.msg);
+      console.warn(
+        `[aliexpress] ${method} strypt (ApiCallLimit) — väntar ${väntaMs} ms och gör om ` +
+          `(försök ${försök + 1}/${RATE_LIMIT_MAX_RETRIES}).`,
+      );
+      await new Promise((r) => setTimeout(r, väntaMs));
+      continue;
     }
+    throw new Error(`AliExpress API-fel: ${JSON.stringify(fel)}`);
+  }
     const responseKey = method.replaceAll(".", "_") + "_response";
     const data = (json[responseKey] ?? json) as Record<string, unknown>;
     // Både `code` (legacy /sync) och `rsp_code` (DS API) kan signalera fel.
