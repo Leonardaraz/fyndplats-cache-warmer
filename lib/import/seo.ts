@@ -48,8 +48,8 @@ export function buildFallbackSeo(product: AliExpressProduct): SeoResult {
       : `<p>${product.rawTitle.slice(0, 500)}</p>`;
   return clampSeo(
     {
-      title: product.rawTitle.slice(0, 70),
-      metaDescription: (rawDesc || product.rawTitle).slice(0, 160),
+      title: truncateAtWord(product.rawTitle, 70),
+      metaDescription: truncateAtWord(rawDesc || product.rawTitle, 160),
       descriptionHtml: html,
       slug: product.rawTitle ? "" : "produkt",
       suggestedCategory: "",
@@ -91,8 +91,8 @@ Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
   // SEO i Wix efteråt. max_tokens sänkt från 3000 -> 2000 (beskrivningen behöver
   // sällan mer än ~6kB svensk HTML).
   const failOpen: SeoResult = {
-    title: product.rawTitle.slice(0, 70),
-    metaDescription: product.rawTitle.slice(0, 160),
+    title: truncateAtWord(product.rawTitle, 70),
+    metaDescription: truncateAtWord(product.rawTitle, 160),
     descriptionHtml: `<p>${product.rawDescription.slice(0, 1000)}</p>`,
     slug: "produkt",
     suggestedCategory: "",
@@ -145,9 +145,30 @@ export function clampSeo(seo: SeoResult, imageCount: number): SeoResult {
   };
 }
 
-function truncate(s: string, max: number): string {
+/**
+ * Kapar vid ORDGRÄNS, inte mitt i ett ord.
+ *
+ * Måleritältet 2026-08-18: rå-titeln kapades på tecken 70 och produkten hette
+ * "SucceBuy Inflatable Paint Booth Inflatable Spray Booth with Powerful B" —
+ * i produktnamnet, i seoTitle OCH i og:title. Ett avhugget ord ser trasigt ut
+ * på ett sätt en kortare titel aldrig gör.
+ *
+ * Faller tillbaka på hård kapning när det inte finns något blanksteg att kapa
+ * vid (ett enda långt ord) eller när ordgränsen skulle kasta bort mer än
+ * hälften av utrymmet — då är en kort avhuggen titel bättre än en tom.
+ */
+export function truncateAtWord(s: string, max: number): string {
   const t = (s ?? "").trim();
-  return t.length <= max ? t : t.slice(0, max).trimEnd();
+  if (t.length <= max) return t;
+  const hard = t.slice(0, max);
+  const lastSpace = hard.lastIndexOf(" ");
+  const cut = lastSpace > max / 2 ? hard.slice(0, lastSpace) : hard;
+  // Skiljetecken som blir hängande efter kapningen ser ut som ett fel.
+  return cut.replace(/[\s,;:.\-–—/&]+$/u, "").trimEnd();
+}
+
+function truncate(s: string, max: number): string {
+  return truncateAtWord(s, max);
 }
 
 function slugify(s: string): string {
