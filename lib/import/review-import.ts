@@ -55,7 +55,12 @@ export const REVIEW_FILTER = {
 export function dedupKey(text: string): string {
   return (text || "")
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    // Skiljetecken blir MELLANSLAG, inte tomt. Torktumlaren 2026-08-18: en rysk
+    // recension skriven utan blanksteg efter punkt — "отлично.быстрая
+    // доставка.работает..." — klistrades ihop till tre ord i stället för sju,
+    // och isSpam (som kräver minst fyra ord) kastade en fullt vettig recension.
+    // Att skriva utan mellanslag efter punkt är vanligt, inte ett spam-tecken.
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
