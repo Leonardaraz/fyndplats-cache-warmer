@@ -186,12 +186,73 @@ test("orderPopular lyfter kategorier där det sålts före kategorier utan", () 
   assert.equal(efterSaljarna.collectionIds[1], "verktyg");
 });
 
-test("utan försäljning ÄR listorna identiska — och det är korrekt", () => {
+test("utan försäljning OCH utan omdömen är listorna identiska — och det är korrekt", () => {
   const alla = katalog().map((p) => ({ ...p, popularity: 0 }));
   const uni = new Set(["ALL"]);
   assert.deepEqual(
     orderRecommended(alla, uni, 1_000_000).map((x) => x.id),
     orderPopular(alla, uni).map((x) => x.id),
     "utan data finns inget att skilja dem åt med",
+  );
+});
+
+// ── Omdömessignalen (Leonard 2026-08-18: "de med flest recensioner och bäst
+// betyg är blandat i rekommenderat och populärast") ────────────────────────
+//
+// Kåren är censurerad (minst 3★ importeras, 87 % femmor, katalogsnitt 4,8) så
+// RÅTT snitt rankar brus. Antalet bär bevisvärdet; snittet räknas bara som
+// krympt avvikelse från katalogsnittet. Vikterna nedan är designbeslut och
+// låses här — ändra dem medvetet eller inte alls.
+import { reviewSignal, popularScore } from "./sort-products.ts";
+
+const medOmdomen = (id: string, daysOld: number, popularity: number, count: number, exact = 4.8) => ({
+  ...prod(id, daysOld, popularity),
+  rating: { count, exact, stars: Math.round(exact), value: "x" },
+});
+
+test("reviewSignal: 0 utan omdömen, växer med antalet, aldrig av snittet ensamt", () => {
+  assert.equal(reviewSignal(prod("utan", 10, 0)), 0);
+  assert.ok(reviewSignal(medOmdomen("fa", 10, 0, 3)) < reviewSignal(medOmdomen("manga", 10, 0, 15)));
+  // Många lite-sämre omdömen slår få perfekta: 15×4,0 ska vinna över 2×5,0 —
+  // antalet är bevis, snittet i en censurerad kår är det inte.
+  assert.ok(reviewSignal(medOmdomen("manga-40", 10, 0, 15, 4.0)) > reviewSignal(medOmdomen("fa-50", 10, 0, 2, 5.0)));
+});
+
+test("reviewSignal: belagd avvikelse nedåt sänker, krympningen dämpar små underlag", () => {
+  const bra = reviewSignal(medOmdomen("bra", 10, 0, 15, 4.8));
+  const samre = reviewSignal(medOmdomen("samre", 10, 0, 15, 4.0));
+  assert.ok(samre < bra, "15 st 4,0:or ska ligga under 15 st katalogsnitt");
+  // Samma avvikelse på 2 omdömen ska straffas MINDRE än på 15 (krympningen).
+  const straff15 = bra - samre;
+  const straff2 = reviewSignal(medOmdomen("b2", 10, 0, 2, 4.8)) - reviewSignal(medOmdomen("s2", 10, 0, 2, 4.0));
+  assert.ok(straff2 < straff15, "litet underlag → mindre utslag");
+});
+
+test("Populärast: egna sälj väger tyngst men omdömen är ombudet", () => {
+  // 2 egna sålda (≈3.3p) slår 15 omdömen (≈2.8p) — riktiga kundordrar vinner.
+  assert.ok(popularScore(prod("tva-salda", 10, 2)) > popularScore(medOmdomen("omdomesrik", 10, 0, 15)));
+  // MEN 15 belagda köp hos leverantören slår 1 egen såld enhet (≈2.1p) —
+  // medvetet: ett ensamt sälj på 90 dagar är svagare bevis än 15 omdömen.
+  assert.ok(popularScore(medOmdomen("omdomesrik", 10, 0, 15)) > popularScore(prod("en-sald", 10, 1)));
+});
+
+test("orderPopular: omdömesrik nollsäljare går i signal-skiktet, före blandningen", () => {
+  const alla = katalog();
+  // p26 (kategori "tradgard", inga sälj) får 12 omdömen.
+  const medRating = alla.map((p) => (p.id === "p26" ? { ...p, rating: { count: 12, exact: 4.9 } } : p));
+  const pop = orderPopular(medRating, new Set(["ALL"])).map((x) => x.id);
+  // Signal-skiktet: fem säljare (2.08p) + p26 (log1p(12)≈2.56p) — p26 FÖRST.
+  assert.deepEqual(pop.slice(0, 6).sort(), ["p11", "p15", "p19", "p23", "p26", "p7"].sort());
+  assert.equal(pop[0], "p26");
+});
+
+test("Rekommenderat: belagt socialt bevis slår ren färskhet — men inte en bästsäljare", () => {
+  // Gammal produkt med 15 omdömen (≈3.3p) > dagsfärsk utan (2p).
+  assert.ok(
+    recommendedScore(medOmdomen("omdomesrik-gammal", 90, 0, 15), NOW) > recommendedScore(prod("nyhet-idag", 0, 0), NOW),
+  );
+  // 5 egna sålda (≈5.4p) > 15 omdömen (≈3.3p): egen kassa vinner.
+  assert.ok(
+    recommendedScore(prod("bastsaljare", 90, 5), NOW) > recommendedScore(medOmdomen("omdomesrik-gammal", 90, 0, 15), NOW),
   );
 });
