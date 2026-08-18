@@ -30,7 +30,12 @@ on:
         default: "40"
         type: string
       dry_run:
-        description: "Torrkörning — hitta och räkna, skriv ingenting"
+        description: "Torrkörning — hitta och räkna, skriv ingenting (kör alltid EN runda)"
+        required: false
+        default: false
+        type: boolean
+      recheck_all:
+        description: "Ta om HELA katalogen, även nyligen kontrollerade produkter (använd efter en filter-rättning)"
         required: false
         default: false
         type: boolean
@@ -46,12 +51,20 @@ jobs:
           dry=""
           if [ "${{ inputs.dry_run }}" = "true" ]; then dry="&dryRun=true"; fi
 
+          # Omkontroll av hela katalogen: gränsen sätts EN gång, till svepets
+          # starttid, och skickas oförändrad i varje runda. Produkter stämplas
+          # allteftersom → kandidaterna tar slut och loopen bryter av sig själv.
+          recheck=""
+          if [ "${{ inputs.recheck_all }}" = "true" ]; then
+            recheck="&checkedBefore=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          fi
+
           total_queued=0
           total_checked=0
           total_throttled=0
 
           for i in $(seq 1 ${{ inputs.rounds }}); do
-            url="${base}?limit=${{ inputs.limit }}${dry}"
+            url="${base}?limit=${{ inputs.limit }}${dry}${recheck}"
             body=$(curl -sS -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "$url")
             ok=$(echo "$body" | jq -r '.ok // false')
             if [ "$ok" != "true" ]; then
@@ -72,6 +85,12 @@ jobs:
             # Inga kandidater kvar → hela katalogen är genombetad.
             if [ "$candidates" = "0" ]; then
               echo "Katalogen genombetad efter $i rundor."
+              break
+            fi
+            # Torrkörning stämplar ingenting, så runda 2 skulle hämta exakt
+            # samma produkter igen. En runda räcker för att se vad som händer.
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "Torrkörning — stannar efter en runda."
               break
             fi
             # Strypning betyder att AE ber oss sakta ner — vila längre.
