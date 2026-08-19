@@ -18,8 +18,21 @@
 // 3,5. Bara en bråkdel av dem som klickar ja skriver sedan något. Det här
 // startar klockan och tar bort MC-varningen — det ger inga stjärnor i höst.
 
-/** Fyndplats Merchant Center-ID. */
-export const MERCHANT_ID = 692958602;
+/**
+ * Fyndplats Merchant Center-ID.
+ *
+ * Env-styrt med konstanten som default, samma mönster som META_PIXEL_ID och
+ * TRUSTPILOT_BUSINESS_UNIT_ID: ID:t är inte hemligt (det syns i sidans källkod)
+ * men det ska gå att byta utan deploy om kontot roteras. Google avvisar ett
+ * felaktigt merchant_id TYST, så ett hårdkodat värde utan väg ut är en fälla.
+ */
+export function merchantId(): number {
+  const fran = Number((process.env.GOOGLE_MERCHANT_ID || "").trim());
+  return Number.isInteger(fran) && fran > 0 ? fran : MERCHANT_ID_DEFAULT;
+}
+
+/** Avläst i Merchant Center 2026-08-19. */
+export const MERCHANT_ID_DEFAULT = 692958602;
 
 /**
  * Antal dagar från köp till estimerad leverans.
@@ -54,6 +67,12 @@ export function estimatedDeliveryDate(from: Date, days = DELIVERY_DAYS): string 
  * Returnerar null för allt som inte är exakt två bokstäver — hellre ingen modul
  * än en enkät skickad mot fel land, eftersom Googles recensionströskel räknas
  * PER LAND och aldrig slås ihop.
+ *
+ * Grinden kontrollerar FORMEN, inte att koden finns: "XX" passerar. Att lista
+ * de marknader butiken faktiskt skickar till vore strängare, men skulle tyst
+ * stänga av enkäten första gången ett nytt land läggs till i Wix — ett värre
+ * fel än det den skulle fånga, eftersom Wix redan levererar en riktig
+ * ISO-kod och en påhittad kod därför inte kan uppstå av misstag här.
  */
 export function normalizeCountry(raw: unknown): string | null {
   const s = String(raw ?? "").trim().toUpperCase();
@@ -66,7 +85,10 @@ export function normalizeCountry(raw: unknown): string | null {
  */
 export function isLikelyEmail(raw: unknown): boolean {
   const s = String(raw ?? "").trim();
-  return s.length <= 254 && /^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(s);
+  // Toppdomänen måste vara bokstäver. Ett lösare mönster släppte igenom
+  // "a@b..c" och "a@b.-" (granskning 2026-08-19) — alltså precis de adresser
+  // som ger den tysta avvisningen grinden finns för att stoppa.
+  return s.length <= 254 && /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[A-Za-z]{2,}$/.test(s);
 }
 
 /** Det Google faktiskt behöver för att rendera modulen. */
@@ -74,6 +96,25 @@ export interface GcrOrder {
   orderId: string;
   email: string;
   deliveryCountry: string;
+  /** Orderns skapandedatum (ISO). Ankare för leveransfönstret. */
+  createdDate?: string | null;
+}
+
+/**
+ * Datumet leveransfönstret räknas FRÅN.
+ *
+ * Orderns skapandedatum, inte "nu". /tack är force-dynamic, så sidan renderas
+ * om varje gång kunden öppnar länken — från historiken, från kvittomejlet, en
+ * vecka senare. Med "nu" som ankare fick Google ett nytt, senare leveransdatum
+ * för samma order vid varje besök, och skulle schemalägga enkäten efter ett
+ * datum som inte har med försändelsen att göra (granskning 2026-08-19).
+ *
+ * Faller tillbaka på `now` när Wix inte gav något datum — hellre ett fönster
+ * från idag än ingen modul alls.
+ */
+export function deliveryAnchor(createdDate: string | null | undefined, now: Date): Date {
+  const t = Date.parse(String(createdDate ?? ""));
+  return Number.isFinite(t) ? new Date(t) : now;
 }
 
 export interface GcrRenderConfig {
@@ -100,11 +141,11 @@ export function buildGcrConfig(
   const land = normalizeCountry(order?.deliveryCountry);
   if (!orderId || !land || !isLikelyEmail(email)) return null;
   return {
-    merchant_id: MERCHANT_ID,
+    merchant_id: merchantId(),
     order_id: orderId,
     email,
     delivery_country: land,
-    estimated_delivery_date: estimatedDeliveryDate(now),
+    estimated_delivery_date: estimatedDeliveryDate(deliveryAnchor(order?.createdDate, now)),
     opt_in_style: OPT_IN_STYLE,
   };
 }

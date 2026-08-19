@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ThankYou } from "../../components/thankyou";
 import { fetchWixOrderInfo } from "../../lib/wix-orders";
+import { cookies } from "next/headers";
 import { buildGcrConfig } from "../../lib/gcr";
+import { CONSENT_COOKIE, marketingConsentFromCookie } from "../../lib/consent";
 import { GoogleCustomerReviewsOptIn } from "../../components/google-customer-reviews-optin";
 
 export const metadata: Metadata = {
@@ -30,7 +32,7 @@ export default async function Tack({
   // missar → fältet blir aldrig tomt.
   const info = orderId
     ? await fetchWixOrderInfo(orderId)
-    : { number: null, email: null, deliveryCountry: null };
+    : { number: null, email: null, deliveryCountry: null, createdDate: null };
 
   // Google Customer Reviews: opt-in-dialogen som gör att Merchant Center kan
   // börja samla recensioner. buildGcrConfig returnerar null när ordern saknar
@@ -40,14 +42,25 @@ export default async function Tack({
   // ORDER-ID:t som skickas till Google är det LÄSBARA numret när det finns.
   // Google visar order_id för kunden i enkätmejlet, och Wix interna GUID säger
   // kunden ingenting. Faller tillbaka på GUID:t så modulen inte tappas.
-  const gcr = buildGcrConfig(
-    {
-      orderId: info.number || orderId,
-      email: info.email ?? "",
-      deliveryCountry: info.deliveryCountry ?? "",
-    },
-    new Date(),
-  );
+  //
+  // SAMTYCKET LÄSES HÄR, inte bara i komponenten. Konfigurationen innehåller
+  // kundens e-postadress, och en prop till en klientkomponent hamnar i sidans
+  // RSC-payload — alltså i HTML:en — oavsett vad komponenten sedan väljer att
+  // rendera. Gatas det bara på klienten har adressen redan skickats till den
+  // som valt "bara nödvändiga" (granskning 2026-08-19). Sekretesspolicyn lovar
+  // att ingenting delas då; det löftet hålls här.
+  const samtycke = marketingConsentFromCookie((await cookies()).get(CONSENT_COOKIE)?.value);
+  const gcr = samtycke
+    ? buildGcrConfig(
+        {
+          orderId: info.number || orderId,
+          email: info.email ?? "",
+          deliveryCountry: info.deliveryCountry ?? "",
+          createdDate: info.createdDate,
+        },
+        new Date(),
+      )
+    : null;
 
   return (
     <section className="sec tack-sec">

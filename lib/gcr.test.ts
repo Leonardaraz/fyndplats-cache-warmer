@@ -2,10 +2,12 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   DELIVERY_DAYS,
-  MERCHANT_ID,
+  MERCHANT_ID_DEFAULT,
   buildGcrConfig,
+  deliveryAnchor,
   estimatedDeliveryDate,
   isLikelyEmail,
+  merchantId,
   normalizeCountry,
 } from "./gcr.ts";
 
@@ -70,6 +72,17 @@ describe("isLikelyEmail", () => {
     }
   });
 
+  it("avvisar trasiga domaner som det losare monstret slappte igenom", () => {
+    // Granskning 2026-08-19: /^…@[^\s@.]+\.[^\s@]+$/ sa ja till alla tre.
+    for (const dålig of ["a@b..c", "a@b.-", "a@b.c..", "a@b.1"]) {
+      assert.equal(isLikelyEmail(dålig), false);
+    }
+  });
+
+  it("slapper fortfarande igenom flerledade domaner", () => {
+    assert.ok(isLikelyEmail("anna@post.example.co.uk"));
+  });
+
   it("avvisar orimligt långa adresser", () => {
     assert.equal(isLikelyEmail(`${"a".repeat(250)}@example.com`), false);
   });
@@ -81,7 +94,7 @@ describe("buildGcrConfig", () => {
 
   it("bygger exakt de fält Google kräver", () => {
     assert.deepEqual(buildGcrConfig(order, nu), {
-      merchant_id: MERCHANT_ID,
+      merchant_id: MERCHANT_ID_DEFAULT,
       order_id: "10021",
       email: "kund@example.com",
       delivery_country: "SE",
@@ -112,9 +125,55 @@ describe("buildGcrConfig", () => {
     assert.equal(cfg?.delivery_country, "SE");
   });
 
-  it("merchant-id ar Fyndplats eget och ett tal", () => {
-    // Google avvisar en strang har.
-    assert.equal(MERCHANT_ID, 692958602);
-    assert.equal(typeof MERCHANT_ID, "number");
+  it("ankrar leveransfonstret pa ORDERDATUMET, inte pa nar sidan renderas", () => {
+    // /tack är force-dynamic. Öppnar kunden länken igen en vecka senare hade
+    // "nu" som ankare gett Google ett nytt, senare leveransdatum för samma
+    // order (granskning 2026-08-19).
+    const senare = new Date("2026-08-26T08:00:00Z");
+    const cfg = buildGcrConfig({ ...order, createdDate: "2026-08-19T08:00:00Z" }, senare);
+    assert.equal(cfg?.estimated_delivery_date, "2026-09-02");
+  });
+
+  it("samma order ger samma datum oavsett nar sidan besoks", () => {
+    const med = { ...order, createdDate: "2026-08-19T08:00:00Z" };
+    const a = buildGcrConfig(med, new Date("2026-08-19T09:00:00Z"));
+    const b = buildGcrConfig(med, new Date("2026-09-19T09:00:00Z"));
+    assert.equal(a?.estimated_delivery_date, b?.estimated_delivery_date);
+  });
+});
+
+describe("deliveryAnchor", () => {
+  const nu = new Date("2026-09-01T00:00:00Z");
+
+  it("anvander orderdatumet nar det finns", () => {
+    assert.equal(deliveryAnchor("2026-08-19T08:00:00Z", nu).toISOString().slice(0, 10), "2026-08-19");
+  });
+
+  it("faller tillbaka pa nu vid saknat eller trasigt datum", () => {
+    // Hellre ett fönster från idag än ingen modul alls.
+    for (const dålig of [null, undefined, "", "inte-ett-datum"]) {
+      assert.equal(deliveryAnchor(dålig, nu).getTime(), nu.getTime());
+    }
+  });
+});
+
+describe("merchantId", () => {
+  it("anvander konstanten nar env saknas", () => {
+    delete process.env.GOOGLE_MERCHANT_ID;
+    assert.equal(merchantId(), MERCHANT_ID_DEFAULT);
+  });
+
+  it("env vinner sa ID:t gar att byta utan deploy", () => {
+    process.env.GOOGLE_MERCHANT_ID = "123456789";
+    assert.equal(merchantId(), 123456789);
+    delete process.env.GOOGLE_MERCHANT_ID;
+  });
+
+  it("ignorerar skrap i env i stallet for att skicka NaN till Google", () => {
+    for (const dålig of ["", "  ", "abc", "0", "-5", "12.5"]) {
+      process.env.GOOGLE_MERCHANT_ID = dålig;
+      assert.equal(merchantId(), MERCHANT_ID_DEFAULT);
+    }
+    delete process.env.GOOGLE_MERCHANT_ID;
   });
 });

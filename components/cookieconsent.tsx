@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { CONSENT_EVENT } from "../lib/consent";
+import { CONSENT_EVENT, writeConsentCookie } from "../lib/consent";
 
 export function CookieConsent() {
   const [show, setShow] = useState(false);
@@ -13,6 +13,9 @@ export function CookieConsent() {
 
   const choose = (v: "all" | "necessary") => {
     try { localStorage.setItem("fp_cookie_consent", v); } catch {}
+    // Spegla valet i en cookie så SERVERN kan se det. /tack behöver veta det
+    // innan sidan renderas — se noten i lib/consent.ts.
+    writeConsentCookie(v);
     // Notify marketing scripts (Meta Pixel + CAPI) so de kan starta/stoppa
     // direkt utan sidladdning. Gated on localStorage.fp_cookie_consent === "all".
     try { window.dispatchEvent(new Event(CONSENT_EVENT)); } catch {}
