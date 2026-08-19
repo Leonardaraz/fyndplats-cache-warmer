@@ -53,6 +53,14 @@ Rankning: foto > senaste 30 dgr > EU-land > längre text. Topp 15 per produkt
   importerat är `pending`** — inget når produktsidan förrän en människa skrivit
   om texten. `/admin/reviews` = tabell över ALLA med Godkänn/Avvisa/Redigera.
   Bara `approved`/`edited` visas publikt.
+- **Sidan måste kunna hitta varje väntande rad**, eftersom den är enda vägen ut.
+  Kollektionen har fler än 1000 rader och Wix tar max 1000 per fråga, så
+  listningen **paginerar** (`lib/store/reviews.ts`) — utan det var frågan tyst
+  kapad till "de nyaste 1000", och en väntande rad med gammalt AE-datum syntes
+  aldrig. Statusfiltret (`?status=pending`, default) körs hos Wix. Rader där
+  `textSwedish` fortfarande är originaltexten märks **⚠️ Oöversatt** och deras
+  godkänn-knapp heter "Godkänn ändå": innan dess såg en engelsk recension
+  exakt likadan ut som en färdig.
 - **Bilder:** upp till **3** kundfoton per recension (`MAX_REVIEW_IMAGES` i
   `lib/reviews/images.ts`). De hämtas hem till vår egen mediahantering vid
   import — en `aliexpress-media.com`-adress i produktsidans HTML pekar ut

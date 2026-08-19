@@ -35,7 +35,11 @@ const COLLECTIONS = [
   "FyndplatsRestockSubscribers",
   "FyndplatsRestockLog",
   "FyndplatsImportedReviews",
-  "FyndplatsTranslationUsage",
+  // FyndplatsTranslationUsage är BORTA (DeepL togs bort 2026-08-19). Lägg inte
+  // tillbaka den: rutten körs efter att kollektionen raderats i Wix och hade
+  // annars skapat den igen. Ta även bort WIX_DATA_COL_TRANSLATION_USAGE ur
+  // Vercel — loopen längre ner adderar VARJE WIX_DATA_COL_*-värde till
+  // skapa-mängden, så env-variabeln ensam räcker för att återuppliva den.
   "FyndplatsBulkImportJobs",
   "FyndplatsBulkImportItems",
   "FyndplatsPricingConfig",

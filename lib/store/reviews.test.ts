@@ -127,3 +127,100 @@ describe("ReviewStore.upsert: kundbilden flyttas hem vid publicering", () => {
     expect(sparadData(fetchSpion).hasImage).toBe(false);
   });
 });
+
+describe("ReviewStore.upsert: statusfallbacken", () => {
+  // Hela poängen med borttagningen av DeepL är att ingenting publiceras utan
+  // att en människa skrivit svensk text. Fallbacken var "approved" fram till
+  // 2026-08-19 — rimligt när varje rad översattes innan den skrevs, men nu det
+  // enda stället där en glömsk anropare kan lägga engelsk text på en svensk
+  // produktsida.
+  it("saknad status blir pending, inte approved", async () => {
+    const utanStatus = { ...rad(), status: undefined } as unknown as StoredReview;
+
+    await new ReviewStore().upsert(utanStatus);
+
+    expect(sparadData(fetchSpion).status).toBe("pending");
+    // Och eftersom pending inte är synlig ska ingen bild flyttas hem.
+    expect(ownImageUrlForReview).not.toHaveBeenCalled();
+  });
+});
+
+describe("ReviewStore.query: paginering", () => {
+  /** Svar med `n` rader, med unika id:n från `start`. */
+  function sida(n: number, start: number) {
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        dataItems: Array.from({ length: n }, (_, i) => ({
+          data: rad({ productId: "p1", reviewIdAE: `r${start + i}` }),
+        })),
+      }),
+    };
+  }
+
+  function offsetFor(call: number): number {
+    return JSON.parse(fetchSpion.mock.calls[call][1].body as string).query.paging.offset;
+  }
+
+  // Kollektionen hade 1932 rader 2026-08-19 och Wix tar max 1000 per fråga.
+  // Utan paginering var listningen tyst kapad: /admin/reviews fick de nyaste
+  // och fick aldrig veta att resten fanns. Sedan DeepL togs bort är den sidan
+  // enda vägen från `pending` till publicerad — en rad som inte syns där kan
+  // aldrig bli svensk, och AE-recensioner är ofta månader gamla så de hamnar
+  // var som helst i den datumsorterade listan.
+  it("hämtar vidare tills en sida är kortare än sidstorleken", async () => {
+    fetchSpion
+      .mockResolvedValueOnce(sida(500, 0))
+      .mockResolvedValueOnce(sida(500, 500))
+      .mockResolvedValueOnce(sida(120, 1000));
+
+    const alla = await new ReviewStore().listAll();
+
+    expect(alla).toHaveLength(1120);
+    expect(fetchSpion).toHaveBeenCalledTimes(3);
+    expect(offsetFor(0)).toBe(0);
+    expect(offsetFor(1)).toBe(500);
+    expect(offsetFor(2)).toBe(1000);
+  });
+
+  it("slutar direkt när första sidan inte är full", async () => {
+    fetchSpion.mockResolvedValueOnce(sida(12, 0));
+
+    expect(await new ReviewStore().listAll()).toHaveLength(12);
+    expect(fetchSpion).toHaveBeenCalledTimes(1);
+  });
+
+  it("dedupar rader som dyker upp i två sidor", async () => {
+    // Sorteringen sker på `date`, som både kan sakna värde och ha dubbletter,
+    // så en rad kan i teorin komma med i två sidor när gränsen går mitt i en
+    // grupp lika värden. Den ska räknas en gång.
+    fetchSpion
+      .mockResolvedValueOnce(sida(500, 0))
+      .mockResolvedValueOnce(sida(500, 499)) // r499 igen
+      .mockResolvedValueOnce(sida(0, 999));
+
+    const alla = await new ReviewStore().listAll();
+
+    expect(alla).toHaveLength(999);
+    expect(new Set(alla.map((r) => r.reviewIdAE)).size).toBe(999);
+  });
+
+  it("listByStatus filtrerar hos Wix, inte hos oss", async () => {
+    fetchSpion.mockResolvedValueOnce(sida(3, 0));
+
+    await new ReviewStore().listByStatus("pending");
+
+    const q = JSON.parse(fetchSpion.mock.calls[0][1].body as string).query;
+    expect(q.filter).toEqual({ status: "pending" });
+  });
+
+  it("respekterar taket och slutar hämta där", async () => {
+    fetchSpion.mockResolvedValue(sida(500, 0));
+
+    const alla = await new ReviewStore().listAll(500);
+
+    expect(alla).toHaveLength(500);
+    expect(fetchSpion).toHaveBeenCalledTimes(1);
+  });
+});

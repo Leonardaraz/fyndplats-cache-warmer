@@ -123,8 +123,6 @@ export async function POST(req: Request) {
           wixProductId: productId,
           imported: 0,
           skippedExisting: 0,
-          charsUsed: 0,
-          budgetExceeded: false,
           fetchedFromAe: 0,
           // Strypt ≠ recensionslös. Den ena är värd ett omförsök, den andra inte.
           throttled,

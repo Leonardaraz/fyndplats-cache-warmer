@@ -77,8 +77,7 @@ for (const [i, item] of items.entries()) {
     }
     totalImported += data.imported || 0;
     console.log(
-      `[ok]   ${ref} → ${data.imported} importerade, ${data.skippedExisting} redan fanns` +
-        (data.budgetExceeded ? " (BUDGET SLUT → otranslaterade)" : ""),
+      `[ok]   ${ref} → ${data.imported} importerade, ${data.skippedExisting} redan fanns`,
     );
   } catch (err) {
     failed++;

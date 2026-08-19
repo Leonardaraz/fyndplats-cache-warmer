@@ -53,16 +53,21 @@ describe("runReviewBackfill — torrkörning", () => {
     expect(s.dryRun).toBe(true);
     expect(s.withReviews).toBe(3);
     expect(s.reviewsEligible).toBe(15);
-    expect(s.reviewsEligible).toBeGreaterThan(0);
     expect(s.reviewsImported).toBe(0);
     expect(s.products.every((p) => p.status === "dry-run")).toBe(true);
   });
 
-  // Torrkörningens jobb är att MÄTA — den ska svara även när budgeten är slut.
-  it("mäter hela urvalet i torrläge", async () => {
+  // `chars` är det enda måttet som är kvar sedan DeepL-budgeten togs bort, och
+  // det betyder numera "så här mycket text väntar på att skrivas om i chatten".
+  // Torrkörningen finns just för att svara på den frågan innan man sparar.
+  it("räknar tecknen som väntar på översättning", async () => {
     const s = await runReviewBackfill(deps());
     expect(s.considered).toBe(3);
     expect(s.stoppedBy).toBe("klar");
+    const summa = s.products.reduce((n, p) => n + p.chars, 0);
+    expect(summa).toBeGreaterThan(0);
+    // 15 recensioner à 120 tecken (review() kapar till len).
+    expect(summa).toBe(15 * 120);
   });
 });
 
@@ -70,7 +75,6 @@ describe("runReviewBackfill — skarp körning", () => {
   it("importerar och summerar", async () => {
     const s = await runReviewBackfill(deps(), { dryRun: false });
     expect(s.reviewsImported).toBe(15);
-    expect(s.reviewsImported).toBeGreaterThan(0);
     expect(s.stoppedBy).toBe("klar");
   });
 
@@ -96,6 +100,30 @@ describe("runReviewBackfill — skarp körning", () => {
     const s = await runReviewBackfill(deps({ listCandidates: async () => candidates(10) }), { dryRun: false, limit: 2 });
     expect(s.considered).toBe(2);
     expect(s.stoppedBy).toBe("gräns");
+  });
+
+  // Tidsbudgeten är sedan DeepL-budgeten försvann det ENDA som hindrar en lång
+  // körning från att dödas av Vercels maxDuration mitt i en produktskrivning.
+  // Klockan drivs av deps.now, så testet behöver ingen riktig väntan.
+  it("tidsbudgeten stoppar körningen mellan två produkter", async () => {
+    let tick = 0;
+    // Första avläsningen är starttiden; sedan +100 s per varv → tredje
+    // produkten hinner aldrig påbörjas med en budget på 150 s.
+    const now = () => new Date(Date.UTC(2026, 7, 19, 12, 0, 0) + tick++ * 100_000);
+    const importReviews = vi.fn(async (_id: string, revs: AERReview[]) => ({
+      imported: revs.length,
+      skippedExisting: 0,
+    }));
+    const s = await runReviewBackfill(
+      deps({ listCandidates: async () => candidates(10), now, importReviews }),
+      { dryRun: false, timeBudgetMs: 150_000 },
+    );
+    expect(s.stoppedBy).toBe("tid");
+    // Den produkt som pågick blev klar — vi avbryter MELLAN produkter, aldrig
+    // mitt i en skrivning.
+    expect(s.considered).toBeGreaterThan(0);
+    expect(s.considered).toBeLessThan(10);
+    expect(importReviews).toHaveBeenCalledTimes(s.considered);
   });
 });
 

@@ -15,10 +15,12 @@
 //     svenska när någon skriver om dem i /admin/reviews — översättningen görs i
 //     chatten sedan DeepL togs bort (2026-08-19).
 //
-// SCHEMALÄGGNING (Leonards beslut 2026-08-16: "kan du göra det åt mig").
-// Rutten låg först medvetet oschemalagd. Den ligger nu i vercel.json var 10:e
-// minut i SKARPT läge, 25 produkter per körning — Vercel skickar sin egen
-// cron-auth, så backfillen kan drivas utan att någon hanterar en token.
+// SCHEMALÄGGNING: rutten är INTE schemalagd. Den låg i vercel.json var 10:e
+// minut en kort stund 2026-08-16, men togs bort samma dag när Leonard valde
+// bort maskinöversättning ("skit i deep l") — en cron som fyller kön snabbare
+// än någon hinner skriva om texterna motverkar det beslutet. Kör den från
+// /admin/reviews-knappen eller manuellt när du har tid att polera resultatet.
+// (Enda schemalagda recensionsrutten är /api/cron/review-queue, dagligen 05:00.)
 //
 // Körningen KONVERGERAR och blir sedan en no-op: varje produkt som AE svarat
 // på stämplas med reviewsCheckedAt, så de ~40 % som saknar recensioner inte
@@ -26,12 +28,13 @@
 // När katalogen är genomgången returnerar varje körning 0 kandidater tills
 // omkontroll-intervallet (REVIEW_RECHECK_DAYS) löper ut.
 //
-// Vill du stoppa den: ta bort cron-raden ur vercel.json.
+// Vill du schemalägga den igen: lägg in cron-raden i vercel.json — hämtningen
+// i sig är gratis, det är översättningsarbetet efteråt som kostar tid.
 //
 // Query:
 //   ?dryRun=false        skarpt läge (default: torrkörning)
 //   ?limit=25            produkter denna körning
-//   ?maxPerProduct=8     tak per produkt (styr månadsbudgeten)
+//   ?maxPerProduct=8     tak per produkt (styr hur mycket som ska skrivas om)
 //   ?includeExisting=1   ta även produkter som redan har recensioner
 //   ?onlyPublished=1     hoppa över utkast i /admin/queue
 //   ?ignoreCheckedAt=1   strunta i reviewsCheckedAt (tvinga omkontroll)

@@ -560,17 +560,17 @@ export async function POST(req: Request) {
     }
 
     // Recensions-import (social proof): filtrera/ranka och spara som pending
-    // i FyndplatsImportedReviews. Best-effort — recensionsfel (Wix
-    // nere, kollektion saknas, budget slut) får ALDRIG fälla produktimporten.
+    // i FyndplatsImportedReviews. Best-effort — recensionsfel (Wix nere,
+    // kollektion saknas) får ALDRIG fälla produktimporten.
     let reviewsResult: { imported: number; skippedExisting: number } | undefined;
     let reviewsQueued = 0;
 
     // Tilläggets DOM-skrapa returnerar nästan alltid [] eftersom AE lazy-laddar
     // recensionssektionen — klickar man importera högst upp på sidan har den
     // inte renderats. Då hämtar vi dem server-side i stället och lägger dem i
-    // översättningskön (status pending, osynliga för kund). Gratis anrop, ingen
-    // Skrapade recensioner (när de faktiskt finns) går kvar den gamla
-    // vägen nedan.
+    // översättningskön (status pending, osynliga för kund). Gratis anrop.
+    // Skrapade recensioner (när de faktiskt finns) går kvar den gamla vägen
+    // nedan.
     if (!reviewsToImport || reviewsToImport.length === 0) {
       try {
         // Tidsbegränsad — en människa väntar på svaret. Missas den tar
