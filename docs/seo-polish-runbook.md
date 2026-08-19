@@ -292,6 +292,16 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 
 > ✍️ **Svensk sifferstil.** **Decimalkomma**, aldrig punkt: `4,5 Ah` · `1,8 m` · `0,31 m²`. Skriv **aldrig** en kommalista av tal med enheten sist — `"10, 20, 30 och 40 cm"` läses som fyra olika mått med oklar enhet. Använd snedstreck: **`10/20/30/40 cm`**. Samma sak för gradlägen: `0/45/60°`, inte `"0, 45 och 60 grader"`. Mått multipliceras med `×` och mellanslag: `72 × 57 × 56 cm`. Intervall får tankstreck: `18–36 månader`, `8–10 timmar`. *(Regeln fällde min egen copy tre gånger på en session — kontrollera den i slutkollen, inte bara när du skriver.)*
 
+> ⚠️ **Galleriet skrivs på `media.itemsInfo.items` — `media.items` TÖMMER det tyst (2026-08-19, en publicerad produkt stod bildlös).** Läsvägen är `media.itemsInfo.items`, och det är också skrivvägen. Skickar du i stället `media: { items: [...] }` svarar PATCH:en **200** med `"media":{}` — och en efterföljande GET visar `itemsInfo.items: []`. Alla bilder borta, på en live produkt. Samma sak händer med `{url}` i stället för `{id}`. **Verifiera ALLTID med en separat GET `?fields=MEDIA_ITEMS_INFO`** — PATCH-svaret utelämnar `itemsInfo` även när skrivningen lyckades, så svaret kan inte skilja "sparat" från "raderat".
+>
+> ⚠️ **`linkedMedia` valideras mot galleriet FÖRE uppdateringen — därav ett moment 22.** Byter du både galleri och val i samma PATCH får du 404 `PRODUCT_MEDIA_NOT_EXIST`: de nya valen valideras mot det GAMLA galleriet (nya bilderna finns inte där än), och det nya galleriet mot de GAMLA valen (gamla bilderna är borttagna). Att skicka med de gamla bilderna i `items` hjälper inte. Bryt låsningen i tre steg:
+>
+> 1. **PATCH `options` + `variantsInfo` UTAN `linkedMedia`.** (Namnbyten här ger nya variant-id → återskapa lagret direkt, se avsnittet om omdöpning.)
+> 2. **PATCH `media.itemsInfo.items`** med det slutliga galleriet.
+> 3. **PATCH `options` + `variantsInfo` igen, nu med `linkedMedia`** och med `choiceId`/variant-`id` ifyllda så inget döps om — då behålls variant-id och lagret rörs inte.
+>
+> `options` kan aldrig skickas ensamt: utan `variantsInfo` svarar API:et 428 `MISSING_VARIANT_OPTION_CHOICE`. Och identifierar du valen med `optionChoiceNames` krävs **alla tre** fälten `optionName`, `choiceName` och `renderType` — utelämnas `renderType` blir det samma 428. Nya val behöver dessutom `choiceType: "CHOICE_TEXT"`, annars 400 `PRODUCT_OPTION_CHOICE_NAME_AND_TYPE_REQUIRED`.
+
 > ⚠️ **FAQ-frågan behöver ett mellanslag efter `</span>` — annars klistras svaret ihop med frågetecknet (2026-08-19, 138 produkter live).** Formen vi skriver FAQ i är `<p><span style="font-weight: 700">Fråga?</span> Svar</p>`, allt i **samma** stycke. Utelämnas mellanslaget renderas det som **"Hur djup är den?29 cm"** — HTML kollapsar inte blanksteg som inte finns, och `<span>` är inline så inget luftar åt dig. Felet syns inte i JSON-LD (`lib/seo/faq-jsonld.ts` kör `avkoda` → `.replace(/\s+/g," ").trim()`), bara för kunden i fliken, så det överlever varje strukturkontroll.
 >
 > Sveptes hela katalogen: **138 av 826 produkter, 715 förekomster.** Ingen kod orsakar det — `lib/import/tabs.ts` genererar `<strong>F</strong><br/>S` som är korrekt. Det är handskriven poleringstext, alltså vårt eget fel, en produkt i taget.
