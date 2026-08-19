@@ -91,17 +91,31 @@ export function reviewDocId(productId: string, reviewIdAE: string): string {
  * `upsert` är enda vägen in i kollektionen, så grinden sitter där i stället för
  * i varje anropare — då kan ingen ny publiceringsväg glömma den.
  *
- * Misslyckad import → bilden utelämnas (samma val som `ownImageUrlForReview`
- * redan gör). Att falla tillbaka på leverantörsadressen vore att återinföra
- * precis det vi tar bort, och recensionens värde ligger i texten.
+ * Misslyckad import → raden lämnas ORÖRD, med leverantörsadressen kvar.
+ *
+ * Det är motsatt val mot `ownImageUrlForReview`, som utelämnar bilden vid fel —
+ * och skillnaden är avsiktlig. Där skapas raden från grunden, så en utelämnad
+ * bild kostar ingenting. Här UPPDATERAS en befintlig rad, och eftersom Wix
+ * `items/save` är en helersättning (och JSON.stringify tappar `undefined`)
+ * hade ett `undefined` raderat den enda pekaren till kundbilden. Ett 60
+ * sekunder långt avbrott hos Wix media under en modereringsrunda hade då tyst
+ * och oåterkalleligt slängt varje bild som godkändes i det fönstret — utan väg
+ * att försöka igen, för källadressen är borta.
+ *
+ * Kvarlämnad leverantörsadress är däremot reparerbar: den syns i samma
+ * kontroll som hittade de 44 ursprungliga (`imageUrl` som innehåller
+ * leverantörens värd) och kan flyttas hem i efterhand.
  */
 async function withOwnImage(review: StoredReview): Promise<StoredReview> {
   if (!isExternalSupplierImage(review.imageUrl)) return review;
   const egen = await ownImageUrlForReview(review.imageUrl, review.reviewIdAE);
   if (!egen) {
-    console.warn(`[reviews] kunde inte flytta hem kundbild för ${review.reviewIdAE} — publiceras utan bild.`);
+    console.warn(
+      `[reviews] kunde inte flytta hem kundbild för ${review.reviewIdAE} — behåller källadressen för nytt försök.`,
+    );
+    return review;
   }
-  return { ...review, imageUrl: egen, hasImage: Boolean(egen) };
+  return { ...review, imageUrl: egen, hasImage: true };
 }
 
 export class ReviewStore {

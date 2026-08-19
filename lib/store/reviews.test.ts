@@ -90,15 +90,34 @@ describe("ReviewStore.upsert: kundbilden flyttas hem vid publicering", () => {
     expect(sparadData(fetchSpion).imageUrl).toBe(EGEN);
   });
 
-  it("publiceras utan bild när hemflytten misslyckas", async () => {
-    // Att falla tillbaka på leverantörsadressen vore att återinföra läckan.
+  it("behåller källadressen när hemflytten misslyckas, i stället för att radera den", async () => {
+    // items/save är en helersättning och JSON.stringify tappar undefined, så ett
+    // utelämnat imageUrl hade raderat den enda pekaren till kundbilden — utan
+    // väg tillbaka. Ett kort avbrott hos Wix media hade då slängt varje bild som
+    // godkändes i det fönstret.
     vi.mocked(ownImageUrlForReview).mockResolvedValue(undefined);
 
     await new ReviewStore().upsert(rad());
 
     const data = sparadData(fetchSpion);
-    expect(data.imageUrl).toBeUndefined();
-    expect(data.hasImage).toBe(false);
+    expect(data.imageUrl).toBe(LEVERANTOR);
+    expect(data.hasImage).toBe(true);
+  });
+
+  it("setStatus — den faktiska publiceringsvägen — flyttar hem bilden", async () => {
+    // De 44 gamla raderna publicerades via kö → godkännande → setStatus → get →
+    // upsert. Alla andra test kör upsert direkt, så en regression i den
+    // kopplingen hade passerat sviten orörd.
+    vi.mocked(ownImageUrlForReview).mockResolvedValue(EGEN);
+    fetchSpion
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ dataItem: { data: rad({ status: "pending" }) } }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => "" });
+
+    await new ReviewStore().setStatus("p1", "r1", "approved");
+
+    const sparBody = JSON.parse(fetchSpion.mock.calls[1][1].body as string);
+    expect(sparBody.dataItem.data.status).toBe("approved");
+    expect(sparBody.dataItem.data.imageUrl).toBe(EGEN);
   });
 
   it("en rad helt utan bild går igenom orörd", async () => {

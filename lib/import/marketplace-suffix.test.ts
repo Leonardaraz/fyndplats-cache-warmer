@@ -33,11 +33,35 @@ describe("stripMarketplaceSuffix", () => {
     }
   });
 
-  it("en titel som ENBART är marknadsplatsen blir tom, alltså tunn", () => {
-    // "AliExpress" är exakt 10 tecken och slank igenom isThinProductInput (< 10).
-    expect(stripMarketplaceSuffix("AliExpress")).toBe("");
-    expect(isThinProductInput(stripMarketplaceSuffix("AliExpress"))).toBe(true);
-    expect(isThinProductInput(stripMarketplaceSuffix("AliExpress 1503"))).toBe(true);
+  it("kapar BARA i slutet — text efter marknadsplatsen överlever", () => {
+    // Ett girigt .*$ åt upp svansen: "Powerbank 20000mAh - AliExpress Choice -
+    // Snabbladdning" blev "Powerbank 20000mAh". Fel-läget ska vara "strök inte",
+    // inte "strök för mycket".
+    const mitten = "Powerbank 20000mAh - AliExpress Choice - Snabbladdning";
+    expect(stripMarketplaceSuffix(mitten)).toBe(mitten);
+    const alibaba = "Hörlurar - Alibaba Selection - Trådlösa";
+    expect(stripMarketplaceSuffix(alibaba)).toBe(alibaba);
+  });
+
+  it("lämnar inga hängande skiljetecken efter kapningen", () => {
+    expect(stripMarketplaceSuffix("Klocka, - AliExpress")).toBe("Klocka");
+    expect(stripMarketplaceSuffix("Product - - AliExpress 1503")).toBe("Product");
+  });
+
+  it("en titel som ENBART är marknadsplatsen lämnas orörd — det är grindarnas jobb", () => {
+    // Tidigare returnerades tom sträng här, i tron att isThinProductInput skulle
+    // fånga den. Det gör ingen anropare i rå-läget, så resultatet blev en produkt
+    // UTAN namn i Wix. En smutsig titel går att rätta i efterhand; en namnlös
+    // kolliderar dessutom på slugen "produkt".
+    expect(stripMarketplaceSuffix("AliExpress")).toBe("AliExpress");
+    expect(stripMarketplaceSuffix("AliExpress 1503")).toBe("AliExpress 1503");
+  });
+
+  it("kort men äkta produktnamn förblir kort — och räknas inte som tunt", () => {
+    // "Lampa - AliExpress 1503" tvättas till 5 tecken. Tunnhetskontrollen ska
+    // ändå se RÅtiteln, annars hoppas SEO-genereringen över för en fullgod produkt.
+    expect(stripMarketplaceSuffix("Lampa - AliExpress 1503")).toBe("Lampa");
+    expect(isThinProductInput("Lampa - AliExpress 1503")).toBe(false);
   });
 
   it("rör inte en titel utan marknadsplatsnamn", () => {

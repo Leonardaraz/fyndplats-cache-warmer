@@ -39,7 +39,11 @@ export function buildFallbackSeo(product: AliExpressProduct): SeoResult {
   // Marknadsplatsens namn ur titeln FÖRST — i rå-läget blir den här titeln
   // produktens namn i Wix rakt av, och kapningen nedan ska lägga sina 70 tecken
   // på produkten, inte på "- AliExpress 1503".
-  const titel = stripMarketplaceSuffix(product.rawTitle);
+  //
+  // `|| product.rawTitle` är en invariant, inte pynt: en tom titel här blir en
+  // produkt UTAN namn i Wix (och kolliderar dessutom på slugen "produkt").
+  // Hellre en smutsig titel som går att rätta i efterhand än en namnlös.
+  const titel = stripMarketplaceSuffix(product.rawTitle) || product.rawTitle;
   // Bug 2026-06-02: rå-läge gav bara meta-description-boilerplate i Wix.
   // Föredra full HTML-beskrivning (descriptionHtml) -> råtext (rawDescription)
   // -> titel-fallback. Det första giltiga blir Wix:s description.
@@ -66,8 +70,8 @@ export function buildFallbackSeo(product: AliExpressProduct): SeoResult {
 export async function generateSeo(product: AliExpressProduct): Promise<SeoResult> {
   // Samma tvätt som i rå-läget: modellen ska inte se marknadsplatsens namn i
   // råtiteln (den har ekat tillbaka det i genererade titlar), och fail-open
-  // nedan använder titeln som produktnamn.
-  const titel = stripMarketplaceSuffix(product.rawTitle);
+  // nedan använder titeln som produktnamn. Aldrig tom — se buildFallbackSeo.
+  const titel = stripMarketplaceSuffix(product.rawTitle) || product.rawTitle;
   const user = `Skapa svenskt SEO-innehåll för denna produkt. Svara med JSON:
 {
   "title": "<=70 tecken, säljande svensk titel",
@@ -113,9 +117,14 @@ Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
   // Skydd 1: om produktdatan är för tunn (misslyckad skrapning) - anropa INTE
   // LLM:en. Utan produktkontext genererar modellen butikscopy om Fyndplats
   // istället för produktinnehåll. Returnera fail-open direkt.
-  if (isThinProductInput(titel)) {
+  // RÅtiteln, inte den tvättade: frågan är "gick skrapningen igenom", inte
+  // "blev titeln kort när suffixet försvann". "Lampa - AliExpress 1503" är en
+  // fullgod produkt vars tvättade titel är 5 tecken — den ska generera SEO som
+  // vanligt. Loggen visar också råtiteln, eftersom det är den kontaminerade
+  // indatan en operatör behöver se.
+  if (isThinProductInput(product.rawTitle)) {
     console.warn(
-      `[seo] Tunn produktdata (pid=${product.supplierProductId}, titel="${titel}") - hoppar över SEO-generering.`,
+      `[seo] Tunn produktdata (pid=${product.supplierProductId}, r\u00e5titel="${product.rawTitle}") - hoppar över SEO-generering.`,
     );
     return clampSeo(failOpen, product.imageUrls.length);
   }
