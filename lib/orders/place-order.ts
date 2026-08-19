@@ -336,6 +336,28 @@ export async function placeOrderForTask(
       if (result.orderDefinitelyNotPlaced) {
         await store.releaseTask(taskId, token);
         await safeAudit(store, taskId, "order-rejected", `AliExpress avvisade ordern${why}`);
+        // FRAKTDIAGNOS. "DELIVERY_METHOD_NOT_EXIST — försök igen" är en
+        // återvändsgränd: den säger inte OM det finns något fraktsätt att
+        // försöka med. Nu skiljs de två lägena åt, för åtgärden är helt olika.
+        if (isDeliveryMethodMissing(result.aeError, result.aeErrorCode)) {
+          if (alternativ.length === 0) {
+            return {
+              ok: false,
+              error:
+                `AliExpress har inget fraktsätt till ${countryCode} för den här varianten` +
+                ` — ingen order lades. Det hjälper inte att försöka igen: varan går inte att` +
+                ` skicka hit från det lagret. Byt leverantör/variant, eller markera` +
+                ` ordern som hanterad manuellt.`,
+            };
+          }
+          return {
+            ok: false,
+            error:
+              `AliExpress avvisade alla fraktsätt vi kunde erbjuda` +
+              ` (${kandidater.join(", ")}) — ingen order lades.` +
+              ` Kontrollera varianten på produktsidan eller beställ manuellt.`,
+          };
+        }
         return { ok: false, error: `AliExpress avvisade ordern${why} — ingen order lades. Åtgärda och försök igen.` };
       }
       await markUncertain(store, taskId, `AliExpress gav inget order-id${why}`);

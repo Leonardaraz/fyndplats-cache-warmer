@@ -13,6 +13,8 @@
 // All UI-text på svenska.
 
 import Link from "next/link";
+import { getPricingRules } from "@/lib/store/pricing-config";
+import { ALERT_BANDS, alertBandFor, alertMarginPct } from "@/lib/pricing/margin-bands";
 import { getSyncStore, type SyncAlert, type SyncLogEntry, type SyncStateEntry } from "@/lib/sync/sync-log";
 import { searchProductSummaries, type WixProductSummary } from "@/lib/wix/client";
 import {
@@ -29,7 +31,7 @@ type FilterMode = "all" | "price" | "content";
 type LogMode = "all" | "price" | "stock";
 
 interface PageProps {
-  searchParams: Promise<{ filter?: string; log?: string }>;
+  searchParams: Promise<{ filter?: string; log?: string; band?: string }>;
 }
 
 const SEVERITY_COLOR: Record<SyncAlert["severity"], string> = {
@@ -126,7 +128,24 @@ export default async function SyncAlertsPage({ searchParams }: PageProps) {
     return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
   });
 
-  const priceAlerts = filtered.filter((a) => a.alertType === "price_increase");
+  // MARGINALEN RÄKNAS OM HÄR i stället för att visa larmets sparade
+  // projectedMarginPct. Larm skrivna före 2026-08-19 räknades med den MOMSADE
+  // kostnaden mot nettointäkten och är därför för låga — ofta med fel tecken.
+  // Omräkningen gör de redan öppna larmen sanna direkt, utan att invänta en ny
+  // synk-körning.
+  const prisregler = await getPricingRules();
+  const marginalFor = (a: SyncAlert) =>
+    alertMarginPct(a, prisregler.usdToSek, prisregler.vatRatePercent) ?? a.projectedMarginPct ?? null;
+
+  const valtBand = ALERT_BANDS.find((b) => b.id === params.band)?.id ?? null;
+  const priceAlertsAlla = filtered.filter((a) => a.alertType === "price_increase");
+  const bandRader = ALERT_BANDS.map((b) => ({
+    band: b,
+    count: priceAlertsAlla.filter((a) => alertBandFor(marginalFor(a))?.id === b.id).length,
+  }));
+  const priceAlerts = valtBand
+    ? priceAlertsAlla.filter((a) => alertBandFor(marginalFor(a))?.id === valtBand)
+    : priceAlertsAlla;
   const contentAlerts = filtered.filter((a) => a.alertType === "content_change");
 
   // Statusraden överst — synk-hälsan i en blick.
@@ -194,6 +213,47 @@ export default async function SyncAlertsPage({ searchParams }: PageProps) {
         <p style={{ color: "#888", marginTop: 16 }}>Inga öppna alerts att granska. ✅</p>
       ) : null}
 
+      {priceAlertsAlla.length > 0 ? (
+        <section style={{ marginTop: 20 }}>
+          <div style={{ fontSize: 13, color: "#666", marginBottom: 6 }}>
+            Marginal efter höjningen — klicka för att filtrera. Räknad{" "}
+            <strong>netto mot netto</strong>: både priset och inköpspriset bär moms,
+            och momsen på inköpet är aldrig en verklig kostnad för ett
+            momsregistrerat företag.
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, fontSize: 12 }}>
+            {valtBand ? (
+              <Link
+                href="/admin/sync-alerts?filter=price"
+                style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid #d1d5db", textDecoration: "none", color: "#374151" }}
+              >
+                Visa alla ({priceAlertsAlla.length})
+              </Link>
+            ) : null}
+            {bandRader.map(({ band, count }) => {
+              const aktiv = valtBand === band.id;
+              return (
+                <Link
+                  key={band.id}
+                  href={`/admin/sync-alerts?filter=price&band=${band.id}`}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 999,
+                    border: `1px solid ${band.color}`,
+                    background: aktiv ? band.color : count > 0 ? `${band.color}18` : "transparent",
+                    color: aktiv ? "#fff" : count > 0 ? band.color : "#9ca3af",
+                    textDecoration: "none",
+                    pointerEvents: count > 0 || aktiv ? "auto" : "none",
+                  }}
+                >
+                  {band.label} · {count}
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       {priceAlerts.length > 0 ? (
         <section style={{ marginTop: 24 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
@@ -201,7 +261,7 @@ export default async function SyncAlertsPage({ searchParams }: PageProps) {
             {priceAlerts.length > 1 ? <BulkApproveForm alerts={priceAlerts} /> : null}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 12 }}>
-            {priceAlerts.map((a) => <PriceAlertCard key={a.id} alert={a} slug={a.productSlug ?? products.get(a.wixProductId)?.slug} />)}
+            {priceAlerts.map((a) => <PriceAlertCard key={a.id} alert={a} margin={marginalFor(a)} slug={a.productSlug ?? products.get(a.wixProductId)?.slug} />)}
           </div>
         </section>
       ) : null}
@@ -568,9 +628,18 @@ function AlertLinks({ alert, slug }: { alert: SyncAlert; slug?: string }) {
   );
 }
 
-function PriceAlertCard({ alert, slug }: { alert: SyncAlert; slug?: string }) {
+function PriceAlertCard({
+  alert,
+  slug,
+  margin: marginIn,
+}: {
+  alert: SyncAlert;
+  slug?: string;
+  /** Omräknad marginal (netto mot netto). Se noten vid marginalFor. */
+  margin?: number | null;
+}) {
   const sevColor = SEVERITY_COLOR[alert.severity];
-  const margin = alert.projectedMarginPct ?? 0;
+  const margin = marginIn ?? alert.projectedMarginPct ?? 0;
   const change = (alert.prevCostUsd ?? 0) > 0 && alert.newCostUsd != null
     ? ((alert.newCostUsd - alert.prevCostUsd!) / alert.prevCostUsd!) * 100
     : 0;

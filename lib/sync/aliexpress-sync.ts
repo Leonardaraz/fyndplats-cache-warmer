@@ -383,8 +383,23 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
 }
 
 /**
- * Marginal vid givet salespris (inkl. moms) och landad kostnad.
- * Försimplad: ignorerar Klarna-fee i alert-räknaren (lägger tröskeln lite konservativt).
+ * Marginal vid givet salespris (inkl. moms) och landad kostnad (inkl. moms).
+ *
+ * NETTO MOT NETTO. Båda talen bär moms: butikspriset gör det, och det lagrade
+ * inköpspriset gör det också ("Price includes VAT" hos AliExpress EU-lager —
+ * se noten i lib/import/pricing.ts). Momsen på inköpet är dessutom aldrig en
+ * verklig kostnad för ett momsregistrerat företag: EU-säljare fakturerar utan
+ * moms (omvänd skattskyldighet) och importmoms på Kina-köp är avdragsgill.
+ * Kodbasens egen netSupplierCost() i lib/auction/seed.ts bygger på just det.
+ *
+ * Fram till 2026-08-19 drogs den MOMSADE kostnaden från nettointäkten, vilket
+ * underskattade varje marginal med ungefär momssatsen gånger kostnaden. Följden
+ * var inte kosmetisk: sidan visade 208 "prishöjningar" där tre av fyra
+ * stickprov i själva verket låg på plus (−9,5 % var +12,4 %, −12,5 % var
+ * +10,0 %, −23,3 % var +1,3 %). Både alert-tröskeln och allvarlighetsgraden
+ * hänger på talet, så felet skapade en vägg av röda larm som inte fanns.
+ *
+ * Försimplad i övrigt: ignorerar Klarna-avgiften (lägger tröskeln konservativt).
  */
 export function projectedMarginAtPrice(
   grossSek: number,
@@ -394,7 +409,8 @@ export function projectedMarginAtPrice(
   if (grossSek <= 0) return 0;
   const netRevenue = grossSek / (1 + vatRatePercent / 100);
   if (netRevenue <= 0) return 0;
-  return ((netRevenue - landedCostSek) / netRevenue) * 100;
+  const netCost = landedCostSek / (1 + vatRatePercent / 100);
+  return ((netRevenue - netCost) / netRevenue) * 100;
 }
 
 function round2(n: number): number {

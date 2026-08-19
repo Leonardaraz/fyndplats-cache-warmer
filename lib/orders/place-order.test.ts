@@ -379,3 +379,61 @@ describe("placeOrderForTask — fraktval", () => {
       .toBe("CAINIAO_ECONOMY_GLOBAL");
   });
 });
+
+describe("placeOrderForTask — fraktdiagnos i felmeddelandet", () => {
+  it("sager att varan inte gar att skicka hit nar INGA alternativ finns", async () => {
+    // "DELIVERY_METHOD_NOT_EXIST - forsok igen" ar en atervandsgrand: den
+    // sager inte OM det finns nagot fraktsatt att forsoka med.
+    const store = await seed(task());
+    vi.mocked(getProduct).mockResolvedValue({ variants: [] } as never);
+    vi.mocked(queryFreightToCountry).mockResolvedValue({ method: "t", raw: {} });
+    vi.mocked(createOrder).mockResolvedValue({
+      tradeOrderId: "",
+      orderDefinitelyNotPlaced: true,
+      aeErrorCode: "DELIVERY_METHOD_NOT_EXIST",
+      aeError: "DELIVERY_METHOD_NOT_EXIST",
+    } as never);
+
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.error).toContain("inget fraktsätt till SE");
+      expect(r.error).toContain("hjälper inte att försöka igen");
+    }
+  });
+
+  it("listar de fraktsatt som provades nar alternativ FANNS", async () => {
+    const store = await seed(task());
+    vi.mocked(getProduct).mockResolvedValue({
+      variants: [{ skuId: "12000012345678", skuAttr: "skuA", skuProps: {} }],
+    } as never);
+    vi.mocked(queryFreightToCountry).mockResolvedValue({
+      method: "t",
+      raw: { delivery_option_list: [{ code: "AAA", shipping_fee_cent: 0, max_delivery_days: 7 }] },
+    });
+    vi.mocked(createOrder).mockResolvedValue({
+      tradeOrderId: "",
+      orderDefinitelyNotPlaced: true,
+      aeErrorCode: "DELIVERY_METHOD_NOT_EXIST",
+      aeError: "DELIVERY_METHOD_NOT_EXIST",
+    } as never);
+
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("AAA");
+  });
+
+  it("ett ANNAT fel behaller det gamla meddelandet", async () => {
+    const store = await seed(task());
+    vi.mocked(getProduct).mockResolvedValue({ variants: [] } as never);
+    vi.mocked(queryFreightToCountry).mockResolvedValue({ method: "t", raw: {} });
+    vi.mocked(createOrder).mockResolvedValue({
+      tradeOrderId: "",
+      orderDefinitelyNotPlaced: true,
+      aeError: "InsufficientBalance",
+    } as never);
+
+    const r = await placeOrderForTask(store, "o1:l1");
+    if (!r.ok) expect(r.error).toContain("Åtgärda och försök igen");
+  });
+});
