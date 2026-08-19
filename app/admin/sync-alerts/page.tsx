@@ -14,7 +14,14 @@
 
 import Link from "next/link";
 import { getPricingRules } from "@/lib/store/pricing-config";
-import { ALERT_BANDS, alertBandFor, alertMarginPct } from "@/lib/pricing/margin-bands";
+import {
+  ALERT_BANDS,
+  TARGET_MARGIN_PCT,
+  alertBandFor,
+  alertMarginPct,
+  priceForTargetMargin,
+} from "@/lib/pricing/margin-bands";
+import { roundPrice } from "@/lib/import/pricing";
 import { getSyncStore, type SyncAlert, type SyncLogEntry, type SyncStateEntry } from "@/lib/sync/sync-log";
 import { searchProductSummaries, type WixProductSummary } from "@/lib/wix/client";
 import {
@@ -136,6 +143,25 @@ export default async function SyncAlertsPage({ searchParams }: PageProps) {
   const prisregler = await getPricingRules();
   const marginalFor = (a: SyncAlert) =>
     alertMarginPct(a, prisregler.usdToSek, prisregler.vatRatePercent) ?? a.projectedMarginPct ?? null;
+
+  // REKOMMENDATIONEN SIKTAR PÅ MÅLMARGINALEN, inte på import-multiplikatorn.
+  //
+  // Larmen bär ett `recommendedPriceSek` räknat som kostnad × 2,5 — samma regel
+  // som vid import. Det ger ~62 % marginal och blir därför ett förslag ingen
+  // trycker på: växthuset på 449 kr föreslogs få 1219 kr. Vid målmarginalen
+  // landar det på ~639 kr, vilket är en höjning man faktiskt gör.
+  //
+  // Räknas om här i stället för att visa larmets sparade tal, så de redan
+  // öppna larmen får det användbara förslaget direkt.
+  const rekommenderatFor = (a: SyncAlert): number | null => {
+    if (!(a.newCostUsd && a.newCostUsd > 0)) return a.recommendedPriceSek ?? null;
+    const ra = priceForTargetMargin(
+      a.newCostUsd * prisregler.usdToSek,
+      TARGET_MARGIN_PCT,
+      prisregler.vatRatePercent,
+    );
+    return ra === null ? (a.recommendedPriceSek ?? null) : roundPrice(ra, prisregler.rounding);
+  };
 
   const valtBand = ALERT_BANDS.find((b) => b.id === params.band)?.id ?? null;
   const priceAlertsAlla = filtered.filter((a) => a.alertType === "price_increase");
@@ -261,7 +287,7 @@ export default async function SyncAlertsPage({ searchParams }: PageProps) {
             {priceAlerts.length > 1 ? <BulkApproveForm alerts={priceAlerts} /> : null}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 12 }}>
-            {priceAlerts.map((a) => <PriceAlertCard key={a.id} alert={a} margin={marginalFor(a)} slug={a.productSlug ?? products.get(a.wixProductId)?.slug} />)}
+            {priceAlerts.map((a) => <PriceAlertCard key={a.id} alert={a} margin={marginalFor(a)} recommended={rekommenderatFor(a)} slug={a.productSlug ?? products.get(a.wixProductId)?.slug} />)}
           </div>
         </section>
       ) : null}
@@ -632,12 +658,16 @@ function PriceAlertCard({
   alert,
   slug,
   margin: marginIn,
+  recommended,
 }: {
   alert: SyncAlert;
   slug?: string;
   /** Omräknad marginal (netto mot netto). Se noten vid marginalFor. */
   margin?: number | null;
+  /** Omräknat prisförslag mot målmarginalen. Se noten vid rekommenderatFor. */
+  recommended?: number | null;
 }) {
+  const rekommenderat = recommended ?? alert.recommendedPriceSek ?? 0;
   const sevColor = SEVERITY_COLOR[alert.severity];
   const margin = marginIn ?? alert.projectedMarginPct ?? 0;
   const change = (alert.prevCostUsd ?? 0) > 0 && alert.newCostUsd != null
@@ -708,15 +738,15 @@ function PriceAlertCard({
           }}
         >
           Rekommenderat nytt pris:{" "}
-          <b>{(alert.recommendedPriceSek ?? 0).toFixed(0)} kr</b>{" "}
-          (kostnad × 2,5 markup + moms)
+          <b>{rekommenderat.toFixed(0)} kr</b>{" "}
+          (ger {TARGET_MARGIN_PCT.toLocaleString("sv-SE")} % marginal)
         </div>
 
         <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
           <form action={approveNewPrice}>
             <input type="hidden" name="alertId" value={alert.id} />
             <input type="hidden" name="wixProductId" value={alert.wixProductId} />
-            <input type="hidden" name="newPriceSek" value={alert.recommendedPriceSek ?? ""} />
+            <input type="hidden" name="newPriceSek" value={rekommenderat || ""} />
             <button type="submit" style={btn("#16a34a")}>
               Godkänn nytt pris
             </button>

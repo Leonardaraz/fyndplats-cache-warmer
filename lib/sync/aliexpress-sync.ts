@@ -15,7 +15,8 @@
 // adjust direkt på alla produkter): denna lägger fokus på listing-status,
 // content-drift och alert-handoff till Leonard. Båda kan samexistera.
 
-import { computePrice } from "../import/pricing";
+import { computePrice, roundPrice } from "../import/pricing";
+import { TARGET_MARGIN_PCT, priceForTargetMargin } from "../pricing/margin-bands";
 import { translateValue } from "../import/variant-translations";
 import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
 import type { PricingConfig } from "../import/types";
@@ -333,7 +334,20 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
         pricing.vatRatePercent,
       );
       if (projectedMargin < marginFloorPercent) {
-        const recommended = computePrice(aliExpress.minCostUsd, pricing).grossSek;
+        // MÅLMARGINALEN, inte import-multiplikatorn. computePrice ger
+        // kostnad × 2,5 (~62 % marginal) — ett förslag ingen trycker på:
+        // växthuset på 449 kr föreslogs få 1219 kr. Vid målmarginalen landar
+        // det på ~639 kr, vilket är en höjning man faktiskt gör. Faller
+        // tillbaka på import-regeln om målpriset inte går att räkna ut.
+        const målpris = priceForTargetMargin(
+          newCostSek,
+          TARGET_MARGIN_PCT,
+          pricing.vatRatePercent,
+        );
+        const recommended =
+          målpris === null
+            ? computePrice(aliExpress.minCostUsd, pricing).grossSek
+            : roundPrice(målpris, pricing.rounding);
         const severity: AlertSeverity =
           projectedMargin < 0 ? "high" : projectedMargin < marginFloorPercent / 2 ? "medium" : "low";
         decision.actionTaken = "flagged_price";

@@ -9,6 +9,7 @@ import {
   biggestOpportunities,
   clusterByMultiple,
   gapToTargetSek,
+  priceForTargetMargin,
   summarizeBands,
   toMarginRow,
   type MarginRow,
@@ -308,5 +309,38 @@ describe("alertMarginPct", () => {
     expect(alertMarginPct({ currentPriceSek: 0, newCostUsd: 5 }, 10.5, 25)).toBeNull();
     expect(alertMarginPct({ currentPriceSek: 100 }, 10.5, 25)).toBeNull();
     expect(alertMarginPct({ currentPriceSek: 100, newCostUsd: 5 }, 0, 25)).toBeNull();
+  });
+});
+
+describe("priceForTargetMargin", () => {
+  it("ger ett pris som FAKTISKT landar pa malmarginalen", () => {
+    // Rundgang: pris in -> marginal ut ska bli malet.
+    const pris = priceForTargetMargin(485, 23.5, 25)!;
+    const net = pris / 1.25;
+    const netKost = 485 / 1.25;
+    expect(((net - netKost) / net) * 100).toBeCloseTo(23.5, 6);
+  });
+
+  it("ersatter 2,5x-regeln som gav orimliga forslag", () => {
+    // Outsunny-vaxthuset: 46,24 USD x 10,5 = 485 kr landad kostnad.
+    // Gamla forslaget var 1219 kr (2,5x) = ~62 % marginal. Ingen trycker pa det.
+    const gammalt = 46.24 * 10.5 * 2.5;
+    const nytt = priceForTargetMargin(46.24 * 10.5, 23.5, 25)!;
+    expect(Math.round(nytt)).toBeCloseTo(634, -1);
+    expect(nytt).toBeLessThan(gammalt / 1.5);
+  });
+
+  it("hogre mal ger hogre pris, monotont", () => {
+    const a = priceForTargetMargin(500, 10, 25)!;
+    const b = priceForTargetMargin(500, 25, 25)!;
+    const c = priceForTargetMargin(500, 40, 25)!;
+    expect(a).toBeLessThan(b);
+    expect(b).toBeLessThan(c);
+  });
+
+  it("null vid orimliga indata i stallet for oandligheter", () => {
+    expect(priceForTargetMargin(0, 23.5, 25)).toBeNull();
+    expect(priceForTargetMargin(500, 0, 25)).toBeNull();
+    expect(priceForTargetMargin(500, 100, 25)).toBeNull();
   });
 });

@@ -413,3 +413,33 @@ export function alertMarginPct(
   if (!(net > 0)) return null;
   return ((net - netKost) / net) * 100;
 }
+
+/**
+ * Priset (inkl. moms, före avrundning) som ger exakt `targetPct` marginal.
+ *
+ * VARFÖR DEN BEHÖVS. /admin/sync-alerts rekommenderade tidigare
+ * `kostnad × markup-multiplikatorn`, alltså 2,5× — samma regel som vid import.
+ * Det ger ~62 % marginal, vilket är långt över vad katalogen faktiskt ligger på
+ * och gör rekommendationen oanvändbar: en produkt på 449 kr föreslogs få 1219 kr.
+ * Ingen trycker på den knappen. Vid 23,5 % blir samma produkt 639 kr, vilket är
+ * en höjning man faktiskt gör.
+ *
+ * Räknas netto mot netto: både kostnaden och priset bär moms, och momsen på
+ * inköpet är aldrig en verklig kostnad (se projectedMarginAtPrice).
+ *
+ *   nettointäkt = nettokostnad / (1 − t)   →   pris = nettointäkt × (1 + moms)
+ *
+ * Anroparen avrundar själv med butikens strategi (roundPrice). Charm9 rundar
+ * bara UPPÅT, så resultatet blir aldrig sämre än målet.
+ */
+export function priceForTargetMargin(
+  landedCostInclVatSek: number,
+  targetPct: number,
+  vatRatePercent: number,
+): number | null {
+  const t = targetPct / 100;
+  if (!(landedCostInclVatSek > 0) || t <= 0 || t >= 1) return null;
+  const netCost = landedCostInclVatSek / (1 + vatRatePercent / 100);
+  const netRevenue = netCost / (1 - t);
+  return netRevenue * (1 + vatRatePercent / 100);
+}
