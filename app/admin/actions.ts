@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { extractAliExpressProductId, getInventory, getProduct, getTracking } from "@/lib/aliexpress/client";
+import { extractAliExpressProductId, getInventory, getProduct, getTracking, queryFreightToCountry } from "@/lib/aliexpress/client";
+import { matchAeVariant, parseDeliveryOptions } from "@/lib/aliexpress/freight";
+import { normalizeCountryCode } from "@/lib/orders/tasks";
 import { getStore } from "@/lib/store/factory";
 import { assertTransition } from "@/lib/orders/status";
 import { placeOrderForTask, type PlaceOrderResult } from "@/lib/orders/place-order";
@@ -439,4 +441,84 @@ export async function closeTaskAction(
   });
   revalidatePath("/admin");
   return { ok: true };
+}
+
+/**
+ * Fraktdiagnos för EN task: visar exakt vad AliExpress svarar på vår
+ * fraktförfrågan, och vilka SKU:er produkten har.
+ *
+ * Finns för att order #10021 avvisades med DELIVERY_METHOD_NOT_EXIST medan
+ * AliExpress egen produktsida samtidigt erbjöd frakt från tre länder. Två
+ * gissningar om orsaken visade sig fel (först fraktsättets namn, sedan att
+ * varan inte gick att skicka alls), och en tredje gissning vore inte bättre än
+ * de förra. Den här knappen lägger fram rådatat i stället.
+ *
+ * Läser bara — lägger ingen order och ändrar ingenting.
+ */
+export async function freightDiagnosticsAction(taskId: string): Promise<
+  | {
+      ok: true;
+      skuIdUsed: string | null;
+      supplierVariantId: string;
+      country: string;
+      optionCount: number;
+      options: { serviceName: string; costSek: number | null; maxDays: number | null }[];
+      /** Alla SKU:er produkten har — avslöjar om vår pekar på fel lager. */
+      allSkus: { skuId: string; props: string }[];
+      rawSnippet: string;
+    }
+  | { ok: false; error: string }
+> {
+  const store = getStore();
+  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
+  if (!task) return { ok: false, error: "Ordern hittades inte." };
+  if (!task.wixCatalogItemId) return { ok: false, error: "Saknar produktkoppling." };
+  const mapping = await store.getMappingByWixProductId(task.wixCatalogItemId);
+  if (!mapping) return { ok: false, error: "Ingen AliExpress-mappning." };
+
+  let variant = task.sku ? mapping.variants.find((v) => v.sku === task.sku) : undefined;
+  if (!variant) {
+    const entries = Object.entries(task.variantChoices);
+    if (entries.length > 0) {
+      const hits = mapping.variants.filter((v) => entries.every(([k, val]) => v.choices[k] === val));
+      variant = hits.length === 1 ? hits[0] : undefined;
+    } else if (mapping.variants.length === 1) {
+      variant = mapping.variants[0];
+    }
+  }
+  const supplierProductId = task.overriddenSupplierProductId ?? mapping.supplierProductId;
+  const supplierVariantId = task.overriddenSupplierVariantId ?? variant?.supplierVariantId ?? "";
+  if (!supplierVariantId) return { ok: false, error: "Kunde inte matcha varianten till en SKU." };
+
+  const country = normalizeCountryCode(task.shippingAddress?.country) ?? "SE";
+
+  try {
+    const ae = await getProduct(supplierProductId);
+    const skuIdUsed = /^\d+$/.test(supplierVariantId)
+      ? supplierVariantId
+      : matchAeVariant(supplierVariantId, ae.variants);
+
+    const svar = skuIdUsed
+      ? await queryFreightToCountry(supplierProductId, skuIdUsed, country, task.quantity)
+      : null;
+    const options = svar ? parseDeliveryOptions(svar) : [];
+
+    return {
+      ok: true,
+      skuIdUsed,
+      supplierVariantId,
+      country,
+      optionCount: options.length,
+      options,
+      allSkus: ae.variants.map((v) => ({
+        skuId: v.skuId,
+        props: Object.entries(v.skuProps ?? {})
+          .map(([k, val]) => `${k}: ${val}`)
+          .join(", "),
+      })),
+      rawSnippet: JSON.stringify(svar ?? { note: "inget sku_id kunde härledas" }).slice(0, 1200),
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 }
