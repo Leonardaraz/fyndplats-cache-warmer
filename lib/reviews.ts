@@ -7,6 +7,8 @@
 // REVIEW_DISPLAY_MODE=verified_buyer byter alla visningsnamn till "Verifierad
 // köpare" (panic-läge). Bara status approved/edited visas publikt.
 
+import { reviewImages } from "./review-images";
+
 const WIX_BASE = "https://www.wixapis.com";
 const COL = process.env.WIX_DATA_COL_REVIEWS || "FyndplatsImportedReviews";
 
@@ -20,7 +22,10 @@ export interface ProductReview {
   displayName: string;
   date?: string;
   hasImage: boolean;
+  /** Första bilden. Kvar för anropare som bara visar en. */
   imageUrl?: string;
+  /** Alla bilder recensenten postade, i visningsordning. */
+  imageUrls: string[];
 }
 
 export interface ProductReviews {
@@ -56,6 +61,7 @@ interface WixReviewRow {
   date?: string;
   hasImage?: boolean;
   imageUrl?: string;
+  imageUrls?: unknown;
   status?: string;
   /** "customer" = skrivet av en kund hos oss. Saknas → gammal AE-import. */
   source?: string;
@@ -97,8 +103,11 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
       text: String(r.textSwedish || r.textOriginal || ""),
       displayName: reviewDisplayName(String(r.initials || "")),
       date: r.date ? String(r.date) : undefined,
+      // hasImage-flaggan avgör om bilder ska visas alls; listan läses ur BÅDA
+      // fälten (se lib/review-images.ts om varför datamodellen är tvådelad).
       hasImage: Boolean(r.hasImage),
       imageUrl: r.hasImage && r.imageUrl ? String(r.imageUrl) : undefined,
+      imageUrls: r.hasImage ? reviewImages(r) : [],
     }));
 
     // Foto först, sedan senaste datum, sedan längst text — mest övertygande överst.

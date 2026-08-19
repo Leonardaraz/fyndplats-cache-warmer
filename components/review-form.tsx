@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import { validateCustomerReview, FELTEXT } from "../lib/customer-review";
+import { MAX_IMAGES } from "../lib/review-image";
 
 interface Vara {
   productId: string;
@@ -69,10 +70,11 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
   const [betyg, setBetyg] = useState(0);
   const [text, setText] = useState("");
   const [namn, setNamn] = useState("");
-  // Valfritt kundfoto. `fil` är originalet, `forhandsvisning` en lokal blob-URL
-  // så kunden ser vad hen skickar innan hen trycker.
-  const [fil, setFil] = useState<File | null>(null);
-  const [forhandsvisning, setForhandsvisning] = useState<string | null>(null);
+  // Valfria kundfoton, högst MAX_IMAGES. En enda filväljare med `multiple` —
+  // inte tre fält: kunden markerar en eller tre i samma dialog, så friktionen
+  // ökar inte. Det spelar roll, för flaskhalsen är att få NÅGON recension alls.
+  const [filer, setFiler] = useState<File[]>([]);
+  const [forhandsvisningar, setForhandsvisningar] = useState<string[]>([]);
   const [läge, setLäge] = useState<Läge>({ typ: "vilar" });
 
   async function skicka(e: React.FormEvent) {
@@ -90,19 +92,17 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
 
     setLäge({ typ: "skickar" });
     try {
-      // Bilden skickas som base64. Enkelt och tillräckligt: taket är 6 MB och
-      // servern grindar storleken igen innan den avkodar något.
-      let image: string | undefined;
-      let imageType: string | undefined;
-      if (fil) {
-        const buf = await fil.arrayBuffer();
+      // Bilderna skickas som base64. Enkelt och tillräckligt: taket är 6 MB per
+      // bild och servern grindar antal och storlek igen innan den avkodar något.
+      const images: { data: string; type: string }[] = [];
+      for (const f of filer) {
+        const buf = await f.arrayBuffer();
         let bin = "";
         const bytes = new Uint8Array(buf);
         for (let i = 0; i < bytes.length; i += 0x8000) {
           bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
         }
-        image = btoa(bin);
-        imageType = fil.type;
+        images.push({ data: btoa(bin), type: f.type });
       }
       const res = await fetch("/api/omdome", {
         method: "POST",
@@ -113,7 +113,7 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
           rating: betyg,
           text,
           name: namn,
-          ...(image ? { image, imageType } : {}),
+          ...(images.length > 0 ? { images } : {}),
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -168,35 +168,43 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
       />
 
       <label className="rf-label" htmlFor={`bild-${vara.productId}`}>
-        Bild <span className="rf-hint">(frivilligt – visa gärna varan i verkligheten)</span>
+        Bilder{" "}
+        <span className="rf-hint">
+          (frivilligt – upp till {MAX_IMAGES} st, visa gärna varan i verkligheten)
+        </span>
       </label>
       <input
         id={`bild-${vara.productId}`}
         className="rf-input"
         type="file"
+        multiple
         accept="image/jpeg,image/png,image/webp"
         onChange={(e) => {
-          const f = e.target.files?.[0] ?? null;
-          setFil(f);
-          setForhandsvisning((tidigare) => {
-            if (tidigare) URL.revokeObjectURL(tidigare);
-            return f ? URL.createObjectURL(f) : null;
+          // Kapar vid taket i stället för att avvisa: har kunden markerat fem
+          // bilder är det bättre att ta de tre första än att be hen börja om.
+          const valda = Array.from(e.target.files ?? []).slice(0, MAX_IMAGES);
+          setFiler(valda);
+          setForhandsvisningar((tidigare) => {
+            for (const u of tidigare) URL.revokeObjectURL(u);
+            return valda.map((f) => URL.createObjectURL(f));
           });
         }}
       />
-      {forhandsvisning ? (
+      {forhandsvisningar.length > 0 ? (
         <div className="rf-preview">
-          <img className="rf-preview-img" src={forhandsvisning} alt="Din bild" />
+          {forhandsvisningar.map((url, i) => (
+            <img key={url} className="rf-preview-img" src={url} alt={`Din bild ${i + 1}`} />
+          ))}
           <button
             type="button"
             className="rf-preview-remove"
             onClick={() => {
-              URL.revokeObjectURL(forhandsvisning);
-              setForhandsvisning(null);
-              setFil(null);
+              for (const u of forhandsvisningar) URL.revokeObjectURL(u);
+              setForhandsvisningar([]);
+              setFiler([]);
             }}
           >
-            Ta bort bilden
+            {forhandsvisningar.length === 1 ? "Ta bort bilden" : "Ta bort bilderna"}
           </button>
         </div>
       ) : null}

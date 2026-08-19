@@ -17,18 +17,33 @@
 // C2PA/IPTC i XMP. sharp 0.34 har keepXmp() — XMP behålls, EXIF slängs.
 // Utan den hade valet stått mellan kundens adress och bildens ursprung.
 
-/** Största tillåtna uppladdning. */
+/** Största tillåtna uppladdning PER BILD. */
 export const MAX_BYTES = 6 * 1024 * 1024;
+
+/**
+ * Hur många bilder kunden får bifoga.
+ *
+ * Tre, inte en: för möbler — butikens dyraste kategori — är skillnaden mellan
+ * en bild och tre att man ser varan monterad, i ett rum och i rätt skala. Och
+ * inte fler: en remsa med tre tumnaglar får plats i layouten, det täcker
+ * helhet + detalj + miljö, och det håller modereringen rimlig.
+ *
+ * Samma tak som MAX_REVIEW_IMAGES i lib/review-images.ts — de MÅSTE följas åt,
+ * annars accepterar formuläret bilder som lagret sedan kapar bort.
+ */
+export const MAX_IMAGES = 3;
 
 export const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export type ImageError =
+  | "for_manga"
   | "for_stor"
   | "fel_typ"
   | "tom"
   | "inte_en_bild";
 
 export const IMAGE_FELTEXT: Record<ImageError, string> = {
+  for_manga: `Du kan bifoga högst ${MAX_IMAGES} bilder.`,
   for_stor: `Bilden är för stor (max ${Math.round(MAX_BYTES / 1024 / 1024)} MB).`,
   fel_typ: "Bilden måste vara JPEG, PNG eller WebP.",
   tom: "Ingen bild hittades.",
@@ -54,8 +69,14 @@ export function validateUpload(
   return null;
 }
 
-/** Filnamnet bilden får i Wix Media. Innehåller aldrig kunddata. */
-export function mediaFileName(productId: string, reviewIdAE: string): string {
+/**
+ * Filnamnet bilden får i Wix Media. Innehåller aldrig kunddata.
+ *
+ * `index` gör namnen unika inom samma recension — utan det hade bild 2 och 3
+ * skrivit över den första i mediabiblioteket.
+ */
+export function mediaFileName(productId: string, reviewIdAE: string, index = 0): string {
   const rent = (s: string) => s.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
-  return `omdome-${rent(productId)}-${rent(reviewIdAE)}.jpg`;
+  const suffix = index > 0 ? `-${index + 1}` : "";
+  return `omdome-${rent(productId)}-${rent(reviewIdAE)}${suffix}.jpg`;
 }

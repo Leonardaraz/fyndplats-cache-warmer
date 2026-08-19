@@ -11,7 +11,8 @@
 // `source: "customer"`. Det visas alltså INTE förrän det godkänts i
 // /admin/reviews — produktsidan renderar bara approved/edited.
 //
-// BILD (valfri): skickas som base64 i `image` + `imageType`. Den bearbetas
+// BILDER (valfria, högst MAX_IMAGES): skickas som `images: [{data, type}]`.
+// Den gamla enkelbild-formen (`image` + `imageType`) accepteras fortfarande. Den bearbetas
 // (nedskalning, EXIF bort, XMP kvar — se lib/review-image-process.ts) och
 // laddas upp till Wix Media. Misslyckas något av det sparas omdömet ÄNDÅ utan
 // bild: texten och betyget är huvudsaken, och en trasig uppladdning får inte
@@ -23,7 +24,8 @@
 import { NextResponse } from "next/server";
 import { verifyReviewToken } from "@/lib/review-token";
 import { validateCustomerReview, buildCustomerReviewRow, FELTEXT } from "@/lib/customer-review";
-import { IMAGE_FELTEXT, validateUpload } from "@/lib/review-image";
+import { IMAGE_FELTEXT, MAX_IMAGES, validateUpload } from "@/lib/review-image";
+import { reviewImageFields } from "@/lib/review-images";
 import { processReviewImage } from "@/lib/review-image-process";
 import { uploadReviewImage } from "@/lib/review-image-upload";
 import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
@@ -99,30 +101,46 @@ export async function POST(req: Request) {
     review: validerad.value,
   });
 
-  // Valfri kundbild. Grindas FÖRE avkodning (storlek + typ) så en stor eller
-  // felaktig fil aldrig når bildbehandlingen.
-  const base64 = typeof body.image === "string" ? body.image : "";
-  if (base64) {
+  // Valfria kundbilder, upp till MAX_IMAGES. Grindas FÖRE avkodning (antal,
+  // storlek, typ) så en stor eller felaktig fil aldrig når bildbehandlingen.
+  const inskickade = Array.isArray(body.images)
+    ? body.images
+    : typeof body.image === "string"
+      ? // Enkelbild-formen behålls: en äldre klient (cachad sida, någon som
+        // postar direkt) ska inte sluta fungera för att formuläret bytt form.
+        [{ data: body.image, type: body.imageType }]
+      : [];
+
+  if (inskickade.length > MAX_IMAGES) {
+    return NextResponse.json({ error: IMAGE_FELTEXT.for_manga }, { status: 400 });
+  }
+
+  const uppladdade: string[] = [];
+  for (const [n, post] of inskickade.entries()) {
+    const p = post as { data?: unknown; type?: unknown };
+    const base64 = typeof p.data === "string" ? p.data : "";
+    if (!base64) continue;
     const raa = Buffer.from(base64, "base64");
-    const felkod = validateUpload(raa.byteLength, String(body.imageType || ""));
+    const felkod = validateUpload(raa.byteLength, String(p.type || ""));
     if (felkod) {
       return NextResponse.json({ error: IMAGE_FELTEXT[felkod] }, { status: 400 });
     }
     try {
       const bearbetad = await processReviewImage(raa);
-      const url = await uploadReviewImage(bearbetad, productId, rad.reviewIdAE);
-      if (url) {
-        rad.imageUrl = url;
-        rad.hasImage = true;
-      }
+      // Sekventiellt, inte parallellt: tre samtidiga uppladdningar mot Wix
+      // media per omdöme ger ingen märkbar tidsvinst för kunden och tre gånger
+      // så många samtidiga anrop när flera skriver samtidigt.
+      const url = await uploadReviewImage(bearbetad, productId, rad.reviewIdAE, n);
+      if (url) uppladdade.push(url);
     } catch (err) {
       // sharp kastar på det som inte är en bild trots rätt MIME-typ. Här är det
       // ett ÄKTA fel i indatan, så kunden ska få veta — till skillnad från en
-      // misslyckad uppladdning, som tyst sparar omdömet utan bild.
+      // misslyckad uppladdning, som tyst sparar omdömet utan just den bilden.
       console.warn("[omdome] bilden gick inte att läsa", err);
       return NextResponse.json({ error: IMAGE_FELTEXT.inte_en_bild }, { status: 400 });
     }
   }
+  Object.assign(rad, reviewImageFields(uppladdade));
 
   try {
     // /items/save är upsert. PUT /items/{id} vore FEL här: den uppdaterar bara

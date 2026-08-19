@@ -30,6 +30,7 @@ export async function uploadReviewImage(
   bild: Buffer,
   productId: string,
   reviewIdAE: string,
+  index = 0,
 ): Promise<string | null> {
   const headers = wixHeaders();
   if (!headers) return null;
@@ -39,7 +40,7 @@ export async function uploadReviewImage(
       headers: { ...headers, "Content-Type": "application/json" },
       body: JSON.stringify({
         mimeType: "image/jpeg",
-        fileName: mediaFileName(productId, reviewIdAE),
+        fileName: mediaFileName(productId, reviewIdAE, index),
         parentFolderId: process.env.WIX_MEDIA_REVIEW_FOLDER_ID || undefined,
       }),
       signal: AbortSignal.timeout(10_000),
@@ -51,7 +52,7 @@ export async function uploadReviewImage(
     const { uploadUrl } = (await res.json()) as { uploadUrl?: string };
     if (!uploadUrl) return null;
 
-    const put = await fetch(`${uploadUrl}?filename=${encodeURIComponent(mediaFileName(productId, reviewIdAE))}`, {
+    const put = await fetch(`${uploadUrl}?filename=${encodeURIComponent(mediaFileName(productId, reviewIdAE, index))}`, {
       method: "PUT",
       headers: { "Content-Type": "image/jpeg" },
       body: new Uint8Array(bild),
