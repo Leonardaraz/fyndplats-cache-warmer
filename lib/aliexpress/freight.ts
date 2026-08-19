@@ -204,3 +204,83 @@ export function matchAeVariant(
   });
   return hits.length === 1 ? hits[0].skuId : null;
 }
+
+// ── Fraktsättet vid orderläggning ────────────────────────────────────────────
+//
+// Bakgrund (2026-08-19): order #10021 avvisades med DELIVERY_METHOD_NOT_EXIST.
+// Orsaken var att `placeOrder` skickade en HÅRDKODAD tjänst,
+// CAINIAO_ECONOMY_GLOBAL, för varje produkt. Den tjänsten finns inte för alla
+// säljare, lager och destinationer — och när den inte gör det vägrar
+// AliExpress hela ordern.
+//
+// Fraktalternativen finns redan att fråga efter: queryFreightToCountry anropas
+// idag bara för att avgöra OM en vara går att skicka, och svaret bär tjänsternas
+// namn. Vi använder alltså data vi redan hämtar.
+
+/** Nycklar AliExpress använder för tjänstens namn i ett fraktalternativ. */
+const SERVICE_NAME_KEYS = [
+  "serviceName",
+  "service_name",
+  "deliveryProviderName",
+  "delivery_provider_name",
+  "shippingCompany",
+  "logisticsServiceName",
+  "logistics_service_name",
+  "code",
+];
+
+/**
+ * Tjänstenamnen ur ett fraktsvar, i svarets egen ordning.
+ *
+ * AliExpress listar billigast först, så ordningen är meningsfull: den första
+ * som fungerar är den vi vill ha. Dubbletter tas bort, tomma hoppas över.
+ *
+ * Samma toleranta hållning som resten av filen — svarsformen varierar mellan
+ * de två fraktmetoderna och mellan API-versioner, så vi letar efter kända
+ * nyckelnamn i alternativens objekt i stället för att lita på en enda väg.
+ */
+export function shippingServiceNames(outcome: FreightQueryOutcome): string[] {
+  if (outcome.error) return [];
+  const lists: unknown[][] = [];
+  collectOptionArrays(outcome.raw, "", lists);
+  const namn: string[] = [];
+  const sedda = new Set<string>();
+  for (const lista of lists) {
+    for (const alt of lista) {
+      if (!alt || typeof alt !== "object") continue;
+      const rad = alt as Record<string, unknown>;
+      for (const nyckel of SERVICE_NAME_KEYS) {
+        const v = rad[nyckel];
+        if (typeof v !== "string") continue;
+        const s = v.trim();
+        if (!s || sedda.has(s)) continue;
+        sedda.add(s);
+        namn.push(s);
+        break; // ett namn per alternativ
+      }
+    }
+  }
+  return namn;
+}
+
+/** AliExpress svar när det begärda fraktsättet inte finns för produkten. */
+const DELIVERY_METHOD_MISSING = /DELIVERY_METHOD_NOT_EXIST/i;
+
+/** true när felet är "fel fraktsätt", alltså värt ett omförsök med ett annat. */
+export function isDeliveryMethodMissing(text: string | undefined | null): boolean {
+  return Boolean(text && DELIVERY_METHOD_MISSING.test(text));
+}
+
+/**
+ * Väljer fraktsätt att försöka med, i tur och ordning.
+ *
+ * `preferred` (vår historiska default) läggs FÖRST när den finns bland de
+ * tillgängliga — den är beprövad och billig. Finns den inte bland alternativen
+ * läggs den ändå SIST som sista utväg, så beteendet aldrig blir sämre än förut
+ * när fraktfrågan misslyckats helt.
+ */
+export function deliveryCandidates(available: string[], preferred: string): string[] {
+  const rena = available.map((s) => s.trim()).filter(Boolean);
+  const utan = rena.filter((s) => s !== preferred);
+  return rena.includes(preferred) ? [preferred, ...utan] : [...utan, preferred];
+}

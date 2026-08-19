@@ -1,9 +1,28 @@
 import { randomUUID } from "node:crypto";
-import { createOrder, getProduct, OrderValidationError } from "@/lib/aliexpress/client";
+import {
+  createOrder,
+  getProduct,
+  OrderValidationError,
+  queryFreightToCountry,
+} from "@/lib/aliexpress/client";
+import {
+  deliveryCandidates,
+  isDeliveryMethodMissing,
+  shippingServiceNames,
+} from "@/lib/aliexpress/freight";
 import { normalizeCountryCode, provinceFromSwedishPostalCode } from "@/lib/orders/tasks";
 import { isTerminal } from "@/lib/orders/status";
 import { assessDsPrice } from "@/lib/orders/price-check";
 import type { Store } from "@/lib/store";
+
+/** Fraktsättet createOrder skickar när inget annat anges. */
+const DEFAULT_DELIVERY_METHOD = "CAINIAO_ECONOMY_GLOBAL";
+/**
+ * Tak för hur många alternativa fraktsätt vi provar. Varje försök är ett
+ * API-anrop i en admin-request; listan kan vara lång och de billigaste ligger
+ * först, så tre räcker i praktiken och håller svarstiden nere.
+ */
+const MAX_DELIVERY_RETRIES = 3;
 
 export type PlaceOrderResult =
   | { ok: true; tradeOrderId: string; paymentUrl?: string }
@@ -181,21 +200,71 @@ export async function placeOrderForTask(
   }
 
   try {
-    const result = await createOrder({
+    const adress = {
+      name: a.fullName ?? "",
+      addressLine1: a.addressLine1 ?? "",
+      addressLine2: a.addressLine2,
+      city: a.city ?? "",
+      province,
+      postalCode: a.postalCode ?? "",
+      countryCode,
+      phone: a.phone,
+    };
+
+    let result = await createOrder({
       productId: supplierProductId,
       skuId: supplierVariantId,
       quantity: task.quantity,
-      shippingAddress: {
-        name: a.fullName ?? "",
-        addressLine1: a.addressLine1 ?? "",
-        addressLine2: a.addressLine2,
-        city: a.city ?? "",
-        province,
-        postalCode: a.postalCode ?? "",
-        countryCode,
-        phone: a.phone,
-      },
+      shippingAddress: adress,
     });
+
+    // FRAKTSÄTT SOM INTE FINNS → försök om med ett som gör det.
+    //
+    // createOrder skickar CAINIAO_ECONOMY_GLOBAL som default. Den tjänsten finns
+    // inte för alla säljare, lager och destinationer, och saknas den vägrar
+    // AliExpress HELA ordern med DELIVERY_METHOD_NOT_EXIST (order #10021,
+    // 2026-08-19). Alternativen går att fråga efter — vi gjorde det bara aldrig
+    // vid orderläggning.
+    //
+    // SÄKERHETSVILLKORET är `orderDefinitelyNotPlaced`: det sätts bara när
+    // AliExpress uttryckligen sagt nej, alltså när ingen order kan ha skapats.
+    // Vid ett oklart svar försöker vi ALDRIG om — då kan en order finnas, och
+    // ett omförsök vore en dubbelbeställning. Claimen hålls hela vägen, så
+    // ingen annan väg kan gå in mellan försöken.
+    if (
+      !result.tradeOrderId &&
+      result.orderDefinitelyNotPlaced &&
+      isDeliveryMethodMissing(result.aeError)
+    ) {
+      const frakt = await queryFreightToCountry(
+        supplierProductId,
+        supplierVariantId,
+        countryCode,
+        task.quantity,
+      );
+      const kandidater = deliveryCandidates(
+        shippingServiceNames(frakt),
+        DEFAULT_DELIVERY_METHOD,
+      ).filter((n) => n !== DEFAULT_DELIVERY_METHOD); // den har redan provats
+
+      for (const tjanst of kandidater.slice(0, MAX_DELIVERY_RETRIES)) {
+        console.warn(
+          `[place-order] task=${taskId} fraktsätt saknades — provar "${tjanst}"`,
+        );
+        result = await createOrder({
+          productId: supplierProductId,
+          skuId: supplierVariantId,
+          quantity: task.quantity,
+          shippingAddress: adress,
+          logisticsServiceName: tjanst,
+        });
+        // Lyckat, eller ett ANNAT fel än fraktsättet → sluta försöka. Bara
+        // "fraktsättet finns inte" motiverar nästa kandidat.
+        if (result.tradeOrderId) break;
+        if (!result.orderDefinitelyNotPlaced) break;
+        if (!isDeliveryMethodMissing(result.aeError)) break;
+      }
+    }
 
     // Tomt order_id. Två fall:
     //  a) AliExpress svarade UTTRYCKLIGEN misslyckat (is_success=false / felkod) →
