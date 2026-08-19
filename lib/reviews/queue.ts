@@ -3,7 +3,7 @@
 // Kö för recensioner som väntar på översättning.
 //
 // Bakgrund (2026-08-17): recensionskedjan fanns men matades bara manuellt.
-// DeepL valdes bort (Leonard) och översättningarna görs i stället av Claude i
+// Översättningarna görs av Claude i
 // chatten — gratis och kurerade. Men då behövs någonstans att lägga de RÅA
 // recensionerna mellan att de hittas och att de översätts.
 //
@@ -17,7 +17,7 @@
 //   2. Leonard säger till i chatten                          → Claude översätter
 //   3. textSwedish fylls i och status sätts till approved     → syns på sidan
 //
-// Ingen DeepL, inga Claude-credits: hämtningen är ett gratis-anrop mot AE:s
+// Inga credits: hämtningen är ett gratis-anrop mot AE:s
 // feedback-endpoint och översättningen sker i chatten.
 
 import { filterAndRankReviews, deriveInitials, ensureReviewId, type AERReview } from "../import/review-import";

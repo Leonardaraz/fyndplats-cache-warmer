@@ -10,10 +10,10 @@
 //
 // SÄKERHET — publicering ska väljas, inte råka hända:
 //   - dryRun är DEFAULT PÅ. Utan ?dryRun=false skrivs ingenting; du får bara
-//     siffrorna. Importerade recensioner auto-godkänns och syns direkt på
-//     produktsidan, så skarpt läge är ett publiceringsbeslut.
-//   - DeepL-budgeten kollas FÖRE varje produkt; körningen stannar hellre än
-//     publicerar engelsk text (se lib/reviews/backfill.ts).
+//     siffrorna.
+//   - Importerade recensioner sparas som `pending`, inte publicerade. De blir
+//     svenska när någon skriver om dem i /admin/reviews — översättningen görs i
+//     chatten sedan DeepL togs bort (2026-08-19).
 //
 // SCHEMALÄGGNING (Leonards beslut 2026-08-16: "kan du göra det åt mig").
 // Rutten låg först medvetet oschemalagd. Den ligger nu i vercel.json var 10:e
@@ -89,7 +89,7 @@ async function handle(req: NextRequest) {
         "reviews-backfill",
         "batch",
         `${summary.reviewsImported} recensioner på ${summary.withReviews} produkter ` +
-          `(DeepL ${summary.charsSpent} tecken, stopp: ${summary.stoppedBy})`,
+          `(stopp: ${summary.stoppedBy})`,
       );
     }
 

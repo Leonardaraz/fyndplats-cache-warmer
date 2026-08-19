@@ -925,8 +925,9 @@ function extractPackageContents() {
 
 // --- Recensioner (social proof) ------------------------------------------
 // Skrapar AliExpress-recensioner från produktsidan så att Fyndplats-produkten
-// får recensioner från dag 1. GRATIS — översättningen sker server-side via DeepL
-// (ingen Anthropic-användning). Skrapan är best-effort: AE renderar recensioner
+// får recensioner från dag 1. GRATIS — ingen översättningstjänst inblandad:
+// raderna sparas som `pending` och skrivs om till svenska i /admin/reviews
+// (DeepL togs bort 2026-08-19). Skrapan är best-effort: AE renderar recensioner
 // klient-sida och lazy-laddar dem, så vi tar det som finns i DOM:en just nu.
 //
 // Filtrering/rankning sker server-side (lib/import/review-import.ts); här gör vi
@@ -1256,7 +1257,8 @@ function extract() {
     specifications: {},
     features: [],
     packageContents: [],
-    // Skrapade recensioner (social proof). Översätts server-side via DeepL.
+    // Skrapade recensioner (social proof). Sparas som `pending` och översätts
+    // för hand i /admin/reviews.
     reviewsToImport: [],
     shipsFrom: [],
     // Säljardata (Feature 6). supplierId tom = säljaren kunde inte identifieras.

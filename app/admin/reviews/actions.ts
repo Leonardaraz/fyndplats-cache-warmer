@@ -44,7 +44,7 @@ export async function runReviewBackfillAction(formData: FormData): Promise<void>
       "reviews-backfill",
       "admin",
       `${summary.reviewsImported} recensioner på ${summary.withReviews} produkter ` +
-        `(DeepL ${summary.charsSpent} tecken, stopp: ${summary.stoppedBy})`,
+        `(stopp: ${summary.stoppedBy})`,
     );
   }
 
@@ -56,12 +56,9 @@ export async function runReviewBackfillAction(formData: FormData): Promise<void>
     w: String(summary.withReviews),
     i: String(summary.reviewsImported),
     e: String(summary.reviewsEligible),
-    c: String(dryRun ? summary.charsEstimated : summary.charsSpent),
     t: String(summary.throttled),
     f: String(summary.errors),
     s: summary.stoppedBy,
-    b: String(summary.budgetRemainingAtEnd),
-    ...(summary.blockedReason ? { r: summary.blockedReason } : {}),
   });
   revalidatePath("/admin/reviews");
   redirect(`/admin/reviews?${q.toString()}`);

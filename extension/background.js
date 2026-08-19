@@ -102,8 +102,9 @@ async function importProduct(product, featureFlags) {
     // låter serverns hårda supplierProductId-spärr (PR #369) kliva åt sidan.
     // Skickas BARA vid uttryckligt val; server utan spärren ignorerar fältet.
     ...(product.allowDuplicate === true ? { allowDuplicate: true } : {}),
-    // Skrapade AliExpress-recensioner (social proof). Översätts server-side via
-    // DeepL (GRATIS) och sparas i FyndplatsImportedReviews. Skickas bara när
+    // Skrapade AliExpress-recensioner (social proof). Sparas som `pending` i
+    // FyndplatsImportedReviews och översätts för hand i /admin/reviews (ingen
+    // översättningstjänst sedan 2026-08-19). Skickas bara när
     // skrapan faktiskt hittade recensioner (annars utelämnas fältet helt).
     ...(Array.isArray(product.reviewsToImport) && product.reviewsToImport.length
       ? { reviewsToImport: product.reviewsToImport }

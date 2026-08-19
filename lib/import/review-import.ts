@@ -1,22 +1,23 @@
-// Recensions-import: filtrerar/rankar råa AliExpress-recensioner, översätter de
-// bästa till svenska via DeepL (GRATIS — ingen Anthropic-användning) och sparar
-// dem i Wix Data-kollektionen FyndplatsImportedReviews.
+// Recensions-import: filtrerar/rankar råa AliExpress-recensioner och sparar de
+// bästa i Wix Data-kollektionen FyndplatsImportedReviews.
 //
-// Designmål: håll DeepL Free-budgeten (500 000 tecken/månad). Vi tar bara topp
-// 10–15 recensioner per produkt och budgetbevakar månadssumman före varje anrop
-// (lib/translate/usage.ts). Når vi taket faller vi tillbaka på originaltexten
-// (importen fortsätter) istället för att spränga quotan.
+// INGEN ÖVERSÄTTNINGSTJÄNST. DeepL togs bort 2026-08-19 (Leonards beslut: "vi
+// polerar alla via chatten"). Det var redan så det fungerade i praktiken —
+// DeepL-cronen stängdes av långt tidigare — men koden bar kvar hela
+// maskineriet: API-nyckel, månadsbudget, användningslager och en tyst fallback
+// som sparade ORIGINALTEXTEN när budgeten tog slut.
 //
-// All filtrering/rankning är rena, testbara funktioner. Själva I/O:t (DeepL +
-// Wix) injiceras som beroenden så orchestreringen kan enhetstestas utan nätverk.
+// Följden är avsiktlig: importerade recensioner sparas som `pending` med
+// källtexten, och blir svenska när någon skriver om dem i /admin/reviews. De
+// når alltså aldrig en produktsida oöversatta — vilket är precis vad den gamla
+// fallbacken riskerade.
+//
+// Vi tar fortfarande bara topp 10–15 per produkt: fler ger inget för kunden och
+// mer att skriva om.
+//
+// All filtrering/rankning är rena, testbara funktioner. I/O:t (Wix) injiceras
+// som beroende så orchestreringen kan enhetstestas utan nätverk.
 
-import { countChars, translateBatchDetailed, type DeeplTranslation } from "../translate/deepl";
-import {
-  getTranslationUsageStore,
-  monthKey,
-  monthlyBudget,
-  type TranslationUsageStore,
-} from "../translate/usage";
 import { getReviewStore, type ReviewStore, type StoredReview } from "../store/reviews";
 import { isEuCountry as isEuWarehouseCode } from "../aliexpress/eu-countries";
 import { mentionsForeignDelivery } from "./review-locale-filter";
@@ -244,15 +245,11 @@ export function ensureReviewId(r: AERReview): string {
   return `gen-${hashString(dedupKey(r.text)).toString(36)}`;
 }
 
-// --- Orchestrering (translate + persist) -----------------------------------
+// --- Orchestrering (persist) -----------------------------------------------
 
 export interface ReviewImportDeps {
-  /** Returnerar översatt text + detekterat källspråk per text (ordningsbevarande). */
-  translate?: (texts: string[]) => Promise<DeeplTranslation[]>;
-  usageStore?: TranslationUsageStore;
   reviewStore?: ReviewStore;
   now?: Date;
-  budgetChars?: number;
 }
 
 export interface ReviewImportResult {
@@ -260,27 +257,18 @@ export interface ReviewImportResult {
   imported: number;
   /** Antal som hoppades över för att de redan fanns. */
   skippedExisting: number;
-  /** DeepL-tecken som spenderades denna körning (0 om budget slut/fallback). */
-  charsUsed: number;
-  /** True om budgeten var slut → originaltext användes istället för svensk. */
-  budgetExceeded: boolean;
-  /**
-   * True om SJÄLVA översättningen fallerade (saknad/spärrad nyckel, DeepL nere)
-   * och originaltexten sparades i stället. Skiljs från budgetExceeded eftersom
-   * felen kräver olika svar: budget läker nästa månad, en trasig nyckel gör det
-   * inte. En obevakad backfill måste kunna stanna på den här.
-   */
-  translationFailed: boolean;
   reviews: StoredReview[];
 }
 
 /**
  * Hela recensions-importen för EN produkt:
- *   filtrera/ranka → budgetkolla → DeepL-översätt → anonymisera → spara (dedup).
+ *   filtrera/ranka → anonymisera → spara som `pending` (dedup).
  *
- * Best-effort: alla fel (DeepL, Wix) ska fångas av callern; importen av själva
- * produkten får aldrig falla på recensioner. Budgetöverskridande → vi importerar
- * ändå med originaltexten som svensk text och loggar en varning.
+ * INGEN ÖVERSÄTTNING. Den görs i chatten och skrivs in via /admin/reviews —
+ * se noten längre ner om varför DeepL togs bort.
+ *
+ * Best-effort: alla fel (Wix) ska fångas av callern; importen av själva
+ * produkten får aldrig falla på recensioner.
  */
 export async function importReviewsForProduct(
   productId: string,
@@ -288,56 +276,27 @@ export async function importReviewsForProduct(
   deps: ReviewImportDeps = {},
 ): Promise<ReviewImportResult> {
   const now = deps.now ?? new Date();
-  const usageStore = deps.usageStore ?? getTranslationUsageStore();
   const reviewStore = deps.reviewStore ?? getReviewStore();
-  const translate = deps.translate ?? ((texts: string[]) => translateBatchDetailed(texts));
-  const budget = deps.budgetChars ?? monthlyBudget();
 
   const ranked = filterAndRankReviews(rawReviews ?? [], now);
   if (ranked.length === 0) {
-    return { imported: 0, skippedExisting: 0, charsUsed: 0, budgetExceeded: false, translationFailed: false, reviews: [] };
+    return { imported: 0, skippedExisting: 0, reviews: [] };
   }
 
-  const texts = ranked.map((r) => r.text);
-  const needChars = countChars(texts);
-
-  // Budgetkoll: använd inte DeepL om månadssumman + detta skulle överskrida taket.
-  const month = monthKey(now);
-  let usage = 0;
-  try {
-    usage = await usageStore.getMonthlyUsage(month);
-  } catch (err) {
-    console.warn("[review-import] kunde inte läsa DeepL-användning, antar 0:", err instanceof Error ? err.message : err);
-  }
-  const budgetExceeded = usage + needChars > budget;
-
-  let translated: DeeplTranslation[];
-  let charsUsed = 0;
-  let translationFailed = false;
-  if (budgetExceeded) {
-    console.warn(
-      `[review-import] DeepL-budget skulle överskridas (${usage}+${needChars} > ${budget}). ` +
-        `Importerar ${ranked.length} recensioner OTRANSLATERADE (originaltext).`,
-    );
-    translated = texts.map((t) => ({ text: t }));
-  } else {
-    try {
-      translated = await translate(texts);
-      charsUsed = needChars;
-      try {
-        await usageStore.addUsage(month, needChars);
-      } catch (err) {
-        console.warn("[review-import] kunde inte spara DeepL-användning:", err instanceof Error ? err.message : err);
-      }
-    } catch (err) {
-      console.warn(
-        "[review-import] DeepL-översättning misslyckades, faller tillbaka på originaltext:",
-        err instanceof Error ? err.message : err,
-      );
-      translationFailed = true;
-      translated = texts.map((t) => ({ text: t }));
-    }
-  }
+  // ÖVERSÄTTNINGEN GÖRS I CHATTEN, INTE AV EN TJÄNST.
+  //
+  // DeepL togs bort 2026-08-19 (Leonards beslut: "vi polerar alla via
+  // chatten"). Det var redan så det fungerade i praktiken — DeepL-cronen
+  // stängdes av långt tidigare — men koden bar kvar hela maskineriet: en
+  // API-nyckel, en månadsbudget, ett användningslager och en tyst
+  // fallback som lade ut ORIGINALTEXTEN när budgeten tog slut.
+  //
+  // Följden av borttagningen är avsiktlig och viktig: importerade recensioner
+  // auto-godkänns inte längre. De landar som `pending` med källtexten i både
+  // textOriginal och textSwedish, och blir svenska när någon skriver om dem i
+  // /admin/reviews (editReviewText). Alternativet — att publicera direkt —
+  // hade betytt engelska omdömen på en svensk produktsida, vilket är precis
+  // det den gamla fallbacken gjorde.
 
   const importedAt = now.toISOString();
   let imported = 0;
@@ -354,7 +313,6 @@ export async function importReviewsForProduct(
     } catch (err) {
       console.warn("[review-import] exists-koll misslyckades, fortsätter:", err instanceof Error ? err.message : err);
     }
-    const t = translated[i];
     // Kundbilderna hämtas hem till vår egen mediahantering. Misslyckas en av
     // dem hoppas just den över — hellre en recension med färre foton än en länk
     // som pekar ut leverantören på produktsidan. Se lib/wix/media-import.ts.
@@ -378,25 +336,22 @@ export async function importReviewsForProduct(
       reviewIdAE,
       rating: Math.max(1, Math.min(5, Math.round(r.rating))),
       textOriginal: r.text,
-      textSwedish: t?.text ?? r.text,
-      sourceLanguage: t?.detected_source_language ?? (r.language ? r.language.toUpperCase() : undefined),
+      // Källtexten tills någon skrivit om den i /admin/reviews. Raden är
+      // `pending`, så den når aldrig produktsidan oöversatt.
+      textSwedish: r.text,
+      sourceLanguage: r.language ? r.language.toUpperCase() : undefined,
       customerNameRaw: r.customerName,
       initials: deriveInitials(r.customerName, reviewIdAE),
       customerCountry: r.customerCountry,
       date: r.date,
       ...bildfalt,
-      // Importerade AE-recensioner auto-godkänns (spec 2026-06-02); framtida
-      // riktiga kundrecensioner får "pending" och kräver Leonards godkännande.
-      //
-      // MEN INTE OTRANSLATERADE. Slår DeepL-budgeten i taket faller koden
-      // tillbaka på originaltexten, och ett auto-godkännande hade då lagt
-      // ENGELSKA recensioner rakt ut på en svensk produktsida. Risken växte
-      // när längdtaket höjdes 300 → 1200 (2026-08-19): samma antal recensioner
-      // kostar nu upp till fyra gånger så många tecken, så taket nås tidigare.
-      //
-      // De hamnar i stället i poleringskön, där texten kan översättas gratis i
-      // chatten — vilket är den väg Leonard valt framför DeepL.
-      status: budgetExceeded || translationFailed ? "pending" : "approved",
+      // ALLTID pending — samma som butikens egna kundrecensioner. Fram till
+      // 2026-08-19 auto-godkändes importerade AE-recensioner (spec 2026-06-02),
+      // eftersom DeepL antogs ha gjort dem svenska innan de sparades.
+      // Texten är numera källspråket tills någon skrivit om den i
+      // /admin/reviews, så ett auto-godkännande hade lagt ENGELSKA recensioner
+      // rakt ut på en svensk produktsida.
+      status: "pending",
       importedAt,
     };
     try {
@@ -408,5 +363,5 @@ export async function importReviewsForProduct(
     }
   }
 
-  return { imported, skippedExisting, charsUsed, budgetExceeded, translationFailed, reviews };
+  return { imported, skippedExisting, reviews };
 }

@@ -4,7 +4,7 @@
 //
 // Bakgrund (Leonards fråga 2026-08-16): "många av produkterna har ju
 // recensioner i AliExpress, kommer dom inte?" — nej. Recensionskedjan
-// (filtrering → DeepL → FyndplatsImportedReviews → PDP) har funnits sedan
+// (filtrering → FyndplatsImportedReviews → PDP) har funnits sedan
 // 2026-07-08 men har ALDRIG matats: kollektionen innehåller 0 rader.
 //
 // Orsaken är att den enda inmatningsvägen var webbläsartilläggets DOM-skrapa
@@ -103,7 +103,8 @@ export function mapAeReview(raw: AeRawReview): AERReview | null {
   if (raw.aigc === true) return null;
   if (raw.status !== undefined && raw.status !== "1") return null;
 
-  // Originaltexten först — DeepL översätter bättre från källspråket än från
+  // Originaltexten först — den som skriver om texten till svenska i
+  // /admin/reviews ska se vad kunden faktiskt skrev, inte en mellanhandsform. Bättre än från
   // AE:s crowdsourcade engelska mellanled.
   const text = (raw.buyerFeedback || raw.buyerTranslationFeedback || "").replace(/\r\n?/g, "\n").trim();
   if (!text) return null;

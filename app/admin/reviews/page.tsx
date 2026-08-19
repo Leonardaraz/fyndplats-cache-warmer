@@ -8,7 +8,7 @@ import { reviewDisplayMode } from "@/lib/import/review-display";
 import { setReviewStatus, editReviewText, runReviewBackfillAction } from "./actions";
 
 export const dynamic = "force-dynamic";
-// Hämtningen gör ett AE-anrop per produkt + DeepL — 25 produkter tar ~1 min.
+// Hämtningen gör ett AE-anrop per produkt — 25 produkter tar ~1 min.
 export const maxDuration = 300;
 
 const STATUS_STYLE: Record<ReviewStatus, { bg: string; fg: string; label: string }> = {
@@ -38,16 +38,14 @@ function BackfillResult({ sp }: { sp: Record<string, string | string[] | undefin
   const stopText: Record<string, string> = {
     klar: "hela urvalet gicks igenom",
     gräns: "antalsgränsen nåddes — kör igen för nästa omgång",
-    budget: "DeepL-budgeten tog slut — resten tas nästa körning",
-    översättning: "STOPPAD — översättningen fungerar inte",
+    tid: "tidsbudgeten nåddes — kör igen för nästa omgång",
   };
-  const blocked = get("s") === "översättning";
 
   return (
     <div
       style={{
-        background: blocked ? "#fef2f2" : dry ? "#eff6ff" : "#f0fdf4",
-        border: `1px solid ${blocked ? "#fecaca" : dry ? "#bfdbfe" : "#bbf7d0"}`,
+        background: dry ? "#eff6ff" : "#f0fdf4",
+        border: `1px solid ${dry ? "#bfdbfe" : "#bbf7d0"}`,
         borderRadius: 8,
         padding: "12px 14px",
         margin: "14px 0",
@@ -55,38 +53,23 @@ function BackfillResult({ sp }: { sp: Record<string, string | string[] | undefin
       }}
     >
       <b>
-        {blocked
-          ? "Ingenting publicerades — översättningen fungerar inte."
-          : dry
-            ? "Torrkörning klar — inget sparades."
-            : "Hämtning klar."}
+        {dry ? "Torrkörning klar — inget sparades." : "Hämtning klar."}
       </b>
       <br />
-      {blocked ? (
-        <>
-          <span style={{ color: "#b91c1c" }}>
-            Orsak: <code>{get("r") || "okänd"}</code>. Utan översättning skulle recensionerna
-            sparas på originalspråk — engelsk text på svenska produktsidor. Kontrollera{" "}
-            <code>DEEPL_API_KEY</code> i Vercel och kör igen.
-          </span>
-          <br />
-        </>
-      ) : null}
       Produkter genomgångna: <b>{n("p")}</b> · med recensioner: <b>{n("w")}</b> ·{" "}
       {dry ? (
-        <>
-          skulle spara: <b>{n("e")}</b> recensioner · DeepL-behov: <b>{n("c")}</b> tecken
-        </>
+        <>skulle spara: <b>{n("e")}</b> recensioner</>
       ) : (
         <>
-          sparade: <b>{n("i")}</b> recensioner · DeepL: <b>{n("c")}</b> tecken
+          sparade: <b>{n("i")}</b> recensioner{" "}
+          <span style={{ color: "#b45309" }}>(väntar på översättning nedan)</span>
         </>
       )}
       {n("t") > 0 ? <> · strypta av AE: <b>{n("t")}</b> (tas om nästa körning)</> : null}
       {n("f") > 0 ? <> · fel: <b>{n("f")}</b></> : null}
       <br />
       <span style={{ color: "#555" }}>
-        Stopp: {stopText[get("s") ?? ""] ?? get("s")} · DeepL kvar denna månad: {n("b")} tecken
+        Stopp: {stopText[get("s") ?? ""] ?? get("s")}
       </span>
     </div>
   );
@@ -156,7 +139,8 @@ export default async function ReviewsAdminPage({
           Hämtar för produkter som <b>saknar</b> recensioner. Torrkör först — den räknar
           utan att spara. Skarpt läge <b>publicerar direkt</b> (importerade auto-godkänns)
           och tänder <code>aggregateRating</code> i produktsidans strukturerade data.
-          Kostar DeepL-tecken, inga Claude-credits.
+          Gratis — hämtningen är ett vanligt AE-anrop. Recensionerna sparas som
+          väntande och blir svenska när du skriver om dem nedan.
         </p>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center", fontSize: 13 }}>
           <label>

@@ -1,5 +1,5 @@
 // FyndplatsImportedReviews — Wix Data-collection med importerade AliExpress-
-// recensioner (översatta till svenska via DeepL). Visas som social proof på
+// recensioner (översatta till svenska i chatten). Visas som social proof på
 // produktsidorna (headless-PDP) och modereras i cache-warmerns /admin/reviews.
 //
 // Integritets-/juridikdesign (2026-06-02):
@@ -16,9 +16,9 @@
 //   reviewIdAE:     AliExpress review-id (dedup-nyckel)
 //   rating:         1-5
 //   textOriginal:   rå recensionstext (engelska/kinesiska) — BEVIS
-//   textSwedish:    DeepL-översatt svensk text (= textOriginal om budget slut;
+//   textSwedish:    svensk text (= textOriginal tills någon skrivit om den;
 //                   = Leonards redigerade text om status === "edited")
-//   sourceLanguage: detekterat ursprungsspråk från DeepL (t.ex. "EN", "ZH") — BEVIS
+//   sourceLanguage: ursprungsspråk enligt AE (t.ex. "EN", "ZH") — BEVIS
 //   customerNameRaw: rått AE-användarnamn (LAGRAS, visas ALDRIG) — BEVIS
 //   initials:       visningsnamn "M.K." (förnamn- + efternamnsinitial)
 //   customerCountry: ISO-2/landnamn (LAGRAS, visas ALDRIG)

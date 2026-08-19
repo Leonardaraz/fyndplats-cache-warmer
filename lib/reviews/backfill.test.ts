@@ -39,31 +39,28 @@ function deps(over: Partial<ReviewBackfillDeps> = {}, reviewsPerProduct = 5): Re
     importReviews: async (_id, revs) => ({
       imported: revs.length,
       skippedExisting: 0,
-      charsUsed: revs.reduce((s, r) => s + r.text.length, 0),
-      budgetExceeded: false,
     }),
-    budgetRemaining: async () => 500_000,
     now: () => new Date("2026-08-16T12:00:00Z"),
     ...over,
   };
 }
 
 describe("runReviewBackfill — torrkörning", () => {
-  it("skriver ingenting men räknar vad det skulle kosta", async () => {
+  it("skriver ingenting men räknar vad som skulle sparas", async () => {
     const importReviews = vi.fn();
     const s = await runReviewBackfill(deps({ importReviews }));
     expect(importReviews).not.toHaveBeenCalled();
     expect(s.dryRun).toBe(true);
     expect(s.withReviews).toBe(3);
     expect(s.reviewsEligible).toBe(15);
-    expect(s.charsEstimated).toBeGreaterThan(0);
+    expect(s.reviewsEligible).toBeGreaterThan(0);
     expect(s.reviewsImported).toBe(0);
     expect(s.products.every((p) => p.status === "dry-run")).toBe(true);
   });
 
   // Torrkörningens jobb är att MÄTA — den ska svara även när budgeten är slut.
-  it("mäter hela urvalet även med tom DeepL-budget", async () => {
-    const s = await runReviewBackfill(deps({ budgetRemaining: async () => 0 }));
+  it("mäter hela urvalet i torrläge", async () => {
+    const s = await runReviewBackfill(deps());
     expect(s.considered).toBe(3);
     expect(s.stoppedBy).toBe("klar");
   });
@@ -73,7 +70,7 @@ describe("runReviewBackfill — skarp körning", () => {
   it("importerar och summerar", async () => {
     const s = await runReviewBackfill(deps(), { dryRun: false });
     expect(s.reviewsImported).toBe(15);
-    expect(s.charsSpent).toBeGreaterThan(0);
+    expect(s.reviewsImported).toBeGreaterThan(0);
     expect(s.stoppedBy).toBe("klar");
   });
 
@@ -99,115 +96,6 @@ describe("runReviewBackfill — skarp körning", () => {
     const s = await runReviewBackfill(deps({ listCandidates: async () => candidates(10) }), { dryRun: false, limit: 2 });
     expect(s.considered).toBe(2);
     expect(s.stoppedBy).toBe("gräns");
-  });
-});
-
-describe("runReviewBackfill — budgetgrinden", () => {
-  // Felläget vi bygger bort: review-importen faller tillbaka på ORIGINALTEXTEN
-  // vid budgetslut, dvs. engelska recensioner på en svensk sida.
-  it("stannar innan budgeten tar slut i stället för att publicera oöversatt", async () => {
-    const importReviews = vi.fn(async (_id: string, revs: AERReview[]) => ({
-      imported: revs.length,
-      skippedExisting: 0,
-      charsUsed: revs.reduce((s, r) => s + r.text.length, 0),
-      budgetExceeded: false,
-    }));
-    const s = await runReviewBackfill(
-      deps({ listCandidates: async () => candidates(10), importReviews, budgetRemaining: async () => 1_000 }),
-      { dryRun: false, minBudgetChars: 2_000 },
-    );
-    expect(importReviews).not.toHaveBeenCalled();
-    expect(s.stoppedBy).toBe("budget");
-    expect(s.reviewsImported).toBe(0);
-  });
-
-  it("stannar när nästa produkt inte får plats i det som är kvar", async () => {
-    // Budget räcker till första produkten men inte den andra.
-    const perProduct = 5 * 120;
-    const s = await runReviewBackfill(
-      deps({ listCandidates: async () => candidates(5), budgetRemaining: async () => perProduct + 10 }),
-      { dryRun: false, minBudgetChars: 0 },
-    );
-    expect(s.reviewsImported).toBe(5);
-    expect(s.stoppedBy).toBe("budget");
-  });
-
-  it("budgetExceeded från importen avbryter resten av körningen", async () => {
-    const s = await runReviewBackfill(
-      deps({
-        listCandidates: async () => candidates(5),
-        importReviews: async (_id, revs) => ({
-          imported: revs.length,
-          skippedExisting: 0,
-          charsUsed: 0,
-          budgetExceeded: true,
-        }),
-      }),
-      { dryRun: false, minBudgetChars: 0 },
-    );
-    expect(s.considered).toBe(1);
-    expect(s.stoppedBy).toBe("budget");
-    expect(s.products[0].note).toMatch(/oöversatt/);
-  });
-});
-
-describe("runReviewBackfill — översättningsgrinden", () => {
-  // Felläget vi bygger bort: review-importen faller vid översättningsfel
-  // tillbaka på ORIGINALTEXTEN. En saknad DeepL-nyckel skulle alltså publicera
-  // engelska recensioner på hundratals svenska produktsidor, tyst.
-  it("vägrar starta skarpt när översättningen inte svarar", async () => {
-    const importReviews = vi.fn();
-    const fetchReviews = vi.fn();
-    const s = await runReviewBackfill(
-      deps({
-        importReviews,
-        fetchReviews,
-        translationHealthy: async () => ({ ok: false, reason: "DEEPL_API_KEY saknas i miljön" }),
-      }),
-      { dryRun: false },
-    );
-    expect(fetchReviews).not.toHaveBeenCalled();
-    expect(importReviews).not.toHaveBeenCalled();
-    expect(s.stoppedBy).toBe("översättning");
-    expect(s.blockedReason).toMatch(/DEEPL_API_KEY/);
-    expect(s.considered).toBe(0);
-  });
-
-  it("torrkörning bryr sig inte om grinden — den publicerar ingenting", async () => {
-    const s = await runReviewBackfill(
-      deps({ translationHealthy: async () => ({ ok: false, reason: "nyckel saknas" }) }),
-      { dryRun: true },
-    );
-    expect(s.stoppedBy).toBe("klar");
-    expect(s.considered).toBe(3);
-  });
-
-  it("frisk översättning släpper igenom körningen", async () => {
-    const s = await runReviewBackfill(
-      deps({ translationHealthy: async () => ({ ok: true }) }),
-      { dryRun: false },
-    );
-    expect(s.reviewsImported).toBe(15);
-  });
-
-  // Nyckeln kan sluta fungera MITT i en körning — andra försvarslinjen.
-  it("stannar direkt om översättningen fallerar under körningen", async () => {
-    const s = await runReviewBackfill(
-      deps({
-        listCandidates: async () => candidates(5),
-        importReviews: async (_id, revs) => ({
-          imported: revs.length,
-          skippedExisting: 0,
-          charsUsed: 0,
-          budgetExceeded: false,
-          translationFailed: true,
-        }),
-      }),
-      { dryRun: false },
-    );
-    expect(s.considered).toBe(1);
-    expect(s.stoppedBy).toBe("översättning");
-    expect(s.products[0].note).toMatch(/oöversatt/);
   });
 });
 

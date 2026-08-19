@@ -10,7 +10,6 @@ import {
   type AERReview,
 } from "./review-import";
 import type { StoredReview } from "../store/reviews";
-import type { TranslationUsageStore } from "../translate/usage";
 
 const NOW = new Date("2026-06-02T00:00:00Z");
 
@@ -129,15 +128,6 @@ describe("ensureReviewId", () => {
 
 // --- Orchestrering (fakeade beroenden) -------------------------------------
 
-class FakeUsage implements TranslationUsageStore {
-  constructor(public chars = 0) {}
-  async getMonthlyUsage(): Promise<number> {
-    return this.chars;
-  }
-  async addUsage(_month: string, c: number): Promise<void> {
-    this.chars += c;
-  }
-}
 
 class FakeReviewStore {
   saved: StoredReview[] = [];
@@ -151,38 +141,28 @@ class FakeReviewStore {
 }
 
 describe("importReviewsForProduct", () => {
-  it("översätter via DeepL, sätter initialer/status och bokför teckenanvändning", async () => {
-    const usage = new FakeUsage(0);
+  it("sparar som pending med kalltexten, satter initialer och anonymiserar", async () => {
     const store = new FakeReviewStore();
-    const calls: string[][] = [];
     const res = await importReviewsForProduct(
       "prod1",
       [
         review({ reviewIdAE: "a", text: "Excellent product, fast shipping and great quality overall here.", customerName: "Maria Karlsson", customerCountry: "DE" }),
         review({ reviewIdAE: "b", text: "Very happy with this purchase, works perfectly and looks premium too." }),
       ],
-      {
-        now: NOW,
-        usageStore: usage,
-        reviewStore: store as never,
-        translate: async (texts) => {
-          calls.push(texts);
-          return texts.map((t) => ({ text: `[SV] ${t}`, detected_source_language: "EN" }));
-        },
-      },
+      { now: NOW, reviewStore: store as never },
     );
     expect(res.imported).toBe(2);
-    expect(res.charsUsed).toBeGreaterThan(0);
-    expect(usage.chars).toBe(res.charsUsed);
-    expect(store.saved[0].textSwedish.startsWith("[SV]")).toBe(true);
+    // KALLTEXTEN sparas som svensk text tills nagon skrivit om den i
+    // /admin/reviews. DeepL togs bort 2026-08-19 — allt poleras i chatten.
+    expect(store.saved[0].textSwedish).toBe(store.saved[0].textOriginal);
     // Visningsnamn = initialer; landet/namnet LAGRAS men visas aldrig.
     expect(store.saved[0].initials).toBe("M.K.");
     expect(store.saved[0].customerNameRaw).toBe("Maria Karlsson");
     expect(store.saved[0].customerCountry).toBe("DE");
-    expect(store.saved[0].sourceLanguage).toBe("EN");
-    expect(store.saved[0].status).toBe("approved");
+    // ALLTID pending: en ooversatt recension far aldrig na produktsidan.
+    expect(store.saved[0].status).toBe("pending");
+    expect(store.saved[1].status).toBe("pending");
     expect(store.saved[1].initials).toMatch(/^[A-Z]\.[A-Z]\.$/);
-    expect(calls).toHaveLength(1); // en batch
   });
 
   it("hoppar över redan importerade recensioner (dedup mot store)", async () => {
@@ -191,59 +171,16 @@ describe("importReviewsForProduct", () => {
     const res = await importReviewsForProduct(
       "prod1",
       [review({ reviewIdAE: "a", text: "Bra produkt med fin kvalitet och snabb leverans verkligen toppen." })],
-      { now: NOW, usageStore: new FakeUsage(), reviewStore: store as never, translate: async (t) => t.map((x) => ({ text: x })) },
+      { now: NOW, reviewStore: store as never },
     );
     expect(res.imported).toBe(0);
     expect(res.skippedExisting).toBe(1);
   });
 
-  it("faller tillbaka på originaltext utan att kalla DeepL när budgeten är slut", async () => {
-    const store = new FakeReviewStore();
-    let translateCalled = false;
-    const res = await importReviewsForProduct(
-      "prod1",
-      [review({ reviewIdAE: "a", text: "Riktigt bra köp som överträffade mina förväntningar helt klart." })],
-      {
-        now: NOW,
-        budgetChars: 10,
-        usageStore: new FakeUsage(9),
-        reviewStore: store as never,
-        translate: async (t) => {
-          translateCalled = true;
-          return t.map((x) => ({ text: x }));
-        },
-      },
-    );
-    expect(res.budgetExceeded).toBe(true);
-    expect(translateCalled).toBe(false);
-    expect(res.charsUsed).toBe(0);
-    expect(store.saved[0].textSwedish).toBe(store.saved[0].textOriginal);
-  });
-
-  it("importerar ändå med originaltext om DeepL kastar", async () => {
-    const store = new FakeReviewStore();
-    const res = await importReviewsForProduct(
-      "prod1",
-      [review({ reviewIdAE: "a", text: "Snabb leverans och produkten matchar beskrivningen perfekt, mycket nöjd." })],
-      {
-        now: NOW,
-        usageStore: new FakeUsage(),
-        reviewStore: store as never,
-        translate: async () => {
-          throw new Error("DeepL nere");
-        },
-      },
-    );
-    expect(res.imported).toBe(1);
-    expect(store.saved[0].textSwedish).toBe(store.saved[0].textOriginal);
-  });
-
   it("returnerar tomt utan recensioner som passerar filtret", async () => {
     const res = await importReviewsForProduct("prod1", [review({ rating: 1 })], {
       now: NOW,
-      usageStore: new FakeUsage(),
       reviewStore: new FakeReviewStore() as never,
-      translate: async (t) => t.map((x) => ({ text: x })),
     });
     expect(res.imported).toBe(0);
     expect(res.reviews).toHaveLength(0);
