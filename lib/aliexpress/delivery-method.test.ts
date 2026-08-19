@@ -166,22 +166,24 @@ describe("rankDeliveryOptions — billigast OCH snabbast", () => {
 });
 
 describe("deliveryCandidates", () => {
-  it("basta forst, defaulten SIST och bara som sista utvag", () => {
-    const k = deliveryCandidates([alt("SEG", 0, 30), alt("SNABB", 0, 5)], "CAINIAO_ECONOMY_GLOBAL");
-    expect(k).toEqual(["SNABB", "SEG", "CAINIAO_ECONOMY_GLOBAL"]);
+  it("basta forst, och undefined SIST", () => {
+    // undefined = skicka inte falt et alls, lat AliExpress valja.
+    expect(deliveryCandidates([alt("SEG", 0, 30), alt("SNABB", 0, 5)]))
+      .toEqual(["SNABB", "SEG", undefined]);
   });
 
-  it("defaulten dubbleras inte nar den redan ar ett alternativ", () => {
-    const k = deliveryCandidates(
-      [alt("CAINIAO_ECONOMY_GLOBAL", 0, 20), alt("SNABB", 0, 6)],
-      "CAINIAO_ECONOMY_GLOBAL",
-    );
-    expect(k).toEqual(["SNABB", "CAINIAO_ECONOMY_GLOBAL"]);
-    expect(k.filter((x) => x === "CAINIAO_ECONOMY_GLOBAL")).toHaveLength(1);
+  it("tom alternativlista ger BARA 'lat AliExpress valja'", () => {
+    // Den starkaste reserven vi har. Tidigare gissade koden pa
+    // CAINIAO_ECONOMY_GLOBAL, vilket avvisar hela ordern nar det ar fel —
+    // och det VAR fel: AliExpress egen produktsida for samma vara erbjod
+    // frakt fran Tjeckien, Frankrike och Spanien (2026-08-19).
+    expect(deliveryCandidates([])).toEqual([undefined]);
   });
 
-  it("tom alternativlista ger bara defaulten — beteendet blir aldrig samre an forut", () => {
-    expect(deliveryCandidates([], "CAINIAO_ECONOMY_GLOBAL")).toEqual(["CAINIAO_ECONOMY_GLOBAL"]);
+  it("innehaller alltid exakt EN undefined, sist", () => {
+    const k = deliveryCandidates([alt("A", 0, 5), alt("B", 0, 9)]);
+    expect(k.filter((x) => x === undefined)).toHaveLength(1);
+    expect(k[k.length - 1]).toBeUndefined();
   });
 });
 

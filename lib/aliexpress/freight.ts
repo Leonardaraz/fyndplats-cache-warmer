@@ -437,20 +437,24 @@ export function isDeliveryMethodMissing(
 }
 
 /**
- * Tjänsterna att försöka med, bäst först.
+ * Fraktsätten att försöka med, bäst först — och `undefined` sist.
  *
- * `fallback` (vår historiska default) läggs SIST och bara när den inte redan
- * finns i listan — den är inte längre förstahandsvalet, men den ska finnas
- * kvar som sista utväg så beteendet aldrig blir sämre än förut när
- * fraktfrågan misslyckats helt.
+ * `undefined` betyder "skicka inte fältet alls, låt AliExpress välja". Det är
+ * den STARKASTE reserven vi har, och den var länge frånvarande: koden skickade
+ * i stället alltid CAINIAO_ECONOMY_GLOBAL, vilket är en gissning som avvisar
+ * hela ordern när den är fel (order #10021).
+ *
+ * Att den gissningen var fel bevisades 2026-08-19: AliExpress egen produktsida
+ * för samma vara erbjöd frakt från Tjeckien, Frankrike OCH Spanien, alla med
+ * spårning — medan vår order avvisades för att "fraktsättet inte finns".
+ * Utelämnar man fältet väljer AliExpress bland just de alternativen.
+ *
+ * `dayValueSek` styr avvägningen kostnad mot tid i rankningen.
  */
 export function deliveryCandidates(
   options: DeliveryOption[],
-  fallback: string,
   dayValueSek = DEFAULT_DAY_VALUE_SEK,
-): string[] {
-  // dayValueSek MÅSTE vidare till rankningen — parametern annonserade tidigare
-  // en inställbarhet funktionen inte hade (granskning 2026-08-19).
+): (string | undefined)[] {
   const rankade = rankDeliveryOptions(options, dayValueSek).map((o) => o.serviceName);
-  return rankade.includes(fallback) ? rankade : [...rankade, fallback];
+  return [...rankade, undefined];
 }
