@@ -292,6 +292,19 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 
 > ✍️ **Svensk sifferstil.** **Decimalkomma**, aldrig punkt: `4,5 Ah` · `1,8 m` · `0,31 m²`. Skriv **aldrig** en kommalista av tal med enheten sist — `"10, 20, 30 och 40 cm"` läses som fyra olika mått med oklar enhet. Använd snedstreck: **`10/20/30/40 cm`**. Samma sak för gradlägen: `0/45/60°`, inte `"0, 45 och 60 grader"`. Mått multipliceras med `×` och mellanslag: `72 × 57 × 56 cm`. Intervall får tankstreck: `18–36 månader`, `8–10 timmar`. *(Regeln fällde min egen copy tre gånger på en session — kontrollera den i slutkollen, inte bara när du skriver.)*
 
+> ⚠️ **FAQ-frågan behöver ett mellanslag efter `</span>` — annars klistras svaret ihop med frågetecknet (2026-08-19, 138 produkter live).** Formen vi skriver FAQ i är `<p><span style="font-weight: 700">Fråga?</span> Svar</p>`, allt i **samma** stycke. Utelämnas mellanslaget renderas det som **"Hur djup är den?29 cm"** — HTML kollapsar inte blanksteg som inte finns, och `<span>` är inline så inget luftar åt dig. Felet syns inte i JSON-LD (`lib/seo/faq-jsonld.ts` kör `avkoda` → `.replace(/\s+/g," ").trim()`), bara för kunden i fliken, så det överlever varje strukturkontroll.
+>
+> Sveptes hela katalogen: **138 av 826 produkter, 715 förekomster.** Ingen kod orsakar det — `lib/import/tabs.ts` genererar `<strong>F</strong><br/>S` som är korrekt. Det är handskriven poleringstext, alltså vårt eget fel, en produkt i taget.
+>
+> Kontrollera före publicering, och laga med:
+>
+> ```js
+> const RE = /(<span style="font-weight: 700">[^<]*\?<\/span>)(?=[^\s<])/g;
+> const lagat = h.replace(RE, "$1 ");
+> ```
+>
+> **Avgränsa på `?`, inte på `:`.** Ett kolon-slut träffar spec-etiketterna (`<b>Skärm:</b> 4,3 tum`) som redan är korrekta — i svepet slutade **alla 715** träffarna på `?` och **noll** på `:`. Verifiera dessutom att bara mellanslag tillkommer innan du skriver: `ny.length === gammal.length + antalTräffar` och `ny.split(" ").join("") === gammal.split(" ").join("")`. Massrättning går via `POST /stores/v3/bulk/products/update` (max **100** produkter per anrop, varje post `{ product: { id, revision, plainDescription } }`).
+
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
 
 > **Alternativ (Ricos direkt):** vill du hellre skicka `"description": { "nodes": [...] }` — stycke `{"type":"PARAGRAPH","id":"p1","nodes":[{"type":"TEXT","id":"","nodes":[],"textData":{"text":"…","decorations":[]}}],"paragraphData":{}}`, rubrik `{"type":"HEADING","id":"h1","nodes":[<TEXT utan decorations>],"headingData":{"level":2}}` (TEXT-noden **helt ren**), punktlista `{"type":"BULLETED_LIST","id":"ul1","nodes":[{"type":"LIST_ITEM","id":"li1","nodes":[{"type":"PARAGRAPH","id":"","nodes":[<TEXT>],"paragraphData":{}}]}]}`, fet `"decorations":[{"type":"BOLD","fontWeightValue":700}]` (bara i stycken, **aldrig** på HEADING). Samma flik-regel gäller.
