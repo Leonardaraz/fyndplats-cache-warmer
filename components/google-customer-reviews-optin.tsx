@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { useMarketingConsent } from "../lib/use-marketing-consent";
@@ -49,16 +49,29 @@ declare global {
 export function GoogleCustomerReviewsOptIn({ config }: { config: GcrRenderConfig | null }) {
   const samtycke = useMarketingConsent();
   const router = useRouter();
+  const harUppdaterat = useRef(false);
 
   // Godkänner kunden cookies medan hen står på /tack finns ingen konfiguration
   // i payloaden — servern byggde sidan innan cookien fanns. En refresh låter
   // servern rendera om med cookien satt. Utan den missar just den kunden
   // enkäten, vilket är den grupp som nyss sagt ja till precis det här.
+  //
+  // HÖGST EN gång per montering. Skulle cookien inte gå att sätta (blockerade
+  // cookies, privat läge) förblir `config` null, och utan spärren hade varje
+  // refresh startat en ny — var och en med ett blockerande Wix-uppslag på
+  // kundens bekräftelsesida (granskning 2026-08-19, andra vändan).
   useEffect(() => {
-    if (samtycke && !config) router.refresh();
+    if (samtycke && !config && !harUppdaterat.current) {
+      harUppdaterat.current = true;
+      router.refresh();
+    }
   }, [samtycke, config, router]);
 
-  if (!config) return null;
+  // BÅDA grindarna, som kommentaren ovan lovar. `config` bär serverns beslut
+  // (cookien), `samtycke` klientens (localStorage). Divergerar de — cookien
+  // kvar men localStorage rensat av ITP eller av användaren — ska skriptet inte
+  // laddas. Tidigare gatade bara `config`, så det påståendet var inte sant.
+  if (!config || !samtycke) return null;
 
   return (
     <Script

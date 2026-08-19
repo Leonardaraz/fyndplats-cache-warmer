@@ -45,6 +45,27 @@ describe("orderCountry", () => {
     assert.equal(orderCountry(order), "SE");
   });
 
+  it("hittar landet aven nar recipientInfo finns men saknar adress", () => {
+    // Granskning 2026-08-19 (andra vandan): forsta versionen valde CONTAINER
+    // forst — recipientInfo ?? recipient ?? shippingInfo — och letade adress
+    // bara dar. En gastorder med kontaktuppgifter pa recipientInfo men adressen
+    // under shippingInfo gav darfor undefined, trots att landet lag i svaret.
+    // Samma tysta nollresultat som buggen filen skapades for.
+    const order = {
+      recipientInfo: { contactDetails: { firstName: "Anna" } },
+      shippingInfo: { shippingDestination: { address: { country: "SE" } } },
+    };
+    assert.equal(orderCountry(order), "SE");
+  });
+
+  it("hittar landet nar recipientInfo bar en TOM adress", () => {
+    const order = {
+      recipientInfo: { address: {} },
+      shippingInfo: { shippingDestination: { address: { country: "FI" } } },
+    };
+    assert.equal(orderCountry(order), "FI");
+  });
+
   it("undefined nar landet saknas — aldrig en gissning", () => {
     // Resten av kodbasen faller tillbaka på "SE". Här vore det fel: Googles
     // tröskel räknas per land och slås aldrig ihop.
@@ -124,5 +145,14 @@ describe("firstStr", () => {
   it("tar forsta icke-tomma strangen och trimmar", () => {
     assert.equal(firstStr(null, undefined, "  ", " x "), "x");
     assert.equal(firstStr(), undefined);
+  });
+
+  it("slapper igenom tal men hoppar over objekt", () => {
+    // Kodbasens tre aldre kopior kor String(v) pa vad som helst, sa ett objekt
+    // blir den icke-tomma strangen "[object Object]" — via orderNumber hade
+    // kunden fatt se "#[object Object]" pa bekraftelsen.
+    assert.equal(firstStr(10021), "10021");
+    assert.equal(firstStr({}, [], "riktig"), "riktig");
+    assert.equal(firstStr({ a: 1 }), undefined);
   });
 });

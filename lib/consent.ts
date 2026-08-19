@@ -25,7 +25,12 @@ export const CONSENT_MAX_AGE = 60 * 60 * 24 * 365;
 export function writeConsentCookie(value: "all" | "necessary"): void {
   if (typeof document === "undefined") return;
   try {
-    document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${CONSENT_MAX_AGE}; samesite=lax`;
+    // Secure på https. Utan den kan en angripare på ett öppet nät både läsa och
+    // SKRIVA värdet över klartext-http, och en påtvingad "all" får servern att
+    // bädda in kundens e-post i /tack. Utelämnas på localhost, där http är
+    // normalfallet och en secure-cookie tyst inte skulle sättas alls.
+    const secure = location.protocol === "https:" ? "; secure" : "";
+    document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${CONSENT_MAX_AGE}; samesite=lax${secure}`;
   } catch {
     /* cookies avstängda → localStorage-vägen får räcka */
   }

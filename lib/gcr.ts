@@ -26,13 +26,13 @@
  * men det ska gå att byta utan deploy om kontot roteras. Google avvisar ett
  * felaktigt merchant_id TYST, så ett hårdkodat värde utan väg ut är en fälla.
  */
+/** Avläst i Merchant Center 2026-08-19. Deklareras FÖRE merchantId() som läser den. */
+export const MERCHANT_ID_DEFAULT = 692958602;
+
 export function merchantId(): number {
   const fran = Number((process.env.GOOGLE_MERCHANT_ID || "").trim());
   return Number.isInteger(fran) && fran > 0 ? fran : MERCHANT_ID_DEFAULT;
 }
-
-/** Avläst i Merchant Center 2026-08-19. */
-export const MERCHANT_ID_DEFAULT = 692958602;
 
 /**
  * Antal dagar från köp till estimerad leverans.
@@ -117,6 +117,37 @@ export function deliveryAnchor(createdDate: string | null | undefined, now: Date
   return Number.isFinite(t) ? new Date(t) : now;
 }
 
+/** Hur länge efter köpet /tack fortfarande bär enkätmodulen. */
+export const FRESH_HOURS = 48;
+
+/**
+ * True när ordern är färsk nog att visa enkätmodulen för.
+ *
+ * Två skäl, båda konkreta (granskning 2026-08-19).
+ *
+ * INTEGRITET: konfigurationen innehåller kundens e-postadress och /tack har
+ * ingen inloggning — enda skyddet är order-GUID:t i länken. Sidan visade förut
+ * bara ordernumret. Utan tidsgräns skulle adressen ligga kvar i sidan för
+ * alltid, för var och en som får tag i länken ur historik, en delad dator eller
+ * ett vidarebefordrat kvitto. Med gränsen försvinner den efter två dygn.
+ *
+ * DATAKVALITET: en opt-in för ett tre månader gammalt köp är inte något Google
+ * ska schemalägga en enkät på.
+ *
+ * Saknas orderdatum räknas ordern som färsk — då är det med all sannolikhet
+ * det faktiska köptillfället, och hellre en enkät för mycket än en förlorad.
+ */
+export function isFreshOrder(
+  createdDate: string | null | undefined,
+  now: Date,
+  hours = FRESH_HOURS,
+): boolean {
+  const t = Date.parse(String(createdDate ?? ""));
+  if (!Number.isFinite(t)) return true;
+  const alder = now.getTime() - t;
+  return alder >= 0 && alder <= hours * 3_600_000;
+}
+
 export interface GcrRenderConfig {
   merchant_id: number;
   order_id: string;
@@ -140,6 +171,7 @@ export function buildGcrConfig(
   const email = String(order?.email ?? "").trim();
   const land = normalizeCountry(order?.deliveryCountry);
   if (!orderId || !land || !isLikelyEmail(email)) return null;
+  if (!isFreshOrder(order?.createdDate, now)) return null;
   return {
     merchant_id: merchantId(),
     order_id: orderId,

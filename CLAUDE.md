@@ -54,7 +54,17 @@ Pixeln + CAPI fyrar **bara** när `localStorage.fp_cookie_consent === "all"`
 annons-pixeln matchar besökaren mot ett Facebook-konto. `CookieConsent`
 dispatchar `fp-consent-change` så Pixeln startar direkt vid "Godkänn alla", utan
 sidladdning. Vill du köra ogated som GA4: ta bort `hasMarketingConsent()`-grinden
-i `lib/meta.ts` + `components/metapixel.tsx`.
+i `lib/meta.ts` + `lib/use-marketing-consent.ts` (hooken som `metapixel.tsx`
+använder sedan 2026-08-19, när Google-modulen behövde samma lyssnare).
+
+Samma val speglas dessutom i en **cookie** med samma namn. Skälet är att
+`/tack` måste veta valet *server-side*: Google Customer Reviews-modulen
+(`components/google-customer-reviews-optin.tsx`) får kundens e-postadress som
+prop, och en prop till en klientkomponent hamnar i sidans RSC-payload oavsett
+vad komponenten renderar. Utan cookien låg adressen alltså i HTML:en även för
+den som valt "bara nödvändiga". `CookieConsent` speglar om cookien vid **varje**
+besök — annars hade ingen som samtyckt före den deployen fått någon, och Safari
+kapar `document.cookie`-satta cookies till 7 dagar.
 
 ### Så här aktiverar du den (Leonard) — steg för steg
 1. **Skapa Pixel/Dataset** i Meta Events Manager:

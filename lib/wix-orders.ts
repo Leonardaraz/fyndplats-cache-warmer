@@ -32,9 +32,10 @@ export interface WixOrderInfo {
 // Ny literal per anrop, aldrig en delad konstant: WixOrderInfo returneras från
 // fyra vägar och en modulnivå-singleton hade kunnat muteras av en framtida
 // anropare och därmed läcka mellan requests i samma varma lambda.
-function tomt(): WixOrderInfo {
+export function tomOrderInfo(): WixOrderInfo {
   return { number: null, email: null, deliveryCountry: null, createdDate: null };
 }
+const tomt = tomOrderInfo;
 
 /**
  * Hämtar ordern. Fail-open: allt fel ger tomma fält, aldrig ett kast — /tack är

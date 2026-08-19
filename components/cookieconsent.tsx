@@ -1,18 +1,33 @@
 "use client";
 import { useEffect, useState } from "react";
-import { CONSENT_EVENT, writeConsentCookie } from "../lib/consent";
+import { CONSENT_EVENT, CONSENT_KEY, writeConsentCookie } from "../lib/consent";
 
 export function CookieConsent() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
     try {
-      if (!localStorage.getItem("fp_cookie_consent")) setShow(true);
+      const val = localStorage.getItem(CONSENT_KEY);
+      if (!val) {
+        setShow(true);
+        return;
+      }
+      // SPEGLA OM VID VARJE BESÖK, inte bara när knappen klickas.
+      //
+      // Två fall som annars aldrig får någon cookie (granskning 2026-08-19):
+      //
+      //  1. Alla som redan sagt ja före den här deployen. De har localStorage
+      //     men ingen cookie, och bannern visas aldrig igen — så `choose` körs
+      //     aldrig och servern skulle för evigt tro att de tackat nej.
+      //  2. Safari. WebKit kapar cookies satta via document.cookie till 7 dagar
+      //     medan localStorage överlever, så cookien försvinner tyst efter en
+      //     vecka. Omspeglingen sätter tillbaka den.
+      if (val === "all" || val === "necessary") writeConsentCookie(val);
     } catch {}
   }, []);
 
   const choose = (v: "all" | "necessary") => {
-    try { localStorage.setItem("fp_cookie_consent", v); } catch {}
+    try { localStorage.setItem(CONSENT_KEY, v); } catch {}
     // Spegla valet i en cookie så SERVERN kan se det. /tack behöver veta det
     // innan sidan renderas — se noten i lib/consent.ts.
     writeConsentCookie(v);

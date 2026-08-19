@@ -19,10 +19,17 @@
 // den importera härifrån är rätt nästa steg, men det är en ändring i
 // order-mejlens väg och hör inte hemma i samma commit som en /tack-fix.
 
-/** Första värdet som är en icke-tom sträng. */
+/**
+ * Första värdet som är en icke-tom sträng.
+ *
+ * Bara strängar och tal accepteras. Kodbasens tre äldre kopior kör `String(v)`
+ * på vad som helst, vilket gör ett objekt till den icke-tomma strängen
+ * "[object Object]" — via orderNumber hade kunden fått se "#[object Object]"
+ * på bekräftelsen. Här kastas de i stället.
+ */
 export function firstStr(...vals: unknown[]): string | undefined {
   for (const v of vals) {
-    if (v == null) continue;
+    if (typeof v !== "string" && typeof v !== "number") continue;
     const s = String(v).trim();
     if (s !== "") return s;
   }
@@ -58,13 +65,26 @@ export function orderEmail(order: Loose): string | undefined {
  * shippingDestination, sist logistics-varianten.
  */
 export function orderCountry(order: Loose): string | undefined {
-  const recipient = obj(order?.recipientInfo) ?? obj(order?.recipient) ?? obj(order?.shippingInfo);
-  const addr =
-    obj(recipient?.address) ??
-    obj(recipient?.shippingDestination) ??
-    obj(obj(obj(obj(order?.shippingInfo)?.logistics)?.shippingDestination)?.address);
-  // shippingDestination kan i sin tur bära adressen ett steg ner.
-  return firstStr(addr?.country, obj(addr?.address)?.country);
+  // VARJE källa provas för sig. Ett första försök valde container först
+  // (`recipientInfo ?? recipient ?? shippingInfo`) och letade adress bara i
+  // den — så en gästorder med `recipientInfo: { contactDetails }` men adressen
+  // under `shippingInfo.shippingDestination` gav undefined, trots att landet
+  // låg i svaret. Samma tysta nollresultat som buggen filen skapades för
+  // (granskning 2026-08-19, andra vändan).
+  const kallor: Loose[] = [
+    obj(obj(order?.recipientInfo)?.address),
+    obj(obj(order?.recipient)?.address),
+    obj(obj(order?.shippingInfo)?.address),
+    obj(obj(order?.recipientInfo)?.shippingDestination),
+    obj(obj(order?.shippingInfo)?.shippingDestination),
+    obj(obj(obj(obj(order?.shippingInfo)?.logistics)?.shippingDestination)?.address),
+  ];
+  for (const k of kallor) {
+    // shippingDestination kan i sin tur bära adressen ett steg ner.
+    const land = firstStr(k?.country, obj(k?.address)?.country);
+    if (land) return land;
+  }
+  return undefined;
 }
 
 /** Orderns skapandedatum som ISO-sträng, eller undefined. */

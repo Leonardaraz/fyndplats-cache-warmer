@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ThankYou } from "../../components/thankyou";
-import { fetchWixOrderInfo } from "../../lib/wix-orders";
+import { fetchWixOrderInfo, tomOrderInfo } from "../../lib/wix-orders";
 import { cookies } from "next/headers";
 import { buildGcrConfig } from "../../lib/gcr";
 import { CONSENT_COOKIE, marketingConsentFromCookie } from "../../lib/consent";
@@ -30,9 +30,7 @@ export default async function Tack({
   // Ett Wix-anrop ger både det läsbara ordernumret (t.ex. "10003") och det
   // Googles enkät kräver. Faller tillbaka på GUID:t i ThankYou om uppslaget
   // missar → fältet blir aldrig tomt.
-  const info = orderId
-    ? await fetchWixOrderInfo(orderId)
-    : { number: null, email: null, deliveryCountry: null, createdDate: null };
+  const info = orderId ? await fetchWixOrderInfo(orderId) : tomOrderInfo();
 
   // Google Customer Reviews: opt-in-dialogen som gör att Merchant Center kan
   // börja samla recensioner. buildGcrConfig returnerar null när ordern saknar

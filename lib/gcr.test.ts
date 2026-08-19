@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+import { after, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   DELIVERY_DAYS,
@@ -6,6 +6,7 @@ import {
   buildGcrConfig,
   deliveryAnchor,
   estimatedDeliveryDate,
+  isFreshOrder,
   isLikelyEmail,
   merchantId,
   normalizeCountry,
@@ -126,19 +127,27 @@ describe("buildGcrConfig", () => {
   });
 
   it("ankrar leveransfonstret pa ORDERDATUMET, inte pa nar sidan renderas", () => {
-    // /tack är force-dynamic. Öppnar kunden länken igen en vecka senare hade
-    // "nu" som ankare gett Google ett nytt, senare leveransdatum för samma
-    // order (granskning 2026-08-19).
-    const senare = new Date("2026-08-26T08:00:00Z");
-    const cfg = buildGcrConfig({ ...order, createdDate: "2026-08-19T08:00:00Z" }, senare);
+    // /tack är force-dynamic. Öppnar kunden länken igen dagen efter hade "nu"
+    // som ankare gett Google ett nytt, senare leveransdatum för samma order
+    // (granskning 2026-08-19).
+    const dagenEfter = new Date("2026-08-20T08:00:00Z");
+    const cfg = buildGcrConfig({ ...order, createdDate: "2026-08-19T08:00:00Z" }, dagenEfter);
     assert.equal(cfg?.estimated_delivery_date, "2026-09-02");
   });
 
-  it("samma order ger samma datum oavsett nar sidan besoks", () => {
+  it("samma order ger samma datum oavsett nar inom fonstret sidan besoks", () => {
     const med = { ...order, createdDate: "2026-08-19T08:00:00Z" };
     const a = buildGcrConfig(med, new Date("2026-08-19T09:00:00Z"));
-    const b = buildGcrConfig(med, new Date("2026-09-19T09:00:00Z"));
+    const b = buildGcrConfig(med, new Date("2026-08-21T07:00:00Z"));
+    assert.equal(a?.estimated_delivery_date, "2026-09-02");
     assert.equal(a?.estimated_delivery_date, b?.estimated_delivery_date);
+  });
+
+  it("ett besok LANGT senare ger ingen modul alls — starkare an att ankra om", () => {
+    // Farskhetsgrinden subsumerar revisit-problemet: efter 48 h bygger vi
+    // ingen konfiguration, sa e-posten hamnar inte ens i sidan.
+    const med = { ...order, createdDate: "2026-08-19T08:00:00Z" };
+    assert.equal(buildGcrConfig(med, new Date("2026-08-26T08:00:00Z")), null);
   });
 });
 
@@ -158,6 +167,15 @@ describe("deliveryAnchor", () => {
 });
 
 describe("merchantId", () => {
+  // Spara/aterstall: testerna far inte radera en env som CI eller utvecklaren
+  // satt, for da ser alla senare tester default-vardet i stallet (granskning
+  // 2026-08-19).
+  const original = process.env.GOOGLE_MERCHANT_ID;
+  after(() => {
+    if (original === undefined) delete process.env.GOOGLE_MERCHANT_ID;
+    else process.env.GOOGLE_MERCHANT_ID = original;
+  });
+
   it("anvander konstanten nar env saknas", () => {
     delete process.env.GOOGLE_MERCHANT_ID;
     assert.equal(merchantId(), MERCHANT_ID_DEFAULT);
@@ -175,5 +193,43 @@ describe("merchantId", () => {
       assert.equal(merchantId(), MERCHANT_ID_DEFAULT);
     }
     delete process.env.GOOGLE_MERCHANT_ID;
+  });
+});
+
+describe("isFreshOrder", () => {
+  const nu = new Date("2026-08-19T12:00:00Z");
+
+  it("far order ar farsk", () => {
+    assert.equal(isFreshOrder("2026-08-19T08:00:00Z", nu), true);
+    assert.equal(isFreshOrder("2026-08-17T13:00:00Z", nu), true);
+  });
+
+  it("gammal order ar det inte — e-posten ska inte ligga kvar i sidan", () => {
+    // /tack har ingen inloggning; enda skyddet ar order-GUID:t i lanken.
+    // Utan tidsgrans hade adressen legat kvar for var och en som far tag i
+    // lanken ur historik eller ett vidarebefordrat kvitto.
+    assert.equal(isFreshOrder("2026-08-16T11:00:00Z", nu), false);
+    assert.equal(isFreshOrder("2026-05-01T00:00:00Z", nu), false);
+  });
+
+  it("saknat eller trasigt datum raknas som farskt", () => {
+    // Da ar det med all sannolikhet det faktiska koptillfallet.
+    for (const v of [null, undefined, "", "inte-ett-datum"]) {
+      assert.equal(isFreshOrder(v, nu), true);
+    }
+  });
+
+  it("ett datum i framtiden raknas inte som farskt", () => {
+    assert.equal(isFreshOrder("2026-09-01T00:00:00Z", nu), false);
+  });
+
+  it("buildGcrConfig slapper inte igenom en gammal order", () => {
+    const gammal = {
+      orderId: "10021",
+      email: "kund@example.com",
+      deliveryCountry: "SE",
+      createdDate: "2026-01-01T00:00:00Z",
+    };
+    assert.equal(buildGcrConfig(gammal, nu), null);
   });
 });

@@ -22,8 +22,15 @@ describe("marketingConsentFromCookie", () => {
     }
   });
 
-  it("cookien och localStorage-nyckeln har samma namn", () => {
-    // Två namn för samma val hade drivit isär vid första ändring.
+  it("cookienamnet ar HARLETT ur localStorage-nyckeln, inte skrivet tva ganger", () => {
+    // Poängen är inte att de råkar vara lika just nu — CONSENT_COOKIE är
+    // definierad SOM CONSENT_KEY, så den likheten kan inte brytas. Det testet
+    // fanns här förut och var därmed värdelöst (granskning 2026-08-19).
+    // Driften som faktiskt kunde uppstå var hårdkodade "fp_cookie_consent" i
+    // cookieconsent.tsx; de läser nu konstanten. Kvar att låsa: att värdet
+    // aldrig blir tomt, vilket hade gett en namnlös cookie.
     assert.equal(CONSENT_COOKIE, CONSENT_KEY);
+    assert.ok(CONSENT_KEY.length > 0);
+    assert.doesNotMatch(CONSENT_KEY, /[\s;=,]/, "cookienamn tål inte dessa tecken");
   });
 });
