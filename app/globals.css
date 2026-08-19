@@ -177,6 +177,26 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 /* Överstruket ordinariepris i hjälte-pillen vid REA — samma signal som produkt-
    korten (.pprice-old). Dämpad grå genomstrykning bredvid det orange reapriset. */
 .htag-old{margin-left:6px;color:#9a9089;font-weight:600;text-decoration:line-through}
+/* Betygs-pill på hjälte-brickan. Sitter uppe till HÖGER: pris-pillen äger nedre
+   vänstra hörnet och Rea-badgen övre vänstra, så det här är det enda hörnet som
+   är fritt i alla lägen. Samma vita pill-form som priset så brickan behåller ett
+   formspråk, men med normal vikt och dämpad text — priset ska fortsätta vara det
+   som drar blicken.
+   Renderas bara för produkter som HAR omdömen (se app/page.tsx), till skillnad
+   från produktkortets .prating som alltid reserverar sin rad. */
+.hrating{position:absolute;top:10px;right:10px;z-index:2;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.94);color:var(--ink);font-size:12px;font-weight:700;line-height:1;padding:5px 10px;border-radius:999px;box-shadow:0 6px 16px -6px rgba(0,0,0,.3)}
+/* .herotile-prefixet behovs: Stars renderar ALLTID "rev-stars" jamte den
+   inskickade klassen, och .rev-stars (langre ner i filen) har samma
+   specificitet men vinner pa kallordning — stjarnorna hade da ritats i 15px
+   inuti en 12px-pill. Produktkortets tvilling loser det likadant med
+   .prod .prating-stars. */
+.herotile .hrating-stars{font-size:12px;letter-spacing:.5px}
+.hrating-count{color:var(--soft);font-weight:600}
+/* Pa en ~157px bred bricka (42vw vid 375px) ar det inte plats for bade
+   Rea-badgen uppe till vanster och en full betygs-pill uppe till hoger —
+   antalet fick dem att overlappa med nagra pixlar. Antalet ar det minst
+   informativa av de tre, sa det ar det som gar. */
+@media(max-width:880px){.hrating{top:8px;right:8px;font-size:11px;padding:4px 8px;gap:4px}.herotile .hrating-stars{font-size:11px}.hrating-count{display:none}}
 /* hero motion — staggered entrance, gentle float, drifting glow (all disabled under prefers-reduced-motion) */
 @keyframes heroRise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes heroLift{from{transform:translateY(16px)}to{transform:none}}
