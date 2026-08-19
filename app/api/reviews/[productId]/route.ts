@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reviewImages } from "@/lib/reviews/images";
 import { getReviewStore, isVisibleStatus, type StoredReview } from "@/lib/store/reviews";
 import { reviewDisplayName } from "@/lib/import/review-display";
 
@@ -28,6 +29,9 @@ function toPublic(r: StoredReview): PublicReview {
     date: r.date,
     hasImage: Boolean(r.hasImage),
     ...(r.hasImage && r.imageUrl ? { imageUrl: r.imageUrl } : {}),
+    // Hela listan också, annars ser den publika rutten bara en bild per
+    // recension medan produktsidan visar alla (granskning 2026-08-19).
+    ...(r.hasImage ? { imageUrls: reviewImages(r) } : {}),
   };
 }
 

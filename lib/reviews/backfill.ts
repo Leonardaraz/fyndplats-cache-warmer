@@ -74,7 +74,19 @@ export interface ReviewBackfillOptions {
   minBudgetChars?: number;
   /** Ta även produkter som redan har recensioner (t.ex. för att fylla på). */
   includeExisting?: boolean;
+  /**
+   * Vägg-klocka-budget (ms). Loopen stannar innan Vercels maxDuration nås, så
+   * lambdan inte dödas mitt i en produkt-skrivning. Default
+   * DEFAULT_REVIEW_TIME_BUDGET_MS.
+   */
+  timeBudgetMs?: number;
 }
+
+/**
+ * Default-tidsbudget: rutten har maxDuration 300 s, och vi vill stanna med god
+ * marginal så den sista produkten hinner skrivas klart.
+ */
+export const DEFAULT_REVIEW_TIME_BUDGET_MS = 240_000;
 
 export interface ReviewBackfillProductResult {
   wixProductId: string;
@@ -105,7 +117,7 @@ export interface ReviewBackfillSummary {
   throttled: number;
   errors: number;
   /** Varför körningen slutade. */
-  stoppedBy: "klar" | "gräns" | "budget" | "översättning";
+  stoppedBy: "klar" | "gräns" | "budget" | "översättning" | "tid";
   /** Satt när körningen stoppades av översättningsgrinden. */
   blockedReason?: string;
   budgetRemainingAtEnd: number;
@@ -155,12 +167,24 @@ export async function runReviewBackfill(
     }
   }
 
+  const startedAt = (deps.now?.() ?? new Date()).getTime();
+  const timeBudgetMs = opts.timeBudgetMs ?? DEFAULT_REVIEW_TIME_BUDGET_MS;
   let remaining = await deps.budgetRemaining();
   const candidates = await deps.listCandidates();
 
   for (const c of candidates) {
     if (considered >= limit) {
       stoppedBy = "gräns";
+      break;
+    }
+    // TIDSBUDGET. Rutten har maxDuration 300 s, och sedan flerbildsstödet gör
+    // varje recension upp till tre mediaimporter — var och en med retry och
+    // 3-sekunderssömn vid 429. En körning kan därmed passera taket och dödas
+    // MITT I en produkt (granskning 2026-08-19). Vi stannar hellre själva och
+    // låter nästa körning ta vid: kandidatlistan är stabil och stämpeln
+    // reviewsCheckedAt gör att inget görs om i onödan.
+    if ((deps.now?.() ?? new Date()).getTime() - startedAt > timeBudgetMs) {
+      stoppedBy = "tid";
       break;
     }
     // Budgetgrinden gäller bara riktiga körningar — en torrkörning ska kunna

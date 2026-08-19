@@ -49,6 +49,9 @@ const COLLECTIONS = [
       { key: "date", displayName: "Date", type: "TEXT" },
       { key: "hasImage", displayName: "Has Image", type: "BOOLEAN" },
       { key: "imageUrl", displayName: "Image URL", type: "TEXT" },
+      // Hela bildlistan. Utan fältet har en NYPROVISIONERAD sajt ingen plats
+      // att spara det skrivarna nu skickar (granskning 2026-08-19).
+      { key: "imageUrls", displayName: "Image URLs (alla)", type: "ARRAY_STRING" },
       // pending | approved | rejected | edited
       { key: "status", displayName: "Status", type: "TEXT" },
       { key: "importedAt", displayName: "Imported At", type: "TEXT" },

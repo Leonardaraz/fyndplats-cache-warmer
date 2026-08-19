@@ -48,17 +48,49 @@ describe("reviewImageFields", () => {
     });
   });
 
-  it("EN bild skriver inte imageUrls — gamla formen racker", () => {
-    // Halller raderna sa lika de befintliga som mojligt.
-    expect(reviewImageFields(["a.jpg"])).toEqual({ hasImage: true, imageUrl: "a.jpg" });
+  it("ALLA tre nycklarna finns alltid — annars kan en spread inte rensa", () => {
+    // Granskning 2026-08-19: forsta versionen utelamnade imageUrls vid EN bild.
+    // Falten satts nastan alltid genom en spread over en BEFINTLIG rad, och en
+    // nyckel som saknas i hogerledet lamnar det gamla vardet kvar.
+    expect(reviewImageFields(["a.jpg"])).toEqual({
+      hasImage: true,
+      imageUrl: "a.jpg",
+      imageUrls: ["a.jpg"],
+    });
+    expect(Object.keys(reviewImageFields([])).sort()).toEqual(["hasImage", "imageUrl", "imageUrls"]);
   });
 
-  it("ingen bild ger hasImage:false och inga adressfalt", () => {
-    // VIKTIGT: imageUrl far inte bli undefined i objektet — JSON.stringify
-    // tappar undefined, och items/save ar en HELERSATTNING. En rad som redan
-    // har en bild skulle da tyst tappa den.
-    expect(reviewImageFields([])).toEqual({ hasImage: false });
-    expect(reviewImageFields(["", "  "])).toEqual({ hasImage: false });
+  it("spread over en rad med gamla leverantorsadresser RENSAR dem", () => {
+    // Den faktiska buggen, reproducerad: withOwnImage flyttade hem imageUrl men
+    // lamnade ett imageUrls fullt av aliexpress-media.com — alltsa exakt den
+    // lacka funktionen finns for att stoppa, aterinford bakvagen.
+    const gammal = {
+      hasImage: true,
+      imageUrl: "https://ae-pic.aliexpress-media.com/a.jpg",
+      imageUrls: [
+        "https://ae-pic.aliexpress-media.com/a.jpg",
+        "https://ae-pic.aliexpress-media.com/b.jpg",
+      ],
+    };
+    const ny = { ...gammal, ...reviewImageFields(["https://static.wixstatic.com/egen.jpg"]) };
+    expect(JSON.stringify(ny)).not.toContain("aliexpress");
+    expect(ny.imageUrls).toEqual(["https://static.wixstatic.com/egen.jpg"]);
+  });
+
+  it("spread rensar aven nar bilderna forsvunnit helt", () => {
+    const gammal = { hasImage: true, imageUrl: "a.jpg", imageUrls: ["a.jpg", "b.jpg"] };
+    const ny = { ...gammal, ...reviewImageFields([]) };
+    expect(ny.hasImage).toBe(false);
+    expect(ny.imageUrl).toBeUndefined();
+    expect(ny.imageUrls).toBeUndefined();
+  });
+
+  it("ingen bild ger hasImage:false och tomma adressfalt", () => {
+    // undefined ar RATT varde har: items/save ar en helersattning och
+    // JSON.stringify tappar undefined, sa faltet forsvinner ur raden — vilket
+    // ar vad vi vill nar bilderna faktiskt ar borta.
+    expect(reviewImageFields([])).toEqual({ hasImage: false, imageUrl: undefined, imageUrls: undefined });
+    expect(reviewImageFields(["", "  "]).hasImage).toBe(false);
   });
 
   it("kapar vid taket", () => {
