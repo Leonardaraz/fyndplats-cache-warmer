@@ -153,14 +153,21 @@ export default async function SyncAlertsPage({ searchParams }: PageProps) {
   //
   // Räknas om här i stället för att visa larmets sparade tal, så de redan
   // öppna larmen får det användbara förslaget direkt.
-  const rekommenderatFor = (a: SyncAlert): number | null => {
-    if (!(a.newCostUsd && a.newCostUsd > 0)) return a.recommendedPriceSek ?? null;
+  const rekommenderatFor = (a: SyncAlert): { pris: number | null; mot: number | null } => {
+    // `mot` = marginalen priset faktiskt siktar på, eller null när vi fallit
+    // tillbaka på larmets sparade tal. Etiketten får inte påstå 22,5 % när
+    // fallbacken är kostnad × 2,5, alltså ~62 % (granskning 2026-08-19).
+    if (!(a.newCostUsd && a.newCostUsd > 0)) {
+      return { pris: a.recommendedPriceSek ?? null, mot: null };
+    }
     const ra = priceForTargetMargin(
       a.newCostUsd * prisregler.usdToSek,
       TARGET_MARGIN_PCT,
       prisregler.vatRatePercent,
     );
-    return ra === null ? (a.recommendedPriceSek ?? null) : roundPrice(ra, prisregler.rounding);
+    return ra === null
+      ? { pris: a.recommendedPriceSek ?? null, mot: null }
+      : { pris: roundPrice(ra, prisregler.rounding), mot: TARGET_MARGIN_PCT };
   };
 
   const valtBand = ALERT_BANDS.find((b) => b.id === params.band)?.id ?? null;
@@ -284,7 +291,7 @@ export default async function SyncAlertsPage({ searchParams }: PageProps) {
         <section style={{ marginTop: 24 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
             <h2 style={{ margin: 0 }}>Prishöjningar ({priceAlerts.length})</h2>
-            {priceAlerts.length > 1 ? <BulkApproveForm alerts={priceAlerts} /> : null}
+            {priceAlerts.length > 1 ? <BulkApproveForm alerts={priceAlerts} margin={marginalFor} /> : null}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 12 }}>
             {priceAlerts.map((a) => <PriceAlertCard key={a.id} alert={a} margin={marginalFor(a)} recommended={rekommenderatFor(a)} slug={a.productSlug ?? products.get(a.wixProductId)?.slug} />)}
@@ -580,10 +587,21 @@ function LogTabs({
   );
 }
 
-function BulkApproveForm({ alerts }: { alerts: SyncAlert[] }) {
+function BulkApproveForm({
+  alerts,
+  margin,
+}: {
+  alerts: SyncAlert[];
+  /** Samma omräkning som korten. Se noten vid marginalFor. */
+  margin: (a: SyncAlert) => number | null;
+}) {
   const total = alerts.length;
+  // MÅSTE använda samma omräkning som korten. Snittet räknades förut på det
+  // SPARADE projectedMarginPct, alltså det tal den här PR:en visar är fel — så
+  // bekräftelserutan kunde säga "−9,5 %" medan varje kort och chip på samma
+  // sida visade +12,4 % (granskning 2026-08-19).
   const totalMarginAfter =
-    alerts.reduce((sum, a) => sum + (a.projectedMarginPct ?? 0), 0) / Math.max(1, total);
+    alerts.reduce((sum, a) => sum + (margin(a) ?? 0), 0) / Math.max(1, total);
   // <details>-mönster för bekräftelse — server actions utan klient-JS.
   return (
     <details style={{ fontSize: 13 }}>
@@ -664,10 +682,10 @@ function PriceAlertCard({
   slug?: string;
   /** Omräknad marginal (netto mot netto). Se noten vid marginalFor. */
   margin?: number | null;
-  /** Omräknat prisförslag mot målmarginalen. Se noten vid rekommenderatFor. */
-  recommended?: number | null;
+  /** Omräknat prisförslag + marginalen det siktar på. Se noten vid rekommenderatFor. */
+  recommended?: { pris: number | null; mot: number | null };
 }) {
-  const rekommenderat = recommended ?? alert.recommendedPriceSek ?? 0;
+  const rekommenderat = recommended?.pris ?? alert.recommendedPriceSek ?? 0;
   const sevColor = SEVERITY_COLOR[alert.severity];
   const margin = marginIn ?? alert.projectedMarginPct ?? 0;
   const change = (alert.prevCostUsd ?? 0) > 0 && alert.newCostUsd != null
@@ -739,7 +757,9 @@ function PriceAlertCard({
         >
           Rekommenderat nytt pris:{" "}
           <b>{rekommenderat.toFixed(0)} kr</b>{" "}
-          (ger {TARGET_MARGIN_PCT.toLocaleString("sv-SE")} % marginal)
+          {recommended?.mot != null
+            ? `(ger ${recommended.mot.toLocaleString("sv-SE")} % marginal)`
+            : "(äldre larm — kostnad × 2,5)"}
         </div>
 
         <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>

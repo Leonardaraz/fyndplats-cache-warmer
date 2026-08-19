@@ -131,6 +131,16 @@ export async function placeOrderForTask(
   const province =
     a.province ?? (countryCode === "SE" ? provinceFromSwedishPostalCode(a.postalCode) : undefined);
 
+  // Produkten hämtas HÖGST EN gång per orderläggning. Prisvakten och
+  // fraktvalet behöver båda dess varianter, och två anrop hade dubblat
+  // AE-trafiken på orderns väg — i ett API som redan strypt oss en gång
+  // (granskning 2026-08-19). Cachen lever bara inom det här anropet.
+  let produktCache: Awaited<ReturnType<typeof getProduct>> | null = null;
+  const hamtaProdukt = async () => {
+    if (!produktCache) produktCache = await getProduct(supplierProductId);
+    return produktCache;
+  };
+
   // ── PRISVAKT (garderobs-incidenten 2026-08-06) ──
   // DS-API:t kan aldrig få kampanjpriser/kuponger, så när DS-priset stuckit
   // iväg mot importbaslinjen ska Leonard få välja väg INNAN någon order skapas.
@@ -143,7 +153,7 @@ export async function placeOrderForTask(
     try {
       const baseline = task.overriddenSupplierProductId ? undefined : variant?.costUsd;
       if (baseline && baseline > 0) {
-        const now = await getProduct(supplierProductId);
+        const now = await hamtaProdukt();
         const skuNow = now.variants.find(
           (v) => v.skuId === supplierVariantId || v.skuAttr === supplierVariantId,
         );
@@ -252,7 +262,7 @@ export async function placeOrderForTask(
         ? supplierVariantId
         : null;
       if (!freightSkuId) {
-        const ae = await getProduct(supplierProductId);
+        const ae = await hamtaProdukt();
         freightSkuId = matchAeVariant(supplierVariantId, ae.variants);
       }
       if (freightSkuId) {
