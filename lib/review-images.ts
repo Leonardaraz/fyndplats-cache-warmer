@@ -57,14 +57,28 @@ export function reviewImages(row: ReviewImageFields | null | undefined): string[
 /**
  * Fälten att SKRIVA för en given bildlista.
  *
- * Håller de två fälten i takt så ingen skrivväg kan sätta det ena utan det
- * andra: `hasImage` följer alltid av listan, `imageUrl` är alltid dess första,
- * och `imageUrls` utelämnas när det inte finns något att lägga där.
+ * ALLA TRE NYCKLARNA FINNS ALLTID i resultatet, även när värdet är undefined.
+ * Det är inte kosmetik utan hela poängen: fälten sätts nästan alltid genom en
+ * spread över en BEFINTLIG rad, och en nyckel som saknas i högerledet lämnar
+ * det gamla värdet kvar.
+ *
+ * Det gick fel direkt (granskning 2026-08-19): `{...review,
+ * ...reviewImageFields(ut)}` i withOwnImage flyttade hem `imageUrl` men lämnade
+ * ett `imageUrls` fullt av leverantörsadresser — alltså exakt den läcka
+ * funktionen finns för att stoppa, återinförd bakvägen. Reproducerat: bild 1
+ * blev vår egen medan bild 2 pekade kvar på aliexpress-media.com.
+ *
+ * `undefined` är rätt värde för "ingen bild": items/save är en helersättning
+ * och JSON.stringify tappar undefined, så fältet försvinner ur raden — vilket
+ * är vad vi vill när bilderna faktiskt är borta.
+ *
+ * `hasImage` följer alltid av listan och `imageUrl` är alltid dess första, så
+ * ingen skrivväg kan sätta det ena utan det andra.
  */
 export function reviewImageFields(urls: readonly string[]): {
   hasImage: boolean;
-  imageUrl?: string;
-  imageUrls?: string[];
+  imageUrl: string | undefined;
+  imageUrls: string[] | undefined;
 } {
   const rena: string[] = [];
   const sedda = new Set<string>();
@@ -75,10 +89,12 @@ export function reviewImageFields(urls: readonly string[]): {
     rena.push(s);
     if (rena.length >= MAX_REVIEW_IMAGES) break;
   }
-  if (rena.length === 0) return { hasImage: false };
+  if (rena.length === 0) return { hasImage: false, imageUrl: undefined, imageUrls: undefined };
   return {
     hasImage: true,
     imageUrl: rena[0],
-    ...(rena.length > 1 ? { imageUrls: rena } : {}),
+    // Skrivs även för EN bild. Alternativet — att utelämna fältet — gör att en
+    // spread inte kan rensa ett gammalt värde, se noten ovan.
+    imageUrls: rena,
   };
 }

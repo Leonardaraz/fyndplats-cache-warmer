@@ -51,17 +51,36 @@ describe("reviewImageFields", () => {
     });
   });
 
-  it("EN bild skriver inte imageUrls — gamla formen racker", () => {
-    // Halller raderna sa lika de befintliga som mojligt.
-    assert.deepEqual(reviewImageFields(["a.jpg"]), { hasImage: true, imageUrl: "a.jpg" });
+  it("ALLA tre nycklarna finns alltid — annars kan en spread inte rensa", () => {
+    // Granskning 2026-08-19: forsta versionen utelamnade imageUrls vid EN bild.
+    // Falten satts nastan alltid genom en spread over en BEFINTLIG rad, och en
+    // nyckel som saknas i hogerledet lamnar det gamla vardet kvar.
+    assert.deepEqual(reviewImageFields(["a.jpg"]), {
+      hasImage: true,
+      imageUrl: "a.jpg",
+      imageUrls: ["a.jpg"],
+    });
   });
 
-  it("ingen bild ger hasImage:false och inga adressfalt", () => {
-    // VIKTIGT: imageUrl far inte bli undefined i objektet — JSON.stringify
-    // tappar undefined, och items/save ar en HELERSATTNING. En rad som redan
-    // har en bild skulle da tyst tappa den.
-    assert.deepEqual(reviewImageFields([]), { hasImage: false });
-    assert.deepEqual(reviewImageFields(["", "  "]), { hasImage: false });
+  it("spread over en rad med gamla leverantorsadresser RENSAR dem", () => {
+    const gammal = {
+      hasImage: true,
+      imageUrl: "https://ae-pic.aliexpress-media.com/a.jpg",
+      imageUrls: [
+        "https://ae-pic.aliexpress-media.com/a.jpg",
+        "https://ae-pic.aliexpress-media.com/b.jpg",
+      ],
+    };
+    const ny = { ...gammal, ...reviewImageFields(["https://static.wixstatic.com/egen.jpg"]) };
+    assert.doesNotMatch(JSON.stringify(ny), /aliexpress/);
+    assert.deepEqual(ny.imageUrls, ["https://static.wixstatic.com/egen.jpg"]);
+  });
+
+  it("ingen bild ger hasImage:false och tomma adressfalt", () => {
+    assert.deepEqual(reviewImageFields([]), {
+      hasImage: false, imageUrl: undefined, imageUrls: undefined,
+    });
+    assert.equal(reviewImageFields(["", "  "]).hasImage, false);
   });
 
   it("kapar vid taket", () => {
