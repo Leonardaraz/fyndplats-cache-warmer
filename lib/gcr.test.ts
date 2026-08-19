@@ -1,4 +1,4 @@
-import { after, describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   DELIVERY_DAYS,
@@ -90,6 +90,16 @@ describe("isLikelyEmail", () => {
 });
 
 describe("buildGcrConfig", () => {
+  // Sviten jamfor mot MERCHANT_ID_DEFAULT, sa env maste vara borta — annars
+  // faller den pa varje maskin dar GOOGLE_MERCHANT_ID ar satt, vilket ar precis
+  // de maskiner som kort `vercel env pull` (granskning 2026-08-19).
+  const original = process.env.GOOGLE_MERCHANT_ID;
+  before(() => { delete process.env.GOOGLE_MERCHANT_ID; });
+  after(() => {
+    if (original === undefined) delete process.env.GOOGLE_MERCHANT_ID;
+    else process.env.GOOGLE_MERCHANT_ID = original;
+  });
+
   const nu = new Date("2026-08-19T08:00:00Z");
   const order = { orderId: "10021", email: "kund@example.com", deliveryCountry: "SE" };
 
@@ -231,5 +241,23 @@ describe("isFreshOrder", () => {
       createdDate: "2026-01-01T00:00:00Z",
     };
     assert.equal(buildGcrConfig(gammal, nu), null);
+  });
+});
+
+describe("estimatedDeliveryDate: ogiltigt datum", () => {
+  it("returnerar null i stallet for att kasta RangeError", () => {
+    // new Date("nonsense") ger NaN hela vagen och toISOString() kastar. Pa
+    // /tack hade det blivit en 500 pa sidan kunden landar pa efter betalning
+    // (granskning 2026-08-19, tredje vandan).
+    assert.equal(estimatedDeliveryDate(new Date("nonsense")), null);
+    assert.equal(estimatedDeliveryDate(new Date(NaN)), null);
+  });
+
+  it("buildGcrConfig ger ingen modul i stallet for att fela", () => {
+    const cfg = buildGcrConfig(
+      { orderId: "10021", email: "k@e.com", deliveryCountry: "SE" },
+      new Date(NaN),
+    );
+    assert.equal(cfg, null);
   });
 });

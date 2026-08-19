@@ -54,7 +54,14 @@ export const OPT_IN_STYLE = "BOTTOM_RIGHT_DIALOG";
  * Räknar i UTC med rena dygn. Att lägga till dagar via setDate på en lokal
  * Date drar in tidszon och sommartid i något som bara är "datum + N dygn".
  */
-export function estimatedDeliveryDate(from: Date, days = DELIVERY_DAYS): string {
+export function estimatedDeliveryDate(from: Date, days = DELIVERY_DAYS): string | null {
+  // Ogiltigt datum in → null ut, aldrig ett kast. `new Date("nonsense")` ger
+  // NaN hela vägen och `toISOString()` kastar RangeError — på /tack hade det
+  // blivit en 500 på sidan kunden landar på efter att ha betalat, alltså precis
+  // det felläge resten av filen är byggd för att undvika (granskning
+  // 2026-08-19, tredje vändan). Idag matar bara deliveryAnchor hit, men
+  // funktionen är exporterad och nästa anropare kan skicka ett parsat datum.
+  if (!Number.isFinite(from?.getTime?.())) return null;
   const t = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
   return new Date(t + days * 86_400_000).toISOString().slice(0, 10);
 }
@@ -172,12 +179,14 @@ export function buildGcrConfig(
   const land = normalizeCountry(order?.deliveryCountry);
   if (!orderId || !land || !isLikelyEmail(email)) return null;
   if (!isFreshOrder(order?.createdDate, now)) return null;
+  const datum = estimatedDeliveryDate(deliveryAnchor(order?.createdDate, now));
+  if (!datum) return null;
   return {
     merchant_id: merchantId(),
     order_id: orderId,
     email,
     delivery_country: land,
-    estimated_delivery_date: estimatedDeliveryDate(deliveryAnchor(order?.createdDate, now)),
+    estimated_delivery_date: datum,
     opt_in_style: OPT_IN_STYLE,
   };
 }

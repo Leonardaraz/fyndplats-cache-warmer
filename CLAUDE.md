@@ -66,6 +66,23 @@ den som valt "bara nödvändiga". `CookieConsent` speglar om cookien vid **varje
 besök — annars hade ingen som samtyckt före den deployen fått någon, och Safari
 kapar `document.cookie`-satta cookies till 7 dagar.
 
+### Google Customer Reviews (`GOOGLE_MERCHANT_ID`)
+
+Opt-in-modulen på `/tack` (`lib/gcr.ts` + `components/google-customer-reviews-optin.tsx`)
+visar Googles egen enkät-dialog efter köp. Den är gatad på samma marknadssamtycke
+som Meta Pixel, både server-side (cookien) och i komponenten.
+
+`GOOGLE_MERCHANT_ID` överstyr Merchant Center-ID:t; utan env används
+`MERCHANT_ID_DEFAULT` i `lib/gcr.ts`. **Sätt env om kontot roteras** — Google
+avvisar ett felaktigt ID *tyst*, så symptomet blir "modulen fungerar inte".
+
+Övriga tysta felkällor att känna till vid felsökning: saknad e-post eller
+leveransland i Wix-ordern, och att modulen bara visas de första `FRESH_HOURS`
+(48 h) efter köpet. Alla vägar loggar med prefixen `[tack]` och `[gcr]`.
+
+Tröskeln för att "Butikens betyg" ska synas i annonser är ~100 **färdiga**
+recensioner per land på 12 månader — inte 100 opt-ins.
+
 ### Så här aktiverar du den (Leonard) — steg för steg
 1. **Skapa Pixel/Dataset** i Meta Events Manager:
    <https://business.facebook.com/events_manager2/> → *Connect data sources* →

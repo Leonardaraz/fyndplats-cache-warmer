@@ -50,6 +50,7 @@ export function GoogleCustomerReviewsOptIn({ config }: { config: GcrRenderConfig
   const samtycke = useMarketingConsent();
   const router = useRouter();
   const harUppdaterat = useRef(false);
+  const renderatFor = useRef<string | null>(null);
 
   // Godkänner kunden cookies medan hen står på /tack finns ingen konfiguration
   // i payloaden — servern byggde sidan innan cookien fanns. En refresh låter
@@ -89,6 +90,12 @@ export function GoogleCustomerReviewsOptIn({ config }: { config: GcrRenderConfig
       // dialogen uteblivit tyst. onReady körs efter laddning OCH vid varje
       // montering, vilket är precis vad som behövs.
       onReady={() => {
+        // EN gång per order. onReady kör vid varje montering (det är hela
+        // poängen med den, se ovan), men en klientnavigering bort från /tack
+        // och tillbaka hade då anropat render() en andra gång för samma order
+        // → dubbel dialog (granskning 2026-08-19, tredje vändan).
+        if (renderatFor.current === config.order_id) return;
+        renderatFor.current = config.order_id;
         try {
           window.gapi?.load("surveyoptin", () => {
             try {

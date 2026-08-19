@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ThankYou } from "../../components/thankyou";
-import { fetchWixOrderInfo, tomOrderInfo } from "../../lib/wix-orders";
+import { fetchWixOrderInfo } from "../../lib/wix-orders";
 import { cookies } from "next/headers";
 import { buildGcrConfig } from "../../lib/gcr";
 import { CONSENT_COOKIE, marketingConsentFromCookie } from "../../lib/consent";
@@ -30,16 +30,20 @@ export default async function Tack({
   // Ett Wix-anrop ger både det läsbara ordernumret (t.ex. "10003") och det
   // Googles enkät kräver. Faller tillbaka på GUID:t i ThankYou om uppslaget
   // missar → fältet blir aldrig tomt.
-  const info = orderId ? await fetchWixOrderInfo(orderId) : tomOrderInfo();
+  // fetchWixOrderInfo returnerar själv tomma fält för tomt orderId — ingen
+  // ternär här som upprepar den grinden.
+  const info = await fetchWixOrderInfo(orderId);
 
   // Google Customer Reviews: opt-in-dialogen som gör att Merchant Center kan
   // börja samla recensioner. buildGcrConfig returnerar null när ordern saknar
   // e-post eller giltigt land — då renderas ingen modul alls, hellre det än ett
   // halvt anrop som Google avvisar tyst.
   //
-  // ORDER-ID:t som skickas till Google är det LÄSBARA numret när det finns.
-  // Google visar order_id för kunden i enkätmejlet, och Wix interna GUID säger
-  // kunden ingenting. Faller tillbaka på GUID:t så modulen inte tappas.
+  // ORDER-ID:t som skickas till Google är det LÄSBARA numret ("10021"), som
+  // kunden känner igen från bekräftelsen — Wix interna GUID säger hen
+  // ingenting. GUID:t är en sista utväg för den osannolika ordern som bär
+  // e-post men saknar `number`; misslyckas hela uppslaget saknas e-posten
+  // ändå och buildGcrConfig returnerar null innan order_id spelar roll.
   //
   // SAMTYCKET LÄSES HÄR, inte bara i komponenten. Konfigurationen innehåller
   // kundens e-postadress, och en prop till en klientkomponent hamnar i sidans
