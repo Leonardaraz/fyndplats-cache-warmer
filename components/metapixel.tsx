@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
-import { CONSENT_EVENT, hasMarketingConsent } from "../lib/consent";
+import { useMarketingConsent } from "../lib/use-marketing-consent";
 
 // Meta Pixel base-snippet. Renderas från app/layout.tsx med pixelId inläst
 // server-side ur process.env.META_PIXEL_ID (icke-hemligt — syns ändå i sidans
@@ -11,23 +11,11 @@ import { CONSENT_EVENT, hasMarketingConsent } from "../lib/consent";
 // snippeten + manuellt vid SPA-navigeringar (Next client-side routing fyrar
 // annars bara den första sidvisningen).
 export function MetaPixel({ pixelId }: { pixelId: string }) {
-  const [enabled, setEnabled] = useState(false);
+  // Aktivera så snart marknadssamtycke finns — lyssnarparet ligger i
+  // lib/use-marketing-consent.ts sedan Google-modulen behövde exakt samma sak.
+  const enabled = useMarketingConsent();
   const pathname = usePathname();
   const firstPath = useRef(true);
-
-  // Aktivera så snart marknadssamtycke finns. Lyssnar på fp-consent-change
-  // (dispatchas av cookieconsent.tsx) + storage (samtycke i annan flik) så att
-  // ett klick på "Godkänn alla" startar Pixeln direkt utan sidladdning.
-  useEffect(() => {
-    const sync = () => setEnabled(hasMarketingConsent());
-    sync();
-    window.addEventListener(CONSENT_EVENT, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(CONSENT_EVENT, sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
 
   // Extra PageView vid varje route-byte EFTER att Pixeln laddats. Hoppar första
   // pathname-värdet — det täcks redan av fbq('track','PageView') i snippeten.

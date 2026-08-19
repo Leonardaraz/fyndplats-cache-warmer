@@ -54,7 +54,34 @@ Pixeln + CAPI fyrar **bara** när `localStorage.fp_cookie_consent === "all"`
 annons-pixeln matchar besökaren mot ett Facebook-konto. `CookieConsent`
 dispatchar `fp-consent-change` så Pixeln startar direkt vid "Godkänn alla", utan
 sidladdning. Vill du köra ogated som GA4: ta bort `hasMarketingConsent()`-grinden
-i `lib/meta.ts` + `components/metapixel.tsx`.
+i `lib/meta.ts` + `lib/use-marketing-consent.ts` (hooken som `metapixel.tsx`
+använder sedan 2026-08-19, när Google-modulen behövde samma lyssnare).
+
+Samma val speglas dessutom i en **cookie** med samma namn. Skälet är att
+`/tack` måste veta valet *server-side*: Google Customer Reviews-modulen
+(`components/google-customer-reviews-optin.tsx`) får kundens e-postadress som
+prop, och en prop till en klientkomponent hamnar i sidans RSC-payload oavsett
+vad komponenten renderar. Utan cookien låg adressen alltså i HTML:en även för
+den som valt "bara nödvändiga". `CookieConsent` speglar om cookien vid **varje**
+besök — annars hade ingen som samtyckt före den deployen fått någon, och Safari
+kapar `document.cookie`-satta cookies till 7 dagar.
+
+### Google Customer Reviews (`GOOGLE_MERCHANT_ID`)
+
+Opt-in-modulen på `/tack` (`lib/gcr.ts` + `components/google-customer-reviews-optin.tsx`)
+visar Googles egen enkät-dialog efter köp. Den är gatad på samma marknadssamtycke
+som Meta Pixel, både server-side (cookien) och i komponenten.
+
+`GOOGLE_MERCHANT_ID` överstyr Merchant Center-ID:t; utan env används
+`MERCHANT_ID_DEFAULT` i `lib/gcr.ts`. **Sätt env om kontot roteras** — Google
+avvisar ett felaktigt ID *tyst*, så symptomet blir "modulen fungerar inte".
+
+Övriga tysta felkällor att känna till vid felsökning: saknad e-post eller
+leveransland i Wix-ordern, och att modulen bara visas de första `FRESH_HOURS`
+(48 h) efter köpet. Alla vägar loggar med prefixen `[tack]` och `[gcr]`.
+
+Tröskeln för att "Butikens betyg" ska synas i annonser är ~100 **färdiga**
+recensioner per land på 12 månader — inte 100 opt-ins.
 
 ### Så här aktiverar du den (Leonard) — steg för steg
 1. **Skapa Pixel/Dataset** i Meta Events Manager:

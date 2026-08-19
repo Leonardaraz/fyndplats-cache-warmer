@@ -40,6 +40,7 @@ export default function Sekretesspolicy() {
         <li><strong>Frakt- och logistikpartners</strong> för att leverera dina varor.</li>
         <li><strong>IT- och plattformsleverantörer</strong> som driftar webbplatsen.</li>
         <li><strong>Marknadsförings- och analysverktyg</strong> (Meta, TikTok, Google) – aktiveras endast vid samtycke.</li>
+        <li><strong>Google Customer Reviews</strong> – om du samtyckt till marknadsföringscookies delar vi efter ditt köp din <strong>e-postadress</strong>, <strong>ordernummer</strong>, <strong>leveransland</strong> och <strong>beräknat leveransdatum</strong> med Google. Google visar då en egen ruta där du själv väljer om du vill få en enkät om ditt köp. Tackar du nej skickas ingen enkät. Har du valt bara nödvändiga cookies delas ingenting alls.</li>
         <li><strong>Myndigheter</strong> när vi enligt lag är skyldiga att lämna ut uppgifter.</li>
       </ul>
       <p>Leverantörer som behandlar uppgifter för vår räkning är personuppgiftsbiträden, med biträdesavtal som säkerställer säker behandling enligt våra instruktioner.</p>

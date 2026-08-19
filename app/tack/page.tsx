@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ThankYou } from "../../components/thankyou";
-import { fetchWixOrderNumber } from "../../lib/wix-orders";
+import { fetchWixOrderInfo } from "../../lib/wix-orders";
+import { cookies } from "next/headers";
+import { buildGcrConfig } from "../../lib/gcr";
+import { CONSENT_COOKIE, marketingConsentFromCookie } from "../../lib/consent";
+import { GoogleCustomerReviewsOptIn } from "../../components/google-customer-reviews-optin";
 
 export const metadata: Metadata = {
   title: "Tack för din beställning",
@@ -23,17 +27,51 @@ export default async function Tack({
   // Wix headless redirectar med orderns interna _id (GUID) i ?orderId. Olika
   // Wix-versioner använt olika param-namn → prova flera defensivt.
   const orderId = pick(sp.orderId) || pick(sp.orderNumber) || pick(sp.order) || pick(sp.orderID) || "";
-  // Slå upp det läsbara ordernumret (t.ex. "10003") server-side. Faller tillbaka
-  // på GUID:t i ThankYou om uppslaget missar → fältet blir aldrig tomt.
-  const orderNumber = orderId ? await fetchWixOrderNumber(orderId) : null;
+  // Ett Wix-anrop ger både det läsbara ordernumret (t.ex. "10003") och det
+  // Googles enkät kräver. Faller tillbaka på GUID:t i ThankYou om uppslaget
+  // missar → fältet blir aldrig tomt.
+  // fetchWixOrderInfo returnerar själv tomma fält för tomt orderId — ingen
+  // ternär här som upprepar den grinden.
+  const info = await fetchWixOrderInfo(orderId);
+
+  // Google Customer Reviews: opt-in-dialogen som gör att Merchant Center kan
+  // börja samla recensioner. buildGcrConfig returnerar null när ordern saknar
+  // e-post eller giltigt land — då renderas ingen modul alls, hellre det än ett
+  // halvt anrop som Google avvisar tyst.
+  //
+  // ORDER-ID:t som skickas till Google är det LÄSBARA numret ("10021"), som
+  // kunden känner igen från bekräftelsen — Wix interna GUID säger hen
+  // ingenting. GUID:t är en sista utväg för den osannolika ordern som bär
+  // e-post men saknar `number`; misslyckas hela uppslaget saknas e-posten
+  // ändå och buildGcrConfig returnerar null innan order_id spelar roll.
+  //
+  // SAMTYCKET LÄSES HÄR, inte bara i komponenten. Konfigurationen innehåller
+  // kundens e-postadress, och en prop till en klientkomponent hamnar i sidans
+  // RSC-payload — alltså i HTML:en — oavsett vad komponenten sedan väljer att
+  // rendera. Gatas det bara på klienten har adressen redan skickats till den
+  // som valt "bara nödvändiga" (granskning 2026-08-19). Sekretesspolicyn lovar
+  // att ingenting delas då; det löftet hålls här.
+  const samtycke = marketingConsentFromCookie((await cookies()).get(CONSENT_COOKIE)?.value);
+  const gcr = samtycke
+    ? buildGcrConfig(
+        {
+          orderId: info.number || orderId,
+          email: info.email ?? "",
+          deliveryCountry: info.deliveryCountry ?? "",
+          createdDate: info.createdDate,
+        },
+        new Date(),
+      )
+    : null;
 
   return (
     <section className="sec tack-sec">
       <div className="container-narrow">
         <Suspense fallback={<div className="tack-loading">Laddar…</div>}>
-          <ThankYou orderNumber={orderNumber} />
+          <ThankYou orderNumber={info.number} />
         </Suspense>
       </div>
+      <GoogleCustomerReviewsOptIn config={gcr} />
     </section>
   );
 }
