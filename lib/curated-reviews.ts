@@ -9,14 +9,29 @@
 // expanderar resten. Datum är ungefärliga (Google visar bara "för X sedan");
 // de ersätts av exakta datum när API:t är på.
 //
-// Snittbetyg + TOTALantal (4,9 · 27) kommer från lib/social-proof.ts så rubriken
-// alltid stämmer med Google; korten nedan (18 st med text) är ett urval — "Se
-// alla på Google" länkar till samtliga.
+// Snittbetyg + TOTALantal kommer från lib/social-proof.ts så rubriken alltid
+// stämmer med Google; korten nedan (20 st med text) är ett urval — "Se alla på
+// Google" länkar till samtliga. Resten av profilens omdömen är stjärn-bara utan
+// text och har inget att visa här; de räknas ändå in i totalen.
 
 import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
 import { GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
+  {
+    id: "emilia-rosen",
+    rating: 5,
+    author: "Emilia Rosén",
+    date: "2026-08-19",
+    text: "Trevlig kundservice! Mycket nöjd.",
+  },
+  {
+    id: "sebastian",
+    rating: 5,
+    author: "Sebastian",
+    date: "2026-08-05",
+    text: "Bra! Kom snabbt, funkar bra, bra pris. Vad mer behöver man säga.",
+  },
   {
     id: "stefan-gajic",
     rating: 5,

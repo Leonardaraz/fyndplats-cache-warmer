@@ -3,6 +3,8 @@ import { jsonLdString } from "../lib/seo";
 import { getProducts, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
 import { attachRatings } from "../lib/review-aggregates";
+import { Stars } from "../components/stars";
+import { reviewCountLabel } from "../lib/rating";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
@@ -135,6 +137,16 @@ export default async function Home() {
   // bort den tomma vita rutan på first paint som granskningen flaggade.
   const heroBlur = await getBlurDataURLs(heroProducts.map((p) => p.img));
 
+  // Betyg även på hjälte-brickorna. Samma cachade aggregering som korten redan
+  // använder (en enda Wix-fråga för hela katalogen, delad "reviews"-tagg), så
+  // det här kostar inget extra anrop.
+  //
+  // Brickorna är MEDVETET nästan tomma — bild och pris, inget namn — så betyget
+  // visas bara när det finns, och aldrig som en tom reserverad rad à la
+  // ProductCard. Hjälten lyfter nyaste produkterna, och det är just de som
+  // oftast saknar omdömen; en tom platshållare där hade sett trasig ut.
+  const hero = await attachRatings(heroProducts);
+
   // Veckans fynd (8): nyaste produkterna ur de 100 senaste, MED en del REA
   // (onSale) inblandat — Leonards önskemål. Vi leder med upp till 3 nyaste
   // REA-fynd och fyller resten med nyaste rena produkter spridda över avdelningar
@@ -188,7 +200,7 @@ export default async function Home() {
             </div>
             <div className="heromosaic">
               <div className="mcol">
-                {heroProducts.slice(0, 2).map((p, i) => (
+                {hero.slice(0, 2).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
                     <Image
                       src={tightFillUrl(p.img, 800, 800)}
@@ -202,6 +214,13 @@ export default async function Home() {
                       sizes="(max-width:880px) 42vw, 22vw"
                     />
                     {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
+                    {p.rating && (
+                      <span className="hrating" role="img" aria-label={`Betyg ${p.rating.value} av 5, ${reviewCountLabel(p.rating.count)}`}>
+                        <Stars rating={p.rating.exact} className="hrating-stars" aria-hidden />
+                        <span aria-hidden="true">{p.rating.value}</span>
+                        <span className="hrating-count" aria-hidden="true">({p.rating.count})</span>
+                      </span>
+                    )}
                     {p.price && (
                       <span className="htag">
                         {p.price}
@@ -212,10 +231,17 @@ export default async function Home() {
                 ))}
               </div>
               <div className="mcol mcol-offset">
-                {heroProducts.slice(2, 4).map((p, i) => (
+                {hero.slice(2, 4).map((p, i) => (
                   <a className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
                     <Image src={tightFillUrl(p.img, 800, 800)} alt={p.name} fill placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
                     {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
+                    {p.rating && (
+                      <span className="hrating" role="img" aria-label={`Betyg ${p.rating.value} av 5, ${reviewCountLabel(p.rating.count)}`}>
+                        <Stars rating={p.rating.exact} className="hrating-stars" aria-hidden />
+                        <span aria-hidden="true">{p.rating.value}</span>
+                        <span className="hrating-count" aria-hidden="true">({p.rating.count})</span>
+                      </span>
+                    )}
                     {p.price && (
                       <span className="htag">
                         {p.price}
