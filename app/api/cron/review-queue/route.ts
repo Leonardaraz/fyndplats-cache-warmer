@@ -58,6 +58,21 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const limit = Math.max(1, Math.min(200, Number(url.searchParams.get("limit") || DEFAULT_LIMIT)));
   const pages = Math.max(1, Math.min(5, Number(url.searchParams.get("pages") || 2)));
+  // ÅTERSVEP EFTER ETT RÄTTAT FILTER: bara recensioner LÄNGRE än så här.
+  //
+  // Längdtaket var 300 tecken fram till 2026-08-19 (#470). Allt däröver
+  // kastades, och de recensionerna finns kvar hos AE — men ett vanligt
+  // omsvep hämtar inte hem dem, för de tävlar om samma topp-N-platser som de
+  // redan sparade korta och FÖRLORAR: längdpoängen i scoreReview är maxad
+  // redan vid 300 tecken, så en 1200-teckens recension får exakt samma poäng
+  // som en 300-teckens. Med ?minLength=301 tas bara sådant det gamla taket
+  // omöjligt kunde ha släppt in, och kön växer bara med det som faktiskt
+  // missades.
+  //
+  // Ogiltigt värde → 0 → undefined → normalt golv. Ett skrivfel ska inte tyst
+  // svepa hela katalogen igen.
+  const minLengthRaw = Number(url.searchParams.get("minLength") || 0);
+  const minLength = Number.isFinite(minLengthRaw) && minLengthRaw > 0 ? minLengthRaw : undefined;
   // Torrkörning: hitta och räkna, men skriv ingenting. Bra för att se vad en
   // skarp körning SKULLE göra innan man släpper på den.
   const dryRun = url.searchParams.get("dryRun") === "true";
@@ -151,7 +166,9 @@ export async function GET(req: Request) {
     kontrollerade++;
 
     if (!dryRun) {
-      const kö = await queueReviewsForProduct(m.wixProductId as string, res.reviews);
+      const kö = await queueReviewsForProduct(m.wixProductId as string, res.reviews, {
+        ...(minLength ? { minLength } : {}),
+      });
       if (kö.queued > 0) {
         köade += kö.queued;
         produkterMedNytt.push({ wixProductId: m.wixProductId as string, queued: kö.queued });
@@ -174,6 +191,10 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: true,
     dryRun,
+    // Ekas tillbaka så det syns i workflow-loggen VILKET läge som kördes — ett
+    // svep med minLength är inte jämförbart med ett vanligt.
+    ...(minLength ? { minLength } : {}),
+    pages,
     omkontrollGräns: new Date(gräns).toISOString(),
     kandidater: kandidater.length,
     kontrollerade,
