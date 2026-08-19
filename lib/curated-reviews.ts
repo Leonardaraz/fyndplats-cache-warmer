@@ -9,10 +9,11 @@
 // expanderar resten. Datum är ungefärliga (Google visar bara "för X sedan");
 // de ersätts av exakta datum när API:t är på.
 //
-// Snittbetyg + TOTALantal kommer från lib/social-proof.ts så rubriken alltid
-// stämmer med Google; korten nedan (20 st med text) är ett urval — "Se alla på
-// Google" länkar till samtliga. Resten av profilens omdömen är stjärn-bara utan
-// text och har inget att visa här; de räknas ändå in i totalen.
+// Snittbetyg + TOTALantal kommer INTE härifrån utan från getSocialProof()
+// (lib/social-proof-live.ts): Googles egna siffror när API:t svarar, annars
+// reserven i lib/social-proof.ts. Korten nedan (20 st med text) är ett urval —
+// "Se alla på Google" länkar till samtliga. Resten av profilens omdömen är
+// stjärn-bara utan text och har inget att visa här; de räknas ändå in i totalen.
 
 import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
 import { GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "./social-proof";
