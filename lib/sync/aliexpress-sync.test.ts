@@ -134,8 +134,11 @@ describe("decideSyncOutcome", () => {
   it("flaggar prishöjning som hotar 20%-marginalen", () => {
     // Tidigare cost = 5 USD = 50 SEK. Nuvarande pris i Wix = 199 kr inkl. moms.
     // Netto = 199/1.25 = 159.2. Marginal vid 50 SEK kost = (159.2-50)/159.2 = 68%
-    // Ny cost = 12 USD = 120 SEK. Marginal = (159.2-120)/159.2 = 24.6% → ok
-    // Ny cost = 14 USD = 140 SEK. Marginal = (159.2-140)/159.2 ≈ 12% → flagga
+    // Netto mot netto: kostnaden är inkl. moms och divideras också med 1,25.
+    // Ny cost = 14 USD = 140 SEK inkl. moms → 112 netto.
+    //   Marginal = (159.2 − 112)/159.2 ≈ 29.6 % → INTE under 20 %-golvet.
+    // Krävs alltså en högre kostnad för att trigga: 22 USD = 220 SEK inkl.
+    //   moms → 176 netto → (159.2 − 176)/159.2 ≈ −10.6 % → flagga.
     const out = decideSyncOutcome(
       baseInputs({
         prevState: {
@@ -152,7 +155,7 @@ describe("decideSyncOutcome", () => {
         aliExpress: {
           title: "Test produkt",
           images: ["https://img/a.jpg", "https://img/b.jpg"],
-          minCostUsd: 14,
+          minCostUsd: 22,
           totalStock: 100,
           listingRemoved: false,
         },
@@ -163,7 +166,7 @@ describe("decideSyncOutcome", () => {
     expect(out.alert?.alertType).toBe("price_increase");
     expect(out.alert?.projectedMarginPct).toBeLessThan(20);
     expect(out.alert?.recommendedPriceSek).toBeGreaterThan(0);
-    expect(out.alert?.newCostUsd).toBe(14);
+    expect(out.alert?.newCostUsd).toBe(22);
     expect(out.alert?.prevCostUsd).toBe(5);
   });
 
@@ -235,7 +238,7 @@ describe("decideSyncOutcome", () => {
         aliExpress: {
           title: "Ny titel",
           images: ["https://img/a.jpg", "https://img/b.jpg"],
-          minCostUsd: 14,
+          minCostUsd: 22,
           totalStock: 100,
           listingRemoved: false,
         },
@@ -413,9 +416,20 @@ describe("decideSyncOutcome — strike-guard mot transient borttagning (E#5)", (
 });
 
 describe("projectedMarginAtPrice", () => {
-  it("räknar netto-marginal korrekt med moms", () => {
-    // grossSek = 250 inkl. 25% moms → netto = 200. Cost = 100. Marg = 50%.
-    expect(projectedMarginAtPrice(250, 100, 25)).toBeCloseTo(50, 1);
+  it("räknar NETTO mot NETTO — båda talen bär moms", () => {
+    // 250 inkl. 25 % moms → 200 netto. Kostnad 100 inkl. moms → 80 netto.
+    // Marginal = (200 − 80)/200 = 60 %.
+    //
+    // Fram till 2026-08-19 drogs den MOMSADE kostnaden (100) från nettot och
+    // gav 50 %. Momsen på inköpet är aldrig en verklig kostnad för ett
+    // momsregistrerat företag — se netSupplierCost() i lib/auction/seed.ts.
+    expect(projectedMarginAtPrice(250, 100, 25)).toBeCloseTo(60, 1);
+  });
+
+  it("felet som fanns: sidans -9,5 % var i verkligheten +12,4 %", () => {
+    // Outsunny-kortet på /admin/sync-alerts 2026-08-19: pris 469 kr,
+    // ny kostnad 39,14 USD × 10,5 = 411 SEK.
+    expect(projectedMarginAtPrice(469, 39.14 * 10.5, 25)).toBeCloseTo(12.4, 0);
   });
 
   it("returnerar 0 vid 0-pris", () => {
@@ -423,7 +437,8 @@ describe("projectedMarginAtPrice", () => {
   });
 
   it("returnerar negativ marginal när kost > netto-revenue", () => {
-    expect(projectedMarginAtPrice(125, 200, 25)).toBeLessThan(0);
+    // 125 → 100 netto; kostnad 300 inkl. moms → 240 netto.
+    expect(projectedMarginAtPrice(125, 300, 25)).toBeLessThan(0);
   });
 });
 

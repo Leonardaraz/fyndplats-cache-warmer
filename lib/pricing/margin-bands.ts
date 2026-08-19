@@ -346,3 +346,70 @@ export function multipleExplains(
 export function biggestOpportunities(rows: MarginRow[], limit = 25): MarginRow[] {
   return [...rows].sort((a, b) => b.gapSek - a.gapSek).slice(0, limit);
 }
+
+// ── Finkorniga band för prishöjnings-larmen ─────────────────────────────────
+//
+// /admin/sync-alerts listar produkter vars inköpspris stigit. Där räcker inte
+// de breda banden ovan: hela poängen är att skilja "precis under noll" från
+// "djupt under noll", eftersom åtgärden är helt olika. En produkt på −2 % rättas
+// med en tia i prishöjning; en på −25 % ska antagligen bort ur sortimentet.
+//
+// Banden är därför täta kring noll och glesare längre ut, och de täcker HELA
+// linjen så varje larm hamnar i exakt ett.
+
+export interface AlertBand {
+  id: string;
+  label: string;
+  /** Nedre gräns inklusive. null = −oändligt. */
+  min: number | null;
+  /** Övre gräns exklusive. null = +oändligt. */
+  max: number | null;
+  color: string;
+}
+
+export const ALERT_BANDS: AlertBand[] = [
+  { id: "lt-25", label: "under −25 %", min: null, max: -25, color: "#7f1d1d" },
+  { id: "-25--10", label: "−25 till −10 %", min: -25, max: -10, color: "#b91c1c" },
+  { id: "-10--5", label: "−10 till −5 %", min: -10, max: -5, color: "#dc2626" },
+  { id: "-5-0", label: "−5 till 0 %", min: -5, max: 0, color: "#f97316" },
+  { id: "0-5", label: "0 till 5 %", min: 0, max: 5, color: "#f59e0b" },
+  { id: "5-10", label: "5 till 10 %", min: 5, max: 10, color: "#eab308" },
+  { id: "10-15", label: "10 till 15 %", min: 10, max: 15, color: "#84cc16" },
+  { id: "15-20", label: "15 till 20 %", min: 15, max: 20, color: "#22c55e" },
+  { id: "20-25", label: "20 till 25 %", min: 20, max: 25, color: "#16a34a" },
+  { id: "gte-25", label: "25 % och över", min: 25, max: null, color: "#0891b2" },
+];
+
+/** Bandet en marginal hamnar i. null bara när talet inte går att tolka. */
+export function alertBandFor(marginPct: number | null | undefined): AlertBand | null {
+  if (marginPct === null || marginPct === undefined || !Number.isFinite(marginPct)) return null;
+  return (
+    ALERT_BANDS.find(
+      (b) => (b.min === null || marginPct >= b.min) && (b.max === null || marginPct < b.max),
+    ) ?? null
+  );
+}
+
+/**
+ * Marginal ur ett prishöjnings-larm, räknad om från grunddata.
+ *
+ * Larmen bär ett sparat `projectedMarginPct`, men de som skrevs före
+ * 2026-08-19 räknades med den MOMSADE kostnaden mot nettointäkten och är
+ * därför för låga — ofta med tecknet fel. Sidan räknar därför om ur pris och
+ * ny kostnad, som båda finns på larmet, i stället för att visa det sparade
+ * talet. Då blir de 208 öppna larmen sanna direkt, utan att invänta en ny
+ * synk-körning.
+ */
+export function alertMarginPct(
+  alert: { currentPriceSek?: number; newCostUsd?: number },
+  usdToSek: number,
+  vatRatePercent: number,
+): number | null {
+  const pris = alert.currentPriceSek;
+  const kostUsd = alert.newCostUsd;
+  if (!(pris && pris > 0) || !(kostUsd && kostUsd > 0) || !(usdToSek > 0)) return null;
+  const net = pris / (1 + vatRatePercent / 100);
+  const netKost = (kostUsd * usdToSek) / (1 + vatRatePercent / 100);
+  if (!(net > 0)) return null;
+  return ((net - netKost) / net) * 100;
+}

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  ALERT_BANDS,
+  alertBandFor,
+  alertMarginPct,
   BANDS,
   TARGET_MARGIN_PCT,
   bandFor,
@@ -253,5 +256,57 @@ describe("biggestOpportunities", () => {
     const kopia = [...rows];
     expect(biggestOpportunities(rows, 1)).toHaveLength(1);
     expect(rows).toEqual(kopia);
+  });
+});
+
+describe("ALERT_BANDS — finkorniga band for prishojnings-larmen", () => {
+  it("tacker hela linjen utan hal eller overlapp", () => {
+    // Ett larm ska aldrig hamna mellan tva band.
+    for (let p = -200; p <= 200; p += 0.5) {
+      const traffar = ALERT_BANDS.filter(
+        (b) => (b.min === null || p >= b.min) && (b.max === null || p < b.max),
+      );
+      expect(traffar).toHaveLength(1);
+    }
+  });
+
+  it("skiljer precis-under-noll fran djupt-under-noll", () => {
+    // Atgarden ar helt olika: -2 % rattas med en tia, -25 % ska antagligen bort.
+    expect(alertBandFor(-2)!.id).toBe("-5-0");
+    expect(alertBandFor(-25)!.id).toBe("-25--10");
+    expect(alertBandFor(-40)!.id).toBe("lt-25");
+  });
+
+  it("granserna ar inklusive nedat, exklusive uppat", () => {
+    expect(alertBandFor(0)!.id).toBe("0-5");
+    expect(alertBandFor(-0.001)!.id).toBe("-5-0");
+    expect(alertBandFor(25)!.id).toBe("gte-25");
+    expect(alertBandFor(24.99)!.id).toBe("20-25");
+  });
+
+  it("otolkbart tal ger null i stallet for ett pahittat band", () => {
+    for (const v of [null, undefined, Number.NaN]) {
+      expect(alertBandFor(v)).toBeNull();
+    }
+  });
+});
+
+describe("alertMarginPct", () => {
+  it("reproducerar det RATTA talet for Outsunny-kortet", () => {
+    // /admin/sync-alerts visade -9,5 %. Ratt ar +12,4 %.
+    expect(alertMarginPct({ currentPriceSek: 469, newCostUsd: 39.14 }, 10.5, 25))
+      .toBeCloseTo(12.4, 0);
+  });
+
+  it("en akta forlust ar fortfarande en forlust", () => {
+    // Matbordet: 1499 kr mot 178,12 USD. Sidan sa -56 %, ratt ar -24,8 %.
+    expect(alertMarginPct({ currentPriceSek: 1499, newCostUsd: 178.12 }, 10.5, 25))
+      .toBeCloseTo(-24.8, 0);
+  });
+
+  it("null nar underlaget saknas — hellre okand an pahittad", () => {
+    expect(alertMarginPct({ currentPriceSek: 0, newCostUsd: 5 }, 10.5, 25)).toBeNull();
+    expect(alertMarginPct({ currentPriceSek: 100 }, 10.5, 25)).toBeNull();
+    expect(alertMarginPct({ currentPriceSek: 100, newCostUsd: 5 }, 0, 25)).toBeNull();
   });
 });
