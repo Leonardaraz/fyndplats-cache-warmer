@@ -4,8 +4,8 @@
 // Letar efter NYA recensioner hos AliExpress och lägger dem i översättningskön
 // (status `pending`, tom svensk text → osynliga för kund). Översätter INGENTING.
 //
-// Varför separat från /api/cron/review-backfill: backfillen översätter med DeepL
-// och är därför avstängd sedan Leonard valde bort DeepL (2026-08-16). Den här
+// Varför separat från /api/cron/review-backfill: den senare hämtar hela
+// katalogen och är avsedd att köras manuellt. Den här
 // rutten gör bara hälften — hittar och köar — och lämnar översättningen till
 // chatten, där den är gratis och kurerad. Kostnad: noll. AE:s feedback-endpoint
 // är ett öppet JSON-anrop och ingen översättningstjänst rörs.

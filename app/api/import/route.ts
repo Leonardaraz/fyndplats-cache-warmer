@@ -120,7 +120,7 @@ const ProductSchema = z.object({
       qualityMode: z.enum(["raw", "standard", "premium"]).optional(),
     })
     .optional(),
-  // Skrapade AliExpress-recensioner (social proof). Översätts (DeepL, GRATIS)
+  // Skrapade AliExpress-recensioner (social proof). Sparas som pending
   // och sparas i FyndplatsImportedReviews EFTER produktimporten. Best-effort —
   // recensionsfel fäller aldrig själva produktimporten.
   reviewsToImport: z.array(ReviewSchema).optional(),
@@ -559,18 +559,18 @@ export async function POST(req: Request) {
       }
     }
 
-    // Recensions-import (social proof): filtrera/ranka/översätt (DeepL, GRATIS)
-    // och spara i FyndplatsImportedReviews. Best-effort — recensionsfel (DeepL
-    // nere, kollektion saknas, budget slut) får ALDRIG fälla produktimporten.
-    let reviewsResult: { imported: number; skippedExisting: number; charsUsed: number; budgetExceeded: boolean } | undefined;
+    // Recensions-import (social proof): filtrera/ranka och spara som pending
+    // i FyndplatsImportedReviews. Best-effort — recensionsfel (Wix nere,
+    // kollektion saknas) får ALDRIG fälla produktimporten.
+    let reviewsResult: { imported: number; skippedExisting: number } | undefined;
     let reviewsQueued = 0;
 
     // Tilläggets DOM-skrapa returnerar nästan alltid [] eftersom AE lazy-laddar
     // recensionssektionen — klickar man importera högst upp på sidan har den
     // inte renderats. Då hämtar vi dem server-side i stället och lägger dem i
-    // översättningskön (status pending, osynliga för kund). Gratis anrop, ingen
-    // DeepL. Skrapade recensioner (när de faktiskt finns) går kvar den gamla
-    // vägen nedan.
+    // översättningskön (status pending, osynliga för kund). Gratis anrop.
+    // Skrapade recensioner (när de faktiskt finns) går kvar den gamla vägen
+    // nedan.
     if (!reviewsToImport || reviewsToImport.length === 0) {
       try {
         // Tidsbegränsad — en människa väntar på svaret. Missas den tar
@@ -591,17 +591,12 @@ export async function POST(req: Request) {
     if (reviewsToImport && reviewsToImport.length > 0) {
       try {
         const r = await importReviewsForProduct(result.wixProductId, reviewsToImport);
-        reviewsResult = {
-          imported: r.imported,
-          skippedExisting: r.skippedExisting,
-          charsUsed: r.charsUsed,
-          budgetExceeded: r.budgetExceeded,
-        };
+        reviewsResult = { imported: r.imported, skippedExisting: r.skippedExisting };
         if (r.imported > 0) {
           await audit(
             "reviews-import",
             result.wixProductId,
-            `${r.imported} recensioner (DeepL ${r.charsUsed} tecken${r.budgetExceeded ? ", BUDGET SLUT → otranslaterade" : ""})`,
+            `${r.imported} recensioner sparade som pending (översätts i chatten)`,
           );
         }
       } catch (revErr) {

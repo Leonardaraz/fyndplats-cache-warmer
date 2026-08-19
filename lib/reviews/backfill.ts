@@ -3,20 +3,19 @@
 // Kör recensions-import över BEFINTLIGA produkter — de som importerades innan
 // recensionshämtningen fanns, eller via bulk-vägen som aldrig rörde recensioner.
 //
-// All I/O injiceras så budgetbeslutet går att testa utan nät. Det är hela
+// All I/O injiceras så stoppbesluten går att testa utan nät. Det är hela
 // poängen med modulen: den svåra delen är inte att hämta, utan att veta när man
 // ska SLUTA.
 //
-// DeepL-matematiken (mätt på 20 produkter 2026-08-16, efter det riktiga
-// filtret): ~1 025 tecken per produkt vid tak 15, ~518 vid tak 5. Hela
-// katalogen (876 mappningar) skulle alltså kosta ~898k respektive ~453k tecken
-// mot en Free-kvot på 500 000/månad. Backfillen måste därför kunna stanna mitt
-// i och fortsätta nästa körning.
+// Två tak styr en körning, båda för att lambdan inte ska dödas mitt i en
+// produkt: `limit` (antal produkter) och `timeBudgetMs` (vägg-klocka). Ett
+// tredje tak fanns fram till 2026-08-19 — DeepL:s teckenbudget — och togs bort
+// med DeepL. Kvar av det är fältet `chars` per produkt, som numera betyder
+// något helt annat: hur mycket text som väntar på att skrivas om i chatten.
 //
-// Viktigt om felläget: review-importen faller vid budgetslut tillbaka på
-// ORIGINALTEXTEN, dvs. engelska recensioner på en svensk sida. För en backfill
-// är det fel utfall — bättre att stanna och ta resten senare. Därför kollar vi
-// budgeten FÖRE varje produkt i stället för att låta importens skyddsnät lösa ut.
+// Kandidatlistan är stabil och varje färdig produkt stämplas med
+// reviewsCheckedAt, så en avbruten körning kostar bara den produkt som pågick —
+// nästa körning tar vid där den slutade.
 
 import { filterAndRankReviews, type AERReview } from "../import/review-import";
 
@@ -29,10 +28,6 @@ export interface ReviewBackfillCandidate {
 export interface ReviewBackfillImportResult {
   imported: number;
   skippedExisting: number;
-  charsUsed: number;
-  budgetExceeded: boolean;
-  /** Översättningen fallerade → originaltexten sparades (engelsk text). */
-  translationFailed?: boolean;
 }
 
 export interface ReviewBackfillDeps {
@@ -41,8 +36,6 @@ export interface ReviewBackfillDeps {
   countExisting: (wixProductId: string) => Promise<number>;
   fetchReviews: (supplierProductId: string) => Promise<{ reviews: AERReview[]; throttled: boolean }>;
   importReviews: (wixProductId: string, reviews: AERReview[]) => Promise<ReviewBackfillImportResult>;
-  /** Tecken kvar av månadens DeepL-budget. */
-  budgetRemaining: () => Promise<number>;
   /**
    * Stämplar produkten som genomsökt. Anropas ENBART i skarpt läge och ENBART
    * när AE faktiskt svarade — en strypt hämtning får inte se ut som ett svar,
@@ -51,15 +44,6 @@ export interface ReviewBackfillDeps {
    * produkter för alltid.
    */
   markChecked?: (wixProductId: string, atIso: string) => Promise<void>;
-  /**
-   * Kontrollerar att översättningen fungerar INNAN något publiceras.
-   *
-   * Utan den här grinden är felläget tyst och stort: review-importen faller vid
-   * översättningsfel tillbaka på originaltexten, så en saknad eller spärrad
-   * DeepL-nyckel skulle publicera engelska recensioner på hundratals svenska
-   * produktsidor, en körning i taget, utan att något ser trasigt ut.
-   */
-  translationHealthy?: () => Promise<{ ok: boolean; reason?: string }>;
   now?: () => Date;
 }
 
@@ -70,8 +54,6 @@ export interface ReviewBackfillOptions {
   maxPerProduct?: number;
   /** true = hämta och räkna, skriv INGET. Default true — publicering ska väljas. */
   dryRun?: boolean;
-  /** Sluta när mindre än så här många tecken återstår av budgeten. */
-  minBudgetChars?: number;
   /** Ta även produkter som redan har recensioner (t.ex. för att fylla på). */
   includeExisting?: boolean;
   /**
@@ -96,7 +78,7 @@ export interface ReviewBackfillProductResult {
   fetched: number;
   /** Kvar efter filter/rankning — det som skulle sparas. */
   eligible: number;
-  /** DeepL-tecken dessa recensioner kostar. */
+  /** Antal tecken i recensionerna — mått på hur mycket som ska skrivas om. */
   chars: number;
   imported: number;
   skippedExisting: number;
@@ -112,22 +94,16 @@ export interface ReviewBackfillSummary {
   withReviews: number;
   reviewsImported: number;
   reviewsEligible: number;
-  charsSpent: number;
-  charsEstimated: number;
   throttled: number;
   errors: number;
   /** Varför körningen slutade. */
-  stoppedBy: "klar" | "gräns" | "budget" | "översättning" | "tid";
-  /** Satt när körningen stoppades av översättningsgrinden. */
-  blockedReason?: string;
-  budgetRemainingAtEnd: number;
+  stoppedBy: "klar" | "gräns" | "tid";
   products: ReviewBackfillProductResult[];
 }
 
 export const DEFAULT_BACKFILL_LIMIT = 25;
 export const DEFAULT_MAX_PER_PRODUCT = 8;
-/** Under detta stannar vi hellre än att publicera engelsk text. */
-export const DEFAULT_MIN_BUDGET_CHARS = 2_000;
+
 
 export async function runReviewBackfill(
   deps: ReviewBackfillDeps,
@@ -136,7 +112,6 @@ export async function runReviewBackfill(
   const limit = Math.max(1, opts.limit ?? DEFAULT_BACKFILL_LIMIT);
   const maxPerProduct = Math.max(1, opts.maxPerProduct ?? DEFAULT_MAX_PER_PRODUCT);
   const dryRun = opts.dryRun !== false;
-  const minBudget = opts.minBudgetChars ?? DEFAULT_MIN_BUDGET_CHARS;
   const now = deps.now ?? (() => new Date());
 
   const products: ReviewBackfillProductResult[] = [];
@@ -144,32 +119,19 @@ export async function runReviewBackfill(
   let withReviews = 0;
   let reviewsImported = 0;
   let reviewsEligible = 0;
-  let charsSpent = 0;
-  let charsEstimated = 0;
   let throttled = 0;
   let errors = 0;
   let stoppedBy: ReviewBackfillSummary["stoppedBy"] = "klar";
-  let blockedReason: string | undefined;
 
-  // Översättningsgrinden FÖRE allt annat i skarpt läge: hellre en körning som
-  // inte gör någonting än hundratals sidor med engelsk text.
-  if (!dryRun && deps.translationHealthy) {
-    const health = await deps.translationHealthy();
-    if (!health.ok) {
-      return {
-        dryRun, considered: 0, withReviews: 0, reviewsImported: 0, reviewsEligible: 0,
-        charsSpent: 0, charsEstimated: 0, throttled: 0, errors: 0,
-        stoppedBy: "översättning",
-        blockedReason: health.reason ?? "översättningen svarar inte",
-        budgetRemainingAtEnd: await deps.budgetRemaining().catch(() => 0),
-        products: [],
-      };
-    }
-  }
+  // Ingen översättningsgrind längre. Den fanns för att en trasig DeepL-nyckel
+  // annars publicerade engelska recensioner på hundratals svenska sidor — men
+  // sedan DeepL togs bort (2026-08-19) sparas ALLA importerade recensioner som
+  // `pending`, så ingenting kan nå produktsidan utan att en människa skrivit om
+  // texten i /admin/reviews. Grinden är därför inte längre nödvändig; den
+  // ersätts av att status aldrig är "approved".
 
   const startedAt = (deps.now?.() ?? new Date()).getTime();
   const timeBudgetMs = opts.timeBudgetMs ?? DEFAULT_REVIEW_TIME_BUDGET_MS;
-  let remaining = await deps.budgetRemaining();
   const candidates = await deps.listCandidates();
 
   for (const c of candidates) {
@@ -185,12 +147,6 @@ export async function runReviewBackfill(
     // reviewsCheckedAt gör att inget görs om i onödan.
     if ((deps.now?.() ?? new Date()).getTime() - startedAt > timeBudgetMs) {
       stoppedBy = "tid";
-      break;
-    }
-    // Budgetgrinden gäller bara riktiga körningar — en torrkörning ska kunna
-    // mäta hela katalogen även när månadens budget är slut.
-    if (!dryRun && remaining < minBudget) {
-      stoppedBy = "budget";
       break;
     }
     considered++;
@@ -252,25 +208,15 @@ export async function runReviewBackfill(
 
     withReviews++;
     reviewsEligible += eligible.length;
-    charsEstimated += chars;
 
     if (dryRun) {
       products.push({ ...c, fetched: fetched.length, eligible: eligible.length, chars, imported: 0, skippedExisting: 0, status: "dry-run" });
       continue;
     }
 
-    // Räcker inte budgeten för just den här produkten hoppar vi över DEN och
-    // stannar — resten tas nästa månad/körning.
-    if (chars > remaining) {
-      stoppedBy = "budget";
-      break;
-    }
-
     try {
       const res = await deps.importReviews(c.wixProductId, eligible);
       reviewsImported += res.imported;
-      charsSpent += res.charsUsed;
-      remaining -= res.charsUsed;
       products.push({
         ...c,
         fetched: fetched.length,
@@ -279,22 +225,8 @@ export async function runReviewBackfill(
         imported: res.imported,
         skippedExisting: res.skippedExisting,
         status: "imported",
-        note: res.translationFailed
-          ? "översättningen fallerade — texten sparades oöversatt"
-          : res.budgetExceeded
-            ? "DeepL-budget slut — texten sparades oöversatt"
-            : undefined,
+        note: "sparade som pending — översätts i chatten",
       });
-      // Andra försvarslinjen: nyckeln kan sluta fungera MITT i en körning.
-      if (res.translationFailed) {
-        stoppedBy = "översättning";
-        blockedReason = "DeepL slutade svara mitt i körningen";
-        break;
-      }
-      if (res.budgetExceeded) {
-        stoppedBy = "budget";
-        break;
-      }
     } catch (err) {
       errors++;
       products.push({ ...c, fetched: fetched.length, eligible: eligible.length, chars, imported: 0, skippedExisting: 0, status: "fel", note: msg(err) });
@@ -307,13 +239,9 @@ export async function runReviewBackfill(
     withReviews,
     reviewsImported,
     reviewsEligible,
-    charsSpent,
-    charsEstimated,
     throttled,
     errors,
     stoppedBy,
-    blockedReason,
-    budgetRemainingAtEnd: remaining,
     products,
   };
 }

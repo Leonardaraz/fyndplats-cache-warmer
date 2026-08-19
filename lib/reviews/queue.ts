@@ -3,22 +3,23 @@
 // Kö för recensioner som väntar på översättning.
 //
 // Bakgrund (2026-08-17): recensionskedjan fanns men matades bara manuellt.
-// DeepL valdes bort (Leonard) och översättningarna görs i stället av Claude i
-// chatten — gratis och kurerade. Men då behövs någonstans att lägga de RÅA
-// recensionerna mellan att de hittas och att de översätts.
+// Översättningarna görs av Claude i chatten — gratis och kurerade. Men då
+// behövs någonstans att lägga de RÅA recensionerna mellan att de hittas och att
+// de översätts.
 //
 // Kön är ingen ny kollektion. FyndplatsImportedReviews har redan statusen
 // `pending`, och produktsidan visar bara `approved`/`edited` (VISIBLE_STATUSES)
 // — en okänd rad kan alltså aldrig läcka ut till kund. Kön är helt enkelt
-// raderna med status `pending` och tom `textSwedish`.
+// raderna med status `pending` som ingen skrivit svensk text för
+// (isAwaitingTranslation).
 //
 // Flödet:
 //   1. Cron (eller en import) hittar nya recensioner hos AE  → köas som pending
 //   2. Leonard säger till i chatten                          → Claude översätter
-//   3. textSwedish fylls i och status sätts till approved     → syns på sidan
+//   3. textSwedish fylls i i /admin/reviews (→ status `edited`) → syns på sidan
 //
-// Ingen DeepL, inga Claude-credits: hämtningen är ett gratis-anrop mot AE:s
-// feedback-endpoint och översättningen sker i chatten.
+// Inga credits: hämtningen är ett gratis-anrop mot AE:s feedback-endpoint och
+// översättningen sker i chatten.
 
 import { filterAndRankReviews, deriveInitials, ensureReviewId, type AERReview } from "../import/review-import";
 import { foreignLocaleVerdict } from "../import/review-locale-filter";
@@ -126,9 +127,24 @@ export interface QueuedReview {
   hasImage: boolean;
 }
 
-/** True för rader som väntar på översättning. */
+/**
+ * True för rader som väntar på översättning.
+ *
+ * TVÅ former, för att de två skrivvägarna valde olika (och båda är rimliga):
+ *   - kön här lämnar `textSwedish` TOM,
+ *   - importen (lib/import/review-import.ts) skriver in KÄLLTEXTEN, så
+ *     /admin/reviews har något att visa och redigera i textrutan.
+ *
+ * Fram till 2026-08-19 kände den här funktionen bara igen den första formen.
+ * Det spelade ingen roll så länge importen översatte via DeepL — men när DeepL
+ * togs bort blev varje importerad rad oöversatt OCH osynlig för kön, alltså
+ * exakt de rader den finns till för att hitta.
+ */
 export function isAwaitingTranslation(r: StoredReview): boolean {
-  return r.status === "pending" && !String(r.textSwedish ?? "").trim();
+  if (r.status !== "pending") return false;
+  const sv = String(r.textSwedish ?? "").trim();
+  if (!sv) return true;
+  return sv === String(r.textOriginal ?? "").trim();
 }
 
 /**

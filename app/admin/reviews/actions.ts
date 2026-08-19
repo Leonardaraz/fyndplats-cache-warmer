@@ -21,10 +21,11 @@ export async function setReviewStatus(
 /**
  * Hämta recensioner från AliExpress för produkter som saknar dem.
  *
- * Ligger som admin-knapp och inte bara som cron-rutt eftersom skarpt läge är
- * ett PUBLICERINGSBESLUT: importerade recensioner auto-godkänns och syns direkt
- * på produktsidan, och de tänder dessutom aggregateRating i produktsidans
- * strukturerade data. Det ska tryckas på medvetet, inte schemaläggas.
+ * Ligger som admin-knapp och inte bara som cron-rutt eftersom skarpt läge
+ * skapar ARBETE: varje sparad rad är en text någon ska skriva om till svenska
+ * innan den kan visas. Den ska tryckas på medvetet, inte schemaläggas.
+ *
+ * Det PUBLICERAR däremot inget längre (2026-08-19) — allt landar som `pending`.
  *
  * Kör samma väg som /api/cron/review-backfill (delad deps-modul).
  */
@@ -44,7 +45,7 @@ export async function runReviewBackfillAction(formData: FormData): Promise<void>
       "reviews-backfill",
       "admin",
       `${summary.reviewsImported} recensioner på ${summary.withReviews} produkter ` +
-        `(DeepL ${summary.charsSpent} tecken, stopp: ${summary.stoppedBy})`,
+        `(stopp: ${summary.stoppedBy})`,
     );
   }
 
@@ -56,12 +57,9 @@ export async function runReviewBackfillAction(formData: FormData): Promise<void>
     w: String(summary.withReviews),
     i: String(summary.reviewsImported),
     e: String(summary.reviewsEligible),
-    c: String(dryRun ? summary.charsEstimated : summary.charsSpent),
     t: String(summary.throttled),
     f: String(summary.errors),
     s: summary.stoppedBy,
-    b: String(summary.budgetRemainingAtEnd),
-    ...(summary.blockedReason ? { r: summary.blockedReason } : {}),
   });
   revalidatePath("/admin/reviews");
   redirect(`/admin/reviews?${q.toString()}`);

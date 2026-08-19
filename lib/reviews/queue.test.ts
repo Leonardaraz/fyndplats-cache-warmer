@@ -102,6 +102,27 @@ describe("isAwaitingTranslation", () => {
     // Blanksteg räknas inte som översättning.
     expect(isAwaitingTranslation(rad({ textSwedish: "   " }))).toBe(true);
   });
+
+  // De två skrivvägarna valde olika form, och båda är rimliga: kön lämnar
+  // textSwedish tom, importen skriver in KÄLLTEXTEN så /admin/reviews har
+  // något att visa i redigeringsrutan. Fram till 2026-08-19 kände den här
+  // funktionen bara igen kö-formen — det spelade ingen roll så länge importen
+  // översatte via DeepL, men utan DeepL blev varje importerad rad oöversatt
+  // OCH osynlig för kön: exakt de rader den finns till för att hitta.
+  it("känner igen importens form: svensk text = originaltexten", () => {
+    const engelska = "Great product, works exactly as described.";
+    expect(
+      isAwaitingTranslation(rad({ textOriginal: engelska, textSwedish: engelska })),
+    ).toBe(true);
+    // Omskriven → inte längre i kön.
+    expect(
+      isAwaitingTranslation(rad({ textOriginal: engelska, textSwedish: "Toppenprodukt." })),
+    ).toBe(false);
+  });
+
+  it("bryr sig inte om omgivande blanksteg vid jämförelsen", () => {
+    expect(isAwaitingTranslation(rad({ textOriginal: "Nice.", textSwedish: " Nice. " }))).toBe(true);
+  });
 });
 
 describe("groupAwaitingTranslation", () => {

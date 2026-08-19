@@ -4,7 +4,6 @@
 //
 // Kollektioner:
 //   - FyndplatsImportedReviews   (importerade AliExpress-recensioner, svensk text)
-//   - FyndplatsTranslationUsage  (kumulativ DeepL-teckenanvändning per månad)
 //
 // Läser WIX_API_TOKEN + WIX_SITE_ID från .env.local. Admin-only-åtkomst.
 
@@ -57,15 +56,7 @@ const COLLECTIONS = [
       { key: "importedAt", displayName: "Imported At", type: "TEXT" },
     ],
   },
-  {
-    id: "FyndplatsTranslationUsage",
-    displayName: "Fyndplats Translation Usage",
-    fields: [
-      { key: "month", displayName: "Month", type: "TEXT" },
-      { key: "chars", displayName: "Chars Used", type: "NUMBER" },
-      { key: "updatedAt", displayName: "Updated At", type: "TEXT" },
-    ],
-  },
+
 ];
 
 async function ensure(spec) {

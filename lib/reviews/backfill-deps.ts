@@ -1,15 +1,12 @@
 // lib/reviews/backfill-deps.ts
 //
 // Skarp I/O-koppling för recensions-backfillen. Ligger separat så cron-rutten
-// och admin-knappen kör EXAKT samma väg — annars driver de isär och bara den
-// ena får t.ex. budgetkollen rätt.
+// och admin-knappen kör EXAKT samma väg — annars driver de isär.
 
 import { getStore } from "../store/factory";
 import { fetchAeReviews } from "../aliexpress/reviews";
 import { importReviewsForProduct } from "../import/review-import";
 import { getReviewStore } from "../store/reviews";
-import { getTranslationUsageStore, monthKey, monthlyBudget } from "../translate/usage";
-import { checkDeeplHealth } from "../translate/deepl";
 import type { ReviewBackfillCandidate, ReviewBackfillDeps } from "./backfill";
 
 /**
@@ -37,7 +34,6 @@ export function checkedRecently(checkedAt: string | undefined, nowMs: number): b
 
 export function buildReviewBackfillDeps(opts: BackfillDepsOptions = {}): ReviewBackfillDeps {
   const reviewStore = getReviewStore();
-  const usageStore = getTranslationUsageStore();
   const store = getStore();
 
   return {
@@ -69,19 +65,7 @@ export function buildReviewBackfillDeps(opts: BackfillDepsOptions = {}): ReviewB
     },
     importReviews: async (wixProductId, reviews) => {
       const r = await importReviewsForProduct(wixProductId, reviews);
-      return {
-        imported: r.imported,
-        skippedExisting: r.skippedExisting,
-        charsUsed: r.charsUsed,
-        budgetExceeded: r.budgetExceeded,
-      };
+      return { imported: r.imported, skippedExisting: r.skippedExisting };
     },
-    budgetRemaining: async () => {
-      const used = await usageStore.getMonthlyUsage(monthKey(new Date()));
-      return Math.max(0, monthlyBudget() - used);
-    },
-    // Kostar noll tecken (/v2/usage) — men hindrar att en saknad eller spärrad
-    // nyckel tyst publicerar engelsk text på hundratals svenska produktsidor.
-    translationHealthy: () => checkDeeplHealth(),
   };
 }

@@ -99,10 +99,10 @@ finns kvar som en *rådgivande* varning i tillägget och fångar dessutom det sp
 inte kan se: samma fysiska produkt såld under en **annan** listning. Den varningen
 går att klicka förbi — så den ersätter inte spärren, den kompletterar den.
 
-## Recensioner: hämtas server-side från AliExpress (DeepL, inte Claude)
+## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
-Recensionskedjan (filtrering → DeepL-översättning → `FyndplatsImportedReviews` →
-produktsidans "Kundrecensioner") har funnits sedan 2026-07-08 men stod **tom på
+Recensionskedjan (filtrering → `FyndplatsImportedReviews` → moderering i
+`/admin/reviews` → produktsidans "Kundrecensioner") har funnits sedan 2026-07-08 men stod **tom på
 876 produkter** fram till 2026-08-16. Orsaken var inmatningen, inte kedjan:
 
 - Enda vägen in var tilläggets DOM-skrapa (`extension/content.js → scrapeReviews`),
@@ -126,17 +126,19 @@ rad "A.S." och sidan ser förfalskad ut.
 | Hela katalogen | `GET /api/cron/review-backfill` |
 
 `review-backfill` är **torrkörning som default** — utan `?dryRun=false` skrivs
-ingenting, du får bara siffrorna. Importerade recensioner auto-godkänns och syns
-direkt på produktsidan, så skarpt läge är ett publiceringsbeslut. Parametrar:
-`limit` (produkter per körning, default 25), `maxPerProduct` (default 8),
-`includeExisting`, `onlyPublished`, `ignoreCheckedAt`.
+ingenting, du får bara siffrorna. Parametrar: `limit` (produkter per körning,
+default 25), `maxPerProduct` (default 8), `includeExisting`, `onlyPublished`,
+`ignoreCheckedAt`.
 
 Rutten är **inte schemalagd**. Den var det en kort stund 2026-08-16, men Leonard
-valde bort DeepL helt ("skit i deep l") — översättningarna görs i stället av
-Claude i chatten, gratis, och skrivs direkt till `FyndplatsImportedReviews`. En
-DeepL-cron i bakgrunden hade motverkat det beslutet. Maskineriet (rutt + admin-
-knapp + översättningsgrind) ligger kvar och fungerar om du vill tillbaka: lägg
-in cron-raden igen.
+valde bort maskinöversättning helt ("skit i deep l") — texterna skrivs i stället
+om av Claude i chatten, gratis, och sparas via `/admin/reviews`. En
+översättnings-cron i bakgrunden hade motverkat det beslutet. Vill du tillbaka
+till schemalagd hämtning: lägg in cron-raden igen — hämtningen i sig är gratis.
+
+Backfillen stannar dessutom själv efter **240 s** (`timeBudgetMs`, mot ruttens
+`maxDuration` 300 s). Varje recension kan dra upp till tre mediaimporter med
+retry, så en körning hann annars dödas mitt i en produkt.
 
 Körningen **konvergerar**. Varje produkt AE svarat på stämplas med
 `reviewsCheckedAt` i mappningen — även när AE inte hade några recensioner. Utan
@@ -155,32 +157,30 @@ snippets vill ha betyg från sajtens egna användare. Sätt `=on` först när da
 förstahands (Trustpilot Product Reviews / egna kundrecensioner). Se
 `lib/review-schema.ts` i butiksrepot.
 
-### Kostnaden är DeepL-tecken, inte credits
+### Översättningen görs i chatten — DeepL är borttaget (2026-08-19)
 
-Ingen Claude-användning alls. Taket är DeepL Free: **500 000 tecken/månad**
-(`DEEPL_MONTHLY_BUDGET`, stoppmarginal 450 000).
+Kedjan har **ingen översättningstjänst** längre. `lib/translate/` finns inte;
+`DEEPL_API_KEY` och `DEEPL_MONTHLY_BUDGET` läses inte av någon kod och kan tas
+bort ur Vercel. Wix-kollektionen `FyndplatsTranslationUsage` skapas inte längre
+av `scripts/ensure-reviews-collection.mjs` och kan raderas i Wix.
 
-Mätt 2026-08-16 genom det riktiga filtret, på **40 slumpade publicerade** produkter
-ur mitten av katalogen (692 publicerade mappningar av 876 totalt — 148 är `rejected`
-och 23 väntar i kön, de ska inte räknas):
+Det var redan så det fungerade i praktiken — cronen var avstängd sedan
+2026-08-16 — men koden bar kvar API-nyckel, månadsbudget, ett användningslager
+och en **tyst fallback som sparade originaltexten** när budgeten tog slut.
 
-| Tak per produkt | Träffkvot | Tecken/produkt | Hela butiken (692) |
-|---|---|---|---|
-| 5 | 60 % | 207 | **143k** |
-| 8 (default) | 60 % | 240 | **166k** |
-| 15 | 60 % | 293 | **203k** |
+Följdändringen är den viktiga: importerade recensioner **auto-godkänns inte
+längre**. De sparas som `status: "pending"` med källtexten i både `textOriginal`
+och `textSwedish`, och blir svenska när någon skriver om dem i `/admin/reviews`
+(`editReviewText` sätter `edited` → först då syns de publikt). Samma regel som
+för butikens egna kundomdömen. Alternativet — direktpublicering utan
+översättare — är exakt vad den gamla budget-fallbacken gjorde: engelska omdömen
+på en svensk produktsida.
 
-Alltså: hela butiken ryms i **en** månadskvot, med god marginal, även vid tak 15.
-Cirka 40 % av produkterna får inga recensioner alls — mest nya Aosom-EU-listningar
-som inte hunnit få några hos AE.
-
-> Ett tidigare estimat på ~900k tecken byggde på de 20 ÄLDSTA produkterna, som är
-> ovanligt recensionsrika (upp till 236 recensioner styck). Det urvalet var inte
-> representativt för katalogen.
-
-Backfillen kollar ändå budgeten **före** varje produkt och stannar med
-`stoppedBy: "budget"`; nästa körning tar vid. Skälet är att `importReviewsForProduct`
-vid budgetslut faller tillbaka på **originaltexten** — engelska recensioner på en
-svensk sida — vilket är fel utfall för en backfill.
+Kostnaden är därmed **noll**, i både credits och tecken. Kvar som mått är
+`chars` per produkt i backfill-svaret: hur mycket text som väntar på att skrivas
+om, inte vad något kostar. Mätt 2026-08-16 på 40 slumpade publicerade produkter
+(692 publicerade mappningar av 876): träffkvot 60 %, ~240 tecken/produkt vid
+tak 8 — alltså ~166k tecken för hela butiken. Cirka 40 % av produkterna får inga
+recensioner alls, mest nya Aosom-EU-listningar som inte hunnit få några hos AE.
 
 Övriga LLM-/kostnads-env-variabler dokumenteras i **`LLM-CONFIG.md`**.
