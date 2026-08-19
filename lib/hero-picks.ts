@@ -10,9 +10,17 @@
 //
 // Första försöket prioriterade betygsatta så hårt det gick, och alla fyra
 // hjälte-brickorna blev "5,0 (1)". Fyra identiska ensamma omdömen ser inte ut
-// som förtroende, det ser ut som en tunn butik. Mätt på katalogen 2026-08-19:
-// av 33 betygsatta kort har 16 exakt ETT omdöme, medan svansen går upp till 11.
-// Att bara ta "har omdöme" plockar alltså nästan alltid engångsomdömen först.
+// som förtroende, det ser ut som en tunn butik.
+//
+// Mätt över samtliga 28 kategorisidor 2026-08-19 — 328 betygsatta kort:
+//
+//    1 omdöme   84 produkter      8–14 omdömen   22 produkter
+//    2          73                  15–20         10
+//    3–7       138                  29             1
+//
+// Alltså: en fjärdedel av de betygsatta har exakt ETT omdöme, och tar man dem
+// i träffordning är det nästan alltid dem man får. Svansen finns — upp till 29
+// — men den måste sökas upp aktivt.
 //
 // Två ändringar följer av det:
 //   1. De reserverade platserna går till de BÄST recenserade, inte till de
@@ -74,17 +82,19 @@ function bastRecenseradeForst<T extends HeroCandidate>(kandidater: T[]): T[] {
  * Väljer `limit` produkter till hjälten.
  *
  * Passen i tur och ordning, tills platserna är fyllda:
- *   1. de `minRated` bäst recenserade, högst en per avdelning   ← bredd + stjärnor
+ *   1. de `minRated` bäst recenserade ur pool + fallback, högst en per avdelning
  *   2. samma, oavsett avdelning                                 ← hellre stjärnor än bredd
- *   3. reserv-listan (fallback), samma två steg — bara om poolen saknar betygsatta
- *   4. resten av poolen i sin egen ordning, högst en per avdelning
- *   5. samma, oavsett avdelning
- *   6. fallback, samma två steg
+ *   3. resten av poolen i sin egen ordning, högst en per avdelning
+ *   4. samma, oavsett avdelning
+ *   5. fallback, samma två steg
  *
- * Pass 1–3 fyller HÖGST `minRated` platser. Resten går till pass 4–6, som tar
+ * Pass 1–2 fyller HÖGST `minRated` platser. Resten går till pass 3–5, som tar
  * produkterna i den ordning anroparen skickade dem (mixByCategory → nyast-först
  * inom varje avdelning). En produkt som råkar ha omdömen kan förstås hamna där
  * också — `minRated` är ett golv, inte ett tak.
+ *
+ * Konsekvensen är avsiktlig: hjälten blir "de N bäst recenserade + resten
+ * nyast", inte "enbart nyast". Med `minRated: 0` beter den sig som förut.
  *
  * `keyOf` ger avdelningen. Utelämnad (eller tom sträng) → ingen breddspärr.
  *
@@ -114,18 +124,24 @@ export function pickHero<T extends HeroCandidate>(
     }
   };
 
-  // Pass 1–3: de reserverade betygsplatserna. Taket är `minRated`, aldrig `limit`.
+  // Pass 1–2: de reserverade betygsplatserna. Taket är `minRated`, aldrig `limit`.
+  //
+  // Kandidaterna hämtas ur POOLEN OCH reserv-listan tillsammans, sorterade på
+  // antal omdömen. Ett första försök tittade bara i poolen (de 100 senaste) och
+  // gick till reserven först när poolen inte räckte till golvet. Preview-deployen
+  // visade vad det ger: hjälten fick "4,5 (2)" och "5,0 (1)" medan Veckans fynd
+  // — som söker i hela katalogen — fick "4,9 (20)" och "5,0 (29)". Alltså tvärtom
+  // mot vad ytorna är till för; hjälten ligger ovanför vikningen och är butikens
+  // förtroende-shot. Ett ensamt omdöme där var hela ursprungsklagomålet.
+  //
+  // Poolen står först i den sammanslagna listan, så vid lika många omdömen
+  // vinner den färska produkten.
   const betygstak = Math.min(minRated, limit);
-  const medBetyg = bastRecenseradeForst(pool.filter(harBetyg));
+  const medBetyg = bastRecenseradeForst([...pool, ...fallback].filter(harBetyg));
   ta(medBetyg, true, betygstak);
   ta(medBetyg, false, betygstak);
-  // Räcker inte poolens betygsatta till golvet får reserv-listan (hela katalogen)
-  // fylla på — annars vore "minst 2" bara en förhoppning i en ny avdelning.
-  const fallbackMedBetyg = bastRecenseradeForst(fallback.filter(harBetyg));
-  ta(fallbackMedBetyg, true, betygstak);
-  ta(fallbackMedBetyg, false, betygstak);
 
-  // Pass 4–6: resten, i anroparens ordning.
+  // Pass 3–6: resten, i anroparens ordning — här styr nyast-först, inte betyg.
   ta(pool, true, limit);
   ta(pool, false, limit);
   ta(fallback, true, limit);

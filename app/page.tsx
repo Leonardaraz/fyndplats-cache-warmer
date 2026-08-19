@@ -140,10 +140,19 @@ export default async function Home() {
   //
   // Golvet är 2, inte 4. Ett första försök prioriterade betygsatta så hårt det
   // gick och alla fyra brickorna blev "5,0 (1)" — fyra identiska ensamma
-  // omdömen ser inte ut som förtroende utan som en tunn butik. De reserverade
-  // platserna går dessutom till de BÄST recenserade, inte till de först
-  // påträffade: av katalogens 33 betygsatta kort har 16 exakt ett omdöme medan
-  // svansen går upp till 11.
+  // omdömen ser inte ut som förtroende utan som en tunn butik.
+  //
+  // De två reserverade platserna går till de BÄST recenserade i HELA katalogen,
+  // inte till de först påträffade bland de 100 senaste. Preview-deployen visade
+  // varför: när bara den färska poolen fick leverera blev hjälten "4,5 (2)" och
+  // "5,0 (1)" medan Veckans fynd — som söker bredare — fick "(20)" och "(29)".
+  // Bakvänt, för hjälten är ytan ovanför vikningen. Hjälten är alltså numera
+  // "2 bäst recenserade + 2 nyaste", inte enbart nyast.
+  //
+  // Att skillnaden är stor är också mätt: över 28 kategorisidor har 84 av 328
+  // betygsatta kort exakt ETT omdöme, och bara 33 har fler än sju. Svansen går
+  // upp till 29, men den måste sökas upp aktivt — den ligger inte bland de
+  // nyaste produkterna.
   //
   // Ett hårt filter vore fortfarande fel. Täckningen är ojämn per avdelning
   // — 100 % i hudvård och dator/gaming, 12 % i trädgård & utemöbler — så det

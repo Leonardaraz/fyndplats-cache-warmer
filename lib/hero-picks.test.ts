@@ -101,11 +101,28 @@ describe("pickHero", () => {
     assert.deepEqual(slugs(pickHero(pool, [], 2)), ["forst", "sedan"]);
   });
 
-  it("hamtar betygsatta ur reserv-listan nar poolen inte racker till golvet", () => {
-    // Annars vore "minst 2" bara en förhoppning i en ny avdelning.
-    const pool = [r("enda", 2), p("ny1"), p("ny2")];
-    const fallback = [r("gammal", 9)];
-    assert.deepEqual(slugs(pickHero(pool, fallback, 4)), ["enda", "gammal", "ny1", "ny2"]);
+  it("soker de reserverade platserna i BADE poolen och reserv-listan", () => {
+    // Preview-deployen 2026-08-19 visade varfor: nar bara poolen (de 100
+    // senaste) fick leverera blev hjalten "4,5 (2)" och "5,0 (1)" medan Veckans
+    // fynd — som soker i hela katalogen — fick "(20)" och "(29)". Bakvant for
+    // ytan som ligger ovanfor vikningen.
+    const pool = [r("fersk", 2), p("ny1"), p("ny2")];
+    const fallback = [r("gammal", 29)];
+    assert.deepEqual(slugs(pickHero(pool, fallback, 4)), ["gammal", "fersk", "ny1", "ny2"]);
+  });
+
+  it("vid lika manga omdomen vinner den farska produkten", () => {
+    const pool = [r("fersk", 5), p("ny1")];
+    const fallback = [r("gammal", 5)];
+    assert.deepEqual(slugs(pickHero(pool, fallback, 2)), ["fersk", "gammal"]);
+  });
+
+  it("de icke-reserverade platserna tas fortfarande ur poolen, nyast-forst", () => {
+    // Golvet gor hjalten till "N bast recenserade + resten nyast" — inte till
+    // en ren bast-i-test-lista. Reserv-listan far bara rora betygsplatserna.
+    const pool = [p("ny1"), p("ny2"), p("ny3")];
+    const fallback = [r("gammal", 29), r("gammal2", 20), p("gammal3")];
+    assert.deepEqual(slugs(pickHero(pool, fallback, 4)), ["gammal", "gammal2", "ny1", "ny2"]);
   });
 
   it("minRated 0 stanger av reservationen helt", () => {
