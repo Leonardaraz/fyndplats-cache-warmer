@@ -656,7 +656,9 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
       productId: params.productId,
       quantity: params.quantity,
       skuId: params.skuId,
-      logisticsServiceName: params.logisticsServiceName ?? "CAINIAO_ECONOMY_GLOBAL",
+      // Ingen default. Saknas värdet väljer AliExpress fraktsätt själv — se
+      // noten i buildPlaceOrderDto om varför ett gissat värde är sämre.
+      logisticsServiceName: params.logisticsServiceName,
       address: line1 + (line2 ? ` ${line2}` : ""),
       city,
       province,
@@ -796,7 +798,17 @@ export function buildPlaceOrderDto(p: {
   productId: string;
   quantity: number;
   skuId: string;
-  logisticsServiceName: string;
+  /**
+   * Fraktsätt. UTELÄMNAS när vi inte vet vilket som gäller — AliExpress väljer
+   * då själv, precis som i deras egen kassa.
+   *
+   * Fältet skickades förut ALLTID, med CAINIAO_ECONOMY_GLOBAL som default. Det
+   * var grundfelet bakom order #10021: den tjänsten finns inte hos alla
+   * säljare, och AliExpress avvisar hela ordern med DELIVERY_METHOD_NOT_EXIST
+   * i stället för att falla tillbaka på något som funkar. Att inte skicka
+   * fältet är alltså en BÄTTRE reserv än vilket gissat värde som helst.
+   */
+  logisticsServiceName?: string;
   address: string;
   city: string;
   province: string;
@@ -836,7 +848,7 @@ export function buildPlaceOrderDto(p: {
         product_id: p.productId,
         product_count: p.quantity,
         sku_attr: p.skuId,
-        logistics_service_name: p.logisticsServiceName,
+        ...(p.logisticsServiceName ? { logistics_service_name: p.logisticsServiceName } : {}),
         ...(memo ? { order_memo: memo } : {}),
       },
     ],

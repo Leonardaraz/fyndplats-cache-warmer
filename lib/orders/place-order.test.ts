@@ -356,14 +356,16 @@ describe("placeOrderForTask — fraktval", () => {
     expect(vi.mocked(createOrder)).toHaveBeenCalledTimes(1);
   });
 
-  it("faller tillbaka på defaulten när fraktfrågan ger tomt", async () => {
+  it("later AliExpress valja nar fraktfragan ger tomt", async () => {
+    // Ingen gissning. Att tvinga fram CAINIAO_ECONOMY_GLOBAL var grundfelet
+    // bakom #10021 — AliExpress avvisar hela ordern nar tjansten inte finns,
+    // i stallet for att falla tillbaka pa nagot som funkar.
     const store = await seed(task());
     vi.mocked(queryFreightToCountry).mockResolvedValue({ method: "test", raw: {} });
     vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T3" } as never);
 
     await placeOrderForTask(store, "o1:l1");
-    expect(vi.mocked(createOrder).mock.calls[0][0].logisticsServiceName)
-      .toBe("CAINIAO_ECONOMY_GLOBAL");
+    expect(vi.mocked(createOrder).mock.calls[0][0].logisticsServiceName).toBeUndefined();
   });
 
   it("ett kast i fraktfrågan låser INTE tasken — ordern läggs som förut", async () => {
@@ -375,15 +377,15 @@ describe("placeOrderForTask — fraktval", () => {
 
     const r = await placeOrderForTask(store, "o1:l1");
     expect(r.ok).toBe(true);
-    expect(vi.mocked(createOrder).mock.calls[0][0].logisticsServiceName)
-      .toBe("CAINIAO_ECONOMY_GLOBAL");
+    expect(vi.mocked(createOrder).mock.calls[0][0].logisticsServiceName).toBeUndefined();
   });
 });
 
 describe("placeOrderForTask — fraktdiagnos i felmeddelandet", () => {
-  it("sager att varan inte gar att skicka hit nar INGA alternativ finns", async () => {
-    // "DELIVERY_METHOD_NOT_EXIST - forsok igen" ar en atervandsgrand: den
-    // sager inte OM det finns nagot fraktsatt att forsoka med.
+  it("pastar INTE att varan saknar frakt — bara att var fraga gav tomt", async () => {
+    // En tidigare version sa "varan gar inte att skicka hit". Det var att dra
+    // en slutsats koden inte kan bara: den vet bara att VAR fraga gav noll.
+    // AliExpress egen produktsida erbjod samtidigt frakt fran tre lander.
     const store = await seed(task());
     vi.mocked(getProduct).mockResolvedValue({ variants: [] } as never);
     vi.mocked(queryFreightToCountry).mockResolvedValue({ method: "t", raw: {} });
@@ -397,8 +399,9 @@ describe("placeOrderForTask — fraktdiagnos i felmeddelandet", () => {
     const r = await placeOrderForTask(store, "o1:l1");
     expect(r.ok).toBe(false);
     if (!r.ok) {
-      expect(r.error).toContain("inget fraktsätt till SE");
-      expect(r.error).toContain("hjälper inte att försöka igen");
+      expect(r.error).toContain("gav inga alternativ");
+      expect(r.error).not.toContain("går inte att skicka");
+      expect(r.error).toContain("utan angivet fraktsätt");
     }
   });
 
