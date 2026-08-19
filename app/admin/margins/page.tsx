@@ -20,6 +20,7 @@ import { getStore } from "@/lib/store/factory";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import {
   BANDS,
+  multipleJitter,
   TARGET_MARGIN_PCT,
   biggestOpportunities,
   clusterByMultiple,
@@ -57,7 +58,11 @@ export default async function MarginsPage({
   // Varianter av samma produkt kan prissättas olika; den svagaste är den som
   // biter, och en snittad marginal hade dolt den.
   const rows: MarginRow[] = [];
-  let okand = 0;
+  // Produkterna utan prisbar variant. De ligger aldrig i `rows` (de går inte
+  // att räkna på), så "Okänd"-bandet måste visa DEM — tidigare länkade det
+  // till ett filter som alltid gav noll träffar, och just den listan är den en
+  // operatör faktiskt vill se (granskning 2026-08-19).
+  const utanData: { wixProductId: string; title: string }[] = [];
   for (const m of mappings) {
     const kandidater = (m.variants ?? [])
       .map((v) =>
@@ -73,22 +78,31 @@ export default async function MarginsPage({
       )
       .filter((r): r is MarginRow => r !== null);
     if (kandidater.length === 0) {
-      okand += 1;
+      utanData.push({ wixProductId: m.wixProductId, title: m.seoTitle || m.wixProductId });
       continue;
     }
     rows.push(kandidater.reduce((a, b) => (b.marginPct < a.marginPct ? b : a)));
   }
 
+  const okand = utanData.length;
   const band = summarizeBands(rows, okand);
-  const kluster = clusterByMultiple(rows).slice(0, 8);
+  const kluster = clusterByMultiple(rows, 2, rules.fixedSurchargeSek ?? 0).slice(0, 8);
 
   const valtBand = BANDS.find((b) => b.id === params.band)?.id ?? null;
-  const valdMult = params.mult ? Number(params.mult) : null;
+  // Number("abc") ger NaN. Utan kontrollen HÄR satte en trasig länk sidan i
+  // filtrerat läge utan att filtrera: hela katalogen visades under rubriken
+  // "Produkter på NaN×" (granskning 2026-08-19).
+  const multRaw = params.mult ? Number(params.mult) : null;
+  const valdMult = multRaw !== null && Number.isFinite(multRaw) ? multRaw : null;
 
   let lista = rows;
   if (valtBand) lista = lista.filter((r) => r.bandId === valtBand);
-  if (valdMult !== null && Number.isFinite(valdMult)) {
-    lista = lista.filter((r) => Math.round(r.multiple * 100) / 100 === valdMult);
+  if (valdMult !== null) {
+    // Samma tolerans som klustringen använder, annars matchar länken inget.
+    lista = lista.filter((r) => {
+      const m = (r.grossSek - (rules.fixedSurchargeSek ?? 0)) / r.landedCostSek;
+      return Number.isFinite(m) && m >= valdMult - 1e-9 && m - valdMult <= multipleJitter(r.landedCostSek);
+    });
   }
   const visade = valtBand || valdMult !== null
     ? [...lista].sort((a, b) => b.gapSek - a.gapSek)
@@ -220,7 +234,9 @@ export default async function MarginsPage({
       {/* ── 3. Listan ──────────────────────────────────────────────────── */}
       <h2 style={{ marginTop: 32, marginBottom: 4 }}>
         {valtBand
-          ? `Produkter i ${BANDS.find((b) => b.id === valtBand)!.label}`
+          ? valtBand === "unknown"
+            ? "Produkter utan kostnadsdata"
+            : `Produkter i ${BANDS.find((b) => b.id === valtBand)!.label}`
           : valdMult !== null
             ? `Produkter på ${valdMult.toLocaleString("sv-SE", { minimumFractionDigits: 2 })}×`
             : "Störst att hämta"}
@@ -235,7 +251,24 @@ export default async function MarginsPage({
           </>
         ) : null}
       </p>
-      {visade.length === 0 ? (
+      {valtBand === "unknown" ? (
+        utanData.length === 0 ? (
+          <p style={{ color: "#888" }}>Alla produkter har kostnadsdata. ✅</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+            <tbody>
+              {utanData.map((p) => (
+                <tr key={p.wixProductId} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  <td style={{ padding: "6px 8px" }}>{p.title}</td>
+                  <td style={{ padding: "6px 8px", color: "#666", textAlign: "right" }}>
+                    saknar landad kostnad eller pris
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      ) : visade.length === 0 ? (
         <p style={{ color: "#888" }}>Inga produkter matchar. </p>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>

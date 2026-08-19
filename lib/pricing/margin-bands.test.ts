@@ -19,12 +19,29 @@ const rad = (o: Partial<Parameters<typeof toMarginRow>[0]> = {}) =>
   )!;
 
 describe("toMarginRow", () => {
-  it("räknar netto, vinst och marginal på nettot", () => {
-    // 299 inkl 25 % moms → 239,20 netto. Vinst 139,20. Marginal 58,2 %.
+  it("jämför NETTO mot NETTO — kostnaden är momsad", () => {
+    // Granskning 2026-08-19: första versionen drog av den MOMSADE kostnaden
+    // från nettointäkten och underskattade varje marginal med ~20 % av
+    // kostnaden. Mappningens landedCostSek är inkl. moms (AliExpress EU-lager
+    // prissätter "Price includes VAT" — se lib/import/pricing.ts, och
+    // lib/auction/seed.ts räknar netSupplierCost = landad / 1,25).
+    //
+    // 299 inkl moms → 239,20 netto. 100 inkl moms → 80 netto.
+    // Vinst 159,20, marginal 66,6 % — inte 58,2 % som den momsade jämförelsen gav.
     const r = rad();
     expect(r.netSek).toBeCloseTo(239.2, 2);
-    expect(r.profitSek).toBeCloseTo(139.2, 2);
-    expect(r.marginPct).toBeCloseTo(58.19, 1);
+    expect(r.netCostSek).toBeCloseTo(80, 2);
+    expect(r.profitSek).toBeCloseTo(159.2, 2);
+    expect(r.marginPct).toBeCloseTo(66.55, 1);
+  });
+
+  it("felet som fanns: 149/100 var 16 %, ska vara 33 %", () => {
+    // Exakt granskningens exempel. Skillnaden flyttar produkten två band och
+    // tar bort den ur "Störst att hämta" helt.
+    const r = rad({ grossSek: 149, landedCostSek: 100 });
+    expect(r.marginPct).toBeCloseTo(32.89, 1);
+    expect(r.bandId).toBe("25-35");
+    expect(r.gapSek).toBe(0);
   });
 
   it("multipeln är pris genom landad kostnad", () => {
@@ -32,7 +49,8 @@ describe("toMarginRow", () => {
   });
 
   it("negativ marginal när priset ligger under kostnaden", () => {
-    const r = rad({ grossSek: 99, landedCostSek: 100 });
+    // Bada momsade → jamforelsen ar ren.
+    const r = rad({ grossSek: 79, landedCostSek: 100 });
     expect(r.marginPct).toBeLessThan(0);
     expect(r.bandId).toBe("loss");
   });
@@ -88,7 +106,8 @@ describe("gapToTargetSek", () => {
   });
 
   it("kronorna som saknas vid tunn marginal", () => {
-    // 22,5 % mål på landad 100 → målvinst 29,03. Dagens vinst 10 → gap 19,03.
+    // Argumentet är NETTOkostnaden: 22,5 % mål på 100 netto → målvinst 29,03.
+    // Dagens vinst 10 → gap 19,03.
     expect(gapToTargetSek(100, 10)).toBeCloseTo(19.03, 1);
   });
 
@@ -106,7 +125,7 @@ describe("gapToTargetSek", () => {
 describe("summarizeBands", () => {
   it("räknar, summerar kronor och ger andelar i BANDS-ordning", () => {
     const rows = [
-      rad({ wixProductId: "a", grossSek: 99, landedCostSek: 100 }), // loss
+      rad({ wixProductId: "a", grossSek: 79, landedCostSek: 100 }), // loss
       rad({ wixProductId: "b", grossSek: 250, landedCostSek: 100 }), // 50+
       rad({ wixProductId: "c", grossSek: 250, landedCostSek: 100 }), // 50+
     ];
@@ -131,17 +150,41 @@ describe("clusterByMultiple", () => {
     // spårat till en sparad override i importtillägget. I en procentvy ser det
     // ut som brus; här ska det bli en stapel.
     const rows = [
-      ...Array.from({ length: 8 }, (_, i) =>
-        rad({ wixProductId: `fel${i}`, landedCostSek: 100, grossSek: 131 }),
-      ),
-      rad({ wixProductId: "ok1", landedCostSek: 100, grossSek: 250 }),
-      rad({ wixProductId: "ok2", landedCostSek: 200, grossSek: 500 }),
+      // Charm9 rundar UPP till narmaste ...9, sa samma 1,31-installning ger
+      // olika exakta multiplar. Toleransen ska ANDA halla ihop dem.
+      rad({ wixProductId: "fel0", landedCostSek: 380, grossSek: 499 }),
+      rad({ wixProductId: "fel1", landedCostSek: 395, grossSek: 519 }),
+      rad({ wixProductId: "fel2", landedCostSek: 410, grossSek: 539 }),
+      rad({ wixProductId: "fel3", landedCostSek: 300, grossSek: 399 }),
+      rad({ wixProductId: "ok1", landedCostSek: 400, grossSek: 999 }),
+      rad({ wixProductId: "ok2", landedCostSek: 380, grossSek: 949 }),
     ];
     const k = clusterByMultiple(rows);
-    expect(k[0].multiple).toBeCloseTo(1.31, 2);
-    expect(k[0].count).toBe(8);
-    expect(k[0].sharePct).toBeCloseTo(80, 0);
-    expect(k[1].multiple).toBeCloseTo(2.5, 2);
+    // Storsta klustret ar de fyra felprissatta runt 1,3x — trots att deras
+    // exakta multiplar skiljer sig at pa andra decimalen.
+    expect(k[0].count).toBe(4);
+    expect(k[0].multiple).toBeGreaterThan(1.28);
+    expect(k[0].multiple).toBeLessThan(1.35);
+    // ...och de tva korrekta runt 2,5x hamnar i ett eget.
+    expect(k[1].count).toBe(2);
+    expect(k[1].multiple).toBeGreaterThan(2.4);
+  });
+
+  it("haller isar tva OLIKA installningar — toleransen slar inte ihop allt", () => {
+    // Tva par pa ~1,30x respektive ~2,50x, med olika kostnader sa att
+    // charm9-jittret ar realistiskt. Toleransen ska binda ihop paren men
+    // aldrig bygga en bro mellan installningarna.
+    const rows = [
+      rad({ wixProductId: "a", landedCostSek: 1000, grossSek: 1299 }),
+      rad({ wixProductId: "b", landedCostSek: 1010, grossSek: 1319 }),
+      rad({ wixProductId: "c", landedCostSek: 1000, grossSek: 2499 }),
+      rad({ wixProductId: "d", landedCostSek: 1010, grossSek: 2529 }),
+    ];
+    const k = clusterByMultiple(rows);
+    expect(k).toHaveLength(2);
+    expect(k.map((x) => x.count)).toEqual([2, 2]);
+    expect(k[0].multiple).toBeLessThan(1.35);
+    expect(k[1].multiple).toBeGreaterThan(2.4);
   });
 
   it("grupperar över olika prisnivåer — det är multipeln som binder ihop dem", () => {
@@ -150,6 +193,16 @@ describe("clusterByMultiple", () => {
       rad({ wixProductId: "b", landedCostSek: 400, grossSek: 1000 }),
     ];
     expect(clusterByMultiple(rows)[0].count).toBe(2);
+  });
+
+  it("drar bort det fasta paslaget innan multipeln raknas", () => {
+    // gross/cost blir annars multiplikator + paslag/kostnad, som varierar med
+    // kostnaden och sprider ut en gemensam installning.
+    const rows = [
+      rad({ wixProductId: "a", landedCostSek: 1000, grossSek: 2549 }),
+      rad({ wixProductId: "b", landedCostSek: 2000, grossSek: 5049 }),
+    ];
+    expect(clusterByMultiple(rows, 2, 49)[0].count).toBe(2);
   });
 
   it("engangsforeteelser filtreras bort med minCount", () => {
@@ -167,8 +220,8 @@ describe("clusterByMultiple", () => {
       rad({ wixProductId: "b", landedCostSek: 100, grossSek: 131 }),
     ];
     const k = clusterByMultiple(rows);
-    // 131 inkl moms → 104,80 netto, vinst 4,80 → 4,58 %.
-    expect(k[0].medianMarginPct).toBeCloseTo(4.58, 1);
+    // Bada momsade: 131 -> 104,80 netto, 100 -> 80 netto. Vinst 24,80 -> 23,7 %.
+    expect(k[0].medianMarginPct).toBeCloseTo(23.66, 1);
   });
 
   it("storst kluster forst", () => {
@@ -185,9 +238,9 @@ describe("clusterByMultiple", () => {
 
 describe("biggestOpportunities", () => {
   it("rankar pa KRONOR, inte procent — annars hamnar smaprylar overst", () => {
-    // 8 % pa en 79-kronorspryl ar sex kronor. 12 % pa en soffa ar hundralappar.
-    const pryl = rad({ wixProductId: "pryl", title: "Pryl", landedCostSek: 60, grossSek: 79 });
-    const soffa = rad({ wixProductId: "soffa", title: "Soffa", landedCostSek: 2000, grossSek: 2999 });
+    // Prylen har SAMRE procent men soffan mer pengar att hamta.
+    const pryl = rad({ wixProductId: "pryl", title: "Pryl", landedCostSek: 70, grossSek: 79 });
+    const soffa = rad({ wixProductId: "soffa", title: "Soffa", landedCostSek: 2400, grossSek: 2999 });
     expect(pryl.marginPct).toBeLessThan(soffa.marginPct);
     expect(biggestOpportunities([pryl, soffa])[0].wixProductId).toBe("soffa");
   });

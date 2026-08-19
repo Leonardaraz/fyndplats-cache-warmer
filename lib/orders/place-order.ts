@@ -8,6 +8,7 @@ import {
 import {
   deliveryCandidates,
   isDeliveryMethodMissing,
+  matchAeVariant,
   parseDeliveryOptions,
   rankDeliveryOptions,
 } from "@/lib/aliexpress/freight";
@@ -237,22 +238,50 @@ export async function placeOrderForTask(
     // ingen order finns för.
     let alternativ: ReturnType<typeof rankDeliveryOptions> = [];
     try {
-      alternativ = rankDeliveryOptions(
-        parseDeliveryOptions(
-          await queryFreightToCountry(
-            supplierProductId,
-            supplierVariantId,
-            countryCode,
-            task.quantity,
+      // FRAKT-API:T KRÄVER NUMERISKT sku_id — inte det vi skickar till
+      // createOrder. Extension-importens supplierVariantId ÄR AliExpress
+      // sku_attr ("14:350853#39 Drawers;200007763:201336106"), och skickas den
+      // strängen som sku_id svarar frakt-API:t tomt. Då blir alternativlistan
+      // tom, rankningen en no-op och ordern läggs med just den hårdkodade
+      // tjänst som fällde #10021 — felet hade alltså tyst återskapats för
+      // precis de produkter fixen finns för (granskning 2026-08-19).
+      //
+      // lib/sync/shippability.ts och freight-check-rutten konverterar redan via
+      // matchAeVariant; det gör vi nu också. Är id:t redan numeriskt hoppas
+      // uppslaget över, så de flesta ordrar kostar inget extra anrop.
+      let freightSkuId: string | null = /^\d+$/.test(supplierVariantId)
+        ? supplierVariantId
+        : null;
+      if (!freightSkuId) {
+        const ae = await getProduct(supplierProductId);
+        freightSkuId = matchAeVariant(supplierVariantId, ae.variants);
+      }
+      if (freightSkuId) {
+        alternativ = rankDeliveryOptions(
+          parseDeliveryOptions(
+            await queryFreightToCountry(
+              supplierProductId,
+              freightSkuId,
+              countryCode,
+              task.quantity,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        console.warn(
+          `[place-order] task=${taskId} kunde inte härleda numeriskt sku_id — hoppar fraktvalet`,
+        );
+      }
     } catch (err) {
       console.warn(`[place-order] task=${taskId} fraktfrågan misslyckades`, err);
     }
-    const kandidater = deliveryCandidates(alternativ, DEFAULT_DELIVERY_METHOD).slice(
-      0,
-      MAX_DELIVERY_ATTEMPTS,
+    // Kapa de RANKADE kandidaterna och lägg sedan på defaulten. Görs det
+    // tvärtom hyvlas defaulten bort så fort listan är längre än taket — och då
+    // kan en order som förut hade gått igenom med defaulten i stället
+    // misslyckas helt (granskning 2026-08-19).
+    const kandidater = deliveryCandidates(
+      alternativ.slice(0, MAX_DELIVERY_ATTEMPTS - 1),
+      DEFAULT_DELIVERY_METHOD,
     );
     if (alternativ.length > 0) {
       const b = alternativ[0];
@@ -263,6 +292,18 @@ export async function placeOrderForTask(
       );
     }
 
+    // EN loop, en payload. Två separata createOrder-anrop (ett för första
+    // kandidaten, ett i omförsöket) hade betytt att en framtida ändring av
+    // orderns innehåll kan hamna på bara det ena — en bugg som bara syns på
+    // omförsöksvägen (granskning 2026-08-19).
+    //
+    // SÄKERHETSVILLKOREN för att gå vidare till nästa kandidat:
+    //   - inget order-id (annars är vi klara),
+    //   - orderDefinitelyNotPlaced, som bara sätts när AliExpress UTTRYCKLIGEN
+    //     sagt nej — vid ett oklart svar kan en order finnas och ett omförsök
+    //     vore en dubbelbeställning,
+    //   - och att felet är just "fraktsättet finns inte".
+    // Claimen hålls hela vägen, så ingen annan väg kan gå in mellan försöken.
     let result = await createOrder({
       productId: supplierProductId,
       skuId: supplierVariantId,
@@ -270,22 +311,11 @@ export async function placeOrderForTask(
       shippingAddress: adress,
       logisticsServiceName: kandidater[0],
     });
-
-    // OMFÖRSÖK med nästa kandidat när AliExpress säger att fraktsättet inte
-    // finns.
-    //
-    // SÄKERHETSVILLKORET är `orderDefinitelyNotPlaced`: det sätts bara när
-    // AliExpress uttryckligen sagt nej, alltså när ingen order kan ha skapats.
-    // Vid ett oklart svar försöker vi ALDRIG om — då kan en order finnas, och
-    // ett omförsök vore en dubbelbeställning. Claimen hålls hela vägen, så
-    // ingen annan väg kan gå in mellan försöken.
     for (const tjanst of kandidater.slice(1)) {
       if (result.tradeOrderId) break;
       if (!result.orderDefinitelyNotPlaced) break;
       if (!isDeliveryMethodMissing(result.aeError)) break;
-      console.warn(
-        `[place-order] task=${taskId} fraktsättet saknades — provar "${tjanst}"`,
-      );
+      console.warn(`[place-order] task=${taskId} fraktsättet saknades — provar "${tjanst}"`);
       result = await createOrder({
         productId: supplierProductId,
         skuId: supplierVariantId,

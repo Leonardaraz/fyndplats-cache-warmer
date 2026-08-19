@@ -33,7 +33,18 @@
 export interface MarginInput {
   wixProductId: string;
   title: string;
-  /** Landad kostnad i SEK (inköp + frakt + ev. avgifter), per styck. */
+  /**
+   * Landad kostnad i SEK per styck, INKLUSIVE moms.
+   *
+   * Det är så mappningen sparar den, och det är lätt att missa: AliExpress
+   * EU-lager prissätter "Price includes VAT" (se noten i lib/import/pricing.ts),
+   * och lib/auction/seed.ts räknar därför netSupplierCost = landad / 1,25.
+   *
+   * Marginalen MÅSTE jämföra netto mot netto. En första version här drog av
+   * den momsade kostnaden från nettointäkten och underskattade därmed varje
+   * marginal med ungefär 20 % av kostnaden — vilket slog fel i alla tre
+   * vyerna på en gång (granskning 2026-08-19).
+   */
   landedCostSek: number;
   /** Kundens pris inkl. moms, per styck. */
   grossSek: number;
@@ -42,6 +53,8 @@ export interface MarginInput {
 export interface MarginRow extends MarginInput {
   /** Nettointäkt exkl. moms. */
   netSek: number;
+  /** Landad kostnad EXKL. moms — den som får jämföras med nettointäkten. */
+  netCostSek: number;
   /** Vinst per sålt styck, i kronor. */
   profitSek: number;
   /** Marginal i procent av nettointäkten. */
@@ -108,19 +121,21 @@ export function bandFor(marginPct: number | null): BandId {
 /**
  * Kronor per styck som saknas upp till målmarginalen.
  *
- * Vid målmarginalen t gäller netto = landad / (1 − t), alltså vinst =
- * landad · t / (1 − t). Gapet är den vinsten minus dagens. Aldrig negativt —
+ * `netCostSek` är kostnaden EXKL. moms — marginalen räknas netto mot netto.
+ *
+ * Vid målmarginalen t gäller nettointäkt = nettokostnad / (1 − t), alltså
+ * vinst = nettokostnad · t / (1 − t). Gapet är den vinsten minus dagens. Aldrig negativt —
  * en produkt som ÖVERstiger målet har inget att hämta, den har utrymme att
  * sänkas, vilket är en annan sorts beslut.
  */
 export function gapToTargetSek(
-  landedCostSek: number,
+  netCostSek: number,
   profitSek: number,
   targetPct = TARGET_MARGIN_PCT,
 ): number {
   const t = targetPct / 100;
-  if (!(landedCostSek > 0) || t <= 0 || t >= 1) return 0;
-  const målvinst = (landedCostSek * t) / (1 - t);
+  if (!(netCostSek > 0) || t <= 0 || t >= 1) return 0;
+  const målvinst = (netCostSek * t) / (1 - t);
   return Math.max(0, målvinst - profitSek);
 }
 
@@ -136,16 +151,23 @@ export function toMarginRow(
   const { landedCostSek, grossSek } = input;
   if (!(grossSek > 0) || !(landedCostSek > 0)) return null;
   const netSek = grossSek / (1 + vatRatePercent / 100);
+  // Kostnaden är momsad (se MarginInput). Netto mot netto — annars underskattas
+  // varje marginal med ungefär momssatsen gånger kostnaden.
+  const netCostSek = landedCostSek / (1 + vatRatePercent / 100);
   if (!(netSek > 0)) return null;
-  const profitSek = netSek - landedCostSek;
+  const profitSek = netSek - netCostSek;
   const marginPct = (profitSek / netSek) * 100;
   return {
     ...input,
     netSek,
+    netCostSek,
     profitSek,
     marginPct,
+    // Multipeln räknas på de MOMSADE talen: den ska matcha multiplikatorn som
+    // faktiskt sattes vid import (pris inkl. moms = kostnad inkl. moms × x),
+    // annars går den inte att känna igen i /admin/pricing.
     multiple: grossSek / landedCostSek,
-    gapSek: gapToTargetSek(landedCostSek, profitSek, targetPct),
+    gapSek: gapToTargetSek(netCostSek, profitSek, targetPct),
     bandId: bandFor(marginPct),
   };
 }
@@ -174,6 +196,28 @@ export function summarizeBands(rows: MarginRow[], unknownCount = 0): BandSummary
   });
 }
 
+/**
+ * Hur mycket prisavrundningen kan ha blåst upp multipeln för en produkt.
+ *
+ * Priset sattes som `roundPrice(kostnad × multiplikator + fastPåslag)`, och
+ * standardavrundningen charm9 rundar UPP till närmaste tal som slutar på 9 —
+ * alltså som mest 9 kr. Den knuffen delas med kostnaden, så jittret i multipeln
+ * är stort för billiga varor och försumbart för dyra: 9 kr på en landad kostnad
+ * av 100 kr är 0,09 i multipel, på 2 000 kr bara 0,0045.
+ *
+ * Det är därför en FAST avrundning till två decimaler inte fungerar (granskning
+ * 2026-08-19): två produkter på samma 2,5×-inställning med kostnad 380 och 395
+ * hamnar på 2,52 och 2,53 — olika hinkar — och en enda felinställning sprids
+ * över fyra-fem hinkar tills ingen når minCount. Klumpen som skulle skrika
+ * syns aldrig.
+ */
+export const MAX_ROUNDING_STEP_SEK = 9;
+
+export function multipleJitter(landedCostSek: number): number {
+  if (!(landedCostSek > 0)) return Infinity;
+  return MAX_ROUNDING_STEP_SEK / landedCostSek;
+}
+
 export interface MultipleCluster {
   /** Multipeln avrundad till två decimaler, t.ex. 1.31. */
   multiple: number;
@@ -192,25 +236,58 @@ export interface MultipleCluster {
  * eftersom charm-avrundningen (…9) gör multipeln nästan unik. Två decimaler
  * är den upplösning där en gemensam FELINSTÄLLNING syns som en klump medan
  * normal prissättning sprider ut sig.
+ *
+ * Nyckeln räknas på det ÅTERSTÄLLDA priset, inte på det som står i Wix — se
+ * recoveredMultiplier. Utan det hade avrundningen ensam spridit en och samma
+ * multiplikator över flera hinkar och klumpen aldrig blivit synlig.
  */
-export function clusterByMultiple(rows: MarginRow[], minCount = 2): MultipleCluster[] {
-  const hinkar = new Map<number, MarginRow[]>();
-  for (const r of rows) {
-    if (!Number.isFinite(r.multiple)) continue;
-    const nyckel = Math.round(r.multiple * 100) / 100;
-    const lista = hinkar.get(nyckel);
-    if (lista) lista.push(r);
-    else hinkar.set(nyckel, [r]);
+export function clusterByMultiple(
+  rows: MarginRow[],
+  minCount = 2,
+  fixedSurchargeSek = 0,
+): MultipleCluster[] {
+  // Multipeln räknas efter att det fasta påslaget dragits bort: gross/cost blir
+  // annars multiplikator + påslag/kostnad, som varierar med kostnaden och
+  // sprider ut en gemensam inställning.
+  const punkter = rows
+    .map((r) => {
+      const kostnad = r.landedCostSek;
+      const m = (r.grossSek - fixedSurchargeSek) / kostnad;
+      return Number.isFinite(m) && m > 0
+        ? { r, m, jitter: multipleJitter(kostnad) }
+        : null;
+    })
+    .filter((p): p is { r: MarginRow; m: number; jitter: number } => p !== null)
+    .sort((a, b) => a.m - b.m);
+
+  // SAMMANSLAGNING PÅ TOLERANS i stället för fasta hinkar: två närliggande
+  // multiplar hör ihop om avståndet är mindre än vad avrundningen kan ha
+  // orsakat. Adaptivt av sig självt — snävt för dyra varor, generöst för
+  // billiga, vilket är precis hur jittret beter sig.
+  const grupper: { r: MarginRow; m: number }[][] = [];
+  let aktuell: { r: MarginRow; m: number; jitter: number }[] = [];
+  for (const p of punkter) {
+    const forra = aktuell[aktuell.length - 1];
+    if (forra && p.m - forra.m > Math.max(forra.jitter, p.jitter)) {
+      grupper.push(aktuell);
+      aktuell = [];
+    }
+    aktuell.push(p);
   }
+  if (aktuell.length > 0) grupper.push(aktuell);
+
   const ut: MultipleCluster[] = [];
-  for (const [multiple, lista] of hinkar) {
-    if (lista.length < minCount) continue;
-    const sorterade = lista.map((r) => r.marginPct).sort((a, b) => a - b);
+  for (const grupp of grupper) {
+    if (grupp.length < minCount) continue;
+    const sorterade = grupp.map((g) => g.r.marginPct).sort((a, b) => a - b);
     const mitt = Math.floor(sorterade.length / 2);
     ut.push({
-      multiple,
-      count: lista.length,
-      sharePct: rows.length > 0 ? (lista.length / rows.length) * 100 : 0,
+      // Den LÄGSTA multipeln i gruppen representerar den: charm9 rundar bara
+      // UPPÅT, så det minsta observerade värdet ligger närmast den inställning
+      // som faktiskt sattes.
+      multiple: Math.round(grupp[0].m * 100) / 100,
+      count: grupp.length,
+      sharePct: rows.length > 0 ? (grupp.length / rows.length) * 100 : 0,
       medianMarginPct:
         sorterade.length % 2 === 1
           ? sorterade[mitt]

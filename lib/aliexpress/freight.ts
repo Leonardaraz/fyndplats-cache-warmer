@@ -229,10 +229,19 @@ export interface DeliveryOption {
   maxDays: number | null;
 }
 
-/** Nycklar AliExpress använder för tjänstens namn. */
+/**
+ * Nycklar AliExpress använder för tjänstens namn — KODER FÖRST.
+ *
+ * Ordningen är säkerhetsbärande. En rad från ds.freight.query bär både
+ * `code: "CAINIAO_STANDARD"` och `delivery_provider_name: "AliExpress Standard
+ * Shipping"`. Bara koden går att skicka som logistics_service_name; skickas
+ * visningsnamnet svarar AliExpress DELIVERY_METHOD_NOT_EXIST — alltså exakt
+ * det fel den här modulen finns för att undvika, nu för varje kandidat i
+ * listan (granskning 2026-08-19).
+ */
 const SERVICE_NAME_KEYS = [
-  "serviceName", "service_name", "deliveryProviderName", "delivery_provider_name",
-  "logisticsServiceName", "logistics_service_name", "code",
+  "code", "service_name", "serviceName",
+  "logistics_service_name", "logisticsServiceName",
 ];
 
 /**
@@ -301,8 +310,12 @@ export function parseDeliveryOptions(outcome: FreightQueryOutcome): DeliveryOpti
   if (outcome.error) return [];
   const lists: unknown[][] = [];
   collectOptionArrays(outcome.raw, "", lists);
-  const ut: DeliveryOption[] = [];
-  const sedda = new Set<string>();
+  // Samma tjänstenamn kan förekomma FLERA gånger — en gång per lager. Det är
+  // hela poängen med funktionen: "CAINIAO_STANDARD" från CN kan kosta 49 kr på
+  // 25 dagar och från ES vara gratis på 6. En dedupe som behåller den FÖRSTA
+  // hade kastat bort just det billigare lagret vi letar efter (granskning
+  // 2026-08-19). Vi behåller därför den bäst rankade raden per namn.
+  const bast = new Map<string, DeliveryOption>();
   for (const lista of lists) {
     for (const alt of lista) {
       if (!alt || typeof alt !== "object") continue;
@@ -312,12 +325,19 @@ export function parseDeliveryOptions(outcome: FreightQueryOutcome): DeliveryOpti
         const v = rad[nyckel];
         if (typeof v === "string" && v.trim()) { namn = v.trim(); break; }
       }
-      if (!namn || sedda.has(namn)) continue;
-      sedda.add(namn);
-      ut.push({ serviceName: namn, costSek: costOf(rad), maxDays: daysOf(rad) });
+      if (!namn) continue;
+      const kandidat: DeliveryOption = {
+        serviceName: namn,
+        costSek: costOf(rad),
+        maxDays: daysOf(rad),
+      };
+      const nuvarande = bast.get(namn);
+      if (!nuvarande || deliveryScore(kandidat) < deliveryScore(nuvarande)) {
+        bast.set(namn, kandidat);
+      }
     }
   }
-  return ut;
+  return [...bast.values()];
 }
 
 /** Lägre är bättre: fraktkostnad plus tiden omräknad i kronor. */
@@ -379,6 +399,8 @@ export function deliveryCandidates(
   fallback: string,
   dayValueSek = DEFAULT_DAY_VALUE_SEK,
 ): string[] {
-  const rankade = rankDeliveryOptions(options).map((o) => o.serviceName);
+  // dayValueSek MÅSTE vidare till rankningen — parametern annonserade tidigare
+  // en inställbarhet funktionen inte hade (granskning 2026-08-19).
+  const rankade = rankDeliveryOptions(options, dayValueSek).map((o) => o.serviceName);
   return rankade.includes(fallback) ? rankade : [...rankade, fallback];
 }
