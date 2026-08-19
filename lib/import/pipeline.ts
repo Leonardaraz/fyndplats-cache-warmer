@@ -17,6 +17,7 @@ import {
 import { generatePremiumContent } from "./premium-pipeline";
 import { rankProductImages } from "./image-rank";
 import type { FaqReviewHint } from "./faq-gen";
+import { stripMarketplaceSuffix } from "./guard";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
 import { buildTranslatorFromBase, translateValue, unresolvedAxisNames } from "./variant-translations";
@@ -731,7 +732,10 @@ export async function importProduct(
     const rec = await suggestCategoryRecord(seoLegacy, product, cols);
     const tabs = await generateTabs({
       productId: product.supplierProductId,
-      name: seoLegacy.title || product.rawTitle,
+      // stripMarketplaceSuffix även här: seoLegacy.title är redan tvättad, men
+      // fallbacken går förbi seo.ts och skulle annars mata flikgenereringen med
+      // "… - AliExpress 1503" som produktnamn.
+      name: seoLegacy.title || stripMarketplaceSuffix(product.rawTitle),
       categoryName: rec.collectionName ?? null,
       specifications: product.specifications,
       features: product.features,

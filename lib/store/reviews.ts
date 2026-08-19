@@ -28,6 +28,8 @@
 //   status:         "pending" | "approved" | "rejected" | "edited"
 //   importedAt:     ISO-datum
 
+import { isExternalSupplierImage, ownImageUrlForReview } from "../wix/media-import";
+
 const WIX_BASE = "https://www.wixapis.com";
 
 function headers(): Record<string, string> {
@@ -75,6 +77,47 @@ export function reviewDocId(productId: string, reviewIdAE: string): string {
   return `${productId}__${reviewIdAE}`;
 }
 
+/**
+ * Byter leverantörens bild-CDN mot vår egen adress INNAN raden blir synlig.
+ *
+ * Varför här och inte i kön: `lib/reviews/queue.ts` skriver med flit den råa
+ * adressen och skjuter upp hemflytten till publiceringen — rader som aldrig
+ * godkänns ska inte kosta medialagring. Men den utlovade hemflytten fanns
+ * ingenstans i koden. Kön ställde in sig på att någon annan gjorde jobbet, och
+ * ingen gjorde det: 44 publicerade recensioner låg 2026-08-18 kvar med
+ * `aliexpress-media.com` i produktsidans HTML. Adressen står i klartext för den
+ * som högerklickar på kundbilden.
+ *
+ * `upsert` är enda vägen in i kollektionen, så grinden sitter där i stället för
+ * i varje anropare — då kan ingen ny publiceringsväg glömma den.
+ *
+ * Misslyckad import → raden lämnas ORÖRD, med leverantörsadressen kvar.
+ *
+ * Det är motsatt val mot `ownImageUrlForReview`, som utelämnar bilden vid fel —
+ * och skillnaden är avsiktlig. Där skapas raden från grunden, så en utelämnad
+ * bild kostar ingenting. Här UPPDATERAS en befintlig rad, och eftersom Wix
+ * `items/save` är en helersättning (och JSON.stringify tappar `undefined`)
+ * hade ett `undefined` raderat den enda pekaren till kundbilden. Ett 60
+ * sekunder långt avbrott hos Wix media under en modereringsrunda hade då tyst
+ * och oåterkalleligt slängt varje bild som godkändes i det fönstret — utan väg
+ * att försöka igen, för källadressen är borta.
+ *
+ * Kvarlämnad leverantörsadress är däremot reparerbar: den syns i samma
+ * kontroll som hittade de 44 ursprungliga (`imageUrl` som innehåller
+ * leverantörens värd) och kan flyttas hem i efterhand.
+ */
+async function withOwnImage(review: StoredReview): Promise<StoredReview> {
+  if (!isExternalSupplierImage(review.imageUrl)) return review;
+  const egen = await ownImageUrlForReview(review.imageUrl, review.reviewIdAE);
+  if (!egen) {
+    console.warn(
+      `[reviews] kunde inte flytta hem kundbild för ${review.reviewIdAE} — behåller källadressen för nytt försök.`,
+    );
+    return review;
+  }
+  return { ...review, imageUrl: egen, hasImage: true };
+}
+
 export class ReviewStore {
   async exists(productId: string, reviewIdAE: string): Promise<boolean> {
     const id = reviewDocId(productId, reviewIdAE);
@@ -93,6 +136,8 @@ export class ReviewStore {
 
   async upsert(review: StoredReview): Promise<void> {
     const id = reviewDocId(review.productId, review.reviewIdAE);
+    const status = review.status ?? "approved";
+    const skickas = isVisibleStatus(status) ? await withOwnImage(review) : review;
     const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
       method: "POST",
       headers: headers(),
@@ -103,8 +148,8 @@ export class ReviewStore {
           dataCollectionId: COLLECTION_ID,
           data: {
             _id: id,
-            ...review,
-            status: review.status ?? "approved",
+            ...skickas,
+            status,
             importedAt: review.importedAt ?? new Date().toISOString(),
           },
         },

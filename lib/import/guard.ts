@@ -37,6 +37,50 @@ export function looksLikeStoreCopy(text: string | null | undefined): boolean {
   return STORE_COPY_MARKERS.some((re) => re.test(text));
 }
 
+// `ex` räcker som fäste i stället för hela `express`: de sparade titlarna är
+// redan kapade på tecken 70 och slutar på allt från "- AliEx" till "- AliExpre".
+// Två bokstäver mer än "ali" håller ändå namn som "Alice" och "Alexander"
+// utanför — de skulle annars ätas upp av ett prefix-tolerant mönster.
+//
+// FÖRANKRAT i slutet (`[\s\d.]*$`), och det är hela poängen. Ett girigt `.*$`
+// åt upp allt efter FÖRSTA marknadsplats-ordet, så en titel med segmentet i
+// mitten tappade sin svans: "Powerbank 20000mAh - AliExpress Choice -
+// Snabbladdning" blev "Powerbank 20000mAh". Med förankringen matchar mönstret
+// bara när det som följer är siffror/blanksteg (säljar-id:t), annars lämnas
+// titeln orörd. Fel-läget blir "strök inte" i stället för "strök för mycket".
+const MARKETPLACE_SUFFIX = /\s*[-–—|]+\s*ali\s?(?:ex|baba)\S*[\s\d.]*$/i;
+/** Skiljetecken som blir hängande när suffixet kapats bort ("Klocka, - AliExpress"). */
+const DANGLING_PUNCT = /[\s,;:.\-–—/&|]+$/u;
+
+/**
+ * Skalar bort leverantörsmarknadsplatsens namn ur SLUTET av en råtitel.
+ *
+ * Råtiteln kommer från sidans `document.title`, som hos AliExpress alltid ser ut
+ * som `<produktnamn> - AliExpress <säljar-id>`. I RÅ-läget
+ * (`AI_ENRICHMENT_ENABLED=false`) blir råtiteln produktens namn i Wix rakt av —
+ * alltså skulle butiken visa "…Rattan Garden Table 40X40X40 cm - AliExpress"
+ * för kunden tills någon polerar den. Uppmätt 2026-08-19: 67 mappningar bär
+ * suffixet i den sparade titeln. De är alla polerade i efterhand, men nästa
+ * opolerade import hade nått kunden.
+ *
+ * Kapar från skiljetecknet och ut, så även det avhuggna "- AliExpre" försvinner
+ * (70-teckensgränsen slog mitt i ordet). Körs FÖRE längdkapningen — då går de
+ * tecknen till produktnamnet i stället för till leverantörens varumärke.
+ *
+ * Funktionen gör BARA detta. En titel som i sin helhet ÄR marknadsplatsen
+ * ("AliExpress", eller startsidans "AliExpress - Online Shopping for…") är en
+ * misslyckad skrapning, inte en smutsig titel, och hör hemma hos grindarna i
+ * den här filen — inte hos en strängtvätt. Ett tidigare försök att returnera
+ * tom sträng för det fallet gav i stället en produkt UTAN namn i Wix, eftersom
+ * ingen anropare i rå-läget kontrollerar resultatet mot isThinProductInput.
+ */
+export function stripMarketplaceSuffix(rawTitle: string | null | undefined): string {
+  const t = String(rawTitle ?? "").trim();
+  const kapad = t.replace(MARKETPLACE_SUFFIX, "");
+  // Oförändrad → rör inget alls (inga hängande skiljetecken att städa).
+  return kapad === t ? t : kapad.replace(DANGLING_PUNCT, "").trim();
+}
+
 /**
  * True om produktdatan är för tunn för att generera meningsfull SEO. En äkta
  * AliExpress-titel är i praktiken alltid lång; en misslyckad skrapning ger en
