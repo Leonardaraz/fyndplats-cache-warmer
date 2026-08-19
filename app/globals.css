@@ -2020,3 +2020,8 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 
 /* Flera kundbilder per recension: en remsa som radbryter på smal skärm. */
 .rev-photos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px }
+
+/* Långa recensioner: klampa till fem rader med en "Visa mer"-knapp. Utan den
+   dominerar ett enda utförligt omdöme hela sektionen. */
+.rev-text-klamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.rev-expand{background:none;border:0;padding:0;margin-top:4px;color:#b45309;font-size:13.5px;text-decoration:underline;cursor:pointer}
