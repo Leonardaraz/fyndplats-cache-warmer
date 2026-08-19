@@ -933,8 +933,13 @@ function extractPackageContents() {
 // Filtrering/rankning sker server-side (lib/import/review-import.ts); här gör vi
 // en lätt förfiltrering + topp-15-kapning så payloaden hålls liten.
 
+// Måste följa REVIEW_FILTER i lib/import/review-import.ts. Taket höjdes
+// 300 → 1200 server-side (2026-08-19) för att det sorterade bort just de
+// utförliga recensionerna som är värda mest — men den här förfiltreringen låg
+// kvar på 300 och kastade dem INNAN de ens skickades. En förfiltrering som är
+// hårdare än servern gör serverns gräns verkningslös för den här vägen.
 const REVIEW_MIN_LEN = 50;
-const REVIEW_MAX_LEN = 300;
+const REVIEW_MAX_LEN = 1200;
 const REVIEW_MAX = 15;
 
 // Försök läsa stjärnbetyg (1–5) ur ett recensions-element. AE använder oftast en
