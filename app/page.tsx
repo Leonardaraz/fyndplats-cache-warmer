@@ -5,7 +5,7 @@ import { ProductCard } from "../components/productcard";
 import { getReviewAggregates } from "../lib/review-aggregates";
 import { Stars } from "../components/stars";
 import { applyRatings, reviewCountLabel } from "../lib/rating";
-import { pickHero } from "../lib/hero-picks";
+import { pickHero, ensureRated } from "../lib/hero-picks";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
@@ -13,7 +13,7 @@ import { getHiddenFromFeatured, PROBLEM_MAX_SCORE } from "../lib/image-scores";
 import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
 import { tightFillUrl } from "../lib/wix-image";
-import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../lib/social-proof";
+import { getSocialProof } from "../lib/social-proof-live";
 
 // ISR: startsidan renderas statiskt men regenereras i bakgrunden var timme, så
 // nyimporterade produkter och kategori-ändringar dyker upp utan en ny deploy.
@@ -61,6 +61,13 @@ const websiteJsonLd = {
     "query-input": "required name=search_term_string",
   },
 };
+
+// Golvet för hur många produkter på varje startsides-yta som ska ha omdömen
+// (hjälten: 4 brickor, Veckans fynd: 8 kort). Ett GOLV, inte ett tak — resten
+// väljs på nyast-först som förut, så nytt sortiment behåller sin exponering.
+// Leonards regel 2026-08-19, efter att alla fyra hjälte-brickorna blivit
+// "5,0 (1)": det ska vara blandat.
+const MIN_MED_OMDOMEN = 2;
 
 export default async function Home() {
   const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions()]);
@@ -116,23 +123,42 @@ export default async function Home() {
   // både för hjälte-urvalet nedan och för Veckans fynd längre ner.
   const ratingMap = await getReviewAggregates();
 
+  // Google-betyget till trust-raderna. Live när API:t svarar, annars de
+  // handavlästa siffrorna i lib/social-proof.ts.
+  const proof = await getSocialProof();
+
   // Hero-mosaik (4 stora bilder): nyaste produkterna spridda över avdelningar för
   // en "breadth"-shot av nytillskotten. mixByCategory round-robinerar per
   // huvudkategori och behåller nyast-först inom varje bucket → de 4 första blir
   // nyaste produkten i var och en av de första avdelningarna.
   //
-  // MJUK prioritering av produkter MED omdömen (2026-08-19): hjälten ligger
+  // MINST 2 av de 4 brickorna ska ha omdömen (2026-08-19): hjälten ligger
   // ovanför vikningen och är butikens förtroende-shot, men brickorna stod utan
   // stjärnor eftersom urvalet var rent nyast-först och nya produkter är precis
   // de som ännu inte hunnit få omdömen (uppmätt: 0 av 12 produkter på
   // startsidan hade betyg, mot 55 % i katalogen som helhet).
   //
-  // Prioriteringen är MJUK, inte ett filter. Täckningen är ojämn per avdelning
-  // — 100 % i hudvård och dator/gaming, 12 % i trädgård & utemöbler — så ett
-  // hårt filter hade tömt hjälten på möbler och trädgård, alltså varorna med
-  // högst ordervärde. Två pass i stället: de med omdömen först, resten som
-  // reserv. Ordningen inom varje pass är mixByCategory-ordningen, så bredden
-  // över avdelningar och nyast-först behålls.
+  // Golvet är 2, inte 4. Ett första försök prioriterade betygsatta så hårt det
+  // gick och alla fyra brickorna blev "5,0 (1)" — fyra identiska ensamma
+  // omdömen ser inte ut som förtroende utan som en tunn butik.
+  //
+  // De två reserverade platserna går till de BÄST recenserade i HELA katalogen,
+  // inte till de först påträffade bland de 100 senaste. Preview-deployen visade
+  // varför: när bara den färska poolen fick leverera blev hjälten "4,5 (2)" och
+  // "5,0 (1)" medan Veckans fynd — som söker bredare — fick "(20)" och "(29)".
+  // Bakvänt, för hjälten är ytan ovanför vikningen. Hjälten är alltså numera
+  // "2 bäst recenserade + 2 nyaste", inte enbart nyast.
+  //
+  // Att skillnaden är stor är också mätt: över 28 kategorisidor har 84 av 328
+  // betygsatta kort exakt ETT omdöme, och bara 33 har fler än sju. Svansen går
+  // upp till 29, men den måste sökas upp aktivt — den ligger inte bland de
+  // nyaste produkterna.
+  //
+  // Ett hårt filter vore fortfarande fel. Täckningen är ojämn per avdelning
+  // — 100 % i hudvård och dator/gaming, 12 % i trädgård & utemöbler — så det
+  // hade tömt hjälten på möbler och trädgård, alltså varorna med högst
+  // ordervärde. De platser som inte är reserverade fylls därför som förut, i
+  // mixByCategory-ordning, så bredden över avdelningar och nyast-först behålls.
   //
   // Själva urvalsregeln ligger i lib/hero-picks.ts med test — den gick inte att
   // verifiera här inne, eftersom betygskartan blir tom utan Wix-nyckel och alla
@@ -148,11 +174,16 @@ export default async function Home() {
   // hamna i samma två — kollapsen som var argumentet MOT det hårda filtret.
   const avdelning = (p: { collectionIds?: string[] }) =>
     cols.find((c) => (p.collectionIds || []).includes(c.id))?.id ?? "";
+  // Hela katalogen, nyast-först och med betyg påsatta. Används både som
+  // hjältens reserv och som kandidatlista när Veckans fynd behöver fylla upp
+  // sitt betygsgolv.
+  const heleKatalogen = applyRatings(sortByNewest(allProducts).filter(isCleanImage), ratingMap);
   const heroProducts = pickHero(
     mixByCategory(applyRatings(freshClean, ratingMap), cols),
-    applyRatings(sortByNewest(allProducts).filter(isCleanImage), ratingMap),
+    heleKatalogen,
     4,
     avdelning,
+    MIN_MED_OMDOMEN,
   );
 
   // Äkta blur-up (8×8 webp från Wix-CDN, base64-cachad) för hjälte-mosaikens 4
@@ -186,7 +217,18 @@ export default async function Home() {
       veckansPicks.push(p); used.add(p.slug);
     }
   }
-  const products = applyRatings(dedupeProducts(veckansPicks).slice(0, 8), ratingMap);
+  // Samma golv som hjälten: minst 2 av de 8 ska ha omdömen. Raden är redan
+  // ordnad (REA leder, sedan nyast spritt över avdelningar), så ensureRated
+  // sorterar aldrig om — den byter ut de SISTA obetygsatta posterna mot de bäst
+  // recenserade kandidaterna. Kandidaterna tas i första hand ur de 100 senaste
+  // och först därefter ur hela katalogen, och aldrig ur hjälten.
+  const products = ensureRated(
+    applyRatings(dedupeProducts(veckansPicks).slice(0, 8), ratingMap),
+    [...applyRatings(featPool, ratingMap), ...heleKatalogen].filter(
+      (p) => !usedHero.has(p.slug),
+    ),
+    MIN_MED_OMDOMEN,
+  );
 
   // Topp-4 huvudgrupper för hemsidan (sorterade efter produktantal). Använder samma
   // groupbuild som /butik så curated hero-bilder matchar — användaren ser samma
@@ -212,7 +254,7 @@ export default async function Home() {
               </div>
               <div className="herotrust">
                 <span><b style={{ color: "#C2410C" }}>🇪🇺</b> <a href="/blogg/nya-tullreglerna-2026-eu-lager" style={{ color: "inherit", textDecorationColor: "rgba(43,38,33,.32)", textUnderlineOffset: "2px" }}>Allt från EU-lager – ingen importtull</a></span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> Google {GOOGLE_RATING}★ ({GOOGLE_REVIEWS_LABEL})</span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> Google {proof.rating}★ ({proof.label})</span>
                 <span><b style={{ color: "#C2410C" }}>✓</b> Svensk kundtjänst</span>
                 <span><b style={{ color: "#C2410C" }}>✓</b> 30 dagars öppet köp</span>
                 <span><b style={{ color: "#C2410C" }}>✓</b> Spårbar leverans</span>
@@ -281,7 +323,7 @@ export default async function Home() {
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg>Fri frakt över 499 kr</span>
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>Trygg Klarna-betalning</span>
           <span className="uspitem"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>30 dagars öppet köp</span>
-          <span className="uspitem">⭐ Google {GOOGLE_RATING} ({GOOGLE_REVIEWS_LABEL})</span>
+          <span className="uspitem">⭐ Google {proof.rating} ({proof.label})</span>
         </div>
       </div>
 

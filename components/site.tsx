@@ -7,7 +7,7 @@ import { getCategoryTree } from "../lib/category-groups";
 import { getPosts } from "../lib/blog";
 import { getProducts } from "../lib/products";
 import { TrustBox, TRUSTBOX_TEMPLATES } from "./trustpilot";
-import { GOOGLE_RATING, GOOGLE_REVIEWS_LABEL } from "../lib/social-proof";
+import { getSocialProof } from "../lib/social-proof-live";
 import { PaymentMarks } from "./payment-marks";
 
 export function GoogleG({ size = 16 }: { size?: number }) {
@@ -100,13 +100,17 @@ export async function SiteFooter() {
   // Trustpilot Mini TrustBox — bara när Leonard fyllt i business unit-ID:t i
   // Vercel. Tom env → ingen widget, inget Trustpilot-script (noll extra request).
   const trustpilotBU = (process.env.TRUSTPILOT_BUSINESS_UNIT_ID || "").trim();
+  // Google-betyget: live när Business Profile-API:t svarar, annars reserven.
+  // ISR-cachat i 6 h och delat med startsidan/omdömessidan → inget extra anrop
+  // trots att sidfoten renderas på varje sida.
+  const proof = await getSocialProof();
   return (
     <footer>
       <div className="container fgrid">
         <div>
           <div className="fbrand"><Mark size={30} />Fyndplats</div>
           <p style={{ fontSize: 14, color: "#a39c93", maxWidth: "30ch" }}>Trygg svensk e-handel med ett brett sortiment till låga priser.</p>
-          <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">{GOOGLE_RATING}</b> <span className="star">★★★★★</span> <span className="g-count">({GOOGLE_REVIEWS_LABEL})</span></div>
+          <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">{proof.rating}</b> <span className="star">★★★★★</span> <span className="g-count">({proof.label})</span></div>
           {trustpilotBU && (
             <TrustBox
               businessUnitId={trustpilotBU}
