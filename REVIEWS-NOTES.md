@@ -95,6 +95,26 @@ Omkontroll efter `REVIEW_RECHECK_DAYS` (30).
 
 Rutten är **inte schemalagd**, medvetet: se `CLAUDE.md`.
 
+### Återsvep efter ett rättat filter (`minLength`)
+
+När ett filter varit för snävt finns recensionerna kvar hos AE — men ett vanligt
+omsvep hämtar dem **inte** hem. Skälet är icke-uppenbart: topp-N-urvalet körs
+över hela den hämtade mängden **innan** dedupen mot det som redan är sparat, och
+längdpoängen i `scoreReview` är `min(längd / 150, 2)` — **maxad redan vid 300
+tecken**. En 1200-teckens recension får alltså exakt samma poäng som en
+300-teckens och kan inte tränga undan den. På en produkt som redan har sina
+platser fyllda importeras därför noll.
+
+`?minLength=` på `/api/cron/review-queue` höjer längdgolvet **för den körningen**
+(golvet 50 går inte att sänka bort, och ett orimligt värde sveper ingenting i
+stället för allt). Med `minLength=301` tas bara sådant det gamla 300-teckenstaket
+omöjligt kunde ha släppt in — kön växer bara med det som faktiskt missades.
+
+Hela katalogen: kör GitHub-workflowen **Recensionskö (svep katalogen)** med
+`recheck_all=true`, `min_length=301`, `pages=4`. Den loopar rundor tills
+kandidaterna tar slut. **Torrkör först** (`dry_run=true`) — siffran därifrån är
+hur många rader du åtar dig att skriva om för hand.
+
 ## Driftsättning
 
 1. **Wix Data-kollektionen** (idempotent, patchar även befintlig kollektion med

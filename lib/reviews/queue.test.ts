@@ -169,3 +169,43 @@ describe("fetchAndQueueForImport", () => {
     expect(await fetchAndQueueForImport("p1", "")).toEqual({ queued: 0, skippedExisting: 0, filtered: 0, timedOut: false });
   });
 });
+
+describe("queueReviewsForProduct — minLength (återsvep efter rättat filter)", () => {
+  const långText =
+    "Levererades inom en vecka och emballaget var helt oskadat. Monteringen tog " +
+    "ungefär tjugo minuter helt själv, alla skruvar låg märkta i separata påsar " +
+    "och instruktionen hade tydliga bilder utan text. Materialet känns rejält, " +
+    "ytan repades inte när jag drog den över golvet, och den står stadigt även " +
+    "på mattan. Färgen stämmer med bilderna, aningen mörkare i dagsljus.";
+
+  it("släpper bara igenom det gamla 300-teckenstaket kastade", async () => {
+    const store = fakeStore();
+    const r = await queueReviewsForProduct(
+      "p1",
+      [
+        ae({ reviewIdAE: "kort", text: "Bra kvalitet, snabb leverans och stabil konstruktion rakt igenom." }),
+        ae({ reviewIdAE: "lang", text: långText }),
+      ],
+      { store, minLength: 301 },
+    );
+
+    expect(r.queued).toBe(1);
+    const sparat = (store as never as { data: Map<string, StoredReview> }).data;
+    expect(sparat.has("p1__lang")).toBe(true);
+    expect(sparat.has("p1__kort")).toBe(false);
+  });
+
+  it("utan minLength köas båda som vanligt", async () => {
+    const store = fakeStore();
+    const r = await queueReviewsForProduct(
+      "p1",
+      [
+        ae({ reviewIdAE: "kort", text: "Bra kvalitet, snabb leverans och stabil konstruktion rakt igenom." }),
+        ae({ reviewIdAE: "lang", text: långText }),
+      ],
+      { store },
+    );
+
+    expect(r.queued).toBe(2);
+  });
+});

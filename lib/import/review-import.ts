@@ -154,16 +154,23 @@ export function scoreReview(r: AERReview, now: Date): number {
 export function filterAndRankReviews(
   reviews: AERReview[],
   now: Date,
-  opts: { max?: number } = {},
+  opts: { max?: number; minLength?: number } = {},
 ): AERReview[] {
   const max = opts.max ?? REVIEW_FILTER.maxReviews;
+  // Per körning, ALDRIG globalt: golvet på 50 tecken finns kvar för alla
+  // vanliga importer. Överdraget används för att svepa upp det ett gammalt,
+  // för snävt filter slängde — se REVIEW_FILTER.maxLength om 300 → 1200.
+  const minLength = Math.min(
+    Math.max(opts.minLength ?? REVIEW_FILTER.minLength, REVIEW_FILTER.minLength),
+    REVIEW_FILTER.maxLength,
+  );
   const seen = new Set<string>();
   const kept: AERReview[] = [];
   for (const r of reviews) {
     if (!r || typeof r.text !== "string") continue;
     const text = r.text.trim();
     if (r.rating < REVIEW_FILTER.minRating) continue;
-    if (text.length < REVIEW_FILTER.minLength || text.length > REVIEW_FILTER.maxLength) continue;
+    if (text.length < minLength || text.length > REVIEW_FILTER.maxLength) continue;
     if (isSpam(text)) continue;
     // "Kom snabbt till Tjeckien" hör inte hemma på en svensk produktsida
     // (Leonards rapport 2026-08-16). Vi tar bort dem i stället för att skriva

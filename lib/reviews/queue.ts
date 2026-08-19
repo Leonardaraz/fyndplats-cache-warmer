@@ -49,14 +49,31 @@ const TOM: QueueResult = { queued: 0, skippedExisting: 0, filtered: 0 };
 export async function queueReviewsForProduct(
   productId: string,
   rawReviews: AERReview[],
-  opts: { max?: number; now?: Date; store?: ReturnType<typeof getReviewStore> } = {},
+  opts: {
+    max?: number;
+    now?: Date;
+    store?: ReturnType<typeof getReviewStore>;
+    /**
+     * Höjer längdgolvet för DEN HÄR körningen (se filterAndRankReviews).
+     *
+     * Finns för återsvep efter att ett filter rättats: sätt 301 så tas bara
+     * sådant som det gamla 300-teckenstaket omöjligt kunde ha importerat.
+     * Utan det konkurrerar de om samma topp-N-platser som de redan sparade
+     * korta recensionerna — och förlorar, eftersom längdpoängen i
+     * scoreReview är maxad redan vid 300 tecken.
+     */
+    minLength?: number;
+  } = {},
 ): Promise<QueueResult> {
   if (!productId || !rawReviews?.length) return { ...TOM };
   const now = opts.now ?? new Date();
   const store = opts.store ?? getReviewStore();
 
   try {
-    const ranked = filterAndRankReviews(rawReviews, now, opts.max ? { max: opts.max } : {});
+    const ranked = filterAndRankReviews(rawReviews, now, {
+      ...(opts.max ? { max: opts.max } : {}),
+      ...(opts.minLength ? { minLength: opts.minLength } : {}),
+    });
     const filtered = rawReviews.length - ranked.length;
     let queued = 0;
     let skippedExisting = 0;

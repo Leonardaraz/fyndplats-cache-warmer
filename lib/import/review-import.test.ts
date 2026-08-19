@@ -211,3 +211,65 @@ describe("dedupKey och isSpam vid text utan blanksteg efter punkt", () => {
     expect(isSpam("nice")).toBe(true);
   });
 });
+
+describe("filterAndRankReviews — minLength-överdraget (återsvep)", () => {
+  // Bakgrund: längdtaket var 300 tecken fram till 2026-08-19. Allt däröver
+  // kastades och finns kvar hos AliExpress. Ett vanligt omsvep hämtar dem
+  // INTE hem, av en icke-uppenbar anledning: topp-N-urvalet körs över hela
+  // den hämtade mängden INNAN dedupen mot det som redan är sparat, och
+  // längdpoängen i scoreReview är maxad redan vid 300 tecken
+  // (Math.min(len / 150, 2)). En 1200-teckens recension får alltså exakt
+  // samma poäng som en 300-teckens och kan inte tränga undan den.
+  // Måste ha nog med UNIKA ord för att passera isSpam — en upprepad fras
+  // filtreras bort som spam och testet hade då mätt fel sak.
+  const lång = (n: number) =>
+    review({
+      reviewIdAE: `lång-${n}`,
+      text:
+        `Recension ${n}: levererades inom en vecka och emballaget var helt oskadat. ` +
+        "Monteringen tog ungefär tjugo minuter helt själv, alla skruvar låg märkta " +
+        "i separata påsar och instruktionen hade tydliga bilder utan text. Materialet " +
+        "känns rejält, ytan repades inte när jag drog den över golvet, och den står " +
+        "stadigt även på mattan i vardagsrummet. Färgen stämmer med bilderna här, " +
+        "aningen mörkare i dagsljus. Enda anmärkningen är att sladden kunde varit " +
+        "längre, annars ingenting att klaga på för priset.",
+      date: "2026-01-01T00:00:00.000Z",
+    });
+  const kort = (n: number) =>
+    review({
+      reviewIdAE: `kort-${n}`,
+      text: `Recension ${n}: bra kvalitet, snabb leverans och stabil konstruktion rakt igenom.`,
+      hasImage: true,
+      customerCountry: "ES",
+      date: "2026-05-01T00:00:00.000Z",
+    });
+
+  it("visar problemet: långa recensioner trängs undan utan överdraget", () => {
+    const hämtat = [...Array.from({ length: 8 }, (_, i) => kort(i)), lång(1), lång(2)];
+    const utan = filterAndRankReviews(hämtat, NOW, { max: 8 });
+    expect(utan).toHaveLength(8);
+    expect(utan.every((r) => r.reviewIdAE?.startsWith("kort"))).toBe(true);
+  });
+
+  it("med minLength=301 kommer bara de långa med", () => {
+    const hämtat = [...Array.from({ length: 8 }, (_, i) => kort(i)), lång(1), lång(2)];
+    const med = filterAndRankReviews(hämtat, NOW, { max: 8, minLength: 301 });
+    expect(med.map((r) => r.reviewIdAE).sort()).toEqual(["lång-1", "lång-2"]);
+  });
+
+  it("golvet på 50 tecken går inte att sänka bort", () => {
+    const stump = review({ reviewIdAE: "stump", text: "Bra grej, fungerar fint och kom snabbt." });
+    expect(filterAndRankReviews([stump], NOW, { minLength: 1 })).toHaveLength(0);
+    expect(filterAndRankReviews([stump], NOW, { minLength: 0 })).toHaveLength(0);
+  });
+
+  it("ett orimligt högt värde sveper ingenting i stället för allt", () => {
+    const hämtat = [lång(1), kort(1)];
+    expect(filterAndRankReviews(hämtat, NOW, { minLength: 99999 })).toHaveLength(0);
+  });
+
+  it("utan överdrag gäller det vanliga golvet", () => {
+    const hämtat = [lång(1), kort(1)];
+    expect(filterAndRankReviews(hämtat, NOW)).toHaveLength(2);
+  });
+});
