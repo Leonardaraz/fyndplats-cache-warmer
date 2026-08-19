@@ -1,6 +1,6 @@
 import { completeJson } from "../ai/claude";
 import { makeCacheKey } from "../llm/cache";
-import { isThinProductInput, looksLikeStoreCopy } from "./guard";
+import { isThinProductInput, looksLikeStoreCopy, stripMarketplaceSuffix } from "./guard";
 import type { AliExpressProduct } from "./types";
 
 export interface SeoResult {
@@ -36,6 +36,10 @@ Svara ENDAST med giltig JSON enligt schemat.`;
  * stängt av SEO/översättning via feature-flaggor.
  */
 export function buildFallbackSeo(product: AliExpressProduct): SeoResult {
+  // Marknadsplatsens namn ur titeln FÖRST — i rå-läget blir den här titeln
+  // produktens namn i Wix rakt av, och kapningen nedan ska lägga sina 70 tecken
+  // på produkten, inte på "- AliExpress 1503".
+  const titel = stripMarketplaceSuffix(product.rawTitle);
   // Bug 2026-06-02: rå-läge gav bara meta-description-boilerplate i Wix.
   // Föredra full HTML-beskrivning (descriptionHtml) -> råtext (rawDescription)
   // -> titel-fallback. Det första giltiga blir Wix:s description.
@@ -45,21 +49,25 @@ export function buildFallbackSeo(product: AliExpressProduct): SeoResult {
     ? descHtml.slice(0, 8000)
     : rawDesc
       ? `<p>${rawDesc.slice(0, 1000)}</p>`
-      : `<p>${product.rawTitle.slice(0, 500)}</p>`;
+      : `<p>${titel.slice(0, 500)}</p>`;
   return clampSeo(
     {
-      title: truncateAtWord(product.rawTitle, 70),
-      metaDescription: truncateAtWord(rawDesc || product.rawTitle, 160),
+      title: truncateAtWord(titel, 70),
+      metaDescription: truncateAtWord(rawDesc || titel, 160),
       descriptionHtml: html,
-      slug: product.rawTitle ? "" : "produkt",
+      slug: titel ? "" : "produkt",
       suggestedCategory: "",
-      imageAltTexts: product.imageUrls.map(() => product.rawTitle),
+      imageAltTexts: product.imageUrls.map(() => titel),
     },
     product.imageUrls.length,
   );
 }
 
 export async function generateSeo(product: AliExpressProduct): Promise<SeoResult> {
+  // Samma tvätt som i rå-läget: modellen ska inte se marknadsplatsens namn i
+  // råtiteln (den har ekat tillbaka det i genererade titlar), och fail-open
+  // nedan använder titeln som produktnamn.
+  const titel = stripMarketplaceSuffix(product.rawTitle);
   const user = `Skapa svenskt SEO-innehåll för denna produkt. Svara med JSON:
 {
   "title": "<=70 tecken, säljande svensk titel",
@@ -71,17 +79,20 @@ export async function generateSeo(product: AliExpressProduct): Promise<SeoResult
 }
 
 Antal bilder: ${product.imageUrls.length}
-Råtitel: ${product.rawTitle}
+Råtitel: ${titel}
 Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
 
   // Cache-key på produkt-id + rå-titel + första 500 tecken av rå-beskrivning.
+  // `titel` (tvättad), inte råtiteln: prompten innehåller den tvättade titeln,
+  // så en nyckel på råtiteln hade spelat upp ett svar som genererats ur en
+  // annan indata. Kostar en omgenerering per produkt, en gång.
   // supplierProductId ingår så att TVÅ OLIKA produkter aldrig kan kollidera på
   // samma nyckel (tidigare kollapsade tomma skrapningar till EN konstant nyckel
   // -> en dålig generering cachades och spelades upp för alla - bug 2026-05-31).
   // Samma AliExpress-produkt re-importad -> fortfarande cache-träff.
   const cacheKey = makeCacheKey({
     op: "generateSeo",
-    name: product.rawTitle,
+    name: titel,
     description: product.rawDescription,
     dependencyFingerprint: `pid=${product.supplierProductId}|imgCount=${product.imageUrls.length}`,
   });
@@ -91,20 +102,20 @@ Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
   // SEO i Wix efteråt. max_tokens sänkt från 3000 -> 2000 (beskrivningen behöver
   // sällan mer än ~6kB svensk HTML).
   const failOpen: SeoResult = {
-    title: truncateAtWord(product.rawTitle, 70),
-    metaDescription: truncateAtWord(product.rawTitle, 160),
+    title: truncateAtWord(titel, 70),
+    metaDescription: truncateAtWord(titel, 160),
     descriptionHtml: `<p>${product.rawDescription.slice(0, 1000)}</p>`,
     slug: "produkt",
     suggestedCategory: "",
-    imageAltTexts: product.imageUrls.map(() => product.rawTitle),
+    imageAltTexts: product.imageUrls.map(() => titel),
   };
 
   // Skydd 1: om produktdatan är för tunn (misslyckad skrapning) - anropa INTE
   // LLM:en. Utan produktkontext genererar modellen butikscopy om Fyndplats
   // istället för produktinnehåll. Returnera fail-open direkt.
-  if (isThinProductInput(product.rawTitle)) {
+  if (isThinProductInput(titel)) {
     console.warn(
-      `[seo] Tunn produktdata (pid=${product.supplierProductId}, titel="${product.rawTitle}") - hoppar över SEO-generering.`,
+      `[seo] Tunn produktdata (pid=${product.supplierProductId}, titel="${titel}") - hoppar över SEO-generering.`,
     );
     return clampSeo(failOpen, product.imageUrls.length);
   }

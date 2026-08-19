@@ -38,6 +38,41 @@ export function looksLikeStoreCopy(text: string | null | undefined): boolean {
 }
 
 /**
+ * Skalar bort leverantörsmarknadsplatsens namn ur en råtitel.
+ *
+ * Råtiteln kommer från sidans `document.title`, som hos AliExpress alltid ser ut
+ * som `<produktnamn> - AliExpress <säljar-id>`. I RÅ-läget
+ * (`AI_ENRICHMENT_ENABLED=false`) blir råtiteln produktens namn i Wix rakt av —
+ * alltså skulle butiken visa "…Rattan Garden Table 40X40X40 cm - AliExpress"
+ * för kunden tills någon polerar den. Uppmätt 2026-08-19: 67 mappningar bär
+ * suffixet i den sparade titeln. De är alla polerade i efterhand, men nästa
+ * opolerade import hade nått kunden.
+ *
+ * Kapar från skiljetecknet och ut, så även det avhuggna "- AliExpre" försvinner
+ * (70-teckensgränsen slog mitt i ordet). Körs FÖRE längdkapningen — då går de
+ * tecknen till produktnamnet i stället för till leverantörens varumärke.
+ *
+ * En äkta produkttitel nämner aldrig marknadsplatsen, så mönstret kan inte
+ * råka äta upp något vi vill ha kvar.
+ */
+// `ex` räcker som fäste i stället för hela `express`: de sparade titlarna är
+// redan kapade på tecken 70 och slutar på allt från "- AliEx" till "- AliExpre".
+// Två bokstäver mer än "ali" håller ändå namn som "Alice" och "Alexander"
+// utanför — de skulle annars ätas upp av ett prefix-tolerant mönster.
+const MARKETPLACE_SUFFIX = /\s*[-–—|]+\s*ali\s?(?:ex|baba).*$/i;
+/** Hela titeln ÄR marknadsplatsen — misslyckad skrapning som gav document.title rakt av. */
+const MARKETPLACE_ONLY = /^\s*ali\s?(?:ex\w*|baba\w*)[\s\d.]*$/i;
+
+export function stripMarketplaceSuffix(rawTitle: string | null | undefined): string {
+  const t = String(rawTitle ?? "").trim();
+  // Tom sträng i stället för "AliExpress": då fångar isThinProductInput den och
+  // importen faller tillbaka i stället för att döpa produkten till butiken vi
+  // köper av. ("AliExpress" är exakt 10 tecken och slank annars igenom.)
+  if (MARKETPLACE_ONLY.test(t)) return "";
+  return t.replace(MARKETPLACE_SUFFIX, "").trim();
+}
+
+/**
  * True om produktdatan är för tunn för att generera meningsfull SEO. En äkta
  * AliExpress-titel är i praktiken alltid lång; en misslyckad skrapning ger en
  * tom eller trivial titel (t.ex. "AliExpress" från document.title).
