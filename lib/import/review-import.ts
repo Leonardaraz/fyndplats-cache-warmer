@@ -387,7 +387,16 @@ export async function importReviewsForProduct(
       ...bildfalt,
       // Importerade AE-recensioner auto-godkänns (spec 2026-06-02); framtida
       // riktiga kundrecensioner får "pending" och kräver Leonards godkännande.
-      status: "approved",
+      //
+      // MEN INTE OTRANSLATERADE. Slår DeepL-budgeten i taket faller koden
+      // tillbaka på originaltexten, och ett auto-godkännande hade då lagt
+      // ENGELSKA recensioner rakt ut på en svensk produktsida. Risken växte
+      // när längdtaket höjdes 300 → 1200 (2026-08-19): samma antal recensioner
+      // kostar nu upp till fyra gånger så många tecken, så taket nås tidigare.
+      //
+      // De hamnar i stället i poleringskön, där texten kan översättas gratis i
+      // chatten — vilket är den väg Leonard valt framför DeepL.
+      status: budgetExceeded || translationFailed ? "pending" : "approved",
       importedAt,
     };
     try {

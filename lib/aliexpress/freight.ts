@@ -267,6 +267,47 @@ export const DEFAULT_DAY_VALUE_SEK = 5;
  */
 export const ASSUMED_DAYS_WHEN_UNKNOWN = 30;
 
+/**
+ * Ett belopp ur en formaterad sträng, med tusentalsavgränsare hanterad.
+ *
+ * Ett naivt `replace(",", ".")` gjorde "SEK 1,299.00" till 1,299 kr och
+ * "1 299,00" till 1 kr (granskning 2026-08-19) — ett fraktalternativ för
+ * trettonhundra kronor lästes alltså som en krona och vann rankningen direkt.
+ *
+ * Reglerna, i tur och ordning:
+ *   - blanksteg (även hårda) är alltid tusental i svensk formatering → bort
+ *   - finns BÅDA tecknen är det sista decimaltecknet, det andra tusental
+ *   - finns ett tecken FLERA gånger är det tusental
+ *   - ett ensamt tecken följt av exakt tre siffror läses som tusental
+ *     ("1,299" = 1299), vilket är den säkra tolkningen för en avgift
+ *   - annars decimaltecken
+ */
+export function parseAmount(raw: string): number | null {
+  const bara = raw.match(/[\d.,\s\u00a0]+/);
+  if (!bara) return null;
+  let t = bara[0].replace(/[\s\u00a0]/g, "");
+  if (!t) return null;
+
+  const sistaKomma = t.lastIndexOf(",");
+  const sistaPunkt = t.lastIndexOf(".");
+  if (sistaKomma >= 0 && sistaPunkt >= 0) {
+    const dec = sistaKomma > sistaPunkt ? "," : ".";
+    const tus = dec === "," ? "." : ",";
+    t = t.split(tus).join("").replace(dec, ".");
+  } else {
+    const tecken = sistaKomma >= 0 ? "," : sistaPunkt >= 0 ? "." : "";
+    if (tecken) {
+      const antal = t.split(tecken).length - 1;
+      const efter = t.length - t.lastIndexOf(tecken) - 1;
+      const fore = t.lastIndexOf(tecken);
+      if (antal > 1 || (efter === 3 && fore > 0)) t = t.split(tecken).join("");
+      else t = t.replace(tecken, ".");
+    }
+  }
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}
+
 function num(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim() !== "") {
@@ -288,8 +329,7 @@ function num(v: unknown): number | null {
     // datumformerna redan avvisats ovan — det här fångar valutaprefix som
     // "SEK 199.00", som annars blivit "okänd kostnad" och därmed antagits
     // gratis.
-    const nagonstans = v.match(/(\d+(?:[.,]\d+)?)/);
-    if (nagonstans) return Number(nagonstans[1].replace(",", "."));
+    return parseAmount(v);
   }
   return null;
 }

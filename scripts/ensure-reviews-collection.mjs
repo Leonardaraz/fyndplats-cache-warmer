@@ -74,8 +74,35 @@ async function ensure(spec) {
     { headers },
   );
   if (getRes.status === 200) {
-    console.log(`[skip] ${spec.id} finns redan.`);
-    return true;
+    // FINNS REDAN — men kanske utan de fält som lagts till sedan den skapades.
+    // Ett rent "[skip]" gjorde att nya fält bara nådde nyprovisionerade sajter
+    // medan den LEVANDE kollektionen med 1932 rader aldrig fick dem
+    // (granskning 2026-08-19). Vi lägger därför till det som saknas.
+    const nuvarande = await getRes.json().catch(() => null);
+    const befintliga = new Set(
+      (nuvarande?.collection?.fields ?? []).map((f) => f.key).filter(Boolean),
+    );
+    const saknade = spec.fields.filter((f) => !befintliga.has(f.key));
+    if (saknade.length === 0) {
+      console.log(`[skip] ${spec.id} finns redan med alla fält.`);
+      return true;
+    }
+    console.log(`[patch] ${spec.id} saknar ${saknade.length} fält: ${saknade.map((f) => f.key).join(", ")}`);
+    const patchRes = await fetch(
+      `https://www.wixapis.com/wix-data/v2/collections/${encodeURIComponent(spec.id)}`,
+      {
+        method: "PATCH",
+        headers,
+        // Wix vill ha HELA fältlistan; skickar man bara de nya försvinner
+        // resten. Befintliga fält behålls därför genom att spec:en är komplett.
+        body: JSON.stringify({ collection: { ...spec, fields: spec.fields } }),
+      },
+    );
+    const patchOk = patchRes.status >= 200 && patchRes.status < 300;
+    console.log(
+      `[patch] ${spec.id} → HTTP ${patchRes.status} ${patchOk ? "OK" : (await patchRes.text()).slice(0, 300)}`,
+    );
+    return patchOk;
   }
   if (getRes.status !== 404) {
     console.log(`[warn] ${spec.id} kontroll → HTTP ${getRes.status}: ${(await getRes.text()).slice(0, 300)}`);

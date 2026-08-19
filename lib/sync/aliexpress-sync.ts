@@ -339,9 +339,14 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
         // växthuset på 449 kr föreslogs få 1219 kr. Vid målmarginalen landar
         // det på ~639 kr, vilket är en höjning man faktiskt gör. Faller
         // tillbaka på import-regeln om målpriset inte går att räkna ut.
+        // Målet är det HÖGSTA av standardmålet och larmgolvet. Är golvet satt
+        // över 22,5 % (SYNC_MARGIN_FLOOR_PERCENT) vore ett förslag på 22,5 %
+        // en PRISSÄNKNING som dessutom aldrig rensar larmet — det ligger ju
+        // fortfarande under golvet (granskning 2026-08-19).
+        const målmarginal = Math.max(TARGET_MARGIN_PCT, marginFloorPercent);
         const målpris = priceForTargetMargin(
           newCostSek,
-          TARGET_MARGIN_PCT,
+          målmarginal,
           pricing.vatRatePercent,
         );
         const recommended =
