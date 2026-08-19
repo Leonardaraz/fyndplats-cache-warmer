@@ -141,10 +141,18 @@ export default async function Home() {
   // Sista argumentet är den defensiva fyllningen: räcker inte de 100 senaste
   // till 4 brickor (mycket litet/nytt sortiment) tas nyaste rena produkten ur
   // hela katalogen.
+  //
+  // Avdelningsnyckeln är samma regel som mixByCategory grupperar på (första
+  // träffen i cols-ordning). Utan den bevaras bara ordningen, inte bredden:
+  // har bara ett par avdelningar betygsatta produkter kan alla fyra brickorna
+  // hamna i samma två — kollapsen som var argumentet MOT det hårda filtret.
+  const avdelning = (p: { collectionIds?: string[] }) =>
+    cols.find((c) => (p.collectionIds || []).includes(c.id))?.id ?? "";
   const heroProducts = pickHero(
     mixByCategory(applyRatings(freshClean, ratingMap), cols),
     applyRatings(sortByNewest(allProducts).filter(isCleanImage), ratingMap),
     4,
+    avdelning,
   );
 
   // Äkta blur-up (8×8 webp från Wix-CDN, base64-cachad) för hjälte-mosaikens 4

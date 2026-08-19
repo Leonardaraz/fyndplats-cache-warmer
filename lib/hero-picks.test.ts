@@ -2,7 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { pickHero } from "./hero-picks.ts";
 
-const p = (slug: string, rating?: unknown) => ({ slug, rating });
+const p = (slug: string, rating?: unknown, avd = "") => ({ slug, rating, avd });
+const avdelning = (x: { avd: string }) => x.avd;
 
 describe("pickHero", () => {
   it("tar produkter MED omdömen först", () => {
@@ -34,6 +35,37 @@ describe("pickHero", () => {
     const pool = [p("a", 1), p("b")];
     const fallback = [p("a", 1), p("c")];
     assert.deepEqual(pickHero(pool, fallback, 4).map((x) => x.slug), ["a", "b", "c"]);
+  });
+
+  it("sprider de betygsatta over avdelningar i stallet for att klumpa ihop dem", () => {
+    // Regressionen granskningen hittade: en ren filtrering av round-robin-listan
+    // bevarade ordningen men inte bredden. Har har avdelning A tre betygsatta
+    // och B/C en var — utan breddspärren hade hjälten blivit A,A,A,B.
+    const pool = [
+      p("a1", 1, "A"), p("b1", 1, "B"), p("a2", 1, "A"),
+      p("c1", 1, "C"), p("a3", 1, "A"),
+    ];
+    assert.deepEqual(
+      pickHero(pool, [], 4, avdelning).map((x) => x.slug),
+      ["a1", "b1", "c1", "a2"],
+    );
+  });
+
+  it("fyller pa fran en redan anvand avdelning hellre an att lamna en plats tom", () => {
+    // Bredden ar en preferens, inte ett krav — annars hade hjälten blivit gles
+    // i en katalog med fa avdelningar.
+    const pool = [p("a1", 1, "A"), p("a2", 1, "A"), p("a3", 1, "A")];
+    assert.deepEqual(pickHero(pool, [], 3, avdelning).map((x) => x.slug), ["a1", "a2", "a3"]);
+  });
+
+  it("betyg gar fore bredd: en andra betygsatt slar en obetygsatt fran ny avdelning", () => {
+    const pool = [p("a1", 1, "A"), p("a2", 1, "A"), p("b1", undefined, "B")];
+    assert.deepEqual(pickHero(pool, [], 2, avdelning).map((x) => x.slug), ["a1", "a2"]);
+  });
+
+  it("utan keyOf beter den sig som ren betygsprioritering", () => {
+    const pool = [p("a1", 1, "A"), p("a2", 1, "A"), p("b1", 1, "B")];
+    assert.deepEqual(pickHero(pool, [], 3).map((x) => x.slug), ["a1", "a2", "b1"]);
   });
 
   it("returnerar aldrig fler än limit", () => {
