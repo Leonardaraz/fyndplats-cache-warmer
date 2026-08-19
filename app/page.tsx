@@ -5,7 +5,7 @@ import { ProductCard } from "../components/productcard";
 import { getReviewAggregates } from "../lib/review-aggregates";
 import { Stars } from "../components/stars";
 import { applyRatings, reviewCountLabel } from "../lib/rating";
-import { pickHero } from "../lib/hero-picks";
+import { pickHero, ensureRated } from "../lib/hero-picks";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
@@ -61,6 +61,13 @@ const websiteJsonLd = {
     "query-input": "required name=search_term_string",
   },
 };
+
+// Golvet för hur många produkter på varje startsides-yta som ska ha omdömen
+// (hjälten: 4 brickor, Veckans fynd: 8 kort). Ett GOLV, inte ett tak — resten
+// väljs på nyast-först som förut, så nytt sortiment behåller sin exponering.
+// Leonards regel 2026-08-19, efter att alla fyra hjälte-brickorna blivit
+// "5,0 (1)": det ska vara blandat.
+const MIN_MED_OMDOMEN = 2;
 
 export default async function Home() {
   const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions()]);
@@ -125,18 +132,24 @@ export default async function Home() {
   // huvudkategori och behåller nyast-först inom varje bucket → de 4 första blir
   // nyaste produkten i var och en av de första avdelningarna.
   //
-  // MJUK prioritering av produkter MED omdömen (2026-08-19): hjälten ligger
+  // MINST 2 av de 4 brickorna ska ha omdömen (2026-08-19): hjälten ligger
   // ovanför vikningen och är butikens förtroende-shot, men brickorna stod utan
   // stjärnor eftersom urvalet var rent nyast-först och nya produkter är precis
   // de som ännu inte hunnit få omdömen (uppmätt: 0 av 12 produkter på
   // startsidan hade betyg, mot 55 % i katalogen som helhet).
   //
-  // Prioriteringen är MJUK, inte ett filter. Täckningen är ojämn per avdelning
-  // — 100 % i hudvård och dator/gaming, 12 % i trädgård & utemöbler — så ett
-  // hårt filter hade tömt hjälten på möbler och trädgård, alltså varorna med
-  // högst ordervärde. Två pass i stället: de med omdömen först, resten som
-  // reserv. Ordningen inom varje pass är mixByCategory-ordningen, så bredden
-  // över avdelningar och nyast-först behålls.
+  // Golvet är 2, inte 4. Ett första försök prioriterade betygsatta så hårt det
+  // gick och alla fyra brickorna blev "5,0 (1)" — fyra identiska ensamma
+  // omdömen ser inte ut som förtroende utan som en tunn butik. De reserverade
+  // platserna går dessutom till de BÄST recenserade, inte till de först
+  // påträffade: av katalogens 33 betygsatta kort har 16 exakt ett omdöme medan
+  // svansen går upp till 11.
+  //
+  // Ett hårt filter vore fortfarande fel. Täckningen är ojämn per avdelning
+  // — 100 % i hudvård och dator/gaming, 12 % i trädgård & utemöbler — så det
+  // hade tömt hjälten på möbler och trädgård, alltså varorna med högst
+  // ordervärde. De platser som inte är reserverade fylls därför som förut, i
+  // mixByCategory-ordning, så bredden över avdelningar och nyast-först behålls.
   //
   // Själva urvalsregeln ligger i lib/hero-picks.ts med test — den gick inte att
   // verifiera här inne, eftersom betygskartan blir tom utan Wix-nyckel och alla
@@ -152,11 +165,16 @@ export default async function Home() {
   // hamna i samma två — kollapsen som var argumentet MOT det hårda filtret.
   const avdelning = (p: { collectionIds?: string[] }) =>
     cols.find((c) => (p.collectionIds || []).includes(c.id))?.id ?? "";
+  // Hela katalogen, nyast-först och med betyg påsatta. Används både som
+  // hjältens reserv och som kandidatlista när Veckans fynd behöver fylla upp
+  // sitt betygsgolv.
+  const heleKatalogen = applyRatings(sortByNewest(allProducts).filter(isCleanImage), ratingMap);
   const heroProducts = pickHero(
     mixByCategory(applyRatings(freshClean, ratingMap), cols),
-    applyRatings(sortByNewest(allProducts).filter(isCleanImage), ratingMap),
+    heleKatalogen,
     4,
     avdelning,
+    MIN_MED_OMDOMEN,
   );
 
   // Äkta blur-up (8×8 webp från Wix-CDN, base64-cachad) för hjälte-mosaikens 4
@@ -190,7 +208,18 @@ export default async function Home() {
       veckansPicks.push(p); used.add(p.slug);
     }
   }
-  const products = applyRatings(dedupeProducts(veckansPicks).slice(0, 8), ratingMap);
+  // Samma golv som hjälten: minst 2 av de 8 ska ha omdömen. Raden är redan
+  // ordnad (REA leder, sedan nyast spritt över avdelningar), så ensureRated
+  // sorterar aldrig om — den byter ut de SISTA obetygsatta posterna mot de bäst
+  // recenserade kandidaterna. Kandidaterna tas i första hand ur de 100 senaste
+  // och först därefter ur hela katalogen, och aldrig ur hjälten.
+  const products = ensureRated(
+    applyRatings(dedupeProducts(veckansPicks).slice(0, 8), ratingMap),
+    [...applyRatings(featPool, ratingMap), ...heleKatalogen].filter(
+      (p) => !usedHero.has(p.slug),
+    ),
+    MIN_MED_OMDOMEN,
+  );
 
   // Topp-4 huvudgrupper för hemsidan (sorterade efter produktantal). Använder samma
   // groupbuild som /butik så curated hero-bilder matchar — användaren ser samma
