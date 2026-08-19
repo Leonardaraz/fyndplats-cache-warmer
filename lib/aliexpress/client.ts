@@ -693,11 +693,17 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
     // avgör om vi VET att ingen order lades (is_success=false eller en felkod) →
     // då kan claimen släppas för en säker retry i stället för att låsa tasken.
     let aeError: string | undefined;
+    let aeErrorCode: string | undefined;
     let orderDefinitelyNotPlaced = false;
     if (orderIdRaw == null) {
       const emsg = result.error_msg ? String(result.error_msg).trim() : "";
       const ecode = result.error_code != null ? String(result.error_code) : "";
       aeError = emsg || (ecode ? `felkod ${ecode}` : `oväntat svar (is_success=${String(isSuccess)})`);
+      // Koden BEHÅLLS separat. aeError är formaterad för människor och tappar
+      // koden så fort error_msg finns — en anropare som vill grinda på ett
+      // specifikt fel (t.ex. fraktsättets DELIVERY_METHOD_NOT_EXIST) kan då
+      // inte se den (granskning 2026-08-19).
+      aeErrorCode = ecode || undefined;
       orderDefinitelyNotPlaced = isSuccess === false || (ecode !== "" && ecode !== "0");
       console.error(
         `[aliexpress] createOrder: inget order_id. is_success=${String(isSuccess)} error_code=${ecode} error_msg=${emsg} result=${JSON.stringify(result).slice(0, 700)}`,
@@ -707,6 +713,7 @@ export async function createOrder(params: DsOrderCreateParams): Promise<DsOrderC
   return {
         tradeOrderId: orderIdRaw != null ? String(orderIdRaw) : "",
         ...(aeError ? { aeError } : {}),
+        ...(aeErrorCode ? { aeErrorCode } : {}),
         ...(orderDefinitelyNotPlaced ? { orderDefinitelyNotPlaced: true } : {}),
         paymentRequired: result.payment_required ?? true,
         paymentUrl: result.pay_url,

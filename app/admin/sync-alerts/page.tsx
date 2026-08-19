@@ -158,6 +158,8 @@ export default async function SyncAlertsPage({ searchParams }: PageProps) {
     <main style={{ maxWidth: 1080, margin: "40px auto", padding: "0 16px" }}>
       <p style={{ fontSize: 13 }}>
         <Link href="/admin">← Tillbaka till admin</Link>
+        {" · "}
+        <Link href="/admin/margins">Marginalöversikt</Link>
       </p>
       <h1>Pris- &amp; lagersynk</h1>
       <p style={{ fontSize: 14, color: "#444" }}>

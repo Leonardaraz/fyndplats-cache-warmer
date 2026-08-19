@@ -6,6 +6,12 @@ import type { FulfillmentTask } from "@/lib/orders/types";
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/aliexpress/client", () => ({
   createOrder: vi.fn(),
+  // Fraktvalet före första orderförsöket. BÅDA behövs: sku-uppslaget går via
+  // getProduct när supplierVariantId inte är numeriskt, och saknas den kastar
+  // blocket innan queryFreightToCountry ens nås — då testar sviten noll av
+  // fraktvägen (granskning 2026-08-19).
+  queryFreightToCountry: vi.fn().mockResolvedValue({ method: "test", raw: {} }),
+  getProduct: vi.fn().mockResolvedValue({ variants: [] }),
   getInventory: vi.fn(),
   extractAliExpressProductId: vi.fn(),
   // place-order.ts gör `err instanceof OrderValidationError` → måste finnas i mocken.

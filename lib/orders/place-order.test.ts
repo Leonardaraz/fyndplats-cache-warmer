@@ -5,10 +5,15 @@ import type { FulfillmentTask } from "@/lib/orders/types";
 vi.mock("@/lib/aliexpress/client", () => ({
   createOrder: vi.fn(),
   getProduct: vi.fn(),
+  // Fraktvalet frågar efter alternativen före första orderförsöket. Saknas
+  // mocken kastar anropet, fångas av fraktblockets egen try, och VARJE test
+  // körde tyst bara fallback-vägen — omförsöksloopen hade noll täckning
+  // (granskning 2026-08-19).
+  queryFreightToCountry: vi.fn(),
   OrderValidationError: class OrderValidationError extends Error {},
 }));
 
-import { createOrder, getProduct } from "@/lib/aliexpress/client";
+import { createOrder, getProduct, queryFreightToCountry } from "@/lib/aliexpress/client";
 import { placeOrderForTask } from "./place-order";
 import { MemoryStore } from "@/lib/store/memory";
 
@@ -42,6 +47,10 @@ beforeEach(() => {
   // nedan sätter en riktig produkt.
   vi.mocked(getProduct).mockReset();
   vi.mocked(getProduct).mockRejectedValue(new Error("pris-API nere (testdefault)"));
+  // Fraktvalet: default är ett tomt svar → ingen rankning, ordern läggs med
+  // den historiska defaulten. Samma fail-open-tanke som prisvakten.
+  vi.mocked(queryFreightToCountry).mockReset();
+  vi.mocked(queryFreightToCountry).mockResolvedValue({ method: "test", raw: {} });
 });
 
 /** Produktsvar för prisvakts-testerna: variantens DS-pris just nu. */
@@ -239,5 +248,134 @@ describe("placeOrderForTask — prisvakt", () => {
     );
     const r = await placeOrderForTask(store, "o1:l1");
     expect(r.ok).toBe(true);
+  });
+});
+
+
+// ── Fraktval och omförsök (granskning 2026-08-19) ───────────────────────────
+//
+// Loopen valde tidigare fraktsätt utan täckning: place-order.test.ts saknade
+// queryFreightToCountry i mocken, så varje test körde tyst fallback-vägen.
+
+describe("placeOrderForTask — fraktval", () => {
+  const frakt = (options: unknown[]) => ({
+    method: "test",
+    raw: { delivery_option_list: options },
+  });
+
+  // Mappningens supplierVariantId ("skuA") är INTE numeriskt — det är formen
+  // extension-importen ger. Frakt-API:t kräver numeriskt sku_id, så koden slår
+  // upp produkten och matchar via matchAeVariant. Utan det här svaret hoppas
+  // fraktvalet över, vilket är precis den tysta no-op granskningen hittade.
+  const aeProdukt = {
+    variants: [{ skuId: "12000012345678", skuAttr: "skuA", skuProps: {}, price: 1 }],
+  };
+
+  beforeEach(() => {
+    vi.mocked(getProduct).mockResolvedValue(aeProdukt as never);
+  });
+
+  it("skickar det billigaste OCH snabbaste alternativet, inte defaulten", async () => {
+    const store = await seed(task());
+    vi.mocked(queryFreightToCountry).mockResolvedValue(
+      frakt([
+        { code: "SEG", shipping_fee_cent: 0, max_delivery_days: 30 },
+        { code: "SNABB_GRATIS", shipping_fee_cent: 0, max_delivery_days: 6 },
+      ]),
+    );
+    vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T1" } as never);
+
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(true);
+    expect(vi.mocked(createOrder).mock.calls[0][0].logisticsServiceName).toBe("SNABB_GRATIS");
+  });
+
+  it("slår upp numeriskt sku_id — annars blir fraktvalet en tyst no-op", async () => {
+    // Skickas attribut-strängen som sku_id svarar frakt-API:t tomt, rankningen
+    // uteblir och ordern går med just den hårdkodade tjänst som fällde #10021.
+    const store = await seed(task());
+    vi.mocked(queryFreightToCountry).mockResolvedValue(frakt([{ code: "X", shipping_fee_cent: 0 }]));
+    vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T9" } as never);
+
+    await placeOrderForTask(store, "o1:l1");
+    expect(vi.mocked(queryFreightToCountry).mock.calls[0][1]).toBe("12000012345678");
+  });
+
+  it("provar nästa kandidat när AliExpress säger att fraktsättet inte finns", async () => {
+    const store = await seed(task());
+    vi.mocked(queryFreightToCountry).mockResolvedValue(
+      frakt([
+        { code: "FINNS_EJ", shipping_fee_cent: 0, max_delivery_days: 5 },
+        { code: "FUNKAR", shipping_fee_cent: 0, max_delivery_days: 9 },
+      ]),
+    );
+    vi.mocked(createOrder)
+      .mockResolvedValueOnce({
+        tradeOrderId: "",
+        orderDefinitelyNotPlaced: true,
+        aeError: "DELIVERY_METHOD_NOT_EXIST",
+      } as never)
+      .mockResolvedValueOnce({ tradeOrderId: "T2" } as never);
+
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(true);
+    const anrop = vi.mocked(createOrder).mock.calls;
+    expect(anrop[0][0].logisticsServiceName).toBe("FINNS_EJ");
+    expect(anrop[1][0].logisticsServiceName).toBe("FUNKAR");
+  });
+
+  it("försöker ALDRIG om vid ett oklart svar — då kan en order finnas", async () => {
+    // Loopens säkerhetsvillkor. Ett omförsök här vore en dubbelbeställning.
+    const store = await seed(task());
+    vi.mocked(queryFreightToCountry).mockResolvedValue(
+      frakt([{ code: "A", shipping_fee_cent: 0 }, { code: "B", shipping_fee_cent: 0 }]),
+    );
+    vi.mocked(createOrder).mockResolvedValue({
+      tradeOrderId: "",
+      orderDefinitelyNotPlaced: false,
+      aeError: "DELIVERY_METHOD_NOT_EXIST",
+    } as never);
+
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(false);
+    expect(vi.mocked(createOrder)).toHaveBeenCalledTimes(1);
+  });
+
+  it("försöker inte om vid ett ANNAT fel än fraktsättet", async () => {
+    const store = await seed(task());
+    vi.mocked(queryFreightToCountry).mockResolvedValue(
+      frakt([{ code: "A", shipping_fee_cent: 0 }, { code: "B", shipping_fee_cent: 0 }]),
+    );
+    vi.mocked(createOrder).mockResolvedValue({
+      tradeOrderId: "",
+      orderDefinitelyNotPlaced: true,
+      aeError: "InsufficientBalance",
+    } as never);
+
+    await placeOrderForTask(store, "o1:l1");
+    expect(vi.mocked(createOrder)).toHaveBeenCalledTimes(1);
+  });
+
+  it("faller tillbaka på defaulten när fraktfrågan ger tomt", async () => {
+    const store = await seed(task());
+    vi.mocked(queryFreightToCountry).mockResolvedValue({ method: "test", raw: {} });
+    vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T3" } as never);
+
+    await placeOrderForTask(store, "o1:l1");
+    expect(vi.mocked(createOrder).mock.calls[0][0].logisticsServiceName)
+      .toBe("CAINIAO_ECONOMY_GLOBAL");
+  });
+
+  it("ett kast i fraktfrågan låser INTE tasken — ordern läggs som förut", async () => {
+    // Fraktfrågan sker före varje AE-orderanrop, så ett fel där får aldrig ge
+    // "osäker order".
+    const store = await seed(task());
+    vi.mocked(queryFreightToCountry).mockRejectedValue(new Error("frakt-API nere"));
+    vi.mocked(createOrder).mockResolvedValue({ tradeOrderId: "T4" } as never);
+
+    const r = await placeOrderForTask(store, "o1:l1");
+    expect(r.ok).toBe(true);
+    expect(vi.mocked(createOrder).mock.calls[0][0].logisticsServiceName)
+      .toBe("CAINIAO_ECONOMY_GLOBAL");
   });
 });

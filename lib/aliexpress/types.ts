@@ -88,6 +88,12 @@ export interface DsOrderCreateResult {
   paymentUrl?: string;
   /** AliExpress fel-detalj (error_msg/error_code) när inget order-id gavs. */
   aeError?: string;
+  /**
+   * AliExpress felKOD, obehandlad. aeError ovan är formaterad för människor och
+   * tappar koden så fort error_msg finns — den som vill grinda på ett specifikt
+   * fel måste läsa den här (granskning 2026-08-19).
+   */
+  aeErrorCode?: string;
   /** true när AliExpress uttryckligen svarade misslyckat (is_success=false eller
    *  felkod utan order-id) → INGEN order lades → säkert att släppa claimen. */
   orderDefinitelyNotPlaced?: boolean;
