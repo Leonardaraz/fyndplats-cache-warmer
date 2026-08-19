@@ -2,9 +2,10 @@ import Image from "next/image";
 import { jsonLdString } from "../lib/seo";
 import { getProducts, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
 import { ProductCard } from "../components/productcard";
-import { attachRatings } from "../lib/review-aggregates";
+import { getReviewAggregates } from "../lib/review-aggregates";
 import { Stars } from "../components/stars";
-import { reviewCountLabel } from "../lib/rating";
+import { applyRatings, reviewCountLabel } from "../lib/rating";
+import { pickHero } from "../lib/hero-picks";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
@@ -111,41 +112,52 @@ export default async function Home() {
   const latest100 = sortByNewest(allProducts).slice(0, 100);
   const freshClean = latest100.filter(isCleanImage);
 
+  // Betygen hämtas EN gång (cachad aggregering för hela katalogen) och används
+  // både för hjälte-urvalet nedan och för Veckans fynd längre ner.
+  const ratingMap = await getReviewAggregates();
+
   // Hero-mosaik (4 stora bilder): nyaste produkterna spridda över avdelningar för
   // en "breadth"-shot av nytillskotten. mixByCategory round-robinerar per
   // huvudkategori och behåller nyast-först inom varje bucket → de 4 första blir
   // nyaste produkten i var och en av de första avdelningarna.
-  const usedHero = new Set<string>();
-  const heroProducts: typeof allProducts = [];
-  for (const p of mixByCategory(freshClean, cols)) {
-    if (heroProducts.length >= 4) break;
-    if (usedHero.has(p.slug)) continue;
-    heroProducts.push(p); usedHero.add(p.slug);
-  }
-  // Defensiv fyllning om de 100 senaste inte räcker till 4 (mycket litet/nytt
-  // sortiment): ta nyaste rena produkten ur hela katalogen.
-  if (heroProducts.length < 4) {
-    for (const p of sortByNewest(allProducts).filter(isCleanImage)) {
-      if (heroProducts.length >= 4) break;
-      if (usedHero.has(p.slug)) continue;
-      heroProducts.push(p); usedHero.add(p.slug);
-    }
-  }
+  //
+  // MJUK prioritering av produkter MED omdömen (2026-08-19): hjälten ligger
+  // ovanför vikningen och är butikens förtroende-shot, men brickorna stod utan
+  // stjärnor eftersom urvalet var rent nyast-först och nya produkter är precis
+  // de som ännu inte hunnit få omdömen (uppmätt: 0 av 12 produkter på
+  // startsidan hade betyg, mot 55 % i katalogen som helhet).
+  //
+  // Prioriteringen är MJUK, inte ett filter. Täckningen är ojämn per avdelning
+  // — 100 % i hudvård och dator/gaming, 12 % i trädgård & utemöbler — så ett
+  // hårt filter hade tömt hjälten på möbler och trädgård, alltså varorna med
+  // högst ordervärde. Två pass i stället: de med omdömen först, resten som
+  // reserv. Ordningen inom varje pass är mixByCategory-ordningen, så bredden
+  // över avdelningar och nyast-först behålls.
+  //
+  // Själva urvalsregeln ligger i lib/hero-picks.ts med test — den gick inte att
+  // verifiera här inne, eftersom betygskartan blir tom utan Wix-nyckel och alla
+  // grenar då ser likadana ut.
+  //
+  // Sista argumentet är den defensiva fyllningen: räcker inte de 100 senaste
+  // till 4 brickor (mycket litet/nytt sortiment) tas nyaste rena produkten ur
+  // hela katalogen.
+  const heroProducts = pickHero(
+    mixByCategory(applyRatings(freshClean, ratingMap), cols),
+    applyRatings(sortByNewest(allProducts).filter(isCleanImage), ratingMap),
+    4,
+  );
 
   // Äkta blur-up (8×8 webp från Wix-CDN, base64-cachad) för hjälte-mosaikens 4
   // bilder. Above-the-fold → litet antal, så server-fetchen är billig och tar
   // bort den tomma vita rutan på first paint som granskningen flaggade.
   const heroBlur = await getBlurDataURLs(heroProducts.map((p) => p.img));
 
-  // Betyg även på hjälte-brickorna. Samma cachade aggregering som korten redan
-  // använder (en enda Wix-fråga för hela katalogen, delad "reviews"-tagg), så
-  // det här kostar inget extra anrop.
-  //
-  // Brickorna är MEDVETET nästan tomma — bild och pris, inget namn — så betyget
-  // visas bara när det finns, och aldrig som en tom reserverad rad à la
-  // ProductCard. Hjälten lyfter nyaste produkterna, och det är just de som
-  // oftast saknar omdömen; en tom platshållare där hade sett trasig ut.
-  const hero = await attachRatings(heroProducts);
+  // Brickorna bär redan sina betyg från urvalet ovan. De är MEDVETET nästan
+  // tomma — bild och pris, inget namn — så betyget renderas bara när det finns,
+  // aldrig som en tom reserverad rad à la ProductCard.
+  const hero = heroProducts;
+  // Veckans fynd får aldrig upprepa en produkt som redan ligger i hjälten.
+  const usedHero = new Set(heroProducts.map((p) => p.slug));
 
   // Veckans fynd (8): nyaste produkterna ur de 100 senaste, MED en del REA
   // (onSale) inblandat — Leonards önskemål. Vi leder med upp till 3 nyaste
@@ -166,7 +178,7 @@ export default async function Home() {
       veckansPicks.push(p); used.add(p.slug);
     }
   }
-  const products = await attachRatings(dedupeProducts(veckansPicks).slice(0, 8));
+  const products = applyRatings(dedupeProducts(veckansPicks).slice(0, 8), ratingMap);
 
   // Topp-4 huvudgrupper för hemsidan (sorterade efter produktantal). Använder samma
   // groupbuild som /butik så curated hero-bilder matchar — användaren ser samma
