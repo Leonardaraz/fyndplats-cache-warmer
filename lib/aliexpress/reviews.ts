@@ -124,6 +124,12 @@ export function mapAeReview(raw: AeRawReview): AERReview | null {
     language: raw.buyerFbType?.sourceLang || undefined,
     hasImage: images.length > 0,
     imageUrl: images[0],
+    // ALLA bilderna, inte bara den första. AliExpress-recensenter postar ofta
+    // flera foton, och fram till 2026-08-19 behöll importen `images[0]` och
+    // slängde resten — bilder vi redan fått betalt för i form av API-anrop och
+    // som gör recensionen mer trovärdig. Taket sätts när raden skrivs
+    // (reviewImageFields), inte här; här bevaras vad leverantören gav.
+    imageUrls: images,
     // Anonyma får INGET namn vidare — initialerna hashas ur reviewId i stället.
     customerName: anonymous ? undefined : rawName || undefined,
     customerCountry: (raw.buyerCountry ?? "").trim() || undefined,

@@ -44,6 +44,9 @@ const ReviewSchema = z.object({
   language: z.string().optional(),
   hasImage: z.boolean().optional(),
   imageUrl: z.string().optional(),
+  // Se noten i app/api/reviews/import: zod strippar okända nycklar, så utan
+  // raden tappas alla bilder utom den första tyst.
+  imageUrls: z.array(z.string()).optional(),
   // Rått AE-namn — lagras för bevis, visas aldrig (servern härleder initialer).
   customerName: z.string().optional(),
   customerCountry: z.string().optional(),

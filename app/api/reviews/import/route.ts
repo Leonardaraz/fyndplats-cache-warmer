@@ -30,6 +30,10 @@ const ReviewSchema = z.object({
   language: z.string().optional(),
   hasImage: z.boolean().optional(),
   imageUrl: z.string().optional(),
+  // MÅSTE finnas i schemat: zod STRIPPAR okända nycklar, så utan raden tappar
+  // varje anropare som skickar flera bilder allt utom den första — tyst
+  // (granskning 2026-08-19).
+  imageUrls: z.array(z.string()).optional(),
   customerName: z.string().optional(),
   customerCountry: z.string().optional(),
   date: z.string().optional(),

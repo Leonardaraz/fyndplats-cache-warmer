@@ -23,6 +23,7 @@
 import { filterAndRankReviews, deriveInitials, ensureReviewId, type AERReview } from "../import/review-import";
 import { foreignLocaleVerdict } from "../import/review-locale-filter";
 import { getReviewStore, type StoredReview } from "../store/reviews";
+import { reviewImageFields, reviewImages } from "./images";
 
 export interface QueueResult {
   /** Nya rader som lades i kön. */
@@ -91,8 +92,10 @@ export async function queueReviewsForProduct(
         // Bilden hämtas hem först vid publicering (lib/wix/media-import.ts).
         // Att flytta hem bilder för rader som kanske aldrig godkänns vore
         // slöseri med både anrop och medialagring.
-        hasImage: Boolean(r.imageUrl),
-        imageUrl: r.imageUrl,
+        // ALLA bilder bevaras redan här. Hemflytten sker vid publicering och
+        // behöver hela listan för att kunna flytta hem den — sparas bara den
+        // första gar resten förlorade innan grinden ens ser dem.
+        ...reviewImageFields(reviewImages({ imageUrl: r.imageUrl, imageUrls: r.imageUrls })),
         status: "pending",
         importedAt: now.toISOString(),
       };

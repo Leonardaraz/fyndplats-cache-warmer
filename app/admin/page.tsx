@@ -12,6 +12,7 @@ import { EditAddressClient } from "./edit-address-client";
 import { TaskRecoveryClient } from "./task-recovery-client";
 import { TaskCloseClient } from "./task-close-client";
 import { PriceCheckClient } from "./price-check-client";
+import { FreightCheckClient } from "./freight-check-client";
 import { LinkAeOrderClient } from "./link-ae-order-client";
 
 export const dynamic = "force-dynamic";
@@ -170,6 +171,7 @@ export default async function AdminPage() {
                     priser/kuponger — är produktsidan billigare beställer Leonard
                     manuellt och kopplar ordernumret nedan i stället. */}
                 <PriceCheckClient taskId={t.taskId} />
+                <FreightCheckClient taskId={t.taskId} />
                 <PlaceOrderButton taskId={t.taskId} />
                 <SupplierOverrideClient
                   taskId={t.taskId}
