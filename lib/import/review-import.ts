@@ -21,6 +21,7 @@ import { getReviewStore, type ReviewStore, type StoredReview } from "../store/re
 import { isEuCountry as isEuWarehouseCode } from "../aliexpress/eu-countries";
 import { mentionsForeignDelivery } from "./review-locale-filter";
 import { ownImageUrlForReview } from "../wix/media-import";
+import { MAX_REVIEW_IMAGES, reviewImageFields, reviewImages } from "../reviews/images";
 
 /** Rå recension som skrapan (extension/content.js) eller AE-API:t levererar. */
 export interface AERReview {
@@ -31,7 +32,16 @@ export interface AERReview {
   /** Detekterat källspråk om känt (t.ex. "en", "zh") — påverkar inte flödet. */
   language?: string;
   hasImage?: boolean;
+  /** Första bilden. Kvar som eget fält för bakåtkompatibilitet. */
   imageUrl?: string;
+  /**
+   * ALLA bilder recensenten postade.
+   *
+   * Importen behöll länge bara `images[0]` och slängde resten — foton vi redan
+   * hämtat och som gör recensionen mer trovärdig. Sedan 2026-08-19 bevaras hela
+   * listan; taket sätts när raden skrivs, inte här.
+   */
+  imageUrls?: string[];
   /** Rått AE-användarnamn (t.ex. "M***a", "u****6543"). LAGRAS för bevis, visas
    * ALDRIG — vi härleder bara initialer för visning. */
   customerName?: string;
@@ -318,10 +328,24 @@ export async function importReviewsForProduct(
       console.warn("[review-import] exists-koll misslyckades, fortsätter:", err instanceof Error ? err.message : err);
     }
     const t = translated[i];
-    // Kundbilden hämtas hem till vår egen mediahantering. Misslyckas det
-    // sparas ingen bild alls — hellre en recension utan foto än en länk som
-    // pekar ut leverantören på produktsidan. Se lib/wix/media-import.ts.
-    const egenBild = await ownImageUrlForReview(r.imageUrl, reviewIdAE);
+    // Kundbilderna hämtas hem till vår egen mediahantering. Misslyckas en av
+    // dem hoppas just den över — hellre en recension med färre foton än en länk
+    // som pekar ut leverantören på produktsidan. Se lib/wix/media-import.ts.
+    //
+    // ALLA bilder, inte bara den första: AE-recensenter postar ofta flera, och
+    // importen slängde resten fram till 2026-08-19. Hämtas i tur och ordning —
+    // parallellt hade gett fler samtidiga anrop mot Wix media per recension,
+    // och backfillen kör redan många recensioner efter varandra.
+    const kallbilder = reviewImages({ imageUrl: r.imageUrl, imageUrls: r.imageUrls })
+      .slice(0, MAX_REVIEW_IMAGES);
+    const egnaBilder: string[] = [];
+    for (const [n, kalla] of kallbilder.entries()) {
+      // Suffixet gör filnamnen unika per bild — utan det hade bild 2 och 3
+      // skrivit över den första i mediabiblioteket.
+      const egen = await ownImageUrlForReview(kalla, n === 0 ? reviewIdAE : `${reviewIdAE}-${n + 1}`);
+      if (egen) egnaBilder.push(egen);
+    }
+    const bildfalt = reviewImageFields(egnaBilder);
     const stored: StoredReview = {
       productId,
       reviewIdAE,
@@ -333,8 +357,7 @@ export async function importReviewsForProduct(
       initials: deriveInitials(r.customerName, reviewIdAE),
       customerCountry: r.customerCountry,
       date: r.date,
-      hasImage: Boolean(egenBild),
-      imageUrl: egenBild,
+      ...bildfalt,
       // Importerade AE-recensioner auto-godkänns (spec 2026-06-02); framtida
       // riktiga kundrecensioner får "pending" och kräver Leonards godkännande.
       status: "approved",

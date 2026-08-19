@@ -29,6 +29,7 @@
 //   importedAt:     ISO-datum
 
 import { isExternalSupplierImage, ownImageUrlForReview } from "../wix/media-import";
+import { reviewImageFields, reviewImages } from "../reviews/images";
 
 const WIX_BASE = "https://www.wixapis.com";
 
@@ -67,7 +68,10 @@ export interface StoredReview {
   customerCountry?: string;
   date?: string;
   hasImage: boolean;
+  /** Första bilden. Eget fält för bakåtkompatibilitet — se lib/reviews/images.ts. */
   imageUrl?: string;
+  /** Hela bildlistan. Skrivs bara när recensionen har fler än en. */
+  imageUrls?: string[];
   status: ReviewStatus;
   importedAt?: string;
 }
@@ -107,15 +111,38 @@ export function reviewDocId(productId: string, reviewIdAE: string): string {
  * leverantörens värd) och kan flyttas hem i efterhand.
  */
 async function withOwnImage(review: StoredReview): Promise<StoredReview> {
-  if (!isExternalSupplierImage(review.imageUrl)) return review;
-  const egen = await ownImageUrlForReview(review.imageUrl, review.reviewIdAE);
-  if (!egen) {
-    console.warn(
-      `[reviews] kunde inte flytta hem kundbild för ${review.reviewIdAE} — behåller källadressen för nytt försök.`,
+  const bilder = reviewImages(review);
+  // Ingen bild, eller inga som pekar på leverantören → rör inte raden. Att
+  // skriva om den i onödan är inte gratis: items/save är en helersättning.
+  if (bilder.length === 0 || !bilder.some(isExternalSupplierImage)) return review;
+
+  // ALLA bilder, en i taget. Misslyckas EN behålls dess KÄLLADRESS — se noten
+  // ovan om varför ett undefined vore oåterkalleligt. De som lyckades flyttas
+  // hem ändå; en delvis hemflyttad rad är strikt bättre än ingen, och resten
+  // syns i samma kontroll och kan tas om.
+  const ut: string[] = [];
+  let missar = 0;
+  for (const [n, bild] of bilder.entries()) {
+    if (!isExternalSupplierImage(bild)) {
+      ut.push(bild);
+      continue;
+    }
+    // Samma suffix-regel som importen: utan den skriver bild 2 och 3 över den
+    // första i mediabiblioteket.
+    const egen = await ownImageUrlForReview(
+      bild,
+      n === 0 ? review.reviewIdAE : `${review.reviewIdAE}-${n + 1}`,
     );
-    return review;
+    ut.push(egen ?? bild);
+    if (!egen) missar++;
   }
-  return { ...review, imageUrl: egen, hasImage: true };
+  if (missar > 0) {
+    console.warn(
+      `[reviews] kunde inte flytta hem ${missar} av ${bilder.length} kundbilder för ` +
+        `${review.reviewIdAE} — behåller källadresserna för nytt försök.`,
+    );
+  }
+  return { ...review, ...reviewImageFields(ut) };
 }
 
 export class ReviewStore {
