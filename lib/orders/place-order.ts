@@ -8,7 +8,8 @@ import {
 import {
   deliveryCandidates,
   isDeliveryMethodMissing,
-  shippingServiceNames,
+  parseDeliveryOptions,
+  rankDeliveryOptions,
 } from "@/lib/aliexpress/freight";
 import { normalizeCountryCode, provinceFromSwedishPostalCode } from "@/lib/orders/tasks";
 import { isTerminal } from "@/lib/orders/status";
@@ -18,11 +19,11 @@ import type { Store } from "@/lib/store";
 /** Fraktsättet createOrder skickar när inget annat anges. */
 const DEFAULT_DELIVERY_METHOD = "CAINIAO_ECONOMY_GLOBAL";
 /**
- * Tak för hur många alternativa fraktsätt vi provar. Varje försök är ett
- * API-anrop i en admin-request; listan kan vara lång och de billigaste ligger
- * först, så tre räcker i praktiken och håller svarstiden nere.
+ * Tak för hur många fraktsätt vi provar. Listan är rangordnad bäst först, så
+ * de senare kandidaterna är i tur och ordning sämre affärer — och varje försök
+ * är ett API-anrop i en admin-request som Leonard väntar på.
  */
-const MAX_DELIVERY_RETRIES = 3;
+const MAX_DELIVERY_ATTEMPTS = 4;
 
 export type PlaceOrderResult =
   | { ok: true; tradeOrderId: string; paymentUrl?: string }
@@ -211,59 +212,87 @@ export async function placeOrderForTask(
       phone: a.phone,
     };
 
+    // FRAKTVALET, före första försöket.
+    //
+    // Tidigare skickades ett hårdkodat CAINIAO_ECONOMY_GLOBAL för varje
+    // produkt. Två problem med det: tjänsten finns inte hos alla säljare och
+    // lager (order #10021 avvisades med DELIVERY_METHOD_NOT_EXIST), och även
+    // när den finns är den sällan det bästa valet. Samma vara ligger ofta i
+    // flera lager med olika pris OCH olika leveranstid — frakten äter
+    // marginalen direkt, och leveranstiden är vad kunden upplever mot vårt
+    // löfte om 3–7 arbetsdagar.
+    //
+    // Därför frågas alternativen fram och rangordnas på båda samtidigt (se
+    // deliveryScore). Ett extra API-anrop per orderläggning; det är en
+    // admin-åtgärd på en order i taget, så kostnaden är försumbar mot att
+    // välja fel lager.
+    //
+    // FAIL-OPEN: går fraktfrågan inte fram läggs ordern med defaulten precis
+    // som förut. En hicka i frakt-API:t får aldrig blockera en kundleverans.
+    //
+    // EGEN try/catch, inte den yttre: den yttre tolkar ett kast som "okänt fel
+    // efter att ordern kan ha lagts" och flaggar tasken för manuell
+    // verifiering. Ett kast HÄR sker före varje AE-orderanrop, så det får
+    // aldrig ge det utfallet — då hade en hicka i frakt-API:t låst en task som
+    // ingen order finns för.
+    let alternativ: ReturnType<typeof rankDeliveryOptions> = [];
+    try {
+      alternativ = rankDeliveryOptions(
+        parseDeliveryOptions(
+          await queryFreightToCountry(
+            supplierProductId,
+            supplierVariantId,
+            countryCode,
+            task.quantity,
+          ),
+        ),
+      );
+    } catch (err) {
+      console.warn(`[place-order] task=${taskId} fraktfrågan misslyckades`, err);
+    }
+    const kandidater = deliveryCandidates(alternativ, DEFAULT_DELIVERY_METHOD).slice(
+      0,
+      MAX_DELIVERY_ATTEMPTS,
+    );
+    if (alternativ.length > 0) {
+      const b = alternativ[0];
+      console.warn(
+        `[place-order] task=${taskId} fraktval: "${b.serviceName}"` +
+          ` (${b.costSek ?? "?"} kr, ${b.maxDays ?? "?"} dgr)` +
+          ` av ${alternativ.length} alternativ`,
+      );
+    }
+
     let result = await createOrder({
       productId: supplierProductId,
       skuId: supplierVariantId,
       quantity: task.quantity,
       shippingAddress: adress,
+      logisticsServiceName: kandidater[0],
     });
 
-    // FRAKTSÄTT SOM INTE FINNS → försök om med ett som gör det.
-    //
-    // createOrder skickar CAINIAO_ECONOMY_GLOBAL som default. Den tjänsten finns
-    // inte för alla säljare, lager och destinationer, och saknas den vägrar
-    // AliExpress HELA ordern med DELIVERY_METHOD_NOT_EXIST (order #10021,
-    // 2026-08-19). Alternativen går att fråga efter — vi gjorde det bara aldrig
-    // vid orderläggning.
+    // OMFÖRSÖK med nästa kandidat när AliExpress säger att fraktsättet inte
+    // finns.
     //
     // SÄKERHETSVILLKORET är `orderDefinitelyNotPlaced`: det sätts bara när
     // AliExpress uttryckligen sagt nej, alltså när ingen order kan ha skapats.
     // Vid ett oklart svar försöker vi ALDRIG om — då kan en order finnas, och
     // ett omförsök vore en dubbelbeställning. Claimen hålls hela vägen, så
     // ingen annan väg kan gå in mellan försöken.
-    if (
-      !result.tradeOrderId &&
-      result.orderDefinitelyNotPlaced &&
-      isDeliveryMethodMissing(result.aeError)
-    ) {
-      const frakt = await queryFreightToCountry(
-        supplierProductId,
-        supplierVariantId,
-        countryCode,
-        task.quantity,
+    for (const tjanst of kandidater.slice(1)) {
+      if (result.tradeOrderId) break;
+      if (!result.orderDefinitelyNotPlaced) break;
+      if (!isDeliveryMethodMissing(result.aeError)) break;
+      console.warn(
+        `[place-order] task=${taskId} fraktsättet saknades — provar "${tjanst}"`,
       );
-      const kandidater = deliveryCandidates(
-        shippingServiceNames(frakt),
-        DEFAULT_DELIVERY_METHOD,
-      ).filter((n) => n !== DEFAULT_DELIVERY_METHOD); // den har redan provats
-
-      for (const tjanst of kandidater.slice(0, MAX_DELIVERY_RETRIES)) {
-        console.warn(
-          `[place-order] task=${taskId} fraktsätt saknades — provar "${tjanst}"`,
-        );
-        result = await createOrder({
-          productId: supplierProductId,
-          skuId: supplierVariantId,
-          quantity: task.quantity,
-          shippingAddress: adress,
-          logisticsServiceName: tjanst,
-        });
-        // Lyckat, eller ett ANNAT fel än fraktsättet → sluta försöka. Bara
-        // "fraktsättet finns inte" motiverar nästa kandidat.
-        if (result.tradeOrderId) break;
-        if (!result.orderDefinitelyNotPlaced) break;
-        if (!isDeliveryMethodMissing(result.aeError)) break;
-      }
+      result = await createOrder({
+        productId: supplierProductId,
+        skuId: supplierVariantId,
+        quantity: task.quantity,
+        shippingAddress: adress,
+        logisticsServiceName: tjanst,
+      });
     }
 
     // Tomt order_id. Två fall:

@@ -6,6 +6,10 @@ import type { FulfillmentTask } from "@/lib/orders/types";
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/aliexpress/client", () => ({
   createOrder: vi.fn(),
+  // Fraktvalet frågar efter alternativen före första orderförsöket. Utan mock
+  // blir den undefined → kast → ordern hade flaggats som osäker i stället för
+  // att läggas (upptäckt när fraktvalet infördes 2026-08-19).
+  queryFreightToCountry: vi.fn().mockResolvedValue({ method: "test", raw: {} }),
   getInventory: vi.fn(),
   extractAliExpressProductId: vi.fn(),
   // place-order.ts gör `err instanceof OrderValidationError` → måste finnas i mocken.

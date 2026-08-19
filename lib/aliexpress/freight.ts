@@ -205,62 +205,157 @@ export function matchAeVariant(
   return hits.length === 1 ? hits[0].skuId : null;
 }
 
-// ── Fraktsättet vid orderläggning ────────────────────────────────────────────
+
+// ── Val av fraktsätt vid orderläggning ───────────────────────────────────────
 //
 // Bakgrund (2026-08-19): order #10021 avvisades med DELIVERY_METHOD_NOT_EXIST.
-// Orsaken var att `placeOrder` skickade en HÅRDKODAD tjänst,
-// CAINIAO_ECONOMY_GLOBAL, för varje produkt. Den tjänsten finns inte för alla
-// säljare, lager och destinationer — och när den inte gör det vägrar
-// AliExpress hela ordern.
+// placeOrder skickade en HÅRDKODAD tjänst, CAINIAO_ECONOMY_GLOBAL, för varje
+// produkt. Den finns inte hos alla säljare, lager och destinationer — och när
+// den inte gör det vägrar AliExpress hela ordern.
 //
-// Fraktalternativen finns redan att fråga efter: queryFreightToCountry anropas
-// idag bara för att avgöra OM en vara går att skicka, och svaret bär tjänsternas
-// namn. Vi använder alltså data vi redan hämtar.
+// Men "ett fraktsätt som funkar" är en för låg ambition. Samma vara ligger ofta
+// i flera lager (CN, ES, PL…) med olika pris OCH olika leveranstid, och det
+// valet betalar vi för på båda sidor: frakten äter marginalen direkt, och
+// leveranstiden är vad kunden faktiskt upplever mot vårt löfte om 3–7
+// arbetsdagar. Därför RANGORDNAS alternativen i stället för att tas i den
+// ordning AliExpress råkar returnera dem.
 
-/** Nycklar AliExpress använder för tjänstens namn i ett fraktalternativ. */
+/** Ett fraktalternativ, normaliserat ur AliExpress två svarsformer. */
+export interface DeliveryOption {
+  serviceName: string;
+  /** Fraktkostnad i frågans valuta (vi frågar i SEK). null = okänd. */
+  costSek: number | null;
+  /** PESSIMISTISK leveranstid i dagar. null = okänd. */
+  maxDays: number | null;
+}
+
+/** Nycklar AliExpress använder för tjänstens namn. */
 const SERVICE_NAME_KEYS = [
-  "serviceName",
-  "service_name",
-  "deliveryProviderName",
-  "delivery_provider_name",
-  "shippingCompany",
-  "logisticsServiceName",
-  "logistics_service_name",
-  "code",
+  "serviceName", "service_name", "deliveryProviderName", "delivery_provider_name",
+  "logisticsServiceName", "logistics_service_name", "code",
 ];
 
 /**
- * Tjänstenamnen ur ett fraktsvar, i svarets egen ordning.
+ * Vad en extra leveransdag är värd i kronor.
  *
- * AliExpress listar billigast först, så ordningen är meningsfull: den första
- * som fungerar är den vi vill ha. Dubbletter tas bort, tomma hoppas över.
+ * Utan ett sådant tal går "billigast" och "snabbast" inte att jämföra — de
+ * pekar ofta åt olika håll och något måste avgöra. 5 kr/dag betyder att ett
+ * alternativ som är tio dagar långsammare måste vara minst 50 kr billigare för
+ * att vinna. Det är ungefär så avvägningen ser ut på riktigt: butiken lovar
+ * 3–7 arbetsdagar, och en försening kostar i form av mejl, missnöje och returer
+ * långt mer än några kronors fraktrabatt.
  *
- * Samma toleranta hållning som resten av filen — svarsformen varierar mellan
- * de två fraktmetoderna och mellan API-versioner, så vi letar efter kända
- * nyckelnamn i alternativens objekt i stället för att lita på en enda väg.
+ * Överstyrs med DELIVERY_DAY_VALUE_SEK om avvägningen visar sig fel.
  */
-export function shippingServiceNames(outcome: FreightQueryOutcome): string[] {
+export const DEFAULT_DAY_VALUE_SEK = 5;
+
+/**
+ * Leveranstid som antas när alternativet inte anger någon.
+ *
+ * PESSIMISTISKT med flit: ett alternativ utan angiven tid ska inte vinna på
+ * snabbhet bara för att det tiger. Samtidigt inte så högt att det aldrig kan
+ * väljas när det är det enda som finns.
+ */
+export const ASSUMED_DAYS_WHEN_UNKNOWN = 30;
+
+function num(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+    // "15-30" (dagintervall) → ta den PESSIMISTISKA änden.
+    const m = v.match(/(\d+)\s*[-–]\s*(\d+)/);
+    if (m) return Number(m[2]);
+    const ett = v.match(/\d+/);
+    if (ett) return Number(ett[0]);
+  }
+  return null;
+}
+
+function costOf(rad: Record<string, unknown>): number | null {
+  // Formen från ds.freight.query anger ören/cent i frågans valuta.
+  const cent = num(rad.shipping_fee_cent ?? rad.shippingFeeCent);
+  if (cent !== null) return cent / 100;
+  // freight.calculate anger ett belopp direkt, ibland som sträng ("0.00").
+  const frakt = rad.freight ?? rad.freightAmount;
+  if (frakt && typeof frakt === "object") {
+    const a = num((frakt as Record<string, unknown>).amount);
+    if (a !== null) return a;
+  }
+  return num(rad.shipping_fee ?? rad.shippingFee ?? rad.freightAmount);
+}
+
+function daysOf(rad: Record<string, unknown>): number | null {
+  // Max före min: kunden upplever den pessimistiska änden, och det är den
+  // vårt 3–7-dagarslöfte måste hålla mot.
+  return num(
+    rad.max_delivery_days ?? rad.maxDeliveryDays ??
+    rad.delivery_time ?? rad.deliveryTime ??
+    rad.estimated_delivery_time ?? rad.estimatedDeliveryTime ??
+    rad.min_delivery_days ?? rad.minDeliveryDays,
+  );
+}
+
+/** Alternativen ur ett fraktsvar, i svarets egen ordning. */
+export function parseDeliveryOptions(outcome: FreightQueryOutcome): DeliveryOption[] {
   if (outcome.error) return [];
   const lists: unknown[][] = [];
   collectOptionArrays(outcome.raw, "", lists);
-  const namn: string[] = [];
+  const ut: DeliveryOption[] = [];
   const sedda = new Set<string>();
   for (const lista of lists) {
     for (const alt of lista) {
       if (!alt || typeof alt !== "object") continue;
       const rad = alt as Record<string, unknown>;
+      let namn = "";
       for (const nyckel of SERVICE_NAME_KEYS) {
         const v = rad[nyckel];
-        if (typeof v !== "string") continue;
-        const s = v.trim();
-        if (!s || sedda.has(s)) continue;
-        sedda.add(s);
-        namn.push(s);
-        break; // ett namn per alternativ
+        if (typeof v === "string" && v.trim()) { namn = v.trim(); break; }
       }
+      if (!namn || sedda.has(namn)) continue;
+      sedda.add(namn);
+      ut.push({ serviceName: namn, costSek: costOf(rad), maxDays: daysOf(rad) });
     }
   }
-  return namn;
+  return ut;
+}
+
+/** Lägre är bättre: fraktkostnad plus tiden omräknad i kronor. */
+export function deliveryScore(
+  o: DeliveryOption,
+  dayValueSek = DEFAULT_DAY_VALUE_SEK,
+  assumedDays = ASSUMED_DAYS_WHEN_UNKNOWN,
+): number {
+  // Okänd kostnad antas vara noll snarare än oändlig: DS-svaren utelämnar ofta
+  // avgiften för fri frakt. Att straffa tystnad hade sorterat bort just de
+  // billigaste alternativen.
+  const kostnad = o.costSek ?? 0;
+  const dagar = o.maxDays ?? assumedDays;
+  return kostnad + dagar * dayValueSek;
+}
+
+/**
+ * Alternativen billigast-och-snabbast först.
+ *
+ * Poängen väger ihop de två i stället för att välja den ena: ett alternativ
+ * som är en krona billigare men tio dagar långsammare ska inte vinna, och ett
+ * som är två dagar snabbare men hundra kronor dyrare ska inte heller det.
+ *
+ * Vid lika poäng vinner det snabbare — leveranstiden är det kunden märker.
+ * Sorteringen är stabil på namn så ordningen inte hoppar mellan körningar.
+ */
+export function rankDeliveryOptions(
+  options: DeliveryOption[],
+  dayValueSek = DEFAULT_DAY_VALUE_SEK,
+): DeliveryOption[] {
+  return [...options].sort((a, b) => {
+    const d = deliveryScore(a, dayValueSek) - deliveryScore(b, dayValueSek);
+    if (Math.abs(d) > 1e-9) return d;
+    const da = a.maxDays ?? ASSUMED_DAYS_WHEN_UNKNOWN;
+    const db = b.maxDays ?? ASSUMED_DAYS_WHEN_UNKNOWN;
+    if (da !== db) return da - db;
+    return a.serviceName.localeCompare(b.serviceName);
+  });
 }
 
 /** AliExpress svar när det begärda fraktsättet inte finns för produkten. */
@@ -272,15 +367,18 @@ export function isDeliveryMethodMissing(text: string | undefined | null): boolea
 }
 
 /**
- * Väljer fraktsätt att försöka med, i tur och ordning.
+ * Tjänsterna att försöka med, bäst först.
  *
- * `preferred` (vår historiska default) läggs FÖRST när den finns bland de
- * tillgängliga — den är beprövad och billig. Finns den inte bland alternativen
- * läggs den ändå SIST som sista utväg, så beteendet aldrig blir sämre än förut
- * när fraktfrågan misslyckats helt.
+ * `fallback` (vår historiska default) läggs SIST och bara när den inte redan
+ * finns i listan — den är inte längre förstahandsvalet, men den ska finnas
+ * kvar som sista utväg så beteendet aldrig blir sämre än förut när
+ * fraktfrågan misslyckats helt.
  */
-export function deliveryCandidates(available: string[], preferred: string): string[] {
-  const rena = available.map((s) => s.trim()).filter(Boolean);
-  const utan = rena.filter((s) => s !== preferred);
-  return rena.includes(preferred) ? [preferred, ...utan] : [...utan, preferred];
+export function deliveryCandidates(
+  options: DeliveryOption[],
+  fallback: string,
+  dayValueSek = DEFAULT_DAY_VALUE_SEK,
+): string[] {
+  const rankade = rankDeliveryOptions(options).map((o) => o.serviceName);
+  return rankade.includes(fallback) ? rankade : [...rankade, fallback];
 }

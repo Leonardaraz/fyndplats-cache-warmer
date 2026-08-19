@@ -1,121 +1,170 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_DAY_VALUE_SEK,
   deliveryCandidates,
+  deliveryScore,
   isDeliveryMethodMissing,
-  shippingServiceNames,
+  parseDeliveryOptions,
+  rankDeliveryOptions,
+  type DeliveryOption,
 } from "./freight";
 
 // Bakgrund (2026-08-19): order #10021 avvisades med DELIVERY_METHOD_NOT_EXIST.
-// placeOrder skickade CAINIAO_ECONOMY_GLOBAL hårdkodat för varje produkt, och
-// den tjänsten finns inte för alla säljare/lager/destinationer. Saknas den
-// vägrar AliExpress HELA ordern.
+// placeOrder skickade CAINIAO_ECONOMY_GLOBAL hårdkodat för varje produkt.
+// Utöver att tjänsten inte finns överallt var den sällan bästa valet: samma
+// vara ligger ofta i flera lager med olika pris OCH leveranstid.
+
+const alt = (serviceName: string, costSek: number | null, maxDays: number | null): DeliveryOption =>
+  ({ serviceName, costSek, maxDays });
 
 describe("isDeliveryMethodMissing", () => {
-  it("känner igen felkoden i AliExpress felsträng", () => {
+  it("känner igen felkoden", () => {
     expect(isDeliveryMethodMissing("DELIVERY_METHOD_NOT_EXIST")).toBe(true);
-    expect(isDeliveryMethodMissing("code=DELIVERY_METHOD_NOT_EXIST msg=...")).toBe(true);
+    expect(isDeliveryMethodMissing("code=DELIVERY_METHOD_NOT_EXIST msg=..")).toBe(true);
   });
 
-  it("skiljer det från ANDRA fel — bara fraktsättet får ge omförsök", () => {
+  it("skiljer den från ANDRA fel — bara fraktsättet får ge omförsök", () => {
     // Ett omförsök på fel grund är i värsta fall en dubbelbeställning.
     for (const annat of [
       "DELIVERY_NOT_AVAILABLE_TO_YOUR_ADDRESS",
       "B_DROPSHIPPER_DELIVERY_ADDRESS_VALIDATE_FAIL",
-      "InsufficientBalance",
-      "",
-      null,
-      undefined,
+      "InsufficientBalance", "", null, undefined,
     ]) {
       expect(isDeliveryMethodMissing(annat)).toBe(false);
     }
   });
 });
 
-describe("shippingServiceNames", () => {
-  it("plockar tjänstenamnen ur ds.freight.query-formen", () => {
-    const outcome = {
+describe("parseDeliveryOptions", () => {
+  it("läser ds.freight.query: ören till kronor och pessimistisk dag", () => {
+    const o = parseDeliveryOptions({
       method: "aliexpress.ds.freight.query",
       raw: {
         result: {
           delivery_option_list: [
-            { code: "CAINIAO_STANDARD", shipping_fee_cent: 0 },
-            { code: "AE_RU_CAINIAO_EXPEDITED", shipping_fee_cent: 500 },
+            { code: "CAINIAO_STANDARD", shipping_fee_cent: 0, min_delivery_days: 8, max_delivery_days: 14 },
+            { code: "EMS", shipping_fee_cent: 4900, max_delivery_days: 6 },
           ],
         },
       },
-    };
-    expect(shippingServiceNames(outcome)).toEqual([
-      "CAINIAO_STANDARD",
-      "AE_RU_CAINIAO_EXPEDITED",
+    });
+    expect(o).toEqual([
+      { serviceName: "CAINIAO_STANDARD", costSek: 0, maxDays: 14 },
+      { serviceName: "EMS", costSek: 49, maxDays: 6 },
     ]);
   });
 
-  it("plockar dem ur freight.calculate-formen med service_name", () => {
-    const outcome = {
+  it("läser freight.calculate: belopp som sträng och intervall som text", () => {
+    const o = parseDeliveryOptions({
       method: "aliexpress.logistics.buyer.freight.calculate",
       raw: {
         result: {
           aeop_freight_calculate_result_for_buyer_dto_list: {
             aeop_freight_calculate_result_for_buyer_d_t_o: [
-              { service_name: "CAINIAO_ECONOMY_GLOBAL", freight: { amount: 0 } },
-              { service_name: "EMS", freight: { amount: 120 } },
+              { service_name: "CAINIAO_ECONOMY_GLOBAL", freight: { amount: "0.00" }, estimated_delivery_time: "15-30" },
             ],
           },
         },
       },
-    };
-    expect(shippingServiceNames(outcome)).toEqual(["CAINIAO_ECONOMY_GLOBAL", "EMS"]);
+    });
+    // Intervall → PESSIMISTISKA änden; kunden upplever den, inte den optimistiska.
+    expect(o).toEqual([{ serviceName: "CAINIAO_ECONOMY_GLOBAL", costSek: 0, maxDays: 30 }]);
   });
 
-  it("bevarar ordningen — AliExpress listar billigast först", () => {
-    const outcome = {
-      method: "x",
-      raw: { delivery_option_list: [{ code: "A" }, { code: "B" }, { code: "C" }] },
-    };
-    expect(shippingServiceNames(outcome)).toEqual(["A", "B", "C"]);
-  });
-
-  it("tar bort dubbletter", () => {
-    const outcome = {
-      method: "x",
-      raw: { delivery_option_list: [{ code: "A" }, { code: "A" }, { code: "B" }] },
-    };
-    expect(shippingServiceNames(outcome)).toEqual(["A", "B"]);
+  it("okänd kostnad/tid blir null, inte en gissad nolla", () => {
+    const o = parseDeliveryOptions({ method: "x", raw: { delivery_option_list: [{ code: "A" }] } });
+    expect(o).toEqual([{ serviceName: "A", costSek: null, maxDays: null }]);
   });
 
   it("tom lista vid fel, tomt svar eller oväntad form — aldrig ett kast", () => {
-    expect(shippingServiceNames({ method: "x", error: "timeout" })).toEqual([]);
-    expect(shippingServiceNames({ method: "x", raw: {} })).toEqual([]);
-    expect(shippingServiceNames({ method: "x", raw: null })).toEqual([]);
-    expect(shippingServiceNames({ method: "x", raw: { delivery_option_list: [] } })).toEqual([]);
+    expect(parseDeliveryOptions({ method: "x", error: "timeout" })).toEqual([]);
+    expect(parseDeliveryOptions({ method: "x", raw: {} })).toEqual([]);
+    expect(parseDeliveryOptions({ method: "x", raw: null })).toEqual([]);
+    expect(parseDeliveryOptions({ method: "x", raw: { delivery_option_list: [{ shipping_fee_cent: 0 }] } })).toEqual([]);
   });
 
-  it("hoppar over alternativ utan lasbart tjanstenamn", () => {
-    const outcome = {
+  it("dubbletter på tjänstenamn tas bort", () => {
+    const o = parseDeliveryOptions({
       method: "x",
-      raw: { delivery_option_list: [{ shipping_fee_cent: 0 }, { code: "B" }] },
-    };
-    expect(shippingServiceNames(outcome)).toEqual(["B"]);
+      raw: { delivery_option_list: [{ code: "A" }, { code: "A" }, { code: "B" }] },
+    });
+    expect(o.map((x) => x.serviceName)).toEqual(["A", "B"]);
+  });
+});
+
+describe("rankDeliveryOptions — billigast OCH snabbast", () => {
+  it("gratis och snabb slår gratis och långsam", () => {
+    const r = rankDeliveryOptions([alt("LÅNGSAM", 0, 30), alt("SNABB", 0, 7)]);
+    expect(r[0].serviceName).toBe("SNABB");
+  });
+
+  it("billig och långsam slår dyr och snabb när prisskillnaden är stor", () => {
+    // 200 kr dyrare för 10 dagars vinst är inte värt det vid 5 kr/dag.
+    const r = rankDeliveryOptions([alt("DYR_SNABB", 200, 5), alt("BILLIG", 0, 15)]);
+    expect(r[0].serviceName).toBe("BILLIG");
+  });
+
+  it("dyr och snabb slår billig och långsam när tidsskillnaden är stor", () => {
+    // 20 kr för att korta 30 dagar till 5 är en bra affär.
+    const r = rankDeliveryOptions([alt("BILLIG_SEG", 0, 40), alt("SNABB", 20, 5)]);
+    expect(r[0].serviceName).toBe("SNABB");
+  });
+
+  it("avvägningen ligger dar dagvardet sager — 5 kr per dag", () => {
+    // 10 dagar snabbare är värt exakt 50 kr; en krona över och det tippar.
+    const knappt = rankDeliveryOptions([alt("SEG", 0, 20), alt("SNABB", 49, 10)]);
+    expect(knappt[0].serviceName).toBe("SNABB");
+    const knappt2 = rankDeliveryOptions([alt("SEG", 0, 20), alt("SNABB", 51, 10)]);
+    expect(knappt2[0].serviceName).toBe("SEG");
+    expect(DEFAULT_DAY_VALUE_SEK).toBe(5);
+  });
+
+  it("okand leveranstid vinner inte pa snabbhet genom att tiga", () => {
+    const r = rankDeliveryOptions([alt("TYST", 0, null), alt("ANGIVEN", 0, 10)]);
+    expect(r[0].serviceName).toBe("ANGIVEN");
+  });
+
+  it("okand kostnad antas gratis — DS-svar utelamnar ofta fri frakt", () => {
+    // Att straffa tystnad hade sorterat bort just de billigaste alternativen.
+    expect(deliveryScore(alt("A", null, 10))).toBe(deliveryScore(alt("B", 0, 10)));
+  });
+
+  it("vid lika poang vinner det snabbare", () => {
+    // Leveranstiden ar det kunden marker.
+    const r = rankDeliveryOptions([alt("DYR_SNABB", 50, 0), alt("GRATIS_SEG", 0, 10)]);
+    expect(r[0].serviceName).toBe("DYR_SNABB");
+  });
+
+  it("ar stabil — samma indata ger samma ordning", () => {
+    const inn = [alt("B", 0, 10), alt("A", 0, 10), alt("C", 0, 10)];
+    expect(rankDeliveryOptions(inn).map((o) => o.serviceName))
+      .toEqual(rankDeliveryOptions(inn).map((o) => o.serviceName));
+  });
+
+  it("muterar inte inlistan", () => {
+    const inn = [alt("B", 0, 30), alt("A", 0, 5)];
+    const kopia = [...inn];
+    rankDeliveryOptions(inn);
+    expect(inn).toEqual(kopia);
   });
 });
 
 describe("deliveryCandidates", () => {
-  it("den beprovade tjansten forst nar den finns bland alternativen", () => {
-    expect(deliveryCandidates(["EMS", "CAINIAO_ECONOMY_GLOBAL", "DHL"], "CAINIAO_ECONOMY_GLOBAL"))
-      .toEqual(["CAINIAO_ECONOMY_GLOBAL", "EMS", "DHL"]);
+  it("basta forst, defaulten SIST och bara som sista utvag", () => {
+    const k = deliveryCandidates([alt("SEG", 0, 30), alt("SNABB", 0, 5)], "CAINIAO_ECONOMY_GLOBAL");
+    expect(k).toEqual(["SNABB", "SEG", "CAINIAO_ECONOMY_GLOBAL"]);
   });
 
-  it("finns den inte hamnar den SIST som sista utvag", () => {
-    // Beteendet får aldrig bli sämre än förut när fraktfrågan misslyckats.
-    expect(deliveryCandidates(["EMS", "DHL"], "CAINIAO_ECONOMY_GLOBAL"))
-      .toEqual(["EMS", "DHL", "CAINIAO_ECONOMY_GLOBAL"]);
+  it("defaulten dubbleras inte nar den redan ar ett alternativ", () => {
+    const k = deliveryCandidates(
+      [alt("CAINIAO_ECONOMY_GLOBAL", 0, 20), alt("SNABB", 0, 6)],
+      "CAINIAO_ECONOMY_GLOBAL",
+    );
+    expect(k).toEqual(["SNABB", "CAINIAO_ECONOMY_GLOBAL"]);
+    expect(k.filter((x) => x === "CAINIAO_ECONOMY_GLOBAL")).toHaveLength(1);
   });
 
-  it("tom alternativlista ger bara defaulten", () => {
+  it("tom alternativlista ger bara defaulten — beteendet blir aldrig samre an forut", () => {
     expect(deliveryCandidates([], "CAINIAO_ECONOMY_GLOBAL")).toEqual(["CAINIAO_ECONOMY_GLOBAL"]);
-  });
-
-  it("stadar blanksteg och tomma poster", () => {
-    expect(deliveryCandidates([" EMS ", "", "   "], "DEF")).toEqual(["EMS", "DEF"]);
   });
 });
