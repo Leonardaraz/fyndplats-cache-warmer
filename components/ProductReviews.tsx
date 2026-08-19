@@ -76,18 +76,34 @@ export function ProductReviews({
                   {r.date ? <span className="rev-date">{r.date.slice(0, 10)}</span> : null}
                 </div>
                 <p className="rev-text">{r.text}</p>
-                {r.imageUrl ? (
+                {r.imageUrls.length > 0 ? (
+                  // En remsa, inte en enda bild. AliExpress-recensenter postar
+                  // ofta flera foton och importen slängde alla utom den första
+                  // fram till 2026-08-19; kunder som skriver hos oss kan bifoga
+                  // upp till tre. För möbler — butikens dyraste kategori — är
+                  // det skillnaden mellan en produktbild och att se varan
+                  // monterad, i ett rum och i rätt skala.
+                  //
                   // <button> och inte <img onClick>: tangentbord och skärmläsare
-                  // behöver veta att bilden går att öppna.
-                  <button
-                    type="button"
-                    className="rev-photo-btn"
-                    onClick={() => setPhoto({ url: r.imageUrl as string, alt })}
-                    aria-label={`${alt} – visa större`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className="rev-photo" src={r.imageUrl} alt={alt} loading="lazy" />
-                  </button>
+                  // behöver veta att bilderna går att öppna.
+                  <div className="rev-photos">
+                    {r.imageUrls.map((url, i) => (
+                      <button
+                        key={url}
+                        type="button"
+                        className="rev-photo-btn"
+                        onClick={() => setPhoto({ url, alt })}
+                        aria-label={
+                          r.imageUrls.length > 1
+                            ? `${alt} – bild ${i + 1} av ${r.imageUrls.length}, visa större`
+                            : `${alt} – visa större`
+                        }
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img className="rev-photo" src={url} alt={alt} loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
                 ) : null}
               </li>
             );

@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { ALLOWED_MIME, MAX_BYTES, mediaFileName, validateUpload } from "./review-image.ts";
+import { ALLOWED_MIME, MAX_BYTES, MAX_IMAGES, mediaFileName, validateUpload } from "./review-image.ts";
+import { MAX_REVIEW_IMAGES } from "./review-images.ts";
 
 describe("validateUpload", () => {
   it("slapper igenom de tillatna typerna", () => {
@@ -45,5 +46,25 @@ describe("mediaFileName", () => {
 
   it("ar deterministiskt — samma omdome ger samma namn", () => {
     assert.equal(mediaFileName("p", "r"), mediaFileName("p", "r"));
+  });
+});
+
+describe("taket for antal bilder", () => {
+  it("formularets tak och lagrets tak MASTE vara samma", () => {
+    // Ar de olika accepterar formularet bilder som lagret sedan kapar bort —
+    // kunden ser sin tredje bild i forhandsvisningen och den forsvinner.
+    assert.equal(MAX_IMAGES, MAX_REVIEW_IMAGES);
+  });
+});
+
+describe("mediaFileName med index", () => {
+  it("ger UNIKA namn per bild inom samma omdome", () => {
+    // Utan suffix hade bild 2 och 3 skrivit over den forsta i mediabiblioteket.
+    const namn = [0, 1, 2].map((i) => mediaFileName("p", "r", i));
+    assert.equal(new Set(namn).size, 3);
+  });
+
+  it("forsta bilden behaller det gamla namnet utan suffix", () => {
+    assert.equal(mediaFileName("p", "r", 0), mediaFileName("p", "r"));
   });
 });
