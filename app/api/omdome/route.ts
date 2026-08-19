@@ -10,10 +10,22 @@
 // Omdömet sparas som `pending` i FyndplatsImportedReviews med
 // `source: "customer"`. Det visas alltså INTE förrän det godkänts i
 // /admin/reviews — produktsidan renderar bara approved/edited.
+//
+// BILD (valfri): skickas som base64 i `image` + `imageType`. Den bearbetas
+// (nedskalning, EXIF bort, XMP kvar — se lib/review-image-process.ts) och
+// laddas upp till Wix Media. Misslyckas något av det sparas omdömet ÄNDÅ utan
+// bild: texten och betyget är huvudsaken, och en trasig uppladdning får inte
+// kosta kunden hela omdömet efter att hen skrivit det.
+//
+// Moderationen är samma som för texten — raden är `pending` tills den godkänts
+// i /admin/reviews, så ingen bild kan nå produktsidan utan att ha setts.
 
 import { NextResponse } from "next/server";
 import { verifyReviewToken } from "@/lib/review-token";
 import { validateCustomerReview, buildCustomerReviewRow, FELTEXT } from "@/lib/customer-review";
+import { IMAGE_FELTEXT, validateUpload } from "@/lib/review-image";
+import { processReviewImage } from "@/lib/review-image-process";
+import { uploadReviewImage } from "@/lib/review-image-upload";
 import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
 
 export const runtime = "nodejs";
@@ -86,6 +98,31 @@ export async function POST(req: Request) {
     productId,
     review: validerad.value,
   });
+
+  // Valfri kundbild. Grindas FÖRE avkodning (storlek + typ) så en stor eller
+  // felaktig fil aldrig når bildbehandlingen.
+  const base64 = typeof body.image === "string" ? body.image : "";
+  if (base64) {
+    const raa = Buffer.from(base64, "base64");
+    const felkod = validateUpload(raa.byteLength, String(body.imageType || ""));
+    if (felkod) {
+      return NextResponse.json({ error: IMAGE_FELTEXT[felkod] }, { status: 400 });
+    }
+    try {
+      const bearbetad = await processReviewImage(raa);
+      const url = await uploadReviewImage(bearbetad, productId, rad.reviewIdAE);
+      if (url) {
+        rad.imageUrl = url;
+        rad.hasImage = true;
+      }
+    } catch (err) {
+      // sharp kastar på det som inte är en bild trots rätt MIME-typ. Här är det
+      // ett ÄKTA fel i indatan, så kunden ska få veta — till skillnad från en
+      // misslyckad uppladdning, som tyst sparar omdömet utan bild.
+      console.warn("[omdome] bilden gick inte att läsa", err);
+      return NextResponse.json({ error: IMAGE_FELTEXT.inte_en_bild }, { status: 400 });
+    }
+  }
 
   try {
     // /items/save är upsert. PUT /items/{id} vore FEL här: den uppdaterar bara

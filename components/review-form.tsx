@@ -69,6 +69,10 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
   const [betyg, setBetyg] = useState(0);
   const [text, setText] = useState("");
   const [namn, setNamn] = useState("");
+  // Valfritt kundfoto. `fil` är originalet, `forhandsvisning` en lokal blob-URL
+  // så kunden ser vad hen skickar innan hen trycker.
+  const [fil, setFil] = useState<File | null>(null);
+  const [forhandsvisning, setForhandsvisning] = useState<string | null>(null);
   const [läge, setLäge] = useState<Läge>({ typ: "vilar" });
 
   async function skicka(e: React.FormEvent) {
@@ -86,10 +90,31 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
 
     setLäge({ typ: "skickar" });
     try {
+      // Bilden skickas som base64. Enkelt och tillräckligt: taket är 6 MB och
+      // servern grindar storleken igen innan den avkodar något.
+      let image: string | undefined;
+      let imageType: string | undefined;
+      if (fil) {
+        const buf = await fil.arrayBuffer();
+        let bin = "";
+        const bytes = new Uint8Array(buf);
+        for (let i = 0; i < bytes.length; i += 0x8000) {
+          bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        }
+        image = btoa(bin);
+        imageType = fil.type;
+      }
       const res = await fetch("/api/omdome", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token, productId: vara.productId, rating: betyg, text, name: namn }),
+        body: JSON.stringify({
+          token,
+          productId: vara.productId,
+          rating: betyg,
+          text,
+          name: namn,
+          ...(image ? { image, imageType } : {}),
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -141,6 +166,40 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
         placeholder="Hur fungerar den? Var den som du förväntade dig? Något andra bör veta?"
         maxLength={2000}
       />
+
+      <label className="rf-label" htmlFor={`bild-${vara.productId}`}>
+        Bild <span className="rf-hint">(frivilligt – visa gärna varan i verkligheten)</span>
+      </label>
+      <input
+        id={`bild-${vara.productId}`}
+        className="rf-input"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={(e) => {
+          const f = e.target.files?.[0] ?? null;
+          setFil(f);
+          setForhandsvisning((tidigare) => {
+            if (tidigare) URL.revokeObjectURL(tidigare);
+            return f ? URL.createObjectURL(f) : null;
+          });
+        }}
+      />
+      {forhandsvisning ? (
+        <div className="rf-preview">
+          <img className="rf-preview-img" src={forhandsvisning} alt="Din bild" />
+          <button
+            type="button"
+            className="rf-preview-remove"
+            onClick={() => {
+              URL.revokeObjectURL(forhandsvisning);
+              setForhandsvisning(null);
+              setFil(null);
+            }}
+          >
+            Ta bort bilden
+          </button>
+        </div>
+      ) : null}
 
       <label className="rf-label" htmlFor={`namn-${vara.productId}`}>
         Ditt namn <span className="rf-hint">(frivilligt – vi visar bara initialer)</span>

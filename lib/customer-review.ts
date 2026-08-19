@@ -105,6 +105,14 @@ export interface CustomerReviewRow {
   customerNameRaw?: string;
   date: string;
   hasImage: boolean;
+  /**
+   * Adress till kundens egna foto i Wix Media, när hen bifogat ett.
+   *
+   * Samma fält som de importerade recensionerna använder, så produktsidan
+   * renderar kundfoton utan att veta varifrån de kommer. Sätts av
+   * /api/omdome efter bearbetning och uppladdning — se lib/review-image-process.
+   */
+  imageUrl?: string;
   status: "pending";
   source: ReviewSource;
   orderId: string;
