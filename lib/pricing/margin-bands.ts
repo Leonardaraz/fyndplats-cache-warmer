@@ -213,9 +213,18 @@ export function summarizeBands(rows: MarginRow[], unknownCount = 0): BandSummary
  */
 export const MAX_ROUNDING_STEP_SEK = 9;
 
+/**
+ * Tak för toleransen.
+ *
+ * För mycket billiga varor blir 9/kostnad enormt (9/50 = 0,18) och skulle
+ * svälja grannklustren. Taket säger: bortom 0,05 i multipel är skillnaden
+ * större än vad avrundning rimligen förklarar, oavsett hur billig varan är.
+ */
+export const MAX_MULTIPLE_TOLERANCE = 0.05;
+
 export function multipleJitter(landedCostSek: number): number {
-  if (!(landedCostSek > 0)) return Infinity;
-  return MAX_ROUNDING_STEP_SEK / landedCostSek;
+  if (!(landedCostSek > 0)) return MAX_MULTIPLE_TOLERANCE;
+  return Math.min(MAX_MULTIPLE_TOLERANCE, MAX_ROUNDING_STEP_SEK / landedCostSek);
 }
 
 export interface MultipleCluster {
@@ -246,55 +255,84 @@ export function clusterByMultiple(
   minCount = 2,
   fixedSurchargeSek = 0,
 ): MultipleCluster[] {
-  // Multipeln räknas efter att det fasta påslaget dragits bort: gross/cost blir
-  // annars multiplikator + påslag/kostnad, som varierar med kostnaden och
-  // sprider ut en gemensam inställning.
-  const punkter = rows
+  // INTERVALL, INTE PUNKTER — det är nyckeln till att det här fungerar.
+  //
+  // Priset sattes som roundPrice(kostnad × multiplikator + fastPåslag), och
+  // charm9 rundar UPP till närmaste tal som slutar på 9. Slutpriset g kan
+  // därför ha kommit från vilket råpris som helst i (g − 10, g]. Den sanna
+  // multiplikatorn ligger alltså i ett känt INTERVALL, inte på en punkt:
+  //
+  //     m ∈ ( (g − påslag − 10) / kostnad , (g − påslag) / kostnad ]
+  //
+  // Två produkter kan dela inställning om deras intervall överlappar, och en
+  // kandidatmultiplikator förklarar en produkt om den ligger i dess intervall.
+  // Frågan "finns det en inställning som förklarar många produkter?" blir då
+  // exakt räknebar i stället för en toleransgissning.
+  //
+  // Två tidigare försök misslyckades och är värda att inte upprepa (granskning
+  // 2026-08-19): fasta hinkar på två decimaler sprider en enda felinställning
+  // över fyra-fem hinkar för mid-pris, och avståndsbaserad hopslagning kedjar
+  // ihop allt transitivt — tre distinkta inställningar (1,3/1,5/1,7) blev ETT
+  // kluster märkt "1,3× — 300 st". Intervallmetoden har ingen sådan knopp:
+  // billiga varor får breda intervall (mindre informativa) och dyra smala, av
+  // sig självt.
+  const poster = rows
     .map((r) => {
       const kostnad = r.landedCostSek;
-      const m = (r.grossSek - fixedSurchargeSek) / kostnad;
-      return Number.isFinite(m) && m > 0
-        ? { r, m, jitter: multipleJitter(kostnad) }
-        : null;
+      const hog = (r.grossSek - fixedSurchargeSek) / kostnad;
+      const lag = (r.grossSek - fixedSurchargeSek - MAX_ROUNDING_STEP_SEK - 1) / kostnad;
+      return kostnad > 0 && Number.isFinite(hog) && hog > 0 ? { r, lag, hog } : null;
     })
-    .filter((p): p is { r: MarginRow; m: number; jitter: number } => p !== null)
-    .sort((a, b) => a.m - b.m);
-
-  // SAMMANSLAGNING PÅ TOLERANS i stället för fasta hinkar: två närliggande
-  // multiplar hör ihop om avståndet är mindre än vad avrundningen kan ha
-  // orsakat. Adaptivt av sig självt — snävt för dyra varor, generöst för
-  // billiga, vilket är precis hur jittret beter sig.
-  const grupper: { r: MarginRow; m: number }[][] = [];
-  let aktuell: { r: MarginRow; m: number; jitter: number }[] = [];
-  for (const p of punkter) {
-    const forra = aktuell[aktuell.length - 1];
-    if (forra && p.m - forra.m > Math.max(forra.jitter, p.jitter)) {
-      grupper.push(aktuell);
-      aktuell = [];
-    }
-    aktuell.push(p);
-  }
-  if (aktuell.length > 0) grupper.push(aktuell);
+    .filter((p): p is { r: MarginRow; lag: number; hog: number } => p !== null);
 
   const ut: MultipleCluster[] = [];
-  for (const grupp of grupper) {
-    if (grupp.length < minCount) continue;
-    const sorterade = grupp.map((g) => g.r.marginPct).sort((a, b) => a - b);
-    const mitt = Math.floor(sorterade.length / 2);
+  let kvar = poster;
+  // Plocka ut det tätaste överlappet, ta bort dess produkter, upprepa. Taket
+  // är en säkerhetsspärr — vyn visar ändå bara de översta.
+  for (let varv = 0; varv < 40 && kvar.length >= minCount; varv++) {
+    // Maximalt överlapp: den bästa kandidatmultiplikatorn ligger alltid på
+    // någon posts undre gräns, så det räcker att pröva dem.
+    let bast: { m: number; träffar: typeof kvar } | null = null;
+    for (const kandidat of kvar) {
+      const m = kandidat.lag;
+      const träffar = kvar.filter((p) => p.lag <= m && m <= p.hog);
+      if (!bast || träffar.length > bast.träffar.length) bast = { m, träffar };
+    }
+    if (!bast || bast.träffar.length < minCount) break;
+
+    const marginaler = bast.träffar.map((p) => p.r.marginPct).sort((a, b) => a - b);
+    const mitt = Math.floor(marginaler.length / 2);
     ut.push({
-      // Den LÄGSTA multipeln i gruppen representerar den: charm9 rundar bara
-      // UPPÅT, så det minsta observerade värdet ligger närmast den inställning
-      // som faktiskt sattes.
-      multiple: Math.round(grupp[0].m * 100) / 100,
-      count: grupp.length,
-      sharePct: rows.length > 0 ? (grupp.length / rows.length) * 100 : 0,
+      multiple: Math.round(bast.m * 100) / 100,
+      count: bast.träffar.length,
+      sharePct: rows.length > 0 ? (bast.träffar.length / rows.length) * 100 : 0,
       medianMarginPct:
-        sorterade.length % 2 === 1
-          ? sorterade[mitt]
-          : (sorterade[mitt - 1] + sorterade[mitt]) / 2,
+        marginaler.length % 2 === 1
+          ? marginaler[mitt]
+          : (marginaler[mitt - 1] + marginaler[mitt]) / 2,
     });
+    const tagna = new Set(bast.träffar.map((p) => p.r));
+    kvar = kvar.filter((p) => !tagna.has(p.r));
   }
-  return ut.sort((a, b) => b.count - a.count || a.multiple - b.multiple);
+  return ut;
+}
+
+/**
+ * Sant när kandidatmultipeln kan förklara produktens pris, givet att
+ * prisavrundningen kan ha lyft det. Används av drill-down-filtret så listan
+ * visar exakt de produkter klustret räknade.
+ */
+export function multipleExplains(
+  row: Pick<MarginRow, "grossSek" | "landedCostSek">,
+  multiple: number,
+  fixedSurchargeSek = 0,
+): boolean {
+  const kostnad = row.landedCostSek;
+  if (!(kostnad > 0)) return false;
+  const hog = (row.grossSek - fixedSurchargeSek) / kostnad;
+  const lag = (row.grossSek - fixedSurchargeSek - MAX_ROUNDING_STEP_SEK - 1) / kostnad;
+  // Klustrets etikett är avrundad till två decimaler; tillåt den avrundningen.
+  return lag - 0.005 <= multiple && multiple <= hog + 0.005;
 }
 
 /**

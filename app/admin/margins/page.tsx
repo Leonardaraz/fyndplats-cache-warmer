@@ -20,7 +20,7 @@ import { getStore } from "@/lib/store/factory";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import {
   BANDS,
-  multipleJitter,
+  multipleExplains,
   TARGET_MARGIN_PCT,
   biggestOpportunities,
   clusterByMultiple,
@@ -98,11 +98,9 @@ export default async function MarginsPage({
   let lista = rows;
   if (valtBand) lista = lista.filter((r) => r.bandId === valtBand);
   if (valdMult !== null) {
-    // Samma tolerans som klustringen använder, annars matchar länken inget.
-    lista = lista.filter((r) => {
-      const m = (r.grossSek - (rules.fixedSurchargeSek ?? 0)) / r.landedCostSek;
-      return Number.isFinite(m) && m >= valdMult - 1e-9 && m - valdMult <= multipleJitter(r.landedCostSek);
-    });
+    // Samma intervall-logik som klustringen, annars visar listan andra
+    // produkter än rubriken påstår (granskning 2026-08-19).
+    lista = lista.filter((r) => multipleExplains(r, valdMult, rules.fixedSurchargeSek ?? 0));
   }
   const visade = valtBand || valdMult !== null
     ? [...lista].sort((a, b) => b.gapSek - a.gapSek)

@@ -272,18 +272,47 @@ function num(v: unknown): number | null {
   if (typeof v === "string" && v.trim() !== "") {
     const n = Number(v);
     if (Number.isFinite(n)) return n;
+    // DATUM ÄR INTE ETT DAGINTERVALL. "2026-09-05" hade annars lästs som
+    // 5–9 dagar och gjort ett 45-dagarsalternativ till ranklistans vinnare
+    // (granskning 2026-08-19). AliExpress returnerar absolut datum i flera
+    // svarsvarianter, så formen måste avvisas explicit.
+    if (/\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}|[A-Za-z]{3,}\s+\d{1,2},?\s+\d{4}/.test(v)) {
+      return null;
+    }
     // "15-30" (dagintervall) → ta den PESSIMISTISKA änden.
-    const m = v.match(/(\d+)\s*[-–]\s*(\d+)/);
+    const m = v.match(/^\s*(\d{1,3})\s*[-–]\s*(\d{1,3})\s*$/);
     if (m) return Number(m[2]);
-    const ett = v.match(/\d+/);
-    if (ett) return Number(ett[0]);
+    const ett = v.match(/^\s*(\d{1,3})\b/);
+    if (ett) return Number(ett[1]);
+    // Sista utväg: ett tal var som helst i strängen. Tryggt här eftersom
+    // datumformerna redan avvisats ovan — det här fångar valutaprefix som
+    // "SEK 199.00", som annars blivit "okänd kostnad" och därmed antagits
+    // gratis.
+    const nagonstans = v.match(/(\d+(?:[.,]\d+)?)/);
+    if (nagonstans) return Number(nagonstans[1].replace(",", "."));
+  }
+  return null;
+}
+
+/**
+ * Första fältet som ger ett tal.
+ *
+ * `??` duger inte: den hoppar bara över null/undefined, så ett fält som finns
+ * men är TOMT ("") kortsluter kedjan innan ett ifyllt senare fält nås —
+ * och AliExpress returnerar rutinmässigt tomma strängar för fält den inte kan
+ * fylla (granskning 2026-08-19).
+ */
+function firstNum(rad: Record<string, unknown>, nycklar: string[]): number | null {
+  for (const n of nycklar) {
+    const v = num(rad[n]);
+    if (v !== null) return v;
   }
   return null;
 }
 
 function costOf(rad: Record<string, unknown>): number | null {
   // Formen från ds.freight.query anger ören/cent i frågans valuta.
-  const cent = num(rad.shipping_fee_cent ?? rad.shippingFeeCent);
+  const cent = firstNum(rad, ["shipping_fee_cent", "shippingFeeCent"]);
   if (cent !== null) return cent / 100;
   // freight.calculate anger ett belopp direkt, ibland som sträng ("0.00").
   const frakt = rad.freight ?? rad.freightAmount;
@@ -291,18 +320,24 @@ function costOf(rad: Record<string, unknown>): number | null {
     const a = num((frakt as Record<string, unknown>).amount);
     if (a !== null) return a;
   }
-  return num(rad.shipping_fee ?? rad.shippingFee ?? rad.freightAmount);
+  return firstNum(rad, [
+    "shipping_fee", "shippingFee", "freightAmount",
+    // Formaterad avgift ("SEK 199.00") förekommer i DS-svar. Utan den blir
+    // kostnaden okänd → antas gratis → ett 199-kronorsalternativ rankas som
+    // billigast, precis den marginalläcka rankningen skulle stoppa.
+    "shipping_fee_format", "shippingFeeFormat",
+  ]);
 }
 
 function daysOf(rad: Record<string, unknown>): number | null {
   // Max före min: kunden upplever den pessimistiska änden, och det är den
   // vårt 3–7-dagarslöfte måste hålla mot.
-  return num(
-    rad.max_delivery_days ?? rad.maxDeliveryDays ??
-    rad.delivery_time ?? rad.deliveryTime ??
-    rad.estimated_delivery_time ?? rad.estimatedDeliveryTime ??
-    rad.min_delivery_days ?? rad.minDeliveryDays,
-  );
+  return firstNum(rad, [
+    "max_delivery_days", "maxDeliveryDays",
+    "delivery_time", "deliveryTime",
+    "estimated_delivery_time", "estimatedDeliveryTime",
+    "min_delivery_days", "minDeliveryDays",
+  ]);
 }
 
 /** Alternativen ur ett fraktsvar, i svarets egen ordning. */
@@ -310,11 +345,14 @@ export function parseDeliveryOptions(outcome: FreightQueryOutcome): DeliveryOpti
   if (outcome.error) return [];
   const lists: unknown[][] = [];
   collectOptionArrays(outcome.raw, "", lists);
-  // Samma tjänstenamn kan förekomma FLERA gånger — en gång per lager. Det är
-  // hela poängen med funktionen: "CAINIAO_STANDARD" från CN kan kosta 49 kr på
-  // 25 dagar och från ES vara gratis på 6. En dedupe som behåller den FÖRSTA
-  // hade kastat bort just det billigare lagret vi letar efter (granskning
-  // 2026-08-19). Vi behåller därför den bäst rankade raden per namn.
+  // Samma tjänstenamn kan förekomma flera gånger i svaret (olika kuvert,
+  // olika prisnivåer). Vi behåller den BÄST rankade raden per namn i stället
+  // för den först påträffade.
+  //
+  // NOT: det här väljer inte LAGER. Olika lager är olika SKU:er hos
+  // AliExpress, och både fraktfrågan och ordern går på ett bestämt sku_id —
+  // ett annat lager kräver en annan SKU, vilket koden inte byter. En tidigare
+  // kommentar påstod motsatsen (granskning 2026-08-19).
   const bast = new Map<string, DeliveryOption>();
   for (const lista of lists) {
     for (const alt of lista) {
@@ -381,8 +419,20 @@ export function rankDeliveryOptions(
 /** AliExpress svar när det begärda fraktsättet inte finns för produkten. */
 const DELIVERY_METHOD_MISSING = /DELIVERY_METHOD_NOT_EXIST/i;
 
-/** true när felet är "fel fraktsätt", alltså värt ett omförsök med ett annat. */
-export function isDeliveryMethodMissing(text: string | undefined | null): boolean {
+/**
+ * true när felet är "fel fraktsätt", alltså värt ett omförsök med ett annat.
+ *
+ * Läs FELKODEN i första hand. createOrder bygger sin aeError som
+ * `error_msg || felkod ...`, så en läsbar text från AliExpress ("The delivery
+ * method is not available for this product") döljer koden helt — och då hade
+ * omförsöket aldrig fyrat, vilket gjort hela fixen till en no-op (granskning
+ * 2026-08-19). Texten kollas ändå som reserv för äldre svar.
+ */
+export function isDeliveryMethodMissing(
+  text: string | undefined | null,
+  code?: string | null,
+): boolean {
+  if (code && DELIVERY_METHOD_MISSING.test(code)) return true;
   return Boolean(text && DELIVERY_METHOD_MISSING.test(text));
 }
 

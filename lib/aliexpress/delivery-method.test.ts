@@ -23,6 +23,22 @@ describe("isDeliveryMethodMissing", () => {
     expect(isDeliveryMethodMissing("code=DELIVERY_METHOD_NOT_EXIST msg=..")).toBe(true);
   });
 
+  it("laser KODEN aven nar texten doljer den", () => {
+    // createOrder bygger aeError som `error_msg || felkod ...`, sa en lasbar
+    // text fran AliExpress doljer koden helt — och da hade omforsoket aldrig
+    // fyrat, vilket gjort hela fixen till en no-op (granskning 2026-08-19).
+    expect(
+      isDeliveryMethodMissing(
+        "The delivery method is not available for this product",
+        "DELIVERY_METHOD_NOT_EXIST",
+      ),
+    ).toBe(true);
+  });
+
+  it("en ANNAN kod ger inget omforsok aven med luddig text", () => {
+    expect(isDeliveryMethodMissing("something about delivery", "B_ORDER_LIMIT")).toBe(false);
+  });
+
   it("skiljer den från ANDRA fel — bara fraktsättet får ge omförsök", () => {
     // Ett omförsök på fel grund är i värsta fall en dubbelbeställning.
     for (const annat of [
@@ -166,5 +182,36 @@ describe("deliveryCandidates", () => {
 
   it("tom alternativlista ger bara defaulten — beteendet blir aldrig samre an forut", () => {
     expect(deliveryCandidates([], "CAINIAO_ECONOMY_GLOBAL")).toEqual(["CAINIAO_ECONOMY_GLOBAL"]);
+  });
+});
+
+
+describe("num-tolkningen via parseDeliveryOptions", () => {
+  const enRad = (rad: Record<string, unknown>) =>
+    parseDeliveryOptions({ method: "x", raw: { delivery_option_list: [{ code: "A", ...rad }] } })[0];
+
+  it("DATUM ar inte ett dagintervall", () => {
+    // "2026-09-05" hade lasts som 5-9 dagar och gjort ett 45-dagarsalternativ
+    // till ranklistans vinnare (granskning 2026-08-19).
+    for (const datum of ["2026-09-05", "09/05/2026", "Sep 5, 2026"]) {
+      expect(enRad({ estimated_delivery_time: datum }).maxDays).toBeNull();
+    }
+  });
+
+  it("dagintervall tas i den pessimistiska anden", () => {
+    expect(enRad({ estimated_delivery_time: "15-30" }).maxDays).toBe(30);
+  });
+
+  it("ett TOMT falt kortsluter inte kedjan till senare falt", () => {
+    // ?? hoppar bara over null/undefined. AliExpress returnerar rutinmassigt
+    // tomma strangar for falt den inte kan fylla.
+    expect(enRad({ max_delivery_days: "", delivery_time: "6" }).maxDays).toBe(6);
+    expect(enRad({ shipping_fee_cent: "", shipping_fee: "12" }).costSek).toBe(12);
+  });
+
+  it("formaterad avgift lases i stallet for att antas gratis", () => {
+    // Okand kostnad antas noll, sa ett oparsat 199-kronorsalternativ hade
+    // rankats som billigast — precis den marginallacka rankningen ska stoppa.
+    expect(enRad({ shipping_fee_format: "SEK 199.00" }).costSek).toBe(199);
   });
 });

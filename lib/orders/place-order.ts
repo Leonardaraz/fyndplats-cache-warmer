@@ -314,7 +314,7 @@ export async function placeOrderForTask(
     for (const tjanst of kandidater.slice(1)) {
       if (result.tradeOrderId) break;
       if (!result.orderDefinitelyNotPlaced) break;
-      if (!isDeliveryMethodMissing(result.aeError)) break;
+      if (!isDeliveryMethodMissing(result.aeError, result.aeErrorCode)) break;
       console.warn(`[place-order] task=${taskId} fraktsättet saknades — provar "${tjanst}"`);
       result = await createOrder({
         productId: supplierProductId,
