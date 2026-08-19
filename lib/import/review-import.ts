@@ -54,7 +54,34 @@ export interface AERReview {
 export const REVIEW_FILTER = {
   minRating: 3,
   minLength: 50,
-  maxLength: 300,
+  /**
+   * Övre längdgräns.
+   *
+   * HÖJD 300 → 1200 (2026-08-19). Taket sorterade bort precis de recensioner
+   * som är mest värda att visa. Leonard hittade fallet: en femstjärnig
+   * recension med TVÅ foton, utförlig text om att man kan montera möbeln själv
+   * — 331 tecken, alltså 31 över gränsen. Den hade fått 6,0 i rankningspoäng,
+   * nära max (+3 foto, +1 Europa, +2 maxad textlängd), men kastades innan
+   * rankningen ens körde.
+   *
+   * Längdfiltret är blint för allt annat: det ser varken bilderna, betyget
+   * eller att texten är välskriven. 300 tecken är ungefär tre meningar, och
+   * den som skriver "du behöver inte vara två för att montera den" passerar
+   * det utan att försöka.
+   *
+   * Att gränsen var inkonsekvent syns tydligast internt: butikens EGNA kunder
+   * får skriva 2000 tecken (TEXT_MAX i lib/customer-review.ts), medan
+   * importerade omdömen kapades vid 300 — samma produktsida, samma läsare.
+   *
+   * Ett tak behövs fortfarande mot väggar av AI-text och klistrade
+   * säljarrepliker, men 1200 räcker för varje äkta recension i katalogen.
+   * Skräpet fångas ändå av filter som faktiskt tittar på innehållet: isSpam,
+   * dubblettnyckeln och mentionsForeignDelivery.
+   *
+   * Produktkortet klampar långa texter till fem rader med "Visa mer"
+   * (ProductReviews i butiksrepot), så listan går att skumma.
+   */
+  maxLength: 1200,
   /** Topp-N efter rankning (spec: 10–15). */
   maxReviews: 15,
 };
