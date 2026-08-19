@@ -19,6 +19,11 @@ export function ProductReviews({
   // Förstorad kundbild. null = stängd. Samma mönster som galleriets lightbox:
   // portal, Escape stänger, bakgrundsscroll låses.
   const [photo, setPhoto] = useState<{ url: string; alt: string } | null>(null);
+  // Utfällda recensioner. Långa texter klamppas till några rader så listan går
+  // att skumma; utan det dominerar ett enda utförligt omdöme hela sektionen.
+  // Importfiltret släpper igenom upp till 1200 tecken sedan 2026-08-19 — förut
+  // 300, vilket sorterade bort just de genomtänkta omdömena.
+  const [utfallda, setUtfallda] = useState<Set<string>>(() => new Set());
   const close = useCallback(() => setPhoto(null), []);
 
   useEffect(() => {
@@ -60,6 +65,12 @@ export function ProductReviews({
         <ul className="rev-list">
           {shown.map((r) => {
             const alt = `Kundbild från ${r.displayName || "kund"}`;
+            // Tröskeln är på TECKEN, inte på uppmätt höjd: en mätning kräver
+            // layout och skulle ge hopp vid första renderingen. 320 tecken är
+            // ungefär fem rader i kortets bredd — precis över klampen, så
+            // knappen dyker bara upp när den faktiskt döljer något.
+            const lang = r.text.length > 320;
+            const utfalld = utfallda.has(r.reviewIdAE);
             return (
               <li key={r.reviewIdAE} className="rev-item">
                 <div className="rev-item-head">
@@ -75,7 +86,24 @@ export function ProductReviews({
                   ) : null}
                   {r.date ? <span className="rev-date">{r.date.slice(0, 10)}</span> : null}
                 </div>
-                <p className="rev-text">{r.text}</p>
+                <p className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>{r.text}</p>
+                {lang ? (
+                  <button
+                    type="button"
+                    className="rev-expand"
+                    aria-expanded={utfalld}
+                    onClick={() =>
+                      setUtfallda((f) => {
+                        const n = new Set(f);
+                        if (n.has(r.reviewIdAE)) n.delete(r.reviewIdAE);
+                        else n.add(r.reviewIdAE);
+                        return n;
+                      })
+                    }
+                  >
+                    {utfalld ? "Visa mindre" : "Visa mer"}
+                  </button>
+                ) : null}
                 {r.imageUrls.length > 0 ? (
                   // En remsa, inte en enda bild. AliExpress-recensenter postar
                   // ofta flera foton och importen slängde alla utom den första
