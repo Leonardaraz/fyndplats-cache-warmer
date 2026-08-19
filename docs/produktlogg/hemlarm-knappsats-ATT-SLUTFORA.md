@@ -48,13 +48,27 @@ taket — ingen variant läggs över det.
 | Roll | Media-ID |
 |---|---|
 | Hjälte | `b379ce_2c349235079749c092c86647bd117140~mv2.jpg` |
-| Kort A | `b379ce_129dc6d2c0c7424c97b83f9a8e012019~mv2.jpg` |
-| Kort B | `b379ce_e9526a55bbb143d897503d5cec9b34b5~mv2.jpg` |
-| Kort C | `b379ce_27eca700713441398b5d50e1ad096adc~mv2.jpg` |
-| Kort D | `b379ce_19bde5a540ff485980a2bdf1cc72bd75~mv2.jpg` |
-| Kort E | `b379ce_748ff44a7f50465796578f815da0d1e9~mv2.jpg` |
-| Kort F | `b379ce_d0ff7c21092c409c9831abe4670ca188~mv2.jpg` |
+| Kort A | `b379ce_74af7827712045a39af2f7342938a0eb~mv2.jpg` |
+| Kort B | `b379ce_3d6e53ea9f094818b098aa21c833b75b~mv2.jpg` |
+| Kort C | `b379ce_30f28ce387c249a4b413c4d1a71cb1cf~mv2.jpg` |
+| Kort D | `b379ce_41406c9e6abd4d13a09d02c13fdafb74~mv2.jpg` |
+| Kort E | `b379ce_36e6b03ec18d41ebabc5c82eab648e78~mv2.jpg` |
+| Kort F | `b379ce_de33bd9faf554be08b7818f73379d571~mv2.jpg` |
 | Helhet (med laddare + kabel) | `b379ce_10cbf2e46625462c8844b2e183468afb~mv2.jpg` |
+
+**Korten är v2** (Leonard 2026-08-19: *"bilderna i mallarna va en aning för små"*).
+Kortets bildyta är **1372 × 731 px, format 1,88** — uppmätt med en magenta-probe
+och `fit=False`, inte gissad. Den gamla `rensa()` la produkten på en
+**kvadratisk** 1600×1600-duk vid 90 % fyllnad; `object-fit: contain` skalar då
+efter HÖJDEN, så bilden fick bara 731 av 1372 px bredd. Produkten renderades
+**658 × 524 px**. Med tight urklipp (ingen kvadratisk duk, 2,5 % marginal) blir
+det **879 × 724** för minsta paketet och **1416 × 732** för det största — knappt
+dubbla ytan. Se `scratchpad/larm2/bygg-kort.py`.
+
+Pekskärmslarmets två kort är ombyggda på samma sätt och ligger uppladdade:
+kort D `b379ce_0777bb3f9a8f4a4f8dbb884bdf44843a~mv2.jpg`,
+kort E `b379ce_9b9bd0e810924f54ac995890a29ede2d~mv2.jpg`.
+De ersätter `3e8b26b0…` respektive `5d65ae18…` i galleri och `linkedMedia`.
 
 Behålls ur gamla galleriet: specifikationskortet
 `b379ce_7c808e4b02224f88ad10416116d4d351~mv2.png` och egenskapskortet
@@ -78,7 +92,13 @@ Källbilder och backup: `scratchpad/larm2/`.
    `.choices` (nyckeln byter från `Modell` till `Paket`).
 4. Verifiera live.
 
-## Pekskärmslarmet — samma prisfråga
+## Pekskärmslarmet — prisstege + större kort
+
+Två saker kvar där, båda i samma PATCH:
+1. Byt kort D/E till v2-bilderna ovan (galleri + `linkedMedia`).
+2. Sätt prisstegen nedan.
+
+### Prisfrågan
 
 `5352bb04-ae5e-4452-8d3f-3bb4b120d530` har två paket som båda kostar 1 929 kr
 trots olika innehåll. Landat 1 464,15 kr, 23 %-golv 1 909 kr, husets 2,0× 2 929 kr.
