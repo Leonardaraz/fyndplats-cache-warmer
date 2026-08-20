@@ -165,14 +165,20 @@ export async function GET(req: Request) {
 
     kontrollerade++;
 
+    // Kön körs i BÅDA lägena — i torrläge räknar den bara. Tidigare hoppades
+    // hela anropet över, så `köade` var strukturellt alltid 0 och en
+    // torrkörning kunde aldrig svara på det man frågar den: hur mycket skulle
+    // det här svepet lägga i kön?
+    const kö = await queueReviewsForProduct(m.wixProductId as string, res.reviews, {
+      ...(minLength ? { minLength } : {}),
+      ...(dryRun ? { dryRun: true } : {}),
+    });
+    if (kö.queued > 0) {
+      köade += kö.queued;
+      produkterMedNytt.push({ wixProductId: m.wixProductId as string, queued: kö.queued });
+    }
+
     if (!dryRun) {
-      const kö = await queueReviewsForProduct(m.wixProductId as string, res.reviews, {
-        ...(minLength ? { minLength } : {}),
-      });
-      if (kö.queued > 0) {
-        köade += kö.queued;
-        produkterMedNytt.push({ wixProductId: m.wixProductId as string, queued: kö.queued });
-      }
       // Stämpla ENDAST när AE faktiskt svarat. Även "inga recensioner" stämplas
       // — annars skulle de ~40 % recensionslösa produkterna hämtas om i all
       // evighet utan att något förändras.

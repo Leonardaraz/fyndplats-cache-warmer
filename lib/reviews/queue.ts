@@ -63,6 +63,19 @@ export async function queueReviewsForProduct(
      * scoreReview är maxad redan vid 300 tecken.
      */
     minLength?: number;
+    /**
+     * Räkna precis som en skarp körning, men SKRIV ingenting.
+     *
+     * Behövs för att en torrkörning ska säga något. Rutten hoppade tidigare
+     * över hela köanropet i torrläge, så `köade` var strukturellt alltid 0 —
+     * en torrkörning kunde alltså aldrig svara på den enda fråga man ställer
+     * den: hur mycket skulle det här svepet lägga i kön? (Upptäckt 2026-08-20
+     * när ett återsvep rapporterade "0 köade" på 40 produkter.)
+     *
+     * Dedupen mot befintliga rader körs fortfarande — den är läsningar, och
+     * utan den vore siffran en överskattning.
+     */
+    dryRun?: boolean;
   } = {},
 ): Promise<QueueResult> {
   if (!productId || !rawReviews?.length) return { ...TOM };
@@ -91,6 +104,11 @@ export async function queueReviewsForProduct(
 
       if (await store.exists(productId, reviewIdAE)) {
         skippedExisting++;
+        continue;
+      }
+
+      if (opts.dryRun) {
+        queued++;
         continue;
       }
 

@@ -209,3 +209,30 @@ describe("queueReviewsForProduct — minLength (återsvep efter rättat filter)"
     expect(r.queued).toBe(2);
   });
 });
+
+describe("queueReviewsForProduct — torrläge räknar men skriver inte", () => {
+  // Rutten hoppade tidigare över hela köanropet i torrläge, så `köade` var
+  // strukturellt alltid 0. En torrkörning kunde alltså aldrig svara på den
+  // enda fråga man ställer den — hur mycket skulle svepet lägga i kön? — och
+  // rapporterade "0 köade" på 40 produkter som om ingenting fanns att hämta.
+  it("räknar det som SKULLE köas utan att spara", async () => {
+    const store = fakeStore();
+    const r = await queueReviewsForProduct(
+      "p1",
+      [ae({ reviewIdAE: "a1" }), ae({ reviewIdAE: "a2", text: "Mycket bra kvalitet, snabb leverans och stabil konstruktion." })],
+      { store, dryRun: true },
+    );
+
+    expect(r.queued).toBe(2);
+    expect((store as never as { data: Map<string, StoredReview> }).data.size).toBe(0);
+  });
+
+  it("räknar inte sådant som redan finns", async () => {
+    const store = fakeStore();
+    await store.upsert(rad({ reviewIdAE: "a1", status: "approved" }));
+    const r = await queueReviewsForProduct("p1", [ae({ reviewIdAE: "a1" })], { store, dryRun: true });
+
+    expect(r.queued).toBe(0);
+    expect(r.skippedExisting).toBe(1);
+  });
+});
