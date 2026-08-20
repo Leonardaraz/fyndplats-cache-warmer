@@ -1,8 +1,8 @@
 {
   "ok": true,
-  "iKön": 133,
+  "iKön": 94,
   "iOmgången": 40,
-  "kvarEfter": 93,
+  "kvarEfter": 54,
   "grupper": [
     {
       "productId": "36c02670-9d3d-4085-83ea-ee58fd4dd436",
@@ -13,228 +13,60 @@
           "betyg": 4,
           "land": "JP",
           "text": "無事届いた！コンパクトな猫トイレを探していたから助かった。周囲のプラスチックは問題ないが足場の部分のプラスチックが柔らかくて壊れそう。それ以外はいい商品。これステンレスなのに安くて驚く。"
+        },
+        {
+          "id": "50201574113343306",
+          "betyg": 5,
+          "land": "KR",
+          "text": "사이즈 딱좋아요! 노랑이사고싶었는데 없어서 회색했지만 회색도 괜찮네요 고양이도 바로 잘 써요 ㅎㅎ"
         }
       ]
     },
     {
-      "productId": "3a5060ec-8eba-4745-b62f-781065e63247",
-      "produkt": "PawHut Cama Elevada Perros Transpirable Interiores Exteriores 122x92x2",
+      "productId": "757b7c20-2429-4bcc-9676-be6d47623b12",
+      "produkt": "POWLAND 12KW 7KW 6.5KW 48V 5KW 3.6KW 24V Hybrid Solar Inverter Dual MP",
       "reviews": [
         {
-          "id": "30101064960307851",
-          "betyg": 5,
-          "land": "ES",
-          "text": "Viene súper bien embalado, las barras protegidas y el manual de instrucciones con imágenes pero es muy fácil de montar. la lona es de excelente calidad, muy bien hecha y con costuras fuertes. El centro es de malla, transpirable y fresco. Realmente es muy buena opción, gran tamaño y muy cómoda para perro grande. Lo recomiendo muchísimo."
-        }
-      ]
-    },
-    {
-      "productId": "d9cc8061-3168-4560-a8d7-b371ebdf55d4",
-      "produkt": "SucceBuy 7-in-1 Wireless Weather Station with Wi-Fi, 7\"TFT Colorful Di",
-      "reviews": [
-        {
-          "id": "30100480377586383",
-          "betyg": 5,
-          "land": "IT",
-          "text": "Stazione metereologica Vevor YT60233 arrivata in 6 giorni, tutto perfetto come dichiarato, imballo ottimo. E' un ottima stazione e (un ottimo marchio) fatta molto bene e molto ricca con il menù, peccato però che il monitor interno non abbia le batterie è alimentato solo a corrente comunque il collegamento fra unità interna e unità esterna è velocissimo. Mi ritengo molto soddisfatto. Consiglio questo venditore per la sè rietà e la velocità della spedizione e della consegna. Grazie mille!!!"
-        },
-        {
-          "id": "30099896587648731",
-          "betyg": 4,
-          "land": "IT",
-          "text": "Installata da circa 10 giorni e confrontata con altre stazioni varie nei paraggi, da misurazioni molto simili.\nFacile da montare e da collegare al sito weathercloud.\nHa resistito tranquillamente al tifone Harry registrando delle raffiche di 80km/h.\nUnica pecca riscontrata che il supporto sferico che si inserisce sotto la stazione nonostante fosse ben serrato la faceva ruotare lo stesso pertanto ho dovuto mettere un piccolo spessore.\nLa console interna è completa e ben visibile peccato non va a batteria ma solo  alimentata con il trasformatore in dotazione."
-        },
-        {
-          "id": "30099117548830873",
-          "betyg": 5,
-          "land": "CZ",
-          "text": "The weather station offers excellent value for money. It is quite easy to set up. The battery is part of the outdoor unit. Before installation, it is charged using the included USB charger, and during installation, all you need to do is plug it in. The indoor unit does not need a battery; it is connected using the included power adapter. Data from the outdoor unit can be viewed in the PWS Monitor mobile app, via the Weather Underground website, or via Weather Cloud."
-        }
-      ]
-    },
-    {
-      "productId": "5352bb04-ae5e-4452-8d3f-3bb4b120d530",
-      "produkt": "PGST Wireless Home Security Alarm System Work with Tuya GSM 4G WIFI Sm",
-      "reviews": [
-        {
-          "id": "30101034911011432",
-          "betyg": 5,
-          "land": "FR",
-          "text": "Excellent rapport qualité prix ! \nPour la configuration des accessoires en alarme partielle (contacts magnétiques), il faut penser à désactiver \"Portes et fenêtres\" dans : Réglages / Réglages des fonctions / Auxiliaires /. \nLe fabricant propose une sirène additionnelle intérieure livrée avec alimentation, ainsi qu'une sirène extérieure solaire  pouvant être alimentée par un port USB-C protégé (alim 5V et cordon USB en option). L'alarme propose un menu pour associer des prises connectées, mais je n'ai pas trouvé chez PGST des prises connectées compatibles. Mon ensemble installé de : \"6 contacts magnétiques (configurés également en alarme partielle) + 3 détecteurs incendie + 3 volumétriques + 1 SOS + 2 télécommandes + 4 badges + 1 sirène additionnelle intérieure + 1 sirène extérieure + report des alertes et retours d'états par SMS\" , fonctionne très bien depuis 15 jours. Par ailleurs, Je n'ai pas essayé l'appairage de caméra PGST."
-        },
-        {
-          "id": "30100365963017325",
-          "betyg": 4,
-          "land": "ES",
-          "text": "Montarla la primera vez es complicado por que las instrucciones no son lo suficientemente claras en muchos puntos. Yo tardé un montón de horas en entender como funciona todo, como van los sensores, como se numeran, que tipo de alarma hay que poner a cada uno, el tipo de armado, etc.., si tengo que montar otra tardaría 10 minutos en dejar todo bien colocado y funcional, pero la primera vez es un lio."
-        },
-        {
-          "id": "30100283110883214",
+          "id": "30098923065772319",
           "betyg": 4,
           "land": "FR",
-          "text": "Globalement l'alarme est très facile a installer et à utiliser et le prix est très bien pour un matériel évolué et très performant . Cependant j'ai constaté des petites anomalies  :  détecteurs de porte provoquent une alarme ouverture m^me avec alarme désactivée. les détecteurs PIR intérieurs restent actifs même en mode \"Home arming\". Je me trompe peut-être dans les réglage mais la notice n'est pas toujours très claire (différence entre message sur système et texte, traduction erronée)."
-        },
+          "text": "Fonctionne tres bien\nun peu usine à gaz enormement de configuration, la notice absoluement indispensable \nj'ai eu des doutes lors du raccordement le dj 63A disjonctait lors du raccordement des batteries sans rien d'autres en remplacant celui ci avec un dj 100A probleme réglé (cela ne se produisait pas avec mon precedent onduleur)\nApres avoir raccordé l'alim  la batteries se chargait bien mais pb sur la sortie 220v la encore une mauvaise conf en relisant la notice  j'ai réglé le probleme.\nQuand au wifi je ne l'avait pas sur le precedent onduleur mais vraiment il ne sert pas à grand chose, pas de commande uniquement de la supervision"
+        }
+      ]
+    },
+    {
+      "productId": "97d850b2-6697-4ed1-950d-c5523afb9979",
+      "produkt": "Pawhut XXL Stainless Steel Cat Litter Box, Litter Box for Large Cats",
+      "reviews": [
         {
-          "id": "30099697133802451",
-          "betyg": 5,
-          "land": "IT",
-          "text": "Arrivato in 10 gg, come da descrizione è tutto completamente configurato, la connessione con i dispositivi  è molto ampia, molto soddisfatto dei rilevatori di presenza sensibili e con un buon raggio di visuale come anche i sensori porta/finestre, devo solo riuscire a capire come gestire il parziale ma del resto lo consiglio.\nAggiungerò altri componenti più avanti tipo video e rilevatore di gas e fumi"
-        },
-        {
-          "id": "30099522844797903",
+          "id": "30098897435828410",
           "betyg": 5,
           "land": "ES",
-          "text": "1 day megafast delivery from Spain. I had previous model 103 so I know the brand. I programmed it with existing installed sensors, tags and remote controls. I still have to trigger it with sound but better when I install it. it seems everything works fine. WiFi is working with Smart life but I will test 4G when I install it this Saturday, bur programming was good. quality is good and company is a known one."
+          "text": "Estábamos buscando un arenero grande para que quepan dos gatos y mi gato grande no estuviese incómodo a la hora de hacer sus necesidades y dimos en el clavo con este arenero. es genial, me encanta la base de acero inoxidable y sobretodo que la puerta de entrada vaya en las dos sentidos, tanto para entrar como para salir. a mis bebés no les ha costado adaptarse."
         },
         {
-          "id": "30099491691505647",
+          "id": "30098873407304362",
+          "betyg": 5,
+          "land": "ES",
+          "text": "Estoy muy satisfecho con mi compra. El producto llegó bien empaquetado, sin daños y dentro del plazo estimado. La calidad es bastante buena para el precio, cumple con lo descrito en el anuncio y funciona correctamente. La relación calidad-precio me parece excelente, especialmente teniendo en cuenta el coste y el envío. El vendedor fue atento y respondió rápidamente a mis preguntas, lo cual da mucha confianza. En general, una experiencia de compra muy positiva. Recomiendo tanto el artículo como la tienda, ya que ofrecen buenos productos, precios competitivos y un servicio responsable. Seguramente volveré a comprar aquí en el futuro si encuentro algo más que necesite. Muy contento con el resultado final y la atención recibida."
+        },
+        {
+          "id": "30099512599972595",
           "betyg": 4,
-          "land": "IT",
-          "text": "arrivato in tempi brevi..sembra ci sia tutto dentro.\ncollegamento al mio wifi in tempi brevissimi.\navevo il dubbio avendo una casa a tre piani che i sensori non avessero la portata per quella distanza,mi sono ricreduto ho provato subito con sia contatto finestre che rilevatore a dal terzo piano li legge benissimo.\nmi riservo altre valutazioni con commento quando lo installerò.\nps.cavo abbastanza corto sia della sirena che dell'alimentatore. \nvenditore ok!"
-        },
-        {
-          "id": "30099169183150782",
-          "betyg": 5,
-          "land": "PL",
-          "text": "Bardzo fajny sprzęt. Spory przeskok technologiczny względem starego i wysłużonego PG-103. Stare komponenty (czujki) są zgodne z nowym urządzeniem. Można podłączyć do Tuya/SmartLife, czyli karta SIM nie jest konieczna. Zdecydowanie lepsza obsługa na panelu dotykowym. Lepsze rozwiązanie z podłączeniem kabli (wtyczki w środku pod klapką). Urządzenie jest mniejsze. Jestem zadowolony."
-        }
-      ]
-    },
-    {
-      "productId": "1e7dfab3-b9e6-4758-a9e6-41f9185e0486",
-      "produkt": "Homcom Handmade Table Lamp Classic Style Glass Bedside Lamp for Bedroo",
-      "reviews": [
-        {
-          "id": "30100339832372147",
-          "betyg": 5,
           "land": "ES",
-          "text": "Muy satisfechos; es una preciosa lámpara, de una calidad sobresaliente, bien construida, resistente como ninguna del mismo tipo, que suelen sufrir de falta de consistencia en la pantalla, la contrario que ésta.\nEs de una calidad y un diseño dignos de la mejor marca; el embalaje es muy concienzudo y seguro.\nEs un artículo que demuestra que la calidad a un buen precio, sí es posible.\nMuy recomendable."
+          "text": "Es un arenero muy grande, justo lo que buscaba para mí gatito que es un Maine coon, la única pega que le pondría es que no se le puede quitar la puerta y a los gatos les puede dar miedo hasta que no se acostumbren a el. La foto la tomé sin la tapa porque al no poder quitarle la puerta lo tengo que dejar así hasta que el gatito se acostumbre."
         }
       ]
     },
     {
-      "productId": "fec1f9b8-5fa9-4449-9fe2-a0b184c2eef9",
-      "produkt": "SucceBuy 4pcs Trailer Ratchet Tie Down Straps with Padded Handles",
+      "productId": "80a53bc3-c95a-4279-b9bc-73122255f5a7",
+      "produkt": "Pawhut Dog Playpen with 6 Panels, 80 cm High, Foldable Steel Dog Fence",
       "reviews": [
         {
-          "id": "30100683244565754",
-          "betyg": 5,
-          "land": "BE",
-          "text": "Super! Überraschend schnell geliefert! Gut verpackt und sogar Gummiseile gratis bei gewesen. Danke."
-        },
-        {
-          "id": "30100279127028267",
-          "betyg": 5,
-          "land": "RO",
-          "text": "Not yet tried on the bike, but they look strong and good quality."
-        },
-        {
-          "id": "30100712502319007",
-          "betyg": 5,
-          "land": "DE",
-          "text": "Ich denke ich hab noch nie so schnell eine Bestellung erhalten. Alles sieht gut aus. Ist Super verpackt. Werde gleich noch einmal bestellen"
-        },
-        {
-          "id": "30099855230592349",
-          "betyg": 5,
-          "land": "SE",
-          "text": "منتجع رائع جوده عاليه وتم ارسال الطلب بسرعه . انا سعيد جدا واشكر البائع علي الهدية المجانية مع الطلب"
-        },
-        {
-          "id": "30099339877610422",
+          "id": "30099274425266614",
           "betyg": 5,
           "land": "FR",
-          "text": "livraison super rapide, article conforme à ma commande"
-        }
-      ]
-    },
-    {
-      "productId": "ab67d4b5-219b-4950-bcc3-c60582929526",
-      "produkt": "Smart Self-Cleaning Cat Litter Box 65L High Capacity Automatic Cat",
-      "reviews": [
-        {
-          "id": "30100655614098764",
-          "betyg": 5,
-          "land": "NL",
-          "text": "zeer snelle levering binnen 4 dagen. product werkt zoals het moet. zeer tevreden"
-        },
-        {
-          "id": "30100128260486955",
-          "betyg": 5,
-          "land": "NL",
-          "text": "Very fast delivery and the product works great the cats love it and they love a clean litter box"
-        },
-        {
-          "id": "30100153930681150",
-          "betyg": 5,
-          "land": "CZ",
-          "text": "absolutely amazing. Our cats love it on First try."
-        },
-        {
-          "id": "30099909551032781",
-          "betyg": 5,
-          "land": "ES",
-          "text": "la verdad que es fantástica cumple su función genial, la entrega rápida estoy muy contenta"
-        },
-        {
-          "id": "30100425702974912",
-          "betyg": 5,
-          "land": "PL",
-          "text": "Kuweta jak na razie super. Kot od razu ja zaakceptował. Połączenie z aplikacja Tuya bez problemu i dużo ustawień. Polecam sprzedawcę, przesyłka bardzo szybka z dnia na dzień."
-        }
-      ]
-    },
-    {
-      "productId": "9249df5d-bde9-4cd2-852e-f8a56d0354f4",
-      "produkt": "Pawhut Extendable Safety Barrier Metal Stair Doors for Dogs",
-      "reviews": [
-        {
-          "id": "30100260275951659",
-          "betyg": 5,
-          "land": "ES",
-          "text": "Queda muy bien. Hay que leer bien, aún que está en inglés dice: no quitar las bridas hasta que no tengas instalada la puerta. Si las quitáis, la puerta de abrir y cerrar el cierre que muy separado. Lo leí tarde pero puse unas brindas tal cual estaba y luego ya sí, instalé la puerta donde quería y quité las bridas. Donde la puse de largo es de 72cm justos. Le puse unos topes y se queda bien enganchada. Es robusta y resistente, pesa lo justo y necesario. Me llegó en 48 horas, asi que genial. Recomiendo."
-        }
-      ]
-    },
-    {
-      "productId": "a97d3650-8d3e-4f92-a986-88780fcd3f65",
-      "produkt": "Pawhut Hamster Cage with Tunnel Platforms Bowl Drinking Bowl House Ram",
-      "reviews": [
-        {
-          "id": "30100626897364942",
-          "betyg": 5,
-          "land": "ES",
-          "text": "Muy buena y grande, se lo pasa piruleta, ahi está haciendo su madriguera en los tubos de arriba.\nViene desmontada y tardas un par de horas en montarla. Lo malo es encajar las partes del tubo a presión que se hace algo pesado porque hay que presionar mucho para que encajen, deberían de hacerlo más fácil a rosca."
-        }
-      ]
-    },
-    {
-      "productId": "acee6ce9-8f38-498d-a614-2ec8a9758c84",
-      "produkt": "SucceBuy 12V Diaphragm Water Pump 10L/Min 17PSI 17L/Min 40PSI High",
-      "reviews": [
-        {
-          "id": "30100558027229679",
-          "betyg": 4,
-          "land": "ES",
-          "text": "Me a gustado bastante, me falta comprobar el funcionamiento"
-        }
-      ]
-    },
-    {
-      "productId": "a2a51783-ac72-42b3-8bc0-d24f2dab94e6",
-      "produkt": "SucceBuy Weatherproof Hard Case HeavyDuty Protective Dry Box Case",
-      "reviews": [
-        {
-          "id": "60095566647507331",
-          "betyg": 5,
-          "land": "AU",
-          "text": "great produce, and exactly as advertised.\n\nfits my FLEX rebreather like a glove..."
-        },
-        {
-          "id": "30100432938208880",
-          "betyg": 5,
-          "land": "CZ",
-          "text": "It arrived very quickly, three days after ordering. The quality seems sufficient, but only time will tell."
+          "text": "Très satisfaite de cet enclos. Il est beaucoup plus pratique que le modèle que j’avais avant car je peux me tenir debout dedans pour nettoyer le sol et tout est accessible facilement sans devoir se faufiler au travers d’une porte minuscule. La structure est très solide et j’apprécie le montage ultra rapide ! De plus il se déplace facilement sans se démonter et je peux ainsi changer le tapis qui est dessous en quelques minutes. J’ai enfin trouvé l’enclos idéal !"
         }
       ]
     },
@@ -243,52 +75,214 @@
       "produkt": "57e2c660-2350-42d6-9f72-720dbdee218a",
       "reviews": [
         {
-          "id": "30100177013083572",
+          "id": "30098861177286596",
           "betyg": 5,
-          "land": "IT",
-          "text": "The ultrasonic cleaner (2l version) arrived quickly from EU and works perfectly: you can't imagine how much dirt can be hidden in a watch bracelet that appears clean. \n\nThis device is one of the few in the price and size category that supports 3 cleaning modes: degas (energetic clean at intervals), half wave (gentle clean) and full wave (energetic clean). \n\nI confirm the basket of the 2l version is big enough to clean glasses.\n\nRecommended!"
+          "land": "RO",
+          "text": "Great ultrasonic cleaner.\nI think SucceBuy is the best priced ultrasonic cleaner on Aliexpress.\n\nThis model has all the functions needed: heating, degas, dual transducers (for 3L model) with enough power 120w.\nBlack mirror finish that looks better than any other similar silver product (except the fact that this piano black is a fingerprint magnet)\n\nOnly downside is that the retail box arrived damaged but this issue eas kindly resolved by the seller through a small refund.\n\nCongrats to SucceBuy !"
         },
         {
-          "id": "60095156904388998",
+          "id": "30098513058416520",
           "betyg": 5,
-          "land": "US",
-          "text": "Probe  las gafas las dejo como nuevas nunca las habia visto tan limpias desde que las compre como cuando las limpie en el ultrasonidos, y los tapones de silicona como nuevos tambien, al menos el mi se ven 2 zonas una ala izkierda y otra ala derecha no ocupa toda la bandeja los ultrasonidos, donde mas da es en esas 2 zonas por ver las ondas del agua son asi,,, producto altamente recomeendado de calidad si tengo que ponerle una pega es que el ruido es algo fuerte, pero producto recomendado y vendedor rapido tambien recomendado este fue el que mejor precio encontre y calidad, tiene dos modos de potencia del ultrasonidos yole hecho agua caliente directamente pa no gastar electricidad gasta unos 40watts solo encendido del boton de atras sin encender el ultrasonidos ni la calor aun asi cuando esta con el ultra sonidos unos 110w o 120w gasta  no lo he probado calentando las resistencia interior"
-        }
-      ]
-    },
-    {
-      "productId": "dc869299-5eb0-4312-bf21-cb7d016c7582",
-      "produkt": "Homeika Cordless Vacuum Cleaner,23KPa 48mins Powerful Suction Vacuum L",
-      "reviews": [
+          "land": "HU",
+          "text": "300W heating power is magic: double of other similar size ultrasonic cleaners. Room to 60 in just minutes!  It has features competing products don't: degas, gentle mode. Transponders work great. Basket fits perfectly. It even came with a smaller basket the listing did not mention. All works extremely well! Very happy!  \n\nOne note: heating is not PID controlled, so it will overshoot by a few degrees, but it is fully expected at this price range! Just be careful."
+        },
         {
-          "id": "30100277270330987",
-          "betyg": 5,
-          "land": "FR",
-          "text": "Vrai avis : article commandé le 03 février et arriver le 10 février . Il est très très beau . Il y a plusieurs embouts avec. Facile à monter et à utiliser . Un peu bruyant mais c’est pas grave c’est un aspirateur donc logique . J’aime beaucoup . J’espère que il va bien tenir dans le temps et la batterie aussi ."
-        }
-      ]
-    },
-    {
-      "productId": "fc339dce-b35e-4d84-80ae-1affbd33569b",
-      "produkt": "Homcom Narrow Shoe Rack with Mirror and 4 Folding Doors for 12 Pairs o",
-      "reviews": [
-        {
-          "id": "30099907988139387",
+          "id": "30097851341956249",
           "betyg": 5,
           "land": "ES",
-          "text": "Envío y entrega rápidos y correctos. Es relativamente fácil de montar, pero tiene un montón de tornillitos, así que mejor con destornillador eléctrico. Una vez montado y anclado a la pared se ve robusto. Tiene capacidad para tres pares de zapatos por bandeja, pero si no tienes el pie muy grande, las sandalias las puedes comprimir para que cada par ocupe el hueco de un zapato y puedes meter el doble. Una vez puesto se ve muy estético y sencillo."
+          "text": "Color negro brillante muy bonito. pero pueden quedar los dedos marcados muy fácilmente. Degas no tiene función de apagado automático, hay que apagarlo a mano o programarlo con el temporizador del equipo. El calentamiento es lento, pero la temperatura se mantiene estable durante el uso. La potencia de los dos transductores es alta y se debe tener cuidado con lo que se quiera limpiar para evitar daño en los acabados. Se puede seleccionar entre mitad de potencia o potencia completa. Incluye pequeña bola para limpiar elementos muy pequeños. Hace mucho ruido al funcionar, pero es normal en este tipo de equipos. El poder de limpieza es muy alto. El manual es muy escueto y no da información útil de recomendaciones de uso"
         }
       ]
     },
     {
-      "productId": "64adda91-007b-4b8c-8710-392af1db07a6",
-      "produkt": "SucceBuy 120ft Dual-Weave Polyester Cord 3/8 1/2in 48-Strand Multi-Use",
+      "productId": "5352bb04-ae5e-4452-8d3f-3bb4b120d530",
+      "produkt": "PGST Wireless Home Security Alarm System Work with Tuya GSM 4G WIFI Sm",
       "reviews": [
         {
-          "id": "30099893582056852",
+          "id": "30099026842750329",
           "betyg": 5,
-          "land": "PT",
-          "text": "Esta corda de escalada inspira total confiança desde o primeiro toque. É robusta, flexível e transmite uma sensação de segurança excecional, mesmo nas situações mais exigentes. O manuseamento é suave, os nós assentam na perfeição e a resistência demonstra uma qualidade claramente acima da média. Um equipamento fiável, pensado para quem leva a escalada a sério e não abdica de segurança nem desempenho"
+          "land": "ES",
+          "text": "¡Buenas!, lleva por detrás un interruptor (activo funciona la batería interna). A la tarjeta SIM hay que quitarle la clave. La alarma envía mensajes si están activados, con un coste. Y llamadas telefónicas de salto de alarma repetidamente al número o números registrados (recomiendo desactivar el buzón de voz para que repita las llamadas, de lo contrario considera que ya ha sido atendida la alerta). También se puede activar y desactivar la alarma desde el móvil con el envío de mensaje de texto. No sé cómo es poder hablar (móvil-alarma) o ponerse a la escucha, parece ser que es contestando 3 y 4. \nLa alarma se puede activar de forma total o parcial. Todos los accesorios se activan con la alarma total.  Y con la parcial sólo aquello que se han definido.\nEl WIFI de la alarma se configura utilizando la APP Smart Life. Realiza una sincronización con la alarma (Air Link WIFI).\nSe puede poner clave de teclado. \nSí me hubiera gustado que el manual viniera todo más explicado."
+        },
+        {
+          "id": "30098287939938223",
+          "betyg": 5,
+          "land": "IT",
+          "text": "Perfetto spedizione veloce prodotto già configurato sotto mia richiesta per ora tutto ok facile da collegare tramite app e Wi-Fi di casa ottimo segnale anche per la sim ora dovrò capire come poter riutilizzare e cablare le sirene già presenti senza utilizzare la loro perché le mie sono già installate. La sirena in dotazione potente ma cavo troppo corto ottimo anche il kit per collegare dei sensori via filo con resistenze allegate"
+        },
+        {
+          "id": "30097437611874448",
+          "betyg": 5,
+          "land": "ES",
+          "text": "viene ya con todos los accesorios configurados, aún así me ha costado un poco conectar la SIM, el error era mío pues la SIM tenía contraseña, has de sacar la contraseña si no no funciona. también me ha costado encontrar  el password del administrador, 6666 por su a ti te sirve. y por ultimo el bloqueo de pantalla. Creo que es un excelente artículo, veremos lo que dura."
+        },
+        {
+          "id": "30097418838012849",
+          "betyg": 5,
+          "land": "FR",
+          "text": "Le système fonctionne parfaitement, facile à programmer, reconnu par Smartlife immédiatement.\nLa Carte sim Free fonctionne bien. Armement et désarmement via apllication ok, par téléphone ok et par envoi de sms ok. Notifications d'alarme ou d’événements par sms et box internet ok, appels sos ok.\nTrès bon appareil, je ne regrette mon choix."
+        }
+      ]
+    },
+    {
+      "productId": "340b5601-638f-407f-b11e-67eb318b4098",
+      "produkt": "Homcom Bathroom Mirror with Led Light with Bluetooth Light Colors Digi",
+      "reviews": [
+        {
+          "id": "30099197369280851",
+          "betyg": 5,
+          "land": "IT",
+          "text": "arrivato un po' in ritardo visto il periodo di natale, specchio come da descrizione si connette con il telefono ed audio accettabile ma non superbo bella l'innuminazione con le tre varianti di colore e dmmerabile, non ho provato lo spannamento ma penso funzioni, smanettando con l'orologio che presenta due tasti sul retro nella parte inferiore si può avere alternativamente sia l'ora che la temperatura, per il prezzo è un ottimo prodotto"
+        }
+      ]
+    },
+    {
+      "productId": "de8e35f7-0af8-4042-b9d4-d1e7de8429a8",
+      "produkt": "Homcom Standing Electric Fireplace 900/1800W 3D Flame Effect Adjustabl",
+      "reviews": [
+        {
+          "id": "30099180507507019",
+          "betyg": 5,
+          "land": "US",
+          "text": "El primero que pedí vino defectuoso, me reembolsaron sin problema el dinero. Hice un nuevo pedido y no solo que ha venido perfecto sino que rapidísimo. En 2 días desde q lo pedí.  Estoy encantada, para lo pequeño que es calienta súper bien, muy rápido y además es precioso el efecto de la leña. Es verdad que hace un poco de ruido pero nada que impida el descanso. 10/10. ¡Muchas gracias vendedor!"
+        }
+      ]
+    },
+    {
+      "productId": "c91646d3-e01c-49f8-87e4-159be155a52b",
+      "produkt": "HOMCOM Canastas de Baloncesto Portátiles con Soporte de Acero y Contad",
+      "reviews": [
+        {
+          "id": "30098795286386694",
+          "betyg": 5,
+          "land": "ES",
+          "text": "Muy contento con el producto, resistente, montaje fácil (1 hora y 30 min), 3 pilas AA(no incluye), 8 modos de juego, incluye 4 balones pequeños rugosos reales (no espuma), tablero fuerte y resistente a golpes, malla firme y resistente, marcado LED.\nLas medidas son: Alto 2m 05cm, Ancho 1m 10cm, Largo 2m 05cm.\nplegado: Largo 1m.\nTodo bien embalado, instrucciones muy precisas y todas las piezas numeradas.\nGracias a HOMCOM podré pasar buenos momentos en familia y con amigos.\nPrecio muy competitivo.\nEspero ayudar a la gente que esté indecisa con las fotos de como ha quedado y el espacio que ocupa."
+        }
+      ]
+    },
+    {
+      "productId": "92d0eee3-0276-4558-b760-efbed45977b6",
+      "produkt": "PGST Home 4G GSM Alarm Security System 433MHz Wireless 2.4G WIFI Smart",
+      "reviews": [
+        {
+          "id": "30098748806464007",
+          "betyg": 5,
+          "land": "ES",
+          "text": "FUNCIONA BIEN.  FACIL DE CONFIGURAR. LA UTILIZO CON LA APLICACION SMART LIFE. Y UTILIZA WIFI DE LA CASA (2,4 GHZ). TAMBIEN TENGO PUESTA UNA TARJETA DE TELEFONO MOVIL, Y CUANDO SALTA LA ALARMA ME AVISA POR 2 VIAS. WIFI Y COMO LLAMADA DE VOZ POR LA LINEA DE MOVIL.\nOJO LA LINEA DE MOVIL NO SIRVE PARA QUE LA ALARMA FUNCIONE POR LA APLICACION SMART LIFE. PARA ESO ES NECESARIO TENER UNA RED WIFI DE LA CASA. \nLA LINEA DEL MOVIL HACE UNA LLAMADA DE VOZ Y TE DAN VARIAS OPCIONES PARA EL TECLADO DEL TELEFONO. \nLA VENTAJA QUE SI FALLA UN SISTEMA DE COMUNICACION, COMO HAY 2 INDEPENDIENTES EL OTRO SIGUE FUNCIONANDO.\nSI SE CAE EL WIFI, LA LLAMADA DE VOZ POR LA LINEA DE MOVIL SIGUE FUNCIONANDO.\nA VECES AL CONFIGURAR EL NUMERO DE TELEFONO  PARA QUE LLAME EN CASO DE AVISO, ADEMAS DE HACERLO POR LA APLICACION (MUY FACIL), HAY QUE HACERLO TAMBIEN POR LA CENTRALITA DE LA ALARMA POR SUS MENUS (UN POCO MAS COMPLICADO LA PRIMERA VEZ, PERO FACIL"
+        }
+      ]
+    },
+    {
+      "productId": "272ed958-e54d-4799-9d2b-d175aacc9091",
+      "produkt": "Pawhut Hamster Cage 46X30X37Cm with Tubes Feeder Ramp Exercise Wheel",
+      "reviews": [
+        {
+          "id": "30098473184706052",
+          "betyg": 4,
+          "land": "ES",
+          "text": "Es la primera vez que compraba un artículo para ratones...así que no sé cómo valorarlo. .creo que el artículo está bien...me costó montar el circuito... porque al apretar parecía que lo iba a romper..es plástico.  por lo demás no vale para ratones ...se me escapó en cuanto lo metí. lo he tenido que reforzar con una red con el agujero muy pequeño...un fiasco...para otro animal más grande valdría..."
+        }
+      ]
+    },
+    {
+      "productId": "33ff49ec-f321-4c9c-9f0b-6da695c17db8",
+      "produkt": "65L Large-Capacity Smart Litter Box Electric Self-Cleaning Litter Box",
+      "reviews": [
+        {
+          "id": "30098238610157068",
+          "betyg": 5,
+          "land": "FR",
+          "text": "Excellent ! Vendeur top, machine fonctionne parfaitement. à utiliser avec du tofu car la litière minérale bloque la trappe."
+        },
+        {
+          "id": "30097060259698375",
+          "betyg": 5,
+          "land": "NL",
+          "text": "Snel aangekomen en makkelijk te gebruiken. Duidelijke aanwijzingen. Ik heb 2 katten en ze gaan beide erin. Eentje is elke keer nieuwsgierig en gaat tijdens reiniging met hoofd erin maar machine stopt dan en gaat daarna verder endear meerdere keren. De sensor werkt goed."
+        }
+      ]
+    },
+    {
+      "productId": "26ad6510-cec7-421a-bda2-77b461d8ad3a",
+      "produkt": "SucceBuy Diesel Heater 8KW DC 12V/24V All in One Portable Diesel Air H",
+      "reviews": [
+        {
+          "id": "30098622480250766",
+          "betyg": 5,
+          "land": "PL",
+          "text": "przyszło bardzo szybko, instalacja nie sprawia problemu, na najwyższym biegu temperatura na wylocie osiąga ok 130 stopni, sterownik to najprostszy jaki był w nich montowany nie jest jakoś przybajerzony, dobrze że w instrukcji są kody QR które po zeskanowaniu przekierowują do wybranych działów i jest pokazane krok po plkroku co trzeba robić"
+        }
+      ]
+    },
+    {
+      "productId": "0f3e0839-e7b8-49f8-99f2-10eb44702fc9",
+      "produkt": "Homcom Artificial Christmas Tree 150 cm with 420 Branches Pine Cones O",
+      "reviews": [
+        {
+          "id": "30098396346624546",
+          "betyg": 5,
+          "land": "CH",
+          "text": "La descripción es correcta.\nEl servicio de entrega fue desastroso, por la compañía encargada de la entrega.\nPrevista la entrega el día 24 con festivos es normal que se retrase, pero la entrega se realizó el día 2.\nel paquete llego en malas condiciones, aplastado y con roturas, parte del contenido roto.\nAdjunto fotos."
+        }
+      ]
+    },
+    {
+      "productId": "820ceebf-bc6d-4731-beaf-f5c893b4a6f6",
+      "produkt": "Trappstege i aluminium – hopfällbar hushållsstege 2/3/4 steg, 150 kg",
+      "reviews": [
+        {
+          "id": "30098323960012836",
+          "betyg": 5,
+          "land": "ES",
+          "text": "coincide perfectamente con las características que nos presenta el vendedor, tanto en tamaño, como en peso y en calidad. Al ser plegable en unas medidas tan reducidas y además de color negro aunque la pongas entre dos muebles al tener el color negro ni siquiera se ve lo cual creo que es una gran ventaja porque no te va a afectar a la decoración o al conjunto de la armonía de los muebles por ejemplo si es una cocina. Es de peldaños antideslizantes."
+        }
+      ]
+    },
+    {
+      "productId": "a52a96c7-915d-45fc-bf1a-54126f6cd74e",
+      "produkt": "SucceBuy  Manual Tile Cutter Infrared Laser Positioning Floor Cutter",
+      "reviews": [
+        {
+          "id": "30098390068720648",
+          "betyg": 4,
+          "land": "BE",
+          "text": "ziet er degelijk materiaal uit , we hebben het nog niet gebruikt"
+        }
+      ]
+    },
+    {
+      "productId": "495ee889-8557-48f7-bc9a-f057b8cc9152",
+      "produkt": "Konstgjord julgran med snö och tallkottar – plastgran 150/180/210 cm",
+      "reviews": [
+        {
+          "id": "30098660570293965",
+          "betyg": 3,
+          "land": "NG",
+          "text": "Don’t trust this seller. If you ever receive any damaged item from this store, don’t reason with them. Report to them and involve Ali express immediately. The store will not take responsibility. They will delay any compensation till after your customer protection expires. It is a European store but that means absolutely nothing.  The item was received but was damaged during transport. I reported, sent evidence and told them I don’t want the item as it is damaged (damage photograph was taken by the courier driver). They said the refund button can only be available after 20th December (which is the day my customer protection expires) Agreeing to that deception and fraud was my mistake. Please be smarter than I was."
+        }
+      ]
+    },
+    {
+      "productId": "027918f7-2ee9-4c4d-b24d-b4c24d5a7111",
+      "produkt": "Aiyaplay Electric Car for Children +3 Years Old Mercedes-Benz Amg Gtr",
+      "reviews": [
+        {
+          "id": "30098666142453800",
+          "betyg": 5,
+          "land": "ES",
+          "text": "We haven't opened it yet as its a gift for our son on his first birthday, but I do have to say this is the best deal on AliExpress. The seller or store delivered this super super fast. It was the fastest delivery I've ever had for anything from AliExpress. I never write reviews but felt this purchase and this store devered one. Great job!"
+        }
+      ]
+    },
+    {
+      "productId": "fec1f9b8-5fa9-4449-9fe2-a0b184c2eef9",
+      "produkt": "SucceBuy 4pcs Trailer Ratchet Tie Down Straps with Padded Handles",
+      "reviews": [
+        {
+          "id": "30097948233344642",
+          "betyg": 5,
+          "land": "PL",
+          "text": "The product is exactly as described, and it arrived in just two days!"
         }
       ]
     },
@@ -297,82 +291,142 @@
       "produkt": "Fully Automatic Smart Cat Litter Box, Large Capacity, In Stock in EU",
       "reviews": [
         {
-          "id": "30100168820065301",
+          "id": "30097895856838459",
           "betyg": 5,
-          "land": "BR",
-          "text": "muito bom, ajuda muito na correria do dia a deixar a areia sempre limpa. ela entrega relatório e se estiver limpando e o gato se aproximar, ela para de girar para segurança do gato. amei"
+          "land": "EE",
+          "text": "Посылку получила быстро, работает, думала он меньше, но оказался как раз даже для кота 7кг. Но у меня 3 кота, я мешочек с отходами меняю каждый день, иначе будет вонять. Рекомендую!"
         }
       ]
     },
     {
-      "productId": "2c2adcbf-1acd-4575-a297-e10ca7153988",
-      "produkt": "Homcom Floor Lamp with Double Layer Bohemian Lampshade with 3 Color Te",
+      "productId": "60b72a7e-5784-43f4-9953-c809c6c84db3",
+      "produkt": "SucceBuy Max 4800W Wall Chaser Concrete Cutter Electric Laser Aiming G",
       "reviews": [
         {
-          "id": "30100086816495127",
+          "id": "30098486923909710",
           "betyg": 5,
-          "land": "ES",
-          "text": "envío súper rápido, el día justo después de pedirlo, lo tenía ya en casa.  la lámpara es muy bonita, súper fácil de montar y venía muy bien embalada. trae la bombilla que cambia de color de blanco a amarillo y con el mando puedes bajar la intensidad de la luz a tu gusto. estoy muy satisfecha y contenta con mi pedido."
+          "land": "PL",
+          "text": "I'm very pleased with my purchase of the \"Electric Circular Groove Saw with Laser Sight.\" The saw has a soft start and is very powerful, and the build quality is excellent. I checked the brushes, and they are large enough for the power. After turning on the saw, the brushes work perfectly, with no sparking. The saw allows you to adjust the width of the groove cut by changing the number of diamond cutting discs. The discs measure 125mm in diameter. These are standard, readily available discs. For safety, the saw is equipped with a 16A overcurrent protection and a 10mA differential circuit breaker, mounted on the power cable near the 230V plug. The saw has a VEVOR sticker. I have other VEVOR tools and I'm happy with them. Super fast delivery; the courier delivered it to my house two days after purchase. I consider this purchase a very good one and recommend it because it's a good product. Best regards."
         }
       ]
     },
     {
-      "productId": "3f6a99f7-1af1-48a5-b392-27c380ff2822",
-      "produkt": "Homcom Tabletop Electric Oven 10 L 750W Temperature 230 ℃   36.5X26X22",
+      "productId": "975c9daf-d3da-4c9b-911b-7c21e48f27e2",
+      "produkt": "SucceBuy 3 Stage PCP Pump + Pressure Gauge 4500PSI Tire Kayak Ball Inf",
       "reviews": [
         {
-          "id": "30099647446019984",
-          "betyg": 5,
-          "land": "RO",
-          "text": "la verdad no llego\npero culpa de repartidor\nponía k está en punto recogida \nnunca estuvo ahí\npase a preguntar 5 veces \nen 20.dias y nada \nEl vendedor bien bien\nel envío lo iso al siguiente\ndía del pago \nal final vendedor iso \nrembolso completo \nno fue culpa de la tienda\nni comprador\nal final bien\nla tienda 10"
-        }
-      ]
-    },
-    {
-      "productId": "a518942b-b174-4eb9-b5d7-98fb44045cd0",
-      "produkt": "a518942b-b174-4eb9-b5d7-98fb44045cd0",
-      "reviews": [
-        {
-          "id": "30099194213847101",
-          "betyg": 5,
-          "land": "DE",
-          "text": "Der Artikel wurde sehr schnell versendet und kam nach 4 Tagen sehr gut verpackt an.\nDie 67LPM 60W-8m Pumpe macht einen sehr guten Eindruck - ist noch nicht in Betrieb. \n\nLPS25-8BP/180\n\nWünschenswert wäre ein Typisch direkt an der Pumpe, Seriennummer und Typ sind eingeprägt aber verwirrend. Vielen dank an den Verkäufer"
-        }
-      ]
-    },
-    {
-      "productId": "27dc50ae-1530-4884-b250-5318bd811cc2",
-      "produkt": "Pawhut Wooden Indoor Hutch with 6 Wheels 110X50X86 cm",
-      "reviews": [
-        {
-          "id": "30099157414653569",
-          "betyg": 5,
-          "land": "ES",
-          "text": "La caja vino un poco rota (el transporte deja mucho que desear, envialia), pero aún así el corcho blanco hizo su función y no se daño la jaula. Viene muy bien embalada con mucho papel, cartón y corcho blanco entre las diferentes secciones. El material me pareció ligero pero una vez montada se ve resistente. En general me gusta mucho y es bastante grande, recomiendo mucho la marca Pawhut."
-        }
-      ]
-    },
-    {
-      "productId": "bc506e51-beb0-4f7b-b853-22a89b8c6303",
-      "produkt": "Homcom Trash Can under Sink, Kitchen Trash Can, 2 Removable Recycling",
-      "reviews": [
-        {
-          "id": "60095078617986540",
+          "id": "30097814602079320",
           "betyg": 3,
-          "land": "US",
-          "text": "El artículo está bien, es decir cumple su función y la estructura metálica parece sólida, sin embargo, la tapa de plástico parece mal fabricada y no encaja en su sitio para la parte de delante, y el cubo grande tiene una curvatura que también es defecto de fabricación. No obstante, nada de eso es limitante y funciona bien. Las tres estrellas es sobre todo por estos defectos"
+          "land": "NO",
+          "text": "I had to pay vat twice. Also the vat invoice did not include the coupon, which means that the second vat vas calculated from a higher value than the value that I actually paid. Because of this I also had to also pay import duties. I have spent about 5 hours trying to get the correct paperwork, chatting with the local post, the seller and Aliexpress. I did not get any of the dual paid vat refunded."
         }
       ]
     },
     {
-      "productId": "54a3da89-8bb3-4731-8668-beddaf0469e6",
-      "produkt": "SucceBuy Portable Toilet for Camping Porta Potty with 1.3G Detachable",
+      "productId": "acee6ce9-8f38-498d-a614-2ec8a9758c84",
+      "produkt": "SucceBuy 12V Diaphragm Water Pump 10L/Min 17PSI 17L/Min 40PSI High",
       "reviews": [
         {
-          "id": "30099343273572014",
+          "id": "30097767828627050",
           "betyg": 5,
-          "land": "NL",
-          "text": "Top toilet. Zit goed, gemakkelijk in elkaar te zetten, en helemaal geweldig met een zak erin. Als je klaar bent: dicht knopen en weg gooien… en je toilet blijft fris en fruitig… maar je kan ook in de emmer zelf je behoefte doen en weg spoelen maar in een zak en weggooien werkt 100x sneller en hygiënischer. Nooit geweten dat dit bestond, blij mee!!"
+          "land": "IT",
+          "text": "Sono soddisfatto è arrivata con puntuaòlità ed è l'articolo che volevo"
+        }
+      ]
+    },
+    {
+      "productId": "9249df5d-bde9-4cd2-852e-f8a56d0354f4",
+      "produkt": "Pawhut Extendable Safety Barrier Metal Stair Doors for Dogs",
+      "reviews": [
+        {
+          "id": "30097652265415686",
+          "betyg": 5,
+          "land": "ES",
+          "text": "Estoy muy satisfecha. Es una maravilla. Se monta muy rápido y fácil. Sierra perfectamente y es muy bonita. Tiene un diseño simple y muy elegante. Recomiendo su compra al 100%. Además llegó muy rápido. Ahora el perro ya no se sube al sofá del salón, ni tampoco por las escaleras.. Es muy gracioso. He unido dos puertas para cortarle el acceso. Es que las escaleras y el pasillo van juntas. Estoy muy contenta. Gracias vendedor."
+        }
+      ]
+    },
+    {
+      "productId": "a97d3650-8d3e-4f92-a986-88780fcd3f65",
+      "produkt": "Pawhut Hamster Cage with Tunnel Platforms Bowl Drinking Bowl House Ram",
+      "reviews": [
+        {
+          "id": "30097713999766578",
+          "betyg": 3,
+          "land": "ES",
+          "text": "Me ha costado mucho ensamblarlo, tengo los dedos lastimados, es difícil encajar los tubos en las anillas, de hecho hay una parte que no me fue posible encajar (la que va por fuera) me ha faltado encajar los tubos que van dentro. La jaula no se puede levantar xq se desarma, pero está bien que viene con casita, bebedero, rueda y plato de comida, es amplia y el “bolita” se entretiene"
+        }
+      ]
+    },
+    {
+      "productId": "d9cc8061-3168-4560-a8d7-b371ebdf55d4",
+      "produkt": "SucceBuy 7-in-1 Wireless Weather Station with Wi-Fi, 7\"TFT Colorful Di",
+      "reviews": [
+        {
+          "id": "30097556378325674",
+          "betyg": 5,
+          "land": "CA",
+          "text": "Stazione meteo fantastica si può calibrare tutto, sensore interno ed esterno , va benissimo venditore consigliatissimo sempre presente in tutto per qualsiasi dubbio, disponibile sempre, la stazione poi si interfaccia con WI Fi e tutte le informazioni sono presenti per tutti, dal sole UV alla pioggia in mm alle temperature min e max, veramente a questo prezzo non potevo trovare di meglio ❤️"
+        }
+      ]
+    },
+    {
+      "productId": "11e948fa-ec05-410a-a782-3b2b38167686",
+      "produkt": "Pawhut Wooden Hutch 157.4X53X99.5 cm with Wheels Natural Asphalt Roof",
+      "reviews": [
+        {
+          "id": "30097736463966020",
+          "betyg": 4,
+          "land": "PL",
+          "text": "Wewnętrzne rozmiary troche mniejsze niż się spodziewałem. szerokość wewnątrz to 40cm. Raczej dla królika miniaturki. Wstawiliśmy wykładzinę bo nie chcieliśmy aby królik biegał po metalowej kracie ale niweluje to korzyść z szuflad pod podłogą. Coś jeszcze trzeba będzie pomyśleć. Malowanie ok ale pare elementów trochę słabo pokrytych ale bez przesady. Nieprzyjemny był też zapach farby i kleju po otwarciu opakowania. Klatka wietrzyła się kilka godzin na dworze i teraz jest ok."
+        }
+      ]
+    },
+    {
+      "productId": "fd90d931-1267-4ce9-83ea-03dd2c23eff3",
+      "produkt": "Outsunny Small Greenhouse with 4-Tier Shelves 244X180X210 cm Green - A",
+      "reviews": [
+        {
+          "id": "30097235980887518",
+          "betyg": 4,
+          "land": "ES",
+          "text": "De momento,  montado y queda tal y como se describe, ha aguantado aire fuerte, eso sí, sujetándolo con tierra sobre los faldones de plástico. los cordones que lleva para sujetar al suelo y los clavos no valen y los he sustituido por otros más fuertes y de mayor tamaño. el tamaño interior y las lejas que lleva para mi es suficiente y muy cómodo y eficiente. me ha gustado y es útil, eso sí, dentro enseguida se nota mucho calor, estupendo. Le doy un cuatro por la fragilidad de los vientos y clavos , fácilmente sustituibles, por lo demás perfecto."
+        }
+      ]
+    },
+    {
+      "productId": "669aaf4c-a6cf-45ae-bac0-1865585df734",
+      "produkt": "32-70 Inch Monitor Table Bracket Universal Height Adjustable TV Base T",
+      "reviews": [
+        {
+          "id": "30097071831569228",
+          "betyg": 5,
+          "land": "ES",
+          "text": "Perfecto, funciona muy bien, montado en una smart tv 📺 de 45”, y encima regulable en altura , viene con una llave para las tuercas, tornillos de acero inoxidable, y para tres modelos de tele los tornillos que ajustan detrás de la tele …. Genial , en la mudanza me perdieron el pie original, pero este es más estable …. Saludos."
+        }
+      ]
+    },
+    {
+      "productId": "17ffe9ab-c4d3-41f9-a794-84b65b62d7fe",
+      "produkt": "MIAOERDUO 76L Self-Cleaning Litter Box, APP Controlled, 2.4G",
+      "reviews": [
+        {
+          "id": "60094247068861901",
+          "betyg": 5,
+          "land": "US",
+          "text": "wonderful. Will tell you when their is movement, when the waste basket needs to be emptied. when a cat goes in it. when the single is offline. took my senior cats only 1 day to figure it out. once they watched it clean it. they kept going in it. definally better than scoppignit and losing a lot more clumbing litter. no smell eithe!"
+        }
+      ]
+    },
+    {
+      "productId": "9158341c-d912-488a-9ecc-581f9842706b",
+      "produkt": "Pawhut Outdoor Chicken Coop with Anti-Uv and Waterproof Cover",
+      "reviews": [
+        {
+          "id": "30097656155276979",
+          "betyg": 5,
+          "land": "ES",
+          "text": "un 100/10 es bastante grande, viene con todo lo que puedas necesitar para montarlo, no te va a faltar de nada incluso me sobraron bridas y maya metalica, montaje fácil, lo hice en unas 5-6horas, hay que recalcar que lo monte sola, y soy bajita y delgada, por lo que si yo pude cualquiera puede, en mi caso me vino bien una escalera. lo recomiendo sin duda."
         }
       ]
     }
