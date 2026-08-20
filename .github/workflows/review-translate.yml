@@ -121,7 +121,7 @@ jobs:
           # Filen kan bära både översättningar och avvisningar:
           #   {"translations": {...}, "reject": ["id", ...]}
           # eller bara en platt id→text-karta (bakåtkompatibelt).
-          kropp=$(printf '%s' "$PAYLOAD" | jq -c 'if has("translations") or has("reject") then . else {translations: .} end')
+          kropp=$(printf '%s' "$PAYLOAD" | jq -c 'if has("translations") or has("reject") or has("repairImages") then . else {translations: .} end')
           svar=$(printf '%s' "$kropp" | curl -sS -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
