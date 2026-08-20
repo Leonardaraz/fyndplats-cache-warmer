@@ -114,6 +114,9 @@ describe("assessPriceTrust", () => {
 
   it("motiveringen bär priset så det går att felsöka ur loggen", () => {
     const v = assessPriceTrust([dom(0, 22.9), dom(1, 22.9), dom(2, 22.9)], AVBRUTEN);
+    // Utan den här raden passerar testet grönt även om funktionen regredierar
+    // till att alltid lita på priserna — då hoppas if-satsen bara över.
+    expect(v.trusted).toBe(false);
     if (!v.trusted) {
       expect(v.reason).toContain("22.9");
       expect(v.sharedCount).toBe(3);

@@ -14,12 +14,29 @@ import {
 async function applyAction(
   wixProductIds: string[],
   kind: "publish" | "reject",
+  force = false,
 ): Promise<void> {
   const store = getStore();
   for (const id of wixProductIds) {
     try {
       const mapping = await store.getMappingByWixProductId(id);
       if (!mapping) continue;
+
+      // PRISSPÄRREN GÄLLER ÄVEN HÄR. Utan det här blocket var kön det enda
+      // stället där flaggan gick att kringgå: knappen "Publicera" satte
+      // visible:true och tog bort raden ur kön, så badgen försvann samtidigt
+      // som de felprissatta varianterna gick live. Spärren i importen hade då
+      // bara skjutit upp felet ett klick.
+      //
+      // Avvisa går fortfarande utan hinder — det är alltid ett säkert utfall.
+      if (kind === "publish" && typeof mapping.priceUnverified === "string" && !force) {
+        await audit(
+          "review-publish-blockerad",
+          id,
+          `Priser overifierade: ${mapping.priceUnverified.slice(0, 160)}`,
+        );
+        continue;
+      }
 
       if (kind === "publish") {
         const snapshot = await getProduct(id);
@@ -51,7 +68,9 @@ async function applyAction(
 export async function publishProducts(formData: FormData): Promise<void> {
   const ids = formData.getAll("wixProductId").map(String).filter(Boolean);
   if (ids.length === 0) return;
-  await applyAction(ids, "publish");
+  // "force" sätts av den egna knappen på en prisflaggad rad — ett medvetet
+  // klick per produkt, aldrig via massmarkeringen.
+  await applyAction(ids, "publish", formData.get("force") === "1");
 }
 
 export async function rejectProducts(formData: FormData): Promise<void> {

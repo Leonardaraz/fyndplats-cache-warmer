@@ -53,7 +53,23 @@ export async function createMappingAction(
     );
 
     const store = getStore();
-    await store.saveMapping({ supplierProductId, wixProductId, variants: variantMappings });
+    // SLÅ IHOP med befintlig rad, ersätt den inte. Wix items/save är en
+    // HELERSÄTTNING och JSON.stringify tappar undefined, så ett objekt byggt
+    // från grunden raderar allt som inte står i literalen: draftStatus,
+    // needsAiPolish, priceUnverified, seoTitle, createdAt, reviewsCheckedAt,
+    // priority... En rad utan draftStatus matchar dessutom VARKEN kön eller
+    // "senast importerade" i /admin/queue — produkten försvinner ur admin helt.
+    //
+    // Det är särskilt farligt sedan prisspärren (2026-08-20): dess badge säger
+    // "saknar riktiga SKU-id:n", vilket är precis vad som får en att gå hit och
+    // mappa om produkten — och därmed radera flaggan som höll den osynlig.
+    const befintlig = await store.getMappingByWixProductId(wixProductId);
+    await store.saveMapping({
+      ...(befintlig ?? {}),
+      supplierProductId,
+      wixProductId,
+      variants: variantMappings,
+    });
     await store.appendAudit({
       at: new Date().toISOString(),
       kind: "mapping-created",

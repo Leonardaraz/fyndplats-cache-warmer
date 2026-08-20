@@ -79,6 +79,7 @@ export default async function QueuePage({
   const sp = (await searchParams) ?? {};
   const euOnly = sp.eu === "1" || sp.eu === "true";
   const polishOnly = sp.polish === "1" || sp.polish === "true";
+  const priceOnly = sp.pris === "1" || sp.pris === "true";
   const sortMode = sp.sort === "eu" ? "eu" : "date";
 
   const store = getStore();
@@ -96,6 +97,9 @@ export default async function QueuePage({
     ? pendingAll.filter((m) => m.hasEuWarehouse === true)
     : pendingAll;
   if (polishOnly) pending = pending.filter((m) => m.needsAiPolish === true);
+  // Prisspärren: går att filtrera fram, precis som EU och polering. En räknare
+  // utan filter är svår att agera på när kön är lång.
+  if (priceOnly) pending = pending.filter((m) => typeof m.priceUnverified === "string");
   const recent = all
     .filter((m) => m.draftStatus === "published" || m.draftStatus === "rejected")
     .sort(pendingFirst)
@@ -181,20 +185,11 @@ export default async function QueuePage({
           label={`✨ Behöver AI-polering (${polishPendingCount})`}
         />
         {priceUnverifiedCount > 0 ? (
-          <span
-            title="Variantpriserna gick inte att bekräfta mot AliExpress DS-API vid import. Produkterna hålls som utkast — se badgen på raden."
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              padding: "4px 10px",
-              borderRadius: 999,
-              background: "#fee2e2",
-              color: "#991b1b",
-              border: "1px solid #fca5a5",
-            }}
-          >
-            💰 {priceUnverifiedCount} med overifierade priser
-          </span>
+          <ChipLink
+            href={buildQs(sp, { pris: priceOnly ? undefined : "1" })}
+            active={priceOnly}
+            label={`💰 Overifierade priser (${priceUnverifiedCount})`}
+          />
         ) : null}
         <span style={{ borderLeft: "1px solid #e5e7eb", margin: "0 4px" }} />
         <ChipLink
@@ -404,6 +399,32 @@ function QueueCard({
               >
                 💰 Priser overifierade
               </span>
+            ) : null}
+            {p.priceUnverified ? (
+              // Massmarkeringen kan inte publicera en prisflaggad produkt — men
+              // har du kontrollerat priserna själv ska du inte behöva kringgå
+              // spärren någon annanstans. Ett medvetet klick per produkt.
+              <form action={publishProducts} style={{ display: "inline" }}>
+                <input type="hidden" name="wixProductId" value={p.wixProductId} />
+                <input type="hidden" name="force" value="1" />
+                <button
+                  type="submit"
+                  title="Publicerar trots att variantpriserna inte kunde bekräftas. Kontrollera priserna i Wix först."
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    background: "#fff7ed",
+                    color: "#9a3412",
+                    border: "1px solid #fdba74",
+                    cursor: "pointer",
+                    marginRight: 6,
+                  }}
+                >
+                  Publicera ändå
+                </button>
+              </form>
             ) : null}
             {p.needsAiPolish ? (
               <span
