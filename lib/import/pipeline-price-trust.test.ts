@@ -2,7 +2,9 @@
 //
 // price-trust.test.ts bevisar att bedömningen är rätt. Det här beviser att den
 // är INKOPPLAD: att en produkt vars varianter delar pris utan per-SKU-täckning
-// faktiskt skapas osynlig i Wix och bär motiveringen vidare. Utan ett test på
+// faktiskt skapas osynlig i Wix och bär motiveringen vidare. Beviset ligger i
+// blocket "med publicering påslagen" — i RÅ-läge är produkten draft ändå, så
+// där säger visible:false ingenting om spärren. Utan ett test på
 // den nivån kan kopplingen tyst falla bort (fel variabel, fel ordning, en
 // omskriven visible-rad) medan alla enhetstester står gröna.
 //
@@ -119,6 +121,46 @@ describe("importProduct — prisspärren", () => {
     const r = await importProduct(domFallbackProdukt(), RULES, undefined, { enableAI: false });
 
     expect(r.priceUnverified).toBeUndefined();
+  });
+
+  // DE HÄR TVÅ ÄR DE ENDA SOM FAKTISKT BEVISAR SPÄRREN.
+  //
+  // Testerna ovan kör med enableAI:false, och i RÅ-läge är produkten redan
+  // draft av helt andra skäl — assertionen på visible:false är alltså sann
+  // även om prisspärren tas bort ur pipelinen. Verifierat: raderar man
+  // draft-tvånget i pipeline.ts passerar de fyra första ändå.
+  //
+  // Med enableAI:true och IMPORT_DRAFT_DEFAULT="false" publiceras produkten
+  // normalt direkt. Då — och bara då — är skillnaden mellan true och false
+  // spärrens verk. Samma mönster som pipeline-ai-flag.test.ts använder.
+  describe("med publicering påslagen (enda läget där visible bevisar något)", () => {
+    beforeEach(() => {
+      process.env.IMPORT_DRAFT_DEFAULT = "false";
+    });
+
+    it("publicerar direkt när priserna går att lita på", async () => {
+      getProduct.mockResolvedValueOnce({
+        productId: "1005012184926577",
+        variants: [
+          { skuId: "9001", price: 22.9, stock: 5, skuProps: { Antal: "4-pack" } },
+          { skuId: "9002", price: 31.5, stock: 5, skuProps: { Antal: "6-pack" } },
+        ],
+      });
+
+      const r = await importProduct(domFallbackProdukt(), RULES, undefined, { enableAI: true });
+
+      expect(r.priceUnverified).toBeUndefined();
+      expect(createProduct.mock.calls[0][0].visible).toBe(true);
+    });
+
+    it("håller kvar som utkast när de inte gör det", async () => {
+      getProduct.mockRejectedValueOnce(new Error("DS 503"));
+
+      const r = await importProduct(domFallbackProdukt(), RULES, undefined, { enableAI: true });
+
+      expect(r.priceUnverified).toMatch(/DS-uppslaget föll/);
+      expect(createProduct.mock.calls[0][0].visible).toBe(false);
+    });
   });
 
   // Och när DS har de RIKTIGA priserna ska de slå igenom hela vägen till

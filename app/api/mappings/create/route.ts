@@ -9,6 +9,7 @@
 // en URL eller ett rent productId.
 
 import { type NextRequest, NextResponse } from "next/server";
+import { classifyWarehouses, hasAnyEuWarehouse, uniqueShipFromCodes } from "@/lib/aliexpress/eu-countries";
 import { extractAliExpressProductId, getProduct } from "@/lib/aliexpress/client";
 import { getV3ProductVariants } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
@@ -84,12 +85,35 @@ export async function POST(req: NextRequest) {
     // Det är särskilt farligt sedan prisspärren (2026-08-20): dess badge säger
     // "saknar riktiga SKU-id:n", vilket är precis vad som får en att gå hit och
     // mappa om produkten — och därmed radera flaggan som höll den osynlig.
+    // Lagerländerna kommer från den NYA listningen, inte den gamla mappningen.
+    const skeppasFrån = uniqueShipFromCodes(
+      (aeVariants ?? []).map((v: { shipFrom?: string }) => v.shipFrom).filter(Boolean),
+    );
     const befintlig = await store.getMappingByWixProductId(wixProductId);
     await store.saveMapping({
       ...(befintlig ?? {}),
       supplierProductId,
       wixProductId,
       variants: variantMappings,
+      // PER-AE-LISTNING: hör till den GAMLA källan och skulle ljuga efter en
+      // ommappning. Sammanslagningen ovan räddar det som beskriver WIX-produkten
+      // (draftStatus, seoTitle, createdAt, imageAnalysis, priority) — men allt
+      // som beskriver LISTNINGEN måste räknas om eller nollas, annars länkar
+      // "Källa" till den gamla varan, EU-flaggan visar fel lager och sålda
+      // enheter skrivs på fel säljare i säljar-scoren.
+      sourceUrl: `https://www.aliexpress.com/item/${supplierProductId}.html`,
+      shipsFromCountries: skeppasFrån,
+      hasEuWarehouse: hasAnyEuWarehouse(skeppasFrån),
+      warehouseClass: classifyWarehouses(skeppasFrån),
+      supplierId: undefined,
+      supplierName: undefined,
+      reviewsCheckedAt: undefined,
+      unresolvedVariantValues: undefined,
+      // En lyckad ommappning parar mot riktiga DS-SKU:er med riktiga per-SKU-
+      // priser — alltså precis det prisspärren saknade. Utan den här raden
+      // fanns ingen väg alls att rensa flaggan: den sätts bara vid import, och
+      // ommappningen var enda manuella vägen innan sammanslagningen infördes.
+      priceUnverified: undefined,
     });
     await store.appendAudit({
       at: new Date().toISOString(),
