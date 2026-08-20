@@ -1,9 +1,14 @@
 {
   "ok": true,
-  "saved": 38,
+  "saved": 35,
   "unknown": [],
-  "rejected": [],
+  "rejected": [
+    {
+      "reviewIdAE": "50201574113343306",
+      "reason": "för-lång"
+    }
+  ],
   "errors": 0,
-  "avvisade": 1,
-  "kvarIKön": 94
+  "avvisade": 3,
+  "kvarIKön": 56
 }
