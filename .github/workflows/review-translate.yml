@@ -126,6 +126,22 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
             --data-binary @- "$base")
+          # SVARET SKRIVS TILL GRENEN, även när det gick fel. Utan det syns
+          # utfallet bara i Actions-loggen, och för att läsa den måste man
+          # först slå upp körnings- och jobb-id via API:t — svar som är
+          # enorma. En omgång som tyst inte skrevs in (2026-08-20) tog därför
+          # en hel extra runda att ens upptäcka.
+          mkdir -p tools/review-translations
+          printf '%s' "$svar" | jq '.' > tools/review-translations/last-apply.json 2>/dev/null \
+            || printf '%s' "$svar" > tools/review-translations/last-apply.json
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add tools/review-translations/last-apply.json
+          git diff --cached --quiet || {
+            git commit -m "Apply-svar"
+            git push origin HEAD:"${GITHUB_REF_NAME}" || true
+          }
+
           ok=$(echo "$svar" | jq -r '.ok // false')
           if [ "$ok" != "true" ]; then
             echo "::error::Skrivningen misslyckades: $(echo "$svar" | head -c 400)"
