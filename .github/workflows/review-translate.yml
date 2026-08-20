@@ -41,21 +41,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Kör
+        env:
+          # VIA MILJÖN, inte via ${{ }} i skriptet. Interpolerad direkt i bash
+          # bryts kommandot av den första apostrofen i en översättning — och
+          # svensk text är full av dem ("hundens", "på 90-talet"). Det vore
+          # dessutom en injektionsväg: allt efter apostrofen tolkas som kod.
+          PAYLOAD: ${{ inputs.payload }}
+          MODE: ${{ inputs.mode }}
+          LIMIT: ${{ inputs.limit }}
         run: |
           base="${{ secrets.POLL_TRACKING_URL }}"
           base="${base%/api/cron/poll-tracking}/api/cron/review-translate"
 
-          if [ "${{ inputs.mode }}" = "export" ]; then
+          if [ "$MODE" = "export" ]; then
             body=$(curl -sS -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-              "${base}?limit=${{ inputs.limit }}")
+              "${base}?limit=${LIMIT}")
             ok=$(echo "$body" | jq -r '.ok // false')
             if [ "$ok" != "true" ]; then
               echo "::error::Export misslyckades: $(echo "$body" | head -c 400)"
               exit 1
             fi
-            echo "I kön: $(echo "$body" | jq -r '.iKön')"
-            echo "I omgången: $(echo "$body" | jq -r '.iOmgången')"
-            echo "Kvar efter: $(echo "$body" | jq -r '.kvarEfter')"
+            # Nycklarna har å/ä/ö — jq kräver citattecken runt dem, annars
+            # blir det "syntax error, unexpected INVALID_CHARACTER".
+            echo "I kön: $(echo "$body" | jq -r '.["iKön"]')"
+            echo "I omgången: $(echo "$body" | jq -r '.["iOmgången"]')"
+            echo "Kvar efter: $(echo "$body" | jq -r '.["kvarEfter"]')"
             echo "--- OMGÅNG ---"
             # Kompakt JSON: loggen är det chatten läser, och rader utan
             # indentering får plats utan att klippas.
@@ -65,17 +75,16 @@ jobs:
           fi
 
           # apply
-          payload='${{ inputs.payload }}'
-          if [ -z "$payload" ]; then
+          if [ -z "$PAYLOAD" ]; then
             echo "::error::apply utan payload — inget att skriva."
             exit 1
           fi
-          if ! echo "$payload" | jq -e . >/dev/null 2>&1; then
+          if ! printf '%s' "$PAYLOAD" | jq -e . >/dev/null 2>&1; then
             echo "::error::payload är inte giltig JSON."
             exit 1
           fi
 
-          svar=$(echo "$payload" | jq -c '{translations: .}' | curl -sS -X POST \
+          svar=$(printf '%s' "$PAYLOAD" | jq -c '{translations: .}' | curl -sS -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
             --data-binary @- "$base")
@@ -89,7 +98,7 @@ jobs:
           avvisade=$(echo "$svar" | jq -r '.rejected | length')
           okända=$(echo "$svar" | jq -r '.unknown | length')
           fel=$(echo "$svar" | jq -r '.errors')
-          kvar=$(echo "$svar" | jq -r '.kvarIKön')
+          kvar=$(echo "$svar" | jq -r '.["kvarIKön"]')
           echo "Sparade: $sparade · underkända: $avvisade · okända id: $okända · fel: $fel"
           echo "Kvar i kön: $kvar"
           # Skälen behövs för att kunna rätta i nästa omgång.
