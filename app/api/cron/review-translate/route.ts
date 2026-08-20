@@ -117,28 +117,53 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "ogiltig JSON" }, { status: 400 });
   }
 
+  // AVVISNINGAR. Utan dem klibbar en rad som aldrig ska publiceras kvar i kön
+  // och äter en plats i VARJE framtida omgång. Två sorter dyker upp i praktiken:
+  // omdömen om leverantörens returer och logistik (som på vår produktsida läses
+  // som ett omdöme om VÅR service) och omdömen AliExpress hängt på fel produkt.
+  // Beslutet är reversibelt — status går att ändra tillbaka i /admin/reviews.
+  const avvisa = Array.isArray((body as { reject?: unknown })?.reject)
+    ? ((body as { reject: unknown[] }).reject.filter((x) => typeof x === "string" && x.trim()) as string[])
+    : [];
+
   const rå = body?.translations;
-  if (!rå || typeof rå !== "object" || Array.isArray(rå)) {
+  if (avvisa.length === 0 && (!rå || typeof rå !== "object" || Array.isArray(rå))) {
     return NextResponse.json({ error: "translations saknas" }, { status: 400 });
   }
   const översättningar: Record<string, string> = {};
-  for (const [k, v] of Object.entries(rå)) {
+  for (const [k, v] of Object.entries(rå ?? {})) {
     if (typeof v === "string" && v.trim()) översättningar[k.trim()] = v.trim();
   }
-  if (Object.keys(översättningar).length === 0) {
+  if (Object.keys(översättningar).length === 0 && avvisa.length === 0) {
     return NextResponse.json({ error: "inga texter att skriva" }, { status: 400 });
   }
 
   const store = getReviewStore();
   const pending = await store.listByStatus("pending");
+
+  let rejectedRows = 0;
+  for (const id of avvisa) {
+    const rad = pending.find((r) => r.reviewIdAE === id);
+    if (!rad) continue;
+    try {
+      await store.setStatus(rad.productId, id, "rejected");
+      rejectedRows++;
+    } catch (err) {
+      console.warn("[review-translate] kunde inte avvisa", id, err instanceof Error ? err.message : err);
+    }
+  }
   const r = await applyTranslations(pending, översättningar, (productId, reviewIdAE, svenska) =>
     store.editText(productId, reviewIdAE, svenska),
   );
 
-  if (r.saved > 0) {
-    await audit("review-translate", "", `${r.saved} recensioner översatta (chatt via workflow)`);
+  if (r.saved > 0 || rejectedRows > 0) {
+    await audit(
+      "review-translate",
+      "",
+      `${r.saved} översatta, ${rejectedRows} avvisade (chatt via workflow)`,
+    );
   }
 
   const kvar = (await store.listByStatus("pending")).filter(isAwaitingTranslation).length;
-  return NextResponse.json({ ok: true, ...r, kvarIKön: kvar });
+  return NextResponse.json({ ok: true, ...r, avvisade: rejectedRows, kvarIKön: kvar });
 }
