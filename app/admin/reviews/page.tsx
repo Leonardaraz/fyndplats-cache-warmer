@@ -16,7 +16,14 @@ import { getReviewStore, type ReviewStatus, type StoredReview } from "@/lib/stor
 import { getStore } from "@/lib/store/factory";
 import { reviewDisplayMode } from "@/lib/import/review-display";
 import { isAwaitingTranslation } from "@/lib/reviews/queue";
-import { setReviewStatus, editReviewText, runReviewBackfillAction } from "./actions";
+import { buildTranslatePrompt, groupForTranslation, TRANSLATE_BATCH } from "@/lib/reviews/translate";
+import { TranslateButton } from "./translate-button";
+import {
+  setReviewStatus,
+  editReviewText,
+  runReviewBackfillAction,
+  applyReviewTranslations,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 // Hämtningen gör ett AE-anrop per produkt — 25 produkter tar ~1 min.
@@ -89,6 +96,38 @@ function BackfillResult({ sp }: { sp: Record<string, string | string[] | undefin
   );
 }
 
+/** Kvitto efter en inklistrad omgång — inklusive det som INTE skrevs in. */
+function TranslateResult({ sp }: { sp: Record<string, string | string[] | undefined> }) {
+  const get = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
+  const tr = get("tr");
+  if (!tr) return null;
+
+  if (tr === "parsefel") {
+    return (
+      <div style={{ background: "#fef2f2", color: "#991b1b", padding: "10px 12px", borderRadius: 8, fontSize: 13, margin: "14px 0" }}>
+        Kunde inte läsa JSON-svaret. Klistra in hela blocket från chatten — kodstaket och text
+        runt omkring går bra, men själva <code>{"{ … }"}</code> måste vara komplett.
+      </div>
+    );
+  }
+
+  const n = (k: string) => Number(get(k) ?? 0);
+  const skäl = get("sk");
+  return (
+    <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "10px 12px", borderRadius: 8, fontSize: 13, margin: "14px 0" }}>
+      <b>{n("s")} recensioner översatta</b> och synliga på produktsidan.
+      {n("a") > 0 ? (
+        <>
+          {" "}· <span style={{ color: "#b45309" }}>{n("a")} underkända</span> (ligger kvar i kön
+          {skäl ? `: ${skäl}` : ""})
+        </>
+      ) : null}
+      {n("o") > 0 ? <> · {n("o")} id fanns inte i kön</> : null}
+      {n("f") > 0 ? <> · {n("f")} skrivfel</> : null}
+    </div>
+  );
+}
+
 export default async function ReviewsAdminPage({
   searchParams,
 }: {
@@ -130,6 +169,13 @@ export default async function ReviewsAdminPage({
   })();
   const filtrerade = valdStatus === "alla" ? reviews : reviews.filter((r) => r.status === valdStatus);
   const visade = filtrerade.slice(0, MAX_RENDER);
+
+  // Översättningskön: en OMGÅNG i taget, grupperad per produkt så chatten vet
+  // vad varan är. Prompten byggs här (server) — knappen kopierar bara.
+  const kö = reviews.filter(isAwaitingTranslation);
+  const omgång = groupForTranslation(kö, (id) => nameById.get(id), TRANSLATE_BATCH);
+  const omgångAntal = omgång.reduce((n, g) => n + g.rader.length, 0);
+  const översättPrompt = omgångAntal > 0 ? buildTranslatePrompt(omgång) : "";
 
   return (
     <main style={{ maxWidth: 980, margin: "40px auto", padding: "0 16px" }}>
@@ -202,6 +248,64 @@ export default async function ReviewsAdminPage({
           </button>
         </div>
       </form>
+
+      <TranslateResult sp={sp} />
+
+      {oversattaKvar > 0 ? (
+        <div
+          style={{
+            border: "1px solid #ddd6fe",
+            background: "#faf5ff",
+            borderRadius: 8,
+            padding: "12px 14px",
+            margin: "14px 0",
+          }}
+        >
+          <b style={{ fontSize: 15 }}>Översätt kön i chatten</b>
+          <p style={{ color: "#555", fontSize: 13, margin: "6px 0 0" }}>
+            <b>{oversattaKvar}</b> recensioner väntar på svensk text. Knappen kopierar en omgång
+            om högst {TRANSLATE_BATCH} — grupperade per produkt, så chatten vet vad varan är.
+            Klistra in svaret nedan så skrivs hela omgången in på en gång. Gratis, samma
+            arbetssätt som SEO-poleringen.
+          </p>
+
+          <TranslateButton prompt={översättPrompt} antal={omgångAntal} />
+
+          <form action={applyReviewTranslations} style={{ marginTop: 12 }}>
+            <label style={{ fontSize: 13, fontWeight: 600 }}>
+              Klistra in JSON-svaret från chatten
+            </label>
+            <textarea
+              name="json"
+              rows={5}
+              placeholder={'{"1234567890": "Toppenprodukt, monterad på tjugo minuter …"}'}
+              style={{
+                width: "100%",
+                fontSize: 12,
+                padding: 8,
+                borderRadius: 6,
+                border: "1px solid #d1d5db",
+                fontFamily: "monospace",
+                marginTop: 4,
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                padding: "6px 14px",
+                fontWeight: 700,
+                background: "#4c1d95",
+                color: "#fff",
+                border: 0,
+                borderRadius: 6,
+                cursor: "pointer",
+              }}
+            >
+              Skriv in översättningarna
+            </button>
+          </form>
+        </div>
+      ) : null}
 
       <p style={{ fontSize: 14 }}>
         Totalt: <b>{reviews.length}</b> · Väntar: <b>{counts.pending ?? 0}</b> · Godkända:{" "}

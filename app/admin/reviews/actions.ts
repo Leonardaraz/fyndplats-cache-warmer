@@ -6,6 +6,7 @@ import { audit } from "@/lib/audit";
 import { getReviewStore, type ReviewStatus } from "@/lib/store/reviews";
 import { buildReviewBackfillDeps } from "@/lib/reviews/backfill-deps";
 import { runReviewBackfill } from "@/lib/reviews/backfill";
+import { applyTranslations, parseTranslations } from "@/lib/reviews/translate";
 
 /** Moderering: godkänn / avvisa en recension. */
 export async function setReviewStatus(
@@ -74,4 +75,41 @@ export async function editReviewText(formData: FormData): Promise<void> {
   await getReviewStore().editText(productId, reviewIdAE, text);
   await audit("review-edit", productId, `${reviewIdAE} redigerad`);
   revalidatePath("/admin/reviews");
+}
+
+/**
+ * Klistra in chattens JSON-svar och skriv in HELA omgången på en gång.
+ *
+ * Motsvarigheten till SEO-poleringens flöde: kopiera kön → översätt i chatten →
+ * klistra tillbaka. Utan den här skulle en omgång på 25 recensioner betyda 25
+ * separata redigeringar.
+ *
+ * Varje rad granskas av validateTranslation innan den skrivs. Det som
+ * underkänns sparas INTE — det ligger kvar i kön och rapporteras tillbaka, så
+ * en misslyckad översättning aldrig kan bli synlig av misstag (samma fel som
+ * DeepL-fallbacken gjorde när budgeten tog slut).
+ */
+export async function applyReviewTranslations(formData: FormData): Promise<void> {
+  const rå = String(formData.get("json") || "");
+  const parsad = parseTranslations(rå);
+  if (!parsad) {
+    redirect("/admin/reviews?tr=parsefel");
+  }
+
+  const store = getReviewStore();
+  const pending = await store.listByStatus("pending");
+  const r = await applyTranslations(pending, parsad, (productId, reviewIdAE, svenska) =>
+    store.editText(productId, reviewIdAE, svenska),
+  );
+
+  if (r.saved > 0) {
+    await audit("review-translate", "", `${r.saved} recensioner översatta via chatten`);
+  }
+  revalidatePath("/admin/reviews");
+
+  const skäl = r.rejected.map((x) => x.reason).join(",");
+  redirect(
+    `/admin/reviews?tr=klar&s=${r.saved}&a=${r.rejected.length}&o=${r.unknown.length}&f=${r.errors}` +
+      (skäl ? `&sk=${encodeURIComponent(skäl)}` : ""),
+  );
 }
