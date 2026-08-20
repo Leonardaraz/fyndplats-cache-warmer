@@ -181,3 +181,48 @@ describe("applyTranslations", () => {
     expect(r.saved).toBe(1);
   });
 });
+
+describe("validateTranslation — tät skrift (CJK)", () => {
+  // Skarpt fall 2026-08-20: den här japanska recensionen underkändes som
+  // "för-lång" trots att översättningen är trogen. 92 tecken japanska bär lika
+  // mycket innehåll som 275 tecken svenska — ett tecken är ofta ett helt ord.
+  const japanska =
+    "無事届いた！コンパクトな猫トイレを探していたから助かった。周囲のプラスチックは問題ないが" +
+    "足場の部分のプラスチックが柔らかくて壊れそう。それ以外はいい商品。これステンレスなのに安くて驚く。";
+  const svenska =
+    "Den kom fram utan problem! Jag letade efter en kompakt kattlåda, så den passade perfekt. " +
+    "Plasten runt om är det inget fel på, men plasten i trampdelen känns mjuk och ser ut att " +
+    "kunna gå sönder. I övrigt en bra vara. Förvånansvärt billig med tanke på att den är i rostfritt stål.";
+
+  it("godkänner en trogen översättning från japanska", () => {
+    expect(validateTranslation(japanska, svenska).ok).toBe(true);
+  });
+
+  it("godkänner koreanska på samma sätt", () => {
+    const koreanska = "새끼고양이 용으로 구매하게 되었어요 찌그러지거나 뚜껑, 스쿱 깨지지않고 잘 왔어요";
+    const sv =
+      "Jag köpte den till en kattunge. Den kom fram fint, inget bucklat och varken " +
+      "locket eller skopan var trasig.";
+    expect(validateTranslation(koreanska, sv).ok).toBe(true);
+  });
+
+  // Golvet vänds: blir svenskan KORTARE än en tät källa har innehåll fallit
+  // bort, eftersom en trogen översättning alltid blir längre.
+  it("underkänner svenska som är kortare än den täta källan", () => {
+    expect(validateTranslation(japanska, "Bra kattlåda som kom fram fint.")).toMatchObject({
+      ok: false,
+      reason: "för-kort",
+    });
+  });
+
+  it("ett orimligt uppsvälld text fälls fortfarande", () => {
+    expect(validateTranslation(japanska, "x".repeat(japanska.length * 7)).ok).toBe(false);
+  });
+
+  it("latinska källor påverkas inte", () => {
+    const en = "Great product, assembled in twenty minutes and feels very sturdy.";
+    // Skulle klara CJK-golvet (1x) men ska falla på det latinska (0.4x).
+    expect(validateTranslation(en, "Toppen.")).toMatchObject({ ok: false, reason: "för-kort" });
+    expect(validateTranslation(en, "Toppenprodukt, monterad på tjugo minuter och känns stabil.").ok).toBe(true);
+  });
+});

@@ -44,12 +44,16 @@ on:
 jobs:
   translate:
     runs-on: ubuntu-latest
+    # Exporten committar kön till grenen (se nedan) — det kräver skrivrätt.
+    permissions:
+      contents: write
     steps:
       # Behövs bara när översättningarna ligger i en fil. En omgång på 25 rader
       # är ~9 kB JSON, och att skicka den som workflow-input är både klumpigt
       # och nära gränsen — en fil i grenen är enklare att granska i efterhand.
       - uses: actions/checkout@v4
-        if: inputs.payload_file != ''
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Kör
         env:
@@ -78,11 +82,22 @@ jobs:
             echo "I kön: $(echo "$body" | jq -r '.["iKön"]')"
             echo "I omgången: $(echo "$body" | jq -r '.["iOmgången"]')"
             echo "Kvar efter: $(echo "$body" | jq -r '.["kvarEfter"]')"
-            echo "--- OMGÅNG ---"
-            # Kompakt JSON: loggen är det chatten läser, och rader utan
-            # indentering får plats utan att klippas.
-            echo "$body" | jq -c '.grupper'
-            echo "--- SLUT ---"
+            # SKRIVS TILL GRENEN, inte bara till loggen. Att läsa kön ur
+            # Actions-loggen kräver att man först slår upp körnings- och jobb-id
+            # via API:t, och de svaren är enorma (hela squash-commitmeddelandet
+            # följer med). En fil i grenen hämtas i stället med ett git pull.
+            mkdir -p tools/review-translations
+            echo "$body" | jq '.' > tools/review-translations/queue-latest.json
+            git config user.name "Claude"
+            git config user.email "noreply@anthropic.com"
+            git add tools/review-translations/queue-latest.json
+            if git diff --cached --quiet; then
+              echo "Kön oförändrad sedan förra exporten."
+            else
+              git commit -m "Export: kön just nu ($(jq -r '.[\"iOmgången\"]' <<<\"$body\") rader av $(jq -r '.[\"iKön\"]' <<<\"$body\"))"
+              git push origin HEAD:"${GITHUB_REF_NAME}"
+              echo "Kön skriven till tools/review-translations/queue-latest.json"
+            fi
             exit 0
           fi
 
@@ -111,6 +126,22 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
             --data-binary @- "$base")
+          # SVARET SKRIVS TILL GRENEN, även när det gick fel. Utan det syns
+          # utfallet bara i Actions-loggen, och för att läsa den måste man
+          # först slå upp körnings- och jobb-id via API:t — svar som är
+          # enorma. En omgång som tyst inte skrevs in (2026-08-20) tog därför
+          # en hel extra runda att ens upptäcka.
+          mkdir -p tools/review-translations
+          printf '%s' "$svar" | jq '.' > tools/review-translations/last-apply.json 2>/dev/null \
+            || printf '%s' "$svar" > tools/review-translations/last-apply.json
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add tools/review-translations/last-apply.json
+          git diff --cached --quiet || {
+            git commit -m "Apply-svar"
+            git push origin HEAD:"${GITHUB_REF_NAME}" || true
+          }
+
           ok=$(echo "$svar" | jq -r '.ok // false')
           if [ "$ok" != "true" ]; then
             echo "::error::Skrivningen misslyckades: $(echo "$svar" | head -c 400)"
