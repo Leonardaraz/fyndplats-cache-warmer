@@ -115,10 +115,10 @@ jobs:
 
           sparade=$(echo "$svar" | jq -r '.saved')
           avvisade=$(echo "$svar" | jq -r '.rejected | length')
-          okända=$(echo "$svar" | jq -r '.unknown | length')
+          okanda=$(echo "$svar" | jq -r '.unknown | length')
           fel=$(echo "$svar" | jq -r '.errors')
           kvar=$(echo "$svar" | jq -r '.["kvarIKön"]')
-          echo "Sparade: $sparade · underkända: $avvisade · okända id: $okända · fel: $fel"
+          echo "Sparade: $sparade · underkanda: $avvisade · okanda id: $okanda · fel: $fel"
           echo "Kvar i kön: $kvar"
           # Skälen behövs för att kunna rätta i nästa omgång.
           echo "$svar" | jq -c '.rejected'
