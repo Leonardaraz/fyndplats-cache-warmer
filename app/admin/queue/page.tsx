@@ -9,6 +9,7 @@ import { getSupplierStore, type SupplierRecord, type SupplierStatus } from "@/li
 import {
   acceptCategorySuggestion,
   publishProducts,
+  publishOneForced,
   rejectProducts,
   removeImage,
 } from "./actions";
@@ -79,6 +80,7 @@ export default async function QueuePage({
   const sp = (await searchParams) ?? {};
   const euOnly = sp.eu === "1" || sp.eu === "true";
   const polishOnly = sp.polish === "1" || sp.polish === "true";
+  const priceOnly = sp.pris === "1" || sp.pris === "true";
   const sortMode = sp.sort === "eu" ? "eu" : "date";
 
   const store = getStore();
@@ -96,6 +98,9 @@ export default async function QueuePage({
     ? pendingAll.filter((m) => m.hasEuWarehouse === true)
     : pendingAll;
   if (polishOnly) pending = pending.filter((m) => m.needsAiPolish === true);
+  // Prisspärren: går att filtrera fram, precis som EU och polering. En räknare
+  // utan filter är svår att agera på när kön är lång.
+  if (priceOnly) pending = pending.filter((m) => typeof m.priceUnverified === "string");
   const recent = all
     .filter((m) => m.draftStatus === "published" || m.draftStatus === "rejected")
     .sort(pendingFirst)
@@ -103,6 +108,10 @@ export default async function QueuePage({
   const totalPending = pendingAll.length;
   const euPendingCount = pendingAll.filter((m) => m.hasEuWarehouse === true).length;
   const polishPendingCount = pendingAll.filter((m) => m.needsAiPolish === true).length;
+  // Prisspärren: produkter som hålls som utkast för att variantpriserna inte
+  // gick att bekräfta. De är det mest brådskande i kön — en felprissatt produkt
+  // säljer med fel marginal så fort någon publicerar den.
+  const priceUnverifiedCount = pendingAll.filter((m) => typeof m.priceUnverified === "string").length;
 
   // Aggregera bild-analys-statistik för översikt högst upp.
   const stats = pending.reduce(
@@ -176,6 +185,13 @@ export default async function QueuePage({
           active={polishOnly}
           label={`✨ Behöver AI-polering (${polishPendingCount})`}
         />
+        {priceUnverifiedCount > 0 ? (
+          <ChipLink
+            href={buildQs(sp, { pris: priceOnly ? undefined : "1" })}
+            active={priceOnly}
+            label={`💰 Overifierade priser (${priceUnverifiedCount})`}
+          />
+        ) : null}
         <span style={{ borderLeft: "1px solid #e5e7eb", margin: "0 4px" }} />
         <ChipLink
           href={buildQs(sp, { sort: undefined })}
@@ -366,6 +382,56 @@ function QueueCard({
               >
                 🚫 {p.variants.filter((v) => v.shippableToSe === false).length} variant(er) ej fraktbara till SE
               </span>
+            ) : null}
+            {p.priceUnverified ? (
+              <span
+                title={p.priceUnverified}
+                style={{
+                  display: "inline-block",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "#fee2e2",
+                  color: "#991b1b",
+                  border: "1px solid #fca5a5",
+                  marginRight: 6,
+                }}
+              >
+                💰 Priser overifierade
+              </span>
+            ) : null}
+            {p.priceUnverified ? (
+              // INGET NÄSTLAT FORMULÄR. QueueCard renderas inuti
+              // massmarkeringens <form>, och HTML tillåter inte form-i-form:
+              // serverrenderat släpper webbläsaren det inre formuläret och
+              // fälten hamnar i det YTTRE. Ett dolt force=1 hade då följt med
+              // "Publicera valda" och tvångspublicerat allt markerat — raka
+              // motsatsen till spärren.
+              //
+              // En submit-knapp får däremot ha egen formAction, och knappens
+              // eget name/value skickas med. Egen nyckel (forcePublishId), inte
+              // wixProductId, så den aldrig blandas ihop med kryssrutorna.
+              <button
+                type="submit"
+                formAction={publishOneForced}
+                name="forcePublishId"
+                value={p.wixProductId}
+                title="Publicerar trots att variantpriserna inte kunde bekräftas. Kontrollera priserna i Wix först."
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "#fff7ed",
+                  color: "#9a3412",
+                  border: "1px solid #fdba74",
+                  cursor: "pointer",
+                  marginRight: 6,
+                }}
+              >
+                Publicera ändå
+              </button>
             ) : null}
             {p.needsAiPolish ? (
               <span

@@ -112,6 +112,13 @@ export interface ProductMappingRecord {
    */
   needsAiPolish?: boolean;
   /**
+   * Satt när variantpriserna inte gick att bekräfta vid import: alla varianter
+   * delade inköpspris utan per-SKU-täckning (lib/import/price-trust.ts).
+   * Produkten hålls som utkast och /admin/queue visar motiveringen, som är
+   * värdet självt.
+   */
+  priceUnverified?: string;
+  /**
    * Variantvärden/axelnamn som förblev (halv-)engelska vid importen (tabell+
    * cache+AI löste dem inte). Kö-badgen listar dem — de är key-låsta i Wix V3,
    * så fixen är omimport efter tabell-/AI-rättning, inte polering i efterhand.

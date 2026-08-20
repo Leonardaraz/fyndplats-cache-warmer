@@ -14,12 +14,29 @@ import {
 async function applyAction(
   wixProductIds: string[],
   kind: "publish" | "reject",
+  force = false,
 ): Promise<void> {
   const store = getStore();
   for (const id of wixProductIds) {
     try {
       const mapping = await store.getMappingByWixProductId(id);
       if (!mapping) continue;
+
+      // PRISSPÄRREN GÄLLER ÄVEN HÄR. Utan det här blocket var kön det enda
+      // stället där flaggan gick att kringgå: knappen "Publicera" satte
+      // visible:true och tog bort raden ur kön, så badgen försvann samtidigt
+      // som de felprissatta varianterna gick live. Spärren i importen hade då
+      // bara skjutit upp felet ett klick.
+      //
+      // Avvisa går fortfarande utan hinder — det är alltid ett säkert utfall.
+      if (kind === "publish" && typeof mapping.priceUnverified === "string" && !force) {
+        await audit(
+          "review-publish-blockerad",
+          id,
+          `Priser overifierade: ${mapping.priceUnverified.slice(0, 160)}`,
+        );
+        continue;
+      }
 
       if (kind === "publish") {
         const snapshot = await getProduct(id);
@@ -51,7 +68,22 @@ async function applyAction(
 export async function publishProducts(formData: FormData): Promise<void> {
   const ids = formData.getAll("wixProductId").map(String).filter(Boolean);
   if (ids.length === 0) return;
+  // Massmarkeringen tvingar ALDRIG. Vill man publicera en prisflaggad produkt
+  // finns publishOneForced, som tar en produkt i taget.
   await applyAction(ids, "publish");
+}
+
+/**
+ * Publicerar EN prisflaggad produkt förbi spärren.
+ *
+ * Egen action och egen fältnyckel eftersom knappen sitter inuti
+ * massmarkeringens formulär: den skickar med alla ikryssade wixProductId också,
+ * och de ska inte publiceras av ett klick på en enskild rad.
+ */
+export async function publishOneForced(formData: FormData): Promise<void> {
+  const id = String(formData.get("forcePublishId") || "");
+  if (!id) return;
+  await applyAction([id], "publish", true);
 }
 
 export async function rejectProducts(formData: FormData): Promise<void> {
