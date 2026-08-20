@@ -9,6 +9,7 @@ import { getSupplierStore, type SupplierRecord, type SupplierStatus } from "@/li
 import {
   acceptCategorySuggestion,
   publishProducts,
+  publishOneForced,
   rejectProducts,
   removeImage,
 } from "./actions";
@@ -401,30 +402,36 @@ function QueueCard({
               </span>
             ) : null}
             {p.priceUnverified ? (
-              // Massmarkeringen kan inte publicera en prisflaggad produkt — men
-              // har du kontrollerat priserna själv ska du inte behöva kringgå
-              // spärren någon annanstans. Ett medvetet klick per produkt.
-              <form action={publishProducts} style={{ display: "inline" }}>
-                <input type="hidden" name="wixProductId" value={p.wixProductId} />
-                <input type="hidden" name="force" value="1" />
-                <button
-                  type="submit"
-                  title="Publicerar trots att variantpriserna inte kunde bekräftas. Kontrollera priserna i Wix först."
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                    background: "#fff7ed",
-                    color: "#9a3412",
-                    border: "1px solid #fdba74",
-                    cursor: "pointer",
-                    marginRight: 6,
-                  }}
-                >
-                  Publicera ändå
-                </button>
-              </form>
+              // INGET NÄSTLAT FORMULÄR. QueueCard renderas inuti
+              // massmarkeringens <form>, och HTML tillåter inte form-i-form:
+              // serverrenderat släpper webbläsaren det inre formuläret och
+              // fälten hamnar i det YTTRE. Ett dolt force=1 hade då följt med
+              // "Publicera valda" och tvångspublicerat allt markerat — raka
+              // motsatsen till spärren.
+              //
+              // En submit-knapp får däremot ha egen formAction, och knappens
+              // eget name/value skickas med. Egen nyckel (forcePublishId), inte
+              // wixProductId, så den aldrig blandas ihop med kryssrutorna.
+              <button
+                type="submit"
+                formAction={publishOneForced}
+                name="forcePublishId"
+                value={p.wixProductId}
+                title="Publicerar trots att variantpriserna inte kunde bekräftas. Kontrollera priserna i Wix först."
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "#fff7ed",
+                  color: "#9a3412",
+                  border: "1px solid #fdba74",
+                  cursor: "pointer",
+                  marginRight: 6,
+                }}
+              >
+                Publicera ändå
+              </button>
             ) : null}
             {p.needsAiPolish ? (
               <span

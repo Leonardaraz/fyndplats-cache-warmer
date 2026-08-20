@@ -68,9 +68,22 @@ async function applyAction(
 export async function publishProducts(formData: FormData): Promise<void> {
   const ids = formData.getAll("wixProductId").map(String).filter(Boolean);
   if (ids.length === 0) return;
-  // "force" sätts av den egna knappen på en prisflaggad rad — ett medvetet
-  // klick per produkt, aldrig via massmarkeringen.
-  await applyAction(ids, "publish", formData.get("force") === "1");
+  // Massmarkeringen tvingar ALDRIG. Vill man publicera en prisflaggad produkt
+  // finns publishOneForced, som tar en produkt i taget.
+  await applyAction(ids, "publish");
+}
+
+/**
+ * Publicerar EN prisflaggad produkt förbi spärren.
+ *
+ * Egen action och egen fältnyckel eftersom knappen sitter inuti
+ * massmarkeringens formulär: den skickar med alla ikryssade wixProductId också,
+ * och de ska inte publiceras av ett klick på en enskild rad.
+ */
+export async function publishOneForced(formData: FormData): Promise<void> {
+  const id = String(formData.get("forcePublishId") || "");
+  if (!id) return;
+  await applyAction([id], "publish", true);
 }
 
 export async function rejectProducts(formData: FormData): Promise<void> {
