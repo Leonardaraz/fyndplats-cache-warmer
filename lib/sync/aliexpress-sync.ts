@@ -22,6 +22,7 @@ import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repai
 import type { PricingConfig } from "../import/types";
 import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
 import { checkMappingShippability, isShippabilityStale, NEGATIVE_CONFIRMATIONS, type ShippabilityBudget } from "./shippability";
+import { planWarehouseFailover } from "./warehouse-failover";
 import type { VariantMapping } from "../import/pipeline";
 import {
   getProduct as getWixProduct,
@@ -759,6 +760,8 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     skuProps: Record<string, string>;
     stock?: number;
     shipFrom?: string;
+    /** SKU-priset — lager-failovern (steg 3.6) räknar om marginalen med det. */
+    price?: number;
   }> = [];
   // Sätts om AE-svaret klassas som "borttagen listning" (för strike-räkningen
   // som kräver REMOVED_STRIKES_REQUIRED körningar i rad innan vi döljer).
@@ -823,6 +826,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
         skuProps: v.skuProps ?? {},
         stock: v.stock,
         shipFrom: v.shipFrom,
+        price: v.price,
       }));
     aliExpress = {
       title: product.title,
@@ -1051,6 +1055,55 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     } catch (err) {
       console.warn(
         `[sync] fraktbarhetskontroll misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+      );
+    }
+  }
+
+  // 3.6) LAGER-FAILOVER: vårt lager tomt, men varan finns i ett annat.
+  //
+  // AliExpress bakar in lagerlandet i SKU:n, och synken speglar just VÅR SKU:s
+  // saldo till Wix (resolveInventoryQuantities). Tar det tyska lagret slut blir
+  // varan slutsåld i butiken trots att säljaren har 42 kvar i Spanien och
+  // skickar därifrån till Sverige — Leonards rapport 2026-08-20.
+  //
+  // Vi pekar om mappningen i stället för att bara visa syskonets saldo: ordern
+  // läggs på den sparade SKU:n, så en uppblåst lagersiffra hade bara flyttat
+  // felet till kassan. Ligger FÖRE steg 4 med flit — då hämtar
+  // applyInventoryTarget det nya lagrets saldo i samma körning.
+  //
+  // Spärrarna sitter i lib/sync/warehouse-failover.ts: bara EU:s tullunion,
+  // bara med känt pris, och bara om marginalen håller efter bytet.
+  if (!dryRun && aliExpress && aeVariantsForShippability.length > 0) {
+    try {
+      const failover = planWarehouseFailover(mapping.variants, aeVariantsForShippability, {
+        nowIso: checkedAt,
+      });
+      if (failover.changed) {
+        for (const b of failover.switches) {
+          console.warn(
+            `[sync] lagerbyte (slut) ${mapping.wixProductId} (${b.sku}): ${b.from} → ${b.to}` +
+              `${b.shipFrom ? ` [${b.shipFrom}]` : ""} — vårt lager 0, nya har ${b.toStock}. ` +
+              `Inköp $${b.oldCostUsd} → $${b.newCostUsd}, marginal ${b.marginPct.toFixed(1)} %.`,
+          );
+        }
+        mapping.variants = failover.variants;
+        await getStore().saveMapping(mapping);
+      }
+      // Ett syskon fanns men bytet gjordes inte — det är ett beslut för en
+      // människa, inte något att tiga om. Marginalfallet är det intressanta:
+      // varan GÅR att sälja, men inte till nuvarande pris.
+      for (const s of failover.skipped) {
+        console.warn(
+          `[sync] lagerbyte AVSTOD ${mapping.wixProductId} (${s.sku}): ${s.reason}` +
+            `${s.marginPct !== undefined ? ` (${s.marginPct.toFixed(1)} % marginal)` : ""}` +
+            `${s.toStock !== undefined ? `, syskon har ${s.toStock} i lager` : ""}.`,
+        );
+      }
+    } catch (err) {
+      // Best-effort, precis som fraktbarhetskontrollen: ett fel här får aldrig
+      // fälla synk-checken för produkten.
+      console.warn(
+        `[sync] lager-failover misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
       );
     }
   }
