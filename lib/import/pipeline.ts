@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { computePriceWithRules } from "./pricing";
+import { assessPriceTrust } from "./price-trust";
 import { deriveFocusKeyword } from "./focus-keyword";
 import { resolveImportStockQty } from "./variant-stock";
 import { trimVariants, variantTrimEnabled, variantTrimMax } from "./variant-trim";
@@ -164,6 +165,13 @@ export interface ImportResult {
    * omimport, inte polering).
    */
   unresolvedVariantValues?: string[];
+  /**
+   * Satt när variantpriserna INTE går att lita på: alla varianter delar samma
+   * inköpspris utan att DS kunnat bekräfta det (se lib/import/price-trust.ts).
+   * Produkten tvingas då till utkast oavsett läge, och /admin/queue visar
+   * motiveringen. Värdet ÄR motiveringen, på svenska.
+   */
+  priceUnverified?: string;
   /** Vilket AI-kvalitetsläge importen kördes i (raw/standard/premium). */
   qualityMode: QualityMode;
   /**
@@ -350,11 +358,17 @@ export async function importProduct(
   // översättning/prissättning. Konservativ (<50 % match → orört) och
   // fail-open — ett API-fel får aldrig fälla importen; då gäller skrapans
   // data precis som innan, och unifoma priser flaggas enbart i loggen.
+  // Utfallet fångas för prisspärren nedan (assessPriceTrust): en avbruten
+  // eller fallerad avstämning får inte längre passera som "allt är bra".
+  let reconcileAttempted = false;
+  let reconcileAborted = false;
+  let dsLookupFailed = false;
   if (
     dsPriceReconcileEnabled() &&
     needsDsPriceReconcile(sourceVariants) &&
     /^\d{6,}$/.test(String(product.supplierProductId || ""))
   ) {
+    reconcileAttempted = true;
     try {
       const ds = await getProductOnce(product.supplierProductId);
       const rec = reconcileVariantsWithDs(sourceVariants, ds.variants ?? []);
@@ -372,12 +386,14 @@ export async function importProduct(
             `${rec.idsRepaired} id reparerade, ${rec.ghostsDropped} spökvarianter borttagna.`,
         );
       } else {
+        reconcileAborted = true;
         console.warn(
           `[import:price-reconcile] pid=${product.supplierProductId} avstämning AVBRUTEN ` +
             `(för osäker matchning) — skrapade varianter används orörda. KONTROLLERA PRISERNA.`,
         );
       }
     } catch (err) {
+      dsLookupFailed = true;
       console.warn(
         `[import:price-reconcile] pid=${product.supplierProductId} DS-uppslag misslyckades: ` +
           `${err instanceof Error ? err.message.slice(0, 160) : String(err)} — skrapade priser används.`,
@@ -913,6 +929,21 @@ export async function importProduct(
     };
   });
 
+  // PRISSPÄRR. Delar alla varianter samma inköpspris UTAN att vi kunnat
+  // bekräfta det mot DS? Då kommer priset troligen från sidans synliga pris
+  // (tilläggets DOM-fallback) och de dyrare varianterna är underprisade.
+  // Produkten får inte gå live med det — se lib/import/price-trust.ts.
+  const prisdom = assessPriceTrust(wixVariantSource, {
+    reconcileAttempted,
+    reconcileAborted,
+    dsLookupFailed,
+  });
+  if (!prisdom.trusted) {
+    console.warn(
+      `[import:price-trust] pid=${product.supplierProductId} STOPPAD FRÅN PUBLICERING: ${prisdom.reason}`,
+    );
+  }
+
   // Vänta in bilduppladdningarna och koppla alt-text per bild (faller tillbaka
   // på titeln om SEO-pipelinen inte producerade en alt för just den bilden).
   // OBS: alt-texterna matchade ursprungsordningen — gör om mappningen mot
@@ -1008,9 +1039,14 @@ export async function importProduct(
     //               (≥9,5). Underkänd premium → draft + needs_manual_polish.
     //   STANDARD  → draft som förut; IMPORT_DRAFT_DEFAULT=false hoppar granskningen.
     //   RAW       → ALLTID draft (aiEnabled=false): kräver manuell polering först.
-    visible: premium
-      ? premiumResult?.passed === true
-      : aiEnabled && process.env.IMPORT_DRAFT_DEFAULT === "false",
+    //   PRISSPÄRR → otillförlitliga variantpriser tvingar draft OAVSETT läge.
+    //               En felprissatt produkt som är synlig säljs till fel pris;
+    //               en som är utkast kostar bara ett klick att rätta.
+    visible: prisdom.trusted
+      ? premium
+        ? premiumResult?.passed === true
+        : aiEnabled && process.env.IMPORT_DRAFT_DEFAULT === "false"
+      : false,
   };
 
   // Logga den faktiska payload-formen som skickas till Wix — så att 400:or
@@ -1170,6 +1206,7 @@ export async function importProduct(
     qualityMode,
     ...(premium && premiumResult ? { qualityScore: premiumResult.score } : {}),
     ...(premium && premiumResult && !premiumResult.passed ? { needsManualPolish: true } : {}),
+    ...(prisdom.trusted ? {} : { priceUnverified: prisdom.reason }),
   };
 }
 

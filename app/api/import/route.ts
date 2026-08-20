@@ -442,15 +442,23 @@ export async function POST(req: Request) {
     // kund. Övriga lägen: oförändrat IMPORT_DRAFT_DEFAULT-beteende.
     const isPremiumResult = resultAny.qualityMode === "premium";
     const needsManualPolish = resultAny.needsManualPolish === true;
-    const draftStatus = isPremiumResult
-      ? needsManualPolish || needsAiPolish
-        ? "pending_review"
-        : "published"
-      : !needsAiPolish && process.env.IMPORT_DRAFT_DEFAULT === "false"
-        ? "published"
-        : "pending_review";
+    // PRISSPÄRR: går variantpriserna inte att lita på skapades produkten som
+    // utkast i pipelinen — mappningen måste följa med dit, annars säger kön
+    // "publicerad" om en produkt som inte är det.
+    const priceUnverified =
+      typeof resultAny.priceUnverified === "string" ? (resultAny.priceUnverified as string) : undefined;
+    const draftStatus = priceUnverified
+      ? "pending_review"
+      : isPremiumResult
+        ? needsManualPolish || needsAiPolish
+          ? "pending_review"
+          : "published"
+        : !needsAiPolish && process.env.IMPORT_DRAFT_DEFAULT === "false"
+          ? "published"
+          : "pending_review";
     const mappingExtras: Record<string, unknown> = {};
     if (needsAiPolish) mappingExtras.needsAiPolish = true;
+    if (priceUnverified) mappingExtras.priceUnverified = priceUnverified;
     if (needsManualPolish) mappingExtras.needsManualPolish = true;
     // Olösta variantvärden (kvar-engelska efter tabell+cache+AI): logga synligt +
     // spara på mappningen så kö-badgen kan visa VILKA — diagnosen 2026-06-09 tog

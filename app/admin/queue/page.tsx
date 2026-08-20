@@ -103,6 +103,10 @@ export default async function QueuePage({
   const totalPending = pendingAll.length;
   const euPendingCount = pendingAll.filter((m) => m.hasEuWarehouse === true).length;
   const polishPendingCount = pendingAll.filter((m) => m.needsAiPolish === true).length;
+  // Prisspärren: produkter som hålls som utkast för att variantpriserna inte
+  // gick att bekräfta. De är det mest brådskande i kön — en felprissatt produkt
+  // säljer med fel marginal så fort någon publicerar den.
+  const priceUnverifiedCount = pendingAll.filter((m) => typeof m.priceUnverified === "string").length;
 
   // Aggregera bild-analys-statistik för översikt högst upp.
   const stats = pending.reduce(
@@ -176,6 +180,22 @@ export default async function QueuePage({
           active={polishOnly}
           label={`✨ Behöver AI-polering (${polishPendingCount})`}
         />
+        {priceUnverifiedCount > 0 ? (
+          <span
+            title="Variantpriserna gick inte att bekräfta mot AliExpress DS-API vid import. Produkterna hålls som utkast — se badgen på raden."
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              padding: "4px 10px",
+              borderRadius: 999,
+              background: "#fee2e2",
+              color: "#991b1b",
+              border: "1px solid #fca5a5",
+            }}
+          >
+            💰 {priceUnverifiedCount} med overifierade priser
+          </span>
+        ) : null}
         <span style={{ borderLeft: "1px solid #e5e7eb", margin: "0 4px" }} />
         <ChipLink
           href={buildQs(sp, { sort: undefined })}
@@ -365,6 +385,24 @@ function QueueCard({
                 }}
               >
                 🚫 {p.variants.filter((v) => v.shippableToSe === false).length} variant(er) ej fraktbara till SE
+              </span>
+            ) : null}
+            {p.priceUnverified ? (
+              <span
+                title={p.priceUnverified}
+                style={{
+                  display: "inline-block",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "#fee2e2",
+                  color: "#991b1b",
+                  border: "1px solid #fca5a5",
+                  marginRight: 6,
+                }}
+              >
+                💰 Priser overifierade
               </span>
             ) : null}
             {p.needsAiPolish ? (
