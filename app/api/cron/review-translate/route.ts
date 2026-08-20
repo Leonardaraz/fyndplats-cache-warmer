@@ -33,6 +33,8 @@ import { getStore } from "@/lib/store/factory";
 import { isAwaitingTranslation } from "@/lib/reviews/queue";
 import { applyTranslations, TRANSLATE_BATCH } from "@/lib/reviews/translate";
 import { stripMarketplaceSuffix } from "@/lib/import/guard";
+import { reviewImages } from "@/lib/reviews/images";
+import { isExternalSupplierImage } from "@/lib/wix/media-import";
 import { audit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -105,6 +107,49 @@ export async function GET(req: Request) {
   });
 }
 
+/** Skriver om synliga rader som fortfarande pekar på leverantörens bild-CDN. */
+async function repairImages(limit: number): Promise<NextResponse> {
+  const store = getReviewStore();
+  const rader = [
+    ...(await store.listByStatus("approved")),
+    ...(await store.listByStatus("edited")),
+  ];
+  const trasiga = rader.filter((r) =>
+    reviewImages(r).some((u) => isExternalSupplierImage(u)),
+  );
+
+  let lagade = 0;
+  let kvar = 0;
+  let fel = 0;
+  for (const r of trasiga.slice(0, limit)) {
+    try {
+      // Oförändrad rad in — upsert kör withOwnImage eftersom statusen är synlig.
+      await store.upsert(r);
+      lagade++;
+    } catch (err) {
+      fel++;
+      console.warn("[review-repair]", r.reviewIdAE, err instanceof Error ? err.message : err);
+    }
+  }
+
+  // Läs om och räkna vad som FAKTISKT blev kvar — en hemflytt kan misslyckas
+  // igen (borttagen källbild), och då ska siffran visa det, inte antalet försök.
+  const efter = [
+    ...(await store.listByStatus("approved")),
+    ...(await store.listByStatus("edited")),
+  ];
+  kvar = efter.filter((r) => reviewImages(r).some((u) => isExternalSupplierImage(u))).length;
+
+  return NextResponse.json({
+    ok: true,
+    hittade: trasiga.length,
+    försökte: Math.min(trasiga.length, limit),
+    skrivna: lagade,
+    kvarMedLeverantörsbild: kvar,
+    fel,
+  });
+}
+
 export async function POST(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -115,6 +160,20 @@ export async function POST(req: Request) {
     body = (await req.json()) as { translations?: Record<string, unknown> };
   } catch {
     return NextResponse.json({ error: "ogiltig JSON" }, { status: 400 });
+  }
+
+  // BILDREPARATION. En publicerad rad kan bära kvar leverantörens bildadress:
+  // hemflytten sker vid publicering (lib/store/reviews.ts → withOwnImage), och
+  // misslyckas den behålls källadressen med flit — ett undefined hade raderat
+  // bilden för gott, eftersom items/save är en helersättning. Följden är att
+  // adressen står i klartext i produktsidans HTML för den som högerklickar.
+  // Samma klass av fel som de 44 raderna 2026-08-18.
+  //
+  // Reparationen är att skriva om raden oförändrad: upsert kör withOwnImage på
+  // nytt för synliga rader, och källbilderna finns kvar hos AE. Mätt 2026-08-20:
+  // 4 rader av 148 på 13 produkter.
+  if ((body as { repairImages?: unknown })?.repairImages === true) {
+    return repairImages(Number((body as { limit?: unknown }).limit) || 500);
   }
 
   // AVVISNINGAR. Utan dem klibbar en rad som aldrig ska publiceras kvar i kön
