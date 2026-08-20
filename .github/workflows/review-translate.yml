@@ -103,7 +103,11 @@ jobs:
             exit 1
           fi
 
-          svar=$(printf '%s' "$PAYLOAD" | jq -c '{translations: .}' | curl -sS -X POST \
+          # Filen kan bära både översättningar och avvisningar:
+          #   {"translations": {...}, "reject": ["id", ...]}
+          # eller bara en platt id→text-karta (bakåtkompatibelt).
+          kropp=$(printf '%s' "$PAYLOAD" | jq -c 'if has("translations") or has("reject") then . else {translations: .} end')
+          svar=$(printf '%s' "$kropp" | curl -sS -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
             --data-binary @- "$base")
