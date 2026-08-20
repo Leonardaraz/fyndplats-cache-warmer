@@ -35,11 +35,22 @@ on:
         required: false
         default: ""
         type: string
+      payload_file:
+        description: "apply: sökväg till en JSON-fil i grenen (används i stället för payload — kör workflowen på den gren filen ligger i)"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
+      # Behövs bara när översättningarna ligger i en fil. En omgång på 25 rader
+      # är ~9 kB JSON, och att skicka den som workflow-input är både klumpigt
+      # och nära gränsen — en fil i grenen är enklare att granska i efterhand.
+      - uses: actions/checkout@v4
+        if: inputs.payload_file != ''
+
       - name: Kör
         env:
           # VIA MILJÖN, inte via ${{ }} i skriptet. Interpolerad direkt i bash
@@ -47,6 +58,7 @@ jobs:
           # svensk text är full av dem ("hundens", "på 90-talet"). Det vore
           # dessutom en injektionsväg: allt efter apostrofen tolkas som kod.
           PAYLOAD: ${{ inputs.payload }}
+          PAYLOAD_FILE: ${{ inputs.payload_file }}
           MODE: ${{ inputs.mode }}
           LIMIT: ${{ inputs.limit }}
         run: |
@@ -75,6 +87,13 @@ jobs:
           fi
 
           # apply
+          if [ -n "$PAYLOAD_FILE" ]; then
+            if [ ! -f "$PAYLOAD_FILE" ]; then
+              echo "::error::Hittar inte $PAYLOAD_FILE i den här grenen."
+              exit 1
+            fi
+            PAYLOAD=$(cat "$PAYLOAD_FILE")
+          fi
           if [ -z "$PAYLOAD" ]; then
             echo "::error::apply utan payload — inget att skriva."
             exit 1
