@@ -32,6 +32,7 @@ import { getReviewStore } from "@/lib/store/reviews";
 import { getStore } from "@/lib/store/factory";
 import { isAwaitingTranslation } from "@/lib/reviews/queue";
 import { applyTranslations, TRANSLATE_BATCH } from "@/lib/reviews/translate";
+import { stripMarketplaceSuffix } from "@/lib/import/guard";
 import { audit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -48,7 +49,17 @@ async function namnPerProdukt(): Promise<Map<string, string>> {
   const karta = new Map<string, string>();
   try {
     for (const m of await getStore().listMappings()) {
-      if (m.wixProductId && m.seoTitle) karta.set(m.wixProductId, m.seoTitle);
+      // Mappningens seoTitle är en INTERN anteckning och kan bära kvar
+      // marknadsplatsens namn från råimporten ("… Black - AliEx" — 70-
+      // teckenkapningen slår mitt i ordet). Wix-produktens namn tvättas sedan
+      // 2026-08-19 av stripMarketplaceSuffix, men de sparade raderna städades
+      // aldrig. Här skulle det annars hamna i översättningsprompten som
+      // "Produkten omdömena gäller: … - AliEx", vilket är precis vad vi inte
+      // vill mata in i en text som ska bli kundtext.
+      if (m.wixProductId && m.seoTitle) {
+        const rent = stripMarketplaceSuffix(m.seoTitle);
+        if (rent) karta.set(m.wixProductId, rent);
+      }
     }
   } catch {
     // Namnet är kontext, inte en förutsättning.
