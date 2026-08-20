@@ -217,6 +217,95 @@ function requestExtract(tabId, timeoutMs = 18000) {
   });
 }
 
+/**
+ * True när skrapan byggde varianterna ur DOM:en i stället för riktig SKU-data.
+ *
+ * `dom-N` sätts bara av DOM-fallbacken (content.js), och den fallbacken kan
+ * inte läsa per-variant-priser: AliExpress renderar bara den VALDA variantens
+ * pris, så alla varianter får sidans baspris. Datat är alltså känt fel för
+ * alla utom en variant.
+ *
+ * `idx-N` räknas MEDVETET INTE. Den kommer från den inbäddade SKU-vägen, där
+ * varje variant har sitt EGET pris — bara id:t saknades. Att byta ut den
+ * listan mot DS hade kastat korrekt data.
+ */
+function harDomVarianter(product) {
+  return (product && Array.isArray(product.variants) ? product.variants : []).some((v) =>
+    /^dom-/.test(String((v && v.supplierVariantId) || "")),
+  );
+}
+
+/**
+ * Hämtar variantfacit från DS-API:t och ersätter skrapans lista.
+ *
+ * Bakgrund (Leonards rapport 2026-08-20): agent- och bulk-importer gav alla
+ * varianter samma inköpspris. Räddningen fanns redan här, men var gatad på
+ * `!product.extractionOk` — och extractionOk är `titel && bilder && pris`,
+ * den bryr sig inte om varianterna. En DOM-fallback med titel, bild och ett
+ * pris räknades alltså som "bra data" och fick passera med sex identiska
+ * priser. Popupen räddades av att den kallar samma API vid inläsning
+ * (refreshVariantPricesViaDsApi); agent- och bulk-vägen gjorde det aldrig.
+ *
+ * Verifierat på sidan 2026-08-20: window.runParams är tomt, skuPriceList finns
+ * inte i HTML:en — det finns ingenting att vänta in. DS är enda källan.
+ *
+ * Best-effort: misslyckas uppslaget behålls skrapans data, och serverns
+ * prisspärr (lib/import/price-trust.ts) hindrar ändå publicering.
+ */
+async function dsRescueVariants(product) {
+  const id = String((product && product.supplierProductId) || "");
+  if (!/^\d{6,}$/.test(id)) return { product, bytt: false };
+
+  let ds = null;
+  try {
+    const r = await apiCall(`/api/aliexpress/product?id=${encodeURIComponent(id)}`, { method: "GET" });
+    ds = r && r.ok && r.data;
+  } catch {
+    return { product, bytt: false };
+  }
+  const dsVariants = (ds && Array.isArray(ds.variants) ? ds.variants : []).filter(
+    (v) => Number(v.costUsd) > 0,
+  );
+  if (!dsVariants.length) return { product, bytt: false };
+
+  const ut = { ...product, variants: dsVariants };
+  if (!ut.rawTitle && ds.rawTitle) ut.rawTitle = ds.rawTitle;
+  if (!ut.rawDescription && ds.rawDescription) ut.rawDescription = ds.rawDescription;
+  if ((!ut.imageUrls || !ut.imageUrls.length) && Array.isArray(ds.imageUrls)) {
+    ut.imageUrls = ds.imageUrls;
+  }
+  if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
+    ut.shipsFrom = [...new Set([...(ut.shipsFrom || []), ...ds.shipsFrom])].sort();
+  }
+  const stocks = dsVariants.map((v) => v.stock).filter((s) => typeof s === "number");
+  if (stocks.length) ut.inStock = stocks.some((s) => s > 0);
+
+  // VARIANTBILDERNA MÅSTE BYGGAS OM I SAMMA ANDETAG.
+  //
+  // swatchImages är nycklad på skrapans optionsvärden. Byter vi variantlistan
+  // mot DS:s värden matchar den gamla kartan ingenting — och serverns backfill
+  // hoppar över den, eftersom den bara kickar in när kartan är HELT TOM
+  // (lib/import/variant-images.ts). Resultatet blir noll kopplade
+  // variantbilder, vilket är sämre än ingen karta alls.
+  const nyaSwatchar = {};
+  for (const v of dsVariants) {
+    if (!v.swatchImageUrl) continue;
+    for (const [axel, värde] of Object.entries(v.options || {})) {
+      if (!värde) continue;
+      nyaSwatchar[axel] = nyaSwatchar[axel] || {};
+      if (!nyaSwatchar[axel][värde]) nyaSwatchar[axel][värde] = v.swatchImageUrl;
+    }
+  }
+  ut.swatchImages = Object.keys(nyaSwatchar).length ? nyaSwatchar : {};
+  // Färgprickarna är nycklade på de gamla värdena och används inte i butiken —
+  // lämna dem inte kvar som skräp som ändå aldrig matchar.
+  ut.optionColorCodes = {};
+  // DOM-varningen om baspris är åtgärdad.
+  ut._warnings = (ut._warnings || []).filter((w) => !/baspriset/.test(w));
+  ut.extractionOk = Boolean(ut.rawTitle && (ut.imageUrls || []).length);
+  return { product: ut, bytt: true };
+}
+
 async function scrapeAndImport(item, featureFlags, pricingOverride) {
   let tab;
   try {
@@ -268,6 +357,13 @@ async function scrapeAndImport(item, featureFlags, pricingOverride) {
     // att popupen sparat t.ex. 1.2 (egen "custom"-tier).
     if (pricingOverride && typeof pricingOverride.multiplier === "number") {
       product.pricingOverride = pricingOverride;
+    }
+    // Samma DS-räddning som agent-vägen: bulk-fliken har ingen popup som
+    // hämtar per-SKU-priser, så utan den här raden importeras DOM-byggda
+    // varianter med sidans baspris på allihop.
+    if (harDomVarianter(product)) {
+      const r = await dsRescueVariants(product);
+      product = r.product;
     }
     const imp = await importProduct(product, featureFlags);
     if (!imp.ok) return { id: item.id, ok: false, error: imp.error };
@@ -558,30 +654,15 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       (async () => {
         try {
           let product = msg.product || {};
-          if (!product.extractionOk && /^\d{6,}$/.test(String(product.supplierProductId || ""))) {
-            const r = await apiCall(
-              `/api/aliexpress/product?id=${encodeURIComponent(product.supplierProductId)}`,
-              { method: "GET" },
-            );
-            const ds = r && r.ok && r.data;
-            const dsVariants = (ds && Array.isArray(ds.variants) ? ds.variants : []).filter(
-              (v) => Number(v.costUsd) > 0,
-            );
-            if (dsVariants.length) {
-              // API:t är facit för varianter/pris/lager; skrapans media/copy
-              // behålls där den finns (DOM:en är rikare). Agentens marginal
-              // (pricingOverride) sitter redan på product och följer med.
-              product = { ...product, variants: dsVariants };
-              if (!product.rawTitle && ds.rawTitle) product.rawTitle = ds.rawTitle;
-              if (!product.rawDescription && ds.rawDescription) product.rawDescription = ds.rawDescription;
-              if ((!product.imageUrls || !product.imageUrls.length) && Array.isArray(ds.imageUrls)) {
-                product.imageUrls = ds.imageUrls;
-              }
-              if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
-                product.shipsFrom = [...new Set([...(product.shipsFrom || []), ...ds.shipsFrom])].sort();
-              }
-              product.extractionOk = Boolean(product.rawTitle && (product.imageUrls || []).length);
-            }
+          // TVÅ SKÄL att hämta facit från DS, inte ett:
+          //   1. skrapningen misslyckades (som förut), eller
+          //   2. varianterna är DOM-byggda — då är priserna kända fel även om
+          //      titel/bild/pris finns, och extractionOk säger inget om det.
+          // Skäl 2 saknades, och det är hela buggen: agent-importer fick sex
+          // varianter med sidans enda synliga pris.
+          if (!product.extractionOk || harDomVarianter(product)) {
+            const r = await dsRescueVariants(product);
+            product = r.product;
           }
           if (!product.extractionOk) {
             sendResponse({ ok: false, error: "Produktdatan kunde inte läsas (varken skrap eller API-uppslag) — importen avbruten." });
@@ -700,4 +781,4 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     default:
       return;
   }
-});
+});

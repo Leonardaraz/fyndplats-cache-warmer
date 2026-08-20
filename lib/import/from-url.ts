@@ -66,6 +66,12 @@ export function convertDsToAliExpressProduct(
       options: v.skuProps,
       costUsd: v.price,
       stock: v.stock,
+      // LAGERLANDET FÖLJDE ALDRIG MED (fynd 2026-08-20). DS bär det per SKU,
+      // men bulk-vägen kopierade det inte — och utan det blir
+      // shipsFromCountries tomt, hasEuWarehouse false och warehouseClass
+      // UNKNOWN för VARJE CSV-importerad produkt. Det slår mot EU-ribbonen,
+      // EU-filtret i kön och underlaget för lager-failovern.
+      shipFrom: v.shipFrom,
       included,
     };
   });
@@ -91,6 +97,12 @@ export function convertDsToAliExpressProduct(
     rawDescription: ds.description,
     imageUrls: ds.images,
     variants,
+    // Produktnivåns lagerländer — samma fynd som shipFrom per variant ovan.
+    // Utan den här raden fick varje bulk-importerad produkt tom
+    // shipsFromCountries på mappningen, oavsett vad DS svarat.
+    ...(Array.isArray(ds.shipsFromCountries) && ds.shipsFromCountries.length
+      ? { shipsFrom: ds.shipsFromCountries }
+      : {}),
     ...(swatchFromDs ? { swatchImages: swatchFromDs } : {}),
     // Specar från DS-svaret. Den här vägen (CSV-/bulk-import) har ingen
     // webbläsare, så innan detta byggdes produkten helt utan spec-fält —
