@@ -37,6 +37,12 @@
 //   Ingen entydig träff → lämnas orörd + rapporteras (ambiguous).
 
 import { isEuCountry, normalizeShipFromCode } from "../aliexpress/eu-countries";
+// Frakt-axeln definieras på EXAKT ett ställe (ship-axis.ts). Den här filen bar
+// en egen kopia som hunnit driva isär: den saknade de kinesiska formerna
+// (发货地/送货/发货) som AE renderar när sidan inte lokaliserats. Signaturen blev
+// då asymmetrisk — frakt-axeln struken på DS-sidan men kvar på mappningssidan —
+// och just de mappningarna kunde aldrig värdematchas. Importera i stället.
+import { SHIP_AXIS_RE } from "../import/ship-axis";
 
 export interface RepairableMappingVariant {
   supplierVariantId: string;
@@ -72,10 +78,10 @@ export function isSyntheticMappingId(id: string): boolean {
 }
 
 // OBS: mappnings-/Wix-sidan bär SVENSKA axelnamn (importen översätter
-// "Ships From" → "Skickas från") — utan de svenska formerna blev signaturen
+// "Ships From" → "Skickas från") — utan de svenska formerna blir signaturen
 // asymmetrisk (frakt-axeln exkluderad på DS-sidan men kvar på mappningssidan)
-// och flerlager-produkter kunde aldrig värdematchas (audit 2026-08-09).
-const SHIP_AXIS_RE = /ships?\s*from|ship\s*country|skickas\s*från|levereras\s*från/i;
+// och flerlager-produkter kan aldrig värdematchas (audit 2026-08-09). Samma
+// gäller de kinesiska formerna. Mönstret ligger därför i ship-axis.ts.
 
 function valueSignature(
   options: Record<string, string> | undefined,

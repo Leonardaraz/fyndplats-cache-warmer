@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { execSync } from "node:child_process";
 import { collapseShipFromAxis, isShipAxis } from "./ship-axis";
 
 // Måleritältet (AE 1005007857803500) som avslöjade problemet: fem storlekar ×
@@ -109,10 +110,41 @@ describe("collapseShipFromAxis", () => {
     expect(a.variants).toEqual(b.variants);
   });
 
-  it("isShipAxis känner igen både engelska och svenska formerna", () => {
-    for (const n of ["Ships From", "ships from", "Ship Country", "Skickas från", "Levereras från"]) {
+  it("isShipAxis känner igen engelska, svenska OCH kinesiska formerna", () => {
+    for (const n of [
+      "Ships From",
+      "ships from",
+      "Ship Country",
+      "Skickas från",
+      "Levereras från",
+      // AE renderar axelnamnen lokaliserat och faller tillbaka på kinesiska när
+      // sidan inte översatts. Utan de här formerna behålls frakt-axeln i
+      // signaturen på ena sidan medan den strippats på den andra — och just de
+      // produkterna kan aldrig värdematchas (audit 2026-08-20).
+      "发货地",
+      "送货",
+      "发货",
+    ]) {
       expect(isShipAxis(n)).toBe(true);
     }
-    for (const n of ["Färg", "Storlek", "Size", "Antal"]) expect(isShipAxis(n)).toBe(false);
+    for (const n of ["Färg", "Storlek", "Size", "Antal", "颜色", "尺寸"]) {
+      expect(isShipAxis(n)).toBe(false);
+    }
+  });
+
+  // Mönstret har drivit isär två gånger på två veckor: kopiorna i
+  // variant-reconcile och mapping-repair saknade först de svenska och sedan de
+  // kinesiska formerna. Nu IMPORTERAR de originalet — det här testet gör det
+  // dyrt att smyga tillbaka en kopia.
+  it("SHIP_AXIS_RE finns bara på ETT ställe i lib/", () => {
+    const träffar = execSync(
+      "grep -rn 'SHIP_AXIS_RE\\s*=' lib/ || true",
+      { encoding: "utf8" },
+    )
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    expect(träffar).toHaveLength(1);
+    expect(träffar[0]).toMatch(/^lib\/import\/ship-axis\.ts:/);
   });
 });

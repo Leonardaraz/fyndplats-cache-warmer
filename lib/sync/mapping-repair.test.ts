@@ -171,6 +171,24 @@ describe("repairSyntheticVariantIds", () => {
     expect(r.variants[0].supplierVariantId).toBe("1");
   });
 
+  it("KINESISK frakt-axel ('发货地') ignoreras också i signaturen", () => {
+    // AE renderar axelnamnen lokaliserat och faller tillbaka på kinesiska när
+    // sidan inte översatts. Den här filen bar länge en EGEN kopia av
+    // SHIP_AXIS_RE utan de kinesiska formerna (audit 2026-08-20): axeln ströks
+    // på DS-sidan i variant-reconcile men behölls här, signaturen blev
+    // asymmetrisk, och just de mappningarna kunde aldrig repareras.
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Färg: "Blå" })],
+      [
+        dv("1", { Color: "Blå", 发货地: "Spain" }, 12, 3, "ES"),
+        dv("2", { Color: "Grön", 发货地: "Spain" }, 12, 3, "ES"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("1");
+  });
+
   it("EU-lager UTAN saldo väljs inte före lager MED saldo (audit 2026-08-09)", () => {
     const r = repairSyntheticVariantIds(
       [mv("default", {})],

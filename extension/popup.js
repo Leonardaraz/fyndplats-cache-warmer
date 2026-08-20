@@ -465,6 +465,14 @@ async function refreshVariantPricesViaDsApi() {
   }
   // API:t är facit för varianter/pris/lager; skrapans media/copy behålls.
   product.variants = dsVariants;
+  // ...men INTE variantbildkartan. Den är nycklad på skrapans optionsvärden och
+  // matchar ingenting när listan byts mot DS:s värden. Kvarlämnad är den värre
+  // än tom: serverns backfill kräver en HELT tom karta för att kicka in
+  // (needsSwatchBackfill, lib/import/variant-images.ts), så en stale karta ger
+  // noll kopplade variantbilder OCH ~25 s Wix-försök att koppla värden som inte
+  // finns. Tömd får servern bygga om den rätt ur DS per-SKU-bilderna.
+  product.swatchImages = {};
+  product.optionColorCodes = {};
   const euMsg = applyEuFirstDefaults();
   if (Array.isArray(ds.shipsFrom) && ds.shipsFrom.length) {
     product.shipsFrom = [...new Set([...(product.shipsFrom || []), ...ds.shipsFrom])].sort();

@@ -246,6 +246,16 @@ function harDomVarianter(product) {
  * priser. Popupen räddades av att den kallar samma API vid inläsning
  * (refreshVariantPricesViaDsApi); agent- och bulk-vägen gjorde det aldrig.
  *
+ * PRECISERING (audit 2026-08-20): agent-/bulk-vägen var ändå inte försvarslös.
+ * Servern har kört `reconcileVariantsWithDs` sedan #372, och den utlöses på
+ * VILKET syntetiskt id som helst. De sex identiska priserna betyder alltså inte
+ * att ingen avstämning gjordes — de betyder att den AVBRÖT (för osäker
+ * värdematchning) eller att DS-uppslaget FÖLL. Den här räddningen ersätter inte
+ * serverns; den ger den bättre indata (riktiga skuId → id-matchning i stället
+ * för värdesignatur, som är just det som avbryter). Grundorsaken till att
+ * signaturmatchningen sprack är åtgärdad separat: SHIP_AXIS_RE hade tre kopior
+ * som drivit isär, så frakt-axeln ströks på ena sidan men inte på den andra.
+ *
  * Verifierat på sidan 2026-08-20: window.runParams är tomt, skuPriceList finns
  * inte i HTML:en — det finns ingenting att vänta in. DS är enda källan.
  *
@@ -280,23 +290,23 @@ async function dsRescueVariants(product) {
   const stocks = dsVariants.map((v) => v.stock).filter((s) => typeof s === "number");
   if (stocks.length) ut.inStock = stocks.some((s) => s > 0);
 
-  // VARIANTBILDERNA MÅSTE BYGGAS OM I SAMMA ANDETAG.
+  // VARIANTBILDKARTAN MÅSTE TÖMMAS I SAMMA ANDETAG — men inte byggas om här.
   //
-  // swatchImages är nycklad på skrapans optionsvärden. Byter vi variantlistan
-  // mot DS:s värden matchar den gamla kartan ingenting — och serverns backfill
-  // hoppar över den, eftersom den bara kickar in när kartan är HELT TOM
-  // (lib/import/variant-images.ts). Resultatet blir noll kopplade
-  // variantbilder, vilket är sämre än ingen karta alls.
-  const nyaSwatchar = {};
-  for (const v of dsVariants) {
-    if (!v.swatchImageUrl) continue;
-    for (const [axel, värde] of Object.entries(v.options || {})) {
-      if (!värde) continue;
-      nyaSwatchar[axel] = nyaSwatchar[axel] || {};
-      if (!nyaSwatchar[axel][värde]) nyaSwatchar[axel][värde] = v.swatchImageUrl;
-    }
-  }
-  ut.swatchImages = Object.keys(nyaSwatchar).length ? nyaSwatchar : {};
+  // swatchImages är nycklad på SKRAPANS optionsvärden. Byter vi variantlistan
+  // mot DS:s värden matchar den gamla kartan ingenting, och den är ändå inte
+  // tom — så serverns backfill hoppar över den (needsSwatchBackfill kräver HELT
+  // tom karta, lib/import/variant-images.ts). Resultatet blir noll kopplade
+  // variantbilder OCH ~25 s Wix-försök att koppla värden som inte finns.
+  //
+  // Att bygga om kartan HÄR vore fel: DS:s `imageUrl` är per SKU, inte per
+  // värde. En Color × Size-produkt skulle få varje storlek kopplad till ett
+  // godtyckligt färgfoto. Servern gör redan jobbet rätt i
+  // buildSwatchImagesFromDs (lib/import/from-url.ts) med fyra grindar som
+  // saknas här: en bild per värde, minst två DISTINKTA bilder, färgaxeln
+  // föredragen vid flera kandidater, och cleanAliCdnUrl på URL:en.
+  //
+  // Tom karta = backfillen kickar in = rätt bilder. Låt servern äga det.
+  ut.swatchImages = {};
   // Färgprickarna är nycklade på de gamla värdena och används inte i butiken —
   // lämna dem inte kvar som skräp som ändå aldrig matchar.
   ut.optionColorCodes = {};
