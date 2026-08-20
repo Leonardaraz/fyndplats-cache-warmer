@@ -1,0 +1,104 @@
+name: Recensioner — översätt via chatten
+
+# Kön UT och översättningarna IN, så en Claude-session UTAN Wix-nycklar kan göra
+# hela jobbet: den kör den här workflowen i export-läge, läser kön ur loggen,
+# översätter, och kör den igen i apply-läge med texterna som input.
+#
+# Poängen är att ingen hemlighet passerar chatten. Produktionen har Wix-nycklarna,
+# GitHub Actions har CRON_SECRET, och de möts i den här filen.
+#
+# Manuellt går det förstås också: /admin/reviews har knappen "✨ Kopiera N till
+# chatten" och en ruta att klistra tillbaka svaret i.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "export = hämta nästa omgång ur kön · apply = skriv in översättningarna"
+        required: true
+        default: "export"
+        type: choice
+        options:
+          - export
+          - apply
+      limit:
+        description: "Antal recensioner i omgången (export)"
+        required: false
+        default: "25"
+        type: string
+      payload:
+        description: 'apply: JSON med översättningarna, {"<reviewIdAE>":"<svensk text>"}'
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        run: |
+          base="${{ secrets.POLL_TRACKING_URL }}"
+          base="${base%/api/cron/poll-tracking}/api/cron/review-translate"
+
+          if [ "${{ inputs.mode }}" = "export" ]; then
+            body=$(curl -sS -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+              "${base}?limit=${{ inputs.limit }}")
+            ok=$(echo "$body" | jq -r '.ok // false')
+            if [ "$ok" != "true" ]; then
+              echo "::error::Export misslyckades: $(echo "$body" | head -c 400)"
+              exit 1
+            fi
+            echo "I kön: $(echo "$body" | jq -r '.iKön')"
+            echo "I omgången: $(echo "$body" | jq -r '.iOmgången')"
+            echo "Kvar efter: $(echo "$body" | jq -r '.kvarEfter')"
+            echo "--- OMGÅNG ---"
+            # Kompakt JSON: loggen är det chatten läser, och rader utan
+            # indentering får plats utan att klippas.
+            echo "$body" | jq -c '.grupper'
+            echo "--- SLUT ---"
+            exit 0
+          fi
+
+          # apply
+          payload='${{ inputs.payload }}'
+          if [ -z "$payload" ]; then
+            echo "::error::apply utan payload — inget att skriva."
+            exit 1
+          fi
+          if ! echo "$payload" | jq -e . >/dev/null 2>&1; then
+            echo "::error::payload är inte giltig JSON."
+            exit 1
+          fi
+
+          svar=$(echo "$payload" | jq -c '{translations: .}' | curl -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --data-binary @- "$base")
+          ok=$(echo "$svar" | jq -r '.ok // false')
+          if [ "$ok" != "true" ]; then
+            echo "::error::Skrivningen misslyckades: $(echo "$svar" | head -c 400)"
+            exit 1
+          fi
+
+          sparade=$(echo "$svar" | jq -r '.saved')
+          avvisade=$(echo "$svar" | jq -r '.rejected | length')
+          okända=$(echo "$svar" | jq -r '.unknown | length')
+          fel=$(echo "$svar" | jq -r '.errors')
+          kvar=$(echo "$svar" | jq -r '.kvarIKön')
+          echo "Sparade: $sparade · underkända: $avvisade · okända id: $okända · fel: $fel"
+          echo "Kvar i kön: $kvar"
+          # Skälen behövs för att kunna rätta i nästa omgång.
+          echo "$svar" | jq -c '.rejected'
+
+          {
+            echo "### Recensionsöversättning"
+            echo ""
+            echo "- Sparade och synliga: **$sparade**"
+            echo "- Underkända (ligger kvar i kön): **$avvisade**"
+            echo "- Kvar i kön: **$kvar**"
+          } >> "$GITHUB_STEP_SUMMARY"
