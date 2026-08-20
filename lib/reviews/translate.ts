@@ -34,6 +34,17 @@ const FÖRBJUDNA = /\b(aliexpress|ali\s?express|alibaba|taobao|wish\.com|1688)\b
 const ENGELSKA_MARKÖRER =
   /\b(the|and|very|good|quality|shipping|delivery|product|received|recommend|thanks|fast)\b/i;
 
+/**
+ * Kinesiska, japanska (kanji/kana) och koreanska (hangul) — skrifter där ett
+ * tecken ofta bär ett helt ord. Tröskeln är låg (15 %) för att fånga blandad
+ * text; en svensk eller engelsk recension innehåller noll sådana tecken, så
+ * det finns ingen risk att träffa fel.
+ */
+function ärTätSkrift(text: string): boolean {
+  const träffar = text.match(/[぀-ヿ㐀-䶿一-鿿가-힯]/gu);
+  return (träffar?.length ?? 0) / Math.max(1, text.length) > 0.15;
+}
+
 export interface TranslationVerdict {
   ok: boolean;
   reason?:
@@ -59,11 +70,20 @@ export function validateTranslation(källa: string, kandidat: string): Translati
   if (k === s) return { ok: false, reason: "oöversatt" };
   if (FÖRBJUDNA.test(k)) return { ok: false, reason: "marknadsplats-nämnd" };
 
-  // Längdrimlighet. En översättning på en femtedel av källan har tappat
-  // innehåll; en på tre gånger har hittat på.
+  // Längdrimlighet — men mätt mot RÄTT skrift.
+  //
+  // Japanska, koreanska och kinesiska packar ett helt ord i ett tecken. En
+  // trogen svensk översättning av en japansk recension blir därför två till
+  // tre gånger så många tecken utan att ett ord är påhittat. Med det latinska
+  // taket (2,5×) underkändes en helt korrekt översättning som "för lång"
+  // 2026-08-20: 92 tecken japanska blev 275 tecken svenska.
+  //
+  // Åt andra hållet gäller det omvända: blir svenskan KORTARE än en tät
+  // CJK-källa har innehåll nästan säkert fallit bort, så golvet höjs till 1×.
+  const tät = ärTätSkrift(s);
   const kvot = k.length / Math.max(1, s.length);
-  if (kvot < 0.4) return { ok: false, reason: "för-kort" };
-  if (kvot > 2.5) return { ok: false, reason: "för-lång" };
+  if (kvot < (tät ? 1 : 0.4)) return { ok: false, reason: "för-kort" };
+  if (kvot > (tät ? 6 : 2.5)) return { ok: false, reason: "för-lång" };
 
   // Svenska och engelska delar många ord, men de här är vanliga nog att TVÅ
   // träffar betyder att texten inte blivit svensk. En enstaka kan vara ett
