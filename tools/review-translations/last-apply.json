@@ -1,9 +1,8 @@
 {
   "ok": true,
-  "saved": 17,
-  "unknown": [],
-  "rejected": [],
-  "errors": 0,
-  "avvisade": 1,
-  "kvarIKön": 0
+  "hittade": 10,
+  "försökte": 10,
+  "skrivna": 10,
+  "kvarMedLeverantörsbild": 0,
+  "fel": 0
 }
