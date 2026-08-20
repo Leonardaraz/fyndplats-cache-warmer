@@ -99,6 +99,47 @@ finns kvar som en *rådgivande* varning i tillägget och fångar dessutom det sp
 inte kan se: samma fysiska produkt såld under en **annan** listning. Den varningen
 går att klicka förbi — så den ersätter inte spärren, den kompletterar den.
 
+## Lagerlandet är en del av SKU:n — och lagret tar slut per land
+
+AliExpress bakar in lagerlandet i själva SKU:n: "rosa garderob från Tyskland"
+och "…från Spanien" är olika SKU:er med **olika saldo och olika pris**. Vid
+import sparas EN av dem (`collapseShipFromAxis`, `lib/import/ship-axis.ts` —
+lagret är aldrig ett kundval). Synken speglade sedan just den SKU:ns saldo till
+Wix, så när vårt lager tog slut blev varan slutsåld i butiken trots att
+säljaren hade dussintals kvar i ett annat EU-land (Leonards rapport 2026-08-20).
+
+`lib/sync/warehouse-failover.ts` (steg 3.6 i `checkOne`) **pekar om mappningen**
+till ett syskonlager i stället. Att bara visa syskonets saldo hade varit fel —
+kundordern läggs på den sparade SKU:n, så en uppblåst siffra hade bara flyttat
+felet till kassan. Körs före lagerskrivningen, så bytet slår igenom i samma
+körning.
+
+Tre spärrar, och de ska inte tas bort:
+
+1. **Bara EU:s tullunion.** Ett USA-lager kan ha 500 i saldo, men mot en svensk
+   kund betyder det tull och veckor i transit. Observera att `isEuCountry`
+   betyder *snabb leverans* och räknar in GB/NO — failovern använder därför en
+   egen tullunions-lista.
+2. **Bara med känt pris.** Priset skiljer mellan lagren ($113,74 från USA mot
+   $119,99 inom EU i Leonards fall). Utan det nya priset står `landedCostSek`
+   kvar på det gamla och då ljuger både lönsamhetsöversikten och auktionens
+   golvpris (`lib/auction/seed.ts` räknar sitt lägsta bud ur det fältet).
+   Bytet räknar om `costUsd` + `landedCostSek` proportionellt.
+3. **Bara om marginalen håller** (`MIN_FAILOVER_MARGIN_PCT`, netto mot netto).
+   Att sälja med förlust är ett sämre utfall än att vara slutsåld en vecka.
+   Avstådda byten loggas — de är ett beslut för en människa.
+
+Besläktad, men med annan utlösare: `lib/sync/shippability.ts` byter lager när
+frakt-API:t svarar NEJ för vår SKU. Den här byter när lagret är TOMT. Båda
+använder `warehouseAlternativeSkuIds` och sätter `previousSupplierVariantId` +
+`shipFromSwitchedAt`.
+
+**Inte byggt:** fallback vid själva orderläggningen. AE:s felkod för slut i
+lager finns inte dokumenterad någonstans i repot, och att gissa på en
+sträng-matchning i `place-order.ts` riskerar dubbelbeställning. Synk-bytet
+täcker det normala fallet; kvar är kapplöpningen där lagret tömts mellan
+synk och order.
+
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
 Recensionskedjan (filtrering → `FyndplatsImportedReviews` → moderering i
