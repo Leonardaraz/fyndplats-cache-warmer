@@ -49,6 +49,8 @@ export function looksLikeStoreCopy(text: string | null | undefined): boolean {
 // bara när det som följer är siffror/blanksteg (säljar-id:t), annars lämnas
 // titeln orörd. Fel-läget blir "strök inte" i stället för "strök för mycket".
 const MARKETPLACE_SUFFIX = /\s*[-–—|]+\s*ali\s?(?:ex|baba)\S*[\s\d.]*$/i;
+/** Ensam separator i slutet — kapningen slog före marknadsplatsens namn. */
+const HANGING_SEPARATOR = /\s*[-–—|,;:/&]+\s*$/u;
 /** Skiljetecken som blir hängande när suffixet kapats bort ("Klocka, - AliExpress"). */
 const DANGLING_PUNCT = /[\s,;:.\-–—/&|]+$/u;
 
@@ -77,8 +79,17 @@ const DANGLING_PUNCT = /[\s,;:.\-–—/&|]+$/u;
 export function stripMarketplaceSuffix(rawTitle: string | null | undefined): string {
   const t = String(rawTitle ?? "").trim();
   const kapad = t.replace(MARKETPLACE_SUFFIX, "");
-  // Oförändrad → rör inget alls (inga hängande skiljetecken att städa).
-  return kapad === t ? t : kapad.replace(DANGLING_PUNCT, "").trim();
+  if (kapad !== t) return kapad.replace(DANGLING_PUNCT, "").trim();
+  // Oförändrad, men kan ändå sluta i ett ENSAMT bindestreck: 70-teckenkapningen
+  // slog FÖRE marknadsplatsens namn, så bara skiljetecknet blev kvar
+  // ("Outsunny … Glass Top 80-160X80X75 cm -"). Mönstret ovan kräver `ali`
+  // efter tecknet och lämnar därför den formen orörd.
+  //
+  // Bara separatorer i slutet, aldrig punkt: en titel som slutar med punkt kan
+  // vara avsiktlig, ett hängande bindestreck är det aldrig. Och bara när det
+  // finns riktig text kvar före — annars vore resultatet en namnlös produkt.
+  const utanHängande = t.replace(HANGING_SEPARATOR, "").trim();
+  return utanHängande.length >= 3 ? utanHängande : t;
 }
 
 /**
