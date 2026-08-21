@@ -99,6 +99,45 @@ export function colorKeysOf(text: string): Set<string> {
   return keys;
 }
 
+type ChoiceLike = { name?: string | null; visible?: boolean | null };
+type OptionLike = { choicesSettings?: { choices?: ChoiceLike[] | null } | null };
+
+/**
+ * Kanoniska färgnycklar ur en produkts V3-options — underlaget för färgfiltret
+ * på listsidorna (hämtningen ligger i lib/product-colors.ts).
+ *
+ * Vi läser VÄRDET, inte optionsnamnet. Katalogen har färger under "Färg" (99
+ * produkter), "Variant" (49), "Metallfärg", "Color" och "Artikel", och värdena
+ * är ofta inte rena färgord: "1-pack Borstad silver", "6mm Stil D". colorKeysOf
+ * ovan avgör därför saken, med samma böjnings-medvetna ordlista som
+ * variantväljaren använder — en egen lista här hade garanterat glidit isär.
+ *
+ * Ordningen är butikens (första förekomsten vinner), inte bokstavsordning, så
+ * färgprickarna hamnar som valen är upplagda.
+ */
+export function colorKeysFromOptions(options: OptionLike[] | null | undefined): string[] {
+  const keys: string[] = [];
+  const seen = new Set<string>();
+  for (const opt of options || []) {
+    for (const choice of opt?.choicesSettings?.choices || []) {
+      if (choice?.visible === false) continue;
+      const namn = typeof choice?.name === "string" ? choice.name : "";
+      if (!namn) continue;
+      for (const key of colorKeysOf(namn)) {
+        if (seen.has(key)) continue;
+        seen.add(key);
+        keys.push(key);
+      }
+    }
+  }
+  return keys;
+}
+
+/** Färgnyckel → visningsnamn. Nycklarna ÄR svenska basord ("svart", "vinröd"). */
+export function colorLabel(key: string): string {
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
 function intersects(a: Set<string>, b: Set<string>): boolean {
   for (const x of a) if (b.has(x)) return true;
   return false;
@@ -114,6 +153,26 @@ const BASE_HEX: Record<string, string> = {
   silver: "#c0c0c0", turkos: "#06b6d4", marin: "#1e3a8a", vinröd: "#7f1d1d", champagne: "#f7e7ce",
   kräm: "#f0e4cb",
 };
+
+// Visningsordning för färgskenan i filterpanelen: neutraler först, sedan varmt
+// till kallt. Sorterar man i stället på antal eller bokstav blir skenan ett
+// hopp mellan orelaterade kulörer — och hela poängen med att dra längs den är
+// att ögat ska kunna sikta. Färger som saknas i listan hoppas över, så en
+// kategori med tre färger får en kortare skena i samma ordning.
+const RAIL_ORDER = [
+  "svart", "grå", "silver", "vit", "kräm", "champagne", "beige", "natur", "khaki",
+  "brun", "guld", "gul", "orange", "röd", "vinröd", "rosa", "lila", "marin", "blå",
+  "turkos", "grön",
+];
+
+/** Färgnycklar i skenans ordning. Okända nycklar hamnar sist, i sin egen ordning. */
+export function sortColorKeys(keys: readonly string[]): string[] {
+  const rank = (k: string) => {
+    const i = RAIL_ORDER.indexOf(k);
+    return i === -1 ? RAIL_ORDER.length : i;
+  };
+  return [...keys].sort((a, z) => rank(a) - rank(z) || a.localeCompare(z, "sv"));
+}
 
 /** CSS-hex för ett färgnamn (böjnings-medvetet via colorKeysOf), annars "". */
 export function colorOf(name: string): string {
