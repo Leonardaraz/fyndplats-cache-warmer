@@ -1127,6 +1127,14 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
 - Sökordet **krockar inte** med en annan produkt i katalogen (Steg 0).
 - Elprodukt: **ingen uttags-/spänningsaxel kvar** med US/UK/AU/KR eller 110 V (Steg 6D), och varje kvarvarande variant har både lagerpost och mappningsrad.
 - Ser två val på samma axel ut som samma färg: **exemplaren är jämförda i bild** (Steg 6E), och listningen dubblerar ingen billigare fristående produkt i katalogen.
+- **"EU-lager"-ribbonen är täckt av den SPARADE SKU:n.** Kravet är `variants[].shipFrom`
+  i mappningen, inte produktens `shipsFromCountries` — den listan är en mängd över
+  listningens lager och säger inget om vilket lager den variant vi faktiskt beställer
+  ligger i. Saknas `shipFrom` (importerad före 2026-08-21) → verifiera mot leverantören
+  eller ta bort ribbonen innan publicering. `GB`, `RU` och `US` räknas som EU av
+  `isEuCountry` (den mäter *snabb leverans*, inte tullunion) — mot en svensk kund är de
+  inte EU-leverans, så en produkt vars enda "EU"-lager är brittiskt eller ryskt ska inte
+  bära ribbonen.
 - Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
