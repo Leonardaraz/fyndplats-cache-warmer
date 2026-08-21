@@ -76,6 +76,14 @@ const orgJsonLd = {
     "https://maps.google.com/?cid=13527624431203349873",
     "https://www.instagram.com/fyndplats/",
     "https://www.facebook.com/profile.php?id=100089607278056",
+    // Tredjepartsuppslag som redan pekar ut Fyndplats som samma entitet.
+    // sameAs är unidirektionellt: Google följer våra utpekningar för att
+    // konsolidera Knowledge Graph-noden, oavsett om katalogens sida länkar
+    // tillbaka. Även "stale" listningar (t.ex. Cylex utan hemsida) räknas
+    // som samma-entitet-signal — de bekräftar adress + telefon + namn.
+    "https://www.hitta.se/verksamhet/fyndplats-ctelcsyhi",
+    "https://sodertalje.cylex.se/company/fyndplats-12359708.html",
+    "https://moovitapp.com/index/sv/offentlig_transit-Fyndplats-Stockholm-site_256953464-1083",
   ],
   contactPoint: [
     {
