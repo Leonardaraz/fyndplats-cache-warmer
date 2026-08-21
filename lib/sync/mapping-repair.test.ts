@@ -189,6 +189,23 @@ describe("repairSyntheticVariantIds", () => {
     expect(r.variants[0].supplierVariantId).toBe("1");
   });
 
+  // Leonards fynd 2026-08-21: preferensen poängsatte på isEuCountry, som
+  // betyder "snabb leverans" och räknar in GB/NO. Ett brittiskt lager rankades
+  // därför lika bra som ett spanskt — trots att GB lämnat tullunionen. Här har
+  // GB dessutom HÖGRE saldo, så gamla koden hade valt det.
+  it("GB väljs inte före ett tullunionslager, ens med högre saldo", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("default", {})],
+      [
+        dv("gb", { Size: "M", "Ships From": "United Kingdom" }, 24.99, 100, "GB"),
+        dv("es", { Size: "M", "Ships From": "Spain" }, 29.99, 50, "ES"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("es");
+  });
+
   it("EU-lager UTAN saldo väljs inte före lager MED saldo (audit 2026-08-09)", () => {
     const r = repairSyntheticVariantIds(
       [mv("default", {})],
@@ -233,6 +250,18 @@ describe("warehouseAlternativeSkuIds", () => {
 
   it("rör aldrig en ANNAN vara — bara identisk valsignatur räknas", () => {
     expect(warehouseAlternativeSkuIds({ skuId: "de" }, DS)).not.toContain("annan");
+  });
+
+  // Byteslistan är sorterad "den vi helst byter till" först. GB ligger utanför
+  // tullunionen och ska aldrig ligga före ett tullunionsland, inte ens med
+  // dubbelt saldo (rättat 2026-08-21 — poängen räknades på snabb-leverans).
+  it("brittiskt lager rankas efter tullunionens, trots högre saldo", () => {
+    const medGb = [
+      { skuId: "start", skuProps: { Color: "4 PCS", "Ships From": "Germany" }, shipFrom: "DE", stock: 0 },
+      { skuId: "gb", skuProps: { Color: "4 PCS", "Ships From": "United Kingdom" }, shipFrom: "GB", stock: 99 },
+      { skuId: "es", skuProps: { Color: "4 PCS", "Ships From": "Spain" }, shipFrom: "ES", stock: 3 },
+    ];
+    expect(warehouseAlternativeSkuIds({ skuId: "start" }, medGb)).toEqual(["es", "gb"]);
   });
 
   it("lager med saldo kommer först — den vi helst byter till", () => {

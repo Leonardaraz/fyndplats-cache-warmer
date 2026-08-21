@@ -6,6 +6,34 @@
 // discover.js hade 27 → samma produkt (t.ex. SE/DK-lager) fick olika badge.
 const EU_WAREHOUSE_CODES = globalThis.FP_EU.EU_CODES;
 
+// EU:S TULLUNION — vad vi får KÖPA IN från, till skillnad från EU_WAREHOUSE_CODES
+// som bara säger att leveransen är snabb och därför räknar in GB och NO.
+//
+// Leonards rapport 2026-08-21 (SucceBuy-klädstället): "EU-först" bockade i
+// GB-rader åt honom eftersom Storbritannien ligger i snabb-leverans-listan. Men
+// GB lämnade tullunionen — en vara därifrån till en svensk kund betyder
+// tulldeklaration och importmoms, kostnader som aldrig syns i marginalen.
+// Lagervalet använder därför den här listan, badgarna den andra.
+const EU_TULL_CODES = globalThis.FP_EU.EU_TULL_CODES;
+
+/** Har produkten minst ETT lager inom tullunionen? */
+function harTullunionslager(variants) {
+  return (variants || []).some((v) => EU_TULL_CODES.has(variantShipCode(v)));
+}
+
+/**
+ * Får varianten köpas in?
+ *
+ * Utanför tullunionen = nej — MEN bara när det finns ett tullunionsalternativ.
+ * Utan den brasklappen hade varenda Kina-produkt (de allra flesta) blivit
+ * oimporterbar, och det är inte vad någon bett om. Finns inget EU-lager alls
+ * är det inget val att göra, och då visas allt precis som förut.
+ */
+function fårKöpasIn(v, finnsTull) {
+  if (!finnsTull) return true;
+  return EU_TULL_CODES.has(variantShipCode(v));
+}
+
 function badgeForShipFrom(code) {
   const span = document.createElement("span");
   span.className = "badge";
@@ -140,21 +168,44 @@ let euDefaultApplied = false;
  *  egen setStatus så EU-varningen inte skrivs över av senare statusrader. */
 function applyEuFirstDefaults() {
   if (euDefaultApplied || !product || !Array.isArray(product.variants)) return null;
-  const codes = product.variants.map((v) => variantShipCode(v));
-  if (!codes.some((c) => c && EU_WAREHOUSE_CODES.has(c))) return null; // inga EU-rader → rör inget
+  const finnsTull = harTullunionslager(product.variants);
+
+  // Inget tullunionslager alls (t.ex. bara Kina, eller bara GB) → det finns
+  // inget val att göra åt Leonards vägnar. Vi bockar INTE av något, men säger
+  // ifrån när det finns lager som ser europeiska ut men ligger utanför tullen —
+  // annars ser han "EU GB" i listan och tror att det är inrikes EU-handel.
+  if (!finnsTull) {
+    const utanför = [
+      ...new Set(
+        product.variants
+          .map((v) => variantShipCode(v))
+          .filter((c) => c && EU_WAREHOUSE_CODES.has(c) && !EU_TULL_CODES.has(c)),
+      ),
+    ];
+    if (!utanför.length) return null;
+    euDefaultApplied = true;
+    return (
+      `OBS: inget av lagren ligger i EU:s tullunion. ${utanför.join(", ")} har snabb ` +
+      "leverans men är TULLGRÄNS — tulldeklaration och importmoms tillkommer. " +
+      "Välj själv om produkten är värd det."
+    );
+  }
+
   euDefaultApplied = true;
   let unchecked = 0;
-  product.variants.forEach((v, i) => {
-    const isEu = codes[i] && EU_WAREHOUSE_CODES.has(codes[i]);
-    if (!isEu && v.included) {
+  const bortvalda = new Set();
+  product.variants.forEach((v) => {
+    if (fårKöpasIn(v, true)) return;
+    if (v.included) {
       v.included = false;
       unchecked++;
     }
+    bortvalda.add(variantShipCode(v) || "okänt");
   });
   if (unchecked === 0) return null;
   return (
-    `EU-först: ${unchecked} rad(er) från Kina/okänt lager avbockade automatiskt. ` +
-    "Bocka i dem manuellt om du verkligen vill importera icke-EU-lager."
+    `Tullunion-först: ${unchecked} rad(er) dolda och avbockade (${[...bortvalda].join(", ")}). ` +
+    "De ligger utanför EU:s tullunion — tull och importmoms hade tillkommit."
   );
 }
 
@@ -551,7 +602,22 @@ function render() {
   $title.append(stockBadge(product));
 
   $variants.innerHTML = "";
+  // Lager utanför EU:s tullunion visas inte alls när det finns ett alternativ
+  // inom den (Leonard 2026-08-21: "behöver inte ens synas som alternativ").
+  // Sex storlekar × sju länder blev fyrtio rader att läsa igenom, varav en stor
+  // del aldrig borde köpas in.
+  const finnsTull = harTullunionslager(product.variants);
+  let dolda = 0;
+  const doldaLager = new Set();
   product.variants.forEach((v, i) => {
+    if (!fårKöpasIn(v, finnsTull)) {
+      // Dold OCH avbockad. Att bara dölja hade varit en tyst bugg: raden hade
+      // fortsatt följa med i importen utan att någon kunde se den.
+      product.variants[i].included = false;
+      dolda++;
+      doldaLager.add(variantShipCode(v) || "okänt");
+      return;
+    }
     const row = document.createElement("div");
     row.className = "variant";
     const cb = document.createElement("input");
@@ -573,6 +639,20 @@ function render() {
     row.append(badgeForShipFrom(variantShipCode(v) || v.shipFrom));
     $variants.append(row);
   });
+
+  // Säg vad som göms och varför. En rad som försvinner utan förklaring är
+  // värre än en rad för mycket — då undrar man om skrapan tappade något.
+  if (dolda > 0) {
+    const note = document.createElement("div");
+    note.className = "variant-hidden-note";
+    note.textContent =
+      `${dolda} rad(er) dolda: ${[...doldaLager].join(", ")} ligger utanför EU:s ` +
+      "tullunion (tull + importmoms tillkommer).";
+    note.title =
+      "Storbritannien och Norge har snabb leverans men är tullgräns. " +
+      "Lagervalet använder tullunionen, badgarna leveranstiden.";
+    $variants.append(note);
+  }
 
   renderNameEdit();
 

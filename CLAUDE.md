@@ -175,12 +175,44 @@ kundordern läggs på den sparade SKU:n, så en uppblåst siffra hade bara flytt
 felet till kassan. Körs före lagerskrivningen, så bytet slår igenom i samma
 körning.
 
+### Två landslistor, och de svarar på olika frågor
+
+Det här är den vanligaste förväxlingen i kodbasen, och den kostade pengar tyst:
+
+| Funktion | Frågan den svarar på | GB/NO |
+|---|---|---|
+| `isEuCountry` | "kommer paketet fram snabbt?" | **ingår** |
+| `isEuCustomsUnion` | "kan vi köpa in därifrån utan tull?" | **ingår inte** |
+
+**Regeln:** allt som **väljer ett lager att köpa från** använder
+`isEuCustomsUnion` (`EU_CUSTOMS_UNION` i `lib/aliexpress/eu-countries.ts`). Allt
+som beskriver **leveranstid för kunden** — EU-lager-ribbonen, discover-filtret,
+`warehouseClass`, badgarna i tillägget — använder `isEuCountry`.
+
+Leonard fångade förväxlingen 2026-08-21 på SucceBuy-klädstället
+(1005005972133031): tilläggets "EU-först" bockade i GB-rader åt honom, och
+`pickWarehouse` rankade dem lika bra som spanska. Storbritannien lämnade
+tullunionen — tulldeklaration och importmoms, kostnader som aldrig syns i
+marginalen. Lagerbytet vid slutsålt filtrerade redan rätt; det var **importen**
+som valde fel. Nu läser alla tre lagervalen samma lista:
+`ship-axis.ts → pickWarehouse`, `mapping-repair.ts → pickPreferred` /
+`sortByWarehousePreference`, och `warehouse-failover.ts`.
+
+Tillägget bär en egen kopia (`EU_TULL_CODES` i `extension/eu-countries.js` —
+browser-global kan inte importera TS). Ett test i
+`lib/aliexpress/eu-countries.test.ts` fäller om de glider isär, samma lärdom som
+`SHIP_AXIS_RE`, som drev isär två gånger på två veckor.
+
+I popupen **döljs** rader utanför tullunionen helt — men bara när det finns ett
+alternativ inom den. Utan den brasklappen hade varenda Kina-produkt blivit
+oimporterbar. Dolda rader bockas alltid av samtidigt: en dold rad som ändå följer
+med i importen vore värre än en rad för mycket.
+
 Tre spärrar, och de ska inte tas bort:
 
 1. **Bara EU:s tullunion.** Ett USA-lager kan ha 500 i saldo, men mot en svensk
-   kund betyder det tull och veckor i transit. Observera att `isEuCountry`
-   betyder *snabb leverans* och räknar in GB/NO — failovern använder därför en
-   egen tullunions-lista.
+   kund betyder det tull och veckor i transit. Se tabellen ovan — `isEuCountry`
+   duger inte här.
 2. **Bara med känt pris.** Priset skiljer mellan lagren ($113,74 från USA mot
    $119,99 inom EU i Leonards fall). Utan det nya priset står `landedCostSek`
    kvar på det gamla och då ljuger både lönsamhetsöversikten och auktionens

@@ -36,7 +36,7 @@
 //   5. Pris: exakt en DS-SKU vars pris ligger inom 1 % av mappningens costUsd.
 //   Ingen entydig träff → lämnas orörd + rapporteras (ambiguous).
 
-import { isEuCountry, normalizeShipFromCode } from "../aliexpress/eu-countries";
+import { isEuCustomsUnion, normalizeShipFromCode } from "../aliexpress/eu-countries";
 // Frakt-axeln definieras på EXAKT ett ställe (ship-axis.ts). Den här filen bar
 // en egen kopia som hunnit driva isär: den saknade de kinesiska formerna
 // (发货地/送货/发货) som AE renderar när sidan inte lokaliserats. Signaturen blev
@@ -132,15 +132,15 @@ function shipCode(d: RepairDsVariant): string {
 }
 
 /** Välj bland DS-SKU:er som är SAMMA vara (identisk icke-frakt-signatur).
- *  Ordning: EU-lager MED saldo > valfritt lager med saldo > EU utan saldo >
- *  övriga; högst saldo bryter lika, sedan först-sedd (stabil sort →
+ *  Ordning: TULLUNIONS-lager MED saldo > valfritt lager med saldo > tullunion
+ *  utan saldo > övriga; högst saldo bryter lika, sedan först-sedd (stabil sort →
  *  deterministiskt). Saldo okänt (fältet saknas) räknas som i lager — annars
  *  skulle degraderad DS-data straffa alla kandidater lika godtyckligt.
  *  (Audit 2026-08-09: ren EU-först låste mappningen på ett TOMT EU-lager
  *  medan CN-lagret hade 500 st → varianten blev osäljbar i butiken.) */
 function pickPreferred(candidates: RepairDsVariant[]): RepairDsVariant | undefined {
   const score = (d: RepairDsVariant) =>
-    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCountry(shipCode(d)) ? 1 : 0);
+    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCustomsUnion(shipCode(d)) ? 1 : 0);
   return [...candidates].sort(
     (a, b) => score(b) - score(a) || (b.stock ?? 0) - (a.stock ?? 0),
   )[0];
@@ -164,10 +164,12 @@ function goodsKeyFromSkuAttr(skuAttr: string): string {
     .join(";");
 }
 
-/** Lager med saldo först, EU före icke-EU, högst saldo bryter lika. */
+/** Lager med saldo först, TULLUNIONEN före allt annat, högst saldo bryter
+ *  lika. Tullunionen och inte isEuCountry: den senare betyder "snabb leverans"
+ *  och räknar in GB/NO, som ligger utanför tullen (rättat 2026-08-21). */
 function sortByWarehousePreference(list: ReadonlyArray<RepairDsVariant>): RepairDsVariant[] {
   const score = (d: RepairDsVariant) =>
-    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCountry(shipCode(d)) ? 1 : 0);
+    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCustomsUnion(shipCode(d)) ? 1 : 0);
   return [...list].sort((a, b) => score(b) - score(a) || (b.stock ?? 0) - (a.stock ?? 0));
 }
 

@@ -110,6 +110,50 @@ describe("collapseShipFromAxis", () => {
     expect(a.variants).toEqual(b.variants);
   });
 
+  // LEONARDS FYND 2026-08-21 (SucceBuy-klädstället 1005005972133031): tilläggets
+  // "EU-först" bockade i GB-rader, och pickWarehouse rankade dem lika bra som
+  // spanska — poängen räknades på isEuCountry, som betyder "snabb leverans" och
+  // räknar in GB/NO. Storbritannien lämnade tullunionen: tulldeklaration och
+  // importmoms, kostnader som aldrig syns i marginalen.
+  it("väljer ALDRIG ett brittiskt lager före ett inom tullunionen", () => {
+    const r = collapseShipFromAxis([
+      // GB är billigast OCH har saldo — enda skälet att välja Spanien är tullen.
+      { options: { Size: "M", "Ships From": "United Kingdom" }, costUsd: 24.99, stock: 50 },
+      { options: { Size: "M", "Ships From": "spain" }, costUsd: 29.99, stock: 50 },
+    ]);
+    expect(r.applied).toBe(true);
+    expect(r.variants).toHaveLength(1);
+    expect(r.variants[0].shipFrom).toBe("ES");
+  });
+
+  it("Norge räknas inte heller som tullunion", () => {
+    const r = collapseShipFromAxis([
+      { options: { Size: "M", "Ships From": "Norway" }, costUsd: 20, stock: 50 },
+      { options: { Size: "M", "Ships From": "Poland" }, costUsd: 30, stock: 50 },
+    ]);
+    expect(r.variants[0].shipFrom).toBe("PL");
+  });
+
+  // Motvikten: saldo väger fortfarande tyngre än tullen. Ett tomt spanskt lager
+  // är ingen vinst — varan blir bara osäljbar (lärdomen från audit 2026-08-09).
+  it("saldo går före tullunionen — ett tomt EU-lager hjälper ingen", () => {
+    const r = collapseShipFromAxis([
+      { options: { Size: "M", "Ships From": "spain" }, costUsd: 29.99, stock: 0 },
+      { options: { Size: "M", "Ships From": "United Kingdom" }, costUsd: 24.99, stock: 50 },
+    ]);
+    expect(r.variants[0].shipFrom).toBe("GB");
+  });
+
+  // Bara GB och Kina → ingen tullunion att föredra. Då avgör saldo och pris som
+  // vanligt; produkten ska inte bli omöjlig att importera.
+  it("utan tullunionsalternativ väljs det billigaste med saldo", () => {
+    const r = collapseShipFromAxis([
+      { options: { Size: "M", "Ships From": "United Kingdom" }, costUsd: 24.99, stock: 50 },
+      { options: { Size: "M", "Ships From": "China" }, costUsd: 19.99, stock: 50 },
+    ]);
+    expect(r.variants[0].shipFrom).toBe("CN");
+  });
+
   it("isShipAxis känner igen engelska, svenska OCH kinesiska formerna", () => {
     for (const n of [
       "Ships From",
