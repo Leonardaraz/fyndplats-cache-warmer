@@ -182,7 +182,9 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]
     }
     const topp = Math.max(1, ...antal);
     return antal.map((n, i) => ({
-      h: Math.max(3, Math.round(Math.sqrt(n / topp) * 44)),
+      // 68 = .pr-hist-höjden i globals.css. Ändras den ena måste den andra med,
+      // annars slår staplarna i taket eller lämnar luft över den högsta.
+      h: Math.max(4, Math.round(Math.sqrt(n / topp) * 68)),
       mid: bounds.min + (i + 0.5) * w,
       // Sista facket samlar ALLT ovanför skalans topp, inte bara sitt eget
       // intervall — på den här katalogen är det svansens 5 %. Oritat som en
@@ -372,7 +374,14 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]
                     i stället för i en fottext. */}
                 <div
                   className={`cr-loupe ${color ? "show" : ""}`}
-                  style={{ left: `${(colorIdx / Math.max(1, colorKeys.length)) * 100}%` }}
+                  // Handtagets mitt går inte 0–100 % av banan utan mellan sina
+                  // egna halvor — ett range-element håller thumben innanför
+                  // spåret. Räknar vi i ren procent glider luppen ifrån
+                  // handtaget mot ändarna, och sticker ut vid den sista färgen.
+                  // 24px = thumbbredden i globals.css.
+                  style={{
+                    left: `calc(12px + ${colorIdx / Math.max(1, colorKeys.length)} * (100% - 24px))`,
+                  }}
                   aria-hidden="true"
                 >
                   <span className="cr-dot" style={{ background: colorOf(color) || "#ddd" }} />

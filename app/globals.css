@@ -875,16 +875,16 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
    stället för längs ett streck, och staplarna innanför valet tänds så
    urvalet lyser upp ett område. Landskapet står stilla när man filtrerar —
    räknades det om per filter skulle marken röra sig under fingret. */
-.pricerange{position:relative;width:100%;min-width:214px;max-width:340px;height:74px}
-.pr-hist{position:absolute;left:0;right:0;bottom:26px;height:44px;display:flex;align-items:flex-end;gap:2px}
-.pr-bar{flex:1;min-width:0;border-radius:2px 2px 0 0;background-color:var(--line);
+.pricerange{position:relative;width:100%;min-width:240px;max-width:520px;height:104px}
+.pr-hist{position:absolute;left:0;right:0;bottom:32px;height:68px;display:flex;align-items:flex-end;gap:2px}
+.pr-bar{flex:1;min-width:0;border-radius:3px 3px 0 0;background-color:var(--line);
   transition:background-color .18s ease}
 .pr-bar.on{background-color:#C2410C}
 /* Sista facket rymmer allt ovanför skalans topp ("och uppåt"), inte bara sitt
    eget intervall. Randat så det inte läser som en puckel vid takpriset. */
-.pr-bar.over{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.55) 0 2px,transparent 2px 5px)}
-.pr-base{position:absolute;left:0;right:0;bottom:23px;height:1px;background:var(--line)}
-.pr-track{position:absolute;bottom:12px;left:0;right:0;height:5px;border-radius:999px;
+.pr-bar.over{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.55) 0 3px,transparent 3px 7px)}
+.pr-base{position:absolute;left:0;right:0;bottom:29px;height:1px;background:var(--line)}
+.pr-track{position:absolute;bottom:15px;left:0;right:0;height:7px;border-radius:999px;
   background:var(--line);box-shadow:inset 0 1px 2px rgba(28,28,28,.14)}
 .pr-fill{position:absolute;top:0;bottom:0;border-radius:999px;
   background:linear-gradient(90deg,#D4551A,#C2410C)}
@@ -892,52 +892,55 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 /* Färgskenan är lackad emalj: hård inner-skugga ger djup, den ljusa
    understrykningen en kant, och ::after lägger glans över övre halvan.
    Banden har hårda stopp — man ska se var en färg slutar och kunna sikta. */
-.colorrail{position:relative;width:100%;min-width:214px;max-width:340px;height:52px}
-.cr-track{position:absolute;bottom:12px;left:0;right:0;height:18px;border-radius:999px;
+/* Höjden rymmer luppen med marginal även när ingen färg är vald. Reserverad i
+   stället för utrymme som växer fram: annars hoppar hela panelen — och etiketten
+   ovanför hamnar bakom luppen — i det ögonblick man börjar dra. */
+.colorrail{position:relative;width:100%;min-width:240px;max-width:520px;height:92px}
+.cr-track{position:absolute;bottom:16px;left:0;right:0;height:28px;border-radius:999px;
   box-shadow:inset 0 1px 3px rgba(28,28,28,.30),inset 0 -1px 0 rgba(255,255,255,.20),
     0 0 0 1px rgba(28,28,28,.08)}
 .cr-track::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 60%)}
 /* Luppen rider med handtaget — informationen hamnar vid fingret, inte i en
    fottext man måste flytta blicken till. */
-.cr-loupe{position:absolute;bottom:38px;transform:translateX(-50%);display:inline-flex;
-  align-items:center;gap:7px;padding:5px 11px 5px 8px;border-radius:999px;background:#fff;
+.cr-loupe{position:absolute;bottom:52px;transform:translateX(-50%);display:inline-flex;
+  align-items:center;gap:9px;padding:7px 14px 7px 10px;border-radius:999px;background:#fff;
   border:1px solid var(--line);box-shadow:0 2px 4px rgba(28,28,28,.10),0 12px 26px -14px rgba(28,28,28,.45);
-  font-size:12.5px;font-weight:600;white-space:nowrap;pointer-events:none;opacity:0;
+  font-size:14px;font-weight:600;white-space:nowrap;pointer-events:none;opacity:0;
   transition:opacity .16s ease}
 .cr-loupe.show{opacity:1}
 
-.pr-input,.cr-input{position:absolute;left:0;width:100%;height:30px;margin:0;padding:0;
+.pr-input,.cr-input{position:absolute;left:0;width:100%;height:36px;margin:0;padding:0;
   background:none;border:none;pointer-events:none;-webkit-appearance:none;appearance:none}
 .pr-input{bottom:0}
-.cr-input{bottom:6px}
+.cr-input{bottom:12px}
 .pr-input:focus,.cr-input:focus{outline:none}
 .pr-lo{z-index:3}
 .pr-hi{z-index:4}
-.pr-input::-webkit-slider-runnable-track,.cr-input::-webkit-slider-runnable-track{background:none;border:none;height:30px}
-.pr-input::-moz-range-track,.cr-input::-moz-range-track{background:none;border:none;height:30px}
+.pr-input::-webkit-slider-runnable-track,.cr-input::-webkit-slider-runnable-track{background:none;border:none;height:36px}
+.pr-input::-moz-range-track,.cr-input::-moz-range-track{background:none;border:none;height:36px}
 
 /* Prishandtaget: vit disk med en kärna i accentfärgen (radial-gradient i
    stället för ett extra element). Två skuggor — en tight som ritar kanten,
    en mjuk som lyfter. */
-.pr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;
+.pr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:28px;height:28px;
   margin-top:4px;border-radius:50%;
-  background:radial-gradient(circle at 50% 50%,#C2410C 0 4.5px,#fff 4.5px 100%);
-  box-shadow:0 0 0 1px rgba(28,28,28,.13),0 1px 2px rgba(28,28,28,.18),0 7px 16px -7px rgba(28,28,28,.48);
+  background:radial-gradient(circle at 50% 50%,#C2410C 0 6px,#fff 6px 100%);
+  box-shadow:0 0 0 1px rgba(28,28,28,.13),0 1px 2px rgba(28,28,28,.18),0 8px 18px -7px rgba(28,28,28,.48);
   cursor:grab;transition:transform .16s cubic-bezier(.2,.7,.2,1)}
-.pr-input::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;border-radius:50%;border:none;
-  background:radial-gradient(circle at 50% 50%,#C2410C 0 4.5px,#fff 4.5px 100%);
-  box-shadow:0 0 0 1px rgba(28,28,28,.13),0 1px 2px rgba(28,28,28,.18),0 7px 16px -7px rgba(28,28,28,.48);
+.pr-input::-moz-range-thumb{pointer-events:auto;width:28px;height:28px;border-radius:50%;border:none;
+  background:radial-gradient(circle at 50% 50%,#C2410C 0 6px,#fff 6px 100%);
+  box-shadow:0 0 0 1px rgba(28,28,28,.13),0 1px 2px rgba(28,28,28,.18),0 8px 18px -7px rgba(28,28,28,.48);
   cursor:grab;transition:transform .16s cubic-bezier(.2,.7,.2,1)}
 /* Färghandtaget bär den valda färgen, inringat i vitt så det läser mot vilket
    band som helst. --cr-thumb sätts inline av komponenten. */
-.cr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:16px;height:16px;
-  margin-top:7px;border-radius:50%;background:var(--cr-thumb,#fff);
-  box-shadow:0 0 0 3.5px #fff,0 0 0 4.5px rgba(28,28,28,.16),0 3px 10px -2px rgba(28,28,28,.45);
+.cr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:24px;height:24px;
+  margin-top:6px;border-radius:50%;background:var(--cr-thumb,#fff);
+  box-shadow:0 0 0 4.5px #fff,0 0 0 5.5px rgba(28,28,28,.16),0 4px 12px -2px rgba(28,28,28,.45);
   cursor:grab;transition:transform .16s cubic-bezier(.2,.7,.2,1)}
-.cr-input::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;border:none;
+.cr-input::-moz-range-thumb{pointer-events:auto;width:24px;height:24px;border-radius:50%;border:none;
   background:var(--cr-thumb,#fff);
-  box-shadow:0 0 0 3.5px #fff,0 0 0 4.5px rgba(28,28,28,.16),0 3px 10px -2px rgba(28,28,28,.45);
+  box-shadow:0 0 0 4.5px #fff,0 0 0 5.5px rgba(28,28,28,.16),0 4px 12px -2px rgba(28,28,28,.45);
   cursor:grab;transition:transform .16s cubic-bezier(.2,.7,.2,1)}
 .pr-input:active::-webkit-slider-thumb,.cr-input:active::-webkit-slider-thumb{transform:scale(1.10);cursor:grabbing}
 .pr-input:active::-moz-range-thumb,.cr-input:active::-moz-range-thumb{transform:scale(1.10);cursor:grabbing}
@@ -952,12 +955,13 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 
 /* Avläsningarna i display-snittet med tabulära siffror: värdet ändras medan man
    drar, och proportionella siffror hade fått raden att hoppa i sidled. */
-.pr-val,.cr-val{display:inline-flex;align-items:center;gap:8px;
-  font-family:var(--font-display),Georgia,serif;font-size:15px;font-weight:600;
+.pr-val,.cr-val{display:inline-flex;align-items:center;gap:9px;
+  font-family:var(--font-display),Georgia,serif;font-size:19px;font-weight:600;
   letter-spacing:-.012em;color:var(--ink);font-variant-numeric:tabular-nums}
-.cr-dot{width:13px;height:13px;border-radius:50%;flex:none;
+.cr-dot{width:16px;height:16px;border-radius:50%;flex:none;
   box-shadow:0 0 0 1px rgba(28,28,28,.16),inset 0 1px 1px rgba(255,255,255,.4)}
-.cr-n{font-family:var(--font-sans),system-ui,sans-serif;font-size:12px;font-weight:600;
+.cr-loupe .cr-dot{width:14px;height:14px}
+.cr-n{font-family:var(--font-sans),system-ui,sans-serif;font-size:14px;font-weight:600;
   color:var(--soft);letter-spacing:0;font-variant-numeric:tabular-nums}
 
 /* Underkategori-chips: länkar, inte klientfilter — de ger kategorisidorna en
@@ -1252,9 +1256,9 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 
 /* #1 Faceted filter — extended shopbar */
 .shopbar-toggle{display:none}
-.shopbar-panel{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
-.filter-group{display:flex;flex-direction:column;gap:6px}
-.filter-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.shopbar-panel{display:flex;flex-wrap:wrap;gap:26px;align-items:center}
+.filter-group{display:flex;flex-direction:column;gap:8px}
+.filter-label{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
 .filter-toggles{display:flex;gap:8px}
 .toggle{position:relative;display:inline-flex;align-items:center;padding:8px 16px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s,color .15s}
 .toggle input{position:absolute;opacity:0;pointer-events:none}
@@ -1366,6 +1370,16 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .alla-prod .shopbar-panel{display:none;grid-column:1 / -1;padding-top:14px;border-top:1px solid var(--line);margin-top:6px;flex-wrap:wrap;gap:20px;align-items:flex-end}
 .alla-prod .shopbar.open .shopbar-panel{display:flex}
 .alla-prod .shopcount{display:none}
+
+/* Mobil: panelen blir en kolumn (se @media 700px längre upp), och då betyder
+   `align-items:flex-end` ovan att varje filtergrupp dras mot högerkanten —
+   rälsarna hamnade indragna och etiketten "FÄRG" delvis bakom luppen. I
+   kolumnläge ska grupperna i stället fylla bredden, och rälsarna släppas fria
+   från sitt skrivbordstak så de får hela panelen att dra i. */
+@media(max-width:700px){
+  .alla-prod .shopbar-panel{align-items:stretch}
+  .pricerange,.colorrail{max-width:none}
+}
 
 /* Tonad-ned pchip — neutral palett */
 .alla-prod .pchip{background:#fff;border-color:var(--line);color:var(--soft)}
