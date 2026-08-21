@@ -154,6 +154,26 @@ const BASE_HEX: Record<string, string> = {
   kräm: "#f0e4cb",
 };
 
+// Visningsordning för färgskenan i filterpanelen: neutraler först, sedan varmt
+// till kallt. Sorterar man i stället på antal eller bokstav blir skenan ett
+// hopp mellan orelaterade kulörer — och hela poängen med att dra längs den är
+// att ögat ska kunna sikta. Färger som saknas i listan hoppas över, så en
+// kategori med tre färger får en kortare skena i samma ordning.
+const RAIL_ORDER = [
+  "svart", "grå", "silver", "vit", "kräm", "champagne", "beige", "natur", "khaki",
+  "brun", "guld", "gul", "orange", "röd", "vinröd", "rosa", "lila", "marin", "blå",
+  "turkos", "grön",
+];
+
+/** Färgnycklar i skenans ordning. Okända nycklar hamnar sist, i sin egen ordning. */
+export function sortColorKeys(keys: readonly string[]): string[] {
+  const rank = (k: string) => {
+    const i = RAIL_ORDER.indexOf(k);
+    return i === -1 ? RAIL_ORDER.length : i;
+  };
+  return [...keys].sort((a, z) => rank(a) - rank(z) || a.localeCompare(z, "sv"));
+}
+
 /** CSS-hex för ett färgnamn (böjnings-medvetet via colorKeysOf), annars "". */
 export function colorOf(name: string): string {
   for (const base of colorKeysOf(name)) {

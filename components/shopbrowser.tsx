@@ -3,7 +3,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
-import { colorLabel, colorOf } from "../lib/variant-color-image";
+import { colorLabel, colorOf, sortColorKeys } from "../lib/variant-color-image";
 import { universalCollectionIds } from "../lib/related-pick";
 import {
   formatPrice,
@@ -59,19 +59,22 @@ const SORTS = [
 ];
 const SORT_VALUES = new Set(SORTS.map((s) => s.v));
 
-export function ShopBrowser({ products, defaultSort = "img" }: { products: Product[]; defaultSort?: string }) {
+/** Underkategori till den kategori sidan visar — chips i filterpanelen. */
+export type SubCategory = { name: string; slug: string; count: number };
+
+export function ShopBrowser({ products, defaultSort = "img", subs = [] }: { products: Product[]; defaultSort?: string; subs?: SubCategory[] }) {
   // useSearchParams() kräver en Suspense-gräns för att statiska sidor
   // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
   // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
   // rutnätet som fallback så inget hoppar.
   return (
     <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p) => <ProductCard p={p} key={p.slug} />)}</div>}>
-      <ShopBrowserInner products={products} defaultSort={defaultSort} />
+      <ShopBrowserInner products={products} defaultSort={defaultSort} subs={subs} />
     </Suspense>
   );
 }
 
-function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defaultSort: string }) {
+function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]; defaultSort: string; subs: SubCategory[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -93,9 +96,11 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     const h = handlesFromSlug(bounds, sp.get("pris"));
     return bounds ? priceSlug(h[0], h[1], bounds) : "";
   });
-  // Valda färger som kommaseparerad sträng — primitiv, så effekternas
-  // dep-arrayer inte får ny identitet varje render.
-  const [colorCsv, setColorCsv] = useState(() => sp.get("farg") ?? "");
+  // Vald färg. Skenan är till sin natur enkelval — man drar till EN färg — så
+  // tillståndet är en nyckel, inte en mängd. URL:en skrivs när handtaget
+  // släpps, precis som prisreglagets.
+  const [color, setColor] = useState(() => sp.get("farg") ?? "");
+  const [urlColor, setUrlColor] = useState(() => sp.get("farg") ?? "");
   const [onlyInStock, setOnlyInStock] = useState(() => sp.get("lager") === "1");
   const [onlyOnSale, setOnlyOnSale] = useState(() => sp.get("rea") === "1");
   const [open, setOpen] = useState(false); // mobile-collapsible filter panel
@@ -107,14 +112,14 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     const params = new URLSearchParams(window.location.search);
     if (sort !== defaultSort) params.set("sortera", sort); else params.delete("sortera");
     if (urlPrice) params.set("pris", urlPrice); else params.delete("pris");
-    if (colorCsv) params.set("farg", colorCsv); else params.delete("farg");
+    if (urlColor) params.set("farg", urlColor); else params.delete("farg");
     if (onlyInStock) params.set("lager", "1"); else params.delete("lager");
     if (onlyOnSale) params.set("rea", "1"); else params.delete("rea");
     const qs = params.toString();
     const url = qs ? `${pathname}?${qs}` : pathname;
     const current = window.location.pathname + window.location.search;
     if (url !== current) router.replace(url, { scroll: false });
-  }, [sort, urlPrice, colorCsv, onlyInStock, onlyOnSale, pathname, router]);
+  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, pathname, router]);
 
   // Prisfiltrets gränser. Handtagen filtrerar direkt (räknaren följer med under
   // draget); URL:en hinner ikapp när man släpper.
@@ -126,13 +131,12 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
   // saknas helt när Wix-nyckeln inte är satt — då blir listan tom och gruppen
   // renderas inte alls.
   const colorKeys = useMemo(() => {
-    const antal = new Map<string, number>();
-    for (const p of products) for (const k of p.colors || []) antal.set(k, (antal.get(k) ?? 0) + 1);
+    const funna = new Set<string>();
+    for (const p of products) for (const k of p.colors || []) funna.add(k);
     // Minst två distinkta färger, annars är det inget att välja mellan.
-    return antal.size >= 2 ? [...antal.keys()].sort((a, z) => (antal.get(z) ?? 0) - (antal.get(a) ?? 0) || a.localeCompare(z, "sv")) : [];
+    return funna.size >= 2 ? sortColorKeys([...funna]) : [];
   }, [products]);
-  const valdaFarger = useMemo(() => new Set(colorCsv.split(",").filter(Boolean)), [colorCsv]);
-  // Antalet i varje prick räknas ur listan filtrerad på de ANDRA facetterna.
+  // Antalet räknas ur listan filtrerad på de ANDRA facetterna.
   // Drar man i prisreglaget ändras färgernas antal; väljer man en färg gör de
   // det inte. Utan siffran hade kunden fått upptäcka efter klicket att bara en
   // bråkdel av sortimentet har en färg angiven alls.
@@ -146,11 +150,21 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     }
     return antal;
   }, [products, priceLo, priceHi, onlyInStock, onlyOnSale]);
-  const toggleColor = (key: string) => {
-    const next = new Set(valdaFarger);
-    if (next.has(key)) next.delete(key); else next.add(key);
-    setColorCsv([...next].join(","));
-  };
+  // Skenans läge: 0 = alla färger, 1..n = colorKeys[i-1]. Ett enda tal, så
+  // native <input type="range"> gör hela jobbet — drag, tangentbord och touch.
+  const colorIdx = Math.max(0, colorKeys.indexOf(color) + 1);
+  const commitColor = () => setUrlColor(color);
+  const dragColor = (i: number) => setColor(i <= 0 ? "" : colorKeys[i - 1] ?? "");
+  // Bandad gradient: varje färg äger en lika stor bit av banan, med hårda stopp
+  // så det blir distinkta fält att sikta på — inte en utsmetad övergång där man
+  // inte ser var en färg slutar. Första bandet är "alla färger".
+  const railGradient = useMemo(() => {
+    if (!colorKeys.length) return "";
+    const band = 100 / (colorKeys.length + 1);
+    const stopp = ["#EFE7DE", ...colorKeys.map((k) => colorOf(k) || "#ddd")]
+      .map((c, i) => `${c} ${i * band}%, ${c} ${(i + 1) * band}%`);
+    return `linear-gradient(to right, ${stopp.join(", ")})`;
+  }, [colorKeys]);
 
   const commitPrice = () => setUrlPrice(bounds ? priceSlug(handles[0], handles[1], bounds) : "");
   const dragLo = (v: number) => setHandles(([, hi]) => [Math.min(v, hi - (bounds?.step ?? 1)), hi]);
@@ -158,7 +172,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
 
   const list = useMemo(() => {
     let out = products.filter((p) => p.priceNum >= priceLo && p.priceNum < priceHi);
-    if (valdaFarger.size) out = out.filter((p) => p.colors?.some((k) => valdaFarger.has(k)));
+    if (color) out = out.filter((p) => p.colors?.includes(color));
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
@@ -179,7 +193,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
     return out;
-  }, [products, sort, priceLo, priceHi, valdaFarger, onlyInStock, onlyOnSale]);
+  }, [products, sort, priceLo, priceHi, color, onlyInStock, onlyOnSale]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
@@ -187,11 +201,12 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
   const hasOos = useMemo(() => products.some((p) => !p.inStock), [products]);
   // En dold reglage får inte spöka i filterräknaren ("1 aktivt filter" utan att
   // något syns) om en gammal delad länk bär ?lager=1.
-  const activeFilters = (priceActive ? 1 : 0) + (valdaFarger.size ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
+  const activeFilters = (priceActive ? 1 : 0) + (color ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
   const reset = () => {
     if (bounds) setHandles([bounds.min, bounds.max]);
     setUrlPrice("");
-    setColorCsv("");
+    setColor("");
+    setUrlColor("");
     setOnlyInStock(false);
     setOnlyOnSale(false);
   };
@@ -206,7 +221,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     // bevarad scroll-position direkt vid mount.
     if (firstRender.current) { firstRender.current = false; return; }
     setShown(PAGE_SIZE);
-  }, [sort, urlPrice, colorCsv, onlyInStock, onlyOnSale, products]);
+  }, [sort, urlPrice, urlColor, onlyInStock, onlyOnSale, products]);
   const visible = list.slice(0, shown);
   const remaining = list.length - visible.length;
 
@@ -231,6 +246,24 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
         </label>
 
         <div className="shopbar-panel">
+          {/* Underkategorier som LÄNKAR, inte klientfilter. Kategorisidorna
+              länkade tidigare bara till syskonavdelningar, aldrig till sina egna
+              barn — de sidorna låg i sitemapen utan en enda intern länk. Som
+              chips här får kunden en genväg och crawlern en väg in, med samma
+              antal som målsidan faktiskt visar. */}
+          {subs.length > 0 && (
+            <div className="filter-group">
+              <span className="filter-label">Förfina</span>
+              <div className="subchips">
+                {subs.map((sub) => (
+                  <a key={sub.slug} className="subchip" href={`/kategori/${sub.slug}`}>
+                    {sub.name} <span className="subchip-n">{sub.count}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           {bounds && (
             <div className="filter-group">
               <span className="filter-label">Pris</span>
@@ -293,27 +326,38 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
           {colorKeys.length > 0 && (
             <div className="filter-group">
               <span className="filter-label">Färg</span>
-              <div className="colorfacet" role="group" aria-label="Filtrera på färg">
-                {colorKeys.map((key) => {
-                  const n = colorCounts.get(key) ?? 0;
-                  const vald = valdaFarger.has(key);
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`cswatch ${vald ? "active" : ""} ${n === 0 ? "empty" : ""}`}
-                      aria-pressed={vald}
-                      aria-label={`${colorLabel(key)} (${n} produkter)`}
-                      title={`${colorLabel(key)} · ${n}`}
-                      onClick={() => toggleColor(key)}
-                    >
-                      <span className="cswatch-dot" style={{ background: colorOf(key) || "#ddd" }} aria-hidden="true" />
-                      <span className="cswatch-txt">{colorLabel(key)}</span>
-                      <span className="cswatch-n" aria-hidden="true">{n}</span>
-                    </button>
-                  );
-                })}
+              {/* Färgskena: dra handtaget till färgen du vill ha. Ett native
+                  range-element ovanpå en bandad gradient — varje färg äger ett
+                  eget fält på banan, handtaget fylls med den valda färgen, och
+                  piltangenter stegar färg för färg utan en rad extra kod.
+                  Längst till vänster = alla färger. */}
+              <div className="colorrail">
+                <div className="cr-track" style={{ background: railGradient }} />
+                <input
+                  type="range"
+                  className="cr-input"
+                  min={0}
+                  max={colorKeys.length}
+                  step={1}
+                  value={colorIdx}
+                  onChange={(e) => dragColor(Number(e.target.value))}
+                  onPointerUp={commitColor}
+                  onKeyUp={commitColor}
+                  onBlur={commitColor}
+                  aria-label="Färg"
+                  aria-valuetext={color ? `${colorLabel(color)}, ${colorCounts.get(color) ?? 0} produkter` : "Alla färger"}
+                  style={{ ["--cr-thumb" as string]: color ? colorOf(color) || "#ddd" : "#fff" }}
+                />
               </div>
+              <span className="cr-val">
+                {color ? (
+                  <>
+                    <span className="cr-dot" style={{ background: colorOf(color) || "#ddd" }} aria-hidden="true" />
+                    {colorLabel(color)}
+                    <span className="cr-n">{colorCounts.get(color) ?? 0}</span>
+                  </>
+                ) : "Alla färger"}
+              </span>
             </div>
           )}
 

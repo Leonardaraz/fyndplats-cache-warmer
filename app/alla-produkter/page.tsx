@@ -34,6 +34,21 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
   );
   const list = orderRecommended(rated, universalCollectionIds(rated), currentDayMs());
 
+  // Underkategorier till den valda kategorin → samma chips som på /kategori.
+  // Utan vald kategori finns inget att förfina; kategori-dropdownen ovanför
+  // sköter den nivån.
+  const subs = active
+    ? collections
+        .filter((c) => c.parentId === active.id)
+        .sort((a, b) => a.index - b.index)
+        .map((c) => ({
+          name: c.name,
+          slug: c.slug,
+          count: products.filter((p) => (p.collectionIds || []).includes(c.id)).length,
+        }))
+        .filter((sub) => sub.count > 0)
+    : [];
+
   // JSON-LD: CollectionPage + BreadcrumbList (samma mönster som /butik) så Google
   // förstår att detta är en produktlistning. När ?kategori= är aktiv beskriver
   // sidan EN kategori (H1 + lista byts) — då måste schemat följa med, annars
@@ -94,7 +109,7 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
         <div className="container">
           <CategoryDropdown products={products} collections={collections} activeSlug={active?.slug} />
 
-          <ShopBrowser products={list} />
+          <ShopBrowser products={list} subs={subs} />
 
           {/* Crawlbart A–Ö-index över HELA sortimentet: gridden ovan visar 24
               (perf-gräns) och "Visa fler" är en JS-knapp — utan denna lista

@@ -885,18 +885,33 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pr-input:focus-visible::-webkit-slider-thumb{outline:2px solid #C2410C;outline-offset:2px}
 .pr-input:focus-visible::-moz-range-thumb{outline:2px solid #C2410C;outline-offset:2px}
 .pr-val{font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-/* Färgfacett. Pricken bär färgen, texten bär namnet — en prick ensam går inte
-   att förstå för den som inte ser färg, och räknaren står ut så kunden ser hur
-   många träffar valet ger INNAN klicket. Nollträff dimmas men disablas aldrig:
-   att disabla en fokuserad knapp tappar fokus. */
-.colorfacet{display:flex;flex-wrap:wrap;gap:8px;max-width:420px}
-.cswatch{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--soft);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:6px 12px 6px 7px;cursor:pointer;transition:border-color .2s,color .2s,background .2s}
-.cswatch:hover{border-color:#C2410C;color:var(--ink)}
-.cswatch.active{background:#FFF1E8;border-color:#C2410C;color:#C2410C}
-.cswatch.empty{opacity:.45}
-.cswatch-dot{width:16px;height:16px;border-radius:50%;border:1px solid rgba(28,28,28,.18);flex:none}
-.cswatch-n{font-weight:500;opacity:.6;font-variant-numeric:tabular-nums}
-.cswatch.active .cswatch-n{opacity:.8}
+/* Färgskena. Samma mekanik som prisreglaget — ett native range-element ovanpå
+   ett målat spår — men banan är en bandad gradient där varje färg äger ett eget
+   fält. Hårda stopp, inte utsmetat: man ska se var en färg slutar och sikta dit.
+   Handtaget fylls med den valda färgen, så det man drar ÄR svaret. Namnet och
+   antalet står under, eftersom en färg utan namn inte går att förstå för den som
+   inte skiljer nyanser. */
+.colorrail{position:relative;width:100%;min-width:210px;max-width:320px;height:30px}
+.cr-track{position:absolute;top:10px;left:0;right:0;height:10px;border-radius:999px;border:1px solid rgba(28,28,28,.12)}
+.cr-input{position:absolute;top:0;left:0;width:100%;height:30px;margin:0;padding:0;background:none;border:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.cr-input:focus{outline:none}
+.cr-input::-webkit-slider-runnable-track{background:none;border:none;height:30px}
+.cr-input::-moz-range-track{background:none;border:none;height:30px}
+.cr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;margin-top:4px;border-radius:50%;background:var(--cr-thumb,#fff);border:3px solid #fff;box-shadow:0 0 0 1.5px #C2410C,0 2px 6px rgba(28,28,28,.35);cursor:grab}
+.cr-input::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;border-radius:50%;background:var(--cr-thumb,#fff);border:3px solid #fff;box-shadow:0 0 0 1.5px #C2410C,0 2px 6px rgba(28,28,28,.35);cursor:grab}
+.cr-input:active::-webkit-slider-thumb{cursor:grabbing}
+.cr-input:active::-moz-range-thumb{cursor:grabbing}
+.cr-input:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 1.5px #C2410C,0 0 0 5px rgba(194,65,12,.35)}
+.cr-input:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1.5px #C2410C,0 0 0 5px rgba(194,65,12,.35)}
+.cr-val{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink)}
+.cr-dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(28,28,28,.18);flex:none}
+.cr-n{font-weight:500;opacity:.6;font-variant-numeric:tabular-nums}
+/* Underkategori-chips. Länkar, inte filter — därför utan aria-pressed och utan
+   plats i filterräknaren. */
+.subchips{display:flex;flex-wrap:wrap;gap:8px;max-width:520px}
+.subchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--soft);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;text-decoration:none;transition:border-color .2s,color .2s,background .2s}
+.subchip:hover{border-color:#C2410C;color:#C2410C;background:#FFF1E8}
+.subchip-n{font-weight:500;opacity:.6;font-variant-numeric:tabular-nums}
 .sortsel{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--soft);white-space:nowrap}
 .sortsel select{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;outline:none}
 .sortsel select:focus{border-color:var(--orange)}

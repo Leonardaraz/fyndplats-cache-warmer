@@ -116,6 +116,19 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // Korskategori-upptäckt: länka till övriga huvudavdelningar (exkl. den aktuella
   // avdelningen). Bara giltiga /kategori/{slug}-sidor från getCollections → aldrig
   // 404. Ger en guidad väg vidare mellan avdelningar (höjer upptäckt + AOV).
+  // Underkategorier till den kategori sidan visar → chips i filterpanelen.
+  // Antalet räknas ur samma produktlista sidan renderar, så siffran är ett
+  // löfte som håller vid klicket.
+  const subs = collections
+    .filter((c) => c.parentId === active.id)
+    .sort((a, b) => a.index - b.index)
+    .map((c) => ({
+      name: c.name,
+      slug: c.slug,
+      count: products.filter((p) => (p.collectionIds || []).includes(c.id)).length,
+    }))
+    .filter((sub) => sub.count > 0);
+
   const currentMainId = active.parentId ?? active.id;
   const deptLinks = collections
     // REA har en egen accent-länk i toppmenyn → exkludera ur strippen (undvik dubbel-
@@ -252,7 +265,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
           {/* ShopBrowser ger sortering (Rekommenderat/pris/namn), prisfilter,
               lager-/rea-toggles, paginering och delbart filter-tillstånd i URL:en
               — samma verktyg som /alla-produkter. (Audit 2026-06-02 #7) */}
-          <ShopBrowser products={list} />
+          <ShopBrowser products={list} subs={subs} />
 
           {/* Crawlbart A–Ö-index för kategorin: gridden visar 24 (perf-gräns) och
               på statiskt renderade kategorisidor saknas "Visa fler"-knappen helt
