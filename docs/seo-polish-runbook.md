@@ -786,6 +786,8 @@ Rå AliExpress-varianter kan bära namn som är obegripliga eller direkt vilsele
 
 1. **Säkerhetskopiera först** till scratchpad: per variant `sku`, `wixVariantId`, pris, synlighet, lagersaldo och lagerpostens id. Utan den kan du inte återställa.
 2. **PATCH `options` + `variantsInfo`** (`fieldMask: ["options","variantsInfo"]`). Skicka optionen HELT utan id:n — nytt `name`, nya `choices` med bara `name` + `choiceType` — och identifiera varje variant med `optionChoiceNames` (`optionName` + `choiceName` + `renderType`, alla tre krävs). **Behåll varje `sku` och pris exakt.** `linkedMedia: [{id}]` kan skickas inline med de nya valen och överlever — variantbilderna behöver alltså inte länkas om separat.
+   - ☠️ **`choice.name` får vara högst 50 tecken.** Över det svarar Wix `400 MAX_LENGTH` och namnger varje för långt val med sin faktiska längd. Gränsen är lätt att spränga när etiketten ska bära mått + utförande + färg (`128–191 × 144–187 cm – dubbelstång, krom, utdragbar` = 51). Räkna före PATCH:en och korta det minst särskiljande ledet — hela PATCH:en faller annars, och produkten står kvar i det kollapsade mellanläget.
+   - ⚠️ **Kollapsen flippar `visible` till `true`.** Steg 2 körs i två PATCH:ar (först `options: []` + EN variant utan choices, sedan den nya optionen), och den första sätter tyst tillbaka produkten till synlig. På ett utkast betyder det att en halvfärdig produkt utan varianter ligger publicerad tills nästa PATCH går igenom. **Skicka därför alltid `visible` explicit i PATCH nummer två** — och läs av `visible` i svaret på båda, aldrig bara på den sista.
 3. **Skapa lagerposterna på nytt.** `/stores/v3/products` skapar dem INTE (bara `/products-with-inventory` gör det vid create). Efter steg 2 har produkten noll lagerposter medan den ligger publicerad. Kör `POST /stores/v3/bulk/inventory-items/create` med `{productId, variantId, trackQuantity:true, quantity}` och verifiera saldo mot säkerhetskopian.
 4. **Peka om mappningen.** Allt nedströms nycklar på `wixVariantId`: lagersynken (`lib/sync/inventory.ts:27`), `lib/sync/shippability.ts:151` och auktionsmotorn (`lib/auction/seed.ts:96`). Missar du det slutar lagret tyst att uppdateras — varianterna hamnar i `unmatched`, ingen krasch.
 5. **Skriv om mappningens `choices` också.** `lib/orders/place-order.ts:66` matchar order → AliExpress-SKU på `v.choices[optionNamn] === valt värde`. Byter optionen namn från "Färg" till "Modell" matchar inget. **Räddningen är att SKU testas först** (rad 62) — därför är regeln: byt aldrig SKU i samma operation.
@@ -1116,6 +1118,31 @@ jämför exemplaren innan du rör något.
 > `choice.name` är låst till `key` — namnen kräver att optionen byggs om från grunden, med
 > `choiceType:"CHOICE_TEXT"` på varje nytt val och `price` på varje variant.
 
+### Steg 6F – Siffror i variantetiketten måste vara verifierade
+
+Variantetiketten är det första och mest framträdande stället kunden möter en siffra: den
+står i köpknappens rullgardin, i varukorgen och på ordern. **Leverantörens obekräftade
+siffror hör inte hemma där.**
+
+Klädställningen `f677f645` (2026-08-21) bar etiketten
+`128–191 × 144–187 cm – dubbelstång, krom, 272 kg` medan hela beskrivningen — spec-tabell,
+FAQ, kortet och "Det du bör veta" — förklarade att tillverkarens egen manual anger **140 kg**
+och att leverantörens 272 kg är nära dubbelt så mycket. Kunden såg alltså den siffra vi
+just motbevisat, på det mest synliga stället av alla.
+
+**Regel:** i etiketten får bara stå det som är egenskaper (mått, antal stänger, färg,
+ytbehandling) eller siffror vi kan stå för. Bärförmåga, effekt, räckvidd, kapacitet och
+liknande prestandasiffror flyttas till spec-tabellen och kortet, **med källan utskriven**
+(*"enligt tillverkarens manual"* respektive *"enligt leverantören"*).
+
+Hittar du bara EN siffra som går att stämma av mot en manual och den visar sig uppblåst,
+behandla resten av leverantörens siffror i samma listning som lika osäkra — skriv ut
+källan på dem också i stället för att presentera dem som fakta. Att ta bort varianten är
+sällan rätt svar: varan går att sälja, det är påståendet som ska bort.
+
+Omdöpningen kräver ombyggd option (se *Döpa om variantalternativ i efterhand*) — planera
+den i samma vända som övriga variantändringar så du bara betalar följdskadorna en gång.
+
 -----
 
 ## Klart-kriterium (checklista före publicering)
@@ -1136,6 +1163,7 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
   inte EU-leverans, så en produkt vars enda "EU"-lager är brittiskt eller ryskt ska inte
   bära ribbonen.
 - Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
+- **Variantetiketterna innehåller ingen obekräftad prestandasiffra** (Steg 6F) — bärförmåga/effekt/kapacitet står i spec-tabellen och på kortet, med källan utskriven.
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 
