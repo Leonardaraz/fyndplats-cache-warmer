@@ -4,6 +4,15 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
 import { orderRecommended, orderPopular } from "../lib/sort-products";
 import { universalCollectionIds } from "../lib/related-pick";
+import {
+  formatPrice,
+  parsePriceSlug,
+  priceBounds,
+  priceRangeLabel,
+  priceSlug,
+  upperLimit,
+  type PriceBounds,
+} from "../lib/price-range";
 import type { Product } from "../lib/products";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
@@ -12,15 +21,23 @@ import type { Product } from "../lib/products";
 // hanterbar batch och håller DOM:en liten tills användaren ber om mer.
 const PAGE_SIZE = 24;
 
-// Pris-brackets. `slug` är det som hamnar i URL:en (?pris=under-100) så delning
-// och SEO funkar; index 0 ("Alla priser") utelämnas helt ur URL:en.
-const BRACKETS = [
-  { label: "Alla priser", min: 0, max: Infinity, slug: "" },
-  { label: "Under 100 kr", min: 0, max: 100, slug: "under-100" },
-  { label: "100–250 kr", min: 100, max: 250, slug: "100-250" },
-  { label: "250–500 kr", min: 250, max: 500, slug: "250-500" },
-  { label: "Över 500 kr", min: 500, max: Infinity, slug: "over-500" },
-];
+/**
+ * Handtagens startläge, ur URL:ens ?pris. Skalan (lib/price-range) räknas ur de
+ * produkter som visas, så en delad länk kan peka på ett spann som inte längre
+ * finns på banan — t.ex. det gamla ?pris=under-100 när billigaste produkten
+ * kostar 199 kr. Överlappar intervallet inte skalan alls behandlas det som
+ * inget filter: produkterna det syftade på finns inte, och ett reglage som
+ * står och klämmer ihop sig i ena änden förklarar ingenting för kunden.
+ */
+function handlesFromSlug(bounds: PriceBounds | null, slug: string | null): [number, number] {
+  if (!bounds) return [0, 0];
+  const r = parsePriceSlug(slug);
+  if (!r || r.max <= bounds.min || r.min >= bounds.max) return [bounds.min, bounds.max];
+  const snap = (v: number) => Math.min(Math.max(Math.round(v / bounds.step) * bounds.step, bounds.min), bounds.max);
+  const lo = snap(r.min);
+  const hi = Number.isFinite(r.max) ? snap(r.max) : bounds.max;
+  return lo < hi ? [lo, hi] : [bounds.min, bounds.max];
+}
 
 const SORTS = [
   // "img" heter "Rekommenderat" utåt och är butikens egen mix (bästsäljare +
@@ -61,10 +78,17 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     const s = sp.get("sortera");
     return s && SORT_VALUES.has(s) ? s : defaultSort;
   });
-  const [bi, setBi] = useState(() => {
-    const p = sp.get("pris");
-    const i = BRACKETS.findIndex((b) => b.slug && b.slug === p);
-    return i > 0 ? i : 0;
+  // Prisreglagets skala härleds ur produkterna i vyn. null = spridningen är för
+  // liten för att ett reglage ska hjälpa någon (t.ex. tre sökträffar) → inget
+  // prisfilter renderas alls.
+  const bounds = useMemo(() => priceBounds(products), [products]);
+  // Handtagen är källan; slugen härleds ur dem. URL:en skrivs först när
+  // handtaget släpps (commitPrice) — annars hade varje pixel i draget blivit
+  // en router.replace.
+  const [handles, setHandles] = useState<[number, number]>(() => handlesFromSlug(bounds, sp.get("pris")));
+  const [urlPrice, setUrlPrice] = useState(() => {
+    const h = handlesFromSlug(bounds, sp.get("pris"));
+    return bounds ? priceSlug(h[0], h[1], bounds) : "";
   });
   const [onlyInStock, setOnlyInStock] = useState(() => sp.get("lager") === "1");
   const [onlyOnSale, setOnlyOnSale] = useState(() => sp.get("rea") === "1");
@@ -76,19 +100,27 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (sort !== defaultSort) params.set("sortera", sort); else params.delete("sortera");
-    const slug = BRACKETS[bi]?.slug;
-    if (slug) params.set("pris", slug); else params.delete("pris");
+    if (urlPrice) params.set("pris", urlPrice); else params.delete("pris");
     if (onlyInStock) params.set("lager", "1"); else params.delete("lager");
     if (onlyOnSale) params.set("rea", "1"); else params.delete("rea");
     const qs = params.toString();
     const url = qs ? `${pathname}?${qs}` : pathname;
     const current = window.location.pathname + window.location.search;
     if (url !== current) router.replace(url, { scroll: false });
-  }, [sort, bi, onlyInStock, onlyOnSale, pathname, router]);
+  }, [sort, urlPrice, onlyInStock, onlyOnSale, pathname, router]);
+
+  // Prisfiltrets gränser. Handtagen filtrerar direkt (räknaren följer med under
+  // draget); URL:en hinner ikapp när man släpper.
+  const priceLo = bounds ? handles[0] : 0;
+  const priceHi = bounds ? upperLimit(handles[1], bounds) : Infinity;
+  const priceActive = Boolean(bounds && priceSlug(handles[0], handles[1], bounds));
+
+  const commitPrice = () => setUrlPrice(bounds ? priceSlug(handles[0], handles[1], bounds) : "");
+  const dragLo = (v: number) => setHandles(([, hi]) => [Math.min(v, hi - (bounds?.step ?? 1)), hi]);
+  const dragHi = (v: number) => setHandles(([lo]) => [lo, Math.max(v, lo + (bounds?.step ?? 1))]);
 
   const list = useMemo(() => {
-    const b = BRACKETS[bi];
-    let out = products.filter((p) => p.priceNum >= b.min && p.priceNum < b.max);
+    let out = products.filter((p) => p.priceNum >= priceLo && p.priceNum < priceHi);
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
@@ -109,7 +141,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
     return out;
-  }, [products, sort, bi, onlyInStock, onlyOnSale]);
+  }, [products, sort, priceLo, priceHi, onlyInStock, onlyOnSale]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
@@ -117,8 +149,13 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
   const hasOos = useMemo(() => products.some((p) => !p.inStock), [products]);
   // En dold reglage får inte spöka i filterräknaren ("1 aktivt filter" utan att
   // något syns) om en gammal delad länk bär ?lager=1.
-  const activeFilters = (bi > 0 ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
-  const reset = () => { setBi(0); setOnlyInStock(false); setOnlyOnSale(false); };
+  const activeFilters = (priceActive ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
+  const reset = () => {
+    if (bounds) setHandles([bounds.min, bounds.max]);
+    setUrlPrice("");
+    setOnlyInStock(false);
+    setOnlyOnSale(false);
+  };
 
   // Paginering: visa PAGE_SIZE kort, "Visa fler" laddar nästa batch. Återställs
   // till första sidan när filter/sortering/produktlista ändras (annars skulle en
@@ -130,7 +167,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     // bevarad scroll-position direkt vid mount.
     if (firstRender.current) { firstRender.current = false; return; }
     setShown(PAGE_SIZE);
-  }, [sort, bi, onlyInStock, onlyOnSale, products]);
+  }, [sort, urlPrice, onlyInStock, onlyOnSale, products]);
   const visible = list.slice(0, shown);
   const remaining = list.length - visible.length;
 
@@ -155,22 +192,64 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
         </label>
 
         <div className="shopbar-panel">
-          <div className="filter-group">
-            <span className="filter-label">Pris</span>
-            <div className="pricebrackets" role="group" aria-label="Filtrera på pris">
-              {BRACKETS.map((b, i) => (
-                <button
-                  key={b.label}
-                  type="button"
-                  className={`pchip ${i === bi ? "active" : ""}`}
-                  aria-pressed={i === bi}
-                  onClick={() => setBi(i)}
-                >
-                  {b.label}
-                </button>
-              ))}
+          {bounds && (
+            <div className="filter-group">
+              <span className="filter-label">Pris</span>
+              {/* Två range-inputs ovanpå varandra i stället för ett bibliotek:
+                  piltangenter, skärmläsare och touch fungerar direkt, och det
+                  väger noll extra kB. Spåret och den ifyllda delen är rena
+                  div:ar; själva inputarna är genomskinliga och släpper igenom
+                  klick överallt utom på handtagen (se .pr-input i globals.css). */}
+              <div className="pricerange">
+                <div className="pr-track">
+                  <div
+                    className="pr-fill"
+                    style={{
+                      left: `${((handles[0] - bounds.min) / (bounds.max - bounds.min)) * 100}%`,
+                      right: `${100 - ((handles[1] - bounds.min) / (bounds.max - bounds.min)) * 100}%`,
+                    }}
+                  />
+                </div>
+                <input
+                  type="range"
+                  className="pr-input pr-lo"
+                  min={bounds.min}
+                  max={bounds.max}
+                  step={bounds.step}
+                  value={handles[0]}
+                  onChange={(e) => dragLo(Number(e.target.value))}
+                  onPointerUp={commitPrice}
+                  onKeyUp={commitPrice}
+                  onBlur={commitPrice}
+                  aria-label="Lägsta pris"
+                  aria-valuetext={formatPrice(handles[0])}
+                />
+                <input
+                  type="range"
+                  className="pr-input pr-hi"
+                  min={bounds.min}
+                  max={bounds.max}
+                  step={bounds.step}
+                  value={handles[1]}
+                  onChange={(e) => dragHi(Number(e.target.value))}
+                  onPointerUp={commitPrice}
+                  onKeyUp={commitPrice}
+                  onBlur={commitPrice}
+                  aria-label="Högsta pris"
+                  aria-valuetext={
+                    handles[1] >= bounds.max && bounds.openTop
+                      ? `${formatPrice(handles[1])} och uppåt`
+                      : formatPrice(handles[1])
+                  }
+                />
+              </div>
+              <span className="pr-val">
+                {priceActive
+                  ? priceRangeLabel(handles[0] <= bounds.min ? 0 : handles[0], upperLimit(handles[1], bounds))
+                  : "Alla priser"}
+              </span>
             </div>
-          </div>
+          )}
 
           <div className="filter-group">
             <span className="filter-label">Tillgänglighet</span>

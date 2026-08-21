@@ -864,6 +864,27 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pchip{font-size:12px;font-weight:600;color:var(--soft);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 15px;cursor:pointer;transition:border-color .2s,color .2s,background .2s}
 .pchip:hover{border-color:var(--orange);color:var(--ink)}
 .pchip.active{background:#FFF1E8;border-color:#C2410C;color:#C2410C}
+/* Prisreglage. Två <input type="range"> ovanpå ett gemensamt spår i stället för
+   ett bibliotek: piltangenter, touch och skärmläsare fungerar utan kod, och det
+   väger noll extra kB. Inputarna är genomskinliga och pointer-events:none så
+   klick går ner i spåret — bara handtagen tar emot. Maxhandtaget ligger överst
+   (z-index) eftersom det är det man drar oftast. */
+.pricerange{position:relative;width:100%;min-width:210px;max-width:320px;height:30px}
+.pr-track{position:absolute;top:13px;left:0;right:0;height:4px;border-radius:999px;background:var(--line)}
+.pr-fill{position:absolute;top:0;bottom:0;border-radius:999px;background:#C2410C}
+.pr-input{position:absolute;top:0;left:0;width:100%;height:30px;margin:0;padding:0;background:none;border:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.pr-input:focus{outline:none}
+.pr-lo{z-index:3}
+.pr-hi{z-index:4}
+.pr-input::-webkit-slider-runnable-track{background:none;border:none;height:30px}
+.pr-input::-moz-range-track{background:none;border:none;height:30px}
+.pr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:20px;height:20px;margin-top:5px;border-radius:50%;background:#fff;border:2px solid #C2410C;box-shadow:0 1px 4px rgba(28,28,28,.28);cursor:grab}
+.pr-input::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #C2410C;box-shadow:0 1px 4px rgba(28,28,28,.28);cursor:grab}
+.pr-input:active::-webkit-slider-thumb{cursor:grabbing}
+.pr-input:active::-moz-range-thumb{cursor:grabbing}
+.pr-input:focus-visible::-webkit-slider-thumb{outline:2px solid #C2410C;outline-offset:2px}
+.pr-input:focus-visible::-moz-range-thumb{outline:2px solid #C2410C;outline-offset:2px}
+.pr-val{font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
 .sortsel{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--soft);white-space:nowrap}
 .sortsel select{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;outline:none}
 .sortsel select:focus{border-color:var(--orange)}
