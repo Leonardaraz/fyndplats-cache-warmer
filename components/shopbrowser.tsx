@@ -184,6 +184,11 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]
     return antal.map((n, i) => ({
       h: Math.max(3, Math.round(Math.sqrt(n / topp) * 44)),
       mid: bounds.min + (i + 0.5) * w,
+      // Sista facket samlar ALLT ovanför skalans topp, inte bara sitt eget
+      // intervall — på den här katalogen är det svansens 5 %. Oritat som en
+      // vanlig stapel läser det som en puckel vid takpriset, alltså tvärtemot
+      // sanningen. Det märks ut och ritas randigt.
+      over: i === antal.length - 1 && bounds.openTop,
     }));
   }, [products, bounds]);
 
@@ -298,7 +303,7 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]
                   {hist.map((b, i) => (
                     <div
                       key={i}
-                      className={`pr-bar ${b.mid >= priceLo && b.mid < priceHi ? "on" : ""}`}
+                      className={`pr-bar ${b.over ? "over" : ""} ${b.mid >= priceLo && b.mid < priceHi ? "on" : ""}`}
                       style={{ height: `${b.h}px` }}
                     />
                   ))}
