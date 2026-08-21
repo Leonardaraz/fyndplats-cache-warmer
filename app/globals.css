@@ -864,53 +864,106 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pchip{font-size:12px;font-weight:600;color:var(--soft);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 15px;cursor:pointer;transition:border-color .2s,color .2s,background .2s}
 .pchip:hover{border-color:var(--orange);color:var(--ink)}
 .pchip.active{background:#FFF1E8;border-color:#C2410C;color:#C2410C}
-/* Prisreglage. Två <input type="range"> ovanpå ett gemensamt spår i stället för
-   ett bibliotek: piltangenter, touch och skärmläsare fungerar utan kod, och det
-   väger noll extra kB. Inputarna är genomskinliga och pointer-events:none så
-   klick går ner i spåret — bara handtagen tar emot. Maxhandtaget ligger överst
-   (z-index) eftersom det är det man drar oftast. */
-.pricerange{position:relative;width:100%;min-width:210px;max-width:320px;height:30px}
-.pr-track{position:absolute;top:13px;left:0;right:0;height:4px;border-radius:999px;background:var(--line)}
-.pr-fill{position:absolute;top:0;bottom:0;border-radius:999px;background:#C2410C}
-.pr-input{position:absolute;top:0;left:0;width:100%;height:30px;margin:0;padding:0;background:none;border:none;pointer-events:none;-webkit-appearance:none;appearance:none}
-.pr-input:focus{outline:none}
+/* ── Prisreglage och färgskena ────────────────────────────────────────────
+   Native <input type="range"> ovanpå målade spår i stället för ett bibliotek:
+   piltangenter, touch och skärmläsare fungerar utan en rad kod, och det väger
+   noll extra kB. Inputarna är genomskinliga med pointer-events:none så bara
+   handtagen tar emot klick.
+
+   Prisreglaget bär katalogens PRISFÖRDELNING som histogram. Det är inte
+   dekoration: kunden ser var sortimentet ligger och drar över ett landskap i
+   stället för längs ett streck, och staplarna innanför valet tänds så
+   urvalet lyser upp ett område. Landskapet står stilla när man filtrerar —
+   räknades det om per filter skulle marken röra sig under fingret. */
+.pricerange{position:relative;width:100%;min-width:214px;max-width:340px;height:74px}
+.pr-hist{position:absolute;left:0;right:0;bottom:26px;height:44px;display:flex;align-items:flex-end;gap:2px}
+.pr-bar{flex:1;min-width:0;border-radius:2px 2px 0 0;background:var(--line);
+  transition:background .18s ease}
+.pr-bar.on{background:linear-gradient(180deg,#D4551A,#C2410C)}
+.pr-base{position:absolute;left:0;right:0;bottom:23px;height:1px;background:var(--line)}
+.pr-track{position:absolute;bottom:12px;left:0;right:0;height:5px;border-radius:999px;
+  background:var(--line);box-shadow:inset 0 1px 2px rgba(28,28,28,.14)}
+.pr-fill{position:absolute;top:0;bottom:0;border-radius:999px;
+  background:linear-gradient(90deg,#D4551A,#C2410C)}
+
+/* Färgskenan är lackad emalj: hård inner-skugga ger djup, den ljusa
+   understrykningen en kant, och ::after lägger glans över övre halvan.
+   Banden har hårda stopp — man ska se var en färg slutar och kunna sikta. */
+.colorrail{position:relative;width:100%;min-width:214px;max-width:340px;height:52px}
+.cr-track{position:absolute;bottom:12px;left:0;right:0;height:18px;border-radius:999px;
+  box-shadow:inset 0 1px 3px rgba(28,28,28,.30),inset 0 -1px 0 rgba(255,255,255,.20),
+    0 0 0 1px rgba(28,28,28,.08)}
+.cr-track::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 60%)}
+/* Luppen rider med handtaget — informationen hamnar vid fingret, inte i en
+   fottext man måste flytta blicken till. */
+.cr-loupe{position:absolute;bottom:38px;transform:translateX(-50%);display:inline-flex;
+  align-items:center;gap:7px;padding:5px 11px 5px 8px;border-radius:999px;background:#fff;
+  border:1px solid var(--line);box-shadow:0 2px 4px rgba(28,28,28,.10),0 12px 26px -14px rgba(28,28,28,.45);
+  font-size:12.5px;font-weight:600;white-space:nowrap;pointer-events:none;opacity:0;
+  transition:opacity .16s ease}
+.cr-loupe.show{opacity:1}
+
+.pr-input,.cr-input{position:absolute;left:0;width:100%;height:30px;margin:0;padding:0;
+  background:none;border:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.pr-input{bottom:0}
+.cr-input{bottom:6px}
+.pr-input:focus,.cr-input:focus{outline:none}
 .pr-lo{z-index:3}
 .pr-hi{z-index:4}
-.pr-input::-webkit-slider-runnable-track{background:none;border:none;height:30px}
-.pr-input::-moz-range-track{background:none;border:none;height:30px}
-.pr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:20px;height:20px;margin-top:5px;border-radius:50%;background:#fff;border:2px solid #C2410C;box-shadow:0 1px 4px rgba(28,28,28,.28);cursor:grab}
-.pr-input::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #C2410C;box-shadow:0 1px 4px rgba(28,28,28,.28);cursor:grab}
-.pr-input:active::-webkit-slider-thumb{cursor:grabbing}
-.pr-input:active::-moz-range-thumb{cursor:grabbing}
-.pr-input:focus-visible::-webkit-slider-thumb{outline:2px solid #C2410C;outline-offset:2px}
-.pr-input:focus-visible::-moz-range-thumb{outline:2px solid #C2410C;outline-offset:2px}
-.pr-val{font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-/* Färgskena. Samma mekanik som prisreglaget — ett native range-element ovanpå
-   ett målat spår — men banan är en bandad gradient där varje färg äger ett eget
-   fält. Hårda stopp, inte utsmetat: man ska se var en färg slutar och sikta dit.
-   Handtaget fylls med den valda färgen, så det man drar ÄR svaret. Namnet och
-   antalet står under, eftersom en färg utan namn inte går att förstå för den som
-   inte skiljer nyanser. */
-.colorrail{position:relative;width:100%;min-width:210px;max-width:320px;height:30px}
-.cr-track{position:absolute;top:10px;left:0;right:0;height:10px;border-radius:999px;border:1px solid rgba(28,28,28,.12)}
-.cr-input{position:absolute;top:0;left:0;width:100%;height:30px;margin:0;padding:0;background:none;border:none;pointer-events:none;-webkit-appearance:none;appearance:none}
-.cr-input:focus{outline:none}
-.cr-input::-webkit-slider-runnable-track{background:none;border:none;height:30px}
-.cr-input::-moz-range-track{background:none;border:none;height:30px}
-.cr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;margin-top:4px;border-radius:50%;background:var(--cr-thumb,#fff);border:3px solid #fff;box-shadow:0 0 0 1.5px #C2410C,0 2px 6px rgba(28,28,28,.35);cursor:grab}
-.cr-input::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;border-radius:50%;background:var(--cr-thumb,#fff);border:3px solid #fff;box-shadow:0 0 0 1.5px #C2410C,0 2px 6px rgba(28,28,28,.35);cursor:grab}
-.cr-input:active::-webkit-slider-thumb{cursor:grabbing}
-.cr-input:active::-moz-range-thumb{cursor:grabbing}
-.cr-input:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 1.5px #C2410C,0 0 0 5px rgba(194,65,12,.35)}
-.cr-input:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1.5px #C2410C,0 0 0 5px rgba(194,65,12,.35)}
-.cr-val{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink)}
-.cr-dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(28,28,28,.18);flex:none}
-.cr-n{font-weight:500;opacity:.6;font-variant-numeric:tabular-nums}
-/* Underkategori-chips. Länkar, inte filter — därför utan aria-pressed och utan
-   plats i filterräknaren. */
-.subchips{display:flex;flex-wrap:wrap;gap:8px;max-width:520px}
-.subchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--soft);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;text-decoration:none;transition:border-color .2s,color .2s,background .2s}
-.subchip:hover{border-color:#C2410C;color:#C2410C;background:#FFF1E8}
+.pr-input::-webkit-slider-runnable-track,.cr-input::-webkit-slider-runnable-track{background:none;border:none;height:30px}
+.pr-input::-moz-range-track,.cr-input::-moz-range-track{background:none;border:none;height:30px}
+
+/* Prishandtaget: vit disk med en kärna i accentfärgen (radial-gradient i
+   stället för ett extra element). Två skuggor — en tight som ritar kanten,
+   en mjuk som lyfter. */
+.pr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;
+  margin-top:4px;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,#C2410C 0 4.5px,#fff 4.5px 100%);
+  box-shadow:0 0 0 1px rgba(28,28,28,.13),0 1px 2px rgba(28,28,28,.18),0 7px 16px -7px rgba(28,28,28,.48);
+  cursor:grab;transition:transform .16s cubic-bezier(.2,.7,.2,1)}
+.pr-input::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;border-radius:50%;border:none;
+  background:radial-gradient(circle at 50% 50%,#C2410C 0 4.5px,#fff 4.5px 100%);
+  box-shadow:0 0 0 1px rgba(28,28,28,.13),0 1px 2px rgba(28,28,28,.18),0 7px 16px -7px rgba(28,28,28,.48);
+  cursor:grab;transition:transform .16s cubic-bezier(.2,.7,.2,1)}
+/* Färghandtaget bär den valda färgen, inringat i vitt så det läser mot vilket
+   band som helst. --cr-thumb sätts inline av komponenten. */
+.cr-input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:16px;height:16px;
+  margin-top:7px;border-radius:50%;background:var(--cr-thumb,#fff);
+  box-shadow:0 0 0 3.5px #fff,0 0 0 4.5px rgba(28,28,28,.16),0 3px 10px -2px rgba(28,28,28,.45);
+  cursor:grab;transition:transform .16s cubic-bezier(.2,.7,.2,1)}
+.cr-input::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;border:none;
+  background:var(--cr-thumb,#fff);
+  box-shadow:0 0 0 3.5px #fff,0 0 0 4.5px rgba(28,28,28,.16),0 3px 10px -2px rgba(28,28,28,.45);
+  cursor:grab;transition:transform .16s cubic-bezier(.2,.7,.2,1)}
+.pr-input:active::-webkit-slider-thumb,.cr-input:active::-webkit-slider-thumb{transform:scale(1.10);cursor:grabbing}
+.pr-input:active::-moz-range-thumb,.cr-input:active::-moz-range-thumb{transform:scale(1.10);cursor:grabbing}
+.pr-input:focus-visible::-webkit-slider-thumb,.cr-input:focus-visible::-webkit-slider-thumb{outline:2px solid #C2410C;outline-offset:3px}
+.pr-input:focus-visible::-moz-range-thumb,.cr-input:focus-visible::-moz-range-thumb{outline:2px solid #C2410C;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){
+  .pr-bar{transition:none}
+  .cr-loupe{transition:none}
+  .pr-input::-webkit-slider-thumb,.cr-input::-webkit-slider-thumb{transition:none}
+  .pr-input::-moz-range-thumb,.cr-input::-moz-range-thumb{transition:none}
+}
+
+/* Avläsningarna i display-snittet med tabulära siffror: värdet ändras medan man
+   drar, och proportionella siffror hade fått raden att hoppa i sidled. */
+.pr-val,.cr-val{display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-display),Georgia,serif;font-size:15px;font-weight:600;
+  letter-spacing:-.012em;color:var(--ink);font-variant-numeric:tabular-nums}
+.cr-dot{width:13px;height:13px;border-radius:50%;flex:none;
+  box-shadow:0 0 0 1px rgba(28,28,28,.16),inset 0 1px 1px rgba(255,255,255,.4)}
+.cr-n{font-family:var(--font-sans),system-ui,sans-serif;font-size:12px;font-weight:600;
+  color:var(--soft);letter-spacing:0;font-variant-numeric:tabular-nums}
+
+/* Underkategori-chips: länkar, inte klientfilter — de ger kategorisidorna en
+   crawlbar väg till sina barn samtidigt som kunden får en genväg. */
+.subchips{display:flex;flex-wrap:wrap;gap:8px;max-width:420px}
+.subchip{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;
+  color:var(--soft);background:#fff;border:1.5px solid var(--line);border-radius:999px;
+  padding:7px 13px;text-decoration:none;transition:border-color .2s,color .2s}
+.subchip:hover{border-color:#C2410C;color:var(--ink)}
 .subchip-n{font-weight:500;opacity:.6;font-variant-numeric:tabular-nums}
 .sortsel{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--soft);white-space:nowrap}
 .sortsel select{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;outline:none}

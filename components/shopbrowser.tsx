@@ -166,6 +166,27 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]
     return `linear-gradient(to right, ${stopp.join(", ")})`;
   }, [colorKeys]);
 
+  // Prisfördelningen som histogram bakom reglaget. Räknas ur HELA listan i vyn
+  // och står därför stilla när man filtrerar: räknades den om per filter hade
+  // landskapet rört sig under fingret, och då går det inte att sikta.
+  // Kvadratroten på höjden ger de glesa facken synlig närvaro utan att pucklen
+  // trycker ner dem till en osynlig strimma.
+  const hist = useMemo(() => {
+    if (!bounds) return [];
+    const BINS = 46;
+    const w = (bounds.max - bounds.min) / BINS;
+    const antal = new Array(BINS).fill(0);
+    for (const p of products) {
+      const i = Math.floor((p.priceNum - bounds.min) / w);
+      antal[Math.min(BINS - 1, Math.max(0, i))] += 1;
+    }
+    const topp = Math.max(1, ...antal);
+    return antal.map((n, i) => ({
+      h: Math.max(3, Math.round(Math.sqrt(n / topp) * 44)),
+      mid: bounds.min + (i + 0.5) * w,
+    }));
+  }, [products, bounds]);
+
   const commitPrice = () => setUrlPrice(bounds ? priceSlug(handles[0], handles[1], bounds) : "");
   const dragLo = (v: number) => setHandles(([, hi]) => [Math.min(v, hi - (bounds?.step ?? 1)), hi]);
   const dragHi = (v: number) => setHandles(([lo]) => [lo, Math.max(v, lo + (bounds?.step ?? 1))]);
@@ -273,6 +294,16 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]
                   div:ar; själva inputarna är genomskinliga och släpper igenom
                   klick överallt utom på handtagen (se .pr-input i globals.css). */}
               <div className="pricerange">
+                <div className="pr-hist" aria-hidden="true">
+                  {hist.map((b, i) => (
+                    <div
+                      key={i}
+                      className={`pr-bar ${b.mid >= priceLo && b.mid < priceHi ? "on" : ""}`}
+                      style={{ height: `${b.h}px` }}
+                    />
+                  ))}
+                </div>
+                <div className="pr-base" aria-hidden="true" />
                 <div className="pr-track">
                   <div
                     className="pr-fill"
@@ -332,6 +363,17 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]
                   piltangenter stegar färg för färg utan en rad extra kod.
                   Längst till vänster = alla färger. */}
               <div className="colorrail">
+                {/* Luppen rider med handtaget: färg, namn och antal vid fingret
+                    i stället för i en fottext. */}
+                <div
+                  className={`cr-loupe ${color ? "show" : ""}`}
+                  style={{ left: `${(colorIdx / Math.max(1, colorKeys.length)) * 100}%` }}
+                  aria-hidden="true"
+                >
+                  <span className="cr-dot" style={{ background: colorOf(color) || "#ddd" }} />
+                  {color ? colorLabel(color) : ""}
+                  <span className="cr-n">{colorCounts.get(color) ?? 0}</span>
+                </div>
                 <div className="cr-track" style={{ background: railGradient }} />
                 <input
                   type="range"
