@@ -18,7 +18,12 @@ import type { AliExpressProduct, PricingRules } from "./types";
 
 const { createProduct } = vi.hoisted(() => ({
   createProduct: vi.fn(
-    async (input: { slug?: string; visible?: boolean; variants?: { sku: string }[] }) => ({
+    async (input: {
+      slug?: string;
+      visible?: boolean;
+      ribbonName?: string;
+      variants?: { sku: string }[];
+    }) => ({
       id: "wix-prod-1",
       slug: input.slug || "produkt",
       revision: "1",
