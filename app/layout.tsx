@@ -35,26 +35,78 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
+// Organization + LocalBusiness-hybrid — ger Google både företagsinfo för
+// Knowledge Graph OCH address/opening-hours som kan trigga rich results.
 const orgJsonLd = {
   "@context": "https://schema.org",
-  "@type": "Organization",
+  // Multi-type: Organization + OnlineStore + LocalBusiness. Sistnämnda ger
+  // schema.org-hemvist åt `paymentAccepted` + `currenciesAccepted` (definierade
+  // på LocalBusiness, inte OnlineStore).
+  "@type": ["Organization", "OnlineStore", "LocalBusiness"],
+  "@id": "https://www.fyndplats.se/#organization",
   name: "Fyndplats",
+  alternateName: "Fyndplats.se",
   url: "https://www.fyndplats.se/",
-  logo: "https://www.fyndplats.se/logo.svg",
+  logo: {
+    "@type": "ImageObject",
+    "@id": "https://www.fyndplats.se/#logo",
+    url: "https://www.fyndplats.se/logo.svg",
+    contentUrl: "https://www.fyndplats.se/logo.svg",
+    caption: "Fyndplats",
+  },
+  image: "https://www.fyndplats.se/logo.svg",
   email: "info@fyndplats.com",
   telephone: "+46736630990",
+  description:
+    "Svensk webbutik med noga utvalda fynd inom hem, mode, teknik och fritid. Smarta priser, Klarna och fri frakt över 499 kr.",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Bergviksgatan 10",
+    postalCode: "152 44",
+    addressLocality: "Södertälje",
+    addressRegion: "Stockholms län",
+    addressCountry: "SE",
+  },
+  areaServed: { "@type": "Country", name: "Sweden" },
+  currenciesAccepted: "SEK",
+  paymentAccepted: ["Klarna", "Visa", "Mastercard", "American Express", "Apple Pay", "Google Pay"],
+  vatID: "SE950914403701",  // enskild firma — SE + org.nr (utan bindestreck) + 01
   sameAs: [
     // Google Business Profile — kritisk bidirektionell länk för Knowledge Graph
     "https://maps.google.com/?cid=13527624431203349873",
     "https://www.instagram.com/fyndplats/",
     "https://www.facebook.com/profile.php?id=100089607278056",
   ],
-  contactPoint: {
-    "@type": "ContactPoint",
-    telephone: "+46-736-630-990",
-    contactType: "customer service",
-    areaServed: "SE",
-    availableLanguage: "Swedish",
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      telephone: "+46-736-630-990",
+      contactType: "customer service",
+      email: "info@fyndplats.com",
+      areaServed: "SE",
+      availableLanguage: ["Swedish", "English"],
+    },
+  ],
+};
+
+// WebSite + SearchAction → aktiverar Google Sitelinks Search Box i SERP:en
+// (den där sökrutan under vår resultat-rad). Måste peka på vår interna /sok?q=
+// för att Google ska visa den — se docs.google.com/en/webmasters/sitelinks-searchbox.
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://www.fyndplats.se/#website",
+  url: "https://www.fyndplats.se/",
+  name: "Fyndplats",
+  publisher: { "@id": "https://www.fyndplats.se/#organization" },
+  inLanguage: "sv-SE",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://www.fyndplats.se/sok?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
   },
 };
 
@@ -126,6 +178,7 @@ export default async function RootLayout({
       </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(orgJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(websiteJsonLd) }} />
         <CartProvider>
           <WishlistProvider>
             <ScrollIndicator />

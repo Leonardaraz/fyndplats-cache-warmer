@@ -13,6 +13,12 @@ export default function robots(): MetadataRoute.Robots {
       // (app/sok/page.tsx). Allow + noindex håller sidorna ur indexet korrekt.
       disallow: ["/admin"],
     },
-    sitemap: "https://www.fyndplats.se/sitemap.xml",
+    // Multipla sitemaps: huvud-sitemap (sidor + produkter) + image-sitemap
+    // (produktbilder för Google Bilder). Robots-specifikationen tillåter array,
+    // och Google/Bing plockar båda som separata submissions.
+    sitemap: [
+      "https://www.fyndplats.se/sitemap.xml",
+      "https://www.fyndplats.se/api/feed/image-sitemap.xml",
+    ],
   };
 }
