@@ -240,7 +240,10 @@ export function ProfitabilityDashboard({ report }: Props) {
 }
 
 function Row({ row }: { row: ProfitabilityRow }) {
-  const editorUrl = `https://manage.wix.com/dashboard/${HEADLESS_SITE_ID}/store/products/${row.productId}`;
+  // Sökvägen saknade /product/-segmentet och landade på produktLISTAN i
+  // stället för på produkten (rättat 2026-08-21 — se lib/admin-links.ts,
+  // som äger formatet numera).
+  const editorUrl = `https://manage.wix.com/dashboard/${HEADLESS_SITE_ID}/store/products/product/${row.productId}`;
   const missing = row.costSource === "missing";
   const fallback = row.costSource === "fallback-pct";
   return (

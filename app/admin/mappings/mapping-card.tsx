@@ -13,10 +13,22 @@ interface Props {
   syncIssue?: string;
   /** Orsakstext när produkten är SLUT HOS LEVERANTÖREN — gul badge + kant. */
   oosIssue?: string;
+  /** Live-sidan på fyndplats.se. Tom när produkten saknar slug. */
+  storeUrl?: string;
+  /** Produktens redigeringsvy i Wix-dashboarden. */
+  wixEditUrl?: string;
   onMapped: (wixProductId: string) => void;
 }
 
-export function MappingCard({ product, mapping, syncIssue, oosIssue, onMapped }: Props) {
+export function MappingCard({
+  product,
+  mapping,
+  syncIssue,
+  oosIssue,
+  storeUrl,
+  wixEditUrl,
+  onMapped,
+}: Props) {
   const [pending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(product.name);
   const [urlInput, setUrlInput] = useState("");
@@ -92,6 +104,24 @@ export function MappingCard({ product, mapping, syncIssue, oosIssue, onMapped }:
           <div style={{ fontSize: 12, color: "#666" }}>
             {product.variantCount} varianter · <code>{product.id.slice(0, 8)}</code>
           </div>
+          {/* De två ställen man faktiskt vill till härifrån: kundens vy och
+              redigeringsvyn. Basen kommer som prop — länkarna byggs på servern
+              (lib/admin-links.ts) eftersom site-id och bas-URL är env-styrda och
+              inte finns i webbläsaren. */}
+          {(storeUrl || wixEditUrl) && !justMapped ? (
+            <div style={{ fontSize: 12, marginTop: 3, display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {storeUrl ? (
+                <a href={storeUrl} target="_blank" rel="noreferrer" style={{ color: "#2563eb" }}>
+                  🛒 Se på Fyndplats ↗
+                </a>
+              ) : null}
+              {wixEditUrl ? (
+                <a href={wixEditUrl} target="_blank" rel="noreferrer" style={{ color: "#7c3aed" }}>
+                  ✏️ Redigera i Wix ↗
+                </a>
+              ) : null}
+            </div>
+          ) : null}
           {alreadyMapped && !justMapped ? (
             <div style={{ fontSize: 12, color: "#0a6", marginTop: 4 }}>
               ✓ Källa:{" "}
