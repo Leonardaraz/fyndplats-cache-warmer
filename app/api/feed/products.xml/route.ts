@@ -27,20 +27,31 @@ function availability(p: Product): string {
   return p.inStock ? "in stock" : "out of stock";
 }
 
-// Google Product Feed vill ha "PRIS VALUTA" i ett fält (t.ex. "299.00 SEK").
-// p.priceNum är numeriskt (efter Wix-parsning) — säkrare än att re-parsa p.price
-// (som är förlokaliserat: "299,00 kr").
-function priceField(p: Product): string {
-  if (!Number.isFinite(p.priceNum) || p.priceNum <= 0) return "";
-  return `${p.priceNum.toFixed(2)} SEK`;
-}
-
-// Fristående — för sale_price: parsa p.originalPrice-strängen ("399,00 kr").
-function parseSekAmount(s: string | undefined): number {
+// Parsa en SEK-belopp-sträng ("299,00 kr", "från 299 kr", etc) → number.
+function parseSekAmount(s: string | undefined | null): number {
   if (!s) return 0;
-  const clean = s.replace(/\s/g, "").replace(",", ".").replace(/[^\d.]/g, "");
+  const clean = String(s).replace(/\s/g, "").replace(",", ".").replace(/[^\d.]/g, "");
   const num = Number.parseFloat(clean);
   return Number.isFinite(num) && num > 0 ? num : 0;
+}
+
+// Google Product Feed vill ha "PRIS VALUTA" i ett fält (t.ex. "299.00 SEK").
+// Prova p.priceNum FÖRST (numeriskt, mest exakt), fall tillbaka på priceFrom
+// (för multi-variant-produkter där priceNum inte satts) och sist på price-strängen.
+// Utan denna fallback tappades ~357 av 770 produkter (multi-variant-drabbade).
+function priceField(p: Product): string {
+  let n = 0;
+  if (Number.isFinite(p.priceNum) && p.priceNum > 0) n = p.priceNum;
+  if (n === 0) n = parseSekAmount(p.priceFrom);
+  if (n === 0) n = parseSekAmount(p.price);
+  if (n === 0) return "";
+  return `${n.toFixed(2)} SEK`;
+}
+
+// Effektivt pris för sale-jämförelse (samma fallback-kedja som ovan, som number).
+function effectivePriceNum(p: Product): number {
+  if (Number.isFinite(p.priceNum) && p.priceNum > 0) return p.priceNum;
+  return parseSekAmount(p.priceFrom) || parseSekAmount(p.price);
 }
 
 // Alla bilder får skickas — Google använder max 10 för produktvisning.
@@ -73,10 +84,11 @@ function buildItem(p: Product): string {
 
   // Google-spec: <g:price> = ordinariepris, <g:sale_price> = temporärt rea-pris.
   // Vid rea: skicka BÅDA (med olika värden). Utan rea: skicka bara <g:price>.
-  // Trigger på origNum > priceNum (inte p.onSale) — flaggan kan vara stale i data,
-  // men prisdiff är fakta.
+  // Trigger på origNum > effectivePrice (inte p.onSale) — flaggan kan vara stale
+  // i data, men prisdiff är fakta.
+  const priceNum = effectivePriceNum(p);
   const origNum = parseSekAmount(p.originalPrice);
-  const hasSale = origNum > p.priceNum;
+  const hasSale = origNum > priceNum;
   const regularPrice = hasSale ? `${origNum.toFixed(2)} SEK` : salePrice;
 
   // Frivilliga fält som förbättrar visningen
@@ -100,7 +112,7 @@ function buildItem(p: Product): string {
     <g:shipping>
       <g:country>SE</g:country>
       <g:service>Standard</g:service>
-      <g:price>${p.priceNum >= 499 ? "0.00 SEK" : "49.00 SEK"}</g:price>
+      <g:price>${priceNum >= 499 ? "0.00 SEK" : "49.00 SEK"}</g:price>
     </g:shipping>
   </item>`;
 }
