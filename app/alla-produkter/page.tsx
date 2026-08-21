@@ -1,4 +1,6 @@
-import { getProducts, getCollections, sortByNewest, forListings } from "../../lib/products";
+import { getProducts, getCollections, forListings } from "../../lib/products";
+import { currentDayMs, orderRecommended } from "../../lib/sort-products";
+import { universalCollectionIds } from "../../lib/related-pick";
 import { jsonLdString } from "../../lib/seo";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { attachRatings } from "../../lib/review-aggregates";
@@ -18,12 +20,19 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
   const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const active = collections.find((c) => c.slug === kategori);
-  // Nyast först (Leonard 2026-06-14): senast importerade produkter överst, både i
-  // hela sortimentet och inom en vald kategori. Ersätter den tidigare kategori-
-  // mixen på den här sidan.
-  const list = await attachRatings(
-    sortByNewest(active ? products.filter((p) => p.collectionIds?.includes(active.id)) : products),
+  // Rekommenderat är sidans standardordning (Leonard 2026-08-21) — samma som
+  // ShopBrowsers defaultSort "img", och samma som kategorisidorna redan hade.
+  // Ersätter Nyast, som sorterade på importdatum: hela katalogen är importerad
+  // juni–augusti 2026, så "nyast" särskilde knappt något.
+  //
+  // Ordningen förberäknas här, med EXAKT samma indata som klientens useMemo
+  // räknar om den med, annars kastas rutnätet om inför ögonen vid hydrering.
+  // attachRatings MÅSTE därför köra FÖRE orderRecommended: recommendedScore
+  // läser p.rating, och gör den det på en olik lista blir ordningen en annan.
+  const rated = await attachRatings(
+    active ? products.filter((p) => p.collectionIds?.includes(active.id)) : products,
   );
+  const list = orderRecommended(rated, universalCollectionIds(rated), currentDayMs());
 
   // JSON-LD: CollectionPage + BreadcrumbList (samma mönster som /butik) så Google
   // förstår att detta är en produktlistning. När ?kategori= är aktiv beskriver
@@ -85,7 +94,7 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
         <div className="container">
           <CategoryDropdown products={products} collections={collections} activeSlug={active?.slug} />
 
-          <ShopBrowser products={list} defaultSort="new" />
+          <ShopBrowser products={list} />
 
           {/* Crawlbart A–Ö-index över HELA sortimentet: gridden ovan visar 24
               (perf-gräns) och "Visa fler" är en JS-knapp — utan denna lista

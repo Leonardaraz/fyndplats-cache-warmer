@@ -42,6 +42,19 @@ export function createdAtMs(p: SortableProduct): number {
   return v > 1e14 ? v / 1000 : v;
 }
 
+/**
+ * "Nu", avrundat till dygn.
+ *
+ * recommendedScore väger in färskhet. Med sekundprecision hade servern och
+ * klienten räknat fram två olika poäng för samma sidladdning, och rutnätet
+ * hade kastats om inför ögonen vid hydrering. Funktionen bor här, hos poängen
+ * som läser den, så varje anropare får samma upplösning utan att behöva minnas
+ * varför.
+ */
+export function currentDayMs(): number {
+  return Math.floor(Date.now() / 86_400_000) * 86_400_000;
+}
+
 /** Stabil sista-instans-ordning så listan aldrig hoppar mellan renderingar. */
 function tieBreak(a: SortableProduct, z: SortableProduct): number {
   return (z.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(z.id ?? ""));

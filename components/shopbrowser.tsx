@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
-import { orderRecommended, orderPopular } from "../lib/sort-products";
+import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
 import { universalCollectionIds } from "../lib/related-pick";
 import {
   formatPrice,
@@ -46,8 +46,10 @@ const SORTS = [
   // sorterade på var 60 för samtliga produkter → tre val gav samma ordning
   // (Leonard 2026-08-08).
   { v: "img", label: "Rekommenderat" },
-  // "new" = nyast importerade först (createdAt desc). Standard på /alla-produkter
-  // via defaultSort-propen (Leonard 2026-06-14); valbart överallt.
+  // "new" = nyast importerade först (createdAt desc). Var standard på
+  // /alla-produkter 2026-06-14 → 2026-08-21; numera valbart, inte förvalt.
+  // Hela katalogen är importerad juni–augusti 2026, så ordningen särskilde
+  // knappt något — Rekommenderat är standard överallt nu.
   { v: "new", label: "Nyast" },
   { v: "pop", label: "Populärast" },
   { v: "price-asc", label: "Pris: lågt → högt" },
@@ -125,7 +127,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
     // (sekund-precision hade gett hydration-hopp i Rekommenderat-poängen).
-    const dayMs = Math.floor(Date.now() / 86_400_000) * 86_400_000;
+    const dayMs = currentDayMs();
     // Rekommenderat blandar kategorier; Populärast rankar produkter med
     // signal (egna sälj + omdömen) rakt av och blandar bara svansen (Leonard
     // 2026-08-16 resp. 2026-08-18). Omdömessignalen läses ur p.rating, som
