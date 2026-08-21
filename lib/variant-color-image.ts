@@ -99,6 +99,45 @@ export function colorKeysOf(text: string): Set<string> {
   return keys;
 }
 
+type ChoiceLike = { name?: string | null; visible?: boolean | null };
+type OptionLike = { choicesSettings?: { choices?: ChoiceLike[] | null } | null };
+
+/**
+ * Kanoniska färgnycklar ur en produkts V3-options — underlaget för färgfiltret
+ * på listsidorna (hämtningen ligger i lib/product-colors.ts).
+ *
+ * Vi läser VÄRDET, inte optionsnamnet. Katalogen har färger under "Färg" (99
+ * produkter), "Variant" (49), "Metallfärg", "Color" och "Artikel", och värdena
+ * är ofta inte rena färgord: "1-pack Borstad silver", "6mm Stil D". colorKeysOf
+ * ovan avgör därför saken, med samma böjnings-medvetna ordlista som
+ * variantväljaren använder — en egen lista här hade garanterat glidit isär.
+ *
+ * Ordningen är butikens (första förekomsten vinner), inte bokstavsordning, så
+ * färgprickarna hamnar som valen är upplagda.
+ */
+export function colorKeysFromOptions(options: OptionLike[] | null | undefined): string[] {
+  const keys: string[] = [];
+  const seen = new Set<string>();
+  for (const opt of options || []) {
+    for (const choice of opt?.choicesSettings?.choices || []) {
+      if (choice?.visible === false) continue;
+      const namn = typeof choice?.name === "string" ? choice.name : "";
+      if (!namn) continue;
+      for (const key of colorKeysOf(namn)) {
+        if (seen.has(key)) continue;
+        seen.add(key);
+        keys.push(key);
+      }
+    }
+  }
+  return keys;
+}
+
+/** Färgnyckel → visningsnamn. Nycklarna ÄR svenska basord ("svart", "vinröd"). */
+export function colorLabel(key: string): string {
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
 function intersects(a: Set<string>, b: Set<string>): boolean {
   for (const x of a) if (b.has(x)) return true;
   return false;

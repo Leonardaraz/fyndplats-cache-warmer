@@ -8,6 +8,7 @@ import local from "../products.json";
 import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { getSoldUnits } from "./popularity";
+import { getProductColors } from "./product-colors";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 import { linkVariantImagesByAltText, colorOf } from "./variant-color-image";
 import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
@@ -72,6 +73,10 @@ export type Product = {
   // Driver "Populärast" och väger tyngst i "Rekommenderat". 0 = ingen försäljning
   // (eller orderdata otillgänglig — sorteringen faller då tillbaka på nyhet).
   popularity: number;
+  /** Kanoniska färgnycklar ("svart", "vinröd") för färgfiltret. Hämtas från V3
+   *  som sidovagn (lib/product-colors.ts) eftersom V1-listan plattar bort
+   *  optionsnamnen. undefined = ingen färgdata; [] förekommer aldrig. */
+  colors?: string[];
   // Betygssammandrag för produktkortet. Sätts INTE av produkthämtningen utan av
   // attachRatings() (lib/review-aggregates.ts) i serverkomponenten, precis innan
   // listan skickas vidare — så att recensionerna aldrig kopplas in i den heta
@@ -473,6 +478,15 @@ async function fetchProducts(): Promise<Product[]> {
       const sold = await getSoldUnits();
       if (sold.size) for (const p of unique) p.popularity = sold.get(p.id) ?? 0;
     } catch { /* popularitet får aldrig fälla produktlistan */ }
+    // Färgval (V3-sidovagn) → färgfiltret på listsidorna. Samma fail-open:
+    // uteblir datan renderas facetten helt enkelt inte.
+    try {
+      const colors = await getProductColors();
+      if (colors.size) for (const p of unique) {
+        const keys = colors.get(p.id);
+        if (keys?.length) p.colors = keys;
+      }
+    } catch { /* färger får aldrig fälla produktlistan */ }
     console.log(`[wix] live products loaded: ${unique.length}${unique.length !== mapped.length ? ` (deduped from ${mapped.length})` : ""}`);
     // CACHA ALDRIG EN KAPAD KATALOG. productsPromise lever hela lambdans
     // livstid, så en degraderad hämtning frös förr det lägre antalet tills

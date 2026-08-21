@@ -885,6 +885,18 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
 .pr-input:focus-visible::-webkit-slider-thumb{outline:2px solid #C2410C;outline-offset:2px}
 .pr-input:focus-visible::-moz-range-thumb{outline:2px solid #C2410C;outline-offset:2px}
 .pr-val{font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+/* Färgfacett. Pricken bär färgen, texten bär namnet — en prick ensam går inte
+   att förstå för den som inte ser färg, och räknaren står ut så kunden ser hur
+   många träffar valet ger INNAN klicket. Nollträff dimmas men disablas aldrig:
+   att disabla en fokuserad knapp tappar fokus. */
+.colorfacet{display:flex;flex-wrap:wrap;gap:8px;max-width:420px}
+.cswatch{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--soft);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:6px 12px 6px 7px;cursor:pointer;transition:border-color .2s,color .2s,background .2s}
+.cswatch:hover{border-color:#C2410C;color:var(--ink)}
+.cswatch.active{background:#FFF1E8;border-color:#C2410C;color:#C2410C}
+.cswatch.empty{opacity:.45}
+.cswatch-dot{width:16px;height:16px;border-radius:50%;border:1px solid rgba(28,28,28,.18);flex:none}
+.cswatch-n{font-weight:500;opacity:.6;font-variant-numeric:tabular-nums}
+.cswatch.active .cswatch-n{opacity:.8}
 .sortsel{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--soft);white-space:nowrap}
 .sortsel select{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;outline:none}
 .sortsel select:focus{border-color:var(--orange)}

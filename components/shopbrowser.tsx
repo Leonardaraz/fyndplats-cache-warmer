@@ -3,6 +3,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
+import { colorLabel, colorOf } from "../lib/variant-color-image";
 import { universalCollectionIds } from "../lib/related-pick";
 import {
   formatPrice,
@@ -92,6 +93,9 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     const h = handlesFromSlug(bounds, sp.get("pris"));
     return bounds ? priceSlug(h[0], h[1], bounds) : "";
   });
+  // Valda färger som kommaseparerad sträng — primitiv, så effekternas
+  // dep-arrayer inte får ny identitet varje render.
+  const [colorCsv, setColorCsv] = useState(() => sp.get("farg") ?? "");
   const [onlyInStock, setOnlyInStock] = useState(() => sp.get("lager") === "1");
   const [onlyOnSale, setOnlyOnSale] = useState(() => sp.get("rea") === "1");
   const [open, setOpen] = useState(false); // mobile-collapsible filter panel
@@ -103,13 +107,14 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     const params = new URLSearchParams(window.location.search);
     if (sort !== defaultSort) params.set("sortera", sort); else params.delete("sortera");
     if (urlPrice) params.set("pris", urlPrice); else params.delete("pris");
+    if (colorCsv) params.set("farg", colorCsv); else params.delete("farg");
     if (onlyInStock) params.set("lager", "1"); else params.delete("lager");
     if (onlyOnSale) params.set("rea", "1"); else params.delete("rea");
     const qs = params.toString();
     const url = qs ? `${pathname}?${qs}` : pathname;
     const current = window.location.pathname + window.location.search;
     if (url !== current) router.replace(url, { scroll: false });
-  }, [sort, urlPrice, onlyInStock, onlyOnSale, pathname, router]);
+  }, [sort, urlPrice, colorCsv, onlyInStock, onlyOnSale, pathname, router]);
 
   // Prisfiltrets gränser. Handtagen filtrerar direkt (räknaren följer med under
   // draget); URL:en hinner ikapp när man släpper.
@@ -117,12 +122,43 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
   const priceHi = bounds ? upperLimit(handles[1], bounds) : Infinity;
   const priceActive = Boolean(bounds && priceSlug(handles[0], handles[1], bounds));
 
+  // Färgfacetten. Nycklarna hängs på server-side (lib/product-colors) och
+  // saknas helt när Wix-nyckeln inte är satt — då blir listan tom och gruppen
+  // renderas inte alls.
+  const colorKeys = useMemo(() => {
+    const antal = new Map<string, number>();
+    for (const p of products) for (const k of p.colors || []) antal.set(k, (antal.get(k) ?? 0) + 1);
+    // Minst två distinkta färger, annars är det inget att välja mellan.
+    return antal.size >= 2 ? [...antal.keys()].sort((a, z) => (antal.get(z) ?? 0) - (antal.get(a) ?? 0) || a.localeCompare(z, "sv")) : [];
+  }, [products]);
+  const valdaFarger = useMemo(() => new Set(colorCsv.split(",").filter(Boolean)), [colorCsv]);
+  // Antalet i varje prick räknas ur listan filtrerad på de ANDRA facetterna.
+  // Drar man i prisreglaget ändras färgernas antal; väljer man en färg gör de
+  // det inte. Utan siffran hade kunden fått upptäcka efter klicket att bara en
+  // bråkdel av sortimentet har en färg angiven alls.
+  const colorCounts = useMemo(() => {
+    const antal = new Map<string, number>();
+    for (const p of products) {
+      if (p.priceNum < priceLo || p.priceNum >= priceHi) continue;
+      if (onlyInStock && !p.inStock) continue;
+      if (onlyOnSale && !p.onSale) continue;
+      for (const k of p.colors || []) antal.set(k, (antal.get(k) ?? 0) + 1);
+    }
+    return antal;
+  }, [products, priceLo, priceHi, onlyInStock, onlyOnSale]);
+  const toggleColor = (key: string) => {
+    const next = new Set(valdaFarger);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    setColorCsv([...next].join(","));
+  };
+
   const commitPrice = () => setUrlPrice(bounds ? priceSlug(handles[0], handles[1], bounds) : "");
   const dragLo = (v: number) => setHandles(([, hi]) => [Math.min(v, hi - (bounds?.step ?? 1)), hi]);
   const dragHi = (v: number) => setHandles(([lo]) => [lo, Math.max(v, lo + (bounds?.step ?? 1))]);
 
   const list = useMemo(() => {
     let out = products.filter((p) => p.priceNum >= priceLo && p.priceNum < priceHi);
+    if (valdaFarger.size) out = out.filter((p) => p.colors?.some((k) => valdaFarger.has(k)));
     if (onlyInStock) out = out.filter((p) => p.inStock);
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
@@ -143,7 +179,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
     return out;
-  }, [products, sort, priceLo, priceHi, onlyInStock, onlyOnSale]);
+  }, [products, sort, priceLo, priceHi, valdaFarger, onlyInStock, onlyOnSale]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,
@@ -151,10 +187,11 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
   const hasOos = useMemo(() => products.some((p) => !p.inStock), [products]);
   // En dold reglage får inte spöka i filterräknaren ("1 aktivt filter" utan att
   // något syns) om en gammal delad länk bär ?lager=1.
-  const activeFilters = (priceActive ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
+  const activeFilters = (priceActive ? 1 : 0) + (valdaFarger.size ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0);
   const reset = () => {
     if (bounds) setHandles([bounds.min, bounds.max]);
     setUrlPrice("");
+    setColorCsv("");
     setOnlyInStock(false);
     setOnlyOnSale(false);
   };
@@ -169,7 +206,7 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
     // bevarad scroll-position direkt vid mount.
     if (firstRender.current) { firstRender.current = false; return; }
     setShown(PAGE_SIZE);
-  }, [sort, urlPrice, onlyInStock, onlyOnSale, products]);
+  }, [sort, urlPrice, colorCsv, onlyInStock, onlyOnSale, products]);
   const visible = list.slice(0, shown);
   const remaining = list.length - visible.length;
 
@@ -250,6 +287,33 @@ function ShopBrowserInner({ products, defaultSort }: { products: Product[]; defa
                   ? priceRangeLabel(handles[0] <= bounds.min ? 0 : handles[0], upperLimit(handles[1], bounds))
                   : "Alla priser"}
               </span>
+            </div>
+          )}
+
+          {colorKeys.length > 0 && (
+            <div className="filter-group">
+              <span className="filter-label">Färg</span>
+              <div className="colorfacet" role="group" aria-label="Filtrera på färg">
+                {colorKeys.map((key) => {
+                  const n = colorCounts.get(key) ?? 0;
+                  const vald = valdaFarger.has(key);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`cswatch ${vald ? "active" : ""} ${n === 0 ? "empty" : ""}`}
+                      aria-pressed={vald}
+                      aria-label={`${colorLabel(key)} (${n} produkter)`}
+                      title={`${colorLabel(key)} · ${n}`}
+                      onClick={() => toggleColor(key)}
+                    >
+                      <span className="cswatch-dot" style={{ background: colorOf(key) || "#ddd" }} aria-hidden="true" />
+                      <span className="cswatch-txt">{colorLabel(key)}</span>
+                      <span className="cswatch-n" aria-hidden="true">{n}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
