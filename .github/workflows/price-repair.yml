@@ -1,0 +1,165 @@
+name: Priser — rätta varianter som delar inköpspris
+
+# Samma upplägg som recensionsöversättningen: produktionen har Wix-nycklarna,
+# GitHub Actions har CRON_SECRET, och de möts här. Ingen hemlighet passerar
+# chatten, så en Claude-session kan köra hela jobbet utan att någonsin se dem.
+#
+# TVÅ LÄGEN, MEDVETET ÅTSKILDA:
+#   scan  — torrkörning. Skriver INGENTING. Lägger planen i grenen som
+#           tools/price-repair/scan-latest.json: variant för variant, gammalt
+#           pris → nytt pris, ny marginal.
+#   apply — verkställer, men bara för de id:n du räknar upp. Det finns ingen
+#           "kör allt"-flagga: listan med id:n ÄR kvitteringen på att någon
+#           läst planen. Kopiera fältet `wixProductIds` ur scan-svaret.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "scan = torrkörning (skriver inget) · apply = skriv de nya priserna"
+        required: true
+        default: "scan"
+        type: choice
+        options:
+          - scan
+          - apply
+      limit:
+        description: "scan: antal kandidater att slå upp denna körning"
+        required: false
+        default: "25"
+        type: string
+      wix_product_id:
+        description: "scan: granska EN produkt (lämna tomt för hela katalogen)"
+        required: false
+        default: ""
+        type: string
+      product_ids:
+        description: 'apply: JSON-array med id:n, t.ex. ["abc-123","def-456"]'
+        required: false
+        default: ""
+        type: string
+      min_margin:
+        description: "Golv för nyräknad marginal i procent — under detta blockeras produkten"
+        required: false
+        default: "10"
+        type: string
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    # Planen och svaret committas till grenen (se nedan) — det kräver skrivrätt.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Kör
+        env:
+          # VIA MILJÖN, inte via ${{ }} inuti skriptet. Interpolerad direkt i
+          # bash bryts kommandot av den första apostrofen i ett produktnamn —
+          # och det vore dessutom en injektionsväg.
+          MODE: ${{ inputs.mode }}
+          LIMIT: ${{ inputs.limit }}
+          WIX_PRODUCT_ID: ${{ inputs.wix_product_id }}
+          PRODUCT_IDS: ${{ inputs.product_ids }}
+          MIN_MARGIN: ${{ inputs.min_margin }}
+        run: |
+          set -euo pipefail
+          base="${{ secrets.POLL_TRACKING_URL }}"
+          base="${base%/api/cron/poll-tracking}/api/cron/price-repair"
+
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          mkdir -p tools/price-repair
+
+          if [ "$MODE" = "scan" ]; then
+            q="limit=${LIMIT}&minMargin=${MIN_MARGIN}"
+            if [ -n "$WIX_PRODUCT_ID" ]; then
+              q="${q}&wixProductId=$(printf '%s' "$WIX_PRODUCT_ID" | jq -sRr @uri)"
+            fi
+            body=$(curl -sS -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "${base}?${q}")
+            ok=$(printf '%s' "$body" | jq -r '.ok // false')
+            if [ "$ok" != "true" ]; then
+              echo "::error::Torrkörningen misslyckades: $(printf '%s' "$body" | head -c 400)"
+              exit 1
+            fi
+            # Nycklarna har å/ä/ö — jq kräver citattecken runt dem, annars blir
+            # det "syntax error, unexpected INVALID_CHARACTER".
+            echo "Kandidater: $(printf '%s' "$body" | jq -r '.kandidater')"
+            echo "Uppslagna:  $(printf '%s' "$body" | jq -r '.uppslagna')"
+            echo "Att rätta:  $(printf '%s' "$body" | jq -r '.["produkterAttRätta"]') produkter, $(printf '%s' "$body" | jq -r '.["varianterAttRätta"]') varianter"
+            printf '%s' "$body" | jq '.' > tools/price-repair/scan-latest.json
+
+            {
+              echo "### Prisreparation — torrkörning"
+              echo ""
+              echo "- Kandidater: **$(printf '%s' "$body" | jq -r '.kandidater')**"
+              echo "- Produkter att rätta: **$(printf '%s' "$body" | jq -r '.["produkterAttRätta"]')**"
+              echo "- Varianter att rätta: **$(printf '%s' "$body" | jq -r '.["varianterAttRätta"]')**"
+              echo ""
+              echo '```json'
+              printf '%s' "$body" | jq -c '.wixProductIds'
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            git add tools/price-repair/scan-latest.json
+            if git diff --cached --quiet; then
+              echo "Planen oförändrad sedan förra körningen."
+            else
+              git commit -m "Prisreparation: torrkörning ($(printf '%s' "$body" | jq -r '.["varianterAttRätta"]') varianter)"
+              git push origin HEAD:"${GITHUB_REF_NAME}"
+            fi
+            exit 0
+          fi
+
+          # apply
+          if [ -z "$PRODUCT_IDS" ]; then
+            echo "::error::apply utan product_ids — kör scan först och klistra in listan därifrån."
+            exit 1
+          fi
+          if ! printf '%s' "$PRODUCT_IDS" | jq -e 'type == "array"' >/dev/null 2>&1; then
+            echo "::error::product_ids måste vara en JSON-array, t.ex. [\"abc-123\"]."
+            exit 1
+          fi
+          kropp=$(printf '%s' "$PRODUCT_IDS" | jq -c --argjson mm "${MIN_MARGIN}" '{wixProductIds: ., minMargin: $mm}')
+          svar=$(printf '%s' "$kropp" | curl -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --data-binary @- "$base")
+
+          # SVARET SKRIVS TILL GRENEN, även när det gick fel. Utan det syns
+          # utfallet bara i Actions-loggen, och den kräver att man först slår
+          # upp körnings- och jobb-id via API:t (2026-08-20: en omgång som tyst
+          # inte skrevs in tog en hel extra runda att ens upptäcka).
+          printf '%s' "$svar" | jq '.' > tools/price-repair/last-apply.json 2>/dev/null \
+            || printf '%s' "$svar" > tools/price-repair/last-apply.json
+          git add tools/price-repair/last-apply.json
+          git diff --cached --quiet || {
+            git commit -m "Prisreparation: apply-svar"
+            git push origin HEAD:"${GITHUB_REF_NAME}" || true
+          }
+
+          ok=$(printf '%s' "$svar" | jq -r '.ok // false')
+          if [ "$ok" != "true" ]; then
+            echo "::error::Skrivningen misslyckades: $(printf '%s' "$svar" | head -c 400)"
+            exit 1
+          fi
+
+          produkter=$(printf '%s' "$svar" | jq -r '.["rättadeProdukter"]')
+          varianter=$(printf '%s' "$svar" | jq -r '.["rättadeVarianter"]')
+          echo "Rattade: $produkter produkter, $varianter varianter"
+          printf '%s' "$svar" | jq -c '.hoppade'
+
+          {
+            echo "### Prisreparation — skarpt läge"
+            echo ""
+            echo "- Rättade produkter: **$produkter**"
+            echo "- Rättade varianter: **$varianter**"
+            echo "- Hoppade över: **$(printf '%s' "$svar" | jq -r '.hoppade | length')**"
+          } >> "$GITHUB_STEP_SUMMARY"
