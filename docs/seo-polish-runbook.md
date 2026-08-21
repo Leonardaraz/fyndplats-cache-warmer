@@ -1058,6 +1058,37 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 >
 > **Blir bara EN variant kvar → kollapsa hela optionen till en enkel-variant-produkt** (inte en option med ett enda val — ful dropdown). PATCH: `options:[]` + `variantsInfo.variants:[{ id:<behållna variantens id>, choices:[], sku, price, inventoryStatus }]` (V3 accepterar det; SKU blir `FP-<produkt>` utan variant-del). Byt **också** ut ev. feature-/hjältebilder som visar den BORTTAGNA variantens exemplar (t.ex. ett urklipp gjort ur den slutsålda modellens bild) mot den kvarvarande variantens — annars visar galleriet en produkt kunden inte kan köpa. Ta bort "två storlekar"/"Typ A/B"-språk ur namn, meta, beskrivning och FAQ.
 
+**D) Ta bort variantvärden vi inte får sälja till en svensk kund.** Elprodukter från
+AliExpress listas nästan alltid med en **uttags-/spänningsaxel** — `Kontakttyp: EU/US/UK/AU/KR`,
+`Spänning: 110 V / 220-240V`, `Kontakt: 100V-240V UK-kontakt`. Bara EU-värdet är säljbart här:
+UK är Type G, US/AU har fel stift, och 110 V-varianten är fel nät. Behåll **EU-värdet och
+ingenting annat**, oavsett hur mycket lager syskonen har.
+
+> Detta är en **variant**-regel, inte en produktregel — produkten stannar, axeln försvinner.
+> Kollapsa enligt regeln ovan: uttagsaxeln har i praktiken alltid exakt ETT EU-värde, så hela
+> axeln ska bort, inte reduceras till en dropdown med ett val. Övriga axlar (Färg, Modell,
+> Paket) lämnas orörda.
+>
+> **Priset följer med och det är hela poängen:** EU-varianten är ofta billigare än syskonen
+> (köksmaskin 6 L 1889 vs 1989 kr, kaffekvarn CG210 **1239 vs 1719 kr**, köksmaskin 7 L 2199
+> vs 2809 kr). Skicka därför den överlevande variantens EGNA `price` i PATCH:en — inte
+> produktens gamla intervall.
+>
+> ☠️ **Två följdsteg som INTE sker av sig själva:**
+> 1. **Lagerposterna raderas** när optionen tas bort, och den överlevande varianten får ett
+>    **nytt** `variantId` utan lagerpost (= slutsåld i butiken). Läs saldona FÖRE PATCH:en och
+>    `POST /stores/v3/inventory-items` per ny variant efteråt (`locationId` från en befintlig
+>    post). Wix städar själv de föräldralösa posterna — de behöver inte raderas.
+> 2. **Mappningsraden pekar fel.** `FyndplatsMappings.variants[]` har kvar en rad per borttagen
+>    variant, och den överlevandes `wixVariantId` är dött → en order skulle gå på fel eller
+>    inget leverantörs-SKU. Matcha nya varianter mot mappningsraderna på **`sku`** (det överlever
+>    PATCH:en), släng raderna utan träff, sätt nytt `wixVariantId` och stryk den borttagna axeln
+>    ur `choices`. `PATCH /wix-data/v2/items/{id}` med
+>    `fieldModifications:[{fieldPath:"variants",action:"SET_FIELD",setFieldOptions:{value:[…]}}]`.
+>
+> *(Svepet 2026-08-21: 22 nyimporterade köksmaskiner, 21 av dem med uttagsaxel — 123 varianter
+> ned till 37. Utan regeln hade en svensk kund kunnat beställa en 110 V-juicer med US-stickpropp.)*
+
 -----
 
 ## Klart-kriterium (checklista före publicering)
@@ -1067,6 +1098,7 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
 **Text**
 - Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inkl. kvalificeraren. Inget dropship-märke kvar (etablerade märken som Pagani Design/LAIKOU behålls).
 - Sökordet **krockar inte** med en annan produkt i katalogen (Steg 0).
+- Elprodukt: **ingen uttags-/spänningsaxel kvar** med US/UK/AU/KR eller 110 V (Steg 6D), och varje kvarvarande variant har både lagerpost och mappningsrad.
 - Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
