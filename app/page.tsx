@@ -253,11 +253,11 @@ export default async function Home() {
                 <a className="btn btn-ghost" href="/butik">Se alla kategorier</a>
               </div>
               <div className="herotrust">
-                <span><b style={{ color: "#C2410C" }}>🇪🇺</b> <a href="/blogg/nya-tullreglerna-2026-eu-lager" style={{ color: "inherit", textDecorationColor: "rgba(43,38,33,.32)", textUnderlineOffset: "2px" }}>Allt från EU-lager – ingen importtull</a></span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> Google {proof.rating}★ ({proof.label})</span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> Svensk kundtjänst</span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> 30 dagars öppet köp</span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> Spårbar leverans</span>
+                <span><b style={{ color: "#C2410C" }}>🇪🇺</b> <a href="/blogg/nya-tullreglerna-2026-eu-lager">Allt från EU-lager – ingen importtull</a></span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> <a href="/omdomen">Google {proof.rating}★ ({proof.label})</a></span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> <a href="/kundtjanst">Svensk kundtjänst</a></span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> <a href="/returer">30 dagars öppet köp</a></span>
+                <span><b style={{ color: "#C2410C" }}>✓</b> <a href="/sparning">Spårbar leverans</a></span>
               </div>
             </div>
             <div className="heromosaic">
