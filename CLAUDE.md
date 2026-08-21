@@ -99,6 +99,67 @@ finns kvar som en *rådgivande* varning i tillägget och fångar dessutom det sp
 inte kan se: samma fysiska produkt såld under en **annan** listning. Den varningen
 går att klicka förbi — så den ersätter inte spärren, den kompletterar den.
 
+## Varianter får inte dela inköpspris utan täckning
+
+Tilläggets DOM-fallback sätter sidans **synliga** pris på alla varianter när den
+inte kommer åt per-SKU-datan. Leonards rapport 2026-08-20: ett 4-pack och ett
+6-pack båda 589 kr, två spegelstorlekar båda 1279 kr — den dyra varianten såldes
+till den billigas pris. Tre lager täcker det nu, och de gör olika saker:
+
+1. **Spärren** (`lib/import/price-trust.ts`, i pipelinen). Flaggar **precis** när
+   båda gäller: fler än en variant delar exakt samma inköpspris **och** vi saknar
+   per-SKU-data bakom dem. Produkten hålls som utkast med `priceUnverified` +
+   badge i `/admin/queue`. Att alla varianter kostar lika mycket är i sig
+   fullkomligt normalt (färgvarianter gör nästan alltid det) — det är *obekräftat*
+   delat pris som är defekten. Spärren gissar aldrig fram ett pris.
+2. **DS-räddningen i tillägget** (`extension/background.js → dsRescueVariants`,
+   0.1.41). Utlöses på `dom-`-varianter i både agent- och bulkvägen. `idx-`
+   räknas **medvetet inte** — de bär redan korrekta per-variant-priser, bara
+   id:t saknades. Räddningen tömmer `swatchImages`; den bygger dem **inte** om
+   (DS:s `imageUrl` är per SKU, inte per värde). Servern äger ombyggnaden.
+3. **Efterhands-reparationen** (`lib/import/price-repair.ts` +
+   `/api/cron/price-repair`) för produkter som redan ligger felprissatta.
+
+### Så körs reparationen
+
+GitHub Actions-workflowen **"Priser — rätta varianter som delar inköpspris"**,
+samma nyckel-lösa upplägg som recensionsöversättningen (produktionen har
+Wix-nycklarna, Actions har `CRON_SECRET`).
+
+| Läge | Vad som händer |
+|---|---|
+| `scan` | Torrkörning. Skriver ingenting. Planen läggs i `tools/price-repair/scan-latest.json` |
+| `apply` | Skriver — **bara** för de `wixProductIds` du räknar upp |
+
+Det finns **ingen "kör allt"-flagga** i apply-läget. Listan med id:n är
+kvitteringen på att en människa läst planen; ett pris som når kund ska ha
+passerat ögon. Kopiera fältet `wixProductIds` ur scan-svaret.
+
+**Tre fält skrivs per rättad variant, aldrig bara det första:** `grossSek` (Wix),
+`costUsd` och `landedCostSek` (mappningen). Det sista är lätt att glömma och
+värst att missa — lönsamhetsöversikten och **auktionens golvbud**
+(`lib/auction/seed.ts → netSupplierCost`) läser båda det fältet, så rättas bara
+priset ser marginalen fantastisk ut och auktionen kan sälja under inköp.
+
+Fyra egenskaper som inte ska tas bort:
+
+- **Oförändrat inköpspris → varianten rörs inte alls.** Blast-radien blir exakt
+  defekten, och det är också vad som gör en bred kandidatsökning ofarlig: säger
+  DS att priserna verkligen är lika blir planen tom.
+- **Bara matchning på skuId.** Värdesignatur-matchning (`mapping-repair.ts`) är
+  en gissning, och en felgissning här skriver ett pris till kund. Syntetiska id
+  rapporteras omatchade — kör mappnings-reparationen i `/admin/mappings` först.
+- **Marginalgolv + tak på prisändring** blockerar HELA produkten, aldrig bara en
+  variant. Ett halvrättat pris är svårare att upptäcka än ett helt orört.
+- **Wix skrivs före mappningen.** Går bara den ena igenom står kunden inför rätt
+  pris medan bokföringen är gammal (nästa körning rättar det). Omvänd ordning
+  hade gjort mappningen "rättad" medan kunden köper till fel pris — och då
+  hittar ingen felet igen.
+
+Rutten varnar också när prisreglerna hunnit ändras sedan importen: de rättade
+varianterna får dagens påslag medan de orörda behåller sitt. Vill du ha ett
+enhetligt påslag är omimport rätt väg, inte reparationen.
+
 ## Lagerlandet är en del av SKU:n — och lagret tar slut per land
 
 AliExpress bakar in lagerlandet i själva SKU:n: "rosa garderob från Tyskland"
@@ -114,12 +175,44 @@ kundordern läggs på den sparade SKU:n, så en uppblåst siffra hade bara flytt
 felet till kassan. Körs före lagerskrivningen, så bytet slår igenom i samma
 körning.
 
+### Två landslistor, och de svarar på olika frågor
+
+Det här är den vanligaste förväxlingen i kodbasen, och den kostade pengar tyst:
+
+| Funktion | Frågan den svarar på | GB/NO |
+|---|---|---|
+| `isEuCountry` | "kommer paketet fram snabbt?" | **ingår** |
+| `isEuCustomsUnion` | "kan vi köpa in därifrån utan tull?" | **ingår inte** |
+
+**Regeln:** allt som **väljer ett lager att köpa från** använder
+`isEuCustomsUnion` (`EU_CUSTOMS_UNION` i `lib/aliexpress/eu-countries.ts`). Allt
+som beskriver **leveranstid för kunden** — EU-lager-ribbonen, discover-filtret,
+`warehouseClass`, badgarna i tillägget — använder `isEuCountry`.
+
+Leonard fångade förväxlingen 2026-08-21 på SucceBuy-klädstället
+(1005005972133031): tilläggets "EU-först" bockade i GB-rader åt honom, och
+`pickWarehouse` rankade dem lika bra som spanska. Storbritannien lämnade
+tullunionen — tulldeklaration och importmoms, kostnader som aldrig syns i
+marginalen. Lagerbytet vid slutsålt filtrerade redan rätt; det var **importen**
+som valde fel. Nu läser alla tre lagervalen samma lista:
+`ship-axis.ts → pickWarehouse`, `mapping-repair.ts → pickPreferred` /
+`sortByWarehousePreference`, och `warehouse-failover.ts`.
+
+Tillägget bär en egen kopia (`EU_TULL_CODES` i `extension/eu-countries.js` —
+browser-global kan inte importera TS). Ett test i
+`lib/aliexpress/eu-countries.test.ts` fäller om de glider isär, samma lärdom som
+`SHIP_AXIS_RE`, som drev isär två gånger på två veckor.
+
+I popupen **döljs** rader utanför tullunionen helt — men bara när det finns ett
+alternativ inom den. Utan den brasklappen hade varenda Kina-produkt blivit
+oimporterbar. Dolda rader bockas alltid av samtidigt: en dold rad som ändå följer
+med i importen vore värre än en rad för mycket.
+
 Tre spärrar, och de ska inte tas bort:
 
 1. **Bara EU:s tullunion.** Ett USA-lager kan ha 500 i saldo, men mot en svensk
-   kund betyder det tull och veckor i transit. Observera att `isEuCountry`
-   betyder *snabb leverans* och räknar in GB/NO — failovern använder därför en
-   egen tullunions-lista.
+   kund betyder det tull och veckor i transit. Se tabellen ovan — `isEuCountry`
+   duger inte här.
 2. **Bara med känt pris.** Priset skiljer mellan lagren ($113,74 från USA mot
    $119,99 inom EU i Leonards fall). Utan det nya priset står `landedCostSek`
    kvar på det gamla och då ljuger både lönsamhetsöversikten och auktionens

@@ -385,6 +385,106 @@ export async function bulkUpdateV3ProductDescriptions(
   return { successes, failures, firstErrors };
 }
 
+export interface VariantPriceWrite {
+  /** Wix-variantens id. Matchas i första hand — det är det stabila. */
+  wixVariantId?: string;
+  /** Reservnyckel när mappningen saknar wixVariantId (äldre rader). */
+  sku?: string;
+  /** Nytt pris inkl. moms i SEK. */
+  actualPrice: number;
+  /** Ny varukostnad (revenueDetails.cost) — driver Wix egna marginalrapporter. */
+  costAmount?: number;
+}
+
+export interface VariantPriceWriteResult {
+  updated: number;
+  /** Nycklar som inte fanns i produktens variantlista (skrevs aldrig). */
+  missing: string[];
+}
+
+/**
+ * Skriver nya variantpriser på en V3-produkt.
+ *
+ * VARFÖR HELA `variantsInfo` SKICKAS TILLBAKA: V3 svarar 428
+ * MISSING_VARIANT_OPTION_CHOICE om man PATCH:ar variantsInfo utan att bära med
+ * varje variants `choices` verbatim (samma fälla som linkChoiceMedia i
+ * lib/wix/client.ts gick i 2026-06-01). Vi läser därför produkten, muterar bara
+ * pris/kostnad på de varianter som ska ändras, och skickar tillbaka listan i
+ * sin helhet. `revision` ger optimistisk samtidighetskontroll — ändrar någon
+ * annan produkten under tiden får vi 409 i stället för att skriva över.
+ *
+ * INGEN VARIANT SOM INTE STÅR I `writes` RÖRS. Det är avsiktligt: reparationen
+ * ska bara flytta de priser som faktiskt är fel.
+ */
+export async function updateV3VariantPrices(
+  productId: string,
+  writes: ReadonlyArray<VariantPriceWrite>,
+): Promise<VariantPriceWriteResult> {
+  if (writes.length === 0) return { updated: 0, missing: [] };
+
+  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=VARIANT_OPTION_CHOICE_NAMES`;
+  const res = await fetch(url, { method: "GET", headers: headers() });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`updateV3VariantPrices GET ${productId} (${res.status}): ${text.slice(0, 300)}`);
+  }
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const data = (await res.json()) as { product?: any };
+  const product = data.product;
+  if (!product) throw new Error(`updateV3VariantPrices: produkt ${productId} saknas i svaret.`);
+  const variants: any[] = product.variantsInfo?.variants ?? [];
+  if (variants.length === 0) {
+    throw new Error(`updateV3VariantPrices: produkt ${productId} har inga varianter.`);
+  }
+
+  const byId = new Map<string, any>();
+  const bySku = new Map<string, any>();
+  for (const v of variants) {
+    if (v?.id) byId.set(String(v.id), v);
+    if (v?.sku) bySku.set(String(v.sku), v);
+  }
+
+  const missing: string[] = [];
+  let updated = 0;
+  for (const w of writes) {
+    const träff =
+      (w.wixVariantId ? byId.get(String(w.wixVariantId)) : undefined) ??
+      (w.sku ? bySku.get(String(w.sku)) : undefined);
+    if (!träff) {
+      missing.push(w.wixVariantId || w.sku || "(okänd variant)");
+      continue;
+    }
+    // Beloppen är strängar i V3 ("589"), inte tal — skickas de som number
+    // accepteras de ibland och avrundas tyst. Håll formatet.
+    träff.price = {
+      ...(träff.price ?? {}),
+      actualPrice: { amount: String(w.actualPrice) },
+    };
+    if (typeof w.costAmount === "number" && w.costAmount > 0) {
+      träff.revenueDetails = { cost: { amount: String(w.costAmount) } };
+    }
+    updated++;
+  }
+  if (updated === 0) return { updated: 0, missing };
+
+  const patch = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({
+      product: { revision: product.revision, variantsInfo: { variants } },
+      fieldMask: { paths: ["variantsInfo"] },
+    }),
+  });
+  if (!patch.ok) {
+    const text = await patch.text();
+    throw new Error(
+      `updateV3VariantPrices PATCH ${productId} (${patch.status}): ${text.slice(0, 300)}`,
+    );
+  }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  return { updated, missing };
+}
+
 /** Hämtar fullständig variant-data för en produkt (för variantmappning).
  *
  *  fields=VARIANT_OPTION_CHOICE_NAMES är OBLIGATORISK (destillatorn 2026-08-09):

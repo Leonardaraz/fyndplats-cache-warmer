@@ -27,7 +27,7 @@
 // lager som failover-alternativ. Importen matchar nu den bilden i stället för
 // att skapa varianter som sync anser vara samma vara.
 
-import { isEuCountry, normalizeShipFromCode } from "../aliexpress/eu-countries";
+import { isEuCustomsUnion, normalizeShipFromCode } from "../aliexpress/eu-countries";
 
 /** Axelnamn som betyder "vilket lager", på de former AE och vår översättning
  *  faktiskt producerar. Samma uppsättning som mapping-repair och
@@ -76,10 +76,17 @@ function shipCode(v: ShipAxisVariant): string {
 /**
  * Väljer lager bland SKU:er som är samma vara.
  *
- * Ordning: saldo först, EU före icke-EU, därefter LÄGST inköpspris. Samma
- * rangordning som sync:ens `sortByWarehousePreference`, med priset som ny
+ * Ordning: saldo först, TULLUNIONEN före allt annat, därefter LÄGST inköpspris.
+ * Samma rangordning som sync:ens `sortByWarehousePreference`, med priset som ny
  * sista grund — vid import har vi ett val att göra som sync inte har, och två
  * lager med samma vara skiljer sig bara i vad varan kostar oss.
+ *
+ * TULLUNIONEN, INTE `isEuCountry` (Leonards rapport 2026-08-21). Den här raden
+ * poängsatte tidigare på `isEuCountry`, som betyder "snabb leverans" och räknar
+ * in GB och NO. Ett brittiskt lager rankades alltså exakt lika bra som ett
+ * spanskt — trots tulldeklaration och importmoms för en svensk kund, kostnader
+ * som aldrig syns i marginalen. Lagerbytet vid slutsålt filtrerade redan rätt;
+ * det var importen som valde fel. Nu läser båda samma lista.
  *
  * Saldo som saknas räknas som "i lager": annars skulle degraderad AE-data
  * straffa alla kandidater lika godtyckligt (lärdomen från audit 2026-08-09,
@@ -87,7 +94,7 @@ function shipCode(v: ShipAxisVariant): string {
  */
 function pickWarehouse<V extends ShipAxisVariant>(candidates: V[]): V {
   const score = (v: V) =>
-    (typeof v.stock !== "number" || v.stock > 0 ? 2 : 0) + (isEuCountry(shipCode(v)) ? 1 : 0);
+    (typeof v.stock !== "number" || v.stock > 0 ? 2 : 0) + (isEuCustomsUnion(shipCode(v)) ? 1 : 0);
   return [...candidates].sort((a, b) => {
     const d = score(b) - score(a);
     if (d) return d;
