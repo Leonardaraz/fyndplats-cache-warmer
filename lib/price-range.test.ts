@@ -132,15 +132,19 @@ describe("priceSlug", () => {
 });
 
 describe("upperLimit", () => {
-  it("toppläget på en kapad skala har ingen övre gräns", () => {
+  it("toppläget har ingen övre gräns", () => {
     const b = { min: 150, max: 2900, step: 50, openTop: true };
     assert.equal(upperLimit(2900, b), Infinity);
     assert.equal(upperLimit(1500, b), 1500);
   });
 
-  it("men bara när skalan faktiskt är kapad", () => {
+  it("gäller även när skalan inte är kapad — annars tappas den dyraste", () => {
+    // Neutralläget får aldrig filtrera bort en produkt vars pris råkar ligga
+    // exakt på skalans topp.
     const b = { min: 200, max: 1000, step: 25, openTop: false };
-    assert.equal(upperLimit(1000, b), 1000);
+    assert.equal(upperLimit(1000, b), Infinity);
+    const dyrast = 1000;
+    assert.ok(dyrast >= b.min && dyrast < upperLimit(1000, b));
   });
 });
 

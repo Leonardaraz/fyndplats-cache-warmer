@@ -163,9 +163,15 @@ export function priceSlug(lo: number, hi: number, bounds: PriceBounds): string {
   return `${lo}-${hi}`;
 }
 
-/** Övre gränsen att filtrera på. Toppläget på en kapad skala har ingen. */
+/**
+ * Övre gränsen att filtrera på.
+ *
+ * Toppläget betyder ALLTID "ingen övre gräns" — även när skalan inte är kapad.
+ * Annars hade `priceNum < max` sorterat bort den dyraste produkten så fort dess
+ * pris råkade landa exakt på ett jämnt steg, med handtaget i neutralläge.
+ */
 export function upperLimit(hi: number, bounds: PriceBounds): number {
-  return bounds.openTop && hi >= bounds.max ? Infinity : hi;
+  return hi >= bounds.max ? Infinity : hi;
 }
 
 /** Deterministisk kronformatering. INTE Intl — se filhuvudet. */
