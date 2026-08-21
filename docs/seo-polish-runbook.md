@@ -1089,6 +1089,33 @@ ingenting annat**, oavsett hur mycket lager syskonen har.
 > *(Svepet 2026-08-21: 22 nyimporterade köksmaskiner, 21 av dem med uttagsaxel — 123 varianter
 > ned till 37. Utan regeln hade en svensk kund kunnat beställa en 110 V-juicer med US-stickpropp.)*
 
+**E) "Dubblettfärger" är oftast två olika modeller — TITTA innan du slår ihop.** Ser en
+färgaxel ut att lista samma färg två gånger (`Vit` + `Vit (BMF201 White)`, `Svart` +
+`Svart (BMF201 Black)`), är den vanligaste förklaringen INTE att säljaren råkat lista samma
+vara dubbelt. Det är att listningen buntar **två olika modeller** i samma färger, och att
+modellkoden hamnat i värdet. Bygg kontaktkartan över valens `linkedMedia` (Steg 1b) och
+jämför exemplaren innan du rör något.
+
+> *(Mjölkskummaren `4a84e755`, 2026-08-21: de fyra "färgerna" var en display-/touchmodell och
+> en vredmodell, i vit och svart. Att slå ihop dem hade raderat en riktig produktvariant.)*
+>
+> **Utvidga sedan jämförelsen till katalogen.** Samma svep avslöjade det egentliga felet: BÅDA
+> maskinerna fanns redan som egna utkast — vredmodellen som `f207cfde`, displaymodellen som
+> `8047b74e` — till **1429 kr från EU-lager**, mot den kombinerade listningens **1639 kr från
+> Kina**. Den kombinerade tillförde ingen kombination som saknades och raderades.
+>
+> **Regel:** när en kombinerad listning täcker samma exemplar som två fristående, behåll de
+> fristående. De är nästan alltid billigare (säljaren tar betalt för bekvämligheten), har oftare
+> EU-lager, och ger en ren produktsida per maskin i stället för en axel som blandar modell och
+> färg. Radera den kombinerade och märk mappningsraden `draftStatus:"rejected"` med tömd
+> `variants[]` — behåll `supplierProductId` så dubblett-spärren hindrar en omimport, och
+> `sourceUrl` så den går att hämta tillbaka medvetet med `allowDuplicate:true`.
+>
+> Överlever den kombinerade listningen i stället: **döp om axeln efter den verkliga skillnaden**
+> ("Vit med vred" / "Vit med display"), inte efter leverantörens modellkod. Kom ihåg att
+> `choice.name` är låst till `key` — namnen kräver att optionen byggs om från grunden, med
+> `choiceType:"CHOICE_TEXT"` på varje nytt val och `price` på varje variant.
+
 -----
 
 ## Klart-kriterium (checklista före publicering)
@@ -1099,6 +1126,7 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
 - Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inkl. kvalificeraren. Inget dropship-märke kvar (etablerade märken som Pagani Design/LAIKOU behålls).
 - Sökordet **krockar inte** med en annan produkt i katalogen (Steg 0).
 - Elprodukt: **ingen uttags-/spänningsaxel kvar** med US/UK/AU/KR eller 110 V (Steg 6D), och varje kvarvarande variant har både lagerpost och mappningsrad.
+- Ser två val på samma axel ut som samma färg: **exemplaren är jämförda i bild** (Steg 6E), och listningen dubblerar ingen billigare fristående produkt i katalogen.
 - Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
