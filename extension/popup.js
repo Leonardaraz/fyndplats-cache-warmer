@@ -392,6 +392,15 @@ async function rescueViaDsApi() {
     return;
   }
   product.variants = dsVariants;
+  // Samma tömning som refreshVariantPricesViaDsApi nedan: kartan är nycklad på
+  // skrapans optionsvärden och matchar ingenting när listan byts mot DS:s.
+  // Här spelar den dessutom en andra roll — sampleColors() längre ner läser
+  // just swatchImages, så en kvarlämnad karta hade gett färgprickar för värden
+  // som inte längre finns. Skrapan har visserligen misslyckats i den här grenen,
+  // men "misslyckats" betyder saknad titel/bild/pris — swatcharna kan mycket väl
+  // ha kommit med.
+  product.swatchImages = {};
+  product.optionColorCodes = {};
   if (!product.rawTitle && ds.rawTitle) product.rawTitle = ds.rawTitle;
   if (!product.rawDescription && ds.rawDescription) product.rawDescription = ds.rawDescription;
   if ((!product.imageUrls || !product.imageUrls.length) && Array.isArray(ds.imageUrls)) {

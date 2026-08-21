@@ -250,6 +250,51 @@ describe("dsRescueVariants", () => {
   });
 });
 
+// Samma bugg fanns på TRE ställen (audit 2026-08-20 + sveptet efteråt):
+// background.js dsRescueVariants, popup.js refreshVariantPricesViaDsApi och
+// popup.js rescueViaDsApi. Ett test per ställe hade missat det tredje — det
+// här hittar dem själv och kräver tömningen av alla.
+describe("varje DS-byte tömmer variantbildkartan", () => {
+  const POPUP = readFileSync(join(process.cwd(), "extension/popup.js"), "utf8");
+
+  /** Radnummer där variantlistan byts mot DS:s. */
+  function bytesplatser(src: string): number[] {
+    const rader = src.split("\n");
+    const träffar: number[] = [];
+    rader.forEach((rad, i) => {
+      if (/\bvariants\s*[:=]\s*dsVariants\b/.test(rad)) träffar.push(i);
+    });
+    return träffar;
+  }
+
+  for (const [namn, src] of [
+    ["background.js", KÄLLA],
+    ["popup.js", POPUP],
+  ] as const) {
+    it(`${namn}: alla byten följs av swatchImages = {}`, () => {
+      const platser = bytesplatser(src);
+      expect(platser.length).toBeGreaterThan(0);
+      const rader = src.split("\n");
+      for (const rad of platser) {
+        // Tömningen ska ligga NÄRA bytet, i samma andetag. Fönstret är tilltaget
+        // så det rymmer kommentaren som förklarar varför tömning — och inte
+        // ombyggnad — är rätt; den är längre än koden.
+        const fönster = rader.slice(rad, rad + 40).join("\n");
+        expect(fönster, `${namn}:${rad + 1}`).toMatch(/swatchImages = \{\}/);
+        expect(fönster, `${namn}:${rad + 1}`).toMatch(/optionColorCodes = \{\}/);
+      }
+    });
+  }
+
+  // Ombyggnaden hör hemma på servern (buildSwatchImagesFromDs har fyra grindar
+  // som tillägget saknar, och DS:s imageUrl är per SKU — inte per värde).
+  it("ingen av dem bygger om kartan på egen hand", () => {
+    for (const src of [KÄLLA, POPUP]) {
+      expect(src).not.toMatch(/swatchImages\[[^\]]+\]\s*=/);
+    }
+  });
+});
+
 describe("inkopplingen i background.js", () => {
   // Det var precis den här gaten som var buggen. Skrivs den om till att bara
   // titta på extractionOk igen är felet tillbaka.
