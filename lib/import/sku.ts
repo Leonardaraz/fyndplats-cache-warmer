@@ -42,6 +42,8 @@ const KNOWN_BRAND_TOKENS = new Set([
   "yaheetech", "vingli", "skyshalo", "bentism", "walnew", "moukey",
   // Aosom-husmärken som saknades och läckte in i SKU:er (t.ex. FP-sportnow-aerobic-step)
   "sportnow", "vinsetto", "aiyaplay",
+  // Fler Aosom-husmärken (upptäckt 2026-08-19 via FP-zonekiz-toy-shelf-6-gron)
+  "zonekiz", "kleankin",
 ]);
 
 /** Tar bort ledande märkes-token ur en redan slugifierad sträng ("succebuy-x-y" → "x-y"). */

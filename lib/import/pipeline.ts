@@ -123,6 +123,18 @@ export interface VariantMapping {
   shipFromSwitchedAt?: string;
   /** Variant-id:t vi pekade om FRÅN — spårbarhet och väg tillbaka. */
   previousSupplierVariantId?: string;
+  /**
+   * Lagerlandet för DEN HÄR SKU:n (ISO-3166 alpha-2), satt av
+   * collapseShipFromAxis vid import. Lagret är en del av AliExpress-SKU:n, så
+   * varje variant har exakt ett — till skillnad från mappningens
+   * `shipsFromCountries`, som är en mängd över produktens varianter.
+   *
+   * Utan fältet gick det inte att svara på "skickas den här varianten från EU?"
+   * i efterhand (revisionen 2026-08-21): produktnivåns lista sa `ES/FR/GB/PL/RU/US`
+   * på tretton utkast utan att någon kunde säga vilket lager den sparade SKU:n
+   * faktiskt låg i. Saknas = importerad innan fältet fanns, eller lager okänt.
+   */
+  shipFrom?: string;
 }
 
 export interface ImportResult {
@@ -896,6 +908,16 @@ export async function importProduct(
   }
   const swatchMediaPromise = uploadSwatchMedia(swatchSources, seo.slug);
 
+  // Lagerkod per SKU, ur den KOLLAPSADE mängden (collapseShipFromAxis satte
+  // shipFrom på varje behållen variant). Sparas på mappningen så frågan
+  // "skickas den här varianten från EU?" går att besvara i efterhand.
+  const shipFromBySupplierVariantId = new Map<string, string>();
+  for (const v of lager.variants as Array<{ supplierVariantId?: string; shipFrom?: string }>) {
+    if (v.supplierVariantId && v.shipFrom) {
+      shipFromBySupplierVariantId.set(v.supplierVariantId, v.shipFrom);
+    }
+  }
+
   const variantMappings: VariantMapping[] = [];
   // Läsbara SKU:er ("FP-<produkt>-<variant>") istället för "AE-<hash>". SKU:n är ren
   // etikett (fulfillment går via mappningen), så formatet är fritt. Byggs för ALLA
@@ -912,6 +934,9 @@ export async function importProduct(
         costUsd: v.costUsd,
         landedCostSek: price.costSek,
         grossSek: price.grossSek,
+        ...(shipFromBySupplierVariantId.has(v.supplierVariantId)
+          ? { shipFrom: shipFromBySupplierVariantId.get(v.supplierVariantId) }
+          : {}),
       });
     }
     return {
@@ -1007,14 +1032,25 @@ export async function importProduct(
   }
   const choiceMediaLinks = swatchLinks.concat(altLinks);
 
-  // Aggregera warehouse-koder över alla varianter + ev. produkt-default.
-  // Påverkar Wix-ribbonen och persisteras på mapping-posten för senare filterring.
-  const allShipFromCodes: string[] = [];
-  for (const v of variants) {
-    if (v.shipFrom) allShipFromCodes.push(v.shipFrom);
-  }
-  if (product.shipsFrom) allShipFromCodes.push(...product.shipsFrom);
-  const shipsFromCountries = uniqueShipFromCodes(allShipFromCodes);
+  // Lagren vi FAKTISKT skeppar ur. `lager.warehouses` är de distinkta koderna
+  // bland de BEHÅLLNA varianterna efter collapseShipFromAxis — och bara de hör
+  // hemma i ett kundlöfte.
+  //
+  // Förut aggregerades i stället ALLA skrapade varianter plus produktens egen
+  // lista, vilket beskriver LISTNINGEN och inte de SKU:er vi sparat. Det gör
+  // "EU-lager"-ribbonen nedan till ett påstående vi inte kan stå för:
+  // pickWarehouse rankar saldo FÖRE EU, så en listning med ett tomt spanskt
+  // lager och ett fyllt kinesiskt behåller det kinesiska — och fick ändå
+  // ribbonen, eftersom "ES" låg kvar i listningens lista. Tretton utkast stod
+  // så vid revisionen 2026-08-21.
+  //
+  // Produktens lista används fortfarande som fallback: har listningen bara ETT
+  // lager returnerar collapseShipFromAxis tidigt utan att sätta shipFrom per
+  // variant, och då är produkt-defaulten det enda vi har.
+  const keptShipFromCodes = uniqueShipFromCodes(lager.warehouses);
+  const shipsFromCountries = keptShipFromCodes.length
+    ? keptShipFromCodes
+    : uniqueShipFromCodes(product.shipsFrom ?? []);
   const hasEuWarehouse = hasAnyEuWarehouse(shipsFromCountries);
   const warehouseClass = classifyWarehouses(shipsFromCountries);
 

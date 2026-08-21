@@ -262,3 +262,78 @@ describe("warehouseAlternativeSkuIds — olika FÄRG får aldrig bli lager-sysko
     expect(warehouseAlternativeSkuIds({ skuId: "a" }, utanNågot)).toEqual([]);
   });
 });
+
+describe("sifferskelett-fallback (olika lång översättning på de två sidorna)", () => {
+  // Galgstället 563d0dfc: importen skrev "1 stång …" (AI-fallback), medan
+  // translateValue bara når "1 rods …". Ord-signaturen kan aldrig matcha.
+  const stativTranslate = (raw: string) =>
+    raw.replace(/(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)in/, "$1x$2 tum");
+
+  it("reparerar när bara orden skiljer men talen är lika", () => {
+    const r = repairSyntheticVariantIds(
+      [
+        mv("dom-0", { Modell: "1 stång 39.8x59.4 tum" }),
+        mv("dom-1", { Modell: "2 stänger 75.4x73.5 tum" }),
+      ],
+      [
+        dv("12000035114622170", { Color: "1 rods 39.8x59.4in" }, 28.5, 400, "ES"),
+        dv("12000035114622180", { Color: "2 rods 75.4x73.5in" }, 30.1, 400, "ES"),
+      ],
+      stativTranslate,
+    );
+    expect(r.repaired).toBe(2);
+    expect(r.variants[0].supplierVariantId).toBe("12000035114622170");
+    expect(r.variants[1].supplierVariantId).toBe("12000035114622180");
+  });
+
+  it("väljer EU-lagret med saldo när samma vara finns i flera lager", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Antal: "110 st metrisk" })],
+      [
+        dv("9001", { Color: "110 PCs Metric" }, 32, 0, "ES"),
+        dv("9002", { Color: "110 PCs Metric" }, 32, 12, "FR"),
+        dv("9003", { Color: "110 PCs Metric" }, 32, 900, "CN"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("9002");
+  });
+
+  it("lämnar tvetydigt när två OLIKA varor delar samma tal", () => {
+    // Gängsatsen: "40 st metrisk" och "40 st SAE" har båda bara talet 40.
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Antal: "40 st metrisk" })],
+      [
+        dv("9001", { Color: "40 PCs Metric" }, 32, 5, "FR"),
+        dv("9002", { Color: "40 PCs SAE" }, 32, 5, "FR"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(0);
+    expect(r.ambiguous).toEqual(["dom-0"]);
+  });
+
+  it("matchar ALDRIG på rena ordvärden — tom siffersignatur får inte träffa", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Färg: "Svart" }), mv("dom-1", { Färg: "Vit" })],
+      [
+        dv("9001", { Color: "Black" }, 10, 5, "FR"),
+        dv("9002", { Color: "White" }, 10, 5, "FR"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(0);
+    expect(r.ambiguous).toEqual(["dom-0", "dom-1"]);
+  });
+
+  it("ordningsokänsligt: 36x80.3 och 80.3x36 ger samma skelett", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Modell: "2 stänger 80.3x36 tum" })],
+      [dv("9001", { Color: "2 rods 36x80.3in" }, 28.5, 7, "ES")],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("9001");
+  });
+});

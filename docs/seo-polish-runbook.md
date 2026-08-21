@@ -292,6 +292,19 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 
 > ✍️ **Svensk sifferstil.** **Decimalkomma**, aldrig punkt: `4,5 Ah` · `1,8 m` · `0,31 m²`. Skriv **aldrig** en kommalista av tal med enheten sist — `"10, 20, 30 och 40 cm"` läses som fyra olika mått med oklar enhet. Använd snedstreck: **`10/20/30/40 cm`**. Samma sak för gradlägen: `0/45/60°`, inte `"0, 45 och 60 grader"`. Mått multipliceras med `×` och mellanslag: `72 × 57 × 56 cm`. Intervall får tankstreck: `18–36 månader`, `8–10 timmar`. *(Regeln fällde min egen copy tre gånger på en session — kontrollera den i slutkollen, inte bara när du skriver.)*
 
+> ☠️ **Wix STRIPPAR `<br>` — skriv FAQ-fråga och svar som TVÅ `<p>` (2026-08-21).** Mönstret
+> `<p><strong>Fråga?</strong><br>Svar</p>` ser rätt ut i bodyn, men Wix serialiserar om HTML:en
+> (`<strong>` → `<span style="font-weight: 700">`) och **kastar `<br>`-taggen**. Kvar blir
+> `…Fråga?</span>Svar</p>` — frågan sitter ihop med svaret utan radbrytning, på varje fråga.
+> Skriv i stället, precis som de redan publicerade sidorna gör:
+>
+> ```html
+> <p><strong>Fråga?</strong></p><p>Svar.</p>
+> ```
+>
+> Kontrollera efter PATCH:en med en re-GET: `plainDescription.match(/<span style="font-weight: 700">[^<]*\?<\/span>(?!<\/p>)/g)` ska ge **noll** träffar.
+> *(Upptäckt på campingbordet `85996bde`; sex frågor fick rättas i efterhand.)*
+
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
 
 > **Alternativ (Ricos direkt):** vill du hellre skicka `"description": { "nodes": [...] }` — stycke `{"type":"PARAGRAPH","id":"p1","nodes":[{"type":"TEXT","id":"","nodes":[],"textData":{"text":"…","decorations":[]}}],"paragraphData":{}}`, rubrik `{"type":"HEADING","id":"h1","nodes":[<TEXT utan decorations>],"headingData":{"level":2}}` (TEXT-noden **helt ren**), punktlista `{"type":"BULLETED_LIST","id":"ul1","nodes":[{"type":"LIST_ITEM","id":"li1","nodes":[{"type":"PARAGRAPH","id":"","nodes":[<TEXT>],"paragraphData":{}}]}]}`, fet `"decorations":[{"type":"BOLD","fontWeightValue":700}]` (bara i stycken, **aldrig** på HEADING). Samma flik-regel gäller.
@@ -1045,6 +1058,64 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 >
 > **Blir bara EN variant kvar → kollapsa hela optionen till en enkel-variant-produkt** (inte en option med ett enda val — ful dropdown). PATCH: `options:[]` + `variantsInfo.variants:[{ id:<behållna variantens id>, choices:[], sku, price, inventoryStatus }]` (V3 accepterar det; SKU blir `FP-<produkt>` utan variant-del). Byt **också** ut ev. feature-/hjältebilder som visar den BORTTAGNA variantens exemplar (t.ex. ett urklipp gjort ur den slutsålda modellens bild) mot den kvarvarande variantens — annars visar galleriet en produkt kunden inte kan köpa. Ta bort "två storlekar"/"Typ A/B"-språk ur namn, meta, beskrivning och FAQ.
 
+**D) Ta bort variantvärden vi inte får sälja till en svensk kund.** Elprodukter från
+AliExpress listas nästan alltid med en **uttags-/spänningsaxel** — `Kontakttyp: EU/US/UK/AU/KR`,
+`Spänning: 110 V / 220-240V`, `Kontakt: 100V-240V UK-kontakt`. Bara EU-värdet är säljbart här:
+UK är Type G, US/AU har fel stift, och 110 V-varianten är fel nät. Behåll **EU-värdet och
+ingenting annat**, oavsett hur mycket lager syskonen har.
+
+> Detta är en **variant**-regel, inte en produktregel — produkten stannar, axeln försvinner.
+> Kollapsa enligt regeln ovan: uttagsaxeln har i praktiken alltid exakt ETT EU-värde, så hela
+> axeln ska bort, inte reduceras till en dropdown med ett val. Övriga axlar (Färg, Modell,
+> Paket) lämnas orörda.
+>
+> **Priset följer med och det är hela poängen:** EU-varianten är ofta billigare än syskonen
+> (köksmaskin 6 L 1889 vs 1989 kr, kaffekvarn CG210 **1239 vs 1719 kr**, köksmaskin 7 L 2199
+> vs 2809 kr). Skicka därför den överlevande variantens EGNA `price` i PATCH:en — inte
+> produktens gamla intervall.
+>
+> ☠️ **Två följdsteg som INTE sker av sig själva:**
+> 1. **Lagerposterna raderas** när optionen tas bort, och den överlevande varianten får ett
+>    **nytt** `variantId` utan lagerpost (= slutsåld i butiken). Läs saldona FÖRE PATCH:en och
+>    `POST /stores/v3/inventory-items` per ny variant efteråt (`locationId` från en befintlig
+>    post). Wix städar själv de föräldralösa posterna — de behöver inte raderas.
+> 2. **Mappningsraden pekar fel.** `FyndplatsMappings.variants[]` har kvar en rad per borttagen
+>    variant, och den överlevandes `wixVariantId` är dött → en order skulle gå på fel eller
+>    inget leverantörs-SKU. Matcha nya varianter mot mappningsraderna på **`sku`** (det överlever
+>    PATCH:en), släng raderna utan träff, sätt nytt `wixVariantId` och stryk den borttagna axeln
+>    ur `choices`. `PATCH /wix-data/v2/items/{id}` med
+>    `fieldModifications:[{fieldPath:"variants",action:"SET_FIELD",setFieldOptions:{value:[…]}}]`.
+>
+> *(Svepet 2026-08-21: 22 nyimporterade köksmaskiner, 21 av dem med uttagsaxel — 123 varianter
+> ned till 37. Utan regeln hade en svensk kund kunnat beställa en 110 V-juicer med US-stickpropp.)*
+
+**E) "Dubblettfärger" är oftast två olika modeller — TITTA innan du slår ihop.** Ser en
+färgaxel ut att lista samma färg två gånger (`Vit` + `Vit (BMF201 White)`, `Svart` +
+`Svart (BMF201 Black)`), är den vanligaste förklaringen INTE att säljaren råkat lista samma
+vara dubbelt. Det är att listningen buntar **två olika modeller** i samma färger, och att
+modellkoden hamnat i värdet. Bygg kontaktkartan över valens `linkedMedia` (Steg 1b) och
+jämför exemplaren innan du rör något.
+
+> *(Mjölkskummaren `4a84e755`, 2026-08-21: de fyra "färgerna" var en display-/touchmodell och
+> en vredmodell, i vit och svart. Att slå ihop dem hade raderat en riktig produktvariant.)*
+>
+> **Utvidga sedan jämförelsen till katalogen.** Samma svep avslöjade det egentliga felet: BÅDA
+> maskinerna fanns redan som egna utkast — vredmodellen som `f207cfde`, displaymodellen som
+> `8047b74e` — till **1429 kr från EU-lager**, mot den kombinerade listningens **1639 kr från
+> Kina**. Den kombinerade tillförde ingen kombination som saknades och raderades.
+>
+> **Regel:** när en kombinerad listning täcker samma exemplar som två fristående, behåll de
+> fristående. De är nästan alltid billigare (säljaren tar betalt för bekvämligheten), har oftare
+> EU-lager, och ger en ren produktsida per maskin i stället för en axel som blandar modell och
+> färg. Radera den kombinerade och märk mappningsraden `draftStatus:"rejected"` med tömd
+> `variants[]` — behåll `supplierProductId` så dubblett-spärren hindrar en omimport, och
+> `sourceUrl` så den går att hämta tillbaka medvetet med `allowDuplicate:true`.
+>
+> Överlever den kombinerade listningen i stället: **döp om axeln efter den verkliga skillnaden**
+> ("Vit med vred" / "Vit med display"), inte efter leverantörens modellkod. Kom ihåg att
+> `choice.name` är låst till `key` — namnen kräver att optionen byggs om från grunden, med
+> `choiceType:"CHOICE_TEXT"` på varje nytt val och `price` på varje variant.
+
 -----
 
 ## Klart-kriterium (checklista före publicering)
@@ -1054,6 +1125,16 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
 **Text**
 - Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inkl. kvalificeraren. Inget dropship-märke kvar (etablerade märken som Pagani Design/LAIKOU behålls).
 - Sökordet **krockar inte** med en annan produkt i katalogen (Steg 0).
+- Elprodukt: **ingen uttags-/spänningsaxel kvar** med US/UK/AU/KR eller 110 V (Steg 6D), och varje kvarvarande variant har både lagerpost och mappningsrad.
+- Ser två val på samma axel ut som samma färg: **exemplaren är jämförda i bild** (Steg 6E), och listningen dubblerar ingen billigare fristående produkt i katalogen.
+- **"EU-lager"-ribbonen är täckt av den SPARADE SKU:n.** Kravet är `variants[].shipFrom`
+  i mappningen, inte produktens `shipsFromCountries` — den listan är en mängd över
+  listningens lager och säger inget om vilket lager den variant vi faktiskt beställer
+  ligger i. Saknas `shipFrom` (importerad före 2026-08-21) → verifiera mot leverantören
+  eller ta bort ribbonen innan publicering. `GB`, `RU` och `US` räknas som EU av
+  `isEuCountry` (den mäter *snabb leverans*, inte tullunion) — mot en svensk kund är de
+  inte EU-leverans, så en produkt vars enda "EU"-lager är brittiskt eller ryskt ska inte
+  bära ribbonen.
 - Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.

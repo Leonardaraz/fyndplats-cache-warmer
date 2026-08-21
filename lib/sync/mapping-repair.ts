@@ -28,7 +28,12 @@
 //      facit 2026-08-09: "default"-mappningar mot flerlager-listningar var
 //      18 av 19 tvetydiga) → välj föredragen enligt samma preferens. En rad
 //      med EGNA motsägande värden lämnas tvetydig (aldrig tvångsmappning).
-//   4. Pris: exakt en DS-SKU vars pris ligger inom 1 % av mappningens costUsd.
+//   4. Sifferskelett: värdenas TAL (orden bortkastade) är unika på mappnings-
+//      sidan och hela DS-gruppen är samma vara. Räddar rader där de två sidorna
+//      översatts olika långt ("1 stång …" mot "1 rods …", "40 st metrisk" mot
+//      "40 st Metric") — mappningen skrivs av importens fulla kedja med
+//      AI-fallback, repareraren har bara den statiska tabellen.
+//   5. Pris: exakt en DS-SKU vars pris ligger inom 1 % av mappningens costUsd.
 //   Ingen entydig träff → lämnas orörd + rapporteras (ambiguous).
 
 import { isEuCountry, normalizeShipFromCode } from "../aliexpress/eu-countries";
@@ -81,6 +86,35 @@ function valueSignature(
     .map(([, v]) => mapValue(String(v)).trim().toLowerCase())
     .sort()
     .join(" ");
+}
+
+/** SIFFERSKELETT: alla tal i värdena, sorterade — ord borttagna.
+ *
+ *  Räddar matchningen när de två sidorna översatts OLIKA långt. Mappningens
+ *  `choices` skrivs av importens FULLA kedja (statisk tabell + AI-fallback),
+ *  medan repareraren bara har den statiska tabellen. Resultatet blir
+ *  "1 stång 39.8x59.4 tum (≈101 × 151 cm)" mot "1 rods 39.8x59.4 tum
+ *  (≈101 × 151 cm)", eller "40 st metrisk" mot "40 st Metric" — samma vara,
+ *  aldrig samma signatur (upptäckt 2026-08-21 på galgstället `563d0dfc` och
+ *  gängsatsen `591c518b`; 10 av 853 mappningar satt fast på just detta).
+ *
+ *  Talen överlever översättningen och räcker för att skilja varianterna åt på
+ *  mått-/antalslistningar. Ordningsokänsligt, så "36x80.3" och "80.3x36" ger
+ *  samma skelett. Ger TOM sträng för rena ordvärden ("Svart"/"Vit") — anropa-
+ *  ren MÅSTE därför kräva icke-tom signatur, annars skulle alla färgvarianter
+ *  se identiska ut. */
+function numericSignature(
+  options: Record<string, string> | undefined,
+  mapValue: (raw: string) => string,
+): string {
+  const nums: string[] = [];
+  for (const [axis, v] of Object.entries(options ?? {})) {
+    if (SHIP_AXIS_RE.test(axis) || !String(v ?? "").trim()) continue;
+    for (const m of mapValue(String(v)).matchAll(/\d+(?:[.,]\d+)?/g)) {
+      nums.push(m[0].replace(",", "."));
+    }
+  }
+  return nums.sort().join(" ");
 }
 
 /** Landskod för en DS-SKU: fältet shipFrom om satt, annars frakt-axelns värde. */
@@ -221,11 +255,23 @@ export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
     arr.push(d);
     bySig.set(sig, arr);
   }
+  // Sifferskelett-index: samma gruppering som bySig men på talen i värdena.
+  const byNumSig = new Map<string, RepairDsVariant[]>();
+  for (const d of free) {
+    const nsig = numericSignature(d.skuProps, translate);
+    if (!nsig) continue;
+    const arr = byNumSig.get(nsig) ?? [];
+    arr.push(d);
+    byNumSig.set(nsig, arr);
+  }
   const mappingSigCount = new Map<string, number>();
+  const mappingNumSigCount = new Map<string, number>();
   for (const v of synthetic) {
     // Mappningens choices är REDAN svenska → identitetsmappning i signaturen.
     const sig = valueSignature(v.choices, (s) => s);
     mappingSigCount.set(sig, (mappingSigCount.get(sig) ?? 0) + 1);
+    const nsig = numericSignature(v.choices, (s) => s);
+    if (nsig) mappingNumSigCount.set(nsig, (mappingNumSigCount.get(nsig) ?? 0) + 1);
   }
 
   const singleSynthetic = synthetic.length === 1;
@@ -257,6 +303,19 @@ export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
         const left = unclaimed(free);
         const sigs = new Set(left.map((d) => valueSignature(d.skuProps, translate)));
         if (left.length > 0 && sigs.size === 1) hit = pickPreferred(left);
+      }
+      if (!hit) {
+        // Sifferskelett: unikt på mappningssidan OCH hela DS-gruppen är samma
+        // vara (identisk ord-signatur, bara olika lager). Kravet på icke-tom
+        // signatur utesluter rena ordvärden, och distinct-kravet gör att två
+        // OLIKA varor som råkar dela tal ("40 st metrisk"/"40 st SAE") lämnas
+        // tvetydiga i stället för att gissas fel.
+        const nsig = numericSignature(v.choices, (s) => s);
+        if (nsig && mappingNumSigCount.get(nsig) === 1) {
+          const cand = unclaimed(byNumSig.get(nsig) ?? []);
+          const distinct = new Set(cand.map((d) => valueSignature(d.skuProps, translate)));
+          if (cand.length > 0 && distinct.size === 1) hit = pickPreferred(cand);
+        }
       }
       if (!hit && typeof v.costUsd === "number" && v.costUsd > 0) {
         const near = unclaimed(free).filter(
