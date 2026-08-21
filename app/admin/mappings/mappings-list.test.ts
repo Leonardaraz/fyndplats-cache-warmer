@@ -35,9 +35,22 @@ describe("deeplänkarna per produkt", () => {
     expect(KÄLLA.match(/wixEditUrl=\{wixUrlFor\(p\.id\)\}/g) ?? []).toHaveLength(2);
   });
 
-  it("kortet renderar båda länkarna", () => {
-    expect(KORT).toMatch(/Se på Fyndplats/);
-    expect(KORT).toMatch(/Redigera i Wix/);
+  // Alla tre på SAMMA rad (Leonard 2026-08-21). AliExpress-länken låg tidigare
+  // på en egen rad under — de letas efter tillsammans.
+  it("kortet renderar alla tre länkarna i samma rad", () => {
+    const rad = KORT.slice(
+      KORT.indexOf("{(storeUrl || wixEditUrl || aeUrl)"),
+      KORT.indexOf("{alreadyMapped && !justMapped"),
+    );
+    expect(rad).toMatch(/Se på Fyndplats/);
+    expect(rad).toMatch(/Redigera i Wix/);
+    expect(rad).toMatch(/AliExpress \{mapping!\.supplierProductId\}/);
+  });
+
+  // Två länkar till samma listning i samma kort är brus — AE-länken ska ha
+  // FLYTTAT, inte dubblerats.
+  it("AliExpress-länken finns bara på ett ställe i kortet", () => {
+    expect(KORT.match(/href=\{aeUrl\}/g) ?? []).toHaveLength(1);
   });
 
   // Hellre ingen länk än en som går till /produkt/undefined.

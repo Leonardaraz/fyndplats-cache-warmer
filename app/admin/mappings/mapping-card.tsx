@@ -104,11 +104,13 @@ export function MappingCard({
           <div style={{ fontSize: 12, color: "#666" }}>
             {product.variantCount} varianter · <code>{product.id.slice(0, 8)}</code>
           </div>
-          {/* De två ställen man faktiskt vill till härifrån: kundens vy och
-              redigeringsvyn. Basen kommer som prop — länkarna byggs på servern
-              (lib/admin-links.ts) eftersom site-id och bas-URL är env-styrda och
-              inte finns i webbläsaren. */}
-          {(storeUrl || wixEditUrl) && !justMapped ? (
+          {/* ALLA TRE STÄLLENA PÅ SAMMA RAD (Leonard 2026-08-21): kundens vy,
+              redigeringsvyn och leverantörens listning. AliExpress-länken låg
+              tidigare på en egen rad under — de hör ihop och letas efter
+              tillsammans. Baserna kommer som props: de byggs på servern
+              (lib/admin-links.ts) eftersom site-id och bas-URL är env-styrda
+              och inte finns i webbläsaren. */}
+          {(storeUrl || wixEditUrl || aeUrl) && !justMapped ? (
             <div style={{ fontSize: 12, marginTop: 3, display: "flex", gap: 10, flexWrap: "wrap" }}>
               {storeUrl ? (
                 <a href={storeUrl} target="_blank" rel="noreferrer" style={{ color: "#2563eb" }}>
@@ -120,15 +122,16 @@ export function MappingCard({
                   ✏️ Redigera i Wix ↗
                 </a>
               ) : null}
+              {aeUrl ? (
+                <a href={aeUrl} target="_blank" rel="noreferrer" style={{ color: "#0a6" }}>
+                  🔗 AliExpress {mapping!.supplierProductId} ↗
+                </a>
+              ) : null}
             </div>
           ) : null}
           {alreadyMapped && !justMapped ? (
             <div style={{ fontSize: 12, color: "#0a6", marginTop: 4 }}>
-              ✓ Källa:{" "}
-              <a href={aeUrl} target="_blank" rel="noreferrer" style={{ color: "#0a6", fontWeight: 600 }}>
-                AliExpress {mapping!.supplierProductId} ↗
-              </a>
-              {" · "}{mapping!.variantCount} variant{mapping!.variantCount === 1 ? "" : "er"} mappade
+              ✓ {mapping!.variantCount} variant{mapping!.variantCount === 1 ? "" : "er"} mappade
             </div>
           ) : null}
           {syncIssue && !justMapped ? (
