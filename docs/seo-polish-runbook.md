@@ -315,6 +315,26 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 >
 > **Avgränsa på `?`, inte på `:`.** Ett kolon-slut träffar spec-etiketterna (`<b>Skärm:</b> 4,3 tum`) som redan är korrekta — i svepet slutade **alla 715** träffarna på `?` och **noll** på `:`. Verifiera dessutom att bara mellanslag tillkommer innan du skriver: `ny.length === gammal.length + antalTräffar` och `ny.split(" ").join("") === gammal.split(" ").join("")`. Massrättning går via `POST /stores/v3/bulk/products/update` (max **100** produkter per anrop, varje post `{ product: { id, revision, plainDescription } }`).
 
+> ⚠️ **Galleribilder MÅSTE vara kvadratiska — PDP:n centrumbeskär varje bild till kvadrat.**
+> Storefronten hämtar galleriet med Wix-transformen `fill/w_N,h_N,al_c` (verifierat i
+> sidans `srcset`: `w_1080,h_1080`, `w_1920,h_1920` …). En **liggande** eller **stående**
+> källa kapas därför i kanterna, och kunden ser en inzoomad bild med produkten avskuren.
+> Trampbilen (2026-08-21) låg 1500×1088 med fordonet 1408 px brett — kvadratbeskärningen
+> tog 206 px i var sida och **båda hjulen försvann**, trots att filen i sig var hel.
+> Felet syns inte i katalogen, bara på sidan: `media.itemsInfo` rapporterar bilden som OK.
+> **Åtgärden är ren omramning** — beskär till produktens bbox och centrera på kvadratisk
+> vit duk (≈95 % fyllnad av längsta sidan). Ingen retusch, ingen ny källa.
+> Kontrollen som ska passera före uppladdning:
+> ```python
+> sida = min(ut.size); vx = (ut.width-sida)//2; vy = (ut.height-sida)//2
+> assert kontroll[vy:vy+sida, vx:vx+sida].sum() == kontroll.sum(), 'kvadratbeskärningen kapar produkten'
+> ```
+> **Miljöbilder är undantagna** — att en livsstilsbild beskärs till kvadrat är normalt.
+> Regeln gäller studiobilder på vit botten, där produkten är motivet.
+> Svep över 120 produkter 2026-08-21: **11 hade en studiobild där produkten faktiskt kapas**
+> (2–22 % av produktens pixlar). 44 hade någon galleribild som kapas, men merparten av dem
+> är miljöbilder.
+
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
 
 > **Alternativ (Ricos direkt):** vill du hellre skicka `"description": { "nodes": [...] }` — stycke `{"type":"PARAGRAPH","id":"p1","nodes":[{"type":"TEXT","id":"","nodes":[],"textData":{"text":"…","decorations":[]}}],"paragraphData":{}}`, rubrik `{"type":"HEADING","id":"h1","nodes":[<TEXT utan decorations>],"headingData":{"level":2}}` (TEXT-noden **helt ren**), punktlista `{"type":"BULLETED_LIST","id":"ul1","nodes":[{"type":"LIST_ITEM","id":"li1","nodes":[{"type":"PARAGRAPH","id":"","nodes":[<TEXT>],"paragraphData":{}}]}]}`, fet `"decorations":[{"type":"BOLD","fontWeightValue":700}]` (bara i stycken, **aldrig** på HEADING). Samma flik-regel gäller.
