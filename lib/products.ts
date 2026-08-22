@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { categorySignalIsUsable, keepCategory } from "./category-filter";
 import { imgKey } from "./image-alt";
+import { formatPrice } from "./price-range";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
@@ -751,7 +752,14 @@ export function cartRecommendations(products: Product[], collections: Collection
     slug: p.slug,
     name: p.name,
     img: p.img,
-    price: p.hasRange ? `Från ${p.priceFrom}` : p.price,
+    // RecoProduct är en ren visnings-DTO — strängen här renderas rakt av i
+    // cart-drawern. Den formateras därför som överallt annars ("1 929 kr"),
+    // annars hade varukorgen varit den enda ytan kvar med Wix "1 929,00kr".
+    price: p.hasRange
+      ? `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom}`
+      : p.priceNum
+        ? formatPrice(p.priceNum)
+        : p.price,
   }));
 }
 
