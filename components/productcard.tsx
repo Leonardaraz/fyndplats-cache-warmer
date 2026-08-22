@@ -5,6 +5,7 @@ import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import { Stars } from "./stars";
 import { reviewCountLabel } from "../lib/rating";
+import { formatPrice } from "../lib/price-range";
 
 export function ProductCard({ p }: { p: Product }) {
   // Hover-alt-image: använd andra bilden i galleriet (om finns) som "swap"-bild
@@ -81,8 +82,23 @@ export function ProductCard({ p }: { p: Product }) {
             {/* pprice-now håller "Från X" / priset ihop på en rad (nowrap) så det
                 aldrig bryts mitt itu; ett ev. överstruket gammalt pris radbryter
                 i stället under, och "Köp"-knappen förblir alltid synlig. */}
-            <span className="pprice-now">{p.hasRange ? `Från ${p.priceFrom}` : p.price}</span>
-            {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
+            {/* Priset skrivs från talet, inte från Wix färdiga sträng: "1 369 kr"
+                i stället för "1369,00kr". Öret är brus när ingen produkt har
+                något, och samma formatPrice() driver prisreglagets etiketter —
+                så filtret och kortet aldrig kan säga samma pris på två sätt.
+                Faller tillbaka på Wix-strängen om talet mot förmodan saknas. */}
+            <span className="pprice-now">
+              {p.hasRange
+                ? `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom}`
+                : p.priceNum
+                  ? formatPrice(p.priceNum)
+                  : p.price}
+            </span>
+            {p.onSale && (p.originalPriceNum || p.originalPrice) && (
+              <span className="pprice-old">
+                {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}
+              </span>
+            )}
           </span>
           {/* Slutsålt kort får ALDRIG säga "Köp" — knappen är ett löfte, och på en
               vara som är slut spricker det vid första klicket. "Bevaka" är exakt

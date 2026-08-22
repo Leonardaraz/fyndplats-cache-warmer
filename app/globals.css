@@ -150,7 +150,18 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .hero h1{font-family:var(--font-display),Georgia,"Times New Roman",serif;font-size:clamp(40px,5.8vw,66px);line-height:1.02;letter-spacing:-.015em;font-weight:600;margin-bottom:18px;color:var(--ink)}
 .hero h1 em{font-style:italic;font-weight:500;color:#C2410C}
 .hero p{font-size:18px;color:#5c544c;max-width:46ch;margin-bottom:28px;line-height:1.55}
-.btns{display:flex;gap:13px;flex-wrap:wrap}
+.btns{display:flex;gap:13px;flex-wrap:wrap;align-items:center}
+/* Sekundärvalet som textlänk, inte som en andra knapp. Två lika tunga knappar
+   sida vid sida tvingar fram ett beslut innan besökaren vet något om butiken —
+   och på mobil staplades de dessutom till en vägg. Understrykningen kommer vid
+   hover; pilen flyttar sig så det syns att den leder vidare. */
+.btn-quiet{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:650;
+  color:var(--ink);padding:15px 4px;text-decoration:none;transition:color .18s ease}
+.btn-quiet::after{content:"→";font-size:14px;transition:transform .18s cubic-bezier(.2,.7,.2,1)}
+.btn-quiet:hover,.btn-quiet:focus-visible{color:#C2410C;text-decoration:underline;
+  text-underline-offset:4px;text-decoration-color:rgba(194,65,12,.4)}
+.btn-quiet:hover::after,.btn-quiet:focus-visible::after{transform:translateX(3px)}
+@media(prefers-reduced-motion:reduce){.btn-quiet::after{transition:none}}
 .btn{display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:700;padding:15px 28px;border-radius:13px;transition:transform .15s,background .2s,box-shadow .2s,border-color .2s;cursor:pointer}
 .btn-primary{background:#C2410C;color:#fff;box-shadow:0 12px 26px -10px rgba(194,65,12,.55)}
 .btn-primary:hover{background:#A8380A;transform:translateY(-2px)}
@@ -162,8 +173,26 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
    "Spårbar leverans") får samma bredd och vänsterkant → Spårbar leverans hamnar
    EXAKT under Svensk kundtjänst (Leonards krav). max-content håller det tajt och
    premium i stället för utspritt. */
-.herotrust{margin-top:24px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;font-size:12px;color:#6c645c}
-.herotrust span{display:inline-flex;align-items:center;gap:7px}
+/* TVÅ löften i stället för fem rader småtext. Var och en är ett eget litet
+   objekt med vit botten och egen kant — de ska läsa som belägg man kan ta i,
+   inte som en punktlista. Wrappar till en kolumn först när de inte får plats. */
+.herotrust{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--ink)}
+.herotrust>a{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;
+  background:rgba(255,255,255,.72);border:1px solid rgba(28,28,28,.09);
+  box-shadow:0 1px 2px rgba(28,28,28,.05),0 10px 22px -18px rgba(28,28,28,.5);
+  font-weight:650;color:inherit;text-decoration:none;line-height:1;
+  backdrop-filter:saturate(1.2) blur(6px);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s cubic-bezier(.2,.7,.2,1)}
+.herotrust>a:hover,.herotrust>a:focus-visible{border-color:rgba(194,65,12,.34);transform:translateY(-1px);
+  box-shadow:0 2px 4px rgba(28,28,28,.06),0 14px 26px -16px rgba(28,28,28,.55)}
+.ht-mark{font-size:15px;line-height:1}
+/* Underordnad halva: samma rad, lägre röst. Bär detaljen utan att tävla. */
+.ht-sub{font-weight:500;color:var(--soft)}
+/* Betyget i display-snittet — siffran är påståendet, stjärnorna är beviset. */
+.ht-score{font-family:var(--font-display),Georgia,serif;font-size:16px;font-weight:700;
+  letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.ht-stars{font-size:12px;letter-spacing:.5px}
+@media(max-width:430px){.herotrust{gap:8px}.herotrust>a{padding:8px 12px;font-size:12.5px}}
 /* Varje trust-rad är en genväg till sidan som styrker påståendet. Ärver radens
    färg i stället för länkblått — fem blå rader hade läst som en meny, inte som
    löften — och behåller den dämpade understrykningen som visar att den går att
@@ -175,13 +204,25 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .heromosaic{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .mcol{display:flex;flex-direction:column;gap:16px}
 .mcol-offset{margin-top:34px}
-.herotile{position:relative;display:block;aspect-ratio:1;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 20px 44px -24px rgba(28,28,28,.5);border:4px solid #fff;transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
+/* Ingen vit ram längre. Ramen gjorde brickan till ett klistermärke ovanpå
+   bakgrunden; utan den är det produkten man ser. Botten är varmgrå i stället
+   för vit, så vita produkter (ismaskinen) får en kant att sluta mot. */
+.herotile{position:relative;display:block;aspect-ratio:1;border-radius:20px;overflow:hidden;
+  background:#F4EEE8;box-shadow:0 1px 2px rgba(28,28,28,.06),0 18px 40px -26px rgba(28,28,28,.55);
+  transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
 .herotile img{object-fit:cover}
 .herotile:hover{transform:translateY(-5px);box-shadow:0 28px 56px -22px rgba(28,28,28,.55)}
-.htag{position:absolute;left:10px;bottom:10px;background:#fff;color:#C2410C;font-size:12px;font-weight:800;padding:5px 11px;border-radius:999px;box-shadow:0 6px 16px -6px rgba(0,0,0,.3)}
+/* Priset på mörk botten i stället för vit. Den vita pillen försvann in i vita
+   produkter — ismaskinen hade ett vitt pris på ett vitt hölje. Bläck håller mot
+   vilken produktbild som helst, och siffran får display-snittet: priset är
+   brickans enda text, då ska den läsa som ett pris och inte som en etikett. */
+.htag{position:absolute;left:10px;bottom:10px;background:rgba(28,28,28,.88);color:#fff;
+  font-family:var(--font-display),Georgia,serif;font-size:14px;font-weight:700;letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;padding:6px 12px;border-radius:999px;
+  box-shadow:0 2px 6px rgba(0,0,0,.22);backdrop-filter:blur(4px)}
 /* Överstruket ordinariepris i hjälte-pillen vid REA — samma signal som produkt-
    korten (.pprice-old). Dämpad grå genomstrykning bredvid det orange reapriset. */
-.htag-old{margin-left:6px;color:#9a9089;font-weight:600;text-decoration:line-through}
+.htag-old{margin-left:7px;color:rgba(255,255,255,.62);font-size:12px;font-weight:600;text-decoration:line-through}
 /* Betygs-pill på hjälte-brickan. Sitter uppe till HÖGER: pris-pillen äger nedre
    vänstra hörnet och Rea-badgen övre vänstra, så det här är det enda hörnet som
    är fritt i alla lägen. Samma vita pill-form som priset så brickan behåller ett

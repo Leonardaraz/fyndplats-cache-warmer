@@ -10,6 +10,7 @@ import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
 import { getHiddenFromFeatured, PROBLEM_MAX_SCORE } from "../lib/image-scores";
+import { formatPrice } from "../lib/price-range";
 import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
 import { tightFillUrl } from "../lib/wix-image";
@@ -247,17 +248,36 @@ export default async function Home() {
             <div className="heroinner">
               <span className="badge">✦ Trygg svensk e-handel · Nya fynd varje vecka</span>
               <h1>Fyndplats — Noga utvalda fynd, <em>tryggt köp</em></h1>
-              <p>Handplockade fynd inom hem, kök, sport och elektronik – noga utvalda för svenska hem. Fri frakt över 499 kr. Svensk kundtjänst som svarar inom 24 timmar.</p>
+              {/* Kort ingress. Den långa versionen upprepade frakt och kundtjänst,
+                  som står i USP-remsan strax under — hjälten sa alltså samma sak
+                  två gånger innan besökaren sett en enda produkt. */}
+              <p>Handplockade fynd inom hem, kök, sport och elektronik – noga utvalda för svenska hem.</p>
+              {/* EN primärknapp. Två lika tunga knappar bredvid varandra tvingar
+                  fram ett val innan man vet något; kategorierna får i stället en
+                  tyst textlänk för den som hellre bläddrar. */}
               <div className="btns">
-                <a className="btn btn-primary" href="/alla-produkter">Handla nu →</a>
-                <a className="btn btn-ghost" href="/butik">Se alla kategorier</a>
+                {/* Pilen bor på den tysta länken, inte här. Två pilar bredvid
+                    varandra läste som två likvärdiga vägar — den fyllda knappen
+                    behöver ingen, den syns ändå. */}
+                <a className="btn btn-primary" href="/alla-produkter">Handla nu</a>
+                <a className="btn-quiet" href="/butik">Se alla kategorier</a>
               </div>
+              {/* TVÅ löften, inte fem. De tre som ströks — kundtjänst, öppet köp
+                  och spårbar leverans — står redan både i USP-remsan och som
+                  trygghetskort längre ned; i hjälten sköt de bara ned produkterna.
+                  Kvar är de enda två som skiljer butiken från vilken annan som
+                  helst, och de får varsitt eget märke i stället för fyra
+                  likadana bockar. */}
               <div className="herotrust">
-                <span><b style={{ color: "#C2410C" }}>🇪🇺</b> <a href="/blogg/nya-tullreglerna-2026-eu-lager">Allt från EU-lager – ingen importtull</a></span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> <a href="/omdomen">Google {proof.rating}★ ({proof.label})</a></span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> <a href="/kundtjanst">Svensk kundtjänst</a></span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> <a href="/returer">30 dagars öppet köp</a></span>
-                <span><b style={{ color: "#C2410C" }}>✓</b> <a href="/sparning">Spårbar leverans</a></span>
+                <a className="ht-eu" href="/blogg/nya-tullreglerna-2026-eu-lager">
+                  <span className="ht-mark" aria-hidden="true">🇪🇺</span>
+                  Allt från EU-lager <span className="ht-sub">– ingen importtull</span>
+                </a>
+                <a className="ht-goog" href="/omdomen">
+                  <span className="ht-score">{proof.rating}</span>
+                  <Stars rating={Number(proof.rating.replace(",", ".")) || 5} className="ht-stars" aria-hidden />
+                  <span className="ht-sub">Google · {proof.label}</span>
+                </a>
               </div>
             </div>
             <div className="heromosaic">
@@ -285,8 +305,12 @@ export default async function Home() {
                     )}
                     {p.price && (
                       <span className="htag">
-                        {p.price}
-                        {p.onSale && p.originalPrice && <span className="htag-old">{p.originalPrice}</span>}
+                        {p.priceNum ? formatPrice(p.priceNum) : p.price}
+                        {p.onSale && (p.originalPriceNum || p.originalPrice) && (
+                          <span className="htag-old">
+                            {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}
+                          </span>
+                        )}
                       </span>
                     )}
                   </a>
@@ -306,8 +330,12 @@ export default async function Home() {
                     )}
                     {p.price && (
                       <span className="htag">
-                        {p.price}
-                        {p.onSale && p.originalPrice && <span className="htag-old">{p.originalPrice}</span>}
+                        {p.priceNum ? formatPrice(p.priceNum) : p.price}
+                        {p.onSale && (p.originalPriceNum || p.originalPrice) && (
+                          <span className="htag-old">
+                            {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}
+                          </span>
+                        )}
                       </span>
                     )}
                   </a>
@@ -326,7 +354,10 @@ export default async function Home() {
           <a className="uspitem" href="/sparning"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg>Fri frakt över 499 kr</a>
           <a className="uspitem" href="/kopvillkor"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>Trygg Klarna-betalning</a>
           <a className="uspitem" href="/returer"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>30 dagars öppet köp</a>
-          <a className="uspitem" href="/omdomen">⭐ Google {proof.rating} ({proof.label})</a>
+          {/* Stjärnan som SVG, inte som ⭐-emoji: de tre andra märkena är
+              enfärgade streckikoner i accentfärgen, och en gul färgemoji bredvid
+              dem läser som ett främmande element i raden. */}
+          <a className="uspitem" href="/omdomen"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.2l2.7 5.5 6 .9-4.35 4.24 1.03 6-5.38-2.83L6.62 19.84l1.03-6L3.3 9.6l6-.9L12 3.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>Google {proof.rating} ({proof.label})</a>
         </div>
       </div>
 

@@ -31,6 +31,10 @@ export type Product = {
   currency: string;
   priceNum: number;
   priceFrom?: string;
+  /** Lägsta variantpriset som tal — se priceFromNum i mapProduct. */
+  priceFromNum?: number;
+  /** Ordinariepriset som tal, bara när produkten är nedsatt. */
+  originalPriceNum?: number;
   hasRange?: boolean;
   img: string;
   gallery: string[];
@@ -319,6 +323,13 @@ function mapProduct(p: any): Product {
     originalPrice: (p.price && p.price.discountedPrice != null && p.price.discountedPrice < p.price.price) ? (p.price.formatted?.price || "") : "",
     onSale: !!(p.price && p.price.discountedPrice != null && p.price.discountedPrice < p.price.price),
     priceFrom: hasRange && minV != null ? minV.toFixed(2).replace(".", ",") + "kr" : "",
+    // Råa tal vid sidan av Wix färdigformaterade strängar. Strängarna behålls
+    // orörda — feed-parsern i app/api/feed/products.xml läser dem — men det som
+    // VISAS formateras från talen med formatPrice(), så butiken skriver
+    // "1 369 kr" i stället för Wix "1369,00kr".
+    priceFromNum: hasRange && minV != null ? minV : undefined,
+    originalPriceNum:
+      p.price && p.price.discountedPrice != null && p.price.discountedPrice < p.price.price ? p.price.price : undefined,
     hasRange,
     img: (p.media && p.media.mainMedia && p.media.mainMedia.image && p.media.mainMedia.image.url) || gallery[0] || "",
     gallery: gallery.slice(0, 6),
