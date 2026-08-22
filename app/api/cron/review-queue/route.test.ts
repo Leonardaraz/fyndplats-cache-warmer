@@ -25,13 +25,21 @@ function mapping(patch: Partial<ProductMappingRecord> = {}): ProductMappingRecor
   } as ProductMappingRecord;
 }
 
+// Rutten failar STÄNGT sedan 2026-08-22 (den svarade `true` utan nyckel fram
+// till dess, alltså öppen endpoint). Testerna körde tidigare helt utan
+// Authorization och passerade just på den öppenheten — nu skickar de nyckeln,
+// som en riktig anropare gör.
+const TESTNYCKEL = "test-cron-secret";
+
 function req(qs = "") {
-  return new Request(`http://localhost/api/cron/review-queue${qs}`) as unknown as Parameters<typeof GET>[0];
+  return new Request(`http://localhost/api/cron/review-queue${qs}`, {
+    headers: { authorization: `Bearer ${TESTNYCKEL}` },
+  }) as unknown as Parameters<typeof GET>[0];
 }
 
 beforeEach(() => {
   store = new MemoryStore();
-  delete process.env.CRON_SECRET;
+  process.env.CRON_SECRET = TESTNYCKEL;
   vi.mocked(fetchAeReviews).mockReset().mockResolvedValue({
     reviews: [],
     throttled: false,
@@ -155,5 +163,39 @@ describe("review-queue: synliga produkter styr urvalet", () => {
 
     const body = (await (await GET(req())).json()) as { kandidater: number };
     expect(body.kandidater).toBe(0);
+  });
+});
+
+describe("review-queue: auth", () => {
+  // Rutten svarade `if (!secret) return true` fram till 2026-08-22 — utan
+  // nyckel i miljön var den alltså en ÖPPEN endpoint som kunde köa recensioner
+  // och stämpla mappningar. Källgrep-spärren ligger i lib/cron-auth.test.ts;
+  // det här testet låser beteendet.
+  it("nekar utan Authorization-header", async () => {
+    const utan = new Request("http://localhost/api/cron/review-queue") as unknown as Parameters<
+      typeof GET
+    >[0];
+    expect((await GET(utan)).status).toBe(401);
+  });
+
+  it("nekar med fel nyckel", async () => {
+    const fel = new Request("http://localhost/api/cron/review-queue", {
+      headers: { authorization: "Bearer fel-nyckel" },
+    }) as unknown as Parameters<typeof GET>[0];
+    expect((await GET(fel)).status).toBe(401);
+  });
+
+  it("nekar när CRON_SECRET saknas i miljön — failar STÄNGT", () => {
+    // Att sakna nyckel ska aldrig betyda "släpp in alla".
+    const tidigare = process.env.CRON_SECRET;
+    delete process.env.CRON_SECRET;
+    try {
+      const r = new Request("http://localhost/api/cron/review-queue") as unknown as Parameters<
+        typeof GET
+      >[0];
+      return GET(r).then((res) => expect(res.status).toBe(401));
+    } finally {
+      process.env.CRON_SECRET = tidigare;
+    }
   });
 });

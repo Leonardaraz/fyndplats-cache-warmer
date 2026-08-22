@@ -282,6 +282,33 @@ en **strypt** hämtning stämplas aldrig (då hade rate-limiting dolt produkten 
 månad). Omkontroll efter `REVIEW_RECHECK_DAYS` (30) — nya recensioner dyker upp
 hos AE över tid.
 
+### Bilderna flyttas hem — men vid olika tillfällen i de två vägarna
+
+Kundbilder får aldrig ligga kvar på leverantörens domän när de visas för kund.
+Hemflytten sker i `lib/wix/media-import.ts`, men **de två inmatningsvägarna gör
+det vid olika tillfällen**, och den skillnaden har lurat mer än en läsare:
+
+| Väg | Bilden flyttas hem |
+|---|---|
+| Kön (`review-queue` → `queueReviewsForProduct`) | **Vid publicering** — raden sparas `pending` med AE-adressen kvar |
+| Direktimport (`/api/reviews/import` → `importReviewsForProduct`) | **Direkt vid skrivning** |
+
+En `pending`-rad som pekar på `aliexpress-media.com` är alltså **normalt**, inte
+ett fel. Att flytta hem bilder för rader som kanske aldrig godkänns vore slöseri
+med både anrop och medialagring. Grinden sitter i `lib/store/reviews.ts`:
+`isVisibleStatus(status) ? await withOwnImage(review) : review`.
+
+Mätt 2026-08-22: 203 synliga recensioner med bild, **alla** på vår egen domän;
+31 rader med AE-adress, **noll** av dem synliga. Kontrollera alltid `status`
+innan du drar slutsatsen att mediaimporten är trasig — annars felsöker du
+designen.
+
+**Misslyckas uppladdningen behålls källadressen** (2026-08-22). Direktimporten
+slängde tidigare bilden tyst: ingen logg, `hasImage:false`, och källadressen
+sparades ingenstans — felet gick varken att upptäcka eller reparera, eftersom
+`repairImages` bara letar efter rader som FORTFARANDE bär en leverantörs-URL.
+Nu räknas missarna i svarets `bildmissar` och lagas av nästa repairImages-körning.
+
 ### Betygen skickas INTE till Google
 
 Butiken (`headless-site`) har `PRODUCT_REVIEW_SCHEMA`, **default av**. Recensions-

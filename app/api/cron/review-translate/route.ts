@@ -43,7 +43,11 @@ export const maxDuration = 300;
 
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
+  // FAIL CLOSED. Raden svarade `true` fram till 2026-08-22, alltså öppen
+  // endpoint när nyckeln saknas — och den här rutten kan skriva om
+  // recensionstext och publicera den. Nio av elva cron-rutter failade redan
+  // stängt; de två som inte gjorde det var recensionsrutterna.
+  if (!secret) return false;
   return req.headers.get("authorization") === `Bearer ${secret}`;
 }
 
