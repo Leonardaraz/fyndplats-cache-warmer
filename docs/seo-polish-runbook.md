@@ -359,6 +359,8 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 >
 > Åtgärda samtidigt det du noterade i Steg 1b: fel produkt/motiv, dubbletter, eller att **första bilden** (= `media.main`, produktkortets bild i butiken) inte är den renaste produktbilden — byt huvudbild genom att ordna om `itemsInfo.items` (första item blir automatiskt `main`); skicka **hela** arrayen i ny ordning i samma Steg 3-PATCH, ändra inget annat i items.
 
+> 📌 **Galleriets ordning är fast: hjältebild, verklighetsbild, sedan korten.** Bild 1 är den renaste produktbilden (den blir `media.main` och produktkortet). **Bild 2 ska vara en verklighetsbild** — varan i ett rum, i bruk, med något att skala mot. Egna Fyndplats-kort kommer därefter, och måttritningar sist. Kunden bläddrar sällan förbi de första bilderna, och där ska hen ha sett vad varan är och hur den ser ut hemma — inte två spec-tabeller i rad. Leonards regel 2026-08-22, efter att kubhyllan `d4b87c0a` publicerades med spec-kortet som bild 2. Saknar leverantören en miljöbild helt: sätt näst renaste produktbilden på plats 2 och notera avsaknaden, bygg inte ett kort som ersättning.
+
 > **Dubbletter (identiska bilder):** är två eller fler galleri-items **exakt samma motiv** (vanligt från skrapan/DS-API:t) — behåll **en**, ta bort resten ur `itemsInfo.items` (skicka hela arrayen utan dubbletterna). **Kontrollera `linkedMedia` FÖRST:** pekar ett variantval på en kopia du tar bort → koppla om valet till den kvarvarande bilden (Steg 6B), annars tappar valet sitt bildbyte tyst. **Radera INTE filen direkt** i Media Manager — borttagen ur galleriet blir den föräldralös och **frigörs automatiskt i de återkommande orphan-städsvepen** (minnet återtas helt, utan risk att radera en fil som `linkedMedia`:as eller används av en annan produkt). Vill du bekräfta exakt likhet: jämför fil-id:t i `image.url` (samma id = samma fil) eller previews sida vid sida med `Read`.
 
 **Bild-arbete — vilken metod?** Åtgärda det du flaggade i Steg 1b. Välj per bild:
@@ -1164,6 +1166,7 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
   bära ribbonen.
 - Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
 - **Variantetiketterna innehåller ingen obekräftad prestandasiffra** (Steg 6F) — bärförmåga/effekt/kapacitet står i spec-tabellen och på kortet, med källan utskriven.
+- **Galleriets ordning:** bild 1 = renaste produktbilden, **bild 2 = verklighetsbild**, därefter egna kort och sist måttritning (Steg 3).
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
 
