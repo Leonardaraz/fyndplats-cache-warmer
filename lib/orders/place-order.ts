@@ -1,9 +1,28 @@
 import { randomUUID } from "node:crypto";
-import { createOrder, getProduct, OrderValidationError } from "@/lib/aliexpress/client";
+import {
+  createOrder,
+  getProduct,
+  OrderValidationError,
+  queryFreightToCountry,
+} from "@/lib/aliexpress/client";
+import {
+  deliveryCandidates,
+  isDeliveryMethodMissing,
+  matchAeVariant,
+  parseDeliveryOptions,
+  rankDeliveryOptions,
+} from "@/lib/aliexpress/freight";
 import { normalizeCountryCode, provinceFromSwedishPostalCode } from "@/lib/orders/tasks";
 import { isTerminal } from "@/lib/orders/status";
 import { assessDsPrice } from "@/lib/orders/price-check";
 import type { Store } from "@/lib/store";
+
+/**
+ * Tak för hur många fraktsätt vi provar. Listan är rangordnad bäst först, så
+ * de senare kandidaterna är i tur och ordning sämre affärer — och varje försök
+ * är ett API-anrop i en admin-request som Leonard väntar på.
+ */
+const MAX_DELIVERY_ATTEMPTS = 4;
 
 export type PlaceOrderResult =
   | { ok: true; tradeOrderId: string; paymentUrl?: string }
@@ -112,6 +131,16 @@ export async function placeOrderForTask(
   const province =
     a.province ?? (countryCode === "SE" ? provinceFromSwedishPostalCode(a.postalCode) : undefined);
 
+  // Produkten hämtas HÖGST EN gång per orderläggning. Prisvakten och
+  // fraktvalet behöver båda dess varianter, och två anrop hade dubblat
+  // AE-trafiken på orderns väg — i ett API som redan strypt oss en gång
+  // (granskning 2026-08-19). Cachen lever bara inom det här anropet.
+  let produktCache: Awaited<ReturnType<typeof getProduct>> | null = null;
+  const hamtaProdukt = async () => {
+    if (!produktCache) produktCache = await getProduct(supplierProductId);
+    return produktCache;
+  };
+
   // ── PRISVAKT (garderobs-incidenten 2026-08-06) ──
   // DS-API:t kan aldrig få kampanjpriser/kuponger, så när DS-priset stuckit
   // iväg mot importbaslinjen ska Leonard få välja väg INNAN någon order skapas.
@@ -124,7 +153,7 @@ export async function placeOrderForTask(
     try {
       const baseline = task.overriddenSupplierProductId ? undefined : variant?.costUsd;
       if (baseline && baseline > 0) {
-        const now = await getProduct(supplierProductId);
+        const now = await hamtaProdukt();
         const skuNow = now.variants.find(
           (v) => v.skuId === supplierVariantId || v.skuAttr === supplierVariantId,
         );
@@ -181,21 +210,134 @@ export async function placeOrderForTask(
   }
 
   try {
-    const result = await createOrder({
+    const adress = {
+      name: a.fullName ?? "",
+      addressLine1: a.addressLine1 ?? "",
+      addressLine2: a.addressLine2,
+      city: a.city ?? "",
+      province,
+      postalCode: a.postalCode ?? "",
+      countryCode,
+      phone: a.phone,
+    };
+
+    // FRAKTVALET, före första försöket.
+    //
+    // Tidigare skickades ett hårdkodat CAINIAO_ECONOMY_GLOBAL för varje
+    // produkt. Två problem med det: tjänsten finns inte hos alla säljare och
+    // lager (order #10021 avvisades med DELIVERY_METHOD_NOT_EXIST), och även
+    // när den finns är den sällan det bästa valet. Samma vara ligger ofta i
+    // flera lager med olika pris OCH olika leveranstid — frakten äter
+    // marginalen direkt, och leveranstiden är vad kunden upplever mot vårt
+    // löfte om 3–7 arbetsdagar.
+    //
+    // Därför frågas alternativen fram och rangordnas på båda samtidigt (se
+    // deliveryScore). Ett extra API-anrop per orderläggning; det är en
+    // admin-åtgärd på en order i taget, så kostnaden är försumbar mot att
+    // välja fel lager.
+    //
+    // FAIL-OPEN: går fraktfrågan inte fram läggs ordern med defaulten precis
+    // som förut. En hicka i frakt-API:t får aldrig blockera en kundleverans.
+    //
+    // EGEN try/catch, inte den yttre: den yttre tolkar ett kast som "okänt fel
+    // efter att ordern kan ha lagts" och flaggar tasken för manuell
+    // verifiering. Ett kast HÄR sker före varje AE-orderanrop, så det får
+    // aldrig ge det utfallet — då hade en hicka i frakt-API:t låst en task som
+    // ingen order finns för.
+    let alternativ: ReturnType<typeof rankDeliveryOptions> = [];
+    let fraktsvar: Awaited<ReturnType<typeof queryFreightToCountry>> | null = null;
+    try {
+      // FRAKT-API:T KRÄVER NUMERISKT sku_id — inte det vi skickar till
+      // createOrder. Extension-importens supplierVariantId ÄR AliExpress
+      // sku_attr ("14:350853#39 Drawers;200007763:201336106"), och skickas den
+      // strängen som sku_id svarar frakt-API:t tomt. Då blir alternativlistan
+      // tom, rankningen en no-op och ordern läggs med just den hårdkodade
+      // tjänst som fällde #10021 — felet hade alltså tyst återskapats för
+      // precis de produkter fixen finns för (granskning 2026-08-19).
+      //
+      // lib/sync/shippability.ts och freight-check-rutten konverterar redan via
+      // matchAeVariant; det gör vi nu också. Är id:t redan numeriskt hoppas
+      // uppslaget över, så de flesta ordrar kostar inget extra anrop.
+      let freightSkuId: string | null = /^\d+$/.test(supplierVariantId)
+        ? supplierVariantId
+        : null;
+      if (!freightSkuId) {
+        const ae = await hamtaProdukt();
+        freightSkuId = matchAeVariant(supplierVariantId, ae.variants);
+      }
+      if (freightSkuId) {
+        fraktsvar = await queryFreightToCountry(
+          supplierProductId,
+          freightSkuId,
+          countryCode,
+          task.quantity,
+        );
+        alternativ = rankDeliveryOptions(parseDeliveryOptions(fraktsvar));
+      } else {
+        console.warn(
+          `[place-order] task=${taskId} kunde inte härleda numeriskt sku_id — hoppar fraktvalet`,
+        );
+      }
+      if (alternativ.length === 0) {
+        // LOGGA RÅSVARET. Utan det går det inte att skilja "AliExpress har inga
+        // fraktsätt" från "vår parser hittade dem inte" — och det andra visade
+        // sig vara fallet 2026-08-19.
+        console.warn(
+          `[place-order] task=${taskId} fraktfrågan gav 0 alternativ. skuId=${freightSkuId}` +
+            ` land=${countryCode} svar=${JSON.stringify(fraktsvar).slice(0, 900)}`,
+        );
+      }
+    } catch (err) {
+      console.warn(`[place-order] task=${taskId} fraktfrågan misslyckades`, err);
+    }
+    // Kapa de RANKADE kandidaterna; deliveryCandidates lägger själv på
+    // `undefined` sist, alltså "låt AliExpress välja". Kapningen sker FÖRE så
+    // den reserven aldrig hyvlas bort av taket.
+    const kandidater = deliveryCandidates(alternativ.slice(0, MAX_DELIVERY_ATTEMPTS - 1));
+    if (alternativ.length > 0) {
+      const b = alternativ[0];
+      console.warn(
+        `[place-order] task=${taskId} fraktval: "${b.serviceName}"` +
+          ` (${b.costSek ?? "?"} kr, ${b.maxDays ?? "?"} dgr)` +
+          ` av ${alternativ.length} alternativ`,
+      );
+    }
+
+    // EN loop, en payload. Två separata createOrder-anrop (ett för första
+    // kandidaten, ett i omförsöket) hade betytt att en framtida ändring av
+    // orderns innehåll kan hamna på bara det ena — en bugg som bara syns på
+    // omförsöksvägen (granskning 2026-08-19).
+    //
+    // SÄKERHETSVILLKOREN för att gå vidare till nästa kandidat:
+    //   - inget order-id (annars är vi klara),
+    //   - orderDefinitelyNotPlaced, som bara sätts när AliExpress UTTRYCKLIGEN
+    //     sagt nej — vid ett oklart svar kan en order finnas och ett omförsök
+    //     vore en dubbelbeställning,
+    //   - och att felet är just "fraktsättet finns inte".
+    // Claimen hålls hela vägen, så ingen annan väg kan gå in mellan försöken.
+    let result = await createOrder({
       productId: supplierProductId,
       skuId: supplierVariantId,
       quantity: task.quantity,
-      shippingAddress: {
-        name: a.fullName ?? "",
-        addressLine1: a.addressLine1 ?? "",
-        addressLine2: a.addressLine2,
-        city: a.city ?? "",
-        province,
-        postalCode: a.postalCode ?? "",
-        countryCode,
-        phone: a.phone,
-      },
+      shippingAddress: adress,
+      logisticsServiceName: kandidater[0],
     });
+    for (const tjanst of kandidater.slice(1)) {
+      if (result.tradeOrderId) break;
+      if (!result.orderDefinitelyNotPlaced) break;
+      if (!isDeliveryMethodMissing(result.aeError, result.aeErrorCode)) break;
+      console.warn(
+        `[place-order] task=${taskId} fraktsättet saknades — provar ` +
+          (tjanst ? `"${tjanst}"` : "utan angivet fraktsätt (AliExpress väljer)"),
+      );
+      result = await createOrder({
+        productId: supplierProductId,
+        skuId: supplierVariantId,
+        quantity: task.quantity,
+        shippingAddress: adress,
+        logisticsServiceName: tjanst,
+      });
+    }
 
     // Tomt order_id. Två fall:
     //  a) AliExpress svarade UTTRYCKLIGEN misslyckat (is_success=false / felkod) →
@@ -208,6 +350,32 @@ export async function placeOrderForTask(
       if (result.orderDefinitelyNotPlaced) {
         await store.releaseTask(taskId, token);
         await safeAudit(store, taskId, "order-rejected", `AliExpress avvisade ordern${why}`);
+        // FRAKTDIAGNOS. "DELIVERY_METHOD_NOT_EXIST — försök igen" är en
+        // återvändsgränd: den säger inte OM det finns något fraktsätt att
+        // försöka med. Nu skiljs de två lägena åt, för åtgärden är helt olika.
+        if (isDeliveryMethodMissing(result.aeError, result.aeErrorCode)) {
+          // FORMULERINGEN ÄR MEDVETET FÖRSIKTIG. En tidigare version sa "varan
+          // går inte att skicka hit" när fraktfrågan gav noll alternativ. Det
+          // var att dra en slutsats koden inte kan bära: den vet bara att VÅR
+          // fråga inte gav något. Leonard visade 2026-08-19 att AliExpress egen
+          // produktsida samtidigt erbjöd frakt från Tjeckien, Frankrike och
+          // Spanien — påståendet var alltså falskt, och skickade honom att leta
+          // efter fel leverantör i stället för fel i vår integration.
+          const provade = kandidater
+            .map((k) => k ?? "utan angivet fraktsätt")
+            .join(", ");
+          return {
+            ok: false,
+            error:
+              `AliExpress avvisade fraktsättet (${provade}) — ingen order lades.` +
+              (alternativ.length === 0
+                ? " Vår fraktförfrågan gav inga alternativ att välja bland, trots att" +
+                  " produktsidan kan visa flera. Kolla loggen (Functions) för svaret" +
+                  " från frakt-API:t."
+                : "") +
+              " Beställ manuellt på AliExpress så länge, eller byt leverantör/variant.",
+          };
+        }
         return { ok: false, error: `AliExpress avvisade ordern${why} — ingen order lades. Åtgärda och försök igen.` };
       }
       await markUncertain(store, taskId, `AliExpress gav inget order-id${why}`);

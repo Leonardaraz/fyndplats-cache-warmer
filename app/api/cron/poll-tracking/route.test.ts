@@ -57,6 +57,27 @@ describe("poll-tracking F19-backstopp", () => {
     expect(flagged?.status).toBe("ordered");
   });
 
+  // Order 10018 (2026-08-17) skeppades med AE-fraktbolaget "Seller Shipping ES
+  // Local". Wix kände inte igen namnet, genererade ingen länk, och kunden fick
+  // en leveransbekräftelse utan något sätt att följa paketet. Vår egen länk ska
+  // därför alltid med — oavsett vad AE kallar fraktbolaget.
+  it("spårlänken till vår egen sida följer alltid med", async () => {
+    await store.upsertTask(task({ taskId: "o1:l1", aliexpressOrderId: "AE-1" }));
+    vi.mocked(getTracking).mockResolvedValue({
+      trackingNumber: "07084028196936",
+      shippingProvider: "Seller Shipping ES Local",
+    } as Awaited<ReturnType<typeof getTracking>>);
+
+    await GET(req());
+
+    expect(vi.mocked(createFulfillment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trackingNumber: "07084028196936",
+        trackingLink: "https://www.fyndplats.se/sparning?tn=07084028196936",
+      }),
+    );
+  });
+
   it("cancelMidOrder och orderUncertain hålls också tillbaka", async () => {
     await store.upsertTask(task({ taskId: "o1:l1", aliexpressOrderId: "AE-1", cancelMidOrder: true }));
     await store.upsertTask(task({ taskId: "o2:l1", orderId: "o2", aliexpressOrderId: "AE-2", orderUncertain: true }));

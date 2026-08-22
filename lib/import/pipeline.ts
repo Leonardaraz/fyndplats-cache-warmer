@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
 import { computePriceWithRules } from "./pricing";
+import { assessPriceTrust } from "./price-trust";
 import { deriveFocusKeyword } from "./focus-keyword";
 import { resolveImportStockQty } from "./variant-stock";
 import { trimVariants, variantTrimEnabled, variantTrimMax } from "./variant-trim";
 import { capOptionsAndVariants } from "./variant-cap";
 import { splitConstantAxes, mergeConstantAxisSpecs } from "./constant-axes";
+import { collapseShipFromAxis } from "./ship-axis";
 import { generateProductContent, type ProductContent } from "./generate";
 import {
   resolveQualityMode,
@@ -16,6 +18,7 @@ import {
 import { generatePremiumContent } from "./premium-pipeline";
 import { rankProductImages } from "./image-rank";
 import type { FaqReviewHint } from "./faq-gen";
+import { stripMarketplaceSuffix } from "./guard";
 import { buildFallbackSeo, generateSeo, type SeoResult } from "./seo";
 import { appendTabSections, buildTabSections, generateTabs, type GeneratedTabs } from "./tabs";
 import { buildTranslatorFromBase, translateValue, unresolvedAxisNames } from "./variant-translations";
@@ -112,6 +115,26 @@ export interface VariantMapping {
   shippabilityNegativeStreak?: number;
   /** ISO-tid för det FÖRSTA nejet i pågående serie (mäter seriens spännvidd). */
   shippabilityNegativeSince?: string;
+  /**
+   * Sattes när fraktkontrollen pekade om varianten till SAMMA vara i ett annat
+   * lager (stödbenen 2026-08-17). Lagerlandet är en del av AliExpress SKU, så
+   * ett nerlagt lager gör vår sparade SKU död utan att produkten blir det.
+   */
+  shipFromSwitchedAt?: string;
+  /** Variant-id:t vi pekade om FRÅN — spårbarhet och väg tillbaka. */
+  previousSupplierVariantId?: string;
+  /**
+   * Lagerlandet för DEN HÄR SKU:n (ISO-3166 alpha-2), satt av
+   * collapseShipFromAxis vid import. Lagret är en del av AliExpress-SKU:n, så
+   * varje variant har exakt ett — till skillnad från mappningens
+   * `shipsFromCountries`, som är en mängd över produktens varianter.
+   *
+   * Utan fältet gick det inte att svara på "skickas den här varianten från EU?"
+   * i efterhand (revisionen 2026-08-21): produktnivåns lista sa `ES/FR/GB/PL/RU/US`
+   * på tretton utkast utan att någon kunde säga vilket lager den sparade SKU:n
+   * faktiskt låg i. Saknas = importerad innan fältet fanns, eller lager okänt.
+   */
+  shipFrom?: string;
 }
 
 export interface ImportResult {
@@ -154,6 +177,13 @@ export interface ImportResult {
    * omimport, inte polering).
    */
   unresolvedVariantValues?: string[];
+  /**
+   * Satt när variantpriserna INTE går att lita på: alla varianter delar samma
+   * inköpspris utan att DS kunnat bekräfta det (se lib/import/price-trust.ts).
+   * Produkten tvingas då till utkast oavsett läge, och /admin/queue visar
+   * motiveringen. Värdet ÄR motiveringen, på svenska.
+   */
+  priceUnverified?: string;
   /** Vilket AI-kvalitetsläge importen kördes i (raw/standard/premium). */
   qualityMode: QualityMode;
   /**
@@ -340,11 +370,17 @@ export async function importProduct(
   // översättning/prissättning. Konservativ (<50 % match → orört) och
   // fail-open — ett API-fel får aldrig fälla importen; då gäller skrapans
   // data precis som innan, och unifoma priser flaggas enbart i loggen.
+  // Utfallet fångas för prisspärren nedan (assessPriceTrust): en avbruten
+  // eller fallerad avstämning får inte längre passera som "allt är bra".
+  let reconcileAttempted = false;
+  let reconcileAborted = false;
+  let dsLookupFailed = false;
   if (
     dsPriceReconcileEnabled() &&
     needsDsPriceReconcile(sourceVariants) &&
     /^\d{6,}$/.test(String(product.supplierProductId || ""))
   ) {
+    reconcileAttempted = true;
     try {
       const ds = await getProductOnce(product.supplierProductId);
       const rec = reconcileVariantsWithDs(sourceVariants, ds.variants ?? []);
@@ -362,12 +398,14 @@ export async function importProduct(
             `${rec.idsRepaired} id reparerade, ${rec.ghostsDropped} spökvarianter borttagna.`,
         );
       } else {
+        reconcileAborted = true;
         console.warn(
           `[import:price-reconcile] pid=${product.supplierProductId} avstämning AVBRUTEN ` +
             `(för osäker matchning) — skrapade varianter används orörda. KONTROLLERA PRISERNA.`,
         );
       }
     } catch (err) {
+      dsLookupFailed = true;
       console.warn(
         `[import:price-reconcile] pid=${product.supplierProductId} DS-uppslag misslyckades: ` +
           `${err instanceof Error ? err.message.slice(0, 160) : String(err)} — skrapade priser används.`,
@@ -487,6 +525,40 @@ export async function importProduct(
     }
   }
 
+  // Spec-backfill (audit 2026-08-18): måleritältet importerades med tre
+  // innehållslösa specrader ("Type: Awnings") — den första kollapsade batchen.
+  // Spec-blocket lazy-renderas hos AE och ligger dessutom avkortat bakom
+  // "View more", så en skrapa som läser DOM:en i befintligt skick får i bästa
+  // fall toppen av listan och ibland ingenting alls. Tillägget fäller numera ut sidan först, men det är en
+  // klient vi inte styr versionen på — och tom spec-flik ger dessutom magert
+  // underlag för SEO-poleringen, vilket är svårt att upptäcka i efterhand.
+  //
+  // DS-svaret bär egenskaperna. Kostar inget extra när DS redan hämtats ovan
+  // (memoiserat), och en extra hämtning är billig jämfört med en produkt utan
+  // specar. Samma best-effort-hållning som beskrivnings-backfillen: fäller
+  // aldrig importen, och rör ingenting när skrapan faktiskt gav specar.
+  if (
+    Object.keys(product.specifications || {}).length === 0 &&
+    /^\d{6,}$/.test(String(product.supplierProductId || ""))
+  ) {
+    try {
+      const ds = await getProductOnce(product.supplierProductId);
+      const fromDs = ds.properties || {};
+      if (Object.keys(fromDs).length > 0) {
+        product.specifications = fromDs;
+        console.log(
+          `[import:specs] pid=${product.supplierProductId} backfill via DS-API ` +
+            `(${Object.keys(fromDs).length} specrader; skrapan gav inga).`,
+        );
+      }
+    } catch (err) {
+      console.warn(
+        `[import:specs] pid=${product.supplierProductId} DS-spec-backfill misslyckades: ` +
+          `${err instanceof Error ? err.message.slice(0, 160) : String(err)}`,
+      );
+    }
+  }
+
   // Per-val bild-URL:er översätts till samma svenska axel-/val-nycklar som
   // varianterna (translateOptionColorCodes har exakt rätt shape) så att de matchar
   // de härledda Wix-optionsvalen vid kopplingen nedan.
@@ -530,7 +602,21 @@ export async function importProduct(
   // bockade av resten kollapsar då också till spec — ingen död väljare på PDP:n.
   // (Fixar även en vilande bugg: trim-demoteringen nådde aldrig prunedVariants-
   // kopiorna när splitten låg före trimmen.)
-  const { prunedVariants, specs: constantAxisSpecs } = splitConstantAxes(variants);
+  // Lager-axeln är aldrig ett kundval. Flera EU-lager i samma listning (samma
+  // vara, olika land) blir EN variant per vara — annars får produktsidan en
+  // rullista "Skickas från: Frankrike / Tjeckien / …" och den delade Storlek-
+  // listan fylls med varianter som sync ändå anser vara samma vara. Ett enda
+  // lager rörs inte: då gör splitConstantAxes nedan sin vanliga spec-rad.
+  const lager = collapseShipFromAxis(variants);
+  if (lager.applied) {
+    console.log(
+      `[import:lager] ${product.supplierProductId}: ${lager.collapsed} SKU:er var samma vara i ` +
+        `annat lager → en variant per vara (${variants.length} → ${lager.variants.length}). ` +
+        `Valda lager: ${lager.warehouses.join(", ") || "okänt"}.`,
+    );
+  }
+
+  const { prunedVariants, specs: constantAxisSpecs } = splitConstantAxes(lager.variants);
   if (constantAxisSpecs.length) {
     console.log(
       `[import:axes] ${product.supplierProductId}: ${constantAxisSpecs.length} icke-differentierande ` +
@@ -674,7 +760,10 @@ export async function importProduct(
     const rec = await suggestCategoryRecord(seoLegacy, product, cols);
     const tabs = await generateTabs({
       productId: product.supplierProductId,
-      name: seoLegacy.title || product.rawTitle,
+      // stripMarketplaceSuffix även här: seoLegacy.title är redan tvättad, men
+      // fallbacken går förbi seo.ts och skulle annars mata flikgenereringen med
+      // "… - AliExpress 1503" som produktnamn.
+      name: seoLegacy.title || stripMarketplaceSuffix(product.rawTitle),
       categoryName: rec.collectionName ?? null,
       specifications: product.specifications,
       features: product.features,
@@ -819,6 +908,16 @@ export async function importProduct(
   }
   const swatchMediaPromise = uploadSwatchMedia(swatchSources, seo.slug);
 
+  // Lagerkod per SKU, ur den KOLLAPSADE mängden (collapseShipFromAxis satte
+  // shipFrom på varje behållen variant). Sparas på mappningen så frågan
+  // "skickas den här varianten från EU?" går att besvara i efterhand.
+  const shipFromBySupplierVariantId = new Map<string, string>();
+  for (const v of lager.variants as Array<{ supplierVariantId?: string; shipFrom?: string }>) {
+    if (v.supplierVariantId && v.shipFrom) {
+      shipFromBySupplierVariantId.set(v.supplierVariantId, v.shipFrom);
+    }
+  }
+
   const variantMappings: VariantMapping[] = [];
   // Läsbara SKU:er ("FP-<produkt>-<variant>") istället för "AE-<hash>". SKU:n är ren
   // etikett (fulfillment går via mappningen), så formatet är fritt. Byggs för ALLA
@@ -835,6 +934,9 @@ export async function importProduct(
         costUsd: v.costUsd,
         landedCostSek: price.costSek,
         grossSek: price.grossSek,
+        ...(shipFromBySupplierVariantId.has(v.supplierVariantId)
+          ? { shipFrom: shipFromBySupplierVariantId.get(v.supplierVariantId) }
+          : {}),
       });
     }
     return {
@@ -851,6 +953,21 @@ export async function importProduct(
       costAmount: price.costSek.toFixed(2),
     };
   });
+
+  // PRISSPÄRR. Delar alla varianter samma inköpspris UTAN att vi kunnat
+  // bekräfta det mot DS? Då kommer priset troligen från sidans synliga pris
+  // (tilläggets DOM-fallback) och de dyrare varianterna är underprisade.
+  // Produkten får inte gå live med det — se lib/import/price-trust.ts.
+  const prisdom = assessPriceTrust(wixVariantSource, {
+    reconcileAttempted,
+    reconcileAborted,
+    dsLookupFailed,
+  });
+  if (!prisdom.trusted) {
+    console.warn(
+      `[import:price-trust] pid=${product.supplierProductId} STOPPAD FRÅN PUBLICERING: ${prisdom.reason}`,
+    );
+  }
 
   // Vänta in bilduppladdningarna och koppla alt-text per bild (faller tillbaka
   // på titeln om SEO-pipelinen inte producerade en alt för just den bilden).
@@ -915,14 +1032,25 @@ export async function importProduct(
   }
   const choiceMediaLinks = swatchLinks.concat(altLinks);
 
-  // Aggregera warehouse-koder över alla varianter + ev. produkt-default.
-  // Påverkar Wix-ribbonen och persisteras på mapping-posten för senare filterring.
-  const allShipFromCodes: string[] = [];
-  for (const v of variants) {
-    if (v.shipFrom) allShipFromCodes.push(v.shipFrom);
-  }
-  if (product.shipsFrom) allShipFromCodes.push(...product.shipsFrom);
-  const shipsFromCountries = uniqueShipFromCodes(allShipFromCodes);
+  // Lagren vi FAKTISKT skeppar ur. `lager.warehouses` är de distinkta koderna
+  // bland de BEHÅLLNA varianterna efter collapseShipFromAxis — och bara de hör
+  // hemma i ett kundlöfte.
+  //
+  // Förut aggregerades i stället ALLA skrapade varianter plus produktens egen
+  // lista, vilket beskriver LISTNINGEN och inte de SKU:er vi sparat. Det gör
+  // "EU-lager"-ribbonen nedan till ett påstående vi inte kan stå för:
+  // pickWarehouse rankar saldo FÖRE EU, så en listning med ett tomt spanskt
+  // lager och ett fyllt kinesiskt behåller det kinesiska — och fick ändå
+  // ribbonen, eftersom "ES" låg kvar i listningens lista. Tretton utkast stod
+  // så vid revisionen 2026-08-21.
+  //
+  // Produktens lista används fortfarande som fallback: har listningen bara ETT
+  // lager returnerar collapseShipFromAxis tidigt utan att sätta shipFrom per
+  // variant, och då är produkt-defaulten det enda vi har.
+  const keptShipFromCodes = uniqueShipFromCodes(lager.warehouses);
+  const shipsFromCountries = keptShipFromCodes.length
+    ? keptShipFromCodes
+    : uniqueShipFromCodes(product.shipsFrom ?? []);
   const hasEuWarehouse = hasAnyEuWarehouse(shipsFromCountries);
   const warehouseClass = classifyWarehouses(shipsFromCountries);
 
@@ -947,9 +1075,14 @@ export async function importProduct(
     //               (≥9,5). Underkänd premium → draft + needs_manual_polish.
     //   STANDARD  → draft som förut; IMPORT_DRAFT_DEFAULT=false hoppar granskningen.
     //   RAW       → ALLTID draft (aiEnabled=false): kräver manuell polering först.
-    visible: premium
-      ? premiumResult?.passed === true
-      : aiEnabled && process.env.IMPORT_DRAFT_DEFAULT === "false",
+    //   PRISSPÄRR → otillförlitliga variantpriser tvingar draft OAVSETT läge.
+    //               En felprissatt produkt som är synlig säljs till fel pris;
+    //               en som är utkast kostar bara ett klick att rätta.
+    visible: prisdom.trusted
+      ? premium
+        ? premiumResult?.passed === true
+        : aiEnabled && process.env.IMPORT_DRAFT_DEFAULT === "false"
+      : false,
   };
 
   // Logga den faktiska payload-formen som skickas till Wix — så att 400:or
@@ -1109,6 +1242,7 @@ export async function importProduct(
     qualityMode,
     ...(premium && premiumResult ? { qualityScore: premiumResult.score } : {}),
     ...(premium && premiumResult && !premiumResult.passed ? { needsManualPolish: true } : {}),
+    ...(prisdom.trusted ? {} : { priceUnverified: prisdom.reason }),
   };
 }
 

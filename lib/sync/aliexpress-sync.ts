@@ -15,12 +15,14 @@
 // adjust direkt på alla produkter): denna lägger fokus på listing-status,
 // content-drift och alert-handoff till Leonard. Båda kan samexistera.
 
-import { computePrice } from "../import/pricing";
+import { computePrice, roundPrice } from "../import/pricing";
+import { TARGET_MARGIN_PCT, priceForTargetMargin } from "../pricing/margin-bands";
 import { translateValue } from "../import/variant-translations";
 import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
 import type { PricingConfig } from "../import/types";
 import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
 import { checkMappingShippability, isShippabilityStale, NEGATIVE_CONFIRMATIONS, type ShippabilityBudget } from "./shippability";
+import { planWarehouseFailover } from "./warehouse-failover";
 import type { VariantMapping } from "../import/pipeline";
 import {
   getProduct as getWixProduct,
@@ -333,7 +335,25 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
         pricing.vatRatePercent,
       );
       if (projectedMargin < marginFloorPercent) {
-        const recommended = computePrice(aliExpress.minCostUsd, pricing).grossSek;
+        // MÅLMARGINALEN, inte import-multiplikatorn. computePrice ger
+        // kostnad × 2,5 (~62 % marginal) — ett förslag ingen trycker på:
+        // växthuset på 449 kr föreslogs få 1219 kr. Vid målmarginalen landar
+        // det på ~639 kr, vilket är en höjning man faktiskt gör. Faller
+        // tillbaka på import-regeln om målpriset inte går att räkna ut.
+        // Målet är det HÖGSTA av standardmålet och larmgolvet. Är golvet satt
+        // över 22,5 % (SYNC_MARGIN_FLOOR_PERCENT) vore ett förslag på 22,5 %
+        // en PRISSÄNKNING som dessutom aldrig rensar larmet — det ligger ju
+        // fortfarande under golvet (granskning 2026-08-19).
+        const målmarginal = Math.max(TARGET_MARGIN_PCT, marginFloorPercent);
+        const målpris = priceForTargetMargin(
+          newCostSek,
+          målmarginal,
+          pricing.vatRatePercent,
+        );
+        const recommended =
+          målpris === null
+            ? computePrice(aliExpress.minCostUsd, pricing).grossSek
+            : roundPrice(målpris, pricing.rounding);
         const severity: AlertSeverity =
           projectedMargin < 0 ? "high" : projectedMargin < marginFloorPercent / 2 ? "medium" : "low";
         decision.actionTaken = "flagged_price";
@@ -383,8 +403,23 @@ export function decideSyncOutcome(inputs: SyncInputs): SyncDecision {
 }
 
 /**
- * Marginal vid givet salespris (inkl. moms) och landad kostnad.
- * Försimplad: ignorerar Klarna-fee i alert-räknaren (lägger tröskeln lite konservativt).
+ * Marginal vid givet salespris (inkl. moms) och landad kostnad (inkl. moms).
+ *
+ * NETTO MOT NETTO. Båda talen bär moms: butikspriset gör det, och det lagrade
+ * inköpspriset gör det också ("Price includes VAT" hos AliExpress EU-lager —
+ * se noten i lib/import/pricing.ts). Momsen på inköpet är dessutom aldrig en
+ * verklig kostnad för ett momsregistrerat företag: EU-säljare fakturerar utan
+ * moms (omvänd skattskyldighet) och importmoms på Kina-köp är avdragsgill.
+ * Kodbasens egen netSupplierCost() i lib/auction/seed.ts bygger på just det.
+ *
+ * Fram till 2026-08-19 drogs den MOMSADE kostnaden från nettointäkten, vilket
+ * underskattade varje marginal med ungefär momssatsen gånger kostnaden. Följden
+ * var inte kosmetisk: sidan visade 208 "prishöjningar" där tre av fyra
+ * stickprov i själva verket låg på plus (−9,5 % var +12,4 %, −12,5 % var
+ * +10,0 %, −23,3 % var +1,3 %). Både alert-tröskeln och allvarlighetsgraden
+ * hänger på talet, så felet skapade en vägg av röda larm som inte fanns.
+ *
+ * Försimplad i övrigt: ignorerar Klarna-avgiften (lägger tröskeln konservativt).
  */
 export function projectedMarginAtPrice(
   grossSek: number,
@@ -394,7 +429,8 @@ export function projectedMarginAtPrice(
   if (grossSek <= 0) return 0;
   const netRevenue = grossSek / (1 + vatRatePercent / 100);
   if (netRevenue <= 0) return 0;
-  return ((netRevenue - landedCostSek) / netRevenue) * 100;
+  const netCost = landedCostSek / (1 + vatRatePercent / 100);
+  return ((netRevenue - netCost) / netRevenue) * 100;
 }
 
 function round2(n: number): number {
@@ -718,7 +754,15 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // istället för att jämnt fördela aggregatet (bug 2026-06-01).
   let aeStockBySupplierId: Record<string, number> = {};
   // SKU:er (numeriskt id + egenskaper) för fraktbarhetskontrollen (steg 3.5).
-  let aeVariantsForShippability: Array<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }> = [];
+  let aeVariantsForShippability: Array<{
+    skuId: string;
+    skuAttr?: string;
+    skuProps: Record<string, string>;
+    stock?: number;
+    shipFrom?: string;
+    /** SKU-priset — lager-failovern (steg 3.6) räknar om marginalen med det. */
+    price?: number;
+  }> = [];
   // Sätts om AE-svaret klassas som "borttagen listning" (för strike-räkningen
   // som kräver REMOVED_STRIKES_REQUIRED körningar i rad innan vi döljer).
   let removedClassified = false;
@@ -773,7 +817,17 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     aeStockBySupplierId = buildStockBySupplierId(product.variants);
     aeVariantsForShippability = product.variants
       .filter((v) => v.skuId)
-      .map((v) => ({ skuId: String(v.skuId), skuAttr: v.skuAttr, skuProps: v.skuProps ?? {} }));
+      // stock + shipFrom följer med för lager-failovern: får vår sparade SKU
+      // nej provas samma vara i andra lager, och då vill vi börja med det som
+      // har saldo och ligger i EU.
+      .map((v) => ({
+        skuId: String(v.skuId),
+        skuAttr: v.skuAttr,
+        skuProps: v.skuProps ?? {},
+        stock: v.stock,
+        shipFrom: v.shipFrom,
+        price: v.price,
+      }));
     aliExpress = {
       title: product.title,
       images: product.images,
@@ -980,6 +1034,16 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
       shippabilityCalls = check.apiCalls;
       shippabilityUnshippable = check.unshippable;
       if (check.changed) {
+        // Lagerbyten loggas högljutt: de ändrar VILKEN SKU en kundorder läggs
+        // på, och inköpspriset kan skilja mellan lager.
+        for (const v of check.variants) {
+          if (v.shipFromSwitchedAt === checkedAt && v.previousSupplierVariantId) {
+            console.warn(
+              `[sync] lagerbyte ${mapping.wixProductId} (${v.sku}): ${v.previousSupplierVariantId} → ${v.supplierVariantId} ` +
+                `— gamla lagret svarade nej, det nya skickar till SE. Kontrollera inköpspriset.`,
+            );
+          }
+        }
         mapping.variants = check.variants;
         await getStore().saveMapping(mapping);
         if (check.unshippable > 0) {
@@ -991,6 +1055,55 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     } catch (err) {
       console.warn(
         `[sync] fraktbarhetskontroll misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+      );
+    }
+  }
+
+  // 3.6) LAGER-FAILOVER: vårt lager tomt, men varan finns i ett annat.
+  //
+  // AliExpress bakar in lagerlandet i SKU:n, och synken speglar just VÅR SKU:s
+  // saldo till Wix (resolveInventoryQuantities). Tar det tyska lagret slut blir
+  // varan slutsåld i butiken trots att säljaren har 42 kvar i Spanien och
+  // skickar därifrån till Sverige — Leonards rapport 2026-08-20.
+  //
+  // Vi pekar om mappningen i stället för att bara visa syskonets saldo: ordern
+  // läggs på den sparade SKU:n, så en uppblåst lagersiffra hade bara flyttat
+  // felet till kassan. Ligger FÖRE steg 4 med flit — då hämtar
+  // applyInventoryTarget det nya lagrets saldo i samma körning.
+  //
+  // Spärrarna sitter i lib/sync/warehouse-failover.ts: bara EU:s tullunion,
+  // bara med känt pris, och bara om marginalen håller efter bytet.
+  if (!dryRun && aliExpress && aeVariantsForShippability.length > 0) {
+    try {
+      const failover = planWarehouseFailover(mapping.variants, aeVariantsForShippability, {
+        nowIso: checkedAt,
+      });
+      if (failover.changed) {
+        for (const b of failover.switches) {
+          console.warn(
+            `[sync] lagerbyte (slut) ${mapping.wixProductId} (${b.sku}): ${b.from} → ${b.to}` +
+              `${b.shipFrom ? ` [${b.shipFrom}]` : ""} — vårt lager 0, nya har ${b.toStock}. ` +
+              `Inköp $${b.oldCostUsd} → $${b.newCostUsd}, marginal ${b.marginPct.toFixed(1)} %.`,
+          );
+        }
+        mapping.variants = failover.variants;
+        await getStore().saveMapping(mapping);
+      }
+      // Ett syskon fanns men bytet gjordes inte — det är ett beslut för en
+      // människa, inte något att tiga om. Marginalfallet är det intressanta:
+      // varan GÅR att sälja, men inte till nuvarande pris.
+      for (const s of failover.skipped) {
+        console.warn(
+          `[sync] lagerbyte AVSTOD ${mapping.wixProductId} (${s.sku}): ${s.reason}` +
+            `${s.marginPct !== undefined ? ` (${s.marginPct.toFixed(1)} % marginal)` : ""}` +
+            `${s.toStock !== undefined ? `, syskon har ${s.toStock} i lager` : ""}.`,
+        );
+      }
+    } catch (err) {
+      // Best-effort, precis som fraktbarhetskontrollen: ett fel här får aldrig
+      // fälla synk-checken för produkten.
+      console.warn(
+        `[sync] lager-failover misslyckades för ${mapping.wixProductId}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
       );
     }
   }

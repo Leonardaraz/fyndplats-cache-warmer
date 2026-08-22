@@ -10,6 +10,7 @@ import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
 import { recordSupplierImport } from "@/lib/import/supplier-tracking";
 import { importReviewsForProduct } from "@/lib/import/review-import";
+import { fetchAndQueueForImport } from "@/lib/reviews/queue";
 import { saveProductHash } from "@/lib/store/product-hashes";
 import { pHashFromUrl } from "@/lib/import/phash";
 import {
@@ -43,6 +44,9 @@ const ReviewSchema = z.object({
   language: z.string().optional(),
   hasImage: z.boolean().optional(),
   imageUrl: z.string().optional(),
+  // Se noten i app/api/reviews/import: zod strippar okända nycklar, så utan
+  // raden tappas alla bilder utom den första tyst.
+  imageUrls: z.array(z.string()).optional(),
   // Rått AE-namn — lagras för bevis, visas aldrig (servern härleder initialer).
   customerName: z.string().optional(),
   customerCountry: z.string().optional(),
@@ -116,7 +120,7 @@ const ProductSchema = z.object({
       qualityMode: z.enum(["raw", "standard", "premium"]).optional(),
     })
     .optional(),
-  // Skrapade AliExpress-recensioner (social proof). Översätts (DeepL, GRATIS)
+  // Skrapade AliExpress-recensioner (social proof). Sparas som pending
   // och sparas i FyndplatsImportedReviews EFTER produktimporten. Best-effort —
   // recensionsfel fäller aldrig själva produktimporten.
   reviewsToImport: z.array(ReviewSchema).optional(),
@@ -438,15 +442,23 @@ export async function POST(req: Request) {
     // kund. Övriga lägen: oförändrat IMPORT_DRAFT_DEFAULT-beteende.
     const isPremiumResult = resultAny.qualityMode === "premium";
     const needsManualPolish = resultAny.needsManualPolish === true;
-    const draftStatus = isPremiumResult
-      ? needsManualPolish || needsAiPolish
-        ? "pending_review"
-        : "published"
-      : !needsAiPolish && process.env.IMPORT_DRAFT_DEFAULT === "false"
-        ? "published"
-        : "pending_review";
+    // PRISSPÄRR: går variantpriserna inte att lita på skapades produkten som
+    // utkast i pipelinen — mappningen måste följa med dit, annars säger kön
+    // "publicerad" om en produkt som inte är det.
+    const priceUnverified =
+      typeof resultAny.priceUnverified === "string" ? (resultAny.priceUnverified as string) : undefined;
+    const draftStatus = priceUnverified
+      ? "pending_review"
+      : isPremiumResult
+        ? needsManualPolish || needsAiPolish
+          ? "pending_review"
+          : "published"
+        : !needsAiPolish && process.env.IMPORT_DRAFT_DEFAULT === "false"
+          ? "published"
+          : "pending_review";
     const mappingExtras: Record<string, unknown> = {};
     if (needsAiPolish) mappingExtras.needsAiPolish = true;
+    if (priceUnverified) mappingExtras.priceUnverified = priceUnverified;
     if (needsManualPolish) mappingExtras.needsManualPolish = true;
     // Olösta variantvärden (kvar-engelska efter tabell+cache+AI): logga synligt +
     // spara på mappningen så kö-badgen kan visa VILKA — diagnosen 2026-06-09 tog
@@ -555,24 +567,44 @@ export async function POST(req: Request) {
       }
     }
 
-    // Recensions-import (social proof): filtrera/ranka/översätt (DeepL, GRATIS)
-    // och spara i FyndplatsImportedReviews. Best-effort — recensionsfel (DeepL
-    // nere, kollektion saknas, budget slut) får ALDRIG fälla produktimporten.
-    let reviewsResult: { imported: number; skippedExisting: number; charsUsed: number; budgetExceeded: boolean } | undefined;
+    // Recensions-import (social proof): filtrera/ranka och spara som pending
+    // i FyndplatsImportedReviews. Best-effort — recensionsfel (Wix nere,
+    // kollektion saknas) får ALDRIG fälla produktimporten.
+    let reviewsResult: { imported: number; skippedExisting: number } | undefined;
+    let reviewsQueued = 0;
+
+    // Tilläggets DOM-skrapa returnerar nästan alltid [] eftersom AE lazy-laddar
+    // recensionssektionen — klickar man importera högst upp på sidan har den
+    // inte renderats. Då hämtar vi dem server-side i stället och lägger dem i
+    // översättningskön (status pending, osynliga för kund). Gratis anrop.
+    // Skrapade recensioner (när de faktiskt finns) går kvar den gamla vägen
+    // nedan.
+    if (!reviewsToImport || reviewsToImport.length === 0) {
+      try {
+        // Tidsbegränsad — en människa väntar på svaret. Missas den tar
+        // veckocronet produkten i stället (den saknar reviewsCheckedAt).
+        const kö = await fetchAndQueueForImport(result.wixProductId, result.supplierProductId, { timeoutMs: 4000 });
+        reviewsQueued = kö.queued;
+        if (kö.queued > 0) {
+          await audit("reviews-queued", result.wixProductId, `${kö.queued} recensioner köade för översättning`);
+        }
+      } catch (err) {
+        console.warn(
+          "[import] kunde inte köa recensioner:",
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+
     if (reviewsToImport && reviewsToImport.length > 0) {
       try {
         const r = await importReviewsForProduct(result.wixProductId, reviewsToImport);
-        reviewsResult = {
-          imported: r.imported,
-          skippedExisting: r.skippedExisting,
-          charsUsed: r.charsUsed,
-          budgetExceeded: r.budgetExceeded,
-        };
+        reviewsResult = { imported: r.imported, skippedExisting: r.skippedExisting };
         if (r.imported > 0) {
           await audit(
             "reviews-import",
             result.wixProductId,
-            `${r.imported} recensioner (DeepL ${r.charsUsed} tecken${r.budgetExceeded ? ", BUDGET SLUT → otranslaterade" : ""})`,
+            `${r.imported} recensioner sparade som pending (översätts i chatten)`,
           );
         }
       } catch (revErr) {
@@ -599,6 +631,9 @@ export async function POST(req: Request) {
         result,
         draftStatus,
         reviews: reviewsResult,
+        // Recensioner som lagts i översättningskön (syns för kund först när
+        // de översatts i chatten och godkänts).
+        reviews_queued: reviewsQueued || undefined,
         // Bekvämligheter på toppnivå för smoke-tester och extension-UI (om
         // pipelinen producerade dem — annars undefined).
         image_analysis: resultAny.imageAnalysis,

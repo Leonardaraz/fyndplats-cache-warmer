@@ -95,12 +95,29 @@ export interface ProductMappingRecord {
   /** AE-butikens namn (denormaliserat för admin-vyer, slipper extra uppslag). */
   supplierName?: string;
   /**
+   * ISO-tid då vi senast LETADE efter AliExpress-recensioner för produkten.
+   * Sätts även när AE inte hade några — utan den stämpeln kan en schemalagd
+   * backfill inte se skillnad på "aldrig kollad" och "kollad, inget fanns", och
+   * skulle hämta om de ~40 % recensionslösa produkterna vid varje körning i all
+   * evighet. Stämpeln gör att körningen konvergerar och sedan blir en no-op.
+   * Recensionslösa produkter kollas om efter REVIEW_RECHECK_DAYS (nya
+   * recensioner dyker upp hos AE över tid).
+   */
+  reviewsCheckedAt?: string;
+  /**
    * True när produkten importerades RÅ (AI_ENRICHMENT_ENABLED=false): ingen
    * Claude-text/kategori/bild-ranking kördes. /admin/queue visar då en
    * "✨ Behöver AI-polering"-badge + knapp för att polera via chatten. Saknas =
    * normalt AI-berikad import (back-compat med äldre rader).
    */
   needsAiPolish?: boolean;
+  /**
+   * Satt när variantpriserna inte gick att bekräfta vid import: alla varianter
+   * delade inköpspris utan per-SKU-täckning (lib/import/price-trust.ts).
+   * Produkten hålls som utkast och /admin/queue visar motiveringen, som är
+   * värdet självt.
+   */
+  priceUnverified?: string;
   /**
    * Variantvärden/axelnamn som förblev (halv-)engelska vid importen (tabell+
    * cache+AI löste dem inte). Kö-badgen listar dem — de är key-låsta i Wix V3,

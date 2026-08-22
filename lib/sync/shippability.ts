@@ -15,9 +15,11 @@ import type { ProductMappingRecord } from "../store/index";
 import type { VariantMapping } from "../import/pipeline";
 import {
   matchAeVariant,
+  namedValuesFromVariantId,
   parseFreightOutcome,
   type FreightQueryOutcome,
 } from "../aliexpress/freight";
+import { warehouseAlternativeSkuIds } from "./mapping-repair";
 import {
   bulkUpdateInventoryQuantities,
   queryInventoryItemsByProductId,
@@ -71,6 +73,15 @@ export const NEGATIVE_MIN_SPAN_MS = 24 * 60 * 60 * 1000;
 /** Öppen nej-serie kontrolleras oftare än 7 dygn så den hinner bekräftas. */
 export const NEGATIVE_RECHECK_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * Hur många ANDRA lager vi provar innan ett nej får stå (stödbenen
+ * 2026-08-17). Lagerlandet är en del av SKU:n hos AliExpress, så vår sparade
+ * SKU kan vara död medan listningen skickas från fyra andra länder. Taket
+ * finns för anropsbudgetens skull; kandidaterna kommer i preferensordning
+ * (lager med saldo först, EU före icke-EU), så de bästa provas först.
+ */
+export const SHIP_FROM_FAILOVER_MAX = 3;
+
 /** true om varianten behöver (om)kontrolleras. */
 export function isShippabilityStale(v: VariantMapping, nowMs: number): boolean {
   if (!v.shippabilityCheckedAt) return true;
@@ -122,7 +133,14 @@ export function escalateNegative(
  */
 export async function checkMappingShippability(opts: {
   mapping: Pick<ProductMappingRecord, "supplierProductId" | "variants">;
-  aeVariants: ReadonlyArray<{ skuId: string; skuAttr?: string; skuProps: Record<string, string> }>;
+  aeVariants: ReadonlyArray<{
+    skuId: string;
+    skuAttr?: string;
+    skuProps: Record<string, string>;
+    /** Saldo och lagerland när DS-svaret bar dem — styr vilket lager vi provar först. */
+    stock?: number;
+    shipFrom?: string;
+  }>;
   nowMs: number;
   budget: ShippabilityBudget;
   queryFn: (productId: string, skuId: string) => Promise<FreightQueryOutcome>;
@@ -139,7 +157,14 @@ export async function checkMappingShippability(opts: {
 
   // Svar samlas i pass 1 och tolkas i pass 2 — domen behöver veta om något
   // syskon på samma produkt svarade fraktbar i samma körning.
-  const pending: { index: number; detailIndex: number; v: VariantMapping; verdict: ReturnType<typeof parseFreightOutcome> }[] = [];
+  const pending: {
+    index: number;
+    detailIndex: number;
+    v: VariantMapping;
+    verdict: ReturnType<typeof parseFreightOutcome>;
+    /** Satt när ett ANNAT lagers SKU svarade ja — varianten pekas om dit. */
+    switchTo?: { skuId: string; skuAttr?: string };
+  }[] = [];
   const variants: VariantMapping[] = [];
   for (const v of mapping.variants) {
     if (!isShippabilityStale(v, nowMs) || budget.remaining <= 0) {
@@ -172,8 +197,57 @@ export async function checkMappingShippability(opts: {
       note: verdict.note,
       method: outcome.method,
     });
+    // Radens plats MÅSTE fångas här: failovern nedan lägger till fler rader,
+    // och pass 2 skriver domens motivering på detta index. Utan detta hamnade
+    // "bekräftat nej ×2" på ett ALTERNATIVS rad — vilseledande i precis den
+    // utskrift man felsöker med.
+    const primärDetailIndex = details.length - 1;
 
-    pending.push({ index: variants.length, detailIndex: details.length - 1, v, verdict });
+    // LAGER-FAILOVER. Ett nej på VÅR SKU är inte ett nej på produkten:
+    // lagerlandet är en del av SKU:n, och säljaren kan ha lagt ner just det
+    // lager vi sparade vid import medan varan skickas från flera andra
+    // (stödbenen 2026-08-17 — mappningen sa DE, listningen visade ES/FR/CZ/PL).
+    // Innan nejet får räknas provar vi därför samma vara i andra lager.
+    let effektivDom = verdict;
+    let switchTo: { skuId: string; skuAttr?: string } | undefined;
+    // BARA på ett UTTRYCKLIGT adress-nej. Ett unknown (timeout, HTTP-fel,
+    // oväntad svarsform) betyder att vi inte vet något — och modulens
+    // grundregel är att unknown aldrig ändrar någonting. Kördes failovern på
+    // unknown kunde en enda flaxig timeout peka om varianten till ett annat
+    // lager, med annat inköpspris och annan SKU på nästa kundorder.
+    if (verdict.negativeSignal) {
+      const alternativ = warehouseAlternativeSkuIds(
+        { skuId, choiceValues: namedValuesFromVariantId(v.supplierVariantId) },
+        aeVariants,
+      ).slice(0, SHIP_FROM_FAILOVER_MAX);
+
+      for (const altSkuId of alternativ) {
+        if (budget.remaining <= 0) break;
+        budget.remaining--;
+        apiCalls++;
+        if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
+
+        const altOutcome = await queryFn(mapping.supplierProductId, altSkuId);
+        const altVerdict = parseFreightOutcome(altOutcome);
+        details.push({
+          sku: v.sku,
+          choices: v.choices,
+          skuId: altSkuId,
+          shippable: altVerdict.shippable,
+          optionCount: altVerdict.optionCount,
+          note: `annat lager: ${altVerdict.note ?? ""}`.trim(),
+          method: altOutcome.method,
+        });
+        if (altVerdict.shippable === true) {
+          effektivDom = altVerdict;
+          const alt = aeVariants.find((a) => a.skuId === altSkuId);
+          switchTo = { skuId: altSkuId, skuAttr: alt?.skuAttr };
+          break;
+        }
+      }
+    }
+
+    pending.push({ index: variants.length, detailIndex: primärDetailIndex, v, verdict: effektivDom, switchTo });
     variants.push(v); // platshållare — ersätts i pass 2 när syskonen är kända
   }
 
@@ -181,7 +255,7 @@ export async function checkMappingShippability(opts: {
   // körningen. Utan den kontexten kunde ett flaxigt nej bredvid ett ja bli en
   // dom — precis kod röd-mönstret 2026-07-14.
   const siblingPositive = pending.some((p) => p.verdict.shippable === true);
-  for (const { index, detailIndex, v, verdict } of pending) {
+  for (const { index, detailIndex, v, verdict, switchTo } of pending) {
     if (verdict.shippable === true) {
       // Positivt svar dömer direkt OCH nollar en pågående nej-serie
       // (självläkande: fraktmallen kan ha rättats hos säljaren).
@@ -192,6 +266,17 @@ export async function checkMappingShippability(opts: {
         shippabilityCheckedAt: checkedAt,
         shippabilityNegativeStreak: undefined,
         shippabilityNegativeSince: undefined,
+        // Kom jaet från ett annat lager pekas varianten om dit — annars hade
+        // nästa körning frågat samma döda SKU igen, och en order hade lagts på
+        // ett lager säljaren inte längre skickar ifrån. Det gamla id:t sparas
+        // så bytet går att följa (och rulla tillbaka) i efterhand.
+        ...(switchTo
+          ? {
+              supplierVariantId: switchTo.skuAttr?.trim() || switchTo.skuId,
+              previousSupplierVariantId: v.supplierVariantId,
+              shipFromSwitchedAt: checkedAt,
+            }
+          : {}),
       };
       continue;
     }

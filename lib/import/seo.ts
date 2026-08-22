@@ -1,6 +1,6 @@
 import { completeJson } from "../ai/claude";
 import { makeCacheKey } from "../llm/cache";
-import { isThinProductInput, looksLikeStoreCopy } from "./guard";
+import { isThinProductInput, looksLikeStoreCopy, stripMarketplaceSuffix } from "./guard";
 import type { AliExpressProduct } from "./types";
 
 export interface SeoResult {
@@ -36,6 +36,14 @@ Svara ENDAST med giltig JSON enligt schemat.`;
  * stängt av SEO/översättning via feature-flaggor.
  */
 export function buildFallbackSeo(product: AliExpressProduct): SeoResult {
+  // Marknadsplatsens namn ur titeln FÖRST — i rå-läget blir den här titeln
+  // produktens namn i Wix rakt av, och kapningen nedan ska lägga sina 70 tecken
+  // på produkten, inte på "- AliExpress 1503".
+  //
+  // `|| product.rawTitle` är en invariant, inte pynt: en tom titel här blir en
+  // produkt UTAN namn i Wix (och kolliderar dessutom på slugen "produkt").
+  // Hellre en smutsig titel som går att rätta i efterhand än en namnlös.
+  const titel = stripMarketplaceSuffix(product.rawTitle) || product.rawTitle;
   // Bug 2026-06-02: rå-läge gav bara meta-description-boilerplate i Wix.
   // Föredra full HTML-beskrivning (descriptionHtml) -> råtext (rawDescription)
   // -> titel-fallback. Det första giltiga blir Wix:s description.
@@ -45,21 +53,25 @@ export function buildFallbackSeo(product: AliExpressProduct): SeoResult {
     ? descHtml.slice(0, 8000)
     : rawDesc
       ? `<p>${rawDesc.slice(0, 1000)}</p>`
-      : `<p>${product.rawTitle.slice(0, 500)}</p>`;
+      : `<p>${titel.slice(0, 500)}</p>`;
   return clampSeo(
     {
-      title: product.rawTitle.slice(0, 70),
-      metaDescription: (rawDesc || product.rawTitle).slice(0, 160),
+      title: truncateAtWord(titel, 70),
+      metaDescription: truncateAtWord(rawDesc || titel, 160),
       descriptionHtml: html,
-      slug: product.rawTitle ? "" : "produkt",
+      slug: titel ? "" : "produkt",
       suggestedCategory: "",
-      imageAltTexts: product.imageUrls.map(() => product.rawTitle),
+      imageAltTexts: product.imageUrls.map(() => titel),
     },
     product.imageUrls.length,
   );
 }
 
 export async function generateSeo(product: AliExpressProduct): Promise<SeoResult> {
+  // Samma tvätt som i rå-läget: modellen ska inte se marknadsplatsens namn i
+  // råtiteln (den har ekat tillbaka det i genererade titlar), och fail-open
+  // nedan använder titeln som produktnamn. Aldrig tom — se buildFallbackSeo.
+  const titel = stripMarketplaceSuffix(product.rawTitle) || product.rawTitle;
   const user = `Skapa svenskt SEO-innehåll för denna produkt. Svara med JSON:
 {
   "title": "<=70 tecken, säljande svensk titel",
@@ -71,17 +83,20 @@ export async function generateSeo(product: AliExpressProduct): Promise<SeoResult
 }
 
 Antal bilder: ${product.imageUrls.length}
-Råtitel: ${product.rawTitle}
+Råtitel: ${titel}
 Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
 
   // Cache-key på produkt-id + rå-titel + första 500 tecken av rå-beskrivning.
+  // `titel` (tvättad), inte råtiteln: prompten innehåller den tvättade titeln,
+  // så en nyckel på råtiteln hade spelat upp ett svar som genererats ur en
+  // annan indata. Kostar en omgenerering per produkt, en gång.
   // supplierProductId ingår så att TVÅ OLIKA produkter aldrig kan kollidera på
   // samma nyckel (tidigare kollapsade tomma skrapningar till EN konstant nyckel
   // -> en dålig generering cachades och spelades upp för alla - bug 2026-05-31).
   // Samma AliExpress-produkt re-importad -> fortfarande cache-träff.
   const cacheKey = makeCacheKey({
     op: "generateSeo",
-    name: product.rawTitle,
+    name: titel,
     description: product.rawDescription,
     dependencyFingerprint: `pid=${product.supplierProductId}|imgCount=${product.imageUrls.length}`,
   });
@@ -91,20 +106,25 @@ Råbeskrivning: ${product.rawDescription.slice(0, 4000)}`;
   // SEO i Wix efteråt. max_tokens sänkt från 3000 -> 2000 (beskrivningen behöver
   // sällan mer än ~6kB svensk HTML).
   const failOpen: SeoResult = {
-    title: product.rawTitle.slice(0, 70),
-    metaDescription: product.rawTitle.slice(0, 160),
+    title: truncateAtWord(titel, 70),
+    metaDescription: truncateAtWord(titel, 160),
     descriptionHtml: `<p>${product.rawDescription.slice(0, 1000)}</p>`,
     slug: "produkt",
     suggestedCategory: "",
-    imageAltTexts: product.imageUrls.map(() => product.rawTitle),
+    imageAltTexts: product.imageUrls.map(() => titel),
   };
 
   // Skydd 1: om produktdatan är för tunn (misslyckad skrapning) - anropa INTE
   // LLM:en. Utan produktkontext genererar modellen butikscopy om Fyndplats
   // istället för produktinnehåll. Returnera fail-open direkt.
+  // RÅtiteln, inte den tvättade: frågan är "gick skrapningen igenom", inte
+  // "blev titeln kort när suffixet försvann". "Lampa - AliExpress 1503" är en
+  // fullgod produkt vars tvättade titel är 5 tecken — den ska generera SEO som
+  // vanligt. Loggen visar också råtiteln, eftersom det är den kontaminerade
+  // indatan en operatör behöver se.
   if (isThinProductInput(product.rawTitle)) {
     console.warn(
-      `[seo] Tunn produktdata (pid=${product.supplierProductId}, titel="${product.rawTitle}") - hoppar över SEO-generering.`,
+      `[seo] Tunn produktdata (pid=${product.supplierProductId}, r\u00e5titel="${product.rawTitle}") - hoppar över SEO-generering.`,
     );
     return clampSeo(failOpen, product.imageUrls.length);
   }
@@ -145,9 +165,30 @@ export function clampSeo(seo: SeoResult, imageCount: number): SeoResult {
   };
 }
 
-function truncate(s: string, max: number): string {
+/**
+ * Kapar vid ORDGRÄNS, inte mitt i ett ord.
+ *
+ * Måleritältet 2026-08-18: rå-titeln kapades på tecken 70 och produkten hette
+ * "SucceBuy Inflatable Paint Booth Inflatable Spray Booth with Powerful B" —
+ * i produktnamnet, i seoTitle OCH i og:title. Ett avhugget ord ser trasigt ut
+ * på ett sätt en kortare titel aldrig gör.
+ *
+ * Faller tillbaka på hård kapning när det inte finns något blanksteg att kapa
+ * vid (ett enda långt ord) eller när ordgränsen skulle kasta bort mer än
+ * hälften av utrymmet — då är en kort avhuggen titel bättre än en tom.
+ */
+export function truncateAtWord(s: string, max: number): string {
   const t = (s ?? "").trim();
-  return t.length <= max ? t : t.slice(0, max).trimEnd();
+  if (t.length <= max) return t;
+  const hard = t.slice(0, max);
+  const lastSpace = hard.lastIndexOf(" ");
+  const cut = lastSpace > max / 2 ? hard.slice(0, lastSpace) : hard;
+  // Skiljetecken som blir hängande efter kapningen ser ut som ett fel.
+  return cut.replace(/[\s,;:.\-–—/&]+$/u, "").trimEnd();
+}
+
+function truncate(s: string, max: number): string {
+  return truncateAtWord(s, max);
 }
 
 function slugify(s: string): string {

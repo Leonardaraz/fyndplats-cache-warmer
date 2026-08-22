@@ -50,7 +50,6 @@ const items = JSON.parse(readFileSync(file, "utf8"));
 if (!Array.isArray(items)) { console.error("reviews.json måste vara en array."); process.exit(1); }
 
 let totalImported = 0;
-let totalChars = 0;
 let failed = 0;
 
 for (const [i, item] of items.entries()) {
@@ -77,10 +76,8 @@ for (const [i, item] of items.entries()) {
       continue;
     }
     totalImported += data.imported || 0;
-    totalChars += data.charsUsed || 0;
     console.log(
-      `[ok]   ${ref} → ${data.imported} importerade, ${data.skippedExisting} redan fanns` +
-        (data.budgetExceeded ? " (BUDGET SLUT → otranslaterade)" : ""),
+      `[ok]   ${ref} → ${data.imported} importerade, ${data.skippedExisting} redan fanns`,
     );
   } catch (err) {
     failed++;
@@ -88,5 +85,5 @@ for (const [i, item] of items.entries()) {
   }
 }
 
-console.log(`\nKlart: ${totalImported} recensioner importerade, ${totalChars} DeepL-tecken, ${failed} produkter med fel.`);
+console.log(`\nKlart: ${totalImported} recensioner sparade som pending (översätts i chatten), ${failed} produkter med fel.`);
 process.exit(failed > 0 ? 1 : 0);

@@ -1,0 +1,167 @@
+name: Recensioner — översätt via chatten
+
+# Kön UT och översättningarna IN, så en Claude-session UTAN Wix-nycklar kan göra
+# hela jobbet: den kör den här workflowen i export-läge, läser kön ur loggen,
+# översätter, och kör den igen i apply-läge med texterna som input.
+#
+# Poängen är att ingen hemlighet passerar chatten. Produktionen har Wix-nycklarna,
+# GitHub Actions har CRON_SECRET, och de möts i den här filen.
+#
+# Manuellt går det förstås också: /admin/reviews har knappen "✨ Kopiera N till
+# chatten" och en ruta att klistra tillbaka svaret i.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "export = hämta nästa omgång ur kön · apply = skriv in översättningarna"
+        required: true
+        default: "export"
+        type: choice
+        options:
+          - export
+          - apply
+      limit:
+        description: "Antal recensioner i omgången (export)"
+        required: false
+        default: "25"
+        type: string
+      payload:
+        description: 'apply: JSON med översättningarna, {"<reviewIdAE>":"<svensk text>"}'
+        required: false
+        default: ""
+        type: string
+      payload_file:
+        description: "apply: sökväg till en JSON-fil i grenen (används i stället för payload — kör workflowen på den gren filen ligger i)"
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    # Exporten committar kön till grenen (se nedan) — det kräver skrivrätt.
+    permissions:
+      contents: write
+    steps:
+      # Behövs bara när översättningarna ligger i en fil. En omgång på 25 rader
+      # är ~9 kB JSON, och att skicka den som workflow-input är både klumpigt
+      # och nära gränsen — en fil i grenen är enklare att granska i efterhand.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Kör
+        env:
+          # VIA MILJÖN, inte via ${{ }} i skriptet. Interpolerad direkt i bash
+          # bryts kommandot av den första apostrofen i en översättning — och
+          # svensk text är full av dem ("hundens", "på 90-talet"). Det vore
+          # dessutom en injektionsväg: allt efter apostrofen tolkas som kod.
+          PAYLOAD: ${{ inputs.payload }}
+          PAYLOAD_FILE: ${{ inputs.payload_file }}
+          MODE: ${{ inputs.mode }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          base="${{ secrets.POLL_TRACKING_URL }}"
+          base="${base%/api/cron/poll-tracking}/api/cron/review-translate"
+
+          if [ "$MODE" = "export" ]; then
+            body=$(curl -sS -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+              "${base}?limit=${LIMIT}")
+            ok=$(echo "$body" | jq -r '.ok // false')
+            if [ "$ok" != "true" ]; then
+              echo "::error::Export misslyckades: $(echo "$body" | head -c 400)"
+              exit 1
+            fi
+            # Nycklarna har å/ä/ö — jq kräver citattecken runt dem, annars
+            # blir det "syntax error, unexpected INVALID_CHARACTER".
+            echo "I kön: $(echo "$body" | jq -r '.["iKön"]')"
+            echo "I omgången: $(echo "$body" | jq -r '.["iOmgången"]')"
+            echo "Kvar efter: $(echo "$body" | jq -r '.["kvarEfter"]')"
+            # SKRIVS TILL GRENEN, inte bara till loggen. Att läsa kön ur
+            # Actions-loggen kräver att man först slår upp körnings- och jobb-id
+            # via API:t, och de svaren är enorma (hela squash-commitmeddelandet
+            # följer med). En fil i grenen hämtas i stället med ett git pull.
+            mkdir -p tools/review-translations
+            echo "$body" | jq '.' > tools/review-translations/queue-latest.json
+            git config user.name "Claude"
+            git config user.email "noreply@anthropic.com"
+            git add tools/review-translations/queue-latest.json
+            if git diff --cached --quiet; then
+              echo "Kön oförändrad sedan förra exporten."
+            else
+              git commit -m "Export: kön just nu ($(jq -r '.[\"iOmgången\"]' <<<\"$body\") rader av $(jq -r '.[\"iKön\"]' <<<\"$body\"))"
+              git push origin HEAD:"${GITHUB_REF_NAME}"
+              echo "Kön skriven till tools/review-translations/queue-latest.json"
+            fi
+            exit 0
+          fi
+
+          # apply
+          if [ -n "$PAYLOAD_FILE" ]; then
+            if [ ! -f "$PAYLOAD_FILE" ]; then
+              echo "::error::Hittar inte $PAYLOAD_FILE i den här grenen."
+              exit 1
+            fi
+            PAYLOAD=$(cat "$PAYLOAD_FILE")
+          fi
+          if [ -z "$PAYLOAD" ]; then
+            echo "::error::apply utan payload — inget att skriva."
+            exit 1
+          fi
+          if ! printf '%s' "$PAYLOAD" | jq -e . >/dev/null 2>&1; then
+            echo "::error::payload är inte giltig JSON."
+            exit 1
+          fi
+
+          # Filen kan bära både översättningar och avvisningar:
+          #   {"translations": {...}, "reject": ["id", ...]}
+          # eller bara en platt id→text-karta (bakåtkompatibelt).
+          kropp=$(printf '%s' "$PAYLOAD" | jq -c 'if has("translations") or has("reject") or has("repairImages") then . else {translations: .} end')
+          svar=$(printf '%s' "$kropp" | curl -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --data-binary @- "$base")
+          # SVARET SKRIVS TILL GRENEN, även när det gick fel. Utan det syns
+          # utfallet bara i Actions-loggen, och för att läsa den måste man
+          # först slå upp körnings- och jobb-id via API:t — svar som är
+          # enorma. En omgång som tyst inte skrevs in (2026-08-20) tog därför
+          # en hel extra runda att ens upptäcka.
+          mkdir -p tools/review-translations
+          printf '%s' "$svar" | jq '.' > tools/review-translations/last-apply.json 2>/dev/null \
+            || printf '%s' "$svar" > tools/review-translations/last-apply.json
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add tools/review-translations/last-apply.json
+          git diff --cached --quiet || {
+            git commit -m "Apply-svar"
+            git push origin HEAD:"${GITHUB_REF_NAME}" || true
+          }
+
+          ok=$(echo "$svar" | jq -r '.ok // false')
+          if [ "$ok" != "true" ]; then
+            echo "::error::Skrivningen misslyckades: $(echo "$svar" | head -c 400)"
+            exit 1
+          fi
+
+          sparade=$(echo "$svar" | jq -r '.saved')
+          avvisade=$(echo "$svar" | jq -r '.rejected | length')
+          okanda=$(echo "$svar" | jq -r '.unknown | length')
+          fel=$(echo "$svar" | jq -r '.errors')
+          kvar=$(echo "$svar" | jq -r '.["kvarIKön"]')
+          echo "Sparade: $sparade · underkanda: $avvisade · okanda id: $okanda · fel: $fel"
+          echo "Kvar i kön: $kvar"
+          # Skälen behövs för att kunna rätta i nästa omgång.
+          echo "$svar" | jq -c '.rejected'
+
+          {
+            echo "### Recensionsöversättning"
+            echo ""
+            echo "- Sparade och synliga: **$sparade**"
+            echo "- Underkända (ligger kvar i kön): **$avvisade**"
+            echo "- Kvar i kön: **$kvar**"
+          } >> "$GITHUB_STEP_SUMMARY"

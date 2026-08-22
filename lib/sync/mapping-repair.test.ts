@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
+import { isSyntheticMappingId, repairSyntheticVariantIds, warehouseAlternativeSkuIds } from "./mapping-repair";
 
 // Audit 2026-08-08: 85 mappningar med dom-/default-id kan varken auto-beställas
 // (sku_attr blir påhittat) eller lagermatchas per variant. Synken självläker dem.
@@ -171,6 +171,41 @@ describe("repairSyntheticVariantIds", () => {
     expect(r.variants[0].supplierVariantId).toBe("1");
   });
 
+  it("KINESISK frakt-axel ('发货地') ignoreras också i signaturen", () => {
+    // AE renderar axelnamnen lokaliserat och faller tillbaka på kinesiska när
+    // sidan inte översatts. Den här filen bar länge en EGEN kopia av
+    // SHIP_AXIS_RE utan de kinesiska formerna (audit 2026-08-20): axeln ströks
+    // på DS-sidan i variant-reconcile men behölls här, signaturen blev
+    // asymmetrisk, och just de mappningarna kunde aldrig repareras.
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Färg: "Blå" })],
+      [
+        dv("1", { Color: "Blå", 发货地: "Spain" }, 12, 3, "ES"),
+        dv("2", { Color: "Grön", 发货地: "Spain" }, 12, 3, "ES"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("1");
+  });
+
+  // Leonards fynd 2026-08-21: preferensen poängsatte på isEuCountry, som
+  // betyder "snabb leverans" och räknar in GB/NO. Ett brittiskt lager rankades
+  // därför lika bra som ett spanskt — trots att GB lämnat tullunionen. Här har
+  // GB dessutom HÖGRE saldo, så gamla koden hade valt det.
+  it("GB väljs inte före ett tullunionslager, ens med högre saldo", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("default", {})],
+      [
+        dv("gb", { Size: "M", "Ships From": "United Kingdom" }, 24.99, 100, "GB"),
+        dv("es", { Size: "M", "Ships From": "Spain" }, 29.99, 50, "ES"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("es");
+  });
+
   it("EU-lager UTAN saldo väljs inte före lager MED saldo (audit 2026-08-09)", () => {
     const r = repairSyntheticVariantIds(
       [mv("default", {})],
@@ -195,5 +230,157 @@ describe("repairSyntheticVariantIds", () => {
     const r2 = repairSyntheticVariantIds(clean, [dv("1")], identity);
     expect(r2.repaired).toBe(0);
     expect(r2.variants[0].supplierVariantId).toBe("12000051057228918");
+  });
+});
+
+// ── Lager-failover (stödbenen 2026-08-17) ─────────────────────────────────
+// AliExpress bakar in lagerlandet i SKU:n. Läggs vårt lager ner blir vår
+// sparade SKU död medan produkten fortsätter skickas från andra länder.
+describe("warehouseAlternativeSkuIds", () => {
+  const DS = [
+    { skuId: "de", skuProps: { Color: "4 PCS", "Ships From": "Germany" }, shipFrom: "DE", stock: 0 },
+    { skuId: "es", skuProps: { Color: "4 PCS", "Ships From": "Spain" }, shipFrom: "ES", stock: 12 },
+    { skuId: "pl", skuProps: { Color: "4 PCS", "Ships From": "Poland" }, shipFrom: "PL", stock: 4 },
+    { skuId: "annan", skuProps: { Color: "2 PCS", "Ships From": "Spain" }, shipFrom: "ES", stock: 9 },
+  ];
+
+  it("hittar samma vara i andra lager och utesluter utgångspunkten", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "de" }, DS)).toEqual(["es", "pl"]);
+  });
+
+  it("rör aldrig en ANNAN vara — bara identisk valsignatur räknas", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "de" }, DS)).not.toContain("annan");
+  });
+
+  // Byteslistan är sorterad "den vi helst byter till" först. GB ligger utanför
+  // tullunionen och ska aldrig ligga före ett tullunionsland, inte ens med
+  // dubbelt saldo (rättat 2026-08-21 — poängen räknades på snabb-leverans).
+  it("brittiskt lager rankas efter tullunionens, trots högre saldo", () => {
+    const medGb = [
+      { skuId: "start", skuProps: { Color: "4 PCS", "Ships From": "Germany" }, shipFrom: "DE", stock: 0 },
+      { skuId: "gb", skuProps: { Color: "4 PCS", "Ships From": "United Kingdom" }, shipFrom: "GB", stock: 99 },
+      { skuId: "es", skuProps: { Color: "4 PCS", "Ships From": "Spain" }, shipFrom: "ES", stock: 3 },
+    ];
+    expect(warehouseAlternativeSkuIds({ skuId: "start" }, medGb)).toEqual(["es", "gb"]);
+  });
+
+  it("lager med saldo kommer först — den vi helst byter till", () => {
+    const tomtEs = DS.map((d) => (d.skuId === "es" ? { ...d, stock: 0 } : d));
+    expect(warehouseAlternativeSkuIds({ skuId: "de" }, tomtEs)[0]).toBe("pl");
+  });
+
+  it("död SKU: signaturen kan tas ur mappningens egna valvärden i stället", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "borta", choiceValues: ["4 pcs"] }, DS)).toEqual(["es", "pl", "de"]);
+  });
+
+  it("utan både känd SKU och valvärden gissar vi ALDRIG", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "borta" }, DS)).toEqual([]);
+  });
+});
+
+// Babygungan 2026-08-17: DS-svaret gav TOMMA egenskapstexter för båda SKU:erna
+// ({Color:"", "Ships From":""}), så värdesignaturen blev tom för båda och grön
+// såg ut som samma vara som orange. sku_attr skiljer dem åt.
+describe("warehouseAlternativeSkuIds — olika FÄRG får aldrig bli lager-syskon", () => {
+  const BABYGUNGA = [
+    { skuId: "orange", skuAttr: "14:350852;200007763:201336104", skuProps: { Color: "", "Ships From": "" }, stock: 63 },
+    { skuId: "gron", skuAttr: "14:-1;200007763:201336104", skuProps: { Color: "", "Ships From": "" }, stock: 0 },
+  ];
+
+  it("grön och orange är olika varor — inga alternativ", () => {
+    expect(warehouseAlternativeSkuIds({ skuId: "gron" }, BABYGUNGA)).toEqual([]);
+    expect(warehouseAlternativeSkuIds({ skuId: "orange" }, BABYGUNGA)).toEqual([]);
+  });
+
+  it("samma val i olika lager är däremot syskon", () => {
+    const flerLager = [
+      { skuId: "es", skuAttr: "14:350850#4 PCS;200007763:201336104", skuProps: {}, stock: 70 },
+      { skuId: "pl", skuAttr: "14:350850#4 PCS;200007763:203372089", skuProps: {}, stock: 3 },
+      { skuId: "cz", skuAttr: "14:350850#4 PCS;200007763:203287806", skuProps: {}, stock: 70 },
+    ];
+    expect(warehouseAlternativeSkuIds({ skuId: "es" }, flerLager).sort()).toEqual(["cz", "pl"]);
+  });
+
+  it("utan sku_attr OCH utan kända val gissar vi aldrig", () => {
+    const utanNågot = [
+      { skuId: "a", skuProps: { Color: "" }, stock: 5 },
+      { skuId: "b", skuProps: { Color: "" }, stock: 5 },
+    ];
+    expect(warehouseAlternativeSkuIds({ skuId: "a" }, utanNågot)).toEqual([]);
+  });
+});
+
+describe("sifferskelett-fallback (olika lång översättning på de två sidorna)", () => {
+  // Galgstället 563d0dfc: importen skrev "1 stång …" (AI-fallback), medan
+  // translateValue bara når "1 rods …". Ord-signaturen kan aldrig matcha.
+  const stativTranslate = (raw: string) =>
+    raw.replace(/(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)in/, "$1x$2 tum");
+
+  it("reparerar när bara orden skiljer men talen är lika", () => {
+    const r = repairSyntheticVariantIds(
+      [
+        mv("dom-0", { Modell: "1 stång 39.8x59.4 tum" }),
+        mv("dom-1", { Modell: "2 stänger 75.4x73.5 tum" }),
+      ],
+      [
+        dv("12000035114622170", { Color: "1 rods 39.8x59.4in" }, 28.5, 400, "ES"),
+        dv("12000035114622180", { Color: "2 rods 75.4x73.5in" }, 30.1, 400, "ES"),
+      ],
+      stativTranslate,
+    );
+    expect(r.repaired).toBe(2);
+    expect(r.variants[0].supplierVariantId).toBe("12000035114622170");
+    expect(r.variants[1].supplierVariantId).toBe("12000035114622180");
+  });
+
+  it("väljer EU-lagret med saldo när samma vara finns i flera lager", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Antal: "110 st metrisk" })],
+      [
+        dv("9001", { Color: "110 PCs Metric" }, 32, 0, "ES"),
+        dv("9002", { Color: "110 PCs Metric" }, 32, 12, "FR"),
+        dv("9003", { Color: "110 PCs Metric" }, 32, 900, "CN"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("9002");
+  });
+
+  it("lämnar tvetydigt när två OLIKA varor delar samma tal", () => {
+    // Gängsatsen: "40 st metrisk" och "40 st SAE" har båda bara talet 40.
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Antal: "40 st metrisk" })],
+      [
+        dv("9001", { Color: "40 PCs Metric" }, 32, 5, "FR"),
+        dv("9002", { Color: "40 PCs SAE" }, 32, 5, "FR"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(0);
+    expect(r.ambiguous).toEqual(["dom-0"]);
+  });
+
+  it("matchar ALDRIG på rena ordvärden — tom siffersignatur får inte träffa", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Färg: "Svart" }), mv("dom-1", { Färg: "Vit" })],
+      [
+        dv("9001", { Color: "Black" }, 10, 5, "FR"),
+        dv("9002", { Color: "White" }, 10, 5, "FR"),
+      ],
+      identity,
+    );
+    expect(r.repaired).toBe(0);
+    expect(r.ambiguous).toEqual(["dom-0", "dom-1"]);
+  });
+
+  it("ordningsokänsligt: 36x80.3 och 80.3x36 ger samma skelett", () => {
+    const r = repairSyntheticVariantIds(
+      [mv("dom-0", { Modell: "2 stänger 80.3x36 tum" })],
+      [dv("9001", { Color: "2 rods 36x80.3in" }, 28.5, 7, "ES")],
+      identity,
+    );
+    expect(r.repaired).toBe(1);
+    expect(r.variants[0].supplierVariantId).toBe("9001");
   });
 });

@@ -99,4 +99,249 @@ finns kvar som en *rådgivande* varning i tillägget och fångar dessutom det sp
 inte kan se: samma fysiska produkt såld under en **annan** listning. Den varningen
 går att klicka förbi — så den ersätter inte spärren, den kompletterar den.
 
+## Varianter får inte dela inköpspris utan täckning
+
+Tilläggets DOM-fallback sätter sidans **synliga** pris på alla varianter när den
+inte kommer åt per-SKU-datan. Leonards rapport 2026-08-20: ett 4-pack och ett
+6-pack båda 589 kr, två spegelstorlekar båda 1279 kr — den dyra varianten såldes
+till den billigas pris. Tre lager täcker det nu, och de gör olika saker:
+
+1. **Spärren** (`lib/import/price-trust.ts`, i pipelinen). Flaggar **precis** när
+   båda gäller: fler än en variant delar exakt samma inköpspris **och** vi saknar
+   per-SKU-data bakom dem. Produkten hålls som utkast med `priceUnverified` +
+   badge i `/admin/queue`. Att alla varianter kostar lika mycket är i sig
+   fullkomligt normalt (färgvarianter gör nästan alltid det) — det är *obekräftat*
+   delat pris som är defekten. Spärren gissar aldrig fram ett pris.
+2. **DS-räddningen i tillägget** (`extension/background.js → dsRescueVariants`,
+   0.1.41). Utlöses på `dom-`-varianter i både agent- och bulkvägen. `idx-`
+   räknas **medvetet inte** — de bär redan korrekta per-variant-priser, bara
+   id:t saknades. Räddningen tömmer `swatchImages`; den bygger dem **inte** om
+   (DS:s `imageUrl` är per SKU, inte per värde). Servern äger ombyggnaden.
+3. **Efterhands-reparationen** (`lib/import/price-repair.ts` +
+   `/api/cron/price-repair`) för produkter som redan ligger felprissatta.
+
+### Så körs reparationen
+
+GitHub Actions-workflowen **"Priser — rätta varianter som delar inköpspris"**,
+samma nyckel-lösa upplägg som recensionsöversättningen (produktionen har
+Wix-nycklarna, Actions har `CRON_SECRET`).
+
+| Läge | Vad som händer |
+|---|---|
+| `scan` | Torrkörning. Skriver ingenting. Planen läggs i `tools/price-repair/scan-latest.json` |
+| `apply` | Skriver — **bara** för de `wixProductIds` du räknar upp |
+
+Det finns **ingen "kör allt"-flagga** i apply-läget. Listan med id:n är
+kvitteringen på att en människa läst planen; ett pris som når kund ska ha
+passerat ögon. Kopiera fältet `wixProductIds` ur scan-svaret.
+
+**Tre fält skrivs per rättad variant, aldrig bara det första:** `grossSek` (Wix),
+`costUsd` och `landedCostSek` (mappningen). Det sista är lätt att glömma och
+värst att missa — lönsamhetsöversikten och **auktionens golvbud**
+(`lib/auction/seed.ts → netSupplierCost`) läser båda det fältet, så rättas bara
+priset ser marginalen fantastisk ut och auktionen kan sälja under inköp.
+
+Fyra egenskaper som inte ska tas bort:
+
+- **Oförändrat inköpspris → varianten rörs inte alls.** Blast-radien blir exakt
+  defekten, och det är också vad som gör en bred kandidatsökning ofarlig: säger
+  DS att priserna verkligen är lika blir planen tom.
+- **Bara matchning på skuId.** Värdesignatur-matchning (`mapping-repair.ts`) är
+  en gissning, och en felgissning här skriver ett pris till kund. Syntetiska id
+  rapporteras omatchade — kör mappnings-reparationen i `/admin/mappings` först.
+- **Marginalgolv + tak på prisändring** blockerar HELA produkten, aldrig bara en
+  variant. Ett halvrättat pris är svårare att upptäcka än ett helt orört.
+- **Wix skrivs före mappningen.** Går bara den ena igenom står kunden inför rätt
+  pris medan bokföringen är gammal (nästa körning rättar det). Omvänd ordning
+  hade gjort mappningen "rättad" medan kunden köper till fel pris — och då
+  hittar ingen felet igen.
+
+Rutten varnar också när prisreglerna hunnit ändras sedan importen: de rättade
+varianterna får dagens påslag medan de orörda behåller sitt. Vill du ha ett
+enhetligt påslag är omimport rätt väg, inte reparationen.
+
+## Lagerlandet är en del av SKU:n — och lagret tar slut per land
+
+AliExpress bakar in lagerlandet i själva SKU:n: "rosa garderob från Tyskland"
+och "…från Spanien" är olika SKU:er med **olika saldo och olika pris**. Vid
+import sparas EN av dem (`collapseShipFromAxis`, `lib/import/ship-axis.ts` —
+lagret är aldrig ett kundval). Synken speglade sedan just den SKU:ns saldo till
+Wix, så när vårt lager tog slut blev varan slutsåld i butiken trots att
+säljaren hade dussintals kvar i ett annat EU-land (Leonards rapport 2026-08-20).
+
+`lib/sync/warehouse-failover.ts` (steg 3.6 i `checkOne`) **pekar om mappningen**
+till ett syskonlager i stället. Att bara visa syskonets saldo hade varit fel —
+kundordern läggs på den sparade SKU:n, så en uppblåst siffra hade bara flyttat
+felet till kassan. Körs före lagerskrivningen, så bytet slår igenom i samma
+körning.
+
+### Två landslistor, och de svarar på olika frågor
+
+Det här är den vanligaste förväxlingen i kodbasen, och den kostade pengar tyst:
+
+| Funktion | Frågan den svarar på | GB/NO |
+|---|---|---|
+| `isEuCountry` | "kommer paketet fram snabbt?" | **ingår** |
+| `isEuCustomsUnion` | "kan vi köpa in därifrån utan tull?" | **ingår inte** |
+
+**Regeln:** allt som **väljer ett lager att köpa från** använder
+`isEuCustomsUnion` (`EU_CUSTOMS_UNION` i `lib/aliexpress/eu-countries.ts`). Allt
+som beskriver **leveranstid för kunden** — EU-lager-ribbonen, discover-filtret,
+`warehouseClass`, badgarna i tillägget — använder `isEuCountry`.
+
+Leonard fångade förväxlingen 2026-08-21 på SucceBuy-klädstället
+(1005005972133031): tilläggets "EU-först" bockade i GB-rader åt honom, och
+`pickWarehouse` rankade dem lika bra som spanska. Storbritannien lämnade
+tullunionen — tulldeklaration och importmoms, kostnader som aldrig syns i
+marginalen. Lagerbytet vid slutsålt filtrerade redan rätt; det var **importen**
+som valde fel. Nu läser alla tre lagervalen samma lista:
+`ship-axis.ts → pickWarehouse`, `mapping-repair.ts → pickPreferred` /
+`sortByWarehousePreference`, och `warehouse-failover.ts`.
+
+Tillägget bär en egen kopia (`EU_TULL_CODES` i `extension/eu-countries.js` —
+browser-global kan inte importera TS). Ett test i
+`lib/aliexpress/eu-countries.test.ts` fäller om de glider isär, samma lärdom som
+`SHIP_AXIS_RE`, som drev isär två gånger på två veckor.
+
+I popupen **döljs** rader utanför tullunionen helt — men bara när det finns ett
+alternativ inom den. Utan den brasklappen hade varenda Kina-produkt blivit
+oimporterbar. Dolda rader bockas alltid av samtidigt: en dold rad som ändå följer
+med i importen vore värre än en rad för mycket.
+
+Tre spärrar, och de ska inte tas bort:
+
+1. **Bara EU:s tullunion.** Ett USA-lager kan ha 500 i saldo, men mot en svensk
+   kund betyder det tull och veckor i transit. Se tabellen ovan — `isEuCountry`
+   duger inte här.
+2. **Bara med känt pris.** Priset skiljer mellan lagren ($113,74 från USA mot
+   $119,99 inom EU i Leonards fall). Utan det nya priset står `landedCostSek`
+   kvar på det gamla och då ljuger både lönsamhetsöversikten och auktionens
+   golvpris (`lib/auction/seed.ts` räknar sitt lägsta bud ur det fältet).
+   Bytet räknar om `costUsd` + `landedCostSek` proportionellt.
+3. **Bara om marginalen håller** (`MIN_FAILOVER_MARGIN_PCT`, netto mot netto).
+   Att sälja med förlust är ett sämre utfall än att vara slutsåld en vecka.
+   Avstådda byten loggas — de är ett beslut för en människa.
+
+Besläktad, men med annan utlösare: `lib/sync/shippability.ts` byter lager när
+frakt-API:t svarar NEJ för vår SKU. Den här byter när lagret är TOMT. Båda
+använder `warehouseAlternativeSkuIds` och sätter `previousSupplierVariantId` +
+`shipFromSwitchedAt`.
+
+**Inte byggt:** fallback vid själva orderläggningen. AE:s felkod för slut i
+lager finns inte dokumenterad någonstans i repot, och att gissa på en
+sträng-matchning i `place-order.ts` riskerar dubbelbeställning. Synk-bytet
+täcker det normala fallet; kvar är kapplöpningen där lagret tömts mellan
+synk och order.
+
+## Recensioner: hämtas server-side från AliExpress, översätts i chatten
+
+Recensionskedjan (filtrering → `FyndplatsImportedReviews` → moderering i
+`/admin/reviews` → produktsidans "Kundrecensioner") har funnits sedan 2026-07-08 men stod **tom på
+876 produkter** fram till 2026-08-16. Orsaken var inmatningen, inte kedjan:
+
+- Enda vägen in var tilläggets DOM-skrapa (`extension/content.js → scrapeReviews`),
+  och AE **lazy-laddar** recensionssektionen — klickar man importera högst upp på
+  sidan har den oftast inte renderats, så skrapan returnerade `[]`.
+- **Bulk-/CSV-importen rör aldrig recensioner** (`lib/bulk-import/worker.ts` har
+  ingen webbläsare). Katalogens senaste ~800 produkter kom in den vägen.
+
+`lib/aliexpress/reviews.ts` hämtar dem nu i stället från AE:s feedback-endpoint
+(ren JSON, inget tillägg, $0). Två äkthetsspärrar sitter i mappningen och ska inte
+tas bort: recensioner som AE själv markerar som **AI-genererade** (`aigc`) och
+sådana som inte är publicerade hos AE (`status !== "1"`) släpps aldrig igenom.
+Anonyma konton ("AliExpress Shopper") får inget namn vidare — annars blir varenda
+rad "A.S." och sidan ser förfalskad ut.
+
+### Så körs den
+
+| Vad | Anrop |
+|---|---|
+| En produkt | `POST /api/reviews/import` med `{ wixProductId }` — utan `reviews` hämtar rutten själv |
+| Hela katalogen | `GET /api/cron/review-backfill` |
+
+`review-backfill` är **torrkörning som default** — utan `?dryRun=false` skrivs
+ingenting, du får bara siffrorna. Parametrar: `limit` (produkter per körning,
+default 25), `maxPerProduct` (default 8), `includeExisting`, `onlyPublished`,
+`ignoreCheckedAt`.
+
+Rutten är **inte schemalagd**. Den var det en kort stund 2026-08-16, men Leonard
+valde bort maskinöversättning helt ("skit i deep l") — texterna skrivs i stället
+om av Claude i chatten, gratis, och sparas via `/admin/reviews`. En
+översättnings-cron i bakgrunden hade motverkat det beslutet. Vill du tillbaka
+till schemalagd hämtning: lägg in cron-raden igen — hämtningen i sig är gratis.
+
+Backfillen stannar dessutom själv efter **240 s** (`timeBudgetMs`, mot ruttens
+`maxDuration` 300 s). Varje recension kan dra upp till tre mediaimporter med
+retry, så en körning hann annars dödas mitt i en produkt.
+
+Körningen **konvergerar**. Varje produkt AE svarat på stämplas med
+`reviewsCheckedAt` i mappningen — även när AE inte hade några recensioner. Utan
+den stämpeln skulle de ~40 % recensionslösa produkterna hämtas om vid varje
+körning i all evighet. Produkter som redan har recensioner hoppas över helt, och
+en **strypt** hämtning stämplas aldrig (då hade rate-limiting dolt produkten i en
+månad). Omkontroll efter `REVIEW_RECHECK_DAYS` (30) — nya recensioner dyker upp
+hos AE över tid.
+
+### Bilderna flyttas hem — men vid olika tillfällen i de två vägarna
+
+Kundbilder får aldrig ligga kvar på leverantörens domän när de visas för kund.
+Hemflytten sker i `lib/wix/media-import.ts`, men **de två inmatningsvägarna gör
+det vid olika tillfällen**, och den skillnaden har lurat mer än en läsare:
+
+| Väg | Bilden flyttas hem |
+|---|---|
+| Kön (`review-queue` → `queueReviewsForProduct`) | **Vid publicering** — raden sparas `pending` med AE-adressen kvar |
+| Direktimport (`/api/reviews/import` → `importReviewsForProduct`) | **Direkt vid skrivning** |
+
+En `pending`-rad som pekar på `aliexpress-media.com` är alltså **normalt**, inte
+ett fel. Att flytta hem bilder för rader som kanske aldrig godkänns vore slöseri
+med både anrop och medialagring. Grinden sitter i `lib/store/reviews.ts`:
+`isVisibleStatus(status) ? await withOwnImage(review) : review`.
+
+Mätt 2026-08-22: 203 synliga recensioner med bild, **alla** på vår egen domän;
+31 rader med AE-adress, **noll** av dem synliga. Kontrollera alltid `status`
+innan du drar slutsatsen att mediaimporten är trasig — annars felsöker du
+designen.
+
+**Misslyckas uppladdningen behålls källadressen** (2026-08-22). Direktimporten
+slängde tidigare bilden tyst: ingen logg, `hasImage:false`, och källadressen
+sparades ingenstans — felet gick varken att upptäcka eller reparera, eftersom
+`repairImages` bara letar efter rader som FORTFARANDE bär en leverantörs-URL.
+Nu räknas missarna i svarets `bildmissar` och lagas av nästa repairImages-körning.
+
+### Betygen skickas INTE till Google
+
+Butiken (`headless-site`) har `PRODUCT_REVIEW_SCHEMA`, **default av**. Recensions-
+texten visas för kunden, men `aggregateRating`/`Review` läggs inte i produktsidans
+JSON-LD medan omdömena är AliExpress-köpares. Googles riktlinjer för review
+snippets vill ha betyg från sajtens egna användare. Sätt `=on` först när datan är
+förstahands (Trustpilot Product Reviews / egna kundrecensioner). Se
+`lib/review-schema.ts` i butiksrepot.
+
+### Översättningen görs i chatten — DeepL är borttaget (2026-08-19)
+
+Kedjan har **ingen översättningstjänst** längre. `lib/translate/` finns inte;
+`DEEPL_API_KEY` och `DEEPL_MONTHLY_BUDGET` läses inte av någon kod och kan tas
+bort ur Vercel. Wix-kollektionen `FyndplatsTranslationUsage` skapas inte längre
+av `scripts/ensure-reviews-collection.mjs` och kan raderas i Wix.
+
+Det var redan så det fungerade i praktiken — cronen var avstängd sedan
+2026-08-16 — men koden bar kvar API-nyckel, månadsbudget, ett användningslager
+och en **tyst fallback som sparade originaltexten** när budgeten tog slut.
+
+Följdändringen är den viktiga: importerade recensioner **auto-godkänns inte
+längre**. De sparas som `status: "pending"` med källtexten i både `textOriginal`
+och `textSwedish`, och blir svenska när någon skriver om dem i `/admin/reviews`
+(`editReviewText` sätter `edited` → först då syns de publikt). Samma regel som
+för butikens egna kundomdömen. Alternativet — direktpublicering utan
+översättare — är exakt vad den gamla budget-fallbacken gjorde: engelska omdömen
+på en svensk produktsida.
+
+Kostnaden är därmed **noll**, i både credits och tecken. Kvar som mått är
+`chars` per produkt i backfill-svaret: hur mycket text som väntar på att skrivas
+om, inte vad något kostar. Mätt 2026-08-16 på 40 slumpade publicerade produkter
+(692 publicerade mappningar av 876): träffkvot 60 %, ~240 tecken/produkt vid
+tak 8 — alltså ~166k tecken för hela butiken. Cirka 40 % av produkterna får inga
+recensioner alls, mest nya Aosom-EU-listningar som inte hunnit få några hos AE.
+
 Övriga LLM-/kostnads-env-variabler dokumenteras i **`LLM-CONFIG.md`**.

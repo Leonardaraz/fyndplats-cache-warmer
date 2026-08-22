@@ -124,6 +124,40 @@ export function isEuCountry(code: string): boolean {
   return eu.includes(code.toUpperCase());
 }
 
+/**
+ * EU:S TULLUNION — de 27 medlemsstaterna, varken fler eller färre.
+ *
+ * INTE samma sak som `isEuCountry` ovan, och skillnaden är hela poängen.
+ * `isEuCountry` svarar på "kommer paketet fram snabbt?" och räknar därför in
+ * GB och NO — brittiska och norska lager skickar på 3–7 dagar till Sverige.
+ * Den här listan svarar på "kan vi köpa in därifrån utan tull?", och där är
+ * svaret nej för båda: Storbritannien lämnade tullunionen, Norge har aldrig
+ * varit med. Ett paket därifrån till en svensk kund betyder tulldeklaration,
+ * importmoms och förseningar — kostnader som äter marginalen på en hel produkt
+ * utan att synas någonstans i vår bokföring.
+ *
+ * Skillnaden åt andra hållet också: CY och MT saknas i `DEFAULT_EU_COUNTRIES`
+ * (de har sällan AE-lager) men är fullvärdiga medlemmar och hör hemma här.
+ *
+ * REGELN, kort: allt som VÄLJER ett lager att köpa från använder den här
+ * listan. Allt som beskriver LEVERANSTID för kunden (EU-lager-ribbonen,
+ * discover-filtret, warehouseClass) använder `isEuCountry`. Blandar man ihop
+ * dem köper man in från Storbritannien i tron att det är inrikes EU-handel —
+ * exakt det Leonard fångade 2026-08-21 på SucceBuy-klädstället, där tilläggets
+ * "EU-först" bockade i GB-rader åt honom.
+ */
+export const EU_CUSTOMS_UNION: ReadonlySet<string> = new Set([
+  "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR",
+  "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO",
+  "SE", "SI", "SK",
+]);
+
+/** True om koden är ett EU-tullunionsland — det vi FÅR köpa in från tullfritt. */
+export function isEuCustomsUnion(code: string): boolean {
+  if (!code) return false;
+  return EU_CUSTOMS_UNION.has(String(code).toUpperCase());
+}
+
 /** Returnerar true om någon av koderna är EU. */
 export function hasAnyEuWarehouse(codes: readonly string[]): boolean {
   return codes.some((c) => isEuCountry(c));

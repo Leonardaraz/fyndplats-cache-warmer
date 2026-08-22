@@ -12,6 +12,7 @@
 // hur kraftfullt extension/admin varnar (>0.9 starkt, 0.6–0.9 mild, <0.6 tyst).
 
 import { hammingDistanceHex, pHashFromUrl } from "./phash";
+import { wixProductEditUrl } from "../admin-links";
 import { listProductHashes, type ProductHashRecord } from "../store/product-hashes";
 
 export type MatchType = "aeId" | "image" | "title";
@@ -127,11 +128,14 @@ function titleConfidence(sim: TitleSimilarity): number {
   return Math.max(0.6, Math.min(0.95, sim.score));
 }
 
-/** Bygger en alltid-giltig admin-deeplink till produkten via Wix-dashboarden. */
+/** Admin-deeplink till produkten i Wix-dashboarden (lib/admin-links.ts).
+ *
+ *  Byggde tidigare URL:en på `WIX_SITE_ID` — men det id:t pekar på GAMLA
+ *  Fyndplats där CMS-collectionerna lever, medan produkten ligger i
+ *  V3-katalogen på HEADLESS-sajten. Länken landade alltså på fel sajt.
+ *  Rättat 2026-08-21 när länkarna samlades på ett ställe. */
 function dashboardUrl(wixProductId: string): string {
-  const site = process.env.WIX_SITE_ID || "";
-  if (!site) return "";
-  return `https://manage.wix.com/dashboard/${site}/store/products/product/${wixProductId}`;
+  return wixProductEditUrl(wixProductId);
 }
 
 // --- Huvud-API ---------------------------------------------------------------

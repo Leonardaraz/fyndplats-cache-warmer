@@ -28,10 +28,21 @@
 //      facit 2026-08-09: "default"-mappningar mot flerlager-listningar var
 //      18 av 19 tvetydiga) → välj föredragen enligt samma preferens. En rad
 //      med EGNA motsägande värden lämnas tvetydig (aldrig tvångsmappning).
-//   4. Pris: exakt en DS-SKU vars pris ligger inom 1 % av mappningens costUsd.
+//   4. Sifferskelett: värdenas TAL (orden bortkastade) är unika på mappnings-
+//      sidan och hela DS-gruppen är samma vara. Räddar rader där de två sidorna
+//      översatts olika långt ("1 stång …" mot "1 rods …", "40 st metrisk" mot
+//      "40 st Metric") — mappningen skrivs av importens fulla kedja med
+//      AI-fallback, repareraren har bara den statiska tabellen.
+//   5. Pris: exakt en DS-SKU vars pris ligger inom 1 % av mappningens costUsd.
 //   Ingen entydig träff → lämnas orörd + rapporteras (ambiguous).
 
-import { isEuCountry, normalizeShipFromCode } from "../aliexpress/eu-countries";
+import { isEuCustomsUnion, normalizeShipFromCode } from "../aliexpress/eu-countries";
+// Frakt-axeln definieras på EXAKT ett ställe (ship-axis.ts). Den här filen bar
+// en egen kopia som hunnit driva isär: den saknade de kinesiska formerna
+// (发货地/送货/发货) som AE renderar när sidan inte lokaliserats. Signaturen blev
+// då asymmetrisk — frakt-axeln struken på DS-sidan men kvar på mappningssidan —
+// och just de mappningarna kunde aldrig värdematchas. Importera i stället.
+import { SHIP_AXIS_RE } from "../import/ship-axis";
 
 export interface RepairableMappingVariant {
   supplierVariantId: string;
@@ -41,6 +52,9 @@ export interface RepairableMappingVariant {
 
 export interface RepairDsVariant {
   skuId?: string;
+  /** AE:s sku_attr, t.ex. "14:350852;200007763:201336104". Bär valen som ID:n
+   *  och är därför läsbar även när DS-svaret utelämnar egenskapernas TEXT. */
+  skuAttr?: string;
   skuProps?: Record<string, string>;
   price?: number;
   stock?: number;
@@ -64,10 +78,10 @@ export function isSyntheticMappingId(id: string): boolean {
 }
 
 // OBS: mappnings-/Wix-sidan bär SVENSKA axelnamn (importen översätter
-// "Ships From" → "Skickas från") — utan de svenska formerna blev signaturen
+// "Ships From" → "Skickas från") — utan de svenska formerna blir signaturen
 // asymmetrisk (frakt-axeln exkluderad på DS-sidan men kvar på mappningssidan)
-// och flerlager-produkter kunde aldrig värdematchas (audit 2026-08-09).
-const SHIP_AXIS_RE = /ships?\s*from|ship\s*country|skickas\s*från|levereras\s*från/i;
+// och flerlager-produkter kan aldrig värdematchas (audit 2026-08-09). Samma
+// gäller de kinesiska formerna. Mönstret ligger därför i ship-axis.ts.
 
 function valueSignature(
   options: Record<string, string> | undefined,
@@ -80,6 +94,35 @@ function valueSignature(
     .join(" ");
 }
 
+/** SIFFERSKELETT: alla tal i värdena, sorterade — ord borttagna.
+ *
+ *  Räddar matchningen när de två sidorna översatts OLIKA långt. Mappningens
+ *  `choices` skrivs av importens FULLA kedja (statisk tabell + AI-fallback),
+ *  medan repareraren bara har den statiska tabellen. Resultatet blir
+ *  "1 stång 39.8x59.4 tum (≈101 × 151 cm)" mot "1 rods 39.8x59.4 tum
+ *  (≈101 × 151 cm)", eller "40 st metrisk" mot "40 st Metric" — samma vara,
+ *  aldrig samma signatur (upptäckt 2026-08-21 på galgstället `563d0dfc` och
+ *  gängsatsen `591c518b`; 10 av 853 mappningar satt fast på just detta).
+ *
+ *  Talen överlever översättningen och räcker för att skilja varianterna åt på
+ *  mått-/antalslistningar. Ordningsokänsligt, så "36x80.3" och "80.3x36" ger
+ *  samma skelett. Ger TOM sträng för rena ordvärden ("Svart"/"Vit") — anropa-
+ *  ren MÅSTE därför kräva icke-tom signatur, annars skulle alla färgvarianter
+ *  se identiska ut. */
+function numericSignature(
+  options: Record<string, string> | undefined,
+  mapValue: (raw: string) => string,
+): string {
+  const nums: string[] = [];
+  for (const [axis, v] of Object.entries(options ?? {})) {
+    if (SHIP_AXIS_RE.test(axis) || !String(v ?? "").trim()) continue;
+    for (const m of mapValue(String(v)).matchAll(/\d+(?:[.,]\d+)?/g)) {
+      nums.push(m[0].replace(",", "."));
+    }
+  }
+  return nums.sort().join(" ");
+}
+
 /** Landskod för en DS-SKU: fältet shipFrom om satt, annars frakt-axelns värde. */
 function shipCode(d: RepairDsVariant): string {
   const raw =
@@ -89,18 +132,104 @@ function shipCode(d: RepairDsVariant): string {
 }
 
 /** Välj bland DS-SKU:er som är SAMMA vara (identisk icke-frakt-signatur).
- *  Ordning: EU-lager MED saldo > valfritt lager med saldo > EU utan saldo >
- *  övriga; högst saldo bryter lika, sedan först-sedd (stabil sort →
+ *  Ordning: TULLUNIONS-lager MED saldo > valfritt lager med saldo > tullunion
+ *  utan saldo > övriga; högst saldo bryter lika, sedan först-sedd (stabil sort →
  *  deterministiskt). Saldo okänt (fältet saknas) räknas som i lager — annars
  *  skulle degraderad DS-data straffa alla kandidater lika godtyckligt.
  *  (Audit 2026-08-09: ren EU-först låste mappningen på ett TOMT EU-lager
  *  medan CN-lagret hade 500 st → varianten blev osäljbar i butiken.) */
 function pickPreferred(candidates: RepairDsVariant[]): RepairDsVariant | undefined {
   const score = (d: RepairDsVariant) =>
-    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCountry(shipCode(d)) ? 1 : 0);
+    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCustomsUnion(shipCode(d)) ? 1 : 0);
   return [...candidates].sort(
     (a, b) => score(b) - score(a) || (b.stock ?? 0) - (a.stock ?? 0),
   )[0];
+}
+
+/** AliExpress egenskaps-id för "Ships From" — lagret, alltså den axel som ska
+ *  IGNORERAS när vi avgör om två SKU:er är samma vara. */
+const SHIP_FROM_PROPERTY_ID = "200007763";
+
+/**
+ * "Vilken vara är detta?" ur ett sku_attr, med lager-axeln bortplockad.
+ * "14:350852;200007763:201336104" → "14:350852"
+ * Etiketten efter # ignoreras (samma val kan bära olika text per språk).
+ */
+function goodsKeyFromSkuAttr(skuAttr: string): string {
+  return String(skuAttr)
+    .split(";")
+    .map((s) => s.split("#")[0].trim())
+    .filter((s) => s && !s.startsWith(`${SHIP_FROM_PROPERTY_ID}:`))
+    .sort()
+    .join(";");
+}
+
+/** Lager med saldo först, TULLUNIONEN före allt annat, högst saldo bryter
+ *  lika. Tullunionen och inte isEuCountry: den senare betyder "snabb leverans"
+ *  och räknar in GB/NO, som ligger utanför tullen (rättat 2026-08-21). */
+function sortByWarehousePreference(list: ReadonlyArray<RepairDsVariant>): RepairDsVariant[] {
+  const score = (d: RepairDsVariant) =>
+    (typeof d.stock !== "number" || d.stock > 0 ? 2 : 0) + (isEuCustomsUnion(shipCode(d)) ? 1 : 0);
+  return [...list].sort((a, b) => score(b) - score(a) || (b.stock ?? 0) - (a.stock ?? 0));
+}
+
+/**
+ * SKU:er som är SAMMA vara som utgångspunkten men ligger i ETT ANNAT LAGER.
+ *
+ * Bakgrund (stödbenen 2026-08-17): AliExpress bakar in lagerlandet i själva
+ * SKU:n — "4-pack från Spanien" och "4-pack från Polen" är olika SKU:er. Vi
+ * sparar EN av dem vid import, och när säljaren lägger ner det lagret svarar
+ * fraktAPI:t nej för vår sparade SKU medan listningen fortfarande skickas från
+ * fyra andra länder. Nejet är korrekt för SKU:n och fel för produkten.
+ *
+ * Signaturen är densamma som reparationen använder: valen UTAN frakt-axeln.
+ * Ordningen är pickPreferred:s — lager med saldo först, EU före icke-EU — så
+ * den första kandidaten är den vi helst vill byta till.
+ *
+ * `base.skuId` utesluts alltid. Saknas den bland DS-SKU:erna (död SKU) går det
+ * att ange `choiceValues` i stället — mappningens egna valvärden, som
+ * namedValuesFromVariantId ger ur ett sku_attr.
+ */
+export function warehouseAlternativeSkuIds(
+  base: { skuId?: string | null; choiceValues?: ReadonlyArray<string> },
+  dsVariants: ReadonlyArray<RepairDsVariant>,
+): string[] {
+  const ds = dsVariants.filter((d) => d.skuId && String(d.skuId).trim());
+  if (ds.length === 0) return [];
+
+  const baseId = String(base.skuId ?? "").trim();
+  const self = baseId ? ds.find((d) => String(d.skuId) === baseId) : undefined;
+
+  // FÖRSTA HAND: sku_attr. Babygungan 2026-08-17 visade varför — DS-svaret gav
+  // `skuProps: {Color: "", "Ships From": ""}` för BÅDA SKU:erna (texterna finns
+  // bara i råsvaret), så värdesignaturen blev tom för båda och grön såg ut som
+  // samma vara som orange. sku_attr bär valen som ID:n ("14:350852" mot
+  // "14:-1") och skiljer dem åt även när texten saknas.
+  if (self?.skuAttr) {
+    const nyckel = goodsKeyFromSkuAttr(self.skuAttr);
+    const träffar = ds.filter(
+      (d) => String(d.skuId) !== baseId && d.skuAttr && goodsKeyFromSkuAttr(d.skuAttr) === nyckel,
+    );
+    return sortByWarehousePreference(träffar).map((d) => String(d.skuId));
+  }
+
+  // Signaturen tas i första hand ur DS-datan för vår egen SKU (exakt), annars
+  // ur de sparade valvärdena. Utan bådadera vore varje SKU en "kandidat" och
+  // vi kunde peka om till fel vara — då hellre inget.
+  const sig = self
+    ? valueSignature(self.skuProps, (s) => s)
+    : (base.choiceValues ?? []).length > 0
+      ? [...(base.choiceValues ?? [])].map((s) => String(s).trim().toLowerCase()).sort().join(" ")
+      : null;
+  if (sig === null) return [];
+  // TOM signatur = vi känner inga val alls. Då kan vi inte skilja "samma vara,
+  // annat lager" från "annan färg vars text saknas" → gissa aldrig.
+  if (sig === "" && ds.length > 1) return [];
+
+  const candidates = ds.filter(
+    (d) => String(d.skuId) !== baseId && valueSignature(d.skuProps, (s) => s) === sig,
+  );
+  return sortByWarehousePreference(candidates).map((d) => String(d.skuId));
 }
 
 export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
@@ -134,11 +263,23 @@ export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
     arr.push(d);
     bySig.set(sig, arr);
   }
+  // Sifferskelett-index: samma gruppering som bySig men på talen i värdena.
+  const byNumSig = new Map<string, RepairDsVariant[]>();
+  for (const d of free) {
+    const nsig = numericSignature(d.skuProps, translate);
+    if (!nsig) continue;
+    const arr = byNumSig.get(nsig) ?? [];
+    arr.push(d);
+    byNumSig.set(nsig, arr);
+  }
   const mappingSigCount = new Map<string, number>();
+  const mappingNumSigCount = new Map<string, number>();
   for (const v of synthetic) {
     // Mappningens choices är REDAN svenska → identitetsmappning i signaturen.
     const sig = valueSignature(v.choices, (s) => s);
     mappingSigCount.set(sig, (mappingSigCount.get(sig) ?? 0) + 1);
+    const nsig = numericSignature(v.choices, (s) => s);
+    if (nsig) mappingNumSigCount.set(nsig, (mappingNumSigCount.get(nsig) ?? 0) + 1);
   }
 
   const singleSynthetic = synthetic.length === 1;
@@ -170,6 +311,19 @@ export function repairSyntheticVariantIds<V extends RepairableMappingVariant>(
         const left = unclaimed(free);
         const sigs = new Set(left.map((d) => valueSignature(d.skuProps, translate)));
         if (left.length > 0 && sigs.size === 1) hit = pickPreferred(left);
+      }
+      if (!hit) {
+        // Sifferskelett: unikt på mappningssidan OCH hela DS-gruppen är samma
+        // vara (identisk ord-signatur, bara olika lager). Kravet på icke-tom
+        // signatur utesluter rena ordvärden, och distinct-kravet gör att två
+        // OLIKA varor som råkar dela tal ("40 st metrisk"/"40 st SAE") lämnas
+        // tvetydiga i stället för att gissas fel.
+        const nsig = numericSignature(v.choices, (s) => s);
+        if (nsig && mappingNumSigCount.get(nsig) === 1) {
+          const cand = unclaimed(byNumSig.get(nsig) ?? []);
+          const distinct = new Set(cand.map((d) => valueSignature(d.skuProps, translate)));
+          if (cand.length > 0 && distinct.size === 1) hit = pickPreferred(cand);
+        }
       }
       if (!hit && typeof v.costUsd === "number" && v.costUsd > 0) {
         const near = unclaimed(free).filter(

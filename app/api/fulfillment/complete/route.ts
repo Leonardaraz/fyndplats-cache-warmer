@@ -4,6 +4,7 @@ import { isAuthorized } from "@/lib/auth";
 import { assertTransition } from "@/lib/orders/status";
 import { getStore } from "@/lib/store/factory";
 import { createFulfillment } from "@/lib/wix/client";
+import { sparningsLank } from "@/lib/tracking-link";
 import { audit } from "@/lib/audit";
 
 const Schema = z.object({
@@ -60,7 +61,9 @@ export async function POST(req: Request) {
       lineItems: [{ id: task.lineItemId, quantity: task.quantity }],
       trackingNumber: parsed.data.trackingNumber,
       shippingProvider: parsed.data.shippingProvider,
-      trackingLink: parsed.data.trackingLink,
+      // Anroparens länk vinner; utan den vår egen spårsida i stället för
+      // ingen länk alls (samma regel som cron-vägen, se lib/tracking-link).
+      trackingLink: parsed.data.trackingLink ?? sparningsLank(parsed.data.trackingNumber),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Okänt fel";

@@ -37,6 +37,16 @@ export interface AliExpressDsProduct {
   storeId?: string;
   /** Butikens visningsnamn (ae_store_info.store_name). */
   storeName?: string;
+  /**
+   * Produktegenskaper ur DS-svarets `ae_item_properties` (attr_name → attr_value).
+   *
+   * Bakgrund (audit 2026-08-18): `specifications` fylldes BARA av tillägget, ur
+   * sidans DOM. Serverns väg (CSV-/bulk-importen via fetchAliExpressProductFromUrl)
+   * har ingen webbläsare och byggde produkten utan ett enda spec-fält — alltså
+   * tom spec-flik på varje produkt som kom in den vägen, och magrare underlag
+   * för SEO-poleringen. DS-svaret bär egenskaperna; vi läste dem bara aldrig.
+   */
+  properties?: Record<string, string>;
 }
 
 export interface DsTokenResponse {
@@ -78,6 +88,12 @@ export interface DsOrderCreateResult {
   paymentUrl?: string;
   /** AliExpress fel-detalj (error_msg/error_code) när inget order-id gavs. */
   aeError?: string;
+  /**
+   * AliExpress felKOD, obehandlad. aeError ovan är formaterad för människor och
+   * tappar koden så fort error_msg finns — den som vill grinda på ett specifikt
+   * fel måste läsa den här (granskning 2026-08-19).
+   */
+  aeErrorCode?: string;
   /** true när AliExpress uttryckligen svarade misslyckat (is_success=false eller
    *  felkod utan order-id) → INGEN order lades → säkert att släppa claimen. */
   orderDefinitelyNotPlaced?: boolean;

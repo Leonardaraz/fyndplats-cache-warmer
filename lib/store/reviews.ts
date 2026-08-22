@@ -1,5 +1,5 @@
 // FyndplatsImportedReviews — Wix Data-collection med importerade AliExpress-
-// recensioner (översatta till svenska via DeepL). Visas som social proof på
+// recensioner (översatta till svenska i chatten). Visas som social proof på
 // produktsidorna (headless-PDP) och modereras i cache-warmerns /admin/reviews.
 //
 // Integritets-/juridikdesign (2026-06-02):
@@ -16,9 +16,9 @@
 //   reviewIdAE:     AliExpress review-id (dedup-nyckel)
 //   rating:         1-5
 //   textOriginal:   rå recensionstext (engelska/kinesiska) — BEVIS
-//   textSwedish:    DeepL-översatt svensk text (= textOriginal om budget slut;
+//   textSwedish:    svensk text (= textOriginal tills någon skrivit om den;
 //                   = Leonards redigerade text om status === "edited")
-//   sourceLanguage: detekterat ursprungsspråk från DeepL (t.ex. "EN", "ZH") — BEVIS
+//   sourceLanguage: ursprungsspråk enligt AE (t.ex. "EN", "ZH") — BEVIS
 //   customerNameRaw: rått AE-användarnamn (LAGRAS, visas ALDRIG) — BEVIS
 //   initials:       visningsnamn "M.K." (förnamn- + efternamnsinitial)
 //   customerCountry: ISO-2/landnamn (LAGRAS, visas ALDRIG)
@@ -27,6 +27,9 @@
 //   imageUrl:       string (om vi importerade recensionsbilden)
 //   status:         "pending" | "approved" | "rejected" | "edited"
 //   importedAt:     ISO-datum
+
+import { isExternalSupplierImage, ownImageUrlForReview } from "../wix/media-import";
+import { reviewImageFields, reviewImages } from "../reviews/images";
 
 const WIX_BASE = "https://www.wixapis.com";
 
@@ -43,6 +46,15 @@ const COLLECTION_ID =
   process.env.WIX_DATA_COL_REVIEWS ?? "FyndplatsImportedReviews";
 
 export type ReviewStatus = "pending" | "approved" | "rejected" | "edited";
+
+/** Wix Data tar max 1000 rader per fråga — vi paginerar med den sidstorleken. */
+const QUERY_PAGE_SIZE = 500;
+
+/**
+ * Tak för hur många rader en listning hämtar. Inte en sanning om kollektionen,
+ * bara ett skydd mot att en admin-sida försöker rendera obegränsat många.
+ */
+export const MAX_LIST_ALL = 5000;
 
 /** Status som visas publikt på produktsidan. */
 export const VISIBLE_STATUSES: ReviewStatus[] = ["approved", "edited"];
@@ -65,14 +77,91 @@ export interface StoredReview {
   customerCountry?: string;
   date?: string;
   hasImage: boolean;
+  /** Första bilden. Eget fält för bakåtkompatibilitet — se lib/reviews/images.ts. */
   imageUrl?: string;
+  /** Hela bildlistan. Skrivs bara när recensionen har fler än en. */
+  imageUrls?: string[];
   status: ReviewStatus;
+  /**
+   * Radens ursprung. `"customer"` = butikens EGEN kund, skriven via
+   * /omdome/<token> efter ett verifierat köp (headless-site:lib/customer-review.ts).
+   * Saknas fältet = importerad AliExpress-recension (alla rader före 2026-08-17).
+   *
+   * Fältet har alltid funnits i datan men saknades i typen, och därför läste
+   * ingenting här det. Följden var att kundens SVENSKA omdöme flaggades
+   * "oöversatt" och hamnade i översättningskön — se isAwaitingTranslation.
+   */
+  source?: string;
   importedAt?: string;
 }
 
 /** Komposit-id: unikt per produkt även om samma reviewIdAE förekommer globalt. */
 export function reviewDocId(productId: string, reviewIdAE: string): string {
   return `${productId}__${reviewIdAE}`;
+}
+
+/**
+ * Byter leverantörens bild-CDN mot vår egen adress INNAN raden blir synlig.
+ *
+ * Varför här och inte i kön: `lib/reviews/queue.ts` skriver med flit den råa
+ * adressen och skjuter upp hemflytten till publiceringen — rader som aldrig
+ * godkänns ska inte kosta medialagring. Men den utlovade hemflytten fanns
+ * ingenstans i koden. Kön ställde in sig på att någon annan gjorde jobbet, och
+ * ingen gjorde det: 44 publicerade recensioner låg 2026-08-18 kvar med
+ * `aliexpress-media.com` i produktsidans HTML. Adressen står i klartext för den
+ * som högerklickar på kundbilden.
+ *
+ * `upsert` är enda vägen in i kollektionen, så grinden sitter där i stället för
+ * i varje anropare — då kan ingen ny publiceringsväg glömma den.
+ *
+ * Misslyckad import → raden lämnas ORÖRD, med leverantörsadressen kvar.
+ *
+ * Det är motsatt val mot `ownImageUrlForReview`, som utelämnar bilden vid fel —
+ * och skillnaden är avsiktlig. Där skapas raden från grunden, så en utelämnad
+ * bild kostar ingenting. Här UPPDATERAS en befintlig rad, och eftersom Wix
+ * `items/save` är en helersättning (och JSON.stringify tappar `undefined`)
+ * hade ett `undefined` raderat den enda pekaren till kundbilden. Ett 60
+ * sekunder långt avbrott hos Wix media under en modereringsrunda hade då tyst
+ * och oåterkalleligt slängt varje bild som godkändes i det fönstret — utan väg
+ * att försöka igen, för källadressen är borta.
+ *
+ * Kvarlämnad leverantörsadress är däremot reparerbar: den syns i samma
+ * kontroll som hittade de 44 ursprungliga (`imageUrl` som innehåller
+ * leverantörens värd) och kan flyttas hem i efterhand.
+ */
+async function withOwnImage(review: StoredReview): Promise<StoredReview> {
+  const bilder = reviewImages(review);
+  // Ingen bild, eller inga som pekar på leverantören → rör inte raden. Att
+  // skriva om den i onödan är inte gratis: items/save är en helersättning.
+  if (bilder.length === 0 || !bilder.some(isExternalSupplierImage)) return review;
+
+  // ALLA bilder, en i taget. Misslyckas EN behålls dess KÄLLADRESS — se noten
+  // ovan om varför ett undefined vore oåterkalleligt. De som lyckades flyttas
+  // hem ändå; en delvis hemflyttad rad är strikt bättre än ingen, och resten
+  // syns i samma kontroll och kan tas om.
+  const ut: string[] = [];
+  let missar = 0;
+  for (const [n, bild] of bilder.entries()) {
+    if (!isExternalSupplierImage(bild)) {
+      ut.push(bild);
+      continue;
+    }
+    // Samma suffix-regel som importen: utan den skriver bild 2 och 3 över den
+    // första i mediabiblioteket.
+    const egen = await ownImageUrlForReview(
+      bild,
+      n === 0 ? review.reviewIdAE : `${review.reviewIdAE}-${n + 1}`,
+    );
+    ut.push(egen ?? bild);
+    if (!egen) missar++;
+  }
+  if (missar > 0) {
+    console.warn(
+      `[reviews] kunde inte flytta hem ${missar} av ${bilder.length} kundbilder för ` +
+        `${review.reviewIdAE} — behåller källadresserna för nytt försök.`,
+    );
+  }
+  return { ...review, ...reviewImageFields(ut) };
 }
 
 export class ReviewStore {
@@ -93,6 +182,14 @@ export class ReviewStore {
 
   async upsert(review: StoredReview): Promise<void> {
     const id = reviewDocId(review.productId, review.reviewIdAE);
+    // Fallbacken pekar åt det SÄKRA hållet. Den var "approved" fram till
+    // 2026-08-19, vilket var rimligt när DeepL översatte varje rad innan den
+    // skrevs — men numera är texten källspråket tills en människa skrivit om
+    // den. En anropare som glömmer sätta status ska hamna i modereringskön,
+    // inte på produktsidan. Alla nuvarande anropare sätter den explicit; det
+    // här är nätet under dem.
+    const status = review.status ?? "pending";
+    const skickas = isVisibleStatus(status) ? await withOwnImage(review) : review;
     const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
       method: "POST",
       headers: headers(),
@@ -103,8 +200,8 @@ export class ReviewStore {
           dataCollectionId: COLLECTION_ID,
           data: {
             _id: id,
-            ...review,
-            status: review.status ?? "approved",
+            ...skickas,
+            status,
             importedAt: review.importedAt ?? new Date().toISOString(),
           },
         },
@@ -120,8 +217,20 @@ export class ReviewStore {
     return this.query({ productId }, limit);
   }
 
-  async listAll(limit = 1000): Promise<StoredReview[]> {
+  async listAll(limit = MAX_LIST_ALL): Promise<StoredReview[]> {
     return this.query({}, limit);
+  }
+
+  /**
+   * Bara en status — vad /admin/reviews behöver för att hitta det som väntar.
+   *
+   * Filtret körs hos Wix, inte hos oss. Skillnaden är hela poängen: en
+   * väntande rad kan ha vilket AE-datum som helst (recensionerna är ofta
+   * månader gamla), så den kan ligga var som helst i den datumsorterade
+   * listan. Att hämta "de nyaste N" och filtrera efteråt hittar den inte.
+   */
+  async listByStatus(status: ReviewStatus, limit = MAX_LIST_ALL): Promise<StoredReview[]> {
+    return this.query({ status }, limit);
   }
 
   private async get(productId: string, reviewIdAE: string): Promise<StoredReview | null> {
@@ -148,13 +257,48 @@ export class ReviewStore {
     await this.upsert({ ...existing, textSwedish: newSwedish, status: "edited" });
   }
 
+  /**
+   * Hämtar ALLA rader som matchar filtret, sida för sida.
+   *
+   * Wix Data tar max 1000 per fråga, och kollektionen passerade det för länge
+   * sedan (1932 rader 2026-08-19). Utan paginering var frågan tyst kapad: man
+   * fick de 1000 nyaste och fick aldrig veta att resten fanns. Det spelade
+   * mindre roll när importerade recensioner auto-godkändes och aldrig behövde
+   * öppnas — men sedan 2026-08-19 är /admin/reviews enda vägen från `pending`
+   * till publicerad, och en rad som inte syns där kan aldrig bli svensk.
+   *
+   * Dubbletter dedupas på dokument-id: sorteringen sker på `date`, som både
+   * kan sakna värde och ha dubbletter, så en rad kan i teorin dyka upp i två
+   * sidor när gränsen går mitt i en grupp lika värden.
+   */
   private async query(filter: Record<string, unknown>, limit: number): Promise<StoredReview[]> {
+    const ut: StoredReview[] = [];
+    const sedda = new Set<string>();
+    for (let offset = 0; ut.length < limit; offset += QUERY_PAGE_SIZE) {
+      const sida = await this.queryPage(filter, Math.min(QUERY_PAGE_SIZE, limit - ut.length), offset);
+      for (const r of sida) {
+        const id = reviewDocId(r.productId, r.reviewIdAE);
+        if (sedda.has(id)) continue;
+        sedda.add(id);
+        ut.push(r);
+      }
+      // Kortare sida än vi bad om = sista sidan.
+      if (sida.length < QUERY_PAGE_SIZE) break;
+    }
+    return ut;
+  }
+
+  private async queryPage(
+    filter: Record<string, unknown>,
+    limit: number,
+    offset: number,
+  ): Promise<StoredReview[]> {
     const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
       method: "POST",
       headers: headers(),
       body: JSON.stringify({
         dataCollectionId: COLLECTION_ID,
-        query: { filter, sort: [{ fieldName: "date", order: "DESC" }], paging: { limit } },
+        query: { filter, sort: [{ fieldName: "date", order: "DESC" }], paging: { limit, offset } },
       }),
     });
     if (!res.ok) {

@@ -12,6 +12,7 @@ import { EditAddressClient } from "./edit-address-client";
 import { TaskRecoveryClient } from "./task-recovery-client";
 import { TaskCloseClient } from "./task-close-client";
 import { PriceCheckClient } from "./price-check-client";
+import { FreightCheckClient } from "./freight-check-client";
 import { LinkAeOrderClient } from "./link-ae-order-client";
 
 export const dynamic = "force-dynamic";
@@ -170,6 +171,7 @@ export default async function AdminPage() {
                     priser/kuponger — är produktsidan billigare beställer Leonard
                     manuellt och kopplar ordernumret nedan i stället. */}
                 <PriceCheckClient taskId={t.taskId} />
+                <FreightCheckClient taskId={t.taskId} />
                 <PlaceOrderButton taskId={t.taskId} />
                 <SupplierOverrideClient
                   taskId={t.taskId}
@@ -301,6 +303,7 @@ export default async function AdminPage() {
         <li><a href="/admin/source-lookup"><b>Hitta AliExpress-källa</b></a> — klistra in Wix-produkt-id, slug eller produkt-URL → få AliExpress-länken för en importerad produkt</li>
         <li><a href="/admin/seo"><b>SEO-migration</b></a> — V1↔V3-matchning, 301-redirects, sitemap, SEO-audit inför headless-cutover</li>
         <li><a href="/admin/profitability"><b>Lönsamhet per produkt</b></a> — sortbar tabell över intäkt/inköp/marginal/sålda enheter (90 dagar default) + CSV-export</li>
+        <li><a href="/admin/margins"><b>Marginaler</b></a> — hela katalogens marginal i band, prismultiplar som avslöjar systematiska fel, och listan över var mest pengar ligger (i kronor, inte procent)</li>
         <li><a href="/admin/pricing"><b>Prissättningsregler</b></a> — standard-/kategori-/intervall-multiplikatorer, fast påslag och avrundning (gäller vid import) + förhandsgranskning</li>
         <li><a href="/admin/variant-translations"><b>Variantöversättningar (AI)</b></a> — stickprova de AI-översatta variantvärdena (engelska → svenska) och fånga felöversättningar tidigt</li>
       </ul>

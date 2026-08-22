@@ -100,8 +100,38 @@
     "UNITED STATES": "US", USA: "US", RUSSIA: "RU", RYSSLAND: "RU",
   };
 
+  // ===========================================================================
+  //  EU:S TULLUNION — de 27 medlemsstaterna. INTE samma sak som EU_CODES ovan.
+  // ===========================================================================
+  //
+  // EU_CODES svarar på "kommer paketet fram snabbt?" och räknar därför in GB
+  // och NO. Den här listan svarar på "kan vi köpa in därifrån utan tull?", och
+  // där är svaret nej för båda: Storbritannien lämnade tullunionen, Norge har
+  // aldrig varit med. Ett paket därifrån till en svensk kund betyder
+  // tulldeklaration, importmoms och förseningar — kostnader som äter marginalen
+  // på en hel produkt utan att synas i vår bokföring.
+  //
+  // Bakgrund (Leonards rapport 2026-08-21, SucceBuy-klädstället 1005005972133031):
+  // listningen har sex storlekar i sju lager, och "EU-först" bockade i GB-raderna
+  // åt honom eftersom de låg i EU_CODES. Han såg det själv — GB hör inte hemma
+  // i ett inköpsbeslut.
+  //
+  // REGELN: allt som VÄLJER ett lager att köpa från använder EU_TULL_CODES.
+  // Allt som beskriver LEVERANSTID (badges, EU-filtret i discover) använder
+  // EU_CODES. CY och MT saknas i EU_CODES (de har sällan AE-lager) men är
+  // fullvärdiga medlemmar och hör hemma här.
+  //
+  // HÅLL I SYNK med serverns EU_CUSTOMS_UNION i lib/aliexpress/eu-countries.ts.
+  // Ett test i lib/aliexpress/eu-countries.test.ts fäller om de glider isär.
+  const EU_TULL_CODES = new Set([
+    "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR",
+    "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO",
+    "SE", "SI", "SK",
+  ]);
+
   globalThis.FP_EU = Object.freeze({
     EU_CODES,
+    EU_TULL_CODES,
     EU_PRIORITY,
     NAME_TO_ISO,
     ISO_TO_NAME,

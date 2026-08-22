@@ -1,31 +1,45 @@
-# Recensions-import (AliExpress → Fyndplats) med DeepL Free
+# Recensions-import (AliExpress → Fyndplats)
 
-Social proof från dag 1: skrapa AliExpress-recensioner, översätt EN/ZH → svenska
-via **DeepL Free** (ingen Anthropic-användning), spara i Wix Data och visa på
-produktsidan med schema.org-markup (rich snippets).
+Social proof från dag 1: hämta AliExpress-recensioner, filtrera/ranka dem, spara
+i Wix Data och visa dem på produktsidan efter moderering.
+
+**Ingen översättningstjänst.** DeepL togs bort 2026-08-19 (Leonards beslut: "vi
+polerar alla via chatten"). Importen sparar källtexten som `pending`; svenskan
+skrivs in för hand i `/admin/reviews`. Kostnaden är därmed noll — varken
+Anthropic-credits eller DeepL-tecken.
 
 ## Arkitektur
 
 ```
-extension/content.js  scrapeReviews()  ──┐
-                                          │  reviewsToImport[] i payloaden
-extension/background.js  ─────────────────┘
-                                          ▼
-cache-warmer  POST /api/import  ── importReviewsForProduct() (best-effort)
-                                          │  filter/rank → DeepL → anonymisera
-                                          ▼
-Wix Data: FyndplatsImportedReviews   +   FyndplatsTranslationUsage (budget)
-                                          ▲
-headless  lib/reviews.ts  ────────────────┘  läser SYNLIGA (ej hidden) recensioner
-headless  app/produkt/[slug]/page.tsx  →  Kundrecensioner-sektion + AggregateRating/Review
-cache-warmer  /admin/reviews  →  moderera (status) — bara approved/edited visas på PDP
+AE feedback-endpoint  lib/aliexpress/reviews.ts  ──┐   (ren JSON, ingen webbläsare)
+extension/content.js  scrapeReviews()  ────────────┤   (best-effort, lazy-laddad DOM)
+                                                    ▼
+cache-warmer  importReviewsForProduct()   filter/rank → anonymisera → hämta hem bilder
+                                                    ▼
+Wix Data: FyndplatsImportedReviews   (status: pending)
+                                                    ▼
+cache-warmer  /admin/reviews   →   skriv om texten till svenska (editReviewText → "edited")
+                                                    ▼
+headless  lib/reviews.ts  →  components/ProductReviews.tsx   (bara approved/edited visas)
 ```
 
-Filtrering (server, `lib/import/review-import.ts`): ≥3 stjärnor, 50–300 tecken,
-ingen spam (upprepningsmönster), deduplicerad. Rankning: foto > senaste 30 dgr >
-EU-land > längre text. Topp 10–15 per produkt.
+Två äkthetsspärrar sitter redan i mappningen (`lib/aliexpress/reviews.ts`) och
+ska inte tas bort: recensioner AE själv markerar som **AI-genererade** (`aigc`)
+och sådana som inte är publicerade hos AE (`status !== "1"`) släpps aldrig
+igenom. Anonyma konton ("AliExpress Shopper") får inget namn vidare.
 
-## Visning, moderering & integritet (uppdaterat 2026-06-02)
+Filtrering (server, `lib/import/review-import.ts`): ≥3 stjärnor, **50–1200
+tecken**, ingen spam (upprepningsmönster), deduplicerad, ingen text som pratar
+om leverans till fel land (`review-locale-filter.ts`).
+Rankning: foto > senaste 30 dgr > EU-land > längre text. Topp 15 per produkt
+(`REVIEW_FILTER.maxReviews`); backfillen kör med tak 8 som default.
+
+> Längdtaket var 300 tecken fram till 2026-08-19. Det sorterade bort precis de
+> recensioner som är mest värda att visa — Leonards fall var en femstjärnig
+> recension med två foton på 331 tecken, som hade rankats 6,0 av max men kastades
+> före rankningen. Butikens EGNA kunder får skriva 2000 tecken.
+
+## Visning, moderering & integritet
 
 - **Visningsformat:** BARA initialer, t.ex. "M.K." — aldrig hela namnet, aldrig
   land, aldrig "Verifierad köpare"-toggle. Riktiga och importerade recensioner ser
@@ -35,76 +49,104 @@ EU-land > längre text. Topp 10–15 per produkt.
 - **Killswitch:** `REVIEW_DISPLAY_MODE` på headless — `initials` (default) visar
   "M.K."; `verified_buyer` byter ALLA till "Verifierad köpare" (panic-läge vid t.ex.
   Konsumentverket-anmälan). En enda env-flagga per deploy, ingen DB-migration.
-- **Moderering:** status `pending | approved | rejected | edited`. Importerade AE-
-  recensioner **auto-godkänns** (`approved`); framtida riktiga kundrecensioner får
-  `pending` och kräver godkännande. `/admin/reviews` = tabell över ALLA med
-  Godkänn/Avvisa/Redigera + Wix Data-record som källa. Bara `approved`/`edited`
-  visas publikt.
+- **Moderering:** status `pending | approved | rejected | edited`. **Allt
+  importerat är `pending`** — inget når produktsidan förrän en människa skrivit
+  om texten. `/admin/reviews` = tabell över ALLA med Godkänn/Avvisa/Redigera.
+  Bara `approved`/`edited` visas publikt.
+- **Sidan måste kunna hitta varje väntande rad**, eftersom den är enda vägen ut.
+  Kollektionen har fler än 1000 rader och Wix tar max 1000 per fråga, så
+  listningen **paginerar** (`lib/store/reviews.ts`) — utan det var frågan tyst
+  kapad till "de nyaste 1000", och en väntande rad med gammalt AE-datum syntes
+  aldrig. Statusfiltret (`?status=pending`, default) körs hos Wix. Rader där
+  `textSwedish` fortfarande är originaltexten märks **⚠️ Oöversatt** och deras
+  godkänn-knapp heter "Godkänn ändå": innan dess såg en engelsk recension
+  exakt likadan ut som en färdig.
+- **Bilder:** upp till **3** kundfoton per recension (`MAX_REVIEW_IMAGES` i
+  `lib/reviews/images.ts`). De hämtas hem till vår egen mediahantering vid
+  import — en `aliexpress-media.com`-adress i produktsidans HTML pekar ut
+  leverantören för den som högerklickar. `lib/store/reviews.ts → upsert` är enda
+  vägen in i kollektionen och grindar det, så ingen ny väg kan glömma det.
 - **Disclaimer** (fine print på PDP): "Recensioner visas med initialer för att
   skydda kundernas integritet. Importerade recensioner från verifierade köpare av
   samma produkt är översatta från ursprungsspråk."
-- **Bevisdata lagras internt, visas aldrig:** `textOriginal`, `sourceLanguage`
-  (DeepL-detekterat), `customerNameRaw` (rått AE-namn), `customerCountry`. Vi byter
-  ALDRIG namn baserat på ursprung — vi visar bara inte hela förnamnet. Detta är hur
-  vi kan bevisa att recensionerna är från verkliga köpare om Konsumentverket frågar.
+- **Bevisdata lagras internt, visas aldrig:** `textOriginal`, `sourceLanguage`,
+  `customerNameRaw` (rått AE-namn), `customerCountry`. Vi byter ALDRIG namn
+  baserat på ursprung — vi visar bara inte hela förnamnet. Detta är hur vi kan
+  bevisa att recensionerna är från verkliga köpare om Konsumentverket frågar.
+- **Betygen skickas INTE till Google.** `PRODUCT_REVIEW_SCHEMA` på headless är
+  default av: ingen `aggregateRating`/`Review` i JSON-LD så länge omdömena är
+  AliExpress-köpares. Se `lib/review-schema.ts` i butiksrepot.
 
-## DeepL-budget
+## Så körs den
 
-Free-tiern = 500 000 tecken/månad. `FyndplatsTranslationUsage` bokför månadssumman.
-När summan + nästa batch skulle överskrida `DEEPL_MONTHLY_BUDGET` (default 450 000)
-importeras recensionerna **otranslaterade** (originaltext) och en varning loggas —
-budgeten spräcks aldrig. Topp-15 × ~150 tecken × 209 produkter ≈ långt under taket.
+| Vad | Anrop |
+|---|---|
+| En produkt | `POST /api/reviews/import` med `{ wixProductId }` — utan `reviews` hämtar rutten själv |
+| Hela katalogen | `GET /api/cron/review-backfill` (torrkörning som default — `?dryRun=false` för skarpt) |
+| Från admin | `/admin/reviews` → backfill-knappen (`runReviewBackfillAction`) |
 
-## Driftsättning (Leonard — engångs)
+Backfillen (`lib/reviews/backfill.ts`) stannar själv på tre sätt: `limit`
+(produkter, default 25), `timeBudgetMs` (240 s mot ruttens `maxDuration` 300) och
+slut på kandidater. Varje produkt AE svarat på stämplas med `reviewsCheckedAt` —
+även när AE inte hade några recensioner — så körningen konvergerar i stället för
+att hämta om de ~40 % recensionslösa produkterna i all evighet. En **strypt**
+hämtning stämplas aldrig (då hade rate-limiting dolt produkten i en månad).
+Omkontroll efter `REVIEW_RECHECK_DAYS` (30).
 
-1. **Skapa DeepL Free-nyckel** på <https://www.deepl.com/pro-api> (gratis).
-   Nyckeln slutar på `:fx`. Lägg in i Vercel (cache-warmer) som `DEEPL_API_KEY`.
-2. **Skapa Wix Data-kollektionerna** (idempotent):
+Rutten är **inte schemalagd**, medvetet: se `CLAUDE.md`.
+
+### Återsvep efter ett rättat filter (`minLength`)
+
+När ett filter varit för snävt finns recensionerna kvar hos AE — men ett vanligt
+omsvep hämtar dem **inte** hem. Skälet är icke-uppenbart: topp-N-urvalet körs
+över hela den hämtade mängden **innan** dedupen mot det som redan är sparat, och
+längdpoängen i `scoreReview` är `min(längd / 150, 2)` — **maxad redan vid 300
+tecken**. En 1200-teckens recension får alltså exakt samma poäng som en
+300-teckens och kan inte tränga undan den. På en produkt som redan har sina
+platser fyllda importeras därför noll.
+
+`?minLength=` på `/api/cron/review-queue` höjer längdgolvet **för den körningen**
+(golvet 50 går inte att sänka bort, och ett orimligt värde sveper ingenting i
+stället för allt). Med `minLength=301` tas bara sådant det gamla 300-teckenstaket
+omöjligt kunde ha släppt in — kön växer bara med det som faktiskt missades.
+
+Hela katalogen: kör GitHub-workflowen **Recensionskö (svep katalogen)** med
+`recheck_all=true`, `min_length=301`, `pages=4`. Den loopar rundor tills
+kandidaterna tar slut. **Torrkör först** (`dry_run=true`) — siffran därifrån är
+hur många rader du åtar dig att skriva om för hand.
+
+## Driftsättning
+
+1. **Wix Data-kollektionen** (idempotent, patchar även befintlig kollektion med
+   fält som saknas):
    ```
    node scripts/ensure-reviews-collection.mjs
    ```
-   Skapar `FyndplatsImportedReviews` + `FyndplatsTranslationUsage`.
-3. **Headless**: ingen ny env krävs — `lib/reviews.ts` läser kollektionen med
+   Skapar/uppdaterar `FyndplatsImportedReviews`.
+2. **Headless**: ingen ny env krävs — `lib/reviews.ts` läser kollektionen med
    befintliga `WIX_API_KEY` + `WIX_SITE_ID`. (Valfritt: `WIX_DATA_COL_REVIEWS`,
    samt `REVIEW_DISPLAY_MODE=verified_buyer` för panic-läge.)
-4. **Ladda om tillägget** i Chrome (chrome://extensions → uppdatera) så den nya
-   `scrapeReviews()` aktiveras.
-5. Deploya cache-warmer + headless.
+3. Deploya cache-warmer + headless.
 
-Därefter bär **varje ny import** automatiskt med sina recensioner.
-
-## Backfill av befintliga produkter
-
-Recensioner skrapas live från AliExpress-sidan (klient-renderad), så backfill
-kräver att tillägget besöker produktsidan. Två vägar:
-
-- **Standalone-endpoint** `POST /api/reviews/import` tar
-  `{ supplierProductId | sourceUrl | wixProductId, reviews:[...] }` och slår upp
-  Wix-produkten via mappningarna. `scripts/backfill-reviews.mjs` postar en
-  JSON-fil med skrapade recensioner hit (se skriptet för format).
-- **Re-import** av en produkt via tillägget bär med recensionerna i samma anrop
-  (dedup på `reviewIdAE` gör att redan sparade hoppas över).
-
-> OBS: en dedikerad "Importera endast recensioner"-knapp i popupen byggdes **inte**
-> (popup.js/html redigeras parallellt av andra tasks). Det är nästa naturliga steg
-> för en ett-klicks-backfill per produktsida.
+Ingen `DEEPL_API_KEY` behövs. Har du kvar `DEEPL_API_KEY` /
+`DEEPL_MONTHLY_BUDGET` i Vercel läses de inte av någon kod och kan tas bort;
+kollektionen `FyndplatsTranslationUsage` kan raderas i Wix.
 
 ## Verifiering
 
-- Enhetstester: `npx vitest run lib/import/review-import.test.ts lib/translate/deepl.test.ts`
-  (filter/rank/anonymisering, dedup, budget-fallback, DeepL-batchning).
-- Moderering: `/admin/reviews` (cache-warmer) — visa/dölj per recension.
-- Rich snippets: validera en produktsida i Google Rich Results Test efter deploy +
-  minst en produkt med recensioner. AggregateRating/Review skickas BARA när det
-  finns riktiga recensioner (den gamla hårdkodade 4.9/20 är borttagen).
+- Enhetstester: `npx vitest run lib/import/review-import.test.ts lib/reviews/`
+  (filter/rank/anonymisering, dedup, bildfält, backfillens stoppvillkor).
+- Moderering: `/admin/reviews` — inget publiceras utan att någon rört texten.
+- Rich snippets: `aggregateRating`/`Review` skickas medvetet INTE (se ovan).
 
 ## Filer
 
-cache-warmer: `lib/translate/deepl.ts`, `lib/translate/usage.ts`,
-`lib/import/review-import.ts`, `lib/store/reviews.ts`,
-`app/api/reviews/import/route.ts`, `app/api/reviews/[productId]/route.ts`,
+cache-warmer: `lib/aliexpress/reviews.ts`, `lib/import/review-import.ts`,
+`lib/reviews/{backfill,backfill-deps,images,queue}.ts`, `lib/store/reviews.ts`,
+`lib/wix/media-import.ts`, `app/api/reviews/import/route.ts`,
+`app/api/reviews/[productId]/route.ts`, `app/api/cron/review-backfill/route.ts`,
 `app/admin/reviews/`, `scripts/ensure-reviews-collection.mjs`. Inkoppling i
 `app/api/import/route.ts` + `extension/{content,background}.js`.
 
-headless (`headless-site`): `lib/reviews.ts`, `components/ProductReviews.tsx`,
-`app/produkt/[slug]/page.tsx`, `app/globals.css`.
+headless (`headless-site`): `lib/reviews.ts`, `lib/review-images.ts`,
+`components/ProductReviews.tsx`, `app/produkt/[slug]/page.tsx`, `app/globals.css`.
