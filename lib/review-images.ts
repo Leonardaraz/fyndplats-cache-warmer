@@ -26,6 +26,49 @@
 /** Tak per recension. Fler ger avtagande nytta och mer att moderera. */
 export const MAX_REVIEW_IMAGES = 3;
 
+// ── Reparation av prefixlösa Wix-adresser ───────────────────────────────────
+//
+// UPPMÄTT 2026-08-22, skarpt: fem produkter från dagens import visade tomma
+// knappar i stället för kundbilder. Adresserna renderades men Wix CDN svarade
+// 403 på varenda en — 22 bilder, och på de fem produkterna var SAMTLIGA
+// trasiga, inte en blandning. Det pekar på en enda importkörning.
+//
+// Det var inte adressformen. Bar URL, /v1/fill/… och /v1/fit/… gav alla 403,
+// samtidigt som en produktbild svarar 200 även helt utan transform-suffix.
+// Skillnaden var kontoprefixet:
+//
+//   .../media/148e964ceb…~mv2.jpg          → 403
+//   .../media/b379ce_148e964ceb…~mv2.jpg   → 200   (riktig bild, 38 kB)
+//
+// Ett Wix-media-id har formen <konto>_<uuid>~mv2.<ext>. Saknas understrecket
+// saknas kontodelen, och CDN nekar. Vi sätter då dit sajtens prefix.
+//
+// SÄKERT ÅT BÅDA HÅLL: varje prefixlöst id som finns i dag ger 403, så en
+// reparation kan bara förbättra. Redan prefixade adresser rörs inte, och
+// adresser till andra värdar (leverantörsbilder) rörs inte alls.
+//
+// DETTA LAGAR INTE KÄLLAN. Raderna skrivs av motorrepot (se filhuvudet), som
+// fortfarande producerar prefixlösa adresser — nästa import gör om det, och de
+// redan sparade raderna bär kvar felet. Det måste åtgärdas där. Reparationen
+// här gör bara att butiken inte visar trasiga bilder under tiden.
+const WIX_MEDIA_PREFIX = "b379ce";
+
+/**
+ * Sätter tillbaka kontoprefixet på en Wix-mediaadress som saknar det.
+ *
+ * Allt annat returneras oförändrat: adresser som redan har prefix, adresser
+ * till andra värdar, och strängar som inte är adresser alls.
+ */
+export function repairWixMediaUrl(url: string): string {
+  const m = /^(https?:\/\/static\.wixstatic\.com\/media\/)([^/?#]+)(.*)$/i.exec(url);
+  if (!m) return url;
+  const [, bas, id, resten] = m;
+  // <konto>_<uuid>~mv2.<ext> — finns inget understreck före ~ saknas kontodelen.
+  const fore = id.split("~")[0];
+  if (fore.includes("_")) return url;
+  return `${bas}${WIX_MEDIA_PREFIX}_${id}${resten}`;
+}
+
 /** Formen båda fälten kan ha på en rad, oavsett var den kommer ifrån. */
 export interface ReviewImageFields {
   imageUrl?: string | null;
@@ -44,7 +87,7 @@ export function reviewImages(row: ReviewImageFields | null | undefined): string[
   const sedda = new Set<string>();
   const lagg = (v: unknown) => {
     if (typeof v !== "string") return;
-    const s = v.trim();
+    const s = repairWixMediaUrl(v.trim());
     if (!s || sedda.has(s)) return;
     sedda.add(s);
     ut.push(s);
@@ -83,7 +126,7 @@ export function reviewImageFields(urls: readonly string[]): {
   const rena: string[] = [];
   const sedda = new Set<string>();
   for (const u of urls) {
-    const s = typeof u === "string" ? u.trim() : "";
+    const s = typeof u === "string" ? repairWixMediaUrl(u.trim()) : "";
     if (!s || sedda.has(s)) continue;
     sedda.add(s);
     rena.push(s);

@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_REVIEW_IMAGES, reviewImageFields, reviewImages } from "./review-images.ts";
+import { MAX_REVIEW_IMAGES, repairWixMediaUrl, reviewImageFields, reviewImages } from "./review-images.ts";
 
 // Datamodellen ar tvadelad med flit: imageUrl (forsta bilden, finns pa alla
 // 1932 aldre rader) plus imageUrls (hela listan, pa nya rader). Testerna nedan
@@ -97,5 +97,64 @@ describe("reviewImageFields", () => {
   it("rundgang: skriv och las ger samma lista", () => {
     const urls = ["a.jpg", "b.jpg", "c.jpg"];
     assert.deepEqual(reviewImages(reviewImageFields(urls)), urls);
+  });
+});
+
+// Bakgrund: 2026-08-22 visade fem produkter fran dagens import tomma knappar i
+// stallet for kundbilder. Wix CDN svarade 403 pa 22 adresser. Orsaken var inte
+// adressformen utan att kontoprefixet saknades i det sparade id:t. Verifierat
+// skarpt: samma id med prefix svarar 200 med riktig bilddata.
+describe("repairWixMediaUrl", () => {
+  const BAS = "https://static.wixstatic.com/media/";
+  // De verkliga id:na fran utredningen.
+  const TRASIG = "148e964cebe741d6b37d53b0089f06ef~mv2.jpg";
+  const HEL = "b379ce_7c69b5057ea341c4ada2ec724bf54f83~mv2.jpg";
+
+  it("satter tillbaka kontoprefixet nar det saknas", () => {
+    assert.equal(repairWixMediaUrl(BAS + TRASIG), BAS + "b379ce_" + TRASIG);
+  });
+
+  it("ror inte en adress som redan har prefix", () => {
+    assert.equal(repairWixMediaUrl(BAS + HEL), BAS + HEL);
+  });
+
+  it("behaller transform-suffixet", () => {
+    const suffix = "/v1/fill/w_400,h_400,al_c,q_80/file.webp";
+    assert.equal(repairWixMediaUrl(BAS + TRASIG + suffix), BAS + "b379ce_" + TRASIG + suffix);
+  });
+
+  it("ror inte andra vardar — leverantorsbilder ska lamnas ifred", () => {
+    for (const u of [
+      "https://ae01.alicdn.com/kf/Sabc123.jpg",
+      "https://example.com/media/utan-understreck~mv2.jpg",
+      "https://static.wixstatic.example/media/" + TRASIG,
+    ]) {
+      assert.equal(repairWixMediaUrl(u), u, u);
+    }
+  });
+
+  it("skrap returneras oforandrat i stallet for att bli en halv adress", () => {
+    for (const u of ["", "inte en adress", "wix:image://v1/abc~mv2.jpg", "/lokal/bild.jpg"]) {
+      assert.equal(repairWixMediaUrl(u), u, JSON.stringify(u));
+    }
+  });
+
+  it("lasvagen reparerar — det ar dar de 22 trasiga bilderna satt", () => {
+    const ut = reviewImages({ imageUrl: BAS + TRASIG, imageUrls: [BAS + TRASIG] });
+    assert.deepEqual(ut, [BAS + "b379ce_" + TRASIG]);
+  });
+
+  it("skrivvagen reparerar — butiken far aldrig spara en trasig adress", () => {
+    // app/api/omdome/route.ts skriver kundens egna bilder genom den har vagen.
+    const f = reviewImageFields([BAS + TRASIG]);
+    assert.equal(f.imageUrl, BAS + "b379ce_" + TRASIG);
+    assert.deepEqual(f.imageUrls, [BAS + "b379ce_" + TRASIG]);
+  });
+
+  it("reparerad och oreparerad form av SAMMA bild dedupas till en", () => {
+    // En rad kan ha imageUrl utan prefix och imageUrls med — utan dedup efter
+    // reparation hade kunden fatt samma bild tva ganger.
+    const ut = reviewImages({ imageUrl: BAS + TRASIG, imageUrls: [BAS + "b379ce_" + TRASIG] });
+    assert.deepEqual(ut, [BAS + "b379ce_" + TRASIG]);
   });
 });

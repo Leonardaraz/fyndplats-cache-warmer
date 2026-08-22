@@ -24,6 +24,12 @@ export function ProductReviews({
   // Importfiltret släpper igenom upp till 1200 tecken sedan 2026-08-19 — förut
   // 300, vilket sorterade bort just de genomtänkta omdömena.
   const [utfallda, setUtfallda] = useState<Set<string>>(() => new Set());
+  // Bilder som inte gick att ladda. lib/review-images reparerar den kända
+  // orsaken (kontoprefix som saknas i sparade adresser), men en adress kan
+  // falla av andra skäl — borttagen fil, moderering, CDN-fel. Utan det här
+  // renderas <button> med en brusten bild inuti: en tom, klickbar knapp.
+  // Precis den symptombilden rapporterades 2026-08-22.
+  const [trasigaBilder, setTrasigaBilder] = useState<Set<string>>(() => new Set());
   const close = useCallback(() => setPhoto(null), []);
 
   useEffect(() => {
@@ -104,7 +110,7 @@ export function ProductReviews({
                     {utfalld ? "Visa mindre" : "Visa mer"}
                   </button>
                 ) : null}
-                {r.imageUrls.length > 0 ? (
+                {r.imageUrls.some((u) => !trasigaBilder.has(u)) ? (
                   // En remsa, inte en enda bild. AliExpress-recensenter postar
                   // ofta flera foton och importen slängde alla utom den första
                   // fram till 2026-08-19; kunder som skriver hos oss kan bifoga
@@ -115,22 +121,35 @@ export function ProductReviews({
                   // <button> och inte <img onClick>: tangentbord och skärmläsare
                   // behöver veta att bilderna går att öppna.
                   <div className="rev-photos">
-                    {r.imageUrls.map((url, i) => (
+                    {(() => {
+                      // Räkna på de bilder som FAKTISKT visas. Annars säger
+                      // skärmläsaren "bild 1 av 3" när en av dem är dold.
+                      const synliga = r.imageUrls.filter((u) => !trasigaBilder.has(u));
+                      return synliga.map((url, i) => (
                       <button
                         key={url}
                         type="button"
                         className="rev-photo-btn"
                         onClick={() => setPhoto({ url, alt })}
                         aria-label={
-                          r.imageUrls.length > 1
-                            ? `${alt} – bild ${i + 1} av ${r.imageUrls.length}, visa större`
+                          synliga.length > 1
+                            ? `${alt} – bild ${i + 1} av ${synliga.length}, visa större`
                             : `${alt} – visa större`
                         }
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img className="rev-photo" src={url} alt={alt} loading="lazy" />
+                        <img
+                          className="rev-photo"
+                          src={url}
+                          alt={alt}
+                          loading="lazy"
+                          onError={() =>
+                            setTrasigaBilder((f) => (f.has(url) ? f : new Set(f).add(url)))
+                          }
+                        />
                       </button>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 ) : null}
               </li>
