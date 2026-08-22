@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { queueReviewsForProduct, isAwaitingTranslation, groupAwaitingTranslation } from "./queue";
+import { queueReviewsForProduct, isAwaitingTranslation, isCustomerReview, groupAwaitingTranslation } from "./queue";
 import type { StoredReview } from "../store/reviews";
 import type { AERReview } from "../import/review-import";
 
@@ -234,5 +234,76 @@ describe("queueReviewsForProduct — torrläge räknar men skriver inte", () => 
 
     expect(r.queued).toBe(0);
     expect(r.skippedExisting).toBe(1);
+  });
+});
+
+// ── Kundomdömen ska ALDRIG in i översättningskön ──────────────────────────
+// Butikens egna kunder skriver på svenska. Raden sparas med
+// textSwedish === textOriginal — inte för att den väntar på översättning, utan
+// för att den aldrig ska översättas. Utan undantaget returnerade
+// isAwaitingTranslation alltid true för dem, och kundens välskrivna svenska
+// mening flaggades "⚠️ Oöversatt" med knappen "Godkänn ändå".
+describe("isAwaitingTranslation — förstahandsdata", () => {
+  const bas = {
+    productId: "p1",
+    reviewIdAE: "kund-10019-p1",
+    rating: 5,
+    initials: "S.T.",
+    hasImage: false,
+    status: "pending" as const,
+  };
+
+  it("kundomdöme väntar ALDRIG på översättning", () => {
+    expect(
+      isAwaitingTranslation({
+        ...bas,
+        source: "customer",
+        textOriginal: "Kanonbra kvalitet, kom på tre dagar.",
+        textSwedish: "Kanonbra kvalitet, kom på tre dagar.",
+      } as never),
+    ).toBe(false);
+  });
+
+  // MOTVIKTEN: undantaget får inte tömma kön på det den finns till för.
+  it("importerad rad med samma text väntar fortfarande", () => {
+    expect(
+      isAwaitingTranslation({
+        ...bas,
+        textOriginal: "Very good quality, arrived in three days.",
+        textSwedish: "Very good quality, arrived in three days.",
+      } as never),
+    ).toBe(true);
+  });
+
+  it("okänt source-värde behandlas som importerat", () => {
+    expect(
+      isAwaitingTranslation({
+        ...bas,
+        source: "aliexpress",
+        textOriginal: "Same text",
+        textSwedish: "Same text",
+      } as never),
+    ).toBe(true);
+  });
+
+  it("ett godkänt kundomdöme ligger inte heller i kön", () => {
+    expect(
+      isAwaitingTranslation({
+        ...bas,
+        status: "approved",
+        source: "customer",
+        textOriginal: "Bra",
+        textSwedish: "Bra",
+      } as never),
+    ).toBe(false);
+  });
+});
+
+describe("isCustomerReview", () => {
+  it("bara exakt 'customer' räknas", () => {
+    expect(isCustomerReview({ source: "customer" })).toBe(true);
+    expect(isCustomerReview({ source: "Customer" })).toBe(false);
+    expect(isCustomerReview({ source: undefined })).toBe(false);
+    expect(isCustomerReview({})).toBe(false);
   });
 });

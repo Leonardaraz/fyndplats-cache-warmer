@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { reviewImages } from "@/lib/reviews/images";
 import { getReviewStore, isVisibleStatus, type StoredReview } from "@/lib/store/reviews";
 import { reviewDisplayName } from "@/lib/import/review-display";
+import { isCustomerReview } from "@/lib/reviews/queue";
 
 // Publik läs-endpoint: visar GODKÄNDA recensioner för en produkt. Headless-PDP:n
 // läser normalt Wix Data direkt, men denna endpoint finns för felsökning/återbruk.
@@ -12,6 +13,16 @@ export const dynamic = "force-dynamic";
 
 interface PublicReview {
   reviewIdAE: string;
+  /**
+   * True när raden är skriven av en av butikens EGNA kunder efter ett verifierat
+   * köp, inte importerad från leverantören. Samma namn som headless-site:
+   * lib/reviews.ts:101 använder, så de två vyerna av samma data stämmer överens.
+   *
+   * Fältet saknades här fram till 2026-08-22 — en konsument av den här rutten
+   * kunde alltså inte skilja ett förstahandsomdöme från en AliExpress-import,
+   * trots att bara det förra får räknas in i aggregateRating mot Google.
+   */
+  firstParty: boolean;
   rating: number;
   text: string;
   displayName: string;
@@ -23,6 +34,7 @@ interface PublicReview {
 function toPublic(r: StoredReview): PublicReview {
   return {
     reviewIdAE: r.reviewIdAE,
+    firstParty: isCustomerReview(r),
     rating: r.rating,
     text: r.textSwedish || r.textOriginal,
     displayName: reviewDisplayName(r.initials),

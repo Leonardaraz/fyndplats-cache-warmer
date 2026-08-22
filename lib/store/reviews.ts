@@ -82,6 +82,16 @@ export interface StoredReview {
   /** Hela bildlistan. Skrivs bara när recensionen har fler än en. */
   imageUrls?: string[];
   status: ReviewStatus;
+  /**
+   * Radens ursprung. `"customer"` = butikens EGEN kund, skriven via
+   * /omdome/<token> efter ett verifierat köp (headless-site:lib/customer-review.ts).
+   * Saknas fältet = importerad AliExpress-recension (alla rader före 2026-08-17).
+   *
+   * Fältet har alltid funnits i datan men saknades i typen, och därför läste
+   * ingenting här det. Följden var att kundens SVENSKA omdöme flaggades
+   * "oöversatt" och hamnade i översättningskön — se isAwaitingTranslation.
+   */
+  source?: string;
   importedAt?: string;
 }
 
