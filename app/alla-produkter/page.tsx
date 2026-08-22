@@ -1,4 +1,4 @@
-import { getProducts, getCollections, forListings } from "../../lib/products";
+import { getProducts, getCollections, forListings, forClient } from "../../lib/products";
 import { currentDayMs, orderRecommended } from "../../lib/sort-products";
 import { universalCollectionIds } from "../../lib/related-pick";
 import { jsonLdString } from "../../lib/seo";
@@ -109,7 +109,9 @@ export default async function AllaProdukter({ searchParams }: { searchParams: Pr
         <div className="container">
           <CategoryDropdown products={products} collections={collections} activeSlug={active?.slug} />
 
-          <ShopBrowser products={list} subs={subs} />
+          {/* forClient skär bort de fält klienten aldrig läser — se ListProduct
+              i lib/products.ts. Mätt: 1 005 kB av 2 704 på den här sidan. */}
+          <ShopBrowser products={forClient(list)} subs={subs} />
 
           {/* Crawlbart A–Ö-index över HELA sortimentet: gridden ovan visar 24
               (perf-gräns) och "Visa fler" är en JS-knapp — utan denna lista
