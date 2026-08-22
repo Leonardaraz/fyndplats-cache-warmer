@@ -20,6 +20,9 @@ function review(o: Partial<AERReview>): AERReview {
     text: o.text ?? "Helt fantastisk produkt som höll vad den lovade och mer därtill.",
     hasImage: o.hasImage,
     imageUrl: o.imageUrl,
+    // Utan den här raden nådde aldrig extrabilderna importen, och testerna för
+    // flerbildsfallet mätte tyst bara den första.
+    imageUrls: o.imageUrls,
     customerName: o.customerName,
     customerCountry: o.customerCountry,
     date: o.date,
@@ -184,6 +187,99 @@ describe("importReviewsForProduct", () => {
     });
     expect(res.imported).toBe(0);
     expect(res.reviews).toHaveLength(0);
+  });
+});
+
+// ── Bilduppladdningen ─────────────────────────────────────────────────────
+// Slingan var HELT otestad fram till 2026-08-22, och det var just den som
+// tappade bilder tyst: misslyckades uppladdningen slängdes bilden utan logg,
+// raden sparades med hasImage:false, och källadressen bevarades ingenstans —
+// alltså omöjlig att både upptäcka och reparera i efterhand.
+describe("importReviewsForProduct — kundbilder", () => {
+  const medBild = (id: string, urls: string[]) =>
+    review({
+      reviewIdAE: id,
+      text: "Väldigt nöjd med köpet, kvaliteten känns gedigen och leveransen gick fort.",
+      hasImage: true,
+      imageUrl: urls[0],
+      imageUrls: urls,
+    });
+
+  const AE = "https://ae-pic-a1.aliexpress-media.com/kf/Aabc.jpg";
+  const AE2 = "https://ae-pic-a1.aliexpress-media.com/kf/Adef.jpg";
+  const EGEN = "https://static.wixstatic.com/media/egen1~mv2.jpg";
+  const EGEN2 = "https://static.wixstatic.com/media/egen2~mv2.jpg";
+
+  it("lyckad uppladdning sparar VÅR adress, inte leverantörens", async () => {
+    const store = new FakeReviewStore();
+    const res = await importReviewsForProduct("prod1", [medBild("a", [AE])], {
+      now: NOW,
+      reviewStore: store as never,
+      importImage: async () => EGEN,
+    });
+    expect(res.bildmissar).toBe(0);
+    expect(store.saved[0].imageUrl).toBe(EGEN);
+    expect(store.saved[0].hasImage).toBe(true);
+  });
+
+  // KÄRNAN. Tidigare försvann bilden här och raden blev hasImage:false.
+  it("misslyckad uppladdning BEHÅLLER källadressen i stället för att slänga bilden", async () => {
+    const store = new FakeReviewStore();
+    const res = await importReviewsForProduct("prod1", [medBild("a", [AE])], {
+      now: NOW,
+      reviewStore: store as never,
+      importImage: async () => undefined,
+    });
+    expect(res.bildmissar).toBe(1);
+    // Bilden finns kvar — raden är pending och når aldrig produktsidan så här,
+    // och repairImages kan hitta den eftersom adressen är leverantörens.
+    expect(store.saved[0].hasImage).toBe(true);
+    expect(store.saved[0].imageUrl).toBe(AE);
+  });
+
+  it("delvis misslyckad: båda bilderna bevaras, bara missen räknas", async () => {
+    const store = new FakeReviewStore();
+    const res = await importReviewsForProduct("prod1", [medBild("a", [AE, AE2])], {
+      now: NOW,
+      reviewStore: store as never,
+      importImage: async (kalla: string | undefined) => (kalla === AE ? EGEN : undefined),
+    });
+    expect(res.bildmissar).toBe(1);
+    expect(store.saved[0].imageUrls).toEqual([EGEN, AE2]);
+  });
+
+  it("flera bilder får unika filnamn så de inte skriver över varandra", async () => {
+    const store = new FakeReviewStore();
+    const namn: string[] = [];
+    await importReviewsForProduct("prod1", [medBild("a", [AE, AE2])], {
+      now: NOW,
+      reviewStore: store as never,
+      importImage: async (_k: string | undefined, n: string) => {
+        namn.push(n);
+        return EGEN;
+      },
+    });
+    expect(namn).toEqual(["a", "a-2"]);
+  });
+
+  it("recension utan bild rör aldrig uppladdningen", async () => {
+    const store = new FakeReviewStore();
+    let anrop = 0;
+    const res = await importReviewsForProduct(
+      "prod1",
+      [review({ reviewIdAE: "a", text: "Bra produkt med fin kvalitet och snabb leverans verkligen toppen." })],
+      {
+        now: NOW,
+        reviewStore: store as never,
+        importImage: async () => {
+          anrop++;
+          return EGEN;
+        },
+      },
+    );
+    expect(anrop).toBe(0);
+    expect(res.bildmissar).toBe(0);
+    expect(store.saved[0].hasImage).toBe(false);
   });
 });
 

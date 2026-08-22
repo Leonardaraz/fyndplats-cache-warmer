@@ -23,6 +23,11 @@ interface Props {
   /** Live-produkter vars mappning bär trasiga (syntetiska) variant-id —
    *  driver "Laga trasiga variant-id"-knappen. */
   brokenIds?: string[];
+  /** Bas-URL till butikens produktsidor. Byggs på servern (lib/admin-links.ts)
+   *  — site-id och bas-URL är env-styrda och finns inte i webbläsaren. */
+  storeBase?: string;
+  /** Bas-URL till produktens redigeringsvy i Wix-dashboarden. */
+  wixEditBase?: string;
 }
 
 type Tab = "unmapped" | "mapped";
@@ -38,9 +43,21 @@ interface RepairRunState {
   error?: string;
 }
 
-export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {}, brokenIds = [] }: Props) {
+export function MappingsList({
+  unmapped,
+  mapped,
+  syncIssues = {},
+  oosIssues = {},
+  brokenIds = [],
+  storeBase = "",
+  wixEditBase = "",
+}: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("unmapped");
+  // FÖRSTAHANDSVAL: "Mappade" (Leonard 2026-08-21). Katalogen är genommappad
+  // sedan länge — "Kvar att mappa" står på 0 — så omappade-fliken var en tom
+  // vy man alltid klickade sig förbi. Det man kommer hit för nu är att se
+  // källa, butikssida och Wix-redigering per produkt.
+  const [tab, setTab] = useState<Tab>("mapped");
   const [filter, setFilter] = useState("");
   const [onlyIssues, setOnlyIssues] = useState(false);
   const [onlyOos, setOnlyOos] = useState(false);
@@ -120,6 +137,12 @@ export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {}
     // (behåller flik + sökterm eftersom klientkomponenten inte unmountas).
     router.refresh();
   }
+
+  // Slug saknas på enstaka rader → hoppa över butikslänken hellre än att
+  // rendera en trasig URL. Wix-länken behöver bara id:t och finns alltid.
+  const storeUrlFor = (slug?: string) =>
+    storeBase && slug ? `${storeBase}/${encodeURIComponent(slug)}` : "";
+  const wixUrlFor = (id: string) => (wixEditBase ? `${wixEditBase}/${encodeURIComponent(id)}` : "");
 
   const activeList = tab === "unmapped" ? unmappedVisible : mappedVisible;
   const activeTotal = tab === "unmapped" ? unmappedCount : mapped.length;
@@ -270,7 +293,13 @@ export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {}
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {tab === "unmapped"
           ? unmappedVisible.map((p) => (
-              <MappingCard key={p.id} product={p} onMapped={handleMapped} />
+              <MappingCard
+                key={p.id}
+                product={p}
+                storeUrl={storeUrlFor(p.slug)}
+                wixEditUrl={wixUrlFor(p.id)}
+                onMapped={handleMapped}
+              />
             ))
           : mappedVisible.map((p) => (
               <MappingCard
@@ -279,6 +308,8 @@ export function MappingsList({ unmapped, mapped, syncIssues = {}, oosIssues = {}
                 mapping={p.mapping}
                 syncIssue={syncIssues[p.id]}
                 oosIssue={oosIssues[p.id]}
+                storeUrl={storeUrlFor(p.slug)}
+                wixEditUrl={wixUrlFor(p.id)}
                 onMapped={handleMapped}
               />
             ))}

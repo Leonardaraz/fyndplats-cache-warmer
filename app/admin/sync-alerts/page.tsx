@@ -13,6 +13,7 @@
 // All UI-text på svenska.
 
 import Link from "next/link";
+import { aliExpressItemUrl, storeProductUrl } from "@/lib/admin-links";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import {
   ALERT_BANDS,
@@ -70,14 +71,10 @@ const ACTION_SV: Record<SyncLogEntry["actionTaken"], { label: string; color: str
   error: { label: "Fel vid hämtning", color: "#dc2626" },
 };
 
-function aeUrl(aliexpressId: string): string {
-  return `https://www.aliexpress.com/item/${encodeURIComponent(aliexpressId)}.html`;
-}
-
-function fpUrl(slug: string): string {
-  const base = (process.env.STORE_PRODUCT_BASE_URL ?? "https://fyndplats.se/produkt").replace(/\/$/, "");
-  return `${base}/${slug}`;
-}
+// Länkarna bor i lib/admin-links.ts sedan 2026-08-21 — de fanns i fyra kopior
+// varav två pekade fel (fel site-id respektive fel sökväg).
+const aeUrl = aliExpressItemUrl;
+const fpUrl = storeProductUrl;
 
 // Nästa aliexpress-sync-körning: Vercel-cronen kör var 4:e timme på heltimme
 // UTC (00, 04, 08, 12, 16, 20) — se vercel.json.

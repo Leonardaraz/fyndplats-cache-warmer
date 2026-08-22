@@ -41,20 +41,12 @@
 // plus en beskrivning av vad som hände.
 
 import { warehouseAlternativeSkuIds, type RepairDsVariant } from "./mapping-repair";
-import { normalizeShipFromCode } from "../aliexpress/eu-countries";
+import { isEuCustomsUnion, normalizeShipFromCode } from "../aliexpress/eu-countries";
 import { namedValuesFromVariantId } from "../aliexpress/freight";
 
-/**
- * EU:s TULLUNION — inte samma sak som `isEuCountry`, som betyder "snabb
- * leverans till Sverige" och därför räknar in GB och NO. För ett automatiskt
- * lagerbyte är tullfrågan det som avgör: en vara från Storbritannien kan bli
- * dyrare för kunden i tullen, och det priset syns aldrig i vår marginal.
- */
-const EU_TULL = new Set([
-  "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR",
-  "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO",
-  "SE", "SI", "SK",
-]);
+// Tullunionen definieras i eu-countries.ts (EU_CUSTOMS_UNION). Den låg tidigare
+// som en egen kopia här — och kopior av landslistor driver isär precis som
+// SHIP_AXIS_RE gjorde två gånger på två veckor. Nu finns bara originalet.
 
 /** Lägsta marginal (netto mot netto) vi accepterar efter ett byte. */
 export const MIN_FAILOVER_MARGIN_PCT = 5;
@@ -173,7 +165,7 @@ export function planWarehouseFailover<V extends FailoverVariant>(
       .map((sid) => bySkuId.get(sid))
       .find(
         (d): d is RepairDsVariant =>
-          !!d && typeof d.stock === "number" && d.stock > 0 && EU_TULL.has(shipCodeOf(d)),
+          !!d && typeof d.stock === "number" && d.stock > 0 && isEuCustomsUnion(shipCodeOf(d)),
       );
 
     if (!kandidat) {

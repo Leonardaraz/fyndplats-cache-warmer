@@ -113,6 +113,21 @@ describe("reconcileVariantsWithDs", () => {
     expect(r.variants[0].costUsd).toBe(8.4);
   });
 
+  // AE renderar axelnamnen lokaliserat. Mönstret ligger i ship-axis.ts och
+  // importeras hit — kopian som stod här saknade först de svenska och sedan de
+  // kinesiska formerna, och en asymmetrisk signatur betyder utebliven
+  // prisavstämning: exakt den bugg som gav sex identiska priser.
+  it("frakt-axeln känns igen på svenska och kinesiska också", () => {
+    for (const axel of ["Skickas från", "Levereras från", "发货地", "送货"]) {
+      const r = reconcileVariantsWithDs(
+        [sv("dom-0", { Color: "Röd" }, 5)],
+        [dv("1", { Color: "Röd", [axel]: "CHINA" }, 8.4)],
+      );
+      expect(r.aborted, axel).toBe(false);
+      expect(r.variants[0].costUsd, axel).toBe(8.4);
+    }
+  });
+
   it("ABORT när färre än hälften matchar — hellre orört än gissat", () => {
     const scraped = [
       sv("dom-0", { Color: "Alpha" }, 10),

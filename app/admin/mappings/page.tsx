@@ -12,6 +12,7 @@ import { getStore } from "@/lib/store/factory";
 import { getSyncStore, type SyncStateEntry } from "@/lib/sync/sync-log";
 import { isSyntheticMappingId } from "@/lib/sync/mapping-repair";
 import { MappingsList, type MappedProduct } from "./mappings-list";
+import { storeProductBase, wixProductEditBase } from "@/lib/admin-links";
 
 export const dynamic = "force-dynamic";
 // Laga-knappens server action gör upp till ~20 AliExpress-uppslag per batch.
@@ -181,6 +182,8 @@ export default async function MappingsAdminPage() {
         syncIssues={syncIssues}
         oosIssues={oosIssues}
         brokenIds={brokenIds}
+        storeBase={storeProductBase()}
+        wixEditBase={wixProductEditBase()}
       />
     </main>
   );
