@@ -221,6 +221,11 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .usprow{display:flex;justify-content:center;flex-wrap:wrap;padding:22px 0}
 .uspitem{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:600;padding:0 22px}
 .uspitem svg{width:18px;height:18px;color:var(--orange);flex:0 0 auto}
+/* Löftena är länkar men ska inte läsa som en meny: ärver radens färg och får
+   understrykningen först vid hover/fokus — samma grepp som .herotrust. */
+a.uspitem{color:inherit;text-decoration:none;transition:color .18s ease}
+a.uspitem:hover,a.uspitem:focus-visible{color:#C2410C;text-decoration:underline;
+  text-underline-offset:3px;text-decoration-color:rgba(194,65,12,.45)}
 /* Mobil: jämnt 2×2-rutnät, centrerat som block (kolumnerna är innehållsbreda
    och gruppen centreras) i stället för ojämn 2+1+1-wrap eller vänsterhäng */
 @media(max-width:600px){
@@ -335,6 +340,13 @@ footer{background:var(--char);color:#cfcac3;margin-top:64px}
    ovan) + lite luft. Slår @media-center-regeln nedan via högre specificitet. */
 .pdp-actions .paymarks{justify-content:flex-start;margin-top:16px}
 .grat{margin-top:14px;font-size:12px;display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;color:#cfcac3}
+/* Betygsraden är en länk till /omdomen. Ingen understrykning i vila — den
+   skulle dragit ett streck tvärs över Google-pillret och stjärnorna — utan
+   ljusare text och lyft badge när den pekas på. */
+a.grat{text-decoration:none;transition:color .18s ease}
+a.grat:hover,a.grat:focus-visible{color:#fff}
+a.grat:hover .g-count,a.grat:focus-visible .g-count{color:#cfcac3}
+a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .grat .star{color:#FFC857;letter-spacing:1px}
 .g-badge{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#3c4043;padding:4px 9px 4px 8px;border-radius:999px;font-weight:500;font-size:12px;letter-spacing:.1px;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .g-icon{display:block}
