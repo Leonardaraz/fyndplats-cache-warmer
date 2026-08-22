@@ -114,7 +114,7 @@ Specs får bara komma från känd importdata eller `web_search` (AliExpress-sido
 - **Leksaker** → **EN71**-märkningen och **åldersgränsen** ska stå i produkttexten. Saknas certifieringen i leverantörsdatan: flagga hellre än att skriva ut en gissad märkning.
 - **El till kroppen / medicintekniskt / kosttillskott** → flagga till Leonard i stället för att polera.
 
-> Grinden är en **stopp**-kontroll, inte en textkontroll. Passerar produkten men har en säkerhetsrelevant begränsning (max vikt, ålder, ej för trafikerad väg) → siffran hör hemma i **spec-tabellen** och, om den avgör användningen, som en vanlig mening i rätt avsnitt. Inget varningsblock (Steg 2).
+> Grinden är en **stopp**-kontroll, inte en textkontroll. Passerar produkten men har en säkerhetsrelevant begränsning (max vikt, åldersgräns, ej för trafikerad väg) → siffran hör hemma i **spec-tabellen**, och avgör den användningen skrivs den som ett **positivt villkor med egen rubrik** i Steg 2 — *"Från 14 år"*, *"Maxlast 120 kg"* — inte som en varning under en generisk rubrik. Inget varningsblock.
 
 -----
 
@@ -294,6 +294,16 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 
 > ✍️ **Svensk sifferstil.** **Decimalkomma**, aldrig punkt: `4,5 Ah` · `1,8 m` · `0,31 m²`. Skriv **aldrig** en kommalista av tal med enheten sist — `"10, 20, 30 och 40 cm"` läses som fyra olika mått med oklar enhet. Använd snedstreck: **`10/20/30/40 cm`**. Samma sak för gradlägen: `0/45/60°`, inte `"0, 45 och 60 grader"`. Mått multipliceras med `×` och mellanslag: `72 × 57 × 56 cm`. Intervall får tankstreck: `18–36 månader`, `8–10 timmar`. *(Regeln fällde min egen copy tre gånger på en session — kontrollera den i slutkollen, inte bara när du skriver.)*
 
+> ⚠️ **Galleriet skrivs på `media.itemsInfo.items` — `media.items` TÖMMER det tyst (2026-08-19, en publicerad produkt stod bildlös).** Läsvägen är `media.itemsInfo.items`, och det är också skrivvägen. Skickar du i stället `media: { items: [...] }` svarar PATCH:en **200** med `"media":{}` — och en efterföljande GET visar `itemsInfo.items: []`. Alla bilder borta, på en live produkt. Samma sak händer med `{url}` i stället för `{id}`. **Verifiera ALLTID med en separat GET `?fields=MEDIA_ITEMS_INFO`** — PATCH-svaret utelämnar `itemsInfo` även när skrivningen lyckades, så svaret kan inte skilja "sparat" från "raderat".
+>
+> ⚠️ **`linkedMedia` valideras mot galleriet FÖRE uppdateringen — därav ett moment 22.** Byter du både galleri och val i samma PATCH får du 404 `PRODUCT_MEDIA_NOT_EXIST`: de nya valen valideras mot det GAMLA galleriet (nya bilderna finns inte där än), och det nya galleriet mot de GAMLA valen (gamla bilderna är borttagna). Att skicka med de gamla bilderna i `items` hjälper inte. Bryt låsningen i tre steg:
+>
+> 1. **PATCH `options` + `variantsInfo` UTAN `linkedMedia`.** (Namnbyten här ger nya variant-id → återskapa lagret direkt, se avsnittet om omdöpning.)
+> 2. **PATCH `media.itemsInfo.items`** med det slutliga galleriet.
+> 3. **PATCH `options` + `variantsInfo` igen, nu med `linkedMedia`** och med `choiceId`/variant-`id` ifyllda så inget döps om — då behålls variant-id och lagret rörs inte.
+>
+> `options` kan aldrig skickas ensamt: utan `variantsInfo` svarar API:et 428 `MISSING_VARIANT_OPTION_CHOICE`. Och identifierar du valen med `optionChoiceNames` krävs **alla tre** fälten `optionName`, `choiceName` och `renderType` — utelämnas `renderType` blir det samma 428. Nya val behöver dessutom `choiceType: "CHOICE_TEXT"`, annars 400 `PRODUCT_OPTION_CHOICE_NAME_AND_TYPE_REQUIRED`.
+
 > ☠️ **Wix STRIPPAR `<br>` — skriv FAQ-fråga och svar som TVÅ `<p>` (2026-08-21).** Mönstret
 > `<p><strong>Fråga?</strong><br>Svar</p>` ser rätt ut i bodyn, men Wix serialiserar om HTML:en
 > (`<strong>` → `<span style="font-weight: 700">`) och **kastar `<br>`-taggen**. Kvar blir
@@ -306,6 +316,46 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 >
 > Kontrollera efter PATCH:en med en re-GET: `plainDescription.match(/<span style="font-weight: 700">[^<]*\?<\/span>(?!<\/p>)/g)` ska ge **noll** träffar.
 > *(Upptäckt på campingbordet `85996bde`; sex frågor fick rättas i efterhand.)*
+
+> **Äldre sidor bär den gamla en-styckesformen — kontrollera mellanslaget där.** Innan regeln
+> ovan skrevs FAQ som `<p><span style="font-weight: 700">Fråga?</span> Svar</p>`, allt i samma
+> stycke. Saknas mellanslaget efter `</span>` renderas det som **"Hur djup är den?29 cm"** — HTML
+> kollapsar inte blanksteg som inte finns. Felet syns inte i JSON-LD (`lib/seo/faq-jsonld.ts` kör
+> `avkoda` → `.replace(/\s+/g," ").trim()`), bara för kunden i fliken, så det överlever varje
+> strukturkontroll. Svep 2026-08-19: **138 av 826 produkter, 715 förekomster** — ingen kod orsakar
+> det (`lib/import/tabs.ts` genererar korrekt), det är handskriven poleringstext.
+>
+> ```js
+> const RE = /(<span style="font-weight: 700">[^<]*\?<\/span>)(?=[^\s<])/g;
+> const lagat = h.replace(RE, "$1 ");
+> ```
+>
+> **Avgränsa på `?`, inte på `:`.** Ett kolon-slut träffar spec-etiketterna (`<b>Skärm:</b> 4,3 tum`)
+> som redan är korrekta — i svepet slutade **alla 715** träffarna på `?` och **noll** på `:`.
+> Verifiera att bara mellanslag tillkommer innan du skriver: `ny.length === gammal.length +
+> antalTräffar` och `ny.split(" ").join("") === gammal.split(" ").join("")`. Massrättning går via
+> `POST /stores/v3/bulk/products/update` (max **100** produkter per anrop, varje post
+> `{ product: { id, revision, plainDescription } }`).
+
+> ⚠️ **Galleribilder MÅSTE vara kvadratiska — PDP:n centrumbeskär varje bild till kvadrat.**
+> Storefronten hämtar galleriet med Wix-transformen `fill/w_N,h_N,al_c` (verifierat i
+> sidans `srcset`: `w_1080,h_1080`, `w_1920,h_1920` …). En **liggande** eller **stående**
+> källa kapas därför i kanterna, och kunden ser en inzoomad bild med produkten avskuren.
+> Trampbilen (2026-08-21) låg 1500×1088 med fordonet 1408 px brett — kvadratbeskärningen
+> tog 206 px i var sida och **båda hjulen försvann**, trots att filen i sig var hel.
+> Felet syns inte i katalogen, bara på sidan: `media.itemsInfo` rapporterar bilden som OK.
+> **Åtgärden är ren omramning** — beskär till produktens bbox och centrera på kvadratisk
+> vit duk (≈95 % fyllnad av längsta sidan). Ingen retusch, ingen ny källa.
+> Kontrollen som ska passera före uppladdning:
+> ```python
+> sida = min(ut.size); vx = (ut.width-sida)//2; vy = (ut.height-sida)//2
+> assert kontroll[vy:vy+sida, vx:vx+sida].sum() == kontroll.sum(), 'kvadratbeskärningen kapar produkten'
+> ```
+> **Miljöbilder är undantagna** — att en livsstilsbild beskärs till kvadrat är normalt.
+> Regeln gäller studiobilder på vit botten, där produkten är motivet.
+> Svep över 120 produkter 2026-08-21: **11 hade en studiobild där produkten faktiskt kapas**
+> (2–22 % av produktens pixlar). 44 hade någon galleribild som kapas, men merparten av dem
+> är miljöbilder.
 
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
 
@@ -387,6 +437,12 @@ Två regler gäller ALLA metoder: **radera aldrig originalfilen** ur Media Manag
 > 1. **Vitmåla ALDRIG en rektangel över produkt-silhuetten.** Inbränd text/logga som ligger OVANPÅ produkten tas bort med **inpainting** (`cv2.inpaint(bild, textmask, 6, INPAINT_TELEA)` — fyller med omgivande textur), aldrig med `arr[y0:y1,x0:x1]=255`. Ligger texten på **vit bakgrund bredvid** produkten: ta bort bara text-pixlarna (färg-/röd-tröskel + `cv2.inpaint`), och verifiera att masken inte tangerar produkten. *(Slang-spolen fick ett vitt hack när "50M"-blocket vitmålades in i spolens övre vänstra båge — inpainting av bara textpixlarna löste det utan att röra spolen.)*
 > 2. **Beskär en produkt ur en fler-objekt-bild BARA i det vita gapet mellan objekten — med marginal, aldrig en gissad snäv gräns.** Många leverantörsbilder lägger **öppen + ihopfälld** (stege), **flera vinklar** eller **produkt + tillbehör utlagda** i SAMMA bild. Hitta objektets **fulla utbredning** först (kolumn-/rad-densitet: `nz.mean(axis=0)` → leta lågtäthets-*dalen* som skiljer objekten), lägg snittet i dalen + marginal. *(Stegen beskars vid x≈840 fast den öppna stegen nådde x≈1050 → främre benet + halva stegplanen kapades. Rätt snitt låg vid dalen x≈1110, precis före den ihopfällda.)*
 > 3. **Obligatorisk faithfulness-grind före uppladdning:** bygg `faith_sheet(original_källcrop, polerad)` och `Read` den. Bekräfta att den polerade silhuetten innehåller **HELA** produkten — inga raka snitt-kanter, inga vita hack/bett, inga borttagna delar/tillbehör. Godkänn först då. Detta är samma grind som redan gäller AI-genererade vita hjältar (Steg 3c) — den gäller **även** manuella crops, vitmålning och kort-urklipp.
+>
+> ⚠️ **Att rita maskens kant ovanpå originalet BEVISAR ingenting — den kontrollen missar hål mitt i varan.** Frestelsen när ett urklipp ser konstigt ut är att overlaya konturen och se om den följer produkten. Det gör den — även när maskens *insida* saknas. På lasertag-hjälten (2026-08-17) hade `rembg` tappat pistolens svarta kropp mot svart bakgrund; kvar blev bara de röda listerna, som mot vitt såg ut att sväva. Konturlinjen följde varje röd kant perfekt, på **båda** sidor om det bortfallna partiet, så overlayen såg korrekt ut. Jag godkände den. Leonard såg hålet direkt.
+>
+> **Jämför alltid urklippet mot originalet SIDA VID SIDA i samma skala** (det är just det `faith_sheet` gör) — aldrig kontur mot original. Frågan är "saknas det yta?", inte "följer kanten?".
+>
+> **Grundorsaken är värd att undvika helt: välj en källa där varan har kontrast mot underlaget.** Svart plast mot svart/mörkblå botten är den klassiska fällan. Samma lasertag-set fanns i två leverantörsbilder — mot mörkt neongolv (kropparna föll bort) och mot **ljust grått golv** (alla åtta föremål klipptes rena i första försöket). Kolla igenom hela bildsetet efter den ljusaste bakgrunden innan du börjar maska; det är billigare än varje räddningsförsök.
 
 ### Steg 3b – Tvätta bort loggor och inbränd text (vid behov)
 
@@ -452,6 +508,18 @@ Kör modellen **direkt via torch** (hoppa över `simple-lama-inpainting`-paketet
 **Så här sätts resultatet in (alla tre metoderna):**
 
 3. Metod A ger ett `fileId` direkt (ingen uppladdning behövs); Metod B/C laddas upp med `mcp__Wix__UploadImageToWixSite` (via chatt-bifogning eller GitHub-branch, se ovan) → ny `static.wixstatic.com`-URL/fileId.
+
+   > ☠️ **`UploadImageToWixSite` svarar `success: true` även när uppladdningen sedan MISSLYCKAS — och en PATCH mot en icke-klar fil släpps TYST.** Svaret innehåller `operationStatus: "PENDING"`: Wix har tagit emot uppdraget, inte utfört det. Hämtar Wix din URL medan raw.githubusercontent strypter (429) eller svarar 500 hamnar filen i `state: "FAILED"` — men du har redan fått ditt `fileId`. Patchar du in det svarar V3 `200 OK`, **utelämnar item:et** och du upptäcker det först när galleriet gått från 6 bilder till 5. Hände 2026-08-17 på lasertag-hjälten: den gamla hjälten hann raderas i samma PATCH, så produkten låg en stund helt utan hjältebild.
+   >
+   > **Regel: kontrollera filens status före PATCH:en, inte efter.**
+   >
+   > ```js
+   > const f = await wix.request({ scope:"site", siteId, method:"GET",
+   >                               url:"/site-media/v1/files/" + fileId });
+   > if ((f.file.operationStatus || f.file.state) !== "READY") return { avbrutet:true };
+   > ```
+   >
+   > Ett snabbt `curl` mot `…/v1/fit/w_300,h_300,q_70/preview.jpg` duger som förkontroll: **403 = inte klar**, 200 = klar. Två saker minskar risken att det händer alls: håll filen liten (2000² JPEG på 380 kB föll, 1600² på 198 kB gick igenom) och **byt filnamn vid omförsök** — samma URL kan ligga kvar strypt en stund.
 4. Ersätt item:et på **samma position** i `itemsInfo.items` med det **fullständiga item-objektet** (inte bara `url`+`altText` — det är det verifierat fungerande formatet från denna sessions PATCH:ar): `{ "id": "<fileId>", "altText": "<svensk alt>", "mediaType": "IMAGE", "image": { "id": "<fileId>", "url": "https://static.wixstatic.com/media/<fileId>", "altText": "<svensk alt>" } }` i Steg 3-PATCH:en. Verifiera via re-GET att item:et fått `image.url`. Position 0 = `media.main` = produktkortet.
 5. **Radera aldrig originalfilen** ur Media Manager (den blir föräldralös och tas i de återkommande städsvepen). Var den gamla bilden `linkedMedia` för ett variantval: koppla om valet till det **nya** media-item-id:t (Steg 6B), annars tappar färgvalet sitt bildbyte.
 
@@ -915,8 +983,9 @@ faktiskt behov och har inte krävts på ~40 produkter.
    mått: ett spec-kort per variant, länkat till respektive choice (Steg 6-reglerna).
 6. **Ta bort dropship-branding även i bilder** (VEVOR-logga på väska/produktfoto →
    LaMa bort). Produktens egen förpackning i bild är OK.
-7. **Uppladdning:** committa bilderna till branchen `claude/tmp-image-upload`
-   (git worktree, force-push OK) → `UploadImageToWixSite` med raw-GitHub-URL →
+7. **Uppladdning:** committa bilderna till en orphan-gren med prefixet `claude/img-…`
+   (git worktree, force-push OK — push-behörigheten godkänner bara `claude/`-prefixet,
+   se Steg 3b) → `UploadImageToWixSite` med raw-GitHub-URL →
    patcha `media.itemsInfo.items` (hela arrayen + svenska alt-texter, ALDRIG
    `media.main`) och omlänka ev. variant-choice-bilder (options + variantsInfo
    ordagrant tillsammans).
@@ -1099,6 +1168,24 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 >
 > **Hitta buggen i hela katalogen:** för varje produkt med >1 variantval, GET:a `fields=MEDIA_ITEMS_INFO` och jämför `choices[].linkedMedia[].id` — **samma id på 2+ val = merge-bugg** (åtgärda), **tomma** = omappad storleks-/spec-variant (oftast ofarlig). Den fulla katalog-svepen (417 produkter, 2026-07-09) hittade bara cykelvagnen med den äkta buggen.
 
+> ⚠️ **`altText` sitter på ITEM-nivån — `image` är readOnly (2026-08-17, kostade två blinda PATCH:ar).** I `media.itemsInfo.items[]` heter fältet `altText` direkt på itemet (`ProductMedia.altText`); `item.image` är `readOnly: true` och **ignoreras tyst**. Skickar du `{ id, image: { id, altText } }` går PATCH:en igenom med 200, men alt-texten skrivs aldrig — och eftersom du samtidigt ersatt hela `items`-listan **raderas de gamla alt-texterna**. Så tömdes hela galleriet på alt-text för två produkter innan felet syntes. Rätt form är `{ id: "<fileId>", altText: "…" }`. Verifiera ALLTID med re-GET att `items[].altText` är ifylld — ett 200-svar bevisar ingenting här.
+
+> ⚠️ **`variantsInfo.variants[].media` är `readOnly` och är en ÖGONBLICKSBILD — inte samma sak som `linkedMedia` (2026-08-17).** Fältet härleds när optionens val skapas. Kopplas `linkedMedia` på i efterhand (som i 6B ovan) uppdateras det INTE, utan blir kvar på det som gällde då — oftast produktens hjältebild. En PATCH som försöker sätta `media` på en befintlig variant går igenom med 200 men ändrar ingenting; schemat säger `readOnly: true`. Enda vägen är att **bygga om optionen** (nya val utan id:n, `linkedMedia` inline, varianterna identifierade med `optionChoiceNames`) — då räknas den om.
+>
+> **Men kolla FÖRST om det spelar roll.** Headless-PDP:n läser **valets `linkedMedia`**, inte variantens `media`. Uppmätt på eltraktorn 2026-08-17: rätt bild förekom 23 gånger i HTML:en, den felaktiga variantbilden **0** gånger. Katalogsvepet hittade 86 produkter där en variant bar en ANNAN variants foto — alla osynliga för kunden på fyndplats.se. Bygg alltså inte om 86 live-produkter för ett fält butiken inte läser; åtgärda när du ändå rör optionen.
+>
+> **Så räknar variant-id:n om vid ombyggnad:** ett val vars `name` är OFÖRÄNDRAT behåller sitt variant-id → lagerposten följer med. Ett val som **döps om** får ett NYTT variant-id → dess lagerpost försvinner och måste återskapas (`POST /stores/v3/bulk/inventory-items/create`), och mappningens `wixVariantId` + `choices` pekas om. Verifierat på rottingsidobordet (`40339592`, "Trä Naturlig"→"Natur": grå behöll id + 59 i lager, natur fick nytt id och 19 återskapades) och elmotorcykeln (`7a611efb`, båda namnen oförändrade → båda id:n och 62/78 i lager intakta).
+>
+> **Katalogsvep (billigt).** `POST /stores/v3/products/query-variants` (Read-Only Variants) ger `media` + `optionChoices` för upp till 1 000 varianter per anrop — hela katalogen på ~2 anrop i stället för en GET per produkt. Två fällor kostade en falsk nolla:
+> 1. Fältet heter `optionChoices[].optionChoiceNames.optionName` — ett steg djupare än man tror. Fel väg → `undefined` → allt hoppas tyst över.
+> 2. **Räkna alltid hur många jämförelser som FAKTISKT kördes** och returnera siffran. Första svepet rapporterade "0 fel" när sanningen var "0 jämförda av 1 152".
+>
+> Skilj dessutom på **allvarligt** (varianten visar en ANNAN variants bild — kunden ser fel färg) och **kosmetiskt** (varianten visar hjälten). Testet: slår `media`-id:t mot något annat vals `linkedMedia` i samma produkt?
+
+> ⚠️ **Marginalsvep: mät inte lägsta pris mot högsta kostnad (2026-08-17).** Ett svep som ställde produktens `actualPriceRange.minValue` mot mappningens HÖGSTA `landedCostSek` rapporterade 55 produkter "under inköp" — nästan alla falska: solpanelens 100 W-pris jämfördes med 260 W-variantens kostnad. Det enda som håller för flervariantprodukter är **lägsta pris mot LÄGSTA kostnad** (är det billigaste priset under den billigaste kostnaden måste någon variant gå med förlust) plus exakt jämförelse när produkten har en enda variant. Det gav 2 äkta träffar av 801.
+>
+> **Husets prisformel:** `charm9(landedCostSek × 1,30)` → 23,1 % marginal på säljpriset (`roundPrice`/`charm9` i `lib/import/pricing.ts` avrundar UPPÅT till närmaste tal som slutar på 9). Använd den när ett pris ska sättas om — mappningens `grossSek` kan vara äldre än `landedCostSek` och ligga fel. **Matcha alltid mot SKU:t via `wixVariantId`, inte via SKU-strängen**: SKU:erna försvenskades vid polering (`FP-electric-motorcycle-rod` → `FP-elmotorcykel-barn-rod`) medan mappningen behöll de gamla, så en SKU-koppling ger tyst noll träffar.
+
 **C) Ta bort bilder för modeller/varianter som inte finns eller är slutsålda.** Rå-importer buntar ibland flera modeller/storlekar under EN listning och släpar med leverantörens **spec-ark för varianter som inte säljs**. Regel: när du SEO-polerar och en variant/modell **inte finns eller är slut hos leverantören**, ta bort **både** valet (om det finns som option) **och dess bilder** — spec-ark, variantfoton och ev. `linkedMedia` — och skriv SEO/specar efter bara det som är kvar.
 
 > **Gäller även en RIKTIG (mappad) variant som bara är `inStock:false`** — inte bara phantom-/obundna modeller. Regeln är "slut hos leverantören → bort", så en variant som har en egen `supplierVariantId` men är slut tas ändå bort (den kan re-läggas om den kommer i lager igen). Verifierat på racingstället `40955353` (2026-07-08): "Typ A" var slut → togs bort.
@@ -1212,7 +1299,8 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
   ingen NY produkt kan få sitt lager valt utanför tullunionen. Leta inte efter den
   buggen. Kvar för dig är bara RIBBONEN, som fortfarande går på `isEuCountry` —
   den beskriver leveranstid, och där är GB faktiskt snabbt.
-- **Beskrivningen har INGET "Det du bör veta innan du köper"-block** (Steg 2). De fångade leverantörsfelen är i stället rättade direkt i löptexten och i spec-tabellen. Det som verkligen avgör ett köp — passar-det-mått, vad som ingår, hur den ska fästas — står som vanlig mening i det avsnitt där det hör hemma, inte som en varningslista.
+- **Beskrivningen har INGET "Det du bör veta innan du köper"-block** (Steg 2). De fångade leverantörsfelen är i stället rättade direkt i löptexten och i spec-tabellen. Det som verkligen avgör ett köp — passar-det-mått, vad som ingår, hur den ska fästas — står som vanlig mening i det avsnitt där det hör hemma, inte som en varningslista. Texten säger aldrig att vi inte vet, upprepar inte ett mått för att hänga en tveksamhet på det, och ber inte kunden mäta eller väga för att avgöra om varan duger.
+- Är ett villkor genuint avgörande för köpet (varan fungerar inte alls utan något kunden måste ha, eller en hård gräns som maxlast/åldersgräns) står det som ett **positivt villkor med egen rubrik** — *"Passar bilar med fabriksmonterad CarPlay"*, *"Från 14 år"*.
 - **Variantetiketterna innehåller ingen obekräftad prestandasiffra** (Steg 6F) — bärförmåga/effekt/kapacitet står i spec-tabellen och på kortet, med källan utskriven.
 - **Galleriets ordning:** bild 1 = renaste produktbilden, **bild 2 = verklighetsbild**, därefter egna kort och sist måttritning (Steg 3).
 - **Varje färg-/modellvals `linkedMedia` är en produktbild av den varianten**, inte ett Fyndplats-kort (Steg 6B).
