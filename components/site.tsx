@@ -110,7 +110,12 @@ export async function SiteFooter() {
         <div>
           <div className="fbrand"><Mark size={30} />Fyndplats</div>
           <p style={{ fontSize: 14, color: "#a39c93", maxWidth: "30ch" }}>Trygg svensk e-handel med ett brett sortiment till låga priser.</p>
-          <div className="grat"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">{proof.rating}</b> <span className="star">★★★★★</span> <span className="g-count">({proof.label})</span></div>
+          {/* Betyget går till omdömessidan där siffran kan granskas. En påstådd
+              4,9 som inte går att klicka på är ett påstående; en som går att
+              klicka på är ett belägg. Ärver sidfotens färg i stället för
+              länkblått — betygsraden ska läsa som en uppgift, inte som en
+              menypost bland de andra länkarna i footern. */}
+          <a className="grat" href="/omdomen"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">{proof.rating}</b> <span className="star">★★★★★</span> <span className="g-count">({proof.label})</span></a>
           {trustpilotBU && (
             <TrustBox
               businessUnitId={trustpilotBU}

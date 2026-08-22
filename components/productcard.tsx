@@ -5,6 +5,7 @@ import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import { Stars } from "./stars";
 import { reviewCountLabel } from "../lib/rating";
+import { formatPrice } from "../lib/price-range";
 
 export function ProductCard({ p }: { p: Product }) {
   // Hover-alt-image: använd andra bilden i galleriet (om finns) som "swap"-bild
@@ -54,11 +55,17 @@ export function ProductCard({ p }: { p: Product }) {
             samma ögonkast som priset, i stället för först efter ett klick in på
             produktsidan.
 
-            Raden renderas ALLTID, men står tom för produkter utan omdömen. Runt
-            hälften av katalogen saknar betyg, och utan reserverad höjd (min-height
-            i .prating, samma grepp som .pname redan använder) hade priset och
-            köpknappen hamnat på olika höjd i grannkorten. Tom rad = inget synligt
-            innehåll, bara utrymmet. */}
+            Raden renderas BARA när det finns ett betyg. Tidigare renderades den
+            alltid, tom, med reserverad höjd — för att priset och knappen annars
+            hamnade på olika höjd i grannkorten. Skälet var riktigt men priset
+            var ett synligt hål mitt i kortet på ungefär varannan produkt, för
+            runt hälften av katalogen saknar omdömen.
+
+            Nu sköts linjeringen i stället av .prow{margin-top:auto} i ett
+            flex-kort (se globals.css): pris och knapp sitter i kortets botten
+            oavsett vad som finns ovanför. Det linjerar BÄTTRE än reserverad
+            höjd gjorde — även när produktnamnen är olika långa — och utan
+            tomrum. */}
         {p.rating ? (
           // role="img" + aria-label gör raden till EN uppläsning. Utan den läste
           // skärmläsaren "4,5 av 5 stjärnor · 4,5 · (2)" — värdet två gånger och
@@ -73,23 +80,44 @@ export function ProductCard({ p }: { p: Product }) {
             <span className="prating-val" aria-hidden="true">{p.rating.value}</span>
             <span className="prating-count" aria-hidden="true">({p.rating.count})</span>
           </div>
-        ) : (
-          <div className="prating" aria-hidden="true" />
-        )}
+        ) : null}
         <div className="prow">
           <span className="pprice">
             {/* pprice-now håller "Från X" / priset ihop på en rad (nowrap) så det
                 aldrig bryts mitt itu; ett ev. överstruket gammalt pris radbryter
                 i stället under, och "Köp"-knappen förblir alltid synlig. */}
-            <span className="pprice-now">{p.hasRange ? `Från ${p.priceFrom}` : p.price}</span>
-            {p.onSale && p.originalPrice && <span className="pprice-old">{p.originalPrice}</span>}
+            {/* Priset skrivs från talet, inte från Wix färdiga sträng: "1 369 kr"
+                i stället för "1369,00kr". Öret är brus när ingen produkt har
+                något, och samma formatPrice() driver prisreglagets etiketter —
+                så filtret och kortet aldrig kan säga samma pris på två sätt.
+                Faller tillbaka på Wix-strängen om talet mot förmodan saknas. */}
+            <span className="pprice-now">
+              {p.hasRange
+                ? `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom}`
+                : p.priceNum
+                  ? formatPrice(p.priceNum)
+                  : p.price}
+            </span>
+            {p.onSale && (p.originalPriceNum || p.originalPrice) && (
+              <span className="pprice-old">
+                {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}
+              </span>
+            )}
           </span>
-          {/* Slutsålt kort får ALDRIG säga "Köp" — knappen är ett löfte, och på en
-              vara som är slut spricker det vid första klicket. "Bevaka" är exakt
-              vad produktsidan erbjuder (bevakningsformuläret), och dämpad grå så
-              den aldrig konkurrerar med de köpbara korten. */}
-          <span className="pbtn" style={{ background: p.inStock ? "#C2410C" : "#52606D" }}>
-            {p.inStock ? "Köp" : "Bevaka"}
+          {/* Etiketten säger vad knappen GÖR. Hela kortet är en länk till
+              produktsidan (se <a className="prod"> ovan) — "Köp" lovade därför
+              en handling som inte fanns: trycker man på den händer exakt samma
+              sak som överallt annars på kortet. Ett falskt löfte kostar mer än
+              det säljer.
+
+              Slutsålt får "Bevaka" i dämpad grå: det är precis vad produktsidan
+              erbjuder, och den ska aldrig konkurrera med de köpbara korten.
+
+              Färgen bor i CSS, inte i en inline-stil. Den gamla skrev över
+              .pbtn:s bakgrund vid varje rendering, så CSS-regeln var död kod
+              som ändå såg ut att gälla. */}
+          <span className={`pbtn ${p.inStock ? "" : "pbtn-oos"}`}>
+            {p.inStock ? "Visa produkt →" : "Bevaka"}
           </span>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { categorySignalIsUsable, keepCategory } from "./category-filter";
 import { imgKey } from "./image-alt";
+import { formatPrice } from "./price-range";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { products as wixProducts } from "@wix/stores";
 import { categories as wixCategories } from "@wix/categories";
@@ -31,6 +32,10 @@ export type Product = {
   currency: string;
   priceNum: number;
   priceFrom?: string;
+  /** Lägsta variantpriset som tal — se priceFromNum i mapProduct. */
+  priceFromNum?: number;
+  /** Ordinariepriset som tal, bara när produkten är nedsatt. */
+  originalPriceNum?: number;
   hasRange?: boolean;
   img: string;
   gallery: string[];
@@ -319,6 +324,13 @@ function mapProduct(p: any): Product {
     originalPrice: (p.price && p.price.discountedPrice != null && p.price.discountedPrice < p.price.price) ? (p.price.formatted?.price || "") : "",
     onSale: !!(p.price && p.price.discountedPrice != null && p.price.discountedPrice < p.price.price),
     priceFrom: hasRange && minV != null ? minV.toFixed(2).replace(".", ",") + "kr" : "",
+    // Råa tal vid sidan av Wix färdigformaterade strängar. Strängarna behålls
+    // orörda — feed-parsern i app/api/feed/products.xml läser dem — men det som
+    // VISAS formateras från talen med formatPrice(), så butiken skriver
+    // "1 369 kr" i stället för Wix "1369,00kr".
+    priceFromNum: hasRange && minV != null ? minV : undefined,
+    originalPriceNum:
+      p.price && p.price.discountedPrice != null && p.price.discountedPrice < p.price.price ? p.price.price : undefined,
     hasRange,
     img: (p.media && p.media.mainMedia && p.media.mainMedia.image && p.media.mainMedia.image.url) || gallery[0] || "",
     gallery: gallery.slice(0, 6),
@@ -740,7 +752,14 @@ export function cartRecommendations(products: Product[], collections: Collection
     slug: p.slug,
     name: p.name,
     img: p.img,
-    price: p.hasRange ? `Från ${p.priceFrom}` : p.price,
+    // RecoProduct är en ren visnings-DTO — strängen här renderas rakt av i
+    // cart-drawern. Den formateras därför som överallt annars ("1 929 kr"),
+    // annars hade varukorgen varit den enda ytan kvar med Wix "1 929,00kr".
+    price: p.hasRange
+      ? `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom}`
+      : p.priceNum
+        ? formatPrice(p.priceNum)
+        : p.price,
   }));
 }
 
