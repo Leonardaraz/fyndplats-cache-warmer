@@ -257,6 +257,13 @@ export function ensureReviewId(r: AERReview): string {
 export interface ReviewImportDeps {
   reviewStore?: ReviewStore;
   now?: Date;
+  /**
+   * Hemflytt av en kundbild till vår mediahantering. Injicerbar av samma skäl
+   * som `reviewStore`: uppladdningsslingan var helt otestad fram till
+   * 2026-08-22, och det är just DEN som tappade bilder tyst. Utan en väg att
+   * simulera ett Wix-fel går felgrenen inte att låsa.
+   */
+  importImage?: typeof ownImageUrlForReview;
 }
 
 export interface ReviewImportResult {
@@ -265,6 +272,13 @@ export interface ReviewImportResult {
   /** Antal som hoppades över för att de redan fanns. */
   skippedExisting: number;
   reviews: StoredReview[];
+  /**
+   * Kundbilder som inte gick att flytta hem till vår mediahantering. Raderna
+   * sparas då med LEVERANTÖRENS adress kvar (aldrig utan bild) och lagas av
+   * nästa repairImages-körning. Siffran bärs i API-svaret så att en strypt
+   * eller trasig Wix-media-väg syns i loggen i stället för att bli tyst.
+   */
+  bildmissar: number;
 }
 
 /**
@@ -284,10 +298,11 @@ export async function importReviewsForProduct(
 ): Promise<ReviewImportResult> {
   const now = deps.now ?? new Date();
   const reviewStore = deps.reviewStore ?? getReviewStore();
+  const importImage = deps.importImage ?? ownImageUrlForReview;
 
   const ranked = filterAndRankReviews(rawReviews ?? [], now);
   if (ranked.length === 0) {
-    return { imported: 0, skippedExisting: 0, reviews: [] };
+    return { imported: 0, skippedExisting: 0, reviews: [], bildmissar: 0 };
   }
 
   // ÖVERSÄTTNINGEN GÖRS I CHATTEN, INTE AV EN TJÄNST.
@@ -308,6 +323,9 @@ export async function importReviewsForProduct(
   const importedAt = now.toISOString();
   let imported = 0;
   let skippedExisting = 0;
+  // Bilder som inte gick att flytta hem. Bärs i svaret så en strypt eller
+  // trasig Wix-media-väg syns i workflow-loggen i stället för att bli tyst.
+  let bildmissar = 0;
   const reviews: StoredReview[] = [];
   for (let i = 0; i < ranked.length; i++) {
     const r = ranked[i];
@@ -320,22 +338,44 @@ export async function importReviewsForProduct(
     } catch (err) {
       console.warn("[review-import] exists-koll misslyckades, fortsätter:", err instanceof Error ? err.message : err);
     }
-    // Kundbilderna hämtas hem till vår egen mediahantering. Misslyckas en av
-    // dem hoppas just den över — hellre en recension med färre foton än en länk
-    // som pekar ut leverantören på produktsidan. Se lib/wix/media-import.ts.
+    // Kundbilderna hämtas hem till vår egen mediahantering. Se
+    // lib/wix/media-import.ts.
     //
     // ALLA bilder, inte bara den första: AE-recensenter postar ofta flera, och
     // importen slängde resten fram till 2026-08-19. Hämtas i tur och ordning —
     // parallellt hade gett fler samtidiga anrop mot Wix media per recension,
     // och backfillen kör redan många recensioner efter varandra.
+    //
+    // MISSLYCKAS UPPLADDNINGEN BEHÅLLS KÄLLADRESSEN (2026-08-22).
+    //
+    // Raden slängde tidigare bilden tyst: ingen logg, ingen räknare, och
+    // källadressen sparades ingenstans. Resultatet blev `hasImage:false` på en
+    // recension som HADE ett foto — ett fel som varken gick att upptäcka eller
+    // reparera i efterhand, eftersom `repairImages` bara letar efter rader som
+    // FORTFARANDE bär en leverantörs-URL.
+    //
+    // Nu behålls källadressen i stället. Den är inte vacker — den pekar ut
+    // leverantören — men raden är `pending` och når aldrig produktsidan i det
+    // skicket, och nästa repairImages-körning flyttar hem den. Samma val som
+    // systerfunktionen withOwnImage i lib/store/reviews.ts redan gör.
     const kallbilder = reviewImages({ imageUrl: r.imageUrl, imageUrls: r.imageUrls })
       .slice(0, MAX_REVIEW_IMAGES);
     const egnaBilder: string[] = [];
+    let missarHar = 0;
     for (const [n, kalla] of kallbilder.entries()) {
       // Suffixet gör filnamnen unika per bild — utan det hade bild 2 och 3
       // skrivit över den första i mediabiblioteket.
-      const egen = await ownImageUrlForReview(kalla, n === 0 ? reviewIdAE : `${reviewIdAE}-${n + 1}`);
-      if (egen) egnaBilder.push(egen);
+      const egen = await importImage(kalla, n === 0 ? reviewIdAE : `${reviewIdAE}-${n + 1}`);
+      egnaBilder.push(egen ?? kalla);
+      if (!egen) missarHar++;
+    }
+    if (missarHar > 0) {
+      bildmissar += missarHar;
+      console.warn(
+        `[review-import] kunde inte flytta hem ${missarHar} av ${kallbilder.length} ` +
+          `kundbilder för ${reviewIdAE} (produkt ${productId}) — källadressen behålls, ` +
+          "kör repairImages när Wix svarar igen.",
+      );
     }
     const bildfalt = reviewImageFields(egnaBilder);
     const stored: StoredReview = {
@@ -370,5 +410,5 @@ export async function importReviewsForProduct(
     }
   }
 
-  return { imported, skippedExisting, reviews };
+  return { imported, skippedExisting, reviews, bildmissar };
 }

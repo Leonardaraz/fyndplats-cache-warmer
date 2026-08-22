@@ -1,13 +1,21 @@
-// Katalogkoll: två tysta fel som båda gör en färdig sida osynlig för kunden.
+// Katalogkoll: tysta fel som gör en färdig sida sämre — eller osynlig — för kunden.
 //
-//   1. SYNLIGHET  – färdiga sidor som ligger dolda (visible:false).
-//   2. KATEGORI   – synliga sidor utan riktig kategori, eller med ett löv men
-//                   utan sin förälder (då syns de inte när kunden browsar).
+//   1. SYNLIGHET   – färdiga sidor som ligger dolda (visible:false).
+//   2. KATEGORI    – synliga sidor utan riktig kategori, eller med ett löv men
+//                    utan sin förälder (då syns de inte när kunden browsar).
+//   3. RECENSIONER – publicerade sidor utan en enda synlig recension, samt
+//                    synliga recensioner vars bild ligger kvar hos leverantören.
 //
 // Kör (dry-run, listar bara):
 //   node --env-file=.env.local scripts/katalogkoll.mjs
-// Kör skarpt (rättar båda):
+// Kör skarpt (rättar alla tre):
 //   node --env-file=.env.local scripts/katalogkoll.mjs --apply
+//
+// Recensionskollens --apply köar recensioner via vårt eget API och behöver
+// därför två variabler utöver Wix-nycklarna: SELF_BASE_URL (t.ex.
+// https://fyndplats-cache-warmer.vercel.app) och EXTENSION_API_TOKEN. Saknas de
+// listas sidorna ändå — bara köandet hoppas över. Leverantörsbilder rättas
+// ALDRIG härifrån; de rapporteras och lagas av repairImages-workflowen.
 //
 // Varför skriptet finns
 // ---------------------
@@ -107,8 +115,13 @@ async function hamtaTrad() {
   return data.categories ?? [];
 }
 
-/** Alla synliga produkter med sina direktkopplade kategorier. */
+/** Alla synliga produkter med sina direktkopplade kategorier.
+ *  Memoiserad: både kategori- och recensionskollen behöver listan, och
+ *  katalogen är ~9 sidladdningar. Publiceringen i kollaSynlighet sker FÖRE
+ *  båda, så cachen kan aldrig missa en sida som just blivit synlig. */
+let synligaCache = null;
 async function hamtaSynliga() {
+  if (synligaCache) return synligaCache;
   const alla = [];
   let cursor;
   for (let sida = 0; sida < 15; sida++) {
@@ -121,6 +134,7 @@ async function hamtaSynliga() {
     cursor = data.pagingMetadata?.cursors?.next;
     if (!cursor) break;
   }
+  synligaCache = alla;
   return alla;
 }
 
@@ -215,11 +229,128 @@ async function kollaSynlighet() {
   console.log(`Dolda produkter efter körningen: ${count} (förväntat: ${utkast.length} råutkast).`);
 }
 
+// --- Recensioner ------------------------------------------------------------
+//
+// Runbookens Steg 5b: hämta recensioner efter publicering. Steget SAKNADES i
+// runbooken fram till 2026-08-22, och följden var mätbar — fem produkter i rad
+// polerades klart utan att någon hämtade recensioner till dem.
+//
+// En checklistrad räcker inte som spärr; det var precis en sådan som missades
+// fem gånger. Den här kontrollen läser Wix och ser efter i stället för att lita
+// på minnet, samma skäl som synlighets- och kategorikollen ovan finns.
+//
+// TVÅ UTFALL, OLIKA ÅTGÄRD:
+//   saknar recensioner        → --apply köar dem (samma väg som runbooken)
+//   leverantörsbild på SYNLIG rad → rapporteras bara; lagas av repairImages-
+//                               körningen i .github/workflows/review-translate.yml.
+//                               Skriptet duplicerar inte den logiken.
+
+const REVIEWS_COLLECTION = process.env.WIX_DATA_COL_REVIEWS ?? "FyndplatsImportedReviews";
+const EXTERNA_BILDVARDAR = ["aliexpress-media.com", "alicdn.com"];
+
+/** Speglar isExternalSupplierImage i lib/wix/media-import.ts. */
+function arLeverantorsbild(url) {
+  return typeof url === "string" && EXTERNA_BILDVARDAR.some((v) => url.includes(v));
+}
+
+/** Alla bild-URL:er på en rad — imageUrl OCH imageUrls (jfr lib/reviews/images.ts). */
+function bilderna(rad) {
+  const lista = Array.isArray(rad.imageUrls) ? rad.imageUrls : [];
+  return [...new Set([rad.imageUrl, ...lista].filter(Boolean))];
+}
+
+async function hamtaRecensioner() {
+  const rader = [];
+  let cursor;
+  for (let sida = 0; sida < 40; sida++) {
+    const paging = cursor ? { limit: 500, cursor } : { limit: 500 };
+    const svar = await post("/wix-data/v2/items/query", {
+      dataCollectionId: REVIEWS_COLLECTION,
+      query: { fields: ["productId", "status", "imageUrl", "imageUrls"], cursorPaging: paging },
+    });
+    for (const it of svar.dataItems ?? []) rader.push(it.data ?? {});
+    cursor = svar.pagingMetadata?.cursors?.next;
+    if (!cursor) break;
+  }
+  return rader;
+}
+
+async function kollaRecensioner() {
+  const [synliga, recensioner] = await Promise.all([hamtaSynliga(), hamtaRecensioner()]);
+  const fardiga = synliga.filter(arFardig);
+
+  // Bara publicerade rader räknas som "har recensioner" — pending når inte kund.
+  const medSynlig = new Set(
+    recensioner.filter((r) => r.status === "approved" || r.status === "edited").map((r) => r.productId),
+  );
+  const utan = fardiga.filter((p) => !medSynlig.has(p.id));
+
+  const leverantorsbilder = recensioner.filter(
+    (r) => (r.status === "approved" || r.status === "edited") && bilderna(r).some(arLeverantorsbild),
+  );
+
+  console.log(`\nFärdiga, publicerade sidor: ${fardiga.length}`);
+  console.log(`  – utan en enda synlig recension: ${utan.length}`);
+  for (const p of utan.slice(0, 40)) console.log(`      ${p.id}  ${p.name}`);
+  if (utan.length > 40) console.log(`      … och ${utan.length - 40} till`);
+
+  // Rapporteras alltid, lagas aldrig här.
+  if (leverantorsbilder.length) {
+    console.log(
+      `\n  ⚠️  ${leverantorsbilder.length} SYNLIG(A) recension(er) pekar på leverantörens bilddomän.`,
+    );
+    console.log("      Kör repairImages-workflowen — det här skriptet rör dem inte.");
+  } else {
+    console.log("  – synliga recensioner med leverantörsbild: 0");
+  }
+
+  if (!utan.length) return;
+  if (!APPLY) {
+    console.log(`\nDry-run. --apply köar recensioner för ${utan.length} sida(or).`);
+    return;
+  }
+
+  const bas = process.env.SELF_BASE_URL;
+  const nyckel = process.env.EXTENSION_API_TOKEN;
+  if (!bas || !nyckel) {
+    console.log("\nHoppar över köandet: SELF_BASE_URL och EXTENSION_API_TOKEN måste vara satta.");
+    return;
+  }
+
+  let kade = 0;
+  let tomma = 0;
+  for (const p of utan) {
+    try {
+      const res = await fetch(`${bas.replace(/\/$/, "")}/api/reviews/import`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-fyndplats-token": nyckel },
+        body: JSON.stringify({ wixProductId: p.id }),
+      });
+      const kropp = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.log(`  MISSLYCKADES: ${p.name} (${res.status})`);
+        continue;
+      }
+      if ((kropp.imported ?? 0) > 0) kade++;
+      else tomma++;
+      if (kropp.bildmissar > 0) {
+        console.log(`  ${p.name}: ${kropp.bildmissar} bild(er) kunde inte flyttas hem`);
+      }
+    } catch (err) {
+      console.log(`  MISSLYCKADES: ${p.name} — ${err.message ?? err}`);
+    }
+  }
+  console.log(`\nKöade recensioner för ${kade} sida(or); ${tomma} hade inga hos leverantören.`);
+  console.log("Raderna ligger som `pending` och blir synliga först när de skrivits om i /admin/reviews.");
+}
+
 async function main() {
   await kollaSynlighet();
   // Kategorikollen läser bara SYNLIGA produkter, så den körs efter
   // publiceringen — annars missar den sidor som just blivit synliga.
   await kollaKategorier();
+  // Samma skäl: recensionskollen tittar på publicerade sidor.
+  await kollaRecensioner();
 }
 
 main().catch((err) => {

@@ -1000,6 +1000,39 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 -----
 
+## Steg 5b – Hämta recensioner för produkten (1 anrop, mutation)
+
+Kör **direkt efter publiceringen**. Steget saknades i runbooken fram till
+2026-08-22, och följden var mätbar: fem produkter i rad polerades klart utan att
+någon hämtade recensioner till dem.
+
+```
+POST https://fyndplats-cache-warmer.vercel.app/api/reviews/import
+{ "wixProductId": "{PRODUCT_ID}" }
+```
+
+Utelämnas `reviews` hämtar rutten själv från leverantören. Anropet är **gratis** —
+det är ett öppet JSON-anrop, ingen översättningstjänst rörs.
+
+> **Produkten är INTE klar när svaret säger `imported: 12`.**
+> Raderna sparas som `status: "pending"` med källtexten i både `textOriginal` och
+> `textSwedish`, och är **osynliga för kund** tills någon skrivit om dem på
+> svenska i `/admin/reviews`. Det är avsiktligt: alternativet vore engelska
+> omdömen på en svensk produktsida. Säg till Leonard att det ligger nya rader i
+> kön — översättningen görs i chatten, i omgångar.
+
+> Svaret bär även **`bildmissar`**. Är den > 0 kunde vi inte flytta hem alla
+> kundbilder till vår mediahantering just då (Wix strypt eller nere). Raderna
+> sparas ändå, med leverantörens adress kvar, och lagas av en `repairImages`-
+> körning senare — se `.github/workflows/review-translate.yml`. Ingen åtgärd
+> behövs i stunden, men siffran ska inte ignoreras om den är återkommande.
+
+> Har leverantören inga recensioner alls svarar rutten `imported: 0`. Det är ett
+> giltigt utfall — cirka 40 % av katalogen saknar dem, mest nya listningar.
+> Notera det och gå vidare; hämtningen görs om automatiskt efter 30 dagar.
+
+-----
+
 ## Steg 6 – Varianter (kontrollera, fixa bara vid behov)
 
 > **Borttagning av döda/slutsålda varianter görs redan i Steg 1c** (före copy). Här återstår att koppla variantbilder (`linkedMedia`, 6B) och slutverifiera. 6C nedan är den fullständiga mekaniken som Steg 1c hänvisar till.
@@ -1135,6 +1168,11 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
   `isEuCountry` (den mäter *snabb leverans*, inte tullunion) — mot en svensk kund är de
   inte EU-leverans, så en produkt vars enda "EU"-lager är brittiskt eller ryskt ska inte
   bära ribbonen.
+  **INKÖPSSIDAN är löst i kod sedan 2026-08-21** (PR #486): importens lagerval,
+  mappnings-reparationen och lager-failovern använder numera `isEuCustomsUnion`, så
+  ingen NY produkt kan få sitt lager valt utanför tullunionen. Leta inte efter den
+  buggen. Kvar för dig är bara RIBBONEN, som fortfarande går på `isEuCountry` —
+  den beskriver leveranstid, och där är GB faktiskt snabbt.
 - Beskrivningen har **"Det du bör veta innan du köper"** med de fångade leverantörsfelen, och specifikationstabellen upprepar inte felen.
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
 - Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
@@ -1150,6 +1188,11 @@ Gå igenom listan **innan** Steg 5. Faller något: fixa först, publicera sedan.
 - Kategori kopplad som **förälder + löv** (Steg 4A) — inte bara lövet, inte bara toppen.
 - Variantsaneringen (**Steg 1c**) och variantbildkopplingen (**Steg 6B**) är gjorda; varje choice som ser olika ut har ett **unikt** `linkedMedia`-id.
 - **`visible:true` på produkten OCH på varje `variantsInfo.variants[].visible`** — annars syns produkten men går inte att lägga i varukorgen (se dödskalle-noten i Steg 6).
+
+**Recensioner**
+- **Recensioner hämtade för produkten (Steg 5b)** — eller bekräftat att leverantören inte har några (`imported: 0`).
+- Svarets `bildmissar` var **0**. Var den högre: notera det, raderna lagas av nästa `repairImages`-körning.
+- Inga recensionsbilder pekar på leverantörens domän. Körs automatiskt av `scripts/katalogkoll.mjs` — du behöver inte kontrollera det per produkt.
 
 *(Engångs-bekräftat: frontend renderar `<title>`/`<h1>`/meta från fälten och skickar egen `Product`-JSON-LD. Du behöver inte kontrollera detta per produkt.)*
 
