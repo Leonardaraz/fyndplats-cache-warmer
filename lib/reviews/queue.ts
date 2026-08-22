@@ -177,9 +177,26 @@ export interface QueuedReview {
  */
 export function isAwaitingTranslation(r: StoredReview): boolean {
   if (r.status !== "pending") return false;
+  // BUTIKENS EGNA KUNDER SKRIVER REDAN PÅ SVENSKA (2026-08-22).
+  //
+  // Ett kundomdöme sparas med textSwedish === textOriginal — inte för att det
+  // väntar på översättning, utan för att det ALDRIG ska översättas. Utan det
+  // här undantaget returnerade funktionen därför alltid true för dem, och
+  // följderna syntes i tre led: raden hamnade i översättningskön, admin-vyn
+  // satte badgen "⚠️ Oöversatt", och godkänn-knappen döptes om till
+  // "Godkänn ändå" — allt för en välskriven svensk mening från en riktig kund.
+  //
+  // `source` sätts av headless-site:lib/customer-review.ts. Saknas fältet är
+  // raden en importerad AE-recension, och då gäller regeln nedan som förut.
+  if (isCustomerReview(r)) return false;
   const sv = String(r.textSwedish ?? "").trim();
   if (!sv) return true;
   return sv === String(r.textOriginal ?? "").trim();
+}
+
+/** True för omdömen skrivna av butikens egna kunder (verifierat köp). */
+export function isCustomerReview(r: Pick<StoredReview, "source">): boolean {
+  return String(r.source ?? "") === "customer";
 }
 
 /**

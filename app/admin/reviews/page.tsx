@@ -15,7 +15,7 @@
 import { getReviewStore, type ReviewStatus, type StoredReview } from "@/lib/store/reviews";
 import { getStore } from "@/lib/store/factory";
 import { reviewDisplayMode } from "@/lib/import/review-display";
-import { isAwaitingTranslation } from "@/lib/reviews/queue";
+import { isAwaitingTranslation, isCustomerReview } from "@/lib/reviews/queue";
 import { buildTranslatePrompt, groupForTranslation, TRANSLATE_BATCH } from "@/lib/reviews/translate";
 import { TranslateButton } from "./translate-button";
 import {
@@ -161,13 +161,22 @@ export default async function ReviewsAdminPage({
 
   // Filtret på status: default "väntar", eftersom det är det enda som kräver
   // handpåläggning. Utan filter drunknar de nya raderna bland ~1900 godkända.
-  const valdStatus = ((): ReviewStatus | "alla" => {
+  // "kund" är inte en status utan ett URSPRUNG — egen gren nedan. Butikens egna
+  // kunder är förstahandsdata och de enda rader som får räknas mot Google, så de
+  // ska gå att plocka fram oavsett var i modereringen de befinner sig.
+  const valdStatus = ((): ReviewStatus | "alla" | "kund" => {
     const v = typeof sp.status === "string" ? sp.status : "pending";
-    return v === "alla" || v === "pending" || v === "approved" || v === "edited" || v === "rejected"
-      ? (v as ReviewStatus | "alla")
+    return v === "alla" || v === "kund" || v === "pending" || v === "approved" || v === "edited" || v === "rejected"
+      ? (v as ReviewStatus | "alla" | "kund")
       : "pending";
   })();
-  const filtrerade = valdStatus === "alla" ? reviews : reviews.filter((r) => r.status === valdStatus);
+  const egnaKunder = reviews.filter(isCustomerReview).length;
+  const filtrerade =
+    valdStatus === "alla"
+      ? reviews
+      : valdStatus === "kund"
+        ? reviews.filter(isCustomerReview)
+        : reviews.filter((r) => r.status === valdStatus);
   const visade = filtrerade.slice(0, MAX_RENDER);
 
   // Översättningskön: en OMGÅNG i taget, grupperad per produkt så chatten vet
@@ -326,6 +335,7 @@ export default async function ReviewsAdminPage({
             ["edited", `Redigerade (${counts.edited ?? 0})`],
             ["approved", `Godkända (${counts.approved ?? 0})`],
             ["rejected", `Avvisade (${counts.rejected ?? 0})`],
+            ["kund", `✓ Egna kunder (${egnaKunder})`],
             ["alla", `Alla (${reviews.length})`],
           ] as const
         ).map(([v, label]) => (
@@ -386,7 +396,26 @@ export default async function ReviewsAdminPage({
                 ) : null}
               </td>
               <td style={{ padding: "10px 4px", maxWidth: 200 }}>
-                <div>{nameById.get(r.productId) ?? <code>{r.productId}</code>}</div>
+                <div>
+                  {nameById.get(r.productId) ?? <code>{r.productId}</code>}
+                  {/* FÖRSTAHANDSDATA. Enda spåret av att raden kom från en av
+                      butikens egna kunder var tidigare prefixet "kund-" inne i
+                      dokument-id:t — man fick läsa id-strängen. De här raderna
+                      är dessutom de enda som någonsin får räknas in i
+                      aggregateRating mot Google, så de är värda mest. */}
+                  {isCustomerReview(r) ? (
+                    <span
+                      title="Skriven av en kund som handlat hos oss — verifierat köp"
+                      style={{
+                        marginLeft: 6, fontSize: 11, fontWeight: 700,
+                        color: "#166534", background: "#dcfce7",
+                        borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap",
+                      }}
+                    >
+                      ✓ Egen kund
+                    </span>
+                  ) : null}
+                </div>
                 <div style={{ color: "#9ca3af", fontSize: 11 }}>
                   Wix Data: <code>FyndplatsImportedReviews/{r.productId}__{r.reviewIdAE}</code>
                 </div>
