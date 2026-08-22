@@ -727,6 +727,79 @@ export function sortByNewest(products: Product[]): Product[] {
   return [...products].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(b.id ?? "")));
 }
 
+// Slim produktform för LISTSIDORNA. Samma princip som RecoProduct nedan, men
+// för /alla-produkter och /kategori — där den kostar betydligt mer.
+//
+// MÄTT PÅ SKARP SAJT 2026-08-22: /alla-produkter vägde 2 704 kB, varav 85 %
+// var RSC-nyttolast. Hela Product-objektet för 787 produkter serialiserades
+// till webbläsaren, och 1 005 kB av det — 46 % — var fält klienten aldrig
+// läser: imageAlts 546 kB, gallery 364 kB, variants 74 kB.
+//
+// Fälten här är kartlagda ur de tre ställen som faktiskt kör i klienten:
+// components/productcard.tsx, components/shopbrowser.tsx, och sorteringen i
+// lib/sort-products.ts (orderRecommended/orderPopular läser collectionIds,
+// createdAt, id, onSale, popularity, rating) plus universalCollectionIds i
+// lib/related-pick.ts.
+//
+// Product är strukturellt tilldelningsbar till den här typen, så komponenter
+// som tar emot ListProduct fungerar oförändrat för de anropare som skickar
+// hela Product (produktsidans relaterade produkter, price-tier-page,
+// for-dig-som). Bara listsidorna mappar ner.
+export type ListProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  img: string;
+  /** Hover-bilden, förberäknad. Kortet plockade tidigare ut ETT element ur
+   *  hela gallery[] — att skicka listan kostade 364 kB för de 787 produkterna. */
+  altImg?: string;
+  /** Behålls valfri så anropare som skickar hela Product fungerar oförändrat. */
+  gallery?: string[];
+  price: string;
+  priceNum: number;
+  priceFrom?: string;
+  priceFromNum?: number;
+  originalPrice?: string;
+  originalPriceNum?: number;
+  hasRange?: boolean;
+  onSale?: boolean;
+  inStock: boolean;
+  stockQuantity?: number;
+  ribbon?: string;
+  colors?: string[];
+  rating?: { stars: number; exact: number; value: string; count: number };
+  collectionIds?: string[];
+  createdAt?: number;
+  popularity?: number;
+};
+
+/** Product → ListProduct. Enda stället som vet vad listsidorna skickar vidare. */
+export function forClient(products: Product[]): ListProduct[] {
+  return products.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    img: p.img,
+    altImg: p.gallery?.find((g) => g !== p.img),
+    price: p.price,
+    priceNum: p.priceNum,
+    priceFrom: p.priceFrom,
+    priceFromNum: p.priceFromNum,
+    originalPrice: p.originalPrice,
+    originalPriceNum: p.originalPriceNum,
+    hasRange: p.hasRange,
+    onSale: p.onSale,
+    inStock: p.inStock,
+    stockQuantity: p.stockQuantity,
+    ribbon: p.ribbon,
+    colors: p.colors,
+    rating: p.rating,
+    collectionIds: p.collectionIds,
+    createdAt: p.createdAt,
+    popularity: p.popularity,
+  }));
+}
+
 // Slim produktform för cart-drawerns "Andra köpte också"-block — bara de fält
 // klienten behöver, så vi inte serialiserar hela Product[] in i klient-payloaden.
 export type RecoProduct = { id: string; slug: string; name: string; img: string; price: string };

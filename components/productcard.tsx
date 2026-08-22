@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { Product } from "../lib/products";
+import type { ListProduct } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
@@ -7,9 +7,11 @@ import { Stars } from "./stars";
 import { reviewCountLabel } from "../lib/rating";
 import { formatPrice } from "../lib/price-range";
 
-export function ProductCard({ p }: { p: Product }) {
-  // Hover-alt-image: använd andra bilden i galleriet (om finns) som "swap"-bild
-  const altImg = p.gallery.find((g) => g !== p.img);
+export function ProductCard({ p }: { p: ListProduct }) {
+  // Hover-alt-image. Listsidorna skickar den förberäknad (altImg) — att skicka
+  // hela gallery[] för 787 produkter kostade 364 kB i klient-payloaden. Övriga
+  // ytor skickar fortfarande hela Product, och då plockas den ut här som förut.
+  const altImg = p.altImg ?? p.gallery?.find((g) => g !== p.img);
   const lowStock = p.inStock && typeof p.stockQuantity === "number" && p.stockQuantity > 0 && p.stockQuantity <= 5;
   return (
     <a className="prod" href={`/produkt/${p.slug}`}>

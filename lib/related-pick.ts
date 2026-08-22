@@ -14,7 +14,9 @@ import type { Product } from "./products";
 // (mätt: produkter i små kategorier fick ett irrelevant 4:e förslag). Vi hittar
 // universella kategorier DYNAMISKT (täcker ≥90 % av katalogen) och räknar dem inte
 // som "samma kategori". Robust: finns ingen sådan kategori exkluderas inget.
-export function universalCollectionIds(all: Product[]): Set<string> {
+/** Läser bara collectionIds, så signaturen kräver inte mer än så — listsidorna
+ *  skickar en smalare ListProduct (se lib/products.ts) och ska kunna anropa den. */
+export function universalCollectionIds(all: { collectionIds?: string[] }[]): Set<string> {
   const uni = new Set<string>();
   if (all.length < 20) return uni;
   const count = new Map<string, number>();

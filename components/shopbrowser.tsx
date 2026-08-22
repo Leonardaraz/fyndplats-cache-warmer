@@ -14,7 +14,7 @@ import {
   upperLimit,
   type PriceBounds,
 } from "../lib/price-range";
-import type { Product } from "../lib/products";
+import type { ListProduct } from "../lib/products";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
 // (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
@@ -62,7 +62,7 @@ const SORT_VALUES = new Set(SORTS.map((s) => s.v));
 /** Underkategori till den kategori sidan visar — chips i filterpanelen. */
 export type SubCategory = { name: string; slug: string; count: number };
 
-export function ShopBrowser({ products, defaultSort = "img", subs = [] }: { products: Product[]; defaultSort?: string; subs?: SubCategory[] }) {
+export function ShopBrowser({ products, defaultSort = "img", subs = [] }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[] }) {
   // useSearchParams() kräver en Suspense-gräns för att statiska sidor
   // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
   // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
@@ -74,7 +74,7 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [] }: { prod
   );
 }
 
-function ShopBrowserInner({ products, defaultSort, subs }: { products: Product[]; defaultSort: string; subs: SubCategory[] }) {
+function ShopBrowserInner({ products, defaultSort, subs }: { products: ListProduct[]; defaultSort: string; subs: SubCategory[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
