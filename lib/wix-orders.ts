@@ -10,6 +10,7 @@
 // Fältvägarna bor i lib/wix-order-fields.ts — se kommentaren där om varför de
 // inte får gissas.
 
+import { resolveOrderId } from "./wix-order-lookup";
 import {
   orderCountry,
   orderCreatedDate,
@@ -52,9 +53,19 @@ export async function fetchWixOrderInfo(orderId: string): Promise<WixOrderInfo> 
     return tomt();
   }
   if (!orderId) return tomt();
+  // Sidan tar emot `?orderNumber` som reserv (app/tack/page.tsx) och Wix
+  // endpoint slår bara upp på GUID. Utan uppslaget hade den grenen gett tomma
+  // fält — och då renderar Googles recensionsenkät TYST inte alls, eftersom
+  // den kräver e-post och leveransland ur ordern. Samma fel som fällde
+  // omdömeslänken (PR #497), här latent i stället för synligt.
+  const id = await resolveOrderId(orderId);
+  if (!id) {
+    console.warn(`[tack] fetchWixOrderInfo(${orderId}): varken GUID eller känt ordernummer`);
+    return tomt();
+  }
   try {
     const res = await fetch(
-      `https://www.wixapis.com/ecom/v1/orders/${encodeURIComponent(orderId)}`,
+      `https://www.wixapis.com/ecom/v1/orders/${encodeURIComponent(id)}`,
       {
         method: "GET",
         headers: {

@@ -11,12 +11,23 @@
 // `source: "customer"`. Det visas alltså INTE förrän det godkänts i
 // /admin/reviews — produktsidan renderar bara approved/edited.
 //
-// BILDER (valfria, högst MAX_IMAGES): skickas som `images: [{data, type}]`.
-// Den gamla enkelbild-formen (`image` + `imageType`) accepteras fortfarande. Den bearbetas
-// (nedskalning, EXIF bort, XMP kvar — se lib/review-image-process.ts) och
-// laddas upp till Wix Media. Misslyckas något av det sparas omdömet ÄNDÅ utan
-// bild: texten och betyget är huvudsaken, och en trasig uppladdning får inte
-// kosta kunden hela omdömet efter att hen skrivit det.
+// BILDER (valfria, högst MAX_IMAGES). Klienten laddar upp dem först, en i
+// taget mot `/api/omdome/bild`, och skickar sedan hit ADRESSERNA som
+// `imageUrls: string[]`. Skälet står i den ruttens filhuvud: allt i en kropp
+// sprängde plattformens 4,5 MB-tak så fort kunden bifogade mer än ett foto.
+//
+// Adresserna kontrolleras med isOwnReviewImageUrl — bara bilder i vår egen Wix
+// Media accepteras. Utan den kontrollen hade en giltig token kunnat peka ett
+// omdöme mot vilken bild som helst på internet och få den renderad på
+// produktsidan som ett kundfoto.
+//
+// DE GAMLA FORMERNA LEVER KVAR: `images: [{data, type}]` och enkelbilden
+// (`image` + `imageType`), båda base64. En cachad sida ska inte sluta fungera
+// för att formuläret bytt väg, och för EN liten bild ryms de fortfarande.
+// Bearbetningen (nedskalning, EXIF bort, XMP kvar) är densamma. Misslyckas
+// något av det sparas omdömet ÄNDÅ utan bild: texten och betyget är
+// huvudsaken, och en trasig uppladdning får inte kosta kunden hela omdömet
+// efter att hen skrivit det.
 //
 // Moderationen är samma som för texten — raden är `pending` tills den godkänts
 // i /admin/reviews, så ingen bild kan nå produktsidan utan att ha setts.
@@ -25,7 +36,7 @@ import { NextResponse } from "next/server";
 import { verifyReviewToken } from "@/lib/review-token";
 import { validateCustomerReview, buildCustomerReviewRow, FELTEXT } from "@/lib/customer-review";
 import { IMAGE_FELTEXT, MAX_IMAGES, validateUpload } from "@/lib/review-image";
-import { reviewImageFields } from "@/lib/review-images";
+import { isOwnReviewImageUrl, reviewImageFields } from "@/lib/review-images";
 import { processReviewImage } from "@/lib/review-image-process";
 import { uploadReviewImage } from "@/lib/review-image-upload";
 import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
@@ -101,6 +112,17 @@ export async function POST(req: Request) {
     review: validerad.value,
   });
 
+  // Färdiga adresser från /api/omdome/bild — den normala vägen sedan bilderna
+  // laddas upp var för sig. Allt som inte är en bild i vår egen Wix Media
+  // faller bort tyst: en manipulerad adress ska inte kunna fälla ett omdöme
+  // som kunden faktiskt skrivit, den ska bara inte visas.
+  const franUppladdning = Array.isArray(body.imageUrls)
+    ? body.imageUrls.filter(isOwnReviewImageUrl).map(String)
+    : [];
+  if (franUppladdning.length > MAX_IMAGES) {
+    return NextResponse.json({ error: IMAGE_FELTEXT.for_manga }, { status: 400 });
+  }
+
   // Valfria kundbilder, upp till MAX_IMAGES. Grindas FÖRE avkodning (antal,
   // storlek, typ) så en stor eller felaktig fil aldrig når bildbehandlingen.
   const inskickade = Array.isArray(body.images)
@@ -115,7 +137,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: IMAGE_FELTEXT.for_manga }, { status: 400 });
   }
 
-  const uppladdade: string[] = [];
+  // Redan uppladdade adresser först, sedan ev. base64 från en äldre klient.
+  // reviewImageFields dedupar och kapar vid taket, så de två vägarna kan
+  // samsas utan att någon räknar fel.
+  const uppladdade: string[] = [...franUppladdning];
   for (const [n, post] of inskickade.entries()) {
     const p = post as { data?: unknown; type?: unknown };
     const base64 = typeof p.data === "string" ? p.data : "";
@@ -130,7 +155,9 @@ export async function POST(req: Request) {
       // Sekventiellt, inte parallellt: tre samtidiga uppladdningar mot Wix
       // media per omdöme ger ingen märkbar tidsvinst för kunden och tre gånger
       // så många samtidiga anrop när flera skriver samtidigt.
-      const url = await uploadReviewImage(bearbetad, productId, rad.reviewIdAE, n);
+      // Index förskjuts förbi de redan uppladdade så filnamnen i
+      // mediabiblioteket inte krockar om båda vägarna används samtidigt.
+      const url = await uploadReviewImage(bearbetad, productId, rad.reviewIdAE, franUppladdning.length + n);
       if (url) uppladdade.push(url);
     } catch (err) {
       // sharp kastar på det som inte är en bild trots rätt MIME-typ. Här är det
@@ -140,7 +167,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: IMAGE_FELTEXT.inte_en_bild }, { status: 400 });
     }
   }
-  Object.assign(rad, reviewImageFields(uppladdade));
+  // Antalet som FAKTISKT sparas, efter dedup och tak. Skickas tillbaka så
+  // klienten kan säga till om någon bild inte kom med — annars är den enda
+  // signalen att kunden själv upptäcker det på produktsidan veckor senare.
+  // Fångar båda vägarna en bild kan tappas: en uppladdning som föll, och en
+  // adress som inte klarade isOwnReviewImageUrl.
+  const bildfalt = reviewImageFields(uppladdade);
+  Object.assign(rad, bildfalt);
 
   try {
     // /items/save är upsert. PUT /items/{id} vore FEL här: den uppdaterar bara
@@ -166,5 +199,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Kunde inte spara omdömet just nu." }, { status: 503 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, bilder: bildfalt.imageUrls?.length ?? 0 });
 }

@@ -36,6 +36,11 @@ export async function processReviewImage(input: Buffer): Promise<Buffer> {
   return sharp(input)
     .rotate()
     .resize({ width: MAX_WIDTH, withoutEnlargement: true })
+    // Genomskinlighet blir SVART i JPEG om inget läggs under. En PNG med
+    // alfakanal — en skärmdump, en urklippt bild — kom alltså ut med svarta
+    // partier. Vitt matchar produktsidans bakgrund; på en bild utan alfakanal
+    // gör raden ingenting alls.
+    .flatten({ background: "#ffffff" })
     .jpeg({ quality: 82 })
     .keepXmp()
     .toBuffer();

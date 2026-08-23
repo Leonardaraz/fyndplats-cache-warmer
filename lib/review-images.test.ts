@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_REVIEW_IMAGES, repairWixMediaUrl, reviewImageFields, reviewImages } from "./review-images.ts";
+import { MAX_REVIEW_IMAGES, isOwnReviewImageUrl, repairWixMediaUrl, reviewImageFields, reviewImages } from "./review-images.ts";
 
 // Datamodellen ar tvadelad med flit: imageUrl (forsta bilden, finns pa alla
 // 1932 aldre rader) plus imageUrls (hela listan, pa nya rader). Testerna nedan
@@ -156,5 +156,44 @@ describe("repairWixMediaUrl", () => {
     // reparation hade kunden fatt samma bild tva ganger.
     const ut = reviewImages({ imageUrl: BAS + TRASIG, imageUrls: [BAS + "b379ce_" + TRASIG] });
     assert.deepEqual(ut, [BAS + "b379ce_" + TRASIG]);
+  });
+});
+
+// Sedan bilderna laddas upp i egna anrop skickar klienten ADRESSERNA till
+// sparningen i stallet for bytena. Utan den har kontrollen hade en giltig
+// token kunnat peka ett omdome mot vilken bild som helst pa internet och fa
+// den renderad pa produktsidan som ett kundfoto.
+describe("isOwnReviewImageUrl", () => {
+  const VAR = "https://static.wixstatic.com/media/b379ce_148e964cebe741d6b37d53b0089f06ef~mv2.jpg";
+
+  it("slapper igenom var egen media, med och utan transform", () => {
+    assert.equal(isOwnReviewImageUrl(VAR), true);
+    assert.equal(isOwnReviewImageUrl(`${VAR}/v1/fit/w_600,h_600,q_85/file.jpg`), true);
+    assert.equal(isOwnReviewImageUrl(`  ${VAR}  `), true);
+  });
+
+  it("slapper igenom den prefixlosa formen — den repareras till var egen", () => {
+    // Samma reparation som lasvagen gor, sa en rad som fastnat i den gamla
+    // formen inte avvisas i onodan.
+    assert.equal(isOwnReviewImageUrl("https://static.wixstatic.com/media/148e964cebe741d6b37d53b0089f06ef~mv2.jpg"), true);
+  });
+
+  it("avvisar andra vardar", () => {
+    assert.equal(isOwnReviewImageUrl("https://ae01.alicdn.com/kf/nagot.jpg"), false);
+    assert.equal(isOwnReviewImageUrl("https://evil.example/bild.jpg"), false);
+    // Vard som BORJAR ratt men inte ar det.
+    assert.equal(isOwnReviewImageUrl("https://static.wixstatic.com.evil.example/media/b379ce_x~mv2.jpg"), false);
+  });
+
+  it("avvisar ett annat Wix-konto", () => {
+    assert.equal(isOwnReviewImageUrl("https://static.wixstatic.com/media/aaaaaa_148e964c~mv2.jpg"), false);
+  });
+
+  it("avvisar http, skrap och fel typ", () => {
+    assert.equal(isOwnReviewImageUrl("http://static.wixstatic.com/media/b379ce_x~mv2.jpg"), false);
+    assert.equal(isOwnReviewImageUrl(""), false);
+    assert.equal(isOwnReviewImageUrl("javascript:alert(1)"), false);
+    assert.equal(isOwnReviewImageUrl(null), false);
+    assert.equal(isOwnReviewImageUrl(42), false);
   });
 });
