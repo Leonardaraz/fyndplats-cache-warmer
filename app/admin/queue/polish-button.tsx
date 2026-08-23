@@ -8,9 +8,9 @@ import { useState } from "react";
  *
  * DRIFT-SKYDD (varför den ser ut så här): prompten pekar på
  * `docs/seo-polish-runbook.md` som ENDA auktoritet och räknar MEDVETET INTE upp
- * runbookens steg med nummer. Tidigare listade den bara "Steg 1b/3b/3c + publicera"
- * och hamnade ur synk när runbooken växte — chatten missade då sökordsvalidering
- * (Steg 0), SKU-resync (2b), kategori (4) och varianter (6). Nu påminner den bara
+ * runbookens steg med nummer. Tidigare listade den ett par steg vid nummer och
+ * hamnade ur synk när runbooken växte och numrerades om — chatten missade då
+ * sökordsvalidering, SKU-resync, kategori och varianter. Nu påminner den bara
  * om de lätt-missade MOMENTEN (koncept, inte stegnummer), så den håller sig i synk
  * även när runbooken numreras om.
  */

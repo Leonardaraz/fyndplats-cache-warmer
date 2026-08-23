@@ -1,4 +1,4 @@
-"""Fyndplats kortmotor — premium-mallen fran docs/seo-polish-runbook.md, Steg 3d.
+"""Fyndplats kortmotor — premium-mallen fran docs/polish/bildmetoder.md, K-metoderna.
 
 Bygger de svenska feature-/spec-korten som ersatter leverantorens utlandska
 marknadsforingscollage i produktgalleriet. Varje kort ar 1600x1600 CSS px
@@ -207,8 +207,8 @@ def hero_white(src, dst, canvas=2000, fyll=0.90, trosk=245):
     rembg-urklipp — u2net ater tunna delar (kablar, speglar, smala ben), det har
     ror aldrig pixlarna inuti silhuetten.
 
-    Anvand som Steg 3c Metod 0: prova ALLTID denna forst. Ar bakgrunden rorig,
-    mork eller fotograferad i en miljo — ga till Metod A (Wix generate-image).
+    Anvand som metod H-0: prova ALLTID denna forst. Ar bakgrunden rorig,
+    mork eller fotograferad i en miljo — ga till H-A (Wix generate-image).
 
     trosk = hur ljus en pixel maste vara for att raknas som bakgrund (min over
     R/G/B). Sank den om en ljus produkt aker med i bakgrunden; hoj den om en
