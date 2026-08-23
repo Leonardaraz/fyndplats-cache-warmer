@@ -41,6 +41,7 @@ import { recordOrder } from "@/lib/order-record";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
 import { claimWebhookEmail, releaseWebhookEmail } from "@/lib/webhook-email-dedup";
 import { registerWith17Track } from "@/lib/track17";
+import { resolveWixOrderId } from "@/lib/wix-order-id";
 import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
 import { sql } from "@/lib/db";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
@@ -745,10 +746,40 @@ function classify(
   return "unknown";
 }
 
+// Slår upp orderns interna GUID ur det läsbara numret. Samma anrop som
+// /api/admin/resend-order-confirmation redan använder.
+async function findWixOrderIdByNumber(orderNumber: string): Promise<string | null> {
+  const key = process.env.WIX_API_KEY;
+  const site = process.env.WIX_SITE_ID;
+  if (!key || !site) return null;
+  const res = await fetch("https://www.wixapis.com/ecom/v1/orders/search", {
+    method: "POST",
+    headers: { Authorization: key, "wix-site-id": site, "Content-Type": "application/json" },
+    body: JSON.stringify({ search: { filter: { number: { $eq: orderNumber } } } }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    console.warn(`[wix-webhook] ordersök(${orderNumber}) → HTTP ${res.status}: ${txt.slice(0, 200)}`);
+    return null;
+  }
+  const json = (await res.json()) as { orders?: Array<{ id?: string; _id?: string }> };
+  const o = json.orders?.[0];
+  return o?.id ?? o?._id ?? null;
+}
+
 // Fetch full order from Wix eCom API. Used by Fulfillments Updated where the
 // webhook payload only contains { orderId, fulfillments[] } — no customer
 // email or line items. Same auth as lib/order-sync.ts. Returns null on any
 // failure (callers ack 200 + handled:false; we never block the webhook).
+//
+// TAR ÄVEN ETT LÄSBART ORDERNUMMER. Wix endpoint gör det inte — den slår bara
+// upp på GUID:t — men `tracking_mapping.order_id` bär numret ("10019"), och
+// därifrån kommer både leveransmejlets ordersammanfattning och omdömeslänkens
+// token. Utan uppslaget svarade /omdome/<token> 404 för kunden och
+// ordersammanfattningen föll tyst bort ur mejlet (2026-08-22). Ett GUID kostar
+// ingen extra rundtur; se lib/wix-order-id.ts.
 export async function fetchWixOrder(orderId: string): Promise<Record<string, unknown> | null> {
   const key = process.env.WIX_API_KEY;
   const site = process.env.WIX_SITE_ID;
@@ -758,8 +789,13 @@ export async function fetchWixOrder(orderId: string): Promise<Record<string, unk
     );
     return null;
   }
+  const id = await resolveWixOrderId(orderId, findWixOrderIdByNumber);
+  if (!id) {
+    console.warn(`[wix-webhook] fetchWixOrder(${orderId}): varken GUID eller känt ordernummer`);
+    return null;
+  }
   try {
-    const res = await fetch(`https://www.wixapis.com/ecom/v1/orders/${encodeURIComponent(orderId)}`, {
+    const res = await fetch(`https://www.wixapis.com/ecom/v1/orders/${encodeURIComponent(id)}`, {
       method: "GET",
       headers: {
         Authorization: key,
