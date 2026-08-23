@@ -22,7 +22,10 @@ type Läge =
   // `bild` sätts medan en bild laddas upp: {nu, av} driver knappens text, så
   // tre uppladdningar på mobildata inte ser ut som att sidan hängt sig.
   | { typ: "skickar"; bild?: { nu: number; av: number } }
-  | { typ: "klar" }
+  // `utelamnade` = bilder kunden valde men som inte kom med. Kvitteringen
+  // måste säga det: annars tror hen att fotona finns, och upptäcker först
+  // veckor senare på produktsidan att de saknas.
+  | { typ: "klar"; utelamnade: number }
   | { typ: "fel"; text: string };
 
 // Ordet under betyget. Bara dekor för seendet — radioknapparna säger redan
@@ -154,12 +157,16 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
           ...(imageUrls.length > 0 ? { imageUrls } : {}),
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; bilder?: number };
       if (!res.ok) {
         setLäge({ typ: "fel", text: data.error || "Något gick fel. Försök igen." });
         return;
       }
-      setLäge({ typ: "klar" });
+      // Servern svarar med hur många bilder som FAKTISKT sparades. Skillnaden
+      // mot vad kunden valde täcker båda sätten en bild kan tappas: en
+      // uppladdning som föll, och en adress servern inte godtog.
+      const sparade = typeof data.bilder === "number" ? data.bilder : filer.length;
+      setLäge({ typ: "klar", utelamnade: Math.max(0, filer.length - sparade) });
     } catch {
       setLäge({ typ: "fel", text: "Kunde inte skicka just nu. Försök igen om en stund." });
     }
@@ -173,6 +180,19 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
           Ditt omdöme om <em>{vara.name}</em> är mottaget. Vi läser igenom det innan det
           publiceras på produktsidan.
         </p>
+        {/* Sägs bara när något faktiskt föll bort. Texten lovar ingen åtgärd
+            från vår sida — kunden kan skicka formuläret igen, och eftersom
+            radens id härleds ur order + produkt uppdaterar det omdömet i
+            stället för att skapa en dubblett. */}
+        {läge.utelamnade > 0 ? (
+          <p className="rf-hint" style={{ margin: "10px 0 0 0" }}>
+            {läge.utelamnade === 1
+              ? "En av dina bilder kunde inte laddas upp och kom inte med."
+              : `${läge.utelamnade} av dina bilder kunde inte laddas upp och kom inte med.`}{" "}
+            Texten och betyget är sparade. Vill du försöka igen med bilderna kan du fylla i
+            formuläret en gång till — ditt omdöme uppdateras då i stället för att dubbleras.
+          </p>
+        ) : null}
       </div>
     );
   }

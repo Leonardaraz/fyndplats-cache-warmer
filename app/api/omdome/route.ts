@@ -167,7 +167,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: IMAGE_FELTEXT.inte_en_bild }, { status: 400 });
     }
   }
-  Object.assign(rad, reviewImageFields(uppladdade));
+  // Antalet som FAKTISKT sparas, efter dedup och tak. Skickas tillbaka så
+  // klienten kan säga till om någon bild inte kom med — annars är den enda
+  // signalen att kunden själv upptäcker det på produktsidan veckor senare.
+  // Fångar båda vägarna en bild kan tappas: en uppladdning som föll, och en
+  // adress som inte klarade isOwnReviewImageUrl.
+  const bildfalt = reviewImageFields(uppladdade);
+  Object.assign(rad, bildfalt);
 
   try {
     // /items/save är upsert. PUT /items/{id} vore FEL här: den uppdaterar bara
@@ -193,5 +199,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Kunde inte spara omdömet just nu." }, { status: 503 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, bilder: bildfalt.imageUrls?.length ?? 0 });
 }
