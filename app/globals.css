@@ -1149,6 +1149,14 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    när färgskillnaden är så svag krävs en markör som inte är färg (WCAG 1.4.1).
    Utan den är länkarna i praktiken osynliga för färgblinda läsare — och det är
    exakt de länkarna som ska leda vidare till produkterna. */
+/* Blockcitat renderades utan egen stil och föll tillbaka på webbläsarens
+   indrag — ett stycke som ser bortglömt ut snarare än framhävt. Används i tre
+   inlägg för det enda rådet läsaren ska minnas, så det ska synas som en paus i
+   texten: varm yta, brandfärgad kant, ingen kursiv (den gör långa citat
+   svårlästa). */
+.prose blockquote{margin:24px 0;padding:16px 18px;border-left:3px solid var(--brand);background:var(--surface-2);border-radius:0 var(--r-sm) var(--r-sm) 0}
+.prose blockquote p{margin:0}
+.prose blockquote p + p{margin-top:10px}
 .prose a{color:var(--brand);font-weight:600;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
 .prose a:hover{text-decoration-thickness:2px}
 .prose strong{color:var(--ink);font-weight:700}

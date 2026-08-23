@@ -359,7 +359,12 @@ async function readAllPosts(): Promise<LocalPost[]> {
       excerpt,
       date,
       cover: String(data.cover || ""),
-      alt: String(data.alt || title),
+      // `cover_alt` accepteras jämsides med `alt`: tio inlägg skrevs med det
+      // namnet, och eftersom parsern bara läste `alt` föll deras omsorgsfullt
+      // skrivna alt-texter bort utan att något syntes. Fallbacken till titeln
+      // dolde felet — hjältebilden fick hela rubriken uppläst i stället för en
+      // beskrivning av vad som faktiskt syns. (Hittat 2026-08-23.)
+      alt: String(data.alt || data.cover_alt || title),
       contentHtml,
       contentText,
       primaryKeyword: data.primary_keyword ? String(data.primary_keyword) : undefined,
