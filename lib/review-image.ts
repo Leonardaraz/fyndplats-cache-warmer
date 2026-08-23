@@ -17,8 +17,29 @@
 // C2PA/IPTC i XMP. sharp 0.34 har keepXmp() — XMP behålls, EXIF slängs.
 // Utan den hade valet stått mellan kundens adress och bildens ursprung.
 
-/** Största tillåtna uppladdning PER BILD. */
-export const MAX_BYTES = 6 * 1024 * 1024;
+/**
+ * Största tillåtna uppladdning PER BILD — och per request, för varje bild
+ * skickas i sitt eget anrop.
+ *
+ * TAKET ÄR MÄTT, INTE GISSAT. Plattformen avvisar en request över 4,5 MB med
+ * 413 innan koden ser den. Uppmätt mot deployen 2026-08-23: 4,0 MB passerar,
+ * 4,3 MB ger 413.
+ *
+ * Gränsen låg tidigare på 6 MB och kunde därför ALDRIG lösa ut — plattformen
+ * hann först, och kunden fick "Något gick fel. Försök igen." i stället för ett
+ * begripligt besked. En gräns som ligger över den verkliga gränsen är värre än
+ * ingen gräns alls: den ser ut att skydda och gör det inte.
+ *
+ * 4 MB lämnar ~500 kB för multipart-ramen och rubrikerna.
+ *
+ * VARFÖR VI INTE KRYMPER BILDEN I WEBBLÄSAREN i stället för att avvisa: en
+ * canvas kan inte bära metadata. `drawImage` → `toBlob` ger en naken JPEG utan
+ * XMP, alltså utan C2PA-märkningen som filhuvudet ovan säger aldrig får
+ * tvättas bort. Ett undantag "bara för stora bilder" hade dessutom träffat
+ * precis det fall där en AI-genererad bild i full upplösning är mest sannolik.
+ * Kunden förlorar hellre EN bild än att märkningen tyst försvinner.
+ */
+export const MAX_BYTES = 4 * 1024 * 1024;
 
 /**
  * Hur många bilder kunden får bifoga.

@@ -68,3 +68,24 @@ describe("mediaFileName med index", () => {
     assert.equal(mediaFileName("p", "r", 0), mediaFileName("p", "r"));
   });
 });
+
+// Gränsen låg tidigare på 6 MB — över plattformens 4,5 MB-tak — och kunde
+// därför aldrig lösa ut: requesten fälldes med 413 innan koden såg den, och
+// kunden fick "Något gick fel" i stället för ett begripligt besked. Taket är
+// uppmätt mot deployen 2026-08-23 (4,0 MB passerar, 4,3 MB ger 413).
+//
+// Det här testet finns för att ingen ska höja gränsen tillbaka utan att förstå
+// varför den är satt där den är.
+describe("MAX_BYTES mot plattformens request-tak", () => {
+  const PLATTFORMSTAK = 4.5 * 1000 * 1000;
+
+  it("ligger under taket, med marginal för multipart-ramen", () => {
+    assert.ok(MAX_BYTES < PLATTFORMSTAK, `MAX_BYTES (${MAX_BYTES}) måste ligga under ${PLATTFORMSTAK}`);
+    assert.ok(PLATTFORMSTAK - MAX_BYTES > 100 * 1024, "för liten marginal för rubriker och multipart-ram");
+  });
+
+  it("är ändå tillräckligt stor för ett vanligt mobilfoto", () => {
+    // 3,5 MB är i övre delen av vad en telefon producerar för en 12 MP-bild.
+    assert.equal(validateUpload(3.5 * 1024 * 1024, "image/jpeg"), null);
+  });
+});

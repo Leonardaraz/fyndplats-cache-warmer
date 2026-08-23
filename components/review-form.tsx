@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import { validateCustomerReview, FELTEXT } from "../lib/customer-review";
-import { MAX_IMAGES } from "../lib/review-image";
+import { IMAGE_FELTEXT, MAX_IMAGES, validateUpload } from "../lib/review-image";
 
 interface Vara {
   productId: string;
@@ -17,7 +17,13 @@ interface Vara {
   variant?: string;
 }
 
-type Läge = { typ: "vilar" } | { typ: "skickar" } | { typ: "klar" } | { typ: "fel"; text: string };
+type Läge =
+  | { typ: "vilar" }
+  // `bild` sätts medan en bild laddas upp: {nu, av} driver knappens text, så
+  // tre uppladdningar på mobildata inte ser ut som att sidan hängt sig.
+  | { typ: "skickar"; bild?: { nu: number; av: number } }
+  | { typ: "klar" }
+  | { typ: "fel"; text: string };
 
 // Ordet under betyget. Bara dekor för seendet — radioknapparna säger redan
 // "n av 5 stjärnor" till skärmläsaren.
@@ -90,20 +96,52 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
       return;
     }
 
+    // Storleken kontrolleras här också, med SAMMA gräns som servern använder.
+    // Poängen är inte att skydda — det gör servern — utan att kunden ska få
+    // veta vilken bild som är för stor i stället för ett svar långt senare.
+    for (const f of filer) {
+      const felkod = validateUpload(f.size, f.type);
+      if (felkod) {
+        setLäge({ typ: "fel", text: `${f.name}: ${IMAGE_FELTEXT[felkod]}` });
+        return;
+      }
+    }
+
     setLäge({ typ: "skickar" });
     try {
-      // Bilderna skickas som base64. Enkelt och tillräckligt: taket är 6 MB per
-      // bild och servern grindar antal och storlek igen innan den avkodar något.
-      const images: { data: string; type: string }[] = [];
-      for (const f of filer) {
-        const buf = await f.arrayBuffer();
-        let bin = "";
-        const bytes = new Uint8Array(buf);
-        for (let i = 0; i < bytes.length; i += 0x8000) {
-          bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      // EN BILD PER ANROP, som multipart. Tidigare låg alla bilder base64-
+      // kodade i sparningens JSON-kropp; plattformen avvisar en request över
+      // 4,5 MB och base64 blåser upp med en tredjedel, så taket blev ~3,4 MB
+      // för alla bilder tillsammans. Ett mobilfoto kunde gå igenom, tre aldrig.
+      // Nu får varje bild sin egen budget, och multipart slipper påslaget.
+      const imageUrls: string[] = [];
+      for (const [i, f] of filer.entries()) {
+        setLäge({ typ: "skickar", bild: { nu: i + 1, av: filer.length } });
+        const fd = new FormData();
+        fd.append("token", token);
+        fd.append("productId", vara.productId);
+        fd.append("index", String(i));
+        fd.append("fil", f);
+        const bildSvar = await fetch("/api/omdome/bild", { method: "POST", body: fd });
+        const bildData = (await bildSvar.json().catch(() => ({}))) as {
+          url?: string;
+          error?: string;
+          hoppaOver?: boolean;
+        };
+        if (bildSvar.ok && bildData.url) {
+          imageUrls.push(bildData.url);
+          continue;
         }
-        images.push({ data: btoa(bin), type: f.type });
+        // En bild som inte gick upp ska inte kosta kunden hela omdömet — texten
+        // och betyget är huvudsaken. Vi hoppar över den och skickar resten.
+        // Ett ÄKTA fel i filen (för stor, fel typ, inte en bild) säger vi
+        // däremot till om, för då kan kunden göra något åt det.
+        if (bildData.hoppaOver || bildSvar.status >= 500) continue;
+        setLäge({ typ: "fel", text: bildData.error || "Bilden kunde inte skickas." });
+        return;
       }
+
+      setLäge({ typ: "skickar" });
       const res = await fetch("/api/omdome", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -113,7 +151,7 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
           rating: betyg,
           text,
           name: namn,
-          ...(images.length > 0 ? { images } : {}),
+          ...(imageUrls.length > 0 ? { imageUrls } : {}),
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -228,7 +266,14 @@ function ProduktBlock({ token, vara }: { token: string; vara: Vara }) {
       ) : null}
 
       <button className="rf-submit" type="submit" disabled={läge.typ === "skickar"}>
-        {läge.typ === "skickar" ? "Skickar …" : "Skicka omdöme"}
+        {/* Räknaren finns för att tre bilder på mobildata tar tiotals sekunder.
+            Utan den ser en stum knapp ut som att sidan hängt sig, och kunden
+            laddar om mitt i uppladdningen. */}
+        {läge.typ === "skickar"
+          ? läge.bild
+            ? `Skickar bild ${läge.bild.nu} av ${läge.bild.av} …`
+            : "Skickar …"
+          : "Skicka omdöme"}
       </button>
     </form>
   );

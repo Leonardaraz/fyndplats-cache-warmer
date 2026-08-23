@@ -69,6 +69,27 @@ export function repairWixMediaUrl(url: string): string {
   return `${bas}${WIX_MEDIA_PREFIX}_${id}${resten}`;
 }
 
+/**
+ * Är adressen en bild i VÅR egen Wix Media, alltså något `/api/omdome/bild`
+ * kan ha lagt dit?
+ *
+ * Behövs sedan bilderna laddas upp i egna anrop: klienten skickar sedan
+ * ADRESSERNA till sparningen i stället för bytena. Utan den här kontrollen
+ * hade vem som helst med en giltig token kunnat peka ett omdöme mot vilken
+ * bild som helst på internet — en reklambild, eller något värre — och få den
+ * renderad på produktsidan som ett kundfoto.
+ *
+ * Kravet är både värden och kontoprefixet: ett prefixlöst id kan komma från en
+ * annan Wix-sajt. Adressen repareras först, så en bild som fastnat i den
+ * gamla prefixlösa formen inte avvisas i onödan.
+ */
+export function isOwnReviewImageUrl(url: unknown): boolean {
+  if (typeof url !== "string" || !url) return false;
+  const m = /^https:\/\/static\.wixstatic\.com\/media\/([^/?#]+)/i.exec(repairWixMediaUrl(url.trim()));
+  if (!m) return false;
+  return m[1].toLowerCase().startsWith(`${WIX_MEDIA_PREFIX}_`);
+}
+
 /** Formen båda fälten kan ha på en rad, oavsett var den kommer ifrån. */
 export interface ReviewImageFields {
   imageUrl?: string | null;
