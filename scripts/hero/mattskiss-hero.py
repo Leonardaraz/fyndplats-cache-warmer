@@ -6,7 +6,7 @@ vindspelet kapat i vänsterkant och guiron kapad i högerkant. Man såg aldrig v
 man köpte. Enda bilden i galleriet som visar HELA produkten rakt framifrån är
 måttskissen — samma studiofoto som de andra, fast med orange måttpilar pålagda.
 
-Pilarna är overlay-grafik och ska bort enligt Steg 3b. De är lätta att skilja
+Pilarna är overlay-grafik och ska bort enligt T-metoderna (docs/polish/bildmetoder.md). De är lätta att skilja
 från varan trots att varan själv har orange delar (benens fötter, xylofonens
 röda tangent, guirons band): overlayen är EN platt vektorfärg, medel (254,155,87)
 i varje komponent, medan varans orange sitter inbäddat i den stora

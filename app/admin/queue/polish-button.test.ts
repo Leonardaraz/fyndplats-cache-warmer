@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildPolishPrompt } from "./polish-button";
 
 // Regression-vakt: polerings-prompten drev tidigare ur synk med runbooken (den
-// listade bara Steg 1b/3b/3c + publicera och missade sökordsvalidering, SKU-
+// listade ett par steg vid nummer och missade sökordsvalidering, SKU-
 // resync, kategori och varianter). Dessa tester låser att prompten pekar på
 // runbooken som sanningskälla OCH täcker de lätt-missade momenten.
 describe("buildPolishPrompt — hålls i synk med seo-polish-runbook", () => {
@@ -16,12 +16,12 @@ describe("buildPolishPrompt — hålls i synk med seo-polish-runbook", () => {
   });
 
   it("påminner om de tidigare missade momenten (drift-regression)", () => {
-    expect(prompt).toMatch(/sökord/i); // Steg 0 – sökordsvalidering
-    expect(prompt).toMatch(/bilder/i); // Steg 1b – bildanalys
-    expect(prompt).toMatch(/SKU/); // Steg 2b – re-synk
-    expect(prompt).toMatch(/kategori/i); // Steg 4
-    expect(prompt).toMatch(/variant/i); // Steg 6
-    expect(prompt).toMatch(/publicera/i); // Steg 5
+    expect(prompt).toMatch(/sökord/i); // sökordsvalidering
+    expect(prompt).toMatch(/bilder/i); // bildanalys
+    expect(prompt).toMatch(/SKU/); // SKU-resynk
+    expect(prompt).toMatch(/kategori/i); // kategori
+    expect(prompt).toMatch(/variant/i); // varianter
+    expect(prompt).toMatch(/publicera/i); // publicering
   });
 
   it("hårdkodar INTE stegnummer (undviker samma nummer-drift igen)", () => {

@@ -21,7 +21,7 @@
 // ---------------------
 // 2026-08-15 låg 77 färdigpolerade sidor plötsligt dolda. Ingen hade rört dem
 // medvetet: en PATCH som innehåller `variantsInfo` kan tyst flippa `visible` på
-// en publicerad produkt (runbooken Steg 6, historik 2026-07-09, 2026-08-04,
+// en publicerad produkt (runbooken Steg 11, historik 2026-07-09, 2026-08-04,
 // 2026-08-05). Flippen ger 200 OK och syns ingenstans — produkten försvinner
 // bara ur butiken. Leonard upptäckte det för att han råkade bläddra i Wix-appen.
 //
@@ -99,7 +99,7 @@ function arFardig(p) {
 
 // --- Kategorier -------------------------------------------------------------
 //
-// Runbooken Steg 4A: en produkt ska kopplas till BÅDE lövet och dess förälder.
+// Runbooken Steg 10A: en produkt ska kopplas till BÅDE lövet och dess förälder.
 // Bara lövet räcker inte — kunden som browsar från toppnivån ser då ingenting.
 // Poleringsflödet missar föräldern med jämna mellanrum (12 sidor på två dygn
 // 2026-08-13/14, efter att katalogen städats en gång), så det behöver kollas
@@ -231,7 +231,7 @@ async function kollaSynlighet() {
 
 // --- Recensioner ------------------------------------------------------------
 //
-// Runbookens Steg 5b: hämta recensioner efter publicering. Steget SAKNADES i
+// Runbookens Steg 14A: hämta recensioner efter publicering. Steget SAKNADES i
 // runbooken fram till 2026-08-22, och följden var mätbar — fem produkter i rad
 // polerades klart utan att någon hämtade recensioner till dem.
 //
