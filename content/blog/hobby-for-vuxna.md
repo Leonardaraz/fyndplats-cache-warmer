@@ -68,7 +68,7 @@ Börja med en halsduk, inte en mössa. Halsduken är rak, du kan lägga ifrån d
 
 Surdeg är inte en eftermiddag — det är en relation. Du matar den med lika delar mjöl och vatten, du planerar helgen runt den, och en gång i veckan får du ett bröd som ingen butik kommer i närheten av.
 
-Ta den bara om du gillar rutinen i sig. Gör du inte det kommer burken stå kvar och må dåligt i kylen, och du med.
+Ta den bara om du gillar rutinen i sig. Gör du inte det kommer burken att stå kvar och må dåligt i kylen, och du med.
 
 ### 4. Koka egna såser och pickles
 
@@ -82,7 +82,7 @@ Syltad rödlök är rätt ställe att börja: den tar tjugo minuter, kräver ing
 
 **Kostnad:** Från 300 kr för en modell plus grundfärger · **Plats:** Ett litet skrivbord som får vara upptaget · **Håll igång:** Medel. Bygget måste få ligga framme — plockar du undan det varje kväll dör det.
 
-Att måla små figurer eller bygga en modellbil är meditation, hantverk och samlande i ett. Skalorna är standardiserade, så du vet vad du får: **1:24** för bilar, **1:72** för flygplan. Mindre skala betyder fler små detaljer och mer tålamod.
+Att måla små figurer eller bygga en modellbil är meditation, hantverk och samlande i ett. Skalorna är standardiserade, så du vet vad du får: **1:24** för bilar, **1:72** för flygplan. Mindre skala betyder mindre delar och mer fingerfärdighet.
 
 Det finns en stor community på nätet som svarar på nybörjarfrågor inom timmar. Fastnar du är du inte ensam länge. Verktygen är få men de ska vara vassa — en hobbykniv och en skärmatta räcker långt, och samma grundutrustning återkommer i [DIY-verktyg för nybörjare](https://www.fyndplats.se/blogg/verktyg-for-nyborjare).
 
@@ -92,7 +92,7 @@ Det finns en stor community på nätet som svarar på nybörjarfrågor inom timm
 
 De stora vuxenserierna — botaniska blommor, arkitektur, bilar — är förvånansvärt avkopplande och tar tre till åtta kvällar. Färdiga kan de stå framme utan att se ut som leksaker.
 
-Räkna med att ett set är en period, inte en vana. Det gör den perfekt som paus mellan andra hobbyer.
+Räkna med att ett set är en period, inte en vana. Det gör lego perfekt som paus mellan andra hobbyer.
 
 ## Lära dig något nytt
 
@@ -138,11 +138,11 @@ Fem hobbyer vars hela poäng är att sänka pulsen.
 
 **Kostnad:** 100–300 kr per pussel · **Plats:** Ett bord som får vara upptaget · **Håll igång:** Lätt — men bordet är ockuperat i en vecka.
 
-Pussel är fokusarbete som lugnar utan att tömma. Du kan sluta mitt i utan att förlora något, och du kan sitta i tio minuter eller två timmar. Ett pussel med 1 000 bitar räcker i ungefär 8–15 timmar utspritt över en vecka.
+Pussel är fokusarbete som lugnar utan att tömma. Du kan sluta mitt i utan att förlora något, och du kan sitta i tio minuter eller två timmar. Ett pussel med 1 000 bitar räcker i ungefär 8–15 timmar utspridda över en vecka.
 
 [![Pusselbräda med lock och sex sorteringslådor för pussel upp till 1000 bitar](https://static.wixstatic.com/media/b379ce_cc0e7a5351a346009823835b941090d4~mv2.jpg)](/produkt/pusselbrada-77x53-6-cm-sex-lador "Pusselbräda med sex lådor – 479 kr")
 
-Det enda som verkligen stoppar folk är att matbordet måste vara fritt till middagen. En pusselbräda med lock löser exakt det problemet — du skjuter in halvfärdiga pusslet under soffan och tar fram det igen på kvällen.
+Det enda som verkligen stoppar folk är att matbordet måste vara fritt till middagen. En pusselbräda med lock löser exakt det problemet — du skjuter in det halvfärdiga pusslet under soffan och tar fram det igen på kvällen.
 
 ### 12. Krukväxter och inomhusträdgård
 
@@ -156,7 +156,7 @@ Växter är också den hobby som syns mest i rummet efteråt — mer om hur man 
 
 ### 13. Yoga eller stretching hemma
 
-**Kostnad:** En matta · **Plats:** En yta som en handduk · **Håll igång:** Medel. Lättast direkt efter tandborstningen, innan du satt dig i soffan.
+**Kostnad:** En matta · **Plats:** Så mycket golv som en handduk täcker · **Håll igång:** Medel. Lättast direkt efter tandborstningen, innan du sätter dig i soffan.
 
 Inte träning i vanlig mening, utan ett riktigt skönt sätt att avsluta kvällen. Femton minuter före läggdags ger djupare sömn och en rygg som tackar dig dagen efter.
 
@@ -208,11 +208,11 @@ Femton minuter om dagen räcker för att komma någonstans i nästan allt på li
 
 ### Vad gör jag om jag tappar intresset efter ett par veckor?
 
-Testa nästa på listan. Två veckor, eller ungefär sex timmars sammanlagd tid, räcker för att veta om något kallar dig tillbaka. Att lägga ner är inte ett misslyckande — det är så man hittar rätt, och de flesta provar tre saker innan något fastnar.
+Testa nästa på listan. Två veckor, eller ungefär sex timmars sammanlagd tid, räcker för att veta om något kallar dig tillbaka. Att lägga ner är inte ett misslyckande — det är så man hittar rätt.
 
 ### Vilken hobby passar i en liten lägenhet?
 
-De som får plats på en fönsterbräda, i en låda eller i knät: krukväxter, stickning, skrivande, akvarell och miniatyrmålning. Undvik pussel och stora byggsatser om du bara har ett matbord — de behöver en yta som får vara upptagen i en vecka. En pusselbräda med lock löser just det problemet, men kräver också någonstans att skjuta in den.
+De som får plats på en fönsterbräda, i en låda eller i knät: krukväxter, stickning, skrivande, akvarell och miniatyrmålning. Undvik pussel och stora byggsatser om du bara har ett matbord — de behöver en yta som får vara upptagen i en vecka. En pusselbräda med lock löser just det problemet, men kräver också att du har någonstans att skjuta in den.
 
 ## Sammanfattning
 
