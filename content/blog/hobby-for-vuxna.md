@@ -36,6 +36,8 @@ Femton förslag är för många att välja mellan. Svara på de här först, så
 
 Utifrån svaren: hoppa till den grupp som känns rätt. De tre grupperna nedan är sorterade efter vad du får ut, inte efter vad du gör.
 
+Två saker till som avgör mer än man tror. **Årstiden:** de flesta börjar med en hobby när det blir mörkt ute, och då är det just de som fungerar en tisdagskväll i november som håller — inte de som kräver dagsljus eller en balkong. **Sällskapet:** vill du ha någon att göra det med är brädspel den enda i listan som kräver det, men flera av de andra går utmärkt att göra bredvid varandra. Två personer som stickar i samma soffa har mer sällskap än man tror.
+
 ## Skapa något med händerna
 
 Sex hobbyer som lämnar något efter sig — något du kan ta i, äta upp eller ge bort.
@@ -50,7 +52,7 @@ Börja med att måla samma sak tre gånger i rad. Skillnaden mellan bild ett och
 
 [![Golvstaffli i bokträ, hopfällbart – höjd 180–235 cm för målning stående](https://static.wixstatic.com/media/b379ce_8a30323dc3774825a8604ba3706bf5ad~mv2.jpg)](/produkt/golvstaffli-boktra-hopfallbart-malarstaffli "Golvstaffli i bokträ – 629 kr")
 
-Ett staffli behöver du inte för att börja. Men märker du efter någon månad att du målar stående, med värkande nacke över köksbordet, är det den enda utrustning som faktiskt gör skillnad.
+Ett staffli behöver du inte för att börja. Men märker du efter någon månad att du målar stående, med värkande nacke över köksbordet, är det den enda utrustning som faktiskt gör skillnad. (Samma resonemang som för skrivbordet i [Hemmakontor på budget](https://www.fyndplats.se/blogg/hemmakontor-tips) — det är höjden som avgör, inte priset.)
 
 ### 2. Sticka eller virka
 
@@ -82,7 +84,7 @@ Syltad rödlök är rätt ställe att börja: den tar tjugo minuter, kräver ing
 
 Att måla små figurer eller bygga en modellbil är meditation, hantverk och samlande i ett. Skalorna är standardiserade, så du vet vad du får: **1:24** för bilar, **1:72** för flygplan. Mindre skala betyder fler små detaljer och mer tålamod.
 
-Det finns en stor community på nätet som svarar på nybörjarfrågor inom timmar. Fastnar du är du inte ensam länge.
+Det finns en stor community på nätet som svarar på nybörjarfrågor inom timmar. Fastnar du är du inte ensam länge. Verktygen är få men de ska vara vassa — en hobbykniv och en skärmatta räcker långt, och samma grundutrustning återkommer i [DIY-verktyg för nybörjare](https://www.fyndplats.se/blogg/verktyg-for-nyborjare).
 
 ### 6. Bygga lego — vuxenserierna
 
@@ -150,6 +152,8 @@ Börja med två eller tre tåliga växter: pilea, monstera, sansevieria. Sansevi
 
 Vattna först när jorden är torr en tumme ner. Nästan alla nybörjare vattnar för mycket, inte för lite.
 
+Växter är också den hobby som syns mest i rummet efteråt — mer om hur man bygger ett hörn man vill sitta i finns i [Mysig höstinredning](https://www.fyndplats.se/blogg/mysig-hostinredning).
+
 ### 13. Yoga eller stretching hemma
 
 **Kostnad:** En matta · **Plats:** En yta som en handduk · **Håll igång:** Medel. Lättast direkt efter tandborstningen, innan du satt dig i soffan.
@@ -187,6 +191,28 @@ Mindre än du tror. Nästan varje hobby här börjar under 400 kr, och fem av de
 Det som däremot spelar roll är **var** du gör det. En hobby som kräver att du dukar av bordet först blir aldrig av en tisdag. En som har en egen liten yta överlever. Vi har skrivit om hur man får plats med det i [Smarta förvaringslösningar för små lägenheter](https://www.fyndplats.se/blogg/smarta-forvaringslosningar-sma-lagenheter).
 
 På Fyndplats hittar du fynd inom flera av kategorierna ovan — pussel och pusseltillbehör, målarmaterial och stafflier, modellbygge och pyssel. Titta i [Sport & fritid](https://www.fyndplats.se/kategori/sport-fritid) och [Hem & inredning](https://www.fyndplats.se/kategori/hem-inredning).
+
+## Vanliga frågor om hobby för vuxna
+
+### Vilken hobby är billigast att börja med?
+
+Fem av hobbyerna i listan kostar noll kronor att prova: fotografera med mobilen, lära dig ett språk med en gratisapp, skriva i ett block du redan har, stretcha på en handduk och ta upp ett instrument som redan står hemma. Av dem som kostar något börjar de flesta under 400 kr — stickning kring 150–300 kr och akvarell kring 200–400 kr.
+
+### Hur hittar jag en hobby när jag inte vet vad jag gillar?
+
+Börja med vad du tyckte var roligt som barn. Ritade du, byggde du eller samlade du på något? Det svaret pekar nästan alltid rätt. Fråga dig sedan om du vill ha något i handen efteråt — en mössa, ett bröd, ett pussel — eller om du hellre vill kunna något nytt. De två frågorna räcker för att stryka två tredjedelar av listan.
+
+### Hur mycket tid behöver jag lägga på en hobby?
+
+Femton minuter om dagen räcker för att komma någonstans i nästan allt på listan, och det slår fyra timmar en gång i månaden. Det är regelbundenheten som avgör, inte mängden. Knyt passet till något du redan gör varje dag — morgonkaffet, bussen, tandborstningen — så överlever det de veckor då du inte är sugen.
+
+### Vad gör jag om jag tappar intresset efter ett par veckor?
+
+Testa nästa på listan. Två veckor, eller ungefär sex timmars sammanlagd tid, räcker för att veta om något kallar dig tillbaka. Att lägga ner är inte ett misslyckande — det är så man hittar rätt, och de flesta provar tre saker innan något fastnar.
+
+### Vilken hobby passar i en liten lägenhet?
+
+De som får plats på en fönsterbräda, i en låda eller i knät: krukväxter, stickning, skrivande, akvarell och miniatyrmålning. Undvik pussel och stora byggsatser om du bara har ett matbord — de behöver en yta som får vara upptagen i en vecka. En pusselbräda med lock löser just det problemet, men kräver också någonstans att skjuta in den.
 
 ## Sammanfattning
 
