@@ -276,7 +276,34 @@ export async function POST(req: Request) {
     // fail-open: misslyckas DS-anropet (saknad token/permission/nät) behålls
     // skrapans värde och beteendet blir som förut.
     try {
-      const inv = await getInventory(product.supplierProductId);
+      const dsSvar = await getInventory(product.supplierProductId);
+      const inv = dsSvar.variants;
+      // NEDTAGEN LISTNING (audit 2026-08-24). Vi hämtar redan DS-produkten här,
+      // och den bär hyllstatusen — vi läste den bara aldrig. Utan spärren kunde
+      // vi importera en listning som redan var död: saldot står kvar fruset på
+      // sista kända värdet, så ingenting nedströms kunde se skillnaden, och
+      // produkten hamnade köpbar i butiken från dag ett.
+      //
+      // Ligger EFTER dubblettspärren och före pipelinen, samma plats i kedjan
+      // som övriga pre-import-guards. Fail-open i formen: bara ett UTTRYCKLIGT
+      // "offline" avvisar — `unknown` (äldre/degraderat svar) släpps igenom
+      // precis som förut.
+      if (dsSvar.listingAvailability === "offline") {
+        const orsak = dsSvar.offlineReason ? ` (${dsSvar.offlineReason})` : "";
+        void audit(
+          "import-rejected-offline",
+          product.supplierProductId,
+          `AliExpress-listningen är nedtagen${orsak}`,
+        );
+        return NextResponse.json(
+          {
+            error: `AliExpress-listningen är nedtagen${orsak} — den går inte att beställa och importeras därför inte.`,
+            code: "listing_offline",
+            supplierProductId: product.supplierProductId,
+          },
+          { status: 422 },
+        );
+      }
       if (inv.length) {
         // Adoptera DS-skuId: när en variant matchas skriver vi över skrapans id
         // (ofta "idx-N" eftersom AE inte längre lägger skuId i sidan) med

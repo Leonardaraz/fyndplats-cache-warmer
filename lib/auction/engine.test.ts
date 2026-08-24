@@ -3,6 +3,7 @@ import {
   AUCTION_DAY_HOURS,
   LADDER_STEPS,
   buildFloor,
+  MAX_DISCOUNT,
   buildLadder,
   buildVariantTracks,
   isExpired,
@@ -24,18 +25,38 @@ describe("up9", () => {
   });
 });
 
-describe("buildFloor (max −7 % marginal)", () => {
-  it("golv = kostnad × 1,25 / 1,07 uppåt till 9-slut", () => {
-    // 696 kr landad kostnad (destillationssatsen): 696×1,25/1,07 = 813,08 → 819
-    expect(buildFloor(1549, 696)).toBe(819);
-    // 223 kr (glassvagnen): 223×1,25/1,07 = 260,51 → 269
-    expect(buildFloor(339, 223)).toBe(269);
+describe("buildFloor (rabattak 15 % ELLER −7 %-marginal — det som binder hårdast)", () => {
+  it("RABATTAKET binder på en normalprissatt vara", () => {
+    // Satsbordet, det första riktiga auktionsköpet: list 1069, nettokostnad
+    // 651,53. Marginalgolvet ger 769 (−28 % rabatt, förlustaffär vid golvet);
+    // rabattgolvet ger up9(1069×0,85) = 909. Det högre vinner.
+    expect(buildFloor(1069, 651.53)).toBe(909);
+    // Destillationssatsen: marginalgolvet 819, rabattgolvet up9(1549×0,85)=1319.
+    expect(buildFloor(1549, 696)).toBe(1319);
   });
+
+  it("rabatten hamnar ALLTID under taket, aldrig över", () => {
+    for (const [list, kostnad] of [[1069, 651.53], [1549, 696], [339, 223], [259, 150]] as const) {
+      const rabatt = 1 - buildFloor(list, kostnad) / list;
+      expect(rabatt).toBeLessThanOrEqual(MAX_DISCOUNT);
+    }
+  });
+
+  it("MARGINALGOLVET binder när varan har tunt påslag", () => {
+    // Kostnad 750 mot list 1000: marginalgolvet 879 ligger över rabattgolvet
+    // 859, så den här varan sjunker bara 12 % — mindre än taket.
+    expect(buildFloor(1000, 750)).toBe(879);
+    expect(1 - 879 / 1000).toBeLessThan(MAX_DISCOUNT);
+  });
+
   it("verklig förlust vid golvet är högst 7 % av nettot", () => {
-    const floor = buildFloor(1549, 696);
-    const net = floor / 1.25;
-    expect((net - 696) / net).toBeGreaterThanOrEqual(-0.07);
+    // Gäller fortfarande — taket kan bara HÖJA golvet, aldrig sänka det.
+    for (const [list, kostnad] of [[1000, 750], [1549, 696], [339, 223]] as const) {
+      const net = buildFloor(list, kostnad) / 1.25;
+      expect((net - kostnad) / net).toBeGreaterThanOrEqual(-0.07);
+    }
   });
+
   it("klampar till listpriset när kostnaden är för hög för rabatt", () => {
     // kostnad 800 → 934,58 → 939 > list 929 ⇒ golv = list (ingen rabatt möjlig)
     expect(buildFloor(929, 800)).toBe(929);

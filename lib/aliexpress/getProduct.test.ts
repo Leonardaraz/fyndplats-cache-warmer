@@ -225,3 +225,127 @@ describe("getProduct — sku_property_value", () => {
     expect(p.variants.find((v) => v.skuProps.Color === "Green")?.stock).toBe(0);
   });
 });
+
+// ── Hyllstatus: nedtagen listning som ändå svarar 200 ────────────────────────
+//
+// Leonards rapport 2026-08-24 (Homcom-borden): konsumentsidan sa "Sorry, this
+// item is no longer available!" medan vår butik visade lagersaldo. DS-API:t
+// felade aldrig — det svarade 200 med full kropp och SKU-rader vars saldo stod
+// kvar fruset. Statusen låg i basinfon; ingen läste den.
+
+describe("classifyListingAvailability", () => {
+  it("onSelling → on_selling", async () => {
+    const { classifyListingAvailability } = await import("./client");
+    expect(classifyListingAvailability({ product_status_type: "onSelling" }))
+      .toEqual({ availability: "on_selling" });
+  });
+
+  it("annat statusvärde → offline, med AE:s egen orsakstext", async () => {
+    const { classifyListingAvailability } = await import("./client");
+    expect(classifyListingAvailability({
+      product_status_type: "offline",
+      ws_display: "expire_offline",
+    })).toEqual({ availability: "offline", reason: "offline / expire_offline" });
+  });
+
+  it("saknad status men satt ws_offline_date → offline", async () => {
+    const { classifyListingAvailability } = await import("./client");
+    const out = classifyListingAvailability({ ws_offline_date: 1755993600000 });
+    expect(out.availability).toBe("offline");
+  });
+
+  it("ws_offline_date 0 (AE:s 'ligger uppe') → unknown, inte offline", async () => {
+    const { classifyListingAvailability } = await import("./client");
+    expect(classifyListingAvailability({ ws_offline_date: 0 }))
+      .toEqual({ availability: "unknown" });
+    expect(classifyListingAvailability({ ws_offline_date: "0" }))
+      .toEqual({ availability: "unknown" });
+  });
+
+  it("HELT tom basinfo → unknown (tomt fält är ingen bevisning; domen nollar lager)", async () => {
+    const { classifyListingAvailability } = await import("./client");
+    expect(classifyListingAvailability({})).toEqual({ availability: "unknown" });
+    expect(classifyListingAvailability(undefined)).toEqual({ availability: "unknown" });
+  });
+
+  it("onSelling VINNER över ett gammalt ws_offline_date — en återupplagd vara får inte nollas", async () => {
+    const { classifyListingAvailability } = await import("./client");
+    expect(classifyListingAvailability({
+      product_status_type: "onSelling",
+      ws_offline_date: 1700000000000,
+    })).toEqual({ availability: "on_selling" });
+  });
+
+  it("stavningsvarianter av onSelling läses som LEVANDE (får inte nolla lager)", async () => {
+    const { classifyListingAvailability } = await import("./client");
+    for (const v of ["onSelling", "ON_SELLING", "on-selling", " onselling "]) {
+      expect(classifyListingAvailability({ product_status_type: v }).availability)
+        .toBe("on_selling");
+    }
+  });
+
+  it("'0000-00-00' som ws_offline_date är inget datum → unknown", async () => {
+    const { classifyListingAvailability } = await import("./client");
+    expect(classifyListingAvailability({ ws_offline_date: "0000-00-00" }))
+      .toEqual({ availability: "unknown" });
+  });
+});
+
+describe("getProduct — hyllstatus från DS-svaret", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    vi.stubEnv("STORE_BACKEND", "memory");
+    vi.stubEnv("ALIEXPRESS_APP_KEY", "test-app-key");
+    vi.stubEnv("ALIEXPRESS_APP_SECRET", "test-secret");
+    vi.stubEnv("ALIEXPRESS_ACCESS_TOKEN", "test-access-token");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  const svar = (base: Record<string, unknown>) => ({
+    ok: true,
+    json: () => Promise.resolve({
+      aliexpress_ds_product_get_response: {
+        result: {
+          ae_item_base_info_dto: { product_id: 42, subject: "Nesting tables", ...base },
+          ae_item_sku_info_dtos: [
+            // Saldot står kvar fruset — precis det som fick synken att spegla
+            // lager för en död listning.
+            { sku_id: "s1", sku_available_stock: 12, offer_sale_price: "80.00" },
+          ],
+        },
+      },
+    }),
+  });
+
+  it("nedtagen listning flaggas offline TROTS att svaret är 200 med lager kvar", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      svar({ product_status_type: "offline", ws_display: "expire_offline" }),
+    ));
+    const { getProduct } = await import("./client");
+    const p = await getProduct("42");
+    expect(p.listingAvailability).toBe("offline");
+    expect(p.offlineReason).toContain("expire_offline");
+    // Lagret finns kvar i svaret — det är just därför statusfältet behövs.
+    expect(p.variants[0].stock).toBe(12);
+  });
+
+  it("levande listning → on_selling, inget offlineReason", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(svar({ product_status_type: "onSelling" })));
+    const { getProduct } = await import("./client");
+    const p = await getProduct("42");
+    expect(p.listingAvailability).toBe("on_selling");
+    expect(p.offlineReason).toBeUndefined();
+  });
+
+  it("svar utan statusfält → unknown (oförändrat beteende för äldre svar)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(svar({})));
+    const { getProduct } = await import("./client");
+    const p = await getProduct("42");
+    expect(p.listingAvailability).toBe("unknown");
+  });
+});

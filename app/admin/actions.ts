@@ -162,7 +162,18 @@ export async function fetchSupplierVariantsAction(
   const productId = extractAliExpressProductId(productIdOrUrl ?? "");
   if (!productId) return { ok: false, error: "Kunde inte tolka produkt-id eller URL" };
   try {
-    const inv = await getInventory(productId);
+    const svar = await getInventory(productId);
+    // Nedtagen listning (audit 2026-08-24): det HÄR är väljaren Leonard använder
+    // för att peka om en order till en annan leverantörsprodukt. Att kunna välja
+    // en död listning här är samma fel som startade hela historien, fast manuellt
+    // och en order senare. Bara ett UTTRYCKLIGT "offline" avvisar.
+    if (svar.listingAvailability === "offline") {
+      return {
+        ok: false,
+        error: `AliExpress-listningen är nedtagen${svar.offlineReason ? ` (${svar.offlineReason})` : ""} — går inte att beställa. Välj en annan produkt.`,
+      };
+    }
+    const inv = svar.variants;
     if (inv.length === 0) return { ok: false, error: "Produkten saknar hämtbara varianter" };
     return {
       ok: true,

@@ -424,6 +424,11 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > const lagat = h.replace(RE, "$1 ");
 > ```
 >
+> **Typografistädningen ovan fångar inte det här.** Den arbetar inuti textnoder (`>([^<]+)<`)
+> och ser därför aldrig taggränsen `</span>` där mellanslaget saknas; dessutom kräver dess
+> regex en **versal** efter punkten, medan FAQ-svaret oftast börjar med en **siffra**
+> (*"…?29 cm"*). De två reglerna överlappar alltså inte — kör båda.
+>
 > **Avgränsa på `?`, inte på `:`.** Ett kolon-slut träffar spec-etiketterna (`<b>Skärm:</b> 4,3 tum`)
 > som redan är korrekta — i svepet slutade **alla 715** träffarna på `?` och **noll** på `:`.
 > Verifiera att bara mellanslag tillkommer innan du skriver: `ny.length === gammal.length +
@@ -558,6 +563,17 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > Regeln gäller studiobilder på vit botten, där produkten är motivet.
 > Svep över 120 produkter 2026-08-21: **11 hade en studiobild där produkten faktiskt kapas**
 > (2–22 % av produktens pixlar). 44 hade någon galleribild som kapas, men merparten av dem
+> är miljöbilder.
+>
+> **Omfattningen, mätt 2026-08-24:** **514 av 5 893 galleribilder (8,7 %) är icke-kvadratiska**
+> och beskärs därför, fördelat på **294 synliga produkter**. Bara **4 produkter** har en sned
+> HJÄLTE-bild — produktkortet i kategorilistorna är alltså nästan alltid helt; skadan sitter
+> inne i galleriet. Av ett spritt stickprov på 60 låg **28 % på ren vit studiobotten**, och de
+> går att laga mekaniskt med metoden ovan (klipp till innehållets bbox → kvadratisk vit duk,
+> 0.90-fyllnad, med assertionen). Resterande **72 % är riktiga foton** med egen bakgrund —
+> där måste beskärningsfönstret väljas per bild, för vit passepartout runt en gräsmatta ser
+> fel ut. Räkna inte "ramtapp" som "produkttapp" på ett foto: hela rutan är ju motiv, så
+> måtten sammanfaller per konstruktion och säger ingenting om varan är kapad.
 
 > ☠️ **`UploadImageToWixSite` svarar `success: true` även när uppladdningen sedan MISSLYCKAS — och en PATCH mot en icke-klar fil släpps TYST.** Svaret innehåller `operationStatus: "PENDING"`: Wix har tagit emot uppdraget, inte utfört det. Hämtar Wix din URL medan raw.githubusercontent strypter (429) eller svarar 500 hamnar filen i `state: "FAILED"` — men du har redan fått ditt `fileId`. Patchar du in det svarar V3 `200 OK`, **utelämnar item:et** och du upptäcker det först när galleriet gått från 6 bilder till 5. Hände 2026-08-17 på lasertag-hjälten: den gamla hjälten hann raderas i samma PATCH, så produkten låg en stund helt utan hjältebild.
    >
@@ -635,7 +651,7 @@ Noterade du i Steg 4 **dropship-logga** (SucceBuy/VEVOR/HOMCOM …), **vattenst�
 
 ### 10A – Läs ALLTID hela trädet först (read-only, 1 anrop)
 
-⚠️ **Gissa aldrig på en kategori ur minnet, och nöj dig aldrig med en toppkategori.** Trädet har **46 kategorier i tre nivåer** och de flesta produkter hör hemma i ett *löv*, inte i roten. Detta gick fel 2026-08-09: hamsterburen hamnade i "Hem & Inredning" och torkhuven i "Elektronik & Tillbehör" trots att **Husdjur → Burar, Kläder & Tillbehör** och **Skönhet & Hälsa → Hår & Rakning** fanns hela tiden — en kortlista från tidigare i sessionen användes i stället för trädet.
+⚠️ **Gissa aldrig på en kategori ur minnet, och nöj dig aldrig med en toppkategori.** Trädet har **53 kategorier i två nivåer** — 12 toppkategorier och 41 löv (uppmätt 2026-08-23; siffran stod tidigare som "46 i tre nivåer") — och de flesta produkter hör hemma i ett *löv*, inte i roten. Detta gick fel 2026-08-09: hamsterburen hamnade i "Hem & Inredning" och torkhuven i "Elektronik & Tillbehör" trots att **Husdjur → Burar, Kläder & Tillbehör** och **Skönhet & Hälsa → Hår & Rakning** fanns hela tiden — en kortlista från tidigare i sessionen användes i stället för trädet.
 
 ```
 POST https://www.wixapis.com/categories/v1/categories/query
@@ -780,17 +796,31 @@ ingenting annat**, oavsett hur mycket lager syskonen har.
 > vs 2809 kr). Skicka därför den överlevande variantens EGNA `price` i PATCH:en — inte
 > produktens gamla intervall.
 >
+> ✅ **Kollapsa genom att skicka den överlevande variantens BEFINTLIGA `id` — då slipper du
+> följdsteg 1 helt (verifierat 2026-08-23).** Skickar du `options: []` +
+> `variantsInfo.variants:[{ id:<befintligt variant-id>, choices: [], sku, price, visible:true }]`
+> behåller varianten sitt `variantId` **och sin lagerpost**. Kabelskalaren `4f38a11c` gick från
+> två färgval till enkelvariant med `variantId` och alla 49 i lager orörda. Följdsteg 1 nedan
+> gäller den andra vägen: bygger du om optionen med `optionChoiceNames` i stället för att peka
+> på id:t räknas varianterna om, och då ryker både id och lagerpost.
+>
 > ☠️ **Två följdsteg som INTE sker av sig själva:**
-> 1. **Lagerposterna raderas** när optionen tas bort, och den överlevande varianten får ett
+> 1. **Lagerposterna raderas** när optionen byggs om (se ✅-noten ovan — pekar du på det
+>    befintliga variant-id:t händer det inte), och den överlevande varianten får ett
 >    **nytt** `variantId` utan lagerpost (= slutsåld i butiken). Läs saldona FÖRE PATCH:en och
 >    `POST /stores/v3/inventory-items` per ny variant efteråt (`locationId` från en befintlig
 >    post). Wix städar själv de föräldralösa posterna — de behöver inte raderas.
 > 2. **Mappningsraden pekar fel.** `FyndplatsMappings.variants[]` har kvar en rad per borttagen
 >    variant, och den överlevandes `wixVariantId` är dött → en order skulle gå på fel eller
->    inget leverantörs-SKU. Matcha nya varianter mot mappningsraderna på **`sku`** (det överlever
->    PATCH:en), släng raderna utan träff, sätt nytt `wixVariantId` och stryk den borttagna axeln
->    ur `choices`. `PATCH /wix-data/v2/items/{id}` med
+>    inget leverantörs-SKU. **Matcha på `wixVariantId`, inte på `sku`.** Raden sa tidigare `sku`
+>    "eftersom den överlever PATCH:en" — det stämmer inte när Steg 8 redan har försvenskat
+>    SKU:n: då står `FP-kabelskalare-borrmaskin` i Wix mot `FP-hibrew-automatic-burr-eu` i
+>    mappningen och en SKU-koppling ger tyst noll träffar (samma drift som katalogsvepen
+>    längst ned varnar för). Släng raderna utan träff, sätt `wixVariantId` och stryk den
+>    borttagna axeln ur `choices`. `PATCH /wix-data/v2/items/{id}` med
 >    `fieldModifications:[{fieldPath:"variants",action:"SET_FIELD",setFieldOptions:{value:[…]}}]`.
+> 3. **Skriv samtidigt mappningens `sku` till den nya** — annars ärver nästa polering samma
+>    drift. Steg 8 rör bara Wix-sidan.
 >
 > *(Svepet 2026-08-21: 22 nyimporterade köksmaskiner, 21 av dem med uttagsaxel — 123 varianter
 > ned till 37. Utan regeln hade en svensk kund kunnat beställa en 110 V-juicer med US-stickpropp.)*
@@ -919,11 +949,24 @@ recensioner till dem.
 
 ```
 POST https://fyndplats-cache-warmer.vercel.app/api/reviews/import
+x-fyndplats-token: {EXTENSION_API_TOKEN}
 { "wixProductId": "{PRODUCT_ID}" }
 ```
 
 Utelämnas `reviews` hämtar rutten själv från leverantören. Anropet är **gratis** — det
 är ett öppet JSON-anrop, ingen översättningstjänst rörs.
+
+> ⚠️ **Rutten är token-skyddad** (`lib/auth.ts → isAuthorized`, headern
+> `x-fyndplats-token` mot `EXTENSION_API_TOKEN`). Utan den svarar den `401 {"error":"Otillåten"}`
+> — vilket är lätt att läsa som "produkten saknar recensioner". Har du inte token:
+> hämtningen går även att göra för hand mot `feedback.aliexpress.com/pc/searchEvaluation.do`
+> (`AE_FEEDBACK_ENDPOINT` i `lib/aliexpress/reviews.ts`, öppet JSON) och raderna skrivas direkt
+> till `FyndplatsImportedReviews` via `/wix-data/v2/items`. Radformen är
+> `_id: "<productId>__<reviewIdAE>"` plus `productId`, `reviewIdAE`, `rating`, `status`,
+> `textOriginal`, `textSwedish`, `initials`, `customerCountry`, `date`, `importedAt`,
+> `hasImage`, `imageUrl`, `imageUrls`. Gör du det: **äkthetsspärrarna är ditt ansvar** —
+> släpp aldrig igenom `aigc: true` eller `status !== "1"`, och flytta hem bilderna själv
+> (14B punkt 5), för då kör ingen `repairImages` åt dig.
 
 > **Produkten är INTE klar när svaret säger `imported: 12`.** Raderna sparas som
 > `status: "pending"` och är **osynliga för kund** tills någon skrivit om dem på svenska

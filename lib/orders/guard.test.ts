@@ -324,12 +324,67 @@ describe("buildGuardEmail", () => {
     const email = buildGuardEmail(findings({}), {
       sectionErrors: [],
       baseUrl: "https://example.test",
-      syncRollup: { runs: 6, checked: 480, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 3, restored: 0, errors: 20 },
+      syncRollup: { runs: 6, checked: 480, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 3, restored: 0, errors: 20, total: 876, skipped: 396, dryRuns: 0, throttled: 0 },
       openAlerts: 10,
       auction: { live: 5, queued: 12 },
     }, NOW);
     expect(email.text).toContain("6 körningar");
     expect(email.text).toContain("10 öppna sync-larm");
     expect(email.text).toContain("5 live, 12 i kö");
+  });
+});
+
+// ── Torrkörning får inte se ut som "allt rullar" (audit 2026-08-24) ──────────
+//
+// SYNC_DRY_RUN är default "true". En permanent torrkörande cron skriver
+// ingenting till Wix OCH fryser strike-fälten, så strike 2 är oåtkomlig i
+// princip — slutsålda och nedtagna produkter förblir köpbara. Mejlet kunde
+// inte se det: rollupen läste aldrig `dryRun`.
+
+describe("rollupSyncRuns + statusrad: torrkörning och nämnare", () => {
+  const rad = (detail: Record<string, unknown>) => ({
+    kind: "aliexpress-sync-run",
+    at: new Date(NOW - 60_000).toISOString(),
+    detail: JSON.stringify(detail),
+  });
+
+  it("räknar torrkörningar och plockar upp total/skipped/throttled", () => {
+    const r = rollupSyncRuns(
+      [
+        rad({ dryRun: true, checked: 100, total: 876, skipped: 776, throttled: 2 }),
+        rad({ dryRun: true, checked: 100, total: 876, skipped: 776, throttled: 1 }),
+      ] as never,
+      NOW,
+    );
+    expect(r.runs).toBe(2);
+    expect(r.dryRuns).toBe(2);
+    expect(r.total).toBe(876);      // nämnare, inte summa
+    expect(r.skipped).toBe(1552);   // summa
+    expect(r.throttled).toBe(3);
+  });
+
+  it("live-körningar räknas INTE som torrkörningar", () => {
+    const r = rollupSyncRuns([rad({ dryRun: false, checked: 100, total: 876 })] as never, NOW);
+    expect(r.dryRuns).toBe(0);
+  });
+
+  it("alla körningar torra → otvetydig varning i mejlet, inte en siffra bland andra", () => {
+    const email = buildGuardEmail(findings({}), {
+      sectionErrors: [],
+      baseUrl: "https://example.test",
+      syncRollup: { runs: 6, checked: 600, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 0, restored: 0, errors: 0, total: 876, skipped: 4656, dryRuns: 6, throttled: 0 },
+    }, NOW);
+    expect(email.text).toContain("SYNC_DRY_RUN är PÅ");
+    expect(email.text).toContain("förblir köpbara");
+    expect(email.text).toContain("600/876");
+  });
+
+  it("delvis torrkörning nämns med sitt förhållande", () => {
+    const email = buildGuardEmail(findings({}), {
+      sectionErrors: [],
+      baseUrl: "https://example.test",
+      syncRollup: { runs: 6, checked: 600, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 0, restored: 0, errors: 0, total: 876, skipped: 0, dryRuns: 2, throttled: 0 },
+    }, NOW);
+    expect(email.text).toContain("2 av 6 synk-körningar var torrkörningar");
   });
 });

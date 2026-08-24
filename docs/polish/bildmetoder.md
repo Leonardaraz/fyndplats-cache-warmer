@@ -470,6 +470,71 @@ faktiskt behov och har inte krävts på ~40 produkter.
 >   **unikt** `linkedMedia`-id (utöver hero). Två olika-seende varianter som pekar på samma icke-hero-id
 >   = fel. (Rättat i efterhand på bänk/stege/väska/basket 2026-07-19 — gör aldrig om det.)
 
+### När etiketten sitter PÅ produkten (2026-08-24, transportvagnen)
+
+Komponentrekonstruktionen ovan säger att den inte fungerar när pilar/streck binder ihop
+text med produkten. Det stämmer — men **den bindningen är också lösningen**, och innan du
+retuscherar ska du fråga om etiketten ska bort alls.
+
+> 🚨 **Fråga först: måste måttet bort?** Transportvagnens tre hjul bar "46cm/18.11in",
+> "25cm/10in" och "86cm/33.8in" tryckta på gummit. Jag transplanterade in rena hjul från
+> en annan leverantörsbild. Tekniskt lyckat — och Leonard förkastade det: *"Såg inte bra
+> ut. Du kanske kan låta måtten som fanns på däcken finnas kvar så däcken inte ser
+> konstiga ut."*
+>
+> Han har rätt. Ett transplantat bär den andra bildens **ljussättning och skärpa** med
+> sig, och blir det för jämnt och för mjukt lyst mot resten av fotot läser det som en
+> påklistrad dekal — den skarpa nätsidan bredvid gjorde kontrasten värre. **En retusch
+> bedöms mot bilden den sitter i, aldrig mot sig själv.** QC:a både inzoomat **och** i den
+> storlek kunden faktiskt ser. Ett mått tryckt på ett däck är dessutom information, inte
+> skräp; det blev konstigt först när jag försökte ta bort det.
+
+**Metod 0c — behåll det som rör produkten, släng det som svävar fritt.** På en
+leverantörs-**måttritning** är bilden redan uppdelad åt dig: måtten vars pilar når fram
+till varan sitter ihop med den i samma sammanhängande komponent, medan de yttre måtten
+ligger fritt på vit botten som egna komponenter. Kartlägg dem i stället för att gissa —
+`ndimage.label` plus en overlay med numrerade bboxar — och behåll produktkomponenten plus
+de mått du vill ha kvar. Ingen mask, ingen målning, ingen rörd produktpixel.
+
+Transportvagnens a8 bestod av 32 komponenter: nr 6 (vagnen + 46/25 cm-texterna +
+86 cm-pilen), nr 21 + 23 (86 cm-texten), och 29 komponenter till för banderollen och de
+fem yttre måtten 97/52/23/50/76 cm. `BEHALL = {6, 21, 23}` gav exakt "vagnen med
+däckmåtten kvar".
+
+> ⚠️ **Spärra på komponentnivå, inte med rektanglar.** Hjulen sticker in i 50 cm- och
+> 76 cm-måttens ytor, så en rektangelkontroll där träffar vagnen i stället för måttet (den
+> fällde två gånger innan jag bytte). `assert set(np.unique(lab[behall])) - {0} == BEHALL`
+> är exakt. Rektangel-spärrar bara där de bevisligen ligger utanför produktens bbox.
+
+**Måste du ändå retuschera** — texten sitter på varan och det finns ingen ritning att
+plocka isär — gäller tre regler, alla köpta med misslyckade försök på samma bild:
+
+> ⚠️ **1. En inpaint-mask får bara ligga på EN yta.** Biharmonisk fyllning interpolerar
+> mellan maskens ränder. En rektangel som spänner från vit botten in på svart gummi ger en
+> **grå smet** som äter både produktens kant och det som råkade ligga i vägen. Dela zonen
+> per yta: vitt blir vitt, en rak stång ritas om som radkopia av sitt eget tvärsnitt
+> (uppmätt lutning), och bara gummit fylls biharmoniskt — med rutans ränder på gummi hela
+> vägen runt.
+>
+> ⚠️ **2. Kantregelns tröskel avgör vad som är "fritt".** Kantregeln (behåll bara klumpar
+> som INTE rör zonens kant) är rätt verktyg för text som flyter i vitt — men vid tröskeln
+> 242 hänger en siffra ihop med däcket via dess **mjuka skugga** och räknas som produkt.
+> Tryckt text är nästan svart: vid `L < 45` stod siffran fri som en enda klump. Mät
+> tröskeln, och `assert` att masken blev **en** klump.
+>
+> ⚠️ **3. Bygg aldrig en donator-mask på ljushet.** Vid transplantation maskade jag
+> `mean(2) > 200` över hela hjulskivan för att fånga textens ljusa kant — och tog
+> **kromnavet** (L 200–240), ekrarna och den vita fondremsan bakom däcket. Rotations-
+> kopieringen malde sönder navet till ett svart plask. Maska på **färg + läge**, och lägg
+> in spärren som en assertion: `assert not (mask & nav).any()`.
+
+Fungerar transplantation ändå bäst i ett visst fall: låna en ren instans av samma detalj
+från en annan bild av samma produkt (slår all syntes) → rotationskopiering runt
+hjulcentrum (mönstret repeterar runt omkretsen) → biharmonisk fyllning på **en** slät yta.
+Färgmatcha med en ren **nivåförskjutning** mellan två verifierade rutor av samma material
+med jämförbar spridning — inte gain, och aldrig objektmedelvärden mot varandra. Låt
+klistermasken följa **innehållet** (gräs/teal/vit fond ut) i stället för en cirkel.
+
 **Beslutsträd vid problemzoner:** text över slät bakgrund → LaMa · text i kantpanel →
 bandbeskärning · stort grafikelement mitt i strukturerad bakgrund (handtag, bordskant,
 gräs) → försök LaMa/geometrisk omritning, max ~3 iterationer, annars utgår bilden ·

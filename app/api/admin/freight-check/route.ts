@@ -76,6 +76,11 @@ export async function GET(req: NextRequest) {
     // med raw=1 (kan vara stort).
     const productSummary = {
       title: product.title,
+      // Hyllstatusen fanns på objektet men emittades inte (audit 2026-08-24) —
+      // och det är precis den frågan man kommer hit för att få svar på när ett
+      // lagersaldo ser konstigt ut: lever listningen ens?
+      listingAvailability: product.listingAvailability ?? "unknown",
+      ...(product.offlineReason ? { offlineReason: product.offlineReason } : {}),
       shipsFromCountries: product.shipsFromCountries,
       hasEuWarehouse: product.hasEuWarehouse,
       totalStock: product.variants.reduce((s, v) => s + (v.stock ?? 0), 0),
