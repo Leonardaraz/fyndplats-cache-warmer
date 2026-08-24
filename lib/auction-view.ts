@@ -14,6 +14,7 @@
 // pris + tidpunkt för NÄSTA sänkning.
 
 import { getProducts, type Product } from "./products";
+import { synligaFynd } from "./auction-visible";
 
 const WIX_BASE = "https://www.wixapis.com";
 const COL = "FyndplatsAuctions";
@@ -137,7 +138,9 @@ export async function getLiveAuctions(): Promise<LiveAuctionView[]> {
   const [rows, products] = await Promise.all([queryAuctionRows(["live"]), getProducts()]);
   const bySlug = new Map<string, Product>(products.map((p) => [p.slug, p]));
   const now = Date.now();
-  return rows
+  // Ett sålt fynd ersätts inte samma dag — regeln och skälen i
+  // lib/auction-visible.ts.
+  return synligaFynd(rows, now)
     .map((r) => {
       const p = bySlug.get(r.slug ?? "");
       if (!p || !r.listPrice) return null;
