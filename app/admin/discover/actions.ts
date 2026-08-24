@@ -93,6 +93,20 @@ export async function importByUrlAction(url: string): Promise<ImportActionRespon
   try {
     const detail = await getProduct(productId);
 
+    // NEDTAGEN LISTNING (audit 2026-08-24). Den här vägen går FÖRBI /api/import
+    // och därmed förbi både dubblettspärren och kontamineringsguarderna — den
+    // behöver därför sin egen. Extra angeläget här: OOS-mejlets alternativ-
+    // förslag länkar rakt in hit med ett klick, och kandidaterna kommer från en
+    // textsökning som aldrig kollat om listningen lever.
+    if (detail.listingAvailability === "offline") {
+      return {
+        ok: false,
+        message:
+          `AliExpress-listningen är nedtagen${detail.offlineReason ? ` (${detail.offlineReason})` : ""}`
+          + " — den går inte att beställa och importeras därför inte.",
+      };
+    }
+
     const adapted: AliExpressProduct = {
       supplierProductId: detail.productId,
       sourceUrl: url,

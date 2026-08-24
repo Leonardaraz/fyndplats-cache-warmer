@@ -55,3 +55,32 @@ export function rateLimitWaitMs(msg: unknown): number {
   if (!Number.isFinite(sek) || sek <= 0) return DEFAULT_BAN_MS;
   return Math.min(MAX_WAIT_MS, Math.round(sek * 1000) + MARGIN_MS);
 }
+
+/**
+ * Räknare för AE:s frekvensspärr.
+ *
+ * Vi VISSTE redan när vi blev strypta — `isRateLimitError` avgör det på varje
+ * anrop — men siffran kastades bort, så frågan "hur nära taket ligger vi?"
+ * gick bara att gissa på (audit 2026-08-24). Med räknaren i synk-summeringen
+ * och morgonmejlet blir marginalen till taket något man kan läsa av, och
+ * budgethöjningar något man kan grunda i mätning i stället för magkänsla.
+ *
+ * Processlokal och best-effort: en serverless-instans lever kort, och siffran
+ * är ett trendmått per körning — inte bokföring.
+ */
+let strypningar = 0;
+
+/** Anropas när ett anrop faktiskt blev strypt (ApiCallLimit). */
+export function noteRateLimited(): void {
+  strypningar++;
+}
+
+/** Nollställer räknaren (anropas i början av en körning). */
+export function resetRateLimitCount(): void {
+  strypningar = 0;
+}
+
+/** Antal strypta anrop sedan senaste nollställning. */
+export function rateLimitCount(): number {
+  return strypningar;
+}

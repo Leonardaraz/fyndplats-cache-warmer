@@ -20,7 +20,7 @@
 
 import { createHmac } from "node:crypto";
 import { getStore } from "../store/factory";
-import { isRateLimitError, rateLimitWaitMs, RATE_LIMIT_MAX_RETRIES } from "./rate-limit";
+import { isRateLimitError, noteRateLimited, rateLimitWaitMs, RATE_LIMIT_MAX_RETRIES } from "./rate-limit";
 import {
     classifyWarehouses,
     hasAnyEuWarehouse,
@@ -133,6 +133,7 @@ async function callApi<T>(
 
     const fel = json.error_response;
     if (isRateLimitError(fel) && försök < RATE_LIMIT_MAX_RETRIES) {
+      noteRateLimited();
       const väntaMs = rateLimitWaitMs((fel as { msg?: unknown })?.msg);
       console.warn(
         `[aliexpress] ${method} strypt (ApiCallLimit) — väntar ${väntaMs} ms och gör om ` +
@@ -1086,11 +1087,40 @@ export function parseTrackingResponse(tradeOrderId: string, raw: RawTracking): D
     };
 }
 
+/** En variantrad ur `getInventory`. */
+export interface DsInventoryVariant {
+  skuId: string;
+  price: number;
+  stock: number;
+  skuProps: Record<string, string>;
+  shipFrom?: string;
+  imageUrl?: string;
+}
+
+/**
+ * Lagersvaret PLUS hyllstatusen.
+ *
+ * Formen är ett objekt och inte en naken array med flit (audit 2026-08-24):
+ * `getInventory` anropade `getProduct` och projicerade bort
+ * `listingAvailability`, så varje konsument var blind *by construction* — och
+ * det är den här funktionen både `/api/import` och `/api/aliexpress/sync-all`
+ * använder. En nedtagen listning svarar 200 med fruset saldo, alltså speglade
+ * sync-all tillbaka lager för något ingen kunde köpa, förbi hela spärren i
+ * synken. Med statusen i returtypen blir det ett typfel att glömma den, inte
+ * en tyst regression.
+ */
+export interface DsInventoryResult {
+  variants: DsInventoryVariant[];
+  listingAvailability: ListingAvailability;
+  /** AE:s egen orsakstext när listningen är nedtagen. */
+  offlineReason?: string;
+}
+
 export async function getInventory(
     productId: string,
-  ): Promise<{ skuId: string; price: number; stock: number; skuProps: Record<string, string>; shipFrom?: string; imageUrl?: string }[]> {
+  ): Promise<DsInventoryResult> {
     const product = await getProduct(productId);
-    return product.variants.map((v) => ({
+    const variants: DsInventoryVariant[] = product.variants.map((v) => ({
           skuId: v.skuId,
           price: v.price,
           stock: v.stock ?? 0,
@@ -1104,6 +1134,11 @@ export async function getInventory(
           // (linkedMedia) även när skrapan tappade swatch-bilderna.
           imageUrl: v.imageUrl,
     }));
+    return {
+      variants,
+      listingAvailability: product.listingAvailability ?? "unknown",
+      ...(product.offlineReason ? { offlineReason: product.offlineReason } : {}),
+    };
 }
 
 export interface AliExpressSearchResult {

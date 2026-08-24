@@ -274,6 +274,31 @@ Fyra egenskaper som inte ska tas bort:
   och SEO-beslutet från 2026-08-09 — lagret nollas, sidan ligger kvar, och en
   senare `onSelling`-läsning återställer produkten av sig själv.
 
+### Var hyllstatusen gatas (audit 2026-08-24)
+
+Detektionen i synken var bara ett av hålen. Samma verdikt läses nu i varje väg
+där en död listning annars kunde nå kunden:
+
+| Väg | Fil | Vad som händer vid `offline` |
+|---|---|---|
+| Dagliga synken | `sync/aliexpress-sync.ts` | `ListingOfflineError` → `removedStreak` → lagret nollas |
+| Andra synkvägen | `api/aliexpress/sync-all` | lagret nollas direkt (rutten har inget strike-state) |
+| Extension-import | `api/import` | 422 `listing_offline`, efter dubblettspärren |
+| Bulk-/CSV-import | `import/from-url.ts` | kastar → raden failar synligt i bulk-kön |
+| Discover-import | `admin/discover/actions.ts` | vägrar (går förbi /api/import:s guards) |
+| Säljarbevakningen | `discover/supplier-watch.ts` | `listing_offline`-reject före enqueue |
+| Alternativ-förslag | `aliexpress/alternatives.ts` | sållas bort före cache OCH vid cache-läsning |
+| Leverantörsbyte | `admin/actions.ts` | vägrar — annars beställs ordern mot en död listning |
+| Tilläggets produktdata | `api/aliexpress/product` | `inStock: false` |
+
+`getInventory` returnerar sedan dess ett **objekt** med `listingAvailability`,
+inte en naken array. Formen är vald med flit: funktionen anropade `getProduct`
+och projicerade bort statusen, så varje konsument var blind *by construction*.
+Nu är det ett typfel att glömma den, inte en tyst regression.
+
+Genomgående regel: bara ett **uttryckligt** `"offline"` fäller. `"unknown"`
+beter sig exakt som före fältet fanns.
+
 ### Vid felsökning: kolla i den här ordningen
 
 1. **`SYNC_DRY_RUN`.** Default är `"true"` — allt som INTE är strängen `"false"`
@@ -286,12 +311,48 @@ Fyra egenskaper som inte ska tas bort:
 3. **Tidsfönstret.** Även när allt fungerar är kedjan långsam med flit: sync var
    4:e timme, två strikes i rad innan lagret nollas, och fraktbarhetsnejet
    kräver två bekräftelser med ett dygns spridning (`NEGATIVE_MIN_SPAN_MS`).
-   Ett dygn från död listning till nollat lager är förväntat, inte en bugg.
 
-**Fortfarande inte byggt:** någon tillgänglighetskoll vid *orderläggningen*.
-`place-order.ts` hämtar produkten för prisvakten och fraktvalet men tittar
-varken på lager eller hyllstatus. Kapplöpningen mellan synk och order är alltså
-öppen även efter den här fixen.
+### Strikes räknas per NÅDD produkt — inte per körning
+
+Det här är den lätta missläsningen, och den kostade tre dygn per död listning.
+`REMOVED_STRIKES_REQUIRED = 2` ser ut att betyda "två körningar", alltså åtta
+timmar. Men `removedStreak` ökar bara när produkten faktiskt **nås** i loopen,
+och sorteringen (äldsta `lastCheckedAt` först) lade en just nådd produkt **sist
+i kön**. Två strikes låg därför en hel ROTATION isär:
+
+| Väg | Reaches | Verklig tid |
+|---|---|---|
+| Bestseller / nyss köpt (`priority=high`) | 2 | ~8 h |
+| Normal produkt, DS säger `offline` | 2 | ~72 h |
+| Normal produkt, döden syns som oklassat fel | 6 | 9–17 dygn |
+
+> En tidigare version av det här stycket påstod "ett dygn … är förväntat".
+> Det gällde bara `priority=high`. Rättat 2026-08-24.
+
+`orderForRotation` (`aliexpress-sync.ts`) ger därför produkter med **öppen
+strike-serie** förtur i nästa körning, med tak `OPEN_STREAK_PRIORITY_CAP = 30`
+så en masshändelse inte svälter rotationen. `errorStreak` ger medvetet INTE
+förtur — den stiger för hela katalogen samtidigt vid AE-driftstörning.
+
+### Ett tyst dry-run är det farligaste läget
+
+`SYNC_DRY_RUN` är default `"true"`, och i dry-run **fryses strike-fälten**
+(`removedStreak`, `zeroStreak`, `errorStreak`). En permanent torrkörande cron
+kan alltså aldrig nå strike 2 — ens i principen. Morgonmejlet kunde inte se
+det (rollupen läste aldrig `dryRun`, digesten filtrerar bort `dry_run`-rader),
+så resultatet blev "✅ allt rullar" medan butiken var oskyddad. Rollupen räknar
+nu torrkörningar och statusraden säger det rakt ut.
+
+**Fortfarande inte byggt:**
+
+- **Tillgänglighetskoll vid orderläggningen.** `place-order.ts` hämtar produkten
+  för prisvakten och fraktvalet men tittar varken på lager eller hyllstatus.
+  Kapplöpningen mellan synk och order är öppen. Medvetet nedprioriterad
+  2026-08-24: målet är att felet aldrig ska nå kassan.
+- **Synk-livlighet i `health-check`.** Den pingar bara Wix Stores och märker
+  aldrig att synken slutat köra. Övervägt 2026-08-24 men utelämnat: routen har
+  EN `consecutiveFails`-räknare och EN larm-strypning, så en Wix-utage och en
+  stannad synk hade delat tillstånd och larm. Kräver egen state-nyckel.
 
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 

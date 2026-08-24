@@ -6,6 +6,8 @@ import {
   rankDeterministic,
   priceWithinRange,
   isCategoryConfident,
+  filterOutOfflineListings,
+  type AlternativeSupplier,
 } from "./alternatives";
 import type { AliExpressSearchResult } from "./client";
 
@@ -164,5 +166,48 @@ describe("buildImportUrl", () => {
       "https://www.aliexpress.com/item/123.html",
     );
     expect(parsed.searchParams.get("replacesProductId")).toBe("wix-old");
+  });
+});
+
+// ── Nedtagna kandidater rekommenderas aldrig (audit 2026-08-24) ──────────────
+//
+// Kandidaterna kommer från textsökningen, som inte bär hyllstatus — statusen
+// var aldrig hämtad. Förslagen går ut i OOS-mejlet med en ETT-KLICKS importlänk
+// och cachas i 30 dygn, så en död listning kunde bli "ersättaren".
+
+describe("filterOutOfflineListings", () => {
+  const kandidat = (id: string): AlternativeSupplier => ({
+    aliexpressId: id, title: `p-${id}`, productUrl: `https://ae/${id}`,
+    shipsFromCountries: ["ES"], warehouseClass: "EU", score: 50,
+    scoreReason: "", importUrl: `https://admin/${id}`,
+  });
+
+  it("släpper igenom levande och sållar bort nedtagna", async () => {
+    const kvar = await filterOutOfflineListings(
+      [kandidat("a"), kandidat("död"), kandidat("c")],
+      async (id) => (id === "död" ? "offline" : "on_selling"),
+    );
+    expect(kvar.map((k) => k.aliexpressId)).toEqual(["a", "c"]);
+  });
+
+  it("fail-open per kandidat: ett trasigt uppslag behåller kandidaten", async () => {
+    const kvar = await filterOutOfflineListings(
+      [kandidat("a"), kandidat("b")],
+      async (id) => { if (id === "a") throw new Error("nätfel"); return "on_selling"; },
+    );
+    expect(kvar.map((k) => k.aliexpressId)).toEqual(["a", "b"]);
+  });
+
+  it("'unknown' räknas aldrig som nedtagen", async () => {
+    const kvar = await filterOutOfflineListings([kandidat("a")], async () => "unknown");
+    expect(kvar).toHaveLength(1);
+  });
+
+  it("alla nedtagna → tom lista (hellre inga förslag än döda förslag)", async () => {
+    const kvar = await filterOutOfflineListings(
+      [kandidat("a"), kandidat("b")],
+      async () => "offline",
+    );
+    expect(kvar).toEqual([]);
   });
 });

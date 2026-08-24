@@ -2,6 +2,8 @@ import { buildStockBySupplierId, isUnsaleableError } from "./aliexpress-sync";
 import { describe, expect, it } from "vitest";
 import {
   scopeMappings,
+  orderForRotation,
+  REMOVED_STRIKES_REQUIRED,
   ERROR_STRIKES_AS_REMOVED,
   classifyFetchError,
   decideSyncOutcome,
@@ -9,6 +11,7 @@ import {
   resolveInventoryQuantities,
   type SyncInputs,
 } from "./aliexpress-sync";
+import type { SyncStateEntry } from "./sync-log";
 import type { PricingConfig } from "../import/types";
 
 const PRICING: PricingConfig = {
@@ -666,5 +669,74 @@ describe("hyllstatus → borttagen listning (200-svaret som såg levande ut)", (
     // 604 fryser sviten och döljer aldrig; hyllbeskedet SKA driva strike-räkningen.
     expect(isUnsaleableError(err.message.toLowerCase())).toBe(false);
     expect(err instanceof ListingOfflineError).toBe(true);
+  });
+});
+
+// ── Körordning: öppen strike-serie får förtur (audit 2026-08-24) ─────────────
+//
+// Strikes räknas per NÅDD produkt, och sorteringen lade en just nådd produkt
+// sist i kön. Två strikes låg därför en full rotation isär — 72 h för en
+// normalprioriterad produkt, inte de 4 h mellan körningarna som
+// REMOVED_STRIKES_REQUIRED ser ut att lova. Produkten var köpbar hela tiden.
+
+describe("orderForRotation", () => {
+  const st = (id: string, over: Partial<SyncStateEntry> = {}): SyncStateEntry => ({
+    wixProductId: id, aliexpressId: `ae-${id}`, currentCostSek: 1, currentCostUsd: 1,
+    currentStock: 1, listingStatus: "active", titleHash: null, imageHash: null,
+    lastCheckedAt: "2026-08-24T00:00:00Z", ...over,
+  });
+  const rad = (id: string, priority: "high" | "normal" | "low", state: SyncStateEntry | null) =>
+    ({ mapping: { wixProductId: id, priority }, state });
+
+  it("produkt med obekräftad removedStreak går FÖRE en nyss kontrollerad bestseller", () => {
+    const misstänkt = rad("misstankt", "normal", st("misstankt", { removedStreak: 1 }));
+    const bestseller = rad("bestis", "high", st("bestis"));
+    const ordning = orderForRotation([bestseller, misstänkt]);
+    expect(ordning[0].mapping.wixProductId).toBe("misstankt");
+  });
+
+  it("obekräftad zeroStreak ger också förtur", () => {
+    const a = rad("noll", "normal", st("noll", { zeroStreak: 1 }));
+    const b = rad("vanlig", "normal", st("vanlig", { lastCheckedAt: "2020-01-01T00:00:00Z" }));
+    expect(orderForRotation([b, a])[0].mapping.wixProductId).toBe("noll");
+  });
+
+  it("BEKRÄFTAD serie ger ingen förtur — domen är redan fälld", () => {
+    const klar = rad("klar", "low", st("klar", { removedStreak: REMOVED_STRIKES_REQUIRED }));
+    const hög = rad("hog", "high", st("hog"));
+    expect(orderForRotation([klar, hög])[0].mapping.wixProductId).toBe("hog");
+  });
+
+  it("errorStreak ger INTE förtur — den stiger för hela katalogen vid AE-driftstörning", () => {
+    const fel = rad("fel", "normal", st("fel", { errorStreak: 3 }));
+    const hög = rad("hog", "high", st("hog"));
+    expect(orderForRotation([fel, hög])[0].mapping.wixProductId).toBe("hog");
+  });
+
+  it("taket hindrar en masshändelse från att svälta rotationen", () => {
+    const många = Array.from({ length: 50 }, (_, i) =>
+      rad(`m${i}`, "normal", st(`m${i}`, { removedStreak: 1, lastCheckedAt: `2026-08-${String(i + 1).padStart(2, "0")}T00:00:00Z` })));
+    const hög = rad("hog", "high", st("hog"));
+    const ordning = orderForRotation([...många, hög], 30);
+    // 30 förtursplatser, sedan ska bestsellern in före de 20 överskjutande.
+    expect(ordning.slice(0, 30).every((e) => e.mapping.wixProductId.startsWith("m"))).toBe(true);
+    expect(ordning[30].mapping.wixProductId).toBe("hog");
+  });
+
+  it("utan öppna serier är ordningen exakt som förut (prioritet, sedan äldst först)", () => {
+    const rader = [
+      rad("ny-normal", "normal", st("ny-normal", { lastCheckedAt: "2026-08-24T00:00:00Z" })),
+      rad("gammal-normal", "normal", st("gammal-normal", { lastCheckedAt: "2026-01-01T00:00:00Z" })),
+      rad("hog", "high", st("hog")),
+      rad("lag", "low", st("lag", { lastCheckedAt: "2020-01-01T00:00:00Z" })),
+    ];
+    expect(orderForRotation(rader).map((e) => e.mapping.wixProductId))
+      .toEqual(["hog", "gammal-normal", "ny-normal", "lag"]);
+  });
+
+  it("saknad state (aldrig kontrollerad) är ingen öppen serie men sorteras först i sin tier", () => {
+    const aldrig = rad("aldrig", "normal", null);
+    const kollad = rad("kollad", "normal", st("kollad"));
+    expect(orderForRotation([kollad, aldrig])[0].mapping.wixProductId).toBe("aldrig");
   });
 });

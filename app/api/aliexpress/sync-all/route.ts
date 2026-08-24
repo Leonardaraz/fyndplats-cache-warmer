@@ -43,7 +43,37 @@ export async function POST(req: NextRequest) {
   for (const mapping of mappings) {
     try {
       // Hämta aktuellt lager + pris per variant från DS API.
-      const inventory = await getInventory(mapping.supplierProductId);
+      const svar = await getInventory(mapping.supplierProductId);
+      const inventory = svar.variants;
+
+      // NEDTAGEN LISTNING (audit 2026-08-24). Den här rutten är en ANDRA
+      // synkväg vid sidan av /api/cron/aliexpress-sync, och den saknade
+      // hyllstatuskollen helt — en nedtagen listning svarar 200 med saldot
+      // fruset på sista kända värdet, så rutten speglade tillbaka lager för
+      // något ingen kunde köpa och upphävde spärren i synken.
+      //
+      // Här nollas lagret DIREKT i stället för att gå via strike-räkning:
+      // rutten körs manuellt/på begäran och har inget state att räkna strikes
+      // i. Den fäller aldrig ett eget domslut på tveksamt underlag — bara ett
+      // UTTRYCKLIGT "offline" räknas, `unknown` passerar som förut.
+      if (svar.listingAvailability === "offline") {
+        const orsak = svar.offlineReason ? ` (${svar.offlineReason})` : "";
+        // Byggs explicit i stället för via buildDesiredStock(variants, []):
+        // den funktionens kontrakt säger uttryckligen att ett TOMT AE-svar är
+        // transient och ska hoppas över. Här är noll inte ett tomt svar utan en
+        // dom, och att låna en funktion vars dokumentation säger motsatsen är
+        // hur nästa läsare drar fel slutsats.
+        const desired = mapping.variants
+          .filter((v) => v.wixVariantId)
+          .map((v) => ({ wixVariantId: v.wixVariantId as string, quantity: 0 }));
+        if (desired.length > 0) {
+          await syncProductStock(mapping.wixProductId, desired);
+          synced++;
+        }
+        errors.push(`${mapping.supplierProductId}: listningen är nedtagen${orsak} — lagret nollat`);
+        void audit("sync-listing-offline", mapping.wixProductId, `nedtagen listning${orsak} — lagret nollat`);
+        continue;
+      }
 
       // Tomt/degraderat svar → rör INTE lagret (annars skulle ett partiellt
       // svar lämna allt orört, eller nolla fel). Hoppa över och försök nästa körning.
