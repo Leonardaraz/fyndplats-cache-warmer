@@ -410,6 +410,11 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > const lagat = h.replace(RE, "$1 ");
 > ```
 >
+> **Typografistädningen ovan fångar inte det här.** Den arbetar inuti textnoder (`>([^<]+)<`)
+> och ser därför aldrig taggränsen `</span>` där mellanslaget saknas; dessutom kräver dess
+> regex en **versal** efter punkten, medan FAQ-svaret oftast börjar med en **siffra**
+> (*"…?29 cm"*). De två reglerna överlappar alltså inte — kör båda.
+>
 > **Avgränsa på `?`, inte på `:`.** Ett kolon-slut träffar spec-etiketterna (`<b>Skärm:</b> 4,3 tum`)
 > som redan är korrekta — i svepet slutade **alla 715** träffarna på `?` och **noll** på `:`.
 > Verifiera att bara mellanslag tillkommer innan du skriver: `ny.length === gammal.length +
