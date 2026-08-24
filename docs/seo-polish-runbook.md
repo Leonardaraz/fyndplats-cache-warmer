@@ -410,6 +410,11 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > const lagat = h.replace(RE, "$1 ");
 > ```
 >
+> **Typografistädningen ovan fångar inte det här.** Den arbetar inuti textnoder (`>([^<]+)<`)
+> och ser därför aldrig taggränsen `</span>` där mellanslaget saknas; dessutom kräver dess
+> regex en **versal** efter punkten, medan FAQ-svaret oftast börjar med en **siffra**
+> (*"…?29 cm"*). De två reglerna överlappar alltså inte — kör båda.
+>
 > **Avgränsa på `?`, inte på `:`.** Ett kolon-slut träffar spec-etiketterna (`<b>Skärm:</b> 4,3 tum`)
 > som redan är korrekta — i svepet slutade **alla 715** träffarna på `?` och **noll** på `:`.
 > Verifiera att bara mellanslag tillkommer innan du skriver: `ny.length === gammal.length +
@@ -544,6 +549,17 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > Regeln gäller studiobilder på vit botten, där produkten är motivet.
 > Svep över 120 produkter 2026-08-21: **11 hade en studiobild där produkten faktiskt kapas**
 > (2–22 % av produktens pixlar). 44 hade någon galleribild som kapas, men merparten av dem
+> är miljöbilder.
+>
+> **Omfattningen, mätt 2026-08-24:** **514 av 5 893 galleribilder (8,7 %) är icke-kvadratiska**
+> och beskärs därför, fördelat på **294 synliga produkter**. Bara **4 produkter** har en sned
+> HJÄLTE-bild — produktkortet i kategorilistorna är alltså nästan alltid helt; skadan sitter
+> inne i galleriet. Av ett spritt stickprov på 60 låg **28 % på ren vit studiobotten**, och de
+> går att laga mekaniskt med metoden ovan (klipp till innehållets bbox → kvadratisk vit duk,
+> 0.90-fyllnad, med assertionen). Resterande **72 % är riktiga foton** med egen bakgrund —
+> där måste beskärningsfönstret väljas per bild, för vit passepartout runt en gräsmatta ser
+> fel ut. Räkna inte "ramtapp" som "produkttapp" på ett foto: hela rutan är ju motiv, så
+> måtten sammanfaller per konstruktion och säger ingenting om varan är kapad.
 
 > ☠️ **`UploadImageToWixSite` svarar `success: true` även när uppladdningen sedan MISSLYCKAS — och en PATCH mot en icke-klar fil släpps TYST.** Svaret innehåller `operationStatus: "PENDING"`: Wix har tagit emot uppdraget, inte utfört det. Hämtar Wix din URL medan raw.githubusercontent strypter (429) eller svarar 500 hamnar filen i `state: "FAILED"` — men du har redan fått ditt `fileId`. Patchar du in det svarar V3 `200 OK`, **utelämnar item:et** och du upptäcker det först när galleriet gått från 6 bilder till 5. Hände 2026-08-17 på lasertag-hjälten: den gamla hjälten hann raderas i samma PATCH, så produkten låg en stund helt utan hjältebild.
    >
