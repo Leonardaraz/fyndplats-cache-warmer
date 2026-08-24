@@ -3,11 +3,23 @@ name: Lägg till 301-redirect (manuell trigger)
 # Skriver en redirect för en borttagen produkt till FyndplatsRedirects, som
 # storefronten läser när /produkt/<slug> inte längre finns (404 → 308).
 #
-# Använd när en produkt raderats ur Wix: peka den mot närmaste levande produkt,
-# annars mot kategorin. Undvik startsidan (Google räknar mass-redirects dit som
-# "soft 404").
+# Använd när en produkt raderats ur Wix ELLER när en publicerad produkt bytt
+# slug: peka den mot närmaste levande produkt, annars mot kategorin. Undvik
+# startsidan och /alla-produkter — Google räknar en redirect till en irrelevant
+# sida som "soft 404", vilket är sämre än en ärlig 404.
 #
-# Kör utan from_slug för att bara LISTA befintliga redirects.
+# Kör utan from_slug och utan batch för att bara LISTA befintliga redirects.
+#
+# Två skrivlägen:
+#   from_slug + to_path  → en rad (som tidigare)
+#   batch                → flera rader i ETT anrop. JSON-array:
+#                            [{"fromSlug":"gammal","toPath":"/produkt/ny"}, …]
+#                          Ett anrop i stället för N kör katalogkontrollen
+#                          (listAllV3Products) en gång i stället för N gånger,
+#                          vilket är hela poängen: N parallella körningar
+#                          rate-limitar Wix och faller sönder halvvägs.
+#                          Rutten validerar allt-eller-inget, så en trasig rad
+#                          skriver ingenting alls.
 #
 # Återanvänder befintliga repository secrets:
 #   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
@@ -28,6 +40,10 @@ on:
         description: "Anteckning (valfri)"
         required: false
         type: string
+      batch:
+        description: 'Flera rader på en gång: JSON-array [{"fromSlug":"…","toPath":"/produkt/…"}]. Vinner över from_slug.'
+        required: false
+        type: string
       force:
         description: "Skriv även om slugen fortfarande är en SYNLIG produkt (kapar en säljande sida — använd bara vid dubbletter)"
         required: false
@@ -39,34 +55,60 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Skriv/lista redirect
+        # Inputs går via env, aldrig via ${{ }} direkt i skriptet: en slug är
+        # fritext och skulle annars kunna bryta ut ur shell-kommandot.
+        env:
+          BASE_URL: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FROM_SLUG: ${{ inputs.from_slug }}
+          TO_PATH: ${{ inputs.to_path }}
+          REASON: ${{ inputs.reason }}
+          BATCH: ${{ inputs.batch }}
+          FORCE: ${{ inputs.force }}
         run: |
-          base="${{ secrets.POLL_TRACKING_URL }}"
-          url="${base%/api/cron/poll-tracking}/api/admin/redirects"
-          if [ -z "${{ inputs.from_slug }}" ]; then
-            echo "Listar befintliga redirects…"
-            response=$(curl -sS -w "\n%{http_code}" \
-              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "$url")
-          else
-            if [ -z "${{ inputs.to_path }}" ]; then
+          set -euo pipefail
+          url="${BASE_URL%/api/cron/poll-tracking}/api/admin/redirects"
+
+          if [ -n "$BATCH" ]; then
+            if ! payload=$(printf '%s' "$BATCH" | jq -ce '
+                  if type == "array" then {redirects: .}
+                  else error("batch måste vara en JSON-array") end'); then
+              echo "::error::batch är inte en giltig JSON-array"
+              exit 1
+            fi
+            rows=$(printf '%s' "$payload" | jq '.redirects | length')
+            echo "Skriver $rows rader i ett anrop."
+          elif [ -n "$FROM_SLUG" ]; then
+            if [ -z "$TO_PATH" ]; then
               echo "::error::to_path krävs när from_slug anges"
               exit 1
             fi
             payload=$(jq -nc \
-              --arg f "${{ inputs.from_slug }}" \
-              --arg t "${{ inputs.to_path }}" \
-              --arg r "${{ inputs.reason }}" \
+              --arg f "$FROM_SLUG" \
+              --arg t "$TO_PATH" \
+              --arg r "$REASON" \
               '{redirects:[{fromSlug:$f,toPath:$t,reason:$r}]}')
+            echo "Skriver: $payload"
+          else
+            payload=""
+          fi
+
+          if [ -z "$payload" ]; then
+            echo "Listar befintliga redirects…"
+            response=$(curl -sS -w "\n%{http_code}" \
+              -H "Authorization: Bearer $CRON_SECRET" "$url")
+          else
             write_url="$url"
-            if [ "${{ inputs.force }}" = "true" ]; then
+            if [ "$FORCE" = "true" ]; then
               write_url="$url?force=1"
               echo "::warning::force=1 — katalogkontrollen hoppas över"
             fi
-            echo "Skriver: $payload"
             response=$(curl -sS -w "\n%{http_code}" -X POST \
-              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+              -H "Authorization: Bearer $CRON_SECRET" \
               -H "Content-Type: application/json" \
               -d "$payload" "$write_url")
           fi
+
           body=$(echo "$response" | sed '$d')
           status=$(echo "$response" | tail -n1)
           echo "HTTP $status"
@@ -75,6 +117,9 @@ jobs:
             echo "::error::Avvisad: källan eller målet lever fortfarande (se details ovan). Kontrollera i Wix — kör om med force=true bara om du är säker."
             exit 1
           fi
+          # 207 = delvis skrivet (batch där enstaka rader föll på skrivfel).
+          # Rutten har redan validerat allt-eller-inget, så 207 betyder att
+          # Wix-skrivningen strulade — inte att indata var fel. Fäll ändå.
           if [ "$status" != "200" ]; then
             echo "::error::Endpoint returned non-200 status"
             exit 1

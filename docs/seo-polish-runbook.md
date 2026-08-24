@@ -291,6 +291,20 @@ Bygg innehållet:
 - **name (H1):** svenskt, sökordsrikt, börjar med fokussökordet (huvud + kvalificerare). **≤ 80 tecken** (hård Wix-gräns — längre ger 400-fel).
 - **slug:** **ASCII** (inte å/ä/ö), gemener, bindestreck, innehåller fokussökordet inkl. kvalificeraren. (ASCII undviker kodningskrångel på headless-frontenden; Google klarar ändå båda.)
   - ⚠️ **Slug-varning (headless):** byt slug **bara på produkter som inte gått live än** (nyimporterade draft-produkter). Wix auto-redirect (`preventAutoRedirect:false`) gäller **bara Wix-hostade sajter, inte din headless** – så att byta slug på en redan indexerad produkt gör att den gamla URL:en **404:ar** och ranking tappas. För en redan publicerad produkt: **behåll befintlig slug**.
+  - 🔁 **Byter du ändå slug — eller raderar produkten — skriv en redirect-rad.**
+    Storefronten slår upp `FyndplatsRedirects` på 404-vägen och svarar 308 mot
+    `toPath`. Utan raden dör den gamla URL:en med all Google-historik den samlat.
+    Mätt 2026-08-24: elva av katalogens omdöpta produkter låg som döda URL:er i
+    Search Console med sammanlagt ~1 400 exponeringar, och symaskinsbordet,
+    massagebänken och salongsstolen var alla sidor **den här runbooken själv**
+    hade döpt om. Skriv raden i samma stund som du byter — inte "sen".
+    Kör GitHub-workflowen **"Lägg till 301-redirect"**:
+    `from_slug` = gamla sluggen, `to_path` = `/produkt/<nya sluggen>`. Flera på en
+    gång går via `batch` (JSON-array). Rutten vägrar skriva om källan fortfarande
+    är en synlig produkt eller om målet är dött, så en felskriven rad kapar inget.
+    Finns ingen ersättare: peka mot **kategorin**, aldrig mot startsidan eller
+    `/alla-produkter` — Google räknar en redirect till en irrelevant sida som
+    *soft 404*, alltså sämre än en ärlig 404.
 - **title-tagg:** ≤ ~60 tecken, fokussökord först, ev. `| Fyndplats`.
 - **meta description:** ≤ ~155 tecken, nytta + sökord, **inga overifierade påståenden** (ingen "fri frakt" om det inte stämmer).
 
@@ -978,11 +992,10 @@ Gå igenom listan **innan** Steg 13. Faller något: fixa först, publicera sedan
 Steg 12 (kundläsningen) är gjord — den här listan ersätter den inte.
 
 **Text**
-
-
-**Text**
 - Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inkl. kvalificeraren. Inget dropship-märke kvar (etablerade märken som Pagani Design/LAIKOU behålls).
 - Sökordet **krockar inte** med en annan produkt i katalogen (Steg 1).
+- Bytte sluggen på en **redan publicerad** produkt? Då finns en redirect-rad från
+  gamla sluggen (Steg 7). Utan den är den gamla URL:en död och rankingen borta.
 - Elprodukt: **ingen uttags-/spänningsaxel kvar** med US/UK/AU/KR eller 110 V (Steg 11D), och varje kvarvarande variant har både lagerpost och mappningsrad.
 - Ser två val på samma axel ut som samma färg: **exemplaren är jämförda i bild** (Steg 11E), och listningen dubblerar ingen billigare fristående produkt i katalogen.
 - **"EU-lager"-ribbonen är täckt av den SPARADE SKU:n.** Kravet är `variants[].shipFrom`
