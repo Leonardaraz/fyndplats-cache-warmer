@@ -100,8 +100,9 @@ export function up9(n: number): number {
  *
  * VARFÖR TAKET FINNS. Golvet räknades tidigare ENBART ur kostnaden. Det höll
  * marginalregeln, men rabattdjupet blev en biprodukt av påslaget i stället för
- * ett beslut: uppmätt över 166 live- och köade fynd 2026-08-24 låg medianen på
- * 28,9 %, snittet på 30,0 %, och 39 fynd gick över 30 % — djupast 49,8 %.
+ * ett beslut. Mätt 2026-08-24 över samtliga 166 live- och köade fynd, som
+ * rabatt från listPrice ner till lagrat floorPrice: median 28,8 %, snitt
+ * 28,6 %, djupast 45,2 % — och 163 av 166 gick över 15 %.
  *
  * Med husets prisformel (listpris = landad kostnad × 1,30) passerar nollan vid
  * ungefär 23 % rabatt. Auktionen var alltså byggd för att bottna med förlust,
@@ -123,6 +124,8 @@ export const MAX_DISCOUNT = 0.15;
  *
  *   RABATTGOLVET, ur listpriset: pris ≥ list × (1 − MAX_DISCOUNT). Skyddar mot
  *   att en vara med extra påslag rasar 45 % bara för att kostnaden tillåter det.
+ *   Efter taket ligger samma 166 fynd på median 14,5 % och som mest 15,0 %; för
+ *   tre av dem band marginalgolvet redan hårdare och golvet står orört.
  *
  * Båda avrundas upp till 9-slut (så rabatten alltid blir strax UNDER taket och
  * förlusten strax under 7 %) och resultatet klampas till högst listpriset —
