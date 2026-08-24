@@ -97,6 +97,21 @@ export function classifyFetchError(prevErrorStreak: number | undefined): {
 }
 
 /**
+ * DS-svaret sa uttryckligen att listningen är nedtagen från hyllan.
+ *
+ * Skiljd från ett hämtningsfel med FLIT: det här är ett lyckat svar med ett
+ * negativt besked, inte en trasig hämtning. Egen klass i stället för en
+ * matchbar text — den som klassificerar på ordval får en tyst regression så
+ * fort någon skriver om meddelandet.
+ */
+export class ListingOfflineError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ListingOfflineError";
+  }
+}
+
+/**
  * AliExpress-fel 604 "All SKU Unsaleable": produkten säljs (troligen) inte via
  * dropship-kanalen längre, men KAN vara köpbar för konsumenter. Efter kod
  * röd-lärdomen 2026-07-14 (opålitliga kanalsignaler) får detta ALDRIG driva
@@ -770,6 +785,29 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   let fetchErrorStreak = 0;
   try {
     const product = await getAliExpressProduct(mapping.supplierProductId);
+    // NEDTAGEN LISTNING SOM SVARAR 200 (Leonards rapport 2026-08-24).
+    //
+    // Hela klassificeringen nedan byggde på att en död listning FELAR. Det gör
+    // den inte alltid: säljaren tar ner varan, konsumentsidan säger "Sorry,
+    // this item is no longer available!", men DS-API:t svarar 200 med full
+    // kropp och SKU-rader vars saldo står kvar fruset på sista kända värdet.
+    // Då föll svaret igenom till "Listningen är aktiv" och synken SKREV
+    // TILLBAKA lager varje körning — vi sålde Homcom-borden som inte gick att
+    // beställa. Statusen fanns i basinfon hela tiden (product_status_type /
+    // ws_display / ws_offline_date); ingen läste den.
+    //
+    // Kastas för att gå in i SAMMA väg som ett kastat "not found": strike-
+    // räkningen kräver REMOVED_STRIKES_REQUIRED körningar i rad, lagret nollas
+    // men sidan avpubliceras inte (SEO-beslutet), och en senare onSelling-
+    // läsning återställer produkten av sig själv. En egen felklass i stället
+    // för en matchbar text — samma lärdom som isDeliveryMethodMissing: en
+    // klassificering som hänger på ordval går sönder tyst.
+    if (product.listingAvailability === "offline") {
+      throw new ListingOfflineError(
+        `AliExpress-listningen ${mapping.supplierProductId} är nedtagen`
+        + `${product.offlineReason ? ` (${product.offlineReason})` : ""}.`,
+      );
+    }
     // Skydd mot degraderat 200-svar: ett giltigt svar med TOM variant-lista
     // (throttling/partiell DS-respons) skulle annars ge totalStock=0 →
     // decideSyncOutcome markerar OOS → Wix-lagret NOLLAS för en levande produkt
@@ -841,13 +879,21 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     // "product offline". Vi tolkar dem som listing_removed. Andra fel — re-throwa.
     const msg = err instanceof Error ? err.message.toLowerCase() : "";
     if (
-      msg.includes("not found")
+      // Uttryckligt hyllbesked ur basinfon (200-svar, se kastet ovan) — samma
+      // strike-mekanik som de textmatchade fallen, men utan textmatchningen.
+      err instanceof ListingOfflineError
+      || msg.includes("not found")
       || msg.includes("offline")
       || msg.includes("not exist")
       || msg.includes("invalid product")
       || /code\s*7001\d{3}/.test(msg)
     ) {
       removedClassified = true;
+      if (err instanceof ListingOfflineError) {
+        // Loggas högljutt: den här vägen upptäcktes bara för att en KUND
+        // hittade den. Ett tyst 200-svar med fruset lager säljer vidare.
+        console.warn(`[sync] ${mapping.wixProductId}: ${err.message}`);
+      }
       aliExpress = {
         title: "",
         images: [],

@@ -34,6 +34,7 @@ import type {
     DsOrderCreateResult,
     DsTokenResponse,
     DsTrackingResult,
+    ListingAvailability,
 } from "./types";
 import type { FreightQueryOutcome } from "./freight";
 
@@ -352,6 +353,14 @@ interface RawProduct {
       subject?: string;
       detail?: string;
       mobile_detail?: string;
+      // Hyllstatusen. AE svarar 200 med FULL kropp även för en nedtagen
+      // listning — se classifyListingAvailability för varför de här tre
+      // fälten är enda sättet att se skillnaden.
+      product_status_type?: string;
+      /** AE:s egen text: "reasons for removal of goods", t.ex. "expire_offline". */
+      ws_display?: string;
+      /** AE:s egen text: "the date the product was removed from the shelf". 0 = uppe. */
+      ws_offline_date?: number | string;
     };
     ae_multimedia_info_dto?: { ae_video_dtos?: unknown; image_urls?: string };
     ae_item_sku_info_dtos?:
@@ -436,6 +445,66 @@ export function parseItemProperties(raw: unknown): Record<string, string> {
     if (!(namn in ut)) ut[namn] = värde;
   }
   return ut;
+}
+
+/** Värdet AE använder för "listningen ligger uppe och säljs". */
+const AE_ON_SELLING = "onselling";
+
+/**
+ * Jämförnyckel för statusvärden: gemener utan skiljetecken, så `onSelling`,
+ * `ON_SELLING` och `on-selling` blir samma sträng.
+ *
+ * Domen "allt som INTE är onSelling är nedtaget" är robust mot värden vi aldrig
+ * sett — men bara om igenkänningen av det LEVANDE värdet håller. En stavning
+ * som slank igenom hade nollat lagret på en fullt säljbar produkt, alltså exakt
+ * kod röd-felet 2026-07-14 igen.
+ */
+const statusKey = (v: unknown) => String(v ?? "").toLowerCase().replace(/[^a-z]/g, "");
+
+/**
+ * Tolkar DS-basinfons hyllstatus.
+ *
+ * Varför den behövs (Leonards rapport 2026-08-24, Homcom-borden): en listning
+ * som säljaren tagit ner svarar INTE med fel. `aliexpress.ds.product.get` ger
+ * 200 OK med full result-kropp och SKU-rader vars saldo står kvar fruset på
+ * sista kända värdet — medan konsumentsidan säger "Sorry, this item is no
+ * longer available!". För anroparen är det svaret omöjligt att skilja från en
+ * levande produkt, så synken speglade lager för något ingen kunde köpa.
+ * Skillnaden fanns hela tiden i basinfon; vi läste den bara aldrig.
+ *
+ * Konservativ, och medvetet asymmetrisk:
+ *   - `onSelling` VINNER alltid, även över ett satt ws_offline_date. Fältet är
+ *     ett datum för en NEDTAGNING, inte nödvändigtvis den nuvarande — en gammal
+ *     nedtagning på en återupplagd vara får aldrig nolla ett levande lager.
+ *   - Saknas statusfältet helt är svaret `"unknown"`, aldrig `"offline"`.
+ *     Tomt fält är ingen bevisning, och den här domen nollar lager.
+ */
+export function classifyListingAvailability(base: {
+  product_status_type?: unknown;
+  ws_display?: unknown;
+  ws_offline_date?: unknown;
+} | null | undefined): { availability: ListingAvailability; reason?: string } {
+  const status = String(base?.product_status_type ?? "").trim();
+  const display = String(base?.ws_display ?? "").trim();
+
+  if (statusKey(status) === AE_ON_SELLING) return { availability: "on_selling" };
+  if (status) {
+    return { availability: "offline", reason: [status, display].filter(Boolean).join(" / ") };
+  }
+
+  // Ingen status, men ett nedtagningsdatum → nedtagen. AE dokumenterar 0 som
+  // "ligger uppe"; kräv en siffra 1-9 så varken "0", "0000-00-00" eller en tom
+  // sträng råkar läsas som ett datum.
+  const raw = base?.ws_offline_date;
+  const offlineDate = typeof raw === "number" ? (raw > 0 ? String(raw) : "") : String(raw ?? "").trim();
+  if (/[1-9]/.test(offlineDate)) {
+    return {
+      availability: "offline",
+      reason: [display, `ws_offline_date=${offlineDate}`].filter(Boolean).join(" / "),
+    };
+  }
+
+  return { availability: "unknown" };
 }
 
 export async function getProduct(productId: string): Promise<AliExpressDsProduct> {
@@ -547,6 +616,7 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
 
   const storeIdRaw = r.ae_store_info?.store_id;
   const properties = parseItemProperties(r.ae_item_properties);
+  const shelf = classifyListingAvailability(base);
 
   return {
         productId: String(base.product_id ?? productId),
@@ -560,6 +630,8 @@ export async function getProduct(productId: string): Promise<AliExpressDsProduct
         storeId: storeIdRaw != null && String(storeIdRaw) !== "" ? String(storeIdRaw) : undefined,
         storeName: r.ae_store_info?.store_name || undefined,
         ...(Object.keys(properties).length ? { properties } : {}),
+        listingAvailability: shelf.availability,
+        ...(shelf.reason ? { offlineReason: shelf.reason } : {}),
   };
 }
 

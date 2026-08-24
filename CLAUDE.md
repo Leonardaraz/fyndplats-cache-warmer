@@ -233,6 +233,66 @@ sträng-matchning i `place-order.ts` riskerar dubbelbeställning. Synk-bytet
 täcker det normala fallet; kvar är kapplöpningen där lagret tömts mellan
 synk och order.
 
+## En död listning FELAR INTE — den svarar 200 med fruset lager
+
+Hela synkens borttagnings-klassificering byggde på att en försvunnen listning
+får `getProduct` att **kasta** ("not found", "product offline", kod 7001xxx).
+Det stämmer inte alltid. Tar säljaren ner varan svarar `aliexpress.ds.product.get`
+ofta **200 OK med full kropp** och SKU-rader vars saldo står kvar **fruset på
+sista kända värdet** — medan konsumentsidan säger *"Sorry, this item is no
+longer available!"*.
+
+För anroparen var det svaret omöjligt att skilja från en levande produkt. Det
+föll igenom till gren 3 i `decideSyncOutcome` ("Listningen är aktiv") och synken
+**skrev tillbaka lagret varje körning**. Leonards rapport 2026-08-24: Homcom-
+borden (Aosom ES) hade lagersaldo hos oss och såldes, men gick inte att beställa
+hos AE. Vi upptäckte det bara för att en kund gjorde det.
+
+Beskedet fanns i basinfon hela tiden — ingen läste det:
+
+| Fält i `ae_item_base_info_dto` | AE:s egen beskrivning |
+|---|---|
+| `product_status_type` | hyllstatus, `onSelling` = ligger uppe |
+| `ws_display` | "reasons for removal of goods", t.ex. `expire_offline` |
+| `ws_offline_date` | "the date the product was removed from the shelf", `0` = uppe |
+
+`classifyListingAvailability` (`lib/aliexpress/client.ts`) tolkar dem till
+`on_selling` / `offline` / `unknown`, och synken kastar `ListingOfflineError`
+som går in i **samma** `removedStreak`-mekanik som ett kastat "not found".
+
+Fyra egenskaper som inte ska tas bort:
+
+- **`onSelling` vinner över ett satt `ws_offline_date`.** Fältet är ett datum
+  för *en* nedtagning, inte nödvändigtvis den nuvarande — en gammal nedtagning
+  på en återupplagd vara får aldrig nolla ett levande lager.
+- **Saknad status → `unknown`, aldrig `offline`.** Tomt fält är ingen bevisning,
+  och domen nollar lager. `unknown` beter sig exakt som före fältet fanns.
+- **Egen felklass, inte en matchbar text.** Samma lärdom som
+  `isDeliveryMethodMissing`: en klassificering som hänger på ordval går sönder
+  tyst när någon skriver om meddelandet.
+- **Två strikes, och sidan avpubliceras inte.** Ärver `REMOVED_STRIKES_REQUIRED`
+  och SEO-beslutet från 2026-08-09 — lagret nollas, sidan ligger kvar, och en
+  senare `onSelling`-läsning återställer produkten av sig själv.
+
+### Vid felsökning: kolla i den här ordningen
+
+1. **`SYNC_DRY_RUN`.** Default är `"true"` — allt som INTE är strängen `"false"`
+   betyder att cronen läser, loggar och mejlar men **aldrig skriver till Wix**.
+   Fraktbarhetskontrollen (steg 3.5) hoppas då över helt. Ett tyst dry-run ger
+   exakt samma symtom över hela katalogen.
+2. **Råsvaret för produkten:** `/api/admin/freight-check?...&raw=1`
+   (`debugRawProductGet`). Läs `product_status_type` + per-SKU-lagret. Där ser
+   du om AE kastar eller svarar 200 med fruset saldo.
+3. **Tidsfönstret.** Även när allt fungerar är kedjan långsam med flit: sync var
+   4:e timme, två strikes i rad innan lagret nollas, och fraktbarhetsnejet
+   kräver två bekräftelser med ett dygns spridning (`NEGATIVE_MIN_SPAN_MS`).
+   Ett dygn från död listning till nollat lager är förväntat, inte en bugg.
+
+**Fortfarande inte byggt:** någon tillgänglighetskoll vid *orderläggningen*.
+`place-order.ts` hämtar produkten för prisvakten och fraktvalet men tittar
+varken på lager eller hyllstatus. Kapplöpningen mellan synk och order är alltså
+öppen även efter den här fixen.
+
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
 Recensionskedjan (filtrering → `FyndplatsImportedReviews` → moderering i

@@ -47,7 +47,29 @@ export interface AliExpressDsProduct {
    * för SEO-poleringen. DS-svaret bär egenskaperna; vi läste dem bara aldrig.
    */
   properties?: Record<string, string>;
+  /**
+   * Hyllstatus enligt DS-svarets basinfo — se `classifyListingAvailability`.
+   *
+   * `"unknown"` när AE inte säger något: behandlas överallt som "rör ingenting",
+   * alltså exakt beteendet innan fältet fanns.
+   */
+  listingAvailability?: ListingAvailability;
+  /**
+   * Varför listningen är nedtagen, ordagrant från AE (`product_status_type`
+   * och/eller `ws_display`, t.ex. "expire_offline"). Bara satt vid `"offline"`
+   * — den går i synkloggen så ett nedtaget läge går att skilja från ett
+   * hämtningsfel i efterhand.
+   */
+  offlineReason?: string;
 }
+
+/**
+ * Ligger listningen uppe på AliExpress hylla?
+ *
+ * `"unknown"` är inte ett fel — det betyder att svaret inte bar någon
+ * statusinformation, och då ska ingen kod dra några slutsatser alls.
+ */
+export type ListingAvailability = "on_selling" | "offline" | "unknown";
 
 export interface DsTokenResponse {
   access_token: string;

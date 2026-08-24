@@ -613,3 +613,58 @@ describe("scopeMappings — enproduktskörning från 'Ändra mappning'", () => {
     expect(scopeMappings(all, new Set())).toHaveLength(0);
   });
 });
+
+// ── Nedtagen listning som svarar 200 (Leonards rapport 2026-08-24) ───────────
+//
+// Homcom-borden: konsumentsidan sa "Sorry, this item is no longer available!"
+// medan vår butik visade lagersaldo och tog emot en order. DS-API:t felade
+// aldrig — 200 OK, full kropp, SKU-saldot fruset på sista kända värdet. Utan
+// hyllstatusen föll svaret igenom till "Listningen är aktiv" och synken skrev
+// TILLBAKA lagret varje körning. Kedjan nedan är regressionsvakten.
+
+describe("hyllstatus → borttagen listning (200-svaret som såg levande ut)", () => {
+  it("offline-klassad produkt blir removed och nollar lagret — trots att AE gav saldo", async () => {
+    const { classifyListingAvailability } = await import("../aliexpress/client");
+
+    // Exakt formen på ett nedtaget DS-svar: status satt, saldo kvar.
+    const shelf = classifyListingAvailability({
+      product_status_type: "offline",
+      ws_display: "expire_offline",
+    });
+    expect(shelf.availability).toBe("offline");
+
+    const out = decideSyncOutcome(baseInputs({
+      // Så här översätter synken hyllbeskedet: listningen räknas som borttagen
+      // även om AE fortfarande rapporterade totalStock > 0.
+      aliExpress: { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true },
+      removedStreak: 2,
+      prevState: {
+        wixProductId: "w1", aliexpressId: "a1", lastCheckedAt: "2026-08-23T00:00:00Z",
+        currentCostSek: 100, currentCostUsd: 10, currentStock: 12,
+        listingStatus: "active", titleHash: "title-hash-1", imageHash: "img-hash-1",
+      },
+    }));
+
+    expect(out.listingStatus).toBe("removed");
+    expect(out.inventoryTarget).toBe(0);
+    // Sidan får INTE avpubliceras — SEO-beslutet 2026-08-09 gäller här också.
+    expect(out.shouldHide).toBe(false);
+  });
+
+  it("ett ENDA offline-svar räcker inte — samma strike-krav som ett kastat 'not found'", () => {
+    const out = decideSyncOutcome(baseInputs({
+      aliExpress: { title: "", images: [], minCostUsd: 0, totalStock: 0, listingRemoved: true },
+      removedStreak: 1,
+    }));
+    expect(out.inventoryTarget).toBeNull();
+    expect(out.actionTaken).toBe("none");
+  });
+
+  it("ListingOfflineError får inte förväxlas med det ofarliga 604-fallet", async () => {
+    const { ListingOfflineError } = await import("./aliexpress-sync");
+    const err = new ListingOfflineError("AliExpress-listningen 123 är nedtagen (offline / expire_offline).");
+    // 604 fryser sviten och döljer aldrig; hyllbeskedet SKA driva strike-räkningen.
+    expect(isUnsaleableError(err.message.toLowerCase())).toBe(false);
+    expect(err instanceof ListingOfflineError).toBe(true);
+  });
+});
