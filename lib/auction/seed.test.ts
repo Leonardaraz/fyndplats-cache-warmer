@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LADDER_STEPS } from "./engine";
+import { LADDER_STEPS, MAX_DISCOUNT } from "./engine";
 import {
   assignQueueOrder,
   evaluateCandidate,
@@ -25,8 +25,10 @@ describe("evaluateCandidate — enkel variant", () => {
     const v = evaluateCandidate(single);
     if (!v.ok) throw new Error(`oväntat avslag: ${v.reason}`);
     expect(v.doc.listPrice).toBe(1549);
-    // Golv ur NETTOkostnad: 696/1,25 = 556,8 → ×1,25/1,07 → 659 (= 696/1,07).
-    expect(v.doc.floorPrice).toBe(659);
+    // Golvet är det HÖGSTA av marginalgolv och rabattgolv (engine.buildFloor).
+    // Marginalgolv ur NETTOkostnad: 696/1,25 = 556,8 → ×1,25/1,07 → 659.
+    // Rabattgolv: up9(1549 × 0,85) = 1319. Taket binder → 1319, dvs −14,8 %.
+    expect(v.doc.floorPrice).toBe(1319);
     expect(v.doc.variantPrices).toHaveLength(1);
     expect(v.doc.variantPrices[0].wixVariantId).toBe("v1");
     expect(v.doc.variantPrices[0].ladder).toHaveLength(LADDER_STEPS + 1);
@@ -97,7 +99,20 @@ describe("evaluateCandidate — per variant (prisspann)", () => {
   it("headline-rabatt = bästa variantens rabatt (inte visningsspårets)", () => {
     const v = evaluateCandidate(multi);
     if (!v.ok) throw new Error("avslag");
-    expect(headlineDiscount(v.doc)).toBeGreaterThan(0.4); // billig-varianten ~−47 %
+    const visningsrabatt = 1 - v.doc.floorPrice / v.doc.listPrice;
+    // Headline tar den BÄSTA varianten, som inte behöver vara visningsspårets.
+    expect(headlineDiscount(v.doc)).toBeGreaterThanOrEqual(visningsrabatt);
+  });
+
+  it("ingen variant går under rabattaket — inte ens den med störst påslag", () => {
+    // Före taket föll billig-varianten ~47 % eftersom dess kostnad tillät det.
+    // Det var precis den sortens djup som gjorde auktionen till en förlustaffär.
+    const v = evaluateCandidate(multi);
+    if (!v.ok) throw new Error("avslag");
+    for (const t of v.doc.variantPrices) {
+      expect(1 - t.floorPrice / t.listPrice).toBeLessThanOrEqual(MAX_DISCOUNT);
+    }
+    expect(headlineDiscount(v.doc)).toBeLessThanOrEqual(MAX_DISCOUNT);
   });
 
   it("kvalar in om MINST en variant ger ≥10 % även när en annan är tunn", () => {
