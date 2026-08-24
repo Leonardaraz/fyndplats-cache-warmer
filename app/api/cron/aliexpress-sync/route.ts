@@ -133,6 +133,13 @@ async function handle(req: NextRequest): Promise<NextResponse> {
       "cron",
       JSON.stringify({
         dryRun,
+        // Nämnaren (audit 2026-08-24): utan `total` och `skipped` sa mejlet
+        // "600 produkter kollade" utan att avslöja att katalogen är 876 — en
+        // rotation som saktar in var osynlig överallt.
+        total: summary.total,
+        skipped: summary.skipped,
+        boundBy: summary.boundBy ?? null,
+        throttled: summary.throttled ?? 0,
         checked: summary.checked,
         flaggedPrice: summary.flaggedPrice,
         flaggedContent: summary.flaggedContent,

@@ -24,8 +24,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "productId krävs" }, { status: 400 });
   }
   try {
-    const inventory = await getInventory(productId);
-    return NextResponse.json({ ok: true, productId, count: inventory.length, inventory });
+    const svar = await getInventory(productId);
+    // Hyllstatusen följer med i diagnossvaret: den vanligaste frågan om en
+    // produkt med "konstigt" lager är om listningen ens lever längre.
+    return NextResponse.json({
+      ok: true,
+      productId,
+      listingAvailability: svar.listingAvailability,
+      ...(svar.offlineReason ? { offlineReason: svar.offlineReason } : {}),
+      count: svar.variants.length,
+      inventory: svar.variants,
+    });
   } catch (e) {
     return NextResponse.json(
       { ok: false, productId, error: (e as Error).message },

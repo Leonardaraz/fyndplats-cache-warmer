@@ -43,6 +43,22 @@ export async function fetchAliExpressProductFromUrl(
   }
 
   const ds = await getAliExpressDsProduct(parsed.productId);
+  // NEDTAGEN LISTNING (audit 2026-08-24). Det här är bulk-/CSV-importens enda
+  // choke point — den hämtar ALLTID DS-produkten, till skillnad från pipelinen
+  // där hämtningen är villkorad. En nedtagen listning svarar 200 med saldot
+  // fruset på sista kända värdet, så variantfiltret nedan ("inkludera alla med
+  // lager") släpper igenom den utan att märka något, och produkten hamnar
+  // köpbar i butiken från dag ett.
+  //
+  // Kastar, så raden markeras som misslyckad i bulk-kön med orsaken synlig i
+  // stället för att tyst importeras. Bara ett UTTRYCKLIGT "offline" fäller —
+  // `unknown` (äldre eller degraderat svar) beter sig precis som förut.
+  if (ds.listingAvailability === "offline") {
+    throw new Error(
+      `AliExpress-listningen ${parsed.productId} är nedtagen`
+      + `${ds.offlineReason ? ` (${ds.offlineReason})` : ""} — importeras inte.`,
+    );
+  }
   return convertDsToAliExpressProduct(ds, parsed.normalizedUrl ?? sourceUrl, opts);
 }
 

@@ -18,7 +18,9 @@ vi.mock("@/lib/audit", () => ({ audit: vi.fn() }));
 const { importProduct } = vi.hoisted(() => ({ importProduct: vi.fn() }));
 vi.mock("@/lib/import/pipeline", () => ({ importProduct }));
 vi.mock("@/lib/store/pricing-config", () => ({ getPricingRules: vi.fn().mockResolvedValue({}) }));
-vi.mock("@/lib/aliexpress/client", () => ({ getInventory: vi.fn().mockResolvedValue([]) }));
+vi.mock("@/lib/aliexpress/client", () => ({
+  getInventory: vi.fn().mockResolvedValue({ variants: [], listingAvailability: "unknown" }),
+}));
 
 import { POST } from "./route";
 
@@ -102,6 +104,56 @@ describe("/api/import — dubblett-spärr på supplierProductId", () => {
     const res = await POST(req(body()));
 
     expect(res.status).not.toBe(409);
+    expect(importProduct).toHaveBeenCalled();
+  });
+});
+
+// ── Nedtagen listning importeras aldrig (audit 2026-08-24) ──────────────────
+//
+// En nedtagen listning svarar 200 med saldot fruset på sista kända värdet, så
+// ingenting nedströms kunde se skillnaden — produkten hamnade köpbar i butiken
+// från dag ett. Rutten hämtar redan DS-lagret här; den läste bara aldrig
+// hyllstatusen som följde med i samma svar.
+
+describe("/api/import — spärr mot nedtagen AliExpress-listning", () => {
+  it("avvisar med 422 och importerar INTE när listningen är nedtagen", async () => {
+    const client = await import("@/lib/aliexpress/client");
+    vi.mocked(client.getInventory).mockResolvedValueOnce({
+      listingAvailability: "offline",
+      offlineReason: "offline / expire_offline",
+      // Saldot finns kvar i svaret — det är just därför spärren behövs.
+      variants: [{ skuId: "sv-1", price: 90, stock: 12, skuProps: {} }],
+    });
+
+    const res = await POST(req(body()));
+    expect(res.status).toBe(422);
+    const json = await res.json();
+    expect(json.code).toBe("listing_offline");
+    expect(json.error).toContain("expire_offline");
+    expect(importProduct).not.toHaveBeenCalled();
+  });
+
+  it("'unknown' hyllstatus släpps igenom precis som före fältet fanns", async () => {
+    const client = await import("@/lib/aliexpress/client");
+    vi.mocked(client.getInventory).mockResolvedValueOnce({
+      listingAvailability: "unknown",
+      variants: [{ skuId: "sv-1", price: 90, stock: 12, skuProps: {} }],
+    });
+
+    const res = await POST(req(body()));
+    expect(res.status).not.toBe(422);
+    expect(importProduct).toHaveBeenCalled();
+  });
+
+  it("levande listning importeras som vanligt", async () => {
+    const client = await import("@/lib/aliexpress/client");
+    vi.mocked(client.getInventory).mockResolvedValueOnce({
+      listingAvailability: "on_selling",
+      variants: [{ skuId: "sv-1", price: 90, stock: 12, skuProps: {} }],
+    });
+
+    const res = await POST(req(body()));
+    expect(res.status).not.toBe(422);
     expect(importProduct).toHaveBeenCalled();
   });
 });

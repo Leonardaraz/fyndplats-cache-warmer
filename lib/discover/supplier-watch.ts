@@ -194,6 +194,8 @@ export interface SupplierWatchSummary {
     noEu: number;
     noStock: number;
     tooExpensive: number;
+    /** Listningen var nedtagen hos AE — hade annars köats på fruset saldo. */
+    listingOffline: number;
   };
   matches: SupplierWatchMatch[];
   /** null = inget att köa; { dryRun: true } = matchningar fanns men dry-run. */
@@ -255,6 +257,7 @@ export async function runSupplierWatch(
       wrongSeller: 0,
       noEu: 0,
       noStock: 0,
+      listingOffline: 0,
       tooExpensive: 0,
     },
     matches: [],
@@ -348,6 +351,17 @@ export async function runSupplierWatch(
       continue;
     }
 
+    // NEDTAGEN LISTNING FÖRST (audit 2026-08-24). Bevakningen filtrerar på
+    // säljare, EU-lager och pris — aldrig på om listningen lever. En nedtagen
+    // listning svarar 200 med saldot fruset på sista kända värdet, så den
+    // passerar `minInStockCostUsd` som om den vore i lager och AUTO-KÖAS till
+    // bulk-importen. Kollen ligger före de andra just för att det frusna saldot
+    // annars ser ut som ett giltigt lagerbesked.
+    if (detail.listingAvailability === "offline") {
+      summary.skipped.listingOffline++;
+      reject(id, "listing_offline", detail);
+      continue;
+    }
     if (!detail.storeId || !config.sellerIds.has(detail.storeId)) {
       summary.skipped.wrongSeller++;
       reject(id, "wrong_seller", detail);

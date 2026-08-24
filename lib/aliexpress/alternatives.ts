@@ -17,9 +17,11 @@
 // OOS_ALTERNATIVES=off för att stänga av helt.
 
 import {
+  getProduct,
   searchAliExpressByText,
   type AliExpressSearchResult,
 } from "./client";
+import type { ListingAvailability } from "./types";
 import { completeJsonRouted } from "../claude/client";
 import { makeCacheKey } from "../llm/cache";
 import { getAlternativeCache, isFresh } from "./alternative-cache";
@@ -391,6 +393,46 @@ export interface FindAlternativesOptions {
   scoreCount?: number;
   /** Hoppa över 30-dagars-cachen (för felsökning/återgenerering). */
   skipCache?: boolean;
+  /**
+   * Hyllstatus-uppslag per kandidat. Injicerbar för test; default är DS-API:t.
+   * Se `filterOutOfflineListings`.
+   */
+  getListingAvailability?: (aliexpressId: string) => Promise<ListingAvailability>;
+}
+
+/**
+ * Sållar bort kandidater vars listning är NEDTAGEN hos AliExpress.
+ *
+ * Bakgrund (audit 2026-08-24): kandidaterna kommer uteslutande från
+ * `searchAliExpressByText`, som inte bär någon hyllstatus — statusen var alltså
+ * inte ignorerad här, den var aldrig hämtad. Förslagen går ut i OOS-mejlet med
+ * en färdig ETT-KLICKS importlänk, så en död listning kunde rekommenderas som
+ * ersättare för en slutsåld produkt, och sedan CACHAS I 30 DYGN.
+ *
+ * Kontrollen sker på de kandidater vi faktiskt tänker visa (som mest tre), och
+ * är fail-open per kandidat: ett trasigt uppslag behåller kandidaten. Att tömma
+ * mejlet på förslag för att ett API hickade vore ett sämre utfall än ett förslag
+ * som råkar vara dött — men ett BEKRÄFTAT dött förslag ska aldrig visas.
+ */
+export async function filterOutOfflineListings(
+  alternatives: readonly AlternativeSupplier[],
+  lookup: (aliexpressId: string) => Promise<ListingAvailability>,
+): Promise<AlternativeSupplier[]> {
+  const verdicts = await Promise.all(
+    alternatives.map(async (a) => {
+      try {
+        return await lookup(a.aliexpressId);
+      } catch {
+        return "unknown" as ListingAvailability;
+      }
+    }),
+  );
+  const kvar = alternatives.filter((a, i) => {
+    if (verdicts[i] !== "offline") return true;
+    console.warn(`[alternatives] kandidat ${a.aliexpressId} är nedtagen hos AE — visas inte.`);
+    return false;
+  });
+  return kvar;
 }
 
 /**
@@ -412,13 +454,23 @@ export async function findAlternativeSuppliers(
   if (!isAlternativesEnabled()) return [];
   const returnCount = opts.returnCount ?? 3;
   const scoreCount = opts.scoreCount ?? 5;
+  const slåUppHyllstatus =
+    opts.getListingAvailability
+    ?? (async (id: string) => (await getProduct(id)).listingAvailability ?? "unknown");
 
   // 0) Cache: färsk + tillräckligt många → använd direkt (inget AE-anrop, ingen LLM).
   if (!opts.skipCache) {
     try {
       const cached = await getAlternativeCache().get(opts.aliexpressId);
       if (cached && isFresh(cached.computedAt, new Date()) && cached.alternatives.length >= returnCount) {
-        return cached.alternatives.slice(0, returnCount);
+        // Cachen är 30 dygn gammal i värsta fall — en kandidat som levde när
+        // den skrevs kan vara nedtagen nu. Verifieras därför på LÄSNING också,
+        // inte bara när listan byggs.
+        const levande = await filterOutOfflineListings(
+          cached.alternatives.slice(0, returnCount),
+          slåUppHyllstatus,
+        );
+        if (levande.length > 0) return levande;
       }
     } catch (err) {
       console.warn(
@@ -473,6 +525,10 @@ export async function findAlternativeSuppliers(
     });
   }
 
+  if (alternatives.length === 0) return [];
+
+  // 1.5) Sålla bort nedtagna listningar INNAN de cachas eller mejlas ut.
+  alternatives = await filterOutOfflineListings(alternatives, slåUppHyllstatus);
   if (alternatives.length === 0) return [];
 
   // 2) Cacha (30 dagar) — bara om vi fick en fullständig uppsättning.

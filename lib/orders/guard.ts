@@ -161,12 +161,21 @@ export interface SyncRollup {
   markedOos: number;
   restored: number;
   errors: number;
+  /** Katalogens storlek (nämnaren till `checked`). */
+  total: number;
+  /** Hoppade produkter — rotationens eftersläpning. */
+  skipped: number;
+  /** Antal körningar som var TORRKÖRNINGAR, alltså skrev ingenting till Wix. */
+  dryRuns: number;
+  /** Antal strypta AE-anrop (ApiCallLimit) under dygnet. */
+  throttled: number;
 }
 
 export function rollupSyncRuns(auditEntries: GuardAuditInput[], nowMs: number): SyncRollup {
   const rollup: SyncRollup = {
     runs: 0, checked: 0, flaggedPrice: 0, flaggedContent: 0,
     hidden: 0, markedOos: 0, restored: 0, errors: 0,
+    total: 0, skipped: 0, dryRuns: 0, throttled: 0,
   };
   for (const entry of auditEntries) {
     if (entry.kind !== "aliexpress-sync-run") continue;
@@ -182,6 +191,17 @@ export function rollupSyncRuns(auditEntries: GuardAuditInput[], nowMs: number): 
       rollup.markedOos += d.markedOos ?? 0;
       rollup.restored += d.restored ?? 0;
       rollup.errors += d.errors ?? 0;
+      rollup.skipped += d.skipped ?? 0;
+      rollup.throttled += d.throttled ?? 0;
+      // `total` är katalogens storlek, inte en summa — ta den största sedda.
+      rollup.total = Math.max(rollup.total, d.total ?? 0);
+      // TORRKÖRNING (audit 2026-08-24). SYNC_DRY_RUN är default "true", och en
+      // permanent torrkörande cron skriver ingenting till Wix — dessutom FRYSES
+      // strike-fälten, så strike 2 är oåtkomlig i princip. Mejlet kunde inte se
+      // det: rollupen läste aldrig `dryRun` och digesten filtrerar bort
+      // dry_run-rader, så resultatet blev "✅ allt rullar" medan noll skydd
+      // fanns. Nu räknas torrkörningarna och syns i statusraden.
+      if ((d as { dryRun?: boolean }).dryRun === true) rollup.dryRuns++;
     } catch {
       // trasig detail-JSON — räkna körningen men hoppa siffrorna
     }
@@ -480,11 +500,21 @@ export function buildGuardEmail(
   if (extras.syncRollup) {
     const s = extras.syncRollup;
     statusBits.push(
-      `Synken: ${s.runs} körningar, ${s.checked} produkter kollade` +
+      `Synken: ${s.runs} körningar, ${s.checked}${s.total ? `/${s.total}` : ""} produkter kollade` +
         (s.markedOos ? `, ${s.markedOos} satta slut-i-lager` : "") +
         (s.hidden ? `, ${s.hidden} dolda` : "") +
-        (s.errors ? `, ${s.errors} fel` : ""),
+        (s.errors ? `, ${s.errors} fel` : "") +
+        (s.throttled ? `, ${s.throttled} strypta AE-anrop` : ""),
     );
+    // Torrkörning är ingen statusrad bland andra — den betyder att butiken är
+    // OSKYDDAD. Egen, otvetydig rad.
+    if (s.dryRuns > 0) {
+      statusBits.push(
+        s.dryRuns === s.runs
+          ? "⚠️ SYNC_DRY_RUN är PÅ — synken skriver INGENTING till Wix. Slutsålda och nedtagna produkter förblir köpbara."
+          : `⚠️ ${s.dryRuns} av ${s.runs} synk-körningar var torrkörningar (inga Wix-skrivningar).`,
+      );
+    }
   }
   if (extras.openAlerts !== undefined && extras.openAlerts > 0) {
     statusBits.push(`${extras.openAlerts} öppna sync-larm väntar på beslut`);

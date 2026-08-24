@@ -34,7 +34,9 @@ export type SupplierWatchSkipReason =
   | "wrong_seller"
   | "no_eu"
   | "no_stock"
-  | "too_expensive";
+  | "too_expensive"
+  /** Listningen är nedtagen hos AE (hyllstatus offline) — går inte att sälja. */
+  | "listing_offline";
 
 export interface SupplierWatchSeenRecord {
   /** AliExpress-produkt-id (= radens _id). */

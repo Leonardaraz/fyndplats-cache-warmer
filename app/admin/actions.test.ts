@@ -336,9 +336,12 @@ describe("fetchSupplierVariantsAction", () => {
   it("returnerar leverantörens SKU:er med läsbar etikett från skuProps", async () => {
     const { actions, client } = await setup(baseTask());
     vi.mocked(client.extractAliExpressProductId).mockReturnValue("BBB");
-    vi.mocked(client.getInventory).mockResolvedValue([
-      { skuId: "skuB", skuProps: { Color: "Red", Size: "M" }, price: 9.9, stock: 5, shipFrom: "ES" },
-    ]);
+    vi.mocked(client.getInventory).mockResolvedValue({
+      listingAvailability: "on_selling",
+      variants: [
+        { skuId: "skuB", skuProps: { Color: "Red", Size: "M" }, price: 9.9, stock: 5, shipFrom: "ES" },
+      ],
+    });
     const res = await actions.fetchSupplierVariantsAction("https://aliexpress.com/item/123.html");
     expect(res.ok).toBe(true);
     if (res.ok) {

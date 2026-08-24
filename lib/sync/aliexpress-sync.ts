@@ -21,6 +21,7 @@ import { translateValue } from "../import/variant-translations";
 import { isSyntheticMappingId, repairSyntheticVariantIds } from "./mapping-repair";
 import type { PricingConfig } from "../import/types";
 import { getProduct as getAliExpressProduct, queryFreightToCountry } from "../aliexpress/client";
+import { rateLimitCount, resetRateLimitCount } from "../aliexpress/rate-limit";
 import { checkMappingShippability, isShippabilityStale, NEGATIVE_CONFIRMATIONS, type ShippabilityBudget } from "./shippability";
 import { planWarehouseFailover } from "./warehouse-failover";
 import type { VariantMapping } from "../import/pipeline";
@@ -97,12 +98,90 @@ export function classifyFetchError(prevErrorStreak: number | undefined): {
 }
 
 /**
+ * DS-svaret sa uttryckligen att listningen är nedtagen från hyllan.
+ *
+ * Skiljd från ett hämtningsfel med FLIT: det här är ett lyckat svar med ett
+ * negativt besked, inte en trasig hämtning. Egen klass i stället för en
+ * matchbar text — den som klassificerar på ordval får en tyst regression så
+ * fort någon skriver om meddelandet.
+ */
+export class ListingOfflineError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ListingOfflineError";
+  }
+}
+
+/**
  * AliExpress-fel 604 "All SKU Unsaleable": produkten säljs (troligen) inte via
  * dropship-kanalen längre, men KAN vara köpbar för konsumenter. Efter kod
  * röd-lärdomen 2026-07-14 (opålitliga kanalsignaler) får detta ALDRIG driva
  * auto-döljning via felsviten — det kräver Leonards manuella beslut. Felet
  * loggas synligt och produkten roterar vidare utan strike.
  */
+/**
+ * Hur många produkter med öppen strike-serie som får gå före rotationen.
+ *
+ * Taket finns för att en MASSHÄNDELSE inte ska svälta rotationen: hade AE en
+ * dålig natt och femhundra produkter fick en obekräftad 0-läsning skulle en
+ * ogränsad förtur äta hela budgeten, och katalogens övriga produkter aldrig
+ * kontrolleras. Trettio räcker med god marginal för normalläget (en handfull
+ * öppna serier åt gången) och lämnar ≥70 platser till rotationen.
+ */
+export const OPEN_STREAK_PRIORITY_CAP = 30;
+
+/**
+ * true när produkten är mitt i en OBEKRÄFTAD strike-serie — vi har sett ett
+ * dödsbud men inte bekräftat det, och lagret står kvar orört tills vi gör det.
+ *
+ * Bakgrund (audit 2026-08-24): strikes räknas per NÅDD produkt, inte per
+ * körning, och sorteringen lägger en just nådd produkt sist i kön. Två strikes
+ * låg därför en hel ROTATION isär — 72 h för en normalprioriterad produkt, inte
+ * de fyra timmar mellan körningarna som `REMOVED_STRIKES_REQUIRED` ser ut att
+ * lova. Under tiden är produkten fortfarande köpbar.
+ *
+ * `errorStreak` räknas MEDVETET inte som öppen serie: den stiger för hela
+ * katalogen samtidigt när AE har driftstörning, och förtur åt alla vore både
+ * verkningslöst och precis det som skulle svälta rotationen. Bara de
+ * produktspecifika signalerna (borttagen / slut i lager) ger förtur.
+ */
+export function hasOpenStreak(state: SyncStateEntry | null | undefined): boolean {
+  if (!state) return false;
+  const removed = state.removedStreak ?? 0;
+  const zero = state.zeroStreak ?? 0;
+  return (
+    (removed > 0 && removed < REMOVED_STRIKES_REQUIRED)
+    || (zero > 0 && zero < STOCK_ZERO_STRIKES_REQUIRED)
+  );
+}
+
+/**
+ * Körordningen för en synk-körning: öppna strike-serier först (upp till taket),
+ * därefter prioritet och äldst kontrollerad.
+ *
+ * Ren funktion → testbar utan nät. Överskjutande öppna serier faller tillbaka
+ * till sin naturliga plats i rotationen i stället för att trängas ihop främst.
+ */
+export function orderForRotation<T extends { mapping: { priority?: ProductMappingRecord["priority"] }; state: SyncStateEntry | null }>(
+  entries: readonly T[],
+  cap: number = OPEN_STREAK_PRIORITY_CAP,
+): T[] {
+  const äldstFörst = (a: T, b: T) =>
+    (a.state?.lastCheckedAt ?? "0").localeCompare(b.state?.lastCheckedAt ?? "0");
+
+  const öppna = entries.filter((e) => hasOpenStreak(e.state)).sort(äldstFörst);
+  const förtur = öppna.slice(0, Math.max(0, cap));
+  const förturSet = new Set<T>(förtur);
+
+  const resten = entries.filter((e) => !förturSet.has(e)).sort((a, b) => {
+    const pr = priorityRank(a.mapping.priority) - priorityRank(b.mapping.priority);
+    if (pr !== 0) return pr;
+    return äldstFörst(a, b);
+  });
+
+  return [...förtur, ...resten];
+}
+
 export function isUnsaleableError(msg: string): boolean {
   return /all\s+sku\s+unsaleable/i.test(msg) || /api-fel\s*604\b/i.test(msg);
 }
@@ -486,6 +565,17 @@ export interface SyncSummary {
   checked: number;
   /** Hoppade pga rate-limit eller skipIds. */
   skipped: number;
+  /**
+   * Vilken budget som faktiskt stoppade loopen: anropsbudgeten eller
+   * väggklockan — eller null när hela katalogen hanns med.
+   *
+   * De två budgetarna ligger inom brus från varandra (100 produkter ≈ 240 s vid
+   * ~2,4 s/produkt), så vilken som band avgör om en höjd anropsbudget ens
+   * hjälper. Det registrerades ingenstans (audit 2026-08-24).
+   */
+  boundBy?: "calls" | "clock" | null;
+  /** Antal AE-anrop som blev strypta (ApiCallLimit) under körningen. */
+  throttled?: number;
   /** Antal som blev hidden pga listning borttagen. */
   hidden: number;
   /** Antal som markerades som slut-i-lager. */
@@ -554,6 +644,8 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
 
   const summary: SyncSummary = {
     total: mappings.length,
+    boundBy: null,
+    throttled: 0,
     checked: 0,
     skipped: 0,
     hidden: 0,
@@ -628,20 +720,21 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     );
   }
 
-  // Sortera: priority DESC (high först), sedan äldsta lastCheckedAt först — så
+  // Körordning: öppen strike-serie först (upp till OPEN_STREAK_PRIORITY_CAP),
+  // sedan priority DESC (high först), sedan äldsta lastCheckedAt först — så
   // bestsellers/köp-triggade produkter alltid hinner med innan rate-limit slår
   // till, medan resten roterar runt över flera dagar.
-  const states = await Promise.all(
-    mappings.map((m) => syncStore.getState(m.wixProductId).then((s) => ({ mapping: m, state: s }))),
+  //
+  // Förturen för öppna serier är hela poängen med att sortera om (audit
+  // 2026-08-24): utan den hamnar en produkt vi PRECIS misstänkt vara borttagen
+  // sist i kön, och strike 2 dröjer en full rotation. Se `orderForRotation`.
+  const states = orderForRotation(
+    await Promise.all(
+      mappings.map((m) => syncStore.getState(m.wixProductId).then((s) => ({ mapping: m, state: s }))),
+    ),
   );
-  states.sort((a, b) => {
-    const pr = priorityRank(a.mapping.priority) - priorityRank(b.mapping.priority);
-    if (pr !== 0) return pr;
-    const aTime = a.state?.lastCheckedAt ?? "0";
-    const bTime = b.state?.lastCheckedAt ?? "0";
-    return aTime.localeCompare(bTime);
-  });
 
+  resetRateLimitCount();
   let apiCallsUsed = 0;
   const loopStartMs = Date.now();
   const timeBudgetMs = opts.timeBudgetMs ?? DEFAULT_SYNC_TIME_BUDGET_MS;
@@ -651,6 +744,11 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     // → avbryter aldrig en pågående skrivning). Resten räknas som skipped och
     // tas nästa körning (äldsta lastCheckedAt först).
     if (apiCallsUsed >= opts.maxApiCalls || Date.now() - loopStartMs >= timeBudgetMs) {
+      // Notera vilken budget som band FÖRSTA gången vi stannar — svaret på
+      // "hjälper det att höja SYNC_MAX_API_CALLS?" ligger i just den siffran.
+      if (!summary.boundBy) {
+        summary.boundBy = apiCallsUsed >= opts.maxApiCalls ? "calls" : "clock";
+      }
       summary.skipped++;
       continue;
     }
@@ -709,6 +807,7 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     }
   }
 
+  summary.throttled = rateLimitCount();
   summary.finishedAt = new Date().toISOString();
   return summary;
 }
@@ -770,6 +869,29 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   let fetchErrorStreak = 0;
   try {
     const product = await getAliExpressProduct(mapping.supplierProductId);
+    // NEDTAGEN LISTNING SOM SVARAR 200 (Leonards rapport 2026-08-24).
+    //
+    // Hela klassificeringen nedan byggde på att en död listning FELAR. Det gör
+    // den inte alltid: säljaren tar ner varan, konsumentsidan säger "Sorry,
+    // this item is no longer available!", men DS-API:t svarar 200 med full
+    // kropp och SKU-rader vars saldo står kvar fruset på sista kända värdet.
+    // Då föll svaret igenom till "Listningen är aktiv" och synken SKREV
+    // TILLBAKA lager varje körning — vi sålde Homcom-borden som inte gick att
+    // beställa. Statusen fanns i basinfon hela tiden (product_status_type /
+    // ws_display / ws_offline_date); ingen läste den.
+    //
+    // Kastas för att gå in i SAMMA väg som ett kastat "not found": strike-
+    // räkningen kräver REMOVED_STRIKES_REQUIRED körningar i rad, lagret nollas
+    // men sidan avpubliceras inte (SEO-beslutet), och en senare onSelling-
+    // läsning återställer produkten av sig själv. En egen felklass i stället
+    // för en matchbar text — samma lärdom som isDeliveryMethodMissing: en
+    // klassificering som hänger på ordval går sönder tyst.
+    if (product.listingAvailability === "offline") {
+      throw new ListingOfflineError(
+        `AliExpress-listningen ${mapping.supplierProductId} är nedtagen`
+        + `${product.offlineReason ? ` (${product.offlineReason})` : ""}.`,
+      );
+    }
     // Skydd mot degraderat 200-svar: ett giltigt svar med TOM variant-lista
     // (throttling/partiell DS-respons) skulle annars ge totalStock=0 →
     // decideSyncOutcome markerar OOS → Wix-lagret NOLLAS för en levande produkt
@@ -841,13 +963,21 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     // "product offline". Vi tolkar dem som listing_removed. Andra fel — re-throwa.
     const msg = err instanceof Error ? err.message.toLowerCase() : "";
     if (
-      msg.includes("not found")
+      // Uttryckligt hyllbesked ur basinfon (200-svar, se kastet ovan) — samma
+      // strike-mekanik som de textmatchade fallen, men utan textmatchningen.
+      err instanceof ListingOfflineError
+      || msg.includes("not found")
       || msg.includes("offline")
       || msg.includes("not exist")
       || msg.includes("invalid product")
       || /code\s*7001\d{3}/.test(msg)
     ) {
       removedClassified = true;
+      if (err instanceof ListingOfflineError) {
+        // Loggas högljutt: den här vägen upptäcktes bara för att en KUND
+        // hittade den. Ett tyst 200-svar med fruset lager säljer vidare.
+        console.warn(`[sync] ${mapping.wixProductId}: ${err.message}`);
+      }
       aliExpress = {
         title: "",
         images: [],

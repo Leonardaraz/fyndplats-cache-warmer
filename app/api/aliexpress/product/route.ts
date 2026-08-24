@@ -38,7 +38,16 @@ export async function GET(req: NextRequest) {
         shipFrom: v.shipFrom,
       })),
       shipsFrom: product.shipsFromCountries,
-      inStock: product.variants.some((v) => (v.stock ?? 0) > 0),
+      // NEDTAGEN LISTNING (audit 2026-08-24). `inStock` räknades tidigare enbart
+      // ur saldot — och en nedtagen listning svarar 200 med saldot FRUSET på
+      // sista kända värdet. Det här var alltså enda stället där antagandet
+      // "dött ser levande ut" aktivt tillverkades och skickades vidare till
+      // tillägget, som bygger sina varianter på svaret.
+      inStock:
+        product.listingAvailability !== "offline"
+        && product.variants.some((v) => (v.stock ?? 0) > 0),
+      listingAvailability: product.listingAvailability ?? "unknown",
+      ...(product.offlineReason ? { offlineReason: product.offlineReason } : {}),
     });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
