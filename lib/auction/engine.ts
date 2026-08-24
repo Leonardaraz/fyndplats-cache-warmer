@@ -96,15 +96,44 @@ export function up9(n: number): number {
 }
 
 /**
- * Golv ur verklig landad kostnad (exkl. moms) vid max −7 % marginal:
- * nettointäkt (pris/1,25) får understiga kostnaden med högst 7 %
- * ⇒ pris ≥ kostnad × 1,25 / 1,07 (≈ × 1,168). Avrundas upp till 9-slut
- * (så verklig förlust blir strax UNDER 7 %) och klampas till högst listpriset.
- * OBS: Klarna-avgiften (~2–3 %) ligger utanför — värsta fallet ≈ −9–10 % allt-i-allt.
+ * Största rabatt ett fynd får visa mot ordinarie pris.
+ *
+ * VARFÖR TAKET FINNS. Golvet räknades tidigare ENBART ur kostnaden. Det höll
+ * marginalregeln, men rabattdjupet blev en biprodukt av påslaget i stället för
+ * ett beslut: uppmätt över 166 live- och köade fynd 2026-08-24 låg medianen på
+ * 28,9 %, snittet på 30,0 %, och 39 fynd gick över 30 % — djupast 49,8 %.
+ *
+ * Med husets prisformel (listpris = landad kostnad × 1,30) passerar nollan vid
+ * ungefär 23 % rabatt. Auktionen var alltså byggd för att bottna med förlust,
+ * och gjorde det: det första riktiga auktionsköpet (order 10022, satsbordet)
+ * gick på 879 kr mot 651,53 kr i nettokostnad — 7,3 % marginal, mot husets
+ * normala 23 %.
+ *
+ * 15 % lämnar ~9,5 % marginal på en normalprissatt vara. Leonards beslut
+ * 2026-08-24.
+ */
+export const MAX_DISCOUNT = 0.15;
+
+/**
+ * Golvet är det HÖGSTA av två krav — det som binder hårdast vinner:
+ *
+ *   MARGINALGOLVET, ur verklig landad kostnad (exkl. moms) vid max −7 %
+ *   marginal: nettointäkt (pris/1,25) får understiga kostnaden med högst 7 %
+ *   ⇒ pris ≥ kostnad × 1,25 / 1,07 (≈ × 1,168). Skyddar lågmarginalvaror.
+ *
+ *   RABATTGOLVET, ur listpriset: pris ≥ list × (1 − MAX_DISCOUNT). Skyddar mot
+ *   att en vara med extra påslag rasar 45 % bara för att kostnaden tillåter det.
+ *
+ * Båda avrundas upp till 9-slut (så rabatten alltid blir strax UNDER taket och
+ * förlusten strax under 7 %) och resultatet klampas till högst listpriset —
+ * en vara vars kostnad inte rymmer någon rabatt alls får helt enkelt ingen.
+ *
+ * OBS: Klarna-avgiften (~2–3 %) ligger utanför båda.
  */
 export function buildFloor(listPrice: number, landedCostSek: number): number {
-  const minAllowed = up9((landedCostSek * 1.25) / 1.07);
-  return Math.min(minAllowed, listPrice);
+  const marginalgolv = up9((landedCostSek * 1.25) / 1.07);
+  const rabattgolv = up9(listPrice * (1 - MAX_DISCOUNT));
+  return Math.min(Math.max(marginalgolv, rabattgolv), listPrice);
 }
 
 /**
