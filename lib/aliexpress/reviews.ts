@@ -28,8 +28,20 @@ export const AE_FEEDBACK_ENDPOINT = "https://feedback.aliexpress.com/pc/searchEv
 
 /** Sidstorlek per anrop (AE:s eget tak för endpointen). */
 export const AE_REVIEW_PAGE_SIZE = 20;
-/** Hur många sidor vi hämtar per produkt som standard. */
-export const AE_REVIEW_DEFAULT_PAGES = 2;
+/**
+ * Hur många sidor vi hämtar per produkt som standard.
+ *
+ * HÖJD 2 → 4 (2026-08-25). Två sidor är 40 råa recensioner, och för en listning
+ * med fler än så slutade hämtningen mitt i högen — inte för att resten var
+ * dålig, utan för att loopen tog slut. Mätt över nio verkliga listningar:
+ * 2 sidor gav 204 råa och 116 godkända, 6 sidor gav 304 råa och 145 godkända.
+ *
+ * Höjningen är självbegränsande och kostar ingenting på de tunna listningarna:
+ * loopen bryter på `hasNext`, så en produkt med 12 recensioner gör exakt ett
+ * anrop oavsett vad taket står på. Bara listningar som FAKTISKT har mer
+ * betalar för det.
+ */
+export const AE_REVIEW_DEFAULT_PAGES = 4;
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -167,7 +179,8 @@ export function aeReviewUrl(productId: string, page: number): string {
 }
 
 export interface AeReviewFetchOptions {
-  /** Antal sidor (à 20). Default 2 — filtret behåller ändå bara topp 15. */
+  /** Antal sidor (à 20). Default AE_REVIEW_DEFAULT_PAGES; loopen bryter ändå
+   *  på `hasNext`, så tunna listningar kostar ett anrop. */
   pages?: number;
   /** Injicerbar fetch för tester. */
   fetchImpl?: typeof fetch;
