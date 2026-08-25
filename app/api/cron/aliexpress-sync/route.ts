@@ -140,6 +140,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
         skipped: summary.skipped,
         boundBy: summary.boundBy ?? null,
         throttled: summary.throttled ?? 0,
+        orphans: summary.orphans ?? 0,
         checked: summary.checked,
         flaggedPrice: summary.flaggedPrice,
         flaggedContent: summary.flaggedContent,
