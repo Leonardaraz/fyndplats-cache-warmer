@@ -576,6 +576,11 @@ export interface SyncSummary {
   boundBy?: "calls" | "clock" | null;
   /** Antal AE-anrop som blev strypta (ApiCallLimit) under körningen. */
   throttled?: number;
+  /**
+   * Mappningar vars Wix-produkt är raderad. Räknades tidigare tyst in i
+   * `checked` med actionTaken "none", så antalet var okänt — nu syns det.
+   */
+  orphans?: number;
   /** Antal som blev hidden pga listning borttagen. */
   hidden: number;
   /** Antal som markerades som slut-i-lager. */
@@ -646,6 +651,7 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     total: mappings.length,
     boundBy: null,
     throttled: 0,
+    orphans: 0,
     checked: 0,
     skipped: 0,
     hidden: 0,
@@ -677,8 +683,8 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // dygns spridning, och får inte stå bredvid ett fraktbart syskon.
   //
   // Default höjd till 20 anrop/körning (Leonards begäran 2026-08-16). Med
-  // körning var 4:e timme blir det ~120 kontroller/dygn — en första svep över
-  // de ~822 aldrig kontrollerade varianterna tar drygt en vecka. Medvetet
+  // körning varannan timme blir det ~240 kontroller/dygn — en första svep över
+  // de ~822 aldrig kontrollerade varianterna tar drygt tre dygn. Medvetet
   // långsamt: beviskravet kostar tid, och det är priset för att inte upprepa
   // kod röd. Sätt SYNC_SHIPPABILITY_CHECKS_PER_RUN för att ändra takten, 0
   // för att pausa igen.
@@ -779,6 +785,12 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
         opsAlertEmail: opts.opsAlertEmail,
         shippabilityBudget,
       });
+      if (result.wixMissing) {
+        // Orphan: avbröts före AliExpress-hämtningen, så inget anrop gjordes.
+        // Lämna tillbaka budgetplatsen till en produkt som faktiskt finns.
+        apiCallsUsed--;
+        summary.orphans = (summary.orphans ?? 0) + 1;
+      }
       summary.checked++;
       summary.shippabilityChecked = (summary.shippabilityChecked ?? 0) + (result.shippabilityCalls ?? 0);
       summary.shippabilityUnshippable = (summary.shippabilityUnshippable ?? 0) + (result.shippabilityUnshippable ?? 0);
@@ -839,11 +851,47 @@ interface SyncOneResult {
   /** Antal fraktbarhets-API-anrop resp. ofraktbara varianter denna produkt. */
   shippabilityCalls?: number;
   shippabilityUnshippable?: number;
+  /**
+   * Wix-produkten finns inte längre (raderad) — mappningen är en orphan.
+   * Sätts när vi avbröt FÖRE AliExpress-hämtningen, så anroparen vet att
+   * produkten inte kostade något AE-anrop och kan lämna tillbaka budgetplatsen.
+   */
+  wixMissing?: boolean;
 }
 
 async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   const { mapping, state, pricing, dryRun, marginFloorPercent } = opts;
   const checkedAt = new Date().toISOString();
+
+  // 0) FINNS WIX-PRODUKTEN ÖVER HUVUD TAGET? (Leonards fråga 2026-08-25.)
+  //
+  // Raderas en produkt i Wix ligger mappningsraden kvar — det finns ingen
+  // raderings-webhook och ingen städning. Kollen låg tidigare i steg 2, ALLTSÅ
+  // EFTER AliExpress-hämtningen, så varje orphan kostade ett riktigt AE-anrop
+  // och en plats i körningens budget innan vi upptäckte att produkten var borta.
+  // Med kollen först kostar en orphan noll AE-anrop, och anroparen får tillbaka
+  // budgetplatsen via `wixMissing`.
+  //
+  // `getWixProduct` returnerar null BARA på 404; alla andra fel kastar och
+  // hanteras av loopens felgren. En nätverksglitch kan alltså aldrig få en
+  // levande produkt att se raderad ut.
+  const wixSnapshot = await getWixProduct(mapping.wixProductId);
+  if (!wixSnapshot) {
+    await getSyncStore().appendLog({
+      id: `${mapping.wixProductId}-${checkedAt}`,
+      productId: mapping.wixProductId,
+      aliexpressId: mapping.supplierProductId,
+      checkedAt,
+      prevCostSek: state?.currentCostSek ?? null,
+      newCostSek: null,
+      prevStock: state?.currentStock ?? null,
+      newStock: null,
+      listingStatus: "unknown",
+      actionTaken: "none",
+      notes: "Wix-produkten är raderad — mappningen är en orphan, hoppar över (inget AE-anrop gjordes).",
+    });
+    return { actionTaken: "none", wixMissing: true };
+  }
 
   // 1) Hämta AliExpress-data. Två anrop räcker (product.get inkluderar redan
   // varianterna), men vi separerar för tydlighet och felisolering.
@@ -1092,26 +1140,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     ? Math.min((state?.zeroStreak ?? 0) + 1, STOCK_ZERO_STRIKES_REQUIRED)
     : 0;
 
-  // 2) Hämta Wix-snapshot (för visibility + nuvarande pris).
-  const wixSnapshot = await getWixProduct(mapping.wixProductId);
-  if (!wixSnapshot) {
-    // Wix-produkten är redan borttagen → bara logga och rensa state.
-    await getSyncStore().appendLog({
-      id: `${mapping.wixProductId}-${checkedAt}`,
-      productId: mapping.wixProductId,
-      aliexpressId: mapping.supplierProductId,
-      checkedAt,
-      prevCostSek: state?.currentCostSek ?? null,
-      newCostSek: null,
-      prevStock: state?.currentStock ?? null,
-      newStock: null,
-      listingStatus: "unknown",
-      actionTaken: "none",
-      notes: "Wix-produkten hittades inte — hoppar över.",
-    });
-    return { actionTaken: "none" };
-  }
-
+  // 2) Wix-snapshot (för visibility + nuvarande pris) — hämtades redan i steg 0.
   const currentPriceSek = Number.parseFloat(
     wixSnapshot.variants[0]?.actualPriceAmount ?? "0",
   );

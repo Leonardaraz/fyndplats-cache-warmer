@@ -334,6 +334,18 @@ strike-serie** förtur i nästa körning, med tak `OPEN_STREAK_PRIORITY_CAP = 30
 så en masshändelse inte svälter rotationen. `errorStreak` ger medvetet INTE
 förtur — den stiger för hela katalogen samtidigt vid AE-driftstörning.
 
+**Cronen går varannan timme sedan 2026-08-25** (`0 */2 * * *`). Tillsammans med
+förturen ovan ligger två strikes nu ~2 h isär i stället för en hel rotation, och
+tiden till FÖRSTA observationen halveras (~20 h i stället för ~40 vid 980
+mappningar).
+
+Priset är att bevisen ligger tätare: en AE-driftstörning som varar över två
+timmar kan nu hinna ge två strikes där den förut gav en. Utfallet är dock
+begränsat och självläkande — lagret nollas, sidan ligger kvar publicerad,
+produkten syns i `/admin/sync-alerts`, och en senare `onSelling`-läsning
+återställer den. Avvägningen är medveten: att vara oköpbar några timmar är ett
+billigare fel än att sälja något som inte går att beställa.
+
 ### Ett tyst dry-run är det farligaste läget
 
 `SYNC_DRY_RUN` är default `"true"`, och i dry-run **fryses strike-fälten**
