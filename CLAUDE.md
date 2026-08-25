@@ -385,6 +385,39 @@ sådana som inte är publicerade hos AE (`status !== "1"`) släpps aldrig igenom
 Anonyma konton ("AliExpress Shopper") får inget namn vidare — annars blir varenda
 rad "A.S." och sidan ser förfalskad ut.
 
+### Vad som faktiskt gallrar — mätt 2026-08-25
+
+Den vanliga gissningen är att stjärnfiltret stryper hämtningen. Det gör det inte.
+Mätt över nio verkliga AE-listningar (204 råa recensioner):
+
+| Regel | Kvar | Kostnad |
+|---|---|---|
+| `minRating: 3` | 199/204 | **2 %** — nästan allt hos AE är redan 3+ |
+| `minLength: 50` | 126/204 | **38 %** |
+| spam + dubblett + utlandsleverans | 116/204 | 5 % |
+| `DEFAULT_MAX_PER_PRODUCT: 8` | 55/116 | **53 % av det godkända** |
+
+Samtidigt visade **432 av 908 publicerade produktsidor noll recensioner**. Bristen
+är alltså BREDD (produkter utan någon recension), inte DJUP (fler per produkt) —
+att höja taket från 8 hjälper bara de ~40 produkter som redan har flest.
+
+Två ändringar följde, båda riktade mot bredden:
+
+- **`AE_REVIEW_DEFAULT_PAGES` 2 → 4.** Två sidor är 40 råa; loopen tog slut mitt i
+  högen på listningar med fler. Självbegränsande: `fetchAeReviews` bryter på
+  `hasNext`, så en tunn listning kostar fortfarande ett anrop.
+- **Räddningssvepet (`REVIEW_RESCUE_MIN_LENGTH = 25`).** Gav 50-teckengolvet
+  INGENTING görs urvalet om med 25. Golvet sänks aldrig när något klarade 50 — en
+  kort äkta recension slår ingen recension, men bara när alternativet verkligen är
+  ingen. Ett `minLength` som anroparen satt själv rivs inte (det är ett beslut, och
+  överdraget finns för att svepa upp det ett gammalt filter slängde).
+
+Räddningssvepet går INTE förbi någon annan spärr: betyg, spam, dubbletter och
+utlandsleverans gäller oförändrat i båda svepen.
+
+Kvar som medvetet orört: taket på 8 i backfillen. Fler hämtade recensioner blir
+inte fler synliga — de blir en längre `pending`-kö att skriva om för hand.
+
 ### Så körs den
 
 | Vad | Anrop |
