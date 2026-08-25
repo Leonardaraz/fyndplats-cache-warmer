@@ -60,9 +60,25 @@ restock-utskick och bestseller-prioritet körs i den befintliga dagliga syncen.
 
 ## Cron-schema
 
-`/api/cron/aliexpress-sync` körs **var 4:e timme** (`0 */4 * * *`, Vercel Pro) —
-6 körningar/dygn × 100 anrop = 600 checkar/dygn → hela katalogen (~207) varje
-dygn med 2-3× täckning för high-priority (bestsellers/köp).
+`/api/cron/aliexpress-sync` körs **varannan timme** (`0 */2 * * *`, Vercel Pro) —
+12 körningar/dygn × ~100 produkter = ~1 200 checkar/dygn.
+
+Takten höjdes från var 4:e timme 2026-08-25. Katalogen hade vuxit till 980
+mappningar medan budgeten stod kvar på 600 checkar/dygn, alltså **1,65 dygns
+rotation** — en produkt kunde dö hos leverantören och ligga köpbar hos oss i
+över ett dygn innan vi ens tittade på den.
+
+Varför frekvens och inte större budget per körning: `boundBy` i synk-summeringen
+visade `"calls"`, men bara nätt och jämnt — 100 produkter tog nästan hela
+väggklocka-budgeten på 240 s, och funktionens `maxDuration` är 300 s. En höjning
+till 150 hade därför bara flyttat gränsen till `"clock"` (~10 % fler produkter)
+och pressat körtiden mot taket där Vercel dödar funktionen mitt i en
+Wix-skrivning. Fler körningar kostar ingenting av de budgetarna.
+
+Utrymmet fanns: `throttled: 0` i varje mätt körning — vi blev aldrig
+frekvensspärrade av AliExpress. Om en DYGNSKVOT finns (odokumenterad, varken i
+repot eller i AE:s publika dokumentation) syns den som `throttled > 0` i
+audit-raden och i morgonmejlet — det är facit att backa på.
 
 ## Feature 3 — kostnad nära noll
 

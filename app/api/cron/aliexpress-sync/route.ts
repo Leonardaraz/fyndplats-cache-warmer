@@ -1,6 +1,6 @@
 // POST /api/cron/aliexpress-sync
 //
-// AliExpress-sync. Körs av Vercel Cron var 4:e timme (vercel.json) så att
+// AliExpress-sync. Körs av Vercel Cron varannan timme (vercel.json) så att
 // katalogen rullar igenom snabbare — ordervakten (/api/cron/order-guard)
 // sammanfattar dygnets körningar i morgonmejlet.
 //
@@ -155,7 +155,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     );
 
     // Email-rapport per körning — AV som standard sedan 2026-07-14. Cronen
-    // kör var 4:e timme = upp till 6 rapporter/dygn i inkorgen; Leonard ville
+    // kör varannan timme = upp till 12 rapporter/dygn i inkorgen; Leonard ville
     // ha ETT mejl om dagen. Dygnets händelser sammanställs numera i morgon-
     // mejlet (ordervakten, /api/cron/order-guard). Sätt SYNC_PER_RUN_EMAIL=true
     // för att få tillbaka per-körnings-rapporten.

@@ -677,8 +677,8 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // dygns spridning, och får inte stå bredvid ett fraktbart syskon.
   //
   // Default höjd till 20 anrop/körning (Leonards begäran 2026-08-16). Med
-  // körning var 4:e timme blir det ~120 kontroller/dygn — en första svep över
-  // de ~822 aldrig kontrollerade varianterna tar drygt en vecka. Medvetet
+  // körning varannan timme blir det ~240 kontroller/dygn — en första svep över
+  // de ~822 aldrig kontrollerade varianterna tar drygt tre dygn. Medvetet
   // långsamt: beviskravet kostar tid, och det är priset för att inte upprepa
   // kod röd. Sätt SYNC_SHIPPABILITY_CHECKS_PER_RUN för att ändra takten, 0
   // för att pausa igen.
