@@ -705,11 +705,23 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 @media(max-width:540px){.lb-nav{width:42px;height:42px;font-size:var(--text-xl)}.lb-prev{left:8px}.lb-next{right:8px}}
 .pinfo h1{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px}
 /* Betyget under rubriken, ovanför priset: liten rad som hoppar till omdömena. */
-.pdp-rating{display:inline-flex;align-items:center;gap:6px;margin:0 0 12px;text-decoration:none;color:var(--ink);font-size:var(--text-sm)}
-.pdp-rating strong{font-weight:700}
+/* Betyget: sidans starkaste sociala bevis, men det låg i finstilt-storlek
+   (14px) rakt ovanför ett 32px-pris — 1:2,3. Värre: enda länksignalen satt på
+   ANTALET, i den dovaste gråtonen, medan ögat dras till stjärnorna. Och raden
+   var ~20px hög, alltså under sajtens egen 44px-regel för tryckytor.
+   Stjärnorna upp till 18px, siffran till 16px, hela raden svarar på hover och
+   en pil säger att det leder någonstans. INTE orange och INTE inramat: priset
+   ska förbli sidans starkaste element — betyget ska vara tryggt, inte skrika. */
+.pdp-rating{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin:-4px 0 6px;text-decoration:none;color:var(--ink);font-size:var(--text-base)}
+/* Specificiteten (0,2,0) slår .rev-stars egna --text-sm oavsett ordning. */
+.pdp-rating .rev-stars{font-size:var(--text-lg)}
+.pdp-rating strong{font-weight:800}
 .pdp-rating-dot{color:var(--soft)}
-.pdp-rating-count{color:var(--soft);text-decoration:underline;text-underline-offset:2px}
-.pdp-rating:hover .pdp-rating-count{color:var(--ink)}
+.pdp-rating-count{color:var(--soft);text-decoration:underline;text-underline-offset:3px;text-decoration-color:#cfc6ba;transition:color .15s,text-decoration-color .15s}
+.pdp-rating-arrow{color:var(--soft);font-size:var(--text-sm);transition:transform .15s,color .15s}
+.pdp-rating:hover .pdp-rating-count{color:var(--ink);text-decoration-color:var(--ink)}
+.pdp-rating:hover .pdp-rating-arrow{color:var(--ink);transform:translateX(2px)}
+@media (prefers-reduced-motion:reduce){.pdp-rating-arrow{transition:none}.pdp-rating:hover .pdp-rating-arrow{transform:none}}
 .pdp-price{font-size:var(--text-2xl);font-weight:800;color:var(--brand);margin-bottom:10px}
 .pdp-price-old{font-size:var(--text-lg);font-weight:600;color:#7c746b;text-decoration:line-through;margin-left:10px;vertical-align:middle}
 .pdp-sale{display:inline-block;vertical-align:middle;margin-left:10px;background:var(--sale-fill);color:#fff;font-size:var(--text-xs);font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:var(--r-xs)}

@@ -566,6 +566,9 @@ export function ProductView({
                   sammandraget i recensionssektionen. */}
               <span className="pdp-rating-dot" aria-hidden="true">·</span>
               <span className="pdp-rating-count">{ratingHead.label}</span>
+              {/* Riktningsvisare: raden ÄR en länk till #recensioner, men inget
+                  sa det. Dekorativ — skärmläsaren har redan länktexten. */}
+              <span className="pdp-rating-arrow" aria-hidden="true">→</span>
             </a>
           )}
           {!buyable && (
