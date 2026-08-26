@@ -277,6 +277,26 @@ undantag — det är normalläget för AliExpress-listningar.
    Samma bild bar däremot belägg för allt annat i texten.
    **Regel:** varje mätvärde och varje mekanikord ska gå att peka på i en källa. Kan du
    inte peka — skriv det generiska ordet ("metallskenor") i stället för det precisa.
+8. **Står etiketten mot ritningen — mät ritningen.** Leverantörens måttbilder är
+   ortografiska: proportionerna stämmer även när textetiketterna inte gör det. Har du
+   ETT mått du litar på i samma bild kan du räkna ut alla andra och avgöra saken
+   själv, i stället för att välja mellan två påståenden.
+   `2ad9b84b` (låg hundgrind, 2026-08-26): höjdpilen var märkt **"25 cm"**, medan
+   titel och spec sa 45 cm. Grindsektionen i samma bild var måttsatt 61 cm och mätte
+   863 px → 14,15 px/cm; höjdpilen spände 614 px = **43,4 cm**. Etiketten var alltså
+   fel, inte specen. Skillnaden var inte kosmetisk: 25 cm är ett trappsteg, 45 cm är
+   en grind.
+   Mät på leverantörens ORIGINALBILD, inte på ett omkodat utsnitt, och tröskla bort
+   strökorn (`rad >= 8 px`) — annars drar JPEG-bruset ut bounding-boxen till hela
+   bilden.
+
+   > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma
+   > produkt hade rubriken *"Diferentes extensiones para aberturas de: **-XX-XXcm**"* —
+   > en platshållare som gått rakt ut i produktion. Ser du en sådan: sluta lita på
+   > siffrorna i den bildserien och verifiera var och en. Där fanns också ett andra
+   > fel — bildens steg-tabell började på 66 cm medan titeln sa 67. Två källor som
+   > säger olika om en MINSTA bredd → ta den HÖGRE (regel 3 i konservativ riktning):
+   > säger vi 66 och kundens öppning är 66,5 köper hen något som inte passar.
 
 > 🔒 **Rättelsen går in i löptexten, aldrig som brasklapp.** Skriv den sanna uppgiften
 > i stycket och i spec-tabellen — inte *"leverantören påstår X men…"*. Se
