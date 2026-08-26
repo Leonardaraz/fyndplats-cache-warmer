@@ -710,6 +710,7 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
   .pbrowse-namn{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;
     -webkit-line-clamp:2;line-clamp:2;line-height:1.3}
 }
+.pdp{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:20px 0 64px;align-items:start}
 .pdp>*{min-width:0}/* låt grid-barnen krympa → inget vågrätt spill på mobil */
 /* Desktop: galleriet klistras fast och följer med när högerkolumnens långa
    beskrivning scrollas — annars blir vänsterhalvan ett stort vitt hål.
