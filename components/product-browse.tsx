@@ -54,12 +54,20 @@ export function ProductBrowse({
   const { forra, nasta, position, antal } = grannar;
   if (!forra && !nasta) return null;
 
+  // I listans ändar finns bara en länk. Först stod en tom platshållare i den
+  // andra spalten så räknaren skulle bli kvar mitt på raden — men skarpt såg
+  // det ut som att något inte laddat: en ensam länk till vänster och två
+  // tredjedelar tomrum till höger. Nu byter rutnätet form i stället, och
+  // räknaren flyttar ut till den lediga kanten. Två spalter, inget hål.
+  const sidor = forra && nasta ? "bada" : forra ? "forra" : "nasta";
+
   return (
     <nav
       className="pbrowse"
+      data-sidor={sidor}
       aria-label={kategoriNamn ? `Bläddra i ${kategoriNamn}` : "Bläddra bland produkter"}
     >
-      <Lank granne={forra} riktning="forra" />
+      {forra && <Lank granne={forra} riktning="forra" />}
       {position !== null && antal > 1 && (
         // Räknaren gör pilarna begripliga: utan den vet man inte om "nästa" är
         // en av tre eller en av femtio. Döljs på små skärmar (se globals.css) —
@@ -69,17 +77,13 @@ export function ProductBrowse({
           {kategoriNamn ? ` i ${kategoriNamn}` : ""}
         </span>
       )}
-      <Lank granne={nasta} riktning="nasta" />
+      {nasta && <Lank granne={nasta} riktning="nasta" />}
     </nav>
   );
 }
 
-function Lank({ granne, riktning }: { granne: Granne; riktning: "forra" | "nasta" }) {
+function Lank({ granne, riktning }: { granne: NonNullable<Granne>; riktning: "forra" | "nasta" }) {
   const forra = riktning === "forra";
-  // Tom platshållare i stället för utelämnad nod: håller kvar rutnätets tre
-  // spalter så räknaren står mitt på raden även i listans ändar.
-  if (!granne) return <span className={`pbrowse-tom pbrowse-${riktning}`} aria-hidden="true" />;
-
   return (
     <a
       className={`pbrowse-lank pbrowse-${riktning}`}

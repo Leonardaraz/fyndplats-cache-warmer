@@ -680,12 +680,21 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pbrowse-rakn{font-size:var(--text-xs);color:var(--soft);white-space:nowrap;
   font-variant-numeric:tabular-nums}
-.pbrowse-tom{min-height:44px}
+/* Listans ändar: bara en länk finns. Rutnätet blir två spalter och räknaren
+   flyttar ut till den lediga kanten. Med en tom platshållare i stället såg
+   raden ut som att något inte laddat — en ensam länk och två tredjedelar
+   tomrum bredvid. */
+.pbrowse[data-sidor="forra"]{grid-template-columns:1fr auto}
+.pbrowse[data-sidor="forra"] .pbrowse-rakn{justify-self:end}
+.pbrowse[data-sidor="nasta"]{grid-template-columns:auto 1fr}
+.pbrowse[data-sidor="nasta"] .pbrowse-rakn{justify-self:start}
 
 @media(max-width:700px){
   /* Räknaren får stryka på foten — de två produktnamnen är värda utrymmet.
      Rutnätet blir två lika spalter så vardera namnet får halva bredden. */
   .pbrowse{grid-template-columns:1fr 1fr;gap:6px}
+  /* Räknaren är ändå dold här, så en ensam länk får hela bredden. */
+  .pbrowse[data-sidor="forra"],.pbrowse[data-sidor="nasta"]{grid-template-columns:1fr}
   .pbrowse-rakn{display:none}
   .pbrowse-lank{gap:9px;padding:6px}
   /* Chevronen ryms inte bredvid miniatyr OCH text i en halv mobilspalt.
