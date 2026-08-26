@@ -542,6 +542,19 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > `options` kan aldrig skickas ensamt: utan `variantsInfo` svarar API:et 428 `MISSING_VARIANT_OPTION_CHOICE`. Och identifierar du valen med `optionChoiceNames` krävs **alla tre** fälten `optionName`, `choiceName` och `renderType` — utelämnas `renderType` blir det samma 428. Nya val behöver dessutom `choiceType: "CHOICE_TEXT"`, annars 400 `PRODUCT_OPTION_CHOICE_NAME_AND_TYPE_REQUIRED`.
 
 > ⚠️ **`altText` sitter på ITEM-nivån — `image` är readOnly (2026-08-17, kostade två blinda PATCH:ar).** I `media.itemsInfo.items[]` heter fältet `altText` direkt på itemet (`ProductMedia.altText`); `item.image` är `readOnly: true` och **ignoreras tyst**. Skickar du `{ id, image: { id, altText } }` går PATCH:en igenom med 200, men alt-texten skrivs aldrig — och eftersom du samtidigt ersatt hela `items`-listan **raderas de gamla alt-texterna**. Så tömdes hela galleriet på alt-text för två produkter innan felet syntes. Rätt form är `{ id: "<fileId>", altText: "…" }`. Verifiera ALLTID med re-GET att `items[].altText` är ifylld — ett 200-svar bevisar ingenting här.
+>
+> ☠️ **Samma sak händer om du bara skickar `{ id }` — och det är den vanligaste vägen dit.** Regeln
+> ovan handlar om FEL form på alt-texten; det här handlar om att den saknas helt. `items`-listan
+> ersätts i sin helhet vid varje media-PATCH, så ett item utan `altText` blir ett item UTAN
+> alt-text — även om det hade en innan. Fällan slår till när du patchar galleriet av något annat
+> skäl än texten: byter ordning, byter ut en swatch, eller skriver tillbaka hela fil-id-listan för
+> att komma runt att Wix döpt om media-item-id:na. Då tänker man på id:na, inte på texten.
+>
+> **Regel: varje media-PATCH bär `altText` på VARJE item.** Läs items med
+> `?fields=MEDIA_ITEMS_INFO` först och skicka tillbaka den befintliga alt-texten på de bilder du
+> inte rör. *(Svep 2026-08-26: **80 bilder på 10 publicerade produkter** stod utan alt-text, åtta
+> av dem sidor som polerats färdigt samma dygn — swatch-bytet hade skrivit tillbaka fil-id-listan
+> utan texterna. Katalogkollen hittade det; produktsidorna såg felfria ut.)*
 
 > ⚠️ **Galleribilder MÅSTE vara kvadratiska — PDP:n centrumbeskär varje bild till kvadrat.**
 > Storefronten hämtar galleriet med Wix-transformen `fill/w_N,h_N,al_c` (verifierat i
