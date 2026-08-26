@@ -266,6 +266,17 @@ undantag — det är normalläget för AliExpress-listningar.
 6. **Marknadsföringsnamnet är inte produkttypen.** Kolla vad varan *är* innan du
    döper den. En 26 cm steglängd och sittande användning gör den inte till en
    crosstrainer, hur mycket leverantören än kallar den det.
+7. **Skriv inte in hårdvarudetaljer som varken text eller bild stöder.** De två
+   föregående reglerna handlar om att leverantören ljuger. Den här handlar om oss:
+   en trovärdig liten detalj är lätt att skriva och nästan omöjlig att upptäcka i
+   korrekturet, för den *låter* som något man läst i specen.
+   `f0e0ee14` (smal hurts, 2026-08-26) fick "kullagrade skenor" i inledningen, en h2,
+   spec-tabellen OCH meta description. Ingenstans i listningen stod det. Zoomar man in
+   på leverantörens bild av de öppna lådorna syns tvådelade **vitlackerade
+   rullskenor** — inte kullager (som är tredelade, olackerade och har synlig kulbana).
+   Samma bild bar däremot belägg för allt annat i texten.
+   **Regel:** varje mätvärde och varje mekanikord ska gå att peka på i en källa. Kan du
+   inte peka — skriv det generiska ordet ("metallskenor") i stället för det precisa.
 
 > 🔒 **Rättelsen går in i löptexten, aldrig som brasklapp.** Skriv den sanna uppgiften
 > i stycket och i spec-tabellen — inte *"leverantören påstår X men…"*. Se
@@ -323,6 +334,18 @@ Bygg innehållet:
   - ⚠️ **Slug-varning (headless):** byt slug **bara på produkter som inte gått live än** (nyimporterade draft-produkter). Wix auto-redirect (`preventAutoRedirect:false`) gäller **bara Wix-hostade sajter, inte din headless** – så att byta slug på en redan indexerad produkt gör att den gamla URL:en **404:ar** och ranking tappas. För en redan publicerad produkt: **behåll befintlig slug**.
 - **title-tagg:** ≤ ~60 tecken, fokussökord först, ev. `| Fyndplats`.
 - **meta description:** ≤ ~155 tecken, nytta + sökord, **inga overifierade påståenden** (ingen "fri frakt" om det inte stämmer).
+
+> 🟠 **Rättar du ett sakfel i efterhand — rätta `seoData` i SAMMA veva.**
+> Meta-beskrivningen är ett **eget fält**, inte en spegling av brödtexten. Skriver du
+> om beskrivningen på en publicerad produkt lever den gamla formuleringen kvar i
+> `seoData` — och därifrån går den ut i `<meta name="description">`, `og:description`,
+> `twitter:description` **och** `Product`-JSON-LD:ns `description`, eftersom frontend
+> genererar allt det ur samma fält. Ett felaktigt påstående kan alltså vara borta ur
+> hela produktsidans synliga text och ändå vara det enda Google och Facebook citerar.
+> Sök på det borttagna ordet i den **renderade HTML:en**, inte bara i `plainDescription`:
+> hittar du det i en `<meta>`-tagg är det `seoData` som ska patchas.
+> Fällan slog till 2026-08-26 på `f0e0ee14` (smal hurts 40 cm): "kullagrade skenor"
+> var borta ur beskrivning, h2 och spec-tabell men stod kvar i meta description.
 
 > **Viktigt:** en PATCH av `seoData` **ersätter hela objektet** – skicka därför ALLTID med samtliga taggar nedan, inte bara den du ändrar.
 
