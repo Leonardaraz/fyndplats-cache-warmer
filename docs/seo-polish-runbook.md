@@ -621,6 +621,27 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > efter en frontend-cache som inte fanns — `age: 302` på nästa svar visade att det bara
 > var en nod som låg efter.)
 
+> ☠️ **Hämta ALDRIG produktsidan i samma andetag som publiceringen — då cachas en 404 i
+> fem minuter.** Wix slug-index ligger några sekunder efter skrivningen. Är butiken framme
+> före indexet renderar den startsidans fallback, och just den 404:an är vad ISR sparar.
+> Sidan ser trasig ut fast produkten är helt korrekt. Hände 2026-08-26 på `8da26d68`
+> (sängbänk 117 cm): publicering och `curl` låg under en sekund isär, och sidan svarade
+> fallback i drygt fem minuter innan den kom till liv av sig själv.
+>
+> **Så skiljer du en cachad 404 från ett verkligt fel — fråga Wix samma fråga som butiken:**
+> ```
+> POST /stores/v3/products/query
+> { "query": { "filter": { "slug": {"$eq":"<slug>"}, "visible": {"$eq":true} } } }
+> ```
+> Kommer produkten tillbaka är datan rätt och det enda som återstår är att vänta ut
+> fönstret. Två saker som INTE hjälper: en frågesträng (`?x=1`) bustar inte cachen på
+> produktrutten, och **sitemapen är ingen diagnos** — tre av fyra produkter publicerade
+> samma dag saknades i den medan deras sidor fungerade utmärkt.
+>
+> **Regeln:** lägg publiceringen och live-kontrollen i skilda anrop, med minst
+> recensionshämtningen emellan. Får du ändå fallback: verifiera via slug-frågan ovan,
+> vänta ut de 300 sekunderna och kontrollera igen — börja inte ändra på produkten.
+
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
