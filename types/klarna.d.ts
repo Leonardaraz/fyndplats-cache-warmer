@@ -19,6 +19,8 @@ declare module "react" {
           "data-key": string;
           "data-locale": string;
           "data-purchase-amount"?: string;
+          /** "badge" | "text". Läses BARA för nycklarna product/cart/header. */
+          "data-logo-type"?: string;
         },
         HTMLElement
       >;

@@ -729,14 +729,114 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    rosa märke i ett litet chip + diskret text — säljpunch utan att skrika. */
 /* display:flex (inte inline-flex): raden ska ÄGA sin rad — som inline la sig
    "✓ I lager"-pillen bredvid på bred skärm, osnyggt hängande mot textbaslinjen. */
-.klarna-msg{display:flex;align-items:center;gap:10px;margin:-2px 0 14px;font-size:var(--text-sm);color:#4a443d}
-.klarna-msg img{display:block;height:16px;width:auto;background:#FFB3C7;border-radius:var(--r-xs);padding:3px 6px;box-sizing:content-box}
+.klarna-msg{display:flex;align-items:center;gap:14px;margin:-2px 0 14px;font-size:var(--text-sm);color:#4a443d}
+/* Brickan bär sin egen rosa botten och rundning (Klarnas grafik) — därför ingen
+   background/padding här längre. 72×30 är måtten på den bricka OSM-widgeten
+   faktiskt renderar (klarna_v2_1.svg från Klarnas CDN, vendad lokalt), och
+   gap:14px ovan är samma luft som deras mall lägger mellan bricka och text.
+   Därför hamnar texten på samma indrag i båda raderna och bytet slutar synas. */
+.klarna-msg img{display:block;width:72px;height:30px;flex:0 0 auto}
 .klarna-msg strong{font-weight:800;color:var(--ink)}
-/* Klarna OSM-widget: samma vertikal-space som statiska raden så det inte
-   flimrar när SDK:t hydrerar från fallback → widget. max-width matchar
-   Klarnas rekommendation (144-296px) för credit-promotion-auto-size. */
-.klarna-osm-wrap{margin:-2px 0 14px;min-height:24px;max-width:320px}
-.klarna-osm-wrap klarna-placement{display:block;min-height:24px}
+/* ── Klarna On-Site Messaging ────────────────────────────────────────────────
+   Widgeten renderas i shadow DOM, så vanlig CSS når inte in i den. Klarna
+   exponerar i stället ::part() — och eftersom regler från yttre trädet vinner
+   över shadow-trädets egna räcker det för att byta typsnitt, färg och ram.
+
+   VAD VI ÄNDRAR FRÅN, exakt. Utläst ur Klarnas egen SCSS (web-sdk 1.0.242,
+   klarna-messaging/src/styles/_mixins.scss + credit-promotion-auto-size/
+   style.scss, båda inbakade i sdk.js sourcemap):
+
+     font-family : -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial
+     font-size   : 12px / line-height 14px      (legal 10/12, cta 12)
+     color       : #0b051d                       (legal #787471)
+     background  : #ffffff
+     border      : 1px solid #f0eeeb, radius 5px
+     padding     : 4px 8px
+     text-align  : center
+
+   Sex värden, sex avvikelser från sajten — resultatet var en främmande liten
+   ruta mitt i köpkolumnen: systemtypsnitt bredvid Geist, centrerad text i en
+   vänsterställd spalt, och en egen ram i en spalt där inget annat har ram
+   förrän leveransrutan under köpknappen.
+
+   VI TAR BORT RUTAN och låter raden bli text i vår egen typografi. font-family:
+   inherit räcker för HELA widgeten eftersom egenskapen ärvs ner genom
+   shadow-trädet.
+
+   Märket kommer från Klarna själva: data-logo-type="badge" (se klarna-osm.tsx)
+   ger deras riktiga rosa bricka som SVG till vänster om texten. Vi ritar den
+   inte och färgar den inte — vi ger den bara plats.
+
+   KOMPLIANS: vi rör bara utseendet. osm-legal (räntevillkor och representativt
+   exempel) och Klarna-märket måste förbli synliga och gör det — ingen
+   display:none, ingen nedtoning under läsbarhet. Kontrasten går UPP:
+   legaltexten från #787471 (4,6:1) till var(--soft) 5,6:1, och 10px →
+   var(--text-xs).
+
+   VERIFIERAT: reglerna nedan är körda mot en lokal attrapp med Klarnas exakta
+   shadow-struktur (product-mallen, badge påslagen) och deras egna stilar
+   inlagda ordagrant. Övertagen landar — container blir Geist 14/21 utan ram,
+   legal blir 12px var(--soft), cta blir var(--brand) — och den rosa brickan
+   ritas av Klarna, orörd.
+
+   HÖJDEN BEHÖVER INGEN RESERVATION LÄNGRE. Tidigare stod här en gissad siffra
+   (42px) som skulle hålla plats åt widgeten medan den laddade. Den behövs inte:
+   statiska raden och widgeten bär nu samma bricka (72×30), samma luft (14px)
+   och samma typsnitt i samma grad, så de är EXAKT lika höga vid varje bredd.
+   Mätt i Chromium mot mallens riktiga struktur:
+
+     kolumn 544 (desktop)   statisk 30px   widget 30px   ← en rad
+     kolumn 338 (mobil)     statisk 42px   widget 42px   ← två rader
+
+   Eftersom statiska raden ligger i samma rutnätscell och syns hela väntan är
+   cellen redan rätt hög när bytet sker. Ett magiskt tal som skulle behöva
+   stämma på båda bredderna är därmed borta.
+
+   Därför är max-width också borta: vid 420px radbröt widgetens text till två
+   rader medan statiska radens fick plats på en — och DÅ uppstod skillnaden.
+   Med hela spaltens bredd bryter de likadant. */
+.klarna-osm-wrap{display:grid;margin:-2px 0 14px}
+/* Statiska raden och widgeten delar cell: bytet sker på stället, utan hopp. */
+.klarna-osm-wrap>*{grid-area:1/1;min-width:0}
+.klarna-osm-wrap klarna-placement{display:block;transition:opacity .18s ease}
+/* .klarna-msg bär sin egen margin för läget där den renderas ensam (inget
+   marknadssamtycke → ingen widget alls). Inuti omslaget bär omslaget redan
+   samma margin, och då lade den 12px till cellen som föll bort i det ögonblick
+   widgeten tog över — en synlig ryck uppåt. Nollas här. */
+.klarna-osm-wrap .klarna-msg{margin:0}
+/* Widgeten är osynlig tills den har innehåll — både medan vi väntar och efter
+   att tidsgränsen gått ut. Statiska raden bär rutan under tiden. */
+.klarna-osm-wrap[data-osm="vantar"] klarna-placement,
+.klarna-osm-wrap[data-osm="sen"] klarna-placement{opacity:0;pointer-events:none}
+
+/* credit-promotion-badge är en RAD: [rosa bricka] [text]. align-items styr
+   alltså lodrätt läge, inte vågrätt — center ställer den 30px höga brickan mitt
+   emot textraden. */
+.klarna-osm-wrap klarna-placement::part(osm-container){
+  font-family:inherit;font-size:var(--text-sm);line-height:1.5;color:var(--ink);
+  background:transparent;border:0;border-radius:0;padding:0;overflow:visible;
+  text-align:left;align-items:center
+}
+/* Brickan får aldrig krympa när texten blir lång. Textbehållaren bredvid den
+   (.text-wrapper) bär inget part-attribut i den här mallen och går därför inte
+   att nå utifrån — dess margin-left:14px kommer från Klarna, och det är samma
+   luft som .klarna-msg använder. */
+.klarna-osm-wrap klarna-placement::part(osm-badge-container){flex:0 0 auto}
+.klarna-osm-wrap klarna-placement::part(osm-message){
+  font-size:var(--text-sm);line-height:1.5;color:#4a443d
+}
+.klarna-osm-wrap klarna-placement::part(osm-legal){
+  margin-top:3px;font-size:var(--text-xs);line-height:1.4;color:var(--soft);text-align:left
+}
+/* "Läs mer" är en <button> inuti meddelandet. Den ärver inte vårt typsnitt av
+   sig själv — Klarnas link-mixin sätter font-family explicit. */
+.klarna-osm-wrap klarna-placement::part(osm-cta){
+  font-family:inherit;font-size:var(--text-sm);color:var(--brand);
+  text-decoration:underline;text-underline-offset:2px;border-radius:var(--r-xs)
+}
+.klarna-osm-wrap klarna-placement::part(osm-cta):focus-visible{
+  outline:2px solid var(--brand);outline-offset:2px
+}
 .pdp-desc{font-size:var(--text-base);color:#4a443d;line-height:1.7;margin-bottom:24px;overflow-wrap:break-word}
 /* Wix-beskrivningen är rå HTML → tämja innehåll som annars spiller över skärmbredden */
 .pdp-desc img,.pdp-desc video,.pdp-desc iframe{max-width:100%;height:auto}
