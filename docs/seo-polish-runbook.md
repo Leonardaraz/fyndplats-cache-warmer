@@ -810,6 +810,17 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 > Skicka `options` **komplett** (alla optioner och val, inte bara det du ändrar) och `variantsInfo` exakt som det kom från GET — annars svarar V3 428 `MISSING_VARIANT_OPTION_CHOICE`. Bilden måste redan ligga i produktens media-pool (den gör den efter import). **Skicka ALLTID `visible:true` i samma PATCH** — en `variantsInfo`-PATCH på en publicerad produkt kan annars flippa den till draft (`visible:false`) och ta bort den ur butiken (hände bordsskyddet 2026-07-09).
 >
+> ☠️ **Spegelvändningen är farligare: en `variantsInfo`-PATCH på ett UTKAST PUBLICERAR det.**
+> Utelämnar du `visible` sätter V3 den till `true`. Det slog till två gånger 2026-08-26 —
+> verkstadspallen `a65eefea` stod publicerad redan när Steg 12 började, och soptunneskyddet
+> `af27fffe` gick live i samma sekund som storleksaxeln kollapsades, alltså **innan lagerposten
+> hunnit återskapas**: produkten låg ute som "Slutsåld" med halvfärdig text.
+>
+> Regeln är därför starkare än "skicka alltid `visible:true`": **skicka alltid `visible`
+> EXPLICIT — `true` på en publicerad produkt, `false` på ett utkast du inte är klar med.**
+> Kollapsar du en axel mitt i en polering: sätt tillbaka `visible:false` direkt efter PATCH:en,
+> gör klart lager, mappning, bilder och kategori, och publicera som sista handling enligt Steg 13.
+>
 > ⚠️ **Flippen slår åt BÅDA hållen (batch-lärdom 2026-08-04, 5 av 11 produkter):** en `variantsInfo`-PATCH (t.ex. Steg 8:s SKU-resynk) på en **draft** kan tyst flippa den till `visible:true` — produkten går live innan poleringen är klar. **Re-GET:a `visible` direkt efter VARJE PATCH som innehåller `variantsInfo`** och återställ omedelbart om den flippat (skicka `visible:false` med färsk revision). Gäller alltså även opublicerade produkter där du "inte rör" synligheten.
 >
 > ☠️ **FÖLJDBUGGEN — produkten blir OSÄLJBAR (2026-08-05):** när du sätter tillbaka `visible:false` på produkten **kaskaderar det ned till `variantsInfo.variants[].visible:false`**. Att sedan publicera (`visible:true`) återställer INTE varianten — produkten syns i butiken men går inte att lägga i varukorgen. Drabbade 2 produkter i batch 1 (köksön `07a6b8bf`, slangvindan `3995dfd4`) innan det upptäcktes.
