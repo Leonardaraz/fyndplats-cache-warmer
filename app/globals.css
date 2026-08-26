@@ -732,11 +732,80 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .klarna-msg{display:flex;align-items:center;gap:10px;margin:-2px 0 14px;font-size:var(--text-sm);color:#4a443d}
 .klarna-msg img{display:block;height:16px;width:auto;background:#FFB3C7;border-radius:var(--r-xs);padding:3px 6px;box-sizing:content-box}
 .klarna-msg strong{font-weight:800;color:var(--ink)}
-/* Klarna OSM-widget: samma vertikal-space som statiska raden så det inte
-   flimrar när SDK:t hydrerar från fallback → widget. max-width matchar
-   Klarnas rekommendation (144-296px) för credit-promotion-auto-size. */
-.klarna-osm-wrap{margin:-2px 0 14px;min-height:24px;max-width:320px}
-.klarna-osm-wrap klarna-placement{display:block;min-height:24px}
+/* ── Klarna On-Site Messaging ────────────────────────────────────────────────
+   Widgeten renderas i shadow DOM, så vanlig CSS når inte in i den. Klarna
+   exponerar i stället ::part() — och eftersom regler från yttre trädet vinner
+   över shadow-trädets egna räcker det för att byta typsnitt, färg och ram.
+
+   VAD VI ÄNDRAR FRÅN, exakt. Utläst ur Klarnas egen SCSS (web-sdk 1.0.242,
+   klarna-messaging/src/styles/_mixins.scss + credit-promotion-auto-size/
+   style.scss, båda inbakade i sdk.js sourcemap):
+
+     font-family : -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial
+     font-size   : 12px / line-height 14px      (legal 10/12, cta 12)
+     color       : #0b051d                       (legal #787471)
+     background  : #ffffff
+     border      : 1px solid #f0eeeb, radius 5px
+     padding     : 4px 8px
+     text-align  : center
+
+   Sex värden, sex avvikelser från sajten — resultatet var en främmande liten
+   ruta mitt i köpkolumnen: systemtypsnitt bredvid Geist, centrerad text i en
+   vänsterställd spalt, och en egen ram i en spalt där inget annat har ram
+   förrän leveransrutan under köpknappen.
+
+   VI TAR BORT RUTAN och låter raden bli text i vår egen typografi, som hos de
+   flesta stora butiker (Zalando, Adidas, NA-KD kör alla Klarna-raden som ren
+   text under priset). font-family:inherit räcker för HELA widgeten eftersom
+   egenskapen ärvs ner genom shadow-trädet — utom .logo, som sätter
+   'Klarna Headline' själv. Det är precis rätt: Klarna-ordmärket SKA behålla
+   Klarnas typsnitt.
+
+   KOMPLIANS: vi rör bara utseendet. osm-legal (räntevillkor och representativt
+   exempel) och osm-logo måste förbli synliga och gör det — ingen display:none,
+   ingen nedtoning under läsbarhet. Kontrasten går UPP: legaltexten går från
+   #787471 (4,6:1) till var(--soft) 5,6:1, och 10px → var(--text-xs).
+
+   VERIFIERAT: reglerna nedan är körda mot en lokal attrapp med Klarnas exakta
+   shadow-struktur och deras egna stilar inlagda ordagrant. Alla fem övertag
+   landar — container blir Geist 14/21 utan ram, legal blir 12px var(--soft),
+   cta blir var(--brand) — och osm-logo står kvar orörd i 'Klarna Headline'
+   #0b051d, precis som komplians kräver.
+
+   OBS OM HÖJDEN: 42px är höjden attrappen ger (21 + 3 + 17). Den skarpa
+   legalraden kan vara längre och radbryta, och då räcker inte reservationen.
+   Ser du ett hopp eller en glipa under priset på preview är det den siffran
+   som ska justeras — inget annat i blocket. */
+.klarna-osm-wrap{display:grid;margin:-2px 0 14px;max-width:420px}
+/* Statiska raden och widgeten delar cell: bytet sker på stället, utan hopp. */
+.klarna-osm-wrap>*{grid-area:1/1;min-width:0}
+.klarna-osm-wrap klarna-placement{display:block;transition:opacity .18s ease}
+/* Väntar på SDK:t: statiska raden syns, widgeten håller höjden osynligt. */
+.klarna-osm-wrap[data-osm="vantar"]{min-height:42px}
+.klarna-osm-wrap[data-osm="vantar"] klarna-placement{opacity:0;pointer-events:none}
+/* Tidsgränsen ute — släpp höjden så en widget som aldrig kom inte lämnar lucka. */
+.klarna-osm-wrap[data-osm="sen"] klarna-placement{opacity:0;pointer-events:none}
+
+.klarna-osm-wrap klarna-placement::part(osm-container){
+  font-family:inherit;font-size:var(--text-sm);line-height:1.5;color:var(--ink);
+  background:transparent;border:0;border-radius:0;padding:0;overflow:visible;
+  text-align:left;align-items:flex-start
+}
+.klarna-osm-wrap klarna-placement::part(osm-message){
+  font-size:var(--text-sm);line-height:1.5;color:#4a443d
+}
+.klarna-osm-wrap klarna-placement::part(osm-legal){
+  margin-top:3px;font-size:var(--text-xs);line-height:1.4;color:var(--soft);text-align:left
+}
+/* "Läs mer" är en <button> inuti meddelandet. Den ärver inte vårt typsnitt av
+   sig själv — Klarnas link-mixin sätter font-family explicit. */
+.klarna-osm-wrap klarna-placement::part(osm-cta){
+  font-family:inherit;font-size:var(--text-sm);color:var(--brand);
+  text-decoration:underline;text-underline-offset:2px;border-radius:var(--r-xs)
+}
+.klarna-osm-wrap klarna-placement::part(osm-cta):focus-visible{
+  outline:2px solid var(--brand);outline-offset:2px
+}
 .pdp-desc{font-size:var(--text-base);color:#4a443d;line-height:1.7;margin-bottom:24px;overflow-wrap:break-word}
 /* Wix-beskrivningen är rå HTML → tämja innehåll som annars spiller över skärmbredden */
 .pdp-desc img,.pdp-desc video,.pdp-desc iframe{max-width:100%;height:auto}
