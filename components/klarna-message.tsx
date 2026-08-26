@@ -12,8 +12,8 @@
 // widget (som hämtar de verkliga villkoren inkl. ränta/representativt exempel).
 //
 // MÄRKET (bytt 2026-08-26): tidigare /payments/klarna.svg — bara "K."-glyfen i ett
-// litet rosa chip, 28×22. Nu Klarnas riktiga bricka i 45×30, samma mått och samma
-// grafik som OSM-widgeten renderar med data-logo-type="badge".
+// litet rosa chip, 28×22. Nu Klarnas riktiga bricka i 72×30: samma fil (deras
+// klarna_v2_1.svg, vendad lokalt) och samma mått som OSM-widgeten renderar.
 //
 // Skälet är bytet. Den här raden syns medan widgeten laddar och ersätts av den när
 // den är klar (se klarna-osm.tsx). Med olika märken hoppade texten 17px i sidled och
@@ -23,7 +23,7 @@ export function KlarnaMessage({ priceNum }: { priceNum: number }) {
   if (!priceNum || priceNum <= 0) return null;
   return (
     <div className="klarna-msg">
-      <img src="/payments/klarna-badge.svg" alt="Klarna" width={45} height={30} />
+      <img src="/payments/klarna-badge.svg" alt="Klarna" width={72} height={30} />
       <span>Betala inom <strong>30 dagar</strong> – räntefritt med Klarna</span>
     </div>
   );

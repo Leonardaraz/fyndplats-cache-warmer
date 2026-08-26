@@ -31,54 +31,58 @@
 //
 // Nu gäller i stället: statiska raden syns direkt, widgeten byts in i samma
 // ruta när den fått RIKTIGT innehåll (ett [part~="osm-message"] med text), och
-// höjden är reserverad under väntan så bytet inte flyttar något på sidan.
+// ingenting flyttar sig när det sker (se höjdresonemanget i globals.css).
 //
-// Tidsgränsen stänger inte längre dörren. Går den ut släpper vi bara
-// höjdreservationen (så en widget som aldrig kommer inte lämnar en lucka) —
-// taggen sitter kvar och kommer den fram efter 6 s byts den ändå in.
+// Tidsgränsen stänger inte längre dörren: taggen sitter kvar och kommer
+// widgeten fram efter 6 s byts den ändå in.
 
 import { useEffect, useRef, useState } from "react";
 import { useMarketingConsent } from "../lib/use-marketing-consent";
 import { toMinorUnits } from "../lib/klarna-price";
 import { KlarnaMessage } from "./klarna-message";
 
-// data-key för "under priset" på PDP. Vilket BUDSKAP som visas (30 dagar
-// ELLER delbetalning) styr Klarna dynamiskt per kund och korgstorlek — det kan
-// vi inte påverka, och ska inte heller (deras modell optimerar konvertering).
-// Nyckeln styr bara MALLEN.
+// data-key styr MALLEN. Vilket budskap som visas styr Klarna själva per kund
+// och belopp — det kan vi inte påverka, och ska inte heller.
 //
-// VARFÖR "product" OCH INTE "credit-promotion-auto-size" (bytt 2026-08-26):
-// data-logo-type läses bara för nycklarna product/cart/header — utläst ur
-// web-sdk 1.0.242, där requiredAttributes för credit-promotion-* saknar
-// logoType helt. Med "badge" renderar Klarna sitt riktiga rosa märke (en
-// 131×54-vy skalad till 45×30) till vänster om texten, i stället för att väva
-// in ordmärket "Klarna" som fet text mitt i meningen.
+// VALET AV NYCKEL, MÄTT MOT KLARNAS API 2026-08-26. Jag frågade
+// js.klarna.com/eu/cma/v4/messaging med butikens client-id, en nyckel i taget:
 //
-// Två skäl. Märket väger visuellt mer än ett ord i brödtexten. Och vår statiska
-// rad (klarna-message.tsx) bär redan ett rosa Klarna-märke till vänster — med
-// badge här ser de två raderna likadana ut, så bytet statisk → widget slutar
-// synas. Utan badge försvinner märket i samma ögonblick som widgeten tar över.
+//   product                     204  ← INTE aktiverad för kontot
+//   cart                        204  ← INTE aktiverad
+//   header                      204  ← INTE aktiverad
+//   credit-promotion-badge      200
+//   credit-promotion-small      200
+//   credit-promotion-standard   200
+//   credit-promotion-auto-size  200
+//   credit-promotion-inline     200
 //
-// ATT BACKA: sätt tillbaka "credit-promotion-auto-size" och ta bort
-// data-logo-type nedan. Inget annat behöver röras — CSS:en i globals.css
-// hanterar båda mallarna (badge-delarna är no-ops utan badge).
+// Det avgjorde saken. Vi ville ha Klarnas rosa bricka i stället för ordmärket
+// invävt i texten, och första försöket gick via data-logo-type="badge" — det
+// attributet läses bara för product/cart/header. Men alla tre svarar 204 för
+// det här kontot, så widgeten renderade aldrig något alls.
 //
-// OBS: jag har inte kunnat verifiera att "product" är aktiverad för kontot.
-// Är den inte det svarar Klarna tomt, harInnehall() förblir falsk och statiska
-// raden ligger kvar — ofarligt, men då syns ingen widget alls. Konsolen säger
-// ifrån (se loggen i intervallet nedan).
-const PLACEMENT_KEY = "product";
-const LOGO_TYPE = "badge";
+// credit-promotion-badge ger samma sak utan det attributet: brickan kommer som
+// en egen bildnod (KLARNA_BADGE) i API-svaret, och mallen lägger den till
+// vänster om texten. data-logo-type behövs inte och ignoreras för nyckeln.
+//
+// SÅ HÄR SER SVARET UT (samma anrop för 99, 789, 2 579, 9 999 och 25 000 kr):
+// en enda rad, "Shoppa nu. Betala inom 30/60 dagar med Klarna." + "Läs mer",
+// och ALDRIG någon legalnod. Brickan kommer separat som en IMAGE-nod.
+//
+// Notera: Klarna erbjuder 60 dagar i vissa beloppsband, 30 i andra. Vår
+// statiska rad säger alltid 30. Den underskattar alltså erbjudandet ibland —
+// medvetet lämnat, eftersom raden är vårt eget kreditpåstående utan Klarnas
+// juridiska ram runt sig och 30 dagar är sant i alla band.
+const PLACEMENT_KEY = "credit-promotion-badge";
 const LOCALE = "sv-SE";
 
-// Hur ofta vi tittar efter riktigt innehåll, och när vi slutar hålla plats.
-// 6 s är rundligt tilltaget med flit: väntan kostar ingenting numera (statiska
-// raden syns hela tiden), medan ett för snålt tak skulle offra den
-// komplianssäkra Klarna-texten på en långsam uppkoppling.
+// Hur ofta vi tittar efter riktigt innehåll, och när vi ger upp.
+//
+// Väntan kostar ingenting numera — statiska raden syns hela tiden och är exakt
+// lika hög som widgeten — så taket är satt generöst. Det finns bara för att
+// intervallet inte ska snurra resten av besöket på en sida där SDK:t aldrig kom
+// fram (adblock, nedsläckt CDN).
 const POLL_MS = 120;
-const RESERVERA_HOJD_MS = 6000;
-// Absolut stopp för pollningen. Utan det snurrar intervallet resten av
-// besöket på en sida där SDK:t aldrig kom fram (adblock, nedsläckt CDN).
 const SLUTA_POLLA_MS = 30000;
 
 // Klarnas web component + window.Klarna typas i types/klarna.d.ts — flyttat
@@ -99,27 +103,18 @@ function harInnehall(el: HTMLElement | null): boolean {
 
 type Lage =
   | "reserv" // Inget samtycke → statiska raden, ingen widget alls.
-  | "vantar" // Widgeten är på väg: statiska raden syns, höjden är reserverad.
-  | "sen" // Tidsgränsen gick ut: statiska raden syns, ingen reservation.
+  | "vantar" // Widgeten är på väg (eller kom aldrig): statiska raden syns.
   | "klar"; // Widgeten har innehåll och har tagit över rutan.
 
 export function KlarnaOSM({ priceNum }: { priceNum: number }) {
   const consent = useMarketingConsent();
-  // Två oberoende flaggor i stället för ett läge i state: samtycket är redan
-  // känt vid render, så att spegla in det i state hade bara gett en extra
-  // rendering (och en react-hooks/set-state-in-effect-varning på köpet).
-  // Läget nedan HÄRLEDS av de tre.
+  // En flagga i state, inte ett läge: samtycket är redan känt vid render, så
+  // att spegla in det hade bara gett en extra rendering (och en
+  // react-hooks/set-state-in-effect-varning på köpet). Läget HÄRLEDS av de två.
   const [harWidget, setHarWidget] = useState(false);
-  const [sen, setSen] = useState(false);
   const ref = useRef<HTMLElement>(null);
 
-  const lage: Lage = !consent
-    ? "reserv"
-    : harWidget
-      ? "klar"
-      : sen
-        ? "sen"
-        : "vantar";
+  const lage: Lage = !consent ? "reserv" : harWidget ? "klar" : "vantar";
 
   useEffect(() => {
     if (!consent) return;
@@ -142,22 +137,16 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
       if (harInnehall(ref.current)) {
         setHarWidget(true);
         window.clearInterval(int);
-      } else {
-        const gatt = Date.now() - start;
-        // Släpp bara höjden. Taggen lever vidare och intervallet med den —
-        // kommer widgeten sent byts den ändå in, utan lucka i mellantiden.
-        if (gatt > RESERVERA_HOJD_MS) setSen(true);
-        if (gatt > SLUTA_POLLA_MS) {
-          window.clearInterval(int);
-          // Enda spåret när widgeten uteblir. Tyst fallback ser likadan ut som
-          // "ingen har accepterat cookies", och det gjorde felsökningen till
-          // gissningar. Samma prefix-konvention som [tack], [gcr], [meta].
-          console.warn(
-            `[klarna] OSM gav inget innehåll på ${SLUTA_POLLA_MS / 1000} s — ` +
-              `statiska raden ligger kvar. Kolla att data-key="${PLACEMENT_KEY}" ` +
-              `är aktiverad för kontot och att SDK:t laddades.`,
-          );
-        }
+      } else if (Date.now() - start > SLUTA_POLLA_MS) {
+        window.clearInterval(int);
+        // Enda spåret när widgeten uteblir. Tyst fallback ser likadan ut som
+        // "ingen har accepterat cookies", och det gjorde felsökningen till
+        // gissningar. Samma prefix-konvention som [tack], [gcr], [meta].
+        console.warn(
+          `[klarna] OSM gav inget innehåll på ${SLUTA_POLLA_MS / 1000} s — ` +
+            `statiska raden ligger kvar. Kolla att data-key="${PLACEMENT_KEY}" ` +
+            `är aktiverad för kontot och att SDK:t laddades.`,
+        );
       }
     }, POLL_MS);
     return () => window.clearInterval(int);
@@ -178,7 +167,6 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
       <klarna-placement
         ref={ref}
         data-key={PLACEMENT_KEY}
-        data-logo-type={LOGO_TYPE}
         data-locale={LOCALE}
         data-purchase-amount={String(toMinorUnits(priceNum))}
       />
