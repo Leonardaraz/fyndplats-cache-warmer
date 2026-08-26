@@ -24,7 +24,7 @@ export default function Kopvillkor() {
           Bergviksgatan 10<br />
           152 44 Södertälje, Sverige<br />
           Organisationsnummer: 199509144037<br />
-          Momsregistreringsnummer: SE9509144037 01<br />
+          Momsregistreringsnummer: SE950914403701<br />
           E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a><br />
           Telefon: +46 (0) 73 663 09 90
         </p>

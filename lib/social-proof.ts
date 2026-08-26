@@ -18,8 +18,10 @@
 // Den här filen hålls REN (inga fetch-anrop, inga next-beroenden) så urvals-
 // regeln går att testa med `node --test`. Hämtningen bor i social-proof-live.ts.
 export const GOOGLE_RATING = "4,9";
-// Avläst på Google-profilen 2026-08-21: 4,9 · 34 recensioner.
-export const GOOGLE_REVIEW_COUNT = 34;
+// Avläst på Google-profilen 2026-08-25: 4,9 · 35 recensioner.
+// Handavläst tills Business Profile-API:t får credentials (lib/google-reviews.ts) —
+// då tar de riktiga siffrorna över automatiskt och den här konstanten blir reserv.
+export const GOOGLE_REVIEW_COUNT = 35;
 export const GOOGLE_REVIEWS_LABEL = `${GOOGLE_REVIEW_COUNT} omdömen`;
 
 export interface SocialProof {
