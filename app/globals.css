@@ -202,14 +202,35 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .meganav-sub-count{font-size:var(--text-xs);font-weight:600;color:var(--soft);background:rgba(0,0,0,.04);padding:2px 8px;border-radius:var(--r-pill);flex:0 0 auto}
 .meganav-sub:hover .meganav-sub-count{color:var(--brand);background:rgba(194,65,12,.09)}
 .meganav-empty{color:var(--soft);font-size:var(--text-base);padding:4px 2px}
-/* Medelbredd (901–1180): 8 kategorier + sökruta får inte plats på en rad. Vi
-   släpper då den inline-sökrutan och visar den dedikerade fullbredds-sökraden
-   (.hsearch-mobile) under headern istället, så mega-navet får hela bredden.
-   Sökrutan i .hsearch-mobile är scopad utanför .hrow så den påverkas inte. */
+/* ── Headerraden får inte plats, och kunde aldrig ─────────────────────────────
+   Regeln här nedan gällde tidigare bara 901–1180px. Men .container är kapad
+   till 1180px på ALLA skärmar, så raden hade exakt lika lite plats vid 1920 som
+   vid 1280. Mätt 2026-08-26:
+
+     logga        153
+     sökruta      241
+     meganav      791   (622 text + 168 luft mellan 13 poster)
+     hjärta+vagn   76   (38 var)
+     radluft       80   (20 × 4)
+     ───────────────────
+                 1341   i en container på 1180 → 161px för lite
+
+   Vad som faktiskt hände: hjärtat och kundvagnen var de enda flexande posterna
+   kvar, så de klämdes från 38px till 20 — sina ikoners egen bredd — och resten
+   spillde ut ur containern. Vid 1280px hamnade kundvagnen 75px UTANFÖR
+   skärmkanten, och sidan fick vågrät scroll.
+
+   Ingen brytpunkt kunde laga det, eftersom containern aldrig växer. Så den
+   inline-sökrutan släpps nu på ALLA bredder och den dedikerade fullbredds-
+   sökraden (.hsearch-mobile) tar över — samma lösning som redan användes under
+   1180, bara utan taket. Kvar i raden: 153 + 791 + 76 + 80 = 1100, alltså 80px
+   luft över.
+
+   Sökrutan blir dessutom större och tydligare av flytten, inte mindre. */
+.hrow .searchwrap{display:none}
+.hsearch-mobile{display:block;padding-bottom:12px}
+.hsearch-mobile .searchwrap{max-width:none;width:100%}
 @media(max-width:1180px){
-  .hrow .searchwrap{display:none}
-  .hsearch-mobile{display:block;padding-bottom:12px}
-  .hsearch-mobile .searchwrap{max-width:none;width:100%}
   .meganav{gap:12px;font-size:var(--text-sm)}
 }
 
@@ -1035,7 +1056,9 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 /* cart */
 /* Ytan till 44px utan att cirkeln växer (headern är trång). */
 .cartbtn::after,.wl-btn::after{content:"";position:absolute;inset:-3px}
-.cartbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:none;border:none;color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
+/* flex:0 0 auto — utan den är de här två de enda som ger efter när raden är
+   för trång, och en 38px cirkel blir en 20px ellips (se resonemanget ovan). */
+.cartbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:none;border:none;color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
 .cartbtn:hover{background:var(--warm);color:var(--brand)}
 .cartcount{position:absolute;top:-2px;right:-2px;background:var(--brand);color:#fff;font-size:var(--text-xs);font-weight:700;min-width:18px;height:18px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;padding:0 5px}
 .drawer-ov{position:fixed;inset:0;background:rgba(20,18,15,.45);opacity:0;visibility:hidden;transition:opacity .3s;z-index:80}
@@ -1593,7 +1616,7 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .wl-heart:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 
 /* #11 Wishlist button in header */
-.wl-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:none;border:none;color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
+.wl-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:none;border:none;color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
 .wl-btn:hover{background:var(--warm);color:var(--brand)}
 .wl-count{position:absolute;top:-2px;right:-2px;background:var(--brand);color:#fff;font-size:var(--text-xs);font-weight:700;min-width:18px;height:18px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;padding:0 5px}
 
