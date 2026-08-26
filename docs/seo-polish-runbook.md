@@ -590,6 +590,16 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > precis efter publicering och sedan slutar fungera. Läs `age` och `x-nextjs-stale-time` innan du
 > drar slutsatsen att en bild inte kom med; är Wix-datan verifierad med re-GET är sidan rätt,
 > bara inte serverad än.
+>
+> **Varje edge-nod har dessutom sin EGEN cache.** En `HIT` med gammalt innehåll bevisar
+> alltså inte att rättelsen uteblev — du kan ha träffat en POP som ännu inte hämtat om,
+> medan en annan redan serverar den nya sidan. Fem `HIT` i rad kan vara fem träffar på
+> samma eftersläpande nod. Läs `age` och `date`: är `date` äldre än din PATCH är svaret
+> per definition inaktuellt, och just den förfrågan startar omvalideringen — nästa
+> träff på den noden är rätt. Slutsatsen "fixen gick inte igenom" kräver ett svar med
+> `date` EFTER din PATCH. (2026-08-26, `f0e0ee14`: fyra `HIT` i följd fick mig att leta
+> efter en frontend-cache som inte fanns — `age: 302` på nästa svar visade att det bara
+> var en nod som låg efter.)
 
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
