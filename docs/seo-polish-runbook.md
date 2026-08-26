@@ -828,6 +828,28 @@ ingenting annat**, oavsett hur mycket lager syskonen har.
 >    **nytt** `variantId` utan lagerpost (= slutsåld i butiken). Läs saldona FÖRE PATCH:en och
 >    `POST /stores/v3/inventory-items` per ny variant efteråt (`locationId` från en befintlig
 >    post). Wix städar själv de föräldralösa posterna — de behöver inte raderas.
+>
+>    ☠️ **Att posten finns räcker inte — flaggan räknas inte alltid om.** Ryggsäcken `311c8c4e`
+>    (2026-08-26): tre nya lagerposter skapades i samma anrop, två av varianterna slog om till
+>    `inStock:true`, den tredje stod kvar på `false` trots `quantity:30` och
+>    `availabilityStatus:"IN_STOCK"` på sin egen post. Det är inte eftersläpning — den satt kvar
+>    över flera läsningar, och en PATCH som skrev tillbaka **samma** saldo ändrade ingenting.
+>    Det som löste det var en **riktig** saldoändring: sätt ett annat tal, läs, sätt tillbaka.
+>
+>    **Verifiera därför alltid per variant efteråt** — `variantsInfo.variants[].inventoryStatus.inStock`
+>    på produkten, inte bara `availabilityStatus` på lagerposten. De kan säga olika saker, och det
+>    är produktens flagga kunden möter. En variant som står kvar som slutsåld syns inte i någon
+>    logg; den går bara inte att lägga i varukorgen.
+
+   ```js
+   // knuffa flaggan: ett annat tal, sedan tillbaka
+   for (const q of [saldo + 1, saldo]) {
+     const post = await lasPost(variantId);
+     await wix.request({ scope: "site", method: "PATCH",
+       url: `https://www.wixapis.com/stores/v3/inventory-items/${post.id}`,
+       body: { inventoryItem: { revision: post.revision, quantity: q } } });
+   }
+   ```
 > 2. **Mappningsraden pekar fel.** `FyndplatsMappings.variants[]` har kvar en rad per borttagen
 >    variant, och den överlevandes `wixVariantId` är dött → en order skulle gå på fel eller
 >    inget leverantörs-SKU. Matcha nya varianter mot mappningsraderna på **`sku`** (det överlever
