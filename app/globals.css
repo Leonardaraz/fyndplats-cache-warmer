@@ -626,46 +626,87 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .crumbs span{margin:0 6px;opacity:.5}
 
 /* ── Bläddra: föregående / nästa produkt ────────────────────────────────────
-   Ligger direkt under brödsmulan, som hos de flesta större butiker. Tre
-   rutnätsspalter med räknaren i mitten: då står "12 av 48" mitt på raden även
-   när ena pilen saknas i listans ändar (komponenten renderar en tom
-   platshållare där, se product-browse.tsx).
+   Ligger direkt under brödsmulan. Tre rutnätsspalter med räknaren i mitten: då
+   står "12 av 48" mitt på raden även när ena pilen saknas i listans ändar
+   (komponenten renderar en tom platshållare där, se product-browse.tsx).
 
-   Tryckytorna är 44px höga med flit — den här sajten har redan gått en runda
-   där listsidornas småknappar underkände sig själva. min-width:0 på länkarna
-   är det som låter produktnamnet kortas i stället för att spränga rutnätet. */
+   UTSEENDET, andra vändan. Första versionen var två textlänkar med tecknen ←
+   och → framför, och den såg ut som en fotnot. Nu bär varje sida en chevron i
+   egen cirkel, en miniatyr av produkten och två textrader — tre delar som
+   läses som ett objekt.
+
+   Återhållet med flit: ingen ram, ingen botten i vila. Raden sitter mellan
+   brödsmulan och produktrubriken, och två inramade kort där hade konkurrerat
+   med köpkolumnen i stället för att bära den. Hela lyftet ligger i hover.
+
+   min-width:0 på länken är det som låter produktnamnet kortas i stället för
+   att spränga rutnätet — utan den blev nästa-länken 407px bred i en 390px vy.
+   Tryckytorna är över 44px; sajten har redan gått en runda där småknappar
+   underkände sig själva. */
 .pbrowse{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
-  padding:2px 0 10px;border-bottom:1px solid var(--line);margin-bottom:18px}
-.pbrowse-lank{display:flex;align-items:center;gap:9px;min-width:0;min-height:44px;
-  padding:4px 8px;margin:0 -8px;border-radius:var(--r-sm);color:var(--soft);
-  transition:background .15s,color .15s}
-.pbrowse-lank:hover{background:var(--warm);color:var(--ink)}
+  padding:2px 0 12px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.pbrowse-lank{display:flex;align-items:center;gap:12px;min-width:0;min-height:44px;
+  padding:6px 10px;margin:0 -10px;border-radius:var(--r-md);color:var(--soft);
+  transition:background .18s,color .18s,transform .18s,box-shadow .18s}
+.pbrowse-lank:hover{background:var(--surface-1);color:var(--ink);
+  transform:translateY(-1px);box-shadow:var(--e2)}
+.pbrowse-lank:active{transform:translateY(0)}
 .pbrowse-lank:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
-/* row-reverse packar innehållet mot högerkanten av HELA spalten. justify-self:end
-   stod här först och gjorde tvärtom: länken krympte till sitt innehåll, varför
-   min-width:0 aldrig fick effekt och ett långt produktnamn sprängde rutnätet
-   (mätt: 407px länk i en 390px vy). Låt den fylla spalten. */
+/* row-reverse packar innehållet mot högerkanten av HELA spalten.
+   justify-self:end stod här först och gjorde tvärtom: länken krympte till sitt
+   innehåll, varför min-width:0 aldrig fick effekt. Låt den fylla spalten. */
 .pbrowse-nasta{flex-direction:row-reverse;text-align:right}
-.pbrowse-pil{flex:0 0 auto;font-size:var(--text-base);line-height:1;color:var(--brand)}
-.pbrowse-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
-.pbrowse-etikett{font-size:var(--text-xs);letter-spacing:.02em}
+
+/* Chevronen i egen cirkel — en ritad form, inte ett tecken, så vikten är
+   densamma i alla typsnitt och den kan färgas för sig. */
+.pbrowse-pil{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;
+  border:1px solid var(--line);border-radius:50%;color:var(--brand);
+  transition:border-color .18s,background .18s}
+.pbrowse-pil svg{width:15px;height:15px;display:block}
+.pbrowse-lank:hover .pbrowse-pil{border-color:#C2410C55;background:#fff}
+
+/* Miniatyren: det enda som gör länken igenkännbar innan man klickar. */
+.pbrowse-thumb{flex:0 0 auto;width:52px;height:52px;border-radius:var(--r-sm);
+  overflow:hidden;background:var(--surface-2);border:1px solid var(--line);
+  transition:border-color .18s}
+.pbrowse-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pbrowse-lank:hover .pbrowse-thumb{border-color:#C2410C40}
+
+.pbrowse-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pbrowse-etikett{font-size:var(--text-xs);letter-spacing:.03em;text-transform:uppercase;
+  font-weight:600;opacity:.75}
 /* Namnet kortas visuellt, aldrig i strängen — skärmläsaren får hela. */
 .pbrowse-namn{font-size:var(--text-sm);font-weight:600;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pbrowse-rakn{font-size:var(--text-xs);color:var(--soft);white-space:nowrap;
   font-variant-numeric:tabular-nums}
-.pbrowse-tom{min-height:44px}
+/* Listans ändar: bara en länk finns. Rutnätet blir två spalter och räknaren
+   flyttar ut till den lediga kanten. Med en tom platshållare i stället såg
+   raden ut som att något inte laddat — en ensam länk och två tredjedelar
+   tomrum bredvid. */
+.pbrowse[data-sidor="forra"]{grid-template-columns:1fr auto}
+.pbrowse[data-sidor="forra"] .pbrowse-rakn{justify-self:end}
+.pbrowse[data-sidor="nasta"]{grid-template-columns:auto 1fr}
+.pbrowse[data-sidor="nasta"] .pbrowse-rakn{justify-self:start}
 
 @media(max-width:700px){
   /* Räknaren får stryka på foten — de två produktnamnen är värda utrymmet.
      Rutnätet blir två lika spalter så vardera namnet får halva bredden. */
-  .pbrowse{grid-template-columns:1fr 1fr;gap:8px}
+  .pbrowse{grid-template-columns:1fr 1fr;gap:6px}
+  /* Räknaren är ändå dold här, så en ensam länk får hela bredden. */
+  .pbrowse[data-sidor="forra"],.pbrowse[data-sidor="nasta"]{grid-template-columns:1fr}
   .pbrowse-rakn{display:none}
+  .pbrowse-lank{gap:9px;padding:6px}
+  /* Chevronen ryms inte bredvid miniatyr OCH text i en halv mobilspalt.
+     Miniatyren vinner: den bär mer information än en riktningsmarkör som
+     etiketten "Föregående"/"Nästa" ändå upprepar i ord. */
+  .pbrowse-pil{display:none}
+  .pbrowse-thumb{width:44px;height:44px}
   .pbrowse-etikett{font-size:11px}
-  /* En rad rymmer ~18 tecken i en halv mobilspalt — "Luftfuktare med ar…"
-     hjälper ingen. Två rader ger ~40 och räcker för att känna igen produkten.
-     line-clamp behöver display:-webkit-box, så white-space:nowrap måste bort
-     (den vinner annars och allt hamnar på en rad ändå). */
+  /* En rad rymmer ~14 tecken bredvid en miniatyr i en halv mobilspalt. Två
+     rader ger ~30 och räcker för att känna igen produkten. line-clamp behöver
+     display:-webkit-box, så white-space:nowrap måste bort (den vinner annars
+     och allt hamnar på en rad ändå). */
   .pbrowse-namn{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;
     -webkit-line-clamp:2;line-clamp:2;line-height:1.3}
 }
