@@ -804,10 +804,18 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    samma margin, och då lade den 12px till cellen som föll bort i det ögonblick
    widgeten tog över — en synlig ryck uppåt. Nollas här. */
 .klarna-osm-wrap .klarna-msg{margin:0}
-/* Widgeten är osynlig tills den har innehåll — både medan vi väntar och efter
-   att tidsgränsen gått ut. Statiska raden bär rutan under tiden. */
+/* Widgeten är osynlig tills den har innehåll, och tonar in när den får det. */
 .klarna-osm-wrap[data-osm="vantar"] klarna-placement,
-.klarna-osm-wrap[data-osm="sen"] klarna-placement{opacity:0;pointer-events:none}
+.klarna-osm-wrap[data-osm="avslojad"] klarna-placement{opacity:0;pointer-events:none}
+/* MEDAN VI VÄNTAR syns inte statiska raden heller — den står där bara för att
+   hålla exakt rätt höjd. Poängen: raden BYTER aldrig framför besökaren, den
+   dyker upp en gång. Ett byte drar blicken; en inledande tomhet på en plats som
+   ändå håller på att målas gör det inte.
+
+   visibility (inte opacity/display): den håller kvar elementets plats i
+   rutnätscellen, och till skillnad från opacity gör den innehållet osynligt
+   även för skärmläsare — vi vill inte att en rad som ingen ser läses upp. */
+.klarna-osm-wrap[data-osm="vantar"] .klarna-msg{visibility:hidden}
 
 /* credit-promotion-badge är en RAD: [rosa bricka] [text]. align-items styr
    alltså lodrätt läge, inte vågrätt — center ställer den 30px höga brickan mitt

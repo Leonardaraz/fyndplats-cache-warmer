@@ -29,12 +29,36 @@
 //      — alltså LÅNGT innan texten hämtats från Klarnas API. Flaggan slog om
 //      till "hydrerad" på ett tomt element.
 //
-// Nu gäller i stället: statiska raden syns direkt, widgeten byts in i samma
-// ruta när den fått RIKTIGT innehåll (ett [part~="osm-message"] med text), och
-// ingenting flyttar sig när det sker (se höjdresonemanget i globals.css).
+// ── Varför raden BYTER inte längre, den dyker upp (2026-08-26, andra vändan) ──
+// Nästa version lät statiska raden synas medan vi väntade, och widgeten ta över
+// när den landade. Höjden stämde, men bytet SYNTES: efter ett par sekunder gick
+// "Betala inom 30 dagar – räntefritt med Klarna" över till "Shoppa nu. Betala
+// inom 60 dagar med Klarna. Läs mer", mitt framför besökaren.
 //
-// Tidsgränsen stänger inte längre dörren: taggen sitter kvar och kommer
-// widgeten fram efter 6 s byts den ändå in.
+// Att vänta bort det går inte. Mätt 2026-08-26 från serverhall med god
+// uppkoppling:
+//
+//   klarna.js   500 ms   (76 kB, varav 430 ms TLS-handskakning)
+//   sdk.js     1125 ms   (710 kB)
+//   OSM-API     350-530 ms
+//   ────────────────────
+//   ≈ 2 s innan widgeten kan ha innehåll — mer på mobilnät.
+//
+// En fördröjning som dolde bytet hade alltså behövt vara 2,5 s, och då står
+// priset naket så länge i stället.
+//
+// Så vi tog bort BYTET i stället för väntan: medan vi väntar renderas statiska
+// raden med visibility:hidden. Den håller exakt rätt höjd (den är lika hög som
+// widgeten, se globals.css) men syns inte. Widgeten tonar in när den är klar.
+// Ingenting ersätts — något dyker upp, vilket ögat knappt reagerar på.
+//
+// Statiska raden görs synlig först om widgeten INTE kommit efter AVSLOJA_MS.
+// Då är något fel (adblock, nedsläckt CDN, nyckeln avstängd) och det är bättre
+// att visa vårt eget budskap än att lämna priset naket. I det läget är det inte
+// ett "byte" — inget har hunnit visas innan.
+//
+// app/layout.tsx preconnectar dessutom till js.klarna.com, vilket kapar
+// TLS-handskakningen ovan (~430 ms av kedjan).
 
 import { useEffect, useRef, useState } from "react";
 import { useMarketingConsent } from "../lib/use-marketing-consent";
@@ -76,13 +100,15 @@ import { KlarnaMessage } from "./klarna-message";
 const PLACEMENT_KEY = "credit-promotion-badge";
 const LOCALE = "sv-SE";
 
-// Hur ofta vi tittar efter riktigt innehåll, och när vi ger upp.
-//
-// Väntan kostar ingenting numera — statiska raden syns hela tiden och är exakt
-// lika hög som widgeten — så taket är satt generöst. Det finns bara för att
-// intervallet inte ska snurra resten av besöket på en sida där SDK:t aldrig kom
-// fram (adblock, nedsläckt CDN).
 const POLL_MS = 120;
+
+// När vi slutar hoppas på widgeten och visar vårt eget budskap i stället.
+// Kedjan ovan är ~2 s på god uppkoppling; 5 s ger mobilnät gott om marginal
+// utan att lämna priset naket orimligt länge.
+const AVSLOJA_MS = 5000;
+
+// Absolut stopp för pollningen, så intervallet inte snurrar resten av besöket
+// på en sida där SDK:t aldrig kom fram.
 const SLUTA_POLLA_MS = 30000;
 
 // Klarnas web component + window.Klarna typas i types/klarna.d.ts — flyttat
@@ -102,9 +128,10 @@ function harInnehall(el: HTMLElement | null): boolean {
 }
 
 type Lage =
-  | "reserv" // Inget samtycke → statiska raden, ingen widget alls.
-  | "vantar" // Widgeten är på väg (eller kom aldrig): statiska raden syns.
-  | "klar"; // Widgeten har innehåll och har tagit över rutan.
+  | "reserv" // Inget samtycke → statiska raden, synlig, ingen widget alls.
+  | "vantar" // Widgeten är på väg: statiska raden håller höjden men syns inte.
+  | "avslojad" // Widgeten uteblev → statiska raden görs synlig.
+  | "klar"; // Widgeten har innehåll och tonar in.
 
 export function KlarnaOSM({ priceNum }: { priceNum: number }) {
   const consent = useMarketingConsent();
@@ -112,9 +139,16 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
   // att spegla in det hade bara gett en extra rendering (och en
   // react-hooks/set-state-in-effect-varning på köpet). Läget HÄRLEDS av de två.
   const [harWidget, setHarWidget] = useState(false);
+  const [avslojad, setAvslojad] = useState(false);
   const ref = useRef<HTMLElement>(null);
 
-  const lage: Lage = !consent ? "reserv" : harWidget ? "klar" : "vantar";
+  const lage: Lage = !consent
+    ? "reserv"
+    : harWidget
+      ? "klar"
+      : avslojad
+        ? "avslojad"
+        : "vantar";
 
   useEffect(() => {
     if (!consent) return;
@@ -137,10 +171,16 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
       if (harInnehall(ref.current)) {
         setHarWidget(true);
         window.clearInterval(int);
-      } else if (Date.now() - start > SLUTA_POLLA_MS) {
+        return;
+      }
+      const gatt = Date.now() - start;
+      // Widgeten dröjer onormalt länge → visa vårt eget budskap hellre än en tom
+      // yta. Vi fortsätter ändå leta: kommer den sent tar den över.
+      if (gatt > AVSLOJA_MS) setAvslojad(true);
+      if (gatt > SLUTA_POLLA_MS) {
         window.clearInterval(int);
-        // Enda spåret när widgeten uteblir. Tyst fallback ser likadan ut som
-        // "ingen har accepterat cookies", och det gjorde felsökningen till
+        // Enda spåret när widgeten uteblir helt. Tyst fallback ser likadan ut
+        // som "ingen har accepterat cookies", och det gjorde felsökningen till
         // gissningar. Samma prefix-konvention som [tack], [gcr], [meta].
         console.warn(
           `[klarna] OSM gav inget innehåll på ${SLUTA_POLLA_MS / 1000} s — ` +
@@ -161,8 +201,9 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
 
   return (
     <div className="klarna-osm-wrap" data-osm={lage}>
-      {/* Ligger kvar i DOM:en tills widgeten har innehåll — CSS lägger de två
-          i samma rutnätscell, så bytet sker på stället utan hopp. */}
+      {/* Ligger kvar i DOM:en tills widgeten har innehåll. CSS lägger de två i
+          samma rutnätscell och håller raden osynlig i läget "vantar", så den
+          bara HÅLLER höjden — den syns aldrig om widgeten hinner fram. */}
       {lage !== "klar" && <KlarnaMessage priceNum={priceNum} />}
       <klarna-placement
         ref={ref}

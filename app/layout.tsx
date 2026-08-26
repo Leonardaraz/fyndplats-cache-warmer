@@ -192,6 +192,19 @@ export default async function RootLayout({
             DNS+TCP+TLS handshake on the first image fetch. */}
         <link rel="preconnect" href="https://static.wixstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://static.wixstatic.com" />
+        {/* Klarna OSM. Widgeten under priset på varje PDP kan inte visa något
+            förrän tre anrop gått i följd — mätt 2026-08-26 från serverhall:
+              klarna.js  500 ms  (76 kB, varav 430 ms TLS-handskakning)
+              sdk.js    1125 ms  (710 kB)
+              OSM-API    350-530 ms
+            Handskakningen är den enda delen vi rår på, och preconnect tar bort
+            den ur kedjan. Alla tre ligger på js.klarna.com, så en räcker.
+            Ovillkorlig: den öppnar bara en TLS-anslutning och sätter inga
+            cookies, så den är samtyckesneutral (SDK:t självt är gated). */}
+        <link rel="preconnect" href="https://js.klarna.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://js.klarna.com" />
+        {/* Klarnas bricka i widgeten hämtas härifrån. */}
+        <link rel="dns-prefetch" href="https://osm.klarnaservices.com" />
       </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(orgJsonLd) }} />
