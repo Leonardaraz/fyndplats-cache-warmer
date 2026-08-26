@@ -229,12 +229,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const all = await getProducts();
   const related: Product[] = await attachRatings(pickRelated(p, all, curatedRelatedSlugs(p.slug), 4));
 
-  // Föregående/nästa i avdelningen, så man slipper backa till kategorisidan för
-  // varje produkt. Samma id-mängd som kategorisidan bygger sin lista av:
-  // avdelningen + dess underkategorier. Saknar produkten huvudavdelning blir
-  // mängden tom, grannarna null och raden renderas inte alls.
-  const bladdringIds = primaryCol
-    ? new Set([primaryCol.id, ...cols.filter((c) => c.parentId === primaryCol.id).map((c) => c.id)])
+  // Föregående/nästa, så man slipper backa till kategorisidan för varje produkt.
+  //
+  // VI BLÄDDRAR I UNDERKATEGORIN när produkten har en, inte i huvudavdelningen.
+  // Skälet är storleken: "Hem & Inredning" rymmer 328 produkter, och pilarna
+  // blir en oändlig vandring där "328 av 328" inte säger besökaren något
+  // användbart. En underkategori ligger på tiotal, och då är räknaren en
+  // upplysning i stället för en siffra.
+  //
+  // primaryCol pekar åt andra hållet med flit — brödsmulan och JSON-LD ska visa
+  // HUVUDavdelningen. Här väljer vi alltså den mest specifika kategorin i
+  // stället, med huvudavdelningen som fallback för produkter som saknar
+  // underkategori. Saknas båda blir mängden tom, grannarna null och raden
+  // renderas inte alls.
+  const bladdringCol = ownCats.find((c) => c.parentId !== null) || primaryCol;
+  const bladdringIds = bladdringCol
+    ? new Set([bladdringCol.id, ...cols.filter((c) => c.parentId === bladdringCol.id).map((c) => c.id)])
     : new Set<string>();
   // dedupeProducts skickas in för att ordningen ska bli EXAKT kategorisidans —
   // den släpper produkter som delar bild med en tidigare, och utan den kunde
@@ -290,7 +300,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <em>{p.name}</em>
         </nav>
 
-        <ProductBrowse grannar={grannar} kategoriNamn={primaryCol?.name} />
+        <ProductBrowse grannar={grannar} kategoriNamn={bladdringCol?.name} />
 
         <ProductView
           key={p.id}

@@ -25,6 +25,10 @@
 // Ändras ordningen på kategorisidan MÅSTE den ändras här. Testfilen har fall
 // för steg 2 och steg 4, eftersom det är de två icke-uppenbara leden.
 //
+// EN AVVIKELSE FRÅN KATEGORISIDAN, med flit: slutsålda produkter hoppas över
+// (se utanSlutsalda längst ned). Kategorisidan visar dem med en bricka —
+// bläddringen ska inte leda in i en återvändsgränd.
+//
 // VAD VI MEDVETET INTE GÖR:
 //
 // • Ingen rundgång. Första produkten har ingen föregående, sista ingen nästa.
@@ -50,6 +54,7 @@ type Bladdringsbar = {
   name: string;
   imageScore?: number;
   collectionIds?: string[];
+  inStock?: boolean;
 };
 
 export type Grannar<T> = {
@@ -106,6 +111,32 @@ export function grannar<T extends Bladdringsbar>(
   };
 }
 
+/**
+ * Släpper slutsålda produkter ur en bläddringslista — utom den man tittar på.
+ *
+ * HÄR SKILJER SIG BLÄDDRINGEN FRÅN KATEGORISIDAN, med flit. Kategorisidan visar
+ * slutsålda med en "Slutsåld"-bricka och dämpad bild: kunden ser dem, kan
+ * bevaka dem, och de bär fortfarande SEO-värde. Men att BLÄDDRA in i en produkt
+ * man inte kan köpa är en återvändsgränd — man klickade "Nästa" för att se
+ * nästa sak att handla, inte nästa sak att inte kunna handla.
+ *
+ * Konsekvensen är att räknaren ("12 av 48") räknar KÖPBARA produkter, och alltså
+ * kan visa ett lägre antal än kategorisidan listar. Det är rätt: den beskriver
+ * hur många steg bläddringen har, inte hur många kort som finns.
+ *
+ * Undantaget för `slug` är nödvändigt. Landar man på en slutsåld produkt (från
+ * kategorisidan, sök eller en gammal länk) och den filtrerats bort finns den
+ * inte i ordningen, och då hade grannar() svarat null i båda ändarna — man
+ * hade blivit strandsatt utan bläddring alls, på precis den sida där man mest
+ * vill vidare.
+ */
+function utanSlutsalda<T extends Bladdringsbar>(alla: T[], slug: string): T[] {
+  // inStock === false är det enda som räknas som slutsåld. Saknas fältet
+  // (smalare produkttyper på vissa ytor) behåller vi produkten hellre än att
+  // gissa bort den.
+  return alla.filter((p) => p.inStock !== false || p.slug === slug);
+}
+
 /** Bekvämlighet: bygger ordningen och plockar grannarna i ett svep. */
 export function produktGrannar(
   alla: Product[],
@@ -113,5 +144,10 @@ export function produktGrannar(
   slug: string,
   efterbehandla?: (lista: Product[]) => Product[],
 ): Grannar<Product> {
-  return grannar(kategoriOrdning(alla, katIds, efterbehandla), slug);
+  return grannar(
+    kategoriOrdning(utanSlutsalda(alla, slug), katIds, efterbehandla),
+    slug,
+  );
 }
+
+export { utanSlutsalda };

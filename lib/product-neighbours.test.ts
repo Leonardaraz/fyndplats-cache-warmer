@@ -2,9 +2,9 @@
 // importera sin syskonmodul MED .ts-ändelse för att köraren ska hitta den.
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { kategoriOrdning, grannar, type Grannar } from "./product-neighbours.ts";
+import { kategoriOrdning, grannar, utanSlutsalda, type Grannar } from "./product-neighbours.ts";
 
-type P = { id: string; slug: string; name: string; imageScore?: number; collectionIds?: string[] };
+type P = { id: string; slug: string; name: string; imageScore?: number; collectionIds?: string[]; inStock?: boolean };
 
 const KAT = "kat-1";
 const UNDER = "kat-1a";
@@ -128,5 +128,40 @@ describe("grannar", () => {
     const g = grannar(ordning, "c");
     assert.equal(g.position, 3);
     assert.equal(g.antal, 5);
+  });
+});
+
+describe("utanSlutsalda", () => {
+  const med = (slutsalda: string[]): P[] =>
+    katalog().map((p) => ({ ...p, inStock: !slutsalda.includes(p.slug) }));
+
+  it("släpper slutsålda produkter", () => {
+    const ut = utanSlutsalda(med(["b", "d"]), "a");
+    assert.deepEqual(ut.map((p) => p.slug), ["a", "c", "e"]);
+  });
+
+  it("behåller den man tittar på även om den är slutsåld", () => {
+    // Annars försvinner produkten ur ordningen, grannar() svarar null i båda
+    // ändarna, och besökaren blir strandsatt utan bläddring alls — på precis
+    // den sida där man mest vill vidare.
+    const ut = utanSlutsalda(med(["b", "c"]), "c");
+    assert.deepEqual(ut.map((p) => p.slug), ["a", "c", "d", "e"]);
+  });
+
+  it("behåller produkter som saknar inStock i stället för att gissa bort dem", () => {
+    const ut = utanSlutsalda(katalog(), "a");
+    assert.equal(ut.length, 5);
+  });
+
+  it("grannarna hoppar över de slutsålda", () => {
+    // b och c är slut → från a är nästa d, inte b.
+    const kvar = utanSlutsalda(med(["b", "c"]), "a");
+    assert.deepEqual(namn(grannar(kategoriOrdning(kvar, new Set([KAT])), "a")), [null, "d"]);
+  });
+
+  it("räknaren räknar köpbara, inte alla kort på kategorisidan", () => {
+    const kvar = utanSlutsalda(med(["b", "c"]), "a");
+    const g = grannar(kategoriOrdning(kvar, new Set([KAT])), "a");
+    assert.equal(g.antal, 3);
   });
 });
