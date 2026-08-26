@@ -278,6 +278,23 @@ Avgör vilka varianter som faktiskt ska säljas **innan** Steg 7 — annars skri
 
 3. **Blir bara EN variant kvar → kollapsa till enkel-variant-produkt** direkt (inte en option med ett enda val): `options:[]` + `variantsInfo.variants:[{ id:<kvar>, choices:[], sku, price, inventoryStatus }]`.
 
+4. 💰 **Billigaste varianten ska ligga FÖRST i valen** (Leonards regel 2026-08-26). Wix visar det första valet förvalt, så det är dess pris kunden möter — och ett förvalt dyrt val får produkten att se dyrare ut än den är. Sortera `options[].choicesSettings.choices[]` **stigande efter variantens pris** och skicka `options` + `variantsInfo` verbatim (och `visible` explicit — en draft ska förbli draft).
+
+   ```js
+   // lagsta pris per choiceId, sedan stabil sortering
+   const pris = {};
+   for (const v of variantsInfo.variants)
+     for (const c of (v.choices || [])) {
+       const cid = c.optionChoiceIds.choiceId, kr = Number(v.price.actualPrice.amount);
+       if (pris[cid] === undefined || kr < pris[cid]) pris[cid] = kr;
+     }
+   val.sort((a, b) => (pris[a.choiceId] === pris[b.choiceId] ? 0 : pris[a.choiceId] - pris[b.choiceId]));
+   ```
+
+   Ordningen påverkar **bara** presentationen: `choiceId` är oförändrat, så `linkedMedia`, lagerposter och mappningens `wixVariantId` följer med av sig själva. Verifiera ändå att antalet `linkedMedia` är detsamma före och efter.
+
+   > **Katalogsvep 2026-08-26:** 29 av 226 flervariantprodukter hade ett dyrare val först — värst en solpanel som visade **1 439 kr** i stället för sina **459**, ett fräsbord på 1 969 mot 1 079 och en paviljong på 4 949 mot 3 749. Alla rättade. Sveps om med `POST /stores/v3/products/query-variants` (pris per variant, ~1 900 varianter på 19 anrop) plus `search` (valordningen) — **`search` returnerar INTE `variantsInfo`**, så priserna måste hämtas den vägen.
+
 Nu — och först nu — skriver Steg 7 (copy), Steg 8 (SKU) och Steg 9 (bilder/spec-kort) **bara** för det som är kvar. Ingen omskrivning, inga spec-kort som slängs.
 
 -----
