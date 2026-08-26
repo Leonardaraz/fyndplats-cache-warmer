@@ -382,11 +382,20 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > De två första lagas mekaniskt och riskfritt — men **bara inuti textnoder**, aldrig över hela HTML-strängen (`style="font-weight: 700"` innehåller kolon och mellanslag som inte får röras):
 >
 > ```js
+> // OBS: kolon och semikolon undantas när en smilis följer — se noten nedan.
+> const SMILIS = /(?!-?[()D|\/\\pP3])/.source;
 > const stada = h => h.replace(/>([^<]+)</g, (_, t) => ">" + t
->   .replace(/\s+([.,;:!?])/g, "$1")                       // mellanslag före skiljetecken
->   .replace(/([a-zåäö,])([.!?])([A-ZÅÄÖ])/g, "$1$2 $3")   // saknat mellanslag efter punkt
+>   .replace(new RegExp("\\s+([.,!?]|[;:]" + SMILIS + ")", "g"), "$1")  // mellanslag före skiljetecken
+>   .replace(/([a-zåäö,])([.!?])([A-ZÅÄÖ])/g, "$1$2 $3")                 // saknat mellanslag efter punkt
 >   .replace(/ {2,}/g, " ") + "<");
 > ```
+>
+> ☠️ **Undanta smilisar, annars klistrar städningen ihop dem med föregående mening.**
+> `\s+([.,;:!?])` läser kolon som skiljetecken, så `"ett bra pris! :)"` blir
+> `"ett bra pris!:)"` — ett nytt fel infört av den kod som skulle laga fel. Det slog till
+> på två publicerade recensioner 2026-08-26 i samma körning som lagade tio andra. Samma
+> gäller `;)` och `:D`. Kontrollera efter varje städning: `/[.!?,][:;=]-?[()D|\/\\pP3]/`
+> ska ge noll träffar.
 >
 > Den tredje går inte att laga mekaniskt: den borttagna meningen bar en syftning som nästa mening hänger på (*"därför"*, *"det"*, *"den"*). Sök efter kvarvarande syftningar — `vi skriver`, `därför bara att`, `lämnar … osagd` — och skriv om för hand. **Kör städningen som ett eget steg efter varje svep, inte som en del av det** — annars städar du bara de produkter svepet råkade träffa.
 >
