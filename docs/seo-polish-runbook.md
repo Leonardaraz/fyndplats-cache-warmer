@@ -689,6 +689,20 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > ☠️ **En PATCH av `media.itemsInfo` NOLLSTÄLLER `linkedMedia` på alla variantval (2026-08-13).** Det räcker inte att låta de låsta bild-id:na följa med i det nya galleriet — Wix svarar `200 OK`, behåller bilderna, men skriver `linkedMedia: []` på varje choice. Resultatet: alla färgval visar första galleribilden, och kunden som väljer "Blå" ser den gröna produkten. Hände på hollywoodgungan `39a5c0bf`. **Åtgärd:** har produkten optioner → lägg `options` (inkl. `linkedMedia`) + `variantsInfo` (inkl. varje variants `choices`) i **samma** PATCH som `media`, eller kör en andra PATCH direkt efter med `visible` explicit satt och färsk `revision`. Re-GET-verifiera att varje choice har rätt id.
 
 > **Dubbletter (identiska bilder):** är två eller fler galleri-items **exakt samma motiv** (vanligt från skrapan/DS-API:t) — behåll **en**, ta bort resten ur `itemsInfo.items` (skicka hela arrayen utan dubbletterna). **Kontrollera `linkedMedia` FÖRST:** pekar ett variantval på en kopia du tar bort → koppla om valet till den kvarvarande bilden (Steg 11B), annars tappar valet sitt bildbyte tyst. **Radera INTE filen direkt** i Media Manager — borttagen ur galleriet blir den föräldralös och **frigörs automatiskt i de återkommande orphan-städsvepen** (minnet återtas helt, utan risk att radera en fil som `linkedMedia`:as eller används av en annan produkt). Vill du bekräfta exakt likhet: jämför fil-id:t i `image.url` (samma id = samma fil) eller previews sida vid sida med `Read`.
+>
+> ⚠️ **Dubbletterna är oftast PIXELIDENTISKA men BYTE-OLIKA — fil-id och checksumma missar dem.**
+> Wix omkodar samma motiv till två filer med olika id, olika storlek och olika md5. Testet ovan
+> friskförklarar dem alltså felaktigt. Det som fäller är en nedskalad pixeljämförelse:
+> ```python
+> a=np.array(Image.open(f1).convert("L").resize((320,320))).astype(int)
+> b=np.array(Image.open(f2).convert("L").resize((320,320))).astype(int)
+> abs(a-b).mean()   # 0.0 och max 0 = samma motiv, oavsett filstorlek
+> ```
+> Kör det över alla galleribilder innan du sätter ordningen — annars ligger samma bild två
+> gånger i karusellen. **Mönstret är regel, inte undantag:** tre produkter i rad 2026-08-26 —
+> hundgrinden 12 platser/10 unika, hundväskan 9/8, cykelvagnen 9/8. På hundgrinden var de två
+> kopiorna dessutom `linkedMedia` för färgvalen, så de gick inte att ta bort förrän valen
+> pekats om (se stycket ovan).
 
 **Bild-arbete — vilken metod?** Åtgärda det du flaggade i Steg 4. Välj per bild:
 
