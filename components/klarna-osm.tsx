@@ -34,27 +34,11 @@ const PLACEMENT_KEY = "credit-promotion-auto-size";
 const LOCALE = "sv-SE";
 const HYDRATION_TIMEOUT_MS = 3000; // Efter detta: SDK laddade inte → fallback.
 
-// Utökar JSX för Klarnas custom element så TypeScript inte skriker.
-// Klarnas eget typing-package finns inte på npm; deklarerar minimalt själva.
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      "klarna-placement": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          "data-key": string;
-          "data-locale": string;
-          "data-purchase-amount"?: string;
-        },
-        HTMLElement
-      >;
-    }
-  }
-  interface Window {
-    Klarna?: {
-      OnsiteMessaging?: { refresh?: () => void };
-    };
-  }
-}
+// Klarnas web component + window.Klarna typas i types/klarna.d.ts — flyttat
+// från denna fil 2026-08-26 efter Vercel-buildfail: Next.js 16 + Turbopack
+// plockar inte upp `declare global` från en "use client"-modul under
+// production build, bara i dev. Global augmentation måste bo i en fristående
+// .d.ts som tsconfig include:ar via **/*.ts.
 
 export function KlarnaOSM({ priceNum }: { priceNum: number }) {
   const consent = useMarketingConsent();
