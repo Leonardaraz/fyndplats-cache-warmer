@@ -8,6 +8,8 @@ import { ProductCard } from "../../../components/productcard";
 import { attachRatings } from "../../../lib/review-aggregates";
 import { getProduct, getProducts, getCollections, type Product } from "../../../lib/products";
 import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
+import { produktGrannar } from "../../../lib/product-neighbours";
+import { ProductBrowse } from "../../../components/product-browse";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
 import { reviewSchemaMode, shouldEmitReviewSchema } from "../../../lib/review-schema";
@@ -227,6 +229,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const all = await getProducts();
   const related: Product[] = await attachRatings(pickRelated(p, all, curatedRelatedSlugs(p.slug), 4));
 
+  // Föregående/nästa i avdelningen, så man slipper backa till kategorisidan för
+  // varje produkt. Samma id-mängd som kategorisidan bygger sin lista av:
+  // avdelningen + dess underkategorier. Saknar produkten huvudavdelning blir
+  // mängden tom, grannarna null och raden renderas inte alls.
+  const bladdringIds = primaryCol
+    ? new Set([primaryCol.id, ...cols.filter((c) => c.parentId === primaryCol.id).map((c) => c.id)])
+    : new Set<string>();
+  const grannar = produktGrannar(all, bladdringIds, p.slug);
+
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
   // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.
   const ownTopCats = new Set(
@@ -275,6 +286,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           )}
           <em>{p.name}</em>
         </nav>
+
+        <ProductBrowse grannar={grannar} kategoriNamn={primaryCol?.name} />
 
         <ProductView
           key={p.id}
