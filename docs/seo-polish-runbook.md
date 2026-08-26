@@ -235,6 +235,19 @@ undantag — det är normalläget för AliExpress-listningar.
 | Parasoll | "protección solar total" | Ingen UPF-siffra finns någonstans |
 | Kompostkvarn | "106 dB for quieter performance" | 106 dB är motorsågsnivå — tystare än bensin, inte tyst |
 
+> ⚠️ **Att leverantörens kort INTE nämner en egenskap bevisar ingenting.** Ryggsäcken
+> `311c8c4e` (2026-08-26): leverantörens ryggpanels-kort visade EVA-skum, länddyna och
+> luftkanaler, och nämnde aldrig någon ram. Jag drog slutsatsen "ingen aluminiumram" och skrev
+> in den i brödtext, spec-tabell OCH FAQ — som skillnaden mot systerprodukten Rock 2.0.
+> Tillverkarens egen sida hade ett kort med rubriken *"HIGH QUALITY FABRIC & ALUMINIUM FRAME
+> STRUCTURE"*: ramen finns, den är **insydd** mot ryggpartiet. Den riktiga skillnaden mot
+> Rock 2.0 var att dess ram är avtagbar.
+>
+> **Regel:** skriv aldrig ut en NEGATION ("saknar ram", "utan ventil", "ingen timer") på
+> grundval av att leverantören inte nämnde den. Ett kort visar det säljaren valde att visa.
+> En negation kräver samma verifiering som ett positivt påstående — helst tillverkarens
+> specifikation.
+
 **Arbetsgång:**
 
 1. **Läs specen mot bilderna.** Leverantörens egna bilder motsäger ofta deras egen
@@ -796,6 +809,25 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 > 2. **Räkna alltid hur många jämförelser som FAKTISKT kördes** och returnera siffran. Första svepet rapporterade "0 fel" när sanningen var "0 jämförda av 1 152".
 >
 > Skilj dessutom på **allvarligt** (varianten visar en ANNAN variants bild — kunden ser fel färg) och **kosmetiskt** (varianten visar hjälten). Testet: slår `media`-id:t mot något annat vals `linkedMedia` i samma produkt?
+
+#### Leverantörens variantkort kan visa FEL exemplar
+
+Innan ett variantkort byggs: **läs vad som står tryckt på varan i bilden.** Leverantörer
+återanvänder renderingar mellan varianter, och etiketten avslöjar det.
+
+> *(Rock-ryggsäcken `311c8c4e`, 2026-08-26: kortet märkt "40L Black" visade en säck med
+> **"60 Liter"** tryckt på fronten — 60-litersrenderingen återanvänd. Ett swatch-kort byggt på
+> den hade visat kunden fel produkt vid det billigaste valet.)*
+
+Saknas en ärlig bild hos leverantören, leta hos **tillverkaren** innan du ger upp: deras
+storleks- och jämförelsekort visar ofta alla varianter bredvid varandra, var och en med rätt
+etikett. Det är samma studiorenderingar leverantören själv använder. På Rock låg den äkta
+40-litersbilden i tillverkarens *"available in a wide range of sizes"*-kort, och samma kort
+gav dessutom maxlasten (11 respektive 14 kg) som leverantören inte angav.
+
+Hittas ingen ärlig bild alls: **ge varianten ingen `linkedMedia`** hellre än en bild på fel
+exemplar. Men lämna inte produkten så — alla val utan kopplad bild betyder att swatchen aldrig
+ändras, vilket ser trasigt ut. Antingen får alla val en egen bild, eller inget val får någon.
 
 ### 11C – Ta bort bilder för varianter som inte finns eller är slutsålda
 
