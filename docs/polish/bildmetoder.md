@@ -486,6 +486,14 @@ faktiskt behov och har inte krävts på ~40 produkter.
 >   **unikt** `linkedMedia`-id (utöver hero). Två olika-seende varianter som pekar på samma icke-hero-id
 >   = fel. (Rättat i efterhand på bänk/stege/väska/basket 2026-07-19 — gör aldrig om det.)
 
+> 📏 **Mät variantbildens PIXLAR, inte bara dess motiv.** En `linkedMedia`-bild blir PDP:ns huvudbild när kunden väljer varianten, och renderas i 1080 px. Dragleken (`draglek-bat-uppblasbar`, 2026-08-26) hade måttskisser på **198 × 257 px** som variantbilder: 5,5× uppförstoring till oläslig gröt, och kvadratbeskärningen kapade dessutom bort djupmåttet längst ned. Felet syns inte i galleriet — miniatyren ser fin ut — bara när varianten faktiskt väljs. **Kontrollera `image.width`/`image.height` på varje `linkedMedia` redan i Steg 1; under ~800 px duger bilden inte som variantbild.**
+>
+> Finns inget bättre foto av just den varianten: bygg ett `card_spec` med modellens egen bild i panelen och verifierade mått i raderna. Dragleken hade bara 197 px av 3-åkarmodellen — leverantörens CDN har 600 × 450 som master (`_1500x1500`, `_960x960` och `_720x720` returnerar alla samma fil) — men i ett kort där panelen visar ~490 px på skärmen räcker det: gula listen, ryggstödet och nätet syns, och spec-raderna bär innehållet.
+
+> 🔢 **Leverantörens specifikationsblad är källan för mått — läs det, ärv inte äldre poleringstext.** Draglekens publicerade spec-kort uppgav 3-åkaren till `183 × 183 × 89 cm`. Bladet SS-1006 säger `1920 × 1825 × 890 mm`, alltså **192 × 182,5 × 89 cm**; "183 × 183" hade uppstått av att 1825 mm lästes som båda måtten. Felet överlevde en hel polering eftersom ingen gick tillbaka till bladet.
+>
+> Bladen går ofta att nå även när AE:s produktsida är botblockerad (302 utan innehåll): mappningens `imageAnalysis` har kvar leverantörens bild-URL:er, och `ae-pic-a1.aliexpress-media.com` svarar 200 utan spärr.
+
 ### När etiketten sitter PÅ produkten (2026-08-24, transportvagnen)
 
 Komponentrekonstruktionen ovan säger att den inte fungerar när pilar/streck binder ihop
