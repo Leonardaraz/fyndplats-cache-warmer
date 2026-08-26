@@ -203,6 +203,24 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Träning & Gym": UNSPLASH("1705909237050-7a7625b47fac"), // träning med vikter
   "Friluftsliv & Resa": UNSPLASH("1501555088652-021faa106b9b"), // vandrare med ryggsäck, berg
   "Bil & Cykel": UNSPLASH("1541625602330-2277a4c46182"), // cyklister på väg
+
+  // Trädgård & Utemöbler
+  // Grenen skapades i Wix 2026-08-13, efter att den här kartan skrevs, så alla
+  // sju saknade nyckel och föll tillbaka på rörliga produktbilder. Varje bild är
+  // hämtad på exakt den URL UNSPLASH() bygger och GRANSKAD 2026-08-26 —
+  // 1600×1280 (5:4), äkta foto, inga läsbara varumärken, inga personer.
+  //
+  // Fyra kandidater föll i granskningen och byttes: ett botaniskt palmhus (fel
+  // förväntan mot odlingstunnlar), en grill med märket "MUSTANG" läsbart på
+  // handtaget, en belysningsbild med skospetsar i nederkanten, och en öde
+  // lekställning mot utbränd himmel.
+  "Utemöbler": UNSPLASH("1760067537567-f3e1f8ad7ef7"), // loungegrupp på överbyggd terrass
+  "Växthus & Odling": UNSPLASH("1770982698899-14e83be16615"), // odlingslådor med odlingstunnel
+  "Solskydd & Paviljonger": UNSPLASH("1786654026603-54c654c05c18"), // stort parasoll över sittgrupp
+  "Grill & Utekök": UNSPLASH("1782010657321-d33cf96afe57"), // eldkorg med lågor, stolar runt
+  "Trädgårdsskötsel & Bevattning": UNSPLASH("1780328868286-9650af900bd5"), // slangvagn mot tegelvägg
+  "Trädgårdsdekor & Belysning": UNSPLASH("1776524582404-852271a6551d"), // utomhuslampa bland blommor
+  "Utelek & Spel": UNSPLASH("1536557925410-b8df780eb58a"), // repgunga under träd, kvällssol
 };
 
 // Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan
