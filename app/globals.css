@@ -647,9 +647,7 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .crumbs span{margin:0 6px;opacity:.5}
 
 /* ── Bläddra: föregående / nästa produkt ────────────────────────────────────
-   Ligger direkt under brödsmulan. Tre rutnätsspalter med räknaren i mitten: då
-   står "12 av 48" mitt på raden även när ena pilen saknas i listans ändar
-   (komponenten renderar en tom platshållare där, se product-browse.tsx).
+   Ligger direkt under brödsmulan. Tre rutnätsspalter med räknaren i mitten.
 
    UTSEENDET, andra vändan. Första versionen var två textlänkar med tecknen ←
    och → framför, och den såg ut som en fotnot. Nu bär varje sida en chevron i
@@ -660,31 +658,46 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    brödsmulan och produktrubriken, och två inramade kort där hade konkurrerat
    med köpkolumnen i stället för att bära den. Hela lyftet ligger i hover.
 
+   TREDJE VÄNDAN: sidospalterna är ALLTID fyllda. Fanns ingen granne stod det
+   tomt förut, och rutnätet fick byta form (data-sidor) för att hålet inte skulle
+   se ut som en misslyckad laddning. Nu renderas en utgång till kategorisidan i
+   stället — då behövs varken platshållare eller omformning, och rutnätet kan
+   vara samma tre spalter i alla lägen.
+
    min-width:0 på länken är det som låter produktnamnet kortas i stället för
    att spränga rutnätet — utan den blev nästa-länken 407px bred i en 390px vy.
    Tryckytorna är över 44px; sajten har redan gått en runda där småknappar
    underkände sig själva. */
 .pbrowse{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
   padding:2px 0 12px;border-bottom:1px solid var(--line);margin-bottom:18px}
-.pbrowse-lank{display:flex;align-items:center;gap:12px;min-width:0;min-height:44px;
-  padding:6px 10px;margin:0 -10px;border-radius:var(--r-md);color:var(--soft);
-  transition:background .18s,color .18s,transform .18s,box-shadow .18s}
-.pbrowse-lank:hover{background:var(--surface-1);color:var(--ink);
+.pbrowse-lank,.pbrowse-utgang{display:flex;align-items:center;gap:12px;min-width:0;
+  min-height:44px;padding:6px 10px;margin:0 -10px;border-radius:var(--r-md);
+  color:var(--soft);transition:background .18s,color .18s,transform .18s,box-shadow .18s}
+.pbrowse-lank:hover,.pbrowse-utgang:hover{background:var(--surface-1);color:var(--ink);
   transform:translateY(-1px);box-shadow:var(--e2)}
-.pbrowse-lank:active{transform:translateY(0)}
-.pbrowse-lank:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.pbrowse-lank:active,.pbrowse-utgang:active{transform:translateY(0)}
+.pbrowse-lank:focus-visible,.pbrowse-utgang:focus-visible,.pbrowse-rakn:focus-visible{
+  outline:2px solid var(--brand);outline-offset:2px;border-radius:var(--r-md)}
 /* row-reverse packar innehållet mot högerkanten av HELA spalten.
    justify-self:end stod här först och gjorde tvärtom: länken krympte till sitt
    innehåll, varför min-width:0 aldrig fick effekt. Låt den fylla spalten. */
 .pbrowse-nasta{flex-direction:row-reverse;text-align:right}
 
+/* Utgången är en annan SORT av destination än en produkt — hela listan, inte
+   ett steg till. Den får därför rutnätsikon i stället för chevron och en
+   dämpad ikoncirkel, så ögat inte läser den som "nästa produkt". */
+.pbrowse-utgang .pbrowse-pil{color:var(--soft)}
+.pbrowse-utgang:hover .pbrowse-pil{color:var(--brand)}
+.pbrowse-utgang .pbrowse-namn{font-weight:600}
+
 /* Chevronen i egen cirkel — en ritad form, inte ett tecken, så vikten är
    densamma i alla typsnitt och den kan färgas för sig. */
 .pbrowse-pil{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;
   border:1px solid var(--line);border-radius:50%;color:var(--brand);
-  transition:border-color .18s,background .18s}
+  transition:border-color .18s,background .18s,color .18s}
 .pbrowse-pil svg{width:15px;height:15px;display:block}
-.pbrowse-lank:hover .pbrowse-pil{border-color:#C2410C55;background:#fff}
+.pbrowse-lank:hover .pbrowse-pil,.pbrowse-utgang:hover .pbrowse-pil{
+  border-color:#C2410C55;background:#fff}
 
 /* Miniatyren: det enda som gör länken igenkännbar innan man klickar. */
 .pbrowse-thumb{flex:0 0 auto;width:52px;height:52px;border-radius:var(--r-sm);
@@ -699,29 +712,39 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 /* Namnet kortas visuellt, aldrig i strängen — skärmläsaren får hela. */
 .pbrowse-namn{font-size:var(--text-sm);font-weight:600;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Avsnittsnamnet vid ett hopp över gränsen. Under namnet, inte i etiketten —
+   där kan det radbryta utan att knuffa produktnamnet ur linje med motsatta
+   sidans. Dämpat: det är en upplysning, inte destinationen. */
+.pbrowse-avsnitt{font-size:var(--text-xs);color:var(--soft);opacity:.85;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Räknaren är en LÄNK till kategorisidan: den förklarar varför en pil saknas
+   ("19 av 19") och ger samtidigt vägen till hela listan. Stryks aldrig — det
+   var precis den som var dold på mobil när raden såg trasig ut. */
 .pbrowse-rakn{font-size:var(--text-xs);color:var(--soft);white-space:nowrap;
-  font-variant-numeric:tabular-nums}
-/* Listans ändar: bara en länk finns. Rutnätet blir två spalter och räknaren
-   flyttar ut till den lediga kanten. Med en tom platshållare i stället såg
-   raden ut som att något inte laddat — en ensam länk och två tredjedelar
-   tomrum bredvid. */
-.pbrowse[data-sidor="forra"]{grid-template-columns:1fr auto}
-.pbrowse[data-sidor="forra"] .pbrowse-rakn{justify-self:end}
-.pbrowse[data-sidor="nasta"]{grid-template-columns:auto 1fr}
-.pbrowse[data-sidor="nasta"] .pbrowse-rakn{justify-self:start}
+  font-variant-numeric:tabular-nums;text-align:center;
+  /* Den är en LÄNK och måste därför bära en riktig tryckyta som resten av
+     sajten — 30px höjd underkände sig själv i mätningen. Höjden kostar
+     ingenting på desktop: pilarna är högre och driver radens höjd ändå. */
+  display:flex;align-items:center;justify-content:center;min-height:44px;
+  padding:6px 10px;transition:color .18s}
+.pbrowse-rakn:hover{color:var(--ink);text-decoration:underline;
+  text-underline-offset:3px}
 
 @media(max-width:700px){
-  /* Räknaren får stryka på foten — de två produktnamnen är värda utrymmet.
-     Rutnätet blir två lika spalter så vardera namnet får halva bredden. */
+  /* Två lika spalter för länkarna, och räknaren på EGEN rad under dem i stället
+     för hoptryckt emellan. Placeringen måste vara uttrycklig: räknaren står
+     mellan länkarna i DOM:en (rätt läsordning på desktop), så automatisk
+     utplacering hade lagt den i spalt 2 och knuffat nästa-länken till rad 2. */
   .pbrowse{grid-template-columns:1fr 1fr;gap:6px}
-  /* Räknaren är ändå dold här, så en ensam länk får hela bredden. */
-  .pbrowse[data-sidor="forra"],.pbrowse[data-sidor="nasta"]{grid-template-columns:1fr}
-  .pbrowse-rakn{display:none}
-  .pbrowse-lank{gap:9px;padding:6px}
+  .pbrowse-forra{grid-column:1;grid-row:1}
+  .pbrowse-nasta{grid-column:2;grid-row:1}
+  .pbrowse-rakn{grid-column:1/-1;grid-row:2;justify-self:center;white-space:normal}
+  .pbrowse-lank,.pbrowse-utgang{gap:9px;padding:6px}
   /* Chevronen ryms inte bredvid miniatyr OCH text i en halv mobilspalt.
      Miniatyren vinner: den bär mer information än en riktningsmarkör som
-     etiketten "Föregående"/"Nästa" ändå upprepar i ord. */
-  .pbrowse-pil{display:none}
+     etiketten "Föregående"/"Nästa" ändå upprepar i ord. Utgången har ingen
+     miniatyr, så där får ikonen vara kvar — den bär hela igenkänningen. */
+  .pbrowse-lank .pbrowse-pil{display:none}
   .pbrowse-thumb{width:44px;height:44px}
   .pbrowse-etikett{font-size:11px}
   /* En rad rymmer ~14 tecken bredvid en miniatyr i en halv mobilspalt. Två
@@ -730,6 +753,9 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
      och allt hamnar på en rad ändå). */
   .pbrowse-namn{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;
     -webkit-line-clamp:2;line-clamp:2;line-height:1.3}
+  /* Får radbryta här — den ligger under namnet och kan inte knuffa något ur
+     linje. Avkortad hade "i Grill & Ute…" sagt mindre än två korta rader. */
+  .pbrowse-avsnitt{white-space:normal;line-height:1.3}
 }
 .pdp{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:20px 0 64px;align-items:start}
 .pdp>*{min-width:0}/* låt grid-barnen krympa → inget vågrätt spill på mobil */

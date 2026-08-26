@@ -231,25 +231,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   // Föregående/nästa, så man slipper backa till kategorisidan för varje produkt.
   //
-  // VI BLÄDDRAR I UNDERKATEGORIN när produkten har en, inte i huvudavdelningen.
-  // Skälet är storleken: "Hem & Inredning" rymmer 328 produkter, och pilarna
-  // blir en oändlig vandring där "328 av 328" inte säger besökaren något
-  // användbart. En underkategori ligger på tiotal, och då är räknaren en
-  // upplysning i stället för en siffra.
+  // BLÄDDRINGEN GÅR I HELA HUVUDAVDELNINGEN, uppdelad i ett avsnitt per
+  // underkategori. Räknaren räknar i det egna avsnittet ("19 av 19 i Solskydd &
+  // Paviljonger") medan pilarna fortsätter förbi avsnittsgränsen — annars tar
+  // bläddringen slut mitt i en avdelning, vilket ser ut som en bugg. Att hela
+  // avdelningen är EN kedja är dessutom vad som gör steget tillbaka pålitligt;
+  // se den mätta 26-procentsbuggen i lib/product-neighbours.ts.
   //
-  // primaryCol pekar åt andra hållet med flit — brödsmulan och JSON-LD ska visa
-  // HUVUDavdelningen. Här väljer vi alltså den mest specifika kategorin i
-  // stället, med huvudavdelningen som fallback för produkter som saknar
-  // underkategori. Saknas båda blir mängden tom, grannarna null och raden
-  // renderas inte alls.
-  const bladdringCol = ownCats.find((c) => c.parentId !== null) || primaryCol;
-  const bladdringIds = bladdringCol
-    ? new Set([bladdringCol.id, ...cols.filter((c) => c.parentId === bladdringCol.id).map((c) => c.id)])
-    : new Set<string>();
+  // Saknar produkten kategori helt blir grannarna null och raden renderas inte.
   // dedupeProducts skickas in för att ordningen ska bli EXAKT kategorisidans —
   // den släpper produkter som delar bild med en tidigare, och utan den kunde
   // "nästa" peka på något som aldrig syntes i listan.
-  const grannar = produktGrannar(all, bladdringIds, p.slug, dedupeProducts);
+  //
+  // Både cols och ownCats: ownCats säger vilken avdelning produkten hör till,
+  // cols bygger avdelningens alla avsnitt.
+  const grannar = produktGrannar(cols, ownCats, all, p.slug, dedupeProducts);
 
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
   // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.
@@ -300,7 +296,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <em>{p.name}</em>
         </nav>
 
-        <ProductBrowse grannar={grannar} kategoriNamn={bladdringCol?.name} />
+        <ProductBrowse grannar={grannar} />
 
         <ProductView
           key={p.id}

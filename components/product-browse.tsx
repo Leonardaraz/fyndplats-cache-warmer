@@ -22,6 +22,27 @@
 // mellan brödsmulan och produktrubriken, och två inramade kort där hade
 // konkurrerat med köpkolumnen i stället för att bära den.
 //
+// ── Tredje vändan (2026-08-26): inga hål, ingen dold förklaring ─────────────
+// Leonard såg en produktsida med BARA "Föregående". Den var 19 av 19 i sin
+// underkategori — alltså sist, och utan rundgång finns ingen nästa. Räknaren
+// hade sagt det ("19 av 19 i Solskydd & Paviljonger"), men den var dold på
+// mobil, som var precis där han såg det. Tre ändringar följde:
+//
+//   1. Räknaren visas ÄVEN på mobil, som en egen centrerad rad under länkarna
+//      i stället för hoptryckt mellan dem. Den är förklaringen till varför en
+//      pil saknas och får därför inte vara det första som stryks.
+//   2. Räknaren är en LÄNK till kategorisidan. Vill man se hela listan i stället
+//      för att bläddra ett steg i taget finns vägen dit på raden.
+//   3. Tomrummet i kedjans ändar fylls av en UTGÅNG — "Se alla / Solskydd &
+//      Paviljonger" med rutnätsikon i stället för chevron. Slutet blir ett
+//      avsiktligt slut med någonstans att ta vägen, inte en halv rad som ser
+//      ut som en laddning som misslyckats.
+//
+// Att kedjan numera löper genom hela huvudavdelningen (se lib-filen) gör
+// ändarna sällsynta — men de finns fortfarande, i avdelningens första och sista
+// produkt. `nastaFran`/`forraFran` gör hoppet över en avsnittsgräns synligt som
+// en egen rad under produktnamnet: "i Grill & Utekök".
+//
 // Ren serverkomponent: inga hooks, inget "use client". Länkarna är vanliga
 // <a>, så de fungerar utan JS och Next hämtar dem i förväg som vanligt.
 //
@@ -42,47 +63,54 @@ import type { Grannar } from "../lib/product-neighbours";
 /** Miniatyrens ruta i CSS-pixlar. Bilden hämtas i dubbel storlek för skärpa. */
 const THUMB = 52;
 
-type Granne = { slug: string; name: string; img?: string } | null;
+type Granne = { slug: string; name: string; img?: string };
 
 export function ProductBrowse({
   grannar,
-  kategoriNamn,
 }: {
   grannar: Grannar<{ slug: string; name: string; img?: string }>;
-  kategoriNamn?: string;
 }) {
-  const { forra, nasta, position, antal } = grannar;
+  const { forra, nasta, forraFran, nastaFran, position, antal, avsnitt } = grannar;
   if (!forra && !nasta) return null;
-
-  // I listans ändar finns bara en länk. Först stod en tom platshållare i den
-  // andra spalten så räknaren skulle bli kvar mitt på raden — men skarpt såg
-  // det ut som att något inte laddat: en ensam länk till vänster och två
-  // tredjedelar tomrum till höger. Nu byter rutnätet form i stället, och
-  // räknaren flyttar ut till den lediga kanten. Två spalter, inget hål.
-  const sidor = forra && nasta ? "bada" : forra ? "forra" : "nasta";
 
   return (
     <nav
       className="pbrowse"
-      data-sidor={sidor}
-      aria-label={kategoriNamn ? `Bläddra i ${kategoriNamn}` : "Bläddra bland produkter"}
+      aria-label={avsnitt ? `Bläddra i ${avsnitt.namn}` : "Bläddra bland produkter"}
     >
-      {forra && <Lank granne={forra} riktning="forra" />}
-      {position !== null && antal > 1 && (
-        // Räknaren gör pilarna begripliga: utan den vet man inte om "nästa" är
-        // en av tre eller en av femtio. Döljs på små skärmar (se globals.css) —
-        // där är utrymmet bättre använt till produktnamnen.
-        <span className="pbrowse-rakn">
-          {position} av {antal}
-          {kategoriNamn ? ` i ${kategoriNamn}` : ""}
-        </span>
+      {forra ? (
+        <Lank granne={forra} riktning="forra" fran={forraFran} />
+      ) : (
+        <Utgang avsnitt={avsnitt} riktning="forra" />
       )}
-      {nasta && <Lank granne={nasta} riktning="nasta" />}
+
+      {position !== null && avsnitt && (
+        // Räknaren gör pilarna begripliga: utan den vet man inte om "nästa" är
+        // en av tre eller en av femtio — och framför allt inte att man står
+        // sist, vilket är hela förklaringen till en saknad pil.
+        <a className="pbrowse-rakn" href={`/kategori/${avsnitt.slug}`}>
+          {position} av {antal} i {avsnitt.namn}
+        </a>
+      )}
+
+      {nasta ? (
+        <Lank granne={nasta} riktning="nasta" fran={nastaFran} />
+      ) : (
+        <Utgang avsnitt={avsnitt} riktning="nasta" />
+      )}
     </nav>
   );
 }
 
-function Lank({ granne, riktning }: { granne: NonNullable<Granne>; riktning: "forra" | "nasta" }) {
+function Lank({
+  granne,
+  riktning,
+  fran,
+}: {
+  granne: Granne;
+  riktning: "forra" | "nasta";
+  fran: string | null;
+}) {
   const forra = riktning === "forra";
   return (
     <a
@@ -113,6 +141,44 @@ function Lank({ granne, riktning }: { granne: NonNullable<Granne>; riktning: "fo
       <span className="pbrowse-txt">
         <span className="pbrowse-etikett">{forra ? "Föregående" : "Nästa"}</span>
         <span className="pbrowse-namn">{granne.name}</span>
+        {/* Korsar länken en avsnittsgräns säger vi vart man går — annars ser
+            hoppet från Solskydd till Grillar ut som att fel produkt råkat
+            hamna där. EGEN RAD, inte inbakat i etiketten: på mobil radbröt
+            "NÄSTA I GRILL & UTEKÖK" till två rader medan motsatta sidans
+            "FÖREGÅENDE" tog en, och då hamnade de två produktnamnen på olika
+            höjd. Under namnet kan raden inte knuffa något. */}
+        {fran && <span className="pbrowse-avsnitt">i {fran}</span>}
+      </span>
+    </a>
+  );
+}
+
+/**
+ * Kedjans ände: ingen granne åt det hållet. I stället för tomrum — en väg till
+ * hela listan. Rutnätsikon i stället för chevron, eftersom destinationen är en
+ * annan SORT än en produkt och inte ska läsas som "ett steg till".
+ *
+ * Saknas avsnittet (produkten hittades inte i kedjan) blir det ändå en giltig
+ * länk: /butik finns alltid.
+ */
+function Utgang({
+  avsnitt,
+  riktning,
+}: {
+  avsnitt: { namn: string; slug: string } | null;
+  riktning: "forra" | "nasta";
+}) {
+  return (
+    <a
+      className={`pbrowse-utgang pbrowse-${riktning}`}
+      href={avsnitt ? `/kategori/${avsnitt.slug}` : "/butik"}
+    >
+      <span className="pbrowse-pil" aria-hidden="true">
+        <Rutnat />
+      </span>
+      <span className="pbrowse-txt">
+        <span className="pbrowse-etikett">Se alla</span>
+        <span className="pbrowse-namn">{avsnitt ? avsnitt.namn : "Butiken"}</span>
       </span>
     </a>
   );
@@ -125,6 +191,19 @@ function Chevron({ vand }: { vand: boolean }) {
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
       style={vand ? { transform: "scaleX(-1)" } : undefined}>
       <path d="M15 5l-7 7 7 7" />
+    </svg>
+  );
+}
+
+/** Fyra rutor = "hela listan". Skiljer utgången från ett bläddringssteg. */
+function Rutnat() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
     </svg>
   );
 }
