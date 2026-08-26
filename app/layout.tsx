@@ -19,6 +19,7 @@ import {
   WishlistDrawer,
 } from "../components/deferred";
 import { MetaPixel } from "../components/metapixel";
+import { KlarnaSDK } from "../components/klarna-sdk";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 
@@ -26,6 +27,14 @@ const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 // Tomt → MetaPixel renderar inget och CAPI-routen svarar "not_configured", så
 // sajten fungerar oförändrat tills Leonard fyllt i env-variabeln i Vercel.
 const META_PIXEL_ID = (process.env.META_PIXEL_ID || "").trim();
+
+// Klarna On-Site Messaging client-id. Läses via NEXT_PUBLIC_ (behöver vara
+// tillgänglig i browsern för SDK-script-taggen), inte hemligt: den syns
+// ändå i sidans källkod som data-client-id. Tomt → KlarnaSDK renderar
+// inget och KlarnaOSM-komponenten trippar sin fallback (statiska
+// KlarnaMessage-raden). Sajten fungerar oförändrat tills Leonard sätter
+// variabeln i Vercel.
+const KLARNA_CLIENT_ID = (process.env.NEXT_PUBLIC_KLARNA_CLIENT_ID || "").trim();
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const fraunces = Fraunces({
@@ -239,6 +248,15 @@ export default async function RootLayout({
           delad event_id för deduplicering). Server-side CAPI: /api/meta/capi.
         */}
         {META_PIXEL_ID && <MetaPixel pixelId={META_PIXEL_ID} />}
+        {/*
+          Klarna On-Site Messaging SDK. Consent-gated inuti komponenten (samma
+          som MetaPixel). Laddar Klarnas web-sdk med data-client-id, som sedan
+          hydrerar alla <klarna-placement>-taggar på sidan (se components/
+          klarna-osm.tsx). Klarna-widgeten är compliance-säker per betalsätt —
+          till skillnad från vår manuella "räntefritt"-etikett, som bara får
+          användas för 30-dagars-fakturan.
+        */}
+        {KLARNA_CLIENT_ID && <KlarnaSDK clientId={KLARNA_CLIENT_ID} />}
       </body>
     </html>
   );

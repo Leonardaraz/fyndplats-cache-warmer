@@ -8,8 +8,7 @@ import { tightFillUrl } from "../lib/wix-image";
 import { findVariant, defaultSelection, isChoiceAvailable, reconcileSelection } from "../lib/variant-multi";
 import { DeliveryEstimate } from "./delivery-estimate";
 import { PaymentMarks } from "./payment-marks";
-import { KlarnaMessage } from "./klarna-message";
-import { formatPrice } from "../lib/price-range";
+import { KlarnaOSM } from "./klarna-osm";
 import { EU_STOCK_NOTE } from "../lib/shipping";
 import { ratingSummary } from "../lib/rating";
 import { Stars } from "./stars";
@@ -380,9 +379,7 @@ export function ProductView({
       : variants.length > 1
         ? variants[sel]?.id
         : variants[0]?.id;
-  // Wix färdiga sträng, kvar som reserv. Product.price rörs inte — feed-parsern
-  // i app/api/feed/products.xml läser den.
-  const wixPrisStrang = multiAxis
+  const displayPrice = multiAxis
     ? currentVariant?.price || price
     : hasImageVariants && imageChoices[sel]?.price
       ? imageChoices[sel].price
@@ -401,13 +398,6 @@ export function ProductView({
     : hasImageVariants && imageChoices[sel]?.priceNum
       ? imageChoices[sel].priceNum
       : priceNum;
-  // Priset skrivs från talet, inte från Wix sträng: "1 379 kr" i stället för
-  // "1 379,00kr". Produktsidan var den SISTA ytan med det gamla formatet —
-  // korten, hjältebrickorna och varukorgen byttes 2026-08-22 men den här
-  // missades, vilket gjorde den till hela butikens enda avvikare. Samma
-  // formatPrice() driver prisreglagets etiketter, så filter och sida aldrig
-  // kan säga samma pris på två sätt.
-  const displayPrice = currentPriceNum ? formatPrice(currentPriceNum) : wixPrisStrang;
   const needsVariant = multiAxis ? true : hasImageVariants || variants.length > 0;
   // Etikett för vald variant/kombination — visas i pickern och sticky-knappen.
   const variantLabel = multiAxis
@@ -566,9 +556,6 @@ export function ProductView({
                   sammandraget i recensionssektionen. */}
               <span className="pdp-rating-dot" aria-hidden="true">·</span>
               <span className="pdp-rating-count">{ratingHead.label}</span>
-              {/* Riktningsvisare: raden ÄR en länk till #recensioner, men inget
-                  sa det. Dekorativ — skärmläsaren har redan länktexten. */}
-              <span className="pdp-rating-arrow" aria-hidden="true">→</span>
             </a>
           )}
           {!buyable && (
@@ -586,7 +573,7 @@ export function ProductView({
             {displayOriginal && <span className="pdp-price-old">{displayOriginal}</span>}
             {displayOriginal && <span className="pdp-sale">Rea</span>}
           </div>
-          <KlarnaMessage priceNum={currentPriceNum} />
+          <KlarnaOSM priceNum={currentPriceNum} />
           {/* Lagerstatus visas i leveransboxen ("✓ I lager · Beräknad leverans…")
               — en fristående pill här såg övergiven ut. Slut-i-lager-läget bärs
               redan av oos-bannern ovan + köpknappens text. */}
