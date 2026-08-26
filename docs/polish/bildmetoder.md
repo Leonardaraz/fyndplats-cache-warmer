@@ -126,6 +126,10 @@ Klassa varje bild utifrån bildgenomgången i Steg 4:
 
 **H-0 – `hero_white()` (PROVA ALLTID FÖRST — gratis, deterministisk, ingen AI):**
 
+> ⚠️ **Bakgrunden är det ljusa som når BILDKANTEN — inte varje ljus pixel (lagat 2026-08-26).** Funktionen tröskade tidigare rakt av: `mn > trosk` = bakgrund. På en blank eller ljus vara stansar det hål rakt genom produkten. Stödbenen i gjuten aluminium hade **27 % av sina egna pixlar över tröskeln**, och genom hålen lyste duken och slagskuggan igenom som vita och gråa flackar — osynligt i miniatyr, uppenbart vid 100 %. Kantregeln räddade **42 % fler produktpixlar** på samma bild.
+>
+> `hero_white()` gör det numera själv, med en spärr som faller tillbaka på den nakna tröskeln om kantregeln skulle ge en *mindre* produkt (det händer bara när varan står i bildkanten och flödas bort). **QC:a ändå alltid vid 100 % zoom** — det var först där felet syntes.
+
 Merparten av leverantörsbilderna från HOMCOM/Outsunny/PawHut/Sportnow ligger **redan** på vit studiobakgrund — de är bara snedcentrerade, har olika marginal och ett gråaktigt ljusbrus. Då behövs varken AI eller urklipp: tröskla bort bruset, beskär till produktens bbox och centrera på ren vit duk.
 
 ```python
