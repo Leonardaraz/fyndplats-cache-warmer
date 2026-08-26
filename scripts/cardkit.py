@@ -24,7 +24,8 @@ Bildhjalpare: hero_white (vit studio-hjalte) · crop (relativa koordinater) ·
 fit_pane (beskar till panelens proportion sa att cover inte zoomar in) ·
 grid_overlay (rutnat for att lasa av exakta crop-granser).
 Kort: card_photo (ett stort foto) · card_grid (2-4 foton) · card_spec (foto +
-spec-rutnat). Rendera med render(). hero_white kraver numpy + scipy; korten
+spec-rutnat) · card_swatch (en variant stor pa vitt + etikett). Rendera med
+render(). hero_white kraver numpy + scipy; korten
 kraver bara PIL.
 
 Assets (Inter latin-subset + kub-loggan) ligger i scripts/assets/ och behover
@@ -162,6 +163,33 @@ def card_grid(out, photos, labels, kicker, title, caption, note="", rows=1, fit=
     html = (_head() + f'<div class=card><div class=stage>{body}</div>'
             f'<div class=txt><div class=kicker>{kicker}</div><h1>{title}</h1>'
             f'<div class=cap>{caption}</div></div>' + _foot(note) + '</div>')
+    _write(out, html)
+
+
+def card_swatch(out, photo, titel, meta, note="", accent=None):
+    """Variant-swatch: EN vara stor pa vitt + en tydlig svensk etikett.
+
+    Anvands nar ett variantval behover en egen bild (linkedMedia) och
+    leverantorens variantkort ar pa fel sprak. Fotot ska vara en tight
+    beskarning av just den varianten — bilden fyller panelen.
+
+    titel: t.ex. "CW280 · marinbla" (allt fore forsta " · " far accentfarg)
+    meta:  t.ex. "190 x 72 cm · 570 g"
+    """
+    bitar = titel.split(" · ", 1)
+    rubrik = (f'<span class=ac>{bitar[0]}</span>' + (f' · {bitar[1]}' if len(bitar) > 1 else ''))
+    html = (_head() + f"""<style>
+.card{{background:#FFFFFF}}
+.sw{{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}}
+.sw img{{width:100%;height:100%;object-fit:contain;display:block}}
+.etikett{{flex:0 0 auto;border-top:2px solid rgba(27,27,26,.11);padding-top:34px;margin-top:30px;
+  display:flex;align-items:baseline;justify-content:space-between;gap:34px}}
+.etikett .v{{font-size:66px;font-weight:800;letter-spacing:-1.8px;white-space:nowrap}}
+.etikett .h{{font-size:36px;font-weight:400;color:{MUTED};text-align:right}}
+.ac{{color:{accent or ORANGE};font-weight:800}}
+</style><div class=card>
+<div class=sw><img src="{_img_uri(photo)}"></div>
+<div class=etikett><div class=v>{rubrik}</div><div class=h>{meta}</div></div>""" + _foot(note) + "</div>")
     _write(out, html)
 
 
