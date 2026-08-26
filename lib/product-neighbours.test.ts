@@ -65,6 +65,26 @@ describe("kategoriOrdning", () => {
     assert.deepEqual(alla.map((p) => p.slug), fore);
   });
 
+  it("kör efterbehandlingen sist — kategorisidans dedupeProducts", () => {
+    // Kategorisidan släpper produkter som delar bild med en tidigare. Utan det
+    // steget kan "nästa" peka på något som aldrig syntes i listan, och
+    // räknaren räkna produkter besökaren inte kan nå därifrån.
+    const bortMedC = (l: P[]) => l.filter((x) => x.slug !== "c");
+    const ut = kategoriOrdning(katalog(), new Set([KAT]), bortMedC);
+    assert.deepEqual(ut.map((x) => x.slug), ["a", "b", "d", "e"]);
+  });
+
+  it("efterbehandlingen får listan EFTER att topp-3 lyfts, inte före", () => {
+    // Ordningen spelar roll: kategorisidan dedupar sin färdiga lista. Får
+    // funktionen katalogordningen i stället kan den släppa fel produkt.
+    let sedd: string[] = [];
+    kategoriOrdning(katalog({ e: 99, d: 90, c: 80 }), new Set([KAT]), (l) => {
+      sedd = l.map((x) => x.slug);
+      return l;
+    });
+    assert.deepEqual(sedd, ["e", "d", "c", "a", "b"]);
+  });
+
   it("hanterar produkter utan collectionIds", () => {
     const alla = katalog();
     delete alla[0].collectionIds;

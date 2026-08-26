@@ -6,7 +6,7 @@ import { getProductRedirect } from "../../../lib/redirects";
 import { ProductView } from "../../../components/productview";
 import { ProductCard } from "../../../components/productcard";
 import { attachRatings } from "../../../lib/review-aggregates";
-import { getProduct, getProducts, getCollections, type Product } from "../../../lib/products";
+import { getProduct, getProducts, getCollections, dedupeProducts, type Product } from "../../../lib/products";
 import { curatedRelatedSlugs, pickRelated } from "../../../lib/related-products";
 import { produktGrannar } from "../../../lib/product-neighbours";
 import { ProductBrowse } from "../../../components/product-browse";
@@ -236,7 +236,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const bladdringIds = primaryCol
     ? new Set([primaryCol.id, ...cols.filter((c) => c.parentId === primaryCol.id).map((c) => c.id)])
     : new Set<string>();
-  const grannar = produktGrannar(all, bladdringIds, p.slug);
+  // dedupeProducts skickas in för att ordningen ska bli EXAKT kategorisidans —
+  // den släpper produkter som delar bild med en tidigare, och utan den kunde
+  // "nästa" peka på något som aldrig syntes i listan.
+  const grannar = produktGrannar(all, bladdringIds, p.slug, dedupeProducts);
 
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
   // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.

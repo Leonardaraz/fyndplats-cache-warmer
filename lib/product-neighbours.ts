@@ -11,9 +11,19 @@
 //   1. filtrera på kategori + underkategorier (collectionIds-membership)
 //   2. de tre högsta bild-poängen först (bästa bilderna möter besökaren)
 //   3. resten i katalogordning
+//   4. dedupeProducts() — släpper produkter som delar bild med en tidigare
 //
-// Ändras ordningen där MÅSTE den ändras här. lib/product-neighbours.test.ts har
-// ett fall som fångar just steg 2, eftersom det är det icke-uppenbara ledet.
+// Steg 4 kommer in som en funktion utifrån (`efterbehandla`) i stället för att
+// importeras: dedupeProducts bor i lib/products.ts, som drar in JSON och IO och
+// därför inte kan laddas av node --test. Att skriva av den här hade gett två
+// kopior som glider isär. Anroparen skickar in originalet.
+//
+// Utan steg 4 kunde "nästa" peka på en produkt som ALDRIG syntes på
+// kategorisidan — den hade filtrerats bort där som dubblett-bild — och
+// räknaren ("12 av 48") hade räknat produkter besökaren inte kan nå därifrån.
+//
+// Ändras ordningen på kategorisidan MÅSTE den ändras här. Testfilen har fall
+// för steg 2 och steg 4, eftersom det är de två icke-uppenbara leden.
 //
 // VAD VI MEDVETET INTE GÖR:
 //
@@ -59,6 +69,8 @@ export type Grannar<T> = {
 export function kategoriOrdning<T extends Bladdringsbar>(
   alla: T[],
   katIds: Set<string>,
+  /** Kategorisidans dedupeProducts. Utelämnad → ingen efterbehandling. */
+  efterbehandla?: (lista: T[]) => T[],
 ): T[] {
   if (!katIds.size) return [];
   const iKategorin = alla.filter((p) =>
@@ -70,7 +82,8 @@ export function kategoriOrdning<T extends Bladdringsbar>(
     .sort((a, b) => (b.imageScore ?? 60) - (a.imageScore ?? 60))
     .slice(0, 3);
   const toppIds = new Set(topp3.map((p) => p.id));
-  return [...topp3, ...iKategorin.filter((p) => !toppIds.has(p.id))];
+  const ordnad = [...topp3, ...iKategorin.filter((p) => !toppIds.has(p.id))];
+  return efterbehandla ? efterbehandla(ordnad) : ordnad;
 }
 
 /**
@@ -98,6 +111,7 @@ export function produktGrannar(
   alla: Product[],
   katIds: Set<string>,
   slug: string,
+  efterbehandla?: (lista: Product[]) => Product[],
 ): Grannar<Product> {
-  return grannar(kategoriOrdning(alla, katIds), slug);
+  return grannar(kategoriOrdning(alla, katIds, efterbehandla), slug);
 }
