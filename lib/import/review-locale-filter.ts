@@ -55,6 +55,12 @@ const FOREIGN_PLACE = new RegExp(
     "герман", "німеччин", "франц", "іспан", "испан", "італі", "итали", "польщ",
     "польш", "чехі", "чехи", "румун", "латв", "литв", "естон", "грец", "болгар",
     "португал", "нідерланд", "нидерланд", "бельг", "австрі", "австри", "угорщ", "венгр",
+    // Kina och övriga avsändarländer. Låg länge utanför listan helt, eftersom
+    // avsändarlandet var tillåtet — se noten om Leonards beslut 2026-08-26.
+    // Ordgränser krävs här: utan dem matchar "cina" spanskans cocina/piscina,
+    // "chine" franskans machine och "cin" svenskans medicin.
+    "\\bkina[ns]?\\b", "\\bchina\\b", "\\bchine\\b", "\\bcina\\b", "\\bchin(?:y|om|ami|ach)\\b", "\\b(?:z|do)\\s+chin\\b", "\\b[cč][ií]na\\b",
+    "\\bk[ií]na\\b", "\\b[cç]in\\b", "кита", "中国", "hongkong", "hong kong",
     // Utanför Europa
     "usa", "united states", "estados unidos", "kanada", "canada", "australien", "australia",
     "mexiko", "mexico", "m[eé]xico", "peru", "per[uú]", "turkiet", "turkey", "t[uü]rkiye",
@@ -94,23 +100,26 @@ export interface ForeignLocaleVerdict {
 /**
  * Avgör om recensionen placerar köparen i ett annat land än Sverige.
  *
+ * ⚠️ **Avsändarland fälls numera också** (Leonards beslut 2026-08-26, ordagrant:
+ * *"om någon nämner paket från kina eller frakt från ett annat land till att det
+ * står vart man bor eller så, ska den bort"*). Fram till dess strippades "från
+ * X" innan landkontrollen, med motiveringen att avsändarlandet stämmer även för
+ * en svensk kund. Två saker talade emot: kunden köper av Fyndplats och ska inte
+ * behöva läsa var lagret ligger — samma skäl som förbjuder avsändarland i
+ * produkttexten (runbookens Steg 7) — och undantaget släppte igenom
+ * "Versand aus China", som pekar rakt på dropshippingen. Kina saknades dessutom
+ * i landlistan helt, eftersom det ändå aldrig kunde fälla.
+ *
  * Medvetet TILLÅTET (det är inte samma sak):
- *   - avsändarland: "snabb frakt från Polen" stämmer även för en svensk kund,
- *     eftersom varorna skickas från EU-lager;
  *   - fraktbolag: DPD, GLS m.fl. kör i Sverige också;
- *   - "kr"/"SEK".
+ *   - "kr"/"SEK";
+ *   - Sverige nämnt — det är precis vad vi vill ha.
  */
 export function foreignLocaleVerdict(text: string): ForeignLocaleVerdict {
   const t = (text ?? "").trim();
   if (!t) return { foreign: false };
 
-  // Avsändarland först — "från Polen" ska INTE fällas, medan "till Polen" ska.
-  const withoutOrigin = t.replace(
-    /\b(?:fr[aå]n|from|de(?:sde)?|da|dal|aus|von|z|ze|od|iz|з|из)\s+[A-ZÅÄÖ][\wåäöéèü-]+/gi,
-    " ",
-  );
-
-  const land = withoutOrigin.match(FOREIGN_PLACE);
+  const land = t.match(FOREIGN_PLACE);
   if (land) return { foreign: true, reason: "land", match: land[0] };
 
   const pengar = t.match(FOREIGN_MONEY);

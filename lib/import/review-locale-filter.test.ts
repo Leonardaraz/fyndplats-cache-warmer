@@ -24,12 +24,36 @@ describe("skarpa fall från första importomgången", () => {
 });
 
 describe("det som ska släppas igenom", () => {
-  // Avsändarland är inte samma sak som mottagarland — varorna skickas från
-  // EU-lager även till svenska kunder.
-  it("avsändarland fälls inte", () => {
-    expect(mentionsForeignDelivery("Mycket snabb frakt från Polen. Fot och bord i gjutjärn.")).toBe(false);
-    expect(mentionsForeignDelivery("Frakten från Spanien var megasnabb.")).toBe(false);
-    expect(mentionsForeignDelivery("Very fast shipping from Poland.")).toBe(false);
+  // Avsändarland fälls sedan Leonards beslut 2026-08-26 — kunden ska inte
+  // behöva läsa var lagret ligger, och undantaget släppte igenom "från Kina".
+  it("avsändarland fälls", () => {
+    expect(mentionsForeignDelivery("Mycket snabb frakt från Polen. Fot och bord i gjutjärn.")).toBe(true);
+    expect(mentionsForeignDelivery("Frakten från Spanien var megasnabb.")).toBe(true);
+    expect(mentionsForeignDelivery("Very fast shipping from Poland.")).toBe(true);
+  });
+
+  it("Kina fälls oavsett formulering", () => {
+    expect(mentionsForeignDelivery("sehr schneller Versand innerhalb von einer Woche mit dem Versand aus China.")).toBe(true);
+    expect(mentionsForeignDelivery("Paketet kom från Kina på tre veckor.")).toBe(true);
+    expect(mentionsForeignDelivery("Shipped from China, well packed.")).toBe(true);
+    expect(mentionsForeignDelivery("Livraison depuis la Chine, un peu longue.")).toBe(true);
+    // Polska böjer Chiny → Chin. "z Chin" måste fällas utan att bara "chin"
+    // gör det, för det är engelskans haka ("chin strap").
+    expect(mentionsForeignDelivery("Wysyłka z Chin była szybka.")).toBe(true);
+    expect(mentionsForeignDelivery("Do Chin wysłano zamówienie.")).toBe(true);
+  });
+
+  // Landmönstren är substrängar av nödvändighet (böjningsformer tvärs över
+  // tretton språk). Kina-mönstren fick därför ordgränser: utan dem fällde
+  // "cina" spanskans cocina och piscina, "chine" franskans machine och "cin"
+  // svenskans medicin — alla vanliga ord i produktomdömen.
+  it("Kina-mönstren fäller inte vanliga ord som råkar innehålla dem", () => {
+    expect(mentionsForeignDelivery("La cocina es pequeña pero funciona bien.")).toBe(false);
+    expect(mentionsForeignDelivery("Perfecto para la piscina en verano.")).toBe(false);
+    expect(mentionsForeignDelivery("La machine est très silencieuse.")).toBe(false);
+    expect(mentionsForeignDelivery("Bra att ha i medicinskåpet.")).toBe(false);
+    expect(mentionsForeignDelivery("Vaccinationskortet får plats i fickan.")).toBe(false);
+    expect(mentionsForeignDelivery("Hakremmen (chin strap) sitter bra.")).toBe(false);
   });
 
   it("fraktbolag som kör i Sverige fälls inte", () => {
