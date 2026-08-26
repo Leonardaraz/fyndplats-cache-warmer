@@ -398,6 +398,22 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 >
 > 📐 **`card_spec`-fotot: samma sak, aldrig 1:1.** Panelen renderas med `object-fit: contain`, så ett kvadratiskt foto skalas efter höjden och krymper. Lasertag-setets kort matades med den kvadratiska hjältebilden, där pistolerna upptar 88 % av bredden men bara 31 % av höjden — resultatet blev att de fyllde **51,6 %** av panelen och såg små ut. Inget fel på kortmotorn, felet låg i indata. Beskär fotot till panelens proportion först: samma bild fyllde då **87,5 %** (1 398 → 2 373 px). Mät före och efter i stället för att titta — skillnaden är lätt att underskatta i miniatyr.
 
+> 📐 **Andra orsaken till samma symtom: KÄLLBILDENS egna vita marginaler.** Proportionsregeln ovan räcker inte. `contain` respekterar allt som ligger i filen — även tom vit yta runt varan — så marginalerna adderas i stället för att beskäras bort. Naturehikes vandringsstavar och dunsovsäck (2026-08-26) hade variantkort där produkten upptog **31–38 %** av kortets bredd och dessutom satt ur centrum (stavarna x 888–1466 i en 2000 px-ruta). Leverantörsfotot var korrekt placerat i panelen; fotot hade bara en tom halva.
+>
+> **Beskär alltid källbilden till varans egen bbox innan den matas in i kortet:**
+>
+> ```python
+> ejv = np.asarray(im).mean(2) < 242
+> ys, xs = np.where(ejv)
+> im = im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+> ```
+>
+> **Mät `tackning` (andelen ejvita pixlar), inte bbox.** Bbox:en på de här korten spände 88 % av bredden och såg därför frisk ut — men det var etikettremsans text som spände, inte varan. Täckningen var **2 %** för stavarna och 5–7 % för sovsäcken. Bbox ljuger så fort kortet har en textremsa.
+
+> 🔧 **Behöver bara fotorutan lagas: rör inte resten av kortet.** Ett färdigt kort går att laga i efterhand utan att sättas om — vitmåla fotorutan (för korten ovan `y 0–1613`, linjalen börjar på 1614), klistra tillbaka varan förstorad och centrerad, och låt etikettremsa och sidfot stå kvar **pixelidentiska**. Spärren är ett rent likhetstest: `assert np.array_equal(b[1614:], fore)`. Att sätta om texterna vore att riskera en felskriven siffra för ingenting.
+>
+> **Förstoringen syns inte om du räknar på visningsstorleken.** Varan var 550–750 px i källan och förstorades ~1,9×. PDP:n visar kortet i 1080 px, så varan hamnar på ~700 px på skärmen — alltså under sin egen källupplösning, och LANCZOS-förstoringen blir osynlig. Räkna alltid det steget innan du dömer ut en förstoring som för stor.
+
 
 -----
 
