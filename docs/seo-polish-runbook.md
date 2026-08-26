@@ -704,6 +704,24 @@ Saknar ett färg-/modellval bildbyte (text-val utan att huvudbilden ändras) —
 
 > 🚫 **`linkedMedia` ska vara en PRODUKTBILD av just den varianten — aldrig ett Fyndplats-kort.** Kortet är ett sammanfattningslager; swatchen är det kunden klickar på för att se varan i den färgen. Ett spec-kort där ser ut som en platshållare i en mall, inte som en produkt. Leonards regel 2026-08-22, efter att knästolen, vilfåtöljen och gungfåtöljen alla fick sitt färgkort som andrafärgens bild.
 >
+> **Undantaget är `card_swatch` — och bara det.** Regeln ovan träffar *sammanfattnings*-kort:
+> spec-rutnät, feature-collage, allt som visar text i stället för vara. `card_swatch`
+> (`scripts/cardkit.py`) är motsatsen: varan ensam, stor på vitt, med en smal etikettrad under
+> som säger färg, storlek och vikt. Använd det när leverantörens variantbild är en ren
+> produktrender men bär **engelsk overlay-text** — då är alternativen att skeppa engelska till
+> kunden eller att kasta bort en korrekt variantbild. Beskär fram varan ur leverantörskortet,
+> lägg den i `card_swatch`, och kravet är uppfyllt: kunden ser fortfarande just sin variant.
+>
+> Två villkor gör undantaget giltigt. **(1) Fotot måste fylla panelen** — `card_swatch` sätter
+> `width/height:100%` + `object-fit:contain` just därför; en `<img>` utan mått renderas i sin
+> ursprungsstorlek och blev 23 % av kortbredden (Leonards rapport 2026-08-26, skärmdump av en
+> swatch där stolen låg som en frimärke mitt på kortet). **(2) Etiketten får bara bära
+> verifierade uppgifter** — färg, mått, vikt; ingen bärförmåga eller prestandasiffra, se Steg 11F.
+>
+> *(Cloud Up Pro-tältet `e98221ed` 2026-08-26: 13 leverantörsswatchar, alla rena renderingar med
+> bandet "CLOUD UP PRO 2 · ULTRALIGHT TENT" och en engelsk specblock under. Elva behölls som
+> `card_swatch` med etiketten "Sand · 2 personer / 210 × 130 cm · 1,75 kg".)*
+>
 > **Leverantören fotar oftast bara huvudfärgen på vit botten.** Andrafärgen finns då bara i marknadsföringsbilderna. Lösningen är att **beskära fram varan ur den bilden** — en tight beskärning av den riktiga stolen i ett rum är en produktbild, och duger gott som swatch. Leta efter den bild där andrafärgen står ensam utan overlay-text; finns bara bilder med modell i, är det också helt i sin ordning för en möbel. Försök inte klippa ut varan mot vit botten för att matcha leverantörens hjältebild — **det går inte på en möbel med öppen ram**. Testat 2026-08-22 på knästolen `2326c742` med både `u2net` och `isnet-general-use`: stolens ytterkant blev ren och inga ben åts, men **golvet, mattan och ett skrivbordsben följde med genom ramens öppningar**. Ingen automatisk segmentering kan skilja "bakgrund sedd genom ett hål" från "del av objektet", och båda modellerna misslyckas likadant. Har varan dessutom en modell sittande i sig — vilket den ofta har i just andrafärgens bilder — finns ingen väg alls. **Rumsbilden är rätt svar där**, och vill man ha vita bilder på alla färger är egen fotografering enda lösningen.
 >
 > Kortet får däremot gärna ligga kvar i galleriet som en egen bild. Är kortet **enda** bilden av den varianten: byt ut det mot beskärningen och låt kortet utgå, annars visas samma innehåll två gånger.
