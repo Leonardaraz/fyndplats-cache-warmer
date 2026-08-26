@@ -418,6 +418,53 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 >
 > **Förstoringen syns inte om du räknar på visningsstorleken.** Varan var 550–750 px i källan och förstorades ~1,9×. PDP:n visar kortet i 1080 px, så varan hamnar på ~700 px på skärmen — alltså under sin egen källupplösning, och LANCZOS-förstoringen blir osynlig. Räkna alltid det steget innan du dömer ut en förstoring som för stor.
 
+> 🔢 **Rätta en SIFFRA på ett publicerat kort: sätt om raden pixelexakt, bygg inte om kortet.**
+> Mongar-tältet (2026-08-26) uppgav 210T till 2,2 kg på två kort. Byggskriptet för
+> variantkorten fanns inte kvar, och att sätta om kortet hade gjort det olikt sina fyra
+> syskonkort som inte skulle ändras. I stället renderas bara textraden om, och att den
+> matchar **bevisas innan bytet**:
+>
+> 1. Mät i originalet: bläckets bbox och färgen. Färgen pekade direkt på `cardkit.MUTED`
+>    (#5A564F), vilket band kortet till kortmotorns palett.
+> 2. Sök storlek/vikt/teckenmellanrum genom att rendera kandidater och jämföra bbox.
+>    36 px / 400 / 0 gav 875×69 — exakt originalets mått.
+> 3. Sök **subpixelfasen**: samma rad renderad med `padding-left` i steg om 0,1 px.
+>    Vid 40,2 px blev max-diff mot originalet **0**. Först då är fonten, storleken,
+>    vikten, färgen, kantutjämningen OCH fasen bevisade — inte antagna.
+> 4. Rendera den NYA raden med exakt samma inställningar och klistra in den.
+>
+> `assert np.array_equal(gammal_rendering, originalrutan)` är hela spärren: reproducerar
+> du inte den gamla raden pixelexakt vet du inte heller att den nya blir rätt.
+>
+> **Raden är oftast högerställd — passa in HÖGERKANTEN, inte vänsterkanten.** En 4:a är
+> ett par pixlar bredare än en 2:a i Inter, så vänsterjustering hade skjutit ut raden
+> över kortets högermarginal. Kontrollera också att inklistringsrutan är helvit utanför
+> texten innan du skriver över den (`ruta[0].min() == 255` på alla fyra kanter).
+
+> ✂️ **Paneler urklippta ur ett FÄRDIGT kort bär med sig den inbrända etiketten.**
+> Samma jobb: för att bildbehandlingen skulle bli identisk klipptes de tre tältfotona ur
+> det publicerade kortet i stället för att letas upp på nytt. Men `card_grid` ritar en NY
+> etikett ovanpå, och panelen `cover`-skalas ~1,13× först — den gamla etiketten hamnade
+> därför något större och stack ut under den nya. Dubbla etiketter, tydligt i jämförelsen.
+>
+> Tvätta bort den gamla etiketten först, och låt bilden själv bevisa att det är säkert:
+> mellan varans nedersta pixel och etikettextens översta rad ligger ett **helvitt band**.
+> Hittar du bandet kan ingen produktpixel finnas under det — allt därunder är pill, skugga
+> eller text. Mät fram bandet, gissa det aldrig:
+>
+> ```python
+> rm = a[:, :xmax].min(2).min(1)
+> y = h - 1
+> while rm[y] < 225: y -= 1        # etikettexten (tröskeln måste tåla kantutjämning)
+> txt = y + 1
+> while y >= 0 and rm[y] >= 225: y -= 1
+> y0 = y + 1                       # bandets topp — allt härunder får vitas
+> assert txt - y0 >= 20, 'för smalt vitt band'
+> ```
+>
+> Etikettens **skugga** sträcker sig en bit ovanför pillen och ligger då delvis över varan.
+> Vita där bara pixlar som redan är bakgrund (`min > 200`) — resten är produkt.
+
 
 -----
 
