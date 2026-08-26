@@ -544,6 +544,30 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 
 > 📌 **Galleriets ordning är fast: hjältebild, verklighetsbild, sedan korten.** Bild 1 är den renaste produktbilden (den blir `media.main` och produktkortet). **Bild 2 ska vara en verklighetsbild** — varan i ett rum, i bruk, med något att skala mot. Egna Fyndplats-kort kommer därefter, och måttritningar sist. Kunden bläddrar sällan förbi de första bilderna, och där ska hen ha sett vad varan är och hur den ser ut hemma — inte två spec-tabeller i rad. Leonards regel 2026-08-22, efter att kubhyllan `d4b87c0a` publicerades med spec-kortet som bild 2. Saknar leverantören en miljöbild helt: sätt näst renaste produktbilden på plats 2 och notera avsaknaden, bygg inte ett kort som ersättning.
 
+> 🟠 **Varje polerad produkt ska ha MINST ett eget Fyndplats-kort — normalt spec-kortet.**
+> Leonards regel 2026-08-26, efter att verkstadspallen `a65eefea` publicerades med enbart
+> tvättade leverantörsbilder. Ordningsregeln ovan säger *"därefter egna kort"* och lästes som
+> att kort är valfria; det är de inte. Kortet är det enda i galleriet som är **vårt** — det
+> samlar de verifierade måtten på ett ställe, i husets typografi, med källan utskriven i foten.
+> Utan det är produktsidan en vidarebefordran av leverantörens marknadsföring.
+>
+> Minimum är `card_spec` med de mått Steg 5 faktiskt bekräftat. Placeringen är **efter
+> verklighetsbilden**, aldrig plats 1 (plats 1 är alltid varan själv).
+>
+> **Fyller varan hela källbilden — använd `fit=True`, inte `fit_pane`.** Verkstadspallens
+> hjältebild var beskuren till 1965 × 1925 av 2000 × 2000: en beskärning till spec-panelens
+> proportion (1,83) hade kapat pallen upptill och nedtill. `fit=True` ger `object-fit: contain`
+> mot vit botten och visar hela varan. Mät alltid bbox:en först — och **räkna bort strökorn**
+> (`rad >= 8 px`), annars rapporterar JPEG-bruset hela bilden som produkt.
+
+> ⏱️ **ISR-fönstret är 300 s — en re-GET mot Wix bevisar inte att sidan är uppdaterad.**
+> `x-nextjs-stale-time: 300` med `x-vercel-cache: HIT` betyder att kunden får den gamla sidan i
+> upp till fem minuter efter din PATCH. Den snabba kontrollen (`curl` efter ~10 s) fungerar bara
+> vid en cache-**MISS**, alltså första gången sidan renderas — det är därför den känns pålitlig
+> precis efter publicering och sedan slutar fungera. Läs `age` och `x-nextjs-stale-time` innan du
+> drar slutsatsen att en bild inte kom med; är Wix-datan verifierad med re-GET är sidan rätt,
+> bara inte serverad än.
+
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
