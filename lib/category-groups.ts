@@ -117,6 +117,19 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   // Stilfull kvinna i vinröd kappa med kassar — mode & accessoarer.
   // https://unsplash.com/photos/1483985988355-763728e1935b
   "Mode & Accessoarer": UNSPLASH("1483985988355-763728e1935b"),
+  // Utemöbelgrupp på solig gräsmatta, blommor och häck — trädgård & uteliv.
+  // https://unsplash.com/photos/Cko-B-3jPjM
+  //
+  // TRÄDGÅRDSGRENEN SAKNADES HELT. Kartan skrevs 2026-06-01; "Trädgård &
+  // Utemöbler" skapades i Wix 2026-06-22 och dess sju underkategorier
+  // 2026-08-13 — alltså EFTER, och ingen fyllde på. Utan nyckel faller
+  // categoryHero() tillbaka på kategorins högst bild-poängsatta produktfoto,
+  // och det byts så fort sortimentet ändras. Sidan visade därför en
+  // leverantörs-måttritning på en trädgårdsvagn med måttpilar över hjulen.
+  //
+  // Bilden är hämtad och GRANSKAD 2026-08-26, inte gissad: 1600×1280 (exakt
+  // 5:4, ingen dubbelbeskärning), äkta foto, inga läsbara varumärken.
+  "Trädgård & Utemöbler": UNSPLASH("1538307602205-80b5c2ff26ec"),
 
   // ── Merchandising-sidor (REA & Populära) ────────────────────────────────
   // Auto-fyllda säljytor (ej Wix-avdelningar). Egen curated hero så de får SAMMA
