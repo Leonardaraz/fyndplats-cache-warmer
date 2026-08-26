@@ -867,6 +867,32 @@ jämför exemplaren innan du rör något.
 > `choice.name` är låst till `key` — namnen kräver att optionen byggs om från grunden, med
 > `choiceType:"CHOICE_TEXT"` på varje nytt val och `price` på varje variant.
 
+#### Omvänt fall: modellnamnet räcker inte för att kalla något en dubblett
+
+11E varnar för att slå ihop det som ser likadant ut. Fällan går lika ofta åt andra hållet:
+två listningar bär samma modellnamn, och man tar bort varianten ur den dyrare — trots att
+det är två olika tält, cyklar eller maskiner.
+
+> *(Naturehike Mongar, 2026-08-26.* `a6128860` *bar `2P -210T BASE- Blå` för 2 189 kr och*
+> `3e9796c2` *bar `2P - 210T - Blå` för 2 119 kr. Samma märke, samma tyg, samma storlek,
+> samma färg, 70 kr isär — en dubblett, tycktes det. Leverantörens EGNA swatch-kort sa något
+> annat: `MONGAR BASE 2 · 43×18cm · 2,74 kg` mot `MONGAR 2 · 50×15cm · 2,4 kg`. Två modeller
+> ur samma familj. Tillverkarens sortiment listar dem separat: **Mongar**, **Mongar BASE**,
+> **Mongar Pro** och **Mongar UL** — fyra tält, ett gemensamt namn.)*
+
+**Det som avgör är måtten, inte namnet.** Packmått och vikt skiljer sig alltid mellan två
+modeller och aldrig mellan två färger av samma modell. Står de på leverantörens kort har du
+svaret gratis; gör de inte det, slå upp modellen hos tillverkaren innan du tar bort något.
+
+**Regel:** innan en variant tas bort som dubblett måste minst två mått stämma överens med
+den som behålls — packmått och vikt, eller golvyta och vikt. Stämmer bara namnet och priset
+är det INTE en dubblett. Ett borttaget säljbart exemplar syns aldrig i någon logg; det bara
+slutar finnas.
+
+Överlever ändå inte varianten (den passar inte sidans copy, resten av modellen är slutsåld),
+**skriv ut det i rapporten** — vilken modell som försvann, till vilket pris, och vad kunden
+kan köpa i stället. Det är ett beslut för en människa, inte en städning.
+
 ### 11F – Siffror i variantetiketten måste vara verifierade
 
 Variantetiketten är det första och mest framträdande stället kunden möter en siffra: den
