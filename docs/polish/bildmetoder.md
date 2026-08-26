@@ -383,7 +383,20 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 >
 > ⚠️ **"Behåll största komponenten" är FEL på produkter med hängande delar.** Vindspelets rör hänger i vita snören som inte överlever bakgrundströskeln — rören blev tre egna komponenter à ~10 000 px och hade fallit bort. Behåll allt utom det du aktivt identifierat som overlay.
 
-> 📐 **`card_spec`-fotot ska ha PANELENS proportion (≈1,64:1) — aldrig 1:1.** Panelen renderas med `object-fit: contain`, så ett kvadratiskt foto skalas efter höjden och krymper. Lasertag-setets kort matades med den kvadratiska hjältebilden, där pistolerna upptar 88 % av bredden men bara 31 % av höjden — resultatet blev att de fyllde **51,6 %** av panelen och såg små ut. Inget fel på kortmotorn, felet låg i indata. Beskär fotot till panelens proportion först: samma bild fyllde då **87,5 %** (1 398 → 2 373 px). Mät före och efter i stället för att titta — skillnaden är lätt att underskatta i miniatyr.
+> 📐 **ALLA kortfoton ska ha PANELENS proportion — aldrig 1:1, aldrig portratt i en liggande panel.** Panelerna anvander `object-fit: cover`, sa ett foto med fel proportion **zoomas in** tills det tacker panelen: en staende bild i `card_photo` blir en extrem narbild av mitten. Uppmatt med en sond-rendering 2026-08-26 (1-radig h1 + 2-radig bildtext):
+>
+> | Kort | Panel | Proportion |
+> |---|---|---|
+> | `card_photo` | 1416 × 1005 | **1,41** |
+> | `card_spec` (8 rader) | 1416 × 776 | **1,83** |
+> | `card_grid` rows=2, 4 paneler | 695 × 489 | **1,42** |
+> | `card_grid` rows=1, 2 paneler | 695 × 1005 | **0,69** |
+> | `card_grid` rows=1, 3 paneler | 455 × 1005 | **0,45** |
+> | `card_grid` rows=1, 4 paneler | 334 × 1005 | **0,33** |
+>
+> Anvand `cardkit.fit_pane(src, dst, "photo"|"spec"|"grid2x2"|…)` som beskar kallan till ratt proportion innan den matas in — den skalar aldrig upp och lagger aldrig till vit yta. Racker inte kallan till (ett smalt staende motiv i en liggande panel) ar `fit=True` ratt val i stallet: den letterboxar men zoomar aldrig. *(Leonards rapport 2026-08-26: "bilderna ska inte vara for inzoomade".)*
+>
+> 📐 **`card_spec`-fotot: samma sak, aldrig 1:1.** Panelen renderas med `object-fit: contain`, så ett kvadratiskt foto skalas efter höjden och krymper. Lasertag-setets kort matades med den kvadratiska hjältebilden, där pistolerna upptar 88 % av bredden men bara 31 % av höjden — resultatet blev att de fyllde **51,6 %** av panelen och såg små ut. Inget fel på kortmotorn, felet låg i indata. Beskär fotot till panelens proportion först: samma bild fyllde då **87,5 %** (1 398 → 2 373 px). Mät före och efter i stället för att titta — skillnaden är lätt att underskatta i miniatyr.
 
 
 -----

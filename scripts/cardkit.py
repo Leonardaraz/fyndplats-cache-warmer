@@ -21,6 +21,7 @@ Anvandning (kor fran en scratchpad-katalog med bilderna i ./crops):
     ck.render(["k1a", "k1b", "k1s"])
 
 Bildhjalpare: hero_white (vit studio-hjalte) · crop (relativa koordinater) ·
+fit_pane (beskar till panelens proportion sa att cover inte zoomar in) ·
 grid_overlay (rutnat for att lasa av exakta crop-granser).
 Kort: card_photo (ett stort foto) · card_grid (2-4 foton) · card_spec (foto +
 spec-rutnat). Rendera med render(). hero_white kraver numpy + scipy; korten
@@ -245,6 +246,42 @@ def crop(src, dst, x0, x1, y0, y1, q=95):
     w, h = im.size
     os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
     im.crop((int(w * x0), int(h * y0), int(w * x1), int(h * y1))).save(dst, quality=q)
+    return dst
+
+
+# Kortmotorns FAKTISKA panelproportioner (uppmatta med en sond-rendering
+# 2026-08-26, 1-radig h1 + 2-radig bildtext). Panelen anvander object-fit:cover,
+# sa ett foto med FEL proportion zoomas in tills det tacker panelen — det ar den
+# vanligaste orsaken till "for inzoomade" kort. Beskar alltid kallan till
+# panelens proportion forst med fit_pane().
+PANEL = {
+    "photo": 1416 / 1005,      # card_photo, en panel
+    "spec": 1416 / 776,        # card_spec (8 specrader)
+    "grid2x2": 695 / 489,      # card_grid rows=2, fyra paneler
+    "grid1x2": 695 / 1005,     # card_grid rows=1, tva paneler
+    "grid1x3": 455 / 1005,     # card_grid rows=1, tre paneler
+    "grid1x4": 334 / 1005,     # card_grid rows=1, fyra paneler
+}
+
+
+def fit_pane(src, dst, panel="photo", anchor=0.5, q=95):
+    """Centrumbeskar till panelens proportion sa att cover inte zoomar in.
+
+    panel: nyckel i PANEL, eller ett tal (bredd/hojd).
+    anchor: 0-1, var i den langa riktningen snittet centreras (0.5 = mitten).
+    Skalar aldrig upp och lagger aldrig till vit yta — bara ett snallt snitt.
+    """
+    mal = PANEL[panel] if isinstance(panel, str) else float(panel)
+    im = Image.open(src).convert("RGB")
+    w, h = im.size
+    if w / h > mal:                      # for bred -> kapa i sidled
+        nw, nh = int(round(h * mal)), h
+    else:                                # for hog -> kapa i hojdled
+        nw, nh = w, int(round(w / mal))
+    x = int(round((w - nw) * anchor))
+    y = int(round((h - nh) * anchor))
+    os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
+    im.crop((x, y, x + nw, y + nh)).save(dst, quality=q)
     return dst
 
 
