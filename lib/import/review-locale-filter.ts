@@ -22,13 +22,21 @@
  * länder AliExpress-köpare oftast skriver från.
  *
  * Sverige finns INTE med — en recension som nämner Sverige är precis vad vi vill ha.
+ *
+ * ⚠️ **Korta landsnamn kräver ordgränser.** De flesta mönstren är avsiktliga
+ * delsträngar, för att fånga böjningsformer tvärs över tretton språk. Men tre
+ * av dem är så korta att de bor inuti vanliga ord: `usa` i svenskans *ljusa*,
+ * *ljusare* och spanskans *usar*; `fransa` i *fransar*; `peru` i
+ * *superutrustad*. Svep 2026-08-26 hittade fyra publicerade recensioner som
+ * fällts på just "ljusa" och "degusar" — riktiga omdömen som filtret hade
+ * kastat vid import. De tre har därför `\b` i båda ändar.
  */
 const FOREIGN_PLACE = new RegExp(
   [
     // Tjeckien
     "tjeckien", "czech", "tschechien", "chequia", "rep[uú]blica checa", "cechia", "czechy", "[cč]esk",
     // Frankrike
-    "frankrike", "france", "francia", "frankreich", "francja", "franci[ae]", "fransa",
+    "frankrike", "france", "francia", "frankreich", "francja", "franci[ae]", "\\bfransa\\b",
     // Polen
     "polen", "poland", "pologne", "polonia", "pols[kc]\\w*", "polonya",
     // Spanien
@@ -62,8 +70,8 @@ const FOREIGN_PLACE = new RegExp(
     "\\bkina[ns]?\\b", "\\bchina\\b", "\\bchine\\b", "\\bcina\\b", "\\bchin(?:y|om|ami|ach)\\b", "\\b(?:z|do)\\s+chin\\b", "\\b[cč][ií]na\\b",
     "\\bk[ií]na\\b", "\\b[cç]in\\b", "кита", "中国", "hongkong", "hong kong",
     // Utanför Europa
-    "usa", "united states", "estados unidos", "kanada", "canada", "australien", "australia",
-    "mexiko", "mexico", "m[eé]xico", "peru", "per[uú]", "turkiet", "turkey", "t[uü]rkiye",
+    "\\busa\\b", "united states", "estados unidos", "kanada", "canada", "australien", "australia",
+    "mexiko", "mexico", "m[eé]xico", "\\bper[uú]\\b", "turkiet", "turkey", "t[uü]rkiye",
     "irland", "ireland", "irlanda", "[oö]sterrike", "austria", "[oö]sterreich",
   ].join("|"),
   "i",

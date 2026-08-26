@@ -47,6 +47,22 @@ describe("det som ska släppas igenom", () => {
   // tretton språk). Kina-mönstren fick därför ordgränser: utan dem fällde
   // "cina" spanskans cocina och piscina, "chine" franskans machine och "cin"
   // svenskans medicin — alla vanliga ord i produktomdömen.
+  // usa/fransa/peru är korta nog att bo inuti vanliga ord. Svepet 2026-08-26
+  // hittade fyra publicerade recensioner som fällts på "ljusa" och "degusar".
+  it("korta landsnamn fäller inte vanliga ord", () => {
+    expect(mentionsForeignDelivery("Synd att den ljusa färgen var slut, men den är ändå fin.")).toBe(false);
+    expect(mentionsForeignDelivery("Träet är något ljusare än på bilden.")).toBe(false);
+    expect(mentionsForeignDelivery("Gott om plats för mina tre degusar.")).toBe(false);
+    expect(mentionsForeignDelivery("Kanterna fransar sig efter tvätt.")).toBe(false);
+    expect(mentionsForeignDelivery("es cómodo de usar y muy resistente")).toBe(false);
+    expect(mentionsForeignDelivery("En superutrustad modell till bra pris.")).toBe(false);
+  });
+
+  it("men de riktiga landsnamnen fälls fortfarande", () => {
+    expect(mentionsForeignDelivery("Skickades till USA innan den kom hit.")).toBe(true);
+    expect(mentionsForeignDelivery("Kom snabbt till Peru.")).toBe(true);
+  });
+
   it("Kina-mönstren fäller inte vanliga ord som råkar innehålla dem", () => {
     expect(mentionsForeignDelivery("La cocina es pequeña pero funciona bien.")).toBe(false);
     expect(mentionsForeignDelivery("Perfecto para la piscina en verano.")).toBe(false);
