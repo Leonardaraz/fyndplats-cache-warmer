@@ -42,11 +42,33 @@ import { useMarketingConsent } from "../lib/use-marketing-consent";
 import { toMinorUnits } from "../lib/klarna-price";
 import { KlarnaMessage } from "./klarna-message";
 
-// data-key för "under priset" på PDP. Autosize = matchar containerbredden.
-// credit-promotion visar 30-dagars-budskap ELLER delbetalning beroende på
-// Klarnas dynamiska val per kund + korgstorlek — vi kan inte styra vilket,
-// och ska inte heller (Klarna optimerar konvertering med sin ML-modell).
-const PLACEMENT_KEY = "credit-promotion-auto-size";
+// data-key för "under priset" på PDP. Vilket BUDSKAP som visas (30 dagar
+// ELLER delbetalning) styr Klarna dynamiskt per kund och korgstorlek — det kan
+// vi inte påverka, och ska inte heller (deras modell optimerar konvertering).
+// Nyckeln styr bara MALLEN.
+//
+// VARFÖR "product" OCH INTE "credit-promotion-auto-size" (bytt 2026-08-26):
+// data-logo-type läses bara för nycklarna product/cart/header — utläst ur
+// web-sdk 1.0.242, där requiredAttributes för credit-promotion-* saknar
+// logoType helt. Med "badge" renderar Klarna sitt riktiga rosa märke (en
+// 131×54-vy skalad till 45×30) till vänster om texten, i stället för att väva
+// in ordmärket "Klarna" som fet text mitt i meningen.
+//
+// Två skäl. Märket väger visuellt mer än ett ord i brödtexten. Och vår statiska
+// rad (klarna-message.tsx) bär redan ett rosa Klarna-märke till vänster — med
+// badge här ser de två raderna likadana ut, så bytet statisk → widget slutar
+// synas. Utan badge försvinner märket i samma ögonblick som widgeten tar över.
+//
+// ATT BACKA: sätt tillbaka "credit-promotion-auto-size" och ta bort
+// data-logo-type nedan. Inget annat behöver röras — CSS:en i globals.css
+// hanterar båda mallarna (badge-delarna är no-ops utan badge).
+//
+// OBS: jag har inte kunnat verifiera att "product" är aktiverad för kontot.
+// Är den inte det svarar Klarna tomt, harInnehall() förblir falsk och statiska
+// raden ligger kvar — ofarligt, men då syns ingen widget alls. Konsolen säger
+// ifrån (se loggen i intervallet nedan).
+const PLACEMENT_KEY = "product";
+const LOGO_TYPE = "badge";
 const LOCALE = "sv-SE";
 
 // Hur ofta vi tittar efter riktigt innehåll, och när vi slutar hålla plats.
@@ -125,7 +147,17 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
         // Släpp bara höjden. Taggen lever vidare och intervallet med den —
         // kommer widgeten sent byts den ändå in, utan lucka i mellantiden.
         if (gatt > RESERVERA_HOJD_MS) setSen(true);
-        if (gatt > SLUTA_POLLA_MS) window.clearInterval(int);
+        if (gatt > SLUTA_POLLA_MS) {
+          window.clearInterval(int);
+          // Enda spåret när widgeten uteblir. Tyst fallback ser likadan ut som
+          // "ingen har accepterat cookies", och det gjorde felsökningen till
+          // gissningar. Samma prefix-konvention som [tack], [gcr], [meta].
+          console.warn(
+            `[klarna] OSM gav inget innehåll på ${SLUTA_POLLA_MS / 1000} s — ` +
+              `statiska raden ligger kvar. Kolla att data-key="${PLACEMENT_KEY}" ` +
+              `är aktiverad för kontot och att SDK:t laddades.`,
+          );
+        }
       }
     }, POLL_MS);
     return () => window.clearInterval(int);
@@ -146,6 +178,7 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
       <klarna-placement
         ref={ref}
         data-key={PLACEMENT_KEY}
+        data-logo-type={LOGO_TYPE}
         data-locale={LOCALE}
         data-purchase-amount={String(toMinorUnits(priceNum))}
       />
