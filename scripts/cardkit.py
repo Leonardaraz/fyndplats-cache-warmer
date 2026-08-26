@@ -240,8 +240,9 @@ def hero_white(src, dst, canvas=2000, fyll=0.90, trosk=245):
     mork eller fotograferad i en miljo — ga till H-A (Wix generate-image).
 
     trosk = hur ljus en pixel maste vara for att raknas som bakgrund (min over
-    R/G/B). Sank den om en ljus produkt aker med i bakgrunden; hoj den om en
-    gragul studiobakgrund blir kvar. Granska ALLTID resultatet med Read.
+    R/G/B). Bara ljusa omraden som NAR BILDKANTEN raknas som bakgrund, sa ljusa
+    partier inuti varan overlever. Hoj trosk om en gragul studiobakgrund blir
+    kvar. Granska ALLTID resultatet med Read.
 
     Returnerar (bredd, hojd) pa den inplacerade produkten.
     """
@@ -251,11 +252,31 @@ def hero_white(src, dst, canvas=2000, fyll=0.90, trosk=245):
 
     a = np.asarray(Image.open(src).convert("RGB")).astype(np.uint8)
     mn = a.min(axis=2)
-    ren = np.where((mn > trosk)[:, :, None], np.uint8(255), a)
-    prod = ndimage.binary_opening(mn <= trosk, np.ones((3, 3)))
+
+    # Bakgrunden = det ljusa som HANGER IHOP MED BILDKANTEN, inte varje ljus
+    # pixel. En rak troskel stansar hal i blanka/ljusa varor: pa stodbenen
+    # (2026-08-26) lag 27 % av produktens egna pixlar over troskeln, och genom
+    # halen lyste duken och slagskuggan igenom som flackar. Samma
+    # komponentresonemang som resten av bildmetoderna.
+    ljus = mn > trosk
+    lab, _ = ndimage.label(ljus)
+    kant = set(lab[0, :]) | set(lab[-1, :]) | set(lab[:, 0]) | set(lab[:, -1])
+    kant.discard(0)
+    bakgrund = np.isin(lab, list(kant))
+    prod = ndimage.binary_opening(ndimage.binary_fill_holes(~bakgrund), np.ones((3, 3)))
+
+    # Spar: kantregeln ska ALDRIG ge mindre produkt an den nakna troskeln.
+    # Blir den mindre star varan i bildkanten och har flodats bort — fall
+    # tillbaka pa den gamla masken och lat granskaren se resultatet.
+    naiv = ndimage.binary_opening(mn <= trosk, np.ones((3, 3)))
+    if prod.sum() < naiv.sum():
+        prod = naiv
+        bakgrund = mn > trosk
+
+    ren = np.where(bakgrund[:, :, None], np.uint8(255), a)
     ys, xs = np.where(prod)
     if not len(ys):
-        raise ValueError(f"{src}: hittade ingen produkt — sank trosk")
+        raise ValueError(f"{src}: hittade ingen produkt — hoj trosk")
     k = ren[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
     ph, pw = k.shape[:2]
     s = (canvas * fyll) / max(ph, pw)
