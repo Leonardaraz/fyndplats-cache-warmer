@@ -889,6 +889,16 @@ ingenting annat**, oavsett hur mycket lager syskonen har.
 >    ur `choices`. `PATCH /wix-data/v2/items/{id}` med
 >    `fieldModifications:[{fieldPath:"variants",action:"SET_FIELD",setFieldOptions:{value:[…]}}]`.
 >
+>    ⚠️ **Går PATCH:en inte fram — skriv hela raden med `PUT` i stället.** `PATCH
+>    /wix-data/v2/items/{id}` har svarat `fieldModifications has size 0` trots en ifylld lista
+>    (gatewayen är kinkig med bodyns form: `fieldModifications` ligger ibland direkt i bodyn,
+>    ibland inne i ett `patch`-objekt — se 14B). Det som alltid biter är en full ersättning:
+>    `PUT https://www.wixapis.com/wix-data/v2/items/{id}` med
+>    `{ dataCollectionId: "FyndplatsMappings", dataItem: { id, data } }`. Priset är att `data`
+>    **ersätts i sin helhet** — läs raden först och skicka tillbaka allt du inte ändrar, annars
+>    tömmer du `shipsFromCountries`, `imageAnalysis` och resten tyst. Samma väg användes för att
+>    reparera det typade `needsAiPolish`-värdet (se Fasta fakta).
+>
 > *(Svepet 2026-08-21: 22 nyimporterade köksmaskiner, 21 av dem med uttagsaxel — 123 varianter
 > ned till 37. Utan regeln hade en svensk kund kunnat beställa en 110 V-juicer med US-stickpropp.)*
 
@@ -1198,6 +1208,22 @@ katalogen. Kör dem med några veckors mellanrum — båda är read-only tills d
 > `items` avvisas, så det blir ett anrop per produkt, men alla ryms i **ett** `ExecuteWixAPI`-anrop).
 > 2026-08-11 gav svepet **359 av 631 produkter / 366 saknade kopplingar**, med tyngdpunkt i
 > Hem & Inredning (124), Sport & Fritid (110) och Barn & Familj (85).
+>
+> ☠️ **Katalogsvep — slutsålt: `query-variants` ser inte enkelvariantprodukter (2026-08-26).**
+> Ett svep som räknade slutsålda varianter via `POST /stores/v3/products/query-variants` svarade
+> `heltSlutsalda: []`. Ren friskförklaring — och falsk. Rutten returnerar bara produkter som HAR
+> en variantaxel; allt som importerats som en enda variant (majoriteten av katalogen) finns inte
+> i svaret över huvud taget. Noll träffar betydde alltså "ingen FLERVARIANTprodukt är helt
+> slutsåld", inte "inget är slutsålt". Den auktoritativa källan är lagerposterna:
+> `POST /stores/v3/inventory-items/query` ger exakt en post per köpbar variant, oavsett om
+> produkten har en axel eller inte. Samma svep om, mot lagerposterna: **79 publicerade produkter
+> helt slutsålda**. (Besläktad blindfläck i samma familj: `POST /stores/v3/products/search`
+> returnerar aldrig `variantsInfo`, hur man än sätter `fields` — behöver du lagerstatus per
+> variant måste du läsa produkten enskilt eller gå via lagerposterna.)
+>
+> **Regeln bakom felet:** ett tomt svepsvar är ett påstående som ska bevisas, inte ett kvitto.
+> Kontrollräkna alltid mot en känd nämnare — svepte det 930 produkter eller 63? Stämmer inte
+> nämnaren är täljaren ointressant.
 
 -----
 
