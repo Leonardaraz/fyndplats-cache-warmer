@@ -86,7 +86,15 @@ tvingar realtidsvägen (ingen Batch API-pre-generering som annars kostar).
 ## Aosom: andra leverantören, samma pipeline (`lib/aosom/`)
 
 Sedan 2026-08-27 finns ett B2B-konto hos Aosom och en produktfeed
-(`AOSOM_FEED_URL`, uppdateras 3 ggr/dygn). Sortimentet importeras som **osynliga
+(`AOSOM_FEED_URL`, uppdateras 3 ggr/dygn).
+
+☠️ **Feedens adress är en hemlighet och får aldrig hårdkodas.** Den kräver ingen
+inloggning: en vanlig GET returnerar hela B2B-prislistan med kolumnen
+`Wholesale Price` för 6 057 artiklar. Repot är PUBLIKT, så en inbakad adress är
+detsamma som att publicera vad vi betalar för varje vara — för de svenska
+återförsäljare vi konkurrerar med om exakt samma artikelnummer. `aosomFeedUrl()`
+kastar om variabeln saknas i stället för att falla tillbaka, och ett test i
+`feed.test.ts` fäller om adressen dyker upp i källan igen. Sortimentet importeras som **osynliga
 utkast** och poleras sedan i chatten — exakt samma arbetsflöde som rå-läget
 ovan, bara med en annan leverantör i andra änden.
 

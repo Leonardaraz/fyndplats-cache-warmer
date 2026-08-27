@@ -7,6 +7,7 @@ import {
   freightShare,
   headroom,
   fetchAosomFeed,
+  aosomFeedUrl,
   NO_SHIP_SENTINEL_EUR,
   type AosomRow,
 } from "./feed";
@@ -161,5 +162,41 @@ describe("fetchAosomFeed", () => {
     const f = (async () => new Response(`${HEADER}\n${rad()}`, { status: 200 })) as unknown as typeof fetch;
     const rows = await fetchAosomFeed("https://x/feed.csv", f);
     expect(rows[0].sku).toBe("350-219V00PK");
+  });
+});
+
+describe("feedens adress", () => {
+  it("kommer ur miljön", () => {
+    const forra = process.env.AOSOM_FEED_URL;
+    try {
+      process.env.AOSOM_FEED_URL = "https://exempel.test/feed.csv";
+      expect(aosomFeedUrl()).toBe("https://exempel.test/feed.csv");
+    } finally {
+      if (forra === undefined) delete process.env.AOSOM_FEED_URL;
+      else process.env.AOSOM_FEED_URL = forra;
+    }
+  });
+
+  it("kastar i stället för att falla tillbaka på en inbakad adress", () => {
+    const forra = process.env.AOSOM_FEED_URL;
+    try {
+      delete process.env.AOSOM_FEED_URL;
+      expect(() => aosomFeedUrl()).toThrow(/AOSOM_FEED_URL saknas/);
+      process.env.AOSOM_FEED_URL = "   ";
+      expect(() => aosomFeedUrl()).toThrow(/AOSOM_FEED_URL saknas/);
+    } finally {
+      if (forra === undefined) delete process.env.AOSOM_FEED_URL;
+      else process.env.AOSOM_FEED_URL = forra;
+    }
+  });
+
+  it("står ingenstans i källan — repot är publikt och feeden bär inköpspriserna", async () => {
+    // En GET mot adressen kräver ingen inloggning och returnerar kolumnen
+    // "Wholesale Price" för 6 057 artiklar. Hårdkodas den igen publicerar vi
+    // vad vi betalar för varje vara, för alla som läser repot.
+    const { readFileSync } = await import("node:fs");
+    for (const fil of ["lib/aosom/feed.ts", "lib/aosom/import-run.ts", "app/api/cron/aosom-import/route.ts"]) {
+      expect(readFileSync(fil, "utf8")).not.toMatch(/feed\.aosomcdn\.com/);
+    }
   });
 });

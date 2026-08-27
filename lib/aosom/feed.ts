@@ -26,10 +26,27 @@
 
 import { parseCsvRecords } from "../bulk-import/csv";
 
-/** Feed-adressen från Aosoms beställningsguide. Uppdateras 3 ggr/dygn. */
-export const AOSOM_FEED_URL =
-  process.env.AOSOM_FEED_URL
-  || "https://feed.aosomcdn.com/390/210_feed/0/0/96/c4857d.csv";
+/**
+ * Feed-adressen från Aosoms beställningsguide. Uppdateras 3 ggr/dygn.
+ *
+ * ☠️ MÅSTE komma ur miljön. Ingen fallback i koden, och lägg aldrig tillbaka en.
+ *
+ * Adressen kräver ingen inloggning: en vanlig GET returnerar hela B2B-prislistan
+ * med kolumnen "Wholesale Price" för 6 057 artiklar. Det här repot är PUBLIKT,
+ * så en hårdkodad adress här är detsamma som att publicera vad vi betalar för
+ * varje vara — för vem som helst, inklusive de svenska återförsäljare vi
+ * konkurrerar med om exakt samma artikelnummer.
+ */
+export function aosomFeedUrl(): string {
+  const url = (process.env.AOSOM_FEED_URL ?? "").trim();
+  if (!url) {
+    throw new Error(
+      "AOSOM_FEED_URL saknas. Feedens adress bär våra inköpspriser och får inte "
+      + "ligga i koden — sätt den som miljövariabel i Vercel.",
+    );
+  }
+  return url;
+}
 
 /**
  * Fraktpriser på eller över det här beloppet är Aosoms sätt att säga "går inte
@@ -175,7 +192,7 @@ export function headroom(row: AosomRow): number | null {
 }
 
 export async function fetchAosomFeed(
-  url: string = AOSOM_FEED_URL,
+  url: string = aosomFeedUrl(),
   fetchImpl: typeof fetch = fetch,
 ): Promise<AosomRow[]> {
   const res = await fetchImpl(url);
