@@ -295,6 +295,15 @@ den blir inte bra av att frågas igen.
 Samma klass av bugg som recensionsbilderna hade (2026-08-22). Regeln bakom båda:
 **en misslyckad uppladdning som ingen kan upptäcka är värre än en som kastar.**
 
+☠️ **`getProductMedia` MÅSTE begära `fields=MEDIA_ITEMS_INFO`.** Utan det
+returnerar V3 en produkt med `media.main` ifylld men `media.itemsInfo.items`
+TOM — inte ett fel, bara en tystare projektion. Uppmätt 2026-08-27 på en produkt
+med fem bilder: 0 utan fältet, 5 med. Två saker gick sönder på det, båda tyst:
+bildreparationens torrkörning såg alla 744 Aosom-produkter som bildlösa, och
+knappen **"ta bort bild" i `/admin/queue`** filtrerade en tom lista, såg ingen
+skillnad och anropade därför aldrig Wix — den hade aldrig gjort något. Ett test
+i `client-media.test.ts` fäller om fältet försvinner igen.
+
 `/api/cron/aosom-image-repair` städar upp efteråt (`lib/aosom/image-repair.ts`,
 workflow-lägena `bildfix-torr` och `bildfix`). Den laddar om ALLA fem bilderna på
 en produkt som har för få — en wixstatic-adress avslöjar inte vilken källbild den
