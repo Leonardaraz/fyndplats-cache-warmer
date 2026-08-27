@@ -23,6 +23,11 @@
   - ⚠️ **`fields` måste med på VARJE cursor-sida.** `cursor` får inte samsas med `filter`/`sort` (→ `400 INVALID_CURSOR`), men `fields` är tillåtet och **måste** upprepas. Utelämnar du det på sida 2+ kommer fältet tillbaka **tomt i stället för att fela** — ett katalogsvep över 8 sidor rapporterade då 650 produkter med noll bilder, inklusive produkter som just patchats till 5. Tyst fel, trovärdig siffra: verifiera alltid mot en produkt du vet svaret för innan du litar på ett svep.
 - **Rör inte priset.** Importen sätter priset (se avrundningsregeln nedan) och prissättningen är Leonards beslut, inte poleringens. Räkna ingen marginal och höj inget pris på eget bevåg. *(Marginalgrinden togs bort 2026-08-12 på Leonards begäran.)*
 - **Mappningsraden i `FyndplatsMappings`** (samma `_id` som produktens Wix-id, hämtas med `POST /wix-data/v2/items/query`) bär `shipsFromCountries`, `warehouseClass`, `supplierName` och `variants[].shipFrom`. De styr **EU-lager-ribbonen** och failover-logiken — de ska **aldrig skrivas ut i produkttexten**.
+  - ⚠️ **Raden överlever en omskriven beskrivning om du bygger spec-tabellen ur den råa.**
+    Nio publicerade produkter bar `Skickas från · Spanien/Polen` som sista rad i spec-tabellen
+    2026-08-27 — inte för att någon skrev in den, utan för att den råa spec-listan användes som
+    mall och sista raden aldrig ströks. Sök på `Skickas från` i `plainDescription` i slutkollen;
+    ribbonen är den enda plats där avsändarlandet får synas.
   - 🔒 **Skriv ALDRIG ut avsändarland eller lagerland** (Leonards regel 2026-08-15) — inte i beskrivningen, inte i spec-tabellen, inte i meta. Råimporten lägger ofta in en rad *"Skickas från: Polen"* i spec-listan; den **stryks** när du skriver om beskrivningen. Kunden köper av Fyndplats, och ribbonen säger redan det som betyder något: att leveransen går från EU. *(Raden här sa tidigare motsatsen — att lagerlandet skulle stå i spec-tabellen — och stod kvar i strid med regeln till 2026-08-22.)*
   - ⚠️ **Raden är eventually consistent.** En `query` direkt efter en skrivning kan ge de GAMLA värdena — skrivningen gick ändå fram. Läs om efter ett annat anrop innan du drar slutsatsen att PATCH:en inte bet, och **skriv aldrig om den med ett "typat" värde** (`setFieldOptions.value = {boolValue:false}`): docs-artikelns HTTP-exempel visar den formen, men gatewayen sparar då wrapper-objektet ordagrant och fältet blir `{boolValue:false}` i stället för `false`. Otypat värde (`value: false`) är rätt. *(Korrumperade `needsAiPolish` 2026-08-22; rättades med en full `PUT /wix-data/v2/items/{id}`.)*
 - En PATCH är partiell: **bara fält du skickar ändras**. Skicka aldrig `options`/`variantsInfo` om du inte avser röra varianterna.
@@ -1299,7 +1304,18 @@ Steg 12 (kundläsningen) är gjord — den här listan ersätter den inte.
 - **Galleriets ordning:** bild 1 = renaste produktbilden, **bild 2 = verklighetsbild**, därefter egna kort och sist måttritning (Steg 9).
 - **Varje färg-/modellvals `linkedMedia` är en produktbild av den varianten**, inte ett Fyndplats-kort (Steg 11B).
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
-- Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
+- Flik-rubrikerna ligger som **rena `<h2>`** — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
+  ☠️ **Strängen måste stämma ORDAGRANT.** Butiken delar upp beskrivningen på tre exakta rubriker:
+  **`Tekniska specifikationer`** · **`Användning och skötsel`** · **`Vanliga frågor`**. Skriver du
+  `Specifikationer` — vilket är den naturligare svenskan och därför den man glider ner i — matchar
+  splittern inte, och hela spec-tabellen renderas **inline mitt i brödtexten** i stället för som flik.
+  Det ser inte trasigt ut, det ser bara ut som en till rubrik, och därför upptäcks det inte i
+  slutkollen. Fyra produkter i rad (`2ad9b84b`, `899eabfe`, `ae436a28`, `8da26d68`) gick live så
+  2026-08-26/27 innan Leonard såg det i butiken. Kontrollera i den RENDERADE sidan att
+  `<summary>Tekniska specifikationer</summary>` finns — inte att ordet står någonstans i HTML:en.
+- **`Användning och skötsel` är inte valfri när varan har skötsel.** Textil, sammet, tält, trä
+  och allt som ska tvättas, torkas eller efterdras ska ha fliken. Den föll bort i samma glidning
+  som rubriken ovan.
 
 **Bilder**
 - Plats 0 **visar hela varan tydligt**: vit studio-hjälte när en användbar källa finns, annars den renaste hela bilden. **Aldrig ett kort.** *(Miljöbild eller bild med människor är rätt svar när ingen ren källa finns — se `H-M` och fågelbogungenoten i bildmetoderna.)*
