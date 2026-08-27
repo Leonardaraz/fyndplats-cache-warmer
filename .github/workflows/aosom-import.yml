@@ -4,7 +4,7 @@ name: Aosom — importera sortimentet som osynliga utkast
 # Actions har CRON_SECRET, och de möts här. Ingen hemlighet passerar chatten
 # eller en terminal — och därför går hela jobbet att starta från telefonen.
 #
-# TRE LÄGEN:
+# LÄGEN:
 #   torr     — torrkörning. Skriver INGENTING, någonstans. Svarar med hur många
 #              rader feeden har och hur många som går att frakta hit. Kör den
 #              först: den bevisar att feed-adressen hittas i Wix-raden
@@ -18,6 +18,12 @@ name: Aosom — importera sortimentet som osynliga utkast
 #              Markören sparas i grenen efter VARJE varv, så en avbruten körning
 #              fortsätter där den slutade. Omkörning av redan importerade
 #              produkter är en no-op tack vare dubblettspärren.
+#   bildfix-torr — räknar hur många produkter som har för få bilder. Skriver inget.
+#   bildfix  — laddar om bilderna på dem. Egen markör (bildfix-state.json).
+#              Rör BARA `media`, via fieldMask — synlighet, priser, varianter och
+#              texter är orörda, så ett utkast kan inte råka publiceras.
+#              Skriver aldrig en TOMMARE bildlista än den som redan ligger där:
+#              går uppladdningen dåligt igen lämnas produkten till nästa runda.
 #
 # Produkterna blir ALLTID osynliga utkast: pipelinen kör i rått läge, vilket
 # sätter visible:false ovillkorligt och gör noll Claude-anrop ($0). De poleras
@@ -34,7 +40,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "torr = skriver inget · rökprov = 3 produkter · svep = hela sortimentet"
+        description: "torr = skriver inget · rökprov = 3 produkter · svep = hela sortimentet · bildfix = ladda om saknade bilder"
         required: true
         default: "torr"
         type: choice
@@ -42,6 +48,8 @@ on:
           - torr
           - rökprov
           - svep
+          - bildfix
+          - bildfix-torr
       limit:
         description: "Produkter per varv (svep/torr). 150 är lagom."
         required: false
@@ -170,6 +178,61 @@ jobs:
               echo "::error::Rökprovet gav ${fel} fel — kör inte svepet förrän de är förstådda."
               exit 1
             fi
+            exit 0
+          fi
+
+          # ── bildfix ─────────────────────────────────────────────────────────
+          if [ "$MODE" = "bildfix" ] || [ "$MODE" = "bildfix-torr" ]; then
+            rep="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-image-repair"
+            RSTATE="tools/aosom/bildfix-state.json"
+            torr="false"; [ "$MODE" = "bildfix-torr" ] && torr="true"
+
+            after="$AFTER_IN"
+            if [ -z "$after" ] && [ -f "$RSTATE" ]; then
+              after=$(jq -r '.cursor // ""' "$RSTATE"); [ "$after" = "null" ] && after=""
+            fi
+
+            slut=$(( $(date +%s) + 300 * 60 ))
+            varv=0; lagade=0; trasiga=0; missar=0
+
+            while :; do
+              varv=$(( varv + 1 ))
+              [ "$varv" -gt "$MAX_ROUNDS" ] && { echo "Nådde max_rounds."; break; }
+              [ "$(date +%s)" -ge "$slut" ] && { echo "Tidsbudgeten slut."; break; }
+
+              url="${rep}?dryRun=${torr}&limit=${LIMIT}"
+              [ -n "$after" ] && url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
+
+              svar=$(anropa "$url") || break
+              t=$(printf '%s' "$svar" | jq -r '.trasiga')
+              l=$(printf '%s' "$svar" | jq -r '.reparerade')
+              mi=$(printf '%s' "$svar" | jq -r '.kvarstaendeMissar')
+              kvar=$(printf '%s' "$svar" | jq -r '.kvar')
+              markor=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+              trasiga=$(( trasiga + t )); lagade=$(( lagade + l )); missar=$(( missar + mi ))
+              echo "varv ${varv}: ${t} trasiga, ${l} lagade, ${mi} bilder kvar att hämta, ${kvar} kvar"
+
+              printf '%s' "$svar" | jq '{cursor, kvar, trasiga, reparerade, kvarstaendeMissar,
+                uppdaterad: (now | todate)}' > "$RSTATE"
+              git add "$RSTATE"
+              git diff --cached --quiet || {
+                git commit -q -m "Aosom bildfix: markör ${markor:-klart} (${kvar} kvar)"
+                git push -q origin HEAD:"${GITHUB_REF_NAME}" || true
+              }
+
+              [ -z "$markor" ] || [ "$markor" = "null" ] && { echo "Genomgånget."; break; }
+              after="$markor"
+            done
+
+            {
+              echo "### Aosom — bildfix$([ "$torr" = "true" ] && echo ' (torrkörning)')"
+              echo ""
+              echo "- Varv: **${varv}**"
+              echo "- Produkter med för få bilder: **${trasiga}**"
+              echo "- Lagade: **${lagade}**"
+              echo "- Bilder som fortfarande inte kom fram: **${missar}**"
+              echo "- Kvar att gå igenom: **$(jq -r '.kvar // "?"' "$RSTATE" 2>/dev/null)**"
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
