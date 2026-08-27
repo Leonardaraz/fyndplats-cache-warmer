@@ -915,7 +915,16 @@ export interface WixProductMediaSnapshot {
 
 /** Hämtar produktens nuvarande mediaItems (för att kunna ta bort en specifik bild). */
 export async function getProductMedia(productId: string): Promise<WixProductMediaSnapshot | null> {
-  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`;
+  // ☠️ fields=MEDIA_ITEMS_INFO ÄR OBLIGATORISKT. Utan det returnerar V3 en
+  // produkt med `media.main` ifylld men `media.itemsInfo.items` TOM — inte ett
+  // fel, bara en tystare projektion. Uppmätt 2026-08-27 på en produkt med fem
+  // bilder: 0 utan fältet, 5 med.
+  //
+  // Två saker gick sönder på det, båda tyst: bildreparationen såg alla 744
+  // Aosom-produkter som bildlösa, och knappen "ta bort bild" i /admin/queue
+  // filtrerade en tom lista, såg ingen skillnad och anropade därför aldrig Wix
+  // — den har aldrig gjort något.
+  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=MEDIA_ITEMS_INFO`;
   const res = await fetch(url, { method: "GET", headers: wixHeaders() });
   if (res.status === 404) return null;
   if (!res.ok) {
