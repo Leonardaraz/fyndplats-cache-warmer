@@ -83,6 +83,90 @@ När AI är av: `runSeo/runImageAnalysis/runCategory/batched` blir alla `false`,
 `importProduct` returnerar `needsAiPolish:true`, och `lib/bulk-import/worker.ts`
 tvingar realtidsvägen (ingen Batch API-pre-generering som annars kostar).
 
+## Aosom: andra leverantören, samma pipeline (`lib/aosom/`)
+
+Sedan 2026-08-27 finns ett B2B-konto hos Aosom och en produktfeed
+(`AOSOM_FEED_URL`, uppdateras 3 ggr/dygn). Sortimentet importeras som **osynliga
+utkast** och poleras sedan i chatten — exakt samma arbetsflöde som rå-läget
+ovan, bara med en annan leverantör i andra änden.
+
+| | |
+|---|---:|
+| Rader i feeden | 6 057 |
+| Går att frakta till Sverige | **5 566** |
+| Bilder bakom dem | **50 018** |
+| Där frakten kostar mer än varan | 1 175 (21 %) |
+
+Sista talet i tabellen är arkitekturen: varje bild är ett eget Wix-anrop, så
+hela svepet är timmar och en serverless-rutt har 300 sekunder.
+`/api/cron/aosom-import` tar därför en tugga i taget, returnerar en **markör**
+(`cursor` → `?after=`) och kan startas om hur många gånger som helst —
+dubblettspärren på `supplierProductId` gör omkörning till en no-op.
+
+### Vägen in
+
+`feed.ts` (hämta + tolka) → `to-product.ts` (adapter) → `importProduct` →
+`import-run.ts` (batch + markör) → `/api/cron/aosom-import`.
+
+Adaptern bygger en `AliExpressProduct` av feed-raden. Poängen är att allt
+nedströms redan finns: prissättning, marginalregler, bildhemtagning,
+Wix-create, SKU:er, mappningsrad, utkastläge, poleringskö. Typnamnet är arv —
+den beskriver "en leverantörsprodukt på väg in" och har inget AE-specifikt i sig.
+
+Läget är **alltid `raw`**: noll Claude-anrop ($0) och `visible:false`
+ovillkorligt. Torrkörning är default; utan `?dryRun=false` skrivs ingenting.
+Rutten är **inte schemalagd** — en cron som fyller poleringskön snabbare än
+någon hinner skriva om texterna ger bara en växande hög tyska utkast.
+
+### Fyra saker som inte ska tas bort
+
+1. **`supplier: "aosom"` på mappningen.** Lagersynken, prisbevakningen,
+   prisreparationen, fraktkontrollen och recensionshämtningen slår alla upp
+   `supplierProductId` mot AliExpress API. Ett Aosom-artikelnummer skickat dit
+   är 5 566 omöjliga uppslag per körning som äter `maxApiCalls` och tränger
+   undan de produkter som faktiskt behöver synkas. Spärren är
+   `isAliExpressMapping` i `lib/store/supplier.ts` — en grep hittar alla
+   ställen som bryr sig. Fältet faller tillbaka på `aosom:`-prefixet i id:t, så
+   en rad som tappat fältet klassas ändå rätt.
+2. **Frakten ligger i inköpspriset.** Det är hela skillnaden mot AliExpress, där
+   EU-lagerpriset är levererat. Aosoms SE-frakt är **per kolli** och skalar med
+   vikten (16 € under två kilo, över 100 € över fyrtio). Adaptern räknar
+   `costUsd = (grossist + SE-frakt) × eurToSek / usdToSek` så att
+   `landedCostSek` blir rätt — fältet som både lönsamhetsöversikten och
+   auktionens golvbud läser. Håller man frakten utanför blir varje marginal fel
+   åt samma håll och auktionen kan sälja under inköp.
+3. **En rad = en produkt.** `Psin` ser ut som en föräldranyckel men grupperar
+   *relaterade varor*: de tretton raderna under `24G58OVN9S001` är tretton olika
+   valphagar med olika antal paneler och priser från 55 till 119 €. Grupperar
+   man på den blir varianter av produkter som inte är utbytbara.
+4. **Markören flyttas även vid fel.** Annars fastnar hela svepet på en trasig
+   rad: nästa körning börjar om på samma produkt, misslyckas igen, och katalogen
+   står stilla. Felet står i svarets `errors` och körs om riktat med `?sku=`.
+
+### Vad spärren INTE ser
+
+Dubblettspärren nyckar på `supplierProductId` och fångar varje omkörning. Den
+fångar **inte** de ~586 produkter vi redan säljer som är Aosom-varor inköpta via
+AliExpress — de bär ett AE-listnings-id och ser för spärren ut som något helt
+annat. Att para ihop dem kräver mått, produkttyp och bildjämförelse (så gjordes
+de 33 i leverantörsjämförelsen 2026-08-27); en automatisk gissning skulle slå
+ihop varor som inte är samma. De dubbletterna hanteras i poleringen, där en
+människa ändå läser varje produkt.
+
+### Att polera en Aosom-produkt
+
+Allt utom siffrorna är **tyskt**: titel, beskrivning, säljpunkter och varje
+spec-VÄRDE. Etiketterna är svenska från start (`Mått`, `Färg`, `Material`,
+`Vikt`, `Paketmått`, `Artikelnummer`) eftersom feedens `Specification`-fält är
+tomt i 5 550 av 5 566 rader — underlaget kommer från de strukturerade
+kolumnerna i stället. Platshållaren `[BRAND NAME]`, som står kvar i 4 975 rader,
+stryks redan vid importen; den är ett mekaniskt fel med ett mekaniskt svar och
+får inte lämnas åt poleringen.
+
+`aosomFreightShare` på mappningen (0–1) säger hur mycket av inköpet som är
+frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
+kör svepet med `?skipFreightHeavy=1` och ta dem för sig.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,

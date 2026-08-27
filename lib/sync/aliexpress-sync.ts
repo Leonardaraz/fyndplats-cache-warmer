@@ -55,6 +55,7 @@ import {
   sendEmail,
 } from "../email/resend";
 import { applyBestsellerPriority, priorityRank, RECENT_PURCHASE_REASON } from "./bestsellers";
+import { isAliExpressMapping } from "../store/supplier";
 
 export const DEFAULT_MARGIN_FLOOR_PERCENT = 20;
 export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
@@ -659,6 +660,14 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
       continue;
     }
     if (!mapping.supplierProductId) {
+      summary.skipped++;
+      continue;
+    }
+    // Bara AliExpress-produkter går att slå upp mot AE:s API. Aosom-rader bär
+    // ett artikelnummer, inte ett listnings-id — de synkas via feeden i stället
+    // (lib/aosom/). Utan spärren äter 5 566 omöjliga uppslag upp maxApiCalls och
+    // tränger undan de produkter som faktiskt behöver synkas.
+    if (!isAliExpressMapping(mapping)) {
       summary.skipped++;
       continue;
     }

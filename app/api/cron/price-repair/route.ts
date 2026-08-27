@@ -53,6 +53,7 @@ import {
   type PriceRepairPlan,
 } from "@/lib/import/price-repair";
 import type { ProductMappingRecord } from "@/lib/store";
+import { isAliExpressMapping } from "@/lib/store/supplier";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -116,7 +117,7 @@ export async function GET(req: NextRequest) {
   const alla = await store.listMappings();
   const kandidater = enda
     ? alla.filter((m) => m.wixProductId === enda)
-    : alla.filter((m) => sharesOneCost(m.variants ?? []));
+    : alla.filter((m) => sharesOneCost(m.variants ?? []) && isAliExpressMapping(m));
 
   const start = Date.now();
   const planer: ProduktPlan[] = [];

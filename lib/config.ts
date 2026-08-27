@@ -13,6 +13,19 @@ function num(name: string, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/**
+ * EUR → SEK. Används av Aosom-importen: deras B2B-feed prissätter i euro, medan
+ * hela prissättningskedjan räknar i USD (AliExpress-arvet). Kursen omvandlar
+ * feedens landade kostnad till samma enhet som pipelinen redan förstår — se
+ * lib/aosom/to-product.ts#toImportProduct.
+ *
+ * Default 11,10 hämtad 2026-08-27. En rörelse på tio öre flyttar en plåtbod med
+ * drygt trettio kronor; sätt EUR_TO_SEK i miljön när kursen glidit.
+ */
+export function eurToSekFromEnv(): number {
+  return num("EUR_TO_SEK", 11.1);
+}
+
 /** Läser prissättningskonfig från miljön (med rimliga defaults). */
 export function pricingConfigFromEnv(): PricingConfig {
   return {

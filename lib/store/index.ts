@@ -33,8 +33,32 @@ export interface CategorySuggestionRecord {
   status: "auto" | "suggested" | "uncategorized";
 }
 
+/**
+ * Vilken leverantör produkten kommer FRÅN. Saknas = "aliexpress" — alla rader
+ * som skapades innan Aosom-importen fanns är AliExpress-produkter.
+ *
+ * Fältet är inte kosmetiskt. Hela synk-, prisbevaknings- och recensionskedjan
+ * slår upp `supplierProductId` mot AliExpress API. Ett Aosom-artikelnummer
+ * skickat dit är i bästa fall ett bortkastat anrop per produkt och körning, i
+ * sämsta fall ett svar som tolkas som "listningen är borta". Se
+ * lib/store/supplier.ts#isAliExpressMapping.
+ */
+export type MappingSupplier = "aliexpress" | "aosom";
+
 export interface ProductMappingRecord {
   supplierProductId: string;
+  /** Leverantör. Saknas = "aliexpress" (back-compat med alla äldre rader). */
+  supplier?: MappingSupplier;
+  /**
+   * AOSOM: fraktens andel av den landade kostnaden vid importen, 0-1.
+   *
+   * Finns för att poleringskön ska kunna sortera. Aosoms SE-frakt är per kolli
+   * och skalar med vikten, och på 1 175 av 5 566 importerbara artiklar kostar
+   * frakten MER än varan (andel > 0,5). De går att sälja, men marginalen är
+   * borta innan påslaget ens är satt — den som poleras först ska vara den som
+   * bär. Medianen över feeden är 0,40.
+   */
+  aosomFreightShare?: number;
   wixProductId: string;
   variants: VariantMapping[];
   /**

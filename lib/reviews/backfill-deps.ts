@@ -8,6 +8,7 @@ import { fetchAeReviews } from "../aliexpress/reviews";
 import { importReviewsForProduct } from "../import/review-import";
 import { getReviewStore } from "../store/reviews";
 import type { ReviewBackfillCandidate, ReviewBackfillDeps } from "./backfill";
+import { isAliExpressMapping } from "../store/supplier";
 
 /**
  * Hur länge en produkt som genomsökts utan träff lämnas ifred. Nya recensioner
@@ -42,6 +43,9 @@ export function buildReviewBackfillDeps(opts: BackfillDepsOptions = {}): ReviewB
       const mappings = await store.listMappings();
       return mappings
         .filter((m) => m.supplierProductId && m.wixProductId)
+        // AE:s feedback-endpoint känner bara AE-listningar. Aosom-artiklar har
+        // inga recensioner att hämta där.
+        .filter(isAliExpressMapping)
         // Rader utan draftStatus är gamla och räknas som publicerade.
         .filter((m) => !opts.onlyPublished || (m.draftStatus ?? "published") === "published")
         // Redan genomsökta hoppas över → körningen konvergerar i stället för
