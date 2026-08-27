@@ -46,13 +46,13 @@ En fast (installerad) projektor passar dig som vill ha en permanent hemmabio i e
 ## Så skapar du bästa bioupplevelsen hemma
 
 - Mörklägg rummet. Ju mörkare rum, desto skarpare och mer mättad bild – särskilt viktigt för prisvänliga modeller.
-- Använd en ljus, slät yta. En vit vägg fungerar bra, men en riktig projektorduk lyfter bilden ytterligare — vår [projektorduk med stativ på 100 tum](/produkt/projektorduk-med-stativ-100-tum) är bärbar och ställs upp på minuten, ute som inne.
+- Använd en ljus, slät yta. En vit vägg fungerar förvånansvärt bra – matt och ljus snarare än blank, så bilden inte speglar sig. Ett vitt lakan spänt slätt duger i sommarstugan.
 - Tänk på avståndet. Ju längre från väggen projektorn står, desto större blir bilden. Testa dig fram till rätt storlek.
 - Förbättra ljudet. Koppla en Bluetooth-högtalare så får du både kraftigare och rymdigare ljud.
 
 ## Vår rekommendation
 
-Använd checklistan ovan när du jämför modeller: Full HD som bas, så många ANSI-lumen du har råd med, och WiFi + Bluetooth + HDMI så du slipper begränsningar senare. Själva duken behöver du däremot inte leta efter – vår [projektorduk med stativ på 100 tum](/produkt/projektorduk-med-stativ-100-tum) (16:9, 4K-klar) ger en jämnare och skarpare bild än väggen och följer lika lätt med ut på altanen. Fler prylar till hemmabion och tekniken hittar du under [Elektronik & Tillbehör](/kategori/elektronik-tillbehor).
+Använd checklistan ovan när du jämför modeller: Full HD som bas, så många ANSI-lumen du har råd med, och WiFi + Bluetooth + HDMI så du slipper begränsningar senare. Duk behöver du inte köpa för att komma igång – en matt, ljus vägg räcker långt, och ute på altanen gör ett spänt vitt lakan jobbet. Fler prylar till hemmabion och tekniken hittar du under [Elektronik & Tillbehör](/kategori/elektronik-tillbehor).
 
 ## Utforska mer hos Fyndplats
 

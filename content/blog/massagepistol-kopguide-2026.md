@@ -75,7 +75,7 @@ Ja. Före träning används den ofta som kort uppvärmning (cirka 30 sekunder pe
 
 Massagepistolen är punktinsatsen – men den är inte enda vägen till mjukare muskler:
 
-- [Hopfällbar massagebänk i trä, 186 cm](/produkt/hopfallbar-massagebank-tra-186cm) – för dig som ger (eller får) riktig helkroppsmassage hemma. Finns även i [aluminium med nio höjdlägen](/produkt/hopfallbar-massagebank-aluminium-rosa).
+- [Hopfällbar massagebänk i trä, 186 cm](/produkt/hopfallbar-massagebank-tra-186cm) – för dig som ger (eller får) riktig helkroppsmassage hemma. Finns även i [aluminium med nio höjdlägen](/produkt/hopfallbar-massagebank-aluminium-3-sektioner-rosa).
 - [Kontorsstol med massage och fotstöd](/produkt/kontorsstol-med-massage-fotstod-ergonomisk) – sexpunktsmassage medan du jobbar, för dig som sitter långa dagar.
 
 Hela urvalet finns i [Massage & Återhämtning](/kategori/massage-aterhamtning).

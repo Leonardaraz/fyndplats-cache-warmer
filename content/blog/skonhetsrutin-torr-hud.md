@@ -117,7 +117,7 @@ En enkel rutin: applicera ett tjockt lager hydrerande mask, vänta 15 minuter, k
 
 Det här betyder inte att de här produkterna är dåliga — bara att de inte passar när huden är i akut behov av återfuktning.
 
-[![Peel off-mask med 24K guld och snigel – ansiktsmask i 3-pack](https://static.wixstatic.com/media/b379ce_d1514fd264714c0b9e7e4d963afeb4b2~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/peel-off-mask-guld-snigel-ansiktsmask-3-pack "Se i butiken →")
+[![Sheetmask med snigel & kollagen – ansiktsmask 20-pack](https://static.wixstatic.com/media/b379ce_a8ea811f0099410886f7123563e6f11b~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/sheetmask-snigel-kollagen-ansiktsmask-20-pack "Se i butiken →")
 
 ## Livsstilsfaktorer som gör större skillnad än de flesta produkter
 

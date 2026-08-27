@@ -25,12 +25,6 @@ En hydraulisk 12V-domkraft på hela 5 ton med inbyggd däckpump och LED-belysnin
 
 Ett stabilt hjulstöd i stål (385 kg) med både U- och L-gaffel och hjul för enkel förflyttning. Lyft hojen säkert för kedjesmörjning, däckbyte och vinterförvaring. **Från 729 kr.**
 
-## Grindöppnare för skjutgrind – 600 kg
-
-[![Automatisk grindöppnare för skjutgrind upp till 600 kg](https://static.wixstatic.com/media/b379ce_9d34fcc57478487bbe72a48fbbec935f~mv2.jpg)](/produkt/grindoppnare-skjutgrind-600kg "Grindöppnare för skjutgrind, 600 kg")
-
-En automatisk motor för skjutgrindar upp till 600 kg, komplett med två fjärrkontroller. Öppna och stäng grinden från bilen – smidigt, tryggt och en riktig vardagslyx på uppfarten. **2 439 kr.**
-
 ## Så väljer du rätt för garaget
 
 - **Matcha kapaciteten.** Välj domkraft och stöd med god marginal över fordonets vikt – och använd alltid pallbockar som säkerhet vid arbete under bilen.
