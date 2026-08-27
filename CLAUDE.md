@@ -92,9 +92,27 @@ Sedan 2026-08-27 finns ett B2B-konto hos Aosom och en produktfeed
 inloggning: en vanlig GET returnerar hela B2B-prislistan med kolumnen
 `Wholesale Price` för 6 057 artiklar. Repot är PUBLIKT, så en inbakad adress är
 detsamma som att publicera vad vi betalar för varje vara — för de svenska
-återförsäljare vi konkurrerar med om exakt samma artikelnummer. `aosomFeedUrl()`
-kastar om variabeln saknas i stället för att falla tillbaka, och ett test i
-`feed.test.ts` fäller om adressen dyker upp i källan igen. Sortimentet importeras som **osynliga
+återförsäljare vi konkurrerar med om exakt samma artikelnummer. Ett test i
+`feed.test.ts` fäller om adressen dyker upp i källan igen.
+
+`resolveAosomFeedUrl()` läser två källor i ordning: `AOSOM_FEED_URL` i miljön
+(vinner alltid — för en engångskörning), sedan **Wix-raden `FyndplatsAppConfig`**,
+som är det normala hemmet. Saknas båda kastar den.
+
+Wix hellre än miljövariabel av två uppmätta skäl (2026-08-27). En miljövariabel
+bakas in i deploymenten: den slår inte igenom förrän projektet byggts om, och en
+omdeploy som inte blev av ser exakt likadan ut som en som blev det — det kostade
+en runda här. Och märkt "Sensitive" går värdet inte att läsa tillbaka ens för
+ägaren, så verifiering kräver att hemligheten först roteras. Wix-raden läses vid
+varje anrop och går att läsa. Det spelar roll konkret: adressen **ska roteras**
+hos Aosom eftersom den legat i en publik gren, och varje rotation hade annars
+krävt variabel plus ombygge igen.
+
+Kollektionen skapas med `scripts/ensure-app-config-collection.mjs`. Läsning och
+skrivning i `lib/store/app-config.ts` — den KASTAR vid riktigt läsfel i stället
+för att falla tillbaka tyst, till skillnad från `getPricingRules`: prissättningen
+har vettiga defaults, en feed-adress har inga, och en Wix-nedgång får inte se ut
+som "ingen adress konfigurerad". Sortimentet importeras som **osynliga
 utkast** och poleras sedan i chatten — exakt samma arbetsflöde som rå-läget
 ovan, bara med en annan leverantör i andra änden.
 

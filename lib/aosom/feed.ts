@@ -29,23 +29,39 @@ import { parseCsvRecords } from "../bulk-import/csv";
 /**
  * Feed-adressen från Aosoms beställningsguide. Uppdateras 3 ggr/dygn.
  *
- * ☠️ MÅSTE komma ur miljön. Ingen fallback i koden, och lägg aldrig tillbaka en.
+ * ☠️ FÅR ALDRIG STÅ I KODEN. Ingen fallback, och lägg aldrig tillbaka en.
  *
  * Adressen kräver ingen inloggning: en vanlig GET returnerar hela B2B-prislistan
  * med kolumnen "Wholesale Price" för 6 057 artiklar. Det här repot är PUBLIKT,
  * så en hårdkodad adress här är detsamma som att publicera vad vi betalar för
  * varje vara — för vem som helst, inklusive de svenska återförsäljare vi
  * konkurrerar med om exakt samma artikelnummer.
+ *
+ * TVÅ KÄLLOR, I DEN HÄR ORDNINGEN:
+ *
+ *   1. `AOSOM_FEED_URL` i miljön — vinner alltid. Låter en lokal körning eller
+ *      ett engångstest peka om utan att röra det delade värdet.
+ *   2. Wix-raden `FyndplatsAppConfig` — det normala hemmet.
+ *
+ * Wix är förstahandsvalet i drift därför att raden läses vid VARJE anrop. En
+ * miljövariabel bakas in i deploymenten: den slår inte igenom förrän projektet
+ * byggts om, och märkt "Sensitive" går den inte att läsa tillbaka ens för
+ * ägaren. Adressen ska dessutom roteras hos Aosom (den har legat i en publik
+ * gren), och varje rotation hade då krävt variabel plus ombygge igen.
  */
-export function aosomFeedUrl(): string {
-  const url = (process.env.AOSOM_FEED_URL ?? "").trim();
-  if (!url) {
-    throw new Error(
-      "AOSOM_FEED_URL saknas. Feedens adress bär våra inköpspriser och får inte "
-      + "ligga i koden — sätt den som miljövariabel i Vercel.",
-    );
-  }
-  return url;
+export async function resolveAosomFeedUrl(): Promise<string> {
+  const fromEnv = (process.env.AOSOM_FEED_URL ?? "").trim();
+  if (fromEnv) return fromEnv;
+
+  const { getAppConfig } = await import("../store/app-config");
+  const fromWix = (await getAppConfig()).aosomFeedUrl;
+  if (fromWix) return fromWix;
+
+  throw new Error(
+    "Aosoms feed-adress saknas. Den bär våra inköpspriser och får inte ligga i "
+    + "koden — spara den i Wix-raden FyndplatsAppConfig (fältet aosomFeedUrl), "
+    + "eller sätt AOSOM_FEED_URL i miljön för en engångskörning.",
+  );
 }
 
 /**
@@ -192,10 +208,12 @@ export function headroom(row: AosomRow): number | null {
 }
 
 export async function fetchAosomFeed(
-  url: string = aosomFeedUrl(),
+  url?: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<AosomRow[]> {
-  const res = await fetchImpl(url);
+  // Slås upp lat: bara en körning som faktiskt hämtar feeden rör Wix.
+  const target = (url ?? "").trim() || (await resolveAosomFeedUrl());
+  const res = await fetchImpl(target);
   if (!res.ok) {
     throw new Error(`Aosom-feeden svarade ${res.status} ${res.statusText}`);
   }
