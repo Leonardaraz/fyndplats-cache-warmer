@@ -1,9 +1,9 @@
 {
-  "cursor": null,
-  "kvar": 0,
-  "trasiga": 44,
-  "reparerade": 43,
+  "cursor": "331-110V80MX",
+  "kvar": 594,
+  "trasiga": 4,
+  "reparerade": 4,
   "misslyckade": 0,
-  "kvarstaendeMissar": 1,
-  "uppdaterad": "2026-08-27T23:26:14Z"
+  "kvarstaendeMissar": 0,
+  "uppdaterad": "2026-08-27T23:44:47Z"
 }
