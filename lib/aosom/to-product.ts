@@ -96,9 +96,18 @@ export function toImportProduct(row: AosomRow, fx: AosomFx): AliExpressProduct {
  * tabell i ett utkast är inget problem — utkastet når ingen kund — och den
  * strukturen är lättare att polera än en tysk etikettsoppa.
  *
- * Lagerlandet skrivs ALDRIG in här. Leonards regel 2026-08-15: fraktland får
- * inte förekomma i produkttext. `shipFrom` på varianten bär den uppgiften, och
- * det fältet renderas inte för kund.
+ * TVÅ SAKER SKRIVS ALDRIG IN HÄR:
+ *
+ * 1. **Lagerlandet.** Leonards regel 2026-08-15 — fraktland får inte förekomma i
+ *    produkttext. `shipFrom` på varianten bär uppgiften och renderas inte för kund.
+ * 2. **Aosoms artikelnummer.** Det är en sökbar fingeravtryck rakt mot
+ *    leverantören: koden står i Aosoms egen produkt-URL
+ *    (`…kinderschminktisch~350-219V00PK.html`), så en googling på strängen ställer
+ *    vår sida bredvid deras — med deras konsumentpris intill. Kontrollmätt
+ *    2026-08-27 på en publicerad sida: noll träffar på "aliexpress", "alicdn",
+ *    "aosom" eller något husmärke i HTML:en, och `sku` i JSON-LD är Wix eget
+ *    UUID. Hela katalogen är byggd så; den här modulen ska inte vara undantaget.
+ *    Numret finns kvar där det hör hemma — `supplierProductId` på mappningen.
  */
 export function buildSpecifications(row: AosomRow): Record<string, string> {
   const spec: Record<string, string> = {};
@@ -113,7 +122,6 @@ export function buildSpecifications(row: AosomRow): Record<string, string> {
     add("Vikt", `${formatNumber(row.weightKg)} kg`);
   }
   add("Paketmått", normalizePackageSize(row.packageSize));
-  add("Artikelnummer", row.sku);
   return spec;
 }
 

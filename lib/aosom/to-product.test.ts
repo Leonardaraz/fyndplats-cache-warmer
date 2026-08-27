@@ -118,13 +118,12 @@ describe("buildSpecifications", () => {
       "Material": "Holzwerkstoff/Acryl",
       "Vikt": "18,55 kg",
       "Paketmått": "93 × 59 × 17 cm",
-      "Artikelnummer": "350-219V00PK",
     });
   });
 
   it("hoppar över tomma fält i stället för att skriva tomma rader", () => {
     const spec = buildSpecifications(rad({ color: "", material: "", weightKg: null, packageSize: "" }));
-    expect(Object.keys(spec)).toEqual(["Mått", "Artikelnummer"]);
+    expect(Object.keys(spec)).toEqual(["Mått"]);
   });
 
   it("skriver ALDRIG lagerlandet — Leonards regel 2026-08-15", () => {
@@ -132,6 +131,26 @@ describe("buildSpecifications", () => {
     const text = JSON.stringify(spec);
     for (const land of ["Tyskland", "Deutschland", "DE", "Neu Wulmstorf", "Schwanewede"]) {
       expect(text).not.toContain(land);
+    }
+  });
+
+  it("skriver ALDRIG Aosoms artikelnummer — det är ett sökbart fingeravtryck", () => {
+    // Koden står i Aosoms egen produkt-URL, så strängen kopplar ihop vår sida
+    // med deras. Hela den publicerade katalogen är fri från leverantörsspår.
+    expect(JSON.stringify(buildSpecifications(rad()))).not.toContain("350-219V00PK");
+  });
+
+  it("inget leverantörsspår når produkttexten över huvud taget", () => {
+    const p = toImportProduct(rad(), FX);
+    const kundtext = [
+      p.rawTitle,
+      p.rawDescription,
+      p.descriptionHtml ?? "",
+      (p.features ?? []).join(" "),
+      JSON.stringify(p.specifications ?? {}),
+    ].join(" ").toLowerCase();
+    for (const spar of ["aosom", "homcom", "outsunny", "pawhut", "aiyaplay", "350-219v00pk"]) {
+      expect(kundtext).not.toContain(spar);
     }
   });
 });

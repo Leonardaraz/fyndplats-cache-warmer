@@ -153,6 +153,35 @@ de 33 i leverantörsjämförelsen 2026-08-27); en automatisk gissning skulle sl�
 ihop varor som inte är samma. De dubbletterna hanteras i poleringen, där en
 människa ändå läser varje produkt.
 
+### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
+
+Två skilda problem, med olika svar.
+
+**Utkast är osynliga — mätt, inte antaget.** En produkt med `visible:false`
+svarar **404** på sin produkt-URL och ligger inte i sitemapen (1 064 `loc` mot
+946 synliga produkter). 5 566 tyska utkast kan alltså inte indexeras. Hela
+risken ligger i publiceringsögonblicket, inte i importen.
+
+**Vi läcker inga leverantörsspår.** Kontrollmätt på en publicerad sida:
+noll träffar på `aliexpress`, `alicdn`, `aosom` eller något husmärke i HTML:en;
+alla 230 bilder på `static.wixstatic.com`; JSON-LD:ns `sku` är Wix eget UUID;
+inget `mpn`, inget `gtin`. Feedens `EAN`-kolumn är dessutom tom i 100 % av
+raderna, så det finns ingen produktidentifierare att joina på. Husmärkena
+(HOMCOM, Outsunny, PawHut, Aiyaplay) stryks vid poleringen — bara 6 av 952
+produkter bär dem, och alla sex är opolerade utkast.
+
+**Det Google DÄREMOT ser är bilderna.** Att flytta hem dem till wixstatic byter
+adress, inte innehåll. Google Images matchar på bildinnehåll, och Aosoms foton
+är byte-identiska hos varenda återförsäljare som kör samma feed. Skyddet är
+inte hemflytten — det är egna kort och egen text.
+
+**Den farliga dubbletten är intern.** `FyndplatsMappings` har **595 av 1 004
+rader** från "byaosom ES (EU) Store" — 59 % av katalogen är redan Aosom-varor,
+köpta via AliExpress. Feed-importen kan inte se dem (de bär AE-listnings-id) och
+skapar därför en ANDRA sida för samma fysiska produkt. Två egna URL:er med samma
+foton är den dubblett Google faktiskt straffar. Fångas i poleringen, inte av
+spärren.
+
 ### Att polera en Aosom-produkt
 
 Allt utom siffrorna är **tyskt**: titel, beskrivning, säljpunkter och varje
