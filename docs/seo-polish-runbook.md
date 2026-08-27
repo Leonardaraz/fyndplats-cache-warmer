@@ -567,6 +567,19 @@ const newVariants = variants.map(v => {
 
 ⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
 
+> ☠️ **Re-synken slår av varianten. Läs om `variantsInfo.variants[].visible` efteråt.**
+> Krittavlan `c4ac3cba` kom in med `variants[0].visible: true`, och stod på `false` när
+> SKU-patchen var klar — trots att varianten skickades tillbaka verbatim och `visible`
+> på PRODUKTEN uttryckligen var `false` hela tiden. Publiceras den så är produkten synlig
+> men **går inte att lägga i varukorgen**, och felet syns inte i produktvyn. Klart-kriteriet
+> kräver redan `visible:true` på varje variant; det här är orsaken det kravet fångar.
+> Rätta med en egen PATCH (`{...v, visible:true}` + produktens `visible` explicit) innan Steg 13.
+>
+> Samma PATCH nollar variantens `media`-pekare, och Wix tar **inte** emot den igen — känt
+> sedan sidobordet `c9a0f88d`. Harmlöst på en produkt utan optioner (galleriet ligger i
+> `media.itemsInfo`), men på en produkt med färgval är swatchen borta: gör SKU-resynken
+> FÖRE variantbildkopplingen i Steg 11, aldrig efter.
+
 > **Spara ett anrop — men BARA om inget mer återstår:** har produkten inga bilder att fixa (Steg 9), ingen kategori (Steg 10) och ingen variantkoppling (Steg 11) kvar → lägg `visible: true` i **samma** PATCH så görs SKU-resynken + publiceringen i ett. Återstår något av dessa: **publicera SIST** (Steg 13), aldrig här — annars går produkten live innan bilder/kategori/varianter är klara.
 >
 > **Undantag:** börjar SKU:n med `FYND-XXX-NNN` (kurerat artikelnummer) eller `AE-<hash>` (äldre schema) — **rör den inte**, flagga till Leonard.
@@ -644,6 +657,13 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
+> ⚠️ **`altText` ligger på ITEM-nivå — `image.altText` ensamt är en tyst no-op.** Varje item bär
+> fältet två gånger (`items[i].altText` och `items[i].image.altText`), och Wix speglar
+> item-nivån NEDÅT över `image`. Patchar du bara `image.altText` svarar Wix `200 OK`,
+> revisionen ökar — och en re-GET visar den **gamla** engelska texten kvar på de gamla
+> bilderna och tom alt-text på de nyuppladdade. Sätt båda fälten till samma sträng.
+> (2026-08-27, krittavlan `c4ac3cba`: sex alt-texter såg satta ut och var det inte.)
+
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
 >
 > ⚠️ **PATCH-svaret innehåller INTE `media.itemsInfo`** (det fältet returneras bara när du
