@@ -1,0 +1,205 @@
+// Reparerar Aosom-produkter som fick för få bilder vid importen.
+//
+// BAKGRUNDEN (2026-08-27)
+//
+// Svepet importerade 675 produkter. 397 fick NOLL bilder och 87 fick färre än
+// fem, medan importen rapporterade `failed: 0` — produkten skapades ju, det var
+// bara bilderna som föll bort. Två tysta fel i lib/wix/media.ts: rejectade
+// uppladdningar filtrerades bort utan logg, och det fanns inget återförsök mot
+// Wix 429. Båda är lagade där; den här filen städar upp efter dem.
+//
+// VARFÖR ALLA BILDER LADDAS OM, INTE BARA DE SAKNADE
+//
+// En wixstatic-adress avslöjar inte vilken källbild den kom från, så det går
+// inte att veta VILKA av de fem som saknas på en produkt med tre. Att ladda om
+// alla fem och ersätta listan är enkelt, idempotent och kostar några hundra
+// extra uppladdningar totalt — mot en katalog där en tredjedel av produkterna
+// har fel bilder i fel ordning.
+//
+// VAD DEN INTE RÖR
+//
+// setProductMedia skickar `fieldMask: ["media"]`, så synlighet, varianter,
+// priser och texter är orörda. En Aosom-produkt är ett osynligt utkast och ska
+// förbli det — reparationen får aldrig bli en publicering.
+
+import type { AosomRow } from "./feed";
+import { fetchAosomFeed, isShippableToSe } from "./feed";
+import { toImportProduct, aosomSupplierProductId, RENA_BILDPOSITIONER, type AosomFx } from "./to-product";
+
+const DEFAULT_LIMIT = 25;
+const DEFAULT_TIME_BUDGET_MS = 240_000;
+
+export interface ImageRepairOptions {
+  /** Torrkörning. DEFAULT TRUE — samma husregel som svepet och price-repair. */
+  dryRun?: boolean;
+  limit?: number;
+  timeBudgetMs?: number;
+  /** Fortsätt EFTER det här artikelnumret (markören ur föregående svar). */
+  after?: string;
+  /** Bara dessa artikelnummer. För riktad omkörning. */
+  onlySkus?: string[];
+  bildpositioner?: readonly number[];
+}
+
+export interface ImageRepairSummary {
+  dryRun: boolean;
+  /** Aosom-produkter i katalogen. */
+  aosomProdukter: number;
+  /** De som har färre bilder än feeden kan ge. */
+  trasiga: number;
+  /** Undersökta i den här körningen. */
+  granskade: number;
+  reparerade: number;
+  /** Bilder som fortfarande inte gick att hämta — de får en ny runda. */
+  kvarstaendeMissar: number;
+  misslyckade: number;
+  kvar: number;
+  cursor: string | null;
+  stoppedBy: "klart" | "limit" | "tidsbudget";
+  errors: { sku: string; error: string }[];
+}
+
+export interface ImageRepairDeps {
+  fetchFeed: () => Promise<AosomRow[]>;
+  /** Aosom-mappningar: artikelnummer → Wix-produkt. */
+  listAosom: () => Promise<{ sku: string; wixProductId: string }[]>;
+  /** Nuvarande bilder på produkten, eller null om den är borta. */
+  getMedia: (wixProductId: string) => Promise<{ revision: string; antal: number } | null>;
+  /** Laddar upp och returnerar wixstatic-adresserna. Missar utelämnas. */
+  importImages: (urls: string[], slug: string) => Promise<string[]>;
+  setMedia: (wixProductId: string, revision: string, urls: string[]) => Promise<void>;
+  fx: AosomFx;
+  now?: () => number;
+}
+
+/**
+ * Kör en tugga av reparationen.
+ *
+ * Ordningen är densamma som svepets — artikelnummer stigande — så markören
+ * betyder samma sak i båda och går att läsa av samma väg.
+ */
+export async function runImageRepair(
+  deps: ImageRepairDeps,
+  opts: ImageRepairOptions = {},
+): Promise<ImageRepairSummary> {
+  const dryRun = opts.dryRun !== false;
+  const limit = Math.max(1, opts.limit ?? DEFAULT_LIMIT);
+  const timeBudgetMs = opts.timeBudgetMs ?? DEFAULT_TIME_BUDGET_MS;
+  const now = deps.now ?? (() => Date.now());
+  const positioner = opts.bildpositioner ?? RENA_BILDPOSITIONER;
+  const start = now();
+
+  const feed = await deps.fetchFeed();
+  const perSku = new Map(feed.filter(isShippableToSe).map((r) => [r.sku, r]));
+
+  const onlySkus = opts.onlySkus?.length ? new Set(opts.onlySkus) : null;
+  const aosom = (await deps.listAosom())
+    .filter((m) => !onlySkus || onlySkus.has(m.sku))
+    .filter((m) => !opts.after || m.sku.localeCompare(opts.after) > 0)
+    .sort((a, b) => a.sku.localeCompare(b.sku));
+
+  const summary: ImageRepairSummary = {
+    dryRun,
+    aosomProdukter: aosom.length,
+    trasiga: 0,
+    granskade: 0,
+    reparerade: 0,
+    kvarstaendeMissar: 0,
+    misslyckade: 0,
+    kvar: aosom.length,
+    cursor: null,
+    stoppedBy: "klart",
+    errors: [],
+  };
+
+  for (const m of aosom) {
+    if (summary.granskade >= limit) {
+      summary.stoppedBy = "limit";
+      break;
+    }
+    // Budgeten kollas FÖRE varje produkt — aldrig mitt i en halvskriven media-lista.
+    if (now() - start >= timeBudgetMs) {
+      summary.stoppedBy = "tidsbudget";
+      break;
+    }
+
+    summary.granskade++;
+    summary.kvar--;
+    summary.cursor = m.sku;
+
+    const row = perSku.get(m.sku);
+    // Raden kan ha försvunnit ur feeden sedan importen. Då finns inga källbilder
+    // att hämta, och produkten lämnas som den är — inte tömd.
+    if (!row) continue;
+
+    const onskade = toImportProduct(row, deps.fx, { positioner }).imageUrls;
+    if (onskade.length === 0) continue;
+
+    try {
+      const nu = await deps.getMedia(m.wixProductId);
+      if (!nu) continue;
+      if (nu.antal >= onskade.length) continue;
+
+      summary.trasiga++;
+      if (dryRun) continue;
+
+      const uppladdade = await deps.importImages(onskade, `aosom-${m.sku}`);
+      // Skriv ALDRIG en tommare lista än den som redan ligger där. Går
+      // uppladdningen dåligt igen är det bättre att lämna produkten orörd och
+      // ta den i nästa runda än att göra den sämre.
+      if (uppladdade.length <= nu.antal) {
+        summary.kvarstaendeMissar += onskade.length - uppladdade.length;
+        continue;
+      }
+
+      await deps.setMedia(m.wixProductId, nu.revision, uppladdade);
+      summary.reparerade++;
+      if (uppladdade.length < onskade.length) {
+        summary.kvarstaendeMissar += onskade.length - uppladdade.length;
+      }
+    } catch (err) {
+      summary.misslyckade++;
+      summary.errors.push({ sku: m.sku, error: err instanceof Error ? err.message : String(err) });
+    }
+  }
+
+  if (summary.kvar <= 0) summary.cursor = null;
+  return summary;
+}
+
+/** Standard-deps mot skarpa systemet. Bryts ut så testerna slipper mocka moduler. */
+export async function liveDeps(): Promise<ImageRepairDeps> {
+  const [{ getStore }, { getPricingRules }, { eurToSekFromEnv }, wix, media] = await Promise.all([
+    import("../store/factory"),
+    import("../store/pricing-config"),
+    import("../config"),
+    import("../wix/client"),
+    import("../wix/media"),
+  ]);
+  const rules = await getPricingRules();
+  const store = getStore();
+
+  return {
+    fetchFeed: () => fetchAosomFeed(),
+    listAosom: async () =>
+      (await store.listMappings())
+        .filter((m) => (m.supplierProductId ?? "").startsWith("aosom:") && m.wixProductId)
+        .map((m) => ({
+          sku: (m.supplierProductId ?? "").slice(aosomSupplierProductId("").length),
+          wixProductId: m.wixProductId,
+        })),
+    getMedia: async (id) => {
+      const snap = await wix.getProductMedia(id);
+      return snap ? { revision: snap.revision, antal: snap.media.length } : null;
+    },
+    importImages: async (urls, slug) =>
+      (await media.importMediaUrls(
+        urls.map((url, i) => ({ url, displayName: `${slug}-${i + 1}` })),
+        { delayMs: 150 },
+      )).map((m) => m.url),
+    setMedia: async (id, revision, urls) => {
+      await wix.setProductMedia(id, revision, urls.map((url) => ({ url })));
+    },
+    fx: { eurToSek: eurToSekFromEnv(), usdToSek: rules.usdToSek },
+  };
+}

@@ -68,6 +68,20 @@ import { matchesColorName, isColorAxis } from "./color-match";
 import { sortedSizeChoices } from "./variant-sort";
 import { buildVariantSkus } from "./sku";
 import { audit } from "../audit";
+/**
+ * Paus mellan bilduppladdningar, i ms. Default 150.
+ *
+ * Wix svarar 429 när takten blir för hög, och en 429 som inte hinner läka
+ * tömmer produkten på bilder. 150 ms mellan bilder ger ~7 uppladdningar per
+ * sekund i värsta fall, mot de ~2,7 som fällde Aosom-svepet — men nu med tre
+ * återförsök bakom sig. Skruvas med MEDIA_UPLOAD_DELAY_MS om Wix ändrar takt.
+ */
+function mediaDelayMs(): number {
+  const n = Number(process.env.MEDIA_UPLOAD_DELAY_MS);
+  return Number.isFinite(n) && n >= 0 ? n : 150;
+}
+
+
 
 export interface VariantMapping {
   supplierVariantId: string;
@@ -139,6 +153,16 @@ export interface VariantMapping {
 
 export interface ImportResult {
   wixProductId: string;
+  /**
+   * Bilder som INTE gick att importera till Wix media, trots återförsök.
+   *
+   * Finns för att en tyst miss aldrig mer ska kunna passera: Aosom-svepet
+   * 2026-08-27 gav 397 av 675 produkter NOLL bilder medan importen rapporterade
+   * `failed: 0` — produkten skapades ju, det var bara bilderna som föll bort
+   * (lib/wix/media.ts filtrerade bort rejectade uppladdningar utan att säga
+   * något). Tom lista = allt kom fram.
+   */
+  missadeBilder: string[];
   slug: string;
   supplierProductId: string;
   seo: SeoResult;
@@ -832,8 +856,13 @@ export async function importProduct(
 
   // Ladda upp samtliga (omsorterade) bilder till Wix Media Manager parallellt med
   // variant-/options-bygget.
+  // Missar samlas i stället för att försvinna — se ImportResult.missadeBilder.
+  // delayMs håller takten under Wix tålamodsgräns; utan den svarar den 429 och
+  // bilderna tystnar en efter en (Aosom-svepet 2026-08-27).
+  const missadeBilder: string[] = [];
   const mediaPromise = importMediaUrls(
     orderedImageUrls.map((url, i) => ({ url, displayName: `${seo.slug || "produkt"}-${i + 1}` })),
+    { delayMs: mediaDelayMs(), onMiss: (url) => missadeBilder.push(url) },
   );
 
   // Options härleds ur de varianter som faktiskt importeras (default: bara valda;
@@ -1222,6 +1251,7 @@ export async function importProduct(
 
   return {
     wixProductId: created.id,
+    missadeBilder,
     slug: created.slug,
     supplierProductId: product.supplierProductId,
     seo,
