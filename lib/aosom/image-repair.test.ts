@@ -28,6 +28,13 @@ function rad(sku: string, over: Partial<AosomRow> = {}): AosomRow {
 function deps(over: Partial<ImageRepairDeps> = {}) {
   const skrivna: { id: string; urls: string[] }[] = [];
   const uppladdade: string[][] = [];
+  // A saknar allt, B har tre, C är hel. Tillståndet är föränderligt eftersom
+  // reparationen LÄSER TILLBAKA efter varje skrivning — ett 200-svar räknas inte.
+  const lager: Record<string, { revision: string; antal: number }> = {
+    "wix-a": { revision: "1", antal: 0 },
+    "wix-b": { revision: "2", antal: 3 },
+    "wix-c": { revision: "3", antal: 5 },
+  };
   const bas: ImageRepairDeps = {
     fetchFeed: async () => [rad("A-1"), rad("B-2"), rad("C-3")],
     listAosom: async () => [
@@ -35,20 +42,19 @@ function deps(over: Partial<ImageRepairDeps> = {}) {
       { sku: "B-2", wixProductId: "wix-b" },
       { sku: "C-3", wixProductId: "wix-c" },
     ],
-    // A saknar allt, B har tre, C är hel.
-    getMedia: async (id) =>
-      ({ "wix-a": { revision: "1", antal: 0 },
-         "wix-b": { revision: "2", antal: 3 },
-         "wix-c": { revision: "3", antal: 5 } } as Record<string, { revision: string; antal: number }>)[id] ?? null,
+    getMedia: async (id) => (lager[id] ? { ...lager[id] } : null),
     importImages: async (urls) => {
       uppladdade.push(urls);
       return urls.map((u) => u.replace("img.aosomcdn.com", "static.wixstatic.com"));
     },
-    setMedia: async (id, _rev, urls) => { skrivna.push({ id, urls }); },
+    setMedia: async (id, _rev, urls) => {
+      skrivna.push({ id, urls });
+      if (lager[id]) lager[id] = { revision: String(Number(lager[id].revision) + 1), antal: urls.length };
+    },
     fx: FX,
     ...over,
   };
-  return { d: bas, skrivna, uppladdade };
+  return { d: bas, skrivna, uppladdade, lager };
 }
 
 describe("runImageRepair", () => {
@@ -110,16 +116,33 @@ describe("runImageRepair", () => {
   });
 
   it("ett fel på en produkt stoppar inte de andra", async () => {
-    const { d } = deps({
-      getMedia: async (id) => {
+    const bas = deps();
+    const las = bas.d.getMedia;
+    const d = {
+      ...bas.d,
+      getMedia: async (id: string) => {
         if (id === "wix-a") throw new Error("Wix svarade 500");
-        return { revision: "2", antal: 3 };
+        return las(id);
       },
-    });
+    };
     const s = await runImageRepair(d, { dryRun: false });
     expect(s.misslyckade).toBe(1);
     expect(s.errors[0].sku).toBe("A-1");
     expect(s.reparerade).toBeGreaterThan(0);
+  });
+
+  it("en skrivning som inte tar räknas som MISSLYCKAD, aldrig som lagad", async () => {
+    // Bildfixen 2026-08-27: 524 lagade av 524 rapporterades, men 214 produkter
+    // hade fortfarande för få bilder efteråt. setMedia svarade utan fel och
+    // ändrade ändå ingenting. Ett svar utan fel får aldrig räknas som ett kvitto.
+    const bas = deps();
+    const d = { ...bas.d, setMedia: async () => { /* svarar OK, gör ingenting */ } };
+    const s = await runImageRepair(d, { dryRun: false });
+    expect(s.trasiga).toBe(2);
+    expect(s.reparerade).toBe(0);
+    expect(s.misslyckade).toBe(2);
+    expect(s.errors.map((e) => e.sku).sort()).toEqual(["A-1", "B-2"]);
+    expect(s.errors[0].error).toMatch(/skrivningen tog inte/);
   });
 
   it("markören går att fortsätta från, i artikelnummerordning", async () => {

@@ -153,9 +153,35 @@ export async function runImageRepair(
       }
 
       await deps.setMedia(m.wixProductId, nu.revision, uppladdade);
+
+      // ☠️ ETT SVAR UTAN FEL ÄR INGET BEVIS. Läs tillbaka och räkna.
+      //
+      // Bildfixen 2026-08-27 rapporterade 524 lagade av 524 trasiga och NOLL
+      // missar. Efteråt hade 214 produkter fortfarande färre än fem bilder —
+      // och för dem satt INGEN av de fem uppladdade filerna på produkten.
+      // Uppladdningarna gick igenom (filerna ligger READY i Media Manager),
+      // skrivningen svarade utan fel, och ändå ändrades ingenting. Mönstret var
+      // jämnt över hela körningen, så det är inte en degradering över tid.
+      //
+      // Mekanismen är fortfarande oförklarad. Det som INTE får stå kvar är att
+      // felet är osynligt: en produkt är lagad först när den läser tillbaka
+      // fler bilder än den hade. Samma läxa som lib/wix/media.ts bär i sitt
+      // filhuvud, och som recensionsbilderna bar före den.
+      const efter = await deps.getMedia(m.wixProductId);
+      if (!efter || efter.antal <= nu.antal) {
+        summary.misslyckade++;
+        summary.errors.push({
+          sku: m.sku,
+          error: `skrivningen tog inte: ${efter?.antal ?? 0} bilder på produkten `
+            + `efter ${uppladdade.length} uppladdade (hade ${nu.antal})`,
+        });
+        continue;
+      }
+
       summary.reparerade++;
-      if (uppladdade.length < onskade.length) {
-        summary.kvarstaendeMissar += onskade.length - uppladdade.length;
+      // Räkna på vad som FAKTISKT sitter där, inte på vad vi laddade upp.
+      if (efter.antal < onskade.length) {
+        summary.kvarstaendeMissar += onskade.length - efter.antal;
       }
     } catch (err) {
       summary.misslyckade++;
