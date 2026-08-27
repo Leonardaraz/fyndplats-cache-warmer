@@ -1,11 +1,25 @@
-// "Betala inom 30 dagar – räntefritt med Klarna" under priset på produktsidan.
+// "Betala senare – räntefritt med Klarna" under priset på produktsidan.
 //
 // VIKTIGT (verifierat mot Fyndplats Klarna-kassa 2026-06, payments.klarna.com):
 //   • Klarnas MÅNADSFAKTURA (betala hela beloppet inom ~30 dagar) = 0 kr ränta → räntefri.
 //   • Klarnas DELBETALNING (3 resp. 6 betalningar) = 21,90 % effektiv ränta → INTE räntefri.
 // Därför får vi ALDRIG kalla delbetalningen "räntefri" eller visa ett "räntefritt
 // månadsbelopp" — det vore ett felaktigt (och reglerat) kreditpåstående. Vi leder
-// i stället med den ärligt räntefria 30-dagars-optionen (Klarnas "Betala senare").
+// i stället med den ärligt räntefria fakturaoptionen (Klarnas "Betala senare").
+//
+// INGET DAGANTAL I VÅR EGEN RAD (2026-08-27). Raden sa tidigare "Betala inom 30
+// dagar". Det var sant i vissa beloppsband men fel i andra: Klarnas eget API
+// svarar "Betala inom 30 dagar" ELLER "Betala inom 60 dagar" beroende på belopp
+// (mätt 2026-08-26 mot js.klarna.com för 99, 789, 2 579, 9 999 och 25 000 kr).
+//
+// Att skriva 30 underskattade alltså erbjudandet i 60-banden, och att skriva 60
+// hade varit direkt falskt i 30-banden. Vi kan inte veta bandet här — det avgörs
+// av Klarna per köp och kund — så vi anger inget antal alls. "Betala senare" är
+// Klarnas eget namn på betalsättet och är sant i alla band.
+//
+// Det exakta dagantalet visas ändå: OSM-widgeten hämtar det från Klarna och tar
+// över den här raden när den laddat (se klarna-osm.tsx). Vår rad är fallback och
+// höjdhållare, och en fallback ska inte påstå mer än den kan veta.
 //
 // Inget externt script (snabbt + integritetsvänligt). Vill man visa exakta
 // delbetalnings-/månadsbelopp MÅSTE det göras via Klarnas officiella On-Site Messaging-
@@ -24,7 +38,7 @@ export function KlarnaMessage({ priceNum }: { priceNum: number }) {
   return (
     <div className="klarna-msg">
       <img src="/payments/klarna-badge.svg" alt="Klarna" width={72} height={30} />
-      <span>Betala inom <strong>30 dagar</strong> – räntefritt med Klarna</span>
+      <span><strong>Betala senare</strong> – räntefritt med Klarna</span>
     </div>
   );
 }

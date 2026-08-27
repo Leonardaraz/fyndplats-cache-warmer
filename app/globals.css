@@ -950,6 +950,28 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    även för skärmläsare — vi vill inte att en rad som ingen ser läses upp. */
 .klarna-osm-wrap[data-osm="vantar"] .klarna-msg{visibility:hidden}
 
+/* HÖJDEN RESERVERAS I CSS, INTE AV TEXTENS LÄNGD.
+   Statiska raden håller höjden medan widgeten laddar. Förut gjorde den det av
+   en slump: texten "Betala inom 30 dagar – räntefritt med Klarna" råkade
+   radbryta ungefär där Klarnas egen text gör det. Det höll inte hela vägen —
+   MÄTT 2026-08-27 var vår rad 30px vid 430px vy medan widgeten blev 42px, så
+   raden hoppade 12px när widgeten landade. När dagantalet togs ur vår text
+   (se klarna-message.tsx) blev raden kortare och hoppet vanligare.
+
+   Widgeten radbryter när KÖPKOLUMNEN är smalare än 434px (binärsökt mot
+   Klarnas verkliga sträng "Shoppa nu. Betala inom 60 dagar med Klarna. Läs
+   mer"). Kolumnen är inte vyns bredd: under 761px är PDP:n enspaltig och
+   kolumnen ≈ vy − 52px; över 761px är den tvåspaltig och kolumnen ≈
+   (min(vy, 1180) − 92) / 2. Därför är tröskeln ICKE-monoton — 768px vy ger en
+   SMALARE kolumn än 700px — och villkoret nedan har två intervall.
+
+   Bara i "vantar": när widgeten fått innehåll bestämmer den höjden själv, och
+   en min-height hade lämnat en glipa på breda skärmar. */
+.klarna-osm-wrap[data-osm="vantar"]{min-height:30px}
+@media (max-width:485px), (min-width:761px) and (max-width:958px){
+  .klarna-osm-wrap[data-osm="vantar"]{min-height:42px}
+}
+
 /* credit-promotion-badge är en RAD: [rosa bricka] [text]. align-items styr
    alltså lodrätt läge, inte vågrätt — center ställer den 30px höga brickan mitt
    emot textraden. */
