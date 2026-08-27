@@ -11,6 +11,33 @@ import { join } from "node:path";
 const RETIRED_CHINA_SLUGS: string[] = JSON.parse(
   readFileSync(join(process.cwd(), "data/retired-china-slugs.json"), "utf8"),
 );
+
+// Gamla Wix-produkter som INTE finns i headless-katalogen (2026-08-28).
+//
+// Wildcarden /product-page/:slug → /produkt/:slug längre ner skrevs för de 204
+// produkter vars slug var oförändrad vid migrationen. För allt annat gjorde den
+// skada: den omdirigerade till en /produkt/-sida som inte finns, så Google fick
+// en 308 rakt in i en 404 — sämre än en ren 404, eftersom den kostar två
+// genomsökningar och ändå rapporteras som "Hittades inte".
+//
+// MÄTT i Search Console-exporten 2026-08-28: av 174 URL:er med 404 var 131
+// exakt det här fallet (alla /product-page/…). Och det var inte bara
+// genomsökningsspill — de bar 5 080 exponeringar och 68 klick på 92 dagar,
+// alltså 6,7 % av sajtens exponeringar och 5,6 % av klicken, rakt in i väggen.
+//
+// Målen är kurerade per slug (nyckelordsmappning mot levande kategorier, sedan
+// granskade mot exponeringsdatan) i stället för en klumpomdirigering till
+// /alla-produkter: Google behandlar "många döda URL:er → en generisk sida" som
+// soft-404 och släpper rankingen ändå, och en relevant kategori landar dessutom
+// köparen på rätt hylla. Samma resonemang som RETIRED_REDIRECT_OVERRIDES ovan.
+const LEGACY_WIX_REDIRECTS: Record<string, string> = JSON.parse(
+  readFileSync(join(process.cwd(), "data/legacy-wix-redirects.json"), "utf8"),
+);
+const legacyWixRedirects = Object.entries(LEGACY_WIX_REDIRECTS).map(([slug, destination]) => ({
+  source: `/product-page/${slug}`,
+  destination,
+  permanent: true,
+}));
 const KEEP_LIVE = new Set<string>([]);
 
 // Utfasade produkter med FAKTISK Google-ranking/exponeringar pekas till närmaste
@@ -83,6 +110,11 @@ const nextConfig: NextConfig = {
       { source: "/product-page/%C3%A4ppelskalare-3-i-1-skalar-k%C3%A4rnar-ur-och-skivar", destination: "/produkt/appelskalare-3-i-1-skalar-karnar-skivar", permanent: true },
       { source: "/product-page/mini-soptunna-f%C3%B6r-bilen-550-ml-med-smart-trycklock", destination: "/produkt/mini-soptunna-bil-550-ml-trycklock", permanent: true },
       { source: "/product-page/vaggmonterad-solcellsdriven-uv-tandborststerilisator-automatisk-tankramspress", destination: "/produkt/vaggmonterad-uv-tandborststerilisator-solcell", permanent: true },
+
+      // Gamla Wix-produkter som inte finns kvar — MÅSTE ligga före wildcarden,
+      // annars skickar den dem till en /produkt/-sida som 404:ar. Se
+      // LEGACY_WIX_REDIRECTS överst för mätningen som motiverar listan.
+      ...legacyWixRedirects,
 
       // Wildcard: täcker de 204 produkter vars slug är oförändrad.
       { source: "/product-page/:slug", destination: "/produkt/:slug", permanent: true },
