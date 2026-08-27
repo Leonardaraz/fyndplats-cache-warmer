@@ -7,7 +7,9 @@
 // Everything is derived from lib/site-urls (the sitemap source of truth) plus
 // lightweight HTTP HEAD/GET crawls of the live site.
 import { SITE, getSiteUrls, type SiteUrl, type SiteUrlType } from "./site-urls";
-import { getPosts } from "./blog";
+import { getPosts, getPost, type FullPost } from "./blog";
+
+import { dodaProduktlankar, type DodLank } from "./blog-product-links";
 
 export type BrokenUrl = { url: string; status: number; type: SiteUrlType };
 export type MetaIssue = { url: string; missing: string[] };
@@ -32,6 +34,10 @@ export type SeoHealthReport = {
   blog: {
     total: number;
     newThisWeek: { slug: string; title: string; date: string }[];
+    /** Produktlänkar i artiklarna som pekar på slugs katalogen inte har kvar.
+     *  Sitemap-krypningen ovan kan aldrig hitta dem — den kollar bara URL:er
+     *  som LIGGER i sitemapen, och en död länk gör det per definition inte. */
+    dodaProduktlankar: DodLank[];
   };
   ping: {
     indexNowKeyLocation: string;
@@ -147,6 +153,24 @@ export async function buildSeoHealthReport(opts: ReportOptions = {}): Promise<Se
     .map((p) => ({ slug: p.slug, title: p.title, date: p.date }));
 
   // ── action items ──
+  // ── döda produktlänkar i blogginnehållet ──
+  // Artiklarna hårdkodar produkt-slugs. Byter en produkt slug eller försvinner
+  // ur katalogen blir länken en 308 eller 404 utan att något larmar. Mätt
+  // 2026-08-27: fem sådana länkar i 37 artiklar.
+  const levandeSlugs = new Set(
+    urls.filter((u) => u.type === "produkt").map((u) => u.path.replace("/produkt/", "")),
+  );
+  // getPosts() ger bara metadata — innehållet hämtas per inlägg med getPost().
+  // Det är 37 anrop mot en modul-cachad läsning av content/blog/*.md, alltså
+  // billigt, och rapporten körs en gång i veckan.
+  const helaInlagg = await Promise.all(posts.map((p) => getPost(p.slug)));
+  const blogLankar = dodaProduktlankar(
+    helaInlagg
+      .filter((p): p is FullPost => p !== null)
+      .map((p) => ({ slug: p.slug, innehall: p.contentHtml || p.contentText || "" })),
+    levandeSlugs,
+  );
+
   const issues: string[] = [];
   if (urls.length === 0) issues.push("Sitemap är tom — inga URL:er genererades (Wix-hämtning misslyckad?).");
   if (!sokExcluded) issues.push("/sok ligger i sitemap — sökresultatsidor ska inte indexeras.");
@@ -155,6 +179,12 @@ export async function buildSeoHealthReport(opts: ReportOptions = {}): Promise<Se
   }
   if (metaReport && metaReport.issues.length > 0) {
     issues.push(`${metaReport.issues.length} sidtyper saknar kritiska meta-taggar (description/og:image).`);
+  }
+  if (blogLankar.length > 0) {
+    issues.push(
+      `${blogLankar.length} produktlänkar i bloggen pekar på slugs som inte finns i katalogen ` +
+        `(${[...new Set(blogLankar.map((l) => l.artikel))].length} artiklar).`,
+    );
   }
 
   const healthy = issues.length === 0;
@@ -165,7 +195,7 @@ export async function buildSeoHealthReport(opts: ReportOptions = {}): Promise<Se
     sitemap: { total: urls.length, breakdown, sokExcluded },
     crawl: crawlReport,
     meta: metaReport,
-    blog: { total: posts.length, newThisWeek },
+    blog: { total: posts.length, newThisWeek, dodaProduktlankar: blogLankar },
     ping: {
       indexNowKeyLocation: `${SITE}/a3f9c2e7b6d8419fae20c5d731b8e4f6.txt`,
       weeklyCron: "0 3 * * 1 (måndagar 03:00 UTC)",

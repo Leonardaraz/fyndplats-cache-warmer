@@ -35,7 +35,7 @@ Lösningen: jobba med ljuskällor i tre nivåer.
 
 När taket är släckt och tre eller fyra mindre källor brinner sänker sig hela rummet i en varmare ton. Det kostar nästan ingenting att börja: ofta en eller två lampor till.
 
-[![Golvlampa med 3 hyllplan för E27-lampa, modern design i brunt](https://static.wixstatic.com/media/b379ce_f0eb7c05e8a044ce90e68271436e816a~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/golvlampa-med-hyllor "Se i butiken →")
+[![Golvlampa med 3 hyllplan för E27-lampa, modern design i brunt](https://static.wixstatic.com/media/b379ce_f0eb7c05e8a044ce90e68271436e816a~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/golvlampa-med-hyllor-156-cm "Se i butiken →")
 
 ## 2. Textil — fler lager, varmare material
 
