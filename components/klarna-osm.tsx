@@ -1,6 +1,6 @@
 "use client";
 // Klarna On-Site Messaging (OSM) — den officiella widgeten som visar
-// "Betala inom 30 dagar" eller "Från X kr/mån med Klarna" under priset på PDP.
+// "Betala inom 30/60 dagar" eller "Från X kr/mån med Klarna" under priset på PDP.
 //
 // KOMPLIANS: Kärnan varför vi migrerar från static KlarnaMessage → riktig OSM.
 // Delbetalning är räntebärande (21,9 % effektiv), och när vi själva skriver
@@ -32,7 +32,7 @@
 // ── Varför raden BYTER inte längre, den dyker upp (2026-08-26, andra vändan) ──
 // Nästa version lät statiska raden synas medan vi väntade, och widgeten ta över
 // när den landade. Höjden stämde, men bytet SYNTES: efter ett par sekunder gick
-// "Betala inom 30 dagar – räntefritt med Klarna" över till "Shoppa nu. Betala
+// "Betala senare – räntefritt med Klarna" över till "Shoppa nu. Betala
 // inom 60 dagar med Klarna. Läs mer", mitt framför besökaren.
 //
 // Att vänta bort det går inte. Mätt 2026-08-26 från serverhall med god
@@ -93,10 +93,9 @@ import { KlarnaMessage } from "./klarna-message";
 // en enda rad, "Shoppa nu. Betala inom 30/60 dagar med Klarna." + "Läs mer",
 // och ALDRIG någon legalnod. Brickan kommer separat som en IMAGE-nod.
 //
-// Notera: Klarna erbjuder 60 dagar i vissa beloppsband, 30 i andra. Vår
-// statiska rad säger alltid 30. Den underskattar alltså erbjudandet ibland —
-// medvetet lämnat, eftersom raden är vårt eget kreditpåstående utan Klarnas
-// juridiska ram runt sig och 30 dagar är sant i alla band.
+// Notera: Klarna erbjuder 60 dagar i vissa beloppsband, 30 i andra. Därför
+// anger vår statiska rad inget dagantal alls längre — den säger "Betala senare",
+// vilket är sant i båda banden. Se klarna-message.tsx för hela resonemanget.
 const PLACEMENT_KEY = "credit-promotion-badge";
 const LOCALE = "sv-SE";
 
