@@ -12,6 +12,39 @@ import type { AliExpressProduct } from "../import/types";
 import { landedCostEur, type AosomRow } from "./feed";
 
 /**
+ * Vilka bildpositioner som hämtas hem, 1-indexerat i feedens egen ordning.
+ *
+ * MÄTT 2026-08-27 på 30 produkter (tio ur vardera tredjedel av feeden) och 269
+ * handgranskade bilder. 125 av dem — 46 % — bär TYSK TEXT INBRÄND i pixlarna
+ * ("HOCHWERTIGES MATERIAL", "Empfohlenes Alter: 3-8 Jahre"). Den går inte att
+ * polera bort, och en svensk produktsida kan inte visa den.
+ *
+ * Andelen rena bilder per position:
+ *
+ *   pos 1  30/30   ← huvudbild, ren i SAMTLIGA
+ *   pos 2  30/30   ← livsstilsbild, ren i SAMTLIGA
+ *   pos 3  23/30   ← måttritning; oftast bara siffror, ibland tysk rubrik
+ *   pos 4   1/30   ┐
+ *   pos 5   1/30   ├ tyska funktionsgrafiker — 87 av 90 bilder
+ *   pos 6   2/30   ┘
+ *   pos 7   6/30
+ *   pos 8  24/30   ← detaljfoton: material, gångjärn, tyg, hjul
+ *   pos 9  27/29   ← detaljfoton
+ *
+ * Regeln räddar 134 av 144 rena bilder (93 %) och släpper in 15 tyska (10 % av
+ * det som behålls). Att också ta position 7 hade gett 97 % rena men dubblat
+ * skräpkvoten till 22 %; att kapa vid 3 hade gett bara 58 %.
+ *
+ * Mönstret är oberoende av var i feeden produkten ligger: 49 / 46 / 45 % tyska i
+ * början, mitten och slutet, och som mest en produkt av tio i skillnad per
+ * position. Regeln behöver alltså inte justeras för olika delar av sortimentet.
+ *
+ * Poleringen behöver granska position **3, 8 och 9**. Position 1 och 2 kan den
+ * hoppa över helt — och det är de två som blir huvudbild och delningsbild.
+ */
+export const RENA_BILDPOSITIONER = [1, 2, 3, 8, 9] as const;
+
+/**
  * Prefixet som skiljer en Aosom-artikel från en AliExpress-listning i
  * `supplierProductId`. Utan det skulle ett numeriskt Aosom-SKU en dag kunna
  * kollidera med ett AE-produkt-id — och dubblettspärren, synken och
@@ -30,6 +63,14 @@ export function isAosomSupplierProductId(id: string | undefined): boolean {
 
 /** Aosoms lager ligger i Neu Wulmstorf och Schwanewede — båda i Tyskland. */
 export const AOSOM_WAREHOUSE = "DE";
+
+export interface AosomBildval {
+  /**
+   * Positioner att hämta (1-indexerat). Saknas = RENA_BILDPOSITIONER.
+   * Skicka [1,2,3,4,5,6,7,8,9] för att ta allt (t.ex. vid felsökning).
+   */
+  positioner?: readonly number[];
+}
 
 export interface AosomFx {
   /** EUR → SEK, ur EUR_TO_SEK. */
@@ -54,7 +95,11 @@ export interface AosomFx {
  * varje marginalsiffra i butiken fel åt samma håll, och auktionen kan sälja
  * under inköp.
  */
-export function toImportProduct(row: AosomRow, fx: AosomFx): AliExpressProduct {
+export function toImportProduct(
+  row: AosomRow,
+  fx: AosomFx,
+  bildval?: AosomBildval,
+): AliExpressProduct {
   const landedSek = landedCostEur(row) * fx.eurToSek;
   const costUsd = round2(landedSek / fx.usdToSek);
   const title = cleanText(row.name);
@@ -65,7 +110,7 @@ export function toImportProduct(row: AosomRow, fx: AosomFx): AliExpressProduct {
     rawTitle: title,
     rawDescription: htmlToText(row.descriptionHtml),
     descriptionHtml: cleanHtml(row.descriptionHtml),
-    imageUrls: row.imageUrls,
+    imageUrls: valjBilder(row.imageUrls, bildval?.positioner),
     // EN variant per rad. Feedens `Psin` ser ut som en föräldranyckel men
     // grupperar relaterade varor, inte varianter — se feed.ts. Tom `options`
     // ger en produkt utan valaxlar i Wix (pipelinen skickar då options:undefined).
@@ -84,6 +129,21 @@ export function toImportProduct(row: AosomRow, fx: AosomFx): AliExpressProduct {
     specifications: buildSpecifications(row),
     features: bulletsToFeatures(row.bulletsHtml),
   };
+}
+
+/**
+ * Plockar ut de bildpositioner vi litar på. Se RENA_BILDPOSITIONER för mätningen.
+ *
+ * Ordningen bevaras (feedens egen), och positioner som inte finns hoppas tyst
+ * över — en produkt med åtta bilder i stället för nio är inget fel, den fanns i
+ * urvalet. En tom lista släpper igenom ALLT: hellre nio bilder med tysk text än
+ * en produkt utan bilder.
+ */
+export function valjBilder(urls: string[], positioner?: readonly number[]): string[] {
+  const vill = positioner ?? RENA_BILDPOSITIONER;
+  if (!vill.length) return urls;
+  const valda = urls.filter((_, i) => vill.includes(i + 1));
+  return valda.length ? valda : urls;
 }
 
 /**

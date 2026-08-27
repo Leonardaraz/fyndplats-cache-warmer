@@ -6,6 +6,8 @@ import {
   cleanText,
   aosomSupplierProductId,
   isAosomSupplierProductId,
+  valjBilder,
+  RENA_BILDPOSITIONER,
   AOSOM_WAREHOUSE,
 } from "./to-product";
 import { computePriceWithRules } from "../import/pricing";
@@ -107,6 +109,49 @@ describe("[BRAND NAME]-platshållaren", () => {
 
   it("cleanText kollapsar mellanrummet platshållaren lämnar efter sig", () => {
     expect(cleanText("Der [BRAND NAME] Tisch")).toBe("Der Tisch");
+  });
+});
+
+describe("bildvalet", () => {
+  const nio = Array.from({ length: 9 }, (_, i) => `https://img.aosomcdn.com/${i + 1}.jpg`);
+
+  it("tar 1, 2, 3, 8 och 9 — de positioner där bilden mätbart sällan är tysk", () => {
+    expect(RENA_BILDPOSITIONER).toEqual([1, 2, 3, 8, 9]);
+    expect(valjBilder(nio)).toEqual([nio[0], nio[1], nio[2], nio[7], nio[8]]);
+  });
+
+  it("hoppar över 4-7 — 87 av 90 av dem bar tysk text i granskningen", () => {
+    const valda = valjBilder(nio);
+    for (const i of [3, 4, 5, 6]) expect(valda).not.toContain(nio[i]);
+  });
+
+  it("behåller feedens egen ordning", () => {
+    expect(valjBilder(nio)).toEqual([...valjBilder(nio)].sort(
+      (a, b) => nio.indexOf(a) - nio.indexOf(b),
+    ));
+  });
+
+  it("klarar en produkt med färre än nio bilder", () => {
+    expect(valjBilder(nio.slice(0, 8))).toEqual([nio[0], nio[1], nio[2], nio[7]]);
+    expect(valjBilder(nio.slice(0, 3))).toEqual([nio[0], nio[1], nio[2]]);
+  });
+
+  it("släpper igenom ALLT hellre än att lämna produkten utan bilder", () => {
+    // Positioner som inte finns → hellre nio tyska bilder än noll.
+    expect(valjBilder(nio, [50, 60])).toEqual(nio);
+    expect(valjBilder(nio, [])).toEqual(nio);
+    expect(valjBilder([], [1, 2])).toEqual([]);
+  });
+
+  it("går att köra med egna positioner", () => {
+    expect(valjBilder(nio, [1, 9])).toEqual([nio[0], nio[8]]);
+    expect(valjBilder(nio, [1, 2, 3, 4, 5, 6, 7, 8, 9])).toEqual(nio);
+  });
+
+  it("toImportProduct använder regeln", () => {
+    const p = toImportProduct(rad({ imageUrls: nio }), FX);
+    expect(p.imageUrls).toHaveLength(5);
+    expect(toImportProduct(rad({ imageUrls: nio }), FX, { positioner: [1] }).imageUrls).toEqual([nio[0]]);
   });
 });
 

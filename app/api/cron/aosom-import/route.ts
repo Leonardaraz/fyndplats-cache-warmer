@@ -34,6 +34,10 @@
 //   ?skipFreightHeavy=1  hoppa över de 1 175 där frakten kostar mer än varan
 //   ?sku=845-030CG,...   kör bara dessa (rökprov och riktad omkörning)
 //   ?delayMs=250         paus mellan produkter om Wix börjar svara 429
+//   ?bilder=alla         hämta alla nio bilderna (default: 1,2,3,8,9 — se
+//                        RENA_BILDPOSITIONER; 46 % av feedens bilder bär tysk
+//                        text inbränd, och den sitter mätbart på 4-7)
+//   ?bilder=1,2,9        egna positioner
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -73,6 +77,12 @@ async function handle(req: NextRequest) {
   const after = req.nextUrl.searchParams.get("after") ?? undefined;
   const skipFreightHeavy = boolParam(req, "skipFreightHeavy");
   const delayMs = intParam(req, "delayMs", 0);
+  const bilderParam = (req.nextUrl.searchParams.get("bilder") ?? "").trim();
+  const bildpositioner = bilderParam === "alla"
+    ? [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    : bilderParam
+      ? bilderParam.split(",").map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 9)
+      : undefined;
   const onlySkus = (req.nextUrl.searchParams.get("sku") ?? "")
     .split(",")
     .map((s) => s.trim())
@@ -86,6 +96,7 @@ async function handle(req: NextRequest) {
       skipFreightHeavy,
       delayMs,
       onlySkus: onlySkus.length ? onlySkus : undefined,
+      bildpositioner: bildpositioner?.length ? bildpositioner : undefined,
       timeBudgetMs: TIME_BUDGET_MS,
     });
 

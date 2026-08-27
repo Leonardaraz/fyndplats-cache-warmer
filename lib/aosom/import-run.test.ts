@@ -248,6 +248,29 @@ describe("läget", () => {
   });
 });
 
+describe("bildvalet i körningen", () => {
+  const nio = Array.from({ length: 9 }, (_, i) => `https://img.aosomcdn.com/${i + 1}.jpg`);
+
+  it("importerar bara de fem positioner regeln pekar ut", async () => {
+    const d = deps([rad("A-1", { imageUrls: nio })]);
+    await runAosomImport(d, { dryRun: false });
+    expect(d.importerade[0].imageUrls).toEqual([nio[0], nio[1], nio[2], nio[7], nio[8]]);
+  });
+
+  it("remainingImages räknar det som FAKTISKT hämtas, inte allt i feeden", async () => {
+    const s = await runAosomImport(deps([rad("A-1", { imageUrls: nio }), rad("A-2", { imageUrls: nio })]));
+    expect(s.remainingImages).toBe(10);
+    expect(s.bildpositioner).toEqual([1, 2, 3, 8, 9]);
+  });
+
+  it("går att köra med alla nio", async () => {
+    const d = deps([rad("A-1", { imageUrls: nio })]);
+    const s = await runAosomImport(d, { dryRun: false, bildpositioner: [1, 2, 3, 4, 5, 6, 7, 8, 9] });
+    expect(d.importerade[0].imageUrls).toEqual(nio);
+    expect(s.bildpositioner).toHaveLength(9);
+  });
+});
+
 describe("tomt fall", () => {
   it("en feed utan fraktbara rader ger en tom, felfri sammanfattning", async () => {
     const s = await runAosomImport(deps([rad("A-1", { qty: 0 })]));

@@ -40,7 +40,7 @@ import {
   isShippableToSe,
   type AosomRow,
 } from "./feed";
-import { toImportProduct, aosomSupplierProductId, type AosomFx } from "./to-product";
+import { toImportProduct, aosomSupplierProductId, RENA_BILDPOSITIONER, type AosomFx } from "./to-product";
 
 /** Rått läge, alltid. Se modulhuvudet — det är det som håller produkterna osynliga. */
 export const RAW_FLAGS: FeatureFlags = { qualityMode: "raw", enableAI: false };
@@ -70,6 +70,12 @@ export interface AosomImportOptions {
   after?: string;
   /** Paus mellan produkter i ms. 0 = ingen. Wix-429 hanteras redan med backoff. */
   delayMs?: number;
+  /**
+   * Bildpositioner att hämta hem (1-indexerat i feedens ordning). Saknas =
+   * RENA_BILDPOSITIONER [1,2,3,8,9] — de positioner där bilden mätbart sällan
+   * bär tysk text. Skicka alla nio för att ta hem allt.
+   */
+  bildpositioner?: readonly number[];
 }
 
 export interface AosomImportSummary {
@@ -93,8 +99,10 @@ export interface AosomImportSummary {
   /** Varför körningen slutade. */
   stoppedBy: "klart" | "limit" | "tidsbudget";
   errors: { sku: string; error: string }[];
-  /** Bilder som skulle importeras för det som återstår — kostnadssignal. */
+  /** Bilder som faktiskt hämtas hem för det som återstår — kostnadssignal. */
   remainingImages: number;
+  /** Bildpositioner körningen använde. */
+  bildpositioner: number[];
 }
 
 export interface AosomImportDeps {
@@ -121,6 +129,7 @@ export async function runAosomImport(
   const limit = Math.max(1, opts.limit ?? DEFAULT_LIMIT);
   const timeBudgetMs = opts.timeBudgetMs ?? DEFAULT_TIME_BUDGET_MS;
   const now = deps.now ?? (() => Date.now());
+  const bildpositioner = opts.bildpositioner ?? RENA_BILDPOSITIONER;
   const start = now();
 
   const feed = await deps.fetchFeed();
@@ -163,7 +172,11 @@ export async function runAosomImport(
     cursor: null,
     stoppedBy: "klart",
     errors: [],
-    remainingImages: queue.reduce((s, r) => s + r.imageUrls.length, 0),
+    remainingImages: queue.reduce(
+      (s, r) => s + toImportProduct(r, deps.fx, { positioner: bildpositioner }).imageUrls.length,
+      0,
+    ),
+    bildpositioner: [...bildpositioner],
   };
 
   for (const row of queue) {
@@ -179,7 +192,7 @@ export async function runAosomImport(
     }
 
     summary.attempted++;
-    const product = toImportProduct(row, deps.fx);
+    const product = toImportProduct(row, deps.fx, { positioner: bildpositioner });
 
     if (dryRun) {
       summary.imported++;
