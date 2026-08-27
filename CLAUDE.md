@@ -238,6 +238,96 @@ får inte lämnas åt poleringen.
 frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
 kör svepet med `?skipFreightHeavy=1` och ta dem för sig.
 
+## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
+
+Regeln är **`pris = 1,20 × landedCostSek`**, uppåt till närmaste 9 (`charm9`).
+Ingen fast del, ingen trappa, inga kategorimultiplikatorer. Satt 2026-08-27.
+
+```
+defaultMultiplier 1.20   fixedSurchargeSek 0   categoryMultipliers {}
+tiersEnabled false       rounding charm9
+```
+
+Marginalen blir **17 % överallt** — p10, median och p90 är alla 17 % över hela
+sortimentet, så ingen vara kan råka hamna på 4 %. Ändringen gäller bara nya
+importer; befintliga priser står kvar tills någon räknar om dem.
+
+### Var talet kommer ifrån
+
+Inte från en marginalambition — från mätning. **dealproffsen.se publicerar
+Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD**, så exakt matchning är
+mekanisk. Slagning på 70 spridda artiklar gav **55 exakta träffar**
+(`https://www.dealproffsen.se/sok?controller=search&s=<SKU>` — WebFetch får 403,
+curl med vanlig browser-UA fungerar).
+
+| multiplikator | billigast på | marginal | vinst där vi vinner |
+|---|---:|---:|---:|
+| 1,18 | 39/55 | 15 % | 9 903 kr |
+| **1,20** | **39/55** | **17 %** | **10 943 kr** |
+| 1,25 | 30/55 | 20 % | 11 337 kr |
+| 1,28 + 60 *(gammalt)* | 18/55 | 25 % | 9 962 kr |
+
+1,25 tjänar mest på pappret men tappar en tredjedel av försprånget så fort
+marknaden ligger 5 % under mätningen — och den gör den, eftersom underlaget
+oftast är EN återförsäljare. 1,20 håller (30/55 vid −5 %, mot 1,25:s 21/55).
+
+### Tre fällor som redan kostat
+
+1. **Den fasta delen drog åt fel håll.** "Lite mer på billiga saker" känns rätt
+   och är fel: konkurrentens påslag på vår kostnad är **1,12× på den billigaste
+   tredjedelen** mot 1,33× på resten. Det finns minst utrymme just där `+60`
+   lade mest. Varje rad i sveptestet med fast del är sämre än samma
+   multiplikator utan.
+2. **Varje fallande trappa inverterar priset vid gränsen** (799 kr kostnad →
+   1 139 kr pris, 801 kr → 1 089 kr). Bygg ingen trappa. `tiers` ligger kvar i
+   konfigen men avstängd.
+3. **Kategorimultiplikatorer upphäver regeln tyst.** `Husdjur: 2,5` hade satt
+   60 % marginal på PawHut-sortimentet — en stor del av Aosom. Rensade.
+
+### Referenspriser är fiktion — båda hållen
+
+Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på 845-030CG där idealo
+listar samma artikel för 189,50 € (2,3×). Ett marknadsankare byggt på den
+siffran prissätter efter fantasi — avblåst.
+
+Dealproffsens listpris likaså: **55 av 55 produkter står som "Kampanj"** med
+median 24 % rabatt. En kampanj som alltid pågår är inget pris. Kampanjpriset ÄR
+priset, och det är det som ska jämföras mot.
+
+### Varför vi förlorar på billiga varor — och vad som faktiskt löser det
+
+Konkurrenten är inte billig. Deras påslag på **själva varan** är 1,96× i median
+— ett vanligt butikspåslag. Skillnaden är **vår frakt**: Aosom fakturerar per
+paket och viktstyrt, vilket blir en platt tull på 240–290 kr per vara i spannet
+2–10 kg. På en vara som kostar 400 kr är det +65 %; på en som kostar 3 000 kr
+är det +9 %.
+
+| vår fraktandel av inköpet | deras pris ÷ vår kostnad | deras pris ÷ bara varan |
+|---|---:|---:|
+| under 25 % | 1,32 | 1,75 |
+| 25–40 % | 1,28 | 1,92 |
+| över 40 % | **1,13** | **2,07** |
+
+Deras kostnad rör sig inte alls med vår frakt: de har **lager i Sverige**
+("Dealproffsen AB är ett svenskt företag med lager i Sverige", varje vara
+"Lagervara", 1–2 dagars leverans) och tar hem på pall.
+
+Gränsen går vid ungefär **900 kr i inköp**: under den är vi billigast i 29–50 %
+av fallen, över den i 92–100 %.
+
+**Räknat med frakten satt till 30 kr per vara i stället för per paket blir vi
+billigast på 55 av 55.** Det största draget i hela Aosom-affären är alltså inte
+prisregeln utan att förhandla samlad frakt. Tills dess är urvalet skyddet:
+`?skipFreightHeavy=1` på svepet.
+
+### Vad som INTE är fixat
+
+`computeProfit` i `lib/import/pricing.ts` drar inte av momsen ur kostnaden och
+är oense med `lib/auction/seed.ts#netSupplierCost`. Lönsamhetsöversikten
+underskattar därför vinsten med 25 % av inköpet. Samma fälla finns olagad för
+AliExpress-köp på Business Purpose, som faktureras netto men sparas i
+`landedCostSek` som läses som brutto (lagat för Aosom i `1287a0a`).
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
