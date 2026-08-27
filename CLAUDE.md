@@ -305,7 +305,8 @@ skillnad och anropade därför aldrig Wix — den hade aldrig gjort något. Ett 
 i `client-media.test.ts` fäller om fältet försvinner igen.
 
 `/api/cron/aosom-image-repair` städar upp efteråt (`lib/aosom/image-repair.ts`,
-workflow-lägena `bildfix-torr` och `bildfix`). Den laddar om ALLA fem bilderna på
+workflow-lägena `bildfix-torr` och `bildfix`). Den **läser tillbaka och räknar** efter
+varje skrivning — se nästa avsnitt för varför. Den laddar om ALLA fem bilderna på
 en produkt som har för få — en wixstatic-adress avslöjar inte vilken källbild den
 kom från, så det går inte att veta vilka som saknas. Två spärrar:
 
@@ -314,6 +315,38 @@ kom från, så det går inte att veta vilka som saknas. Två spärrar:
   att göras sämre.
 - Bara `media`, via `setProductMedia` med `fieldMask: ["media"]`. Synlighet,
   varianter, priser och texter är orörda — ett utkast kan inte råka publiceras.
+
+### Reparationen rapporterade 524 av 524 lagade. 214 produkter saknade ändå bilder
+
+Första skarpa bildfixen (2026-08-27, 12 varv) sa **524 trasiga, 524 lagade, noll
+missar**. Mätt i Wix efteråt: **214 av 750 Aosom-utkast hade fortfarande färre än
+fem bilder**, 207 av dem exakt fyra.
+
+Stickprov visar samma sak varje gång: **fem filer ligger uppladdade och `READY` i
+Media Manager, och noll av dem sitter på produkten.** Produkten bär kvar sina
+gamla fyra bilder och sin gamla revision. Mönstret är jämnt över hela körningen
+(22:01 → 22:38), så det är ingen degradering över tid.
+
+Fyra förklaringar är **uteslutna med mätning**, inte med resonemang:
+
+| hypotes | motbevis |
+|---|---|
+| Fel kroppsform i `setProductMedia` | Manuell PATCH med exakt samma kropp tog en produkt 4 → 5 |
+| Föråldrad revision | Wix svarar **409 `INVALID_REVISION`** och funktionen kastar |
+| Dubbletter i källan | De fem källbilderna har fem olika md5 |
+| För få bilder i feeden | Feeden ger fem rena positioner på 6 014 av 6 057 rader |
+
+Mekanismen är alltså **fortfarande oförklarad**. Det som däremot är lagat är att
+felet var osynligt: `runImageRepair` läser nu tillbaka produkten efter varje
+skrivning och räknar `reparerade` först när antalet bilder FAKTISKT steg. Tar
+skrivningen inte blir det `misslyckade` + en rad i `errors` med artikelnumret.
+Workflowen läste heller aldrig `misslyckade` — den gör det nu, och skriver ut
+`errors` per varv.
+
+☠️ **Ett svar utan fel är inget kvitto.** Tredje gången samma klass av bugg biter
+här: recensionsbilderna (2026-08-22), `Promise.allSettled` i `media.ts`
+(2026-08-27), och nu en skrivning som svarar OK utan att göra något. Regeln är
+densamma varje gång — **räkna efter, lita inte på svaret.**
 
 ### Att polera en Aosom-produkt
 
@@ -410,6 +443,71 @@ av fallen, över den i 92–100 %.
 billigast på 55 av 55.** Det största draget i hela Aosom-affären är alltså inte
 prisregeln utan att förhandla samlad frakt. Tills dess är urvalet skyddet:
 `?skipFreightHeavy=1` på svepet.
+
+### B2B-kontot är en rabatt på varan och ett straff på frakten (mätt 2026-08-27)
+
+Leonard lade samma bod (`845-030CG`) i kassan på aosom.de två gånger, utloggad och
+inloggad på B2B-kontot. Utloggad: 207,80 €. Inloggad: 210,39 €. **Kontot gjorde
+varan dyrare.**
+
+Feed-raden förklarar varför, och fraktsiffran står ordagrant i kassan:
+
+```
+Wholesale Price          123.01 EUR
+SE Ship Fee               84.02 EUR   ← exakt talet i B2B-kassan
+Shipping Cost Germany     39.38 EUR
+Weight (incl. Package)    50.00 kg
+Package                        2
+```
+
+Det avgörande talet är inte 84 utan **39,38**. Samma order, samma konto, till en
+TYSK adress kostar frakten 39,38 € — medan en utloggad konsument betalar 7,90 €
+på exakt den rutten. **B2B-frakten är 5× konsumentfrakten inom Tyskland.** Det
+handlar alltså inte om avståndet till Sverige: Aosom subventionerar konsument-
+frakten (den ligger inbakad i 199,90 €) och fakturerar B2B den råa fraktsedeln.
+
+Netto mot netto — B2B-fakturan är netto, konsumentpriset innehåller 19 % MwSt:
+
+| | vara | frakt | **netto** |
+|---|---:|---:|---:|
+| Konsument → DE | 167,98 | 6,64 | **174,62 €** |
+| B2B → DE | 126,37 | 39,38 | **165,75 €** |
+| B2B → SE | 126,37 | 84,02 | **210,39 €** |
+
+Rabatten på själva varan är verklig (−25 %) och räcker så länge paketet stannar i
+Tyskland. Till Sverige blir kontot **20 % dyrare än att vara privatperson**. De
+207,80 € såg jämna ut bara för att konsumentpriset bär tysk moms vi aldrig får
+tillbaka — kassan underdriver problemet.
+
+Och det gäller sortimentet, inte bara den boden. Över feedens 6 056 rader med
+både SE- och DE-frakt:
+
+| | SE | DE |
+|---|---:|---:|
+| Medianfrakt | 26,40 € | 8,59 € |
+| Frakt ÷ inköp (median) | **40 %** | **18 %** |
+| Rader där frakten kostar mer än varan | **1 283** | **9** |
+
+SE-frakten är **3,07× DE-frakten** (median per rad). "Frakten kostar mer än
+varan" är i praktiken uteslutande ett Sverigeleverans-problem.
+
+Vad det är värt, kört mot de 55 dealproffsen-matchningarna vid oförändrad
+prisregel och oförändrad 17 % marginal:
+
+| frakt | billigast på |
+|---|---:|
+| SE-frakt (som idag) | 39/55 |
+| **DE-frakt** | **54/55** |
+| 30 kr/vara | 55/55 |
+
+De 30 kronorna ovan är ett räkneexempel. **39,38 € är ett pris Aosom redan tar**,
+och det ensamt tar oss från 39 till 54 av 55 utan att röra marginalen. Draget är
+samlad frakt eller en tysk leveranspunkt vi vidarebefordrar från — inte en ny
+prisregel.
+
+☠️ **Köp inte som privatperson som kringgång.** Ingen B2B-faktura, tysk moms som
+inte är avdragsgill i Sverige (bara sökbar via Skatteverket, långsamt), ingen
+omvänd skattskyldighet — och det skalar inte till 5 566 artiklar.
 
 ### Vad som INTE är fixat
 

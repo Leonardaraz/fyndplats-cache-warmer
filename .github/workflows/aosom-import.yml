@@ -193,7 +193,7 @@ jobs:
             fi
 
             slut=$(( $(date +%s) + 300 * 60 ))
-            varv=0; lagade=0; trasiga=0; missar=0
+            varv=0; lagade=0; trasiga=0; missar=0; fel=0
 
             while :; do
               varv=$(( varv + 1 ))
@@ -207,13 +207,19 @@ jobs:
               t=$(printf '%s' "$svar" | jq -r '.trasiga')
               l=$(printf '%s' "$svar" | jq -r '.reparerade')
               mi=$(printf '%s' "$svar" | jq -r '.kvarstaendeMissar')
+              # misslyckade LÄSTES INTE FÖRUT. Bildfixen 2026-08-27 rapporterade
+              # 524 lagade av 524 medan 214 produkter fortfarande saknade bilder —
+              # ett fel som varken loggen eller markörfilen kunde visa.
+              f=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
               kvar=$(printf '%s' "$svar" | jq -r '.kvar')
               markor=$(printf '%s' "$svar" | jq -r '.cursor // ""')
-              trasiga=$(( trasiga + t )); lagade=$(( lagade + l )); missar=$(( missar + mi ))
-              echo "varv ${varv}: ${t} trasiga, ${l} lagade, ${mi} bilder kvar att hämta, ${kvar} kvar"
+              trasiga=$(( trasiga + t )); lagade=$(( lagade + l ))
+              missar=$(( missar + mi )); fel=$(( fel + f ))
+              echo "varv ${varv}: ${t} trasiga, ${l} lagade, ${f} misslyckade, ${mi} bilder kvar att hämta, ${kvar} kvar"
+              [ "$f" -gt 0 ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.sku): \(.error)"'
 
-              printf '%s' "$svar" | jq '{cursor, kvar, trasiga, reparerade, kvarstaendeMissar,
-                uppdaterad: (now | todate)}' > "$RSTATE"
+              printf '%s' "$svar" | jq '{cursor, kvar, trasiga, reparerade, misslyckade,
+                kvarstaendeMissar, uppdaterad: (now | todate)}' > "$RSTATE"
               git add "$RSTATE"
               git diff --cached --quiet || {
                 git commit -q -m "Aosom bildfix: markör ${markor:-klart} (${kvar} kvar)"
@@ -230,6 +236,7 @@ jobs:
               echo "- Varv: **${varv}**"
               echo "- Produkter med för få bilder: **${trasiga}**"
               echo "- Lagade: **${lagade}**"
+              echo "- Misslyckade skrivningar: **${fel}**"
               echo "- Bilder som fortfarande inte kom fram: **${missar}**"
               echo "- Kvar att gå igenom: **$(jq -r '.kvar // "?"' "$RSTATE" 2>/dev/null)**"
             } >> "$GITHUB_STEP_SUMMARY"
