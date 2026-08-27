@@ -61,7 +61,7 @@ export function parseBulkImportCsv(input: string): ParsedCsv {
   const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
   const separator = countUnquoted(firstLine, ";") > countUnquoted(firstLine, ",") ? ";" : ",";
 
-  const records = parseRecords(text, separator);
+  const records = parseCsvRecords(text, separator);
   if (records.length === 0) {
     return { rows: [], errors: ["CSV-filen är tom"], totalRows: 0 };
   }
@@ -136,7 +136,13 @@ export function parseBulkImportCsv(input: string): ParsedCsv {
 // Intern parser. Itererar tecken för tecken — undviker dependency på papaparse.
 // ---------------------------------------------------------------------------
 
-function parseRecords(input: string, separator: string): string[][] {
+/**
+ * Tokeniserar CSV till råa fält-rader. Exporterad för att Aosom-feeden
+ * (lib/aosom/feed.ts) ska dela EXAKT samma tokenizer — feedens beskrivningar
+ * innehåller citerade fält med både kommatecken och radbrytningar, och en andra
+ * handrullad parser i repot vore en bugg som väntar på att hända.
+ */
+export function parseCsvRecords(input: string, separator: string): string[][] {
   const records: string[][] = [];
   let current: string[] = [];
   let field = "";

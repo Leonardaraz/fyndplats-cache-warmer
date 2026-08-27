@@ -23,6 +23,11 @@
   - ⚠️ **`fields` måste med på VARJE cursor-sida.** `cursor` får inte samsas med `filter`/`sort` (→ `400 INVALID_CURSOR`), men `fields` är tillåtet och **måste** upprepas. Utelämnar du det på sida 2+ kommer fältet tillbaka **tomt i stället för att fela** — ett katalogsvep över 8 sidor rapporterade då 650 produkter med noll bilder, inklusive produkter som just patchats till 5. Tyst fel, trovärdig siffra: verifiera alltid mot en produkt du vet svaret för innan du litar på ett svep.
 - **Rör inte priset.** Importen sätter priset (se avrundningsregeln nedan) och prissättningen är Leonards beslut, inte poleringens. Räkna ingen marginal och höj inget pris på eget bevåg. *(Marginalgrinden togs bort 2026-08-12 på Leonards begäran.)*
 - **Mappningsraden i `FyndplatsMappings`** (samma `_id` som produktens Wix-id, hämtas med `POST /wix-data/v2/items/query`) bär `shipsFromCountries`, `warehouseClass`, `supplierName` och `variants[].shipFrom`. De styr **EU-lager-ribbonen** och failover-logiken — de ska **aldrig skrivas ut i produkttexten**.
+  - ⚠️ **Raden överlever en omskriven beskrivning om du bygger spec-tabellen ur den råa.**
+    Nio publicerade produkter bar `Skickas från · Spanien/Polen` som sista rad i spec-tabellen
+    2026-08-27 — inte för att någon skrev in den, utan för att den råa spec-listan användes som
+    mall och sista raden aldrig ströks. Sök på `Skickas från` i `plainDescription` i slutkollen;
+    ribbonen är den enda plats där avsändarlandet får synas.
   - 🔒 **Skriv ALDRIG ut avsändarland eller lagerland** (Leonards regel 2026-08-15) — inte i beskrivningen, inte i spec-tabellen, inte i meta. Råimporten lägger ofta in en rad *"Skickas från: Polen"* i spec-listan; den **stryks** när du skriver om beskrivningen. Kunden köper av Fyndplats, och ribbonen säger redan det som betyder något: att leveransen går från EU. *(Raden här sa tidigare motsatsen — att lagerlandet skulle stå i spec-tabellen — och stod kvar i strid med regeln till 2026-08-22.)*
   - ⚠️ **Raden är eventually consistent.** En `query` direkt efter en skrivning kan ge de GAMLA värdena — skrivningen gick ändå fram. Läs om efter ett annat anrop innan du drar slutsatsen att PATCH:en inte bet, och **skriv aldrig om den med ett "typat" värde** (`setFieldOptions.value = {boolValue:false}`): docs-artikelns HTTP-exempel visar den formen, men gatewayen sparar då wrapper-objektet ordagrant och fältet blir `{boolValue:false}` i stället för `false`. Otypat värde (`value: false`) är rätt. *(Korrumperade `needsAiPolish` 2026-08-22; rättades med en full `PUT /wix-data/v2/items/{id}`.)*
 - En PATCH är partiell: **bara fält du skickar ändras**. Skicka aldrig `options`/`variantsInfo` om du inte avser röra varianterna.
@@ -235,6 +240,19 @@ undantag — det är normalläget för AliExpress-listningar.
 | Parasoll | "protección solar total" | Ingen UPF-siffra finns någonstans |
 | Kompostkvarn | "106 dB for quieter performance" | 106 dB är motorsågsnivå — tystare än bensin, inte tyst |
 
+> ⚠️ **Att leverantörens kort INTE nämner en egenskap bevisar ingenting.** Ryggsäcken
+> `311c8c4e` (2026-08-26): leverantörens ryggpanels-kort visade EVA-skum, länddyna och
+> luftkanaler, och nämnde aldrig någon ram. Jag drog slutsatsen "ingen aluminiumram" och skrev
+> in den i brödtext, spec-tabell OCH FAQ — som skillnaden mot systerprodukten Rock 2.0.
+> Tillverkarens egen sida hade ett kort med rubriken *"HIGH QUALITY FABRIC & ALUMINIUM FRAME
+> STRUCTURE"*: ramen finns, den är **insydd** mot ryggpartiet. Den riktiga skillnaden mot
+> Rock 2.0 var att dess ram är avtagbar.
+>
+> **Regel:** skriv aldrig ut en NEGATION ("saknar ram", "utan ventil", "ingen timer") på
+> grundval av att leverantören inte nämnde den. Ett kort visar det säljaren valde att visa.
+> En negation kräver samma verifiering som ett positivt påstående — helst tillverkarens
+> specifikation.
+
 **Arbetsgång:**
 
 1. **Läs specen mot bilderna.** Leverantörens egna bilder motsäger ofta deras egen
@@ -253,6 +271,37 @@ undantag — det är normalläget för AliExpress-listningar.
 6. **Marknadsföringsnamnet är inte produkttypen.** Kolla vad varan *är* innan du
    döper den. En 26 cm steglängd och sittande användning gör den inte till en
    crosstrainer, hur mycket leverantören än kallar den det.
+7. **Skriv inte in hårdvarudetaljer som varken text eller bild stöder.** De två
+   föregående reglerna handlar om att leverantören ljuger. Den här handlar om oss:
+   en trovärdig liten detalj är lätt att skriva och nästan omöjlig att upptäcka i
+   korrekturet, för den *låter* som något man läst i specen.
+   `f0e0ee14` (smal hurts, 2026-08-26) fick "kullagrade skenor" i inledningen, en h2,
+   spec-tabellen OCH meta description. Ingenstans i listningen stod det. Zoomar man in
+   på leverantörens bild av de öppna lådorna syns tvådelade **vitlackerade
+   rullskenor** — inte kullager (som är tredelade, olackerade och har synlig kulbana).
+   Samma bild bar däremot belägg för allt annat i texten.
+   **Regel:** varje mätvärde och varje mekanikord ska gå att peka på i en källa. Kan du
+   inte peka — skriv det generiska ordet ("metallskenor") i stället för det precisa.
+8. **Står etiketten mot ritningen — mät ritningen.** Leverantörens måttbilder är
+   ortografiska: proportionerna stämmer även när textetiketterna inte gör det. Har du
+   ETT mått du litar på i samma bild kan du räkna ut alla andra och avgöra saken
+   själv, i stället för att välja mellan två påståenden.
+   `2ad9b84b` (låg hundgrind, 2026-08-26): höjdpilen var märkt **"25 cm"**, medan
+   titel och spec sa 45 cm. Grindsektionen i samma bild var måttsatt 61 cm och mätte
+   863 px → 14,15 px/cm; höjdpilen spände 614 px = **43,4 cm**. Etiketten var alltså
+   fel, inte specen. Skillnaden var inte kosmetisk: 25 cm är ett trappsteg, 45 cm är
+   en grind.
+   Mät på leverantörens ORIGINALBILD, inte på ett omkodat utsnitt, och tröskla bort
+   strökorn (`rad >= 8 px`) — annars drar JPEG-bruset ut bounding-boxen till hela
+   bilden.
+
+   > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma
+   > produkt hade rubriken *"Diferentes extensiones para aberturas de: **-XX-XXcm**"* —
+   > en platshållare som gått rakt ut i produktion. Ser du en sådan: sluta lita på
+   > siffrorna i den bildserien och verifiera var och en. Där fanns också ett andra
+   > fel — bildens steg-tabell började på 66 cm medan titeln sa 67. Två källor som
+   > säger olika om en MINSTA bredd → ta den HÖGRE (regel 3 i konservativ riktning):
+   > säger vi 66 och kundens öppning är 66,5 köper hen något som inte passar.
 
 > 🔒 **Rättelsen går in i löptexten, aldrig som brasklapp.** Skriv den sanna uppgiften
 > i stycket och i spec-tabellen — inte *"leverantören påstår X men…"*. Se
@@ -277,6 +326,23 @@ Avgör vilka varianter som faktiskt ska säljas **innan** Steg 7 — annars skri
 2. **Ta bort döda varianter NU:** en variant som är **phantom** (ingen `supplierVariantId`) ELLER **slut** (`inStock:false`) ska bort — valet, variantraden och (i Steg 9) dess bilder. Full PATCH-mekanik + "delade-marknadsbilder-ljuger"-fällan står i **Steg 11C**.
 
 3. **Blir bara EN variant kvar → kollapsa till enkel-variant-produkt** direkt (inte en option med ett enda val): `options:[]` + `variantsInfo.variants:[{ id:<kvar>, choices:[], sku, price, inventoryStatus }]`.
+
+4. 💰 **Billigaste varianten ska ligga FÖRST i valen** (Leonards regel 2026-08-26). Wix visar det första valet förvalt, så det är dess pris kunden möter — och ett förvalt dyrt val får produkten att se dyrare ut än den är. Sortera `options[].choicesSettings.choices[]` **stigande efter variantens pris** och skicka `options` + `variantsInfo` verbatim (och `visible` explicit — en draft ska förbli draft).
+
+   ```js
+   // lagsta pris per choiceId, sedan stabil sortering
+   const pris = {};
+   for (const v of variantsInfo.variants)
+     for (const c of (v.choices || [])) {
+       const cid = c.optionChoiceIds.choiceId, kr = Number(v.price.actualPrice.amount);
+       if (pris[cid] === undefined || kr < pris[cid]) pris[cid] = kr;
+     }
+   val.sort((a, b) => (pris[a.choiceId] === pris[b.choiceId] ? 0 : pris[a.choiceId] - pris[b.choiceId]));
+   ```
+
+   Ordningen påverkar **bara** presentationen: `choiceId` är oförändrat, så `linkedMedia`, lagerposter och mappningens `wixVariantId` följer med av sig själva. Verifiera ändå att antalet `linkedMedia` är detsamma före och efter.
+
+   > **Katalogsvep 2026-08-26:** 29 av 226 flervariantprodukter hade ett dyrare val först — värst en solpanel som visade **1 439 kr** i stället för sina **459**, ett fräsbord på 1 969 mot 1 079 och en paviljong på 4 949 mot 3 749. Alla rättade. Sveps om med `POST /stores/v3/products/query-variants` (pris per variant, ~1 900 varianter på 19 anrop) plus `search` (valordningen) — **`search` returnerar INTE `variantsInfo`**, så priserna måste hämtas den vägen.
 
 Nu — och först nu — skriver Steg 7 (copy), Steg 8 (SKU) och Steg 9 (bilder/spec-kort) **bara** för det som är kvar. Ingen omskrivning, inga spec-kort som slängs.
 
@@ -307,6 +373,18 @@ Bygg innehållet:
     *soft 404*, alltså sämre än en ärlig 404.
 - **title-tagg:** ≤ ~60 tecken, fokussökord först, ev. `| Fyndplats`.
 - **meta description:** ≤ ~155 tecken, nytta + sökord, **inga overifierade påståenden** (ingen "fri frakt" om det inte stämmer).
+
+> 🟠 **Rättar du ett sakfel i efterhand — rätta `seoData` i SAMMA veva.**
+> Meta-beskrivningen är ett **eget fält**, inte en spegling av brödtexten. Skriver du
+> om beskrivningen på en publicerad produkt lever den gamla formuleringen kvar i
+> `seoData` — och därifrån går den ut i `<meta name="description">`, `og:description`,
+> `twitter:description` **och** `Product`-JSON-LD:ns `description`, eftersom frontend
+> genererar allt det ur samma fält. Ett felaktigt påstående kan alltså vara borta ur
+> hela produktsidans synliga text och ändå vara det enda Google och Facebook citerar.
+> Sök på det borttagna ordet i den **renderade HTML:en**, inte bara i `plainDescription`:
+> hittar du det i en `<meta>`-tagg är det `seoData` som ska patchas.
+> Fällan slog till 2026-08-26 på `f0e0ee14` (smal hurts 40 cm): "kullagrade skenor"
+> var borta ur beskrivning, h2 och spec-tabell men stod kvar i meta description.
 
 > **Viktigt:** en PATCH av `seoData` **ersätter hela objektet** – skicka därför ALLTID med samtliga taggar nedan, inte bara den du ändrar.
 
@@ -379,11 +457,20 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > De två första lagas mekaniskt och riskfritt — men **bara inuti textnoder**, aldrig över hela HTML-strängen (`style="font-weight: 700"` innehåller kolon och mellanslag som inte får röras):
 >
 > ```js
+> // OBS: kolon och semikolon undantas när en smilis följer — se noten nedan.
+> const SMILIS = /(?!-?[()D|\/\\pP3])/.source;
 > const stada = h => h.replace(/>([^<]+)</g, (_, t) => ">" + t
->   .replace(/\s+([.,;:!?])/g, "$1")                       // mellanslag före skiljetecken
->   .replace(/([a-zåäö,])([.!?])([A-ZÅÄÖ])/g, "$1$2 $3")   // saknat mellanslag efter punkt
+>   .replace(new RegExp("\\s+([.,!?]|[;:]" + SMILIS + ")", "g"), "$1")  // mellanslag före skiljetecken
+>   .replace(/([a-zåäö,])([.!?])([A-ZÅÄÖ])/g, "$1$2 $3")                 // saknat mellanslag efter punkt
 >   .replace(/ {2,}/g, " ") + "<");
 > ```
+>
+> ☠️ **Undanta smilisar, annars klistrar städningen ihop dem med föregående mening.**
+> `\s+([.,;:!?])` läser kolon som skiljetecken, så `"ett bra pris! :)"` blir
+> `"ett bra pris!:)"` — ett nytt fel infört av den kod som skulle laga fel. Det slog till
+> på två publicerade recensioner 2026-08-26 i samma körning som lagade tio andra. Samma
+> gäller `;)` och `:D`. Kontrollera efter varje städning: `/[.!?,][:;=]-?[()D|\/\\pP3]/`
+> ska ge noll träffar.
 >
 > Den tredje går inte att laga mekaniskt: den borttagna meningen bar en syftning som nästa mening hänger på (*"därför"*, *"det"*, *"den"*). Sök efter kvarvarande syftningar — `vi skriver`, `därför bara att`, `lämnar … osagd` — och skriv om för hand. **Kör städningen som ett eget steg efter varje svep, inte som en del av det** — annars städar du bara de produkter svepet råkade träffa.
 >
@@ -504,6 +591,25 @@ const newVariants = variants.map(v => {
 
 ⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
 
+> ☠️ **Produktens `visible:false` smittar av sig på varje variant — skicka alltid variantens
+> egen `visible` med.** Det är inte SKU-koden som gör det: sminkbordet `e8f7eaed` hade
+> `variants[0].visible: true` som råimport och stod på `false` direkt efter **bild**-PATCH:en
+> i Steg 9, innan SKU:n var rörd. Varje PATCH som bär `visible:false` på produkten speglar
+> ner värdet på varianterna. Undantaget är den PATCH där du skickar `variantsInfo` med ett
+> **uttryckligt** `visible` per variant — då vinner ditt värde (verifierat i samma körning:
+> `{...v, sku, visible:true}` med produktens `visible:false` gav en synlig variant på en
+> osynlig produkt).
+>
+> Konsekvensen om det missas: produkten publiceras, syns i butiken och **går inte att lägga
+> i varukorgen**. Det syns inte i produktvyn. Klart-kriteriet kräver redan `visible:true` på
+> varje variant — det här är orsaken det kravet fångar. Lägg därför `visible: true` i
+> variantobjektet i Steg 8, och läs om värdet i slutkollen.
+>
+> Samma PATCH nollar variantens `media`-pekare, och Wix tar **inte** emot den igen — känt
+> sedan sidobordet `c9a0f88d`. Harmlöst på en produkt utan optioner (galleriet ligger i
+> `media.itemsInfo`), men på en produkt med färgval är swatchen borta: gör SKU-resynken
+> FÖRE variantbildkopplingen i Steg 11, aldrig efter.
+
 > **Spara ett anrop — men BARA om inget mer återstår:** har produkten inga bilder att fixa (Steg 9), ingen kategori (Steg 10) och ingen variantkoppling (Steg 11) kvar → lägg `visible: true` i **samma** PATCH så görs SKU-resynken + publiceringen i ett. Återstår något av dessa: **publicera SIST** (Steg 13), aldrig här — annars går produkten live innan bilder/kategori/varianter är klara.
 >
 > **Undantag:** börjar SKU:n med `FYND-XXX-NNN` (kurerat artikelnummer) eller `AE-<hash>` (äldre schema) — **rör den inte**, flagga till Leonard.
@@ -524,8 +630,70 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 
 > 📌 **Galleriets ordning är fast: hjältebild, verklighetsbild, sedan korten.** Bild 1 är den renaste produktbilden (den blir `media.main` och produktkortet). **Bild 2 ska vara en verklighetsbild** — varan i ett rum, i bruk, med något att skala mot. Egna Fyndplats-kort kommer därefter, och måttritningar sist. Kunden bläddrar sällan förbi de första bilderna, och där ska hen ha sett vad varan är och hur den ser ut hemma — inte två spec-tabeller i rad. Leonards regel 2026-08-22, efter att kubhyllan `d4b87c0a` publicerades med spec-kortet som bild 2. Saknar leverantören en miljöbild helt: sätt näst renaste produktbilden på plats 2 och notera avsaknaden, bygg inte ett kort som ersättning.
 
+> 🟠 **Varje polerad produkt ska ha MINST ett eget Fyndplats-kort — normalt spec-kortet.**
+> Leonards regel 2026-08-26, efter att verkstadspallen `a65eefea` publicerades med enbart
+> tvättade leverantörsbilder. Ordningsregeln ovan säger *"därefter egna kort"* och lästes som
+> att kort är valfria; det är de inte. Kortet är det enda i galleriet som är **vårt** — det
+> samlar de verifierade måtten på ett ställe, i husets typografi, med källan utskriven i foten.
+> Utan det är produktsidan en vidarebefordran av leverantörens marknadsföring.
+>
+> Minimum är `card_spec` med de mått Steg 5 faktiskt bekräftat. Placeringen är **efter
+> verklighetsbilden**, aldrig plats 1 (plats 1 är alltid varan själv).
+>
+> **Fyller varan hela källbilden — använd `fit=True`, inte `fit_pane`.** Verkstadspallens
+> hjältebild var beskuren till 1965 × 1925 av 2000 × 2000: en beskärning till spec-panelens
+> proportion (1,83) hade kapat pallen upptill och nedtill. `fit=True` ger `object-fit: contain`
+> mot vit botten och visar hela varan. Mät alltid bbox:en först — och **räkna bort strökorn**
+> (`rad >= 8 px`), annars rapporterar JPEG-bruset hela bilden som produkt.
+
+> ⏱️ **ISR-fönstret är 300 s — en re-GET mot Wix bevisar inte att sidan är uppdaterad.**
+> `x-nextjs-stale-time: 300` med `x-vercel-cache: HIT` betyder att kunden får den gamla sidan i
+> upp till fem minuter efter din PATCH. Den snabba kontrollen (`curl` efter ~10 s) fungerar bara
+> vid en cache-**MISS**, alltså första gången sidan renderas — det är därför den känns pålitlig
+> precis efter publicering och sedan slutar fungera. Läs `age` och `x-nextjs-stale-time` innan du
+> drar slutsatsen att en bild inte kom med; är Wix-datan verifierad med re-GET är sidan rätt,
+> bara inte serverad än.
+>
+> **Varje edge-nod har dessutom sin EGEN cache.** En `HIT` med gammalt innehåll bevisar
+> alltså inte att rättelsen uteblev — du kan ha träffat en POP som ännu inte hämtat om,
+> medan en annan redan serverar den nya sidan. Fem `HIT` i rad kan vara fem träffar på
+> samma eftersläpande nod. Läs `age` och `date`: är `date` äldre än din PATCH är svaret
+> per definition inaktuellt, och just den förfrågan startar omvalideringen — nästa
+> träff på den noden är rätt. Slutsatsen "fixen gick inte igenom" kräver ett svar med
+> `date` EFTER din PATCH. (2026-08-26, `f0e0ee14`: fyra `HIT` i följd fick mig att leta
+> efter en frontend-cache som inte fanns — `age: 302` på nästa svar visade att det bara
+> var en nod som låg efter.)
+
+> ☠️ **Hämta ALDRIG produktsidan i samma andetag som publiceringen — då cachas en 404 i
+> fem minuter.** Wix slug-index ligger några sekunder efter skrivningen. Är butiken framme
+> före indexet renderar den startsidans fallback, och just den 404:an är vad ISR sparar.
+> Sidan ser trasig ut fast produkten är helt korrekt. Hände 2026-08-26 på `8da26d68`
+> (sängbänk 117 cm): publicering och `curl` låg under en sekund isär, och sidan svarade
+> fallback i drygt fem minuter innan den kom till liv av sig själv.
+>
+> **Så skiljer du en cachad 404 från ett verkligt fel — fråga Wix samma fråga som butiken:**
+> ```
+> POST /stores/v3/products/query
+> { "query": { "filter": { "slug": {"$eq":"<slug>"}, "visible": {"$eq":true} } } }
+> ```
+> Kommer produkten tillbaka är datan rätt och det enda som återstår är att vänta ut
+> fönstret. Två saker som INTE hjälper: en frågesträng (`?x=1`) bustar inte cachen på
+> produktrutten, och **sitemapen är ingen diagnos** — tre av fyra produkter publicerade
+> samma dag saknades i den medan deras sidor fungerade utmärkt.
+>
+> **Regeln:** lägg publiceringen och live-kontrollen i skilda anrop, med minst
+> recensionshämtningen emellan. Får du ändå fallback: verifiera via slug-frågan ovan,
+> vänta ut de 300 sekunderna och kontrollera igen — börja inte ändra på produkten.
+
 > **Fälla:** skicka tillbaka **hela** `itemsInfo.items`-arrayen och ändra **bara `altText`**. En ofullständig array kan **radera bilderna**. **Verifiera efteråt** att alla items har kvar `image.url`.
 >
+> ⚠️ **`altText` ligger på ITEM-nivå — `image.altText` ensamt är en tyst no-op.** Varje item bär
+> fältet två gånger (`items[i].altText` och `items[i].image.altText`), och Wix speglar
+> item-nivån NEDÅT över `image`. Patchar du bara `image.altText` svarar Wix `200 OK`,
+> revisionen ökar — och en re-GET visar den **gamla** engelska texten kvar på de gamla
+> bilderna och tom alt-text på de nyuppladdade. Sätt båda fälten till samma sträng.
+> (2026-08-27, krittavlan `c4ac3cba`: sex alt-texter såg satta ut och var det inte.)
+
 > ⚠️ **Skicka INTE `media.main`.** I V3 är `media.main` **readOnly** (sätts automatiskt till första item:et). Inkluderar du det svarar Wix `200 OK` men **ignorerar tyst hela `media`-objektet** — revisionen ökar inte och alt-texterna ändras inte (no-op som ser ut att lyckas). Patcha bara `media.itemsInfo.items`; `main` följer med automatiskt.
 >
 > ⚠️ **PATCH-svaret innehåller INTE `media.itemsInfo`** (det fältet returneras bara när du
@@ -544,6 +712,19 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > `options` kan aldrig skickas ensamt: utan `variantsInfo` svarar API:et 428 `MISSING_VARIANT_OPTION_CHOICE`. Och identifierar du valen med `optionChoiceNames` krävs **alla tre** fälten `optionName`, `choiceName` och `renderType` — utelämnas `renderType` blir det samma 428. Nya val behöver dessutom `choiceType: "CHOICE_TEXT"`, annars 400 `PRODUCT_OPTION_CHOICE_NAME_AND_TYPE_REQUIRED`.
 
 > ⚠️ **`altText` sitter på ITEM-nivån — `image` är readOnly (2026-08-17, kostade två blinda PATCH:ar).** I `media.itemsInfo.items[]` heter fältet `altText` direkt på itemet (`ProductMedia.altText`); `item.image` är `readOnly: true` och **ignoreras tyst**. Skickar du `{ id, image: { id, altText } }` går PATCH:en igenom med 200, men alt-texten skrivs aldrig — och eftersom du samtidigt ersatt hela `items`-listan **raderas de gamla alt-texterna**. Så tömdes hela galleriet på alt-text för två produkter innan felet syntes. Rätt form är `{ id: "<fileId>", altText: "…" }`. Verifiera ALLTID med re-GET att `items[].altText` är ifylld — ett 200-svar bevisar ingenting här.
+>
+> ☠️ **Samma sak händer om du bara skickar `{ id }` — och det är den vanligaste vägen dit.** Regeln
+> ovan handlar om FEL form på alt-texten; det här handlar om att den saknas helt. `items`-listan
+> ersätts i sin helhet vid varje media-PATCH, så ett item utan `altText` blir ett item UTAN
+> alt-text — även om det hade en innan. Fällan slår till när du patchar galleriet av något annat
+> skäl än texten: byter ordning, byter ut en swatch, eller skriver tillbaka hela fil-id-listan för
+> att komma runt att Wix döpt om media-item-id:na. Då tänker man på id:na, inte på texten.
+>
+> **Regel: varje media-PATCH bär `altText` på VARJE item.** Läs items med
+> `?fields=MEDIA_ITEMS_INFO` först och skicka tillbaka den befintliga alt-texten på de bilder du
+> inte rör. *(Svep 2026-08-26: **80 bilder på 10 publicerade produkter** stod utan alt-text, åtta
+> av dem sidor som polerats färdigt samma dygn — swatch-bytet hade skrivit tillbaka fil-id-listan
+> utan texterna. Katalogkollen hittade det; produktsidorna såg felfria ut.)*
 
 > ⚠️ **Galleribilder MÅSTE vara kvadratiska — PDP:n centrumbeskär varje bild till kvadrat.**
 > Storefronten hämtar galleriet med Wix-transformen `fill/w_N,h_N,al_c` (verifierat i
@@ -590,6 +771,20 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > ☠️ **En PATCH av `media.itemsInfo` NOLLSTÄLLER `linkedMedia` på alla variantval (2026-08-13).** Det räcker inte att låta de låsta bild-id:na följa med i det nya galleriet — Wix svarar `200 OK`, behåller bilderna, men skriver `linkedMedia: []` på varje choice. Resultatet: alla färgval visar första galleribilden, och kunden som väljer "Blå" ser den gröna produkten. Hände på hollywoodgungan `39a5c0bf`. **Åtgärd:** har produkten optioner → lägg `options` (inkl. `linkedMedia`) + `variantsInfo` (inkl. varje variants `choices`) i **samma** PATCH som `media`, eller kör en andra PATCH direkt efter med `visible` explicit satt och färsk `revision`. Re-GET-verifiera att varje choice har rätt id.
 
 > **Dubbletter (identiska bilder):** är två eller fler galleri-items **exakt samma motiv** (vanligt från skrapan/DS-API:t) — behåll **en**, ta bort resten ur `itemsInfo.items` (skicka hela arrayen utan dubbletterna). **Kontrollera `linkedMedia` FÖRST:** pekar ett variantval på en kopia du tar bort → koppla om valet till den kvarvarande bilden (Steg 11B), annars tappar valet sitt bildbyte tyst. **Radera INTE filen direkt** i Media Manager — borttagen ur galleriet blir den föräldralös och **frigörs automatiskt i de återkommande orphan-städsvepen** (minnet återtas helt, utan risk att radera en fil som `linkedMedia`:as eller används av en annan produkt). Vill du bekräfta exakt likhet: jämför fil-id:t i `image.url` (samma id = samma fil) eller previews sida vid sida med `Read`.
+>
+> ⚠️ **Dubbletterna är oftast PIXELIDENTISKA men BYTE-OLIKA — fil-id och checksumma missar dem.**
+> Wix omkodar samma motiv till två filer med olika id, olika storlek och olika md5. Testet ovan
+> friskförklarar dem alltså felaktigt. Det som fäller är en nedskalad pixeljämförelse:
+> ```python
+> a=np.array(Image.open(f1).convert("L").resize((320,320))).astype(int)
+> b=np.array(Image.open(f2).convert("L").resize((320,320))).astype(int)
+> abs(a-b).mean()   # 0.0 och max 0 = samma motiv, oavsett filstorlek
+> ```
+> Kör det över alla galleribilder innan du sätter ordningen — annars ligger samma bild två
+> gånger i karusellen. **Mönstret är regel, inte undantag:** tre produkter i rad 2026-08-26 —
+> hundgrinden 12 platser/10 unika, hundväskan 9/8, cykelvagnen 9/8. På hundgrinden var de två
+> kopiorna dessutom `linkedMedia` för färgvalen, så de gick inte att ta bort förrän valen
+> pekats om (se stycket ovan).
 
 **Bild-arbete — vilken metod?** Åtgärda det du flaggade i Steg 4. Välj per bild:
 
@@ -717,6 +912,24 @@ Saknar ett färg-/modellval bildbyte (text-val utan att huvudbilden ändras) —
 
 > 🚫 **`linkedMedia` ska vara en PRODUKTBILD av just den varianten — aldrig ett Fyndplats-kort.** Kortet är ett sammanfattningslager; swatchen är det kunden klickar på för att se varan i den färgen. Ett spec-kort där ser ut som en platshållare i en mall, inte som en produkt. Leonards regel 2026-08-22, efter att knästolen, vilfåtöljen och gungfåtöljen alla fick sitt färgkort som andrafärgens bild.
 >
+> **Undantaget är `card_swatch` — och bara det.** Regeln ovan träffar *sammanfattnings*-kort:
+> spec-rutnät, feature-collage, allt som visar text i stället för vara. `card_swatch`
+> (`scripts/cardkit.py`) är motsatsen: varan ensam, stor på vitt, med en smal etikettrad under
+> som säger färg, storlek och vikt. Använd det när leverantörens variantbild är en ren
+> produktrender men bär **engelsk overlay-text** — då är alternativen att skeppa engelska till
+> kunden eller att kasta bort en korrekt variantbild. Beskär fram varan ur leverantörskortet,
+> lägg den i `card_swatch`, och kravet är uppfyllt: kunden ser fortfarande just sin variant.
+>
+> Två villkor gör undantaget giltigt. **(1) Fotot måste fylla panelen** — `card_swatch` sätter
+> `width/height:100%` + `object-fit:contain` just därför; en `<img>` utan mått renderas i sin
+> ursprungsstorlek och blev 23 % av kortbredden (Leonards rapport 2026-08-26, skärmdump av en
+> swatch där stolen låg som en frimärke mitt på kortet). **(2) Etiketten får bara bära
+> verifierade uppgifter** — färg, mått, vikt; ingen bärförmåga eller prestandasiffra, se Steg 11F.
+>
+> *(Cloud Up Pro-tältet `e98221ed` 2026-08-26: 13 leverantörsswatchar, alla rena renderingar med
+> bandet "CLOUD UP PRO 2 · ULTRALIGHT TENT" och en engelsk specblock under. Elva behölls som
+> `card_swatch` med etiketten "Sand · 2 personer / 210 × 130 cm · 1,75 kg".)*
+>
 > **Leverantören fotar oftast bara huvudfärgen på vit botten.** Andrafärgen finns då bara i marknadsföringsbilderna. Lösningen är att **beskära fram varan ur den bilden** — en tight beskärning av den riktiga stolen i ett rum är en produktbild, och duger gott som swatch. Leta efter den bild där andrafärgen står ensam utan overlay-text; finns bara bilder med modell i, är det också helt i sin ordning för en möbel. Försök inte klippa ut varan mot vit botten för att matcha leverantörens hjältebild — **det går inte på en möbel med öppen ram**. Testat 2026-08-22 på knästolen `2326c742` med både `u2net` och `isnet-general-use`: stolens ytterkant blev ren och inga ben åts, men **golvet, mattan och ett skrivbordsben följde med genom ramens öppningar**. Ingen automatisk segmentering kan skilja "bakgrund sedd genom ett hål" från "del av objektet", och båda modellerna misslyckas likadant. Har varan dessutom en modell sittande i sig — vilket den ofta har i just andrafärgens bilder — finns ingen väg alls. **Rumsbilden är rätt svar där**, och vill man ha vita bilder på alla färger är egen fotografering enda lösningen.
 >
 > Kortet får däremot gärna ligga kvar i galleriet som en egen bild. Är kortet **enda** bilden av den varianten: byt ut det mot beskärningen och låt kortet utgå, annars visas samma innehåll två gånger.
@@ -746,6 +959,17 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 > Skicka `options` **komplett** (alla optioner och val, inte bara det du ändrar) och `variantsInfo` exakt som det kom från GET — annars svarar V3 428 `MISSING_VARIANT_OPTION_CHOICE`. Bilden måste redan ligga i produktens media-pool (den gör den efter import). **Skicka ALLTID `visible:true` i samma PATCH** — en `variantsInfo`-PATCH på en publicerad produkt kan annars flippa den till draft (`visible:false`) och ta bort den ur butiken (hände bordsskyddet 2026-07-09).
 >
+> ☠️ **Spegelvändningen är farligare: en `variantsInfo`-PATCH på ett UTKAST PUBLICERAR det.**
+> Utelämnar du `visible` sätter V3 den till `true`. Det slog till två gånger 2026-08-26 —
+> verkstadspallen `a65eefea` stod publicerad redan när Steg 12 började, och soptunneskyddet
+> `af27fffe` gick live i samma sekund som storleksaxeln kollapsades, alltså **innan lagerposten
+> hunnit återskapas**: produkten låg ute som "Slutsåld" med halvfärdig text.
+>
+> Regeln är därför starkare än "skicka alltid `visible:true`": **skicka alltid `visible`
+> EXPLICIT — `true` på en publicerad produkt, `false` på ett utkast du inte är klar med.**
+> Kollapsar du en axel mitt i en polering: sätt tillbaka `visible:false` direkt efter PATCH:en,
+> gör klart lager, mappning, bilder och kategori, och publicera som sista handling enligt Steg 13.
+>
 > ⚠️ **Flippen slår åt BÅDA hållen (batch-lärdom 2026-08-04, 5 av 11 produkter):** en `variantsInfo`-PATCH (t.ex. Steg 8:s SKU-resynk) på en **draft** kan tyst flippa den till `visible:true` — produkten går live innan poleringen är klar. **Re-GET:a `visible` direkt efter VARJE PATCH som innehåller `variantsInfo`** och återställ omedelbart om den flippat (skicka `visible:false` med färsk revision). Gäller alltså även opublicerade produkter där du "inte rör" synligheten.
 >
 > ☠️ **FÖLJDBUGGEN — produkten blir OSÄLJBAR (2026-08-05):** när du sätter tillbaka `visible:false` på produkten **kaskaderar det ned till `variantsInfo.variants[].visible:false`**. Att sedan publicera (`visible:true`) återställer INTE varianten — produkten syns i butiken men går inte att lägga i varukorgen. Drabbade 2 produkter i batch 1 (köksön `07a6b8bf`, slangvindan `3995dfd4`) innan det upptäcktes.
@@ -769,6 +993,25 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 > 2. **Räkna alltid hur många jämförelser som FAKTISKT kördes** och returnera siffran. Första svepet rapporterade "0 fel" när sanningen var "0 jämförda av 1 152".
 >
 > Skilj dessutom på **allvarligt** (varianten visar en ANNAN variants bild — kunden ser fel färg) och **kosmetiskt** (varianten visar hjälten). Testet: slår `media`-id:t mot något annat vals `linkedMedia` i samma produkt?
+
+#### Leverantörens variantkort kan visa FEL exemplar
+
+Innan ett variantkort byggs: **läs vad som står tryckt på varan i bilden.** Leverantörer
+återanvänder renderingar mellan varianter, och etiketten avslöjar det.
+
+> *(Rock-ryggsäcken `311c8c4e`, 2026-08-26: kortet märkt "40L Black" visade en säck med
+> **"60 Liter"** tryckt på fronten — 60-litersrenderingen återanvänd. Ett swatch-kort byggt på
+> den hade visat kunden fel produkt vid det billigaste valet.)*
+
+Saknas en ärlig bild hos leverantören, leta hos **tillverkaren** innan du ger upp: deras
+storleks- och jämförelsekort visar ofta alla varianter bredvid varandra, var och en med rätt
+etikett. Det är samma studiorenderingar leverantören själv använder. På Rock låg den äkta
+40-litersbilden i tillverkarens *"available in a wide range of sizes"*-kort, och samma kort
+gav dessutom maxlasten (11 respektive 14 kg) som leverantören inte angav.
+
+Hittas ingen ärlig bild alls: **ge varianten ingen `linkedMedia`** hellre än en bild på fel
+exemplar. Men lämna inte produkten så — alla val utan kopplad bild betyder att swatchen aldrig
+ändras, vilket ser trasigt ut. Antingen får alla val en egen bild, eller inget val får någon.
 
 ### 11C – Ta bort bilder för varianter som inte finns eller är slutsålda
 
@@ -810,6 +1053,28 @@ ingenting annat**, oavsett hur mycket lager syskonen har.
 >    **nytt** `variantId` utan lagerpost (= slutsåld i butiken). Läs saldona FÖRE PATCH:en och
 >    `POST /stores/v3/inventory-items` per ny variant efteråt (`locationId` från en befintlig
 >    post). Wix städar själv de föräldralösa posterna — de behöver inte raderas.
+>
+>    ☠️ **Att posten finns räcker inte — flaggan räknas inte alltid om.** Ryggsäcken `311c8c4e`
+>    (2026-08-26): tre nya lagerposter skapades i samma anrop, två av varianterna slog om till
+>    `inStock:true`, den tredje stod kvar på `false` trots `quantity:30` och
+>    `availabilityStatus:"IN_STOCK"` på sin egen post. Det är inte eftersläpning — den satt kvar
+>    över flera läsningar, och en PATCH som skrev tillbaka **samma** saldo ändrade ingenting.
+>    Det som löste det var en **riktig** saldoändring: sätt ett annat tal, läs, sätt tillbaka.
+>
+>    **Verifiera därför alltid per variant efteråt** — `variantsInfo.variants[].inventoryStatus.inStock`
+>    på produkten, inte bara `availabilityStatus` på lagerposten. De kan säga olika saker, och det
+>    är produktens flagga kunden möter. En variant som står kvar som slutsåld syns inte i någon
+>    logg; den går bara inte att lägga i varukorgen.
+
+   ```js
+   // knuffa flaggan: ett annat tal, sedan tillbaka
+   for (const q of [saldo + 1, saldo]) {
+     const post = await lasPost(variantId);
+     await wix.request({ scope: "site", method: "PATCH",
+       url: `https://www.wixapis.com/stores/v3/inventory-items/${post.id}`,
+       body: { inventoryItem: { revision: post.revision, quantity: q } } });
+   }
+   ```
 > 2. **Mappningsraden pekar fel.** `FyndplatsMappings.variants[]` har kvar en rad per borttagen
 >    variant, och den överlevandes `wixVariantId` är dött → en order skulle gå på fel eller
 >    inget leverantörs-SKU. **Matcha på `wixVariantId`, inte på `sku`.** Raden sa tidigare `sku`
@@ -821,6 +1086,16 @@ ingenting annat**, oavsett hur mycket lager syskonen har.
 >    `fieldModifications:[{fieldPath:"variants",action:"SET_FIELD",setFieldOptions:{value:[…]}}]`.
 > 3. **Skriv samtidigt mappningens `sku` till den nya** — annars ärver nästa polering samma
 >    drift. Steg 8 rör bara Wix-sidan.
+>
+>    ⚠️ **Går PATCH:en inte fram — skriv hela raden med `PUT` i stället.** `PATCH
+>    /wix-data/v2/items/{id}` har svarat `fieldModifications has size 0` trots en ifylld lista
+>    (gatewayen är kinkig med bodyns form: `fieldModifications` ligger ibland direkt i bodyn,
+>    ibland inne i ett `patch`-objekt — se 14B). Det som alltid biter är en full ersättning:
+>    `PUT https://www.wixapis.com/wix-data/v2/items/{id}` med
+>    `{ dataCollectionId: "FyndplatsMappings", dataItem: { id, data } }`. Priset är att `data`
+>    **ersätts i sin helhet** — läs raden först och skicka tillbaka allt du inte ändrar, annars
+>    tömmer du `shipsFromCountries`, `imageAnalysis` och resten tyst. Samma väg användes för att
+>    reparera det typade `needsAiPolish`-värdet (se Fasta fakta).
 >
 > *(Svepet 2026-08-21: 22 nyimporterade köksmaskiner, 21 av dem med uttagsaxel — 123 varianter
 > ned till 37. Utan regeln hade en svensk kund kunnat beställa en 110 V-juicer med US-stickpropp.)*
@@ -853,6 +1128,32 @@ jämför exemplaren innan du rör något.
 > ("Vit med vred" / "Vit med display"), inte efter leverantörens modellkod. Kom ihåg att
 > `choice.name` är låst till `key` — namnen kräver att optionen byggs om från grunden, med
 > `choiceType:"CHOICE_TEXT"` på varje nytt val och `price` på varje variant.
+
+#### Omvänt fall: modellnamnet räcker inte för att kalla något en dubblett
+
+11E varnar för att slå ihop det som ser likadant ut. Fällan går lika ofta åt andra hållet:
+två listningar bär samma modellnamn, och man tar bort varianten ur den dyrare — trots att
+det är två olika tält, cyklar eller maskiner.
+
+> *(Naturehike Mongar, 2026-08-26.* `a6128860` *bar `2P -210T BASE- Blå` för 2 189 kr och*
+> `3e9796c2` *bar `2P - 210T - Blå` för 2 119 kr. Samma märke, samma tyg, samma storlek,
+> samma färg, 70 kr isär — en dubblett, tycktes det. Leverantörens EGNA swatch-kort sa något
+> annat: `MONGAR BASE 2 · 43×18cm · 2,74 kg` mot `MONGAR 2 · 50×15cm · 2,4 kg`. Två modeller
+> ur samma familj. Tillverkarens sortiment listar dem separat: **Mongar**, **Mongar BASE**,
+> **Mongar Pro** och **Mongar UL** — fyra tält, ett gemensamt namn.)*
+
+**Det som avgör är måtten, inte namnet.** Packmått och vikt skiljer sig alltid mellan två
+modeller och aldrig mellan två färger av samma modell. Står de på leverantörens kort har du
+svaret gratis; gör de inte det, slå upp modellen hos tillverkaren innan du tar bort något.
+
+**Regel:** innan en variant tas bort som dubblett måste minst två mått stämma överens med
+den som behålls — packmått och vikt, eller golvyta och vikt. Stämmer bara namnet och priset
+är det INTE en dubblett. Ett borttaget säljbart exemplar syns aldrig i någon logg; det bara
+slutar finnas.
+
+Överlever ändå inte varianten (den passar inte sidans copy, resten av modellen är slutsåld),
+**skriv ut det i rapporten** — vilken modell som försvann, till vilket pris, och vad kunden
+kan köpa i stället. Det är ett beslut för en människa, inte en städning.
 
 ### 11F – Siffror i variantetiketten måste vara verifierade
 
@@ -1059,7 +1360,18 @@ Steg 12 (kundläsningen) är gjord — den här listan ersätter den inte.
 - **Galleriets ordning:** bild 1 = renaste produktbilden, **bild 2 = verklighetsbild**, därefter egna kort och sist måttritning (Steg 9).
 - **Varje färg-/modellvals `linkedMedia` är en produktbild av den varianten**, inte ett Fyndplats-kort (Steg 11B).
 - **Svensk sifferstil** genom hela texten: decimalkomma, `10/20/30 cm` (aldrig kommalista), `72 × 57 × 56 cm`, tankstreck i intervall.
-- Flik-rubrikerna ligger som **rena `<h2>`** (`Tekniska specifikationer`, `Vanliga frågor`, ev. `Användning och skötsel`) — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
+- Flik-rubrikerna ligger som **rena `<h2>`** — inte feta/`<span>`-lindade — så de renderas som **flikar** på PDP:n, inte inline.
+  ☠️ **Strängen måste stämma ORDAGRANT.** Butiken delar upp beskrivningen på tre exakta rubriker:
+  **`Tekniska specifikationer`** · **`Användning och skötsel`** · **`Vanliga frågor`**. Skriver du
+  `Specifikationer` — vilket är den naturligare svenskan och därför den man glider ner i — matchar
+  splittern inte, och hela spec-tabellen renderas **inline mitt i brödtexten** i stället för som flik.
+  Det ser inte trasigt ut, det ser bara ut som en till rubrik, och därför upptäcks det inte i
+  slutkollen. Fyra produkter i rad (`2ad9b84b`, `899eabfe`, `ae436a28`, `8da26d68`) gick live så
+  2026-08-26/27 innan Leonard såg det i butiken. Kontrollera i den RENDERADE sidan att
+  `<summary>Tekniska specifikationer</summary>` finns — inte att ordet står någonstans i HTML:en.
+- **`Användning och skötsel` är inte valfri när varan har skötsel.** Textil, sammet, tält, trä
+  och allt som ska tvättas, torkas eller efterdras ska ha fliken. Den föll bort i samma glidning
+  som rubriken ovan.
 
 **Bilder**
 - Plats 0 **visar hela varan tydligt**: vit studio-hjälte när en användbar källa finns, annars den renaste hela bilden. **Aldrig ett kort.** *(Miljöbild eller bild med människor är rätt svar när ingen ren källa finns — se `H-M` och fågelbogungenoten i bildmetoderna.)*
@@ -1117,6 +1429,22 @@ katalogen. Kör dem med några veckors mellanrum — båda är read-only tills d
 > `items` avvisas, så det blir ett anrop per produkt, men alla ryms i **ett** `ExecuteWixAPI`-anrop).
 > 2026-08-11 gav svepet **359 av 631 produkter / 366 saknade kopplingar**, med tyngdpunkt i
 > Hem & Inredning (124), Sport & Fritid (110) och Barn & Familj (85).
+>
+> ☠️ **Katalogsvep — slutsålt: `query-variants` ser inte enkelvariantprodukter (2026-08-26).**
+> Ett svep som räknade slutsålda varianter via `POST /stores/v3/products/query-variants` svarade
+> `heltSlutsalda: []`. Ren friskförklaring — och falsk. Rutten returnerar bara produkter som HAR
+> en variantaxel; allt som importerats som en enda variant (majoriteten av katalogen) finns inte
+> i svaret över huvud taget. Noll träffar betydde alltså "ingen FLERVARIANTprodukt är helt
+> slutsåld", inte "inget är slutsålt". Den auktoritativa källan är lagerposterna:
+> `POST /stores/v3/inventory-items/query` ger exakt en post per köpbar variant, oavsett om
+> produkten har en axel eller inte. Samma svep om, mot lagerposterna: **79 publicerade produkter
+> helt slutsålda**. (Besläktad blindfläck i samma familj: `POST /stores/v3/products/search`
+> returnerar aldrig `variantsInfo`, hur man än sätter `fields` — behöver du lagerstatus per
+> variant måste du läsa produkten enskilt eller gå via lagerposterna.)
+>
+> **Regeln bakom felet:** ett tomt svepsvar är ett påstående som ska bevisas, inte ett kvitto.
+> Kontrollräkna alltid mot en känd nämnare — svepte det 930 produkter eller 63? Stämmer inte
+> nämnaren är täljaren ointressant.
 
 -----
 

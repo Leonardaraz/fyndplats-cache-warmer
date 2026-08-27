@@ -83,6 +83,259 @@ När AI är av: `runSeo/runImageAnalysis/runCategory/batched` blir alla `false`,
 `importProduct` returnerar `needsAiPolish:true`, och `lib/bulk-import/worker.ts`
 tvingar realtidsvägen (ingen Batch API-pre-generering som annars kostar).
 
+## Aosom: andra leverantören, samma pipeline (`lib/aosom/`)
+
+Sedan 2026-08-27 finns ett B2B-konto hos Aosom och en produktfeed
+(`AOSOM_FEED_URL`, uppdateras 3 ggr/dygn).
+
+☠️ **Feedens adress är en hemlighet och får aldrig hårdkodas.** Den kräver ingen
+inloggning: en vanlig GET returnerar hela B2B-prislistan med kolumnen
+`Wholesale Price` för 6 057 artiklar. Repot är PUBLIKT, så en inbakad adress är
+detsamma som att publicera vad vi betalar för varje vara — för de svenska
+återförsäljare vi konkurrerar med om exakt samma artikelnummer. `aosomFeedUrl()`
+kastar om variabeln saknas i stället för att falla tillbaka, och ett test i
+`feed.test.ts` fäller om adressen dyker upp i källan igen. Sortimentet importeras som **osynliga
+utkast** och poleras sedan i chatten — exakt samma arbetsflöde som rå-läget
+ovan, bara med en annan leverantör i andra änden.
+
+| | |
+|---|---:|
+| Rader i feeden | 6 057 |
+| Går att frakta till Sverige | **5 566** |
+| Bilder bakom dem | **50 018** |
+| Där frakten kostar mer än varan | 1 175 (21 %) |
+
+Sista talet i tabellen är arkitekturen: varje bild är ett eget Wix-anrop, så
+hela svepet är timmar och en serverless-rutt har 300 sekunder.
+`/api/cron/aosom-import` tar därför en tugga i taget, returnerar en **markör**
+(`cursor` → `?after=`) och kan startas om hur många gånger som helst —
+dubblettspärren på `supplierProductId` gör omkörning till en no-op.
+
+### Vägen in
+
+`feed.ts` (hämta + tolka) → `to-product.ts` (adapter) → `importProduct` →
+`import-run.ts` (batch + markör) → `/api/cron/aosom-import`.
+
+Adaptern bygger en `AliExpressProduct` av feed-raden. Poängen är att allt
+nedströms redan finns: prissättning, marginalregler, bildhemtagning,
+Wix-create, SKU:er, mappningsrad, utkastläge, poleringskö. Typnamnet är arv —
+den beskriver "en leverantörsprodukt på väg in" och har inget AE-specifikt i sig.
+
+Läget är **alltid `raw`**: noll Claude-anrop ($0) och `visible:false`
+ovillkorligt. Torrkörning är default; utan `?dryRun=false` skrivs ingenting.
+Rutten är **inte schemalagd** — en cron som fyller poleringskön snabbare än
+någon hinner skriva om texterna ger bara en växande hög tyska utkast.
+
+### Fyra saker som inte ska tas bort
+
+1. **`supplier: "aosom"` på mappningen.** Lagersynken, prisbevakningen,
+   prisreparationen, fraktkontrollen och recensionshämtningen slår alla upp
+   `supplierProductId` mot AliExpress API. Ett Aosom-artikelnummer skickat dit
+   är 5 566 omöjliga uppslag per körning som äter `maxApiCalls` och tränger
+   undan de produkter som faktiskt behöver synkas. Spärren är
+   `isAliExpressMapping` i `lib/store/supplier.ts` — en grep hittar alla
+   ställen som bryr sig. Fältet faller tillbaka på `aosom:`-prefixet i id:t, så
+   en rad som tappat fältet klassas ändå rätt.
+2. **Frakten ligger i inköpspriset, och momsen bruttas på.** Det är hela
+   skillnaden mot AliExpress, där EU-lagerpriset är levererat. Aosoms SE-frakt är
+   **per kolli** och skalar med vikten (16 € under två kilo, över 100 € över
+   fyrtio). Adaptern räknar
+   `costUsd = (grossist + SE-frakt) × eurToSek × 1,25 / usdToSek`.
+
+   ☠️ **Uppbruttningen är inte kosmetisk.** `landedCostSek` lagras enligt husets
+   konvention INKLUSIVE moms — auktionens golvbud delar med 1,25 innan det
+   räknar (`lib/auction/seed.ts#netSupplierCost`), eftersom momsen aldrig är en
+   verklig kostnad för ett momsregistrerat företag. Aosoms B2B-fakturor är
+   NETTO (omvänd skattskyldighet); sparas beloppet rakt av hamnar ett nettotal i
+   ett fält som läses som brutto, golvbudet blir 20 % för lågt och auktionen kan
+   sälja UNDER inköp. Samma fälla gäller AliExpress-köp gjorda på Business
+   Purpose, som också faktureras netto.
+
+   ⚠️ `computeProfit` i `lib/import/pricing.ts` drar INTE av momsen ur kostnaden
+   och är därmed oense med `netSupplierCost`. Lönsamhetsöversikten läser den
+   vägen (`lib/analytics/profit.ts`) och underskattar därför vinsten med 25 % av
+   inköpet — uppmätt 2026-08-27: rapporterar 0,3 % marginal där verkligheten är
+   19,4 %.
+3. **En rad = en produkt.** `Psin` ser ut som en föräldranyckel men grupperar
+   *relaterade varor*: de tretton raderna under `24G58OVN9S001` är tretton olika
+   valphagar med olika antal paneler och priser från 55 till 119 €. Grupperar
+   man på den blir varianter av produkter som inte är utbytbara.
+4. **Markören flyttas även vid fel.** Annars fastnar hela svepet på en trasig
+   rad: nästa körning börjar om på samma produkt, misslyckas igen, och katalogen
+   står stilla. Felet står i svarets `errors` och körs om riktat med `?sku=`.
+
+### Vad spärren INTE ser
+
+Dubblettspärren nyckar på `supplierProductId` och fångar varje omkörning. Den
+fångar **inte** de ~586 produkter vi redan säljer som är Aosom-varor inköpta via
+AliExpress — de bär ett AE-listnings-id och ser för spärren ut som något helt
+annat. Att para ihop dem kräver mått, produkttyp och bildjämförelse (så gjordes
+de 33 i leverantörsjämförelsen 2026-08-27); en automatisk gissning skulle slå
+ihop varor som inte är samma. De dubbletterna hanteras i poleringen, där en
+människa ändå läser varje produkt.
+
+### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
+
+Två skilda problem, med olika svar.
+
+**Utkast är osynliga — mätt, inte antaget.** En produkt med `visible:false`
+svarar **404** på sin produkt-URL och ligger inte i sitemapen (1 064 `loc` mot
+946 synliga produkter). 5 566 tyska utkast kan alltså inte indexeras. Hela
+risken ligger i publiceringsögonblicket, inte i importen.
+
+**Vi läcker inga leverantörsspår.** Kontrollmätt på en publicerad sida:
+noll träffar på `aliexpress`, `alicdn`, `aosom` eller något husmärke i HTML:en;
+alla 230 bilder på `static.wixstatic.com`; JSON-LD:ns `sku` är Wix eget UUID;
+inget `mpn`, inget `gtin`. Feedens `EAN`-kolumn är dessutom tom i 100 % av
+raderna, så det finns ingen produktidentifierare att joina på. Husmärkena
+(HOMCOM, Outsunny, PawHut, Aiyaplay) stryks vid poleringen — bara 6 av 952
+produkter bär dem, och alla sex är opolerade utkast.
+
+**Det Google DÄREMOT ser är bilderna.** Att flytta hem dem till wixstatic byter
+adress, inte innehåll. Google Images matchar på bildinnehåll, och Aosoms foton
+är byte-identiska hos varenda återförsäljare som kör samma feed. Skyddet är
+inte hemflytten — det är egna kort och egen text.
+
+**Den farliga dubbletten är intern.** `FyndplatsMappings` har **595 av 1 004
+rader** från "byaosom ES (EU) Store" — 59 % av katalogen är redan Aosom-varor,
+köpta via AliExpress. Feed-importen kan inte se dem (de bär AE-listnings-id) och
+skapar därför en ANDRA sida för samma fysiska produkt. Två egna URL:er med samma
+foton är den dubblett Google faktiskt straffar. Fångas i poleringen, inte av
+spärren.
+
+### Bilderna: bara position 1, 2, 3, 8 och 9 hämtas hem
+
+**46 % av feedens bilder bär TYSK TEXT INBRÄND i pixlarna** ("HOCHWERTIGES
+MATERIAL", "Empfohlenes Alter: 3-8 Jahre"). Den går inte att polera bort och kan
+inte visas för en svensk kund. Mätt 2026-08-27 på 30 produkter — tio ur vardera
+tredjedel av feeden — och 269 handgranskade bilder:
+
+| pos | rena | vad det är |
+|---|---:|---|
+| 1 | **30/30** | huvudbild, vit botten |
+| 2 | **30/30** | livsstilsbild |
+| 3 | 23/30 | måttritning; oftast bara siffror, ibland tysk rubrik |
+| 4–6 | 4/90 | tyska funktionsgrafiker |
+| 7 | 6/30 | oftast tysk |
+| 8 | 24/30 | detaljfoto: material, gångjärn, tyg |
+| 9 | 27/29 | detaljfoto |
+
+`RENA_BILDPOSITIONER = [1,2,3,8,9]` i `to-product.ts` räddar **134 av 144 rena
+bilder (93 %)** och släpper in 15 tyska (10 % av det som behålls). Att också ta
+7 hade gett 97 % rena men 22 % skräp; att kapa vid 3 hade gett bara 58 %.
+
+Mönstret är **oberoende av var i feeden produkten ligger** (49/46/45 % tyska i
+början, mitten, slutet) — regeln behöver inte justeras per sortimentsdel.
+Poleringen granskar **3, 8 och 9**; position 1 och 2 kan hoppas över helt, och
+det är de två som blir huvudbild och delningsbild. `?bilder=alla` tar hem allt.
+
+Sidoeffekt: importen går från 50 018 till ~27 800 bilder — nästan en halvering
+av det som är hela svepets flaskhals.
+
+### Att polera en Aosom-produkt
+
+Allt utom siffrorna är **tyskt**: titel, beskrivning, säljpunkter och varje
+spec-VÄRDE. Etiketterna är svenska från start (`Mått`, `Färg`, `Material`,
+`Vikt`, `Paketmått`, `Artikelnummer`) eftersom feedens `Specification`-fält är
+tomt i 5 550 av 5 566 rader — underlaget kommer från de strukturerade
+kolumnerna i stället. Platshållaren `[BRAND NAME]`, som står kvar i 4 975 rader,
+stryks redan vid importen; den är ett mekaniskt fel med ett mekaniskt svar och
+får inte lämnas åt poleringen.
+
+`aosomFreightShare` på mappningen (0–1) säger hur mycket av inköpet som är
+frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
+kör svepet med `?skipFreightHeavy=1` och ta dem för sig.
+
+## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
+
+Regeln är **`pris = 1,20 × landedCostSek`**, uppåt till närmaste 9 (`charm9`).
+Ingen fast del, ingen trappa, inga kategorimultiplikatorer. Satt 2026-08-27.
+
+```
+defaultMultiplier 1.20   fixedSurchargeSek 0   categoryMultipliers {}
+tiersEnabled false       rounding charm9
+```
+
+Marginalen blir **17 % överallt** — p10, median och p90 är alla 17 % över hela
+sortimentet, så ingen vara kan råka hamna på 4 %. Ändringen gäller bara nya
+importer; befintliga priser står kvar tills någon räknar om dem.
+
+### Var talet kommer ifrån
+
+Inte från en marginalambition — från mätning. **dealproffsen.se publicerar
+Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD**, så exakt matchning är
+mekanisk. Slagning på 70 spridda artiklar gav **55 exakta träffar**
+(`https://www.dealproffsen.se/sok?controller=search&s=<SKU>` — WebFetch får 403,
+curl med vanlig browser-UA fungerar).
+
+| multiplikator | billigast på | marginal | vinst där vi vinner |
+|---|---:|---:|---:|
+| 1,18 | 39/55 | 15 % | 9 903 kr |
+| **1,20** | **39/55** | **17 %** | **10 943 kr** |
+| 1,25 | 30/55 | 20 % | 11 337 kr |
+| 1,28 + 60 *(gammalt)* | 18/55 | 25 % | 9 962 kr |
+
+1,25 tjänar mest på pappret men tappar en tredjedel av försprånget så fort
+marknaden ligger 5 % under mätningen — och den gör den, eftersom underlaget
+oftast är EN återförsäljare. 1,20 håller (30/55 vid −5 %, mot 1,25:s 21/55).
+
+### Tre fällor som redan kostat
+
+1. **Den fasta delen drog åt fel håll.** "Lite mer på billiga saker" känns rätt
+   och är fel: konkurrentens påslag på vår kostnad är **1,12× på den billigaste
+   tredjedelen** mot 1,33× på resten. Det finns minst utrymme just där `+60`
+   lade mest. Varje rad i sveptestet med fast del är sämre än samma
+   multiplikator utan.
+2. **Varje fallande trappa inverterar priset vid gränsen** (799 kr kostnad →
+   1 139 kr pris, 801 kr → 1 089 kr). Bygg ingen trappa. `tiers` ligger kvar i
+   konfigen men avstängd.
+3. **Kategorimultiplikatorer upphäver regeln tyst.** `Husdjur: 2,5` hade satt
+   60 % marginal på PawHut-sortimentet — en stor del av Aosom. Rensade.
+
+### Referenspriser är fiktion — båda hållen
+
+Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på 845-030CG där idealo
+listar samma artikel för 189,50 € (2,3×). Ett marknadsankare byggt på den
+siffran prissätter efter fantasi — avblåst.
+
+Dealproffsens listpris likaså: **55 av 55 produkter står som "Kampanj"** med
+median 24 % rabatt. En kampanj som alltid pågår är inget pris. Kampanjpriset ÄR
+priset, och det är det som ska jämföras mot.
+
+### Varför vi förlorar på billiga varor — och vad som faktiskt löser det
+
+Konkurrenten är inte billig. Deras påslag på **själva varan** är 1,96× i median
+— ett vanligt butikspåslag. Skillnaden är **vår frakt**: Aosom fakturerar per
+paket och viktstyrt, vilket blir en platt tull på 240–290 kr per vara i spannet
+2–10 kg. På en vara som kostar 400 kr är det +65 %; på en som kostar 3 000 kr
+är det +9 %.
+
+| vår fraktandel av inköpet | deras pris ÷ vår kostnad | deras pris ÷ bara varan |
+|---|---:|---:|
+| under 25 % | 1,32 | 1,75 |
+| 25–40 % | 1,28 | 1,92 |
+| över 40 % | **1,13** | **2,07** |
+
+Deras kostnad rör sig inte alls med vår frakt: de har **lager i Sverige**
+("Dealproffsen AB är ett svenskt företag med lager i Sverige", varje vara
+"Lagervara", 1–2 dagars leverans) och tar hem på pall.
+
+Gränsen går vid ungefär **900 kr i inköp**: under den är vi billigast i 29–50 %
+av fallen, över den i 92–100 %.
+
+**Räknat med frakten satt till 30 kr per vara i stället för per paket blir vi
+billigast på 55 av 55.** Det största draget i hela Aosom-affären är alltså inte
+prisregeln utan att förhandla samlad frakt. Tills dess är urvalet skyddet:
+`?skipFreightHeavy=1` på svepet.
+
+### Vad som INTE är fixat
+
+`computeProfit` i `lib/import/pricing.ts` drar inte av momsen ur kostnaden och
+är oense med `lib/auction/seed.ts#netSupplierCost`. Lönsamhetsöversikten
+underskattar därför vinsten med 25 % av inköpet. Samma fälla finns olagad för
+AliExpress-köp på Business Purpose, som faktureras netto men sparas i
+`landedCostSek` som läses som brutto (lagat för Aosom i `1287a0a`).
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,

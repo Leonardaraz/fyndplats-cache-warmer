@@ -21,9 +21,11 @@ Anvandning (kor fran en scratchpad-katalog med bilderna i ./crops):
     ck.render(["k1a", "k1b", "k1s"])
 
 Bildhjalpare: hero_white (vit studio-hjalte) · crop (relativa koordinater) ·
+fit_pane (beskar till panelens proportion sa att cover inte zoomar in) ·
 grid_overlay (rutnat for att lasa av exakta crop-granser).
 Kort: card_photo (ett stort foto) · card_grid (2-4 foton) · card_spec (foto +
-spec-rutnat). Rendera med render(). hero_white kraver numpy + scipy; korten
+spec-rutnat) · card_swatch (en variant stor pa vitt + etikett). Rendera med
+render(). hero_white kraver numpy + scipy; korten
 kraver bara PIL.
 
 Assets (Inter latin-subset + kub-loggan) ligger i scripts/assets/ och behover
@@ -164,6 +166,33 @@ def card_grid(out, photos, labels, kicker, title, caption, note="", rows=1, fit=
     _write(out, html)
 
 
+def card_swatch(out, photo, titel, meta, note="", accent=None):
+    """Variant-swatch: EN vara stor pa vitt + en tydlig svensk etikett.
+
+    Anvands nar ett variantval behover en egen bild (linkedMedia) och
+    leverantorens variantkort ar pa fel sprak. Fotot ska vara en tight
+    beskarning av just den varianten — bilden fyller panelen.
+
+    titel: t.ex. "CW280 · marinbla" (allt fore forsta " · " far accentfarg)
+    meta:  t.ex. "190 x 72 cm · 570 g"
+    """
+    bitar = titel.split(" · ", 1)
+    rubrik = (f'<span class=ac>{bitar[0]}</span>' + (f' · {bitar[1]}' if len(bitar) > 1 else ''))
+    html = (_head() + f"""<style>
+.card{{background:#FFFFFF}}
+.sw{{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}}
+.sw img{{width:100%;height:100%;object-fit:contain;display:block}}
+.etikett{{flex:0 0 auto;border-top:2px solid rgba(27,27,26,.11);padding-top:34px;margin-top:30px;
+  display:flex;align-items:baseline;justify-content:space-between;gap:34px}}
+.etikett .v{{font-size:66px;font-weight:800;letter-spacing:-1.8px;white-space:nowrap}}
+.etikett .h{{font-size:36px;font-weight:400;color:{MUTED};text-align:right}}
+.ac{{color:{accent or ORANGE};font-weight:800}}
+</style><div class=card>
+<div class=sw><img src="{_img_uri(photo)}"></div>
+<div class=etikett><div class=v>{rubrik}</div><div class=h>{meta}</div></div>""" + _foot(note) + "</div>")
+    _write(out, html)
+
+
 def card_spec(out, photo, kicker, title, specrows, note="", fit=True):
     """Foto + verifierat spec-rutnat (siffra i svart, enhet i orange)."""
     rows = "".join(f'<div class=r><span class=k>{k}</span><span class=v>{v}</span></div>'
@@ -245,6 +274,42 @@ def crop(src, dst, x0, x1, y0, y1, q=95):
     w, h = im.size
     os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
     im.crop((int(w * x0), int(h * y0), int(w * x1), int(h * y1))).save(dst, quality=q)
+    return dst
+
+
+# Kortmotorns FAKTISKA panelproportioner (uppmatta med en sond-rendering
+# 2026-08-26, 1-radig h1 + 2-radig bildtext). Panelen anvander object-fit:cover,
+# sa ett foto med FEL proportion zoomas in tills det tacker panelen — det ar den
+# vanligaste orsaken till "for inzoomade" kort. Beskar alltid kallan till
+# panelens proportion forst med fit_pane().
+PANEL = {
+    "photo": 1416 / 1005,      # card_photo, en panel
+    "spec": 1416 / 776,        # card_spec (8 specrader)
+    "grid2x2": 695 / 489,      # card_grid rows=2, fyra paneler
+    "grid1x2": 695 / 1005,     # card_grid rows=1, tva paneler
+    "grid1x3": 455 / 1005,     # card_grid rows=1, tre paneler
+    "grid1x4": 334 / 1005,     # card_grid rows=1, fyra paneler
+}
+
+
+def fit_pane(src, dst, panel="photo", anchor=0.5, q=95):
+    """Centrumbeskar till panelens proportion sa att cover inte zoomar in.
+
+    panel: nyckel i PANEL, eller ett tal (bredd/hojd).
+    anchor: 0-1, var i den langa riktningen snittet centreras (0.5 = mitten).
+    Skalar aldrig upp och lagger aldrig till vit yta — bara ett snallt snitt.
+    """
+    mal = PANEL[panel] if isinstance(panel, str) else float(panel)
+    im = Image.open(src).convert("RGB")
+    w, h = im.size
+    if w / h > mal:                      # for bred -> kapa i sidled
+        nw, nh = int(round(h * mal)), h
+    else:                                # for hog -> kapa i hojdled
+        nw, nh = w, int(round(w / mal))
+    x = int(round((w - nw) * anchor))
+    y = int(round((h - nh) * anchor))
+    os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
+    im.crop((x, y, x + nw, y + nh)).save(dst, quality=q)
     return dst
 
 

@@ -21,6 +21,7 @@ import {
   debugRawProductGet,
 } from "@/lib/aliexpress/client";
 import { checkMappingShippability, SHIP_FROM_FAILOVER_MAX, zeroUnshippableInventory } from "@/lib/sync/shippability";
+import { isAliExpressMapping } from "@/lib/store/supplier";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -54,6 +55,17 @@ export async function GET(req: NextRequest) {
     }
     if (!mapping) {
       return NextResponse.json({ error: `Ingen mappning för ${id}.` }, { status: 404 });
+    }
+
+    if (!isAliExpressMapping(mapping)) {
+      return NextResponse.json(
+        {
+          error:
+            `${mapping.wixProductId} kommer inte från AliExpress — fraktkontrollen `
+            + "gäller bara AE-listningar. Aosom-frakt står i feedens SE Ship Fee.",
+        },
+        { status: 400 },
+      );
     }
 
     const product = await getAliExpressProduct(mapping.supplierProductId);
