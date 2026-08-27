@@ -144,6 +144,26 @@ ovillkorligt. Torrkörning är default; utan `?dryRun=false` skrivs ingenting.
 Rutten är **inte schemalagd** — en cron som fyller poleringskön snabbare än
 någon hinner skriva om texterna ger bara en växande hög tyska utkast.
 
+### Så körs den: GitHub Actions, inte en terminal
+
+Workflowen **"Aosom — importera sortimentet som osynliga utkast"** (`workflow_dispatch`,
+tre lägen: `torr` · `rökprov` · `svep`). Samma nyckel-lösa upplägg som
+prisreparationen: produktionen har Wix-nycklarna, Actions har `CRON_SECRET`, och
+de möts i workflowen. Ingen hemlighet passerar chatten eller en terminal — och
+därför går hela jobbet att starta från en telefon.
+
+Det löste ett verkligt problem: `CRON_SECRET` är märkt Sensitive i Vercel och går
+inte att läsa tillbaka ens för ägaren, så rutten var i praktiken oanropbar för
+den som inte redan hade värdet.
+
+Svepet **sparar markören i grenen efter varje varv** (`tools/aosom/sweep-state.json`),
+inte i slutet. Dör jobbet mitt i fortsätter nästa körning där den slutade i
+stället för att börja om. Jobbet stannar själv efter fem timmar — under GitHubs
+sextimmarstak, med marginal nog att hinna committa markören.
+
+`tools/aosom/sweep.sh` finns kvar för den som hellre kör från en terminal och
+har `CRON_SECRET` för handen.
+
 ### Fyra saker som inte ska tas bort
 
 1. **`supplier: "aosom"` på mappningen.** Lagersynken, prisbevakningen,

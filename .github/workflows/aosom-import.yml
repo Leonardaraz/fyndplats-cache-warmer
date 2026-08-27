@@ -1,0 +1,234 @@
+name: Aosom — importera sortimentet som osynliga utkast
+
+# Samma upplägg som prisreparationen: produktionen har Wix-nycklarna, GitHub
+# Actions har CRON_SECRET, och de möts här. Ingen hemlighet passerar chatten
+# eller en terminal — och därför går hela jobbet att starta från telefonen.
+#
+# TRE LÄGEN:
+#   torr     — torrkörning. Skriver INGENTING, någonstans. Svarar med hur många
+#              rader feeden har och hur många som går att frakta hit. Kör den
+#              först: den bevisar att feed-adressen hittas i Wix-raden
+#              FyndplatsAppConfig utan att röra katalogen.
+#   rökprov  — tre riktiga produkter, skarpt. SKU:na är handkontrollerade mot
+#              katalogen (två distinkta mått + produkttyp, noll träffar) och ska
+#              INTE bytas: de tre första kandidaterna visade sig alla vara varor
+#              vi redan säljer, inköpta via AliExpress. Dubblettspärren nycklar
+#              på supplierProductId och ser inte den sortens dubblett.
+#   svep     — loopar tills sortimentet är inne eller tidsbudgeten tar slut.
+#              Markören sparas i grenen efter VARJE varv, så en avbruten körning
+#              fortsätter där den slutade. Omkörning av redan importerade
+#              produkter är en no-op tack vare dubblettspärren.
+#
+# Produkterna blir ALLTID osynliga utkast: pipelinen kör i rått läge, vilket
+# sätter visible:false ovillkorligt och gör noll Claude-anrop ($0). De poleras
+# sedan för hand — texterna i feeden är tyska.
+#
+# INTE SCHEMALAGD, med flit. En cron som fyller poleringskön snabbare än någon
+# hinner skriva om texterna ger bara en växande hög tyska utkast.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET       — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "torr = skriver inget · rökprov = 3 produkter · svep = hela sortimentet"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - rökprov
+          - svep
+      limit:
+        description: "Produkter per varv (svep/torr). 150 är lagom."
+        required: false
+        default: "150"
+        type: string
+      after:
+        description: "svep: fortsätt efter det här artikelnumret. Tomt = från sparad markör."
+        required: false
+        default: ""
+        type: string
+      skip_freight_heavy:
+        description: "svep: hoppa över de ~1 175 där frakten kostar mer än varan"
+        required: false
+        default: true
+        type: boolean
+      max_rounds:
+        description: "svep: max antal varv i den här körningen"
+        required: false
+        default: "60"
+        type: string
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    # Under GitHubs 6-timmarstak med marginal; svepet fortsätter nästa körning.
+    timeout-minutes: 330
+    # Markören committas till grenen så nästa körning kan fortsätta.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Kör
+        env:
+          # VIA MILJÖN, inte ${{ }} inuti skriptet: interpolerat direkt i bash
+          # bryts kommandot av den första apostrofen i ett produktnamn, och det
+          # vore dessutom en injektionsväg.
+          MODE: ${{ inputs.mode }}
+          LIMIT: ${{ inputs.limit }}
+          AFTER_IN: ${{ inputs.after }}
+          SKIP_FREIGHT: ${{ inputs.skip_freight_heavy }}
+          MAX_ROUNDS: ${{ inputs.max_rounds }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          BASE_SECRET: ${{ secrets.POLL_TRACKING_URL }}
+        run: |
+          set -euo pipefail
+
+          base="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-import"
+          STATE="tools/aosom/sweep-state.json"
+
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          mkdir -p tools/aosom
+
+          # Ett anrop. Skriver svaret till $svar, fäller jobbet på ok != true.
+          anropa() {
+            local url="$1"
+            local body
+            body=$(curl -sS --max-time 310 -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$url") || {
+                echo "::error::Anropet gick inte fram: $url"
+                return 1
+              }
+            if [ "$(printf '%s' "$body" | jq -r '.ok // false')" != "true" ]; then
+              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500)"
+              return 1
+            fi
+            printf '%s' "$body"
+          }
+
+          # ── torr ────────────────────────────────────────────────────────────
+          if [ "$MODE" = "torr" ]; then
+            svar=$(anropa "${base}?dryRun=true&limit=${LIMIT}")
+            rader=$(printf '%s' "$svar" | jq -r '.feedRows')
+            frakt=$(printf '%s' "$svar" | jq -r '.shippable')
+            inne=$(printf '%s' "$svar" | jq -r '.alreadyImported')
+            kvar=$(printf '%s' "$svar" | jq -r '.remaining')
+            bilder=$(printf '%s' "$svar" | jq -r '.remainingImages')
+            {
+              echo "### Aosom — torrkörning (inget skrevs)"
+              echo ""
+              echo "Feed-adressen hittades, feeden hämtades och tolkades."
+              echo ""
+              echo "| | |"
+              echo "|---|---:|"
+              echo "| Rader i feeden | **${rader}** |"
+              echo "| Går att frakta till Sverige | **${frakt}** |"
+              echo "| Redan i katalogen | ${inne} |"
+              echo "| Kvar att importera | **${kvar}** |"
+              echo "| Bilder bakom dem | ${bilder} |"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "OK: ${rader} rader, ${frakt} fraktbara, ${kvar} kvar."
+            exit 0
+          fi
+
+          # ── rökprov ─────────────────────────────────────────────────────────
+          if [ "$MODE" = "rökprov" ]; then
+            # Kontrollerade mot katalogen 2026-08-27. Byt dem inte utan att
+            # först söka på två distinkta mått plus produkttyp — se filhuvudet.
+            skus="845-999V00OG,331-058V00MX,C30-035V00BK"
+            start=$(date +%s)
+            svar=$(anropa "${base}?dryRun=false&sku=${skus}")
+            tid=$(( $(date +%s) - start ))
+            inf=$(printf '%s' "$svar" | jq -r '.imported')
+            fel=$(printf '%s' "$svar" | jq -r '.failed')
+            {
+              echo "### Aosom — rökprov"
+              echo ""
+              echo "- Importerade: **${inf}** av 3"
+              echo "- Fel: **${fel}**"
+              echo "- Tid: ${tid} s (≈ $(( tid / 3 )) s per produkt)"
+              echo ""
+              echo "Förväntade priser: 845-999V00OG **1 419 kr** · 331-058V00MX **1 849 kr** · C30-035V00BK **2 209 kr**"
+              echo "Kontrollera i /admin/queue: alla tre som utkast, fem bilder var."
+              if [ "$fel" != "0" ]; then
+                echo ""
+                echo '```json'
+                printf '%s' "$svar" | jq -c '.errors'
+                echo '```'
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Importerade ${inf}, fel ${fel}, ${tid} s."
+            if [ "$fel" != "0" ]; then
+              echo "::error::Rökprovet gav ${fel} fel — kör inte svepet förrän de är förstådda."
+              exit 1
+            fi
+            exit 0
+          fi
+
+          # ── svep ────────────────────────────────────────────────────────────
+          extra=""
+          [ "$SKIP_FREIGHT" = "true" ] && extra="&skipFreightHeavy=1"
+
+          # Markör: uttrycklig inmatning vinner, annars den sparade.
+          after="$AFTER_IN"
+          if [ -z "$after" ] && [ -f "$STATE" ]; then
+            after=$(jq -r '.cursor // ""' "$STATE")
+            [ "$after" = "null" ] && after=""
+            [ -n "$after" ] && echo "Fortsätter efter sparad markör: $after"
+          fi
+
+          # Stanna i god tid före jobbets tak så markören hinner committas.
+          slut=$(( $(date +%s) + 300 * 60 ))
+          varv=0; totalt=0; fel_totalt=0
+
+          while :; do
+            varv=$(( varv + 1 ))
+            if [ "$varv" -gt "$MAX_ROUNDS" ]; then echo "Nådde max_rounds."; break; fi
+            if [ "$(date +%s)" -ge "$slut" ]; then echo "Tidsbudgeten slut."; break; fi
+
+            url="${base}?dryRun=false&limit=${LIMIT}${extra}"
+            [ -n "$after" ] && url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
+
+            svar=$(anropa "$url") || break
+            inf=$(printf '%s' "$svar" | jq -r '.imported')
+            fel=$(printf '%s' "$svar" | jq -r '.failed')
+            kvar=$(printf '%s' "$svar" | jq -r '.remaining')
+            markor=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+            totalt=$(( totalt + inf )); fel_totalt=$(( fel_totalt + fel ))
+            echo "varv ${varv}: +${inf} (fel ${fel}), ${kvar} kvar, markör ${markor:-—}"
+
+            # MARKÖREN SPARAS EFTER VARJE VARV, inte i slutet. Dör jobbet mitt i
+            # ska nästa körning kunna fortsätta, inte börja om från noll.
+            printf '%s' "$svar" | jq '{cursor, remaining, imported, failed, stoppedBy,
+              uppdaterad: (now | todate)}' > "$STATE"
+            git add "$STATE"
+            git diff --cached --quiet || {
+              git commit -q -m "Aosom-svep: markör ${markor:-klart} (${kvar} kvar)"
+              git push -q origin HEAD:"${GITHUB_REF_NAME}" || true
+            }
+
+            if [ -z "$markor" ] || [ "$markor" = "null" ]; then
+              echo "Sortimentet är inne."; break
+            fi
+            after="$markor"
+          done
+
+          {
+            echo "### Aosom — svep"
+            echo ""
+            echo "- Varv: **${varv}**"
+            echo "- Importerade denna körning: **${totalt}**"
+            echo "- Fel: **${fel_totalt}**"
+            echo "- Kvar: **$(jq -r '.remaining // "?"' "$STATE" 2>/dev/null)**"
+            echo "- Markör: \`$(jq -r '.cursor // "klart"' "$STATE" 2>/dev/null)\`"
+            echo ""
+            echo "Kör workflowen igen för att fortsätta — markören läses automatiskt."
+          } >> "$GITHUB_STEP_SUMMARY"
