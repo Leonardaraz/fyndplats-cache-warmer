@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ListProduct } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
 import { SHIMMER_BLUR } from "../lib/lqip";
@@ -14,7 +15,17 @@ export function ProductCard({ p }: { p: ListProduct }) {
   const altImg = p.altImg ?? p.gallery?.find((g) => g !== p.img);
   const lowStock = p.inStock && typeof p.stockQuantity === "number" && p.stockQuantity > 0 && p.stockQuantity <= 5;
   return (
-    <a className="prod" href={`/produkt/${p.slug}`}>
+    // next/link, inte <a>: ett vanligt <a> gör en FULL sidladdning — hela appen
+    // startas om, all JS parsas och hydreras på nytt. Mätt 2026-08-27 på ett
+    // klick i bläddringsraden: navigationstyp "navigate", 1 407 ms till load och
+    // 32 förfrågningar utfärdade igen. Med Link byter routern bara ut det
+    // segment som ändrats.
+    //
+    // prefetch={false} med flit: en kategorisida renderar 40+ kort, och Links
+    // förvalda beteende hade hämtat RSC-nyttolasten för varenda ett så fort det
+    // syns i vyn. Vinsten här är klientruttningen, inte förhämtningen — den får
+    // bläddringsraden ta, där det är två länkar och avsikten är tydlig.
+    <Link className="prod" href={`/produkt/${p.slug}`} prefetch={false}>
       <div className="pimg">
         {/* Slutsåld-badge: OOS-produkter göms inte från listningarna (default) utan
             visas med badge + dämpad bild så kunden ser dem och kan bevaka. */}
@@ -107,7 +118,7 @@ export function ProductCard({ p }: { p: ListProduct }) {
             )}
           </span>
           {/* Etiketten säger vad knappen GÖR. Hela kortet är en länk till
-              produktsidan (se <a className="prod"> ovan) — "Köp" lovade därför
+              produktsidan (se <Link className="prod"> ovan) — "Köp" lovade därför
               en handling som inte fanns: trycker man på den händer exakt samma
               sak som överallt annars på kortet. Ett falskt löfte kostar mer än
               det säljer.
@@ -123,6 +134,6 @@ export function ProductCard({ p }: { p: ListProduct }) {
           </span>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

@@ -43,8 +43,17 @@
 // produkt. `nastaFran`/`forraFran` gör hoppet över en avsnittsgräns synligt som
 // en egen rad under produktnamnet: "i Grill & Utekök".
 //
-// Ren serverkomponent: inga hooks, inget "use client". Länkarna är vanliga
-// <a>, så de fungerar utan JS och Next hämtar dem i förväg som vanligt.
+// Ren serverkomponent: inga hooks, inget "use client". Länkarna är next/link —
+// ett vanligt <a> gör en FULL sidladdning, och den kommentar som stod här förut
+// påstod felaktigt att Next förhämtar sådana. Det gör den inte.
+//
+// MÄTT 2026-08-27, klick på "Nästa" med <a>: navigationstyp "navigate",
+// 1 407 ms till load-event, 32 förfrågningar utfärdade på nytt — hela appen
+// startades om. Med Link hämtas bara det segment som ändrats, och de två
+// länkarna förhämtas när raden syns, så klicket oftast redan har svaret.
+//
+// Här står förhämtningen kvar (till skillnad från produktkortet): raden har
+// exakt två länkar och den som ser den är på väg vidare.
 //
 // TILLGÄNGLIGHET: <nav> med aria-label, eftersom det är en andra navigation på
 // sidan vid sidan av brödsmulan. Chevronen och miniatyren är dekorativa
@@ -56,6 +65,7 @@
 // produkt i en avdelning ska inte få en tom rad över sig.
 
 import Image from "next/image";
+import Link from "next/link";
 import { tightFillUrl } from "../lib/wix-image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import type { Grannar } from "../lib/product-neighbours";
@@ -91,11 +101,11 @@ export function ProductBrowse({
         //
         // På en SLUTSÅLD produkt utelämnas positionen. Man är inte "15 av 15" —
         // man står bredvid listan, och de 14 andra är de man kan bläddra bland.
-        <a className="pbrowse-rakn" href={`/kategori/${avsnitt.slug}`}>
+        <Link className="pbrowse-rakn" href={`/kategori/${avsnitt.slug}`} prefetch={false}>
           {raknasMed && position !== null
             ? `${position} av ${antal} i ${avsnitt.namn}`
             : `${antal} produkter i ${avsnitt.namn}`}
-        </a>
+        </Link>
       )}
 
       {nasta ? (
@@ -118,7 +128,7 @@ function Lank({
 }) {
   const forra = riktning === "forra";
   return (
-    <a
+    <Link
       className={`pbrowse-lank pbrowse-${riktning}`}
       href={`/produkt/${granne.slug}`}
       rel={forra ? "prev" : "next"}
@@ -154,7 +164,7 @@ function Lank({
             höjd. Under namnet kan raden inte knuffa något. */}
         {fran && <span className="pbrowse-avsnitt">i {fran}</span>}
       </span>
-    </a>
+    </Link>
   );
 }
 
@@ -174,9 +184,10 @@ function Utgang({
   riktning: "forra" | "nasta";
 }) {
   return (
-    <a
+    <Link
       className={`pbrowse-utgang pbrowse-${riktning}`}
       href={avsnitt ? `/kategori/${avsnitt.slug}` : "/butik"}
+      prefetch={false}
     >
       <span className="pbrowse-pil" aria-hidden="true">
         <Rutnat />
@@ -185,7 +196,7 @@ function Utgang({
         <span className="pbrowse-etikett">Se alla</span>
         <span className="pbrowse-namn">{avsnitt ? avsnitt.namn : "Butiken"}</span>
       </span>
-    </a>
+    </Link>
   );
 }
 
