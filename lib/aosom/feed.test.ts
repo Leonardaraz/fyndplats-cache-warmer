@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import {
   parseAosomFeed,
   isShippableToSe,
@@ -7,7 +7,7 @@ import {
   freightShare,
   headroom,
   fetchAosomFeed,
-  aosomFeedUrl,
+  resolveAosomFeedUrl,
   NO_SHIP_SENTINEL_EUR,
   type AosomRow,
 } from "./feed";
@@ -166,28 +166,67 @@ describe("fetchAosomFeed", () => {
 });
 
 describe("feedens adress", () => {
-  it("kommer ur miljön", () => {
-    const forra = process.env.AOSOM_FEED_URL;
-    try {
-      process.env.AOSOM_FEED_URL = "https://exempel.test/feed.csv";
-      expect(aosomFeedUrl()).toBe("https://exempel.test/feed.csv");
-    } finally {
-      if (forra === undefined) delete process.env.AOSOM_FEED_URL;
-      else process.env.AOSOM_FEED_URL = forra;
-    }
+  const forra = { env: process.env.AOSOM_FEED_URL, token: process.env.WIX_API_TOKEN };
+  afterEach(() => {
+    if (forra.env === undefined) delete process.env.AOSOM_FEED_URL;
+    else process.env.AOSOM_FEED_URL = forra.env;
+    if (forra.token === undefined) delete process.env.WIX_API_TOKEN;
+    else process.env.WIX_API_TOKEN = forra.token;
+    vi.unstubAllGlobals();
+    vi.resetModules();
   });
 
-  it("kastar i stället för att falla tillbaka på en inbakad adress", () => {
-    const forra = process.env.AOSOM_FEED_URL;
-    try {
-      delete process.env.AOSOM_FEED_URL;
-      expect(() => aosomFeedUrl()).toThrow(/AOSOM_FEED_URL saknas/);
-      process.env.AOSOM_FEED_URL = "   ";
-      expect(() => aosomFeedUrl()).toThrow(/AOSOM_FEED_URL saknas/);
-    } finally {
-      if (forra === undefined) delete process.env.AOSOM_FEED_URL;
-      else process.env.AOSOM_FEED_URL = forra;
-    }
+  /** Wix-raden, som modulen läser den. `null` = kollektionen saknas (404). */
+  function wixSvarar(data: Record<string, unknown> | null) {
+    vi.stubGlobal("fetch", (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (!url.includes("FyndplatsAppConfig")) throw new Error(`oväntat anrop: ${url}`);
+      if (data === null) return new Response("", { status: 404 });
+      return new Response(JSON.stringify({ dataItem: { data } }), { status: 200 });
+    }) as unknown as typeof fetch);
+  }
+
+  it("miljövariabeln vinner — en engångskörning ska kunna peka om", async () => {
+    process.env.AOSOM_FEED_URL = "https://engangs.test/feed.csv";
+    process.env.WIX_API_TOKEN = "x";
+    wixSvarar({ aosomFeedUrl: "https://wix.test/feed.csv" });
+    await expect(resolveAosomFeedUrl()).resolves.toBe("https://engangs.test/feed.csv");
+  });
+
+  it("faller tillbaka på Wix-raden — det normala fallet i drift", async () => {
+    delete process.env.AOSOM_FEED_URL;
+    process.env.WIX_API_TOKEN = "x";
+    wixSvarar({ aosomFeedUrl: "https://wix.test/feed.csv" });
+    await expect(resolveAosomFeedUrl()).resolves.toBe("https://wix.test/feed.csv");
+  });
+
+  it("blank miljövariabel räknas som osatt", async () => {
+    process.env.AOSOM_FEED_URL = "   ";
+    process.env.WIX_API_TOKEN = "x";
+    wixSvarar({ aosomFeedUrl: "https://wix.test/feed.csv" });
+    await expect(resolveAosomFeedUrl()).resolves.toBe("https://wix.test/feed.csv");
+  });
+
+  it("kastar när ingen källa har adressen — aldrig en inbakad fallback", async () => {
+    delete process.env.AOSOM_FEED_URL;
+    process.env.WIX_API_TOKEN = "x";
+    wixSvarar(null);
+    await expect(resolveAosomFeedUrl()).rejects.toThrow(/feed-adress saknas/i);
+  });
+
+  it("fetchAosomFeed slår bara upp adressen när ingen skickas med", async () => {
+    process.env.AOSOM_FEED_URL = "https://engangs.test/feed.csv";
+    let hamtad = "";
+    const f = (async (input: RequestInfo | URL) => {
+      hamtad = String(input);
+      return new Response(`${HEADER}\n${rad()}`, { status: 200 });
+    }) as unknown as typeof fetch;
+
+    await fetchAosomFeed(undefined, f);
+    expect(hamtad).toBe("https://engangs.test/feed.csv");
+
+    await fetchAosomFeed("https://uttrycklig.test/feed.csv", f);
+    expect(hamtad).toBe("https://uttrycklig.test/feed.csv");
   });
 
   it("står ingenstans i källan — repot är publikt och feeden bär inköpspriserna", async () => {
@@ -195,7 +234,12 @@ describe("feedens adress", () => {
     // "Wholesale Price" för 6 057 artiklar. Hårdkodas den igen publicerar vi
     // vad vi betalar för varje vara, för alla som läser repot.
     const { readFileSync } = await import("node:fs");
-    for (const fil of ["lib/aosom/feed.ts", "lib/aosom/import-run.ts", "app/api/cron/aosom-import/route.ts"]) {
+    for (const fil of [
+      "lib/aosom/feed.ts",
+      "lib/aosom/import-run.ts",
+      "lib/store/app-config.ts",
+      "app/api/cron/aosom-import/route.ts",
+    ]) {
       expect(readFileSync(fil, "utf8")).not.toMatch(/feed\.aosomcdn\.com/);
     }
   });
