@@ -57,7 +57,9 @@
 //   bläddrat långt. I de två ändarna renderas en utgång till kategorisidan i
 //   stället — se product-browse.tsx.
 // • Kedjan korsar inte huvudavdelningar. Solskydd → Grillar är en rimlig
-//   fortsättning; Trädgård → Skönhet & Hälsa är det inte.
+//   fortsättning; Trädgård → Skönhet & Hälsa är det inte. En produkt som ligger
+//   i två avdelningar hamnar i EXAKT en kedja — se HEMVIST i avdelningsKedja.
+//   Utan det gick bläddringen bevisligen i ring.
 // • Vi följer inte besökarens faktiska väg in. Kom hen via sök, startsidan eller
 //   en kampanjlänk finns ingen lista att gå vidare i — avdelningen är den enda
 //   ordning som alltid finns och alltid är densamma. Att i stället skicka
@@ -104,8 +106,12 @@ export type Grannar<T> = {
   /** 1-baserat läge i det EGNA avsnittet, för "19 av 19". Null om produkten
    *  inte finns i kedjan alls. */
   position: number | null;
-  /** Antal produkter i det egna avsnittet — inte i hela kedjan. */
+  /** Antal BLÄDDRINGSBARA produkter i det egna avsnittet — inte i hela kedjan. */
   antal: number;
+  /** Är produkten man står på själv en av dem? Falskt för en slutsåld produkt,
+   *  som finns i sin egen kedja men i ingen annans (se utanSlutsalda). Då är
+   *  `position` meningslös och raden skriver bara antalet. */
+  raknasMed: boolean;
   /** Avsnittet produkten själv ligger i. Räknaren och utgången pekar hit. */
   avsnitt: { namn: string; slug: string } | null;
 };
@@ -117,6 +123,7 @@ const TOMMA: Grannar<never> = {
   nastaFran: null,
   position: null,
   antal: 0,
+  raknasMed: false,
   avsnitt: null,
 };
 
@@ -191,6 +198,7 @@ export function grannarIKedja<T extends Bladdringsbar>(
     nastaFran: na && na.i !== eget ? avsnitt[na.i].namn : null,
     position: iEget.findIndex((x) => x.p.slug === slug) + 1,
     antal: iEget.length,
+    raknasMed: true,
     avsnitt: { namn: avsnitt[eget].namn, slug: avsnitt[eget].slug },
   };
 }
@@ -210,8 +218,38 @@ export function avdelningFor(
   if (!egna.length) return null;
   const huvud = egna.find((c) => c.parentId === null);
   if (huvud) return huvud;
-  const forsta = egna[0];
-  return kategorier.find((c) => c.id === forsta.parentId) || forsta;
+  // Klättra HELA vägen upp, inte ett steg. Ligger produkten bara i en
+  // underkategoris underkategori gav ett enda steg en underkategori tillbaka —
+  // och sedan hemvist() blev load-bearing betydde det att produkten filtrerades
+  // bort ur sin egen avdelnings kedja och blev utan bläddring.
+  let c = egna[0];
+  const sedda = new Set<string>([c.id]);
+  while (c.parentId) {
+    const f = kategorier.find((x) => x.id === c.parentId);
+    // Saknad förälder eller cirkulär hierarki i datan → stanna hellre här än
+    // att snurra. Kedjan blir smalare, men sidan renderar.
+    if (!f || sedda.has(f.id)) break;
+    sedda.add(f.id);
+    c = f;
+  }
+  return c;
+}
+
+/**
+ * Produktens hemvist: avdelningFor() applicerad på produktens egna kategorier.
+ *
+ * Tar en färdig id→kategori-karta eftersom den anropas en gång per produkt i
+ * katalogen och en linjär find() per collectionId hade blivit kvadratiskt.
+ */
+function hemvist<T extends Bladdringsbar>(
+  katMap: Map<string, Kategori>,
+  kategorier: Kategori[],
+  p: T,
+): Kategori | null {
+  const egna = (p.collectionIds || [])
+    .map((id) => katMap.get(id))
+    .filter((c): c is Kategori => c !== undefined);
+  return avdelningFor(kategorier, egna);
 }
 
 /**
@@ -233,11 +271,25 @@ export function avdelningFor(
  * Med avdelningen som EN kedja hamnar båda i samma ordning, och steget tillbaka
  * går dit man kom ifrån.
  *
- * KVAR ATT LEVA MED: en produkt som ligger i TVÅ huvudavdelningar väljer en av
- * dem (den brödsmulan visar), och en granne som väljer den andra får en annan
- * kedja. Det går inte att lösa utan att skicka listan i länken, och det avstår
- * vi från — se filhuvudet. Antalet sådana produkter är litet, och grannen man
- * landar på är fortfarande en rimlig granne, bara inte samma.
+ * HEMVIST: EN PRODUKT LIGGER I EXAKT EN KEDJA. Detta är rättelsen av en andra
+ * mätt bugg, allvarligare än den ovan. En produkt kan tillhöra kategorier i TVÅ
+ * huvudavdelningar (duschpallen ligger i Hem & Inredning enligt brödsmulan, men
+ * också i en underkategori under Skönhet & Hälsa). Utan filtret nedan hamnade
+ * den i BÅDA avdelningarnas kedjor — och eftersom varje sida bygger sin egen
+ * kedja kunde man då gå Skönhet → Hem → tillbaka till Skönhet:
+ *
+ *   MÄTT 2026-08-27, framåtvandring från en kedjestart: en sluten ring på 23
+ *   produkter. Den som klickade "Nästa" tillräckligt länge kom aldrig fram —
+ *   den gick runt, runt.
+ *
+ * Därför filtreras kedjan på hemvist(): bara produkter vars EGEN avdelning är
+ * den här kedjans avdelning kommer med. Partitionen blir global och entydig —
+ * varje produkt i exakt en kedja — och då kan ringar inte uppstå: varje kedja
+ * är en ändlig stig utan rundgång.
+ *
+ * Det gör också steget tillbaka pålitligt: två grannar delar alltid kedja.
+ * Enda kvarvarande asymmetrin är den slutsålda man står på (se utanSlutsalda),
+ * som med flit finns i sin egen kedja men inte i grannarnas.
  */
 export function avdelningsKedja<T extends Bladdringsbar>(
   kategorier: Kategori[],
@@ -246,7 +298,14 @@ export function avdelningsKedja<T extends Bladdringsbar>(
   slug: string,
   efterbehandla?: (lista: T[]) => T[],
 ): Avsnitt<T>[] {
-  const kopbara = utanSlutsalda(alla, slug);
+  // EN PRODUKT HÖR HEMMA I EXAKT EN AVDELNING — hemvist() avgör vilken, och
+  // bara de produkterna kommer med. Se HEMVIST-kommentaren ovan: utan det här
+  // ledet kunde en produkt i två avdelningar ligga i BÅDA kedjorna, och då
+  // gick bläddringen i ring.
+  const katMap = new Map(kategorier.map((c) => [c.id, c]));
+  const kopbara = utanSlutsalda(alla, slug).filter(
+    (p) => hemvist(katMap, kategorier, p)?.id === avdelning.id,
+  );
   // Promo-kollektionerna (REA, Populära, All Products) är föräldralösa och kan
   // aldrig råka bli underkategorier här.
   const under = kategorier
@@ -324,10 +383,19 @@ export function produktGrannar(
 ): Grannar<Product> {
   const avdelning = avdelningFor(kategorier, egnaKategorier);
   if (!avdelning) return TOMMA;
-  return grannarIKedja(
+  const g = grannarIKedja(
     avdelningsKedja(kategorier, avdelning, alla, slug, efterbehandla),
     slug,
   );
+  // Står man på en SLUTSÅLD produkt är den med i kedjan bara tack vare
+  // undantaget i utanSlutsalda — ingen annan sida räknar den. Att då skriva
+  // "15 av 15" är fel: det finns 14 att bläddra bland, och man är inte en av
+  // dem. Mätt 2026-08-27: 76 produkter (8 % av katalogen) visade den siffran.
+  const slutsald = alla.some((p) => p.slug === slug && p.inStock === false);
+  if (slutsald && g.position !== null) {
+    return { ...g, position: null, antal: Math.max(0, g.antal - 1), raknasMed: false };
+  }
+  return g;
 }
 
 export { utanSlutsalda };

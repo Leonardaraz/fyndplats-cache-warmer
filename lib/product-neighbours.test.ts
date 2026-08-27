@@ -7,6 +7,7 @@ import {
   grannarIKedja,
   avdelningsKedja,
   avdelningFor,
+  produktGrannar,
   utanSlutsalda,
   type Avsnitt,
   type Grannar,
@@ -377,5 +378,94 @@ describe("avdelningsKedja", () => {
     assert.equal(g.nasta?.slug, "sol-1");
     assert.equal(g.nastaFran, "Solskydd");
     assert.equal(g.antal, 1, "räknaren står kvar i Grillar");
+  });
+});
+
+describe("avdelningFor — klättring och hemvist", () => {
+  type K = { id: string; slug: string; name: string; parentId: string | null; index: number };
+  const HUVUD: K = { id: "h", slug: "tradgard", name: "Trädgård", parentId: null, index: 0 };
+  const SOL: K = { id: "s", slug: "solskydd", name: "Solskydd", parentId: "h", index: 1 };
+  const UNDERSOL: K = { id: "s2", slug: "parasoll", name: "Parasoll", parentId: "s", index: 0 };
+  const ANNAT: K = { id: "x", slug: "kok", name: "Kök", parentId: null, index: 1 };
+  const GRILL: K = { id: "g", slug: "grillar", name: "Grillar", parentId: "h", index: 0 };
+  const KATS = [HUVUD, GRILL, SOL, ANNAT, UNDERSOL];
+
+  const prod = (slug: string, kat: string[]): P => ({
+    id: `id-${slug}`, slug, name: slug.toUpperCase(), imageScore: 60, collectionIds: kat,
+  });
+
+  it("klättrar HELA vägen upp från en underkategoris underkategori", () => {
+    // Ett enda steg gav "Solskydd" — en underkategori, inte avdelningen. Sedan
+    // kedjan filtreras på hemvist blev produkten då bortfiltrerad ur sin egen
+    // avdelning och stod helt utan bläddring.
+    assert.equal(avdelningFor(KATS, [UNDERSOL])?.id, "h");
+  });
+
+  it("snurrar inte på en cirkulär hierarki i datan", () => {
+    const A: K = { id: "a", slug: "a", name: "A", parentId: "b", index: 0 };
+    const B: K = { id: "b", slug: "b", name: "B", parentId: "a", index: 0 };
+    assert.ok(avdelningFor([A, B], [A]));
+  });
+
+  it("stannar när föräldern saknas i listan", () => {
+    const LOS: K = { id: "l", slug: "l", name: "L", parentId: "finns-inte", index: 0 };
+    assert.equal(avdelningFor([LOS], [LOS])?.id, "l");
+  });
+
+  it("en produkt i TVÅ avdelningar hamnar i exakt EN kedja — ringen som mättes", () => {
+    // Duschpallen låg i Hem & Inredning OCH i en underkategori under Skönhet &
+    // Hälsa, och hamnade i båda kedjorna. Då kunde man gå i ring.
+    const bada = prod("duschpall", ["x", "s"]); // Kök (avdelning) + Solskydd (under Trädgård)
+    const bara = prod("parasoll-1", ["s"]);
+    const alla = [bada, bara];
+    const tradgard = avdelningsKedja(KATS, HUVUD, alla, "parasoll-1");
+    const kok = avdelningsKedja(KATS, ANNAT, alla, "duschpall");
+    const iTradgard = tradgard.flatMap((a) => a.produkter.map((p) => p.slug));
+    const iKok = kok.flatMap((a) => a.produkter.map((p) => p.slug));
+    assert.deepEqual(iTradgard, ["parasoll-1"], "duschpallen hör inte hemma här");
+    assert.deepEqual(iKok, ["duschpall"]);
+    assert.equal(iTradgard.filter((x) => iKok.includes(x)).length, 0, "ingen produkt i två kedjor");
+  });
+
+  it("produkten man står på filtreras aldrig bort ur sin egen kedja", () => {
+    const p1 = prod("parasoll-1", ["s2"]); // bara i underkategorins underkategori
+    const ut = avdelningsKedja(KATS, HUVUD, [p1], "parasoll-1");
+    assert.deepEqual(ut.flatMap((a) => a.produkter.map((x) => x.slug)), ["parasoll-1"]);
+  });
+});
+
+describe("räknaren på en slutsåld produkt", () => {
+  type K = { id: string; slug: string; name: string; parentId: string | null; index: number };
+  const HUVUD: K = { id: "h", slug: "kok", name: "Kök", parentId: null, index: 0 };
+  const SUB: K = { id: "s", slug: "maskiner", name: "Maskiner", parentId: "h", index: 0 };
+  const KATS = [HUVUD, SUB];
+  const prod = (slug: string, inStock = true): P => ({
+    id: `id-${slug}`, slug, name: slug.toUpperCase(), imageScore: 60,
+    collectionIds: ["s"], inStock,
+  });
+
+  it("räknar bort sig själv och lämnar positionen tom", () => {
+    // "15 av 15" var fel: den slutsålda finns bara i sin EGEN kedja, ingen
+    // annan sida räknar den. Kvar att bläddra bland är 14.
+    const alla = [prod("a"), prod("b"), prod("slut", false)];
+    const g = produktGrannar(KATS, [SUB], alla as never, "slut");
+    assert.equal(g.raknasMed, false);
+    assert.equal(g.position, null);
+    assert.equal(g.antal, 2, "de två köpbara, inte tre");
+  });
+
+  it("men behåller grannarna så man kan ta sig vidare", () => {
+    const alla = [prod("a"), prod("slut", false), prod("b")];
+    const g = produktGrannar(KATS, [SUB], alla as never, "slut");
+    assert.equal(g.forra?.slug, "a");
+    assert.equal(g.nasta?.slug, "b");
+  });
+
+  it("en köpbar produkt får position och raknasMed som vanligt", () => {
+    const alla = [prod("a"), prod("b"), prod("c")];
+    const g = produktGrannar(KATS, [SUB], alla as never, "b");
+    assert.equal(g.raknasMed, true);
+    assert.equal(g.position, 2);
+    assert.equal(g.antal, 3);
   });
 });

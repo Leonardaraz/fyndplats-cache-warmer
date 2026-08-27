@@ -70,7 +70,7 @@ export function ProductBrowse({
 }: {
   grannar: Grannar<{ slug: string; name: string; img?: string }>;
 }) {
-  const { forra, nasta, forraFran, nastaFran, position, antal, avsnitt } = grannar;
+  const { forra, nasta, forraFran, nastaFran, position, antal, raknasMed, avsnitt } = grannar;
   if (!forra && !nasta) return null;
 
   return (
@@ -84,12 +84,17 @@ export function ProductBrowse({
         <Utgang avsnitt={avsnitt} riktning="forra" />
       )}
 
-      {position !== null && avsnitt && (
+      {avsnitt && antal > 0 && (
         // Räknaren gör pilarna begripliga: utan den vet man inte om "nästa" är
         // en av tre eller en av femtio — och framför allt inte att man står
         // sist, vilket är hela förklaringen till en saknad pil.
+        //
+        // På en SLUTSÅLD produkt utelämnas positionen. Man är inte "15 av 15" —
+        // man står bredvid listan, och de 14 andra är de man kan bläddra bland.
         <a className="pbrowse-rakn" href={`/kategori/${avsnitt.slug}`}>
-          {position} av {antal} i {avsnitt.namn}
+          {raknasMed && position !== null
+            ? `${position} av ${antal} i ${avsnitt.namn}`
+            : `${antal} produkter i ${avsnitt.namn}`}
         </a>
       )}
 

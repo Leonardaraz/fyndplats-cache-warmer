@@ -245,7 +245,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   //
   // Både cols och ownCats: ownCats säger vilken avdelning produkten hör till,
   // cols bygger avdelningens alla avsnitt.
-  const grannar = produktGrannar(cols, ownCats, all, p.slug, dedupeProducts);
+  //
+  // navCols, inte cols: promo-kollektionerna (REA, Populära, All Products) är
+  // föräldralösa och hade annars kunnat bli "avdelningen" för en produkt som
+  // ligger i dem — samma NAV_EXCLUDED-filter som ownCats redan går igenom.
+  const navCols = cols.filter((c) => !NAV_EXCLUDED.has(c.name));
+  const grannar = produktGrannar(navCols, ownCats, all, p.slug, dedupeProducts);
 
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
   // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.
