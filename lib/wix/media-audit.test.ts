@@ -83,3 +83,42 @@ describe("buildReport", () => {
     expect(r.storsta[0].mb).toBeCloseTo(8.58, 1);
   });
 });
+
+describe("buildReport — spärren mot en halv katalog", () => {
+  it("är INTE fullständig när sökningen såg färre produkter än katalogen har", () => {
+    // Utelämnar sök-endpointen utkast (scope-fråga) ser varenda utkasts bilder
+    // föräldralösa ut. Skillnaden ska fälla rapporten, inte upptäckas efteråt.
+    const r = buildReport(
+      "site",
+      { files: [fil("a")], total: 1, complete: true },
+      { ids: new Set(["a"]), products: 1200, complete: true },
+      { ids: new Set() },
+      1696,
+    );
+    expect(r.fullstandig).toBe(false);
+    expect(r.produkterIKatalogen).toBe(1696);
+  });
+
+  it("är fullständig när sökningen såg minst lika många som katalogen har", () => {
+    const r = buildReport(
+      "site",
+      { files: [fil("a")], total: 1, complete: true },
+      { ids: new Set(["a"]), products: 1696, complete: true },
+      { ids: new Set() },
+      1696,
+    );
+    expect(r.fullstandig).toBe(true);
+  });
+
+  it("faller tillbaka på övriga spärrar när facit inte kunde hämtas", () => {
+    const r = buildReport(
+      "site",
+      { files: [fil("a")], total: 1, complete: true },
+      { ids: new Set(["a"]), products: 3, complete: true },
+      { ids: new Set() },
+      null,
+    );
+    expect(r.fullstandig).toBe(true);
+    expect(r.produkterIKatalogen).toBeNull();
+  });
+});

@@ -188,6 +188,26 @@ export async function collectCatalogMediaIds(
   return { ids, products, complete: false };
 }
 
+/**
+ * Antalet produkter katalogen SÄGER att den har.
+ *
+ * Finns för att fälla ett tyst fel som annars vore osynligt och dyrt: om
+ * sök-endpointen (eller tokenets scope) utelämnar icke-synliga produkter
+ * hittar inventeringen färre produkter än katalogen har — och då ser varenda
+ * utkasts bilder föräldralösa ut. Skillnaden måste synas i rapporten, inte
+ * upptäckas när någon redan raderat.
+ */
+export async function countProducts(siteId: string): Promise<number> {
+  const res = await fetch(`${WIX_BASE}/stores/v3/products/count`, {
+    method: "POST",
+    headers: headers(siteId),
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error(`Product count failed (${res.status})`);
+  const data = (await res.json()) as { count?: number };
+  return data.count ?? 0;
+}
+
 /** Kategoribilderna. Få till antalet, men en raderad kategoribild syns direkt i menyn. */
 export async function collectCategoryMediaIds(siteId: string): Promise<Set<string>> {
   const ids = new Set<string>();
@@ -226,6 +246,7 @@ export interface MediaAuditReport {
   filerTotalt: number;
   filerLasta: number;
   produkter: number;
+  produkterIKatalogen: number | null;
   katalogreferenser: number;
   utanKatalogreferens: number;
   bytesUtanReferens: number;
@@ -245,6 +266,7 @@ export function buildReport(
   media: { files: MediaFile[]; total: number; complete: boolean },
   katalog: { ids: Set<string>; products: number; complete: boolean },
   kategori: { ids: Set<string> | null; fel?: string },
+  produkterIKatalogen: number | null = null,
 ): MediaAuditReport {
   const anvanda = new Set<string>(katalog.ids);
   for (const id of kategori.ids ?? []) anvanda.add(id);
@@ -284,6 +306,7 @@ export function buildReport(
     filerTotalt: media.total,
     filerLasta: media.files.length,
     produkter: katalog.products,
+    produkterIKatalogen,
     katalogreferenser: anvanda.size,
     utanKatalogreferens: foraldralosa.length,
     bytesUtanReferens,
@@ -291,8 +314,14 @@ export function buildReport(
     kategoribilder: kategori.ids ? kategori.ids.size : null,
     kategorifel: kategori.fel,
     // Delrapporter duger till siffror men ALDRIG till radering: en produkt som
-    // inte hanns läsas gör sina bilder föräldralösa på pappret.
-    fullstandig: media.complete && katalog.complete && Boolean(kategori.ids),
+    // inte hanns läsas gör sina bilder föräldralösa på pappret. Samma sak om
+    // vi såg färre produkter än katalogen säger sig ha — då saknas referenser
+    // vi inte vet om.
+    fullstandig:
+      media.complete &&
+      katalog.complete &&
+      Boolean(kategori.ids) &&
+      (produkterIKatalogen === null || katalog.products >= produkterIKatalogen),
     dubblettgrupper,
     bytesIDubbletter,
     storsta,

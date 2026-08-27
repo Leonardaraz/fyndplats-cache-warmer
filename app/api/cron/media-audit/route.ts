@@ -26,6 +26,7 @@ import {
   buildReport,
   collectCatalogMediaIds,
   collectCategoryMediaIds,
+  countProducts,
   headlessSiteId,
   listAllMediaFiles,
 } from "@/lib/wix/media-audit";
@@ -56,6 +57,15 @@ export async function GET(req: NextRequest) {
     // rapporten värdelös, och då ska vi inte ha bränt budgeten på filerna.
     const katalog = await collectCatalogMediaIds(siteId, budget);
 
+    // Facit på hur många produkter som FINNS. Ser sökningen färre saknas
+    // referenser vi inte vet om, och rapporten får inte kallas fullständig.
+    let produkterIKatalogen: number | null = null;
+    try {
+      produkterIKatalogen = await countProducts(siteId);
+    } catch {
+      produkterIKatalogen = null;
+    }
+
     let kategoriIds: Set<string> | null = null;
     let kategorifel: string | undefined;
     try {
@@ -65,7 +75,13 @@ export async function GET(req: NextRequest) {
     }
 
     const media = await listAllMediaFiles(siteId, budget);
-    const rapport = buildReport(siteId, media, katalog, { ids: kategoriIds, fel: kategorifel });
+    const rapport = buildReport(
+      siteId,
+      media,
+      katalog,
+      { ids: kategoriIds, fel: kategorifel },
+      produkterIKatalogen,
+    );
 
     return NextResponse.json({
       ok: true,
