@@ -243,8 +243,8 @@ describe("läget", () => {
     const p = d.importerade[0];
     expect(p.supplierProductId).toBe("aosom:A-1");
     expect(p.variants).toHaveLength(1);
-    // (40 + 20) × 11,10 / 10,5 = 63,43 USD → landat 666 kr.
-    expect(p.variants[0].costUsd).toBeCloseTo(63.43, 2);
+    // (40 + 20) × 11,10 = 666 kr netto → × 1,25 = 832,50 brutto ÷ 10,5 = 79,29 USD.
+    expect(p.variants[0].costUsd).toBeCloseTo(79.29, 2);
   });
 });
 

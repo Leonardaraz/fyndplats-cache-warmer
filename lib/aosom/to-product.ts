@@ -10,6 +10,7 @@
 
 import type { AliExpressProduct } from "../import/types";
 import { landedCostEur, type AosomRow } from "./feed";
+import { SUPPLIER_VAT_RATE } from "../auction/seed";
 
 /**
  * Vilka bildpositioner som hämtas hem, 1-indexerat i feedens egen ordning.
@@ -83,11 +84,21 @@ export interface AosomFx {
  * Bygger en importerbar produkt av en feed-rad.
  *
  * OM `costUsd`: pipelinen räknar landad kostnad som `costUsd × usdToSek`
- * (pricing.ts#costToSek) och sparar resultatet i `landedCostSek` — fältet som
- * lönsamhetsöversikten OCH auktionens golvbud läser. Aosom prissätter i euro, så
- * vi räknar baklänges: `costUsd = landad EUR × eurToSek / usdToSek`. Då blir
- * `landedCostSek` exakt rätt, och `costUsd` betyder "vad den här varan hade
- * kostat i dollar" — en härledd storhet, inte ett pris någon fakturerat.
+ * (pricing.ts#costToSek) och sparar resultatet i `landedCostSek`. `costUsd` är
+ * alltså en härledd storhet — "vad varan hade kostat i dollar" — inte ett pris
+ * någon fakturerat.
+ *
+ * ☠️ MOMSEN MÅSTE LÄGGAS PÅ. `landedCostSek` är enligt husets konvention lagrad
+ * INKLUSIVE moms: auktionens golvbud delar med 1,25 innan det räknar
+ * (`lib/auction/seed.ts#netSupplierCost`, SUPPLIER_VAT_RATE = 0,25), eftersom
+ * momsen aldrig är en verklig kostnad för ett momsregistrerat företag —
+ * omvänd skattskyldighet på EU-köp, avdragsgill importmoms på Kina-köp.
+ *
+ * Aosoms B2B-fakturor är NETTO (omvänd skattskyldighet). Sparas det beloppet
+ * rakt av hamnar ett nettotal i ett fält som läses som brutto, och golvbudet
+ * blir 20 % för lågt — auktionen kan då sälja UNDER inköp. Därför bruttas
+ * beloppet upp med `SUPPLIER_VAT_RATE` så Aosom-rader följer exakt samma
+ * konvention som AliExpress-raderna.
  *
  * FRAKTEN INGÅR I KOSTNADEN. Det är hela skillnaden mot AliExpress, där
  * EU-lagerpriset är levererat. Aosoms SE-frakt är per kolli och skalar med
@@ -100,7 +111,9 @@ export function toImportProduct(
   fx: AosomFx,
   bildval?: AosomBildval,
 ): AliExpressProduct {
-  const landedSek = landedCostEur(row) * fx.eurToSek;
+  // Netto ur feeden → brutto, så fältet betyder samma sak som på AE-raderna.
+  const landedNetSek = landedCostEur(row) * fx.eurToSek;
+  const landedSek = landedNetSek * (1 + SUPPLIER_VAT_RATE);
   const costUsd = round2(landedSek / fx.usdToSek);
   const title = cleanText(row.name);
 

@@ -128,13 +128,26 @@ någon hinner skriva om texterna ger bara en växande hög tyska utkast.
    `isAliExpressMapping` i `lib/store/supplier.ts` — en grep hittar alla
    ställen som bryr sig. Fältet faller tillbaka på `aosom:`-prefixet i id:t, så
    en rad som tappat fältet klassas ändå rätt.
-2. **Frakten ligger i inköpspriset.** Det är hela skillnaden mot AliExpress, där
-   EU-lagerpriset är levererat. Aosoms SE-frakt är **per kolli** och skalar med
-   vikten (16 € under två kilo, över 100 € över fyrtio). Adaptern räknar
-   `costUsd = (grossist + SE-frakt) × eurToSek / usdToSek` så att
-   `landedCostSek` blir rätt — fältet som både lönsamhetsöversikten och
-   auktionens golvbud läser. Håller man frakten utanför blir varje marginal fel
-   åt samma håll och auktionen kan sälja under inköp.
+2. **Frakten ligger i inköpspriset, och momsen bruttas på.** Det är hela
+   skillnaden mot AliExpress, där EU-lagerpriset är levererat. Aosoms SE-frakt är
+   **per kolli** och skalar med vikten (16 € under två kilo, över 100 € över
+   fyrtio). Adaptern räknar
+   `costUsd = (grossist + SE-frakt) × eurToSek × 1,25 / usdToSek`.
+
+   ☠️ **Uppbruttningen är inte kosmetisk.** `landedCostSek` lagras enligt husets
+   konvention INKLUSIVE moms — auktionens golvbud delar med 1,25 innan det
+   räknar (`lib/auction/seed.ts#netSupplierCost`), eftersom momsen aldrig är en
+   verklig kostnad för ett momsregistrerat företag. Aosoms B2B-fakturor är
+   NETTO (omvänd skattskyldighet); sparas beloppet rakt av hamnar ett nettotal i
+   ett fält som läses som brutto, golvbudet blir 20 % för lågt och auktionen kan
+   sälja UNDER inköp. Samma fälla gäller AliExpress-köp gjorda på Business
+   Purpose, som också faktureras netto.
+
+   ⚠️ `computeProfit` i `lib/import/pricing.ts` drar INTE av momsen ur kostnaden
+   och är därmed oense med `netSupplierCost`. Lönsamhetsöversikten läser den
+   vägen (`lib/analytics/profit.ts`) och underskattar därför vinsten med 25 % av
+   inköpet — uppmätt 2026-08-27: rapporterar 0,3 % marginal där verkligheten är
+   19,4 %.
 3. **En rad = en produkt.** `Psin` ser ut som en föräldranyckel men grupperar
    *relaterade varor*: de tretton raderna under `24G58OVN9S001` är tretton olika
    valphagar med olika antal paneler och priser från 55 till 119 €. Grupperar

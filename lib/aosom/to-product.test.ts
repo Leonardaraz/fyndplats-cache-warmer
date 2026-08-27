@@ -11,6 +11,7 @@ import {
   AOSOM_WAREHOUSE,
 } from "./to-product";
 import { computePriceWithRules } from "../import/pricing";
+import { netSupplierCost } from "../auction/seed";
 import type { AosomRow } from "./feed";
 import type { PricingRules } from "../import/types";
 
@@ -67,21 +68,27 @@ describe("toImportProduct", () => {
     expect(p.variants[0].included).toBe(true);
   });
 
-  it("räknar costUsd så att landedCostSek blir varan PLUS frakten hit", () => {
-    const r = rad();
-    const p = toImportProduct(r, FX);
-    // (57,18 + 31,28) × 11,10 = 981,91 kr landat.
-    const rules = reglerMed(FX.usdToSek);
-    const pris = computePriceWithRules(p.variants[0].costUsd, rules, null);
-    expect(pris.costSek).toBeCloseTo(981.91, 1);
+  it("räknar costUsd så att landedCostSek blir varan PLUS frakten hit, INKL moms", () => {
+    const p = toImportProduct(rad(), FX);
+    // (57,18 + 31,28) × 11,10 = 981,91 kr netto → × 1,25 = 1227,39 kr brutto.
+    const pris = computePriceWithRules(p.variants[0].costUsd, reglerMed(FX.usdToSek), null);
+    expect(pris.costSek).toBeCloseTo(1227.39, 1);
+  });
+
+  it("bruttar upp så auktionens golvbud räknar rätt", () => {
+    // netSupplierCost delar med 1,25. Utan uppbruttningen blir golvet 20 % för
+    // lågt och auktionen kan sälja under inköp.
+    const p = toImportProduct(rad(), FX);
+    const landat = p.variants[0].costUsd * FX.usdToSek;
+    expect(netSupplierCost(landat)).toBeCloseTo(981.91, 1);
   });
 
   it("frakten får inte tappas — utan den blir marginalen fel åt samma håll", () => {
     const utan = toImportProduct(rad({ seFreightEur: 0 }), FX);
     const med = toImportProduct(rad(), FX);
     expect(med.variants[0].costUsd).toBeGreaterThan(utan.variants[0].costUsd);
-    // 31,28 € frakt ÷ 10,5 kr/USD × 11,10 kr/EUR ≈ 33,07 USD.
-    expect(med.variants[0].costUsd - utan.variants[0].costUsd).toBeCloseTo(33.07, 1);
+    // 31,28 € × 11,10 × 1,25 ÷ 10,5 ≈ 41,33 USD.
+    expect(med.variants[0].costUsd - utan.variants[0].costUsd).toBeCloseTo(41.33, 1);
   });
 
   it("slutsåld rad ger stock 0 och inStock false", () => {
