@@ -1,0 +1,124 @@
+name: Grenar — städa förbrukade bilduppladdningsgrenar
+
+# Bilduppladdningsgrenarna (claude/img-*) finns bara för att ge Wix Media en
+# publik raw.githubusercontent-URL att hämta bilden från. När Wix kopierat
+# bytesen är grenen förbrukad. De hade hunnit bli 121 sedan 2026-07-10.
+#
+# En Claude-session kan inte radera dem själv: sessionens git-uppgifter får
+# pusha till sin egen gren men inte ta bort refs (403). Actions har rätten.
+#
+# LISTAN ÄR FACIT, INTE ETT MÖNSTER. Jobbet läser
+# tools/branch-cleanup/img-branches-2026-08-27.json och rör bara grenar som
+# står i dess `raderade`-array. Ingen glob, ingen "alla som matchar" — samma
+# hållning som prisreparationen: det som når produktionen ska ha passerat
+# mänskliga ögon, och den granskade listan ÄR kvitteringen.
+#
+#   scan  — visar vilka som fortfarande finns. Raderar ingenting.
+#   apply — raderar dem, efter att ha hoppat över allt som blivit head eller
+#           bas för en öppen pull request sedan listan skrevs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "scan = visa bara · apply = radera grenarna"
+        required: true
+        default: "scan"
+        type: choice
+        options:
+          - scan
+          - apply
+      list_file:
+        description: "Listfil att arbeta efter"
+        required: false
+        default: "tools/branch-cleanup/img-branches-2026-08-27.json"
+        type: string
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kör
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODE: ${{ inputs.mode }}
+          LIST_FILE: ${{ inputs.list_file }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [ ! -f "$LIST_FILE" ]; then
+            echo "::error::Listfilen $LIST_FILE finns inte."
+            exit 1
+          fi
+
+          # Grenar som skyddas oavsett vad listan säger: allt som är head eller
+          # bas för en öppen PR. Listan skrevs vid ett tillfälle; en gren kan ha
+          # fått en PR sedan dess, och då väger den tyngre än listan.
+          gh pr list --repo "$REPO" --state open --limit 200 \
+            --json headRefName,baseRefName \
+            | jq -r '.[] | .headRefName, .baseRefName' | sort -u > /tmp/skyddade.txt
+          echo "Skyddade av öppna PR:er: $(wc -l < /tmp/skyddade.txt)"
+
+          jq -r '.raderade[].gren' "$LIST_FILE" | sort -u > /tmp/lista.txt
+          echo "Grenar i listan: $(wc -l < /tmp/lista.txt)"
+
+          : > /tmp/finns.txt
+          : > /tmp/hoppade.txt
+          while read -r gren; do
+            if grep -qxF "$gren" /tmp/skyddade.txt; then
+              echo "$gren (öppen PR)" >> /tmp/hoppade.txt
+              continue
+            fi
+            if gh api "repos/$REPO/git/ref/heads/$gren" --silent >/dev/null 2>&1; then
+              echo "$gren" >> /tmp/finns.txt
+            fi
+          done < /tmp/lista.txt
+
+          kvar=$(wc -l < /tmp/finns.txt)
+          hoppade=$(wc -l < /tmp/hoppade.txt)
+          echo "Finns kvar och kan raderas: $kvar   ·   hoppade över: $hoppade"
+          [ "$hoppade" -gt 0 ] && cat /tmp/hoppade.txt
+
+          if [ "$MODE" = "scan" ]; then
+            {
+              echo "### Grenstädning — torrkörning"
+              echo ""
+              echo "- I listan: **$(wc -l < /tmp/lista.txt)**"
+              echo "- Finns kvar och skulle raderas: **$kvar**"
+              echo "- Hoppas över (öppen PR): **$hoppade**"
+              echo ""
+              echo "Kör om med \`mode: apply\` för att radera."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          raderade=0
+          misslyckade=0
+          while read -r gren; do
+            if gh api -X DELETE "repos/$REPO/git/refs/heads/$gren" --silent 2>/dev/null; then
+              raderade=$((raderade + 1))
+            else
+              echo "::warning::Kunde inte radera $gren"
+              misslyckade=$((misslyckade + 1))
+            fi
+          done < /tmp/finns.txt
+
+          echo "Raderade: $raderade   ·   misslyckade: $misslyckade"
+          {
+            echo "### Grenstädning — skarpt läge"
+            echo ""
+            echo "- Raderade: **$raderade**"
+            echo "- Misslyckade: **$misslyckade**"
+            echo "- Hoppade över (öppen PR): **$hoppade**"
+            echo ""
+            echo "SHA:erna ligger kvar i \`$LIST_FILE\` — en gren kan pushas tillbaka"
+            echo "med \`git push origin <sha>:refs/heads/<gren>\` så länge GitHub har kvar objekten."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$misslyckade" -gt 0 ]; then exit 1; fi
