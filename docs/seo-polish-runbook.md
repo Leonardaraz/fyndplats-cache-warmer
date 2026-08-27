@@ -567,13 +567,19 @@ const newVariants = variants.map(v => {
 
 ⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
 
-> ☠️ **Re-synken slår av varianten. Läs om `variantsInfo.variants[].visible` efteråt.**
-> Krittavlan `c4ac3cba` kom in med `variants[0].visible: true`, och stod på `false` när
-> SKU-patchen var klar — trots att varianten skickades tillbaka verbatim och `visible`
-> på PRODUKTEN uttryckligen var `false` hela tiden. Publiceras den så är produkten synlig
-> men **går inte att lägga i varukorgen**, och felet syns inte i produktvyn. Klart-kriteriet
-> kräver redan `visible:true` på varje variant; det här är orsaken det kravet fångar.
-> Rätta med en egen PATCH (`{...v, visible:true}` + produktens `visible` explicit) innan Steg 13.
+> ☠️ **Produktens `visible:false` smittar av sig på varje variant — skicka alltid variantens
+> egen `visible` med.** Det är inte SKU-koden som gör det: sminkbordet `e8f7eaed` hade
+> `variants[0].visible: true` som råimport och stod på `false` direkt efter **bild**-PATCH:en
+> i Steg 9, innan SKU:n var rörd. Varje PATCH som bär `visible:false` på produkten speglar
+> ner värdet på varianterna. Undantaget är den PATCH där du skickar `variantsInfo` med ett
+> **uttryckligt** `visible` per variant — då vinner ditt värde (verifierat i samma körning:
+> `{...v, sku, visible:true}` med produktens `visible:false` gav en synlig variant på en
+> osynlig produkt).
+>
+> Konsekvensen om det missas: produkten publiceras, syns i butiken och **går inte att lägga
+> i varukorgen**. Det syns inte i produktvyn. Klart-kriteriet kräver redan `visible:true` på
+> varje variant — det här är orsaken det kravet fångar. Lägg därför `visible: true` i
+> variantobjektet i Steg 8, och läs om värdet i slutkollen.
 >
 > Samma PATCH nollar variantens `media`-pekare, och Wix tar **inte** emot den igen — känt
 > sedan sidobordet `c9a0f88d`. Harmlöst på en produkt utan optioner (galleriet ligger i
