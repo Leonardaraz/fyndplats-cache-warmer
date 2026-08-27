@@ -411,6 +411,71 @@ billigast på 55 av 55.** Det största draget i hela Aosom-affären är alltså 
 prisregeln utan att förhandla samlad frakt. Tills dess är urvalet skyddet:
 `?skipFreightHeavy=1` på svepet.
 
+### B2B-kontot är en rabatt på varan och ett straff på frakten (mätt 2026-08-27)
+
+Leonard lade samma bod (`845-030CG`) i kassan på aosom.de två gånger, utloggad och
+inloggad på B2B-kontot. Utloggad: 207,80 €. Inloggad: 210,39 €. **Kontot gjorde
+varan dyrare.**
+
+Feed-raden förklarar varför, och fraktsiffran står ordagrant i kassan:
+
+```
+Wholesale Price          123.01 EUR
+SE Ship Fee               84.02 EUR   ← exakt talet i B2B-kassan
+Shipping Cost Germany     39.38 EUR
+Weight (incl. Package)    50.00 kg
+Package                        2
+```
+
+Det avgörande talet är inte 84 utan **39,38**. Samma order, samma konto, till en
+TYSK adress kostar frakten 39,38 € — medan en utloggad konsument betalar 7,90 €
+på exakt den rutten. **B2B-frakten är 5× konsumentfrakten inom Tyskland.** Det
+handlar alltså inte om avståndet till Sverige: Aosom subventionerar konsument-
+frakten (den ligger inbakad i 199,90 €) och fakturerar B2B den råa fraktsedeln.
+
+Netto mot netto — B2B-fakturan är netto, konsumentpriset innehåller 19 % MwSt:
+
+| | vara | frakt | **netto** |
+|---|---:|---:|---:|
+| Konsument → DE | 167,98 | 6,64 | **174,62 €** |
+| B2B → DE | 126,37 | 39,38 | **165,75 €** |
+| B2B → SE | 126,37 | 84,02 | **210,39 €** |
+
+Rabatten på själva varan är verklig (−25 %) och räcker så länge paketet stannar i
+Tyskland. Till Sverige blir kontot **20 % dyrare än att vara privatperson**. De
+207,80 € såg jämna ut bara för att konsumentpriset bär tysk moms vi aldrig får
+tillbaka — kassan underdriver problemet.
+
+Och det gäller sortimentet, inte bara den boden. Över feedens 6 056 rader med
+både SE- och DE-frakt:
+
+| | SE | DE |
+|---|---:|---:|
+| Medianfrakt | 26,40 € | 8,59 € |
+| Frakt ÷ inköp (median) | **40 %** | **18 %** |
+| Rader där frakten kostar mer än varan | **1 283** | **9** |
+
+SE-frakten är **3,07× DE-frakten** (median per rad). "Frakten kostar mer än
+varan" är i praktiken uteslutande ett Sverigeleverans-problem.
+
+Vad det är värt, kört mot de 55 dealproffsen-matchningarna vid oförändrad
+prisregel och oförändrad 17 % marginal:
+
+| frakt | billigast på |
+|---|---:|
+| SE-frakt (som idag) | 39/55 |
+| **DE-frakt** | **54/55** |
+| 30 kr/vara | 55/55 |
+
+De 30 kronorna ovan är ett räkneexempel. **39,38 € är ett pris Aosom redan tar**,
+och det ensamt tar oss från 39 till 54 av 55 utan att röra marginalen. Draget är
+samlad frakt eller en tysk leveranspunkt vi vidarebefordrar från — inte en ny
+prisregel.
+
+☠️ **Köp inte som privatperson som kringgång.** Ingen B2B-faktura, tysk moms som
+inte är avdragsgill i Sverige (bara sökbar via Skatteverket, långsamt), ingen
+omvänd skattskyldighet — och det skalar inte till 5 566 artiklar.
+
 ### Vad som INTE är fixat
 
 `computeProfit` i `lib/import/pricing.ts` drar inte av momsen ur kostnaden och
