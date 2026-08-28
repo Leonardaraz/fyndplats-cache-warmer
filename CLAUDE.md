@@ -566,6 +566,20 @@ Två designval bakom det som inte ska tas bort:
    Den historiska ryggsäcken tas med workflow-läget `bildstadning`, som loopar
    markören genom hela beståndet.
 
+⚠️ **`limit` byter täckning mot djup, och det är inte uppenbart.** Markören är
+en OFFSET. Raderar ett fönster N filer krymper listan med N, men markören pekar
+fortfarande på "offset 6 000" — så nästa fönster hoppar över exakt N filer:
+
+| `limit` | hoppas över per pass | täckning |
+|---:|---:|---|
+| 4 000 | ~40 000 | liten del av listan |
+| 1 000 | ~10 000 | nästan hela |
+| 0 (torrläge) | 0 | hela |
+
+Det förklarar både varför torrpassen träffar exakt 58 160 och varför skarpa pass
+gav avtagande utfall (20 625 → 6 200 → 3 949 → 2 342 den 2026-08-28). **Kör ett
+stort tak först för att få undan massan, sedan ett litet för att sopa svansen.**
+
 Raderingen är också tidsbudgeterad (listningen får 70 %, raderingen resten).
 Utan det kunde en stor `limit` dra förbi `maxDuration` och dödas mitt i skopan:
 filerna ÄR raderade men inget svar kommer tillbaka, och nästa körning vet inte
