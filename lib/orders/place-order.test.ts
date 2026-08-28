@@ -186,9 +186,10 @@ describe("placeOrderForTask — leverantörsspärren", () => {
     });
     const res = await placeOrderForTask(store, "o1:l1");
     expect(res.ok).toBe(false);
-    expect(res.error).toMatch(/aosom/i);
+    const fel = res.ok ? "" : res.error;
+    expect(fel).toMatch(/aosom/i);
     // Meddelandet ska peka på rätt väg, annars letar den som felsöker i AE-loggarna.
-    expect(res.error).toMatch(/bulkordering/);
+    expect(fel).toMatch(/bulkordering/);
     expect(vi.mocked(createOrder)).not.toHaveBeenCalled();
   });
 
@@ -196,7 +197,7 @@ describe("placeOrderForTask — leverantörsspärren", () => {
     const store = await seed(task());
     vi.mocked(createOrder).mockResolvedValue({ orderId: "AE-1", status: "placed" } as never);
     const res = await placeOrderForTask(store, "o1:l1");
-    expect(res.error ?? "").not.toMatch(/aosom/i);
+    expect(res.ok ? "" : res.error).not.toMatch(/aosom/i);
   });
 
   it("en rad utan supplier-fält räknas fortfarande som AliExpress", async () => {
@@ -205,7 +206,7 @@ describe("placeOrderForTask — leverantörsspärren", () => {
     const store = await seed(task(), { ...mapping, supplier: undefined });
     vi.mocked(createOrder).mockResolvedValue({ orderId: "AE-1", status: "placed" } as never);
     const res = await placeOrderForTask(store, "o1:l1");
-    expect(res.error ?? "").not.toMatch(/aosom|kommer från/i);
+    expect(res.ok ? "" : res.error).not.toMatch(/aosom|kommer från/i);
   });
 });
 

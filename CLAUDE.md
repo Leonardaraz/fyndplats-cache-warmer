@@ -462,6 +462,43 @@ här: recensionsbilderna (2026-08-22), `Promise.allSettled` i `media.ts`
 (2026-08-27), och nu en skrivning som svarar OK utan att göra något. Regeln är
 densamma varje gång — **räkna efter, lita inte på svaret.**
 
+### ☠️ Bildfixen fyllde Wix-lagringen (2026-08-28)
+
+Fjärde bildfix-körningen dog mitt i: **Wix-lagringen tog slut.**
+
+Orsaken står i `image-repair.ts` egen designkommentar. Den laddar upp ALLA fem
+bilderna på nytt för varje produkt den lagar och ersätter medialistan — och de
+gamla filerna blir kvar. Kommentaren sa att det "kostar några hundra extra
+uppladdningar totalt"; den skrevs när katalogen var 744 produkter och EN körning
+var planerad. Verkligheten blev fyra körningar mot en katalog som växte till
+2 712 produkter, och varje lagad produkt lämnar fem filer à drygt en megabyte.
+
+`/api/cron/aosom-media-cleanup` (`lib/aosom/media-cleanup.ts`, schemalagd
+`50 3 * * *`) raderar Aosom-bilder som ingen produkt använder. Tre egenskaper som
+inte ska tas bort:
+
+1. ☠️ **Massfel-spärren kastar.** Är referenslistan mindre än en halv bild per
+   läst produkt är det ett LÄSFEL, inte en tom katalog — och en körning hade
+   raderat hela butikens bildbank permanent. Samma tanke som `MIN_FEED_RADER`.
+2. **Bara filer som heter `aosom-*`.** AliExpress-bilderna heter efter sin slug,
+   recensionsbilderna efter sin recension, sajtens logotyp heter vad den heter.
+   Referenslistan byggs ändå ur HELA katalogen, inte bara Aosom-delen.
+3. **`permanent: true`.** Papperskorgen räknas fortfarande mot lagringen, så en
+   vanlig radering frigör ingenting alls.
+
+Städningen är avsiktligt en SEPARAT körning och inte inbakad i reparationen: en
+radering inne i reparationen hade skett innan skrivningen verifierats, och en
+produkt vars nya bilder inte fastnade hade då förlorat även de gamla.
+
+**Den riktiga lösningen är inte byggd.** Reparationen laddar om alla fem för att
+en wixstatic-adress inte avslöjar vilken källbild den kom från. Sparas den
+kopplingen på mappningen kan bara det som saknas laddas om, och då uppstår inga
+föräldralösa filer alls.
+
+⚠️ Media-API:t svarar **429 vid ~40–50 sidor i rad**. Både listningarna i
+`liveDeps` pausar 120 ms mellan sidorna. Mät inte beståndet genom en MCP-loop —
+den slår i taket långt innan den är klar.
+
 ### Att polera en Aosom-produkt
 
 Allt utom siffrorna är **tyskt**: titel, beskrivning, säljpunkter och varje

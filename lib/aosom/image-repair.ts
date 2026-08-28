@@ -12,9 +12,26 @@
 //
 // En wixstatic-adress avslöjar inte vilken källbild den kom från, så det går
 // inte att veta VILKA av de fem som saknas på en produkt med tre. Att ladda om
-// alla fem och ersätta listan är enkelt, idempotent och kostar några hundra
-// extra uppladdningar totalt — mot en katalog där en tredjedel av produkterna
-// har fel bilder i fel ordning.
+// alla fem och ersätta listan är enkelt och idempotent.
+//
+// ☠️ MEN DET LÄMNAR DE GAMLA FILERNA KVAR, OCH DET FYLLDE LAGRINGEN (2026-08-28)
+//
+// Den här kommentaren sa tidigare att omladdningen "kostar några hundra extra
+// uppladdningar totalt". Den skrevs när katalogen var 744 produkter och EN
+// reparationskörning var planerad. Verkligheten blev fyra körningar mot en
+// katalog som växte till 2 712 produkter: varje lagad produkt lämnar fem filer
+// à drygt en megabyte i Media Manager, och Wix-lagringen tog slut mitt under den
+// fjärde körningen.
+//
+// Filerna städas av `/api/cron/aosom-media-cleanup`, som raderar Aosom-bilder
+// som ingen produkt använder. Den är avsiktligt en SEPARAT körning och inte
+// inbakad här: en radering inne i reparationen hade skett innan skrivningen
+// verifierats, och en produkt vars nya bilder inte fastnade hade då förlorat
+// även de gamla.
+//
+// Den riktiga lösningen är att spara vilken KÄLLBILD varje wixstatic-adress kom
+// från, så bara det som saknas laddas om. Det kräver ett nytt fält på mappningen
+// och är inte gjort.
 //
 // VAD DEN INTE RÖR
 //
