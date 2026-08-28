@@ -206,6 +206,17 @@ export interface MediaCleanupSummary {
    *
    * Därför tar varje körning en tugga och lämnar en markör, precis som svepet
    * och bildfixen. Samma mönster, samma skäl.
+   *
+   * ⚠️ MARKÖREN ÄR EN OFFSET, inte en nyckel. Uppmätt 2026-08-28: cursorn
+   * `vsp.eyJvZmZzZXQiOjIsInRvdGFsIjo1ODE1OH0` avkodas till `{"offset":2,…}`.
+   * Raderar en körning filer krymper alltså listan, och nästa fönster hoppar
+   * över lika många som raderades. Ett SKARPT svep är därför inte komplett på
+   * ett varv — men det konvergerar, för nästa svep börjar om från noll över en
+   * kortare lista.
+   *
+   * Det gör mindre än det låter: listningen sorteras `updatedDate DESC` och
+   * kopiorna skapades av bildfixen i går och i natt, så de ligger samlade i
+   * BÖRJAN av listan — precis där fönstret börjar.
    */
   cursor: string | null;
 }
