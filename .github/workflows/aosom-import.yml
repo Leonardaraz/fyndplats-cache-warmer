@@ -109,16 +109,25 @@ jobs:
           mkdir -p tools/aosom
 
           # Ett anrop. Skriver svaret till $svar, fäller jobbet på ok != true.
+          #
+          # ☠️ FELEN GÅR TILL STDERR, ALDRIG TILL STDOUT.
+          #
+          # Anroparen gör `svar=$(anropa ...)`, och en kommandosubstitution
+          # SLUKAR stdout. En `echo "::error::..."` här hamnade därför i $svar i
+          # stället för i loggen: bildstädningen 2026-08-28 föll med exit 1 och
+          # NOLL rader om varför, medan rutten hela tiden svarade 500 med ett
+          # tydligt meddelande. Samma klass av fel som huset redan lärt sig tre
+          # gånger — ett misslyckande som ingen kan se är värre än ett som skriker.
           anropa() {
             local url="$1"
             local body
             body=$(curl -sS --max-time 310 -X POST \
               -H "Authorization: Bearer ${CRON_SECRET}" "$url") || {
-                echo "::error::Anropet gick inte fram: $url"
+                echo "::error::Anropet gick inte fram: $url" >&2
                 return 1
               }
             if [ "$(printf '%s' "$body" | jq -r '.ok // false')" != "true" ]; then
-              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500)"
+              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500)" >&2
               return 1
             fi
             printf '%s' "$body"
@@ -203,8 +212,11 @@ jobs:
             rad=$(printf '%s' "$svar" | jq -r '.raderade // 0')
             mb=$(printf '%s' "$svar" | jq -r '.frigjordMb // 0')
             fel=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
+            # false = Media Manager hanns inte med i sin helhet. Siffrorna gäller
+            # då bara det som lästes, och körningen ska göras om.
+            helt=$(printf '%s' "$svar" | jq -r '.komplettListning // true')
 
-            echo "filer i Media Manager: ${filer}"
+            echo "filer i Media Manager: ${filer}$([ "$helt" = "false" ] && echo ' (KAPAD listning — kör igen)')"
             echo "våra filer som används: ${anvanda}"
             echo "föräldralösa: ${forald}"
             echo "raderade: ${rad} (${mb} MB), misslyckade: ${fel}"
@@ -219,6 +231,7 @@ jobs:
               echo "- Raderade: **${rad}**"
               echo "- Frigjort: **${mb} MB**"
               echo "- Misslyckade: **${fel}**"
+              [ "$helt" = "false" ] && echo "" && echo "⚠️ Listningen hann inte igenom hela Media Manager — kör läget igen. Varje körning gör listan kortare, så den konvergerar."
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi

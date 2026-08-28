@@ -128,11 +128,10 @@ describe("planeraStadning", () => {
 function deps(over: Partial<MediaCleanupDeps> = {}) {
   const raderade: string[][] = [];
   const bas: MediaCleanupDeps = {
-    listaFiler: async () => [
-      fil("aosom-A-1.jpg", "a1"),
-      fil("aosom-A-2.jpg", "a2"),
-      fil("aosom-B-1.jpg", "b1"),
-    ],
+    listaFiler: async () => ({
+      filer: [fil("aosom-A-1.jpg", "a1"), fil("aosom-A-2.jpg", "a2"), fil("aosom-B-1.jpg", "b1")],
+      komplett: true,
+    }),
     listaAnvanda: async () => ({ urls: [url("a1")], antalProdukter: 1 }),
     raderaPermanent: async (ids) => { raderade.push(ids); },
     ...over,
@@ -172,7 +171,10 @@ describe("runMediaCleanup", () => {
   it("ett misslyckat anrop stoppar inte resten", async () => {
     let n = 0;
     const { d } = deps({
-      listaFiler: async () => Array.from({ length: 120 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
+      listaFiler: async () => ({
+        filer: Array.from({ length: 120 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
+        komplett: true,
+      }),
       listaAnvanda: async () => ({ urls: [], antalProdukter: 0 }),
       raderaPermanent: async () => { if (n++ === 0) throw new Error("Wix svarade 500"); },
     });
@@ -182,9 +184,57 @@ describe("runMediaCleanup", () => {
     expect(s.errors[0]).toMatch(/500/);
   });
 
+  it("☠️ listningarna körs EFTER varandra, inte parallellt", async () => {
+    // Parallellt dubblades anropstakten mot samma Wix-värd. Wix svarade 429
+    // efter ~30 sekunder och hela rutten föll med 500 utan att radera något.
+    const ordning: string[] = [];
+    const { d } = deps({
+      listaAnvanda: async () => { ordning.push("anvanda"); return { urls: [url("a1")], antalProdukter: 1 }; },
+      listaFiler: async () => {
+        ordning.push("filer");
+        return { filer: [fil("aosom-A-1.jpg", "a1"), fil("aosom-A-2.jpg", "a2")], komplett: true };
+      },
+    });
+    await runMediaCleanup(d);
+    // Referenslistan först: den är massfel-spärrens underlag och måste vara hel.
+    expect(ordning).toEqual(["anvanda", "filer"]);
+  });
+
+  it("en kapad listning raderar ändå det den såg — och säger att den är kapad", async () => {
+    // Att radera föräldralösa filer bland de LÄSTA är alltid tryggt. Nästa
+    // körning når längre eftersom listan blivit kortare.
+    const { d, raderade } = deps({
+      listaFiler: async () => ({
+        filer: [fil("aosom-A-1.jpg", "a1"), fil("aosom-A-2.jpg", "a2")],
+        komplett: false,
+      }),
+    });
+    const s = await runMediaCleanup(d, { dryRun: false });
+    expect(s.komplettListning).toBe(false);
+    expect(raderade.flat()).toEqual(["a2"]);
+  });
+
+  it("en hel listning rapporteras som hel", async () => {
+    const { d } = deps();
+    expect((await runMediaCleanup(d)).komplettListning).toBe(true);
+  });
+
+  it("tidsbudgeten når fram till listningen", async () => {
+    let fick: number | undefined;
+    const { d } = deps({
+      now: () => 1_000,
+      listaFiler: async (stoppaVid) => { fick = stoppaVid; return { filer: [], komplett: true }; },
+    });
+    await runMediaCleanup(d, { timeBudgetMs: 5_000 });
+    expect(fick).toBe(6_000);
+  });
+
   it("en trasig produktlistning fäller körningen innan något raderas", async () => {
     const { d, raderade } = deps({
-      listaFiler: async () => Array.from({ length: 100 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
+      listaFiler: async () => ({
+        filer: Array.from({ length: 100 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
+        komplett: true,
+      }),
       listaAnvanda: async () => ({ urls: [], antalProdukter: 1000 }),
     });
     await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/läsfel/);
