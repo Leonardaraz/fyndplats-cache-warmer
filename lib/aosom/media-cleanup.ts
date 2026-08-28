@@ -188,6 +188,8 @@ export interface MediaCleanupSummary {
    * längre eftersom listan blivit kortare.
    */
   komplettListning: boolean;
+  /** Varför körningen slutade. `klart` = allt planerat blev gjort. */
+  stoppedBy: "klart" | "tidsbudget" | "limit";
 }
 
 /** Wix tar emot flera id:n per anrop; håll skoporna lagom stora. */
@@ -211,8 +213,10 @@ export async function runMediaCleanup(
   //
   // Referenslistan först, med flit: den är massfel-spärrens underlag och måste
   // vara KOMPLETT, medan fillistningen tål att kapas på tidsbudgeten.
+  // Listningen får en DEL av budgeten, inte hela: äter den allt finns ingen tid
+  // kvar att radera på, och en körning som bara listar frigör noll byte.
   const { urls, antalProdukter } = await deps.listaAnvanda();
-  const { filer, komplett } = await deps.listaFiler(start + budget);
+  const { filer, komplett } = await deps.listaFiler(start + Math.round(budget * 0.7));
 
   const plan = planeraStadning(filer, urls, antalProdukter);
   const attRadera = opts.limit ? plan.attRadera.slice(0, opts.limit) : plan.attRadera;
@@ -227,6 +231,7 @@ export async function runMediaCleanup(
     misslyckade: 0,
     errors: [],
     komplettListning: komplett,
+    stoppedBy: opts.limit && plan.attRadera.length > opts.limit ? "limit" : "klart",
   };
 
   if (dryRun) {
@@ -236,6 +241,14 @@ export async function runMediaCleanup(
 
   let frigjort = 0;
   for (let i = 0; i < attRadera.length; i += BATCH) {
+    // ☠️ Raderingen är också tidsbudgeterad. Utan det kan en stor `limit` dra
+    // förbi ruttens maxDuration, och då dödas svaret mitt i: filerna ÄR
+    // raderade men ingen siffra kommer tillbaka, så nästa körning vet inte
+    // vad som hände. Hellre ett ärligt "tidsbudget" än ett tyst avbrott.
+    if (now() - start >= budget) {
+      summary.stoppedBy = "tidsbudget";
+      break;
+    }
     const skopa = attRadera.slice(i, i + BATCH);
     try {
       await deps.raderaPermanent(skopa.map((f) => f.id));

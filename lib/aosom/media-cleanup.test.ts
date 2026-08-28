@@ -219,14 +219,38 @@ describe("runMediaCleanup", () => {
     expect((await runMediaCleanup(d)).komplettListning).toBe(true);
   });
 
-  it("tidsbudgeten når fram till listningen", async () => {
+  it("listningen får en DEL av budgeten, så det finns tid kvar att radera på", async () => {
     let fick: number | undefined;
     const { d } = deps({
       now: () => 1_000,
       listaFiler: async (stoppaVid) => { fick = stoppaVid; return { filer: [], komplett: true }; },
     });
-    await runMediaCleanup(d, { timeBudgetMs: 5_000 });
-    expect(fick).toBe(6_000);
+    await runMediaCleanup(d, { timeBudgetMs: 10_000 });
+    expect(fick).toBe(8_000); // 70 % av 10 s
+  });
+
+  it("raderingen stannar på tidsbudgeten i stället för att dödas mitt i", async () => {
+    // En stor `limit` får inte dra förbi ruttens maxDuration: då är filerna
+    // raderade men svaret aldrig levererat.
+    let t = 0;
+    const { d, raderade } = deps({
+      now: () => (t += 60_000),
+      listaFiler: async () => ({
+        filer: Array.from({ length: 300 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
+        komplett: true,
+      }),
+      listaAnvanda: async () => ({ urls: [], antalProdukter: 0 }),
+    });
+    const s = await runMediaCleanup(d, { dryRun: false, timeBudgetMs: 100_000 });
+    expect(s.stoppedBy).toBe("tidsbudget");
+    expect(s.raderade).toBeLessThan(300);
+    expect(raderade.flat().length).toBe(s.raderade);
+  });
+
+  it("`limit` syns i stoppedBy", async () => {
+    const { d } = deps();
+    expect((await runMediaCleanup(d, { dryRun: false, limit: 1 })).stoppedBy).toBe("limit");
+    expect((await runMediaCleanup(d, { dryRun: false })).stoppedBy).toBe("klart");
   });
 
   it("en trasig produktlistning fäller körningen innan något raderas", async () => {
