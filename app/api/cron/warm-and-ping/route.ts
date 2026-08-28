@@ -26,8 +26,19 @@
 // spränger funktionens tidsbudget; fönstret är längre än cron-intervallet och
 // resten tas nästa timme. 150/timme = 3 600/dygn, med god marginal.
 //
-// Auth: Vercel Cron skickar "Authorization: Bearer $CRON_SECRET". Saknas
-// CRON_SECRET släpper vi igenom (samma mönster som övriga cron-routes).
+// AUTH: Vercel Cron skickar "Authorization: Bearer $CRON_SECRET".
+//
+// Övriga cron-routes i repot släpper igenom när CRON_SECRET saknas ("allow in
+// dev when unconfigured"). Den här gör det BARA lokalt. Skälet är att den är en
+// kraftigare förstärkare än de andra: ett enda anrop drar upp till 150
+// sidrenderingar mot produktionens URL:er och skickar en avisering till
+// IndexNow. Uppmätt på preview-deployen 2026-08-28: utan CRON_SECRET i miljön
+// svarade rutten 200 för vem som helst som kände till URL:en.
+//
+// process.env.VERCEL är alltid satt i Vercels miljöer och aldrig lokalt, så
+// grinden blir: öppen på din maskin, stängd i molnet. Saknas CRON_SECRET i en
+// deployad miljö svarar rutten 503 med en förklaring i stället för att tyst
+// göra jobbet åt en främling.
 import { NextResponse } from "next/server";
 import { getProductSitemapEntries } from "../../../../lib/products";
 import { farskaProdukter } from "../../../../lib/fresh-products";
@@ -47,10 +58,12 @@ const TAK_PER_KORNING = 150;
 // maxDuration — utan att vi själva blir lasten som gör sidorna långsamma.
 const PARALLELLT = 8;
 
-function isAuthorised(request: Request): boolean {
+type AuthUtfall = "ok" | "fel-token" | "okonfigurerad-i-molnet";
+
+function authorisera(request: Request): AuthUtfall {
   const expected = process.env.CRON_SECRET;
-  if (!expected) return true; // tillåt i dev när den inte är satt
-  return request.headers.get("authorization") === `Bearer ${expected}`;
+  if (!expected) return process.env.VERCEL ? "okonfigurerad-i-molnet" : "ok";
+  return request.headers.get("authorization") === `Bearer ${expected}` ? "ok" : "fel-token";
 }
 
 /** Rendera en produktsida en gång så den ligger i ISR-cachen. Kastar aldrig. */
@@ -72,13 +85,20 @@ async function varmAlla(slugs: string[]): Promise<{ ok: number; fel: number }> {
   let ok = 0, fel = 0;
   for (let i = 0; i < slugs.length; i += PARALLELLT) {
     const resultat = await Promise.all(slugs.slice(i, i + PARALLELLT).map(varm));
-    for (const r of resultat) r ? ok++ : fel++;
+    for (const r of resultat) { if (r) ok++; else fel++; }
   }
   return { ok, fel };
 }
 
 export async function GET(request: Request) {
-  if (!isAuthorised(request)) {
+  const auth = authorisera(request);
+  if (auth === "okonfigurerad-i-molnet") {
+    return NextResponse.json(
+      { ok: false, error: "CRON_SECRET saknas i miljön — rutten vägrar köra oskyddad" },
+      { status: 503 },
+    );
+  }
+  if (auth !== "ok") {
     return NextResponse.json({ ok: false, error: "unauthorised" }, { status: 401 });
   }
 
