@@ -8,30 +8,40 @@
 // uppladdningar filtrerades bort utan logg, och det fanns inget återförsök mot
 // Wix 429. Båda är lagade där; den här filen städar upp efter dem.
 //
-// VARFÖR ALLA BILDER LADDAS OM, INTE BARA DE SAKNADE
+// ☠️ BARA DET SOM SAKNAS LADDAS OM (sedan 2026-08-28)
 //
-// En wixstatic-adress avslöjar inte vilken källbild den kom från, så det går
-// inte att veta VILKA av de fem som saknas på en produkt med tre. Att ladda om
-// alla fem och ersätta listan är enkelt och idempotent.
+// Reparationen laddade tidigare om ALLA fem bilderna för varje produkt den
+// lagade och ersatte medialistan. Skälet stod i den här kommentaren: en
+// wixstatic-adress avslöjar inte vilken källbild den kom från, så det gick inte
+// att veta vilka av fem som fattades på en produkt med tre.
 //
-// ☠️ MEN DET LÄMNAR DE GAMLA FILERNA KVAR, OCH DET FYLLDE LAGRINGEN (2026-08-28)
+// Priset blev en incident. Varje lagad produkt lämnade fem filer à drygt en
+// megabyte efter sig, kommentaren påstod att det "kostar några hundra extra
+// uppladdningar totalt" — skriven när katalogen var 744 produkter och EN
+// körning var planerad — och verkligheten blev fyra körningar mot en katalog
+// som växte till 2 712. Wix-lagringen tog slut mitt under den fjärde, och
+// 37 000 föräldralösa filer fick städas bort efteråt.
 //
-// Den här kommentaren sa tidigare att omladdningen "kostar några hundra extra
-// uppladdningar totalt". Den skrevs när katalogen var 744 produkter och EN
-// reparationskörning var planerad. Verkligheten blev fyra körningar mot en
-// katalog som växte till 2 712 produkter: varje lagad produkt lämnar fem filer
-// à drygt en megabyte i Media Manager, och Wix-lagringen tog slut mitt under den
-// fjärde körningen.
+// Kopplingen finns nu i stället för att gissas, från två håll:
 //
-// Filerna städas av `/api/cron/aosom-media-cleanup`, som raderar Aosom-bilder
-// som ingen produkt använder. Den är avsiktligt en SEPARAT körning och inte
-// inbakad här: en radering inne i reparationen hade skett innan skrivningen
-// verifierats, och en produkt vars nya bilder inte fastnade hade då förlorat
-// även de gamla.
+//   • `aosomBildFiler` på mappningen, som sparas efter varje verifierad
+//     skrivning. Kostar ingenting att läsa.
+//   • Wix egen `sourceUrl` (`getMediaSourceUrls`), för allt som importerades
+//     innan fältet fanns. Ett anrop per produkt, och bara en gång — efteråt är
+//     kopplingen sparad.
 //
-// Den riktiga lösningen är att spara vilken KÄLLBILD varje wixstatic-adress kom
-// från, så bara det som saknas laddas om. Det kräver ett nytt fält på mappningen
-// och är inte gjort.
+// Med den känd behålls det som redan sitter rätt VID SITT ID och bara luckorna
+// fylls. Då uppstår inga föräldralösa alls.
+//
+// Går kopplingen ändå inte att härleda faller reparationen tillbaka på den
+// gamla vägen och laddar om allt. Det är med flit: vet vi inte vad produkten
+// har kan en påfyllning ge samma bild två gånger på en kundsida, och en
+// dubblett är värre än en extra uppladdning.
+//
+// Städningen av det som redan hunnit bli föräldralöst ligger kvar i
+// `/api/cron/aosom-media-cleanup`. Den är avsiktligt en SEPARAT körning: en
+// radering inne i reparationen hade skett innan skrivningen verifierats, och en
+// produkt vars nya bilder inte fastnade hade då förlorat även de gamla.
 //
 // VAD DEN INTE RÖR
 //
@@ -45,6 +55,77 @@ import { toImportProduct, aosomSupplierProductId, RENA_BILDPOSITIONER, type Aoso
 
 const DEFAULT_LIMIT = 25;
 const DEFAULT_TIME_BUDGET_MS = 240_000;
+
+/** En bild på produkten: Wix-filens id och adress. */
+export interface ProduktBild {
+  id?: string;
+  url: string;
+}
+
+export interface BildPlan {
+  /** Filer som ska sitta kvar, i önskad ordning. Behålls vid sitt ID. */
+  behall: { kalla: string; bild: ProduktBild }[];
+  /** Källbilder som måste laddas upp — och bara de. */
+  saknas: string[];
+  /**
+   * Bilder på produkten som inte gick att härleda till en källbild.
+   *
+   * Är den > 0 vet vi inte vad produkten redan har, och då är det inte säkert
+   * att fylla på: en felgissning ger en dubblettbild på en kundsida. Då laddas
+   * allt om, precis som förr — men bara för den produkten, och bara en gång,
+   * eftersom kopplingen sparas efteråt.
+   */
+  oidentifierade: number;
+}
+
+/**
+ * Vilka bilder ska laddas om?
+ *
+ * ☠️ HELA POÄNGEN ÄR ATT SVARET SÄLLAN ÄR "ALLA".
+ *
+ * Reparationen laddade tidigare om alla fem bilderna för varje produkt den
+ * lagade och ersatte medialistan. De gamla filerna blev föräldralösa, och fyra
+ * körningar mot en växande katalog tog slut på Wix-lagringen (2026-08-28):
+ * 37 000 filer fick städas bort efteråt.
+ *
+ * Med kopplingen källbild → fil-id känd behålls det som redan sitter rätt VID
+ * SITT ID, och bara luckorna fylls. Då uppstår inga föräldralösa alls.
+ *
+ * @param onskade    Källbilderna produkten ska ha, i ordning.
+ * @param paProdukten Bilderna som sitter på produkten just nu.
+ * @param kalla      Fil-id → källbild, från mappningen eller Wix `sourceUrl`.
+ */
+export function planeraBilder(
+  onskade: readonly string[],
+  paProdukten: readonly ProduktBild[],
+  kalla: ReadonlyMap<string, string>,
+): BildPlan {
+  const perKalla = new Map<string, ProduktBild>();
+  let oidentifierade = 0;
+
+  for (const bild of paProdukten) {
+    const k = bild.id ? kalla.get(bild.id) : undefined;
+    // Utan id eller utan känd källa går bilden inte att placera. Vi vet då inte
+    // vad produkten har, och får inte gissa.
+    if (!k) {
+      oidentifierade++;
+      continue;
+    }
+    // Först till kvarn: sitter samma källbild två gånger räknas den en gång,
+    // och dubbletten faller bort ur den nya listan.
+    if (!perKalla.has(k)) perKalla.set(k, bild);
+  }
+
+  const behall: { kalla: string; bild: ProduktBild }[] = [];
+  const saknas: string[] = [];
+  for (const k of onskade) {
+    const bild = perKalla.get(k);
+    if (bild) behall.push({ kalla: k, bild });
+    else saknas.push(k);
+  }
+
+  return { behall, saknas, oidentifierade };
+}
 
 export interface ImageRepairOptions {
   /** Torrkörning. DEFAULT TRUE — samma husregel som svepet och price-repair. */
@@ -69,6 +150,17 @@ export interface ImageRepairSummary {
   reparerade: number;
   /** Bilder som fortfarande inte gick att hämta — de får en ny runda. */
   kvarstaendeMissar: number;
+  /**
+   * Bilder som INTE behövde laddas om — de satt redan rätt och behölls vid sitt
+   * id. Måttet på vad kopplingen sparar: varje sådan bild är en fil som förut
+   * hade laddats upp på nytt och lämnat en föräldralös efter sig.
+   */
+  atervandaBilder: number;
+  /**
+   * Produkter där kopplingen inte gick att härleda och allt fick laddas om.
+   * Ska sjunka mot noll — kopplingen sparas efter varje lagning.
+   */
+  fullOmladdning: number;
   misslyckade: number;
   kvar: number;
   cursor: string | null;
@@ -81,7 +173,18 @@ export interface ImageRepairDeps {
   /** Aosom-mappningar: artikelnummer → Wix-produkt. */
   listAosom: () => Promise<{ sku: string; wixProductId: string }[]>;
   /** Nuvarande bilder på produkten, eller null om den är borta. */
-  getMedia: (wixProductId: string) => Promise<{ revision: string; antal: number } | null>;
+  getMedia: (wixProductId: string) => Promise<{ revision: string; media: ProduktBild[] } | null>;
+  /** Sparad koppling fil-id → källbild för produkten. Tom om den aldrig sparats. */
+  kandaBildFiler: (sku: string) => Promise<{ kalla: string; fileId: string }[]>;
+  /**
+   * Härleder källbilden ur Wix egen `sourceUrl` för fil-id vi inte har sparade.
+   *
+   * Bootstrappen för allt som importerades innan kopplingen sparades. Ett anrop
+   * per produkt, och bara för de id:n mappningen inte redan känner.
+   */
+  hamtaKallor: (fileIds: string[]) => Promise<Map<string, string>>;
+  /** Sparar kopplingen på mappningen så nästa körning slipper härleda den. */
+  sparaBildFiler: (sku: string, filer: { kalla: string; fileId: string }[]) => Promise<void>;
   /**
    * Laddar upp och returnerar de uppladdade filerna. Missar utelämnas.
    *
@@ -90,7 +193,7 @@ export interface ImageRepairDeps {
    * lib/wix/client.ts#WixProductInput.mediaItems. Det var så lagringen tog slut,
    * och så produkter kunde få fyra av fem bilder trots fem lyckade uppladdningar.
    */
-  importImages: (urls: string[], slug: string) => Promise<{ id: string; url: string }[]>;
+  importImages: (urls: string[], slug: string) => Promise<{ id: string; url: string; kalla: string }[]>;
   setMedia: (
     wixProductId: string,
     revision: string,
@@ -133,6 +236,8 @@ export async function runImageRepair(
     granskade: 0,
     reparerade: 0,
     kvarstaendeMissar: 0,
+    atervandaBilder: 0,
+    fullOmladdning: 0,
     misslyckade: 0,
     kvar: aosom.length,
     cursor: null,
@@ -166,21 +271,60 @@ export async function runImageRepair(
     try {
       const nu = await deps.getMedia(m.wixProductId);
       if (!nu) continue;
-      if (nu.antal >= onskade.length) continue;
+      if (nu.media.length >= onskade.length) continue;
 
       summary.trasiga++;
       if (dryRun) continue;
 
-      const uppladdade = await deps.importImages(onskade, `aosom-${m.sku}`);
+      // ── VILKA BILDER SAKNAS? ──────────────────────────────────────────────
+      //
+      // Mappningen först: den är sparad av oss och kostar ingenting. Bara för
+      // de fil-id den inte känner frågas Wix om `sourceUrl`, och det är ett
+      // anrop per produkt som dessutom upphör när kopplingen väl är sparad.
+      const kalla = new Map<string, string>();
+      for (const f of await deps.kandaBildFiler(m.sku)) kalla.set(f.fileId, f.kalla);
+      const okanda = nu.media
+        .flatMap((b) => (b.id ? [b.id] : []))
+        .filter((id) => !kalla.has(id));
+      if (okanda.length) {
+        for (const [id, src] of await deps.hamtaKallor(okanda)) kalla.set(id, src);
+      }
+
+      const plan = planeraBilder(onskade, nu.media, kalla);
+
+      // Går kopplingen inte att härleda vet vi inte vad produkten redan har.
+      // Att fylla på då kan ge en dubblettbild på en kundsida, så hellre den
+      // gamla vägen: ladda om allt. Det händer en gång per produkt — efteråt
+      // är kopplingen sparad.
+      const laddaOmAllt = plan.oidentifierade > 0;
+      if (laddaOmAllt) summary.fullOmladdning++;
+
+      const attLadda = laddaOmAllt ? [...onskade] : plan.saknas;
+      const behall = laddaOmAllt ? [] : plan.behall;
+      summary.atervandaBilder += behall.length;
+
+      // Inget att ladda och inget att skriva — produkten är redan hel.
+      if (attLadda.length === 0) continue;
+
+      const uppladdade = await deps.importImages(attLadda, `aosom-${m.sku}`);
+
       // Skriv ALDRIG en tommare lista än den som redan ligger där. Går
       // uppladdningen dåligt igen är det bättre att lämna produkten orörd och
       // ta den i nästa runda än att göra den sämre.
-      if (uppladdade.length <= nu.antal) {
-        summary.kvarstaendeMissar += onskade.length - uppladdade.length;
+      const nyLista = [
+        ...behall.map((b) => ({ id: b.bild.id ?? "", url: b.bild.url, kalla: b.kalla })),
+        ...uppladdade,
+      ];
+      if (nyLista.length <= nu.media.length) {
+        summary.kvarstaendeMissar += onskade.length - nyLista.length;
         continue;
       }
 
-      await deps.setMedia(m.wixProductId, nu.revision, uppladdade);
+      await deps.setMedia(
+        m.wixProductId,
+        nu.revision,
+        nyLista.map((b) => ({ id: b.id, url: b.url })),
+      );
 
       // ☠️ ETT SVAR UTAN FEL ÄR INGET BEVIS. Läs tillbaka och räkna.
       //
@@ -188,28 +332,39 @@ export async function runImageRepair(
       // missar. Efteråt hade 214 produkter fortfarande färre än fem bilder —
       // och för dem satt INGEN av de fem uppladdade filerna på produkten.
       // Uppladdningarna gick igenom (filerna ligger READY i Media Manager),
-      // skrivningen svarade utan fel, och ändå ändrades ingenting. Mönstret var
-      // jämnt över hela körningen, så det är inte en degradering över tid.
+      // skrivningen svarade utan fel, och ändå ändrades ingenting.
       //
-      // Mekanismen är fortfarande oförklarad. Det som INTE får stå kvar är att
-      // felet är osynligt: en produkt är lagad först när den läser tillbaka
-      // fler bilder än den hade. Samma läxa som lib/wix/media.ts bär i sitt
-      // filhuvud, och som recensionsbilderna bar före den.
+      // Orsaken är sedan dess känd — Wix importerade om varje bild vi skickade
+      // som `url`, och omimporten är asynkron, så produkten bar Wix kopior i
+      // stället för våra filer. Kontrollen står kvar ändå: en produkt är lagad
+      // först när den läser tillbaka fler bilder än den hade.
       const efter = await deps.getMedia(m.wixProductId);
-      if (!efter || efter.antal <= nu.antal) {
+      if (!efter || efter.media.length <= nu.media.length) {
         summary.misslyckade++;
         summary.errors.push({
           sku: m.sku,
-          error: `skrivningen tog inte: ${efter?.antal ?? 0} bilder på produkten `
-            + `efter ${uppladdade.length} uppladdade (hade ${nu.antal})`,
+          error: `skrivningen tog inte: ${efter?.media.length ?? 0} bilder på produkten `
+            + `efter ${uppladdade.length} uppladdade (hade ${nu.media.length})`,
         });
         continue;
       }
 
       summary.reparerade++;
+
+      // ── KOPPLINGEN SPARAS SIST, OCH BARA EFTER EN VERIFIERAD SKRIVNING ────
+      //
+      // Sparas den före, eller efter en skrivning som inte tog, pekar den på
+      // filer som inte sitter på produkten — och nästa körning tror att bilder
+      // finns som inte gör det. Ordningen är densamma som i synken och
+      // price-repair: Wix först, bokföringen sedan.
+      await deps.sparaBildFiler(
+        m.sku,
+        nyLista.filter((b) => b.id).map((b) => ({ kalla: b.kalla, fileId: b.id })),
+      );
+
       // Räkna på vad som FAKTISKT sitter där, inte på vad vi laddade upp.
-      if (efter.antal < onskade.length) {
-        summary.kvarstaendeMissar += onskade.length - efter.antal;
+      if (efter.media.length < onskade.length) {
+        summary.kvarstaendeMissar += onskade.length - efter.media.length;
       }
     } catch (err) {
       summary.misslyckade++;
@@ -244,7 +399,21 @@ export async function liveDeps(): Promise<ImageRepairDeps> {
         })),
     getMedia: async (id) => {
       const snap = await wix.getProductMedia(id);
-      return snap ? { revision: snap.revision, antal: snap.media.length } : null;
+      return snap ? { revision: snap.revision, media: snap.media } : null;
+    },
+    kandaBildFiler: async (sku) => {
+      const rad = (await store.listMappings()).find(
+        (m) => m.supplierProductId === aosomSupplierProductId(sku),
+      );
+      return rad?.aosomBildFiler ?? [];
+    },
+    hamtaKallor: (fileIds) => media.getMediaSourceUrls(fileIds),
+    sparaBildFiler: async (sku, filer) => {
+      const rad = (await store.listMappings()).find(
+        (m) => m.supplierProductId === aosomSupplierProductId(sku),
+      );
+      if (!rad) return;
+      await store.saveMapping({ ...rad, aosomBildFiler: filer });
     },
     importImages: async (urls, slug) =>
       await media.importMediaUrls(

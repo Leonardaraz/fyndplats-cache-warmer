@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { runImageRepair, type ImageRepairDeps } from "./image-repair";
+import { runImageRepair, planeraBilder, type ImageRepairDeps } from "./image-repair";
 import type { AosomRow } from "./feed";
 
 const FX = { eurToSek: 11.1, usdToSek: 10.5 };
@@ -24,17 +24,32 @@ function rad(sku: string, over: Partial<AosomRow> = {}): AosomRow {
   };
 }
 
+/** De fem rena positionerna ur NIO, i den ordning reparationen vill ha dem. */
+const ONSKADE = [1, 2, 3, 8, 9].map((n) => `https://img.aosomcdn.com/${n}.jpg`);
+
+/** En bild som sitter på produkten, med sitt Wix-fil-id. */
+function bild(n: number) {
+  return { id: `fil-${n}`, url: `https://static.wixstatic.com/${n}.jpg` };
+}
+
 /** Deps med instrumentering: `skrivna` visar exakt vad som PATCHades. */
 function deps(over: Partial<ImageRepairDeps> = {}) {
-  const skrivna: { id: string; urls: string[]; ids: string[] }[] = [];
+  const skrivna: { id: string; urls: string[]; ids: (string | undefined)[] }[] = [];
   const uppladdade: string[][] = [];
+  const sparade: { sku: string; filer: { kalla: string; fileId: string }[] }[] = [];
+
   // A saknar allt, B har tre, C är hel. Tillståndet är föränderligt eftersom
   // reparationen LÄSER TILLBAKA efter varje skrivning — ett 200-svar räknas inte.
-  const lager: Record<string, { revision: string; antal: number }> = {
-    "wix-a": { revision: "1", antal: 0 },
-    "wix-b": { revision: "2", antal: 3 },
-    "wix-c": { revision: "3", antal: 5 },
+  const lager: Record<string, { revision: string; media: { id?: string; url: string }[] }> = {
+    "wix-a": { revision: "1", media: [] },
+    "wix-b": { revision: "2", media: [bild(1), bild(2), bild(3)] },
+    "wix-c": { revision: "3", media: [bild(1), bild(2), bild(3), bild(8), bild(9)] },
   };
+  // B:s tre bilder är kända: de kommer från position 1, 2 och 3.
+  const kanda: Record<string, { kalla: string; fileId: string }[]> = {
+    "B-2": [1, 2, 3].map((n) => ({ kalla: `https://img.aosomcdn.com/${n}.jpg`, fileId: `fil-${n}` })),
+  };
+
   const bas: ImageRepairDeps = {
     fetchFeed: async () => [rad("A-1"), rad("B-2"), rad("C-3")],
     listAosom: async () => [
@@ -42,25 +57,80 @@ function deps(over: Partial<ImageRepairDeps> = {}) {
       { sku: "B-2", wixProductId: "wix-b" },
       { sku: "C-3", wixProductId: "wix-c" },
     ],
-    getMedia: async (id) => (lager[id] ? { ...lager[id] } : null),
+    getMedia: async (id) =>
+      lager[id] ? { revision: lager[id].revision, media: [...lager[id].media] } : null,
+    kandaBildFiler: async (sku) => kanda[sku] ?? [],
+    hamtaKallor: async () => new Map(),
+    sparaBildFiler: async (sku, filer) => { sparade.push({ sku, filer }); },
     importImages: async (urls) => {
       uppladdade.push(urls);
-      // Uppladdningen ger både id och adress — id:t är det som måste nå
-      // setProductMedia, annars importerar Wix om bilden till en ny fil.
-      return urls.map((u, i) => ({
-        id: `fil-${i + 1}`,
-        url: u.replace("img.aosomcdn.com", "static.wixstatic.com"),
-      }));
+      // Uppladdningen bär id, adress OCH källbilden. Utan `kalla` går det inte
+      // att veta vilken av fem bilder posten svarar mot när en miss glesar ut
+      // listan — och då kan bara alla fem laddas om.
+      return urls.map((u) => {
+        const n = u.split("/").pop()!.replace(".jpg", "");
+        return { id: `fil-${n}`, url: `https://static.wixstatic.com/${n}.jpg`, kalla: u };
+      });
     },
     setMedia: async (id, _rev, bilder) => {
       skrivna.push({ id, urls: bilder.map((b) => b.url), ids: bilder.map((b) => b.id) });
-      if (lager[id]) lager[id] = { revision: String(Number(lager[id].revision) + 1), antal: bilder.length };
+      if (lager[id]) {
+        lager[id] = {
+          revision: String(Number(lager[id].revision) + 1),
+          media: bilder.map((b) => ({ id: b.id, url: b.url })),
+        };
+      }
     },
     fx: FX,
     ...over,
   };
-  return { d: bas, skrivna, uppladdade, lager };
+  return { d: bas, skrivna, uppladdade, sparade, lager, kanda };
 }
+
+describe("planeraBilder", () => {
+  const O = [1, 2, 3, 8, 9].map((n) => `k${n}`);
+  const b = (n: number) => ({ id: `f${n}`, url: `u${n}` });
+  const kanda = (ns: number[]) => new Map(ns.map((n) => [`f${n}`, `k${n}`]));
+
+  it("behåller det som sitter och pekar ut bara luckorna", () => {
+    const p = planeraBilder(O, [b(1), b(2), b(3)], kanda([1, 2, 3]));
+    expect(p.behall.map((x) => x.bild.id)).toEqual(["f1", "f2", "f3"]);
+    expect(p.saknas).toEqual(["k8", "k9"]);
+    expect(p.oidentifierade).toBe(0);
+  });
+
+  it("lägger tillbaka bilderna i ÖNSKAD ordning, inte i produktens", () => {
+    // Wix visar första bilden som huvudbild, så ordningen är inte kosmetisk.
+    const p = planeraBilder(O, [b(9), b(1)], kanda([1, 9]));
+    expect(p.behall.map((x) => x.kalla)).toEqual(["k1", "k9"]);
+  });
+
+  it("☠️ en bild utan känd källa räknas som oidentifierad — aldrig som en lucka", () => {
+    // Räknades den som en lucka hade källbilden laddats upp igen och produkten
+    // fått samma bild två gånger.
+    const p = planeraBilder(O, [b(1), b(2), b(7)], kanda([1, 2]));
+    expect(p.oidentifierade).toBe(1);
+    expect(p.saknas).toEqual(["k3", "k8", "k9"]);
+  });
+
+  it("en bild utan id går inte att placera", () => {
+    const p = planeraBilder(O, [{ url: "u1" }], new Map());
+    expect(p.oidentifierade).toBe(1);
+    expect(p.behall).toHaveLength(0);
+  });
+
+  it("samma källbild två gånger behålls en gång — dubbletten faller bort", () => {
+    const p = planeraBilder(O, [b(1), { id: "f1b", url: "u1b" }], new Map([["f1", "k1"], ["f1b", "k1"]]));
+    expect(p.behall).toHaveLength(1);
+    expect(p.behall[0].bild.id).toBe("f1");
+  });
+
+  it("en hel produkt har inga luckor", () => {
+    const p = planeraBilder(O, [1, 2, 3, 8, 9].map(b), kanda([1, 2, 3, 8, 9]));
+    expect(p.saknas).toEqual([]);
+    expect(p.behall).toHaveLength(5);
+  });
+});
 
 describe("runImageRepair", () => {
   it("torrkörning är default och skriver ingenting", async () => {
@@ -91,21 +161,97 @@ describe("runImageRepair", () => {
   });
 
   it("gör ALDRIG en produkt sämre — en halvlyckad omgång skrivs inte", async () => {
-    // B har tre bilder; uppladdningen ger bara två. Att skriva vore en försämring.
+    // B har tre bilder och saknar två. Går båda uppladdningarna i putten blir
+    // den nya listan lika lång som den gamla, och då skrivs ingenting.
     const { d, skrivna } = deps({
       listAosom: async () => [{ sku: "B-2", wixProductId: "wix-b" }],
-      importImages: async (urls) => urls.slice(0, 2).map((u, i) => ({ id: `f${i}`, url: `https://static.wixstatic.com/${u.slice(-5)}` })),
+      importImages: async () => [],
     });
     const s = await runImageRepair(d, { dryRun: false });
     expect(skrivna).toHaveLength(0);
     expect(s.reparerade).toBe(0);
-    expect(s.kvarstaendeMissar).toBe(3);
+  });
+
+  it("☠️ laddar om BARA det som saknas — de tre som sitter behålls vid sitt id", async () => {
+    // Hela poängen. Förut laddades alla fem om och medialistan ersattes, vilket
+    // lämnade tre föräldralösa filer per lagad produkt. Fyra körningar mot en
+    // växande katalog tog slut på Wix-lagringen (2026-08-28).
+    const { d, skrivna, uppladdade } = deps({
+      listAosom: async () => [{ sku: "B-2", wixProductId: "wix-b" }],
+    });
+    const s = await runImageRepair(d, { dryRun: false });
+
+    // Bara position 8 och 9 hämtas — inte 1, 2 och 3.
+    expect(uppladdade).toEqual([[ONSKADE[3], ONSKADE[4] ]]);
+    // De tre befintliga sitter kvar VID SITT ID, i önskad ordning.
+    expect(skrivna[0].ids).toEqual(["fil-1", "fil-2", "fil-3", "fil-8", "fil-9"]);
+    expect(s.atervandaBilder).toBe(3);
+    expect(s.fullOmladdning).toBe(0);
+  });
+
+  it("sparar kopplingen efteråt — och först efter en verifierad skrivning", async () => {
+    const { d, sparade } = deps({
+      listAosom: async () => [{ sku: "B-2", wixProductId: "wix-b" }],
+    });
+    await runImageRepair(d, { dryRun: false });
+    expect(sparade).toHaveLength(1);
+    expect(sparade[0].sku).toBe("B-2");
+    expect(sparade[0].filer).toEqual(
+      [1, 2, 3, 8, 9].map((n) => ({
+        kalla: `https://img.aosomcdn.com/${n}.jpg`,
+        fileId: `fil-${n}`,
+      })),
+    );
+  });
+
+  it("kopplingen sparas ALDRIG när skrivningen inte tog", async () => {
+    // Sparad ändå hade den pekat på filer som inte sitter på produkten, och
+    // nästa körning trott att bilder finns som inte gör det.
+    const { d, sparade } = deps({
+      listAosom: async () => [{ sku: "B-2", wixProductId: "wix-b" }],
+      setMedia: async () => { /* svarar OK, gör ingenting */ },
+    });
+    const s = await runImageRepair(d, { dryRun: false });
+    expect(s.misslyckade).toBe(1);
+    expect(sparade).toHaveLength(0);
+  });
+
+  it("härleder kopplingen ur Wix sourceUrl när mappningen inte har den", async () => {
+    // Bootstrappen för allt som importerades innan fältet fanns.
+    const fragade: string[][] = [];
+    const { d, uppladdade } = deps({
+      listAosom: async () => [{ sku: "B-2", wixProductId: "wix-b" }],
+      kandaBildFiler: async () => [],
+      hamtaKallor: async (ids) => {
+        fragade.push(ids);
+        return new Map(ids.map((id) => [id, `https://img.aosomcdn.com/${id.replace("fil-", "")}.jpg`]));
+      },
+    });
+    const s = await runImageRepair(d, { dryRun: false });
+    expect(fragade).toEqual([["fil-1", "fil-2", "fil-3"]]);
+    expect(uppladdade).toEqual([[ONSKADE[3], ONSKADE[4]]]);
+    expect(s.fullOmladdning).toBe(0);
+  });
+
+  it("☠️ går tillbaka till full omladdning när en bild inte går att härleda", async () => {
+    // Vet vi inte vad produkten redan har får vi inte fylla på: en felgissning
+    // ger en dubblettbild på en kundsida. Hellre den gamla, dyrare vägen —
+    // och bara en gång, eftersom kopplingen sparas efteråt.
+    const { d, uppladdade } = deps({
+      listAosom: async () => [{ sku: "B-2", wixProductId: "wix-b" }],
+      kandaBildFiler: async () => [],
+      hamtaKallor: async () => new Map(),
+    });
+    const s = await runImageRepair(d, { dryRun: false });
+    expect(uppladdade).toEqual([ONSKADE]);
+    expect(s.fullOmladdning).toBe(1);
+    expect(s.atervandaBilder).toBe(0);
   });
 
   it("räknar kvarstående missar när skrivningen ändå är en förbättring", async () => {
     const { d, skrivna } = deps({
       listAosom: async () => [{ sku: "A-1", wixProductId: "wix-a" }],
-      importImages: async (urls) => urls.slice(0, 4).map((u, i) => ({ id: `f${i}`, url: `https://static.wixstatic.com/${u.slice(-5)}` })),
+      importImages: async (urls) => urls.slice(0, 4).map((u, i) => ({ id: `f${i}`, url: `https://static.wixstatic.com/${u.slice(-5)}`, kalla: u })),
     });
     const s = await runImageRepair(d, { dryRun: false });
     expect(s.reparerade).toBe(1);
