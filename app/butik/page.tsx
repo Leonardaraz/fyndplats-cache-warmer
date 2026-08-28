@@ -20,8 +20,22 @@ export const metadata = pageMeta(
 // Sidan läste tidigare searchParams (?kategori=X) enbart för att vidarebefordra
 // gamla länkar till /kategori/[slug]. Det gjorde hela routen dynamisk: ingen
 // CDN-cache, ingen ETag, full origin-rendering av 250 kB vid VARJE hämtning —
-// också Googlebots. Bakåtkompabiliteten ligger nu som en query-gatad redirect i
-// next.config.ts, där den inte kostar sidan dess statiska rendering.
+// också Googlebots.
+//
+// Parametern hanteras inte längre någonstans, och ska inte göra det. Första
+// försöket lade en query-gatad redirect (?kategori=X → /kategori/X) i
+// next.config.ts. Den byggde en OÄNDLIG LOOP, bevisad på preview-deployen:
+// Next skickar med query-värden till destinationen, och /kategori/ovrigt
+// omdirigerar redan till /alla-produkter (next.config.ts). Alltså
+// /alla-produkter?kategori=ovrigt → /kategori/ovrigt?kategori=ovrigt →
+// /alla-produkter?kategori=ovrigt → … curl gav upp efter 50 hopp.
+//
+// En okänd ?kategori= ignoreras nu i stället, och sidan renderas som vanligt —
+// exakt vad den gamla koden gjorde för varje slug som inte matchade en
+// kategori. Kostnaden är att ett gammalt bokmärke inte längre landar
+// förfiltrerat. Search Console: 0 klick och 0 visningar på parametern över 92
+// dagar, och inget i appen bygger sådana länkar (kategori-dropdownen länkar
+// till /kategori/[slug]).
 export const revalidate = 3600;
 
 export default async function Butik() {

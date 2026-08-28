@@ -26,8 +26,11 @@ export const metadata = pageMeta(
 // /kategori/[slug] (components/categorydropdown-client.tsx), inget i appen
 // bygger ?kategori=-länkar, och Search Console visar 0 klick och 0 visningar på
 // parametern över 92 dagar. /kategori/[slug] gör samma jobb, statiskt.
-// Gamla ?kategori=-länkar vidarebefordras dit av en query-gatad redirect i
-// next.config.ts. Sidan visar därför alltid HELA sortimentet — som namnet säger.
+// En okänd ?kategori= ignoreras och sidan renderas som vanligt. Att i stället
+// omdirigera den till /kategori/X byggde en OÄNDLIG LOOP (bevisad på preview):
+// Next skickar med query-värden till destinationen, och /kategori/ovrigt
+// omdirigerar redan hit — se den längre noten i app/butik/page.tsx.
+// Sidan visar därför alltid HELA sortimentet — som namnet säger.
 export const revalidate = 3600;
 
 export default async function AllaProdukter() {

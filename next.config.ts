@@ -93,39 +93,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // --- ?kategori= → /kategori/[slug] ------------------------------------
-      // /butik och /alla-produkter läste båda ?kategori= på servern för att
-      // filtrera listan. Att läsa searchParams gör hela routen dynamisk
-      // ("Using searchParams opts your page into dynamic rendering", Next 16-
-      // dokumentationen) — de var därmed de ENDA två indexerbara sidorna i
-      // sitemapen som inte kunde CDN-cachas, saknade ETag och därför aldrig
-      // kunde svara 304 på en villkorlig hämtning. Uppmätt i produktion
-      // 2026-08-28: x-vercel-cache MISS, age=0, fyra hämtningar av fyra, och
-      // 1 428 kB respektive 250 kB full origin-rendering varje gång.
-      //
-      // Parametern var dessutom redan överflödig: kategori-dropdownen länkar
-      // till /kategori/[slug] (components/categorydropdown-client.tsx), inget
-      // i appen bygger ?kategori=-länkar, och Search Console visar 0 klick och
-      // 0 visningar på parametern över 92 dagar. /kategori/[slug] gör redan
-      // samma sak, statiskt förrenderad.
-      //
-      // Redirecten här bevarar avsikten i den gamla /butik-koden ("gamla länkar
-      // ?kategori=X bör fortsätta fungera") utan att sidorna behöver läsa
-      // searchParams. Skillnad mot förr: ett kategori-värde som inte finns ger
-      // nu 404 i stället för att tyst visa hela sortimentet — vilket är rätt
-      // svar på en URL som pekar på något som inte existerar.
-      //
-      // Next skickar med övriga query-värden till destinationen, så URL:en
-      // behåller ett ?kategori=. Ofarligt: /kategori/[slug] sätter en ren
-      // self-canonical via pageMeta (lib/seo.ts), och sidan läser aldrig
-      // parametern.
-      ...["/butik", "/alla-produkter"].map((source) => ({
-        source,
-        has: [{ type: "query" as const, key: "kategori", value: "(?<kat>.*)" }],
-        destination: "/kategori/:kat",
-        permanent: true,
-      })),
-
       // --- SEO-migration: gamla Wix-sajtens produkt-URL:er → headless ---
       // Google har indexerat /product-page/[slug] från gamla fyndplats.se.
       // Headless serverar produkterna på /produkt/[slug]. 204 av 207 produkter
