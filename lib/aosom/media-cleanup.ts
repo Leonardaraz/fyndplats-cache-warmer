@@ -418,7 +418,25 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
   // `importMediaByUrl` fick 2026-08-27, och av exakt samma skäl.
   // Edge-spärren är trögare än ett vanligt API-429 och behöver längre pauser.
   const paus_ms = [2_000, 10_000, 30_000];
-  const post = async (url: string, body: unknown): Promise<Record<string, unknown>> => {
+
+  /**
+   * ☠️ ÅTERFÖRSÖK ÄR RÄTT FÖR LISTNINGEN OCH FEL FÖR RADERINGEN.
+   *
+   * Skillnaden är vad ett fel KOSTAR. Faller listningen dör hela körningen och
+   * ingenting blir gjort — då är det värt att vänta ut spärren. Faller en
+   * raderingsskopa ligger 50 filer kvar till nästa körning, och körningen är
+   * idempotent: nästa pass tar dem gratis.
+   *
+   * Uppmätt 2026-08-28, sjätte passet, med återförsök på BÅDA:
+   *
+   *     varv 4: 1136 föräldralösa, 150 raderade, 200 fel [tidsbudget]
+   *
+   * Tre skopor gick igenom. Fyra strypta skopor väntade 2 + 10 + 30 sekunder
+   * var — 168 sekunder mot en raderingsbudget på 72 — och sprängde den, så
+   * resten av skoporna hann aldrig ens försökas. Att ge upp direkt hade i
+   * stället låtit dem alla få ett försök.
+   */
+  const post = async (url: string, body: unknown, aterforsok = true): Promise<Record<string, unknown>> => {
     let sist = "";
     for (let forsok = 0; forsok <= paus_ms.length; forsok++) {
       let res: Response;
@@ -434,7 +452,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
 
       const kropp = await res.text();
       sist = `${res.status}: ${sammanfattaFelkropp(kropp)}`;
-      if (!borAterforsoka(res.status, kropp)) break;
+      if (!aterforsok || !borAterforsoka(res.status, kropp)) break;
       if (forsok === paus_ms.length) break;
       const retryAfter = Number(res.headers.get("retry-after"));
       await paus(Number.isFinite(retryAfter) && retryAfter > 0
@@ -520,8 +538,9 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
 
     // permanent: true — papperskorgen räknas fortfarande mot lagringen, så en
     // vanlig radering frigör ingenting alls.
+    // Utan återförsök, med flit — se kommentaren vid `post`.
     raderaPermanent: async (fileIds) => {
-      await post(`${WIX_BASE}/site-media/v1/bulk/files/delete`, { fileIds, permanent: true });
+      await post(`${WIX_BASE}/site-media/v1/bulk/files/delete`, { fileIds, permanent: true }, false);
     },
 
     paus: async (ms) => { await paus(ms); },
