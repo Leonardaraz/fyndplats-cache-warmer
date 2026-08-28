@@ -1,5 +1,9 @@
 {
-  "cursor": null,
-  "kvar": null,
-  "kommentar": "Nollställd 2026-08-28 för ett fullt torrsvep efter att reparationen byggts om att bara ladda om det som saknas. Den gamla markören låg mitt i katalogen och gav därför bara en partiell bild av hur många produkter som fortfarande har för få bilder."
+  "cursor": "370-403V90OG",
+  "kvar": 2306,
+  "trasiga": 0,
+  "reparerade": 0,
+  "misslyckade": 0,
+  "kvarstaendeMissar": 0,
+  "uppdaterad": "2026-08-28T12:04:52Z"
 }
