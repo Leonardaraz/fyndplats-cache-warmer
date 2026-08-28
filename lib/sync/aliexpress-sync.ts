@@ -57,6 +57,7 @@ import {
 } from "../email/resend";
 import { applyBestsellerPriority, priorityRank, RECENT_PURCHASE_REASON } from "./bestsellers";
 import { aliExpressIdOf, isAliExpressMapping } from "../store/supplier";
+import { mapWithConcurrency } from "../concurrency";
 
 export const DEFAULT_MARGIN_FLOOR_PERCENT = 20;
 export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
@@ -629,6 +630,18 @@ export function scopeMappings<T extends { wixProductId: string }>(
   return mappings.filter((m) => onlyIds.has(m.wixProductId));
 }
 
+/**
+ * Hur många tillståndsläsningar som får vara i luften samtidigt. Åtta är valt
+ * lågt med flit: hela poängen är att aldrig mer skala fan-outen med katalogen.
+ * ~1 000 AE-rader tar då ~20 s av körningens 300 — billigt mot att stå still.
+ */
+export const DEFAULT_STATE_READ_CONCURRENCY = 8;
+
+function stateReadConcurrency(): number {
+  const v = Number(process.env.SYNC_STATE_READ_CONCURRENCY);
+  return Number.isFinite(v) && v >= 1 ? Math.floor(v) : DEFAULT_STATE_READ_CONCURRENCY;
+}
+
 export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSummary> {
   const startedAt = new Date().toISOString();
   const store = getStore();
@@ -735,10 +748,34 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // Förturen för öppna serier är hela poängen med att sortera om (audit
   // 2026-08-24): utan den hamnar en produkt vi PRECIS misstänkt vara borttagen
   // sist i kön, och strike 2 dröjer en full rotation. Se `orderForRotation`.
+  // ☠️ TILLSTÅNDSLÄSNINGARNA ÄR TAKADE, OCH BARA FÖR RADER LOOPEN KAN ARBETA PÅ.
+  //
+  // Det här var ett obegränsat `Promise.all` över hela katalogen: en
+  // Wix-läsning per produkt, alla avfyrade samtidigt. Det höll på 980 rader
+  // och slutade hålla utan att någon rörde koden — 2026-08-26 kl 12 började
+  // rutten svara 500, och gjorde det varje körning i 57 timmar medan lager och
+  // priser för hela AE-katalogen stod stilla (audit 2026-08-28). Lambdan dog av
+  // fan-outen, så ruttens catch hann aldrig skriva sin fatal-rad: en naken 500
+  // utan en enda loggrad. Sedan Aosom-importen var talet 5 423 samtidiga anrop.
+  //
+  // Två spärrar, och båda behövs:
+  //
+  // 1. Rader loopen ändå hoppar över kostar ingen läsning alls. Aosom-rader
+  //    (4 419 av 5 423) avvisas nedan innan `state` ens används — att hämta
+  //    deras tillstånd var rent slöseri, och det var merparten av fan-outen.
+  //    Villkoret speglar loopens egna hopp; blir de osynkade kostar det på sin
+  //    höjd en onödig läsning, aldrig ett felaktigt beslut.
+  // 2. Resten läses med tak. `summary.total` och `skipped` är oförändrade —
+  //    de överhoppade raderna räknas fortfarande i loopen, de kostar bara
+  //    ingenting att komma fram till.
+  const behoverTillstand = (m: ProductMappingRecord) =>
+    Boolean(m.supplierProductId) && isAliExpressMapping(m) && m.draftStatus !== "rejected";
+
   const states = orderForRotation(
-    await Promise.all(
-      mappings.map((m) => syncStore.getState(m.wixProductId).then((s) => ({ mapping: m, state: s }))),
-    ),
+    await mapWithConcurrency(mappings, stateReadConcurrency(), async (m) => ({
+      mapping: m,
+      state: behoverTillstand(m) ? await syncStore.getState(m.wixProductId) : null,
+    })),
   );
 
   resetRateLimitCount();

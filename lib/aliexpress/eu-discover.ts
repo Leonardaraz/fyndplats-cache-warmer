@@ -17,6 +17,7 @@
 
 import { classifyWarehouses, isEuCountry } from "./eu-countries";
 import type { AliExpressSearchResult } from "./client";
+import { mapWithConcurrency } from "../concurrency";
 
 interface CacheEntry {
   codes: string[];
@@ -40,23 +41,6 @@ export interface FilterEuDeps {
   now?: () => number;
   /** Injicerbar cache (test). Default: process-cachen. */
   cache?: Map<string, CacheEntry>;
-}
-
-async function mapWithConcurrency<T>(
-  items: T[],
-  limit: number,
-  fn: (item: T) => Promise<void>,
-): Promise<void> {
-  const workers = Math.max(1, Math.min(limit, items.length));
-  let idx = 0;
-  await Promise.all(
-    Array.from({ length: workers }, async () => {
-      while (idx < items.length) {
-        const i = idx++;
-        await fn(items[i]);
-      }
-    }),
-  );
 }
 
 function cacheGet(cache: Map<string, CacheEntry>, id: string, now: number): string[] | undefined {
