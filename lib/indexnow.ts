@@ -8,9 +8,10 @@
 // public/<KEY>.txt). Cost: $0.
 //
 // Used by:
+//   • app/api/cron/warm-and-ping        (varje timme: nya/ändrade produkter,
+//                                        värmda innan de aviseras)
 //   • app/api/cron/indexnow-ping        (weekly sweep of the whole sitemap)
 //   • app/api/admin/seo-ping            (Leonard's manual "submit now" button)
-//   • app/api/wix-webhook (product.created/updated → ping that product's URL)
 import { SITE, getSiteUrlStrings } from "./site-urls";
 
 // Static IndexNow key. NOT a secret — it's published at /<KEY>.txt for the search
