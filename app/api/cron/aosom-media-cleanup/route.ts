@@ -24,6 +24,10 @@
 // Query:
 //   ?dryRun=false     skarpt läge (default: torrkörning, raderar ingenting)
 //   ?limit=500        tak på antal filer denna körning
+//
+// `komplettListning: false` i svaret betyder att Media Manager inte hanns med i
+// sin helhet — kör igen. Körningen konvergerar av sig själv: det som raderats
+// gör listan kortare, så nästa körning når längre.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -50,7 +54,11 @@ async function handle(req: NextRequest) {
   const limit = Number.isFinite(n) && n > 0 ? Math.trunc(n) : undefined;
 
   try {
-    const summary = await runMediaCleanup(await liveDeps(), { dryRun, limit });
+    // Tidsbudgeten ligger under ruttens maxDuration (300 s) så att en körning
+    // hinner SVARA med sina siffror i stället för att dödas mitt i listningen.
+    const summary = await runMediaCleanup(await liveDeps(), {
+      dryRun, limit, timeBudgetMs: 240_000,
+    });
 
     if (!dryRun && summary.raderade > 0) {
       await audit(

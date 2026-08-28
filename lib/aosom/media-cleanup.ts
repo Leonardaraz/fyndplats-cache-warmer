@@ -159,12 +159,17 @@ export function planeraStadning(
 }
 
 export interface MediaCleanupDeps {
-  /** Alla filer i Media Manager. */
-  listaFiler: () => Promise<MediaFil[]>;
+  /**
+   * Filer i Media Manager. `komplett: false` betyder att listningen stannade på
+   * tidsgränsen eller sidtaket — planen görs då på det som HANN läsas.
+   */
+  listaFiler: (stoppaVid?: number) => Promise<{ filer: MediaFil[]; komplett: boolean }>;
   /** Alla media-URL:er som sitter på en produkt, plus antalet produkter. */
   listaAnvanda: () => Promise<{ urls: string[]; antalProdukter: number }>;
   /** Raderar PERMANENT — papperskorgen räknas fortfarande mot lagringen. */
   raderaPermanent: (fileIds: string[]) => Promise<void>;
+  /** Injicerbar klocka för tidsbudgeten. */
+  now?: () => number;
 }
 
 export interface MediaCleanupSummary {
@@ -176,6 +181,13 @@ export interface MediaCleanupSummary {
   frigjordMb: number;
   misslyckade: number;
   errors: string[];
+  /**
+   * Läste listningen HELA Media Manager? `false` = siffrorna beskriver bara den
+   * del som hanns med, och `filerTotalt` är alltså inte beståndet. Körningen är
+   * ändå meningsfull: det som raderas är föräldralöst, och nästa körning når
+   * längre eftersom listan blivit kortare.
+   */
+  komplettListning: boolean;
 }
 
 /** Wix tar emot flera id:n per anrop; håll skoporna lagom stora. */
@@ -183,14 +195,24 @@ const BATCH = 50;
 
 export async function runMediaCleanup(
   deps: MediaCleanupDeps,
-  opts: { dryRun?: boolean; limit?: number } = {},
+  opts: { dryRun?: boolean; limit?: number; timeBudgetMs?: number } = {},
 ): Promise<MediaCleanupSummary> {
   const dryRun = opts.dryRun !== false;
+  const now = deps.now ?? (() => Date.now());
+  const start = now();
+  const budget = opts.timeBudgetMs ?? 240_000;
 
-  const [filer, { urls, antalProdukter }] = await Promise.all([
-    deps.listaFiler(),
-    deps.listaAnvanda(),
-  ]);
+  // ☠️ LISTNINGARNA KÖRS EFTER VARANDRA, INTE MED Promise.all.
+  //
+  // De gick parallellt fram till 2026-08-28 och dubblade därmed anropstakten mot
+  // samma Wix-värd. Wix svarade 429 efter ~30 sekunder, `post` kastade, och hela
+  // rutten föll med 500 utan att radera en enda fil. Det ser ut som en
+  // optimering och är i själva verket det som fäller körningen.
+  //
+  // Referenslistan först, med flit: den är massfel-spärrens underlag och måste
+  // vara KOMPLETT, medan fillistningen tål att kapas på tidsbudgeten.
+  const { urls, antalProdukter } = await deps.listaAnvanda();
+  const { filer, komplett } = await deps.listaFiler(start + budget);
 
   const plan = planeraStadning(filer, urls, antalProdukter);
   const attRadera = opts.limit ? plan.attRadera.slice(0, opts.limit) : plan.attRadera;
@@ -204,6 +226,7 @@ export async function runMediaCleanup(
     frigjordMb: 0,
     misslyckade: 0,
     errors: [],
+    komplettListning: komplett,
   };
 
   if (dryRun) {
@@ -248,19 +271,53 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     return h;
   };
 
+  // ☠️ WIX SVARAR 429 EFTER ~40-50 SIDOR I RAD.
+  //
+  // Media Manager har 58 160 filer = 582 sidor. Utan återförsök är en hel
+  // genomgång en kastning av tärning: bildstädningen 2026-08-28 föll efter 30
+  // sekunder med 500, och eftersom workflowens felutskrift slukades av en
+  // kommandosubstitution såg det ut som ett tomt misslyckande.
+  //
+  // Backoffen följer `Retry-After` när Wix skickar den. Samma mönster som
+  // `importMediaByUrl` fick 2026-08-27, och av exakt samma skäl.
+  const paus_ms = [1_000, 3_000, 8_000];
   const post = async (url: string, body: unknown): Promise<Record<string, unknown>> => {
-    const res = await fetch(url, { method: "POST", headers: headers(), body: JSON.stringify(body) });
-    if (!res.ok) {
-      throw new Error(`${url} svarade ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    let sist = "";
+    for (let forsok = 0; forsok <= paus_ms.length; forsok++) {
+      let res: Response;
+      try {
+        res = await fetch(url, { method: "POST", headers: headers(), body: JSON.stringify(body) });
+      } catch (err) {
+        sist = err instanceof Error ? err.message : String(err);
+        if (forsok === paus_ms.length) break;
+        await paus(paus_ms[forsok]);
+        continue;
+      }
+      if (res.ok) return (await res.json()) as Record<string, unknown>;
+
+      sist = `${res.status}: ${(await res.text()).slice(0, 200)}`;
+      // 4xx utom 429 blir inte bättre av att frågas igen.
+      if (res.status !== 429 && res.status < 500) break;
+      if (forsok === paus_ms.length) break;
+      const retryAfter = Number(res.headers.get("retry-after"));
+      await paus(Number.isFinite(retryAfter) && retryAfter > 0
+        ? Math.min(retryAfter * 1000, 15_000)
+        : paus_ms[forsok]);
     }
-    return (await res.json()) as Record<string, unknown>;
+    throw new Error(`${url} svarade ${sist}`);
   };
 
   return {
-    listaFiler: async () => {
+    // Sidtaket räcker till hela beståndet: 58 160 filer = 582 sidor. Det gamla
+    // taket på 500 hade tyst kapat listningen vid 50 000 och gjort resten
+    // osynlig — en tyst trunkering är samma sorts fel som allt annat i den här
+    // filen handlar om.
+    listaFiler: async (stoppaVid?: number) => {
       const ut: MediaFil[] = [];
       let cursor: string | null = null;
-      for (let i = 0; i < 500; i++) {
+      let komplett = false;
+      for (let i = 0; i < 1200; i++) {
+        if (stoppaVid !== undefined && Date.now() >= stoppaVid) break;
         const data = (await post(`${WIX_BASE}/site-media/v1/files/search`, {
           paging: { limit: 100, ...(cursor ? { cursor } : {}) },
         })) as { files?: Record<string, string>[]; nextCursor?: { hasNext?: boolean; cursors?: { next?: string } } };
@@ -274,10 +331,10 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
           });
         }
         cursor = data.nextCursor?.hasNext ? (data.nextCursor.cursors?.next ?? null) : null;
-        if (!cursor) break;
+        if (!cursor) { komplett = true; break; }
         await paus(120);
       }
-      return ut;
+      return { filer: ut, komplett };
     },
 
     listaAnvanda: async () => {
