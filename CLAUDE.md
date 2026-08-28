@@ -262,19 +262,59 @@ sajten. Funktionen skickar nu alltid tillbaka `visible` oförändrad; saknas
 fältet i svaret utelämnas det hellre än gissas. Fem tester i `v3-prices.test.ts`
 låser det.
 
-### Vad Aosoms B2B-guide säger om beställningar
+### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
-Ordervägen är fortfarande inte byggd — `lib/orders/place-order.ts` är helt
-AliExpress — men guiden (2026-08-28) visar att den inte kräver ett API:
+☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
+hämtar produkten ur DS-API:t, matchar varianten mot en AE-SKU och lägger ordern
+via `aliexpress.ds.order.create`. En Aosom-mappning bär "845-030CG" i exakt
+samma fält, så utan grinden hade artikelnumret skickats rakt in i AE:s API — ett
+uppslag som aldrig kan träffa, med ett felmeddelande som pekar åt fel håll.
+Grinden är `isAliExpressMapping` i `placeOrderForTask`, och meddelandet pekar på
+bulkordern så den som ser felet i `/admin` inte börjar leta i AE-loggarna. En rad
+UTAN `supplier`-fält räknas fortfarande som AliExpress — annars hade hela den
+befintliga katalogen slutat gå att beställa.
 
-- **Bulkorder via CSV** (`aosom.de/bulkordering`): 100 ordrar per omgång, 20
-  artikelnummer per rad, 200 olika SKU:er, max 1 000 enheter, betalning i klump.
-  Det är en fil som går att generera ur orderkön.
+Aosoms egen väg kräver inget API. `/api/admin/aosom-order` bygger filen som
+`aosom.de/bulkordering` tar emot: **varje rad är en order** — en kundadress med
+upp till tjugo artikelnummer. Utan `?format=csv` svarar rutten med planen, så
+man ser vad som kommer med innan något laddas upp.
+
+Gränserna är **Aosoms, inte våra** (guiden, avsnitt 5), och en batch som spränger
+någon av dem avvisas först efter uppladdningen — därför delas ordrarna i förväg:
+
+| | |
+|---|---:|
+| Ordrar per omgång | 100 |
+| Artikelnummer per rad | 20 |
+| Olika artikelnummer per batch | 200 |
+| Enheter per batch | 1 000 |
+
+Två egenskaper som inte ska tas bort:
+
+1. ☠️ **En order delas ALDRIG mellan två batchar.** Raden ÄR ordern, med en
+   adress och en betalning. Splittad blir det två leveranser, två fraktavgifter
+   och en kund som får halva sin beställning. En order som ensam spränger ett tak
+   flaggas som `omojlig` och lämnas till en människa.
+2. **En kunds rader slås ihop till EN rad.** Kön är radbaserad
+   (`taskId` = `${orderId}:${lineItemId}`), Aosoms fil är orderbaserad. Tre rader
+   hade blivit tre leveranser med varsin fraktavgift — och frakten är redan den
+   dyraste delen av en Aosom-order.
+
+⚠️ **Adresskolumnernas rubriker är inte verifierade.** Guiden anger bara att
+kolumn A är artikelnumren och kolumn B antalen; adressfälten beskrivs som "one
+customer address" utan namn. Ladda ner deras formulär en gång och rätta
+`CSV_KOLUMNER` — datan i raderna är rätt oavsett.
+
+### Resten av vad guiden säger
+
 - **API-integration erbjuds** "after a few months of successful collaboration".
-- **Hämtning på lager** (`Pick Up` i kassan, lagren i Neu Wulmstorf och
-  Schwanewede) — det är draget mot fraktproblemet: bort från 84 € per kolli till
-  Sverige. Pallutbyte kostar 30 € i adminavgift utan egna pallar.
-- Alla ordrar är **förskottsbetalda**, plock 1–4 arbetsdagar.
+  Fråga Henrik Leseberg när ni har historik.
+- **Hämtning på lager** (`Pick Up` i kassan, Neu Wulmstorf och Schwanewede, egna
+  fraktkontakter) — det är draget mot fraktproblemet: bort från 84 € per kolli
+  till Sverige. Pallutbyte kostar 30 € i adminavgift utan egna pallar.
+- Alla ordrar är **förskottsbetalda**, plock 1–4 arbetsdagar. Kan en vara inte
+  levereras kommer besked per mejl och pengarna tillbaka — men då har vi redan
+  tagit betalt av kunden.
 
 ### Vad spärren INTE ser
 

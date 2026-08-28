@@ -171,6 +171,44 @@ describe("placeOrderForTask — claim & utfall", () => {
 // Claim-primitiven som place-order förlitar sig på (success-claim, dubbel-claim nekas,
 // release → reclaim). Memory är atomiskt i en process; i prod ger wix-data:s conditional
 // PATCH atomiciteten (empiriskt verifierat 3/3 + fält-löst + TOCTOU).
+describe("placeOrderForTask — leverantörsspärren", () => {
+  it("☠️ vägrar en Aosom-mappning i stället för att fråga AliExpress om den", async () => {
+    // Hela filen är AliExpress: den hämtar produkten ur DS-API:t och matchar
+    // varianten mot en AE-SKU. En Aosom-mappning bär ett artikelnummer som
+    // "845-030CG" i samma fält — utan spärren skickas det rakt in i AE:s API.
+    // Katalogen bär 2 700+ Aosom-utkast, så det slutar vara hypotetiskt i samma
+    // stund som den första publiceras.
+    const store = await seed(task(), {
+      ...mapping,
+      supplierProductId: "aosom:845-030CG",
+      supplier: "aosom",
+      variants: [{ ...mapping.variants[0], supplierVariantId: "845-030CG" }],
+    });
+    const res = await placeOrderForTask(store, "o1:l1");
+    expect(res.ok).toBe(false);
+    expect(res.error).toMatch(/aosom/i);
+    // Meddelandet ska peka på rätt väg, annars letar den som felsöker i AE-loggarna.
+    expect(res.error).toMatch(/bulkordering/);
+    expect(vi.mocked(createOrder)).not.toHaveBeenCalled();
+  });
+
+  it("släpper igenom en AliExpress-mappning som förut", async () => {
+    const store = await seed(task());
+    vi.mocked(createOrder).mockResolvedValue({ orderId: "AE-1", status: "placed" } as never);
+    const res = await placeOrderForTask(store, "o1:l1");
+    expect(res.error ?? "").not.toMatch(/aosom/i);
+  });
+
+  it("en rad utan supplier-fält räknas fortfarande som AliExpress", async () => {
+    // Alla mappningar från före supplier-fältet saknar det. Klassas de om till
+    // "okänd leverantör" slutar hela den befintliga katalogen gå att beställa.
+    const store = await seed(task(), { ...mapping, supplier: undefined });
+    vi.mocked(createOrder).mockResolvedValue({ orderId: "AE-1", status: "placed" } as never);
+    const res = await placeOrderForTask(store, "o1:l1");
+    expect(res.error ?? "").not.toMatch(/aosom|kommer från/i);
+  });
+});
+
 describe("MemoryStore claimTask/releaseTask", () => {
   it("första claim vinner, andra (annan token) nekas, release → reclaim funkar", async () => {
     const store = await seed(task());
