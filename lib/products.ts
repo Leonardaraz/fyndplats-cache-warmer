@@ -466,14 +466,36 @@ async function fetchProducts(): Promise<Product[]> {
     //
     // Nu: gå vidare tills en sida är HELT tom, och stega med det antal vi
     // faktiskt fick (inte med `limit` — annars hoppar en kort sida över
-    // resten av fönstret). Taket är rymligt men ändå ett tak.
-    for (let i = 0; i < 40; i++) {
+    // resten av fönstret).
+    //
+    // TAKET VAR 40 SIDOR = 4 000 PRODUKTER, och det var en tickande bomb.
+    // Mätt mot Wix 2026-08-28: 3 658 produkter i katalogen (946 synliga plus
+    // 2 712 dolda Aosom-produkter som väntar på publicering). Publiceras de
+    // ligger butiken 342 produkter från gränsen — och en katalog som växer
+    // förbi taket kapas TYST, precis det som hände 2026-08-16 när 62 produkter
+    // försvann ur butiken utan ett enda felmeddelande.
+    //
+    // Nu är taket bara en rundgångsspärr, inte en katalogbegränsning: loopen
+    // stannar när Wix eget totalCount är uppnått, och slår den ändå i taket
+    // loggas det som ett FEL i stället för att tyst servera en halv katalog.
+    const MAX_SIDOR = 500; // 50 000 produkter
+    let slogITaket = true;
+    for (let i = 0; i < MAX_SIDOR; i++) {
       const res: any = await (wix as any).products.queryProducts().limit(limit).skip(skip).find();
       const items = res.items || [];
       if (typeof res.totalCount === "number") rapporteratTotalt = res.totalCount;
-      if (items.length === 0) break;
+      if (items.length === 0) { slogITaket = false; break; }
       all.push(...items);
       skip += items.length;
+      // Wix säger hur många som finns — sluta så fort vi har dem allihop i
+      // stället för att fråga efter en tom sida till.
+      if (rapporteratTotalt !== null && all.length >= rapporteratTotalt) { slogITaket = false; break; }
+    }
+    if (slogITaket) {
+      console.error(
+        `[wix] SIDTAKET SLOG I: hämtade ${all.length} produkter på ${MAX_SIDOR} sidor utan att nå slutet `
+          + `(totalCount=${rapporteratTotalt ?? "okänt"}). Katalogen kan vara kapad — höj MAX_SIDOR.`,
+      );
     }
     const mapped = all.filter((p) => p.visible !== false).map(mapProduct).filter((p) => p.img);
     // Dedupe by product id. After the V3 restructure a product belongs to a main

@@ -7,9 +7,16 @@
 //   • Google — the legacy sitemap ping (deprecated/best-effort; see lib/indexnow).
 // So freshly added/updated products/categories/posts get re-crawled sooner.
 //
-// New products/posts also get pinged in real time from the Wix webhook
-// (lib/indexnow#pingProductSlug / pingBlogSlug); this weekly sweep is the safety
-// net that catches anything the webhook missed.
+// Nya produkter aviseras inom timmen av /api/cron/warm-and-ping, som dessutom
+// VÄRMER sidan innan den aviseras. Det här veckosvepet är skyddsnätet som
+// fångar det den missat.
+//
+// Den gamla lydelsen här påstod att Wix-webhooken gjorde realtidsaviseringen
+// via lib/indexnow#pingProductSlug. Det stämde aldrig: webhookens `classify`
+// känner bara igen order- och checkout-event, så funktionen anropades av
+// ingen. Fram till 2026-08-28 var det här svepet därför den ENDA aviseringen
+// en ny produkt fick — en produkt publicerad på en tisdag väntade till nästa
+// måndag.
 import { NextResponse } from "next/server";
 import { pingAllSearchEngines } from "../../../../lib/indexnow";
 
