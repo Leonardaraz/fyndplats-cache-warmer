@@ -40,7 +40,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "torr = skriver inget · rökprov = 3 produkter · svep = hela sortimentet · bildfix = ladda om saknade bilder"
+        description: "torr = skriver inget · rökprov = 3 produkter · svep = hela sortimentet · bildfix = ladda om saknade bilder · bildstadning = radera oanvända bilder"
         required: true
         default: "torr"
         type: choice
@@ -50,6 +50,8 @@ on:
           - svep
           - bildfix
           - bildfix-torr
+          - bildstadning-torr
+          - bildstadning
       limit:
         description: "Produkter per varv (svep/torr). 150 är lagom."
         required: false
@@ -178,6 +180,46 @@ jobs:
               echo "::error::Rökprovet gav ${fel} fel — kör inte svepet förrän de är förstådda."
               exit 1
             fi
+            exit 0
+          fi
+
+          # ── bildstädning ────────────────────────────────────────────────────
+          #
+          # Raderar bilder som VÅR kod skapat och som ingen produkt använder.
+          # Wix importerade tidigare om varje bild vi skickade som URL, så halva
+          # Media Manager var kopior — 58 160 filer där hälften räckte, och
+          # lagringen tog slut mitt under en bildfix-körning (2026-08-28).
+          #
+          # Torrläget raderar ingenting och svarar med hur mycket som skulle
+          # frigöras. Kör ALLTID det först.
+          if [ "$MODE" = "bildstadning" ] || [ "$MODE" = "bildstadning-torr" ]; then
+            stad="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-media-cleanup"
+            torr="false"; [ "$MODE" = "bildstadning-torr" ] && torr="true"
+
+            svar=$(anropa "${stad}?dryRun=${torr}&limit=${LIMIT}") || exit 1
+            filer=$(printf '%s' "$svar" | jq -r '.filerTotalt // 0')
+            anvanda=$(printf '%s' "$svar" | jq -r '.anvandaEgnaFiler // 0')
+            forald=$(printf '%s' "$svar" | jq -r '.foraldralosa // 0')
+            rad=$(printf '%s' "$svar" | jq -r '.raderade // 0')
+            mb=$(printf '%s' "$svar" | jq -r '.frigjordMb // 0')
+            fel=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
+
+            echo "filer i Media Manager: ${filer}"
+            echo "våra filer som används: ${anvanda}"
+            echo "föräldralösa: ${forald}"
+            echo "raderade: ${rad} (${mb} MB), misslyckade: ${fel}"
+            [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.)"'
+
+            {
+              echo "### Aosom — bildstädning$([ "$torr" = "true" ] && echo ' (torrkörning)')"
+              echo ""
+              echo "- Filer i Media Manager: **${filer}**"
+              echo "- Våra filer som används: **${anvanda}**"
+              echo "- Föräldralösa: **${forald}**"
+              echo "- Raderade: **${rad}**"
+              echo "- Frigjort: **${mb} MB**"
+              echo "- Misslyckade: **${fel}**"
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
