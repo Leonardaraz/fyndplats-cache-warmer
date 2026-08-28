@@ -81,8 +81,29 @@ export function arVarFil(f: MediaFil, franOss: ReadonlySet<string>): boolean {
   if (!src) return false;
   const h = host(src);
   if (VARA_KALLHOSTAR.some((k) => h === k || h.endsWith(`.${k}`))) return true;
-  // Wix omimport: en wixstatic-adress som pekar på en fil vi äger.
-  if (h === "static.wixstatic.com") return franOss.has(mediaNyckel(src));
+  if (h === "static.wixstatic.com") {
+    // Wix omimport, känd på att den pekar på en fil vi äger.
+    if (franOss.has(mediaNyckel(src))) return true;
+    // ☠️ ELLER på sin EGEN signatur — och den regeln är inte valfri.
+    //
+    // Kedjan ovan kräver att ORIGINALET finns i samma fönster. Raderas
+    // originalet först blir kopian oigenkännlig för alltid och kan aldrig
+    // städas bort. Uppmätt 2026-08-28 efter ett skarpt provvarv på 200 filer:
+    // originalet var borta och kopian låg kvar med en sourceUrl som pekade
+    // rakt ut i tomma intet. Med 36 083 filer att radera hade det strandat
+    // dem i tusental.
+    //
+    // Signaturen finns i filen själv. En omimport döps efter ADRESSEN den
+    // hämtades från, så filnamnet i sourceUrl ÄR displayName:
+    //
+    //   displayName  b379ce_ee39b9fc…~mv2.jpg
+    //   sourceUrl    …/media/b379ce_ee39b9fc…~mv2.jpg
+    //
+    // Våra egna uppladdningar ser inte ut så: de får ett namn vi själva satt
+    // ("aosom-84H-237V01CG-1.jpg") och en sourceUrl hos leverantörens CDN.
+    // Och en handuppladdad bild saknar sourceUrl helt och når aldrig hit.
+    return mediaNyckel(src) === f.displayName;
+  }
   return false;
 }
 
