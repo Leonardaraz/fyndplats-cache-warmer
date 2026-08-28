@@ -94,7 +94,7 @@ describe("planeraBilder", () => {
 
   it("behåller det som sitter och pekar ut bara luckorna", () => {
     const p = planeraBilder(O, [b(1), b(2), b(3)], kanda([1, 2, 3]));
-    expect(p.behall.map((x) => x.bild.id)).toEqual(["f1", "f2", "f3"]);
+    expect(p.behall.map((x) => x.fileId)).toEqual(["f1", "f2", "f3"]);
     expect(p.saknas).toEqual(["k8", "k9"]);
     expect(p.oidentifierade).toBe(0);
   });
@@ -122,7 +122,16 @@ describe("planeraBilder", () => {
   it("samma källbild två gånger behålls en gång — dubbletten faller bort", () => {
     const p = planeraBilder(O, [b(1), { id: "f1b", url: "u1b" }], new Map([["f1", "k1"], ["f1b", "k1"]]));
     expect(p.behall).toHaveLength(1);
-    expect(p.behall[0].bild.id).toBe("f1");
+    expect(p.behall[0].fileId).toBe("f1");
+  });
+
+  it("☠️ luckan mitt i listan fylls på RÄTT plats, inte sist", () => {
+    // Wix visar första objektet som huvudbild. Position 1 är den vita
+    // produktbilden, 2 är livsstilsbilden. En produkt som har 2 och 3 men
+    // saknar 1 måste få tillbaka 1 FÖRST.
+    const p = planeraBilder(O, [b(2), b(3)], kanda([2, 3]));
+    expect(p.saknas).toEqual(["k1", "k8", "k9"]);
+    expect(p.behall.map((x) => x.kalla)).toEqual(["k2", "k3"]);
   });
 
   it("en hel produkt har inga luckor", () => {
@@ -187,6 +196,22 @@ describe("runImageRepair", () => {
     expect(skrivna[0].ids).toEqual(["fil-1", "fil-2", "fil-3", "fil-8", "fil-9"]);
     expect(s.atervandaBilder).toBe(3);
     expect(s.fullOmladdning).toBe(0);
+  });
+
+  it("☠️ skriver listan i ÖNSKAD ordning även när luckan sitter först", async () => {
+    // Wix huvudbild är första objektet. "Behållna först, nya sist" hade gett
+    // livsstilsbilden som huvudbild på varje produkt som saknade position 1.
+    const { d, skrivna } = deps({
+      listAosom: async () => [{ sku: "B-2", wixProductId: "wix-b" }],
+      getMedia: async () => ({
+        revision: "1",
+        media: [{ id: "fil-2", url: "u2" }, { id: "fil-3", url: "u3" }],
+      }),
+      kandaBildFiler: async () =>
+        [2, 3].map((n) => ({ kalla: `https://img.aosomcdn.com/${n}.jpg`, fileId: `fil-${n}` })),
+    });
+    await runImageRepair(d, { dryRun: false });
+    expect(skrivna[0].ids).toEqual(["fil-1", "fil-2", "fil-3", "fil-8", "fil-9"]);
   });
 
   it("sparar kopplingen efteråt — och först efter en verifierad skrivning", async () => {

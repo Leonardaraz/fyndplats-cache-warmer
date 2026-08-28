@@ -180,6 +180,40 @@ describe("getMediaSourceUrls", () => {
     expect((await getMediaSourceUrls(["kopia"], f)).has("kopia")).toBe(false);
   });
 
+  it("☠️ två filer som pekar på varandra loopar inte — djupet är ett hopp", async () => {
+    // Kedjan är data från Wix, inte något vi kontrollerar. Utan gräns hade en
+    // cykel snurrat tills rutten dog på sin maxDuration.
+    let anrop = 0;
+    const f = (async (_u: RequestInfo | URL, init?: RequestInit) => {
+      anrop++;
+      const id = JSON.parse(String(init?.body)).fileIds[0];
+      const andra = id === "a~mv2.jpg" ? "b~mv2.jpg" : "a~mv2.jpg";
+      return new Response(
+        JSON.stringify({ files: [{ id, sourceUrl: `https://static.wixstatic.com/media/${andra}` }] }),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+
+    const ut = await getMediaSourceUrls(["a~mv2.jpg"], f);
+    // Ett hopp följs, sedan stannar den. Kedjan slutar aldrig i en riktig
+    // källadress, så filen lämnas ohärledd.
+    expect(anrop).toBe(2);
+    expect(ut.has("a~mv2.jpg")).toBe(false);
+  });
+
+  it("en fil som pekar på sig själv följs inte alls", async () => {
+    let anrop = 0;
+    const f = (async () => {
+      anrop++;
+      return new Response(
+        JSON.stringify({ files: [{ id: "x~mv2.jpg", sourceUrl: "https://static.wixstatic.com/media/x~mv2.jpg" }] }),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+    await getMediaSourceUrls(["x~mv2.jpg"], f);
+    expect(anrop).toBe(1);
+  });
+
   it("kastar när Wix svarar fel — en tom karta hade sett ut som 'inga källor'", async () => {
     const f = (async () => new Response("nope", { status: 500 })) as unknown as typeof fetch;
     await expect(getMediaSourceUrls(["a"], f)).rejects.toThrow(/get-files/);
