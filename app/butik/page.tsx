@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { jsonLdString } from "../../lib/seo";
-import { redirect } from "next/navigation";
 import { getProducts, getCollections, forListings, dedupeProducts } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
 import { attachRatings } from "../../lib/review-aggregates";
@@ -16,16 +15,30 @@ export const metadata = pageMeta(
   "c3bea817cdcb3351"
 );
 
-export default async function Butik({ searchParams }: { searchParams: Promise<{ kategori?: string }> }) {
-  // Bakåtkompabilitet: gamla länkar ?kategori=X (sökindex, externa länkar)
-  // bör fortsätta fungera → skicka dem vidare till den nya kategorisidan.
-  const { kategori } = await searchParams;
-  if (kategori) {
-    const cols = await getCollections();
-    const match = cols.find((c) => c.slug === kategori);
-    if (match) redirect(`/kategori/${match.slug}`);
-  }
+// ISR, 1 timme — samma takt som /kategori, /produkt och sitemapen.
+//
+// Sidan läste tidigare searchParams (?kategori=X) enbart för att vidarebefordra
+// gamla länkar till /kategori/[slug]. Det gjorde hela routen dynamisk: ingen
+// CDN-cache, ingen ETag, full origin-rendering av 250 kB vid VARJE hämtning —
+// också Googlebots.
+//
+// Parametern hanteras inte längre någonstans, och ska inte göra det. Första
+// försöket lade en query-gatad redirect (?kategori=X → /kategori/X) i
+// next.config.ts. Den byggde en OÄNDLIG LOOP, bevisad på preview-deployen:
+// Next skickar med query-värden till destinationen, och /kategori/ovrigt
+// omdirigerar redan till /alla-produkter (next.config.ts). Alltså
+// /alla-produkter?kategori=ovrigt → /kategori/ovrigt?kategori=ovrigt →
+// /alla-produkter?kategori=ovrigt → … curl gav upp efter 50 hopp.
+//
+// En okänd ?kategori= ignoreras nu i stället, och sidan renderas som vanligt —
+// exakt vad den gamla koden gjorde för varje slug som inte matchade en
+// kategori. Kostnaden är att ett gammalt bokmärke inte längre landar
+// förfiltrerat. Search Console: 0 klick och 0 visningar på parametern över 92
+// dagar, och inget i appen bygger sådana länkar (kategori-dropdownen länkar
+// till /kategori/[slug]).
+export const revalidate = 3600;
 
+export default async function Butik() {
   const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const groups = buildGroupCards(products, collections);
