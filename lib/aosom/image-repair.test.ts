@@ -26,7 +26,7 @@ function rad(sku: string, over: Partial<AosomRow> = {}): AosomRow {
 
 /** Deps med instrumentering: `skrivna` visar exakt vad som PATCHades. */
 function deps(over: Partial<ImageRepairDeps> = {}) {
-  const skrivna: { id: string; urls: string[] }[] = [];
+  const skrivna: { id: string; urls: string[]; ids: string[] }[] = [];
   const uppladdade: string[][] = [];
   // A saknar allt, B har tre, C är hel. Tillståndet är föränderligt eftersom
   // reparationen LÄSER TILLBAKA efter varje skrivning — ett 200-svar räknas inte.
@@ -45,11 +45,16 @@ function deps(over: Partial<ImageRepairDeps> = {}) {
     getMedia: async (id) => (lager[id] ? { ...lager[id] } : null),
     importImages: async (urls) => {
       uppladdade.push(urls);
-      return urls.map((u) => u.replace("img.aosomcdn.com", "static.wixstatic.com"));
+      // Uppladdningen ger både id och adress — id:t är det som måste nå
+      // setProductMedia, annars importerar Wix om bilden till en ny fil.
+      return urls.map((u, i) => ({
+        id: `fil-${i + 1}`,
+        url: u.replace("img.aosomcdn.com", "static.wixstatic.com"),
+      }));
     },
-    setMedia: async (id, _rev, urls) => {
-      skrivna.push({ id, urls });
-      if (lager[id]) lager[id] = { revision: String(Number(lager[id].revision) + 1), antal: urls.length };
+    setMedia: async (id, _rev, bilder) => {
+      skrivna.push({ id, urls: bilder.map((b) => b.url), ids: bilder.map((b) => b.id) });
+      if (lager[id]) lager[id] = { revision: String(Number(lager[id].revision) + 1), antal: bilder.length };
     },
     fx: FX,
     ...over,
@@ -89,7 +94,7 @@ describe("runImageRepair", () => {
     // B har tre bilder; uppladdningen ger bara två. Att skriva vore en försämring.
     const { d, skrivna } = deps({
       listAosom: async () => [{ sku: "B-2", wixProductId: "wix-b" }],
-      importImages: async (urls) => urls.slice(0, 2).map((u) => `https://static.wixstatic.com/${u.slice(-5)}`),
+      importImages: async (urls) => urls.slice(0, 2).map((u, i) => ({ id: `f${i}`, url: `https://static.wixstatic.com/${u.slice(-5)}` })),
     });
     const s = await runImageRepair(d, { dryRun: false });
     expect(skrivna).toHaveLength(0);
@@ -100,7 +105,7 @@ describe("runImageRepair", () => {
   it("räknar kvarstående missar när skrivningen ändå är en förbättring", async () => {
     const { d, skrivna } = deps({
       listAosom: async () => [{ sku: "A-1", wixProductId: "wix-a" }],
-      importImages: async (urls) => urls.slice(0, 4).map((u) => `https://static.wixstatic.com/${u.slice(-5)}`),
+      importImages: async (urls) => urls.slice(0, 4).map((u, i) => ({ id: `f${i}`, url: `https://static.wixstatic.com/${u.slice(-5)}` })),
     });
     const s = await runImageRepair(d, { dryRun: false });
     expect(s.reparerade).toBe(1);

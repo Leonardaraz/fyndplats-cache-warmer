@@ -82,9 +82,20 @@ export interface ImageRepairDeps {
   listAosom: () => Promise<{ sku: string; wixProductId: string }[]>;
   /** Nuvarande bilder på produkten, eller null om den är borta. */
   getMedia: (wixProductId: string) => Promise<{ revision: string; antal: number } | null>;
-  /** Laddar upp och returnerar wixstatic-adresserna. Missar utelämnas. */
-  importImages: (urls: string[], slug: string) => Promise<string[]>;
-  setMedia: (wixProductId: string, revision: string, urls: string[]) => Promise<void>;
+  /**
+   * Laddar upp och returnerar de uppladdade filerna. Missar utelämnas.
+   *
+   * ☠️ ID:T MÅSTE FÖLJA MED. Skickas bara adressen vidare till setProductMedia
+   * tolkar V3 den som extern och importerar om bilden till en NY fil — se
+   * lib/wix/client.ts#WixProductInput.mediaItems. Det var så lagringen tog slut,
+   * och så produkter kunde få fyra av fem bilder trots fem lyckade uppladdningar.
+   */
+  importImages: (urls: string[], slug: string) => Promise<{ id: string; url: string }[]>;
+  setMedia: (
+    wixProductId: string,
+    revision: string,
+    bilder: { id: string; url: string }[],
+  ) => Promise<void>;
   fx: AosomFx;
   now?: () => number;
 }
@@ -236,12 +247,12 @@ export async function liveDeps(): Promise<ImageRepairDeps> {
       return snap ? { revision: snap.revision, antal: snap.media.length } : null;
     },
     importImages: async (urls, slug) =>
-      (await media.importMediaUrls(
+      await media.importMediaUrls(
         urls.map((url, i) => ({ url, displayName: `${slug}-${i + 1}` })),
         { delayMs: 150 },
-      )).map((m) => m.url),
-    setMedia: async (id, revision, urls) => {
-      await wix.setProductMedia(id, revision, urls.map((url) => ({ url })));
+      ),
+    setMedia: async (id, revision, bilder) => {
+      await wix.setProductMedia(id, revision, bilder);
     },
     fx: { eurToSek: eurToSekFromEnv(), usdToSek: rules.usdToSek },
   };

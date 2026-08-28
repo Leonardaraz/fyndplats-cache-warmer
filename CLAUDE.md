@@ -462,7 +462,40 @@ här: recensionsbilderna (2026-08-22), `Promise.allSettled` i `media.ts`
 (2026-08-27), och nu en skrivning som svarar OK utan att göra något. Regeln är
 densamma varje gång — **räkna efter, lita inte på svaret.**
 
-### ☠️ Bildfixen fyllde Wix-lagringen (2026-08-28)
+### ☠️ Wix importerade om VARJE bild — halva lagringen var kopior (2026-08-28)
+
+Det här förklarar två problem som såg orelaterade ut: att lagringen tog slut,
+och att bildfixen kunde rapportera fem lyckade uppladdningar på en produkt som
+sedan hade fyra bilder.
+
+V3:s dokumentation om produktmedia är entydig. Ett media-item tar ANTINGEN
+`id` (en fil som redan ligger i Media Manager) ELLER `url` — och `url` betyder
+ordagrant *"an external media URL"*. Vi skickade wixstatic-adresser, alltså
+bilder som redan låg i Media Manager, och **Wix importerade om varenda en till
+en ny fil**.
+
+Uppmätt på 1 200 filer: **591 av 595 wixstatic-filer var kopior av bilder vi
+själva laddat upp**, spårbara via sin `sourceUrl`. Media Manager hade **58 160
+filer** där hälften räckt.
+
+Omimporten är dessutom ASYNKRON. Det är mekanismen bakom "524 lagade, 214
+saknade ändå bilder": produkten bar aldrig våra filer, den bar Wix kopior — och
+när en kopia inte hunnit bli klar visade produkten fyra av fem. Den var alltså
+aldrig oförklarad, bara felsökt på fel lager.
+
+`importMediaByUrl` returnerade `id` hela tiden. Ingen använde det.
+
+Lagat i `lib/wix/client.ts` (`createProduct` + `setProductMedia`), `pipeline.ts`
+och `image-repair.ts`: id:t följer med hela vägen, och `url` skickas bara när
+adressen faktiskt är extern. `media.main` skickas inte längre alls — den är
+read-only i V3 och gav en extra omimport av huvudbilden. Tre tester i
+`client-media.test.ts` låser det.
+
+☠️ Regeln: **skicka aldrig en wixstatic-adress till Wix som om den vore extern.**
+
+### Städningen av det som blev kvar
+
+#### Bildfixen lämnade dessutom sina egna kopior
 
 Fjärde bildfix-körningen dog mitt i: **Wix-lagringen tog slut.**
 
@@ -480,9 +513,15 @@ inte ska tas bort:
 1. ☠️ **Massfel-spärren kastar.** Är referenslistan mindre än en halv bild per
    läst produkt är det ett LÄSFEL, inte en tom katalog — och en körning hade
    raderat hela butikens bildbank permanent. Samma tanke som `MIN_FEED_RADER`.
-2. **Bara filer som heter `aosom-*`.** AliExpress-bilderna heter efter sin slug,
-   recensionsbilderna efter sin recension, sajtens logotyp heter vad den heter.
-   Referenslistan byggs ändå ur HELA katalogen, inte bara Aosom-delen.
+2. **Bara filer VÅR kod skapat**, avgjort på `sourceUrl` — inte på namnet.
+   `addedBy` duger inte: vår API-nyckel agerar som sajtägaren, så en bild Leonard
+   dragit in i editorn ser identisk ut. Men en importerad fil bär adressen den
+   hämtades från (leverantörernas CDN), och Wix egna kopior bär en
+   wixstatic-adress som pekar tillbaka på en av våra. **En handuppladdad bild har
+   ingen `sourceUrl` alls** och kan därför aldrig komma i fråga — det är skyddet
+   för logotyper, banners och kategoribilder, som inte syns i något API vi kan
+   lista och därför måste undantas på egenskap i stället för på uppräkning.
+   Referenslistan byggs ur HELA katalogen, inte bara Aosom-delen.
 3. **`permanent: true`.** Papperskorgen räknas fortfarande mot lagringen, så en
    vanlig radering frigör ingenting alls.
 

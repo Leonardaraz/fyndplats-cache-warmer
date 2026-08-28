@@ -12,16 +12,36 @@
 // Varje lagad produkt lämnade fem filer à drygt en megabyte efter sig, och
 // lagringen tog slut mitt under den fjärde körningen.
 //
+// ☠️ OCH VARFÖR DET ÄR DUBBELT SÅ MYCKET SOM DET BORDE
+//
+// Uppmätt 2026-08-28: **591 av 595 granskade wixstatic-filer var KOPIOR av
+// bilder vi själva laddat upp.** V3:s dokumentation säger att `url` i ett
+// media-item betyder "an external media URL" — och vi skickade wixstatic-
+// adresser, alltså bilder som redan låg i Media Manager. Wix importerade om
+// varenda en till en ny fil. Varje produktbild fanns därför i två exemplar.
+//
+// Det är lagat i lib/wix/client.ts (skicka `id`, inte `url`), men de befintliga
+// kopiorna ligger kvar och måste städas bort här.
+//
 // VAD "FÖRÄLDRALÖS" BETYDER HÄR
 //
-// En fil vars namn börjar med `aosom-` och vars URL INTE sitter på någon produkt
-// i katalogen. Definitionen är avsiktligt smal:
+// En fil som (a) VÅR kod skapat och (b) inte sitter på någon produkt.
 //
-//   • Bara `aosom-`-prefixet. AliExpress-produkternas bilder heter efter sin
-//     slug, recensionsbilderna efter sin recension, och sajtens egna resurser
-//     (logotyper, banners) heter vad de heter. Ingen av dem kan matcha.
-//   • Referenslistan byggs ur ALLA produkter, inte bara Aosom-produkterna. En
-//     fil som mot förmodan återanvänds någon annanstans räknas som använd.
+// Punkt (a) är den svåra, för `addedBy` är identiskt för allt: vår API-nyckel
+// agerar som sajtägaren, så en bild Leonard dragit in i editorn ser likadan ut
+// som en vi importerat. Det som SKILJER dem är `sourceUrl`:
+//
+//   • En importerad fil bär adressen den hämtades från. Våra kommer från
+//     leverantörernas CDN — `img.aosomcdn.com`, `alicdn.com`,
+//     `aliexpress-media.com`.
+//   • Wix egna kopior bär en `static.wixstatic.com`-adress som pekar tillbaka på
+//     en av VÅRA filer. Två hopp, men entydigt.
+//   • En bild som laddats upp för hand i editorn har INGEN sourceUrl alls, och
+//     kan därför aldrig komma i fråga. Det är skyddet för logotyper, banners och
+//     allt annat som hör till sajtens design — sådant syns inte i något API vi
+//     kan lista, så det måste undantas på egenskap, inte på uppräkning.
+//
+// Referenslistan byggs ur ALLA produkter, inte bara Aosom-produkterna.
 //
 // ☠️ SPÄRREN SOM INTE FÅR TAS BORT
 //
@@ -38,12 +58,38 @@ export interface MediaFil {
   displayName: string;
   url: string;
   sizeInBytes: number;
+  /** Adressen filen importerades från. Saknas = uppladdad för hand. */
+  sourceUrl?: string;
+}
+
+/** Leverantörernas CDN. En fil därifrån är alltid vår import. */
+const VARA_KALLHOSTAR = ["img.aosomcdn.com", "alicdn.com", "aliexpress-media.com"];
+
+function host(url: string): string {
+  try { return new URL(url).hostname; } catch { return ""; }
+}
+
+/**
+ * Är filen skapad av VÅR kod?
+ *
+ * @param franOss Nycklarna för filer vi redan vet är våra — används för att
+ *                känna igen Wix egna kopior, som pekar tillbaka på dem.
+ */
+export function arVarFil(f: MediaFil, franOss: ReadonlySet<string>): boolean {
+  const src = f.sourceUrl ?? "";
+  // Ingen källadress = handuppladdad. Rör aldrig.
+  if (!src) return false;
+  const h = host(src);
+  if (VARA_KALLHOSTAR.some((k) => h === k || h.endsWith(`.${k}`))) return true;
+  // Wix omimport: en wixstatic-adress som pekar på en fil vi äger.
+  if (h === "static.wixstatic.com") return franOss.has(mediaNyckel(src));
+  return false;
 }
 
 export interface StadningsPlan {
   /** Filer som är trygga att radera. */
   attRadera: MediaFil[];
-  /** Aosom-filer som sitter på en produkt. */
+  /** Våra filer som sitter på en produkt. */
   anvanda: number;
   /** Byte som frigörs. */
   bytes: number;
@@ -80,12 +126,23 @@ export function planeraStadning(
   }
 
   const anvandaNycklar = new Set(ianvandning.map(mediaNyckel));
+
+  // Första passet: filer som kommer direkt från en leverantörs CDN. Andra passet
+  // känner igen Wix kopior på att de pekar tillbaka på dem.
+  const varaNycklar = new Set<string>();
+  for (const f of filer) {
+    if (arVarFil(f, varaNycklar)) varaNycklar.add(mediaNyckel(f.url));
+  }
+  for (const f of filer) {
+    if (arVarFil(f, varaNycklar)) varaNycklar.add(mediaNyckel(f.url));
+  }
+
   const attRadera: MediaFil[] = [];
   let anvanda = 0;
 
   for (const f of filer) {
-    // Bara våra egna Aosom-uppladdningar. Allt annat rörs aldrig.
-    if (!(f.displayName || "").startsWith("aosom-")) continue;
+    // Bara filer vår kod skapat. En handuppladdad bild rörs aldrig.
+    if (!varaNycklar.has(mediaNyckel(f.url))) continue;
     if (anvandaNycklar.has(mediaNyckel(f.url))) {
       anvanda++;
       continue;
@@ -113,7 +170,7 @@ export interface MediaCleanupDeps {
 export interface MediaCleanupSummary {
   dryRun: boolean;
   filerTotalt: number;
-  anvandaAosomFiler: number;
+  anvandaEgnaFiler: number;
   foraldralosa: number;
   raderade: number;
   frigjordMb: number;
@@ -141,7 +198,7 @@ export async function runMediaCleanup(
   const summary: MediaCleanupSummary = {
     dryRun,
     filerTotalt: plan.filerTotalt,
-    anvandaAosomFiler: plan.anvanda,
+    anvandaEgnaFiler: plan.anvanda,
     foraldralosa: plan.attRadera.length,
     raderade: 0,
     frigjordMb: 0,
@@ -213,6 +270,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
             displayName: String(f.displayName ?? ""),
             url: String(f.url ?? ""),
             sizeInBytes: Number(f.sizeInBytes ?? 0),
+            sourceUrl: f.sourceUrl ? String(f.sourceUrl) : undefined,
           });
         }
         cursor = data.nextCursor?.hasNext ? (data.nextCursor.cursors?.next ?? null) : null;

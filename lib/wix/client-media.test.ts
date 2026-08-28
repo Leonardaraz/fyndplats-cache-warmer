@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getProductMedia } from "./client";
+import { getProductMedia, setProductMedia } from "./client";
 
 const FORRA = { token: process.env.WIX_API_TOKEN, site: process.env.WIX_SITE_ID };
 
@@ -62,5 +62,49 @@ describe("getProductMedia", () => {
   it("kastar vid riktigt fel", async () => {
     stubba(new Response("nej", { status: 500 }));
     await expect(getProductMedia("p1")).rejects.toThrow(/500/);
+  });
+});
+
+function fangaPatch(svar: Record<string, unknown>) {
+  const kroppar: Record<string, unknown>[] = [];
+  vi.stubGlobal("fetch", (async (_u: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === "PATCH") kroppar.push(JSON.parse(String(init.body)));
+    return new Response(JSON.stringify(svar), { status: 200 });
+  }) as unknown as typeof fetch);
+  return kroppar;
+}
+
+describe("setProductMedia", () => {
+  it("☠️ skickar `id`, ALDRIG `url`, för en bild som redan ligger i Media Manager", async () => {
+    // V3: `url` i ett media-item betyder "an external media URL", och Wix
+    // IMPORTERAR OM adressen till en ny fil. Uppmätt 2026-08-28 var 591 av 595
+    // granskade wixstatic-filer sådana kopior — Media Manager hade 58 160 filer
+    // där hälften räckt, och lagringen tog slut mitt under en bildfix-körning.
+    // Omimporten är dessutom asynkron, vilket är varför produkter kunde få fyra
+    // av fem bilder trots fem lyckade uppladdningar.
+    const kroppar = fangaPatch({ product: { revision: "2" } });
+    await setProductMedia("p1", "1", [
+      { id: "fil-1", url: "https://static.wixstatic.com/media/a~mv2.jpg" },
+      { id: "fil-2", url: "https://static.wixstatic.com/media/b~mv2.jpg" },
+    ]);
+    const items = (kroppar[0] as { product: { media: { itemsInfo: { items: Record<string, unknown>[] } } } })
+      .product.media.itemsInfo.items;
+    expect(items).toEqual([{ id: "fil-1" }, { id: "fil-2" }]);
+    expect(JSON.stringify(kroppar[0])).not.toContain("wixstatic");
+  });
+
+  it("faller tillbaka på `url` bara när id saknas — då ÄR adressen extern", async () => {
+    const kroppar = fangaPatch({ product: { revision: "2" } });
+    await setProductMedia("p1", "1", [{ url: "https://img.aosomcdn.com/x.jpg" }]);
+    const items = (kroppar[0] as { product: { media: { itemsInfo: { items: Record<string, unknown>[] } } } })
+      .product.media.itemsInfo.items;
+    expect(items).toEqual([{ url: "https://img.aosomcdn.com/x.jpg" }]);
+  });
+
+  it("skickar INTE media.main — den är read-only i V3 och gav en extra omimport", async () => {
+    const kroppar = fangaPatch({ product: { revision: "2" } });
+    await setProductMedia("p1", "1", [{ id: "fil-1", url: "u" }]);
+    const media = (kroppar[0] as { product: { media: Record<string, unknown> } }).product.media;
+    expect("main" in media).toBe(false);
   });
 });

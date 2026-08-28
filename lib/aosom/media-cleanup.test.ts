@@ -9,8 +9,29 @@ import {
 
 const MB = 1_000_000;
 
+/** Vår import: kommer från en leverantörs CDN. */
 function fil(namn: string, id = namn, storlek = MB): MediaFil {
+  return {
+    id, displayName: namn,
+    url: `https://static.wixstatic.com/media/${id}~mv2.jpg`,
+    sizeInBytes: storlek,
+    sourceUrl: `https://img.aosomcdn.com/100/product/${id}.jpg`,
+  };
+}
+
+/** Handuppladdad i Wix-editorn: ingen sourceUrl. */
+function handfil(namn: string, id = namn, storlek = MB): MediaFil {
   return { id, displayName: namn, url: `https://static.wixstatic.com/media/${id}~mv2.jpg`, sizeInBytes: storlek };
+}
+
+/** Wix egen omimport: pekar tillbaka på en av våra filer. */
+function kopia(av: MediaFil, id: string, storlek = MB): MediaFil {
+  return {
+    id, displayName: `b379ce_${id}~mv2.jpg`,
+    url: `https://static.wixstatic.com/media/${id}~mv2.jpg`,
+    sizeInBytes: storlek,
+    sourceUrl: av.url,
+  };
 }
 
 const url = (id: string) => `https://static.wixstatic.com/media/${id}~mv2.jpg`;
@@ -34,18 +55,46 @@ describe("planeraStadning", () => {
     expect(plan.anvanda).toBe(1);
   });
 
-  it("☠️ rör ALDRIG filer som inte är våra Aosom-uppladdningar", () => {
-    // AliExpress-bilder heter efter sin slug, recensionsbilder efter sin
-    // recension, sajtens logotyp heter vad den heter. En bred städning hade
-    // tömt hela bildbanken.
+  it("☠️ rör ALDRIG en handuppladdad bild — den saknar sourceUrl", () => {
+    // Sajtens logotyp, banners och kategoribilder syns inte i något API vi kan
+    // lista. De måste undantas på EGENSKAP, inte på uppräkning: en bild någon
+    // dragit in i editorn bär ingen källadress.
     const filer = [
-      fil("gardintyg-blatt-1.jpg", "ae1"),
-      fil("recension-9f2.jpg", "rev1"),
-      fil("logotyp.png", "logo"),
+      handfil("logotyp.png", "logo"),
+      handfil("hero-banner.jpg", "hero"),
       fil("aosom-A-1.jpg", "a1"),
     ];
     const plan = planeraStadning(filer, [], 0);
     expect(plan.attRadera.map((f) => f.id)).toEqual(["a1"]);
+  });
+
+  it("☠️ fångar Wix EGNA kopior — de är hälften av beståndet", () => {
+    // 591 av 595 granskade wixstatic-filer var kopior av våra egna bilder,
+    // skapade av att vi skickade `url` i stället för `id` till V3.
+    const var1 = fil("aosom-A-1.jpg", "a1");
+    const wixKopia = kopia(var1, "kopia1");
+    const plan = planeraStadning([var1, wixKopia], [], 0);
+    expect(plan.attRadera.map((f) => f.id).sort()).toEqual(["a1", "kopia1"]);
+  });
+
+  it("en kopia av en HANDUPPLADDAD bild rörs inte heller", () => {
+    // Kedjan måste sluta i en fil vi äger. Gör den inte det är hela kedjan inte
+    // vår att radera.
+    const hand = handfil("logotyp.png", "logo");
+    const kopiaAvHand = kopia(hand, "logokopia");
+    const plan = planeraStadning([hand, kopiaAvHand], [], 0);
+    expect(plan.attRadera).toHaveLength(0);
+  });
+
+  it("AliExpress-bilder räknas också som våra", () => {
+    const ae: MediaFil = {
+      id: "ae1", displayName: "gardintyg-blatt-1.jpg",
+      url: "https://static.wixstatic.com/media/ae1~mv2.jpg",
+      sizeInBytes: MB,
+      sourceUrl: "https://ae01.alicdn.com/kf/S123.jpg",
+    };
+    const plan = planeraStadning([ae], [], 0);
+    expect(plan.attRadera.map((f) => f.id)).toEqual(["ae1"]);
   });
 
   it("☠️ KASTAR när referenslistan är misstänkt liten", () => {
