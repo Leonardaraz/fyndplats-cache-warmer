@@ -534,9 +534,51 @@ en wixstatic-adress inte avslöjar vilken källbild den kom från. Sparas den
 kopplingen på mappningen kan bara det som saknas laddas om, och då uppstår inga
 föräldralösa filer alls.
 
-⚠️ Media-API:t svarar **429 vid ~40–50 sidor i rad**. Både listningarna i
-`liveDeps` pausar 120 ms mellan sidorna. Mät inte beståndet genom en MCP-loop —
-den slår i taket långt innan den är klar.
+#### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
+
+Städningen föll två gånger på rad innan den fungerade, på två olika strypningar
+som ser likadana ut i ett felmeddelande men inte är samma sak:
+
+| | svarar | vad som hjälper |
+|---|---|---|
+| **API-strypningen** | JSON-fel efter ~40–50 sidor i rad | backoff (2 s, 10 s, 30 s), `Retry-After` |
+| **Edge-strypningen** | en **HTML-sida** efter ~150 sidor | ingenting inom ruttens 300 s |
+
+Den andra är strukturell: **58 160 filer går inte att lista i ETT anrop**, hur
+tålmodigt det än görs. Listningen är därför FÖNSTRAD — 200 filer per sida
+(API:ts tak), 100 sidor per körning, markör i svaret (`cursor` → `?after=`).
+Samma mönster som svepet och bildfixen, och av samma skäl.
+
+Två designval bakom det som inte ska tas bort:
+
+1. **Referenslistan läses om för VARJE fönster.** Den är ~37 sidor mot en annan
+   API-familj och alltså billig. Att bära den mellan körningar hade betytt att
+   en produkt som fått nya bilder sedan förra varvet såg ut att sakna dem — och
+   fel åt det hållet raderar bilder som ANVÄNDS.
+2. **Nattcronen kör medvetet utan markör.** Listningen sorteras nyast först, så
+   ett fönster från början är exakt det som hunnit bli föräldralöst sedan i går.
+   Den historiska ryggsäcken tas med workflow-läget `bildstadning`, som loopar
+   markören genom hela beståndet.
+
+Raderingen är också tidsbudgeterad (listningen får 70 %, raderingen resten).
+Utan det kunde en stor `limit` dra förbi `maxDuration` och dödas mitt i skopan:
+filerna ÄR raderade men inget svar kommer tillbaka, och nästa körning vet inte
+vad som hände.
+
+⚠️ Mät inte beståndet genom en MCP-loop — den slår i taket långt innan den är
+klar. Det var så de första 429:orna upptäcktes.
+
+#### ☠️ Ett fel som slukas av en kommandosubstitution finns inte
+
+Den första torrkörningen föll med `exit 1` och **noll rader om varför**, medan
+rutten hela tiden svarade 500 med ett tydligt meddelande. `anropa` i workflowen
+skrev sina `::error::`-rader till **stdout**, och anroparen gör
+`svar=$(anropa ...)` — kommandosubstitutionen slukade dem.
+
+Felen går till stderr nu. Fjärde gången huset lär sig samma sak: recensions-
+bilderna (2026-08-22), `Promise.allSettled` i `media.ts` (2026-08-27), en
+skrivning som svarade OK utan att göra något (2026-08-27), och nu det här.
+**Ett misslyckande som ingen kan se är värre än ett som skriker.**
 
 ### Att polera en Aosom-produkt
 
