@@ -351,6 +351,18 @@ export function borAterforsoka(status: number, kropp: string): boolean {
 }
 
 /**
+ * Edge-lagrets felsida är 200 tecken HTML-boilerplate utan ett ord om vad som
+ * gick fel. Loggas den rakt av per misslyckad skopa dränks per-fönster-raderna
+ * fullständigt — första skarpa körningen gick inte att läsa av den anledningen.
+ * Ett API-fel bär däremot verklig information och behålls ordagrant.
+ */
+export function sammanfattaFelkropp(kropp: string): string {
+  const t = kropp.trim();
+  if (t.startsWith("<")) return "(HTML-felsida från Wix edge-lager)";
+  return t.slice(0, 200);
+}
+
+/**
  * Sidor per körning. 60 × 100 = 6 000 filer.
  *
  * Taket är satt av edge-spärren, inte av tiden: en körning dog efter ~150 sidor
@@ -399,7 +411,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
       if (res.ok) return (await res.json()) as Record<string, unknown>;
 
       const kropp = await res.text();
-      sist = `${res.status}: ${kropp.slice(0, 200)}`;
+      sist = `${res.status}: ${sammanfattaFelkropp(kropp)}`;
       if (!borAterforsoka(res.status, kropp)) break;
       if (forsok === paus_ms.length) break;
       const retryAfter = Number(res.headers.get("retry-after"));
