@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   borAterforsoka,
+  sammanfattaFelkropp,
   planeraStadning,
   runMediaCleanup,
   mediaNyckel,
@@ -70,6 +71,20 @@ describe("borAterforsoka", () => {
 
   it("404 med JSON rörs inte", () => {
     expect(borAterforsoka(404, '{"message":"not found"}')).toBe(false);
+  });
+});
+
+describe("sammanfattaFelkropp", () => {
+  it("kokar ned edge-lagrets HTML-sida till en rad", () => {
+    // 200 tecken boilerplate per misslyckad skopa gjorde första skarpa
+    // körningens logg oläsbar — per-fönster-raderna drunknade.
+    const html = '  <!DOCTYPE html>\n<html><head><meta charset="utf-8">\n'.repeat(20);
+    expect(sammanfattaFelkropp(html)).toBe("(HTML-felsida från Wix edge-lager)");
+  });
+
+  it("behåller ett API-fel ordagrant — där står vad som är fel", () => {
+    const json = '{"message":"INVALID_ARGUMENT: paging.limit"}';
+    expect(sammanfattaFelkropp(json)).toBe(json);
   });
 });
 
