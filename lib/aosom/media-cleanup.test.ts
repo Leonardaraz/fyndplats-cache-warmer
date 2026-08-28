@@ -77,9 +77,43 @@ describe("planeraStadning", () => {
     expect(plan.attRadera.map((f) => f.id).sort()).toEqual(["a1", "kopia1"]);
   });
 
-  it("en kopia av en HANDUPPLADDAD bild rörs inte heller", () => {
-    // Kedjan måste sluta i en fil vi äger. Gör den inte det är hela kedjan inte
-    // vår att radera.
+  it("☠️ känner igen en kopia även när originalet redan är raderat", () => {
+    // Kedjan "pekar på en fil vi äger" kräver att originalet finns i fönstret.
+    // Efter ett skarpt varv är originalet ofta borta — och då hade kopian
+    // blivit oigenkännlig för alltid. Signaturen finns i filen själv: en
+    // omimport döps efter adressen den hämtades från.
+    const foraldralosKopia: MediaFil = {
+      id: "kopia",
+      displayName: "b379ce_ee39b9fc40b346f284d8d7178949f8a1~mv2.jpg",
+      url: "https://static.wixstatic.com/media/b379ce_213df005~mv2.jpg",
+      sizeInBytes: MB,
+      // Originalet är raderat och finns inte i listan.
+      sourceUrl: "https://static.wixstatic.com/media/b379ce_ee39b9fc40b346f284d8d7178949f8a1~mv2.jpg",
+    };
+    const plan = planeraStadning([foraldralosKopia], [], 0);
+    expect(plan.attRadera.map((f) => f.id)).toEqual(["kopia"]);
+  });
+
+  it("en wixstatic-fil med ett EGET namn rörs inte — den är inte en omimport", () => {
+    // Skyddet mot att regeln ovan blir för bred: bara filer som bär exakt
+    // källadressens filnamn är Wix egna kopior.
+    const egetNamn: MediaFil = {
+      id: "nagot",
+      displayName: "kategoribild-tradgard.jpg",
+      url: "https://static.wixstatic.com/media/nagot~mv2.jpg",
+      sizeInBytes: MB,
+      sourceUrl: "https://static.wixstatic.com/media/b379ce_okant~mv2.jpg",
+    };
+    expect(planeraStadning([egetNamn], [], 0).attRadera).toHaveLength(0);
+  });
+
+  it("en wixstatic-fil som varken pekar på oss eller bär omimport-namnet rörs inte", () => {
+    // Gränsen för de två reglerna ovan. Att en fil har en wixstatic-sourceUrl
+    // räcker INTE i sig — den måste antingen peka på en fil vi äger eller bära
+    // omimportens namnsignatur.
+    //
+    // Skyddet som alltid gäller är det andra: ORIGINALET, den handuppladdade
+    // filen utan sourceUrl, rörs aldrig oavsett vad som pekar på den.
     const hand = handfil("logotyp.png", "logo");
     const kopiaAvHand = kopia(hand, "logokopia");
     const plan = planeraStadning([hand, kopiaAvHand], [], 0);
