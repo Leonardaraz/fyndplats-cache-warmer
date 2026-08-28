@@ -299,11 +299,14 @@ export async function runMediaCleanup(
  * onödig.
  */
 /**
- * Sidor per körning. 100 × 200 = 20 000 filer, ~50 sekunder med pauserna —
- * väl under den gräns där edge-spärren slår till, och tre varv räcker till
- * hela beståndet.
+ * Sidor per körning. 60 × 100 = 6 000 filer.
+ *
+ * Taket är satt av edge-spärren, inte av tiden: en körning dog efter ~150 sidor
+ * i rad. Referenslistan kostar ~37 sidor mot samma värd innan fillistningen ens
+ * börjar, så 60 håller hela körningen kring 97 anrop — med marginal under den
+ * gräns där spärren slog till, och långt under ruttens 300 sekunder.
  */
-const SIDOR_PER_FONSTER = 100;
+const SIDOR_PER_FONSTER = 60;
 
 export async function liveDeps(): Promise<MediaCleanupDeps> {
   const WIX_BASE = "https://www.wixapis.com";
@@ -361,9 +364,17 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     // för många sidor i rad, och den spärren går inte att vänta ut inom ruttens
     // 300 sekunder.
     //
-    // 200 per sida är API:ts tak (dubbelt mot de 100 som användes först) och
-    // halverar därmed antalet anrop. Pausen är 250 ms — mätt föll en körning
-    // efter ~150 sidor på 120 ms.
+    // ☠️ `paging.limit` TAKAS PÅ 100, vad än dokumentationen påstår.
+    //
+    // Både Search Files och Query File Descriptors står som "up to 200 files"
+    // i dev.wix.com. Uppmätt mot skarpa API:t 2026-08-28 svarar BÅDA 400:
+    //
+    //   INVALID_ARGUMENT: 'paging.limit' must be less than or equal to 100
+    //
+    // En körning med 200 föll direkt på första sidan. Talet är alltså inte
+    // förhandlingsbart, och 58 160 filer är 582 sidor oavsett.
+    //
+    // Pausen är 250 ms — mätt föll en körning efter ~150 sidor på 120 ms.
     listaFiler: async ({ efter, stoppaVid } = {}) => {
       const ut: MediaFil[] = [];
       let cursor: string | null = efter ?? null;
@@ -371,7 +382,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
       for (let i = 0; i < SIDOR_PER_FONSTER; i++) {
         if (stoppaVid !== undefined && Date.now() >= stoppaVid) break;
         const data = (await post(`${WIX_BASE}/site-media/v1/files/search`, {
-          paging: { limit: 200, ...(cursor ? { cursor } : {}) },
+          paging: { limit: 100, ...(cursor ? { cursor } : {}) },
         })) as { files?: Record<string, string>[]; nextCursor?: { hasNext?: boolean; cursors?: { next?: string } } };
         for (const f of data.files ?? []) {
           ut.push({
