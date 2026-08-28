@@ -199,6 +199,8 @@ export async function importMediaUrls(
 export async function getMediaSourceUrls(
   fileIds: string[],
   fetchImpl: typeof fetch = fetch,
+  /** Hur många kopie-hopp som återstår. Se hoppet längre ned. */
+  hoppKvar = 1,
 ): Promise<Map<string, string>> {
   const ut = new Map<string, string>();
   const ids = fileIds.filter(Boolean);
@@ -229,22 +231,40 @@ export async function getMediaSourceUrls(
   // just kopior — och utan hoppet vore de omöjliga att härleda, vilket hade
   // tvingat fram en full omladdning per produkt.
   //
-  // Djupare än ett steg går vi inte. En kopia av en kopia är inget vi sett, och
-  // originalet kan dessutom vara bortstädat — då lämnas filen ohärledd, vilket
+  // ⚠️ DJUPET ÄR BEGRÄNSAT, OCH DET ÄR INTE EN FÖRSIKTIGHETSÅTGÄRD.
+  //
+  // En kopia av en kopia är inget vi sett, men kedjan är data från Wix och inte
+  // något vi kontrollerar: två filer som pekar på varandra hade snurrat tills
+  // rutten dog på sin maxDuration. Ett steg räcker för det verkliga fallet och
+  // kan inte loopa.
+  //
+  // Originalet kan dessutom vara bortstädat — då lämnas filen ohärledd, vilket
   // anroparen ska tåla.
+  if (hoppKvar <= 0) return ut;
+
   const viaKopia = new Map<string, string>();
   for (const [id, src] of ut) {
-    if (nyckelIWixstatic(src)) viaKopia.set(id, nyckelIWixstatic(src)!);
+    const nyckel = nyckelIWixstatic(src);
+    // En fil vars källa är den själv är en cykel av längd ett. Följ den inte.
+    if (nyckel && nyckel !== id) viaKopia.set(id, nyckel);
   }
   if (viaKopia.size === 0) return ut;
 
-  const original = await getMediaSourceUrls([...new Set(viaKopia.values())], fetchImpl);
+  const original = await getMediaSourceUrls(
+    [...new Set(viaKopia.values())],
+    fetchImpl,
+    hoppKvar - 1,
+  );
   for (const [id, originalId] of viaKopia) {
     const akta = original.get(originalId);
-    if (akta) ut.set(id, akta);
-    // Hittas originalet inte är kopian ohärledd. Att lämna kvar wixstatic-
-    // adressen vore värre än att stryka den: den matchar aldrig en källbild och
-    // skulle bara se ut som en källa som inte längre önskas.
+    // Kedjan måste sluta i en RIKTIG källadress. Slutar den i ännu en
+    // wixstatic-adress — för att originalet självt var en kopia och djupet tog
+    // slut — är kopian lika ohärledd som om originalet saknats.
+    //
+    // Att lämna kvar wixstatic-adressen vore värre än att stryka den: den
+    // matchar aldrig en källbild, och reparationen hade läst den som "en källa
+    // vi inte längre vill ha" i stället för "vet inte" — alltså gissat.
+    if (akta && !nyckelIWixstatic(akta)) ut.set(id, akta);
     else ut.delete(id);
   }
   return ut;

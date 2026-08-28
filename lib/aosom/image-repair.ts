@@ -50,6 +50,7 @@
 // förbli det — reparationen får aldrig bli en publicering.
 
 import type { AosomRow } from "./feed";
+import type { ProductMappingRecord } from "../store";
 import { fetchAosomFeed, isShippableToSe } from "./feed";
 import { toImportProduct, aosomSupplierProductId, RENA_BILDPOSITIONER, type AosomFx } from "./to-product";
 
@@ -63,8 +64,15 @@ export interface ProduktBild {
 }
 
 export interface BildPlan {
-  /** Filer som ska sitta kvar, i önskad ordning. Behålls vid sitt ID. */
-  behall: { kalla: string; bild: ProduktBild }[];
+  /**
+   * Filer som ska sitta kvar, i önskad ordning. Behålls VID SITT ID.
+   *
+   * `fileId` är avsiktligt inte valfritt: skickas en tom sträng vidare faller
+   * `setProductMedia` tillbaka på adressen, och då importerar Wix om bilden
+   * till en ny fil — precis den bugg som fyllde lagringen. En bild utan id
+   * hamnar därför i `oidentifierade`, aldrig här.
+   */
+  behall: { kalla: string; fileId: string; url: string }[];
   /** Källbilder som måste laddas upp — och bara de. */
   saknas: string[];
   /**
@@ -116,11 +124,12 @@ export function planeraBilder(
     if (!perKalla.has(k)) perKalla.set(k, bild);
   }
 
-  const behall: { kalla: string; bild: ProduktBild }[] = [];
+  const behall: { kalla: string; fileId: string; url: string }[] = [];
   const saknas: string[] = [];
   for (const k of onskade) {
     const bild = perKalla.get(k);
-    if (bild) behall.push({ kalla: k, bild });
+    // `bild.id` är satt: utan id kom bilden aldrig in i perKalla ovan.
+    if (bild?.id) behall.push({ kalla: k, fileId: bild.id, url: bild.url });
     else saknas.push(k);
   }
 
@@ -308,13 +317,23 @@ export async function runImageRepair(
 
       const uppladdade = await deps.importImages(attLadda, `aosom-${m.sku}`);
 
+      // ☠️ LISTAN BYGGS I ÖNSKAD ORDNING, INTE "BEHÅLLNA FÖRST".
+      //
+      // Wix visar FÖRSTA objektet som huvudbild, och position 1 är den vita
+      // produktbilden medan 2 är livsstilsbilden. En produkt som har 2 och 3
+      // men saknar 1 hade med en enkel hopslagning fått livsstilsbilden som
+      // huvudbild — i butiken, i sitemapen och i varje delning.
+      const perKalla = new Map<string, { id: string; url: string; kalla: string }>();
+      for (const b of behall) perKalla.set(b.kalla, { id: b.fileId, url: b.url, kalla: b.kalla });
+      for (const u of uppladdade) if (!perKalla.has(u.kalla)) perKalla.set(u.kalla, u);
+      const nyLista = onskade.flatMap((k) => {
+        const b = perKalla.get(k);
+        return b ? [b] : [];
+      });
+
       // Skriv ALDRIG en tommare lista än den som redan ligger där. Går
       // uppladdningen dåligt igen är det bättre att lämna produkten orörd och
       // ta den i nästa runda än att göra den sämre.
-      const nyLista = [
-        ...behall.map((b) => ({ id: b.bild.id ?? "", url: b.bild.url, kalla: b.kalla })),
-        ...uppladdade,
-      ];
       if (nyLista.length <= nu.media.length) {
         summary.kvarstaendeMissar += onskade.length - nyLista.length;
         continue;
@@ -388,10 +407,20 @@ export async function liveDeps(): Promise<ImageRepairDeps> {
   const rules = await getPricingRules();
   const store = getStore();
 
+  let cache: Promise<Map<string, ProductMappingRecord>> | null = null;
+  const mappningar = () => {
+    cache ??= store.listMappings().then((rader) =>
+      new Map(rader.map((r) => [r.supplierProductId, r])),
+    );
+    return cache;
+  };
+  const mappningFor = async (sku: string) =>
+    (await mappningar()).get(aosomSupplierProductId(sku));
+
   return {
     fetchFeed: () => fetchAosomFeed(),
     listAosom: async () =>
-      (await store.listMappings())
+      [...(await mappningar()).values()]
         .filter((m) => (m.supplierProductId ?? "").startsWith("aosom:") && m.wixProductId)
         .map((m) => ({
           sku: (m.supplierProductId ?? "").slice(aosomSupplierProductId("").length),
@@ -401,19 +430,25 @@ export async function liveDeps(): Promise<ImageRepairDeps> {
       const snap = await wix.getProductMedia(id);
       return snap ? { revision: snap.revision, media: snap.media } : null;
     },
-    kandaBildFiler: async (sku) => {
-      const rad = (await store.listMappings()).find(
-        (m) => m.supplierProductId === aosomSupplierProductId(sku),
-      );
-      return rad?.aosomBildFiler ?? [];
-    },
+    // ⚠️ MAPPNINGARNA LÄSES EN GÅNG, INTE EN GÅNG PER PRODUKT.
+    //
+    // `listMappings()` hämtar HELA katalogen ur Wix. Anropad per produkt — och
+    // två gånger till, en för läsningen och en för skrivningen — hade en
+    // körning på 400 produkter blivit 800 fulla katalogläsningar och ätit
+    // tidsbudgeten långt innan den hann laga något.
+    //
+    // Cachen är medvetet bara en körning lång. Reparationen är den enda som
+    // rör `aosomBildFiler`, så inom en körning kan ingen annan ha ändrat den,
+    // och nästa körning läser om.
+    kandaBildFiler: async (sku) => (await mappningFor(sku))?.aosomBildFiler ?? [],
     hamtaKallor: (fileIds) => media.getMediaSourceUrls(fileIds),
     sparaBildFiler: async (sku, filer) => {
-      const rad = (await store.listMappings()).find(
-        (m) => m.supplierProductId === aosomSupplierProductId(sku),
-      );
+      const rad = await mappningFor(sku);
       if (!rad) return;
-      await store.saveMapping({ ...rad, aosomBildFiler: filer });
+      const uppdaterad = { ...rad, aosomBildFiler: filer };
+      await store.saveMapping(uppdaterad);
+      // Håll cachen i takt så en senare läsning i samma körning inte ser gammalt.
+      (await mappningar()).set(rad.supplierProductId, uppdaterad);
     },
     importImages: async (urls, slug) =>
       await media.importMediaUrls(
