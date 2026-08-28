@@ -205,33 +205,77 @@ jobs:
             stad="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-media-cleanup"
             torr="false"; [ "$MODE" = "bildstadning-torr" ] && torr="true"
 
-            svar=$(anropa "${stad}?dryRun=${torr}&limit=${LIMIT}") || exit 1
-            filer=$(printf '%s' "$svar" | jq -r '.filerTotalt // 0')
-            anvanda=$(printf '%s' "$svar" | jq -r '.anvandaEgnaFiler // 0')
-            forald=$(printf '%s' "$svar" | jq -r '.foraldralosa // 0')
-            rad=$(printf '%s' "$svar" | jq -r '.raderade // 0')
-            mb=$(printf '%s' "$svar" | jq -r '.frigjordMb // 0')
-            fel=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
-            # false = Media Manager hanns inte med i sin helhet. Siffrorna gäller
-            # då bara det som lästes, och körningen ska göras om.
-            helt=$(printf '%s' "$svar" | jq -r '.komplettListning // true')
+            # ☠️ VARJE VARV ÄR EN TUGGA, INTE HELA BESTÅNDET.
+            #
+            # Wix edge-lager svarar 429 med en HTML-sida när ETT anrop bläddrar
+            # för många sidor i rad — mätt 2026-08-28: en körning dog efter
+            # ~150 sidor trots backoff, och spärren släpper inte inom ruttens
+            # 300 sekunder. 58 160 filer går alltså inte att lista i ett svep.
+            #
+            # Rutten tar därför en tugga och lämnar en markör, och loopen här
+            # matar tillbaka den. Samma mönster som svepet och bildfixen.
+            varv=0; rad_totalt=0; mb_totalt=0; fel_totalt=0; forald_totalt=0
+            markor="$AFTER_IN"
+            slut=$(( $(date +%s) + 300 * 60 ))
 
-            echo "filer i Media Manager: ${filer}$([ "$helt" = "false" ] && echo ' (KAPAD listning — kör igen)')"
-            echo "våra filer som används: ${anvanda}"
-            echo "föräldralösa: ${forald}"
-            echo "raderade: ${rad} (${mb} MB), misslyckade: ${fel}"
-            [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.)"'
+            while :; do
+              varv=$(( varv + 1 ))
+              [ "$varv" -gt "$MAX_ROUNDS" ] && { echo "Nådde max_rounds."; break; }
+              [ "$(date +%s)" -ge "$slut" ] && { echo "Tidsbudgeten slut."; break; }
+
+              url="${stad}?dryRun=${torr}&limit=${LIMIT}"
+              [ -n "$markor" ] && url="${url}&after=$(printf '%s' "$markor" | jq -sRr @uri)"
+              svar=$(anropa "$url") || exit 1
+              filer=$(printf '%s' "$svar" | jq -r '.filerIFonstret // 0')
+              anvanda=$(printf '%s' "$svar" | jq -r '.anvandaEgnaFiler // 0')
+              forald=$(printf '%s' "$svar" | jq -r '.foraldralosa // 0')
+              rad=$(printf '%s' "$svar" | jq -r '.raderade // 0')
+              mb=$(printf '%s' "$svar" | jq -r '.frigjordMb // 0')
+              fel=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
+              # false = Media Manager hanns inte med i sin helhet. Siffrorna
+              # gäller då bara det som lästes, och körningen ska göras om.
+              helt=$(printf '%s' "$svar" | jq -r '.komplettListning // true')
+              stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "klart"')
+              nasta=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+
+              rad_totalt=$(( rad_totalt + rad ))
+              mb_totalt=$(( mb_totalt + mb ))
+              fel_totalt=$(( fel_totalt + fel ))
+              forald_totalt=$(( forald_totalt + forald ))
+
+              echo "varv ${varv}: ${filer} filer i fönstret, ${anvanda} används, ${forald} föräldralösa, ${rad} raderade (${mb} MB), ${fel} fel [${stopp}]"
+              [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.)"'
+
+              # Markören är slut = hela Media Manager är genomgången.
+              if [ -z "$nasta" ] || [ "$nasta" = "null" ]; then
+                echo "Hela Media Manager genomgången."
+                markor=""
+                break
+              fi
+              markor="$nasta"
+            done
+
+            [ -n "$markor" ] && echo "Markör att fortsätta från: ${markor}"
 
             {
               echo "### Aosom — bildstädning$([ "$torr" = "true" ] && echo ' (torrkörning)')"
               echo ""
-              echo "- Filer i Media Manager: **${filer}**"
-              echo "- Våra filer som används: **${anvanda}**"
-              echo "- Föräldralösa: **${forald}**"
-              echo "- Raderade: **${rad}**"
-              echo "- Frigjort: **${mb} MB**"
-              echo "- Misslyckade: **${fel}**"
-              [ "$helt" = "false" ] && echo "" && echo "⚠️ Listningen hann inte igenom hela Media Manager — kör läget igen. Varje körning gör listan kortare, så den konvergerar."
+              echo "- Varv: **${varv}**"
+              echo "- Föräldralösa hittade: **${forald_totalt}**"
+              echo "- Raderade: **${rad_totalt}**"
+              echo "- Frigjort: **${mb_totalt} MB**"
+              echo "- Misslyckade: **${fel_totalt}**"
+              if [ -n "$markor" ]; then
+                echo ""
+                echo "⚠️ Inte genomgånget än — kör läget igen med \`after\` satt till:"
+                echo ""
+                echo "\`\`\`"
+                echo "${markor}"
+                echo "\`\`\`"
+              else
+                echo ""
+                echo "✅ Hela Media Manager genomgången."
+              fi
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi

@@ -93,8 +93,8 @@ export interface StadningsPlan {
   anvanda: number;
   /** Byte som frigörs. */
   bytes: number;
-  /** Filer i Media Manager totalt (alla namn). */
-  filerTotalt: number;
+  /** Filer listningen såg i det här fönstret (alla namn). */
+  filerIFonstret: number;
 }
 
 /** Wix media-URL:er kan bära query-parametrar; nyckeln är filens id-del. */
@@ -154,16 +154,18 @@ export function planeraStadning(
     attRadera,
     anvanda,
     bytes: attRadera.reduce((s, f) => s + (f.sizeInBytes || 0), 0),
-    filerTotalt: filer.length,
+    filerIFonstret: filer.length,
   };
 }
 
 export interface MediaCleanupDeps {
   /**
-   * Filer i Media Manager. `komplett: false` betyder att listningen stannade på
-   * tidsgränsen eller sidtaket — planen görs då på det som HANN läsas.
+   * Ett FÖNSTER av Media Manager, inte hela. `cursor` i svaret är null när allt
+   * är genomgånget; `komplett: false` betyder att fönstret stannade på sidtaket
+   * eller tidsgränsen och att planen görs på det som HANN läsas.
    */
-  listaFiler: (stoppaVid?: number) => Promise<{ filer: MediaFil[]; komplett: boolean }>;
+  listaFiler: (opts: { efter?: string; stoppaVid?: number })
+    => Promise<{ filer: MediaFil[]; cursor: string | null; komplett: boolean }>;
   /** Alla media-URL:er som sitter på en produkt, plus antalet produkter. */
   listaAnvanda: () => Promise<{ urls: string[]; antalProdukter: number }>;
   /** Raderar PERMANENT — papperskorgen räknas fortfarande mot lagringen. */
@@ -174,7 +176,9 @@ export interface MediaCleanupDeps {
 
 export interface MediaCleanupSummary {
   dryRun: boolean;
-  filerTotalt: number;
+  /** Filer i FÖNSTRET, inte i hela Media Manager — se `cursor`. */
+  filerIFonstret: number;
+  /** Våra filer i fönstret som sitter på en produkt. */
   anvandaEgnaFiler: number;
   foraldralosa: number;
   raderade: number;
@@ -183,11 +187,27 @@ export interface MediaCleanupSummary {
   errors: string[];
   /**
    * Läste listningen HELA Media Manager? `false` = siffrorna beskriver bara den
-   * del som hanns med, och `filerTotalt` är alltså inte beståndet. Körningen är
+   * del som hanns med, och `filerIFonstret` är alltså inte beståndet. Körningen är
    * ändå meningsfull: det som raderas är föräldralöst, och nästa körning når
    * längre eftersom listan blivit kortare.
    */
   komplettListning: boolean;
+  /** Varför körningen slutade. `klart` = allt planerat blev gjort. */
+  stoppedBy: "klart" | "tidsbudget" | "limit";
+  /**
+   * Markör att fortsätta från. `null` = hela Media Manager är genomgången.
+   *
+   * ☠️ VARFÖR LISTNINGEN ÄR FÖNSTRAD (2026-08-28)
+   *
+   * Wix edge-lager svarar 429 med en HTML-sida — inte ett API-fel — när ett och
+   * samma anrop bläddrar för många sidor i rad. Backoff hjälper inte: spärren
+   * släpper inte förrän långt efter att ruttens 300 sekunder är slut. 58 160
+   * filer i ETT anrop är alltså inte möjligt, oavsett hur tålmodigt det görs.
+   *
+   * Därför tar varje körning en tugga och lämnar en markör, precis som svepet
+   * och bildfixen. Samma mönster, samma skäl.
+   */
+  cursor: string | null;
 }
 
 /** Wix tar emot flera id:n per anrop; håll skoporna lagom stora. */
@@ -195,7 +215,7 @@ const BATCH = 50;
 
 export async function runMediaCleanup(
   deps: MediaCleanupDeps,
-  opts: { dryRun?: boolean; limit?: number; timeBudgetMs?: number } = {},
+  opts: { dryRun?: boolean; limit?: number; timeBudgetMs?: number; after?: string } = {},
 ): Promise<MediaCleanupSummary> {
   const dryRun = opts.dryRun !== false;
   const now = deps.now ?? (() => Date.now());
@@ -211,15 +231,25 @@ export async function runMediaCleanup(
   //
   // Referenslistan först, med flit: den är massfel-spärrens underlag och måste
   // vara KOMPLETT, medan fillistningen tål att kapas på tidsbudgeten.
+  // Listningen får en DEL av budgeten, inte hela: äter den allt finns ingen tid
+  // kvar att radera på, och en körning som bara listar frigör noll byte.
+  //
+  // Referenslistan läses om för VARJE fönster. Den är ~37 sidor mot en annan
+  // API-familj och alltså billig, och alternativet — att bära den mellan
+  // körningar — hade betytt att en produkt som fått nya bilder sedan förra
+  // varvet såg ut att sakna dem. Fel åt det hållet raderar bilder som används.
   const { urls, antalProdukter } = await deps.listaAnvanda();
-  const { filer, komplett } = await deps.listaFiler(start + budget);
+  const { filer, cursor, komplett } = await deps.listaFiler({
+    efter: opts.after,
+    stoppaVid: start + Math.round(budget * 0.7),
+  });
 
   const plan = planeraStadning(filer, urls, antalProdukter);
   const attRadera = opts.limit ? plan.attRadera.slice(0, opts.limit) : plan.attRadera;
 
   const summary: MediaCleanupSummary = {
     dryRun,
-    filerTotalt: plan.filerTotalt,
+    filerIFonstret: plan.filerIFonstret,
     anvandaEgnaFiler: plan.anvanda,
     foraldralosa: plan.attRadera.length,
     raderade: 0,
@@ -227,6 +257,8 @@ export async function runMediaCleanup(
     misslyckade: 0,
     errors: [],
     komplettListning: komplett,
+    stoppedBy: opts.limit && plan.attRadera.length > opts.limit ? "limit" : "klart",
+    cursor,
   };
 
   if (dryRun) {
@@ -236,6 +268,14 @@ export async function runMediaCleanup(
 
   let frigjort = 0;
   for (let i = 0; i < attRadera.length; i += BATCH) {
+    // ☠️ Raderingen är också tidsbudgeterad. Utan det kan en stor `limit` dra
+    // förbi ruttens maxDuration, och då dödas svaret mitt i: filerna ÄR
+    // raderade men ingen siffra kommer tillbaka, så nästa körning vet inte
+    // vad som hände. Hellre ett ärligt "tidsbudget" än ett tyst avbrott.
+    if (now() - start >= budget) {
+      summary.stoppedBy = "tidsbudget";
+      break;
+    }
     const skopa = attRadera.slice(i, i + BATCH);
     try {
       await deps.raderaPermanent(skopa.map((f) => f.id));
@@ -258,6 +298,13 @@ export async function runMediaCleanup(
  * det här problemet). En städning som dör halvvägs är inte farlig, men den är
  * onödig.
  */
+/**
+ * Sidor per körning. 100 × 200 = 20 000 filer, ~50 sekunder med pauserna —
+ * väl under den gräns där edge-spärren slår till, och tre varv räcker till
+ * hela beståndet.
+ */
+const SIDOR_PER_FONSTER = 100;
+
 export async function liveDeps(): Promise<MediaCleanupDeps> {
   const WIX_BASE = "https://www.wixapis.com";
   const paus = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -280,7 +327,8 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
   //
   // Backoffen följer `Retry-After` när Wix skickar den. Samma mönster som
   // `importMediaByUrl` fick 2026-08-27, och av exakt samma skäl.
-  const paus_ms = [1_000, 3_000, 8_000];
+  // Edge-spärren är trögare än ett vanligt API-429 och behöver längre pauser.
+  const paus_ms = [2_000, 10_000, 30_000];
   const post = async (url: string, body: unknown): Promise<Record<string, unknown>> => {
     let sist = "";
     for (let forsok = 0; forsok <= paus_ms.length; forsok++) {
@@ -308,18 +356,22 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
   };
 
   return {
-    // Sidtaket räcker till hela beståndet: 58 160 filer = 582 sidor. Det gamla
-    // taket på 500 hade tyst kapat listningen vid 50 000 och gjort resten
-    // osynlig — en tyst trunkering är samma sorts fel som allt annat i den här
-    // filen handlar om.
-    listaFiler: async (stoppaVid?: number) => {
+    // ETT FÖNSTER, inte hela beståndet. Se `cursor` i MediaCleanupSummary för
+    // varför: Wix edge-lager svarar 429 med en HTML-sida när ett anrop bläddrar
+    // för många sidor i rad, och den spärren går inte att vänta ut inom ruttens
+    // 300 sekunder.
+    //
+    // 200 per sida är API:ts tak (dubbelt mot de 100 som användes först) och
+    // halverar därmed antalet anrop. Pausen är 250 ms — mätt föll en körning
+    // efter ~150 sidor på 120 ms.
+    listaFiler: async ({ efter, stoppaVid } = {}) => {
       const ut: MediaFil[] = [];
-      let cursor: string | null = null;
+      let cursor: string | null = efter ?? null;
       let komplett = false;
-      for (let i = 0; i < 1200; i++) {
+      for (let i = 0; i < SIDOR_PER_FONSTER; i++) {
         if (stoppaVid !== undefined && Date.now() >= stoppaVid) break;
         const data = (await post(`${WIX_BASE}/site-media/v1/files/search`, {
-          paging: { limit: 100, ...(cursor ? { cursor } : {}) },
+          paging: { limit: 200, ...(cursor ? { cursor } : {}) },
         })) as { files?: Record<string, string>[]; nextCursor?: { hasNext?: boolean; cursors?: { next?: string } } };
         for (const f of data.files ?? []) {
           ut.push({
@@ -332,9 +384,9 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
         }
         cursor = data.nextCursor?.hasNext ? (data.nextCursor.cursors?.next ?? null) : null;
         if (!cursor) { komplett = true; break; }
-        await paus(120);
+        await paus(250);
       }
-      return { filer: ut, komplett };
+      return { filer: ut, cursor, komplett };
     },
 
     listaAnvanda: async () => {
