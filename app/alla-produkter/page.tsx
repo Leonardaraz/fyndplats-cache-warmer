@@ -45,8 +45,15 @@ export default async function AllaProdukter() {
   // räknar om den med, annars kastas rutnätet om inför ögonen vid hydrering.
   // attachRatings MÅSTE därför köra FÖRE orderRecommended: recommendedScore
   // läser p.rating, och gör den det på en olik lista blir ordningen en annan.
+  //
+  // dagMs skickas vidare till ShopBrowser. Sidan är ISR-cachad (revalidate
+  // ovan), så HTML:en kan bära gårdagens dag i upp till en timme efter midnatt.
+  // Räknade klienten ut sin egen dag skulle rutnätet sorteras om vid hydrering:
+  // uppmätt över 870 produkter med katalogens signalprofil byter 25,9 % plats,
+  // största hopp 60 platser, och de 24 som syns utan att scrolla ändras.
+  const dagMs = currentDayMs();
   const rated = await attachRatings(products);
-  const list = orderRecommended(rated, universalCollectionIds(rated), currentDayMs());
+  const list = orderRecommended(rated, universalCollectionIds(rated), dagMs);
 
   // JSON-LD: CollectionPage + BreadcrumbList (samma mönster som /butik) så Google
   // förstår att detta är en produktlistning.
@@ -102,7 +109,7 @@ export default async function AllaProdukter() {
 
           {/* forClient skär bort de fält klienten aldrig läser — se ListProduct
               i lib/products.ts. Mätt: 1 005 kB av 2 704 på den här sidan. */}
-          <ShopBrowser products={forClient(list)} />
+          <ShopBrowser products={forClient(list)} dayMs={dagMs} />
 
           {/* Crawlbart A–Ö-index över HELA sortimentet: gridden ovan visar 24
               (perf-gräns) och "Visa fler" är en JS-knapp — utan denna lista

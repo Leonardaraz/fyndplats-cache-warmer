@@ -62,19 +62,19 @@ const SORT_VALUES = new Set(SORTS.map((s) => s.v));
 /** Underkategori till den kategori sidan visar — chips i filterpanelen. */
 export type SubCategory = { name: string; slug: string; count: number };
 
-export function ShopBrowser({ products, defaultSort = "img", subs = [] }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[] }) {
+export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number }) {
   // useSearchParams() kräver en Suspense-gräns för att statiska sidor
   // (/kategori/[slug] med generateStaticParams) inte ska falla tillbaka till
   // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
   // rutnätet som fallback så inget hoppar.
   return (
     <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p) => <ProductCard p={p} key={p.slug} />)}</div>}>
-      <ShopBrowserInner products={products} defaultSort={defaultSort} subs={subs} />
+      <ShopBrowserInner products={products} defaultSort={defaultSort} subs={subs} dayMs={dayMs} />
     </Suspense>
   );
 }
 
-function ShopBrowserInner({ products, defaultSort, subs }: { products: ListProduct[]; defaultSort: string; subs: SubCategory[] }) {
+function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { products: ListProduct[]; defaultSort: string; subs: SubCategory[]; dayMs?: number }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -205,7 +205,18 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: ListProdu
     if (onlyOnSale) out = out.filter((p) => p.onSale);
     // Dag-upplösning på "nu" så server- och klientrendering ger samma ordning
     // (sekund-precision hade gett hydration-hopp i Rekommenderat-poängen).
-    const dayMs = currentDayMs();
+    //
+    // dayMs KOMMER HELST FRÅN SERVERN. En sida som förberäknar ordningen och
+    // sedan ISR-cachas (app/alla-produkter) kan servera HTML byggd med gårdagens
+    // dag i upp till `revalidate`. Räknade klienten då ut sin egen dag skulle
+    // rutnätet sorteras om vid hydrering — uppmätt över 870 produkter med
+    // katalogens verkliga signalprofil: 25,9 % byter plats, största hopp 60
+    // platser, och de 24 som syns utan att scrolla ändras. Orsaken är att
+    // färskhets-poängen (2·e^(−ålder/14)) krymper med tiden medan rea- och
+    // omdömespoängen står stilla — bara åldern varierar ger 0 % omkastning.
+    // Sidor som INTE förberäknar (t.ex. /kategori, /sok) skickar inget och får
+    // klientens egen dag, precis som förut.
+    const dayMs = dayMsProp ?? currentDayMs();
     // Rekommenderat blandar kategorier; Populärast rankar produkter med
     // signal (egna sälj + omdömen) rakt av och blandar bara svansen (Leonard
     // 2026-08-16 resp. 2026-08-18). Omdömessignalen läses ur p.rating, som
@@ -221,7 +232,7 @@ function ShopBrowserInner({ products, defaultSort, subs }: { products: ListProdu
     else if (sort === "price-desc") out = [...out].sort((a, z) => z.priceNum - a.priceNum);
     else if (sort === "name") out = [...out].sort((a, z) => a.name.localeCompare(z.name, "sv"));
     return out;
-  }, [products, sort, priceLo, priceHi, color, onlyInStock, onlyOnSale]);
+  }, [products, sort, priceLo, priceHi, color, onlyInStock, onlyOnSale, dayMsProp]);
 
   // Finns det något slutsålt alls i den här listan? Styr om "I lager"-reglaget
   // är meningsfullt (se markupen nedan). Räknas ur datan, inte ur env-flaggan,

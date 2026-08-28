@@ -43,6 +43,33 @@ test("Rekommenderat: färskhets-skjutsen klingar av och REA ger bara en knuff", 
   assert.ok(recommendedScore(prod("säljer-mer", 60, 4), NOW) > recommendedScore(prod("rea-lite", 60, 2, true), NOW));
 });
 
+// Varför app/alla-produkter skickar sitt dagMs vidare till ShopBrowser
+// (components/shopbrowser.tsx): sidan är ISR-cachad, så dess HTML kan bära
+// gårdagens dag i upp till en timme efter midnatt. Räknar klienten ut sin EGEN
+// dag sorteras rutnätet om vid hydrering.
+//
+// Ordningen är dagskänslig av en icke-uppenbar anledning: färskhets-poängen
+// (2·e^(−ålder/14)) krymper med tiden medan REA- och omdömespoängen står stilla,
+// så deras inbördes förhållande skiftar. Varierar BARA åldern händer ingenting —
+// alla produkter åldras lika mycket. Testet pinnar båda halvorna, så en framtida
+// omskrivning av recommendedScore inte tyst gör propen onödig eller nödvändig
+// utan att någon märker det.
+test("Rekommenderat är dagskänsligt när REA möter färskhet — men inte av ålder ensam", () => {
+  const bara_alder = [prod("a", 1, 0), prod("b", 20, 0), prod("c", 60, 0)];
+  const idag = [...bara_alder].sort(compareByRecommended(NOW)).map((p) => p.id);
+  const imorgon = [...bara_alder].sort(compareByRecommended(NOW + DAY)).map((p) => p.id);
+  assert.deepEqual(idag, imorgon, "bara ålder varierar → ordningen står still");
+
+  // Färsk utan rea vs något äldre MED rea: rea-knuffen (0,4p) är konstant medan
+  // färskhets-försprånget klingar av, så paret byter plats när dagen går.
+  const rea = [prod("fersk-utan-rea", 8, 0, false), prod("aldre-med-rea", 20, 0, true)];
+  const f0 = recommendedScore(rea[0]!, NOW) - recommendedScore(rea[1]!, NOW);
+  const f1 = recommendedScore(rea[0]!, NOW + 30 * DAY) - recommendedScore(rea[1]!, NOW + 30 * DAY);
+  assert.ok(f0 > 0, "idag leder den färska");
+  assert.ok(f1 < 0, "senare leder rea-produkten — försprånget har klingat av");
+  assert.ok(Math.abs(f1) < Math.abs(f0) || f1 < 0, "avståndet krymper över tid");
+});
+
 test("stabil ordning: identiska poäng bryts deterministiskt (aldrig hopp mellan renderingar)", () => {
   const a = prod("a", 10, 0);
   const b = { ...prod("b", 10, 0), createdAt: a.createdAt };
