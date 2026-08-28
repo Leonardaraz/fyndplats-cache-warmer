@@ -12,6 +12,7 @@ import type { AliExpressDsProduct, AliExpressDsVariant } from "../aliexpress/typ
 import type { AliExpressProduct, AliExpressVariant } from "./types";
 import { parseAliExpressUrl } from "../bulk-import/url";
 import { isColorAxis } from "./color-match";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 
 export interface FromUrlOptions {
   /** Filter på variantnivå — om angiven importeras endast varianter vars
@@ -42,7 +43,7 @@ export async function fetchAliExpressProductFromUrl(
     throw new Error(parsed.error ?? "Kunde inte tolka URL");
   }
 
-  const ds = await getAliExpressDsProduct(parsed.productId);
+  const ds = await getAliExpressDsProduct(aliExpressIdFromListing(parsed.productId));
   // NEDTAGEN LISTNING (audit 2026-08-24). Det här är bulk-/CSV-importens enda
   // choke point — den hämtar ALLTID DS-produkten, till skillnad från pipelinen
   // där hämtningen är villkorad. En nedtagen listning svarar 200 med saldot

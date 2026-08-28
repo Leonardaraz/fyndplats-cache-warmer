@@ -25,6 +25,7 @@ import type { ListingAvailability } from "./types";
 import { completeJsonRouted } from "../claude/client";
 import { makeCacheKey } from "../llm/cache";
 import { getAlternativeCache, isFresh } from "./alternative-cache";
+import { aliExpressIdFromListing } from "./product-id";
 
 export interface AlternativeSupplier {
   aliexpressId: string;
@@ -456,7 +457,8 @@ export async function findAlternativeSuppliers(
   const scoreCount = opts.scoreCount ?? 5;
   const slåUppHyllstatus =
     opts.getListingAvailability
-    ?? (async (id: string) => (await getProduct(id)).listingAvailability ?? "unknown");
+    ?? (async (id: string) =>
+      (await getProduct(aliExpressIdFromListing(id))).listingAvailability ?? "unknown");
 
   // 0) Cache: färsk + tillräckligt många → använd direkt (inget AE-anrop, ingen LLM).
   if (!opts.skipCache) {

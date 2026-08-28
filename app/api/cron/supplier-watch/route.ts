@@ -36,6 +36,7 @@ import { buildSellerSources } from "@/lib/discover/seller-sources";
 import { createBulkImportJob, BulkImportLimitError } from "@/lib/bulk-import/service";
 import type { ParsedCsv } from "@/lib/bulk-import/csv";
 import { buildSupplierWatchEmail, sendEmail } from "@/lib/email/resend";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -77,7 +78,7 @@ function buildDeps(config: SupplierWatchConfig): SupplierWatchDeps {
               totalCap: config.maxDetailCalls * 4,
             })
         : undefined,
-    getDetail: (id) => getProduct(id),
+    getDetail: (id) => getProduct(aliExpressIdFromListing(id)),
     listExistingSupplierProductIds: async () => {
       const mappings = await getStore().listMappings();
       return new Set(mappings.map((m) => m.supplierProductId).filter(Boolean));

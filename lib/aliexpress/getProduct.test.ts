@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { aliExpressIdFromListing } from "./product-id";
 
 // Tester för getProduct() — fokuserar på respons-parsing. AliExpress DS-API:n
 // returnerar payload under `aliexpress_ds_product_get_response.result`, med
@@ -56,7 +57,7 @@ describe("getProduct — response parser", () => {
     }));
 
     const { getProduct } = await import("./client");
-    const p = await getProduct("1005004282015600");
+    const p = await getProduct(aliExpressIdFromListing("1005004282015600"));
 
     expect(p.productId).toBe("1005004282015600");
     expect(p.title).toBe("Sample product title");
@@ -86,7 +87,7 @@ describe("getProduct — response parser", () => {
       }),
     }));
     const { getProduct } = await import("./client");
-    const p = await getProduct("1005008079900702");
+    const p = await getProduct(aliExpressIdFromListing("1005008079900702"));
     // store_id kommer som number från AE → normaliseras till string (matchar mappnings supplierId).
     expect(p.storeId).toBe("1104096404");
     expect(p.storeName).toBe("Aosom ES (EU) Store");
@@ -105,7 +106,7 @@ describe("getProduct — response parser", () => {
       }),
     }));
     const { getProduct } = await import("./client");
-    const p = await getProduct("42");
+    const p = await getProduct(aliExpressIdFromListing("42"));
     expect(p.storeId).toBeUndefined();
   });
 
@@ -134,7 +135,7 @@ describe("getProduct — response parser", () => {
     }));
 
     const { getProduct } = await import("./client");
-    const p = await getProduct("42");
+    const p = await getProduct(aliExpressIdFromListing("42"));
     expect(p.variants).toHaveLength(1);
     expect(p.variants[0].skuId).toBe("sku-x");
     expect(p.variants[0].stock).toBe(7);
@@ -148,7 +149,7 @@ describe("getProduct — response parser", () => {
     }));
 
     const { getProduct } = await import("./client");
-    await expect(getProduct("1")).rejects.toThrow(/saknar result-fält/);
+    await expect(getProduct(aliExpressIdFromListing("1"))).rejects.toThrow(/saknar result-fält/);
   });
 
   it("propagar AliExpress error-koder (rsp_code != 200)", async () => {
@@ -163,7 +164,7 @@ describe("getProduct — response parser", () => {
     }));
 
     const { getProduct } = await import("./client");
-    await expect(getProduct("1")).rejects.toThrow(/AliExpress API-fel 1001/);
+    await expect(getProduct(aliExpressIdFromListing("1"))).rejects.toThrow(/AliExpress API-fel 1001/);
   });
 });
 
@@ -218,7 +219,7 @@ describe("getProduct — sku_property_value", () => {
     }));
 
     const { getProduct } = await import("./client");
-    const p = await getProduct("1005007907990730");
+    const p = await getProduct(aliExpressIdFromListing("1005007907990730"));
     expect(p.variants.map((v) => v.skuProps.Color)).toEqual(["Orange", "Green"]);
     // Och lagret hänger ihop med rätt färg — det var precis det som var korsat.
     expect(p.variants.find((v) => v.skuProps.Color === "Orange")?.stock).toBe(63);
@@ -327,7 +328,7 @@ describe("getProduct — hyllstatus från DS-svaret", () => {
       svar({ product_status_type: "offline", ws_display: "expire_offline" }),
     ));
     const { getProduct } = await import("./client");
-    const p = await getProduct("42");
+    const p = await getProduct(aliExpressIdFromListing("42"));
     expect(p.listingAvailability).toBe("offline");
     expect(p.offlineReason).toContain("expire_offline");
     // Lagret finns kvar i svaret — det är just därför statusfältet behövs.
@@ -337,7 +338,7 @@ describe("getProduct — hyllstatus från DS-svaret", () => {
   it("levande listning → on_selling, inget offlineReason", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(svar({ product_status_type: "onSelling" })));
     const { getProduct } = await import("./client");
-    const p = await getProduct("42");
+    const p = await getProduct(aliExpressIdFromListing("42"));
     expect(p.listingAvailability).toBe("on_selling");
     expect(p.offlineReason).toBeUndefined();
   });
@@ -345,7 +346,7 @@ describe("getProduct — hyllstatus från DS-svaret", () => {
   it("svar utan statusfält → unknown (oförändrat beteende för äldre svar)", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(svar({})));
     const { getProduct } = await import("./client");
-    const p = await getProduct("42");
+    const p = await getProduct(aliExpressIdFromListing("42"));
     expect(p.listingAvailability).toBe("unknown");
   });
 });

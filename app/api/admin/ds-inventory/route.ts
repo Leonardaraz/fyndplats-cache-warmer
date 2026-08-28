@@ -10,6 +10,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { getInventory } from "@/lib/aliexpress/client";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 
 export const runtime = "nodejs";
 
@@ -23,8 +24,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   if (!productId) {
     return NextResponse.json({ error: "productId krävs" }, { status: 400 });
   }
+  // Escape-hatch, inte formkontroll: rutten är read-only diagnostik och tar
+  // uttryckligen ett AE-produkt-id. Ett felskrivet id ger ett synligt DS-fel i
+  // svaret, vilket är precis vad man öppnar rutten för — en 400 här hade
+  // dessutom kunnat avvisa äldre, kortare AE-id som fungerar.
+  const aeId = aliExpressIdFromListing(productId);
   try {
-    const svar = await getInventory(productId);
+    const svar = await getInventory(aeId);
     // Hyllstatusen följer med i diagnossvaret: den vanligaste frågan om en
     // produkt med "konstigt" lager är om listningen ens lever längre.
     return NextResponse.json({

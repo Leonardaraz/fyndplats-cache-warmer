@@ -12,6 +12,7 @@
 //     synken speglar verkligt lager vid samma körning (självläkande åt båda håll).
 
 import type { ProductMappingRecord } from "../store/index";
+import type { AliExpressProductId } from "../aliexpress/product-id";
 import type { VariantMapping } from "../import/pipeline";
 import {
   matchAeVariant,
@@ -132,7 +133,15 @@ export function escalateNegative(
  * gjort (inga extra product.get-anrop).
  */
 export async function checkMappingShippability(opts: {
-  mapping: Pick<ProductMappingRecord, "supplierProductId" | "variants">;
+  /**
+   * Produkt-id:t hos AliExpress. Ligger som EGET fält och inte som
+   * `mapping.supplierProductId` med flit: fältet bär ett Aosom-artikelnummer
+   * för 4 432 av raderna, och den märkta typen tvingar anroparen att gå via
+   * `aliExpressIdOf` (som returnerar null för Aosom) i stället för att skicka
+   * strängen rakt in i frakt-API:t.
+   */
+  productId: AliExpressProductId;
+  mapping: Pick<ProductMappingRecord, "variants">;
   aeVariants: ReadonlyArray<{
     skuId: string;
     skuAttr?: string;
@@ -143,11 +152,11 @@ export async function checkMappingShippability(opts: {
   }>;
   nowMs: number;
   budget: ShippabilityBudget;
-  queryFn: (productId: string, skuId: string) => Promise<FreightQueryOutcome>;
+  queryFn: (productId: AliExpressProductId, skuId: string) => Promise<FreightQueryOutcome>;
   /** Paus mellan anrop — injicerbar för tester (default FREIGHT_CALL_DELAY_MS). */
   delayMs?: number;
 }): Promise<ShippabilityCheckResult> {
-  const { mapping, aeVariants, nowMs, budget, queryFn } = opts;
+  const { productId, mapping, aeVariants, nowMs, budget, queryFn } = opts;
   const delayMs = opts.delayMs ?? FREIGHT_CALL_DELAY_MS;
   const checkedAt = new Date(nowMs).toISOString();
 
@@ -186,7 +195,7 @@ export async function checkMappingShippability(opts: {
     if (apiCalls > 1 && delayMs > 0) {
       await new Promise((r) => setTimeout(r, delayMs));
     }
-    const outcome = await queryFn(mapping.supplierProductId, skuId);
+    const outcome = await queryFn(productId, skuId);
     const verdict = parseFreightOutcome(outcome);
     details.push({
       sku: v.sku,
@@ -227,7 +236,7 @@ export async function checkMappingShippability(opts: {
         apiCalls++;
         if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
 
-        const altOutcome = await queryFn(mapping.supplierProductId, altSkuId);
+        const altOutcome = await queryFn(productId, altSkuId);
         const altVerdict = parseFreightOutcome(altOutcome);
         details.push({
           sku: v.sku,

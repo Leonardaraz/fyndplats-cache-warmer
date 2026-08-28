@@ -5,6 +5,7 @@ import { classifyWarehouses, hasAnyEuWarehouse, uniqueShipFromCodes } from "@/li
 import { extractAliExpressProductId, getProduct, searchAliExpressByText, type AliExpressSearchResult } from "@/lib/aliexpress/client";
 import { getV3ProductVariants } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
+import { aliExpressIdOf, isAliExpressMapping } from "@/lib/store/supplier";
 import { pricingConfigFromEnv } from "@/lib/config";
 import { pairVariantMappings } from "@/lib/import/pair-variant-mappings";
 import { translateValue } from "@/lib/import/variant-translations";
@@ -215,6 +216,13 @@ export async function repairSyntheticMappingsAction(
     (m) =>
       !skip.has(m.wixProductId) &&
       (only ? only.has(m.wixProductId) : true) &&
+      // ☠️ AOSOM-SPÄRR (hittad 2026-08-28 av den märkta id-typen). Reparationen
+      // slår upp varje rads supplierProductId mot AE:s DS-API för att hitta det
+      // riktiga skuId:t. En Aosom-rad bär ett artikelnummer där, så uppslaget
+      // kan aldrig träffa — och raden hade legat kvar i `broken` körning efter
+      // körning och ätit en plats i varje batch, eftersom en misslyckad
+      // reparation inte tar bort något från urvalet.
+      isAliExpressMapping(m) &&
       (m.variants ?? []).some((v) => isSyntheticMappingId(v.supplierVariantId)),
   );
   const batch = broken.slice(0, Math.max(1, Math.min(batchSize, 20)));
@@ -228,7 +236,9 @@ export async function repairSyntheticMappingsAction(
   };
   for (const mapping of batch) {
     try {
-      const ds = await getProduct(mapping.supplierProductId);
+      const aeId = aliExpressIdOf(mapping);
+      if (!aeId) continue; // kan inte hända — filtret ovan; typen kräver domen
+      const ds = await getProduct(aeId);
       if (!ds.variants?.length) {
         // Degraderat DS-svar (0 varianter) → repair blir en tyst no-op som
         // varken hamnar i repaired/ambiguous → utan denna vakt återkom samma

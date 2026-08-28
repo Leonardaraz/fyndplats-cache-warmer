@@ -4,6 +4,7 @@ import { isAuthorized } from "@/lib/auth";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { importProduct } from "@/lib/import/pipeline";
 import { getInventory } from "@/lib/aliexpress/client";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 import { optionComboKey } from "@/lib/import/variant-stock";
 import type { AliExpressProduct } from "@/lib/import/types";
 import { getStore } from "@/lib/store/factory";
@@ -276,7 +277,7 @@ export async function POST(req: Request) {
     // fail-open: misslyckas DS-anropet (saknad token/permission/nät) behålls
     // skrapans värde och beteendet blir som förut.
     try {
-      const dsSvar = await getInventory(product.supplierProductId);
+      const dsSvar = await getInventory(aliExpressIdFromListing(product.supplierProductId));
       const inv = dsSvar.variants;
       // NEDTAGEN LISTNING (audit 2026-08-24). Vi hämtar redan DS-produkten här,
       // och den bär hyllstatusen — vi läste den bara aldrig. Utan spärren kunde

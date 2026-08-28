@@ -10,6 +10,7 @@
 // och det ska gå att hitta alla ställen som bryr sig med en enda grep.
 
 import type { MappingSupplier, ProductMappingRecord } from "./index";
+import type { AliExpressProductId } from "../aliexpress/product-id";
 import { AOSOM_ID_PREFIX } from "../aosom/to-product";
 
 /**
@@ -41,6 +42,29 @@ export function isAliExpressMapping(
   m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">,
 ): boolean {
   return mappingSupplier(m) === "aliexpress";
+}
+
+/**
+ * Radens `supplierProductId` som ett id DS-API:t kan slå upp — eller null när
+ * raden inte är en AliExpress-rad.
+ *
+ * Det här är den ENDA vägen från en mappningsrad till `getProduct`,
+ * `getInventory`, `queryFreightToCountry` och `debugRawProductGet`: de tar en
+ * `AliExpressProductId`, inte en `string`. En körning som loopar över
+ * `listMappings()` och glömmer spärren kompilerar alltså inte längre — vilket
+ * är hela poängen, för spärren glömdes bort sju gånger på ett halvår och det
+ * syntes aldrig i något svar.
+ *
+ * Skriv `const id = aliExpressIdOf(mapping); if (!id) continue;` i loopen, eller
+ * filtrera listan med `isAliExpressMapping` först. Typen är erased vid körning
+ * — id:t ÄR strängen, så loggning och jämförelser är oförändrade.
+ */
+export function aliExpressIdOf(
+  m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">,
+): AliExpressProductId | null {
+  if (!isAliExpressMapping(m)) return null;
+  const id = m.supplierProductId;
+  return id ? (id as AliExpressProductId) : null;
 }
 
 /** Motsatsen — för admin-vyer och rapporter som vill titta på Aosom-sidan. */

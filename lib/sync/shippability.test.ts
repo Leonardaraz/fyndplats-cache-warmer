@@ -3,6 +3,7 @@ import { unshippableVariantIdsFor } from "./aliexpress-sync";
 import type { VariantMapping } from "../import/pipeline";
 import { checkMappingShippability, isShippabilityStale, NEGATIVE_CONFIRMATIONS, SHIPPABILITY_RECHECK_MS } from "./shippability";
 import type { FreightQueryOutcome } from "../aliexpress/freight";
+import { aliExpressIdFromListing, type AliExpressProductId } from "../aliexpress/product-id";
 
 const NOW = Date.parse("2026-07-13T22:00:00.000Z");
 
@@ -50,8 +51,8 @@ describe("checkMappingShippability", () => {
   it("nej-svar markerar INTE (unknown efter kod röd 2026-07-14); ja-svar markerar fraktbar", async () => {
     const budget = { remaining: 10 };
     const res = await checkMappingShippability({
+      productId: aliExpressIdFromListing("1005012347030872"),
       mapping: {
-        supplierProductId: "1005012347030872",
         variants: [variant({ supplierVariantId: "sku-1" }), variant({ supplierVariantId: "sku-2", wixVariantId: "wix-2", sku: "FP-test-2" })],
       },
       aeVariants: AE,
@@ -74,8 +75,8 @@ describe("checkMappingShippability", () => {
   it("färska varianter hoppar kontrollen — inga anrop", async () => {
     const fresh = new Date(NOW - 1000).toISOString();
     const res = await checkMappingShippability({
+      productId: aliExpressIdFromListing("p"),
       mapping: {
-        supplierProductId: "p",
         variants: [variant({ shippabilityCheckedAt: fresh, shippableToSe: true })],
       },
       aeVariants: AE,
@@ -90,8 +91,8 @@ describe("checkMappingShippability", () => {
 
   it("slut budget → resterande varianter lämnas orörda (stale kvar)", async () => {
     const res = await checkMappingShippability({
+      productId: aliExpressIdFromListing("p"),
       mapping: {
-        supplierProductId: "p",
         variants: [variant({ supplierVariantId: "sku-1" }), variant({ supplierVariantId: "sku-2", sku: "FP-2" })],
       },
       aeVariants: AE,
@@ -106,7 +107,7 @@ describe("checkMappingShippability", () => {
 
   it("unknown-svar ändrar INGENTING (varianten förblir stale)", async () => {
     const res = await checkMappingShippability({
-      mapping: { supplierProductId: "p", variants: [variant({ shippableToSe: true })] },
+      productId: P1, mapping: { variants: [variant({ shippableToSe: true })] },
       aeVariants: AE,
       nowMs: NOW,
       budget: { remaining: 10 },
@@ -121,7 +122,7 @@ describe("checkMappingShippability", () => {
 
   it("ingen entydig SKU-matchning → inget anrop, ingen dom", async () => {
     const res = await checkMappingShippability({
-      mapping: { supplierProductId: "p", variants: [variant({ supplierVariantId: "okänd-sku" })] },
+      productId: P1, mapping: { variants: [variant({ supplierVariantId: "okänd-sku" })] },
       aeVariants: AE,
       nowMs: NOW,
       budget: { remaining: 10 },
@@ -135,8 +136,8 @@ describe("checkMappingShippability", () => {
   it("fraktväg tillbaka → varianten blir fraktbar igen (självläkande)", async () => {
     const stale = new Date(NOW - SHIPPABILITY_RECHECK_MS - 1000).toISOString();
     const res = await checkMappingShippability({
+      productId: aliExpressIdFromListing("p"),
       mapping: {
-        supplierProductId: "p",
         variants: [variant({ shippableToSe: false, shippabilityCheckedAt: stale })],
       },
       aeVariants: AE,
@@ -198,12 +199,13 @@ function explicitNoOutcome(): Promise<FreightQueryOutcome> {
   });
 }
 const DAY = 24 * 60 * 60 * 1000;
-const one = (v: Partial<VariantMapping>) => ({ supplierProductId: "p1", variants: [variant(v)] });
+const one = (v: Partial<VariantMapping>) => ({ variants: [variant(v)] });
+const P1 = aliExpressIdFromListing("p1");
 
 describe("kontroll v2 — beviskrav för automatiskt nej", () => {
   it("ETT uttryckligt nej dömer inte — det startar bara en serie", async () => {
     const r = await checkMappingShippability({
-      mapping: one({}), aeVariants: AE, nowMs: NOW,
+      productId: P1, mapping: one({}), aeVariants: AE, nowMs: NOW,
       budget: { remaining: 5 }, queryFn: explicitNoOutcome, delayMs: 0,
     });
     expect(r.variants[0].shippableToSe).toBeUndefined();
@@ -213,7 +215,7 @@ describe("kontroll v2 — beviskrav för automatiskt nej", () => {
 
   it("två nej spridda över ett dygn ger dom → lagret får nollas", async () => {
     const r = await checkMappingShippability({
-      mapping: one({ shippabilityNegativeStreak: 1, shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString() }),
+      productId: P1, mapping: one({ shippabilityNegativeStreak: 1, shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString() }),
       aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: explicitNoOutcome, delayMs: 0,
     });
     expect(r.variants[0].shippableToSe).toBe(false);
@@ -222,7 +224,7 @@ describe("kontroll v2 — beviskrav för automatiskt nej", () => {
 
   it("två nej för tätt inpå varandra dömer INTE (kräver oberoende observationer)", async () => {
     const r = await checkMappingShippability({
-      mapping: one({ shippabilityNegativeStreak: 1, shippabilityNegativeSince: new Date(NOW - 60_000).toISOString() }),
+      productId: P1, mapping: one({ shippabilityNegativeStreak: 1, shippabilityNegativeSince: new Date(NOW - 60_000).toISOString() }),
       aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: explicitNoOutcome, delayMs: 0,
     });
     expect(r.variants[0].shippableToSe).toBeUndefined();
@@ -232,7 +234,6 @@ describe("kontroll v2 — beviskrav för automatiskt nej", () => {
   // Exakt kod röd-mönstret: Aosom-hyllan fick "Beige ok, Grå nej" och nollades.
   it("nej bredvid ett fraktbart syskon dömer ALDRIG — kod röd 2026-07-14", async () => {
     const mapping = {
-      supplierProductId: "p1",
       variants: [
         variant({ supplierVariantId: "sku-1", sku: "FP-a", wixVariantId: "wix-a",
           shippabilityNegativeStreak: 1, shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString() }),
@@ -240,7 +241,7 @@ describe("kontroll v2 — beviskrav för automatiskt nej", () => {
       ],
     };
     const r = await checkMappingShippability({
-      mapping, aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, delayMs: 0,
+      productId: P1, mapping, aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, delayMs: 0,
       queryFn: (_p, skuId) => (skuId === "sku-1" ? explicitNoOutcome() : shippableOutcome()),
     });
     expect(r.variants[0].shippableToSe).toBeUndefined();
@@ -250,7 +251,7 @@ describe("kontroll v2 — beviskrav för automatiskt nej", () => {
 
   it("ett ja nollar serien och läker varianten", async () => {
     const r = await checkMappingShippability({
-      mapping: one({ shippableToSe: false, shippabilityNegativeStreak: 5, shippabilityNegativeSince: new Date(NOW - 9 * DAY).toISOString() }),
+      productId: P1, mapping: one({ shippableToSe: false, shippabilityNegativeStreak: 5, shippabilityNegativeSince: new Date(NOW - 9 * DAY).toISOString() }),
       aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: shippableOutcome, delayMs: 0,
     });
     expect(r.variants[0].shippableToSe).toBe(true);
@@ -263,7 +264,7 @@ describe("kontroll v2 — beviskrav för automatiskt nej", () => {
       unshippableOutcome,
     ]) {
       const r = await checkMappingShippability({
-        mapping: one({}), aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: q, delayMs: 0,
+        productId: P1, mapping: one({}), aeVariants: AE, nowMs: NOW, budget: { remaining: 5 }, queryFn: q, delayMs: 0,
       });
       expect(r.variants[0].shippabilityNegativeStreak).toBeUndefined();
       expect(r.variants[0].shippableToSe).toBeUndefined();
@@ -319,17 +320,16 @@ const AE_LAGER = [
   { skuId: "pl", skuAttr: "14:350850#4 PCS;200007763:203372089", skuProps: { Color: "4 PCS", "Ships From": "Poland" }, shipFrom: "PL", stock: 4 },
 ];
 const enLagervariant = (v: Partial<VariantMapping> = {}) => ({
-  supplierProductId: "p1",
   variants: [variant({ supplierVariantId: "de", choices: { Antal: "4 st" }, ...v })],
 });
 /** Nej för allt utom de skuId:n som listas. */
-const nejUtom = (ja: string[]) => (_p: string, skuId: string) =>
+const nejUtom = (ja: string[]) => (_p: AliExpressProductId, skuId: string) =>
   ja.includes(skuId) ? shippableOutcome() : explicitNoOutcome();
 
 describe("lager-failover", () => {
   it("vårt lager säger nej, ett annat säger ja → varianten är fraktbar", async () => {
     const r = await checkMappingShippability({
-      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      productId: P1, mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
       budget: { remaining: 5 }, queryFn: nejUtom(["es"]), delayMs: 0,
     });
     expect(r.variants[0].shippableToSe).toBe(true);
@@ -339,7 +339,7 @@ describe("lager-failover", () => {
 
   it("varianten pekas om till lagret som svarade ja — annars frågar vi den döda SKU:n för alltid", async () => {
     const r = await checkMappingShippability({
-      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      productId: P1, mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
       budget: { remaining: 5 }, queryFn: nejUtom(["es"]), delayMs: 0,
     });
     expect(r.variants[0].supplierVariantId).toBe("14:350850#4 PCS;200007763:201336104");
@@ -349,7 +349,7 @@ describe("lager-failover", () => {
 
   it("lagret med saldo provas först — ett anrop räcker", async () => {
     const r = await checkMappingShippability({
-      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      productId: P1, mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
       budget: { remaining: 5 }, queryFn: nejUtom(["es"]), delayMs: 0,
     });
     expect(r.apiCalls).toBe(2); // vår egen SKU + första alternativet
@@ -357,7 +357,7 @@ describe("lager-failover", () => {
 
   it("säger ALLA lager nej står domen kvar — serien eskalerar som förut", async () => {
     const r = await checkMappingShippability({
-      mapping: enLagervariant({
+      productId: P1, mapping: enLagervariant({
         shippabilityNegativeStreak: 1,
         shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString(),
       }),
@@ -371,7 +371,7 @@ describe("lager-failover", () => {
 
   it("slut budget → inga failover-anrop, ingen dom smygs in", async () => {
     const r = await checkMappingShippability({
-      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      productId: P1, mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
       budget: { remaining: 1 }, queryFn: nejUtom(["es"]), delayMs: 0,
     });
     expect(r.apiCalls).toBe(1);
@@ -388,7 +388,7 @@ describe("lager-failover — granskningsfynden", () => {
   //    faktiskt sagt nej. Modulens grundregel är att unknown inte ändrar något.
   it("unknown på vår SKU rör ingenting och kostar inga extra anrop", async () => {
     const r = await checkMappingShippability({
-      mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
+      productId: P1, mapping: enLagervariant(), aeVariants: AE_LAGER, nowMs: NOW,
       budget: { remaining: 5 }, queryFn: unshippableOutcome, delayMs: 0,
     });
     expect(r.apiCalls).toBe(1);
@@ -402,7 +402,7 @@ describe("lager-failover — granskningsfynden", () => {
   //    failovern är ett ALTERNATIV — inte varianten domen gäller.
   it("domens motivering hamnar på vår egen rad, inte på ett alternativs", async () => {
     const r = await checkMappingShippability({
-      mapping: enLagervariant({
+      productId: P1, mapping: enLagervariant({
         shippabilityNegativeStreak: 1,
         shippabilityNegativeSince: new Date(NOW - DAY - 1).toISOString(),
       }),

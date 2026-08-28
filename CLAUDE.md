@@ -181,6 +181,28 @@ har `CRON_SECRET` för handen.
    `isAliExpressMapping` i `lib/store/supplier.ts` — en grep hittar alla
    ställen som bryr sig. Fältet faller tillbaka på `aosom:`-prefixet i id:t, så
    en rad som tappat fältet klassas ändå rätt.
+
+   ☠️ **Spärren är sedan 2026-08-28 en TYP, inte en vana** (`AliExpressProductId`
+   i `lib/aliexpress/product-id.ts`). `getProduct`, `getInventory`,
+   `queryFreightToCountry` och `debugRawProductGet` tar inte längre en `string`,
+   och den enda vägen från en mappningsrad heter `aliExpressIdOf(mapping)` —
+   den returnerar `null` för Aosom. Typen är erased vid körning: id:t ÄR
+   strängen, så loggning, jämförelser och Map-nycklar är oförändrade.
+
+   Skälet står i mätningen. `/api/aliexpress/sync-all` hade tappat spärren och
+   gjorde **4 432 omöjliga uppslag per körning**; rutten NOLLAR dessutom lagret
+   vid `offline`, så en felklassad rad kunde tömma en Aosom-produkt. När typen
+   infördes föll **två vägar till** ut som kompileringsfel, båda oupptäckta:
+   variantreparationen i `/admin/mappings` (en Aosom-rad hade legat kvar i
+   `broken` körning efter körning) och två order-åtgärder i `/admin`
+   (prisavstämningen och fraktdiagnosen på en kundorder — en kund kan lika gärna
+   ha köpt en Aosom-vara).
+
+   Det är hela argumentet: **en spärr man måste komma ihåg glöms bort.** Sju
+   vägar, sex rätt, och de tre felen syntes aldrig i något svar. För id som
+   kommer från AliExpress själv (en klistrad URL, en sökträff, tilläggets
+   skrapade sida) finns `aliExpressIdFromListing` — använd den ALDRIG på
+   `mapping.supplierProductId`.
 2. **Frakten ligger i inköpspriset, och momsen bruttas på.** Det är hela
    skillnaden mot AliExpress, där EU-lagerpriset är levererat. Aosoms SE-frakt är
    **per kolli** och skalar med vikten (16 € under två kilo, över 100 € över
