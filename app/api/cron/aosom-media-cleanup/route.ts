@@ -24,10 +24,16 @@
 // Query:
 //   ?dryRun=false     skarpt läge (default: torrkörning, raderar ingenting)
 //   ?limit=500        tak på antal filer denna körning
+//   ?after=<markör>   fortsätt listningen där förra körningen slutade
 //
-// `komplettListning: false` i svaret betyder att Media Manager inte hanns med i
-// sin helhet — kör igen. Körningen konvergerar av sig själv: det som raderats
-// gör listan kortare, så nästa körning når längre.
+// Svaret bär en `cursor`. Är den satt återstår filer att gå igenom — kör igen
+// med `?after=<cursor>`. `null` betyder att hela Media Manager är genomgången.
+//
+// DEN NATTLIGA CRONEN KÖR MEDVETET UTAN MARKÖR, och det är inte ett förbiseende.
+// Listningen sorteras `updatedDate DESC`, alltså nyast först, så ett fönster
+// från början täcker exakt det som hunnit bli föräldralöst sedan i går. Det är
+// vad en nattlig städning ska göra. Den historiska ryggsäcken tas i stället med
+// workflow-läget `bildstadning`, som loopar markören genom hela beståndet.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -52,12 +58,13 @@ async function handle(req: NextRequest) {
   const dryRun = req.nextUrl.searchParams.get("dryRun") !== "false";
   const n = Number(req.nextUrl.searchParams.get("limit"));
   const limit = Number.isFinite(n) && n > 0 ? Math.trunc(n) : undefined;
+  const after = req.nextUrl.searchParams.get("after") || undefined;
 
   try {
     // Tidsbudgeten ligger under ruttens maxDuration (300 s) så att en körning
     // hinner SVARA med sina siffror i stället för att dödas mitt i listningen.
     const summary = await runMediaCleanup(await liveDeps(), {
-      dryRun, limit, timeBudgetMs: 240_000,
+      dryRun, limit, after, timeBudgetMs: 240_000,
     });
 
     if (!dryRun && summary.raderade > 0) {

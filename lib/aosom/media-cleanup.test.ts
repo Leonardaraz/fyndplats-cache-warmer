@@ -130,7 +130,7 @@ function deps(over: Partial<MediaCleanupDeps> = {}) {
   const bas: MediaCleanupDeps = {
     listaFiler: async () => ({
       filer: [fil("aosom-A-1.jpg", "a1"), fil("aosom-A-2.jpg", "a2"), fil("aosom-B-1.jpg", "b1")],
-      komplett: true,
+      cursor: null, komplett: true,
     }),
     listaAnvanda: async () => ({ urls: [url("a1")], antalProdukter: 1 }),
     raderaPermanent: async (ids) => { raderade.push(ids); },
@@ -173,7 +173,7 @@ describe("runMediaCleanup", () => {
     const { d } = deps({
       listaFiler: async () => ({
         filer: Array.from({ length: 120 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
-        komplett: true,
+        cursor: null, komplett: true,
       }),
       listaAnvanda: async () => ({ urls: [], antalProdukter: 0 }),
       raderaPermanent: async () => { if (n++ === 0) throw new Error("Wix svarade 500"); },
@@ -192,7 +192,7 @@ describe("runMediaCleanup", () => {
       listaAnvanda: async () => { ordning.push("anvanda"); return { urls: [url("a1")], antalProdukter: 1 }; },
       listaFiler: async () => {
         ordning.push("filer");
-        return { filer: [fil("aosom-A-1.jpg", "a1"), fil("aosom-A-2.jpg", "a2")], komplett: true };
+        return { filer: [fil("aosom-A-1.jpg", "a1"), fil("aosom-A-2.jpg", "a2")], cursor: null, komplett: true };
       },
     });
     await runMediaCleanup(d);
@@ -206,12 +206,33 @@ describe("runMediaCleanup", () => {
     const { d, raderade } = deps({
       listaFiler: async () => ({
         filer: [fil("aosom-A-1.jpg", "a1"), fil("aosom-A-2.jpg", "a2")],
-        komplett: false,
+        cursor: "sida-2", komplett: false,
       }),
     });
     const s = await runMediaCleanup(d, { dryRun: false });
     expect(s.komplettListning).toBe(false);
     expect(raderade.flat()).toEqual(["a2"]);
+  });
+
+  it("markören förs vidare in i listningen och tillbaka i svaret", async () => {
+    // Wix edge-lager svarar 429 med en HTML-sida när ETT anrop bläddrar för
+    // många sidor i rad, och den spärren går inte att vänta ut inom ruttens
+    // 300 sekunder. 58 160 filer måste därför tas i tuggor.
+    let fick: string | undefined;
+    const { d } = deps({
+      listaFiler: async ({ efter }) => {
+        fick = efter;
+        return { filer: [fil("aosom-A-1.jpg", "a1")], cursor: "nasta-sida", komplett: false };
+      },
+    });
+    const s = await runMediaCleanup(d, { after: "forra-sidan" });
+    expect(fick).toBe("forra-sidan");
+    expect(s.cursor).toBe("nasta-sida");
+  });
+
+  it("cursor blir null när hela Media Manager är genomgången", async () => {
+    const { d } = deps();
+    expect((await runMediaCleanup(d)).cursor).toBeNull();
   });
 
   it("en hel listning rapporteras som hel", async () => {
@@ -223,7 +244,7 @@ describe("runMediaCleanup", () => {
     let fick: number | undefined;
     const { d } = deps({
       now: () => 1_000,
-      listaFiler: async (stoppaVid) => { fick = stoppaVid; return { filer: [], komplett: true }; },
+      listaFiler: async ({ stoppaVid }) => { fick = stoppaVid; return { filer: [], cursor: null, komplett: true }; },
     });
     await runMediaCleanup(d, { timeBudgetMs: 10_000 });
     expect(fick).toBe(8_000); // 70 % av 10 s
@@ -237,7 +258,7 @@ describe("runMediaCleanup", () => {
       now: () => (t += 60_000),
       listaFiler: async () => ({
         filer: Array.from({ length: 300 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
-        komplett: true,
+        cursor: null, komplett: true,
       }),
       listaAnvanda: async () => ({ urls: [], antalProdukter: 0 }),
     });
@@ -257,7 +278,7 @@ describe("runMediaCleanup", () => {
     const { d, raderade } = deps({
       listaFiler: async () => ({
         filer: Array.from({ length: 100 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
-        komplett: true,
+        cursor: null, komplett: true,
       }),
       listaAnvanda: async () => ({ urls: [], antalProdukter: 1000 }),
     });
