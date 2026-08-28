@@ -545,9 +545,15 @@ som ser likadana ut i ett felmeddelande men inte är samma sak:
 | **Edge-strypningen** | en **HTML-sida** efter ~150 sidor | ingenting inom ruttens 300 s |
 
 Den andra är strukturell: **58 160 filer går inte att lista i ETT anrop**, hur
-tålmodigt det än görs. Listningen är därför FÖNSTRAD — 200 filer per sida
-(API:ts tak), 100 sidor per körning, markör i svaret (`cursor` → `?after=`).
-Samma mönster som svepet och bildfixen, och av samma skäl.
+tålmodigt det än görs. Listningen är därför FÖNSTRAD — 60 sidor per körning,
+markör i svaret (`cursor` → `?after=`). Samma mönster som svepet och bildfixen,
+och av samma skäl.
+
+☠️ **`paging.limit` takas på 100, vad än dokumentationen påstår.** Både Search
+Files och Query File Descriptors står som "up to 200 files" i dev.wix.com.
+Uppmätt mot skarpa API:t 2026-08-28 svarar BÅDA `400 INVALID_ARGUMENT:
+'paging.limit' must be less than or equal to 100`. En körning med 200 föll
+direkt på första sidan.
 
 Två designval bakom det som inte ska tas bort:
 
