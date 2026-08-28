@@ -42,7 +42,7 @@
       "schedule": "20 */6 * * *"
     },
     {
-      "path": "/api/cron/aosom-import?dryRun=false&limit=60",
+      "path": "/api/cron/aosom-import?dryRun=false&limit=60&skipFreightHeavy=1",
       "schedule": "40 4 * * *"
     },
     {

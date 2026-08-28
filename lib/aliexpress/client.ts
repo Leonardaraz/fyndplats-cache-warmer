@@ -21,6 +21,7 @@
 import { createHmac } from "node:crypto";
 import { getStore } from "../store/factory";
 import { isRateLimitError, noteRateLimited, rateLimitWaitMs, RATE_LIMIT_MAX_RETRIES } from "./rate-limit";
+import { aliExpressIdFromListing, type AliExpressProductId } from "./product-id";
 import {
     classifyWarehouses,
     hasAnyEuWarehouse,
@@ -508,7 +509,7 @@ export function classifyListingAvailability(base: {
   return { availability: "unknown" };
 }
 
-export async function getProduct(productId: string): Promise<AliExpressDsProduct> {
+export async function getProduct(productId: AliExpressProductId): Promise<AliExpressDsProduct> {
     const raw = await callApi<RawProduct>("aliexpress.ds.product.get", {
           product_id: productId,
           target_currency: "USD",
@@ -979,7 +980,7 @@ interface RawTracking {
  * 12000058218136832) överskrider Number.MAX_SAFE_INTEGER.
  */
 export async function queryFreightToCountry(
-  productId: string,
+  productId: AliExpressProductId,
   skuId: string,
   country = "SE",
   quantity = 1,
@@ -1117,7 +1118,7 @@ export interface DsInventoryResult {
 }
 
 export async function getInventory(
-    productId: string,
+    productId: AliExpressProductId,
   ): Promise<DsInventoryResult> {
     const product = await getProduct(productId);
     const variants: DsInventoryVariant[] = product.variants.map((v) => ({
@@ -1400,7 +1401,7 @@ export async function debugRawTextSearch(query: string): Promise<unknown> {
  * synkens tolkade lager (0) inte matchar konsumentsidan (SucceBuy-mönstret:
  * dropship-flödet säger 0, konsumentsidan visar tiotal, skickas från EU-lager).
  */
-export async function debugRawProductGet(productId: string): Promise<unknown> {
+export async function debugRawProductGet(productId: AliExpressProductId): Promise<unknown> {
   return callApi<unknown>("aliexpress.ds.product.get", {
     product_id: productId,
     target_currency: "USD",
@@ -1477,9 +1478,9 @@ export async function searchAliExpressByText(
  * Extraherar AliExpress productId från en URL eller returnerar input om det
  * redan ser ut som ett produkt-id (12-13 siffror).
  */
-export function extractAliExpressProductId(input: string): string | null {
+export function extractAliExpressProductId(input: string): AliExpressProductId | null {
     const trimmed = input.trim();
-    if (/^\d{10,16}$/.test(trimmed)) return trimmed;
+    if (/^\d{10,16}$/.test(trimmed)) return aliExpressIdFromListing(trimmed);
     // Matchar /item/1234567890.html, /1234567890.html, ?productId=1234567890
     const patterns = [
         /\/item\/(\d{10,16})/,
@@ -1489,7 +1490,7 @@ export function extractAliExpressProductId(input: string): string | null {
     ];
     for (const re of patterns) {
         const m = trimmed.match(re);
-        if (m) return m[1];
+        if (m) return aliExpressIdFromListing(m[1]);
     }
     return null;
 }

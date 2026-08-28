@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProductMappingRecord } from "@/lib/store";
 import type { FulfillmentTask } from "@/lib/orders/types";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 
 // next/cache och AliExpress-klienten mockas; allt annat (store=memory) är riktigt.
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -335,7 +336,7 @@ describe("releaseTaskAction — släpp fastlåst task", () => {
 describe("fetchSupplierVariantsAction", () => {
   it("returnerar leverantörens SKU:er med läsbar etikett från skuProps", async () => {
     const { actions, client } = await setup(baseTask());
-    vi.mocked(client.extractAliExpressProductId).mockReturnValue("BBB");
+    vi.mocked(client.extractAliExpressProductId).mockReturnValue(aliExpressIdFromListing("BBB"));
     vi.mocked(client.getInventory).mockResolvedValue({
       listingAvailability: "on_selling",
       variants: [

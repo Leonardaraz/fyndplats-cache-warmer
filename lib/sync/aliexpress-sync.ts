@@ -56,7 +56,7 @@ import {
   sendEmail,
 } from "../email/resend";
 import { applyBestsellerPriority, priorityRank, RECENT_PURCHASE_REASON } from "./bestsellers";
-import { isAliExpressMapping } from "../store/supplier";
+import { aliExpressIdOf, isAliExpressMapping } from "../store/supplier";
 
 export const DEFAULT_MARGIN_FLOOR_PERCENT = 20;
 export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
@@ -902,6 +902,17 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     return { actionTaken: "none", wixMissing: true };
   }
 
+  // 0.5) ÄR RADEN ÖVER HUVUD TAGET EN ALIEXPRESS-RAD?
+  //
+  // Rotationsloopen sållar redan bort Aosom-rader, så det här ska aldrig
+  // falla i produktion. Det står här ändå för att `aeId` är den märkta typ
+  // DS-anropen kräver: villkoret ÄR spärren, uttryckt så att en framtida
+  // anropare av syncOneProduct inte kan gå förbi den utan att koden slutar
+  // kompilera. Ligger FÖRE try-blocket med flit — ett kast därinne hade
+  // räknats som ett AE-hämtningsfel och drivit upp fetchErrorStreak.
+  const aeId = aliExpressIdOf(mapping);
+  if (!aeId) return { actionTaken: "none" };
+
   // 1) Hämta AliExpress-data. Två anrop räcker (product.get inkluderar redan
   // varianterna), men vi separerar för tydlighet och felisolering.
   let aliExpress: SyncInputs["aliExpress"] = null;
@@ -925,7 +936,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // >0 när hämtningen felade oklassat denna körning (persisteras i newState).
   let fetchErrorStreak = 0;
   try {
-    const product = await getAliExpressProduct(mapping.supplierProductId);
+    const product = await getAliExpressProduct(aeId);
     // NEDTAGEN LISTNING SOM SVARAR 200 (Leonards rapport 2026-08-24).
     //
     // Hela klassificeringen nedan byggde på att en död listning FELAR. Det gör
@@ -1193,6 +1204,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   ) {
     try {
       const check = await checkMappingShippability({
+        productId: aeId,
         mapping,
         aeVariants: aeVariantsForShippability,
         nowMs: Date.parse(checkedAt),

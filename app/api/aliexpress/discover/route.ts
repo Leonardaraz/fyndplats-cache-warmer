@@ -22,6 +22,7 @@ import {
 } from "@/lib/aliexpress/client";
 import { filterEuWarehouses } from "@/lib/aliexpress/eu-discover";
 import { isAuthorized } from "@/lib/auth";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 
 export const runtime = "nodejs";
 // EU-läget gör flera detalj-anrop (berikning) per sida → tillåt längre körtid.
@@ -99,7 +100,8 @@ export async function POST(req: NextRequest) {
 
     const results = euOnly
       ? await filterEuWarehouses(all, {
-          getShipFrom: async (pid) => (await getProduct(pid)).shipsFromCountries ?? [],
+          getShipFrom: async (pid) =>
+            (await getProduct(aliExpressIdFromListing(pid))).shipsFromCountries ?? [],
           concurrency: envInt("DISCOVER_EU_CONCURRENCY", 4),
           cacheTtlMs: envInt("DISCOVER_EU_CACHE_TTL_MS", 24 * 60 * 60 * 1000),
         })

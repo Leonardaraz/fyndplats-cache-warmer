@@ -12,6 +12,7 @@ import { isAuthorized } from "@/lib/auth";
 import { getProduct } from "@/lib/aliexpress/client";
 import { buildSellerSources, storefrontUrl } from "@/lib/discover/seller-sources";
 import { DEFAULT_WATCHED_SELLER_IDS } from "@/lib/discover/supplier-watch";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   let namespaceCheck: unknown = null;
   if (sampleProductId) {
     try {
-      const p = await getProduct(sampleProductId);
+      const p = await getProduct(aliExpressIdFromListing(sampleProductId));
       namespaceCheck = {
         productId: sampleProductId,
         resolvedStoreId: p.storeId ?? null,

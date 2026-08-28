@@ -21,7 +21,7 @@ import {
   debugRawProductGet,
 } from "@/lib/aliexpress/client";
 import { checkMappingShippability, SHIP_FROM_FAILOVER_MAX, zeroUnshippableInventory } from "@/lib/sync/shippability";
-import { isAliExpressMapping } from "@/lib/store/supplier";
+import { aliExpressIdOf } from "@/lib/store/supplier";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -57,7 +57,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: `Ingen mappning för ${id}.` }, { status: 404 });
     }
 
-    if (!isAliExpressMapping(mapping)) {
+    // Guarden OCH id:t i ett: aliExpressIdOf returnerar null för exakt de
+    // rader isAliExpressMapping sa nej till, och ger annars den märkta typ
+    // DS-anropen nedan kräver. Två konstruktioner som kunde glida isär blev en.
+    const aeId = aliExpressIdOf(mapping);
+    if (!aeId) {
       return NextResponse.json(
         {
           error:
@@ -68,7 +72,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const product = await getAliExpressProduct(mapping.supplierProductId);
+    const product = await getAliExpressProduct(aeId);
     // stock + shipFrom följer med så lager-failovern kan prioritera samma sätt
     // som synken gör (lager med saldo först, EU före icke-EU).
     const aeVariants = product.variants
@@ -106,11 +110,11 @@ export async function GET(req: NextRequest) {
         skuProps: v.skuProps,
       })),
     };
-    const rawProduct = raw ? await debugRawProductGet(mapping.supplierProductId) : undefined;
+    const rawProduct = raw ? await debugRawProductGet(aeId) : undefined;
 
     const check = await checkMappingShippability({
+      productId: aeId,
       mapping: {
-        supplierProductId: mapping.supplierProductId,
         // Tvinga omkontroll av ALLA varianter i debug-läget (nollställ stämpeln).
         variants: mapping.variants.map((v) => ({ ...v, shippabilityCheckedAt: undefined })),
       },

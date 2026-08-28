@@ -68,6 +68,7 @@ import { matchesColorName, isColorAxis } from "./color-match";
 import { sortedSizeChoices } from "./variant-sort";
 import { buildVariantSkus } from "./sku";
 import { audit } from "../audit";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 /**
  * Paus mellan bilduppladdningar, i ms. Default 150.
  *
@@ -385,7 +386,8 @@ export async function importProduct(
   // Memoiserat DS-anrop: prisavstämningen, variantbild- OCH beskrivnings-
   // backfillen kan alla behöva DS-produkten — då hämtas den bara EN gång.
   let dsProductPromise: ReturnType<typeof getProduct> | undefined;
-  const getProductOnce = (id: string) => (dsProductPromise ??= getProduct(id));
+  const getProductOnce = (id: string) =>
+    (dsProductPromise ??= getProduct(aliExpressIdFromListing(id)));
 
   // DS-PRISAVSTÄMNING (Leonards fynd 2026-08-07): DOM-fallbacken i skrapan
   // sätter sidans synliga pris på ALLA varianter (dom-N-id:n) — dyrare

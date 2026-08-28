@@ -12,6 +12,9 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getInventory } from "@/lib/aliexpress/client";
 import { checkToken } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
+import { aliExpressIdOf } from "@/lib/store/supplier";
+import type { AliExpressProductId } from "@/lib/aliexpress/product-id";
+import type { ProductMappingRecord } from "@/lib/store/index";
 import { pricingConfigFromEnv } from "@/lib/config";
 import { evaluatePriceChange } from "@/lib/sync/price-watch";
 import { syncProductStock, buildDesiredStock } from "@/lib/sync/inventory";
@@ -26,7 +29,23 @@ export async function POST(req: NextRequest) {
   if (authErr) return authErr;
 
   const store = getStore();
-  const mappings = await store.listMappings();
+  // ☠️ BARA ALIEXPRESS-RADER. Rutten slår upp `supplierProductId` mot DS-API:t
+  // per produkt, och ett Aosom-artikelnummer kan aldrig träffa där. Utan
+  // spärren blev det 4 432 omöjliga uppslag per körning (mätt 2026-08-28) som
+  // äter API-budgeten och tränger undan de produkter som faktiskt behöver
+  // synkas — och rutten NOLLAR lagret vid `offline`, så en felklassad rad hade
+  // kunnat tömma en Aosom-produkt.
+  //
+  // Spärren fanns i den dagliga synken, importen, orderläggningen och fyra
+  // vägar till. Den här missades — och när `getInventory` gjordes om till att
+  // kräva en `AliExpressProductId` föll ytterligare två ut som kompileringsfel
+  // (variantreparationen i /admin/mappings och två order-åtgärder i /admin).
+  // Det är hela argumentet för typen: en spärr man måste komma ihåg glöms bort.
+  const mappings: { mapping: ProductMappingRecord; aeId: AliExpressProductId }[] = [];
+  for (const m of await store.listMappings()) {
+    const aeId = aliExpressIdOf(m);
+    if (aeId) mappings.push({ mapping: m, aeId });
+  }
 
   if (mappings.length === 0) {
     return NextResponse.json({ synced: 0, alerts: [], errors: [], message: "Inga mappade produkter hittades." });
@@ -40,10 +59,10 @@ export async function POST(req: NextRequest) {
   const errors: string[] = [];
   let synced = 0;
 
-  for (const mapping of mappings) {
+  for (const { mapping, aeId } of mappings) {
     try {
       // Hämta aktuellt lager + pris per variant från DS API.
-      const svar = await getInventory(mapping.supplierProductId);
+      const svar = await getInventory(aeId);
       const inventory = svar.variants;
 
       // NEDTAGEN LISTNING (audit 2026-08-24). Den här rutten är en ANDRA
