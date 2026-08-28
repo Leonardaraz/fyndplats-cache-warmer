@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  borAterforsoka,
   planeraStadning,
   runMediaCleanup,
   mediaNyckel,
@@ -44,6 +45,31 @@ describe("mediaNyckel", () => {
   it("ignorerar query-parametrar — Wix lägger på dem vid visning", () => {
     expect(mediaNyckel("https://static.wixstatic.com/media/abc~mv2.jpg/v1/fill/w_500.jpg?x=1"))
       .toBe(mediaNyckel("https://static.wixstatic.com/media/abc~mv2.jpg/v1/fill/w_500.jpg"));
+  });
+});
+
+describe("borAterforsoka", () => {
+  const HTML = '  <!DOCTYPE html>\n<html><head><meta charset="utf-8">';
+  const JSON_FEL = '{"message":"INVALID_ARGUMENT: \'paging.limit\' must be less than or equal to 100"}';
+
+  it("☠️ ett 400 med HTML-kropp är edge-strypningen — vänta ut den", () => {
+    // 450 av 2 190 filer gavs upp direkt i ett enda fönster (2026-08-28) för
+    // att 4xx inte återförsöktes. Det var aldrig ett ogiltigt anrop.
+    expect(borAterforsoka(400, HTML)).toBe(true);
+  });
+
+  it("ett 400 med JSON-kropp är API:t — det blir aldrig bättre", () => {
+    expect(borAterforsoka(400, JSON_FEL)).toBe(false);
+  });
+
+  it("429 och 5xx återförsöks oavsett kropp", () => {
+    expect(borAterforsoka(429, HTML)).toBe(true);
+    expect(borAterforsoka(429, JSON_FEL)).toBe(true);
+    expect(borAterforsoka(503, "")).toBe(true);
+  });
+
+  it("404 med JSON rörs inte", () => {
+    expect(borAterforsoka(404, '{"message":"not found"}')).toBe(false);
   });
 });
 

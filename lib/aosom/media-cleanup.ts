@@ -331,6 +331,26 @@ export async function runMediaCleanup(
  * onödig.
  */
 /**
+ * ☠️ ETT 400 FRÅN EDGE-LAGRET ÄR INTE ETT 400 FRÅN API:T.
+ *
+ * Uppmätt 2026-08-28 under första skarpa rensningen: bulk-raderingen fick `400`
+ * med en HTML-SIDA i kroppen på ungefär var femte skopa — 450 av 2 190 filer i
+ * ett enda fönster gavs upp direkt, eftersom 4xx utom 429 inte återförsöktes.
+ * Det var edge-strypningen, inte ett ogiltigt anrop.
+ *
+ * De går att skilja åt på KROPPEN, inte på statuskoden: ett äkta API-fel svarar
+ * JSON (`INVALID_ARGUMENT: 'paging.limit' must be less than or equal to 100`),
+ * edge-lagret svarar `<!DOCTYPE html>`. Ett HTML-svar är transient och ska
+ * väntas ut; ett JSON-4xx blir aldrig bättre av att frågas igen — och att
+ * återförsöka det hade bara gjort varje trasigt anrop fyra gånger långsammare.
+ */
+export function borAterforsoka(status: number, kropp: string): boolean {
+  if (status === 429 || status >= 500) return true;
+  if (status >= 400) return kropp.trimStart().startsWith("<");
+  return false;
+}
+
+/**
  * Sidor per körning. 60 × 100 = 6 000 filer.
  *
  * Taket är satt av edge-spärren, inte av tiden: en körning dog efter ~150 sidor
@@ -378,9 +398,9 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
       }
       if (res.ok) return (await res.json()) as Record<string, unknown>;
 
-      sist = `${res.status}: ${(await res.text()).slice(0, 200)}`;
-      // 4xx utom 429 blir inte bättre av att frågas igen.
-      if (res.status !== 429 && res.status < 500) break;
+      const kropp = await res.text();
+      sist = `${res.status}: ${kropp.slice(0, 200)}`;
+      if (!borAterforsoka(res.status, kropp)) break;
       if (forsok === paus_ms.length) break;
       const retryAfter = Number(res.headers.get("retry-after"));
       await paus(Number.isFinite(retryAfter) && retryAfter > 0
