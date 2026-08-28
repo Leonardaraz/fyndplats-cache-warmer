@@ -1092,6 +1092,56 @@ nu torrkörningar och statusraden säger det rakt ut.
   aldrig att synken slutat köra. Övervägt 2026-08-24 men utelämnat: routen har
   EN `consecutiveFails`-räknare och EN larm-strypning, så en Wix-utage och en
   stannad synk hade delat tillstånd och larm. Kräver egen state-nyckel.
+  Morgonmejlet larmar däremot sedan 2026-08-28 (se nästa avsnitt) — det är
+  billigare och räckte för att fånga fallet.
+
+### ☠️ Synken låg nere i 57 timmar och ingenting sa till (2026-08-28)
+
+Hittad i en audit, inte av ett larm. Sista lyckade körningen var
+**2026-08-26 kl 10:03**; därefter svarade `/api/cron/aliexpress-sync` **500 vid
+varje körning** — 28 körningar i rad. Lager och priser för hela AE-katalogen
+stod stilla, och slutsålda eller nedtagna produkter förblev köpbara.
+
+Orsaken var en **obegränsad fan-out** i `runDailySync`: synk-tillståndet lästes
+med `Promise.all(mappings.map(...))`, alltså EN Wix-läsning per produkt, alla
+avfyrade i samma ögonblick. Det höll på 980 produkter och slutade hålla utan att
+någon rörde koden — och Aosom-importen tog sedan talet till **5 423 samtidiga
+anrop**.
+
+☠️ **Bomben exploderade när katalogen växte, inte när koden ändrades.** Sista
+commiten före haveriet låg ett dygn tidigare, och samma kod gick igenom fyra
+lyckade körningar samma morgon. Det finns ingen commit att skylla på, och en
+`git bisect` hade inte hittat något.
+
+Det var dessutom **osynligt i alla tre spåren**, vilket är det som gjorde 57
+timmar möjliga:
+
+| spår | vad det visade |
+|---|---|
+| Vercel-loggen | `GET /api/cron/aliexpress-sync 500` — **noll** loggrader |
+| `FyndplatsAudit` | ingen `aliexpress-sync-fatal`-rad alls |
+| Morgonmejlet | *"Synken: 0 körningar, 0 produkter kollade"* i grå statusremsa |
+
+Fatal-raden saknades för att lambdan **dog** av fan-outen — ruttens `catch`
+hann aldrig köra. Ett `try/catch` skyddar bara mot fel som kastas, inte mot en
+process som tar slut.
+
+Två lagningar, och båda behövs:
+
+1. **`mapWithConcurrency`** (`lib/concurrency.ts`, default 8, env
+   `SYNC_STATE_READ_CONCURRENCY`). Rader loopen ändå hoppar över kostar
+   dessutom ingen läsning alls — Aosom-raderna var 4 419 av 5 423, alltså
+   merparten av fan-outen. Hjälparen låg tidigare som en privat kopia i
+   `eu-discover.ts`; den är flyttad hit i stället för klonad, av samma skäl som
+   `SHIP_AXIS_RE` och `EU_TULL_CODES` — tvillingar glider isär.
+2. **Noll körningar får en egen larmrad i morgonmejlet** (`guard.ts`), före
+   torrkörningsraden: har den inte kört spelar skrivläget ingen roll. Tre
+   tester låser det.
+
+☠️ Regeln, femte gången: **ett misslyckande som ingen kan se är värre än ett
+som skriker.** Och den nya, som är dyrare: **en obegränsad fan-out skalar med
+katalogen — den är en tidsinställd bomb, inte en bugg.** Leta efter
+`Promise.all` över något som växer.
 
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 

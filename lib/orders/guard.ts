@@ -506,9 +506,22 @@ export function buildGuardEmail(
         (s.errors ? `, ${s.errors} fel` : "") +
         (s.throttled ? `, ${s.throttled} strypta AE-anrop` : ""),
     );
-    // Torrkörning är ingen statusrad bland andra — den betyder att butiken är
-    // OSKYDDAD. Egen, otvetydig rad.
-    if (s.dryRuns > 0) {
+    // ☠️ NOLL KÖRNINGAR ÄR DEN TYSTASTE FELMODEN AV ALLA, och den enda som
+    // inte hade någon egen rad förrän 2026-08-28. Cronen svarade 500 varje
+    // körning i 57 timmar (obegränsad fan-out i runDailySync dödade lambdan,
+    // så ruttens catch hann aldrig skriva sin fatal-rad). Morgonmejlet
+    // rapporterade "Synken: 0 körningar, 0 produkter kollade" — sant, korrekt,
+    // och begravt mitt i en grå statusremsa bland auktionssiffror.
+    //
+    // Ligger FÖRE torrkörningsraden: har den inte kört spelar det ingen roll
+    // om den skulle ha skrivit. Samma tanke som torrkörningsraden från
+    // 2026-08-24 — ett läge där butiken är oskyddad får inte se ut som statistik.
+    if (s.runs === 0) {
+      statusBits.push(
+        "⛔ SYNKEN HAR INTE KÖRT det senaste dygnet — inga lager- eller prisuppdateringar alls. "
+          + "Slutsålda och nedtagna produkter förblir köpbara. Kolla /api/cron/aliexpress-sync i Vercels loggar.",
+      );
+    } else if (s.dryRuns > 0) {
       statusBits.push(
         s.dryRuns === s.runs
           ? "⚠️ SYNC_DRY_RUN är PÅ — synken skriver INGENTING till Wix. Slutsålda och nedtagna produkter förblir köpbara."

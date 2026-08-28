@@ -379,6 +379,37 @@ describe("rollupSyncRuns + statusrad: torrkörning och nämnare", () => {
     expect(email.text).toContain("600/876");
   });
 
+  // Regressionstest för den tysta 57-timmarsincidenten (audit 2026-08-28):
+  // cronen svarade 500 varje körning, och mejlet sa "Synken: 0 körningar"
+  // mitt i en grå statusremsa utan ett enda varningstecken.
+  it("noll körningar → egen otvetydig rad, inte en nolla i statusremsan", () => {
+    const email = buildGuardEmail(findings({}), {
+      sectionErrors: [],
+      baseUrl: "https://example.test",
+      syncRollup: { runs: 0, checked: 0, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 0, restored: 0, errors: 0, total: 0, skipped: 0, dryRuns: 0, throttled: 0 },
+    }, NOW);
+    expect(email.text).toContain("SYNKEN HAR INTE KÖRT");
+    expect(email.text).toContain("förblir köpbara");
+  });
+
+  it("noll körningar vinner över torrkörningsraden — har den inte kört spelar skrivläget ingen roll", () => {
+    const email = buildGuardEmail(findings({}), {
+      sectionErrors: [],
+      baseUrl: "https://example.test",
+      syncRollup: { runs: 0, checked: 0, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 0, restored: 0, errors: 0, total: 0, skipped: 0, dryRuns: 0, throttled: 0 },
+    }, NOW);
+    expect(email.text).not.toContain("SYNC_DRY_RUN är PÅ");
+  });
+
+  it("en körning som faktiskt skrev ger ingen larmrad", () => {
+    const email = buildGuardEmail(findings({}), {
+      sectionErrors: [],
+      baseUrl: "https://example.test",
+      syncRollup: { runs: 6, checked: 600, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 0, restored: 0, errors: 0, total: 876, skipped: 0, dryRuns: 0, throttled: 0 },
+    }, NOW);
+    expect(email.text).not.toContain("SYNKEN HAR INTE KÖRT");
+  });
+
   it("delvis torrkörning nämns med sitt förhållande", () => {
     const email = buildGuardEmail(findings({}), {
       sectionErrors: [],
