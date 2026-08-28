@@ -141,8 +141,15 @@ den beskriver "en leverantörsprodukt på väg in" och har inget AE-specifikt i 
 
 Läget är **alltid `raw`**: noll Claude-anrop ($0) och `visible:false`
 ovillkorligt. Torrkörning är default; utan `?dryRun=false` skrivs ingenting.
-Rutten är **inte schemalagd** — en cron som fyller poleringskön snabbare än
-någon hinner skriva om texterna ger bara en växande hög tyska utkast.
+Rutten är **schemalagd sedan 2026-08-28** (`40 4 * * *`, 60 produkter per natt).
+
+Den låg medvetet oschemalagd fram till dess, med motiveringen att en cron som
+fyller poleringskön snabbare än någon hinner skriva om texterna bara ger en
+växande hög tyska utkast. **Leonard överröstade det uttryckligen** ("Om nya
+produkter kommer ska de automatiskt importeras så sköter jag poleringen") — det
+är hans kö att tömma, och ett osynligt utkast kostar ingenting medan det väntar.
+Dubblettspärren gör cronen till en no-op när feeden inte har något nytt: den går
+gratis förbi allt som redan har en mappning och importerar bara det som saknas.
 
 ### Så körs den: GitHub Actions, inte en terminal
 
@@ -201,6 +208,73 @@ har `CRON_SECRET` för handen.
 4. **Markören flyttas även vid fel.** Annars fastnar hela svepet på en trasig
    rad: nästa körning börjar om på samma produkt, misslyckas igen, och katalogen
    står stilla. Felet står i svarets `errors` och körs om riktat med `?sku=`.
+
+## Aosom-synken: ett anrop ger hela sanningen (`lib/aosom/sync.ts`)
+
+Lager och pris speglas av `/api/cron/aosom-sync`, schemalagd `20 */6 * * *`.
+
+Den är byggd tvärtemot AliExpress-synken, och skälet är strukturellt. AE måste
+ringa DS-API:t **en gång per produkt**, lever under `maxApiCalls` och roterar
+därför genom katalogen — ett varv tar ~20 timmar, och därav hela strike-mekaniken.
+Aosom är **ett enda HTTP-anrop** som ger alla 6 057 rader med saldo och pris.
+Ingen budget, ingen rotation, inga strikes: varje körning ser allt samtidigt.
+
+Det gör problemet mindre men flyttar risken. När en körning kan röra hela
+sortimentet är en trasig feed farligare än en trasig produkt — därför ligger
+spärrarna mot MASSFEL, inte mot enskilda fel.
+
+### Fem egenskaper som inte ska tas bort
+
+1. ☠️ **`MIN_FEED_RADER` kastar.** Ger feeden färre än 2 000 rader avbryts
+   körningen. En halvhämtad CSV får aldrig tolkas som att lagret tagit slut —
+   det är skillnaden mot AE, där ett fel bara kan nolla en produkt.
+2. ☠️ **En rad som försvinner är INTE utgången.** Aosoms B2B-guide, ordagrant:
+   *"Items with low stock may be temporarily removed to avoid overselling."*
+   Raden är ett lagerbesked. Rätt svar är att nolla saldot och låta sidan ligga
+   kvar; nästa körning där raden är tillbaka återställer saldot av sig själv.
+3. **`LAGER_BUFFERT = 3`.** Feeden uppdateras tre gånger per dygn, så mellan två
+   synkar är siffran gammal. Säger Aosom "3 kvar" och vi visar 3 säljer vi den
+   fjärde. Aosom flaggar dessutom själva 276 rader med "Low Stock Alert".
+4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
+   cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
+   Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
+   Efter några varv skriver varje körning noll.
+5. **`MAX_PRISANDRING_PCT = 40`.** Prissynken är tvåvägs och helautomatisk
+   (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
+   en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
+   kund. Över taket skrivs ingenting och raden hamnar i `varningar`.
+
+Wix skrivs före mappningen, samma ordning och samma skäl som `price-repair`.
+Alla tre kostnadsfälten skrivs — `grossSek`, `costUsd` och `landedCostSek` —
+aldrig bara priset.
+
+### ☠️ En `variantsInfo`-PATCH PUBLICERAR ett utkast
+
+Uppmätt mot skarpa V3 2026-08-28 på ett osynligt Aosom-utkast: en PATCH med
+`fieldMask: ["variantsInfo"]` och **oförändrat pris** tog produkten från
+`visible:false` till `visible:true`. Fältmasken skyddar alltså inte synligheten —
+Wix behandlar en variantskrivning som en publicering.
+
+Konsekvensen var inte teoretisk. `updateV3VariantPrices` skickade inte med
+`visible`, och `price-repair` filtrerar inte på synlighet. Med 2 700+ opolerade
+tyska utkast i katalogen hade en enda prisreparation kunnat lägga ut dem på
+sajten. Funktionen skickar nu alltid tillbaka `visible` oförändrad; saknas
+fältet i svaret utelämnas det hellre än gissas. Fem tester i `v3-prices.test.ts`
+låser det.
+
+### Vad Aosoms B2B-guide säger om beställningar
+
+Ordervägen är fortfarande inte byggd — `lib/orders/place-order.ts` är helt
+AliExpress — men guiden (2026-08-28) visar att den inte kräver ett API:
+
+- **Bulkorder via CSV** (`aosom.de/bulkordering`): 100 ordrar per omgång, 20
+  artikelnummer per rad, 200 olika SKU:er, max 1 000 enheter, betalning i klump.
+  Det är en fil som går att generera ur orderkön.
+- **API-integration erbjuds** "after a few months of successful collaboration".
+- **Hämtning på lager** (`Pick Up` i kassan, lagren i Neu Wulmstorf och
+  Schwanewede) — det är draget mot fraktproblemet: bort från 84 € per kolli till
+  Sverige. Pallutbyte kostar 30 € i adminavgift utan egna pallar.
+- Alla ordrar är **förskottsbetalda**, plock 1–4 arbetsdagar.
 
 ### Vad spärren INTE ser
 

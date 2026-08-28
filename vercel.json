@@ -36,6 +36,14 @@
     {
       "path": "/api/cron/review-queue",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/aosom-sync?dryRun=false",
+      "schedule": "20 */6 * * *"
+    },
+    {
+      "path": "/api/cron/aosom-import?dryRun=false&limit=60",
+      "schedule": "40 4 * * *"
     }
   ],
   "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_CEca1mZt6bjVcL4FqUWxCshYUvNL\" ] && exit 0 || exit 1"

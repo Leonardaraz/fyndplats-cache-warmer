@@ -59,6 +59,21 @@ export interface ProductMappingRecord {
    * bär. Medianen över feeden är 0,40.
    */
   aosomFreightShare?: number;
+  /**
+   * AOSOM: lagersaldot vi SENAST skrev till Wix för den här produkten.
+   *
+   * Finns för att lagersynken ska slippa läsa Wix för varje produkt i varje
+   * körning. Feeden ger 6 000 rader i ett anrop, men lagerskrivningen kräver en
+   * Wix-GET per produkt för att få postens id och revision — och saldot ändras
+   * bara för en minoritet mellan två körningar. Skiljer sig feedens siffra inte
+   * från den här rörs Wix inte alls.
+   *
+   * Skrivs FÖRST efter en lyckad skrivning, aldrig före: annars hade ett
+   * misslyckat anrop bokförts som synkat och produkten hoppats över för alltid.
+   */
+  aosomSyncedQty?: number;
+  /** AOSOM: ISO-tid för senaste lyckade lager-/prissynk. */
+  aosomSyncedAt?: string;
   wixProductId: string;
   variants: VariantMapping[];
   /**
