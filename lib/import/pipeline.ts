@@ -1007,7 +1007,12 @@ export async function importProduct(
   product.imageUrls.forEach((u, i) => {
     altByOriginalUrl.set(u, seo.imageAltTexts[i] ?? seo.title);
   });
-  const mediaItems = uploadedMedia.map((m, i) => ({
+  // `id` följer med — utan det tolkar V3 adressen som EXTERN och importerar om
+  // bilden till en ny fil. Uppmätt 2026-08-28: 591 av 595 granskade
+  // wixstatic-filer var sådana kopior, och Media Manager hade 58 160 filer där
+  // hälften räckt. Se kommentaren på WixProductInput.mediaItems.
+  const mediaItems: { id?: string; url: string; altText: string }[] = uploadedMedia.map((m, i) => ({
+    ...(m.id ? { id: m.id } : {}),
     url: m.url,
     altText: altByOriginalUrl.get(orderedImageUrls[i]) ?? seo.title,
   }));
@@ -1318,27 +1323,29 @@ function mediaKey(url: string): string {
 async function uploadSwatchMedia(
   sources: { optionName: string; choiceName: string; sourceUrl: string; altText: string }[],
   slug: string,
-): Promise<{ poolItems: { url: string; altText: string }[]; links: ChoiceMediaLink[] }> {
+): Promise<{ poolItems: { id?: string; url: string; altText: string }[]; links: ChoiceMediaLink[] }> {
   if (sources.length === 0) return { poolItems: [], links: [] };
   const uniqueSources = [...new Set(sources.map((s) => s.sourceUrl))];
   const results = await Promise.allSettled(
     uniqueSources.map((url, i) => importMediaByUrl(url, `${slug || "produkt"}-variant-${i + 1}`)),
   );
-  const wixBySource = new Map<string, string>();
+  // Både id och adress sparas — id:t är det som får skickas till V3, annars
+  // importeras bilden om till en ny fil (se WixProductInput.mediaItems).
+  const wixBySource = new Map<string, { id: string; url: string }>();
   uniqueSources.forEach((src, i) => {
     const r = results[i];
-    if (r.status === "fulfilled") wixBySource.set(src, r.value.url);
+    if (r.status === "fulfilled") wixBySource.set(src, { id: r.value.id, url: r.value.url });
   });
-  const poolItems: { url: string; altText: string }[] = [];
+  const poolItems: { id?: string; url: string; altText: string }[] = [];
   const seenUrls = new Set<string>();
   const links: ChoiceMediaLink[] = [];
   for (const s of sources) {
     const wix = wixBySource.get(s.sourceUrl);
     if (!wix) continue;
     links.push({ optionName: s.optionName, choiceName: s.choiceName, altText: s.altText });
-    if (!seenUrls.has(wix)) {
-      seenUrls.add(wix);
-      poolItems.push({ url: wix, altText: s.altText });
+    if (!seenUrls.has(wix.url)) {
+      seenUrls.add(wix.url);
+      poolItems.push({ id: wix.id || undefined, url: wix.url, altText: s.altText });
     }
   }
   return { poolItems, links };

@@ -16,6 +16,7 @@ import { normalizeCountryCode, provinceFromSwedishPostalCode } from "@/lib/order
 import { isTerminal } from "@/lib/orders/status";
 import { assessDsPrice } from "@/lib/orders/price-check";
 import type { Store } from "@/lib/store";
+import { isAliExpressMapping, mappingSupplier } from "@/lib/store/supplier";
 
 /**
  * Tak för hur många fraktsätt vi provar. Listan är rangordnad bäst först, så
@@ -75,6 +76,28 @@ export async function placeOrderForTask(
 
   const mapping = await store.getMappingByWixProductId(task.wixCatalogItemId);
   if (!mapping) return { ok: false, error: "Ingen AliExpress-mappning för produkten" };
+
+  // ☠️ HELA DEN HÄR FILEN ÄR ALIEXPRESS. Den hämtar produkten ur DS-API:t, matchar
+  // varianten mot en AE-SKU och lägger ordern via aliexpress.ds.order.create.
+  //
+  // En Aosom-mappning bär ett artikelnummer som "845-030CG" i samma fält. Utan den
+  // här grinden skickas det rakt in i AE:s API: ett uppslag som aldrig kan träffa,
+  // och ett felmeddelande som pekar åt fel håll för den som felsöker. Katalogen bär
+  // sedan 2026-08-28 över 2 700 Aosom-utkast, så det slutar vara hypotetiskt i samma
+  // stund som den första publiceras.
+  //
+  // Aosom beställs i stället i klump: /admin/aosom-order bygger CSV:n som
+  // aosom.de/bulkordering tar emot. Meddelandet säger det, så den som ser felet i
+  // /admin vet vad hen ska göra i stället för att leta i AE-loggarna.
+  if (!isAliExpressMapping(mapping)) {
+    return {
+      ok: false,
+      error:
+        `Produkten kommer från ${mappingSupplier(mapping)}, inte AliExpress — ingen order läggs. `
+        + `Aosom-ordrar beställs i klump: hämta CSV:n i /admin/aosom-order och ladda upp `
+        + `den på aosom.de/bulkordering.`,
+    };
+  }
 
   // F49: SKU först (entydigt); annars choices med EXAKT EN träff; enproduktsgenväg bara
   // vid tom choices. Tvetydiga/tomma choices på multi-variant → undefined → avbryt nedan.

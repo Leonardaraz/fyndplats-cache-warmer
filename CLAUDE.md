@@ -141,8 +141,15 @@ den beskriver "en leverantörsprodukt på väg in" och har inget AE-specifikt i 
 
 Läget är **alltid `raw`**: noll Claude-anrop ($0) och `visible:false`
 ovillkorligt. Torrkörning är default; utan `?dryRun=false` skrivs ingenting.
-Rutten är **inte schemalagd** — en cron som fyller poleringskön snabbare än
-någon hinner skriva om texterna ger bara en växande hög tyska utkast.
+Rutten är **schemalagd sedan 2026-08-28** (`40 4 * * *`, 60 produkter per natt).
+
+Den låg medvetet oschemalagd fram till dess, med motiveringen att en cron som
+fyller poleringskön snabbare än någon hinner skriva om texterna bara ger en
+växande hög tyska utkast. **Leonard överröstade det uttryckligen** ("Om nya
+produkter kommer ska de automatiskt importeras så sköter jag poleringen") — det
+är hans kö att tömma, och ett osynligt utkast kostar ingenting medan det väntar.
+Dubblettspärren gör cronen till en no-op när feeden inte har något nytt: den går
+gratis förbi allt som redan har en mappning och importerar bara det som saknas.
 
 ### Så körs den: GitHub Actions, inte en terminal
 
@@ -201,6 +208,113 @@ har `CRON_SECRET` för handen.
 4. **Markören flyttas även vid fel.** Annars fastnar hela svepet på en trasig
    rad: nästa körning börjar om på samma produkt, misslyckas igen, och katalogen
    står stilla. Felet står i svarets `errors` och körs om riktat med `?sku=`.
+
+## Aosom-synken: ett anrop ger hela sanningen (`lib/aosom/sync.ts`)
+
+Lager och pris speglas av `/api/cron/aosom-sync`, schemalagd `20 */6 * * *`.
+
+Den är byggd tvärtemot AliExpress-synken, och skälet är strukturellt. AE måste
+ringa DS-API:t **en gång per produkt**, lever under `maxApiCalls` och roterar
+därför genom katalogen — ett varv tar ~20 timmar, och därav hela strike-mekaniken.
+Aosom är **ett enda HTTP-anrop** som ger alla 6 057 rader med saldo och pris.
+Ingen budget, ingen rotation, inga strikes: varje körning ser allt samtidigt.
+
+Det gör problemet mindre men flyttar risken. När en körning kan röra hela
+sortimentet är en trasig feed farligare än en trasig produkt — därför ligger
+spärrarna mot MASSFEL, inte mot enskilda fel.
+
+### Fem egenskaper som inte ska tas bort
+
+1. ☠️ **`MIN_FEED_RADER` kastar.** Ger feeden färre än 2 000 rader avbryts
+   körningen. En halvhämtad CSV får aldrig tolkas som att lagret tagit slut —
+   det är skillnaden mot AE, där ett fel bara kan nolla en produkt.
+2. ☠️ **En rad som försvinner är INTE utgången.** Aosoms B2B-guide, ordagrant:
+   *"Items with low stock may be temporarily removed to avoid overselling."*
+   Raden är ett lagerbesked. Rätt svar är att nolla saldot och låta sidan ligga
+   kvar; nästa körning där raden är tillbaka återställer saldot av sig själv.
+3. **`LAGER_BUFFERT = 3`.** Feeden uppdateras tre gånger per dygn, så mellan två
+   synkar är siffran gammal. Säger Aosom "3 kvar" och vi visar 3 säljer vi den
+   fjärde. Aosom flaggar dessutom själva 276 rader med "Low Stock Alert".
+4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
+   cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
+   Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
+   Efter några varv skriver varje körning noll.
+5. **`MAX_PRISANDRING_PCT = 40`.** Prissynken är tvåvägs och helautomatisk
+   (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
+   en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
+   kund. Över taket skrivs ingenting och raden hamnar i `varningar`.
+
+Wix skrivs före mappningen, samma ordning och samma skäl som `price-repair`.
+Alla tre kostnadsfälten skrivs — `grossSek`, `costUsd` och `landedCostSek` —
+aldrig bara priset.
+
+### ☠️ En `variantsInfo`-PATCH PUBLICERAR ett utkast
+
+Uppmätt mot skarpa V3 2026-08-28 på ett osynligt Aosom-utkast: en PATCH med
+`fieldMask: ["variantsInfo"]` och **oförändrat pris** tog produkten från
+`visible:false` till `visible:true`. Fältmasken skyddar alltså inte synligheten —
+Wix behandlar en variantskrivning som en publicering.
+
+Konsekvensen var inte teoretisk. `updateV3VariantPrices` skickade inte med
+`visible`, och `price-repair` filtrerar inte på synlighet. Med 2 700+ opolerade
+tyska utkast i katalogen hade en enda prisreparation kunnat lägga ut dem på
+sajten. Funktionen skickar nu alltid tillbaka `visible` oförändrad; saknas
+fältet i svaret utelämnas det hellre än gissas. Fem tester i `v3-prices.test.ts`
+låser det.
+
+### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
+
+☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
+hämtar produkten ur DS-API:t, matchar varianten mot en AE-SKU och lägger ordern
+via `aliexpress.ds.order.create`. En Aosom-mappning bär "845-030CG" i exakt
+samma fält, så utan grinden hade artikelnumret skickats rakt in i AE:s API — ett
+uppslag som aldrig kan träffa, med ett felmeddelande som pekar åt fel håll.
+Grinden är `isAliExpressMapping` i `placeOrderForTask`, och meddelandet pekar på
+bulkordern så den som ser felet i `/admin` inte börjar leta i AE-loggarna. En rad
+UTAN `supplier`-fält räknas fortfarande som AliExpress — annars hade hela den
+befintliga katalogen slutat gå att beställa.
+
+Aosoms egen väg kräver inget API. `/api/admin/aosom-order` bygger filen som
+`aosom.de/bulkordering` tar emot: **varje rad är en order** — en kundadress med
+upp till tjugo artikelnummer. Utan `?format=csv` svarar rutten med planen, så
+man ser vad som kommer med innan något laddas upp.
+
+Gränserna är **Aosoms, inte våra** (guiden, avsnitt 5), och en batch som spränger
+någon av dem avvisas först efter uppladdningen — därför delas ordrarna i förväg:
+
+| | |
+|---|---:|
+| Ordrar per omgång | 100 |
+| Artikelnummer per rad | 20 |
+| Olika artikelnummer per batch | 200 |
+| Enheter per batch | 1 000 |
+
+Två egenskaper som inte ska tas bort:
+
+1. ☠️ **En order delas ALDRIG mellan två batchar.** Raden ÄR ordern, med en
+   adress och en betalning. Splittad blir det två leveranser, två fraktavgifter
+   och en kund som får halva sin beställning. En order som ensam spränger ett tak
+   flaggas som `omojlig` och lämnas till en människa.
+2. **En kunds rader slås ihop till EN rad.** Kön är radbaserad
+   (`taskId` = `${orderId}:${lineItemId}`), Aosoms fil är orderbaserad. Tre rader
+   hade blivit tre leveranser med varsin fraktavgift — och frakten är redan den
+   dyraste delen av en Aosom-order.
+
+⚠️ **Adresskolumnernas rubriker är inte verifierade.** Guiden anger bara att
+kolumn A är artikelnumren och kolumn B antalen; adressfälten beskrivs som "one
+customer address" utan namn. Ladda ner deras formulär en gång och rätta
+`CSV_KOLUMNER` — datan i raderna är rätt oavsett.
+
+### Resten av vad guiden säger
+
+- **API-integration erbjuds** "after a few months of successful collaboration".
+  Fråga Henrik Leseberg när ni har historik.
+- **Hämtning på lager** (`Pick Up` i kassan, Neu Wulmstorf och Schwanewede, egna
+  fraktkontakter) — det är draget mot fraktproblemet: bort från 84 € per kolli
+  till Sverige. Pallutbyte kostar 30 € i adminavgift utan egna pallar.
+- Alla ordrar är **förskottsbetalda**, plock 1–4 arbetsdagar. Kan en vara inte
+  levereras kommer besked per mejl och pengarna tillbaka — men då har vi redan
+  tagit betalt av kunden.
 
 ### Vad spärren INTE ser
 
@@ -347,6 +461,82 @@ Workflowen läste heller aldrig `misslyckade` — den gör det nu, och skriver u
 här: recensionsbilderna (2026-08-22), `Promise.allSettled` i `media.ts`
 (2026-08-27), och nu en skrivning som svarar OK utan att göra något. Regeln är
 densamma varje gång — **räkna efter, lita inte på svaret.**
+
+### ☠️ Wix importerade om VARJE bild — halva lagringen var kopior (2026-08-28)
+
+Det här förklarar två problem som såg orelaterade ut: att lagringen tog slut,
+och att bildfixen kunde rapportera fem lyckade uppladdningar på en produkt som
+sedan hade fyra bilder.
+
+V3:s dokumentation om produktmedia är entydig. Ett media-item tar ANTINGEN
+`id` (en fil som redan ligger i Media Manager) ELLER `url` — och `url` betyder
+ordagrant *"an external media URL"*. Vi skickade wixstatic-adresser, alltså
+bilder som redan låg i Media Manager, och **Wix importerade om varenda en till
+en ny fil**.
+
+Uppmätt på 1 200 filer: **591 av 595 wixstatic-filer var kopior av bilder vi
+själva laddat upp**, spårbara via sin `sourceUrl`. Media Manager hade **58 160
+filer** där hälften räckt.
+
+Omimporten är dessutom ASYNKRON. Det är mekanismen bakom "524 lagade, 214
+saknade ändå bilder": produkten bar aldrig våra filer, den bar Wix kopior — och
+när en kopia inte hunnit bli klar visade produkten fyra av fem. Den var alltså
+aldrig oförklarad, bara felsökt på fel lager.
+
+`importMediaByUrl` returnerade `id` hela tiden. Ingen använde det.
+
+Lagat i `lib/wix/client.ts` (`createProduct` + `setProductMedia`), `pipeline.ts`
+och `image-repair.ts`: id:t följer med hela vägen, och `url` skickas bara när
+adressen faktiskt är extern. `media.main` skickas inte längre alls — den är
+read-only i V3 och gav en extra omimport av huvudbilden. Tre tester i
+`client-media.test.ts` låser det.
+
+☠️ Regeln: **skicka aldrig en wixstatic-adress till Wix som om den vore extern.**
+
+### Städningen av det som blev kvar
+
+#### Bildfixen lämnade dessutom sina egna kopior
+
+Fjärde bildfix-körningen dog mitt i: **Wix-lagringen tog slut.**
+
+Orsaken står i `image-repair.ts` egen designkommentar. Den laddar upp ALLA fem
+bilderna på nytt för varje produkt den lagar och ersätter medialistan — och de
+gamla filerna blir kvar. Kommentaren sa att det "kostar några hundra extra
+uppladdningar totalt"; den skrevs när katalogen var 744 produkter och EN körning
+var planerad. Verkligheten blev fyra körningar mot en katalog som växte till
+2 712 produkter, och varje lagad produkt lämnar fem filer à drygt en megabyte.
+
+`/api/cron/aosom-media-cleanup` (`lib/aosom/media-cleanup.ts`, schemalagd
+`50 3 * * *`) raderar Aosom-bilder som ingen produkt använder. Tre egenskaper som
+inte ska tas bort:
+
+1. ☠️ **Massfel-spärren kastar.** Är referenslistan mindre än en halv bild per
+   läst produkt är det ett LÄSFEL, inte en tom katalog — och en körning hade
+   raderat hela butikens bildbank permanent. Samma tanke som `MIN_FEED_RADER`.
+2. **Bara filer VÅR kod skapat**, avgjort på `sourceUrl` — inte på namnet.
+   `addedBy` duger inte: vår API-nyckel agerar som sajtägaren, så en bild Leonard
+   dragit in i editorn ser identisk ut. Men en importerad fil bär adressen den
+   hämtades från (leverantörernas CDN), och Wix egna kopior bär en
+   wixstatic-adress som pekar tillbaka på en av våra. **En handuppladdad bild har
+   ingen `sourceUrl` alls** och kan därför aldrig komma i fråga — det är skyddet
+   för logotyper, banners och kategoribilder, som inte syns i något API vi kan
+   lista och därför måste undantas på egenskap i stället för på uppräkning.
+   Referenslistan byggs ur HELA katalogen, inte bara Aosom-delen.
+3. **`permanent: true`.** Papperskorgen räknas fortfarande mot lagringen, så en
+   vanlig radering frigör ingenting alls.
+
+Städningen är avsiktligt en SEPARAT körning och inte inbakad i reparationen: en
+radering inne i reparationen hade skett innan skrivningen verifierats, och en
+produkt vars nya bilder inte fastnade hade då förlorat även de gamla.
+
+**Den riktiga lösningen är inte byggd.** Reparationen laddar om alla fem för att
+en wixstatic-adress inte avslöjar vilken källbild den kom från. Sparas den
+kopplingen på mappningen kan bara det som saknas laddas om, och då uppstår inga
+föräldralösa filer alls.
+
+⚠️ Media-API:t svarar **429 vid ~40–50 sidor i rad**. Både listningarna i
+`liveDeps` pausar 120 ms mellan sidorna. Mät inte beståndet genom en MCP-loop —
+den slår i taket långt innan den är klar.
 
 ### Att polera en Aosom-produkt
 

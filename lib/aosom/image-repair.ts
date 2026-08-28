@@ -12,9 +12,26 @@
 //
 // En wixstatic-adress avslöjar inte vilken källbild den kom från, så det går
 // inte att veta VILKA av de fem som saknas på en produkt med tre. Att ladda om
-// alla fem och ersätta listan är enkelt, idempotent och kostar några hundra
-// extra uppladdningar totalt — mot en katalog där en tredjedel av produkterna
-// har fel bilder i fel ordning.
+// alla fem och ersätta listan är enkelt och idempotent.
+//
+// ☠️ MEN DET LÄMNAR DE GAMLA FILERNA KVAR, OCH DET FYLLDE LAGRINGEN (2026-08-28)
+//
+// Den här kommentaren sa tidigare att omladdningen "kostar några hundra extra
+// uppladdningar totalt". Den skrevs när katalogen var 744 produkter och EN
+// reparationskörning var planerad. Verkligheten blev fyra körningar mot en
+// katalog som växte till 2 712 produkter: varje lagad produkt lämnar fem filer
+// à drygt en megabyte i Media Manager, och Wix-lagringen tog slut mitt under den
+// fjärde körningen.
+//
+// Filerna städas av `/api/cron/aosom-media-cleanup`, som raderar Aosom-bilder
+// som ingen produkt använder. Den är avsiktligt en SEPARAT körning och inte
+// inbakad här: en radering inne i reparationen hade skett innan skrivningen
+// verifierats, och en produkt vars nya bilder inte fastnade hade då förlorat
+// även de gamla.
+//
+// Den riktiga lösningen är att spara vilken KÄLLBILD varje wixstatic-adress kom
+// från, så bara det som saknas laddas om. Det kräver ett nytt fält på mappningen
+// och är inte gjort.
 //
 // VAD DEN INTE RÖR
 //
@@ -65,9 +82,20 @@ export interface ImageRepairDeps {
   listAosom: () => Promise<{ sku: string; wixProductId: string }[]>;
   /** Nuvarande bilder på produkten, eller null om den är borta. */
   getMedia: (wixProductId: string) => Promise<{ revision: string; antal: number } | null>;
-  /** Laddar upp och returnerar wixstatic-adresserna. Missar utelämnas. */
-  importImages: (urls: string[], slug: string) => Promise<string[]>;
-  setMedia: (wixProductId: string, revision: string, urls: string[]) => Promise<void>;
+  /**
+   * Laddar upp och returnerar de uppladdade filerna. Missar utelämnas.
+   *
+   * ☠️ ID:T MÅSTE FÖLJA MED. Skickas bara adressen vidare till setProductMedia
+   * tolkar V3 den som extern och importerar om bilden till en NY fil — se
+   * lib/wix/client.ts#WixProductInput.mediaItems. Det var så lagringen tog slut,
+   * och så produkter kunde få fyra av fem bilder trots fem lyckade uppladdningar.
+   */
+  importImages: (urls: string[], slug: string) => Promise<{ id: string; url: string }[]>;
+  setMedia: (
+    wixProductId: string,
+    revision: string,
+    bilder: { id: string; url: string }[],
+  ) => Promise<void>;
   fx: AosomFx;
   now?: () => number;
 }
@@ -219,12 +247,12 @@ export async function liveDeps(): Promise<ImageRepairDeps> {
       return snap ? { revision: snap.revision, antal: snap.media.length } : null;
     },
     importImages: async (urls, slug) =>
-      (await media.importMediaUrls(
+      await media.importMediaUrls(
         urls.map((url, i) => ({ url, displayName: `${slug}-${i + 1}` })),
         { delayMs: 150 },
-      )).map((m) => m.url),
-    setMedia: async (id, revision, urls) => {
-      await wix.setProductMedia(id, revision, urls.map((url) => ({ url })));
+      ),
+    setMedia: async (id, revision, bilder) => {
+      await wix.setProductMedia(id, revision, bilder);
     },
     fx: { eurToSek: eurToSekFromEnv(), usdToSek: rules.usdToSek },
   };
