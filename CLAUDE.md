@@ -529,10 +529,29 @@ Städningen är avsiktligt en SEPARAT körning och inte inbakad i reparationen: 
 radering inne i reparationen hade skett innan skrivningen verifierats, och en
 produkt vars nya bilder inte fastnade hade då förlorat även de gamla.
 
-**Den riktiga lösningen är inte byggd.** Reparationen laddar om alla fem för att
-en wixstatic-adress inte avslöjar vilken källbild den kom från. Sparas den
-kopplingen på mappningen kan bara det som saknas laddas om, och då uppstår inga
-föräldralösa filer alls.
+#### Bara det som saknas laddas om (byggt 2026-08-28)
+
+Reparationen laddade tidigare om alla fem bilderna per produkt, eftersom en
+wixstatic-adress inte avslöjar vilken källbild den kom från. Det var orsaken
+till hela incidenten ovan. Kopplingen finns nu i stället för att gissas, från
+två håll:
+
+- **`aosomBildFiler` på mappningen** — källbild → Wix-fil-id, sparat efter varje
+  VERIFIERAD skrivning. Sparas det före, eller efter en skrivning som inte tog,
+  pekar det på filer som inte sitter på produkten.
+- **Wix egen `sourceUrl`** (`getMediaSourceUrls`, `POST /files/get-files`) för
+  allt som importerades innan fältet fanns. Ett anrop per produkt, och bara en
+  gång. ☠️ Den följer ETT hopp extra: en fil Wix omimporterat bär vår fils
+  wixstatic-adress, inte leverantörens — och de produkter som ska lagas
+  importerades medan omimport-buggen levde, så många pekar just på kopior.
+
+Med kopplingen känd behålls det som redan sitter rätt **vid sitt id** och bara
+luckorna fylls. Då uppstår inga föräldralösa alls.
+
+☠️ **Går kopplingen inte att härleda laddas allt om, som förr.** Det är med
+flit: vet vi inte vad produkten har kan en påfyllning ge samma bild två gånger
+på en kundsida, och en dubblett är värre än en extra uppladdning. `fullOmladdning`
+i svaret räknar dem, och talet ska sjunka mot noll.
 
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 

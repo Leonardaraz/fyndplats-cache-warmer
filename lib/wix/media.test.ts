@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { importMediaByUrl, importMediaUrls } from "./media";
+import { importMediaByUrl, importMediaUrls, getMediaSourceUrls } from "./media";
 
 const FORRA = { token: process.env.WIX_API_TOKEN, dry: process.env.SYNC_DRY_RUN };
 
@@ -130,5 +130,58 @@ describe("importMediaUrls — missar rapporteras", () => {
     const f = (async () => ok(`f${++n}`)) as unknown as typeof fetch;
     const media = await kor(importMediaUrls(tre, { fetchImpl: f }));
     expect(media.map((m) => m.id)).toEqual(["f1", "f2", "f3"]);
+  });
+});
+
+describe("getMediaSourceUrls", () => {
+  /** Svarar med get-files-kroppar i tur och ordning; sparar de begärda id:na. */
+  function filsvar(...ko: { id: string; sourceUrl?: string }[][]) {
+    const begarda: string[][] = [];
+    let i = 0;
+    const f = (async (_url: RequestInfo | URL, init?: RequestInit) => {
+      begarda.push(JSON.parse(String(init?.body)).fileIds);
+      return new Response(JSON.stringify({ files: ko[Math.min(i++, ko.length - 1)] }), { status: 200 });
+    }) as unknown as typeof fetch;
+    return { f, begarda };
+  }
+
+  it("ger källadressen per fil-id", async () => {
+    const { f } = filsvar([{ id: "a", sourceUrl: "https://img.aosomcdn.com/1.jpg" }]);
+    const ut = await getMediaSourceUrls(["a"], f);
+    expect(ut.get("a")).toBe("https://img.aosomcdn.com/1.jpg");
+  });
+
+  it("frågar inte alls när listan är tom", async () => {
+    const { f, begarda } = filsvar([]);
+    expect((await getMediaSourceUrls([], f)).size).toBe(0);
+    expect(begarda).toHaveLength(0);
+  });
+
+  it("☠️ följer Wix egna kopior ett hopp till originalet", async () => {
+    // En omimporterad fil bär VÅR fils wixstatic-adress i sourceUrl, inte
+    // leverantörens. Utan hoppet vore varje sådan produkt omöjlig att härleda
+    // — och de är många, eftersom de importerades medan omimport-buggen levde.
+    const { f, begarda } = filsvar(
+      [{ id: "kopia", sourceUrl: "https://static.wixstatic.com/media/original~mv2.jpg" }],
+      [{ id: "original~mv2.jpg", sourceUrl: "https://img.aosomcdn.com/1.jpg" }],
+    );
+    const ut = await getMediaSourceUrls(["kopia"], f);
+    expect(begarda[1]).toEqual(["original~mv2.jpg"]);
+    expect(ut.get("kopia")).toBe("https://img.aosomcdn.com/1.jpg");
+  });
+
+  it("en kopia vars original är bortstädat lämnas ohärledd", async () => {
+    // Att lämna kvar wixstatic-adressen vore värre: den matchar aldrig en
+    // källbild och skulle se ut som en källa vi inte längre vill ha.
+    const { f } = filsvar(
+      [{ id: "kopia", sourceUrl: "https://static.wixstatic.com/media/borta~mv2.jpg" }],
+      [],
+    );
+    expect((await getMediaSourceUrls(["kopia"], f)).has("kopia")).toBe(false);
+  });
+
+  it("kastar när Wix svarar fel — en tom karta hade sett ut som 'inga källor'", async () => {
+    const f = (async () => new Response("nope", { status: 500 })) as unknown as typeof fetch;
+    await expect(getMediaSourceUrls(["a"], f)).rejects.toThrow(/get-files/);
   });
 });

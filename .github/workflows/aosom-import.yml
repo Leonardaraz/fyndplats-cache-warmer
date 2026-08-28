@@ -292,7 +292,7 @@ jobs:
             fi
 
             slut=$(( $(date +%s) + 300 * 60 ))
-            varv=0; lagade=0; trasiga=0; missar=0; fel=0
+            varv=0; lagade=0; trasiga=0; missar=0; fel=0; atv_totalt=0; fo_totalt=0
 
             while :; do
               varv=$(( varv + 1 ))
@@ -306,6 +306,12 @@ jobs:
               t=$(printf '%s' "$svar" | jq -r '.trasiga')
               l=$(printf '%s' "$svar" | jq -r '.reparerade')
               mi=$(printf '%s' "$svar" | jq -r '.kvarstaendeMissar')
+              # Bilder som INTE behövde laddas om — måttet på vad den sparade
+              # kopplingen tjänar in. Varje sådan bild är en fil som förut hade
+              # laddats upp på nytt och lämnat en föräldralös efter sig.
+              atv=$(printf '%s' "$svar" | jq -r '.atervandaBilder // 0')
+              # Produkter där kopplingen inte gick att härleda. Ska sjunka mot noll.
+              fo=$(printf '%s' "$svar" | jq -r '.fullOmladdning // 0')
               # misslyckade LÄSTES INTE FÖRUT. Bildfixen 2026-08-27 rapporterade
               # 524 lagade av 524 medan 214 produkter fortfarande saknade bilder —
               # ett fel som varken loggen eller markörfilen kunde visa.
@@ -314,7 +320,8 @@ jobs:
               markor=$(printf '%s' "$svar" | jq -r '.cursor // ""')
               trasiga=$(( trasiga + t )); lagade=$(( lagade + l ))
               missar=$(( missar + mi )); fel=$(( fel + f ))
-              echo "varv ${varv}: ${t} trasiga, ${l} lagade, ${f} misslyckade, ${mi} bilder kvar att hämta, ${kvar} kvar"
+              atv_totalt=$(( ${atv_totalt:-0} + atv )); fo_totalt=$(( ${fo_totalt:-0} + fo ))
+              echo "varv ${varv}: ${t} trasiga, ${l} lagade (${atv} bilder behölls, ${fo} full omladdning), ${f} misslyckade, ${mi} kvar att hämta, ${kvar} kvar"
               [ "$f" -gt 0 ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.sku): \(.error)"'
 
               printf '%s' "$svar" | jq '{cursor, kvar, trasiga, reparerade, misslyckade,
@@ -337,6 +344,8 @@ jobs:
               echo "- Lagade: **${lagade}**"
               echo "- Misslyckade skrivningar: **${fel}**"
               echo "- Bilder som fortfarande inte kom fram: **${missar}**"
+              echo "- Bilder som behölls i stället för att laddas om: **${atv_totalt:-0}**"
+              echo "- Produkter som krävde full omladdning: **${fo_totalt:-0}**"
               echo "- Kvar att gå igenom: **$(jq -r '.kvar // "?"' "$RSTATE" 2>/dev/null)**"
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0

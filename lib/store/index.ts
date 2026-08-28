@@ -74,6 +74,26 @@ export interface ProductMappingRecord {
   aosomSyncedQty?: number;
   /** AOSOM: ISO-tid för senaste lyckade lager-/prissynk. */
   aosomSyncedAt?: string;
+  /**
+   * AOSOM: vilken KÄLLBILD varje uppladdad Wix-fil kom från.
+   *
+   * ☠️ DET HÄR FÄLTET ÄR SKILLNADEN MELLAN ATT LAGA EN BILD OCH ATT LADDA OM FEM.
+   *
+   * En wixstatic-adress avslöjar inte vilken av produktens fem källbilder den
+   * hämtades från. Utan den kopplingen kunde bildreparationen inte veta VILKA
+   * som saknades på en produkt med tre av fem, och laddade därför om alla fem
+   * och ersatte listan. De gamla filerna blev föräldralösa — fyra körningar mot
+   * en växande katalog gjorde att Wix-lagringen tog slut (2026-08-28), och
+   * 37 000 filer fick städas bort efteråt.
+   *
+   * Med kopplingen sparad laddas bara det som faktiskt fattas om, och de
+   * befintliga filerna behålls vid sitt id. Då uppstår inga föräldralösa alls.
+   *
+   * Saknas fältet härleds kopplingen ur Wix egen `sourceUrl`
+   * (`getMediaSourceUrls`) — det är bootstrappen för allt som importerades
+   * innan fältet fanns.
+   */
+  aosomBildFiler?: { kalla: string; fileId: string }[];
   wixProductId: string;
   variants: VariantMapping[];
   /**
