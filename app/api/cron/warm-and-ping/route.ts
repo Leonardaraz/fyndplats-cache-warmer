@@ -28,17 +28,25 @@
 //
 // AUTH: Vercel Cron skickar "Authorization: Bearer $CRON_SECRET".
 //
-// Övriga cron-routes i repot släpper igenom när CRON_SECRET saknas ("allow in
-// dev when unconfigured"). Den här gör det BARA lokalt. Skälet är att den är en
-// kraftigare förstärkare än de andra: ett enda anrop drar upp till 150
-// sidrenderingar mot produktionens URL:er och skickar en avisering till
-// IndexNow. Uppmätt på preview-deployen 2026-08-28: utan CRON_SECRET i miljön
-// svarade rutten 200 för vem som helst som kände till URL:en.
+// SATT  → grinden gäller: fel eller ingen token ger 401.
+// OSATT → rutten KÖR ÄNDÅ, men loggar en varning vid varje körning.
 //
-// process.env.VERCEL är alltid satt i Vercels miljöer och aldrig lokalt, så
-// grinden blir: öppen på din maskin, stängd i molnet. Saknas CRON_SECRET i en
-// deployad miljö svarar rutten 503 med en förklaring i stället för att tyst
-// göra jobbet åt en främling.
+// Varför den faller öppet och inte stängt. Ett första försök svarade 503 när
+// CRON_SECRET saknades i en deployad miljö. Det var fel avvägning: är secreten
+// inte satt där vi tror hade cronen svarat 503 varje timme och aldrig värmt
+// eller aviserat någonting — tyst, eftersom ingen läser svaret på en cron.
+// En trasig funktion är värre än den exponering grinden skyddar mot.
+//
+// Exponeringen är dessutom mild jämfört med grannarna. Ett obehörigt anrop
+// hit renderar upp till 150 av VÅRA EGNA sidor (exakt det värmande vi vill ha
+// — de blir cachade) och skickar en avisering om publicerade produkt-URL:er
+// till IndexNow. Ingendera är destruktiv. /api/cron/abandoned-cart-sender och
+// /api/cron/morning-email följer samma konvention och skickar MEJL.
+//
+// Uppmätt på preview-deployen 2026-08-28: utan CRON_SECRET svarade rutten 200
+// för vem som helst som kände till URL:en. Loggraden nedan gör det synligt i
+// Vercels funktionsloggar i stället för att gå obemärkt förbi — och sätts
+// CRON_SECRET i miljön börjar grinden gälla av sig själv, utan kodändring.
 import { NextResponse } from "next/server";
 import { getProductSitemapEntries } from "../../../../lib/products";
 import { farskaProdukter } from "../../../../lib/fresh-products";
@@ -58,11 +66,11 @@ const TAK_PER_KORNING = 150;
 // maxDuration — utan att vi själva blir lasten som gör sidorna långsamma.
 const PARALLELLT = 8;
 
-type AuthUtfall = "ok" | "fel-token" | "okonfigurerad-i-molnet";
+type AuthUtfall = "ok" | "fel-token" | "oskyddad";
 
 function authorisera(request: Request): AuthUtfall {
   const expected = process.env.CRON_SECRET;
-  if (!expected) return process.env.VERCEL ? "okonfigurerad-i-molnet" : "ok";
+  if (!expected) return process.env.VERCEL ? "oskyddad" : "ok";
   return request.headers.get("authorization") === `Bearer ${expected}` ? "ok" : "fel-token";
 }
 
@@ -92,14 +100,15 @@ async function varmAlla(slugs: string[]): Promise<{ ok: number; fel: number }> {
 
 export async function GET(request: Request) {
   const auth = authorisera(request);
-  if (auth === "okonfigurerad-i-molnet") {
-    return NextResponse.json(
-      { ok: false, error: "CRON_SECRET saknas i miljön — rutten vägrar köra oskyddad" },
-      { status: 503 },
-    );
-  }
-  if (auth !== "ok") {
+  if (auth === "fel-token") {
     return NextResponse.json({ ok: false, error: "unauthorised" }, { status: 401 });
+  }
+  if (auth === "oskyddad") {
+    console.error(
+      `[warm-and-ping] OSKYDDAD KÖRNING i ${process.env.VERCEL_ENV ?? "vercel"}: CRON_SECRET saknas i `
+        + "miljön, så vem som helst med URL:en kan trigga värmning + IndexNow-avisering. "
+        + "Sätt CRON_SECRET i Vercels miljövariabler så börjar grinden gälla automatiskt.",
+    );
   }
 
   const entries = await getProductSitemapEntries();
