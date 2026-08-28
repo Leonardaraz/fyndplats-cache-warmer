@@ -179,6 +179,25 @@ export function planeraStadning(
   };
 }
 
+/**
+ * Paus mellan raderingsskopor.
+ *
+ * ☠️ UTAN DEN TRIPPAR RADERINGEN EDGE-SPÄRREN, och kostnaden är inte de
+ * förlorade filerna utan TIDEN. Uppmätt 2026-08-28, femte passet:
+ *
+ *     varv 4: 1775 föräldralösa, 650 raderade, 200 fel [tidsbudget]
+ *
+ * Skoporna kördes rygg mot rygg, spärren slog till, och varje trasig skopa
+ * väntade sedan 2 + 10 + 30 sekunder på återförsök som ändå inte gick igenom.
+ * Fyra sådana skopor åt upp hela raderingsbudgeten — 650 filer i stället för
+ * 1 200.
+ *
+ * Samma lärdom som listningen (250 ms) och `importMediaByUrl` (serie + paus):
+ * en liten paus är billigare än ett återförsök. 200 ms × 24 skopor är fem
+ * sekunder; fyra strypta skopor är fyrtiotvå.
+ */
+const PAUS_MELLAN_SKOPOR_MS = 200;
+
 export interface MediaCleanupDeps {
   /**
    * Ett FÖNSTER av Media Manager, inte hela. `cursor` i svaret är null när allt
@@ -193,6 +212,8 @@ export interface MediaCleanupDeps {
   raderaPermanent: (fileIds: string[]) => Promise<void>;
   /** Injicerbar klocka för tidsbudgeten. */
   now?: () => number;
+  /** Paus mellan raderingsskopor. Utelämnas i test så sviten går snabbt. */
+  paus?: (ms: number) => Promise<void>;
 }
 
 export interface MediaCleanupSummary {
@@ -308,6 +329,7 @@ export async function runMediaCleanup(
       summary.stoppedBy = "tidsbudget";
       break;
     }
+    if (i > 0) await deps.paus?.(PAUS_MELLAN_SKOPOR_MS);
     const skopa = attRadera.slice(i, i + BATCH);
     try {
       await deps.raderaPermanent(skopa.map((f) => f.id));
@@ -501,5 +523,7 @@ export async function liveDeps(): Promise<MediaCleanupDeps> {
     raderaPermanent: async (fileIds) => {
       await post(`${WIX_BASE}/site-media/v1/bulk/files/delete`, { fileIds, permanent: true });
     },
+
+    paus: async (ms) => { await paus(ms); },
   };
 }

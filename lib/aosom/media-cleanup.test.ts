@@ -243,6 +243,25 @@ describe("runMediaCleanup", () => {
     expect(s.foraldralosa).toBe(2);
   });
 
+  it("☠️ pausar mellan skopor — annars trippar raderingen edge-spärren", async () => {
+    // Femte passet 2026-08-28: skopor rygg mot rygg trippade spärren, och varje
+    // trasig skopa väntade sedan 42 s på återförsök som ändå inte gick igenom.
+    // 650 filer raderades av 1 200 innan tidsbudgeten tog slut.
+    const pauser: number[] = [];
+    const { d, raderade } = deps({
+      listaFiler: async () => ({
+        filer: Array.from({ length: 120 }, (_, i) => fil(`aosom-S${i}.jpg`, `f${i}`)),
+        cursor: null, komplett: true,
+      }),
+      listaAnvanda: async () => ({ urls: [], antalProdukter: 0 }),
+      paus: async (ms) => { pauser.push(ms); },
+    });
+    await runMediaCleanup(d, { dryRun: false });
+    // Tre skopor à 50 → två pauser. Den första skopan pausar inte.
+    expect(raderade).toHaveLength(3);
+    expect(pauser).toEqual([200, 200]);
+  });
+
   it("ett misslyckat anrop stoppar inte resten", async () => {
     let n = 0;
     const { d } = deps({
