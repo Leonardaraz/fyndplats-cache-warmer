@@ -930,12 +930,16 @@ dataCollectionId, data}}`) — läs raden först och skicka tillbaka allt du int
 
 ## Steg 14 – Recensioner
 
-**För en Aosom-produkt finns inga att hämta.** Recensionskedjan är byggd för AliExpress, och
-Aosoms egna omdömen går inte att hämta automatiskt: de ligger bakom Akamai Bot Manager som
-fingeravtrycker klienten, så Node:s `fetch` får `403` där `curl` får `200` — med identiska
-headers. Hämtaren finns i PR #553 men ger ingenting förrän Aosom öppnar en väg de tillåter
-(deras B2B-guide erbjuder API-integration "after a few months of successful collaboration").
-**Hoppa över steget och gå vidare.**
+**För en Aosom-produkt finns inga att hämta.** Hämtaren är byggd, testad och ligger på main
+(`lib/aosom/reviews.ts`, `lib/aosom/review-run.ts`, `/api/cron/aosom-reviews`) — men den ger
+ingenting. Aosoms produktsidor ligger bakom Akamai Bot Manager, som fingeravtrycker klientens
+TLS/HTTP2: med **identiska headers** får `curl` `200` och Node:s `fetch` `403`. Rutten
+behandlar därför `403` som terminalt (`BOT_BLOCKED`, räknas skilt från `failed`) och stannar
+själv efter tre i rad — spärren gäller klienten, inte varan.
+
+Vägen framåt är en källa Aosom tillåter; deras B2B-guide erbjuder API-integration *"after a
+few months of successful collaboration"*. Att kringgå spärren skulle kräva att vi förfalskar
+en webbläsares TLS-fingeravtryck, och den signalen går vi inte runt. **Hoppa över steget.**
 
 För en **AliExpress**-produkt, kört direkt efter publiceringen:
 
