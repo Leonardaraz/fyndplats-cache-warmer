@@ -75,6 +75,22 @@ export interface ProductMappingRecord {
   /** AOSOM: ISO-tid för senaste lyckade lager-/prissynk. */
   aosomSyncedAt?: string;
   /**
+   * AOSOM: tillverkarens EGNA aggregat, taget rått ur produktsidans
+   * `aggregateRating`.
+   *
+   * ☠️ FÅR ALDRIG RÄKNAS UR DE HÄMTADE TEXTERNA. JSON-LD bär högst fem
+   * recensioner av ibland åttiotalet, och Aosoms urval lutar högt — uppmätt
+   * snitt 4,86 över 30 spridda produkter ur vår katalog (2026-08-29). Räknas
+   * snittet av de fem blir deras filter vår sanning, och sidan påstår "5,0 av
+   * 5 recensioner" där verkligheten är "4,8 av 88".
+   *
+   * Paret är också det som gör härkomstraden ärlig: produktsidan visar
+   * `aosomReviewCount`, inte antalet rader vi råkar ha sparat.
+   */
+  aosomRating?: number;
+  /** AOSOM: antal omdömen bakom `aosomRating`. Se noten där. */
+  aosomReviewCount?: number;
+  /**
    * AOSOM: vilken KÄLLBILD varje uppladdad Wix-fil kom från.
    *
    * ☠️ DET HÄR FÄLTET ÄR SKILLNADEN MELLAN ATT LAGA EN BILD OCH ATT LADDA OM FEM.
