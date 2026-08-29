@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildReport, type MediaFile } from "./media-audit";
+import { buildReport, MEDIA_PAGE_LIMIT, type MediaFile } from "./media-audit";
 
 function fil(id: string, size = 1_048_576, hash?: string): MediaFile {
   return { id, displayName: `${id}.png`, sizeInBytes: size, hash };
@@ -120,5 +120,16 @@ describe("buildReport — spärren mot en halv katalog", () => {
     );
     expect(r.fullstandig).toBe(true);
     expect(r.produkterIKatalogen).toBeNull();
+  });
+});
+
+describe("MEDIA_PAGE_LIMIT", () => {
+  it("håller sig inom API:ets faktiska tak på 100", () => {
+    // Dokumentationen säger "up to 200 files"; API:t svarar 400
+    // INVALID_ARGUMENT på allt över 100. Första skarpa körningen föll på det
+    // (2026-08-29). Testet finns för att siffran inte ska glida tillbaka när
+    // någon läser dokumentationen igen och "rättar" den.
+    expect(MEDIA_PAGE_LIMIT).toBeLessThanOrEqual(100);
+    expect(MEDIA_PAGE_LIMIT).toBeGreaterThan(0);
   });
 });
