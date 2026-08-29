@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { deriveInitials, ensureReviewId } from "../import/review-import";
 import {
   fetchAosomReviews,
   isGenericAuthor,
@@ -202,5 +203,53 @@ describe("fetchAosomReviews", () => {
     });
     expect(r.error).toBe("ECONNRESET");
     expect(r.reviews).toEqual([]);
+  });
+});
+
+describe("visningsnamn", () => {
+  /** Hela vägen namn → det som faktiskt renderas på produktsidan. */
+  function visasSom(namn: string | undefined): string {
+    const html = sida({
+      "@type": "Product",
+      review: [{
+        "@type": "Review",
+        ...(namn ? { author: { name: namn } } : {}),
+        description: "En tillräckligt lång recensionstext för att komma igenom.",
+        reviewRating: { ratingValue: 5 },
+      }],
+    });
+    const r = parseAosomProductReviews(html).reviews[0];
+    return deriveInitials(r.customerName, ensureReviewId(r));
+  }
+
+  it("visar riktiga namn som initialer — samma format som AliExpress-raderna", () => {
+    expect(visasSom("Leonard Araz")).toBe("L.A.");
+    expect(visasSom("Siegfried K.")).toBe("S.K.");
+    expect(visasSom("Elfriede Hühnerbein")).toBe("E.H.");
+  });
+
+  it("släpper aldrig igenom hela namnet", () => {
+    for (const n of ["Leonard Araz", "Siegfried K.", "Elfriede Hühnerbein"]) {
+      const visat = visasSom(n);
+      expect(visat).not.toContain(n.split(" ")[0]);
+      expect(visat).toMatch(/^[A-ZÅÄÖÜ]\.[A-ZÅÄÖÜ]\.$/);
+    }
+  });
+
+  it("platshållaren ger INTE 'A.K.' på varenda rad", () => {
+    // Två olika recensioner, båda signerade "Aosom Kunde": initialerna härleds
+    // ur radens id och varierar, i stället för att bli samma bokstäver överallt.
+    const html = sida({
+      "@type": "Product",
+      review: [
+        { "@type": "Review", author: { name: "Aosom Kunde" }, description: "Toller Stuhl, immer wieder gerne, sehr bequem.", reviewRating: { ratingValue: 5 } },
+        { "@type": "Review", author: { name: "Aosom Kunde" }, description: "In großen und ganzen ein Hingucker im Garten.", reviewRating: { ratingValue: 5 } },
+      ],
+    });
+    const visade = parseAosomProductReviews(html).reviews
+      .map((r) => deriveInitials(r.customerName, ensureReviewId(r)));
+    expect(visade.every((v) => /^[A-ZÅÄÖÜ]\.[A-ZÅÄÖÜ]\.$/.test(v))).toBe(true);
+    expect(visade[0]).not.toBe("A.K.");
+    expect(new Set(visade).size).toBe(2);
   });
 });
