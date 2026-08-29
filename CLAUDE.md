@@ -270,6 +270,50 @@ Wix skrivs före mappningen, samma ordning och samma skäl som `price-repair`.
 Alla tre kostnadsfälten skrivs — `grossSek`, `costUsd` och `landedCostSek` —
 aldrig bara priset.
 
+### ☠️ Prissynken skrev aldrig ett enda pris till Wix (2026-08-29)
+
+Hittad under den FÖRSTA poleringen, inte av ett larm: bäddsoffan `efaa0c7b` hade
+`grossSek: 3529` i mappningen och **4 539 kr i Wix**. Produkten stod på
+`revision: 1` — aldrig rörd sedan importen — medan nattens körning rapporterade
+"2 priser uppdaterade" och hade skrivit mappningen 06:24.
+
+Orsaken är en förväxling av två helt olika nycklar som båda heter `sku`:
+
+```ts
+.map((m) => ({ m, sku: (m.supplierProductId ?? "").slice("aosom:".length) }))  // "839-835V01CG"
+setStock: async (wixProductId, _sku, antal) => { … }        // IGNORERAR den → fungerade
+setPrice: async (wixProductId, sku, …) => updateV3VariantPrices(…, [{ sku }])  // fel nyckel
+```
+
+Loopens `sku` är **feedens artikelnummer**. Wix-variantens SKU är
+`FP-schlafsofa-2er-sofa-mit`. De kan aldrig matcha, så `updateV3VariantPrices`
+hittade ingen variant — och den **kastar inte** i det läget, den hoppar över
+PATCH:en och returnerar `{updated: 0, missing}`. Anroparen slängde returvärdet.
+Synken räknade därför upp `prisUppdaterade` och skrev mappningen med det nya
+priset medan kunden fortsatte se det gamla.
+
+Tre saker gjorde felet osynligt, och alla tre är lagade:
+
+1. **Returvärdet lästes inte.** `setPrice` kastar nu när `updated === 0`, så en
+   omatchad skrivning blir `misslyckade` i stället för `prisUppdaterade` — och
+   mappningen skrivs inte, så böckerna slutar glida från butiken.
+2. **`setStock` maskerade felet.** Den tog samma argument och ignorerade det.
+   Lagret fungerade, alltså såg synken frisk ut.
+3. ☠️ **Testfixturen satte `variants[0].sku = sku`** — samma sträng i båda
+   rollerna. Inget test kunde se skillnad på rätt och fel nyckel. Fixturen ger nu
+   `FP-<sku>` + `wixVariantId`, och ett regressionstest låser att prisskrivningen
+   får WIX-variantens identitet. Verifierat genom att återinföra buggen: testet
+   fäller, och bara det.
+
+⚠️ **Följden för befintlig data:** varje Aosom-produkt vars kostnad ändrats sedan
+importen har rätt `landedCostSek` i mappningen och fel pris i Wix. Auktionens
+golvbud och lönsamhetsöversikten läser mappningen, butiken läser Wix — de har
+alltså varit oense. Nästa synk rättar priserna av sig själv nu när skrivningen
+biter; det behövs ingen engångskörning.
+
+**Regeln, sjunde gången: ett svar utan fel är inget kvitto.** Och den nya:
+**två fält som heter `sku` men betyder olika saker ska inte ha samma typ.**
+
 ### ☠️ En `variantsInfo`-PATCH PUBLICERAR ett utkast
 
 Uppmätt mot skarpa V3 2026-08-28 på ett osynligt Aosom-utkast: en PATCH med

@@ -67,7 +67,13 @@ function mappning(sku: string, over: Partial<ProductMappingRecord> = {}): Produc
     variants: [
       {
         supplierVariantId: sku,
-        sku,
+        // ☠️ Wix-SKU:n måste skilja sig från Aosoms artikelnummer i fixturen.
+        // Tidigare stod det bara `sku`, alltså samma sträng i båda rollerna — och
+        // då kunde inget test se att synken skickade FEL nyckel till prisskrivningen
+        // (den skickade feedens artikelnummer där Wix ville ha variantens egen SKU).
+        // Buggen levde i produktion tills en polering jämförde mappning mot Wix.
+        sku: `FP-${sku}`,
+        wixVariantId: `wixvar-${sku}`,
         choices: {},
         costUsd: landad / FX.usdToSek,
         landedCostSek: landad,
@@ -81,13 +87,15 @@ function mappning(sku: string, over: Partial<ProductMappingRecord> = {}): Produc
 
 function deps(over: Partial<AosomSyncDeps> = {}) {
   const lager: { id: string; antal: number }[] = [];
-  const priser: { id: string; pris: number; kostnad: number }[] = [];
+  const priser: { id: string; pris: number; kostnad: number; variant: { wixVariantId?: string; sku?: string } }[] = [];
   const sparade: ProductMappingRecord[] = [];
   const bas: AosomSyncDeps = {
     fetchFeed: async () => feedMed(rad("A-1"), rad("B-2")),
     listAosom: async () => [mappning("A-1"), mappning("B-2")],
     setStock: async (id, _sku, antal) => { lager.push({ id, antal }); },
-    setPrice: async (id, _sku, pris, kostnad) => { priser.push({ id, pris, kostnad }); },
+    setPrice: async (id, variant, pris, kostnad) => {
+      priser.push({ id, pris, kostnad, variant });
+    },
     saveMapping: async (m) => { sparade.push(m); },
     fx: FX,
     rules: REGLER,
@@ -198,6 +206,30 @@ describe("runAosomSync", () => {
     await runAosomSync(d, { dryRun: false });
     expect(priser).toHaveLength(1);
     expect(priser[0].pris).toBeLessThan(BASPRIS);
+  });
+
+  // ☠️ REGRESSIONSTEST för buggen som gjorde hela tvåvägs-prissynken verkningslös
+  // (hittad 2026-08-29 under en polering, inte av ett larm). Synken skickade loopens
+  // `sku` — feedens artikelnummer — till prisskrivningen, som matchar mot WIX-variantens
+  // egen SKU. De kan aldrig vara samma sträng, så updateV3VariantPrices hittade ingen
+  // variant, hoppade över PATCH:en och returnerade tyst. Synken räknade ändå upp
+  // `prisUppdaterade` och skrev mappningen. Resultat: mappningen sa 3 529 kr medan
+  // kunden såg 4 539 kr, och produkten stod kvar på revision 1 — aldrig rörd.
+  //
+  // `setStock` tog samma argument men ignorerade det (`_sku`) och slog upp på
+  // produkt-id. Därför fungerade lagret, och därför såg felet ut som om det inte fanns.
+  it("prisskrivningen får WIX-variantens identitet, aldrig Aosoms artikelnummer", async () => {
+    const { d, priser } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 60 })),
+      listAosom: async () => [mappning("A-1")],
+    });
+    await runAosomSync(d, { dryRun: false });
+    expect(priser).toHaveLength(1);
+    expect(priser[0].variant.wixVariantId).toBe("wixvar-A-1");
+    expect(priser[0].variant.sku).toBe("FP-A-1");
+    // Artikelnumret är feedens nyckel och hör inte hemma i en Wix-variantsökning.
+    expect(priser[0].variant.sku).not.toBe("A-1");
+    expect(priser[0].variant.wixVariantId).not.toBe("A-1");
   });
 
   it("ett prishopp över taket BLOCKERAS och rapporteras", async () => {
