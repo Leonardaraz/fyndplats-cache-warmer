@@ -64,6 +64,12 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 - **`VARIANTS_INFO` finns inte i enum:et** (varianterna kommer med ändå). Giltiga värden:
   `PLAIN_DESCRIPTION` · `DESCRIPTION` · `MEDIA_ITEMS_INFO` · `DIRECT_CATEGORIES_INFO` ·
   `VARIANT_OPTION_CHOICE_NAMES` · `URL` · `INFO_SECTION` · `BREADCRUMBS_INFO`.
+- ⚠️ **Ett `filter` får INTE följa med på en cursor-sida.** Skickar du samma
+  `{filter, cursorPaging}` på sida 2 svarar V3 **400 `INVALID_CURSOR`: "Sort or filter can
+  not be specified together with cursor"**. Sida 1 går igenom, sida 2 fäller — så ett svep
+  som testats på en liten katalog går sönder först när den vuxit förbi 100 rader. Skicka
+  filtret bara på första sidan och filtrera resten i koden, eller hämta allt och sålla
+  lokalt. *(Uppmätt 2026-08-29 på ett sökordskrock-svep över 5 397 produkter.)*
 - ⚠️ **`fields` måste med på VARJE cursor-sida.** Utelämnas det på sida 2+ kommer fältet
   tillbaka **tomt i stället för att fela** — ett svep rapporterade 650 produkter med noll
   bilder, inklusive sådana som just patchats till fem.
@@ -768,6 +774,18 @@ POST https://www.wixapis.com/categories/v1/bulk/categories/remove-item
 ```
 
 > ⚠️ **`directCategoriesInfo` släpar efter.** En GET direkt efter add/remove visar ofta det gamla värdet. Läs i stället `bulkActionMetadata` i svaret: `totalSuccesses` räknar det som gick igenom, och `ALREADY_EXISTS` / `ITEM_NOT_IN_CATEGORY` bland `results[].itemMetadata.error` betyder att målläget redan gäller — alltså inget fel. Vill du verifiera med en GET: vänta några sekunder först.
+>
+> ☠️ **Bygg därför ALDRIG klart-kriteriets kategorigrind på `directCategoriesInfo`.** Grinden
+> läser då ett gammalt värde, säger "inte klar" och stoppar en publicering som var korrekt.
+> Hände 2026-08-29 på reclinerfåtöljen: `totalSuccesses: 3` i skrivningens svar,
+> `kategorier: 1` i GET:en mikrosekunder senare. Grinda på `totalSuccesses`, eller läs om i
+> ett SENARE anrop.
+>
+> ⚠️ **Och det gäller inte bara kategorierna — hela produkten kan läsas inaktuell.** En
+> `plainDescription`-PATCH följd av en verifierings-GET i samma anrop gav oförändrad text
+> och oförändrad revision, fast skrivningen hade gått fram: nästa anrop visade rätt text och
+> revision **fyra**, alltså två steg fram. Slutsatsen "det tog inte" är därför inte säker
+> förrän du läst om i ett eget anrop — annars skriver du samma rättelse en gång till.
 
 -----
 
