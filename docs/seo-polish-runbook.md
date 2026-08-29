@@ -758,16 +758,28 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > (sängbänk 117 cm): publicering och `curl` låg under en sekund isär, och sidan svarade
 > fallback i drygt fem minuter innan den kom till liv av sig själv.
 >
-> ⚠️ **Det gäller VARJE nyskapad URL, inte bara produktsidor — och en nyskapad
-> KATEGORI ser inte ut som en 404 utan som en 307 mot `/butik`.** Kategorin
-> `Terrassvärmare & Infravärmare` hämtades 2026-08-29 sjuttio sekunder efter att den
-> skapats; butiken hann före Wix index, svarade med sin fallback-redirect, och den
-> redirecten låg sedan cachad i fem minuter. En cache-buster i frågesträngen hjälper
-> inte här heller. **Så ser du skillnaden på en cachad fallback och ett verkligt fel:**
-> läs `date` och `age` i svaret. Är `date` ÄLDRE än din skrivning är svaret per
-> definition inaktuellt — `age: 201` med `x-vercel-cache: HIT` betyder att det ligger
-> 99 sekunder kvar av fönstret, inget annat. En 404 på en påhittad slug och en 307 mot
-> `/butik` på en riktig är dessutom två olika svar: 404 = sluggen finns inte alls.
+> ⚠️ **En NYSKAPAD KATEGORI serveras inte av butiken direkt — och felet ser inte ut
+> som en 404 utan som en 307 mot `/butik`.** Uppmätt 2026-08-29 på
+> `Terrassvärmare & Infravärmare` (`40848f60`): kategorin är korrekt i Wix — `visible:
+> true`, `itemCounter: 2`, rätt förälder — men `/kategori/terrassvarmare-infravarmare`
+> svarade 307 mot `/butik` i minst sju minuter. **Det är INTE bara ISR-fönstret.** Jag
+> antog först det, och mätningen motsäger det: `age: 412` mot `x-nextjs-stale-time: 300`
+> med oförändrat `date` och `x-vercel-cache: HIT`. En cache-buster i frågesträngen
+> hjälper inte heller.
+>
+> **Orsaken är inte fastställd.** Butikens kod ligger i `fyndplats-headless`, ett annat
+> repo, så kategorirutten går inte att läsa härifrån. Vad som ÄR uteslutet: att sluggen
+> är fel (en påhittad slug ger 404, inte 307 — de två svaren är olika kodvägar) och att
+> det räcker att vänta ut stale-fönstret.
+>
+> **Praktiskt:** produkterna påverkas inte. De ligger live på sina egna URL:er och bär
+> FÖRÄLDER-kategorin, som fungerar. Lövet är extra navigation. Skapar du en ny kategori:
+> koppla den, verifiera i Wix att `itemCounter` stämmer, och **lova inte att sidan
+> fungerar förrän du sett en 200**. Kvarstår 307:an: fråga Leonard, det kräver butiksrepot.
+>
+> **Läs alltid `date` och `age` innan du drar en slutsats om cache.** Är `date` äldre än
+> din skrivning är svaret per definition inaktuellt; är `age` STÖRRE än `stale-time` och
+> svaret ändå oförändrat är det inte cachen som är förklaringen.
 >
 > **Så skiljer du en cachad 404 från ett verkligt fel — fråga Wix samma fråga som butiken:**
 > ```
