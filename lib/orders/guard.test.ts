@@ -410,6 +410,37 @@ describe("rollupSyncRuns + statusrad: torrkörning och nämnare", () => {
     expect(email.text).not.toContain("SYNKEN HAR INTE KÖRT");
   });
 
+  // Regressionstest för token-incidenten 2026-08-29: access_token gick ut
+  // 02:37, synken fick 99 fel av 106 försök, och mejlet sa bara "…, 99 fel".
+  const rollup = { runs: 6, checked: 600, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 0, restored: 0, errors: 0, total: 876, skipped: 0, dryRuns: 0, throttled: 0 };
+  const medToken = (expiresAt: string | undefined) =>
+    buildGuardEmail(findings({}), {
+      sectionErrors: [], baseUrl: "https://example.test", syncRollup: rollup,
+      ...(expiresAt ? { aliExpressTokenExpiresAt: expiresAt } : {}),
+    }, NOW);
+
+  it("utgången AliExpress-token → egen larmrad som säger vad som är trasigt", () => {
+    const email = medToken(new Date(NOW - HOUR).toISOString());
+    expect(email.text).toContain("AliExpress-token har GÅTT UT");
+    expect(email.text).toContain("IllegalAccessToken");
+  });
+
+  it("token som snart går ut varnar i förväg — det är refresh-token som inte läker sig själv", () => {
+    const email = medToken(new Date(NOW + 5 * HOUR).toISOString());
+    expect(email.text).toContain("går ut om 5 h");
+    expect(email.text).not.toContain("GÅTT UT");
+  });
+
+  it("token med god marginal nämns inte alls", () => {
+    const email = medToken(new Date(NOW + 20 * 24 * HOUR).toISOString());
+    expect(email.text).not.toContain("AliExpress-token");
+  });
+
+  it("saknad eller otolkbar utgångstid gissar aldrig att allt är bra", () => {
+    expect(medToken(undefined).text).not.toContain("AliExpress-token");
+    expect(medToken("inte-ett-datum").text).toContain("går inte att tolka");
+  });
+
   it("delvis torrkörning nämns med sitt förhållande", () => {
     const email = buildGuardEmail(findings({}), {
       sectionErrors: [],

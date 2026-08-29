@@ -320,6 +320,12 @@ export interface GuardExtras {
   syncDigest?: SyncDigest;
   openAlerts?: number;
   auction?: { live: number; queued: number };
+  /**
+   * När AliExpress access_token går ut (ISO). En utgången token gör VARJE
+   * AE-anrop till ett `IllegalAccessToken`-fel, och det syns annars bara som
+   * en felräknare i statusraden — se larmet nedan.
+   */
+  aliExpressTokenExpiresAt?: string;
   /** Datakällor som inte gick att läsa (vakten larmar hellre än döljer). */
   sectionErrors: string[];
   baseUrl: string;
@@ -527,6 +533,30 @@ export function buildGuardEmail(
           ? "⚠️ SYNC_DRY_RUN är PÅ — synken skriver INGENTING till Wix. Slutsålda och nedtagna produkter förblir köpbara."
           : `⚠️ ${s.dryRuns} av ${s.runs} synk-körningar var torrkörningar (inga Wix-skrivningar).`,
       );
+    }
+  }
+  // ☠️ UTGÅNGEN ALIEXPRESS-TOKEN. Egen rad, av samma skäl som torrkörningen och
+  // noll körningar: den gör VARJE AE-anrop till ett fel, men syns annars bara
+  // som ett tal i "…, 99 fel" mitt i statusremsan. Uppmätt 2026-08-29: token
+  // dog 02:37, synken fick 99 fel av 106 försök, och ingenting sa till.
+  //
+  // Varningen före utgången är den som faktiskt räddar något. En UTGÅNGEN
+  // access_token läker sig själv vid nästa refresh-körning; det är
+  // REFRESH-token som inte gör det — går den ut krävs en ny OAuth för hand,
+  // och då vill man ha vetat det i förväg.
+  if (extras.aliExpressTokenExpiresAt) {
+    const kvarMs = Date.parse(extras.aliExpressTokenExpiresAt) - nowMs;
+    if (!Number.isFinite(kvarMs)) {
+      statusBits.push("⚠️ AliExpress-tokens utgångstid går inte att tolka — kontrollera /api/aliexpress/refresh.");
+    } else if (kvarMs <= 0) {
+      statusBits.push(
+        "⛔ AliExpress-token har GÅTT UT — varje anrop mot AliExpress failar "
+          + "(IllegalAccessToken). Lager och priser uppdateras inte. Kör workflowen "
+          + "\"Refresh AliExpress tokens\"; hjälper inte den krävs ny OAuth via /api/aliexpress/auth.",
+      );
+    } else if (kvarMs < 48 * HOUR) {
+      const timmar = Math.floor(kvarMs / HOUR);
+      statusBits.push(`⚠️ AliExpress-token går ut om ${timmar} h — förnyas normalt automatiskt var 12:e timme.`);
     }
   }
   if (extras.openAlerts !== undefined && extras.openAlerts > 0) {
