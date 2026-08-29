@@ -26,13 +26,15 @@
 import type { AERReview } from "../import/review-import";
 
 /**
- * ☠️ Aosom ligger bakom Akamai och avvisar allt som inte ser ut som en
- * webbläsare — även `robots.txt` svarar "Access Denied" på en naken förfrågan.
- * En vanlig `fetch(url)` från Vercel får 403. Raderna nedan är minimum för att
- * släppas in; `Accept-Language` och `Sec-Fetch-*` är de som faktiskt avgör.
+ * Rubriker en webbläsare skickar. ⚠️ DE RÄCKER INTE FRÅN NODE — se BOT_BLOCKED.
+ *
+ * Uppmätt 2026-08-29: med EXAKT de här rubrikerna får `curl` 200 och Node:s
+ * `fetch` 403. Akamai fingeravtrycker klientens TLS/HTTP2, inte dess headers.
+ * De står kvar för att de är rätt och behövs av vilken tillåten hämtare som än
+ * ersätter den här — men de löser inte spärren.
  *
  * robots.txt tillåter i övrigt `/item/`-sidorna (2026-08-29) och bär inga
- * AI-/Content-Signal-direktiv.
+ * AI-/Content-Signal-direktiv; det är kant-spärren som stoppar oss, inte robots.
  */
 export const AOSOM_HEADERS: Record<string, string> = {
   "User-Agent":
@@ -163,9 +165,29 @@ export function parseAosomProductReviews(html: string): AosomProductReviews {
   return { rating, reviewCount, reviews };
 }
 
-/** Statuskoder som är värda ett omförsök — resten ger upp direkt. */
+/**
+ * ☠️ 403 ÄR INTE ETT OMFÖRSÖK VÄRT — DET ÄR EN POLICYSPÄRR.
+ *
+ * Uppmätt 2026-08-29: Aosom ligger bakom Akamai Bot Manager, som fingeravtrycker
+ * KLIENTEN (TLS/HTTP2), inte rubrikerna. Med exakt samma headers får `curl` 200
+ * och Node:s `fetch` (undici) 403 "Access Denied" — på varenda produktsida.
+ * Rutten kan alltså inte hämta någonting alls från Vercel.
+ *
+ * Att göra om ändrar ingenting: fingeravtrycket är detsamma vid försök två. Med
+ * backoff 1+3+8 s kostade varje spärrad produkt 12 sekunder och åt hela
+ * tidsbudgeten utan att ge en enda rad. Därför är 403 terminal och räknas för
+ * sig — se `blocked` i svepets summering.
+ *
+ * Att kringgå spärren skulle kräva att vi förfalskar en webbläsares
+ * TLS-fingeravtryck. robots.txt tillåter /item/-sidorna, men operatören
+ * upprätthåller aktivt "bara webbläsare" i kanten, och den signalen går vi inte
+ * runt. Vägen till datan är en källa Aosom tillåter — deras B2B-guide erbjuder
+ * API-integration "after a few months of successful collaboration".
+ */
+export const BOT_BLOCKED = "HTTP 403 (Akamai blockerar icke-webbläsare)";
+
 function worthRetrying(status: number): boolean {
-  return status === 403 || status === 429 || status >= 500;
+  return status === 429 || status >= 500;
 }
 
 export interface FetchAosomDeps {
@@ -196,6 +218,7 @@ export async function fetchAosomReviews(
     try {
       const res = await doFetch(url, { headers: AOSOM_HEADERS });
       if (!res.ok) {
+        if (res.status === 403) return { reviews: [], error: BOT_BLOCKED };
         sista = `HTTP ${res.status}`;
         if (!worthRetrying(res.status) || försök === backoff.length) break;
         await sleep(backoff[försök]);

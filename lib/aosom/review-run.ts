@@ -20,15 +20,16 @@
 // produkten i en månad).
 
 import type { ProductMappingRecord } from "../store";
+import { checkedRecently, REVIEW_RECHECK_DAYS } from "../reviews/backfill-deps";
 import type { ReviewImportResult } from "../import/review-import";
-import { fetchAosomReviews, type AosomProductReviews } from "./reviews";
+import { BOT_BLOCKED, fetchAosomReviews, type AosomProductReviews } from "./reviews";
 
 const DEFAULT_LIMIT = 40;
 const DEFAULT_TIME_BUDGET_MS = 240_000;
 /** Paus mellan sidhämtningar. Aosom är någon annans server. */
 const DEFAULT_DELAY_MS = 1200;
-/** Hur ofta en redan kontrollerad produkt får kollas om (nya recensioner). */
-export const REVIEW_RECHECK_DAYS = 30;
+/** Tre spärrade i rad räcker som bevis — spärren gäller klienten, inte varan. */
+const BLOCKED_ABORT = 3;
 
 export interface AosomReviewOptions {
   /** DEFAULT TRUE — en körning som skriver ska ha bett om det. */
@@ -67,9 +68,16 @@ export interface AosomReviewSummary {
    */
   filteredOut: number;
   failed: number;
+  /**
+   * Produkter där Akamai avvisade oss (403). ☠️ Egen räknare med flit: det är
+   * inte ett fel bland andra utan en POLICYSPÄRR som gäller varenda produkt, och
+   * en körning som rapporterar "40 fel" ser ut som otur medan "40 blockerade"
+   * säger sanningen. Svepet stannar självt efter BLOCKED_ABORT i rad.
+   */
+  blocked: number;
   remaining: number;
   cursor: string | null;
-  stoppedBy: "klart" | "limit" | "tidsbudget";
+  stoppedBy: "klart" | "limit" | "tidsbudget" | "blockerad";
   errors: { sku: string; error: string }[];
 }
 
@@ -85,12 +93,11 @@ export interface AosomReviewDeps {
   sleep?: (ms: number) => Promise<void>;
 }
 
-function isStale(checkedAt: string | undefined, nowMs: number): boolean {
-  if (!checkedAt) return true;
-  const t = Date.parse(checkedAt);
-  if (Number.isNaN(t)) return true;
-  return nowMs - t >= REVIEW_RECHECK_DAYS * 86_400_000;
-}
+// Omkontrollfönstret ÄR AE-kedjans, importerat och inte klonat: en tvilling här
+// hade glidit isär från review-backfill vid första justeringen — samma lärdom
+// som SHIP_AXIS_RE och EU_TULL_CODES. REVIEW_RECHECK_DAYS re-exporteras så
+// rutten kan dokumentera vad som gäller utan att känna till AE-modulen.
+export { REVIEW_RECHECK_DAYS };
 
 /**
  * Kör en tugga av recensionshämtningen.
@@ -135,19 +142,21 @@ export async function runAosomReviewImport(
     skippedExisting: 0,
     filteredOut: 0,
     failed: 0,
+    blocked: 0,
     remaining: 0,
     cursor: null,
     stoppedBy: "klart",
     errors: [],
   };
 
+  let blockeradeIRad = 0;
   let sistaSku: string | null = null;
   let index = 0;
   for (const m of efterMarkör) {
     index++;
     const sku = m.supplierProductId ?? "";
 
-    if (!opts.ignoreCheckedAt && !isStale(m.reviewsCheckedAt, now())) {
+    if (!opts.ignoreCheckedAt && checkedRecently(m.reviewsCheckedAt, now())) {
       s.alreadyChecked++;
       sistaSku = sku;
       continue;
@@ -168,11 +177,27 @@ export async function runAosomReviewImport(
     if (res.error) {
       // ☠️ Stämpla ALDRIG vid fel. En strypt hämtning som stämplas göms i en
       // månad — samma regel som review-backfill.
+      if (res.error === BOT_BLOCKED) {
+        s.blocked++;
+        blockeradeIRad++;
+        if (s.errors.length < 3) s.errors.push({ sku, error: res.error });
+        // Spärren gäller klienten, inte produkten. Har den slagit till tre
+        // gånger i rad kommer den slå till på alla 4 445 — att fortsätta är
+        // bara att bränna tidsbudgeten på ett svar vi redan känner.
+        if (blockeradeIRad >= BLOCKED_ABORT) {
+          s.stoppedBy = "blockerad";
+          break;
+        }
+        sistaSku = sku;
+        continue;
+      }
+      blockeradeIRad = 0;
       s.failed++;
       s.errors.push({ sku, error: res.error });
       sistaSku = sku;
       continue;
     }
+    blockeradeIRad = 0;
 
     if (typeof res.rating === "number") s.withRating++;
     if (res.reviews.length > 0) s.withText++;
