@@ -135,7 +135,23 @@ export interface AosomSyncDeps {
   /** Skriver absolut lagersaldo för produktens (enda) variant. */
   setStock: (wixProductId: string, sku: string, antal: number) => Promise<void>;
   /** Skriver variantpriset OCH inköpskostnaden i Wix. Får aldrig röra synlighet. */
-  setPrice: (wixProductId: string, sku: string, grossSek: number, landedCostSek: number) => Promise<void>;
+  /**
+   * ☠️ Tar variantens WIX-identitet, inte Aosoms artikelnummer.
+   *
+   * Den här signaturen sa tidigare `sku: string`, och anroparen skickade
+   * loopens `sku` — som är feedens artikelnummer ("839-835V01CG"), nyckeln
+   * till feed-raden. Wix-variantens SKU är något helt annat
+   * ("FP-schlafsofa-2er-sofa-mit"), så matchningen kunde aldrig lyckas.
+   * `setStock` tog samma argument men IGNORERADE det (`_sku`) och slog upp
+   * lagerposterna på produkt-id — därför fungerade lagret, och därför såg
+   * felet ut som om det inte fanns.
+   */
+  setPrice: (
+    wixProductId: string,
+    variant: { wixVariantId?: string; sku?: string },
+    grossSek: number,
+    landedCostSek: number,
+  ) => Promise<void>;
   saveMapping: (m: ProductMappingRecord) => Promise<void>;
   fx: AosomFx;
   rules: PricingRules;
@@ -266,7 +282,14 @@ export async function runAosomSync(
       }
 
       if (nyttPris !== null && nyLandad !== null && variant) {
-        if (!dryRun) await deps.setPrice(m.wixProductId, sku, nyttPris, nyLandad);
+        if (!dryRun) {
+          await deps.setPrice(
+            m.wixProductId,
+            { wixVariantId: variant.wixVariantId, sku: variant.sku },
+            nyttPris,
+            nyLandad,
+          );
+        }
         summary.prisUppdaterade++;
         rortes = true;
       }
@@ -333,10 +356,30 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
     },
     // updateV3VariantPrices skickar tillbaka `visible` oförändrad — utan det
     // publicerar en variantsInfo-PATCH utkastet (uppmätt 2026-08-28).
-    setPrice: async (wixProductId, sku, grossSek, landedCostSek) => {
-      await v3.updateV3VariantPrices(wixProductId, [
-        { sku, actualPrice: grossSek, costAmount: Math.round(landedCostSek) },
+    setPrice: async (wixProductId, variant, grossSek, landedCostSek) => {
+      // ☠️ SVARET MÅSTE LÄSAS. updateV3VariantPrices returnerar {updated, missing}
+      // och KASTAR INTE när ingen variant matchade — den hoppar över PATCH:en och
+      // returnerar tyst. Det gamla anropet slängde returvärdet, så synken räknade
+      // upp `prisUppdaterade` och skrev mappningen med det nya priset medan Wix
+      // behöll det gamla. Uppmätt 2026-08-29 på bäddsoffan `efaa0c7b`: mappningen
+      // sa 3 529 kr, kunden såg 4 539 kr, och produkten stod kvar på revision 1.
+      //
+      // Sjunde gången samma lärdom i det här repot: ett svar utan fel är inget
+      // kvitto. Räkna efter.
+      const resultat = await v3.updateV3VariantPrices(wixProductId, [
+        {
+          ...(variant.wixVariantId ? { wixVariantId: variant.wixVariantId } : {}),
+          ...(variant.sku ? { sku: variant.sku } : {}),
+          actualPrice: grossSek,
+          costAmount: Math.round(landedCostSek),
+        },
       ]);
+      if (resultat.updated === 0) {
+        throw new Error(
+          `prisskrivningen matchade ingen variant på ${wixProductId} `
+          + `(sökte ${resultat.missing.join(", ") || "utan nyckel"}) — priset i Wix är oförändrat`,
+        );
+      }
     },
     saveMapping: (m) => store.saveMapping(m),
     fx: { eurToSek: eurToSekFromEnv(), usdToSek: rules.usdToSek },
