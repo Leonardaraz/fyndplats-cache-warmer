@@ -42,6 +42,83 @@
 
 -----
 
+## Aosom-produkter: vad som skiljer (läs detta först om raden har `supplier: "aosom"`)
+
+De fjorton stegen gäller oförändrade — ordningen, spärrarna och klart-kriteriet är
+leverantörsoberoende. Men **fyra saker skiljer**, och alla fyra sparar tid om du vet dem
+innan du börjar i stället för att upptäcka dem i steg 9. Kolla leverantören först:
+mappningsradens `supplier`-fält, eller prefixet `aosom:` i `supplierProductId`.
+
+### 1. Bilderna: titta på 3, 8 och 9 — hoppa över 1 och 2
+
+Importen tar hem exakt fem bilder, från feedens positioner **1, 2, 3, 8 och 9**
+(`RENA_BILDPOSITIONER` i `to-product.ts`). Urvalet är gjort för att **46 % av feedens
+bilder har TYSK TEXT INBRÄND i pixlarna**, och mätningen bakom det (30 produkter,
+269 handgranskade bilder) säger var texten sitter:
+
+| galleriplats | feedposition | vad mätningen visade |
+|---|---|---|
+| 1 | 1 | **30/30 rena** — huvudbild på vit botten. Granska inte. |
+| 2 | 2 | **30/30 rena** — livsstilsbild. Granska inte. |
+| 3 | 3 | 23/30 — måttritning, ofta bara siffror, ibland tysk rubrik i ett band |
+| 4 | 8 | 24/30 — detaljfoto, men ibland en tysk marknadsgrafik |
+| 5 | 9 | 27/29 — detaljfoto |
+
+**Kontaktkartan i Steg 4 behöver alltså bara avgöra tre bilder.** Utfallet varierar
+kraftigt: tunneltältet `e4b000fa` hade tysk text på tre av fem, de två infravärmarna
+(`9c7c6e95`, `96a45e2b`) på noll. Siffrorna i ritningarna är dessutom redan skrivna med
+**decimalkomma** (`5,3 m`, `104,6 cm`), så en ren måttritning går rakt in i galleriet.
+
+Sitter texten i ett **band** upptill eller nedtill: beskär bort bandet
+(`ck.crop`) i stället för att kasta bilden — det räddade både måttritningen och
+uppsättningsbilden på tältet. Är hela bilden en marknadsgrafik: klipp ut delfotona och
+bygg ett eget svenskt kort av dem (`ck.card_grid`), så blir en tysk infografik tre
+detaljbilder med svenska etiketter.
+
+☠️ **Aosoms livsstilsbilder är SAMMA SCENER med olika produkt inklistrad.** De två
+infravärmarna delade tre scener rakt av — samma mormor i samma rottingsoffa, samma
+uterum med samma snö. Polerar du syskon: **fördela scenerna** så att våra egna sidor inte
+speglar varandra. Två egna URL:er med identiska foton är precis den dubblett Google
+straffar, och den uppstår här av oss själva, inte av leverantören.
+
+### 2. `Lieferumfang` är kontraktet — titeln är marknadsföring
+
+Steg 5 gäller som vanligt, men för Aosom vet du var sanningen bor. Den tyska
+beskrivningen har tre block, och de är inte lika mycket värda:
+
+- **`Lieferumfang:`** — vad som faktiskt ligger i kartongen. Auktoritativt.
+- **`Technische Daten:`** — måtten. Auktoritativt, och **enda källan**: feedens
+  `Specification`-kolumn är tom i 5 550 av 5 566 rader.
+- **Titel, `Beschreibung:` och alt-texterna** — marknadsföring, och de motsäger de andra
+  två. Infravärmaren `9c7c6e95` hade `Schutzhülle` i både titel och alt-text; dess
+  `Lieferumfang` listar bara värmare och bruksanvisning. Det är syskonet `96a45e2b` som
+  har höljet. Hade titeln fått bestämma hade vi lovat en kund ett tillbehör som inte kommer.
+
+Kapacitetspåståenden ska mätas, inte kopieras: tältet hette "4 Personen" medan
+tillverkarens egen skiss sa "Schlafplätze 2–4". Sovrummet är 295 cm brett, alltså fyra
+liggunderlag à 60 cm med 55 cm över — **skriv måttet, inte marknadssiffran.**
+
+### 3. Tre steg är no-ops — och ett kräver extra kontroll
+
+| Steg | För en Aosom-rad |
+|---|---|
+| 6 (variantsanering) | Nästan alltid en enda variant utan optioner. Inget att ta bort. |
+| 11 (`linkedMedia`) | Inga optioner → inget att koppla. |
+| 14 (recensioner) | **Helt AliExpress.** `isAliExpressMapping` är falsk, hämtningen körs aldrig. Hoppa över. |
+| 7 (spec-tabellen) | ⚠️ **Extra kontroll:** `Färg`-VÄRDET är kvar på tyska i den svenska tabellen (`Färg: Orange+Blau`). Etiketterna översätts vid import, värdena inte, och färg-grinden ser bara variantaxlar — alltså fångar ingen spärr det här. Översätt värdet för hand. |
+
+### 4. Stäm av priset mot mappningen innan du börjar
+
+`grossSek` ska vara `charm9(landedCostSek × 1,20)`. Räkna efterː 2 869,76 × 1,20 = 3 443,7
+→ 3 449. Stämmer det inte är produkten en av dem vars kostnad ändrats sedan importen, och
+priset i Wix är gammalt (prissynken skrev aldrig till Wix förrän 2026-08-29 — se
+`CLAUDE.md`). **Rör inte priset**; välj en annan produkt och flagga raden till Leonard.
+
+`aosomFreightShare` på mappningen säger hur mycket av inköpet som är frakt. Över 0,5
+betyder att frakten kostar mer än varan — de produkterna poleras sist.
+
+-----
+
 -----
 
 ## Arbetsordning
