@@ -758,6 +758,17 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > (sängbänk 117 cm): publicering och `curl` låg under en sekund isär, och sidan svarade
 > fallback i drygt fem minuter innan den kom till liv av sig själv.
 >
+> ⚠️ **Det gäller VARJE nyskapad URL, inte bara produktsidor — och en nyskapad
+> KATEGORI ser inte ut som en 404 utan som en 307 mot `/butik`.** Kategorin
+> `Terrassvärmare & Infravärmare` hämtades 2026-08-29 sjuttio sekunder efter att den
+> skapats; butiken hann före Wix index, svarade med sin fallback-redirect, och den
+> redirecten låg sedan cachad i fem minuter. En cache-buster i frågesträngen hjälper
+> inte här heller. **Så ser du skillnaden på en cachad fallback och ett verkligt fel:**
+> läs `date` och `age` i svaret. Är `date` ÄLDRE än din skrivning är svaret per
+> definition inaktuellt — `age: 201` med `x-vercel-cache: HIT` betyder att det ligger
+> 99 sekunder kvar av fönstret, inget annat. En 404 på en påhittad slug och en 307 mot
+> `/butik` på en riktig är dessutom två olika svar: 404 = sluggen finns inte alls.
+>
 > **Så skiljer du en cachad 404 från ett verkligt fel — fråga Wix samma fråga som butiken:**
 > ```
 > POST /stores/v3/products/query
