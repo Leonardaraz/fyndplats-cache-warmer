@@ -767,10 +767,13 @@ Rå-import lämnar engelska alt-texter med "AliExpress" – byt alla till svensk
 > med oförändrat `date` och `x-vercel-cache: HIT`. En cache-buster i frågesträngen
 > hjälper inte heller.
 >
-> **Orsaken är inte fastställd.** Butikens kod ligger i `fyndplats-headless`, ett annat
-> repo, så kategorirutten går inte att läsa härifrån. Vad som ÄR uteslutet: att sluggen
-> är fel (en påhittad slug ger 404, inte 307 — de två svaren är olika kodvägar) och att
-> det räcker att vänta ut stale-fönstret.
+> **Felet ligger i butikens kategorilista, inte i din URL.** Det avgörande beviset är
+> att kategorin inte heller syns i navigationen på `/butik` — en färsk rendering som
+> ingen av dina egna hämtningar kan ha cachat. Butiken känner alltså inte till
+> kategorin över huvud taget. Vad som därmed är UTESLUTET: att sluggen är fel (en
+> påhittad slug ger 404, inte 307 — olika kodvägar) och att det räcker att vänta.
+> Varför listan inte uppdateras går inte att avgöra härifrån: kategorirutten ligger i
+> `fyndplats-headless`, ett annat repo.
 >
 > **Praktiskt:** produkterna påverkas inte. De ligger live på sina egna URL:er och bär
 > FÖRÄLDER-kategorin, som fungerar. Lövet är extra navigation. Skapar du en ny kategori:
