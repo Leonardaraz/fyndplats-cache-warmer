@@ -1,0 +1,39 @@
+{
+  "matt": "2026-08-29T14:50Z",
+  "vad": "Aosom-mappningar vars grossSek skiljer sig från produktens pris i Wix.",
+  "orsak": "Prissynken skrev fel nyckel till updateV3VariantPrices och läste inte returvärdet (#552). Wix skrevs aldrig, mappningen skrevs ändå — och synken jämför mot mappningen, så raderna rättas aldrig av sig själva.",
+  "metod": "Alla 4 445 Aosom-mappningar jämförda mot POST /stores/v3/products/query (actualPriceRange.minValue). Samtliga rader är envariants, så min-priset är variantens pris.",
+  "korroborering": "Summan av prisUppdaterade i audit-loggens fem korningar ar ocksa 20 (11+4+1+2+2).",
+  "sammanfattning": {
+    "aosomMappningar": 4445,
+    "stammerExakt": 4425,
+    "drivit": 20,
+    "allaOsynligaUtkast": true,
+    "underInkopspris": 0,
+    "wixForDyrt": 17,
+    "wixForBilligt": 3
+  },
+  "atgard": "mappningens grossSek ar korrekt (charm9(landedCostSek * 1,20)); Wix ar inaktuellt och ska skrivas over. Synligheten maste bevaras — alla 20 ar visible:false.",
+  "rader": [
+    {"wixProductId":"efaa0c7b-cd25-46b1-8dc5-7eb07167fab7","sku":"839-835V01CG","rattPris":3529,"wixPris":4539,"landedCostSek":2935.67},
+    {"wixProductId":"bbe221e6-6247-42a1-8a95-9d9dfd92f20c","sku":"834-927V00BK","rattPris":1759,"wixPris":2349,"landedCostSek":1461.18},
+    {"wixProductId":"4fa6649a-fc8c-43e1-a7c5-fec8ef1621a2","sku":"838-639V92WT","rattPris":1879,"wixPris":2049,"landedCostSek":1563.85},
+    {"wixProductId":"222f59d6-2c8d-441f-b88d-0dcd68b478c9","sku":"831-406","rattPris":1269,"wixPris":1419,"landedCostSek":1053.11},
+    {"wixProductId":"ad390a36-1ca9-40da-9fcb-bc15ee2f6f5d","sku":"801-458V00WT","rattPris":1669,"wixPris":1559,"landedCostSek":1389.03},
+    {"wixProductId":"c26677bf-75da-479e-a135-48e50ba672e9","sku":"800-352V91SR","rattPris":1619,"wixPris":1689,"landedCostSek":1344.63},
+    {"wixProductId":"b4d17208-13d7-45d1-b7ec-e0bf14e11b03","sku":"800-250V90BK","rattPris":1409,"wixPris":1469,"landedCostSek":1172.02},
+    {"wixProductId":"6bcbaf32-2740-4eeb-94c0-0b3981e4fb72","sku":"800-250V90BG","rattPris":1409,"wixPris":1469,"landedCostSek":1172.02},
+    {"wixProductId":"8e4a9df0-1bde-4ba2-b931-fa00ad696c15","sku":"801-460V00AK","rattPris":1739,"wixPris":1769,"landedCostSek":1447.30},
+    {"wixProductId":"5cd3d289-3639-43e7-b74a-1431fa3a7a14","sku":"800-297V90BK","rattPris":1689,"wixPris":1719,"landedCostSek":1404.01},
+    {"wixProductId":"d70e483e-40b8-48b8-8d94-db81767e77ac","sku":"3D0-027V01YL","rattPris":1759,"wixPris":1789,"landedCostSek":1462.29},
+    {"wixProductId":"f6c56546-9839-4150-9f76-c4690cb1be62","sku":"370-473V90GN","rattPris":1759,"wixPris":1789,"landedCostSek":1462.29},
+    {"wixProductId":"375bb3c8-8ddd-4095-8ed3-913c77d7d6f9","sku":"800-286V90CW","rattPris":1239,"wixPris":1259,"landedCostSek":1032.02},
+    {"wixProductId":"a6e01595-082d-4520-945d-516025fc3990","sku":"3D0-033V01MX","rattPris":1869,"wixPris":1889,"landedCostSek":1555.67},
+    {"wixProductId":"157a06a5-f4d7-45c9-80b7-5ed0a83b13fb","sku":"820-469V90WT","rattPris":839,"wixPris":829,"landedCostSek":690.84},
+    {"wixProductId":"0ab3483a-e993-46ef-81f7-18502bb9f1cf","sku":"800-181V90PK","rattPris":999,"wixPris":1009,"landedCostSek":832.50},
+    {"wixProductId":"916d2e9f-6a41-4a26-aaed-550dca7f8191","sku":"350-227V00YL","rattPris":1149,"wixPris":1159,"landedCostSek":949.33},
+    {"wixProductId":"85b1a737-f5b2-4a36-afc4-4ebd1325483e","sku":"350-225V00GN","rattPris":1119,"wixPris":1129,"landedCostSek":926.02},
+    {"wixProductId":"2b422e06-9f6a-4c66-9ac0-df7c085a603e","sku":"311-108V90WT","rattPris":999,"wixPris":989,"landedCostSek":824.18},
+    {"wixProductId":"c1b60644-63ce-458e-80bf-5285b575f522","sku":"02-0708","rattPris":999,"wixPris":1009,"landedCostSek":832.50}
+  ]
+}
