@@ -44,7 +44,7 @@ export const dynamic = "force-dynamic";
 // 24 h är därför inte "lite marginal" — det är regeln: fönstret ska rymma
 // minst två schemalagda körningar (12 h × 2), så en missad körning inte kan
 // leda till en utgången token. Ändras schemat måste det här talet följa med.
-const REFRESH_SKIP_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+export const REFRESH_SKIP_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
 function isAuthorized(req: NextRequest): boolean {
   const expected = process.env.CRON_SECRET;

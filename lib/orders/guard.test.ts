@@ -425,15 +425,36 @@ describe("rollupSyncRuns + statusrad: torrkörning och nämnare", () => {
     expect(email.text).toContain("IllegalAccessToken");
   });
 
-  it("token som snart går ut varnar i förväg — det är refresh-token som inte läker sig själv", () => {
+  it("under ett schemaintervall kvar → varning, för då har förnyelsen redan missat sin chans", () => {
     const email = medToken(new Date(NOW + 5 * HOUR).toISOString());
     expect(email.text).toContain("går ut om 5 h");
+    expect(email.text).toContain("INTE förnyats automatiskt");
     expect(email.text).not.toContain("GÅTT UT");
+  });
+
+  // Förnyelsen slår till vid 24 h kvar. Varnar vi där uppe dyker raden upp
+  // varje månad i det NORMALA förloppet, och en varning man lär sig ignorera
+  // är värre än ingen.
+  it("token mellan förnyelsetröskeln och utgången är tyst — det är inte ett fel", () => {
+    expect(medToken(new Date(NOW + 20 * HOUR).toISOString()).text).not.toContain("AliExpress-token");
+    expect(medToken(new Date(NOW + 13 * HOUR).toISOString()).text).not.toContain("AliExpress-token");
   });
 
   it("token med god marginal nämns inte alls", () => {
     const email = medToken(new Date(NOW + 20 * 24 * HOUR).toISOString());
     expect(email.text).not.toContain("AliExpress-token");
+  });
+
+  // Blindfläck i den första testomgången: alla token-tester skickade med en
+  // syncRollup, så de hade INTE fällt om larmet råkat hamna inuti
+  // `if (extras.syncRollup)`. Och just då behövs det som mest — en synk som
+  // aldrig kört har ingen rollup att gömma sig bakom.
+  it("larmet är oberoende av syncRollup", () => {
+    const email = buildGuardEmail(findings({}), {
+      sectionErrors: [], baseUrl: "https://example.test",
+      aliExpressTokenExpiresAt: new Date(NOW - HOUR).toISOString(),
+    }, NOW);
+    expect(email.text).toContain("AliExpress-token har GÅTT UT");
   });
 
   it("saknad eller otolkbar utgångstid gissar aldrig att allt är bra", () => {

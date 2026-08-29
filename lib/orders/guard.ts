@@ -323,7 +323,8 @@ export interface GuardExtras {
   /**
    * När AliExpress access_token går ut (ISO). En utgången token gör VARJE
    * AE-anrop till ett `IllegalAccessToken`-fel, och det syns annars bara som
-   * en felräknare i statusraden — se larmet nedan.
+   * en felräknare i statusraden — se larmet nedan. Bara tidsstämpeln: inget
+   * token-VÄRDE får någonsin nå ett mejl.
    */
   aliExpressTokenExpiresAt?: string;
   /** Datakällor som inte gick att läsa (vakten larmar hellre än döljer). */
@@ -554,9 +555,19 @@ export function buildGuardEmail(
           + "(IllegalAccessToken). Lager och priser uppdateras inte. Kör workflowen "
           + "\"Refresh AliExpress tokens\"; hjälper inte den krävs ny OAuth via /api/aliexpress/auth.",
       );
-    } else if (kvarMs < 48 * HOUR) {
+    } else if (kvarMs < 12 * HOUR) {
+      // 12 h = ETT schemaintervall, och det är precis vad som gör raden till en
+      // signal i stället för brus. Förnyelsen slår till när mindre än 24 h
+      // återstår och körs var 12:e timme — är vi under 12 h har den alltså
+      // redan haft minst ett försök och inte lyckats. Ett tidigare utkast
+      // varnade vid 48 h: då hade raden dykt upp varje månad i det NORMALA
+      // förloppet, strax innan token förnyade sig själv, och en varning man
+      // lär sig att ignorera är värre än ingen varning alls.
       const timmar = Math.floor(kvarMs / HOUR);
-      statusBits.push(`⚠️ AliExpress-token går ut om ${timmar} h — förnyas normalt automatiskt var 12:e timme.`);
+      statusBits.push(
+        `⚠️ AliExpress-token går ut om ${timmar} h och har INTE förnyats automatiskt `
+          + "som den skulle — kolla workflowen \"Refresh AliExpress tokens\" innan den dör.",
+      );
     }
   }
   if (extras.openAlerts !== undefined && extras.openAlerts > 0) {
