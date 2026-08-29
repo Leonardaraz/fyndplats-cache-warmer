@@ -1068,9 +1068,16 @@ Den läker INTE av sig själv. Enda vägen tillbaka är ny OAuth för hand:
 öppna **`/api/aliexpress/auth`** i en webbläsare, godkänn hos AliExpress, klart
 (callbacken sparar de nya tokens). Rutten kräver ingen hemlighet.
 
-Morgonmejlet larmar sedan dess på både utgången token och en som går ut inom
-två dygn — förvarningen är den som räknas, för det är refresh-token som inte
-går att laga automatiskt. Fyra tester låser det.
+Morgonmejlet larmar sedan dess på utgången token, och varnar när mindre än
+ETT schemaintervall (12 h) återstår — då har den automatiska förnyelsen redan
+haft minst ett försök och missat, alltså är något verkligt fel. Ett tidigare
+utkast varnade vid 48 h; det hade gett en varningsrad varje månad i det
+NORMALA förloppet, strax innan token förnyade sig själv, och en varning man
+lär sig ignorera är värre än ingen alls.
+
+Invarianten är dessutom testad mot verkligheten: `route.test.ts` läser
+cron-raden ur `refresh-tokens.yml` och fäller om tröskeln inte rymmer två
+körningar. Ändras schemat fäller testet i stället för produktionen.
 
 ### Vid felsökning: kolla i den här ordningen
 
