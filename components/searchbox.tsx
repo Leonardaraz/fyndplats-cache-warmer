@@ -8,6 +8,16 @@ import { nameScore } from "../lib/search";
 type Hit = { n: string; s: string; i: string; p: string; o?: 1 };
 
 // Module-level cache so the header + mobile SearchBox share ONE fetch of the index.
+//
+// HÄMTNINGEN STARTAR PÅ AVSIKT, INTE PÅ FOKUS. Förr kallades loadIndex() först
+// i onFocus, och onFocus väntade in svaret innan listan öppnades — så hela
+// nätverksrundan låg mellan tryckningen och första förslaget. Uppmätt i
+// produktion 2026-08-28: 0,29–0,92 s bara för /api/search-index, som dessutom
+// aldrig CDN-cachades (se huvudet i rutten). Det är den paus Leonard beskrev.
+//
+// Nu startar hämtningen redan på pointerenter/touchstart — händelser som fyrar
+// FÖRE focus — så indexet oftast ligger i `cache` när fokus väl kommer och
+// listan kan öppnas direkt. Kostar ingenting för den som aldrig går nära rutan.
 let cache: Hit[] | null = null;
 let inflight: Promise<Hit[]> | null = null;
 function loadIndex(): Promise<Hit[]> {
@@ -84,13 +94,24 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setOpen(true);
   };
 
-  // Fokus med tomt fält → ladda index + visa populära produkter som förslag.
+  // Fokus med tomt fält → visa populära produkter som förslag.
+  //
+  // setOpen(true) ligger FÖRE await:et. Låg det efter — som förr — höll en
+  // långsam hämtning hela panelen stängd, och rutan såg död ut medan man
+  // väntade. Nu öppnas den direkt; är indexet redan hämtat (vanligt, tack vare
+  // förhämtningen nedan) fylls den i samma andetag, annars när svaret kommer.
   const onFocus = async () => {
-    const idx = await loadIndex();
-    if (q.trim().length >= 2) { setOpen(true); return; }
-    setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
     setOpen(true);
+    const idx = await loadIndex();
+    if (q.trim().length >= 2) return;
+    setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
   };
+
+  // Avsikt att söka → börja hämta indexet. pointerenter fyrar när muspekaren
+  // når rutan (desktop, ofta hundratals ms före klicket) och touchstart när
+  // fingret landar (mobil, före focus). loadIndex() är idempotent — flera
+  // anrop delar samma inflight-löfte.
+  const onIntent = () => { void loadIndex(); };
 
   // Det som faktiskt renderas i listan: sökträffar om man skrivit ≥2 tecken,
   // annars populära produkter.
@@ -143,6 +164,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           value={q}
           onChange={(e) => onType(e.target.value)}
           onFocus={onFocus}
+          onPointerEnter={onIntent}
+          onTouchStart={onIntent}
           onKeyDown={onKeyDown}
           placeholder="Sök efter produkter…"
           aria-label="Sök efter produkter"
