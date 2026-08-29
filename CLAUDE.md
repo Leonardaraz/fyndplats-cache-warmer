@@ -310,8 +310,31 @@ Tre saker gjorde felet osynligt, och alla tre är lagade:
 ⚠️ **Följden för befintlig data:** varje Aosom-produkt vars kostnad ändrats sedan
 importen har rätt `landedCostSek` i mappningen och fel pris i Wix. Auktionens
 golvbud och lönsamhetsöversikten läser mappningen, butiken läser Wix — de har
-alltså varit oense. Nästa synk rättar priserna av sig själv nu när skrivningen
-biter; det behövs ingen engångskörning.
+alltså varit oense.
+
+☠️ **Och driften läker INTE av sig själv.** Den här raden påstod tidigare att nästa
+synk rättar priserna nu när skrivningen biter. Det är fel, och felet är samma
+förväxling en gång till: synken jämför det nyräknade priset mot **mappningens**
+`grossSek`, inte mot Wix.
+
+```ts
+const gammalt = variant.grossSek;          // mappningen, inte butiken
+…
+} else if (pris !== gammalt) { nyttPris = pris; }
+```
+
+Den trasiga skrivningen hann uppdatera mappningen. Nästa körning räknar därför fram
+samma tal som redan står där, ser ingen skillnad, och hoppar över produkten — för
+alltid. Uppmätt 2026-08-29 efter fixen: bäddsoffan `efaa0c7b` står kvar på **4 539 kr
+i Wix, `revision: 1`** (orörd sedan importen) med `grossSek: 3529` i mappningen,
+och körningen 12:20 samma dag rörde den inte.
+
+**Det krävs alltså en engångsavstämning:** för varje Aosom-mappning, läs Wix-priset
+och skriv `grossSek` dit de skiljer sig. Urvalet är litet — 1 611 rader har
+`aosomSyncedAt`, och bara de vars kostnad faktiskt ändrats medan synken var trasig
+har drivit; ett stickprov på sex orörda rader stämde exakt. Alternativet vore att
+låta synken jämföra mot Wix i stället för mot mappningen, men då kostar varje
+granskad produkt ett Wix-anrop och `limit`-resonemanget i punkt 4 ovan faller.
 
 **Regeln, sjunde gången: ett svar utan fel är inget kvitto.** Och den nya:
 **två fält som heter `sku` men betyder olika saker ska inte ha samma typ.**
