@@ -1026,6 +1026,52 @@ Nu är det ett typfel att glömma den, inte en tyst regression.
 Genomgående regel: bara ett **uttryckligt** `"offline"` fäller. `"unknown"`
 beter sig exakt som före fältet fanns.
 
+### ☠️ Token-förnyelsen hoppade över i 30 dygn och lät token dö (2026-08-29)
+
+Hittad direkt efter att fan-out-fixen ovan gjort synken körbar igen: den kom
+igång, och fick **99 fel av 106 försök**, alla
+`IllegalAccessToken — The specified access token is invalid or expired`.
+
+Tokenraden berättade allt: `updatedAt 2026-07-30`, `expiresAt 2026-08-29T02:37`.
+Den hade alltså inte förnyats på **30 dygn**, och dog i natt.
+
+Felet är en storleksordning, inte en bugg i logiken:
+
+| | |
+|---|---|
+| Workflowen kör | **var 12:e timme** |
+| Rutten hoppade över om det fanns mer än | **2 timmar** kvar |
+
+En körning måste alltså råka landa i de SISTA två timmarna för att förnya något
+alls — chansen är 2/12. Fyra gånger av fem hinner token dö emellan. Så gick det
+till: körningen 21:53 såg 4,7 h kvar och hoppade över, token dog 02:37, nästa
+körning låg 09:53.
+
+☠️ **Och workflowen rapporterade `success` hela vägen.** Den kollar bara
+HTTP-statusen, och ett "hoppade över" ÄR 200. Sjätte gången samma lärdom.
+
+Kommentaren vid konstanten påstod dessutom att access_token lever "~48h". Mätt:
+**30 dygn**. Livstiden spelar dock ingen roll för buggen — schemat gör det.
+
+**Regeln: skip-fönstret måste rymma minst två schemalagda körningar.** Det är
+nu `24 h` mot ett 12-timmarsschema. Ändras schemat måste talet följa med.
+
+⚠️ **Priset var högre än en utebliven synk.** Eftersom `refreshAndPersist`
+ROTERAR refresh-token vid varje förnyelse höll 30 dygn utan en enda förnyelse
+även *refresh*-token att åldras ut:
+
+```
+IllegalRefreshToken: The specified refresh token is invalid or expired
+```
+
+Den läker INTE av sig själv. Enda vägen tillbaka är ny OAuth för hand:
+öppna **`/api/aliexpress/auth`** i en webbläsare, godkänn hos AliExpress, klart
+(callbacken sparar de nya tokens). Rutten kräver ingen hemlighet.
+
+Morgonmejlet larmar sedan dess på både utgången token och en som går ut inom
+två dygn — förvarningen är den som räknas, för det är refresh-token som inte
+går att laga automatiskt. Fyra tester låser det.
+
 ### Vid felsökning: kolla i den här ordningen
 
 1. **`SYNC_DRY_RUN`.** Default är `"true"` — allt som INTE är strängen `"false"`

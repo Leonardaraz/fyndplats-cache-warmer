@@ -102,6 +102,16 @@ export async function GET(req: NextRequest) {
     } catch {
       /* rollup är ren — kan inte kasta; behålls för symmetri */
     }
+    // Tokenens utgångstid till mejlet. Ett Wix-uppslag, och det är skillnaden
+    // mellan "99 fel" som en siffra i statusremsan och en rad som säger varför
+    // (audit 2026-08-29). Best-effort som allt annat här — vakten ska rapportera
+    // det den kan läsa, inte falla på det den inte kan.
+    try {
+      const tokens = await getStore().getAliExpressTokens();
+      if (tokens) extras.aliExpressTokenExpiresAt = tokens.expiresAt.toISOString();
+    } catch (err) {
+      sectionErrors.push(`AliExpress-tokens gick inte att läsa: ${(err as Error).message.slice(0, 150)}`);
+    }
     try {
       extras.openAlerts = (await getSyncStore().listAlerts("open")).length;
     } catch (err) {
