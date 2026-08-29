@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ProductMappingRecord } from "../store";
+import { BOT_BLOCKED } from "./reviews";
 import { runAosomReviewImport, type AosomReviewDeps } from "./review-run";
 
 function mapping(sku: string, extra: Partial<ProductMappingRecord> = {}): ProductMappingRecord {
@@ -174,5 +175,45 @@ describe("runAosomReviewImport", () => {
     const d = deps({ sleep });
     await runAosomReviewImport({ dryRun: false, delayMs: 1200 }, d);
     expect(sleep).toHaveBeenCalledWith(1200);
+  });
+
+  it("☠️ stannar när Akamai spärrar — spärren gäller klienten, inte varan", async () => {
+    const d = deps({
+      listMappings: async () => Array.from({ length: 20 }, (_, i) => mapping(`A-${String(i).padStart(2, "0")}`)),
+      fetchReviews: async () => ({ reviews: [], error: BOT_BLOCKED }),
+    });
+    const s = await runAosomReviewImport({ dryRun: false }, d);
+    expect(s.stoppedBy).toBe("blockerad");
+    expect(s.blocked).toBe(3);
+    // Räknas som spärr, inte som fel — "40 fel" ser ut som otur, "40
+    // blockerade" säger sanningen.
+    expect(s.failed).toBe(0);
+    expect(d.sparade).toHaveLength(0);
+    expect(s.errors).toHaveLength(3);
+    expect(s.errors[0].error).toBe(BOT_BLOCKED);
+  });
+
+  it("en ensam spärr mitt i avbryter inte körningen", async () => {
+    let n = 0;
+    const d = deps({
+      fetchReviews: async () => {
+        n++;
+        if (n === 2) return { reviews: [], error: BOT_BLOCKED };
+        return { rating: 4.5, reviewCount: 9, reviews: [] };
+      },
+    });
+    const s = await runAosomReviewImport({ dryRun: false }, d);
+    expect(s.blocked).toBe(1);
+    expect(s.stoppedBy).toBe("klart");
+    expect(s.attempted).toBe(3);
+    expect(d.sparade).toHaveLength(2);
+  });
+
+  it("vanliga fel räknas separat från spärren", async () => {
+    const d = deps({ fetchReviews: async () => ({ reviews: [], error: "HTTP 500" }) });
+    const s = await runAosomReviewImport({ dryRun: false }, d);
+    expect(s.failed).toBe(3);
+    expect(s.blocked).toBe(0);
+    expect(s.stoppedBy).toBe("klart");
   });
 });

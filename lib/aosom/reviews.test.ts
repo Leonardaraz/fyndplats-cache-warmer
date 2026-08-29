@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { deriveInitials, ensureReviewId } from "../import/review-import";
 import {
+  BOT_BLOCKED,
   fetchAosomReviews,
   isGenericAuthor,
   parseAosomProductReviews,
@@ -166,17 +167,35 @@ describe("fetchAosomReviews", () => {
     expect(sedd).toBe("https://www.aosom.de/item/x~A.html");
   });
 
-  it("gör om på 403 (Akamai) och lyckas på andra försöket", async () => {
+  it("☠️ gör INTE om på 403 — det är en policyspärr, inte otur", async () => {
+    // Uppmätt 2026-08-29: Akamai fingeravtrycker klientens TLS, inte rubrikerna.
+    // curl får 200 och Node:s fetch 403 med EXAKT samma headers. Ett omförsök
+    // ger samma fingeravtryck och samma svar — men kostar 12 s i backoff.
+    let n = 0;
+    const r = await fetchAosomReviews("https://www.aosom.de/item/x~A.html", {
+      sleep: async () => { throw new Error("ska aldrig sova på 403"); },
+      fetchImpl: (async () => {
+        n++;
+        return { ok: false, status: 403 } as unknown as Response;
+      }) as unknown as typeof fetch,
+    });
+    expect(n).toBe(1);
+    expect(r.error).toBe(BOT_BLOCKED);
+    expect(r.reviews).toEqual([]);
+  });
+
+  it("gör fortfarande om på 429 och 5xx", async () => {
     let n = 0;
     const r = await fetchAosomReviews("https://www.aosom.de/item/x~A.html", {
       sleep: async () => {},
       fetchImpl: (async () => {
         n++;
-        if (n === 1) return { ok: false, status: 403 } as unknown as Response;
+        if (n === 1) return { ok: false, status: 429 } as unknown as Response;
+        if (n === 2) return { ok: false, status: 503 } as unknown as Response;
         return ok(sida({ "@type": "Product", aggregateRating: { ratingValue: 4.4, reviewCount: 3 } }));
       }) as unknown as typeof fetch,
     });
-    expect(n).toBe(2);
+    expect(n).toBe(3);
     expect(r.rating).toBe(4.4);
   });
 
