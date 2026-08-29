@@ -264,6 +264,25 @@ export interface ReviewImportDeps {
    * simulera ett Wix-fel går felgrenen inte att låsa.
    */
   importImage?: typeof ownImageUrlForReview;
+  /**
+   * Radens ursprung, skrivs rakt till `StoredReview.source`.
+   *
+   * ☠️ HÄRKOMSTEN ÄR ETT LAGKRAV, INTE METADATA. Artikel 7.6 UCPD (Omnibus)
+   * kräver att den som visar konsumentrecensioner upplyser om huruvida och hur
+   * de kommer från konsumenter som faktiskt använt produkten — och bilaga I
+   * punkt 23b förbjuder att PÅSTÅ att de är egna kunders utan täckning.
+   * Syndikerade produktrecensioner (Bazaarvoice, Reevoo, och vår Aosom-väg) är
+   * lagliga just för att källan anges.
+   *
+   * Därför sätts fältet av den som HÄMTAR, inte av den som visar: en rad som
+   * saknar sitt ursprung går inte att märka i efterhand, och en omärkt rad
+   * renderas under rubriken "Kundrecensioner" som om den vore vår egen kunds.
+   *
+   * Utelämnat = AliExpress-import, precis som före 2026-08-29. `"customer"`
+   * sätts av headless-site:lib/customer-review.ts och betyder verifierat köp
+   * hos oss; `"aosom"` av lib/aosom/reviews.ts.
+   */
+  source?: string;
 }
 
 export interface ReviewImportResult {
@@ -389,6 +408,10 @@ export async function importReviewsForProduct(
       sourceLanguage: r.language ? r.language.toUpperCase() : undefined,
       customerNameRaw: r.customerName,
       initials: deriveInitials(r.customerName, reviewIdAE),
+      // Utelämnas när ingen källa angetts → oförändrad AE-rad (fältet saknas,
+      // exakt som alla rader före 2026-08-29). Aldrig tomma strängen: den
+      // hade sett ut som ett SATT ursprung utan att vara det.
+      ...(deps.source ? { source: deps.source } : {}),
       customerCountry: r.customerCountry,
       date: r.date,
       ...bildfalt,
