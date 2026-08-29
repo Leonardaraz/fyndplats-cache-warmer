@@ -21,8 +21,11 @@ describe("summarizeProductProfit", () => {
   it("computes per-variant profit on net revenue (excl. VAT)", () => {
     const s = summarizeProductProfit(mapping, 25, { percent: 3, fixedSek: 2 })!;
     expect(s.variantCount).toBe(2);
-    // variant a: net 199/1.25 = 159.2; fee = 199*0.03+2 = 7.97; profit = 159.2-50-7.97 = 101.23
-    expect(s.variants[0].profitSek).toBeCloseTo(101.23, 2);
+    // variant a: nettointäkt 199/1,25 = 159,2; avgift 199×0,03+2 = 7,97;
+    // landad kostnad 50 är INKL moms → verklig kostnad 50/1,25 = 40.
+    // 159,2 − 40 − 7,97 = 111,23. (Väntade sig 101,23 innan momsen drogs av
+    // ur kostnaden — alltså 10 kr för lite, exakt 25 % av inköpet.)
+    expect(s.variants[0].profitSek).toBeCloseTo(111.23, 2);
     expect(s.minProfit).toBeLessThanOrEqual(s.maxProfit);
   });
 
