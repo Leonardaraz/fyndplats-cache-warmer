@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { nameScore } from "../lib/search";
@@ -20,13 +20,34 @@ type Hit = { n: string; s: string; i: string; p: string; o?: 1 };
 // listan kan öppnas direkt. Kostar ingenting för den som aldrig går nära rutan.
 let cache: Hit[] | null = null;
 let inflight: Promise<Hit[]> | null = null;
+
+// ETT MISSLYCKANDE FICK INTE BLI PERMANENT. Förr satte .catch() inflight till
+// ett löst löfte om [] — och eftersom `cache` bara sätts i lyckade fallet var
+// `inflight` kvar som icke-null för alltid. En enda skakig hämtning på mobilen
+// dödade alltså sökrutan för hela sidbesöket: varje nytt anrop fick tillbaka
+// samma tomma lista, utan att någonsin försöka igen. Det är den "ibland buggar
+// den"-symptom Leonard rapporterade 2026-08-29.
+//
+// Nu nollställs inflight vid fel, så nästa tangenttryck gör ett nytt försök.
+//
+// TIMEOUT, av samma skäl. fetch utan gräns kan hänga i minuter på ett dåligt
+// mobilnät, och await:et i onType/onFocus hänger med — panelen förblir tom
+// utan att någonsin ge upp. 6 s är rundligt för 66 kB över 4G och kort nog att
+// hinna göra om innan man tröttnar.
+const TIMEOUT_MS = 6000;
 function loadIndex(): Promise<Hit[]> {
   if (cache) return Promise.resolve(cache);
   if (!inflight) {
-    inflight = fetch("/api/search-index")
-      .then((r) => r.json())
+    inflight = fetch("/api/search-index", { signal: AbortSignal.timeout(TIMEOUT_MS) })
+      .then((r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      })
       .then((d: Hit[]) => { cache = d; return d; })
-      .catch(() => [] as Hit[]);
+      .catch(() => {
+        inflight = null; // låt nästa anrop försöka igen
+        return [] as Hit[];
+      });
   }
   return inflight;
 }
@@ -49,6 +70,11 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const [popular, setPopular] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  // Sant medan indexet hämtas. Utan det skulle panelen — som nu öppnas direkt —
+  // hinna visa "Inga produkter matchade" innan vi ens har något att matcha mot.
+  // Att ljuga om noll träffar är sämre än att säga att vi letar.
+  const [laddar, setLaddar] = useState(false);
+  const [soker, startaSok] = useTransition();
   const router = useRouter();
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -64,19 +90,30 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   // Tokeniserad, stam-medveten matchning (lib/search): "knivset" → knivhållare,
   // "halsband" → kedjehalsband. Sorteras på relevans (namn-score), inte katalogordning.
+  //
+  // setOpen(true) ligger FÖRE await:et, av samma skäl som i onFocus. Att bara
+  // laga onFocus (PR #556) räckte inte: skriver man i rutan går man aldrig
+  // genom onFocus igen, så en långsam eller hängande hämtning lämnade panelen
+  // stängd medan man skrev — inga förslag alls, och ingen förklaring. Det är
+  // skärmdumparna Leonard skickade 2026-08-29 ("Jkkk" och "Kontorsstol", tom
+  // sida under sökrutan).
   const onType = async (val: string) => {
     setQ(val);
     setActive(-1);
+    setOpen(true);
     const term = val.trim();
     if (term.length < 2) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
-      const idx = await loadIndex();
-      setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       setHits([]);
-      setOpen(true);
+      if (!cache) setLaddar(true);
+      const idx = await loadIndex();
+      setLaddar(false);
+      setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
+    if (!cache) setLaddar(true);
     const idx = await loadIndex();
+    setLaddar(false);
     // ORDNINGEN ÄR VIKTIG: klipp på RELEVANS först, sänk slutsålda EFTERÅT.
     // Sänker man slutsålda före klippet kan en exakt namnträff som råkar vara
     // slut tryckas ut ur listan av sju svaga träffar som råkar finnas i lager —
@@ -91,7 +128,6 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       .sort((a, b) => (a.h.o ? 1 : 0) - (b.h.o ? 1 : 0))
       .map((r) => r.h);
     setHits(ranked);
-    setOpen(true);
   };
 
   // Fokus med tomt fält → visa populära produkter som förslag.
@@ -102,7 +138,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // förhämtningen nedan) fylls den i samma andetag, annars när svaret kommer.
   const onFocus = async () => {
     setOpen(true);
+    if (!cache) setLaddar(true);
     const idx = await loadIndex();
+    setLaddar(false);
     if (q.trim().length >= 2) return;
     setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
   };
@@ -120,12 +158,17 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   // onNavigate stänger ev. förälder (mobilmenyn) när vi navigerar bort.
   const goProduct = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
+  // BLÅ "GÅ"-KNAPPEN SÅG DÖD UT. /sok är en dynamisk route utan cache — uppmätt
+  // i produktion 2026-08-29: cache-control "private, no-cache, no-store",
+  // x-vercel-cache MISS varje gång, TTFB 0,50–0,78 s. Under den halvsekunden
+  // hände ingenting synligt: panelen stängdes och sidan stod kvar. Med
+  // useTransition vet vi att navigeringen pågår och kan säga det.
   const goSearch = () => {
     const t = q.trim();
     if (!t) return;
     setOpen(false);
     onNavigate?.();
-    router.push(`/sok?q=${encodeURIComponent(t)}`);
+    startaSok(() => router.push(`/sok?q=${encodeURIComponent(t)}`));
   };
 
   const onSubmit = (e: React.FormEvent) => {
@@ -176,7 +219,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
         />
       </form>
 
-      {open && (showing.length > 0 || q.trim().length >= 2) && (
+      {open && (showing.length > 0 || laddar || q.trim().length >= 2) && (
         <div className="sugg" id="search-suggestions" role="listbox">
           {isPopular && showing.length > 0 && (
             <div className="sugg-head">Populära produkter</div>
@@ -202,9 +245,14 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               {h.p && <span className="sugg-price">{h.p}</span>}
             </a>
           ))}
-          {!isPopular && (showing.length > 0 ? (
-            <button type="button" className="sugg-all" onClick={goSearch}>
-              Visa alla resultat för “{q.trim()}” →
+          {/* ORDNINGEN ÄR VIKTIG. Panelen öppnas numera innan indexet finns, så
+              "Inga produkter matchade" får BARA visas när vi faktiskt har letat.
+              Står laddar kvar är svaret ännu inte känt — då säger vi det. */}
+          {laddar && showing.length === 0 ? (
+            <div className="sugg-empty">Söker…</div>
+          ) : !isPopular && (showing.length > 0 ? (
+            <button type="button" className="sugg-all" onClick={goSearch} disabled={soker}>
+              {soker ? "Söker…" : <>Visa alla resultat för “{q.trim()}” →</>}
             </button>
           ) : (
             <div className="sugg-empty">Inga produkter matchade “{q.trim()}”.</div>
