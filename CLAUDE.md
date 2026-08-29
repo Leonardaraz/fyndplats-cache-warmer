@@ -218,11 +218,13 @@ har `CRON_SECRET` för handen.
    sälja UNDER inköp. Samma fälla gäller AliExpress-köp gjorda på Business
    Purpose, som också faktureras netto.
 
-   ⚠️ `computeProfit` i `lib/import/pricing.ts` drar INTE av momsen ur kostnaden
-   och är därmed oense med `netSupplierCost`. Lönsamhetsöversikten läser den
-   vägen (`lib/analytics/profit.ts`) och underskattar därför vinsten med 25 % av
-   inköpet — uppmätt 2026-08-27: rapporterar 0,3 % marginal där verkligheten är
-   19,4 %.
+   ✅ **Lagat 2026-08-29.** `computeProfit` momsade av intäkten men drog
+   `landedCostSek` rakt av, trots att fältet är lagrat INKLUSIVE moms —
+   lönsamhetsöversikten underskattade vinsten med 25 % av inköpet. Bäddsoffan
+   `efaa0c7b` rapporterades som **−112 kr och −4 % marginal** där verkligheten
+   är **+475 kr och +16,8 %**. `SUPPLIER_VAT_RATE` och `netSupplierCost` bor nu
+   i `lib/import/pricing.ts` och `lib/auction/seed.ts` ÄRVER dem, så de två
+   vägarna inte kan bli oense igen. Testerna som kodade in felet är omskrivna.
 3. **En rad = en produkt.** `Psin` ser ut som en föräldranyckel men grupperar
    *relaterade varor*: de tretton raderna under `24G58OVN9S001` är tretton olika
    valphagar med olika antal paneler och priser från 55 till 119 €. Grupperar
@@ -848,11 +850,17 @@ omvänd skattskyldighet — och det skalar inte till 5 566 artiklar.
 
 ### Vad som INTE är fixat
 
-`computeProfit` i `lib/import/pricing.ts` drar inte av momsen ur kostnaden och
-är oense med `lib/auction/seed.ts#netSupplierCost`. Lönsamhetsöversikten
-underskattar därför vinsten med 25 % av inköpet. Samma fälla finns olagad för
-AliExpress-köp på Business Purpose, som faktureras netto men sparas i
-`landedCostSek` som läses som brutto (lagat för Aosom i `1287a0a`).
+Momsfällan i `computeProfit` är **lagad 2026-08-29** (se avsnittet ovan):
+kostnaden momsas nu av på samma sätt som intäkten, och definitionen delas med
+auktionens golvbud i stället för att dupliceras.
+
+Kvar är DATA-sidan av samma fälla: **AliExpress-köp på Business Purpose**
+faktureras netto men sparas i `landedCostSek`, som läses som brutto. För dem är
+det lagrade talet alltså 20 % för lågt, och nu när `computeProfit` dessutom
+delar med 1,25 blir felet synligt åt andra hållet — vinsten ser för hög ut.
+Aosom-raderna bruttas upp korrekt vid import (`1287a0a`); AE-raderna gör det
+inte, och det går inte att laga i kod utan att veta vilka köp som gjordes på
+Business Purpose.
 
 ## Dubblett-spärr vid import
 

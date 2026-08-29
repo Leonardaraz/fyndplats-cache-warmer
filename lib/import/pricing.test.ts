@@ -6,6 +6,7 @@ import {
   computePrice,
   computePriceWithRules,
   computeProfit,
+  netSupplierCost,
   costToSek,
   exceedsIossThreshold,
   resolveMarkup,
@@ -133,15 +134,38 @@ describe("computePrice", () => {
 });
 
 describe("computeProfit", () => {
-  it("computes profit on revenue excluding VAT", () => {
-    // gross 250 incl 25% VAT => net revenue 200; cost 80; fee 10 => profit 110
+  // ☠️ Det HÄR testet kodade tidigare in buggen. Det förväntade sig 110, vilket
+  // är vad man får om kostnaden dras rakt av — men `landedCostSek` är lagrad
+  // INKLUSIVE moms, så det drar ett 25 % uppblåst inköp från en nettointäkt.
+  // Ett test som beskriver felet skyddar felet.
+  it("momsar av BÅDA sidor — intäkten och den lagrade inköpskostnaden", () => {
+    // brutto 250 inkl 25 % moms → nettointäkt 200.
+    // landad kostnad 80 är INKL moms → verklig kostnad 80/1,25 = 64.
+    // 200 − 64 − 10 = 126.
     const r = computeProfit({ grossSek: 250, vatRatePercent: 25, landedCostSek: 80, paymentFeeSek: 10 });
     expect(r.netRevenueSek).toBe(200);
-    expect(r.profitSek).toBe(110);
-    expect(r.marginPercent).toBe(55);
+    expect(r.profitSek).toBe(126);
+    expect(r.marginPercent).toBe(63);
   });
 
-  it("does not overstate profit by ignoring VAT", () => {
+  it("ger samma nettokostnad som auktionens golvbud — de får inte vara oense", () => {
+    const landedCostSek = 2935.67; // bäddsoffan efaa0c7b
+    const r = computeProfit({ grossSek: 3529, vatRatePercent: 25, landedCostSek, paymentFeeSek: 0 });
+    expect(r.netRevenueSek).toBeCloseTo(2823.2, 2);
+    // Vinsten är positiv: den gamla koden rapporterade −112 kr på just den här varan.
+    expect(r.profitSek).toBeCloseTo(474.66, 1);
+    expect(r.marginPercent).toBeCloseTo(16.8, 1);
+    expect(netSupplierCost(landedCostSek)).toBeCloseTo(2348.54, 2);
+  });
+
+  it("inköpsmomsen är skild från försäljningsmomsen", () => {
+    // 12 % moms på försäljningen (livsmedel) ändrar INTE att inköpet bär 25 %.
+    const r = computeProfit({ grossSek: 112, vatRatePercent: 12, landedCostSek: 50, paymentFeeSek: 0 });
+    expect(r.netRevenueSek).toBe(100);
+    expect(r.profitSek).toBe(60); // 100 − 50/1,25
+  });
+
+  it("överskattar inte vinsten genom att ignorera försäljningsmomsen", () => {
     const withVat = computeProfit({ grossSek: 250, vatRatePercent: 25, landedCostSek: 80, paymentFeeSek: 0 });
     expect(withVat.profitSek).toBeLessThan(250 - 80);
   });
