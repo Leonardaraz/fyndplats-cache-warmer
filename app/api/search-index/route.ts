@@ -39,8 +39,20 @@ export async function GET() {
     // ("1 759,00kr"), så sökförslagen var den enda ytan kvar med det gamla
     // formatet — synligt i dropdownen medan produktkort, produktsida,
     // listsidor och startsidan alla säger "1 759 kr" via formatPrice.
-    // Fallback på Wix-strängen när priceNum saknas, precis som productcard.
-    p: p.priceNum ? formatPrice(p.priceNum) : p.price,
+    //
+    // "FRÅN" MÅSTE MED. Ett första försök skrev bara formatPrice(priceNum) och
+    // tappade spann-prefixet. Uppmätt över 186 produkter från tolv kategorier:
+    // 28 av dem (15 %) har prisspann, och för dem sa kortet "Från 1 179 kr"
+    // medan sökförslaget sa "1 179 kr" — samma siffra (priceNum och
+    // priceFromNum var lika i 28 fall av 28), men utan att antyda att det finns
+    // dyrare varianter. Halvvägs efterliknat är sämre än inte alls.
+    //
+    // Samma tre fall som components/productcard, i samma ordning.
+    p: p.hasRange
+      ? `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom}`
+      : p.priceNum
+        ? formatPrice(p.priceNum)
+        : p.price,
     ...(p.inStock ? {} : { o: 1 }),
   }));
   return NextResponse.json(index, { headers: { "Cache-Control": CACHE } });
