@@ -586,8 +586,18 @@ const newVariants = variants.map(v => {
   let sku = base; for (let n=2; used.has(sku); n++){ const suf=`-${n}`; sku = base.slice(0,40-suf.length).replace(/-+$/g,"")+suf; }
   used.add(sku); return { ...v, sku };
 });
-// PATCH body: { product: { id, revision, options, variantsInfo: { ...vinfo, variants: newVariants } } }
+// PATCH body: { product: { id, revision, visible, options, variantsInfo: { ...vinfo, variants: newVariants } } }
 ```
+
+☠️ **`visible` MÅSTE med i bodyn — annars PUBLICERAS utkastet av SKU-patchen.** En PATCH
+som bär `variantsInfo` utan ett uttryckligt `visible` tar produkten från `visible:false`
+till `visible:true`: Wix behandlar en variantskrivning som en publicering, och fältmasken
+skyddar inte synligheten (uppmätt mot skarpa V3 2026-08-28, dokumenterat i `CLAUDE.md`
+under Aosom-synken). Bodyn ovan sa tidigare inget om `visible`, och den som följde receptet
+ordagrant la ut ett opolerat utkast på sajten — det hände på tunneltältet `e4b000fa`
+2026-08-29, med tyska alt-texter och utan kategori, i sexton sekunder innan det upptäcktes.
+Samma regel gäller varje PATCH i Steg 8–11: **skicka alltid produktens `visible` explicit**,
+också när du inte tänker röra den. Läs tillbaka `visible` i svaret — det är det enda kvittot.
 
 ⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
 
