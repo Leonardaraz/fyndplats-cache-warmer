@@ -40,3 +40,4 @@ scratchpad/
 # Python-bytecode, var som helst i trädet. Regeln var tidigare bunden
 # till scripts/ och missade scripts/hero/ som tillkom i #389.
 __pycache__/
+tools/aosom/sweep-log.jsonl

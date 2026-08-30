@@ -162,7 +162,7 @@ export interface ProfitInput {
   /** Slutpris inkl. moms som kunden betalar. */
   grossSek: number;
   vatRatePercent: number;
-  /** Landad inköpskostnad i SEK (inköp × kurs + ev. frakt). */
+  /** Landad inköpskostnad i SEK INKL. MOMS (inköp × kurs + ev. frakt). */
   landedCostSek: number;
   /** Betalleverantörsavgift i SEK (t.ex. Klarna). */
   paymentFeeSek: number;
@@ -172,9 +172,49 @@ export interface ProfitInput {
  * Faktisk vinst = intäkt EXKL. moms − landad kostnad − betalavgift.
  * Momsen är inte din intäkt; att räkna på brutto överskattar vinsten.
  */
+/**
+ * Momssatsen i de LAGRADE inköpspriserna. `landedCostSek` är enligt husets
+ * konvention alltid inkl. moms — Aosom-adaptern bruttar upp den nettofakturan
+ * med just det här talet så feed-rader betyder samma sak som AE-rader.
+ *
+ * Skild från `ProfitInput.vatRatePercent`, som är FÖRSÄLJNINGENS momssats.
+ * De är 25 % båda två idag och det är en tillfällighet: säljs en vara med
+ * 12 % moms (livsmedel) ska intäkten momsas av med 12 medan inköpet fortfarande
+ * bär 25. Att återanvända ett tal för båda hade fungerat ända tills det inte
+ * gjorde det.
+ */
+export const SUPPLIER_VAT_RATE = 0.25;
+
+/**
+ * Verklig inköpskostnad för ett momsregistrerat företag. Den lagrade kostnaden
+ * är inkl. moms, men momsen bärs aldrig: omvänd skattskyldighet på EU-köp,
+ * avdragsgill importmoms på Kina-köp. Den går in och ut ur bokföringen.
+ */
+export function netSupplierCost(landedCostInclVat: number): number {
+  return landedCostInclVat / (1 + SUPPLIER_VAT_RATE);
+}
+
+/**
+ * ☠️ BÅDA SIDOR MÅSTE MOMSAS AV — intäkten OCH kostnaden.
+ *
+ * Funktionen momsade av intäkten men drog sedan `landedCostSek` rakt av, och
+ * det fältet är lagrat INKLUSIVE moms. Alltså drogs ett 25 % uppblåst inköp
+ * från en nettointäkt, och lönsamhetsöversikten underskattade vinsten med
+ * 25 % av inköpet.
+ *
+ * Uppmätt på bäddsoffan `efaa0c7b` 2026-08-29: pris 3 529 kr, landad kostnad
+ * 2 935,67 kr. Rapporten sa **−112 kr och −4 % marginal**; verkligheten är
+ * **+475 kr och +16,8 %**. En produkt som tjänar pengar såg ut som en
+ * förlustaffär — på exakt den skärm man tittar på för att avgöra om prisregeln
+ * fungerar.
+ *
+ * `lib/auction/seed.ts` räknade redan rätt via `netSupplierCost`; de två
+ * vägarna var oense om samma tal. Nu delar de definition.
+ */
 export function computeProfit(input: ProfitInput): { netRevenueSek: number; profitSek: number; marginPercent: number } {
   const netRevenueSek = round2(input.grossSek / (1 + input.vatRatePercent / 100));
-  const profitSek = round2(netRevenueSek - input.landedCostSek - input.paymentFeeSek);
+  const netCostSek = netSupplierCost(input.landedCostSek);
+  const profitSek = round2(netRevenueSek - netCostSek - input.paymentFeeSek);
   const marginPercent = netRevenueSek > 0 ? round2((profitSek / netRevenueSek) * 100) : 0;
   return { netRevenueSek, profitSek, marginPercent };
 }

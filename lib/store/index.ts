@@ -33,8 +33,83 @@ export interface CategorySuggestionRecord {
   status: "auto" | "suggested" | "uncategorized";
 }
 
+/**
+ * Vilken leverantör produkten kommer FRÅN. Saknas = "aliexpress" — alla rader
+ * som skapades innan Aosom-importen fanns är AliExpress-produkter.
+ *
+ * Fältet är inte kosmetiskt. Hela synk-, prisbevaknings- och recensionskedjan
+ * slår upp `supplierProductId` mot AliExpress API. Ett Aosom-artikelnummer
+ * skickat dit är i bästa fall ett bortkastat anrop per produkt och körning, i
+ * sämsta fall ett svar som tolkas som "listningen är borta". Se
+ * lib/store/supplier.ts#isAliExpressMapping.
+ */
+export type MappingSupplier = "aliexpress" | "aosom";
+
 export interface ProductMappingRecord {
   supplierProductId: string;
+  /** Leverantör. Saknas = "aliexpress" (back-compat med alla äldre rader). */
+  supplier?: MappingSupplier;
+  /**
+   * AOSOM: fraktens andel av den landade kostnaden vid importen, 0-1.
+   *
+   * Finns för att poleringskön ska kunna sortera. Aosoms SE-frakt är per kolli
+   * och skalar med vikten, och på 1 175 av 5 566 importerbara artiklar kostar
+   * frakten MER än varan (andel > 0,5). De går att sälja, men marginalen är
+   * borta innan påslaget ens är satt — den som poleras först ska vara den som
+   * bär. Medianen över feeden är 0,40.
+   */
+  aosomFreightShare?: number;
+  /**
+   * AOSOM: lagersaldot vi SENAST skrev till Wix för den här produkten.
+   *
+   * Finns för att lagersynken ska slippa läsa Wix för varje produkt i varje
+   * körning. Feeden ger 6 000 rader i ett anrop, men lagerskrivningen kräver en
+   * Wix-GET per produkt för att få postens id och revision — och saldot ändras
+   * bara för en minoritet mellan två körningar. Skiljer sig feedens siffra inte
+   * från den här rörs Wix inte alls.
+   *
+   * Skrivs FÖRST efter en lyckad skrivning, aldrig före: annars hade ett
+   * misslyckat anrop bokförts som synkat och produkten hoppats över för alltid.
+   */
+  aosomSyncedQty?: number;
+  /** AOSOM: ISO-tid för senaste lyckade lager-/prissynk. */
+  aosomSyncedAt?: string;
+  /**
+   * AOSOM: tillverkarens EGNA aggregat, taget rått ur produktsidans
+   * `aggregateRating`.
+   *
+   * ☠️ FÅR ALDRIG RÄKNAS UR DE HÄMTADE TEXTERNA. JSON-LD bär högst fem
+   * recensioner av ibland åttiotalet, och Aosoms urval lutar högt — uppmätt
+   * snitt 4,86 över 30 spridda produkter ur vår katalog (2026-08-29). Räknas
+   * snittet av de fem blir deras filter vår sanning, och sidan påstår "5,0 av
+   * 5 recensioner" där verkligheten är "4,8 av 88".
+   *
+   * Paret är också det som gör härkomstraden ärlig: produktsidan visar
+   * `aosomReviewCount`, inte antalet rader vi råkar ha sparat.
+   */
+  aosomRating?: number;
+  /** AOSOM: antal omdömen bakom `aosomRating`. Se noten där. */
+  aosomReviewCount?: number;
+  /**
+   * AOSOM: vilken KÄLLBILD varje uppladdad Wix-fil kom från.
+   *
+   * ☠️ DET HÄR FÄLTET ÄR SKILLNADEN MELLAN ATT LAGA EN BILD OCH ATT LADDA OM FEM.
+   *
+   * En wixstatic-adress avslöjar inte vilken av produktens fem källbilder den
+   * hämtades från. Utan den kopplingen kunde bildreparationen inte veta VILKA
+   * som saknades på en produkt med tre av fem, och laddade därför om alla fem
+   * och ersatte listan. De gamla filerna blev föräldralösa — fyra körningar mot
+   * en växande katalog gjorde att Wix-lagringen tog slut (2026-08-28), och
+   * 37 000 filer fick städas bort efteråt.
+   *
+   * Med kopplingen sparad laddas bara det som faktiskt fattas om, och de
+   * befintliga filerna behålls vid sitt id. Då uppstår inga föräldralösa alls.
+   *
+   * Saknas fältet härleds kopplingen ur Wix egen `sourceUrl`
+   * (`getMediaSourceUrls`) — det är bootstrappen för allt som importerades
+   * innan fältet fanns.
+   */
+  aosomBildFiler?: { kalla: string; fileId: string }[];
   wixProductId: string;
   variants: VariantMapping[];
   /**

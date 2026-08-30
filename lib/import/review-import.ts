@@ -87,6 +87,21 @@ export const REVIEW_FILTER = {
   maxReviews: 15,
 };
 
+/**
+ * Räddningsgolv för längdfiltret (2026-08-25).
+ *
+ * 50 tecken är rätt gräns när det finns något att välja bland: den sållar bort
+ * "Good" och "Fast delivery" som inte säger kunden något. Men mätt över nio
+ * verkliga listningar föll 38 % av allt råmaterial på just längden, och för en
+ * produkt vars ENDA recensioner är korta blir resultatet en tom produktsida.
+ *
+ * 432 av 908 publicerade produktsidor visade noll recensioner 2026-08-25. En
+ * kort äkta recension slår ingen recension — men bara när alternativet
+ * verkligen är ingen. Golvet sänks därför ALDRIG när något klarade 50; det är
+ * ett andra svep, inte en ny gräns.
+ */
+export const REVIEW_RESCUE_MIN_LENGTH = 25;
+
 // --- Pure filtering & ranking ---------------------------------------------
 
 /** Normaliserad nyckel för dedup: gemener, kollapsad whitespace, ingen punkt. */
@@ -150,6 +165,11 @@ export function scoreReview(r: AERReview, now: Date): number {
  * Filtrerar bort recensioner under 3 stjärnor, för korta/långa, spam och
  * dubbletter; rankar resten och returnerar topp-N. Deterministisk (tiebreak på
  * datum desc, sedan reviewIdAE) så samma input alltid ger samma urval.
+ *
+ * RÄDDNINGSSVEPET (2026-08-25): gav det första svepet INGENTING gör funktionen
+ * om det med REVIEW_RESCUE_MIN_LENGTH som längdgolv. Det gäller bara när
+ * anroparen inte själv valt ett golv — ett uttryckligt `minLength` är ett
+ * beslut och får inte tyst rivas. Se REVIEW_RESCUE_MIN_LENGTH för varför.
  */
 export function filterAndRankReviews(
   reviews: AERReview[],
@@ -157,13 +177,28 @@ export function filterAndRankReviews(
   opts: { max?: number; minLength?: number } = {},
 ): AERReview[] {
   const max = opts.max ?? REVIEW_FILTER.maxReviews;
-  // Per körning, ALDRIG globalt: golvet på 50 tecken finns kvar för alla
-  // vanliga importer. Överdraget används för att svepa upp det ett gammalt,
-  // för snävt filter slängde — se REVIEW_FILTER.maxLength om 300 → 1200.
+  // Per körning, ALDRIG globalt: golvet på 50 tecken går bara att HÖJA utifrån.
+  // Överdraget används för att svepa upp det ett gammalt, för snävt filter
+  // slängde — se REVIEW_FILTER.maxLength om 300 → 1200. Räddningssvepet nedan
+  // är den enda vägen under 50, och det är inte anroparens beslut.
   const minLength = Math.min(
     Math.max(opts.minLength ?? REVIEW_FILTER.minLength, REVIEW_FILTER.minLength),
     REVIEW_FILTER.maxLength,
   );
+  const träffar = rankaMedGolv(reviews, now, minLength, max);
+  if (träffar.length > 0) return träffar;
+  // Anroparen valde golvet själv, eller vi ligger redan på räddningsgolvet →
+  // tomt svar är svaret.
+  if (opts.minLength !== undefined || minLength <= REVIEW_RESCUE_MIN_LENGTH) return träffar;
+  return rankaMedGolv(reviews, now, REVIEW_RESCUE_MIN_LENGTH, max);
+}
+
+function rankaMedGolv(
+  reviews: AERReview[],
+  now: Date,
+  minLength: number,
+  max: number,
+): AERReview[] {
   const seen = new Set<string>();
   const kept: AERReview[] = [];
   for (const r of reviews) {
@@ -264,6 +299,25 @@ export interface ReviewImportDeps {
    * simulera ett Wix-fel går felgrenen inte att låsa.
    */
   importImage?: typeof ownImageUrlForReview;
+  /**
+   * Radens ursprung, skrivs rakt till `StoredReview.source`.
+   *
+   * ☠️ HÄRKOMSTEN ÄR ETT LAGKRAV, INTE METADATA. Artikel 7.6 UCPD (Omnibus)
+   * kräver att den som visar konsumentrecensioner upplyser om huruvida och hur
+   * de kommer från konsumenter som faktiskt använt produkten — och bilaga I
+   * punkt 23b förbjuder att PÅSTÅ att de är egna kunders utan täckning.
+   * Syndikerade produktrecensioner (Bazaarvoice, Reevoo, och vår Aosom-väg) är
+   * lagliga just för att källan anges.
+   *
+   * Därför sätts fältet av den som HÄMTAR, inte av den som visar: en rad som
+   * saknar sitt ursprung går inte att märka i efterhand, och en omärkt rad
+   * renderas under rubriken "Kundrecensioner" som om den vore vår egen kunds.
+   *
+   * Utelämnat = AliExpress-import, precis som före 2026-08-29. `"customer"`
+   * sätts av headless-site:lib/customer-review.ts och betyder verifierat köp
+   * hos oss; `"aosom"` av lib/aosom/reviews.ts.
+   */
+  source?: string;
 }
 
 export interface ReviewImportResult {
@@ -389,6 +443,10 @@ export async function importReviewsForProduct(
       sourceLanguage: r.language ? r.language.toUpperCase() : undefined,
       customerNameRaw: r.customerName,
       initials: deriveInitials(r.customerName, reviewIdAE),
+      // Utelämnas när ingen källa angetts → oförändrad AE-rad (fältet saknas,
+      // exakt som alla rader före 2026-08-29). Aldrig tomma strängen: den
+      // hade sett ut som ett SATT ursprung utan att vara det.
+      ...(deps.source ? { source: deps.source } : {}),
       customerCountry: r.customerCountry,
       date: r.date,
       ...bildfalt,

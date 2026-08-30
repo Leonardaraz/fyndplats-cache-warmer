@@ -4,6 +4,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { getProduct } from "@/lib/aliexpress/client";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 import { checkToken } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -16,9 +17,18 @@ export async function GET(req: NextRequest) {
   if (!productId) {
     return NextResponse.json({ error: "id krävs" }, { status: 400 });
   }
+  // Escape-hatch, inte formkontroll: rutten anropas av tillägget medan det står
+  // PÅ en AliExpress-produktsida, så id:t är ett AE-id per konstruktion.
+  //
+  // extractAliExpressProductId hade sett ut som en gratis extra spärr här och är
+  // det inte: den kräver 10–16 siffror medan tillägget släpper igenom sex
+  // (`/^\d{6,}$/` i background.js). Äldre AE-listningar med kortare id hade
+  // därmed börjat svara 400 på en väg som fungerat i evighet — en ren
+  // funktionsförlust för noll vinst, eftersom en Aosom-rad aldrig kan nå hit.
+  const aeId = aliExpressIdFromListing(productId);
 
   try {
-    const product = await getProduct(productId);
+    const product = await getProduct(aeId);
     // Normalisera till det format som importpipelinen förväntar sig.
     return NextResponse.json({
       supplierProductId: product.productId,

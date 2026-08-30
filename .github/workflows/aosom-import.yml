@@ -1,0 +1,412 @@
+name: Aosom — importera sortimentet som osynliga utkast
+
+# Samma upplägg som prisreparationen: produktionen har Wix-nycklarna, GitHub
+# Actions har CRON_SECRET, och de möts här. Ingen hemlighet passerar chatten
+# eller en terminal — och därför går hela jobbet att starta från telefonen.
+#
+# LÄGEN:
+#   torr     — torrkörning. Skriver INGENTING, någonstans. Svarar med hur många
+#              rader feeden har och hur många som går att frakta hit. Kör den
+#              först: den bevisar att feed-adressen hittas i Wix-raden
+#              FyndplatsAppConfig utan att röra katalogen.
+#   rökprov  — tre riktiga produkter, skarpt. SKU:na är handkontrollerade mot
+#              katalogen (två distinkta mått + produkttyp, noll träffar) och ska
+#              INTE bytas: de tre första kandidaterna visade sig alla vara varor
+#              vi redan säljer, inköpta via AliExpress. Dubblettspärren nycklar
+#              på supplierProductId och ser inte den sortens dubblett.
+#   svep     — loopar tills sortimentet är inne eller tidsbudgeten tar slut.
+#              Markören sparas i grenen efter VARJE varv, så en avbruten körning
+#              fortsätter där den slutade. Omkörning av redan importerade
+#              produkter är en no-op tack vare dubblettspärren.
+#   bildfix-torr — räknar hur många produkter som har för få bilder. Skriver inget.
+#   bildfix  — laddar om bilderna på dem. Egen markör (bildfix-state.json).
+#              Rör BARA `media`, via fieldMask — synlighet, priser, varianter och
+#              texter är orörda, så ett utkast kan inte råka publiceras.
+#              Skriver aldrig en TOMMARE bildlista än den som redan ligger där:
+#              går uppladdningen dåligt igen lämnas produkten till nästa runda.
+#
+# Produkterna blir ALLTID osynliga utkast: pipelinen kör i rått läge, vilket
+# sätter visible:false ovillkorligt och gör noll Claude-anrop ($0). De poleras
+# sedan för hand — texterna i feeden är tyska.
+#
+# INTE SCHEMALAGD, med flit. En cron som fyller poleringskön snabbare än någon
+# hinner skriva om texterna ger bara en växande hög tyska utkast.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET       — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "torr = skriver inget · rökprov = 3 produkter · svep = hela sortimentet · bildfix = ladda om saknade bilder · bildstadning = radera oanvända bilder"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - rökprov
+          - svep
+          - bildfix
+          - bildfix-torr
+          - bildstadning-torr
+          - bildstadning
+      limit:
+        description: "Produkter per varv (svep/torr). 150 är lagom."
+        required: false
+        default: "150"
+        type: string
+      after:
+        description: "svep: fortsätt efter det här artikelnumret. Tomt = från sparad markör."
+        required: false
+        default: ""
+        type: string
+      skip_freight_heavy:
+        description: "svep: hoppa över de ~1 175 där frakten kostar mer än varan"
+        required: false
+        default: true
+        type: boolean
+      max_rounds:
+        description: "svep: max antal varv i den här körningen"
+        required: false
+        default: "60"
+        type: string
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    # Under GitHubs 6-timmarstak med marginal; svepet fortsätter nästa körning.
+    timeout-minutes: 330
+    # Markören committas till grenen så nästa körning kan fortsätta.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Kör
+        env:
+          # VIA MILJÖN, inte ${{ }} inuti skriptet: interpolerat direkt i bash
+          # bryts kommandot av den första apostrofen i ett produktnamn, och det
+          # vore dessutom en injektionsväg.
+          MODE: ${{ inputs.mode }}
+          LIMIT: ${{ inputs.limit }}
+          AFTER_IN: ${{ inputs.after }}
+          SKIP_FREIGHT: ${{ inputs.skip_freight_heavy }}
+          MAX_ROUNDS: ${{ inputs.max_rounds }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          BASE_SECRET: ${{ secrets.POLL_TRACKING_URL }}
+        run: |
+          set -euo pipefail
+
+          base="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-import"
+          STATE="tools/aosom/sweep-state.json"
+
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          mkdir -p tools/aosom
+
+          # Ett anrop. Skriver svaret till $svar, fäller jobbet på ok != true.
+          #
+          # ☠️ FELEN GÅR TILL STDERR, ALDRIG TILL STDOUT.
+          #
+          # Anroparen gör `svar=$(anropa ...)`, och en kommandosubstitution
+          # SLUKAR stdout. En `echo "::error::..."` här hamnade därför i $svar i
+          # stället för i loggen: bildstädningen 2026-08-28 föll med exit 1 och
+          # NOLL rader om varför, medan rutten hela tiden svarade 500 med ett
+          # tydligt meddelande. Samma klass av fel som huset redan lärt sig tre
+          # gånger — ett misslyckande som ingen kan se är värre än ett som skriker.
+          anropa() {
+            local url="$1"
+            local body
+            body=$(curl -sS --max-time 310 -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$url") || {
+                echo "::error::Anropet gick inte fram: $url" >&2
+                return 1
+              }
+            if [ "$(printf '%s' "$body" | jq -r '.ok // false')" != "true" ]; then
+              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500)" >&2
+              return 1
+            fi
+            printf '%s' "$body"
+          }
+
+          # ── torr ────────────────────────────────────────────────────────────
+          if [ "$MODE" = "torr" ]; then
+            svar=$(anropa "${base}?dryRun=true&limit=${LIMIT}")
+            rader=$(printf '%s' "$svar" | jq -r '.feedRows')
+            frakt=$(printf '%s' "$svar" | jq -r '.shippable')
+            inne=$(printf '%s' "$svar" | jq -r '.alreadyImported')
+            kvar=$(printf '%s' "$svar" | jq -r '.remaining')
+            bilder=$(printf '%s' "$svar" | jq -r '.remainingImages')
+            {
+              echo "### Aosom — torrkörning (inget skrevs)"
+              echo ""
+              echo "Feed-adressen hittades, feeden hämtades och tolkades."
+              echo ""
+              echo "| | |"
+              echo "|---|---:|"
+              echo "| Rader i feeden | **${rader}** |"
+              echo "| Går att frakta till Sverige | **${frakt}** |"
+              echo "| Redan i katalogen | ${inne} |"
+              echo "| Kvar att importera | **${kvar}** |"
+              echo "| Bilder bakom dem | ${bilder} |"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "OK: ${rader} rader, ${frakt} fraktbara, ${kvar} kvar."
+            exit 0
+          fi
+
+          # ── rökprov ─────────────────────────────────────────────────────────
+          if [ "$MODE" = "rökprov" ]; then
+            # Kontrollerade mot katalogen 2026-08-27. Byt dem inte utan att
+            # först söka på två distinkta mått plus produkttyp — se filhuvudet.
+            skus="845-999V00OG,331-058V00MX,C30-035V00BK"
+            start=$(date +%s)
+            svar=$(anropa "${base}?dryRun=false&sku=${skus}")
+            tid=$(( $(date +%s) - start ))
+            inf=$(printf '%s' "$svar" | jq -r '.imported')
+            fel=$(printf '%s' "$svar" | jq -r '.failed')
+            {
+              echo "### Aosom — rökprov"
+              echo ""
+              echo "- Importerade: **${inf}** av 3"
+              echo "- Fel: **${fel}**"
+              echo "- Tid: ${tid} s (≈ $(( tid / 3 )) s per produkt)"
+              echo ""
+              echo "Förväntade priser: 845-999V00OG **1 419 kr** · 331-058V00MX **1 849 kr** · C30-035V00BK **2 209 kr**"
+              echo "Kontrollera i /admin/queue: alla tre som utkast, fem bilder var."
+              if [ "$fel" != "0" ]; then
+                echo ""
+                echo '```json'
+                printf '%s' "$svar" | jq -c '.errors'
+                echo '```'
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Importerade ${inf}, fel ${fel}, ${tid} s."
+            if [ "$fel" != "0" ]; then
+              echo "::error::Rökprovet gav ${fel} fel — kör inte svepet förrän de är förstådda."
+              exit 1
+            fi
+            exit 0
+          fi
+
+          # ── bildstädning ────────────────────────────────────────────────────
+          #
+          # Raderar bilder som VÅR kod skapat och som ingen produkt använder.
+          # Wix importerade tidigare om varje bild vi skickade som URL, så halva
+          # Media Manager var kopior — 58 160 filer där hälften räckte, och
+          # lagringen tog slut mitt under en bildfix-körning (2026-08-28).
+          #
+          # Torrläget raderar ingenting och svarar med hur mycket som skulle
+          # frigöras. Kör ALLTID det först.
+          if [ "$MODE" = "bildstadning" ] || [ "$MODE" = "bildstadning-torr" ]; then
+            stad="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-media-cleanup"
+            torr="false"; [ "$MODE" = "bildstadning-torr" ] && torr="true"
+
+            # ☠️ VARJE VARV ÄR EN TUGGA, INTE HELA BESTÅNDET.
+            #
+            # Wix edge-lager svarar 429 med en HTML-sida när ETT anrop bläddrar
+            # för många sidor i rad — mätt 2026-08-28: en körning dog efter
+            # ~150 sidor trots backoff, och spärren släpper inte inom ruttens
+            # 300 sekunder. 58 160 filer går alltså inte att lista i ett svep.
+            #
+            # Rutten tar därför en tugga och lämnar en markör, och loopen här
+            # matar tillbaka den. Samma mönster som svepet och bildfixen.
+            varv=0; rad_totalt=0; mb_totalt=0; fel_totalt=0; forald_totalt=0
+            markor="$AFTER_IN"
+            slut=$(( $(date +%s) + 300 * 60 ))
+
+            while :; do
+              varv=$(( varv + 1 ))
+              [ "$varv" -gt "$MAX_ROUNDS" ] && { echo "Nådde max_rounds."; break; }
+              [ "$(date +%s)" -ge "$slut" ] && { echo "Tidsbudgeten slut."; break; }
+
+              url="${stad}?dryRun=${torr}&limit=${LIMIT}"
+              [ -n "$markor" ] && url="${url}&after=$(printf '%s' "$markor" | jq -sRr @uri)"
+              svar=$(anropa "$url") || exit 1
+              filer=$(printf '%s' "$svar" | jq -r '.filerIFonstret // 0')
+              anvanda=$(printf '%s' "$svar" | jq -r '.anvandaEgnaFiler // 0')
+              forald=$(printf '%s' "$svar" | jq -r '.foraldralosa // 0')
+              rad=$(printf '%s' "$svar" | jq -r '.raderade // 0')
+              mb=$(printf '%s' "$svar" | jq -r '.frigjordMb // 0')
+              fel=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
+              # false = Media Manager hanns inte med i sin helhet. Siffrorna
+              # gäller då bara det som lästes, och körningen ska göras om.
+              helt=$(printf '%s' "$svar" | jq -r '.komplettListning // true')
+              stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "klart"')
+              nasta=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+
+              rad_totalt=$(( rad_totalt + rad ))
+              mb_totalt=$(( mb_totalt + mb ))
+              fel_totalt=$(( fel_totalt + fel ))
+              forald_totalt=$(( forald_totalt + forald ))
+
+              echo "varv ${varv}: ${filer} filer i fönstret, ${anvanda} används, ${forald} föräldralösa, ${rad} raderade (${mb} MB), ${fel} fel [${stopp}]"
+              [ "$fel" != "0" ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.)"'
+
+              # Markören är slut = hela Media Manager är genomgången.
+              if [ -z "$nasta" ] || [ "$nasta" = "null" ]; then
+                echo "Hela Media Manager genomgången."
+                markor=""
+                break
+              fi
+              markor="$nasta"
+            done
+
+            [ -n "$markor" ] && echo "Markör att fortsätta från: ${markor}"
+
+            {
+              echo "### Aosom — bildstädning$([ "$torr" = "true" ] && echo ' (torrkörning)')"
+              echo ""
+              echo "- Varv: **${varv}**"
+              echo "- Föräldralösa hittade: **${forald_totalt}**"
+              echo "- Raderade: **${rad_totalt}**"
+              echo "- Frigjort: **${mb_totalt} MB**"
+              echo "- Misslyckade: **${fel_totalt}**"
+              if [ -n "$markor" ]; then
+                echo ""
+                echo "⚠️ Inte genomgånget än — kör läget igen med \`after\` satt till:"
+                echo ""
+                echo "\`\`\`"
+                echo "${markor}"
+                echo "\`\`\`"
+              else
+                echo ""
+                echo "✅ Hela Media Manager genomgången."
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # ── bildfix ─────────────────────────────────────────────────────────
+          if [ "$MODE" = "bildfix" ] || [ "$MODE" = "bildfix-torr" ]; then
+            rep="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-image-repair"
+            RSTATE="tools/aosom/bildfix-state.json"
+            torr="false"; [ "$MODE" = "bildfix-torr" ] && torr="true"
+
+            after="$AFTER_IN"
+            if [ -z "$after" ] && [ -f "$RSTATE" ]; then
+              after=$(jq -r '.cursor // ""' "$RSTATE"); [ "$after" = "null" ] && after=""
+            fi
+
+            slut=$(( $(date +%s) + 300 * 60 ))
+            varv=0; lagade=0; trasiga=0; missar=0; fel=0; atv_totalt=0; fo_totalt=0
+
+            while :; do
+              varv=$(( varv + 1 ))
+              [ "$varv" -gt "$MAX_ROUNDS" ] && { echo "Nådde max_rounds."; break; }
+              [ "$(date +%s)" -ge "$slut" ] && { echo "Tidsbudgeten slut."; break; }
+
+              url="${rep}?dryRun=${torr}&limit=${LIMIT}"
+              [ -n "$after" ] && url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
+
+              svar=$(anropa "$url") || break
+              t=$(printf '%s' "$svar" | jq -r '.trasiga')
+              l=$(printf '%s' "$svar" | jq -r '.reparerade')
+              mi=$(printf '%s' "$svar" | jq -r '.kvarstaendeMissar')
+              # Bilder som INTE behövde laddas om — måttet på vad den sparade
+              # kopplingen tjänar in. Varje sådan bild är en fil som förut hade
+              # laddats upp på nytt och lämnat en föräldralös efter sig.
+              atv=$(printf '%s' "$svar" | jq -r '.atervandaBilder // 0')
+              # Produkter där kopplingen inte gick att härleda. Ska sjunka mot noll.
+              fo=$(printf '%s' "$svar" | jq -r '.fullOmladdning // 0')
+              # misslyckade LÄSTES INTE FÖRUT. Bildfixen 2026-08-27 rapporterade
+              # 524 lagade av 524 medan 214 produkter fortfarande saknade bilder —
+              # ett fel som varken loggen eller markörfilen kunde visa.
+              f=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
+              kvar=$(printf '%s' "$svar" | jq -r '.kvar')
+              markor=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+              trasiga=$(( trasiga + t )); lagade=$(( lagade + l ))
+              missar=$(( missar + mi )); fel=$(( fel + f ))
+              atv_totalt=$(( ${atv_totalt:-0} + atv )); fo_totalt=$(( ${fo_totalt:-0} + fo ))
+              echo "varv ${varv}: ${t} trasiga, ${l} lagade (${atv} bilder behölls, ${fo} full omladdning), ${f} misslyckade, ${mi} kvar att hämta, ${kvar} kvar"
+              [ "$f" -gt 0 ] && printf '%s' "$svar" | jq -r '.errors[]? | "    ! \(.sku): \(.error)"'
+
+              printf '%s' "$svar" | jq '{cursor, kvar, trasiga, reparerade, misslyckade,
+                kvarstaendeMissar, uppdaterad: (now | todate)}' > "$RSTATE"
+              git add "$RSTATE"
+              git diff --cached --quiet || {
+                git commit -q -m "Aosom bildfix: markör ${markor:-klart} (${kvar} kvar)"
+                git push -q origin HEAD:"${GITHUB_REF_NAME}" || true
+              }
+
+              [ -z "$markor" ] || [ "$markor" = "null" ] && { echo "Genomgånget."; break; }
+              after="$markor"
+            done
+
+            {
+              echo "### Aosom — bildfix$([ "$torr" = "true" ] && echo ' (torrkörning)')"
+              echo ""
+              echo "- Varv: **${varv}**"
+              echo "- Produkter med för få bilder: **${trasiga}**"
+              echo "- Lagade: **${lagade}**"
+              echo "- Misslyckade skrivningar: **${fel}**"
+              echo "- Bilder som fortfarande inte kom fram: **${missar}**"
+              echo "- Bilder som behölls i stället för att laddas om: **${atv_totalt:-0}**"
+              echo "- Produkter som krävde full omladdning: **${fo_totalt:-0}**"
+              echo "- Kvar att gå igenom: **$(jq -r '.kvar // "?"' "$RSTATE" 2>/dev/null)**"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # ── svep ────────────────────────────────────────────────────────────
+          extra=""
+          [ "$SKIP_FREIGHT" = "true" ] && extra="&skipFreightHeavy=1"
+
+          # Markör: uttrycklig inmatning vinner, annars den sparade.
+          after="$AFTER_IN"
+          if [ -z "$after" ] && [ -f "$STATE" ]; then
+            after=$(jq -r '.cursor // ""' "$STATE")
+            [ "$after" = "null" ] && after=""
+            [ -n "$after" ] && echo "Fortsätter efter sparad markör: $after"
+          fi
+
+          # Stanna i god tid före jobbets tak så markören hinner committas.
+          slut=$(( $(date +%s) + 300 * 60 ))
+          varv=0; totalt=0; fel_totalt=0
+
+          while :; do
+            varv=$(( varv + 1 ))
+            if [ "$varv" -gt "$MAX_ROUNDS" ]; then echo "Nådde max_rounds."; break; fi
+            if [ "$(date +%s)" -ge "$slut" ]; then echo "Tidsbudgeten slut."; break; fi
+
+            url="${base}?dryRun=false&limit=${LIMIT}${extra}"
+            [ -n "$after" ] && url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
+
+            svar=$(anropa "$url") || break
+            inf=$(printf '%s' "$svar" | jq -r '.imported')
+            fel=$(printf '%s' "$svar" | jq -r '.failed')
+            kvar=$(printf '%s' "$svar" | jq -r '.remaining')
+            markor=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+            totalt=$(( totalt + inf )); fel_totalt=$(( fel_totalt + fel ))
+            echo "varv ${varv}: +${inf} (fel ${fel}), ${kvar} kvar, markör ${markor:-—}"
+
+            # MARKÖREN SPARAS EFTER VARJE VARV, inte i slutet. Dör jobbet mitt i
+            # ska nästa körning kunna fortsätta, inte börja om från noll.
+            printf '%s' "$svar" | jq '{cursor, remaining, imported, failed, stoppedBy,
+              uppdaterad: (now | todate)}' > "$STATE"
+            git add "$STATE"
+            git diff --cached --quiet || {
+              git commit -q -m "Aosom-svep: markör ${markor:-klart} (${kvar} kvar)"
+              git push -q origin HEAD:"${GITHUB_REF_NAME}" || true
+            }
+
+            if [ -z "$markor" ] || [ "$markor" = "null" ]; then
+              echo "Sortimentet är inne."; break
+            fi
+            after="$markor"
+          done
+
+          {
+            echo "### Aosom — svep"
+            echo ""
+            echo "- Varv: **${varv}**"
+            echo "- Importerade denna körning: **${totalt}**"
+            echo "- Fel: **${fel_totalt}**"
+            echo "- Kvar: **$(jq -r '.remaining // "?"' "$STATE" 2>/dev/null)**"
+            echo "- Markör: \`$(jq -r '.cursor // "klart"' "$STATE" 2>/dev/null)\`"
+            echo ""
+            echo "Kör workflowen igen för att fortsätta — markören läses automatiskt."
+          } >> "$GITHUB_STEP_SUMMARY"

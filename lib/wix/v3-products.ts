@@ -467,12 +467,31 @@ export async function updateV3VariantPrices(
   }
   if (updated === 0) return { updated: 0, missing };
 
+  // ☠️ EN variantsInfo-PATCH PUBLICERAR ETT UTKAST OM `visible` INTE SKICKAS MED.
+  //
+  // Uppmätt mot skarpa V3 2026-08-28 på ett osynligt Aosom-utkast: exakt den här
+  // kroppen, med fieldMask begränsad till ["variantsInfo"] och priset oförändrat,
+  // tog produkten från visible:false till visible:true. Fältmasken skyddar alltså
+  // INTE synligheten — Wix behandlar en variantskrivning som en publicering.
+  //
+  // Konsekvensen var inte teoretisk: prisreparationen filtrerar inte på synlighet,
+  // och katalogen bär sedan 2026-08-28 över 2 700 opolerade tyska Aosom-utkast. En
+  // enda körning hade kunnat lägga ut dem på sajten.
+  //
+  // Därför skickas `visible` alltid tillbaka OFÖRÄNDRAD. Saknas fältet i svaret
+  // utelämnas det hellre än att gissas — en gissning här publicerar eller döljer
+  // en produkt fel väg.
+  const bevaraSynlighet = typeof product.visible === "boolean";
   const patch = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {
     method: "PATCH",
     headers: headers(),
     body: JSON.stringify({
-      product: { revision: product.revision, variantsInfo: { variants } },
-      fieldMask: { paths: ["variantsInfo"] },
+      product: {
+        revision: product.revision,
+        variantsInfo: { variants },
+        ...(bevaraSynlighet ? { visible: product.visible } : {}),
+      },
+      fieldMask: { paths: bevaraSynlighet ? ["variantsInfo", "visible"] : ["variantsInfo"] },
     }),
   });
   if (!patch.ok) {

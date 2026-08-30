@@ -126,6 +126,10 @@ Klassa varje bild utifrån bildgenomgången i Steg 4:
 
 **H-0 – `hero_white()` (PROVA ALLTID FÖRST — gratis, deterministisk, ingen AI):**
 
+> ⚠️ **Bakgrunden är det ljusa som når BILDKANTEN — inte varje ljus pixel (lagat 2026-08-26).** Funktionen tröskade tidigare rakt av: `mn > trosk` = bakgrund. På en blank eller ljus vara stansar det hål rakt genom produkten. Stödbenen i gjuten aluminium hade **27 % av sina egna pixlar över tröskeln**, och genom hålen lyste duken och slagskuggan igenom som vita och gråa flackar — osynligt i miniatyr, uppenbart vid 100 %. Kantregeln räddade **42 % fler produktpixlar** på samma bild.
+>
+> `hero_white()` gör det numera själv, med en spärr som faller tillbaka på den nakna tröskeln om kantregeln skulle ge en *mindre* produkt (det händer bara när varan står i bildkanten och flödas bort). **QC:a ändå alltid vid 100 % zoom** — det var först där felet syntes.
+
 Merparten av leverantörsbilderna från HOMCOM/Outsunny/PawHut/Sportnow ligger **redan** på vit studiobakgrund — de är bara snedcentrerade, har olika marginal och ett gråaktigt ljusbrus. Då behövs varken AI eller urklipp: tröskla bort bruset, beskär till produktens bbox och centrera på ren vit duk.
 
 ```python
@@ -383,7 +387,83 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 >
 > ⚠️ **"Behåll största komponenten" är FEL på produkter med hängande delar.** Vindspelets rör hänger i vita snören som inte överlever bakgrundströskeln — rören blev tre egna komponenter à ~10 000 px och hade fallit bort. Behåll allt utom det du aktivt identifierat som overlay.
 
-> 📐 **`card_spec`-fotot ska ha PANELENS proportion (≈1,64:1) — aldrig 1:1.** Panelen renderas med `object-fit: contain`, så ett kvadratiskt foto skalas efter höjden och krymper. Lasertag-setets kort matades med den kvadratiska hjältebilden, där pistolerna upptar 88 % av bredden men bara 31 % av höjden — resultatet blev att de fyllde **51,6 %** av panelen och såg små ut. Inget fel på kortmotorn, felet låg i indata. Beskär fotot till panelens proportion först: samma bild fyllde då **87,5 %** (1 398 → 2 373 px). Mät före och efter i stället för att titta — skillnaden är lätt att underskatta i miniatyr.
+> 📐 **ALLA kortfoton ska ha PANELENS proportion — aldrig 1:1, aldrig portratt i en liggande panel.** Panelerna anvander `object-fit: cover`, sa ett foto med fel proportion **zoomas in** tills det tacker panelen: en staende bild i `card_photo` blir en extrem narbild av mitten. Uppmatt med en sond-rendering 2026-08-26 (1-radig h1 + 2-radig bildtext):
+>
+> | Kort | Panel | Proportion |
+> |---|---|---|
+> | `card_photo` | 1416 × 1005 | **1,41** |
+> | `card_spec` (8 rader) | 1416 × 776 | **1,83** |
+> | `card_grid` rows=2, 4 paneler | 695 × 489 | **1,42** |
+> | `card_grid` rows=1, 2 paneler | 695 × 1005 | **0,69** |
+> | `card_grid` rows=1, 3 paneler | 455 × 1005 | **0,45** |
+> | `card_grid` rows=1, 4 paneler | 334 × 1005 | **0,33** |
+>
+> Anvand `cardkit.fit_pane(src, dst, "photo"|"spec"|"grid2x2"|…)` som beskar kallan till ratt proportion innan den matas in — den skalar aldrig upp och lagger aldrig till vit yta. Racker inte kallan till (ett smalt staende motiv i en liggande panel) ar `fit=True` ratt val i stallet: den letterboxar men zoomar aldrig. *(Leonards rapport 2026-08-26: "bilderna ska inte vara for inzoomade".)*
+>
+> 📐 **`card_spec`-fotot: samma sak, aldrig 1:1.** Panelen renderas med `object-fit: contain`, så ett kvadratiskt foto skalas efter höjden och krymper. Lasertag-setets kort matades med den kvadratiska hjältebilden, där pistolerna upptar 88 % av bredden men bara 31 % av höjden — resultatet blev att de fyllde **51,6 %** av panelen och såg små ut. Inget fel på kortmotorn, felet låg i indata. Beskär fotot till panelens proportion först: samma bild fyllde då **87,5 %** (1 398 → 2 373 px). Mät före och efter i stället för att titta — skillnaden är lätt att underskatta i miniatyr.
+
+> 📐 **Andra orsaken till samma symtom: KÄLLBILDENS egna vita marginaler.** Proportionsregeln ovan räcker inte. `contain` respekterar allt som ligger i filen — även tom vit yta runt varan — så marginalerna adderas i stället för att beskäras bort. Naturehikes vandringsstavar och dunsovsäck (2026-08-26) hade variantkort där produkten upptog **31–38 %** av kortets bredd och dessutom satt ur centrum (stavarna x 888–1466 i en 2000 px-ruta). Leverantörsfotot var korrekt placerat i panelen; fotot hade bara en tom halva.
+>
+> **Beskär alltid källbilden till varans egen bbox innan den matas in i kortet:**
+>
+> ```python
+> ejv = np.asarray(im).mean(2) < 242
+> ys, xs = np.where(ejv)
+> im = im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+> ```
+>
+> **Mät `tackning` (andelen ejvita pixlar), inte bbox.** Bbox:en på de här korten spände 88 % av bredden och såg därför frisk ut — men det var etikettremsans text som spände, inte varan. Täckningen var **2 %** för stavarna och 5–7 % för sovsäcken. Bbox ljuger så fort kortet har en textremsa.
+
+> 🔧 **Behöver bara fotorutan lagas: rör inte resten av kortet.** Ett färdigt kort går att laga i efterhand utan att sättas om — vitmåla fotorutan (för korten ovan `y 0–1613`, linjalen börjar på 1614), klistra tillbaka varan förstorad och centrerad, och låt etikettremsa och sidfot stå kvar **pixelidentiska**. Spärren är ett rent likhetstest: `assert np.array_equal(b[1614:], fore)`. Att sätta om texterna vore att riskera en felskriven siffra för ingenting.
+>
+> **Förstoringen syns inte om du räknar på visningsstorleken.** Varan var 550–750 px i källan och förstorades ~1,9×. PDP:n visar kortet i 1080 px, så varan hamnar på ~700 px på skärmen — alltså under sin egen källupplösning, och LANCZOS-förstoringen blir osynlig. Räkna alltid det steget innan du dömer ut en förstoring som för stor.
+
+> 🔢 **Rätta en SIFFRA på ett publicerat kort: sätt om raden pixelexakt, bygg inte om kortet.**
+> Mongar-tältet (2026-08-26) uppgav 210T till 2,2 kg på två kort. Byggskriptet för
+> variantkorten fanns inte kvar, och att sätta om kortet hade gjort det olikt sina fyra
+> syskonkort som inte skulle ändras. I stället renderas bara textraden om, och att den
+> matchar **bevisas innan bytet**:
+>
+> 1. Mät i originalet: bläckets bbox och färgen. Färgen pekade direkt på `cardkit.MUTED`
+>    (#5A564F), vilket band kortet till kortmotorns palett.
+> 2. Sök storlek/vikt/teckenmellanrum genom att rendera kandidater och jämföra bbox.
+>    36 px / 400 / 0 gav 875×69 — exakt originalets mått.
+> 3. Sök **subpixelfasen**: samma rad renderad med `padding-left` i steg om 0,1 px.
+>    Vid 40,2 px blev max-diff mot originalet **0**. Först då är fonten, storleken,
+>    vikten, färgen, kantutjämningen OCH fasen bevisade — inte antagna.
+> 4. Rendera den NYA raden med exakt samma inställningar och klistra in den.
+>
+> `assert np.array_equal(gammal_rendering, originalrutan)` är hela spärren: reproducerar
+> du inte den gamla raden pixelexakt vet du inte heller att den nya blir rätt.
+>
+> **Raden är oftast högerställd — passa in HÖGERKANTEN, inte vänsterkanten.** En 4:a är
+> ett par pixlar bredare än en 2:a i Inter, så vänsterjustering hade skjutit ut raden
+> över kortets högermarginal. Kontrollera också att inklistringsrutan är helvit utanför
+> texten innan du skriver över den (`ruta[0].min() == 255` på alla fyra kanter).
+
+> ✂️ **Paneler urklippta ur ett FÄRDIGT kort bär med sig den inbrända etiketten.**
+> Samma jobb: för att bildbehandlingen skulle bli identisk klipptes de tre tältfotona ur
+> det publicerade kortet i stället för att letas upp på nytt. Men `card_grid` ritar en NY
+> etikett ovanpå, och panelen `cover`-skalas ~1,13× först — den gamla etiketten hamnade
+> därför något större och stack ut under den nya. Dubbla etiketter, tydligt i jämförelsen.
+>
+> Tvätta bort den gamla etiketten först, och låt bilden själv bevisa att det är säkert:
+> mellan varans nedersta pixel och etikettextens översta rad ligger ett **helvitt band**.
+> Hittar du bandet kan ingen produktpixel finnas under det — allt därunder är pill, skugga
+> eller text. Mät fram bandet, gissa det aldrig:
+>
+> ```python
+> rm = a[:, :xmax].min(2).min(1)
+> y = h - 1
+> while rm[y] < 225: y -= 1        # etikettexten (tröskeln måste tåla kantutjämning)
+> txt = y + 1
+> while y >= 0 and rm[y] >= 225: y -= 1
+> y0 = y + 1                       # bandets topp — allt härunder får vitas
+> assert txt - y0 >= 20, 'för smalt vitt band'
+> ```
+>
+> Etikettens **skugga** sträcker sig en bit ovanför pillen och ligger då delvis över varan.
+> Vita där bara pixlar som redan är bakgrund (`min > 200`) — resten är produkt.
 
 
 -----
@@ -469,6 +549,22 @@ faktiskt behov och har inte krävts på ~40 produkter.
 > - **Verifiera efteråt:** GET `VARIANT_OPTION_CHOICE_NAMES` och kontrollera att varje choice har ett
 >   **unikt** `linkedMedia`-id (utöver hero). Två olika-seende varianter som pekar på samma icke-hero-id
 >   = fel. (Rättat i efterhand på bänk/stege/väska/basket 2026-07-19 — gör aldrig om det.)
+
+> 📏 **Mät variantbildens PIXLAR, inte bara dess motiv.** En `linkedMedia`-bild blir PDP:ns huvudbild när kunden väljer varianten, och renderas i 1080 px. Dragleken (`draglek-bat-uppblasbar`, 2026-08-26) hade måttskisser på **198 × 257 px** som variantbilder: 5,5× uppförstoring till oläslig gröt, och kvadratbeskärningen kapade dessutom bort djupmåttet längst ned. Felet syns inte i galleriet — miniatyren ser fin ut — bara när varianten faktiskt väljs. **Kontrollera `image.width`/`image.height` på varje `linkedMedia` redan i Steg 1; under ~800 px duger bilden inte som variantbild.**
+>
+> **Leta hos TILLVERKAREN innan du nöjer dig med marknadsplatsens upplösning.** Dragleken hade bara 197 px av 3-åkarmodellen på AliExpress, och AE:s CDN har 600 × 450 som master (`_1500x1500`, `_960x960` och `_720x720` returnerar alla samma fil). Men varan är en VEVOR SS-1006, och VEVOR säljer den själv: `img.vevorstatic.com` har **1200 × 1500** studiofoton på vit botten, av exakt den modellen. Modellnumret står i leverantörens specifikationsblad — sök på det.
+>
+> Mönstret: hitta produktsidan hos tillverkaren, hämta bild-URL:en och byt sökvägssegmentet till `original_img-v2`/`-v3` (`goods_thumb-v3` ger 90 px, `goods_img_big` 1000 px). Samma trick är värt ett försök för varje märkesvara — VEVOR, SucceBuy, Aosom och HOMCOM driver alla egna butiker med bättre bilder än AE-listningen.
+>
+> Först när tillverkaren också saknar bilder: bygg ett `card_spec` med det bästa som finns i panelen och verifierade mått i raderna. Ett kort där panelen visar ~490 px på skärmen bär en 197 px-källa förvånansvärt långt — men det är andrahandsvalet, inte förstahandsvalet.
+
+> 🔢 **Leverantörens specifikationsblad är källan för mått — läs det, ärv inte äldre poleringstext.** Draglekens publicerade spec-kort uppgav 3-åkaren till `183 × 183 × 89 cm`. Bladet SS-1006 säger `1920 × 1825 × 890 mm`, alltså **192 × 182,5 × 89 cm**; "183 × 183" hade uppstått av att 1825 mm lästes som båda måtten. Felet överlevde en hel polering eftersom ingen gick tillbaka till bladet.
+>
+> Bladen går ofta att nå även när AE:s produktsida är botblockerad (302 utan innehåll): mappningens `imageAnalysis` har kvar leverantörens bild-URL:er, och `ae-pic-a1.aliexpress-media.com` svarar 200 utan spärr.
+
+> ⚠️ **Siffror som skiljer sig MELLAN varianter är den farligaste sorten — leverantörens marknadsslides sprider dem.** Draglekens titel, brödtext och spec-kort sa alla "22 handtag" och "308 kg". Det gäller bara 4-åkaren: SS-1006 har **16 handtag och 231 kg**, SS-1010 har **22 och 308 kg**. Felet kom från leverantörens egen feature-bild "22 Padded Grip Handles", som ligger på BÅDA modellernas sidor — den är gjord för serien, inte för modellen.
+>
+> **Regeln:** en siffra som står i en marknadsslide gäller serien tills du sett den i en modellspecifik spec-tabell. Hämta tabellen per modell och jämför dem mot varandra innan du skriver ett variantkort — skiljer sig en rad ska den aldrig stå som ett blankt påstående i titel eller brödtext.
 
 ### När etiketten sitter PÅ produkten (2026-08-24, transportvagnen)
 

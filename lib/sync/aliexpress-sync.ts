@@ -56,6 +56,8 @@ import {
   sendEmail,
 } from "../email/resend";
 import { applyBestsellerPriority, priorityRank, RECENT_PURCHASE_REASON } from "./bestsellers";
+import { aliExpressIdOf, isAliExpressMapping } from "../store/supplier";
+import { mapWithConcurrency } from "../concurrency";
 
 export const DEFAULT_MARGIN_FLOOR_PERCENT = 20;
 export const DEFAULT_MAX_API_CALLS_PER_RUN = 100;
@@ -576,6 +578,11 @@ export interface SyncSummary {
   boundBy?: "calls" | "clock" | null;
   /** Antal AE-anrop som blev strypta (ApiCallLimit) under körningen. */
   throttled?: number;
+  /**
+   * Mappningar vars Wix-produkt är raderad. Räknades tidigare tyst in i
+   * `checked` med actionTaken "none", så antalet var okänt — nu syns det.
+   */
+  orphans?: number;
   /** Antal som blev hidden pga listning borttagen. */
   hidden: number;
   /** Antal som markerades som slut-i-lager. */
@@ -623,6 +630,18 @@ export function scopeMappings<T extends { wixProductId: string }>(
   return mappings.filter((m) => onlyIds.has(m.wixProductId));
 }
 
+/**
+ * Hur många tillståndsläsningar som får vara i luften samtidigt. Åtta är valt
+ * lågt med flit: hela poängen är att aldrig mer skala fan-outen med katalogen.
+ * ~1 000 AE-rader tar då ~20 s av körningens 300 — billigt mot att stå still.
+ */
+export const DEFAULT_STATE_READ_CONCURRENCY = 8;
+
+function stateReadConcurrency(): number {
+  const v = Number(process.env.SYNC_STATE_READ_CONCURRENCY);
+  return Number.isFinite(v) && v >= 1 ? Math.floor(v) : DEFAULT_STATE_READ_CONCURRENCY;
+}
+
 export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSummary> {
   const startedAt = new Date().toISOString();
   const store = getStore();
@@ -646,6 +665,7 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
     total: mappings.length,
     boundBy: null,
     throttled: 0,
+    orphans: 0,
     checked: 0,
     skipped: 0,
     hidden: 0,
@@ -677,8 +697,8 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // dygns spridning, och får inte stå bredvid ett fraktbart syskon.
   //
   // Default höjd till 20 anrop/körning (Leonards begäran 2026-08-16). Med
-  // körning var 4:e timme blir det ~120 kontroller/dygn — en första svep över
-  // de ~822 aldrig kontrollerade varianterna tar drygt en vecka. Medvetet
+  // körning varannan timme blir det ~240 kontroller/dygn — en första svep över
+  // de ~822 aldrig kontrollerade varianterna tar drygt tre dygn. Medvetet
   // långsamt: beviskravet kostar tid, och det är priset för att inte upprepa
   // kod röd. Sätt SYNC_SHIPPABILITY_CHECKS_PER_RUN för att ändra takten, 0
   // för att pausa igen.
@@ -728,10 +748,34 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
   // Förturen för öppna serier är hela poängen med att sortera om (audit
   // 2026-08-24): utan den hamnar en produkt vi PRECIS misstänkt vara borttagen
   // sist i kön, och strike 2 dröjer en full rotation. Se `orderForRotation`.
+  // ☠️ TILLSTÅNDSLÄSNINGARNA ÄR TAKADE, OCH BARA FÖR RADER LOOPEN KAN ARBETA PÅ.
+  //
+  // Det här var ett obegränsat `Promise.all` över hela katalogen: en
+  // Wix-läsning per produkt, alla avfyrade samtidigt. Det höll på 980 rader
+  // och slutade hålla utan att någon rörde koden — 2026-08-26 kl 12 började
+  // rutten svara 500, och gjorde det varje körning i 57 timmar medan lager och
+  // priser för hela AE-katalogen stod stilla (audit 2026-08-28). Lambdan dog av
+  // fan-outen, så ruttens catch hann aldrig skriva sin fatal-rad: en naken 500
+  // utan en enda loggrad. Sedan Aosom-importen var talet 5 423 samtidiga anrop.
+  //
+  // Två spärrar, och båda behövs:
+  //
+  // 1. Rader loopen ändå hoppar över kostar ingen läsning alls. Aosom-rader
+  //    (4 419 av 5 423) avvisas nedan innan `state` ens används — att hämta
+  //    deras tillstånd var rent slöseri, och det var merparten av fan-outen.
+  //    Villkoret speglar loopens egna hopp; blir de osynkade kostar det på sin
+  //    höjd en onödig läsning, aldrig ett felaktigt beslut.
+  // 2. Resten läses med tak. `summary.total` och `skipped` är oförändrade —
+  //    de överhoppade raderna räknas fortfarande i loopen, de kostar bara
+  //    ingenting att komma fram till.
+  const behoverTillstand = (m: ProductMappingRecord) =>
+    Boolean(m.supplierProductId) && isAliExpressMapping(m) && m.draftStatus !== "rejected";
+
   const states = orderForRotation(
-    await Promise.all(
-      mappings.map((m) => syncStore.getState(m.wixProductId).then((s) => ({ mapping: m, state: s }))),
-    ),
+    await mapWithConcurrency(mappings, stateReadConcurrency(), async (m) => ({
+      mapping: m,
+      state: behoverTillstand(m) ? await syncStore.getState(m.wixProductId) : null,
+    })),
   );
 
   resetRateLimitCount();
@@ -760,6 +804,14 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
       summary.skipped++;
       continue;
     }
+    // Bara AliExpress-produkter går att slå upp mot AE:s API. Aosom-rader bär
+    // ett artikelnummer, inte ett listnings-id — de synkas via feeden i stället
+    // (lib/aosom/). Utan spärren äter 5 566 omöjliga uppslag upp maxApiCalls och
+    // tränger undan de produkter som faktiskt behöver synkas.
+    if (!isAliExpressMapping(mapping)) {
+      summary.skipped++;
+      continue;
+    }
     // Bara aktivt publicerade produkter — pending_review-kön granskar Leonard manuellt.
     if (mapping.draftStatus === "rejected") {
       summary.skipped++;
@@ -779,6 +831,12 @@ export async function runDailySync(opts: RunDailySyncOptions): Promise<SyncSumma
         opsAlertEmail: opts.opsAlertEmail,
         shippabilityBudget,
       });
+      if (result.wixMissing) {
+        // Orphan: avbröts före AliExpress-hämtningen, så inget anrop gjordes.
+        // Lämna tillbaka budgetplatsen till en produkt som faktiskt finns.
+        apiCallsUsed--;
+        summary.orphans = (summary.orphans ?? 0) + 1;
+      }
       summary.checked++;
       summary.shippabilityChecked = (summary.shippabilityChecked ?? 0) + (result.shippabilityCalls ?? 0);
       summary.shippabilityUnshippable = (summary.shippabilityUnshippable ?? 0) + (result.shippabilityUnshippable ?? 0);
@@ -839,11 +897,58 @@ interface SyncOneResult {
   /** Antal fraktbarhets-API-anrop resp. ofraktbara varianter denna produkt. */
   shippabilityCalls?: number;
   shippabilityUnshippable?: number;
+  /**
+   * Wix-produkten finns inte längre (raderad) — mappningen är en orphan.
+   * Sätts när vi avbröt FÖRE AliExpress-hämtningen, så anroparen vet att
+   * produkten inte kostade något AE-anrop och kan lämna tillbaka budgetplatsen.
+   */
+  wixMissing?: boolean;
 }
 
 async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   const { mapping, state, pricing, dryRun, marginFloorPercent } = opts;
   const checkedAt = new Date().toISOString();
+
+  // 0) FINNS WIX-PRODUKTEN ÖVER HUVUD TAGET? (Leonards fråga 2026-08-25.)
+  //
+  // Raderas en produkt i Wix ligger mappningsraden kvar — det finns ingen
+  // raderings-webhook och ingen städning. Kollen låg tidigare i steg 2, ALLTSÅ
+  // EFTER AliExpress-hämtningen, så varje orphan kostade ett riktigt AE-anrop
+  // och en plats i körningens budget innan vi upptäckte att produkten var borta.
+  // Med kollen först kostar en orphan noll AE-anrop, och anroparen får tillbaka
+  // budgetplatsen via `wixMissing`.
+  //
+  // `getWixProduct` returnerar null BARA på 404; alla andra fel kastar och
+  // hanteras av loopens felgren. En nätverksglitch kan alltså aldrig få en
+  // levande produkt att se raderad ut.
+  const wixSnapshot = await getWixProduct(mapping.wixProductId);
+  if (!wixSnapshot) {
+    await getSyncStore().appendLog({
+      id: `${mapping.wixProductId}-${checkedAt}`,
+      productId: mapping.wixProductId,
+      aliexpressId: mapping.supplierProductId,
+      checkedAt,
+      prevCostSek: state?.currentCostSek ?? null,
+      newCostSek: null,
+      prevStock: state?.currentStock ?? null,
+      newStock: null,
+      listingStatus: "unknown",
+      actionTaken: "none",
+      notes: "Wix-produkten är raderad — mappningen är en orphan, hoppar över (inget AE-anrop gjordes).",
+    });
+    return { actionTaken: "none", wixMissing: true };
+  }
+
+  // 0.5) ÄR RADEN ÖVER HUVUD TAGET EN ALIEXPRESS-RAD?
+  //
+  // Rotationsloopen sållar redan bort Aosom-rader, så det här ska aldrig
+  // falla i produktion. Det står här ändå för att `aeId` är den märkta typ
+  // DS-anropen kräver: villkoret ÄR spärren, uttryckt så att en framtida
+  // anropare av syncOneProduct inte kan gå förbi den utan att koden slutar
+  // kompilera. Ligger FÖRE try-blocket med flit — ett kast därinne hade
+  // räknats som ett AE-hämtningsfel och drivit upp fetchErrorStreak.
+  const aeId = aliExpressIdOf(mapping);
+  if (!aeId) return { actionTaken: "none" };
 
   // 1) Hämta AliExpress-data. Två anrop räcker (product.get inkluderar redan
   // varianterna), men vi separerar för tydlighet och felisolering.
@@ -868,7 +973,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   // >0 när hämtningen felade oklassat denna körning (persisteras i newState).
   let fetchErrorStreak = 0;
   try {
-    const product = await getAliExpressProduct(mapping.supplierProductId);
+    const product = await getAliExpressProduct(aeId);
     // NEDTAGEN LISTNING SOM SVARAR 200 (Leonards rapport 2026-08-24).
     //
     // Hela klassificeringen nedan byggde på att en död listning FELAR. Det gör
@@ -1092,26 +1197,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
     ? Math.min((state?.zeroStreak ?? 0) + 1, STOCK_ZERO_STRIKES_REQUIRED)
     : 0;
 
-  // 2) Hämta Wix-snapshot (för visibility + nuvarande pris).
-  const wixSnapshot = await getWixProduct(mapping.wixProductId);
-  if (!wixSnapshot) {
-    // Wix-produkten är redan borttagen → bara logga och rensa state.
-    await getSyncStore().appendLog({
-      id: `${mapping.wixProductId}-${checkedAt}`,
-      productId: mapping.wixProductId,
-      aliexpressId: mapping.supplierProductId,
-      checkedAt,
-      prevCostSek: state?.currentCostSek ?? null,
-      newCostSek: null,
-      prevStock: state?.currentStock ?? null,
-      newStock: null,
-      listingStatus: "unknown",
-      actionTaken: "none",
-      notes: "Wix-produkten hittades inte — hoppar över.",
-    });
-    return { actionTaken: "none" };
-  }
-
+  // 2) Wix-snapshot (för visibility + nuvarande pris) — hämtades redan i steg 0.
   const currentPriceSek = Number.parseFloat(
     wixSnapshot.variants[0]?.actualPriceAmount ?? "0",
   );
@@ -1155,6 +1241,7 @@ async function syncOneProduct(opts: SyncOneOpts): Promise<SyncOneResult> {
   ) {
     try {
       const check = await checkMappingShippability({
+        productId: aeId,
         mapping,
         aeVariants: aeVariantsForShippability,
         nowMs: Date.parse(checkedAt),

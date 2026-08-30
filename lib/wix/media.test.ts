@@ -1,0 +1,221 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { importMediaByUrl, importMediaUrls, getMediaSourceUrls } from "./media";
+
+const FORRA = { token: process.env.WIX_API_TOKEN, dry: process.env.SYNC_DRY_RUN };
+
+beforeEach(() => {
+  process.env.WIX_API_TOKEN = "t";
+  // isDryRun() får inte kortsluta testerna — de handlar om skarpa anrop.
+  process.env.SYNC_DRY_RUN = "false";
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  if (FORRA.token === undefined) delete process.env.WIX_API_TOKEN;
+  else process.env.WIX_API_TOKEN = FORRA.token;
+  if (FORRA.dry === undefined) delete process.env.SYNC_DRY_RUN;
+  else process.env.SYNC_DRY_RUN = FORRA.dry;
+});
+
+const ok = (id = "f1") =>
+  new Response(JSON.stringify({ file: { id, url: `https://static.wixstatic.com/${id}.jpg` } }), { status: 200 });
+
+/** Svarar med kön av responser, en per anrop; räknar anropen. */
+function svarar(...ko: (Response | (() => Response) | Error)[]) {
+  let i = 0;
+  const anrop: string[] = [];
+  const f = (async (url: RequestInfo | URL, init?: RequestInit) => {
+    anrop.push(JSON.parse(String(init?.body)).url);
+    const nasta = ko[Math.min(i++, ko.length - 1)];
+    if (nasta instanceof Error) throw nasta;
+    return typeof nasta === "function" ? nasta() : nasta;
+  }) as unknown as typeof fetch;
+  return { f, anrop: () => anrop };
+}
+
+/** Kör klart en promise som väntar på timers. */
+async function kor<T>(p: Promise<T>): Promise<T> {
+  const r = p.then((v) => ({ v }), (e) => ({ e }));
+  await vi.runAllTimersAsync();
+  const utfall = (await r) as { v?: T; e?: unknown };
+  if ("e" in utfall && utfall.e !== undefined) throw utfall.e;
+  return utfall.v as T;
+}
+
+describe("importMediaByUrl — återförsök", () => {
+  it("försöker igen vid 429 och lyckas", async () => {
+    const { f, anrop } = svarar(new Response("slow down", { status: 429 }), ok());
+    const r = await kor(importMediaByUrl("https://x.test/a.jpg", "a", f));
+    expect(r.url).toBe("https://static.wixstatic.com/f1.jpg");
+    expect(anrop()).toHaveLength(2);
+  });
+
+  it("försöker igen vid 5xx och vid nätverksfel", async () => {
+    const a = svarar(new Response("", { status: 503 }), ok());
+    await expect(kor(importMediaByUrl("https://x.test/a.jpg", "a", a.f))).resolves.toBeTruthy();
+
+    const b = svarar(new Error("ECONNRESET"), ok());
+    await expect(kor(importMediaByUrl("https://x.test/b.jpg", "b", b.f))).resolves.toBeTruthy();
+  });
+
+  it("ger UPP vid 404 — en trasig adress blir inte bra av att fråga igen", async () => {
+    const { f, anrop } = svarar(new Response("not found", { status: 404 }));
+    await expect(kor(importMediaByUrl("https://x.test/a.jpg", "a", f))).rejects.toThrow(/404/);
+    expect(anrop()).toHaveLength(1);
+  });
+
+  it("KASTAR när återförsöken tar slut — felet får inte tappas bort", async () => {
+    const { f, anrop } = svarar(new Response("", { status: 429 }));
+    await expect(kor(importMediaByUrl("https://x.test/a.jpg", "a", f)))
+      .rejects.toThrow(/misslyckades för https:\/\/x\.test\/a\.jpg/);
+    expect(anrop()).toHaveLength(4); // första + tre återförsök
+  });
+
+  it("kastar när svaret saknar URL i stället för att returnera skräp", async () => {
+    const { f } = svarar(new Response(JSON.stringify({ file: {} }), { status: 200 }));
+    await expect(kor(importMediaByUrl("https://x.test/a.jpg", "a", f))).rejects.toThrow(/ingen URL/);
+  });
+});
+
+describe("importMediaUrls — missar rapporteras", () => {
+  const tre = [
+    { url: "https://x.test/1.jpg", displayName: "1" },
+    { url: "https://x.test/2.jpg", displayName: "2" },
+    { url: "https://x.test/3.jpg", displayName: "3" },
+  ];
+
+  it("rapporterar varje miss via onMiss — det här är hela buggfixen", async () => {
+    // Bild 2 är trasig; 1 och 3 går igenom.
+    let n = 0;
+    const f = (async (url: RequestInfo | URL, init?: RequestInit) => {
+      const bild = JSON.parse(String(init?.body)).url as string;
+      n++;
+      return bild.endsWith("2.jpg") ? new Response("borta", { status: 404 }) : ok(`f${n}`);
+    }) as unknown as typeof fetch;
+
+    const missar: string[] = [];
+    const media = await kor(importMediaUrls(tre, { fetchImpl: f, onMiss: (u) => missar.push(u) }));
+
+    expect(media).toHaveLength(2);
+    expect(missar).toEqual(["https://x.test/2.jpg"]);
+  });
+
+  it("en trasig bild fäller inte de andra", async () => {
+    const f = (async (url: RequestInfo | URL, init?: RequestInit) => {
+      const bild = JSON.parse(String(init?.body)).url as string;
+      return bild.endsWith("1.jpg") ? new Response("", { status: 404 }) : ok();
+    }) as unknown as typeof fetch;
+    const media = await kor(importMediaUrls(tre, { fetchImpl: f }));
+    expect(media).toHaveLength(2);
+  });
+
+  it("laddar upp EN I TAGET — parallellt var det som drev Wix till 429", async () => {
+    let samtidiga = 0;
+    let max = 0;
+    const f = (async () => {
+      samtidiga++;
+      max = Math.max(max, samtidiga);
+      await new Promise((r) => setTimeout(r, 10));
+      samtidiga--;
+      return ok();
+    }) as unknown as typeof fetch;
+
+    await kor(importMediaUrls(tre, { fetchImpl: f }));
+    expect(max).toBe(1);
+  });
+
+  it("håller ordningen — bild 1 ska bli huvudbild", async () => {
+    let n = 0;
+    const f = (async () => ok(`f${++n}`)) as unknown as typeof fetch;
+    const media = await kor(importMediaUrls(tre, { fetchImpl: f }));
+    expect(media.map((m) => m.id)).toEqual(["f1", "f2", "f3"]);
+  });
+});
+
+describe("getMediaSourceUrls", () => {
+  /** Svarar med get-files-kroppar i tur och ordning; sparar de begärda id:na. */
+  function filsvar(...ko: { id: string; sourceUrl?: string }[][]) {
+    const begarda: string[][] = [];
+    let i = 0;
+    const f = (async (_url: RequestInfo | URL, init?: RequestInit) => {
+      begarda.push(JSON.parse(String(init?.body)).fileIds);
+      return new Response(JSON.stringify({ files: ko[Math.min(i++, ko.length - 1)] }), { status: 200 });
+    }) as unknown as typeof fetch;
+    return { f, begarda };
+  }
+
+  it("ger källadressen per fil-id", async () => {
+    const { f } = filsvar([{ id: "a", sourceUrl: "https://img.aosomcdn.com/1.jpg" }]);
+    const ut = await getMediaSourceUrls(["a"], f);
+    expect(ut.get("a")).toBe("https://img.aosomcdn.com/1.jpg");
+  });
+
+  it("frågar inte alls när listan är tom", async () => {
+    const { f, begarda } = filsvar([]);
+    expect((await getMediaSourceUrls([], f)).size).toBe(0);
+    expect(begarda).toHaveLength(0);
+  });
+
+  it("☠️ följer Wix egna kopior ett hopp till originalet", async () => {
+    // En omimporterad fil bär VÅR fils wixstatic-adress i sourceUrl, inte
+    // leverantörens. Utan hoppet vore varje sådan produkt omöjlig att härleda
+    // — och de är många, eftersom de importerades medan omimport-buggen levde.
+    const { f, begarda } = filsvar(
+      [{ id: "kopia", sourceUrl: "https://static.wixstatic.com/media/original~mv2.jpg" }],
+      [{ id: "original~mv2.jpg", sourceUrl: "https://img.aosomcdn.com/1.jpg" }],
+    );
+    const ut = await getMediaSourceUrls(["kopia"], f);
+    expect(begarda[1]).toEqual(["original~mv2.jpg"]);
+    expect(ut.get("kopia")).toBe("https://img.aosomcdn.com/1.jpg");
+  });
+
+  it("en kopia vars original är bortstädat lämnas ohärledd", async () => {
+    // Att lämna kvar wixstatic-adressen vore värre: den matchar aldrig en
+    // källbild och skulle se ut som en källa vi inte längre vill ha.
+    const { f } = filsvar(
+      [{ id: "kopia", sourceUrl: "https://static.wixstatic.com/media/borta~mv2.jpg" }],
+      [],
+    );
+    expect((await getMediaSourceUrls(["kopia"], f)).has("kopia")).toBe(false);
+  });
+
+  it("☠️ två filer som pekar på varandra loopar inte — djupet är ett hopp", async () => {
+    // Kedjan är data från Wix, inte något vi kontrollerar. Utan gräns hade en
+    // cykel snurrat tills rutten dog på sin maxDuration.
+    let anrop = 0;
+    const f = (async (_u: RequestInfo | URL, init?: RequestInit) => {
+      anrop++;
+      const id = JSON.parse(String(init?.body)).fileIds[0];
+      const andra = id === "a~mv2.jpg" ? "b~mv2.jpg" : "a~mv2.jpg";
+      return new Response(
+        JSON.stringify({ files: [{ id, sourceUrl: `https://static.wixstatic.com/media/${andra}` }] }),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+
+    const ut = await getMediaSourceUrls(["a~mv2.jpg"], f);
+    // Ett hopp följs, sedan stannar den. Kedjan slutar aldrig i en riktig
+    // källadress, så filen lämnas ohärledd.
+    expect(anrop).toBe(2);
+    expect(ut.has("a~mv2.jpg")).toBe(false);
+  });
+
+  it("en fil som pekar på sig själv följs inte alls", async () => {
+    let anrop = 0;
+    const f = (async () => {
+      anrop++;
+      return new Response(
+        JSON.stringify({ files: [{ id: "x~mv2.jpg", sourceUrl: "https://static.wixstatic.com/media/x~mv2.jpg" }] }),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+    await getMediaSourceUrls(["x~mv2.jpg"], f);
+    expect(anrop).toBe(1);
+  });
+
+  it("kastar när Wix svarar fel — en tom karta hade sett ut som 'inga källor'", async () => {
+    const f = (async () => new Response("nope", { status: 500 })) as unknown as typeof fetch;
+    await expect(getMediaSourceUrls(["a"], f)).rejects.toThrow(/get-files/);
+  });
+});

@@ -16,6 +16,8 @@ import { normalizeCountryCode, provinceFromSwedishPostalCode } from "@/lib/order
 import { isTerminal } from "@/lib/orders/status";
 import { assessDsPrice } from "@/lib/orders/price-check";
 import type { Store } from "@/lib/store";
+import { aliExpressIdOf, isAliExpressMapping, mappingSupplier } from "@/lib/store/supplier";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 
 /**
  * Tak för hur många fraktsätt vi provar. Listan är rangordnad bäst först, så
@@ -76,6 +78,28 @@ export async function placeOrderForTask(
   const mapping = await store.getMappingByWixProductId(task.wixCatalogItemId);
   if (!mapping) return { ok: false, error: "Ingen AliExpress-mappning för produkten" };
 
+  // ☠️ HELA DEN HÄR FILEN ÄR ALIEXPRESS. Den hämtar produkten ur DS-API:t, matchar
+  // varianten mot en AE-SKU och lägger ordern via aliexpress.ds.order.create.
+  //
+  // En Aosom-mappning bär ett artikelnummer som "845-030CG" i samma fält. Utan den
+  // här grinden skickas det rakt in i AE:s API: ett uppslag som aldrig kan träffa,
+  // och ett felmeddelande som pekar åt fel håll för den som felsöker. Katalogen bär
+  // sedan 2026-08-28 över 2 700 Aosom-utkast, så det slutar vara hypotetiskt i samma
+  // stund som den första publiceras.
+  //
+  // Aosom beställs i stället i klump: /admin/aosom-order bygger CSV:n som
+  // aosom.de/bulkordering tar emot. Meddelandet säger det, så den som ser felet i
+  // /admin vet vad hen ska göra i stället för att leta i AE-loggarna.
+  if (!isAliExpressMapping(mapping)) {
+    return {
+      ok: false,
+      error:
+        `Produkten kommer från ${mappingSupplier(mapping)}, inte AliExpress — ingen order läggs. `
+        + `Aosom-ordrar beställs i klump: hämta CSV:n i /admin/aosom-order och ladda upp `
+        + `den på aosom.de/bulkordering.`,
+    };
+  }
+
   // F49: SKU först (entydigt); annars choices med EXAKT EN träff; enproduktsgenväg bara
   // vid tom choices. Tvetydiga/tomma choices på multi-variant → undefined → avbryt nedan.
   let variant = task.sku ? mapping.variants.find((v) => v.sku === task.sku) : undefined;
@@ -94,7 +118,27 @@ export async function placeOrderForTask(
   if (Boolean(task.overriddenSupplierProductId) !== Boolean(task.overriddenSupplierVariantId)) {
     return { ok: false, error: "Ofullständigt leverantörsbyte (produkt utan SKU eller tvärtom) — order avbruten." };
   }
-  const supplierProductId = task.overriddenSupplierProductId ?? mapping.supplierProductId;
+  // Överstyrningen kommer från AE-väljaren i /admin (den tolkar en AE-URL med
+  // extractAliExpressProductId), mappningens id från raden — och där kan det
+  // vara ett Aosom-artikelnummer. Guarden ovan har redan avvisat de raderna;
+  // aliExpressIdOf är samma dom uttryckt i typen, så DS-anropen nedan inte kan
+  // ta emot något annat.
+  const aeProductId = task.overriddenSupplierProductId
+    ? aliExpressIdFromListing(task.overriddenSupplierProductId)
+    : aliExpressIdOf(mapping);
+  // Grinden ovan släpper igenom en rad vars `supplier` säger aliexpress men vars
+  // `supplierProductId` är TOM (default-fallbacken: allt utan fält räknas som AE).
+  // Där finns inget att slå upp, och en order mot tomma strängen hade blivit ett
+  // obegripligt AE-fel i stället för ett åtgärdbart meddelande i /admin.
+  if (!aeProductId) {
+    return {
+      ok: false,
+      error:
+        `Mappningen för ${mapping.wixProductId} saknar leverantörens produkt-id — `
+        + "ingen order läggs. Koppla om produkten i /admin/mappings först.",
+    };
+  }
+  const supplierProductId: string = aeProductId;
   const supplierVariantId = task.overriddenSupplierVariantId ?? variant?.supplierVariantId;
   if (!supplierVariantId) return { ok: false, error: "Variant kunde inte matchas till AliExpress-SKU" };
 
@@ -137,7 +181,7 @@ export async function placeOrderForTask(
   // (granskning 2026-08-19). Cachen lever bara inom det här anropet.
   let produktCache: Awaited<ReturnType<typeof getProduct>> | null = null;
   const hamtaProdukt = async () => {
-    if (!produktCache) produktCache = await getProduct(supplierProductId);
+    if (!produktCache) produktCache = await getProduct(aeProductId);
     return produktCache;
   };
 
@@ -267,7 +311,7 @@ export async function placeOrderForTask(
       }
       if (freightSkuId) {
         fraktsvar = await queryFreightToCountry(
-          supplierProductId,
+          aeProductId,
           freightSkuId,
           countryCode,
           task.quantity,

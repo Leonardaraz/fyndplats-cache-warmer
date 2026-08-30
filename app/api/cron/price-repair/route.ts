@@ -53,6 +53,7 @@ import {
   type PriceRepairPlan,
 } from "@/lib/import/price-repair";
 import type { ProductMappingRecord } from "@/lib/store";
+import { aliExpressIdOf, isAliExpressMapping } from "@/lib/store/supplier";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -83,7 +84,14 @@ async function planeraEn(
 ): Promise<ProduktPlan | { wixProductId: string; fel: string }> {
   const rules = await getPricingRules();
   try {
-    const ds = await getProduct(mapping.supplierProductId);
+    // Kandidatlistan är redan filtrerad med isAliExpressMapping; det här är
+    // samma dom uttryckt i typen, så en riktad körning med ?wixProductIds=
+    // (som går förbi filtret) inte kan skicka ett Aosom-artikelnummer till AE.
+    const aeId = aliExpressIdOf(mapping);
+    if (!aeId) {
+      return { wixProductId: mapping.wixProductId, fel: "inte en AliExpress-mappning — Aosom-priser synkas via feeden" };
+    }
+    const ds = await getProduct(aeId);
     const plan = planPriceRepair(mapping.variants ?? [], ds.variants ?? [], {
       rules,
       category: mapping.categorySuggestion?.collectionName ?? null,
@@ -116,7 +124,7 @@ export async function GET(req: NextRequest) {
   const alla = await store.listMappings();
   const kandidater = enda
     ? alla.filter((m) => m.wixProductId === enda)
-    : alla.filter((m) => sharesOneCost(m.variants ?? []));
+    : alla.filter((m) => sharesOneCost(m.variants ?? []) && isAliExpressMapping(m));
 
   const start = Date.now();
   const planer: ProduktPlan[] = [];

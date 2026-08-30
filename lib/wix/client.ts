@@ -42,8 +42,21 @@ export interface WixProductInput {
    * produktnamnet (lib/import/focus-keyword.ts), inga AI-anrop.
    */
   focusKeyword?: string;
-  /** wixstatic-URL:er till bilder (från media.ts/importMediaByUrl) + alt-text. */
-  mediaItems?: { url: string; altText?: string }[];
+  /**
+   * Bilder från media.ts/importMediaByUrl.
+   *
+   * ☠️ SKICKA `id`, ALDRIG BARA `url`. V3:s dokumentation är entydig: `url` i ett
+   * media-item betyder "an external media URL", och Wix IMPORTERAR OM adressen
+   * till en ny fil. Skickar man en wixstatic-adress — alltså en bild som redan
+   * ligger i Media Manager — får man en andra kopia av samma bild.
+   *
+   * Det var inte teoretiskt: uppmätt 2026-08-28 var 591 av 595 granskade
+   * wixstatic-filer kopior av bilder vi själva laddat upp. Media Manager hade
+   * 58 160 filer där hälften räckt, och lagringen tog slut mitt under en
+   * bildfix-körning. Omimporten är dessutom ASYNKRON, vilket är varför produkter
+   * ibland fick fyra av fem bilder: den femte kopian hade inte hunnit bli klar.
+   */
+  mediaItems?: { id?: string; url: string; altText?: string }[];
   /**
    * Optionsdefinitioner. Ett val kan ha `colorCode` (hex) → renderas som
    * färg-swatch (bubbla). Har alla val i en option en colorCode blir hela
@@ -200,12 +213,16 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
     });
   }
   if (input.mediaItems?.length) {
+    // `id` när vi har det (bilden ligger redan i Media Manager), annars `url`
+    // för en genuint extern adress. Se kommentaren på mediaItems ovan.
     const items = input.mediaItems.map((m) => ({
-      url: m.url,
+      ...(m.id ? { id: m.id } : { url: m.url }),
       ...(m.altText ? { altText: m.altText } : {}),
     }));
     product.media = {
-      main: items[0],
+      // `media.main` är READ-ONLY i V3 och sätts automatiskt till första posten
+      // i itemsInfo.items. Att skicka den gör ingen nytta och gav tidigare en
+      // extra omimport av huvudbilden.
       itemsInfo: { items },
     };
   }
@@ -915,7 +932,16 @@ export interface WixProductMediaSnapshot {
 
 /** Hämtar produktens nuvarande mediaItems (för att kunna ta bort en specifik bild). */
 export async function getProductMedia(productId: string): Promise<WixProductMediaSnapshot | null> {
-  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`;
+  // ☠️ fields=MEDIA_ITEMS_INFO ÄR OBLIGATORISKT. Utan det returnerar V3 en
+  // produkt med `media.main` ifylld men `media.itemsInfo.items` TOM — inte ett
+  // fel, bara en tystare projektion. Uppmätt 2026-08-27 på en produkt med fem
+  // bilder: 0 utan fältet, 5 med.
+  //
+  // Två saker gick sönder på det, båda tyst: bildreparationen såg alla 744
+  // Aosom-produkter som bildlösa, och knappen "ta bort bild" i /admin/queue
+  // filtrerade en tom lista, såg ingen skillnad och anropade därför aldrig Wix
+  // — den har aldrig gjort något.
+  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=MEDIA_ITEMS_INFO`;
   const res = await fetch(url, { method: "GET", headers: wixHeaders() });
   if (res.status === 404) return null;
   if (!res.ok) {
@@ -964,17 +990,20 @@ export async function getProductMedia(productId: string): Promise<WixProductMedi
 export async function setProductMedia(
   productId: string,
   revision: string,
-  media: { url: string; altText?: string }[],
+  media: { id?: string; url: string; altText?: string }[],
 ): Promise<{ revision: string }> {
   if (isDryRun()) return { revision };
-  const items = media.map((m) => ({ url: m.url, ...(m.altText ? { altText: m.altText } : {}) }));
+  // ☠️ `id` när bilden redan ligger i Media Manager. Skickas `url` importerar Wix
+  // om den till en NY fil — se kommentaren på WixProductInput.mediaItems.
+  const items = media.map((m) => ({
+    ...(m.id ? { id: m.id } : { url: m.url }),
+    ...(m.altText ? { altText: m.altText } : {}),
+  }));
   const body = {
     product: {
       revision,
-      media: {
-        main: items[0],
-        itemsInfo: { items },
-      },
+      // `media.main` är read-only i V3 och härleds ur första posten.
+      media: { itemsInfo: { items } },
     },
     fieldMask: { paths: ["media"] },
   };

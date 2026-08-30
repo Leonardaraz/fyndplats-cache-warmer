@@ -1,0 +1,860 @@
+{
+  "beskrivning": "Bilduppladdningsgrenar (claude/img-*) som raderades 2026-08-27. De fanns bara för att ge Wix Media en publik raw.githubusercontent-URL att hämta bilden från; när Wix kopierat bytesen är grenen förbrukad.",
+  "aterstallning": "git push origin <sha>:refs/heads/<gren> — GitHub behåller onåbara objekt en tid, så listan är meningsfull bara de närmaste veckorna.",
+  "kontrollerat": [
+    "Ingen av grenarna är head eller bas för en öppen pull request.",
+    "Ingen delar historik med main (merge-base tom) — de är fristående ögonblicksbilder.",
+    "Nio grenar bar en kopia av repot. Enda innehållet som inte fanns någonstans i main-historiken var äldre versioner av docs/seo-polish-runbook.md; efter PR #498 ligger de reglerna i docs/polish/bildmetoder.md och docs/polish/varianter.md. Stickprov på åtta regler: sju ordagrant kvar på main, den åttonde omformulerad."
+  ],
+  "sparade": [
+    {
+      "gren": "claude/img-klossar-2026-08-23",
+      "sha": "1b3af6b41d7068f9981cea3f267c18caa453bc81",
+      "sistaCommit": "2026-08-27T09:27:01+00:00",
+      "commits": 48,
+      "filer": 276
+    }
+  ],
+  "raderade": [
+    {
+      "gren": "claude/img-mongar0708-1787757865",
+      "sha": "3c99026f5f990dfcd425abf11987a7f6e4495412",
+      "sistaCommit": "2026-08-26T15:24:25+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-mongar04-1787757475",
+      "sha": "0b45eb8dc25fb3c0698ce3b8a5440072265c125b",
+      "sistaCommit": "2026-08-26T15:17:58+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-stodben",
+      "sha": "286478876ca82fe75d92c5f831a24d873042dadb",
+      "sistaCommit": "2026-08-26T13:04:40+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-draglek2",
+      "sha": "6bd3c4dd34dcdfa6a7d304583c989d2ff28b8579",
+      "sistaCommit": "2026-08-26T07:58:09+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-draglek",
+      "sha": "1eaf391d2d741e80daa20a77bbd3e93e1473e826",
+      "sistaCommit": "2026-08-26T07:39:50+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-naturehike",
+      "sha": "f24c34f391119dab486493292ea740ce0326caa5",
+      "sistaCommit": "2026-08-26T05:38:05+00:00",
+      "commits": 1,
+      "filer": 11
+    },
+    {
+      "gren": "claude/img-cykeltalt",
+      "sha": "3ce85aac0357e784424070b290fe6a67ed509c4f",
+      "sistaCommit": "2026-08-24T15:53:55+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-vagn3",
+      "sha": "324da2fdf2b7f195fcc1ad7ec9baed36cc72fb34",
+      "sistaCommit": "2026-08-24T10:20:22+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-vagn2",
+      "sha": "19f4a979ed201c11c02880a0692cc29eee980ef0",
+      "sistaCommit": "2026-08-24T10:02:21+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-talt",
+      "sha": "a16e74f30db7e00120b613732218a8ba196cee32",
+      "sistaCommit": "2026-08-23T10:41:45+00:00",
+      "commits": 1,
+      "filer": 511
+    },
+    {
+      "gren": "claude/img-golvlampa",
+      "sha": "cbf5d916f82b87670e77687a20881f511cb5a55e",
+      "sistaCommit": "2026-08-23T10:18:34+00:00",
+      "commits": 1,
+      "filer": 508
+    },
+    {
+      "gren": "claude/img-katthjul2",
+      "sha": "cea4daea79c5a5d4a4fd50853b224a0cb5322f59",
+      "sistaCommit": "2026-08-23T05:28:49+00:00",
+      "commits": 1,
+      "filer": 507
+    },
+    {
+      "gren": "claude/img-katthjul",
+      "sha": "4eee55f3c24cc4db165ea6ddcc4dc3d3fface4db",
+      "sistaCommit": "2026-08-22T22:53:14+00:00",
+      "commits": 1,
+      "filer": 514
+    },
+    {
+      "gren": "claude/img-sadelpall",
+      "sha": "d8bd34843a7e6f9913598a4587f0cc7ee3bc9fbc",
+      "sistaCommit": "2026-08-22T09:31:09+00:00",
+      "commits": 1,
+      "filer": 441
+    },
+    {
+      "gren": "claude/img-studsnat",
+      "sha": "ea73860fe8507eb1fb33c4b617b3434c4c60c250",
+      "sistaCommit": "2026-08-21T13:02:14+00:00",
+      "commits": 1,
+      "filer": 439
+    },
+    {
+      "gren": "claude/img-trampbil",
+      "sha": "8513570c8d3b6711de4eb68eefae1b913b037558",
+      "sistaCommit": "2026-08-21T04:57:48+00:00",
+      "commits": 1,
+      "filer": 439
+    },
+    {
+      "gren": "claude/img-jaktstol",
+      "sha": "fc8bbec245fd8101cac2eac999ef86b591627ec1",
+      "sistaCommit": "2026-08-21T04:39:50+00:00",
+      "commits": 1,
+      "filer": 442
+    },
+    {
+      "gren": "claude/img-larm2",
+      "sha": "e2cf7c425d3ff610c7a9de58004596689200f0b3",
+      "sistaCommit": "2026-08-20T20:28:18+00:00",
+      "commits": 7,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-larm",
+      "sha": "09e99fd147a9759659b73c8eab180ae774ae2470",
+      "sistaCommit": "2026-08-19T09:32:09+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-sang",
+      "sha": "0a90456b5ba090797c2cbf99bb79facd34a28aec",
+      "sistaCommit": "2026-08-18T22:46:49+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-puff",
+      "sha": "81f74760b46821795c380ee41696114f7b6a587c",
+      "sistaCommit": "2026-08-18T06:59:15+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-skuggvav",
+      "sha": "1a731a840c616bc00d2557b7d45ac6874e62d7d1",
+      "sistaCommit": "2026-08-18T05:25:03+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-vitbg",
+      "sha": "7e1246e0c9b9992c3173cc405c724258659d3a28",
+      "sistaCommit": "2026-08-18T04:33:35+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-bord-hero2",
+      "sha": "4a463326483675bbf8334ee21f0f3d9e7df5cc1d",
+      "sistaCommit": "2026-08-17T21:29:43+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-bord-hero",
+      "sha": "59542ce179efb81920c1a351cecc28c3ecdb87da",
+      "sistaCommit": "2026-08-17T21:02:12+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-lasertag-hjalte3",
+      "sha": "fd80163997d8336f6f027509eb3d1f8046422a37",
+      "sistaCommit": "2026-08-17T15:07:41+00:00",
+      "commits": 2,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-lasertag-hjalte",
+      "sha": "95e229afc1eae5e7535fb763bc6e103338b4643c",
+      "sistaCommit": "2026-08-17T14:52:48+00:00",
+      "commits": 2,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-sol-regulator",
+      "sha": "2752973e9448b26224a7f3194d1f9a75fb152bf2",
+      "sistaCommit": "2026-08-17T06:03:15+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-hexa",
+      "sha": "5754a31a5bfbe35f1eaa1f21c1a306cebc629e04",
+      "sistaCommit": "2026-08-14T09:20:10+00:00",
+      "commits": 9,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-laserprojektor",
+      "sha": "17003741c833dc3ea1ce7d86b02e5e0360f45291",
+      "sistaCommit": "2026-08-12T00:51:08+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-traningsbank",
+      "sha": "e097fdab53bf77d2405ccf9cd3f19e1ae3b13419",
+      "sistaCommit": "2026-08-11T19:55:38+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-odlingslada",
+      "sha": "cbfac34798bc91773e8c1934812193021d998358",
+      "sistaCommit": "2026-08-11T19:48:46+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-fiskrensbord",
+      "sha": "f7b84cd527a5a361b4ef02c39f0f18bef6b2b4a2",
+      "sistaCommit": "2026-08-11T19:32:27+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-lasertag",
+      "sha": "4f8c4c9abcf47ff70c6c244e505eaab009ec2136",
+      "sistaCommit": "2026-08-09T18:24:21+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-vaxelriktare",
+      "sha": "cbea8a44840b9775100fdf7c5d1730937aa3a868",
+      "sistaCommit": "2026-08-09T13:22:58+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-musikbord",
+      "sha": "9bfce48ae1eafe4a3fdb4618687e736d65a8a708",
+      "sistaCommit": "2026-08-09T07:21:21+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-hudvardsset",
+      "sha": "00570daa9770bc1191c43a85e3cb3af7e3c2a822",
+      "sistaCommit": "2026-08-09T06:57:00+00:00",
+      "commits": 2,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img8-laddare37",
+      "sha": "237e69083e58b13512826cc58e83b0abbfa85461",
+      "sistaCommit": "2026-08-09T00:32:45+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img7-odlingslada",
+      "sha": "3653dce6c54de2486b9986c4c90984523a1de5c5",
+      "sistaCommit": "2026-08-08T17:52:37+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img6-hero2",
+      "sha": "835d7d4971b9826ded6f796c0240c01871681b76",
+      "sistaCommit": "2026-08-08T17:31:31+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img5-vaxthus",
+      "sha": "1070340cdd006c073e382c236b9e788c45dc346a",
+      "sistaCommit": "2026-08-08T16:11:35+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img4-kaninbur",
+      "sha": "80f57c096cc1f00a16f188549c2cfc5493511687",
+      "sistaCommit": "2026-08-06T16:18:10+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img3-bandfix",
+      "sha": "6f2eba53862c78d407544345173c7dba3fadcdb8",
+      "sistaCommit": "2026-08-06T09:13:03+00:00",
+      "commits": 1,
+      "filer": 9
+    },
+    {
+      "gren": "claude/img-fontfix",
+      "sha": "f8be607c50534930e255ad4cc6ab0a1c1722191c",
+      "sistaCommit": "2026-08-06T06:01:13+00:00",
+      "commits": 1,
+      "filer": 52
+    },
+    {
+      "gren": "claude/img2-entretak-material",
+      "sha": "185b1a3dafdefdba26155c1be8de67753cc47611",
+      "sistaCommit": "2026-08-05T16:37:55+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img2-leksakssminkbord",
+      "sha": "aa0bda6296900bc5db3c6d102f0d14e83d7ce0c9",
+      "sistaCommit": "2026-08-05T16:36:07+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img2-skarmtak",
+      "sha": "6d9dd4e04e822484e6201026b5fcc1db0fa5f427",
+      "sistaCommit": "2026-08-05T16:26:52+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img2-sminkbord",
+      "sha": "4b6451404ac18dbc68ef069c132f523248be3512",
+      "sistaCommit": "2026-08-05T16:06:17+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img2-traktor",
+      "sha": "e246430d11e15d0ceff44f5105dfc7cfe581db9f",
+      "sistaCommit": "2026-08-05T16:06:13+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img2-hundtoalett",
+      "sha": "32da02d672d75d9c76ae8d6836aafd981ce869af",
+      "sistaCommit": "2026-08-05T15:39:02+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img2-klostrad",
+      "sha": "421d9f9ee434fbc8f1c6bd8bba93da5b6905a791",
+      "sistaCommit": "2026-08-05T15:36:16+00:00",
+      "commits": 1,
+      "filer": 6
+    },
+    {
+      "gren": "claude/img2-baglampa",
+      "sha": "bb76a366259656bbf1498be6e4a8a226c37ec9da",
+      "sistaCommit": "2026-08-05T15:17:07+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img2-hundsang",
+      "sha": "b67c29268f2f33d631d28761e8990da51e3c0090",
+      "sistaCommit": "2026-08-05T15:08:51+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img2-sparkcykel",
+      "sha": "e91a73430996a8de582ac817e2bfb568a1a196f2",
+      "sistaCommit": "2026-08-05T14:48:24+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img2-angstryk",
+      "sha": "e77fae6e4f5a9e873ce50769ec00b71e4ba39565",
+      "sistaCommit": "2026-08-05T14:27:37+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img2-hundgaller",
+      "sha": "e71c868ca61392c471f776196f1ca869637f5866",
+      "sistaCommit": "2026-08-05T14:23:31+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img2-vaggvitrin",
+      "sha": "9a63d4b8f4f60a8cdebdef41e9c52a105600345b",
+      "sistaCommit": "2026-08-05T14:06:49+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img2-babygunga",
+      "sha": "8798e56ef16e7a34b6ad3a95006d7be7e8837890",
+      "sistaCommit": "2026-08-05T13:52:27+00:00",
+      "commits": 1,
+      "filer": 5
+    },
+    {
+      "gren": "claude/img2-massagebank-spec",
+      "sha": "9832a6ad0a700706bc15ac36d9dd3de4f81be69f",
+      "sistaCommit": "2026-08-05T13:51:04+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img2-massagebank",
+      "sha": "8811500fcd7c74df381dec511efba73e7af3f199",
+      "sistaCommit": "2026-08-05T13:35:08+00:00",
+      "commits": 2,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img2-vaggspegel",
+      "sha": "9b94b4cbe1034166000119301b386d1f55d7c83f",
+      "sistaCommit": "2026-08-05T13:22:55+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img2-satsbord",
+      "sha": "cf79df338278e4969cecb100c4e863c5dbeb77c3",
+      "sistaCommit": "2026-08-05T12:59:48+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img2-parasollfot",
+      "sha": "96c6e8cb4ab44446792b4528fa6818b20bfedb98",
+      "sistaCommit": "2026-08-05T12:40:47+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img2-symaskinsbord",
+      "sha": "37b22071e46c2713636f75126583a02fbb8f7464",
+      "sistaCommit": "2026-08-05T12:40:13+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img2-smyckeskrin-fix",
+      "sha": "921097d3a9d8b0580a6f6898f8441f17231d2449",
+      "sistaCommit": "2026-08-05T12:34:04+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img2-stepbrada-a",
+      "sha": "fbb212061b5f6a4b4159d2c0eca4a0add08f70e8",
+      "sistaCommit": "2026-08-05T12:14:02+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img2-stepbrada-b",
+      "sha": "ec1142c2452f4f604ef071583aa329cfaed330b7",
+      "sistaCommit": "2026-08-05T12:13:06+00:00",
+      "commits": 1,
+      "filer": 5
+    },
+    {
+      "gren": "claude/img2-hantelset36",
+      "sha": "f8b7e897e69786b55313ddab8dfd059c2aace938",
+      "sistaCommit": "2026-08-05T11:32:25+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img2-chinsstang",
+      "sha": "77da88067e0bb536e583b590b88b7f9e15699e9d",
+      "sistaCommit": "2026-08-05T11:32:05+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img2-pilates",
+      "sha": "a4bd1dc3fd1aaae1e34c212bfd5c230214e9f3ed",
+      "sistaCommit": "2026-08-05T11:09:18+00:00",
+      "commits": 1,
+      "filer": 5
+    },
+    {
+      "gren": "claude/img2-spelbord",
+      "sha": "1a7caceee8cf3ffc24f39c9bbb165ebf66591b22",
+      "sistaCommit": "2026-08-05T10:38:08+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img2-verktygsvagn",
+      "sha": "2309e17179714ff433c46fa2442b8cb885631ef7",
+      "sistaCommit": "2026-08-05T10:19:24+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img2-verkstadsvagn3",
+      "sha": "3d8274c0ecd62f8fa7ab302c31e9cf45569e1480",
+      "sistaCommit": "2026-08-05T09:53:52+00:00",
+      "commits": 1,
+      "filer": 6
+    },
+    {
+      "gren": "claude/img2-rollator",
+      "sha": "5c3c77418736454e697b76108450b3ba0a4766bc",
+      "sistaCommit": "2026-08-05T09:42:34+00:00",
+      "commits": 1,
+      "filer": 7
+    },
+    {
+      "gren": "claude/img2-forvaringskista",
+      "sha": "e375a0710404d9b891ab08acd7b851dc592eb25d",
+      "sistaCommit": "2026-08-05T09:15:29+00:00",
+      "commits": 1,
+      "filer": 6
+    },
+    {
+      "gren": "claude/img2-sminkvaska",
+      "sha": "cc4642fb84acbe7fb8919ca5d8503346d68f1ef1",
+      "sistaCommit": "2026-08-05T09:06:57+00:00",
+      "commits": 1,
+      "filer": 6
+    },
+    {
+      "gren": "claude/img-slangvinda",
+      "sha": "b8f085178ed89b5aef78238233f9f3f8c5b34e4f",
+      "sistaCommit": "2026-08-05T07:50:37+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-affischhallare",
+      "sha": "cd38a05aece2ec2b0b5e015f25ba419175d33874",
+      "sistaCommit": "2026-08-05T07:26:52+00:00",
+      "commits": 1,
+      "filer": 6
+    },
+    {
+      "gren": "claude/img-barstolar",
+      "sha": "1e4034afeb132197a41921d3d92461170f057e42",
+      "sistaCommit": "2026-08-05T06:56:27+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-staffli",
+      "sha": "21a1d1fe0df0f256121c0533250aed1cfe50e158",
+      "sistaCommit": "2026-08-05T06:48:50+00:00",
+      "commits": 1,
+      "filer": 6
+    },
+    {
+      "gren": "claude/img-hurts",
+      "sha": "b1debfe9a5616420c56b5cb3a3230ebe9f220080",
+      "sistaCommit": "2026-08-05T06:20:20+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-kokso-fix2",
+      "sha": "3adabdb84ba9dd738eff734e22684972f832952f",
+      "sistaCommit": "2026-08-05T05:38:27+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-kokso-utdragbar",
+      "sha": "054602c01e471c9de18daf1f86a63c0a3d44bc6a",
+      "sistaCommit": "2026-08-05T05:36:28+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-kokso-fallbar",
+      "sha": "300ed52fa0ec40b55398a8ec0b6b52d71d107a12",
+      "sistaCommit": "2026-08-05T05:29:44+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-rullvagn-bambu",
+      "sha": "789891e4be518e3a66b35b41dde8f59a3f352beb",
+      "sistaCommit": "2026-08-04T21:57:09+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-rullvagn-svart",
+      "sha": "2f1aafd0a661513d8eb4932167de3bdf2e7b0790",
+      "sistaCommit": "2026-08-04T21:40:42+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-rullvagn-vit",
+      "sha": "b94cc6eca3cd7a3e9dc42dbad54d2d9a5c6966ba",
+      "sistaCommit": "2026-08-04T21:28:28+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-rullvagn-rustik",
+      "sha": "7e44eefe361b07dde52ad298c88adcb019673fd1",
+      "sistaCommit": "2026-08-04T20:59:30+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-matbord-runt",
+      "sha": "46ba1a15b67b870f1df506c6e6f24425b777c9e2",
+      "sistaCommit": "2026-08-04T20:23:50+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-matbord-ovalt",
+      "sha": "de7745eaa92cdb02c6a0e13e3078178227edbde6",
+      "sistaCommit": "2026-08-04T20:23:38+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-garderob-svart",
+      "sha": "dbb07de61feca8f360f8f7a79f335bc66a9a2749",
+      "sistaCommit": "2026-08-04T19:54:30+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-hantlar",
+      "sha": "aa25ef60223701f1f7373151f59cb1f3c915b6f4",
+      "sistaCommit": "2026-08-04T18:54:53+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-garderob-mork",
+      "sha": "ca0a3892cfb70dcc9dcc2f807512e1b9dedf7829",
+      "sistaCommit": "2026-08-04T18:53:18+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-badrumsskap-barn",
+      "sha": "a9c45977e52a6bd94a8f5dc6c47127b4b35a16f2",
+      "sistaCommit": "2026-08-04T18:28:25+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-kommod",
+      "sha": "c78a4c8003692728ab5572fa4f188af9d2e4db24",
+      "sistaCommit": "2026-08-04T18:13:27+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-badrumsskap-hog",
+      "sha": "9f7817ce5a81d8a1d13d7316c121ac2248b2aa11",
+      "sistaCommit": "2026-08-04T18:09:11+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-sangbord",
+      "sha": "4a9e24c6146580e2bb1aa6d5ed58fa1cf2f59d9e",
+      "sistaCommit": "2026-08-04T17:40:37+00:00",
+      "commits": 1,
+      "filer": 5
+    },
+    {
+      "gren": "claude/img-laddare",
+      "sha": "476285e112392cb0ce701fd938ad68e68482fdc5",
+      "sistaCommit": "2026-08-04T17:05:39+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-rumsavdelare",
+      "sha": "15c495ebc3c54f031165b8d6f22d24a519a4f9db",
+      "sistaCommit": "2026-08-04T16:57:30+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-laddkabel",
+      "sha": "03849142535d684bc20ea4807043ed2930eb4a1f",
+      "sistaCommit": "2026-08-04T16:35:38+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-barbord",
+      "sha": "4c537d4df9226da2bcbd56b437f9c84d8f3cf785",
+      "sistaCommit": "2026-08-04T16:18:52+00:00",
+      "commits": 1,
+      "filer": 10
+    },
+    {
+      "gren": "claude/img-massdisk",
+      "sha": "8ccd9fde742932afad8cf14e09ebf64ab961d056",
+      "sistaCommit": "2026-08-04T15:58:02+00:00",
+      "commits": 1,
+      "filer": 5
+    },
+    {
+      "gren": "claude/img-mc-stands",
+      "sha": "dcafd8b1f901a9165d8e2f880cd64f7c772460ed",
+      "sistaCommit": "2026-07-19T10:06:40+00:00",
+      "commits": 65,
+      "filer": 252
+    },
+    {
+      "gren": "claude/img-canvas",
+      "sha": "aba5b5504ed0b8296bf838aee12b50c062e04c30",
+      "sistaCommit": "2026-07-11T14:55:15+00:00",
+      "commits": 1,
+      "filer": 9
+    },
+    {
+      "gren": "claude/img-chafing",
+      "sha": "b5217d93f2a5f75877d085292d91765ff4f80706",
+      "sistaCommit": "2026-07-11T14:49:26+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-lathe",
+      "sha": "9cf670be9ad995ba081a2a2d913b0147db5357a4",
+      "sistaCommit": "2026-07-11T14:44:37+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-mill",
+      "sha": "388c46034d90519144390278d6e683245f99f35f",
+      "sistaCommit": "2026-07-11T14:41:48+00:00",
+      "commits": 1,
+      "filer": 5
+    },
+    {
+      "gren": "claude/img-mc",
+      "sha": "be3df0a222e01bcf0eed9f154433cea0b471f4fd",
+      "sistaCommit": "2026-07-11T14:31:39+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-specs2",
+      "sha": "780f8ea3e924df0c5aad2b9b7b72c922103d60da",
+      "sistaCommit": "2026-07-11T14:21:54+00:00",
+      "commits": 1,
+      "filer": 3
+    },
+    {
+      "gren": "claude/img-specs",
+      "sha": "01f0889cb1b4ebcca2e9f4e29a5fc3b1d36478d8",
+      "sistaCommit": "2026-07-11T14:17:54+00:00",
+      "commits": 1,
+      "filer": 5
+    },
+    {
+      "gren": "claude/img-pen",
+      "sha": "d9c0490bfc0d639d992b2a7c660fb25e1eeb5ea5",
+      "sistaCommit": "2026-07-11T13:38:31+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-jack",
+      "sha": "e9e2c9309f9b3df01e29932d4bd3cd0a62680c7f",
+      "sistaCommit": "2026-07-11T13:33:56+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-scope",
+      "sha": "ccbb4c6df846d62af95cb50eba440856429c22f5",
+      "sistaCommit": "2026-07-11T13:29:51+00:00",
+      "commits": 1,
+      "filer": 1
+    },
+    {
+      "gren": "claude/img-mig",
+      "sha": "4412cb023cf1c96d3a4e860a207bb562a627338d",
+      "sistaCommit": "2026-07-11T13:25:28+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-glass",
+      "sha": "d2265c29b2b5b78ef107d477950e28201d3748f1",
+      "sistaCommit": "2026-07-11T13:20:22+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-fix",
+      "sha": "cfc28aa4ea169b487f3ac9994ebae7dc874b49dd",
+      "sistaCommit": "2026-07-11T12:45:26+00:00",
+      "commits": 1,
+      "filer": 9
+    },
+    {
+      "gren": "claude/img-pavilion",
+      "sha": "f26e4658f8c2ba16b9f3b219649d7e69a199af4d",
+      "sistaCommit": "2026-07-11T12:33:03+00:00",
+      "commits": 1,
+      "filer": 4
+    },
+    {
+      "gren": "claude/img-still",
+      "sha": "b6c66bdb7f7687450966c7728e97332fccc37e18",
+      "sistaCommit": "2026-07-11T12:21:54+00:00",
+      "commits": 1,
+      "filer": 5
+    },
+    {
+      "gren": "claude/img-counter",
+      "sha": "a1e58a1811e85b961c4c528816a62ca3919792d6",
+      "sistaCommit": "2026-07-10T20:06:03+00:00",
+      "commits": 1,
+      "filer": 2
+    },
+    {
+      "gren": "claude/img-diesel-8kw",
+      "sha": "82240a836b3ad9e7b4d6aa45f4fa90bd20000214",
+      "sistaCommit": "2026-07-10T18:47:35+00:00",
+      "commits": 1,
+      "filer": 2
+    }
+  ]
+}

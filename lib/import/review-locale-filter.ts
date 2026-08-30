@@ -22,13 +22,21 @@
  * länder AliExpress-köpare oftast skriver från.
  *
  * Sverige finns INTE med — en recension som nämner Sverige är precis vad vi vill ha.
+ *
+ * ⚠️ **Korta landsnamn kräver ordgränser.** De flesta mönstren är avsiktliga
+ * delsträngar, för att fånga böjningsformer tvärs över tretton språk. Men tre
+ * av dem är så korta att de bor inuti vanliga ord: `usa` i svenskans *ljusa*,
+ * *ljusare* och spanskans *usar*; `fransa` i *fransar*; `peru` i
+ * *superutrustad*. Svep 2026-08-26 hittade fyra publicerade recensioner som
+ * fällts på just "ljusa" och "degusar" — riktiga omdömen som filtret hade
+ * kastat vid import. De tre har därför `\b` i båda ändar.
  */
 const FOREIGN_PLACE = new RegExp(
   [
     // Tjeckien
     "tjeckien", "czech", "tschechien", "chequia", "rep[uú]blica checa", "cechia", "czechy", "[cč]esk",
     // Frankrike
-    "frankrike", "france", "francia", "frankreich", "francja", "franci[ae]", "fransa",
+    "frankrike", "france", "francia", "frankreich", "francja", "franci[ae]", "\\bfransa\\b",
     // Polen
     "polen", "poland", "pologne", "polonia", "pols[kc]\\w*", "polonya",
     // Spanien
@@ -55,9 +63,15 @@ const FOREIGN_PLACE = new RegExp(
     "герман", "німеччин", "франц", "іспан", "испан", "італі", "итали", "польщ",
     "польш", "чехі", "чехи", "румун", "латв", "литв", "естон", "грец", "болгар",
     "португал", "нідерланд", "нидерланд", "бельг", "австрі", "австри", "угорщ", "венгр",
+    // Kina och övriga avsändarländer. Låg länge utanför listan helt, eftersom
+    // avsändarlandet var tillåtet — se noten om Leonards beslut 2026-08-26.
+    // Ordgränser krävs här: utan dem matchar "cina" spanskans cocina/piscina,
+    // "chine" franskans machine och "cin" svenskans medicin.
+    "\\bkina[ns]?\\b", "\\bchina\\b", "\\bchine\\b", "\\bcina\\b", "\\bchin(?:y|om|ami|ach)\\b", "\\b(?:z|do)\\s+chin\\b", "\\b[cč][ií]na\\b",
+    "\\bk[ií]na\\b", "\\b[cç]in\\b", "кита", "中国", "hongkong", "hong kong",
     // Utanför Europa
-    "usa", "united states", "estados unidos", "kanada", "canada", "australien", "australia",
-    "mexiko", "mexico", "m[eé]xico", "peru", "per[uú]", "turkiet", "turkey", "t[uü]rkiye",
+    "\\busa\\b", "united states", "estados unidos", "kanada", "canada", "australien", "australia",
+    "mexiko", "mexico", "m[eé]xico", "\\bper[uú]\\b", "turkiet", "turkey", "t[uü]rkiye",
     "irland", "ireland", "irlanda", "[oö]sterrike", "austria", "[oö]sterreich",
   ].join("|"),
   "i",
@@ -94,23 +108,26 @@ export interface ForeignLocaleVerdict {
 /**
  * Avgör om recensionen placerar köparen i ett annat land än Sverige.
  *
+ * ⚠️ **Avsändarland fälls numera också** (Leonards beslut 2026-08-26, ordagrant:
+ * *"om någon nämner paket från kina eller frakt från ett annat land till att det
+ * står vart man bor eller så, ska den bort"*). Fram till dess strippades "från
+ * X" innan landkontrollen, med motiveringen att avsändarlandet stämmer även för
+ * en svensk kund. Två saker talade emot: kunden köper av Fyndplats och ska inte
+ * behöva läsa var lagret ligger — samma skäl som förbjuder avsändarland i
+ * produkttexten (runbookens Steg 7) — och undantaget släppte igenom
+ * "Versand aus China", som pekar rakt på dropshippingen. Kina saknades dessutom
+ * i landlistan helt, eftersom det ändå aldrig kunde fälla.
+ *
  * Medvetet TILLÅTET (det är inte samma sak):
- *   - avsändarland: "snabb frakt från Polen" stämmer även för en svensk kund,
- *     eftersom varorna skickas från EU-lager;
  *   - fraktbolag: DPD, GLS m.fl. kör i Sverige också;
- *   - "kr"/"SEK".
+ *   - "kr"/"SEK";
+ *   - Sverige nämnt — det är precis vad vi vill ha.
  */
 export function foreignLocaleVerdict(text: string): ForeignLocaleVerdict {
   const t = (text ?? "").trim();
   if (!t) return { foreign: false };
 
-  // Avsändarland först — "från Polen" ska INTE fällas, medan "till Polen" ska.
-  const withoutOrigin = t.replace(
-    /\b(?:fr[aå]n|from|de(?:sde)?|da|dal|aus|von|z|ze|od|iz|з|из)\s+[A-ZÅÄÖ][\wåäöéèü-]+/gi,
-    " ",
-  );
-
-  const land = withoutOrigin.match(FOREIGN_PLACE);
+  const land = t.match(FOREIGN_PLACE);
   if (land) return { foreign: true, reason: "land", match: land[0] };
 
   const pengar = t.match(FOREIGN_MONEY);

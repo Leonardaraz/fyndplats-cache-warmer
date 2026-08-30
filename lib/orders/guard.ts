@@ -320,6 +320,13 @@ export interface GuardExtras {
   syncDigest?: SyncDigest;
   openAlerts?: number;
   auction?: { live: number; queued: number };
+  /**
+   * När AliExpress access_token går ut (ISO). En utgången token gör VARJE
+   * AE-anrop till ett `IllegalAccessToken`-fel, och det syns annars bara som
+   * en felräknare i statusraden — se larmet nedan. Bara tidsstämpeln: inget
+   * token-VÄRDE får någonsin nå ett mejl.
+   */
+  aliExpressTokenExpiresAt?: string;
   /** Datakällor som inte gick att läsa (vakten larmar hellre än döljer). */
   sectionErrors: string[];
   baseUrl: string;
@@ -506,13 +513,60 @@ export function buildGuardEmail(
         (s.errors ? `, ${s.errors} fel` : "") +
         (s.throttled ? `, ${s.throttled} strypta AE-anrop` : ""),
     );
-    // Torrkörning är ingen statusrad bland andra — den betyder att butiken är
-    // OSKYDDAD. Egen, otvetydig rad.
-    if (s.dryRuns > 0) {
+    // ☠️ NOLL KÖRNINGAR ÄR DEN TYSTASTE FELMODEN AV ALLA, och den enda som
+    // inte hade någon egen rad förrän 2026-08-28. Cronen svarade 500 varje
+    // körning i 57 timmar (obegränsad fan-out i runDailySync dödade lambdan,
+    // så ruttens catch hann aldrig skriva sin fatal-rad). Morgonmejlet
+    // rapporterade "Synken: 0 körningar, 0 produkter kollade" — sant, korrekt,
+    // och begravt mitt i en grå statusremsa bland auktionssiffror.
+    //
+    // Ligger FÖRE torrkörningsraden: har den inte kört spelar det ingen roll
+    // om den skulle ha skrivit. Samma tanke som torrkörningsraden från
+    // 2026-08-24 — ett läge där butiken är oskyddad får inte se ut som statistik.
+    if (s.runs === 0) {
+      statusBits.push(
+        "⛔ SYNKEN HAR INTE KÖRT det senaste dygnet — inga lager- eller prisuppdateringar alls. "
+          + "Slutsålda och nedtagna produkter förblir köpbara. Kolla /api/cron/aliexpress-sync i Vercels loggar.",
+      );
+    } else if (s.dryRuns > 0) {
       statusBits.push(
         s.dryRuns === s.runs
           ? "⚠️ SYNC_DRY_RUN är PÅ — synken skriver INGENTING till Wix. Slutsålda och nedtagna produkter förblir köpbara."
           : `⚠️ ${s.dryRuns} av ${s.runs} synk-körningar var torrkörningar (inga Wix-skrivningar).`,
+      );
+    }
+  }
+  // ☠️ UTGÅNGEN ALIEXPRESS-TOKEN. Egen rad, av samma skäl som torrkörningen och
+  // noll körningar: den gör VARJE AE-anrop till ett fel, men syns annars bara
+  // som ett tal i "…, 99 fel" mitt i statusremsan. Uppmätt 2026-08-29: token
+  // dog 02:37, synken fick 99 fel av 106 försök, och ingenting sa till.
+  //
+  // Varningen före utgången är den som faktiskt räddar något. En UTGÅNGEN
+  // access_token läker sig själv vid nästa refresh-körning; det är
+  // REFRESH-token som inte gör det — går den ut krävs en ny OAuth för hand,
+  // och då vill man ha vetat det i förväg.
+  if (extras.aliExpressTokenExpiresAt) {
+    const kvarMs = Date.parse(extras.aliExpressTokenExpiresAt) - nowMs;
+    if (!Number.isFinite(kvarMs)) {
+      statusBits.push("⚠️ AliExpress-tokens utgångstid går inte att tolka — kontrollera /api/aliexpress/refresh.");
+    } else if (kvarMs <= 0) {
+      statusBits.push(
+        "⛔ AliExpress-token har GÅTT UT — varje anrop mot AliExpress failar "
+          + "(IllegalAccessToken). Lager och priser uppdateras inte. Kör workflowen "
+          + "\"Refresh AliExpress tokens\"; hjälper inte den krävs ny OAuth via /api/aliexpress/auth.",
+      );
+    } else if (kvarMs < 12 * HOUR) {
+      // 12 h = ETT schemaintervall, och det är precis vad som gör raden till en
+      // signal i stället för brus. Förnyelsen slår till när mindre än 24 h
+      // återstår och körs var 12:e timme — är vi under 12 h har den alltså
+      // redan haft minst ett försök och inte lyckats. Ett tidigare utkast
+      // varnade vid 48 h: då hade raden dykt upp varje månad i det NORMALA
+      // förloppet, strax innan token förnyade sig själv, och en varning man
+      // lär sig att ignorera är värre än ingen varning alls.
+      const timmar = Math.floor(kvarMs / HOUR);
+      statusBits.push(
+        `⚠️ AliExpress-token går ut om ${timmar} h och har INTE förnyats automatiskt `
+          + "som den skulle — kolla workflowen \"Refresh AliExpress tokens\" innan den dör.",
       );
     }
   }

@@ -34,6 +34,7 @@ import { getStore } from "@/lib/store/factory";
 import { listVisibleV3ProductIds } from "@/lib/wix/v3-products";
 import type { ProductMappingRecord } from "@/lib/store";
 import { audit } from "@/lib/audit";
+import { isAliExpressMapping } from "@/lib/store/supplier";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -140,6 +141,8 @@ export async function GET(req: Request) {
 
   const kandidater = ((mappings ?? []) as ProductMappingRecord[])
     .filter((m) => m.supplierProductId && m.wixProductId && räknasMed(m))
+    // AE-recensioner finns bara för AE-listningar (se lib/store/supplier.ts).
+    .filter(isAliExpressMapping)
     .filter((m) => {
       const stämpel = m.reviewsCheckedAt ? Date.parse(m.reviewsCheckedAt) : 0;
       return !stämpel || stämpel < gräns;

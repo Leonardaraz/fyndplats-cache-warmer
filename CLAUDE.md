@@ -83,6 +83,843 @@ När AI är av: `runSeo/runImageAnalysis/runCategory/batched` blir alla `false`,
 `importProduct` returnerar `needsAiPolish:true`, och `lib/bulk-import/worker.ts`
 tvingar realtidsvägen (ingen Batch API-pre-generering som annars kostar).
 
+## Aosom: andra leverantören, samma pipeline (`lib/aosom/`)
+
+Sedan 2026-08-27 finns ett B2B-konto hos Aosom och en produktfeed
+(`AOSOM_FEED_URL`, uppdateras 3 ggr/dygn).
+
+☠️ **Feedens adress är en hemlighet och får aldrig hårdkodas.** Den kräver ingen
+inloggning: en vanlig GET returnerar hela B2B-prislistan med kolumnen
+`Wholesale Price` för 6 057 artiklar. Repot är PUBLIKT, så en inbakad adress är
+detsamma som att publicera vad vi betalar för varje vara — för de svenska
+återförsäljare vi konkurrerar med om exakt samma artikelnummer. Ett test i
+`feed.test.ts` fäller om adressen dyker upp i källan igen.
+
+`resolveAosomFeedUrl()` läser två källor i ordning: `AOSOM_FEED_URL` i miljön
+(vinner alltid — för en engångskörning), sedan **Wix-raden `FyndplatsAppConfig`**,
+som är det normala hemmet. Saknas båda kastar den.
+
+Wix hellre än miljövariabel av två uppmätta skäl (2026-08-27). En miljövariabel
+bakas in i deploymenten: den slår inte igenom förrän projektet byggts om, och en
+omdeploy som inte blev av ser exakt likadan ut som en som blev det — det kostade
+en runda här. Och märkt "Sensitive" går värdet inte att läsa tillbaka ens för
+ägaren, så verifiering kräver att hemligheten först roteras. Wix-raden läses vid
+varje anrop och går att läsa. Det spelar roll konkret: adressen **ska roteras**
+hos Aosom eftersom den legat i en publik gren, och varje rotation hade annars
+krävt variabel plus ombygge igen.
+
+Kollektionen skapas med `scripts/ensure-app-config-collection.mjs`. Läsning och
+skrivning i `lib/store/app-config.ts` — den KASTAR vid riktigt läsfel i stället
+för att falla tillbaka tyst, till skillnad från `getPricingRules`: prissättningen
+har vettiga defaults, en feed-adress har inga, och en Wix-nedgång får inte se ut
+som "ingen adress konfigurerad". Sortimentet importeras som **osynliga
+utkast** och poleras sedan i chatten — exakt samma arbetsflöde som rå-läget
+ovan, bara med en annan leverantör i andra änden.
+
+| | |
+|---|---:|
+| Rader i feeden | 6 057 |
+| Går att frakta till Sverige | **5 566** |
+| Bilder bakom dem | **50 018** |
+| Där frakten kostar mer än varan | 1 175 (21 %) |
+
+Sista talet i tabellen är arkitekturen: varje bild är ett eget Wix-anrop, så
+hela svepet är timmar och en serverless-rutt har 300 sekunder.
+`/api/cron/aosom-import` tar därför en tugga i taget, returnerar en **markör**
+(`cursor` → `?after=`) och kan startas om hur många gånger som helst —
+dubblettspärren på `supplierProductId` gör omkörning till en no-op.
+
+### Vägen in
+
+`feed.ts` (hämta + tolka) → `to-product.ts` (adapter) → `importProduct` →
+`import-run.ts` (batch + markör) → `/api/cron/aosom-import`.
+
+Adaptern bygger en `AliExpressProduct` av feed-raden. Poängen är att allt
+nedströms redan finns: prissättning, marginalregler, bildhemtagning,
+Wix-create, SKU:er, mappningsrad, utkastläge, poleringskö. Typnamnet är arv —
+den beskriver "en leverantörsprodukt på väg in" och har inget AE-specifikt i sig.
+
+Läget är **alltid `raw`**: noll Claude-anrop ($0) och `visible:false`
+ovillkorligt. Torrkörning är default; utan `?dryRun=false` skrivs ingenting.
+Rutten är **schemalagd sedan 2026-08-28** (`40 4 * * *`, 60 produkter per natt).
+
+Den låg medvetet oschemalagd fram till dess, med motiveringen att en cron som
+fyller poleringskön snabbare än någon hinner skriva om texterna bara ger en
+växande hög tyska utkast. **Leonard överröstade det uttryckligen** ("Om nya
+produkter kommer ska de automatiskt importeras så sköter jag poleringen") — det
+är hans kö att tömma, och ett osynligt utkast kostar ingenting medan det väntar.
+Dubblettspärren gör cronen till en no-op när feeden inte har något nytt: den går
+gratis förbi allt som redan har en mappning och importerar bara det som saknas.
+
+### Så körs den: GitHub Actions, inte en terminal
+
+Workflowen **"Aosom — importera sortimentet som osynliga utkast"** (`workflow_dispatch`,
+tre lägen: `torr` · `rökprov` · `svep`). Samma nyckel-lösa upplägg som
+prisreparationen: produktionen har Wix-nycklarna, Actions har `CRON_SECRET`, och
+de möts i workflowen. Ingen hemlighet passerar chatten eller en terminal — och
+därför går hela jobbet att starta från en telefon.
+
+Det löste ett verkligt problem: `CRON_SECRET` är märkt Sensitive i Vercel och går
+inte att läsa tillbaka ens för ägaren, så rutten var i praktiken oanropbar för
+den som inte redan hade värdet.
+
+Svepet **sparar markören i grenen efter varje varv** (`tools/aosom/sweep-state.json`),
+inte i slutet. Dör jobbet mitt i fortsätter nästa körning där den slutade i
+stället för att börja om. Jobbet stannar själv efter fem timmar — under GitHubs
+sextimmarstak, med marginal nog att hinna committa markören.
+
+`tools/aosom/sweep.sh` finns kvar för den som hellre kör från en terminal och
+har `CRON_SECRET` för handen.
+
+### Fyra saker som inte ska tas bort
+
+1. **`supplier: "aosom"` på mappningen.** Lagersynken, prisbevakningen,
+   prisreparationen, fraktkontrollen och recensionshämtningen slår alla upp
+   `supplierProductId` mot AliExpress API. Ett Aosom-artikelnummer skickat dit
+   är 5 566 omöjliga uppslag per körning som äter `maxApiCalls` och tränger
+   undan de produkter som faktiskt behöver synkas. Spärren är
+   `isAliExpressMapping` i `lib/store/supplier.ts` — en grep hittar alla
+   ställen som bryr sig. Fältet faller tillbaka på `aosom:`-prefixet i id:t, så
+   en rad som tappat fältet klassas ändå rätt.
+
+   ☠️ **Spärren är sedan 2026-08-28 en TYP, inte en vana** (`AliExpressProductId`
+   i `lib/aliexpress/product-id.ts`). `getProduct`, `getInventory`,
+   `queryFreightToCountry` och `debugRawProductGet` tar inte längre en `string`,
+   och den enda vägen från en mappningsrad heter `aliExpressIdOf(mapping)` —
+   den returnerar `null` för Aosom. Typen är erased vid körning: id:t ÄR
+   strängen, så loggning, jämförelser och Map-nycklar är oförändrade.
+
+   Skälet står i mätningen. `/api/aliexpress/sync-all` hade tappat spärren och
+   gjorde **4 432 omöjliga uppslag per körning**; rutten NOLLAR dessutom lagret
+   vid `offline`, så en felklassad rad kunde tömma en Aosom-produkt. När typen
+   infördes föll **två vägar till** ut som kompileringsfel, båda oupptäckta:
+   variantreparationen i `/admin/mappings` (en Aosom-rad hade legat kvar i
+   `broken` körning efter körning) och två order-åtgärder i `/admin`
+   (prisavstämningen och fraktdiagnosen på en kundorder — en kund kan lika gärna
+   ha köpt en Aosom-vara).
+
+   Det är hela argumentet: **en spärr man måste komma ihåg glöms bort.** Sju
+   vägar, sex rätt, och de tre felen syntes aldrig i något svar. För id som
+   kommer från AliExpress själv (en klistrad URL, en sökträff, tilläggets
+   skrapade sida) finns `aliExpressIdFromListing` — använd den ALDRIG på
+   `mapping.supplierProductId`.
+2. **Frakten ligger i inköpspriset, och momsen bruttas på.** Det är hela
+   skillnaden mot AliExpress, där EU-lagerpriset är levererat. Aosoms SE-frakt är
+   **per kolli** och skalar med vikten (16 € under två kilo, över 100 € över
+   fyrtio). Adaptern räknar
+   `costUsd = (grossist + SE-frakt) × eurToSek × 1,25 / usdToSek`.
+
+   ☠️ **Uppbruttningen är inte kosmetisk.** `landedCostSek` lagras enligt husets
+   konvention INKLUSIVE moms — auktionens golvbud delar med 1,25 innan det
+   räknar (`lib/auction/seed.ts#netSupplierCost`), eftersom momsen aldrig är en
+   verklig kostnad för ett momsregistrerat företag. Aosoms B2B-fakturor är
+   NETTO (omvänd skattskyldighet); sparas beloppet rakt av hamnar ett nettotal i
+   ett fält som läses som brutto, golvbudet blir 20 % för lågt och auktionen kan
+   sälja UNDER inköp. Samma fälla gäller AliExpress-köp gjorda på Business
+   Purpose, som också faktureras netto.
+
+   ✅ **Lagat 2026-08-29.** `computeProfit` momsade av intäkten men drog
+   `landedCostSek` rakt av, trots att fältet är lagrat INKLUSIVE moms —
+   lönsamhetsöversikten underskattade vinsten med 25 % av inköpet. Bäddsoffan
+   `efaa0c7b` rapporterades som **−112 kr och −4 % marginal** där verkligheten
+   är **+475 kr och +16,8 %**. `SUPPLIER_VAT_RATE` och `netSupplierCost` bor nu
+   i `lib/import/pricing.ts` och `lib/auction/seed.ts` ÄRVER dem, så de två
+   vägarna inte kan bli oense igen. Testerna som kodade in felet är omskrivna.
+3. **En rad = en produkt.** `Psin` ser ut som en föräldranyckel men grupperar
+   *relaterade varor*: de tretton raderna under `24G58OVN9S001` är tretton olika
+   valphagar med olika antal paneler och priser från 55 till 119 €. Grupperar
+   man på den blir varianter av produkter som inte är utbytbara.
+4. **Markören flyttas även vid fel.** Annars fastnar hela svepet på en trasig
+   rad: nästa körning börjar om på samma produkt, misslyckas igen, och katalogen
+   står stilla. Felet står i svarets `errors` och körs om riktat med `?sku=`.
+
+## Aosom-synken: ett anrop ger hela sanningen (`lib/aosom/sync.ts`)
+
+Lager och pris speglas av `/api/cron/aosom-sync`, schemalagd `20 */6 * * *`.
+
+Den är byggd tvärtemot AliExpress-synken, och skälet är strukturellt. AE måste
+ringa DS-API:t **en gång per produkt**, lever under `maxApiCalls` och roterar
+därför genom katalogen — ett varv tar ~20 timmar, och därav hela strike-mekaniken.
+Aosom är **ett enda HTTP-anrop** som ger alla 6 057 rader med saldo och pris.
+Ingen budget, ingen rotation, inga strikes: varje körning ser allt samtidigt.
+
+Det gör problemet mindre men flyttar risken. När en körning kan röra hela
+sortimentet är en trasig feed farligare än en trasig produkt — därför ligger
+spärrarna mot MASSFEL, inte mot enskilda fel.
+
+### Fem egenskaper som inte ska tas bort
+
+1. ☠️ **`MIN_FEED_RADER` kastar.** Ger feeden färre än 2 000 rader avbryts
+   körningen. En halvhämtad CSV får aldrig tolkas som att lagret tagit slut —
+   det är skillnaden mot AE, där ett fel bara kan nolla en produkt.
+2. ☠️ **En rad som försvinner är INTE utgången.** Aosoms B2B-guide, ordagrant:
+   *"Items with low stock may be temporarily removed to avoid overselling."*
+   Raden är ett lagerbesked. Rätt svar är att nolla saldot och låta sidan ligga
+   kvar; nästa körning där raden är tillbaka återställer saldot av sig själv.
+3. **`LAGER_BUFFERT = 3`.** Feeden uppdateras tre gånger per dygn, så mellan två
+   synkar är siffran gammal. Säger Aosom "3 kvar" och vi visar 3 säljer vi den
+   fjärde. Aosom flaggar dessutom själva 276 rader med "Low Stock Alert".
+4. **`limit` tar av SKRIVNINGAR, inte av granskningar.** Det är vad som gör att
+   cronen konvergerar utan sparad markör: en redan synkad produkt kostar noll
+   Wix-anrop, så nästa körning går gratis förbi den och skriver de nästa 400.
+   Efter några varv skriver varje körning noll.
+5. **`MAX_PRISANDRING_PCT = 40`.** Prissynken är tvåvägs och helautomatisk
+   (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
+   en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
+   kund. Över taket skrivs ingenting och raden hamnar i `varningar`.
+
+Wix skrivs före mappningen, samma ordning och samma skäl som `price-repair`.
+Alla tre kostnadsfälten skrivs — `grossSek`, `costUsd` och `landedCostSek` —
+aldrig bara priset.
+
+### ☠️ Prissynken skrev aldrig ett enda pris till Wix (2026-08-29)
+
+Hittad under den FÖRSTA poleringen, inte av ett larm: bäddsoffan `efaa0c7b` hade
+`grossSek: 3529` i mappningen och **4 539 kr i Wix**. Produkten stod på
+`revision: 1` — aldrig rörd sedan importen — medan nattens körning rapporterade
+"2 priser uppdaterade" och hade skrivit mappningen 06:24.
+
+Orsaken är en förväxling av två helt olika nycklar som båda heter `sku`:
+
+```ts
+.map((m) => ({ m, sku: (m.supplierProductId ?? "").slice("aosom:".length) }))  // "839-835V01CG"
+setStock: async (wixProductId, _sku, antal) => { … }        // IGNORERAR den → fungerade
+setPrice: async (wixProductId, sku, …) => updateV3VariantPrices(…, [{ sku }])  // fel nyckel
+```
+
+Loopens `sku` är **feedens artikelnummer**. Wix-variantens SKU är
+`FP-schlafsofa-2er-sofa-mit`. De kan aldrig matcha, så `updateV3VariantPrices`
+hittade ingen variant — och den **kastar inte** i det läget, den hoppar över
+PATCH:en och returnerar `{updated: 0, missing}`. Anroparen slängde returvärdet.
+Synken räknade därför upp `prisUppdaterade` och skrev mappningen med det nya
+priset medan kunden fortsatte se det gamla.
+
+Tre saker gjorde felet osynligt, och alla tre är lagade:
+
+1. **Returvärdet lästes inte.** `setPrice` kastar nu när `updated === 0`, så en
+   omatchad skrivning blir `misslyckade` i stället för `prisUppdaterade` — och
+   mappningen skrivs inte, så böckerna slutar glida från butiken.
+2. **`setStock` maskerade felet.** Den tog samma argument och ignorerade det.
+   Lagret fungerade, alltså såg synken frisk ut.
+3. ☠️ **Testfixturen satte `variants[0].sku = sku`** — samma sträng i båda
+   rollerna. Inget test kunde se skillnad på rätt och fel nyckel. Fixturen ger nu
+   `FP-<sku>` + `wixVariantId`, och ett regressionstest låser att prisskrivningen
+   får WIX-variantens identitet. Verifierat genom att återinföra buggen: testet
+   fäller, och bara det.
+
+⚠️ **Följden för befintlig data:** varje Aosom-produkt vars kostnad ändrats sedan
+importen har rätt `landedCostSek` i mappningen och fel pris i Wix. Auktionens
+golvbud och lönsamhetsöversikten läser mappningen, butiken läser Wix — de har
+alltså varit oense.
+
+☠️ **Och driften läker INTE av sig själv.** Den här raden påstod tidigare att nästa
+synk rättar priserna nu när skrivningen biter. Det är fel, och felet är samma
+förväxling en gång till: synken jämför det nyräknade priset mot **mappningens**
+`grossSek`, inte mot Wix.
+
+```ts
+const gammalt = variant.grossSek;          // mappningen, inte butiken
+…
+} else if (pris !== gammalt) { nyttPris = pris; }
+```
+
+Den trasiga skrivningen hann uppdatera mappningen. Nästa körning räknar därför fram
+samma tal som redan står där, ser ingen skillnad, och hoppar över produkten — för
+alltid. Uppmätt 2026-08-29 efter fixen: bäddsoffan `efaa0c7b` står kvar på **4 539 kr
+i Wix, `revision: 1`** (orörd sedan importen) med `grossSek: 3529` i mappningen,
+och körningen 12:20 samma dag rörde den inte.
+
+### Auditen: driften är 20 rader, inte 1 611 (2026-08-29)
+
+Raden ovan uppskattade skadan ur ett stickprov på sex. Det höll inte som mått —
+hela katalogen är nu jämförd rad för rad, mappningens `grossSek` mot Wix faktiska
+pris, och två oberoende mätningar ger samma tal:
+
+| | |
+|---|---:|
+| Aosom-mappningar | 4 445 |
+| Stämmer exakt mot Wix | **4 425** |
+| **Drivit isär** | **20** |
+| Summan av `prisUppdaterade` i audit-loggens fem körningar | **20** (11+4+1+2+2) |
+
+Att de två talen möts är kvittot: varje drivande rad räknas exakt en gång, för
+nästa körning ser mappningens nya tal och hoppar över den.
+
+☠️ **Alla 20 är `visible:false`** — opolerade utkast som svarar 404 och inte ligger
+i sitemapen. **Ingen kund har sett ett fel pris**, och auktionen kan inte gå på en
+opublicerad produkt. Ingen av de tre där Wix ligger LÄGRE än mappningen säljs under
+inköp (tunnast är `ad390a36` på 10,9 % mot husets 17 %). De övriga sjutton är för
+DYRA i butiken — det kostar sålda varor, inte pengar.
+
+**Skadan är alltså inte akut. Fällan är publiceringen:** poleringen säger uttryckligen
+"rör inte priset", så den som polerar en av de tjugo publicerar det gamla priset utan
+att märka något.
+
+**Fixen biter.** Kontrollerat mot skarpa Wix på alla 4 445 mappningar: varenda en bär
+både `wixVariantId` och ett Wix-`sku` (`FP-…`), och noll rader bär feedens artikelnummer
+i variantens `sku`-fält. Reproducerad matchning på 25 produkter: 25 skulle skriva, noll
+skulle falla. Nästa körning skriver alltså på riktigt — men den rör inte de tjugo, av
+skälet ovan.
+
+⚠️ **Och kostnadsargumentet här var fel.** Raden påstod att jämföra mot Wix kostar
+"ett Wix-anrop per granskad produkt". Det gör det inte: `POST /stores/v3/products/query`
+ger **100 produkter med pris per anrop** — hela katalogen på 5 397 produkter är
+54 anrop, ett par sekunder av ruttens 240. `limit`-resonemanget i punkt 4 faller
+alltså INTE. Att låta synken läsa butikens pris i bulk och jämföra mot det är både
+billigt och självläkande, och rättar de tjugo på köpet. En engångsavstämning som
+skriver mappningens `grossSek` till Wix för just de tjugo gör bara det ena.
+
+**Regeln, sjunde gången: ett svar utan fel är inget kvitto.** Och de två nya:
+**två fält som heter `sku` men betyder olika saker ska inte ha samma typ** — och
+**ett stickprov är ingen skadeuppskattning.** Sex rader sa "litet"; hela katalogen
+sa "tjugo, och inga av dem syns". Det är skillnaden mellan en oro och ett beslut.
+
+### ☠️ En `variantsInfo`-PATCH PUBLICERAR ett utkast
+
+Uppmätt mot skarpa V3 2026-08-28 på ett osynligt Aosom-utkast: en PATCH med
+`fieldMask: ["variantsInfo"]` och **oförändrat pris** tog produkten från
+`visible:false` till `visible:true`. Fältmasken skyddar alltså inte synligheten —
+Wix behandlar en variantskrivning som en publicering.
+
+Konsekvensen var inte teoretisk. `updateV3VariantPrices` skickade inte med
+`visible`, och `price-repair` filtrerar inte på synlighet. Med 2 700+ opolerade
+tyska utkast i katalogen hade en enda prisreparation kunnat lägga ut dem på
+sajten. Funktionen skickar nu alltid tillbaka `visible` oförändrad; saknas
+fältet i svaret utelämnas det hellre än gissas. Fem tester i `v3-prices.test.ts`
+låser det.
+
+### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
+
+☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
+hämtar produkten ur DS-API:t, matchar varianten mot en AE-SKU och lägger ordern
+via `aliexpress.ds.order.create`. En Aosom-mappning bär "845-030CG" i exakt
+samma fält, så utan grinden hade artikelnumret skickats rakt in i AE:s API — ett
+uppslag som aldrig kan träffa, med ett felmeddelande som pekar åt fel håll.
+Grinden är `isAliExpressMapping` i `placeOrderForTask`, och meddelandet pekar på
+bulkordern så den som ser felet i `/admin` inte börjar leta i AE-loggarna. En rad
+UTAN `supplier`-fält räknas fortfarande som AliExpress — annars hade hela den
+befintliga katalogen slutat gå att beställa.
+
+Aosoms egen väg kräver inget API. `/api/admin/aosom-order` bygger filen som
+`aosom.de/bulkordering` tar emot: **varje rad är en order** — en kundadress med
+upp till tjugo artikelnummer. Utan `?format=csv` svarar rutten med planen, så
+man ser vad som kommer med innan något laddas upp.
+
+Gränserna är **Aosoms, inte våra** (guiden, avsnitt 5), och en batch som spränger
+någon av dem avvisas först efter uppladdningen — därför delas ordrarna i förväg:
+
+| | |
+|---|---:|
+| Ordrar per omgång | 100 |
+| Artikelnummer per rad | 20 |
+| Olika artikelnummer per batch | 200 |
+| Enheter per batch | 1 000 |
+
+Två egenskaper som inte ska tas bort:
+
+1. ☠️ **En order delas ALDRIG mellan två batchar.** Raden ÄR ordern, med en
+   adress och en betalning. Splittad blir det två leveranser, två fraktavgifter
+   och en kund som får halva sin beställning. En order som ensam spränger ett tak
+   flaggas som `omojlig` och lämnas till en människa.
+2. **En kunds rader slås ihop till EN rad.** Kön är radbaserad
+   (`taskId` = `${orderId}:${lineItemId}`), Aosoms fil är orderbaserad. Tre rader
+   hade blivit tre leveranser med varsin fraktavgift — och frakten är redan den
+   dyraste delen av en Aosom-order.
+
+⚠️ **Adresskolumnernas rubriker är inte verifierade.** Guiden anger bara att
+kolumn A är artikelnumren och kolumn B antalen; adressfälten beskrivs som "one
+customer address" utan namn. Ladda ner deras formulär en gång och rätta
+`CSV_KOLUMNER` — datan i raderna är rätt oavsett.
+
+### Resten av vad guiden säger
+
+- **API-integration erbjuds** "after a few months of successful collaboration".
+  Fråga Henrik Leseberg när ni har historik.
+- **Hämtning på lager** (`Pick Up` i kassan, Neu Wulmstorf och Schwanewede, egna
+  fraktkontakter) — det är draget mot fraktproblemet: bort från 84 € per kolli
+  till Sverige. Pallutbyte kostar 30 € i adminavgift utan egna pallar.
+- Alla ordrar är **förskottsbetalda**, plock 1–4 arbetsdagar. Kan en vara inte
+  levereras kommer besked per mejl och pengarna tillbaka — men då har vi redan
+  tagit betalt av kunden.
+
+### Vad spärren INTE ser
+
+Dubblettspärren nyckar på `supplierProductId` och fångar varje omkörning. Den
+fångar **inte** de ~586 produkter vi redan säljer som är Aosom-varor inköpta via
+AliExpress — de bär ett AE-listnings-id och ser för spärren ut som något helt
+annat. Att para ihop dem kräver mått, produkttyp och bildjämförelse (så gjordes
+de 33 i leverantörsjämförelsen 2026-08-27); en automatisk gissning skulle slå
+ihop varor som inte är samma. De dubbletterna hanteras i poleringen, där en
+människa ändå läser varje produkt.
+
+### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
+
+Två skilda problem, med olika svar.
+
+**Utkast är osynliga — mätt, inte antaget.** En produkt med `visible:false`
+svarar **404** på sin produkt-URL och ligger inte i sitemapen (1 064 `loc` mot
+946 synliga produkter). 5 566 tyska utkast kan alltså inte indexeras. Hela
+risken ligger i publiceringsögonblicket, inte i importen.
+
+**Vi läcker inga leverantörsspår.** Kontrollmätt på en publicerad sida:
+noll träffar på `aliexpress`, `alicdn`, `aosom` eller något husmärke i HTML:en;
+alla 230 bilder på `static.wixstatic.com`; JSON-LD:ns `sku` är Wix eget UUID;
+inget `mpn`, inget `gtin`. Feedens `EAN`-kolumn är dessutom tom i 100 % av
+raderna, så det finns ingen produktidentifierare att joina på. Husmärkena
+(HOMCOM, Outsunny, PawHut, Aiyaplay) stryks vid poleringen — bara 6 av 952
+produkter bär dem, och alla sex är opolerade utkast.
+
+**Det Google DÄREMOT ser är bilderna.** Att flytta hem dem till wixstatic byter
+adress, inte innehåll. Google Images matchar på bildinnehåll, och Aosoms foton
+är byte-identiska hos varenda återförsäljare som kör samma feed. Skyddet är
+inte hemflytten — det är egna kort och egen text.
+
+**Den farliga dubbletten är intern.** `FyndplatsMappings` har **595 av 1 004
+rader** från "byaosom ES (EU) Store" — 59 % av katalogen är redan Aosom-varor,
+köpta via AliExpress. Feed-importen kan inte se dem (de bär AE-listnings-id) och
+skapar därför en ANDRA sida för samma fysiska produkt. Två egna URL:er med samma
+foton är den dubblett Google faktiskt straffar. Fångas i poleringen, inte av
+spärren.
+
+### Bilderna: bara position 1, 2, 3, 8 och 9 hämtas hem
+
+**46 % av feedens bilder bär TYSK TEXT INBRÄND i pixlarna** ("HOCHWERTIGES
+MATERIAL", "Empfohlenes Alter: 3-8 Jahre"). Den går inte att polera bort och kan
+inte visas för en svensk kund. Mätt 2026-08-27 på 30 produkter — tio ur vardera
+tredjedel av feeden — och 269 handgranskade bilder:
+
+| pos | rena | vad det är |
+|---|---:|---|
+| 1 | **30/30** | huvudbild, vit botten |
+| 2 | **30/30** | livsstilsbild |
+| 3 | 23/30 | måttritning; oftast bara siffror, ibland tysk rubrik |
+| 4–6 | 4/90 | tyska funktionsgrafiker |
+| 7 | 6/30 | oftast tysk |
+| 8 | 24/30 | detaljfoto: material, gångjärn, tyg |
+| 9 | 27/29 | detaljfoto |
+
+`RENA_BILDPOSITIONER = [1,2,3,8,9]` i `to-product.ts` räddar **134 av 144 rena
+bilder (93 %)** och släpper in 15 tyska (10 % av det som behålls). Att också ta
+7 hade gett 97 % rena men 22 % skräp; att kapa vid 3 hade gett bara 58 %.
+
+Mönstret är **oberoende av var i feeden produkten ligger** (49/46/45 % tyska i
+början, mitten, slutet) — regeln behöver inte justeras per sortimentsdel.
+Poleringen granskar **3, 8 och 9**; position 1 och 2 kan hoppas över helt, och
+det är de två som blir huvudbild och delningsbild. `?bilder=alla` tar hem allt.
+
+Sidoeffekt: importen går från 50 018 till ~27 800 bilder — nästan en halvering
+av det som är hela svepets flaskhals.
+
+### Bildimporten tystnade — 397 av 675 produkter fick noll bilder
+
+Första skarpa svepet (2026-08-27) importerade 675 produkter. **397 fick NOLL
+bilder** och 87 fick färre än fem, medan körningen rapporterade `failed: 0` hela
+tiden: produkten skapades ju, det var bara bilderna som föll bort.
+
+Två tysta fel i `lib/wix/media.ts` samverkade:
+
+1. `importMediaUrls` körde `Promise.allSettled` och **filtrerade bort allt som
+   rejectade**. Ingen logg, ingen räknare, inget returvärde som skvallrade —
+   kommentaren påstod "med varning i konsolen", och det fanns ingen sådan.
+2. `importMediaByUrl` hade **inget återförsök alls**. Wix svarar 429 vid för hög
+   takt, och fem bilder parallellt per produkt × 129 produkter per varv är ~2,7
+   uppladdningar i sekunden. Därför blev det värre över tid: de sist importerade
+   fick noll.
+
+Lagat: uppladdningarna går **en i taget** med paus (`MEDIA_UPLOAD_DELAY_MS`,
+default 150 ms), återförsök med backoff på 429/5xx/nätverksfel (1 s, 3 s, 8 s,
+följer `Retry-After`), och varje miss rapporteras via `onMiss` →
+`ImportResult.missadeBilder`. En trasig adress (404) ger däremot upp direkt —
+den blir inte bra av att frågas igen.
+
+Samma klass av bugg som recensionsbilderna hade (2026-08-22). Regeln bakom båda:
+**en misslyckad uppladdning som ingen kan upptäcka är värre än en som kastar.**
+
+☠️ **`getProductMedia` MÅSTE begära `fields=MEDIA_ITEMS_INFO`.** Utan det
+returnerar V3 en produkt med `media.main` ifylld men `media.itemsInfo.items`
+TOM — inte ett fel, bara en tystare projektion. Uppmätt 2026-08-27 på en produkt
+med fem bilder: 0 utan fältet, 5 med. Två saker gick sönder på det, båda tyst:
+bildreparationens torrkörning såg alla 744 Aosom-produkter som bildlösa, och
+knappen **"ta bort bild" i `/admin/queue`** filtrerade en tom lista, såg ingen
+skillnad och anropade därför aldrig Wix — den hade aldrig gjort något. Ett test
+i `client-media.test.ts` fäller om fältet försvinner igen.
+
+`/api/cron/aosom-image-repair` städar upp efteråt (`lib/aosom/image-repair.ts`,
+workflow-lägena `bildfix-torr` och `bildfix`). Den **läser tillbaka och räknar** efter
+varje skrivning — se nästa avsnitt för varför. Den laddar om ALLA fem bilderna på
+en produkt som har för få — en wixstatic-adress avslöjar inte vilken källbild den
+kom från, så det går inte att veta vilka som saknas. Två spärrar:
+
+- Skriver **aldrig en tommare lista** än den som redan ligger där. Går
+  uppladdningen dåligt igen lämnas produkten orörd till nästa runda i stället för
+  att göras sämre.
+- Bara `media`, via `setProductMedia` med `fieldMask: ["media"]`. Synlighet,
+  varianter, priser och texter är orörda — ett utkast kan inte råka publiceras.
+
+### Reparationen rapporterade 524 av 524 lagade. 214 produkter saknade ändå bilder
+
+Första skarpa bildfixen (2026-08-27, 12 varv) sa **524 trasiga, 524 lagade, noll
+missar**. Mätt i Wix efteråt: **214 av 750 Aosom-utkast hade fortfarande färre än
+fem bilder**, 207 av dem exakt fyra.
+
+Stickprov visar samma sak varje gång: **fem filer ligger uppladdade och `READY` i
+Media Manager, och noll av dem sitter på produkten.** Produkten bär kvar sina
+gamla fyra bilder och sin gamla revision. Mönstret är jämnt över hela körningen
+(22:01 → 22:38), så det är ingen degradering över tid.
+
+Fyra förklaringar är **uteslutna med mätning**, inte med resonemang:
+
+| hypotes | motbevis |
+|---|---|
+| Fel kroppsform i `setProductMedia` | Manuell PATCH med exakt samma kropp tog en produkt 4 → 5 |
+| Föråldrad revision | Wix svarar **409 `INVALID_REVISION`** och funktionen kastar |
+| Dubbletter i källan | De fem källbilderna har fem olika md5 |
+| För få bilder i feeden | Feeden ger fem rena positioner på 6 014 av 6 057 rader |
+
+Mekanismen är alltså **fortfarande oförklarad**. Det som däremot är lagat är att
+felet var osynligt: `runImageRepair` läser nu tillbaka produkten efter varje
+skrivning och räknar `reparerade` först när antalet bilder FAKTISKT steg. Tar
+skrivningen inte blir det `misslyckade` + en rad i `errors` med artikelnumret.
+Workflowen läste heller aldrig `misslyckade` — den gör det nu, och skriver ut
+`errors` per varv.
+
+☠️ **Ett svar utan fel är inget kvitto.** Tredje gången samma klass av bugg biter
+här: recensionsbilderna (2026-08-22), `Promise.allSettled` i `media.ts`
+(2026-08-27), och nu en skrivning som svarar OK utan att göra något. Regeln är
+densamma varje gång — **räkna efter, lita inte på svaret.**
+
+### ☠️ Wix importerade om VARJE bild — halva lagringen var kopior (2026-08-28)
+
+Det här förklarar två problem som såg orelaterade ut: att lagringen tog slut,
+och att bildfixen kunde rapportera fem lyckade uppladdningar på en produkt som
+sedan hade fyra bilder.
+
+V3:s dokumentation om produktmedia är entydig. Ett media-item tar ANTINGEN
+`id` (en fil som redan ligger i Media Manager) ELLER `url` — och `url` betyder
+ordagrant *"an external media URL"*. Vi skickade wixstatic-adresser, alltså
+bilder som redan låg i Media Manager, och **Wix importerade om varenda en till
+en ny fil**.
+
+Uppmätt på 1 200 filer: **591 av 595 wixstatic-filer var kopior av bilder vi
+själva laddat upp**, spårbara via sin `sourceUrl`. Media Manager hade **58 160
+filer** där hälften räckt.
+
+Omimporten är dessutom ASYNKRON. Det är mekanismen bakom "524 lagade, 214
+saknade ändå bilder": produkten bar aldrig våra filer, den bar Wix kopior — och
+när en kopia inte hunnit bli klar visade produkten fyra av fem. Den var alltså
+aldrig oförklarad, bara felsökt på fel lager.
+
+`importMediaByUrl` returnerade `id` hela tiden. Ingen använde det.
+
+Lagat i `lib/wix/client.ts` (`createProduct` + `setProductMedia`), `pipeline.ts`
+och `image-repair.ts`: id:t följer med hela vägen, och `url` skickas bara när
+adressen faktiskt är extern. `media.main` skickas inte längre alls — den är
+read-only i V3 och gav en extra omimport av huvudbilden. Tre tester i
+`client-media.test.ts` låser det.
+
+☠️ Regeln: **skicka aldrig en wixstatic-adress till Wix som om den vore extern.**
+
+### Städningen av det som blev kvar
+
+#### Bildfixen lämnade dessutom sina egna kopior
+
+Fjärde bildfix-körningen dog mitt i: **Wix-lagringen tog slut.**
+
+Orsaken står i `image-repair.ts` egen designkommentar. Den laddar upp ALLA fem
+bilderna på nytt för varje produkt den lagar och ersätter medialistan — och de
+gamla filerna blir kvar. Kommentaren sa att det "kostar några hundra extra
+uppladdningar totalt"; den skrevs när katalogen var 744 produkter och EN körning
+var planerad. Verkligheten blev fyra körningar mot en katalog som växte till
+2 712 produkter, och varje lagad produkt lämnar fem filer à drygt en megabyte.
+
+`/api/cron/aosom-media-cleanup` (`lib/aosom/media-cleanup.ts`, schemalagd
+`50 3 * * *`) raderar Aosom-bilder som ingen produkt använder. Tre egenskaper som
+inte ska tas bort:
+
+1. ☠️ **Massfel-spärren kastar.** Är referenslistan mindre än en halv bild per
+   läst produkt är det ett LÄSFEL, inte en tom katalog — och en körning hade
+   raderat hela butikens bildbank permanent. Samma tanke som `MIN_FEED_RADER`.
+2. **Bara filer VÅR kod skapat**, avgjort på `sourceUrl` — inte på namnet.
+   `addedBy` duger inte: vår API-nyckel agerar som sajtägaren, så en bild Leonard
+   dragit in i editorn ser identisk ut. Men en importerad fil bär adressen den
+   hämtades från (leverantörernas CDN), och Wix egna kopior bär en
+   wixstatic-adress som pekar tillbaka på en av våra. **En handuppladdad bild har
+   ingen `sourceUrl` alls** och kan därför aldrig komma i fråga — det är skyddet
+   för logotyper, banners och kategoribilder, som inte syns i något API vi kan
+   lista och därför måste undantas på egenskap i stället för på uppräkning.
+   Referenslistan byggs ur HELA katalogen, inte bara Aosom-delen.
+3. **`permanent: true`.** Papperskorgen räknas fortfarande mot lagringen, så en
+   vanlig radering frigör ingenting alls.
+
+Städningen är avsiktligt en SEPARAT körning och inte inbakad i reparationen: en
+radering inne i reparationen hade skett innan skrivningen verifierats, och en
+produkt vars nya bilder inte fastnade hade då förlorat även de gamla.
+
+#### Bara det som saknas laddas om (byggt 2026-08-28)
+
+Reparationen laddade tidigare om alla fem bilderna per produkt, eftersom en
+wixstatic-adress inte avslöjar vilken källbild den kom från. Det var orsaken
+till hela incidenten ovan. Kopplingen finns nu i stället för att gissas, från
+två håll:
+
+- **`aosomBildFiler` på mappningen** — källbild → Wix-fil-id, sparat efter varje
+  VERIFIERAD skrivning. Sparas det före, eller efter en skrivning som inte tog,
+  pekar det på filer som inte sitter på produkten.
+- **Wix egen `sourceUrl`** (`getMediaSourceUrls`, `POST /files/get-files`) för
+  allt som importerades innan fältet fanns. Ett anrop per produkt, och bara en
+  gång. ☠️ Den följer ETT hopp extra: en fil Wix omimporterat bär vår fils
+  wixstatic-adress, inte leverantörens — och de produkter som ska lagas
+  importerades medan omimport-buggen levde, så många pekar just på kopior.
+
+Med kopplingen känd behålls det som redan sitter rätt **vid sitt id** och bara
+luckorna fylls. Då uppstår inga föräldralösa alls.
+
+☠️ **Går kopplingen inte att härleda laddas allt om, som förr.** Det är med
+flit: vet vi inte vad produkten har kan en påfyllning ge samma bild två gånger
+på en kundsida, och en dubblett är värre än en extra uppladdning. `fullOmladdning`
+i svaret räknar dem, och talet ska sjunka mot noll.
+
+#### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
+
+Städningen föll två gånger på rad innan den fungerade, på två olika strypningar
+som ser likadana ut i ett felmeddelande men inte är samma sak:
+
+| | svarar | vad som hjälper |
+|---|---|---|
+| **API-strypningen** | JSON-fel efter ~40–50 sidor i rad | backoff (2 s, 10 s, 30 s), `Retry-After` |
+| **Edge-strypningen** | en **HTML-sida** efter ~150 sidor | ingenting inom ruttens 300 s |
+
+Den andra är strukturell: **58 160 filer går inte att lista i ETT anrop**, hur
+tålmodigt det än görs. Listningen är därför FÖNSTRAD — 60 sidor per körning,
+markör i svaret (`cursor` → `?after=`). Samma mönster som svepet och bildfixen,
+och av samma skäl.
+
+☠️ **`paging.limit` takas på 100, vad än dokumentationen påstår.** Både Search
+Files och Query File Descriptors står som "up to 200 files" i dev.wix.com.
+Uppmätt mot skarpa API:t 2026-08-28 svarar BÅDA `400 INVALID_ARGUMENT:
+'paging.limit' must be less than or equal to 100`. En körning med 200 föll
+direkt på första sidan.
+
+Två designval bakom det som inte ska tas bort:
+
+1. **Referenslistan läses om för VARJE fönster.** Den är ~37 sidor mot en annan
+   API-familj och alltså billig. Att bära den mellan körningar hade betytt att
+   en produkt som fått nya bilder sedan förra varvet såg ut att sakna dem — och
+   fel åt det hållet raderar bilder som ANVÄNDS.
+2. **Nattcronen kör medvetet utan markör.** Listningen sorteras nyast först, så
+   ett fönster från början är exakt det som hunnit bli föräldralöst sedan i går.
+   Den historiska ryggsäcken tas med workflow-läget `bildstadning`, som loopar
+   markören genom hela beståndet.
+
+⚠️ **`limit` byter täckning mot djup, och det är inte uppenbart.** Markören är
+en OFFSET. Raderar ett fönster N filer krymper listan med N, men markören pekar
+fortfarande på "offset 6 000" — så nästa fönster hoppar över exakt N filer:
+
+| `limit` | hoppas över per pass | täckning |
+|---:|---:|---|
+| 4 000 | ~40 000 | liten del av listan |
+| 1 000 | ~10 000 | nästan hela |
+| 0 (torrläge) | 0 | hela |
+
+Det förklarar både varför torrpassen träffar exakt 58 160 och varför skarpa pass
+gav avtagande utfall (20 625 → 6 200 → 3 949 → 2 342 den 2026-08-28). **Kör ett
+stort tak först för att få undan massan, sedan ett litet för att sopa svansen.**
+
+Raderingen är också tidsbudgeterad (listningen får 70 %, raderingen resten).
+Utan det kunde en stor `limit` dra förbi `maxDuration` och dödas mitt i skopan:
+filerna ÄR raderade men inget svar kommer tillbaka, och nästa körning vet inte
+vad som hände.
+
+⚠️ Mät inte beståndet genom en MCP-loop — den slår i taket långt innan den är
+klar. Det var så de första 429:orna upptäcktes.
+
+#### ☠️ Ett fel som slukas av en kommandosubstitution finns inte
+
+Den första torrkörningen föll med `exit 1` och **noll rader om varför**, medan
+rutten hela tiden svarade 500 med ett tydligt meddelande. `anropa` i workflowen
+skrev sina `::error::`-rader till **stdout**, och anroparen gör
+`svar=$(anropa ...)` — kommandosubstitutionen slukade dem.
+
+Felen går till stderr nu. Fjärde gången huset lär sig samma sak: recensions-
+bilderna (2026-08-22), `Promise.allSettled` i `media.ts` (2026-08-27), en
+skrivning som svarade OK utan att göra något (2026-08-27), och nu det här.
+**Ett misslyckande som ingen kan se är värre än ett som skriker.**
+
+### Att polera en Aosom-produkt
+
+Allt utom siffrorna är **tyskt**: titel, beskrivning, säljpunkter och varje
+spec-VÄRDE. Etiketterna är svenska från start (`Mått`, `Färg`, `Material`,
+`Vikt`, `Paketmått`, `Artikelnummer`) eftersom feedens `Specification`-fält är
+tomt i 5 550 av 5 566 rader — underlaget kommer från de strukturerade
+kolumnerna i stället. Platshållaren `[BRAND NAME]`, som står kvar i 4 975 rader,
+stryks redan vid importen; den är ett mekaniskt fel med ett mekaniskt svar och
+får inte lämnas åt poleringen.
+
+`aosomFreightShare` på mappningen (0–1) säger hur mycket av inköpet som är
+frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
+kör svepet med `?skipFreightHeavy=1` och ta dem för sig.
+
+## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
+
+Regeln är **`pris = 1,20 × landedCostSek`**, uppåt till närmaste 9 (`charm9`).
+Ingen fast del, ingen trappa, inga kategorimultiplikatorer. Satt 2026-08-27.
+
+```
+defaultMultiplier 1.20   fixedSurchargeSek 0   categoryMultipliers {}
+tiersEnabled false       rounding charm9
+```
+
+Marginalen blir **17 % överallt** — p10, median och p90 är alla 17 % över hela
+sortimentet, så ingen vara kan råka hamna på 4 %. Ändringen gäller bara nya
+importer; befintliga priser står kvar tills någon räknar om dem.
+
+### Var talet kommer ifrån
+
+Inte från en marginalambition — från mätning. **dealproffsen.se publicerar
+Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD**, så exakt matchning är
+mekanisk. Slagning på 70 spridda artiklar gav **55 exakta träffar**
+(`https://www.dealproffsen.se/sok?controller=search&s=<SKU>` — WebFetch får 403,
+curl med vanlig browser-UA fungerar).
+
+| multiplikator | billigast på | marginal | vinst där vi vinner |
+|---|---:|---:|---:|
+| 1,18 | 39/55 | 15 % | 9 903 kr |
+| **1,20** | **39/55** | **17 %** | **10 943 kr** |
+| 1,25 | 30/55 | 20 % | 11 337 kr |
+| 1,28 + 60 *(gammalt)* | 18/55 | 25 % | 9 962 kr |
+
+1,25 tjänar mest på pappret men tappar en tredjedel av försprånget så fort
+marknaden ligger 5 % under mätningen — och den gör den, eftersom underlaget
+oftast är EN återförsäljare. 1,20 håller (30/55 vid −5 %, mot 1,25:s 21/55).
+
+### Tre fällor som redan kostat
+
+1. **Den fasta delen drog åt fel håll.** "Lite mer på billiga saker" känns rätt
+   och är fel: konkurrentens påslag på vår kostnad är **1,12× på den billigaste
+   tredjedelen** mot 1,33× på resten. Det finns minst utrymme just där `+60`
+   lade mest. Varje rad i sveptestet med fast del är sämre än samma
+   multiplikator utan.
+2. **Varje fallande trappa inverterar priset vid gränsen** (799 kr kostnad →
+   1 139 kr pris, 801 kr → 1 089 kr). Bygg ingen trappa. `tiers` ligger kvar i
+   konfigen men avstängd.
+3. **Kategorimultiplikatorer upphäver regeln tyst.** `Husdjur: 2,5` hade satt
+   60 % marginal på PawHut-sortimentet — en stor del av Aosom. Rensade.
+
+### Referenspriser är fiktion — båda hållen
+
+Aosoms egen `Normal Price` är uppblåst: RRP 443,90 € på 845-030CG där idealo
+listar samma artikel för 189,50 € (2,3×). Ett marknadsankare byggt på den
+siffran prissätter efter fantasi — avblåst.
+
+Dealproffsens listpris likaså: **55 av 55 produkter står som "Kampanj"** med
+median 24 % rabatt. En kampanj som alltid pågår är inget pris. Kampanjpriset ÄR
+priset, och det är det som ska jämföras mot.
+
+### Varför vi förlorar på billiga varor — och vad som faktiskt löser det
+
+Konkurrenten är inte billig. Deras påslag på **själva varan** är 1,96× i median
+— ett vanligt butikspåslag. Skillnaden är **vår frakt**: Aosom fakturerar per
+paket och viktstyrt, vilket blir en platt tull på 240–290 kr per vara i spannet
+2–10 kg. På en vara som kostar 400 kr är det +65 %; på en som kostar 3 000 kr
+är det +9 %.
+
+| vår fraktandel av inköpet | deras pris ÷ vår kostnad | deras pris ÷ bara varan |
+|---|---:|---:|
+| under 25 % | 1,32 | 1,75 |
+| 25–40 % | 1,28 | 1,92 |
+| över 40 % | **1,13** | **2,07** |
+
+Deras kostnad rör sig inte alls med vår frakt: de har **lager i Sverige**
+("Dealproffsen AB är ett svenskt företag med lager i Sverige", varje vara
+"Lagervara", 1–2 dagars leverans) och tar hem på pall.
+
+Gränsen går vid ungefär **900 kr i inköp**: under den är vi billigast i 29–50 %
+av fallen, över den i 92–100 %.
+
+**Räknat med frakten satt till 30 kr per vara i stället för per paket blir vi
+billigast på 55 av 55.** Det största draget i hela Aosom-affären är alltså inte
+prisregeln utan att förhandla samlad frakt. Tills dess är urvalet skyddet:
+`?skipFreightHeavy=1` på svepet.
+
+### B2B-kontot är en rabatt på varan och ett straff på frakten (mätt 2026-08-27)
+
+Leonard lade samma bod (`845-030CG`) i kassan på aosom.de två gånger, utloggad och
+inloggad på B2B-kontot. Utloggad: 207,80 €. Inloggad: 210,39 €. **Kontot gjorde
+varan dyrare.**
+
+Feed-raden förklarar varför, och fraktsiffran står ordagrant i kassan:
+
+```
+Wholesale Price          123.01 EUR
+SE Ship Fee               84.02 EUR   ← exakt talet i B2B-kassan
+Shipping Cost Germany     39.38 EUR
+Weight (incl. Package)    50.00 kg
+Package                        2
+```
+
+Det avgörande talet är inte 84 utan **39,38**. Samma order, samma konto, till en
+TYSK adress kostar frakten 39,38 € — medan en utloggad konsument betalar 7,90 €
+på exakt den rutten. **B2B-frakten är 5× konsumentfrakten inom Tyskland.** Det
+handlar alltså inte om avståndet till Sverige: Aosom subventionerar konsument-
+frakten (den ligger inbakad i 199,90 €) och fakturerar B2B den råa fraktsedeln.
+
+Netto mot netto — B2B-fakturan är netto, konsumentpriset innehåller 19 % MwSt:
+
+| | vara | frakt | **netto** |
+|---|---:|---:|---:|
+| Konsument → DE | 167,98 | 6,64 | **174,62 €** |
+| B2B → DE | 126,37 | 39,38 | **165,75 €** |
+| B2B → SE | 126,37 | 84,02 | **210,39 €** |
+
+Rabatten på själva varan är verklig (−25 %) och räcker så länge paketet stannar i
+Tyskland. Till Sverige blir kontot **20 % dyrare än att vara privatperson**. De
+207,80 € såg jämna ut bara för att konsumentpriset bär tysk moms vi aldrig får
+tillbaka — kassan underdriver problemet.
+
+Och det gäller sortimentet, inte bara den boden. Över feedens 6 056 rader med
+både SE- och DE-frakt:
+
+| | SE | DE |
+|---|---:|---:|
+| Medianfrakt | 26,40 € | 8,59 € |
+| Frakt ÷ inköp (median) | **40 %** | **18 %** |
+| Rader där frakten kostar mer än varan | **1 283** | **9** |
+
+SE-frakten är **3,07× DE-frakten** (median per rad). "Frakten kostar mer än
+varan" är i praktiken uteslutande ett Sverigeleverans-problem.
+
+Vad det är värt, kört mot de 55 dealproffsen-matchningarna vid oförändrad
+prisregel och oförändrad 17 % marginal:
+
+| frakt | billigast på |
+|---|---:|
+| SE-frakt (som idag) | 39/55 |
+| **DE-frakt** | **54/55** |
+| 30 kr/vara | 55/55 |
+
+De 30 kronorna ovan är ett räkneexempel. **39,38 € är ett pris Aosom redan tar**,
+och det ensamt tar oss från 39 till 54 av 55 utan att röra marginalen. Draget är
+samlad frakt eller en tysk leveranspunkt vi vidarebefordrar från — inte en ny
+prisregel.
+
+☠️ **Köp inte som privatperson som kringgång.** Ingen B2B-faktura, tysk moms som
+inte är avdragsgill i Sverige (bara sökbar via Skatteverket, långsamt), ingen
+omvänd skattskyldighet — och det skalar inte till 5 566 artiklar.
+
+### Vad som INTE är fixat
+
+Momsfällan i `computeProfit` är **lagad 2026-08-29** (se avsnittet ovan):
+kostnaden momsas nu av på samma sätt som intäkten, och definitionen delas med
+auktionens golvbud i stället för att dupliceras.
+
+Kvar är DATA-sidan av samma fälla: **AliExpress-köp på Business Purpose**
+faktureras netto men sparas i `landedCostSek`, som läses som brutto. För dem är
+det lagrade talet alltså 20 % för lågt, och nu när `computeProfit` dessutom
+delar med 1,25 blir felet synligt åt andra hållet — vinsten ser för hög ut.
+Aosom-raderna bruttas upp korrekt vid import (`1287a0a`); AE-raderna gör det
+inte, och det går inte att laga i kod utan att veta vilka köp som gjordes på
+Business Purpose.
+
 ## Dubblett-spärr vid import
 
 **Båda** importvägarna vägrar nu importera en AliExpress-listning som redan finns,
@@ -299,6 +1136,59 @@ Nu är det ett typfel att glömma den, inte en tyst regression.
 Genomgående regel: bara ett **uttryckligt** `"offline"` fäller. `"unknown"`
 beter sig exakt som före fältet fanns.
 
+### ☠️ Token-förnyelsen hoppade över i 30 dygn och lät token dö (2026-08-29)
+
+Hittad direkt efter att fan-out-fixen ovan gjort synken körbar igen: den kom
+igång, och fick **99 fel av 106 försök**, alla
+`IllegalAccessToken — The specified access token is invalid or expired`.
+
+Tokenraden berättade allt: `updatedAt 2026-07-30`, `expiresAt 2026-08-29T02:37`.
+Den hade alltså inte förnyats på **30 dygn**, och dog i natt.
+
+Felet är en storleksordning, inte en bugg i logiken:
+
+| | |
+|---|---|
+| Workflowen kör | **var 12:e timme** |
+| Rutten hoppade över om det fanns mer än | **2 timmar** kvar |
+
+En körning måste alltså råka landa i de SISTA två timmarna för att förnya något
+alls — chansen är 2/12. Fyra gånger av fem hinner token dö emellan. Så gick det
+till: körningen 21:53 såg 4,7 h kvar och hoppade över, token dog 02:37, nästa
+körning låg 09:53.
+
+☠️ **Och workflowen rapporterade `success` hela vägen.** Den kollar bara
+HTTP-statusen, och ett "hoppade över" ÄR 200. Sjätte gången samma lärdom.
+
+Kommentaren vid konstanten påstod dessutom att access_token lever "~48h". Mätt:
+**30 dygn**. Livstiden spelar dock ingen roll för buggen — schemat gör det.
+
+**Regeln: skip-fönstret måste rymma minst två schemalagda körningar.** Det är
+nu `24 h` mot ett 12-timmarsschema. Ändras schemat måste talet följa med.
+
+⚠️ **Priset var högre än en utebliven synk.** Eftersom `refreshAndPersist`
+ROTERAR refresh-token vid varje förnyelse höll 30 dygn utan en enda förnyelse
+även *refresh*-token att åldras ut:
+
+```
+IllegalRefreshToken: The specified refresh token is invalid or expired
+```
+
+Den läker INTE av sig själv. Enda vägen tillbaka är ny OAuth för hand:
+öppna **`/api/aliexpress/auth`** i en webbläsare, godkänn hos AliExpress, klart
+(callbacken sparar de nya tokens). Rutten kräver ingen hemlighet.
+
+Morgonmejlet larmar sedan dess på utgången token, och varnar när mindre än
+ETT schemaintervall (12 h) återstår — då har den automatiska förnyelsen redan
+haft minst ett försök och missat, alltså är något verkligt fel. Ett tidigare
+utkast varnade vid 48 h; det hade gett en varningsrad varje månad i det
+NORMALA förloppet, strax innan token förnyade sig själv, och en varning man
+lär sig ignorera är värre än ingen alls.
+
+Invarianten är dessutom testad mot verkligheten: `route.test.ts` läser
+cron-raden ur `refresh-tokens.yml` och fäller om tröskeln inte rymmer två
+körningar. Ändras schemat fäller testet i stället för produktionen.
+
 ### Vid felsökning: kolla i den här ordningen
 
 1. **`SYNC_DRY_RUN`.** Default är `"true"` — allt som INTE är strängen `"false"`
@@ -334,6 +1224,18 @@ strike-serie** förtur i nästa körning, med tak `OPEN_STREAK_PRIORITY_CAP = 30
 så en masshändelse inte svälter rotationen. `errorStreak` ger medvetet INTE
 förtur — den stiger för hela katalogen samtidigt vid AE-driftstörning.
 
+**Cronen går varannan timme sedan 2026-08-25** (`0 */2 * * *`). Tillsammans med
+förturen ovan ligger två strikes nu ~2 h isär i stället för en hel rotation, och
+tiden till FÖRSTA observationen halveras (~20 h i stället för ~40 vid 980
+mappningar).
+
+Priset är att bevisen ligger tätare: en AE-driftstörning som varar över två
+timmar kan nu hinna ge två strikes där den förut gav en. Utfallet är dock
+begränsat och självläkande — lagret nollas, sidan ligger kvar publicerad,
+produkten syns i `/admin/sync-alerts`, och en senare `onSelling`-läsning
+återställer den. Avvägningen är medveten: att vara oköpbar några timmar är ett
+billigare fel än att sälja något som inte går att beställa.
+
 ### Ett tyst dry-run är det farligaste läget
 
 `SYNC_DRY_RUN` är default `"true"`, och i dry-run **fryses strike-fälten**
@@ -353,6 +1255,56 @@ nu torrkörningar och statusraden säger det rakt ut.
   aldrig att synken slutat köra. Övervägt 2026-08-24 men utelämnat: routen har
   EN `consecutiveFails`-räknare och EN larm-strypning, så en Wix-utage och en
   stannad synk hade delat tillstånd och larm. Kräver egen state-nyckel.
+  Morgonmejlet larmar däremot sedan 2026-08-28 (se nästa avsnitt) — det är
+  billigare och räckte för att fånga fallet.
+
+### ☠️ Synken låg nere i 57 timmar och ingenting sa till (2026-08-28)
+
+Hittad i en audit, inte av ett larm. Sista lyckade körningen var
+**2026-08-26 kl 10:03**; därefter svarade `/api/cron/aliexpress-sync` **500 vid
+varje körning** — 28 körningar i rad. Lager och priser för hela AE-katalogen
+stod stilla, och slutsålda eller nedtagna produkter förblev köpbara.
+
+Orsaken var en **obegränsad fan-out** i `runDailySync`: synk-tillståndet lästes
+med `Promise.all(mappings.map(...))`, alltså EN Wix-läsning per produkt, alla
+avfyrade i samma ögonblick. Det höll på 980 produkter och slutade hålla utan att
+någon rörde koden — och Aosom-importen tog sedan talet till **5 423 samtidiga
+anrop**.
+
+☠️ **Bomben exploderade när katalogen växte, inte när koden ändrades.** Sista
+commiten före haveriet låg ett dygn tidigare, och samma kod gick igenom fyra
+lyckade körningar samma morgon. Det finns ingen commit att skylla på, och en
+`git bisect` hade inte hittat något.
+
+Det var dessutom **osynligt i alla tre spåren**, vilket är det som gjorde 57
+timmar möjliga:
+
+| spår | vad det visade |
+|---|---|
+| Vercel-loggen | `GET /api/cron/aliexpress-sync 500` — **noll** loggrader |
+| `FyndplatsAudit` | ingen `aliexpress-sync-fatal`-rad alls |
+| Morgonmejlet | *"Synken: 0 körningar, 0 produkter kollade"* i grå statusremsa |
+
+Fatal-raden saknades för att lambdan **dog** av fan-outen — ruttens `catch`
+hann aldrig köra. Ett `try/catch` skyddar bara mot fel som kastas, inte mot en
+process som tar slut.
+
+Två lagningar, och båda behövs:
+
+1. **`mapWithConcurrency`** (`lib/concurrency.ts`, default 8, env
+   `SYNC_STATE_READ_CONCURRENCY`). Rader loopen ändå hoppar över kostar
+   dessutom ingen läsning alls — Aosom-raderna var 4 419 av 5 423, alltså
+   merparten av fan-outen. Hjälparen låg tidigare som en privat kopia i
+   `eu-discover.ts`; den är flyttad hit i stället för klonad, av samma skäl som
+   `SHIP_AXIS_RE` och `EU_TULL_CODES` — tvillingar glider isär.
+2. **Noll körningar får en egen larmrad i morgonmejlet** (`guard.ts`), före
+   torrkörningsraden: har den inte kört spelar skrivläget ingen roll. Tre
+   tester låser det.
+
+☠️ Regeln, femte gången: **ett misslyckande som ingen kan se är värre än ett
+som skriker.** Och den nya, som är dyrare: **en obegränsad fan-out skalar med
+katalogen — den är en tidsinställd bomb, inte en bugg.** Leta efter
+`Promise.all` över något som växer.
 
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
@@ -372,6 +1324,39 @@ tas bort: recensioner som AE själv markerar som **AI-genererade** (`aigc`) och
 sådana som inte är publicerade hos AE (`status !== "1"`) släpps aldrig igenom.
 Anonyma konton ("AliExpress Shopper") får inget namn vidare — annars blir varenda
 rad "A.S." och sidan ser förfalskad ut.
+
+### Vad som faktiskt gallrar — mätt 2026-08-25
+
+Den vanliga gissningen är att stjärnfiltret stryper hämtningen. Det gör det inte.
+Mätt över nio verkliga AE-listningar (204 råa recensioner):
+
+| Regel | Kvar | Kostnad |
+|---|---|---|
+| `minRating: 3` | 199/204 | **2 %** — nästan allt hos AE är redan 3+ |
+| `minLength: 50` | 126/204 | **38 %** |
+| spam + dubblett + utlandsleverans | 116/204 | 5 % |
+| `DEFAULT_MAX_PER_PRODUCT: 8` | 55/116 | **53 % av det godkända** |
+
+Samtidigt visade **432 av 908 publicerade produktsidor noll recensioner**. Bristen
+är alltså BREDD (produkter utan någon recension), inte DJUP (fler per produkt) —
+att höja taket från 8 hjälper bara de ~40 produkter som redan har flest.
+
+Två ändringar följde, båda riktade mot bredden:
+
+- **`AE_REVIEW_DEFAULT_PAGES` 2 → 4.** Två sidor är 40 råa; loopen tog slut mitt i
+  högen på listningar med fler. Självbegränsande: `fetchAeReviews` bryter på
+  `hasNext`, så en tunn listning kostar fortfarande ett anrop.
+- **Räddningssvepet (`REVIEW_RESCUE_MIN_LENGTH = 25`).** Gav 50-teckengolvet
+  INGENTING görs urvalet om med 25. Golvet sänks aldrig när något klarade 50 — en
+  kort äkta recension slår ingen recension, men bara när alternativet verkligen är
+  ingen. Ett `minLength` som anroparen satt själv rivs inte (det är ett beslut, och
+  överdraget finns för att svepa upp det ett gammalt filter slängde).
+
+Räddningssvepet går INTE förbi någon annan spärr: betyg, spam, dubbletter och
+utlandsleverans gäller oförändrat i båda svepen.
+
+Kvar som medvetet orört: taket på 8 i backfillen. Fler hämtade recensioner blir
+inte fler synliga — de blir en längre `pending`-kö att skriva om för hand.
 
 ### Så körs den
 
@@ -464,5 +1449,42 @@ om, inte vad något kostar. Mätt 2026-08-16 på 40 slumpade publicerade produkt
 (692 publicerade mappningar av 876): träffkvot 60 %, ~240 tecken/produkt vid
 tak 8 — alltså ~166k tecken för hela butiken. Cirka 40 % av produkterna får inga
 recensioner alls, mest nya Aosom-EU-listningar som inte hunnit få några hos AE.
+
+## Mediainventering: "utan katalogreferens" är inte "oanvänd"
+
+Mediabiblioteket på headless-sajten hade **30 231 bilder** 2026-08-27, mot 1 696
+produkter. Frågan "vilka används inte?" går inte att besvara från chatten — ett
+filobjekt är ~1,3 kB, så en full listning är ~39 MB. Den körs därför där
+nycklarna finns: GitHub Actions-workflowen **"Bilder — inventera
+mediabiblioteket"** → `/api/cron/media-audit`, rapporten hamnar i
+`tools/media-audit/scan-latest.json`.
+
+**Rutten kan inte skriva och kan inte radera.** Det är inte försiktighet på
+måfå: Wix Media har inget API som svarar på VAR en fil används (kontrollerat
+2026-08-27). Vi kan bara räkna vad katalogen pekar på — produkternas galleri,
+`media.main`, `linkedMedia` och kategoribilderna. Utanför mätningen ligger
+sidor, banners, logotyper, bloggen, Wix-appar och CMS-kollektionerna (bland
+annat recensionsbilderna, som dessutom bor på ett **annat site-id**:
+`WIX_SITE_ID`, inte butikens `HEADLESS_WIX_SITE_ID`).
+
+Därför heter fältet `utanKatalogreferens`. Listan är ett underlag för en
+människa, aldrig en dödslista — samma hållning som prisreparationens
+"det finns ingen kör-allt-flagga".
+
+Tre egenskaper som inte ska tas bort:
+
+- **Katalogen läses FÖRE filerna.** Katalogen är den lilla sidan och den som
+  gör listan meningsfull. Tar tidsbudgeten slut mitt i filerna får man en
+  delrapport med korrekta referenser; tvärtom hade gett en lista där varje
+  oläst produkts bilder ser föräldralösa ut.
+- **`fullstandig: false` diskvalificerar listan för radering.** Den är sann
+  bara när både filerna, katalogen OCH kategorierna gick klart.
+- **Dolda kategorier räknas med.** En dold kategori kan publiceras igen, och
+  dess bild ska inte hinna raderas under tiden.
+
+Rapporten räknar också **byte-identiska dubbletter** (samma `hash`) och deras
+kostnad — bara kopiorna, inte originalet. Dubbletter kostar plats även när de
+används, och en stor post är importvägen: filer vars `displayName` är ett annat
+Wix-media-id är omimporter av bilder som redan låg i biblioteket.
 
 Övriga LLM-/kostnads-env-variabler dokumenteras i **`LLM-CONFIG.md`**.

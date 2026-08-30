@@ -33,17 +33,20 @@ import { buildVariantTracks, minTrack, type AuctionVariantTrack } from "./engine
 /** Minsta rabatt (bästa variants golv vs. dess lista) för auktionsvärdhet. */
 export const MIN_AUCTION_DISCOUNT = 0.1;
 
-/** Momssats i de lagrade (inkl. moms) inköpspriserna. */
-export const SUPPLIER_VAT_RATE = 0.25;
-
-/**
- * Verklig inköpskostnad för ett momsregistrerat B2B-företag: den lagrade
- * kostnaden är inkl. moms, men momsen bärs aldrig (omvänd skattskyldighet på
- * EU-köp / avdragsgill importmoms på Kina-köp) ⇒ nettopriset.
- */
-export function netSupplierCost(landedCostInclVat: number): number {
-  return landedCostInclVat / (1 + SUPPLIER_VAT_RATE);
-}
+// ☠️ DEFINITIONEN BOR I lib/import/pricing.ts — den här filen ÄRVER den.
+//
+// Talet fanns tidigare här, och `computeProfit` i pricing.ts hade sin egen
+// (felaktiga) uppfattning om samma sak: den momsade av intäkten men inte
+// kostnaden. Auktionens golvbud räknade alltså rätt medan lönsamhetsöversikten
+// visade förlust på samma produkt (bäddsoffan `efaa0c7b`, 2026-08-29: −4 % mot
+// verkliga +16,8 %). Två vägar, ett tal, olika svar.
+//
+// Re-exporten är avsiktlig: `lib/aosom/to-product.ts` och `lib/aosom/sync.ts`
+// importerar SUPPLIER_VAT_RATE härifrån och behöver inte veta att den flyttat.
+// Riktningen är den rätta — moms på inköp är ett prisbegrepp, inte ett
+// auktionsbegrepp, och pricing.ts importerar ingenting från auction/.
+import { SUPPLIER_VAT_RATE, netSupplierCost } from "../import/pricing";
+export { SUPPLIER_VAT_RATE, netSupplierCost };
 
 export type SeedRejection = "hidden" | "outOfStock" | "noVariants" | "existingSale" | "noCost" | "thinMargin";
 

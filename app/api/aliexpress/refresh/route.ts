@@ -10,7 +10,9 @@
 // Logik:
 //   1. Validera secret
 //   2. Läs nuvarande tokens från store
-//   3. Om access_token har >2h kvar → skip (sparar API-anrop mot AliExpress)
+//   3. Om access_token har mer än REFRESH_SKIP_THRESHOLD_MS kvar → skip
+//      (sparar API-anrop). Tröskeln MÅSTE vara större än schemaintervallet —
+//      se kommentaren vid konstanten.
 //   4. Annars → refreshAndPersist via signed RPC /auth/token/refresh
 //   5. Returnera status + new expiresAt
 
@@ -22,10 +24,27 @@ import { getStore } from "@/lib/store/factory";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Pre-emptive skip-fönster: om token har mer kvar än så ska cron inte
-// refresha. AliExpress access_token har ~48h livstid; med cron var 12:e
-// timme refreshar vi då ungefär en gång per 36h (när vi går under 2h kvar).
-const REFRESH_SKIP_THRESHOLD_MS = 2 * 60 * 60 * 1000;
+// ☠️ FÖNSTRET MÅSTE VARA STÖRRE ÄN SCHEMAT. Det var det inte, och det kostade
+// en tyst produktionsincident (2026-08-29).
+//
+// Gamla värdet var 2 h, med motiveringen att access_token lever "~48h".
+// Uppmätt på den riktiga token: den lever **30 dygn** (förnyad 2026-07-30,
+// utgången 2026-08-29T02:37). Livstiden spelar dock ingen roll för buggen —
+// schemat gör det. Workflowen kör var 12:e timme och rutten hoppade över så
+// länge mer än 2 h återstod, så en körning måste råka landa i de SISTA två
+// timmarna för att förnya något alls. Sannolikheten är 2/12: fyra gånger av
+// fem hinner token dö emellan.
+//
+// Så gick det också till. Körningen 2026-08-28 21:53 såg 4,7 h kvar och
+// hoppade över. Token dog 02:37. Nästa körning låg 09:53 — sju timmar senare.
+// Under tiden svarade VARENDA AliExpress-anrop `IllegalAccessToken` och synken
+// fick 99 fel av 106 försök, medan workflowen rapporterade "success" hela
+// vägen: den kollar bara HTTP-statusen, och ett hoppat över ÄR 200.
+//
+// 24 h är därför inte "lite marginal" — det är regeln: fönstret ska rymma
+// minst två schemalagda körningar (12 h × 2), så en missad körning inte kan
+// leda till en utgången token. Ändras schemat måste det här talet följa med.
+export const REFRESH_SKIP_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
 function isAuthorized(req: NextRequest): boolean {
   const expected = process.env.CRON_SECRET;

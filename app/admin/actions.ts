@@ -8,6 +8,8 @@ import { getStore } from "@/lib/store/factory";
 import { assertTransition } from "@/lib/orders/status";
 import { placeOrderForTask, type PlaceOrderResult } from "@/lib/orders/place-order";
 import { assessDsPrice, normalizeAeOrderId } from "@/lib/orders/price-check";
+import { aliExpressIdOf, mappingSupplier } from "@/lib/store/supplier";
+import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 import { pricingConfigFromEnv } from "@/lib/config";
 import type { ShippingAddress, TaskStatus } from "@/lib/orders/types";
 
@@ -363,12 +365,31 @@ export async function checkDsPriceAction(taskId: string): Promise<
       variant = mapping.variants[0];
     }
   }
-  const supplierProductId = task.overriddenSupplierProductId ?? mapping.supplierProductId;
+  // ☠️ AOSOM-SPÄRR (hittad 2026-08-28 av den märkta id-typen, inte av en
+  // människa). Åtgärden körs på en ORDER-task, och en kund kan lika gärna ha
+  // köpt en Aosom-vara: då bär mappningen "aosom:845-030CG" i samma fält, och
+  // utan spärren gick artikelnumret rakt in i AE:s API. Felet hade pekat åt
+  // fel håll — "produkten hittades inte hos AliExpress" om något som aldrig
+  // legat där. Överstyrningen kommer däremot från AE-väljaren och är per
+  // definition ett AE-id.
+  const aeProductId = task.overriddenSupplierProductId
+    ? aliExpressIdFromListing(task.overriddenSupplierProductId)
+    : aliExpressIdOf(mapping);
+  if (!aeProductId) {
+    return {
+      ok: false,
+      error:
+        mappingSupplier(mapping) === "aosom"
+          ? "Produkten kommer från Aosom — det här är en AliExpress-funktion. "
+            + "Aosom-priser står i feeden och ordrar läggs i klump via /admin/aosom-order."
+          : "Mappningen saknar leverantörens produkt-id — koppla om produkten i /admin/mappings först.",
+    };
+  }
   const supplierVariantId = task.overriddenSupplierVariantId ?? variant?.supplierVariantId;
   if (!supplierVariantId) return { ok: false, error: "Varianten kunde inte matchas mot AliExpress-SKU." };
 
   try {
-    const p = await getProduct(supplierProductId);
+    const p = await getProduct(aeProductId);
     const sku = p.variants.find((v) => v.skuId === supplierVariantId || v.skuAttr === supplierVariantId);
     if (!sku || !(sku.price > 0)) {
       return { ok: false, error: "AliExpress gav inget pris för varianten just nu — försök igen strax." };
@@ -383,7 +404,7 @@ export async function checkDsPriceAction(taskId: string): Promise<
       importCostUsd: a.importCostUsd,
       diffPct: a.diffPct,
       verdict: a.verdict,
-      productUrl: `https://www.aliexpress.com/item/${supplierProductId}.html`,
+      productUrl: `https://www.aliexpress.com/item/${aeProductId}.html`,
       variantLabel: Object.values(sku.skuProps ?? {}).join(" / ") || undefined,
     };
   } catch (e) {
@@ -497,20 +518,39 @@ export async function freightDiagnosticsAction(taskId: string): Promise<
       variant = mapping.variants[0];
     }
   }
-  const supplierProductId = task.overriddenSupplierProductId ?? mapping.supplierProductId;
+  // ☠️ AOSOM-SPÄRR (hittad 2026-08-28 av den märkta id-typen, inte av en
+  // människa). Åtgärden körs på en ORDER-task, och en kund kan lika gärna ha
+  // köpt en Aosom-vara: då bär mappningen "aosom:845-030CG" i samma fält, och
+  // utan spärren gick artikelnumret rakt in i AE:s API. Felet hade pekat åt
+  // fel håll — "produkten hittades inte hos AliExpress" om något som aldrig
+  // legat där. Överstyrningen kommer däremot från AE-väljaren och är per
+  // definition ett AE-id.
+  const aeProductId = task.overriddenSupplierProductId
+    ? aliExpressIdFromListing(task.overriddenSupplierProductId)
+    : aliExpressIdOf(mapping);
+  if (!aeProductId) {
+    return {
+      ok: false,
+      error:
+        mappingSupplier(mapping) === "aosom"
+          ? "Produkten kommer från Aosom — det här är en AliExpress-funktion. "
+            + "Aosom-priser står i feeden och ordrar läggs i klump via /admin/aosom-order."
+          : "Mappningen saknar leverantörens produkt-id — koppla om produkten i /admin/mappings först.",
+    };
+  }
   const supplierVariantId = task.overriddenSupplierVariantId ?? variant?.supplierVariantId ?? "";
   if (!supplierVariantId) return { ok: false, error: "Kunde inte matcha varianten till en SKU." };
 
   const country = normalizeCountryCode(task.shippingAddress?.country) ?? "SE";
 
   try {
-    const ae = await getProduct(supplierProductId);
+    const ae = await getProduct(aeProductId);
     const skuIdUsed = /^\d+$/.test(supplierVariantId)
       ? supplierVariantId
       : matchAeVariant(supplierVariantId, ae.variants);
 
     const svar = skuIdUsed
-      ? await queryFreightToCountry(supplierProductId, skuIdUsed, country, task.quantity)
+      ? await queryFreightToCountry(aeProductId, skuIdUsed, country, task.quantity)
       : null;
     const options = svar ? parseDeliveryOptions(svar) : [];
 
