@@ -63,13 +63,32 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   protobuf message` — felet ser ut att gälla bodyn men sitter i URL:en.
 - **`VARIANTS_INFO` finns inte i enum:et** (varianterna kommer med ändå). Giltiga värden:
   `PLAIN_DESCRIPTION` · `DESCRIPTION` · `MEDIA_ITEMS_INFO` · `DIRECT_CATEGORIES_INFO` ·
-  `VARIANT_OPTION_CHOICE_NAMES` · `URL` · `INFO_SECTION` · `BREADCRUMBS_INFO`.
+  `VARIANT_OPTION_CHOICE_NAMES` · `URL` · `INFO_SECTION` · `BREADCRUMBS_INFO` ·
+  `INFO_SECTION_PLAIN_DESCRIPTION` · `CURRENCY` · `MERCHANT_DATA` ·
+  `SUBSCRIPTION_PRICES_INFO` · `WEIGHT_MEASUREMENT_UNIT_INFO`.
+  ⚠️ **`INFO_SECTION` ensamt ger bara rubrikerna** — id, uniqueName och title, med tomt
+  innehåll. Vill du läsa spec-flikarnas TEXT måste `INFO_SECTION_PLAIN_DESCRIPTION` med
+  också. *(Uppmätt 2026-08-30.)*
 - ⚠️ **Ett `filter` får INTE följa med på en cursor-sida.** Skickar du samma
   `{filter, cursorPaging}` på sida 2 svarar V3 **400 `INVALID_CURSOR`: "Sort or filter can
   not be specified together with cursor"**. Sida 1 går igenom, sida 2 fäller — så ett svep
   som testats på en liten katalog går sönder först när den vuxit förbi 100 rader. Skicka
   filtret bara på första sidan och filtrera resten i koden, eller hämta allt och sålla
   lokalt. *(Uppmätt 2026-08-29 på ett sökordskrock-svep över 5 397 produkter.)*
+- ☠️ **`/products/search` sväljer `filter` och `cursorPaging` som ligger på toppnivån.**
+  Hela frågan ska ligga inne i ett `search`-objekt:
+  `{ search: { filter, sort, cursorPaging } }`. Skickas de utanför svarar V3 **200 OK** och
+  kastar dem **utan ett ord** — inget fel, ingen varning. Följden är att `visible:false`
+  aldrig appliceras OCH att markören står stilla: varje sida returnerar samma första 100
+  produkter, så en loop kan snurra 49 varv, rapportera 4 900 lästa rader och i själva verket
+  ha läst de första hundra 49 gånger. Totalerna ser rimliga ut eftersom de är
+  sidor × 100 — det är dubbletter, inte täckning.
+  *(Uppmätt 2026-08-30: en sökning efter tyska julutkast svarade "0 träffar" över 49 sidor.
+  Rätt kroppsform gav 4 282 utkast och 29 julprodukter i ETT svep.)*
+  **Kontrollen som avslöjar det:** samla `id` i ett `Set` och jämför `set.size` mot antalet
+  lästa rader, och jämför den returnerade markören mot den du skickade in — är de identiska
+  snurrar du på stället. Samma lärdom som `Promise.allSettled` i `media.ts` och den tysta
+  prisskrivningen: **ett svar utan fel är inget kvitto.**
 - ⚠️ **`fields` måste med på VARJE cursor-sida.** Utelämnas det på sida 2+ kommer fältet
   tillbaka **tomt i stället för att fela** — ett svep rapporterade 650 produkter med noll
   bilder, inklusive sådana som just patchats till fem.
