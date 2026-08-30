@@ -476,6 +476,18 @@ Bygg innehållet:
     `/alla-produkter` — Google räknar en redirect till en irrelevant sida som
     *soft 404*, alltså sämre än en ärlig 404.
 - **title-tagg:** ≤ ~60 tecken, fokussökord först, ev. `| Fyndplats`.
+  - ☠️ **Titeln får ALDRIG vara identisk med `name`.** Är de exakt lika behandlar
+    storefronten titeln som osatt och renderar mallen `{name} | Fyndplats` i stället —
+    alltså namnet plus tolv tecken. En titel du räknat till 52 blir 64 live, och du ser
+    det inte i API-svaret, bara i den renderade HTML:en. Uppmätt 2026-08-30 på sju
+    granar publicerade i samma körning: de fyra där titel = namn fick suffixet, de tre
+    där de skilde sig fick sin titel ordagrant. **Räkna därför på `namnets` längd + 12
+    som värsta fall**, eller — enklare — låt titeln vara en verkligt kortare variant av
+    namnet. Det är den den ska vara ändå: namnet är H1 (≤ 80), titeln är SERP-raden (≤ 60).
+  - ⚠️ **Rättningen syns inte direkt.** Storefronten cachar den renderade sidan, och
+    varken `?cb=`-parameter eller `Cache-Control: no-cache` går förbi den — de slår
+    bara mot CDN:en, inte mot sidbygget. Kontrollera att `seoData` blivit rätt genom
+    att läsa tillbaka via API:t; den renderade titeln följer efter vid nästa ombyggnad.
 - **meta description:** ≤ ~155 tecken, nytta + sökord, **inga overifierade påståenden** (ingen "fri frakt" om det inte stämmer).
 
 > 🟠 **Rättar du ett sakfel i efterhand — rätta `seoData` i SAMMA veva.**
