@@ -603,6 +603,42 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > `F()` ger två separata `<p>` — det är formen som överlever Wix serialisering
 > (se `<br>`-noten ovan).
 
+-----
+
+> 📊 **Mätt mot katalogen 2026-08-30 — så ser de 1 154 publicerade sidorna faktiskt ut.**
+> Runbooken föreskrev `<table>`; verkligheten är en annan, och verkligheten vinner
+> eftersom sidorna ska likna varandra:
+>
+> | | |
+> |---|---:|
+> | Spec-block som `<ul>` | **850** |
+> | Spec-block som `<table>` | 297 |
+> | Med raden `Egenskap / Uppgift` | 286 |
+> | Med `<h2>Användning och skötsel</h2>` | **992** |
+> | Utan skötselavsnitt | 162 |
+> | FAQ-frågor, median | **8** |
+>
+> **`<ul>` är husstilen.** En `<table>` är inte fel, men en ny sida ska inte välja den
+> utan skäl. Skriv spec-blocket som `<ul><li><p>Etikett: värde</p></li>…</ul>`.
+>
+> ☠️ **Alla tre avsnitten är obligatoriska, i den här ordningen** *(Leonards
+> påminnelse 2026-08-30, efter att 21 sidor publicerats utan skötselavsnitt)*:
+>
+> ```
+> <h2>Tekniska specifikationer</h2><ul>…</ul>
+> <h2>Användning och skötsel</h2><p>…</p>
+> <h2>Vanliga frågor</h2>…
+> ```
+>
+> **Sikta på 6–8 FAQ-frågor**, inte fyra. Medianen i katalogen är åtta, och en sida
+> med fyra frågor bredvid en med åtta ser halvfärdig ut i jämförelsen. Frågorna ska
+> vara verkliga köpfrågor — mått, vad som ingår, vad som krävs för att varan ska
+> fungera — inte utfyllnad.
+>
+> Skötselavsnittet ska vara **konkret och härlett ur produkten**: fritt djup framför
+> en fällbar fåtölj, luggriktning på manchester, bryt strömmen vid proppskåpet före
+> lampbyte. Generiska rader som "torka av vid behov" bär ingenting.
+
 
 -----
 
