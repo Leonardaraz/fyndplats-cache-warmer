@@ -468,7 +468,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "<html…>" } }`.
 
-- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → *(vid behov: en kort passar-det-dig-rad, se nedan)* → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` (valfritt) → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
+- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → *(vid behov: en kort passar-det-dig-rad, se nedan)* → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
 
 > 🛑 **Skriv INTE ett "Det du bör veta innan du köper"-block.** *(Leonards beslut 2026-08-14, omtaget 2026-08-22 efter att blocket smugit tillbaka på 23 sidor — Klart-kriteriet krävde det som regeln förbjöd. Båda ställena är nu rättade.)* Ordagrant: **"Vi ska ju försöka sälja produkter, inte försöka få dom att skita i att köpa."** Ett varningsblock högt upp på sidan läser kunden som en lista över skäl att avstå. De flesta produkter ska inte ha något sådant alls. **Samma sak gäller ett "Bra att veta"-block** — förbudet sitter på formen, inte på rubriken: byt inte ut namnet och behåll listan.
 >
@@ -1038,8 +1038,15 @@ Gå igenom listan **innan** Steg 13. Faller något: fixa först, publicera sedan
   det inte. Fyra produkter i rad gick live så 2026-08-26/27. **Kontrollera i den RENDERADE
   sidan** att `<summary>Tekniska specifikationer</summary>` finns — inte att ordet står
   någonstans i HTML:en.
-- **`Användning och skötsel` är inte valfri när varan har skötsel.** Textil, tält, trä och
-  allt som ska tvättas, torkas eller efterdras ska ha fliken.
+- ☠️ **`Användning och skötsel` är OBLIGATORISK — den ska ligga i flikraden på varje
+  polerad produkt** *(Leonards instruktion 2026-08-30: "glöm inte användning och skötsel …
+  framåt")*. Flikraden är alltså alltid **Tekniska specifikationer · Användning och skötsel ·
+  Vanliga frågor** (frontenden lägger till "Kontakta oss" själv). Den var tidigare skriven som
+  "valfri när varan har skötsel"; den formuleringen är borta. Varje vara har skötsel — trä ska
+  efterdras, textil tvättas, metall torkas, elektronik dammas av och lagras frostfritt. Hittar
+  du ingenting att skriva har du inte läst varan tillräckligt noga. **Kontrollera i den
+  RENDERADE sidan** att `<summary>Användning och skötsel</summary>` finns, av exakt samma skäl
+  som spec-fliken ovan.
 - Bytte du slug på en **redan publicerad** produkt: en redirect-rad finns från den gamla
   sluggen. Utan den är URL:en död och rankingen borta. *(Gäller inte nyimporterade utkast.)*
 
