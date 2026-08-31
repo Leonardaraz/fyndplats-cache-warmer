@@ -113,6 +113,52 @@ export async function llmQuery<T>(
   return (body.dataItems ?? []).map((d) => d.data).filter((d): d is T => Boolean(d));
 }
 
+/**
+ * Raderar rader äldre än `days` dygn, filtrerat på radens egna `at`-fält.
+ *
+ * ☠️ VARFÖR DEN BEHÖVS. `FyndplatsLlmStats` får EN rad per LLM-anrop och hade
+ * ingen städning alls — den växte obegränsat och stod på 804 rader när
+ * sitens CMS-postgräns nåddes 2026-08-31. Gränsen är site-BRED: när den är
+ * full avvisas varje ny rad i VARJE kollektion, även fulfillment-tasken för en
+ * betald order. Loggvolym är därför inte en städfråga utan en
+ * tillgänglighetsfråga, och en logg utan retention är en tidsinställd bomb.
+ *
+ * Samma mekanik som synk-loggen och auditen: asynkront Wix-jobb, best-effort,
+ * anroparen loggar felet och låter aldrig städningen fälla sin körning.
+ * Returnerar Wix jobId (tomt vid okänt svar).
+ */
+export async function llmPruneOlderThan(
+  col: string,
+  days: number,
+  nowMs = Date.now(),
+): Promise<string> {
+  const cutoff = new Date(nowMs - days * 24 * 60 * 60 * 1000).toISOString();
+  if (!useWixBackend()) {
+    const bucket = memBucket(col);
+    let n = 0;
+    for (const [id, row] of bucket) {
+      const at = (row as { at?: unknown })?.at;
+      if (typeof at === "string" && at < cutoff) {
+        bucket.delete(id);
+        n++;
+      }
+    }
+    return `${n} rader`;
+  }
+  const res = await fetch(`${WIX_BASE}/wix-data/v2/bulk/items/async-remove-by-filter`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ dataCollectionId: col, filter: { at: { $lt: cutoff } } }),
+  });
+  if (!res.ok) {
+    throw new Error(
+      `llm-prune ${col} (${res.status}): ${(await res.text()).slice(0, 200)}`,
+    );
+  }
+  const body = (await res.json()) as { jobId?: string };
+  return body.jobId ?? "";
+}
+
 /** Endast för tester: tömmer in-memory-bucketen. Saknar effekt i prod. */
 export function __resetLlmMemoryStore(): void {
   memStore.clear();
