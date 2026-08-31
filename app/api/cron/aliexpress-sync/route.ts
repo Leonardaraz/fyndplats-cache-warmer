@@ -34,7 +34,8 @@ import {
 import { audit } from "@/lib/audit";
 import { getSyncStore } from "@/lib/sync/sync-log";
 import { getStore } from "@/lib/store/factory";
-import { AUDIT_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
+import { AUDIT_RETENTION_DAYS, LLM_STATS_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
+import { LLM_COLLECTIONS, llmPruneOlderThan } from "@/lib/llm/storage";
 import { buildDailySummaryEmail, sendEmail } from "@/lib/email/resend";
 
 export const runtime = "nodejs";
@@ -122,6 +123,19 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     } catch (pruneErr) {
       console.warn(
         `[sync] auditstädning misslyckades: ${pruneErr instanceof Error ? pruneErr.message.slice(0, 200) : String(pruneErr)}`,
+      );
+    }
+
+    // LLM-statistiken hade INGEN städning alls och växte med en rad per
+    // anrop. Den delar site-bred postgräns med mappningar och ordrar, så den
+    // åt utrymme från fulfillment-tasken för en betald order.
+    const llmRetentionDays = numberFromEnv("LLM_STATS_RETENTION_DAYS", LLM_STATS_RETENTION_DAYS);
+    try {
+      const res = await llmPruneOlderThan(LLM_COLLECTIONS.stats, llmRetentionDays);
+      console.log(`[sync] llm-statsstädning startad (>${llmRetentionDays} dygn), ${res}`);
+    } catch (pruneErr) {
+      console.warn(
+        `[sync] llm-statsstädning misslyckades: ${pruneErr instanceof Error ? pruneErr.message.slice(0, 200) : String(pruneErr)}`,
       );
     }
 

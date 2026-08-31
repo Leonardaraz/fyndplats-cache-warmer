@@ -29,3 +29,14 @@ export const SYNC_LOG_RETENTION_DAYS = 7;
  *  vill ha kvar när en order behöver redas ut i efterhand. `listAudit()`
  *  hämtar de N senaste (order-guard tar 500), aldrig efter datum. */
 export const AUDIT_RETENTION_DAYS = 14;
+
+/**
+ * LLM-anropsstatistiken (`FyndplatsLlmStats`) — EN rad per anrop.
+ *
+ * ☠️ Den hade ingen städning alls och stod på 804 rader när sitens CMS-gräns
+ * nåddes. Gränsen är site-BRED, alltså delad med mappningar, ordrar och allt
+ * annat: en logg som växer obegränsat tar utrymme från fulfillment-tasken för
+ * en betald order. Kostnadsöversikten i /admin/llm-usage aggregerar per DAG
+ * och behöver inte äldre rader än så.
+ */
+export const LLM_STATS_RETENTION_DAYS = 30;
