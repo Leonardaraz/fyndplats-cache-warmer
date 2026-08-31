@@ -40,6 +40,24 @@ export interface OrderBackfillOptions {
   onlyOrderNumbers?: string[];
 }
 
+/**
+ * En betald order vi INTE lyckades skapa task för.
+ *
+ * ☠️ Finns för att larmet ska kunna skickas UTAN Wix Data. Det vanligaste
+ * skälet till att skrivningen faller är att CMS:et är fullt (`WDE0195`), och
+ * då är varje spår vi normalt litar på också blockerat: audit-raden, vaktens
+ * fynd, admin-listan. Mejlet är den enda kanalen som fortfarande fungerar,
+ * så det måste bära allt som behövs för att expediera ordern för hand.
+ */
+export interface StuckOrder {
+  /** Ordernumret kunden ser, t.ex. "10024". */
+  number: string;
+  /** Varför skrivningen inte gick igenom — ordagrant, inte omskrivet. */
+  reason: string;
+  customer?: string;
+  items: { name: string; sku?: string; quantity: number }[];
+}
+
 export interface OrderBackfillSummary {
   dryRun: boolean;
   /** Ordrar som lästes från Wix inom fönstret. */
@@ -52,6 +70,8 @@ export interface OrderBackfillSummary {
   failed: number;
   /** Ordernummer som återhämtades — så mejlet/loggen kan namnge dem. */
   recovered: string[];
+  /** Detaljerna bakom `failed`, för larmmejlet. En rad per tappad order. */
+  stuck: StuckOrder[];
   errors: { order: string; error: string }[];
 }
 
@@ -87,6 +107,7 @@ export async function runOrderBackfill(
     created: 0,
     failed: 0,
     recovered: [],
+    stuck: [],
     errors: [],
   };
 
@@ -133,8 +154,10 @@ export async function runOrderBackfill(
     // `created` — en lucka som ser ut som ett växande problem men aldrig går
     // att åtgärda. Bättre att den syns EN gång som ett fel med sitt nummer.
     if (derived.length === 0) {
+      const reason = "ordern har inga orderrader — inget att skapa";
       s.failed++;
-      s.errors.push({ order: label, error: "ordern har inga orderrader — inget att skapa" });
+      s.errors.push({ order: label, error: reason });
+      s.stuck.push({ number: label, reason, customer: order.buyerInfo?.email, items: [] });
       continue;
     }
 
@@ -143,10 +166,16 @@ export async function runOrderBackfill(
       continue;
     }
 
+    // Skrivningarna räknas EN i taget så att en order som faller halvvägs
+    // rapporterar exakt de rader som saknas — inte hela ordern. Ett mejl som
+    // listar rader Leonard redan har i /admin gör att han beställer dubbelt.
+    const oskrivna = [...derived];
     try {
       let any = false;
       for (const task of derived) {
-        if (await deps.createTaskIfAbsent(task)) {
+        const skapad = await deps.createTaskIfAbsent(task);
+        oskrivna.splice(oskrivna.indexOf(task), 1);
+        if (skapad) {
           s.created++;
           any = true;
         }
@@ -154,11 +183,22 @@ export async function runOrderBackfill(
       if (any) s.recovered.push(label);
     } catch (err) {
       // En trasig order får inte fälla resten — nästa kan vara den som
-      // faktiskt går att rädda. Felet syns i svaret och i morgonmejlet.
+      // faktiskt går att rädda. Felet syns i svaret och i larmmejlet.
+      const reason = err instanceof Error ? err.message.slice(0, 200) : String(err);
       s.failed++;
-      s.errors.push({
-        order: label,
-        error: err instanceof Error ? err.message.slice(0, 200) : String(err),
+      s.errors.push({ order: label, error: reason });
+      s.stuck.push({
+        number: label,
+        reason,
+        // Namnet kommer från `derived`, inte ur ordern igen: `deriveTasks`
+        // äger redan uppslaget (Wix levererar kontakten på BÅDE
+        // `contactDetails` och `contact`, och gatan i tre former). En egen
+        // avläsning här hade blivit en tvilling som glider isär.
+        customer: derived[0]?.shippingAddress?.fullName ?? order.buyerInfo?.email,
+        // Raderna kommer från `derived`, inte från en egen tolkning av ordern:
+        // det är EXAKT vad webhooken hade skapat. Bara de som INTE hann
+        // skrivas tas med.
+        items: oskrivna.map((t) => ({ name: t.productName, sku: t.sku, quantity: t.quantity })),
       });
     }
   }

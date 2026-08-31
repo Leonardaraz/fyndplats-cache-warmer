@@ -456,3 +456,79 @@ export function buildSupplierWatchEmail(
 
   return { subject, html: wrapInBrandShell(html), text };
 }
+
+// ---------------------------------------------------------------------------
+
+import type { StuckOrder } from "../orders/backfill";
+
+/**
+ * Larm: betalda ordrar som INTE gick att lägga in i pipelinen.
+ *
+ * ☠️ VARFÖR MEJL OCH INGET ANNAT. Det vanligaste skälet till att en task-
+ * skrivning faller är att Wix Datas postgräns är nådd (`WDE0195`), och då är
+ * varenda kanal vi normalt förlitar oss på blockerad av exakt samma vägg:
+ * audit-raden, vaktens fynd, admin-listan, återhämtningens andra försök.
+ * Mejlet går via Resend och rör inte Wix — det är den enda vägen ut ur en
+ * full databas, och därför bär det allt som behövs för att expediera ordern
+ * för hand i stället för att bara säga att något gick fel.
+ *
+ * Skickas per körning (varje timme) så länge ordern sitter fast. Det är med
+ * flit: en betald order som inte kan expedieras SKA tjata, och tjatet slutar
+ * av sig självt i samma sekund som skrivningen går igenom. Order 10024 låg
+ * annars 19 timmar innan morgonmejlet nämnde den.
+ */
+export function buildStuckOrdersEmail(
+  stuck: StuckOrder[],
+  adminUrl: string,
+): { subject: string; html: string; text: string } | null {
+  if (stuck.length === 0) return null;
+
+  const rubrik =
+    stuck.length === 1
+      ? `Order ${stuck[0].number} kom inte in i admin`
+      : `${stuck.length} betalda ordrar kom inte in i admin`;
+
+  const rader = stuck
+    .map((o) => {
+      const artiklar = o.items.length
+        ? o.items
+            .map((i) => `<li>${escapeHtml(i.name)}${i.sku ? ` <code>${escapeHtml(i.sku)}</code>` : ""} × ${i.quantity}</li>`)
+            .join("")
+        : "<li><em>inga orderrader kunde läsas</em></li>";
+      return `<div style="margin:0 0 18px;padding:12px 14px;border:1px solid ${BRAND.border};border-radius:8px;">
+  <div style="font-weight:600;font-size:16px;">Order ${escapeHtml(o.number)}</div>
+  ${o.customer ? `<div style="color:${BRAND.muted};font-size:13px;">${escapeHtml(o.customer)}</div>` : ""}
+  <ul style="margin:8px 0 8px 18px;padding:0;">${artiklar}</ul>
+  <div style="color:${BRAND.muted};font-size:12px;">Orsak: ${escapeHtml(o.reason)}</div>
+</div>`;
+    })
+    .join("");
+
+  const html = `<h2 style="margin:0 0 12px;font-size:18px;">🚨 ${escapeHtml(rubrik)}</h2>
+<p style="margin:0 0 16px;">Kunden har betalat, men fulfillment-tasken kunde inte skrivas — ordern syns alltså <strong>inte</strong> i /admin och kommer inte att beställas automatiskt.</p>
+${rader}
+<p style="margin:16px 0 0;">Ordern finns kvar i Wix och kan expedieras för hand. Går orsaken att åtgärda hämtas den in av sig själv inom en timme — då slutar det här mejlet komma.</p>
+<p style="margin:12px 0 0;"><a href="${escapeHtml(adminUrl)}" style="color:${BRAND.primary};">Öppna /admin</a></p>`;
+
+  const text = [
+    `🚨 ${rubrik}`,
+    "",
+    "Kunden har betalat, men fulfillment-tasken kunde inte skrivas.",
+    "Ordern syns INTE i /admin och beställs inte automatiskt.",
+    "",
+    ...stuck.map((o) =>
+      [
+        `Order ${o.number}${o.customer ? ` — ${o.customer}` : ""}`,
+        ...(o.items.length
+          ? o.items.map((i) => `  - ${i.name}${i.sku ? ` (${i.sku})` : ""} x${i.quantity}`)
+          : ["  - inga orderrader kunde läsas"]),
+        `  Orsak: ${o.reason}`,
+        "",
+      ].join("\n"),
+    ),
+    `Ordern finns kvar i Wix och kan expedieras för hand.`,
+    adminUrl,
+  ].join("\n");
+
+  return { subject: `🚨 ${rubrik}`, html: wrapInBrandShell(html), text };
+}

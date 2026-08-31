@@ -33,6 +33,7 @@ import { getStore } from "@/lib/store/factory";
 import { fetchOrders } from "@/lib/wix/orders";
 import type { WixOrder } from "@/lib/orders/types";
 import { DEFAULT_LOOKBACK_DAYS, runOrderBackfill } from "@/lib/orders/backfill";
+import { buildStuckOrdersEmail, sendEmail } from "@/lib/email/resend";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -104,6 +105,39 @@ async function handle(req: NextRequest) {
       );
     }
 
+    // ☠️ LARMET GÅR VIA MEJL, INTE VIA WIX. Faller task-skrivningen är det
+    // oftast för att Wix Datas postgräns är nådd — och då är varje kanal vi
+    // annars litar på blockerad av exakt samma vägg: audit-raden nedan,
+    // vaktens fynd, admin-listan, nästa körnings andra försök. Resend rör
+    // inte Wix och är därför den enda vägen ut ur en full databas.
+    //
+    // Mejlet upprepas varje timme så länge ordern sitter fast. Det är med
+    // flit: en betald order som inte kan expedieras SKA tjata, och tjatet
+    // upphör av sig självt i samma sekund som skrivningen går igenom. Order
+    // 10024 låg annars 19 timmar innan morgonmejlet nämnde den — och den
+    // enda anledningen att den upptäcktes var att Leonard råkade titta.
+    //
+    // Bara i skarpt läge: en torrkörning har per definition inte tappat något.
+    if (!dryRun && summary.stuck.length > 0) {
+      const to = process.env.OPS_ALERT_EMAIL;
+      const byggt = buildStuckOrdersEmail(summary.stuck, `${adminBaseUrl()}/admin`);
+      if (to && byggt) {
+        try {
+          await sendEmail({ to, subject: byggt.subject, bodyHtml: byggt.html, bodyText: byggt.text });
+        } catch (mailErr) {
+          // Mejlet får aldrig fälla körningen — tasks som GICK att skapa är
+          // redan skapade, och konsolraden ovan står kvar som spår.
+          console.error(
+            `[order-backfill] larmmejlet gick inte fram: ${mailErr instanceof Error ? mailErr.message : String(mailErr)}`,
+          );
+        }
+      } else if (!to) {
+        console.error(
+          "[order-backfill] OPS_ALERT_EMAIL saknas — ingen kan larmas om de tappade ordrarna",
+        );
+      }
+    }
+
     // Bara när något faktiskt räddades — en tom körning var fjärde timme ska
     // inte fylla loggen (det var just loggvolym som orsakade incidenten).
     if (!dryRun && (summary.created > 0 || summary.failed > 0)) {
@@ -122,6 +156,18 @@ async function handle(req: NextRequest) {
     // omöjlig att felsöka i 57 timmar (audit 2026-08-28).
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
+}
+
+/** Adressen till admin, för länken i larmmejlet. Samma härledning som
+ *  aliexpress-sync-rutten använder för sina mejllänkar. */
+function adminBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL
+    ?? process.env.VERCEL_URL
+    ?? "https://fyndplats-cache-warmer.vercel.app"
+  )
+    .replace(/^https?:\/\//, "https://")
+    .replace(/\/$/, "");
 }
 
 export const GET = handle;
