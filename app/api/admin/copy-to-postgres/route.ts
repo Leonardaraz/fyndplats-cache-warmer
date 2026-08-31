@@ -26,6 +26,9 @@ import { sql } from "@/lib/db/client";
 import { runCopy, SidFel } from "@/lib/migration/copy-to-postgres";
 import { ATT_KOPIERA, LLM_SAMLINGAR, type TabellSpec } from "@/lib/db/tabeller";
 import { kanonisk } from "@/lib/migration/kanonisk";
+import { PostgresStore } from "@/lib/store/postgres";
+
+const TOKENS_KOLLEKTION = process.env.WIX_DATA_COL_TOKENS ?? "FyndplatsAliExpressTokens";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -156,6 +159,47 @@ async function skrivSida(spec: TabellSpec, rader: Record<string, unknown>[]): Pr
     throw new SidFel(skrivna, radfel);
   }
   return skrivna;
+}
+
+/**
+ * ☠️ TOKENRADEN KOPIERAS SÄRSKILT — OCH DEN ÄR DEN FARLIGASTE ATT MISSA.
+ *
+ * Den låg inte i ATT_KOPIERA alls i första omgången, och verifieringen kunde
+ * inte se det: den granskar bara tabellerna i listan, så en kollektion som
+ * saknas där är osynlig för BÅDA. Ett grönt kvitto på en ofullständig lista.
+ *
+ * Priset hade varit högt. `refreshAndPersist` ROTERAR refresh-token vid varje
+ * förnyelse, så en tom tokenrad efter växlingen betyder inte bara "synken
+ * stannar" — den betyder att den enda giltiga refresh-token ligger kvar i Wix
+ * medan produktionen läser Postgres. Vägen tillbaka är ny OAuth för hand
+ * (se CLAUDE.md om de 30 dygnen utan förnyelse).
+ *
+ * Skrivs genom PostgresStore, inte genom den generiska sidkopieringen: tabellen
+ * har en helt egen form (en enda rad låst till id=1, snake_case-kolumner) och
+ * `saveAliExpressTokens` äger redan den formen. En andra definition här hade
+ * varit exakt den tvilling resten av modulen finns för att undvika.
+ */
+async function kopieraTokens(): Promise<{ kopierade: number; fel: string[] }> {
+  const rader = await läsSida(TOKENS_KOLLEKTION, 0, 5);
+  const rad = rader[0] as
+    | { accessToken?: string; refreshToken?: string; expiresAt?: string }
+    | undefined;
+  if (!rad) return { kopierade: 0, fel: [] };
+
+  if (!rad.accessToken || !rad.refreshToken || !rad.expiresAt) {
+    return { kopierade: 0, fel: ["tokenraden är partiell — kopieras inte"] };
+  }
+  const expiresAt = new Date(rad.expiresAt);
+  if (Number.isNaN(expiresAt.getTime())) {
+    return { kopierade: 0, fel: [`ogiltig expiresAt="${rad.expiresAt}"`] };
+  }
+
+  await new PostgresStore().saveAliExpressTokens({
+    accessToken: rad.accessToken,
+    refreshToken: rad.refreshToken,
+    expiresAt,
+  });
+  return { kopierade: 1, fel: [] };
 }
 
 async function skrivLlmSida(kollektion: string, rader: Record<string, unknown>[]): Promise<number> {
@@ -351,6 +395,19 @@ async function handle(req: NextRequest) {
       },
       { läsSida, skrivSida, skrivLlmSida },
     );
+
+    // Tokenraden ligger utanför sidkopieringen (egen form) men är en del av
+    // samma jobb — den ska aldrig kunna glömmas för att den är ett specialfall.
+    if (!dryRun && !tabeller.length) {
+      const t = await kopieraTokens();
+      summary.tabeller.push({
+        tabell: "aliexpress_tokens",
+        läst: t.kopierade + (t.fel.length ? 1 : 0),
+        skrivet: t.kopierade,
+        fel: t.fel,
+      });
+      summary.totaltSkrivet += t.kopierade;
+    }
 
     // Konsolen kräver ingen databas — samma skäl som i order-backfillen.
     const fel = summary.tabeller.flatMap((t) => t.fel.map((f) => `${t.tabell} ${f}`));
