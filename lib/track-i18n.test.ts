@@ -125,6 +125,36 @@ test("vanliga milstolpar översätts", () => {
   assert.equal(matchPhrase("Held at customs"), "Paketet hanteras i tullen.");
 });
 
+test("lagerstadiet – de fyra fraserna från order 10024 översätts", () => {
+  // Ordagrant som de stod på /sparning 2026-08-31, alla fyra oöversatta.
+  assert.equal(matchPhrase("Your order is being packed"), "Din order packas.");
+  assert.equal(
+    matchPhrase("Package picked and ready for packing."),
+    "Varan är plockad och klar för packning.",
+  );
+  assert.equal(
+    matchPhrase("Package ready to be shipped by warehouse."),
+    "Paketet är färdigpackat och väntar på transportören.",
+  );
+  assert.equal(matchPhrase("Package left warehouse."), "Paketet har lämnat avsändarens lager.");
+});
+
+test("lagerstadiet läses INTE som en upphämtningsskanning", () => {
+  // "picked and ready for packing" innehåller "picked". Hamnar regeln efter
+  // upphämtningsmönstren blir varan "hämtad av transportören" medan den i
+  // själva verket fortfarande ligger kvar på lagret — ett senare skede än
+  // sanningen, vilket är värre än engelska.
+  assert.notEqual(
+    matchPhrase("Package picked and ready for packing."),
+    "Paketet har hämtats av transportören.",
+  );
+  // Och riktiga upphämtningar ska fortfarande matcha som förut.
+  assert.equal(
+    matchPhrase("The shipment item has been picked up by the carrier"),
+    "Paketet har hämtats av transportören.",
+  );
+});
+
 test("okänd text → null (anroparen faller tillbaka på stage-text)", () => {
   assert.equal(matchPhrase("Some totally unknown carrier blurb 12345"), null);
   assert.equal(matchPhrase(""), null);
