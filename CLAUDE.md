@@ -1356,6 +1356,48 @@ Fyra egenskaper som inte ska tas bort:
 Rutten är idempotent (`createTaskIfAbsent` skriver aldrig över) så den är gratis
 att köra ofta och ofarlig att köra om.
 
+### Larmet går via mejl, för det är den enda kanal som fungerar
+
+Nätet ovan gick i väggen på exakt samma sak som webhooken: `createTaskIfAbsent`
+kastade `WDE0195`, felet fångades per order, lades i `errors` — och rutten
+svarade 200. Ett nät som kan misslyckas tyst är inget nät.
+
+☠️ **När task-skrivningen faller är varje annan kanal blockerad av samma vägg.**
+Audit-raden är också en ny rad. Vaktens fynd hamnar i morgonmejlet först nästa
+dygn (19 timmar för 10024). Admin-listan läser bara tasks, och det är tasken som
+saknas. Nästa körnings andra försök faller likadant. Resend rör inte Wix, och är
+därför enda vägen ut ur en full databas.
+
+`buildStuckOrdersEmail` bär därför allt som behövs för att expediera ordern för
+hand — ordernummer, kund, artikel med SKU och antal, orsaken ordagrant. Mejlet
+upprepas varje timme så länge ordern sitter fast; en betald order som inte kan
+expedieras SKA tjata, och tjatet upphör av sig självt när skrivningen går
+igenom. **Bara raderna som inte hann skrivas listas** — annars beställer man om
+en rad som redan ligger i `/admin` och kunden får två paket.
+
+### ☠️ Ett fullt CMS gör importen till en dubblettfabrik
+
+Ordningen i `lib/aosom/import-run.ts` är påtvingad: mappningen behöver
+produktens Wix-id, så produkten skapas först. Faller mappningsskrivningen
+däremellan är produkten **föräldralös** — den finns i butiken men syns inte för
+lagersynken, prissynken, prisreparationen, bildreparationen eller
+lönsamhetsöversikten, som alla itererar mappningar.
+
+Värre: dubblettspärren nycklar på `supplierProductId` i MAPPNINGEN. Utan rad ser
+nästa körning artikeln som ny och skapar en **ANDRA** produkt för samma vara —
+precis den interna dubbletten som straffas. Och markören flyttas ändå (en trasig
+rad får inte stoppa svepet), så ingen körning återkommer till den av sig själv.
+
+Uppmätt 2026-08-31: nattens körning 04:40 skapade `3e6f2d24-e045-44ad-aed9-067030b01f46`
+(ett tyskt utkast, `visible:false`) och föll sedan på postgränsen. Noll
+mappningsrader pekar på den.
+
+Luckan går inte att stänga genom att byta ordning. Det som går är att vägra
+tappa bort den: `summary.orphans` namnger sku + wixProductId, och en
+konsolrad skrivs (konsolen kräver ingen databas). `?sku=` kör om riktat när
+orsaken är åtgärdad. **En automatisk radering av produkten är medvetet INTE
+byggd** — det är en destruktiv åtgärd på något en människa ska titta på först.
+
 ⚠️ **Taket självt är INTE löst av det här.** 18 091 raderade audit-rader
 (22 977 → 4 886, verifierat) flyttade det inte en millimeter — så radantalet i
 Wix Data är inte det som binder. Katalogen är ~5 420 produkter, och de 4 046

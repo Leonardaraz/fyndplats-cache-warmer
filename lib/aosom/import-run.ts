@@ -99,6 +99,24 @@ export interface AosomImportSummary {
   /** Varför körningen slutade. */
   stoppedBy: "klart" | "limit" | "tidsbudget";
   errors: { sku: string; error: string }[];
+  /**
+   * ☠️ Produkter som SKAPADES i Wix men vars mappningsrad inte gick att skriva.
+   *
+   * Ordningen är påtvingad: mappningen behöver produktens Wix-id, så produkten
+   * måste skapas först. Faller skrivningen däremellan — och 2026-08-31 gjorde
+   * den det, på Wix Datas postgräns — blir produkten FÖRÄLDRALÖS: den finns i
+   * butiken men syns inte för lagersynken, prissynken, prisreparationen,
+   * bildreparationen eller lönsamhetsöversikten, som alla itererar mappningar.
+   *
+   * Värre: dubblettspärren nycklar på `supplierProductId` i MAPPNINGEN. Utan
+   * rad ser nästa körning artikeln som ny och skapar en ANDRA produkt för
+   * samma vara — precis den interna dubbletten Google straffar.
+   *
+   * Markören flyttas ändå (en trasig rad får inte stoppa svepet), så ingen
+   * körning återkommer till den av sig själv. Därför namnges den här i stället
+   * för att bara räknas: `?sku=` kör om den riktat när orsaken är åtgärdad.
+   */
+  orphans: { sku: string; wixProductId: string }[];
   /** Bilder som faktiskt hämtas hem för det som återstår — kostnadssignal. */
   remainingImages: number;
   /** Bildpositioner körningen använde. */
@@ -172,6 +190,7 @@ export async function runAosomImport(
     cursor: null,
     stoppedBy: "klart",
     errors: [],
+    orphans: [],
     remainingImages: queue.reduce(
       (s, r) => s + toImportProduct(r, deps.fx, { positioner: bildpositioner }).imageUrls.length,
       0,
@@ -201,8 +220,13 @@ export async function runAosomImport(
       continue;
     }
 
+    // `result` lever UTANFÖR try:n med flit: är den satt när vi hamnar i
+    // catch:en betyder det att produkten redan finns i Wix och att det var
+    // mappningen som föll. De två felen ser identiska ut i ett felmeddelande
+    // men kräver helt olika åtgärd — omkörning respektive städning.
+    let result: ImportResult | null = null;
     try {
-      const result = await deps.importOne(product);
+      result = await deps.importOne(product);
       await deps.saveMapping(buildMapping(row, result));
       summary.imported++;
       summary.remaining--;
@@ -210,6 +234,20 @@ export async function runAosomImport(
     } catch (err) {
       summary.failed++;
       summary.errors.push({ sku: row.sku, error: err instanceof Error ? err.message : String(err) });
+      // ☠️ Produkten skapades men fick ingen mappningsrad. Ordningen går inte
+      // att vända (mappningen behöver Wix-id:t), så luckan är strukturell —
+      // det enda som går att göra är att vägra tappa bort den. Uppmätt
+      // 2026-08-31: nattens körning skapade `3e6f2d24…` och föll sedan på
+      // Wix Datas postgräns. Produkten är osynlig för varje jobb som itererar
+      // mappningar, och nästa körning ser artikeln som ny och skapar en ANDRA.
+      if (result) {
+        summary.orphans.push({ sku: row.sku, wixProductId: result.wixProductId });
+        console.error(
+          `[aosom-import] FÖRÄLDRALÖS: ${row.sku} skapades som ${result.wixProductId} `
+            + "men mappningen gick inte att skriva — produkten syns inte för synk/prisjobben "
+            + "och nästa körning importerar artikeln igen",
+        );
+      }
       // Markören flyttas ÄVEN vid fel. Annars fastnar hela svepet på en trasig
       // rad: nästa körning börjar om på samma produkt, misslyckas igen, och
       // katalogen står stilla. Felet står i summary och går att köra om riktat
