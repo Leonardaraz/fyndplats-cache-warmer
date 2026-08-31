@@ -33,7 +33,7 @@ export const POLL_ERROR_WINDOW_MS = 24 * HOUR;
 
 /** Betalstatusar där kunden faktiskt betalat och en leverans förväntas.
  *  FULLY_REFUNDED/NOT_PAID/PENDING ger ingen fulfillment-plikt. */
-const ACTIONABLE_PAYMENT = new Set(["PAID", "PARTIALLY_PAID", "PARTIALLY_REFUNDED"]);
+export const ACTIONABLE_PAYMENT = new Set(["PAID", "PARTIALLY_PAID", "PARTIALLY_REFUNDED"]);
 
 /** Minimal orderbild — mappas från lib/wix/orders.fetchOrders i routen. */
 export interface GuardOrderInput {

@@ -92,6 +92,12 @@ type WixDestination = { address?: WixAddress; contactDetails?: WixContact; conta
 export interface WixOrder {
   id: string;
   number?: string;
+  // Bärs av både webhook-payloaden och Orders-API:t. Behövs av
+  // orderåterhämtningen (lib/orders/backfill.ts), som måste kunna avgöra om en
+  // order är betald och hur gammal den är utan att gissa.
+  paymentStatus?: string;
+  createdDate?: string;
+  _createdDate?: string;
   lineItems?: WixLineItem[];
   recipientInfo?: WixDestination;
   shippingInfo?: { logistics?: { shippingDestination?: WixDestination } };
