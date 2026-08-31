@@ -20,6 +20,9 @@
 //   2. produkter utan mapping (manuellt skapade i Wix) — kostnad fylls i här
 //   3. framtida ändringar i landad kostnad utan att skriva om import-pipelinen
 
+import { storeBackend } from "./backend";
+import { sql } from "../db/client";
+
 const WIX_BASE = "https://www.wixapis.com";
 
 function headers(): Record<string, string> {
@@ -53,6 +56,10 @@ export interface ImportCostRecord {
 export class ImportCostStore {
   /** Listar alla manuella overrides (collection kan vara tom → returnerar []). */
   async listAll(): Promise<ImportCostRecord[]> {
+    if (storeBackend() === "postgres") {
+      const rader = await sql()`select data from import_costs order by at desc nulls last`;
+      return rader.map((r) => (r as { data: ImportCostRecord }).data);
+    }
     const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
       method: "POST",
       headers: headers(),
@@ -77,6 +84,12 @@ export class ImportCostStore {
   }
 
   async upsert(record: ImportCostRecord): Promise<void> {
+    if (storeBackend() === "postgres") {
+      await sql()`insert into import_costs (id, at, data)
+                  values (${record.productId}, ${record.importedAt ?? null}, ${JSON.stringify(record)})
+                  on conflict (id) do update set at = excluded.at, data = excluded.data`;
+      return;
+    }
     const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
       method: "POST",
       headers: headers(),
