@@ -22,7 +22,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { ensureSchema } from "@/lib/db/schema";
 import { sql } from "@/lib/db/client";
-import { runCopy } from "@/lib/migration/copy-to-postgres";
+import { runCopy, SidFel } from "@/lib/migration/copy-to-postgres";
 import { ATT_KOPIERA, LLM_SAMLINGAR, type TabellSpec } from "@/lib/db/tabeller";
 
 export const runtime = "nodejs";
@@ -90,6 +90,28 @@ async function läsSida(
   }
 }
 
+/**
+ * ☠️ WIX RETURNERAR DATUM SOM `{"$date": "..."}`, INTE SOM STRÄNGAR.
+ *
+ * Uppmätt i första skarpa kopieringen 2026-08-31: en importkostnadsrad föll med
+ * `invalid input syntax for type timestamp with time zone:
+ * "{"$date":"2026-05-31T00:43:00Z"}"`. De flesta fält är rena ISO-strängar, så
+ * felet dyker bara upp på de rader där Wix råkat lagra ett riktigt Date —
+ * alltså precis den sortens fel som inte syns förrän man kör skarpt mot hela
+ * beståndet.
+ *
+ * Bara PROJEKTIONERNA normaliseras. `data` lämnas ordagrant som källan skrev
+ * den, annars hade kopian inte gått att jämföra mot originalet.
+ */
+function kolumnvärde(v: unknown): unknown {
+  if (v === undefined || v === "") return null;
+  if (v && typeof v === "object" && "$date" in (v as Record<string, unknown>)) {
+    const d = (v as { $date?: unknown }).$date;
+    return typeof d === "string" ? d : null;
+  }
+  return v;
+}
+
 /** Upsertar en sida. `data` bär hela posten; kolumnerna är projektioner. */
 async function skrivSida(spec: TabellSpec, rader: Record<string, unknown>[]): Promise<number> {
   const q = sql();
@@ -99,20 +121,37 @@ async function skrivSida(spec: TabellSpec, rader: Record<string, unknown>[]): Pr
   const namn = [...Object.values(spec.kolumner), "data"];
   const uppdatera = namn.filter((n) => n !== idKol).map((n) => `${n} = excluded.${n}`);
 
+  const fält = Object.keys(spec.kolumner);
   let skrivna = 0;
+  const radfel: string[] = [];
+
   for (const rad of rader) {
     // Wix interna fält följer med i `data` — de läses av ingenting (verifierat
     // i auditen) och rensas vid läsning i PostgresStore. Att strippa dem här
     // hade gjort kopian icke-identisk med källan, vilket försvårar jämförelsen.
-    const värden = Object.keys(spec.kolumner).map((fält) => rad[fält] ?? null);
-    if (värden[Object.keys(spec.kolumner).indexOf(spec.idFält)] == null) continue; // rad utan id
-    await q.query(
-      `insert into ${spec.tabell} (${namn.join(", ")})
-       values (${namn.map((_, i) => `$${i + 1}`).join(", ")})
-       on conflict (${idKol}) do update set ${uppdatera.join(", ")}`,
-      [...värden, JSON.stringify(rad)],
-    );
-    skrivna++;
+    const värden = fält.map((f) => kolumnvärde(rad[f]));
+    if (värden[fält.indexOf(spec.idFält)] == null) continue; // rad utan id
+    try {
+      await q.query(
+        `insert into ${spec.tabell} (${namn.join(", ")})
+         values (${namn.map((_, i) => `$${i + 1}`).join(", ")})
+         on conflict (${idKol}) do update set ${uppdatera.join(", ")}`,
+        [...värden, JSON.stringify(rad)],
+      );
+      skrivna++;
+    } catch (err) {
+      // ☠️ PER RAD, INTE PER SIDA. Första skarpa körningen tappade 200
+      // mappningar på TVÅ trasiga rader: felet kastades ur sidan och tog med
+      // sig upp till 99 oskyldiga grannar per gång. Ett fel ska kosta sin egen
+      // rad och ingen annans — och raden måste NAMNGES, annars går den inte
+      // att köra om riktat.
+      const id = String(rad[spec.idFält] ?? rad._id ?? "?");
+      radfel.push(`${id}: ${err instanceof Error ? err.message.slice(0, 140) : String(err)}`);
+    }
+  }
+
+  if (radfel.length > 0) {
+    throw new SidFel(skrivna, radfel);
   }
   return skrivna;
 }
