@@ -53,10 +53,26 @@ const DDL: string[] = [
      data                jsonb not null,
      updated_at          timestamptz not null default now()
    )`,
-  // ☠️ Dubblettspärren ÄR det här indexet. I Wix var den en applikationsregel
-  // som kunde kringgås av en tappad mappningsrad; här kan databasen inte låta
-  // två produkter dela leverantörsartikelnummer.
-  `create unique index if not exists mappings_supplier_product_id_key
+  // ☠️ INTE UNIKT — och det är ett medvetet beslut, inte en förbiseelse.
+  //
+  // Första skarpa kopieringen hade ett unikt index här, och det avvisade fyra
+  // AE-listningar som har TVÅ mappningar var (1005010198611959,
+  // 1005010705662766, 1005007823230150, 1005002985985096). Det såg först ut som
+  // ett fynd att fira: databasen fångade en intern dubblett.
+  //
+  // Men kodbasen TILLÅTER dubbletter med flit. `/api/import` tar
+  // `allowDuplicate: true` för fallet "produkten raderades men mappningsraden
+  // blev kvar", och båda importvägarnas dubblettspärr är uttryckligen
+  // fail-open: ett trasigt uppslag ska aldrig blockera en i övrigt giltig
+  // import. Ett hårt unikhetsvillkor här hade tagit bort den nödutgången — och
+  // en databas som vägrar det applikationen medvetet stödjer är fel, hur
+  // tilltalande invarianten än ser ut.
+  //
+  // Indexet finns alltså för uppslaget (dubblettspärren slår upp på det här
+  // fältet), inte som en regel. De fyra dubbletterna är verkliga och hanteras
+  // där de hör hemma: i poleringen, av en människa.
+  `drop index if exists mappings_supplier_product_id_key`,
+  `create index if not exists mappings_supplier_product_id_idx
      on mappings (supplier_product_id)`,
   // Filtrerad listning: AE-synken hoppar över Aosom-rader och tvärtom. I Wix
   // lästes alla 5 470 och 4 467 kastades bort — det var den obegränsade
@@ -79,10 +95,16 @@ const DDL: string[] = [
   `create index if not exists tasks_status_idx on tasks (status)`,
 
   // --- Webhook-idempotens --------------------------------------------------
+  // `data` är NULLBAR: webhooken skriver bara event_id, kopieringen bär med
+  // hela källraden. Utan kolumnen föll kopieringen med "column data does not
+  // exist" (uppmätt i första skarpa körningen 2026-08-31) — och verifieringen
+  // jämför just `data`, så en tabell utan den kan aldrig verifieras.
   `create table if not exists webhook_events (
      event_id text primary key,
-     seen_at  timestamptz not null default now()
+     seen_at  timestamptz not null default now(),
+     data     jsonb
    )`,
+  `alter table webhook_events add column if not exists data jsonb`,
 
   // --- Audit ---------------------------------------------------------------
   `create table if not exists audit (
@@ -90,8 +112,12 @@ const DDL: string[] = [
      at     timestamptz not null,
      kind   text not null,
      ref    text,
-     detail text
+     detail text,
+     data   jsonb
    )`,
+  // ALTER för databaser som redan skapats utan kolumnen — schemat är
+  // idempotent och måste kunna laga en tabell det självt skapat fel.
+  `alter table audit add column if not exists data jsonb`,
   `create index if not exists audit_at_idx on audit (at desc)`,
 
   // --- AliExpress OAuth ----------------------------------------------------

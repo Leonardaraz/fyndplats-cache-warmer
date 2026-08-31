@@ -60,6 +60,21 @@ export interface KopieraDeps {
   now?: () => number;
 }
 
+/**
+ * Ett sidfel som ändå fick med sig en del av sidan.
+ *
+ * ☠️ Finns för att en trasig rad inte ska nolla räknaren för sina grannar.
+ * Första skarpa kopieringen 2026-08-31 tappade 200 mappningar på TVÅ trasiga
+ * rader: felet kastades ur sidan, de 99 raderna efter varje hoppades över, och
+ * summeringen visade dem varken som skrivna eller som fel — de var bara borta.
+ */
+export class SidFel extends Error {
+  constructor(readonly skrivna: number, readonly radfel: string[]) {
+    super(`${radfel.length} rader föll: ${radfel.join(" | ")}`);
+    this.name = "SidFel";
+  }
+}
+
 export const SIDSTORLEK = 100;
 export const DEFAULT_TIME_BUDGET_MS = 240_000;
 
@@ -122,9 +137,20 @@ export async function runCopy(
         } catch (err) {
           // En trasig sida får inte fälla resten — men den ska SYNAS, med sin
           // offset, så den går att köra om riktat i stället för att gissa.
-          res.fel.push(
-            `offset ${offset}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
-          );
+          //
+          // Bär felet ett delresultat (SidFel) räknas de rader som FAKTISKT
+          // skrevs. Annars hade en sida med en trasig rad rapporterat noll
+          // skrivna trots att 99 gick igenom, och verifieringen hade jagat en
+          // avvikelse som inte fanns.
+          if (err instanceof SidFel) {
+            res.skrivet += err.skrivna;
+            s.totaltSkrivet += err.skrivna;
+            for (const r of err.radfel) res.fel.push(`offset ${offset}: ${r}`);
+          } else {
+            res.fel.push(
+              `offset ${offset}: ${err instanceof Error ? err.message.slice(0, 200) : String(err)}`,
+            );
+          }
         }
       }
 
