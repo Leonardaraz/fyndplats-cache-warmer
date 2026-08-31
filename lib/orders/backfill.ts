@@ -128,6 +128,16 @@ export async function runOrderBackfill(
       createdAt: new Date(created).toISOString(),
     }));
 
+    // En order utan rader ger inga tasks. Utan den här grenen räknas den som
+    // `missing` vid varje körning i all evighet, utan att någonsin bli
+    // `created` — en lucka som ser ut som ett växande problem men aldrig går
+    // att åtgärda. Bättre att den syns EN gång som ett fel med sitt nummer.
+    if (derived.length === 0) {
+      s.failed++;
+      s.errors.push({ order: label, error: "ordern har inga orderrader — inget att skapa" });
+      continue;
+    }
+
     if (dryRun) {
       s.recovered.push(label);
       continue;
