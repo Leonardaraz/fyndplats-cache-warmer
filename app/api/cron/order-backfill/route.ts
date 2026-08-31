@@ -74,8 +74,12 @@ async function handle(req: NextRequest) {
         // som `deriveTasks` behöver för leveransadress och variantval. Fälten
         // finns i svaret (verifierat mot skarpa API:t 2026-08-31); det är bara
         // typen som är avkortad. Därför den här överlämningen.
+        // `strict` är inte pynt: utan den svarar fetchOrders med en TOM lista
+        // vid 403/404 (saknad scope), och då drar återhämtningen slutsatsen att
+        // inga ordrar saknas. Nätet hade slutat fungera utan att någon kunde se
+        // det — samma klass av fel som det nätet finns för att fånga.
         listOrders: async (sinceIso) =>
-          (await fetchOrders(sinceIso, { maxPages: 5 })) as unknown as WixOrder[],
+          (await fetchOrders(sinceIso, { maxPages: 5, strict: true })) as unknown as WixOrder[],
         listTasks: () => store.listTasks(),
         createTaskIfAbsent: (task) => store.createTaskIfAbsent(task),
       },

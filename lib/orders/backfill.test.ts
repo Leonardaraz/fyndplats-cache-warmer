@@ -171,6 +171,19 @@ describe("runOrderBackfill", () => {
     expect(listTasks).not.toHaveBeenCalled();
   });
 
+  it("en order utan rader blir ett synligt fel, inte en evig lucka", async () => {
+    // Utan den grenen räknas den som `missing` vid varje körning men blir
+    // aldrig `created` — ett problem som växer i rapporten och aldrig går att
+    // åtgärda, eftersom ingen får veta VILKEN order det gäller.
+    const d = deps({ listOrders: async () => [order({ lineItems: [] })] });
+    const s = await runOrderBackfill({}, d);
+    expect(s.missing).toBe(1);
+    expect(s.created).toBe(0);
+    expect(s.failed).toBe(1);
+    expect(s.errors[0].order).toBe("10024");
+    expect(d.skapade).toHaveLength(0);
+  });
+
   it("flerradsorder ger en task per rad", async () => {
     const o = order();
     o.lineItems = [...(o.lineItems ?? []), { id: "li-2", quantity: 2, physicalProperties: { sku: "FP-b" } }];
