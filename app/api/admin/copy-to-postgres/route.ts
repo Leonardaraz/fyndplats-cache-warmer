@@ -20,6 +20,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
+import { storeBackend } from "@/lib/store/backend";
 import { ensureSchema } from "@/lib/db/schema";
 import { sql } from "@/lib/db/client";
 import { runCopy, SidFel } from "@/lib/migration/copy-to-postgres";
@@ -292,6 +293,34 @@ async function handle(req: NextRequest) {
       return NextResponse.json({ ok: false, error: `Ogiltig markör "${rå}" — vänta dig "tabell:offset".` }, { status: 400 });
     }
     after = { tabell: t, offset: n };
+  }
+
+  // ☠️ EFTER VÄXLINGEN ÄR WIX INAKTUELLT, OCH EN KOPIERING SKRIVER TILLBAKA DET.
+  //
+  // Kopieringen är en upsert från Wix till Postgres. Det är rätt så länge Wix är
+  // sanningen. I samma sekund som STORE_BACKEND=postgres slår igenom vänder
+  // riktningen: produktionen skriver till Postgres, Wix fryser — och en körning
+  // härifrån hade då TYST RULLAT TILLBAKA levande data till gårdagens värden.
+  //
+  // Ingen rutt i huset är farligare åt det hållet, och felet hade inte synts:
+  // svaret säger "15 310 skrivna" och ser identiskt lyckat ut. Därför vägrar
+  // den, i stället för att lita på att den som kör kommer ihåg ordningen.
+  //
+  // Verifieringen är däremot ofarlig och tillåten — den läser bara, och att
+  // kunna jämföra kopian mot källan EFTER växlingen är precis vad man vill
+  // kunna göra under det dygn Wix-raderna ligger kvar som väg tillbaka.
+  const backend = storeBackend();
+  if (backend === "postgres" && p.get("verify") !== "1" && dryRun === false) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "STORE_BACKEND=postgres — växlingen är redan gjord, och Wix är därmed inaktuellt. "
+          + "En kopiering härifrån hade skrivit tillbaka gammal data över levande. "
+          + "Behöver du verkligen köra om: växla tillbaka till wix-data först.",
+      },
+      { status: 409 },
+    );
   }
 
   try {
