@@ -187,6 +187,24 @@ Sex steg. Ordningen är inte förhandlingsbar — se rollback.
 6. **Radera i Wix — SIST.** Först när steg 5 stått en dygnscykel. Det är den
    här raderingen som frigör kvoten.
 
+### ☠️ Ordningen mellan sista kopieringen och växlingen
+
+Kopieringen är en upsert **från Wix till Postgres**. Det är rätt så länge Wix är
+sanningen. I samma sekund som `STORE_BACKEND=postgres` slår igenom vänder
+riktningen: produktionen skriver till Postgres, Wix fryser — och en körning
+härifrån hade då **tyst rullat tillbaka levande data till gårdagens värden**,
+med ett svar som ser identiskt lyckat ut ("15 310 skrivna").
+
+Rutten vägrar därför skarp kopiering när `STORE_BACKEND=postgres`. Torrkörning
+och verifiering är fortfarande tillåtna — de läser bara, och att kunna jämföra
+kopian mot källan EFTER växlingen är precis vad man vill kunna göra under det
+dygn Wix-raderna ligger kvar som väg tillbaka.
+
+**Kör därför sista kopieringen strax FÖRE växlingen.** Fönstret däremellan är
+låg risk och självläkande: nya ordrar kan ändå inte skrivas till Wix (taket
+blockerar just inserts), och det som hinner ändras — synk-state, loggrader,
+mappningarnas saldon — skrivs om av nästa synk-körning.
+
 ### Rollback
 
 `STORE_BACKEND=wix-data` och omdeploy. Wix-raderna finns kvar ända till steg 6,

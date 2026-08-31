@@ -116,3 +116,34 @@ describe("runCopy", () => {
     expect(s.stoppadAv).toBe("klart");
   });
 });
+
+describe("☠️ riktningen på kopieringen", () => {
+  // Kopieringen är en upsert FRÅN Wix TILL Postgres. Det är rätt så länge Wix
+  // är sanningen. Efter växlingen vänder riktningen: produktionen skriver till
+  // Postgres och Wix fryser — och en körning då hade TYST rullat tillbaka
+  // levande data till gårdagens värden, med ett svar som ser identiskt lyckat
+  // ut ("15 310 skrivna").
+  //
+  // Spärren sitter i rutten (den känner till STORE_BACKEND); det här testet
+  // låser den invariant motorn själv bär: den skriver ALDRIG i torrläge, så
+  // ett torrt anrop är ofarligt oavsett riktning.
+  it("torrläge rör aldrig målet, oavsett vad som är inställt", async () => {
+    let skrivningar = 0;
+    const s = await runCopy(
+      {},
+      deps({
+        läsSida: källa({ [MAPPNINGAR.kollektion]: 500 }),
+        skrivSida: async (_s, r) => {
+          skrivningar += r.length;
+          return r.length;
+        },
+        skrivLlmSida: async (_k, r) => {
+          skrivningar += r.length;
+          return r.length;
+        },
+      }),
+    );
+    expect(s.totaltLäst).toBe(500);
+    expect(skrivningar).toBe(0);
+  });
+});
