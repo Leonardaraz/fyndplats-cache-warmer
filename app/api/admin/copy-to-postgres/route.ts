@@ -26,6 +26,7 @@ import { sql } from "@/lib/db/client";
 import { runCopy, SidFel } from "@/lib/migration/copy-to-postgres";
 import { ATT_KOPIERA, LLM_SAMLINGAR, type TabellSpec } from "@/lib/db/tabeller";
 import { kanonisk } from "@/lib/migration/kanonisk";
+import { bedömTabell } from "@/lib/migration/verdikt";
 import { PostgresStore } from "@/lib/store/postgres";
 
 const TOKENS_KOLLEKTION = process.env.WIX_DATA_COL_TOKENS ?? "FyndplatsAliExpressTokens";
@@ -237,8 +238,10 @@ async function wixAntal(kollektion: string): Promise<number> {
  * 524 lagade" medan 214 produkter fortfarande saknade bilder. Därför jämförs
  * också ett STICKPROV fält för fält: samma id ska ge samma JSON på båda sidor.
  */
-async function verifiera(): Promise<{
+async function verifiera(efterVäxling: boolean): Promise<{
   fullständig: boolean;
+  /** Vilken fråga svaret faktiskt besvarar. Se lib/migration/verdikt.ts. */
+  läge: "före-växling" | "efter-växling";
   tabeller: {
     tabell: string;
     wix: number;
@@ -247,6 +250,8 @@ async function verifiera(): Promise<{
     stämmer: boolean;
     /** Rader kopian har som källan inte längre har — källan städas medan vi kör. */
     överskott: number;
+    /** Efter växlingen: avvikelser som är förväntad drift, inte fel. */
+    drift: number;
     stickprov: number;
     avvikande: string[];
   }[];
@@ -301,19 +306,28 @@ async function verifiera(): Promise<{
     //
     // Att fälla på det hade betytt att verifieringen aldrig kan gå igenom mot
     // en tabell som städas, alltså aldrig alls.
+    // Regeln för vad som är drift och vad som är dataförlust bor i
+    // lib/migration/verdikt.ts — en definition, med tester som kodar in de
+    // verkliga talen ur körningen efter växlingen.
+    const verdikt = bedömTabell(wix, postgres, avvikande.length, efterVäxling);
+
     ut.push({
       tabell: post.namn,
       wix,
       postgres,
-      stämmer: postgres >= wix,
-      överskott: Math.max(0, postgres - wix),
+      stämmer: verdikt.stämmer,
+      överskott: verdikt.överskott,
+      drift: verdikt.drift,
       stickprov: prov.length,
       avvikande,
     });
   }
 
   return {
-    fullständig: ut.every((t) => t.stämmer && t.avvikande.length === 0),
+    fullständig: ut.every(
+      (t) => t.stämmer && (efterVäxling || t.avvikande.length === 0),
+    ),
+    läge: efterVäxling ? "efter-växling" : "före-växling",
     tabeller: ut,
   };
 }
@@ -373,12 +387,12 @@ async function handle(req: NextRequest) {
     await ensureSchema();
 
     if (p.get("verify") === "1") {
-      const rapport = await verifiera();
+      const rapport = await verifiera(backend === "postgres");
       if (!rapport.fullständig) {
         console.error(
-          `[copy-to-postgres] VERIFIERING FÄLLDE: `
+          `[copy-to-postgres] VERIFIERING FÄLLDE (${rapport.läge}): `
             + rapport.tabeller
-                .filter((t) => !t.stämmer || t.avvikande.length)
+                .filter((t) => !t.stämmer || (rapport.läge === "före-växling" && t.avvikande.length))
                 .map((t) => `${t.tabell} wix=${t.wix} pg=${t.postgres} avvik=${t.avvikande.length}`)
                 .join(" | "),
         );

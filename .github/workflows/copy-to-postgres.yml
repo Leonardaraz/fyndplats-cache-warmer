@@ -79,11 +79,20 @@ jobs:
 
           if [ "${MODE}" = "verifiera" ]; then
             svar=$(anropa "${url}?verify=1")
+            lage=$(echo "$svar" | jq -r '.verifiering."läge" // "före-växling"')
             echo "$svar" | jq -r '.verifiering.tabeller[] | "  \(.tabell)  wix=\(.wix)  pg=\(.postgres)  avvikande=\(.avvikande|length)"'
             echo "$svar" | jq -r '.verifiering.tabeller[] | select((.avvikande|length) > 0) | "    [avvik] \(.tabell): \(.avvikande|join(", "))"'
             if [ "$(echo "$svar" | jq -r '.verifiering."fullständig"')" != "true" ]; then
-              echo "::error::Verifieringen fällde — se tabellen ovan" >&2
+              echo "::error::Verifieringen fällde (${lage}) — se tabellen ovan" >&2
               exit 1
+            fi
+            if [ "$lage" = "efter-växling" ]; then
+              # Wix är fruset sedan växlingen. Att sidorna glider isär är
+              # kvittot på att produktionen skriver till Postgres — inte ett
+              # fel. Bara MASSFEL fäller här; se MASSFEL_ANDEL i rutten.
+              echo "$svar" | jq -r '.verifiering.tabeller[] | select(.drift > 0) | "    [drift] \(.tabell): \(.drift) rader/fält har rört sig sedan växlingen"'
+              echo "OK (efter växlingen): inga massfel. Driften ovan är förväntad — Wix är fruset, Postgres lever."
+              exit 0
             fi
             echo "OK: källa och kopia stämmer, både i antal och i stickprovet."
             exit 0
