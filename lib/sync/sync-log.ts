@@ -13,7 +13,8 @@
 
 import { storeBackend } from "../store/backend";
 import { sql } from "../db/client";
-import { byggSortering, byggVillkor, type Kolumnkarta } from "../db/wix-filter";
+import { byggSortering, byggVillkor } from "../db/wix-filter";
+import { SYNC_ALERTS, SYNC_LOG, SYNC_STATE, type TabellSpec } from "../db/tabeller";
 
 const WIX_BASE = "https://www.wixapis.com";
 
@@ -164,28 +165,9 @@ export interface SyncAlert {
  * att tyst falla bort — och ett tyst bortfall i `pruneLogOlderThan` hade
  * raderat hela loggen i stället för de gamla raderna.
  */
-const PG: Record<string, { tabell: string; idFält: string; kolumner: Kolumnkarta }> = {
-  [COL.log]: {
-    tabell: "sync_log",
-    idFält: "id",
-    kolumner: { id: "id", checkedAt: "checked_at", productId: "product_id", actionTaken: "action_taken" },
-  },
-  [COL.state]: {
-    tabell: "sync_state",
-    idFält: "wixProductId",
-    kolumner: {
-      wixProductId: "wix_product_id",
-      listingStatus: "listing_status",
-      errorStreak: "error_streak",
-      lastCheckedAt: "last_checked_at",
-    },
-  },
-  [COL.alerts]: {
-    tabell: "sync_alerts",
-    idFält: "id",
-    kolumner: { id: "id", status: "status", createdAt: "created_at" },
-  },
-};
+const PG: Record<string, TabellSpec> = Object.fromEntries(
+  [SYNC_LOG, SYNC_STATE, SYNC_ALERTS].map((t) => [t.kollektion, t]),
+);
 
 function pgSpec(collection: string) {
   const spec = PG[collection];

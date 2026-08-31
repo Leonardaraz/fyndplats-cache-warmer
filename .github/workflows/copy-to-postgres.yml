@@ -1,0 +1,131 @@
+name: Migrering — kopiera drift-datan till Postgres
+
+# Steg 3–4 i POSTGRES-MIGRATION.md.
+#
+# Samma nyckel-lösa upplägg som prisreparationen: produktionen har
+# Wix-nycklarna OCH DATABASE_URL, GitHub Actions har CRON_SECRET, och de möts
+# här. Ingen hemlighet passerar en chatt eller en laptop — hela jobbet går att
+# starta från en telefon.
+#
+# TRE LÄGEN:
+#   torr      — läser och räknar, skriver INGENTING. Default.
+#   kopiera   — skriver på riktigt, loopar markören tills allt är klart.
+#   verifiera — jämför källa och kopia: radantal per tabell OCH ett stickprov
+#               fält för fält. Ett radantal som stämmer är inget kvitto på att
+#               innehållet gör det.
+#
+# ☠️ RUTTEN RÖR ALDRIG EN WIX-RAD. Raderingen är ett eget, senare steg som körs
+# först när växlingen stått en dygnscykel — fram till dess är rollback en
+# env-variabel.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "torr = räkna bara · kopiera = skriv · verifiera = jämför"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - kopiera
+          - verifiera
+      tabeller:
+        description: "Bara dessa tabeller, kommaseparerat (tomt = alla)"
+        required: false
+        default: ""
+        type: string
+      max_varv:
+        description: "Hur många varv markören får loopa innan jobbet ger upp"
+        required: false
+        default: "40"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  kopiera:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          TABELLER: ${{ inputs.tabeller }}
+          MAX_VARV: ${{ inputs.max_varv }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad på stdout slukas av
+            # kommandosubstitutionen nedan — det kostade en hel felsökning
+            # 2026-08-28 innan någon förstod varför loggen var tom.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/copy-to-postgres"
+          anropa() { curl -sS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "$1"; }
+
+          q=""
+          [ -n "${TABELLER}" ] && q="&tabeller=${TABELLER}"
+
+          if [ "${MODE}" = "verifiera" ]; then
+            svar=$(anropa "${url}?verify=1")
+            echo "$svar" | jq -r '.verifiering.tabeller[] | "  \(.tabell)  wix=\(.wix)  pg=\(.postgres)  avvikande=\(.avvikande|length)"'
+            echo "$svar" | jq -r '.verifiering.tabeller[] | select((.avvikande|length) > 0) | "    [avvik] \(.tabell): \(.avvikande|join(", "))"'
+            if [ "$(echo "$svar" | jq -r '.verifiering."fullständig"')" != "true" ]; then
+              echo "::error::Verifieringen fällde — se tabellen ovan" >&2
+              exit 1
+            fi
+            echo "OK: källa och kopia stämmer, både i antal och i stickprovet."
+            exit 0
+          fi
+
+          dry="true"
+          [ "${MODE}" = "kopiera" ] && dry="false"
+
+          after=""; varv=0; last=0; skrivet=0
+
+          while :; do
+            varv=$((varv + 1))
+            if [ "$varv" -gt "${MAX_VARV}" ]; then
+              echo "::warning::Nådde max_varv (${MAX_VARV}) — kör igen med after=${after}" >&2
+              break
+            fi
+
+            u="${url}?dryRun=${dry}${q}"
+            [ -n "$after" ] && u="${u}&after=${after}"
+            svar=$(anropa "$u")
+
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::Rutten svarade fel: $(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
+              exit 1
+            fi
+
+            echo "--- varv ${varv} ---"
+            echo "$svar" | jq -r '.summary.tabeller[] | select(.["läst"] > 0 or .skrivet > 0 or (.fel|length) > 0) | "  \(.tabell)  läst \(.["läst"])  skrivet \(.skrivet)"'
+            # Läs FELEN, inte bara statuskoden. Bildfixen rapporterade "524 av
+            # 524 lagade" medan 214 produkter saknade bilder, för att ingen läste
+            # misslyckade-räknaren.
+            echo "$svar" | jq -r '.summary.tabeller[] | .fel[]? | "    [fel] \(.)"'
+            echo "$svar" | jq -r '"  = läst \(.summary["totaltLäst"]), skrivet \(.summary.totaltSkrivet), stoppad av \(.summary.stoppadAv)"'
+
+            last=$((last + $(echo "$svar" | jq -r '.summary["totaltLäst"]')))
+            skrivet=$((skrivet + $(echo "$svar" | jq -r '.summary.totaltSkrivet')))
+            after=$(echo "$svar" | jq -r 'if .summary.cursor then "\(.summary.cursor.tabell):\(.summary.cursor.offset)" else "" end')
+            [ -z "$after" ] && break
+          done
+
+          echo
+          echo "KLART: läst ${last}, skrivet ${skrivet} (läge ${MODE})"
+          if [ "${MODE}" = "kopiera" ]; then
+            echo "Nästa steg: kör jobbet igen med läget 'verifiera'."
+          fi
