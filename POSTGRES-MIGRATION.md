@@ -157,6 +157,10 @@ create table llm_kv (
 
 Sex steg. Ordningen är inte förhandlingsbar — se rollback.
 
+0. ☠️ **Avlasta `STORE_BACKEND` FÖRST.** Se fynd A nedan — utan det här steget
+   stänger själva växlingen av budgettaket, variantcachen och bulk-importen,
+   tyst. Det är en förutsättning, inte en förbättring.
+
 1. **Bygg backenden.** `lib/store/postgres.ts` implementerar `Store` (19
    metoder), plus Postgres-vägar i de fyra sidomodulerna. Ett tredje `case` i
    `lib/store/factory.ts`. **Ingen av de 44 filer som läser mappningar ändras** —
@@ -167,8 +171,9 @@ Sex steg. Ordningen är inte förhandlingsbar — se rollback.
    samtidighetstester (två parallella `claimTask` → exakt en vinnare).
 
 3. **Kopiera.** `scripts/copy-to-postgres.ts` läser ur Wix (läsning fungerar,
-   det är bara skrivning som blockeras) och upsertar. Idempotent och
-   omkörningsbar. Rapporterar antal per tabell.
+   det är bara skrivning som blockeras) och upsertar. Idempotent OCH
+   **återupptagbar med markör** — se fynd C. Den får INTE använda `queryAll`
+   (fynd B). Rapporterar antal per tabell.
 
 4. **Verifiera.** Radantal per tabell mot Wix, plus fält-för-fält-jämförelse på
    ett stickprov. ☠️ Antalet räcker inte som kvitto — det är sjunde gången i
@@ -211,3 +216,95 @@ punkt 5 ovan är därför inte en trevlighet utan det som gör att nästa gång 
 en varning i stället för en tappad order. Behövs mer utrymme är nästa steg att
 låta butiken läsa recensioner via vårt API i stället för direkt ur Wix Data —
 då ryms allt med marginal för lång tid framåt.
+
+---
+
+# Audit av planen ovan (2026-08-31)
+
+Planen granskad mot koden innan något byggs. Fyra fynd, två blockerande.
+
+## ☠️ A. `STORE_BACKEND=postgres` stänger av tre saker TYST — blockerande
+
+`lib/store/factory.ts` **kastar** på okänt värde, vilket är rätt. Tre andra
+moduler gör det inte — de jämför mot `"wix-data"` och faller tillbaka till
+minnet när värdet är något annat:
+
+| modul | rad | vad som händer vid `postgres` |
+|---|---|---|
+| `lib/llm/storage.ts` | `useWixBackend()` | allt LLM-lager blir in-memory |
+| `lib/watchlist/store.ts` | ternär | `MemoryWatchlistStore` |
+| `lib/bulk-import/store.ts` | ternär | `MemoryBulkImportStore` |
+
+Den värsta är den första, och den är inte uppenbar: **den dagliga
+budgettaket bor i `FyndplatsAnthropicSpend`.** In-memory får varje lambda sin
+EGEN räknare, så taket slutar i praktiken att gälla — och variantöversättningens
+cache töms, så samma råvärde betalas om vid varje import. Ingen av dem loggar
+något. Bulk-importen är nästan lika illa: jobbet skrivs i en lambda och
+worker-cronen läser i en annan, så det försvinner varje minut.
+
+**Åtgärd (steg 0):** en enda `storeBackend()`-hjälpare som alla läser, som
+kastar på okända värden. Modulerna som STANNAR på Wix (watchlist, bulk-import)
+ska inte fråga efter `STORE_BACKEND` alls utan efter om Wix är konfigurerat —
+de har inget med valet av drift-databas att göra.
+
+## ☠️ B. `queryAll` avkortade tyst vid 10 000 rader — LAGAT
+
+Inte ett planfel utan en bugg planen råkade gå förbi, och den var redan live:
+
+```ts
+// safety-tak: 100 sidor … "långt över nuvarande skala"
+for (let offset = 0; offset <= 10_000; offset += pageSize) { … }
+```
+
+Kommentaren skrevs när katalogen var ~900 mappningar. Idag är den **5 470 —
+55 % av taket** — och Aosom-feeden har 5 566 artiklar kvar. Vid 10 000 hade
+`listMappings()` returnerat de första 10 000 och synken slutat se resten **utan
+felmeddelande**: produkterna hade bara tystnat.
+
+Samma klass som retention-konstanterna och den obegränsade fan-outen — en
+konstant som var rätt när den sattes och blev fel när volymen växte under den.
+Taket kastar nu i stället, med två tester som låser det (verifierat genom att
+återinföra avkortningen).
+
+**Följd för planen:** kopieringsskriptet får inte använda `queryAll`. Ett
+skript som tyst kopierar 10 000 av 15 353 rader och rapporterar "klart" är
+precis den tysta halvmigrering som inte får hända.
+
+## C. Kopieringen är ~154 sidor i rad — måste vara återupptagbar
+
+15 353 rader / 100 per sida. Wix har strypt oss vid ~40–50 sidor i rad
+tidigare (mediabiblioteket, 2026-08-28). Det var en annan API-familj, så det är
+inte samma tak — men mönstret i det här repot är entydigt: **allt som sveper
+ska bära en markör.** Skriptet ska följa svepets vanliga form (markör i svaret,
+backoff på 429, återupptagbart), inte köras som en lång loop och hoppas.
+
+## D. Antagandet som bär hela räkningen — nu bevisat
+
+Planen förutsätter att butikens **produkter** inte räknas mot samma 4 000. Det
+var obevisat och hade fällt hela kalkylen om det var fel.
+
+Det är nu mätt, av haveriet självt: 2026-08-31 kl 04:40:39 **skapades** Wix-
+produkten `3e6f2d24…` samtidigt som mappningsraden avvisades med `WDE0195`.
+Delade de kvot hade båda fallit. De föll inte lika — alltså är kvoterna skilda.
+
+## Två kontroller som gick rent
+
+- **Inget som migrerar läser Wix interna fält** (`_id`, `_createdDate`,
+  `_updatedDate`, `_owner`). De tre träffarna i koden är Wix *Orders* och
+  redirects — båda stannar i Wix.
+- **Butiken läser ingen kollektion enbart via env-variabel.** Alla tre
+  träffarna på `WIX_DATA_COL_*` i butiksgrenen pekar på
+  `FyndplatsImportedReviews`, som stannar.
+
+## Storleken, mätt i stället för gissad
+
+En Aosom-mappning är ~900 byte som JSON; AE-rader med många varianter är
+större. 15 353 rader landar i storleksordningen **10–30 MB**. Vilken
+gratisnivå Neon än har just nu är marginalen flera tiopotenser — det är inte en
+risk, och planen ska inte luta sig mot ett prisblad jag citerat ur minnet.
+
+## Acceptanstest som saknades
+
+Migreringen är klar när **order 10024 har en task och syns i `/admin`** utan
+att någon rört den för hand. Det är hela anledningen till att arbetet finns,
+och det ska stå som ett kvitto i slutet, inte antas.
