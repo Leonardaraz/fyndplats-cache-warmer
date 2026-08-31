@@ -11,6 +11,10 @@
 // Felmönster: 404 / "unknown collection" → tom lista (semantiskt = kollektion
 // ej skapad än). Annars throw med komplett fel-body så Vercel-loggen är läsbar.
 
+import { storeBackend } from "../store/backend";
+import { sql } from "../db/client";
+import { byggSortering, byggVillkor, type Kolumnkarta } from "../db/wix-filter";
+
 const WIX_BASE = "https://www.wixapis.com";
 
 function headers(): Record<string, string> {
@@ -151,7 +155,70 @@ export interface SyncAlert {
   resolvedBy?: string;
 }
 
+/**
+ * Kollektion → Postgres-tabell, id-fält och de fält som går att filtrera och
+ * sortera på.
+ *
+ * ☠️ Kartan är AVSIKTLIGT ofullständig: bara fält som verkligen används i ett
+ * filter eller en sortering står här. Ett fält som saknas KASTAR i stället för
+ * att tyst falla bort — och ett tyst bortfall i `pruneLogOlderThan` hade
+ * raderat hela loggen i stället för de gamla raderna.
+ */
+const PG: Record<string, { tabell: string; idFält: string; kolumner: Kolumnkarta }> = {
+  [COL.log]: {
+    tabell: "sync_log",
+    idFält: "id",
+    kolumner: { id: "id", checkedAt: "checked_at", productId: "product_id", actionTaken: "action_taken" },
+  },
+  [COL.state]: {
+    tabell: "sync_state",
+    idFält: "wixProductId",
+    kolumner: {
+      wixProductId: "wix_product_id",
+      listingStatus: "listing_status",
+      errorStreak: "error_streak",
+      lastCheckedAt: "last_checked_at",
+    },
+  },
+  [COL.alerts]: {
+    tabell: "sync_alerts",
+    idFält: "id",
+    kolumner: { id: "id", status: "status", createdAt: "created_at" },
+  },
+};
+
+function pgSpec(collection: string) {
+  const spec = PG[collection];
+  if (!spec) throw new Error(`Ingen Postgres-tabell definierad för kollektionen "${collection}".`);
+  return spec;
+}
+
+/** Projicerar postens filterbara fält till kolumner. Övriga bor i `data`. */
+function kolumnvärden(collection: string, data: Record<string, unknown>): Record<string, unknown> {
+  const { kolumner } = pgSpec(collection);
+  const ut: Record<string, unknown> = {};
+  for (const [fält, kol] of Object.entries(kolumner)) ut[kol] = data[fält] ?? null;
+  return ut;
+}
+
+async function pgSave(collection: string, id: string, data: object): Promise<void> {
+  const { tabell, idFält } = pgSpec(collection);
+  const rad = { ...(data as Record<string, unknown>) };
+  const kol = kolumnvärden(collection, rad);
+  const idKol = pgSpec(collection).kolumner[idFält];
+  kol[idKol] = id;
+  const namn = [...Object.keys(kol), "data"];
+  const platser = namn.map((_, i) => `$${i + 1}`);
+  const uppdatera = namn.filter((n) => n !== idKol).map((n) => `${n} = excluded.${n}`);
+  await sql().query(
+    `insert into ${tabell} (${namn.join(", ")}) values (${platser.join(", ")})
+     on conflict (${idKol}) do update set ${uppdatera.join(", ")}`,
+    [...Object.values(kol), JSON.stringify(rad)],
+  );
+}
+
 async function save(collection: string, id: string, data: object): Promise<void> {
+  if (storeBackend() === "postgres") return pgSave(collection, id, data);
   const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
     method: "POST",
     headers: headers(),
@@ -171,6 +238,20 @@ async function save(collection: string, id: string, data: object): Promise<void>
  * Returnerar jobId. Används av retention-städningen nedan.
  */
 async function removeByFilter(collection: string, filter: Record<string, unknown>): Promise<string> {
+  if (storeBackend() === "postgres") {
+    const { tabell, kolumner } = pgSpec(collection);
+    const v = byggVillkor(filter, kolumner);
+    // ☠️ Tomt villkor = radera allt. Det får inte kunna hända av misstag: den
+    // enda anroparen är retentionen, som ALLTID har ett datumvillkor.
+    if (!v.sql) throw new Error(`removeByFilter(${collection}) utan villkor — vägrar radera allt.`);
+    const rader = await sql().query(
+      `delete from ${tabell} where ${v.sql} returning 1 as x`,
+      v.värden,
+    );
+    // Wix svarar med ett jobId man aldrig kan följa upp. Här är antalet
+    // raderade rader ett faktiskt kvitto.
+    return `${rader.length} rader`;
+  }
   const res = await fetch(`${WIX_BASE}/data/v2/bulk/items/async-remove-by-filter`, {
     method: "POST",
     headers: headers(),
@@ -185,6 +266,14 @@ async function removeByFilter(collection: string, filter: Record<string, unknown
 }
 
 async function get<T>(collection: string, id: string): Promise<T | null> {
+  if (storeBackend() === "postgres") {
+    const { tabell, idFält, kolumner } = pgSpec(collection);
+    const rader = await sql().query(
+      `select data from ${tabell} where ${kolumner[idFält]} = $1 limit 1`,
+      [id],
+    );
+    return ((rader[0] as { data?: T } | undefined)?.data ?? null) as T | null;
+  }
   const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(collection)}`;
   const res = await fetch(url, { method: "GET", headers: headers() });
   if (res.status === 404) return null;
@@ -202,6 +291,17 @@ async function query<T>(
   sort?: { fieldName: string; order: "ASC" | "DESC" }[],
   limit = 200,
 ): Promise<T[]> {
+  if (storeBackend() === "postgres") {
+    const { tabell, kolumner } = pgSpec(collection);
+    const v = byggVillkor(filter, kolumner);
+    const where = v.sql ? ` where ${v.sql}` : "";
+    const ordning = byggSortering(sort, kolumner);
+    const rader = await sql().query(
+      `select data from ${tabell}${where}${ordning} limit $${v.värden.length + 1}`,
+      [...v.värden, limit],
+    );
+    return rader.map((r) => (r as { data: T }).data);
+  }
   const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
     method: "POST",
     headers: headers(),
@@ -223,6 +323,11 @@ async function query<T>(
 }
 
 async function remove(collection: string, id: string): Promise<void> {
+  if (storeBackend() === "postgres") {
+    const { tabell, idFält, kolumner } = pgSpec(collection);
+    await sql().query(`delete from ${tabell} where ${kolumner[idFält]} = $1`, [id]);
+    return;
+  }
   const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(collection)}`;
   const res = await fetch(url, { method: "DELETE", headers: headers() });
   // 404 = redan borta. Tystna.

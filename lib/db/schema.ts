@@ -106,30 +106,38 @@ const DDL: string[] = [
    )`,
 
   // --- Synk-logg och synk-state -------------------------------------------
+  // Kolumnnamnen speglar domänens fältnamn (checkedAt, actionTaken, …) i
+  // snake_case. Det är med flit: översättaren i lib/db/wix-filter.ts mappar
+  // fält → kolumn explicit och KASTAR på okända fält, så ett filter som inte
+  // går att översätta blir ett fel i stället för fel rader.
   `create table if not exists sync_log (
-     id             text primary key,
-     at             timestamptz not null,
-     wix_product_id text,
-     action         text,
-     data           jsonb not null
+     id           text primary key,
+     checked_at   timestamptz not null,
+     product_id   text,
+     action_taken text,
+     data         jsonb not null
    )`,
-  `create index if not exists sync_log_at_idx on sync_log (at desc)`,
-  `create index if not exists sync_log_product_idx on sync_log (wix_product_id, at desc)`,
+  `create index if not exists sync_log_checked_at_idx on sync_log (checked_at desc)`,
+  `create index if not exists sync_log_product_idx on sync_log (product_id, checked_at desc)`,
+  `create index if not exists sync_log_action_idx on sync_log (action_taken, checked_at desc)`,
 
   `create table if not exists sync_state (
-     wix_product_id text primary key,
-     listing_status text,
-     data           jsonb not null,
-     updated_at     timestamptz not null default now()
+     wix_product_id  text primary key,
+     listing_status  text,
+     error_streak    int,
+     last_checked_at timestamptz,
+     data            jsonb not null
    )`,
-  `create index if not exists sync_state_listing_status_idx on sync_state (listing_status)`,
+  `create index if not exists sync_state_problem_idx
+     on sync_state (listing_status, error_streak, last_checked_at desc)`,
 
   `create table if not exists sync_alerts (
-     id     text primary key,
-     status text not null,
-     data   jsonb not null
+     id         text primary key,
+     status     text not null,
+     created_at timestamptz,
+     data       jsonb not null
    )`,
-  `create index if not exists sync_alerts_status_idx on sync_alerts (status)`,
+  `create index if not exists sync_alerts_status_idx on sync_alerts (status, created_at desc)`,
 
   // --- Produkt-hashar och importkostnader ---------------------------------
   `create table if not exists product_hashes (
