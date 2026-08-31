@@ -285,3 +285,60 @@ describe("WixDataStore — claimTask/releaseTask/updateTask (PATCH CAS wire-form
     await expect(new WixDataStore().releaseTask("x", "t")).resolves.toBeUndefined();
   });
 });
+
+describe("queryAll — taket kastar i stället för att avkorta", () => {
+  beforeEach(() => {
+    vi.stubEnv("WIX_API_TOKEN", "test-wix-token");
+    vi.stubEnv("WIX_SITE_ID", "test-site-id");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    global.fetch = ORIGINAL_FETCH;
+    vi.restoreAllMocks();
+  });
+
+  /** Svarar med en full sida varje gång — en kollektion som aldrig tar slut. */
+  function alltidFullSida() {
+    let n = 0;
+    const fn = vi.fn().mockImplementation(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        dataItems: Array.from({ length: 100 }, () => ({ data: { _id: `rad-${n++}` } })),
+      }),
+      text: async () => "",
+    } as Response));
+    global.fetch = fn as unknown as typeof fetch;
+    return fn;
+  }
+
+  it("☠️ en kollektion större än taket ger ett FEL, inte en halv lista", async () => {
+    // Taket var tidigare en tyst avkortning: `listMappings()` hade returnerat de
+    // första 10 000 raderna och synken slutat se resten utan att någonting
+    // klagade — produkterna hade bara tystnat. Vid 5 470 mappningar och en
+    // Aosom-feed på 5 566 artiklar kvar är det inte en teoretisk gräns.
+    alltidFullSida();
+    await expect(new WixDataStore().listMappings()).rejects.toThrow(/passerade 10000 rader|passerade 10 000 rader/);
+  });
+
+  it("en kollektion under taket returneras helt och hållet", async () => {
+    let anrop = 0;
+    global.fetch = vi.fn().mockImplementation(async () => {
+      // Två fulla sidor, sedan en halv → 250 rader, klart under taket.
+      const antal = anrop++ < 2 ? 100 : 50;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          dataItems: Array.from({ length: antal }, (_, i) => ({
+            data: { _id: `rad-${anrop}-${i}` },
+          })),
+        }),
+        text: async () => "",
+      } as Response;
+    }) as unknown as typeof fetch;
+
+    const rader = await new WixDataStore().listMappings();
+    expect(rader).toHaveLength(250);
+  });
+});

@@ -176,6 +176,10 @@ async function query<T>(
  * import-dedupen såg bara 100, och orderläggningen kunde inte hitta en task bortom
  * de 100 första. Dedupar på _id ifall offset-paging överlappar vid samtidig skrivning.
  */
+/** Tak för hur många rader `queryAll` hämtar innan den ger upp. Exporterad så
+ *  testet kan verifiera att taket KASTAR i stället för att avkorta tyst. */
+export const MAX_QUERY_ALL_ROWS = 10_000;
+
 async function queryAll<T>(
   dataCollectionId: string,
   filter?: Record<string, unknown>,
@@ -184,9 +188,25 @@ async function queryAll<T>(
   const pageSize = 100;
   const out: T[] = [];
   const seen = new Set<string>();
-  // Safety-tak: 100 sidor (10 000 rader), långt över nuvarande skala. Skulle det
-  // någonsin överskridas → byt till cursor-paging.
-  for (let offset = 0; offset <= 10_000; offset += pageSize) {
+  // ☠️ TAKET KASTAR NUMERA I STÄLLET FÖR ATT AVKORTA TYST.
+  //
+  // Kommentaren här sa "långt över nuvarande skala" och skrevs när katalogen var
+  // ~900 mappningar. 2026-08-31 är den 5 470 — 55 % av taket — och Aosom-feeden
+  // har 5 566 artiklar kvar att importera. Vid 10 000 hade `listMappings()`
+  // returnerat de första 10 000 och synken slutat se resten, UTAN felmeddelande:
+  // produkterna hade bara tystnat, precis som om de inte fanns.
+  //
+  // Samma klass av bugg som retention-konstanterna och den obegränsade
+  // fan-outen: en konstant som var rätt när den sattes och blir fel när volymen
+  // växer under den. Ingen commit att skylla på. Skillnaden är att de två andra
+  // upptäcktes av ett haveri — den här ska skrika i stället.
+  for (let offset = 0; ; offset += pageSize) {
+    if (offset > MAX_QUERY_ALL_ROWS) {
+      throw new Error(
+        `queryAll(${dataCollectionId}) passerade ${MAX_QUERY_ALL_ROWS} rader. `
+          + "Höj taket eller byt till cursor-paging — en avkortad lista är värre än ett fel.",
+      );
+    }
     const items = await queryPage<T>(dataCollectionId, filter, sort, pageSize, offset);
     for (const it of items) {
       const id = (it as { _id?: unknown })._id;
