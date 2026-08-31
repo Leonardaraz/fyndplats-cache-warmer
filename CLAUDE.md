@@ -1398,15 +1398,106 @@ konsolrad skrivs (konsolen kräver ingen databas). `?sku=` kör om riktat när
 orsaken är åtgärdad. **En automatisk radering av produkten är medvetet INTE
 byggd** — det är en destruktiv åtgärd på något en människa ska titta på först.
 
-⚠️ **Taket självt är INTE löst av det här.** 18 091 raderade audit-rader
-(22 977 → 4 886, verifierat) flyttade det inte en millimeter — så radantalet i
-Wix Data är inte det som binder. Katalogen är ~5 420 produkter, och de 4 046
-opolerade Aosom-utkasten ska ligga kvar tills de poleras. Det verkliga talet syns
-bara i Wix dashboard, inte i API:t.
+⚠️ **Taket löstes senare — och den här radens förklaring var fel.** Den påstod
+att "radantalet i Wix Data inte är det som binder", eftersom 18 091 raderade
+audit-rader (22 977 → 4 886, verifierat) inte släppte blockeringen. Radantalet
+ÄR det som binder. Taket är bara **globalt över alla kollektioner** och ligger på
+**4 000**, så de ~18 800 rader som återstod var fortfarande 4,7× över. Städningen
+var alltså inte otillräcklig av otur — ingen delmängd kunde räcka. Se nästa
+avsnitt.
 
 **Regeln: en pipeline med exakt en väg in behöver ett nät under sig.** Och den
 gamla, åttonde gången: ett fel som bara syns som en 500 i en cron ingen läser
 är ett fel ingen upptäcker.
+
+## ☠️ Drift-datan bor i Postgres sedan 2026-08-31 — inte i Wix Data
+
+Wix CMS slutade ta emot nya rader: *"You've reached your 4,000 items limit
+across all collections."* Taket är **globalt över alla kollektioner** och stoppar
+bara NYA rader — befintliga uppdateras som vanligt. Därför såg allt friskt ut
+utåt medan order 10024 (betald 09:27) aldrig nådde `/admin`.
+
+☠️ **Delvis städning ger exakt noll.** ~36 000 raderade rader (55 000 → 18 800)
+flyttade inte blockeringen en millimeter, och kunde inte göra det: antingen är
+man under 4 000 eller så är man blockerad. Ingen delmängd räcker — bara att
+flytta ut hela drift-datan (18 800 → ~3 470) gör det.
+
+Hela planen, mätningarna och auditen står i **`POSTGRES-MIGRATION.md`**.
+
+### Var datan bor nu
+
+| | |
+|---|---|
+| Backend-väljare | `STORE_BACKEND` — `memory` \| `wix-data` \| `postgres` |
+| Produktion | **`postgres`** (växlad 2026-08-31) |
+| Databas | Neon serverless Postgres, `DATABASE_URL` |
+| Flyttade rader | **15 311** (11 tabeller, fem moduler) |
+| Kvar i Wix Data | recensioner, auktioner, redirects + småposter |
+
+De tre kollektioner butiken läser **direkt** ur Wix Data stannar där —
+`FyndplatsImportedReviews`, `FyndplatsAuctions`, `FyndplatsRedirects`. Flyttas de
+måste butiksrepot byggas om, och de frigör inte de rader som binder.
+
+### Fem egenskaper som inte ska tas bort
+
+1. ☠️ **`STORE_BACKEND` har exakt EN läsare** (`lib/store/backend.ts`). Ett
+   källkodstest i `backend.test.ts` grep:ar efter `process.env.STORE_BACKEND`
+   utanför den filen och fäller. Skälet är husets vanligaste bugg: tvillingar
+   glider isär (`SHIP_AXIS_RE`, `EU_TULL_CODES`, `mapWithConcurrency`). En
+   backend-väljare läst på sex ställen hade betytt sex olika svar på frågan
+   "vilken databas skriver vi till?".
+2. ☠️ **Kopieringen vägrar köra när backend redan är `postgres`.**
+   `/api/admin/copy-to-postgres` svarar **409** i skarpt läge. Utan grinden hade
+   en omkörning skrivit tillbaka Wix gamla rader över levande data — rutten
+   läser från Wix och skriver till Postgres, och efter växlingen är Wix den
+   föråldrade sidan. `?verify=1` går alltid igenom; den skriver ingenting.
+3. ☠️ **Verifieringen jämför KANONISKT, inte ordagrant.** JSONB bevarar inte
+   nyckelordning, så en rå `JSON.stringify`-jämförelse flaggade 10/10
+   `.variants` och 10/10 `.shippingAddress` medan varje platt fält stämde.
+   `lib/migration/kanonisk.ts` sorterar nycklar rekursivt — men behåller
+   **array-ordningen**, som är betydelsebärande (varianter, bilder).
+4. ☠️ **Ingen unik nyckel på `supplier_product_id`.** Ett första utkast hade
+   det, och den skarpa kopieringen avvisade fyra legitima rader: katalogen
+   stödjer medvetet dubbletter (`allowDuplicate: true`, båda spärrarna
+   fail-open). **En databas som vägrar det applikationen medvetet stödjer är
+   fel, hur tilltalande invarianten än ser ut.**
+5. ☠️ **`queryAll` KASTAR i stället för att tyst kapa.** Den returnerade
+   tidigare de första N raderna utan att säga något; efter `MAX_QUERY_ALL_ROWS`
+   (10 000) kastar den. En halv katalog som ser komplett ut är samma klass av
+   fel som `Promise.allSettled` i `media.ts` — och den här gången hade det
+   betytt en kopia som saknade rader med grönt kvitto.
+
+### Kopiering och verifiering körs från GitHub Actions
+
+Workflowen **"Migrering — kopiera drift-datan till Postgres"**
+(`copy-to-postgres.yml`), tre lägen: `torr` · `kopiera` · `verifiera`. Samma
+nyckel-lösa upplägg som prisreparationen — produktionen har Wix-nycklarna och
+`DATABASE_URL`, Actions har `CRON_SECRET`. Torrkörning är default; utan
+`dryRun=false` skrivs ingenting. Rutten är markörbaserad (`cursor` → `?after=`)
+av samma skäl som Aosom-svepet: en serverless-rutt har 300 sekunder.
+
+Verifieringen är **asymmetrisk**: fler rader i Postgres än i Wix är OK (nya
+skrivningar landar bara i Postgres nu, och Wix gallrar `sync_log`), färre fäller.
+Den läser dessutom bara tabeller som står i kopielistan — därför finns
+`tabeller.test.ts`, som läser källkoden i alla fem ägande moduler och fäller om
+någon nämner en kollektion listan inte täcker. Det testet hittade
+`FyndplatsAliExpressTokens`, som annars lämnats kvar med grönt kvitto.
+
+Resultatet vid växlingen: **15 310 lästa / 15 310 skrivna**, alla radantal
+stämmer, **noll fältavvikelser**.
+
+### Wix-raderna ligger KVAR — och det är avsiktligt
+
+Växlingen är gjord, men de gamla raderna är inte raderade. De är
+återställningen: går något fel byts `STORE_BACKEND` tillbaka till `wix-data` och
+driften står på fötter igen på en minut. **Det är först raderingen som frigör
+4 000-taket**, och den ska göras med Leonards uttryckliga ja efter minst ett
+dygns stabil drift — inte samma kväll som växlingen.
+
+Kvittot att skrivvägen fungerar mättes direkt, inte antogs:
+`/api/cron/order-backfill` loggade **`1 av 1 saknade tasks skapade, 0 fel
+(räddade: 10024)`** 21:25 samma kväll. Ordern som legat oskrivbar sedan morgonen
+fick sin task, och `tasks` gick från 12 rader i Wix till 13 i Postgres.
 
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
