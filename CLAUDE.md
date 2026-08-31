@@ -1486,6 +1486,42 @@ någon nämner en kollektion listan inte täcker. Det testet hittade
 Resultatet vid växlingen: **15 310 lästa / 15 310 skrivna**, alla radantal
 stämmer, **noll fältavvikelser**.
 
+### ☠️ Verifieringen fällde en halvtimme efter växlingen — och hade rätt fel
+
+Körningen 22:06 gav rött på tre "avvikelser". Alla tre var frisk drift, och två
+av dem är precis det kvitto migrationen behövde:
+
+| tabell | vid växlingen | 22:06 | vad som hände |
+|---|---:|---:|---|
+| `sync_alerts` | 18 | **32** | synken skriver larm igen — samma skrivningar föll på `WDE0195` kl 04:00 |
+| `audit` | 1 796 | 1 790 | synkens egen städning tog 7 rader äldre än 14 dygn |
+| `sync_state` | — | 1 fält | `currentCostUsd` uppdaterad av 22:01-körningen |
+
+Produkten i fältavvikelsen är `2861bf83-2976-45e1-a51e-75f4bf880be2` — **samma
+rad som kl 04:00 loggade `Wix Data save FyndplatsAliExpressSyncAlerts (429):
+WDE0195`.** Den fick sitt larm skrivet den här gången.
+
+Felet låg i verifieringens premiss, inte i datan. Den frågar "speglar kopian
+källan?" — en fråga som slutade vara meningsfull i samma sekund som produktionen
+började skriva till Postgres. Wix är sedan dess **fruset** (taket blockerar nya
+rader, och ingen kod skriver dit), så varje korrekt skrivning får sidorna att
+glida isär. En verifiering som lyser rött varje gång driften är frisk lär man
+sig att ignorera — samma argument som mot att varna vid 48 h på
+token-förnyelsen.
+
+Regeln bor nu i **`lib/migration/verdikt.ts`** och känner till båda lägena:
+
+- **Före växlingen:** strikt. En enda saknad rad är dataförlust och fäller.
+- **Efter växlingen:** bara **MASSFEL** fäller (`MASSFEL_ANDEL` 10 % **och**
+  `MASSFEL_GOLV` 25 rader — båda krävs, så `webhook_events` med 16 rader inte
+  fäller på en enda). Allt annat rapporteras som `drift`.
+
+Båda trösklarna krävs med flit: andelen ensam fäller små tabeller på brus,
+golvet ensamt låter en liten tabell tömmas till hälften. Samma spärr-form som
+`MIN_FEED_RADER` och halvbildsspärren i media-cleanup — **skydda mot att allt
+rasar, inte mot att en rad rör sig.** Elva tester låser talen, verifierade genom
+att återinföra buggen: tre faller, och bara de tre.
+
 ### Wix-raderna ligger KVAR — och det är avsiktligt
 
 Växlingen är gjord, men de gamla raderna är inte raderade. De är
