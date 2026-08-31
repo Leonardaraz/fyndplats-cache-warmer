@@ -3,6 +3,7 @@ import {
   buildOosAlertEmail,
   buildRestockNotificationEmail,
   buildDailySummaryEmail,
+  buildStuckOrdersEmail,
 } from "./resend";
 import type { AlternativeSupplier } from "../aliexpress/alternatives";
 import type { SyncSummary } from "../sync/aliexpress-sync";
@@ -90,5 +91,58 @@ describe("buildDailySummaryEmail med OOS-aggregering", () => {
   it("returnerar null när inget hände", () => {
     const built = buildDailySummaryEmail(summary({ markedOos: 0, oosRealtimeAlerts: 0 }), "x");
     expect(built).toBeNull();
+  });
+});
+
+describe("buildStuckOrdersEmail", () => {
+  const order = {
+    number: "10024",
+    reason: "WDE0195: Items limit exceeded. Delete some items and try again.",
+    customer: "Göran Wallin",
+    items: [{ name: "Förvaringsskåp 60 cm svart", sku: "FP-forvaringsskap-60-svart", quantity: 1 }],
+  };
+
+  it("☠️ bär ordernummer, kund, artikel OCH orsak — mejlet är enda kanalen ut ur en full databas", () => {
+    const b = buildStuckOrdersEmail([order], "https://x.se/admin");
+    expect(b).not.toBeNull();
+    for (const text of [b!.html, b!.text]) {
+      expect(text).toContain("10024");
+      expect(text).toContain("Göran Wallin");
+      expect(text).toContain("Förvaringsskåp 60 cm svart");
+      expect(text).toContain("FP-forvaringsskap-60-svart");
+      expect(text).toContain("WDE0195");
+    }
+  });
+
+  it("ämnesraden namnger ordern så den syns i en notis på mobilen", () => {
+    expect(buildStuckOrdersEmail([order], "https://x.se/admin")!.subject).toContain("10024");
+  });
+
+  it("flera ordrar blir ETT mejl, inte ett per order", () => {
+    const b = buildStuckOrdersEmail([order, { ...order, number: "10025" }], "https://x.se/admin")!;
+    expect(b.subject).toContain("2");
+    expect(b.text).toContain("10024");
+    expect(b.text).toContain("10025");
+  });
+
+  it("returnerar null när inget sitter fast — vi spammar inte", () => {
+    expect(buildStuckOrdersEmail([], "https://x.se/admin")).toBeNull();
+  });
+
+  it("en order utan läsbara rader säger det i klartext i stället för att se tom ut", () => {
+    const b = buildStuckOrdersEmail(
+      [{ number: "10026", reason: "ordern har inga orderrader — inget att skapa", items: [] }],
+      "https://x.se/admin",
+    )!;
+    expect(b.text).toContain("inga orderrader");
+  });
+
+  it("escapar produktnamn — ett namn med < eller & får inte bryta mejlets HTML", () => {
+    const b = buildStuckOrdersEmail(
+      [{ ...order, items: [{ name: "Hylla <b>90</b> & co", quantity: 1 }] }],
+      "https://x.se/admin",
+    )!;
+    expect(b.html).toContain("&lt;b&gt;");
+    expect(b.html).not.toContain("<b>90</b>");
   });
 });

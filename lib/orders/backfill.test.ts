@@ -194,3 +194,83 @@ describe("runOrderBackfill", () => {
     expect(d.skapade.map((t) => t.taskId)).toEqual(["ord-1:li-1", "ord-1:li-2"]);
   });
 });
+
+describe("stuck — underlaget för larmmejlet", () => {
+  it("☠️ en order som inte gick att skriva bär allt som behövs för att expediera den för hand", async () => {
+    // Det här är hela poängen med fältet. När WDE0195 fäller skrivningen är
+    // varje annan kanal blockerad av samma vägg — audit, admin, vaktens fynd —
+    // och mejlet är det enda som når fram. Då duger inte "något gick fel":
+    // Leonard måste kunna plocka ordern ur mejlet.
+    const s = await runOrderBackfill(
+      {},
+      deps({
+        createTaskIfAbsent: async () => {
+          throw new Error("WDE0195: Items limit exceeded. Delete some items and try again.");
+        },
+      }),
+    );
+
+    expect(s.failed).toBe(1);
+    expect(s.created).toBe(0);
+    expect(s.stuck).toHaveLength(1);
+    const [o] = s.stuck;
+    expect(o.number).toBe("10024");
+    expect(o.customer).toBe("Göran Wallin");
+    expect(o.reason).toContain("WDE0195");
+    expect(o.items).toEqual([
+      { name: "Förvaringsskåp 60 cm svart", sku: "FP-forvaringsskap-60-svart", quantity: 1 },
+    ]);
+  });
+
+  it("☠️ listar BARA raderna som inte hann skrivas — annars beställs de dubbelt", async () => {
+    // En order med två rader där den andra faller: rad 1 ligger redan i
+    // /admin. Tar mejlet med den också expedierar Leonard den en gång till,
+    // och kunden får två paket. Larmet måste beskriva luckan, inte ordern.
+    const tvaRader = order({
+      lineItems: [
+        {
+          id: "li-1",
+          productName: { original: "Skrivbordslampa LED" },
+          quantity: 1,
+          physicalProperties: { sku: "FP-skrivbordslampa-led" },
+          catalogReference: { catalogItemId: "cat-1" },
+        },
+        {
+          id: "li-2",
+          productName: { original: "Golvmatta 120x180" },
+          quantity: 2,
+          physicalProperties: { sku: "FP-golvmatta-120x180" },
+          catalogReference: { catalogItemId: "cat-2" },
+        },
+      ],
+    });
+    let n = 0;
+    const s = await runOrderBackfill(
+      {},
+      deps({
+        listOrders: async () => [tvaRader],
+        createTaskIfAbsent: async () => {
+          if (++n === 2) throw new Error("WDE0195: Items limit exceeded.");
+          return true;
+        },
+      }),
+    );
+
+    expect(s.created).toBe(1);
+    expect(s.failed).toBe(1);
+    expect(s.stuck[0].items).toEqual([
+      { name: "Golvmatta 120x180", sku: "FP-golvmatta-120x180", quantity: 2 },
+    ]);
+  });
+
+  it("en lyckad körning larmar inte", async () => {
+    const s = await runOrderBackfill({}, deps());
+    expect(s.created).toBe(1);
+    expect(s.stuck).toEqual([]);
+  });
+
+  it("torrkörning larmar inte — den har per definition inte tappat något", async () => {
+    const s = await runOrderBackfill({ dryRun: true }, deps());
+    expect(s.stuck).toEqual([]);
+  });
+});
