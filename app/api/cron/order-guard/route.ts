@@ -38,6 +38,7 @@ import {
 import { searchProductSummaries } from "@/lib/wix/client";
 import { sendEmail } from "@/lib/email/resend";
 import { audit } from "@/lib/audit";
+import { isPersistentBackend } from "@/lib/store/backend";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -59,8 +60,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const backend = process.env.STORE_BACKEND ?? "memory";
-    if (backend === "memory") {
+    if (!isPersistentBackend()) {
       return NextResponse.json({
         ok: true,
         skipped: true,

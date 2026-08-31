@@ -11,6 +11,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { runBulkImportWorker } from "@/lib/bulk-import/worker";
 import { audit } from "@/lib/audit";
+import { isPersistentBackend } from "@/lib/store/backend";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -28,8 +29,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Otillåten" }, { status: 401 });
   }
 
-  const backend = process.env.STORE_BACKEND ?? "memory";
-  if (backend === "memory") {
+  if (!isPersistentBackend()) {
     return NextResponse.json({
       ok: true,
       skipped: true,
