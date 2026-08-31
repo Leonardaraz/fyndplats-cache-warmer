@@ -1248,6 +1248,66 @@ som skriker.** Och den nya, som är dyrare: **en obegränsad fan-out skalar med
 katalogen — den är en tidsinställd bomb, inte en bugg.** Leta efter
 `Promise.all` över något som växer.
 
+## ☠️ Orderpipelinen hade EN väg in, och inget nät under (2026-08-31)
+
+`/admin` läser **bara `store.listTasks()`** — den tittar aldrig på Wix-ordrar.
+Enda vägen dit är webhooken `/api/wix-order`. Går den skrivningen fel är ordern
+borta för oss medan kunden har betalat, och Wix ger upp efter ett fåtal retries.
+
+Det inträffade. Order 10024, betald 09:27, syntes aldrig i admin. Webhooken kom
+fram tre gånger och svarade 500 varje gång:
+
+```
+WDE0195: Items limit exceeded. Delete some items and try again.
+```
+
+Wix Datas **radtak** var nått. Tre saker gjorde det värre än en tappad order:
+
+1. **Taket stoppar bara NYA rader.** Uppmätt: en `save` mot en befintlig rad
+   svarar `"action":"UPDATED"` och går igenom; en ny rad avvisas. Lagersynken
+   uppdaterar befintliga mappningar och såg därför fullt frisk ut hela tiden.
+2. **Det hade pågått i ett dygn.** Nyaste audit-raden var 2026-08-30 12:25 —
+   `aliexpress-sync` hade fällts på `WDE0195` vid varje körning sedan dess (11
+   gånger på ett dygn, mätt i Vercel-loggen). Ingen märkte det, eftersom felet
+   bara syns som en 500 i en cron ingen läser.
+3. **Vakten SÅG det men gjorde ingenting.** `buildGuardFindings.missingTasks`
+   räknar precis "betald order utan task" — men rapporterade dem bara i
+   morgonmejlet, en gång per dygn. Ordern hade nått Leonard 19 timmar senare.
+
+### `/api/cron/order-backfill` är nätet (`lib/orders/backfill.ts`)
+
+Kör varje timme. Läser Wix-ordrar, jämför mot tasks, skapar det som saknas via
+**samma `deriveTasks` som webhooken** — ingen egen tolkning av orderformen, av
+samma skäl som `SHIP_AXIS_RE` och `EU_TULL_CODES` ska ha en enda definition.
+Urvalet importerar `ACTIONABLE_PAYMENT` och `TASK_GRACE_MS` från vakten, så
+återhämtningen och larmet aldrig kan bli oense om vad "tappad order" betyder.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. **Skarp som default**, tvärtemot husets övriga cron-rutter. De andra SKRIVER
+   något nytt till kunden och ska be om lov; den här ÅTERSTÄLLER en order kunden
+   redan betalat för, och att avstå är det farliga utfallet.
+2. ☠️ **Ordens FAKTISKA ålder bärs vidare.** `deriveTasks` stämplar `createdAt`
+   med NU — rätt i webhooken, fel här: en order från i förrgår hade fått åldern
+   noll och vaktens påminnelser hade börjat om från början. Ett test låser det,
+   verifierat genom att återinföra buggen.
+3. **Respiten gäller.** En order yngre än `TASK_GRACE_MS` rörs inte — vi ska
+   inte tävla med webhooken om en färsk order.
+4. **Ett fel fäller inte resten.** Nästa order kan vara den som går att rädda.
+
+Rutten är idempotent (`createTaskIfAbsent` skriver aldrig över) så den är gratis
+att köra ofta och ofarlig att köra om.
+
+⚠️ **Taket självt är INTE löst av det här.** 18 091 raderade audit-rader
+(22 977 → 4 886, verifierat) flyttade det inte en millimeter — så radantalet i
+Wix Data är inte det som binder. Katalogen är ~5 420 produkter, och de 4 046
+opolerade Aosom-utkasten ska ligga kvar tills de poleras. Det verkliga talet syns
+bara i Wix dashboard, inte i API:t.
+
+**Regeln: en pipeline med exakt en väg in behöver ett nät under sig.** Och den
+gamla, åttonde gången: ett fel som bara syns som en 500 i en cron ingen läser
+är ett fel ingen upptäcker.
+
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
 Recensionskedjan (filtrering → `FyndplatsImportedReviews` → moderering i

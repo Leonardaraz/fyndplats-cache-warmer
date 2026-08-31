@@ -1,0 +1,183 @@
+import { describe, expect, it, vi } from "vitest";
+import type { FulfillmentTask, WixOrder } from "./types";
+import { TASK_GRACE_MS } from "./guard";
+import { runOrderBackfill, type OrderBackfillDeps } from "./backfill";
+
+const NOW = Date.parse("2026-08-31T12:00:00Z");
+const HOUR = 60 * 60 * 1000;
+
+/** En betald order som webhooken borde ha fångat men inte gjorde. */
+function order(over: Partial<WixOrder> = {}): WixOrder {
+  return {
+    id: "ord-1",
+    number: "10024",
+    paymentStatus: "PAID",
+    createdDate: new Date(NOW - 5 * HOUR).toISOString(),
+    lineItems: [
+      {
+        id: "li-1",
+        productName: { original: "Förvaringsskåp 60 cm svart" },
+        quantity: 1,
+        physicalProperties: { sku: "FP-forvaringsskap-60-svart" },
+        catalogReference: { catalogItemId: "cat-1" },
+      },
+    ],
+    shippingInfo: {
+      logistics: {
+        shippingDestination: {
+          address: {
+            addressLine: "Stensborgsgatan 8 b",
+            city: "Eskilstuna",
+            subdivision: "SE-D",
+            postalCode: "633 55",
+            country: "SE",
+          },
+          contactDetails: { firstName: "Göran", lastName: "Wallin", phone: "+46705454393" },
+        },
+      },
+    },
+    ...over,
+  } as WixOrder;
+}
+
+function deps(over: Partial<OrderBackfillDeps> = {}): OrderBackfillDeps & {
+  skapade: FulfillmentTask[];
+} {
+  const skapade: FulfillmentTask[] = [];
+  return {
+    skapade,
+    listOrders: async () => [order()],
+    listTasks: async () => [],
+    createTaskIfAbsent: async (t) => {
+      skapade.push(t);
+      return true;
+    },
+    now: () => NOW,
+    ...over,
+  };
+}
+
+describe("runOrderBackfill", () => {
+  it("skapar tasken för en betald order som saknar den", async () => {
+    const d = deps();
+    const s = await runOrderBackfill({}, d);
+    expect(s.missing).toBe(1);
+    expect(s.created).toBe(1);
+    expect(s.recovered).toEqual(["10024"]);
+    expect(d.skapade[0].taskId).toBe("ord-1:li-1");
+    expect(d.skapade[0].orderNumber).toBe("10024");
+    expect(d.skapade[0].sku).toBe("FP-forvaringsskap-60-svart");
+    expect(d.skapade[0].status).toBe("pending");
+  });
+
+  it("☠️ bär ordens FAKTISKA ålder, inte tidpunkten för räddningen", async () => {
+    // deriveTasks stämplar createdAt med NU, vilket är rätt i webhooken och
+    // fel här: en order från i förrgår hade fått åldern noll och vaktens
+    // påminnelser hade börjat om från början.
+    const d = deps();
+    await runOrderBackfill({}, d);
+    expect(d.skapade[0].createdAt).toBe(new Date(NOW - 5 * HOUR).toISOString());
+    expect(d.skapade[0].createdAt).not.toBe(new Date(NOW).toISOString());
+  });
+
+  it("tar med leveransadressen — utan den går ordern inte att lägga", async () => {
+    const d = deps();
+    await runOrderBackfill({}, d);
+    expect(d.skapade[0].shippingAddress).toMatchObject({
+      fullName: "Göran Wallin",
+      addressLine1: "Stensborgsgatan 8 b",
+      city: "Eskilstuna",
+      province: "Sodermanland",
+      country: "SE",
+    });
+  });
+
+  it("rör inte en order som redan har en task", async () => {
+    const d = deps({
+      listTasks: async () => [{ orderId: "ord-1" } as FulfillmentTask],
+    });
+    const s = await runOrderBackfill({}, d);
+    expect(s.missing).toBe(0);
+    expect(d.skapade).toHaveLength(0);
+  });
+
+  it("hoppar över obetalda ordrar", async () => {
+    const d = deps({ listOrders: async () => [order({ paymentStatus: "NOT_PAID" })] });
+    const s = await runOrderBackfill({}, d);
+    expect(s.missing).toBe(0);
+    expect(d.skapade).toHaveLength(0);
+  });
+
+  it("respekterar webhookens respit — tävlar inte om en färsk order", async () => {
+    const d = deps({
+      listOrders: async () => [
+        order({ createdDate: new Date(NOW - (TASK_GRACE_MS - 60_000)).toISOString() }),
+      ],
+    });
+    const s = await runOrderBackfill({}, d);
+    expect(s.missing).toBe(0);
+    expect(d.skapade).toHaveLength(0);
+  });
+
+  it("torrkörning rapporterar men skriver ingenting", async () => {
+    const d = deps();
+    const s = await runOrderBackfill({ dryRun: true }, d);
+    expect(s.dryRun).toBe(true);
+    expect(s.missing).toBe(1);
+    expect(s.created).toBe(0);
+    expect(s.recovered).toEqual(["10024"]);
+    expect(d.skapade).toHaveLength(0);
+  });
+
+  it("en trasig order fäller inte resten", async () => {
+    let n = 0;
+    const d = deps({
+      listOrders: async () => [order(), order({ id: "ord-2", number: "10025" })],
+      createTaskIfAbsent: async (t) => {
+        n++;
+        if (n === 1) throw new Error("WDE0195: Items limit exceeded");
+        return true;
+      },
+    });
+    const s = await runOrderBackfill({}, d);
+    expect(s.failed).toBe(1);
+    expect(s.created).toBe(1);
+    expect(s.recovered).toEqual(["10025"]);
+    expect(s.errors[0].order).toBe("10024");
+    expect(s.errors[0].error).toContain("WDE0195");
+  });
+
+  it("createTaskIfAbsent som svarar false räknas inte som återhämtad", async () => {
+    const d = deps({ createTaskIfAbsent: async () => false });
+    const s = await runOrderBackfill({}, d);
+    expect(s.missing).toBe(1);
+    expect(s.created).toBe(0);
+    expect(s.recovered).toEqual([]);
+  });
+
+  it("onlyOrderNumbers begränsar till de utpekade", async () => {
+    const d = deps({
+      listOrders: async () => [order(), order({ id: "ord-2", number: "10025" })],
+    });
+    const s = await runOrderBackfill({ onlyOrderNumbers: ["10025"] }, d);
+    expect(s.created).toBe(1);
+    expect(d.skapade[0].orderId).toBe("ord-2");
+  });
+
+  it("läser inga tasks alls när fönstret är tomt", async () => {
+    const listTasks = vi.fn(async () => []);
+    const s = await runOrderBackfill({}, deps({ listOrders: async () => [], listTasks }));
+    expect(s.scanned).toBe(0);
+    expect(listTasks).not.toHaveBeenCalled();
+  });
+
+  it("flerradsorder ger en task per rad", async () => {
+    const o = order();
+    o.lineItems = [...(o.lineItems ?? []), { id: "li-2", quantity: 2, physicalProperties: { sku: "FP-b" } }];
+    const d = deps({ listOrders: async () => [o] });
+    const s = await runOrderBackfill({}, d);
+    expect(s.created).toBe(2);
+    expect(s.recovered).toEqual(["10024"]);
+    expect(d.skapade.map((t) => t.taskId)).toEqual(["ord-1:li-1", "ord-1:li-2"]);
+  });
+});
