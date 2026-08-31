@@ -24,6 +24,7 @@ import { ensureSchema } from "@/lib/db/schema";
 import { sql } from "@/lib/db/client";
 import { runCopy, SidFel } from "@/lib/migration/copy-to-postgres";
 import { ATT_KOPIERA, LLM_SAMLINGAR, type TabellSpec } from "@/lib/db/tabeller";
+import { kanonisk } from "@/lib/migration/kanonisk";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -197,7 +198,10 @@ async function verifiera(): Promise<{
     tabell: string;
     wix: number;
     postgres: number;
+    /** Sant när kopian har minst lika många rader som källan. */
     stämmer: boolean;
+    /** Rader kopian har som källan inte längre har — källan städas medan vi kör. */
+    överskott: number;
     stickprov: number;
     avvikande: string[];
   }[];
@@ -236,18 +240,28 @@ async function verifiera(): Promise<{
       }
       for (const [fält, v] of Object.entries(rad)) {
         const k = (kopia as Record<string, unknown>)[fält];
-        if (JSON.stringify(k) !== JSON.stringify(v)) {
+        if (kanonisk(k) !== kanonisk(v)) {
           avvikande.push(`${id}.${fält}`);
           break;
         }
       }
     }
 
+    // ☠️ ASYMMETRISKT MED FLIT. Färre rader i kopian är DATAFÖRLUST och ska
+    // fälla. Fler rader är något helt annat: källan är levande, och synk-loggens
+    // retention raderar gamla rader i Wix medan kopian behåller dem. Uppmätt
+    // 2026-08-31: sync_log wix=3441, pg=3472 — 31 rader som Wix hunnit städa
+    // bort sedan kopieringen. De försvinner av sig själva vid nästa
+    // retention-körning efter växlingen.
+    //
+    // Att fälla på det hade betytt att verifieringen aldrig kan gå igenom mot
+    // en tabell som städas, alltså aldrig alls.
     ut.push({
       tabell: post.namn,
       wix,
       postgres,
-      stämmer: wix === postgres,
+      stämmer: postgres >= wix,
+      överskott: Math.max(0, postgres - wix),
       stickprov: prov.length,
       avvikande,
     });
