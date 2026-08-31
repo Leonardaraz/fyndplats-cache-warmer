@@ -85,6 +85,25 @@ async function handle(req: NextRequest) {
       },
     );
 
+    // ☠️ SKRIV ALLTID TILL KONSOLEN NÄR NÅGOT SAKNAS. Audit-raden nedan går via
+    // Wix och kan därför INTE skrivas i exakt det läge nätet finns för — ett
+    // fullt radtak. Uppmätt 2026-08-31 14:25: rutten svarade 200 utan en enda
+    // loggrad medan order 10024 fortfarande saknade sin task, eftersom felet
+    // fångas per order och audit-skrivningen föll på samma tak.
+    //
+    // Konsolen kräver ingen databas. Ett nät som kan misslyckas tyst är inget
+    // nät — det är den bugg nätet byggdes för att fånga, en våning upp.
+    if (summary.missing > 0 || summary.failed > 0) {
+      console.error(
+        `[order-backfill] ${summary.created} av ${summary.missing} saknade tasks skapade`
+          + `, ${summary.failed} fel`
+          + (summary.recovered.length ? ` (räddade: ${summary.recovered.join(", ")})` : "")
+          + (summary.errors.length
+            ? ` — ${summary.errors.map((e) => `${e.order}: ${e.error}`).join(" | ")}`
+            : ""),
+      );
+    }
+
     // Bara när något faktiskt räddades — en tom körning var fjärde timme ska
     // inte fylla loggen (det var just loggvolym som orsakade incidenten).
     if (!dryRun && (summary.created > 0 || summary.failed > 0)) {
