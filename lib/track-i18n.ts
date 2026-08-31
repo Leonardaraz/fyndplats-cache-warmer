@@ -13,6 +13,24 @@ export const PHRASE_SV: Array<[RegExp, string]> = [
     "Vi har fått besked från avsändaren om att din vara förbereds. Spårningen uppdateras när paketet lämnats till transportören."],
   [/shipment information received|info(rmation)? received|electronic.*info|label (has been )?created|shipping label/i,
     "Fraktinformation mottagen – paketet är registrerat."],
+  // — Lagerhantering hos avsändaren (AliExpress/Cainiao-feeden) —
+  // ☠️ MÅSTE ligga FÖRE upphämtningen. Alla fyra stegen sker innan
+  // transportören rör paketet, och "picked and ready for packing" innehåller
+  // ordet "picked" — hamnar den efter riskerar den att läsas som en
+  // upphämtningsskanning, alltså ett senare skede än det verkligen är.
+  //
+  // Uppmätt på order 10024 (2026-08-31): alla fyra föll igenom till null och
+  // visades i original på /sparning. Kartan täckte transportörens fraser
+  // (facility/terminal/hub) men inte avsändarens lager, så en kund vars paket
+  // ännu inte lämnat lagret fick hela historiken på engelska.
+  [/being packed|order is (being )?pack|packing (has )?start/i,
+    "Din order packas."],
+  [/picked and ready for pack|picked[^.]*for packing/i,
+    "Varan är plockad och klar för packning."],
+  [/ready to be shipped|ready for (dispatch|shipment|shipping)|prepared for (dispatch|shipment)/i,
+    "Paketet är färdigpackat och väntar på transportören."],
+  [/left (the )?warehouse|departed[^.]*warehouse|dispatched from[^.]*warehouse|shipped (out )?from[^.]*warehouse/i,
+    "Paketet har lämnat avsändarens lager."],
   // — Upphämtning / inlämning till transportör —
   [/item.*(picked up|collected)|picked up by|has been collected|pickup scan/i,
     "Paketet har hämtats av transportören."],
