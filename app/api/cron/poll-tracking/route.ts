@@ -18,6 +18,7 @@ import { createFulfillment } from "@/lib/wix/client";
 import { sparningsLank } from "@/lib/tracking-link";
 import { getStore } from "@/lib/store/factory";
 import { isAuthorized } from "@/lib/auth";
+import { isPersistentBackend } from "@/lib/store/backend";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -45,8 +46,7 @@ export async function GET(req: NextRequest) {
     // är cronen meningslös eftersom serverless inte har persistens mellan
     // anrop — det finns inga ordered tasks att kolla. Returnera 200 så
     // workflow:n inte alarmerar var 3:e timme i onödan.
-    const backend = process.env.STORE_BACKEND ?? "memory";
-    if (backend === "memory") {
+    if (!isPersistentBackend()) {
       return NextResponse.json({
         ok: true,
         skipped: true,

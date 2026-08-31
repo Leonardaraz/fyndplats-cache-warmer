@@ -37,6 +37,7 @@ import { getStore } from "@/lib/store/factory";
 import { AUDIT_RETENTION_DAYS, LLM_STATS_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
 import { LLM_COLLECTIONS, llmPruneOlderThan } from "@/lib/llm/storage";
 import { buildDailySummaryEmail, sendEmail } from "@/lib/email/resend";
+import { isPersistentBackend } from "@/lib/store/backend";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -57,8 +58,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
   try {
     // STORE_BACKEND=memory är meningslöst för cronen — listMappings() kommer
     // bara returnera vad som råkar finnas i denna lambda-instans. Skippa då.
-    const backend = process.env.STORE_BACKEND ?? "memory";
-    if (backend === "memory") {
+    if (!isPersistentBackend()) {
       return NextResponse.json({
         ok: true,
         skipped: true,
