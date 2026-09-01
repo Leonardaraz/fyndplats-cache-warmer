@@ -85,6 +85,60 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 
 -----
 
+## ☠️ STOPP sedan 2026-09-01: mappningsraden finns inte längre i Wix
+
+Postgres-migreringen har kört steg 6 (`lib/migration/radera-wix.ts`) och raderat
+drift-datan ur Wix Data. `FyndplatsMappings` svarar **`total: 0`**. Det är inget läsfel:
+samma anrop mot fyra andra kollektioner i samma miljö svarar normalt, och de fyra är
+exakt `ALDRIG_RADERA`-listan.
+
+| kollektion | rader | på ALDRIG_RADERA |
+|---|---:|---|
+| `FyndplatsMappings` | **0** | nej — flyttad |
+| `FyndplatsAppConfig` | 1 | ja |
+| `FyndplatsPricingConfig` | 1 | ja |
+| `FyndplatsImportedReviews` | 2 514 | ja |
+| `FyndplatsAliExpressTokens` | 1 | ja |
+
+**Runbooken förutsätter mappningen på åtta ställen**, och de är inte lika allvarliga:
+
+| var | vad som går förlorat | konsekvens |
+|---|---|---|
+| **Aosom punkt 4** | prisgrinden `grossSek == charm9(landedCostSek × 1,20)` | ☠️ **blockerande** |
+| Steg 3 | facit för pris, lager, EU-ribbon | blockerande |
+| Steg 6 | `supplierVariantId`, `inStock` | no-op för Aosom |
+| Rad 9 | `supplier` / `aosom:`-prefixet | härleds ur tyskan i utkastet |
+| Steg 10 | `categorySuggestion` | bara ett förslag |
+| Steg 13 + Klart-kriteriet | stämpeln `needsAiPolish:false`, `draftStatus:"published"` | bokföringsdrift |
+
+☠️ **Det är prisgrinden som fäller, inte stämpeln.** Grinden finns för att fånga exakt
+den drift `CLAUDE.md` mätte upp: synken skrev mappningen, Wix-skrivningen bet aldrig, och
+nästa körning ser sitt eget tal och hoppar över raden för alltid. Auditen fann **20 sådana
+rader av 4 445**, och konstaterade att **fällan ÄR publiceringen** — poleringen säger
+uttryckligen "rör inte priset", så den som polerar en av de tjugo lägger ut det gamla
+priset utan att märka något. De tjugo är alla `visible:false`, alltså precis den pool en
+polerrunda plockar ur. `4fa6649a` (PR #560) är fallet som redan hänt: 170 kr fel, upptäckt
+först vid återläsning från Wix efter publicering.
+
+**Att polera utan grinden är alltså inte "polering minus bokföring" — det är polering med
+den enda spärr som fångar felklassen avstängd.**
+
+⚠️ **Feeden är INGEN väg runt.** Att räkna fram kostnaden ur `Wholesale Price` +
+`SE Ship Fee` kräver dels feedens adress — som är en hemlighet och aldrig får passera en
+chatt eller en terminal, repot är publikt — dels artikelnumret, som bara finns i
+mappningen. Båda ändarna saknas.
+
+### Vad som behövs innan nästa runda
+
+En **nyckel-lös läsväg till Postgres**, i samma anda som prisreparationen och
+Aosom-svepet: en cron-rutt som tar `CRON_SECRET` och en GitHub-workflow som möter den, så
+att ingen hemlighet passerar chatten. Minst `landedCostSek`, `grossSek`,
+`supplierProductId` och `supplier` per `wixProductId`, plus en skrivväg för stämpeln.
+Ingen av de arton befintliga workflowsen gör det: `copy-to-postgres.yml --verifiera`
+jämför mot Wix-sidan, som numera är tom.
+
+-----
+
 ## Aosom-rader: de fyra skillnaderna
 
 ### 1. Bilderna: bara tre av fem behöver granskas
@@ -132,6 +186,8 @@ tillverkarens egen skiss sa "Schlafplätze 2–4". Sovrummet är 295 cm brett �
 | 7 (spec-tabellen) | ⚠️ **Extra kontroll:** `Färg`-VÄRDET står kvar på tyska i den svenska tabellen (`Färg: Orange+Blau`). Etiketterna översätts vid import, värdena inte, och färg-grinden ser bara variantaxlar — ingen spärr fångar det. Översätt för hand. |
 
 ### 4. Stäm av priset mot mappningen innan du börjar
+
+> ☠️ **Går inte längre — mappningen ligger i Postgres sedan 2026-09-01.** Se [STOPP-avsnittet](#-stopp-sedan-2026-09-01-mappningsraden-finns-inte-längre-i-wix) överst.
 
 `grossSek` ska vara `charm9(landedCostSek × 1,20)`. Räkna efter: 2 869,76 × 1,20 = 3 443,7 →
 **3 449**. Stämmer det inte har kostnaden ändrats sedan importen och priset i Wix är gammalt.
@@ -272,6 +328,8 @@ Spara `revision`, `name`, `slug`, `seoData`, **`visible`** och **hela `media`** 
 `media.itemsInfo.items` med deras `id` till Steg 9.
 
 Läs samtidigt mappningsraden, som bär facit för pris, lager och EU-ribbon:
+
+> ☠️ **Går inte längre — mappningen ligger i Postgres sedan 2026-09-01.** Se [STOPP-avsnittet](#-stopp-sedan-2026-09-01-mappningsraden-finns-inte-längre-i-wix) överst.
 
 ```
 GET /data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings
