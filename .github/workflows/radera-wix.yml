@@ -1,0 +1,110 @@
+name: Migrering — radera drift-datan ur Wix Data
+
+# Steg 6 i POSTGRES-MIGRATION.md, och det ENDA oåterkalleliga steget.
+# Wix egen dokumentation: "Once an item has been removed from a collection,
+# it can't be restored."
+#
+# Lägen:
+#   torr    läser och verifierar varje rad mot Postgres, raderar ingenting
+#   radera  raderar på riktigt
+#
+# Förutsätter att STORE_BACKEND=postgres redan står i produktion — rutten
+# svarar 409 annars. Kör 'torr' först och läs rapporten; en kollektion med
+# rader i "fel" ska aldrig raderas förrän orsaken är förstådd.
+#
+# Samma nyckel-lösa upplägg som prisreparationen: produktionen har
+# Wix-nycklarna och DATABASE_URL, Actions har CRON_SECRET.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "torr = granska bara · radera = ta bort på riktigt"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - radera
+      kollektioner:
+        description: "Bara dessa (kommaseparerat, tomt = alla flyttade)"
+        required: false
+        default: ""
+        type: string
+      max_varv:
+        description: "Max antal anrop (rutten har 300 s per anrop)"
+        required: false
+        default: "40"
+        type: string
+
+jobs:
+  radera:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          KOLLEKTIONER: ${{ inputs.kollektioner }}
+          MAX_VARV: ${{ inputs.max_varv }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad på stdout slukas av
+            # kommandosubstitutionen nedan.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/radera-wix"
+          anropa() { curl -sS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "$1"; }
+
+          dry="true"
+          [ "${MODE}" = "radera" ] && dry="false"
+
+          q=""
+          [ -n "${KOLLEKTIONER}" ] && q="&kollektioner=${KOLLEKTIONER}"
+
+          varv=0; granskade=0; raderade=0
+          while :; do
+            varv=$((varv + 1))
+            if [ "$varv" -gt "${MAX_VARV}" ]; then
+              echo "::warning::Nadde max_varv (${MAX_VARV}) — kor igen" >&2
+              break
+            fi
+
+            svar=$(anropa "${url}?dryRun=${dry}${q}")
+
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::Rutten svarade fel: $(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+              exit 1
+            fi
+
+            echo "--- varv ${varv} ---"
+            echo "$svar" | jq -r '.summary.tabeller[] | "  \(.tabell)  granskade \(.granskade)  raderade \(.raderade)  klar=\(.klar)"'
+            # Las FELEN, inte bara statuskoden. En kollektion som avbrots for
+            # att rader saknas i kopian syns BARA har.
+            echo "$svar" | jq -r '.summary.tabeller[] | select((.fel|length) > 0) | .fel[] | "    [fel] \(.)"'
+
+            g=$(echo "$svar" | jq -r '.summary.totaltGranskade')
+            r=$(echo "$svar" | jq -r '.summary.totaltRaderade')
+            granskade=$((granskade + g)); raderade=$((raderade + r))
+            echo "  = granskade ${g}, raderade ${r}, stoppad av $(echo "$svar" | jq -r '.summary.stoppadAv')"
+
+            # Klart nar allt ar klart eller inget ror sig langre.
+            kvar=$(echo "$svar" | jq -r '[.summary.tabeller[] | select(.klar == false)] | length')
+            [ "$kvar" = "0" ] && break
+            if [ "$dry" = "false" ] && [ "$r" = "0" ]; then
+              echo "::warning::Ett varv raderade 0 rader — avbryter for att inte snurra" >&2
+              break
+            fi
+            if [ "$dry" = "true" ]; then break; fi
+          done
+
+          echo
+          echo "KLART: granskade ${granskade}, raderade ${raderade} (lage ${MODE})"
+          if [ "${MODE}" = "torr" ]; then
+            echo "Inget raderat. Las raderna ovan; kor om med laget 'radera' nar de ser ratt ut."
+          fi
