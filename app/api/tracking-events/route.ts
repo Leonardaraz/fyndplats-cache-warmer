@@ -5,8 +5,21 @@
 // EU-fraktkedjor: "Carrier cannot be detected" för t.ex. PostNord parcel
 // connect, medan AliExpress alltid känner sin egen order).
 //
-// Uppslag: FyndplatsTasks (trackingNumber sätts av poll-tracking vid
-// skeppning) → aliexpressOrderId → aliexpress.ds.order.tracking.get.
+// Uppslag: tasken (trackingNumber sätts av poll-tracking vid skeppning) →
+// aliexpressOrderId → aliexpress.ds.order.tracking.get.
+//
+// ☠️ RUTTEN FRÅGADE FÖRR WIX DATA DIREKT, och det överlevde inte migreringen.
+// Den gjorde `POST /wix-data/v2/items/query` mot FyndplatsTasks med en egen
+// fetch-helper i stället för att gå via storen. Steg 6 (POSTGRES-MIGRATION.md)
+// tömde den kollektionen 2026-09-01, och rutten svarade från den sekunden
+// **404 "Okänt spårningsnummer" för varje kund** — koden var oförändrad, datan
+// var borta. Verifierat i drift: en riktig kunds spårningsnummer gav 404 kl
+// 20:35 samma dag.
+//
+// Kodauditen efter raderingen hittade den inte, eftersom den letade efter
+// TRASIGA LÄSARE och den här läsaren inte är trasig — den är tom. Regeln som
+// följde: en migrerad kollektion nås BARA genom storen, och `store-access-
+// audit.test.ts` fäller nu på källkodsnivå om en rutt går utanför den.
 //
 // PUBLIK med samma hotmodell som headless /api/track: nyckeln är själva
 // spårningsnumret, och svaret innehåller ENBART transportdata (händelser,
@@ -15,13 +28,12 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { getTracking } from "@/lib/aliexpress/client";
-import { WIX_BASE, wixHeaders } from "@/lib/wix/client";
+import { getStore } from "@/lib/store/factory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const VALID_TN = /^[A-Z0-9]{8,40}$/;
-const TASKS_COL = process.env.WIX_DATA_COL_TASKS ?? "FyndplatsTasks";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const cache = new Map<string, { expiry: number; body: unknown; status: number }>();
@@ -40,20 +52,6 @@ function cacheSet(key: string, body: unknown, status: number) {
   cache.set(key, { expiry: Date.now() + CACHE_TTL_MS, body, status });
 }
 
-async function findTaskByTracking(tn: string): Promise<{ aliexpressOrderId?: string } | null> {
-  const res = await fetch(`${WIX_BASE}/wix-data/v2/items/query`, {
-    method: "POST",
-    headers: wixHeaders(),
-    body: JSON.stringify({
-      dataCollectionId: TASKS_COL,
-      query: { filter: { trackingNumber: tn }, paging: { limit: 1 } },
-    }),
-  });
-  if (!res.ok) throw new Error(`task-uppslag ${res.status}`);
-  const body = (await res.json()) as { dataItems?: Array<{ data?: { aliexpressOrderId?: string } }> };
-  return body.dataItems?.[0]?.data ?? null;
-}
-
 export async function GET(req: NextRequest) {
   const tn = (req.nextUrl.searchParams.get("tn") || "").trim().toUpperCase();
   if (!tn || !VALID_TN.test(tn)) {
@@ -64,7 +62,7 @@ export async function GET(req: NextRequest) {
   if (cached) return NextResponse.json(cached.body, { status: cached.status });
 
   try {
-    const task = await findTaskByTracking(tn);
+    const task = await getStore().getTaskByTrackingNumber(tn);
     if (!task?.aliexpressOrderId) {
       // Cacha INTE 404 — poll-tracking kan sätta trackingNumber när som helst.
       return NextResponse.json({ error: "Okänt spårningsnummer." }, { status: 404 });

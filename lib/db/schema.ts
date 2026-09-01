@@ -93,6 +93,10 @@ const DDL: string[] = [
    )`,
   `create index if not exists tasks_order_id_idx on tasks (order_id)`,
   `create index if not exists tasks_status_idx on tasks (status)`,
+  // Kundens /sparning slår upp AE-ordern på spårningsnumret. Numret bor i
+  // JSONB-svansen (en enda läsare), så indexet är på uttrycket.
+  `create index if not exists tasks_tracking_number_idx
+      on tasks (upper(data->>'trackingNumber'))`,
 
   // --- Webhook-idempotens --------------------------------------------------
   // `data` är NULLBAR: webhooken skriver bara event_id, kopieringen bär med

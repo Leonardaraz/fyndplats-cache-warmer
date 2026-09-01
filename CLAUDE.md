@@ -1604,6 +1604,61 @@ Kvittot att skrivvägen fungerar mättes direkt, inte antogs:
 (räddade: 10024)`** 21:25 samma kväll. Ordern som legat oskrivbar sedan morgonen
 fick sin task, och `tasks` gick från 12 rader i Wix till 13 i Postgres.
 
+### ☠️ Och den bröt kundens spårningssida — en läsare auditen inte kunde se
+
+`/api/tracking-events` slår upp AliExpress-ordern från ett spårningsnummer, och
+gjorde det genom att fråga **Wix Data direkt** med en egen fetch-hjälpare mot
+`FyndplatsTasks` i stället för att gå via storen. Steg 6 tömde kollektionen, och
+rutten svarade från den sekunden **404 "Okänt spårningsnummer" för varje kund**.
+Uppmätt i drift 2026-09-01 kl 20:35 på en riktig kunds nummer.
+
+☠️ **Kodauditen efter raderingen missade den, och det är hela lärdomen.** Den
+letade efter LÄSARE SOM GÅR SÖNDER. Den här gick inte sönder — den blev **tom**.
+Ett tomt svar från rätt API mot rätt kollektion ser i källkoden exakt likadant ut
+som ett friskt anrop, och i loggen är det en 404 som ser ut som ett okänt
+spårningsnummer. Samma familj som "ett svar utan fel är inget kvitto", men värre:
+här fanns inte ens ett fel att ignorera.
+
+Skadan är större än den ser ut, eftersom butiken anropar rutten **FÖRST**:
+17TRACK klarar inte alla EU-fraktkedjor, medan AliExpress alltid känner sin egen
+order. Mätt samma kväll på två skarpa ordrar:
+
+| order | fraktväg | butikens 17TRACK-källa |
+|---|---|---|
+| 10024 | Seller Shipping ES Local → PostNord | 2 händelser, senast samma kväll |
+| 10023 | AliExpress Standard shipping-Poland | **noll händelser, 36 h efter avsändning** |
+
+Det är precis 10023 rutten finns för — och det är precis den kunden som fick
+"inga spårningshändelser ännu" i stället för AE:s egna.
+
+Lagat genom att flytta uppslaget in i storen: `getTaskByTrackingNumber` finns i
+alla tre backends, med uttrycksindex i Postgres. Två egenskaper som inte ska tas
+bort:
+
+1. ☠️ **`store-access-audit.test.ts` är grinden, inte ögon.** Den läser
+   källkoden i hela repot och fäller om en fil utanför de sex ägande modulerna
+   nämner både ett Wix Data-anrop och en flyttad kollektion. Verifierad genom att
+   återinföra buggen: testet fäller, och bara det. Den hittade dessutom
+   `lib/llm/storage.ts` direkt — den var redan backend-växlad, alltså frisk, men
+   det var en genomgång som tog sekunder i stället för en kväll.
+2. **Uppslaget är versalokänsligt, och indexet är på samma uttryck.** Rutten
+   versaliserar kundens inmatning; en task som bär numret gemener hade annars gett
+   exakt samma tysta 404 en gång till.
+
+⚠️ **Vad som INTE är vårt att laga.** Kundmejlen — "Ditt paket är på väg" och
+"Ditt paket är framme" — ligger i **butiksrepot**, inte här. `www.fyndplats.se`
+pekar på Vercel, så Velo-koden i `wix-velo/` är arv: dess `_functions/track` är
+oåtkomlig på domänen, och `TrackingEvents` i Wix har **noll rader** (raderingen
+rörde den aldrig — den står inte i någon kopielista). Butiken har tagit över hela
+kedjan och den lever: `/_functions/track_webhook` svarar
+`configured:true, resendConfigured:true`, tog emot 17TRACK-pushar 07:46 och 19:53
+den 2026-09-01, och `/api/track` returnerar svenska händelser. Mejl skickas via
+Resend därifrån — leta i butiksrepot, inte i det här.
+
+**Regeln, som nu gäller två gånger:** en migrering är klar först när alla läsare
+följt med — och en läsare som blir TOM syns varken i en kodaudit eller i en
+felräknare. Det som hittar den är ett källkodstest.
+
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
 Recensionskedjan (filtrering → `FyndplatsImportedReviews` → moderering i
