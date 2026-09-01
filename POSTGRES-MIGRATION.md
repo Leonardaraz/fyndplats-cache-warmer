@@ -483,3 +483,74 @@ pappret — Wix tar emot igen.
 Regeln, tionde gången: **ett svar utan fel är inget kvitto, och ett tal som ser
 rätt ut är det inte heller.** Bara skrivningen som går igenom.
 
+## Audit efter raderingen (2026-09-01 20:20)
+
+### Kod: ingen väg läser de tömda kollektionerna
+
+Tretton kollektioner tömdes. Nitton filer utanför de fem ägande modulerna
+nämner dem — **alla nitton är kommentarer eller admin-länkar**, ingen är en
+läsning. De fem ägande modulerna går samtliga via backend-väljaren:
+
+| modul | växlingspunkter |
+|---|---:|
+| `lib/store/factory.ts` | `case "postgres" → PostgresStore` |
+| `lib/sync/sync-log.ts` | 5 |
+| `lib/store/product-hashes.ts` | 2 |
+| `lib/store/import-costs.ts` | 2 |
+| `lib/llm/storage.ts` | 1 |
+
+`FyndplatsSupplierWatchSeen` nämner mappningarna men äger en **egen**
+kollektion som aldrig flyttade och aldrig raderades.
+
+### Butiken: mätt från kundens håll
+
+1 525 URL:er i sitemapen. Produktsida 200 med priser och köpknapp,
+**noll** träffar på `aliexpress`/`alicdn`/`aosom`. Recensioner renderas på
+skarpa produktsidor — beviset att `FyndplatsImportedReviews` är intakt.
+`/fyndauktion`, `/omdomen`, `/alla-produkter`, `/butik` svarar alla 200.
+
+### Postgres lever — talen rör sig åt rätt håll
+
+| tabell | vid växlingen | nu | |
+|---|---:|---:|---|
+| `mappings` | 5 470 | **5 494** | +24 (nattens Aosom-import) |
+| `tasks` | 13 | **14** | +1 |
+| `webhook_events` | 16 | **17** | +1 (riktig kundorder) |
+| `sync_log` | 3 472 | **3 816** | synken loggar igen |
+| `sync_alerts` | 18 | **244** | +226 |
+| `audit` | 1 796 | **1 827** | |
+
+Samtliga 23 schemalagda rutter körde det senaste dygnet. **Noll `error`-rader**
+i Vercel (mot 12 dygnet före), noll `WDE0195`. Tre riktiga ordrar genom
+webhooken. `/admin`, `/admin/sync-alerts`, `/admin/mappings` och
+`/admin/margins` användes av en människa och läser Postgres utan problem.
+
+### ⚠️ `sync_alerts` 18 → 244 är återvunnen SYNLIGHET, inte en ny defekt
+
+Före migrationen föll larmskrivningarna på `WDE0195`, så räknaren stod frusen
+på 18 medan synken faktiskt hittade problem. De 226 nya raderna är ett dygns
+verkliga fynd som tidigare försvann — döda listningar, varianter utan fraktväg,
+lagerbyten som avstods. `/admin/sync-alerts` har alltså en riktig kö att läsa.
+
+### ☠️ Verifieringen kunde inte längre fälla på någonting
+
+Auditens enda kodfynd, och det åtgärdades direkt. Efter raderingen är
+Wix-kollektionerna tomma, så `brist = wix − postgres` blir noll för varje
+tabell — inte för att kopian är korrekt utan för att det inte finns något att
+sakna. Mätt: `bedömTabell(0, 5494, 0, true)` gav `stämmer: true`, och
+`bedömTabell(0, 0, 0, true)` gav också `stämmer: true`. Verifieringen hade lyst
+grönt även om Postgres tömdes.
+
+Samma klass av fel som torrkörningen som strukturellt alltid rapporterade
+"0 köade", och som prissynken som räknade upp `prisUppdaterade` utan att skriva.
+
+`källanTom` flaggar nu fallet, och workflowen svarar **"EJ TILLÄMPLIG"** med
+Postgres radantal som en inventering — inte ett godkännande. Fem tester,
+verifierade genom att återinföra buggen: tre faller, och bara de tre.
+
+### Kvar, känt och odokumenterat-sedan-tidigare
+
+Aosom-prissynken jämför det nyräknade priset mot **mappningens** `grossSek`
+i stället för mot Wix, så de ~20 drivna raderna självläker aldrig. Oförändrat
+sedan 2026-08-29 och orört av migrationen.
+

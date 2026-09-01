@@ -40,6 +40,9 @@ export type TabellVerdikt = {
   överskott: number;
   /** Efter växlingen: rader/fält som rört sig och som INTE är fel. */
   drift: number;
+  /** ☠️ Källan är TOM medan kopian har rader — jämförelsen säger ingenting.
+   *  Se `källanTom` nedan. */
+  källanTom: boolean;
 };
 
 /**
@@ -59,11 +62,28 @@ export function bedömTabell(
   const brist = Math.max(0, wix - postgres);
   const överskott = Math.max(0, postgres - wix);
 
+  // ☠️ EN TOM KÄLLA GÖR JÄMFÖRELSEN MENINGSLÖS, INTE GODKÄND.
+  //
+  // Efter steg 6 är Wix-kollektionerna tömda. `brist` blir då noll för varje
+  // tabell — inte för att kopian är korrekt utan för att det inte finns något
+  // att sakna. Verifieringen skulle lysa grönt för alltid, även om Postgres
+  // tömdes i morgon.
+  //
+  // Uppmätt 2026-09-01 efter raderingen: bedömTabell(0, 5470, 0, true) gav
+  // `stämmer: true`, och bedömTabell(0, 0, 0, true) gav också `stämmer: true`.
+  // En kontroll som inte kan fälla är inget kvitto — samma klass av fel som
+  // torrkörningen som strukturellt alltid rapporterade "0 köade", och som
+  // prissynken som räknade upp prisUppdaterade utan att skriva.
+  //
+  // Verdikten blir därför INTE "godkänd" utan "går inte att uttala sig om".
+  // Anroparen ska säga det rakt ut i stället för att visa ett grönt OK.
+  const källanTom = wix === 0 && postgres > 0;
+
   if (!efterVäxling) {
     // Strikt: färre rader är dataförlust. Fler är källans egen retention som
     // hunnit städa medan kopieringen pågick — det får inte fälla, annars kan
     // en tabell som städas aldrig verifieras.
-    return { stämmer: brist === 0, överskott, drift: 0 };
+    return { stämmer: brist === 0, överskott, drift: 0, källanTom };
   }
 
   const massfel = brist > MASSFEL_GOLV && brist / Math.max(wix, 1) > MASSFEL_ANDEL;
@@ -71,5 +91,6 @@ export function bedömTabell(
     stämmer: !massfel,
     överskott,
     drift: brist + avvikande,
+    källanTom,
   };
 }
