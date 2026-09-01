@@ -86,6 +86,16 @@ jobs:
               echo "::error::Verifieringen fällde (${lage}) — se tabellen ovan" >&2
               exit 1
             fi
+            # ☠️ En tom källa är inte ett godkännande. Efter steg 6 är
+            # Wix-kollektionerna tömda, och då kan verifieringen aldrig fälla —
+            # den skulle lysa grönt även om Postgres tömdes. Säg det rakt ut.
+            if [ "$(echo "$svar" | jq -r '.verifiering."källanTömd" // false')" = "true" ]; then
+              echo "$svar" | jq -r '.verifiering.tabeller[] | select(.postgres > 0) | "    [pg] \(.tabell): \(.postgres) rader"'
+              echo "EJ TILLÄMPLIG: Wix-kollektionerna är tömda (steg 6), så det finns"
+              echo "ingenting kvar att jämföra mot. Talen ovan är Postgres egna radantal —"
+              echo "läs dem som en inventering, inte som ett godkännande."
+              exit 0
+            fi
             if [ "$lage" = "efter-växling" ]; then
               # Wix är fruset sedan växlingen. Att sidorna glider isär är
               # kvittot på att produktionen skriver till Postgres — inte ett

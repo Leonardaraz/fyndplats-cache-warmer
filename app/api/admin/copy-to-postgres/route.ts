@@ -242,6 +242,9 @@ async function verifiera(efterVäxling: boolean): Promise<{
   fullständig: boolean;
   /** Vilken fråga svaret faktiskt besvarar. Se lib/migration/verdikt.ts. */
   läge: "före-växling" | "efter-växling";
+  /** ☠️ Sant när källan är tömd. Då är `fullständig` INTE ett godkännande —
+   *  det finns ingenting kvar att jämföra mot. Anroparen måste säga det. */
+  källanTömd: boolean;
   tabeller: {
     tabell: string;
     wix: number;
@@ -252,6 +255,8 @@ async function verifiera(efterVäxling: boolean): Promise<{
     överskott: number;
     /** Efter växlingen: avvikelser som är förväntad drift, inte fel. */
     drift: number;
+    /** Källan är tömd — jämförelsen för den här tabellen säger ingenting. */
+    källanTom: boolean;
     stickprov: number;
     avvikande: string[];
   }[];
@@ -318,15 +323,23 @@ async function verifiera(efterVäxling: boolean): Promise<{
       stämmer: verdikt.stämmer,
       överskott: verdikt.överskott,
       drift: verdikt.drift,
+      källanTom: verdikt.källanTom,
       stickprov: prov.length,
       avvikande,
     });
   }
 
+  // Är källan tömd för varje tabell som har innehåll i kopian finns det inget
+  // kvar att verifiera mot. Rapportera det som ett eget läge i stället för att
+  // låta `fullständig: true` se ut som ett godkännande.
+  const medInnehåll = ut.filter((t) => t.postgres > 0);
+  const källanTömd = medInnehåll.length > 0 && medInnehåll.every((t) => t.källanTom);
+
   return {
     fullständig: ut.every(
       (t) => t.stämmer && (efterVäxling || t.avvikande.length === 0),
     ),
+    källanTömd,
     läge: efterVäxling ? "efter-växling" : "före-växling",
     tabeller: ut,
   };

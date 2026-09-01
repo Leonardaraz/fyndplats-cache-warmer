@@ -66,3 +66,35 @@ describe("bedömTabell — efter växlingen", () => {
     expect(efter(130, 130 - (MASSFEL_GOLV + 1)).stämmer).toBe(false);
   });
 });
+
+describe("källanTom — en tömd källa är inte ett godkännande", () => {
+  it("☠️ efter steg 6: tom källa MOT rader i kopian flaggas", () => {
+    // Det verkliga fallet 2026-09-01 20:17, efter att 15 310 rader raderats.
+    const v = bedömTabell(0, 5494, 0, true);
+    expect(v.källanTom).toBe(true);
+  });
+
+  it("☠️ utan flaggan hade verifieringen inte kunnat fälla på NÅGONTING", () => {
+    // Båda dessa "passerar" — och det är precis problemet flaggan finns för.
+    expect(bedömTabell(0, 5494, 0, true).stämmer).toBe(true);
+    expect(bedömTabell(0, 1, 0, true).stämmer).toBe(true);
+    // Men båda är nu märkta som omöjliga att uttala sig om.
+    expect(bedömTabell(0, 5494, 0, true).källanTom).toBe(true);
+    expect(bedömTabell(0, 1, 0, true).källanTom).toBe(true);
+  });
+
+  it("en tabell som är tom på BÅDA sidor är inte 'tömd källa' — den är bara tom", () => {
+    // FyndplatsClaudeCache har alltid varit 0/0. Att flagga den hade gjort
+    // flaggan meningslös.
+    expect(bedömTabell(0, 0, 0, true).källanTom).toBe(false);
+  });
+
+  it("en levande källa flaggas aldrig", () => {
+    expect(bedömTabell(5470, 5470, 0, true).källanTom).toBe(false);
+    expect(bedömTabell(1795, 1790, 0, true).källanTom).toBe(false);
+  });
+
+  it("gäller även före växlingen — en tömd källa är alltid misstänkt", () => {
+    expect(bedömTabell(0, 5494, 0, false).källanTom).toBe(true);
+  });
+});
