@@ -82,7 +82,7 @@ interface WixOrderLineItem {
  */
 export async function fetchOrders(
   sinceIso: string,
-  options?: { includeCancelled?: boolean; maxPages?: number },
+  options?: { includeCancelled?: boolean; maxPages?: number; strict?: boolean },
 ): Promise<WixOrder[]> {
   const maxPages = options?.maxPages ?? 50;
   const all: WixOrder[] = [];
@@ -115,7 +115,13 @@ export async function fetchOrders(
       const text = await res.text();
       // 403/404 vid tom kollektion eller saknad scope → returnera tomt så att
       // panelen ändå laddar (med "Antal sålda: —"-fallback i UI:t).
-      if (res.status === 403 || res.status === 404) return all;
+      //
+      // ☠️ `strict` finns för anropare där tomt INTE är ett harmlöst utfall.
+      // Orderåterhämtningen (lib/orders/backfill.ts) jämför Wix-ordrar mot
+      // tasks: får den noll ordrar drar den slutsatsen att inget saknas och
+      // gör ingenting — ett tyst no-op som ser ut som en frisk körning.
+      // Nätet under orderpipelinen får inte kunna sluta fungera osynligt.
+      if ((res.status === 403 || res.status === 404) && !options?.strict) return all;
       throw new Error(
         `Wix orders/search misslyckades (${res.status}): ${text.slice(0, 400)}`,
       );

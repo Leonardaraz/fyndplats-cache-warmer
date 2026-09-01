@@ -1,0 +1,155 @@
+name: Polering — läs och stämpla mappningsraden
+
+# Poleringens väg till mappningsraden efter att den flyttat till Postgres
+# (POSTGRES-MIGRATION.md, steg 6 tömde FyndplatsMappings).
+#
+# Före migreringen läste och skrev SEO-poleringen raden direkt via Wix Data i
+# chatten. Det går inte längre — och skrivningen var dessutom farlig: en save
+# mot en tömd kollektion SKAPAR en ny rad som ingenting läser.
+#
+# Lägen:
+#   las      hämtar hela raden + färdigräknad prisgrind (Steg 3, 4, 6, 10)
+#   stampla  nollställer poleringsflaggan och skriver SKU:er (Steg 8, 13)
+#
+# Samma nyckel-lösa upplägg som prisreparationen: produktionen har
+# Wix-nycklarna och DATABASE_URL, Actions har CRON_SECRET. Ingen hemlighet
+# passerar chatten.
+#
+# 'stampla' skriver bara de tre fält poleringen äger — allt annat avvisas av
+# rutten. Kostnads-, pris- och leverantörsfält går inte att röra härifrån.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "las = hämta raden · stampla = skriv poleringsflaggan/SKU"
+        required: true
+        default: "las"
+        type: choice
+        options:
+          - las
+          - stampla
+      wix_product_id:
+        description: "Wix-produktens id"
+        required: true
+        type: string
+      needs_ai_polish:
+        description: "stampla: sätt needsAiPolish (tomt = rör inte)"
+        required: false
+        default: "false"
+        type: string
+      draft_status:
+        description: "stampla: sätt draftStatus (tomt = rör inte)"
+        required: false
+        default: "published"
+        type: string
+      variant_skus:
+        description: 'stampla: JSON, wixVariantId → sku. T.ex. {"wv1":"FP-baddsoffa"}'
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  mapping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          PRODUCT_ID: ${{ inputs.wix_product_id }}
+          NEEDS_POLISH: ${{ inputs.needs_ai_polish }}
+          DRAFT_STATUS: ${{ inputs.draft_status }}
+          VARIANT_SKUS: ${{ inputs.variant_skus }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/mapping"
+
+          if [ "${MODE}" = "las" ]; then
+            svar=$(curl -sS --max-time 60 -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${url}?wixProductId=${PRODUCT_ID}")
+
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+              exit 1
+            fi
+
+            echo "=== Mappningsraden ==="
+            echo "$svar" | jq '.mappning'
+            echo
+            echo "=== Steg 4: prisgrinden ==="
+            if [ "$(echo "$svar" | jq -r '.prisgrind')" = "null" ]; then
+              echo "EJ AVGORBAR: underlaget saknas (ingen variant, eller noll i kostnad/pris)."
+              echo "Polera INTE priset. Flagga raden till Leonard."
+              exit 1
+            fi
+            echo "$svar" | jq -r '.prisgrind | "  landedCostSek \(.landedCostSek)\n  forvantat     \(.["förväntatSek"])\n  faktiskt      \(.faktisktSek)\n  stammer       \(.["stämmer"])"'
+            echo "$svar" | jq -r '.prisregel | "  regel: x\(.multiplikator), avrundning \(.rounding)"'
+
+            galler=$(echo "$svar" | jq -r '.prisgrind.["regelGäller"]')
+            stammer=$(echo "$svar" | jq -r '.prisgrind.["stämmer"]')
+
+            if [ "$stammer" = "true" ]; then
+              echo "OK: priset stammer mot regeln."
+            elif [ "$galler" = "true" ]; then
+              # Aosom-rad: sortimentet importerades 2026-08-27, samma dag regeln
+              # sattes, sa den galler. Ett fall ar da verklig drift.
+              echo "::error::PRISGRINDEN FALLER — kostnaden har andrats sedan importen och priset i Wix ar gammalt. ROR INTE PRISET. Valj en annan produkt och flagga raden." >&2
+              exit 1
+            else
+              # ☠️ Inte Aosom: prisregeln sattes 2026-08-27 och galler bara nya
+              # importer. En aldre rad foljer den GAMLA regeln och kan aldrig
+              # matcha — ett fall bevisar ingen drift. Ratt rad ar anda att inte
+              # rora priset, men skalet ar ett annat och det ska sagas rakt ut.
+              echo "::warning::EJ AVGORBAR: raden ar inte en Aosom-import, och prisregeln ovan galler bara importer efter 2026-08-27. Priset foljer sannolikt den aldre regeln. Detta bevisar INGEN drift — men ror anda inte priset utan att kontrollera for hand." >&2
+              exit 1
+            fi
+            fs=$(echo "$svar" | jq -r '.aosomFreightShare // "null"')
+            echo "  aosomFreightShare: ${fs} (over 0,5 = frakten kostar mer an varan, polera sist)"
+            exit 0
+          fi
+
+          # stampla
+          patch=$(jq -nc \
+            --arg np "${NEEDS_POLISH}" \
+            --arg ds "${DRAFT_STATUS}" \
+            --arg vs "${VARIANT_SKUS}" '
+            ($np | if . == "" then {} else {needsAiPolish: (. == "true")} end)
+            + ($ds | if . == "" then {} else {draftStatus: .} end)
+            + ($vs | if . == "" then {} else {variantSkus: fromjson} end)
+          ')
+
+          if [ "$(echo "$patch" | jq 'length')" = "0" ]; then
+            echo "::error::Ingen patch — alla stampla-falt ar tomma" >&2
+            exit 1
+          fi
+
+          echo "Skickar patch: $patch"
+          svar=$(curl -sS --max-time 60 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg id "${PRODUCT_ID}" --argjson p "$patch" '{wixProductId: $id, patch: $p}')" \
+            "${url}")
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+            echo "$svar" | jq -r '.fel[]? | "    [avvisat] \(.["fält"]): \(.["skäl"])"' >&2
+            exit 1
+          fi
+
+          echo "OK: ${PRODUCT_ID} uppdaterad — $(echo "$svar" | jq -r '.["ändrat"] | join(", ")')"
+          # Las okanda variant-id. Ett id som inte finns pa raden skrevs INTE,
+          # och det ska synas i stallet for att forsvinna i ett gront OK.
+          okanda=$(echo "$svar" | jq -r '.okändaVariantIds | length')
+          if [ "$okanda" != "0" ]; then
+            echo "::warning::$(echo "$svar" | jq -r '"Okanda variant-id (inget skrevs for dem): " + (.okändaVariantIds | join(", "))')" >&2
+          fi

@@ -37,6 +37,7 @@ import { createBulkImportJob, BulkImportLimitError } from "@/lib/bulk-import/ser
 import type { ParsedCsv } from "@/lib/bulk-import/csv";
 import { buildSupplierWatchEmail, sendEmail } from "@/lib/email/resend";
 import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
+import { isPersistentBackend } from "@/lib/store/backend";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -109,8 +110,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Otillåten" }, { status: 401 });
   }
 
-  const backend = process.env.STORE_BACKEND ?? "memory";
-  if (backend === "memory") {
+  if (!isPersistentBackend()) {
     return NextResponse.json({ ok: true, skipped: true, reason: "STORE_BACKEND=memory" });
   }
 

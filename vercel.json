@@ -34,6 +34,10 @@
       "schedule": "45 4 * * *"
     },
     {
+      "path": "/api/cron/order-backfill",
+      "schedule": "25 * * * *"
+    },
+    {
       "path": "/api/cron/review-queue",
       "schedule": "0 5 * * *"
     },

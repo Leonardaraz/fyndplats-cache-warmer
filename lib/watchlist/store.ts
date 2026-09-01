@@ -2,12 +2,15 @@
 // kör varje term igen, jämför mot förra resultatet och mejlar Leonard om
 // nya EU-warehouse-träffar finns.
 //
-// Lagring: Wix Data-collection (FyndplatsDiscoverWatchlist) när
-// STORE_BACKEND=wix-data, annars in-memory (för dev/test).
+// Lagring: Wix Data-collection (FyndplatsDiscoverWatchlist) när det finns en
+// persistent backend alls, annars in-memory (för dev/test). Den ligger KVAR i
+// Wix efter Postgres-migreringen — se lib/store/backend.ts.
 //
 // Skikt: vi exponerar bara list/add/remove + getSeenProductIds /
 // setSeenProductIds — cron-jobbet använder seen-set för att avgöra
 // vilka träffar som är "nya" sedan föregående körning.
+
+import { isPersistentBackend } from "../store/backend";
 
 const WIX_BASE = "https://www.wixapis.com";
 const COL = process.env.WIX_DATA_COL_WATCHLIST ?? "FyndplatsDiscoverWatchlist";
@@ -164,8 +167,10 @@ let cached: WatchlistStore | null = null;
 
 export function getWatchlistStore(): WatchlistStore {
   if (cached) return cached;
-  const backend = process.env.STORE_BACKEND ?? "memory";
-  cached = backend === "wix-data" ? new WixDataWatchlistStore() : new MemoryWatchlistStore();
+  // Ligger kvar i Wix Data — frågan är alltså "finns persistent lagring?",
+  // inte "är Store på wix-data?". Med den gamla jämförelsen mot "wix-data" föll
+  // den här TYST till minnet så fort Store bytte drift-databas.
+  cached = isPersistentBackend() ? new WixDataWatchlistStore() : new MemoryWatchlistStore();
   return cached;
 }
 

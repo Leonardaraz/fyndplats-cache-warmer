@@ -282,3 +282,45 @@ describe("tomt fall", () => {
     await expect(runAosomImport(d)).rejects.toThrow("503");
   });
 });
+
+describe("föräldralösa produkter", () => {
+  it("☠️ en produkt som skapades men inte fick mappningsrad namnges — annars är den borttappad", async () => {
+    // Ordningen är påtvingad: mappningen behöver produktens Wix-id, så
+    // produkten skapas först. Faller skrivningen däremellan finns produkten i
+    // butiken men syns inte för lagersynken, prissynken eller
+    // lönsamhetsöversikten — och nästa körning ser artikeln som ny och skapar
+    // en ANDRA. Markören flyttas ändå, så ingen körning återkommer till den.
+    const d = deps([rad("A-1")], {
+      saveMapping: async () => {
+        throw new Error("WDE0195: Items limit exceeded. Delete some items and try again.");
+      },
+    });
+    const s = await runAosomImport(d, { dryRun: false });
+
+    expect(s.failed).toBe(1);
+    expect(s.imported).toBe(0);
+    expect(s.orphans).toHaveLength(1);
+    expect(s.orphans[0].sku).toBe("A-1");
+    expect(s.orphans[0].wixProductId).toBeTruthy();
+  });
+
+  it("ett fel FÖRE produkten skapats är ingen föräldralös — det finns inget kvar i Wix", async () => {
+    // Skillnaden är hela poängen: samma felmeddelande, helt olika åtgärd.
+    // Den här raden kör man bara om; den andra kräver städning.
+    const d = deps([rad("A-1")], {
+      importOne: async () => {
+        throw new Error("WDE0195: Items limit exceeded.");
+      },
+    });
+    const s = await runAosomImport(d, { dryRun: false });
+
+    expect(s.failed).toBe(1);
+    expect(s.orphans).toEqual([]);
+  });
+
+  it("en lyckad körning lämnar inga föräldralösa", async () => {
+    const s = await runAosomImport(deps([rad("A-1"), rad("A-2")]), { dryRun: false });
+    expect(s.imported).toBe(2);
+    expect(s.orphans).toEqual([]);
+  });
+});

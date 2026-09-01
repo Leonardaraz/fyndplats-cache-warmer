@@ -8,6 +8,9 @@
 //   FyndplatsBulkImportItems  — en rad per CSV-rad (max 500 per job)
 //
 // Memory-fallback för dev/test så att UI:t inte kraschar utan WIX_API_TOKEN.
+// Ligger KVAR i Wix Data efter Postgres-migreringen — se lib/store/backend.ts.
+
+import { isPersistentBackend } from "../store/backend";
 
 const WIX_BASE = "https://www.wixapis.com";
 
@@ -303,8 +306,10 @@ let testOverride: BulkImportStore | null = null;
 export function getBulkImportStore(): BulkImportStore {
   if (testOverride) return testOverride;
   if (!singleton) {
-    const backend = process.env.STORE_BACKEND ?? "memory";
-    singleton = backend === "wix-data" ? new WixDataBulkImportStore() : new MemoryBulkImportStore();
+    // Ligger kvar i Wix Data. Se watchlist-storen: jämförelsen mot "wix-data"
+    // hade tyst gjort bulk-jobben in-memory, och jobbet skrivs i EN lambda
+    // medan worker-cronen läser i en annan — det hade försvunnit varje minut.
+    singleton = isPersistentBackend() ? new WixDataBulkImportStore() : new MemoryBulkImportStore();
   }
   return singleton;
 }

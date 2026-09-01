@@ -1306,6 +1306,304 @@ som skriker.** Och den nya, som är dyrare: **en obegränsad fan-out skalar med
 katalogen — den är en tidsinställd bomb, inte en bugg.** Leta efter
 `Promise.all` över något som växer.
 
+## ☠️ Orderpipelinen hade EN väg in, och inget nät under (2026-08-31)
+
+`/admin` läser **bara `store.listTasks()`** — den tittar aldrig på Wix-ordrar.
+Enda vägen dit är webhooken `/api/wix-order`. Går den skrivningen fel är ordern
+borta för oss medan kunden har betalat, och Wix ger upp efter ett fåtal retries.
+
+Det inträffade. Order 10024, betald 09:27, syntes aldrig i admin. Webhooken kom
+fram tre gånger och svarade 500 varje gång:
+
+```
+WDE0195: Items limit exceeded. Delete some items and try again.
+```
+
+Wix Datas **radtak** var nått. Tre saker gjorde det värre än en tappad order:
+
+1. **Taket stoppar bara NYA rader.** Uppmätt: en `save` mot en befintlig rad
+   svarar `"action":"UPDATED"` och går igenom; en ny rad avvisas. Lagersynken
+   uppdaterar befintliga mappningar och såg därför fullt frisk ut hela tiden.
+2. **Det hade pågått i ett dygn.** Nyaste audit-raden var 2026-08-30 12:25 —
+   `aliexpress-sync` hade fällts på `WDE0195` vid varje körning sedan dess (11
+   gånger på ett dygn, mätt i Vercel-loggen). Ingen märkte det, eftersom felet
+   bara syns som en 500 i en cron ingen läser.
+3. **Vakten SÅG det men gjorde ingenting.** `buildGuardFindings.missingTasks`
+   räknar precis "betald order utan task" — men rapporterade dem bara i
+   morgonmejlet, en gång per dygn. Ordern hade nått Leonard 19 timmar senare.
+
+### `/api/cron/order-backfill` är nätet (`lib/orders/backfill.ts`)
+
+Kör varje timme. Läser Wix-ordrar, jämför mot tasks, skapar det som saknas via
+**samma `deriveTasks` som webhooken** — ingen egen tolkning av orderformen, av
+samma skäl som `SHIP_AXIS_RE` och `EU_TULL_CODES` ska ha en enda definition.
+Urvalet importerar `ACTIONABLE_PAYMENT` och `TASK_GRACE_MS` från vakten, så
+återhämtningen och larmet aldrig kan bli oense om vad "tappad order" betyder.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. **Skarp som default**, tvärtemot husets övriga cron-rutter. De andra SKRIVER
+   något nytt till kunden och ska be om lov; den här ÅTERSTÄLLER en order kunden
+   redan betalat för, och att avstå är det farliga utfallet.
+2. ☠️ **Ordens FAKTISKA ålder bärs vidare.** `deriveTasks` stämplar `createdAt`
+   med NU — rätt i webhooken, fel här: en order från i förrgår hade fått åldern
+   noll och vaktens påminnelser hade börjat om från början. Ett test låser det,
+   verifierat genom att återinföra buggen.
+3. **Respiten gäller.** En order yngre än `TASK_GRACE_MS` rörs inte — vi ska
+   inte tävla med webhooken om en färsk order.
+4. **Ett fel fäller inte resten.** Nästa order kan vara den som går att rädda.
+
+Rutten är idempotent (`createTaskIfAbsent` skriver aldrig över) så den är gratis
+att köra ofta och ofarlig att köra om.
+
+### Larmet går via mejl, för det är den enda kanal som fungerar
+
+Nätet ovan gick i väggen på exakt samma sak som webhooken: `createTaskIfAbsent`
+kastade `WDE0195`, felet fångades per order, lades i `errors` — och rutten
+svarade 200. Ett nät som kan misslyckas tyst är inget nät.
+
+☠️ **När task-skrivningen faller är varje annan kanal blockerad av samma vägg.**
+Audit-raden är också en ny rad. Vaktens fynd hamnar i morgonmejlet först nästa
+dygn (19 timmar för 10024). Admin-listan läser bara tasks, och det är tasken som
+saknas. Nästa körnings andra försök faller likadant. Resend rör inte Wix, och är
+därför enda vägen ut ur en full databas.
+
+`buildStuckOrdersEmail` bär därför allt som behövs för att expediera ordern för
+hand — ordernummer, kund, artikel med SKU och antal, orsaken ordagrant. Mejlet
+upprepas varje timme så länge ordern sitter fast; en betald order som inte kan
+expedieras SKA tjata, och tjatet upphör av sig självt när skrivningen går
+igenom. **Bara raderna som inte hann skrivas listas** — annars beställer man om
+en rad som redan ligger i `/admin` och kunden får två paket.
+
+### ☠️ Ett fullt CMS gör importen till en dubblettfabrik
+
+Ordningen i `lib/aosom/import-run.ts` är påtvingad: mappningen behöver
+produktens Wix-id, så produkten skapas först. Faller mappningsskrivningen
+däremellan är produkten **föräldralös** — den finns i butiken men syns inte för
+lagersynken, prissynken, prisreparationen, bildreparationen eller
+lönsamhetsöversikten, som alla itererar mappningar.
+
+Värre: dubblettspärren nycklar på `supplierProductId` i MAPPNINGEN. Utan rad ser
+nästa körning artikeln som ny och skapar en **ANDRA** produkt för samma vara —
+precis den interna dubbletten som straffas. Och markören flyttas ändå (en trasig
+rad får inte stoppa svepet), så ingen körning återkommer till den av sig själv.
+
+Uppmätt 2026-08-31: nattens körning 04:40 skapade `3e6f2d24-e045-44ad-aed9-067030b01f46`
+(ett tyskt utkast, `visible:false`) och föll sedan på postgränsen. Noll
+mappningsrader pekar på den.
+
+Luckan går inte att stänga genom att byta ordning. Det som går är att vägra
+tappa bort den: `summary.orphans` namnger sku + wixProductId, och en
+konsolrad skrivs (konsolen kräver ingen databas). `?sku=` kör om riktat när
+orsaken är åtgärdad. **En automatisk radering av produkten är medvetet INTE
+byggd** — det är en destruktiv åtgärd på något en människa ska titta på först.
+
+⚠️ **Taket löstes senare — och den här radens förklaring var fel.** Den påstod
+att "radantalet i Wix Data inte är det som binder", eftersom 18 091 raderade
+audit-rader (22 977 → 4 886, verifierat) inte släppte blockeringen. Radantalet
+ÄR det som binder. Taket är bara **globalt över alla kollektioner** och ligger på
+**4 000**, så de ~18 800 rader som återstod var fortfarande 4,7× över. Städningen
+var alltså inte otillräcklig av otur — ingen delmängd kunde räcka. Se nästa
+avsnitt.
+
+**Regeln: en pipeline med exakt en väg in behöver ett nät under sig.** Och den
+gamla, åttonde gången: ett fel som bara syns som en 500 i en cron ingen läser
+är ett fel ingen upptäcker.
+
+## ☠️ Drift-datan bor i Postgres sedan 2026-08-31 — inte i Wix Data
+
+Wix CMS slutade ta emot nya rader: *"You've reached your 4,000 items limit
+across all collections."* Taket är **globalt över alla kollektioner** och stoppar
+bara NYA rader — befintliga uppdateras som vanligt. Därför såg allt friskt ut
+utåt medan order 10024 (betald 09:27) aldrig nådde `/admin`.
+
+☠️ **Delvis städning ger exakt noll.** ~36 000 raderade rader (55 000 → 18 800)
+flyttade inte blockeringen en millimeter, och kunde inte göra det: antingen är
+man under 4 000 eller så är man blockerad. Ingen delmängd räcker — bara att
+flytta ut hela drift-datan (18 800 → ~3 470) gör det.
+
+Hela planen, mätningarna och auditen står i **`POSTGRES-MIGRATION.md`**.
+
+### Var datan bor nu
+
+| | |
+|---|---|
+| Backend-väljare | `STORE_BACKEND` — `memory` \| `wix-data` \| `postgres` |
+| Produktion | **`postgres`** (växlad 2026-08-31) |
+| Databas | Neon serverless Postgres, `DATABASE_URL` |
+| Flyttade rader | **15 311** (11 tabeller, fem moduler) |
+| Kvar i Wix Data | recensioner, auktioner, redirects + småposter |
+
+De tre kollektioner butiken läser **direkt** ur Wix Data stannar där —
+`FyndplatsImportedReviews`, `FyndplatsAuctions`, `FyndplatsRedirects`. Flyttas de
+måste butiksrepot byggas om, och de frigör inte de rader som binder.
+
+### Fem egenskaper som inte ska tas bort
+
+1. ☠️ **`STORE_BACKEND` har exakt EN läsare** (`lib/store/backend.ts`). Ett
+   källkodstest i `backend.test.ts` grep:ar efter `process.env.STORE_BACKEND`
+   utanför den filen och fäller. Skälet är husets vanligaste bugg: tvillingar
+   glider isär (`SHIP_AXIS_RE`, `EU_TULL_CODES`, `mapWithConcurrency`). En
+   backend-väljare läst på sex ställen hade betytt sex olika svar på frågan
+   "vilken databas skriver vi till?".
+2. ☠️ **Kopieringen vägrar köra när backend redan är `postgres`.**
+   `/api/admin/copy-to-postgres` svarar **409** i skarpt läge. Utan grinden hade
+   en omkörning skrivit tillbaka Wix gamla rader över levande data — rutten
+   läser från Wix och skriver till Postgres, och efter växlingen är Wix den
+   föråldrade sidan. `?verify=1` går alltid igenom; den skriver ingenting.
+3. ☠️ **Verifieringen jämför KANONISKT, inte ordagrant.** JSONB bevarar inte
+   nyckelordning, så en rå `JSON.stringify`-jämförelse flaggade 10/10
+   `.variants` och 10/10 `.shippingAddress` medan varje platt fält stämde.
+   `lib/migration/kanonisk.ts` sorterar nycklar rekursivt — men behåller
+   **array-ordningen**, som är betydelsebärande (varianter, bilder).
+4. ☠️ **Ingen unik nyckel på `supplier_product_id`.** Ett första utkast hade
+   det, och den skarpa kopieringen avvisade fyra legitima rader: katalogen
+   stödjer medvetet dubbletter (`allowDuplicate: true`, båda spärrarna
+   fail-open). **En databas som vägrar det applikationen medvetet stödjer är
+   fel, hur tilltalande invarianten än ser ut.**
+5. ☠️ **`queryAll` KASTAR i stället för att tyst kapa.** Den returnerade
+   tidigare de första N raderna utan att säga något; efter `MAX_QUERY_ALL_ROWS`
+   (10 000) kastar den. En halv katalog som ser komplett ut är samma klass av
+   fel som `Promise.allSettled` i `media.ts` — och den här gången hade det
+   betytt en kopia som saknade rader med grönt kvitto.
+
+### Kopiering och verifiering körs från GitHub Actions
+
+Workflowen **"Migrering — kopiera drift-datan till Postgres"**
+(`copy-to-postgres.yml`), tre lägen: `torr` · `kopiera` · `verifiera`. Samma
+nyckel-lösa upplägg som prisreparationen — produktionen har Wix-nycklarna och
+`DATABASE_URL`, Actions har `CRON_SECRET`. Torrkörning är default; utan
+`dryRun=false` skrivs ingenting. Rutten är markörbaserad (`cursor` → `?after=`)
+av samma skäl som Aosom-svepet: en serverless-rutt har 300 sekunder.
+
+Verifieringen är **asymmetrisk**: fler rader i Postgres än i Wix är OK (nya
+skrivningar landar bara i Postgres nu, och Wix gallrar `sync_log`), färre fäller.
+Den läser dessutom bara tabeller som står i kopielistan — därför finns
+`tabeller.test.ts`, som läser källkoden i alla fem ägande moduler och fäller om
+någon nämner en kollektion listan inte täcker. Det testet hittade
+`FyndplatsAliExpressTokens`, som annars lämnats kvar med grönt kvitto.
+
+Resultatet vid växlingen: **15 310 lästa / 15 310 skrivna**, alla radantal
+stämmer, **noll fältavvikelser**.
+
+### ☠️ Verifieringen fällde en halvtimme efter växlingen — och hade rätt fel
+
+Körningen 22:06 gav rött på tre "avvikelser". Alla tre var frisk drift, och två
+av dem är precis det kvitto migrationen behövde:
+
+| tabell | vid växlingen | 22:06 | vad som hände |
+|---|---:|---:|---|
+| `sync_alerts` | 18 | **32** | synken skriver larm igen — samma skrivningar föll på `WDE0195` kl 04:00 |
+| `audit` | 1 796 | 1 790 | synkens egen städning tog 7 rader äldre än 14 dygn |
+| `sync_state` | — | 1 fält | `currentCostUsd` uppdaterad av 22:01-körningen |
+
+Produkten i fältavvikelsen är `2861bf83-2976-45e1-a51e-75f4bf880be2` — **samma
+rad som kl 04:00 loggade `Wix Data save FyndplatsAliExpressSyncAlerts (429):
+WDE0195`.** Den fick sitt larm skrivet den här gången.
+
+Felet låg i verifieringens premiss, inte i datan. Den frågar "speglar kopian
+källan?" — en fråga som slutade vara meningsfull i samma sekund som produktionen
+började skriva till Postgres. Wix är sedan dess **fruset** (taket blockerar nya
+rader, och ingen kod skriver dit), så varje korrekt skrivning får sidorna att
+glida isär. En verifiering som lyser rött varje gång driften är frisk lär man
+sig att ignorera — samma argument som mot att varna vid 48 h på
+token-förnyelsen.
+
+Regeln bor nu i **`lib/migration/verdikt.ts`** och känner till båda lägena:
+
+- **Före växlingen:** strikt. En enda saknad rad är dataförlust och fäller.
+- **Efter växlingen:** bara **MASSFEL** fäller (`MASSFEL_ANDEL` 10 % **och**
+  `MASSFEL_GOLV` 25 rader — båda krävs, så `webhook_events` med 16 rader inte
+  fäller på en enda). Allt annat rapporteras som `drift`.
+
+Båda trösklarna krävs med flit: andelen ensam fäller små tabeller på brus,
+golvet ensamt låter en liten tabell tömmas till hälften. Samma spärr-form som
+`MIN_FEED_RADER` och halvbildsspärren i media-cleanup — **skydda mot att allt
+rasar, inte mot att en rad rör sig.** Elva tester låser talen, verifierade genom
+att återinföra buggen: tre faller, och bara de tre.
+
+### Wix-raderna är raderade sedan 2026-09-01 — taket är frigjort
+
+Steg 6 är genomfört: **15 310 granskade, 15 310 raderade, noll fel**, alla
+tretton kollektioner klara. Talet är exakt det kopieringen skrev vid växlingen.
+
+Föregicks av ett dygns drift på Postgres med noll `error`-rader i Vercel (mot 12
+dygnet före), samtliga cron-rutter körda och tre riktiga ordrar genom webhooken.
+
+☠️ **Torrkörningen stoppade första försöket, och hade rätt.** 71 av 95
+audit-rader och 50 av 100 sync_log-rader saknades i kopian — medan radantalen
+såg friska ut (`sync_log` hade till och med ÖVERSKOTT). Orsaken var inte en
+trasig kopia: synken städar de två tabellerna ur POSTGRES, Wix städas inte
+längre av någon, så raderna var utgångna med flit. `beslutaSida` känner nu
+skillnaden — en saknad rad får raderas bara om den är äldre än tabellens
+retention-fönster, och talen ärvs från `lib/retention.ts`.
+
+**Taket är mätt frigjort, inte uträknat.** Recensionskön kördes direkt efteråt
+och skrev `2 köade` — två nya rader i `FyndplatsImportedReviews`, exakt den
+skrivning som fallit på `WDE0195` tolv timmar tidigare.
+
+☠️ **Vägen tillbaka är därmed stängd.** Fram till raderingen var rollback en
+env-variabel; nu finns drift-datan bara i Postgres, och Neons
+point-in-time-återställning är det som gäller. Raderingsrutten
+(`/api/admin/radera-wix`) ligger kvar med sina spärrar men har inget kvar att
+göra — en omkörning är en no-op.
+
+### ☠️ Raderingen bröt SEO-poleringen — på fem ställen, inte ett
+
+Poleringen körs av Claude i chatten och läste mappningsraden **direkt ur Wix
+Data**. Steg 6 tömde den kollektionen, och därmed gick fem beröringspunkter
+sönder samtidigt: Steg 3 (facit för pris, lager, EU-ribbon), Steg 4
+(prisgrinden), Steg 6/11 (variantfacit), Steg 10 (kategoriförslag) och Steg 13
+(stämpeln).
+
+☠️ **Skrivningen var farligast, och den syntes inte.** Steg 13 gjorde
+`POST /data/v2/items/save` med HELA raden. Mot en tömd kollektion **skapar** det
+en ny rad: anropet rapporterar framgång, ingenting läser raden, produkten kommer
+tillbaka i poleringskön för alltid och SKU-skrivningen tappas. En annan session
+föreslog att "polera vidare utan prisgrinden" — det hade gått rakt in i den här
+fällan, eftersom felet ligger i slutsteget och inte i grinden.
+
+`/api/admin/mapping` ersätter båda vägarna (`lib/polish/mapping-access.ts`,
+workflowen **"Polering — läs och stämpla mappningsraden"**). Fyra egenskaper som
+inte ska tas bort:
+
+1. ☠️ **Skrivningen är en ALLOWLIST, inte en helradsskrivning.** Poleringen äger
+   tre fält: `needsAiPolish`, `draftStatus` och `variants[].sku`. Allt annat
+   avvisas med 400 — det ignoreras inte tyst, för ett tyst ignorerat fält är
+   exakt hur "svaret sa OK men inget hände" uppstår. Kostnads-, pris- och
+   leverantörsfält går inte att röra härifrån.
+2. ☠️ **Den skapar ALDRIG en rad.** Saknas mappningen svarar den 404. Det är
+   hela skälet till att rutten finns: produkten är då föräldralös och ska
+   granskas av en människa, inte poleras.
+3. ☠️ **SKU matchas på `wixVariantId`, aldrig på position.** Två fält heter
+   `sku` och betyder olika saker; den förväxlingen gjorde att prissynken skrev
+   till ingenting i en månad. Positionsmatchning hade återinfört den.
+4. **Prisgrinden räknas i rutten, inte i chatten**, ur samma `roundPrice` som
+   prissättningen använder — så grinden kan inte drifta från regeln. Saknas
+   underlaget svarar den `null` i stället för att gissa, och workflowen
+   avslutar med `exit 1` på både `stammer: false` och `EJ AVGORBAR`.
+
+Fjorton tester, verifierade genom att återinföra alla tre farliga misstagen
+(tyst ignorerade fält, positionsmatchad SKU, gissande prisgrind): rätt test
+faller för rätt bugg.
+
+**Regeln: en migrering är inte klar när datan flyttat — den är klar när alla
+läsare följt med.** Kodauditen hittade inga trasiga läsare eftersom poleringen
+inte är kod; den är en runbook som en människa och en modell följer.
+
+### Så såg resonemanget ut innan raderingen
+
+Växlingen är gjord, men de gamla raderna är inte raderade. De är
+återställningen: går något fel byts `STORE_BACKEND` tillbaka till `wix-data` och
+driften står på fötter igen på en minut. **Det är först raderingen som frigör
+4 000-taket**, och den ska göras med Leonards uttryckliga ja efter minst ett
+dygns stabil drift — inte samma kväll som växlingen.
+
+Kvittot att skrivvägen fungerar mättes direkt, inte antogs:
+`/api/cron/order-backfill` loggade **`1 av 1 saknade tasks skapade, 0 fel
+(räddade: 10024)`** 21:25 samma kväll. Ordern som legat oskrivbar sedan morgonen
+fick sin task, och `tasks` gick från 12 rader i Wix till 13 i Postgres.
+
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 
 Recensionskedjan (filtrering → `FyndplatsImportedReviews` → moderering i
