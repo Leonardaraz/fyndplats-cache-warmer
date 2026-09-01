@@ -94,11 +94,25 @@ jobs:
             fi
             echo "$svar" | jq -r '.prisgrind | "  landedCostSek \(.landedCostSek)\n  forvantat     \(.["förväntatSek"])\n  faktiskt      \(.faktisktSek)\n  stammer       \(.["stämmer"])"'
             echo "$svar" | jq -r '.prisregel | "  regel: x\(.multiplikator), avrundning \(.rounding)"'
-            if [ "$(echo "$svar" | jq -r '.prisgrind["stämmer"]')" != "true" ]; then
+
+            galler=$(echo "$svar" | jq -r '.prisgrind.["regelGäller"]')
+            stammer=$(echo "$svar" | jq -r '.prisgrind.["stämmer"]')
+
+            if [ "$stammer" = "true" ]; then
+              echo "OK: priset stammer mot regeln."
+            elif [ "$galler" = "true" ]; then
+              # Aosom-rad: sortimentet importerades 2026-08-27, samma dag regeln
+              # sattes, sa den galler. Ett fall ar da verklig drift.
               echo "::error::PRISGRINDEN FALLER — kostnaden har andrats sedan importen och priset i Wix ar gammalt. ROR INTE PRISET. Valj en annan produkt och flagga raden." >&2
               exit 1
+            else
+              # ☠️ Inte Aosom: prisregeln sattes 2026-08-27 och galler bara nya
+              # importer. En aldre rad foljer den GAMLA regeln och kan aldrig
+              # matcha — ett fall bevisar ingen drift. Ratt rad ar anda att inte
+              # rora priset, men skalet ar ett annat och det ska sagas rakt ut.
+              echo "::warning::EJ AVGORBAR: raden ar inte en Aosom-import, och prisregeln ovan galler bara importer efter 2026-08-27. Priset foljer sannolikt den aldre regeln. Detta bevisar INGEN drift — men ror anda inte priset utan att kontrollera for hand." >&2
+              exit 1
             fi
-            echo "OK: priset stammer mot regeln."
             fs=$(echo "$svar" | jq -r '.aosomFreightShare // "null"')
             echo "  aosomFreightShare: ${fs} (over 0,5 = frakten kostar mer an varan, polera sist)"
             exit 0

@@ -154,6 +154,21 @@ missa.
 variant, eller noll i kostnad/pris) svarar grinden `null` i stället för att
 gissa. En grind som svarar "stämmer" på tomma tal är värre än ingen grind.
 
+☠️ **Grinden gäller bara Aosom-rader.** Prisregeln sattes 2026-08-27 och gäller
+bara nya importer — en AliExpress-rad från före dess följer den GAMLA regeln
+(1,28 × kostnad + 60) och kan aldrig matcha den nya. Uppmätt 2026-09-01 på två
+verkliga produkter:
+
+| rad | kostnad | regeln säger | Wix har | vad det betyder |
+|---|---:|---:|---:|---|
+| Aosom `2861bf83` | 2 843,40 | 3 419 | 3 699 | **verklig drift** → blockera |
+| AE `61d84189` | 860,37 | 1 039 | 1 119 | äldre prisregel → **inget driftbevis** |
+
+Workflowen skiljer dem åt: en Aosom-rad som faller ger `::error::` och verklig
+drift, en icke-Aosom-rad ger `::warning:: EJ AVGORBAR`. **Rådet är detsamma i
+båda fallen — rör inte priset** — men skälet är olika, och en grind som skyller
+drift på en produkt vars pris bara är äldre än regeln lär man sig att ignorera.
+
 `aosomFreightShare` säger hur mycket av inköpet som är frakt. Över **0,5** kostar frakten mer
 än varan — de produkterna poleras sist.
 
