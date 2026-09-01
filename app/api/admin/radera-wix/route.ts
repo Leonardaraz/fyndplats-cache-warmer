@@ -21,7 +21,7 @@ import { isAuthorized } from "@/lib/auth";
 import { storeBackend } from "@/lib/store/backend";
 import { sql } from "@/lib/db/client";
 import { ATT_KOPIERA, LLM_SAMLINGAR } from "@/lib/db/tabeller";
-import { beslutaSida, fårRaderas } from "@/lib/migration/radera-wix";
+import { beslutaSida, fårRaderas, retentionFör, tidsfältFör } from "@/lib/migration/radera-wix";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -200,6 +200,9 @@ async function handle(req: NextRequest) {
     kollektion: string;
     granskade: number;
     raderade: number;
+    /** Rader som saknas i kopian MEN är äldre än retention-fönstret — utgångna
+     *  med flit, inte förlorade. Ska inte vara noll för audit och sync_log. */
+    utgångna: number;
     klar: boolean;
     fel: string[];
   }[] = [];
@@ -215,13 +218,14 @@ async function handle(req: NextRequest) {
         kollektion: post.kollektion,
         granskade: 0,
         raderade: 0,
+        utgångna: 0,
         klar: false,
         fel: ["fredad kollektion — spärrad i ALDRIG_RADERA"],
       });
       continue;
     }
 
-    const rad = { tabell: post.namn, kollektion: post.kollektion, granskade: 0, raderade: 0, klar: false, fel: [] as string[] };
+    const rad = { tabell: post.namn, kollektion: post.kollektion, granskade: 0, raderade: 0, utgångna: 0, klar: false, fel: [] as string[] };
     let offset = 0;
 
     for (;;) {
@@ -256,16 +260,21 @@ async function handle(req: NextRequest) {
       const iKopian = await finnsIKopian(post, sida);
       // Beslutet fattas på NYCKLARNA (som kopian känner), men raderingen sker
       // på Wix _id. Paret måste hållas ihop, annars raderas fel rad.
-      const nycklar = sida.map((r) => nyckelFör(post, r) ?? "");
-      const beslut = beslutaSida(nycklar, iKopian);
+      const tidsfält = tidsfältFör(post.kollektion);
+      const rader = sida.map((r) => ({
+        nyckel: nyckelFör(post, r) ?? "",
+        tid: tidsfält ? r[tidsfält] : undefined,
+      }));
+      const beslut = beslutaSida(rader, iKopian, retentionFör(post.kollektion), Date.now());
 
       if (beslut.sort === "avbryt") {
         rad.fel.push(
-          `${beslut.saknade.length} av ${beslut.av} rader saknas i kopian — INGET raderat. `
-          + `Exempel: ${beslut.saknade.slice(0, 5).join(", ")}`,
+          `${beslut.saknade.length} av ${beslut.av} rader saknas i kopian och ligger INNANFÖR `
+          + `retention-fönstret — INGET raderat. Exempel: ${beslut.saknade.slice(0, 5).join(", ")}`,
         );
         break; // vidare till nästa kollektion; den här behöver en människa
       }
+      rad.utgångna += beslut.utgångna;
 
       if (dryRun) {
         offset += sida.length; // inget krymper i torrläge
@@ -293,16 +302,17 @@ async function handle(req: NextRequest) {
 
   const totaltGranskade = ut.reduce((s, r) => s + r.granskade, 0);
   const totaltRaderade = ut.reduce((s, r) => s + r.raderade, 0);
+  const totaltUtgångna = ut.reduce((s, r) => s + r.utgångna, 0);
 
   console.log(
     `[radera-wix] ${dryRun ? "TORR" : "SKARP"}: granskade ${totaltGranskade}, `
-      + `raderade ${totaltRaderade}, stoppad av ${stoppadAv}`,
+      + `raderade ${totaltRaderade}, utgångna ${totaltUtgångna}, stoppad av ${stoppadAv}`,
   );
 
   return NextResponse.json({
     ok: true,
     dryRun,
-    summary: { totaltGranskade, totaltRaderade, stoppadAv, tabeller: ut },
+    summary: { totaltGranskade, totaltRaderade, totaltUtgångna, stoppadAv, tabeller: ut },
   });
 }
 
