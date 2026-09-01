@@ -385,3 +385,56 @@ Tio tester låser spärrlistan och sidbeslutet (`lib/migration/radera-wix.test.t
 Körs från workflowen **"Migrering — radera drift-datan ur Wix Data"**
 (`radera-wix.yml`), lägen `torr` · `radera`. Torrkörning är default.
 
+### ☠️ Torrkörningen stoppade raderingen — och hade rätt
+
+Första torrkörningen (2026-09-01 19:25) granskade 14 569 rader och rapporterade
+två kollektioner som INTE fick raderas:
+
+```
+[fel] 71 av 95 rader saknas i kopian — Exempel: 2026-08-18T16:03:38.240Z-aliexpress-sync-run-cron …
+[fel] 50 av 100 rader saknas i kopian — Exempel: 2dccee2f-…-2026-08-25T16:03:29.704Z …
+```
+
+Radantalen hade sett friska ut: `audit` wix=1795 pg=1790, `sync_log` wix=3441
+pg=3478 — den ena nästan lika, den andra med ÖVERSKOTT. **En count-jämförelse
+hade vinkat igenom raderingen av 121 rader som inte fanns i kopian.** Det är
+precis vad per-rad-uppslaget finns för.
+
+Orsaken är inte en trasig kopia. Datumen är exakta:
+
+| kollektion | saknade rader daterade | retention |
+|---|---|---:|
+| `audit` | 2026-08-18 | `AUDIT_RETENTION_DAYS` = **14** |
+| `sync_log` | 2026-08-25 | `SYNC_LOG_RETENTION_DAYS` = **7** |
+
+Sedan växlingen städar synken de här två tabellerna **ur Postgres**. Wix städas
+inte längre av någon, så de gamla raderna ligger kvar där. Raderna är alltså
+**utgångna med flit, inte förlorade**.
+
+Distinktionen är hela skillnaden mellan säker radering och dataförlust, och den
+bor nu i `beslutaSida`: en rad som saknas i kopian får raderas ur Wix **bara om
+den är äldre än tabellens retention-fönster**. Saknas den och ligger INNANFÖR
+fönstret är det en verklig lucka, och då raderas ingenting alls ur sidan.
+
+Tre egenskaper till som inte ska tas bort:
+
+- **Talen ärvs från `lib/retention.ts`**, de skrivs inte av. En tvilling som
+  glider isär hade antingen blockerat i onödan eller — värre — vinkat igenom
+  rader som fortfarande borde finnas.
+- ☠️ **Saknad eller otolkbar tidsstämpel ger ALDRIG undantag.** Tomt fält är
+  ingen bevisning, och domen raderar permanent. Samma hållning som
+  `classifyListingAvailability`, där saknad status blir `unknown`, aldrig
+  `offline`.
+- **En kollektion utan retention får inget undantag alls** — en saknad mappning
+  är en lucka hur gammal raden än är.
+
+Svaret räknar `utgångna` separat från `raderade`, så det syns i rapporten hur
+många rader som passerade på ålder i stället för på uppslag.
+
+23 tester, verifierade genom att återinföra båda de farliga misstagen (saknad
+tidsstämpel = utgången, och retention-undantag åt alla kollektioner): ett test
+faller per bugg, och bara det.
+
+**Regeln, nionde gången: ett radantal som stämmer är inget kvitto på att
+innehållet gör det.**
+
