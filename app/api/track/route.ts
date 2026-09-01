@@ -21,7 +21,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { PHRASE_SV, svLocation, dedupeEvents } from "@/lib/track-i18n";
 import { maskCarrier } from "@/lib/carrier-mask";
-import { LEAKY_PATTERN, deriveAeStatus, translateAeDescription, type AeStatus } from "@/lib/ae-track";
+import { LEAKY_PATTERN } from "@/lib/ae-track";
+import { fetchAliExpressEvents, fmtEtaSv } from "@/lib/ae-source";
 import { registerWith17Track } from "@/lib/track17";
 
 export const runtime = "nodejs";
@@ -159,16 +160,6 @@ const STAGE_LABEL_SV: Record<string, string> = {
 // (allowlist, fail-safe) så de två kanalerna aldrig divergerar i vad de visar.
 const cleanCarrier = maskCarrier;
 
-// 17TRACK ger ETA som datum-sträng ("2026-06-10"). Formatera till svensk
-// läsbar form ("10 juni 2026"). Returnerar null om saknas/ogiltigt → UI:n
-// faller då tillbaka på "3–7 arbetsdagar".
-function fmtEtaSv(s: string | null | undefined): string | null {
-  if (!s) return null;
-  const d = new Date(s);
-  if (isNaN(d.getTime())) return null;
-  return d.toLocaleDateString("sv-SE", { day: "numeric", month: "long", year: "numeric" });
-}
-
 // Samlar alla events från alla providers (oftast en) till en platt, kronologisk lista.
 function allEventsOf(ti: Track17Track): Track17Event[] {
   const evs: Track17Event[] = [];
@@ -251,62 +242,9 @@ async function gettrackinfo(tn: string, apiKey: string): Promise<Track17Response
 // registerWith17Track — samma sv-översättning, SE-destination OCH
 // carrier-hint-retry när auto-detekteringen går bet (PostNord parcel connect).
 
-// ---------------------------------------------------------------------------
-// AliExpress-källan (via cache-warmern): 17TRACK klarar inte alla EU-frakt-
-// kedjor, men AliExpress känner alltid sin egen order. Cache-warmerns
-// /api/tracking-events slår upp spårningsnumret → AliExpress-ordern → deras
-// egna händelser + beräknad leverans. Svaren är rena transportdata.
-// ---------------------------------------------------------------------------
-
-const AE_EVENTS_URL =
-  process.env.CACHE_WARMER_TRACKING_URL
-  ?? "https://fyndplats-cache-warmer.vercel.app/api/tracking-events";
-
-// Svenska etiketter (AE_PHRASE_SV) + status-härledning bor i lib/ae-track —
-// ren, enhetstestad modul. Importeras ovan.
-
-async function fetchAliExpressEvents(tn: string): Promise<{
-  carrier: string;
-  eta: string | null;
-  status: AeStatus;
-  events: Array<{ time: string; description: string; location: string; status: string }>;
-} | null> {
-  try {
-    const res = await fetch(`${AE_EVENTS_URL}?tn=${encodeURIComponent(tn)}`, {
-      signal: AbortSignal.timeout(6000),
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const body = (await res.json()) as {
-      carrier?: string | null;
-      etaTimestamp?: number | null;
-      events?: Array<{ time?: string; description?: string }>;
-    };
-    const rawEvents = body.events ?? [];
-    const events = dedupeEvents(
-      rawEvents
-        .map((e) => ({
-          time: e.time ?? "",
-          description: translateAeDescription(e.description ?? ""),
-          location: "",
-          status: "",
-        }))
-        // Origin-anonymisering: rader vars text ändå röjer dropship-ursprunget
-        // filtreras bort helt (samma policy som 17TRACK-flödets isHiddenLocation).
-        .filter((e) => e.description && !LEAKY_PATTERN.test(e.description)),
-    );
-    // AliExpress "Seller Shipping …"-namn är inte kundvänliga → generisk etikett.
-    const rawCarrier = body.carrier ?? "";
-    const carrier = /seller shipping/i.test(rawCarrier) ? "Transportör" : cleanCarrier(rawCarrier);
-    const eta = body.etaTimestamp ? fmtEtaSv(new Date(body.etaTimestamp).toISOString()) : null;
-    // Status härleds ur RÅA texterna (före översättning) — levererade paket
-    // ska visa "Levererad", inte fastna på "På väg" (AliExpress saknar enum).
-    const status = deriveAeStatus(rawEvents.map((e) => e.description ?? ""));
-    return { carrier, eta, status, events };
-  } catch {
-    return null;
-  }
-}
+// AliExpress-källan (via cache-warmern) bor i lib/ae-source sedan 2026-09-01 —
+// delad med /api/cron/ae-delivery-poll, som mejlar när AliExpress säger
+// levererat för paket 17TRACK aldrig kände igen. Importeras ovan.
 
 /** Bygger /api/track-svaret ur AliExpress-källan (samma JSON-format som
  *  17TRACK-vägen så TrackingWidget inte ser skillnad på källorna). */
