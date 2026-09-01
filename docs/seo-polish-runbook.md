@@ -100,16 +100,18 @@ exakt `ALDRIG_RADERA`-listan.
 | `FyndplatsImportedReviews` | 2 514 | ja |
 | `FyndplatsAliExpressTokens` | 1 | ja |
 
-**Runbooken förutsätter mappningen på åtta ställen**, och de är inte lika allvarliga:
+**Poleringen rör mappningsraden i FEM steg**, och två av dem fäller rundan:
 
-| var | vad som går förlorat | konsekvens |
+| steg | vad raden bär | utan den |
 |---|---|---|
-| **Aosom punkt 4** | prisgrinden `grossSek == charm9(landedCostSek × 1,20)` | ☠️ **blockerande** |
-| Steg 3 | facit för pris, lager, EU-ribbon | blockerande |
-| Steg 6 | `supplierVariantId`, `inStock` | no-op för Aosom |
-| Rad 9 | `supplier` / `aosom:`-prefixet | härleds ur tyskan i utkastet |
-| Steg 10 | `categorySuggestion` | bara ett förslag |
-| Steg 13 + Klart-kriteriet | stämpeln `needsAiPolish:false`, `draftStatus:"published"` | bokföringsdrift |
+| **Steg 3** | facit för pris, lager, EU-ribbon | ☠️ **blockerande** |
+| **Steg 4** *(Aosom punkt 4)* | prisgrinden `grossSek == charm9(landedCostSek × 1,20)` | ☠️ **blockerande** |
+| Steg 6 / 11 | variantfacit: `supplierVariantId`, `inStock` | no-op för Aosom, blockerande för flervariant |
+| Steg 10 | `categorySuggestion` | bara ett förslag — kategorin går att välja ändå |
+| **Steg 13 + Klart-kriteriet** | stämpeln `needsAiPolish:false`, `draftStatus:"published"` | ☠️ **blockerande** — se nedan |
+
+Leverantören (`supplier` / `aosom:`-prefixet) går att härleda ur tyskan i utkastet och är
+alltså det enda beroendet som löser sig själv.
 
 ☠️ **Det är prisgrinden som fäller, inte stämpeln.** Grinden finns för att fånga exakt
 den drift `CLAUDE.md` mätte upp: synken skrev mappningen, Wix-skrivningen bet aldrig, och
@@ -123,19 +125,39 @@ först vid återläsning från Wix efter publicering.
 **Att polera utan grinden är alltså inte "polering minus bokföring" — det är polering med
 den enda spärr som fångar felklassen avstängd.**
 
+### ☠️ Och stämpeln är värre än bokföringsdrift
+
+Ett `POST /data/v2/items/save` mot den TÖMDA `FyndplatsMappings` **misslyckas inte** — det
+skapar en ny rad. Tre saker följer, och alla tre är dåliga:
+
+1. **Raden är föräldralös.** Produktionen läser Postgres; ingenting läser den nya
+   Wix-raden. Produkten kommer alltså tillbaka i poleringskön **för alltid**, oavsett hur
+   många gånger den stämplas.
+2. **Anropet rapporterar framgång.** Samma felklass som huset lärt sig sex gånger om:
+   *ett svar utan fel är inget kvitto.*
+3. **Den äter tillbaka av radtaket.** Hela poängen med migreringen var att frigöra
+   4 000-taket (`WDE0195`). Att skriva rader till Wix igen arbetar rakt mot det.
+
+**Stämpla alltså INTE via Wix Data.** Lämna produkten ostämplad och skriv ned id:t — det
+kostar en dubbelläsning i kön, medan en föräldralös rad kostar för alltid.
+
 ⚠️ **Feeden är INGEN väg runt.** Att räkna fram kostnaden ur `Wholesale Price` +
 `SE Ship Fee` kräver dels feedens adress — som är en hemlighet och aldrig får passera en
 chatt eller en terminal, repot är publikt — dels artikelnumret, som bara finns i
 mappningen. Båda ändarna saknas.
 
-### Vad som behövs innan nästa runda
+### Tills vidare: pausa de mappnings-beroende stegen
 
-En **nyckel-lös läsväg till Postgres**, i samma anda som prisreparationen och
-Aosom-svepet: en cron-rutt som tar `CRON_SECRET` och en GitHub-workflow som möter den, så
-att ingen hemlighet passerar chatten. Minst `landedCostSek`, `grossSek`,
-`supplierProductId` och `supplier` per `wixProductId`, plus en skrivväg för stämpeln.
-Ingen av de arton befintliga workflowsen gör det: `copy-to-postgres.yml --verifiera`
-jämför mot Wix-sidan, som numera är tom.
+*(Leonards besked 2026-09-01.)* **Bygg ingen läsväg härifrån** — den görs av sessionen som
+har migrationskontexten. Vad som behövs är en **nyckel-lös väg till Postgres** i samma anda
+som prisreparationen och Aosom-svepet: en cron-rutt som tar `CRON_SECRET` och en
+GitHub-workflow som möter den, så att ingen hemlighet passerar chatten. Den ska ge minst
+`landedCostSek`, `grossSek`, `supplierProductId` och `supplier` per `wixProductId`, plus en
+skrivväg för stämpeln. Ingen av de arton befintliga workflowsen gör det:
+`copy-to-postgres.yml --verifiera` jämför mot Wix-sidan, som numera är tom.
+
+Fram till dess: **polera inga nya produkter.** Steg 3, 4 och 13 saknar alla sitt facit, och
+en runda som ändå körs blir en produkt som varken kan prisavstämmas eller stämplas.
 
 -----
 
