@@ -1,13 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { extractAliExpressProductId, getInventory, getProduct, getTracking, queryFreightToCountry } from "@/lib/aliexpress/client";
+import { extractAliExpressProductId, getInventory, getProduct, queryFreightToCountry } from "@/lib/aliexpress/client";
 import { matchAeVariant, parseDeliveryOptions } from "@/lib/aliexpress/freight";
 import { normalizeCountryCode } from "@/lib/orders/tasks";
 import { getStore } from "@/lib/store/factory";
 import { assertTransition } from "@/lib/orders/status";
 import { placeOrderForTask, type PlaceOrderResult } from "@/lib/orders/place-order";
-import { assessDsPrice, normalizeAeOrderId } from "@/lib/orders/price-check";
+import { assessDsPrice } from "@/lib/orders/price-check";
+import { linkAliExpressOrder } from "@/lib/orders/link-ae-order";
 import { aliExpressIdOf, mappingSupplier } from "@/lib/store/supplier";
 import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
 import { pricingConfigFromEnv } from "@/lib/config";
@@ -272,57 +273,17 @@ export async function linkAliExpressOrderAction(
   taskId: string,
   rawOrderId: string,
 ): Promise<{ ok: boolean; message: string }> {
-  const orderId = normalizeAeOrderId(rawOrderId);
-  if (!orderId) {
-    return {
-      ok: false,
-      message: 'Det ser inte ut som ett AliExpress-ordernummer — kopiera "Ref. Number" ur din orderlista (bara siffror).',
-    };
-  }
-  const store = getStore();
-  const task = (await store.listTasks()).find((t) => t.taskId === taskId);
-  if (!task) return { ok: false, message: "Ordern hittades inte." };
-  if (task.aliexpressOrderId) {
-    return { ok: false, message: `Ordern är redan kopplad till AE-order ${task.aliexpressOrderId}.` };
-  }
-  // Redan "ordered" utan ordernummer (t.ex. manuellt markerad som lagd) är ett
-  // GILTIGT kopplingsläge — det är id:t som saknas, inte statusen. Audit
-  // 2026-08-06: assertTransition(ordered→ordered) skulle annars vägra exakt
-  // det fall fältet finns för. Övriga statusar måste kunna GÅ till ordered.
-  const alreadyOrdered = task.status === "ordered";
-  if (!alreadyOrdered) {
-    try {
-      assertTransition(task.status, "ordered");
-    } catch {
-      return { ok: false, message: `Ordern har status "${task.status}" och kan inte kopplas.` };
-    }
-  }
-
-  // Probe FÖRE skrivning — men utfallet påverkar bara beskedet, inte kopplingen.
-  let probeNote: string;
-  try {
-    const t = await getTracking(orderId);
-    probeNote = t.trackingNumber
-      ? `AliExpress ser ordern (spårning ${t.trackingNumber} finns redan) — allt sköts automatiskt härifrån.`
-      : `AliExpress ser ordern${t.status ? ` (status: ${t.status})` : ""} — spårningen hämtas automatiskt när säljaren skickar.`;
-  } catch {
-    probeNote =
-      "OBS: spårnings-API:t svarade inte för ordern ännu (vanligt för nyss lagda/manuella ordrar). " +
-      "Kopplingen är gjord — dyker spårningen inte upp av sig själv inom ett dygn, klistra in den i Wix som vanligt.";
-  }
-
-  // Id + status i EN skrivning (updateTask är full-replace-upsert i båda
-  // backends) — ett delskrivet läge "id utan ordered" skulle varken pollas
-  // eller gå att lägga om, och syns inte i någon vy.
-  await store.updateTask(taskId, { aliexpressOrderId: orderId, status: "ordered" });
-  await store.appendAudit({
-    at: new Date().toISOString(),
-    kind: "ae-order-linked",
-    ref: taskId,
-    detail: JSON.stringify({ orderId, probe: probeNote.slice(0, 120), source: "manuell koppling via admin" }),
+  // Logiken bor i lib/orders/link-ae-order.ts och delas med
+  // /api/admin/link-ae-order (CRON_SECRET-vägen, för workflowen). En
+  // definition — tvillingar glider isär.
+  const r = await linkAliExpressOrder(getStore(), {
+    taskId,
+    aeOrderId: rawOrderId,
+    source: "manuell koppling via admin",
   });
+  if (!r.ok) return { ok: false, message: r.error };
   revalidatePath("/admin");
-  return { ok: true, message: `✓ Kopplad till AE-order ${orderId}. ${probeNote}` };
+  return { ok: true, message: r.message };
 }
 
 /**
