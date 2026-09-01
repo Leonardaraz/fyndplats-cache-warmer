@@ -73,11 +73,12 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 - ⚠️ **`fields` måste med på VARJE cursor-sida.** Utelämnas det på sida 2+ kommer fältet
   tillbaka **tomt i stället för att fela** — ett svep rapporterade 650 produkter med noll
   bilder, inklusive sådana som just patchats till fem.
-- ⚠️ **Mappningsraden är eventually consistent.** En `query` direkt efter en skrivning kan ge
-  de gamla värdena fast skrivningen gick fram. Och **skriv aldrig ett "typat" värde**
-  (`setFieldOptions.value = {boolValue:false}`) — gatewayen sparar då wrapper-objektet
-  ordagrant. Otypat (`value: false`) är rätt. Enklast och alltid säkert:
-  `POST /data/v2/items/save` med hela raden.
+- ☠️ **Mappningsraden nås inte via Wix Data längre.** Den bor i Postgres sedan
+  2026-09-01 och `FyndplatsMappings` är tömd. Läs och skriv den med workflowen
+  **Polering — läs och stämpla mappningsraden** (Steg 3 och 13). De gamla
+  fallgroparna här — eventually consistency och "typade" värden
+  (`setFieldOptions.value = {boolValue:false}`) — gäller inte den vägen: rutten
+  läser tillbaka och verifierar att skrivningen faktiskt tog.
 - En PATCH är partiell **på fältnivå i produkten** — men skicka alltid `visible` explicit
   (Steg 13), och rör aldrig `options`/`variantsInfo` om du inte menar att ändra varianterna.
 
@@ -133,9 +134,25 @@ tillverkarens egen skiss sa "Schlafplätze 2–4". Sovrummet är 295 cm brett �
 
 ### 4. Stäm av priset mot mappningen innan du börjar
 
-`grossSek` ska vara `charm9(landedCostSek × 1,20)`. Räkna efter: 2 869,76 × 1,20 = 3 443,7 →
-**3 449**. Stämmer det inte har kostnaden ändrats sedan importen och priset i Wix är gammalt.
-**Rör inte priset** — välj en annan produkt och flagga raden till Leonard.
+Grinden räknas nu **åt dig** av workflowen ovan (läge `las`), ur samma
+`roundPrice`-funktion som prissättningen själv använder — så den kan inte drifta
+från regeln. Läs `prisgrind` i svaret:
+
+```
+  landedCostSek 2869.76
+  forvantat     3449        <- charm9(2869,76 x 1,20)
+  faktiskt      3449
+  stammer       true
+```
+
+**`stammer: false` → jobbet stannar där.** Kostnaden har ändrats sedan importen
+och priset i Wix är gammalt. **Rör inte priset** — välj en annan produkt och
+flagga raden till Leonard. Workflowen avslutar med `exit 1` så det inte går att
+missa.
+
+☠️ **`EJ AVGORBAR` är också ett stopp, inte ett OK.** Saknas underlaget (ingen
+variant, eller noll i kostnad/pris) svarar grinden `null` i stället för att
+gissa. En grind som svarar "stämmer" på tomma tal är värre än ingen grind.
 
 `aosomFreightShare` säger hur mycket av inköpet som är frakt. Över **0,5** kostar frakten mer
 än varan — de produkterna poleras sist.
@@ -271,11 +288,19 @@ GET .../stores/v3/products/{PRODUCT_ID}?fields=PLAIN_DESCRIPTION&fields=MEDIA_IT
 Spara `revision`, `name`, `slug`, `seoData`, **`visible`** och **hela `media`** — du behöver
 `media.itemsInfo.items` med deras `id` till Steg 9.
 
-Läs samtidigt mappningsraden, som bär facit för pris, lager och EU-ribbon:
+Läs samtidigt mappningsraden, som bär facit för pris, lager och EU-ribbon.
 
-```
-GET /data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings
-```
+☠️ **Mappningen ligger i Postgres sedan 2026-09-01, inte i Wix Data.**
+`FyndplatsMappings` är TÖMD (POSTGRES-MIGRATION.md, steg 6) — en `GET` dit
+returnerar ingenting, och en `save` dit SKAPAR en föräldralös rad som ingenting
+läser. Använd workflowen i stället:
+
+> **Polering — läs och stämpla mappningsraden** → läge `las`, `wix_product_id`
+> = produktens id.
+
+Den svarar med hela raden **och en färdigräknad prisgrind** (nästa avsnitt), så
+Steg 4 inte behöver göra aritmetiken för hand. Ingen hemlighet passerar chatten
+— produktionen har nycklarna, Actions har `CRON_SECRET`.
 
 -----
 
@@ -377,8 +402,8 @@ mappningens `variants[0].supplierVariantId` finns och att varianten är `inStock
 
 För en flervariantprodukt: avgör vad som faktiskt ska säljas **innan** Steg 7, annars skriver
 du copy och bygger kort för en variant som ändå ska bort. **Facit är mappningen, inte
-marknadsbilderna** — läs den read-only med
-`GET /data/v2/items/{PRODUCT_ID}?dataCollectionId=FyndplatsMappings` och jämför varje
+marknadsbilderna** — läs den med workflowen **Polering — läs och stämpla
+mappningsraden** (läge `las`, samma anrop som Steg 3) och jämför varje
 `variants[].supplierVariantId` mot produktens `inventoryStatus.inStock`. Regler och mekanik i
 [Steg 11C](#11c--sanering-uttagsaxlar-dubblettfärger) och
 [`polish/varianter.md`](polish/varianter.md).
@@ -941,8 +966,25 @@ produkten tillbaka i kön. Passa på att skriva mappningens `variants[].sku` til
 svenska SKU:n — Steg 8 rör bara Wix-sidan, och en kvarlämnad engelsk SKU i mappningen är en
 tyst drift som senare svep går bet på.
 
-Skriv **hela raden** med `POST /data/v2/items/save` (`{dataCollectionId, dataItem:{id,
-dataCollectionId, data}}`) — läs raden först och skicka tillbaka allt du inte ändrar.
+Använd workflowen **Polering — läs och stämpla mappningsraden**, läge `stampla`:
+
+| fält | värde |
+|---|---|
+| `wix_product_id` | produktens id |
+| `needs_ai_polish` | `false` |
+| `draft_status` | `published` |
+| `variant_skus` | `{"<wixVariantId>":"<ny-sku>"}` — tomt om SKU:n inte ändrats |
+
+☠️ **Skriv INTE hela raden längre.** Den gamla mekaniken (`items/save` med allt
+du inte ändrat) hade två fel som båda blev värre efter migreringen: ett glömt
+fält var en tyst radering, och kollektionen är numera tömd så anropet skulle
+SKAPA en föräldralös rad och rapportera framgång.
+
+Rutten tar därför bara de tre fält poleringen äger. Kostnads-, pris- och
+leverantörsfält går inte att röra härifrån — de avvisas med `400` och en rad som
+säger vilket fält som inte var skrivbart. Den **skapar heller aldrig** en rad:
+saknas mappningen svarar den `404`, för då är produkten föräldralös och ska
+tittas på av en människa, inte poleras.
 
 -----
 
