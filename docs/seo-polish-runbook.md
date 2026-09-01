@@ -81,6 +81,29 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   läser tillbaka och verifierar att skrivningen faktiskt tog.
 - En PATCH är partiell **på fältnivå i produkten** — men skicka alltid `visible` explicit
   (Steg 13), och rör aldrig `options`/`variantsInfo` om du inte menar att ändra varianterna.
+- ☠️ **`products/query` svarar 200 med SAMMA 50 rader i all evighet om bodyn inte är
+  `query`-wrappad.** Rätt form är `{query: {filter, sort, cursorPaging}}`. Skickar du
+  fälten på toppnivå — vilket ser rimligt ut och är vad varje annan V3-rutt tar — så
+  **ignoreras filter, sort OCH cursor tyst**: inget fel, ingen varning, bara defaultsidan
+  om och om igen. Uppmätt 2026-09-01: 20 sidor gav 1 000 rader varav **50 unika**, och
+  `limit: 100` respekterades inte heller (50 kom tillbaka).
+
+  Det farliga är inte att svepet blir kort — det är att det blir **falskt negativt**. Ett
+  sökordskrock-svep över katalogen rapporterade *noll* hundvagnar i en butik som hade nio
+  publicerade, och hade den siffran fått stå kvar hade den här omgången publicerat en
+  dubblett av en levande sida. Samma dag ignorerades ett `filter: {slug: "..."}` på samma
+  sätt och returnerade en helt orelaterad produkt nio gånger i rad.
+
+  **Kontrollen är en rad:** räkna unika id, inte rader. Är `unika < rader` paginerar du inte.
+  Och när ett svep säger "noll träffar" i en kategori du vet finns — misstro svepet först.
+- ☠️ **Alt-texten skrivs på ITEM-nivå, inte inuti `image`.** Fältet heter
+  `media.itemsInfo.items[].altText` (typen `ProductMedia`). Skickar du den som
+  `items[].image.altText` — där du LÄSER den på en oputsad produkt — **släpps den tyst**:
+  PATCH:en går igenom, `image.url` kommer tillbaka korrekt, och alt-texten är borta. Både
+  din nya och den importen hade satt. Uppmätt 2026-09-01 på åtta produkter: 42 av 43 bilder
+  utan alt efter en PATCH som rapporterade full framgång.
+
+  Verifiera med en separat re-GET och räkna **tomma** alt-texter, inte bilder.
 
 **Input:** Wix-produkt-ID.
 
@@ -221,6 +244,24 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > POST /stores/v3/products/query   { "query": { "filter": { "slug": { "$in": ["<kandidat-slug>", …] } } } }
 > ```
 > Sluggen är filtrerbar (`name` är det INTE). Träff, eller en produkt du vet ligger nära → **separera med en kvalificerare som står i BÅDE namn, slug och titel**, inte bara i texten. Fungerande exempel: `arbetsstol med hjul` vs `sadelstol med ryggstöd` · `konstgjord julgran` vs `konstgjord julgran med pynt` · `litet växthus` vs `växthusduk` · `elmotorcykel barn` vs `elmotorcykel 6v barn` vs `eldriven trehjuling barn`. Är produkterna i praktiken samma vara → det är en dubblett, inte ett sökordsproblem: flagga till Leonard.
+>
+> ☠️ **Och avgör det på MÅTTEN, inte på namnet.** Den farliga dubbletten är intern: 595 av
+> katalogens mappningar är Aosom-varor inköpta via AliExpress, och de bär ett AE-listnings-id
+> som dubblettspärren omöjligt kan matcha mot ett Aosom-artikelnummer. De två raderna ser ut
+> som olika produkter i varje id-baserad kontroll som finns. Det enda som avslöjar dem är
+> spec-tabellen.
+>
+> Jämför **fyra tal** mot den publicerade sidan: yttermått, hopfällt mått, en invändig
+> dimension och vikten. Stämmer alla fyra på decimalen är det samma vara — då finns det
+> ingen kvalificerare i världen som gör två sidor rätt, för de har samma foton och samma
+> siffror, och det är precis den dubbletten Google straffar.
+>
+> Uppmätt 2026-09-01: dragvagnen `ca84c48b` var på väg att publiceras när den visade sig
+> vara `7b344636` (*Hundvagn för liten hund*, live sedan tidigare) — identisk på 53 × 45 × 28,
+> hopfälld 55 × 45,5 × 21, sele 20–35 cm, dyna 49,5 × 32, handtag 75 cm och 5-tumshjul.
+> Sökordssvepet hade dessutom sagt "noll krockar" på grund av `query`-fällan ovan. Utkastet
+> lämnades opublicerat och gick till Leonard som ett sortimentsbeslut: den publicerade sidan
+> är slutsåld i båda färgerna och 100 kr billigare.
 
 **Regel:** båda orden MÅSTE hamna i **titel, produktnamn (H1) och slug** – annars flaggar Wix SEO-assistenten dem som röda. Ordet finns redan grönt i beskrivning/meta om det står i texten.
 Specs får bara komma från känd importdata eller `web_search` (AliExpress-sidor är JS-blockerade). **Hitta inte på siffror.**
@@ -537,6 +578,15 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 >
 > Kontrollera efter PATCH:en med en re-GET: `plainDescription.match(/<span style="font-weight: 700">[^<]*\?<\/span>(?!<\/p>)/g)` ska ge **noll** träffar.
 > *(Upptäckt på campingbordet `85996bde`; sex frågor fick rättas i efterhand.)*
+
+> 📏 **Längddeltat är ett kvitto — men det är +21 per `<strong>`-PAR, inte per produkt.**
+> Wix serialiserar om `<strong>…</strong>` (17 tecken) till
+> `<span style="font-weight: 700">…</span>` (38), alltså exakt **+21 per par**. Inget annat
+> i husets HTML växer. Så: räkna paren i det du skickar, multiplicera med 21, och jämför
+> mot `plainDescription.length` i en **separat** re-GET. Stämmer det på tecknet gick inget
+> förlorat; avviker det har Wix rört något du inte bad om.
+> *(En produkt med tre `<strong>`-par gav +63 och såg fel ut mot en tumregel som sa "+21
+> per produkt" — deltat var rätt hela tiden, regeln var fel. Rättat 2026-09-01.)*
 
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
 
