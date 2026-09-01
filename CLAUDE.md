@@ -1548,6 +1548,49 @@ point-in-time-återställning är det som gäller. Raderingsrutten
 (`/api/admin/radera-wix`) ligger kvar med sina spärrar men har inget kvar att
 göra — en omkörning är en no-op.
 
+### ☠️ Raderingen bröt SEO-poleringen — på fem ställen, inte ett
+
+Poleringen körs av Claude i chatten och läste mappningsraden **direkt ur Wix
+Data**. Steg 6 tömde den kollektionen, och därmed gick fem beröringspunkter
+sönder samtidigt: Steg 3 (facit för pris, lager, EU-ribbon), Steg 4
+(prisgrinden), Steg 6/11 (variantfacit), Steg 10 (kategoriförslag) och Steg 13
+(stämpeln).
+
+☠️ **Skrivningen var farligast, och den syntes inte.** Steg 13 gjorde
+`POST /data/v2/items/save` med HELA raden. Mot en tömd kollektion **skapar** det
+en ny rad: anropet rapporterar framgång, ingenting läser raden, produkten kommer
+tillbaka i poleringskön för alltid och SKU-skrivningen tappas. En annan session
+föreslog att "polera vidare utan prisgrinden" — det hade gått rakt in i den här
+fällan, eftersom felet ligger i slutsteget och inte i grinden.
+
+`/api/admin/mapping` ersätter båda vägarna (`lib/polish/mapping-access.ts`,
+workflowen **"Polering — läs och stämpla mappningsraden"**). Fyra egenskaper som
+inte ska tas bort:
+
+1. ☠️ **Skrivningen är en ALLOWLIST, inte en helradsskrivning.** Poleringen äger
+   tre fält: `needsAiPolish`, `draftStatus` och `variants[].sku`. Allt annat
+   avvisas med 400 — det ignoreras inte tyst, för ett tyst ignorerat fält är
+   exakt hur "svaret sa OK men inget hände" uppstår. Kostnads-, pris- och
+   leverantörsfält går inte att röra härifrån.
+2. ☠️ **Den skapar ALDRIG en rad.** Saknas mappningen svarar den 404. Det är
+   hela skälet till att rutten finns: produkten är då föräldralös och ska
+   granskas av en människa, inte poleras.
+3. ☠️ **SKU matchas på `wixVariantId`, aldrig på position.** Två fält heter
+   `sku` och betyder olika saker; den förväxlingen gjorde att prissynken skrev
+   till ingenting i en månad. Positionsmatchning hade återinfört den.
+4. **Prisgrinden räknas i rutten, inte i chatten**, ur samma `roundPrice` som
+   prissättningen använder — så grinden kan inte drifta från regeln. Saknas
+   underlaget svarar den `null` i stället för att gissa, och workflowen
+   avslutar med `exit 1` på både `stammer: false` och `EJ AVGORBAR`.
+
+Fjorton tester, verifierade genom att återinföra alla tre farliga misstagen
+(tyst ignorerade fält, positionsmatchad SKU, gissande prisgrind): rätt test
+faller för rätt bugg.
+
+**Regeln: en migrering är inte klar när datan flyttat — den är klar när alla
+läsare följt med.** Kodauditen hittade inga trasiga läsare eftersom poleringen
+inte är kod; den är en runbook som en människa och en modell följer.
+
 ### Så såg resonemanget ut innan raderingen
 
 Växlingen är gjord, men de gamla raderna är inte raderade. De är
