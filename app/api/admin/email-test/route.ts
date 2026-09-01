@@ -63,6 +63,8 @@ const TEMPLATES: Record<string, TemplateEntry> = {
           orderDate: new Date().toLocaleDateString("sv-SE", { day: "numeric", month: "long", year: "numeric" }),
           items: sampleItems,
           subtotal: 316.98,
+          // 296,98 inkl. 25 % moms → 237,58 netto + 59,40 moms.
+          tax: 59.4,
           shipping: 0,
           discount: 20,
           total: 296.98,

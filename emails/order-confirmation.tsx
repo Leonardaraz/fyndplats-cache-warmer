@@ -11,6 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
+import { delsummaInklMoms, momsetikett } from "../lib/vat";
 
 export interface OrderLineItem {
   name: string;
@@ -34,7 +35,14 @@ export interface OrderConfirmationProps {
   orderNumber: string;
   orderDate: string; // pre-formaterad svensk datum-sträng
   items: OrderLineItem[];
+  /**
+   * Wix `priceSummary.subtotal` — varorna FÖRE rabatt och FÖRE moms. Skrivs
+   * inte ut som den är; kvittots delsumma räknas i lib/vat.ts, se filhuvudet
+   * där för varför.
+   */
   subtotal: number;
+  /** Wix `priceSummary.tax`. Momsen ingår i `total` och redovisas bara. */
+  tax?: number;
   shipping: number;
   discount?: number;
   total: number;
@@ -61,7 +69,7 @@ export default function OrderConfirmationEmail({
   orderNumber,
   orderDate,
   items,
-  subtotal,
+  tax,
   shipping,
   discount,
   total,
@@ -137,7 +145,9 @@ export default function OrderConfirmationEmail({
         <Row style={summaryRow}>
           <Column><Text style={{ margin: 0, fontSize: "14px" }}>Delsumma</Text></Column>
           <Column align="right">
-            <Text style={{ margin: 0, fontSize: "14px" }}>{formatSEK(subtotal, currency)}</Text>
+            <Text style={{ margin: 0, fontSize: "14px" }}>
+              {formatSEK(delsummaInklMoms({ total, shipping, discount }), currency)}
+            </Text>
           </Column>
         </Row>
         <Row style={summaryRow}>
@@ -171,6 +181,23 @@ export default function OrderConfirmationEmail({
             </Text>
           </Column>
         </Row>
+        {/* Momsen LÄGGS INTE TILL — den ingår redan i totalen ovan och redovisas
+            bara, som på ett kvitto ska. Raden faller bort helt när Wix inte
+            skickar något momsbelopp, hellre tyst än en nolla som ser fel ut. */}
+        {tax && tax > 0 ? (
+          <Row style={summaryRow}>
+            <Column>
+              <Text style={{ margin: 0, fontSize: "13px", color: BRAND.muted }}>
+                {momsetikett(tax, total)}
+              </Text>
+            </Column>
+            <Column align="right">
+              <Text style={{ margin: 0, fontSize: "13px", color: BRAND.muted }}>
+                {formatSEK(tax, currency)}
+              </Text>
+            </Column>
+          </Row>
+        ) : null}
       </Section>
 
       <Section style={{ marginTop: "8px" }}>
