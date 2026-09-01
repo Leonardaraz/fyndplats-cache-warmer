@@ -124,3 +124,45 @@ describe("prisgrind — samma regel som prissättningen", () => {
     expect(g!.förväntatSek).toBe(3444); // 2869.76 × 1.2 = 3443.7 → 3444
   });
 });
+
+describe("regelGäller — skiljer drift från en äldre prisregel", () => {
+  const cfg = { rounding: "charm9" as const };
+
+  it("☠️ Aosom-raden ur körningen 2026-09-01: verklig drift", () => {
+    // 2861bf83…: kostnad 2 843,40 → regeln säger 3 419, Wix har 3 699.
+    const g = prisgrind(
+      rad({
+        supplier: "aosom",
+        variants: [{ ...rad().variants[0], landedCostSek: 2843.4, grossSek: 3699 }],
+      }),
+      cfg,
+      1.2,
+    );
+    expect(g!.stämmer).toBe(false);
+    expect(g!.förväntatSek).toBe(3419);
+    expect(g!.regelGäller).toBe(true); // → verklig drift, blockera
+  });
+
+  it("☠️ AE-raden ur samma körning: regeln gäller inte, alltså inget driftbevis", () => {
+    // 61d84189…: kostnad 860,37 → dagens regel säger 1 039, Wix har 1 119.
+    // Raden importerades före 2026-08-27 och följer den GAMLA regeln.
+    const g = prisgrind(
+      rad({
+        supplier: "aliexpress",
+        variants: [{ ...rad().variants[0], landedCostSek: 860.37, grossSek: 1119 }],
+      }),
+      cfg,
+      1.2,
+    );
+    expect(g!.stämmer).toBe(false);
+    expect(g!.förväntatSek).toBe(1039);
+    expect(g!.regelGäller).toBe(false); // → ej avgörbar, inte drift
+  });
+
+  it("☠️ en rad UTAN supplier räknas som AliExpress — regeln gäller inte", () => {
+    // Back-compat: äldre rader saknar fältet helt (lib/store/index.ts).
+    const utan = rad();
+    delete (utan as { supplier?: unknown }).supplier;
+    expect(prisgrind(utan, cfg, 1.2)!.regelGäller).toBe(false);
+  });
+});

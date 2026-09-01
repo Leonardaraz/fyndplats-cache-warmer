@@ -132,12 +132,31 @@ export function applicera(
 }
 
 export type Prisgrind = {
-  /** Vad prisregeln säger att priset SKA vara. */
+  /** Vad DAGENS prisregel säger att priset SKA vara. */
   förväntatSek: number;
   /** Vad mappningen säger att priset ÄR. */
   faktisktSek: number;
   landedCostSek: number;
   stämmer: boolean;
+  /**
+   * ☠️ Om dagens regel över huvud taget GÄLLER för den här raden.
+   *
+   * Prisregeln sattes 2026-08-27 och gäller bara nya importer — befintliga
+   * priser står kvar tills någon räknar om dem (CLAUDE.md). En AliExpress-rad
+   * från före dess följer alltså den GAMLA regeln (1,28 × kostnad + 60) och kan
+   * aldrig matcha den nya, hur frisk den än är.
+   *
+   * Uppmätt 2026-09-01 på två verkliga produkter: en Aosom-rad som verkligen
+   * drivit (2 843,40 → förväntat 3 419, faktiskt 3 699) och en AE-rad vars pris
+   * bara är äldre än regeln (860,37 → förväntat 1 039, faktiskt 1 119). Grinden
+   * fällde båda med samma text "kostnaden har ändrats" — rätt RÅD, fel SKÄL.
+   *
+   * Aosom-sortimentet började importeras 2026-08-27, samma dag regeln sattes,
+   * så en aosom-rad är alltid prissatt enligt den. Där betyder ett fall verklig
+   * drift. För övriga rader är utfallet informativt: priset måste kontrolleras
+   * för hand, men ett fall bevisar ingen drift.
+   */
+  regelGäller: boolean;
 };
 
 /**
@@ -170,5 +189,6 @@ export function prisgrind(
     faktisktSek: v.grossSek,
     landedCostSek: v.landedCostSek,
     stämmer: förväntatSek === v.grossSek,
+    regelGäller: rad.supplier === "aosom",
   };
 }
