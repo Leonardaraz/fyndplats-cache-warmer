@@ -181,3 +181,41 @@ so there are no test-framework dependencies.)
 - `tracking_number` not found in `tracking_mapping`: either the order
   wasn't recorded (Wix integration race) or this SMS belongs to a
   package we didn't place. Logged, ack:ed with 200.
+
+## AliExpress-pollen — leveransnotis när 17TRACK inte känner fraktbolaget
+
+Leveransnotisen ("ute för leverans" / "levererat") fyras normalt av 17TRACK:s
+push till `/_functions/track_webhook`. Men 17TRACK registrerar bara nummer vars
+fraktbolag den känner igen, och våra EU-leverantörer använder last-mile-bolag
+den ofta inte gör. Order 10023 (2026-09-01): paketet gick från Polen och
+`registerWith17Track` loggade *"carrier odetekterad, inget format-mönster
+matchar — ingen push för detta paket"*. Ingen push → aldrig ett
+"levererat"-mejl, hur väl paketet än kom fram. AliExpress visste däremot exakt
+var det var: `/api/track` visade fem händelser från deras källa medan 17TRACK
+hade noll.
+
+`/api/cron/ae-delivery-poll` (`20 */2 * * *`) frågar AliExpress-källan
+(cache-warmerns `/api/tracking-events`, via `lib/ae-source`) för varje paket i
+luften och mejlar när AE säger levererat/ute för leverans — genom **samma
+sändare** (`lib/delivery-notify`) och **samma dedup** (`lib/delivery-dedup`,
+nyckel `(tracking_number, status)`) som pushen. Kommer pushen först vinner den
+anspråket och pollen hoppar; kommer pollen först gäller det omvända. Kunden får
+ett mejl, aldrig två. `?dryRun=1` frågar källan och rapporterar utan att mejla.
+
+Tre egenskaper som inte ska tas bort:
+
+1. **Status → mejl bor på ETT ställe** (`lib/delivery-status.ts`), delat av
+   webhooken och pollen. `AvailableForPickup` ger aldrig push-/poll-mejl —
+   hämtkoden finns bara i carrier-SMS:et, så SMS-flödet äger upphämtningen.
+2. **Pollen tittar på `out_for_delivery` också**, inte bara `in_transit`.
+   Annars hade "ute för leverans"-mejlet gjort "levererat"-mejlet omöjligt.
+3. ☠️ **Mappningens status skrivs bara när mejlet är skickat** (av oss eller
+   pushen). I webhooken skrivs statusen FÖRE mejlet, och det är rätt där —
+   17TRACK pushar om. Pollen ÄR sitt eget återförsök: lämnas raden på
+   `in_transit` vid Resend-fel prövas den nästa körning. Skrevs den ändå hade
+   en enda Resend-hicka gjort paketet osynligt för pollen för alltid.
+
+Den pollar **alla** paket i luften (yngre än 45 dagar, max 60 per körning), inte
+bara de 17TRACK avvisade — registreringsutfallet sparas inte, och ett
+registrerat nummer kan ändå aldrig pushas (carrier-datalucka). Priset är ett
+AliExpress-anrop per paket och körning; cache-warmern cachar fem minuter.
