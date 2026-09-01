@@ -438,3 +438,48 @@ faller per bugg, och bara det.
 **Regeln, nionde gången: ett radantal som stämmer är inget kvitto på att
 innehållet gör det.**
 
+### Genomfört 2026-09-01 19:39
+
+| | |
+|---|---:|
+| Granskade | **15 310** |
+| Raderade | **15 310** |
+| Fel | **0** |
+| Kollektioner klara | 13 av 13 |
+
+Talet 15 310 är exakt det kopieringen skrev vid växlingen — varje rad som
+flyttades är också den som togs bort, och ingen annan.
+
+Bekräftat ur Wix egen läsväg omedelbart efteråt: en ny torrkörning läser
+**0 rader** i samtliga tretton kollektioner. Produktionen märkte ingenting —
+noll `error`-rader i Vercel under och efter körningen, eftersom den läser
+Postgres.
+
+Kvar i Wix Data är det som aldrig flyttade: `FyndplatsImportedReviews`,
+`FyndplatsAuctions`, `FyndplatsRedirects`, tokenraden, app-configen och
+prisreglerna — tillsammans ~3 470 rader, alltså under 4 000-taket.
+
+☠️ **Vägen tillbaka är härmed stängd.** Fram till nu var rollback en
+env-variabel; nu finns drift-datan bara i Postgres. Neons egen
+point-in-time-återställning är det som gäller om något går fel.
+
+### Taket är mätt frigjort, inte uträknat
+
+Radantalet säger att vi ligger under 4 000, men aritmetik är inget kvitto. Det
+enda som bevisar att taket släppt är en NY rad som går igenom.
+
+Recensionskön kördes därför direkt efter raderingen. Första försöket gav
+`0 kandidater` — den skrev ingenting och bevisade därmed heller ingenting.
+Med `recheck_all` blev det ett riktigt försök:
+
+```
+Runda 1: 8 kandidater, 8 kontrollerade, 2 köade, 0 strypta
+```
+
+**Två nya rader i `FyndplatsImportedReviews`.** Samma skrivning hade fallit på
+`WDE0195` tolv timmar tidigare. Taket är alltså inte bara under gränsen på
+pappret — Wix tar emot igen.
+
+Regeln, tionde gången: **ett svar utan fel är inget kvitto, och ett tal som ser
+rätt ut är det inte heller.** Bara skrivningen som går igenom.
+

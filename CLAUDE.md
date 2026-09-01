@@ -1522,7 +1522,33 @@ golvet ensamt låter en liten tabell tömmas till hälften. Samma spärr-form so
 rasar, inte mot att en rad rör sig.** Elva tester låser talen, verifierade genom
 att återinföra buggen: tre faller, och bara de tre.
 
-### Wix-raderna ligger KVAR — och det är avsiktligt
+### Wix-raderna är raderade sedan 2026-09-01 — taket är frigjort
+
+Steg 6 är genomfört: **15 310 granskade, 15 310 raderade, noll fel**, alla
+tretton kollektioner klara. Talet är exakt det kopieringen skrev vid växlingen.
+
+Föregicks av ett dygns drift på Postgres med noll `error`-rader i Vercel (mot 12
+dygnet före), samtliga cron-rutter körda och tre riktiga ordrar genom webhooken.
+
+☠️ **Torrkörningen stoppade första försöket, och hade rätt.** 71 av 95
+audit-rader och 50 av 100 sync_log-rader saknades i kopian — medan radantalen
+såg friska ut (`sync_log` hade till och med ÖVERSKOTT). Orsaken var inte en
+trasig kopia: synken städar de två tabellerna ur POSTGRES, Wix städas inte
+längre av någon, så raderna var utgångna med flit. `beslutaSida` känner nu
+skillnaden — en saknad rad får raderas bara om den är äldre än tabellens
+retention-fönster, och talen ärvs från `lib/retention.ts`.
+
+**Taket är mätt frigjort, inte uträknat.** Recensionskön kördes direkt efteråt
+och skrev `2 köade` — två nya rader i `FyndplatsImportedReviews`, exakt den
+skrivning som fallit på `WDE0195` tolv timmar tidigare.
+
+☠️ **Vägen tillbaka är därmed stängd.** Fram till raderingen var rollback en
+env-variabel; nu finns drift-datan bara i Postgres, och Neons
+point-in-time-återställning är det som gäller. Raderingsrutten
+(`/api/admin/radera-wix`) ligger kvar med sina spärrar men har inget kvar att
+göra — en omkörning är en no-op.
+
+### Så såg resonemanget ut innan raderingen
 
 Växlingen är gjord, men de gamla raderna är inte raderade. De är
 återställningen: går något fel byts `STORE_BACKEND` tillbaka till `wix-data` och
