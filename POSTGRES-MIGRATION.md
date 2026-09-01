@@ -326,3 +326,62 @@ risk, och planen ska inte luta sig mot ett prisblad jag citerat ur minnet.
 Migreringen är klar när **order 10024 har en task och syns i `/admin`** utan
 att någon rört den för hand. Det är hela anledningen till att arbetet finns,
 och det ska stå som ett kvitto i slutet, inte antas.
+
+## Steg 6: radera Wix-raderna (2026-09-01)
+
+Det som faktiskt frigör 4 000-taket. Kopieringen gjorde datan säker, växlingen
+gjorde Postgres till sanningen — men Wix-raderna låg kvar och band kvoten, så
+varje NY rad i en Wix-kollektion avvisades fortfarande.
+
+Föregicks av ett dygns drift på Postgres, mätt och inte antagen:
+
+| | |
+|---|---:|
+| `error`-rader i Vercel på 20 h | **0** (mot 12 dygnet före) |
+| `aliexpress-sync` | 10 körningar (varannan timme) |
+| `order-backfill` | 20 |
+| `auction-tick` | 24 |
+| `aosom-sync` | 4 |
+| Riktiga ordrar genom webhooken | **3** |
+
+Dagliga rutter som alla kom igenom: `order-guard`, `review-queue`, `watchlist`,
+`supplier-watch`, `aosom-import`, `aosom-media-cleanup`, `prune-customizations`.
+
+### `/api/admin/radera-wix` — fem spärrar
+
+☠️ **Det här är migrationens enda oåterkalleliga operation.** Wix egen
+dokumentation är entydig: *"Once an item has been removed from a collection, it
+can't be restored."* Kopieringen gick att köra om, växlingen är en env-variabel,
+verifieringen skriver ingenting. Den här raderar rader som efteråt bara finns i
+Postgres.
+
+1. ☠️ **Varje rad slås upp i Postgres innan den raderas.** Inte radantal, inte
+   ett stickprov — varje id. Saknas ett enda avbryts HELA sidan och ingenting
+   raderas ur den. Verifieringens tio rader per tabell duger för att upptäcka en
+   trasig kopia, inte för att auktorisera en radering av 15 000 rader.
+2. ☠️ **Spärrlistan `ALDRIG_RADERA` är egen, inte härledd ur `ATT_KOPIERA`.** De
+   tre kollektioner butiken läser direkt (recensioner, auktioner, redirects)
+   plus tokenraden, app-configen och prisreglerna. Att bara lita på "vi loopar
+   över kopielistan" hade betytt att en framtida rad där tyst vidgar
+   blast-radien. Två lås, och det andra måste öppnas medvetet.
+3. ☠️ **Radering på explicit id-lista, aldrig på filter och aldrig truncate.**
+   Ett filter som matchar bredare än avsett är det fel som inte går att ta
+   tillbaka.
+4. ☠️ **Skarpt läge läser alltid från offset 0.** Radering KRYMPER kollektionen,
+   så en offset-markör hoppar över precis så många rader som nyss raderades —
+   media-cleanups fälla. Nästa sida flyttar sig till offset 0 av sig själv.
+   Torrläget stegar däremot framåt, eftersom ingenting krymper där.
+5. ☠️ **Spegelbilden av kopieringens 409.** Kopieringen vägrar köra EFTER
+   växlingen; raderingen vägrar köra FÖRE den. Raderas källan medan
+   produktionen läser den är det inte en migrering, det är en utplåning.
+
+Två snurr-spärrar utöver det: en rad utan `_id` går inte att radera på id och
+hade kommit tillbaka först i varje varv, och ett varv som raderar noll rader ur
+en icke-tom sida avbryter i stället för att snurra tyst tills tidsbudgeten är
+slut.
+
+Tio tester låser spärrlistan och sidbeslutet (`lib/migration/radera-wix.test.ts`).
+
+Körs från workflowen **"Migrering — radera drift-datan ur Wix Data"**
+(`radera-wix.yml`), lägen `torr` · `radera`. Torrkörning är default.
+
