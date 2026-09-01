@@ -50,6 +50,12 @@ export class MemoryStore implements Store {
     return [...this.tasks.values()].filter((t) => t.orderId === orderId);
   }
 
+  async getTaskByTrackingNumber(trackingNumber: string): Promise<FulfillmentTask | null> {
+    if (!trackingNumber) return null;
+    const sökt = trackingNumber.toUpperCase();
+    return [...this.tasks.values()].find((t) => t.trackingNumber?.toUpperCase() === sökt) ?? null;
+  }
+
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
     const task = this.tasks.get(taskId);
     if (task) this.tasks.set(taskId, { ...task, status });

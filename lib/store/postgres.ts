@@ -149,6 +149,27 @@ export class PostgresStore implements Store {
     return rows.map((r) => rensa<FulfillmentTask>(r as { data: unknown }));
   }
 
+  /**
+   * Spårningsnumret bor i JSONB-svansen, inte i en egen kolumn — det används av
+   * exakt en läsare. Uttrycksindexet i schema.ts gör uppslaget billigt ändå.
+   *
+   * `limit 1`: ett spårningsnummer kan i teorin täcka flera rader ur samma
+   * paket. Alla pekar då på samma AE-order, vilket är det enda anroparen läser.
+   */
+  async getTaskByTrackingNumber(trackingNumber: string): Promise<FulfillmentTask | null> {
+    if (!trackingNumber) return null;
+    const q = sql();
+    // ☠️ Jämförs VERSALOKÄNSLIGT, och indexet är på samma uttryck. Rutten
+    // versaliserar kundens inmatning; en task som bär numret gemener hade
+    // annars aldrig matchat, och symtomet vore exakt samma tysta 404 som
+    // migreringen redan gav en gång. Fraktbolagets nummer är en ogenomskinlig
+    // identifierare — versalläget bär ingen betydelse.
+    const rows = await q`select data from tasks
+                          where upper(data->>'trackingNumber') = upper(${trackingNumber})
+                          limit 1`;
+    return rows.length ? rensa<FulfillmentTask>(rows[0] as { data: unknown }) : null;
+  }
+
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
     const q = sql();
     await q`update tasks
