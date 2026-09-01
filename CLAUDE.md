@@ -1375,6 +1375,49 @@ expedieras SKA tjata, och tjatet upphör av sig självt när skrivningen går
 igenom. **Bara raderna som inte hann skrivas listas** — annars beställer man om
 en rad som redan ligger i `/admin` och kunden får två paket.
 
+### En manuellt lagd AliExpress-order är osynlig tills numret kopplas (2026-09-01)
+
+Order 10025: lagd för hand i AliExpress konsumentkassa (kampanj/kupong
+billigare än DS-API:t), skickad från Polen kl 15:53 — och tasken stod kvar på
+`pending` i sexton timmar medan kunden väntade på sitt mejl. Motorn kan inte
+hämta spårning för en order den inte vet finns, och vakten säger inget om
+`pending` förrän efter 24 timmar. Mätt:
+
+```
+poll-tracking:  {"checked":0,"shipped":0,"stillWaiting":0,"heldForReview":0,"errors":[]}
+order-guard:    missingTasks:0  placeOrderReminders:0
+Wix 10025:      NOT_FULFILLED
+```
+
+Tasken fanns, ingen task var `ordered`. Kopplingen fanns bara som knapp bakom
+admin-inloggningen. Logiken bor nu i `lib/orders/link-ae-order.ts` och nås från
+två håll: samma knapp i `/admin`, och `POST /api/admin/link-ae-order` med
+`CRON_SECRET` → workflowen **"Order — koppla manuell AliExpress-order"** tar
+butikens ordernummer + AE:s "Ref. Number" (inte spårningsnumret) och går att
+köra från en telefon. Efter kopplingen är ordern exakt lika automatisk som en
+API-order: kopplingen 21:55 → poll-tracking 21:58 `shipped:1` → Wix-fulfillment
+→ butikens "Ditt paket är skickat!" med Resend-id 21:58:07.
+
+Två egenskaper som inte ska tas bort:
+
+1. **Flera kopplingsbara rader på samma order → vägra och lista dem.** Att
+   gissa hade kopplat fel AE-order till fel rad, och poll-tracking hade sedan
+   skeppat fel artikel med rätt spårningsnummer.
+2. ☠️ **Skrivningen läses tillbaka.** `updateTask` är en tyst no-op på en saknad
+   rad i alla tre backends. Ett test simulerar en backend vars `updateTask` inte
+   gör något: rutten svarar fel, och ingen audit-rad skrivs.
+
+⚠️ **Leveransnotisen ("levererat") bor i butiksrepot, grenen `headless-site`,**
+och hade en egen lucka: 17TRACK registrerar bara nummer vars fraktbolag den
+känner igen. Både 10023 och 10025 loggade *"carrier odetekterad, inget
+format-mönster matchar — ingen push för detta paket"* — ingen push, aldrig ett
+"levererat"-mejl. Sedan 2026-09-01 pollar butiken AliExpress-källan (vår
+`/api/tracking-events`) varannan timme (`/api/cron/ae-delivery-poll`) och mejlar
+genom samma sändare och samma dedup som pushen. Se `SMS-FORWARDING.md` på den
+grenen. **Vår rutt är alltså en leveransberoende sedan dess** — går den sönder
+uteblir inte bara spårningssidan utan också leveransmejlen för de paket 17TRACK
+inte ser.
+
 ### ☠️ Ett fullt CMS gör importen till en dubblettfabrik
 
 Ordningen i `lib/aosom/import-run.ts` är påtvingad: mappningen behöver
@@ -1541,6 +1584,13 @@ retention-fönster, och talen ärvs från `lib/retention.ts`.
 **Taket är mätt frigjort, inte uträknat.** Recensionskön kördes direkt efteråt
 och skrev `2 köade` — två nya rader i `FyndplatsImportedReviews`, exakt den
 skrivning som fallit på `WDE0195` tolv timmar tidigare.
+
+**Marginalen mot taket, mätt 2026-09-01 22:05:** `FyndplatsImportedReviews`
+2 514 + `FyndplatsAuctions` 797 + `FyndplatsRedirects` 40 + tre enradskollektioner
+≈ **3 355 av 4 000**. Recensionerna är den enda som växer — 10 nya rader på sju
+dygn — så ~650 rader räcker länge i normal drift. ☠️ **Men en bulk-backfill av
+recensioner (`review-backfill`, `aosom-reviews`) kan äta marginalen på en
+körning**, och då stoppas även auktioner och redirects. Räkna före en sådan.
 
 ☠️ **Vägen tillbaka är därmed stängd.** Fram till raderingen var rollback en
 env-variabel; nu finns drift-datan bara i Postgres, och Neons
