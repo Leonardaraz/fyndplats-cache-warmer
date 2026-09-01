@@ -1166,6 +1166,17 @@ brittiskt eller ryskt ska inte bära ribbonen. **Inköpssidan är löst i kod se
 - Varje siffra på sidan är **verifierad eller utelämnad** (Steg 5). Inget superlativ utan
   mätvärde, ingen uppgift som leverantörens egna bilder motsäger.
 - Produkttypen i namnet är vad varan **är**, inte vad leverantören kallar den.
+- ☠️ **Ingen jämförelse som syftar på poleringsomgången.** *"de åtta bokhyllorna i den här
+  omgången"*, *"den lättaste lampan i den här gruppen"* — omgången är ett internt begrepp och
+  betyder ingenting för en kund som landar på EN sida. Den är dessutom ett superlativ utan
+  mätvärde i förklädnad: den är sann om just de åtta, medan kunden läser den som "i hela
+  sortimentet", och den blir tyst falsk när nästa omgång publiceras. Städat 2026-09-01 på
+  sex publicerade sidor (fem bokhyllor + en taklampa), funna med ett katalogsvep över alla
+  1 414 publicerade produkter.
+
+  Jämför i stället mot **namngivna** syskon (*"vår trädformade bokhylla tål 3 kg per gren"*)
+  eller släpp jämförelsen och behåll siffran. Samma regel som korshänvisningen i Steg 1:
+  peka på en produkt kunden kan klicka på, inte på ett parti bara vi ser.
 
 **Bara flervariantprodukter (AliExpress)**
 
