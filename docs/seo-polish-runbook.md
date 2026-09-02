@@ -1206,6 +1206,46 @@ sidan live och varan går inte att lägga i varukorgen. Det syns inte i produktv
 
 ### Verifiera på den renderade sidan — men läs cache-huvudena
 
+☠️ **Läs `<title>` och `<meta name="description">`, inte bara brödtexten.** Sidans huvud och
+sidans kropp kommer från **två skilda fält** — `seoData` respektive `plainDescription` — och
+kan mycket väl vara på olika språk. Fyra bänkar i batch 55 (2026-09-02) gick igenom hela min
+kontrollistan och låg ändå ute med tysk titel:
+
+| Kontroll | Utfall |
+|---|---|
+| HTTP-status | 200 |
+| `<h2>`-räkning | 7 (rätt) |
+| Priset oförändrat | ja |
+| Fyndplats-kortet på plats 3 | ja |
+| Leverantörsspår i brödtexten | noll |
+| **`<title>` / `og:title` / meta-beskrivning** | **`Polsterbank, Vintage-Design, 2 Kissen…` + `Entdecken Sie die…`** |
+
+`<title>` är dessutom det ENDA av de sex Google visar i träfflistan. En sida som klarar allt
+utom det är alltså rätt i precis den del ingen ser först.
+
+Orsaken var att PATCH-kroppen saknade `seoData` (Steg 7 föreskriver den — se PATCH-formen
+där). Färgtrion i samma batch fick den och renderade svenskt direkt; de fyra som saknade den
+ärvde leverantörens tyska namn. **Grinden är att kontrollen läser huvudet, inte att man
+kommer ihåg fältet** — en kontroll som bara läser kroppen kan aldrig fälla det här felet,
+hur många gånger den än körs.
+
+Minimikommandot:
+
+```bash
+curl -s "https://www.fyndplats.se/produkt/<slug>" \
+  | grep -oE '<title>[^<]*</title>|<meta name="description" content="[^"]{0,80}'
+```
+
+⚠️ **Rättar du `seoData` i efterhand ligger den gamla titeln kvar i butikens ISR-cache**
+(`revalidate=3600`). En frågesträng bustar den inte. Kontrollera mot Wix att fältet är rätt,
+och läs om sidan senare — se cache-avsnittet nedan.
+
+🔍 **Svepa hela katalogen efter tyska rester:** läs `seoData`-taggarna `title` +
+`meta description` för varje `visible`-produkt via `products/search` (markörsidor om 100) och
+testa mot en lista tyska ord. Mätt 2026-09-02 efter rättningen: **1 597 publicerade produkter,
+noll tyska titlar, noll utan titel.**
+
+
 ⏱️ **ISR-fönstret är 300 s.** En re-GET mot Wix bevisar inte att butiken hunnit med.
 
 ☠️ **Hämta ALDRIG sidan i samma andetag som publiceringen.** Wix slug-index ligger några
@@ -1531,6 +1571,24 @@ enskild produkt, och flyttades hit 2026-08-29.
 > | Trasig korsreferens | `läs stycket … under <borttagen rubrik>` |
 >
 > Ordgränser räcker inte alltid: `\bleverantören\b` missar genitivformen *leverantörens* — använd `leverantör[a-zé]*`. Och radera aldrig en träff blint; hämta HTML-kontexten runt den och skriv om för hand. **Monterings- och säkerhetsinstruktioner är nödvändiga och ska stå kvar** — regeln är "bara det nödvändiga", inte "ingenting".
+>
+> ☠️ **`\b` i JavaScript är ASCII — den ser å, ä och ö som ordgränser.** Det gör varje
+> ordgränsbaserat svep över svensk text opålitligt, och felet ser ut som ett äkta fynd i
+> stället för som en bugg. Uppmätt 2026-09-02 när jag letade tyska SEO-titlar: `\bder\b`
+> träffade **inne i `konstläder` och `gasfjäder`** (`ä` är inget `\w`, alltså finns en gräns
+> mellan `ä` och `d`), och svepet rapporterade nio svenska sidor som tyska. Två omgångar gick
+> åt till att jaga ett fel som aldrig fanns i datan.
+>
+> Använd Unicode-lookarounds med `u`-flaggan i stället:
+>
+> ```js
+> const TYSK = new RegExp("ß|(?<!\\p{L})(" + ORD.join("|") + ")(?!\\p{L})", "iu");
+> ```
+>
+> Och när ett svep ger träffar som ser fel ut: **instrumentera mönstret så att det säger
+> vilket ord som matchade**, i stället för att gissa. Det tog ett anrop och avslutade frågan.
+> Samma familj som `står inte` inne i **ro**`star inte` ovan — men den varianten går inte att
+> laga med `\b`, för det ÄR `\b` som är trasig.
 
 
 > 🩹 **Varje massborttagning lämnar ärr — städa typografin efteråt, annars syns operationen för kunden.** Att stryka en mening ur löptext lämnar tre spår som inget stavningsprogram fångar, och alla tre låg ute live efter mina svep:
