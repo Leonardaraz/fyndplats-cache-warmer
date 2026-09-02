@@ -770,9 +770,60 @@ inom produkt-delens 24 tecken i stället för de första: `FP-barstolar-knappsto
 **Kontrollera alltid mot syskonen som redan är publicerade i kategorin**, inte bara mot
 batchen — det var den kontrollen som hittade krocken med den levande sidan.
 
-⚠️ Kontrollen hittade också att `barstolar-2-pack-62-83-cm-sammet` fortfarande bär
-`FP-set-of-2-swivel-bar-rissvit` / `-kaffebrun`: en publicerad sida där Steg 8 hoppades
-över och den engelska råsluggen står kvar i SKU:n. Leta efter fler med samma mönster.
+### ☠️ Hela katalogen granskad: 171 publicerade sidor bar en oöversatt SKU (2026-09-02)
+
+Den raden ovan slutade med "leta efter fler med samma mönster". Det gjordes, och svaret
+var inte "några till". **1 518 publicerade produkter granskade, en GET per produkt** — det
+finns ingen billigare väg, se API-noterna nedan:
+
+| SKU-språk | varianter |
+|---|---:|
+| svenska (ok) | 2 254 |
+| **engelska** | **118** |
+| **tyska** | **36** |
+| **spanska** | **10** |
+| **husmärke i SKU:n** | **5** |
+| `AE-<hash>` (äldre schema) | 8 |
+
+Husmärkena är den allvarligaste: `FP-camping-tent-outsunny`, `FP-outdoor-canopy-outsunny`,
+`FP-small-outsunny-vit`/`-gron` och `FP-durhand-carretilla`. `stripBrandPrefix` finns
+uttryckligen för att det aldrig ska hända, och grinden gäller bara vid import — hoppas
+Steg 8 över står märket kvar.
+
+☠️ **Och defekten föder dubbletter.** Sju SKU-strängar satt på fler än en LEVANDE produkt:
+`FP-l-formiger-schreibtisch` på **fyra** hörnskrivbord, `FP-badezimmerspiegel` på fyra
+speglar, `FP-badezimmerspiegel-mit` och `FP-led-badezimmerspiegel` på tre var,
+`FP-badezimmerschrank` på tre skåp, `FP-kommode-sideboard-4` på två byrår och
+`FP-inflatable-santa-claus` på två helt olika tomtar. **21 produkter delade 7 artikelnummer.**
+Orsaken är densamma som i barstolsbatchen: syskon vars RÅA slugg börjar likadant kapas till
+samma 24 tecken, och dedup-suffixet räknas bara inom en produkt.
+
+**Åtgärdat samma dag: 43 produkter, båda sidorna.** All tyska är borta ur katalogen, alla
+sju dubblettgrupperna upplösta (omkontrollerat: noll dubbletter kvar i den delen), och
+märkesläckagen är omdöpta. Wix-sidan via `variantsInfo`-PATCH med `visible` explicit,
+mappningssidan via 43 `stampla`-körningar med TOMMA `needs_ai_polish`/`draft_status` så
+poleringsflaggan inte rördes. Kvar som medvetet orört: **118 engelska + 10 spanska** SKU:er
+på den äldre AliExpress-katalogen (språkfel, inga dubbletter), och de **8 `AE-<hash>`** som
+regeln ovan säger att man inte ska röra.
+
+⚠️ **Mappningen bar samma tyska sträng.** Kontrollerat med `las` på `b9c3c384` innan
+rättningen: `"sku": "FP-schreibtisch-in-l-form"`. Steg 8 hoppas alltså över på BÅDA sidorna
+samtidigt — den som lagar bara Wix lämnar kvar exakt den tysta drift stycket ovan varnar för.
+
+☠️ **Heuristiken "SKU:ns första token saknas i sluggen" MISSAR fall.** Den hittade 36 av
+träffarna men gick förbi `FP-led-badezimmerspiegel` på `sminkspegel-led-80x60-antiimma` —
+`led` finns ju i sluggen. **Klassificera på SPRÅK, inte på likhet med sluggen.**
+
+**Tre API-fakta som kostade tid att lära sig:**
+
+- `visible` är **inte filtrerbart** på `POST /products/search`. Den svarar 200 och returnerar
+  hela katalogen ändå — tysta utkast först. Samma familj som "ett svar utan fel är inget
+  kvitto": filtret ignorerades, inte avvisades.
+- **Markörpaging kan inte kombineras med filter** (`INVALID_CURSOR`). Vill man ha hela
+  katalogen: paginera utan filter och sålla i koden.
+- `$in` tar **max 10 operander**. Fler ger `INVALID_FILTER` — dela upp i tioklumpar.
+- `fields=VARIANTS_INFO` finns **inte**; `MEDIA_ITEMS_INFO` ger både media OCH varianter.
+  Och `products/query`/`search` fyller ALDRIG `variantsInfo` — därav en GET per produkt.
 
 **Verifiera:** nya SKU:n innehåller varken engelska råord eller **dropship-märke** och matchar sluggen. (Etablerade märken som Pagani Design/LAIKOU **behålls** i SKU:n – se märkesregeln i *Fasta fakta*.)
 
