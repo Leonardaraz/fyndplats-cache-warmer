@@ -56,3 +56,40 @@ export function storeBackend(): StoreBackend {
 export function isPersistentBackend(): boolean {
   return storeBackend() !== "memory";
 }
+
+/**
+ * Var RECENSIONERNA bor. Egen switch, `REVIEWS_BACKEND`, default `"wix-data"`.
+ *
+ * ☠️ VARFÖR DEN INTE FÖLJER `STORE_BACKEND`. Produktionen står redan på
+ * `postgres` sedan drift-datan flyttade 2026-08-31. Hade recensionslagret läst
+ * den variabeln hade `getReviewStore()` bytt lager i samma sekund koden
+ * deployades — alltså börjat skriva till en TOM tabell, medan
+ * `/admin/reviews` slutade se de 2 514 befintliga och butiken fortsatte läsa
+ * Wix. Det hade inte kastat någonstans. Det hade bara varit tomt.
+ *
+ * Samma familj som `/api/tracking-events` 2026-09-01: en läsare som blir TOM
+ * syns varken i en kodaudit eller i en felräknare, för ett tomt svar från rätt
+ * API mot rätt tabell ser i källkoden ut precis som ett friskt anrop.
+ *
+ * Recensionerna ligger alltså ETT STEG EFTER drift-datan i sin egen migrering,
+ * och växlingen är en medveten handling efter att kopian verifierats — precis
+ * som `STORE_BACKEND` flippades först då. Ordningen:
+ *
+ *   1. tabell + lager finns (den här koden)      ← default wix-data, inget händer
+ *   2. kopiera 2 514 rader, verifiera kanoniskt
+ *   3. REVIEWS_BACKEND=postgres                  ← växlingen
+ *   4. butiksrepot läser via API i stället för Wix Data direkt
+ *   5. radera Wix-raderna                        ← FÖRST här frigörs taket
+ *
+ * Ligger i den HÄR filen, inte i reviews.ts, av samma skäl som resten:
+ * `backend.test.ts` fäller om någon annan fil läser en backend-variabel.
+ */
+export function reviewsBackend(): StoreBackend {
+  const raw = (process.env.REVIEWS_BACKEND ?? "").trim();
+  // Osatt = kvar i Wix. Default:en pekar åt det håll som INTE tappar data.
+  if (!raw) return "wix-data";
+  if ((STORE_BACKENDS as readonly string[]).includes(raw)) return raw as StoreBackend;
+  throw new Error(
+    `Okänt REVIEWS_BACKEND="${raw}". Tillåtna värden: ${STORE_BACKENDS.join(", ")}.`,
+  );
+}
