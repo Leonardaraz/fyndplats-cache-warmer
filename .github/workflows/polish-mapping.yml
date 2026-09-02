@@ -146,10 +146,22 @@ jobs:
             exit 1
           fi
 
-          echo "OK: ${PRODUCT_ID} uppdaterad — $(echo "$svar" | jq -r '.["ändrat"] | join(", ")')"
+          # ☠️ HARIFRAN AR SKRIVNINGEN GJORD. Rapporteringen far darfor ALDRIG
+          # falla jobbet: `set -e` gjorde tidigare en lyckad stampling till ett
+          # rott mejl, och ett falsklarm som alltid fyrar lar mottagaren att
+          # ignorera aven de akta. `|| true` pa varje rad harifran.
+          echo "OK: ${PRODUCT_ID} uppdaterad — $(echo "$svar" | jq -r '.["ändrat"] | join(", ")' || echo "?")"
+
           # Las okanda variant-id. Ett id som inte finns pa raden skrevs INTE,
           # och det ska synas i stallet for att forsvinna i ett gront OK.
-          okanda=$(echo "$svar" | jq -r '.okändaVariantIds | length')
+          #
+          # ☠️ FALTNAMNET MASTE VARA CITERAT. jq tillater bara [A-Za-z_][A-Za-z0-9_]*
+          # i naken faltatkomst, sa `.okandaVariantIds` med a-umlaut ar ett
+          # SYNTAXFEL — inte ett tomt svar. Det falde varenda stampling i tolv
+          # timmar, EFTER att skrivningen gatt igenom. `jq-syntax.test.ts` faller
+          # nu pa det i stallet for produktionen.
+          okanda=$(echo "$svar" | jq -r '.["okändaVariantIds"] | length' || echo 0)
           if [ "$okanda" != "0" ]; then
-            echo "::warning::$(echo "$svar" | jq -r '"Okanda variant-id (inget skrevs for dem): " + (.okändaVariantIds | join(", "))')" >&2
+            echo "::warning::$(echo "$svar" | jq -r '"Okanda variant-id (inget skrevs for dem): " + (.["okändaVariantIds"] | join(", "))')" >&2 || true
           fi
+          exit 0
