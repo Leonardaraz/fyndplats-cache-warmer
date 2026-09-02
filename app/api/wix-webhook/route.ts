@@ -429,6 +429,12 @@ export function buildOrderConfirmationProps(order: Record<string, unknown>): Ord
   const shipping = moneyNum(totals?.shipping);
   const discount = moneyNum(totals?.discount);
   const total = moneyNum(totals?.total ?? totals?.totalPrice);
+  // Momsen. `priceSummary.tax` är förstahandsvalet; `taxInfo.totalTax` är samma
+  // siffra summerad från raderna och finns med som reserv för nyttolaster där
+  // priceSummary saknar fältet. 0 = ingen momsrad på kvittot.
+  const tax =
+    moneyNum(totals?.tax) ||
+    moneyNum((order.taxInfo as { totalTax?: unknown } | undefined)?.totalTax);
 
   const payment = firstStr(
     (order.paymentSummary as { paymentMethods?: Array<{ method?: string }> } | undefined)?.paymentMethods?.[0]?.method,
@@ -441,6 +447,7 @@ export function buildOrderConfirmationProps(order: Record<string, unknown>): Ord
     orderDate: formatSvDate(firstStr(order.createdDate as string, order._createdDate as string)),
     items,
     subtotal,
+    tax: tax || undefined,
     shipping,
     discount: discount || undefined,
     total,
