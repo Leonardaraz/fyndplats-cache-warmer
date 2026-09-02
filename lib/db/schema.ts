@@ -25,6 +25,7 @@ export const TABELLER = [
   "product_hashes",
   "import_costs",
   "llm_kv",
+  "reviews",
 ] as const;
 
 export type Tabell = (typeof TABELLER)[number];
@@ -192,4 +193,37 @@ const DDL: string[] = [
      primary key (collection, key)
    )`,
   `create index if not exists llm_kv_at_idx on llm_kv (collection, at desc)`,
+  // --- Recensioner: 2 514 rader ---------------------------------------------
+  //
+  // ☠️ DEN HÄR ÄR ANLEDNINGEN TILL ATT TAKET KAN LÖSAS. Wix Data har ett
+  // GLOBALT tak på 4 000 rader över alla kollektioner. Efter att drift-datan
+  // flyttat (2026-08-31) ligger vi på ~3 355, och recensionerna är 2 514 av
+  // dem — alltså 75 % av allt som är kvar. Aosoms egna produktrecensioner är
+  // uppmätta till ~9 500 texter; de får aldrig plats så länge raderna bor här.
+  //
+  // ⚠️ ATT KOPIERA HIT FRIGÖR INGENTING. Taket rör sig först när Wix-raderna
+  // RADERAS, och det får inte ske förrän butiksrepot slutat läsa dem direkt
+  // (lib/reviews.ts och lib/review-aggregates.ts på grenen headless-site).
+  // Därför står FyndplatsImportedReviews kvar i ALDRIG_RADERA. Samma lärdom
+  // som spårningssidan gav 2026-09-01: en migrering är klar först när alla
+  // läsare följt med, och en läsare som blir TOM syns varken i en kodaudit
+  // eller i en felräknare.
+  `create table if not exists reviews (
+     id           text primary key,
+     product_id   text not null,
+     review_id_ae text not null,
+     status       text not null,
+     rating       integer,
+     date         timestamptz,
+     data         jsonb not null,
+     updated_at   timestamptz not null default now()
+   )`,
+  // Produktsidan slår upp per produkt — den vanligaste frågan i hela systemet.
+  `create index if not exists reviews_product_id_idx on reviews (product_id)`,
+  // /admin/reviews filtrerar på status. ☠️ Filtret MÅSTE köras i databasen:
+  // en väntande rad kan ha vilket AE-datum som helst (recensionerna är ofta
+  // månader gamla), så "hämta de nyaste N och filtrera efteråt" hittar den
+  // inte. Det stod redan som en kommentar i Wix-versionen och gäller här med.
+  `create index if not exists reviews_status_date_idx on reviews (status, date desc nulls last)`,
+
 ];
