@@ -29,7 +29,7 @@
 //   importedAt:     ISO-datum
 
 import { isExternalSupplierImage, ownImageUrlForReview } from "../wix/media-import";
-import { storeBackend } from "./backend";
+import { reviewsBackend } from "./backend";
 import { PostgresReviewStore } from "./reviews-postgres";
 import { reviewImageFields, reviewImages } from "../reviews/images";
 
@@ -357,18 +357,21 @@ export class ReviewStore implements ReviewStoreLike {
 let singleton: ReviewStoreLike | null = null;
 
 /**
- * Väljer recensionslager på `STORE_BACKEND`.
+ * Väljer recensionslager på `REVIEWS_BACKEND` — EGEN switch, inte `STORE_BACKEND`.
  *
- * ☠️ VIA `storeBackend()`, ALDRIG genom att läsa env här. Filen
- * `lib/store/backend.ts` är enda läsaren av variabeln, och ett källkodstest
- * (`backend.test.ts`) fäller om någon annan fil nämner den. Skälet står i den
- * filens huvud: variabeln lästes en gång på sex ställen med tre olika
- * semantiker, och tre av dem föll TYST tillbaka till minnet.
+ * ☠️ Skälet står i `reviewsBackend()`: produktionen står redan på postgres, så
+ * en delad variabel hade växlat lagret i samma sekund koden deployades — in i
+ * en TOM tabell, utan att något kastade. Default är `"wix-data"` tills kopian
+ * är verifierad.
+ *
+ * ☠️ VIA `backend.ts`, ALDRIG genom att läsa env här. Den filen är enda
+ * läsaren av backend-variablerna, och ett källkodstest fäller om någon annan
+ * fil nämner dem.
  *
  * `"memory"` ger Wix-lagret, precis som förut. Det ser inkonsekvent ut men är
  * med flit: recensionerna har aldrig haft något minneslager, och att införa
- * ett här hade ändrat vad dev och tester faktiskt kör mot i samma ändring som
- * flyttar produktionsdatan. En sak i taget.
+ * ett här hade ändrat vad dev och tester kör mot i samma ändring som flyttar
+ * produktionsdatan. En sak i taget.
  */
 export function getReviewStore(): ReviewStoreLike {
   singleton ??= skapaReviewStore();
@@ -380,7 +383,7 @@ export function getReviewStore(): ReviewStoreLike {
 // kompileringsfel här i stället för ett tyst fel i drift. Samma mönster som
 // `skapaStore` i factory.ts.
 function skapaReviewStore(): ReviewStoreLike {
-  switch (storeBackend()) {
+  switch (reviewsBackend()) {
     case "postgres":
       return new PostgresReviewStore();
     case "memory":
