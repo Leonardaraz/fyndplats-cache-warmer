@@ -142,6 +142,19 @@ jobs:
             # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
             printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.sku): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
 
+            # ☠️ FELEN SKA SYNAS, INTE BARA RÄKNAS. En räknare som säger "1190
+            # misslyckade" utan att säga VARFÖR är samma tysta fel som huset
+            # redan lärt sig fem gånger. Grupperat på meddelande: 1 190 rader
+            # är oläsbart, åtta distinkta orsaker är en diagnos.
+            printf '%s' "$svar" | jq -r '
+              (.errors // []) as $e
+              | if ($e | length) > 0 then
+                  "  ── \($e | length) fel, grupperade på orsak:",
+                  ( $e | group_by(.error) | sort_by(-length) | .[:8][]
+                    | "     \(length)×  \(.[0].error[:200])" ),
+                  "  ── exempel-artikelnummer: \($e[:5] | map(.sku) | join(\", \"))"
+                else empty end' || true
+
             after=$(printf '%s' "$svar" | jq -r '.cursor // ""')
             if [ -z "$after" ]; then
               break
