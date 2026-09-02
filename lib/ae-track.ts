@@ -18,9 +18,35 @@ export const LEAKY_PATTERN =
   /\b(china|chinese|kina|hong\s?kong|cainiao|aliexpress|shenzhen|guangzhou|shanghai|beijing|shantou|shatian|yiwu|4px|yanwen)\b/i;
 
 export const AE_PHRASE_SV: Array<[RegExp, string]> = [
+  // — Lagerhantering hos avsändaren —
+  // ☠️ MÅSTE ligga FÖRST. Alla fyra stegen sker innan transportören rör
+  // paketet, och "picked and ready for packing" innehåller ordet "picked" —
+  // hamnar regeln efter upphämtningsmönstren riskerar den att läsas som en
+  // upphämtningsskanning, alltså ett SENARE skede än sanningen. Att kunden
+  // tror att paketet är på väg medan det ligger kvar på lagret är värre än
+  // engelska.
+  //
+  // Uppmätt på spårningsnummer 13289200665172 (2026-09-02): alla fyra kom
+  // oöversatta ur /api/track och stod på engelska i kundens spårningshistorik.
+  // Samma hål lagades i PHRASE_SV (17TRACK-flödet) 2026-08-31, men den här
+  // kartan är EN EGEN och fick aldrig reglerna — AliExpress-källan var då
+  // ännu inte kopplad till /sparning. Texterna nedan är ordagrant desamma som
+  // i PHRASE_SV, så samma händelse aldrig får två olika lydelser beroende på
+  // vilken källa som råkade svara.
+  [/being packed|order is (being )?pack|packing (has )?start/i,
+    "Din order packas."],
+  [/picked and ready for pack|picked[^.]*for packing/i,
+    "Varan är plockad och klar för packning."],
+  [/ready to be shipped|ready for (dispatch|shipment|shipping)|prepared for (dispatch|shipment)/i,
+    "Paketet är färdigpackat och väntar på transportören."],
+  // Fångar även "left THE warehouse", som förut föll på regeln nedan och gav
+  // "Säljaren har skickat ditt paket". Ordagrant är det lagret som lämnats,
+  // inte säljaren som skickat — och 17TRACK-flödet säger redan så här.
+  [/left (the )?warehouse|departed[^.]*warehouse|dispatched from[^.]*warehouse|shipped (out )?from[^.]*warehouse/i,
+    "Paketet har lämnat avsändarens lager."],
   // — Förberedelse / avsändning —
   [/(order|package) information received|awaiting shipment/i, "Fraktsedel skapad – paketet förbereds"],
-  [/order shipped|seller has shipped|left the warehouse/i, "Säljaren har skickat ditt paket"],
+  [/order shipped|seller has shipped/i, "Säljaren har skickat ditt paket"],
   [/collected by carrier|picked up by (the )?carrier/i, "Paketet har hämtats upp av transportören"],
   [/handed over to|handover to (the )?carrier/i, "Paketet har lämnats över till transportören"],
   // — Terminal / sortering (specifika före generisk transit) —
