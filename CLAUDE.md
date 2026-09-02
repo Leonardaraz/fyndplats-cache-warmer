@@ -2123,6 +2123,12 @@ själv. Sju tester låser den riktningen.
    direkt — aldrig via `getReviewStore()`, som bara returnerar det env pekar på
    och därmed hade jämfört ett lager med sig självt.
 
+   **Körd och grön 2026-09-02**, före växlingen: `wix 512 produkter, 2 421
+   synliga omdömen` mot `postgres 512 produkter, 2 421 synliga omdömen`, noll
+   avvikande. Samma tal som butiken renderar. Växlingen är därmed mätt ofarlig
+   i stället för antagen — kör läget en gång till EFTER den, då ska talen vara
+   oförändrade.
+
    Två spärrar i den som inte ska tas bort: ett **golv på 100 produkter per
    sida**, för två tomma aggregat är per definition identiska och en fallen
    läsning hade annars rapporterats som "noll avvikelser, växla på"; och ett
