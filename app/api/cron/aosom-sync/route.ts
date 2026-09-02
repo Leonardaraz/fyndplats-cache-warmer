@@ -86,15 +86,20 @@ async function handle(req: NextRequest) {
     // `utanWixPris` fäller också raden: produkter vars pris vi inte kunde
     // jämföra är tyst överhoppade, och tyst överhoppat är precis hur de tjugo
     // drivande raderna kunde ligga osedda i en månad.
+    // ☠️ `misslyckade` fäller också raden. Utan det skrevs ingen audit-rad alls
+    // för en körning som bara misslyckades — och en körning som inte kunde
+    // skriva någonting såg då ut exakt som en körning där allt redan stämde.
     if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0
-      || summary.utanWixPris > 0 || summary.prislistaFel)) {
+      || summary.utanWixPris > 0 || summary.misslyckade > 0 || summary.prislistaFel)) {
       await audit(
         "aosom-sync",
         "batch",
         `${summary.lagerUppdaterade} lagersaldon och ${summary.prisUppdaterade} priser uppdaterade, `
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
           + `${summary.varningar.length} blockerade prishopp, `
-          + `${summary.utanWixPris} utan butikspris, ${summary.kvar} kvar`
+          + `${summary.utanWixPris} utan butikspris, ${summary.misslyckade} MISSLYCKADE, `
+          + `${summary.kvar} kvar`
+          + (summary.errors[0] ? ` — första felet: ${summary.errors[0].error.slice(0, 160)}` : "")
           + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
       );
     }

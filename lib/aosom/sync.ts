@@ -433,6 +433,32 @@ export async function runAosomSync(
   return summary;
 }
 
+/**
+ * Paus mellan två Wix-SKRIVNINGAR i skarpt läge.
+ *
+ * ☠️ UPPMÄTT, INTE GISSAT (2026-09-02). Ett skarpt svep försökte 2 095
+ * lagerskrivningar i rad och fick 1 190 stycken **429 med en HTML-kropp** —
+ * Wix EDGE-spärr, inte API-nivåns JSON-fel. Skalan:
+ *
+ *   |  försökta skrivningar | fel  |
+ *   |----------------------:|-----:|
+ *   |                    40 |    0 |
+ *   |                 1 150 |  521 |
+ *   |                 2 095 | 1190 |
+ *
+ * Återförsök räcker inte mot den spärren — huset har redan mätt att den inte
+ * går att vänta ut inom ruttens 300 sekunder (media-städningen, 2026-08-28).
+ * Det som håller den borta är att inte springa. Samma medicin som
+ * `MEDIA_UPLOAD_DELAY_MS` och `FREIGHT_CALL_DELAY_MS`, av samma skäl.
+ *
+ * Ligger i `liveDeps`, inte i loopen: pacing hör till den skarpa skrivvägen,
+ * och testerna injicerar sina egna deps och ska inte bli långsamma av den.
+ */
+export function aosomSkrivPausMs(): number {
+  const n = Number(process.env.AOSOM_WRITE_DELAY_MS);
+  return Number.isFinite(n) && n >= 0 ? n : 120;
+}
+
 /** Standard-deps mot skarpa systemet. Bryts ut så testerna slipper mocka moduler. */
 export async function liveDeps(): Promise<AosomSyncDeps> {
   const [{ getStore }, { getPricingRules }, { eurToSekFromEnv }, wix, v3] = await Promise.all([
@@ -445,6 +471,9 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
   const rules = await getPricingRules();
   const store = getStore();
 
+  const pausMs = aosomSkrivPausMs();
+  const pausa = () => (pausMs > 0 ? new Promise((r) => setTimeout(r, pausMs)) : Promise.resolve());
+
   return {
     fetchFeed: () => fetchAosomFeed(),
     listWixPriser: () => v3.listV3ProductPrices(),
@@ -453,6 +482,7 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
         (m.supplierProductId ?? "").startsWith(aosomSupplierProductId("")),
       ),
     setStock: async (wixProductId, _sku, antal) => {
+      await pausa();
       const poster = await wix.queryInventoryItemsByProductId(wixProductId);
       if (poster.length === 0) return;
       await wix.bulkUpdateInventoryQuantities(
@@ -462,6 +492,7 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
     // updateV3VariantPrices skickar tillbaka `visible` oförändrad — utan det
     // publicerar en variantsInfo-PATCH utkastet (uppmätt 2026-08-28).
     setPrice: async (wixProductId, variant, grossSek, landedCostSek) => {
+      await pausa();
       // ☠️ SVARET MÅSTE LÄSAS. updateV3VariantPrices returnerar {updated, missing}
       // och KASTAR INTE när ingen variant matchade — den hoppar över PATCH:en och
       // returnerar tyst. Det gamla anropet slängde returvärdet, så synken räknade
