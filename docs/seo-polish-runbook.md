@@ -96,6 +96,18 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 
   **Kontrollen är en rad:** räkna unika id, inte rader. Är `unika < rader` paginerar du inte.
   Och när ett svep säger "noll träffar" i en kategori du vet finns — misstro svepet först.
+- ☠️ **Ett media-item tar `id` ELLER `url` — och `url` betyder EXTERN adress.** Skickar
+  du `{image: {url: "https://static.wixstatic.com/..."}}` svarar V3 **400 `id or url must
+  not be empty`**: fältet ligger på item-nivå, inte inuti `image`. Och hade det gått
+  igenom med en wixstatic-adress hade Wix **omimporterat varenda bild** till en ny fil
+  (se `CLAUDE.md`). Bilder som redan ligger i Media Manager skickas som
+  `{id: "b379ce_…~mv2.jpg", altText: "…"}`. 400:an är alltså skyddet, inte problemet.
+- ☠️ **Wix normaliserar `<strong>` till `<span style="font-weight: 700">` vid lagring.**
+  Det är där `+21 tecken per fetstilspar` kommer ifrån: `<strong></strong>` är 17 tecken,
+  `<span style="font-weight: 700"></span>` är 38. Följden: **textkirurgi på en redan
+  skriven produkt måste matcha den LAGRADE formen, inte källformen.** Ett utbyte skrivet
+  mot `<p><strong>Fråga?</strong></p>` matchar aldrig, och felet ser ut som att texten
+  saknas. Uppmätt 2026-09-02: sex av sju rättelser tog, den sjunde var en FAQ-fråga.
 - ☠️ **Alt-texten skrivs på ITEM-nivå, inte inuti `image`.** Fältet heter
   `media.itemsInfo.items[].altText` (typen `ProductMedia`). Skickar du den som
   `items[].image.altText` — där du LÄSER den på en oputsad produkt — **släpps den tyst**:
@@ -142,6 +154,29 @@ Den tyska beskrivningen har tre block, och de är inte lika mycket värda:
   Infravärmaren `9c7c6e95` hade `Schutzhülle` i både titel och alt-text; dess `Lieferumfang`
   listar bara värmare och bruksanvisning. Det är syskonet `96a45e2b` som har höljet. Hade
   titeln fått bestämma hade vi lovat en kund ett tillbehör som inte kommer.
+
+☠️ **Och titelns KATEGORIORD kan vara falskt, inte bara tillbehören.** Aosom
+sökordsstoppar titlarna: av 22 utkast som bär "Gaming Stuhl" eller "Gamingstuhl" var
+**sex inte gamingstolar alls** (2026-09-02). Fyra är mesh- eller chefsstolar vars
+brödtext bara handlar om `Arbeitstag`, `Büro` och `Homeoffice`, och vars miljöbilder
+visar ett vanligt kontorsskrivbord med en iMac. En sjätte har `1 x Relaxsessel` i
+`Lieferumfang` och en ingress om massage efter en lång dag.
+
+Ordet i titeln säger alltså ingenting om vad varan ÄR. Det som avgör är `Lieferumfang`
+plus bild 1 och 2 — och de två bilderna är gratis att titta på, till skillnad från en
+halvskriven text som måste kastas. **Läs titelns kategoriord som en hypotes, inte som
+ett faktum.**
+
+☠️ **Färgtvillingar av en publicerad sida avgörs på VARJE siffra, inte på titeln.** Samma
+runda: fem utkast var färgvarianter av tre levande sidor. Bevis var inte namnlikhet utan
+att 65 × 65 × 121–129, sits 50 × 49, sitthöjd 45,5–53,5, rygg 80 × 53,5 × 5, nackstöd
+28 × 19 × 10, svank 30 × 19 × 8, fotpall 34 × 21 × 6, armstöd 23 cm och 120 kg stämde
+*alla* mot den publicerade. Den publicerade sidan listade dessutom själv "vit, svart,
+rosa eller himmelsblå" — de fyra utkasten ÄR de färgerna.
+
+⚠️ Den listan är i sig ett fel att flagga: sidan lovar fyra färger men har EN variant mot
+ETT artikelnummer. Att lova ett val kunden inte kan göra är ett sortimentsbeslut, inte
+en poleringsfråga.
 
 Kapacitetspåståenden ska **mätas, inte kopieras**: tältet hette "4 Personen" medan
 tillverkarens egen skiss sa "Schlafplätze 2–4". Sovrummet är 295 cm brett — fyra liggunderlag
