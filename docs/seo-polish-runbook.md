@@ -475,6 +475,22 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
    kosmetisk: 25 cm är ett trappsteg, 45 cm är en grind. Mät på originalbilden och tröskla
    bort strökorn (`rad >= 8 px`), annars drar JPEG-bruset ut bounding-boxen.
 
+10. ☠️ **Läs HELA källtexten innan du skriver — den bär också det du annars utelämnar.**
+    Regel 7–9 handlar om påståenden man lägger TILL. Det här är felet åt andra hållet, och
+    det upptäcks aldrig i korrekturet: texten är sann, välskriven och saknar halva varan.
+    Sidobordet `cc4aad40` skrevs som ett inomhusbord "utan ben" på en läsning av bilderna.
+    Källan sa ordagrant *"Geeignet für den Innen- und Außenbereich"* och *"Mit vier
+    verstellbaren Fußstützen"* — vi hade alltså tagit bort en säljpunkt och skrivit en
+    felaktig produktbeskrivning samtidigt. Samma runda: soffbordet `4009d67f` tappade
+    22,8 cm golvfrigång, infällda grepp (ett klämskydd) och melaminytan; `f757393c`
+    tappade justerbara fötter och lackens fukttålighet. **Sju verkliga egenskaper föll
+    bort på fyra produkter** — fler fel än grinden mot uppfunna påståenden hittade.
+11. **Bilden avgör vad varan ÄR, källtexten vad den KAN.** Det är delningen bakom regel 10.
+    Form, färg, antal och proportion läser du ur fotot (Steg 4). Väderklassning,
+    justerbarhet, bärighet, ytbehandling och vad som ingår står bara i texten och syns
+    aldrig på ett foto. Skriver du enbart från bilderna får du en beskrivning som stämmer
+    på varje rad och ändå säljer fel produkt.
+
 > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma produkt
 > hade rubriken *"aberturas de: **-XX-XXcm**"* rakt ut i produktion. Ser du en sådan: sluta
 > lita på siffrorna i den serien och verifiera var och en.
