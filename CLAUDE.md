@@ -1407,6 +1407,52 @@ Två egenskaper som inte ska tas bort:
    rad i alla tre backends. Ett test simulerar en backend vars `updateTask` inte
    gör något: rutten svarar fel, och ingen audit-rad skrivs.
 
+### Aosom-ordern har ingen automatik alls — den läggs OCH skeppas för hand
+
+AliExpress sköter sig självt: `place-order` lägger ordern, `poll-tracking` hämtar
+spårningen var 15:e minut, Wix-fulfillment skapas, kunden får sitt mejl. Aosom har
+inget API — `place-order.ts` **vägrar** en Aosom-mappning med flit
+(`isAliExpressMapping`) och ordern läggs på `aosom.de/bulkordering` eller i deras
+kassa.
+
+Det lämnade en tyst lucka i motorn: ingenting kunde få veta att ordern var lagd, och
+när Aosom skickar paketet fanns ingen väg alls att få ut spårningen till kunden.
+Uppmätt på order 10026 (2026-09-02, Vinsetto-kontorsstolen `921-471LG`): betald
+14:57, lagd för hand samma kväll, och tasken hade blivit liggande som `pending`
+medan vakten påminde om en order som redan var gjord.
+
+`lib/orders/manual-fulfillment.ts` stänger båda halvorna, nåbar via
+`/api/admin/manual-fulfillment` och workflowen **"Order — beställd eller skickad
+för hand"**:
+
+| läge | vad som händer |
+|---|---|
+| `bestalld` | tasken blir `ordered` — vakten slutar påminna, 5-dygnsklockan mot "beställd men inget spår" startar |
+| `skickad` | Wix-fulfillment med spårningsnumret → butikens "Ditt paket är skickat!" + 17TRACK, tasken blir `shipped` |
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Referensen sparas i `supplierOrderRef`, ALDRIG i `aliexpressOrderId`.** Samma
+   fel som `AliExpressProductId`-typen infördes för att göra omöjligt: AE-fältet läses
+   som ett AE-id av poll-tracking, av cancel-task (som larmar om manuell
+   AE-avbeställning) och av claim/cancel-CAS:en i alla tre backends.
+2. ☠️ **F19-backstoppen gäller även den manuella vägen.** `poll-tracking` vägrar
+   auto-skeppa en task flaggad `cancelMidOrder`/`refundFlagged`/`orderUncertain`; en
+   manuell rutt som hoppar över samma grind vore hålet i nätet. Skeppningen är den
+   oåterkalleliga handlingen — kundmejlet går inte att ta tillbaka.
+3. ☠️ **En redan skeppad rad skeppas aldrig om.** En andra fulfillment är ett andra
+   "ditt paket är skickat" till samma kund.
+4. **Wix skrivs före tasken**, samma ordning och samma skäl som `price-repair`. Går
+   bara den ena igenom har kunden fått sitt mejl medan böckerna släpar — det billiga
+   felet. Omvänt hade tasken stått som `shipped` utan att någon fulfillment fanns.
+5. **Flera rader på ordern → vägra och lista dem.** Regeln bor i
+   `lib/orders/valj-task.ts` och delas med AE-kopplingen; att gissa hade skeppat fel
+   artikel med rätt spårningsnummer.
+
+`pending → shipped` går i ETT steg, men via statusmaskinen: har vi ett spårningsnummer
+ÄR ordern lagd, och att vägra på en bokföringsteknikalitet medan paketet är i transit
+är fel sorts fel.
+
 ⚠️ **Leveransnotisen ("levererat") bor i butiksrepot, grenen `headless-site`,**
 och hade en egen lucka: 17TRACK registrerar bara nummer vars fraktbolag den
 känner igen. Både 10023 och 10025 loggade *"carrier odetekterad, inget
