@@ -979,6 +979,37 @@ som kontrollerar. Leta efter:
 > snyggt sätt."* Det som måste stå med står med — men som ett positivt villkor på rätt
 > plats, inte som en varning.
 
+### Två fynd som bara det här steget hittar, och en grind som ljuger tvärtom
+
+Byrå-rundan 2026-09-02. Alla mekaniska grindar var gröna på åtta produkter; läsningen
+hittade två fel i texten och ett i grinden själv.
+
+1. ☠️ **Osynliga tecken passerar VARENDA mekanisk grind.** Ett mjukt bindestreck
+   (U+00AD) satt inuti ordet `gluggar` i en FAQ-rad. Lintet såg ett giltigt ord,
+   längdkontrollen såg ett giltigt tecken (det är ett — så `källa + 168` stämde exakt),
+   och Wix normaliserade det inte bort. Det enda som avslöjade det var att ordet såg
+   fel ut när det lästes. **Sök efter U+00AD, U+00A0, U+200B och U+FEFF i texten innan
+   du skriver den** — det är fyra tecken och en regex, och de går inte att se i efterhand.
+
+2. ⚠️ **Ett jämförande påstående är ett påstående, och måste beläggas som ett.**
+   En produkt hade rubriken *"50 kg är den högsta bärförmågan bland våra smala byråer"*
+   och i brödtexten *"dubbelt mot flera bredare modeller i sortimentet"*. Superlativet
+   gällde hela katalogen, som inte var mätt; och `flera` var i själva verket **en** modell.
+   Båda ersattes av det som gick att belägga ur produktens egna tal: 50 kg på en möbel
+   som väger 16,8 kg. **"Aldrig hitta på siffror" gäller även jämförelser** — de ser ut
+   som beskrivningar men är mätningar, och en mätning som inte gjorts är en gissning.
+
+3. ☠️ **`\b` i JavaScript är ASCII-bunden och läser svenska ord som tyska.** Tyskgrinden
+   `/\b(und|der|die|das|mit)\b/` rapporterade träffar på tre produkter. Ingen var tysk:
+   `ä` är inget ordtecken i JS utan `u`-flaggan, så **kläder** och **underkläder** slutar
+   på ett fristående `der`. Samma regex i Python (vars `\b` är unicode-medveten) ger noll.
+   Kör språkkontrollen i Python, eller använd `(?<![A-Za-zÅÄÖåäö])…(?![A-Za-zÅÄÖåäö])` i
+   JS. Ett falsklarm i grinden kostar dubbelt: det stjäl tiden från de fel som är äkta,
+   och lär läsaren att avfärda utslagen.
+
+**Regeln: en grön grind betyder att grinden är nöjd, inte att texten är rätt.** Två av de
+tre fynden ovan var osynliga för varje fält-kontroll, och det tredje låg i kontrollen själv.
+
 
 -----
 
