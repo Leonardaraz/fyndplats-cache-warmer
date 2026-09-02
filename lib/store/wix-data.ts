@@ -265,6 +265,13 @@ export class WixDataStore implements Store {
     return queryAll<FulfillmentTask>(COL.tasks, { orderId });
   }
 
+  async getTaskByTrackingNumber(trackingNumber: string): Promise<FulfillmentTask | null> {
+    if (!trackingNumber) return null;
+    // Server-side-filter på rot-fältet, samma konvention som listTasksByOrderId.
+    const träffar = await queryAll<FulfillmentTask>(COL.tasks, { trackingNumber });
+    return träffar[0] ?? null;
+  }
+
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
     // PATCH SET_FIELD i stället för read-then-save full-replace (annars nollar en
     // parallell skrivning claimToken). Saknad task → "not-found" → tyst no-op.

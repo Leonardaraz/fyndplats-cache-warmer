@@ -1,0 +1,86 @@
+name: Order — koppla manuell AliExpress-order
+
+# Samma sak som knappen "Beställt manuellt på AliExpress? Koppla ordernumret →"
+# i /admin, men körbar härifrån utan admin-inloggning — från en telefon.
+#
+# När Leonard beställer i AliExpress konsumentkassa (kampanj/kupong billigare
+# än DS-API:t) vet motorn inte att ordern finns förrän numret kopplas. Utan
+# koppling: ingen spårning hämtas, ingen fulfillment i Wix, inget kundmejl —
+# och vakten säger inget förrän efter 24 timmar. Order 10025 (2026-09-01) låg
+# så i sexton timmar efter att paketet lämnat Polen.
+#
+# Efter kopplingen: poll-tracking (var 15:e minut) hämtar spårningsnumret →
+# Wix-fulfillment → butikens "Ditt paket är skickat!" + 17TRACK. Vill du inte
+# vänta: kör workflowen "Poll AliExpress tracking" direkt efteråt.
+#
+# Samma nyckel-lösa upplägg som övriga: POLL_TRACKING_URL + CRON_SECRET.
+
+on:
+  workflow_dispatch:
+    inputs:
+      order_number:
+        description: "Butikens ordernummer, t.ex. 10025 (tomt om task_id ges)"
+        required: false
+        default: ""
+        type: string
+      task_id:
+        description: "Bara när ordern har flera rader: <orderId>:<lineItemId>"
+        required: false
+        default: ""
+        type: string
+      ae_order_id:
+        description: "AliExpress 'Ref. Number' — bara siffror (INTE spårningsnumret)"
+        required: true
+        type: string
+
+jobs:
+  koppla:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ORDER_NUMBER: ${{ inputs.order_number }}
+          TASK_ID: ${{ inputs.task_id }}
+          AE_ORDER_ID: ${{ inputs.ae_order_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR — en ::error::-rad på stdout slukas av
+            # kommandosubstitutionen nedan.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if [ -z "${ORDER_NUMBER}" ] && [ -z "${TASK_ID}" ]; then
+            echo "::error::Ange order_number eller task_id" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/link-ae-order"
+          kropp=$(jq -nc \
+            --arg on "${ORDER_NUMBER}" \
+            --arg ti "${TASK_ID}" \
+            --arg ae "${AE_ORDER_ID}" '
+            {aeOrderId: $ae}
+            + (if $on != "" then {orderNumber: $on} else {} end)
+            + (if $ti != "" then {taskId: $ti} else {} end)
+          ')
+
+          svar=$(curl -sS --max-time 60 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "$kropp" \
+            "${url}")
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+            echo "$svar" | jq -r '.candidates[]? | "    kandidat: \(.taskId)  \(.productName)  (\(.status))"' >&2
+            exit 1
+          fi
+
+          echo "OK: $(echo "$svar" | jq -r '"\(.taskId) (order \(.orderNumber)) → AE \(.aeOrderId)"')"
+          echo "$(echo "$svar" | jq -r '.probe')"
+          echo
+          echo "Nasta steg: poll-tracking hamtar sparningen inom 15 min (eller kor 'Poll AliExpress tracking' nu)."

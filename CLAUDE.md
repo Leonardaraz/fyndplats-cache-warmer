@@ -1375,6 +1375,49 @@ expedieras SKA tjata, och tjatet upphör av sig självt när skrivningen går
 igenom. **Bara raderna som inte hann skrivas listas** — annars beställer man om
 en rad som redan ligger i `/admin` och kunden får två paket.
 
+### En manuellt lagd AliExpress-order är osynlig tills numret kopplas (2026-09-01)
+
+Order 10025: lagd för hand i AliExpress konsumentkassa (kampanj/kupong
+billigare än DS-API:t), skickad från Polen kl 15:53 — och tasken stod kvar på
+`pending` i sexton timmar medan kunden väntade på sitt mejl. Motorn kan inte
+hämta spårning för en order den inte vet finns, och vakten säger inget om
+`pending` förrän efter 24 timmar. Mätt:
+
+```
+poll-tracking:  {"checked":0,"shipped":0,"stillWaiting":0,"heldForReview":0,"errors":[]}
+order-guard:    missingTasks:0  placeOrderReminders:0
+Wix 10025:      NOT_FULFILLED
+```
+
+Tasken fanns, ingen task var `ordered`. Kopplingen fanns bara som knapp bakom
+admin-inloggningen. Logiken bor nu i `lib/orders/link-ae-order.ts` och nås från
+två håll: samma knapp i `/admin`, och `POST /api/admin/link-ae-order` med
+`CRON_SECRET` → workflowen **"Order — koppla manuell AliExpress-order"** tar
+butikens ordernummer + AE:s "Ref. Number" (inte spårningsnumret) och går att
+köra från en telefon. Efter kopplingen är ordern exakt lika automatisk som en
+API-order: kopplingen 21:55 → poll-tracking 21:58 `shipped:1` → Wix-fulfillment
+→ butikens "Ditt paket är skickat!" med Resend-id 21:58:07.
+
+Två egenskaper som inte ska tas bort:
+
+1. **Flera kopplingsbara rader på samma order → vägra och lista dem.** Att
+   gissa hade kopplat fel AE-order till fel rad, och poll-tracking hade sedan
+   skeppat fel artikel med rätt spårningsnummer.
+2. ☠️ **Skrivningen läses tillbaka.** `updateTask` är en tyst no-op på en saknad
+   rad i alla tre backends. Ett test simulerar en backend vars `updateTask` inte
+   gör något: rutten svarar fel, och ingen audit-rad skrivs.
+
+⚠️ **Leveransnotisen ("levererat") bor i butiksrepot, grenen `headless-site`,**
+och hade en egen lucka: 17TRACK registrerar bara nummer vars fraktbolag den
+känner igen. Både 10023 och 10025 loggade *"carrier odetekterad, inget
+format-mönster matchar — ingen push för detta paket"* — ingen push, aldrig ett
+"levererat"-mejl. Sedan 2026-09-01 pollar butiken AliExpress-källan (vår
+`/api/tracking-events`) varannan timme (`/api/cron/ae-delivery-poll`) och mejlar
+genom samma sändare och samma dedup som pushen. Se `SMS-FORWARDING.md` på den
+grenen. **Vår rutt är alltså en leveransberoende sedan dess** — går den sönder
+uteblir inte bara spårningssidan utan också leveransmejlen för de paket 17TRACK
+inte ser.
+
 ### ☠️ Ett fullt CMS gör importen till en dubblettfabrik
 
 Ordningen i `lib/aosom/import-run.ts` är påtvingad: mappningen behöver
@@ -1542,6 +1585,13 @@ retention-fönster, och talen ärvs från `lib/retention.ts`.
 och skrev `2 köade` — två nya rader i `FyndplatsImportedReviews`, exakt den
 skrivning som fallit på `WDE0195` tolv timmar tidigare.
 
+**Marginalen mot taket, mätt 2026-09-01 22:05:** `FyndplatsImportedReviews`
+2 514 + `FyndplatsAuctions` 797 + `FyndplatsRedirects` 40 + tre enradskollektioner
+≈ **3 355 av 4 000**. Recensionerna är den enda som växer — 10 nya rader på sju
+dygn — så ~650 rader räcker länge i normal drift. ☠️ **Men en bulk-backfill av
+recensioner (`review-backfill`, `aosom-reviews`) kan äta marginalen på en
+körning**, och då stoppas även auktioner och redirects. Räkna före en sådan.
+
 ☠️ **Vägen tillbaka är därmed stängd.** Fram till raderingen var rollback en
 env-variabel; nu finns drift-datan bara i Postgres, och Neons
 point-in-time-återställning är det som gäller. Raderingsrutten
@@ -1583,6 +1633,43 @@ inte ska tas bort:
    underlaget svarar den `null` i stället för att gissa, och workflowen
    avslutar med `exit 1` på både `stammer: false` och `EJ AVGORBAR`.
 
+### ☠️ Och två fällor till i samma block (2026-09-02)
+
+Hittade när ett e-postbrus skulle förklaras. Poleringsworkflowen mejlade
+"Run failed" i tolv timmar; loggen sa två rader tidigare `OK: <id> uppdaterad`.
+
+1. ☠️ **`jq` tillåter inte åäö i naken fältåtkomst.** `.okändaVariantIds` är
+   ett SYNTAXFEL (`unexpected INVALID_CHARACTER`), inte ett tomt svar —
+   grammatiken tillåter bara `[A-Za-z_][A-Za-z0-9_]*` efter punkten. Raden låg
+   EFTER skrivningen, så varje stämpling gjorde sitt jobb och dog sedan på
+   rapporteringen. Sexton lyckade körningar rapporterades som misslyckade.
+   Övriga svenska fältnamn i filen var korrekt citerade, så det gick inte att
+   se genom att läsa: nitton rader rätt och två fel ser likadana ut. Grinden är
+   `lib/workflows/jq-syntax.test.ts`, som läser alla workflow-filer. Statisk
+   kontroll och inte `jq -n` — en grind som hoppas över när binären saknas är
+   ingen grind. **Rapportering efter en skrivning får dessutom aldrig fälla
+   jobbet**; den är `|| true` nu.
+
+2. ☠️ **GitHub ersätter ett TOMT workflow-input med dess `default`.**
+   `needs_ai_polish` och `draft_status` hade defaulterna `false` och
+   `published` medan beskrivningen sa "tomt = rör inte" — det läget gick alltså
+   inte att uppnå, och en stämpling som bara ville skriva SKU:er PUBLICERADE
+   produkten. Uppmätt: skickade `""` för båda, loggen visade `NEEDS_POLISH:
+   false` / `DRAFT_STATUS: published`. Defaulterna är tomma nu. Med 2 700
+   opolerade tyska utkast i katalogen är det den farligaste riktningen att fela
+   åt — samma klass som `variantsInfo`-PATCHen som publicerade ett utkast.
+
+**Och en tredje, som följde av att den andra undersöktes:** ett okänt
+`wixVariantId` skrev raden först och lät verifieringen fälla på det omatchade
+id:t → 500 "läste inte tillbaka som förväntat". Meddelandet ljög (de andra
+fälten HADE skrivits, produkten kunde vara publicerad) och patchen lämnades
+halvt applicerad. Rutten avvisar nu okända id FÖRE skrivningen med **422** som
+namnger både de okända id:na och radens riktiga, och skriver ingenting alls.
+
+**Regeln: ett falsklarm som alltid fyrar är lika illa som ett fel ingen ser.**
+Båda slutar med att mottagaren slutar läsa — och då är även det äkta larmet
+borta.
+
 Fjorton tester, verifierade genom att återinföra alla tre farliga misstagen
 (tyst ignorerade fält, positionsmatchad SKU, gissande prisgrind): rätt test
 faller för rätt bugg.
@@ -1603,6 +1690,61 @@ Kvittot att skrivvägen fungerar mättes direkt, inte antogs:
 `/api/cron/order-backfill` loggade **`1 av 1 saknade tasks skapade, 0 fel
 (räddade: 10024)`** 21:25 samma kväll. Ordern som legat oskrivbar sedan morgonen
 fick sin task, och `tasks` gick från 12 rader i Wix till 13 i Postgres.
+
+### ☠️ Och den bröt kundens spårningssida — en läsare auditen inte kunde se
+
+`/api/tracking-events` slår upp AliExpress-ordern från ett spårningsnummer, och
+gjorde det genom att fråga **Wix Data direkt** med en egen fetch-hjälpare mot
+`FyndplatsTasks` i stället för att gå via storen. Steg 6 tömde kollektionen, och
+rutten svarade från den sekunden **404 "Okänt spårningsnummer" för varje kund**.
+Uppmätt i drift 2026-09-01 kl 20:35 på en riktig kunds nummer.
+
+☠️ **Kodauditen efter raderingen missade den, och det är hela lärdomen.** Den
+letade efter LÄSARE SOM GÅR SÖNDER. Den här gick inte sönder — den blev **tom**.
+Ett tomt svar från rätt API mot rätt kollektion ser i källkoden exakt likadant ut
+som ett friskt anrop, och i loggen är det en 404 som ser ut som ett okänt
+spårningsnummer. Samma familj som "ett svar utan fel är inget kvitto", men värre:
+här fanns inte ens ett fel att ignorera.
+
+Skadan är större än den ser ut, eftersom butiken anropar rutten **FÖRST**:
+17TRACK klarar inte alla EU-fraktkedjor, medan AliExpress alltid känner sin egen
+order. Mätt samma kväll på två skarpa ordrar:
+
+| order | fraktväg | butikens 17TRACK-källa |
+|---|---|---|
+| 10024 | Seller Shipping ES Local → PostNord | 2 händelser, senast samma kväll |
+| 10023 | AliExpress Standard shipping-Poland | **noll händelser, 36 h efter avsändning** |
+
+Det är precis 10023 rutten finns för — och det är precis den kunden som fick
+"inga spårningshändelser ännu" i stället för AE:s egna.
+
+Lagat genom att flytta uppslaget in i storen: `getTaskByTrackingNumber` finns i
+alla tre backends, med uttrycksindex i Postgres. Två egenskaper som inte ska tas
+bort:
+
+1. ☠️ **`store-access-audit.test.ts` är grinden, inte ögon.** Den läser
+   källkoden i hela repot och fäller om en fil utanför de sex ägande modulerna
+   nämner både ett Wix Data-anrop och en flyttad kollektion. Verifierad genom att
+   återinföra buggen: testet fäller, och bara det. Den hittade dessutom
+   `lib/llm/storage.ts` direkt — den var redan backend-växlad, alltså frisk, men
+   det var en genomgång som tog sekunder i stället för en kväll.
+2. **Uppslaget är versalokänsligt, och indexet är på samma uttryck.** Rutten
+   versaliserar kundens inmatning; en task som bär numret gemener hade annars gett
+   exakt samma tysta 404 en gång till.
+
+⚠️ **Vad som INTE är vårt att laga.** Kundmejlen — "Ditt paket är på väg" och
+"Ditt paket är framme" — ligger i **butiksrepot**, inte här. `www.fyndplats.se`
+pekar på Vercel, så Velo-koden i `wix-velo/` är arv: dess `_functions/track` är
+oåtkomlig på domänen, och `TrackingEvents` i Wix har **noll rader** (raderingen
+rörde den aldrig — den står inte i någon kopielista). Butiken har tagit över hela
+kedjan och den lever: `/_functions/track_webhook` svarar
+`configured:true, resendConfigured:true`, tog emot 17TRACK-pushar 07:46 och 19:53
+den 2026-09-01, och `/api/track` returnerar svenska händelser. Mejl skickas via
+Resend därifrån — leta i butiksrepot, inte i det här.
+
+**Regeln, som nu gäller två gånger:** en migrering är klar först när alla läsare
+följt med — och en läsare som blir TOM syns varken i en kodaudit eller i en
+felräknare. Det som hittar den är ett källkodstest.
 
 ## Recensioner: hämtas server-side från AliExpress, översätts i chatten
 

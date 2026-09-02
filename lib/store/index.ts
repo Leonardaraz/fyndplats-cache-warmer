@@ -242,6 +242,16 @@ export interface Store {
    * refund/cancel-event. Används av F19 refund/cancel-grenen.
    */
   listTasksByOrderId(orderId: string): Promise<FulfillmentTask[]>;
+  /**
+   * Tasken bakom ETT spårningsnummer, eller null. Kundens /sparning slår upp
+   * AliExpress-ordern den vägen (`/api/tracking-events`).
+   *
+   * ☠️ Finns som STORE-metod, inte som ett Wix Data-anrop i rutten. Rutten
+   * frågade förr Wix direkt, och överlevde därför migreringen som en 404 för
+   * varje spårningsnummer — koden var oberörd, datan var borta. En backend som
+   * bara EN modul väljer är hela poängen (lib/store/backend.ts).
+   */
+  getTaskByTrackingNumber(trackingNumber: string): Promise<FulfillmentTask | null>;
   setTaskStatus(taskId: string, status: TaskStatus): Promise<void>;
   /** Uppdaterar delmängd av en task (merge). Saknad task = tyst no-op. */
   updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void>;
