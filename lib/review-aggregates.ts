@@ -6,10 +6,17 @@
 // listningsvyerna såg varje kort omdömeslöst ut, så det sociala beviset nådde
 // kunden först efter att hen redan klickat in på en produkt.
 //
-// Den naiva vägen — getProductReviews() per kort — hade blivit 24+ Wix-anrop
-// per listningssida (och ~800 på /alla-produkter innan pagineringen slår till).
-// I stället gör vi EN aggregering grupperad på productId som ger antal + snitt
-// för alla produkter samtidigt: uppmätt 388 grupper / 1 695 omdömen i ett svar.
+// Den naiva vägen — getProductReviews() per kort — hade blivit 24+ anrop per
+// listningssida (och ~800 på /alla-produkter innan pagineringen slår till).
+// I stället gör vi ETT anrop som ger antal + snitt för alla produkter
+// samtidigt: uppmätt 388 grupper / 1 695 omdömen i ett svar.
+//
+// ☠️ LÄSES VIA CACHE-WARMERNS API SEDAN 2026-09-02, inte ur Wix Data direkt.
+// Recensionerna flyttar till Postgres (Wix har ett globalt tak på 4 000 rader
+// och recensionerna är 2 514 av de ~3 355 som är kvar). Den gamla vägen hade
+// inte gått sönder när Wix-raderna raderas — korten hade bara tappat sina
+// stjärnor, tyst. Se lib/reviews.ts för samma resonemang och för fallet som
+// gjorde huset försiktigt: /api/tracking-events 2026-09-01.
 //
 // Cachas 1 h med samma "reviews"-tagg som getProductReviews, så den befintliga
 // revalideringen (`?tag=reviews`) tömmer produktsidan och korten på en gång.
@@ -20,18 +27,16 @@
 import { mapAggregateRows, applyRatings, ownReviewsHidden, type AggregateRow, type RatingMap } from "./rating";
 import type { Product } from "./products";
 
-const WIX_BASE = "https://www.wixapis.com";
-const COL = process.env.WIX_DATA_COL_REVIEWS || "FyndplatsImportedReviews";
-
-/** Samma statusar som getProductReviews visar publikt. */
-const VISIBLE = ["approved", "edited"];
-
-function wixDataHeaders(): Record<string, string> | null {
-  const token = process.env.WIX_API_KEY;
-  const siteId = process.env.WIX_SITE_ID;
-  if (!token || !siteId) return null;
-  return { "Content-Type": "application/json", Authorization: token, "wix-site-id": siteId };
-}
+/** Cache-warmern äger recensionslagret. Samma mönster som lib/reviews.ts.
+ *
+ *  ☠️ EGET SEGMENT, inte /api/reviews/aggregates. Den adressen fångas av
+ *  motorns dynamiska `[productId]`-rutt och svarar **200** med
+ *  `{productId:"aggregates", count:0, reviews:[]}` — alltså rätt statuskod,
+ *  fel form. `res.ok` hade passerat, `betyg` saknats, och korten tappat sina
+ *  stjärnor utan ett enda fel någonstans. */
+const API =
+  process.env.CACHE_WARMER_AGGREGATES_URL
+  ?? "https://fyndplats-cache-warmer.vercel.app/api/review-aggregates";
 
 /**
  * Antal + snitt per produkt för hela katalogen.
@@ -41,31 +46,28 @@ function wixDataHeaders(): Record<string, string> | null {
  */
 export async function getReviewAggregates(): Promise<RatingMap> {
   if (ownReviewsHidden()) return {};
-  const h = wixDataHeaders();
-  if (!h) return {};
   try {
-    const res = await fetch(`${WIX_BASE}/data/v2/items/aggregate`, {
-      method: "POST",
-      headers: h,
-      body: JSON.stringify({
-        dataCollectionId: COL,
-        initialFilter: { status: { $in: VISIBLE } },
-        aggregation: {
-          groupingFields: ["productId"],
-          operations: [
-            { resultFieldName: "antal", itemCount: {} },
-            { resultFieldName: "snitt", average: { itemFieldName: "rating" } },
-          ],
-        },
-        // Katalogen har ~390 produkter med omdömen. Taket är satt med marginal
-        // så att svaret ryms i en sida — hasNext hanteras inte här med flit.
-        paging: { limit: 1000 },
-      }),
-      next: { revalidate: 3600, tags: ["reviews"] },
-    });
+    const res = await fetch(API, { next: { revalidate: 3600, tags: ["reviews"] } });
     if (!res.ok) return {};
-    const body = (await res.json()) as { results?: AggregateRow[] };
-    return mapAggregateRows(body.results || []);
+    // Svaret är en KARTA productId → {antal, snitt}. mapAggregateRows tar en
+    // lista, så den formen behålls här i stället för att skriva om den rena
+    // logiken i lib/rating.ts — den är testad och delas med korten.
+    const body = (await res.json()) as {
+      betyg?: Record<string, { antal?: number; snitt?: number }>;
+    };
+    // ☠️ SAKNAT `betyg`-FÄLT ÄR ETT FEL, INTE EN TOM KATALOG. Ett 200-svar utan
+    // det betyder att vi pratar med fel rutt — och en tyst tom karta hade sett
+    // exakt ut som "ingen produkt har omdömen". Loggas hellre än gissas.
+    if (!body || typeof body.betyg !== "object" || body.betyg === null) {
+      console.warn("[review-aggregates] svar utan betyg-fält — fel rutt?", API);
+      return {};
+    }
+    const rader: AggregateRow[] = Object.entries(body.betyg).map(([productId, v]) => ({
+      productId,
+      antal: v?.antal,
+      snitt: v?.snitt,
+    }));
+    return mapAggregateRows(rader);
   } catch {
     return {};
   }

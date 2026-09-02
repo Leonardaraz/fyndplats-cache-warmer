@@ -2198,6 +2198,13 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 /* Märket för egna kunders omdömen. Dämpat grönt — ska läsas som ett faktum,
    inte som en utmärkelse. */
 .rev-verified{font-size:var(--text-xs);font-weight:700;color:#2f6f3e;background:#eef7f0;border:1px solid #cfe6d6;border-radius:var(--r-pill);padding:2px 8px;white-space:nowrap}
+/* Importerat omdöme. Neutral, inte grön: den gröna märkningen betyder
+   verifierat köp hos oss, och att låta de två se lika ut vore att antyda
+   en kontroll vi inte gjort (UCPD bilaga I §23b). */
+.rev-ursprung{font-size:var(--text-xs);font-weight:600;color:#5b6470;background:#f2f3f5;border:1px solid #dfe2e6;border-radius:var(--r-pill);padding:2px 8px;white-space:nowrap}
+/* Upplysningen ovanför listan (UCPD art. 7.6). Liten men läsbar — den ska
+   gå att hitta, inte gömmas. */
+.rev-upplysning{font-size:var(--text-sm);color:#5b6470;background:#f7f8f9;border:1px solid #e5e8eb;border-radius:var(--r-md,8px);padding:10px 12px;margin:0 0 16px;line-height:1.5}
 .rev-text{margin:0;font-size:var(--text-sm);line-height:1.55;color:var(--ink)}
 /* Kundbilden är klickbar: knappen är bara en osynlig ram runt tumnageln. */
 .rev-photo-btn{display:block;margin-top:10px;padding:0;border:0;background:none;cursor:zoom-in;line-height:0;border-radius:var(--r-sm)}

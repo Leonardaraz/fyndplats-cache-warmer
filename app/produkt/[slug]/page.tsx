@@ -342,6 +342,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           reviews={reviewData.reviews}
           count={reviewData.count}
           average={reviewData.average}
+          ursprungsupplysning={reviewData.ursprungsupplysning}
         />
       )}
 

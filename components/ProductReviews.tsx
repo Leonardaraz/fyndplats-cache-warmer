@@ -10,10 +10,23 @@ export function ProductReviews({
   reviews,
   count,
   average,
+  ursprungsupplysning,
 }: {
   reviews: ProductReview[];
   count: number;
   average: number | null;
+  /**
+   * ☠️ UPPLYSNING ENLIGT UCPD ARTIKEL 7.6, inte en dekoration.
+   *
+   * Direktivet kräver att den som ger tillgång till konsumentrecensioner
+   * upplyser om huruvida och hur den säkerställer att de kommer från
+   * konsumenter som faktiskt använt produkten. Bilaga I §23b förbjuder att
+   * påstå att de gör det utan rimliga åtgärder för att kontrollera det.
+   *
+   * Null när ALLA omdömen är egna kunders — då är "✓ Verifierat köp" vid varje
+   * rad hela upplysningen som behövs. Se lib/review-source.ts.
+   */
+  ursprungsupplysning?: string | null;
 }) {
   const [showAll, setShowAll] = useState(false);
   // Förstorad kundbild. null = stängd. Samma mönster som galleriets lightbox:
@@ -68,6 +81,22 @@ export function ProductReviews({
           </div>
         )}
 
+        {/* ☠️ UPPLYSNINGEN, inte en fotnot. UCPD art. 7.6 kräver att den som
+
+            ger tillgång till konsumentrecensioner upplyser om huruvida och hur
+
+            den säkerställer att de kommer från konsumenter som använt varan.
+
+            Står FÖRE listan, inte efter — en upplysning man scrollar förbi är
+
+            ingen upplysning. */}
+
+        {ursprungsupplysning ? (
+
+          <p className="rev-upplysning">{ursprungsupplysning}</p>
+
+        ) : null}
+
         <ul className="rev-list">
           {shown.map((r) => {
             const alt = `Kundbild från ${r.displayName || "kund"}`;
@@ -85,11 +114,20 @@ export function ProductReviews({
                   {/* Egna kunders omdömen märks ut. Skillnaden mot de importerade
                       är verklig — de här är skrivna av någon som handlat här — och
                       då ska den synas i stället för att alla ser likadana ut. */}
-                  {r.firstParty ? (
-                    <span className="rev-verified" title="Skrivet av en kund som handlat hos Fyndplats">
-                      ✓ Verifierat köp
-                    </span>
-                  ) : null}
+                  {/* ☠️ VARJE rad märks, inte bara egna kunders. Att lämna de
+                      importerade omärkta under rubriken "Kundrecensioner" är
+                      just det bilaga I §23b förbjuder — en Aosom-recension är
+                      hämtad från leverantörens sajt och är inte vår kunds. */}
+                  <span
+                    className={r.firstParty ? "rev-verified" : "rev-ursprung"}
+                    title={
+                      r.firstParty
+                        ? "Skrivet av en kund som handlat hos Fyndplats"
+                        : "Omdömet gäller samma vara men är inte skrivet av en kund hos oss"
+                    }
+                  >
+                    {r.ursprungEtikett}
+                  </span>
                   {r.date ? <span className="rev-date">{r.date.slice(0, 10)}</span> : null}
                 </div>
                 <p className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>{r.text}</p>
