@@ -2106,6 +2106,48 @@ snart EN enda rad är importerad.
 fältet och är AE-importer; en fallback på `customer` hade varit överträdelsen
 själv. Sju tester låser den riktningen.
 
+### ☠️ Och en SKRIVARE som skulle blivit föräldralös (2026-09-02)
+
+Hittad genom att leta efter kvarvarande Wix-läsare inför steg 3 — och det var
+inte en läsare. Butikens **`/api/omdome`**, dit kunden skriver sitt eget omdöme
+efter ett verifierat köp, gjorde `POST /data/v2/items/save` RAKT mot
+`FyndplatsImportedReviews`.
+
+Det var rätt så länge recensionerna bodde där. Efter växlingen läser allt ur
+Postgres — och kundens omdöme hade fortsatt hamna i Wix, där ingenting läser.
+Raden hade aldrig synts i `/admin/reviews`, aldrig kunnat godkännas, aldrig
+renderats. Wix svarar 200, så varken kunden, loggen eller en felräknare hade
+märkt något.
+
+Spegelbilden av `/api/tracking-events`: där blev en LÄSARE tom, här försvinner
+en SKRIVNING. Och dyrare, för kundomdömena är de enda **förstahands**omdömena —
+de som bär "✓ Verifierat köp" och som ensamma någonsin får bli
+`aggregateRating` mot Google.
+
+☠️ **Kodauditen kunde inte se den.** `store-access-audit.test.ts` läser DET HÄR
+repot; skrivaren bor i butiksrepot. Grinden finns därför nu på båda sidor
+(`lib/review-store-access.test.ts` på `headless-site`), verifierad genom att
+återinföra buggen — den fäller och namnger filen.
+
+Butiken postar nu till **`/api/reviews/customer`** med `REVIEW_INGEST_SECRET`
+som Bearer-token. Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Valideringen ligger kvar i butiken.** Den äger `REVIEW_TOKEN_SECRET`,
+   verifierar tokenets signatur, kontrollerar att produkten ingick i ordern och
+   att bildadresserna pekar på vår egen Wix Media. Att flytta hit hade betytt
+   tvillingar av `verifyReviewToken`, `validateCustomerReview` och
+   `buildCustomerReviewRow`. Rutten är tunn: hemligheten är förtroendegränsen.
+2. ☠️ **`status` och `source` TVINGAS i rutten**, de läses aldrig ur kroppen.
+   En anropare som kunde sätta `approved` hade lagt text direkt på
+   produktsidan förbi modereringen, och `source` styr både etiketten och
+   UCPD-upplysningen.
+3. ☠️ **Fail-closed i båda ändar.** Saknas hemligheten svarar motorn 503 och
+   butiken 503 — aldrig 200. Att svara kunden "tack!" på ett omdöme som aldrig
+   lagrades är det enda utfall som är sämre än ett fel.
+
+⚠️ **`REVIEW_INGEST_SECRET` måste stå i BÅDA Vercel-projekten med samma värde,
+och vara satt innan `REVIEWS_BACKEND` växlas.**
+
 **Ett steg kvar innan raderingen, och ordningen är tvingande:**
 
 1. **Steg 3 — `REVIEWS_BACKEND=postgres` i Vercel.** Butiken läser via API:t
