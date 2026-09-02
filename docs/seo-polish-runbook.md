@@ -990,6 +990,18 @@ Använd workflowen **Polering — läs och stämpla mappningsraden**, läge `sta
 | `draft_status` | `published` |
 | `variant_skus` | `{"<wixVariantId>":"<ny-sku>"}` — tomt om SKU:n inte ändrats |
 
+☠️ **Ett tomt fält betyder numera "rör inte", och det gör det på riktigt.**
+Fram till 2026-09-02 hade `needs_ai_polish` och `draft_status` defaultvärdena
+`false` och `published` — och GitHub ersätter ett tomt värde med defaulten, så
+en stämpling som bara ville skriva SKU:er **publicerade produkten på köpet**.
+Defaulterna är tomma nu; vill du publicera måste du skriva `published` själv.
+
+☠️ **`wixVariantId`, inte variantens SKU eller position.** Ett id som inte
+finns på raden avvisas med `422` och **ingenting skrivs** — inte heller de
+andra fälten i samma patch. Hämta id:t ur `las`-utskriftens `mappning`. Ett
+felstavat id hade annars gett en variant utan SKU, och Aosom-prissynken matchar
+Wix-varianten på just det fältet.
+
 ☠️ **Skriv INTE hela raden längre.** Den gamla mekaniken (`items/save` med allt
 du inte ändrat) hade två fel som båda blev värre efter migreringen: ett glömt
 fält var en tyst radering, och kollektionen är numera tömd så anropet skulle

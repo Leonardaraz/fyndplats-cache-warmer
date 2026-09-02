@@ -139,6 +139,31 @@ export async function POST(req: NextRequest) {
     }
 
     const { ny, okändaVariantIds } = applicera(före, rå as Patch);
+
+    // ☠️ AVVISA FÖRE SKRIVNINGEN, inte efter. Ett wixVariantId som inte finns
+    // på raden får ingen SKU — och SKU:n är inte kosmetisk: Aosom-prissynken
+    // matchar Wix-varianten på just det fältet, så en utebliven SKU är samma
+    // klass av fel som förväxlingen 2026-08-29 (prissynken skrev till
+    // ingenting i en månad).
+    //
+    // Tidigare skrevs raden först, och verifieringen nedan såg det omatchade
+    // id:t som "skrivningen tog inte" → 500. Två fel i det: meddelandet ljög
+    // (de andra fälten HADE skrivits), och en halvt applicerad patch lämnades
+    // kvar. Nu skrivs ingenting alls, och felet namnger id:na.
+    if (okändaVariantIds.length > 0) {
+      const kända = före.variants.map((v) => v.wixVariantId).filter(Boolean);
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            `Okända wixVariantId: ${okändaVariantIds.join(", ")}. INGENTING skrevs. `
+            + `Radens variant-id är: ${kända.join(", ") || "(inga)"}.`,
+          okändaVariantIds,
+        },
+        { status: 422 },
+      );
+    }
+
     await store.saveMapping(ny);
 
     // ☠️ Räkna efter, lita inte på svaret. Sjunde gången huset lär sig det:
@@ -149,6 +174,7 @@ export async function POST(req: NextRequest) {
       efter !== null
       && (patch.needsAiPolish === undefined || efter.needsAiPolish === patch.needsAiPolish)
       && (patch.draftStatus === undefined || efter.draftStatus === patch.draftStatus)
+      // Alla id här är kända — okända avvisades ovan utan att något skrevs.
       && Object.entries(patch.variantSkus ?? {}).every(([id, sku]) =>
         efter.variants.some((v) => v.wixVariantId === id && v.sku === sku),
       );
