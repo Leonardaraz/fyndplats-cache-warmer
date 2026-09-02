@@ -243,6 +243,14 @@ räknar upp egenskaperna efter — den ordningen är det som gör huvudordskrave
 **Och läs alltid ut kandidaterna innan du bestämmer dig.** Felet syntes inte i siffran; det
 syntes när de 40 dyraste skrevs ut med namn. En kategorimätning utan namnlista är en gissning.
 
+⚠️ **Räkna med att en dryg fjärdedel av utkasten redan finns publicerade.** Matstolarna i
+batch 53 gav den hittills högsta uppmätta andelen: **4 av 14** var identiska på alla tre
+axlar med sidor som redan låg ute (`matstol-i-bojtra-75-cm`, `matstol-i-manchester-armstod`,
+`matstolar-2-pack-konstlader-svart`, plus en intern). Det är precis den dubblettklass
+CLAUDE.md beskriver — 595 av 1 004 mappningsrader är Aosom-varor köpta via AliExpress — och
+den syns bara om måtten jämförs. Ett utkast som ser nytt ut i feeden kan vara en sida vi
+säljer sedan månader.
+
 > 🗂️ **Poleringskön ljuger — verifiera mot Wix innan du väljer produkt.** `needsAiPolish`
 > nollställs inte alltid, så kön blandar råa utkast med sedan länge färdiga produkter
 > (2026-08-11: 49 poster, 13 verkligt opolerade). Filtrera på `visible === false` **och** att
@@ -489,10 +497,30 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
     någon skrivit, precis som specen, och den har ingen sådan företrädesrätt.
 
     **Gör så här:** skriv den LÄGSTA siffran (överlova aldrig last — en kund som lastar 30
-    kg på ett bord byggt för 20 får en olycka, inte en besvikelse), och **ta bort ritningen
-    ur galleriet**. Den bilden visar ett tal vi inte står bakom, och den ligger kvar på
-    produktsidan långt efter att texten rättats. Flytta ritningens övriga mått till
-    spec-listan och till ditt eget Fyndplats-kort, så tappar kunden ingenting.
+    kg på ett bord byggt för 20 får en olycka, inte en besvikelse), och ta bort **den källa
+    som bär talet du INTE skriver**. Oftast är det ritningen, och då ska bilden ur galleriet:
+    den ligger kvar på produktsidan långt efter att texten rättats. Flytta ritningens övriga
+    mått till spec-listan och till ditt eget Fyndplats-kort, så tappar kunden ingenting.
+
+    ⚠️ Men kolla åt vilket håll det lutar innan du raderar. Tv-vagnarna i batch 53 hade
+    **40 kg i ritningen mot 70 i den skrivna specen** — där var ritningen den försiktiga,
+    alltså den som stämmer med sidan, och den fick sitta kvar. Det är texten vi inte
+    publicerar ändå. Regeln är inte "ritningar ljuger" utan **ta bort den källa vars siffra
+    inte står på sidan**.
+
+13. ☠️ **Titeln kan ange fel PRODUKTTYP, inte bara en egenskap som saknas.** Regel 11 handlar
+    om en funktion spec-tabellen inte har; den här om att varan är något helt annat än vad
+    den heter. Två fall i samma parti (batch 53): `5c566983` heter *Esszimmerstuhl* men har
+    `Lieferumfang: 1 x Esszimmer**bank**`, är 120 cm bred och tål 240 kg — det är en BÄNK.
+    `cee5437b` heter *Esszimmerstuhl* men har `Lieferumfang: 4 x **Hocker**`, saknar ryggmått
+    och är 46 cm hög totalt — det är fyra PALLAR.
+
+    **Testet är `Lieferumfang`, och det tar två sekunder.** Läs den raden innan du tror på
+    titeln, och kontrollera att totalmåtten är fysiskt möjliga för den produkttyp namnet
+    påstår: en stol som är 46 cm hög har ingen rygg, och en 120 cm bred sits är ingen stol.
+    En felnamngiven produkt ska inte poleras som fel typ — lägg den åt sidan och ta den i
+    rätt kategori, med rätt sökord.
+
 
 > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma produkt
 > hade rubriken *"aberturas de: **-XX-XXcm**"* rakt ut i produktion. Ser du en sådan: sluta
