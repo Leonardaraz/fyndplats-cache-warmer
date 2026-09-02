@@ -586,6 +586,38 @@ export const MIN_WIX_PRODUKTER = 500;
 const MAX_PRIS_SIDOR = 200;
 
 /**
+ * Backoff per sida. Följer `Retry-After` när Wix skickar den.
+ *
+ * ☠️ VARFÖR DEN BEHÖVS. Media-städningen mätte upp att Wix svarar 429 efter
+ * ~40–50 sidor I RAD (se `lib/aosom/media-cleanup.ts`). Katalogen är 54 sidor
+ * — mitt i det spannet. Att bläddra igenom den utan återförsök vore att kasta
+ * tärning om hela prissynken varje körning.
+ *
+ * Stegen är `importMediaByUrl`:s, inte städningens (2/10/30 s): den väntar ut
+ * en TRÖGARE edge-spärr och har inte den här ruttens 240-sekundersbudget.
+ *
+ * Laddaren ligger lokalt med flit. Husets tvilling-regel gäller definitioner
+ * som MÅSTE ge samma svar (`SHIP_AXIS_RE`, `EU_TULL_CODES`, `STORE_BACKEND`) —
+ * en backoff-trappa är tvärtom ett kostnadsbeslut per anropsställe, och de tre
+ * här i repot är olika av dokumenterade skäl.
+ */
+const PRIS_PAUS_MS = [1_000, 3_000, 8_000];
+
+/**
+ * Liten paus MELLAN sidor. Strypningen ovan utlöses av många sidor i tät följd,
+ * så den billigaste medicinen är att inte springa. 54 sidor × 60 ms ≈ 3 s av
+ * ruttens 240.
+ */
+const PRIS_SIDPAUS_MS = 60;
+
+const sov = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** 429/408/5xx är övergående. Andra 4xx är det inte — då är frågan fel ställd. */
+function arOvergaende(status: number): boolean {
+  return status === 429 || status === 408 || status >= 500;
+}
+
+/**
  * Alla produkters pris, i ETT svep.
  *
  * ☠️ VARFÖR DEN FINNS. Aosom-prissynken jämförde det nyräknade priset mot
@@ -616,16 +648,43 @@ export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>
     const cursorPaging: Record<string, unknown> = { limit: 100 };
     if (cursor) cursorPaging.cursor = cursor;
 
-    const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({ query: { cursorPaging } }),
-    });
-    if (!res.ok) {
+    if (sida > 0) await sov(PRIS_SIDPAUS_MS);
+
+    let svar: Response | null = null;
+    let sistaFel = "";
+    for (let forsok = 0; forsok <= PRIS_PAUS_MS.length; forsok++) {
+      let res: Response;
+      try {
+        res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ query: { cursorPaging } }),
+        });
+      } catch (err) {
+        // Nätverksfel är per definition övergående.
+        sistaFel = err instanceof Error ? err.message : String(err);
+        if (forsok === PRIS_PAUS_MS.length) break;
+        await sov(PRIS_PAUS_MS[forsok]);
+        continue;
+      }
+      if (res.ok) {
+        svar = res;
+        break;
+      }
       const text = await res.text();
-      throw new Error(`V3 prisquery föll på sida ${sida} (${res.status}): ${text.slice(0, 300)}`);
+      sistaFel = `${res.status}: ${text.slice(0, 200)}`;
+      if (!arOvergaende(res.status) || forsok === PRIS_PAUS_MS.length) break;
+      const retryAfter = Number(res.headers.get("retry-after"));
+      await sov(
+        Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 15_000)
+          : PRIS_PAUS_MS[forsok],
+      );
     }
-    const data = (await res.json()) as {
+    if (!svar) {
+      throw new Error(`V3 prisquery föll på sida ${sida} — ${sistaFel}`);
+    }
+    const data = (await svar.json()) as {
       products?: Array<{
         id?: string;
         actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };

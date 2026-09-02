@@ -367,9 +367,24 @@ Tre egenskaper i den fixen som inte ska tas bort:
 2. ☠️ **Taket (`MAX_PRISANDRING_PCT`) räknas mot butikens pris.** Räknat mot
    mappningen hade en rad som redan drivit isär sett ut som en liten ändring och
    sluppit förbi spärren — spärren ska mäta hoppet kunden faktiskt utsätts för.
-3. **`MIN_WIX_PRODUKTER = 500` kastar**, av samma skäl som `MIN_FEED_RADER`:
+3. **`MIN_WIX_PRODUKTER = 500` spärrar**, av samma skäl som `MIN_FEED_RADER`:
    en halvläst prislista ser ut som "alla priser har ändrats", och en körning som
    tror det skriver om hela katalogen.
+
+   ☠️ **Men den FÄLLER INTE körningen, till skillnad från `MIN_FEED_RADER`** —
+   och skillnaden är vad felet kostar. En trasig feed nollar lagersaldon över
+   hela katalogen; där är avbrott enda säkra svaret. En oläsbar prislista kan
+   ingenting förstöra (`jamforelsePris` svarar `"saknas"`, och då skrivs inget
+   pris). Att ändå avbryta hade stoppat LAGERSYNKEN i sex timmar för ett fel i
+   prisdelen — och att sälja något vi inte har är ett kundfel, medan ett orättat
+   pris på ett osynligt utkast inte är det. Lagret synkas alltså vidare, men
+   körningen får inte se frisk ut: felet bärs i `prislistaFel` → svaret,
+   loggraden, audit-raden, och fäller workflow-jobbet.
+4. **Bulkläsningen har backoff.** 54 sidor i följd ligger mitt i det spann där
+   media-städningen mätte upp att Wix svarar 429 (~40–50 sidor i rad). Utan
+   återförsök vore hela prissynken en tärningskastning varje körning. Stegen är
+   `importMediaByUrl`:s (1/3/8 s) plus 60 ms mellan sidor — den billigaste
+   medicinen mot en strypning som utlöses av tempo är att inte springa.
 
 Verifierat genom att återinföra `const gammalt = variant.grossSek` — tre tester
 faller, och bara de tre.

@@ -86,14 +86,16 @@ async function handle(req: NextRequest) {
     // `utanWixPris` fäller också raden: produkter vars pris vi inte kunde
     // jämföra är tyst överhoppade, och tyst överhoppat är precis hur de tjugo
     // drivande raderna kunde ligga osedda i en månad.
-    if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0 || summary.utanWixPris > 0)) {
+    if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0
+      || summary.utanWixPris > 0 || summary.prislistaFel)) {
       await audit(
         "aosom-sync",
         "batch",
         `${summary.lagerUppdaterade} lagersaldon och ${summary.prisUppdaterade} priser uppdaterade, `
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
           + `${summary.varningar.length} blockerade prishopp, `
-          + `${summary.utanWixPris} utan butikspris, ${summary.kvar} kvar`,
+          + `${summary.utanWixPris} utan butikspris, ${summary.kvar} kvar`
+          + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
       );
     }
 
@@ -106,7 +108,8 @@ async function handle(req: NextRequest) {
         + `${summary.prisUppdaterade} priser, ${summary.utanWixPris} utan butikspris, `
         + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
         + `${summary.varningar.length} varningar, ${summary.misslyckade} misslyckade, `
-        + `${summary.kvar} kvar${dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`,
+        + `${summary.kvar} kvar${dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`
+        + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
     );
 
     return NextResponse.json(
