@@ -444,6 +444,18 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
     Testet är mekaniskt: **stryk under varje adjektiv och varje kvantifierare i din mening
     och peka på det i källtexten.** Kan du inte peka — behåll leverantörens egna ord
     ("soft-close-gångjärn", "matt svart stål"). De är kortare ändå.
+11. ☠️ **Leverantörens TITEL kan lova en egenskap som spec-tabellen inte har — och måtten
+    avgör vilken av dem som är sann.** Besläktad med regeln om falska kategoriord, men
+    värre att upptäcka: här är produkttypen rätt och det är en enskild FUNKTION som bara
+    finns i rubriken. Barstolen `fcdc1c8f` 2026-09-02 heter *"Barstuhl mit **Armlehnen**
+    und Rückenlehne"* — men Technische Daten listar bara `Rückengröße: 50B x 5T x 26H cm`,
+    och inget armstödsmått. Måtten löser upp motsägelsen: totalbredden 53,5 cm är RYGGENS
+    50 cm, inte armstöd utanpå en 39 cm sits. Jag hade byggt hela sidan, kortet, namnet och
+    sluggen på armstöden innan kontrollen mot källan fälldes.
+    **Testet:** varje funktion rubriken lovar ska ha ett eget MÅTT i spec-tabellen. Saknas
+    måttet — leta upp vad totalmåttet faktiskt består av innan du skriver en rad.
+    Här slutade det med både och: ryggens framåtsvängda ändar ÄR något man vilar armarna
+    på, så texten säger det — men den bär 50-mot-39-måttet, inte rubrikens ord.
 
 > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma produkt
 > hade rubriken *"aberturas de: **-XX-XXcm**"* rakt ut i produktion. Ser du en sådan: sluta
@@ -739,6 +751,28 @@ också när du inte tänker röra den. Läs tillbaka `visible` i svaret — det 
 > **Spara ett anrop — men BARA om inget mer återstår:** har produkten inga bilder att fixa (Steg 9), ingen kategori (Steg 10) och ingen variantkoppling (Steg 11) kvar → lägg `visible: true` i **samma** PATCH så görs SKU-resynken + publiceringen i ett. Återstår något av dessa: **publicera SIST** (Steg 13), aldrig här — annars går produkten live innan bilder/kategori/varianter är klara.
 >
 > **Undantag:** börjar SKU:n med `FYND-XXX-NNN` (kurerat artikelnummer) eller `AE-<hash>` (äldre schema) — **rör den inte**, flagga till Leonard.
+
+☠️ **I en syskonbatch kollapsar den mekaniska kapningen till EN SKU — och den kan redan
+vara upptagen.** Regeln säger "unikt inom produkten", och det räcker inte när sju sidor i
+samma kategori delar de ledande orden. Barstolarna 2026-09-02: alla sju sluggarna börjar
+`barstolar-2-pack-…`, och 24-teckenskapningen på hel-ords-gräns ger `barstolar-2-pack` för
+varenda en → **sju identiska `FP-barstolar-2-pack`**. Värre: den strängen bar redan den
+publicerade `barstolar-2-pack`. Dedup-suffixet `-2/-3` hjälper inte — det räknas bara mot
+andra VARIANTER i samma produkt, aldrig mot katalogen.
+
+Det är samma defekt som två kontorsstolar med `FP-burostuhl-mit` (batch 47–48), och den
+syns inte i något API-svar: Wix tar emot dubbletten, synken bryr sig inte (den matchar på
+`wixVariantId`), och först i ett produktflöde blir två varor samma artikelnummer.
+
+**Gör så här:** behåll sluggen — den ska leda med sökordet — men välj de SKILJANDE tokens
+inom produkt-delens 24 tecken i stället för de första: `FP-barstolar-knappstoppad`,
+`FP-barstolar-skalrygg-59`, `FP-barstolar-chenille-48`, `FP-barstolar-furu-korsrygg`.
+**Kontrollera alltid mot syskonen som redan är publicerade i kategorin**, inte bara mot
+batchen — det var den kontrollen som hittade krocken med den levande sidan.
+
+⚠️ Kontrollen hittade också att `barstolar-2-pack-62-83-cm-sammet` fortfarande bär
+`FP-set-of-2-swivel-bar-rissvit` / `-kaffebrun`: en publicerad sida där Steg 8 hoppades
+över och den engelska råsluggen står kvar i SKU:n. Leta efter fler med samma mönster.
 
 **Verifiera:** nya SKU:n innehåller varken engelska råord eller **dropship-märke** och matchar sluggen. (Etablerade märken som Pagani Design/LAIKOU **behålls** i SKU:n – se märkesregeln i *Fasta fakta*.)
 
