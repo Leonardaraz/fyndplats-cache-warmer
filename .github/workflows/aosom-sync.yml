@@ -152,7 +152,7 @@ jobs:
                   "  ── \($e | length) fel, grupperade på orsak:",
                   ( $e | group_by(.error) | sort_by(-length) | .[:8][]
                     | "     \(length)×  \(.[0].error[:200])" ),
-                  "  ── exempel-artikelnummer: \($e[:5] | map(.sku) | join(\", \"))"
+                  "  ── exempel-artikelnummer: \($e[:5] | map(.sku) | join(", "))"
                 else empty end' || true
 
             after=$(printf '%s' "$svar" | jq -r '.cursor // ""')
