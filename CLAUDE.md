@@ -1633,6 +1633,43 @@ inte ska tas bort:
    underlaget svarar den `null` i stället för att gissa, och workflowen
    avslutar med `exit 1` på både `stammer: false` och `EJ AVGORBAR`.
 
+### ☠️ Och två fällor till i samma block (2026-09-02)
+
+Hittade när ett e-postbrus skulle förklaras. Poleringsworkflowen mejlade
+"Run failed" i tolv timmar; loggen sa två rader tidigare `OK: <id> uppdaterad`.
+
+1. ☠️ **`jq` tillåter inte åäö i naken fältåtkomst.** `.okändaVariantIds` är
+   ett SYNTAXFEL (`unexpected INVALID_CHARACTER`), inte ett tomt svar —
+   grammatiken tillåter bara `[A-Za-z_][A-Za-z0-9_]*` efter punkten. Raden låg
+   EFTER skrivningen, så varje stämpling gjorde sitt jobb och dog sedan på
+   rapporteringen. Sexton lyckade körningar rapporterades som misslyckade.
+   Övriga svenska fältnamn i filen var korrekt citerade, så det gick inte att
+   se genom att läsa: nitton rader rätt och två fel ser likadana ut. Grinden är
+   `lib/workflows/jq-syntax.test.ts`, som läser alla workflow-filer. Statisk
+   kontroll och inte `jq -n` — en grind som hoppas över när binären saknas är
+   ingen grind. **Rapportering efter en skrivning får dessutom aldrig fälla
+   jobbet**; den är `|| true` nu.
+
+2. ☠️ **GitHub ersätter ett TOMT workflow-input med dess `default`.**
+   `needs_ai_polish` och `draft_status` hade defaulterna `false` och
+   `published` medan beskrivningen sa "tomt = rör inte" — det läget gick alltså
+   inte att uppnå, och en stämpling som bara ville skriva SKU:er PUBLICERADE
+   produkten. Uppmätt: skickade `""` för båda, loggen visade `NEEDS_POLISH:
+   false` / `DRAFT_STATUS: published`. Defaulterna är tomma nu. Med 2 700
+   opolerade tyska utkast i katalogen är det den farligaste riktningen att fela
+   åt — samma klass som `variantsInfo`-PATCHen som publicerade ett utkast.
+
+**Och en tredje, som följde av att den andra undersöktes:** ett okänt
+`wixVariantId` skrev raden först och lät verifieringen fälla på det omatchade
+id:t → 500 "läste inte tillbaka som förväntat". Meddelandet ljög (de andra
+fälten HADE skrivits, produkten kunde vara publicerad) och patchen lämnades
+halvt applicerad. Rutten avvisar nu okända id FÖRE skrivningen med **422** som
+namnger både de okända id:na och radens riktiga, och skriver ingenting alls.
+
+**Regeln: ett falsklarm som alltid fyrar är lika illa som ett fel ingen ser.**
+Båda slutar med att mottagaren slutar läsa — och då är även det äkta larmet
+borta.
+
 Fjorton tester, verifierade genom att återinföra alla tre farliga misstagen
 (tyst ignorerade fält, positionsmatchad SKU, gissande prisgrind): rätt test
 faller för rätt bugg.
