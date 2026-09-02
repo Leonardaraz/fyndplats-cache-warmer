@@ -36,6 +36,17 @@ const ÄGARE = [
   "lib/store/import-costs.ts",
   "lib/sync/sync-log.ts",
   "lib/llm/storage.ts",
+  // ☠️ Recensionslagret ÄGER FyndplatsImportedReviews och måste behålla sin
+  // Wix-väg, till skillnad från de övriga ägarna vars kollektioner redan är
+  // tömda. Två skäl, och båda upphör först vid raderingen:
+  //   1. Butiksrepot läser fortfarande kollektionen DIREKT (lib/reviews.ts och
+  //      lib/review-aggregates.ts på grenen headless-site). Raderna finns
+  //      alltså kvar och är inte tomma.
+  //   2. Wix-vägen är kopieringens KÄLLA och tills vidare vägen tillbaka.
+  // Filen är därför ägare, inte ett brott. När butiken följt med och raderingen
+  // är gjord kan Wix-klassen tas bort helt — och då fäller det här testet om
+  // någon lämnat kvar en läsare.
+  "lib/store/reviews.ts",
   // Definitionslistan i sig, plus migreringens egna verktyg: de SKA tala med
   // Wix, det är hela deras uppgift.
   "lib/db/tabeller.ts",

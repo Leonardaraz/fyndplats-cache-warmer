@@ -29,6 +29,8 @@
 //   importedAt:     ISO-datum
 
 import { isExternalSupplierImage, ownImageUrlForReview } from "../wix/media-import";
+import { storeBackend } from "./backend";
+import { PostgresReviewStore } from "./reviews-postgres";
 import { reviewImageFields, reviewImages } from "../reviews/images";
 
 const WIX_BASE = "https://www.wixapis.com";
@@ -164,7 +166,53 @@ async function withOwnImage(review: StoredReview): Promise<StoredReview> {
   return { ...review, ...reviewImageFields(ut) };
 }
 
-export class ReviewStore {
+/**
+ * Det som gäller om en recension oavsett VAR den lagras.
+ *
+ * ☠️ REGLER OM RECENSIONER, INTE OM DATABASEN — därför bor de här och inte i
+ * varje lager. En tvilling hade betytt att en publicerad recension pekar på
+ * leverantörens CDN i det ena lagret men inte i det andra, beroende på vilken
+ * env-variabel som råkade vara satt. Samma skäl som `SHIP_AXIS_RE`,
+ * `EU_TULL_CODES` och `mapWithConcurrency` har en enda definition.
+ *
+ * Två regler:
+ *
+ * 1. **Statusfallbacken pekar åt det SÄKRA hållet.** Den var "approved" fram
+ *    till 2026-08-19, vilket var rimligt när DeepL översatte varje rad innan
+ *    den skrevs — men numera är texten källspråket tills en människa skrivit
+ *    om den. En anropare som glömmer sätta status ska hamna i modereringskön,
+ *    inte på produktsidan. Alla nuvarande anropare sätter den explicit; det
+ *    här är nätet under dem.
+ * 2. **Bilden flyttas hem först vid publicering.** En `pending`-rad som pekar
+ *    på aliexpress-media.com är NORMALT, inte ett fel — att flytta hem bilder
+ *    för rader som kanske aldrig godkänns vore slöseri med både anrop och
+ *    medialagring. Se avsnittet om recensionsbilder i CLAUDE.md.
+ */
+export async function normaliseraFörSkrivning(review: StoredReview): Promise<StoredReview> {
+  const status = review.status ?? "pending";
+  const medBild = isVisibleStatus(status) ? await withOwnImage(review) : review;
+  return {
+    ...medBild,
+    status,
+    importedAt: review.importedAt ?? new Date().toISOString(),
+  };
+}
+
+/**
+ * Vad ett recensionslager kan. Wix- och Postgres-versionen implementerar den
+ * här, så anroparna aldrig behöver veta vilken som är i drift.
+ */
+export interface ReviewStoreLike {
+  exists(productId: string, reviewIdAE: string): Promise<boolean>;
+  upsert(review: StoredReview): Promise<void>;
+  listByProduct(productId: string, limit?: number): Promise<StoredReview[]>;
+  listAll(limit?: number): Promise<StoredReview[]>;
+  listByStatus(status: ReviewStatus, limit?: number): Promise<StoredReview[]>;
+  setStatus(productId: string, reviewIdAE: string, status: ReviewStatus): Promise<void>;
+  editText(productId: string, reviewIdAE: string, newSwedish: string): Promise<void>;
+}
+
+export class ReviewStore implements ReviewStoreLike {
   async exists(productId: string, reviewIdAE: string): Promise<boolean> {
     const id = reviewDocId(productId, reviewIdAE);
     const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(COLLECTION_ID)}`;
@@ -182,14 +230,9 @@ export class ReviewStore {
 
   async upsert(review: StoredReview): Promise<void> {
     const id = reviewDocId(review.productId, review.reviewIdAE);
-    // Fallbacken pekar åt det SÄKRA hållet. Den var "approved" fram till
-    // 2026-08-19, vilket var rimligt när DeepL översatte varje rad innan den
-    // skrevs — men numera är texten källspråket tills en människa skrivit om
-    // den. En anropare som glömmer sätta status ska hamna i modereringskön,
-    // inte på produktsidan. Alla nuvarande anropare sätter den explicit; det
-    // här är nätet under dem.
-    const status = review.status ?? "pending";
-    const skickas = isVisibleStatus(status) ? await withOwnImage(review) : review;
+    // Statusfallbacken och hemflytten av bilden bor i normaliseraFörSkrivning,
+    // så Postgres-lagret lyder exakt samma regler. Se den funktionen.
+    const skickas = await normaliseraFörSkrivning(review);
     const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
       method: "POST",
       headers: headers(),
@@ -198,12 +241,7 @@ export class ReviewStore {
         dataItem: {
           id,
           dataCollectionId: COLLECTION_ID,
-          data: {
-            _id: id,
-            ...skickas,
-            status,
-            importedAt: review.importedAt ?? new Date().toISOString(),
-          },
+          data: { _id: id, ...skickas },
         },
       }),
     });
@@ -316,8 +354,42 @@ export class ReviewStore {
   }
 }
 
-let singleton: ReviewStore | null = null;
-export function getReviewStore(): ReviewStore {
-  if (!singleton) singleton = new ReviewStore();
+let singleton: ReviewStoreLike | null = null;
+
+/**
+ * Väljer recensionslager på `STORE_BACKEND`.
+ *
+ * ☠️ VIA `storeBackend()`, ALDRIG genom att läsa env här. Filen
+ * `lib/store/backend.ts` är enda läsaren av variabeln, och ett källkodstest
+ * (`backend.test.ts`) fäller om någon annan fil nämner den. Skälet står i den
+ * filens huvud: variabeln lästes en gång på sex ställen med tre olika
+ * semantiker, och tre av dem föll TYST tillbaka till minnet.
+ *
+ * `"memory"` ger Wix-lagret, precis som förut. Det ser inkonsekvent ut men är
+ * med flit: recensionerna har aldrig haft något minneslager, och att införa
+ * ett här hade ändrat vad dev och tester faktiskt kör mot i samma ändring som
+ * flyttar produktionsdatan. En sak i taget.
+ */
+export function getReviewStore(): ReviewStoreLike {
+  singleton ??= skapaReviewStore();
   return singleton;
+}
+
+// Egen funktion i stället för tilldelningar i en switch: då blir switchen
+// UTTÖMMANDE mot `StoreBackend`, och ett nytt backend-värde blir ett
+// kompileringsfel här i stället för ett tyst fel i drift. Samma mönster som
+// `skapaStore` i factory.ts.
+function skapaReviewStore(): ReviewStoreLike {
+  switch (storeBackend()) {
+    case "postgres":
+      return new PostgresReviewStore();
+    case "memory":
+    case "wix-data":
+      return new ReviewStore();
+  }
+}
+
+/** Endast för tester: tvingar fram ett nytt val vid nästa getReviewStore(). */
+export function __resetReviewStoreForTests(): void {
+  singleton = null;
 }
