@@ -2033,6 +2033,58 @@ om, inte vad något kostar. Mätt 2026-08-16 på 40 slumpade publicerade produkt
 tak 8 — alltså ~166k tecken för hela butiken. Cirka 40 % av produkterna får inga
 recensioner alls, mest nya Aosom-EU-listningar som inte hunnit få några hos AE.
 
+### Recensionerna är på väg ur Wix — steg 1 och 2 klara (2026-09-02)
+
+**Taket är recensionerna.** Efter att drift-datan flyttade 2026-08-31 ligger Wix
+på ~3 355 av 4 000 rader, och `FyndplatsImportedReviews` är **2 514 av dem** —
+75 % av allt som är kvar. Aosoms egna produktrecensioner är uppmätta till
+~9 500 texter (`/api/cron/aosom-reviews`) och får aldrig plats så länge raderna
+bor där. Recensionerna är inte offret för taket, de ÄR det.
+
+⚠️ **Översättningen är däremot INTE flaskhalsen**, tvärtemot vad man kunde tro:
+2 421 av 2 514 recensioner är redan publikt synliga, och översättningskön är
+**7 rader**. Chattflödet via `review-translate.yml` fungerar och är mätt.
+
+| steg | vad | frigör taket? |
+|---|---|:---:|
+| 1 | `reviews`-tabell + `PostgresReviewStore` + spec i `ATT_KOPIERA` | nej |
+| 2 | kopiera 2 514 rader, verifiera kanoniskt | nej |
+| 3 | `REVIEWS_BACKEND=postgres` | nej |
+| 4 | butiken läser via API, inte Wix Data direkt | nej |
+| 5 | radera Wix-raderna | **ja** |
+
+**Steg 2 är gjort och mätt:** 2 514 lästa, 2 514 skrivna, noll fel, och
+verifieringen ger `reviews wix=2514 pg=2514 avvikande=0`.
+
+☠️ **`REVIEWS_BACKEND` är FRIKOPPLAD från `STORE_BACKEND`, och default är
+`wix-data`.** Ett första utkast lät `getReviewStore()` läsa `STORE_BACKEND` —
+produktionen står på postgres, så lagret hade bytts i samma sekund koden
+deployades, in i en TOM tabell: `/admin/reviews` hade slutat se de 2 514
+raderna, nya recensioner skrivits dit ingen läser, och butiken fortsatt läsa
+Wix. Ingenting hade kastat. Samma familj som `/api/tracking-events`
+2026-09-01 — en läsare som blir TOM syns varken i en kodaudit eller i en
+felräknare.
+
+☠️ **Affärslogiken DELAS mellan lagren** (`normaliseraFörSkrivning`):
+statusfallbacken (`pending`, aldrig `approved`) och hemflytten av kundbilder är
+regler om RECENSIONER, inte om databasen. En tvilling hade betytt att en
+publicerad recension pekar på leverantörens CDN i det ena lagret men inte i det
+andra, beroende på vilken env-variabel som råkade vara satt.
+
+**Två saker kvar innan raderingen, och ordningen är tvingande:**
+
+1. Butiken läser recensionerna DIREKT ur Wix Data på två ställen —
+   `lib/reviews.ts` (produktsidan) och `lib/review-aggregates.ts` (alla
+   listningssidor) på grenen `headless-site`. Aggregaten behöver ett bulk-anrop
+   som ger `productId → betyg`, samma form som `listV3ProductPrices`.
+   `FyndplatsImportedReviews` står kvar i `ALDRIG_RADERA` tills dess.
+2. ☠️ **Butiken måste rendera HÄRKOMSTEN innan en enda Aosom-recension
+   publiceras.** Den märker egna kunders omdömen med "✓ Verifierat köp" men
+   hanterar inte `source: "aosom"` alls. Artikel 7.6 UCPD kräver upplysning om
+   huruvida recensionerna kommer från konsumenter som faktiskt använt produkten;
+   bilaga I §23b förbjuder att presentera dem som egna kunders. Det är en
+   compliance-spärr, inte en finess.
+
 ## Mediainventering: "utan katalogreferens" är inte "oanvänd"
 
 Mediabiblioteket på headless-sajten hade **30 231 bilder** 2026-08-27, mot 1 696
