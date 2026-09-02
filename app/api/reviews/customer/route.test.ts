@@ -13,7 +13,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const upsert = vi.fn(async () => {});
+// Parametern måste stå i signaturen — annars typar vitest `mock.calls` som en
+// TOM tupel och varje `calls[0][0]` blir ett kompileringsfel.
+const upsert = vi.fn(async (_rad: Record<string, unknown>) => {});
 vi.mock("@/lib/store/reviews", () => ({ getReviewStore: () => ({ upsert }) }));
 
 import { POST } from "./route";
@@ -67,17 +69,17 @@ describe("☠️ hemligheten är förtroendegränsen", () => {
 describe("☠️ status och ursprung TVINGAS, de läses inte ur kroppen", () => {
   it("en anropare kan inte publicera direkt förbi modereringen", async () => {
     await POST(begäran({ ...GILTIG, status: "approved" }));
-    expect(upsert.mock.calls[0][0]).toMatchObject({ status: "pending" });
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ status: "pending" });
   });
 
   it("inte heller via 'edited', som dessutom ser granskad ut", async () => {
     await POST(begäran({ ...GILTIG, status: "edited" }));
-    expect(upsert.mock.calls[0][0]).toMatchObject({ status: "pending" });
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ status: "pending" });
   });
 
   it("ursprunget är alltid customer — etiketten hänger på det", async () => {
     await POST(begäran({ ...GILTIG, source: "aosom" }));
-    expect(upsert.mock.calls[0][0]).toMatchObject({ source: "customer" });
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ source: "customer" });
   });
 });
 
@@ -116,7 +118,7 @@ describe("☠️ en fallen skrivning blir ett fel, aldrig ett tyst 200", () => {
 describe("bilderna bärs vidare i samma form som lagret väntar sig", () => {
   it("en bild ger imageUrl men ingen imageUrls", async () => {
     await POST(begäran({ ...GILTIG, imageUrls: ["https://static.wixstatic.com/media/a.jpg"] }));
-    const rad = upsert.mock.calls[0][0];
+    const rad = upsert.mock.calls[0]![0];
     expect(rad).toMatchObject({ hasImage: true, imageUrl: "https://static.wixstatic.com/media/a.jpg" });
     expect(rad.imageUrls).toBeUndefined();
   });
@@ -124,11 +126,11 @@ describe("bilderna bärs vidare i samma form som lagret väntar sig", () => {
   it("flera bilder ger båda fälten", async () => {
     const urls = ["https://static.wixstatic.com/media/a.jpg", "https://static.wixstatic.com/media/b.jpg"];
     await POST(begäran({ ...GILTIG, imageUrls: urls }));
-    expect(upsert.mock.calls[0][0]).toMatchObject({ hasImage: true, imageUrls: urls });
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ hasImage: true, imageUrls: urls });
   });
 
   it("inga bilder ger hasImage false", async () => {
     await POST(begäran(GILTIG));
-    expect(upsert.mock.calls[0][0]).toMatchObject({ hasImage: false });
+    expect(upsert.mock.calls[0]![0]).toMatchObject({ hasImage: false });
   });
 });

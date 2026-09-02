@@ -30,6 +30,19 @@
 // `buildCustomerReviewRow` — samma fälla som `SHIP_AXIS_RE` och `EU_TULL_CODES`.
 // Rutten är därför tunn: hemligheten är förtroendegränsen, lagret är målet.
 
+// ⚠️ ADRESSEN LIGGER UNDER DEN DYNAMISKA `[productId]`-RUTTEN, och det är
+// mätt ofarligt — till skillnad från aggregatet, som flyttades till ett eget
+// segment av just det skälet. Uppmätt vid deployen 2026-09-02: under fönstret
+// innan den här filen låg ute svarade `POST /api/reviews/customer` **405**
+// (den dynamiska rutten exporterar bara GET), och **503** direkt efteråt.
+//
+// Skillnaden mot aggregatet är vad felet SER UT SOM. `/api/reviews/aggregates`
+// gav **200 med fel form** — `res.ok` passerade och stjärnorna försvann tyst.
+// Här finns ingen POST-handler att träffa, så det värsta utfallet är en
+// felkod butiken vidarebefordrar som 503 till kunden. Högt, inte tyst.
+// Mätningen bekräftar dessutom påståendet i aggregatets filhuvud: Next väljer
+// det statiska segmentet före det dynamiska — men först efter deployen.
+
 import { NextRequest, NextResponse } from "next/server";
 import { getReviewStore, type StoredReview } from "@/lib/store/reviews";
 
