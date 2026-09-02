@@ -11,7 +11,7 @@
 //
 // Snittbetyg + TOTALantal kommer INTE härifrån utan från getSocialProof()
 // (lib/social-proof-live.ts): Googles egna siffror när API:t svarar, annars
-// reserven i lib/social-proof.ts. Korten nedan (20 st med text) är ett urval —
+// reserven i lib/social-proof.ts. Korten nedan (21 st med text) är ett urval —
 // "Se alla på Google" länkar till samtliga. Resten av profilens omdömen är
 // stjärn-bara utan text och har inget att visa här; de räknas ändå in i totalen.
 
@@ -19,6 +19,14 @@ import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
 import { GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
+  {
+    id: "adam-ekdahl",
+    rating: 5,
+    author: "Adam Ekdahl",
+    // Google visade "för en vecka sedan" 2026-09-02.
+    date: "2026-08-26",
+    text: "Jag är supernöjd med min upplevelse! Kundtjänsten var väldigt hjälpsam och gav mig tydlig och bra information om produkten, vilket fick mig att känna mig trygg och säker med mitt köp. Mycket uppskattad service och en stor fördel att de tar sig tid att hjälpa kunden. Varmt rekommenderad!",
+  },
   {
     id: "emilia-rosen",
     rating: 5,
