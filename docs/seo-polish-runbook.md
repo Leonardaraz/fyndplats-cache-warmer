@@ -639,6 +639,20 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > Kontrollera efter PATCH:en med en re-GET: `plainDescription.match(/<span style="font-weight: 700">[^<]*\?<\/span>(?!<\/p>)/g)` ska ge **noll** träffar.
 > *(Upptäckt på campingbordet `85996bde`; sex frågor fick rättas i efterhand.)*
 
+> ☠️ **Korshänvisningen MÅSTE vara en absolut adress.** Skickar du
+> `href="/produkt/x"` skriver Wix om den till `href="https:/produkt/x"` — med
+> **ETT** snedstreck. Det är ingen relativ länk längre utan en absolut mot
+> värden `produkt`, alltså död. Skriv
+> `href="https://www.fyndplats.se/produkt/x"` så finns det inget för Wix att
+> lägga till.
+>
+> Uppmätt 2026-09-02 på tio fåtöljer: längddeltat blev **+21 per länk** i
+> stället för väntade +15, och de sex extra tecknen var exakt `https:`. Runda 39
+> klarade sig utan att någon visste om det — den råkade skriva absoluta
+> adresser. **Det var deltat som avslöjade tio trasiga länkar, inget annat.**
+> Grinden nedan är alltså inte bokföring: den är det enda som ser skillnad på en
+> länk som fungerar och en som inte gör det.
+
 > 📏 **Längddeltat är ett kvitto — men det har TVÅ termer.**
 > Wix serialiserar om `<strong>…</strong>` (17 tecken) till
 > `<span style="font-weight: 700">…</span>` (38), alltså exakt **+21 per par**, och lägger
