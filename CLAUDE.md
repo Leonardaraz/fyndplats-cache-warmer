@@ -316,6 +316,34 @@ raden skrevs bara när något LYCKADES — så en körning som inte kunde skriva
 någonting alls såg ut exakt som en körning där allt redan stämde. Rutten svarar
 dessutom 200. Nionde gången samma lärdom: ett svar utan fel är inget kvitto.
 
+**Verifierat i drift samma dag**, i den ordning som gör talen meningsfulla:
+
+| körning | lager skrivna | priser | fel |
+|---|---:|---:|---:|
+| skarpt svep FÖRE pacing | 905 | 17 | **1 190** |
+| skarpt svep EFTER pacing | 1 110 | 15 | **1** |
+| torrkörning direkt efteråt | **1** | **0** | 0 |
+
+Sista raden är kvittot: 4 514 mappningar granskade, och bara den enda produkt
+som föll på en övergående 429 vill fortfarande skrivas. **Noll priser** vill
+skrivas — mappningen och butiken är i fas över hela katalogen, vilket är exakt
+vad `jamforelsePris` byggdes för.
+
+⚠️ **En hypotes som mätningen slog ihjäl.** Innan felen var kända såg det ut som
+att cronen svälter svansen: en torrkörning visade 2 095 väntande lagerskrivningar
+och 100 % täthet i de sista varven, vilket pekade på att `limit` alltid förbrukas
+i början av artikelnummer-ordningen. Så var det inte. Ryggsäcken var de
+MISSLYCKADE skrivningarna — en produkt vars skrivning föll ser ut att "vilja
+skrivas" vid varje ny granskning. Med skrivningarna lagade konvergerade katalogen
+på fyra varv, och punkt 4 ovan står oemotsagd. Mät innan du bygger om.
+
+⚠️ **Massfel fäller svepet, en enstaka miss varnar.** Både golv (10 st) och andel
+(2 %) krävs, samma form som `MASSFEL_ANDEL`/`MASSFEL_GOLV` i migreringens
+verdikt. Ett rött jobb vid varje svep — och en övergående 429 av tusen
+skrivningar är att vänta — lär mottagaren att sluta läsa, och då är även det
+äkta larmet borta. Missen är ändå aldrig tyst: grupperad på orsak i loggen, i
+audit-raden och i svaret.
+
 ⚠️ **Kvar som strukturellt:** `bulkUpdateInventoryQuantities` är ett BULK-API
 som tar en array, men synken anropar den med EN produkt i taget. Att samla
 skrivningarna hade tagit ~2 000 anrop till ~20 och gjort spärren irrelevant i
