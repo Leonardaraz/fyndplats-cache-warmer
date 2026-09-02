@@ -34,6 +34,17 @@ export interface FulfillmentTask {
   createdAt: string;
   /** AliExpress trade order id (sätts efter DS API-order). */
   aliexpressOrderId?: string;
+  /**
+   * Leverantörens orderreferens för en order som INTE lagts via AliExpress
+   * DS-API — Aosom-ordrar läggs i klump eller för hand (lib/aosom/bulk-order.ts).
+   *
+   * ☠️ EGET FÄLT MED FLIT. Att lägga ett Aosom-ordernummer i aliexpressOrderId
+   * hade varit samma fel som `AliExpressProductId`-typen infördes för att göra
+   * omöjligt: fältet läses som ett AE-id av poll-tracking (som skulle fråga
+   * DS-API:t om det), av cancel-task (som larmar om manuell AE-avbeställning)
+   * och av claim/cancel-CAS:en i alla tre backends.
+   */
+  supplierOrderRef?: string;
   /** AliExpress betal-URL när ordern kräver betalning (status pending_payment). */
   paymentUrl?: string;
   /**

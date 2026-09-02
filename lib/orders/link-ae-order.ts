@@ -22,6 +22,7 @@ import type { Store } from "@/lib/store";
 import type { FulfillmentTask } from "@/lib/orders/types";
 import { assertTransition } from "./status";
 import { normalizeAeOrderId } from "./price-check";
+import { väljEnTask } from "./valj-task";
 import { getTracking } from "@/lib/aliexpress/client";
 
 export type LinkInput = {
@@ -57,45 +58,20 @@ type Deps = {
 };
 
 /**
- * Väljer EN task att koppla.
- *
- * Med `taskId`: exakt den raden. Med `orderNumber`: raderna på ordern som
- * fortfarande GÅR att koppla (inte skeppade, inte avbrutna, inte redan
- * kopplade). Är det exakt en → den. Är det flera (en order med flera artiklar,
- * varje artikel sin egen AE-order) → anroparen måste peka med taskId; att
- * gissa hade kopplat fel AE-order till fel rad, och poll-tracking hade sedan
- * skeppat fel artikel med rätt spårningsnummer.
+ * Väljer EN task att koppla. Regeln — ett ordernummer som pekar på flera
+ * rader får aldrig gissas bort — bor i väljEnTask och delas med den manuella
+ * skeppningen. Det som är AE-specifikt är bara predikatet: en rad som redan
+ * bär ett AE-ordernummer är inte kopplingsbar.
  */
 export function väljTask(
   tasks: FulfillmentTask[],
   input: Pick<LinkInput, "taskId" | "orderNumber">,
 ): { task: FulfillmentTask } | { error: string; candidates?: LinkResultCandidates } {
-  if (input.taskId) {
-    const task = tasks.find((t) => t.taskId === input.taskId);
-    return task ? { task } : { error: `Ingen task med id ${input.taskId}.` };
-  }
-
-  const nummer = (input.orderNumber ?? "").trim();
-  if (!nummer) return { error: "taskId eller orderNumber krävs." };
-
-  const påOrdern = tasks.filter((t) => t.orderNumber === nummer);
-  if (påOrdern.length === 0) return { error: `Ingen task för order ${nummer}.` };
-
-  const kopplingsbara = påOrdern.filter(
-    (t) => !t.aliexpressOrderId && t.status !== "shipped" && t.status !== "cancelled",
-  );
-  if (kopplingsbara.length === 1) return { task: kopplingsbara[0] };
-  if (kopplingsbara.length === 0) {
-    return {
-      error:
-        `Order ${nummer} har ${påOrdern.length} rad(er) men ingen går att koppla — `
-        + påOrdern.map((t) => `${t.taskId}: ${t.status}${t.aliexpressOrderId ? ` (AE ${t.aliexpressOrderId})` : ""}`).join("; "),
-    };
-  }
-  return {
-    error: `Order ${nummer} har ${kopplingsbara.length} kopplingsbara rader — ange taskId.`,
-    candidates: kopplingsbara.map((t) => ({ taskId: t.taskId, productName: t.productName, status: t.status })),
-  };
+  return väljEnTask(tasks, input, {
+    valbar: (t) => !t.aliexpressOrderId && t.status !== "shipped" && t.status !== "cancelled",
+    verb: "koppla",
+    lage: (t) => `${t.taskId}: ${t.status}${t.aliexpressOrderId ? ` (AE ${t.aliexpressOrderId})` : ""}`,
+  });
 }
 
 type LinkResultCandidates = NonNullable<Extract<LinkResult, { ok: false }>["candidates"]>;

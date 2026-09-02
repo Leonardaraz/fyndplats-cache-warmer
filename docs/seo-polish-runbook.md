@@ -73,6 +73,15 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 - ⚠️ **`fields` måste med på VARJE cursor-sida.** Utelämnas det på sida 2+ kommer fältet
   tillbaka **tomt i stället för att fela** — ett svep rapporterade 650 produkter med noll
   bilder, inklusive sådana som just patchats till fem.
+- ☠️ **`DESCRIPTION` och `PLAIN_DESCRIPTION` är två OLIKA fält, och fel val läser tomt.**
+  `?fields=DESCRIPTION` returnerar rich content-objektet `description` och lämnar
+  `plainDescription` **tom sträng** — inget fel, bara en annan projektion. Klart-kriteriet
+  i runda 38 rapporterade därför `len: 0` på alla åtta, medan bilder, kategorier och
+  SKU:er lästes tillbaka korrekt i samma anrop. Mätt på `cdb043b4` 2026-09-02:
+  `DESCRIPTION` → `plainDescription` 0 tecken, `PLAIN_DESCRIPTION` → 3 077, exakt det
+  väntade talet. **Begär `PLAIN_DESCRIPTION` när du räknar tecken.** Samma familj som
+  `MEDIA_ITEMS_INFO`: ett fält som saknas i begäran syns som ett tomt värde, inte som ett
+  fel — och ett tomt värde ser i ett svar precis ut som en förlorad skrivning.
 - ☠️ **Mappningsraden nås inte via Wix Data längre.** Den bor i Postgres sedan
   2026-09-01 och `FyndplatsMappings` är tömd. Läs och skriv den med workflowen
   **Polering — läs och stämpla mappningsraden** (Steg 3 och 13). De gamla
@@ -81,6 +90,41 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   läser tillbaka och verifierar att skrivningen faktiskt tog.
 - En PATCH är partiell **på fältnivå i produkten** — men skicka alltid `visible` explicit
   (Steg 13), och rör aldrig `options`/`variantsInfo` om du inte menar att ändra varianterna.
+- ☠️ **`products/query` svarar 200 med SAMMA 50 rader i all evighet om bodyn inte är
+  `query`-wrappad.** Rätt form är `{query: {filter, sort, cursorPaging}}`. Skickar du
+  fälten på toppnivå — vilket ser rimligt ut och är vad varje annan V3-rutt tar — så
+  **ignoreras filter, sort OCH cursor tyst**: inget fel, ingen varning, bara defaultsidan
+  om och om igen. Uppmätt 2026-09-01: 20 sidor gav 1 000 rader varav **50 unika**, och
+  `limit: 100` respekterades inte heller (50 kom tillbaka).
+
+  Det farliga är inte att svepet blir kort — det är att det blir **falskt negativt**. Ett
+  sökordskrock-svep över katalogen rapporterade *noll* hundvagnar i en butik som hade nio
+  publicerade, och hade den siffran fått stå kvar hade den här omgången publicerat en
+  dubblett av en levande sida. Samma dag ignorerades ett `filter: {slug: "..."}` på samma
+  sätt och returnerade en helt orelaterad produkt nio gånger i rad.
+
+  **Kontrollen är en rad:** räkna unika id, inte rader. Är `unika < rader` paginerar du inte.
+  Och när ett svep säger "noll träffar" i en kategori du vet finns — misstro svepet först.
+- ☠️ **Ett media-item tar `id` ELLER `url` — och `url` betyder EXTERN adress.** Skickar
+  du `{image: {url: "https://static.wixstatic.com/..."}}` svarar V3 **400 `id or url must
+  not be empty`**: fältet ligger på item-nivå, inte inuti `image`. Och hade det gått
+  igenom med en wixstatic-adress hade Wix **omimporterat varenda bild** till en ny fil
+  (se `CLAUDE.md`). Bilder som redan ligger i Media Manager skickas som
+  `{id: "b379ce_…~mv2.jpg", altText: "…"}`. 400:an är alltså skyddet, inte problemet.
+- ☠️ **Wix normaliserar `<strong>` till `<span style="font-weight: 700">` vid lagring.**
+  Det är där `+21 tecken per fetstilspar` kommer ifrån: `<strong></strong>` är 17 tecken,
+  `<span style="font-weight: 700"></span>` är 38. Följden: **textkirurgi på en redan
+  skriven produkt måste matcha den LAGRADE formen, inte källformen.** Ett utbyte skrivet
+  mot `<p><strong>Fråga?</strong></p>` matchar aldrig, och felet ser ut som att texten
+  saknas. Uppmätt 2026-09-02: sex av sju rättelser tog, den sjunde var en FAQ-fråga.
+- ☠️ **Alt-texten skrivs på ITEM-nivå, inte inuti `image`.** Fältet heter
+  `media.itemsInfo.items[].altText` (typen `ProductMedia`). Skickar du den som
+  `items[].image.altText` — där du LÄSER den på en oputsad produkt — **släpps den tyst**:
+  PATCH:en går igenom, `image.url` kommer tillbaka korrekt, och alt-texten är borta. Både
+  din nya och den importen hade satt. Uppmätt 2026-09-01 på åtta produkter: 42 av 43 bilder
+  utan alt efter en PATCH som rapporterade full framgång.
+
+  Verifiera med en separat re-GET och räkna **tomma** alt-texter, inte bilder.
 
 **Input:** Wix-produkt-ID.
 
@@ -119,6 +163,29 @@ Den tyska beskrivningen har tre block, och de är inte lika mycket värda:
   Infravärmaren `9c7c6e95` hade `Schutzhülle` i både titel och alt-text; dess `Lieferumfang`
   listar bara värmare och bruksanvisning. Det är syskonet `96a45e2b` som har höljet. Hade
   titeln fått bestämma hade vi lovat en kund ett tillbehör som inte kommer.
+
+☠️ **Och titelns KATEGORIORD kan vara falskt, inte bara tillbehören.** Aosom
+sökordsstoppar titlarna: av 22 utkast som bär "Gaming Stuhl" eller "Gamingstuhl" var
+**sex inte gamingstolar alls** (2026-09-02). Fyra är mesh- eller chefsstolar vars
+brödtext bara handlar om `Arbeitstag`, `Büro` och `Homeoffice`, och vars miljöbilder
+visar ett vanligt kontorsskrivbord med en iMac. En sjätte har `1 x Relaxsessel` i
+`Lieferumfang` och en ingress om massage efter en lång dag.
+
+Ordet i titeln säger alltså ingenting om vad varan ÄR. Det som avgör är `Lieferumfang`
+plus bild 1 och 2 — och de två bilderna är gratis att titta på, till skillnad från en
+halvskriven text som måste kastas. **Läs titelns kategoriord som en hypotes, inte som
+ett faktum.**
+
+☠️ **Färgtvillingar av en publicerad sida avgörs på VARJE siffra, inte på titeln.** Samma
+runda: fem utkast var färgvarianter av tre levande sidor. Bevis var inte namnlikhet utan
+att 65 × 65 × 121–129, sits 50 × 49, sitthöjd 45,5–53,5, rygg 80 × 53,5 × 5, nackstöd
+28 × 19 × 10, svank 30 × 19 × 8, fotpall 34 × 21 × 6, armstöd 23 cm och 120 kg stämde
+*alla* mot den publicerade. Den publicerade sidan listade dessutom själv "vit, svart,
+rosa eller himmelsblå" — de fyra utkasten ÄR de färgerna.
+
+⚠️ Den listan är i sig ett fel att flagga: sidan lovar fyra färger men har EN variant mot
+ETT artikelnummer. Att lova ett val kunden inte kan göra är ett sortimentsbeslut, inte
+en poleringsfråga.
 
 Kapacitetspåståenden ska **mätas, inte kopieras**: tältet hette "4 Personen" medan
 tillverkarens egen skiss sa "Schlafplätze 2–4". Sovrummet är 295 cm brett — fyra liggunderlag
@@ -221,6 +288,24 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > POST /stores/v3/products/query   { "query": { "filter": { "slug": { "$in": ["<kandidat-slug>", …] } } } }
 > ```
 > Sluggen är filtrerbar (`name` är det INTE). Träff, eller en produkt du vet ligger nära → **separera med en kvalificerare som står i BÅDE namn, slug och titel**, inte bara i texten. Fungerande exempel: `arbetsstol med hjul` vs `sadelstol med ryggstöd` · `konstgjord julgran` vs `konstgjord julgran med pynt` · `litet växthus` vs `växthusduk` · `elmotorcykel barn` vs `elmotorcykel 6v barn` vs `eldriven trehjuling barn`. Är produkterna i praktiken samma vara → det är en dubblett, inte ett sökordsproblem: flagga till Leonard.
+>
+> ☠️ **Och avgör det på MÅTTEN, inte på namnet.** Den farliga dubbletten är intern: 595 av
+> katalogens mappningar är Aosom-varor inköpta via AliExpress, och de bär ett AE-listnings-id
+> som dubblettspärren omöjligt kan matcha mot ett Aosom-artikelnummer. De två raderna ser ut
+> som olika produkter i varje id-baserad kontroll som finns. Det enda som avslöjar dem är
+> spec-tabellen.
+>
+> Jämför **fyra tal** mot den publicerade sidan: yttermått, hopfällt mått, en invändig
+> dimension och vikten. Stämmer alla fyra på decimalen är det samma vara — då finns det
+> ingen kvalificerare i världen som gör två sidor rätt, för de har samma foton och samma
+> siffror, och det är precis den dubbletten Google straffar.
+>
+> Uppmätt 2026-09-01: dragvagnen `ca84c48b` var på väg att publiceras när den visade sig
+> vara `7b344636` (*Hundvagn för liten hund*, live sedan tidigare) — identisk på 53 × 45 × 28,
+> hopfälld 55 × 45,5 × 21, sele 20–35 cm, dyna 49,5 × 32, handtag 75 cm och 5-tumshjul.
+> Sökordssvepet hade dessutom sagt "noll krockar" på grund av `query`-fällan ovan. Utkastet
+> lämnades opublicerat och gick till Leonard som ett sortimentsbeslut: den publicerade sidan
+> är slutsåld i båda färgerna och 100 kr billigare.
 
 **Regel:** båda orden MÅSTE hamna i **titel, produktnamn (H1) och slug** – annars flaggar Wix SEO-assistenten dem som röda. Ordet finns redan grönt i beskrivning/meta om det står i texten.
 Specs får bara komma från känd importdata eller `web_search` (AliExpress-sidor är JS-blockerade). **Hitta inte på siffror.**
@@ -399,6 +484,22 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
    kosmetisk: 25 cm är ett trappsteg, 45 cm är en grind. Mät på originalbilden och tröskla
    bort strökorn (`rad >= 8 px`), annars drar JPEG-bruset ut bounding-boxen.
 
+10. ☠️ **Läs HELA källtexten innan du skriver — den bär också det du annars utelämnar.**
+    Regel 7–9 handlar om påståenden man lägger TILL. Det här är felet åt andra hållet, och
+    det upptäcks aldrig i korrekturet: texten är sann, välskriven och saknar halva varan.
+    Sidobordet `cc4aad40` skrevs som ett inomhusbord "utan ben" på en läsning av bilderna.
+    Källan sa ordagrant *"Geeignet für den Innen- und Außenbereich"* och *"Mit vier
+    verstellbaren Fußstützen"* — vi hade alltså tagit bort en säljpunkt och skrivit en
+    felaktig produktbeskrivning samtidigt. Samma runda: soffbordet `4009d67f` tappade
+    22,8 cm golvfrigång, infällda grepp (ett klämskydd) och melaminytan; `f757393c`
+    tappade justerbara fötter och lackens fukttålighet. **Sju verkliga egenskaper föll
+    bort på fyra produkter** — fler fel än grinden mot uppfunna påståenden hittade.
+11. **Bilden avgör vad varan ÄR, källtexten vad den KAN.** Det är delningen bakom regel 10.
+    Form, färg, antal och proportion läser du ur fotot (Steg 4). Väderklassning,
+    justerbarhet, bärighet, ytbehandling och vad som ingår står bara i texten och syns
+    aldrig på ett foto. Skriver du enbart från bilderna får du en beskrivning som stämmer
+    på varje rad och ändå säljer fel produkt.
+
 > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma produkt
 > hade rubriken *"aberturas de: **-XX-XXcm**"* rakt ut i produktion. Ser du en sådan: sluta
 > lita på siffrorna i den serien och verifiera var och en.
@@ -508,7 +609,7 @@ PATCH https://www.wixapis.com/stores/v3/products/{PRODUCT_ID}
 
 PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "<html…>" } }`.
 
-- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → *(vid behov: en kort passar-det-dig-rad, se nedan)* → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` (valfritt) → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
+- **Bra struktur:** ingress → **Egenskaper** (`<p><strong>Egenskaper</strong></p>` + `<ul><li>…</li></ul>`, inline) → *(vid behov: en kort passar-det-dig-rad, se nedan)* → `<h2>Tekniska specifikationer</h2>` → `<h2>Användning och skötsel</h2>` → `<h2>Vanliga frågor</h2>` (FAQ-frågor som feta `<p>`-stycken **i beskrivningen** — INTE egna info-sektioner, taket är 400).
 
 > 🛑 **Skriv INTE ett "Det du bör veta innan du köper"-block.** *(Leonards beslut 2026-08-14, omtaget 2026-08-22 efter att blocket smugit tillbaka på 23 sidor — Klart-kriteriet krävde det som regeln förbjöd. Båda ställena är nu rättade.)* Ordagrant: **"Vi ska ju försöka sälja produkter, inte försöka få dom att skita i att köpa."** Ett varningsblock högt upp på sidan läser kunden som en lista över skäl att avstå. De flesta produkter ska inte ha något sådant alls. **Samma sak gäller ett "Bra att veta"-block** — förbudet sitter på formen, inte på rubriken: byt inte ut namnet och behåll listan.
 >
@@ -537,6 +638,42 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 >
 > Kontrollera efter PATCH:en med en re-GET: `plainDescription.match(/<span style="font-weight: 700">[^<]*\?<\/span>(?!<\/p>)/g)` ska ge **noll** träffar.
 > *(Upptäckt på campingbordet `85996bde`; sex frågor fick rättas i efterhand.)*
+
+> ☠️ **Korshänvisningen MÅSTE vara en absolut adress.** Skickar du
+> `href="/produkt/x"` skriver Wix om den till `href="https:/produkt/x"` — med
+> **ETT** snedstreck. Det är ingen relativ länk längre utan en absolut mot
+> värden `produkt`, alltså död. Skriv
+> `href="https://www.fyndplats.se/produkt/x"` så finns det inget för Wix att
+> lägga till.
+>
+> Uppmätt 2026-09-02 på tio fåtöljer: längddeltat blev **+21 per länk** i
+> stället för väntade +15, och de sex extra tecknen var exakt `https:`. Runda 39
+> klarade sig utan att någon visste om det — den råkade skriva absoluta
+> adresser. **Det var deltat som avslöjade tio trasiga länkar, inget annat.**
+> Grinden nedan är alltså inte bokföring: den är det enda som ser skillnad på en
+> länk som fungerar och en som inte gör det.
+
+> 📏 **Längddeltat är ett kvitto — men det har TVÅ termer.**
+> Wix serialiserar om `<strong>…</strong>` (17 tecken) till
+> `<span style="font-weight: 700">…</span>` (38), alltså exakt **+21 per par**, och lägger
+> till ` target="_self"` i varje `<a href>`, alltså **+15 per länk**. Formeln är därmed
+>
+> ```
+> väntat = källa + 21 × antal <strong>-par + 15 × antal <a href>-länkar
+> ```
+>
+> Jämför mot `plainDescription.length` i en **separat** re-GET med `fields=PLAIN_DESCRIPTION`.
+> Stämmer det på tecknet gick inget förlorat; avviker det har Wix rört något du inte bad om.
+> *(En produkt med tre `<strong>`-par gav +63 och såg fel ut mot en tumregel som sa "+21
+> per produkt" — deltat var rätt hela tiden, regeln var fel. Rättat 2026-09-01.
+> Länktermen mättes 2026-09-02 på åtta sängramar som alla låg exakt +15 över det väntade:
+> varje sida bar en korshänvisning, och den lagrade taggen är
+> `<a href="…" target="_self">` där den skickade var `<a href="…">`.)*
+>
+> ⚠️ **Ett oförklarat delta är inte automatiskt en förlust — men det får inte lämnas
+> oförklarat.** Båda gångerna såg avvikelsen ut som en trasig skrivning och var en
+> deterministisk normalisering. Leta reda på vad som växte innan du skriver om texten:
+> ett delta man börjar ignorera slutar vara ett kvitto.
 
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
 
@@ -618,7 +755,8 @@ SKU-patch, med tyska alt-texter och utan kategori, i sexton sekunder innan det u
 **En regel som bara står i det steg där den råkade upptäckas är en regel som glöms bort** —
 därför står den nu här, i Steg 13, och i Fasta fakta.
 
-Samma regel gäller varje PATCH i Steg 8–11: **skicka alltid produktens `visible` explicit**,
+Samma regel gäller varje PATCH i HELA kedjan — inte bara Steg 8–11: **skicka alltid produktens
+`visible` explicit**,
 också när du inte tänker röra den. Läs tillbaka `visible` i svaret — det är det enda kvittot.
 
 ⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
@@ -631,6 +769,15 @@ också när du inte tänker röra den. Läs tillbaka `visible` i svaret — det 
 > **uttryckligt** `visible` per variant — då vinner ditt värde (verifierat i samma körning:
 > `{...v, sku, visible:true}` med produktens `visible:false` gav en synlig variant på en
 > osynlig produkt).
+>
+> ☠️ **Och det gäller ÄVEN en sen texträttelse.** Steg 12 ligger utanför intervallet ovan, och det
+> är just där fällan slog till 2026-09-02: fyra av åtta köksskåp fick en rättelse-PATCH som bar
+> `plainDescription` + `visible:false` men INGET `variantsInfo` — och Wix speglade då ner
+> `false` på varenda variant som Steg 8 nyss satt till `true`. Skrivningen rapporterade full
+> framgång. Det syntes bara för att Klart-kriteriet läser om `variantsInfo.variants[].visible`
+> precis före publiceringen. **Rör du en publicerad-eller-snart-publicerad produkt EFTER Steg 8,
+> skicka `variantsInfo` med ett uttryckligt `visible: true` per variant i samma PATCH** — eller
+> låt den avslutande Steg 13-PATCH:en sätta båda, vilket är enklast.
 >
 > Konsekvensen om det missas: produkten publiceras, syns i butiken och **går inte att lägga
 > i varukorgen**. Det syns inte i produktvyn. Klart-kriteriet kräver redan `visible:true` på
@@ -919,6 +1066,37 @@ som kontrollerar. Leta efter:
 > snyggt sätt."* Det som måste stå med står med — men som ett positivt villkor på rätt
 > plats, inte som en varning.
 
+### Två fynd som bara det här steget hittar, och en grind som ljuger tvärtom
+
+Byrå-rundan 2026-09-02. Alla mekaniska grindar var gröna på åtta produkter; läsningen
+hittade två fel i texten och ett i grinden själv.
+
+1. ☠️ **Osynliga tecken passerar VARENDA mekanisk grind.** Ett mjukt bindestreck
+   (U+00AD) satt inuti ordet `gluggar` i en FAQ-rad. Lintet såg ett giltigt ord,
+   längdkontrollen såg ett giltigt tecken (det är ett — så `källa + 168` stämde exakt),
+   och Wix normaliserade det inte bort. Det enda som avslöjade det var att ordet såg
+   fel ut när det lästes. **Sök efter U+00AD, U+00A0, U+200B och U+FEFF i texten innan
+   du skriver den** — det är fyra tecken och en regex, och de går inte att se i efterhand.
+
+2. ⚠️ **Ett jämförande påstående är ett påstående, och måste beläggas som ett.**
+   En produkt hade rubriken *"50 kg är den högsta bärförmågan bland våra smala byråer"*
+   och i brödtexten *"dubbelt mot flera bredare modeller i sortimentet"*. Superlativet
+   gällde hela katalogen, som inte var mätt; och `flera` var i själva verket **en** modell.
+   Båda ersattes av det som gick att belägga ur produktens egna tal: 50 kg på en möbel
+   som väger 16,8 kg. **"Aldrig hitta på siffror" gäller även jämförelser** — de ser ut
+   som beskrivningar men är mätningar, och en mätning som inte gjorts är en gissning.
+
+3. ☠️ **`\b` i JavaScript är ASCII-bunden och läser svenska ord som tyska.** Tyskgrinden
+   `/\b(und|der|die|das|mit)\b/` rapporterade träffar på tre produkter. Ingen var tysk:
+   `ä` är inget ordtecken i JS utan `u`-flaggan, så **kläder** och **underkläder** slutar
+   på ett fristående `der`. Samma regex i Python (vars `\b` är unicode-medveten) ger noll.
+   Kör språkkontrollen i Python, eller använd `(?<![A-Za-zÅÄÖåäö])…(?![A-Za-zÅÄÖåäö])` i
+   JS. Ett falsklarm i grinden kostar dubbelt: det stjäl tiden från de fel som är äkta,
+   och lär läsaren att avfärda utslagen.
+
+**Regeln: en grön grind betyder att grinden är nöjd, inte att texten är rätt.** Två av de
+tre fynden ovan var osynliga för varje fält-kontroll, och det tredje låg i kontrollen själv.
+
 
 -----
 
@@ -947,6 +1125,10 @@ sidan live och varan går inte att lägga i varukorgen. Det syns inte i produktv
 sekunder efter skrivningen; hinner butiken före indexet renderar den sin fallback, och just
 det svaret sparas i fem minuter. Sidan ser trasig ut fast produkten är korrekt.
 *(Sängbänken `8da26d68` 2026-08-26: publicering och `curl` låg under en sekund isär.)*
+
+⚠️ **Hämta sidan från `www.fyndplats.se`, inte från apex.** `fyndplats.se/produkt/<slug>` svarar
+**308** mot www-värden, så ett `curl` utan `-L` ger en tom kropp och varje grep säger noll —
+vilket läser som att sidan är trasig. Använd `https://www.fyndplats.se/produkt/<slug>`.
 
 **Läs `date`, `age` och `x-vercel-cache` innan du drar en slutsats:**
 
@@ -1107,8 +1289,15 @@ Gå igenom listan **innan** Steg 13. Faller något: fixa först, publicera sedan
   det inte. Fyra produkter i rad gick live så 2026-08-26/27. **Kontrollera i den RENDERADE
   sidan** att `<summary>Tekniska specifikationer</summary>` finns — inte att ordet står
   någonstans i HTML:en.
-- **`Användning och skötsel` är inte valfri när varan har skötsel.** Textil, tält, trä och
-  allt som ska tvättas, torkas eller efterdras ska ha fliken.
+- ☠️ **`Användning och skötsel` är OBLIGATORISK — den ska ligga i flikraden på varje
+  polerad produkt** *(Leonards instruktion 2026-08-30: "glöm inte användning och skötsel …
+  framåt")*. Flikraden är alltså alltid **Tekniska specifikationer · Användning och skötsel ·
+  Vanliga frågor** (frontenden lägger till "Kontakta oss" själv). Den var tidigare skriven som
+  "valfri när varan har skötsel"; den formuleringen är borta. Varje vara har skötsel — trä ska
+  efterdras, textil tvättas, metall torkas, elektronik dammas av och lagras frostfritt. Hittar
+  du ingenting att skriva har du inte läst varan tillräckligt noga. **Kontrollera i den
+  RENDERADE sidan** att `<summary>Användning och skötsel</summary>` finns, av exakt samma skäl
+  som spec-fliken ovan.
 - Bytte du slug på en **redan publicerad** produkt: en redirect-rad finns från den gamla
   sluggen. Utan den är URL:en död och rankingen borta. *(Gäller inte nyimporterade utkast.)*
 
@@ -1148,6 +1337,17 @@ brittiskt eller ryskt ska inte bära ribbonen. **Inköpssidan är löst i kod se
 - Varje siffra på sidan är **verifierad eller utelämnad** (Steg 5). Inget superlativ utan
   mätvärde, ingen uppgift som leverantörens egna bilder motsäger.
 - Produkttypen i namnet är vad varan **är**, inte vad leverantören kallar den.
+- ☠️ **Ingen jämförelse som syftar på poleringsomgången.** *"de åtta bokhyllorna i den här
+  omgången"*, *"den lättaste lampan i den här gruppen"* — omgången är ett internt begrepp och
+  betyder ingenting för en kund som landar på EN sida. Den är dessutom ett superlativ utan
+  mätvärde i förklädnad: den är sann om just de åtta, medan kunden läser den som "i hela
+  sortimentet", och den blir tyst falsk när nästa omgång publiceras. Städat 2026-09-01 på
+  sex publicerade sidor (fem bokhyllor + en taklampa), funna med ett katalogsvep över alla
+  1 414 publicerade produkter.
+
+  Jämför i stället mot **namngivna** syskon (*"vår trädformade bokhylla tål 3 kg per gren"*)
+  eller släpp jämförelsen och behåll siffran. Samma regel som korshänvisningen i Steg 1:
+  peka på en produkt kunden kan klicka på, inte på ett parti bara vi ser.
 
 **Bara flervariantprodukter (AliExpress)**
 
