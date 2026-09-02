@@ -440,14 +440,61 @@ describe("☠️ prissynken jämför mot Wix, inte mot mappningen", () => {
     expect(priser.some((p) => p.id === "wix-A-1")).toBe(false);
   });
 
-  it("☠️ en handfull produkter från butiken är ett LÄSFEL och kastar", async () => {
+  it("☠️ en handfull produkter från butiken är ett LÄSFEL — inget pris skrivs", async () => {
     // Speglar MIN_FEED_RADER. Utan spärren hade varenda produkt sett ut att
     // sakna butikspris, och prissynken hade tystnat helt utan att någon märkte.
-    const { d } = deps({
+    const { d, priser } = deps({
+      // Priset avviker 10 % från det synken räknar fram — utan spärren hade
+      // den här produkten definitivt fått ett nytt pris skrivet (10 % ligger
+      // under MAX_PRISANDRING_PCT). Med spärren skrivs ingenting.
       listWixPriser: async () =>
-        new Map([["wix-A-1", { priceSek: BASPRIS, variantCount: 1 }]]),
+        new Map([["wix-A-1", { priceSek: Math.round(BASPRIS * 1.1), variantCount: 1 }]]),
+      listAosom: async () => [mappning("A-1", { aosomSyncedQty: 0 })],
     });
-    await expect(runAosomSync(d, { dryRun: false })).rejects.toThrow(/läsfel|minst/i);
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(priser).toHaveLength(0);
+    expect(s.prisUppdaterade).toBe(0);
+    expect(s.prislistaFel).toMatch(/läsfel|minst/i);
+  });
+
+  it("☠️ ett läsfel i prislistan fäller INTE lagersynken", async () => {
+    // Skillnaden mot MIN_FEED_RADER, och hela skälet till att den här spärren
+    // inte kastar: att sälja något vi inte har är ett kundfel, att inte hinna
+    // rätta ett pris på ett osynligt utkast är det inte.
+    const { d, lager, priser } = deps({
+      listWixPriser: async () => { throw new Error("Wix svarade 429"); },
+      listAosom: async () => [mappning("A-1", { aosomSyncedQty: 0 })],
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(lager).toHaveLength(1);
+    expect(s.lagerUppdaterade).toBe(1);
+    expect(priser).toHaveLength(0);
+    expect(s.prisUppdaterade).toBe(0);
+  });
+
+  it("☠️ men körningen får inte se frisk ut — felet bärs i svaret", async () => {
+    const { d } = deps({
+      listWixPriser: async () => { throw new Error("Wix svarade 429"); },
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.prislistaFel).toContain("429");
+    // Varje produkt räknas som oprisjämförd, inte som "stämmer".
+    expect(s.utanWixPris).toBe(2);
+  });
+
+  it("en läsbar prislista lämnar prislistaFel null", async () => {
+    const { d } = deps();
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(s.prislistaFel).toBeNull();
+  });
+
+  it("skipPrices ger inget prislistefel — läsningen var aldrig tänkt att ske", async () => {
+    const { d } = deps({ listWixPriser: async () => { throw new Error("ska aldrig anropas"); } });
+    const s = await runAosomSync(d, { dryRun: false, skipPrices: true });
+    expect(s.prislistaFel).toBeNull();
   });
 
   it("skipPrices hoppar över butiksläsningen helt — lagret synkas ändå", async () => {

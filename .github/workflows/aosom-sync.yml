@@ -105,7 +105,7 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
-          after=""; varv=0
+          after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
             varv=$(( varv + 1 ))
@@ -130,6 +130,12 @@ jobs:
             priser=$(( priser + p ));       utan=$(( utan + u ))
             urfeeden=$(( urfeeden + uf ));  slutsalda=$(( slutsalda + sl ))
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
+
+            pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
+            if [ -n "$pf" ]; then
+              prislistefel="$pf"
+              echo "::warning::Butikens prislista gick inte att läsa: ${pf}"
+            fi
 
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris, ${kvar} kvar"
 
@@ -161,6 +167,13 @@ jobs:
             echo "| Blockerade prishopp | ${varningar} |"
             echo "| Misslyckade | ${misslyckade} |"
             echo ""
+            if [ -n "$prislistefel" ]; then
+              echo "🔴 **Butikens prislista gick inte att läsa:** \`${prislistefel}\`"
+              echo ""
+              echo "Lagersaldona synkades ändå — ett läsfel i prisdelen får inte stoppa dem."
+              echo "Inga priser skrevs. Kör om när Wix svarar igen."
+              echo ""
+            fi
             if [ "$utan" -gt 0 ]; then
               echo "⚠️ **${utan} produkter saknade ett entydigt pris i butiken** och fick därför"
               echo "inget pris skrivet. Det är avsiktligt — vi gissar aldrig fram ett facit — men"
@@ -178,5 +191,14 @@ jobs:
           # inte kunde skriva är exakt det tysta felet som kostade en månad här.
           if [ "$misslyckade" -gt 0 ]; then
             echo "::error::${misslyckade} produkter kunde inte synkas — se varven ovan." >&2
+            exit 1
+          fi
+
+          # ☠️ Ett läsfel i prislistan fäller jobbet ÄVEN om varje produkt gick
+          # igenom. Lagret synkades, så rutten svarar 200 och allt ser friskt ut
+          # — men noll priser skrevs. Precis den sortens tysta halvkörning som
+          # lät tjugo rader driva isär i en månad.
+          if [ -n "$prislistefel" ]; then
+            echo "::error::Butikens prislista gick inte att läsa: ${prislistefel}" >&2
             exit 1
           fi

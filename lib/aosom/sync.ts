@@ -116,6 +116,16 @@ export interface AosomSyncSummary {
    * vad som gjorde att de tjugo drivande raderna kunde ligga osedda i en månad.
    */
   utanWixPris: number;
+  /**
+   * Varför butikens prislista inte gick att läsa, eller null när den gjorde det.
+   *
+   * ☠️ Ett LÄSFEL FÄLLER INTE LAGERSYNKEN. Att sälja något vi inte har är ett
+   * kundfel; att inte hinna rätta ett pris på ett osynligt utkast är det inte.
+   * Prisdelen hoppas över (allt hamnar i `utanWixPris`) medan saldona synkas
+   * som vanligt — men körningen får aldrig se frisk ut: fältet går ut i svaret,
+   * i loggraden, i audit-raden, och fäller workflow-jobbet.
+   */
+  prislistaFel: string | null;
   misslyckade: number;
   kvar: number;
   cursor: string | null;
@@ -239,15 +249,33 @@ export async function runAosomSync(
   // produkter är det ett läsfel, och alternativet vore att tolka det som "de
   // här produkterna finns inte i butiken" och sluta prisjämföra hela
   // sortimentet — tyst, och exakt den sortens fel som redan kostat en månad.
+  //
+  // ☠️ OCH DEN FÄLLER INTE KÖRNINGEN, till skillnad från MIN_FEED_RADER.
+  // Skillnaden är vad felet KOSTAR. En trasig feed nollar lagersaldon över hela
+  // katalogen — där är avbrott enda säkra svaret. En oläsbar prislista kan
+  // ingenting förstöra: `jamforelsePris` svarar "saknas" och då skrivs inget
+  // pris. Att ändå avbryta hade stoppat LAGERSYNKEN i sex timmar för ett fel i
+  // prisdelen, och att sälja något vi inte har är ett kundfel medan ett orättat
+  // pris på ett osynligt utkast inte är det.
+  //
+  // Priset för att fortsätta är att körningen inte får se frisk ut: felet går
+  // ut i `prislistaFel` → svaret, loggraden, audit-raden och workflow-jobbet.
   let wixPriser = new Map<string, WixProduktPris>();
+  let prislistaFel: string | null = null;
   if (!opts.skipPrices) {
-    wixPriser = await deps.listWixPriser();
-    if (wixPriser.size < MIN_WIX_PRODUKTER) {
-      throw new Error(
-        `Butikens prislista gav bara ${wixPriser.size} produkter (minst ${MIN_WIX_PRODUKTER} krävs). `
-          + `Körningen avbryts — det här är ett läsfel, inte en tom katalog. `
-          + `Kör med ?skipPrices=1 om bara lagret behöver synkas.`,
-      );
+    try {
+      wixPriser = await deps.listWixPriser();
+      if (wixPriser.size < MIN_WIX_PRODUKTER) {
+        throw new Error(
+          `butikens prislista gav bara ${wixPriser.size} produkter (minst ${MIN_WIX_PRODUKTER} krävs) `
+            + `— det här är ett läsfel, inte en tom katalog`,
+        );
+      }
+    } catch (err) {
+      prislistaFel = err instanceof Error ? err.message : String(err);
+      // Tom karta → varje produkt blir "saknas" → utanWixPris. Inget pris
+      // skrivs, och det syns i räknaren i stället för att gissas förbi.
+      wixPriser = new Map();
     }
   }
 
@@ -271,6 +299,7 @@ export async function runAosomSync(
     slutsalda: 0,
     oforandrade: 0,
     utanWixPris: 0,
+    prislistaFel,
     misslyckade: 0,
     kvar: mappningar.length,
     cursor: null,
