@@ -241,6 +241,23 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > ```
 > Sluggen är filtrerbar (`name` är det INTE). Träff, eller en produkt du vet ligger nära → **separera med en kvalificerare som står i BÅDE namn, slug och titel**, inte bara i texten. Fungerande exempel: `arbetsstol med hjul` vs `sadelstol med ryggstöd` · `konstgjord julgran` vs `konstgjord julgran med pynt` · `litet växthus` vs `växthusduk` · `elmotorcykel barn` vs `elmotorcykel 6v barn` vs `eldriven trehjuling barn`. Är produkterna i praktiken samma vara → det är en dubblett, inte ett sökordsproblem: flagga till Leonard.
 
+> ☠️ **I en tät kategori räcker inte sökordskrocken — mät MÅTTEN.** Sökordskollen hittar
+> produkter med samma namn. Den hittar inte samma produkt under ett annat namn, och i en
+> kategori med hundratals utkast är det det vanliga fallet. Metoden är mekanisk: plocka
+> `Gesamtabmessungen` ur varje utkast och `Mått:`-raden ur varje publicerad produkt i samma
+> kategori, och jämför B/D/H maskinellt. Kontorsstolarna 2026-09-02: av de sju första
+> kandidaterna var **tre** dimensionella tvillingar till redan publicerade sidor — `e1a46c56`
+> matchade `kontorsstol-med-fotstod` på alla fem tal inklusive vilomåtten, och `0945e4dd`
+> matchade `kontorsstol-fotstod-sammet` på 80 × 80 × 106–114. Av 193 utkast var merparten
+> färg- och storlekssyskon, inte 193 produkter.
+>
+> ⚠️ **Men en måttmatchning är ett SÅLL, inte en dom.** Vid standardmått ger ±2 cm på tre axlar
+> falska träffar: samma stol "matchade" två helt olika publicerade produkter. Avgör alltid med
+> BILDERNA — måttritningarna sida vid sida är det som verkligen skiljer. Så föll `127b4726`:
+> ritningarna visade samma chassi, samma uppfällbara armstöd och samma fotstöd som den
+> publicerade nätstolen. Det var grå version av en svart vi redan säljer, och det syntes inte
+> i något tal.
+
 **Regel:** båda orden MÅSTE hamna i **titel, produktnamn (H1) och slug** – annars flaggar Wix SEO-assistenten dem som röda. Ordet finns redan grönt i beskrivning/meta om det står i texten.
 Specs får bara komma från känd importdata eller `web_search` (AliExpress-sidor är JS-blockerade). **Hitta inte på siffror.**
 
