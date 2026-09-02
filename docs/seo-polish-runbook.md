@@ -522,6 +522,27 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
     rätt kategori, med rätt sökord.
 
 
+14. ☠️ **Räkna efter dina EGNA tal, och mät superlativ mot hela katalogen.** Regel 1–13
+    handlar om leverantörens påståenden. Den här handlar om de meningar poleringen hittar
+    på själv, och de är farligare, för ingen källa motsäger dem.
+
+    Två sorter, båda uppmätta i batch 54 innan publicering:
+
+    - **Aritmetik i löptext.** "Ett bord på 160 centimeter tar fyra stolar på 42 centimeter"
+      — fyra gånger 42 är 168. Samma fel en gång till med 54-centimetersstolar på samma
+      bordssida (tre stycken är 162). Varje gång du skriver *hur många som får plats*, *hur
+      mycket som ryms* eller *hur mycket marginal det finns*, gör multiplikationen på
+      papper och skriv ut den i texten — då syns felet både för dig och för kunden.
+    - **Superlativ mot fel jämförelsemängd.** "42 cm — det smalaste måttet i vårt
+      matstolssortiment" var falskt: `matstolar-i-furu-2-pack` är 41,5. Felet var att
+      jämföra mot BATCHEN i stället för mot katalogen. Ett "smalast", "störst", "tåligast"
+      kräver en sökning bland de publicerade sidorna, inte bara bland de sju du håller på
+      med. Håller det inte: byt ut superlativet mot konsekvensen ("bland de smalaste vi
+      säljer" plus vad bredden faktiskt ger).
+
+    Regel 5 säger att leverantörens superlativ aldrig upprepas utan siffra. Den här säger
+    att våra egna inte heller får det.
+
 > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma produkt
 > hade rubriken *"aberturas de: **-XX-XXcm**"* rakt ut i produktion. Ser du en sådan: sluta
 > lita på siffrorna i den serien och verifiera var och en.
