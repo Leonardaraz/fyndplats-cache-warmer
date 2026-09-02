@@ -32,60 +32,16 @@
 // Därför kan de två aldrig kollidera på samma (number, status)-nyckel.
 
 import { NextResponse, type NextRequest } from "next/server";
-import { Resend } from "resend";
-import { render } from "@react-email/render";
 import { sql } from "@/lib/db";
 import { verify17TrackSign } from "@/lib/track17";
-import { maskCarrierOrUndefined } from "@/lib/carrier-mask";
-import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
-import { reviewFormUrl } from "@/lib/review-token";
-import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhook/route";
-import type { OrderLineItem } from "@/emails/order-confirmation";
-import DeliveryNotificationEmail, {
-  deliverySubject,
-  type DeliveryStatus,
-} from "@/emails/delivery-notification";
+import { sendDeliveryNotification } from "@/lib/delivery-notify";
+import { notisStatusFör, ärTerminalStatus } from "@/lib/delivery-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const FROM = "Fyndplats <orders@fyndplats.se>";
-const REPLY_TO = "info@fyndplats.com";
-
-// 17TRACK status-enum → vår mejl-status. BARA milstolpar utan hämtkod pushas;
-// upphämtning (AvailableForPickup) ägs av SMS-flödet som bär koden.
-function pushSendableStatus(raw: string | undefined): DeliveryStatus | null {
-  switch (raw) {
-    case "Delivered":
-      return "delivered";
-    case "OutForDelivery":
-      return "out_for_delivery";
-    default:
-      // InTransit, PickedUp, InfoReceived, AvailableForPickup, Exception,
-      // Expired, NotFound … → ingen push-notis.
-      return null;
-  }
-}
-
-// Terminala 17TRACK-status: paketet rör sig inte längre (avvikelse, retur,
-// utgången, ej hittad). Vi mejlar inte på dessa, MEN måste flytta mappningen ur
-// 'in_transit' — annars ligger döda paket kvar för evigt och förorenar
-// SMS-FIFO-poolen (findFifoCandidate plockar äldsta in_transit → ett dött paket
-// gissas först → fel kund får notis).
-function isTerminalStatus(raw: string | undefined): boolean {
-  switch (raw) {
-    case "Exception":
-    case "DeliveryFailure":
-    case "Returning":
-    case "Returned":
-    case "Expired":
-    case "NotFound":
-    case "Undelivered":
-      return true;
-    default:
-      return false;
-  }
-}
+// Status → mejl och terminal-listan bor i lib/delivery-status — delade med
+// AliExpress-pollen så de två källorna aldrig mejlar på olika status.
 
 interface Track17PushRoot {
   number?: string;
@@ -130,11 +86,6 @@ async function updateMappingStatus(trackingNumber: string, status: string): Prom
   }
 }
 
-function firstName(fullName: string | null): string {
-  if (!fullName) return "kund";
-  return fullName.trim().split(/\s+/)[0] || "kund";
-}
-
 export async function POST(req: NextRequest) {
   // Råtexten MÅSTE läsas oförändrad för signaturen.
   let rawBody: string;
@@ -169,7 +120,7 @@ export async function POST(req: NextRequest) {
   }
 
   const rawStatus = root.track_info?.latest_status?.status;
-  const deliveryStatus = pushSendableStatus(rawStatus);
+  const deliveryStatus = notisStatusFör(rawStatus);
 
   // Slå upp kunden (exakt — spårnumret 17TRACK pushar ÄR det registrerade).
   const mapping = await findMapping(trackingNumber);
@@ -179,7 +130,7 @@ export async function POST(req: NextRequest) {
   // döda paket inte ligger kvar som in_transit och gissas i FIFO.
   if (mapping) {
     if (deliveryStatus) await updateMappingStatus(trackingNumber, deliveryStatus);
-    else if (isTerminalStatus(rawStatus)) await updateMappingStatus(trackingNumber, "exception");
+    else if (ärTerminalStatus(rawStatus)) await updateMappingStatus(trackingNumber, "exception");
   }
 
   if (!deliveryStatus) {
@@ -190,85 +141,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "no_mapping" }, { status: 200 });
   }
 
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    console.error("[track17-webhook] RESEND_API_KEY saknas — kan inte mejla");
-    return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "resend_not_configured" }, { status: 200 });
-  }
-
-  // Ordersammanfattning + omdömeslänk — SAMMA innehåll som SMS-vägen bygger.
-  // Att bara SMS-vägen hade dem var en verklig lucka: push är den väg som
-  // faktiskt skickar "levererat" för de flesta paket (SMS äger bara upphämtning
-  // med kod), så merparten av kunderna hade fått det tunna mejlet utan
-  // ordernummer och utan möjlighet att lämna omdöme.
-  //
-  // Best-effort, precis som i SMS-vägen: misslyckas Wix-uppslaget skickas
-  // mejlet ändå, bara utan sammanfattningen.
-  //
-  // FÖRE dedup-anspråket, inte efter. Anspråket är ett löfte att vi skickar:
-  // dör funktionen mellan anspråk och utskick ligger det kvar och mejlet
-  // uteblir tyst. Uppslaget får ta upp till 8 s (fetchWixOrder:s tidsgräns) och
-  // hade förlängt just det fönstret. Här kostar det på sin höjd ett bortkastat
-  // Wix-anrop när en dubblettpush ändå skulle förlora anspråket.
-  let orderSummary: { orderNumber?: string; items?: OrderLineItem[] } = {};
-  if (mapping.order_id) {
-    try {
-      const order = await fetchWixOrder(mapping.order_id);
-      const built = order ? buildOrderConfirmationProps(order) : null;
-      if (built) orderSummary = { orderNumber: built.orderNumber, items: built.items };
-    } catch (err) {
-      console.warn("[track17-webhook] kunde inte hämta order för mejlet:", err instanceof Error ? err.message : err);
-    }
-  }
-
-  // Null utan REVIEW_TOKEN_SECRET → ingen knapp. Mallen visar den dessutom bara
-  // vid levererat, så "på väg"-mejlet frågar aldrig om omdöme.
-  const reviewUrl = mapping.order_id
-    ? reviewFormUrl(mapping.order_id, "https://www.fyndplats.se", process.env.REVIEW_TOKEN_SECRET) ?? undefined
-    : undefined;
-
-  // Dedup mot SMS-flödet: först till (number, status) vinner. Allt tungt är
-  // gjort — härifrån till send() är det bara rendering, precis som innan
-  // ordersammanfattningen fanns.
-  const won = await claimDeliveryNotification(trackingNumber, deliveryStatus, "track17", mapping.customer_email);
-  if (!won) {
-    return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "duplicate_suppressed" }, { status: 200 });
-  }
-
-  const carrier = maskCarrierOrUndefined(root.track_info?.tracking?.providers?.[0]?.provider?.name);
-  const props = {
-    ...orderSummary,
-    reviewUrl,
-    firstName: firstName(mapping.customer_name),
+  // Sändaren (ordersammanfattning, omdömeslänk, maskering, dedup mot SMS och
+  // mot AliExpress-pollen) bor i lib/delivery-notify — samma för båda källorna.
+  const utfall = await sendDeliveryNotification({
+    trackingNumber,
+    mottagare: mapping,
     status: deliveryStatus,
-    // Spåra-knapp bara för "på väg" (meningslös efter levererat).
-    trackingNumber: deliveryStatus === "delivered" ? undefined : trackingNumber,
-    carrier,
-  };
-
-  try {
-    const html = await render(DeliveryNotificationEmail(props));
-    const subject = deliverySubject({ status: deliveryStatus });
-    const sent = await new Resend(resendKey).emails.send({
-      from: FROM,
-      to: mapping.customer_email,
-      replyTo: REPLY_TO,
-      subject,
-      html,
-    });
-    if (sent.error) {
-      // Släpp anspråket så en retry (eller SMS) kan ta över.
-      await releaseDeliveryNotification(trackingNumber, deliveryStatus);
-      console.error("[track17-webhook] Resend-fel", sent.error);
-      return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "resend_failed" }, { status: 200 });
-    }
-    console.log(`[track17-webhook] notis skickad: ${trackingNumber} → ${mapping.customer_email} (${deliveryStatus}, resendId=${sent.data?.id})`);
-    return NextResponse.json({ ok: true, tracked: trackingNumber, sent: true, status: deliveryStatus, resendId: sent.data?.id }, { status: 200 });
-  } catch (err) {
-    await releaseDeliveryNotification(trackingNumber, deliveryStatus);
-    console.error("[track17-webhook] oväntat fel under email-send", err);
-    return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: "internal_error" }, { status: 200 });
+    rawCarrier: root.track_info?.tracking?.providers?.[0]?.provider?.name,
+    channel: "track17",
+    logg: "[track17-webhook]",
+  });
+  if (!utfall.sent) {
+    return NextResponse.json({ ok: true, tracked: trackingNumber, sent: false, reason: utfall.reason }, { status: 200 });
   }
+  return NextResponse.json({ ok: true, tracked: trackingNumber, sent: true, status: deliveryStatus, resendId: utfall.resendId }, { status: 200 });
 }
 
 // Health-check (läcker inget): bekräftar bara att routen är deployad och om
