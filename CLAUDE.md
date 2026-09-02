@@ -2033,7 +2033,7 @@ om, inte vad något kostar. Mätt 2026-08-16 på 40 slumpade publicerade produkt
 tak 8 — alltså ~166k tecken för hela butiken. Cirka 40 % av produkterna får inga
 recensioner alls, mest nya Aosom-EU-listningar som inte hunnit få några hos AE.
 
-### Recensionerna är på väg ur Wix — steg 1 och 2 klara (2026-09-02)
+### Recensionerna är på väg ur Wix — steg 1, 2 och 4 klara (2026-09-02)
 
 **Taket är recensionerna.** Efter att drift-datan flyttade 2026-08-31 ligger Wix
 på ~3 355 av 4 000 rader, och `FyndplatsImportedReviews` är **2 514 av dem** —
@@ -2056,6 +2056,28 @@ bor där. Recensionerna är inte offret för taket, de ÄR det.
 **Steg 2 är gjort och mätt:** 2 514 lästa, 2 514 skrivna, noll fel, och
 verifieringen ger `reviews wix=2514 pg=2514 avvikande=0`.
 
+**Steg 4 är gjort och mätt i drift.** Butiken läser inte längre Wix Data för
+recensioner: produktsidan går mot `/api/reviews/<productId>` och listningarnas
+kort mot `/api/review-aggregates`. Kvitto på en skarp, OCACHAD rendering
+(`?cb=`, `x-vercel-cache: MISS`) samma dag:
+
+| | |
+|---|---:|
+| produkter med betyg i aggregatet | 512 |
+| summa synliga omdömen | **2 421** |
+| kort med stjärnor på `/alla-produkter` | 69 |
+| produktsidan | 3 omdömen, snitt 4,7, upplysning + etikett per rad |
+
+Talet 2 421 är exakt det som mättes oberoende mot Wix (2 421 av 2 514 synliga),
+alltså räknar de två vägarna samma sak.
+
+⚠️ **Verifiera ALLTID med cache-bust.** ISR-cachen ligger en timme, så en vanlig
+hämtning direkt efter deployen serverar den GAMLA sidan — och den ser ut precis
+som en fungerande ny. Första mätningen efter merge "visade" att härkomsten inte
+renderades; den läste cachad HTML från förra bygget.
+`/api/admin/revalidate?tag=reviews` tömmer alla produktsidor på en gång (kräver
+`ADMIN_SECRET`), annars löser timmen det av sig själv.
+
 ☠️ **`REVIEWS_BACKEND` är FRIKOPPLAD från `STORE_BACKEND`, och default är
 `wix-data`.** Ett första utkast lät `getReviewStore()` läsa `STORE_BACKEND` —
 produktionen står på postgres, så lagret hade bytts i samma sekund koden
@@ -2071,19 +2093,43 @@ regler om RECENSIONER, inte om databasen. En tvilling hade betytt att en
 publicerad recension pekar på leverantörens CDN i det ena lagret men inte i det
 andra, beroende på vilken env-variabel som råkade vara satt.
 
-**Två saker kvar innan raderingen, och ordningen är tvingande:**
+☠️ **Härkomsten renderas nu, och det är en compliance-spärr — inte en finess.**
+Sidan märkte tidigare bara egna kunder med "✓ Verifierat köp" och lämnade resten
+OMÄRKTA under rubriken "Kundrecensioner". Artikel 7.6 UCPD kräver upplysning om
+huruvida vi säkerställer att omdömena kommer från konsumenter som faktiskt
+använt varan, och bilaga I §23b förbjuder att presentera andras omdömen som egna
+kunders. Varje rad bär nu sitt ursprung hela vägen från lagret
+(`lib/review-source.ts` i butiksrepot), och listan föregås av upplysningen så
+snart EN enda rad är importerad.
 
-1. Butiken läser recensionerna DIREKT ur Wix Data på två ställen —
-   `lib/reviews.ts` (produktsidan) och `lib/review-aggregates.ts` (alla
-   listningssidor) på grenen `headless-site`. Aggregaten behöver ett bulk-anrop
-   som ger `productId → betyg`, samma form som `listV3ProductPrices`.
-   `FyndplatsImportedReviews` står kvar i `ALDRIG_RADERA` tills dess.
-2. ☠️ **Butiken måste rendera HÄRKOMSTEN innan en enda Aosom-recension
-   publiceras.** Den märker egna kunders omdömen med "✓ Verifierat köp" men
-   hanterar inte `source: "aosom"` alls. Artikel 7.6 UCPD kräver upplysning om
-   huruvida recensionerna kommer från konsumenter som faktiskt använt produkten;
-   bilaga I §23b förbjuder att presentera dem som egna kunders. Det är en
-   compliance-spärr, inte en finess.
+☠️ **Okänt ursprung blir ALDRIG "vår kund".** Alla rader före 2026-08-17 saknar
+fältet och är AE-importer; en fallback på `customer` hade varit överträdelsen
+själv. Sju tester låser den riktningen.
+
+**Ett steg kvar innan raderingen, och ordningen är tvingande:**
+
+1. **Steg 3 — `REVIEWS_BACKEND=postgres` i Vercel.** Butiken läser via API:t
+   oavsett vilket lager som svarar, så växlingen är osynlig för kunden. Först
+   när den är gjord OCH verifierad släpps `FyndplatsImportedReviews` ur
+   `ALDRIG_RADERA` och steg 5 blir möjligt. Spärren står kvar tills dess med
+   flit: den är det som hindrar en radering av rader som fortfarande är facit.
+
+   ☠️ **Kör `betyg-diff` FÖRE växlingen** (workflowen "Migrering — kopiera
+   drift-datan till Postgres", fjärde läget → `/api/admin/review-backend-diff`).
+   Det verifierade radantalet räcker INTE som kvitto här: aggregatet filtrerar
+   på `status` och `rating` och grupperar per produkt, så en status av fel typ
+   eller ett `rating` som blivit sträng i JSONB passerar en radräkning och
+   fäller stjärnorna på varenda produktkort. Rutten instantierar BÅDA lagren
+   direkt — aldrig via `getReviewStore()`, som bara returnerar det env pekar på
+   och därmed hade jämfört ett lager med sig självt.
+
+   Två spärrar i den som inte ska tas bort: ett **golv på 100 produkter per
+   sida**, för två tomma aggregat är per definition identiska och en fallen
+   läsning hade annars rapporterats som "noll avvikelser, växla på"; och ett
+   eget **tömd-källa-läge** (`kallanTomd`) för tiden efter steg 5, eftersom en
+   jämförelse mot en raderad källa annars hade gjort jobbet rött vid varje
+   körning för alltid. Snittet jämförs med 0,1 i tolerans (Postgres avrundar i
+   SQL, Wix i JavaScript), antalet exakt.
 
 ## Mediainventering: "utan katalogreferens" är inte "oanvänd"
 
