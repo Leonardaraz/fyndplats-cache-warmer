@@ -639,14 +639,27 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > Kontrollera efter PATCH:en med en re-GET: `plainDescription.match(/<span style="font-weight: 700">[^<]*\?<\/span>(?!<\/p>)/g)` ska ge **noll** träffar.
 > *(Upptäckt på campingbordet `85996bde`; sex frågor fick rättas i efterhand.)*
 
-> 📏 **Längddeltat är ett kvitto — men det är +21 per `<strong>`-PAR, inte per produkt.**
+> 📏 **Längddeltat är ett kvitto — men det har TVÅ termer.**
 > Wix serialiserar om `<strong>…</strong>` (17 tecken) till
-> `<span style="font-weight: 700">…</span>` (38), alltså exakt **+21 per par**. Inget annat
-> i husets HTML växer. Så: räkna paren i det du skickar, multiplicera med 21, och jämför
-> mot `plainDescription.length` i en **separat** re-GET. Stämmer det på tecknet gick inget
-> förlorat; avviker det har Wix rört något du inte bad om.
+> `<span style="font-weight: 700">…</span>` (38), alltså exakt **+21 per par**, och lägger
+> till ` target="_self"` i varje `<a href>`, alltså **+15 per länk**. Formeln är därmed
+>
+> ```
+> väntat = källa + 21 × antal <strong>-par + 15 × antal <a href>-länkar
+> ```
+>
+> Jämför mot `plainDescription.length` i en **separat** re-GET med `fields=PLAIN_DESCRIPTION`.
+> Stämmer det på tecknet gick inget förlorat; avviker det har Wix rört något du inte bad om.
 > *(En produkt med tre `<strong>`-par gav +63 och såg fel ut mot en tumregel som sa "+21
-> per produkt" — deltat var rätt hela tiden, regeln var fel. Rättat 2026-09-01.)*
+> per produkt" — deltat var rätt hela tiden, regeln var fel. Rättat 2026-09-01.
+> Länktermen mättes 2026-09-02 på åtta sängramar som alla låg exakt +15 över det väntade:
+> varje sida bar en korshänvisning, och den lagrade taggen är
+> `<a href="…" target="_self">` där den skickade var `<a href="…">`.)*
+>
+> ⚠️ **Ett oförklarat delta är inte automatiskt en förlust — men det får inte lämnas
+> oförklarat.** Båda gångerna såg avvikelsen ut som en trasig skrivning och var en
+> deterministisk normalisering. Leta reda på vad som växte innan du skriver om texten:
+> ett delta man börjar ignorera slutar vara ett kvitto.
 
 > ⚠️ **Flik-rubriker MÅSTE vara rena `<h2>Titel</h2>` — ingen fetstil, inget `<span>`.** Headless-storefronten (`components/productview.tsx` → `splitFlikar`/`FLIK_TITLE_PATTERNS`) och `lib/import/tabs.ts` bygger PDP-flikarna genom att splitta beskrivningen på **bara** `<h2>Titel</h2>`. Blir HTML:en `<h2><span style="font-weight:700">Titel</span></h2>` (BOLD på rubriken) faller matchningen och "Tekniska specifikationer"/"Vanliga frågor" hamnar **inline** i stället för som flikar. Skriv fliktitlarna ordagrant — **Tekniska specifikationer**, **Vanliga frågor**, **Användning och skötsel** ("Kontakta oss" lägger frontenden till själv). Fet text är OK i **stycken** (t.ex. FAQ-frågor), aldrig på `<h2>`-raden. Skickar du ren `<h2>Titel</h2>` i HTML wrappar Wix den inte — då uppstår problemet inte.
 
