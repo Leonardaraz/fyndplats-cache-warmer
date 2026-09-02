@@ -668,7 +668,8 @@ SKU-patch, med tyska alt-texter och utan kategori, i sexton sekunder innan det u
 **En regel som bara står i det steg där den råkade upptäckas är en regel som glöms bort** —
 därför står den nu här, i Steg 13, och i Fasta fakta.
 
-Samma regel gäller varje PATCH i Steg 8–11: **skicka alltid produktens `visible` explicit**,
+Samma regel gäller varje PATCH i HELA kedjan — inte bara Steg 8–11: **skicka alltid produktens
+`visible` explicit**,
 också när du inte tänker röra den. Läs tillbaka `visible` i svaret — det är det enda kvittot.
 
 ⚠️ Skicka `options` **+** `variantsInfo` verbatim — annars **428 `MISSING_OPTIONS_ON_UPDATE_VARIANTS`** (en produkt helt utan optioner behöver inte `options`).
@@ -681,6 +682,15 @@ också när du inte tänker röra den. Läs tillbaka `visible` i svaret — det 
 > **uttryckligt** `visible` per variant — då vinner ditt värde (verifierat i samma körning:
 > `{...v, sku, visible:true}` med produktens `visible:false` gav en synlig variant på en
 > osynlig produkt).
+>
+> ☠️ **Och det gäller ÄVEN en sen texträttelse.** Steg 12 ligger utanför intervallet ovan, och det
+> är just där fällan slog till 2026-09-02: fyra av åtta köksskåp fick en rättelse-PATCH som bar
+> `plainDescription` + `visible:false` men INGET `variantsInfo` — och Wix speglade då ner
+> `false` på varenda variant som Steg 8 nyss satt till `true`. Skrivningen rapporterade full
+> framgång. Det syntes bara för att Klart-kriteriet läser om `variantsInfo.variants[].visible`
+> precis före publiceringen. **Rör du en publicerad-eller-snart-publicerad produkt EFTER Steg 8,
+> skicka `variantsInfo` med ett uttryckligt `visible: true` per variant i samma PATCH** — eller
+> låt den avslutande Steg 13-PATCH:en sätta båda, vilket är enklast.
 >
 > Konsekvensen om det missas: produkten publiceras, syns i butiken och **går inte att lägga
 > i varukorgen**. Det syns inte i produktvyn. Klart-kriteriet kräver redan `visible:true` på
@@ -997,6 +1007,10 @@ sidan live och varan går inte att lägga i varukorgen. Det syns inte i produktv
 sekunder efter skrivningen; hinner butiken före indexet renderar den sin fallback, och just
 det svaret sparas i fem minuter. Sidan ser trasig ut fast produkten är korrekt.
 *(Sängbänken `8da26d68` 2026-08-26: publicering och `curl` låg under en sekund isär.)*
+
+⚠️ **Hämta sidan från `www.fyndplats.se`, inte från apex.** `fyndplats.se/produkt/<slug>` svarar
+**308** mot www-värden, så ett `curl` utan `-L` ger en tom kropp och varje grep säger noll —
+vilket läser som att sidan är trasig. Använd `https://www.fyndplats.se/produkt/<slug>`.
 
 **Läs `date`, `age` och `x-vercel-cache` innan du drar en slutsats:**
 
