@@ -1,4 +1,4 @@
-// GET /api/reviews/aggregates
+// GET /api/review-aggregates
 //
 // Antal + snitt per produkt för HELA katalogen, i ETT svar.
 //
@@ -16,6 +16,15 @@
 // EN FRÅGA, INTE EN PER PRODUKT. Den naiva vägen hade blivit 24+ anrop per
 // listningssida och ~800 på /alla-produkter. Samma resonemang som
 // `listV3ProductPrices` för priserna.
+//
+// ☠️ EGEN SEGMENT, INTE /api/reviews/aggregates. Den adressen fångas av den
+// dynamiska `[productId]`-rutten, som svarar **200** med
+// `{productId:"aggregates", count:0, reviews:[]}`. En anropare som kollar
+// `res.ok` hade alltså passerat, inte hittat sitt `betyg`-fält, och tyst
+// visat noll betyg. Next prioriterar visserligen en statisk segment framför en
+// dynamisk — men bara efter att den deployats, så fönstret mellan butikens och
+// motorns deploy hade varit precis det tysta felet. En adress som i stället
+// 404:ar när rutten saknas är den ärliga formen.
 //
 // Ingen auth: betygen är publik social proof och visas ändå på varje kort.
 // Svaret bär BARA produkt-id, antal och snitt — ingen text, inga namn, inga
