@@ -240,6 +240,35 @@ export async function getV3ProductFull(productId: string): Promise<{
 }
 
 /**
+ * Finns produkten i butiken? `true` / `false` / `null` när frågan inte gick att
+ * ställa.
+ *
+ * ☠️ TRE UTFALL, INTE TVÅ. Ett läsfel får aldrig se ut som "finns inte" — den
+ * förväxlingen är hela skälet till att funktionen finns. Poleringens 404-svar
+ * påstod alltid att produkten "kan vara föräldralös", alltså skapad i Wix utan
+ * mappningsrad. Uppmätt 2026-09-02 var det ofta fel: id:t fanns inte alls i
+ * butiken, och meddelandet skickade mottagaren att leta efter en föräldralös
+ * produkt som aldrig existerat. Två lägen med helt olika åtgärd.
+ *
+ * Fail-open med flit: kastar inte, för anroparen är redan på en felväg och ska
+ * inte få ett SÄMRE fel än det den höll på att rapportera.
+ */
+export async function v3ProduktFinns(productId: string): Promise<boolean | null> {
+  try {
+    const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
+      method: "GET",
+      headers: headers(),
+    });
+    if (res.status === 404) return false;
+    if (!res.ok) return null;
+    const data = (await res.json()) as { product?: unknown };
+    return Boolean(data.product);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * PATCH:ar en V3-produkt med nya seoData.tags. Använder product-revision för
  * optimistisk samtidighetskontroll. Skickar HELA tags-arrayen (Wix ersätter
  * inte mergar) — call-site ansvarar för att merga med befintliga.
