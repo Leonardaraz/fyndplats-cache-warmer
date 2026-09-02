@@ -280,6 +280,21 @@ Wix skrivs före mappningen, samma ordning och samma skäl som `price-repair`.
 Alla tre kostnadsfälten skrivs — `grossSek`, `costUsd` och `landedCostSek` —
 aldrig bara priset.
 
+### Så körs den för hand
+
+Schemalagd i Vercel (`20 */6 * * *`), men workflowen **"Aosom — synka lager och
+priser"** (`workflow_dispatch`, lägena `torr` · `skarp` · `lager`) kör den på
+begäran — samma nyckel-lösa upplägg som importen och prisreparationen.
+
+Den fanns inte fram till 2026-09-02, och det var en verklig lucka: `CRON_SECRET`
+är märkt Sensitive i Vercel och går inte att läsa tillbaka ens för ägaren, så
+att verifiera en ändring i synken krävde att man väntade på nästa schemalagda
+körning och sedan gissade av en 200:a vad den gjort. Rutten loggar dessutom en
+summeringsrad sedan samma dag — Vercel visade annars bara `GET … 200`.
+
+Svepet loopar markören som importen gör, men sparar den INTE i grenen: synken
+konvergerar utan sparad markör (punkt 4 ovan). `misslyckade > 0` fäller jobbet.
+
 ### ☠️ Prissynken skrev aldrig ett enda pris till Wix (2026-08-29)
 
 Hittad under den FÖRSTA poleringen, inte av ett larm: bäddsoffan `efaa0c7b` hade
