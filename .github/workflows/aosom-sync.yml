@@ -200,11 +200,28 @@ jobs:
 
           echo "OK: ${granskade} granskade, ${lager} lager, ${priser} priser, ${misslyckade} misslyckade."
 
-          # ☠️ Misslyckanden fäller jobbet. En synk som svarar 200 medan den
-          # inte kunde skriva är exakt det tysta felet som kostade en månad här.
-          if [ "$misslyckade" -gt 0 ]; then
-            echo "::error::${misslyckade} produkter kunde inte synkas — se varven ovan." >&2
+          # ☠️ MASSFEL fäller jobbet — inte en enstaka miss.
+          #
+          # Båda villkoren krävs, samma form som MASSFEL_ANDEL/MASSFEL_GOLV i
+          # migreringens verdikt, och av samma skäl: andelen ensam fäller en
+          # liten körning på brus, golvet ensamt låter en stor körning tappa
+          # hälften utan att någon märker det.
+          #
+          # Varför inte "fäller på minsta fel": uppmätt 2026-09-02 föll 1 av
+          # 1 111 skrivningar på en övergående 429 trots pacing och återförsök.
+          # Ett rött jobb vid varje svep lär mottagaren att sluta läsa — och då
+          # är även det äkta larmet borta. Synken konvergerar dessutom: en miss
+          # skrivs av nästa körning. Missen är ändå ALDRIG tyst, den står
+          # grupperad på orsak ovan och i ruttens audit-rad.
+          forsokta=$(( lager + priser + misslyckade ))
+          golv=10
+          if [ "$misslyckade" -ge "$golv" ] && [ "$forsokta" -gt 0 ] \
+             && [ $(( misslyckade * 100 / forsokta )) -ge 2 ]; then
+            echo "::error::${misslyckade} av ${forsokta} skrivningar föll — det är ett massfel, inte brus." >&2
             exit 1
+          fi
+          if [ "$misslyckade" -gt 0 ]; then
+            echo "::warning::${misslyckade} av ${forsokta} skrivningar föll. Under massfel-tröskeln (${golv} st och 2 %) — nästa körning skriver om dem."
           fi
 
           # ☠️ Ett läsfel i prislistan fäller jobbet ÄVEN om varje produkt gick
