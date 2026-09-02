@@ -220,6 +220,29 @@ tvätt- och kortmetoder) och [`polish/varianter.md`](polish/varianter.md) (varia
 Reglerna står här — mekaniken där. [Katalogsvepen](#katalogsvep--återkommande-underhåll-inte-per-produkt)
 sist i dokumentet är periodiska kontroller över hela katalogen, inte moment i en polering.
 
+### ☠️ Räkna en kategori på HUVUDORDET, aldrig på förekomst (2026-09-02)
+
+Att välja batchens kategori börjar med en mätning: hur många tyska utkast finns det, och hur
+många publicerade sidor täcker dem redan? Den mätningen är trivial att göra fel.
+
+Vid urvalet till batch 51 gav ett `Regal`-uttryck **75 hyllutkast** och knappt en publicerad
+hylla — en tom kategori, alltså. Av de 40 dyraste träffarna var **inte en enda en hylla**:
+`Küchenschrank mit Regalen`, `Stehlampe mit Regalen`, `Geräteschuppen mit Regalböden`,
+`Werkzeugwagen`, `Katzentoilette mit 3-Ebenen-Regal`, `Roll-Schreibtisch mit Regalen`,
+`Aktenschrank`, `Hochbeet`. `Regal` stod som EGENSKAP, inte som produkttyp.
+
+Samma fälla i två varianter till, i samma mätning: `Schreibtisch` gav fjorton träffar varav
+åtta var `Schreibtischstuhl` — en helt annan möbel — och `Konsolentisch` gav åtta träffar som
+faktiskt var åtta konsolbord.
+
+**Regeln:** kräv att produkttypen är HUVUDORD, alltså att namnet BÖRJAR med den
+(`/^Konsolentisch/`), och filtrera bort sammansättningar som byter produkttyp
+(`Schreibtisch` men inte `…stuhl`). Aosoms titlar sätter alltid produkttypen först och
+räknar upp egenskaperna efter — den ordningen är det som gör huvudordskravet pålitligt.
+
+**Och läs alltid ut kandidaterna innan du bestämmer dig.** Felet syntes inte i siffran; det
+syntes när de 40 dyraste skrevs ut med namn. En kategorimätning utan namnlista är en gissning.
+
 > 🗂️ **Poleringskön ljuger — verifiera mot Wix innan du väljer produkt.** `needsAiPolish`
 > nollställs inte alltid, så kön blandar råa utkast med sedan länge färdiga produkter
 > (2026-08-11: 49 poster, 13 verkligt opolerade). Filtrera på `visible === false` **och** att
@@ -456,6 +479,20 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
     måttet — leta upp vad totalmåttet faktiskt består av innan du skriver en rad.
     Här slutade det med både och: ryggens framåtsvängda ändar ÄR något man vilar armarna
     på, så texten säger det — men den bär 50-mot-39-måttet, inte rubrikens ord.
+
+12. ☠️ **Ritningens BÄRIGHET kan säga en sak och den skrivna specen en annan — och det är
+    inte sällsynt.** Två batchar i rad: bäddsoffan `1f2de1bb` (batch 50) hade **100 kg** i
+    ritningen mot **40 kg** i `Technische Daten` — som dessutom upprepade 40 två gånger.
+    Konsolbordet `9b027508` (batch 51) hade **30 kg** i ritningen mot **20 kg** i texten.
+    Regel 9 säger "mät ritningen" och gäller fortfarande — men bara för MÅTT. Ritningen är
+    ortografisk och därför pålitlig på geometri; en lastsiffra i ritningen är text som
+    någon skrivit, precis som specen, och den har ingen sådan företrädesrätt.
+
+    **Gör så här:** skriv den LÄGSTA siffran (överlova aldrig last — en kund som lastar 30
+    kg på ett bord byggt för 20 får en olycka, inte en besvikelse), och **ta bort ritningen
+    ur galleriet**. Den bilden visar ett tal vi inte står bakom, och den ligger kvar på
+    produktsidan långt efter att texten rättats. Flytta ritningens övriga mått till
+    spec-listan och till ditt eget Fyndplats-kort, så tappar kunden ingenting.
 
 > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma produkt
 > hade rubriken *"aberturas de: **-XX-XXcm**"* rakt ut i produktion. Ser du en sådan: sluta
