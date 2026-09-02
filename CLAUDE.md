@@ -431,7 +431,13 @@ priset EN gång och lämnat orsaken kvar.
 
 ☠️ **Priset per variant kommer med i standardprojektionen — begär inte `fields`.**
 Uppmätt mot skarpa V3 2026-09-02: `actualPriceRange.minValue/maxValue` och
-`variantSummary.variantCount` ligger i svaret utan att efterfrågas. Det är motsatsen
+`variantSummary.variantCount` ligger i svaret utan att efterfrågas.
+
+☠️ **Och frågan ställs UTAN synlighetsvillkor, med flit.** Alla tjugo är
+`visible:false` — en fråga som tyst filtrerat bort utkast hade gett en fix som
+aldrig når det den skulle laga. Mätt samma dag: utkastet `3a6988b8` returneras
+med `visible:false` och pris ifyllt av en fråga som inte nämner synlighet alls.
+V3 lägger alltså inte på något implicit `visible:true`. Lägg inte till ett. Det är motsatsen
 till `getProductMedia`, som MÅSTE begära `MEDIA_ITEMS_INFO` för att få sina bilder —
 och den asymmetrin är just varför båda är mätta i stället för antagna.
 

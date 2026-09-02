@@ -560,7 +560,8 @@ export async function getV3ProductVariants(productId: string): Promise<WixV3Vari
 /** Vad butiken tar för EN produkt, och om siffran går att lita på. */
 export interface WixProduktPris {
   /**
-   * Priset i SEK, eller null när produkten har varianter med OLIKA pris.
+   * Priset i SEK, eller null när det inte finns ETT entydigt pris — antingen
+   * för att varianterna kostar olika, eller för att Wix inte gav något belopp.
    *
    * `actualPriceRange` är ett SPANN över produktens varianter. Är min ≠ max
    * finns det inget enda "produktens pris", och att gissa på minValue hade
@@ -632,9 +633,16 @@ function arOvergaende(status: number): boolean {
  * `POST /stores/v3/products/query` ger 100 produkter med pris per anrop, så
  * hela katalogen är ~54 anrop och ett par sekunder av ruttens 240.
  *
- * Magert med flit: inga `fields`, alltså ingen PLAIN_DESCRIPTION och inga
- * tunga SEO-fält. `actualPriceRange` och `variantSummary` kommer med i
- * standardprojektionen (verifierat mot skarpa API:t 2026-09-02).
+ * Magert med flit: inga `fields`, alltså ingen PLAIN_DESCRIPTION.
+ * `actualPriceRange` och `variantSummary` kommer med i standardprojektionen
+ * (verifierat mot skarpa API:t 2026-09-02).
+ *
+ * ☠️ OCH INGET SYNLIGHETSVILLKOR — det är avsiktligt, och det är mätt.
+ * Alla tjugo felprissatta rader är `visible:false`, så en fråga som tyst
+ * filtrerade bort utkast hade gett en fix som aldrig når det den skulle laga.
+ * Kontrollerat mot skarpa API:t 2026-09-02: en fråga UTAN synlighetsvillkor
+ * returnerar utkastet `3a6988b8` med `visible:false` och pris ifyllt. V3
+ * lägger alltså inte på något implicit `visible:true`. Lägg inte till ett.
  *
  * ☠️ KASTAR hellre än kapar tyst. Samma lärdom som `queryAll`: en halv katalog
  * som ser komplett ut hade fått synken att tro att de saknade produkterna inte
