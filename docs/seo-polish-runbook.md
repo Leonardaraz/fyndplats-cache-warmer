@@ -187,6 +187,15 @@ rosa eller himmelsblå" — de fyra utkasten ÄR de färgerna.
 ETT artikelnummer. Att lova ett val kunden inte kan göra är ett sortimentsbeslut, inte
 en poleringsfråga.
 
+☠️ **Och ett falskt kategoriord kan peka rakt in i en publicerad sida.** Av åtta
+odlingslådor 2026-09-02 hade **tre** ordet `Frühbeet` (drivbänk) i titeln medan
+`Lieferumfang` bara listade lådan och en anvisning — inget lock, ingen duk, ingen
+båge. Bild 3–5 bekräftade: en öppen låda. Att tro på titeln hade gjort två fel på
+en gång: fel produkttyp till kunden, OCH sökordet `drivbänk`, som redan bärs av den
+publicerade `drivbank-120x60-cm`. Testet är detsamma som för `Gaming Stuhl` —
+`Lieferumfang` plus bild 1 och 2 — men konsekvensen är dubbel när det falska ordet
+råkar vara ett vi redan rankar på.
+
 Kapacitetspåståenden ska **mätas, inte kopieras**: tältet hette "4 Personen" medan
 tillverkarens egen skiss sa "Schlafplätze 2–4". Sovrummet är 295 cm brett — fyra liggunderlag
 à 60 cm med 55 cm över. Skriv måttet, inte marknadssiffran.
@@ -287,6 +296,20 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > ```
 > POST /stores/v3/products/query   { "query": { "filter": { "slug": { "$in": ["<kandidat-slug>", …] } } } }
 > ```
+> ☠️ **Kvittot på svepet är `cursor === null`, inte radantalet.** Ett svep med en
+> loopgräns ser exakt likadant ut som ett svep som tog slut: båda returnerar rader
+> och inget fel. 2026-09-02 gav en loop på 28 sidor **2 800 produkter** och
+> `noll krockar` för odlingslådor — 28 × 100 är precis taket, så läsningen var
+> AVHUGGEN. Hela katalogen är **5 467** (1 597 publicerade, 3 870 utkast), och när
+> svepet kördes klart fanns **åtta** publicerade konkurrenter, bland dem
+> `odlingslada-metall`, `odlingslada-med-spalje-3-plan-grantra` och
+> `drivbank-120x60-cm`. Åtta nya sidor hade kannibaliserat sex levande.
+>
+> Returnera därför alltid `avhuggen: !!cursor` ur svepet och kräv `false`, och
+> kör i etapper om ≤30 sidor (ExecuteWixAPI har 60 s) genom att skicka markören
+> vidare. Samma klass som `queryAll` som tyst kapade — **en halv katalog som ser
+> komplett ut.**
+
 > Sluggen är filtrerbar (`name` är det INTE). Träff, eller en produkt du vet ligger nära → **separera med en kvalificerare som står i BÅDE namn, slug och titel**, inte bara i texten. Fungerande exempel: `arbetsstol med hjul` vs `sadelstol med ryggstöd` · `konstgjord julgran` vs `konstgjord julgran med pynt` · `litet växthus` vs `växthusduk` · `elmotorcykel barn` vs `elmotorcykel 6v barn` vs `eldriven trehjuling barn`. Är produkterna i praktiken samma vara → det är en dubblett, inte ett sökordsproblem: flagga till Leonard.
 >
 > ☠️ **Och avgör det på MÅTTEN, inte på namnet.** Den farliga dubbletten är intern: 595 av
