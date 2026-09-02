@@ -73,6 +73,15 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 - ⚠️ **`fields` måste med på VARJE cursor-sida.** Utelämnas det på sida 2+ kommer fältet
   tillbaka **tomt i stället för att fela** — ett svep rapporterade 650 produkter med noll
   bilder, inklusive sådana som just patchats till fem.
+- ☠️ **`DESCRIPTION` och `PLAIN_DESCRIPTION` är två OLIKA fält, och fel val läser tomt.**
+  `?fields=DESCRIPTION` returnerar rich content-objektet `description` och lämnar
+  `plainDescription` **tom sträng** — inget fel, bara en annan projektion. Klart-kriteriet
+  i runda 38 rapporterade därför `len: 0` på alla åtta, medan bilder, kategorier och
+  SKU:er lästes tillbaka korrekt i samma anrop. Mätt på `cdb043b4` 2026-09-02:
+  `DESCRIPTION` → `plainDescription` 0 tecken, `PLAIN_DESCRIPTION` → 3 077, exakt det
+  väntade talet. **Begär `PLAIN_DESCRIPTION` när du räknar tecken.** Samma familj som
+  `MEDIA_ITEMS_INFO`: ett fält som saknas i begäran syns som ett tomt värde, inte som ett
+  fel — och ett tomt värde ser i ett svar precis ut som en förlorad skrivning.
 - ☠️ **Mappningsraden nås inte via Wix Data längre.** Den bor i Postgres sedan
   2026-09-01 och `FyndplatsMappings` är tömd. Läs och skriv den med workflowen
   **Polering — läs och stämpla mappningsraden** (Steg 3 och 13). De gamla
