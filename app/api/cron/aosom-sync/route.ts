@@ -97,6 +97,18 @@ async function handle(req: NextRequest) {
       );
     }
 
+    // ☠️ En rad i loggen, alltid. Vercel visar annars bara `GET … 200` för en
+    // schemalagd körning, och "ett svar utan fel är inget kvitto" — utan den
+    // här raden går det inte att se vad nattens synk faktiskt gjorde utan att
+    // ha CRON_SECRET för handen.
+    console.log(
+      `[aosom-sync] ${summary.granskade} granskade, ${summary.lagerUppdaterade} lager, `
+        + `${summary.prisUppdaterade} priser, ${summary.utanWixPris} utan butikspris, `
+        + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
+        + `${summary.varningar.length} varningar, ${summary.misslyckade} misslyckade, `
+        + `${summary.kvar} kvar${dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`,
+    );
+
     return NextResponse.json(
       {
         ok: true,
