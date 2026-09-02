@@ -1,0 +1,156 @@
+name: Aosom — bygg bulkorder-filen
+
+# Aosom-ordrar kan INTE läggas via API. `lib/orders/place-order.ts` är helt
+# AliExpress och vägrar en Aosom-mappning uttryckligen — knappen i /admin svarar
+# "Produkten kommer från aosom, inte AliExpress" och lägger ingen order.
+#
+# Aosoms egen väg är bulkuppladdning: en fil där VARJE RAD ÄR EN ORDER, som
+# laddas upp på https://www.aosom.de/bulkordering och betalas i klump.
+# `/api/admin/aosom-order` bygger den filen; den här workflowen gör den körbar
+# utan admin-inloggning och utan att CRON_SECRET passerar en terminal — samma
+# nyckel-lösa upplägg som prisreparationen och poleringen.
+#
+# VARFÖR DEN BEHÖVDES. Rutten fanns sedan 2026-08-28 men hade ingen workflow,
+# till skillnad från varje annan admin-rutt vi kör. Den som inte redan hade
+# CRON_SECRET för handen kunde alltså inte beställa en enda Aosom-order — och
+# CRON_SECRET är märkt Sensitive i Vercel och går inte att läsa tillbaka ens för
+# ägaren. Order 10026 (2026-09-02) var den första som gick i den väggen.
+#
+# LÄS PLANEN FÖRST. `plan` skriver ingenting och visar vad som skulle komma med,
+# vilka ordrar som inte gick att få med och varför. `csv` laddar ner en batch
+# som en artifact du kan hämta från telefonen.
+#
+# ⚠️ ADRESSKOLUMNERNAS RUBRIKER ÄR INTE VERIFIERADE mot Aosoms egen mall
+# (`CSV_KOLUMNER` i lib/aosom/bulk-order.ts). Guiden anger bara att kolumn A är
+# artikelnumren och kolumn B antalen. Datan i raderna är rätt oavsett — det är
+# rubrikerna som kan behöva byta namn eller ordning. Ladda ner Aosoms formulär
+# en gång och rätta listan efter det.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan = visa vad som kommer med (skriver inget) · csv = ladda ner filen"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - csv
+      batch:
+        description: "csv: vilken batch, 1-indexerat. Planen säger hur många det blir."
+        required: false
+        default: "1"
+        type: string
+      status:
+        description: "Vilka orderstatusar som räknas med (default: pending)"
+        required: false
+        default: "pending"
+        type: string
+
+jobs:
+  bulkorder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          BATCH: ${{ inputs.batch }}
+          STATUS: ${{ inputs.status }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR — en ::error::-rad på stdout slukas av
+            # kommandosubstitutionen nedan. (Lärdomen från aosom-import.)
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          rot="${BASE%/api/cron/poll-tracking}/api/admin/aosom-order"
+
+          if [ "${MODE}" = "csv" ]; then
+            url="${rot}?format=csv&batch=${BATCH}&status=${STATUS}"
+            # Skilj HTTP-koden från kroppen: en saknad batch svarar 404 med JSON,
+            # inte med CSV, och den skillnaden får inte gå obemärkt förbi.
+            kod=$(curl -sS --max-time 120 -o aosom-bulkorder.csv -w '%{http_code}' \
+              -H "Authorization: Bearer ${CRON_SECRET}" "${url}")
+
+            if [ "$kod" != "200" ]; then
+              echo "::error::HTTP ${kod} fran aosom-order" >&2
+              # Kroppen är JSON vid fel — visa den, men fäll inte på jq.
+              jq -r '.error // .message // "okant fel"' aosom-bulkorder.csv >&2 || cat aosom-bulkorder.csv >&2
+              exit 1
+            fi
+
+            rader=$(wc -l < aosom-bulkorder.csv)
+            if [ "$rader" -lt 2 ]; then
+              echo "::error::CSV:n har bara ${rader} rad(er) — ingen order kom med" >&2
+              cat aosom-bulkorder.csv >&2
+              exit 1
+            fi
+
+            echo "Batch ${BATCH}: $((rader - 1)) order(rar), ${rader} rader inkl. rubrik."
+            echo
+            cat aosom-bulkorder.csv
+            echo
+            echo "Ladda ner artifacten 'aosom-bulkorder' och ladda upp den pa"
+            echo "https://www.aosom.de/bulkordering"
+            exit 0
+          fi
+
+          # --- plan-läget: read-only, skriver ingenting ---
+          url="${rot}?status=${STATUS}"
+          svar=$(curl -sS --max-time 120 \
+            -H "Authorization: Bearer ${CRON_SECRET}" "${url}")
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+            echo "$svar" | jq -r '.message // empty' >&2
+            exit 1
+          fi
+
+          echo "=== Plan ==="
+          echo "Vantande rader: $(echo "$svar" | jq -r '.vantandeRader')"
+          echo
+          echo "$svar" | jq -r '
+            if (.batchar | length) == 0 then
+              "Inga batchar — ingen Aosom-order vantar pa att laggas."
+            else
+              .batchar[]
+              | "Batch \(.nummer): \(.ordrar) order(rar), \(.enheter) enheter, \(.unikaSkus) unika artikelnummer"
+                + "\n    ordernummer: \(.ordernummer | join(", "))"
+            end
+          '
+
+          # Ordrar som sprangt ett av Aosoms tak ensamma — de delas ALDRIG mellan
+          # tva batchar (en order ar en adress och en betalning), sa de lamnas
+          # till en manniska.
+          omojliga=$(echo "$svar" | jq -r '.omojliga | length')
+          if [ "$omojliga" != "0" ]; then
+            echo
+            echo "OMOJLIGA (maste laggas for hand):"
+            echo "$svar" | jq -r '.omojliga[] | "    order \(.orderNumber): \(.skal)"'
+          fi
+
+          hoppade=$(echo "$svar" | jq -r '.hoppadeOver | length')
+          if [ "$hoppade" != "0" ]; then
+            echo
+            echo "HOPPADE OVER:"
+            echo "$svar" | jq -r '.hoppadeOver[] | "    \(.taskId): \(.skal)"'
+          fi
+
+          echo
+          echo "Nasta steg: kor om med mode=csv och batch=<nummer> for att fa filen."
+
+      - name: Spara CSV:n som artifact
+        if: ${{ inputs.mode == 'csv' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: aosom-bulkorder
+          path: aosom-bulkorder.csv
+          # En uppladdning som tyst inte hittar filen ar exakt den sortens
+          # misslyckande huset redan brant sig pa fyra ganger.
+          if-no-files-found: error
