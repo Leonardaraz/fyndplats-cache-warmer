@@ -247,7 +247,7 @@ Det gör problemet mindre men flyttar risken. När en körning kan röra hela
 sortimentet är en trasig feed farligare än en trasig produkt — därför ligger
 spärrarna mot MASSFEL, inte mot enskilda fel.
 
-### Fem egenskaper som inte ska tas bort
+### Sex egenskaper som inte ska tas bort
 
 1. ☠️ **`MIN_FEED_RADER` kastar.** Ger feeden färre än 2 000 rader avbryts
    körningen. En halvhämtad CSV får aldrig tolkas som att lagret tagit slut —
@@ -267,6 +267,14 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
    en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
    kund. Över taket skrivs ingenting och raden hamnar i `varningar`.
+6. ☠️ **Facit för priset är BUTIKEN, inte mappningen** (`jamforelsePris`,
+   sedan 2026-09-02). Mappningens `grossSek` är vad vi TROR att kunden ser;
+   Wix är vad kunden faktiskt ser, och en trasig skrivning får de två att glida
+   isär permanent — se avsnittet nedan. Butikens priser läses i bulk FÖRE
+   loopen (`listV3ProductPrices`, 100 produkter per anrop) och samma
+   massfel-spärr gäller som för feeden: färre än `MIN_WIX_PRODUKTER` (500)
+   produkter är ett LÄSFEL och kastar, för en tom prislista hade sett ut som
+   "alla priser har ändrats" och skrivit om hela katalogen.
 
 Wix skrivs före mappningen, samma ordning och samma skäl som `price-repair`.
 Alla tre kostnadsfälten skrivs — `grossSek`, `costUsd` och `landedCostSek` —
@@ -312,10 +320,10 @@ importen har rätt `landedCostSek` i mappningen och fel pris i Wix. Auktionens
 golvbud och lönsamhetsöversikten läser mappningen, butiken läser Wix — de har
 alltså varit oense.
 
-☠️ **Och driften läker INTE av sig själv.** Den här raden påstod tidigare att nästa
-synk rättar priserna nu när skrivningen biter. Det är fel, och felet är samma
-förväxling en gång till: synken jämför det nyräknade priset mot **mappningens**
-`grossSek`, inte mot Wix.
+☠️ **Och driften läkte INTE av sig själv** — förrän jämförelsen lades om
+2026-09-02. Skrivningen biter sedan 2026-08-29, men det räckte inte, och skälet
+var samma förväxling en gång till: synken jämförde det nyräknade priset mot
+**mappningens** `grossSek`, inte mot Wix.
 
 ```ts
 const gammalt = variant.grossSek;          // mappningen, inte butiken
@@ -323,11 +331,33 @@ const gammalt = variant.grossSek;          // mappningen, inte butiken
 } else if (pris !== gammalt) { nyttPris = pris; }
 ```
 
-Den trasiga skrivningen hann uppdatera mappningen. Nästa körning räknar därför fram
-samma tal som redan står där, ser ingen skillnad, och hoppar över produkten — för
-alltid. Uppmätt 2026-08-29 efter fixen: bäddsoffan `efaa0c7b` står kvar på **4 539 kr
-i Wix, `revision: 1`** (orörd sedan importen) med `grossSek: 3529` i mappningen,
-och körningen 12:20 samma dag rörde den inte.
+Den trasiga skrivningen hann uppdatera mappningen. Nästa körning räknade därför
+fram samma tal som redan stod där, såg ingen skillnad, och hoppade över
+produkten — för alltid. Uppmätt 2026-08-29 efter skrivfixen: bäddsoffan
+`efaa0c7b` stod kvar på **4 539 kr i Wix, `revision: 1`** (orörd sedan importen)
+med `grossSek: 3529` i mappningen, och körningen 12:20 samma dag rörde den inte.
+
+✅ **Lagat 2026-09-02.** `jamforelsePris` gör butiken till facit: priserna läses i
+bulk före loopen och jämförelsen går mot Wix. Driften läker därmed av sig själv,
+och de tjugo raderna nedan rättas på köpet — ingen engångsavstämning behövs.
+
+Tre egenskaper i den fixen som inte ska tas bort:
+
+1. ☠️ **Okänt butikspris skriver INGET pris** (`"saknas"` / `"flera"`). En
+   produkt som inte kom med i prislistan, eller vars varianter har olika pris,
+   har inget entydigt facit — och att då falla tillbaka på mappningen hade
+   återinfört exakt buggen för just de rader där den är svårast att upptäcka.
+   De räknas i `utanWixPris` i stället för att gissas. Lagret berörs inte:
+   det uppslaget går på produkt-id.
+2. ☠️ **Taket (`MAX_PRISANDRING_PCT`) räknas mot butikens pris.** Räknat mot
+   mappningen hade en rad som redan drivit isär sett ut som en liten ändring och
+   sluppit förbi spärren — spärren ska mäta hoppet kunden faktiskt utsätts för.
+3. **`MIN_WIX_PRODUKTER = 500` kastar**, av samma skäl som `MIN_FEED_RADER`:
+   en halvläst prislista ser ut som "alla priser har ändrats", och en körning som
+   tror det skriver om hela katalogen.
+
+Verifierat genom att återinföra `const gammalt = variant.grossSek` — tre tester
+faller, och bara de tre.
 
 ### Auditen: driften är 20 rader, inte 1 611 (2026-08-29)
 
@@ -355,19 +385,25 @@ DYRA i butiken — det kostar sålda varor, inte pengar.
 "rör inte priset", så den som polerar en av de tjugo publicerar det gamla priset utan
 att märka något.
 
-**Fixen biter.** Kontrollerat mot skarpa Wix på alla 4 445 mappningar: varenda en bär
-både `wixVariantId` och ett Wix-`sku` (`FP-…`), och noll rader bär feedens artikelnummer
-i variantens `sku`-fält. Reproducerad matchning på 25 produkter: 25 skulle skriva, noll
-skulle falla. Nästa körning skriver alltså på riktigt — men den rör inte de tjugo, av
-skälet ovan.
+**Skrivfixen biter.** Kontrollerat mot skarpa Wix på alla 4 445 mappningar: varenda
+en bär både `wixVariantId` och ett Wix-`sku` (`FP-…`), och noll rader bär feedens
+artikelnummer i variantens `sku`-fält. Reproducerad matchning på 25 produkter: 25
+skulle skriva, noll skulle falla.
 
-⚠️ **Och kostnadsargumentet här var fel.** Raden påstod att jämföra mot Wix kostar
-"ett Wix-anrop per granskad produkt". Det gör det inte: `POST /stores/v3/products/query`
-ger **100 produkter med pris per anrop** — hela katalogen på 5 397 produkter är
-54 anrop, ett par sekunder av ruttens 240. `limit`-resonemanget i punkt 4 faller
-alltså INTE. Att låta synken läsa butikens pris i bulk och jämföra mot det är både
-billigt och självläkande, och rättar de tjugo på köpet. En engångsavstämning som
-skriver mappningens `grossSek` till Wix för just de tjugo gör bara det ena.
+⚠️ **Kostnadsargumentet mot att jämföra med Wix var fel**, och det var det som höll
+de tjugo kvar. Raden påstod att en sådan jämförelse kostar "ett Wix-anrop per granskad
+produkt". Det gör den inte: `POST /stores/v3/products/query` ger **100 produkter med
+pris per anrop** — hela katalogen på 5 397 produkter är 54 anrop, ett par sekunder av
+ruttens 240. `limit`-resonemanget i punkt 4 föll alltså INTE, och jämförelsen är
+byggd sedan 2026-09-02 (`listV3ProductPrices` → `jamforelsePris`). De tjugo rättas
+av nästa körning, utan engångsavstämning — en sådan hade dessutom bara skrivit
+priset EN gång och lämnat orsaken kvar.
+
+☠️ **Priset per variant kommer med i standardprojektionen — begär inte `fields`.**
+Uppmätt mot skarpa V3 2026-09-02: `actualPriceRange.minValue/maxValue` och
+`variantSummary.variantCount` ligger i svaret utan att efterfrågas. Det är motsatsen
+till `getProductMedia`, som MÅSTE begära `MEDIA_ITEMS_INFO` för att få sina bilder —
+och den asymmetrin är just varför båda är mätta i stället för antagna.
 
 **Regeln, sjunde gången: ett svar utan fel är inget kvitto.** Och de två nya:
 **två fält som heter `sku` men betyder olika saker ska inte ha samma typ** — och

@@ -552,3 +552,108 @@ export async function getV3ProductVariants(productId: string): Promise<WixV3Vari
     };
   });
 }
+
+// ---------------------------------------------------------------------------
+// Butikens priser i bulk — facit för Aosom-prissynken.
+// ---------------------------------------------------------------------------
+
+/** Vad butiken tar för EN produkt, och om siffran går att lita på. */
+export interface WixProduktPris {
+  /**
+   * Priset i SEK, eller null när produkten har varianter med OLIKA pris.
+   *
+   * `actualPriceRange` är ett SPANN över produktens varianter. Är min ≠ max
+   * finns det inget enda "produktens pris", och att gissa på minValue hade
+   * jämfört äpplen med päron. Aosom-sortimentet har en variant per produkt
+   * (`variantCount: 1`, uppmätt), så null ska i praktiken aldrig uppstå där —
+   * men den dagen någon lägger till en variant ska synken märka det, inte
+   * skriva ett pris uträknat på fel underlag.
+   */
+  priceSek: number | null;
+  variantCount: number;
+}
+
+/**
+ * Under så här många produkter är svaret ett LÄSFEL, inte en tom katalog.
+ *
+ * Samma tanke som `MIN_FEED_RADER` i Aosom-synken och halvbildsspärren i
+ * media-cleanup: skydda mot att allt rasar, inte mot att en rad rör sig.
+ * Katalogen är 5 400+ produkter; ett svar under 500 är ett transportfel.
+ */
+export const MIN_WIX_PRODUKTER = 500;
+
+/** Tak på sidor. Räcker till 20 000 produkter — katalogen är 5 400. */
+const MAX_PRIS_SIDOR = 200;
+
+/**
+ * Alla produkters pris, i ETT svep.
+ *
+ * ☠️ VARFÖR DEN FINNS. Aosom-prissynken jämförde det nyräknade priset mot
+ * MAPPNINGENS `grossSek` i stället för mot Wix. Den trasiga prisskrivningen
+ * (2026-08-29) hann uppdatera mappningen, så nästa körning räknade fram samma
+ * tal som redan stod där, såg ingen skillnad och hoppade över produkten — för
+ * alltid. Tjugo rader hade därför rätt pris i böckerna och fel pris i butiken,
+ * och kunde aldrig självläka.
+ *
+ * ☠️ OCH DET GAMLA KOSTNADSARGUMENTET VAR FEL. CLAUDE.md påstod att jämföra
+ * mot Wix kostar "ett Wix-anrop per granskad produkt". Det gör det inte:
+ * `POST /stores/v3/products/query` ger 100 produkter med pris per anrop, så
+ * hela katalogen är ~54 anrop och ett par sekunder av ruttens 240.
+ *
+ * Magert med flit: inga `fields`, alltså ingen PLAIN_DESCRIPTION och inga
+ * tunga SEO-fält. `actualPriceRange` och `variantSummary` kommer med i
+ * standardprojektionen (verifierat mot skarpa API:t 2026-09-02).
+ *
+ * ☠️ KASTAR hellre än kapar tyst. Samma lärdom som `queryAll`: en halv katalog
+ * som ser komplett ut hade fått synken att tro att de saknade produkterna inte
+ * finns i butiken — och de raderna hade då aldrig prisjämförts.
+ */
+export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>> {
+  const priser = new Map<string, WixProduktPris>();
+  let cursor: string | undefined;
+
+  for (let sida = 0; sida < MAX_PRIS_SIDOR; sida++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+
+    const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ query: { cursorPaging } }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`V3 prisquery föll på sida ${sida} (${res.status}): ${text.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      products?: Array<{
+        id?: string;
+        actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+        variantSummary?: { variantCount?: number };
+      }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+
+    for (const p of data.products ?? []) {
+      if (!p.id) continue;
+      const min = Number(p.actualPriceRange?.minValue?.amount);
+      const max = Number(p.actualPriceRange?.maxValue?.amount);
+      const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
+      priser.set(p.id, {
+        priceSek: entydigt ? min : null,
+        variantCount: p.variantSummary?.variantCount ?? 0,
+      });
+    }
+
+    cursor = data.pagingMetadata?.cursors?.next;
+    if ((data.products?.length ?? 0) === 0 || !cursor || data.pagingMetadata?.hasNext === false) {
+      return priser;
+    }
+  }
+
+  throw new Error(
+    `V3 prisquery nådde sidtaket (${MAX_PRIS_SIDOR} sidor, ${priser.size} produkter) med `
+      + `markören kvar. Katalogen är större än väntat — höj taket hellre än att `
+      + `arbeta vidare på en halv lista.`,
+  );
+}

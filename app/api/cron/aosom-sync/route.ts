@@ -23,6 +23,12 @@
 // 2026-08-28 skickar tillbaka `visible` oförändrad — utan det publicerar en
 // variantsInfo-PATCH utkastet den rör.
 //
+// ☠️ FACIT FÖR PRISET ÄR BUTIKEN, INTE MAPPNINGEN (sedan 2026-09-02).
+// Butikens priser läses i bulk före loopen (~54 anrop för hela katalogen).
+// Jämfördes de mot mappningens `grossSek` kunde en rad som drivit isär aldrig
+// självläka — se `jamforelsePris` i lib/aosom/sync.ts. `skipPrices=1` hoppar
+// över den läsningen helt.
+//
 // Query:
 //   ?dryRun=false        skarpt läge (default: torrkörning, skriver ingenting)
 //   ?limit=400           produkter denna körning
@@ -77,13 +83,17 @@ async function handle(req: NextRequest) {
       timeBudgetMs: TIME_BUDGET_MS,
     });
 
-    if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0)) {
+    // `utanWixPris` fäller också raden: produkter vars pris vi inte kunde
+    // jämföra är tyst överhoppade, och tyst överhoppat är precis hur de tjugo
+    // drivande raderna kunde ligga osedda i en månad.
+    if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0 || summary.utanWixPris > 0)) {
       await audit(
         "aosom-sync",
         "batch",
         `${summary.lagerUppdaterade} lagersaldon och ${summary.prisUppdaterade} priser uppdaterade, `
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
-          + `${summary.varningar.length} blockerade prishopp, ${summary.kvar} kvar`,
+          + `${summary.varningar.length} blockerade prishopp, `
+          + `${summary.utanWixPris} utan butikspris, ${summary.kvar} kvar`,
       );
     }
 
