@@ -417,6 +417,16 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
    höjdpilen 614 px = **43,4 cm**. Etiketten var fel, inte specen — och skillnaden är inte
    kosmetisk: 25 cm är ett trappsteg, 45 cm är en grind. Mät på originalbilden och tröskla
    bort strökorn (`rad >= 8 px`), annars drar JPEG-bruset ut bounding-boxen.
+10. ☠️ **Precisera inte en verklig egenskap längre än källan gör.** Svårare att fånga än
+    regel 7, för egenskapen FINNS — det är omfånget eller metoden som är påhittad, och den
+    hakar i den sanna delen som om den stått i samma mening. Två från skoförvaringen
+    2026-09-02, båda skrivna av mig och båda stoppade i sista kontrollen mot den tyska
+    källan: *"Soft-Close-Scharniere"* blev **"soft-close på alla luckor"** (källan räknar
+    inte upp luckorna — skåpet har tre), och *"mattem schwarzen Stahl"* blev
+    **"pulverlackerat stål"** (pulverlack är den vanliga metoden, men står ingenstans).
+    Testet är mekaniskt: **stryk under varje adjektiv och varje kvantifierare i din mening
+    och peka på det i källtexten.** Kan du inte peka — behåll leverantörens egna ord
+    ("soft-close-gångjärn", "matt svart stål"). De är kortare ändå.
 
 > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma produkt
 > hade rubriken *"aberturas de: **-XX-XXcm**"* rakt ut i produktion. Ser du en sådan: sluta
