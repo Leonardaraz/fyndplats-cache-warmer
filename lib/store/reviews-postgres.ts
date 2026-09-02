@@ -25,8 +25,10 @@
 import { sql } from "../db/client";
 import {
   MAX_LIST_ALL,
+  VISIBLE_STATUSES,
   normaliseraFörSkrivning,
   reviewDocId,
+  type ProduktBetyg,
   type ReviewStatus,
   type ReviewStoreLike,
   type StoredReview,
@@ -85,6 +87,35 @@ export class PostgresReviewStore implements ReviewStoreLike {
        limit ${limit}
     `;
     return rows.map((r) => rensa((r as { data: unknown }).data));
+  }
+
+  /**
+   * Ett GROUP BY i stället för Wix aggregate-API. Samma svarsform, så butiken
+   * inte kan märka vilket lager som svarade — det är hela poängen med att
+   * migrera bakom ett interface.
+   *
+   * ☠️ Statusfiltret är `VISIBLE_STATUSES`, delat med Wix-lagret och med
+   * `isVisibleStatus`. En tvilling här hade betytt att ett kort visar ett
+   * snitt som produktsidan sedan inte kan belägga.
+   */
+  async aggregateByProduct(): Promise<ProduktBetyg[]> {
+    const q = sql();
+    const rows = await q`
+      select product_id,
+             count(*)::int            as antal,
+             round(avg(rating)::numeric, 1) as snitt
+        from reviews
+       where status = any(${VISIBLE_STATUSES as unknown as string[]})
+         and rating is not null
+       group by product_id
+    `;
+    return (rows as { product_id: string; antal: number; snitt: string | number }[])
+      .filter((r) => r.product_id && Number(r.antal) > 0)
+      .map((r) => ({
+        productId: r.product_id,
+        antal: Number(r.antal),
+        snitt: Number(r.snitt),
+      }));
   }
 
   async listAll(limit = MAX_LIST_ALL): Promise<StoredReview[]> {

@@ -202,8 +202,26 @@ export async function normaliseraFörSkrivning(review: StoredReview): Promise<St
  * Vad ett recensionslager kan. Wix- och Postgres-versionen implementerar den
  * här, så anroparna aldrig behöver veta vilken som är i drift.
  */
+export interface ProduktBetyg {
+  productId: string;
+  antal: number;
+  /** Snitt med en decimal. */
+  snitt: number;
+}
+
 export interface ReviewStoreLike {
   exists(productId: string, reviewIdAE: string): Promise<boolean>;
+  /**
+   * Antal + snitt per produkt för HELA katalogen, i ETT anrop.
+   *
+   * ☠️ EN FRÅGA, INTE EN PER PRODUKT. Butikens listningssidor visar stjärnor på
+   * varje kort; den naiva vägen hade blivit 24+ anrop per sida och ~800 på
+   * /alla-produkter. Samma form som `listV3ProductPrices` löste för priserna.
+   *
+   * Bara publikt synliga statusar räknas — ett kort får aldrig visa ett snitt
+   * som produktsidan sedan inte kan belägga.
+   */
+  aggregateByProduct(): Promise<ProduktBetyg[]>;
   upsert(review: StoredReview): Promise<void>;
   listByProduct(productId: string, limit?: number): Promise<StoredReview[]>;
   listAll(limit?: number): Promise<StoredReview[]>;
@@ -253,6 +271,43 @@ export class ReviewStore implements ReviewStoreLike {
 
   async listByProduct(productId: string, limit = 100): Promise<StoredReview[]> {
     return this.query({ productId }, limit);
+  }
+
+  /** Wix egen aggregering, grupperad på productId. Uppmätt 388 grupper /
+   *  1 695 omdömen i ETT svar (butiken 2026-08-17). */
+  async aggregateByProduct(): Promise<ProduktBetyg[]> {
+    const res = await fetch(`${WIX_BASE}/data/v2/items/aggregate`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({
+        dataCollectionId: COLLECTION_ID,
+        initialFilter: { status: { $in: VISIBLE_STATUSES } },
+        aggregation: {
+          groupingFields: ["productId"],
+          operations: [
+            { resultFieldName: "antal", itemCount: {} },
+            { resultFieldName: "snitt", average: { itemFieldName: "rating" } },
+          ],
+        },
+        // Katalogen har ~390 produkter med omdömen. Taket är satt med marginal
+        // så svaret ryms i en sida.
+        paging: { limit: 1000 },
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`ReviewStore.aggregateByProduct (${res.status}): ${text.slice(0, 200)}`);
+    }
+    const body = (await res.json()) as {
+      results?: { productId?: string; antal?: number; snitt?: number }[];
+    };
+    return (body.results ?? [])
+      .filter((r) => r.productId && Number(r.antal) > 0)
+      .map((r) => ({
+        productId: String(r.productId),
+        antal: Number(r.antal),
+        snitt: Math.round(Number(r.snitt) * 10) / 10,
+      }));
   }
 
   async listAll(limit = MAX_LIST_ALL): Promise<StoredReview[]> {
