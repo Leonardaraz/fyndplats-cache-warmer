@@ -247,7 +247,7 @@ Det gör problemet mindre men flyttar risken. När en körning kan röra hela
 sortimentet är en trasig feed farligare än en trasig produkt — därför ligger
 spärrarna mot MASSFEL, inte mot enskilda fel.
 
-### Fem egenskaper som inte ska tas bort
+### Sex egenskaper som inte ska tas bort
 
 1. ☠️ **`MIN_FEED_RADER` kastar.** Ger feeden färre än 2 000 rader avbryts
    körningen. En halvhämtad CSV får aldrig tolkas som att lagret tagit slut —
@@ -267,10 +267,104 @@ spärrarna mot MASSFEL, inte mot enskilda fel.
    (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
    en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
    kund. Över taket skrivs ingenting och raden hamnar i `varningar`.
+6. ☠️ **Facit för priset är BUTIKEN, inte mappningen** (`jamforelsePris`,
+   sedan 2026-09-02). Mappningens `grossSek` är vad vi TROR att kunden ser;
+   Wix är vad kunden faktiskt ser, och en trasig skrivning får de två att glida
+   isär permanent — se avsnittet nedan. Butikens priser läses i bulk FÖRE
+   loopen (`listV3ProductPrices`, 100 produkter per anrop) och samma
+   massfel-spärr gäller som för feeden: färre än `MIN_WIX_PRODUKTER` (500)
+   produkter är ett LÄSFEL och kastar, för en tom prislista hade sett ut som
+   "alla priser har ändrats" och skrivit om hela katalogen.
 
 Wix skrivs före mappningen, samma ordning och samma skäl som `price-repair`.
 Alla tre kostnadsfälten skrivs — `grossSek`, `costUsd` och `landedCostSek` —
 aldrig bara priset.
+
+### ☠️ Lagerskrivningen sprang ihjäl sig mot Wix edge-spärr (2026-09-02)
+
+Hittad genom att KÖRA synken skarpt, inte av ett larm. Torrkörningen kan inte
+se det här — den skriver aldrig, så den vet inte vilka skrivningar som skulle
+falla.
+
+| försökta lagerskrivningar | fel |
+|---:|---:|
+| 40 | **0** |
+| 1 150 | **521** |
+| 2 095 | **1 190** |
+
+Alla fel är `429` med en **HTML-kropp**, alltså Wix EDGE-spärr och inte
+API-nivåns JSON-fel — samma tvåa som media-städningen redan mätt upp
+(2026-08-28). Skillnaden mot media-städningen är att synken inte hade
+NÅGONTING: ingen paus, inget återförsök. Den skrev ett `bulk-update-inventory`
+per produkt så fort den kunde, och Wix kapade efter ~600.
+
+Två lagningar, och den andra är den som biter:
+
+1. **Återförsök med backoff** i `bulkUpdateInventoryQuantities` (1/3/8 s, följer
+   `Retry-After`). Fångar API-nivåns 429, 5xx och nätverksfel. ☠️ `wixHeaders()`
+   ligger UTANFÖR loopen — ett saknat token är inte övergående, och inuti
+   try-blocket gjordes det om fyra gånger och rapporterades som "nätverksfel".
+   Ett test fångade just det.
+2. ☠️ **Pacing (`AOSOM_WRITE_DELAY_MS`, default 120 ms).** Det är den här som
+   håller edge-spärren borta, för den går enligt husets egen mätning **inte att
+   vänta ut** inom ruttens 300 sekunder. Samma medicin som
+   `MEDIA_UPLOAD_DELAY_MS` och `FREIGHT_CALL_DELAY_MS`: den billigaste kuren mot
+   en strypning som utlöses av tempo är att inte springa.
+
+☠️ **Och felet var osynligt i audit-raden.** `misslyckade` stod inte i den, och
+raden skrevs bara när något LYCKADES — så en körning som inte kunde skriva
+någonting alls såg ut exakt som en körning där allt redan stämde. Rutten svarar
+dessutom 200. Nionde gången samma lärdom: ett svar utan fel är inget kvitto.
+
+**Verifierat i drift samma dag**, i den ordning som gör talen meningsfulla:
+
+| körning | lager skrivna | priser | fel |
+|---|---:|---:|---:|
+| skarpt svep FÖRE pacing | 905 | 17 | **1 190** |
+| skarpt svep EFTER pacing | 1 110 | 15 | **1** |
+| torrkörning direkt efteråt | **1** | **0** | 0 |
+
+Sista raden är kvittot: 4 514 mappningar granskade, och bara den enda produkt
+som föll på en övergående 429 vill fortfarande skrivas. **Noll priser** vill
+skrivas — mappningen och butiken är i fas över hela katalogen, vilket är exakt
+vad `jamforelsePris` byggdes för.
+
+⚠️ **En hypotes som mätningen slog ihjäl.** Innan felen var kända såg det ut som
+att cronen svälter svansen: en torrkörning visade 2 095 väntande lagerskrivningar
+och 100 % täthet i de sista varven, vilket pekade på att `limit` alltid förbrukas
+i början av artikelnummer-ordningen. Så var det inte. Ryggsäcken var de
+MISSLYCKADE skrivningarna — en produkt vars skrivning föll ser ut att "vilja
+skrivas" vid varje ny granskning. Med skrivningarna lagade konvergerade katalogen
+på fyra varv, och punkt 4 ovan står oemotsagd. Mät innan du bygger om.
+
+⚠️ **Massfel fäller svepet, en enstaka miss varnar.** Både golv (10 st) och andel
+(2 %) krävs, samma form som `MASSFEL_ANDEL`/`MASSFEL_GOLV` i migreringens
+verdikt. Ett rött jobb vid varje svep — och en övergående 429 av tusen
+skrivningar är att vänta — lär mottagaren att sluta läsa, och då är även det
+äkta larmet borta. Missen är ändå aldrig tyst: grupperad på orsak i loggen, i
+audit-raden och i svaret.
+
+⚠️ **Kvar som strukturellt:** `bulkUpdateInventoryQuantities` är ett BULK-API
+som tar en array, men synken anropar den med EN produkt i taget. Att samla
+skrivningarna hade tagit ~2 000 anrop till ~20 och gjort spärren irrelevant i
+stället för uthärdlig. Det kräver att loopen delas i två faser, vilket rör
+ordningen "Wix före mappningen" — inte gjort, medvetet, men det är rätt nästa
+drag om katalogen växer vidare.
+
+### Så körs den för hand
+
+Schemalagd i Vercel (`20 */6 * * *`), men workflowen **"Aosom — synka lager och
+priser"** (`workflow_dispatch`, lägena `torr` · `skarp` · `lager`) kör den på
+begäran — samma nyckel-lösa upplägg som importen och prisreparationen.
+
+Den fanns inte fram till 2026-09-02, och det var en verklig lucka: `CRON_SECRET`
+är märkt Sensitive i Vercel och går inte att läsa tillbaka ens för ägaren, så
+att verifiera en ändring i synken krävde att man väntade på nästa schemalagda
+körning och sedan gissade av en 200:a vad den gjort. Rutten loggar dessutom en
+summeringsrad sedan samma dag — Vercel visade annars bara `GET … 200`.
+
+Svepet loopar markören som importen gör, men sparar den INTE i grenen: synken
+konvergerar utan sparad markör (punkt 4 ovan). `misslyckade > 0` fäller jobbet.
 
 ### ☠️ Prissynken skrev aldrig ett enda pris till Wix (2026-08-29)
 
@@ -312,10 +406,10 @@ importen har rätt `landedCostSek` i mappningen och fel pris i Wix. Auktionens
 golvbud och lönsamhetsöversikten läser mappningen, butiken läser Wix — de har
 alltså varit oense.
 
-☠️ **Och driften läker INTE av sig själv.** Den här raden påstod tidigare att nästa
-synk rättar priserna nu när skrivningen biter. Det är fel, och felet är samma
-förväxling en gång till: synken jämför det nyräknade priset mot **mappningens**
-`grossSek`, inte mot Wix.
+☠️ **Och driften läkte INTE av sig själv** — förrän jämförelsen lades om
+2026-09-02. Skrivningen biter sedan 2026-08-29, men det räckte inte, och skälet
+var samma förväxling en gång till: synken jämförde det nyräknade priset mot
+**mappningens** `grossSek`, inte mot Wix.
 
 ```ts
 const gammalt = variant.grossSek;          // mappningen, inte butiken
@@ -323,11 +417,48 @@ const gammalt = variant.grossSek;          // mappningen, inte butiken
 } else if (pris !== gammalt) { nyttPris = pris; }
 ```
 
-Den trasiga skrivningen hann uppdatera mappningen. Nästa körning räknar därför fram
-samma tal som redan står där, ser ingen skillnad, och hoppar över produkten — för
-alltid. Uppmätt 2026-08-29 efter fixen: bäddsoffan `efaa0c7b` står kvar på **4 539 kr
-i Wix, `revision: 1`** (orörd sedan importen) med `grossSek: 3529` i mappningen,
-och körningen 12:20 samma dag rörde den inte.
+Den trasiga skrivningen hann uppdatera mappningen. Nästa körning räknade därför
+fram samma tal som redan stod där, såg ingen skillnad, och hoppade över
+produkten — för alltid. Uppmätt 2026-08-29 efter skrivfixen: bäddsoffan
+`efaa0c7b` stod kvar på **4 539 kr i Wix, `revision: 1`** (orörd sedan importen)
+med `grossSek: 3529` i mappningen, och körningen 12:20 samma dag rörde den inte.
+
+✅ **Lagat 2026-09-02.** `jamforelsePris` gör butiken till facit: priserna läses i
+bulk före loopen och jämförelsen går mot Wix. Driften läker därmed av sig själv,
+och de tjugo raderna nedan rättas på köpet — ingen engångsavstämning behövs.
+
+Tre egenskaper i den fixen som inte ska tas bort:
+
+1. ☠️ **Okänt butikspris skriver INGET pris** (`"saknas"` / `"flera"`). En
+   produkt som inte kom med i prislistan, eller vars varianter har olika pris,
+   har inget entydigt facit — och att då falla tillbaka på mappningen hade
+   återinfört exakt buggen för just de rader där den är svårast att upptäcka.
+   De räknas i `utanWixPris` i stället för att gissas. Lagret berörs inte:
+   det uppslaget går på produkt-id.
+2. ☠️ **Taket (`MAX_PRISANDRING_PCT`) räknas mot butikens pris.** Räknat mot
+   mappningen hade en rad som redan drivit isär sett ut som en liten ändring och
+   sluppit förbi spärren — spärren ska mäta hoppet kunden faktiskt utsätts för.
+3. **`MIN_WIX_PRODUKTER = 500` spärrar**, av samma skäl som `MIN_FEED_RADER`:
+   en halvläst prislista ser ut som "alla priser har ändrats", och en körning som
+   tror det skriver om hela katalogen.
+
+   ☠️ **Men den FÄLLER INTE körningen, till skillnad från `MIN_FEED_RADER`** —
+   och skillnaden är vad felet kostar. En trasig feed nollar lagersaldon över
+   hela katalogen; där är avbrott enda säkra svaret. En oläsbar prislista kan
+   ingenting förstöra (`jamforelsePris` svarar `"saknas"`, och då skrivs inget
+   pris). Att ändå avbryta hade stoppat LAGERSYNKEN i sex timmar för ett fel i
+   prisdelen — och att sälja något vi inte har är ett kundfel, medan ett orättat
+   pris på ett osynligt utkast inte är det. Lagret synkas alltså vidare, men
+   körningen får inte se frisk ut: felet bärs i `prislistaFel` → svaret,
+   loggraden, audit-raden, och fäller workflow-jobbet.
+4. **Bulkläsningen har backoff.** 54 sidor i följd ligger mitt i det spann där
+   media-städningen mätte upp att Wix svarar 429 (~40–50 sidor i rad). Utan
+   återförsök vore hela prissynken en tärningskastning varje körning. Stegen är
+   `importMediaByUrl`:s (1/3/8 s) plus 60 ms mellan sidor — den billigaste
+   medicinen mot en strypning som utlöses av tempo är att inte springa.
+
+Verifierat genom att återinföra `const gammalt = variant.grossSek` — tre tester
+faller, och bara de tre.
 
 ### Auditen: driften är 20 rader, inte 1 611 (2026-08-29)
 
@@ -355,19 +486,31 @@ DYRA i butiken — det kostar sålda varor, inte pengar.
 "rör inte priset", så den som polerar en av de tjugo publicerar det gamla priset utan
 att märka något.
 
-**Fixen biter.** Kontrollerat mot skarpa Wix på alla 4 445 mappningar: varenda en bär
-både `wixVariantId` och ett Wix-`sku` (`FP-…`), och noll rader bär feedens artikelnummer
-i variantens `sku`-fält. Reproducerad matchning på 25 produkter: 25 skulle skriva, noll
-skulle falla. Nästa körning skriver alltså på riktigt — men den rör inte de tjugo, av
-skälet ovan.
+**Skrivfixen biter.** Kontrollerat mot skarpa Wix på alla 4 445 mappningar: varenda
+en bär både `wixVariantId` och ett Wix-`sku` (`FP-…`), och noll rader bär feedens
+artikelnummer i variantens `sku`-fält. Reproducerad matchning på 25 produkter: 25
+skulle skriva, noll skulle falla.
 
-⚠️ **Och kostnadsargumentet här var fel.** Raden påstod att jämföra mot Wix kostar
-"ett Wix-anrop per granskad produkt". Det gör det inte: `POST /stores/v3/products/query`
-ger **100 produkter med pris per anrop** — hela katalogen på 5 397 produkter är
-54 anrop, ett par sekunder av ruttens 240. `limit`-resonemanget i punkt 4 faller
-alltså INTE. Att låta synken läsa butikens pris i bulk och jämföra mot det är både
-billigt och självläkande, och rättar de tjugo på köpet. En engångsavstämning som
-skriver mappningens `grossSek` till Wix för just de tjugo gör bara det ena.
+⚠️ **Kostnadsargumentet mot att jämföra med Wix var fel**, och det var det som höll
+de tjugo kvar. Raden påstod att en sådan jämförelse kostar "ett Wix-anrop per granskad
+produkt". Det gör den inte: `POST /stores/v3/products/query` ger **100 produkter med
+pris per anrop** — hela katalogen på 5 397 produkter är 54 anrop, ett par sekunder av
+ruttens 240. `limit`-resonemanget i punkt 4 föll alltså INTE, och jämförelsen är
+byggd sedan 2026-09-02 (`listV3ProductPrices` → `jamforelsePris`). De tjugo rättas
+av nästa körning, utan engångsavstämning — en sådan hade dessutom bara skrivit
+priset EN gång och lämnat orsaken kvar.
+
+☠️ **Priset per variant kommer med i standardprojektionen — begär inte `fields`.**
+Uppmätt mot skarpa V3 2026-09-02: `actualPriceRange.minValue/maxValue` och
+`variantSummary.variantCount` ligger i svaret utan att efterfrågas.
+
+☠️ **Och frågan ställs UTAN synlighetsvillkor, med flit.** Alla tjugo är
+`visible:false` — en fråga som tyst filtrerat bort utkast hade gett en fix som
+aldrig når det den skulle laga. Mätt samma dag: utkastet `3a6988b8` returneras
+med `visible:false` och pris ifyllt av en fråga som inte nämner synlighet alls.
+V3 lägger alltså inte på något implicit `visible:true`. Lägg inte till ett. Det är motsatsen
+till `getProductMedia`, som MÅSTE begära `MEDIA_ITEMS_INFO` för att få sina bilder —
+och den asymmetrin är just varför båda är mätta i stället för antagna.
 
 **Regeln, sjunde gången: ett svar utan fel är inget kvitto.** Och de två nya:
 **två fält som heter `sku` men betyder olika saker ska inte ha samma typ** — och
@@ -1935,6 +2078,152 @@ om, inte vad något kostar. Mätt 2026-08-16 på 40 slumpade publicerade produkt
 (692 publicerade mappningar av 876): träffkvot 60 %, ~240 tecken/produkt vid
 tak 8 — alltså ~166k tecken för hela butiken. Cirka 40 % av produkterna får inga
 recensioner alls, mest nya Aosom-EU-listningar som inte hunnit få några hos AE.
+
+### Recensionerna är på väg ur Wix — steg 1, 2 och 4 klara (2026-09-02)
+
+**Taket är recensionerna.** Efter att drift-datan flyttade 2026-08-31 ligger Wix
+på ~3 355 av 4 000 rader, och `FyndplatsImportedReviews` är **2 514 av dem** —
+75 % av allt som är kvar. Aosoms egna produktrecensioner är uppmätta till
+~9 500 texter (`/api/cron/aosom-reviews`) och får aldrig plats så länge raderna
+bor där. Recensionerna är inte offret för taket, de ÄR det.
+
+⚠️ **Översättningen är däremot INTE flaskhalsen**, tvärtemot vad man kunde tro:
+2 421 av 2 514 recensioner är redan publikt synliga, och översättningskön är
+**7 rader**. Chattflödet via `review-translate.yml` fungerar och är mätt.
+
+| steg | vad | frigör taket? |
+|---|---|:---:|
+| 1 | `reviews`-tabell + `PostgresReviewStore` + spec i `ATT_KOPIERA` | nej |
+| 2 | kopiera 2 514 rader, verifiera kanoniskt | nej |
+| 3 | `REVIEWS_BACKEND=postgres` | nej |
+| 4 | butiken läser via API, inte Wix Data direkt | nej |
+| 5 | radera Wix-raderna | **ja** |
+
+**Steg 2 är gjort och mätt:** 2 514 lästa, 2 514 skrivna, noll fel, och
+verifieringen ger `reviews wix=2514 pg=2514 avvikande=0`.
+
+**Steg 4 är gjort och mätt i drift.** Butiken läser inte längre Wix Data för
+recensioner: produktsidan går mot `/api/reviews/<productId>` och listningarnas
+kort mot `/api/review-aggregates`. Kvitto på en skarp, OCACHAD rendering
+(`?cb=`, `x-vercel-cache: MISS`) samma dag:
+
+| | |
+|---|---:|
+| produkter med betyg i aggregatet | 512 |
+| summa synliga omdömen | **2 421** |
+| kort med stjärnor på `/alla-produkter` | 69 |
+| produktsidan | 3 omdömen, snitt 4,7, upplysning + etikett per rad |
+
+Talet 2 421 är exakt det som mättes oberoende mot Wix (2 421 av 2 514 synliga),
+alltså räknar de två vägarna samma sak.
+
+⚠️ **Verifiera ALLTID med cache-bust.** ISR-cachen ligger en timme, så en vanlig
+hämtning direkt efter deployen serverar den GAMLA sidan — och den ser ut precis
+som en fungerande ny. Första mätningen efter merge "visade" att härkomsten inte
+renderades; den läste cachad HTML från förra bygget.
+`/api/admin/revalidate?tag=reviews` tömmer alla produktsidor på en gång (kräver
+`ADMIN_SECRET`), annars löser timmen det av sig själv.
+
+☠️ **`REVIEWS_BACKEND` är FRIKOPPLAD från `STORE_BACKEND`, och default är
+`wix-data`.** Ett första utkast lät `getReviewStore()` läsa `STORE_BACKEND` —
+produktionen står på postgres, så lagret hade bytts i samma sekund koden
+deployades, in i en TOM tabell: `/admin/reviews` hade slutat se de 2 514
+raderna, nya recensioner skrivits dit ingen läser, och butiken fortsatt läsa
+Wix. Ingenting hade kastat. Samma familj som `/api/tracking-events`
+2026-09-01 — en läsare som blir TOM syns varken i en kodaudit eller i en
+felräknare.
+
+☠️ **Affärslogiken DELAS mellan lagren** (`normaliseraFörSkrivning`):
+statusfallbacken (`pending`, aldrig `approved`) och hemflytten av kundbilder är
+regler om RECENSIONER, inte om databasen. En tvilling hade betytt att en
+publicerad recension pekar på leverantörens CDN i det ena lagret men inte i det
+andra, beroende på vilken env-variabel som råkade vara satt.
+
+☠️ **Härkomsten renderas nu, och det är en compliance-spärr — inte en finess.**
+Sidan märkte tidigare bara egna kunder med "✓ Verifierat köp" och lämnade resten
+OMÄRKTA under rubriken "Kundrecensioner". Artikel 7.6 UCPD kräver upplysning om
+huruvida vi säkerställer att omdömena kommer från konsumenter som faktiskt
+använt varan, och bilaga I §23b förbjuder att presentera andras omdömen som egna
+kunders. Varje rad bär nu sitt ursprung hela vägen från lagret
+(`lib/review-source.ts` i butiksrepot), och listan föregås av upplysningen så
+snart EN enda rad är importerad.
+
+☠️ **Okänt ursprung blir ALDRIG "vår kund".** Alla rader före 2026-08-17 saknar
+fältet och är AE-importer; en fallback på `customer` hade varit överträdelsen
+själv. Sju tester låser den riktningen.
+
+### ☠️ Och en SKRIVARE som skulle blivit föräldralös (2026-09-02)
+
+Hittad genom att leta efter kvarvarande Wix-läsare inför steg 3 — och det var
+inte en läsare. Butikens **`/api/omdome`**, dit kunden skriver sitt eget omdöme
+efter ett verifierat köp, gjorde `POST /data/v2/items/save` RAKT mot
+`FyndplatsImportedReviews`.
+
+Det var rätt så länge recensionerna bodde där. Efter växlingen läser allt ur
+Postgres — och kundens omdöme hade fortsatt hamna i Wix, där ingenting läser.
+Raden hade aldrig synts i `/admin/reviews`, aldrig kunnat godkännas, aldrig
+renderats. Wix svarar 200, så varken kunden, loggen eller en felräknare hade
+märkt något.
+
+Spegelbilden av `/api/tracking-events`: där blev en LÄSARE tom, här försvinner
+en SKRIVNING. Och dyrare, för kundomdömena är de enda **förstahands**omdömena —
+de som bär "✓ Verifierat köp" och som ensamma någonsin får bli
+`aggregateRating` mot Google.
+
+☠️ **Kodauditen kunde inte se den.** `store-access-audit.test.ts` läser DET HÄR
+repot; skrivaren bor i butiksrepot. Grinden finns därför nu på båda sidor
+(`lib/review-store-access.test.ts` på `headless-site`), verifierad genom att
+återinföra buggen — den fäller och namnger filen.
+
+Butiken postar nu till **`/api/reviews/customer`** med `REVIEW_INGEST_SECRET`
+som Bearer-token. Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Valideringen ligger kvar i butiken.** Den äger `REVIEW_TOKEN_SECRET`,
+   verifierar tokenets signatur, kontrollerar att produkten ingick i ordern och
+   att bildadresserna pekar på vår egen Wix Media. Att flytta hit hade betytt
+   tvillingar av `verifyReviewToken`, `validateCustomerReview` och
+   `buildCustomerReviewRow`. Rutten är tunn: hemligheten är förtroendegränsen.
+2. ☠️ **`status` och `source` TVINGAS i rutten**, de läses aldrig ur kroppen.
+   En anropare som kunde sätta `approved` hade lagt text direkt på
+   produktsidan förbi modereringen, och `source` styr både etiketten och
+   UCPD-upplysningen.
+3. ☠️ **Fail-closed i båda ändar.** Saknas hemligheten svarar motorn 503 och
+   butiken 503 — aldrig 200. Att svara kunden "tack!" på ett omdöme som aldrig
+   lagrades är det enda utfall som är sämre än ett fel.
+
+⚠️ **`REVIEW_INGEST_SECRET` måste stå i BÅDA Vercel-projekten med samma värde,
+och vara satt innan `REVIEWS_BACKEND` växlas.**
+
+**Ett steg kvar innan raderingen, och ordningen är tvingande:**
+
+1. **Steg 3 — `REVIEWS_BACKEND=postgres` i Vercel.** Butiken läser via API:t
+   oavsett vilket lager som svarar, så växlingen är osynlig för kunden. Först
+   när den är gjord OCH verifierad släpps `FyndplatsImportedReviews` ur
+   `ALDRIG_RADERA` och steg 5 blir möjligt. Spärren står kvar tills dess med
+   flit: den är det som hindrar en radering av rader som fortfarande är facit.
+
+   ☠️ **Kör `betyg-diff` FÖRE växlingen** (workflowen "Migrering — kopiera
+   drift-datan till Postgres", fjärde läget → `/api/admin/review-backend-diff`).
+   Det verifierade radantalet räcker INTE som kvitto här: aggregatet filtrerar
+   på `status` och `rating` och grupperar per produkt, så en status av fel typ
+   eller ett `rating` som blivit sträng i JSONB passerar en radräkning och
+   fäller stjärnorna på varenda produktkort. Rutten instantierar BÅDA lagren
+   direkt — aldrig via `getReviewStore()`, som bara returnerar det env pekar på
+   och därmed hade jämfört ett lager med sig självt.
+
+   **Körd och grön 2026-09-02**, före växlingen: `wix 512 produkter, 2 421
+   synliga omdömen` mot `postgres 512 produkter, 2 421 synliga omdömen`, noll
+   avvikande. Samma tal som butiken renderar. Växlingen är därmed mätt ofarlig
+   i stället för antagen — kör läget en gång till EFTER den, då ska talen vara
+   oförändrade.
+
+   Två spärrar i den som inte ska tas bort: ett **golv på 100 produkter per
+   sida**, för två tomma aggregat är per definition identiska och en fallen
+   läsning hade annars rapporterats som "noll avvikelser, växla på"; och ett
+   eget **tömd-källa-läge** (`kallanTomd`) för tiden efter steg 5, eftersom en
+   jämförelse mot en raderad källa annars hade gjort jobbet rött vid varje
+   körning för alltid. Snittet jämförs med 0,1 i tolerans (Postgres avrundar i
+   SQL, Wix i JavaScript), antalet exakt.
 
 ## Mediainventering: "utan katalogreferens" är inte "oanvänd"
 

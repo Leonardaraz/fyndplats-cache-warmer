@@ -94,7 +94,14 @@ jobs:
             if git diff --cached --quiet; then
               echo "Kön oförändrad sedan förra exporten."
             else
-              git commit -m "Export: kön just nu ($(jq -r '.[\"iOmgången\"]' <<<\"$body\") rader av $(jq -r '.[\"iKön\"]' <<<\"$body\"))"
+              # ☠️ INGA BACKSLASHER HÄR. En kommandosubstitution startar ett NYTT
+              # citeringssammanhang — de yttre dubbelfnuttarna når inte in. Med
+              # `\"` såg jq en backslash där ett uttryck ska stå, föll med
+              # kompileringsfel, och meddelandet blev "( rader av )" med tomma
+              # siffror. Jobbet fällde aldrig, så det pågick tyst.
+              omgang=$(jq -r '.["iOmgången"]' <<<"$body")
+              ikon=$(jq -r '.["iKön"]' <<<"$body")
+              git commit -m "Export: kön just nu (${omgang} rader av ${ikon})"
               git push origin HEAD:"${GITHUB_REF_NAME}"
               echo "Kön skriven till tools/review-translations/queue-latest.json"
             fi

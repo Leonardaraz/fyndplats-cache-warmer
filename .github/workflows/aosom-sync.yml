@@ -1,0 +1,234 @@
+name: Aosom — synka lager och priser
+
+# Samma nyckel-lösa upplägg som prisreparationen och importen: produktionen har
+# Wix-nycklarna, GitHub Actions har CRON_SECRET, och de möts här. Ingen hemlighet
+# passerar chatten eller en terminal — därför går jobbet att starta från telefonen.
+#
+# VARFÖR DEN FINNS. Rutten är schemalagd i Vercel (20 */6 * * *) och gick fram
+# till 2026-09-02 inte att köra för hand alls: CRON_SECRET är märkt Sensitive i
+# Vercel och går inte att läsa tillbaka ens för ägaren. Att verifiera en
+# ändring i synken krävde alltså att man väntade på nästa schemalagda körning
+# och sedan gissade av en 200:a vad den gjort. Samma lucka som importen och
+# prisreparationen redan hade stängt.
+#
+# LÄGEN:
+#   torr    — torrkörning över HELA katalogen. Skriver ingenting, någonstans.
+#             Svarar med hur många lagersaldon och priser som SKULLE skrivas.
+#             Kör den först — den är gratis och den är facit inför ett skarpt lopp.
+#   skarp   — samma svep, men skriver.
+#   lager   — bara lagret (?skipPrices=1). Hoppar över butikens prislista helt.
+#             För när man vill ha saldona färska utan att röra ett enda pris.
+#
+# MARKÖR. Svepet loopar `cursor` → `?after=` tills katalogen är slut, precis som
+# importen — en serverless-rutt har 300 sekunder. Markören sparas däremot INTE i
+# grenen, till skillnad från importsvepet: synken konvergerar utan sparad markör
+# (en redan synkad produkt kostar noll Wix-anrop, så nästa körning går gratis
+# förbi den). Se punkt 4 i CLAUDE.md.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET       — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "torr = skriver inget · skarp = skriver · lager = bara saldon"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - skarp
+          - lager
+      limit:
+        description: "Produkter per varv. 400 är ruttens default."
+        required: false
+        default: "400"
+        type: string
+      max_rounds:
+        description: "Max antal varv i den här körningen."
+        required: false
+        default: "20"
+        type: string
+
+jobs:
+  synka:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Kör
+        env:
+          # VIA MILJÖN, inte ${{ }} inuti skriptet: interpolerat direkt i bash
+          # bryts kommandot av den första apostrofen i ett produktnamn, och det
+          # vore dessutom en injektionsväg.
+          MODE: ${{ inputs.mode }}
+          LIMIT: ${{ inputs.limit }}
+          MAX_ROUNDS: ${{ inputs.max_rounds }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          BASE_SECRET: ${{ secrets.POLL_TRACKING_URL }}
+        run: |
+          set -euo pipefail
+
+          base="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-sync"
+
+          case "$MODE" in
+            torr)  args="dryRun=true" ;;
+            skarp) args="dryRun=false" ;;
+            lager) args="dryRun=false&skipPrices=1" ;;
+            *)     echo "::error::Okänt läge: $MODE" >&2; exit 1 ;;
+          esac
+
+          # Ett anrop. Skriver svaret till stdout, fäller jobbet på ok != true.
+          #
+          # ☠️ FELEN GÅR TILL STDERR, ALDRIG TILL STDOUT.
+          #
+          # Anroparen gör `svar=$(anropa ...)`, och en kommandosubstitution
+          # SLUKAR stdout. En `echo "::error::..."` här hamnade därför i $svar i
+          # stället för i loggen: bildstädningen 2026-08-28 föll med exit 1 och
+          # NOLL rader om varför, medan rutten hela tiden svarade 500 med ett
+          # tydligt meddelande.
+          anropa() {
+            local url="$1"
+            local body
+            body=$(curl -sS --max-time 310 -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$url") || {
+                echo "::error::Anropet gick inte fram: $url" >&2
+                return 1
+              }
+            if [ "$(printf '%s' "$body" | jq -r '.ok // false')" != "true" ]; then
+              echo "::error::Rutten svarade fel: $(printf '%s' "$body" | head -c 500)" >&2
+              return 1
+            fi
+            printf '%s' "$body"
+          }
+
+          granskade=0; lager=0; priser=0; utan=0
+          urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
+          after=""; varv=0; prislistefel=
+
+          while [ "$varv" -lt "$MAX_ROUNDS" ]; do
+            varv=$(( varv + 1 ))
+            url="${base}?${args}&limit=${LIMIT}"
+            if [ -n "$after" ]; then
+              url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
+            fi
+
+            svar=$(anropa "$url")
+
+            g=$(printf '%s' "$svar" | jq -r '.granskade')
+            l=$(printf '%s' "$svar" | jq -r '.lagerUppdaterade')
+            p=$(printf '%s' "$svar" | jq -r '.prisUppdaterade')
+            u=$(printf '%s' "$svar" | jq -r '.utanWixPris // 0')
+            uf=$(printf '%s' "$svar" | jq -r '.urFeeden')
+            sl=$(printf '%s' "$svar" | jq -r '.slutsalda')
+            mi=$(printf '%s' "$svar" | jq -r '.misslyckade')
+            va=$(printf '%s' "$svar" | jq -r '.varningar | length')
+            kvar=$(printf '%s' "$svar" | jq -r '.kvar')
+
+            granskade=$(( granskade + g )); lager=$(( lager + l ))
+            priser=$(( priser + p ));       utan=$(( utan + u ))
+            urfeeden=$(( urfeeden + uf ));  slutsalda=$(( slutsalda + sl ))
+            misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
+
+            pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
+            if [ -n "$pf" ]; then
+              prislistefel="$pf"
+              echo "::warning::Butikens prislista gick inte att läsa: ${pf}"
+            fi
+
+            echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris, ${kvar} kvar"
+
+            # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
+            printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.sku): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
+
+            # ☠️ FELEN SKA SYNAS, INTE BARA RÄKNAS. En räknare som säger "1190
+            # misslyckade" utan att säga VARFÖR är samma tysta fel som huset
+            # redan lärt sig fem gånger. Grupperat på meddelande: 1 190 rader
+            # är oläsbart, åtta distinkta orsaker är en diagnos.
+            printf '%s' "$svar" | jq -r '
+              (.errors // []) as $e
+              | if ($e | length) > 0 then
+                  "  ── \($e | length) fel, grupperade på orsak:",
+                  ( $e | group_by(.error) | sort_by(-length) | .[:8][]
+                    | "     \(length)×  \(.[0].error[:200])" ),
+                  "  ── exempel-artikelnummer: \($e[:5] | map(.sku) | join(", "))"
+                else empty end' || true
+
+            after=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+            if [ -z "$after" ]; then
+              break
+            fi
+          done
+
+          {
+            echo "### Aosom-synk — läge \`${MODE}\`"
+            echo ""
+            if [ "$MODE" = "torr" ]; then
+              echo "**Torrkörning — ingenting skrevs.** Talen är vad en skarp körning skulle göra."
+            fi
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| Varv | ${varv} |"
+            echo "| Granskade | ${granskade} |"
+            echo "| Lagersaldon | **${lager}** |"
+            echo "| Priser | **${priser}** |"
+            echo "| Utan butikspris | ${utan} |"
+            echo "| Ur feeden (saldo nollat) | ${urfeeden} |"
+            echo "| Slutsålda | ${slutsalda} |"
+            echo "| Blockerade prishopp | ${varningar} |"
+            echo "| Misslyckade | ${misslyckade} |"
+            echo ""
+            if [ -n "$prislistefel" ]; then
+              echo "🔴 **Butikens prislista gick inte att läsa:** \`${prislistefel}\`"
+              echo ""
+              echo "Lagersaldona synkades ändå — ett läsfel i prisdelen får inte stoppa dem."
+              echo "Inga priser skrevs. Kör om när Wix svarar igen."
+              echo ""
+            fi
+            if [ "$utan" -gt 0 ]; then
+              echo "⚠️ **${utan} produkter saknade ett entydigt pris i butiken** och fick därför"
+              echo "inget pris skrivet. Det är avsiktligt — vi gissar aldrig fram ett facit — men"
+              echo "talet ska vara noll i normal drift. Se \`jamforelsePris\` i lib/aosom/sync.ts."
+            fi
+            if [ -n "${after}" ]; then
+              echo "⚠️ Katalogen tog inte slut inom ${MAX_ROUNDS} varv. Kör igen — synken"
+              echo "konvergerar utan sparad markör, redan synkade produkter kostar noll skrivningar."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "OK: ${granskade} granskade, ${lager} lager, ${priser} priser, ${misslyckade} misslyckade."
+
+          # ☠️ MASSFEL fäller jobbet — inte en enstaka miss.
+          #
+          # Båda villkoren krävs, samma form som MASSFEL_ANDEL/MASSFEL_GOLV i
+          # migreringens verdikt, och av samma skäl: andelen ensam fäller en
+          # liten körning på brus, golvet ensamt låter en stor körning tappa
+          # hälften utan att någon märker det.
+          #
+          # Varför inte "fäller på minsta fel": uppmätt 2026-09-02 föll 1 av
+          # 1 111 skrivningar på en övergående 429 trots pacing och återförsök.
+          # Ett rött jobb vid varje svep lär mottagaren att sluta läsa — och då
+          # är även det äkta larmet borta. Synken konvergerar dessutom: en miss
+          # skrivs av nästa körning. Missen är ändå ALDRIG tyst, den står
+          # grupperad på orsak ovan och i ruttens audit-rad.
+          forsokta=$(( lager + priser + misslyckade ))
+          golv=10
+          if [ "$misslyckade" -ge "$golv" ] && [ "$forsokta" -gt 0 ] \
+             && [ $(( misslyckade * 100 / forsokta )) -ge 2 ]; then
+            echo "::error::${misslyckade} av ${forsokta} skrivningar föll — det är ett massfel, inte brus." >&2
+            exit 1
+          fi
+          if [ "$misslyckade" -gt 0 ]; then
+            echo "::warning::${misslyckade} av ${forsokta} skrivningar föll. Under massfel-tröskeln (${golv} st och 2 %) — nästa körning skriver om dem."
+          fi
+
+          # ☠️ Ett läsfel i prislistan fäller jobbet ÄVEN om varje produkt gick
+          # igenom. Lagret synkades, så rutten svarar 200 och allt ser friskt ut
+          # — men noll priser skrevs. Precis den sortens tysta halvkörning som
+          # lät tjugo rader driva isär i en månad.
+          if [ -n "$prislistefel" ]; then
+            echo "::error::Butikens prislista gick inte att läsa: ${prislistefel}" >&2
+            exit 1
+          fi

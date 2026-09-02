@@ -20,11 +20,11 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
-import { storeBackend } from "@/lib/store/backend";
+import { reviewsBackend, storeBackend } from "@/lib/store/backend";
 import { ensureSchema } from "@/lib/db/schema";
 import { sql } from "@/lib/db/client";
 import { runCopy, SidFel } from "@/lib/migration/copy-to-postgres";
-import { ATT_KOPIERA, LLM_SAMLINGAR, type TabellSpec } from "@/lib/db/tabeller";
+import { ATT_KOPIERA, LLM_SAMLINGAR, type TabellSpec, RECENSIONER } from "@/lib/db/tabeller";
 import { kanonisk } from "@/lib/migration/kanonisk";
 import { bedömTabell } from "@/lib/migration/verdikt";
 import { PostgresStore } from "@/lib/store/postgres";
@@ -380,15 +380,35 @@ async function handle(req: NextRequest) {
   // Verifieringen är däremot ofarlig och tillåten — den läser bara, och att
   // kunna jämföra kopian mot källan EFTER växlingen är precis vad man vill
   // kunna göra under det dygn Wix-raderna ligger kvar som väg tillbaka.
+  // ☠️ SPÄRREN GÄLLER DE VÄXLADE TABELLERNA, INTE ALLA.
+  //
+  // Den finns för att Wix är INAKTUELLT för allt som redan flyttat: en
+  // omkörning hade skrivit tillbaka gamla rader över levande data. Men
+  // recensionerna är INTE växlade — de har en egen switch (`REVIEWS_BACKEND`,
+  // default wix-data) och ligger ett steg efter i sin egen migrering. För dem
+  // är Wix fortfarande FACIT, och kopieringen är just det som ska hända.
+  //
+  // Utan det här undantaget hade spärren blockerat exakt den kopiering den
+  // inte handlar om, och enda utvägen varit att växla tillbaka STORE_BACKEND
+  // till wix-data — alltså slå av hela driftens databas för att flytta en
+  // kollektion. Felmeddelandet föreslog det, vilket hade varit ett riktigt
+  // dåligt råd att följa.
   const backend = storeBackend();
-  if (backend === "postgres" && p.get("verify") !== "1" && dryRun === false) {
+  const bara = new Set(tabeller);
+  const endastEjVäxlade =
+    bara.size > 0
+    && [...bara].every((t) => t === RECENSIONER.tabell)
+    && reviewsBackend() !== "postgres";
+
+  if (backend === "postgres" && !endastEjVäxlade && p.get("verify") !== "1" && dryRun === false) {
     return NextResponse.json(
       {
         ok: false,
         error:
           "STORE_BACKEND=postgres — växlingen är redan gjord, och Wix är därmed inaktuellt. "
           + "En kopiering härifrån hade skrivit tillbaka gammal data över levande. "
-          + "Behöver du verkligen köra om: växla tillbaka till wix-data först.",
+          + `Kollektioner som ännu INTE växlat får kopieras: t.ex. ?tabeller=${RECENSIONER.tabell} `
+          + "så länge REVIEWS_BACKEND inte är postgres.",
       },
       { status: 409 },
     );

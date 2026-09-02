@@ -23,6 +23,7 @@ import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { applicera, prisgrind, validera, type Patch } from "@/lib/polish/mapping-access";
+import { v3ProduktFinns } from "@/lib/wix/v3-products";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -41,6 +42,30 @@ async function multiplikatorOchAvrundning() {
   return { multiplikator: regler.defaultMultiplier, rounding: regler.rounding };
 }
 
+
+/**
+ * Förklarar en saknad mappning med rätt orsak.
+ *
+ * Bara på 404-vägen, alltså sällan — den kostar ett Wix-anrop och betalar för
+ * sig genom att peka mottagaren åt rätt håll.
+ */
+async function saknadMappningsText(wixProductId: string): Promise<string> {
+  const finns = await v3ProduktFinns(wixProductId);
+  if (finns === true) {
+    return `Ingen mappning för ${wixProductId}, men produkten FINNS i butiken. `
+      + "Den är föräldralös (skapad i Wix men mappningsskrivningen föll) — se "
+      + "summary.orphans i Aosom-importen. Polera den INTE förrän raden finns.";
+  }
+  if (finns === false) {
+    return `Varken mappning eller produkt finns för ${wixProductId}. Id:t är `
+      + "alltså inte en föräldralös produkt utan en felaktig referens — "
+      + "kontrollera var det kom ifrån. Ingenting att polera.";
+  }
+  return `Ingen mappning för ${wixProductId}, och butiken svarade inte på om `
+    + "produkten finns. Den kan vara föräldralös (skapad i Wix men "
+    + "mappningsskrivningen föll). Polera den INTE förrän raden finns.";
+}
+
 export async function GET(req: NextRequest) {
   if (!auktoriserad(req)) {
     return NextResponse.json({ ok: false, error: "Otillåten" }, { status: 401 });
@@ -57,14 +82,16 @@ export async function GET(req: NextRequest) {
   try {
     const rad = await getStore().getMappingByWixProductId(wixProductId);
     if (!rad) {
+      // ☠️ TVÅ HELT OLIKA LÄGEN, OCH DE HAR OLIKA ÅTGÄRD. Meddelandet påstod
+      // förr alltid "kan vara föräldralös" — alltså skapad i Wix men utan
+      // mappningsrad — och skickade därmed mottagaren att leta efter en
+      // föräldralös produkt även när id:t inte fanns i butiken över huvud
+      // taget. Uppmätt 2026-09-02 på 3b64881e: noll träffar i Wix.
+      //
+      // Samma klass som "läste inte tillbaka som förväntat": ett felmeddelande
+      // som pekar åt fel håll kostar mer än inget meddelande alls.
       return NextResponse.json(
-        {
-          ok: false,
-          error:
-            `Ingen mappning för ${wixProductId}. Produkten kan vara föräldralös `
-            + "(skapad i Wix men mappningsskrivningen föll) — se summary.orphans i "
-            + "Aosom-importen. Polera den INTE förrän raden finns.",
-        },
+        { ok: false, error: await saknadMappningsText(wixProductId) },
         { status: 404 },
       );
     }

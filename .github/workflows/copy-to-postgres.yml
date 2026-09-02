@@ -13,6 +13,12 @@ name: Migrering — kopiera drift-datan till Postgres
 #   verifiera — jämför källa och kopia: radantal per tabell OCH ett stickprov
 #               fält för fält. Ett radantal som stämmer är inget kvitto på att
 #               innehållet gör det.
+#   betyg-diff — pre-flight för REVIEWS_BACKEND=postgres. Läser recensions-
+#               AGGREGATET ur båda lagren och jämför. Ett verifierat radantal
+#               säger inget om det: aggregatet filtrerar på status och rating
+#               och grupperar per produkt, så en status av fel typ eller ett
+#               rating som blivit sträng i JSONB passerar radräkningen och
+#               fäller stjärnorna på varje produktkort. Skriver ingenting.
 #
 # ☠️ RUTTEN RÖR ALDRIG EN WIX-RAD. Raderingen är ett eget, senare steg som körs
 # först när växlingen stått en dygnscykel — fram till dess är rollback en
@@ -26,7 +32,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "torr = räkna bara · kopiera = skriv · verifiera = jämför"
+        description: "torr = räkna · kopiera = skriv · verifiera = jämför · betyg-diff = pre-flight för REVIEWS_BACKEND"
         required: true
         default: "torr"
         type: choice
@@ -34,6 +40,7 @@ on:
           - torr
           - kopiera
           - verifiera
+          - betyg-diff
       tabeller:
         description: "Bara dessa tabeller, kommaseparerat (tomt = alla)"
         required: false
@@ -71,11 +78,44 @@ jobs:
             exit 1
           fi
 
-          url="${BASE%/api/cron/poll-tracking}/api/admin/copy-to-postgres"
+          bas="${BASE%/api/cron/poll-tracking}"
+          url="${bas}/api/admin/copy-to-postgres"
           anropa() { curl -sS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "$1"; }
 
           q=""
           [ -n "${TABELLER}" ] && q="&tabeller=${TABELLER}"
+
+          if [ "${MODE}" = "betyg-diff" ]; then
+            svar=$(anropa "${bas}/api/admin/review-backend-diff")
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::Läsningen föll på sidan '$(echo "$svar" | jq -r '.sida // "okänd"')': $(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
+              exit 1
+            fi
+            echo "$svar" | jq -r '.diff | "  wix       \(.wixProdukter) produkter, \(.wixOmdomen) synliga omdömen"'
+            echo "$svar" | jq -r '.diff | "  postgres  \(.postgresProdukter) produkter, \(.postgresOmdomen) synliga omdömen"'
+            echo "$svar" | jq -r '.diff | "  avvikande \(.avvikandeTotalt)"'
+            echo "$svar" | jq -r '.diff.avvikande[] | "    [avvik] \(.productId): wix=\(.wix // "saknas") pg=\(.postgres // "saknas")"'
+            # ☠️ Tömd källa är EJ TILLÄMPLIG, inte underkänd. Efter steg 5 finns
+            # inga Wix-rader kvar att jämföra mot, och utan den här grenen hade
+            # jobbet blivit rött vid varje körning därefter — ett larm som alltid
+            # fyrar är inget larm. Samma form som "källanTömd" i verifieringen.
+            if [ "$(echo "$svar" | jq -r '.diff.kallanTomd')" = "true" ]; then
+              echo
+              echo "EJ TILLÄMPLIG: $(echo "$svar" | jq -r '.diff.varning')"
+              echo "Talet ovan är Postgres egen inventering — läs det som ett saldo,"
+              echo "inte som ett godkännande."
+              exit 0
+            fi
+            if [ "$(echo "$svar" | jq -r '.diff.saker')" != "true" ]; then
+              echo "::error::EJ SÄKER att växla: $(echo "$svar" | jq -r '.diff.varning')" >&2
+              exit 1
+            fi
+            echo
+            echo "OK: de två lagren ger samma stjärnor på varje produkt."
+            echo "Nästa steg: sätt REVIEWS_BACKEND=postgres i Vercel, deploya, och kör"
+            echo "det här läget en gång till — då ska talen vara oförändrade."
+            exit 0
+          fi
 
           if [ "${MODE}" = "verifiera" ]; then
             svar=$(anropa "${url}?verify=1")

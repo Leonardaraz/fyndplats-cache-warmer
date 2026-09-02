@@ -305,17 +305,71 @@ export function summarizeBulkInventoryResult(json: unknown): { failures: number;
 }
 
 /** Sätter absoluta lagersaldon för flera varianter i en request. */
+/**
+ * Backoff för lagerskrivningen. Följer `Retry-After` när Wix skickar den.
+ *
+ * ☠️ UPPMÄTT 2026-09-02, INTE ANTAGET. Ett skarpt Aosom-svep försökte 2 095
+ * lagerskrivningar i rad och fick **1 190 stycken 429** — och svaret var en
+ * HTML-sida, alltså Wix EDGE-spärr, inte det vanliga JSON-felet. Kort körning
+ * (40 skrivningar) gav noll fel; 600 gav 521. Gränsen ligger däremellan.
+ *
+ * Återförsöket är därför inte hela medicinen — huset har redan mätt att
+ * edge-spärren inte går att vänta ut inom ruttens 300 sekunder (se
+ * media-cleanup i CLAUDE.md). Det som håller den borta är att inte springa,
+ * och pacingen ligger hos anroparen. Det här fångar det som ÄR övergående:
+ * API-nivåns 429, 5xx och nätverksfel.
+ */
+const LAGER_PAUS_MS = [1_000, 3_000, 8_000];
+
+/** 429/408/5xx är övergående. Andra 4xx blir inte bättre av att frågas igen. */
+function lagerFelArOvergaende(status: number): boolean {
+  return status === 429 || status === 408 || status >= 500;
+}
+
 export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUpdate[]): Promise<void> {
   if (updates.length === 0) return;
   if (isDryRun()) return;
-  const res = await fetch(`${WIX_BASE}/stores/v3/bulk/inventory-items/update`, {
-    method: "POST",
-    headers: wixHeaders(),
-    body: JSON.stringify(buildBulkInventoryUpdateBody(updates)),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix bulk-update-inventory misslyckades (${res.status}): ${text.slice(0, 400)}`);
+
+  // ☠️ UTANFÖR loopen med flit. `wixHeaders()` kastar när token saknas, och
+  // ett konfigurationsfel är inte övergående — inuti try-blocket hade det
+  // gjorts om fyra gånger och sedan rapporterats som "nätverksfel". Ett test
+  // fångade just det.
+  const headers = wixHeaders();
+  const body = JSON.stringify(buildBulkInventoryUpdateBody(updates));
+
+  let res: Response | null = null;
+  let sistaFel = "";
+  for (let forsok = 0; forsok <= LAGER_PAUS_MS.length; forsok++) {
+    let svar: Response;
+    try {
+      svar = await fetch(`${WIX_BASE}/stores/v3/bulk/inventory-items/update`, {
+        method: "POST",
+        headers,
+        body,
+      });
+    } catch (err) {
+      sistaFel = `nätverksfel: ${err instanceof Error ? err.message : String(err)}`;
+      if (forsok === LAGER_PAUS_MS.length) break;
+      await new Promise((r) => setTimeout(r, LAGER_PAUS_MS[forsok]));
+      continue;
+    }
+    if (svar.ok) {
+      res = svar;
+      break;
+    }
+    const text = await svar.text();
+    sistaFel = `(${svar.status}): ${text.slice(0, 400)}`;
+    if (!lagerFelArOvergaende(svar.status) || forsok === LAGER_PAUS_MS.length) break;
+    const retryAfter = Number(svar.headers?.get?.("retry-after"));
+    await new Promise((r) =>
+      setTimeout(r, Number.isFinite(retryAfter) && retryAfter > 0
+        ? Math.min(retryAfter * 1000, 15_000)
+        : LAGER_PAUS_MS[forsok]),
+    );
+  }
+
+  if (!res) {
+    throw new Error(`Wix bulk-update-inventory misslyckades ${sistaFel}`);
   }
   const json = (await res.json().catch(() => null)) as unknown;
   const { failures, firstError } = summarizeBulkInventoryResult(json);
