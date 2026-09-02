@@ -1044,6 +1044,67 @@ kostnadsfria listningarna.
 **Radera aldrig originalfilen** ur Media Manager. Borttagen ur galleriet blir den
 föräldralös och städas av orphan-svepet, utan risk att döda en fil en annan produkt använder.
 
+### ☠️ Kortets fotremsa är TEXT SOM INGEN GREP HITTAR (2026-09-02)
+
+Trettiotre kort på trettiotvå **publicerade** produkter bar leverantörens namn och
+artikelnummer — `Aosom 838-172BG` — inbränt i fotremsan. De hade legat live sedan
+2026-08-30.
+
+Det bryter mot husets hårdaste regel om leverantörsspår, och just artikelnumret är det
+farligaste av allt att läcka: **dealproffsen.se publicerar samma artikelnummer som `sku`
+och `mpn` i sin JSON-LD**, så numret är en direkt nyckel till vad vi betalar — hos den
+återförsäljare vi konkurrerar med om exakt samma vara.
+
+Det som gör fyndet värt en egen regel är inte felet utan **varför ingen kontroll fångade
+det.** Mätningen "vi läcker inga leverantörsspår" gjordes på HTML: noll träffar på
+`aliexpress`, `alicdn`, `aosom` eller något husmärke. Den mätningen var korrekt — och
+blind. Ett `grep` över sidan kan aldrig se text som är pixlar.
+
+| kontroll | ser fotremsan? |
+|---|---|
+| `grep` i `plainDescription` | nej |
+| `grep` i renderad HTML | nej |
+| `<title>` / meta-kontrollen (Steg 13) | nej |
+| bildgranskningen i Steg 4 | nej — den granskar LEVERANTÖRENS foton, inte våra kort |
+
+Det sista är poängen: vi granskar noga de bilder vi tar EMOT och inte alls de vi SKAPAR.
+
+**Regeln: `note`-raden får bara innehålla en produktegenskap kunden har nytta av.**
+Aldrig ett artikelnummer, aldrig ett leverantörsnamn, aldrig ett internt id. Behövs
+ingen not — lämna den tom; en tom högersida finns redan i kortfamiljen.
+
+**Så granskas hela beståndet igen** (tar minuter, ingen OCR behövs):
+
+1. Beskär nedersta ~8,5 % av varje kort och stapla remsorna till kontaktkartor med
+   filnamnet i marginalen. Tjugo rader per ark är läsbart.
+2. Läs arken. Hittas EN träff: klipp ut det läckta ordet som mall och **mallmatcha**
+   (normaliserad korskorrelation) över alla remsor. Utfallet 2026-09-02 var 33 träffar
+   över 0,94 och sedan ett hopp till 0,78 — ingen gråzon att tolka.
+3. Titta på träffarna innan du rör något. Trettiotre av trettiotre var äkta.
+
+⚠️ **Fotremsans not kommer inte alltid från `cardkit.py` i det här repot.** Korten i
+`tools/polish-assets/<wixProductId>/k<N>.jpg` byggdes av en annan session. Wix
+`sourceUrl` på filen pekar tillbaka på den grenen och sökvägen — det är så man
+kopplar en publicerad bild till det kort som skapade den, och det enda sättet att
+veta VILKEN av produktens sex bilder som är kortet.
+
+**Lagningen är att måla över noten, inte att bygga om kortet.** Fotremsans bakgrund är
+en plan färg, så en täckande rektangel är exakt. Ordmärket står kvar till vänster och
+kortet är i övrigt orört — inget behöver typsättas om, ingen font behöver matchas, och
+inget faktainnehåll kan råka ändras. Skriv sedan med `fieldMask: { paths: ["media"] }`
+så synlighet, varianter och priser inte kan röras.
+
+☠️ **PATCH-svaret innehåller INTE `media` om du inte bad om fältet** — min egen
+verifiering i skrivsteget sa därför `ok: false` på alla sexton första produkterna trots
+att varenda skrivning gick igenom. Läs tillbaka med en EGEN
+`GET …?fields=MEDIA_ITEMS_INFO` och kontrollera två saker: att den nya bilden finns och
+att den gamla är BORTA. Ett svar utan fel är inget kvitto — och ett kvitto som läser fel
+fält är inte heller ett.
+
+⚠️ **De gamla filerna ligger kvar i Media Manager** när de bytts bort ur galleriet.
+Ingen sida länkar till dem, men adressen svarar fortfarande. Att radera dem permanent
+är ett beslut för en människa — lista dem, radera inte.
+
 
 ## Steg 10 – Koppla rätt kategori
 
