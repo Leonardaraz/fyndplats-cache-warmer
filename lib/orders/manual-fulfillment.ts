@@ -131,7 +131,7 @@ export async function markOrderedManually(
     productName: task.productName,
     message:
       `✓ ${task.taskId} markerad som beställd${ref ? ` (referens ${ref})` : ""}. `
-      + "Vakten slutar påminna. Kör läget 'skeppa' när leverantören mejlat spårningsnumret.",
+      + "Vakten slutar påminna. Kör läget 'skickad' när leverantören mejlat spårningsnumret.",
   };
 }
 
