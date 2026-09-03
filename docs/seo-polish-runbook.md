@@ -164,6 +164,14 @@ Den tyska beskrivningen har tre block, och de är inte lika mycket värda:
   listar bara värmare och bruksanvisning. Det är syskonet `96a45e2b` som har höljet. Hade
   titeln fått bestämma hade vi lovat en kund ett tillbehör som inte kommer.
 
+☠️ **Och det behöver inte vara en hel kategori — det kan vara ETT ord i ett
+sammansatt tyskt substantiv.** Tre av åtta "Gasgrill" i runda 44 var **planchor**:
+släta stekhällar utan galler. Tecknet fanns i texten hela tiden —
+`Antihaft-Grill**platte**`, inte `Grill**rost**` — men det syns först när man vet att
+man ska leta. Bild 1 avgjorde på en sekund: en hel svart plåt, inga stavar. Sökordet
+blev `plancha gasol` i stället för `gasolgrill`, och det ordet var dessutom helt
+obesatt i katalogen medan `gasolgrill` fick fem andra sidor.
+
 ☠️ **Och titelns KATEGORIORD kan vara falskt, inte bara tillbehören.** Aosom
 sökordsstoppar titlarna: av 22 utkast som bär "Gaming Stuhl" eller "Gamingstuhl" var
 **sex inte gamingstolar alls** (2026-09-02). Fyra är mesh- eller chefsstolar vars
@@ -1165,6 +1173,64 @@ Samma runda visade också vad ordvalslistor kostar när de blir slarviga: en tys
 listade `metall` och `natur` fällde tre korrekta svenska meningar. **Orden som stavas lika
 på svenska och tyska hör inte hemma i en tyskgrind** — och en grind som fyrar på rätt text
 lär läsaren att bläddra förbi.
+
+### ☠️ `products/query` returnerar INTE `variantsInfo` — en grind på den passerar tom
+
+Runda 44 (gasolgrillar, 2026-09-03). Klart-kriteriet kördes som ett enda
+`POST /stores/v3/products/query` med `fields: ["PLAIN_DESCRIPTION","MEDIA_ITEMS_INFO",
+"DIRECT_CATEGORIES_INFO","URL"]` och rapporterade **"brister: inga" på alla åtta**.
+Två av kontrollerna var värdelösa:
+
+```js
+if (varianter.some(x => x.visible !== true)) brister.push("variant osynlig");
+if (varianter.some(x => !/^FP-/.test(x.sku || ""))) brister.push("SKU fel");
+```
+
+`varianter` var `[]` på varje produkt, och `[].some(...)` är `false`. Båda grindarna
+sa alltså OK utan att ha tittat på någonting. Det syntes bara för att svaret också
+skrev ut `sku: ""` — hade jag inte råkat logga fältet hade rundan publicerats med
+en oprövad SKU- och synlighetskontroll.
+
+`variantsInfo` finns bara på **`GET /products/{id}`**. Det gäller alltså tre rutter
+med samma symtom: `products/search` (dokumenterat sedan 2026-08-26), `products/query`
+(mätt nu) och `?fields=`-projektionen i sig. Samma familj som `MEDIA_ITEMS_INFO` och
+`PLAIN_DESCRIPTION`: **ett fält som inte begärts syns som ett tomt värde, inte som ett
+fel** — men här är det värre, för en tom array får ett `some()`-villkor att svara
+"allt är bra".
+
+**Regeln: en grind över en LISTA måste först kräva att listan finns.** Skriv
+`if (!varianter.length) brister.push("variantsInfo saknas i svaret")` före varje
+`some()`/`every()` — eller läs varianterna med en egen `GET` per produkt, vilket är
+vad Steg 13 gör ändå.
+
+### ☠️ Ett köpavgörande tal kan finnas BARA i pixlarna
+
+Samma runda. Leverantörens egen infografik för planchan `f02917da` hade en panel med
+rubriken *"Included Regulator & Hose"* och ett foto på regulatorn. Zoomat på 900 px
+går etiketten att läsa: **50 mbar**, alltså den TYSKA standarden. Svenska P-tuber
+(P6, P11) ansluts med **30 mbar** och POL-koppling — kontrollerat mot gasoltuben.se,
+Linde Gas och KitchenLab.
+
+Talet står **ingenstans** i feeden. Inte i `Technische Daten`, inte i `Lieferumfang`,
+inte i titeln. Utan bilden hade alla åtta sidorna sagt "regulator och slang ingår"
+som en ren säljpunkt, och kunden hade fått hem en grill som inte går att koppla till
+sin tub. Det är precis en sådan **hård gräns som är en del av köpet** som Steg 7 säger
+ska skrivas som ett positivt villkor med egen rubrik — här `<h2>Så ansluts den till
+svensk gasol</h2>` på alla åtta.
+
+Två saker följer:
+
+1. **Läs siffrorna i bilderna, inte bara i texten.** Måttritningen granskas redan
+   (Steg 4). Etiketter på produkten, på förpackningen och i leverantörens
+   feature-collage är samma sorts källa — och den enda källan när feeden tiger.
+2. **En engelsk eller tysk infografik kastas inte, den byggs om.** Panelen blev ett
+   svenskt `card_grid` med de tre delfotona och rätt text. Fyndet hade gått förlorat
+   om bilden bara plockats bort som "utländsk text".
+
+☠️ Och gränsen för vad som får påstås: bilden bevisar vad som ligger i **den här**
+produktens kartong. De sju andra sidorna säger därför bara vad `Lieferumfang` säger
+plus den svenska anslutningen — inte att deras regulator är 50 mbar, för det är inte
+mätt.
 
 ### ☠️ Ett feltypat produkt-id ska INTE kunna skriva någonting
 
