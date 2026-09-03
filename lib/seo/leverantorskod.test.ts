@@ -53,6 +53,25 @@ describe("hittaKodrader", () => {
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
   });
 
+  // ☠️ ARTIKELREFERENS — fyra publicerade sidor bar den etiketten, och den
+  // saknades i listan. `Referens` matchade dess nio sista tecken i löptexten
+  // men aldrig som rad, eftersom `<li><p>` då inte stod omedelbart före.
+  it("hittar Artikelreferens", () => {
+    const rad = "<li><p>Artikelreferens: z3A-566V01AK</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar två koder med färgparentes emellan", () => {
+    const rad = "<li><p>Artikelreferens: z70-281V90GN (grön) / z70-281V90RD (röd)</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  // Ordgränsen får inte hindra att etiketten hittas när den står först.
+  it("hittar Referens som eget ord", () => {
+    const rad = "<li><p>Referens: z90-222V00BK</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
   // ☠️ Saxen får inte ta för mycket. Det här är hela skälet till att värdet
   // måste se ut som en kod och inte bara etiketten stämma.
   //

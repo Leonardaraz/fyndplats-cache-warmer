@@ -26,15 +26,32 @@
 // ska stå kvar. Utan värdemönstret hade saxen klippt bort dem också — och en
 // sax som tar för mycket är farligare än läckan den lagar.
 
-/** Etiketter som i huset har burit ett leverantörsnummer. */
+/**
+ * Etiketter som i huset har burit ett leverantörsnummer.
+ *
+ * ☠️ LÄNGST FÖRST. Regex-alternation tar det FÖRSTA alternativ som matchar, så
+ * `Referens` före `Artikelreferens` hade matchat de nio sista tecknen och lämnat
+ * `Artikel` utanför — och då stämmer inte `<li><p>` omedelbart före etiketten,
+ * så hela raden går fri. Fyra publicerade sidor bar `Artikelreferens:` av precis
+ * det skälet (2026-09-03).
+ */
 const ETIKETTER = [
+  "Artikelreferens",
   "Artikelnummer",
+  "Modellreferens",
+  "Modellnummer",
   "Artikelnr",
   "Art\\.nr",
-  "Modellnummer",
-  "Modellreferens",
   "Referens",
 ].join("|");
+
+/**
+ * Ingen etikett får matcha inne i ett längre ord. Utan den här gränsen fångade
+ * `Referens` slutet av `Artikelreferens` — vilket råkade vara nyttigt i
+ * rapporten men gjorde saxen oförutsägbar: den träffade i löptexten och missade
+ * som rad. En etikett som ska klippas ska stå i listan, inte hittas av misstag.
+ */
+const ORDSTART = "(?<![A-Za-zÅÄÖåäö])";
 
 /**
  * Leverantörskodens form: tre tecken, bindestreck, tre till fjorton tecken
@@ -60,7 +77,13 @@ const ETIKETTER = [
 const alnumMedSiffra = (max: number) =>
   `(?=[0-9A-Za-z]{2,${max}}(?![0-9A-Za-z]))[A-Za-z]*[0-9][0-9A-Za-z]*`;
 const KOD = `${alnumMedSiffra(7)}-${alnumMedSiffra(14)}`;
-const KODER = `${KOD}(?:\\s*/\\s*${KOD})*`;
+/**
+ * En eller flera koder på samma rad. Mellan dem kan stå en kort parentes med
+ * färgnamnet — `370-281V90GN (grön) / 370-281V90RD (röd)` låg så på två
+ * publicerade sidor.
+ */
+const PARENTES = "(?:\\s*\\([^)]{1,20}\\))?";
+const KODER = `${KOD}${PARENTES}(?:\\s*/\\s*${KOD}${PARENTES})*`;
 
 /**
  * En hel spec-rad som bara innehåller etikett + leverantörskod.
@@ -70,13 +93,13 @@ const KODER = `${KOD}(?:\\s*/\\s*${KOD})*`;
  * du skickade in matchar inte det som faktiskt ligger där.
  */
 export const LEVERANTORSKOD_RAD = new RegExp(
-  `<li><p>(?:<span style="font-weight: ?\\d+">)?\\s*(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*${KODER}\\s*</p></li>`,
+  `<li><p>(?:<span style="font-weight: ?\\d+">)?\\s*${ORDSTART}(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*${KODER}\\s*</p></li>`,
   "gi",
 );
 
 /** Fristående kodförekomst i löpande text (rubrik, slug, meta) — bara för rapport. */
 export const LEVERANTORSKOD_TEXT = new RegExp(
-  `(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*(${KODER})`,
+  `${ORDSTART}(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*(${KODER})`,
   "gi",
 );
 
