@@ -1040,6 +1040,40 @@ Importen byggde SKU:n ur den **råa** (engelska, märkesledda) sluggen, t.ex. `F
 **SKU-format** (= `lib/import/sku.ts`): `FP-<produkt>-<variant>` ur den **polerade sluggen** + variantens optionsvärde. ASCII (å/ä→a, ö→o), ledande **dropship-märke strippat** (etablerade märken som Pagani Design/LAIKOU behålls), produkt-delen **≤24 tecken** (kapa på bindestreck), variant-delen **≤12 tecken**, hela **≤40 tecken**, **unikt inom produkten**. Saknar produkten optionsvärden → bara `FP-<produkt>`.
 
 ```
+
+> ☠️ **En FÄRGFAMILJ spränger regeln — den kan inte ge distinkta SKU:er.** Uppmätt
+> 2026-09-03 på hundvagnarna (batch 58). Husets andra regel säger att färgvarianter
+> får EGNA korslänkade sidor, så färgen ligger i sluggens svans — och det är precis
+> den svansen `PRODUCT_PART_MAX = 24` klipper bort:
+>
+> | | |
+> |---|---|
+> | `hundvagn-mellanstor-hund-25-kg-ljusgra` | → `FP-hundvagn-mellanstor-hund` |
+> | `hundvagn-mellanstor-hund-25-kg-morkgron` | → `FP-hundvagn-mellanstor-hund` |
+> | …och tre till | **samma sträng, fem gånger** |
+>
+> Kört genom den riktiga `buildVariantSkus`, inte uppskattat. Att i stället ta HELA
+> sluggen hjälper inte: `FP-` + slug blir 41–43 tecken på fyra av de fem, och Wix
+> tak är 40. **Ingen läsning av regeln som den står ger fem distinkta SKU:er.**
+>
+> Det strider mot `sku.ts`:s egen motivering — *"snygga, icke-krockande artikel-
+> nummer i flöden/feed"*. Regeln skrevs för `FP-<produkt>-<variant>`, där färgen är
+> ett OPTIONSVÄRDE på en produkt; 24-teckensgränsen finns bara för att reservera
+> plats åt just den variant-delen. När familjen är fem separata produkter finns
+> ingen variant-del att reservera för, och reservationen äter i stället det enda
+> som skiljer produkterna åt.
+>
+> **Tills regeln ändras: behåll den SÄRSKILJANDE svansen och kapa mitten i stället.**
+> Batch 58 fick `FP-hundvagn-25-kg-ljusgra`, `…-morkgron`, `…-gra`, `…-senapsgul`,
+> `…-svart-rod` — svenska, distinkta, ≤40. Samma princip på 30 kg-vagnen, där
+> svansen (`hopfallning`) INTE särskiljer något: `FP-hundvagn-30-kg-ett-stegs`.
+>
+> ⚠️ **Vad som INTE är fixat:** `lib/import/sku.ts` bygger fortfarande krockande
+> SKU:er för varje framtida färgfamilj som importeras. Skadan är begränsad —
+> JSON-LD:ns `sku` är Wix eget UUID, så kollisionen når varken kund eller Google,
+> och `bySku` i `lib/wix/orders.ts` (som HADE slagit ihop fem produkters försäljning
+> till en rad) läses i dag bara av tester. Men den är latent, och den växer med
+> varje färgfamilj.
 GET .../products/{PRODUCT_ID}?fields=VARIANT_OPTION_CHOICE_NAMES   // slug, options, variants (sku + optionsnamn) + färsk revision
 PATCH .../products/{PRODUCT_ID}
 ```
