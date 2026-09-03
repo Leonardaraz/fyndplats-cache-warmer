@@ -33,7 +33,39 @@ export function hittaTrasigaLankar(html: string): string[] {
   return [...html.matchAll(TRASIG_LANK)].map((m) => `https:/${m[1]}`);
 }
 
+/**
+ * Wix-editorns sökvägar, översatta till butikens egna. ENBART UPPMÄTTA PAR.
+ *
+ * ☠️ Poleringen skriver ibland den sökväg Wix-editorn visar i stället för den
+ * headless-butiken svarar på. Uppmätt mot skarpa www.fyndplats.se 2026-09-03:
+ *
+ *   /product-page/<slug>   308 → /produkt/<slug>     fungerar, men via ett hopp
+ *   /category/<slug>       404                        DÖD
+ *   /kategori/<slug>       200
+ *
+ * Rättningen gäller BARA hrefs som ändå ska skrivas om för att de saknar
+ * värdnamn. En sida där länken redan är absolut och hel rörs inte — blast-
+ * radien ska vara exakt defekten, samma regel som prisreparationens
+ * "oförändrat inköpspris → varianten rörs inte alls".
+ *
+ * ⚠️ Lägg aldrig till ett par här utan att först mäta båda sidorna. En gissad
+ * sökväg byter en död länk mot en intern 404, vilket är sämre: den blir
+ * dessutom crawlad.
+ */
+export const SOKVAGSRATTNINGAR: ReadonlyArray<readonly [string, string]> = [
+  ["product-page/", "produkt/"],
+  ["category/", "kategori/"],
+];
+
+/** Byter ut ett uppmätt felaktigt prefix. Okända sökvägar lämnas orörda. */
+export function rattaSokvag(sokvag: string): string {
+  for (const [fel, ratt] of SOKVAGSRATTNINGAR) {
+    if (sokvag.startsWith(fel)) return ratt + sokvag.slice(fel.length);
+  }
+  return sokvag;
+}
+
 /** Sätter tillbaka värdnamnet. Rör bara `href`, aldrig löpande text. */
 export function lagaTrasigaLankar(html: string, bas: string = BUTIKENS_URL): string {
-  return html.replace(TRASIG_LANK, (_hela, sokvag: string) => `href="${bas}/${sokvag}"`);
+  return html.replace(TRASIG_LANK, (_hela, sokvag: string) => `href="${bas}/${rattaSokvag(sokvag)}"`);
 }
