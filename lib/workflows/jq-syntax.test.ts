@@ -214,18 +214,50 @@ describe("☠️ varje jq-program i en workflow går att kompilera", () => {
 // Kontrollen är därför strukturell och riktad mot just det här felet: i en
 // GitHub-workflow är ALLT utom en handfull toppnycklar indenterat, så en rad
 // som börjar i kolumn 1 har med stor sannolikhet fallit ur ett block.
-const TOPPNYCKLAR = new Set([
-  "name", "on", "jobs", "env", "permissions", "defaults", "concurrency", "run-name",
-]);
+/**
+ * Rader som fallit ur en `run: |`-blockskalär.
+ *
+ * En blockskalär slutar vid FÖRSTA raden som är mindre indenterad än blockets
+ * innehåll. Är den raden inte en giltig ny nyckel på förälderns nivå blir
+ * YAML:en ogiltig.
+ *
+ * ☠️ FÖRSTA VERSIONEN AV DEN HÄR GRINDEN VAR FÖR SMAL. Den letade bara efter
+ * rader i KOLUMN 1, eftersom det var så `aosom-feed-search.yml` gick sönder.
+ * Men `aosom-remap.yml` hade exakt samma fel med två stegs indrag — mitt i ett
+ * jq-program — och passerade galant. Den workflowen hade aldrig gått att
+ * starta sedan den skapades, och ingen märkte det: den skrevs, testades grönt
+ * och rapporterades klar. Grinden mäter därför indrag mot blocket, inte mot
+ * kolumn 1.
+ */
+export function raderSomFallitUrBlock(text: string): string[] {
+  const rader = text.split("\n");
+  const fel: string[] = [];
+  const indrag = (r: string) => /^(\s*)/.exec(r)![1].length;
 
-export function raderIKolumnEtt(text: string): string[] {
-  return text
-    .split("\n")
-    .filter((rad) => rad.length > 0 && !/^\s/.test(rad) && !rad.startsWith("#"))
-    .filter((rad) => {
-      const m = /^([A-Za-z][A-Za-z0-9_-]*):/.exec(rad);
-      return !m || !TOPPNYCKLAR.has(m[1]);
-    });
+  for (let i = 0; i < rader.length; i++) {
+    const m = /^(\s*)(?:-\s+)?[A-Za-z_][\w-]*:\s*[|>][-+]?\d*\s*$/.exec(rader[i]);
+    if (!m) continue;
+    const nyckelIndrag = m[1].length;
+
+    let j = i + 1;
+    while (j < rader.length && rader[j].trim() === "") j++;
+    if (j >= rader.length) break;
+    const blockIndrag = indrag(rader[j]);
+    if (blockIndrag <= nyckelIndrag) continue;
+
+    for (; j < rader.length; j++) {
+      const rad = rader[j];
+      if (rad.trim() === "") continue;
+      if (indrag(rad) >= blockIndrag) continue;
+      // Dedent. Legitimt slut på blocket = ny nyckel eller listpost på
+      // förälderns nivå. Allt annat är en rad som ramlat ur.
+      const slutarBlocket = indrag(rad) <= nyckelIndrag
+        && /^\s*(?:-\s+)?[A-Za-z_][\w-]*:|^\s*-\s/.test(rad);
+      if (!slutarBlocket) fel.push(rad);
+      break;
+    }
+  }
+  return fel;
 }
 
 describe("☠️ ingen workflow har en rad som fallit ur sitt block", () => {
@@ -245,15 +277,16 @@ describe("☠️ ingen workflow har en rad som fallit ur sitt block", () => {
       "Rader i feeden: \\(.raderILista)",
       `"'`,
     ].join("\n");
-    expect(raderIKolumnEtt(trasig)).toEqual(["Rader i feeden: \\(.raderILista)", `"'`]);
+    // En rapport per block räcker — den första dedenten är där YAML:en bröts.
+    expect(raderSomFallitUrBlock(trasig)).toEqual(["Rader i feeden: \\(.raderILista)"]);
   });
 
   it("släpper igenom en frisk fil", () => {
-    expect(raderIKolumnEtt("name: X\non:\n  workflow_dispatch:\njobs:\n  a:\n    steps: []\n")).toEqual([]);
+    expect(raderSomFallitUrBlock("name: X\non:\n  workflow_dispatch:\njobs:\n  a:\n    steps: []\n")).toEqual([]);
   });
 
   it.each(filer)("%s", (fil) => {
-    const fallna = raderIKolumnEtt(readFileSync(join(WORKFLOW_KATALOG, fil), "utf8"));
+    const fallna = raderSomFallitUrBlock(readFileSync(join(WORKFLOW_KATALOG, fil), "utf8"));
     expect(
       fallna,
       `Rader som börjar i kolumn 1 utan att vara en toppnyckel. En sådan rad `

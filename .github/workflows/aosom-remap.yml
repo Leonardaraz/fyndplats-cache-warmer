@@ -85,13 +85,11 @@ jobs:
             "${url}")
 
           echo "=== Plan ==="
-          echo "$svar" | jq -r '.plan // {} |
-            "  artikelnummer   \(.sku)
-  fran            \(.["frånLeverantör"])
-  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)
-  kundpris        \(.prisSek) kr (ORORT)
-  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %
-  fraktandel      \(.fraktandel)"'
+          # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag an
+          # blocket avslutar YAML:ens `run: |` och gor filen olasbar for
+          # GitHub. Den har workflowen gick aldrig att starta fran att den
+          # skapades tills det upptacktes 2026-09-03.
+          echo "$svar" | jq -r '.plan // {} | "  artikelnummer   \(.sku)\n  fran            \(.["frånLeverantör"])\n  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)\n  kundpris        \(.prisSek) kr (ORORT)\n  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %\n  fraktandel      \(.fraktandel)"'
 
           if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
             echo "::error::$(echo "$svar" | jq -r '.error // "hinder — se listan nedan"')" >&2
