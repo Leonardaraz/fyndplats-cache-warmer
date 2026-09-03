@@ -2178,7 +2178,7 @@ kort mot `/api/review-aggregates`. Kvitto på en skarp, OCACHAD rendering
 | produkter med betyg i aggregatet | 512 |
 | summa synliga omdömen | **2 421** |
 | kort med stjärnor på `/alla-produkter` | 69 |
-| produktsidan | 3 omdömen, snitt 4,7, upplysning + etikett per rad |
+| produktsidan | 3 omdömen, snitt 4,7 |
 
 Talet 2 421 är exakt det som mättes oberoende mot Wix (2 421 av 2 514 synliga),
 alltså räknar de två vägarna samma sak.
@@ -2205,18 +2205,29 @@ regler om RECENSIONER, inte om databasen. En tvilling hade betytt att en
 publicerad recension pekar på leverantörens CDN i det ena lagret men inte i det
 andra, beroende på vilken env-variabel som råkade vara satt.
 
-☠️ **Härkomsten renderas nu, och det är en compliance-spärr — inte en finess.**
-Sidan märkte tidigare bara egna kunder med "✓ Verifierat köp" och lämnade resten
-OMÄRKTA under rubriken "Kundrecensioner". Artikel 7.6 UCPD kräver upplysning om
-huruvida vi säkerställer att omdömena kommer från konsumenter som faktiskt
-använt varan, och bilaga I §23b förbjuder att presentera andras omdömen som egna
-kunders. Varje rad bär nu sitt ursprung hela vägen från lagret
-(`lib/review-source.ts` i butiksrepot), och listan föregås av upplysningen så
-snart EN enda rad är importerad.
+**Härkomsten BÄRS av varje rad, men VISAS inte** (rättat 2026-09-03). Den
+renderades en kort stund: upplysningsstycket ovanför listan och etiketten
+"Importerat omdöme" per rad. **Leonard tog bort båda samma dag** (#596 i
+butiksrepot) — ingen informationstext om var omdömena kommer ifrån. Det är hans
+beslut som butiksägare, och den här raden påstod motsatsen i ett dygn.
+
+Vad som står kvar, och som är den gräns som gäller:
+
+☠️ **"✓ Verifierat köp" får ALDRIG sättas på en importerad rad.** I den här
+koden betyder etiketten ett köp i VÅR butik, verifierat med token per order.
+Fotnoten under listan ("skrivna av verifierade köpare") står kvar med flit —
+den säger verifierade KÖPARE av varan, inte kunder hos oss.
 
 ☠️ **Okänt ursprung blir ALDRIG "vår kund".** Alla rader före 2026-08-17 saknar
 fältet och är AE-importer; en fallback på `customer` hade varit överträdelsen
-själv. Sju tester låser den riktningen.
+själv. Testerna i `lib/review-source.ts` låser den riktningen, och de gäller
+oförändrat — det är bara PRESENTATIONEN som togs bort, inte klassificeringen.
+
+⚠️ Bakgrunden till varför etiketterna byggdes står kvar här för den som tar upp
+frågan igen: artikel 7.6 UCPD kräver upplysning om huruvida vi säkerställer att
+omdömena kommer från konsumenter som faktiskt använt varan, och bilaga I §23b
+förbjuder att presentera andras omdömen som egna kunders. Bedömningen av om
+fotnoten ensam räcker är Leonards.
 
 ### ☠️ Och en SKRIVARE som skulle blivit föräldralös (2026-09-02)
 
