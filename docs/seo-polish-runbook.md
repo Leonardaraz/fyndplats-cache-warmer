@@ -310,6 +310,23 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > vidare. Samma klass som `queryAll` som tyst kapade — **en halv katalog som ser
 > komplett ut.**
 
+> ☠️ **`slug` har OLIKA FORM på query och på GET — och fel form läser tomt, inte fel.**
+> `POST /products/query` returnerar `slug` som en **naken sträng**; `GET /products/{id}`
+> returnerar den som ett **objekt** `{ name: "…" }`. Ett svep som gör `p.slug.name` på
+> query-svaret får därför `undefined` på varje rad, `|| ""` gör det till tomma strängar,
+> och kollisionskontrollen rapporterar **noll krockar över hela katalogen** utan ett enda
+> fel. Uppmätt 2026-09-03: ett svep över alla 5 467 produkter gav noll publicerade
+> trädgårdsbord; med `typeof p.slug === "string" ? p.slug : p.slug.name` gav samma svep
+> **nio** — `runt-tradgardsbord`, `tradgardsbord-aluminium`,
+> `utdragbart-tradgardsbord-80-160-cm`, `tradgardsbord-tra-vagnshjul-110-cm` med flera.
+> Åtta nya sidor hade kannibaliserat nio levande, och rundan blåstes av på grund av det.
+>
+> Läs alltid `typeof p.slug === "string" ? p.slug : ((p.slug && p.slug.name) || "")`, och
+> **kräv att svepet hittar minst en känd publicerad sida** innan du litar på ett "noll
+> krockar". Samma familj som markören ovan och som `queryAll` som tyst kapade: felet är
+> inte att svaret är fel, utan att det är TOMT — och ett tomt svar från rätt API mot rätt
+> katalog ser i koden exakt likadant ut som ett friskt.
+>
 > Sluggen är filtrerbar (`name` är det INTE). Träff, eller en produkt du vet ligger nära → **separera med en kvalificerare som står i BÅDE namn, slug och titel**, inte bara i texten. Fungerande exempel: `arbetsstol med hjul` vs `sadelstol med ryggstöd` · `konstgjord julgran` vs `konstgjord julgran med pynt` · `litet växthus` vs `växthusduk` · `elmotorcykel barn` vs `elmotorcykel 6v barn` vs `eldriven trehjuling barn`. Är produkterna i praktiken samma vara → det är en dubblett, inte ett sökordsproblem: flagga till Leonard.
 >
 > ☠️ **Och avgör det på MÅTTEN, inte på namnet.** Den farliga dubbletten är intern: 595 av
