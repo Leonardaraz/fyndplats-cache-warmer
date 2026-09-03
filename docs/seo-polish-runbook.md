@@ -1120,6 +1120,55 @@ hittade två fel i texten och ett i grinden själv.
 **Regeln: en grön grind betyder att grinden är nöjd, inte att texten är rätt.** Två av de
 tre fynden ovan var osynliga för varje fält-kontroll, och det tredje låg i kontrollen själv.
 
+### ☠️ Ett jämförande påstående inom EGEN batch går att grinda mekaniskt — gör det
+
+Runda 42 (trädgårdsbänkar, 2026-09-03). Texten sa *"den lättaste av våra åtta"* om
+furubänken på 10,9 kg. Rottingbänken i samma batch väger **10,3**. Felet stod på tre
+ställen — en h2, ett FAQ-svar och en korshänvisning som dessutom pekade åt fel håll
+(*"ett kilo lättare"* om en bänk som var 0,6 kg TYNGRE).
+
+Skillnaden mot Steg 12-fyndet ovan är att det här påståendet gällde **batchen**, inte
+katalogen — och en batch är åtta rader i en dict, alltså mätbar på tre kodrader:
+
+```python
+vikt = {k: v["vikt"] for k, v in P.items()}
+lattast, tyngst = min(vikt, key=vikt.get), max(vikt, key=vikt.get)
+for k, v in P.items():
+    if "lättast" in v["html"].lower() and k != lattast: fel(k, f"{lattast} väger mindre")
+    if "tyngst"  in v["html"].lower() and k != tyngst:  fel(k, f"{tyngst} väger mer")
+```
+
+Samma grind går att skriva för *djupast*, *högst*, *längst* och *minst* — varje superlativ
+du använder om den egna batchen har ett tal i spec-tabellen bakom sig. **Skriv grinden i
+samma stund du skriver superlativet**, för korrekturet hittar det inte: meningen är
+välformulerad, siffran i den är rätt, och det enda som är fel är rangordningen mot sju
+andra sidor du inte läser samtidigt.
+
+Samma runda visade också vad ordvalslistor kostar när de blir slarviga: en tyskgrind som
+listade `metall` och `natur` fällde tre korrekta svenska meningar. **Orden som stavas lika
+på svenska och tyska hör inte hemma i en tyskgrind** — och en grind som fyrar på rätt text
+lär läsaren att bläddra förbi.
+
+### ☠️ Ett feltypat produkt-id ska INTE kunna skriva någonting
+
+Samma runda: ett av åtta id var transkriberat med två omkastade tecken
+(`…-45e3-…` mot `…-43e5-…`). Skrivningen gjorde ingen skada — men bara för att
+PATCH-slingan börjar med en `GET` på samma id och hoppar över produkten när den 404:ar.
+Rätt id gick inte att gissa (båda formerna är giltiga UUID:er) utan lästes tillbaka ur
+katalogsvepet.
+
+Två grindar, båda billiga, och de fångar olika fel:
+
+1. **`GET` före `PATCH`, och `startsWith(nyckeln)` på svaret.** Ett id som inte finns
+   404:ar; ett id som finns men är FEL produkt fastnar på prefixet.
+2. **Checksumma på nyttolasten.** Räkna `sum(ord(c) for c in html)` i Python, bädda in
+   talet, och låt JS:en räkna om det innan den skriver. Längddeltat fångar en text som
+   TAPPAT tecken; checksumman fångar en text där ett tecken bytts mot ett annat — och det
+   är just vad en transkribering gör.
+
+**Regeln: en skrivning som bygger på en sträng du skrivit av för hand behöver en grind som
+inte gör det.**
+
 
 -----
 
