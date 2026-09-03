@@ -540,6 +540,51 @@ karusellen när du sveper familjen; den känner till syskon som en slug-grep mis
 mer historik. Vilken av de två som ska bort är ett affärsbeslut med ett inköpspris i
 sig — flagga den för Leonard och gå vidare.
 
+### ☠️ Räkna familjen på DISTINKTA produkter — färgtvillingarna är inte lucka (2026-09-03)
+
+Runda 48. Ett svep gav **37 agility-utkast mot 1 publicerad sida**, vilket ser ut som den
+största luckan i katalogen. Den var det inte. Av de 37 var:
+
+| kluster | antal | vad som skilde |
+|---|---:|---|
+| Hopphinder 4-pack, `L99 × B65 × H94` | **5** | bara färgen (vit, gul, ljusblå, grön, blå) |
+| Hundvippa `180 × 30 × 30`, 30 kg | **4** | bara färgen |
+| Bilramp `41,5 × 15 × 80,5` paket | **3** | bara färgen — och redan täckt av två publicerade sidor |
+| Bågset `82 × 19 × 19`, 4,5 kg | 2 | bara färgen |
+| Hinderset `104 × 27 × 21`, 4,5 kg | 2 | **identiska**, 799 mot 829 kr |
+| Balansbom `335 × 55 × 60`, 14 kg | 2 | bara färgen |
+| A-hinder `113 × 65 × 12,5` paket | 2 | bara färgen |
+
+Kvar: **~15 distinkta produkter.** Att polera "familjen" hade betytt sju sidor med samma
+foton och samma spec — den interna dubbletten Google straffar, skapad av oss.
+
+**Måttgrinden ska alltså köras i BÅDA riktningarna**: mot de publicerade sidorna *och*
+mellan utkasten inbördes, före batchvalet. Paketmåttet duger som nyckel — det är samma
+kartong för hela färgfamiljen.
+
+☠️ **Ta med MATERIALSTRÄNGEN i jämförelsen — den kostar ingenting och den fäller.**
+`cc7ab001` matchade den publicerade `agilityset-hund-3-delar` på hopphinder
+`128 × 23 × 9–100 cm`, hoppring `9–75 cm` **och** material (`ABS, PE, polyester`) — ordagrant
+samma sträng i båda spec-tabellerna. Tre tal plus materialet är ett starkare bevis än tre tal,
+och materialraden står redan i båda tabellerna. Utkastet lämnades opolerat och gick till
+Leonard: den publicerade sidan kostar 689 kr, utkastet 789 kr.
+
+### ☠️ En krock i den EGNA batchen löses med ett bättre ord, inte med en kvalificerare
+
+Två av runda 48:s produkter ville båda ha huvudordet `hundvippa`: en agilityvippa på 180 cm
+och en 80 cm lång vaggande bräda som också är en hundtrappa. Runbookens vanliga recept är en
+kvalificerare i namn, slug och titel — `hundvippa-agility-180-cm` mot
+`hundvippa-trappa-2-i-1-80-cm`. Det hade fungerat, men det är två sidor som slåss om samma
+ord i all evighet.
+
+Den bättre lösningen var att **leta upp det exakta ordet för den andra varan**. Den vaggande
+underdelen ÄR en balansbräda — ett etablerat svenskt ord inom hundträning — så den fick
+`balansbräda hund` som eget huvudord och `hundvippa` blev fritt. Noll krock, två sidor som
+rankar på var sitt ord, och den mer specifika sidan fick ett ord med högre köpintention.
+
+**Leta efter det exakta ordet innan du delar ett generiskt.** En kvalificerare är
+andrahandsvalet, inte förstahandsvalet.
+
 ### Tre fynd ur hundvagnarna som gäller oavsett vem som polerar dem
 
 - ☠️ **En tillkopplad cykelkärra har ett svenskt utrustningskrav.** Transportstyrelsen,
@@ -931,6 +976,24 @@ undantag utan husets linje.
 
 -----
 
+### ☠️ Ett färgfält kan vara SCRAMBLAT i en färgfamilj — då är färgen inte publicerbar
+
+Runda 47 lärde att färgnamnet kan vara fel mot bilden. Runda 48 visade det värre fallet:
+**två färgfält på SAMMA produkt som motsäger varandra.**
+
+Hundvippan `2b7853e9` anger `Farbe: Gelb` i den tyska specen, medan produktens egna renderingar
+visar obehandlat barrträ med svart halkskydd — ingen gul yta någonstans. Färgtvillingen
+`9a1432fc`, med identiska mått och vikt, anger `Farbe: Naturholz` i den tyska texten och
+`Färg: Blau, Rot, Orange` i sin svenska spec-rad. Samma fält, samma produkt, två svar.
+
+I ett sådant läge finns inget att verifiera mot: bilden kan vara en delad rendering för hela
+färgfamiljen, och texten är bevisat opålitlig i minst en riktning. **Utelämna färgen helt** —
+ur brödtexten och ur spec-tabellen — och flagga klustret. Det är samma regel som
+*"vet vi inte — utelämna"*, bara med två felaktiga källor i stället för noll källor.
+
+Att gissa åt något håll är sämre än att tiga: en kund som beställer "gul" och får naturträ
+returnerar varan, och en kund som ser fotot får ändå veta hur den ser ut.
+
 ## Steg 6 – Variantsanering (bara flervariantprodukter)
 
 **Aosom-rader har en enda variant utan optioner — hoppa över.** Kontrollera ändå att
@@ -1123,6 +1186,22 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > `normalisera(källa) == lagrad plainDescription` — byte för byte, på alla åtta i runda 47.
 > Det är ett starkare kvitto än ett längdtal: en formel kan stämma medan tecknen är fel.
 >
+> ☠️ **Vill du ha kvittot som en HASH — räkna den med aritmetik som är exakt i BÅDA
+> språken.** Att läsa tillbaka åtta beskrivningar à 3–4 kB kostar kontext; ett längdtal plus
+> en hash gör samma jobb för en rad. Men den första hashen (FNV-1a) gav **åtta avvikelser av
+> åtta** medan varenda längd stämde på tecknet — och felet låg i hashen, inte i datan:
+> `h * 16777619` överstiger 2^53 i JavaScripts float64, så JS-sidan tappade precision och
+> Python-sidan inte. Två korrekta implementationer av samma formel gav olika svar.
+>
+> ```js
+> const hasha = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 1000000007; return String(h); };
+> ```
+>
+> `h * 31` med `h < 1e9` ger 3,1e10 — långt under 2^53, alltså exakt i både JS och Python.
+> Med den stämde alla åtta. **Ett kvitto vars två sidor räknas olika mäter
+> implementationerna, inte datan** — och det ser ut precis som åtta trasiga skrivningar en
+> minut före publicering.
+
 > Den gamla formeln, för sammanhangets skull:
 >
 > 📏 **Längddeltat är ett kvitto — men det har TVÅ termer.**
@@ -1874,6 +1953,32 @@ assert all(ord(t) > 0x20 for t in OSYNLIGT), "grinden ar avvapnad"
 Regeln generaliserar: **en grind vars villkor är ett osynligt tecken kan inte
 granskas genom att läsas.** Den måste antingen härledas ur något synligt (en
 kodpunkt) eller bevisas med ett test som återinför defekten.
+
+### ☠️ En tysk-detektor byggd av ORDSTAMMAR fäller svenska böjningar (2026-09-03)
+
+Grinden som ska hitta oöversatt tyska är den som oftast ljuger, och den ljuger alltid åt
+samma håll: **falskt larm på en text som är helt svensk.** Tre träffar på en runda:
+
+| grinden innehöll | matchade | i ordet |
+|---|---|---|
+| `[üöä]` | `ö`, `ä` | *för*, *gräsmattan*, *höjd* — halva svenskan |
+| `Steg`, `Panel` | hela ordet | *steg*, *panel* — svenska ord, inte tyska |
+| `Rampe` (utan `\b`) | ordstammen | **Rampe**rnas lutning |
+
+Den sista fällde Klart-kriteriet på `4fdd8d3c` **ett steg före publiceringen**, på en
+spec-rad som lyder `Rampernas lutning: 28°`. Hade larmet trotts hade en färdig sida hållits
+tillbaka; hade det avfärdats hade nästa — äkta — larm avfärdats med.
+
+**Två regler:**
+
+1. **Ordboundade markörer.** `\bRampe\b` matchar inte *Rampernas*. `\bfür\b`, `\bHunde\b`,
+   `\bWippe\b`, `\bHolz\b`. Aldrig en naken ordstam.
+2. **Aldrig ett tecken som finns i svenskan i teckenklassen.** `ü` och `ß` är säkra; `ö` och
+   `ä` är det inte. `för` är svenska, `für` är tyska — och skillnaden är en enda prick.
+
+☠️ **Och prova detektorn mot en känd SVENSK text innan du litar på en träff.** Samma regel
+som mutationstestet nedan, speglad: där bevisar man att grinden fäller på ett fel, här att
+den *inte* fäller på det som är rätt. En grind som bara provats åt ena hållet är halvmätt.
 
 ### ☠️ Ett mutationstest som bara kräver "någon brist" provar inte grinden du tror
 
