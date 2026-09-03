@@ -345,6 +345,31 @@ med den rättsliga orsaken, och berätta för Leonard varför.
 
 - **Leksaker** → **EN71**-märkning och åldersgräns ska stå i produkttexten. Saknas
   certifieringen i leverantörsdatan: flagga hellre än att skriva ut en gissad märkning.
+- ☠️ **Skyddsgrindar för BARN → EN 1930.** Aosom har 58+ grindutkast, och de ser alla
+  likadana ut: ett vitt metallgrind i en dörröppning. Skillnaden mellan en **hundgrind** och
+  en **barngrind** finns inte i produkten utan i provningen, och den kan inte läsas ur ett
+  foto. Marknadsförs grinden mot barn måste EN 1930 vara belagd — annars är det ett
+  overifierat säkerhetslöfte på en produkt vars felläge är ett barn i en trappa.
+
+  Uppmätt 2026-09-03 på `49069c2c`: tyskan säger ordagrant *"Zertifiziertes
+  Treppenschutzgitter"*, *"schützt Babys und Haustiere"* och *"Geeignet für Babys von 6–24
+  Monaten"* — och **namnger ingen standard någonstans**. "Certifierad" utan norm är inte en
+  certifiering; det ordet ensamt får aldrig bära en åldersangivelse vidare till svensk text.
+
+  | Läge | Vad som gäller |
+  |---|---|
+  | Leverantören namnger **EN 1930** | Skriv barnanvändningen, med standarden utskriven |
+  | Leverantören säger "certifierad" utan norm | **Skriv om den som husdjursgrind**, utelämna barn |
+  | Texten säger uttryckligen barn men inget mer | Sätt undan och flagga till Leonard |
+
+  ⚠️ **Klämmontage hör inte hemma överst i en trappa.** En tryckmonterad grind hålls på
+  plats av friktion mot karmen och är avsedd för dörröppningar och nederkanten av en trappa;
+  överst i trappan ska grinden vara skruvad. Säljer vi en klämgrind ska monteringssättet
+  därför stå i spec-tabellen (`Montage: klämmontage` / `skruvmontage`) — det är den uppgift
+  som avgör var grinden får sitta, och den saknas i leverantörens svenska spec-rad.
+
+  🔒 **Begränsningen skrivs positivt, med egen rubrik** — samma regel som `Maxlast 120 kg`.
+  *"En grind för hunden"* med vad den ÄR provad för, aldrig *"inte testad för barn"*.
 - **El till kroppen / medicintekniskt / kosttillskott** → flagga till Leonard, polera inte.
 - **Vapen och vapenrepliker** → stopp och flagga. *(Gäller i praktiken bara AliExpress.)*
 - **Licensfigurer och skyddade kännetecken** → stopp och radera. Disney, Marvel, Pokémon,
