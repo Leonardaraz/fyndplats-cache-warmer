@@ -493,6 +493,48 @@ bild avgör frågan på en sekund.
    är det samma fysiska produkt. Polera den inte; två egna URL:er med samma foton är
    den dubblett Google faktiskt straffar.
 
+### ☠️ Pixelgrinden BEVISAR en dubblett — den utesluter ingen. Måtten gör det (2026-09-03)
+
+Grinden ovan skrevs efter hundvagnarna, där bilden avgjorde rätt fyra gånger av fyra.
+Nästa runda visade andra halvan av samma mynt. `c9a24404` (utkast, 1 809 kr) är samma
+fysiska vara som den publicerade `redskapsskap-grantra-115-cm` (2 109 kr): 75 × 56 × 115 cm,
+invändigt 68 × 50 × 112, två hyllplan 34 × 46,5 cm, 6 kg per hylla, lutande asfalttak, hasp.
+**Lägsta bildavstånd mellan de två: 15,65** — femton gånger över tröskeln 1,0.
+
+Skälet är strukturellt, inte otur: de två inköpsvägarna har **olika fotouppsättningar av
+samma vara**. AliExpress-listningen och Aosom-feeden fotograferar var för sig. Ett avstånd
+under 1,0 bevisar därför fortfarande en dubblett — men ett avstånd över 1,0 bevisar
+ingenting alls.
+
+**Kör därför båda grindarna, i den här ordningen:**
+
+1. **Bredda familjesvepet först.** En grep på `redskapsbod` gav 12 publicerade sidor;
+   `redskap|tradgardsskap|forrad|forvaringsbox|utomhusskap|verktygsskap|skjul|bod-|-bod`
+   gav **30** — och den saknade sidan var just dubbletten. Familjen heter olika saker:
+   `plastbod`, `platbod`, `vedbod`, `redskapsbod`, `redskapsskap`, `tradgardsskap`,
+   `plastskjul`, `forvaringsbox`. **Ett stamord räcker aldrig.**
+2. **Måttgrinden** — den som faktiskt fäller. Skrapa varje publicerad familjesidas
+   `Yttermått` och jämför kandidatens tre yttermått mot varje sidas cm-tal:
+
+   ```python
+   tal = {float(m.group(1).replace(",", "."))
+          for m in re.finditer(r"(\d{1,3}(?:[,.]\d)?)(?=\s*(?:cm|[x×]))", sidtext)}
+   traff = sum(1 for v in (b, d, h) if any(abs(v - x) <= 1.0 for x in tal))
+   # 3/3 = dubblettmisstanke · 2/3 = nära · annars unik
+   ```
+
+   Runda 47: de åtta som blev kvar fick **max 2/3**, den kända dubbletten **3/3**.
+3. **Pixelgrinden** som snabb bekräftelse när måtten träffar, och som fångst av det som
+   delar foton utan att dela spec.
+
+☠️ **Kör måttgrinden med den kända dubbletten som KONTROLL** (`--kontroll`-läge). En grind
+som inte fäller på ett fall du vet är sant är inte mätt, bara skriven — samma regel som
+mutationstestet i Steg 12.
+
+⚠️ **Det som faktiskt hittade dubbletten var karusellen "Liknande produkter" på en
+syskonsida.** Namnet stod där, och specifikationstabellen bekräftade det. Läs den
+karusellen när du sveper familjen; den känner till syskon som en slug-grep missar.
+
 ☠️ **En dubblett ska INTE raderas härifrån.** Den publicerade sidan kan vara billigare
 (runda 47: den live-lagda kostade 629 kr, utkastet 729 kr), ha fler varianter eller
 mer historik. Vilken av de två som ska bort är ett affärsbeslut med ett inköpspris i
@@ -858,6 +900,37 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
 
 -----
 
+### Fyra fällor i en Aosom-spec som alla kostade en rättelse (runda 47)
+
+1. ☠️ **Feedens `Vikt` är FRAKTVIKT, inte varans vikt.** Kolumnen heter
+   `Weight (incl. Package)`, och den hamnar i det svenska spec-blocket som bara "Vikt".
+   `275e9b8a` hade **23 kg** i den tyska `Technische Daten` och **28,7 kg** i det svenska
+   blocket — det ser ut som en motsägelse och är två olika mått. Har du bara feed-talet:
+   skriv **`Fraktvikt`**. Har du båda: `Vikt 23 kg (fraktvikt 28,7 kg)`.
+2. ☠️ **Färgnamnet i specen kan vara fel — skriv efter bilden.** `bd3fe8da` står som
+   `Farbe: Gelb`; alla fem bilder visar honungsbetsat barrträ med grön takpapp. "Gult trä"
+   hade varit en kund som packar upp en annan möbel än den hen köpte.
+3. ☠️ **`begehbar` är marknadsföring — kontrollera det INVÄNDIGA djupet.** `25ed0c55`
+   säljs som `begehbares Design` med ett invändigt djup på **58 cm** och en dörröppning på
+   2 × 35 cm. Man står utanför och når in. Översätt inte ordet; beskriv förhållandet.
+4. **`Fenster` behöver inte vara ett fönster.** `275e9b8a`:s "Fenster für gute Belüftung"
+   är en gångjärnsförsedd trälucka i gaveln — en ventil, inte en ruta. Det syns bara på
+   bilden. `25ed0c55` har däremot fyra riktiga fönster, i akryl.
+
+☠️ **Och prosan kan säga tvärtemot leverantörens egna måttetiketter.** `bd3fe8da`:s text
+säger hyllor till höger och öppet fack till vänster; både måttritningen och specens egen
+rad `Größe des linken Regals` säger motsatsen. **Ritningen är mätt på varan — den vinner
+över prosan.** Samma produkt gav dessutom två olika uppsättningar fria höjder (40/35/35 på
+ritningen, 37/48/42,5 i specen); ritningens summerar rimligt mot innerhöjden, specens inte.
+
+⚠️ **Träslaget motsäger sig självt i ungefär varannan Aosom-rad.** `Fichtenholz` i prosan
+mot `Tannenholz` i specen (`7d28f235`), eller `Kiefern- und Zedernholz` mot `Tannenholz`
+(`275e9b8a`). Huset skriver **`massivt barrträ`** när källan är oense och `gran` när den är
+entydig — den formuleringen står redan på publicerade syskonsidor, så den är inte ett nytt
+undantag utan husets linje.
+
+-----
+
 ## Steg 6 – Variantsanering (bara flervariantprodukter)
 
 **Aosom-rader har en enda variant utan optioner — hoppa över.** Kontrollera ändå att
@@ -1029,6 +1102,29 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > Grinden nedan är alltså inte bokföring: den är det enda som ser skillnad på en
 > länk som fungerar och en som inte gör det.
 
+> ☠️ **Formeln nedan är OFULLSTÄNDIG — den saknar `<li>`-termen. Räkna inte, NORMALISERA.**
+> *(Uppmätt 2026-09-03: åtta av åtta produkter föll på formeln med +105 till +140 tecken.
+> Orsaken är att Wix slår in varje `<li>`-innehåll i ett `<p>`, alltså **+7 per `<li>`** —
+> och att radbrytningarna mellan block strippas, alltså **−1 per `\n`**. En formel som är
+> fel är sämre än ingen formel: den lär dig att avfärda ett äkta larm som brus.)*
+>
+> Gör i stället om KÄLLAN till det Wix skulle ha lagrat och kräv **exakt strängmatchning**:
+>
+> ```python
+> def normalisera(h):
+>     h = re.sub(r">\s*\n\s*<", "><", h)                                  # radbrytningar
+>     h = h.replace("<strong>", '<span style="font-weight: 700">')          # +21 per par
+>     h = h.replace("</strong>", "</span>")
+>     h = re.sub(r'(<a href="[^"]+")>', r'\1 target="_self">', h)           # +15 per länk
+>     h = re.sub(r"<li>(?!<p>)(.*?)</li>", r"<li><p>\1</p></li>", h, flags=re.S)  # +7 per li
+>     return h
+> ```
+>
+> `normalisera(källa) == lagrad plainDescription` — byte för byte, på alla åtta i runda 47.
+> Det är ett starkare kvitto än ett längdtal: en formel kan stämma medan tecknen är fel.
+>
+> Den gamla formeln, för sammanhangets skull:
+>
 > 📏 **Längddeltat är ett kvitto — men det har TVÅ termer.**
 > Wix serialiserar om `<strong>…</strong>` (17 tecken) till
 > `<span style="font-weight: 700">…</span>` (38), alltså exakt **+21 per par**, och lägger
@@ -1778,6 +1874,29 @@ assert all(ord(t) > 0x20 for t in OSYNLIGT), "grinden ar avvapnad"
 Regeln generaliserar: **en grind vars villkor är ett osynligt tecken kan inte
 granskas genom att läsas.** Den måste antingen härledas ur något synligt (en
 kodpunkt) eller bevisas med ett test som återinför defekten.
+
+### ☠️ Ett mutationstest som bara kräver "någon brist" provar inte grinden du tror
+
+Runda 47 lade till ett fjärde krav utöver returkod, landad mutation och icke-tom stdout:
+**vilken grind som föll måste stämma**. Varje mutation bär den textsnutt lint ska svara med,
+och testet fäller om någon ANNAN grind fångade felet.
+
+Det behövdes direkt. Mutationerna "sluggkrock i batchen" och "slug redan publicerad" gav
+båda `sökordet saknas i sluggen` — sökordsgrinden råkade ligga före krockgrinden och
+maskerade den. Testet såg en brist och godkände; kollisionskontrollen var i praktiken
+oprövad. Med kravet på rätt meddelande föll den rätta grinden på båda.
+
+Samma körning hittade två riktiga defekter i grindarna:
+
+- ☠️ **Ett `inte` någonstans i meningen friade ett förbjudet påstående.** Regeln
+  "vattentät får bara stå i en fråga eller ett nekande svar" var skriven som *"meningen
+  innehåller `?`, `nej` eller `inte`"* — och därmed passerade mutationen *"Boxen är
+  vattentät och lutar så att vattnet rinner av, men falsen är **inte** packad."*
+  **Nekandet måste stå omedelbart före ordet**, inte var som helst i meningen.
+- **Lint kraschade i stället för att rapportera** när en mutation bröt korshänvisningen:
+  uppslaget `P[[x for x in P if …][0]]` gav `IndexError` på en slug som inte längre fanns.
+  En grind som kraschar ger tom stdout, och utan returkods-kontrollen hade det räknats som
+  godkänt. **En grind ska alltid rapportera, aldrig kasta.**
 
 ### ☠️ Ett mutationstest som bara läser stdout rapporterar en krasch som "godkänt"
 
