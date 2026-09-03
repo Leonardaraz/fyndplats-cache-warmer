@@ -335,6 +335,13 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > inte att svaret är fel, utan att det är TOMT — och ett tomt svar från rätt API mot rätt
 > katalog ser i koden exakt likadant ut som ett friskt.
 >
+> ⚠️ **`slug` tar bara LIKHET — `$startsWith` avvisas.** Fältet är en
+> `HashedString` i V3, så `{slug: {$startsWith: "hundebox"}}` ger
+> `400 INVALID_FILTER: Operator is not compatible with type in field path`
+> (uppmätt 2026-09-03). Bara `$eq` och `$in` fungerar, alltså bara slugs du
+> redan känner. Ska du hitta alla utkast i en produktgrupp finns ingen genväg:
+> svep katalogen och filtrera i koden.
+>
 > Sluggen är filtrerbar (`name` är det INTE). Träff, eller en produkt du vet ligger nära → **separera med en kvalificerare som står i BÅDE namn, slug och titel**, inte bara i texten. Fungerande exempel: `arbetsstol med hjul` vs `sadelstol med ryggstöd` · `konstgjord julgran` vs `konstgjord julgran med pynt` · `litet växthus` vs `växthusduk` · `elmotorcykel barn` vs `elmotorcykel 6v barn` vs `eldriven trehjuling barn`. Är produkterna i praktiken samma vara → det är en dubblett, inte ett sökordsproblem: flagga till Leonard.
 >
 > ☠️ **Och avgör det på MÅTTEN, inte på namnet.** Den farliga dubbletten är intern: 595 av
@@ -347,6 +354,17 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > dimension och vikten. Stämmer alla fyra på decimalen är det samma vara — då finns det
 > ingen kvalificerare i världen som gör två sidor rätt, för de har samma foton och samma
 > siffror, och det är precis den dubbletten Google straffar.
+>
+> ☠️ **Och tvillingarna sitter ofta i UTKASTSHÖGEN, inte mot en publicerad
+> sida.** Av sjutton hundburar 2026-09-03 var fem dubbletter av varandra: tre
+> med identiska 98 × 58 × 61, innermått 94 × 50 × 58, stavavstånd 5,8 cm och
+> vikt 27,6 kg (Weiß, Grau, Nussbaum), och ett par på 94 × 60 × 71,5 där bara
+> vikten skilde (29 mot 27 kg — sannolikt ett skrivfel). Ingen id-baserad
+> kontroll kan se det: de har olika artikelnummer och är olika varor för
+> leverantören. **Jämför fyra tal mellan utkasten INNAN du väljer batch**, inte
+> bara mot katalogen — annars publicerar man tre sidor med samma foton samma
+> dag. En poleras, resten flaggas som ett sortimentsbeslut: ska de vara tre
+> sidor eller en produkt med tre färgval?
 >
 > Uppmätt 2026-09-01: dragvagnen `ca84c48b` var på väg att publiceras när den visade sig
 > vara `7b344636` (*Hundvagn för liten hund*, live sedan tidigare) — identisk på 53 × 45 × 28,
@@ -399,6 +417,29 @@ under (8 kap. 21 §), men hyllan räknas inte in i ytan.
 
 ⚠️ **Hyllplan och våningar räknas INTE in i golvytan** — bara bottenytan, och höjden mäts per
 delyta. En yta under ett upphöjt hus som bara är 32 cm hög uppfyller inte höjdkravet.
+
+### Hundburar — SJVFS 2020:8 (L 102) formar TEXTEN, inte försäljningen
+
+Aktuellt för Aosom: `hundebox` är 17 utkast, och möbelhundburen är en av de
+största produktgrupperna i sortimentet. Huvudregeln i svensk djurskyddsföreskrift
+är att **en hund inte får hållas i stängd bur inomhus**. Ska buren stå framme som
+hundens plats ska dörren **tas bort eller förankras permanent i öppet läge** — det
+räcker inte att lämna den olåst. Stängd dörr gäller de undantag föreskriften
+räknar upp: transport, utställning, prov, tävling, träning och jakt.
+*(Jordbruksverket SJVFS 2020:8, i kraft 2020-06-15; Länsstyrelsens faktablad
+"Hund och katt i bur"; SKK "Hund i bur".)*
+
+☠️ **Det är ingen stoppklass.** Burarna säljs lagligen i Sverige (Jula, Arken
+Zoo), och grinden fäller ingenting. Det är en **hård gräns som är en del av
+köpet** och skrivs enligt Steg 7 som ett positivt villkor med egen rubrik —
+`<h2>Så används den hemma</h2>` — på varje sida i gruppen. Kärnmeningen hålls
+ORDAGRANT identisk på alla sidor: det är en rättslig upplysning, inte copy, och
+en omskrivning per sida är åtta chanser att införa ett fel.
+
+⚠️ Leverantören säger delvis samma sak själv, på tyska, i fyra av sjutton
+utkast (*"Hunde sollten niemals über einen längeren Zeitraum in einem
+geschlossenen Käfig untergebracht werden"*). De tretton andra säger ingenting.
+**Att regeln bara står i vissa källrader betyder inte att den bara gäller dem.**
 
 **Hobbyhöns:** ingen verifierad siffra ännu. Leverantörernas antal är ofta orimliga — ett
 hönshus med 0,656 m² hushållsdel marknadsfördes för "10–15 höns". Publicera aldrig
@@ -818,6 +859,14 @@ också när du inte tänker röra den. Läs tillbaka `visible` i svaret — det 
 > `{...v, sku, visible:true}` med produktens `visible:false` gav en synlig variant på en
 > osynlig produkt).
 >
+> ☠️ **Och den slår till på Steg 9 — varje gång.** Bild-PATCH:en bär
+> `visible: false` (produkten ska ju förbli utkast), och Wix speglar då ned
+> `false` på varenda variant som Steg 8 nyss satt till `true`. Uppmätt på åtta
+> av åtta produkter i runda 45. Det är inte ett fel att undvika utan ett
+> normalförlopp att räkna med: låt den avslutande Steg 13-PATCH:en sätta båda
+> till `true`, och lita på att Klart-kriteriet läser om varianten före
+> publiceringen. Grinden fångade det på alla åtta.
+>
 > ☠️ **Och det gäller ÄVEN en sen texträttelse.** Steg 12 ligger utanför intervallet ovan, och det
 > är just där fällan slog till 2026-09-02: fyra av åtta köksskåp fick en rättelse-PATCH som bar
 > `plainDescription` + `visible:false` men INGET `variantsInfo` — och Wix speglade då ner
@@ -925,6 +974,22 @@ assert kontroll[vy:vy+sida, vx:vx+sida].sum() == kontroll.sum(), 'kvadratbeskär
 
 **Miljöbilder är undantagna** — att en livsstilsbild beskärs är normalt. Regeln gäller
 studiobilder på vit botten, där produkten ÄR motivet.
+
+☠️ **En MÅTTRITNING måste paddas, inte beskäras.** Etiketterna sitter per
+definition i kanterna, och centrumbeskärningen tar dem först. En ritning som är
+1568 × 1392 tappar 6 % i vardera sidan — i runda 45 hade det ätit `60cm` och
+`51,6cm` ur två av åtta. Padda till kvadrat i stället:
+
+```python
+s = int(max(im.size) * 1.02)
+duk = Image.new("RGB", (s, s), (255, 255, 255))
+duk.paste(im, ((s - im.width) // 2, (s - im.height) // 2))
+```
+
+⚠️ **Padda på VITT, inte på en uppmätt kantfärg.** Ett första försök tog
+medianen av kantpixlarna; på en ritning med en krukväxt i hörnet blev duken
+gråbrun, och på en bild vars gula ram nyss beskurits blev den orange. Kantfärgen
+mäter det du just tog bort.
 
 ### ☠️ Kapa aldrig bort delar av produkten
 
@@ -1226,6 +1291,13 @@ Två saker följer:
 2. **En engelsk eller tysk infografik kastas inte, den byggs om.** Panelen blev ett
    svenskt `card_grid` med de tre delfotona och rätt text. Fyndet hade gått förlorat
    om bilden bara plockats bort som "utländsk text".
+
+✅ **Regeln bekräftades direkt i runda 45.** Kortet *"GEEIGNET FÜR MITTLERE &
+GROSSE HUNDE"* på hundburen `d3b47c8b` anger **`Körperlänge < 55 cm`**. Feedens
+text nämner bara 25 kg — längdmåttet står ingenstans utanför bilden, och på en
+hundbur är det längden som avgör om varan går att använda. Två rundor i rad, två
+olika produktgrupper: **titta på siffrorna i leverantörens collage innan du
+kastar det.**
 
 ☠️ Och gränsen för vad som får påstås: bilden bevisar vad som ligger i **den här**
 produktens kartong. De sju andra sidorna säger därför bara vad `Lieferumfang` säger
