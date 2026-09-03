@@ -64,15 +64,12 @@ jobs:
             exit 1
           fi
 
-          echo "$svar" | jq -r '"Fraga: \(.fraga)
-Rader i feeden: \(.raderILista)
-Traffar: \(.traffar)\(if .kapad then " (kapad till \(.visade|length))" else "" end)
-"'
-          echo "$svar" | jq -r '.visade[] |
-            "  \(.sku)  \(.landatSek) kr landat (inkl. moms)  saldo \(.saldo)  frakt \(.fraktandel*100|round)%
-    \(.namn)
-    \(.url)
-"'
+          # ☠️ HELA jq-PROGRAMMET MÅSTE LIGGA INDENTERAT. En rad som börjar i
+          # kolumn 1 avslutar YAML:ens `run: |`-block, och då kan GitHub inte
+          # läsa filen — workflowen registreras aldrig och går inte att starta.
+          # Radbrytningar skrivs därför som \n, inte som verkliga rader.
+          echo "$svar" | jq -r '"Fraga: \(.fraga)\nRader i feeden: \(.raderILista)\nTraffar: \(.traffar)\(if .kapad then " (kapad till \(.visade|length))" else "" end)\n"'
+          echo "$svar" | jq -r '.visade[] | "  \(.sku)  \(.landatSek) kr landat (inkl. moms)  saldo \(.saldo)  frakt \(.fraktandel*100|round)%\n    \(.namn)\n    \(.url)\n"'
 
           if [ "$(echo "$svar" | jq -r '.traffar')" = "0" ]; then
             echo "Inga traffar. Prova farre eller bredare termer — sokningen kraver att ALLA ord finns."

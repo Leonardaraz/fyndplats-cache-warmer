@@ -191,3 +191,76 @@ describe("☠️ varje jq-program i en workflow går att kompilera", () => {
     ).toEqual([]);
   });
 });
+
+// ☠️ EN WORKFLOW SOM INTE GÅR ATT LÄSA REGISTRERAS ALDRIG — OCH SYNS INGENSTANS.
+//
+// `aosom-feed-search.yml` (2026-09-03) hade ett jq-program vars format-sträng
+// bröts över flera rader. Fortsättningsraderna började i KOLUMN 1, vilket
+// avslutar YAML:ens `run: |`-blockskalär mitt i steget. Filen blev ogiltig
+// YAML, GitHub kunde inte läsa den, och `workflow_dispatch` registrerades
+// aldrig. Symtomet var
+//
+//   failed to run workflow: Workflow does not have 'workflow_dispatch' trigger
+//
+// på en fil som demonstrativt HAR den triggern — så felsökningen gick åt fel
+// håll ("indexeringsfördröjning") i flera minuter.
+//
+// Testerna ovan var GRÖNA hela tiden. De läser jq-programmen ur filtexten men
+// parsar aldrig YAML:en, så en fil GitHub inte kan läsa passerar dem galant.
+// Samma familj som resten av huset: ett misslyckande ingen kan se.
+//
+// Ingen YAML-parser finns installerad, och en grind som hoppas över när ett
+// beroende saknas är ingen grind (samma skäl som `jq -n` valdes bort ovan).
+// Kontrollen är därför strukturell och riktad mot just det här felet: i en
+// GitHub-workflow är ALLT utom en handfull toppnycklar indenterat, så en rad
+// som börjar i kolumn 1 har med stor sannolikhet fallit ur ett block.
+const TOPPNYCKLAR = new Set([
+  "name", "on", "jobs", "env", "permissions", "defaults", "concurrency", "run-name",
+]);
+
+export function raderIKolumnEtt(text: string): string[] {
+  return text
+    .split("\n")
+    .filter((rad) => rad.length > 0 && !/^\s/.test(rad) && !rad.startsWith("#"))
+    .filter((rad) => {
+      const m = /^([A-Za-z][A-Za-z0-9_-]*):/.exec(rad);
+      return !m || !TOPPNYCKLAR.has(m[1]);
+    });
+}
+
+describe("☠️ ingen workflow har en rad som fallit ur sitt block", () => {
+  const filer = readdirSync(WORKFLOW_KATALOG).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"));
+
+  it("hittar alla workflow-filer", () => {
+    expect(filer.length).toBeGreaterThan(5);
+  });
+
+  it("☠️ fäller det historiska felet: jq-format-sträng bruten till kolumn 1", () => {
+    const trasig = [
+      "jobs:",
+      "  sok:",
+      "    steps:",
+      "      - run: |",
+      `          echo "$svar" | jq -r '"Fraga: \\(.fraga)`,
+      "Rader i feeden: \\(.raderILista)",
+      `"'`,
+    ].join("\n");
+    expect(raderIKolumnEtt(trasig)).toEqual(["Rader i feeden: \\(.raderILista)", `"'`]);
+  });
+
+  it("släpper igenom en frisk fil", () => {
+    expect(raderIKolumnEtt("name: X\non:\n  workflow_dispatch:\njobs:\n  a:\n    steps: []\n")).toEqual([]);
+  });
+
+  it.each(filer)("%s", (fil) => {
+    const fallna = raderIKolumnEtt(readFileSync(join(WORKFLOW_KATALOG, fil), "utf8"));
+    expect(
+      fallna,
+      `Rader som börjar i kolumn 1 utan att vara en toppnyckel. En sådan rad `
+        + `avslutar en \`run: |\`-blockskalär, gör filen till ogiltig YAML och `
+        + `får GitHub att svara "Workflow does not have 'workflow_dispatch' `
+        + `trigger" på en fil som har den. Skriv radbrytningar i jq som \\n.\n`
+        + fallna.map((r) => `  ${fil}: ${r.slice(0, 120)}`).join("\n"),
+    ).toEqual([]);
+  });
+});
