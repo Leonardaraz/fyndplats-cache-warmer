@@ -102,8 +102,35 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         }
       : null;
 
+  // Brödsmulor: Hem → Blogg → inlägget. Samma mönster som /butik,
+  // /alla-produkter, /blogg, /kategori/[slug] och /produkt/[slug] — inläggen
+  // var de enda sidorna kvar utan (audit 2026-09-03). Utan den ritar Google en
+  // rå URL i SERP:en i stället för klickbara brödsmulor.
+  //
+  // Tre nivåer, inte två: sista steget är inlägget självt. Google kräver att
+  // varje ListItem pekar på en sida som finns, och att ordningen speglar den
+  // faktiska navigationen — /blogg/<slug> nås via /blogg, som nås via /.
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Hem", item: "https://www.fyndplats.se/" },
+      { "@type": "ListItem", position: 2, name: "Blogg", item: "https://www.fyndplats.se/blogg" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: p.title,
+        item: `https://www.fyndplats.se/blogg/${p.slug}`,
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdString(articleJsonLd) }}
