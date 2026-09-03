@@ -7,9 +7,25 @@
 // kontrolleras att produkten faktiskt ingick i ordern, så att en giltig token
 // inte kan användas för att recensera vad som helst i katalogen.
 //
-// Omdömet sparas som `pending` i FyndplatsImportedReviews med
-// `source: "customer"`. Det visas alltså INTE förrän det godkänts i
-// /admin/reviews — produktsidan renderar bara approved/edited.
+// Omdömet sparas som `pending` med `source: "customer"`. Det visas alltså INTE
+// förrän det godkänts i /admin/reviews — produktsidan renderar bara
+// approved/edited.
+//
+// ☠️ RADEN SKRIVS GENOM MOTORN, INTE TILL WIX DATA DIREKT (sedan 2026-09-02).
+//
+// Fram till dess gjorde den här rutten `POST /data/v2/items/save` mot
+// FyndplatsImportedReviews. Det var rätt så länge recensionerna bodde där. I
+// samma sekund som REVIEWS_BACKEND=postgres slår igenom läser ALLT ur
+// Postgres — och kundens omdöme hade fortsatt hamna i Wix, där ingenting
+// läser. Raden hade aldrig synts i /admin/reviews, aldrig kunnat godkännas,
+// aldrig renderats, och Wix hade svarat 200 hela vägen.
+//
+// Spegelbilden av /api/tracking-events 2026-09-01: där blev en LÄSARE tom,
+// här försvinner en SKRIVNING. Dyrare, för kundomdömena är de enda
+// förstahandsomdömena — de som bär "✓ Verifierat köp".
+//
+// Motorn äger lagret och skriver via samma backend-väljare som allt annat, så
+// den här vägen är korrekt både före och efter växlingen.
 //
 // BILDER (valfria, högst MAX_IMAGES). Klienten laddar upp dem först, en i
 // taget mot `/api/omdome/bild`, och skickar sedan hit ADRESSERNA som
@@ -44,15 +60,10 @@ import { fetchWixOrder, buildOrderConfirmationProps } from "@/app/api/wix-webhoo
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const WIX_BASE = "https://www.wixapis.com";
-const COL = process.env.WIX_DATA_COL_REVIEWS || "FyndplatsImportedReviews";
-
-function wixHeaders(): Record<string, string> | null {
-  const token = process.env.WIX_API_KEY;
-  const siteId = process.env.WIX_SITE_ID;
-  if (!token || !siteId) return null;
-  return { "Content-Type": "application/json", Authorization: token, "wix-site-id": siteId };
-}
+/** Motorn äger recensionslagret. Samma mönster som lib/reviews.ts för läsning. */
+const INGEST_URL =
+  process.env.CACHE_WARMER_REVIEW_INGEST_URL
+  ?? "https://fyndplats-cache-warmer.vercel.app/api/reviews/customer";
 
 export async function POST(req: Request) {
   const hemlighet = process.env.REVIEW_TOKEN_SECRET;
@@ -102,8 +113,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Kunde inte kontrollera din beställning just nu." }, { status: 503 });
   }
 
-  const h = wixHeaders();
-  if (!h) return NextResponse.json({ error: "Lagringen är inte konfigurerad." }, { status: 503 });
+  // Fail-closed, precis som den gamla wixHeaders-grinden: utan hemlighet finns
+  // ingen väg att spara omdömet, och att svara kunden "tack!" på något som
+  // aldrig lagrades är det enda utfall som är sämre än ett fel.
+  const ingestSecret = process.env.REVIEW_INGEST_SECRET;
+  if (!ingestSecret) {
+    console.error("[omdome] REVIEW_INGEST_SECRET saknas — omdömet kan inte sparas");
+    return NextResponse.json({ error: "Lagringen är inte konfigurerad." }, { status: 503 });
+  }
 
   const rad = buildCustomerReviewRow({
     orderId: verifierad.orderId,
@@ -176,22 +193,19 @@ export async function POST(req: Request) {
   Object.assign(rad, bildfalt);
 
   try {
-    // /items/save är upsert. PUT /items/{id} vore FEL här: den uppdaterar bara
-    // befintliga rader och svarar 404 för en ny — alltså hade varje FÖRSTA
-    // omdöme fallerat. (Hittades i granskningen 2026-08-17.)
-    //
-    // Att id:t är härlett ur order + produkt gör dessutom att en kund som
-    // skickar formuläret två gånger uppdaterar sitt omdöme i stället för att
-    // skapa en dubblett.
-    const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
+    // Motorns ingest är en upsert på `${productId}__${reviewIdAE}` — samma id
+    // som byggs här ur order + produkt. En kund som skickar formuläret två
+    // gånger uppdaterar därmed sitt omdöme i stället för att skapa en
+    // dubblett, precis som när raden skrevs direkt till Wix.
+    const res = await fetch(INGEST_URL, {
       method: "POST",
-      headers: h,
-      body: JSON.stringify({ dataCollectionId: COL, dataItem: { id: rad._id, dataCollectionId: COL, data: rad } }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${ingestSecret}` },
+      body: JSON.stringify(rad),
       cache: "no-store",
     });
     if (!res.ok) {
       const t = await res.text().catch(() => "");
-      console.error(`[omdome] Wix svarade ${res.status}: ${t.slice(0, 200)}`);
+      console.error(`[omdome] motorn svarade ${res.status}: ${t.slice(0, 200)}`);
       return NextResponse.json({ error: "Kunde inte spara omdömet just nu." }, { status: 503 });
     }
   } catch (err) {
