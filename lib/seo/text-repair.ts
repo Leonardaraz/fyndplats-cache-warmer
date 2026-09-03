@@ -5,6 +5,10 @@
 //   1. Leverantörskoder (`leverantorskod.ts`) — 51 sidor 2026-09-03. Numret gör
 //      våra sidor joinbara mot dealproffsens JSON-LD och därmed mot vad vi
 //      betalar. Saxen TAR BORT en rad.
+//      ☠️ Och en gång till samma dag, efter att svepet rapporterat "0 träffar":
+//      saxen var blind för råimportens bockade form. Sedan dess bär svaret
+//      `kodIText` — sidor som bär en kod EFTER saxen — så nästa blinda fläck
+//      syns i siffrorna i stället för att räknas som en ren katalog.
 //   2. Trasiga syskonlänkar (`relativa-lankar.ts`) — Wix skriver om en
 //      rotrelativ `href="/produkt/x"` till `https:/produkt/x`, alltså
 //      värdnamnet `produkt`. Saxen SKRIVER OM en href.
@@ -57,6 +61,17 @@ export interface TextRepairSummary {
   misslyckade: number;
   /** Sidor där koden syns i NAMNET eller slug:en — kan inte lagas automatiskt. */
   kodINamn: string[];
+  /**
+   * ☠️ Sidor vars BESKRIVNING bär en kod som saxen inte når.
+   *
+   * Utan den här listan är detektorns blinda fläck osynlig: saknar `hittaKodrader`
+   * en form räknas sidan varken som träff eller som problem, och svepet svarar
+   * "0 träffar" — exakt det falska friskintyg som 2026-09-03 dolde en bockad rad
+   * (`<li><p>✔ Artikelnummer: …</p></li>`) i katalogen. `barKod` läser HELA
+   * fältet och delar inte antagande med saxen, så en kod saxen missar hamnar här
+   * i stället för i tystnaden. Lagas av en människa, aldrig automatiskt.
+   */
+  kodIText: string[];
   plan: TextTraff[];
   fel: string[];
   cursor: string | null;
@@ -108,6 +123,7 @@ export async function runTextRepair(
     lagade: 0,
     misslyckade: 0,
     kodINamn: [],
+    kodIText: [],
     plan: [],
     fel: [],
     cursor: null,
@@ -137,6 +153,12 @@ export async function runTextRepair(
 
       const kodrader = hittaKodrader(p.plainDescription);
       const lankar = hittaTrasigaLankar(p.plainDescription);
+
+      // ☠️ Frågan är inte "hittade saxen något?" utan "är texten ren EFTER
+      // saxen?". De två är olika frågor så fort saxen har en blind fläck, och
+      // bara den andra kan avslöja att den har en.
+      if (barKod(taBortKodrader(p.plainDescription))) sum.kodIText.push(p.slug);
+
       if (kodrader.length === 0 && lankar.length === 0) continue;
 
       sum.traffar++;
