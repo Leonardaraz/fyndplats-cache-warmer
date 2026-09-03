@@ -183,6 +183,14 @@ Den tyska beskrivningen har tre block, och de är inte lika mycket värda:
   listar bara värmare och bruksanvisning. Det är syskonet `96a45e2b` som har höljet. Hade
   titeln fått bestämma hade vi lovat en kund ett tillbehör som inte kommer.
 
+☠️ **Och det behöver inte vara en hel kategori — det kan vara ETT ord i ett
+sammansatt tyskt substantiv.** Tre av åtta "Gasgrill" i runda 44 var **planchor**:
+släta stekhällar utan galler. Tecknet fanns i texten hela tiden —
+`Antihaft-Grill**platte**`, inte `Grill**rost**` — men det syns först när man vet att
+man ska leta. Bild 1 avgjorde på en sekund: en hel svart plåt, inga stavar. Sökordet
+blev `plancha gasol` i stället för `gasolgrill`, och det ordet var dessutom helt
+obesatt i katalogen medan `gasolgrill` fick fem andra sidor.
+
 ☠️ **Och titelns KATEGORIORD kan vara falskt, inte bara tillbehören.** Aosom
 sökordsstoppar titlarna: av 22 utkast som bär "Gaming Stuhl" eller "Gamingstuhl" var
 **sex inte gamingstolar alls** (2026-09-02). Fyra är mesh- eller chefsstolar vars
@@ -205,6 +213,15 @@ rosa eller himmelsblå" — de fyra utkasten ÄR de färgerna.
 ⚠️ Den listan är i sig ett fel att flagga: sidan lovar fyra färger men har EN variant mot
 ETT artikelnummer. Att lova ett val kunden inte kan göra är ett sortimentsbeslut, inte
 en poleringsfråga.
+
+☠️ **Och ett falskt kategoriord kan peka rakt in i en publicerad sida.** Av åtta
+odlingslådor 2026-09-02 hade **tre** ordet `Frühbeet` (drivbänk) i titeln medan
+`Lieferumfang` bara listade lådan och en anvisning — inget lock, ingen duk, ingen
+båge. Bild 3–5 bekräftade: en öppen låda. Att tro på titeln hade gjort två fel på
+en gång: fel produkttyp till kunden, OCH sökordet `drivbänk`, som redan bärs av den
+publicerade `drivbank-120x60-cm`. Testet är detsamma som för `Gaming Stuhl` —
+`Lieferumfang` plus bild 1 och 2 — men konsekvensen är dubbel när det falska ordet
+råkar vara ett vi redan rankar på.
 
 Kapacitetspåståenden ska **mätas, inte kopieras**: tältet hette "4 Personen" medan
 tillverkarens egen skiss sa "Schlafplätze 2–4". Sovrummet är 295 cm brett — fyra liggunderlag
@@ -337,6 +354,44 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > ```
 > POST /stores/v3/products/query   { "query": { "filter": { "slug": { "$in": ["<kandidat-slug>", …] } } } }
 > ```
+> ☠️ **Kvittot på svepet är `cursor === null`, inte radantalet.** Ett svep med en
+> loopgräns ser exakt likadant ut som ett svep som tog slut: båda returnerar rader
+> och inget fel. 2026-09-02 gav en loop på 28 sidor **2 800 produkter** och
+> `noll krockar` för odlingslådor — 28 × 100 är precis taket, så läsningen var
+> AVHUGGEN. Hela katalogen är **5 467** (1 597 publicerade, 3 870 utkast), och när
+> svepet kördes klart fanns **åtta** publicerade konkurrenter, bland dem
+> `odlingslada-metall`, `odlingslada-med-spalje-3-plan-grantra` och
+> `drivbank-120x60-cm`. Åtta nya sidor hade kannibaliserat sex levande.
+>
+> Returnera därför alltid `avhuggen: !!cursor` ur svepet och kräv `false`, och
+> kör i etapper om ≤30 sidor (ExecuteWixAPI har 60 s) genom att skicka markören
+> vidare. Samma klass som `queryAll` som tyst kapade — **en halv katalog som ser
+> komplett ut.**
+
+> ☠️ **`slug` har OLIKA FORM på query och på GET — och fel form läser tomt, inte fel.**
+> `POST /products/query` returnerar `slug` som en **naken sträng**; `GET /products/{id}`
+> returnerar den som ett **objekt** `{ name: "…" }`. Ett svep som gör `p.slug.name` på
+> query-svaret får därför `undefined` på varje rad, `|| ""` gör det till tomma strängar,
+> och kollisionskontrollen rapporterar **noll krockar över hela katalogen** utan ett enda
+> fel. Uppmätt 2026-09-03: ett svep över alla 5 467 produkter gav noll publicerade
+> trädgårdsbord; med `typeof p.slug === "string" ? p.slug : p.slug.name` gav samma svep
+> **nio** — `runt-tradgardsbord`, `tradgardsbord-aluminium`,
+> `utdragbart-tradgardsbord-80-160-cm`, `tradgardsbord-tra-vagnshjul-110-cm` med flera.
+> Åtta nya sidor hade kannibaliserat nio levande, och rundan blåstes av på grund av det.
+>
+> Läs alltid `typeof p.slug === "string" ? p.slug : ((p.slug && p.slug.name) || "")`, och
+> **kräv att svepet hittar minst en känd publicerad sida** innan du litar på ett "noll
+> krockar". Samma familj som markören ovan och som `queryAll` som tyst kapade: felet är
+> inte att svaret är fel, utan att det är TOMT — och ett tomt svar från rätt API mot rätt
+> katalog ser i koden exakt likadant ut som ett friskt.
+>
+> ⚠️ **`slug` tar bara LIKHET — `$startsWith` avvisas.** Fältet är en
+> `HashedString` i V3, så `{slug: {$startsWith: "hundebox"}}` ger
+> `400 INVALID_FILTER: Operator is not compatible with type in field path`
+> (uppmätt 2026-09-03). Bara `$eq` och `$in` fungerar, alltså bara slugs du
+> redan känner. Ska du hitta alla utkast i en produktgrupp finns ingen genväg:
+> svep katalogen och filtrera i koden.
+>
 > Sluggen är filtrerbar (`name` är det INTE). Träff, eller en produkt du vet ligger nära → **separera med en kvalificerare som står i BÅDE namn, slug och titel**, inte bara i texten. Fungerande exempel: `arbetsstol med hjul` vs `sadelstol med ryggstöd` · `konstgjord julgran` vs `konstgjord julgran med pynt` · `litet växthus` vs `växthusduk` · `elmotorcykel barn` vs `elmotorcykel 6v barn` vs `eldriven trehjuling barn`. Är produkterna i praktiken samma vara → det är en dubblett, inte ett sökordsproblem: flagga till Leonard.
 >
 > ☠️ **Och avgör det på MÅTTEN, inte på namnet.** Den farliga dubbletten är intern: 595 av
@@ -349,6 +404,17 @@ Välj det svenska sökord folk faktiskt söker på, sammansatt av **huvudord + k
 > dimension och vikten. Stämmer alla fyra på decimalen är det samma vara — då finns det
 > ingen kvalificerare i världen som gör två sidor rätt, för de har samma foton och samma
 > siffror, och det är precis den dubbletten Google straffar.
+>
+> ☠️ **Och tvillingarna sitter ofta i UTKASTSHÖGEN, inte mot en publicerad
+> sida.** Av sjutton hundburar 2026-09-03 var fem dubbletter av varandra: tre
+> med identiska 98 × 58 × 61, innermått 94 × 50 × 58, stavavstånd 5,8 cm och
+> vikt 27,6 kg (Weiß, Grau, Nussbaum), och ett par på 94 × 60 × 71,5 där bara
+> vikten skilde (29 mot 27 kg — sannolikt ett skrivfel). Ingen id-baserad
+> kontroll kan se det: de har olika artikelnummer och är olika varor för
+> leverantören. **Jämför fyra tal mellan utkasten INNAN du väljer batch**, inte
+> bara mot katalogen — annars publicerar man tre sidor med samma foton samma
+> dag. En poleras, resten flaggas som ett sortimentsbeslut: ska de vara tre
+> sidor eller en produkt med tre färgval?
 >
 > Uppmätt 2026-09-01: dragvagnen `ca84c48b` var på väg att publiceras när den visade sig
 > vara `7b344636` (*Hundvagn för liten hund*, live sedan tidigare) — identisk på 53 × 45 × 28,
@@ -390,6 +456,151 @@ Specs får bara komma från känd importdata eller `web_search` (AliExpress-sido
 
 -----
 
+### ☠️ Dubblettgrind mot det som REDAN är publicerat — mät på bilden, inte på namnet
+
+Runda 47 (hundvagnar, 2026-09-03). Familjen valdes för att den var stor i utkastshögen:
+42 tyska `Hundewagen`-utkast. Ett svep över de PUBLICERADE sidorna visade sedan
+**arton hundvagnar som redan ligger live** — polerade i en tidigare runda, från
+AliExpress-sidan av katalogen.
+
+Det är CLAUDE.md:s kända hål, i praktiken: `~586 produkter vi redan säljer är
+Aosom-varor inköpta via AliExpress`. Dubblettspärren vid import nycklar på
+`supplierProductId` och kan inte se dem — de bär ett AE-listnings-id. **Poleringen är
+det enda stället där den dubbletten kan fångas**, och Steg 1 hade ingen sådan kontroll.
+
+⚠️ **Namnlikhet är INTE bevis — och den ljuger åt båda hållen.** Fyra av åtta utkast
+hade en publicerad sida med nästan samma svenska namn:
+
+| utkast | publicerad sida med liknande namn | lägsta bildskillnad | dom |
+|---|---|---:|---|
+| `ca84c48b` | `hundvagn-liten-hund` | **0,10** | DUBBLETT |
+| `56dc1ed5` | `hundvagn-blir-barvaska-2-i-1` | 8,72 | annan produkt |
+| `2038f2aa` | `hundvagn-75-cm-liggyta-20-kg` | 41,07 | annan produkt |
+| `f9fb33f0` | `cykelvagn-hund-2-i-1-20-kg` | 28,98 | annan produkt |
+
+Namnen sa fyra dubbletter. Bilderna sa **en**. Två produkter kan dela koncept,
+viktgräns och till och med mått utan att vara samma vara — och en enda byte-identisk
+bild avgör frågan på en sekund.
+
+**Grinden, som ska köras i Steg 1 innan något skrivs:**
+
+1. Svep de PUBLICERADE sidorna och plocka ut familjen (namn + slug).
+2. Ligger det redan tio-tjugo sidor där är familjen i praktiken klar — välj en annan.
+   Mät var luckan finns i stället för att anta den (runda 47: `trädgårdsskåp`
+   hade 18 utkast mot **1** publicerad sida, `hundvagn` 42 mot 18).
+3. För varje kandidat: jämför dess bilder mot de publicerade sidornas.
+   `abs(gray(a)-gray(b)).mean()` på 320 × 320 — **under 1,0 är samma bild**, och då
+   är det samma fysiska produkt. Polera den inte; två egna URL:er med samma foton är
+   den dubblett Google faktiskt straffar.
+
+### ☠️ Pixelgrinden BEVISAR en dubblett — den utesluter ingen. Måtten gör det (2026-09-03)
+
+Grinden ovan skrevs efter hundvagnarna, där bilden avgjorde rätt fyra gånger av fyra.
+Nästa runda visade andra halvan av samma mynt. `c9a24404` (utkast, 1 809 kr) är samma
+fysiska vara som den publicerade `redskapsskap-grantra-115-cm` (2 109 kr): 75 × 56 × 115 cm,
+invändigt 68 × 50 × 112, två hyllplan 34 × 46,5 cm, 6 kg per hylla, lutande asfalttak, hasp.
+**Lägsta bildavstånd mellan de två: 15,65** — femton gånger över tröskeln 1,0.
+
+Skälet är strukturellt, inte otur: de två inköpsvägarna har **olika fotouppsättningar av
+samma vara**. AliExpress-listningen och Aosom-feeden fotograferar var för sig. Ett avstånd
+under 1,0 bevisar därför fortfarande en dubblett — men ett avstånd över 1,0 bevisar
+ingenting alls.
+
+**Kör därför båda grindarna, i den här ordningen:**
+
+1. **Bredda familjesvepet först.** En grep på `redskapsbod` gav 12 publicerade sidor;
+   `redskap|tradgardsskap|forrad|forvaringsbox|utomhusskap|verktygsskap|skjul|bod-|-bod`
+   gav **30** — och den saknade sidan var just dubbletten. Familjen heter olika saker:
+   `plastbod`, `platbod`, `vedbod`, `redskapsbod`, `redskapsskap`, `tradgardsskap`,
+   `plastskjul`, `forvaringsbox`. **Ett stamord räcker aldrig.**
+2. **Måttgrinden** — den som faktiskt fäller. Skrapa varje publicerad familjesidas
+   `Yttermått` och jämför kandidatens tre yttermått mot varje sidas cm-tal:
+
+   ```python
+   tal = {float(m.group(1).replace(",", "."))
+          for m in re.finditer(r"(\d{1,3}(?:[,.]\d)?)(?=\s*(?:cm|[x×]))", sidtext)}
+   traff = sum(1 for v in (b, d, h) if any(abs(v - x) <= 1.0 for x in tal))
+   # 3/3 = dubblettmisstanke · 2/3 = nära · annars unik
+   ```
+
+   Runda 47: de åtta som blev kvar fick **max 2/3**, den kända dubbletten **3/3**.
+3. **Pixelgrinden** som snabb bekräftelse när måtten träffar, och som fångst av det som
+   delar foton utan att dela spec.
+
+☠️ **Kör måttgrinden med den kända dubbletten som KONTROLL** (`--kontroll`-läge). En grind
+som inte fäller på ett fall du vet är sant är inte mätt, bara skriven — samma regel som
+mutationstestet i Steg 12.
+
+⚠️ **Det som faktiskt hittade dubbletten var karusellen "Liknande produkter" på en
+syskonsida.** Namnet stod där, och specifikationstabellen bekräftade det. Läs den
+karusellen när du sveper familjen; den känner till syskon som en slug-grep missar.
+
+☠️ **En dubblett ska INTE raderas härifrån.** Den publicerade sidan kan vara billigare
+(runda 47: den live-lagda kostade 629 kr, utkastet 729 kr), ha fler varianter eller
+mer historik. Vilken av de två som ska bort är ett affärsbeslut med ett inköpspris i
+sig — flagga den för Leonard och gå vidare.
+
+### ☠️ Räkna familjen på DISTINKTA produkter — färgtvillingarna är inte lucka (2026-09-03)
+
+Runda 48. Ett svep gav **37 agility-utkast mot 1 publicerad sida**, vilket ser ut som den
+största luckan i katalogen. Den var det inte. Av de 37 var:
+
+| kluster | antal | vad som skilde |
+|---|---:|---|
+| Hopphinder 4-pack, `L99 × B65 × H94` | **5** | bara färgen (vit, gul, ljusblå, grön, blå) |
+| Hundvippa `180 × 30 × 30`, 30 kg | **4** | bara färgen |
+| Bilramp `41,5 × 15 × 80,5` paket | **3** | bara färgen — och redan täckt av två publicerade sidor |
+| Bågset `82 × 19 × 19`, 4,5 kg | 2 | bara färgen |
+| Hinderset `104 × 27 × 21`, 4,5 kg | 2 | **identiska**, 799 mot 829 kr |
+| Balansbom `335 × 55 × 60`, 14 kg | 2 | bara färgen |
+| A-hinder `113 × 65 × 12,5` paket | 2 | bara färgen |
+
+Kvar: **~15 distinkta produkter.** Att polera "familjen" hade betytt sju sidor med samma
+foton och samma spec — den interna dubbletten Google straffar, skapad av oss.
+
+**Måttgrinden ska alltså köras i BÅDA riktningarna**: mot de publicerade sidorna *och*
+mellan utkasten inbördes, före batchvalet. Paketmåttet duger som nyckel — det är samma
+kartong för hela färgfamiljen.
+
+☠️ **Ta med MATERIALSTRÄNGEN i jämförelsen — den kostar ingenting och den fäller.**
+`cc7ab001` matchade den publicerade `agilityset-hund-3-delar` på hopphinder
+`128 × 23 × 9–100 cm`, hoppring `9–75 cm` **och** material (`ABS, PE, polyester`) — ordagrant
+samma sträng i båda spec-tabellerna. Tre tal plus materialet är ett starkare bevis än tre tal,
+och materialraden står redan i båda tabellerna. Utkastet lämnades opolerat och gick till
+Leonard: den publicerade sidan kostar 689 kr, utkastet 789 kr.
+
+### ☠️ En krock i den EGNA batchen löses med ett bättre ord, inte med en kvalificerare
+
+Två av runda 48:s produkter ville båda ha huvudordet `hundvippa`: en agilityvippa på 180 cm
+och en 80 cm lång vaggande bräda som också är en hundtrappa. Runbookens vanliga recept är en
+kvalificerare i namn, slug och titel — `hundvippa-agility-180-cm` mot
+`hundvippa-trappa-2-i-1-80-cm`. Det hade fungerat, men det är två sidor som slåss om samma
+ord i all evighet.
+
+Den bättre lösningen var att **leta upp det exakta ordet för den andra varan**. Den vaggande
+underdelen ÄR en balansbräda — ett etablerat svenskt ord inom hundträning — så den fick
+`balansbräda hund` som eget huvudord och `hundvippa` blev fritt. Noll krock, två sidor som
+rankar på var sitt ord, och den mer specifika sidan fick ett ord med högre köpintention.
+
+**Leta efter det exakta ordet innan du delar ett generiskt.** En kvalificerare är
+andrahandsvalet, inte förstahandsvalet.
+
+### Tre fynd ur hundvagnarna som gäller oavsett vem som polerar dem
+
+- ☠️ **En tillkopplad cykelkärra har ett svenskt utrustningskrav.** Transportstyrelsen,
+  ordagrant: *"En tillkopplad cykelkärra ska ha en röd reflex bakåt eller en baklykta
+  som kan visa rött ljus bakåt om reflex saknas."* Säljs en hundvagn som cykelvagn ska
+  det stå — som ett positivt villkor med egen rubrik, inte som en varningsruta.
+- ☠️ **Leverantören varnar själv för dörrbredden på ett syskon.** `f9fb33f0`:s
+  måttbild bär texten *"Die Gesamtbreite des Produkts beträgt 68 cm … Mindestens 71cm"*.
+  En annan modell i samma runda (`3bc2f3f7`, 70 cm bred) påstår i stället
+  *"passt bequem durch Standardtüren"* — sant om tyska dörrar, inte om ett svenskt
+  M7-karmhål. **Skriv bredden, aldrig påståendet.**
+- **En liten "framdörr" kan vara en matlucka.** `d3006426` anger framdörr 27 × 20 cm
+  för en hund på 20 kg, vilket ser ut som ett fel i specen. Leverantörens egen bild
+  visar vad det är: en lucka att mata och klappa genom. Utan bildgranskningen hade
+  måttet antingen kopierats som "dörr" eller strukits som orimligt — båda fel.
+
 ## Steg 2 – Laglighetsgrind (före allt annat arbete)
 
 **Kör den FÖRE bild- och textarbete.** Tre produkter raderades halvpolerade 2026-08-10/11 —
@@ -418,6 +629,29 @@ under (8 kap. 21 §), men hyllan räknas inte in i ytan.
 
 ⚠️ **Hyllplan och våningar räknas INTE in i golvytan** — bara bottenytan, och höjden mäts per
 delyta. En yta under ett upphöjt hus som bara är 32 cm hög uppfyller inte höjdkravet.
+
+### Hundburar — SJVFS 2020:8 (L 102) formar TEXTEN, inte försäljningen
+
+Aktuellt för Aosom: `hundebox` är 17 utkast, och möbelhundburen är en av de
+största produktgrupperna i sortimentet. Huvudregeln i svensk djurskyddsföreskrift
+är att **en hund inte får hållas i stängd bur inomhus**. Ska buren stå framme som
+hundens plats ska dörren **tas bort eller förankras permanent i öppet läge** — det
+räcker inte att lämna den olåst. Stängd dörr gäller de undantag föreskriften
+räknar upp: transport, utställning, prov, tävling, träning och jakt.
+*(Jordbruksverket SJVFS 2020:8, i kraft 2020-06-15; Länsstyrelsens faktablad
+"Hund och katt i bur"; SKK "Hund i bur".)*
+
+☠️ **Det är ingen stoppklass.** Burarna säljs lagligen i Sverige (Jula, Arken
+Zoo), och grinden fäller ingenting. Det är en **hård gräns som är en del av
+köpet** och skrivs enligt Steg 7 som ett positivt villkor med egen rubrik —
+`<h2>Så används den hemma</h2>` — på varje sida i gruppen. Kärnmeningen hålls
+ORDAGRANT identisk på alla sidor: det är en rättslig upplysning, inte copy, och
+en omskrivning per sida är åtta chanser att införa ett fel.
+
+⚠️ Leverantören säger delvis samma sak själv, på tyska, i fyra av sjutton
+utkast (*"Hunde sollten niemals über einen längeren Zeitraum in einem
+geschlossenen Käfig untergebracht werden"*). De tretton andra säger ingenting.
+**Att regeln bara står i vissa källrader betyder inte att den bara gäller dem.**
 
 **Hobbyhöns:** ingen verifierad siffra ännu. Leverantörernas antal är ofta orimliga — ett
 hönshus med 0,656 m² hushållsdel marknadsfördes för "10–15 höns". Publicera aldrig
@@ -726,6 +960,72 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
 
 -----
 
+### Fyra fällor i en Aosom-spec som alla kostade en rättelse (runda 47)
+
+1. ☠️ **Feedens `Vikt` är FRAKTVIKT, inte varans vikt.** Kolumnen heter
+   `Weight (incl. Package)`, och den hamnar i det svenska spec-blocket som bara "Vikt".
+   `275e9b8a` hade **23 kg** i den tyska `Technische Daten` och **28,7 kg** i det svenska
+   blocket — det ser ut som en motsägelse och är två olika mått. Har du bara feed-talet:
+   skriv **`Fraktvikt`**. Har du båda: `Vikt 23 kg (fraktvikt 28,7 kg)`.
+2. ☠️ **Färgnamnet i specen kan vara fel — skriv efter bilden.** `bd3fe8da` står som
+   `Farbe: Gelb`; alla fem bilder visar honungsbetsat barrträ med grön takpapp. "Gult trä"
+   hade varit en kund som packar upp en annan möbel än den hen köpte.
+3. ☠️ **`begehbar` är marknadsföring — kontrollera det INVÄNDIGA djupet.** `25ed0c55`
+   säljs som `begehbares Design` med ett invändigt djup på **58 cm** och en dörröppning på
+   2 × 35 cm. Man står utanför och når in. Översätt inte ordet; beskriv förhållandet.
+4. **`Fenster` behöver inte vara ett fönster.** `275e9b8a`:s "Fenster für gute Belüftung"
+   är en gångjärnsförsedd trälucka i gaveln — en ventil, inte en ruta. Det syns bara på
+   bilden. `25ed0c55` har däremot fyra riktiga fönster, i akryl.
+
+☠️ **Och prosan kan säga tvärtemot leverantörens egna måttetiketter.** `bd3fe8da`:s text
+säger hyllor till höger och öppet fack till vänster; både måttritningen och specens egen
+rad `Größe des linken Regals` säger motsatsen. **Ritningen är mätt på varan — den vinner
+över prosan.** Samma produkt gav dessutom två olika uppsättningar fria höjder (40/35/35 på
+ritningen, 37/48/42,5 i specen); ritningens summerar rimligt mot innerhöjden, specens inte.
+
+⚠️ **Träslaget motsäger sig självt i ungefär varannan Aosom-rad.** `Fichtenholz` i prosan
+mot `Tannenholz` i specen (`7d28f235`), eller `Kiefern- und Zedernholz` mot `Tannenholz`
+(`275e9b8a`). Huset skriver **`massivt barrträ`** när källan är oense och `gran` när den är
+entydig — den formuleringen står redan på publicerade syskonsidor, så den är inte ett nytt
+undantag utan husets linje.
+
+-----
+
+### ☠️ Två mått som motsäger varandra — MÅTTRITNINGEN är facit (2026-09-03)
+
+Katthuset `7d264875` hade två höjder i samma rad data: den tyska spec-kolumnen sa
+`87L x 52B x 44H`, den svenska variantraden `52T x 87B x 48H`. Fyra centimeter, och
+ingen av källorna är märkt som mer tillförlitlig än den andra.
+
+**Bild 3 avgjorde det.** Feedens position 3 är nästan alltid en måttritning med
+siffror inbrända i pixlarna (`RENA_BILDPOSITIONER` behåller den just därför), och där
+löper måttlinjen från marken till takets överkant med **44 cm**. Alt-texten, som
+importen byggde ur den tyska titeln, sa också 44. Tre källor mot en.
+
+**Regeln: när två sifferkällor säger olika, zooma in måttritningen.** Den är den enda
+källan som är GRAFISK — den kan inte ha råkat bli fel i en transkribering mellan två
+kolumner, och den visar dessutom VAR måttet är taget (här: inklusive taket, vilket är
+det kunden behöver veta). Gissa aldrig på den ena kolumnen, och skriv aldrig ut båda
+talen med en brasklapp — det är precis det Steg 7 förbjuder.
+
+### ☠️ Ett färgfält kan vara SCRAMBLAT i en färgfamilj — då är färgen inte publicerbar
+
+Runda 47 lärde att färgnamnet kan vara fel mot bilden. Runda 48 visade det värre fallet:
+**två färgfält på SAMMA produkt som motsäger varandra.**
+
+Hundvippan `2b7853e9` anger `Farbe: Gelb` i den tyska specen, medan produktens egna renderingar
+visar obehandlat barrträ med svart halkskydd — ingen gul yta någonstans. Färgtvillingen
+`9a1432fc`, med identiska mått och vikt, anger `Farbe: Naturholz` i den tyska texten och
+`Färg: Blau, Rot, Orange` i sin svenska spec-rad. Samma fält, samma produkt, två svar.
+
+I ett sådant läge finns inget att verifiera mot: bilden kan vara en delad rendering för hela
+färgfamiljen, och texten är bevisat opålitlig i minst en riktning. **Utelämna färgen helt** —
+ur brödtexten och ur spec-tabellen — och flagga klustret. Det är samma regel som
+*"vet vi inte — utelämna"*, bara med två felaktiga källor i stället för noll källor.
+
+Att gissa åt något håll är sämre än att tiga: en kund som beställer "gul" och får naturträ
+returnerar varan, och en kund som ser fotot får ändå veta hur den ser ut.
+
 ## Steg 6 – Variantsanering (bara flervariantprodukter)
 
 **Aosom-rader har en enda variant utan optioner — hoppa över.** Kontrollera ändå att
@@ -897,6 +1197,45 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > Grinden nedan är alltså inte bokföring: den är det enda som ser skillnad på en
 > länk som fungerar och en som inte gör det.
 
+> ☠️ **Formeln nedan är OFULLSTÄNDIG — den saknar `<li>`-termen. Räkna inte, NORMALISERA.**
+> *(Uppmätt 2026-09-03: åtta av åtta produkter föll på formeln med +105 till +140 tecken.
+> Orsaken är att Wix slår in varje `<li>`-innehåll i ett `<p>`, alltså **+7 per `<li>`** —
+> och att radbrytningarna mellan block strippas, alltså **−1 per `\n`**. En formel som är
+> fel är sämre än ingen formel: den lär dig att avfärda ett äkta larm som brus.)*
+>
+> Gör i stället om KÄLLAN till det Wix skulle ha lagrat och kräv **exakt strängmatchning**:
+>
+> ```python
+> def normalisera(h):
+>     h = re.sub(r">\s*\n\s*<", "><", h)                                  # radbrytningar
+>     h = h.replace("<strong>", '<span style="font-weight: 700">')          # +21 per par
+>     h = h.replace("</strong>", "</span>")
+>     h = re.sub(r'(<a href="[^"]+")>', r'\1 target="_self">', h)           # +15 per länk
+>     h = re.sub(r"<li>(?!<p>)(.*?)</li>", r"<li><p>\1</p></li>", h, flags=re.S)  # +7 per li
+>     return h
+> ```
+>
+> `normalisera(källa) == lagrad plainDescription` — byte för byte, på alla åtta i runda 47.
+> Det är ett starkare kvitto än ett längdtal: en formel kan stämma medan tecknen är fel.
+>
+> ☠️ **Vill du ha kvittot som en HASH — räkna den med aritmetik som är exakt i BÅDA
+> språken.** Att läsa tillbaka åtta beskrivningar à 3–4 kB kostar kontext; ett längdtal plus
+> en hash gör samma jobb för en rad. Men den första hashen (FNV-1a) gav **åtta avvikelser av
+> åtta** medan varenda längd stämde på tecknet — och felet låg i hashen, inte i datan:
+> `h * 16777619` överstiger 2^53 i JavaScripts float64, så JS-sidan tappade precision och
+> Python-sidan inte. Två korrekta implementationer av samma formel gav olika svar.
+>
+> ```js
+> const hasha = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 1000000007; return String(h); };
+> ```
+>
+> `h * 31` med `h < 1e9` ger 3,1e10 — långt under 2^53, alltså exakt i både JS och Python.
+> Med den stämde alla åtta. **Ett kvitto vars två sidor räknas olika mäter
+> implementationerna, inte datan** — och det ser ut precis som åtta trasiga skrivningar en
+> minut före publicering.
+
+> Den gamla formeln, för sammanhangets skull:
+>
 > 📏 **Längddeltat är ett kvitto — men det har TVÅ termer.**
 > Wix serialiserar om `<strong>…</strong>` (17 tecken) till
 > `<span style="font-weight: 700">…</span>` (38), alltså exakt **+21 per par**, och lägger
@@ -1140,6 +1479,14 @@ också när du inte tänker röra den. Läs tillbaka `visible` i svaret — det 
 > `{...v, sku, visible:true}` med produktens `visible:false` gav en synlig variant på en
 > osynlig produkt).
 >
+> ☠️ **Och den slår till på Steg 9 — varje gång.** Bild-PATCH:en bär
+> `visible: false` (produkten ska ju förbli utkast), och Wix speglar då ned
+> `false` på varenda variant som Steg 8 nyss satt till `true`. Uppmätt på åtta
+> av åtta produkter i runda 45. Det är inte ett fel att undvika utan ett
+> normalförlopp att räkna med: låt den avslutande Steg 13-PATCH:en sätta båda
+> till `true`, och lita på att Klart-kriteriet läser om varianten före
+> publiceringen. Grinden fångade det på alla åtta.
+>
 > ☠️ **Och det gäller ÄVEN en sen texträttelse.** Steg 12 ligger utanför intervallet ovan, och det
 > är just där fällan slog till 2026-09-02: fyra av åtta köksskåp fick en rättelse-PATCH som bar
 > `plainDescription` + `visible:false` men INGET `variantsInfo` — och Wix speglade då ner
@@ -1338,6 +1685,22 @@ assert kontroll[vy:vy+sida, vx:vx+sida].sum() == kontroll.sum(), 'kvadratbeskär
 
 **Miljöbilder är undantagna** — att en livsstilsbild beskärs är normalt. Regeln gäller
 studiobilder på vit botten, där produkten ÄR motivet.
+
+☠️ **En MÅTTRITNING måste paddas, inte beskäras.** Etiketterna sitter per
+definition i kanterna, och centrumbeskärningen tar dem först. En ritning som är
+1568 × 1392 tappar 6 % i vardera sidan — i runda 45 hade det ätit `60cm` och
+`51,6cm` ur två av åtta. Padda till kvadrat i stället:
+
+```python
+s = int(max(im.size) * 1.02)
+duk = Image.new("RGB", (s, s), (255, 255, 255))
+duk.paste(im, ((s - im.width) // 2, (s - im.height) // 2))
+```
+
+⚠️ **Padda på VITT, inte på en uppmätt kantfärg.** Ett första försök tog
+medianen av kantpixlarna; på en ritning med en krukväxt i hörnet blev duken
+gråbrun, och på en bild vars gula ram nyss beskurits blev den orange. Kantfärgen
+mäter det du just tog bort.
 
 ### ☠️ Kapa aldrig bort delar av produkten
 
@@ -1626,6 +1989,329 @@ hittade två fel i texten och ett i grinden själv.
 
 **Regeln: en grön grind betyder att grinden är nöjd, inte att texten är rätt.** Två av de
 tre fynden ovan var osynliga för varje fält-kontroll, och det tredje låg i kontrollen själv.
+
+### ☠️ Ett jämförande påstående inom EGEN batch går att grinda mekaniskt — gör det
+
+Runda 42 (trädgårdsbänkar, 2026-09-03). Texten sa *"den lättaste av våra åtta"* om
+furubänken på 10,9 kg. Rottingbänken i samma batch väger **10,3**. Felet stod på tre
+ställen — en h2, ett FAQ-svar och en korshänvisning som dessutom pekade åt fel håll
+(*"ett kilo lättare"* om en bänk som var 0,6 kg TYNGRE).
+
+Skillnaden mot Steg 12-fyndet ovan är att det här påståendet gällde **batchen**, inte
+katalogen — och en batch är åtta rader i en dict, alltså mätbar på tre kodrader:
+
+```python
+vikt = {k: v["vikt"] for k, v in P.items()}
+lattast, tyngst = min(vikt, key=vikt.get), max(vikt, key=vikt.get)
+for k, v in P.items():
+    if "lättast" in v["html"].lower() and k != lattast: fel(k, f"{lattast} väger mindre")
+    if "tyngst"  in v["html"].lower() and k != tyngst:  fel(k, f"{tyngst} väger mer")
+```
+
+Samma grind går att skriva för *djupast*, *högst*, *längst* och *minst* — varje superlativ
+du använder om den egna batchen har ett tal i spec-tabellen bakom sig. **Skriv grinden i
+samma stund du skriver superlativet**, för korrekturet hittar det inte: meningen är
+välformulerad, siffran i den är rätt, och det enda som är fel är rangordningen mot sju
+andra sidor du inte läser samtidigt.
+
+Samma runda visade också vad ordvalslistor kostar när de blir slarviga: en tyskgrind som
+listade `metall` och `natur` fällde tre korrekta svenska meningar. **Orden som stavas lika
+på svenska och tyska hör inte hemma i en tyskgrind** — och en grind som fyrar på rätt text
+lär läsaren att bläddra förbi.
+
+### ☠️ En grind mot osynliga tecken får inte SKRIVAS med osynliga tecken
+
+Runda 46 (hundburar, 2026-09-03). Linten porterades från förra rundan och fällde
+`osynligt tecken U+00A0` på **alla åtta** texterna. Ingen av dem innehöll ett hårt
+mellanslag. Felet satt i grinden:
+
+```python
+OSYNLIGT = {"\xad": "U+00AD", " ": "U+00A0", …}   # ← nyckeln ar ett VANLIGT mellanslag
+```
+
+Filen hade skrivits genom ett verktyg som normaliserade blanksteg, och U+00A0-nyckeln
+blev U+0020. Grinden frågade därmed *"innehåller texten ett mellanslag?"* — sant för
+varenda text som finns. Åt andra hållet är samma fel dödligt tyst: hade nyckeln i
+stället fallit bort helt hade grinden svarat OK på en text full av hårda mellanslag.
+
+Bygg den ur **kodpunkter**, och låt den påstå något om sig själv:
+
+```python
+OSYNLIGT = {chr(c): "U+%04X" % c
+            for c in (0x00AD, 0x00A0, 0x200B, 0xFEFF, 0x200E, 0x200F)}
+assert all(ord(t) > 0x20 for t in OSYNLIGT), "grinden ar avvapnad"
+```
+
+Regeln generaliserar: **en grind vars villkor är ett osynligt tecken kan inte
+granskas genom att läsas.** Den måste antingen härledas ur något synligt (en
+kodpunkt) eller bevisas med ett test som återinför defekten.
+
+### ☠️ Och en ordgräns räcker inte heller — `\b` är ASCII-bara i JavaScript (2026-09-03)
+
+Regeln ovan säger "ordgräns på varje markör". Den räcker inte, och det upptäcktes en
+runda senare: klart-kriteriet fällde kattstugan `b4f4d991` på `tyskt ord: /\bdas\b/i`
+ett steg före publicering. Sidan var ren. Ordet var **stä|das**.
+
+I JavaScript är `\b` definierad mot `[A-Za-z0-9_]`. `ä` räknas alltså som ett
+ICKE-ordtecken, och därför finns det en ordgräns mitt inne i varje svenskt ord där
+`å/ä/ö` står precis före markören:
+
+| | `/\bdas\b/i` mot "städas" |
+|---|---|
+| JavaScript | **träff** — `ä` bryter ordet |
+| Python (`str`-mönster) | ingen träff — `\b` är unicode-medveten |
+
+Det gäller inte bara `das`. Uppmätt över de åtta vanligaste tyska markörerna mot
+femton svenska ord — bara tre föll, och alla tre av samma skäl:
+
+| svenskt ord | JS-`\b` fäller på | unicode-gräns |
+|---|---|---|
+| stä**das** | `das` | — |
+| vä**der** | `der` | — |
+| rä**der** | `der` | — |
+
+Mönstret är exakt: en svensk vokal FÖRE markören och ordslut EFTER den. `vädret`
+klarar sig (`der` följs av `e`, som är ordtecken i båda), men **"väder" gör det inte —
+och det ordet står i varannan text om utomhusprodukter.**
+
+**Skriv gränsen explicit i stället, med de svenska bokstäverna i lookaround:**
+
+```js
+const G = (k) => new RegExp("(?<![A-Za-zÅÄÖåäö0-9])(?:" + k + ")(?![A-Za-zÅÄÖåäö0-9])", "i");
+const TYSKA = ["und", "mit", "das", "der", "wetterfest\\w*", …].map(G);
+```
+
+☠️ **Och den djupare regeln, tredje gången i det här projektet: två korrekta
+implementationer av samma regel gav olika svar.** Python-linten som byggde texten och
+JS-grinden som läste tillbaka den har samma ordlista och samma avsikt — men olika
+`\b`. Samma familj som FNV-1a-hashen, där `h * 16777619` var exakt i Python och lossy
+i JavaScript. **En grind vars två sidor räknar olika mäter implementationerna, inte
+datan** — och ett falsklarm en minut före publicering ser ut precis som ett äkta fel.
+
+### ☠️ En tysk-detektor byggd av ORDSTAMMAR fäller svenska böjningar (2026-09-03)
+
+Grinden som ska hitta oöversatt tyska är den som oftast ljuger, och den ljuger alltid åt
+samma håll: **falskt larm på en text som är helt svensk.** Tre träffar på en runda:
+
+| grinden innehöll | matchade | i ordet |
+|---|---|---|
+| `[üöä]` | `ö`, `ä` | *för*, *gräsmattan*, *höjd* — halva svenskan |
+| `Steg`, `Panel` | hela ordet | *steg*, *panel* — svenska ord, inte tyska |
+| `Rampe` (utan `\b`) | ordstammen | **Rampe**rnas lutning |
+
+Den sista fällde Klart-kriteriet på `4fdd8d3c` **ett steg före publiceringen**, på en
+spec-rad som lyder `Rampernas lutning: 28°`. Hade larmet trotts hade en färdig sida hållits
+tillbaka; hade det avfärdats hade nästa — äkta — larm avfärdats med.
+
+**Två regler:**
+
+1. **Ordboundade markörer.** `\bRampe\b` matchar inte *Rampernas*. `\bfür\b`, `\bHunde\b`,
+   `\bWippe\b`, `\bHolz\b`. Aldrig en naken ordstam.
+2. **Aldrig ett tecken som finns i svenskan i teckenklassen.** `ü` och `ß` är säkra; `ö` och
+   `ä` är det inte. `för` är svenska, `für` är tyska — och skillnaden är en enda prick.
+
+☠️ **Och prova detektorn mot en känd SVENSK text innan du litar på en träff.** Samma regel
+som mutationstestet nedan, speglad: där bevisar man att grinden fäller på ett fel, här att
+den *inte* fäller på det som är rätt. En grind som bara provats åt ena hållet är halvmätt.
+
+### ☠️ Ett mutationstest som bara kräver "någon brist" provar inte grinden du tror
+
+Runda 47 lade till ett fjärde krav utöver returkod, landad mutation och icke-tom stdout:
+**vilken grind som föll måste stämma**. Varje mutation bär den textsnutt lint ska svara med,
+och testet fäller om någon ANNAN grind fångade felet.
+
+Det behövdes direkt. Mutationerna "sluggkrock i batchen" och "slug redan publicerad" gav
+båda `sökordet saknas i sluggen` — sökordsgrinden råkade ligga före krockgrinden och
+maskerade den. Testet såg en brist och godkände; kollisionskontrollen var i praktiken
+oprövad. Med kravet på rätt meddelande föll den rätta grinden på båda.
+
+Samma körning hittade två riktiga defekter i grindarna:
+
+- ☠️ **Ett `inte` någonstans i meningen friade ett förbjudet påstående.** Regeln
+  "vattentät får bara stå i en fråga eller ett nekande svar" var skriven som *"meningen
+  innehåller `?`, `nej` eller `inte`"* — och därmed passerade mutationen *"Boxen är
+  vattentät och lutar så att vattnet rinner av, men falsen är **inte** packad."*
+  **Nekandet måste stå omedelbart före ordet**, inte var som helst i meningen.
+- **Lint kraschade i stället för att rapportera** när en mutation bröt korshänvisningen:
+  uppslaget `P[[x for x in P if …][0]]` gav `IndexError` på en slug som inte längre fanns.
+  En grind som kraschar ger tom stdout, och utan returkods-kontrollen hade det räknats som
+  godkänt. **En grind ska alltid rapportera, aldrig kasta.**
+
+### ☠️ Ett mutationstest som bara läser stdout rapporterar en krasch som "godkänt"
+
+Samma runda, samma timme. Selen som bevisar att linten faktiskt fäller kördes som
+en barnprocess, och utfallet lästes ur `stdout`:
+
+```python
+r = subprocess.run([sys.executable, "-c", kod], capture_output=True, text=True)
+brister = [l for l in r.stdout.splitlines() if …]     # returkoden lastes ALDRIG
+print("SLAPPER IGENOM" if not brister else "FALLER")
+```
+
+En egen bugg i selen (`KOD.replace("MUT", …)` träffade även token `MUTKOLL` och gav
+barnet ett syntaxfel) fick fyra grindar att rapporteras som **släpper igenom** —
+grindar som var friska. Tio minuter gick åt till att felsöka rätt kod.
+
+Det är husets vanligaste lärdom i ny förklädnad: *ett svar utan innehåll är inget
+kvitto.* **Fäll på returkod ≠ 0**, och låt varje mutation dessutom påstå att den
+LANDADE (`assert 'x' in texter.T[...]`) — annars kan en mutation som inte tog
+rapporteras som en grind som inte fyrar.
+
+Nitton mutationer låser runda 46:s lint: osynliga tecken (tre varianter), uppdiktat
+tal, vilset tal utanför den ordagranna regeltexten, sökord ur sluggen, död länk,
+omskriven regeltext, omskriven mätmetod, tyskt ord, husmärke, land, defensiv röst,
+decimalpunkt, `x` i stället för `×`, `<br>`, omdöpt flikrubrik, för lång meta, och
+slugg som krockar med en publicerad sida. Alla nitton fångas.
+
+### Syskonlikhet går att MÄTA — och färgtvillingar ligger strukturellt högre
+
+Runda 46 var tre par tvillingar (två färger av 98 cm-burens modell, två av 94 cm,
+två storlekar mjuk bur). Frågan "är de här sidorna för lika?" besvarades med
+5-gram Jaccard på synlig text, i två mått:
+
+| | HELA texten | med de DELADE styckena bortlyfta |
+|---|---:|---:|
+| Runda 45 (åtta olika modeller) | 0,078 | 0,026 |
+| Runda 46, första utkastet | 0,216 | 0,129 |
+| Runda 46, efter åtgärd | **0,205** | **0,116** |
+
+Talen är höga för att rundan ÄR tvillingar: samma spec-vokabulär, samma
+rättsliga stycke, samma mätmetod. En dubblettsida ligger på 0,7–0,9, så 0,2 är
+inte duplicerat innehåll — men skillnaden mot runda 45 är verklig och ska
+redovisas, inte trimmas bort genom att byta mått.
+
+**Vad mätningen faktiskt hittade var inte prosa utan RUBRIKER.** Sju av åtta sidor
+bar samma egna `<h2>` (*"Så vet du att hunden får plats"*). Ordagrant delade
+stycken var bara 3–4 per par och alla spec-celler (material, bärförmåga,
+rekommenderad hund). Åtgärden var därför att ge varje sida en rubrik som bär dess
+EGET avgörande tal — *"71 centimeter att sitta upp under"*, *"58 centimeter för en
+liten hund"* — och att lägga det produktspecifika FÖRE det delade stycket i
+avsnittet. Unika egna rubriker gick från 19 av 32 till 26 av 32.
+
+☠️ **Ett medvetet delat stycke ska förbli ordagrant delat.** Regeltexten (SJVFS
+2020:8) och tillverkarens mätmetod står identiska på alla sidor med flit — den
+konsekvensen är en säkerhetsfunktion, inte lättja, och linten låser båda
+ordagrant. Rubriken över dem får däremot variera.
+
+### ☠️ Leverantörens två grafiker kan motsäga VARANDRA — välj den konservativa
+
+Aosoms hundburar levereras med två bilder som båda definierar `Körperlänge`:
+
+| bild | vad den visar |
+|---|---|
+| måttritningens hundsiluett | en pil längs kroppen, ungefär bog till svansrot |
+| mätguiden (*"Wie messen Sie Ihren Hund"*) | ordagrant *"von der Nasenspitze bis zur Rutenspitze"* |
+
+De ger olika tal för samma hund, och skillnaden är stor: en golden retriever mäter
+runt 60 cm på det första sättet och över 110 cm på det andra.
+
+**Använd nosspets → svansspets.** Inte för att den ena källan är finare, utan för
+att den ger det STÖRRE talet: en kund som följer den köper en för stor bur i värsta
+fall, en som följer den andra köper en för liten. Fel åt det ena hållet kostar
+plats, fel åt det andra är en hund som inte får plats att ligga.
+
+☠️ **Och därför ska rasgrafiken ALDRIG återanvändas.** Bilden *"GEEIGNET FÜR GROSSE
+HUNDE"* listar sibirisk husky, dalmatiner, golden retriever och labrador mot
+gränsen `Körperlänge <60cm` — vilket är omöjligt under leverantörens egen
+mätmetod. Kortet som ersätter den bär de mätbara talen (innermått, dörrmått,
+maskstorlek) plus mätmetoden, och nämner inga raser.
+
+### Ett påstående om en färgtvilling måste kontrolleras mot TVILLINGENS foto
+
+Samma runda: texten om valnötsburen påstod att *"baksidan och de nedre partierna är
+slutna paneler, gallret sitter i ögonhöjd för hunden"*. En uppförstoring av
+produktbilden visade något annat — baksidan ÄR en sluten panel, men stavarna löper
+i **full höjd** framför den, och några "nedre partier" finns inte utöver en sockel.
+Påståendet var härlett ur hur en tvilling såg ut i miniatyr, inte läst ur bilden.
+
+Rättat både i brödtexten och i FAQ-svaret som upprepade det. **Zooma in på
+huvudbilden innan du beskriver konstruktion** — en kontaktkarta i 400 px räcker för
+att se om något är tyskt, men inte för att säga hur det är byggt.
+
+### ☠️ `products/query` returnerar INTE `variantsInfo` — en grind på den passerar tom
+
+Runda 44 (gasolgrillar, 2026-09-03). Klart-kriteriet kördes som ett enda
+`POST /stores/v3/products/query` med `fields: ["PLAIN_DESCRIPTION","MEDIA_ITEMS_INFO",
+"DIRECT_CATEGORIES_INFO","URL"]` och rapporterade **"brister: inga" på alla åtta**.
+Två av kontrollerna var värdelösa:
+
+```js
+if (varianter.some(x => x.visible !== true)) brister.push("variant osynlig");
+if (varianter.some(x => !/^FP-/.test(x.sku || ""))) brister.push("SKU fel");
+```
+
+`varianter` var `[]` på varje produkt, och `[].some(...)` är `false`. Båda grindarna
+sa alltså OK utan att ha tittat på någonting. Det syntes bara för att svaret också
+skrev ut `sku: ""` — hade jag inte råkat logga fältet hade rundan publicerats med
+en oprövad SKU- och synlighetskontroll.
+
+`variantsInfo` finns bara på **`GET /products/{id}`**. Det gäller alltså tre rutter
+med samma symtom: `products/search` (dokumenterat sedan 2026-08-26), `products/query`
+(mätt nu) och `?fields=`-projektionen i sig. Samma familj som `MEDIA_ITEMS_INFO` och
+`PLAIN_DESCRIPTION`: **ett fält som inte begärts syns som ett tomt värde, inte som ett
+fel** — men här är det värre, för en tom array får ett `some()`-villkor att svara
+"allt är bra".
+
+**Regeln: en grind över en LISTA måste först kräva att listan finns.** Skriv
+`if (!varianter.length) brister.push("variantsInfo saknas i svaret")` före varje
+`some()`/`every()` — eller läs varianterna med en egen `GET` per produkt, vilket är
+vad Steg 13 gör ändå.
+
+### ☠️ Ett köpavgörande tal kan finnas BARA i pixlarna
+
+Samma runda. Leverantörens egen infografik för planchan `f02917da` hade en panel med
+rubriken *"Included Regulator & Hose"* och ett foto på regulatorn. Zoomat på 900 px
+går etiketten att läsa: **50 mbar**, alltså den TYSKA standarden. Svenska P-tuber
+(P6, P11) ansluts med **30 mbar** och POL-koppling — kontrollerat mot gasoltuben.se,
+Linde Gas och KitchenLab.
+
+Talet står **ingenstans** i feeden. Inte i `Technische Daten`, inte i `Lieferumfang`,
+inte i titeln. Utan bilden hade alla åtta sidorna sagt "regulator och slang ingår"
+som en ren säljpunkt, och kunden hade fått hem en grill som inte går att koppla till
+sin tub. Det är precis en sådan **hård gräns som är en del av köpet** som Steg 7 säger
+ska skrivas som ett positivt villkor med egen rubrik — här `<h2>Så ansluts den till
+svensk gasol</h2>` på alla åtta.
+
+Två saker följer:
+
+1. **Läs siffrorna i bilderna, inte bara i texten.** Måttritningen granskas redan
+   (Steg 4). Etiketter på produkten, på förpackningen och i leverantörens
+   feature-collage är samma sorts källa — och den enda källan när feeden tiger.
+2. **En engelsk eller tysk infografik kastas inte, den byggs om.** Panelen blev ett
+   svenskt `card_grid` med de tre delfotona och rätt text. Fyndet hade gått förlorat
+   om bilden bara plockats bort som "utländsk text".
+
+✅ **Regeln bekräftades direkt i runda 45.** Kortet *"GEEIGNET FÜR MITTLERE &
+GROSSE HUNDE"* på hundburen `d3b47c8b` anger **`Körperlänge < 55 cm`**. Feedens
+text nämner bara 25 kg — längdmåttet står ingenstans utanför bilden, och på en
+hundbur är det längden som avgör om varan går att använda. Två rundor i rad, två
+olika produktgrupper: **titta på siffrorna i leverantörens collage innan du
+kastar det.**
+
+☠️ Och gränsen för vad som får påstås: bilden bevisar vad som ligger i **den här**
+produktens kartong. De sju andra sidorna säger därför bara vad `Lieferumfang` säger
+plus den svenska anslutningen — inte att deras regulator är 50 mbar, för det är inte
+mätt.
+
+### ☠️ Ett feltypat produkt-id ska INTE kunna skriva någonting
+
+Samma runda: ett av åtta id var transkriberat med två omkastade tecken
+(`…-45e3-…` mot `…-43e5-…`). Skrivningen gjorde ingen skada — men bara för att
+PATCH-slingan börjar med en `GET` på samma id och hoppar över produkten när den 404:ar.
+Rätt id gick inte att gissa (båda formerna är giltiga UUID:er) utan lästes tillbaka ur
+katalogsvepet.
+
+Två grindar, båda billiga, och de fångar olika fel:
+
+1. **`GET` före `PATCH`, och `startsWith(nyckeln)` på svaret.** Ett id som inte finns
+   404:ar; ett id som finns men är FEL produkt fastnar på prefixet.
+2. **Checksumma på nyttolasten.** Räkna `sum(ord(c) for c in html)` i Python, bädda in
+   talet, och låt JS:en räkna om det innan den skriver. Längddeltat fångar en text som
+   TAPPAT tecken; checksumman fångar en text där ett tecken bytts mot ett annat — och det
+   är just vad en transkribering gör.
+
+**Regeln: en skrivning som bygger på en sträng du skrivit av för hand behöver en grind som
+inte gör det.**
 
 
 -----
@@ -1994,6 +2680,26 @@ katalogen. Kör dem med några veckors mellanrum — båda är read-only tills d
 > `cursorPaging`, och lista produkter där `items.some(m => !m.altText)`. 2026-08-06 gav det
 > **13 publicerade produkter / 82 bilder** helt utan alt-text.
 >
+> ✅ **Svept och lagat 2026-09-03: 94 av 1 658 publicerade produkter.** Alla
+> saknade exakt en förälder, tyngdpunkt Hem & Inredning (19 i andra halvan) och
+> ett stort kluster kontors-/massagestolar. `add-item` med förälderns id på var
+> och en, `totalSuccesses > 0` på alla 94, noll fel — och verifierat med ett
+> SENARE svep som gav **noll kvar**. Skrivningens svar duger inte som kvitto
+> här: `directCategoriesInfo` släpar, så räkna om i ett eget anrop.
+>
+> ☠️ **Katalogsvep — tomma alt-texter: 210 publicerade produkter, 1 222 bilder
+> (2026-09-03).** Det är 12 % av bilderna på 13 % av de publicerade sidorna, och
+> orsaken är känd: alt-texten skrevs till `items[].image.altText` i stället för
+> `items[].altText` och SLÄPPTES TYST av Wix (se fältnoten i Fasta fakta,
+> uppmätt 2026-09-01). Allt som polerades före den dagen är drabbat; allt efter
+> är rent — runda 43, 44 och 45 mätte noll tomma.
+>
+> ⚠️ **Det går inte att laga med en mall.** Alt-texten ska beskriva det som
+> FAKTISKT syns, och plats 2 och framåt är inte förutsägbar ens när galleriet
+> följer husordningen. Reparationen kräver ögon på bilderna — alltså egna
+> rundor med kontaktkartor, inte ett svep. Räkna 210 produkter i grupper om
+> åtta: ~26 rundor, eller färre om man bara tar de bilder som är tomma.
+>
 > **Katalogsvep — löv utan förälder.** Samma sorts tysta drift i kategoriträdet: en produkt
 > kopplad till bara lövet syns inte när kunden browsar från toppnivån. Kör bredvid alt-text-svepet:
 > hämta trädet (`/categories/v1/categories/query`) → `parent[löv] = förälder`, paginera katalogen
@@ -2040,6 +2746,54 @@ ena av två former kunde alltså träffa, och 488 sidor svepta med det mönstret
 ingenting. **Validera alltid ett svepmönster mot minst en känd smutsig sida av varje
 form innan du litar på ett tomt resultat.**
 
+**Läckan har nu hittats FEM gånger, och fem gånger av ett svep.** De två senaste
+(2026-09-03, båda i samma timme) satt i spärren själv, inte i texten:
+
+| felet i detektorn | vad som gick fri |
+|---|---:|
+| prefixet var `[0-9A-Z]` och regexen saknade `i` | **19** publicerade sidor med GEMEN kod |
+| `Artikelreferens` saknades i etikettlistan | **4** publicerade sidor |
+
+Den första är den obehagliga. Filens egen kommentar sa *"FORMEN ÄR MÄTT, INTE
+GISSAD"* — och det var sant, formen var mätt över 51 sidor. Men varenda kod i det
+urvalet råkade vara versal, så mätningen bevisade en form och antog en teckenrymd.
+Svepet läste 5 485 produkter och rapporterade `medKod: 0` medan `Referens:
+d30-670v00yl` låg live på en publicerad sida.
+
+☠️ **En spärr som är blind för halva teckenrymden är värre än ingen spärr:** den
+ger ett grönt kvitto på en läcka som pågår, och den gröna rapporten är skälet att
+ingen tittar efter.
+
+**Tre regler ur det:**
+
+1. **Ett mätt urval bevisar formen, inte rymden.** Har du mätt `Z00-111V00XX` vet
+   du hur raden ser ut — inte att koden alltid är versal, alltid har det prefixet,
+   alltid saknar parentes. Skriv mönstret så vitt som datan tillåter och strama
+   åt med ett *innehållskrav* i stället: koden här kräver nu **minst en siffra
+   någonstans i koden**, vilket träffar varje äkta kod och utesluter varje
+   bokstavsord (`Referens: bruks-anvisning` hade annars klippts bort när gemener
+   släpptes in).
+
+   ☠️ **Kravet satt först per HALVA, och det var för hårt.** Den formen avvisade
+   `bruks-anvisning` korrekt men också `SP-CAG-203018` — en uppmätt äkta kod där
+   båda de första segmenten är rena bokstäver. Två korrekta fixar från två
+   parallella sessioner drog alltså åt olika håll, och det syntes bara för att
+   båda sidornas tester kördes mot samma fil vid sammanslagningen. **Ett
+   innehållskrav ska ställas på det minsta som räcker.**
+2. **Alternationen tar det FÖRSTA alternativet som matchar — sortera längst först.**
+   `Referens` före `Artikelreferens` matchar de nio sista tecknen, och då står
+   `<li><p>` inte längre omedelbart före etiketten: raden går fri i saxen men syns
+   i löptext-rapporten. Ett fel som ser ut som två olika buggar är en
+   sorteringsfråga. Sätt dessutom en ordgräns före etiketten — **en etikett som
+   ska klippas ska stå i listan, inte hittas av misstag.**
+3. ☠️ **Kontrollera svepets `avhuggen` INNAN du tolkar noll träffar.** Första
+   mätningen här läste 2 800 av 5 485 och gav noll — jag drog slutsatsen att
+   regexen var oskyldig. Den kända smutsiga sidan låg i den olästa halvan. Samma
+   fälla som `cursor === null` i Steg 1, en våning ner.
+
+**Kvittot som gör mätningen värd något:** lägg en **känd smutsig rad av varje form**
+som positiv kontroll i själva svepet och avbryt om den inte träffas. Två rader kod,
+och det är skillnaden mellan "noll träffar" och "noll träffar, och regexen fungerar".
 ☠️ **Och samma dag igen, på nästa grannform — den här gången efter ett grönt svep.**
 Jag rapporterade "5 485 produkter lästa, 0 träffar" och kallade katalogen ren. Den var
 det inte: `<li><p>✔ Artikelnummer: …</p></li>` gav **noll** träffar, samma rad utan

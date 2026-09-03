@@ -28,14 +28,29 @@
 // sax som tar för mycket är farligare än läckan den lagar.
 
 /** Etiketter som i huset har burit ett leverantörsnummer. */
+/**
+ * ☠️ LÄNGST FÖRST. Regex-alternation tar det FÖRSTA alternativ som matchar, så
+ * `Referens` före `Artikelreferens` hade matchat de nio sista tecknen och lämnat
+ * `Artikel` utanför — och då stämmer inte `<li><p>` omedelbart före etiketten,
+ * så hela raden går fri. Fyra publicerade sidor bar `Artikelreferens:` av precis
+ * det skälet (2026-09-03).
+ */
 const ETIKETTER = [
+  "Artikelreferens",
   "Artikelnummer",
+  "Modellreferens",
+  "Modellnummer",
   "Artikelnr",
   "Art\\.nr",
-  "Modellnummer",
-  "Modellreferens",
   "Referens",
 ].join("|");
+
+/**
+ * Ingen etikett får matcha inne i ett längre ord. Utan gränsen fångade
+ * `Referens` slutet av `Artikelreferens` — nyttigt i rapporten men oförutsägbart
+ * i saxen: den träffade i löptexten och missade som rad.
+ */
+const ORDSTART = "(?<![A-Za-z\u00c5\u00c4\u00d6\u00e5\u00e4\u00f6])";
 
 /**
  * Leverantörskodens form: tre tecken, bindestreck, tre till fjorton tecken
@@ -60,8 +75,45 @@ const ETIKETTER = [
  *      fyra är falska slutar läsas, och då är även det äkta borta — samma
  *      argument som mot att varna vid 48 h på token-förnyelsen.
  */
-const KOD = "(?!FP-)[0-9A-Z]{2,7}-[0-9A-Za-z]{2,14}";
-const KODER = `${KOD}(?:\\s*/\\s*${KOD})*`;
+/**
+ * ☠️ BÅDA SKIFTLÄGENA, OCH MINST EN SIFFRA I VARJE HALVA.
+ *
+ * Prefixet var `[0-9A-Z]` — bara VERSALER — och regexen saknade `i`. Formen var
+ * "mätt, inte gissad", men mätt på ett urval där varje kod råkade vara versal.
+ * Nitton publicerade sidor bar samtidigt en GEMEN kod (`d30-670v00yl`,
+ * `84h-070v00cr`, `a20-287v00cg`), och svepet rapporterade `medKod: 0` över hela
+ * katalogen medan de låg live. En spärr mot husets farligaste läcka som är blind
+ * för halva teckenrymden är värre än ingen spärr: den ger ett grönt kvitto på en
+ * läcka som pågår.
+ *
+ * Gemener öppnar dock saxens värsta risk — ett vanligt bindestrecksord.
+ * `Referens: bruks-anvisning` hade matchat rakt av. Därför krävs **minst en
+ * siffra** i båda halvorna: varje uppmätt äkta kod har det, och varje rent
+ * bokstavsord blir omöjligt. Siffer-kravet gör dessutom `FP-`-undantaget nedan
+ * överflödigt för första halvan (`FP` har ingen siffra) — det står kvar ändå,
+ * för det dokumenterar avsikten och kostar ingenting.
+ */
+/**
+ * ☠️ SIFFRAN KRÄVS I KODEN SOM HELHET, INTE I VARJE HALVA.
+ *
+ * Ett första utkast krävde en siffra i båda halvorna. Det avvisade
+ * `bruks-anvisning` korrekt — men också `SP-CAG-203018`, en uppmätt äkta
+ * kodform där båda de första segmenten är rena bokstäver. Två korrekta fixar
+ * drog alltså åt olika håll, och det syntes bara för att båda sidornas tester
+ * kördes mot samma fil.
+ *
+ * Lookahead:en tittar över hela kodspannet — den kan bara passera
+ * `[0-9A-Za-z-]` och stannar därför vid mellanslag eller `<`, alltså aldrig
+ * utanför koden.
+ */
+const HAR_SIFFRA = "(?=[0-9A-Za-z-]{0,30}[0-9])";
+const KOD = `(?!FP-)${HAR_SIFFRA}[0-9A-Za-z]{2,7}-[0-9A-Za-z]{2,14}`;
+/**
+ * Mellan två koder på samma rad kan stå en kort parentes med färgnamnet —
+ * `370-281V90GN (grön) / 370-281V90RD (röd)` låg så på två publicerade sidor.
+ */
+const PARENTES = "(?:\\s*\\([^)]{1,20}\\))?";
+const KODER = `${KOD}${PARENTES}(?:\\s*/\\s*${KOD}${PARENTES})*`;
 
 /**
  * Dekoration före etiketten — bock, punkt, streck, hårt mellanslag.
@@ -110,14 +162,14 @@ const DEKOR =
  */
 export const LEVERANTORSKOD_RAD = new RegExp(
   `<li><p>(?:${DEKOR}<span style="font-weight: ?\\d+">)?${DEKOR}`
-    + `(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*${KODER}\\s*</p></li>`,
-  "g",
+    + `${ORDSTART}(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*${KODER}\\s*</p></li>`,
+  "gi",
 );
 
 /** Fristående kodförekomst i löpande text (rubrik, slug, meta) — bara för rapport. */
 export const LEVERANTORSKOD_TEXT = new RegExp(
-  `(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*(${KODER})`,
-  "g",
+  `${ORDSTART}(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*(${KODER})`,
+  "gi",
 );
 
 /** Raderna som ska bort. Tom lista = sidan är ren. */

@@ -104,6 +104,49 @@ describe("hittaKodrader", () => {
 
   // ☠️ Saxen får inte ta för mycket. Det här är hela skälet till att värdet
   // måste se ut som en kod och inte bara etiketten stämma.
+  it("hittar en gemen kod efter Referens", () => {
+    const rad = '<li><p><span style="font-weight: 700">Referens:</span> z30-670v00yl</p></li>';
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar två gemena koder på samma rad", () => {
+    const rad = '<li><p><span style="font-weight: 700">Referens:</span> z30-670v00yl / z30-670v00gy</p></li>';
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar en gemen kod med bokstav först i prefixet", () => {
+    const rad = "<li><p>Artikelnummer: z20-287v00cg</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar en gemen etikett", () => {
+    const rad = "<li><p>artikelnummer: z4d-032cf</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar Artikelreferens", () => {
+    const rad = "<li><p>Artikelreferens: z3A-566V01AK</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar två koder med färgparentes emellan", () => {
+    const rad = "<li><p>Artikelreferens: z70-281V90GN (grön) / z70-281V90RD (röd)</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar Referens som eget ord", () => {
+    const rad = "<li><p>Referens: z90-222V00BK</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("rör INTE ett bindestrecksord utan siffror", () => {
+    expect(hittaKodrader(SPEC("<li><p>Referens: bruks-anvisning</p></li>"))).toEqual([]);
+  });
+
+  it("rör INTE ett bindestrecksord med versaler", () => {
+    expect(hittaKodrader(SPEC("<li><p>Referens: Made-in-Sweden</p></li>"))).toEqual([]);
+  });
+
   it("rör INTE en säkerhetsstandard", () => {
     expect(hittaKodrader(SPEC("<li><p>Standard: EN 1930</p></li>"))).toEqual([]);
   });

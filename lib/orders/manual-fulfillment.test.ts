@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryStore } from "@/lib/store/memory";
 import type { FulfillmentTask } from "@/lib/orders/types";
@@ -180,5 +182,37 @@ describe("shipManually", () => {
     await shipManually(store, { orderNumber: "10026", trackingNumber: SPAR, source: "test" }, deps());
     const rader = await store.listAudit();
     expect(rader.some((a) => a.kind === "wix-fulfillment-created")).toBe(true);
+  });
+});
+
+// ☠️ Meddelandet efter en lyckad orderläggning talar om vad Leonard ska göra
+// HÄRNÄST, och han gör det från en telefon. Första versionen sa "kör läget
+// 'skeppa'" — ett läge som inte finns; dropdownen heter `skickad`. Det är
+// samma klass som defaulterna i polish-mapping.yml: en instruktion som pekar
+// på en knapp som inte finns leder till en gissning, och gissningen här är
+// den oåterkalleliga handlingen (kundmejlet).
+//
+// Grinden läser workflowens EGNA alternativ i stället för att upprepa dem —
+// en hårdkodad lista här hade varit en tvilling som glider isär.
+describe("lägesnamnet i meddelandet finns som workflow-läge", () => {
+  const yml = readFileSync(
+    join(process.cwd(), ".github/workflows/manual-fulfillment.yml"),
+    "utf8",
+  );
+  const lagen = [...yml.matchAll(/^\s{10}- (\w+)$/gm)].map((m) => m[1]);
+
+  it("workflowen bjuder på de lägen testet ska mäta mot", () => {
+    expect(lagen).toContain("bestalld");
+    expect(lagen).toContain("skickad");
+  });
+
+  it("varje citerat läge i bestalld-meddelandet är ett riktigt läge", async () => {
+    const store = await medTasks(task());
+    const r = await markOrderedManually(store, { orderNumber: "10026", source: "test" });
+    if (!r.ok) throw new Error(r.error);
+
+    const citerade = [...r.message.matchAll(/läget '([^']+)'/g)].map((m) => m[1]);
+    expect(citerade.length).toBeGreaterThan(0);
+    for (const l of citerade) expect(lagen).toContain(l);
   });
 });
