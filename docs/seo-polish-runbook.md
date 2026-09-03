@@ -543,6 +543,37 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
     Regel 5 säger att leverantörens superlativ aldrig upprepas utan siffra. Den här säger
     att våra egna inte heller får det.
 
+15. ☠️ **En BÄRIGHET är ett säkerhetspåstående — översätt den aldrig till "hur många som
+    får plats".** Regel 14 gäller aritmetik i allmänhet; den här gäller den enda siffra där
+    ett räknefel kan sluta med en trasig möbel och en skadad kund.
+
+    Uppmätt 2026-09-02: jag skrev *"Bärigheten är 120 kilo, alltså två vuxna med marginal om
+    de sitter samtidigt"* på tre bänkar samtidigt. Två vuxna är omkring 160 kilo. Meningen
+    var alltså inte bara fel — den bjöd uttryckligen in till den belastning bänken inte
+    tål, och den gick igenom hela min textgranskning för att inget mönster letar efter
+    *osann* text.
+
+    Formeln, om den ska skrivas alls: **en vuxen ≈ 80 kg.** Under 160 kg får en bänk
+    aldrig beskrivas som en tvåsits i belastningshänseende, hur bred den än är. På en
+    120-kilos bänk som är 125 cm bred är den bredden i sig ett skäl att skriva ut
+    begränsningen — kunden ser en tvåsits och antar en tvåsits. Samma batch hade en bänk
+    på 220 kg, där "två vuxna samtidigt" är sant och står kvar.
+
+    Gäller lika för hyllplan, klädstänger, takfästen och allt annat med ett kilotal.
+
+16. ☠️ **Bilden vinner över texten om en SYNLIG egenskap — inte bara om måtten.** Regel 12
+    och 13 handlar om ritning mot spec och om fel produkttyp. Den här gäller det tredje
+    fallet: leverantörens löptext beskriver något man kan SE, och beskriver det fel.
+
+    `d197d3e5` (2026-09-02): tyskan säger *"goldfarbenen, spitz zulaufenden Beine"*.
+    Produktfotot visar **svarta ben med en mässingsfärgad doppsko i tåändan** — guld finns
+    på möbeln, men på tre centimeter av benet, inte på benet. Skrivet efter texten hade
+    sidan lovat en möbel kunden inte får.
+
+    Färg, material, form, antal luckor, riktning på en dörr: allt sådant står i bild 1 och
+    2, som poleringen annars kan hoppa över. **Läs dem ändå när texten påstår något om
+    utseendet.**
+
 > 🔎 **Oifyllda mall-platshållare är en varningsflagga för hela bildserien.** Samma produkt
 > hade rubriken *"aberturas de: **-XX-XXcm**"* rakt ut i produktion. Ser du en sådan: sluta
 > lita på siffrorna i den serien och verifiera var och en.
