@@ -74,6 +74,36 @@ describe("roundPrice", () => {
     expect(roundPrice(571, "charm9")).toBe(579);
     expect(roundPrice(3, "charm9")).toBe(9); // golv vid 9
   });
+  it("charm99 snäpper 89 uppåt och 09 nedåt till 99", () => {
+    // Leonards beslut 2026-09-03: 99 är den proffsigaste ändelsen; 89 och 09
+    // ser ut som räknerester. Ungefär vinstneutralt — lika många upp som ner.
+    expect(roundPrice(589, "charm99")).toBe(599); // 89 → upp
+    expect(roundPrice(585, "charm99")).toBe(599); // charm9 ger 589 → upp
+    expect(roundPrice(609, "charm99")).toBe(599); // 09 → NER
+    expect(roundPrice(601, "charm99")).toBe(599); // charm9 ger 609 → ner
+    expect(roundPrice(599, "charm99")).toBe(599); // redan 99 → orört
+    expect(roundPrice(619, "charm99")).toBe(619); // 19 → orört
+    expect(roundPrice(571, "charm99")).toBe(579); // 79 → orört
+    expect(roundPrice(1089, "charm99")).toBe(1099);
+    expect(roundPrice(1009, "charm99")).toBe(999);
+  });
+  it("charm99 sänker aldrig under 99 — små belopp får inte bli negativa", () => {
+    // ☠️ 9 % 100 === 9 träffar ner-grenen. Utan golvet blir 9 → -1.
+    expect(roundPrice(3, "charm99")).toBe(9);
+    expect(roundPrice(9, "charm99")).toBe(9);
+    expect(roundPrice(109, "charm99")).toBe(99); // första steget där ner är OK
+    expect(roundPrice(100, "charm99")).toBe(99);
+  });
+  it("charm99 landar alltid på en giltig ändelse", () => {
+    for (let g = 10; g <= 9000; g += 7) {
+      const p = roundPrice(g, "charm99");
+      expect(p % 10).toBe(9);
+      expect(p % 100).not.toBe(89); // 89 ska ha snäppts upp
+      const slutar09 = p % 100 === 9 && p >= 109;
+      expect(slutar09).toBe(false); // 09 ska ha snäppts ner (utom < 109)
+    }
+  });
+
   it("nearest10 rounds UP to whole tens", () => {
     expect(roundPrice(251, "nearest10")).toBe(260);
     expect(roundPrice(250, "nearest10")).toBe(250);
@@ -230,6 +260,28 @@ describe("applyOverrideBounds", () => {
   const base = { costUsd: 10, costSek: 100, netSek: 240, vatSek: 60, grossSek: 300 };
   it("är en no-op utan floor/ceiling", () => {
     expect(applyOverrideBounds(base, { multiplier: 3 }, 25, "none")).toBe(base);
+  });
+
+  it("☠️ golvet håller även när avrundningen får gå NEDÅT (charm99)", () => {
+    // Golvet räknas fram som roundPrice(minsta acceptabla pris). charm9 rundar
+    // bara uppåt, så golvet var alltid säkert — charm99 rundar 09 NEDÅT och
+    // kunde därför lägga golvet UNDER sin egen minimivinst, tyst, eftersom
+    // siffran fortfarande ser ut som ett giltigt pris.
+    //
+    // costSek 400, floor 80 → minsta netto 480 → minsta brutto 600.
+    // charm9(600) = 609, och charm99 sänker 609 → 599. 599 < 600 → för lågt.
+    const b = { costUsd: 40, costSek: 400, netSek: 320, vatSek: 80, grossSek: 400 };
+    const ut = applyOverrideBounds(b, { multiplier: 1, floorSek: 80 }, 25, "charm99");
+    const nettoEfter = ut.grossSek / 1.25;
+    expect(nettoEfter).toBeGreaterThanOrEqual(400 + 80);
+    expect(ut.grossSek).toBe(619); // nästa giltiga charm99-värde över 600
+  });
+
+  it("golvet är oförändrat för charm9 (ingen regression)", () => {
+    const b = { costUsd: 40, costSek: 400, netSek: 320, vatSek: 80, grossSek: 400 };
+    const ut = applyOverrideBounds(b, { multiplier: 1, floorSek: 80 }, 25, "charm9");
+    expect(ut.grossSek).toBe(609);
+    expect(ut.grossSek / 1.25).toBeGreaterThanOrEqual(480);
   });
 });
 

@@ -982,6 +982,28 @@ Marginalen blir **17 % överallt** — p10, median och p90 är alla 17 % över h
 sortimentet, så ingen vara kan råka hamna på 4 %. Ändringen gäller bara nya
 importer; befintliga priser står kvar tills någon räknar om dem.
 
+### `charm99` finns byggd men är AVSTÄNGD
+
+Leonards önskemål 2026-09-03: 99 är den proffsigaste ändelsen, 89 och 09 ser ut
+som räknerester. Strategin `charm99` (i `roundPrice`) höjer 89 → 99 och **sänker
+09 → 99**. Ungefär vinstneutral — lika många rader upp som ner, 10 kr åt vardera
+hållet.
+
+☠️ **Den är den enda strategin utöver `charm90` som får runda NEDÅT**, och
+`charm9`:s kommentar ("aldrig nedåt → marginalen skyddas") var inte en vana:
+`applyOverrideBounds` räknar fram Custom-tierns **golv** genom att köra
+`roundPrice` på det lägsta acceptabla priset, så en nedrundning kunde lägga
+golvet under sin egen minimivinst — tyst, eftersom siffran fortfarande ser ut
+som ett giltigt pris. Spärren sitter i `applyOverrideBounds`, inte i
+`roundPrice`, och ett test fäller om den tas bort.
+
+**Aktivera genom att sätta `rounding: "charm99"` i `FyndplatsPricingConfig`**
+(eller i `/admin/pricing`) — inte via `PRICE_ROUNDING`, av samma skäl som
+feed-adressen: en miljövariabel slår inte igenom förrän projektet byggts om.
+Aosom-synken räknar om priset ur kostnaden var 6:e timme, så ~20 % av
+Aosom-halvan flyttar sig 10 kr inom ett dygn. AliExpress-halvan står kvar tills
+någon kör prisreparationen.
+
 ### Var talet kommer ifrån
 
 Inte från en marginalambition — från mätning. **dealproffsen.se publicerar
