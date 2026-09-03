@@ -41,8 +41,25 @@ const ETIKETTER = [
  * (`Z00-777`, `Z90-222V00BK`, `Z30-666V00BN`), och ibland ett längre numeriskt
  * prefix (`Z00110-555BG`). Två koder kan stå på samma rad, åtskilda med
  * snedstreck.
+ *
+ * ☠️ BÅDA SKIFTLÄGENA. Prefixet var `[0-9A-Z]` fram till 2026-09-03 — bara
+ * VERSALER — och regexen saknade `i`. Formen var "mätt, inte gissad", men mätt
+ * på ett urval där varje kod råkade vara versal. Nitton publicerade sidor bar
+ * samtidigt en GEMEN kod (`d30-670v00yl`, `84h-070v00cr`, `a20-287v00cg`), och
+ * svepet rapporterade `medKod: 0` över hela katalogen medan de låg live.
+ * En spärr mot husets farligaste läcka som är blind för halva teckenrymden är
+ * värre än ingen spärr: den ger ett grönt kvitto på en läcka som pågår.
+ *
+ * ☠️ MEN GEMENER ÖPPNAR EN NY RISK, och den är saxens värsta: ett vanligt
+ * bindestrecksord. `Referens: bruks-anvisning` hade matchat `[0-9A-Za-z]{2,7}-…`
+ * och raden hade klippts bort. Därför kräver båda halvorna nu **minst en
+ * siffra** — det gör varje äkta kod träffad (alla nio uppmätta formerna har
+ * siffror i båda halvorna) och varje rent bokstavsord omöjligt.
  */
-const KOD = "[0-9A-Z]{2,7}-[0-9A-Za-z]{2,14}";
+/** Alfanumerisk grupp på 2–`max` tecken som innehåller MINST EN SIFFRA. */
+const alnumMedSiffra = (max: number) =>
+  `(?=[0-9A-Za-z]{2,${max}}(?![0-9A-Za-z]))[A-Za-z]*[0-9][0-9A-Za-z]*`;
+const KOD = `${alnumMedSiffra(7)}-${alnumMedSiffra(14)}`;
 const KODER = `${KOD}(?:\\s*/\\s*${KOD})*`;
 
 /**
@@ -54,13 +71,13 @@ const KODER = `${KOD}(?:\\s*/\\s*${KOD})*`;
  */
 export const LEVERANTORSKOD_RAD = new RegExp(
   `<li><p>(?:<span style="font-weight: ?\\d+">)?\\s*(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*${KODER}\\s*</p></li>`,
-  "g",
+  "gi",
 );
 
 /** Fristående kodförekomst i löpande text (rubrik, slug, meta) — bara för rapport. */
 export const LEVERANTORSKOD_TEXT = new RegExp(
   `(?:${ETIKETTER})\\s*:?\\s*(?:</span>)?\\s*(${KODER})`,
-  "g",
+  "gi",
 );
 
 /** Raderna som ska bort. Tom lista = sidan är ren. */

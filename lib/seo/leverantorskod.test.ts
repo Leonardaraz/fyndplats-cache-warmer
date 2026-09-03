@@ -30,8 +30,42 @@ describe("hittaKodrader", () => {
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
   });
 
+  // ☠️ GEMENA KODER. Nitton publicerade sidor bar en gemen kod medan svepet
+  // rapporterade noll — prefixet var `[0-9A-Z]` och regexen saknade `i`.
+  // Formerna nedan är de faktiskt uppmätta, med siffrorna utbytta.
+  it("hittar en gemen kod efter Referens", () => {
+    const rad = '<li><p><span style="font-weight: 700">Referens:</span> z30-670v00yl</p></li>';
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar två gemena koder på samma rad", () => {
+    const rad = '<li><p><span style="font-weight: 700">Referens:</span> z30-670v00yl / z30-670v00gy</p></li>';
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar en gemen kod med bokstav först i prefixet", () => {
+    const rad = "<li><p>Artikelnummer: z20-287v00cg</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar en gemen etikett", () => {
+    const rad = "<li><p>artikelnummer: z4d-032cf</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
   // ☠️ Saxen får inte ta för mycket. Det här är hela skälet till att värdet
   // måste se ut som en kod och inte bara etiketten stämma.
+  //
+  // Gemener öppnade en ny riktning för det felet: ett vanligt bindestrecksord.
+  // Därför krävs minst en SIFFRA i båda halvorna av koden.
+  it("rör INTE ett bindestrecksord utan siffror", () => {
+    expect(hittaKodrader(SPEC("<li><p>Referens: bruks-anvisning</p></li>"))).toEqual([]);
+  });
+
+  it("rör INTE ett bindestrecksord med versaler", () => {
+    expect(hittaKodrader(SPEC("<li><p>Referens: Made-in-Sweden</p></li>"))).toEqual([]);
+  });
+
   it("rör INTE en säkerhetsstandard", () => {
     expect(hittaKodrader(SPEC("<li><p>Standard: EN 1930</p></li>"))).toEqual([]);
   });
