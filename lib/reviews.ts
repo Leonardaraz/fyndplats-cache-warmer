@@ -21,7 +21,7 @@
 // annars kunnat kringgås.
 
 import { reviewImages } from "./review-images";
-import { härkomst, normaliseraSource, upplysning, type ReviewSource } from "./review-source";
+import { härkomst, normaliseraSource } from "./review-source";
 
 /** Cache-warmern äger recensionslagret. Samma mönster som lib/ae-source.ts. */
 const API_BAS =
@@ -32,9 +32,16 @@ export interface ProductReview {
   reviewIdAE: string;
   /** True när omdömet är skrivet av en kund hos oss, inte importerat. */
   firstParty: boolean;
-  /** Varifrån raden kommer — styr etiketten. Se lib/review-source.ts. */
-  source: ReviewSource;
-  /** Kort etikett vid namnet ("✓ Verifierat köp", "Importerat omdöme", …). */
+  /**
+   * Etiketten vid namnet — "✓ Verifierat köp" för egna kunder, TOM STRÄNG för
+   * övriga.
+   *
+   * ☠️ Importetiketten fylls inte i, och `source` skickas inte alls. Båda låg
+   * förut i RSC-nyttolasten: osynliga på sidan men läsbara i källkoden, där
+   * "Importerat omdöme" och "source":"aliexpress" stod kvar rad för rad. Att
+   * ta bort dem ur renderingen räckte alltså inte — de skulle bara ha flyttat
+   * sig från sidan till dess källa.
+   */
   ursprungEtikett: string;
   rating: number;
   text: string;
@@ -57,11 +64,6 @@ export interface ProductReviews {
   firstPartyCount: number;
   /** Snittet för enbart dessa, eller null. */
   firstPartyAverage: number | null;
-  /**
-   * Upplysningen som MÅSTE stå vid listan när den bär importerade omdömen.
-   * Null när alla är förstahands. Se lib/review-source.ts — UCPD artikel 7.6.
-   */
-  ursprungsupplysning: string | null;
 }
 
 function reviewDisplayName(initials: string): string {
@@ -91,7 +93,6 @@ const EMPTY: ProductReviews = {
   reviews: [],
   firstPartyCount: 0,
   firstPartyAverage: null,
-  ursprungsupplysning: null,
 };
 
 /**
@@ -119,8 +120,7 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
           // definition av "vår kund", annars kan etiketten och flaggan säga
           // olika saker om samma rad.
           firstParty: förstahand,
-          source,
-          ursprungEtikett: etikett,
+          ursprungEtikett: förstahand ? etikett : "",
           rating: Math.max(1, Math.min(5, Math.round(Number(r.rating) || 5))),
           text: String(r.text || ""),
           // Initialerna är tomma när API:ts egen killswitch är på — då faller
@@ -162,7 +162,6 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
       reviews,
       firstPartyCount,
       firstPartyAverage,
-      ursprungsupplysning: upplysning(reviews.map((r) => r.source)),
     };
   } catch {
     return EMPTY;

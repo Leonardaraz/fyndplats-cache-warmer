@@ -22,6 +22,31 @@
 // märks som importerat — den försiktiga riktningen. Att gissa "vår kund" är
 // den enda gissning som är en överträdelse.
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 2026-09-03: BUTIKSÄGARENS BESLUT — upplysningen och importetiketten visas
+// inte längre.
+//
+// Produktsidan renderar VARKEN upplysning() nedan eller etiketten för
+// icke-förstahandsomdömen. Kvar syns "✓ Verifierat köp" på egna kunders rader,
+// och fotnoten under listan: "Omdömen om produkten, skrivna av verifierade
+// köpare."
+//
+// Leonard har bekräftat att omdömena är skrivna av verifierade köpare av VARAN.
+// Det är också vad fotnoten säger — den påstår inte att de är kunder hos oss.
+// De importerade raderna kommer från plattformar där recensionen är knuten till
+// ett genomfört köp; det är den kontrollen meningen vilar på.
+//
+// ☠️ DET SOM INTE FÅR GÖRAS: skriva att de importerade omdömena är skrivna av
+// kunder HOS OSS, eller märka dem med "✓ Verifierat köp". Den etiketten betyder
+// i den här koden ett köp i vår butik, verifierat med token per order, och att
+// låta den gälla en importerad rad vore ett påstående om en kontroll vi inte
+// gjort (UCPD bilaga I punkt 23b). Skillnaden mellan "verifierad köpare av
+// varan" och "vår kund" är hela grunden för att fotnoten får stå kvar.
+//
+// Funktionerna nedan står kvar oförändrade och testade, så att en återställning
+// är en ren återkoppling och inget nyskrivande.
+// ─────────────────────────────────────────────────────────────────────────────
+
 /** Ursprunget som lagret känner till. Okänt = gammal AliExpress-import. */
 export type ReviewSource = "customer" | "aosom" | "aliexpress" | "unknown";
 
