@@ -1239,6 +1239,124 @@ listade `metall` och `natur` fällde tre korrekta svenska meningar. **Orden som 
 på svenska och tyska hör inte hemma i en tyskgrind** — och en grind som fyrar på rätt text
 lär läsaren att bläddra förbi.
 
+### ☠️ En grind mot osynliga tecken får inte SKRIVAS med osynliga tecken
+
+Runda 46 (hundburar, 2026-09-03). Linten porterades från förra rundan och fällde
+`osynligt tecken U+00A0` på **alla åtta** texterna. Ingen av dem innehöll ett hårt
+mellanslag. Felet satt i grinden:
+
+```python
+OSYNLIGT = {"\xad": "U+00AD", " ": "U+00A0", …}   # ← nyckeln ar ett VANLIGT mellanslag
+```
+
+Filen hade skrivits genom ett verktyg som normaliserade blanksteg, och U+00A0-nyckeln
+blev U+0020. Grinden frågade därmed *"innehåller texten ett mellanslag?"* — sant för
+varenda text som finns. Åt andra hållet är samma fel dödligt tyst: hade nyckeln i
+stället fallit bort helt hade grinden svarat OK på en text full av hårda mellanslag.
+
+Bygg den ur **kodpunkter**, och låt den påstå något om sig själv:
+
+```python
+OSYNLIGT = {chr(c): "U+%04X" % c
+            for c in (0x00AD, 0x00A0, 0x200B, 0xFEFF, 0x200E, 0x200F)}
+assert all(ord(t) > 0x20 for t in OSYNLIGT), "grinden ar avvapnad"
+```
+
+Regeln generaliserar: **en grind vars villkor är ett osynligt tecken kan inte
+granskas genom att läsas.** Den måste antingen härledas ur något synligt (en
+kodpunkt) eller bevisas med ett test som återinför defekten.
+
+### ☠️ Ett mutationstest som bara läser stdout rapporterar en krasch som "godkänt"
+
+Samma runda, samma timme. Selen som bevisar att linten faktiskt fäller kördes som
+en barnprocess, och utfallet lästes ur `stdout`:
+
+```python
+r = subprocess.run([sys.executable, "-c", kod], capture_output=True, text=True)
+brister = [l for l in r.stdout.splitlines() if …]     # returkoden lastes ALDRIG
+print("SLAPPER IGENOM" if not brister else "FALLER")
+```
+
+En egen bugg i selen (`KOD.replace("MUT", …)` träffade även token `MUTKOLL` och gav
+barnet ett syntaxfel) fick fyra grindar att rapporteras som **släpper igenom** —
+grindar som var friska. Tio minuter gick åt till att felsöka rätt kod.
+
+Det är husets vanligaste lärdom i ny förklädnad: *ett svar utan innehåll är inget
+kvitto.* **Fäll på returkod ≠ 0**, och låt varje mutation dessutom påstå att den
+LANDADE (`assert 'x' in texter.T[...]`) — annars kan en mutation som inte tog
+rapporteras som en grind som inte fyrar.
+
+Nitton mutationer låser runda 46:s lint: osynliga tecken (tre varianter), uppdiktat
+tal, vilset tal utanför den ordagranna regeltexten, sökord ur sluggen, död länk,
+omskriven regeltext, omskriven mätmetod, tyskt ord, husmärke, land, defensiv röst,
+decimalpunkt, `x` i stället för `×`, `<br>`, omdöpt flikrubrik, för lång meta, och
+slugg som krockar med en publicerad sida. Alla nitton fångas.
+
+### Syskonlikhet går att MÄTA — och färgtvillingar ligger strukturellt högre
+
+Runda 46 var tre par tvillingar (två färger av 98 cm-burens modell, två av 94 cm,
+två storlekar mjuk bur). Frågan "är de här sidorna för lika?" besvarades med
+5-gram Jaccard på synlig text, i två mått:
+
+| | HELA texten | med de DELADE styckena bortlyfta |
+|---|---:|---:|
+| Runda 45 (åtta olika modeller) | 0,078 | 0,026 |
+| Runda 46, första utkastet | 0,216 | 0,129 |
+| Runda 46, efter åtgärd | **0,205** | **0,116** |
+
+Talen är höga för att rundan ÄR tvillingar: samma spec-vokabulär, samma
+rättsliga stycke, samma mätmetod. En dubblettsida ligger på 0,7–0,9, så 0,2 är
+inte duplicerat innehåll — men skillnaden mot runda 45 är verklig och ska
+redovisas, inte trimmas bort genom att byta mått.
+
+**Vad mätningen faktiskt hittade var inte prosa utan RUBRIKER.** Sju av åtta sidor
+bar samma egna `<h2>` (*"Så vet du att hunden får plats"*). Ordagrant delade
+stycken var bara 3–4 per par och alla spec-celler (material, bärförmåga,
+rekommenderad hund). Åtgärden var därför att ge varje sida en rubrik som bär dess
+EGET avgörande tal — *"71 centimeter att sitta upp under"*, *"58 centimeter för en
+liten hund"* — och att lägga det produktspecifika FÖRE det delade stycket i
+avsnittet. Unika egna rubriker gick från 19 av 32 till 26 av 32.
+
+☠️ **Ett medvetet delat stycke ska förbli ordagrant delat.** Regeltexten (SJVFS
+2020:8) och tillverkarens mätmetod står identiska på alla sidor med flit — den
+konsekvensen är en säkerhetsfunktion, inte lättja, och linten låser båda
+ordagrant. Rubriken över dem får däremot variera.
+
+### ☠️ Leverantörens två grafiker kan motsäga VARANDRA — välj den konservativa
+
+Aosoms hundburar levereras med två bilder som båda definierar `Körperlänge`:
+
+| bild | vad den visar |
+|---|---|
+| måttritningens hundsiluett | en pil längs kroppen, ungefär bog till svansrot |
+| mätguiden (*"Wie messen Sie Ihren Hund"*) | ordagrant *"von der Nasenspitze bis zur Rutenspitze"* |
+
+De ger olika tal för samma hund, och skillnaden är stor: en golden retriever mäter
+runt 60 cm på det första sättet och över 110 cm på det andra.
+
+**Använd nosspets → svansspets.** Inte för att den ena källan är finare, utan för
+att den ger det STÖRRE talet: en kund som följer den köper en för stor bur i värsta
+fall, en som följer den andra köper en för liten. Fel åt det ena hållet kostar
+plats, fel åt det andra är en hund som inte får plats att ligga.
+
+☠️ **Och därför ska rasgrafiken ALDRIG återanvändas.** Bilden *"GEEIGNET FÜR GROSSE
+HUNDE"* listar sibirisk husky, dalmatiner, golden retriever och labrador mot
+gränsen `Körperlänge <60cm` — vilket är omöjligt under leverantörens egen
+mätmetod. Kortet som ersätter den bär de mätbara talen (innermått, dörrmått,
+maskstorlek) plus mätmetoden, och nämner inga raser.
+
+### Ett påstående om en färgtvilling måste kontrolleras mot TVILLINGENS foto
+
+Samma runda: texten om valnötsburen påstod att *"baksidan och de nedre partierna är
+slutna paneler, gallret sitter i ögonhöjd för hunden"*. En uppförstoring av
+produktbilden visade något annat — baksidan ÄR en sluten panel, men stavarna löper
+i **full höjd** framför den, och några "nedre partier" finns inte utöver en sockel.
+Påståendet var härlett ur hur en tvilling såg ut i miniatyr, inte läst ur bilden.
+
+Rättat både i brödtexten och i FAQ-svaret som upprepade det. **Zooma in på
+huvudbilden innan du beskriver konstruktion** — en kontaktkarta i 400 px räcker för
+att se om något är tyskt, men inte för att säga hur det är byggt.
+
 ### ☠️ `products/query` returnerar INTE `variantsInfo` — en grind på den passerar tom
 
 Runda 44 (gasolgrillar, 2026-09-03). Klart-kriteriet kördes som ett enda
