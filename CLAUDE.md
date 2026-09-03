@@ -982,7 +982,7 @@ Marginalen blir **17 % överallt** — p10, median och p90 är alla 17 % över h
 sortimentet, så ingen vara kan råka hamna på 4 %. Ändringen gäller bara nya
 importer; befintliga priser står kvar tills någon räknar om dem.
 
-### `charm99` finns byggd men är AVSTÄNGD
+### `charm99` är PÅSLAGEN sedan 2026-09-03
 
 Leonards önskemål 2026-09-03: 99 är den proffsigaste ändelsen, 89 och 09 ser ut
 som räknerester. Strategin `charm99` (i `roundPrice`) höjer 89 → 99 och **sänker
@@ -997,9 +997,21 @@ golvet under sin egen minimivinst — tyst, eftersom siffran fortfarande ser ut
 som ett giltigt pris. Spärren sitter i `applyOverrideBounds`, inte i
 `roundPrice`, och ett test fäller om den tas bort.
 
-**Aktivera genom att sätta `rounding: "charm99"` i `FyndplatsPricingConfig`**
-(eller i `/admin/pricing`) — inte via `PRICE_ROUNDING`, av samma skäl som
-feed-adressen: en miljövariabel slår inte igenom förrän projektet byggts om.
+**Aktiverad genom `rounding: "charm99"` i `FyndplatsPricingConfig`** — inte via
+`PRICE_ROUNDING`, av samma skäl som feed-adressen: en miljövariabel slår inte
+igenom förrän projektet byggts om.
+
+☠️ **ORDNINGEN VAR INTE VALFRI, och den gäller vid varje framtida strategibyte.**
+Sätts konfigen INNAN koden ligger ute känner produktionens `roundPrice` inte igen
+namnet, faller igenom alla grenar och returnerar priset **oavrundat** — och
+Aosom-synken skriver örespriser över hela katalogen inom sex timmar. Kod först,
+verifiera att deployen är `READY`, sedan konfig. (Valideringen ovan fångar det
+numera, men bara när den nya koden faktiskt kör.)
+
+Verifierat i drift direkt efter växlingen på vattenfontänen `dd7052d3`:
+`landedCostSek 499.91` → 599,89 → charm9 ger 609 → **charm99 ger 599**, och
+raden skrev ut `avrundning charm99`. Att talet är ett HELTAL på 99 är kvittot
+att den nya koden kör — den gamla hade svarat `599.89`.
 Aosom-synken räknar om priset ur kostnaden var 6:e timme, så ~20 % av
 Aosom-halvan flyttar sig 10 kr inom ett dygn. AliExpress-halvan står kvar tills
 någon kör prisreparationen.
