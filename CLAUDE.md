@@ -748,12 +748,30 @@ skrivning som svarade OK utan att göra något (2026-08-27), och nu det här.
 ### Att polera en Aosom-produkt
 
 Allt utom siffrorna är **tyskt**: titel, beskrivning, säljpunkter och varje
-spec-VÄRDE. Etiketterna är svenska från start (`Mått`, `Färg`, `Material`,
-`Vikt`, `Paketmått`, `Artikelnummer`) eftersom feedens `Specification`-fält är
-tomt i 5 550 av 5 566 rader — underlaget kommer från de strukturerade
-kolumnerna i stället. Platshållaren `[BRAND NAME]`, som står kvar i 4 975 rader,
-stryks redan vid importen; den är ett mekaniskt fel med ett mekaniskt svar och
-får inte lämnas åt poleringen.
+spec-VÄRDE. Etiketterna är svenska från start — `buildSpecifications` i
+`to-product.ts` sätter **exakt fem**: `Mått`, `Färg`, `Material`, `Vikt`,
+`Paketmått` — eftersom feedens `Specification`-fält är tomt i 5 550 av 5 566
+rader och underlaget kommer från de strukturerade kolumnerna i stället.
+
+☠️ **`Artikelnummer` är INTE en av dem, och får aldrig läggas till.** Den här
+raden räknade tidigare upp en sjätte etikett som koden aldrig har skrivit, och
+det stod kvar i månader. Uppmätt 2026-09-03 på live-sajten: **fyra publicerade
+produktsidor bär Aosoms artikelnummer i spec-tabellen** — `Artikelnummer:
+844-657V90MX`, `845-823V00GN`, och en som döpt om etiketten till
+`Modellreferens: 830-701V02WT`. Importen kan inte ha skrivit dem: `to-product.ts`
+sätter fem etiketter och `to-product.test.ts` fäller om numret dyker upp. De är
+alltså skrivna vid **poleringen**, av någon som läste den här listan.
+
+Numret är det farligaste vi har att läcka. Det står i Aosoms egen produkt-URL,
+och dealproffsen.se publicerar samma sträng som `sku` och `mpn` i sin JSON-LD —
+en googling ställer vår sida bredvid deras med vårt inköpspris härlett intill.
+Det hör hemma på `supplierProductId` i mappningen och ingen annanstans. Byt inte
+heller namn på det: `Modellreferens`, `Artikelnr` och `Referens` läcker exakt
+lika mycket.
+
+Platshållaren `[BRAND NAME]`, som står kvar i 4 975 rader, stryks redan vid
+importen; den är ett mekaniskt fel med ett mekaniskt svar och får inte lämnas
+åt poleringen.
 
 `aosomFreightShare` på mappningen (0–1) säger hur mycket av inköpet som är
 frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
