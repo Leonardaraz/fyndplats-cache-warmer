@@ -1,3 +1,4 @@
+import { isRoundingStrategy } from "./import/types";
 import type { PricingConfig, PricingRules, PricingTier } from "./import/types";
 
 export interface PaymentFeeConfig {
@@ -35,7 +36,12 @@ export function pricingConfigFromEnv(): PricingConfig {
       multiplier: num("MARKUP_MULTIPLIER", 2.5),
       fixedSek: num("MARKUP_FIXED_SEK", 0),
     },
-    rounding: (process.env.PRICE_ROUNDING as PricingConfig["rounding"]) || "charm9",
+    // ☠️ VALIDERAS, inte castas. Ett `as` gör TypeScript nöjd och lämnar
+    // körningen oskyddad: roundPrice känner inte igen ett okänt namn och
+    // returnerar då priset OAVRUNDAT ("none"). Det här är samma hål som i
+    // mergePricingRules — och det här är dörren fallbacken går igenom, så
+    // spärren där hade varit meningslös utan den här.
+    rounding: isRoundingStrategy(process.env.PRICE_ROUNDING) ? process.env.PRICE_ROUNDING : "charm9",
   };
 }
 

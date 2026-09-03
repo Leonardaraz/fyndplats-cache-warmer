@@ -6,6 +6,7 @@
 // Schema (dataItem.data) speglar PricingRules + _id="default".
 
 import { pricingRulesFromEnv } from "../config";
+import { ROUNDING_STRATEGIES, isRoundingStrategy } from "../import/types";
 import type { PricingRules, PricingTier } from "../import/types";
 
 const WIX_BASE = "https://www.wixapis.com";
@@ -29,6 +30,16 @@ export function mergePricingRules(stored: Partial<PricingRules> | null): Pricing
 
   const num = (v: unknown, fallback: number): number =>
     typeof v === "number" && Number.isFinite(v) ? v : fallback;
+
+  const rounding = (v: unknown, fallback: PricingRules["rounding"]): PricingRules["rounding"] => {
+    if (v == null) return fallback;
+    if (isRoundingStrategy(v)) return v;
+    console.warn(
+      `[pricing-config] okänd avrundningsstrategi ${JSON.stringify(v)} — faller tillbaka på "${fallback}". ` +
+        `Giltiga: ${ROUNDING_STRATEGIES.join(", ")}`,
+    );
+    return fallback;
+  };
 
   const categoryMultipliers: Record<string, number> = { ...base.categoryMultipliers };
   if (stored.categoryMultipliers && typeof stored.categoryMultipliers === "object") {
@@ -55,7 +66,13 @@ export function mergePricingRules(stored: Partial<PricingRules> | null): Pricing
     categoryMultipliers,
     tiersEnabled: typeof stored.tiersEnabled === "boolean" ? stored.tiersEnabled : base.tiersEnabled,
     tiers,
-    rounding: stored.rounding ?? base.rounding,
+    // ☠️ VALIDERAS, till skillnad från tidigare. Ett okänt värde (felstavning i
+    // configraden, ett gammalt strateginamn) föll rakt igenom till roundPrice,
+    // som inte känner igen det och därför returnerar priset OAVRUNDAT — alltså
+    // "none". Uppmätt: roundPrice(541.85, "charm99 ") = 541.85. Ett blanksteg
+    // hade tyst stängt av charm-prissättningen för hela katalogen och börjat
+    // skriva örespriser till kund. Fel åt det hållet syns inte i något larm.
+    rounding: rounding(stored.rounding, base.rounding),
   };
 }
 

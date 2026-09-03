@@ -1004,6 +1004,27 @@ Aosom-synken räknar om priset ur kostnaden var 6:e timme, så ~20 % av
 Aosom-halvan flyttar sig 10 kr inom ett dygn. AliExpress-halvan står kvar tills
 någon kör prisreparationen.
 
+☠️ **Strateginamnet valideras numera i BÅDA dörrarna, och det var ett verkligt
+hål.** Ett okänt namn föll rakt igenom till `roundPrice`, som inte känner igen
+det och därför returnerar priset **oavrundat** — alltså `none`. Uppmätt:
+`roundPrice(541.85, "charm99 ")` = `541.85`. Ett efterföljande blanksteg i
+configraden hade tyst stängt av charm-prissättningen för hela katalogen och
+börjat skriva örespriser till kund, utan ett enda fel någonstans. Hålet fanns
+i `mergePricingRules` (`stored.rounding ?? base`) OCH i `lib/config.ts`
+(`process.env.PRICE_ROUNDING as …`) — och eftersom fallbacken går genom den
+andra hade en spärr i bara den första varit meningslös. Listan och typen
+härleds nu ur samma array (`ROUNDING_STRATEGIES`), så de kan inte glida isär,
+och ett test läser källkoden och fäller om `as`-casten kommer tillbaka.
+
+⚠️ **Sekvensera aktiveringen.** Poleringens prisgrind fäller bara på
+Aosom-rader (`regelGäller: supplier === "aosom"`), och den räknar ur samma
+`roundPrice`. I fönstret mellan att configen ändras och att synken hunnit
+skriva om priserna förväntar grinden 599 medan Wix säger 609 — så var femte
+Aosom-produkt ger `PRISGRINDEN FALLER — RÖR INTE PRISET` i upp till ett dygn.
+Det är inget fel i grinden; den gör precis sitt jobb. Men polera inte
+Aosom-produkter i det fönstret — vänta tills synken konvergerat, annars lär
+man sig att ignorera larmet. AE-rader berörs inte (de blir `EJ AVGÖRBAR`).
+
 ### Var talet kommer ifrån
 
 Inte från en marginalambition — från mätning. **dealproffsen.se publicerar

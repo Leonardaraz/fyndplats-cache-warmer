@@ -167,7 +167,23 @@ export interface PricingOverride {
  * - integer: närmaste heltal
  * - nearest10: avrunda UPP till närmaste hela 10-krona (t.ex. 251 → 260)
  */
-export type RoundingStrategy = "none" | "charm90" | "charm9" | "charm99" | "integer" | "nearest10";
+// ☠️ EN definition. Listan och typen härleds ur samma array, så de kan inte
+// glida isär — samma lärdom som SHIP_AXIS_RE, EU_TULL_CODES och
+// mapWithConcurrency. Runtime-valideringen i `mergePricingRules` läser den här.
+export const ROUNDING_STRATEGIES = [
+  "none",
+  "charm90",
+  "charm9",
+  "charm99",
+  "integer",
+  "nearest10",
+] as const;
+
+export type RoundingStrategy = (typeof ROUNDING_STRATEGIES)[number];
+
+export function isRoundingStrategy(v: unknown): v is RoundingStrategy {
+  return typeof v === "string" && (ROUNDING_STRATEGIES as readonly string[]).includes(v);
+}
 
 export interface PricingConfig {
   usdToSek: number;
