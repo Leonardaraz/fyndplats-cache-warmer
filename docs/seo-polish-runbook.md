@@ -983,6 +983,36 @@ eller i ett svep efter strängen `https:/produkt`.
 grep -c 'https:/produkt' sidan.html      # ska vara 0
 ```
 
+#### ☠️ Och skriv butikens sökväg, inte Wix-editorns
+
+Svepet 2026-09-03 hittade 64 trasiga länkar på 31 sidor. Sextio pekade på `/produkt/`,
+men fyra bar de sökvägar Wix-editorn visar — och de två sorterna är olika allvarliga.
+Uppmätt mot skarpa `www.fyndplats.se` samma dag:
+
+| sökväg | svar |
+|---|---|
+| `/produkt/<slug>` | **200** |
+| `/product-page/<slug>` | 308 → `/produkt/<slug>` — fungerar, men via ett hopp |
+| `/kategori/<slug>` | **200** |
+| `/category/<slug>` | **404** — ingen omdirigering finns |
+
+Kategorilänken är den farliga. Hade lagningen bara satt tillbaka värdnamnet vore
+resultatet `https://www.fyndplats.se/category/…`, alltså en **intern 404** — sämre än
+före, eftersom en död länk på egen domän också blir crawlad.
+
+`SOKVAGSRATTNINGAR` i `lib/seo/relativa-lankar.ts` bär de två uppmätta paren, och de
+tillämpas **bara** på hrefs som ändå ska skrivas om för att de saknar värdnamn. En
+länk som redan är absolut och hel rörs inte — blast-radien ska vara exakt defekten,
+samma regel som prisreparationens *"oförändrat inköpspris → varianten rörs inte alls"*.
+
+⚠️ **Lägg aldrig till ett par utan att mäta båda sidorna först.** En gissad sökväg
+byter en död länk mot en intern 404. Kvittot efter lagningen är att varje resulterande
+adress svarar 200 **utan** omdirigering:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' "$adress"    # ska vara 200, inte 308
+```
+
 
 -----
 
