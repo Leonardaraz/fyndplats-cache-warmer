@@ -1,0 +1,144 @@
+name: SEO — städa publicerad produkttext
+
+# Samma nyckel-lösa upplägg som prisreparationen: produktionen har Wix-nycklarna,
+# GitHub Actions har CRON_SECRET, och de möts här. Ingen hemlighet passerar
+# chatten eller en terminal.
+#
+# ☠️ TVÅ FEL, BÅDA HITTADE AV SVEP OCH INGET AV EN SPÄRR
+#
+# 1. Leverantörens artikelnummer i texten. dealproffsen.se publicerar Aosoms
+#    artikelnummer som `sku`/`mpn` i sin JSON-LD, så samma sträng hos oss gör
+#    våra sidor joinbara mot deras — och därmed mot vad vi betalar. Hittad tre
+#    gånger: 33 produktkort och fyra sidor 2026-09-02, 51 sidor till 2026-09-03.
+# 2. Trasiga syskonlänkar. Wix skriver om en rotrelativ `href="/produkt/x"` till
+#    `https:/produkt/x` — en snedstreck, alltså värdnamnet `produkt`. Länken
+#    pekar på en domän som inte finns.
+#
+# LÄGEN
+#   scan   torrkörning. Skriver ingenting. Planen läggs i grenen som
+#          tools/seo-text-repair/scan-latest.json
+#   apply  skriver — och läser tillbaka varje skrivning innan den räknas
+#
+# Till skillnad från prisreparationen finns här INGEN id-lista att kvittera.
+# Skälet är att ingreppet är ett annat: prisreparationen SÄTTER ett tal som når
+# kund, den här tar bort en rad som aldrig skulle ha funnits och sätter tillbaka
+# ett värdnamn i en trasig länk. Blast-radien är exakt det saxarna matchar, och
+# de är låsta av 24 tester.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "scan = torrkörning · apply = skriv"
+        required: true
+        default: "scan"
+        type: choice
+        options:
+          - scan
+          - apply
+      limit:
+        description: "apply: tak på antal skrivningar per varv"
+        required: false
+        default: "40"
+        type: string
+      varv:
+        description: "Antal varv (markören förs vidare mellan dem)"
+        required: false
+        default: "3"
+        type: string
+      only_published:
+        description: "Bara publicerade sidor (av = även osynliga utkast)"
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  textrepair:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          LIMIT: ${{ inputs.limit }}
+          VARV: ${{ inputs.varv }}
+          ONLY_PUB: ${{ inputs.only_published }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # ☠️ Till STDERR. En ::error::-rad på stdout slukas av
+            # kommandosubstitutionen nedan — det kostade en körning 2026-08-28.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/cron/seo-text-repair"
+          dry=true
+          [ "${MODE}" = "apply" ] && dry=false
+
+          mkdir -p tools/seo-text-repair
+          after=""
+          totLag=0; totMiss=0; totTraff=0; totLast=0
+          : > tools/seo-text-repair/scan-latest.json
+
+          for varv in $(seq 1 "${VARV}"); do
+            q="dryRun=${dry}&onlyPublished=${ONLY_PUB}&limit=${LIMIT}"
+            [ -n "$after" ] && q="${q}&after=${after}"
+            svar=$(curl -sS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "${url}?${q}")
+
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+              exit 1
+            fi
+
+            l=$(echo "$svar" | jq -r '.lagade'); m=$(echo "$svar" | jq -r '.misslyckade')
+            t=$(echo "$svar" | jq -r '.traffar'); s=$(echo "$svar" | jq -r '.lasta')
+            k=$(echo "$svar" | jq -r '.medKod'); lk=$(echo "$svar" | jq -r '.medTrasigLank')
+            totLag=$((totLag+l)); totMiss=$((totMiss+m)); totTraff=$((totTraff+t)); totLast=$((totLast+s))
+            echo "varv ${varv}: lasta=${s} traffar=${t} (kod=${k} lankar=${lk}) lagade=${l} misslyckade=${m}"
+
+            # ☠️ Läs `misslyckade`, inte bara HTTP-statusen. Ett "hoppade över"
+            # ÄR 200, och en workflow som bara tittar på statuskoden rapporterar
+            # grönt medan ingenting hände. Sjunde gången huset lär sig det.
+            if [ "$m" != "0" ]; then
+              echo "::warning::${m} misslyckade denna runda"
+              echo "$svar" | jq -r '.fel[]?' | sed 's/^/    /'
+            fi
+            echo "$svar" | jq -r '.kodINamn[]?' | sed 's/^/    kod i rubriken: /'
+
+            # ☠️ INGEN SHELL-INTERPOLATION INUTI PROGRAMMET. Klipper man in en
+            # skalvariabel mitt i det enkelciterade uttrycket bryts det i tva
+            # halvor som var for sig inte kompilerar — och grinden i
+            # jq-syntax.test.ts laser den forsta halvan och faller. (Kommentaren
+            # visar med flit inte den trasiga formen: extraktionen lasar hela
+            # filen, aven kommentarrader.) Varvet syns i loggraden ovan och i
+            # ordningen mellan objekten; det behover inte sta i JSON:en.
+            echo "$svar" | jq '{lasta, traffar, medKod, medTrasigLank, lagade, misslyckade, kodINamn, plan, fel, cursor, fullstandig}' \
+              >> tools/seo-text-repair/scan-latest.json
+
+            after=$(echo "$svar" | jq -r '.cursor // ""')
+            if [ -z "$after" ] || [ "$after" = "null" ]; then
+              echo "Listningen slut efter varv ${varv}."
+              break
+            fi
+          done
+
+          echo "SUMMA: lasta=${totLast} traffar=${totTraff} lagade=${totLag} misslyckade=${totMiss}"
+
+      - name: Spara rapporten i grenen
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -s tools/seo-text-repair/scan-latest.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/seo-text-repair/scan-latest.json
+            git diff --cached --quiet || git commit -m "SEO-textrapport ${{ inputs.mode }} $(date -u +%F' '%H:%M)"
+            git push || true
+          fi
