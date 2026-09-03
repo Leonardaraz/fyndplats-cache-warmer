@@ -91,6 +91,7 @@ jobs:
               echo "::error::Läsningen föll på sidan '$(echo "$svar" | jq -r '.sida // "okänd"')': $(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
               exit 1
             fi
+            echo "$svar" | jq -r '"  aktivt lager: \(.aktivtLager // "okänt")"'
             echo "$svar" | jq -r '.diff | "  wix       \(.wixProdukter) produkter, \(.wixOmdomen) synliga omdömen"'
             echo "$svar" | jq -r '.diff | "  postgres  \(.postgresProdukter) produkter, \(.postgresOmdomen) synliga omdömen"'
             echo "$svar" | jq -r '.diff | "  avvikande \(.avvikandeTotalt)"'
@@ -112,8 +113,16 @@ jobs:
             fi
             echo
             echo "OK: de två lagren ger samma stjärnor på varje produkt."
-            echo "Nästa steg: sätt REVIEWS_BACKEND=postgres i Vercel, deploya, och kör"
-            echo "det här läget en gång till — då ska talen vara oförändrade."
+            # ☠️ Säg vad som återstår utifrån vad som FAKTISKT servar, inte
+            # utifrån vad någon tror är satt. Raden ovan såg likadan ut före
+            # och efter växlingen, och det är precis hur ett antagande får
+            # passera som ett kvitto.
+            if [ "$(echo "$svar" | jq -r '.aktivtLager // "okänt"')" = "postgres" ]; then
+              echo "Växlingen ÄR gjord och lever — produktionen servar ur Postgres."
+            else
+              echo "Växlingen är INTE i drift än: sätt REVIEWS_BACKEND=postgres i Vercel"
+              echo "OCH deploya (en env-variabel binds vid deploy, inte vid sparning)."
+            fi
             exit 0
           fi
 
