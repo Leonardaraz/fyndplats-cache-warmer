@@ -1984,19 +1984,42 @@ dealproffsen.se publicerar Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD. S
 samma sträng i vår text går våra sidor att joina mot deras — och därmed mot vad vi
 betalar för varje vara.
 
-**Läckan har hittats tre gånger av svep och noll gånger av en spärr:**
+**Läckan har hittats fyra gånger av svep och noll gånger av en spärr:**
 
 | datum | var | antal |
 |---|---|---:|
 | 2026-09-02 | inbränt i produktkortens fotremsa | 33 |
 | 2026-09-02 | som spec-rad i texten | 4 |
 | 2026-09-03 | som spec-rad i texten, efter att svepets regex rättats | **51** |
+| 2026-09-03 | som **bockad** spec-rad, efter att svepet sagt "0 träffar" | se nedan |
 
 De 51 hittades först när svepets egen regex lagades: mönstret `</span>?` kräver den
 LITERALA strängen `</span` med ett valfritt `>` — det gör inte taggen valfri. Bara den
 ena av två former kunde alltså träffa, och 488 sidor svepta med det mönstret bevisade
 ingenting. **Validera alltid ett svepmönster mot minst en känd smutsig sida av varje
 form innan du litar på ett tomt resultat.**
+
+☠️ **Och samma dag igen, på nästa grannform — den här gången efter ett grönt svep.**
+Jag rapporterade "5 485 produkter lästa, 0 träffar" och kallade katalogen ren. Den var
+det inte: `<li><p>✔ Artikelnummer: …</p></li>` gav **noll** träffar, samma rad utan
+bocken gav **en**. Bocken är RÅIMPORTENS form — Aosoms specrader kommer in som
+`<li><p>✔ Farbe: Mehrfarbig</p></li>` — alltså exakt den form ett **opolerat utkast**
+bär, och därmed den enda form som finns kvar när svepet redan städat de publicerade
+sidorna. Detektorn var blind för precis det den bäst behövde se.
+
+**Två regler ur det, och den andra är den som biter:**
+
+1. **En detektor ska valideras mot RÅDATANS form, inte bara mot de träffar den redan
+   hittat.** Båda mina regexfel var samma misstag: jag härledde mönstret ur de sidor
+   detektorn *lyckats* hitta, vilket per definition inte kan avslöja en form den
+   missar.
+2. ☠️ **Ett svep får inte ställa samma fråga som saxen.** Frågade det "hittade saxen
+   något?" var svaret "nej" både när katalogen var ren och när saxen var blind — och
+   de två utfallen såg identiska ut. Svaret bär sedan 2026-09-03 fältet **`kodIText`**:
+   sidor vars text bär en kod EFTER att saxen fått göra sitt, mätt med `barKod`, som
+   läser hela fältet och inte delar antagande med saxen. Är den listan icke-tom är det
+   saxen som ska lagas, inte katalogen. **Ett falskt friskintyg är värre än ingen
+   mätning alls** — efter det slutar man mäta.
 
 Kör inte det här för hand längre. Verktyget är
 **`lib/seo/leverantorskod.ts`** (saxen) + **`lib/seo/text-repair.ts`** (körningen) +
@@ -2009,7 +2032,12 @@ Tre egenskaper som inte ska tas bort:
 1. ☠️ **Värdet måste se ut som en kod, inte bara etiketten stämma.** `Referens: se
    bruksanvisningen` och `Standard: EN 1930` är legitim text. En sax som klipper på
    etiketten ensam tar bort dem också — och en sax som tar för mycket är farligare än
-   läckan den lagar. Femton tester låser båda hållen.
+   läckan den lagar. Tjugosex tester låser båda hållen.
+
+   Dekorationsledet (bock, punkt, streck, `&nbsp;`) är därför MEDVETET smalt: bara
+   skiljetecken och blanksteg, aldrig bokstäver. Ett `.{0,4}` hade svalt
+   `Se Artikelnummer:` och gjort saxen till en gissning. Ett test låser den
+   riktningen också.
 2. ☠️ **Massfel-spärren står FÖRE första skrivningen.** Hela sidan (100 produkter)
    läses, andelen träffar kontrolleras mot `MAX_ANDEL_TRAFFAR = 0,25`, och först
    därefter skrivs något. Körs kontrollen inne i skrivslingan hinner en trasig regex
@@ -2022,7 +2050,12 @@ Tre egenskaper som inte ska tas bort:
    rapporterat "51 lagade" utan att ha skrivit ett tecken.
 
 **Koden i RUBRIKEN lagas inte automatiskt** — den kräver att någon skriver om
-rubriken, och rapporteras i `kodINamn`.
+rubriken, och rapporteras i `kodINamn`. **Koden som saxen inte NÅR** (i brödtext, i en
+form saxen inte känner) lagas inte heller automatiskt och rapporteras i `kodIText`.
+
+⚠️ **Svep utkasten också.** Default är `onlyPublished=true`, alltså bara publicerade
+sidor — men det är i utkasten den opolerade råtexten står, och ett utkast publiceras
+förr eller senare. Kör `?onlyPublished=false` när du vill veta vad som väntar.
 
 ☠️ **Massfel-taket gäller bara kodsaxen.** Länkfixen tar inte bort någonting: den
 sätter tillbaka ett värdnamn och är idempotent. En hög andel där betyder att felet

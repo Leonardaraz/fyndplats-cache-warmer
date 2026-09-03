@@ -30,6 +30,53 @@ describe("hittaKodrader", () => {
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
   });
 
+  // ☠️ RÅIMPORTENS FORM. Aosoms specrader kommer in med en bock före etiketten,
+  // så det är EXAKT så ett opolerat utkast bär numret. Utan dekorationsledet gav
+  // svepet "5 485 lästa, 0 träffar" medan raden nedan låg i katalogen — ett
+  // falskt friskintyg är värre än ingen mätning alls.
+  it("hittar den bockade formen (råimportens)", () => {
+    const rad = "<li><p>\u2714 Artikelnummer: Z00-111V00XX</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar bock FÖRE span-taggen", () => {
+    const rad =
+      '<li><p>\u2714 <span style="font-weight: 700">Artikelnummer:</span> Z90-222V00BK</p></li>';
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar bock INUTI span-taggen", () => {
+    const rad =
+      '<li><p><span style="font-weight: 700">\u2714 Referens:</span> Z90-222V00BK</p></li>';
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it.each([["\u2713"], ["\u2022"], ["-"], ["&nbsp;"], ["\u00b7"]])(
+    "hittar raden med %s som dekoration",
+    (dekor) => {
+      const rad = `<li><p>${dekor} Modellnummer: Z0A-888V80WT</p></li>`;
+      expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+    },
+  );
+
+  // ☠️ Dekorationen får bara vara skiljetecken. Ett `.{0,4}` hade svalt ord, och
+  // då hade saxen klippt rader den inte förstår.
+  it("rör INTE en rad där etiketten föregås av ORD", () => {
+    expect(hittaKodrader(SPEC("<li><p>Se Artikelnummer: Z00-111V00XX</p></li>"))).toEqual([]);
+  });
+
+  // ⚠️ Grinden mot den TVETYDIGA formen. `DEKOR(?:<span…>)?DEKOR` kostar
+  // kvadratiskt på en dekorationssvans som ändå inte matchar (uppmätt: 4 000
+  // tecken = 219 ms, 64 000 = 49 705 ms); den förankrade formen är linjär och
+  // låg under en millisekund i alla mätpunkter. Testet är avsiktligt slappt —
+  // det ska fälla en verklig regression, inte flaka på en långsam runner.
+  it("faller igenom snabbt på en lång dekorationssvans utan etikett", () => {
+    const html = `<li><p>${"\u2714 ".repeat(60)}ingen etikett alls</p></li>`;
+    const t0 = Date.now();
+    expect(hittaKodrader(html)).toEqual([]);
+    expect(Date.now() - t0).toBeLessThan(1000);
+  });
+
   // ☠️ Saxen får inte ta för mycket. Det här är hela skälet till att värdet
   // måste se ut som en kod och inte bara etiketten stämma.
   it("rör INTE en säkerhetsstandard", () => {
@@ -60,6 +107,17 @@ describe("taBortKodrader", () => {
     const efter = taBortKodrader(fore);
     expect(efter).toBe(SPEC("<li><p>Färg: vit</p></li><li><p>Vikt: 12 kg</p></li>"));
     expect(efter.length).toBeLessThan(fore.length);
+  });
+
+  it("tar bort den bockade raden och lämnar resten orörd", () => {
+    const fore = SPEC(
+      "<li><p>\u2714 Färg: vit</p></li>"
+        + "<li><p>\u2714 Artikelnummer: Z00-111V00XX</p></li>"
+        + "<li><p>\u2714 Vikt: 12 kg</p></li>",
+    );
+    expect(taBortKodrader(fore)).toBe(
+      SPEC("<li><p>\u2714 Färg: vit</p></li><li><p>\u2714 Vikt: 12 kg</p></li>"),
+    );
   });
 
   it("är idempotent", () => {
