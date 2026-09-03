@@ -1,0 +1,111 @@
+name: Dubbletter — mappa om en produkt till Aosom
+
+# Leonards regel 2026-09-03: äkta dubbletter ska mappa om till Aosom.
+#
+# 595 av 1 004 mappningsrader är Aosom-varor köpta via AliExpress. Feed-importens
+# dubblettspärr kan inte se dem (de bär ett AE-listnings-id) och skapar därför en
+# ANDRA sida för samma fysiska produkt. Två egna URL:er med samma foton är den
+# dubblett Google faktiskt straffar. Den här workflowen pekar om sidan vi
+# BEHÅLLER till Aosoms artikelnummer och pensionerar den andra.
+#
+# Samma nyckel-lösa upplägg som prisreparationen och poleringen: produktionen har
+# Wix-nycklarna och DATABASE_URL, Actions har CRON_SECRET, och de möts i
+# workflowen. Ingen hemlighet passerar chatten eller en terminal — och därför går
+# jobbet att starta från en telefon.
+#
+# ☠️ TORRKÖRNING ÄR DEFAULT (läget `plan`). Läs marginalen innan du kör `byt`.
+# ☠️ EN PRODUKT PER KÖRNING. Paret (wix-id, artikelnummer) är en människas
+#    bedömning av att två sidor är samma vara. Det finns ingen kör-allt-flagga.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan = torrkörning (skriver inget) · byt = skriv"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - byt
+      wix_product_id:
+        description: "Wix-produkten som BEHÅLLS (den polerade sidan)"
+        required: true
+        type: string
+      sku:
+        description: "Aosoms artikelnummer, t.ex. 845-030CG"
+        required: true
+        type: string
+      duplicate_wix_product_id:
+        description: "Dubblettsidan som pensioneras (rejected). TOMT = ingen."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  remap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          PRODUCT_ID: ${{ inputs.wix_product_id }}
+          SKU: ${{ inputs.sku }}
+          DUPLICATE: ${{ inputs.duplicate_wix_product_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # ☠️ TILL STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan — det kostade en torrkorning med
+            # "exit 1 och noll rader om varfor" 2026-08-28.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-remap"
+          apply=false
+          [ "${MODE}" = "byt" ] && apply=true
+
+          kropp=$(jq -nc \
+            --arg id "${PRODUCT_ID}" \
+            --arg sku "${SKU}" \
+            --arg dup "${DUPLICATE}" \
+            --argjson apply "${apply}" \
+            '{wixProductId: $id, sku: $sku, apply: $apply}
+             + (if $dup == "" then {} else {duplicateWixProductId: $dup} end)')
+
+          echo "Läge: ${MODE} (apply=${apply})"
+          svar=$(curl -sS --max-time 120 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "${kropp}" \
+            "${url}")
+
+          echo "=== Plan ==="
+          # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag an
+          # blocket avslutar YAML:ens `run: |` och gor filen olasbar for
+          # GitHub. Den har workflowen gick aldrig att starta fran att den
+          # skapades tills det upptacktes 2026-09-03.
+          echo "$svar" | jq -r '.plan // {} | "  artikelnummer   \(.sku)\n  fran            \(.["frånLeverantör"])\n  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)\n  kundpris        \(.prisSek) kr (ORORT)\n  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %\n  fraktandel      \(.fraktandel)"'
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "hinder — se listan nedan"')" >&2
+            echo "$svar" | jq -r '.plan.hinder[]? | "    [hinder] \(.)"' >&2
+            exit 1
+          fi
+
+          # ☠️ HARIFRAN AR SKRIVNINGEN GJORD (i lage `byt`). Rapporteringen far
+          # aldrig falla jobbet — ett falsklarm som alltid fyrar lar mottagaren
+          # att ignorera aven de akta. `|| true` pa varje rad harifran.
+          if [ "${MODE}" = "plan" ]; then
+            echo "TORRKORNING: ingenting skrevs. Kor om med lage 'byt' nar planen ser rimlig ut."
+            exit 0
+          fi
+
+          echo "OK: ${PRODUCT_ID} -> aosom:${SKU} (verifierat vid aterlasning)" || true
+          dup=$(echo "$svar" | jq -r '.dubblettPensionerad // "ingen"') || true
+          echo "Dubblett: ${dup}" || true
+          exit 0

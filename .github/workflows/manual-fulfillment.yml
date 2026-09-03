@@ -49,7 +49,13 @@ on:
         default: ""
         type: string
       carrier:
-        description: "skickad: fraktbolag om det framgår, t.ex. DHL (frivilligt)"
+        # ☠️ INTE FRIVILLIG i laget 'skickad'. Wix avvisar en fulfillment som
+        # bar spårningsnummer utan fraktbolag:
+        #   400 "has fulfillment tracking info without shipping provider"
+        # Beskrivningen sa "frivilligt" och order 10026 gick i den vaggen
+        # 2026-09-03. Ingenting skrevs — Wix kommer fore tasken — men felet
+        # kom fran Wix i stallet for fran oss, och sag ut som ett API-fel.
+        description: "skickad: fraktbolag, t.ex. DHL eller GLS (KRÄVS)"
         required: false
         default: ""
         type: string
@@ -91,6 +97,12 @@ jobs:
             action=shipped
             if [ -z "${TRACKING}" ]; then
               echo "::error::tracking_number kravs i laget 'skickad'" >&2
+              exit 1
+            fi
+            # Wix avvisar sparningsinfo utan fraktbolag (400). Fall har, med
+            # ett begripligt meddelande, i stallet for att fa Wix 400:a.
+            if [ -z "${CARRIER}" ]; then
+              echo "::error::carrier kravs nar tracking_number ges — Wix avvisar annars fulfillmenten (400)" >&2
               exit 1
             fi
           else

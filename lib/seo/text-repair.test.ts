@@ -52,6 +52,31 @@ describe("runTextRepair", () => {
     expect(s.plan[0].kodrader).toEqual(["<li><p>Artikelnummer: Z00-111V00XX</p></li>"]);
   });
 
+  // ☠️ SVEPETS ENDA SKYDD MOT SIN EGEN BLINDA FLÄCK.
+  //
+  // Saxen och kvittot delade tidigare antagande: hittade `hittaKodrader` ingen
+  // rad räknades sidan som ren, oavsett vad som faktiskt stod i texten. Så gav
+  // svepet "5 485 lästa, 0 träffar" 2026-09-03 medan ett utkast bar en bockad
+  // kodrad. `kodIText` frågar en ANNAN fråga — bär texten en kod EFTER saxen? —
+  // och är därför det som avslöjar nästa form saxen inte känner.
+  //
+  // Texten här ligger i BRÖDTEXTEN, inte i en spec-rad: en form saxen med flit
+  // inte klipper, så testet mäter rapporteringen och inte saxen.
+  it("rapporterar en kod som saxen inte når", async () => {
+    const iBrodtext = "<p>Artikelnummer: Z00-999V00XX står mitt i en mening.</p>";
+    const s = await runTextRepair(deps([prod({ plainDescription: iBrodtext })]));
+    expect(s.kodIText).toEqual(["skoskap-4-speglade-luckor-17-cm"]);
+    // Saxen når den inte, alltså är den ingen träff — och det är just därför
+    // listan behövs: utan den hade sidan sett ren ut.
+    expect(s.traffar).toBe(0);
+  });
+
+  it("lämnar kodIText tom när saxen når koden", async () => {
+    const s = await runTextRepair(deps([prod()]));
+    expect(s.kodIText).toEqual([]);
+    expect(s.traffar).toBe(1);
+  });
+
   it("skriver den rensade texten i skarpt läge", async () => {
     const d = deps([prod()]);
     const s = await runTextRepair(d, { dryRun: false });

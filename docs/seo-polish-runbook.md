@@ -918,6 +918,21 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
     2, som poleringen annars kan hoppa över. **Läs dem ändå när texten påstår något om
     utseendet.**
 
+17. ☠️ **Ett DÖRRMÅTT i spec-tabellen är EN dörrhalva — bara fotot säger hur många det finns.**
+    Regel 16 gäller utseende; det här gäller ett tal som ser oskyldigt ut och ändå ändrar vad
+    kunden kan använda varan till. Aosom listar `Tür: 35 x 171 cm` utan att skriva "per halva",
+    och en enkeldörr och en dubbeldörr ger identiska spec-rader.
+
+    Batch 62, redskapsboden `2b6d2766`: jag skrev "enkeldörr, 35 × 171 cm" och byggde två
+    FAQ-svar på det — *"det är en smal dörr … inte för något brett som en skottkärra"*.
+    Fotot visar två dörrhalvor, och tillverkarens egen måttritning sätter **70 cm** vid
+    golvet. Vi hade alltså halverat produktens öppning i marknadsföringen. Samma fel på
+    trädgårdsskåpet `c85c49af`: "ett akrylfönster" där det finns två, ett i varje dörrhalva.
+
+    **Testet:** varje gång du skriver ordet *dörr*, titta på bild 1 och räkna gångjärnen.
+    Två uppsättningar → dubbeldörr, och spec-raden ska stå som `2 × B × H` med den fria
+    öppningen uträknad. Felet går bara åt ett håll — man underskattar aldrig en enkeldörr.
+
 10. ☠️ **Läs HELA källtexten innan du skriver — den bär också det du annars utelämnar.**
     Regel 7–9 handlar om påståenden man lägger TILL. Det här är felet åt andra hållet, och
     det upptäcks aldrig i korrekturet: texten är sann, välskriven och saknar halva varan.
@@ -1379,6 +1394,40 @@ Importen byggde SKU:n ur den **råa** (engelska, märkesledda) sluggen, t.ex. `F
 **SKU-format** (= `lib/import/sku.ts`): `FP-<produkt>-<variant>` ur den **polerade sluggen** + variantens optionsvärde. ASCII (å/ä→a, ö→o), ledande **dropship-märke strippat** (etablerade märken som Pagani Design/LAIKOU behålls), produkt-delen **≤24 tecken** (kapa på bindestreck), variant-delen **≤12 tecken**, hela **≤40 tecken**, **unikt inom produkten**. Saknar produkten optionsvärden → bara `FP-<produkt>`.
 
 ```
+
+> ☠️ **En FÄRGFAMILJ spränger regeln — den kan inte ge distinkta SKU:er.** Uppmätt
+> 2026-09-03 på hundvagnarna (batch 58). Husets andra regel säger att färgvarianter
+> får EGNA korslänkade sidor, så färgen ligger i sluggens svans — och det är precis
+> den svansen `PRODUCT_PART_MAX = 24` klipper bort:
+>
+> | | |
+> |---|---|
+> | `hundvagn-mellanstor-hund-25-kg-ljusgra` | → `FP-hundvagn-mellanstor-hund` |
+> | `hundvagn-mellanstor-hund-25-kg-morkgron` | → `FP-hundvagn-mellanstor-hund` |
+> | …och tre till | **samma sträng, fem gånger** |
+>
+> Kört genom den riktiga `buildVariantSkus`, inte uppskattat. Att i stället ta HELA
+> sluggen hjälper inte: `FP-` + slug blir 41–43 tecken på fyra av de fem, och Wix
+> tak är 40. **Ingen läsning av regeln som den står ger fem distinkta SKU:er.**
+>
+> Det strider mot `sku.ts`:s egen motivering — *"snygga, icke-krockande artikel-
+> nummer i flöden/feed"*. Regeln skrevs för `FP-<produkt>-<variant>`, där färgen är
+> ett OPTIONSVÄRDE på en produkt; 24-teckensgränsen finns bara för att reservera
+> plats åt just den variant-delen. När familjen är fem separata produkter finns
+> ingen variant-del att reservera för, och reservationen äter i stället det enda
+> som skiljer produkterna åt.
+>
+> **Tills regeln ändras: behåll den SÄRSKILJANDE svansen och kapa mitten i stället.**
+> Batch 58 fick `FP-hundvagn-25-kg-ljusgra`, `…-morkgron`, `…-gra`, `…-senapsgul`,
+> `…-svart-rod` — svenska, distinkta, ≤40. Samma princip på 30 kg-vagnen, där
+> svansen (`hopfallning`) INTE särskiljer något: `FP-hundvagn-30-kg-ett-stegs`.
+>
+> ⚠️ **Vad som INTE är fixat:** `lib/import/sku.ts` bygger fortfarande krockande
+> SKU:er för varje framtida färgfamilj som importeras. Skadan är begränsad —
+> JSON-LD:ns `sku` är Wix eget UUID, så kollisionen når varken kund eller Google,
+> och `bySku` i `lib/wix/orders.ts` (som HADE slagit ihop fem produkters försäljning
+> till en rad) läses i dag bara av tester. Men den är latent, och den växer med
+> varje färgfamilj.
 GET .../products/{PRODUCT_ID}?fields=VARIANT_OPTION_CHOICE_NAMES   // slug, options, variants (sku + optionsnamn) + färsk revision
 PATCH .../products/{PRODUCT_ID}
 ```
@@ -1566,6 +1615,24 @@ på ett ställe, i husets typografi, med källan i foten. Utan det är produktsi
 vidarebefordran av leverantörens marknadsföring. Minimum är `card_spec` med de mått Steg 5
 bekräftat, placerat efter verklighetsbilden — aldrig plats 1.
 
+⚠️ **Rubriken måste bäras av FOTOT under den, inte av specen.** Kortet är ett bildlöfte:
+läsaren ser rubriken och fotot i samma ögonkast, och stämmer de inte överens är kortet en
+liten lögn på en sida vi själva har skrivit. Fällde tre kort i batch 60 (rubrik utan täckning
+på två, italiensk rekvisitatext synlig på ett) och ett i batch 61: skrivbordet `cb403b5c`
+heter "med skärmhylla" och sidan argumenterar korrekt för hyllan som skärmhållare — men
+BÅDA kandidatbilderna visar en växt på hyllan och laptopen på skivan, så rubriken
+"Skärmen 12,5 cm högre" pekade på en skärm som inte fanns i bilden. Blev "En hylla över
+skivan". Sidans text stod kvar; det var kortets löfte som inte höll, inte påståendet.
+**Granska alltid de färdiga korten i ett kontaktark innan uppladdningen** — felet syns på
+en sekund där och aldrig i ett API-svar. Två av de fyra ändrade alt-texter som var
+felskrivna av leverantören föll ut i samma granskning.
+
+⚠️ **Alt-texten på kortet börjar med `Faktakort: ` och beskriver FAKTA, inte kortet.**
+`Faktakort: fyra säckar på 27 liter, en per tvättsort. 86 × 38 × 82 cm` — inte
+"Fyndplats-kort: …", som bara lägger vårt eget varumärke i ett fält som ska beskriva
+innehåll. Batch 61 drev iväg till den formen på åtta produkter och fick skrivas om; det är
+samma tvillingar-glider-isär-problem som `SHIP_AXIS_RE` och `EU_TULL_CODES`, fast i text.
+
 ☠️ **Polerar du syskon: fördela leverantörens miljöscener mellan dem.** Aosom återanvänder
 samma scener med olika produkt inklistrad — de två infravärmarna (2026-08-29) delade tre
 scener rakt av, samma mormor i samma rottingsoffa. Två av våra egna URL:er med identiska
@@ -1666,11 +1733,19 @@ annan produkt än den som kommer.
 | Foto med text/logga inbränd **över varan** | Tvätta ([T](polish/bildmetoder.md#textborttagning-t--tvätta-loggor-och-inbränd-text)) |
 | Ren produkt på ful/mörk/rörig bakgrund | Vit studio-hjälte ([H](polish/bildmetoder.md#hjältebild-h--ren-vit-produktbild)) |
 | Marknadsgrafik med användbara delfoton | Klipp ut fotona, bygg eget svenskt kort ([K](polish/bildmetoder.md#kortbygge-k--egna-svenska-feature--och-spec-kort)) |
+| **Måttritning med tysk textruta i ett hörn** | Beskär bort rutan — ritningen i sig är bara siffror |
 | Ren textinfografik utan foto | Ta bort — informationen hör hemma i spec-tabellen |
 
 **Behåll så många ANVÄNDBARA bilder som möjligt** *(Leonard 2026-07-10)* — en rik produktsida
 säljer mer än en med tre bilder. Släng bara exakta dubbletter och bilder utan visuellt värde.
 Leverantörens feature-collage **byggs om** till svenska kort, kastas inte.
+
+⚠️ **Aosoms måttritning för bodar bär en tysk ruta nere till höger** — *"Hinweis: Messen Sie
+das Fundament…"* plus en färglegend. Den ligger under en vit remsa som är lätt att hitta
+programmatiskt: skanna nedre halvan efter första raden där en bred strimma är enhetligt
+ljusgrå (232–248, kanalerna inom 4 av varandra) och kapa 12 px ovanför. Mätt på fem ritningar
+i batch 62 låg gränsen på 0,72–0,74 av höjden. **Kasta inte hela bilden** — måttritningen är
+den nyttigaste bilden på en bod, och utan textrutan är den helt språkneutral.
 
 **Aldrig ett rent text-kort.** Varje kort ska ha ett riktigt foto med texten som bildtext
 *(Leonard 2026-07-10)*. **Och fotot ska vara stort:** `fit=True` (`contain`) för produktbilder
@@ -2656,13 +2731,14 @@ dealproffsen.se publicerar Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD. S
 samma sträng i vår text går våra sidor att joina mot deras — och därmed mot vad vi
 betalar för varje vara.
 
-**Läckan har hittats tre gånger av svep och noll gånger av en spärr:**
+**Läckan har hittats fyra gånger av svep och noll gånger av en spärr:**
 
 | datum | var | antal |
 |---|---|---:|
 | 2026-09-02 | inbränt i produktkortens fotremsa | 33 |
 | 2026-09-02 | som spec-rad i texten | 4 |
 | 2026-09-03 | som spec-rad i texten, efter att svepets regex rättats | **51** |
+| 2026-09-03 | som **bockad** spec-rad, efter att svepet sagt "0 träffar" | se nedan |
 
 De 51 hittades först när svepets egen regex lagades: mönstret `</span>?` kräver den
 LITERALA strängen `</span` med ett valfritt `>` — det gör inte taggen valfri. Bara den
@@ -2693,9 +2769,17 @@ ingen tittar efter.
 1. **Ett mätt urval bevisar formen, inte rymden.** Har du mätt `Z00-111V00XX` vet
    du hur raden ser ut — inte att koden alltid är versal, alltid har det prefixet,
    alltid saknar parentes. Skriv mönstret så vitt som datan tillåter och strama
-   åt med ett *innehållskrav* i stället: koden här kräver nu **minst en siffra i
-   båda halvorna**, vilket träffar varje äkta kod och utesluter varje bokstavsord
-   (`Referens: bruks-anvisning` hade annars klippts bort när gemener släpptes in).
+   åt med ett *innehållskrav* i stället: koden här kräver nu **minst en siffra
+   någonstans i koden**, vilket träffar varje äkta kod och utesluter varje
+   bokstavsord (`Referens: bruks-anvisning` hade annars klippts bort när gemener
+   släpptes in).
+
+   ☠️ **Kravet satt först per HALVA, och det var för hårt.** Den formen avvisade
+   `bruks-anvisning` korrekt men också `SP-CAG-203018` — en uppmätt äkta kod där
+   båda de första segmenten är rena bokstäver. Två korrekta fixar från två
+   parallella sessioner drog alltså åt olika håll, och det syntes bara för att
+   båda sidornas tester kördes mot samma fil vid sammanslagningen. **Ett
+   innehållskrav ska ställas på det minsta som räcker.**
 2. **Alternationen tar det FÖRSTA alternativet som matchar — sortera längst först.**
    `Referens` före `Artikelreferens` matchar de nio sista tecknen, och då står
    `<li><p>` inte längre omedelbart före etiketten: raden går fri i saxen men syns
@@ -2710,6 +2794,27 @@ ingen tittar efter.
 **Kvittot som gör mätningen värd något:** lägg en **känd smutsig rad av varje form**
 som positiv kontroll i själva svepet och avbryt om den inte träffas. Två rader kod,
 och det är skillnaden mellan "noll träffar" och "noll träffar, och regexen fungerar".
+☠️ **Och samma dag igen, på nästa grannform — den här gången efter ett grönt svep.**
+Jag rapporterade "5 485 produkter lästa, 0 träffar" och kallade katalogen ren. Den var
+det inte: `<li><p>✔ Artikelnummer: …</p></li>` gav **noll** träffar, samma rad utan
+bocken gav **en**. Bocken är RÅIMPORTENS form — Aosoms specrader kommer in som
+`<li><p>✔ Farbe: Mehrfarbig</p></li>` — alltså exakt den form ett **opolerat utkast**
+bär, och därmed den enda form som finns kvar när svepet redan städat de publicerade
+sidorna. Detektorn var blind för precis det den bäst behövde se.
+
+**Två regler ur det, och den andra är den som biter:**
+
+1. **En detektor ska valideras mot RÅDATANS form, inte bara mot de träffar den redan
+   hittat.** Båda mina regexfel var samma misstag: jag härledde mönstret ur de sidor
+   detektorn *lyckats* hitta, vilket per definition inte kan avslöja en form den
+   missar.
+2. ☠️ **Ett svep får inte ställa samma fråga som saxen.** Frågade det "hittade saxen
+   något?" var svaret "nej" både när katalogen var ren och när saxen var blind — och
+   de två utfallen såg identiska ut. Svaret bär sedan 2026-09-03 fältet **`kodIText`**:
+   sidor vars text bär en kod EFTER att saxen fått göra sitt, mätt med `barKod`, som
+   läser hela fältet och inte delar antagande med saxen. Är den listan icke-tom är det
+   saxen som ska lagas, inte katalogen. **Ett falskt friskintyg är värre än ingen
+   mätning alls** — efter det slutar man mäta.
 
 Kör inte det här för hand längre. Verktyget är
 **`lib/seo/leverantorskod.ts`** (saxen) + **`lib/seo/text-repair.ts`** (körningen) +
@@ -2722,7 +2827,21 @@ Tre egenskaper som inte ska tas bort:
 1. ☠️ **Värdet måste se ut som en kod, inte bara etiketten stämma.** `Referens: se
    bruksanvisningen` och `Standard: EN 1930` är legitim text. En sax som klipper på
    etiketten ensam tar bort dem också — och en sax som tar för mycket är farligare än
-   läckan den lagar. Femton tester låser båda hållen.
+   läckan den lagar. Tjugosex tester låser båda hållen.
+
+   Dekorationsledet (bock, punkt, streck, `&nbsp;`) är därför MEDVETET smalt: bara
+   skiljetecken och blanksteg, aldrig bokstäver. Ett `.{0,4}` hade svalt
+   `Se Artikelnummer:` och gjort saxen till en gissning. Ett test låser den
+   riktningen också.
+
+   ☠️ **Och `FP-` är undantaget från kodmönstret.** Husets SKU:er börjar alltid så,
+   och `Artikelnummer: FP-julgran-210-pynt` är en LEGITIM rad — kundens referens
+   vid en reklamation. Ingen leverantörskod ser ut så. Utan undantaget felade
+   mönstret åt BÅDA hållen: en kort SKU som `FP-sideboard` matchade rakt av och
+   hade klippts bort (bara svansens längd räddade de flesta — tur, inte
+   konstruktion), och `kodIText` flaggade 20 sidor vars enda "kod" var deras egen
+   FP-SKU. **Ett larm där tre av fyra är falska slutar läsas**, och då är även det
+   äkta borta.
 2. ☠️ **Massfel-spärren står FÖRE första skrivningen.** Hela sidan (100 produkter)
    läses, andelen träffar kontrolleras mot `MAX_ANDEL_TRAFFAR = 0,25`, och först
    därefter skrivs något. Körs kontrollen inne i skrivslingan hinner en trasig regex
@@ -2735,7 +2854,18 @@ Tre egenskaper som inte ska tas bort:
    rapporterat "51 lagade" utan att ha skrivit ett tecken.
 
 **Koden i RUBRIKEN lagas inte automatiskt** — den kräver att någon skriver om
-rubriken, och rapporteras i `kodINamn`.
+rubriken, och rapporteras i `kodINamn`. **Koden som saxen inte NÅR** (i brödtext, i en
+form saxen inte känner) lagas inte heller automatiskt och rapporteras i `kodIText`.
+
+⚠️ **Flersegmentskoder ligger med flit utanför saxen.** Uppmätt på en publicerad sida
+2026-09-03: `Modellnummer: SP-CAG-203018 / SP-CAG-253515 / …`. Värdemönstret är ETT
+segment, så saxen når den inte — och ska inte nå den: raden står på en polerad sida
+där ett modellnummer kan vara det kunden söker på. `barKod` ser den, den hamnar i
+`kodIText`, och en människa avgör. Det är exakt vad listan finns för.
+
+⚠️ **Svep utkasten också.** Default är `onlyPublished=true`, alltså bara publicerade
+sidor — men det är i utkasten den opolerade råtexten står, och ett utkast publiceras
+förr eller senare. Kör `?onlyPublished=false` när du vill veta vad som väntar.
 
 ☠️ **Massfel-taket gäller bara kodsaxen.** Länkfixen tar inte bort någonting: den
 sätter tillbaka ett värdnamn och är idempotent. En hög andel där betyder att felet

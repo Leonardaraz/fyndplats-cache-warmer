@@ -30,9 +30,80 @@ describe("hittaKodrader", () => {
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
   });
 
-  // ☠️ GEMENA KODER. Nitton publicerade sidor bar en gemen kod medan svepet
-  // rapporterade noll — prefixet var `[0-9A-Z]` och regexen saknade `i`.
-  // Formerna nedan är de faktiskt uppmätta, med siffrorna utbytta.
+  // ☠️ RÅIMPORTENS FORM. Aosoms specrader kommer in med en bock före etiketten,
+  // så det är EXAKT så ett opolerat utkast bär numret. Utan dekorationsledet gav
+  // svepet "5 485 lästa, 0 träffar" medan raden nedan låg i katalogen — ett
+  // falskt friskintyg är värre än ingen mätning alls.
+  it("hittar den bockade formen (råimportens)", () => {
+    const rad = "<li><p>\u2714 Artikelnummer: Z00-111V00XX</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar bock FÖRE span-taggen", () => {
+    const rad =
+      '<li><p>\u2714 <span style="font-weight: 700">Artikelnummer:</span> Z90-222V00BK</p></li>';
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it("hittar bock INUTI span-taggen", () => {
+    const rad =
+      '<li><p><span style="font-weight: 700">\u2714 Referens:</span> Z90-222V00BK</p></li>';
+    expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+  });
+
+  it.each([["\u2713"], ["\u2022"], ["-"], ["&nbsp;"], ["\u00b7"]])(
+    "hittar raden med %s som dekoration",
+    (dekor) => {
+      const rad = `<li><p>${dekor} Modellnummer: Z0A-888V80WT</p></li>`;
+      expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
+    },
+  );
+
+  // ☠️ Dekorationen får bara vara skiljetecken. Ett `.{0,4}` hade svalt ord, och
+  // då hade saxen klippt rader den inte förstår.
+  it("rör INTE en rad där etiketten föregås av ORD", () => {
+    expect(hittaKodrader(SPEC("<li><p>Se Artikelnummer: Z00-111V00XX</p></li>"))).toEqual([]);
+  });
+
+  // ⚠️ Grinden mot den TVETYDIGA formen. `DEKOR(?:<span…>)?DEKOR` kostar
+  // kvadratiskt på en dekorationssvans som ändå inte matchar (uppmätt: 4 000
+  // tecken = 219 ms, 64 000 = 49 705 ms); den förankrade formen är linjär och
+  // låg under en millisekund i alla mätpunkter. Testet är avsiktligt slappt —
+  // det ska fälla en verklig regression, inte flaka på en långsam runner.
+  it("faller igenom snabbt på en lång dekorationssvans utan etikett", () => {
+    const html = `<li><p>${"\u2714 ".repeat(60)}ingen etikett alls</p></li>`;
+    const t0 = Date.now();
+    expect(hittaKodrader(html)).toEqual([]);
+    expect(Date.now() - t0).toBeLessThan(1000);
+  });
+
+  // ☠️ VÅR EGEN SKU ÄR INTE EN LEVERANTÖRSKOD. Raden är legitim — kundens
+  // referens vid en reklamation — och en sax som tar den gör sidan sämre.
+  it.each([
+    ["FP-julgran-210-pynt"],
+    ["FP-sideboard"],
+    ["FP-armlos-skrivbordsstol-ljusbla"],
+    ["FP-hundgrind-131-svart respektive FP-hundgrind-131-vit"],
+  ])("rör INTE vår egen SKU %s", (sku) => {
+    expect(hittaKodrader(SPEC(`<li><p>Artikelnummer: ${sku}</p></li>`))).toEqual([]);
+    expect(barKod(`Artikelnummer: ${sku}`)).toBe(false);
+  });
+
+  // …men undantaget gäller BARA vårt eget prefix. En leverantörskod som råkar
+  // ha två bokstäver först är fortfarande en leverantörskod.
+  it("rapporterar en flersegmentskod men klipper den INTE", () => {
+    // Uppmätt på en publicerad sida 2026-09-03: `Modellnummer: SP-CAG-203018 /
+    // SP-CAG-253515 / …`. Saxen når den inte — värdemönstret är ett segment —
+    // och SKA inte nå den: raden står på en polerad sida där ett modellnummer
+    // kan vara det kunden söker på. `barKod` ser den, den hamnar i `kodIText`,
+    // och en människa avgör. Det är precis vad listan finns för.
+    const rad = "<li><p>Modellnummer: SP-CAG-203018</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([]);
+    expect(barKod(rad)).toBe(true);
+  });
+
+  // ☠️ Saxen får inte ta för mycket. Det här är hela skälet till att värdet
+  // måste se ut som en kod och inte bara etiketten stämma.
   it("hittar en gemen kod efter Referens", () => {
     const rad = '<li><p><span style="font-weight: 700">Referens:</span> z30-670v00yl</p></li>';
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
@@ -53,9 +124,6 @@ describe("hittaKodrader", () => {
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
   });
 
-  // ☠️ ARTIKELREFERENS — fyra publicerade sidor bar den etiketten, och den
-  // saknades i listan. `Referens` matchade dess nio sista tecken i löptexten
-  // men aldrig som rad, eftersom `<li><p>` då inte stod omedelbart före.
   it("hittar Artikelreferens", () => {
     const rad = "<li><p>Artikelreferens: z3A-566V01AK</p></li>";
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
@@ -66,17 +134,11 @@ describe("hittaKodrader", () => {
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
   });
 
-  // Ordgränsen får inte hindra att etiketten hittas när den står först.
   it("hittar Referens som eget ord", () => {
     const rad = "<li><p>Referens: z90-222V00BK</p></li>";
     expect(hittaKodrader(SPEC(rad))).toEqual([rad]);
   });
 
-  // ☠️ Saxen får inte ta för mycket. Det här är hela skälet till att värdet
-  // måste se ut som en kod och inte bara etiketten stämma.
-  //
-  // Gemener öppnade en ny riktning för det felet: ett vanligt bindestrecksord.
-  // Därför krävs minst en SIFFRA i båda halvorna av koden.
   it("rör INTE ett bindestrecksord utan siffror", () => {
     expect(hittaKodrader(SPEC("<li><p>Referens: bruks-anvisning</p></li>"))).toEqual([]);
   });
@@ -113,6 +175,17 @@ describe("taBortKodrader", () => {
     const efter = taBortKodrader(fore);
     expect(efter).toBe(SPEC("<li><p>Färg: vit</p></li><li><p>Vikt: 12 kg</p></li>"));
     expect(efter.length).toBeLessThan(fore.length);
+  });
+
+  it("tar bort den bockade raden och lämnar resten orörd", () => {
+    const fore = SPEC(
+      "<li><p>\u2714 Färg: vit</p></li>"
+        + "<li><p>\u2714 Artikelnummer: Z00-111V00XX</p></li>"
+        + "<li><p>\u2714 Vikt: 12 kg</p></li>",
+    );
+    expect(taBortKodrader(fore)).toBe(
+      SPEC("<li><p>\u2714 Färg: vit</p></li><li><p>\u2714 Vikt: 12 kg</p></li>"),
+    );
   });
 
   it("är idempotent", () => {
