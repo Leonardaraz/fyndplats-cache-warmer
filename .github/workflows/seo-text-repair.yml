@@ -112,7 +112,14 @@ jobs:
             fi
             echo "$svar" | jq -r '.kodINamn[]?' | sed 's/^/    kod i rubriken: /'
 
-            echo "$svar" | jq '{varv: '"${varv}"', lasta, traffar, medKod, medTrasigLank, lagade, misslyckade, kodINamn, plan, fel, cursor, fullstandig}' \
+            # ☠️ INGEN SHELL-INTERPOLATION INUTI PROGRAMMET. Klipper man in en
+            # skalvariabel mitt i det enkelciterade uttrycket bryts det i tva
+            # halvor som var for sig inte kompilerar — och grinden i
+            # jq-syntax.test.ts laser den forsta halvan och faller. (Kommentaren
+            # visar med flit inte den trasiga formen: extraktionen lasar hela
+            # filen, aven kommentarrader.) Varvet syns i loggraden ovan och i
+            # ordningen mellan objekten; det behover inte sta i JSON:en.
+            echo "$svar" | jq '{lasta, traffar, medKod, medTrasigLank, lagade, misslyckade, kodINamn, plan, fel, cursor, fullstandig}' \
               >> tools/seo-text-repair/scan-latest.json
 
             after=$(echo "$svar" | jq -r '.cursor // ""')
