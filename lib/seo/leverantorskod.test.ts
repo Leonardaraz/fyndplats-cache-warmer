@@ -77,6 +77,31 @@ describe("hittaKodrader", () => {
     expect(Date.now() - t0).toBeLessThan(1000);
   });
 
+  // ☠️ VÅR EGEN SKU ÄR INTE EN LEVERANTÖRSKOD. Raden är legitim — kundens
+  // referens vid en reklamation — och en sax som tar den gör sidan sämre.
+  it.each([
+    ["FP-julgran-210-pynt"],
+    ["FP-sideboard"],
+    ["FP-armlos-skrivbordsstol-ljusbla"],
+    ["FP-hundgrind-131-svart respektive FP-hundgrind-131-vit"],
+  ])("rör INTE vår egen SKU %s", (sku) => {
+    expect(hittaKodrader(SPEC(`<li><p>Artikelnummer: ${sku}</p></li>`))).toEqual([]);
+    expect(barKod(`Artikelnummer: ${sku}`)).toBe(false);
+  });
+
+  // …men undantaget gäller BARA vårt eget prefix. En leverantörskod som råkar
+  // ha två bokstäver först är fortfarande en leverantörskod.
+  it("rapporterar en flersegmentskod men klipper den INTE", () => {
+    // Uppmätt på en publicerad sida 2026-09-03: `Modellnummer: SP-CAG-203018 /
+    // SP-CAG-253515 / …`. Saxen når den inte — värdemönstret är ett segment —
+    // och SKA inte nå den: raden står på en polerad sida där ett modellnummer
+    // kan vara det kunden söker på. `barKod` ser den, den hamnar i `kodIText`,
+    // och en människa avgör. Det är precis vad listan finns för.
+    const rad = "<li><p>Modellnummer: SP-CAG-203018</p></li>";
+    expect(hittaKodrader(SPEC(rad))).toEqual([]);
+    expect(barKod(rad)).toBe(true);
+  });
+
   // ☠️ Saxen får inte ta för mycket. Det här är hela skälet till att värdet
   // måste se ut som en kod och inte bara etiketten stämma.
   it("rör INTE en säkerhetsstandard", () => {

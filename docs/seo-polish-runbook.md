@@ -2038,6 +2038,15 @@ Tre egenskaper som inte ska tas bort:
    skiljetecken och blanksteg, aldrig bokstäver. Ett `.{0,4}` hade svalt
    `Se Artikelnummer:` och gjort saxen till en gissning. Ett test låser den
    riktningen också.
+
+   ☠️ **Och `FP-` är undantaget från kodmönstret.** Husets SKU:er börjar alltid så,
+   och `Artikelnummer: FP-julgran-210-pynt` är en LEGITIM rad — kundens referens
+   vid en reklamation. Ingen leverantörskod ser ut så. Utan undantaget felade
+   mönstret åt BÅDA hållen: en kort SKU som `FP-sideboard` matchade rakt av och
+   hade klippts bort (bara svansens längd räddade de flesta — tur, inte
+   konstruktion), och `kodIText` flaggade 20 sidor vars enda "kod" var deras egen
+   FP-SKU. **Ett larm där tre av fyra är falska slutar läsas**, och då är även det
+   äkta borta.
 2. ☠️ **Massfel-spärren står FÖRE första skrivningen.** Hela sidan (100 produkter)
    läses, andelen träffar kontrolleras mot `MAX_ANDEL_TRAFFAR = 0,25`, och först
    därefter skrivs något. Körs kontrollen inne i skrivslingan hinner en trasig regex
@@ -2052,6 +2061,12 @@ Tre egenskaper som inte ska tas bort:
 **Koden i RUBRIKEN lagas inte automatiskt** — den kräver att någon skriver om
 rubriken, och rapporteras i `kodINamn`. **Koden som saxen inte NÅR** (i brödtext, i en
 form saxen inte känner) lagas inte heller automatiskt och rapporteras i `kodIText`.
+
+⚠️ **Flersegmentskoder ligger med flit utanför saxen.** Uppmätt på en publicerad sida
+2026-09-03: `Modellnummer: SP-CAG-203018 / SP-CAG-253515 / …`. Värdemönstret är ETT
+segment, så saxen når den inte — och ska inte nå den: raden står på en polerad sida
+där ett modellnummer kan vara det kunden söker på. `barKod` ser den, den hamnar i
+`kodIText`, och en människa avgör. Det är exakt vad listan finns för.
 
 ⚠️ **Svep utkasten också.** Default är `onlyPublished=true`, alltså bara publicerade
 sidor — men det är i utkasten den opolerade råtexten står, och ett utkast publiceras
