@@ -1651,6 +1651,26 @@ katalogen. Kör dem med några veckors mellanrum — båda är read-only tills d
 > `cursorPaging`, och lista produkter där `items.some(m => !m.altText)`. 2026-08-06 gav det
 > **13 publicerade produkter / 82 bilder** helt utan alt-text.
 >
+> ✅ **Svept och lagat 2026-09-03: 94 av 1 658 publicerade produkter.** Alla
+> saknade exakt en förälder, tyngdpunkt Hem & Inredning (19 i andra halvan) och
+> ett stort kluster kontors-/massagestolar. `add-item` med förälderns id på var
+> och en, `totalSuccesses > 0` på alla 94, noll fel — och verifierat med ett
+> SENARE svep som gav **noll kvar**. Skrivningens svar duger inte som kvitto
+> här: `directCategoriesInfo` släpar, så räkna om i ett eget anrop.
+>
+> ☠️ **Katalogsvep — tomma alt-texter: 210 publicerade produkter, 1 222 bilder
+> (2026-09-03).** Det är 12 % av bilderna på 13 % av de publicerade sidorna, och
+> orsaken är känd: alt-texten skrevs till `items[].image.altText` i stället för
+> `items[].altText` och SLÄPPTES TYST av Wix (se fältnoten i Fasta fakta,
+> uppmätt 2026-09-01). Allt som polerades före den dagen är drabbat; allt efter
+> är rent — runda 43, 44 och 45 mätte noll tomma.
+>
+> ⚠️ **Det går inte att laga med en mall.** Alt-texten ska beskriva det som
+> FAKTISKT syns, och plats 2 och framåt är inte förutsägbar ens när galleriet
+> följer husordningen. Reparationen kräver ögon på bilderna — alltså egna
+> rundor med kontaktkartor, inte ett svep. Räkna 210 produkter i grupper om
+> åtta: ~26 rundor, eller färre om man bara tar de bilder som är tomma.
+>
 > **Katalogsvep — löv utan förälder.** Samma sorts tysta drift i kategoriträdet: en produkt
 > kopplad till bara lövet syns inte när kunden browsar från toppnivån. Kör bredvid alt-text-svepet:
 > hämta trädet (`/categories/v1/categories/query`) → `parent[löv] = förälder`, paginera katalogen
