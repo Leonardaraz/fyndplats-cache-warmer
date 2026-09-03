@@ -982,6 +982,49 @@ Marginalen blir **17 % överallt** — p10, median och p90 är alla 17 % över h
 sortimentet, så ingen vara kan råka hamna på 4 %. Ändringen gäller bara nya
 importer; befintliga priser står kvar tills någon räknar om dem.
 
+### `charm99` finns byggd men är AVSTÄNGD
+
+Leonards önskemål 2026-09-03: 99 är den proffsigaste ändelsen, 89 och 09 ser ut
+som räknerester. Strategin `charm99` (i `roundPrice`) höjer 89 → 99 och **sänker
+09 → 99**. Ungefär vinstneutral — lika många rader upp som ner, 10 kr åt vardera
+hållet.
+
+☠️ **Den är den enda strategin utöver `charm90` som får runda NEDÅT**, och
+`charm9`:s kommentar ("aldrig nedåt → marginalen skyddas") var inte en vana:
+`applyOverrideBounds` räknar fram Custom-tierns **golv** genom att köra
+`roundPrice` på det lägsta acceptabla priset, så en nedrundning kunde lägga
+golvet under sin egen minimivinst — tyst, eftersom siffran fortfarande ser ut
+som ett giltigt pris. Spärren sitter i `applyOverrideBounds`, inte i
+`roundPrice`, och ett test fäller om den tas bort.
+
+**Aktivera genom att sätta `rounding: "charm99"` i `FyndplatsPricingConfig`**
+(eller i `/admin/pricing`) — inte via `PRICE_ROUNDING`, av samma skäl som
+feed-adressen: en miljövariabel slår inte igenom förrän projektet byggts om.
+Aosom-synken räknar om priset ur kostnaden var 6:e timme, så ~20 % av
+Aosom-halvan flyttar sig 10 kr inom ett dygn. AliExpress-halvan står kvar tills
+någon kör prisreparationen.
+
+☠️ **Strateginamnet valideras numera i BÅDA dörrarna, och det var ett verkligt
+hål.** Ett okänt namn föll rakt igenom till `roundPrice`, som inte känner igen
+det och därför returnerar priset **oavrundat** — alltså `none`. Uppmätt:
+`roundPrice(541.85, "charm99 ")` = `541.85`. Ett efterföljande blanksteg i
+configraden hade tyst stängt av charm-prissättningen för hela katalogen och
+börjat skriva örespriser till kund, utan ett enda fel någonstans. Hålet fanns
+i `mergePricingRules` (`stored.rounding ?? base`) OCH i `lib/config.ts`
+(`process.env.PRICE_ROUNDING as …`) — och eftersom fallbacken går genom den
+andra hade en spärr i bara den första varit meningslös. Listan och typen
+härleds nu ur samma array (`ROUNDING_STRATEGIES`), så de kan inte glida isär,
+och ett test läser källkoden och fäller om `as`-casten kommer tillbaka.
+
+⚠️ **Sekvensera aktiveringen.** Poleringens prisgrind fäller bara på
+Aosom-rader (`regelGäller: supplier === "aosom"`), och den räknar ur samma
+`roundPrice`. I fönstret mellan att configen ändras och att synken hunnit
+skriva om priserna förväntar grinden 599 medan Wix säger 609 — så var femte
+Aosom-produkt ger `PRISGRINDEN FALLER — RÖR INTE PRISET` i upp till ett dygn.
+Det är inget fel i grinden; den gör precis sitt jobb. Men polera inte
+Aosom-produkter i det fönstret — vänta tills synken konvergerat, annars lär
+man sig att ignorera larmet. AE-rader berörs inte (de blir `EJ AVGÖRBAR`).
+
 ### Var talet kommer ifrån
 
 Inte från en marginalambition — från mätning. **dealproffsen.se publicerar

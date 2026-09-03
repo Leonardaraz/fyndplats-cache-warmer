@@ -15,6 +15,7 @@ export interface PricingSample {
 
 const ROUNDING_OPTIONS: { value: RoundingStrategy; label: string }[] = [
   { value: "charm9", label: "Avrunda upp till närmaste 9 (t.ex. 499, 489, 579 kr)" },
+  { value: "charm99", label: "Avrunda till 99 där det är nära (589 → 599, 609 → 599)" },
   { value: "nearest10", label: "Avrunda upp till närmaste hela 10-krona" },
   { value: "charm90", label: "Avrunda till .90 (t.ex. 249,90 kr)" },
   { value: "integer", label: "Avrunda till närmaste hela krona" },

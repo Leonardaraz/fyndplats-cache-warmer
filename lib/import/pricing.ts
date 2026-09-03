@@ -19,6 +19,7 @@ export function addVat(netSek: number, vatRatePercent: number): number {
  * Avrundar slutpriset (inkl. moms).
  * - charm90: närmaste heltal som slutar på .90 (t.ex. 249.90)
  * - charm9: avrunda UPPÅT till närmaste heltal som slutar på 9 (489 → 489, 490 → 499)
+ * - charm99: charm9 + snäpp till 99 (589 → 599, 609 → 599)
  * - integer: närmaste heltal
  * - nearest10: avrunda UPP till närmaste hela 10-krona (t.ex. 251 → 260)
  * - none: två decimaler
@@ -31,6 +32,22 @@ export function roundPrice(gross: number, strategy: PricingConfig["rounding"]): 
     // 499, 579). Aldrig nedåt → marginalen skyddas. Epsilon-guard så ett pris som
     // redan slutar på 9 inte hoppar ett steg pga flyttalsbrus.
     return Math.max(9, Math.ceil((gross - 9) / 10 - 1e-9) * 10 + 9);
+  }
+  if (strategy === "charm99") {
+    // charm9 först — sedan snäpps de två ändelser som ser ut som räknerester.
+    // 89 höjs till 99, 09 SÄNKS till 99. Övriga (19…79) står kvar.
+    //
+    // ☠️ DEN HÄR STRATEGIN KAN RUNDA NEDÅT. charm9:s kommentar säger "aldrig
+    // nedåt → marginalen skyddas", och det var inte en vana utan något
+    // `applyOverrideBounds` lutade sig mot: golvet räknas fram genom att köra
+    // roundPrice på det lägsta acceptabla priset, så en nedrundning kunde
+    // lägga golvet UNDER sitt eget minimum. Spärren sitter där, inte här.
+    const p = Math.max(9, Math.ceil((gross - 9) / 10 - 1e-9) * 10 + 9);
+    const sista2 = p % 100;
+    if (sista2 === 89) return p + 10;
+    // Nedåt bara när det finns en 99:a under att landa på — annars vore 9 → -1.
+    if (sista2 === 9 && p >= 109) return p - 10;
+    return p;
   }
   if (strategy === "nearest10") return Math.ceil(gross / 10) * 10;
   return round2(gross);
@@ -142,7 +159,15 @@ export function applyOverrideBounds(
   // Floor: höj så att vinsten (netto exkl. moms − landad kostnad) ≥ floorSek.
   if (typeof override.floorSek === "number" && override.floorSek > 0) {
     const minNetSek = breakdown.costSek + override.floorSek;
-    const minGross = roundPrice(addVat(minNetSek, vatRatePercent), rounding);
+    const minRaw = addVat(minNetSek, vatRatePercent);
+    // ☠️ Golvet är en GARANTI, inte en uppskattning. charm99 (och charm90) får
+    // runda nedåt, och då kan det avrundade golvet hamna under minimivinsten —
+    // tyst, eftersom siffran fortfarande ser ut som ett giltigt pris. Kliv upp
+    // ett steg i strategins rutnät, och fall tillbaka på det oavrundade
+    // minimum om inte ens det räcker.
+    let minGross = roundPrice(minRaw, rounding);
+    if (minGross < minRaw) minGross = roundPrice(minRaw + 10, rounding);
+    if (minGross < minRaw) minGross = round2(minRaw);
     if (grossSek < minGross) grossSek = minGross;
   }
 

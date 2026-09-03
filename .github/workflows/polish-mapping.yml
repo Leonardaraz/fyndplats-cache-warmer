@@ -116,8 +116,17 @@ jobs:
               # importer. En aldre rad foljer den GAMLA regeln och kan aldrig
               # matcha — ett fall bevisar ingen drift. Ratt rad ar anda att inte
               # rora priset, men skalet ar ett annat och det ska sagas rakt ut.
+              # ☠️ VARNING, INTE JOBBFEL. Verdikten sager ordagrant "bevisar INGEN
+              # drift" — att falla jobbet pa den ar ett falsklarm per definition,
+              # och det fyrar pa VARJE AliExpress-rad, alltsa ungefar halva
+              # katalogen. Ett las ar en LASNING; den lyckades, raden skrevs ut.
+              #
+              # Huset har en regel mot precis det har: ett falsklarm som alltid
+              # fyrar ar lika illa som ett fel ingen ser — bada slutar med att
+              # mottagaren slutar lasa. Och da aker det AKTA larmet med, alltsa
+              # "PRISGRINDEN FALLER" pa en Aosom-rad, som betyder publicera inte
+              # det har priset. Skillnaden finns redan i svaret: regelGaller.
               echo "::warning::EJ AVGORBAR: raden ar inte en Aosom-import, och prisregeln ovan galler bara importer efter 2026-08-27. Priset foljer sannolikt den aldre regeln. Detta bevisar INGEN drift — men ror anda inte priset utan att kontrollera for hand." >&2
-              exit 1
             fi
             fs=$(echo "$svar" | jq -r '.aosomFreightShare // "null"')
             echo "  aosomFreightShare: ${fs} (over 0,5 = frakten kostar mer an varan, polera sist)"
