@@ -456,6 +456,64 @@ Specs får bara komma från känd importdata eller `web_search` (AliExpress-sido
 
 -----
 
+### ☠️ Dubblettgrind mot det som REDAN är publicerat — mät på bilden, inte på namnet
+
+Runda 47 (hundvagnar, 2026-09-03). Familjen valdes för att den var stor i utkastshögen:
+42 tyska `Hundewagen`-utkast. Ett svep över de PUBLICERADE sidorna visade sedan
+**arton hundvagnar som redan ligger live** — polerade i en tidigare runda, från
+AliExpress-sidan av katalogen.
+
+Det är CLAUDE.md:s kända hål, i praktiken: `~586 produkter vi redan säljer är
+Aosom-varor inköpta via AliExpress`. Dubblettspärren vid import nycklar på
+`supplierProductId` och kan inte se dem — de bär ett AE-listnings-id. **Poleringen är
+det enda stället där den dubbletten kan fångas**, och Steg 1 hade ingen sådan kontroll.
+
+⚠️ **Namnlikhet är INTE bevis — och den ljuger åt båda hållen.** Fyra av åtta utkast
+hade en publicerad sida med nästan samma svenska namn:
+
+| utkast | publicerad sida med liknande namn | lägsta bildskillnad | dom |
+|---|---|---:|---|
+| `ca84c48b` | `hundvagn-liten-hund` | **0,10** | DUBBLETT |
+| `56dc1ed5` | `hundvagn-blir-barvaska-2-i-1` | 8,72 | annan produkt |
+| `2038f2aa` | `hundvagn-75-cm-liggyta-20-kg` | 41,07 | annan produkt |
+| `f9fb33f0` | `cykelvagn-hund-2-i-1-20-kg` | 28,98 | annan produkt |
+
+Namnen sa fyra dubbletter. Bilderna sa **en**. Två produkter kan dela koncept,
+viktgräns och till och med mått utan att vara samma vara — och en enda byte-identisk
+bild avgör frågan på en sekund.
+
+**Grinden, som ska köras i Steg 1 innan något skrivs:**
+
+1. Svep de PUBLICERADE sidorna och plocka ut familjen (namn + slug).
+2. Ligger det redan tio-tjugo sidor där är familjen i praktiken klar — välj en annan.
+   Mät var luckan finns i stället för att anta den (runda 47: `trädgårdsskåp`
+   hade 18 utkast mot **1** publicerad sida, `hundvagn` 42 mot 18).
+3. För varje kandidat: jämför dess bilder mot de publicerade sidornas.
+   `abs(gray(a)-gray(b)).mean()` på 320 × 320 — **under 1,0 är samma bild**, och då
+   är det samma fysiska produkt. Polera den inte; två egna URL:er med samma foton är
+   den dubblett Google faktiskt straffar.
+
+☠️ **En dubblett ska INTE raderas härifrån.** Den publicerade sidan kan vara billigare
+(runda 47: den live-lagda kostade 629 kr, utkastet 729 kr), ha fler varianter eller
+mer historik. Vilken av de två som ska bort är ett affärsbeslut med ett inköpspris i
+sig — flagga den för Leonard och gå vidare.
+
+### Tre fynd ur hundvagnarna som gäller oavsett vem som polerar dem
+
+- ☠️ **En tillkopplad cykelkärra har ett svenskt utrustningskrav.** Transportstyrelsen,
+  ordagrant: *"En tillkopplad cykelkärra ska ha en röd reflex bakåt eller en baklykta
+  som kan visa rött ljus bakåt om reflex saknas."* Säljs en hundvagn som cykelvagn ska
+  det stå — som ett positivt villkor med egen rubrik, inte som en varningsruta.
+- ☠️ **Leverantören varnar själv för dörrbredden på ett syskon.** `f9fb33f0`:s
+  måttbild bär texten *"Die Gesamtbreite des Produkts beträgt 68 cm … Mindestens 71cm"*.
+  En annan modell i samma runda (`3bc2f3f7`, 70 cm bred) påstår i stället
+  *"passt bequem durch Standardtüren"* — sant om tyska dörrar, inte om ett svenskt
+  M7-karmhål. **Skriv bredden, aldrig påståendet.**
+- **En liten "framdörr" kan vara en matlucka.** `d3006426` anger framdörr 27 × 20 cm
+  för en hund på 20 kg, vilket ser ut som ett fel i specen. Leverantörens egen bild
+  visar vad det är: en lucka att mata och klappa genom. Utan bildgranskningen hade
+  måttet antingen kopierats som "dörr" eller strukits som orimligt — båda fel.
+
 ## Steg 2 – Laglighetsgrind (före allt annat arbete)
 
 **Kör den FÖRE bild- och textarbete.** Tre produkter raderades halvpolerade 2026-08-10/11 —
