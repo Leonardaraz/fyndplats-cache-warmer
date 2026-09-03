@@ -21,7 +21,7 @@
 // annars kunnat kringgås.
 
 import { reviewImages } from "./review-images";
-import { härkomst, normaliseraSource, upplysning, type ReviewSource } from "./review-source";
+import { härkomst, normaliseraSource, type ReviewSource } from "./review-source";
 
 /** Cache-warmern äger recensionslagret. Samma mönster som lib/ae-source.ts. */
 const API_BAS =
@@ -57,11 +57,6 @@ export interface ProductReviews {
   firstPartyCount: number;
   /** Snittet för enbart dessa, eller null. */
   firstPartyAverage: number | null;
-  /**
-   * Upplysningen som MÅSTE stå vid listan när den bär importerade omdömen.
-   * Null när alla är förstahands. Se lib/review-source.ts — UCPD artikel 7.6.
-   */
-  ursprungsupplysning: string | null;
 }
 
 function reviewDisplayName(initials: string): string {
@@ -91,7 +86,6 @@ const EMPTY: ProductReviews = {
   reviews: [],
   firstPartyCount: 0,
   firstPartyAverage: null,
-  ursprungsupplysning: null,
 };
 
 /**
@@ -162,7 +156,6 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
       reviews,
       firstPartyCount,
       firstPartyAverage,
-      ursprungsupplysning: upplysning(reviews.map((r) => r.source)),
     };
   } catch {
     return EMPTY;
