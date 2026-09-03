@@ -109,8 +109,8 @@ function round3(n: number): number {
  * beloppet rakt av hamnar ett nettotal i ett fält som läses som brutto, och
  * golvbudet blir 20 % för lågt. Samma räkning som `toAliExpressProduct`.
  */
-export function landadInklMoms(rad: AosomRow, fx: AosomFx): number {
-  return landedCostEur(rad) * fx.eurToSek * (1 + SUPPLIER_VAT_RATE);
+export function landadInklMoms(rad: AosomRow, eurToSek: number): number {
+  return landedCostEur(rad) * eurToSek * (1 + SUPPLIER_VAT_RATE);
 }
 
 /** Planerar en ommappning utan att röra något. */
@@ -120,7 +120,7 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
   const golv = input.minMarginPct ?? MIN_REMAP_MARGIN_PCT;
 
   const sku = rad?.sku ?? "";
-  const nyLandadSek = rad ? round2(landadInklMoms(rad, fx)) : 0;
+  const nyLandadSek = rad ? round2(landadInklMoms(rad, fx.eurToSek)) : 0;
   const nyCostUsd = fx.usdToSek > 0 ? round2(nyLandadSek / fx.usdToSek) : 0;
 
   if (!mappning) hinder.push("ingen_mappning");
@@ -190,7 +190,7 @@ export function tillämpaOmmappning(
   rad: AosomRow,
   fx: AosomFx,
 ): ProductMappingRecord {
-  const landedCostSek = round2(landadInklMoms(rad, fx));
+  const landedCostSek = round2(landadInklMoms(rad, fx.eurToSek));
   const costUsd = fx.usdToSek > 0 ? round2(landedCostSek / fx.usdToSek) : 0;
 
   return {

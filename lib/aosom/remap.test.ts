@@ -205,7 +205,7 @@ describe("tillämpaOmmappning", () => {
 
   it("☠️ bruttar upp med moms — annars blir auktionens golvbud 20 % för lågt", () => {
     // Aosoms B2B-faktura är NETTO; landedCostSek läses som BRUTTO.
-    expect(landadInklMoms(rad(), FX)).toBeCloseTo((100 + 20) * 11 * 1.25, 6);
+    expect(landadInklMoms(rad(), FX.eurToSek)).toBeCloseTo((100 + 20) * 11 * 1.25, 6);
   });
 });
 

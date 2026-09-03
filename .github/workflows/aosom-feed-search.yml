@@ -1,0 +1,79 @@
+name: Aosom — sök i feeden
+
+# Svarar på "finns den här varan hos Aosom?" — hela feeden, inte bara den
+# importerade delen av katalogen.
+#
+# Byggd 2026-09-03 efter order 10027: en AliExpress-vara gick inte att skicka
+# till Sverige, och frågan blev om vi kunde köpa samma sak hos Aosom i stället.
+# Det gick inte att svara på. Katalogen har bara den importerade delen (~4 500
+# av 5 566 skeppningsbara rader), så "jag hittar ingen" betydde i praktiken
+# "jag har inte kunnat titta överallt".
+#
+# ☠️ Feed-adressen bär våra INKÖPSPRISER och får aldrig passera en terminal
+# eller en chatt. Produktionen har adressen, Actions har CRON_SECRET, och de
+# möts i workflowen — samma nyckel-lösa upplägg som prisreparationen. Svaret
+# innehåller bara träffarna.
+#
+# Rutten kan inte skriva. Det finns ingen "importera träffarna"-flagga med
+# flit: vilken artikel som ska in är en människas bedömning.
+
+on:
+  workflow_dispatch:
+    inputs:
+      q:
+        description: "Sökord — ALLA måste finnas. T.ex. '24 paneel gehege'"
+        required: true
+        type: string
+      alla_rader:
+        description: "Ta med rader som INTE går att skicka till Sverige"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  sok:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          Q: ${{ inputs.q }}
+          ALLA: ${{ inputs.alla_rader }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # ☠️ TILL STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/aosom-feed-search"
+          extra=""
+          [ "${ALLA}" = "true" ] && extra="&allaRader=1"
+
+          svar=$(curl -sS --get --max-time 120 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            --data-urlencode "q=${Q}" \
+            "${url}?dummy=1${extra}")
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+            exit 1
+          fi
+
+          echo "$svar" | jq -r '"Fraga: \(.fraga)
+Rader i feeden: \(.raderILista)
+Traffar: \(.traffar)\(if .kapad then " (kapad till \(.visade|length))" else "" end)
+"'
+          echo "$svar" | jq -r '.visade[] |
+            "  \(.sku)  \(.landatSek) kr landat (inkl. moms)  saldo \(.saldo)  frakt \(.fraktandel*100|round)%
+    \(.namn)
+    \(.url)
+"'
+
+          if [ "$(echo "$svar" | jq -r '.traffar')" = "0" ]; then
+            echo "Inga traffar. Prova farre eller bredare termer — sokningen kraver att ALLA ord finns."
+          fi
