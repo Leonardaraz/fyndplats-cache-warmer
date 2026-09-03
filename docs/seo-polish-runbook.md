@@ -1253,6 +1253,24 @@ på ett ställe, i husets typografi, med källan i foten. Utan det är produktsi
 vidarebefordran av leverantörens marknadsföring. Minimum är `card_spec` med de mått Steg 5
 bekräftat, placerat efter verklighetsbilden — aldrig plats 1.
 
+⚠️ **Rubriken måste bäras av FOTOT under den, inte av specen.** Kortet är ett bildlöfte:
+läsaren ser rubriken och fotot i samma ögonkast, och stämmer de inte överens är kortet en
+liten lögn på en sida vi själva har skrivit. Fällde tre kort i batch 60 (rubrik utan täckning
+på två, italiensk rekvisitatext synlig på ett) och ett i batch 61: skrivbordet `cb403b5c`
+heter "med skärmhylla" och sidan argumenterar korrekt för hyllan som skärmhållare — men
+BÅDA kandidatbilderna visar en växt på hyllan och laptopen på skivan, så rubriken
+"Skärmen 12,5 cm högre" pekade på en skärm som inte fanns i bilden. Blev "En hylla över
+skivan". Sidans text stod kvar; det var kortets löfte som inte höll, inte påståendet.
+**Granska alltid de färdiga korten i ett kontaktark innan uppladdningen** — felet syns på
+en sekund där och aldrig i ett API-svar. Två av de fyra ändrade alt-texter som var
+felskrivna av leverantören föll ut i samma granskning.
+
+⚠️ **Alt-texten på kortet börjar med `Faktakort: ` och beskriver FAKTA, inte kortet.**
+`Faktakort: fyra säckar på 27 liter, en per tvättsort. 86 × 38 × 82 cm` — inte
+"Fyndplats-kort: …", som bara lägger vårt eget varumärke i ett fält som ska beskriva
+innehåll. Batch 61 drev iväg till den formen på åtta produkter och fick skrivas om; det är
+samma tvillingar-glider-isär-problem som `SHIP_AXIS_RE` och `EU_TULL_CODES`, fast i text.
+
 ☠️ **Polerar du syskon: fördela leverantörens miljöscener mellan dem.** Aosom återanvänder
 samma scener med olika produkt inklistrad — de två infravärmarna (2026-08-29) delade tre
 scener rakt av, samma mormor i samma rottingsoffa. Två av våra egna URL:er med identiska
