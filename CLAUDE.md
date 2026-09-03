@@ -2294,6 +2294,15 @@ och vara satt innan `REVIEWS_BACKEND` växlas.**
    i stället för antagen — kör läget en gång till EFTER den, då ska talen vara
    oförändrade.
 
+   ☠️ **Svaret bär `aktivtLager` — vilket lager som FAKTISKT servar.** Efter
+   växlingen ger `/api/review-aggregates` exakt samma tal ur båda lagren; det
+   är hela poängen med att migrera bakom ett interface, och samtidigt skälet
+   till att växlingen annars är omöjlig att verifiera utifrån. Utan fältet vore
+   "steg 3 är gjort" ett antagande om att en deploy plockat upp en variabel.
+   ⚠️ En env-variabel binds vid DEPLOY, inte när den sparas — en satt variabel
+   utan efterföljande deploy ändrar ingenting, och `betyg-diff` såg exakt
+   likadan ut i båda lägena innan fältet fanns.
+
    Två spärrar i den som inte ska tas bort: ett **golv på 100 produkter per
    sida**, för två tomma aggregat är per definition identiska och en fallen
    läsning hade annars rapporterats som "noll avvikelser, växla på"; och ett

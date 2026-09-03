@@ -16,9 +16,14 @@
 // Nyckel-löst på husets sätt: produktionen har WIX_API_TOKEN och DATABASE_URL,
 // Actions har CRON_SECRET, och de möts i workflowen ("Migrering — kopiera
 // drift-datan till Postgres", läget `betyg-diff`).
+//
+// Svaret bär också `aktivtLager` — vilket av de två som FAKTISKT servar
+// produktionen just nu. Se kommentaren vid returen: utan det går växlingen
+// inte att verifiera utifrån, eftersom båda lagren ger identiska svar.
 
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
+import { reviewsBackend } from "@/lib/store/backend";
 import { ReviewStore } from "@/lib/store/reviews";
 import { PostgresReviewStore } from "@/lib/store/reviews-postgres";
 import { jamforBetyg } from "@/lib/store/review-backend-diff";
@@ -63,5 +68,15 @@ export async function GET(req: NextRequest) {
   const diff = jamforBetyg(wix, postgres);
   if (!diff.saker) console.warn("[review-backend-diff] EJ SÄKER:", diff.varning);
 
-  return NextResponse.json({ ok: true, diff }, { status: 200 });
+  // ☠️ VILKET LAGER SOM FAKTISKT SERVAR, inte vilket env-variabeln borde peka
+  // på i teorin. Efter växlingen ger `/api/review-aggregates` exakt samma tal
+  // ur båda lagren — det är hela poängen med att migrera bakom ett interface,
+  // och samtidigt skälet till att växlingen annars är OMÖJLIG att verifiera
+  // utifrån. Ett svar utan fel är inget kvitto: utan det här fältet vore
+  // "steg 3 är gjort" ett antagande om att en deploy plockat upp en variabel.
+  //
+  // Läses via `reviewsBackend()`, aldrig ur `process.env` här — `backend.ts` är
+  // enda läsaren av backend-variablerna och ett källkodstest fäller om någon
+  // annan fil nämner dem.
+  return NextResponse.json({ ok: true, aktivtLager: reviewsBackend(), diff }, { status: 200 });
 }
