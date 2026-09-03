@@ -595,6 +595,56 @@ de 33 i leverantörsjämförelsen 2026-08-27); en automatisk gissning skulle sl�
 ihop varor som inte är samma. De dubbletterna hanteras i poleringen, där en
 människa ändå läser varje produkt.
 
+### Äkta dubbletter läggs om till Aosom — men bara när det är billigare (2026-09-03)
+
+Leonards beslut: hittar poleringen en ÄKTA dubblett — samma fysiska vara både som
+publicerad AE-sida och som Aosom-utkast — ska den levande sidan läggas om till
+Aosom i stället för att vi fortsätter köpa via mellanhanden. Sidan behåller sin
+slug, sin text och sin Google-historik; det enda som byter är var varan köps.
+
+`lib/store/remap-supplier.ts` + `/api/admin/remap-supplier` + workflowen
+**"Leverantör — lägg om en dubblett till Aosom"** (`torr` · `skarp`).
+
+☠️ **MEN OMLÄGGNINGEN ÄR INTE ALLTID BILLIGARE, OCH DET ÄR HELA GRINDENS SKÄL.**
+AE:s ES-lagerpris är LEVERERAT; Aosoms B2B-frakt är per kolli och viktstyrd.
+Uppmätt på de fyra första dubbletterna:
+
+| par | AE-kostnad | Aosom | delta |
+|---|---:|---:|---:|
+| katthus 96 cm | 1 779,65 | 1 374,17 | **−22,8 %** |
+| redskapsskåp | 1 617,78 | 1 507,50 | −6,8 % |
+| agilityset | 521,25 | 657,50 | **+26,1 %** |
+| hundvagn | 456,75 | 607,50 | **+33,0 %** |
+
+**Två av fyra hade gjort inköpet dyrare.** Mönstret är feedens eget — SE-frakten
+är i median 40 % av inköpet och slår hårdast på det lätta och billiga, exakt som
+dealproffsen-mätningen 2026-08-27 visade. Rutten räknar därför deltat FÖRE
+skrivningen och vägrar en fördyring över `MAX_FORDYRING_PCT` (10 %);
+`tvingaFordyring` släpper igenom när det ändå är rätt. Grinden är inte en
+överprövning av beslutet — den ser till att beslutet fattas på en siffra.
+
+**Fyra egenskaper som inte ska tas bort:**
+
+1. **Ingen "kör allt"-flagga.** Anroparen räknar upp paren. Samma regel som
+   prisreparationen, och hårdare motiverad: en felparad rad byter vad vi KÖPER,
+   och ordern hamnar hos fel leverantör med rätt kvitto.
+2. ☠️ **`grossSek` — kundens pris — rörs INTE.** Omläggningen ändrar kostnaden.
+   Vad varan säljs för är Leonards beslut. Aosom-synken upptäcker den nya
+   kostnaden vid nästa körning och skriver priset då, som en egen synlig
+   händelse i stället för en tyst följd av den här skrivningen.
+3. ☠️ **Variantantalen måste stämma.** Aosom-feeden är EN rad per produkt. En
+   tvåvariantsprodukt som pekas på en envariants-feedrad får två varianter med
+   samma `supplierVariantId` — och då beställs fel artikel.
+4. ☠️ **Raden läses tillbaka i ett EGET anrop.** `saveMapping` rapporterar
+   framgång oavsett. `verifiera` jämför den återlästa raden mot planen, och en
+   halv skrivning (supplier bytt men kostnaden kvar) blir `misslyckade`.
+
+⚠️ **Följden för orderläggningen:** en omlagd rad går inte längre via
+`place-order.ts` (den vägrar Aosom-rader med flit) utan beställs på
+`aosom.de/bulkordering` eller i deras kassa, och skeppas för hand via
+`/api/admin/manual-fulfillment`. Det är en verklig arbetsflödesändring per
+omlagd produkt, inte bara en fältändring.
+
 ### Kan Google se att det är dubbletter? (Leonards fråga 2026-08-27)
 
 Två skilda problem, med olika svar.
