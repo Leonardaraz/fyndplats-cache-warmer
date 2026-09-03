@@ -1,12 +1,1244 @@
 {
   "lasta": 5485,
-  "traffar": 0,
-  "medKod": 0,
+  "traffar": 133,
+  "medKod": 133,
   "medTrasigLank": 0,
   "lagade": 0,
   "misslyckade": 0,
   "kodINamn": [],
-  "plan": [],
+  "kodIText": [
+    "ersatzdach-fur-2-85-x-2-m-gartenpavillon-ausziehbar-einfache",
+    "armlos-skrivbordsstol-ljusbla",
+    "chefsstol-hog-rygg-ribbad-pu",
+    "fatolj-los-fotpall-bjork",
+    "snurrstol-bojtra-svart-pu",
+    "kontorsstol-teddytyg-fallbar-135",
+    "fatolj-fotstod-5-lagen-bjork",
+    "gungstol-utomhus-155-cm-zero-gravity",
+    "adirondackstol-grantra-mugghallare",
+    "hopfallbar-solstol-akacia-fotdel",
+    "laptopbord-hjul-hojd-76-100-cm",
+    "hundgrind-75-131-cm-kattlucka",
+    "hundgrind-75-103-cm-kattlucka",
+    "cd-hylla-2-pack-88-cm-204-skivor",
+    "vaggskap-badrum-60-cm-ladugardsdorrar",
+    "automatmatare-katt-6-l-wifi",
+    "snogran-180-cm-smal-pelargran",
+    "konstgjord-arecapalm-190-cm",
+    "serveringsvagn-66-cm-tre-plan",
+    "satsbord-2-pack-trekantigt-vitt",
+    "sangbord-naturtra-lada-hyllor",
+    "odlingslada-metall-241x90",
+    "elementskydd-78-cm-spjalat-vit-mdf",
+    "forvaringsskap-60-cm-svart",
+    "spegelskap-badrum-60-cm-oppna-hyllor",
+    "snogran-180-cm-150-led-fortand",
+    "julgran-210-cm-med-pynt",
+    "upphojda-odlingslador-2-pack",
+    "uppblasbar-tomte-slade-240-cm",
+    "hyllstege-6-kuber-vit",
+    "honshus-rastgard-315-cm",
+    "kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling"
+  ],
+  "plan": [
+    {
+      "wixProductId": "afc0c368-621e-4481-a5a0-6df165c1a8d6",
+      "slug": "relaxsessel-mit-massage-warme-liegefunktion-2-seitentaschen-und",
+      "namn": "Relaxsessel mit Massage & Wärme, Liegefunktion, 2 Seitentaschen und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 700-215V90BG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "9988cc5a-08f6-4b67-8140-05a2a22c1fa6",
+      "slug": "schneemann-figur-43-cm-aus-mgo-mit-led-laterne-und-timer-fur",
+      "namn": "Schneemann-Figur 43 cm aus MGO mit LED-Laterne und Timer, für",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83C-338V00MX</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "872d06b2-31c0-405a-b240-64cc8bd6a35e",
+      "slug": "schreibtisch-klappbarer-computertisch-platzsparender-burotisch-mit",
+      "namn": "Schreibtisch, klappbarer Computertisch, platzsparender Bürotisch mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 836-666V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cb403b5c-80ec-468b-be91-8d5c44a640fe",
+      "slug": "schreibtisch-mit-monitorstander-70-cm-klappbarer-computertisch-fur",
+      "namn": "Schreibtisch mit Monitorständer, 70 cm Klappbarer Computertisch für",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 836-607V80ND</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "fa7ca5c5-7315-429c-b1a6-5a74f3dc7a64",
+      "slug": "kunstlicher-bambus-gro-160-cm-kunstpflanze-kunstbambus-plastik",
+      "namn": "Künstlicher Bambus groß 160 cm Kunstpflanze, Kunstbambus, Plastik",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 830-441</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "c57e6f12-6be9-4996-81bf-62767b7d571c",
+      "slug": "waschesammler-mit-griff-108-l-rollbarer-waschekorb-mit-4-fachern-und",
+      "namn": "Wäschesammler mit Griff, 108 L rollbarer Wäschekorb mit 4 Fächern und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 850-388V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "e6315714-8307-4cf7-aeb9-d2399b519cb0",
+      "slug": "nachttisch-2er-set-mit-ladestation-schmaler-nachtschrank-mit-offenem",
+      "namn": "Nachttisch 2er-Set mit Ladestation, Schmaler Nachtschrank mit offenem",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83D-247V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cc5da788-4931-4751-96d2-825e3d834356",
+      "slug": "kratzbaum-100-cm-katzenturm-mit-hohle-spielball-sisalstamme",
+      "namn": "Kratzbaum 100 cm Katzenturm mit Höhle, Spielball, Sisalstämme",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: D30-371</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "f49d1592-712b-4fac-9d3c-704ee5aee76c",
+      "slug": "hundehutte-wetterfestes-hundehaus-88-x-79-x-89-cm-erhohte-hundehohle",
+      "namn": "Hundehütte wetterfestes Hundehaus 88 x 79 x 89 cm Erhöhte Hundehöhle",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: D02-266V00BG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "d8af896a-dd56-4a46-808a-c72f5f8187bb",
+      "slug": "schiebeturen-beschlagsatz-122-cm-beschlagsatz-fur-doppelflugelige",
+      "namn": "Schiebetüren-Beschlagsatz 122 cm Beschlagsatz für Doppelflügelige",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B81-038V01BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "349b7403-993a-41df-9eb5-3636505accb2",
+      "slug": "arbeitsplattform-alu-werkbank-klappbar-arbeitstisch-bis-150-kg",
+      "namn": "Arbeitsplattform Alu Werkbank Klappbar Arbeitstisch bis 150 kg",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B71-089V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "941867cb-8672-463c-b316-7f7d60198de5",
+      "slug": "werkbank-mit-lochwand-klappbare-mobile-werkbank-mit-rollen-dicke",
+      "namn": "Werkbank mit Lochwand, Klappbare Mobile Werkbank mit Rollen, Dicke",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B71-088V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4bd41e91-e988-4c57-9fdf-5fb6909bd2cf",
+      "slug": "universeller-gehrungssagenstander-mit-ausziehbaren-rollen-und",
+      "namn": "Universeller Gehrungssägenständer mit ausziehbaren Rollen und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B71-077V00RD</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "09e62d6e-0529-487e-8c0f-14138b99dea3",
+      "slug": "stehleuchte-stehlampe-e27-sockel-goldoptik-wei-er-stoffschirm",
+      "namn": "Stehleuchte, Stehlampe, E27 Sockel, Goldoptik, weißer Stoffschirm",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B31-254</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "81c123fa-1ec5-4377-99ea-70c32b030eb7",
+      "slug": "metallschrank-180-cm-werkzeugschrank-mit-abschlie-baren-turen",
+      "namn": "Metallschrank 180 cm, Werkzeugschrank mit abschließbaren Türen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B20-134V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "a389ddaa-f1bf-4c15-be66-3ea6bedaed7f",
+      "slug": "3-etagen-werkzeugwagen-mit-lochwanden-haken-und-werkzeugbehalter",
+      "namn": "3-Etagen Werkzeugwagen mit Lochwänden, Haken und Werkzeugbehälter",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B20-131V00RD</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "12cb8a2c-f095-4550-93ad-45ea4a34112f",
+      "slug": "werkzeugwagen-mit-abschlie-baren-rollen-rollender-werkstattwagen-mit",
+      "namn": "Werkzeugwagen mit abschließbaren Rollen, rollender Werkstattwagen mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B20-130V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "1db06f83-a592-4958-a254-65a31492d7d5",
+      "slug": "werkzeugschrank-werkzeugkasten-auf-rollen-mit-lochplatte-3",
+      "namn": "Werkzeugschrank Werkzeugkasten auf Rollen mit Lochplatte, 3",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B20-126V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "c8105590-2057-4c7b-95c3-6c19a4b2ac8b",
+      "slug": "werkstattwagen-mit-3-ablagen-und-seitenhalter-4-rollen-70-5-x-35-x",
+      "namn": "Werkstattwagen mit 3 Ablagen und Seitenhalter, 4 Rollen, 70,5 x 35 x",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: B20-121V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "29050768-1ac5-4fc2-87d5-21c21d891abc",
+      "slug": "alu-kanuwagen-kajakwagen-surfwagen-klappbar-mit-gurt-kunstleder-rader",
+      "namn": "Alu Kanuwagen Kajakwagen Surfwagen klappbar mit Gurt Kunstleder-Räder",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: A32-009</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "709f7aac-4737-4d4f-b424-85b1c25a0cac",
+      "slug": "mobiler-aktenschrank-mit-3-offenen-fachern-druckerablage-auf-rollen",
+      "namn": "Mobiler Aktenschrank mit 3 offenen Fächern, Druckerablage auf Rollen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 924-148V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "3c8fe7db-ac72-46e0-b5d3-5012b7d408c9",
+      "slug": "drehbarer-burostuhl-aus-teddyfleece-hohenverstellbar-mit-rollen",
+      "namn": "Drehbarer Bürostuhl aus Teddyfleece, höhenverstellbar, mit Rollen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 921-921V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "8d66da54-3df1-4338-a87e-23d3aaad977e",
+      "slug": "2er-set-ergonomische-schreibtischstuhle-ohne-rollen-gepolsterte",
+      "namn": "2er-Set ergonomische Schreibtischstühle ohne Rollen, gepolsterte",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 921-828V01BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "bd554433-a231-43f7-9034-b5cbc5f135ff",
+      "slug": "chefsessel-mit-doppellagiger-polsterung-burostuhl-aus-stoff",
+      "namn": "Chefsessel mit doppellagiger Polsterung, Bürostuhl aus Stoff",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 921-793V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "3835cd29-a250-4fda-81e8-7de3838280b9",
+      "slug": "schreibtischstuhl-drehbar-rollbar-netzrucken-schaumstoffkissen",
+      "namn": "Schreibtischstuhl, drehbar, rollbar, Netzrücken, Schaumstoffkissen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 921-769V00GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "1d70f204-ad30-4315-86db-dff2ba9fb84c",
+      "slug": "schreibtischstuhl-ohne-armlehnen-hohenverstellbar-mit",
+      "namn": "Schreibtischstuhl ohne Armlehnen, höhenverstellbar, mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 921-727V01BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b712d0e0-e3db-4823-a5b9-b2163c709d76",
+      "slug": "l-formiger-computertisch-mit-steckdosen-128-cm-eckschreibtisch-mit",
+      "namn": "L-förmiger Computertisch mit Steckdosen, 128 cm Eckschreibtisch mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 920-110V90BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ad84b4aa-63b7-43f3-a2d1-ca666e00421c",
+      "slug": "rattan-bistro-set-3-teiliges-gartenmobel-set-mit-rundem-glastisch",
+      "namn": "Rattan-Bistro-Set, 3-teiliges Gartenmöbel-Set mit rundem Glastisch",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 863-209V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ec672f4d-32df-4b21-9367-034fa58f5a22",
+      "slug": "31l-ausziehbarer-abfallbehalter-15l-8l-x-2-mit-herausnehmbaren",
+      "namn": "31L Ausziehbarer Abfallbehälter 15L + 8L x 2 mit herausnehmbaren",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 851-075V01LG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "753907f5-4d2d-40dd-9a33-86de80b9ff67",
+      "slug": "30l-kuchenmulleimer-pedaleimer-mit-deckel-soft-close-und",
+      "namn": "30L Küchenmülleimer Pedaleimer mit Deckel, Soft-Close- und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 851-064V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "3f6f548f-27fe-4c81-96b2-3ff024b0239c",
+      "slug": "sensor-mulleimer-55l-beruhrungsloser-abfalleimer-mit",
+      "namn": "Sensor Mülleimer 55L Berührungsloser Abfalleimer mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 851-054V01SR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "aabcd677-93df-4af4-9d90-3477e4a11b29",
+      "slug": "sensor-mulleimer-45l-kuchenmulleimer-mit-soft-close-deckel",
+      "namn": "Sensor-Mülleimer, 45L Küchenmülleimer mit Soft-Close-Deckel",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 851-053V00SR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "1dfb9b0b-3bb3-4414-9308-6ac226d72a9b",
+      "slug": "textil-kleiderschrank-tragbar-werkzeuglos-mit-3-kleiderstangen-und",
+      "namn": "Textil-Kleiderschrank, tragbar, werkzeuglos, mit 3 Kleiderstangen und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 850-386V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "224fd3ee-3ae7-4b67-8687-dd4f79abf259",
+      "slug": "stoff-kleiderschrank-staubdicht-tragbar-5-kleiderstangen-212-x-45",
+      "namn": "Stoff-Kleiderschrank, staubdicht, tragbar, 5 Kleiderstangen, 212 x 45",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 850-385V02BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "9a8339f7-e503-4697-8042-9e6d0cfd14ff",
+      "slug": "stoff-kleiderschrank-staubdicht-tragbar-5-kleiderstangen-170-x-45",
+      "namn": "Stoff-Kleiderschrank, staubdicht, tragbar, 5 Kleiderstangen, 170 x 45",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 850-385V01BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "53247cf3-4c5b-4df8-9ba7-fa9346a01a42",
+      "slug": "bambus-waschekorb-mit-abnehmbarem-kordelzug-sack-und-seitlichen",
+      "namn": "Bambus-Wäschekorb mit abnehmbarem Kordelzug-Sack und seitlichen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 850-383V00ND</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "8e7dd6dc-9430-4548-b86e-ffd12ce9c5ee",
+      "slug": "bambus-waschekorb-mit-deckel-2-korbe-faltbar-64l-natur-und",
+      "namn": "Bambus-Wäschekorb mit Deckel, 2 Körbe, faltbar, 64L, Natur und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 850-378V00AK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "423f506d-44d3-4210-be8b-11643003f637",
+      "slug": "beistelltisch-rechteckig-balkontisch-aus-stahl-pflegeleicht-fur",
+      "namn": "Beistelltisch Rechteckig Balkontisch aus Stahl pflegeleicht für",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 84K-051V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "621e63e8-941f-4a84-967c-974b47867682",
+      "slug": "4-teiliges-gartenmobel-set-sofa-set-mit-2-zweisitzern-armloser",
+      "namn": "4-teiliges Gartenmöbel-Set, Sofa-Set mit 2 Zweisitzern, armloser",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 84K-008V00KK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "49faf165-fbcf-4216-9e4f-9302f0fa83a0",
+      "slug": "komposter-1680-liter-270-x-90-x-70-cm-3-teilig-schnellkomposter-aus",
+      "namn": "Komposter 1680 Liter, 270 x 90 x 70 cm 3-teilig Schnellkomposter aus",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 84H-356V00GN</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "34a43113-33d4-49c2-84d3-15901ccaab24",
+      "slug": "4er-set-sitzkissen-wasserabweisend-rutschfest-stuhlkissen-mit",
+      "namn": "4er Set Sitzkissen wasserabweisend rutschfest Stuhlkissen mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 84G-972V00CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7b9f441e-e20b-4695-8bbc-63daa5d2633c",
+      "slug": "grillpavillon-mit-flammschutzdach-bbq-pavillon-mit-2-ablagen-2-5-x",
+      "namn": "Grillpavillon mit Flammschutzdach BBQ-Pavillon mit 2 Ablagen 2,5 x",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 84C-218</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "46ee944a-5ab3-4d63-9748-ae00f5732784",
+      "slug": "2-sitzer-sitzbank-alu-gartenbank-metallbank-bank-mit-armlehnen",
+      "namn": "2-Sitzer Sitzbank Alu Gartenbank Metallbank Bank mit Armlehnen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 84B-502</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b135a79c-717c-4fbd-af05-404023ed7af2",
+      "slug": "gartentisch-rundtisch-elegant-gartenmobel-stabil-verstellbare-fu-e",
+      "namn": "Gartentisch Rundtisch elegant Gartenmöbel stabil verstellbare Füße",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 84B-467</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "2b9669be-dc7f-4715-af70-2fe8de15b45d",
+      "slug": "2-sitzer-holzschaukelbank-gartenschaukel-mit-ablagen",
+      "namn": "2-Sitzer Holzschaukelbank, Gartenschaukel mit Ablagen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 84A-405V00GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4444ab0f-3dde-4b30-bbbc-862ce7e2fffa",
+      "slug": "kunstlicher-ficus-baum-gro-145-cm-kunstbaum-kunstpflanze-plastik",
+      "namn": "Künstlicher Ficus-baum groß 145 cm, Kunstbaum, Kunstpflanze, Plastik",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 844-339</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "d811eb09-e7e9-431f-9335-eef6bbfec38d",
+      "slug": "ausziehbare-seitenmarkise-sichtschutz-fur-au-enbereiche",
+      "namn": "Ausziehbare Seitenmarkise, Sichtschutz für Außenbereiche",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 840-286V00CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "0fc17126-f491-42f7-8eb6-52bacf779063",
+      "slug": "badezimmerschrank-mit-2-schubladen-freistehend-mit-verstellbarem",
+      "namn": "Badezimmerschrank mit 2 Schubladen, freistehend, mit verstellbarem",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83E-001V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ce77f5c4-7d85-4d24-80c4-bd670362ccc7",
+      "slug": "industrielles-wandregal-mit-9-fachern-metallregal-fur-sammlerstucke",
+      "namn": "Industrielles Wandregal mit 9 Fächern, Metallregal für Sammlerstücke",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83C-213V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "8cccf8e1-20b5-4a39-98a4-636dc47f8cec",
+      "slug": "kunstlicher-dracaena-baum-120-cm-mit-biegsamen-stammen-und-wei-em",
+      "namn": "Künstlicher Dracaena-Baum 120 cm mit biegsamen Stämmen und weißem",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83C-194V00GN</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "23d20823-0f56-42e2-8395-ab8f23d5701d",
+      "slug": "paravent-3-teilig-120-x-170-cm-trennwand-faltbar-raumteiler-mit",
+      "namn": "Paravent 3-teilig 120 x 170 cm Trennwand Faltbar Raumteiler mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83C-185V00ND</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "dfcef1e9-70a8-4749-a66a-4e2b71d9c4d9",
+      "slug": "3-sitzer-sofa-260-cm-chenille-rahmenloses-modulsofa-mit-extra",
+      "namn": "3-Sitzer-Sofa, 260 cm, Chenille, rahmenloses Modulsofa mit extra",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-910V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "90caeb9d-b664-4ac7-b1ff-4382b715afc0",
+      "slug": "sessel-mit-tiefer-sitzflache-einzelsofa-ohne-festen-rahmen",
+      "namn": "Sessel mit tiefer Sitzfläche, Einzelsofa ohne festen Rahmen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-909V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "1ac07434-578f-4daf-9798-480771feeceb",
+      "slug": "modernes-sideboard-freistehender-aufbewahrungsschrank-mit-schublade",
+      "namn": "Modernes Sideboard, freistehender Aufbewahrungsschrank mit Schublade",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-900V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "c61b3314-092e-494b-bbee-d6e6634d6e11",
+      "slug": "bodenstuhl-mit-ruckenstutze-cord-boneless-cloud-faltbares-schlafsofa",
+      "namn": "Bodenstuhl mit Rückenstütze, Cord Boneless Cloud Faltbares Schlafsofa",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-898V00CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "666ce96b-149a-456e-b51c-85515e7a9602",
+      "slug": "bodensessel-mit-ruckenlehne-rahmenloser-gaming-sessel-fur-erwachsene",
+      "namn": "Bodensessel mit Rückenlehne, rahmenloser Gaming-Sessel für Erwachsene",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-897V00LR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7fdf42e9-40fb-4975-bb73-788c01da8ca5",
+      "slug": "runder-beistelltisch-mit-offener-glasablage-fur-kleine-raume",
+      "namn": "Runder Beistelltisch mit offener Glasablage für kleine Räume",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-871V00AK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "eb4391a1-43dd-4692-8a23-86863362fb36",
+      "slug": "3-sitzer-sofa-chenille-cloud-couch-ohne-rahmen-dicke",
+      "namn": "3-Sitzer Sofa, Chenille Cloud Couch ohne Rahmen, dicke",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-863V01BG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b78f0945-8518-4383-9a4b-2cee26f4d406",
+      "slug": "2-in-1-bodensessel-aus-cord-klappbares-bodensofa-zum-lesen-gaming",
+      "namn": "2-in-1 Bodensessel aus Cord, klappbares Bodensofa zum Lesen, Gaming",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-858V00CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "03c9d570-247d-4b0f-abd9-1a958fca1d09",
+      "slug": "sessel-wohnzimmer-loungesessel-mit-chenille-optik-armlehnen",
+      "namn": "Sessel Wohnzimmer Loungesessel mit Chenille-Optik, Armlehnen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-845V00LR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "0317a03e-b4fe-451a-ad4a-93dbe8780236",
+      "slug": "schlafsessel-3-in-1-klappbarer-leinen-schlafsessel-mit-verstellbarer",
+      "namn": "Schlafsessel, 3-in-1 Klappbarer Leinen-Schlafsessel mit verstellbarer",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-836V03CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "eb400961-4c09-4113-b4e1-dc77a266c87d",
+      "slug": "sessel-loungesessel-mit-breiter-sitz-armlehnen-stahlbeinen-aus",
+      "namn": "Sessel Loungesessel mit breiter Sitz, Armlehnen, Stahlbeinen, aus",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-777V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "6c1a2691-dde2-44fe-ba9e-fa3ee3d3ca63",
+      "slug": "146-cm-zweisitzer-sofa-chenille-sofa-mit-doppellagiger-polsterung",
+      "namn": "146 cm Zweisitzer Sofa, Chenille-Sofa mit doppellagiger Polsterung",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-762V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "48fc4bf8-3762-4e8e-b566-a0746d1884ad",
+      "slug": "sideboard-buffet-schrank-bauernhaus-kuchenschrank-mit-schiebeturen",
+      "namn": "Sideboard Buffet-Schrank, Bauernhaus-Küchenschrank mit Schiebetüren",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-749V90WW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "02925ee6-e498-489f-9a6b-25a94b0537d2",
+      "slug": "schlafsessel-3-in-1-klappbar-sessel-mit-schlaffunktion-186-x-60-cm",
+      "namn": "Schlafsessel 3 in 1 Klappbar Sessel mit Schlaffunktion, 186 x 60 cm",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-707V00GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "662e516f-eaf8-4364-9bf9-805c04385dc7",
+      "slug": "modernes-sideboard-105-4-cm-buffet-mit-metallfu-en-fur-esszimmer",
+      "namn": "Modernes Sideboard, 105,4 cm Buffet mit Metallfüßen, für Esszimmer",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-701V90CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "6fe0966c-bf23-4acf-83ef-2d91b0447d30",
+      "slug": "loungesessel-sessel-mit-chenille-optik-schragere-ruckenlehne",
+      "namn": "Loungesessel Sessel mit Chenille-Optik, Schrägere Rückenlehne",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-624V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "99492092-687b-47b2-8e1d-4c8b66887709",
+      "slug": "relaxsessel-fernsehessel-mit-liegefunktion-tv-sessel-mit",
+      "namn": "Relaxsessel Fernsehessel mit Liegefunktion, TV Sessel mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-595V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4f9ef409-95a2-427a-9095-eff4c2f0d99a",
+      "slug": "modernes-tv-lowboard-furs-wohnzimmer-mit-2-turen-offenem-fach-und",
+      "namn": "Modernes TV-Lowboard fürs Wohnzimmer mit 2 Türen, offenem Fach und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-142V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4d7268c1-4c06-4dcd-8c71-82666b6d1d47",
+      "slug": "beistelltisch-2er-set-moderner-couchtisch-mit-goldenen-stahlbeinen",
+      "namn": "Beistelltisch 2er-Set, moderner Couchtisch mit goldenen Stahlbeinen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83B-119V00GD</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "5c566983-8079-47a8-9406-0033f451585f",
+      "slug": "esszimmerstuhl-ohne-armlehnen-stoff-in-leinenoptik-kuchenstuhl-mit",
+      "namn": "Esszimmerstuhl ohne Armlehnen, Stoff in Leinenoptik, Küchenstuhl mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-645V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4207445a-15b0-4f92-9efd-f599635ea660",
+      "slug": "barhocker-2er-set-hohenverstellbar-und-drehbar-fur-theke-dunkelgrau",
+      "namn": "Barhocker 2er-Set, höhenverstellbar und drehbar, für Theke, Dunkelgrau",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-587V00CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "51c43e67-d4dd-4ea5-8d0c-02397ee6ebd0",
+      "slug": "bartisch-mit-barhocker-set-tresentisch-mit-2-gepolsterten-hockern-mit",
+      "namn": "Bartisch mit Barhocker Set Tresentisch mit 2 gepolsterten Hockern mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-525V80GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "14d6cc9e-61e2-4523-9e87-f3529a41488d",
+      "slug": "sideboard-mit-verstellbaren-einlegeboden-buffet-schrank-mit-3",
+      "namn": "Sideboard mit verstellbaren Einlegeböden, Buffet-Schrank mit 3",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-487V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "239b20b7-1658-4e30-b9fe-ce66ad918964",
+      "slug": "barhocker-set-aus-2-hohenverstellbare-barstuhle-mit-sattelsitz-aus",
+      "namn": "Barhocker Set aus 2, Höhenverstellbare Barstühle mit Sattelsitz aus",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-483V00DR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "92afa6e3-103a-4ff7-ad1f-b7a4ab43ff59",
+      "slug": "stapelhocker-set-mit-4-stuck-moderne-gepolsterte-runde-hocker-ohne",
+      "namn": "Stapelhocker Set mit 4 Stück, Moderne Gepolsterte Runde Hocker ohne",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-476V00GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "07565140-2873-4c43-9d43-c30f8d21d37b",
+      "slug": "sideboard-landhausstil-kuchenschrank-mit-schiebeturen-1-schublade",
+      "namn": "Sideboard, Landhausstil Küchenschrank mit Schiebetüren, 1 Schublade",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-469V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "557491d0-be20-4792-92f4-579570adb4ab",
+      "slug": "barhocker-2er-set-tresenhocker-barstuhl-mit-fu-stutze-ruckenlehne",
+      "namn": "Barhocker 2er Set Tresenhocker Barstuhl mit Fußstütze, Rückenlehne",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-358V00DR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "9b3b3c5c-d217-4c97-b8f8-fc4a977eada5",
+      "slug": "industrie-bartisch-set-mit-2-gepolsterten-hockern-fu-stutzen",
+      "namn": "Industrie-Bartisch-Set mit 2 gepolsterten Hockern, Fußstützen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-327V01RB</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "91d2f8da-3650-4d41-9ed1-6e76f9e2474c",
+      "slug": "essgruppenset-esstisch-4-stuhle-esszimmerset-kiefernholz",
+      "namn": "Essgruppenset, Esstisch, 4 Stühle, Esszimmerset, Kiefernholz",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-270V90AK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cc952c3b-4795-4eef-9863-898f64ecf5fd",
+      "slug": "5-teiliges-essgruppe-fur-4-personen-landhaus-esstisch-und-stuhle-aus",
+      "namn": "5-teiliges Essgruppe für 4 Personen, Landhaus-Esstisch und Stühle aus",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-270V90AK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "2945da6c-8c6e-4e6f-b977-bf217ce78be9",
+      "slug": "landhaus-kuchenschrank-hoher-vorratsschrank-mit-verstellbaren",
+      "namn": "Landhaus-Küchenschrank, hoher Vorratsschrank mit verstellbaren",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 83A-174V91CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "dbbe7253-6718-4ac7-b1fd-3e968cbc9bc8",
+      "slug": "relaxsessel-vintage-ruhesessel-relaxstuhl-polstersessel",
+      "namn": "Relaxsessel Vintage Ruhesessel Relaxstuhl Polstersessel",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 839-010V01</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "5a65a0ea-b38d-4592-856b-a9249847e40f",
+      "slug": "38-cm-rundhocker-mit-sherpa-bezug-aufbewahrung-und",
+      "namn": "38 cm Rundhocker mit Sherpa-Bezug, Aufbewahrung und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 838-646V01CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "fca0d000-c3e1-407a-a423-8df1cf087792",
+      "slug": "sherpa-aufbewahrungshocker-mit-wendedeckel-runder-sitzhocker-fur",
+      "namn": "Sherpa Aufbewahrungshocker mit Wendedeckel, runder Sitzhocker für",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 838-645V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "5eb079d2-4018-43a4-8b1a-dec5cbb2e48d",
+      "slug": "hocker-mit-stauraum-runder-sitzhocker-mit-deckel-leinenoptik-fur",
+      "namn": "Hocker mit Stauraum, Runder Sitzhocker mit Deckel, Leinenoptik für",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 838-633V00BG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "31732cff-2b45-43dd-bee3-de15ee100832",
+      "slug": "sideboard-mit-2-schubladen-modernem-aufbewahrungsschrank",
+      "namn": "Sideboard mit 2 Schubladen, modernem Aufbewahrungsschrank",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 838-587V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "bd53ba9a-b419-4540-9982-318e70f3a12d",
+      "slug": "modernes-sideboard-aufbewahrungsschrank-mit-schublade-und",
+      "namn": "Modernes Sideboard, Aufbewahrungsschrank mit Schublade und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 838-582V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "c7d8e5bd-bbb0-44ba-8419-2dd246a56e19",
+      "slug": "sitzbank-mit-stauraum-polsterbank-120x40x48-cm-mit",
+      "namn": "Sitzbank mit Stauraum, Polsterbank 120x40x48 cm mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 838-523V00CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "2d308bc1-bbb8-4ef8-b877-4b64fcdd0e96",
+      "slug": "druckerstander-druckertisch-mit-3-ebenen-und-stauraum-55-x-40-x-77cm",
+      "namn": "Druckerständer Druckertisch mit 3 Ebenen und Stauraum, 55 x 40 x 77cm",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 838-446V80WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "f40bae61-1ec3-4e9b-9e3a-9705a4b738a1",
+      "slug": "schuhschrank-mit-2-klappfachern-verstellbaren-einlegeboden-fur-bis",
+      "namn": "Schuhschrank mit 2 Klappfächern, verstellbaren Einlegeböden, für bis",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 837-803V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "937f24a4-fcd0-4c0d-ae72-a595d1eaac10",
+      "slug": "schuhbank-mit-verstellbarem-einlegeboden-und-klappfach",
+      "namn": "Schuhbank mit verstellbarem Einlegeboden und Klappfach",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 837-802V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ca96d450-c5bc-4089-9a31-8a7a08f3ff76",
+      "slug": "schuhschrank-mit-2-klappen-schuhkipper-schmal-schuhregal-mit",
+      "namn": "Schuhschrank mit 2 Klappen, Schuhkipper Schmal Schuhregal mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 837-799V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "788aca8e-765f-4259-9178-b5bd1d584ed6",
+      "slug": "garderobenstander-mit-regalen-schubladen-und-kleiderstange-180-cm",
+      "namn": "Garderobenständer mit Regalen, Schubladen und Kleiderstange, 180 cm",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 837-784V00AK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "091f569d-1766-4b9d-94f4-23621e98e6e1",
+      "slug": "moderner-schuhschrank-fur-bis-zu-12-paar-schuhe-mit-2-klappturen",
+      "namn": "Moderner Schuhschrank für bis zu 12 Paar Schuhe mit 2 Klapptüren",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 837-233V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "6c9f3c8c-d8b9-437c-bb3c-999ea7ed5b03",
+      "slug": "zeichentisch-hohen-und-neigungsverstellbar-mit-rutschfester",
+      "namn": "Zeichentisch, höhen- und neigungsverstellbar, mit rutschfester",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 836-746V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4d8f63a1-cf5f-4aa4-a61f-9955221ea2cb",
+      "slug": "schreibtisch-mit-4-offenen-ablagen-industrial-design-140-cm",
+      "namn": "Schreibtisch mit 4 offenen Ablagen, Industrial Design, 140 cm",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 836-720V90MX</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7dddb439-435c-4d32-bc64-6efac20ef017",
+      "slug": "bucherregal-mit-7-ebenen-l-formiges-eckrega-mit-rutschfestem",
+      "namn": "Bücherregal mit 7 Ebenen, L-förmiges Eckrega mit rutschfestem",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 836-718V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "e14d7903-1778-4a69-a65c-df93ff47198f",
+      "slug": "industrielles-cd-regal-cd-aufbewahrung-dvd-stander-mit-3",
+      "namn": "Industrielles CD-Regal, CD-Aufbewahrung, DVD-Ständer mit 3",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 836-687V00RB</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "5c53dbfb-11dc-47d7-83a7-6a97f4bd5d00",
+      "slug": "regal-fur-835-cds-oder-500-dvds-blu-ray-medienregal-mit-27-fachern",
+      "namn": "Regal für 835 CDs oder 500 DVDs, Blu-ray Medienregal mit 27 Fächern",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 836-686V91WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "3da48fb6-0a70-44a2-adf7-b29bc5888c3a",
+      "slug": "badezimmerschrank-170-cm-hoch-schmaler-freistehender-badschrank-mit",
+      "namn": "Badezimmerschrank 170 cm hoch, schmaler freistehender Badschrank mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 834-997V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cb3b4e9f-edbb-4e29-9ba7-9c389de9523f",
+      "slug": "schmaler-badezimmerschrank-badschrank-stehend-mit-2-schubladen-wei",
+      "namn": "Schmaler Badezimmerschrank, Badschrank stehend mit 2 Schubladen, Weiß",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 834-996V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b2dee452-0e9a-4953-8f78-0279e80b64f0",
+      "slug": "medizinschrank-zur-wandmontage-mit-zahlenschloss-und-schlussel",
+      "namn": "Medizinschrank zur Wandmontage mit Zahlenschloss und Schlüssel",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 834-978V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "f4116718-eace-4da3-baf4-6166dd703a4d",
+      "slug": "medizinschrank-abschlie-barer-medikamentenschrank-mit-2-schlusseln",
+      "namn": "Medizinschrank, Abschließbarer Medikamentenschrank mit 2 Schlüsseln",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 834-974V00SR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "0d1d781c-421e-40ff-92f8-d85c5fabe099",
+      "slug": "waschbeckenunterschrank-modern-und-freistehend-mit",
+      "namn": "Waschbeckenunterschrank, modern und freistehend, mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 834-929V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "a04185b6-0722-42cd-bd94-b8fe4adf72a4",
+      "slug": "wandmontierter-badezimmerspiegelschrank-medizinschrank-mit-3-turen",
+      "namn": "Wandmontierter Badezimmerspiegelschrank, Medizinschrank mit 3 Türen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 834-366V91GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "acb1f904-3af1-494e-8648-a17e98928d86",
+      "slug": "relaxsessel-mit-liegefunktion-fernsehsessel-mit-seitentasche",
+      "namn": "Relaxsessel mit Liegefunktion Fernsehsessel mit Seitentasche",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 833-918</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "33566d4a-573f-4c7f-8a62-15c80d2fb43d",
+      "slug": "aufbewahrungstruhe-mit-klappdeckel-spielzeugkiste-mit",
+      "namn": "Aufbewahrungstruhe mit Klappdeckel, Spielzeugkiste mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 833-625V90RB</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cd9b4686-104d-40b3-aa08-e6f4b5bacd4b",
+      "slug": "klapptisch-esstisch-beistelltisch-eiche-metallrahmen-kuche-wohnzimmer",
+      "namn": "Klapptisch Esstisch Beistelltisch Eiche Metallrahmen Küche Wohnzimmer",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 833-409V01DR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "a6bd7d56-20aa-4738-bba8-25acaea36ee3",
+      "slug": "klapptisch-esstisch-beistelltische-ablageflache-fur-wohnzimmer-kuche",
+      "namn": "Klapptisch Esstisch Beistelltische Ablagefläche für Wohnzimmer Küche",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 833-409</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ff3824a1-557c-4037-a9f9-c79532b178ae",
+      "slug": "nachttisch-beistelltisch-mit-lamellenturen-und-stahlbeinen-fur",
+      "namn": "Nachttisch Beistelltisch mit Lamellentüren und Stahlbeinen, für",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 831-822V81AK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "222f59d6-2c8d-441f-b88d-0dcd68b478c9",
+      "slug": "kommode-schrank-mit-7-schubladen-aus-leinen-schubladenschrank-mit",
+      "namn": "Kommode Schrank mit 7 Schubladen aus Leinen Schubladenschrank mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 831-406</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "fcf237ca-b8dd-48f5-8828-50f602626658",
+      "slug": "kommode-schrank-mit-4-schubladen-aus-leinen-aufbewahrungsschrank-mit",
+      "namn": "Kommode Schrank mit 4 Schubladen aus Leinen Aufbewahrungsschrank mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 831-400</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "db70e38c-23f6-4a95-8197-17f217c3a7d6",
+      "slug": "paravent-4-teilig-181-x-180-cm-faltbar-raumteiler-mit-2-regalen-aus",
+      "namn": "Paravent 4-teilig 181 x 180 cm Faltbar Raumteiler mit 2 Regalen aus",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 830-628V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b69b9d3a-0f6f-4a98-81d9-f8e4df802b78",
+      "slug": "klappmatratze-200-x-90-cm-15-cm-faltbare-matratze-tragbare",
+      "namn": "Klappmatratze 200 x 90 cm, 15 cm faltbare Matratze, tragbare",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 810-052V00LG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ad390a36-1ca9-40da-9fcb-bc15ee2f6f5d",
+      "slug": "kuchenwagen-auf-rollen-mit-2-schubladen-offenem-ablagefach-und-2",
+      "namn": "Küchenwagen auf Rollen mit 2 Schubladen, offenem Ablagefach und 2",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 801-458V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "650ecae1-03c0-4086-bb16-5db76d83ba71",
+      "slug": "pizzaofen-fur-innen-12-zoll-elektrischer-pizzaofen-mit-8-programmen",
+      "namn": "Pizzaofen für innen, 12 Zoll elektrischer Pizzaofen mit 8 Programmen",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 800-349V90GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "e947f7aa-0251-4a15-881e-25cd878cdab0",
+      "slug": "elektrischer-wasserkocher-1-7l-schnellkochender-2200w-wasserkocher",
+      "namn": "Elektrischer Wasserkocher, 1,7L Schnellkochender 2200W Wasserkocher",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 800-340V90SR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "d5d1ff3c-8178-497e-920e-6d0fa27c26ff",
+      "slug": "4-scheiben-toaster-mit-7-braunungsstufen-aufwarm-auftau-und",
+      "namn": "4-Scheiben-Toaster mit 7 Bräunungsstufen, Aufwärm-, Auftau- und",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 800-328V92BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4522d871-61e8-4ad5-aa2f-1a1860d4106e",
+      "slug": "tisch-eismaschine-selbstreinigend-kompakter-eisbereiter-mit-schaufel",
+      "namn": "Tisch-Eismaschine Selbstreinigend Kompakter Eisbereiter mit Schaufel",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 800-316V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "5cd3d289-3639-43e7-b74a-1431fa3a7a14",
+      "slug": "kuchenmaschine-knetmaschine-mit-7l-edelstahlschussel-1400w-mit",
+      "namn": "Küchenmaschine Knetmaschine mit 7L Edelstahlschüssel 1400W mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 800-297V90BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "375bb3c8-8ddd-4095-8ed3-913c77d7d6f9",
+      "slug": "wasserkocher-und-toaster-set-mit-led-display-1-7-l-wasserkocher-mit",
+      "namn": "Wasserkocher- und Toaster-Set mit LED-Display, 1,7-L-Wasserkocher mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 800-286V90CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "5f3ccb1a-7c6e-441b-b0c0-153ce9aea5fb",
+      "slug": "2-in-1-buffetwarmer-6-8l-warmhalteplatte-300-watt-edelstahl",
+      "namn": "2-in-1 Buffetwärmer 6,8L Warmhalteplatte 300 Watt Edelstahl",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 800-173V70SR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "0ceeb412-c41c-441a-a96a-4da82275747f",
+      "slug": "5-stockiger-dorrautomat-245w-dorrofen-mit-einstellbarer",
+      "namn": "5-stöckiger Dörrautomat, 245W Dörrofen mit einstellbarer",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 800-144V90GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "d3ee8cea-2283-47a8-8459-98e0a776fbf2",
+      "slug": "fernsehsessel-relaxsessel-mit-aufstehhilfe-fur-senioren",
+      "namn": "Fernsehsessel Relaxsessel mit Aufstehhilfe für Senioren",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 713-214V90CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b2b731c7-fb5b-4c47-8d92-a60ed10d0e77",
+      "slug": "2-in-1-beinmassagegerat-mit-warme-luftkompression-timer-3-modi",
+      "namn": "2-in-1 Beinmassagegerät mit Wärme, Luftkompression, Timer, 3 Modi",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 700-203V90DB</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "1a48d902-8fd7-4a0d-87bf-27f933c4806a",
+      "slug": "shiatsu-ruckenmassager-mit-warme-tiefenmassage-und-3-stufiger",
+      "namn": "Shiatsu-Rückenmassager mit Wärme, Tiefenmassage und 3-stufiger",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 700-199V90BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "f6ff9aba-fe65-4727-951e-7a508098f9de",
+      "slug": "elektrischer-aufstehsessel-mit-vibrationsmassage-und-warmefunktion",
+      "namn": "Elektrischer Aufstehsessel mit Vibrationsmassage und Wärmefunktion",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 700-021V93DR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "239e68b8-4755-4172-a53f-95b7032d9462",
+      "slug": "rollhocker-aus-pu-leder-hohenverstellbarer-salonhocker-mit",
+      "namn": "Rollhocker aus PU-Leder, höhenverstellbarer Salonhocker mit",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 503-041V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "c328a7c0-5037-4a7f-8127-b5b83e5605d9",
+      "slug": "rollhocker-mit-ruckenlehne-57-72-cm-hohenverstellbar-drehhocker-fur",
+      "namn": "Rollhocker mit Rückenlehne 57-72 cm höhenverstellbar Drehhocker für",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 503-016</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cbba79ae-5323-46e6-8031-de517a453da8",
+      "slug": "montessori-busy-board-sensorisches-spielzeug-im-truck-design-ab-3",
+      "namn": "Montessori Busy Board Sensorisches Spielzeug im Truck-Design ab 3",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 331-111V80MX</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "010979fb-923e-472b-985c-566cb56d9743",
+      "slug": "kindertisch-und-stuhl-set-3-teilig-1-tisch-2-stuhle-rosa-und-wei",
+      "namn": "Kindertisch und Stuhl Set 3-teilig, 1 Tisch 2 Stühle, Rosa und Weiß",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: 312-160V90PK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cf638cc0-f08f-4647-831c-0a54d49f01f1",
+      "slug": "motorrad-abdeckplane-faltbar-outdoor-motorradabdeckung-wasserdicht",
+      "namn": "Motorrad Abdeckplane Faltbar Outdoor Motorradabdeckung Wasserdicht",
+      "kodrader": [
+        "<li><p>✔ Artikelnummer: C30-035V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    }
+  ],
   "fel": [],
   "cursor": null,
   "fullstandig": true
