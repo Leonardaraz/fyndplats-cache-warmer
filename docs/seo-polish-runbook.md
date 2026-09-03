@@ -820,6 +820,32 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > en fällbar fåtölj, luggriktning på manchester, bryt strömmen vid proppskåpet före
 > lampbyte. Generiska rader som "torka av vid behov" bär ingenting.
 
+### ☠️ En relativ länk i beskrivningen blir `https:/produkt/…` och går sönder
+
+Färgsyskon korslänkas i ingressen. Skriver du länken **rotrelativt** skriver Wix om
+den vid sparandet:
+
+| du skickar | Wix lagrar | resultat |
+|---|---|---|
+| `href="/produkt/x"` | `href="https:/produkt/x"` | **trasig** — värden blir `produkt` |
+| `href="https://www.fyndplats.se/produkt/x"` | oförändrad | fungerar |
+
+Uppmätt 2026-09-03 med en sond på ett osynligt utkast: båda formerna skickades i
+samma PATCH, och bara den absoluta kom tillbaka hel. Wix normaliserar HTML:en (samma
+mekanism som slår in varje `<li>` i ett `<p>` och strippar radbrytningar) och sätter
+`https:` framför en path som saknar värdnamn — vilket ger **en** snedstreck, inte två.
+Enligt URL-standarden parsas `https:/produkt/x` som värden `produkt`.
+
+**Skriv alltid ut hela adressen.** Felet syns inte i Wix-svaret, inte i en läsning av
+`plainDescription` mot Wix, och inte i en ögonkontroll av sidan — bara i ett klick
+eller i ett svep efter strängen `https:/produkt`.
+
+`kolla.sh`-raden som fångar det:
+
+```bash
+grep -c 'https:/produkt' sidan.html      # ska vara 0
+```
+
 
 -----
 
@@ -1670,6 +1696,56 @@ katalogen. Kör dem med några veckors mellanrum — båda är read-only tills d
 > **Regeln bakom felet:** ett tomt svepsvar är ett påstående som ska bevisas, inte ett kvitto.
 > Kontrollräkna alltid mot en känd nämnare — svepte det 930 produkter eller 63? Stämmer inte
 > nämnaren är täljaren ointressant.
+
+### ☠️ Katalogsvep — leverantörskoder i publicerad text (verktyg finns)
+
+dealproffsen.se publicerar Aosoms artikelnummer som `sku`/`mpn` i sin JSON-LD. Står
+samma sträng i vår text går våra sidor att joina mot deras — och därmed mot vad vi
+betalar för varje vara.
+
+**Läckan har hittats tre gånger av svep och noll gånger av en spärr:**
+
+| datum | var | antal |
+|---|---|---:|
+| 2026-09-02 | inbränt i produktkortens fotremsa | 33 |
+| 2026-09-02 | som spec-rad i texten | 4 |
+| 2026-09-03 | som spec-rad i texten, efter att svepets regex rättats | **51** |
+
+De 51 hittades först när svepets egen regex lagades: mönstret `</span>?` kräver den
+LITERALA strängen `</span` med ett valfritt `>` — det gör inte taggen valfri. Bara den
+ena av två former kunde alltså träffa, och 488 sidor svepta med det mönstret bevisade
+ingenting. **Validera alltid ett svepmönster mot minst en känd smutsig sida av varje
+form innan du litar på ett tomt resultat.**
+
+Kör inte det här för hand längre. Verktyget är
+**`lib/seo/leverantorskod.ts`** (saxen) + **`lib/seo/text-repair.ts`** (körningen) +
+`/api/cron/seo-text-repair` + workflowen **"SEO — städa publicerad produkttext"**
+med lägena `scan` och `apply`. Samma körning lagar också de trasiga
+syskonlänkarna (`lib/seo/relativa-lankar.ts`, se fällan i Steg 7).
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Värdet måste se ut som en kod, inte bara etiketten stämma.** `Referens: se
+   bruksanvisningen` och `Standard: EN 1930` är legitim text. En sax som klipper på
+   etiketten ensam tar bort dem också — och en sax som tar för mycket är farligare än
+   läckan den lagar. Femton tester låser båda hållen.
+2. ☠️ **Massfel-spärren står FÖRE första skrivningen.** Hela sidan (100 produkter)
+   läses, andelen träffar kontrolleras mot `MAX_ANDEL_TRAFFAR = 0,25`, och först
+   därefter skrivs något. Körs kontrollen inne i skrivslingan hinner en trasig regex
+   rensa halva sidan innan andelen ens går att räkna — det syntes i testet första
+   gången: 49 skrivningar innan spärren fällde. Mätt normalläge är 3 % (51 av 1 627).
+3. ☠️ **Varje skrivning läses tillbaka.** `lagade` stiger först när koden faktiskt är
+   borta ur den återlästa texten. Ett svar utan fel är inget kvitto — och just här
+   finns en konkret fälla: `updateProductDescription` respekterar globala
+   `SYNC_DRY_RUN`, som är default `"true"`. Utan återläsningen hade en skarp körning
+   rapporterat "51 lagade" utan att ha skrivit ett tecken.
+
+**Koden i RUBRIKEN lagas inte automatiskt** — den kräver att någon skriver om
+rubriken, och rapporteras i `kodINamn`.
+
+☠️ **Massfel-taket gäller bara kodsaxen.** Länkfixen tar inte bort någonting: den
+sätter tillbaka ett värdnamn och är idempotent. En hög andel där betyder att felet
+är utbrett — vilket är ett skäl att köra, inte att stoppa.
 
 -----
 
