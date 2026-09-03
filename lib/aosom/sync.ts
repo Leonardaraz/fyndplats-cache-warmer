@@ -31,6 +31,7 @@ import { SUPPLIER_VAT_RATE } from "../auction/seed";
 import { computePriceWithRules } from "../import/pricing";
 import type { PricingRules } from "../import/types";
 import type { ProductMappingRecord } from "../store";
+import { MIN_WIX_PRODUKTER, type WixProduktPris } from "../wix/v3-products";
 
 const DEFAULT_LIMIT = 400;
 const DEFAULT_TIME_BUDGET_MS = 240_000;
@@ -107,6 +108,24 @@ export interface AosomSyncSummary {
   slutsalda: number;
   /** Ingen förändring — varken lager eller pris. */
   oforandrade: number;
+  /**
+   * Produkter där butikens pris inte gick att läsa, så prisdelen hoppades över.
+   *
+   * ☠️ Egen räknare, inte hopslagen med `oforandrade`. En produkt vi inte kan
+   * prisjämföra är inte en produkt som stämmer — och den skillnaden är precis
+   * vad som gjorde att de tjugo drivande raderna kunde ligga osedda i en månad.
+   */
+  utanWixPris: number;
+  /**
+   * Varför butikens prislista inte gick att läsa, eller null när den gjorde det.
+   *
+   * ☠️ Ett LÄSFEL FÄLLER INTE LAGERSYNKEN. Att sälja något vi inte har är ett
+   * kundfel; att inte hinna rätta ett pris på ett osynligt utkast är det inte.
+   * Prisdelen hoppas över (allt hamnar i `utanWixPris`) medan saldona synkas
+   * som vanligt — men körningen får aldrig se frisk ut: fältet går ut i svaret,
+   * i loggraden, i audit-raden, och fäller workflow-jobbet.
+   */
+  prislistaFel: string | null;
   misslyckade: number;
   kvar: number;
   cursor: string | null;
@@ -114,6 +133,37 @@ export interface AosomSyncSummary {
   errors: { sku: string; error: string }[];
   /** Prisändringar som blockerades av taket. Kräver mänskligt öga. */
   varningar: { sku: string; fran: number; till: number; andringPct: number }[];
+}
+
+/**
+ * Priset det nyräknade ska jämföras MOT — butikens, aldrig bokföringens.
+ *
+ * ☠️ HELA BUGGEN BODDE I EN RAD: `const gammalt = variant.grossSek`. Det är
+ * mappningens tal, alltså vad vi TROR att kunden ser. Prisskrivningen var
+ * trasig i en månad (2026-08-29) men hann ändå uppdatera mappningen, så nästa
+ * körning räknade fram exakt det tal som redan stod där, såg ingen skillnad och
+ * hoppade över produkten. Tjugo rader kunde därför aldrig självläka: rätt pris
+ * i böckerna, fel pris i butiken, och en synk som rapporterade allt friskt.
+ *
+ * Utfallen är tre, och de är MEDVETET olika:
+ *   - `{ pris }`      butiken svarade entydigt → jämför mot det.
+ *   - `"saknas"`      produkten fanns inte i svaret. Orörd i Wix, kanske
+ *                     raderad, kanske föräldralös mappning. Vi vet inte vad
+ *                     kunden ser, så vi skriver INGET pris.
+ *   - `"flera"`       produkten har varianter med olika pris. `actualPriceRange`
+ *                     är då ett spann, inte ett pris, och synken skriver bara
+ *                     variant[0] — att jämföra mot spannets botten hade kunnat
+ *                     skriva ner en dyrare variant. Aosom har en variant per
+ *                     produkt, så det här ska aldrig hända; händer det är det
+ *                     ett besked, inte något att gissa förbi.
+ */
+export function jamforelsePris(
+  wix: WixProduktPris | undefined,
+): { pris: number } | "saknas" | "flera" {
+  if (!wix) return "saknas";
+  if (wix.priceSek === null) return "flera";
+  if (wix.variantCount > 1) return "flera";
+  return { pris: wix.priceSek };
 }
 
 /** Lagersaldot vi faktiskt visar för kund, givet leverantörens siffra. */
@@ -130,6 +180,12 @@ export function landadKostnadSek(row: AosomRow, eurToSek: number): number {
 
 export interface AosomSyncDeps {
   fetchFeed: () => Promise<AosomRow[]>;
+  /**
+   * Butikens priser i bulk, `wixProductId` → pris.
+   *
+   * ☠️ FACIT ÄR WIX, INTE MAPPNINGEN. Se `jamforelsePris` nedan.
+   */
+  listWixPriser: () => Promise<Map<string, WixProduktPris>>;
   /** Alla Aosom-mappningar. */
   listAosom: () => Promise<ProductMappingRecord[]>;
   /** Skriver absolut lagersaldo för produktens (enda) variant. */
@@ -185,6 +241,44 @@ export async function runAosomSync(
     );
   }
 
+  // ☠️ BUTIKENS PRISER, EN GÅNG. ~54 anrop för hela katalogen — se
+  // `listV3ProductPrices`. Hämtas FÖRE loopen så en produkt aldrig jämförs mot
+  // ett facit som hunnit ändras mitt i körningen.
+  //
+  // Massfel-spärren speglar MIN_FEED_RADER: svarar Wix med en handfull
+  // produkter är det ett läsfel, och alternativet vore att tolka det som "de
+  // här produkterna finns inte i butiken" och sluta prisjämföra hela
+  // sortimentet — tyst, och exakt den sortens fel som redan kostat en månad.
+  //
+  // ☠️ OCH DEN FÄLLER INTE KÖRNINGEN, till skillnad från MIN_FEED_RADER.
+  // Skillnaden är vad felet KOSTAR. En trasig feed nollar lagersaldon över hela
+  // katalogen — där är avbrott enda säkra svaret. En oläsbar prislista kan
+  // ingenting förstöra: `jamforelsePris` svarar "saknas" och då skrivs inget
+  // pris. Att ändå avbryta hade stoppat LAGERSYNKEN i sex timmar för ett fel i
+  // prisdelen, och att sälja något vi inte har är ett kundfel medan ett orättat
+  // pris på ett osynligt utkast inte är det.
+  //
+  // Priset för att fortsätta är att körningen inte får se frisk ut: felet går
+  // ut i `prislistaFel` → svaret, loggraden, audit-raden och workflow-jobbet.
+  let wixPriser = new Map<string, WixProduktPris>();
+  let prislistaFel: string | null = null;
+  if (!opts.skipPrices) {
+    try {
+      wixPriser = await deps.listWixPriser();
+      if (wixPriser.size < MIN_WIX_PRODUKTER) {
+        throw new Error(
+          `butikens prislista gav bara ${wixPriser.size} produkter (minst ${MIN_WIX_PRODUKTER} krävs) `
+            + `— det här är ett läsfel, inte en tom katalog`,
+        );
+      }
+    } catch (err) {
+      prislistaFel = err instanceof Error ? err.message : String(err);
+      // Tom karta → varje produkt blir "saknas" → utanWixPris. Inget pris
+      // skrivs, och det syns i räknaren i stället för att gissas förbi.
+      wixPriser = new Map();
+    }
+  }
+
   const perSku = new Map(feed.map((r) => [r.sku, r]));
   const onlySkus = opts.onlySkus?.length ? new Set(opts.onlySkus) : null;
 
@@ -204,6 +298,8 @@ export async function runAosomSync(
     urFeeden: 0,
     slutsalda: 0,
     oforandrade: 0,
+    utanWixPris: 0,
+    prislistaFel,
     misslyckade: 0,
     kvar: mappningar.length,
     cursor: null,
@@ -263,9 +359,17 @@ export async function runAosomSync(
         // (rensade 2026-08-27 — "Husdjur: 2,5" hade satt 60 % marginal på
         // hela PawHut-sortimentet utan att någon regel sa det).
         const pris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
-        const gammalt = variant.grossSek;
 
-        if (pris < MIN_RIMLIGT_PRIS_SEK) {
+        // ☠️ FACIT ÄR BUTIKEN. Se jamforelsePris — mappningens grossSek är vad
+        // vi TROR att kunden ser, och de två kan ha glidit isär.
+        const facit = jamforelsePris(wixPriser.get(m.wixProductId));
+        const gammalt = typeof facit === "object" ? facit.pris : -1;
+
+        if (typeof facit === "string") {
+          // Vet vi inte vad kunden ser skriver vi inget pris. Lagret ovan är
+          // redan synkat — det uppslaget går på produkt-id och berörs inte.
+          summary.utanWixPris++;
+        } else if (pris < MIN_RIMLIGT_PRIS_SEK) {
           summary.varningar.push({ sku, fran: gammalt, till: pris, andringPct: 0 });
         } else if (gammalt > 0) {
           const andringPct = ((pris - gammalt) / gammalt) * 100;
@@ -329,6 +433,32 @@ export async function runAosomSync(
   return summary;
 }
 
+/**
+ * Paus mellan två Wix-SKRIVNINGAR i skarpt läge.
+ *
+ * ☠️ UPPMÄTT, INTE GISSAT (2026-09-02). Ett skarpt svep försökte 2 095
+ * lagerskrivningar i rad och fick 1 190 stycken **429 med en HTML-kropp** —
+ * Wix EDGE-spärr, inte API-nivåns JSON-fel. Skalan:
+ *
+ *   |  försökta skrivningar | fel  |
+ *   |----------------------:|-----:|
+ *   |                    40 |    0 |
+ *   |                 1 150 |  521 |
+ *   |                 2 095 | 1190 |
+ *
+ * Återförsök räcker inte mot den spärren — huset har redan mätt att den inte
+ * går att vänta ut inom ruttens 300 sekunder (media-städningen, 2026-08-28).
+ * Det som håller den borta är att inte springa. Samma medicin som
+ * `MEDIA_UPLOAD_DELAY_MS` och `FREIGHT_CALL_DELAY_MS`, av samma skäl.
+ *
+ * Ligger i `liveDeps`, inte i loopen: pacing hör till den skarpa skrivvägen,
+ * och testerna injicerar sina egna deps och ska inte bli långsamma av den.
+ */
+export function aosomSkrivPausMs(): number {
+  const n = Number(process.env.AOSOM_WRITE_DELAY_MS);
+  return Number.isFinite(n) && n >= 0 ? n : 120;
+}
+
 /** Standard-deps mot skarpa systemet. Bryts ut så testerna slipper mocka moduler. */
 export async function liveDeps(): Promise<AosomSyncDeps> {
   const [{ getStore }, { getPricingRules }, { eurToSekFromEnv }, wix, v3] = await Promise.all([
@@ -341,13 +471,18 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
   const rules = await getPricingRules();
   const store = getStore();
 
+  const pausMs = aosomSkrivPausMs();
+  const pausa = () => (pausMs > 0 ? new Promise((r) => setTimeout(r, pausMs)) : Promise.resolve());
+
   return {
     fetchFeed: () => fetchAosomFeed(),
+    listWixPriser: () => v3.listV3ProductPrices(),
     listAosom: async () =>
       (await store.listMappings()).filter((m) =>
         (m.supplierProductId ?? "").startsWith(aosomSupplierProductId("")),
       ),
     setStock: async (wixProductId, _sku, antal) => {
+      await pausa();
       const poster = await wix.queryInventoryItemsByProductId(wixProductId);
       if (poster.length === 0) return;
       await wix.bulkUpdateInventoryQuantities(
@@ -357,6 +492,7 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
     // updateV3VariantPrices skickar tillbaka `visible` oförändrad — utan det
     // publicerar en variantsInfo-PATCH utkastet (uppmätt 2026-08-28).
     setPrice: async (wixProductId, variant, grossSek, landedCostSek) => {
+      await pausa();
       // ☠️ SVARET MÅSTE LÄSAS. updateV3VariantPrices returnerar {updated, missing}
       // och KASTAR INTE när ingen variant matchade — den hoppar över PATCH:en och
       // returnerar tyst. Det gamla anropet slängde returvärdet, så synken räknade

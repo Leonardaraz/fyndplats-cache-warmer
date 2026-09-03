@@ -108,6 +108,23 @@ export const IMPORT_COSTS: TabellSpec = {
   kolumner: { productId: "id", importedAt: "at" },
 };
 
+export const RECENSIONER: TabellSpec = {
+  kollektion: col("WIX_DATA_COL_REVIEWS", "FyndplatsImportedReviews"),
+  tabell: "reviews",
+  // Komposit-id, samma som `reviewDocId` bygger: `${productId}__${reviewIdAE}`.
+  // Wix-raden bär det i `_id`, och unikheten är per PRODUKT — samma reviewIdAE
+  // kan förekomma globalt hos AE.
+  idFält: "_id",
+  kolumner: {
+    _id: "id",
+    productId: "product_id",
+    reviewIdAE: "review_id_ae",
+    status: "status",
+    rating: "rating",
+    date: "date",
+  },
+};
+
 /** LLM-samlingarna delar EN tabell, nycklad på (collection, key). De hanteras
  *  separat i kopieringen eftersom `collection` är en del av nyckeln. */
 export const LLM_SAMLINGAR = [
@@ -129,4 +146,5 @@ export const ATT_KOPIERA: TabellSpec[] = [
   SYNC_ALERTS,
   PRODUCT_HASHES,
   IMPORT_COSTS,
+  RECENSIONER,
 ];

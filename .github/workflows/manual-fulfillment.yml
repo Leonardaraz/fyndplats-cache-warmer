@@ -1,0 +1,133 @@
+name: Order — beställd eller skickad för hand
+
+# För leverantörer utan API. AliExpress sköter sig självt (place-order →
+# poll-tracking → Wix-fulfillment → kundmejl), men Aosom har inget API:
+# `place-order.ts` vägrar en Aosom-mappning med flit, ordern läggs på
+# aosom.de/bulkordering eller i deras kassa, och spårningsnumret kommer per
+# mejl. Utan den här workflowen fanns ingen väg att tala om det för motorn.
+#
+# Order 10026 (2026-09-02) gick i den väggen: betald 14:57, lagd för hand
+# samma kväll, och tasken hade blivit liggande som `pending` medan vakten
+# påminde om en order som redan var gjord.
+#
+# TVÅ LÄGEN, I ORDNING:
+#   bestalld  — kör direkt när du lagt ordern. Vakten slutar påminna, och
+#               5-dygnsklockan mot "beställd men inget spår" börjar ticka.
+#   skickad   — kör när leverantören mejlat spårningsnumret. Skapar
+#               Wix-fulfillment → butikens "Ditt paket är skickat!" + 17TRACK.
+#
+# ☠️ `skickad` är oåterkallelig: mejlet till kunden går inte att ta tillbaka.
+# Rutten vägrar därför skeppa en redan skeppad rad, och vägrar helt om ordern
+# har flera rader utan att du pekat ut vilken med task_id.
+#
+# Samma nyckel-lösa upplägg som övriga: POLL_TRACKING_URL + CRON_SECRET.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "bestalld = ordern är lagd · skickad = spårningsnumret har kommit"
+        required: true
+        default: "bestalld"
+        type: choice
+        options:
+          - bestalld
+          - skickad
+      order_number:
+        description: "Butikens ordernummer, t.ex. 10026 (tomt om task_id ges)"
+        required: false
+        default: ""
+        type: string
+      task_id:
+        description: "Bara när ordern har flera rader: <orderId>:<lineItemId>"
+        required: false
+        default: ""
+        type: string
+      tracking_number:
+        description: "skickad: spårningsnumret ur leverantörens avsändningsmejl"
+        required: false
+        default: ""
+        type: string
+      carrier:
+        description: "skickad: fraktbolag om det framgår, t.ex. DHL (frivilligt)"
+        required: false
+        default: ""
+        type: string
+      supplier_ref:
+        description: "bestalld: leverantörens orderreferens (frivilligt)"
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  manuell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          ORDER_NUMBER: ${{ inputs.order_number }}
+          TASK_ID: ${{ inputs.task_id }}
+          TRACKING: ${{ inputs.tracking_number }}
+          CARRIER: ${{ inputs.carrier }}
+          SUPPLIER_REF: ${{ inputs.supplier_ref }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR — en ::error::-rad på stdout slukas av
+            # kommandosubstitutionen nedan. (Lärdomen från aosom-import.)
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if [ -z "${ORDER_NUMBER}" ] && [ -z "${TASK_ID}" ]; then
+            echo "::error::Ange order_number eller task_id" >&2
+            exit 1
+          fi
+
+          if [ "${LAGE}" = "skickad" ]; then
+            action=shipped
+            if [ -z "${TRACKING}" ]; then
+              echo "::error::tracking_number kravs i laget 'skickad'" >&2
+              exit 1
+            fi
+          else
+            action=ordered
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/manual-fulfillment"
+          kropp=$(jq -nc \
+            --arg a  "${action}" \
+            --arg on "${ORDER_NUMBER}" \
+            --arg ti "${TASK_ID}" \
+            --arg tn "${TRACKING}" \
+            --arg ca "${CARRIER}" \
+            --arg sr "${SUPPLIER_REF}" '
+            {action: $a}
+            + (if $on != "" then {orderNumber: $on} else {} end)
+            + (if $ti != "" then {taskId: $ti} else {} end)
+            + (if $tn != "" then {trackingNumber: $tn} else {} end)
+            + (if $ca != "" then {carrier: $ca} else {} end)
+            + (if $sr != "" then {supplierOrderRef: $sr} else {} end)
+          ')
+
+          svar=$(curl -sS --max-time 60 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "$kropp" \
+            "${url}")
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+            # Flera rader pa ordern → rutten listar dem, peka ut en med task_id.
+            echo "$svar" | jq -r '.candidates[]? | "    kandidat: \(.taskId)  \(.productName)  (\(.status))"' >&2
+            exit 1
+          fi
+
+          # Rapportering EFTER en lyckad skrivning far aldrig falla jobbet —
+          # sexton lyckade poleringar rapporterades som misslyckade nar en
+          # jq-rad efter skrivningen dog (2026-09-02).
+          echo "$svar" | jq -r '.message' || true
+          echo "$svar" | jq -r '"    task \(.taskId) · order \(.orderNumber) · \(.productName)"' || true

@@ -12,7 +12,10 @@ vi.mock("@/lib/store/pricing-config", () => ({
   getPricingRules: async () => ({ defaultMultiplier: 1.2, rounding: "charm9" }),
 }));
 
-import { POST } from "./route";
+let produktFinns: boolean | null = false;
+vi.mock("@/lib/wix/v3-products", () => ({ v3ProduktFinns: async () => produktFinns }));
+
+import { GET, POST } from "./route";
 
 function rad(över: Partial<ProductMappingRecord> = {}): ProductMappingRecord {
   return {
@@ -42,6 +45,7 @@ function req(kropp: unknown) {
 
 beforeEach(async () => {
   store = new MemoryStore();
+  produktFinns = false;
   await store.saveMapping(rad());
 });
 
@@ -104,5 +108,47 @@ describe("en patch med bara kända id skrivs som vanligt", () => {
     const res = await POST(req({ wixProductId: "finns-inte", patch: { needsAiPolish: false } }));
     expect(res.status).toBe(404);
     expect(await store.getMappingByWixProductId("finns-inte")).toBeNull();
+  });
+});
+
+describe("☠️ en saknad mappning förklaras med RÄTT orsak", () => {
+  // Meddelandet påstod förr alltid "kan vara föräldralös". Uppmätt 2026-09-02
+  // på 3b64881e var det fel: id:t fanns inte i butiken alls, och mottagaren
+  // skickades att leta efter en föräldralös produkt som aldrig existerat.
+  // Två lägen, två åtgärder — samma klass som "läste inte tillbaka som
+  // förväntat", ett felmeddelande som pekar åt fel håll.
+
+  it("produkten FINNS i Wix → föräldralös, rör den inte", async () => {
+    produktFinns = true;
+    const res = await GET(
+      { nextUrl: { searchParams: new URLSearchParams({ wixProductId: "saknas" }) }, headers: new Headers() } as never,
+    );
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toContain("FINNS i butiken");
+    expect(body.error).toContain("föräldralös");
+  });
+
+  it("produkten finns INTE → felaktig referens, inte en föräldralös produkt", async () => {
+    produktFinns = false;
+    const res = await GET(
+      { nextUrl: { searchParams: new URLSearchParams({ wixProductId: "saknas" }) }, headers: new Headers() } as never,
+    );
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toContain("felaktig referens");
+    // Får INTE påstå att den är föräldralös — det är hela buggen.
+    expect(body.error).not.toContain("är föräldralös");
+  });
+
+  it("☠️ butiken svarar inte → gissa inte, behåll den försiktiga varningen", async () => {
+    produktFinns = null;
+    const res = await GET(
+      { nextUrl: { searchParams: new URLSearchParams({ wixProductId: "saknas" }) }, headers: new Headers() } as never,
+    );
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toContain("svarade inte");
+    expect(body.error).toContain("Polera den INTE");
   });
 });

@@ -240,6 +240,35 @@ export async function getV3ProductFull(productId: string): Promise<{
 }
 
 /**
+ * Finns produkten i butiken? `true` / `false` / `null` när frågan inte gick att
+ * ställa.
+ *
+ * ☠️ TRE UTFALL, INTE TVÅ. Ett läsfel får aldrig se ut som "finns inte" — den
+ * förväxlingen är hela skälet till att funktionen finns. Poleringens 404-svar
+ * påstod alltid att produkten "kan vara föräldralös", alltså skapad i Wix utan
+ * mappningsrad. Uppmätt 2026-09-02 var det ofta fel: id:t fanns inte alls i
+ * butiken, och meddelandet skickade mottagaren att leta efter en föräldralös
+ * produkt som aldrig existerat. Två lägen med helt olika åtgärd.
+ *
+ * Fail-open med flit: kastar inte, för anroparen är redan på en felväg och ska
+ * inte få ett SÄMRE fel än det den höll på att rapportera.
+ */
+export async function v3ProduktFinns(productId: string): Promise<boolean | null> {
+  try {
+    const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
+      method: "GET",
+      headers: headers(),
+    });
+    if (res.status === 404) return false;
+    if (!res.ok) return null;
+    const data = (await res.json()) as { product?: unknown };
+    return Boolean(data.product);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * PATCH:ar en V3-produkt med nya seoData.tags. Använder product-revision för
  * optimistisk samtidighetskontroll. Skickar HELA tags-arrayen (Wix ersätter
  * inte mergar) — call-site ansvarar för att merga med befintliga.
@@ -551,4 +580,176 @@ export async function getV3ProductVariants(productId: string): Promise<WixV3Vari
       sku: v.sku,
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Butikens priser i bulk — facit för Aosom-prissynken.
+// ---------------------------------------------------------------------------
+
+/** Vad butiken tar för EN produkt, och om siffran går att lita på. */
+export interface WixProduktPris {
+  /**
+   * Priset i SEK, eller null när det inte finns ETT entydigt pris — antingen
+   * för att varianterna kostar olika, eller för att Wix inte gav något belopp.
+   *
+   * `actualPriceRange` är ett SPANN över produktens varianter. Är min ≠ max
+   * finns det inget enda "produktens pris", och att gissa på minValue hade
+   * jämfört äpplen med päron. Aosom-sortimentet har en variant per produkt
+   * (`variantCount: 1`, uppmätt), så null ska i praktiken aldrig uppstå där —
+   * men den dagen någon lägger till en variant ska synken märka det, inte
+   * skriva ett pris uträknat på fel underlag.
+   */
+  priceSek: number | null;
+  variantCount: number;
+}
+
+/**
+ * Under så här många produkter är svaret ett LÄSFEL, inte en tom katalog.
+ *
+ * Samma tanke som `MIN_FEED_RADER` i Aosom-synken och halvbildsspärren i
+ * media-cleanup: skydda mot att allt rasar, inte mot att en rad rör sig.
+ * Katalogen är 5 400+ produkter; ett svar under 500 är ett transportfel.
+ */
+export const MIN_WIX_PRODUKTER = 500;
+
+/** Tak på sidor. Räcker till 20 000 produkter — katalogen är 5 400. */
+const MAX_PRIS_SIDOR = 200;
+
+/**
+ * Backoff per sida. Följer `Retry-After` när Wix skickar den.
+ *
+ * ☠️ VARFÖR DEN BEHÖVS. Media-städningen mätte upp att Wix svarar 429 efter
+ * ~40–50 sidor I RAD (se `lib/aosom/media-cleanup.ts`). Katalogen är 54 sidor
+ * — mitt i det spannet. Att bläddra igenom den utan återförsök vore att kasta
+ * tärning om hela prissynken varje körning.
+ *
+ * Stegen är `importMediaByUrl`:s, inte städningens (2/10/30 s): den väntar ut
+ * en TRÖGARE edge-spärr och har inte den här ruttens 240-sekundersbudget.
+ *
+ * Laddaren ligger lokalt med flit. Husets tvilling-regel gäller definitioner
+ * som MÅSTE ge samma svar (`SHIP_AXIS_RE`, `EU_TULL_CODES`, `STORE_BACKEND`) —
+ * en backoff-trappa är tvärtom ett kostnadsbeslut per anropsställe, och de tre
+ * här i repot är olika av dokumenterade skäl.
+ */
+const PRIS_PAUS_MS = [1_000, 3_000, 8_000];
+
+/**
+ * Liten paus MELLAN sidor. Strypningen ovan utlöses av många sidor i tät följd,
+ * så den billigaste medicinen är att inte springa. 54 sidor × 60 ms ≈ 3 s av
+ * ruttens 240.
+ */
+const PRIS_SIDPAUS_MS = 60;
+
+const sov = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** 429/408/5xx är övergående. Andra 4xx är det inte — då är frågan fel ställd. */
+function arOvergaende(status: number): boolean {
+  return status === 429 || status === 408 || status >= 500;
+}
+
+/**
+ * Alla produkters pris, i ETT svep.
+ *
+ * ☠️ VARFÖR DEN FINNS. Aosom-prissynken jämförde det nyräknade priset mot
+ * MAPPNINGENS `grossSek` i stället för mot Wix. Den trasiga prisskrivningen
+ * (2026-08-29) hann uppdatera mappningen, så nästa körning räknade fram samma
+ * tal som redan stod där, såg ingen skillnad och hoppade över produkten — för
+ * alltid. Tjugo rader hade därför rätt pris i böckerna och fel pris i butiken,
+ * och kunde aldrig självläka.
+ *
+ * ☠️ OCH DET GAMLA KOSTNADSARGUMENTET VAR FEL. CLAUDE.md påstod att jämföra
+ * mot Wix kostar "ett Wix-anrop per granskad produkt". Det gör det inte:
+ * `POST /stores/v3/products/query` ger 100 produkter med pris per anrop, så
+ * hela katalogen är ~54 anrop och ett par sekunder av ruttens 240.
+ *
+ * Magert med flit: inga `fields`, alltså ingen PLAIN_DESCRIPTION.
+ * `actualPriceRange` och `variantSummary` kommer med i standardprojektionen
+ * (verifierat mot skarpa API:t 2026-09-02).
+ *
+ * ☠️ OCH INGET SYNLIGHETSVILLKOR — det är avsiktligt, och det är mätt.
+ * Alla tjugo felprissatta rader är `visible:false`, så en fråga som tyst
+ * filtrerade bort utkast hade gett en fix som aldrig når det den skulle laga.
+ * Kontrollerat mot skarpa API:t 2026-09-02: en fråga UTAN synlighetsvillkor
+ * returnerar utkastet `3a6988b8` med `visible:false` och pris ifyllt. V3
+ * lägger alltså inte på något implicit `visible:true`. Lägg inte till ett.
+ *
+ * ☠️ KASTAR hellre än kapar tyst. Samma lärdom som `queryAll`: en halv katalog
+ * som ser komplett ut hade fått synken att tro att de saknade produkterna inte
+ * finns i butiken — och de raderna hade då aldrig prisjämförts.
+ */
+export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>> {
+  const priser = new Map<string, WixProduktPris>();
+  let cursor: string | undefined;
+
+  for (let sida = 0; sida < MAX_PRIS_SIDOR; sida++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+
+    if (sida > 0) await sov(PRIS_SIDPAUS_MS);
+
+    let svar: Response | null = null;
+    let sistaFel = "";
+    for (let forsok = 0; forsok <= PRIS_PAUS_MS.length; forsok++) {
+      let res: Response;
+      try {
+        res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ query: { cursorPaging } }),
+        });
+      } catch (err) {
+        // Nätverksfel är per definition övergående.
+        sistaFel = err instanceof Error ? err.message : String(err);
+        if (forsok === PRIS_PAUS_MS.length) break;
+        await sov(PRIS_PAUS_MS[forsok]);
+        continue;
+      }
+      if (res.ok) {
+        svar = res;
+        break;
+      }
+      const text = await res.text();
+      sistaFel = `${res.status}: ${text.slice(0, 200)}`;
+      if (!arOvergaende(res.status) || forsok === PRIS_PAUS_MS.length) break;
+      const retryAfter = Number(res.headers.get("retry-after"));
+      await sov(
+        Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 15_000)
+          : PRIS_PAUS_MS[forsok],
+      );
+    }
+    if (!svar) {
+      throw new Error(`V3 prisquery föll på sida ${sida} — ${sistaFel}`);
+    }
+    const data = (await svar.json()) as {
+      products?: Array<{
+        id?: string;
+        actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+        variantSummary?: { variantCount?: number };
+      }>;
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+
+    for (const p of data.products ?? []) {
+      if (!p.id) continue;
+      const min = Number(p.actualPriceRange?.minValue?.amount);
+      const max = Number(p.actualPriceRange?.maxValue?.amount);
+      const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
+      priser.set(p.id, {
+        priceSek: entydigt ? min : null,
+        variantCount: p.variantSummary?.variantCount ?? 0,
+      });
+    }
+
+    cursor = data.pagingMetadata?.cursors?.next;
+    if ((data.products?.length ?? 0) === 0 || !cursor || data.pagingMetadata?.hasNext === false) {
+      return priser;
+    }
+  }
+
+  throw new Error(
+    `V3 prisquery nådde sidtaket (${MAX_PRIS_SIDOR} sidor, ${priser.size} produkter) med `
+      + `markören kvar. Katalogen är större än väntat — höj taket hellre än att `
+      + `arbeta vidare på en halv lista.`,
+  );
 }

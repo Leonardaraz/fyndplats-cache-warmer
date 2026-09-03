@@ -36,9 +36,24 @@ import { AUDIT_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
 
 /** Kollektioner som ALDRIG får röras, oavsett vad kopielistan säger.
  *  De tre första läses direkt av butiksrepot; flyttas de måste butiken byggas
- *  om, och de frigör inte de rader som binder. Tokenraden står här för att en
- *  raderad token inte går att läsa tillbaka — vägen tillbaka är ny OAuth för
- *  hand, samma återvändsgränd som de 30 dygnen utan förnyelse 2026-08-29. */
+ *  om. Tokenraden står här för att en raderad token inte går att läsa tillbaka
+ *  — vägen tillbaka är ny OAuth för hand, samma återvändsgränd som de 30
+ *  dygnen utan förnyelse 2026-08-29.
+ *
+ *  ⚠️ RÄTTAT 2026-09-02: raden påstod tidigare att de tre INTE frigör de rader
+ *  som binder. Det stämde när drift-datan var 15 000 rader och de tre var
+ *  marginal. Nu är drift-datan borta, och `FyndplatsImportedReviews` är
+ *  **2 514 av de ~3 355 rader som är kvar** — alltså 75 % av allt som binder
+ *  det globala 4 000-taket. Recensionerna är inte offret för taket, de ÄR det.
+ *
+ *  ☠️ MEN DE STÅR KVAR HÄR ÄNDÅ, och det är hela poängen med listan: kopian
+ *  till Postgres finns sedan 2026-09-02, men butiksrepot läser fortfarande
+ *  kollektionen DIREKT (`lib/reviews.ts` och `lib/review-aggregates.ts` på
+ *  grenen headless-site). Raderas raderna innan de läsarna följt med blir
+ *  produktsidorna TOMMA på recensioner — inte trasiga, tomma, alltså exakt det
+ *  fel som spårningssidan drabbades av 2026-09-01 och som varken en kodaudit
+ *  eller en felräknare kunde se. Ta bort raden ur listan FÖRST när butiken
+ *  läser via API:t. */
 export const ALDRIG_RADERA = [
   "FyndplatsImportedReviews",
   "FyndplatsAuctions",

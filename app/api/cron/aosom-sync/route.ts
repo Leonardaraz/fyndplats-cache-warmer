@@ -23,6 +23,12 @@
 // 2026-08-28 skickar tillbaka `visible` oförändrad — utan det publicerar en
 // variantsInfo-PATCH utkastet den rör.
 //
+// ☠️ FACIT FÖR PRISET ÄR BUTIKEN, INTE MAPPNINGEN (sedan 2026-09-02).
+// Butikens priser läses i bulk före loopen (~54 anrop för hela katalogen).
+// Jämfördes de mot mappningens `grossSek` kunde en rad som drivit isär aldrig
+// självläka — se `jamforelsePris` i lib/aosom/sync.ts. `skipPrices=1` hoppar
+// över den läsningen helt.
+//
 // Query:
 //   ?dryRun=false        skarpt läge (default: torrkörning, skriver ingenting)
 //   ?limit=400           produkter denna körning
@@ -77,15 +83,39 @@ async function handle(req: NextRequest) {
       timeBudgetMs: TIME_BUDGET_MS,
     });
 
-    if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0)) {
+    // `utanWixPris` fäller också raden: produkter vars pris vi inte kunde
+    // jämföra är tyst överhoppade, och tyst överhoppat är precis hur de tjugo
+    // drivande raderna kunde ligga osedda i en månad.
+    // ☠️ `misslyckade` fäller också raden. Utan det skrevs ingen audit-rad alls
+    // för en körning som bara misslyckades — och en körning som inte kunde
+    // skriva någonting såg då ut exakt som en körning där allt redan stämde.
+    if (!dryRun && (summary.lagerUppdaterade > 0 || summary.prisUppdaterade > 0
+      || summary.utanWixPris > 0 || summary.misslyckade > 0 || summary.prislistaFel)) {
       await audit(
         "aosom-sync",
         "batch",
         `${summary.lagerUppdaterade} lagersaldon och ${summary.prisUppdaterade} priser uppdaterade, `
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
-          + `${summary.varningar.length} blockerade prishopp, ${summary.kvar} kvar`,
+          + `${summary.varningar.length} blockerade prishopp, `
+          + `${summary.utanWixPris} utan butikspris, ${summary.misslyckade} MISSLYCKADE, `
+          + `${summary.kvar} kvar`
+          + (summary.errors[0] ? ` — första felet: ${summary.errors[0].error.slice(0, 160)}` : "")
+          + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
       );
     }
+
+    // ☠️ En rad i loggen, alltid. Vercel visar annars bara `GET … 200` för en
+    // schemalagd körning, och "ett svar utan fel är inget kvitto" — utan den
+    // här raden går det inte att se vad nattens synk faktiskt gjorde utan att
+    // ha CRON_SECRET för handen.
+    console.log(
+      `[aosom-sync] ${summary.granskade} granskade, ${summary.lagerUppdaterade} lager, `
+        + `${summary.prisUppdaterade} priser, ${summary.utanWixPris} utan butikspris, `
+        + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
+        + `${summary.varningar.length} varningar, ${summary.misslyckade} misslyckade, `
+        + `${summary.kvar} kvar${dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`
+        + (summary.prislistaFel ? ` — PRISLISTAN GICK INTE ATT LÄSA: ${summary.prislistaFel}` : ""),
+    );
 
     return NextResponse.json(
       {
