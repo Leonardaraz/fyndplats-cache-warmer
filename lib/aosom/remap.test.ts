@@ -8,6 +8,7 @@ import {
 } from "./remap";
 import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
+import { mappingSupplier } from "../store/supplier";
 
 const FX = { eurToSek: 11, usdToSek: 10 };
 
@@ -143,6 +144,36 @@ describe("planeraOmmappning", () => {
     expect(p.hinder).not.toContain("skun_upptagen");
   });
 
+  it("☠️ räknar INTE den rad anroparen pekat ut som dubblett", () => {
+    // Så hittas en äkta dubblett: Aosom-utkastet ÄR beviset, och det bär
+    // artikelnumret. Räknades det som "upptaget" hade grinden fällt varje
+    // ommappning som gjorts på rätt sätt — uppmätt på båda de lönsamma paren
+    // 2026-09-03.
+    const p = planeraOmmappning({
+      mappning: mappning(),
+      rad: rad(),
+      alla: [{ supplierProductId: "aosom:845-030CG", wixProductId: "wix-2", supplier: "aosom" }],
+      fx: FX,
+      dubblett: "wix-2",
+    });
+    expect(p.hinder).not.toContain("skun_upptagen");
+  });
+
+  it("☠️ fäller ändå när numret sitter på en TREDJE rad", () => {
+    // Undantaget gäller exakt den utpekade dubbletten, inte "någon annan rad".
+    const p = planeraOmmappning({
+      mappning: mappning(),
+      rad: rad(),
+      alla: [
+        { supplierProductId: "aosom:845-030CG", wixProductId: "wix-2", supplier: "aosom" },
+        { supplierProductId: "aosom:845-030CG", wixProductId: "wix-3", supplier: "aosom" },
+      ],
+      fx: FX,
+      dubblett: "wix-2",
+    });
+    expect(p.hinder).toContain("skun_upptagen");
+  });
+
   it("☠️ vägrar en flervariantssida", () => {
     // En Aosom-rad ÄR en artikel. Alla varianter hade pekat på samma nummer,
     // och då beställs fel färg så fort kunden väljer den andra.
@@ -216,5 +247,28 @@ describe("pensioneraDubblett", () => {
     expect(d.needsAiPolish).toBe(false);
     expect(d.wixProductId).toBe("wix-2");
     expect(d.reviewedAt).toBeTruthy();
+  });
+
+  it("☠️ släpper artikelnumret — annars bär två rader samma", () => {
+    // Numret följer den levande sidan. Två bärare gör frågan "vilken produkt
+    // köper vi artikeln som?" tvetydig och får Aosom-synken att skriva till båda.
+    const d = pensioneraDubblett(
+      mappning({ wixProductId: "wix-2", supplierProductId: "aosom:845-030CG" }),
+    );
+    expect(d.supplierProductId).toBe("");
+  });
+
+  it("☠️ fryser leverantören innan numret försvinner", () => {
+    // Utan `supplier` faller mappingSupplier tillbaka på `aosom:`-prefixet. En
+    // tömd rad hade klassats som AliExpress och gått in i sync-all:s omöjliga
+    // uppslag — den rutten NOLLAR lagret vid `offline`.
+    const d = pensioneraDubblett(
+      mappning({
+        wixProductId: "wix-2",
+        supplierProductId: "aosom:845-030CG",
+        supplier: undefined,
+      }),
+    );
+    expect(mappingSupplier(d)).toBe("aosom");
   });
 });

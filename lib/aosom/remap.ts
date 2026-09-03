@@ -130,10 +130,22 @@ export function planeraOmmappning(input: RemapInput): RemapPlan {
 
   // En SKU som redan sitter på en ANNAN produkt betyder att vi håller på att
   // skapa exakt den dubblett ommappningen finns för att ta bort.
+  //
+  // ☠️ MEN DEN RAD ANROPAREN SJÄLV PEKAT UT SOM DUBBLETT RÄKNAS INTE. Så
+  // hittas en äkta dubblett i praktiken: Aosom-utkastet ÄR beviset för att
+  // den publicerade AE-sidan säljer samma fysiska vara, och utkastet bär
+  // artikelnumret. Utan undantaget fäller grinden alltså varje ommappning
+  // som gjorts på rätt sätt, och släpper bara igenom dem där ingen kontrollerat
+  // mot ett utkast. Uppmätt 2026-09-03: båda de två lönsamma paren föll här,
+  // och ingen av dem hade skapat en dubblett — utkastet pensioneras i samma
+  // skrivning, och `pensioneraDubblett` släpper artikelnumret.
   if (rad) {
     const id = aosomSupplierProductId(rad.sku);
     const upptagenAv = alla.find(
-      (m) => m.supplierProductId === id && m.wixProductId !== mappning?.wixProductId,
+      (m) =>
+        m.supplierProductId === id
+        && m.wixProductId !== mappning?.wixProductId
+        && m.wixProductId !== input.dubblett,
     );
     if (upptagenAv) hinder.push("skun_upptagen");
   }
@@ -261,6 +273,18 @@ export function tillämpaOmmappning(
 export function pensioneraDubblett(m: ProductMappingRecord): ProductMappingRecord {
   return {
     ...m,
+    // ☠️ ARTIKELNUMRET SLÄPPS — det följer med den LEVANDE sidan. Två rader med
+    // samma `supplierProductId` gör frågan "vilken produkt köper vi 845-292
+    // som?" tvetydig, och Aosom-synken hade skrivit lager och pris till båda.
+    // Importens dubblettspärr står kvar: den letar på `supplierProductId`, och
+    // numret finns nu på den ommappade raden (som skrivs FÖRE den här).
+    supplierProductId: "",
+    // ☠️ OCH KLASSIFICERINGEN FRYSES INNAN NUMRET FÖRSVINNER. `mappingSupplier`
+    // faller tillbaka på `aosom:`-prefixet i id:t när `supplier` saknas — en
+    // tömd rad utan fältet hade alltså klassats som AliExpress, och gått rakt
+    // in i `sync-all`:s omöjliga uppslag. Den rutten NOLLAR lagret vid
+    // `offline`, så en felklassad rad är inte en kosmetisk miss.
+    supplier: mappingSupplier(m),
     draftStatus: "rejected",
     needsAiPolish: false,
     reviewedAt: new Date().toISOString(),
