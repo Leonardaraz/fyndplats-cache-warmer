@@ -976,6 +976,23 @@ undantag utan husets linje.
 
 -----
 
+### ☠️ Två mått som motsäger varandra — MÅTTRITNINGEN är facit (2026-09-03)
+
+Katthuset `7d264875` hade två höjder i samma rad data: den tyska spec-kolumnen sa
+`87L x 52B x 44H`, den svenska variantraden `52T x 87B x 48H`. Fyra centimeter, och
+ingen av källorna är märkt som mer tillförlitlig än den andra.
+
+**Bild 3 avgjorde det.** Feedens position 3 är nästan alltid en måttritning med
+siffror inbrända i pixlarna (`RENA_BILDPOSITIONER` behåller den just därför), och där
+löper måttlinjen från marken till takets överkant med **44 cm**. Alt-texten, som
+importen byggde ur den tyska titeln, sa också 44. Tre källor mot en.
+
+**Regeln: när två sifferkällor säger olika, zooma in måttritningen.** Den är den enda
+källan som är GRAFISK — den kan inte ha råkat bli fel i en transkribering mellan två
+kolumner, och den visar dessutom VAR måttet är taget (här: inklusive taket, vilket är
+det kunden behöver veta). Gissa aldrig på den ena kolumnen, och skriv aldrig ut båda
+talen med en brasklapp — det är precis det Steg 7 förbjuder.
+
 ### ☠️ Ett färgfält kan vara SCRAMBLAT i en färgfamilj — då är färgen inte publicerbar
 
 Runda 47 lärde att färgnamnet kan vara fel mot bilden. Runda 48 visade det värre fallet:
@@ -1953,6 +1970,48 @@ assert all(ord(t) > 0x20 for t in OSYNLIGT), "grinden ar avvapnad"
 Regeln generaliserar: **en grind vars villkor är ett osynligt tecken kan inte
 granskas genom att läsas.** Den måste antingen härledas ur något synligt (en
 kodpunkt) eller bevisas med ett test som återinför defekten.
+
+### ☠️ Och en ordgräns räcker inte heller — `\b` är ASCII-bara i JavaScript (2026-09-03)
+
+Regeln ovan säger "ordgräns på varje markör". Den räcker inte, och det upptäcktes en
+runda senare: klart-kriteriet fällde kattstugan `b4f4d991` på `tyskt ord: /\bdas\b/i`
+ett steg före publicering. Sidan var ren. Ordet var **stä|das**.
+
+I JavaScript är `\b` definierad mot `[A-Za-z0-9_]`. `ä` räknas alltså som ett
+ICKE-ordtecken, och därför finns det en ordgräns mitt inne i varje svenskt ord där
+`å/ä/ö` står precis före markören:
+
+| | `/\bdas\b/i` mot "städas" |
+|---|---|
+| JavaScript | **träff** — `ä` bryter ordet |
+| Python (`str`-mönster) | ingen träff — `\b` är unicode-medveten |
+
+Det gäller inte bara `das`. Uppmätt över de åtta vanligaste tyska markörerna mot
+femton svenska ord — bara tre föll, och alla tre av samma skäl:
+
+| svenskt ord | JS-`\b` fäller på | unicode-gräns |
+|---|---|---|
+| stä**das** | `das` | — |
+| vä**der** | `der` | — |
+| rä**der** | `der` | — |
+
+Mönstret är exakt: en svensk vokal FÖRE markören och ordslut EFTER den. `vädret`
+klarar sig (`der` följs av `e`, som är ordtecken i båda), men **"väder" gör det inte —
+och det ordet står i varannan text om utomhusprodukter.**
+
+**Skriv gränsen explicit i stället, med de svenska bokstäverna i lookaround:**
+
+```js
+const G = (k) => new RegExp("(?<![A-Za-zÅÄÖåäö0-9])(?:" + k + ")(?![A-Za-zÅÄÖåäö0-9])", "i");
+const TYSKA = ["und", "mit", "das", "der", "wetterfest\\w*", …].map(G);
+```
+
+☠️ **Och den djupare regeln, tredje gången i det här projektet: två korrekta
+implementationer av samma regel gav olika svar.** Python-linten som byggde texten och
+JS-grinden som läste tillbaka den har samma ordlista och samma avsikt — men olika
+`\b`. Samma familj som FNV-1a-hashen, där `h * 16777619` var exakt i Python och lossy
+i JavaScript. **En grind vars två sidor räknar olika mäter implementationerna, inte
+datan** — och ett falsklarm en minut före publicering ser ut precis som ett äkta fel.
 
 ### ☠️ En tysk-detektor byggd av ORDSTAMMAR fäller svenska böjningar (2026-09-03)
 
