@@ -2611,6 +2611,47 @@ ena av två former kunde alltså träffa, och 488 sidor svepta med det mönstret
 ingenting. **Validera alltid ett svepmönster mot minst en känd smutsig sida av varje
 form innan du litar på ett tomt resultat.**
 
+**Läckan har nu hittats FEM gånger, och fem gånger av ett svep.** De två senaste
+(2026-09-03, båda i samma timme) satt i spärren själv, inte i texten:
+
+| felet i detektorn | vad som gick fri |
+|---|---:|
+| prefixet var `[0-9A-Z]` och regexen saknade `i` | **19** publicerade sidor med GEMEN kod |
+| `Artikelreferens` saknades i etikettlistan | **4** publicerade sidor |
+
+Den första är den obehagliga. Filens egen kommentar sa *"FORMEN ÄR MÄTT, INTE
+GISSAD"* — och det var sant, formen var mätt över 51 sidor. Men varenda kod i det
+urvalet råkade vara versal, så mätningen bevisade en form och antog en teckenrymd.
+Svepet läste 5 485 produkter och rapporterade `medKod: 0` medan `Referens:
+d30-670v00yl` låg live på en publicerad sida.
+
+☠️ **En spärr som är blind för halva teckenrymden är värre än ingen spärr:** den
+ger ett grönt kvitto på en läcka som pågår, och den gröna rapporten är skälet att
+ingen tittar efter.
+
+**Tre regler ur det:**
+
+1. **Ett mätt urval bevisar formen, inte rymden.** Har du mätt `Z00-111V00XX` vet
+   du hur raden ser ut — inte att koden alltid är versal, alltid har det prefixet,
+   alltid saknar parentes. Skriv mönstret så vitt som datan tillåter och strama
+   åt med ett *innehållskrav* i stället: koden här kräver nu **minst en siffra i
+   båda halvorna**, vilket träffar varje äkta kod och utesluter varje bokstavsord
+   (`Referens: bruks-anvisning` hade annars klippts bort när gemener släpptes in).
+2. **Alternationen tar det FÖRSTA alternativet som matchar — sortera längst först.**
+   `Referens` före `Artikelreferens` matchar de nio sista tecknen, och då står
+   `<li><p>` inte längre omedelbart före etiketten: raden går fri i saxen men syns
+   i löptext-rapporten. Ett fel som ser ut som två olika buggar är en
+   sorteringsfråga. Sätt dessutom en ordgräns före etiketten — **en etikett som
+   ska klippas ska stå i listan, inte hittas av misstag.**
+3. ☠️ **Kontrollera svepets `avhuggen` INNAN du tolkar noll träffar.** Första
+   mätningen här läste 2 800 av 5 485 och gav noll — jag drog slutsatsen att
+   regexen var oskyldig. Den kända smutsiga sidan låg i den olästa halvan. Samma
+   fälla som `cursor === null` i Steg 1, en våning ner.
+
+**Kvittot som gör mätningen värd något:** lägg en **känd smutsig rad av varje form**
+som positiv kontroll i själva svepet och avbryt om den inte träffas. Två rader kod,
+och det är skillnaden mellan "noll träffar" och "noll träffar, och regexen fungerar".
+
 Kör inte det här för hand längre. Verktyget är
 **`lib/seo/leverantorskod.ts`** (saxen) + **`lib/seo/text-repair.ts`** (körningen) +
 `/api/cron/seo-text-repair` + workflowen **"SEO — städa publicerad produkttext"**
