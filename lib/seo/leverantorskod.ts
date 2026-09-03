@@ -42,8 +42,25 @@ const ETIKETTER = [
  * (`Z00-777`, `Z90-222V00BK`, `Z30-666V00BN`), och ibland ett längre numeriskt
  * prefix (`Z00110-555BG`). Två koder kan stå på samma rad, åtskilda med
  * snedstreck.
+ *
+ * ☠️ `FP-` ÄR VÅRT EGET, och undantaget är inte kosmetiskt.
+ *
+ * Husets SKU:er börjar alltid `FP-` (`lib/import/sku.ts`), och raden
+ * `Artikelnummer: FP-julgran-210-pynt` är en LEGITIM rad på vår egen sida —
+ * kundens referens vid en reklamation. Ingen leverantörskod ser ut så: Aosoms
+ * är `83D-188V00WT`, `D30-371`, `B71-089V00BK`.
+ *
+ * Utan undantaget gjorde formen två fel, ett i varje riktning:
+ *
+ *   1. **Saxen kunde radera vår egen rad.** En kort SKU som `FP-sideboard`
+ *      matchar `[0-9A-Z]{2,7}-[0-9A-Za-z]{2,14}` rakt av och hade klippts bort.
+ *      Bara svansens längd räddade de flesta — ren tur, inte konstruktion.
+ *   2. **Larmet drunknade i sitt eget brus.** `kodIText` flaggade 20 sidor
+ *      2026-09-03 vars enda "kod" var deras egen FP-SKU. Ett larm där tre av
+ *      fyra är falska slutar läsas, och då är även det äkta borta — samma
+ *      argument som mot att varna vid 48 h på token-förnyelsen.
  */
-const KOD = "[0-9A-Z]{2,7}-[0-9A-Za-z]{2,14}";
+const KOD = "(?!FP-)[0-9A-Z]{2,7}-[0-9A-Za-z]{2,14}";
 const KODER = `${KOD}(?:\\s*/\\s*${KOD})*`;
 
 /**
