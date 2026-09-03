@@ -770,6 +770,23 @@ Bygg innehållet:
     varken `?cb=`-parameter eller `Cache-Control: no-cache` går förbi den — de slår
     bara mot CDN:en, inte mot sidbygget. Kontrollera att `seoData` blivit rätt genom
     att läsa tillbaka via API:t; den renderade titeln följer efter vid nästa ombyggnad.
+  - ☠️ **Och den FÖRSTA hämtningen kan visa den gamla sidan — den bara beställer den
+    nya.** ISR svarar *stale-while-revalidate*: `x-vercel-cache: HIT` på ett utgånget
+    svar betyder att du fick det GAMLA innehållet och att ombyggnaden startade i
+    bakgrunden. Uppmätt 2026-09-03 under katalogsvepet: en sida vars kodrad var
+    borttagen i Wix renderade fortfarande koden vid första anropet, och var ren vid
+    nästa (`age: 63`). Ett svep som mäter en gång per sida rapporterar alltså falska
+    kvarvarande fel.
+
+    **Hämta därför två gånger, och lita på den andra** — eller läs Wix, som är facit:
+
+    ```bash
+    curl -s -o /dev/null "$adress"          # bestaller ombyggnaden
+    curl -s "$adress" | grep -c '<sokstrang>'   # detta ar matningen
+    ```
+
+    Samma familj som husets vanligaste regel, speglad: här är det inte ett svar utan
+    fel som saknar bevisvärde, utan ett svar MED fel som inte är ett bevis.
 - **meta description:** ≤ ~155 tecken, nytta + sökord, **inga overifierade påståenden** (ingen "fri frakt" om det inte stämmer).
 
 > 🟠 **Rättar du ett sakfel i efterhand — rätta `seoData` i SAMMA veva.**
