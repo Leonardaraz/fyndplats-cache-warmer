@@ -684,6 +684,21 @@ en espressomaskin med "20 bar" i titeln och 15 bar hos tillverkaren; en häcksax
     2, som poleringen annars kan hoppa över. **Läs dem ändå när texten påstår något om
     utseendet.**
 
+17. ☠️ **Ett DÖRRMÅTT i spec-tabellen är EN dörrhalva — bara fotot säger hur många det finns.**
+    Regel 16 gäller utseende; det här gäller ett tal som ser oskyldigt ut och ändå ändrar vad
+    kunden kan använda varan till. Aosom listar `Tür: 35 x 171 cm` utan att skriva "per halva",
+    och en enkeldörr och en dubbeldörr ger identiska spec-rader.
+
+    Batch 62, redskapsboden `2b6d2766`: jag skrev "enkeldörr, 35 × 171 cm" och byggde två
+    FAQ-svar på det — *"det är en smal dörr … inte för något brett som en skottkärra"*.
+    Fotot visar två dörrhalvor, och tillverkarens egen måttritning sätter **70 cm** vid
+    golvet. Vi hade alltså halverat produktens öppning i marknadsföringen. Samma fel på
+    trädgårdsskåpet `c85c49af`: "ett akrylfönster" där det finns två, ett i varje dörrhalva.
+
+    **Testet:** varje gång du skriver ordet *dörr*, titta på bild 1 och räkna gångjärnen.
+    Två uppsättningar → dubbeldörr, och spec-raden ska stå som `2 × B × H` med den fria
+    öppningen uträknad. Felet går bara åt ett håll — man underskattar aldrig en enkeldörr.
+
 10. ☠️ **Läs HELA källtexten innan du skriver — den bär också det du annars utelämnar.**
     Regel 7–9 handlar om påståenden man lägger TILL. Det här är felet åt andra hållet, och
     det upptäcks aldrig i korrekturet: texten är sann, välskriven och saknar halva varan.
@@ -1355,11 +1370,19 @@ annan produkt än den som kommer.
 | Foto med text/logga inbränd **över varan** | Tvätta ([T](polish/bildmetoder.md#textborttagning-t--tvätta-loggor-och-inbränd-text)) |
 | Ren produkt på ful/mörk/rörig bakgrund | Vit studio-hjälte ([H](polish/bildmetoder.md#hjältebild-h--ren-vit-produktbild)) |
 | Marknadsgrafik med användbara delfoton | Klipp ut fotona, bygg eget svenskt kort ([K](polish/bildmetoder.md#kortbygge-k--egna-svenska-feature--och-spec-kort)) |
+| **Måttritning med tysk textruta i ett hörn** | Beskär bort rutan — ritningen i sig är bara siffror |
 | Ren textinfografik utan foto | Ta bort — informationen hör hemma i spec-tabellen |
 
 **Behåll så många ANVÄNDBARA bilder som möjligt** *(Leonard 2026-07-10)* — en rik produktsida
 säljer mer än en med tre bilder. Släng bara exakta dubbletter och bilder utan visuellt värde.
 Leverantörens feature-collage **byggs om** till svenska kort, kastas inte.
+
+⚠️ **Aosoms måttritning för bodar bär en tysk ruta nere till höger** — *"Hinweis: Messen Sie
+das Fundament…"* plus en färglegend. Den ligger under en vit remsa som är lätt att hitta
+programmatiskt: skanna nedre halvan efter första raden där en bred strimma är enhetligt
+ljusgrå (232–248, kanalerna inom 4 av varandra) och kapa 12 px ovanför. Mätt på fem ritningar
+i batch 62 låg gränsen på 0,72–0,74 av höjden. **Kasta inte hela bilden** — måttritningen är
+den nyttigaste bilden på en bod, och utan textrutan är den helt språkneutral.
 
 **Aldrig ett rent text-kort.** Varje kort ska ha ett riktigt foto med texten som bildtext
 *(Leonard 2026-07-10)*. **Och fotot ska vara stort:** `fit=True` (`contain`) för produktbilder
