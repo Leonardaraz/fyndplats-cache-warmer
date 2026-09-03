@@ -1,0 +1,947 @@
+{
+  "lasta": 1658,
+  "traffar": 100,
+  "medKod": 69,
+  "medTrasigLank": 31,
+  "lagade": 0,
+  "misslyckade": 0,
+  "kodINamn": [],
+  "plan": [
+    {
+      "wixProductId": "6299104d-351d-44bf-94c7-fd948c31544b",
+      "slug": "dorrgrind-75-85-cm-med-kattlucka",
+      "namn": "Dörrgrind 75–85 cm med kattlucka",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/dorrgrind-74-111-cm-skruvmontage"
+      ]
+    },
+    {
+      "wixProductId": "f65c4435-6355-4d3d-84cf-bf49d5042728",
+      "slug": "hundgrind-254-cm-5-paneler",
+      "namn": "Hundgrind 254,5 cm med fem paneler",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/hundgrind-154-cm-3-paneler",
+        "https:/produkt/hundgrind-203-cm-4-paneler"
+      ]
+    },
+    {
+      "wixProductId": "c6554568-d74d-4d47-8b75-dde7ebac88be",
+      "slug": "hundgrind-203-cm-4-paneler",
+      "namn": "Hundgrind 203,5 cm med fyra paneler",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/hundgrind-154-cm-3-paneler",
+        "https:/produkt/hundgrind-254-cm-5-paneler"
+      ]
+    },
+    {
+      "wixProductId": "e4367833-2a04-4460-abe6-b216bb699818",
+      "slug": "hundgrind-154-cm-3-paneler",
+      "namn": "Hundgrind 154,5 cm med tre paneler",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/hundgrind-203-cm-4-paneler",
+        "https:/produkt/hundgrind-254-cm-5-paneler"
+      ]
+    },
+    {
+      "wixProductId": "26f28bf2-57f5-4cd4-83a0-cfda8b56f649",
+      "slug": "tv-bank-160-cm-hogglans-vit",
+      "namn": "TV-bänk 160 cm i högglans vit",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/tv-bank-160-cm-hogglans-ekskiva",
+        "https:/produkt/tv-bank-160-cm-hogglans-ekskiva"
+      ]
+    },
+    {
+      "wixProductId": "e60b4d1a-8c87-4645-bcb5-91d450c26306",
+      "slug": "tv-bank-160-cm-hogglans-ekskiva",
+      "namn": "TV-bänk 160 cm högglans med ekskiva",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/tv-bank-160-cm-hogglans-vit",
+        "https:/produkt/tv-bank-160-cm-hogglans-vit"
+      ]
+    },
+    {
+      "wixProductId": "e768ff5c-1ca0-4da8-8cd3-7382233ad5b8",
+      "slug": "matstolar-4-pack-gra-sammet",
+      "namn": "Matstolar 4-pack i grå sammet",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/matstolar-4-pack-rosa",
+        "https:/produkt/matstolar-4-pack-rosa"
+      ]
+    },
+    {
+      "wixProductId": "b5668632-0387-40d2-bcce-27feb8877746",
+      "slug": "satsbord-runt-svart-70-54-cm",
+      "namn": "Satsbord runt 2-pack Ø70 och Ø54 cm – svart stål med glasskiva",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/satsbord-runt-2-pack-industriellt"
+      ]
+    },
+    {
+      "wixProductId": "b95367b2-f7d3-4435-b5c8-c82020c68401",
+      "slug": "sangbank-126-cm-forvaring-gra",
+      "namn": "Sängbänk 126 cm med förvaring, grå",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/sangbank-126-cm-forvaring-beige",
+        "https:/produkt/sangbank-126-cm-forvaring-gron",
+        "https:/produkt/sangbank-126-cm-forvaring-beige",
+        "https:/produkt/sangbank-126-cm-forvaring-gron"
+      ]
+    },
+    {
+      "wixProductId": "8934f3ce-3c71-42d4-8e8e-e4fec40b64fb",
+      "slug": "sangbank-126-cm-forvaring-gron",
+      "namn": "Sängbänk 126 cm med förvaring, grön",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/sangbank-126-cm-forvaring-beige",
+        "https:/produkt/sangbank-126-cm-forvaring-gra",
+        "https:/produkt/sangbank-126-cm-forvaring-beige",
+        "https:/produkt/sangbank-126-cm-forvaring-gra"
+      ]
+    },
+    {
+      "wixProductId": "67eafa8c-6b7c-4461-bf13-8363951d26f9",
+      "slug": "sangbank-126-cm-forvaring-beige",
+      "namn": "Sängbänk 126 cm med förvaring, beige",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/sangbank-126-cm-forvaring-gron",
+        "https:/produkt/sangbank-126-cm-forvaring-gra",
+        "https:/produkt/sangbank-126-cm-forvaring-gron",
+        "https:/produkt/sangbank-126-cm-forvaring-gra"
+      ]
+    },
+    {
+      "wixProductId": "409b840a-618d-4ce5-8254-e250983c56f8",
+      "slug": "konsolbord-med-lada-80-cm-rustik-brun",
+      "namn": "Konsolbord med låda 80 cm, rustik brun",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/konsolbord-med-lada-80-cm-naturtra",
+        "https:/produkt/konsolbord-med-lada-80-cm-naturtra"
+      ]
+    },
+    {
+      "wixProductId": "e37dd9e2-8052-499d-995e-93a614a66b68",
+      "slug": "konsolbord-med-lada-80-cm-naturtra",
+      "namn": "Konsolbord med låda 80 cm, naturträ",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/konsolbord-med-lada-80-cm-rustik-brun",
+        "https:/produkt/konsolbord-med-lada-80-cm-rustik-brun"
+      ]
+    },
+    {
+      "wixProductId": "ebbfd47b-b3c0-4ceb-868c-6ab666892cf3",
+      "slug": "fallbart-skrivbord-4-hyllor-30-cm",
+      "namn": "Fällbart skrivbord med 4 hyllor – viks till 30 cm, bär 80 kg",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/hopfallbart-skrivbord-80x40-cm-hjul"
+      ]
+    },
+    {
+      "wixProductId": "56a61a9a-197e-444c-af13-8c196da79d22",
+      "slug": "badrumsskap-180x40-cm-sex-plan",
+      "namn": "Badrumsskåp 180 cm högt och 40 cm brett – sex plan bakom två dörrar",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/smalt-badrumsskap-20-cm-hogskap"
+      ]
+    },
+    {
+      "wixProductId": "039c6d8e-2fe3-4455-af40-1adbffc6e1be",
+      "slug": "matstolar-2-pack-stalben-ljusgra",
+      "namn": "Matstolar 2-pack med stålben, ljusgrå",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/matstolar-2-pack-armstod-traben-svart",
+        "https:/produkt/matstolar-2-pack-armstod-traben-svart"
+      ]
+    },
+    {
+      "wixProductId": "0b994092-906d-4b07-9165-a4cdc66844d1",
+      "slug": "matstolar-2-pack-armstod-traben-svart",
+      "namn": "Matstolar 2-pack med armstöd och träben, svart",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/matstolar-2-pack-stalben-ljusgra",
+        "https:/produkt/matstolar-2-pack-stalben-ljusgra"
+      ]
+    },
+    {
+      "wixProductId": "5efe45d0-c3e0-4097-815c-ffcd1e82bf2b",
+      "slug": "matstolar-2-pack-medaljongrygg-gra",
+      "namn": "Matstolar 2-pack med medaljongrygg, grå",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/matstolar-2-pack-medaljongrygg-cremevit",
+        "https:/produkt/matstolar-2-pack-medaljongrygg-cremevit"
+      ]
+    },
+    {
+      "wixProductId": "1876d935-c149-43b2-b311-a6807bc86264",
+      "slug": "matstolar-2-pack-medaljongrygg-cremevit",
+      "namn": "Matstolar 2-pack med medaljongrygg, cremevit",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/matstolar-2-pack-medaljongrygg-gra",
+        "https:/produkt/matstolar-2-pack-medaljongrygg-gra"
+      ]
+    },
+    {
+      "wixProductId": "53644ed2-7dc6-46a1-be0c-9a87f8d64654",
+      "slug": "karmstol-medaljongrygg-kalkat-tra",
+      "namn": "Karmstol med medaljongrygg i kalkat trä",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/matstolar-2-pack-medaljongrygg-cremevit",
+        "https:/produkt/matstolar-2-pack-medaljongrygg-gra",
+        "https:/produkt/matstolar-2-pack-medaljongrygg-cremevit",
+        "https:/produkt/matstolar-2-pack-medaljongrygg-gra"
+      ]
+    },
+    {
+      "wixProductId": "27ab5be6-bee0-4753-910c-c87d09b8e36f",
+      "slug": "tv-bank-pa-hjul-80-cm-vit",
+      "namn": "TV-bänk på hjul 80 cm, vit",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/tv-bank-pa-hjul-80-cm-svart",
+        "https:/produkt/tv-bank-pa-hjul-80-cm-svart"
+      ]
+    },
+    {
+      "wixProductId": "5d46fd57-7e09-4f63-9cdd-c71d24c8e6a0",
+      "slug": "tv-bank-pa-hjul-80-cm-svart",
+      "namn": "TV-bänk på hjul 80 cm, svart",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/tv-bank-pa-hjul-80-cm-vit",
+        "https:/produkt/tv-bank-pa-hjul-80-cm-vit"
+      ]
+    },
+    {
+      "wixProductId": "2b275f57-371a-448e-b429-31107ab3b201",
+      "slug": "ottomanbank-125-cm-forvaring-bla",
+      "namn": "Ottomanbänk 125 cm med förvaring, blå",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/ottomanbank-125-cm-forvaring-gra",
+        "https:/produkt/ottomanbank-125-cm-forvaring-beige"
+      ]
+    },
+    {
+      "wixProductId": "74cbe464-c00e-4376-b512-67f14e11b66e",
+      "slug": "ottomanbank-125-cm-forvaring-beige",
+      "namn": "Ottomanbänk 125 cm med förvaring, beige",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/ottomanbank-125-cm-forvaring-gra",
+        "https:/produkt/ottomanbank-125-cm-forvaring-bla"
+      ]
+    },
+    {
+      "wixProductId": "dba3ac1c-333d-49e6-9b78-ab5d9bc2fa10",
+      "slug": "ottomanbank-125-cm-forvaring-gra",
+      "namn": "Ottomanbänk 125 cm med förvaring, grå",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/ottomanbank-125-cm-forvaring-beige",
+        "https:/produkt/ottomanbank-125-cm-forvaring-bla"
+      ]
+    },
+    {
+      "wixProductId": "3c002664-13d0-4941-a6a1-aaa7872debc1",
+      "slug": "konstgjord-bambu-180-cm-rumsavdelare",
+      "namn": "Konstgjord bambu 180 cm som rumsavdelare – 1 640 blad, avlång kruka",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/konstgjord-bambu-150-cm-kruka"
+      ]
+    },
+    {
+      "wixProductId": "41191212-60ac-45ce-bd5a-3825f92a3472",
+      "slug": "bordsdiskmaskin-4-kuvert-6-liters-tank",
+      "namn": "Bordsdiskmaskin vit 4 kuvert med 6 L tank – 29 min snabbprogram",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/bordsdiskmaskin-svart"
+      ]
+    },
+    {
+      "wixProductId": "a10623cc-9e79-4e72-ab43-3b9912b60772",
+      "slug": "bordsdiskmaskin-svart",
+      "namn": "Bordsdiskmaskin svart 4 kuvert – 6 L tank, 29 min snabbprogram",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/bordsdiskmaskin-4-kuvert-6-liters-tank"
+      ]
+    },
+    {
+      "wixProductId": "c93e903e-35a2-40fd-8f82-ab6e32f495a9",
+      "slug": "bordsdiskmaskin-5-program-fruktrengoring",
+      "namn": "Bordsdiskmaskin 4 kuvert med 5 program – fruktrengöring, 4,5 L",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/bordsdiskmaskin-4-kuvert-6-liters-tank",
+        "https:/produkt/bordsdiskmaskin-svart"
+      ]
+    },
+    {
+      "wixProductId": "588ce016-831a-4cd8-9916-ef0af681f08c",
+      "slug": "hoppborg-med-pool-380-cm",
+      "namn": "Hoppborg med pool och rutschkana 380 × 340 cm – för 3 barn, 3–8 år",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/produkt/uppblasbar-hoppborg-rutschkanor-pool"
+      ]
+    },
+    {
+      "wixProductId": "719b7332-7de7-4cf5-91d1-d77bfb12548b",
+      "slug": "fotbollsspel-barn-i-tra",
+      "namn": "Fotbollsspel för barn i trä – 18 spelare, 6 stänger och manuell räknare",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> A70-127V00GN</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "59cb0c95-8557-42e6-a860-4590c0091c27",
+      "slug": "pingisbord-hopfallbart-152-cm",
+      "namn": "Pingisbord hopfällbart 152 cm – avtagbart nät, 2 racket och 3 bollar",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> A90-404V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ffa3d111-7dbd-4ec9-80a6-e4f7751243fd",
+      "slug": "planteringsbord-tra-89-cm",
+      "namn": "Planteringsbord i trä 89 cm – metallskiva, två hyllor och krokar",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 845-211</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "aed4c771-95a5-457a-8a35-43c7cc8fb51d",
+      "slug": "campingbord-hopfallbart-95-cm",
+      "namn": "Campingbord hopfällbart 95 cm – hoprullbar skiva och bärväska",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> A20-440V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "646720e3-49af-406d-89ae-ea2119b38802",
+      "slug": "platbod-277x195-cm-4-8-kvm-skjutdorrar-brun",
+      "namn": "Plåtbod 277 × 195 cm – 4,8 m² invändigt, skjutdörrar, brun",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 845-031v00bn</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4fa6ebd7-3848-4110-9ae0-8cda41955cb3",
+      "slug": "platbod-277x195-cm-glasfibertak-ljusgra",
+      "namn": "Plåtbod 277 × 195 cm – 4,8 m² med glasfibertak, ljusgrå",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 845-031v03lg</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "d438fc3e-3a6b-4f24-8c1d-979e8c317b57",
+      "slug": "tunnelvaxthus-395x300-cm-12-kvm-rullbara-sidor",
+      "namn": "Tunnelväxthus 3,95 × 3 m – 11,9 m² med rullbara sidoväggar",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 845-924v00wt</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "45d2a5ee-a5d9-4d1a-b499-8672bb6d3a64",
+      "slug": "tunnelvaxthus-595x300-cm-18-kvm-atta-natfonster",
+      "namn": "Tunnelväxthus 5,95 × 3 m – 17,9 m² med åtta nätfönster",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 845-120</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ce167a07-bceb-411f-be30-811e95c659ae",
+      "slug": "platbod-240x206-cm-snolast-30-kg-las-9-stodpelare",
+      "namn": "Plåtbod 240 × 206 cm – snölast 30 kg/m², lås och 9 stödpelare",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 845-857v00cg</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "9029edab-ef60-4b19-a980-a81f6f0ccd1c",
+      "slug": "hornsoffa-schaslong-230-cm-vandbar-bla-chenille",
+      "namn": "Hörnsoffa med schäslong 230 cm – vändbar, blå chenille",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 839-888v00bu</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7871b01e-498d-40a2-a45a-db81be526d21",
+      "slug": "matgrupp-utomhus-9-delar-utdragbart-bord-8-stolar",
+      "namn": "Matgrupp utomhus 9 delar – utdragbart bord 135–270 cm och 8 stolar",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 84G-159V00CG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cd628af2-408b-4fa4-b9f9-cc3fa453a5a4",
+      "slug": "platbod-213x130-cm-smal-takfonster",
+      "namn": "Plåtbod 213 × 130 cm – smal bod 2,4 m² med takfönster",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 845-030v01sr</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "76ac907c-beed-4b2c-896c-750d1ec29e93",
+      "slug": "hangmatta-2-personer-400-cm-210-kg",
+      "namn": "Hängmatta 2 personer 400 cm – träspridare, bär 210 kg",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 100110-074BG</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "e01dc49e-e5c7-4edd-8fc7-f33edfc2d569",
+      "slug": "parasoll-300-cm-tra-dubbeltak",
+      "namn": "Parasoll Ø300 cm i trä – dubbeltak och 8 spröt, elfenben",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 01-0244</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b6a4e725-4256-4d12-87dc-2ddce67c0583",
+      "slug": "kladhangare-furu-165-cm-atta-krokar",
+      "namn": "Klädhängare i furu 165 cm – åtta krokar, trebent fot",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 837-464v00nd</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "31d047f9-e4e9-45e3-b731-de6986cf0fa4",
+      "slug": "kylvagn-56-liter-hjul-flaskoppnare",
+      "namn": "Kylvagn 56 liter på hjul – flasköppnare och underhylla",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 846-116v00bk</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "44857a32-8848-46e8-8a5c-f8b64c34930b",
+      "slug": "hangmattestativ-313-388-cm-120-kg",
+      "namn": "Hängmattestativ 313–388 cm – justerbar bom, bär 120 kg",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Referens:</span> 84A-083</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "fc339dce-b35e-4d84-80ae-1affbd33569b",
+      "slug": "skoskap-4-speglade-luckor-17-cm",
+      "namn": "Skoskåp med 4 speglade luckor – 17 cm djupt, 12 par",
+      "kodrader": [
+        "<li><p>Artikelnummer: 837-647V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "1476d1ea-ffe7-42e6-94af-6cd20da22ae3",
+      "slug": "arbetsstol-hjul-51-67-cm-avtagbar-rygg",
+      "namn": "Arbetsstol på hjul 51–67 cm – avtagbart ryggstöd, 120 kg",
+      "kodrader": [
+        "<li><p>Artikelnummer: 503-031V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "f87dcf65-d1f6-454a-9d39-2f76d1c889ec",
+      "slug": "elbil-barn-lamborghini-aventador-svj-12v",
+      "namn": "Elbil barn Lamborghini Aventador SVJ 12V – vingdörrar och fjärrkontroll",
+      "kodrader": [
+        "<li><p>Artikelnummer: 370-306V90RD</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "c6258492-73ac-496d-81af-7cdd878dd422",
+      "slug": "klostrad-53-cm-tradstamsform",
+      "namn": "Klösträd 53 cm i trädstamsform – hus, bädd och jutepelare",
+      "kodrader": [
+        "<li><p>Artikelnummer: D30-909V00BN</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b0dbfc97-240f-400d-bcc4-162e04c28a2d",
+      "slug": "elbil-barn-bmw-i4-12v-115-cm",
+      "namn": "Elbil barn BMW i4 12V 115 cm – fjärrkontroll, MP3 och LED",
+      "kodrader": [
+        "<li><p>Artikelnummer: 370-294V90BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "44ff2bac-83f9-4aba-ac76-06ec8e814e60",
+      "slug": "boxboll-vaggfaste-plattform-60-cm",
+      "namn": "Boxboll med väggfäste – roterande plattform ø60 cm",
+      "kodrader": [
+        "<li><p>Artikelnummer: A91-098</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "d1130320-a86b-499d-9b99-1b88357e69ab",
+      "slug": "duschpall-rund-32-5-cm-8-hojdlagen",
+      "namn": "Duschpall rund Ø32,5 cm – 8 höjdlägen från 34,8 cm",
+      "kodrader": [
+        "<li><p>Artikelnummer: 72-0011</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "573310dc-12cc-41ea-8f40-3b529609b5c9",
+      "slug": "avfuktare-10-l-per-dygn-2-l-tank",
+      "namn": "Avfuktare 10 liter per dygn med 2 L tank – 8–12 m²",
+      "kodrader": [
+        "<li><p>Artikelnummer: 821-017V90</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "8a11ee33-8c46-4d39-b1f4-c9fa0071d0f4",
+      "slug": "barstolar-2-pack-62-83-cm-sammet",
+      "namn": "Barstolar 2-pack höj- och sänkbara 62–83 cm – sammet med armstöd",
+      "kodrader": [
+        "<li><p>Artikelnummer: 83A-317V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b37d426f-469a-4edf-8b47-8b349f573c3b",
+      "slug": "nattduksbord-rgb-led-tva-lador",
+      "namn": "Nattduksbord med RGB-LED 45 × 35 × 52 cm – två lådor och app",
+      "kodrader": [
+        "<li><p>Artikelnummer: 831-651V90WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7d5910ca-2c10-499d-bb9f-872530dea8d9",
+      "slug": "hundgaller-bil-40-cm-bredd-90-120",
+      "namn": "Hundgaller till bil 40,5 cm – justerbar bredd 90–120 cm",
+      "kodrader": [
+        "<li><p>Artikelnummer: D00-095V01</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "e72638dd-4d1e-46c7-bf63-efc7fbf38131",
+      "slug": "gunghast-tra-65-cm-rorlig-mun",
+      "namn": "Gunghäst i trä 65 cm – rörlig mun och svans, 36–72 månader",
+      "kodrader": [
+        "<li><p>Artikelnummer: 330-109BN</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "57988115-b904-4961-8da5-d82974b35e2b",
+      "slug": "strandparasoll-2-i-1-210-cm-sidovaggar",
+      "namn": "Strandparasoll 2-i-1 Ø210 cm – sidoväggar och UV50",
+      "kodrader": [
+        "<li><p>Artikelnummer: 84D-022GN / 84D-022</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "fa247a75-db8f-47ba-af57-3aedaf251b47",
+      "slug": "tunnelvaxthus-597x295-cm",
+      "namn": "Tunnelväxthus 5,97 × 2,95 m – 17,6 m², 12 fönster och gångjärnsdörr",
+      "kodrader": [
+        "<li><p>Artikelnummer: 84H-440V00GN</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "38c00989-da8f-42bb-8788-8c0ef66c667f",
+      "slug": "vaggklostrad-4-delar-plattformar-stege",
+      "namn": "Väggklösträd 4 delar – plattformar, stege och korg",
+      "kodrader": [
+        "<li><p>Artikelnummer: D30-555V00GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "af7bf20d-27d8-42c8-8cf2-d721fb9cf56c",
+      "slug": "yoghurtmaskin-8-glasburkar-180-ml",
+      "namn": "Yoghurtmaskin med 8 glasburkar 180 ml – 20–55 °C och timer",
+      "kodrader": [
+        "<li><p>Artikelnummer: 800-089V90</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "30e1851b-3b64-4ea2-b416-fac90dea5695",
+      "slug": "klostrad-golv-till-tak-225-255-cm",
+      "namn": "Klösträd golv till tak 225–255 cm – bomullsrep och tre plattformar",
+      "kodrader": [
+        "<li><p>Artikelnummer: D30-716V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "bd84c711-be78-4e20-8bb8-53a33cdded17",
+      "slug": "kolgrill-pa-hjul-83-cm",
+      "namn": "Kolgrill på hjul 83 cm – höjdreglerat galler och vindskydd",
+      "kodrader": [
+        "<li><p>Artikelnummer: 846-032</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7ca63a31-1fe0-4120-aa8e-da58d37e58b8",
+      "slug": "lekmatta-baby-150x180-cm-vandbar",
+      "namn": "Lekmatta baby 150 × 180 cm – vändbar, vattentät och hopfällbar",
+      "kodrader": [
+        "<li><p>Artikelnummer: 431-087V00MX</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "0ea9876e-5cb6-4bcf-bbac-83924a44a0f4",
+      "slug": "kettlebell-10-kg-sandfylld",
+      "namn": "Kettlebell 10 kg sandfylld med brett grepp",
+      "kodrader": [
+        "<li><p>Artikelnummer: A91-076V01</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4ff03bbd-5f80-4723-8a0a-61dd96c77660",
+      "slug": "keramikvarmare-2000-w-termostat-oscillation",
+      "namn": "Keramikvärmare 2000 W med termostat och oscillation",
+      "kodrader": [
+        "<li><p>Artikelnummer: 820-473V90BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "3d4d40c1-7fff-4675-9825-d4f63c3d1960",
+      "slug": "smadjurshage-120x60-cm-24-paneler",
+      "namn": "Smådjurshage 120 × 60 cm – 24 paneler, 0,72 m²",
+      "kodrader": [
+        "<li><p>Artikelnummer: D51-456V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "71be99af-5940-4c47-8dac-07d586d65280",
+      "slug": "trampgokart-104-cm-handbroms-vaxelspak",
+      "namn": "Trampgokart 104 cm med handbroms och växelspak",
+      "kodrader": [
+        "<li><p>Artikelnummer: 341-036</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7fbbb5e6-c85e-4984-a2b9-3dd76d7faa4c",
+      "slug": "forvaringspuff-76-cm-sammet-67-liter",
+      "namn": "Förvaringspuff 76 cm i sammet – 67 liter",
+      "kodrader": [
+        "<li><p>Artikelnummer: 838-471V00CW</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "d4e79563-63b1-42eb-ac60-2cf954570a7b",
+      "slug": "minifrys-35-liter-vandbar-dorr",
+      "namn": "Minifrys 35 liter med vändbar dörr och termostat",
+      "kodrader": [
+        "<li><p>Artikelnummer: 800-127V70WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "efb9b9b5-51a9-469e-85bf-cfb087ebeb19",
+      "slug": "skafferiskap-104-cm-12-dorrhyllor",
+      "namn": "Skafferiskåp 104 cm med 12 dörrhyllor – 60 × 30 cm",
+      "kodrader": [
+        "<li><p>Artikelnummer: 83A-096V80WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "9521d113-f8da-4e17-a676-fc0d624e224f",
+      "slug": "scottbank-2-i-1-biceps-triceps-25-vinklar",
+      "namn": "Scottbänk 2-i-1 för biceps och triceps – 25 vinklar",
+      "kodrader": [
+        "<li><p>Artikelnummer: A91-327V01BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7c0f8b4b-9d9d-48a5-82e9-429d99db8623",
+      "slug": "elfyrhjuling-barn-6v-72-cm",
+      "namn": "Elfyrhjuling barn 6V 72 cm – 18–36 månader",
+      "kodrader": [
+        "<li><p>Artikelnummer: 370-166V90PK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "fbef53b8-c283-47e9-a5e8-40f142d7011f",
+      "slug": "skarmtak-110x60-cm-polykarbonat",
+      "namn": "Skärmtak 110 × 60 cm i polykarbonat – välvt",
+      "kodrader": [
+        "<li><p>Artikelnummer: B70-058BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "c41aec49-e2c3-4253-b53e-d96f6a2ca1cd",
+      "slug": "skarmhojare-60-116-cm-tva-lador",
+      "namn": "Skärmhöjare 60–116 cm med två lådor",
+      "kodrader": [
+        "<li><p>Artikelnummer: 923-060V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "7c975a86-748a-481c-8cf6-d379145f7ca3",
+      "slug": "trehjuling-6-i-1-hopfallbar-vridbar-sits",
+      "namn": "Trehjuling 6-i-1 hopfällbar – vridbar sits, 12–60 månader",
+      "kodrader": [
+        "<li><p>Artikelnummer: 370-406V00GY / 370-406V00BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "94aa692a-6b6a-4c60-aff2-b5c1a612b702",
+      "slug": "duschpall-39-56-cm-aluminium-135-kg",
+      "namn": "Duschpall 39,5–56,5 cm i aluminium – 135 kg",
+      "kodrader": [
+        "<li><p>Artikelnummer: 72-0012</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "21e0df93-610c-4a74-973b-8b9e4ffe20d9",
+      "slug": "hopfallbart-skrivbord-80x40-cm-hjul",
+      "namn": "Hopfällbart skrivbord 80 × 40 cm på hjul – viks till 9,5 cm",
+      "kodrader": [
+        "<li><p>Artikelnummer: 836-606V00ND</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "f4661601-93ea-47c0-adc7-8988fc908160",
+      "slug": "badrumspelare-170-cm-bambudorrar",
+      "namn": "Badrumspelare 170 cm med bambudörrar – 32 cm bred",
+      "kodrader": [
+        "<li><p>Artikelnummer: 834-875V00ND</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "9249df5d-bde9-4cd2-852e-f8a56d0354f4",
+      "slug": "hundgrind-72-107-cm",
+      "namn": "Hundgrind 72–107 cm – 76 cm hög, kläms fast utan borrning",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> D06-058</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "ce543173-43f0-4206-8f74-524b145ec937",
+      "slug": "gunghast-med-ryggstod",
+      "namn": "Gunghäst med ryggstöd och bälte – 18–36 mån, hästljud, 60 cm",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> 330-160V00CF</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "8ef08765-7b09-4ddf-bc40-acb0734e0bd0",
+      "slug": "kattlada-med-hoga-kanter",
+      "namn": "Kattlåda med höga kanter – rostfritt stål, sandyta 64 × 44 cm",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> D31-134V02GY</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "994fc2d1-30ad-438b-a100-edec5e4a6f79",
+      "slug": "tv-bank-med-vagghylla-153-cm",
+      "namn": "TV-bänk med vägghylla 153,6 cm – vit och ek, öppna fack och skåp",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> 839-419MX</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4d1be3b0-33a2-4358-8baf-15b294b8a967",
+      "slug": "tunnelvaxthus-3-5x3-m",
+      "namn": "Tunnelväxthus 3,5 × 3 m – 10 m² odlingsyta, 6 fönster och dragkedjedörr",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> 845-563</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "e85c9a8c-319a-453c-a63e-515aa9aa20d1",
+      "slug": "hopfallbar-hundbur-76-cm",
+      "namn": "Hopfällbar hundbur 76 cm – två dörrar, utdragbar bricka, för små hundar",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> D00-022</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "3a4d1f6d-69e4-47b9-832c-898143ba82e3",
+      "slug": "valphage-8-paneler",
+      "namn": "Valphage 8 paneler – 61 × 76 cm per panel, oktagon eller avdelare",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> D06-020V01BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "87ceed8d-f4e1-43a1-9395-1a0f4b25c5c1",
+      "slug": "odlingstunnel-295-cm",
+      "namn": "Odlingstunnel 295 × 100 × 80 cm – tre upprullbara luckor, grön PE-duk",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> 845-234V05GN</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "11e948fa-ec05-410a-a782-3b2b38167686",
+      "slug": "marsvinshydda-utomhus-157-cm",
+      "namn": "Marsvinshydda utomhus 157 cm – två plan, ramp, hjul och asfalttak",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> D51-314YL</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "cb718225-0bdd-459e-adc9-dabc019fe8eb",
+      "slug": "eldriven-trehjuling-barn-6v",
+      "namn": "Eldriven trehjuling barn 6V – 3 hjul, framåt och back, 18–36 mån",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> 370-188V90YL / 370-188V90RD</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "b18ec555-509f-4a27-9767-70df6610fa83",
+      "slug": "golvlampa-med-hyllor-156-cm",
+      "namn": "Golvlampa med hyllor 156 cm – två skärmar, svart",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> B31-321V90</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "de8e35f7-0af8-4042-b9d4-d1e7de8429a8",
+      "slug": "elektrisk-brasa-1800w",
+      "namn": "Elektrisk brasa 1800 W – 3D-lågor på tre sidor, termostat, 15–30 m²",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> 820-478V90BK</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "54303b65-83d6-450c-9bfe-591d830b2da5",
+      "slug": "skjutdorrsbeslag-mobler-200-cm",
+      "namn": "Skjutdörrsbeslag för möbler 200 cm – svart kolstål, max 20 kg",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> B81-034</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "36444684-9e52-479d-9889-f576b9552f12",
+      "slug": "fristaende-chinsstang",
+      "namn": "Fristående chinsstång 176–227 cm – 12 höjdlägen, dips, max 120 kg",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> A91-432V00WT</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "18c17b03-38d6-4292-9cc5-41b2491a0c1f",
+      "slug": "upphojd-hundbadd-61-cm",
+      "namn": "Upphöjd hundbädd 61 cm – oxford på stålram, bärväska ingår",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> D04-067DB</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "8f54bd03-c846-4cfd-ac24-04c3bb1e7039",
+      "slug": "kattlada-med-toppingang",
+      "namn": "Kattlåda med toppingång – rostfritt stål, perforerat lock, 15 kg",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Artikelnummer:</span> D31-147V00SR</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "8b2555a5-168e-4a13-970d-565e5585ea79",
+      "slug": "reservoverdrag-tunnelvaxthus-6x3x2",
+      "namn": "Reservöverdrag tunnelväxthus 6×3×2 m – PE-duk med 12 fönster, stomme ingår ej",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Modellreferens:</span> 845-382GN</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "4a9751b7-ba9f-47a6-ab51-076f782c6c40",
+      "slug": "portabelt-volleybollnat",
+      "namn": "Portabelt volleybollnät – komplett set, justerbar höjd, stolpar och boll",
+      "kodrader": [
+        "<li><p><span style=\"font-weight: 700\">Modellnummer: </span>JH-203</p></li>"
+      ],
+      "trasigaLankar": []
+    },
+    {
+      "wixProductId": "1678fda1-3ace-4b1f-8ac0-663403ec6e83",
+      "slug": "verktygsbank-barn-leksaksset-181-delar",
+      "namn": "Verktygsbänk för barn – 181 delar leksaksset med borr, hammare och pall",
+      "kodrader": [],
+      "trasigaLankar": [
+        "https:/product-page/leksakskok-for-barn",
+        "https:/product-page/leksakskok-barn-38-delar-ljud",
+        "https:/product-page/aktivitetstavla-barn-montessori",
+        "https:/category/leksaker-spel"
+      ]
+    }
+  ],
+  "fel": [],
+  "cursor": null,
+  "fullstandig": true
+}
