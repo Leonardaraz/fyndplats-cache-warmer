@@ -41,10 +41,8 @@ Det förklarar också begränsningen: infravärme värmer det den *ser*. Sitter 
 
 Tumregeln utomhus är **cirka 100 watt per kvadratmeter** du vill hålla behaglig — men den fungerar bara som utgångspunkt, för utomhus är ytan inte det enda som räknas.
 
-| Effekt | Räcker till | Typiskt läge |
-| --- | --- | --- |
-| 2000 W | 10–20 m² | Balkong, mindre altan, matgrupp för fyra–sex |
-| 2500 W | 20–25 m² | Större altan, öppet läge, eller när du vill ha marginal |
+- **2000 W räcker till 10–20 m².** Balkong, mindre altan eller en matgrupp för fyra till sex. Det vanligaste valet, och rätt för de flesta.
+- **2500 W räcker till 20–25 m².** Större altan, öppet läge mot himlen, eller när du vill ha marginal kvar i oktober.
 
 Tre saker äter av räckvidden mer än kvadratmetrarna gör:
 
