@@ -2662,3 +2662,131 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    dominerar ett enda utförligt omdöme hela sektionen. */
 .rev-text-klamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 .rev-expand{background:none;border:0;padding:0;margin-top:4px;color:#b45309;font-size:var(--text-sm);text-decoration:underline;cursor:pointer}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   FUTDADDYH — officiell merch (scoped under .fd)
+
+   Samma grepp som .a-stage: en egen palett i EN klass i stället för
+   hundra överstyrningar. Allt här gäller bara /futdaddyh, och
+   sajtens tokens (radier, typskala, elevationer) återanvänds rakt av
+   så sidan känns som hans utan att bli ett andra designsystem.
+
+   PALETTEN ÄR HANS, INTE VÅR. Guld på nästsvart, avläst ur hans egen
+   banner: kronan och ordmärket i guld, stadionljus i bakgrunden.
+   Fyndplats orange förekommer inte här — det vore att sätta vårt
+   varumärke i hans butik.
+
+   OCH GULDET ÄR SPARSAMT. Det bär rubriken, kronan och en knapp.
+   Läggs det på allt slutar det vara accent och blir bakgrund — samma
+   läxa som omdömessidan gav 2026-09-04.
+   ═══════════════════════════════════════════════════════════════════ */
+.fd{
+  --fd-bg:#0B0B0C;
+  --fd-bg2:#121215;
+  --fd-panel:#17171B;
+  --fd-line:#2A2A31;
+  --fd-ink:#F5F3EF;
+  --fd-soft:#A5A099;
+  --fd-gold:#D9A441;
+  --fd-gold-hi:#F0CE7A;
+  background:var(--fd-bg);
+  color:var(--fd-ink);
+  margin:0;
+}
+.fd ::selection{background:var(--fd-gold);color:#000}
+
+/* Den ärliga raden. Kunden ingår avtalet med Fyndplats, kassan säger
+   Fyndplats, och paketet kommer från Printful. Står det inte här blir
+   det en överraskning i kassan — och en överraskning i kassan är en
+   chargeback som väntar. Den är avsiktligt liten men aldrig dold. */
+.fd-attrib{
+  background:#000;border-bottom:1px solid var(--fd-line);
+  font-size:var(--text-xs);color:var(--fd-soft);
+  padding:9px 0;text-align:center;letter-spacing:.02em;
+}
+.fd-attrib a{color:var(--fd-gold);text-decoration:none;font-weight:600}
+.fd-attrib a:hover{text-decoration:underline}
+
+/* ── Hjälten ──────────────────────────────────────────────────────── */
+.fd-hero{position:relative;overflow:hidden;padding:64px 0 56px;text-align:center;
+  background:radial-gradient(120% 90% at 50% 0%,#1E1A14 0%,var(--fd-bg) 62%)}
+/* Strålkastarna. Två svaga koner, inte ett ljusshow: de ska antyda
+   arena utan att stjäla från ordmärket. */
+.fd-hero::before,.fd-hero::after{content:"";position:absolute;top:-30%;width:42%;height:120%;
+  background:radial-gradient(closest-side,rgba(217,164,65,.16),transparent 72%);
+  filter:blur(46px);pointer-events:none}
+.fd-hero::before{left:-8%}
+.fd-hero::after{right:-8%}
+.fd-hero>*{position:relative;z-index:1}
+.fd-crown{width:74px;height:auto;margin:0 auto 18px;display:block}
+.fd-wordmark{font-family:var(--font-display),Georgia,serif;font-weight:600;
+  font-size:clamp(38px,7vw,68px);letter-spacing:-.02em;line-height:1;margin:0;
+  background:linear-gradient(180deg,var(--fd-gold-hi),var(--fd-gold));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.fd-tagline{margin:16px auto 0;max-width:34ch;color:var(--fd-ink);
+  font-size:var(--text-sm);letter-spacing:.16em;text-transform:uppercase}
+.fd-tagline b{display:block;color:var(--fd-gold);font-weight:700;margin-top:4px}
+
+.fd-social{display:flex;justify-content:center;gap:10px;margin-top:26px;flex-wrap:wrap}
+.fd-social a{display:inline-flex;align-items:center;gap:8px;min-height:44px;
+  padding:10px 16px;border:1px solid var(--fd-line);border-radius:var(--r-pill);
+  color:var(--fd-ink);text-decoration:none;font-size:var(--text-xs);font-weight:600;
+  background:rgba(255,255,255,.03);transition:border-color .2s,background .2s}
+.fd-social a:hover{border-color:var(--fd-gold);background:rgba(217,164,65,.08)}
+.fd-social a:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
+
+/* ── Sektioner ────────────────────────────────────────────────────── */
+.fd-sec{padding:56px 0}
+.fd-sec+.fd-sec{border-top:1px solid var(--fd-line)}
+.fd-h2{font-family:var(--font-display),Georgia,serif;font-weight:600;
+  font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;margin:0 0 8px;text-align:center}
+.fd-lead{margin:0 auto 30px;max-width:56ch;text-align:center;color:var(--fd-soft);
+  font-size:var(--text-base);line-height:1.6}
+
+/* ── Droppet ──────────────────────────────────────────────────────── */
+/* Rutnätet är byggt för riktiga produkter. Tills Printful-artiklarna
+   finns visar det ÄRLIGA platshållare: plagget, inte ett påhittat
+   pris. Att sätta ut "399 kr" på något som inte går att köpa är att
+   ljuga i butik. */
+/* auto-FIT, inte auto-fill: fem plagg ska fylla raden jämnt i stället för
+   att lämna en ensam femma under fyra. minmax(190px) ger fem i bredd i
+   1180-containern. Telefonen får två explicit — ett kort per rad gjorde
+   sidan 10 000 px lång, och ingen scrollar så långt för fem plagg. */
+.fd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;
+  list-style:none;margin:0;padding:0}
+@media(max-width:620px){.fd-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .fd-item-body{padding:12px 12px 14px}}
+.fd-item{background:var(--fd-panel);border:1px solid var(--fd-line);border-radius:var(--r-lg);
+  overflow:hidden;display:flex;flex-direction:column}
+.fd-shot{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#1C1C21,#111114);color:var(--fd-line)}
+.fd-shot svg{width:44%;height:auto;color:#3A3A44}
+.fd-item-body{padding:16px 16px 18px}
+.fd-item h3{margin:0;font-size:var(--text-base);font-weight:700;color:var(--fd-ink)}
+.fd-item p{margin:6px 0 0;font-size:var(--text-xs);color:var(--fd-soft);line-height:1.5}
+.fd-soon{display:inline-block;margin-top:12px;font-size:var(--text-xs);font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--fd-gold)}
+
+/* ── Fakta ────────────────────────────────────────────────────────── */
+.fd-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;
+  list-style:none;margin:0;padding:0}
+.fd-fact{background:var(--fd-panel);border:1px solid var(--fd-line);border-radius:var(--r-md);padding:20px}
+.fd-fact b{display:block;color:var(--fd-gold);font-size:var(--text-xs);font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.fd-fact span{font-size:var(--text-sm);color:var(--fd-ink);line-height:1.55}
+
+/* ── Tillbaka till butiken ────────────────────────────────────────── */
+.fd-back{text-align:center;padding:34px 0 56px}
+.fd-back a{color:var(--fd-soft);font-size:var(--text-sm);text-decoration:none}
+.fd-back a:hover{color:var(--fd-gold)}
+
+/* footer{margin-top:64px} är en sajtövergripande regel. På ljus botten är
+   den luft; här blev den ett VITT BAND mellan sidans svarta slut och den
+   mörka footern. Nollas bara för den här sidan. Samma :has-grepp som
+   body:has(.sticky-buy-mobile) längre upp i filen. */
+body:has(.fd) footer{margin-top:0}
+
+@media (prefers-reduced-motion:reduce){
+  .fd-hero::before,.fd-hero::after{animation:none}
+}
