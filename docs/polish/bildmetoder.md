@@ -414,6 +414,31 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 >
 > **Mät `tackning` (andelen ejvita pixlar), inte bbox.** Bbox:en på de här korten spände 88 % av bredden och såg därför frisk ut — men det var etikettremsans text som spände, inte varan. Täckningen var **2 %** för stavarna och 5–7 % för sovsäcken. Bbox ljuger så fort kortet har en textremsa.
 
+> 🏭 **Blockerar tillverkaren botar — leta hos en STOR återförsäljare i stället.**
+> Regeln "leta hos tillverkaren" tar slut när tillverkaren svarar 403. Aosom gör det
+> på varenda domän (aosom.com, .de, .co.uk, .eu — även deras Shopify-JSON), och
+> Amazon svarar 503. Men samma tillverkares studiofoton ligger hos de återförsäljare
+> som säljer artikeln: **Walmart fungerade** (`i5.walmartimages.com`, och `?odnHeight=2000&odnWidth=2000`
+> ger full upplösning), liksom mindre Shopify-butiker — vilkas hela galleri dessutom
+> går att läsa som JSON på `<produkt-URL>.json`, utan att skrapa HTML.
+>
+> Elgokarterna (2026-08-30): leverantörsfeeden gav LAGERFOTON — grönt betonggolv,
+> tagna ovanifrån, gul dekal på den vita och personalens fötter i bild på den rosa.
+> Den röda var dessutom **beskuren i överkant**, så den bröt mot hjälteregeln "visa
+> HELA varan" oavsett vad man gjorde åt bakgrunden. Tillverkarens riktiga
+> studiofotografering fanns hela tiden — bara inte hos tillverkaren.
+>
+> ⚠️ **Verifiera att det är SAMMA vara innan du byter, på mått OCH detaljer.**
+> Sökresultaten kryllade av andra tillverkares drift-kartar med nästan samma text
+> (Ridington, Hyper, Garvee, Audi Sport) och en av träffarna var till och med samma
+> märke men **en annan modell** (5-punktssele, 6–12 år, 56 cm hög i stället för 54).
+> Här stämde 115 × 77 × 54 cm, 8–12 år, 6–13 km/h och 70 kg — och den avgörande
+> kontrollen var en DETALJ: vår egen sidobild visade vit ram med gröna dekaler och
+> "1" på nosen, exakt som kandidaten. Måtten ensamma hade inte räckt.
+>
+> Kolla också C2PA/AI-markörer i filens första 64 kB innan den går upp; flera av
+> livsstilsbilderna i samma galleri var uppenbart AI-genererade, studiobilderna inte.
+
 > 🔧 **Behöver bara fotorutan lagas: rör inte resten av kortet.** Ett färdigt kort går att laga i efterhand utan att sättas om — vitmåla fotorutan (för korten ovan `y 0–1613`, linjalen börjar på 1614), klistra tillbaka varan förstorad och centrerad, och låt etikettremsa och sidfot stå kvar **pixelidentiska**. Spärren är ett rent likhetstest: `assert np.array_equal(b[1614:], fore)`. Att sätta om texterna vore att riskera en felskriven siffra för ingenting.
 >
 > **Förstoringen syns inte om du räknar på visningsstorleken.** Varan var 550–750 px i källan och förstorades ~1,9×. PDP:n visar kortet i 1080 px, så varan hamnar på ~700 px på skärmen — alltså under sin egen källupplösning, och LANCZOS-förstoringen blir osynlig. Räkna alltid det steget innan du dömer ut en förstoring som för stor.
