@@ -1051,6 +1051,51 @@ flit: vet vi inte vad produkten har kan en påfyllning ge samma bild två gånge
 på en kundsida, och en dubblett är värre än en extra uppladdning. `fullOmladdning`
 i svaret räknar dem, och talet ska sjunka mot noll.
 
+#### ☠️ Städningen raderade kundernas recensionsbilder (2026-09-04)
+
+Leonards rapport: *"mina produkt recensioner hade bilder förut men inte längre"*.
+Uppmätt direkt: **68 av 68 recensionsbilder över fyra produkter svarar 403** —
+alla raderade. Datan är intakt, adresserna står kvar i recensionsraderna; det är
+filerna som är borta.
+
+Mekanismen är städningens egen referenslista. `listaAnvanda` går igenom
+`stores/v3/products/search` och samlar **bara produktmedia** — men en
+recensionsbild sitter inte på en produkt, den sitter på en RECENSIONSRAD. Och
+eftersom vår kod importerade den från `aliexpress-media.com` bär den en
+`sourceUrl` och passerar därmed "vår kod skapade den"-filtret. Föräldralös
+enligt planen, `permanent: true`, varje natt sedan cronen schemalades.
+
+Samma dygn, samma orsak, annan skada: fyra **bloggomslag** dog likadant. De
+plockas ur produktbilder (`blog-image-picker.mjs`) och bor i markdown i
+butiksrepot — ännu mer osynliga för listan. De är självhostade i `/public` nu.
+
+**Fixen är att referenslistan bär recensionsbilderna** (`listaRecensionsbilder`
+i deps, både `imageUrl` och `imageUrls`). Två saker att inte röra:
+
+1. ☠️ **Depen är OBLIGATORISK, inte valfri.** En valfri dep kan glömmas av
+   nästa anropare, och då börjar raderingen om. Testhjälparen fick följa med
+   i stället för att typen mjukades upp.
+2. ☠️ **Ett LÄSFEL mot recensionslagret FÄLLER körningen.** Fortsätter den med
+   tom lista ser varenda recensionsbild föräldralös ut och raderas permanent —
+   exakt skadan fixen finns för. Samma form som `MIN_FEED_RADER`: när ett
+   läsfel och ett tomt svar ser likadana ut, och det ena utfallet är
+   oåterkalleligt, är avbrott enda säkra svaret. En katalog som HAR noll
+   recensionsbilder går däremot igenom — det är felet vi vägrar tolka, inte
+   tomheten.
+
+**Regeln, tredje gången huset skriver ned den:** en referenslista är klar först
+när ALLA läsare finns med i den. Migreringen lärde sig det om läsare som blev
+TOMMA (`/api/tracking-events`) och om en SKRIVARE i ett annat repo
+(`/api/omdome`). Det här är samma sak en tredje gång, och den dyraste: en
+läsare som bor i en annan tabell syns inte i koden intill, och priset var
+kundernas egna foton.
+
+⚠️ **Bilderna är inte återställda av fixen.** Den stoppar blödningen. Källan
+finns hos AliExpress — recensionerna går att hämta om (`fetchAeReviews`, $0) —
+men `repairImages` letar bara efter rader som FORTFARANDE bär en
+leverantörs-URL, och de här bär en död wixstatic-adress. Återställning är ett
+eget jobb.
+
 #### ☠️ Två skilda 429:or — och den ena går inte att vänta ut
 
 Städningen föll två gånger på rad innan den fungerade, på två olika strypningar
