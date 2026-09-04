@@ -8,7 +8,13 @@ import { Stars } from "./stars";
 import { reviewCountLabel } from "../lib/rating";
 import { formatPrice } from "../lib/price-range";
 
-export function ProductCard({ p }: { p: ListProduct }) {
+/** `priority` = kortet ligger sannolikt ovanför vikningen. Sätter eager +
+ *  fetchPriority=high + preload på huvudbilden. Listsidorna sätter den på de
+ *  fyra första korten (se components/shopbrowser). Utan den var VARENDA
+ *  produktbild loading="lazy" — mätt på skarp /alla-produkter 2026-09-04: 53
+ *  <img>, 48 lazy, 0 eager, 0 fetchpriority=high. Sidans LCP-bild fick alltså
+ *  vänta på att layouten skulle räknas ut innan hämtningen ens började. */
+export function ProductCard({ p, priority = false }: { p: ListProduct; priority?: boolean }) {
   // Hover-alt-image. Listsidorna skickar den förberäknad (altImg) — att skicka
   // hela gallery[] för 787 produkter kostade 364 kB i klient-payloaden. Övriga
   // ytor skickar fortfarande hela Product, och då plockas den ut här som förut.
@@ -44,6 +50,7 @@ export function ProductCard({ p }: { p: ListProduct }) {
             src={tightFillUrl(p.img, 600, 600)}
             alt={p.name}
             fill
+            priority={priority}
             sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw"
             placeholder="blur"
             blurDataURL={SHIMMER_BLUR}

@@ -68,7 +68,7 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs }:
   // helsides-CSR. Vi wrappar den inre komponenten i Suspense och visar produkt-
   // rutnätet som fallback så inget hoppar.
   return (
-    <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p) => <ProductCard p={p} key={p.slug} />)}</div>}>
+    <Suspense fallback={<div className="prodgrid">{products.slice(0, PAGE_SIZE).map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>}>
       <ShopBrowserInner products={products} defaultSort={defaultSort} subs={subs} dayMs={dayMs} />
     </Suspense>
   );
@@ -457,7 +457,10 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
 
       {list.length ? (
         <>
-          <div className="prodgrid">{visible.map((p) => <ProductCard p={p} key={p.slug} />)}</div>
+          {/* De fyra första korten är över vikningen på varje skärmbredd (1–4
+              kolumner), så deras bilder hämtas eager med hög prioritet. Resten
+              är kvar på lazy — 24 kort × 2 bilder är inget att förladda. */}
+          <div className="prodgrid">{visible.map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>
           {remaining > 0 && (
             <div className="loadmore-wrap">
               <button type="button" className="loadmore" onClick={() => setShown((n) => n + PAGE_SIZE)}>

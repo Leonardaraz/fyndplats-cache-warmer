@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getProducts } from "../../lib/products";
+import { getProducts, forClient } from "../../lib/products";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { attachRatings } from "../../lib/review-aggregates";
 import { nameScore, normalize } from "../../lib/search";
@@ -56,7 +56,14 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
             <h1>{q ? `Sökresultat för “${q}”` : "Sök i butiken"}</h1>
             <p>{q ? `${results.length} ${results.length === 1 ? "produkt" : "produkter"} hittades` : "Skriv i sökrutan ovan för att hitta produkter."}</p>
           </div>
-          {results.length > 0 && <ShopBrowser products={results} />}
+          {/* forClient, inte results rakt av. Product är strukturellt
+              tilldelningsbar till ListProduct, så det HAR kompilerat — men då
+              serialiserades hela Product-objektet in i klient-nyttolasten:
+              gallery, imageAlts, blurb, specs, variants, descriptionHtml. Mätt
+              på skarp sajt 2026-09-04 vägde /sok?q=bord 791 kB HTML, varav 465 kB
+              flight-payload. Listsidorna mappade redan ner; söksidan var den enda
+              som inte gjorde det. */}
+          {results.length > 0 && <ShopBrowser products={forClient(results)} />}
           {q && results.length === 0 && (
             <p className="empty" style={{ textAlign: "center", color: "var(--soft)" }}>
               Inga resultat för “{q}”. Prova att söka på kategori eller varumärke — eller <a href="/butik" style={{ color: "var(--orange)", fontWeight: 600 }}>se hela sortimentet</a>.
