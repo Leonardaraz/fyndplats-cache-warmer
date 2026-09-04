@@ -1596,6 +1596,19 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .greview-date{color:var(--soft);font-size:var(--text-xs)}
 .greview-gicon{flex:none;margin-top:2px;opacity:.92}
 .greview-text{margin:0;font-size:var(--text-sm);line-height:1.6;color:var(--ink)}
+/* Kundbilder under omdömet (lib/curated-reviews → photos). Kvadratiska
+   miniatyrer i en lugn remsa: bilderna ska stödja texten, inte konkurrera med
+   den. Bildtexten säger vems bilderna är — utan den läses de som våra egna
+   produktfoton, och det vore att ta åt sig äran för kundens bevis. */
+.greview-photos{margin:14px 0 0;display:flex;flex-direction:column;gap:7px}
+.greview-photostrip{display:flex;gap:8px;flex-wrap:wrap}
+.greview-photo{width:84px;height:84px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface-2);display:block;transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+/* Ingen (hover:none)-grind här. Den lärdomen kostade en dag: :hover fyrar på
+   iOS när fingret vilar på elementet, så en grind hade tagit bort effekten för
+   just de besökare som mest sannolikt nuddar bilden. */
+.greview-photo:hover{transform:scale(1.06)}
+@media (prefers-reduced-motion:reduce){.greview-photo{transition:none}.greview-photo:hover{transform:none}}
+.greview-photonote{font-size:var(--text-xs);color:var(--soft)}
 .greviews-actions{text-align:center;margin-top:28px}
 .greviews-more{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border:0;border-radius:var(--r-pill);background:linear-gradient(135deg,var(--orange-fill),#9E320A);color:#fff;font-size:var(--text-sm);font-weight:700;cursor:pointer;box-shadow:var(--e2);transition:transform .2s,box-shadow .2s,filter .2s}
 .greviews-more::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);transition:left .55s ease}

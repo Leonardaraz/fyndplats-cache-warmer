@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import type { GoogleReview } from "../lib/google-reviews";
 
 // Inlinad Google-G (kopplas inte till site.tsx för att hålla klient-bundlen ren).
@@ -84,6 +85,7 @@ function useCountUp(target: number, durationMs = 1500): number {
 function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
   const ref = useRef<HTMLLIElement>(null);
   const [reveal, setReveal] = useState<"init" | "armed" | "show">("init");
+  const photos = (r.photos ?? []).slice(0, 3);
 
   // Scroll-reveal: ovanför vikningen = synligt direkt; under = "armed" → tonar in
   // när det scrollas in. SSR/no-JS/reduced-motion → stannar synligt (init).
@@ -158,6 +160,33 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
         </span>
       </div>
       <p className="greview-text">{r.text}</p>
+      {/* Kundens egna bilder från omdömet. Bevis, inte galleri — en lugn remsa
+          som visar att någon faktiskt fått hem varan och tyckt om den.
+          Max tre: fler gör kortet till en bildvägg och drar blicken från texten,
+          som är det som faktiskt övertygar.
+          <Image> går genom projektets egen loader (lib/image-loader): Wix-bilder
+          får en skalad transform med srcset, lokala /public-sökvägar serveras
+          orörda. object-fit:cover i CSS gör rutan kvadratisk oavsett källformat. */}
+      {photos.length > 0 ? (
+        <figure className="greview-photos">
+          <div className="greview-photostrip">
+            {photos.map((p) => (
+              <Image
+                key={p.src}
+                className="greview-photo"
+                src={p.src}
+                alt={p.alt}
+                width={84}
+                height={84}
+                loading="lazy"
+              />
+            ))}
+          </div>
+          <figcaption className="greview-photonote">
+            {photos.length === 1 ? "Kundens egen bild" : "Kundens egna bilder"}
+          </figcaption>
+        </figure>
+      ) : null}
     </li>
   );
 }

@@ -45,6 +45,25 @@ SEO — väntar in sina syskon.
 - Skriv PR-texten så den bär flera ändringar. Det gör inte historiken
   sämre — varje commit är fortfarande sin egen berättelse.
 
+## Särskilt för SEO- och produktpolering
+
+Den som polerar produkttexter, bilder, titlar eller metadata rör ofta
+dussintals produkter under en session. **Det ska bli EN PR, och den ska
+mergas sällan.**
+
+- Öppna en gren för hela poleringspasset och lägg alla produkter där.
+  Öppna inte en PR per produkt.
+- Merga när passet är klart — inte efter varje produkt som blivit bra.
+  En halvfärdig gren skadar ingen; den ligger bara och väntar.
+- Går arbetet över flera dagar: låt grenen leva och merga när den är klar,
+  hellre än att merga varje dags skörd.
+- Poleringen är dessutom sällan brådskande. Ingen kund väntar på en
+  omskriven produkttitel — det är precis den sortens arbete som ska samlas
+  ihop.
+
+Ett polerpass som blir tjugo PR:ar kostar tjugo byggen och tjugo
+katalogvärmningar för arbete som ingen kund märker snabbare.
+
 # Analytics
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**

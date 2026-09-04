@@ -11,14 +11,50 @@
 //
 // Snittbetyg + TOTALantal kommer INTE härifrån utan från getSocialProof()
 // (lib/social-proof-live.ts): Googles egna siffror när API:t svarar, annars
-// reserven i lib/social-proof.ts. Korten nedan (21 st med text) är ett urval —
+// reserven i lib/social-proof.ts. Korten nedan (23 st med text) är ett urval —
 // "Se alla på Google" länkar till samtliga. Resten av profilens omdömen är
 // stjärn-bara utan text och har inget att visa här; de räknas ändå in i totalen.
+//
+// KUNDBILDER (`photos`) ÄR OCKSÅ HANDPLOCKADE, OCH MÅSTE VARA DET.
+// Business Profile-API:ts reviews-endpoint returnerar ingen media alls —
+// kundbilder ligger i en separat media-endpoint utan koppling till omdömets id.
+// Och app/omdomen/page.tsx BYTER lista, den slår inte ihop dem:
+//   const data = google.reviews.length > 0 ? google : CURATED_RESULT;
+// Slås API:t på försvinner alltså hela den här listan — bilderna med den. Det
+// är inget som går sönder tyst i dag (API:t saknar credentials), men den som
+// aktiverar det måste veta: antingen behålls bytet och bilderna offras, eller
+// så får raden ovan bli en sammanslagning som ympar in `photos` på de live-
+// omdömen de hör till. Det senare kräver en pålitlig nyckel — författarnamn
+// ensamt räcker inte, två kunder kan heta lika och en bild på fel persons kort
+// är värre än ingen bild alls.
+//
+// Lägg bara in bilder kunden själv publicerat på sitt eget omdöme, och beskriv
+// i `alt` vad bilden visar — aldrig kundens namn.
 
 import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
 import { GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
+  {
+    id: "sigvard-aberg",
+    rating: 5,
+    author: "Sigvard Åberg",
+    // Google visade "för 12 timmar sedan" 2026-09-04.
+    date: "2026-09-04",
+    // Andra meningen var avhuggen bakom "… Mer" ("Jag ringde och berättade
+    // måtten på mitt badrum och vilken färg …") och är därför utelämnad —
+    // texten trimmas till sista HELA mening, orden ändras aldrig.
+    text: "Jag är väldigt nöjd med den hjälp jag fick från kundtjänsten när jag skulle köpa ett badrumsskåp.",
+  },
+  {
+    id: "maja-kowalski",
+    rating: 5,
+    author: "Maja Kowalski",
+    // Google visade "för 3 dagar sedan" 2026-09-04.
+    date: "2026-09-01",
+    // Ordagrant, inklusive att sista meningen saknar punkt på Google.
+    text: "Tack för bra service och ett mycket professionellt bemötande! Vi är väldigt nöjda med vårt köp och det kan absolut bli fler affärer framöver",
+  },
   {
     id: "adam-ekdahl",
     rating: 5,
