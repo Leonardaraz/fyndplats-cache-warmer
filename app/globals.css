@@ -1648,6 +1648,12 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 /* #6 Hover-alt-image on product cards */
 .pimg-main,.pimg-alt{transition:opacity .35s ease,transform .55s cubic-bezier(.2,.7,.2,1)}
 .pimg-alt{opacity:0}
+/* Fotorutan medan bild-URL:en är på väg (se lib/list-payload.ts). Ett lugnt
+   svep i samma varmgrå som rutan själv — inte ett hål, och inte en spinner som
+   drar blicken från namnet och priset, som redan står där. */
+.pimg-vantar{position:absolute;inset:0;background:linear-gradient(100deg,var(--surface-2) 30%,#fff 50%,var(--surface-2) 70%);background-size:220% 100%;animation:pimg-svep 1.4s ease-in-out infinite}
+@keyframes pimg-svep{from{background-position:180% 0}to{background-position:-20% 0}}
+@media (prefers-reduced-motion:reduce){.pimg-vantar{animation:none}}
 /* Hover-bilden finns bara för pekare som KAN hovra. Utan hover nås :hover
    aldrig, men bilden låg ändå i DOM:en och hämtades: en extra 600×600 per kort,
    alltså 24 bortkastade hämtningar per skärm på mobil — där bandbredden är som
