@@ -231,6 +231,28 @@ export function buildCreateProductBody(input: WixProductInput): Record<string, u
   return { product, fields };
 }
 
+/**
+ * Backoff för lager-anropen (både läsning och skrivning). Följer `Retry-After`
+ * när Wix skickar den.
+ *
+ * ☠️ UPPMÄTT 2026-09-02, INTE ANTAGET. Ett skarpt Aosom-svep försökte 2 095
+ * lagerskrivningar i rad och fick **1 190 stycken 429** — och svaret var en
+ * HTML-sida, alltså Wix EDGE-spärr, inte det vanliga JSON-felet. Kort körning
+ * (40 skrivningar) gav noll fel; 600 gav 521. Gränsen ligger däremellan.
+ *
+ * Återförsöket är därför inte hela medicinen — huset har redan mätt att
+ * edge-spärren inte går att vänta ut inom ruttens 300 sekunder (se
+ * media-cleanup i CLAUDE.md). Det som håller den borta är att inte springa,
+ * och pacingen ligger hos anroparen. Det här fångar det som ÄR övergående:
+ * API-nivåns 429, 5xx och nätverksfel.
+ */
+const LAGER_PAUS_MS = [1_000, 3_000, 8_000];
+
+/** 429/408/5xx är övergående. Andra 4xx blir inte bättre av att frågas igen. */
+function lagerFelArOvergaende(status: number): boolean {
+  return status === 429 || status === 408 || status >= 500;
+}
+
 export interface WixInventoryItem {
   id: string;
   revision: string;
@@ -238,20 +260,134 @@ export interface WixInventoryItem {
   productId: string;
 }
 
-/** Hämtar lagerposter för en produkt (en post per variant + lager). */
-export async function queryInventoryItemsByProductId(productId: string): Promise<WixInventoryItem[]> {
-  const res = await fetch(`${WIX_BASE}/stores/v3/inventory-items/query`, {
-    method: "POST",
-    headers: wixHeaders(),
-    body: JSON.stringify({ query: { filter: { productId } } }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix query-inventory misslyckades (${res.status}): ${text.slice(0, 400)}`);
+/**
+ * Hur många produkt-id som ryms i EN lagerläsning.
+ *
+ * ☠️ UPPMÄTT MOT SKARPA WIX 2026-09-04, inte läst i dokumentationen. Både
+ * `limit: 100` och `limit: 200` accepteras av `inventory-items/query` — till
+ * skillnad från fil-API:erna, som svarar `400 INVALID_ARGUMENT` över 100 trots
+ * att dev.wix.com påstår 200 (uppmätt 2026-08-28). Talet här är ändå 50, för
+ * det är PRODUKTER och en produkt kan ha flera varianter: 50 produkter à två
+ * varianter är 100 poster, alltså precis en sida. Läsningen pagineras ändå —
+ * taket är en säkerhet, inte ett antagande.
+ */
+export const LAGER_PRODUKTER_PER_LASNING = 50;
+
+/** Sidtak för lagerläsningen. Kastar hellre än returnerar en halv lista. */
+const LAGER_MAX_SIDOR = 40;
+
+/**
+ * Lagerposter för FLERA produkter i ETT anrop.
+ *
+ * ☠️ `$in` PÅ productId ÄR MÄTT, INTE ANTAGET (2026-09-04): fem produkt-id gav
+ * fem poster där ett enskilt id gav en. Utan den mätningen hade batchningen
+ * varit en gissning om ett filter API:t kanske inte stödjer.
+ *
+ * ☠️ ÅTERFÖRSÖK HÖR TILL BATCHNINGEN. Den gamla enproduktsläsningen hade inget
+ * alls, och det gick an: föll den kostade det EN produkt, som nästa körning tog
+ * om gratis. En batchad läsning som faller kostar femtio. Samma steg som
+ * lagerskrivningen (1/3/8 s, följer `Retry-After`) — och `wixHeaders()` ligger
+ * UTANFÖR loopen av samma skäl som där: ett saknat token är inte övergående.
+ */
+export async function queryInventoryItemsByProductIds(
+  productIds: string[],
+): Promise<WixInventoryItem[]> {
+  const unika = [...new Set(productIds.filter(Boolean))];
+  if (unika.length === 0) return [];
+
+  const headers = wixHeaders();
+  const poster: WixInventoryItem[] = [];
+  let cursor: string | undefined;
+
+  for (let sida = 0; sida < LAGER_MAX_SIDOR; sida++) {
+    const cursorPaging: Record<string, unknown> = { limit: 100 };
+    if (cursor) cursorPaging.cursor = cursor;
+    const body = JSON.stringify({
+      query: {
+        // Ett enda id skickas som skalär, inte som `$in` med ett element:
+        // formen är den beprövade och den nya vägen ska inte ändra beteendet
+        // för de tre anropare som läser en produkt i taget.
+        filter: { productId: unika.length === 1 ? unika[0] : { $in: unika } },
+        cursorPaging,
+      },
+    });
+
+    let svar: Response | null = null;
+    let sistaFel = "";
+    for (let forsok = 0; forsok <= LAGER_PAUS_MS.length; forsok++) {
+      let res: Response;
+      try {
+        res = await fetch(`${WIX_BASE}/stores/v3/inventory-items/query`, {
+          method: "POST",
+          headers,
+          body,
+        });
+      } catch (err) {
+        sistaFel = `nätverksfel: ${err instanceof Error ? err.message : String(err)}`;
+        if (forsok === LAGER_PAUS_MS.length) break;
+        await new Promise((r) => setTimeout(r, LAGER_PAUS_MS[forsok]));
+        continue;
+      }
+      if (res.ok) {
+        svar = res;
+        break;
+      }
+      const text = await res.text();
+      sistaFel = `(${res.status}): ${text.slice(0, 400)}`;
+      if (!lagerFelArOvergaende(res.status) || forsok === LAGER_PAUS_MS.length) break;
+      const retryAfter = Number(res.headers?.get?.("retry-after"));
+      await new Promise((r) =>
+        setTimeout(r, Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 15_000)
+          : LAGER_PAUS_MS[forsok]),
+      );
+    }
+    if (!svar) {
+      throw new Error(`Wix query-inventory misslyckades ${sistaFel}`);
+    }
+
+    const data = (await svar.json()) as {
+      inventoryItems?: WixInventoryItem[];
+      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+    };
+    poster.push(...(data.inventoryItems ?? []));
+
+    cursor = data.pagingMetadata?.cursors?.next;
+    if ((data.inventoryItems?.length ?? 0) === 0 || !cursor || data.pagingMetadata?.hasNext === false) {
+      return poster;
+    }
   }
-  const data = (await res.json()) as { inventoryItems?: WixInventoryItem[] };
-  return data.inventoryItems ?? [];
+
+  // ☠️ Samma hållning som `queryAll` och `listV3ProductPrices`: en halv lista
+  // som ser komplett ut hade fått synken att skriva mappningen för produkter
+  // vars lagerposter aldrig lästes.
+  throw new Error(
+    `Wix query-inventory nådde sidtaket (${LAGER_MAX_SIDOR} sidor, ${poster.length} poster `
+      + `för ${unika.length} produkter) med markören kvar.`,
+  );
 }
+
+/**
+ * Hämtar lagerposter för en produkt (en post per variant + lager).
+ *
+ * Uttryckt i den batchade vägen i stället för att vara en tvilling till den —
+ * husets vanligaste bugg är att två kopior glider isär (`SHIP_AXIS_RE`,
+ * `EU_TULL_CODES`, `mapWithConcurrency`).
+ */
+export async function queryInventoryItemsByProductId(productId: string): Promise<WixInventoryItem[]> {
+  return queryInventoryItemsByProductIds([productId]);
+}
+
+/**
+ * Lagerrader per bulk-SKRIVNING.
+ *
+ * ☠️ UPPMÄTT MOT SKARPA WIX 2026-09-04 (`/api/admin/wix-inventory-probe`,
+ * läget `api-matning`): 20, 50 och 100 rader gav alla `200` med ett
+ * individuellt utfall per rad. Mätt utan att skriva — raderna skickades med
+ * föråldrad revision, så alla föll och ingenting ändrades. 101 är oprövat,
+ * och det är hela skälet till att talet är 100 och inte större.
+ */
+export const BATCH_LAGERRADER = 100;
 
 export interface InventoryQuantityUpdate {
   id: string;
@@ -284,51 +420,157 @@ export function buildBulkInventoryUpdateBody(updates: InventoryQuantityUpdate[])
   };
 }
 
+/** Utfallet av en bulk-lagerskrivning, uppdelat per rad. */
+export interface BulkLagerUtfall {
+  /** Lagerpost-id som Wix uttryckligen bekräftade. */
+  lyckade: string[];
+  /** Lagerpost-id som föll, med orsaken. */
+  misslyckade: { id: string; fel: string }[];
+}
+
+/**
+ * Tolkar bulk-svaret PER RAD.
+ *
+ * ☠️ FORMEN ÄR UPPMÄTT MOT SKARPA WIX 2026-09-04, inte läst i dokumentationen
+ * och inte gissad. Ett första utkast skrevs på antagandet att bara FALLNA
+ * rader listas; tre befintliga retry-tester föll på det och hade rätt att
+ * göra det. Mätningen visar att båda utfallen bär hela raden:
+ *
+ *   fel:      {"itemMetadata":{"id":"2f3b…","originalIndex":0,"success":false,
+ *              "error":{"code":"INVALID_REVISION","description":"Outdated revision…"}}}
+ *             bulkActionMetadata: {totalSuccesses:0, totalFailures:1, undetailedFailures:0}
+ *
+ *   framgång: {"itemMetadata":{"id":"2f3b…","originalIndex":0,"success":true}}
+ *             bulkActionMetadata: {totalSuccesses:1, totalFailures:0, undetailedFailures:0}
+ *
+ * Attributionen behöver alltså inte lita på ORDNINGEN — id:t står i svaret.
+ * Det är hela skälet till att batchningen är säker: "Wix före mappningen" är
+ * en garanti PER PRODUKT, och en mappning får aldrig skrivas för en skrivning
+ * som föll. Utan id i svaret hade hundra produkter i ett anrop betytt att ett
+ * enda radfel kunde bokföras på fel produkt — tyst, samma klass som
+ * `sku`-förväxlingen som lät prissynken skriva till ingenting i en månad.
+ *
+ * Tre konservativa regler, alla åt samma håll — hellre en skrivning för mycket
+ * nästa körning än en mappning som ljuger:
+ *
+ *   1. En SKICKAD rad som Wix inte nämner räknas som MISSLYCKAD. Mätningen
+ *      säger att det inte händer; regeln finns för dagen det gör det.
+ *   2. `undetailedFailures` — fler fel än vi kan peka ut — gör HELA anropet
+ *      misslyckat. Vi vet då inte vilka rader som gick igenom, och att gissa
+ *      är exakt det som inte får hända. Nästa körning skriver om dem, och en
+ *      omskrivning av ett redan rätt saldo är en no-op.
+ *   3. Går id:t inte att härleda (varken `itemMetadata.id` eller ett
+ *      `originalIndex` som pekar in i det vi skickade) används radens plats
+ *      som nyckel. Då är utfallet ändå räknat, bara inte adresserat.
+ */
+export function tolkaBulkUtfall(json: unknown, skickadeIds: string[]): BulkLagerUtfall {
+  const obj = (json ?? {}) as {
+    results?: Array<{
+      itemMetadata?: {
+        id?: string;
+        originalIndex?: number;
+        success?: boolean;
+        error?: { code?: string; description?: string; message?: string };
+      };
+    }>;
+    bulkActionMetadata?: { totalFailures?: number; undetailedFailures?: number };
+  };
+
+  const lyckade: string[] = [];
+  const misslyckade: { id: string; fel: string }[] = [];
+  const sedda = new Set<string>();
+
+  (obj.results ?? []).forEach((rad, i) => {
+    const meta = rad.itemMetadata ?? {};
+    const viaIndex =
+      typeof meta.originalIndex === "number" ? skickadeIds[meta.originalIndex] : undefined;
+    const id = meta.id ?? viaIndex ?? `rad-${i}`;
+    sedda.add(id);
+    if (meta.success === false) {
+      const e = meta.error;
+      misslyckade.push({
+        id,
+        fel: e?.description ?? e?.message ?? e?.code ?? "okänt radfel",
+      });
+    } else {
+      lyckade.push(id);
+    }
+  });
+
+  // Regel 1: skickat men obesvarat är inte bevisat skrivet.
+  for (const id of skickadeIds) {
+    if (!sedda.has(id)) {
+      misslyckade.push({ id, fel: "Wix nämnde inte raden i svaret" });
+    }
+  }
+
+  // Regel 2: fler fel än vi kan peka ut → ingen rad är bevisat skriven.
+  const totalt = obj.bulkActionMetadata?.totalFailures ?? 0;
+  if (totalt > misslyckade.length) {
+    const oadresserade = totalt - misslyckade.length;
+    for (const id of lyckade.splice(0, lyckade.length)) {
+      misslyckade.push({
+        id,
+        fel: `Wix rapporterade ${oadresserade} fel utan rad-id — utfallet går inte att adressera`,
+      });
+    }
+  }
+
+  return { lyckade, misslyckade };
+}
+
 /**
  * Ren summering av bulk-svaret — HTTP 200 betyder INTE att alla rader gick
  * igenom (audit-fynd 4, 2026-07-14): per-rad-fel (t.ex. revisionskonflikt när
  * en kund köper samtidigt som synken skriver) rapporteras i results[] och
  * bulkActionMetadata, inte i statuskoden.
+ *
+ * Uttryckt i `tolkaBulkUtfall` i stället för att vara en tvilling till den —
+ * två räknare på samma svar hade kunnat bli oense om vad "lyckat" betyder.
  */
 export function summarizeBulkInventoryResult(json: unknown): { failures: number; firstError?: string } {
-  const obj = (json ?? {}) as {
-    results?: Array<{ itemMetadata?: { success?: boolean; error?: { description?: string; message?: string } } }>;
-    bulkActionMetadata?: { totalFailures?: number };
-  };
-  const failedRows = (obj.results ?? []).filter((r) => r.itemMetadata?.success === false);
-  const failures = Math.max(obj.bulkActionMetadata?.totalFailures ?? 0, failedRows.length);
-  const firstErr = failedRows[0]?.itemMetadata?.error;
+  const { misslyckade } = tolkaBulkUtfall(json, []);
   return {
-    failures,
-    firstError: firstErr ? (firstErr.description ?? firstErr.message ?? "okänt radfel") : undefined,
+    failures: misslyckade.length,
+    firstError: misslyckade[0]?.fel,
   };
 }
 
 /** Sätter absoluta lagersaldon för flera varianter i en request. */
 /**
- * Backoff för lagerskrivningen. Följer `Retry-After` när Wix skickar den.
+ * Skriver saldon och svarar PER RAD — vilka som gick igenom och vilka som föll.
  *
- * ☠️ UPPMÄTT 2026-09-02, INTE ANTAGET. Ett skarpt Aosom-svep försökte 2 095
- * lagerskrivningar i rad och fick **1 190 stycken 429** — och svaret var en
- * HTML-sida, alltså Wix EDGE-spärr, inte det vanliga JSON-felet. Kort körning
- * (40 skrivningar) gav noll fel; 600 gav 521. Gränsen ligger däremellan.
+ * ☠️ DEN HÄR FORMEN ÄR HELA POÄNGEN MED BATCHNINGEN. Anropas den med en enda
+ * produkts varianter spelar det ingen roll om utfallet är per rad eller
+ * aggregerat: faller något faller produkten. Anropas den med femtio produkter
+ * i klump gör det all skillnad — "Wix före mappningen" är en garanti PER
+ * PRODUKT, och en mappning får bara skrivas för de rader Wix uttryckligen
+ * bekräftat. Se `tolkaBulkUtfall` för de tre konservativa reglerna.
  *
- * Återförsöket är därför inte hela medicinen — huset har redan mätt att
- * edge-spärren inte går att vänta ut inom ruttens 300 sekunder (se
- * media-cleanup i CLAUDE.md). Det som håller den borta är att inte springa,
- * och pacingen ligger hos anroparen. Det här fångar det som ÄR övergående:
- * API-nivåns 429, 5xx och nätverksfel.
+ * Kastar bara när HELA anropet föll (nätverk, 4xx/5xx efter återförsök) — då
+ * finns inget svar att fördela. Per-rad-fel returneras i `misslyckade`.
  */
-const LAGER_PAUS_MS = [1_000, 3_000, 8_000];
+export async function bulkUpdateInventoryQuantitiesPerRad(
+  updates: InventoryQuantityUpdate[],
+): Promise<BulkLagerUtfall> {
+  if (updates.length === 0) return { lyckade: [], misslyckade: [] };
+  if (isDryRun()) return { lyckade: updates.map((u) => u.id), misslyckade: [] };
 
-/** 429/408/5xx är övergående. Andra 4xx blir inte bättre av att frågas igen. */
-function lagerFelArOvergaende(status: number): boolean {
-  return status === 429 || status === 408 || status >= 500;
-}
-
-export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUpdate[]): Promise<void> {
-  if (updates.length === 0) return;
-  if (isDryRun()) return;
+  // ☠️ Delas vid det UPPMÄTTA taket, inte vid ett antaget. Wix svarade 200 med
+  // ett individuellt utfall per rad på 20, 50 OCH 100 rader (2026-09-04); 101
+  // är oprövat, och huset har redan betalat två gånger för att lita på
+  // dev.wix.com om just gränser. En tugga på femtio produkter ryms i ETT anrop
+  // så länge produkterna har en variant var — delningen finns för dem som har
+  // fler.
+  if (updates.length > BATCH_LAGERRADER) {
+    const samlat: BulkLagerUtfall = { lyckade: [], misslyckade: [] };
+    for (let i = 0; i < updates.length; i += BATCH_LAGERRADER) {
+      const del = await bulkUpdateInventoryQuantitiesPerRad(updates.slice(i, i + BATCH_LAGERRADER));
+      samlat.lyckade.push(...del.lyckade);
+      samlat.misslyckade.push(...del.misslyckade);
+    }
+    return samlat;
+  }
 
   // ☠️ UTANFÖR loopen med flit. `wixHeaders()` kastar när token saknas, och
   // ett konfigurationsfel är inte övergående — inuti try-blocket hade det
@@ -372,12 +614,25 @@ export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUp
     throw new Error(`Wix bulk-update-inventory misslyckades ${sistaFel}`);
   }
   const json = (await res.json().catch(() => null)) as unknown;
-  const { failures, firstError } = summarizeBulkInventoryResult(json);
-  if (failures > 0) {
-    // Kasta så anroparen (synk-loopen) räknar och loggar felet i stället för
-    // att tro att lagret speglades.
+  return tolkaBulkUtfall(json, updates.map((u) => u.id));
+}
+
+/**
+ * Sätter absoluta lagersaldon för flera varianter i en request, och KASTAR om
+ * någon rad föll.
+ *
+ * Uttryckt i `bulkUpdateInventoryQuantitiesPerRad` i stället för att vara en
+ * tvilling till den. Den här formen är rätt för anropare som skriver EN
+ * produkts varianter — där är "någon rad föll" samma sak som "produkten föll",
+ * och ett kast är enklare att inte råka ignorera än ett returvärde. Sjunde
+ * gången huset lärt sig att ett svar utan fel inte är ett kvitto.
+ */
+export async function bulkUpdateInventoryQuantities(updates: InventoryQuantityUpdate[]): Promise<void> {
+  const { misslyckade } = await bulkUpdateInventoryQuantitiesPerRad(updates);
+  if (misslyckade.length > 0) {
     throw new Error(
-      `Wix bulk-update-inventory: ${failures}/${updates.length} rader misslyckades${firstError ? ` — första: ${firstError.slice(0, 200)}` : ""}`,
+      `Wix bulk-update-inventory: ${misslyckade.length}/${updates.length} rader misslyckades`
+        + ` — första: ${misslyckade[0].fel.slice(0, 200)}`,
     );
   }
 }

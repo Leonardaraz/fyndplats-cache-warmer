@@ -11,7 +11,20 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const OK_KROPP = { results: [{ itemMetadata: { success: true } }] };
+// ☠️ FORMEN ÄR UPPMÄTT MOT SKARPA WIX 2026-09-04, inte påhittad. Fixturen sa
+// tidigare bara `{success: true}` — en minimal stubb av något API:t aldrig
+// svarar. Den skillnaden var inte kosmetisk: när utfallet började tolkas PER
+// RAD (batchningen) blev en rad utan `id` omöjlig att knyta till den post som
+// skickades, och regeln "en skickad rad Wix inte nämner räknas som
+// misslyckad" fällde de här tre testerna. Regeln var rätt; fixturen ljög.
+//
+// Riktigt svar, båda utfallen:
+//   {"results":[{"itemMetadata":{"id":"…","originalIndex":0,"success":true}}],
+//    "bulkActionMetadata":{"totalSuccesses":1,"totalFailures":0,"undetailedFailures":0}}
+const OK_KROPP = {
+  results: [{ itemMetadata: { id: "inv-1", originalIndex: 0, success: true } }],
+  bulkActionMetadata: { totalSuccesses: 1, totalFailures: 0, undetailedFailures: 0 },
+};
 
 function svar(status: number, kropp: unknown, headers: Record<string, string> = {}) {
   return {

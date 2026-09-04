@@ -33,7 +33,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "torr = skriver inget · skarp = skriver · lager = bara saldon"
+        description: "torr = skriver inget · skarp = skriver · lager = bara saldon · api-matning = mät Wix bulk-API (skriver inget)"
         required: true
         default: "torr"
         type: choice
@@ -41,6 +41,8 @@ on:
           - torr
           - skarp
           - lager
+          - api-matning
+          - api-matning-skriv
       limit:
         description: "Produkter per varv. 400 är ruttens default."
         required: false
@@ -70,7 +72,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          base="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-sync"
+          rot="${BASE_SECRET%/api/cron/poll-tracking}"
+          base="${rot}/api/cron/aosom-sync"
+
+          # ☠️ MÄTNINGEN, INTE SYNKEN. Svarar på de två frågor som måste vara
+          # kända innan lagerskrivningarna batchas: tar inventory-query flera
+          # produkt-id, och bär bulk-svaret radens id. Skriver ingenting —
+          # raderna skickas med föråldrad revision och avvisas.
+          # api-matning-skriv gör EN värdeneutral skrivning (samma saldo
+          # tillbaka) för att mäta hur ett LYCKAT bulk-svar ser ut. Utan den
+          # mätningen vore parserns regel om utelämnade rader en gissning.
+          MAT_SKRIV=0
+          [ "$MODE" = "api-matning-skriv" ] && MAT_SKRIV=1
+          if [ "$MODE" = "api-matning" ] || [ "$MODE" = "api-matning-skriv" ]; then
+            svar=$(curl -sS --max-time 120 -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${rot}/api/admin/wix-inventory-probe?write=${MAT_SKRIV}")
+            echo "$svar" | jq .
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::Mätningen föll: $(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+              exit 1
+            fi
+            exit 0
+          fi
 
           case "$MODE" in
             torr)  args="dryRun=true" ;;
@@ -105,6 +128,7 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
+          utanrader=0; drift=0
           after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
@@ -124,12 +148,15 @@ jobs:
             sl=$(printf '%s' "$svar" | jq -r '.slutsalda')
             mi=$(printf '%s' "$svar" | jq -r '.misslyckade')
             va=$(printf '%s' "$svar" | jq -r '.varningar | length')
+            ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
+            dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar')
 
             granskade=$(( granskade + g )); lager=$(( lager + l ))
             priser=$(( priser + p ));       utan=$(( utan + u ))
             urfeeden=$(( urfeeden + uf ));  slutsalda=$(( slutsalda + sl ))
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
+            utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -178,6 +205,8 @@ jobs:
             echo "| Ur feeden (saldo nollat) | ${urfeeden} |"
             echo "| Slutsålda | ${slutsalda} |"
             echo "| Blockerade prishopp | ${varningar} |"
+            echo "| Utan lagerrader i Wix | ${utanrader} |"
+            echo "| Lagerdrift (bara mätt) | ${drift} |"
             echo "| Misslyckade | ${misslyckade} |"
             echo ""
             if [ -n "$prislistefel" ]; then

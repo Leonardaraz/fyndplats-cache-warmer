@@ -1,5 +1,54 @@
 # Fyndplats cache-warmer — projektanvisningar
 
+## Så här jobbar vi: bunta ihop deploys
+
+**En arbetsdag ska bli en eller två deploys, inte fem.** Samla dagens
+ändringar på grenen och merga när de hänger ihop — merga inte varje fix för
+sig så fort den är grön.
+
+Samma regel står i butiksrepots `CLAUDE.md` (grenen `headless-site`). Den
+finns på båda ställena med flit: repot bär två orelaterade historier med var
+sin instruktionsfil, och en session som jobbar här läser aldrig den andra.
+
+### Varför — mätt, inte antaget
+
+Vercel-fakturan 2026-09-04, sju dagar in i cykeln, 11,84 av 20 dollars
+inkluderad kredit förbrukad:
+
+| Rad | Belopp | Andel |
+| :-- | --: | --: |
+| **Build CPU Minutes** | **$5,80** | **49 %** |
+| Observability Events | $1,88 | 16 % |
+| ISR Writes | $1,80 | 15 % |
+| Fluid Provisioned Memory | $0,78 | 7 % |
+| Fluid Active CPU | $0,51 | 4 % |
+
+Byggen är halva notan. Veckan innehöll en dag med **fem merges** för arbete
+som hade rymts i ett eller två byggen.
+
+**Och en deploy kostar två gånger.** Butiken tömmer sin ISR-cache vid varje
+deploy, så ~1 580 av 1 622 produktsidor blir kalla; första besökaren på varje
+betalar 0,86–1,52 s i stället för 0,15. Timcronen värmer upp dem igen, men
+det är ytterligare 1 622 renderingar. Färre deploys är alltså både billigare
+OCH snabbare för kunden.
+
+### Särskilt för import- och poleringspass
+
+Ett pass som rör dussintals produkter ska bli **EN PR, mergad sällan** — inte
+en PR per produkt.
+
+- Öppna en gren för hela passet och lägg alla produkter där.
+- Merga när passet är klart, inte efter varje produkt som blivit bra.
+  En halvfärdig gren skadar ingen; den ligger bara och väntar.
+- Går arbetet över flera dagar: låt grenen leva och merga när den är klar.
+- Poleringen är sällan brådskande. Ingen kund väntar på en omskriven
+  produkttitel — det är precis den sortens arbete som ska samlas ihop.
+
+### Undantaget
+
+En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
+kostnaden värd. Allt annat väntar in sina syskon.
+
 ## Import-arbetsflöde & AI-kostnad (`AI_ENRICHMENT_ENABLED`)
 
 Import-pipelinen (`lib/import/pipeline.ts → importProduct`) kan köras i två lägen.
@@ -344,12 +393,75 @@ skrivningar är att vänta — lär mottagaren att sluta läsa, och då är äve
 äkta larmet borta. Missen är ändå aldrig tyst: grupperad på orsak i loggen, i
 audit-raden och i svaret.
 
-⚠️ **Kvar som strukturellt:** `bulkUpdateInventoryQuantities` är ett BULK-API
-som tar en array, men synken anropar den med EN produkt i taget. Att samla
-skrivningarna hade tagit ~2 000 anrop till ~20 och gjort spärren irrelevant i
-stället för uthärdlig. Det kräver att loopen delas i två faser, vilket rör
-ordningen "Wix före mappningen" — inte gjort, medvetet, men det är rätt nästa
-drag om katalogen växer vidare.
+### ✅ Skrivningarna är batchade sedan 2026-09-04 — spärren är irrelevant, inte uthärdlig
+
+Raden ovan stod länge som "kvar som strukturellt": `bulkUpdateInventoryQuantities`
+är ett BULK-API som tar en array, men synken anropade den med EN produkt i taget.
+Loopen går nu i **tuggor om 50 produkter** (`CHUNK_PRODUKTER`): en läsning och
+en skrivning per tugga i stället för två anrop per produkt.
+
+| | före | efter |
+|---|---:|---:|
+| Wix-anrop per svep (~4 500 mappningar) | ~1 800 | **~180** |
+| Anrop i det uppmätta 429-fönstret | 2 095 → 1 190 fel | ryms med marginal |
+
+☠️ **Hela ombyggnaden vilar på EN mätning: bulk-svaret bär radens id.** Uppmätt
+mot skarpa Wix, båda utfallen:
+
+```
+fel:      {"itemMetadata":{"id":"2f3b…","originalIndex":0,"success":false,
+           "error":{"code":"INVALID_REVISION","description":"Outdated revision…"}}}
+framgång: {"itemMetadata":{"id":"2f3b…","originalIndex":0,"success":true}}
+bulkActionMetadata: {totalSuccesses, totalFailures, undetailedFailures}
+```
+
+Attributionen behöver alltså inte lita på ORDNINGEN. Det är avgörande, för
+*"Wix före mappningen"* är en garanti **per produkt**: hade svaret varit
+aggregerat kunde en enda revisionskonflikt i ett anrop med femtio produkter
+antingen ha fällt hela tuggan eller bokförts på fel produkt — tyst, samma klass
+som `sku`-förväxlingen. Mätrutten är `/api/admin/wix-inventory-probe`
+(workflow-lägena `api-matning` och `api-matning-skriv`); den skriver ingenting
+utan `?write=1`, och det den då skriver är samma saldo tillbaka.
+
+Uppmätt samtidigt, och därför inte gissat: `$in` på `productId` fungerar (fem id
+gav fem poster mot ett för ett enskilt), läsningens sida är **100**, och
+`bulk/inventory-items/update` svarar `200` med ett individuellt utfall per rad
+på **20, 50 och 100 rader**. 101 är oprövat — därav `BATCH_LAGERRADER = 100`.
+
+**Sex egenskaper som inte ska tas bort:**
+
+1. ☠️ **En mappning skrivs bara för rader Wix uttryckligen bekräftat.**
+   `tolkaBulkUtfall` har tre konservativa regler, alla åt samma håll: en
+   SKICKAD rad Wix inte nämner är inte bevisat skriven; `undetailedFailures`
+   gör HELA anropet oadresserbart; saknat id härleds ur `originalIndex` mot det
+   vi faktiskt skickade. Hellre en skrivning för mycket nästa körning än en
+   mappning som ljuger.
+2. ☠️ **En produkt med FLERA lagerrader skrivs bara om ALLA går igenom.**
+   Halvskrivet lager är svårare att upptäcka än orört.
+3. ☠️ **`limit` är EXAKT — tuggan kapas mot det som återstår**
+   (`min(CHUNK, limit - skrivna)`). En tugga med N produkter kan aldrig ge fler
+   än N skrivningar. Utan kapningen hade `limit: 1` skrivit hela första tuggan,
+   och `limit` finns för att hålla rutten innanför sina 300 sekunder. Ett test
+   på markören fångade just det.
+4. ☠️ **`utanLagerrader` räknas, och de produkterna stämplas INTE.** Den gamla
+   `setStock` svarade `if (poster.length === 0) return;` — inget fel, ingen
+   räknare — och loopen bokförde ändå produkten som synkad, för alltid. Nionde
+   gången samma klass: ett svar utan fel är inget kvitto.
+5. **Torrkörningen LÄSER lagret.** Den ska säga sanningen om vad en skarp
+   körning skulle göra, och `utanLagerrader` går inte att veta utan att titta.
+   Läsningar ändrar ingenting.
+6. **Pacingen ligger kvar** trots att anropen är ~40 i stället för ~2 000. Den
+   kostar fem sekunder på ett helt svep, och den är billigare än att mäta upp
+   var den nya gränsen går.
+
+⚠️ **En ny mätning, ingen åtgärd: `lagerDrift`.** Läsningen ser numera butikens
+FAKTISKA saldo, och räknar hur många produkter där det skiljer sig från det
+mappningen tror att den skrev. Det är exakt samma frågeställning som
+`jamforelsePris` byggdes för på PRISET — och där kostade förväxlingen en månad
+och tjugo rader. Lagret triggas fortfarande på mappningens tal, alltså har det
+samma teoretiska hål. Talet är medvetet bara **mätt**: att byta facit vore en
+beteendeändring med hela katalogen som blast-radie, samma dag som loopen byggs
+om. Mät först, som huset gjorde med priserna. Läs det i workflow-summeringen.
 
 ### Så körs den för hand
 
@@ -967,6 +1079,37 @@ importen; den är ett mekaniskt fel med ett mekaniskt svar och får inte lämnas
 `aosomFreightShare` på mappningen (0–1) säger hur mycket av inköpet som är
 frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
 kör svepet med `?skipFreightHeavy=1` och ta dem för sig.
+
+#### ☠️ Skriv texten i en FIL först — mätt 9 fel mot 0 (2026-09-04)
+
+Batch 64 skrev åtta produkttexter på två sätt, och skillnaden är inte en
+smaksak utan ett tal:
+
+| hur texten skrevs | produkter | fel som nådde Wix |
+|---|---:|---:|
+| Inline i API-anropet | 5 | **9** |
+| Fil först, sedan grep-grind, sedan anrop | 3 | **0** |
+
+Felen var svenska stavfel (`dögnsvarv`, `engangsjobb`, `ihopsattningen`,
+`för hard underlag`) plus ETT husregelbrott: *"Leverantören anger 25–35
+minuter"* — mot kunden är **vi** leverantören. Alla nio skrevs av samma modell
+i samma session; det som skilde var om texten passerade en fil.
+
+Skälet är mekaniskt. En sträng som skrivs direkt i ett JSON-anrop kan inte
+läsas av en grind innan den lämnar chatten, och API-svaret ekar tillbaka exakt
+det man skrev — det ser rätt ut för att det ÄR det man skrev. En fil går att
+`grep`:a, och grinden tog noll sekunder.
+
+☠️ **Och rätta per ORD, inte per förekomst.** `dögnsvarv` hittades tre gånger i
+tre separata rundor — i namnet, sedan i en produkts brödtext, sedan i syskonets
+— för att varje fynd lagades där det syntes i stället för att sökas i hela
+batchen. Tre skrivningar och två extra läsningar för ett ord. Hittar du ett
+stavfel: sök det i ALLA batchens texter innan du skriver något.
+
+⚠️ Poleringstexten går inte att verifiera ur PATCH-svaret. `plainDescription`
+ekas tillbaka ordagrant, så en felstavning bekräftas som "sparad". Det som
+faktiskt fångar den är en grind före skrivningen — eller ögon efter, på en
+återläsning. Nionde gången samma familj: **ett svar utan fel är inget kvitto.**
 
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 
