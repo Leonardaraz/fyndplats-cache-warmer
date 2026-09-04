@@ -56,10 +56,14 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     author: "Sigvard Åberg",
     // Google visade "för 12 timmar sedan" 2026-09-04.
     date: "2026-09-04",
-    // Andra meningen var avhuggen bakom "… Mer" ("Jag ringde och berättade
-    // måtten på mitt badrum och vilken färg …") och är därför utelämnad —
-    // texten trimmas till sista HELA mening, orden ändras aldrig.
-    text: "Jag är väldigt nöjd med den hjälp jag fick från kundtjänsten när jag skulle köpa ett badrumsskåp.",
+    // Låg först här i trimmad form: Google visade bara första meningen och
+    // dolde resten bakom "… Mer". Leonard läste ut hela texten på profilen
+    // 2026-09-04, så nu står den ordagrant och i sin helhet.
+    //
+    // RADBRYTNINGARNA ÄR KUNDENS EGNA och bärs igenom av white-space:pre-line
+    // på .greview-text. Utan den regeln hade de tre styckena kollapsat till en
+    // enda vägg av text — och det här är sajtens längsta omdöme.
+    text: "Jag är väldigt nöjd med den hjälp jag fick från kundtjänsten när jag skulle köpa ett badrumsskåp. Jag ringde och berättade måtten på mitt badrum och vilken färg jag önskade, och de tog sig verkligen tid att ge mig flera bra förslag.\n\nSom äldre man uppskattade jag särskilt det vänliga bemötandet och tålamodet. Det kändes tryggt att få prata med någon som verkligen ville hjälpa mig att hitta rätt.\n\nJag blev jättenöjd med skåpet och kan varmt rekommendera deras kundtjänst. Stort tack för all hjälp!",
     // Kundens egen bild — se noten om kundbilder överst i filen.
     photos: [
       {

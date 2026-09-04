@@ -1617,7 +1617,12 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .greview-meta{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:var(--text-xs)}
 .greview-date{color:var(--soft);font-size:var(--text-xs)}
 .greview-gicon{flex:none;margin-top:2px;opacity:.92}
-.greview-text{margin:0;font-size:var(--text-sm);line-height:1.6;color:var(--ink)}
+/* white-space:pre-line bär kundens EGNA styckeindelning. Google-omdömen är
+   nästan alltid ett stycke, men inte alla: Sigvard Åbergs (2026-09-04) är
+   tre, och utan regeln hade de kollapsat till en enda vägg av text. pre-line
+   bevarar radbrytningar men slår ihop mellanslag, så ett ensamt stycke ser
+   exakt likadant ut som förut. */
+.greview-text{margin:0;font-size:var(--text-sm);line-height:1.6;color:var(--ink);white-space:pre-line}
 /* Kundbilder under omdömet (lib/curated-reviews → photos). Kvadratiska
    miniatyrer i en lugn remsa: bilderna ska stödja texten, inte konkurrera med
    den. Bildtexten säger vems bilderna är — utan den läses de som våra egna
