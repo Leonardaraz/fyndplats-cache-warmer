@@ -619,16 +619,16 @@ export async function runAosomSync(
           rader.map(({ id, revision, quantity }) => ({ id, revision, quantity })),
         );
         const fallna = new Map(utfall.misslyckade.map((f) => [f.id, f.fel]));
-        /** En produkt är OK bara när ALLA dess rader är det. */
         const felPerProdukt = new Map<string, string>();
         for (const r of rader) {
           const fel = fallna.get(r.id);
           if (fel && !felPerProdukt.has(r.produkt)) felPerProdukt.set(r.produkt, fel);
         }
-        for (const r of rader) {
-          if (!lagerOk.has(r.produkt) || lagerOk.get(r.produkt) === true) {
-            lagerOk.set(r.produkt, !felPerProdukt.has(r.produkt));
-          }
+        // ☠️ En produkt är OK bara när INGEN av dess rader föll. Halvskrivet
+        // lager är svårare att upptäcka än orört: mappningen hade sagt
+        // "synkad" medan en variant stod kvar på gammalt saldo.
+        for (const produkt of new Set(rader.map((r) => r.produkt))) {
+          lagerOk.set(produkt, !felPerProdukt.has(produkt));
         }
         for (const [produkt, fel] of felPerProdukt) {
           const p = planer.find((x) => x.m.wixProductId === produkt);
@@ -649,7 +649,7 @@ export async function runAosomSync(
     } else {
       // Torrläge, eller inga saldon att skriva: allt som skulle skrivas räknas
       // som lyckat, precis som förr.
-      for (const r of rader) if (!lagerOk.has(r.produkt)) lagerOk.set(r.produkt, true);
+      for (const produkt of new Set(rader.map((r) => r.produkt))) lagerOk.set(produkt, true);
     }
 
     // Lässkadan bokförs en gång per drabbad produkt, efter att raderna räknats.
