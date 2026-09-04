@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
-import type { GoogleReview } from "../lib/google-reviews";
+import type { GoogleReview, ReviewPhoto } from "../lib/google-reviews";
+import { wixFitUrl } from "../lib/wix-media-key";
 
 // Inlinad Google-G (kopplas inte till site.tsx för att hålla klient-bundlen ren).
 function GoogleG({ size = 16 }: { size?: number }) {
@@ -92,6 +94,29 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
   // (2026-08-22): de renderades, de bara visade ingenting.
   const [trasiga, setTrasiga] = useState<ReadonlySet<string>>(() => new Set());
   const photos = (r.photos ?? []).slice(0, 3).filter((p) => !trasiga.has(p.src));
+  // Förstorad kundbild. null = stängd. Samma mönster som produktrecensionernas
+  // lightbox (components/ProductReviews.tsx): portal, Escape stänger,
+  // bakgrundsscroll låses, klick utanför bilden stänger.
+  //
+  // Tillståndet bor i KORTET och inte i listan. Bara ett kort kan vara öppet
+  // åt gången ändå — det krävs ett klick för att öppna — och alternativet vore
+  // att skicka en öppna-funktion genom varje kort utan att vinna något.
+  const [stor, setStor] = useState<ReviewPhoto | null>(null);
+  const stang = useCallback(() => setStor(null), []);
+
+  useEffect(() => {
+    if (!stor) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") stang();
+    };
+    window.addEventListener("keydown", onKey);
+    const forra = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = forra;
+    };
+  }, [stor, stang]);
 
   // Scroll-reveal: ovanför vikningen = synligt direkt; under = "armed" → tonar in
   // när det scrollas in. SSR/no-JS/reduced-motion → stannar synligt (init).
@@ -176,19 +201,30 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
       {photos.length > 0 ? (
         <figure className="greview-photos">
           <div className="greview-photostrip">
-            {photos.map((p) => (
-              <Image
+            {photos.map((p, i) => (
+              <button
                 key={p.src}
-                className="greview-photo"
-                src={p.src}
-                alt={p.alt}
-                width={84}
-                height={84}
-                loading="lazy"
-                onError={() =>
-                  setTrasiga((f) => (f.has(p.src) ? f : new Set(f).add(p.src)))
+                type="button"
+                className="greview-photo-btn"
+                onClick={() => setStor(p)}
+                aria-label={
+                  photos.length > 1
+                    ? `${p.alt} – bild ${i + 1} av ${photos.length}, visa större`
+                    : `${p.alt} – visa större`
                 }
-              />
+              >
+                <Image
+                  className="greview-photo"
+                  src={p.src}
+                  alt={p.alt}
+                  width={84}
+                  height={84}
+                  loading="lazy"
+                  onError={() =>
+                    setTrasiga((f) => (f.has(p.src) ? f : new Set(f).add(p.src)))
+                  }
+                />
+              </button>
             ))}
           </div>
           <figcaption className="greview-photonote">
@@ -196,6 +232,37 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
           </figcaption>
         </figure>
       ) : null}
+
+      {/* Portal: kortet har transform (3D-tilten) och bildar därmed ett eget
+          stacking- och containing-block. En position:fixed-overlay här inne
+          hade ramats in av kortet i stället för att täcka sidan. */}
+      {stor && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="lightbox rev-lightbox"
+              onClick={stang}
+              role="dialog"
+              aria-modal="true"
+              aria-label={stor.alt}
+            >
+              <button type="button" className="rev-lb-close" onClick={stang} aria-label="Stäng">
+                ×
+              </button>
+              {/* Rå <img> och inte <Image>: adressen är redan exakt den vi vill
+                  ha (wixFitUrl bygger den oskurna storversionen), och den visas
+                  en i taget på klick — det finns ingen srcset att vinna.
+                  Produktrecensionernas lightbox gör likadant. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="rev-lb-img"
+                src={wixFitUrl(stor.src)}
+                alt={stor.alt}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>,
+            document.body,
+          )
+        : null}
     </li>
   );
 }

@@ -1629,12 +1629,14 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    produktfoton, och det vore att ta åt sig äran för kundens bevis. */
 .greview-photos{margin:14px 0 0;display:flex;flex-direction:column;gap:7px}
 .greview-photostrip{display:flex;gap:8px;flex-wrap:wrap}
+.greview-photo-btn{padding:0;border:0;background:none;line-height:0;cursor:zoom-in;border-radius:var(--r-sm)}
+.greview-photo-btn:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
 .greview-photo{width:84px;height:84px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface-2);display:block;transition:transform .25s cubic-bezier(.2,.7,.2,1)}
 /* Ingen (hover:none)-grind här. Den lärdomen kostade en dag: :hover fyrar på
    iOS när fingret vilar på elementet, så en grind hade tagit bort effekten för
    just de besökare som mest sannolikt nuddar bilden. */
-.greview-photo:hover{transform:scale(1.06)}
-@media (prefers-reduced-motion:reduce){.greview-photo{transition:none}.greview-photo:hover{transform:none}}
+.greview-photo-btn:hover .greview-photo{transform:scale(1.06)}
+@media (prefers-reduced-motion:reduce){.greview-photo{transition:none}.greview-photo-btn:hover .greview-photo{transform:none}}
 .greview-photonote{font-size:var(--text-xs);color:var(--soft)}
 .greviews-actions{text-align:center;margin-top:28px}
 .greviews-more{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border:0;border-radius:var(--r-pill);background:linear-gradient(135deg,var(--orange-fill),#9E320A);color:#fff;font-size:var(--text-sm);font-weight:700;cursor:pointer;box-shadow:var(--e2);transition:transform .2s,box-shadow .2s,filter .2s}
@@ -2266,6 +2268,10 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .rev-photo{max-width:120px;max-height:120px;border-radius:var(--r-sm);object-fit:cover;border:1px solid var(--line);transition:transform .15s}
 .rev-photo-btn:hover .rev-photo{transform:scale(1.04)}
 /* Förstoringen. .lightbox ger bakgrund, centrering och z-index. */
+/* .rev-lightbox / .rev-lb-* delas av BÅDA omdömesytorna: produktsidans
+   ProductReviews och omdömessidans GoogleReviews. Samma förstoring ska se
+   likadan ut oavsett var kunden klickar, och en andra uppsättning klasser
+   hade bara varit den första igen under ett annat namn. */
 .rev-lightbox{cursor:zoom-out}
 .rev-lb-img{max-width:min(92vw,900px);max-height:88vh;object-fit:contain;border-radius:var(--r-sm);cursor:default}
 .rev-lb-close{position:absolute;top:14px;right:18px;width:42px;height:42px;border:0;border-radius:var(--r-pill);background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer}
