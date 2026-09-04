@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { runBulkImportWorker } from "./worker";
 import {
   __setBulkImportStoreForTests,
@@ -133,5 +133,25 @@ describe("runBulkImportWorker — integration", () => {
     const r = await runBulkImportWorker({ disableDelay: true });
     expect(r.itemsProcessed).toBe(0);
     expect(r.jobsTouched).toBe(0);
+  });
+});
+
+// ☠️ En tom tugga ska vara tyst. Cronen går varje minut, dygnet runt — 1 440
+// körningar per dygn, och nästan alla har ingenting att göra. Varje sådan skrev
+// ändå en routing-rad, och tillsammans med health-check stod de två för ~91 %
+// av all loggvolym. En logg som till nio tiondelar är brus är en logg ingen
+// läser, och då är även det äkta felet borta.
+describe("runBulkImportWorker — tomma körningar", () => {
+  it("loggar ingenting när kön är tom", async () => {
+    const rader: unknown[][] = [];
+    const spion = vi.spyOn(console, "log").mockImplementation((...a) => { rader.push(a); });
+    try {
+      const r = await runBulkImportWorker({ triggerSource: "cron" });
+      expect(r.itemsProcessed).toBe(0);
+      expect(r.jobsTouched).toBe(0);
+      expect(rader).toEqual([]);
+    } finally {
+      spion.mockRestore();
+    }
   });
 });

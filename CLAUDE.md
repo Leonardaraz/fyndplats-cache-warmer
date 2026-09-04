@@ -132,6 +132,29 @@ När AI är av: `runSeo/runImageAnalysis/runCategory/batched` blir alla `false`,
 `importProduct` returnerar `needsAiPolish:true`, och `lib/bulk-import/worker.ts`
 tvingar realtidsvägen (ingen Batch API-pre-generering som annars kostar).
 
+## En tom cron-tugga ska vara TYST (2026-09-04)
+
+`bulk-import-worker` går **varje minut, dygnet runt** — 1 440 körningar per
+dygn, och nästan alla har ingenting att göra. Varje sådan skrev ändå en
+routing-rad i Vercel-loggen, och tillsammans med `health-check` (var femte
+minut) stod de två för **~91 % av all loggvolym**.
+
+Det är inte en kostnadsfråga utan en **läsbarhetsfråga**, och huset har redan
+skrivit ned regeln två gånger: en logg som till nio tiondelar är brus är en
+logg ingen läser — och då är även det äkta felet borta. Samma argument som mot
+att varna vid 48 h på token-förnyelsen, och som mot ett rött synk-jobb vid varje
+svep.
+
+`runBulkImportWorker` returnerar nu tyst på en tom kö. Två saker att inte röra:
+
+1. **Kollen ligger FÖRE routingbeslutet.** Båda vägarna (realtid och Batch API)
+   läser samma kö ur samma store och gör exakt samma tidiga återvändning på en
+   tom lista. Tystnad i bara den ena hade varit en tvilling som glider isär.
+2. **Cadensen är oförändrad.** Att glesa ut cronen hade varit den uppenbara
+   fixen och den fel: varje tick processar tio köposter, så fem minuter mellan
+   ticksen gör ett hundraposters jobb fem gånger långsammare. Bruset satt i
+   loggningen, inte i frekvensen.
+
 ## Aosom: andra leverantören, samma pipeline (`lib/aosom/`)
 
 Sedan 2026-08-27 finns ett B2B-konto hos Aosom och en produktfeed

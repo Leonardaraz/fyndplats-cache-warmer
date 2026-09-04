@@ -74,6 +74,39 @@ export async function runBulkImportWorker(opts: WorkerRunOptions = {}): Promise<
   // via Batch API (50 % rabatt); en importerOverride (tester) tvingar realtid.
   // Dynamisk import undviker en statisk cykel (batch-worker importerar härifrån).
   const triggerSource: TriggerSource = opts.triggerSource ?? "cron";
+
+  // ☠️ EN TOM TUGGA SKA VARA TYST. Cronen går VARJE MINUT, dygnet runt — 1 440
+  // körningar per dygn, och nästan alla har ingenting att göra. Varje sådan
+  // skrev ändå en routing-rad i Vercel-loggen, och tillsammans med
+  // health-check stod de två för ~91 % av all loggvolym (Leonards observation
+  // 2026-09-04). Det är inte en kostnadsfråga utan en LÄSBARHETSFRÅGA: en
+  // logg som till nio tiondelar är brus är en logg ingen läser, och då är även
+  // det äkta felet borta. Samma argument som mot att varna vid 48 h på
+  // token-förnyelsen.
+  //
+  // Kollen ligger FÖRE routingbeslutet med flit. Båda vägarna (realtid och
+  // Batch API) läser samma kö ur samma store och gör exakt samma tidiga
+  // återvändning på en tom lista — att lägga tystnaden i bara den ena hade
+  // varit en tvilling som glider isär.
+  //
+  // Den ENDA extra kostnaden är att `listJobs` körs en gång även när vi sedan
+  // delegerar till batch-vägen. Det är samma fråga den ändå ställer.
+  const koKollStore = getBulkImportStore();
+  const harArbete = (await koKollStore.listJobs(50))
+    .some((j) => j.status === "pending" || j.status === "running");
+  if (!harArbete) {
+    return {
+      jobsTouched: 0,
+      itemsProcessed: 0,
+      itemsSucceeded: 0,
+      itemsFailed: 0,
+      itemsRetried: 0,
+      itemsSkipped: 0,
+      stoppedDueToBudget: false,
+      errors: [],
+    };
+  }
+
   // Master-switch (AI_ENRICHMENT_ENABLED=false) → tvinga realtid: Batch API-vägen
   // pre-genererar AI-innehåll (kostar), och i RÅ-läge vill vi inte göra ETT enda
   // Claude-anrop. Realtidsvägen kör importProduct som då skippar all AI ($0).
