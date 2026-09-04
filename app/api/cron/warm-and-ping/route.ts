@@ -89,6 +89,34 @@ async function varm(slug: string): Promise<boolean> {
   }
 }
 
+/**
+ * Värm bildkartan (/api/kort-bilder) — listsidornas kort hämtar den när de
+ * behöver ett foto som inte fick plats i sidans HTML (se lib/list-payload.ts).
+ *
+ * VARFÖR DEN BEHÖVER VÄRMAS. Rutten läser hela katalogen, så en kall
+ * lambda är dyr: uppmätt på preview-deployen 2026-09-04 tog den FÖRSTA
+ * hämtningen 35,4 s, de följande svarade x-vercel-cache: HIT. Den kalla
+ * hämtningen är annars en riktig besökares — den som hovrar "Visa fler" strax
+ * efter en deploy eller efter att cacheposten gått ut. Korten står kvar
+ * kompletta under tiden (namn, pris, betyg, länk), så inget går sönder, men
+ * fotona dröjer. Samma resonemang som produktsidorna ovan: rendera en gång
+ * innan någon väntar på den.
+ *
+ * Kastar aldrig — misslyckas den är enda konsekvensen att nästa besökare
+ * betalar kallstarten, precis som före den här raden.
+ */
+async function varmBildkartan(): Promise<boolean> {
+  try {
+    const res = await fetch(`${SITE}/api/kort-bilder`, {
+      headers: { "user-agent": "fyndplats-warmer" },
+      cache: "no-store",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function varmAlla(slugs: string[]): Promise<{ ok: number; fel: number }> {
   let ok = 0, fel = 0;
   for (let i = 0; i < slugs.length; i += PARALLELLT) {
@@ -114,8 +142,12 @@ export async function GET(request: Request) {
   const entries = await getProductSitemapEntries();
   const urval = farskaProdukter(entries, Date.now(), FONSTER_MS, TAK_PER_KORNING);
 
+  // Bildkartan värms varje körning, oberoende av om det finns färska produkter
+  // — den går kall av att cacheposten löper ut, inte av att katalogen ändras.
+  const bildkartan = await varmBildkartan();
+
   if (urval.slugs.length === 0) {
-    return NextResponse.json({ ok: true, farska: 0, katalog: entries.length });
+    return NextResponse.json({ ok: true, farska: 0, katalog: entries.length, bildkartan });
   }
 
   // Ordningen är hela poängen: rendera först, berätta sedan.
@@ -134,6 +166,7 @@ export async function GET(request: Request) {
     behandlade: urval.slugs.length,
     kvarTillNasta: urval.overTaket,
     varmning,
+    bildkartan,
     indexNow: ping.indexNow,
     google: ping.google,
   });

@@ -43,6 +43,13 @@ export function ProductCard({ p, priority = false }: { p: ListProduct; priority?
         <WishlistHeart slug={p.slug} />
         {/* Bilderna serveras via den globala loadern (lib/image-loader.ts) direkt
             från Wix CDN med responsiv srcset — ingen /_next/image-optimerare. */}
+        {/* Fotorutan väntar. Listsidorna skickar bilderna bara för de produkter
+            som kan stå i vyn direkt (lib/list-payload.ts) — resten hämtas som
+            en karta när de närmar sig. Kortet är komplett under tiden: namn,
+            pris, betyg, lagerstatus och länken ligger i listan; bara fotot
+            fylls i. Svepet är samma funktion som blur-placeholdern <Image>
+            redan visar medan en bild laddas ner. */}
+        {!p.img && <span className="pimg-vantar" aria-hidden="true" />}
         {p.img && (
           <Image
             className="pimg-main"

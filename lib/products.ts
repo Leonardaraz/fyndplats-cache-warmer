@@ -10,6 +10,7 @@ import variantImages from "../data/variant-images.json";
 import { imageScoreOf, imageRecordOf } from "./image-scores";
 import { getSoldUnits } from "./popularity";
 import { getProductColors } from "./product-colors";
+import { wixMediaKey } from "./wix-image";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 import { linkVariantImagesByAltText, colorOf } from "./variant-color-image";
 import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
@@ -771,7 +772,10 @@ export type ListProduct = {
   id: string;
   slug: string;
   name: string;
-  img: string;
+  /** SAKNAS FÖR PRODUKTER LÅNGT NER I LISTAN — se `medBild` nedan. Kortet
+   *  ritas ändå komplett (namn, pris, betyg, länk); bara fotot fylls i när
+   *  det hämtats. */
+  img?: string;
   /** Hover-bilden, förberäknad. Kortet plockade tidigare ut ETT element ur
    *  hela gallery[] — att skicka listan kostade 364 kB för de 787 produkterna. */
   altImg?: string;
@@ -821,7 +825,7 @@ export type ListProduct = {
  * typeof p.stockQuantity === "number"), så en saknad nyckel och en nyckel med
  * default-värdet räknas likadant. Lägger du till ett fält här: kontrollera att
  * läsaren tål att det saknas, annars skriv ut det ovillkorligt. */
-export function forClient(products: Product[]): ListProduct[] {
+export function forClient(products: Product[], medBild?: ReadonlySet<string>): ListProduct[] {
   // KATEGORI-ID:N SKICKAS SOM KORTA TOKENS, INTE SOM GUID:er.
   //
   // Mätt på skarp /alla-produkter 2026-09-04: 4 867 kategorireferenser fördelade
@@ -847,6 +851,44 @@ export function forClient(products: Product[]): ListProduct[] {
   // Tokens är rena siffror; groupKeyForMix reservnyckel är "__egen:<id>" —
   // de kan alltså aldrig krocka. Numreringen är per anrop, vilket räcker: den
   // ska bara särskilja kategorier INOM den lista sidan skickar.
+  // BILDERNA SKICKAS SOM MEDIA-NYCKEL, INTE SOM HEL URL.
+  //
+  // Varenda produktbild börjar med samma 35 tecken —
+  // "https://static.wixstatic.com/media/". Mätt 2026-09-04: 3 238 bild-URL:er
+  // på /alla-produkter (img + altImg), alltså 113 330 B ren upprepning.
+  //
+  // Det kostar ingenting att stryka den, för den kastas bort ändå: kortets enda
+  // konsument är tightFillUrl (lib/wix-image), som plockar ut media-nyckeln med
+  // wixMediaKey och BYGGER OM URL:en från den. wixMediaKey känner numera igen en
+  // naken nyckel och släpper igenom den oförändrad, så både listsidornas smala
+  // form och de anropare som skickar hela Product (startsidan, produktsidans
+  // relaterade, price-tier) fungerar genom samma kod.
+  //
+  // Nyckeln behåller kontoprefixet (b379ce_). Utan det svarar Wix CDN 403 — se
+  // lib/review-images.ts, som fick reparera exakt det felet på importerade
+  // recensionsbilder.
+  const bildnyckel = (url: string | undefined): string | undefined =>
+    url ? (wixMediaKey(url) ?? url) : undefined;
+
+  // BILDERNA SKICKAS BARA FÖR DE PRODUKTER SOM KAN HAMNA I VYN DIREKT.
+  //
+  // Sidan ritar 24 kort men bär hela katalogen, för filtren och sorteringen
+  // räknas i webbläsaren. Mätt 2026-09-04: av produktlistans 877 kB var
+  // 471 kB renderingsdata för kort som aldrig ritades — och bilderna var
+  // 313 kB av dem.
+  //
+  // `medBild` är de slugs anroparen förberäknat som "kan synas utan att
+  // användaren hinner blinka" (se lib/list-payload.ts: de första sidorna i
+  // visningsordningen plus toppen av varje sorteringsval). Övriga produkter
+  // skickas UTAN bild; ShopBrowser hämtar dem från /api/kort-bilder när de
+  // faktiskt närmar sig vyn.
+  //
+  // Kortet blir inte tomt under tiden: namn, pris, betyg, lagerstatus och
+  // länken ligger kvar i listan, så bara fotorutan väntar — samma tillstånd
+  // som varje bild redan har medan den laddas ner. Utelämnas `medBild` får
+  // alla produkter sin bild (oförändrat beteende).
+  const barBild = (slug: string): boolean => !medBild || medBild.has(slug);
+
   const token = new Map<string, string>();
   const tokenFor = (id: string): string => {
     let t = token.get(id);
@@ -862,13 +904,17 @@ export function forClient(products: Product[]): ListProduct[] {
       id: p.id,
       slug: p.slug,
       name: p.name,
-      img: p.img,
       price: p.price,
       priceNum: p.priceNum,
       inStock: p.inStock,
     };
-    const altImg = p.gallery?.find((g) => g !== p.img);
-    if (altImg) lp.altImg = altImg;
+    if (barBild(p.slug)) {
+      if (p.img) lp.img = bildnyckel(p.img) ?? p.img;
+      // Jämförelsen sker på HELA URL:er, före komprimeringen — gallery bär hela
+      // URL:er och p.img likaså, så en naken nyckel här hade aldrig matchat.
+      const altImg = p.gallery?.find((g) => g !== p.img);
+      if (altImg) lp.altImg = bildnyckel(altImg);
+    }
     if (p.priceFrom) lp.priceFrom = p.priceFrom;
     if (p.priceFromNum) lp.priceFromNum = p.priceFromNum;
     if (p.originalPrice) lp.originalPrice = p.originalPrice;

@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "./productcard";
 import { currentDayMs, orderRecommended, orderPopular } from "../lib/sort-products";
@@ -255,6 +255,37 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
   // ny lista ärva ett stort "shown"-värde och rendera allt på en gång igen).
   const [shown, setShown] = useState(PAGE_SIZE);
   const firstRender = useRef(true);
+
+  // ── Bilderna som inte fick plats i sidans HTML ────────────────────────────
+  //
+  // Sidan bär hela katalogen (filtren räknas här) men ritar 24 kort. Bilderna
+  // för produkter långt ner skickas därför inte med — se lib/list-payload.ts.
+  // De hämtas som EN karta från /api/kort-bilder, hårt cachad, och återanvänds
+  // sedan för hela besöket och över alla listsidor.
+  //
+  // Hämtas vid AVSIKT, inte vid mount: den som bara tittar på de första korten
+  // och klickar vidare betalar ingenting. Signalerna nedan är alla saker man
+  // gör strax INNAN vyn byts ut — samma tanke som PrefetchLink på korten.
+  const [bilder, setBilder] = useState<Record<string, [string, string | null]> | null>(null);
+  const bilderBegarda = useRef(false);
+  const hamtaBilder = useCallback(() => {
+    if (bilderBegarda.current) return;
+    bilderBegarda.current = true;
+    fetch("/api/kort-bilder")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setBilder(d); })
+      // Misslyckas den står korten kvar med sin väntande fotoruta — fult, men
+      // inte trasigt. Att nolla flaggan låter nästa avsikt försöka igen.
+      .catch(() => { bilderBegarda.current = false; });
+  }, []);
+  // Sista utvägen: syns ett kort utan bild i vyn har någon kommit hit på ett
+  // sätt vi inte förutsåg (delad länk med filter i URL:en, t.ex.) — hämta då.
+  const saknarBild = (p: ListProduct) => !p.img && !bilder?.[p.slug];
+  const medBild = (p: ListProduct): ListProduct => {
+    if (p.img) return p;
+    const b = bilder?.[p.slug];
+    return b ? { ...p, img: b[0], altImg: b[1] ?? undefined } : p;
+  };
   useEffect(() => {
     // Hoppa över första körningen så en delad länk inte nollställer en ev.
     // bevarad scroll-position direkt vid mount.
@@ -264,11 +295,24 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
   const visible = list.slice(0, shown);
   const remaining = list.length - visible.length;
 
+  // Skyddsnätet. Avsikts-signalerna ovan täcker de vanliga vägarna, men en delad
+  // länk kan landa direkt i ett filtrerat läge (?pris=…&farg=…) där korten i vyn
+  // ligger långt ner i katalogen. Syns ett kort utan bild hämtar vi kartan —
+  // annars hade den besökaren fått väntande fotorutor som aldrig fylldes.
+  const nagotKortSaknarBild = visible.some(saknarBild);
+  useEffect(() => {
+    if (nagotKortSaknarBild) hamtaBilder();
+  }, [nagotKortSaknarBild, hamtaBilder]);
+
   return (
     <>
       {/* Top toolbar — filter vänster, count mitten/subtilt, sort höger */}
       <div className={`shopbar ${open ? "open" : ""}`}>
-        <button type="button" className="shopbar-toggle" onClick={() => setOpen((b) => !b)} aria-expanded={open}>
+        {/* Att öppna filterpanelen är avsikt att filtrera, och ett filter kan
+            landa på produkter långt ner i katalogen. */}
+        <button type="button" className="shopbar-toggle"
+          onPointerEnter={hamtaBilder} onTouchStart={hamtaBilder}
+          onClick={() => { hamtaBilder(); setOpen((b) => !b); }} aria-expanded={open}>
           ⚙ Filter {activeFilters > 0 && <span className="filter-count">{activeFilters}</span>}
         </button>
 
@@ -279,7 +323,12 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
 
         <label className="sortsel shopbar-sort">
           <span>Sortera</span>
-          <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sortera produkter">
+          {/* Byte av sortering byter ut hela vyn mot 24 andra produkter.
+              Toppen av varje sorteringsval bär redan bild (lib/list-payload),
+              men ett filter ovanpå kan nå längre ner — så vi hämtar när man
+              rör reglaget, inte när man släpper det. */}
+          <select value={sort} onChange={(e) => setSort(e.target.value)}
+            onPointerEnter={hamtaBilder} onFocus={hamtaBilder} aria-label="Sortera produkter">
             {SORTS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
           </select>
         </label>
@@ -460,10 +509,14 @@ function ShopBrowserInner({ products, defaultSort, subs, dayMs: dayMsProp }: { p
           {/* De fyra första korten är över vikningen på varje skärmbredd (1–4
               kolumner), så deras bilder hämtas eager med hög prioritet. Resten
               är kvar på lazy — 24 kort × 2 bilder är inget att förladda. */}
-          <div className="prodgrid">{visible.map((p, i) => <ProductCard p={p} key={p.slug} priority={i < 4} />)}</div>
+          <div className="prodgrid">{visible.map((p, i) => <ProductCard p={medBild(p)} key={p.slug} priority={i < 4} />)}</div>
           {remaining > 0 && (
             <div className="loadmore-wrap">
-              <button type="button" className="loadmore" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+              {/* onPointerEnter/onTouchStart: bildkartan är på väg innan klicket
+                  hinner registreras, så nästa 24 kort har sina foton direkt. */}
+              <button type="button" className="loadmore"
+                onPointerEnter={hamtaBilder} onTouchStart={hamtaBilder}
+                onClick={() => { hamtaBilder(); setShown((n) => n + PAGE_SIZE); }}>
                 Visa fler <span className="loadmore-rem">({remaining} kvar)</span>
               </button>
             </div>

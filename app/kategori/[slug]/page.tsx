@@ -2,7 +2,8 @@ import Image from "next/image";
 import { jsonLdString } from "../../../lib/seo";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import { getProducts, getCollections, getAllCategorySlugs, forListings, dedupeProducts, forClient } from "../../../lib/products";
+import { getProducts, getCollections, getAllCategorySlugs, forListings, dedupeProducts } from "../../../lib/products";
+import { forListClient } from "../../../lib/list-payload";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
 import { attachRatings } from "../../../lib/review-aggregates";
@@ -267,7 +268,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               — samma verktyg som /alla-produkter. (Audit 2026-06-02 #7) */}
           {/* forClient skär bort de fält klienten aldrig läser — se ListProduct
               i lib/products.ts. Mätt: 1 005 kB av 2 704 på den här sidan. */}
-          <ShopBrowser products={forClient(list)} subs={subs} />
+          <ShopBrowser products={forListClient(list)} subs={subs} />
 
           {/* Crawlbart A–Ö-index för kategorin: gridden visar 24 (perf-gräns) och
               på statiskt renderade kategorisidor saknas "Visa fler"-knappen helt

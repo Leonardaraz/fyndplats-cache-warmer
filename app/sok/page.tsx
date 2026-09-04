@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getProducts, forClient } from "../../lib/products";
+import { getProducts } from "../../lib/products";
+import { forListClient } from "../../lib/list-payload";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { attachRatings } from "../../lib/review-aggregates";
 import { nameScore, normalize } from "../../lib/search";
@@ -63,7 +64,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
               på skarp sajt 2026-09-04 vägde /sok?q=bord 791 kB HTML, varav 465 kB
               flight-payload. Listsidorna mappade redan ner; söksidan var den enda
               som inte gjorde det. */}
-          {results.length > 0 && <ShopBrowser products={forClient(results)} />}
+          {results.length > 0 && <ShopBrowser products={forListClient(results)} />}
           {q && results.length === 0 && (
             <p className="empty" style={{ textAlign: "center", color: "var(--soft)" }}>
               Inga resultat för “{q}”. Prova att söka på kategori eller varumärke — eller <a href="/butik" style={{ color: "var(--orange)", fontWeight: 600 }}>se hela sortimentet</a>.
