@@ -1671,6 +1671,19 @@ item:et** tyst; du märker det när galleriet gått från 6 bilder till 5. Kontr
 PATCH:en med ett `curl` mot `…/v1/fill/w_400,h_400,al_c,q_80/f.jpg`: **200 = klar,
 403 = inte klar.** Håll filerna små — 1600² på ~200 kB går igenom där 2000² på 380 kB föll.
 
+⚠️ **Ett tillräckligt detaljtätt foto går inte att komprimera ner under taket — byt
+källbild i stället för att sänka kvaliteten.** Runda 52: två kort landade på 380–430 kB
+vid q=80 och låg kvar över 230 kB även vid **q=40**, alltså långt under det som ser bra
+ut. Orsaken satt i källan, inte i renderingen: bägge produkternas bild 2 är en tät
+trädgårdsscen på 1 400–1 800 kB som 2000², medan samma produkters övriga bilder ligger
+på 450–600 kB. Mät källfilernas storlek (`du -k`) innan du felsöker exporten.
+
+Tre utvägar, i ordning: **byt till produktens studiobild** (lättast, och ofta ett tydligare
+underlag för ett måttkort), beskär tätare, eller mjuka upp FOTOT — aldrig kortet, där
+texten bor. ☠️ **`card_spec` bakar in fotot som data-URI i HTML:en, så en ren `render()`
+återanvänder det GAMLA fotot.** Ändrar du beskärningen måste kortet BYGGAS om, inte bara
+renderas om — annars mäter du samma fil en gång till och tror att åtgärden inte biter.
+
 ### Bilden måste vara kvadratisk
 
 PDP:n hämtar galleriet med `fill/w_N,h_N,al_c` och **centrumbeskär varje bild till kvadrat**.
@@ -1696,6 +1709,13 @@ s = int(max(im.size) * 1.02)
 duk = Image.new("RGB", (s, s), (255, 255, 255))
 duk.paste(im, ((s - im.width) // 2, (s - im.height) // 2))
 ```
+
+⚠️ **Att padda en studiobild till KORTPANELENS format är något annat, och där är rak
+padding fel.** Panelen är 1,825:1; en kvadratisk 2000 × 2000-bild paddad till den bredden
+blir 3650 px bred med varan som ett frimärke mitt i vitt. Beskär i stället till varans
+bbox (`(a < 238).any(axis=2)`) och centrera på panelformatet med ~94 % fyllnad — varan
+beskärs aldrig, bara luften runt den. Felet syns på en sekund i kontaktarket och aldrig i
+ett API-svar; det var precis vad kontaktarks-regeln fångade i runda 52.
 
 ⚠️ **Padda på VITT, inte på en uppmätt kantfärg.** Ett första försök tog
 medianen av kantpixlarna; på en ritning med en krukväxt i hörnet blev duken
@@ -2531,6 +2551,15 @@ Gå igenom listan **innan** Steg 13. Faller något: fixa först, publicera sedan
   syskonet står i **namn, slug OCH titel** — inte bara i brödtexten.
 - Ingen tysk text kvar: sök på `zelt`, `wohn`, `schwarz`, `abmess`, `lieferumfang` — och på
   **`Färg:`-värdet**, som importen lämnar oöversatt.
+- ☠️ **Och på `seoData.settings.keywords`.** Importen lägger leverantörens tyska rubrik
+  där som fokusord (*"sandkasten 2-teilig 150x90cm holz"*), och den överlever hela
+  poleringen: Steg 7 skriver `seoData.tags` men rör inte `settings`. Mätt i runda 52 på
+  **8 av 8** produkter, och på 2 av 4 kvarhållna från runda 51. Fältet renderas inte —
+  butiken sätter en fast `keywords`-meta för hela sajten — men det är leverantörstext kvar
+  på produkten, det syns i Wix SEO-panel, och det är gratis att rätta: skicka `seoData`
+  med `settings.keywords` satt till det svenska fokusordet i den avslutande Steg 13-PATCH:en.
+  **Grinden måste läsa hela `seoData`, inte bara titeln och beskrivningen** — annars är det
+  här ett fält ingen kontroll någonsin tittar på.
 - Inget **`Skickas från`** någonstans i beskrivningen.
 - Beskrivningen har **inget** "Det du bör veta innan du köper"- eller "Bra att veta"-block.
   Leverantörsfelen är rättade direkt i löptexten och spec-tabellen; det som avgör ett köp står
