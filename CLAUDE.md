@@ -1180,6 +1180,50 @@ ekas tillbaka ordagrant, så en felstavning bekräftas som "sparad". Det som
 faktiskt fångar den är en grind före skrivningen — eller ögon efter, på en
 återläsning. Nionde gången samma familj: **ett svar utan fel är inget kvitto.**
 
+#### ☠️ Filgrinden täcker bara halva vägen — grinda den PUBLICERADE texten
+
+Raden ovan sa "ögon efter". Ögon räcker inte: batch 65:s två fel stod kvar i
+tre rundor, och det ena återinförde jag identiskt i mitt eget rättningsförsök.
+Grinden är byggd sedan 2026-09-04 och heter **`tools/polish-gates/livegrind.py`**.
+
+Den hämtar de publicerade sidorna och gör tre saker:
+
+1. **Orddiff mot källfilen.** Det är den som biter. Vilket transkriberingsfel
+   som helst blir en rad — inte bara de mönster någon råkat tänka på.
+2. **Homoglyfsvep** på live-texten (kyrilliskt/grekiskt).
+3. **Sid- och alt-svep**: husmärke, artikelnummer, fraktland, tyska rester.
+
+☠️ **ALT-TEXTERNA MÅSTE SVEPAS SEPARAT.** Ett sidsvep som strippar taggar ser
+inte in i `alt=""` — och det är precis där de tyska resterna sitter kvar efter
+en polering som bara rört beskrivningen. Batch 66 lämnade åtta produkter med
+`alt="Kaninchenstall aus Holz Hasenstall mit Rädern Klappdach…"` efter en
+felfri textpolering. Beskrivningen var ren; bilderna skrek tyska.
+
+⚠️ **Butiken skriver om markupen med flit** — beskrivningen delas i flikar
+(`pdp-flikar` / `details` / `summary`) vid `<h2>Tekniska specifikationer</h2>`.
+En exakt sträng­jämförelse mot källfilen faller därför alltid. Jämför BRÖDTEXT.
+
+⚠️ **Vänta ut butikens ISR-cache.** Sidorna är prerenderade
+(`x-nextjs-stale-time: 300`). En hämtning direkt efter skrivningen serverar den
+GAMLA sidan, och den ser ut precis som en fungerande ny — samma fälla som
+recensionsverifieringen gick i. Första träffen efter fönstret triggar en
+bakgrundsrendering; NÄSTA hämtning får den färska sidan. `?cb=` hjälper inte.
+
+Verifierad genom att återinföra batch 65:s exakta fel — ett kyrilliskt `т`
+(U+0442) i "granträ" — i en av åtta hämtade sidor: grinden fäller på rätt
+produkt, och bara den, med både orddiffen och homoglyfsvepet.
+
+**Regeln: en grind på det du SKICKAR är inte en grind på det som LIGGER UTE.**
+
+#### ☠️ Flera produkter kan dela EN SKU — kolla varje batch
+
+Importen härleder variant-SKU:n ur den tyska titelns första ord, så produkter
+vars titlar börjar likadant får samma sträng. Batch 66 hittade sex produkter på
+två SKU:er: fyra kaninhus på `FP-kaninchenstall-aus-holz` och två hundkojor på
+`FP-hundehutte-aus`. Det är inte unikt för den batchen — läs `las`-svaren mot
+varandra innan du stämplar, och ge varje produkt en egen svensk SKU på BÅDA
+sidorna (Wix-variantens `sku` och mappningsradens).
+
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 
 Regeln är **`pris = 1,20 × landedCostSek`**, uppåt till närmaste 9 (`charm9`).
