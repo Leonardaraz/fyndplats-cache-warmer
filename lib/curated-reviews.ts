@@ -30,6 +30,21 @@
 //
 // Lägg bara in bilder kunden själv publicerat på sitt eget omdöme, och beskriv
 // i `alt` vad bilden visar — aldrig kundens namn.
+//
+// ADRESSERNA. Bilderna ligger i sajtens egen Media Manager (uppladdade
+// 2026-09-04), inte kvar hos Google — en Google-adress hade slutat svara den
+// dag kunden tog bort bilden, och vi hade inte märkt det. `src` bär en
+// KVADRATISK fill-transform med flit: rutan i kortet är 84×84 med
+// object-fit:cover, så beskärningen sker ändå. Görs den hos Wix i stället för
+// i webbläsaren slipper besökaren ladda ner pixlar som aldrig syns — uppmätt
+// 7–13 kB per miniatyr mot 27–67 kB för originalet. lib/image-loader.ts skalar
+// w_/h_ proportionellt per srcset-bredd, så 1:1 här ger 1:1 hela vägen.
+//
+// Bilderna kodades om innan uppladdning (sharp, max 900 px, q78). Det var inte
+// bara för storleken: omkodningen släpper EXIF, alltså tidpunkt, kameramodell
+// och eventuella GPS-koordinater. Kundernas foton ska inte bära med sig var de
+// togs. Drönarbildens svarta filmkanter — den var en videoskärmdump — beskars
+// bort i samma steg.
 
 import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
 import { GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "./social-proof";
@@ -45,6 +60,13 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     // måtten på mitt badrum och vilken färg …") och är därför utelämnad —
     // texten trimmas till sista HELA mening, orden ändras aldrig.
     text: "Jag är väldigt nöjd med den hjälp jag fick från kundtjänsten när jag skulle köpa ett badrumsskåp.",
+    // Kundens egen bild — se noten om kundbilder överst i filen.
+    photos: [
+      {
+        src: "https://static.wixstatic.com/media/b379ce_d0085ffa7b7046a8a40d3b25ccc7e6ac~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
+        alt: "Ett smalt badrumsskåp i ljus trälook, uppställt intill toaletten.",
+      },
+    ],
   },
   {
     id: "maja-kowalski",
@@ -83,6 +105,13 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     author: "Stefan Gajic",
     date: "2026-06-23",
     text: "Köpte den som min första drönare, var lite nervös först men det gick lättare än jag trodde. Har flugit några gånger nere vid hamnen.",
+    // Kundens egen bild — se noten om kundbilder överst i filen.
+    photos: [
+      {
+        src: "https://static.wixstatic.com/media/b379ce_b834b24c38114775a9acac5615766941~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
+        alt: "En uppackad Potensic ATOM-drönare med väska, batterier, kablar och reservpropellrar.",
+      },
+    ],
   },
   {
     id: "felicia-stromberg",
@@ -90,6 +119,17 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     author: "Felicia Strömberg",
     date: "2026-06-26",
     text: "Toppenbur till min dvärgpapegoja! Min papegoja älskar toppen som går att öppna, sitter däruppe direkt 😄 Stadig, lagom stor och lätt att hålla ren. Rekommenderas!",
+    // Kundens egen bild — se noten om kundbilder överst i filen.
+    photos: [
+      {
+        src: "https://static.wixstatic.com/media/b379ce_832f77bb6a83482bbc5d199763eb71ed~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
+        alt: "En svart fågelbur med öppningsbar topp, med en dvärgpapegoja sittande på pinnen ovanpå.",
+      },
+      {
+        src: "https://static.wixstatic.com/media/b379ce_037d662dc2c24a2ebe80ddf2142167d1~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
+        alt: "En hand innanför burens galler, som visar avståndet mellan spjälorna.",
+      },
+    ],
   },
   {
     id: "orlando",

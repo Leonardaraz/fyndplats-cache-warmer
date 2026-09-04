@@ -85,7 +85,13 @@ function useCountUp(target: number, durationMs = 1500): number {
 function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
   const ref = useRef<HTMLLIElement>(null);
   const [reveal, setReveal] = useState<"init" | "armed" | "show">("init");
-  const photos = (r.photos ?? []).slice(0, 3);
+  // Andra lagret under adresserna i curated-reviews.ts. En bild som ändå
+  // faller — filen borttagen ur Media Manager, CDN nere — ska försvinna, inte
+  // bli en tom ruta med brusten-bild-ikon. Det var precis den symptombilden
+  // som gjorde produktrecensionernas trasiga bilder svåra att upptäcka
+  // (2026-08-22): de renderades, de bara visade ingenting.
+  const [trasiga, setTrasiga] = useState<ReadonlySet<string>>(() => new Set());
+  const photos = (r.photos ?? []).slice(0, 3).filter((p) => !trasiga.has(p.src));
 
   // Scroll-reveal: ovanför vikningen = synligt direkt; under = "armed" → tonar in
   // när det scrollas in. SSR/no-JS/reduced-motion → stannar synligt (init).
@@ -179,6 +185,9 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
                 width={84}
                 height={84}
                 loading="lazy"
+                onError={() =>
+                  setTrasiga((f) => (f.has(p.src) ? f : new Set(f).add(p.src)))
+                }
               />
             ))}
           </div>
