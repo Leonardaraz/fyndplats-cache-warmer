@@ -2809,10 +2809,14 @@ body:has(.fd) footer{margin-top:0}
    det här tar bort den kända orsaken snarare än en jag sett gå sönder. */
 /* :not(.fd-hero) är inte kosmetik: sidans egen hjälte är också ett
    <header>, och utan undantaget hade den blivit vit. */
+/* Bara den oprefixade raden: lightningcss prefixar själv (basregeln ovan
+   får både -webkit- och oprefixad ur en enda deklaration). Skrev jag
+   -webkit-raden för hand slängde den den oprefixade i stället — då hade
+   Firefox behållit blurren, tvärtemot vad koden säger. Mätt i den byggda
+   bundlen, inte antaget. */
 body:has(.fd) header:not(.fd-hero){
   background:#fff;
   backdrop-filter:none;
-  -webkit-backdrop-filter:none;
 }
 
 @media (prefers-reduced-motion:reduce){
