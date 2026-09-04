@@ -2709,8 +2709,15 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .fd-attrib a:hover{text-decoration:underline}
 
 /* ── Hjälten ──────────────────────────────────────────────────────── */
-.fd-hero{position:relative;overflow:hidden;padding:64px 0 56px;text-align:center;
-  background:radial-gradient(120% 90% at 50% 0%,#1E1A14 0%,var(--fd-bg) 62%)}
+.fd-hero{position:relative;overflow:hidden;
+  background:radial-gradient(120% 90% at 70% 0%,#1E1A14 0%,var(--fd-bg) 64%)}
+/* Två spalter: ordmärket till vänster, han till höger — samma uppställning
+   som hans banner. text-align sätts i spalten, inte på hjälten, så bilden
+   aldrig ärver centreringen. */
+.fd-hero-inner{display:grid;grid-template-columns:1fr minmax(300px,46%);
+  align-items:center;gap:28px;padding-top:52px;padding-bottom:52px}
+.fd-hero-text{text-align:center}
+.fd-crown{width:74px;height:auto;margin:0 auto 18px;display:block}
 /* Strålkastarna. Två svaga koner, inte ett ljusshow: de ska antyda
    arena utan att stjäla från ordmärket. */
 .fd-hero::before,.fd-hero::after{content:"";position:absolute;top:-30%;width:42%;height:120%;
@@ -2719,7 +2726,6 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .fd-hero::before{left:-8%}
 .fd-hero::after{right:-8%}
 .fd-hero>*{position:relative;z-index:1}
-.fd-crown{width:74px;height:auto;margin:0 auto 18px;display:block}
 .fd-wordmark{font-family:var(--font-display),Georgia,serif;font-weight:600;
   font-size:clamp(38px,7vw,68px);letter-spacing:-.02em;line-height:1;margin:0;
   background:linear-gradient(180deg,var(--fd-gold-hi),var(--fd-gold));
@@ -2735,6 +2741,27 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
   background:rgba(255,255,255,.03);transition:border-color .2s,background .2s}
 .fd-social a:hover{border-color:var(--fd-gold);background:rgba(217,164,65,.08)}
 .fd-social a:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
+
+/* Bilden tonar redan till svart i sin vänsterkant — den är beskuren ur
+   bannern, där han står mot mörker. Gradienten nedanför tar hand om resten
+   så kanten aldrig syns som en kant. */
+.fd-hero-img{position:relative}
+.fd-hero-img img{display:block;width:100%;height:auto;border-radius:var(--r-lg)}
+.fd-hero-img::after{content:"";position:absolute;inset:0;pointer-events:none;
+  border-radius:var(--r-lg);
+  background:linear-gradient(90deg,var(--fd-bg) 0%,rgba(11,11,12,0) 26%)}
+
+/* Telefon: en spalt. Han först — ett ansikte drar blicken bättre än ett
+   ordmärke — sedan namnet och länkarna. Strålkastarkonerna stängs av;
+   i en spalt lägger de bara dis över texten. */
+@media(max-width:860px){
+  .fd-hero-inner{grid-template-columns:1fr;gap:22px;padding-top:26px;padding-bottom:40px}
+  .fd-hero-img{order:-1;margin:0 -26px}
+  .fd-hero-img img{border-radius:0;aspect-ratio:16/11;object-fit:cover;object-position:32% center}
+  .fd-hero-img::after{border-radius:0;
+    background:linear-gradient(180deg,rgba(11,11,12,0) 62%,var(--fd-bg) 100%)}
+  .fd-hero::before,.fd-hero::after{display:none}
+}
 
 /* ── Sektioner ────────────────────────────────────────────────────── */
 .fd-sec{padding:56px 0}

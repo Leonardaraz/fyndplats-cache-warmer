@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 // FutDaddyH — officiell merch.
@@ -22,12 +23,24 @@ import Link from "next/link";
 
 export const revalidate = 3600;
 
+// Adresserna kommer från Leonard (Instagram, YouTube, Twitch) — spårnings-
+// parametrarna i hans länkar är bortstädade. TikTok och X står på hans banner
+// med handtaget FUTDADDYH men kom aldrig som adresser, så de är HÄRLEDDA ur
+// handtaget. De två bör klickas en gång innan sidan går live: en död länk i
+// en officiell butik är värre än en länk som saknas.
 const SOCIALS = [
-  { namn: "YouTube", url: "https://www.youtube.com/@FutDaddyh" },
-  { namn: "TikTok", url: "https://www.tiktok.com/@futdaddyh" },
+  { namn: "Instagram", url: "https://www.instagram.com/futdaddyh" },
+  { namn: "YouTube", url: "https://youtube.com/@futdaddyh" },
   { namn: "Twitch", url: "https://www.twitch.tv/futdaddyh" },
+  { namn: "TikTok", url: "https://www.tiktok.com/@futdaddyh" },
   { namn: "X", url: "https://x.com/futdaddyh" },
 ];
+
+// Beskuren ur hans egen banner: han, FD-bollen och strålkastarna. Ordmärket
+// och taggen lämnades kvar i originalet — de är riktig HTML här nedanför, för
+// inbränd text går inte att läsa upp, översätta eller skala ner på en telefon.
+const HJALTE =
+  "https://static.wixstatic.com/media/b379ce_188b521ca5144bf2a11be627959aa92d~mv2.jpg/v1/fill/w_900,h_747,al_c,q_85/file.jpg";
 
 // Plaggen i det första droppet. Ingen prissättning här: den hör hemma i Wix
 // när Printful-artiklarna är valda, och tills dess ska sidan inte påstå något.
@@ -93,20 +106,40 @@ export default function FutDaddyh() {
         <Link href="/">Fyndplats</Link>
       </div>
 
+      {/* Hjälten är en KOMPOSITION, inte en bakgrundsbild. Han ligger bredvid
+          ordmärket precis som på hans banner — inte bakom texten. Skälet är
+          konkret: text ovanpå ett foto kräver en mörk hinna för att bli
+          läsbar, och då får man både ett urtvättat foto och svagare text. Här
+          behåller båda sin kraft, och på telefon staplas de i stället för att
+          krocka. */}
       <header className="fd-hero">
-        <Krona />
-        <h1 className="fd-wordmark">FutDaddyH</h1>
-        <p className="fd-tagline">
-          Football is more than a game
-          <b>It&rsquo;s a mindset.</b>
-        </p>
-        <nav className="fd-social" aria-label="FutDaddyH på sociala medier">
-          {SOCIALS.map((s) => (
-            <a key={s.namn} href={s.url} target="_blank" rel="noopener noreferrer">
-              {s.namn}
-            </a>
-          ))}
-        </nav>
+        <div className="fd-hero-inner container">
+          <div className="fd-hero-text">
+            <Krona />
+            <h1 className="fd-wordmark">FutDaddyH</h1>
+            <p className="fd-tagline">
+              Football is more than a game
+              <b>It&rsquo;s a mindset.</b>
+            </p>
+            <nav className="fd-social" aria-label="FutDaddyH på sociala medier">
+              {SOCIALS.map((s) => (
+                <a key={s.namn} href={s.url} target="_blank" rel="noopener noreferrer">
+                  {s.namn}
+                </a>
+              ))}
+            </nav>
+          </div>
+          <div className="fd-hero-img">
+            <Image
+              src={HJALTE}
+              alt="FutDaddyH framför en upplyst arena, med en guldfärgad fotboll märkt FD"
+              width={900}
+              height={747}
+              priority
+              sizes="(max-width: 860px) 100vw, 46vw"
+            />
+          </div>
+        </div>
       </header>
 
       <section className="fd-sec">
