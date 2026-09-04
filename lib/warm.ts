@@ -27,12 +27,9 @@
 import { SITE } from "./site-urls";
 // Provurvalet bor i en egen, beroendefri fil så node:test kan importera det —
 // den här modulen drar in site-urls, som testköraren inte kan ladda.
-import { fastProv, MISS_FOR_KALL, PROV_STORLEK } from "./warm-prov";
-export { fastProv, MISS_FOR_KALL, PROV_STORLEK };
+import { fastProv, MISS_FOR_KALL, PARALLELLT } from "./warm-urval";
+export { fastProv, MISS_FOR_KALL, PARALLELLT, PROV_STORLEK, roterad } from "./warm-urval";
 
-/** Parallella hämtningar. 8 håller ett fullt pass runt 200 s — inom
- *  maxDuration — utan att värmaren själv blir lasten som gör sidorna långsamma. */
-export const PARALLELLT = 8;
 
 
 /** Rendera en sida en gång så den ligger i ISR-cachen. Kastar aldrig. */
@@ -69,17 +66,6 @@ export async function varmAlla(
   return { ok, fel, avbruten: false };
 }
 
-/**
- * Roterar startpunkten per timme. Hinner ett pass inte klart innan deadline
- * fortsätter nästa körning på ett annat ställe, så täckningen vandrar i stället
- * för att fastna på samma första hundra.
- */
-export function roterad(slugs: readonly string[]): string[] {
-  if (slugs.length === 0) return [...slugs];
-  const timme = Math.floor(Date.now() / 3_600_000);
-  const start = (timme * PARALLELLT * 40) % slugs.length;
-  return [...slugs.slice(start), ...slugs.slice(0, start)];
-}
 
 
 /**

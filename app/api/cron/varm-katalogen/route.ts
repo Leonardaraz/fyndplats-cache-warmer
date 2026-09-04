@@ -58,15 +58,26 @@ export async function GET(request: Request) {
 
   const entries = await getProductSitemapEntries();
   const slugs = entries.map((e) => e.slug);
-  const prov = await katalogenArKall(slugs);
 
+  // BILDKARTAN VÄRMS VARJE KÖRNING, INTE BARA NÄR KATALOGEN ÄR KALL.
+  //
+  // Den låg tidigare i timcronen och värmdes en gång i timmen. När den flyttade
+  // hit hamnade den först innanför kall-grinden, vilket var en regression: dess
+  // cachepost löper ut efter en timme (s-maxage=3600), och går det längre än så
+  // utan att någon hämtar den betalar nästa besökare kallstarten — uppmätt till
+  // 35,4 s, eftersom rutten läser hela katalogen.
+  //
+  // Det är EN begäran var 15:e minut. Den mesta av tiden är den en cacheträff
+  // som inte kostar något alls; ungefär en gång i timmen faller den på ett
+  // utgånget fönster och renderas om. Det är billigare än att låta en kund göra
+  // det åt oss.
+  const bildkartan = await varmBildkartan();
+
+  const prov = await katalogenArKall(slugs);
   if (!prov.kall) {
-    return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan: null });
+    return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning: null, bildkartan });
   }
 
-  // Kall katalog = färsk deploy. Bildkartan först: den är EN begäran och
-  // listsidornas kort väntar på den, medan produktsidorna värms en och en.
-  const bildkartan = await varmBildkartan();
   const varmning = await varmAlla(roterad(slugs), deadline);
 
   console.log(
