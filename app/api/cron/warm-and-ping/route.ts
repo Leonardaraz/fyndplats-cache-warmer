@@ -117,13 +117,47 @@ async function varmBildkartan(): Promise<boolean> {
   }
 }
 
-async function varmAlla(slugs: string[]): Promise<{ ok: number; fel: number }> {
+async function varmAlla(slugs: string[], deadline = Infinity): Promise<{ ok: number; fel: number; avbruten: boolean }> {
   let ok = 0, fel = 0;
   for (let i = 0; i < slugs.length; i += PARALLELLT) {
+    if (Date.now() > deadline) return { ok, fel, avbruten: true };
     const resultat = await Promise.all(slugs.slice(i, i + PARALLELLT).map(varm));
     for (const r of resultat) { if (r) ok++; else fel++; }
   }
-  return { ok, fel };
+  return { ok, fel, avbruten: false };
+}
+
+/**
+ * HELA KATALOGEN, INTE BARA DE FÄRSKA.
+ *
+ * Leonard 2026-09-04: "när jag trycker på olika produkter är det fortfarande
+ * väldigt trögt på vissa". Uppmätt samma dag på ett slumpurval om 14
+ * produktsidor i produktion:
+ *
+ *   x-vercel-cache: MISS   11 st   0,86–1,52 s
+ *   x-vercel-cache: HIT     3 st   0,15–0,24 s
+ *
+ * och när samma MISS-sidor hämtades EN GÅNG TILL svarade de HIT på 0,14–0,55 s.
+ * En produktsida är alltså långsam exakt en gång: första begäran efter en
+ * deploy, som tömmer ISR-cachen. Med 1 622 produkter och 40 förbyggda
+ * (SSG_PREBUILD) betyder det att ~1 580 sidor är kalla efter varje deploy, och
+ * att den som klickar först betalar renderingen.
+ *
+ * Därför värmer vi hela katalogen, inte bara det som publicerats den senaste
+ * halvtimmen. I VILOLÄGE ÄR DET BILLIGT: en redan varm sida svarar ur cachen
+ * (~0,15 s) utan att renderas om — passet kostar bara begäranden. Dyrt blir det
+ * bara första gången efter en deploy, vilket är exakt när det behövs.
+ *
+ * Deadline-vakten finns för att passet aldrig ska spränga maxDuration: efter en
+ * deploy tar 1 622 kalla renderingar ~200 s vid PARALLELLT=8, och marginalen är
+ * inte stor. Hinner vi inte klart roterar nästa körning startpunkten, så
+ * täckningen vandrar i stället för att fastna på samma första hundra.
+ */
+function roterad(slugs: string[]): string[] {
+  if (slugs.length === 0) return slugs;
+  const timme = Math.floor(Date.now() / 3_600_000);
+  const start = (timme * PARALLELLT * 40) % slugs.length;
+  return [...slugs.slice(start), ...slugs.slice(0, start)];
 }
 
 export async function GET(request: Request) {
@@ -139,6 +173,10 @@ export async function GET(request: Request) {
     );
   }
 
+  // Vaktens budget: maxDuration är 300 s, och vi lämnar en marginal så svaret
+  // hinner skrivas även om sista batchen är trög.
+  const deadline = Date.now() + 240_000;
+
   const entries = await getProductSitemapEntries();
   const urval = farskaProdukter(entries, Date.now(), FONSTER_MS, TAK_PER_KORNING);
 
@@ -147,16 +185,31 @@ export async function GET(request: Request) {
   const bildkartan = await varmBildkartan();
 
   if (urval.slugs.length === 0) {
-    return NextResponse.json({ ok: true, farska: 0, katalog: entries.length, bildkartan });
+    // Inga färska produkter betyder inte att katalogen är varm — efter en deploy
+    // är den kall oavsett när produkterna publicerades.
+    const katalogvarmning = await varmAlla(roterad(entries.map((e) => e.slug)), deadline);
+    console.log(
+      `[warm-and-ping] inga färska produkter. Katalogen: ${katalogvarmning.ok}/${entries.length} varma`
+        + `${katalogvarmning.avbruten ? " (avbruten på deadline)" : ""}`,
+    );
+    return NextResponse.json({ ok: true, farska: 0, katalog: entries.length, bildkartan, katalogvarmning });
   }
 
   // Ordningen är hela poängen: rendera först, berätta sedan.
   const varmning = await varmAlla(urval.slugs);
   const ping = await pingSearchEngines(urval.slugs.map((s) => `${SITE}/produkt/${s}`));
 
+  // Katalogpasset ligger SIST: de färska sidorna och IndexNow-pingen är
+  // tidskritiska (Googlebot kommer strax), katalogen tål att komma efter.
+  const farskaRedanVarma = new Set(urval.slugs);
+  const restenAvKatalogen = roterad(entries.map((e) => e.slug).filter((s) => !farskaRedanVarma.has(s)));
+  const katalogvarmning = await varmAlla(restenAvKatalogen, deadline);
+
   console.log(
     `[warm-and-ping] ${urval.slugs.length} färska produkter — varma: ${varmning.ok}, `
-      + `misslyckade: ${varmning.fel}, kvar till nästa körning: ${urval.overTaket}`,
+      + `misslyckade: ${varmning.fel}, kvar till nästa körning: ${urval.overTaket}. `
+      + `Katalogen: ${katalogvarmning.ok}/${restenAvKatalogen.length} varma`
+      + `${katalogvarmning.avbruten ? " (avbruten på deadline — nästa körning roterar vidare)" : ""}`,
   );
 
   return NextResponse.json({
@@ -166,6 +219,7 @@ export async function GET(request: Request) {
     behandlade: urval.slugs.length,
     kvarTillNasta: urval.overTaket,
     varmning,
+    katalogvarmning,
     bildkartan,
     indexNow: ping.indexNow,
     google: ping.google,
