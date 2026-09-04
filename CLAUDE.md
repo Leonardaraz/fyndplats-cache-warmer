@@ -2200,7 +2200,7 @@ om, inte vad något kostar. Mätt 2026-08-16 på 40 slumpade publicerade produkt
 tak 8 — alltså ~166k tecken för hela butiken. Cirka 40 % av produkterna får inga
 recensioner alls, mest nya Aosom-EU-listningar som inte hunnit få några hos AE.
 
-### Recensionerna är på väg ur Wix — steg 1, 2 och 4 klara (2026-09-02)
+### Recensionerna är UTE ur Wix — hela migreringen klar (2026-09-04)
 
 **Taket är recensionerna.** Efter att drift-datan flyttade 2026-08-31 ligger Wix
 på ~3 355 av 4 000 rader, och `FyndplatsImportedReviews` är **2 514 av dem** —
@@ -2219,6 +2219,25 @@ bor där. Recensionerna är inte offret för taket, de ÄR det.
 | 3 | `REVIEWS_BACKEND=postgres` | nej |
 | 4 | butiken läser via API, inte Wix Data direkt | nej |
 | 5 | radera Wix-raderna | **ja** |
+
+**Alla fem är gjorda.** Steg 5 kördes 2026-09-04: **2 514 granskade, 2 514
+raderade, noll fel** — exakt det tal torrkörningen granskat per nyckel minuten
+innan.
+
+Kvittot efteråt, mätt och inte uträknat: `/api/review-aggregates` ger
+oförändrat **512 produkter / 2 421 synliga omdömen**, den dynamiska
+`/api/reviews/<id>` svarar med 42 omdömen på katalogens mest recenserade
+produkt, och produktsidan renderar sina tre omdömen med snitt 4,7.
+`betyg-diff` svarar **EJ TILLÄMPLIG (`kallanTomd`)** i stället för att bli rött
+— tömd-källa-läget byggdes två dygn tidigare för precis den här dagen.
+
+⚠️ **Marginalen mot taket är HÄRLEDD, inte färskmätt.** Wix hade ~3 355 rader
+2026-09-01, varav 2 514 recensioner; efter raderingen är ~841 kvar. Bara
+recensionsdelen av det talet är mätt idag. Aosoms ~9 500 recensionstexter
+belastar dessutom inte längre taket alls — de skrivs till Postgres.
+
+☠️ **Vägen tillbaka är stängd.** Recensionerna finns bara i Postgres, och Neons
+point-in-time-återställning är det som gäller.
 
 **Steg 2 är gjort och mätt:** 2 514 lästa, 2 514 skrivna, noll fel, och
 verifieringen ger `reviews wix=2514 pg=2514 avvikande=0`.
@@ -2326,7 +2345,34 @@ som Bearer-token. Tre egenskaper som inte ska tas bort:
 ⚠️ **`REVIEW_INGEST_SECRET` måste stå i BÅDA Vercel-projekten med samma värde,
 och vara satt innan `REVIEWS_BACKEND` växlas.**
 
-**Ett steg kvar innan raderingen, och ordningen är tvingande:**
+### ☠️ Auditen före raderingen: tre scripts, och grinden var blind för dem
+
+Auditen inför steg 5 hittade **ingen** kvarvarande läsare i `lib/` eller `app/`.
+Den hittade tre i `scripts/`, och skälet stod i grinden själv:
+`store-access-audit.test.ts` filtrerade bort hela `scripts/`.
+
+- **`katalogkoll.mjs`** läste recensionerna direkt ur Wix. Med kollektionen tömd
+  hade **varje** publicerad sida sett ut att sakna recensioner, och `--apply`
+  hade köat en AE-hämtning för hela katalogen på ett falskt underlag — ~950 i
+  rapporten där sanningen är ~440. Läser nu aggregatet, och **kastar** hellre än
+  tolkar ett svar utan `betyg`-fält som noll.
+- **`backfill-product-hashes.ts`** och **`backfill-suppliers.mjs`** läste
+  `FyndplatsMappings`, tom sedan 2026-09-01. Hash-backfillen rapporterade
+  "0 mappningar med AE-id" och hashade varje produkt utan sitt AliExpress-id —
+  dubblett-detektorn tappade sin exakta matchning, tyst, i tre dygn.
+
+**Regeln: ett script är inte mindre farligt än en rutt — det är farligare, för
+det körs av en människa som tror på siffran den skriver ut.** Undantaget är
+borta ur grinden.
+
+### Den spärr som faktiskt skyddade raderingen
+
+Recensionerna har **inget retention-fönster**, så `beslutaSida` kan aldrig
+skriva av en saknad rad som "utgången": en enda Wix-rad som inte fanns i
+Postgres hade avbrutit hela sidan. Torrkörningen granskade alla 2 514 utan att
+avbryta — per-nyckel-bevis, inte en radräkning. Ett test låser riktningen.
+
+### Historik: så såg ordningen ut
 
 1. **Steg 3 — `REVIEWS_BACKEND=postgres` i Vercel.** Butiken läser via API:t
    oavsett vilket lager som svarar, så växlingen är osynlig för kunden. Först
