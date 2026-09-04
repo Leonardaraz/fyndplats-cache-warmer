@@ -2649,6 +2649,119 @@ proxyns huvud som "huvud" och sidans huvud som "kropp" — `x-vercel-cache` och
 `age` blir tomma, och statusraden läser `Established`. Skriv huvud och kropp
 till **var sin fil** (`-D fil.h -o fil.html`) och ta den SISTA `HTTP/`-raden.
 
+### ☠️ Två grindar med var sin KOPIA av samma regel glider isär
+
+Runda 57:s live-grind fällde **åtta av åtta korrekta sidor** på ordet `rostfri`.
+Sidorna hade rätt: texterna säger med flit *"Ramen är lackerat stål, inte
+rostfritt"* — precis vad Steg 2-grinden krävde. Lintet hade undantaget:
+
+```python
+ROSTFRI    = re.compile(r"rostfri", re.I)
+ROSTFRI_OK = re.compile(r"inte rostfri", re.I)
+```
+
+Live-grinden hade en egen kopia av regeln, i en enkel lista över förbjudna ord,
+och den kopian saknade negationen. Två grindar om samma sak, skrivna två gånger.
+
+Fixen är husets vanligaste: **importera regeln, kopiera den inte.** Live-grinden
+gör nu `from lint import ROSTFRI, ROSTFRI_OK`. Samma familj som `SHIP_AXIS_RE`,
+`EU_TULL_CODES` och `mapWithConcurrency` — och den dyraste varianten, för en
+grind som fäller allt lär läsaren att kvittera bort den.
+
+### ☠️ En borttagningsmutation som tar FÖRSTA förekomsten bevisar ingenting
+
+`m_borttaget_bandantal` tog bort `30 elastiska band` och rapporterades som
+grön — inget fel hittades. Värdet stod på **två** ställen (spec-raden och
+brödtexten), och `replace(värde, "", 1)` lämnade det andra kvar. Grinden såg
+värdet, sa inget, och mutationen bevisade ingenting om måttgrinden.
+
+Borttagningsmutationer ska ta ALLA förekomster, och hävda det:
+
+```python
+p[fält] = p[fält].replace(värde, "")
+assert värde not in p[fält], "värdet står kvar efter borttagning"
+```
+
+Systerregeln till runda 55:s *"mutera genom att lägga till, inte byta ut"*: en
+mutation måste faktiskt åstadkomma det den påstår, annars provar den ingenting.
+
+### ☠️ Körningsordningen i Actions är INTE den ordning du utlöste i
+
+Åtta `las`-körningar utlöstes i känd ordning. Den första — `run_number` lägst,
+tidigast `created_at` — rapporterade priset för en HELT ANNAN av de åtta.
+Körningsnumret tilldelas vid skapandet, och dispatcharna blandas: en annan
+session körde samma workflow samtidigt, och två av de åtta "mina" körningarna
+var deras `stampla` på en hundkoja och en kaninbur.
+
+**Enda facit är `PRODUCT_ID` i loggens env-block**, och för en stämpling raden
+`OK: <uuid> uppdaterad`. Samma lärdom som runda 56:s bulk-attribution: **lita på
+id:t i svaret, aldrig på ordningen.** Och följdsatsen: Steg 1:s krocksvep gäller
+bara i det ögonblick det kördes — en parallell session publicerar sidor medan du
+skriver.
+
+### ☠️ SKU-regeln kapar vid 24 tecken — färgsyskon kan få SAMMA SKU
+
+`PRODUCT_PART_MAX = 24` i `lib/import/sku.ts`, och `joinWithinLimit` kapar på
+hel ordgräns. Färgen står sist i en naturlig slug, alltså är det färgen som
+faller bort:
+
+| slug | SKU-del (≤24) |
+|---|---|
+| `studsmatta-barn-163-cm-bla` | `studsmatta-barn-163-cm` |
+| `studsmatta-barn-163-cm-rod` | `studsmatta-barn-163-cm` |
+| `studsmatta-barn-163-cm-svart` | `studsmatta-barn-163-cm` |
+
+Tre olika produkter, ett artikelnummer. I ett Google-Merchant-flöde är det tre
+erbjudanden med samma `sku`. Kodens kommentar kräver bara unikhet INOM en
+produkt, så regeln är inte bruten — men utfallet är ändå fel.
+
+**Räkna SKU:n INNAN du låser sluggen på en färgfamilj.** Här räckte det att
+stryka `cm`: `studsmatta-barn-163-bla` ger `FP-studsmatta-barn-163-bla`, och
+alla åtta blev unika. Ett `kvitto.py`-assert på `len(set(sku)) == len(sku)`
+fångar det, men bara om sluggen redan är rätt — talet 24 måste räknas för hand.
+
+### ⚠️ En kategori kan se TOM ut för att det svenska ordet är ett annat
+
+Mätningen sa **8 trampolinutkast, 0 publicerade** — en orörd kategori. Fel:
+slug-mönstret var `/trampolin/`, och det svenska kategoriordet är **studsmatta**.
+Två låg ute. Samma lucka som runda 56:s `/bank/`, som missade bänkar sålda som
+*puff* och *kista*.
+
+Skillnaden är att här hade ingen översättning hjälpt — ordet fanns inte i det
+tyska namnet. Det som gav rätt ord var **`web_search` mot återförsäljarna**:
+Jula, Clas Ohlson, JYSK, Rusta, Jollyroom och Bauhaus kategoriserar alla under
+*studsmatta*. **Täckningsmönstret ska bära det SVENSKA kategoriordet, och det
+hittar man hos handeln — inte i ordboken.**
+
+⚠️ Och kategorin var ändå öppen, av ett annat skäl: de två publicerade är
+TRÄNINGSmattor Ø102 med handtag och 100 kg maxlast, våra åtta är barnmodeller
+med skyddsnät och 50 kg. Fyra tal skiljer — samma produkttyp i ordet, olika
+produkt i verkligheten.
+
+### ⚠️ Tal som mäter olika saker ser ut som en motsägelse
+
+Ø163-modellernas måttritning anger **150 cm** vid fötterna medan spec-tabellen
+säger **Ø163**. Det såg ut som runda 54:s motsägande breddmått — men den
+sexkantiga systermodellens ritning visar BÅDA talen: `122 cm` vid ramen och
+`163,5 cm` vid fotändarna. Det nedersta talet är alltså fotspannet, inte ramen.
+
+Det löser inte Ø163 helt (150 mot 163 går inte att förena ur underlaget), och då
+gäller regeln: **ange det tal som skyddar kunden.** Rensar någon 163 cm golv och
+möbeln är 150 händer inget; rensar de 150 och den är 163 får den inte plats. Vi
+skriver 163 och flaggar avvikelsen — vi gissar inte fram en förening.
+
+### ⚠️ "Ett grönt jobb är inget kvitto" har ETT undantag, och det ska läsas fram
+
+`polish-mapping.yml` i läget `las` gör `exit 1` både på `EJ AVGORBAR` och när
+`stämmer` är falskt på en Aosom-rad. För DE raderna är ett grönt jobb därför ett
+äkta kvitto på att prisgrinden höll.
+
+Undantaget gäller bara för att jag **läste workflow-filen** och såg grenen. Det
+tredje fallet — en icke-Aosom-rad — ger `::warning::` och `exit 0`, alltså grönt
+utan att något bevisats. Regeln blir: *ett grönt jobb är ett kvitto när jobbet
+är byggt att fela på exakt det du kontrollerar, och du har verifierat att det
+är byggt så.* I alla andra lägen står husets regel oförändrad.
+
 ### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
 
 Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i
