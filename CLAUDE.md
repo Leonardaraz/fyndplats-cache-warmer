@@ -1,5 +1,54 @@
 # Fyndplats cache-warmer — projektanvisningar
 
+## Så här jobbar vi: bunta ihop deploys
+
+**En arbetsdag ska bli en eller två deploys, inte fem.** Samla dagens
+ändringar på grenen och merga när de hänger ihop — merga inte varje fix för
+sig så fort den är grön.
+
+Samma regel står i butiksrepots `CLAUDE.md` (grenen `headless-site`). Den
+finns på båda ställena med flit: repot bär två orelaterade historier med var
+sin instruktionsfil, och en session som jobbar här läser aldrig den andra.
+
+### Varför — mätt, inte antaget
+
+Vercel-fakturan 2026-09-04, sju dagar in i cykeln, 11,84 av 20 dollars
+inkluderad kredit förbrukad:
+
+| Rad | Belopp | Andel |
+| :-- | --: | --: |
+| **Build CPU Minutes** | **$5,80** | **49 %** |
+| Observability Events | $1,88 | 16 % |
+| ISR Writes | $1,80 | 15 % |
+| Fluid Provisioned Memory | $0,78 | 7 % |
+| Fluid Active CPU | $0,51 | 4 % |
+
+Byggen är halva notan. Veckan innehöll en dag med **fem merges** för arbete
+som hade rymts i ett eller två byggen.
+
+**Och en deploy kostar två gånger.** Butiken tömmer sin ISR-cache vid varje
+deploy, så ~1 580 av 1 622 produktsidor blir kalla; första besökaren på varje
+betalar 0,86–1,52 s i stället för 0,15. Timcronen värmer upp dem igen, men
+det är ytterligare 1 622 renderingar. Färre deploys är alltså både billigare
+OCH snabbare för kunden.
+
+### Särskilt för import- och poleringspass
+
+Ett pass som rör dussintals produkter ska bli **EN PR, mergad sällan** — inte
+en PR per produkt.
+
+- Öppna en gren för hela passet och lägg alla produkter där.
+- Merga när passet är klart, inte efter varje produkt som blivit bra.
+  En halvfärdig gren skadar ingen; den ligger bara och väntar.
+- Går arbetet över flera dagar: låt grenen leva och merga när den är klar.
+- Poleringen är sällan brådskande. Ingen kund väntar på en omskriven
+  produkttitel — det är precis den sortens arbete som ska samlas ihop.
+
+### Undantaget
+
+En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
+kostnaden värd. Allt annat väntar in sina syskon.
+
 ## Import-arbetsflöde & AI-kostnad (`AI_ENRICHMENT_ENABLED`)
 
 Import-pipelinen (`lib/import/pipeline.ts → importProduct`) kan köras i två lägen.
