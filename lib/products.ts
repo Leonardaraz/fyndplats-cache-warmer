@@ -787,8 +787,16 @@ export type ListProduct = {
   onSale?: boolean;
   inStock: boolean;
   stockQuantity?: number;
-  ribbon?: string;
   colors?: string[];
+  /* INGEN `ribbon` HÄR — MEDVETET. Kortet hade en "Bästsäljare"-bricka som
+   * grindade på ribbon === "Bestseller". Mätt på skarp katalog 2026-09-04:
+   * fältet var "EU-lager" på 1 618 av 1 619 produkter, "Slut i lager" på en,
+   * och "Bestseller" på NOLL — brickan kunde alltså inte visas för någon, men
+   * strängen kostade 38 860 B per listsida. Brickan och dess CSS är borttagna
+   * (Leonard 2026-09-04). Bestseller lever kvar SERVER-SIDE som utslagsgivare
+   * i cartRecommendations, generateStaticParams och /kategori/populara — de
+   * har redan dokumenterade reservregler för att taggen saknas, och kostar
+   * klienten ingenting. */
   rating?: { stars: number; exact: number; value: string; count: number };
   collectionIds?: string[];
   createdAt?: number;
@@ -814,6 +822,40 @@ export type ListProduct = {
  * default-värdet räknas likadant. Lägger du till ett fält här: kontrollera att
  * läsaren tål att det saknas, annars skriv ut det ovillkorligt. */
 export function forClient(products: Product[]): ListProduct[] {
+  // KATEGORI-ID:N SKICKAS SOM KORTA TOKENS, INTE SOM GUID:er.
+  //
+  // Mätt på skarp /alla-produkter 2026-09-04: 4 867 kategorireferenser fördelade
+  // på bara 47 unika kategorier. Varje referens är en 36 tecken lång GUID —
+  // 231 927 B, det enskilt tyngsta fältet i klient-nyttolasten.
+  //
+  // Klienten behöver ALDRIG det riktiga id:t. Auditen gick igenom varje läsare:
+  //   · universalCollectionIds (lib/related-pick) räknar FREKVENS per id
+  //   · groupKeyForMix (lib/sort-products) tar FÖRSTA icke-universella id:t
+  //   · interleaveByGroup bucketar på nyckeln och ordnar bucketarna efter
+  //     insättningsordning, eller vikt + ursprungsindex — ALDRIG efter
+  //     nyckelns textvärde
+  // Ingen av dem jämför mot ett känt GUID, och ShopBrowser rör inte fältet alls
+  // (underkategori-chipsen är länkar, inget klientfilter). En bijektiv
+  // omdöpning ger därför exakt samma gruppering och exakt samma ordning — se
+  // testet i lib/sort-products.test.ts som låser det.
+  //
+  // Det spelar roll att ordningen är BEVISAT identisk: /alla-produkter
+  // förberäknar orderRecommended på servern med de riktiga GUID:erna och låter
+  // klienten räkna om den. Skilde sig de två skulle rutnätet kastas om vid
+  // hydrering (uppmätt 25,9 % omflyttning när server och klient var oense).
+  //
+  // Tokens är rena siffror; groupKeyForMix reservnyckel är "__egen:<id>" —
+  // de kan alltså aldrig krocka. Numreringen är per anrop, vilket räcker: den
+  // ska bara särskilja kategorier INOM den lista sidan skickar.
+  const token = new Map<string, string>();
+  const tokenFor = (id: string): string => {
+    let t = token.get(id);
+    if (t === undefined) {
+      t = String(token.size);
+      token.set(id, t);
+    }
+    return t;
+  };
   return products.map((p) => {
     // De sju fälten varje kort behöver oavsett produkt.
     const lp: ListProduct = {
@@ -836,10 +878,9 @@ export function forClient(products: Product[]): ListProduct[] {
     // 0 kvar i lager är ett riktigt värde, inte en avsaknad — typkollen, inte
     // truthiness, avgör här.
     if (typeof p.stockQuantity === "number") lp.stockQuantity = p.stockQuantity;
-    if (p.ribbon) lp.ribbon = p.ribbon;
     if (p.colors?.length) lp.colors = p.colors;
     if (p.rating) lp.rating = p.rating;
-    if (p.collectionIds?.length) lp.collectionIds = p.collectionIds;
+    if (p.collectionIds?.length) lp.collectionIds = p.collectionIds.map(tokenFor);
     if (p.createdAt) lp.createdAt = p.createdAt;
     if (p.popularity) lp.popularity = p.popularity;
     return lp;

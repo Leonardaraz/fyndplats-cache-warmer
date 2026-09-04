@@ -283,3 +283,59 @@ test("Rekommenderat: belagt socialt bevis slår ren färskhet — men inte en b�
     recommendedScore(prod("bastsaljare", 90, 5), NOW) > recommendedScore(medOmdomen("omdomesrik-gammal", 90, 0, 15), NOW),
   );
 });
+
+// ── Kategori-id:n är identiteter, inte värden ───────────────────────────────
+//
+// lib/products.ts:forClient skickar kategori-id:n till klienten som korta
+// tokens ("0", "1", …) i stället för 36 tecken långa GUID:er — 165 kB mindre på
+// /alla-produkter. Det vilar helt på att ordningsfunktionerna bara jämför
+// nycklar för LIKHET, aldrig som text.
+//
+// Det får inte glida: /alla-produkter förberäknar orderRecommended på servern
+// med de riktiga GUID:erna och låter klienten räkna om den ur tokens. Blev de
+// två oense skulle rutnätet kastas om vid hydrering. Testet nedan är det som
+// upptäcker det, inte kunden.
+import { universalCollectionIds } from "./related-pick.ts";
+
+/** Samma omdöpning som forClient: första förekomsten får "0", nästa "1", … */
+function iOrdning(ids: readonly string[]): (id: string) => string {
+  const karta = new Map<string, string>();
+  for (const id of ids) if (!karta.has(id)) karta.set(id, String(karta.size));
+  return (id) => karta.get(id) ?? id;
+}
+
+/** Motsatt textordning mot originalet — fångar en sortering på nyckelsträngen. */
+function baklanges(ids: readonly string[]): (id: string) => string {
+  const unika = [...new Set(ids)].sort();
+  const karta = new Map(unika.map((id, i) => [id, `z${unika.length - i}`]));
+  return (id) => karta.get(id) ?? id;
+}
+
+for (const [namn, byggOmdopning] of [
+  ["forClients egen numrering", iOrdning],
+  ["omvänd textordning", baklanges],
+] as const) {
+  test(`kategori-id:n är bara identiteter — ${namn} ändrar ingen ordning`, () => {
+    const alla = katalog();
+    const dop = byggOmdopning(alla.flatMap((p) => p.collectionIds));
+    const omdopt = alla.map((p) => ({ ...p, collectionIds: p.collectionIds.map(dop) }));
+
+    // Klienten räknar om "universella kategorier" ur det den fått — frekvensen
+    // är oförändrad under en bijektion, så mängden ska ha samma storlek.
+    const uniFore = universalCollectionIds(alla);
+    const uniEfter = universalCollectionIds(omdopt);
+    assert.equal(uniEfter.size, uniFore.size, "lika många universella kategorier");
+    assert.ok(uniFore.size > 0, "testkatalogen måste ha en universell kategori");
+
+    assert.deepEqual(
+      orderRecommended(omdopt, uniEfter, 1_000_000).map((x) => x.id),
+      orderRecommended(alla, uniFore, 1_000_000).map((x) => x.id),
+      "Rekommenderat ska ge identisk ordning",
+    );
+    assert.deepEqual(
+      orderPopular(omdopt, uniEfter).map((x) => x.id),
+      orderPopular(alla, uniFore).map((x) => x.id),
+      "Populärast ska ge identisk ordning",
+    );
+  });
+}

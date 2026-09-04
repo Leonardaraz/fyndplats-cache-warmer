@@ -1691,8 +1691,6 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .prod:has(.oos-badge) .pimg-main{opacity:.62;filter:grayscale(.18)}
 
 /* Ribbon badge on product cards */
-.ribbon-badge{position:absolute;top:10px;left:10px;z-index:2;font-size:var(--text-xs);font-weight:700;padding:5px 10px;border-radius:var(--r-xs);letter-spacing:.02em;box-shadow:var(--e2)}
-.ribbon-bestseller{background:linear-gradient(135deg,#1a2332,#374259);color:#fff}
 
 /* #2 Sticky mobile buy button */
 .sticky-buy-mobile{display:none}
