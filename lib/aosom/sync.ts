@@ -58,6 +58,39 @@ export const MIN_FEED_RADER = 2000;
 export const LAGER_BUFFERT = 3;
 
 /**
+ * Produkter per tugga i loopen — och därmed per Wix-anrop.
+ *
+ * ☠️ DET HÄR TALET ÄR HELA SKILLNADEN MOT DEN GAMLA LOOPEN. Den anropade
+ * `bulk-update-inventory` — ett BULK-API som tar en array — med EN produkt i
+ * taget, ~2 000 gånger per svep. Uppmätt 2026-09-02 slog det i Wix EDGE-spärr
+ * efter ~600 skrivningar: 1 190 av 2 095 föll med 429 och en HTML-kropp. Den
+ * spärren går enligt husets egen mätning inte att vänta ut inom ruttens 300
+ * sekunder, så medicinen blev pacing (`AOSOM_WRITE_DELAY_MS`) — uthärdligt,
+ * men fel lager att laga det på. Med tuggor blir samma svep ~40 anrop, och då
+ * är spärren irrelevant i stället för uthärdlig.
+ *
+ * Femtio och inte hundra: en produkt kan ha flera varianter, alltså flera
+ * lagerrader, och läsningens sida är 100 poster. Femtio produkter à två
+ * varianter är precis en sida.
+ */
+export const CHUNK_PRODUKTER = 50;
+
+/** En lagerpost i Wix, så som synken behöver se den. */
+export interface AosomLagerpost {
+  id: string;
+  revision: string;
+  productId: string;
+  /** Saldot som FAKTISKT står i butiken. Används bara för drift-mätningen. */
+  quantity?: number;
+}
+
+/** Utfallet av en bulk-lagerskrivning, per rad. */
+export interface AosomLagerUtfall {
+  lyckade: string[];
+  misslyckade: { id: string; fel: string }[];
+}
+
+/**
  * Tak på hur mycket ett pris får ändras i EN körning, i procent.
  *
  * Prissynken är avsiktligt tvåvägs och automatisk (Leonards beslut 2026-08-28):
@@ -126,6 +159,35 @@ export interface AosomSyncSummary {
    * i loggraden, i audit-raden, och fäller workflow-jobbet.
    */
   prislistaFel: string | null;
+  /**
+   * Produkter som skulle skrivas men saknar lagerrader i Wix.
+   *
+   * ☠️ EGEN RÄKNARE, för den gamla vägen gjorde det här TYST. `setStock`
+   * svarade `if (poster.length === 0) return;` — inget fel, ingen räknare — och
+   * loopen räknade ändå upp `lagerUppdaterade` och stämplade mappningen som
+   * synkad. En produkt utan lagerrader såg alltså ut som en lyckad skrivning,
+   * för alltid. Nionde gången samma klass: ett svar utan fel är inget kvitto.
+   *
+   * De stämplas inte längre, så de granskas om varje körning. Det kostar
+   * ingenting extra — de rider med i tuggans läsning ändå.
+   */
+  utanLagerrader: number;
+  /**
+   * OBSERVATION, ingen åtgärd: produkter där butikens FAKTISKA saldo skiljer
+   * sig från det mappningen tror att den skrev.
+   *
+   * ⚠️ Exakt samma frågeställning som `jamforelsePris` byggdes för på PRISET —
+   * mappningen är vad vi TROR att kunden ser, Wix är vad kunden faktiskt ser,
+   * och en trasig skrivning får de två att glida isär permanent. På priset
+   * kostade den förväxlingen en månad och tjugo rader. Lagret triggas
+   * fortfarande på mappningens tal, alltså har det samma teoretiska hål.
+   *
+   * Talet är MEDVETET bara mätt, inte åtgärdat: att byta facit vore en
+   * beteendeändring med hela katalogen som blast-radie, samma dag som loopen
+   * byggs om. Mät först, som huset gjorde med priserna. Är talet noll finns
+   * inget hål; är det stort är nästa PR skriven åt oss.
+   */
+  lagerDrift: number;
   misslyckade: number;
   kvar: number;
   cursor: string | null;
@@ -188,8 +250,31 @@ export interface AosomSyncDeps {
   listWixPriser: () => Promise<Map<string, WixProduktPris>>;
   /** Alla Aosom-mappningar. */
   listAosom: () => Promise<ProductMappingRecord[]>;
-  /** Skriver absolut lagersaldo för produktens (enda) variant. */
-  setStock: (wixProductId: string, sku: string, antal: number) => Promise<void>;
+  /**
+   * Lagerposter för FLERA produkter i ETT anrop.
+   *
+   * ☠️ Ersätter den gamla `setStock`, som slog upp posterna själv per produkt.
+   * Uppslaget låg då inne i skrivningen och var därför lika många anrop som
+   * skrivningarna: ~900 läsningar plus ~900 skrivningar per svep. `$in` på
+   * productId är uppmätt mot skarpa Wix 2026-09-04 (fem id gav fem poster mot
+   * ett för ett enskilt id) — inte läst i dokumentationen, som huset redan
+   * betalat för att lita på två gånger.
+   */
+  lasLagerposter: (wixProductIds: string[]) => Promise<AosomLagerpost[]>;
+  /**
+   * Skriver absoluta lagersaldon i klump och svarar PER RAD.
+   *
+   * ☠️ PER RAD ÄR INTE EN BEKVÄMLIGHET. "Wix före mappningen" är en garanti
+   * PER PRODUKT: en mappning får bara skrivas när just den produktens saldo
+   * bevisligen nådde butiken. Med femtio produkter i ett anrop måste utfallet
+   * alltså tillbaka till rätt produkt, och det går bara för att Wix svar bär
+   * radens id (uppmätt 2026-09-04, både vid framgång och fel). Vore svaret
+   * aggregerat hade en enda revisionskonflikt antingen fällt hela tuggan eller
+   * bokförts på fel produkt — tyst.
+   */
+  skrivLager: (
+    updates: { id: string; revision: string; quantity: number }[],
+  ) => Promise<AosomLagerUtfall>;
   /** Skriver variantpriset OCH inköpskostnaden i Wix. Får aldrig röra synlighet. */
   /**
    * ☠️ Tar variantens WIX-identitet, inte Aosoms artikelnummer.
@@ -212,6 +297,112 @@ export interface AosomSyncDeps {
   fx: AosomFx;
   rules: PricingRules;
   now?: () => number;
+}
+
+/** Vad som ska hända med EN produkt. Räknas fram utan ett enda API-anrop. */
+export interface Produktplan {
+  sku: string;
+  m: ProductMappingRecord;
+  variant: ProductMappingRecord["variants"][number] | undefined;
+  /** Saldot som ska SKRIVAS, eller null när butiken redan har rätt tal. */
+  nyttSaldo: number | null;
+  /** Saldot vi vill att produkten ska ha, skrivet eller ej. */
+  onskatSaldo: number;
+  nyttPris: number | null;
+  nyLandad: number | null;
+  urFeeden: boolean;
+  slutsald: boolean;
+  utanWixPris: boolean;
+  varning: { sku: string; fran: number; till: number; andringPct: number } | null;
+}
+
+/**
+ * Räknar fram planen för en produkt — REN, utan I/O.
+ *
+ * ☠️ ATT DEN ÄR REN ÄR VAD SOM GÖR BATCHNINGEN MÖJLIG. Ska femtio produkters
+ * saldon skickas i ett anrop måste vi veta vilka rader som ska med INNAN
+ * anropet görs. Den gamla loopen vävde ihop räkning och skrivning, så varje
+ * produkt var ett eget anrop av nödvändighet.
+ *
+ * Logiken är oförändrad — samma feedtolkning, samma `jamforelsePris`, samma
+ * tak och samma golv som förut. Bara utflyttad.
+ */
+export function planeraProdukt(
+  m: ProductMappingRecord,
+  sku: string,
+  row: AosomRow | undefined,
+  wixPris: WixProduktPris | undefined,
+  deps: Pick<AosomSyncDeps, "fx" | "rules">,
+  opts: Pick<AosomSyncOptions, "skipPrices">,
+): Produktplan {
+  const variant = m.variants?.[0];
+
+  // ── LAGER ──────────────────────────────────────────────────────────────
+  // Saknad rad = tillfälligt bortplockad hos Aosom, inte utgången. Nolla
+  // saldot, lämna sidan. Se filhuvudet.
+  const onskatSaldo = row ? synligtSaldo(row.qty) : 0;
+
+  const plan: Produktplan = {
+    sku,
+    m,
+    variant,
+    nyttSaldo: m.aosomSyncedQty !== onskatSaldo ? onskatSaldo : null,
+    onskatSaldo,
+    nyttPris: null,
+    nyLandad: null,
+    urFeeden: !row,
+    slutsald: !!row && onskatSaldo === 0,
+    utanWixPris: false,
+    varning: null,
+  };
+
+  // ── PRIS ───────────────────────────────────────────────────────────────
+  // Bara när raden finns: utan rad finns inget nytt pris att räkna på, och ett
+  // gammalt pris på en slutsåld vara skadar ingen.
+  if (!row || opts.skipPrices || !variant) return plan;
+
+  const nyLandad = landadKostnadSek(row, deps.fx.eurToSek);
+  const costUsd = nyLandad / deps.fx.usdToSek;
+  // Kategorin är null: Aosom-utkast är okategoriserade tills poleringen sätter
+  // den, och prisregeln har ändå inga kategorimultiplikatorer (rensade
+  // 2026-08-27 — "Husdjur: 2,5" hade satt 60 % marginal på hela
+  // PawHut-sortimentet utan att någon regel sa det).
+  const pris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
+
+  // ☠️ FACIT ÄR BUTIKEN. Se jamforelsePris — mappningens grossSek är vad vi
+  // TROR att kunden ser, och de två kan ha glidit isär.
+  const facit = jamforelsePris(wixPris);
+  const gammalt = typeof facit === "object" ? facit.pris : -1;
+
+  if (typeof facit === "string") {
+    // Vet vi inte vad kunden ser skriver vi inget pris. Lagret ovan är redan
+    // planerat — det uppslaget går på produkt-id och berörs inte.
+    plan.utanWixPris = true;
+    return plan;
+  }
+  if (pris < MIN_RIMLIGT_PRIS_SEK) {
+    plan.varning = { sku, fran: gammalt, till: pris, andringPct: 0 };
+    return plan;
+  }
+  if (gammalt > 0) {
+    const andringPct = ((pris - gammalt) / gammalt) * 100;
+    if (Math.abs(andringPct) > MAX_PRISANDRING_PCT) {
+      // Tvåvägssynken är medvetet automatisk, men ett hopp av den här
+      // storleken är oftare en trasig feed-rad än en verklig prisändring.
+      plan.varning = { sku, fran: gammalt, till: pris, andringPct: Math.round(andringPct) };
+      return plan;
+    }
+    if (pris !== gammalt) {
+      plan.nyttPris = pris;
+      plan.nyLandad = nyLandad;
+    }
+    return plan;
+  }
+  if (pris > 0) {
+    plan.nyttPris = pris;
+    plan.nyLandad = nyLandad;
+  }
+  return plan;
 }
 
 /**
@@ -300,6 +491,8 @@ export async function runAosomSync(
     oforandrade: 0,
     utanWixPris: 0,
     prislistaFel,
+    utanLagerrader: 0,
+    lagerDrift: 0,
     misslyckade: 0,
     kvar: mappningar.length,
     cursor: null,
@@ -311,121 +504,227 @@ export async function runAosomSync(
   /** Antal produkter vi FAKTISKT skrivit. Det är den här `limit` gäller. */
   let skrivna = 0;
 
-  for (const { m, sku } of mappningar) {
+  // ── LOOPEN GÅR I TUGGOR, INTE EN PRODUKT I TAGET ────────────────────────
+  // Ordningen inom tuggan är oförändrad artikelnummerordning, och HELA tuggan
+  // granskas innan markören flyttas — så `?after=` betyder exakt samma sak som
+  // förut.
+  //
+  // ☠️ TUGGAN KAPAS MOT DET SOM ÅTERSTÅR AV `limit`. En tugga med N produkter
+  // kan aldrig ge fler än N skrivningar, så `min(CHUNK, limit - skrivna)` gör
+  // `limit` EXAKT i stället för ungefärlig. Utan kapningen hade en körning med
+  // `limit: 1` skrivit hela den första tuggan — och `limit` finns för att
+  // hålla en serverless-rutt innanför sina 300 sekunder, inte som en
+  // riktlinje. Ett test på markören fångade just det.
+  for (let i = 0; i < mappningar.length; ) {
     if (skrivna >= limit) {
       summary.stoppedBy = "limit";
       break;
     }
-    // Budgeten kollas FÖRE varje produkt — aldrig mitt i en halvskriven produkt,
-    // där priset hunnit skrivas men mappningen inte.
+    // Budgeten kollas FÖRE varje tugga — aldrig mitt i, där lagret hunnit
+    // skrivas men mappningen inte.
     if (now() - start >= timeBudgetMs) {
       summary.stoppedBy = "tidsbudget";
       break;
     }
 
-    summary.granskade++;
-    summary.kvar--;
-    summary.cursor = sku;
+    const tuggstorlek = Math.max(1, Math.min(CHUNK_PRODUKTER, limit - skrivna));
+    const tugga = mappningar.slice(i, i + tuggstorlek);
+    i += tugga.length;
 
+    // ── FAS 1: PLANERA (ren, ingen I/O) ──────────────────────────────────
+    // Allt underlag ligger redan i minnet — feeden och butikens prislista
+    // hämtades före loopen. Att räkna först och skriva sedan är vad som gör
+    // batchningen möjlig: vi vet vilka rader som ska med i anropet innan vi
+    // gör det.
+    const planer = tugga.map(({ m, sku }) =>
+      planeraProdukt(m, sku, perSku.get(sku), wixPriser.get(m.wixProductId), deps, opts),
+    );
+
+    summary.granskade += tugga.length;
+    summary.kvar -= tugga.length;
+    summary.cursor = tugga[tugga.length - 1].sku;
+    for (const p of planer) {
+      if (p.urFeeden) summary.urFeeden++;
+      if (p.slutsald) summary.slutsalda++;
+      if (p.utanWixPris) summary.utanWixPris++;
+      if (p.varning) summary.varningar.push(p.varning);
+    }
+
+    // ── FAS 2: LÄS LAGERPOSTERNA FÖR HELA TUGGAN, I ETT ANROP ────────────
+    // Läses även i torrläge, till skillnad från förr. En torrkörning ska säga
+    // sanningen om vad en skarp skulle göra, och `utanLagerrader` går inte att
+    // veta utan att titta. Läsningar ändrar ingenting.
+    const idn = planer.map((p) => p.m.wixProductId);
+    let posterPerProdukt = new Map<string, AosomLagerpost[]>();
+    let lasfel: string | null = null;
     try {
-      const row = perSku.get(sku);
-      const variant = m.variants?.[0];
-      let rortes = false;
-
-      // ── LAGER ────────────────────────────────────────────────────────────
-      // Saknad rad = tillfälligt bortplockad hos Aosom, inte utgången. Nolla
-      // saldot, lämna sidan. Se filhuvudet.
-      const onskatSaldo = row ? synligtSaldo(row.qty) : 0;
-      if (!row) summary.urFeeden++;
-      else if (onskatSaldo === 0) summary.slutsalda++;
-
-      if (m.aosomSyncedQty !== onskatSaldo) {
-        if (!dryRun) await deps.setStock(m.wixProductId, sku, onskatSaldo);
-        summary.lagerUppdaterade++;
-        rortes = true;
-      }
-
-      // ── PRIS ─────────────────────────────────────────────────────────────
-      // Bara när raden finns: utan rad finns inget nytt pris att räkna på, och
-      // ett gammalt pris på en slutsåld vara skadar ingen.
-      let nyttPris: number | null = null;
-      let nyLandad: number | null = null;
-
-      if (row && !opts.skipPrices && variant) {
-        nyLandad = landadKostnadSek(row, deps.fx.eurToSek);
-        const costUsd = nyLandad / deps.fx.usdToSek;
-        // Kategorin är null: Aosom-utkast är okategoriserade tills poleringen
-        // sätter den, och prisregeln har ändå inga kategorimultiplikatorer
-        // (rensade 2026-08-27 — "Husdjur: 2,5" hade satt 60 % marginal på
-        // hela PawHut-sortimentet utan att någon regel sa det).
-        const pris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
-
-        // ☠️ FACIT ÄR BUTIKEN. Se jamforelsePris — mappningens grossSek är vad
-        // vi TROR att kunden ser, och de två kan ha glidit isär.
-        const facit = jamforelsePris(wixPriser.get(m.wixProductId));
-        const gammalt = typeof facit === "object" ? facit.pris : -1;
-
-        if (typeof facit === "string") {
-          // Vet vi inte vad kunden ser skriver vi inget pris. Lagret ovan är
-          // redan synkat — det uppslaget går på produkt-id och berörs inte.
-          summary.utanWixPris++;
-        } else if (pris < MIN_RIMLIGT_PRIS_SEK) {
-          summary.varningar.push({ sku, fran: gammalt, till: pris, andringPct: 0 });
-        } else if (gammalt > 0) {
-          const andringPct = ((pris - gammalt) / gammalt) * 100;
-          if (Math.abs(andringPct) > MAX_PRISANDRING_PCT) {
-            // Tvåvägssynken är medvetet automatisk, men ett hopp av den här
-            // storleken är oftare en trasig feed-rad än en verklig prisändring.
-            summary.varningar.push({ sku, fran: gammalt, till: pris, andringPct: Math.round(andringPct) });
-          } else if (pris !== gammalt) {
-            nyttPris = pris;
-          }
-        } else if (pris > 0) {
-          nyttPris = pris;
-        }
-      }
-
-      if (nyttPris !== null && nyLandad !== null && variant) {
-        if (!dryRun) {
-          await deps.setPrice(
-            m.wixProductId,
-            { wixVariantId: variant.wixVariantId, sku: variant.sku },
-            nyttPris,
-            nyLandad,
-          );
-        }
-        summary.prisUppdaterade++;
-        rortes = true;
-      }
-
-      if (!rortes) {
-        summary.oforandrade++;
-        continue;
-      }
-      skrivna++;
-
-      // ── MAPPNINGEN SIST ──────────────────────────────────────────────────
-      // Wix skrivs FÖRE mappningen, samma ordning och samma skäl som
-      // price-repair: går bara den ena igenom står kunden inför rätt pris medan
-      // bokföringen är gammal, och nästa körning rättar det. Omvänd ordning hade
-      // gjort mappningen "synkad" medan kunden köper till fel pris — och då
-      // hittar ingen felet igen.
-      if (!dryRun) {
-        const uppdaterad: ProductMappingRecord = {
-          ...m,
-          aosomSyncedQty: onskatSaldo,
-          aosomSyncedAt: new Date(now()).toISOString(),
-          variants: (m.variants ?? []).map((v, i) =>
-            i === 0 && nyttPris !== null && nyLandad !== null
-              ? { ...v, grossSek: nyttPris, landedCostSek: nyLandad, costUsd: nyLandad / deps.fx.usdToSek }
-              : v,
-          ),
-        };
-        await deps.saveMapping(uppdaterad);
+      for (const post of await deps.lasLagerposter(idn)) {
+        const lista = posterPerProdukt.get(post.productId);
+        if (lista) lista.push(post);
+        else posterPerProdukt.set(post.productId, [post]);
       }
     } catch (err) {
-      summary.misslyckade++;
-      summary.errors.push({ sku, error: err instanceof Error ? err.message : String(err) });
+      lasfel = err instanceof Error ? err.message : String(err);
+      posterPerProdukt = new Map();
+    }
+
+    // ⚠️ OBSERVATION, ingen åtgärd. Se `lagerDrift` i summeringen: butikens
+    // faktiska saldo mot det mappningen tror att den skrev.
+    if (!lasfel) {
+      for (const p of planer) {
+        const poster = posterPerProdukt.get(p.m.wixProductId) ?? [];
+        const iButiken = poster[0]?.quantity;
+        if (
+          typeof iButiken === "number"
+          && typeof p.m.aosomSyncedQty === "number"
+          && iButiken !== p.m.aosomSyncedQty
+        ) {
+          summary.lagerDrift++;
+        }
+      }
+    }
+
+    // ── FAS 3: SKRIV SALDONA I KLUMP ─────────────────────────────────────
+    /** wixProductId → lagerskrivningen gick igenom (eller behövdes inte). */
+    const lagerOk = new Map<string, boolean>();
+    const rader: { id: string; revision: string; quantity: number; produkt: string }[] = [];
+
+    for (const p of planer) {
+      if (p.nyttSaldo === null) continue;
+      if (lasfel) {
+        lagerOk.set(p.m.wixProductId, false);
+        continue;
+      }
+      const poster = posterPerProdukt.get(p.m.wixProductId) ?? [];
+      if (poster.length === 0) {
+        // ☠️ Räknas, stämplas inte. Den gamla vägen svarade tyst `return` här
+        // och bokförde ändå produkten som synkad — för alltid.
+        summary.utanLagerrader++;
+        lagerOk.set(p.m.wixProductId, false);
+        continue;
+      }
+      for (const post of poster) {
+        rader.push({
+          id: post.id,
+          revision: post.revision,
+          quantity: p.nyttSaldo,
+          produkt: p.m.wixProductId,
+        });
+      }
+    }
+
+    if (rader.length > 0 && !dryRun) {
+      try {
+        const utfall = await deps.skrivLager(
+          rader.map(({ id, revision, quantity }) => ({ id, revision, quantity })),
+        );
+        const fallna = new Map(utfall.misslyckade.map((f) => [f.id, f.fel]));
+        /** En produkt är OK bara när ALLA dess rader är det. */
+        const felPerProdukt = new Map<string, string>();
+        for (const r of rader) {
+          const fel = fallna.get(r.id);
+          if (fel && !felPerProdukt.has(r.produkt)) felPerProdukt.set(r.produkt, fel);
+        }
+        for (const r of rader) {
+          if (!lagerOk.has(r.produkt) || lagerOk.get(r.produkt) === true) {
+            lagerOk.set(r.produkt, !felPerProdukt.has(r.produkt));
+          }
+        }
+        for (const [produkt, fel] of felPerProdukt) {
+          const p = planer.find((x) => x.m.wixProductId === produkt);
+          summary.misslyckade++;
+          summary.errors.push({ sku: p?.sku ?? produkt, error: fel });
+        }
+      } catch (err) {
+        // Hela anropet föll (nätverk, 4xx/5xx efter återförsök). Ingen rad är
+        // bevisat skriven, alltså är ingen produkt det heller.
+        const fel = err instanceof Error ? err.message : String(err);
+        for (const r of rader) lagerOk.set(r.produkt, false);
+        for (const produkt of new Set(rader.map((r) => r.produkt))) {
+          const p = planer.find((x) => x.m.wixProductId === produkt);
+          summary.misslyckade++;
+          summary.errors.push({ sku: p?.sku ?? produkt, error: fel });
+        }
+      }
+    } else {
+      // Torrläge, eller inga saldon att skriva: allt som skulle skrivas räknas
+      // som lyckat, precis som förr.
+      for (const r of rader) if (!lagerOk.has(r.produkt)) lagerOk.set(r.produkt, true);
+    }
+
+    // Lässkadan bokförs en gång per drabbad produkt, efter att raderna räknats.
+    if (lasfel) {
+      for (const p of planer) {
+        if (p.nyttSaldo === null) continue;
+        summary.misslyckade++;
+        summary.errors.push({ sku: p.sku, error: `lagerposterna gick inte att läsa: ${lasfel}` });
+      }
+    }
+
+    // ── FAS 4 + 5: PRISET, SEDAN MAPPNINGEN — PER PRODUKT ────────────────
+    // Priset är per produkt hos Wix (`updateV3VariantPrices` tar ett
+    // produkt-id), så den delen kan inte batchas. Den är också den lilla
+    // delen: efter konvergens vill nästan inga priser skrivas.
+    for (const p of planer) {
+      const skrevLager = p.nyttSaldo !== null;
+      if (skrevLager && lagerOk.get(p.m.wixProductId) !== true) continue;
+
+      try {
+        if (skrevLager) summary.lagerUppdaterade++;
+
+        let skrevPris = false;
+        if (p.nyttPris !== null && p.nyLandad !== null && p.variant) {
+          if (!dryRun) {
+            await deps.setPrice(
+              p.m.wixProductId,
+              { wixVariantId: p.variant.wixVariantId, sku: p.variant.sku },
+              p.nyttPris,
+              p.nyLandad,
+            );
+          }
+          summary.prisUppdaterade++;
+          skrevPris = true;
+        }
+
+        if (!skrevLager && !skrevPris) {
+          summary.oforandrade++;
+          continue;
+        }
+        skrivna++;
+
+        // ── MAPPNINGEN SIST ──────────────────────────────────────────────
+        // Wix skrivs FÖRE mappningen, samma ordning och samma skäl som
+        // price-repair: går bara den ena igenom står kunden inför rätt pris
+        // medan bokföringen är gammal, och nästa körning rättar det. Omvänd
+        // ordning hade gjort mappningen "synkad" medan kunden köper till fel
+        // pris — och då hittar ingen felet igen.
+        //
+        // ☠️ `aosomSyncedQty` stämplas BARA när saldot faktiskt skrevs. Skrevs
+        // bara priset behåller fältet sitt gamla värde, så nästa körning
+        // fortfarande ser att saldot vill skrivas.
+        if (!dryRun) {
+          const uppdaterad: ProductMappingRecord = {
+            ...p.m,
+            ...(skrevLager
+              ? { aosomSyncedQty: p.onskatSaldo, aosomSyncedAt: new Date(now()).toISOString() }
+              : {}),
+            variants: (p.m.variants ?? []).map((v, idx) =>
+              idx === 0 && p.nyttPris !== null && p.nyLandad !== null
+                ? {
+                    ...v,
+                    grossSek: p.nyttPris,
+                    landedCostSek: p.nyLandad,
+                    costUsd: p.nyLandad / deps.fx.usdToSek,
+                  }
+                : v,
+            ),
+          };
+          await deps.saveMapping(uppdaterad);
+        }
+      } catch (err) {
+        summary.misslyckade++;
+        summary.errors.push({ sku: p.sku, error: err instanceof Error ? err.message : String(err) });
+      }
     }
   }
 
@@ -481,13 +780,13 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
       (await store.listMappings()).filter((m) =>
         (m.supplierProductId ?? "").startsWith(aosomSupplierProductId("")),
       ),
-    setStock: async (wixProductId, _sku, antal) => {
+    lasLagerposter: (ids) => wix.queryInventoryItemsByProductIds(ids),
+    // Pacingen ligger kvar trots att anropen är ~40 i stället för ~2 000.
+    // Den kostar fem sekunder på ett helt svep och är den enda kuren mot en
+    // strypning som utlöses av tempo — se `aosomSkrivPausMs`.
+    skrivLager: async (updates) => {
       await pausa();
-      const poster = await wix.queryInventoryItemsByProductId(wixProductId);
-      if (poster.length === 0) return;
-      await wix.bulkUpdateInventoryQuantities(
-        poster.map((p) => ({ id: p.id, revision: p.revision, quantity: antal })),
-      );
+      return wix.bulkUpdateInventoryQuantitiesPerRad(updates);
     },
     // updateV3VariantPrices skickar tillbaka `visible` oförändrad — utan det
     // publicerar en variantsInfo-PATCH utkastet (uppmätt 2026-08-28).

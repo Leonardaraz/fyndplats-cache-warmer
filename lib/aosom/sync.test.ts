@@ -107,6 +107,19 @@ function wixPriser(over: Record<string, number | null> = {}): Map<string, WixPro
   return m;
 }
 
+/**
+ * Lagerposter för fejk-butiken. Ett produkt-id → en post, som Aosom har det.
+ *
+ * ☠️ Posten bär ett annat `id` än produkten, med flit. Fixturen fick tidigare
+ * `setStock` produkt-id:t direkt; nu går skrivningen på LAGERPOSTENS id, och
+ * en fixtur som lät de två vara samma sträng hade inte kunnat se skillnad på
+ * rätt och fel nyckel. Exakt den förväxlingen lät prissynken skriva till
+ * ingenting i en månad (`sku` i mappningen mot `sku` i Wix-varianten).
+ */
+function lagerpost(wixProductId: string, quantity = 0) {
+  return { id: `inv-${wixProductId}`, revision: "1", productId: wixProductId, quantity };
+}
+
 function deps(over: Partial<AosomSyncDeps> = {}) {
   const lager: { id: string; antal: number }[] = [];
   const priser: { id: string; pris: number; kostnad: number; variant: { wixVariantId?: string; sku?: string } }[] = [];
@@ -115,7 +128,14 @@ function deps(over: Partial<AosomSyncDeps> = {}) {
     fetchFeed: async () => feedMed(rad("A-1"), rad("B-2")),
     listWixPriser: async () => wixPriser(),
     listAosom: async () => [mappning("A-1"), mappning("B-2")],
-    setStock: async (id, _sku, antal) => { lager.push({ id, antal }); },
+    lasLagerposter: async (ids) => ids.map((id) => lagerpost(id)),
+    skrivLager: async (updates) => {
+      for (const u of updates) {
+        // Bokförs under PRODUKTENS id så testerna läser som förut.
+        lager.push({ id: u.id.replace(/^inv-/, ""), antal: u.quantity });
+      }
+      return { lyckade: updates.map((u) => u.id), misslyckade: [] };
+    },
     setPrice: async (id, variant, pris, kostnad) => {
       priser.push({ id, pris, kostnad, variant });
     },
@@ -289,7 +309,7 @@ describe("runAosomSync", () => {
     const { d, sparade } = deps({
       fetchFeed: async () => feedMed(rad("A-1", { qty: 50 })),
       listAosom: async () => [mappning("A-1")],
-      setStock: async () => { throw new Error("Wix svarade 500"); },
+      skrivLager: async () => { throw new Error("Wix svarade 500"); },
     });
     const s = await runAosomSync(d, { dryRun: false });
     expect(s.misslyckade).toBe(1);
@@ -298,7 +318,16 @@ describe("runAosomSync", () => {
 
   it("ett fel på en produkt stoppar inte de andra", async () => {
     const { d } = deps({
-      setStock: async (id) => { if (id === "wix-A-1") throw new Error("Wix svarade 500"); },
+      // Per-rad-utfall: A-1:s rad faller, B-2:s går igenom. Det är hela
+      // skälet till att skrivningen svarar per rad — med ett aggregerat svar
+      // hade B-2 antingen fällts med A-1 eller bokförts som skriven fast den
+      // inte var det.
+      skrivLager: async (updates) => ({
+        lyckade: updates.filter((u) => u.id !== "inv-wix-A-1").map((u) => u.id),
+        misslyckade: updates
+          .filter((u) => u.id === "inv-wix-A-1")
+          .map((u) => ({ id: u.id, fel: "Wix svarade 500" })),
+      }),
       fetchFeed: async () => feedMed(rad("A-1", { qty: 50 }), rad("B-2", { qty: 50 })),
     });
     const s = await runAosomSync(d, { dryRun: false });
@@ -509,5 +538,207 @@ describe("☠️ prissynken jämför mot Wix, inte mot mappningen", () => {
     expect(priser).toHaveLength(0);
     expect(lager).toHaveLength(1);
     expect(s.lagerUppdaterade).toBe(1);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BATCHNINGEN (2026-09-04)
+//
+// Loopen anropade `bulk-update-inventory` — ett BULK-API som tar en array —
+// med EN produkt i taget, ~2 000 gånger per svep. Uppmätt 2026-09-02 slog det
+// i Wix EDGE-spärr efter ~600 skrivningar. Pacingen gjorde det uthärdligt;
+// tuggorna gör spärren irrelevant.
+//
+// Det som INTE fick gå förlorat i omskrivningen står nedan, och varje test
+// motsvarar en rad som redan kostat pengar i det här repot.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("runAosomSync — tuggor", () => {
+  it("femtio produkter läses i ETT anrop, inte femtio", async () => {
+    const manga = Array.from({ length: 50 }, (_, i) => `P-${String(i).padStart(3, "0")}`);
+    const lasningar: string[][] = [];
+    const skrivningar: number[] = [];
+    const { d } = deps({
+      fetchFeed: async () => feedMed(...manga.map((s) => rad(s, { qty: 50 }))),
+      listAosom: async () => manga.map((s) => mappning(s)),
+      listWixPriser: async () => wixPriser(
+        Object.fromEntries(manga.map((s) => [`wix-${s}`, BASPRIS])),
+      ),
+      lasLagerposter: async (ids) => {
+        lasningar.push(ids);
+        return ids.map((id) => ({ id: `inv-${id}`, revision: "1", productId: id, quantity: 0 }));
+      },
+      skrivLager: async (u) => {
+        skrivningar.push(u.length);
+        return { lyckade: u.map((x) => x.id), misslyckade: [] };
+      },
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.lagerUppdaterade).toBe(50);
+    expect(lasningar).toHaveLength(1);
+    expect(lasningar[0]).toHaveLength(50);
+    expect(skrivningar).toEqual([50]);
+  });
+
+  it("☠️ ett radfel fäller BARA sin produkt — de andra mappningarna skrivs", async () => {
+    // Hela skälet till att skrivningen svarar per rad. Med ett aggregerat svar
+    // hade en enda revisionskonflikt antingen fällt hela tuggan eller bokförts
+    // på fel produkt — och "Wix före mappningen" är en garanti PER PRODUKT.
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 }), rad("B-2", { qty: 50 })),
+      skrivLager: async (u) => ({
+        lyckade: u.filter((x) => x.id !== "inv-wix-A-1").map((x) => x.id),
+        misslyckade: u
+          .filter((x) => x.id === "inv-wix-A-1")
+          .map((x) => ({ id: x.id, fel: "INVALID_REVISION" })),
+      }),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.misslyckade).toBe(1);
+    expect(s.errors[0]).toEqual({ sku: "A-1", error: "INVALID_REVISION" });
+    expect(s.lagerUppdaterade).toBe(1);
+    expect(sparade.map((m) => m.supplierProductId)).toEqual(["aosom:B-2"]);
+  });
+
+  it("☠️ en produkt med FLERA lagerrader skrivs bara om ALLA går igenom", async () => {
+    // Halvskrivet lager är svårare att upptäcka än orört: mappningen hade
+    // sagt "synkad" medan en variant stod kvar på gammalt saldo.
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 })),
+      listAosom: async () => [mappning("A-1")],
+      lasLagerposter: async (ids) =>
+        ids.flatMap((id) => [
+          { id: `inv-${id}-a`, revision: "1", productId: id, quantity: 0 },
+          { id: `inv-${id}-b`, revision: "1", productId: id, quantity: 0 },
+        ]),
+      skrivLager: async (u) => ({
+        lyckade: u.filter((x) => x.id.endsWith("-a")).map((x) => x.id),
+        misslyckade: u.filter((x) => x.id.endsWith("-b")).map((x) => ({ id: x.id, fel: "föll" })),
+      }),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.misslyckade).toBe(1);
+    expect(s.lagerUppdaterade).toBe(0);
+    expect(sparade).toHaveLength(0);
+  });
+
+  it("☠️ en produkt UTAN lagerrader räknas — och stämplas INTE som synkad", async () => {
+    // Den gamla vägen svarade tyst `return` här och bokförde ändå produkten
+    // som synkad, för alltid. Nionde gången samma klass: ett svar utan fel är
+    // inget kvitto.
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 })),
+      listAosom: async () => [mappning("A-1")],
+      lasLagerposter: async () => [],
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.utanLagerrader).toBe(1);
+    expect(s.lagerUppdaterade).toBe(0);
+    expect(sparade).toHaveLength(0);
+  });
+
+  it("ett läsfel bokförs på varje drabbad produkt, inte som ett tyst hopp", async () => {
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 }), rad("B-2", { qty: 50 })),
+      lasLagerposter: async () => { throw new Error("Wix svarade 503"); },
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.misslyckade).toBe(2);
+    expect(s.errors.every((e) => e.error.includes("503"))).toBe(true);
+    expect(sparade).toHaveLength(0);
+  });
+
+  it("☠️ `limit` är EXAKT — tuggan kapas mot det som återstår", async () => {
+    // Utan kapningen hade `limit: 1` skrivit hela den första tuggan. `limit`
+    // finns för att hålla en serverless-rutt innanför sina 300 sekunder.
+    const manga = Array.from({ length: 30 }, (_, i) => `P-${String(i).padStart(3, "0")}`);
+    const { d } = deps({
+      fetchFeed: async () => feedMed(...manga.map((s) => rad(s, { qty: 50 }))),
+      listAosom: async () => manga.map((s) => mappning(s)),
+      listWixPriser: async () => wixPriser(
+        Object.fromEntries(manga.map((s) => [`wix-${s}`, BASPRIS])),
+      ),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false, limit: 3 });
+
+    expect(s.lagerUppdaterade).toBe(3);
+    expect(s.granskade).toBe(3);
+    expect(s.stoppedBy).toBe("limit");
+    expect(s.cursor).toBe("P-002");
+  });
+
+  it("⚠️ lagerDrift MÄTS men åtgärdas inte — butikens saldo mot bokföringens", async () => {
+    // Samma frågeställning som `jamforelsePris` byggdes för på priset. Talet
+    // är medvetet bara mätt: att byta facit vore en beteendeändring med hela
+    // katalogen som blast-radie.
+    const { d } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 }), rad("B-2", { qty: 50 })),
+      listAosom: async () => [
+        { ...mappning("A-1"), aosomSyncedQty: 9 },
+        { ...mappning("B-2"), aosomSyncedQty: 4 },
+      ],
+      // Butiken säger 9 för A-1 (stämmer) och 0 för B-2 (drivit isär).
+      lasLagerposter: async (ids) =>
+        ids.map((id) => ({
+          id: `inv-${id}`,
+          revision: "1",
+          productId: id,
+          quantity: id === "wix-A-1" ? 9 : 0,
+        })),
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.lagerDrift).toBe(1);
+  });
+
+  it("torrkörningen LÄSER lagret men skriver inget", async () => {
+    // En torrkörning ska säga sanningen om vad en skarp skulle göra, och
+    // `utanLagerrader` går inte att veta utan att titta. Läsningar ändrar
+    // ingenting.
+    let last = 0;
+    let skrivet = 0;
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { qty: 50 })),
+      listAosom: async () => [mappning("A-1")],
+      lasLagerposter: async (ids) => {
+        last++;
+        return ids.map((id) => ({ id: `inv-${id}`, revision: "1", productId: id, quantity: 0 }));
+      },
+      skrivLager: async (u) => { skrivet++; return { lyckade: u.map((x) => x.id), misslyckade: [] }; },
+    });
+
+    const s = await runAosomSync(d, { dryRun: true });
+
+    expect(last).toBe(1);
+    expect(skrivet).toBe(0);
+    expect(sparade).toHaveLength(0);
+    expect(s.lagerUppdaterade).toBe(1);
+  });
+
+  it("☠️ skrevs bara PRISET stämplas inte aosomSyncedQty", async () => {
+    // Annars hade nästa körning trott att saldot redan speglats.
+    const { d, sparade } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 60 })),
+      // aosomSyncedQty stämmer redan, så bara priset vill skrivas.
+      listAosom: async () => [{ ...mappning("A-1"), aosomSyncedQty: synligtSaldo(rad("A-1").qty) }],
+    });
+
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.lagerUppdaterade).toBe(0);
+    expect(s.prisUppdaterade).toBe(1);
+    expect(sparade[0].aosomSyncedQty).toBe(synligtSaldo(rad("A-1").qty));
   });
 });

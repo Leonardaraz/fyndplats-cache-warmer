@@ -128,6 +128,7 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
+          utanrader=0; drift=0
           after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
@@ -147,12 +148,15 @@ jobs:
             sl=$(printf '%s' "$svar" | jq -r '.slutsalda')
             mi=$(printf '%s' "$svar" | jq -r '.misslyckade')
             va=$(printf '%s' "$svar" | jq -r '.varningar | length')
+            ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
+            dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar')
 
             granskade=$(( granskade + g )); lager=$(( lager + l ))
             priser=$(( priser + p ));       utan=$(( utan + u ))
             urfeeden=$(( urfeeden + uf ));  slutsalda=$(( slutsalda + sl ))
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
+            utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -201,6 +205,8 @@ jobs:
             echo "| Ur feeden (saldo nollat) | ${urfeeden} |"
             echo "| Slutsålda | ${slutsalda} |"
             echo "| Blockerade prishopp | ${varningar} |"
+            echo "| Utan lagerrader i Wix | ${utanrader} |"
+            echo "| Lagerdrift (bara mätt) | ${drift} |"
             echo "| Misslyckade | ${misslyckade} |"
             echo ""
             if [ -n "$prislistefel" ]; then
