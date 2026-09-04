@@ -2759,6 +2759,32 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .fd-lead{margin:0 auto 30px;max-width:56ch;text-align:center;color:var(--fd-soft);
   font-size:var(--text-base);line-height:1.6}
 
+/* ── Klippet ──────────────────────────────────────────────────────── */
+/* Filmen ligger till vänster och texten till höger — spegelvänt mot
+   hjälten ovanför, så sidan inte får två identiska uppställningar efter
+   varandra. Rutan är 576×516 (48:43), måtten som blev kvar när TikToks
+   textruta och vattenstämpel klipptes bort. aspect-ratio håller platsen
+   redan innan filmen finns, så ingenting hoppar när den dyker upp. */
+.fd-clip{display:grid;grid-template-columns:minmax(260px,40%) 1fr;gap:40px;align-items:center}
+.fd-clip-video{position:relative}
+.fd-clip-v{display:block;width:100%;height:auto;aspect-ratio:48/43;object-fit:cover;
+  background:#000;border:1px solid var(--fd-line);border-radius:var(--r-lg)}
+.fd-clip-text .fd-h2,.fd-clip-text .fd-lead{text-align:left;margin-left:0}
+.fd-clip-text .fd-lead{margin-bottom:22px}
+.fd-clip-link{display:inline-flex;align-items:center;min-height:44px;
+  padding:0 20px;border:1px solid var(--fd-line);border-radius:var(--r-pill);
+  color:var(--fd-ink);font-size:var(--text-sm);font-weight:600;text-decoration:none;
+  transition:border-color .2s,background .2s}
+.fd-clip-link:hover{border-color:var(--fd-gold);background:rgba(217,164,65,.08)}
+.fd-clip-link:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
+@media(max-width:860px){
+  .fd-clip{grid-template-columns:1fr;gap:22px}
+  .fd-clip-video{max-width:340px;margin:0 auto}
+  .fd-clip-text{text-align:center}
+  .fd-clip-text .fd-h2,.fd-clip-text .fd-lead{text-align:center}
+  .fd-clip-text .fd-lead{margin-left:auto;margin-right:auto}
+}
+
 /* ── Droppet ──────────────────────────────────────────────────────── */
 /* Rutnätet är byggt för riktiga produkter. Tills Printful-artiklarna
    finns visar det ÄRLIGA platshållare: plagget, inte ett påhittat

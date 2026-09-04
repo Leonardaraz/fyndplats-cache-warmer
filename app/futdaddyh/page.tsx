@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { FdClip } from "@/components/fd-clip";
+
 // FutDaddyH — officiell merch.
 //
 // STATUS: designskiss. Sidan är avsiktligt utan köpbara produkter ännu.
@@ -39,6 +41,13 @@ const SOCIALS = [
 // Beskuren ur hans egen banner: han, FD-bollen och strålkastarna. Ordmärket
 // och taggen lämnades kvar i originalet — de är riktig HTML här nedanför, för
 // inbränd text går inte att läsa upp, översätta eller skala ner på en telefon.
+// Klippet Leonard skickade, beskuret till bara bilden: TikToks vita
+// textruta låg ovanför filmrutan och vattenstämpeln under den, så båda
+// försvann med snittet (y 259–775 av 1024) utan att röra en enda bildpunkt
+// av själva filmen. Ljudet är bortklippt. Länken går till hans inlägg —
+// den ger honom både erkännandet och trafiken som vattenstämpeln gav.
+const KLIPP_TIKTOK = "https://vm.tiktok.com/ZN8Y4JhBw/";
+
 const HJALTE =
   "https://static.wixstatic.com/media/b379ce_188b521ca5144bf2a11be627959aa92d~mv2.jpg/v1/fill/w_900,h_747,al_c,q_85/file.jpg";
 
@@ -136,6 +145,28 @@ export default function FutDaddyh() {
           </div>
         </div>
       </header>
+
+      <section className="fd-sec">
+        <div className="container fd-clip">
+          <FdClip
+            src="/futdaddyh/arena.mp4"
+            poster="/futdaddyh/arena.jpg"
+            etikett="FutDaddyH går genom arenan mellan spelplatserna"
+          />
+          <div className="fd-clip-text">
+            <h2 className="fd-h2">Från arenan</h2>
+            <p className="fd-lead">Hela klippet ligger på hans TikTok.</p>
+            <a
+              className="fd-clip-link"
+              href={KLIPP_TIKTOK}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Se det på TikTok
+            </a>
+          </div>
+        </div>
+      </section>
 
       <section className="fd-sec">
         <div className="container">
