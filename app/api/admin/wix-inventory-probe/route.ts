@@ -134,6 +134,40 @@ export async function GET(req: NextRequest) {
       };
     }
 
+    // ── FRÅGA 3: hur ser ett LYCKAT svar ut? ──
+    // ☠️ Felfallet ovan räcker inte. Parsern måste veta om en LYCKAD rad också
+    // bär sitt id — annars är regeln "en rad Wix inte nämner är misslyckad"
+    // byggd på en gissning, och den gissningen fäller varje skrivning om Wix
+    // svarar tunnare vid framgång.
+    //
+    // Skrivningen är VÄRDENEUTRAL: samma kvantitet tillbaka som redan står
+    // där. Revisionen bumpas, saldot rör sig inte. Kräver ?write=1 så rutten
+    // inte kan skriva av misstag.
+    let lyckatSvar: unknown = "hoppade över — kör med ?write=1 för att mäta";
+    if (req.nextUrl.searchParams.get("write") === "1" && poster.length > 0) {
+      const p0 = poster[0] as unknown as { id: string; revision: string; quantity?: number };
+      const nuvarande = await raw("/stores/v3/inventory-items/query", {
+        query: { filter: { productId: ids[0] } },
+      });
+      const färsk = ((nuvarande.json as { inventoryItems?: { id: string; revision: string; quantity?: number }[] })
+        ?.inventoryItems ?? []).find((x) => x.id === p0.id);
+      if (färsk) {
+        const svar = await raw("/stores/v3/bulk/inventory-items/update", {
+          inventoryItems: [{
+            inventoryItem: { id: färsk.id, revision: färsk.revision, quantity: färsk.quantity ?? 0 },
+          }],
+        });
+        const results = (svar.json as { results?: Record<string, unknown>[] })?.results ?? [];
+        lyckatSvar = {
+          status: svar.status,
+          skrevTillbakaSammaSaldo: färsk.quantity ?? 0,
+          antalResultat: results.length,
+          nycklarPerRad: results.map((r) => Object.keys(r)),
+          rådata: JSON.stringify(svar.json).slice(0, 1200),
+        };
+      }
+    }
+
     const svarJson = (x: { json: unknown }) => (x.json as { inventoryItems?: unknown[] })?.inventoryItems?.length ?? null;
 
     return NextResponse.json({
@@ -154,7 +188,8 @@ export async function GET(req: NextRequest) {
         limit200: { status: tak200.status, fel: tak200.text || undefined },
         limit100: { status: tak100.status, fel: tak100.text || undefined },
       },
-      fraga2_bulksvarets_form: bulkform,
+      fraga2_bulksvarets_form_VID_FEL: bulkform,
+      fraga3_bulksvarets_form_VID_FRAMGANG: lyckatSvar,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

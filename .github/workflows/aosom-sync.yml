@@ -42,6 +42,7 @@ on:
           - skarp
           - lager
           - api-matning
+          - api-matning-skriv
       limit:
         description: "Produkter per varv. 400 är ruttens default."
         required: false
@@ -78,9 +79,14 @@ jobs:
           # kända innan lagerskrivningarna batchas: tar inventory-query flera
           # produkt-id, och bär bulk-svaret radens id. Skriver ingenting —
           # raderna skickas med föråldrad revision och avvisas.
-          if [ "$MODE" = "api-matning" ]; then
+          # api-matning-skriv gör EN värdeneutral skrivning (samma saldo
+          # tillbaka) för att mäta hur ett LYCKAT bulk-svar ser ut. Utan den
+          # mätningen vore parserns regel om utelämnade rader en gissning.
+          MAT_SKRIV=0
+          [ "$MODE" = "api-matning-skriv" ] && MAT_SKRIV=1
+          if [ "$MODE" = "api-matning" ] || [ "$MODE" = "api-matning-skriv" ]; then
             svar=$(curl -sS --max-time 120 -H "Authorization: Bearer ${CRON_SECRET}" \
-              "${rot}/api/admin/wix-inventory-probe")
+              "${rot}/api/admin/wix-inventory-probe?write=${MAT_SKRIV}")
             echo "$svar" | jq .
             if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
               echo "::error::Mätningen föll: $(echo "$svar" | jq -r '.error // "okant fel"')" >&2
