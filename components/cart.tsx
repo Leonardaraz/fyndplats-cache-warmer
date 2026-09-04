@@ -32,15 +32,21 @@ let clientPromise: Promise<{ client: any; currentCart: any }> | null = null;
 function getClient() {
   if (!clientPromise) {
     clientPromise = (async () => {
-      // Cart API v2. @wix/redirects behövs inte längre: cartV2.getCheckoutUrl
-      // ger kassa-adressen direkt, vilket ersätter hela redirect-sessionen i
-      // checkout() — och tar bort ett paket ur den lata bundlen.
-      const [sdk, ecom] = await Promise.all([
+      // Cart API v2 för vagnen, @wix/redirects kvar för kassa-adressen.
+      //
+      // Jag tog först bort redirects helt och byggde tacksides-returen på en
+      // egen ?origin=-parameter. Det var fel: Redirects-API:t är INTE med i
+      // det som tas bort 1 februari 2027 (bara Cart V1 och Checkout V1 är),
+      // och createRedirectSession med callbacks är Wix DOKUMENTERADE sätt att
+      // få tillbaka kunden till en egen tacksida. Min parameter var en gissning
+      // som ersatte något som redan fungerade i produktion.
+      const [sdk, ecom, redirects] = await Promise.all([
         import("@wix/sdk"),
         import("@wix/ecom"),
+        import("@wix/redirects"),
       ]);
       const client = sdk.createClient({
-        modules: { currentCart: ecom.currentCartV2, cart: ecom.cartV2 },
+        modules: { currentCart: ecom.currentCartV2, cart: ecom.cartV2, redirects },
         auth: sdk.OAuthStrategy({
           clientId: HEADLESS_CLIENT_ID,
           tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
@@ -157,61 +163,78 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const { client } = await getClient();
 
       // v2 slog ihop kundvagn och kassa till EN entitet: det finns ingen
-      // createCheckout längre, utan kassa-adressen hämtas ur vagnen själv.
-      //
-      // Det ersätter hela den tidigare dansen: createCheckoutFromCurrentCart,
-      // createRedirectSession, utplock av den inre redirectUrl för att gå runt
-      // en IAM-endpoint som 404:ade på primärdomänen, plus en manuell
-      // reserv-URL när det ändå strulade. Tre lager workaround borta.
+      // createCheckoutFromCurrentCart längre. Vagnens id ÄR kassans id, så
+      // det som förut krävde ett extra anrop är nu bara en uppslagning.
       const aktuell: any = await client.currentCart.getCurrentCart();
       const cartId: string = aktuell?.cart?._id || aktuell?._id || "";
       if (!cartId) throw new Error("ingen kundvagn att gå till kassan med");
 
-      // getCheckoutUrl tar även ett `currencyCode`. Det är hela hooken för
-      // flera valutor — kassan kan alltså köras i EUR utan att sajtens valuta
-      // ändras. Utelämnat här = butikens valuta, alltså SEK precis som idag.
-      const svar: any = await client.cart.getCheckoutUrl(cartId);
-      let target: string = svar?.checkoutUrl || "";
-      if (!target) throw new Error("kassan gav ingen adress");
-
       const origin = window.location.origin;
       const thankYouUrl = `${origin}/tack`;
+      const shopUrl = `${origin}/butik`;
 
-      // TRE PARAMETRAR SOM MÅSTE FÖLJA MED, alla med skäl:
+      // KASSA-ADRESSEN, i två steg med olika roller.
       //
-      // origin → dit kunden skickas efter betalning. /tack läser ?orderId
-      //   därifrån och rapporterar purchase till GA4 och Meta. Tappas den
-      //   hamnar kunden rätt ändå, men intäkten försvinner ur båda systemen.
-      //   DET HÄR ÄR DEN ENDA DELEN AV MIGRERINGEN SOM INTE GÅR ATT VERIFIERA
-      //   UTAN ETT RIKTIGT KÖP — v1 satte den via redirect-sessionens
-      //   callbacks, v2 har ingen sådan parameter, så den läggs på URL:en.
+      // FÖRST redirect-sessionen — exakt samma anrop som produktionen kör
+      // idag. Wix migreringsguide säger rakt ut att "the checkout ID is the
+      // cart ID in V2", så vagnens id går rakt in där checkoutId ska stå.
+      // Callbacks är hela poängen: thankYouPageUrl är det som gör att kunden
+      // kommer tillbaka till /tack MED ?orderId, och det är den mekanism som
+      // bevisligen fungerar i skarp drift.
       //
-      // hideLoginLogoutBar → döljer inloggningsraden på den Wix-hostade kassan
-      //   så kunden alltid checkar ut som GÄST. Wix-supportens egen
-      //   headless-workaround (ärende juni 2026); utan den gav login/logout-
-      //   bytet en bugg.
+      // Den returnerade fullUrl pekar på en IAM-endpoint som 404:ar på
+      // primärdomänen, så vi plockar ut den inre riktiga checkout-länken —
+      // samma utplock som produktionen gör.
+      let target = "";
+      let vag = "redirect-session";
+      try {
+        const redirect: any = await client.redirects.createRedirectSession({
+          ecomCheckout: { checkoutId: cartId },
+          callbacks: { thankYouPageUrl: thankYouUrl, postFlowUrl: origin, cartPageUrl: shopUrl },
+        });
+        const fullUrl: string = redirect?.redirectSession?.fullUrl || "";
+        const inner = fullUrl ? new URL(fullUrl).searchParams.get("redirectUrl") : null;
+        if (inner && inner.includes("/__ecom/checkout")) target = inner;
+      } catch { /* faller igenom till v2-adressen nedan */ }
+
+      // SEDAN v2-adressen som reserv. getCheckoutUrl tar även ett
+      // `currencyCode` — hooken för flera valutor, oanvänd här.
       //
-      // headlessClientId → säger åt kassan VILKEN headless-klient den öppnas
-      //   för. v1 hade den alltid med (både via redirect-sessionen och i
-      //   reserv-URL:en). getCheckoutUrl ger en naken ?checkoutId=-adress —
-      //   Wix eget docsexempel är "https://www.mystore.com/checkout?checkoutId=…"
-      //   — så migreringen tappade parametern utan att jag menade det. Vad en
-      //   kassa utan klient-id gör med butikens betalinställningar vet jag
-      //   inte säkert, men skillnaden mot v1 ska inte finnas där, och det är
-      //   den enda skillnaden som kan förklara att betalsätt ändrats.
-      //   Sätts bara om adressen saknar den — Wix får gärna sätta den själv.
+      // Den ger en naken ?checkoutId=-adress utan callbacks, så ?origin läggs
+      // på för hand. Den vägen är OPROVAD mot ett riktigt köp; den finns för
+      // att kassan ska öppnas även om redirect-sessionen strular, inte för att
+      // den är likvärdig.
+      if (!target) {
+        vag = "getCheckoutUrl (reserv)";
+        const svar: any = await client.cart.getCheckoutUrl(cartId);
+        target = svar?.checkoutUrl || "";
+        if (!target) throw new Error("kassan gav ingen adress");
+        try {
+          const u = new URL(target);
+          if (!u.searchParams.has("origin")) u.searchParams.set("origin", thankYouUrl);
+          target = u.toString();
+        } catch { /* oparsbar adress → navigera ändå */ }
+      }
+
+      // hideLoginLogoutBar döljer inloggningsraden på den Wix-hostade kassan så
+      // kunden alltid checkar ut som GÄST. Wix-supportens egen headless-
+      // workaround (ärende juni 2026); utan den gav login/logout-bytet en bugg.
+      // headlessClientId säger vilken headless-klient kassan öppnas för — v1
+      // hade den alltid med. Båda sätts bara om de saknas.
       //
-      // Fail-safe: går adressen inte att parsa navigerar vi oförändrat —
-      // kassan kan aldrig brytas av det här steget.
+      // Fail-safe: går adressen inte att parsa navigerar vi oförändrat.
       try {
         const u = new URL(target);
-        if (!u.searchParams.has("origin")) u.searchParams.set("origin", thankYouUrl);
+        u.searchParams.set("hideLoginLogoutBar", "true");
         if (!u.searchParams.has("headlessClientId")) {
           u.searchParams.set("headlessClientId", HEADLESS_CLIENT_ID);
         }
-        u.searchParams.set("hideLoginLogoutBar", "true");
         target = u.toString();
       } catch { /* oparsbar adress → navigera ändå */ }
+
+      // Vilken väg som användes går annars bara att se genom att slutföra ett
+      // köp. Raden gör det synligt i konsolen utan att någon betalar något.
+      console.info(`[kassa] adress via ${vag}`);
 
       window.location.href = target;
     } catch (e: any) {
