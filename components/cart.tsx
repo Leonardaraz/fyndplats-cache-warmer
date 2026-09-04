@@ -177,7 +177,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const origin = window.location.origin;
       const thankYouUrl = `${origin}/tack`;
 
-      // TVÅ PARAMETRAR SOM MÅSTE FÖLJA MED, båda med skäl:
+      // TRE PARAMETRAR SOM MÅSTE FÖLJA MED, alla med skäl:
       //
       // origin → dit kunden skickas efter betalning. /tack läser ?orderId
       //   därifrån och rapporterar purchase till GA4 och Meta. Tappas den
@@ -191,11 +191,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       //   headless-workaround (ärende juni 2026); utan den gav login/logout-
       //   bytet en bugg.
       //
+      // headlessClientId → säger åt kassan VILKEN headless-klient den öppnas
+      //   för. v1 hade den alltid med (både via redirect-sessionen och i
+      //   reserv-URL:en). getCheckoutUrl ger en naken ?checkoutId=-adress —
+      //   Wix eget docsexempel är "https://www.mystore.com/checkout?checkoutId=…"
+      //   — så migreringen tappade parametern utan att jag menade det. Vad en
+      //   kassa utan klient-id gör med butikens betalinställningar vet jag
+      //   inte säkert, men skillnaden mot v1 ska inte finnas där, och det är
+      //   den enda skillnaden som kan förklara att betalsätt ändrats.
+      //   Sätts bara om adressen saknar den — Wix får gärna sätta den själv.
+      //
       // Fail-safe: går adressen inte att parsa navigerar vi oförändrat —
       // kassan kan aldrig brytas av det här steget.
       try {
         const u = new URL(target);
         if (!u.searchParams.has("origin")) u.searchParams.set("origin", thankYouUrl);
+        if (!u.searchParams.has("headlessClientId")) {
+          u.searchParams.set("headlessClientId", HEADLESS_CLIENT_ID);
+        }
         u.searchParams.set("hideLoginLogoutBar", "true");
         target = u.toString();
       } catch { /* oparsbar adress → navigera ändå */ }
