@@ -44,8 +44,11 @@ const SOCIALS = [
 // Klippet Leonard skickade, beskuret till bara bilden: TikToks vita
 // textruta låg ovanför filmrutan och vattenstämpeln under den, så båda
 // försvann med snittet (y 259–775 av 1024) utan att röra en enda bildpunkt
-// av själva filmen. Ljudet är bortklippt. Länken går till hans inlägg —
-// den ger honom både erkännandet och trafiken som vattenstämpeln gav.
+// av själva filmen. Hela klippet ligger uppe — bara CapCut-outron och
+// TikToks slutkort är borta (de börjar 86,3 s in och är inte film).
+// Ljudet är bortklippt: en loop som KAN låta gör det förr eller senare i
+// fel läge. Länken går till hans inlägg — den ger honom erkännandet och
+// trafiken som vattenstämpeln gav.
 const KLIPP_TIKTOK = "https://vm.tiktok.com/ZN8Y4JhBw/";
 
 const HJALTE =
@@ -168,13 +171,12 @@ export default function FutDaddyh() {
         </div>
       </section>
 
+      {/* Ingen rubrik över rutnätet. "Första droppet" stämde så länge det var
+          ETT släpp — men här ska olika tryck ligga uppe och bytas ut, och då
+          ljuger rubriken om sortimentet vid första utbytet. Plaggen får tala
+          själva tills de har namn och bilder. */}
       <section className="fd-sec">
         <div className="container">
-          <h2 className="fd-h2">Första droppet</h2>
-          <p className="fd-lead">
-            Fem plagg att börja med. Varje del trycks när du beställer den — inget
-            lager, inget överblivet.
-          </p>
           <ul className="fd-grid">
             {PLAGG.map((p) => (
               <li key={p.namn} className="fd-item">

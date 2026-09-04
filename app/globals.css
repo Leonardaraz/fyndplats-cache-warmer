@@ -2681,7 +2681,10 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    Läggs det på allt slutar det vara accent och blir bakgrund — samma
    läxa som omdömessidan gav 2026-09-04.
    ═══════════════════════════════════════════════════════════════════ */
-.fd{
+/* Tokens sitter på BODY, inte på .fd. Headern och promoraden ligger utanför
+   .fd i DOM:en, och de ska bära samma palett — utan detta hade de fått läsa
+   färgerna ur en förälder som inte har dem. */
+body:has(.fd){
   --fd-bg:#0B0B0C;
   --fd-bg2:#121215;
   --fd-panel:#17171B;
@@ -2690,6 +2693,8 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
   --fd-soft:#A5A099;
   --fd-gold:#D9A441;
   --fd-gold-hi:#F0CE7A;
+}
+.fd{
   background:var(--fd-bg);
   color:var(--fd-ink);
   margin:0;
@@ -2820,30 +2825,42 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    body:has(.sticky-buy-mobile) längre upp i filen. */
 body:has(.fd) footer{margin-top:0}
 
-/* SÖKRADEN SOM "DÖK UPP BUGGIGT" (skärmdump 2026-09-04, iOS Safari).
-   Headern är position:sticky med background:rgba(255,255,255,.92) OCH
-   backdrop-filter:blur(8px). Blurren tvingar Safari att rasterisera om
-   ytan bakom raden vid varje bildruta. På sajtens ljusa sidor märks inget
-   när den halkar efter — vitt över vitt. Här är botten kolsvart, och en
-   bildruta som kommer försent syns som att halva headern försvinner och
-   sidans innehåll ligger där i stället.
+/* HEADERN PÅ HANS SIDA: slutar följa med, och byter färg.
+   Två klagomål från Leonard, samma rot. Sajtens header är sticky med ljus
+   botten, så på en kolsvart sida seglade en vit sökrad in över innehållet
+   vid varje skrollning — och stod dessutom och lyste redan när man kom in.
 
-   Ogenomskinlig botten tar bort behovet av en backdrop-yta helt, så
-   ingenting kan halka efter. Skillnaden mot .92 vitt är inte synlig.
-   Bara den här sidan rörs — sajtens övriga headers ser likadana ut som
-   förut. Kunde inte återskapas här i containern (ingen iOS Safari), så
-   det här tar bort den kända orsaken snarare än en jag sett gå sönder. */
-/* :not(.fd-hero) är inte kosmetik: sidans egen hjälte är också ett
-   <header>, och utan undantaget hade den blivit vit. */
-/* Bara den oprefixade raden: lightningcss prefixar själv (basregeln ovan
-   får både -webkit- och oprefixad ur en enda deklaration). Skrev jag
-   -webkit-raden för hand slängde den den oprefixade i stället — då hade
-   Firefox behållit blurren, tvärtemot vad koden säger. Mätt i den byggda
-   bundlen, inte antaget. */
+   position:static löser det första på riktigt: raden finns kvar högst upp
+   och stannar där. Ingen backdrop-filter kvar att rita om varje bildruta,
+   alltså inte heller något som kan halka efter på iOS — den tidigare
+   lagningen var rätt orsak men fel botemedel.
+
+   Resten är palettbytet. Loggan får behålla sitt orange: den ska fortsätta
+   säga Fyndplats, det är fortfarande vår butik han handlar i.
+
+   :not(.fd-hero) är inte kosmetik — sidans egen hjälte är också ett
+   <header>, och utan undantaget hade den blivit svart platta. */
 body:has(.fd) header:not(.fd-hero){
-  background:#fff;
+  position:static;
+  background:var(--fd-bg);
+  border-bottom:1px solid var(--fd-line);
   backdrop-filter:none;
 }
+body:has(.fd) .promo{background:#000;color:var(--fd-soft)}
+body:has(.fd) .brand{color:var(--fd-ink)}
+body:has(.fd) .cartbtn,
+body:has(.fd) .wl-btn,
+body:has(.fd) .hamburger,
+body:has(.fd) .meganav{color:var(--fd-soft)}
+body:has(.fd) .cartbtn:hover,
+body:has(.fd) .wl-btn:hover,
+body:has(.fd) .hamburger:hover,
+body:has(.fd) .meganav-shop:hover,
+body:has(.fd) .meganav-link:hover{color:var(--fd-gold);background:none}
+body:has(.fd) .search{background:var(--fd-panel);border-color:var(--fd-line)}
+body:has(.fd) .search input{color:var(--fd-ink)}
+body:has(.fd) .search input::placeholder{color:var(--fd-soft)}
+body:has(.fd) .search:focus-within{background:var(--fd-bg2);border-color:var(--fd-gold)}
 
 @media (prefers-reduced-motion:reduce){
   .fd-hero::before,.fd-hero::after{animation:none}
