@@ -2437,6 +2437,82 @@ Två grindar, båda billiga, och de fångar olika fel:
 inte gör det.**
 
 
+### ☠️ Live-kontrollen måste använda HUSETS mönster, inte ett hemmaskrivet
+
+Runda 54:s första svep på de åtta renderade sidorna rapporterade **artikelnummer på alla
+åtta** och tyska på en. Båda var falsklarm, och båda av exakt samma sort som `omgång`
+inuti *genomgång*:
+
+| kontroll | vad som faktiskt matchade |
+|---|---|
+| `[0-9]{3}-[0-9]{3}[A-Z0-9]{2,}` | segmentet `401-07593171` **inuti ett UUID** i sidans JSON |
+| `Hunde` | svenskans **`hunden`** i metabeskrivningen |
+
+Lintet har redan de rätta formerna — artikelnumret med lookarounds åt båda hållen
+(`(?<![0-9a-fA-F-])…(?![0-9a-fA-F-])`) och tyska ord med ordgräns. De skrevs en gång
+just för att UUID:er och svensk böjning finns. **Importera dem i live-kontrollen i
+stället för att skriva om dem ur minnet**; en kontroll som fyrar på varenda sida lär
+läsaren att ignorera den, och då är även det äkta fyndet borta.
+
+⚠️ Och kör kontrollen i **Python med en retry**, inte som en `curl`-rad per fält. Två av
+åtta sidor svarade `000` på det ANDRA anropet (två anrop per sida: ett för kroppen, ett
+för statuskoden) fast första anropet gav full HTML — en transient nätmiss som såg ut som
+en 404. Ett anrop per sida, upp till tre försök, och båda talen ur samma svar.
+
+### ☠️ Ett kortvärde ska citera den rad tabellen FAKTISKT har
+
+Kortgrinden fällde fem rader i runda 54, och den hade rätt varje gång. Korten sade
+`Bredd: 74–147,5 cm` medan spec-tabellen bara bär den SAMMANSATTA raden
+`Mått: 74–147,5 × 2 × 76,2 cm` — det fristående måttet med sin enhet står ingenstans.
+
+Två utvägar, och valet är inte godtyckligt: **byt kortets rad** (rör bara Steg 9) eller
+**lägg till en egen rad i tabellen** (kräver ny `plainDescription`, ny byte-exakt
+verifiering och en omskrivning av åtta redan skrivna produkter). Ta den första om inte
+tabellen verkligen saknar något kunden behöver.
+
+### ☠️ Kortets RUBRIK beskriver fotot, inte produkten
+
+Två hagar fick ett andra kort som ersättning för leverantörens tyska grafiker. Fotot är
+bild 1:s nedre halva: fem renderingar av hagen ställd rak, i rektangel, i åttkant — och
+längst till höger en hopfälld bunt. Rubriken sade **"Åtta paneler i en bunt"**.
+
+Varenda mekanisk grind var grön: alla tal stod ordagrant i spec-tabellen, alt-texten
+klarade språkgrinden, kortet låg på plats 4. Felet syns bara när man tittar på det
+renderade kortet bredvid sin egen rubrik. Rättat till *"Åtta paneler i valfri form"*,
+som är vad bilden visar.
+
+**Ett kort är en bild med text på — och texten måste stämma med bilden, inte bara med
+databasen.**
+
+### Exporten behöver ett kvalitetsGOLV, inte bara ett storlekstak
+
+Runbokens första utväg för ett kort som inte ryms — byt till produktens studiobild —
+mättes upp igen och håller med marginal:
+
+| kort | livsstilsfoto | studiobild |
+|---|---|---|
+| trappgrind (nätfyllning) | 228 kB vid **q=72** | 204 kB vid **q=88** |
+| utdragbar grind (stålnät) | 214 kB vid **q=72** | 206 kB vid **q=90** |
+| rasthage (trädgårdsscen) | **324 kB** vid q=72 | 203 kB vid **q=90** |
+
+Rasthagen gick inte under taket ens med 1,5 px oskärpa på fotot (251 kB vid q=72) —
+lövverket är dyrare än nätet. Poängen är att **"det ryms" alltid går att uppnå genom att
+komprimera sönder kortet**, och den utvägen ser ut precis som den rätta i en filstorlek.
+Lägg därför golvet i exportskriptet: ett kort som inte ryms med **q ≥ 80 fäller** i
+stället för att komprimeras vidare, och då tvingas man byta källbild.
+
+### ⚠️ Ett filter på ett icke-filtrerbart fält returnerar TYST fel rader
+
+En fråga till `products/search` med `filter: {"directCategoriesInfo.categories.id":
+{"$hasSome": [...]}}` svarade 200 med 50 produkter — bokhyllor, julgranar och klösträd,
+alltså hela katalogen ofiltrerad. Fältet finns i svaret; det gör det inte filtrerbart.
+Varje query-metod har en STÄNGD lista över vilka fält som får filtreras och med vilka
+operatorer, och allt utanför den ignoreras eller ger fel rader utan att något felar.
+
+Samma familj som resten av kapitlet: **hämta en avgränsad sida och filtrera i egen kod**
+när fältet inte står i metodens lista.
+
+
 -----
 
 ## Steg 13 – Publicera (sista handlingen)
