@@ -1,9 +1,16 @@
 // Backfill av säljar-koppling (Feature 6) för redan importerade produkter.
 //
-//   node scripts/backfill-suppliers.mjs            # DRY-RUN (skriver inget)
-//   BACKFILL_DRY_RUN=false node scripts/backfill-suppliers.mjs   # skriver
+//   node --experimental-strip-types scripts/backfill-suppliers.mjs   # DRY-RUN
+//   BACKFILL_DRY_RUN=false node --experimental-strip-types scripts/backfill-suppliers.mjs
 //
-// Går igenom FyndplatsMappings. För varje produkt UTAN supplierId men MED en
+// ☠️ MAPPNINGARNA LÄSES OCH SKRIVS GENOM STOREN (rättat 2026-09-03). Skriptet
+// frågade FyndplatsMappings direkt i Wix Data. Kollektionen är TOM sedan
+// raderingen 2026-09-01 — och läsningen gick inte sönder, den blev tom: noll
+// kandidater, "inget att backfilla", noll fel. Att det kunde ligga i tre dygn
+// berodde på att källkodsgrinden undantog scripts/; undantaget är borta.
+// FyndplatsSuppliers har INTE flyttat och skrivs fortfarande direkt.
+//
+// Går igenom mappningarna. För varje produkt UTAN supplierId men MED en
 // sparad sourceUrl hämtas AliExpress-sidan och vi försöker plocka säljarens
 // store-id + namn ur HTML:en (inbäddad storeNum/sellerAdminSeq, /store/{id}-länk
 // eller "storeName":"…"-fragment).
@@ -19,6 +26,7 @@
 //      produkter för säljaren (status "good"; ingen order-/klagomålshistorik än).
 
 import { readFileSync } from "node:fs";
+import { getStore } from "../lib/store/factory.ts";
 
 function loadEnv() {
   const raw = readFileSync(new URL("../.env.local", import.meta.url), "utf8");
@@ -36,7 +44,6 @@ const SITE = env.WIX_SITE_ID;
 if (!TOKEN) { console.error("WIX_API_TOKEN saknas i .env.local"); process.exit(1); }
 
 const DRY_RUN = (process.env.BACKFILL_DRY_RUN ?? "true").toLowerCase() !== "false";
-const COL_MAPPINGS = env.WIX_DATA_COL_MAPPINGS || "FyndplatsMappings";
 const COL_SUPPLIERS = env.WIX_DATA_COL_SUPPLIERS || "FyndplatsSuppliers";
 
 const headers = {
@@ -125,7 +132,7 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function main() {
   console.log(`[backfill] DRY_RUN=${DRY_RUN} (sätt BACKFILL_DRY_RUN=false för att skriva)`);
-  const mappings = await queryAll(COL_MAPPINGS);
+  const mappings = await getStore().listMappings();
   console.log(`[backfill] ${mappings.length} mappningar totalt.`);
 
   const targets = mappings.filter((m) => !m.supplierId && m.sourceUrl);
@@ -160,7 +167,7 @@ async function main() {
   if (!DRY_RUN) {
     const now = new Date().toISOString();
     for (const { mapping, supplier } of resolved) {
-      await saveRow(COL_MAPPINGS, mapping.wixProductId, {
+      await getStore().saveMapping({
         ...mapping,
         supplierId: supplier.supplierId,
         ...(supplier.supplierName ? { supplierName: supplier.supplierName } : {}),
