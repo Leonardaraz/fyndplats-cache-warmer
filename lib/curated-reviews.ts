@@ -11,14 +11,76 @@
 //
 // Snittbetyg + TOTALantal kommer INTE härifrån utan från getSocialProof()
 // (lib/social-proof-live.ts): Googles egna siffror när API:t svarar, annars
-// reserven i lib/social-proof.ts. Korten nedan (21 st med text) är ett urval —
+// reserven i lib/social-proof.ts. Korten nedan (23 st med text) är ett urval —
 // "Se alla på Google" länkar till samtliga. Resten av profilens omdömen är
 // stjärn-bara utan text och har inget att visa här; de räknas ändå in i totalen.
+//
+// KUNDBILDER (`photos`) ÄR OCKSÅ HANDPLOCKADE, OCH MÅSTE VARA DET.
+// Business Profile-API:ts reviews-endpoint returnerar ingen media alls —
+// kundbilder ligger i en separat media-endpoint utan koppling till omdömets id.
+// Och app/omdomen/page.tsx BYTER lista, den slår inte ihop dem:
+//   const data = google.reviews.length > 0 ? google : CURATED_RESULT;
+// Slås API:t på försvinner alltså hela den här listan — bilderna med den. Det
+// är inget som går sönder tyst i dag (API:t saknar credentials), men den som
+// aktiverar det måste veta: antingen behålls bytet och bilderna offras, eller
+// så får raden ovan bli en sammanslagning som ympar in `photos` på de live-
+// omdömen de hör till. Det senare kräver en pålitlig nyckel — författarnamn
+// ensamt räcker inte, två kunder kan heta lika och en bild på fel persons kort
+// är värre än ingen bild alls.
+//
+// Lägg bara in bilder kunden själv publicerat på sitt eget omdöme, och beskriv
+// i `alt` vad bilden visar — aldrig kundens namn.
+//
+// ADRESSERNA. Bilderna ligger i sajtens egen Media Manager (uppladdade
+// 2026-09-04), inte kvar hos Google — en Google-adress hade slutat svara den
+// dag kunden tog bort bilden, och vi hade inte märkt det. `src` bär en
+// KVADRATISK fill-transform med flit: rutan i kortet är 84×84 med
+// object-fit:cover, så beskärningen sker ändå. Görs den hos Wix i stället för
+// i webbläsaren slipper besökaren ladda ner pixlar som aldrig syns — uppmätt
+// 7–13 kB per miniatyr mot 27–67 kB för originalet. lib/image-loader.ts skalar
+// w_/h_ proportionellt per srcset-bredd, så 1:1 här ger 1:1 hela vägen.
+//
+// Bilderna kodades om innan uppladdning (sharp, max 900 px, q78). Det var inte
+// bara för storleken: omkodningen släpper EXIF, alltså tidpunkt, kameramodell
+// och eventuella GPS-koordinater. Kundernas foton ska inte bära med sig var de
+// togs. Drönarbildens svarta filmkanter — den var en videoskärmdump — beskars
+// bort i samma steg.
 
 import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
 import { GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
+  {
+    id: "sigvard-aberg",
+    rating: 5,
+    author: "Sigvard Åberg",
+    // Google visade "för 12 timmar sedan" 2026-09-04.
+    date: "2026-09-04",
+    // Låg först här i trimmad form: Google visade bara första meningen och
+    // dolde resten bakom "… Mer". Leonard läste ut hela texten på profilen
+    // 2026-09-04, så nu står den ordagrant och i sin helhet.
+    //
+    // RADBRYTNINGARNA ÄR KUNDENS EGNA och bärs igenom av white-space:pre-line
+    // på .greview-text. Utan den regeln hade de tre styckena kollapsat till en
+    // enda vägg av text — och det här är sajtens längsta omdöme.
+    text: "Jag är väldigt nöjd med den hjälp jag fick från kundtjänsten när jag skulle köpa ett badrumsskåp. Jag ringde och berättade måtten på mitt badrum och vilken färg jag önskade, och de tog sig verkligen tid att ge mig flera bra förslag.\n\nSom äldre man uppskattade jag särskilt det vänliga bemötandet och tålamodet. Det kändes tryggt att få prata med någon som verkligen ville hjälpa mig att hitta rätt.\n\nJag blev jättenöjd med skåpet och kan varmt rekommendera deras kundtjänst. Stort tack för all hjälp!",
+    // Kundens egen bild — se noten om kundbilder överst i filen.
+    photos: [
+      {
+        src: "https://static.wixstatic.com/media/b379ce_d0085ffa7b7046a8a40d3b25ccc7e6ac~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
+        alt: "Ett smalt badrumsskåp i ljus trälook, uppställt intill toaletten.",
+      },
+    ],
+  },
+  {
+    id: "maja-kowalski",
+    rating: 5,
+    author: "Maja Kowalski",
+    // Google visade "för 3 dagar sedan" 2026-09-04.
+    date: "2026-09-01",
+    // Ordagrant, inklusive att sista meningen saknar punkt på Google.
+    text: "Tack för bra service och ett mycket professionellt bemötande! Vi är väldigt nöjda med vårt köp och det kan absolut bli fler affärer framöver",
+  },
   {
     id: "adam-ekdahl",
     rating: 5,
@@ -47,6 +109,13 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     author: "Stefan Gajic",
     date: "2026-06-23",
     text: "Köpte den som min första drönare, var lite nervös först men det gick lättare än jag trodde. Har flugit några gånger nere vid hamnen.",
+    // Kundens egen bild — se noten om kundbilder överst i filen.
+    photos: [
+      {
+        src: "https://static.wixstatic.com/media/b379ce_b834b24c38114775a9acac5615766941~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
+        alt: "En uppackad Potensic ATOM-drönare med väska, batterier, kablar och reservpropellrar.",
+      },
+    ],
   },
   {
     id: "felicia-stromberg",
@@ -54,6 +123,17 @@ export const CURATED_REVIEWS: GoogleReview[] = [
     author: "Felicia Strömberg",
     date: "2026-06-26",
     text: "Toppenbur till min dvärgpapegoja! Min papegoja älskar toppen som går att öppna, sitter däruppe direkt 😄 Stadig, lagom stor och lätt att hålla ren. Rekommenderas!",
+    // Kundens egen bild — se noten om kundbilder överst i filen.
+    photos: [
+      {
+        src: "https://static.wixstatic.com/media/b379ce_832f77bb6a83482bbc5d199763eb71ed~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
+        alt: "En svart fågelbur med öppningsbar topp, med en dvärgpapegoja sittande på pinnen ovanpå.",
+      },
+      {
+        src: "https://static.wixstatic.com/media/b379ce_037d662dc2c24a2ebe80ddf2142167d1~mv2.jpg/v1/fill/w_168,h_168,al_c,q_85/file.jpg",
+        alt: "En hand innanför burens galler, som visar avståndet mellan spjälorna.",
+      },
+    ],
   },
   {
     id: "orlando",

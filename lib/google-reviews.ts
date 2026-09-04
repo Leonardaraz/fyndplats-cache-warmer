@@ -15,12 +15,28 @@
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const REVIEWS_BASE = "https://mybusiness.googleapis.com/v4";
 
+/** En kundbild som hör till ett omdöme. Se `photos` nedan. */
+export interface ReviewPhoto {
+  /** URL till bilden. Wix-media eller /public — samma loader som allt annat. */
+  src: string;
+  /** Vad bilden visar, på svenska. Aldrig kundens namn — alt beskriver bilden. */
+  alt: string;
+}
+
 export interface GoogleReview {
   id: string;
   rating: number; // 1..5
   text: string; // kan vara tom (stjärn-bara omdöme) → filtreras bort ur listan
   author: string; // reviewer.displayName (publikt på Google)
   date?: string; // createTime (ISO)
+  /** KOMMER ALDRIG FRÅN API:T — bara från lib/curated-reviews.ts.
+   *
+   *  Business Profile-API:ts reviews-endpoint returnerar ingen media; kundbilder
+   *  ligger i en helt egen media-endpoint utan koppling till omdömets id. Fältet
+   *  fylls därför för hand. app/omdomen/page.tsx BYTER lista när API:t svarar,
+   *  så då försvinner både de kurerade omdömena och deras bilder — se noten
+   *  överst i curated-reviews.ts för vad som måste göras då. */
+  photos?: ReviewPhoto[];
 }
 
 export interface GoogleReviewsResult {

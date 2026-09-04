@@ -1,5 +1,69 @@
 @AGENTS.md
 
+# Så här jobbar vi: bunta ihop deploys
+
+**En arbetsdag ska bli en eller två deploys, inte fem.** Samla dagens
+ändringar på grenen och merga när de hänger ihop — merga inte varje fix för
+sig så fort den är grön.
+
+## Varför — mätt, inte antaget
+
+Vercel-fakturan 2026-09-04, sju dagar in i cykeln, 11,84 av 20 dollars
+inkluderad kredit förbrukad:
+
+| Rad | Belopp | Andel |
+| :-- | --: | --: |
+| **Build CPU Minutes** | **$5,80** | **49 %** |
+| Observability Events | $1,88 | 16 % |
+| ISR Writes | $1,80 | 15 % |
+| Fluid Provisioned Memory | $0,78 | 7 % |
+| Fluid Active CPU | $0,51 | 4 % |
+
+Byggen är alltså halva notan. Den veckan innehöll en dag med **fem merges**
+(#607, #610, #611, #612 plus mellanpushar) — fem byggen för arbete som hade
+rymts i ett eller två.
+
+**Och en deploy kostar två gånger.** Den tömmer ISR-cachen, så ~1 580 av
+1 622 produktsidor blir kalla; första besökaren på varje sida betalar då en
+rendering på 0,86–1,52 s i stället för 0,15. Timcronen
+(`app/api/cron/warm-and-ping`) värmer upp dem igen, men det är ytterligare
+1 622 renderingar per deploy. Färre deploys är alltså både billigare OCH
+snabbare för kunden.
+
+## Undantaget
+
+En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
+kostnaden värd. Allt annat — refaktoreringar, prestandaarbete, innehåll,
+SEO — väntar in sina syskon.
+
+## Det praktiska
+
+- Flera relaterade ändringar → samma gren, samma PR, en merge.
+- Är de orelaterade men klara samma dag → merga dem i följd med kort
+  mellanrum hellre än utspritt över dagen; Vercel hinner då slå ihop
+  köandet, och katalogen behöver bara värmas en gång.
+- Skriv PR-texten så den bär flera ändringar. Det gör inte historiken
+  sämre — varje commit är fortfarande sin egen berättelse.
+
+## Särskilt för SEO- och produktpolering
+
+Den som polerar produkttexter, bilder, titlar eller metadata rör ofta
+dussintals produkter under en session. **Det ska bli EN PR, och den ska
+mergas sällan.**
+
+- Öppna en gren för hela poleringspasset och lägg alla produkter där.
+  Öppna inte en PR per produkt.
+- Merga när passet är klart — inte efter varje produkt som blivit bra.
+  En halvfärdig gren skadar ingen; den ligger bara och väntar.
+- Går arbetet över flera dagar: låt grenen leva och merga när den är klar,
+  hellre än att merga varje dags skörd.
+- Poleringen är dessutom sällan brådskande. Ingen kund väntar på en
+  omskriven produkttitel — det är precis den sortens arbete som ska samlas
+  ihop.
+
+Ett polerpass som blir tjugo PR:ar kostar tjugo byggen och tjugo
+katalogvärmningar för arbete som ingen kund märker snabbare.
+
 # Analytics
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**
