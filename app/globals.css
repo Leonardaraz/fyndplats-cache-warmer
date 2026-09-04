@@ -1648,6 +1648,15 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 /* #6 Hover-alt-image on product cards */
 .pimg-main,.pimg-alt{transition:opacity .35s ease,transform .55s cubic-bezier(.2,.7,.2,1)}
 .pimg-alt{opacity:0}
+/* Hover-bilden finns bara för pekare som KAN hovra. Utan hover nås :hover
+   aldrig, men bilden låg ändå i DOM:en och hämtades: en extra 600×600 per kort,
+   alltså 24 bortkastade hämtningar per skärm på mobil — där bandbredden är som
+   dyrast. Mätt på skarp /alla-produkter 2026-09-04: 53 <img>, varav 24 alt-
+   bilder som ingen mobilbesökare kan se. display:none tar bort boxen, och en
+   loading="lazy"-bild utan box hämtas aldrig. Grinden är (hover: none) och
+   inget mer: en pekskärmslaptop rapporterar pointer:coarse men HAR hover, och
+   ska behålla bildväxlingen. */
+@media (hover: none){.pimg-alt{display:none}}
 .prod:hover .pimg-alt{opacity:1}
 .prod:hover .pimg-main{opacity:0}
 /* Mjuk zoom på hover (.pimg har overflow:hidden → beskärs rent). GPU-only,

@@ -795,31 +795,55 @@ export type ListProduct = {
   popularity?: number;
 };
 
-/** Product → ListProduct. Enda stället som vet vad listsidorna skickar vidare. */
+/** Product → ListProduct. Enda stället som vet vad listsidorna skickar vidare.
+ *
+ * TOMMA FÄLT SKRIVS INTE UT. En nyckel med värdet undefined är inte gratis i
+ * RSC-nyttolasten — flight-formatet serialiserar den som `"colors":"$undefined"`,
+ * alltså nyckelnamnet OCH en elva tecken lång platshållare, och varje citattecken
+ * kostar två byte i HTML:en eftersom strömmen ligger i en JS-sträng.
+ *
+ * Mätt på skarp /alla-produkter 2026-09-04 (1 622 produkter): 325 362 byte av
+ * sidans HTML var fält med defaultvärde. colors var "$undefined" för samtliga
+ * 1 622 (42 172 B), popularity 0 för samtliga (27 574 B), originalPriceNum tomt
+ * för 1 581 (56 916 B), priceFromNum för 1 495 (47 840 B), originalPrice 36 363,
+ * rating 30 810, priceFrom 28 405, hasRange 28 405, onSale 26 877.
+ *
+ * Att utelämna dem är inte en beteendeändring: varje läsare grindar redan på
+ * ?? eller truthiness (p.popularity ?? 0, p.collectionIds || [], p.onSale &&,
+ * typeof p.stockQuantity === "number"), så en saknad nyckel och en nyckel med
+ * default-värdet räknas likadant. Lägger du till ett fält här: kontrollera att
+ * läsaren tål att det saknas, annars skriv ut det ovillkorligt. */
 export function forClient(products: Product[]): ListProduct[] {
-  return products.map((p) => ({
-    id: p.id,
-    slug: p.slug,
-    name: p.name,
-    img: p.img,
-    altImg: p.gallery?.find((g) => g !== p.img),
-    price: p.price,
-    priceNum: p.priceNum,
-    priceFrom: p.priceFrom,
-    priceFromNum: p.priceFromNum,
-    originalPrice: p.originalPrice,
-    originalPriceNum: p.originalPriceNum,
-    hasRange: p.hasRange,
-    onSale: p.onSale,
-    inStock: p.inStock,
-    stockQuantity: p.stockQuantity,
-    ribbon: p.ribbon,
-    colors: p.colors,
-    rating: p.rating,
-    collectionIds: p.collectionIds,
-    createdAt: p.createdAt,
-    popularity: p.popularity,
-  }));
+  return products.map((p) => {
+    // De sju fälten varje kort behöver oavsett produkt.
+    const lp: ListProduct = {
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      img: p.img,
+      price: p.price,
+      priceNum: p.priceNum,
+      inStock: p.inStock,
+    };
+    const altImg = p.gallery?.find((g) => g !== p.img);
+    if (altImg) lp.altImg = altImg;
+    if (p.priceFrom) lp.priceFrom = p.priceFrom;
+    if (p.priceFromNum) lp.priceFromNum = p.priceFromNum;
+    if (p.originalPrice) lp.originalPrice = p.originalPrice;
+    if (p.originalPriceNum) lp.originalPriceNum = p.originalPriceNum;
+    if (p.hasRange) lp.hasRange = true;
+    if (p.onSale) lp.onSale = true;
+    // 0 kvar i lager är ett riktigt värde, inte en avsaknad — typkollen, inte
+    // truthiness, avgör här.
+    if (typeof p.stockQuantity === "number") lp.stockQuantity = p.stockQuantity;
+    if (p.ribbon) lp.ribbon = p.ribbon;
+    if (p.colors?.length) lp.colors = p.colors;
+    if (p.rating) lp.rating = p.rating;
+    if (p.collectionIds?.length) lp.collectionIds = p.collectionIds;
+    if (p.createdAt) lp.createdAt = p.createdAt;
+    if (p.popularity) lp.popularity = p.popularity;
+    return lp;
+  });
 }
 
 // Slim produktform för cart-drawerns "Andra köpte också"-block — bara de fält
