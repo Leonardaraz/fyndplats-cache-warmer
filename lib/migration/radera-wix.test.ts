@@ -14,10 +14,31 @@ const NU = Date.parse("2026-09-01T19:00:00.000Z");
 const dygn = (n: number) => n * 24 * 60 * 60 * 1000;
 
 describe("fårRaderas — spärrlistan", () => {
-  it("☠️ de tre kollektioner butiken läser direkt är fredade", () => {
-    expect(fårRaderas("FyndplatsImportedReviews")).toBe(false);
+  it("☠️ de kollektioner butiken läser DIREKT ur Wix är fredade", () => {
+    // Auktioner och redirects läses fortfarande rakt ur Wix Data av butiken;
+    // flyttas de måste butiksrepot byggas om.
     expect(fårRaderas("FyndplatsAuctions")).toBe(false);
     expect(fårRaderas("FyndplatsRedirects")).toBe(false);
+  });
+
+  it("recensionerna är SLÄPPTA — butiken läser dem via API:t sedan 2026-09-02", () => {
+    // ☠️ Det här testet vänder riktning med flit, så ändringen är en MEDVETEN
+    // handling och inte en rad som tyst försvann ur en lista. Villkoren står i
+    // kommentaren vid ALDRIG_RADERA och är mätta, inte antagna.
+    expect(fårRaderas("FyndplatsImportedReviews")).toBe(true);
+  });
+
+  it("☠️ men recensionerna har INGET retention-fönster — det är den hårda spärren", () => {
+    // Utan fönster kan beslutaSida aldrig skriva av en saknad rad som "utgången".
+    // En enda Wix-rad som inte finns i Postgres avbryter hela sidan.
+    expect(retentionFör("FyndplatsImportedReviews")).toBeNull();
+    const beslut = beslutaSida(
+      [{ nyckel: "p1__r1", tid: "2020-01-01T00:00:00.000Z" }],
+      new Set(),
+      retentionFör("FyndplatsImportedReviews"),
+      NU,
+    );
+    expect(beslut.sort).toBe("avbryt");
   });
 
   it("☠️ tokenraden är fredad — den går inte att läsa tillbaka", () => {

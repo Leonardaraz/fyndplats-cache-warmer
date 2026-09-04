@@ -46,16 +46,21 @@ import { AUDIT_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
  *  **2 514 av de ~3 355 rader som är kvar** — alltså 75 % av allt som binder
  *  det globala 4 000-taket. Recensionerna är inte offret för taket, de ÄR det.
  *
- *  ☠️ MEN DE STÅR KVAR HÄR ÄNDÅ, och det är hela poängen med listan: kopian
- *  till Postgres finns sedan 2026-09-02, men butiksrepot läser fortfarande
- *  kollektionen DIREKT (`lib/reviews.ts` och `lib/review-aggregates.ts` på
- *  grenen headless-site). Raderas raderna innan de läsarna följt med blir
- *  produktsidorna TOMMA på recensioner — inte trasiga, tomma, alltså exakt det
- *  fel som spårningssidan drabbades av 2026-09-01 och som varken en kodaudit
- *  eller en felräknare kunde se. Ta bort raden ur listan FÖRST när butiken
- *  läser via API:t. */
+ *  ✅ RECENSIONERNA ÄR SLÄPPTA 2026-09-04, efter att alla fyra villkor är
+ *  MÄTTA och inte antagna:
+ *    1. Butiken läser via API:t (steg 4) — verifierat på en ocachad rendering.
+ *    2. REVIEWS_BACKEND=postgres är i drift (steg 3) — `aktivtLager: postgres`
+ *       ur betyg-diff, inte ur en env-panel.
+ *    3. Kopian är i fas: `reviews wix=2514 pg=2514 avvikande=0`.
+ *    4. Auditen av källkoden hittade tre kvarvarande läsare, alla i scripts/,
+ *       alla lagade — och grindens scripts/-undantag är borttaget så nästa
+ *       sådan inte kan gömma sig.
+ *
+ *  ☠️ SPÄRREN SOM FAKTISKT SKYDDAR RADERINGEN ÄR EN ANNAN, och den är hårdare:
+ *  recensionerna har INGET retention-fönster, så `beslutaSida` avbryter hela
+ *  sidan om en enda Wix-rad saknas i Postgres. En rad kan alltså inte raderas
+ *  utan att först vara bevisat kopierad. Torrkörning är dessutom default. */
 export const ALDRIG_RADERA = [
-  "FyndplatsImportedReviews",
   "FyndplatsAuctions",
   "FyndplatsRedirects",
   "FyndplatsAliExpressTokens",
