@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { PrefetchLink } from "./prefetch-link";
 import type { ListProduct } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
 import { SHIMMER_BLUR } from "../lib/lqip";
@@ -21,11 +21,13 @@ export function ProductCard({ p }: { p: ListProduct }) {
     // 32 förfrågningar utfärdade igen. Med Link byter routern bara ut det
     // segment som ändrats.
     //
-    // prefetch={false} med flit: en kategorisida renderar 40+ kort, och Links
-    // förvalda beteende hade hämtat RSC-nyttolasten för varenda ett så fort det
-    // syns i vyn. Vinsten här är klientruttningen, inte förhämtningen — den får
-    // bläddringsraden ta, där det är två länkar och avsikten är tydlig.
-    <Link className="prod" href={`/produkt/${p.slug}`} prefetch={false}>
+    // Ingen förhämtning i vyn — en kategorisida renderar 40+ kort och Links
+    // förval hade hämtat RSC-nyttolasten för varenda ett så fort det syns.
+    // Men prefetch={false} ensamt gav ingen förhämtning ALLS, inte heller vid
+    // hover: varje klick började från noll. PrefetchLink hämtar i stället vid
+    // avsikt (pointerenter/touchstart), vilket ger klientruttningen OCH en
+    // rutt som redan är på väg när fingret släpper. Se components/prefetch-link.
+    <PrefetchLink className="prod" href={`/produkt/${p.slug}`}>
       <div className="pimg">
         {/* Slutsåld-badge: OOS-produkter göms inte från listningarna (default) utan
             visas med badge + dämpad bild så kunden ser dem och kan bevaka. */}
@@ -118,7 +120,7 @@ export function ProductCard({ p }: { p: ListProduct }) {
             )}
           </span>
           {/* Etiketten säger vad knappen GÖR. Hela kortet är en länk till
-              produktsidan (se <Link className="prod"> ovan) — "Köp" lovade därför
+              produktsidan (se <PrefetchLink className="prod"> ovan) — "Köp" lovade därför
               en handling som inte fanns: trycker man på den händer exakt samma
               sak som överallt annars på kortet. Ett falskt löfte kostar mer än
               det säljer.
@@ -134,6 +136,6 @@ export function ProductCard({ p }: { p: ListProduct }) {
           </span>
         </div>
       </div>
-    </Link>
+    </PrefetchLink>
   );
 }
