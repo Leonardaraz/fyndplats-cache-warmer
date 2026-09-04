@@ -33,7 +33,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "torr = skriver inget · skarp = skriver · lager = bara saldon"
+        description: "torr = skriver inget · skarp = skriver · lager = bara saldon · api-matning = mät Wix bulk-API (skriver inget)"
         required: true
         default: "torr"
         type: choice
@@ -41,6 +41,7 @@ on:
           - torr
           - skarp
           - lager
+          - api-matning
       limit:
         description: "Produkter per varv. 400 är ruttens default."
         required: false
@@ -70,7 +71,23 @@ jobs:
         run: |
           set -euo pipefail
 
-          base="${BASE_SECRET%/api/cron/poll-tracking}/api/cron/aosom-sync"
+          rot="${BASE_SECRET%/api/cron/poll-tracking}"
+          base="${rot}/api/cron/aosom-sync"
+
+          # ☠️ MÄTNINGEN, INTE SYNKEN. Svarar på de två frågor som måste vara
+          # kända innan lagerskrivningarna batchas: tar inventory-query flera
+          # produkt-id, och bär bulk-svaret radens id. Skriver ingenting —
+          # raderna skickas med föråldrad revision och avvisas.
+          if [ "$MODE" = "api-matning" ]; then
+            svar=$(curl -sS --max-time 120 -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${rot}/api/admin/wix-inventory-probe")
+            echo "$svar" | jq .
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::Mätningen föll: $(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+              exit 1
+            fi
+            exit 0
+          fi
 
           case "$MODE" in
             torr)  args="dryRun=true" ;;
