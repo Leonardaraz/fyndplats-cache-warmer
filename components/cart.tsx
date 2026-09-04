@@ -40,13 +40,18 @@ function getClient() {
       // och createRedirectSession med callbacks är Wix DOKUMENTERADE sätt att
       // få tillbaka kunden till en egen tacksida. Min parameter var en gissning
       // som ersatte något som redan fungerade i produktion.
-      const [sdk, ecom, redirects] = await Promise.all([
+      const [sdk, ecom, redir] = await Promise.all([
         import("@wix/sdk"),
         import("@wix/ecom"),
         import("@wix/redirects"),
       ]);
+      // redir.redirects, INTE redir: paketets toppnivå är ett hölje runt
+      // namnrymden. Skickar man in modulen rakt av blir
+      // client.redirects.createRedirectSession undefined, anropet kastar, och
+      // catch:en nedan sväljer det tyst — varje köp hade tagit reservvägen
+      // utan att någon märkt det. Samma uppackning som produktionen gör.
       const client = sdk.createClient({
-        modules: { currentCart: ecom.currentCartV2, cart: ecom.cartV2, redirects },
+        modules: { currentCart: ecom.currentCartV2, cart: ecom.cartV2, redirects: redir.redirects },
         auth: sdk.OAuthStrategy({
           clientId: HEADLESS_CLIENT_ID,
           tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
@@ -195,7 +200,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const fullUrl: string = redirect?.redirectSession?.fullUrl || "";
         const inner = fullUrl ? new URL(fullUrl).searchParams.get("redirectUrl") : null;
         if (inner && inner.includes("/__ecom/checkout")) target = inner;
-      } catch { /* faller igenom till v2-adressen nedan */ }
+      } catch (e: any) {
+        // Aldrig tyst: faller sessionen ska det gå att se VARFÖR, annars
+        // används reservvägen i månader utan att någon märker det.
+        console.warn("[kassa] redirect-sessionen föll:", e?.message || e);
+      }
 
       // SEDAN v2-adressen som reserv. getCheckoutUrl tar även ett
       // `currencyCode` — hooken för flera valutor, oanvänd här.
