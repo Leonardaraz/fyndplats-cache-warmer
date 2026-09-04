@@ -306,6 +306,12 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
   const recos = recommendations.filter((r) => !cartIds.has(r.id)).slice(0, 3);
   const subtotal = cart?.subtotal?.formattedAmount || cart?.priceSummary?.subtotal?.formattedAmount || "";
   const FREE_SHIP = 499;
+  // OBS INFÖR FLERA VALUTOR. Tröskeln är 499 KRONOR, så mätaren måste jämföra
+  // mot butikens valuta — därför `amount` och inte det formaterade beloppet,
+  // som visar KUNDENS valuta (v2 skiljer på de två; v1 gjorde det inte).
+  // Så länge butiken bara säljer i SEK är de identiska. Slås flera valutor på
+  // för merchen blir raden "Du är 200 kr från fri frakt" stående under en
+  // summa i euro. Då ska tröskeln räknas om, inte beloppet bytas ut.
   const subNum = parseFloat(cart?.priceSummary?.subtotal?.amount ?? cart?.subtotal?.amount ?? "0") || 0;
   const remaining = Math.max(0, FREE_SHIP - subNum);
   const shipPct = Math.min(100, Math.round((subNum / FREE_SHIP) * 100));
