@@ -101,6 +101,16 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   väntade talet. **Begär `PLAIN_DESCRIPTION` när du räknar tecken.** Samma familj som
   `MEDIA_ITEMS_INFO`: ett fält som saknas i begäran syns som ett tomt värde, inte som ett
   fel — och ett tomt värde ser i ett svar precis ut som en förlorad skrivning.
+
+  ☠️ **Och en sen TEXTRÄTTELSE är där fällan blir dyr.** Ett rättelseskript som ankrar
+  mot `product.description` läser `undefined` på en vanlig GET — fältet kommer inte med
+  utan projektion — och `(p.description || "")` gör då en tom sträng av det. Utan assert
+  hade PATCH:en skrivit **en tom beskrivning till tre publicerade sidor**, och svaret
+  hade sagt OK. Uppmätt 2026-09-04 på tre medicinskåp: `typeof description === "undefined"`,
+  `längd 0`, medan `plainDescription` var 2 644 tecken i samma produkt.
+  **Ankra rättelser mot `plainDescription`, hämta det med `fields=PLAIN_DESCRIPTION`,
+  och låt varje ankare ASSERTA att det finns exakt en gång innan något skrivs.**
+  Asserten är det som gör skillnad mellan ett avbrutet skript och tre tömda sidor.
 - ☠️ **Mappningsraden nås inte via Wix Data längre.** Den bor i Postgres sedan
   2026-09-01 och `FyndplatsMappings` är tömd. Läs och skriv den med workflowen
   **Polering — läs och stämpla mappningsraden** (Steg 3 och 13). De gamla
@@ -2532,6 +2542,73 @@ kategori. **Och åt andra hållet:** produktens `visible:false` speglas NED på 
 den avslutande PATCH:en måste bära `visible: true` på både produkt och variant — annars går
 sidan live och varan går inte att lägga i varukorgen. Det syns inte i produktvyn.
 
+### ☠️ En grind skriven mot PLATSEN där felet hittades täcker inte REGELN
+
+Runbokens sifferstil säger *"skriv **aldrig** en kommalista av tal med enheten sist"*.
+Regeln stod utan grind, jag hittade brottet i mina egna spec-tabeller, och byggde grinden
+där: `SPEC_LISTA` lästes bara ur `<li><p>Etikett: värde</p></li>`. Sju rader rättades, alla
+grindar blev gröna, och åtta sidor gick live.
+
+Sex förekomster stod kvar — i **brödtexten** och i **meta-beskrivningen**:
+
+| var | vad som stod |
+|---|---|
+| meta-beskrivning | `tre fack på 22, 22 och 16 cm` |
+| brödtext | `Innanför den finns tre fack, 22, 22 och 16 centimeter höga.` |
+| brödtext (FAQ) | `de tre planen är fasta med höjderna 14, 14 och 16 centimeter` |
+| brödtext | `Stommens fack är 13,5, 13,5 och 28,5 centimeter` |
+
+Den sista är den som visar varför regeln finns: **decimalkomma och listkomma bredvid
+varandra**. Meta-beskrivningen är dessutom det Google visar i träfflistan, alltså exakt
+den yta där felet kostar mest.
+
+Grinden granskar nu `name`, `title`, `meta` och hela HTML:en, inte bara spec-tabellen.
+**Regeln säger "aldrig" — då är ytan all text, och en grind som täcker mindre är ett
+påstående om att resten är ren.**
+
+☠️ **Skiljetecknet är mellanslaget, inte kommat.** `\d+(?:,\d+)?, \d` — listkommat har
+alltid ett mellanslag efter sig, decimalkommat aldrig. Tappas mellanslaget fäller mönstret
+varje decimaltal i katalogen. En mutation som INTE får fällas (`Skåpet väger 13,5 kg`)
+låser den riktningen.
+
+### ☠️ En mutation som BYTER UT ett uppmätt värde bevisar fel grind
+
+`m_kommalista` bytte `14 / 14 / 16 cm` mot `14, 14 och 16 cm` — och rapporterades som
+FÅNGAD. Meddelandet avslöjade att det inte var sifferstils-grinden som fällde:
+
+```
+kommalista av tal    FANGAD: saknar uppmätt värde '14 / 14 / 16 cm uppifrån och ner'
+```
+
+Utbytet tog bort ett uppmätt värde, så måtthämtnings-grinden fällde först, och
+sifferstils-grinden hade kunnat vara helt avväpnad utan att testet märkte något.
+**Mutera genom att LÄGGA TILL, inte byta ut** — då står det ursprungliga värdet kvar och
+bara den grind du testar kan fälla. Samma familj som "ett mutationstest som bara kräver
+någon brist provar inte grinden du tror": **läs meddelandet, inte bara utfallet.**
+
+### ☠️ Den tyska ordlistan måste väljas per FAMILJ — ord som är svenska får inte stå i den
+
+Live-kontrollens ordlista ärvs från förra rundan och ska skrivas om varje gång.
+`Metall`, `Glas` och `Magnet` stavas **exakt likadant** på svenska och tyska — och i
+medicinskåps-familjen är de tre av de vanligaste orden i korrekt svensk copy. Hade de
+följt med hade grinden fällt varenda rätt sida.
+
+Skillnaden mot runda 54:s `Hunde`/`hunden` är att där fanns en ordgräns att sätta. Här
+finns ingen: ordet ÄR svenskt. Enda försvaret är att välja listan efter familjens ordförråd
+— tyska ord som saknar svensk tvilling (`Schrank`, `Schlüssel`, `Fächer`, `Weiß`,
+`abschließbar`, `Lieferumfang`).
+
+### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
+
+Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i
+bild, i skarp fokus. Varje mekanisk grind var grön: talen stämde mot spec-tabellen, filerna
+låg under taket, rubrikerna beskrev fotona.
+
+Det är samma klass som leverantörens tyska band — text i pixlarna som inte kan visas för en
+svensk kund — men den upptäcks bara av att **titta på kortet**. Utvägen är runbokens
+vanliga: byt till produktens studiobild (157–159 kB vid q=94 mot 207 kB vid q=88), och låt
+inte de bilderna följa med i galleriet heller.
+
 ### Verifiera på den renderade sidan — men läs cache-huvudena
 
 ☠️ **Läs `<title>` och `<meta name="description">`, inte bara brödtexten.** Sidans huvud och
@@ -2567,6 +2644,25 @@ curl -s "https://www.fyndplats.se/produkt/<slug>" \
 ⚠️ **Rättar du `seoData` i efterhand ligger den gamla titeln kvar i butikens ISR-cache**
 (`revalidate=3600`). En frågesträng bustar den inte. Kontrollera mot Wix att fältet är rätt,
 och läs om sidan senare — se cache-avsnittet nedan.
+
+☠️ **HUVUDET och KROPPEN cachas var för sig — och de kan drifta isär i SAMMA svar.**
+Uppmätt 2026-09-04, tolv minuter efter en rättelse som rörde både `plainDescription` och
+`seoData` på samma produkt:
+
+| | vad sidan visade |
+|---|---|
+| `<meta name="description">` | `tre fack på 22, 22 och 16 cm` — **gammal** |
+| brödtexten | `tre fack med höjderna 22 / 22 / 16 cm` — **ny** |
+| `age` / `x-vercel-cache` | 23 s / `HIT` |
+
+Wix bar rätt text i BÅDA fälten vid samma tidpunkt (`seoData.tags[meta].content` och
+`seoDescription`, båda lästa direkt). Sidan var alltså inte "gammal" — den var till hälften
+gammal, och `age: 23` sa ingenting om vilken halva.
+
+Konsekvensen: **att brödtexten är rättad är inget bevis för att huvudet är det.** En
+kontroll som ser den nya kroppen och drar slutsatsen "rättelsen gick igenom" missar precis
+det fält Google visar i träfflistan. Verifiera huvudet mot **Wix**, inte mot sidan, och läs
+om sidan senare.
 
 🔍 **Svepa hela katalogen efter tyska rester:** läs `seoData`-taggarna `title` +
 `meta description` för varje `visible`-produkt via `products/search` (markörsidor om 100) och
