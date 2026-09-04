@@ -5,7 +5,7 @@ slug: uppblasbart-talt-kopguide-2026
 meta_description: "Uppblåsbart tält i stället för tältstänger? Så fungerar lufttält, vad du ska kolla innan köp och vilka modeller vi rekommenderar för camping 2026."
 category: Köpguider
 publish_date: 2026-07-02
-cover: https://static.wixstatic.com/media/b379ce_7be26b2dbe8d4551a338e9661ca4401a~mv2.jpg
+cover: https://www.fyndplats.se/blog-uppblasbart-talt.jpg
 alt: "Uppblåsbart tält – köpguide 2026: så väljer du lufttält"
 ---
 
