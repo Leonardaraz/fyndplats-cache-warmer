@@ -968,6 +968,37 @@ importen; den är ett mekaniskt fel med ett mekaniskt svar och får inte lämnas
 frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
 kör svepet med `?skipFreightHeavy=1` och ta dem för sig.
 
+#### ☠️ Skriv texten i en FIL först — mätt 9 fel mot 0 (2026-09-04)
+
+Batch 64 skrev åtta produkttexter på två sätt, och skillnaden är inte en
+smaksak utan ett tal:
+
+| hur texten skrevs | produkter | fel som nådde Wix |
+|---|---:|---:|
+| Inline i API-anropet | 5 | **9** |
+| Fil först, sedan grep-grind, sedan anrop | 3 | **0** |
+
+Felen var svenska stavfel (`dögnsvarv`, `engangsjobb`, `ihopsattningen`,
+`för hard underlag`) plus ETT husregelbrott: *"Leverantören anger 25–35
+minuter"* — mot kunden är **vi** leverantören. Alla nio skrevs av samma modell
+i samma session; det som skilde var om texten passerade en fil.
+
+Skälet är mekaniskt. En sträng som skrivs direkt i ett JSON-anrop kan inte
+läsas av en grind innan den lämnar chatten, och API-svaret ekar tillbaka exakt
+det man skrev — det ser rätt ut för att det ÄR det man skrev. En fil går att
+`grep`:a, och grinden tog noll sekunder.
+
+☠️ **Och rätta per ORD, inte per förekomst.** `dögnsvarv` hittades tre gånger i
+tre separata rundor — i namnet, sedan i en produkts brödtext, sedan i syskonets
+— för att varje fynd lagades där det syntes i stället för att sökas i hela
+batchen. Tre skrivningar och två extra läsningar för ett ord. Hittar du ett
+stavfel: sök det i ALLA batchens texter innan du skriver något.
+
+⚠️ Poleringstexten går inte att verifiera ur PATCH-svaret. `plainDescription`
+ekas tillbaka ordagrant, så en felstavning bekräftas som "sparad". Det som
+faktiskt fångar den är en grind före skrivningen — eller ögon efter, på en
+återläsning. Nionde gången samma familj: **ett svar utan fel är inget kvitto.**
+
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 
 Regeln är **`pris = 1,20 × landedCostSek`**, uppåt till närmaste 9 (`charm9`).
