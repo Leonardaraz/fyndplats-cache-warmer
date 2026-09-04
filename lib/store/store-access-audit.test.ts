@@ -57,6 +57,16 @@ const ÄGARE = [
 /** Rutter som skapar kollektionerna. De rör scheman, aldrig rader. */
 const UNDANTAG = ["app/api/admin/ensure-collections/route.ts"];
 
+// ☠️ scripts/ VAR UNDANTAGET, och undantaget dolde tre filer i tre dygn.
+//
+// Uppmätt 2026-09-03 inför recensionsraderingen: backfill-product-hashes.ts och
+// backfill-suppliers.mjs läste FyndplatsMappings — TOM sedan raderingen
+// 2026-09-01 — och rapporterade därför "inget att backfilla" utan ett enda fel.
+// katalogkoll.mjs läste FyndplatsImportedReviews, och dess --apply hade köat en
+// AE-hämtning för HELA katalogen så fort den kollektionen tömdes.
+//
+// Ett script är inte mindre farligt än en rutt; det är farligare, för det körs
+// av en människa som tror på siffran den skriver ut.
 function källfiler(): string[] {
   const ut = execFileSync(
     "git",
@@ -67,8 +77,7 @@ function källfiler(): string[] {
     .split("\n")
     .filter(Boolean)
     .filter((f) => !f.endsWith(".test.ts") && !f.endsWith(".test.tsx"))
-    .filter((f) => !ÄGARE.includes(f) && !UNDANTAG.includes(f))
-    .filter((f) => !f.startsWith("scripts/"));
+    .filter((f) => !ÄGARE.includes(f) && !UNDANTAG.includes(f));
 }
 
 /** Kollektionsnamnen som flyttat till Postgres och alltså är TOMMA i Wix. */

@@ -245,49 +245,68 @@ async function kollaSynlighet() {
 //                               körningen i .github/workflows/review-translate.yml.
 //                               Skriptet duplicerar inte den logiken.
 
-const REVIEWS_COLLECTION = process.env.WIX_DATA_COL_REVIEWS ?? "FyndplatsImportedReviews";
-const EXTERNA_BILDVARDAR = ["aliexpress-media.com", "alicdn.com"];
+// ☠️ RECENSIONERNA LÄSES VIA MOTORNS API, INTE UR WIX DATA (sedan 2026-09-03).
+//
+// Den här delen frågade tidigare `FyndplatsImportedReviews` direkt. Det var rätt
+// så länge raderna bodde där. När de raderas ur Wix hade läsningen inte gått
+// sönder — den hade blivit TOM, och det är värre här än någon annanstans i
+// skriptet: med noll rader är `medSynlig` tom, VARJE publicerad sida ser ut att
+// sakna recensioner, och `--apply` hade köat en AE-hämtning för hela katalogen
+// på ett falskt underlag. Rapporten hade sagt ~950 i stället för ~440.
+//
+// Aggregatet ger exakt det som behövs: produkt-id → antal SYNLIGA omdömen, med
+// samma statusfilter som lagret självt använder. Ingen autentisering — betygen
+// är publik social proof och står ändå på varje produktkort.
+const AGGREGAT_URL =
+  process.env.CACHE_WARMER_AGGREGATES_URL
+  ?? "https://fyndplats-cache-warmer.vercel.app/api/review-aggregates";
 
-/** Speglar isExternalSupplierImage i lib/wix/media-import.ts. */
-function arLeverantorsbild(url) {
-  return typeof url === "string" && EXTERNA_BILDVARDAR.some((v) => url.includes(v));
-}
-
-/** Alla bild-URL:er på en rad — imageUrl OCH imageUrls (jfr lib/reviews/images.ts). */
-function bilderna(rad) {
-  const lista = Array.isArray(rad.imageUrls) ? rad.imageUrls : [];
-  return [...new Set([rad.imageUrl, ...lista].filter(Boolean))];
-}
-
-async function hamtaRecensioner() {
-  const rader = [];
-  let cursor;
-  for (let sida = 0; sida < 40; sida++) {
-    const paging = cursor ? { limit: 500, cursor } : { limit: 500 };
-    const svar = await post("/wix-data/v2/items/query", {
-      dataCollectionId: REVIEWS_COLLECTION,
-      query: { fields: ["productId", "status", "imageUrl", "imageUrls"], cursorPaging: paging },
-    });
-    for (const it of svar.dataItems ?? []) rader.push(it.data ?? {});
-    cursor = svar.pagingMetadata?.cursors?.next;
-    if (!cursor) break;
+/** Produkt-id som har minst ett SYNLIGT omdöme. Kastar hellre än gissar tomt. */
+async function hamtaProdukterMedOmdome() {
+  const res = await fetch(AGGREGAT_URL, { headers: { accept: "application/json" } });
+  if (!res.ok) throw new Error(`Aggregatet svarade ${res.status} — kan inte bedöma recensionerna.`);
+  const kropp = await res.json();
+  const betyg = kropp?.betyg;
+  if (!betyg || typeof betyg !== "object") {
+    // ☠️ Ett svar utan betyg-fält är ett LÄSFEL, inte "noll produkter har
+    // omdömen". Skillnaden är hela skälet till att adressen har ett eget
+    // segment: /api/reviews/aggregates fångades av den dynamiska rutten och
+    // svarade 200 med fel form.
+    throw new Error("Aggregatet saknade fältet 'betyg' — vägrar tolka det som noll omdömen.");
   }
-  return rader;
+  return new Set(Object.keys(betyg).filter((id) => Number(betyg[id]?.antal) > 0));
+}
+
+/**
+ * Synliga omdömen vars bild ligger kvar hos leverantören.
+ *
+ * Frågar repairImages med `limit: 0` — den läser genom lagret, räknar `hittade`
+ * och reparerar noll rader. Att duplicera villkoret här hade varit en tvilling
+ * av `isExternalSupplierImage`, och de glider isär.
+ *
+ * Kräver CRON_SECRET. Saknas den HOPPAS KONTROLLEN ÖVER SYNLIGT — den utelämnas
+ * aldrig tyst.
+ */
+async function raknaLeverantorsbilder() {
+  const bas = process.env.SELF_BASE_URL;
+  const hemlighet = process.env.CRON_SECRET;
+  if (!bas || !hemlighet) return null;
+  const res = await fetch(`${bas.replace(/\/$/, "")}/api/cron/review-translate`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${hemlighet}` },
+    body: JSON.stringify({ repairImages: true, limit: 0 }),
+  });
+  if (!res.ok) throw new Error(`repairImages svarade ${res.status}`);
+  const kropp = await res.json();
+  return Number(kropp?.hittade ?? 0);
 }
 
 async function kollaRecensioner() {
-  const [synliga, recensioner] = await Promise.all([hamtaSynliga(), hamtaRecensioner()]);
+  const [synliga, medSynlig] = await Promise.all([hamtaSynliga(), hamtaProdukterMedOmdome()]);
   const fardiga = synliga.filter(arFardig);
-
-  // Bara publicerade rader räknas som "har recensioner" — pending når inte kund.
-  const medSynlig = new Set(
-    recensioner.filter((r) => r.status === "approved" || r.status === "edited").map((r) => r.productId),
-  );
   const utan = fardiga.filter((p) => !medSynlig.has(p.id));
 
-  const leverantorsbilder = recensioner.filter(
-    (r) => (r.status === "approved" || r.status === "edited") && bilderna(r).some(arLeverantorsbild),
-  );
+  const leverantorsbilder = await raknaLeverantorsbilder();
 
   console.log(`\nFärdiga, publicerade sidor: ${fardiga.length}`);
   console.log(`  – utan en enda synlig recension: ${utan.length}`);
@@ -295,10 +314,12 @@ async function kollaRecensioner() {
   if (utan.length > 40) console.log(`      … och ${utan.length - 40} till`);
 
   // Rapporteras alltid, lagas aldrig här.
-  if (leverantorsbilder.length) {
-    console.log(
-      `\n  ⚠️  ${leverantorsbilder.length} SYNLIG(A) recension(er) pekar på leverantörens bilddomän.`,
-    );
+  if (leverantorsbilder === null) {
+    // ☠️ En utelämnad kontroll får inte se ut som ett godkänt resultat.
+    console.log("  – synliga recensioner med leverantörsbild: EJ KONTROLLERAT");
+    console.log("      (sätt SELF_BASE_URL och CRON_SECRET för att räkna dem)");
+  } else if (leverantorsbilder > 0) {
+    console.log(`\n  ⚠️  ${leverantorsbilder} SYNLIG(A) recension(er) pekar på leverantörens bilddomän.`);
     console.log("      Kör repairImages-workflowen — det här skriptet rör dem inte.");
   } else {
     console.log("  – synliga recensioner med leverantörsbild: 0");

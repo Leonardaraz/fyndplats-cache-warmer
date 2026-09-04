@@ -3,7 +3,8 @@
 // pHash lokalt (sharp, GRATIS — inga AI-anrop) och sparar wixProductId + pHash +
 // (om känt) AliExpress-produkt-id i kollektionen.
 //
-// AliExpress-id:t hämtas ur FyndplatsMappings (supplierProductId per wixProductId).
+// AliExpress-id:t hämtas genom STOREN (getStore().listMappings()), inte ur Wix
+// Data — mappningarna bor i Postgres sedan 2026-08-31.
 // Produkter utan mapping (t.ex. migrerade) får aeProductId=undefined — de matchas
 // då bara via bild/titel, inte exakt id.
 //
@@ -18,44 +19,28 @@
 import { listAllV3Products } from "../lib/wix/v3-products.ts";
 import { pHashFromUrl } from "../lib/import/phash.ts";
 import { saveProductHash } from "../lib/store/product-hashes.ts";
+import { getStore } from "../lib/store/factory.ts";
 
-const WIX_BASE = "https://www.wixapis.com";
 const APPLY = process.argv.includes("--apply");
-const MAPPINGS_COL = process.env.WIX_DATA_COL_MAPPINGS ?? "FyndplatsMappings";
 
-function headers(): Record<string, string> {
-  const t = process.env.WIX_API_TOKEN;
-  if (!t) throw new Error("WIX_API_TOKEN saknas (kör med --env-file=.env.local).");
-  const h: Record<string, string> = { Authorization: t, "Content-Type": "application/json" };
-  const site = process.env.WIX_SITE_ID;
-  if (site) h["wix-site-id"] = site;
-  return h;
-}
-
-/** Bygger en karta wixProductId → supplierProductId ur FyndplatsMappings. */
+/**
+ * Karta wixProductId → supplierProductId.
+ *
+ * ☠️ LÄSES GENOM STOREN, INTE UR WIX DATA (rättat 2026-09-03).
+ *
+ * Funktionen frågade tidigare FyndplatsMappings direkt. Kollektionen är TOM
+ * sedan raderingen 2026-09-01 — och läsningen gick inte sönder, den blev tom:
+ * `0 mappningar med AE-id`, noll fel, och varje produkt hashades utan sitt
+ * AliExpress-id. Dubblett-detektorn hade därmed tappat sin exakta matchning och
+ * fallit tillbaka på bild och titel, tyst.
+ *
+ * Att det kunde ligga i tre dygn berodde på att källkodsgrinden undantog
+ * scripts/. Undantaget är borta.
+ */
 async function loadAeIdMap(): Promise<Map<string, string>> {
   const map = new Map<string, string>();
-  const limit = 100;
-  for (let offset = 0; offset < 5000; offset += limit) {
-    const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({ dataCollectionId: MAPPINGS_COL, query: { paging: { limit, offset } } }),
-    });
-    if (!res.ok) {
-      if (res.status === 404) break;
-      console.warn(`[hashes] mappings-query ${res.status}: ${(await res.text()).slice(0, 200)}`);
-      break;
-    }
-    const body = (await res.json()) as {
-      dataItems?: { data?: { wixProductId?: string; supplierProductId?: string } }[];
-    };
-    const rows = body.dataItems ?? [];
-    for (const r of rows) {
-      const d = r.data;
-      if (d?.wixProductId && d.supplierProductId) map.set(d.wixProductId, d.supplierProductId);
-    }
-    if (rows.length < limit) break;
+  for (const m of await getStore().listMappings()) {
+    if (m.wixProductId && m.supplierProductId) map.set(m.wixProductId, m.supplierProductId);
   }
   return map;
 }
