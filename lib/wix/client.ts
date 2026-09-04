@@ -378,6 +378,17 @@ export async function queryInventoryItemsByProductId(productId: string): Promise
   return queryInventoryItemsByProductIds([productId]);
 }
 
+/**
+ * Lagerrader per bulk-SKRIVNING.
+ *
+ * ☠️ UPPMÄTT MOT SKARPA WIX 2026-09-04 (`/api/admin/wix-inventory-probe`,
+ * läget `api-matning`): 20, 50 och 100 rader gav alla `200` med ett
+ * individuellt utfall per rad. Mätt utan att skriva — raderna skickades med
+ * föråldrad revision, så alla föll och ingenting ändrades. 101 är oprövat,
+ * och det är hela skälet till att talet är 100 och inte större.
+ */
+export const BATCH_LAGERRADER = 100;
+
 export interface InventoryQuantityUpdate {
   id: string;
   revision: string;
@@ -544,6 +555,22 @@ export async function bulkUpdateInventoryQuantitiesPerRad(
 ): Promise<BulkLagerUtfall> {
   if (updates.length === 0) return { lyckade: [], misslyckade: [] };
   if (isDryRun()) return { lyckade: updates.map((u) => u.id), misslyckade: [] };
+
+  // ☠️ Delas vid det UPPMÄTTA taket, inte vid ett antaget. Wix svarade 200 med
+  // ett individuellt utfall per rad på 20, 50 OCH 100 rader (2026-09-04); 101
+  // är oprövat, och huset har redan betalat två gånger för att lita på
+  // dev.wix.com om just gränser. En tugga på femtio produkter ryms i ETT anrop
+  // så länge produkterna har en variant var — delningen finns för dem som har
+  // fler.
+  if (updates.length > BATCH_LAGERRADER) {
+    const samlat: BulkLagerUtfall = { lyckade: [], misslyckade: [] };
+    for (let i = 0; i < updates.length; i += BATCH_LAGERRADER) {
+      const del = await bulkUpdateInventoryQuantitiesPerRad(updates.slice(i, i + BATCH_LAGERRADER));
+      samlat.lyckade.push(...del.lyckade);
+      samlat.misslyckade.push(...del.misslyckade);
+    }
+    return samlat;
+  }
 
   // ☠️ UTANFÖR loopen med flit. `wixHeaders()` kastar när token saknas, och
   // ett konfigurationsfel är inte övergående — inuti try-blocket hade det

@@ -393,12 +393,75 @@ skrivningar är att vänta — lär mottagaren att sluta läsa, och då är äve
 äkta larmet borta. Missen är ändå aldrig tyst: grupperad på orsak i loggen, i
 audit-raden och i svaret.
 
-⚠️ **Kvar som strukturellt:** `bulkUpdateInventoryQuantities` är ett BULK-API
-som tar en array, men synken anropar den med EN produkt i taget. Att samla
-skrivningarna hade tagit ~2 000 anrop till ~20 och gjort spärren irrelevant i
-stället för uthärdlig. Det kräver att loopen delas i två faser, vilket rör
-ordningen "Wix före mappningen" — inte gjort, medvetet, men det är rätt nästa
-drag om katalogen växer vidare.
+### ✅ Skrivningarna är batchade sedan 2026-09-04 — spärren är irrelevant, inte uthärdlig
+
+Raden ovan stod länge som "kvar som strukturellt": `bulkUpdateInventoryQuantities`
+är ett BULK-API som tar en array, men synken anropade den med EN produkt i taget.
+Loopen går nu i **tuggor om 50 produkter** (`CHUNK_PRODUKTER`): en läsning och
+en skrivning per tugga i stället för två anrop per produkt.
+
+| | före | efter |
+|---|---:|---:|
+| Wix-anrop per svep (~4 500 mappningar) | ~1 800 | **~180** |
+| Anrop i det uppmätta 429-fönstret | 2 095 → 1 190 fel | ryms med marginal |
+
+☠️ **Hela ombyggnaden vilar på EN mätning: bulk-svaret bär radens id.** Uppmätt
+mot skarpa Wix, båda utfallen:
+
+```
+fel:      {"itemMetadata":{"id":"2f3b…","originalIndex":0,"success":false,
+           "error":{"code":"INVALID_REVISION","description":"Outdated revision…"}}}
+framgång: {"itemMetadata":{"id":"2f3b…","originalIndex":0,"success":true}}
+bulkActionMetadata: {totalSuccesses, totalFailures, undetailedFailures}
+```
+
+Attributionen behöver alltså inte lita på ORDNINGEN. Det är avgörande, för
+*"Wix före mappningen"* är en garanti **per produkt**: hade svaret varit
+aggregerat kunde en enda revisionskonflikt i ett anrop med femtio produkter
+antingen ha fällt hela tuggan eller bokförts på fel produkt — tyst, samma klass
+som `sku`-förväxlingen. Mätrutten är `/api/admin/wix-inventory-probe`
+(workflow-lägena `api-matning` och `api-matning-skriv`); den skriver ingenting
+utan `?write=1`, och det den då skriver är samma saldo tillbaka.
+
+Uppmätt samtidigt, och därför inte gissat: `$in` på `productId` fungerar (fem id
+gav fem poster mot ett för ett enskilt), läsningens sida är **100**, och
+`bulk/inventory-items/update` svarar `200` med ett individuellt utfall per rad
+på **20, 50 och 100 rader**. 101 är oprövat — därav `BATCH_LAGERRADER = 100`.
+
+**Sex egenskaper som inte ska tas bort:**
+
+1. ☠️ **En mappning skrivs bara för rader Wix uttryckligen bekräftat.**
+   `tolkaBulkUtfall` har tre konservativa regler, alla åt samma håll: en
+   SKICKAD rad Wix inte nämner är inte bevisat skriven; `undetailedFailures`
+   gör HELA anropet oadresserbart; saknat id härleds ur `originalIndex` mot det
+   vi faktiskt skickade. Hellre en skrivning för mycket nästa körning än en
+   mappning som ljuger.
+2. ☠️ **En produkt med FLERA lagerrader skrivs bara om ALLA går igenom.**
+   Halvskrivet lager är svårare att upptäcka än orört.
+3. ☠️ **`limit` är EXAKT — tuggan kapas mot det som återstår**
+   (`min(CHUNK, limit - skrivna)`). En tugga med N produkter kan aldrig ge fler
+   än N skrivningar. Utan kapningen hade `limit: 1` skrivit hela första tuggan,
+   och `limit` finns för att hålla rutten innanför sina 300 sekunder. Ett test
+   på markören fångade just det.
+4. ☠️ **`utanLagerrader` räknas, och de produkterna stämplas INTE.** Den gamla
+   `setStock` svarade `if (poster.length === 0) return;` — inget fel, ingen
+   räknare — och loopen bokförde ändå produkten som synkad, för alltid. Nionde
+   gången samma klass: ett svar utan fel är inget kvitto.
+5. **Torrkörningen LÄSER lagret.** Den ska säga sanningen om vad en skarp
+   körning skulle göra, och `utanLagerrader` går inte att veta utan att titta.
+   Läsningar ändrar ingenting.
+6. **Pacingen ligger kvar** trots att anropen är ~40 i stället för ~2 000. Den
+   kostar fem sekunder på ett helt svep, och den är billigare än att mäta upp
+   var den nya gränsen går.
+
+⚠️ **En ny mätning, ingen åtgärd: `lagerDrift`.** Läsningen ser numera butikens
+FAKTISKA saldo, och räknar hur många produkter där det skiljer sig från det
+mappningen tror att den skrev. Det är exakt samma frågeställning som
+`jamforelsePris` byggdes för på PRISET — och där kostade förväxlingen en månad
+och tjugo rader. Lagret triggas fortfarande på mappningens tal, alltså har det
+samma teoretiska hål. Talet är medvetet bara **mätt**: att byta facit vore en
+beteendeändring med hela katalogen som blast-radie, samma dag som loopen byggs
+om. Mät först, som huset gjorde med priserna. Läs det i workflow-summeringen.
 
 ### Så körs den för hand
 
