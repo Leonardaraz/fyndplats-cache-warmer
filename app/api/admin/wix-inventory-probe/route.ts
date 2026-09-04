@@ -1,7 +1,8 @@
 // GET /api/admin/wix-inventory-probe
 //
-// Mäter TVÅ saker om Wix lager-API som måste vara kända innan Aosom-synkens
-// skrivningar batchas. Skriver ingenting.
+// Mäter de fyra saker om Wix lager-API som måste vara kända innan Aosom-synkens
+// skrivningar batchas. Skriver ingenting utan `?write=1`, och det den då skriver
+// är värdeneutralt (samma saldo tillbaka som redan står där).
 //
 // ☠️ VARFÖR EN MÄTNING OCH INTE EN LÄSNING AV DOKUMENTATIONEN. Huset har redan
 // betalat för att lita på dev.wix.com: `paging.limit` står som "up to 200
@@ -28,8 +29,17 @@
 //   klass som `sku`-förväxlingen som lät prissynken skriva till ingenting i en
 //   månad.
 //
-// ☠️ HUR FRÅGA 2 MÄTS UTAN ATT SKRIVA: raderna skickas med en MEDVETET
-// FÖRÅLDRAD revision. Wix avvisar båda på revisionskonflikt, ingenting ändras,
+// FRÅGA 3: ser ett LYCKAT svar likadant ut?
+//   Felfallet räcker inte. Listar Wix bara FALLNA rader vid framgång, fäller
+//   regeln "en skickad rad Wix inte nämner är misslyckad" varje skrivning.
+//   Kräver `?write=1` och gör EN värdeneutral skrivning.
+//
+// FRÅGA 4: hur många RADER tar ett bulk-anrop?
+//   Skillnaden mellan 20 och 100 rader per anrop är skillnaden mellan hundra
+//   och tjugo anrop per svep. Mäts utan att skriva, som fråga 2.
+//
+// ☠️ HUR FRÅGA 2 OCH 4 MÄTS UTAN ATT SKRIVA: raderna skickas med en MEDVETET
+// FÖRÅLDRAD revision. Wix avvisar dem på revisionskonflikt, ingenting ändras,
 // och svaret bär ändå hela `results[]`-formen — inklusive om en FALLEN rad går
 // att knyta till sin post. Det är just felfallet attributionen måste klara.
 
@@ -125,10 +135,11 @@ export async function GET(req: NextRequest) {
         antalSkickade: poster.length,
         // Det här är svaret på frågan: finns radens id i utfallet?
         nycklarPerRad: results.map((r) => Object.keys(r)),
-        bärItemId: results.map((r) => {
-          const item = (r as { item?: { id?: string } }).item;
-          return item?.id ?? null;
-        }),
+        // ⚠️ Det här fältet läste först `r.item.id` och svarade `null` på ett
+        // svar som HADE id:t — det ligger på `itemMetadata`. Rådumpen nedan
+        // räddade mätningen. Fältet läser rätt plats nu; dumpen står kvar, för
+        // det var den som visade felet.
+        bärItemId: results.map((r) => (r as { itemMetadata?: { id?: string } }).itemMetadata?.id ?? null),
         skickadeIdIOrdning: poster.map((p) => p.id),
         rådata: JSON.stringify(svar.json).slice(0, 1500),
       };
@@ -168,6 +179,52 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // ── FRÅGA 4: hur många RADER tar ett bulk-anrop? ──
+    // ☠️ Det sista talet batchningen behöver, och det enda som fortfarande vore
+    // en gissning. Wix bulk-endpoints beskrivs ofta som "up to 100", men
+    // dokumentationen har redan haft fel om exakt det (`paging.limit` står som
+    // 200 på två ställen och skarpa API:t svarar 400 över 100).
+    //
+    // Mäts UTAN att skriva, på samma sätt som fråga 2: alla rader skickas med
+    // revision "1". Är taket över antalet svarar Wix 200 med lika många
+    // FALLNA rader; är det under svarar den 400 och nämner gränsen. Ingenting
+    // ändras i något av fallen.
+    let radtak: unknown = "hoppade över — för få lagerposter i katalogen";
+    const alla = (await getStore().listMappings())
+      .filter((m) => (m.supplierProductId ?? "").startsWith(aosomSupplierProductId("")) && m.wixProductId)
+      .slice(0, 120)
+      .map((m) => m.wixProductId);
+    if (alla.length >= 20) {
+      const bulk = await raw("/stores/v3/inventory-items/query", {
+        query: { filter: { productId: { $in: alla } }, cursorPaging: { limit: 100 } },
+      });
+      const rader = ((bulk.json as { inventoryItems?: { id: string }[] })?.inventoryItems ?? []);
+      const prov = async (n: number) => {
+        if (rader.length < n) return { antal: rader.length, status: "för få poster" as const };
+        const svar = await raw("/stores/v3/bulk/inventory-items/update", {
+          inventoryItems: rader.slice(0, n).map((r) => ({
+            inventoryItem: { id: r.id, revision: "1", quantity: 0 },
+          })),
+        });
+        const meta = (svar.json as { bulkActionMetadata?: { totalFailures?: number } })?.bulkActionMetadata;
+        return {
+          antal: n,
+          status: svar.status,
+          // 200 + lika många fel som skickade rader = taket rymde anropet.
+          totalFailures: meta?.totalFailures ?? null,
+          resultatrader: ((svar.json as { results?: unknown[] })?.results ?? []).length,
+          fel: svar.status === 200 ? undefined : (svar.text || JSON.stringify(svar.json).slice(0, 300)),
+        };
+      };
+      radtak = {
+        produkterFragade: alla.length,
+        raderTillbaka: rader.length,
+        prov20: await prov(20),
+        prov50: await prov(50),
+        prov100: await prov(100),
+      };
+    }
+
     const svarJson = (x: { json: unknown }) => (x.json as { inventoryItems?: unknown[] })?.inventoryItems?.length ?? null;
 
     return NextResponse.json({
@@ -190,6 +247,7 @@ export async function GET(req: NextRequest) {
       },
       fraga2_bulksvarets_form_VID_FEL: bulkform,
       fraga3_bulksvarets_form_VID_FRAMGANG: lyckatSvar,
+      fraga4_rader_per_bulkanrop: radtak,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
