@@ -477,6 +477,26 @@ på **20, 50 och 100 rader**. 101 är oprövat — därav `BATCH_LAGERRADER = 10
    kostar fem sekunder på ett helt svep, och den är billigare än att mäta upp
    var den nya gränsen går.
 
+**Verifierat i drift 2026-09-04**, i den ordning som gör talen meningsfulla:
+
+| körning | granskade | lager | priser | fel | varv | tid |
+|---|---:|---:|---:|---:|---:|---:|
+| torrkörning FÖRE | 4 542 | 676 (skulle) | 0 | 0 | 2 | 2:52 |
+| skarpt lagersvep | 4 542 | **677** | — | **0** | 2 | 1:41 |
+| torrkörning EFTER | 4 542 | **0** | **0** | **0** | **1** | 1:34 |
+
+Sista raden är kvittot: efter ETT skarpt svep vill ingenting skrivas om. Jämför
+med samma katalog 2026-09-02, före batchningen:
+
+| | lager skrivna | fel |
+|---|---:|---:|
+| skarpt svep FÖRE pacing | 905 | **1 190** |
+| skarpt svep EFTER pacing | 1 110 | 1 |
+| **skarpt svep, batchat** | **677** | **0** |
+
+`utanLagerrader` är **0** — varenda mappning har lagerrader i Wix, alltså finns
+ingen föräldralös katalogdel som tyst bokfördes som synkad av den gamla vägen.
+
 ⚠️ **En ny mätning, ingen åtgärd: `lagerDrift`.** Läsningen ser numera butikens
 FAKTISKA saldo, och räknar hur många produkter där det skiljer sig från det
 mappningen tror att den skrev. Det är exakt samma frågeställning som
@@ -484,7 +504,14 @@ mappningen tror att den skrev. Det är exakt samma frågeställning som
 och tjugo rader. Lagret triggas fortfarande på mappningens tal, alltså har det
 samma teoretiska hål. Talet är medvetet bara **mätt**: att byta facit vore en
 beteendeändring med hela katalogen som blast-radie, samma dag som loopen byggs
-om. Mät först, som huset gjorde med priserna. Läs det i workflow-summeringen.
+om. Mät först, som huset gjorde med priserna.
+
+☠️ **Och mätningen är gjord: `lagerDrift` är 1 av 4 542** (2026-09-04, samma
+tal i tre körningar i rad). Lagret har alltså INTE det hål priserna hade — där
+var svaret tjugo rader. Att göra butiken till facit även för lagret är därmed
+inte akut, och den enda drivande raden rättas av nästa körning som rör den.
+Talet står i loggraden och i workflow-summeringen; går det upp är det ett
+besked, inte brus.
 
 ### Så körs den för hand
 
