@@ -1654,15 +1654,23 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .pimg-vantar{position:absolute;inset:0;background:linear-gradient(100deg,var(--surface-2) 30%,#fff 50%,var(--surface-2) 70%);background-size:220% 100%;animation:pimg-svep 1.4s ease-in-out infinite}
 @keyframes pimg-svep{from{background-position:180% 0}to{background-position:-20% 0}}
 @media (prefers-reduced-motion:reduce){.pimg-vantar{animation:none}}
-/* Hover-bilden finns bara för pekare som KAN hovra. Utan hover nås :hover
-   aldrig, men bilden låg ändå i DOM:en och hämtades: en extra 600×600 per kort,
-   alltså 24 bortkastade hämtningar per skärm på mobil — där bandbredden är som
-   dyrast. Mätt på skarp /alla-produkter 2026-09-04: 53 <img>, varav 24 alt-
-   bilder som ingen mobilbesökare kan se. display:none tar bort boxen, och en
-   loading="lazy"-bild utan box hämtas aldrig. Grinden är (hover: none) och
-   inget mer: en pekskärmslaptop rapporterar pointer:coarse men HAR hover, och
-   ska behålla bildväxlingen. */
-@media (hover: none){.pimg-alt{display:none}}
+/* HOVER-BILDEN RENDERAS PÅ ALLA ENHETER — RÖR INTE DEN HÄR REGELN IGEN.
+ *
+ * 2026-09-04 lade jag in `@media (hover: none){.pimg-alt{display:none}}` för
+ * att spara 24 bildhämtningar per skärm på mobil. Resonemanget var att en
+ * pekskärm aldrig når :hover, så bilden bara kostade bandbredd.
+ *
+ * DET VAR FEL, och Leonard märkte det samma dag: på iOS Safari fyrar :hover
+ * när man lägger fingret på ett element och håller kvar. Bildväxlingen var
+ * alltså en funktion mobilbesökarna FAKTISKT använde — den slutade bara
+ * fungera. `(hover: none)` beskriver att enheten inte har en hovrande pekare,
+ * inte att :hover aldrig kan matcha.
+ *
+ * Vill man ta tillbaka bandbredden är rätt väg att låta bilden ligga kvar men
+ * hämtas först vid behov (t.ex. display:none som slås på i :hover-regeln, så
+ * lazy-bilden får en box först när fingret rör kortet). Det byter bort en
+ * omedelbar växling mot en som börjar ladda vid beröring — en avvägning som
+ * ska mätas och visas, inte antas. */
 .prod:hover .pimg-alt{opacity:1}
 .prod:hover .pimg-main{opacity:0}
 /* Mjuk zoom på hover (.pimg har overflow:hidden → beskärs rent). GPU-only,

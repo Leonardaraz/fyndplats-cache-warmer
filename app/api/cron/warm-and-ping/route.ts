@@ -117,13 +117,97 @@ async function varmBildkartan(): Promise<boolean> {
   }
 }
 
-async function varmAlla(slugs: string[]): Promise<{ ok: number; fel: number }> {
+async function varmAlla(slugs: string[], deadline = Infinity): Promise<{ ok: number; fel: number; avbruten: boolean }> {
   let ok = 0, fel = 0;
   for (let i = 0; i < slugs.length; i += PARALLELLT) {
+    if (Date.now() > deadline) return { ok, fel, avbruten: true };
     const resultat = await Promise.all(slugs.slice(i, i + PARALLELLT).map(varm));
     for (const r of resultat) { if (r) ok++; else fel++; }
   }
-  return { ok, fel };
+  return { ok, fel, avbruten: false };
+}
+
+/**
+ * HELA KATALOGEN, INTE BARA DE FÄRSKA.
+ *
+ * Leonard 2026-09-04: "när jag trycker på olika produkter är det fortfarande
+ * väldigt trögt på vissa". Uppmätt samma dag på ett slumpurval om 14
+ * produktsidor i produktion:
+ *
+ *   x-vercel-cache: MISS   11 st   0,86–1,52 s
+ *   x-vercel-cache: HIT     3 st   0,15–0,24 s
+ *
+ * och när samma MISS-sidor hämtades EN GÅNG TILL svarade de HIT på 0,14–0,55 s.
+ * En produktsida är alltså långsam exakt en gång: första begäran efter en
+ * deploy, som tömmer ISR-cachen. Med 1 622 produkter och 40 förbyggda
+ * (SSG_PREBUILD) betyder det att ~1 580 sidor är kalla efter varje deploy, och
+ * att den som klickar först betalar renderingen.
+ *
+ * Därför värmer vi hela katalogen, inte bara det som publicerats den senaste
+ * halvtimmen. I VILOLÄGE ÄR DET BILLIGT: en redan varm sida svarar ur cachen
+ * (~0,15 s) utan att renderas om — passet kostar bara begäranden. Dyrt blir det
+ * bara första gången efter en deploy, vilket är exakt när det behövs.
+ *
+ * Deadline-vakten finns för att passet aldrig ska spränga maxDuration: efter en
+ * deploy tar 1 622 kalla renderingar ~200 s vid PARALLELLT=8, och marginalen är
+ * inte stor. Hinner vi inte klart roterar nästa körning startpunkten, så
+ * täckningen vandrar i stället för att fastna på samma första hundra.
+ */
+function roterad(slugs: string[]): string[] {
+  if (slugs.length === 0) return slugs;
+  const timme = Math.floor(Date.now() / 3_600_000);
+  const start = (timme * PARALLELLT * 40) % slugs.length;
+  return [...slugs.slice(start), ...slugs.slice(0, start)];
+}
+
+/** Hur många sidor stickprovet läser, och hur många MISS som räcker för att
+ *  döma katalogen som kall. Två av tolv är långt under vad en deploy ger (då är
+ *  i princip ALLA kalla) men långt över vad normal drift ger (noll). */
+const STICKPROV = 12;
+const MISS_FOR_KALL = 2;
+
+/**
+ * ÄR KATALOGEN KALL? Ett stickprov i stället för ett fullt pass.
+ *
+ * Varför det behövs: att värma en sida vars revalidate-fönster (1 h) löpt ut
+ * serverar den inaktuella kopian direkt OCH startar en ny rendering i
+ * bakgrunden. Ett fullt pass varje timme betyder därför en rendering per
+ * produkt och timme — 1 622 × 24 ≈ 39 000 om dygnet — även när ingenting hänt.
+ * Det var vad den första versionen av den här cronen gjorde, och det var
+ * onödigt dyrt.
+ *
+ * Och onödigt, för en produktsida blir MISS av exakt en sak: en deploy, som
+ * tömmer ISR-cachen. Är den en gång varm svarar den HIT eller STALE resten av
+ * tiden, och båda går på ~0,15 s utan att kunden märker något. Klockan är
+ * alltså fel signal — deployen är rätt signal.
+ *
+ * Stickprovet läser den signalen billigt: tolv slumpvisa produktsidor, och
+ * x-vercel-cache i svaret berättar läget. Efter en deploy är i princip alla
+ * MISS och det fulla passet körs. Däremellan är de HIT, passet hoppas över, och
+ * timmen kostar tolv begäranden i stället för 1 622 renderingar.
+ */
+async function katalogenArKall(slugs: string[]): Promise<{ kall: boolean; missar: number; av: number }> {
+  const urval: string[] = [];
+  for (let i = 0; i < STICKPROV && slugs.length; i++) {
+    urval.push(slugs[Math.floor(Math.random() * slugs.length)]!);
+  }
+  const lagen = await Promise.all(
+    urval.map(async (slug) => {
+      try {
+        const res = await fetch(`${SITE}/produkt/${slug}`, {
+          headers: { "user-agent": "fyndplats-warmer" },
+          cache: "no-store",
+        });
+        return (res.headers.get("x-vercel-cache") ?? "").toUpperCase();
+      } catch {
+        // Ett nätverksfel säger ingenting om cachen — räkna det inte som MISS,
+        // annars triggar en skakig minut ett fullt pass i onödan.
+        return "OKAND";
+      }
+    }),
+  );
+  const missar = lagen.filter((l) => l === "MISS").length;
+  return { kall: missar >= MISS_FOR_KALL, missar, av: urval.length };
 }
 
 export async function GET(request: Request) {
@@ -139,6 +223,10 @@ export async function GET(request: Request) {
     );
   }
 
+  // Vaktens budget: maxDuration är 300 s, och vi lämnar en marginal så svaret
+  // hinner skrivas även om sista batchen är trög.
+  const deadline = Date.now() + 240_000;
+
   const entries = await getProductSitemapEntries();
   const urval = farskaProdukter(entries, Date.now(), FONSTER_MS, TAK_PER_KORNING);
 
@@ -147,16 +235,45 @@ export async function GET(request: Request) {
   const bildkartan = await varmBildkartan();
 
   if (urval.slugs.length === 0) {
-    return NextResponse.json({ ok: true, farska: 0, katalog: entries.length, bildkartan });
+    // Inga färska produkter betyder inte att katalogen är varm — efter en deploy
+    // är den kall oavsett när produkterna publicerades.
+    const alla = roterad(entries.map((e) => e.slug));
+    const prov = await katalogenArKall(alla);
+    const katalogvarmning = prov.kall
+      ? await varmAlla(alla, deadline)
+      : { ok: 0, fel: 0, avbruten: false, hoppadOver: true as const };
+    console.log(
+      `[warm-and-ping] inga färska produkter. Stickprov ${prov.missar}/${prov.av} MISS → `
+        + (prov.kall
+          ? `kall, värmde ${katalogvarmning.ok}/${alla.length}`
+            + `${katalogvarmning.avbruten ? " (avbruten på deadline)" : ""}`
+          : "varm, passet hoppades över"),
+    );
+    return NextResponse.json({ ok: true, farska: 0, katalog: entries.length, bildkartan, katalogstickprov: prov, katalogvarmning });
   }
 
   // Ordningen är hela poängen: rendera först, berätta sedan.
   const varmning = await varmAlla(urval.slugs);
   const ping = await pingSearchEngines(urval.slugs.map((s) => `${SITE}/produkt/${s}`));
 
+  // Katalogpasset ligger SIST: de färska sidorna och IndexNow-pingen är
+  // tidskritiska (Googlebot kommer strax), katalogen tål att komma efter.
+  // Och det körs bara när stickprovet säger att katalogen faktiskt är kall.
+  const farskaRedanVarma = new Set(urval.slugs);
+  const restenAvKatalogen = roterad(entries.map((e) => e.slug).filter((s) => !farskaRedanVarma.has(s)));
+  const prov = await katalogenArKall(restenAvKatalogen);
+  const katalogvarmning = prov.kall
+    ? await varmAlla(restenAvKatalogen, deadline)
+    : { ok: 0, fel: 0, avbruten: false, hoppadOver: true as const };
+
   console.log(
     `[warm-and-ping] ${urval.slugs.length} färska produkter — varma: ${varmning.ok}, `
-      + `misslyckade: ${varmning.fel}, kvar till nästa körning: ${urval.overTaket}`,
+      + `misslyckade: ${varmning.fel}, kvar till nästa körning: ${urval.overTaket}. `
+      + `Katalogen: stickprov ${prov.missar}/${prov.av} MISS → `
+      + (prov.kall
+        ? `kall, värmde ${katalogvarmning.ok}/${restenAvKatalogen.length}`
+          + `${katalogvarmning.avbruten ? " (avbruten på deadline — nästa körning roterar vidare)" : ""}`
+        : "varm, passet hoppades över"),
   );
 
   return NextResponse.json({
@@ -166,6 +283,8 @@ export async function GET(request: Request) {
     behandlade: urval.slugs.length,
     kvarTillNasta: urval.overTaket,
     varmning,
+    katalogstickprov: prov,
+    katalogvarmning,
     bildkartan,
     indexNow: ping.indexNow,
     google: ping.google,
