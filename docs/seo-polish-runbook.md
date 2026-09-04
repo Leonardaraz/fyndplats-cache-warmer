@@ -1583,6 +1583,22 @@ träffarna men gick förbi `FP-led-badezimmerspiegel` på `sminkspegel-led-80x60
 - `fields=VARIANTS_INFO` finns **inte**; `MEDIA_ITEMS_INFO` ger både media OCH varianter.
   Och `products/query`/`search` fyller ALDRIG `variantsInfo` — därav en GET per produkt.
 
+☠️ **RÄKNA SKU:n ur husregeln — skriv den inte för hand.** Runda 51 hade tre fel-SKU:er
+och runda 53 två (`FP-matgrupp-smalt-bord-90x47` där regeln ger `FP-matgrupp-smalt-bord`,
+`FP-matgrupp-klaffbord-110-cm` där den ger `FP-matgrupp-klaffbord-110`). Båda gångerna
+var felet att 24-teckensgränsen kapades ur minnet i stället för ur koden — och båda
+gångerna såg strängen fullt rimlig ut. Implementera `skuSlugify` +
+`stripBrandPrefix` + `dropConnectors` + `joinWithinLimit` i grinden och jämför:
+
+```python
+vantad = sku_ur_husregeln(p["slug"])
+if p["sku"] != vantad: fel("SKU %r men husregeln ger %r" % (p["sku"], vantad))
+```
+
+⚠️ Grindens variabelnamn får inte krocka med lintets övriga. Runda 53:s första utkast
+döpte märkeslistan till `MARKEN` — samma namn som prosagrindens lista över husmärken —
+och sköt tyst ner den. Mutationstestet fällde på `husmärke ☠️ SLAPP IGENOM` i samma varv.
+
 **Verifiera:** nya SKU:n innehåller varken engelska råord eller **dropship-märke** och matchar sluggen. (Etablerade märken som Pagani Design/LAIKOU **behålls** i SKU:n – se märkesregeln i *Fasta fakta*.)
 
 -----
@@ -2312,6 +2328,93 @@ kastar det.**
 produktens kartong. De sju andra sidorna säger därför bara vad `Lieferumfang` säger
 plus den svenska anslutningen — inte att deras regulator är 50 mbar, för det är inte
 mätt.
+
+### ☠️ "Leverantören anger…" — mot kunden är VI leverantören, och det GÅR att grinda
+
+Runda 53 (matgrupper, 2026-09-04). Varje mekanisk grind var grön på åtta produkter;
+Steg 12-läsningen hittade **fem defensiva formuleringar på tre av dem**:
+
+| produkt | i texten |
+|---|---|
+| `0058ad50` | *"Leverantören anger att gruppen behöver minst 2,5 m² golvyta"* — och en gång till i FAQ:n |
+| `b07189d2` | *"Leverantören anger att gruppen behöver 180 × 170 cm"*, *"180 × 170 cm enligt tillverkaren"* |
+| `b07189d2` | *"Leverantören anger materialet som glas … så vi anger inte mer än så"* |
+
+Talen är hämtade ur samma importdata som resten av spec-tabellen, där de står som våra
+egna. Att i brödtexten skjuta just dem ifrån sig läser som att vi själva tvivlar på det
+vi säljer — och kunden köper av oss, inte av den vi köpt av. Rättningen är att stryka
+attributionen och behålla talet: *"Gruppen behöver minst 2,5 m² golvyta med utdragna
+stolar."*
+
+Härdnings-svaret behöll sin substans (Steg 2-grinden säger att härdning inte får påstås)
+men äger den nu: *"Vi anger skivan som glas, inte som härdat glas. Behandla den därefter."*
+
+**Och till skillnad från tonfel i allmänhet är den här klassen mekaniskt fångbar** — det
+är en handfull ordvändningar, inte en bedömning:
+
+```python
+DEFENSIV = [r"[Ll]everantören (anger|uppger|skriver|säger)", r"[Tt]illverkaren (anger|uppger)",
+            r"[Ee]nligt (leverantören|tillverkaren)", r"vi har inga uppgifter",
+            r"[Kk]ontrollera själv", r"[Mm]ät själv", r"[Vv]i vet inte", r"kan inte garantera",
+            r"[Dd]et normala\b", r"[Dd]et vanliga\b"]
+```
+
+De två sista fångar en annan sak: *"trettioen centimeter … vilket är det normala
+benutrymmet för en matplats"* är ett påstående om möbler i allmänhet som ingen mätt.
+Samma familj som superlativen — **det ser ut som en beskrivning men är en mätning.**
+
+### ☠️ En påstående-grind måste kunna skilja ett påstående från ett FÖRNEKANDE
+
+Samma runda, direkt efter rättningen ovan: grinden fällde den nya, korrekta meningen
+*"Vi anger skivan som glas, inte som härdat glas"* — för `CERT` innehåller `härdat glas`
+som blank spärr. Det är exakt samma fel som den blanka `massivt trä`-spärren hade
+(*"Det är inte massivt trä"* är rätt text), och en grind som fyrar på rätt text lär
+läsaren att bläddra förbi.
+
+Den generella formen, och den ska ersätta varje blank ordspärr som får negeras:
+
+```python
+NEKAD = re.compile(r"\b(inte|aldrig|utan|varken)\b[^.<]{0,30}$")
+...
+if NEKAD.search(h[max(0, t.start() - 40):t.start()]): continue
+```
+
+`[^.<]` gör att blicken bakåt stannar vid meningsgränsen och vid närmaste tagg — annars
+hade *"Skivan är glas. Härdat glas ingår."* blivit avväpnad av ett `inte` i föregående
+mening. Verifierat med fyra fall: påstående fäller, förnekande släpper, påstående efter
+ett förnekande i FÖREGÅENDE mening fäller.
+
+☠️ **Ordspärrarna måste dessutom vara versal-tåliga.** `r"härdat glas"` missade
+`"Härdat glas ingår"` — ett påstående som inleder en mening. Mutationstestet hittade det;
+läsning av regexen hade inte gjort det.
+
+### ☠️ En grind skriven i en icke-rå Python-sträng blir tyst avväpnad
+
+Samma runda, tredje gången i samma block. Grinden ovan skrevs in i `lint.py` av ett
+patch-skript med en vanlig trippelcitat-sträng — och där är `\b` inte ordgränsen utan
+**tecknet BACKSPACE (U+0008)**. Fyra sådana hamnade i filen. `re.compile` klagar inte:
+den bygger ett mönster som matchar ett backspace-tecken, alltså aldrig något.
+
+Symtomet är det farligaste som finns: grinden kör, svarar grönt, och testar ingenting.
+Den hittades bara för att mutationstestet fortsatte visa `SLAPP IGENOM` efter att
+"fixen" var på plats.
+
+```python
+s.count(chr(8))   # → 4. Skriv grindar i r"..." — eller räkna backspace efteråt.
+```
+
+Samma familj som *"en grind mot osynliga tecken får inte SKRIVAS med osynliga tecken"*
+(runda 46) — och nu med ett tecken som inte ens går att se i en diff.
+
+### ⚠️ En mutation som pekar på en mening du skrivit om testar ingenting
+
+Steg 12 skrev om öppningsmeningen i `b4b1c099a`. Mutationen för *"mellanslag före
+skiljetecken"* ersatte `"armbågarna möts."` — som inte längre fanns — så den muterade
+texten var identisk med originalet, och mutationen rapporterades som SLAPP IGENOM. Den
+grinden fungerade hela tiden; det var testet som slutat träffa.
+
+**Kör mutationstestet efter varje textändring, inte bara efter varje grindändring**, och
+låt varje mutation `assert` att dess ankare finns i texten.
 
 ### ☠️ Ett feltypat produkt-id ska INTE kunna skriva någonting
 
