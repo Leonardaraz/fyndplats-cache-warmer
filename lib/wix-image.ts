@@ -71,15 +71,11 @@ const data = cropsData as CropsData;
 // Vi börjar konservativt med 0 så ingen produkt försämras innan detection körts.
 const FALLBACK_INSET_PCT = 0;
 
-/**
- * Extraherar Wix media-key från en static.wixstatic.com-URL.
- * Returnerar t.ex. "b379ce_b33888095996429d81f2ece12df7a49e~mv2.png".
- */
-export function wixMediaKey(url: string): string | null {
-  if (!url) return null;
-  const m = url.match(/static\.wixstatic\.com\/media\/([^/?#]+)/);
-  return m ? m[1] : null;
-}
+// wixMediaKey bor i en egen, beroendefri fil så node:test kan importera den —
+// den här modulen drar in data/image-crops.json, vilket testköraren inte kan
+// ladda. Återexporteras här så alla befintliga anropare är oförändrade.
+import { wixMediaKey } from "./wix-media-key";
+export { wixMediaKey };
 
 /**
  * Returnerar en crop-entry för en given Wix-bild-URL, eller null om vi inte har
