@@ -2774,8 +2774,18 @@ body:has(.fd){
 .fd-clip-video{position:relative}
 .fd-clip-v{display:block;width:100%;height:auto;aspect-ratio:48/43;object-fit:cover;
   background:#000;border:1px solid var(--fd-line);border-radius:var(--r-lg)}
-.fd-clip-text .fd-h2,.fd-clip-text .fd-lead{text-align:left;margin-left:0}
-.fd-clip-text .fd-lead{margin-bottom:22px}
+.fd-clip-text .fd-h2{text-align:left;margin-left:0;margin-bottom:22px}
+/* Ljudknappen ligger i rutans hörn, inte utanför: den hör till filmen, och
+   en kontroll som sitter bredvid sin film läses som en till länk. 44 px är
+   tryckytan, inte ikonen — ikonen är 20 och centrerad i den. */
+.fd-clip-ljud{position:absolute;right:10px;bottom:10px;width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.18);border-radius:50%;
+  background:rgba(0,0,0,.55);color:#fff;cursor:pointer;
+  transition:background .2s,border-color .2s,color .2s}
+.fd-clip-ljud svg{width:20px;height:20px}
+.fd-clip-ljud:hover{background:rgba(0,0,0,.75);border-color:var(--fd-gold);color:var(--fd-gold)}
+.fd-clip-ljud:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
 .fd-clip-link{display:inline-flex;align-items:center;min-height:44px;
   padding:0 20px;border:1px solid var(--fd-line);border-radius:var(--r-pill);
   color:var(--fd-ink);font-size:var(--text-sm);font-weight:600;text-decoration:none;
@@ -2786,8 +2796,7 @@ body:has(.fd){
   .fd-clip{grid-template-columns:1fr;gap:22px}
   .fd-clip-video{max-width:340px;margin:0 auto}
   .fd-clip-text{text-align:center}
-  .fd-clip-text .fd-h2,.fd-clip-text .fd-lead{text-align:center}
-  .fd-clip-text .fd-lead{margin-left:auto;margin-right:auto}
+  .fd-clip-text .fd-h2{text-align:center}
 }
 
 /* ── Droppet ──────────────────────────────────────────────────────── */

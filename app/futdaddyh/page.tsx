@@ -46,9 +46,9 @@ const SOCIALS = [
 // försvann med snittet (y 259–775 av 1024) utan att röra en enda bildpunkt
 // av själva filmen. Hela klippet ligger uppe — bara CapCut-outron och
 // TikToks slutkort är borta (de börjar 86,3 s in och är inte film).
-// Ljudet är bortklippt: en loop som KAN låta gör det förr eller senare i
-// fel läge. Länken går till hans inlägg — den ger honom erkännandet och
-// trafiken som vattenstämpeln gav.
+// Ljudet ligger kvar men startar avstängt, med en knapp i rutan. Länken
+// går till hans inlägg — den ger honom erkännandet och trafiken som
+// vattenstämpeln gav.
 const KLIPP_TIKTOK = "https://vm.tiktok.com/ZN8Y4JhBw/";
 
 const HJALTE =
@@ -158,7 +158,6 @@ export default function FutDaddyh() {
           />
           <div className="fd-clip-text">
             <h2 className="fd-h2">Från arenan</h2>
-            <p className="fd-lead">Hela klippet ligger på hans TikTok.</p>
             <a
               className="fd-clip-link"
               href={KLIPP_TIKTOK}
