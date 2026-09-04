@@ -35,9 +35,10 @@ export interface NormaliseradRad {
   _id?: string;
   productName?: { original?: string };
   quantity?: number;
-  price?: { amount?: string };
+  price?: { amount?: string; formattedAmount?: string };
   catalogReference?: { catalogItemId?: string; appId?: string; options?: unknown };
-  image?: string;
+  /** Sträng ELLER Wix bildobjekt — luckans liImageUrl() klarar båda. */
+  image?: unknown;
 }
 
 export interface NormaliseradKundvagn {
@@ -48,6 +49,41 @@ export interface NormaliseradKundvagn {
   currency?: string;
   /** v2-vagnen orörd, för det som behöver fält översättaren inte speglar. */
   raw?: unknown;
+}
+
+// v2 SKICKAR INGEN FÄRDIGFORMATERAD SUMMA. v1:s Money bar `formattedAmount`
+// ("2 049,00 kr") och varukorgsluckan skriver ut just det fältet på två
+// ställen: kundvagnens summa och varje rads pris. v2:s ConvertedMoney har bara
+// `amount` och `convertedAmount` — verifierat mot skarpa API:et 2026-09-04 —
+// så utan det här hade båda raderna blivit TOMMA. Varken bygget eller
+// testerna hade fångat det; det syns bara i webbläsaren.
+//
+// Vi formaterar därför själva. Att det blir "2 049 kr" och inte "2 049,00 kr"
+// är avsiktligt: det är sajtens eget format (formatPrice i lib/price-range.ts),
+// alltså blir kundvagnen konsekvent med resten av butiken i stället för att
+// bära Wix decimaler.
+//
+// Valutan kommer från vagnen, inte hårdkodat, så en kassa i EUR skriver "€"
+// utan att någon rör den här koden.
+function formatera(belopp: string | undefined, valuta: string): string | undefined {
+  if (belopp === undefined) return undefined;
+  const n = Number(belopp);
+  if (!Number.isFinite(n)) return undefined;
+  try {
+    const ut = new Intl.NumberFormat("sv-SE", {
+      style: "currency",
+      currency: valuta,
+      maximumFractionDigits: 0,
+    }).format(n);
+    // Intl separerar med HÅRDA blanksteg (U+00A0, och U+202F i vissa
+    // lokaler). Sajtens formatPrice använder vanliga. Utan den här raden
+    // fick kundvagnen annan teckenbredd än produktsidorna — en skillnad
+    // ingen kan sätta fingret på men alla ser.
+    return ut.replace(/[\u00a0\u202f]/g, " ");
+  } catch {
+    // Okänd valutakod → hellre siffran utan symbol än ett kast.
+    return `${Math.round(n)}`;
+  }
 }
 
 type Obj = Record<string, unknown>;
@@ -62,7 +98,7 @@ function arV1Rad(rad: Obj): boolean {
   return "productName" in rad || "quantity" in rad || "price" in rad;
 }
 
-function normaliseraRad(rad: Obj): NormaliseradRad {
+function normaliseraRad(rad: Obj, valuta: string): NormaliseradRad {
   if (arV1Rad(rad)) return rad as NormaliseradRad;
 
   const namn = obj(rad.name);
@@ -82,14 +118,27 @@ function normaliseraRad(rad: Obj): NormaliseradRad {
   const q = num(antal?.confirmedQuantity) ?? num(antal?.requestedQuantity);
   if (q !== undefined) ut.quantity = q;
 
-  const belopp = str(obj(pris?.unitPrice)?.amount);
-  if (belopp !== undefined) ut.price = { amount: belopp };
+  // `amount` är butikens valuta och det är den lib/analytics.ts rapporterar
+  // till GA4 och Meta. Visningen får `convertedAmount` (kundens valuta) när
+  // den finns — annars hade en EUR-kassa rapporterat euro som om det vore
+  // kronor.
+  const enhet = obj(pris?.unitPrice);
+  const belopp = str(enhet?.amount);
+  if (belopp !== undefined) {
+    ut.price = { amount: belopp };
+    const visa = formatera(str(enhet?.convertedAmount) ?? belopp, valuta);
+    if (visa) ut.price.formattedAmount = visa;
+  }
 
   const ref = obj(kalla?.catalogReference);
   if (ref) ut.catalogReference = ref as NormaliseradRad["catalogReference"];
 
-  const bild = str(attr?.image);
-  if (bild) ut.image = bild;
+  // BILDEN SKICKAS ORÖRD VIDARE. Typerna säger `image?: string`, men skarpa
+  // API:et svarar med ett OBJEKT ({ id, url, width, height, altText }) —
+  // verifierat 2026-09-04. Luckans liImageUrl() tar båda formerna, så det
+  // enda som kan gå fel är om vi kräver en sträng här. Gjorde vi det försvann
+  // varenda miniatyr ur kundvagnen.
+  if (attr?.image !== undefined && attr.image !== null) ut.image = attr.image;
 
   return ut;
 }
@@ -107,9 +156,17 @@ export function normaliseraKundvagn(indata: unknown): NormaliseradKundvagn | nul
   // v2 svarar { cart: … }, v1 svarade med vagnen själv.
   const k = obj(yttre.cart) ?? yttre;
 
+  // Kundens valuta styr visningen; butikens är reserven.
+  const valuta =
+    str(obj(k.customerInfo)?.currencyCode) ??
+    str(obj(k.businessInfo)?.currencyCode) ??
+    str(k.currency) ??
+    "SEK";
+
   const rader = Array.isArray(k.lineItems) ? k.lineItems : [];
   const ut: NormaliseradKundvagn = {
-    lineItems: rader.map((r) => normaliseraRad(obj(r) ?? {})),
+    lineItems: rader.map((r) => normaliseraRad(obj(r) ?? {}, valuta)),
+    currency: valuta,
     raw: k,
   };
 
@@ -119,15 +176,12 @@ export function normaliseraKundvagn(indata: unknown): NormaliseradKundvagn | nul
   const sub = obj(k.subtotal) ?? obj(obj(k.priceSummary)?.subtotal);
   if (sub) {
     ut.subtotal = {};
-    if (str(sub.amount)) ut.subtotal.amount = str(sub.amount);
-    if (str(sub.formattedAmount)) ut.subtotal.formattedAmount = str(sub.formattedAmount);
+    const belopp = str(sub.amount);
+    if (belopp) ut.subtotal.amount = belopp;
+    // v1 hade en färdig sträng; v2 har den inte, så vi formaterar den.
+    const visa = str(sub.formattedAmount) ?? formatera(str(sub.convertedAmount) ?? belopp, valuta);
+    if (visa) ut.subtotal.formattedAmount = visa;
   }
-
-  const valuta =
-    str(obj(k.businessInfo)?.currencyCode) ??
-    str(obj(k.customerInfo)?.currencyCode) ??
-    str(k.currency);
-  if (valuta) ut.currency = valuta;
 
   return ut;
 }

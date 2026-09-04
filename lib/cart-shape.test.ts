@@ -2,23 +2,39 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { normaliseraKundvagn } from "./cart-shape.ts";
 
-// Formen nedan ar avlast ur @wix/auto_sdk_ecom_cart-v-2:s egna typer
-// (V2LineItem, ItemQuantityInfo, ItemPricingInfo, ItemSource, ItemAttributes),
-// inte gissad.
+// Formen nedan ar KOPIERAD UR ETT SKARPT SVAR fran Wix Cart v2 (butikens egen
+// katalog, 2026-09-04), inte gissad ur typerna. Det spelade roll: typerna sager
+// `image?: string`, men API:et svarar med ett OBJEKT, och v2:s pengar saknar
+// helt `formattedAmount`. Bada hade gett tysta fel i kundvagnen.
 const V2 = {
   cart: {
     _id: "cart-1",
     revision: "3",
-    subtotal: { amount: "598.00", formattedAmount: "598,00 kr" },
-    businessInfo: { currencyCode: "SEK" },
+    // v2 skickar INGEN formattedAmount — det ar hela poangen med testerna nedan.
+    subtotal: { amount: "598.00", convertedAmount: "598.00" },
+    businessInfo: { languageCode: "sv", currencyCode: "SEK" },
+    customerInfo: { languageCode: "sv", currencyCode: "SEK" },
     lineItems: [
       {
         _id: "rad-1",
         name: { original: "Odlingsbord med drivbank 108 cm" },
         quantityInfo: { requestedQuantity: 3, confirmedQuantity: 2 },
-        pricing: { unitPrice: { amount: "299.00" }, totalPrice: { amount: "598.00" } },
+        pricing: {
+          unitPrice: { amount: "299.00", convertedAmount: "299.00" },
+          totalPrice: { amount: "598.00", convertedAmount: "598.00" },
+        },
         source: { catalogReference: { catalogItemId: "prod-1", appId: "stores" } },
-        attributes: { image: "wix:image://v1/abc~mv2.jpg" },
+        // Skarpa API:et svarar med ett objekt har, inte en strang.
+        attributes: {
+          image: {
+            id: "b379ce_abc~mv2.jpg",
+            url: "https://static.wixstatic.com/media/b379ce_abc~mv2.jpg",
+            height: 2000,
+            width: 2000,
+            altText: "En bild",
+          },
+          physicalProperties: { sku: "FP-1", shippable: true },
+        },
       },
     ],
   },
@@ -37,7 +53,8 @@ describe("normaliseraKundvagn — v2 till butikens form", () => {
     assert.equal(r.productName?.original, "Odlingsbord med drivbank 108 cm");
     assert.equal(r.price?.amount, "299.00");
     assert.equal(r.catalogReference?.catalogItemId, "prod-1");
-    assert.equal(r.image, "wix:image://v1/abc~mv2.jpg");
+    // Bilden ska ga igenom ORORD: luckans liImageUrl() plockar .url sjalv.
+    assert.equal((r.image as { url?: string })?.url, "https://static.wixstatic.com/media/b379ce_abc~mv2.jpg");
   });
 
   it("visar BEKRAFTAT antal, inte begart", () => {
@@ -54,8 +71,72 @@ describe("normaliseraKundvagn — v2 till butikens form", () => {
   it("laser subtotal och valuta", () => {
     const k = normaliseraKundvagn(V2)!;
     assert.equal(k.subtotal?.amount, "598.00");
-    assert.equal(k.subtotal?.formattedAmount, "598,00 kr");
     assert.equal(k.currency, "SEK");
+  });
+});
+
+// De har tva gruppperna finns for att bada felen fanns pa riktigt i forsta
+// versionen av oversattaren, och varken bygget, tsc eller de ovriga testerna
+// sag dem. De hittades genom att anropa skarpa API:et.
+describe("normaliseraKundvagn — fel som bara skarpa API:et avslojade", () => {
+  it("BILDEN: ett objekt far inte tappas bort", () => {
+    // Forsta versionen kravde en strang. Resultatet hade blivit att VARENDA
+    // miniatyr forsvann ur kundvagnen, tyst.
+    const r = normaliseraKundvagn(V2)!.lineItems[0]!;
+    assert.notEqual(r.image, undefined);
+    assert.equal(typeof r.image, "object");
+  });
+
+  it("BILDEN: en strang funkar fortfarande", () => {
+    const medStrang = { cart: { lineItems: [{ attributes: { image: "wix:image://v1/x~mv2.jpg" } }] } };
+    assert.equal(normaliseraKundvagn(medStrang)!.lineItems[0]!.image, "wix:image://v1/x~mv2.jpg");
+  });
+
+  it("SUMMAN: formateras sjalv eftersom v2 inte skickar nagon", () => {
+    // Luckan skriver ut subtotal.formattedAmount. Utan det har blir raden tom.
+    assert.equal(normaliseraKundvagn(V2)!.subtotal?.formattedAmount, "598 kr");
+  });
+
+  it("RADPRISET: formateras ocksa", () => {
+    assert.equal(normaliseraKundvagn(V2)!.lineItems[0]!.price?.formattedAmount, "299 kr");
+  });
+
+  it("formatet ar sajtens eget, utan decimaler", () => {
+    const stor = { cart: { subtotal: { amount: "2049" }, businessInfo: { currencyCode: "SEK" }, lineItems: [] } };
+    assert.equal(normaliseraKundvagn(stor)!.subtotal?.formattedAmount, "2 049 kr");
+  });
+});
+
+describe("normaliseraKundvagn — flera valutor", () => {
+  const EUR = {
+    cart: {
+      subtotal: { amount: "598.00", convertedAmount: "52.00" },
+      businessInfo: { currencyCode: "SEK" },
+      customerInfo: { currencyCode: "EUR" },
+      lineItems: [{
+        name: { original: "Hoodie" },
+        quantityInfo: { confirmedQuantity: 1 },
+        pricing: { unitPrice: { amount: "598.00", convertedAmount: "52.00" } },
+      }],
+    },
+  };
+
+  it("visar kundens valuta", () => {
+    const k = normaliseraKundvagn(EUR)!;
+    assert.equal(k.currency, "EUR");
+    assert.equal(k.subtotal?.formattedAmount, "52 €");
+    assert.equal(k.lineItems[0]!.price?.formattedAmount, "52 €");
+  });
+
+  it("men RAPPORTERAR butikens valuta — annars blir GA4 fel", () => {
+    // lib/analytics.ts laser price.amount. Skulle det bara euro-beloppet
+    // rapporterades 52 som om det vore 52 kronor.
+    assert.equal(normaliseraKundvagn(EUR)!.lineItems[0]!.price?.amount, "598.00");
+  });
+
+  it("okand valutakod kastar inte", () => {
+    const skum = { cart: { subtotal: { amount: "100" }, customerInfo: { currencyCode: "XYZQ" }, lineItems: [] } };
+    assert.equal(normaliseraKundvagn(skum)!.subtotal?.formattedAmount, "100");
   });
 });
 
