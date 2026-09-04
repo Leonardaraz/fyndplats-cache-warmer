@@ -13,10 +13,10 @@ import Link from "next/link";
 // Rutnätet nedan är därför byggt för riktiga produkter men visar ärliga
 // platshållare: plagget, inte ett påhittat pris.
 //
-// VARFÖR FYNDPLATS SYNS ÖVERST. Fyndplats är säljare — kunden ingår avtalet
-// med oss, kassan säger Fyndplats och paketet kommer från Printful. Står det
-// inte på sidan blir det en överraskning i kassan, och en överraskning i
-// kassan är en chargeback som väntar. Raden är liten, men den är aldrig dold.
+// INGEN EGEN SÄLJARRAD. Fyndplats är säljare, men det behöver inte stå en
+// extra gång: sidan ligger på fyndplats.se, ärver sajtens header med loggan
+// och sajtens footer med kundtjänst och villkor. Vem kunden handlar av är
+// alltså synligt hela vägen ner — en rad till hade bara upprepat headern.
 //
 // Sidan ärver sajtens header och footer från app/layout.tsx. Hans värld tar
 // hela innehållsytan under dem.
@@ -101,11 +101,6 @@ function Plagg() {
 export default function FutDaddyh() {
   return (
     <div className="fd">
-      <div className="fd-attrib">
-        Officiell FutDaddyH-merch · säljs och skickas av{" "}
-        <Link href="/">Fyndplats</Link>
-      </div>
-
       {/* Hjälten är en KOMPOSITION, inte en bakgrundsbild. Han ligger bredvid
           ordmärket precis som på hans banner — inte bakom texten. Skälet är
           konkret: text ovanpå ett foto kräver en mörk hinna för att bli
@@ -162,45 +157,6 @@ export default function FutDaddyh() {
                 </div>
               </li>
             ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="fd-sec">
-        <div className="container">
-          <h2 className="fd-h2">Så funkar det</h2>
-          <p className="fd-lead">
-            Ingenting ligger på hyllan. Din beställning trycks upp för din skull och
-            skickas direkt till dörren.
-          </p>
-          <ul className="fd-facts">
-            <li className="fd-fact">
-              <b>Leverans</b>
-              <span>
-                10–14 arbetsdagar. Plagget trycks först och skickas sedan — vi hellre
-                säger sanningen än en siffra vi inte håller.
-              </span>
-            </li>
-            <li className="fd-fact">
-              <b>Tryckt på beställning</b>
-              <span>
-                Varje del produceras när den beställs. Därför finns alla storlekar,
-                och inget blir över.
-              </span>
-            </li>
-            <li className="fd-fact">
-              <b>Ångerrätt</b>
-              <span>
-                14 dagars lagstadgad ångerrätt. Returfrakten står du för, eftersom
-                ett tryckt plagg inte kan säljas vidare.
-              </span>
-            </li>
-            <li className="fd-fact">
-              <b>Frågor</b>
-              <span>
-                Kundtjänsten är Fyndplats — samma som för allt annat i butiken.
-              </span>
-            </li>
           </ul>
         </div>
       </section>
