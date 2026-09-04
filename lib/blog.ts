@@ -1,3 +1,4 @@
+export { absolutCover } from "./blog-cover";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { posts as wixPosts } from "@wix/blog";
 import { getLocalPosts, getLocalPost } from "./local-blog";

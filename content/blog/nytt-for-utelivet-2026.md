@@ -5,7 +5,7 @@ slug: nytt-for-utelivet-2026
 meta_description: "Nyinkommet för utelivet hos Fyndplats: pop up-paviljong med myggnät, solpanel 12V för husbil och båt, dieselvärmare och utomhus-kopplingsdosa."
 category: Säsong & Sommar
 publish_date: 2026-06-16
-cover: https://www.fyndplats.se/blog-nytt-for-utelivet.jpg
+cover: /blog-nytt-for-utelivet.jpg
 alt: "Nyheter för utelivet hos Fyndplats – paviljong, solpanel och värmare för husbil och båt"
 ---
 
