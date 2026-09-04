@@ -164,7 +164,11 @@ jobs:
               echo "::warning::Butikens prislista gick inte att läsa: ${pf}"
             fi
 
-            echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris, ${kvar} kvar"
+            # ☠️ Talen ska stå i LOGGEN, inte bara i jobbsummeringen. Summeringen
+            # syns bara i webb-UI:t; loggen är det som går att greppa, citera i
+            # en rapport och läsa från en telefon.
+            echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
+                 "${ul} utan lagerrader, ${dr} lagerdrift, ${mi} misslyckade, ${kvar} kvar"
 
             # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
             printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.sku): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
@@ -227,7 +231,8 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-          echo "OK: ${granskade} granskade, ${lager} lager, ${priser} priser, ${misslyckade} misslyckade."
+          echo "OK: ${granskade} granskade, ${lager} lager, ${priser} priser," \
+               "${utanrader} utan lagerrader, ${drift} lagerdrift, ${misslyckade} misslyckade."
 
           # ☠️ MASSFEL fäller jobbet — inte en enstaka miss.
           #
