@@ -2598,6 +2598,57 @@ finns ingen: ordet ÄR svenskt. Enda försvaret är att välja listan efter fami
 — tyska ord som saknar svensk tvilling (`Schrank`, `Schlüssel`, `Fächer`, `Weiß`,
 `abschließbar`, `Lieferumfang`).
 
+### ☠️ Ordlistan behöver en ORDGRÄNS, inte bara ett bättre urval
+
+Runda 55 lärde att välja orden per familj. Runda 56 visar nästa lager, och det
+går inte att välja sig ur: **`Gelb` är entydigt tyskt och saknar svensk tvilling
+— och fällde ändå en korrekt sida**, för att det står inuti svenskans **re·gelb·undet**.
+
+| | |
+|---|---|
+| Träff | `…Dammsug regelbundet och borsta upp luggen…` — ordet är **re·gelb·undet** |
+| Sidan | `b09e94ca`, vars text var helt riktig |
+| Falsklarm | 1 av 8 sidor |
+
+Skillnaden mot `Metall`/`Glas`/`Magnet` är att där var ORDET svenskt; här är
+ordet tyskt och bara **delsträngen** svensk. Kurering hjälper alltså inte —
+mönstret måste bära gränsen: `re.search(r"\b" + re.escape(ord), text)`. Gränsen
+sitter i BÖRJAN, inte i slutet, så böjda tyska former (`Sitzbänke`) fortfarande
+fastnar.
+
+☠️ **Och regeln bakom: ett falsklarm på en riktig sida kostar lika mycket som
+ett missat fel.** Körningen gav åtta röda rader medan alla åtta sidor var rätt
+— en på ordlistan, sju på proxy-detaljen längre ner. Det är precis den sortens
+utfall som lär läsaren att kvittera bort listan i stället för att läsa den.
+
+### ☠️ Rubrikräkningen var ÄRVD från förra rundan och beskrev inte den här sidan
+
+Checklistan ovan säger `<h2>`-räkning 7. Runda 56:s sidor har **3**, och alla
+tre är butikens egen krom (`Beskrivning`, `Liknande produkter`, `Utforska fler
+avdelningar`). Poleringens egna rubriker finns — men butiken gör om dem:
+
+```
+min HTML:      <h2>Tekniska specifikationer</h2>
+renderad sida: <details class="pdp-flik"><summary>Tekniska specifikationer</summary>
+```
+
+Ett `<h2>`-tal svarar alltså på en fråga om butikens mall, inte om poleringen.
+Kontrollen ska i stället slå upp de tre flikarna **vid namn**
+(`<summary>Tekniska specifikationer`, `Användning och skötsel`, `Vanliga
+frågor`) — då mäter den det den påstår sig mäta, och den överlever nästa
+malländring genom att fälla i stället för att tystna.
+
+Samma familj som ordlistan ovan, och det är poängen: **en grind som ärvs från
+förra rundan bär ett påstående om DEN rundan.** Mät om talet, eller byt ut det
+mot något som beskriver innehållet.
+
+⚠️ **Miljödetalj som fick åtta sidor att se ocachade ut.** Utgående HTTPS går
+via en proxy, så `curl -D -` skriver FÖRST proxyns `HTTP/1.1 200 Connection
+Established` och en tom rad. Ett skript som delar på första tomraden får
+proxyns huvud som "huvud" och sidans huvud som "kropp" — `x-vercel-cache` och
+`age` blir tomma, och statusraden läser `Established`. Skriv huvud och kropp
+till **var sin fil** (`-D fil.h -o fil.html`) och ta den SISTA `HTTP/`-raden.
+
 ### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
 
 Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i
@@ -2619,7 +2670,7 @@ kontrollistan och låg ändå ute med tysk titel:
 | Kontroll | Utfall |
 |---|---|
 | HTTP-status | 200 |
-| `<h2>`-räkning | 7 (rätt) |
+| `<h2>`-räkning | 7 — *ärvt tal, se ovan* |
 | Priset oförändrat | ja |
 | Fyndplats-kortet på plats 3 | ja |
 | Leverantörsspår i brödtexten | noll |
