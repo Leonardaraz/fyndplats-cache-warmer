@@ -450,3 +450,60 @@ migreringen, och som `queryAll` som tyst kapade.
 Verifieringen kräver nu `antal > 0` implicit genom att jämföra mot förväntat
 bildantal per produkt, och den läser i ett EGET anrop med `MEDIA_ITEMS_INFO`
 begärt — aldrig ur skrivningens svar.
+
+## Steg 10, 12, 13, 14 — rundan klar
+
+**Kategorier.** Facit är vad de redan publicerade kattprodukterna bär:
+`Husdjur` + `Lek & Tillbehör för husdjur` (+ `Alla produkter`). De två som också
+är möbler för människor (`73cb432c`, `d82950a3`) fick dessutom
+`Hem & Inredning`. Noll fel i bulk-svaret, och läst tillbaka: 3 respektive 4
+kategorier per produkt.
+
+☠️ **Två fällor i kategori-API:t, båda funna genom att prova och läsa felet:**
+
+1. Endpointen heter `bulk/categories/add-item` (SINGULAR) och tar **ett item,
+   flera `categoryIds`** — inte tvärtom. `add-items` ger 404, och rätt endpoint
+   med fel kropp ger `400: categoryIds has size 0`.
+2. ⚠️ **Kategori-id:t från en tidigare runda var FEL.** `Hem & Inredning` hade
+   antecknats som `3ed832b7-31c2-…` men är `3ed832b7-213f-4bd8-bbc4-e95744a9b316`.
+   Bara de åtta första tecknen stämde. Fråga API:t efter id:t, återanvänd inte ett
+   nedskrivet prefix.
+
+**Klart-kriteriet: 8/8** — text mot facit, slug, SKU, bildantal, alt-texter,
+titel skild från namn, kategorier, och alla åtta fortfarande utkast vid kontrollen.
+
+**Publicerade** — alla åtta `visible: true`, revision 7–8.
+
+**Stämplade** — åtta `polish-mapping.yml`-körningar i läget `stampla`,
+körningarna **1078–1085, alla `success`**.
+
+## Steg 14 — live-grinden, åtta rena sidor
+
+| id8 | slug | kod | cache | bilder | text | mot facit |
+|---|---|--:|---|--:|--:|---|
+| b3672df6 | kattbadd-med-kattoron-50-cm | 200 | MISS | 5/5 | 2081 | lika |
+| 165471af | kattsang-pa-ben-56-cm | 200 | MISS | 5/5 | 1841 | lika |
+| ad90a1cc | kattigloo-flatad-50-cm | 200 | MISS | 5/5 | 1858 | lika |
+| f6e3098e | kattkorg-i-tva-plan-40-cm | 200 | MISS | 4/4 | 1980 | lika |
+| 1ed0d9cb | kattgrotta-upphojd-58-cm | 200 | MISS | 5/5 | 1909 | lika |
+| e16338a9 | kattkoja-vattenhyacint-tva-plan | 200 | MISS | 4/5 | 1900 | lika |
+| 73cb432c | sittpuff-vattenhyacint-katt | 200 | MISS | 5/5 | 2517 | lika |
+| d82950a3 | fotpall-katt-sammet-60-cm | 200 | MISS | 5/5 | 2062 | lika |
+
+`4/5` på `e16338a9` är rätt: den femte nålen är bilden med tysk text som
+plockades bort i Steg 9, och att den INTE syns på sidan är själva kvittot.
+
+✅ **`cache: MISS`, `age: 0` på alla åtta** — ingen väntan alls, tredje rundan i
+rad. Regeln håller: hämta aldrig en produkt-URL medan produkten är utkast.
+
+✅ **Facit-grinden på live-sidan gav `lika` på alla åtta**, andra rundan i rad.
+
+### ☠️ Och live-grinden fällde en korrekt sida — på exakt runda 57:s fel
+
+`ad90a1cc: landsnamn 'Polen'`. Ordet står inuti **`kupolen`**.
+
+Grinden ärvdes från runda 62 och hade en EGEN kopia av landsloopen — utan den
+ordgräns jag lagt in i `lint.py` samma dag, efter att samma sträng fällt samma
+produkt där. Runda 57:s lärdom i sin exakta form: *en live-grind med en egen
+kopia av en regel utan dess undantag fäller korrekta sidor.* Att importera
+LISTAN räcker inte om man skriver om LOOPEN.
