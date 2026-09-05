@@ -148,3 +148,48 @@ reclinerfåtölj med 150 kg bärighet marknadsförs inte som barnmöbel.
 `150kg (Sitz), 50kg (Fußhocker)` — båda måste stå. En ensam "150 kg" vore fel
 om någon sätter sig på pallen. Ryggen anges dessutom som `85L` i måttlistan och
 `Rückenhöhe: 83cm` två rader ned.
+
+## Steg 7 och 8: skrivet, och SKU-krocken bekräftad en gång till
+
+Åtta texter skrivna, alla fortfarande `visible: false`. Facit (längd + hash på
+den synliga texten) gav **8 av 8 exakta** — den lagrade texten är bevisat samma
+som den som passerade grindarna, inte en avskrift som kan ha drivit.
+
+| id8 | tecken | hash | slug |
+|---|--:|--:|---|
+| `5e2dee74` | 2 668 | 997508164 | reclinerfatolj-gungande-chenille |
+| `e76002c1` | 2 071 | 881295521 | tv-fatolj-mugghallare-135 |
+| `17620f5b` | 2 137 | 240479501 | reclinerfatolj-fotpall-130-grader |
+| `b09d20b7` | 2 164 | 97963060 | snurrfatolj-fotpall-hojdjusterbar |
+| `b01d8af2` | 1 968 | 224037783 | sammetsfatolj-fotpall-33-cm-ben |
+| `ca92e3ce` | 2 040 | 956607094 | fatolj-skandinavisk-stil-gummitra |
+| `90caeb9d` | 2 162 | 537429801 | djup-fatolj-250-kg-manchesterlook |
+| `beacff5a` | 1 693 | 401044344 | vilstol-bjork-femstegs-fotstod |
+
+### ☠️ Två av åtta bar SAMMA SKU före rundan
+
+De gamla SKU:erna lästes ut vid skrivningen, och de bekräftar husets öppna
+punkt om att KROCKEN SKAPAS AV IMPORTEN:
+
+| id8 | SKU före | SKU efter |
+|---|---|---|
+| `17620f5b` | **`FP-relaxsessel-mit-ottomane`** | `FP-reclinerfatolj-fotpall` |
+| `b01d8af2` | **`FP-relaxsessel-mit-ottomane`** | `FP-sammetsfatolj-fotpall-33` |
+| `e76002c1` | `FP-relaxsessel-mit-fu` | `FP-tv-fatolj-mugghallare` |
+| `5e2dee74` | `FP-relaxsessel-drehbarer` | `FP-reclinerfatolj-gungande` |
+| `b09d20b7` | `FP-sessel-mit-verstellbarem` | `FP-snurrfatolj-fotpall` |
+| `ca92e3ce` | `FP-sessel-im-skandi-design` | `FP-fatolj-skandinavisk-stil` |
+| `90caeb9d` | `FP-sessel-mit-tiefer` | `FP-djup-fatolj-250-kg` |
+| `beacff5a` | `FP-relaxsessel-ruheliege` | `FP-vilstol-bjork-femstegs` |
+
+Två olika produkter — en ottoman-recliner på 3 689 kr och ett sammetsset på
+2 069 kr — delade artikelnumret i butiken. Det är inte poleringen som skapat
+det: 24-teckenkapningen på den TYSKA sluggen ger samma sträng för varje
+`Relaxsessel mit Ottomane…`, och familjen har fler av dem.
+
+⚠️ `FP-relaxsessel-mit-fu` är samma regel som kapar mitt i `Fußstütze`. Regeln
+bryter på hela ord i den latiniserade sluggen, och `fu` ÄR ett helt ord där —
+`ß` och `ü` faller bort i sluggifieringen.
+
+**Rundan lagade åtta av dem på köpet.** Men svepet i punkt #272 står kvar: den
+här familjen har 106 utkast, och kapningen träffar dem alla lika.
