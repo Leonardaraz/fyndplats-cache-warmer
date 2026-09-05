@@ -1,7 +1,16 @@
 // Enda sanningskälla för det SYNLIGA Google-betyget (sidfotens badge, startsidans
-// trust-rader och /omdomen). Uppdatera HÄR när Google-betyget eller antalet
-// omdömen ändras — hårdkoda det inte i komponenterna (det har drivit isär förr:
-// "21" på 6 ställen som missades vid uppdatering).
+// trust-rader och /omdomen). Uppdatera HÄR när Google-betyget ändras — hårdkoda
+// det inte i komponenterna (det har drivit isär förr: "21" på 6 ställen som
+// missades vid uppdatering).
+//
+// ANTALET OMDÖMEN VISAS INTE NÅGONSTANS, med flit. Det var handavläst, och det
+// betyder att det var sant precis den dagen någon läste av det. 2026-09-05 tog
+// Google bort nio omdömen från profilen i ett av sina policysvep, och sajten
+// stod kvar och påstod 38 tills Leonard råkade titta. Ett tal om den egna
+// verksamheten som bara är sant mellan avläsningarna ska inte stå på sidan.
+// Betyget stannar (det rör sig långsamt och länken till profilen gör det
+// granskbart); räkneverket är borta. Vill vi ha tillbaka antalet är vägen att
+// ge Business Profile-API:t sina credentials — inte att skriva in en ny siffra.
 //
 // VIKTIGT: detta är ENDAST synlig text. Lägg INTE in det som `aggregateRating`
 // i JSON-LD på butiks-/Organization-entiteten — det är ett "self-serving rating"
@@ -17,23 +26,17 @@
 //
 // Den här filen hålls REN (inga fetch-anrop, inga next-beroenden) så urvals-
 // regeln går att testa med `node --test`. Hämtningen bor i social-proof-live.ts.
+// Avläst på Google-profilen 2026-09-04. Handavläst tills Business Profile-API:t
+// får credentials (lib/google-reviews.ts) — då tar det riktiga betyget över
+// automatiskt och den här konstanten blir reserv.
 export const GOOGLE_RATING = "4,9";
-// Avläst på Google-profilen 2026-09-04: 4,9 · 38 recensioner.
-// Handavläst tills Business Profile-API:t får credentials (lib/google-reviews.ts) —
-// då tar de riktiga siffrorna över automatiskt och den här konstanten blir reserv.
-export const GOOGLE_REVIEW_COUNT = 38;
-export const GOOGLE_REVIEWS_LABEL = `${GOOGLE_REVIEW_COUNT} omdömen`;
 
 export interface SocialProof {
   /** Betyget som text med svensk decimalkomma, t.ex. "4,9". */
   rating: string;
   /** Samma betyg som tal, för stjärnor och AnimatedRating. */
   ratingValue: number;
-  /** Totalt antal omdömen på profilen, även de stjärn-bara. */
-  count: number;
-  /** Färdig etikett: "33 omdömen", "1 omdöme". */
-  label: string;
-  /** true = siffrorna kom från Google just nu, false = handavlästa reserven. */
+  /** true = betyget kom från Google just nu, false = handavlästa reserven. */
   live: boolean;
 }
 
@@ -42,28 +45,21 @@ export function formatRating(value: number): string {
   return value.toFixed(1).replace(".", ",");
 }
 
-/** Svensk pluralform — "1 omdöme" men "33 omdömen". */
-export function reviewsLabel(count: number): string {
-  return `${count} ${count === 1 ? "omdöme" : "omdömen"}`;
-}
-
 export const FALLBACK_SOCIAL_PROOF: SocialProof = {
   rating: GOOGLE_RATING,
   ratingValue: Number(GOOGLE_RATING.replace(",", ".")),
-  count: GOOGLE_REVIEW_COUNT,
-  label: GOOGLE_REVIEWS_LABEL,
   live: false,
 };
 
 /**
  * Väljer mellan Googles siffror och reserven.
  *
- * ALLT-ELLER-INGET med flit: ett live-antal ihop med ett handavläst snittbetyg
- * vore en siffra som inte finns någonstans. Saknas eller är någon av dem
- * orimlig faller hela paret tillbaka, så de två alltid hör ihop.
+ * Antalet VISAS inte längre (se noten överst), men det läses fortfarande — som
+ * grind. `count > 0` är kvittot på att profilen faktiskt svarade med data; ett
+ * snittbetyg utan ett enda omdöme bakom sig är inget betyg.
  *
  * Fail-open: getGoogleReviews svarar `{count: 0, average: null}` både när env
- * saknas och när anropet failar. Båda ska ge reserven, inte "0 omdömen".
+ * saknas och när anropet failar. Båda ska ge reserven, inte ett tomt betyg.
  */
 export function resolveSocialProof(
   live: { count?: number | null; average?: number | null } | null | undefined,
@@ -76,8 +72,6 @@ export function resolveSocialProof(
   return {
     rating: formatRating(average),
     ratingValue: average,
-    count,
-    label: reviewsLabel(count),
     live: true,
   };
 }

@@ -61,29 +61,6 @@ function fineHover(): boolean {
   return typeof matchMedia !== "undefined" && matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
 
-// Räknar upp 0 → target när komponenten mountar (SSR/no-JS/reduced → target direkt).
-function useCountUp(target: number, durationMs = 1500): number {
-  const [v, setV] = useState<number | null>(null);
-  useEffect(() => {
-    if (reducedMotion()) {
-      setV(target);
-      return;
-    }
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / durationMs);
-      const e = 1 - Math.pow(1 - t, 3);
-      setV(Math.round(target * e));
-      if (t < 1) raf = requestAnimationFrame(tick);
-      else setV(target);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, durationMs]);
-  return v ?? target;
-}
-
 function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
   const ref = useRef<HTMLLIElement>(null);
   const [reveal, setReveal] = useState<"init" | "armed" | "show">("init");
@@ -291,17 +268,14 @@ function Marquee({ reviews }: { reviews: GoogleReview[] }) {
 
 export function GoogleReviews({
   reviews,
-  count,
   average,
   profileUrl,
 }: {
   reviews: GoogleReview[];
-  count: number;
   average: number | null;
   profileUrl?: string;
 }) {
   const [showAll, setShowAll] = useState(false);
-  const shownCount = useCountUp(count);
   if (reviews.length === 0) return null;
 
   const INITIAL = 6;
@@ -332,9 +306,7 @@ export function GoogleReviews({
               fälla som ratingSummary() redan stängt på produktsidan. */}
           <Stars rating={average ?? 0} />
           <strong className="greviews-avg">{avg}</strong>
-          <span className="greviews-count">
-            · <span className="greviews-count-num">{shownCount}</span> omdömen
-          </span>
+          <span className="greviews-of">av 5</span>
           <span className="greviews-verified">Publika på Google</span>
         </div>
       </div>

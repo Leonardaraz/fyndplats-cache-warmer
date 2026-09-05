@@ -274,9 +274,13 @@ export default async function Home() {
                   Allt från EU-lager <span className="ht-sub">– ingen importtull</span>
                 </a>
                 <a className="ht-goog" href="/omdomen">
+                  {/* Siffran och skalan står ihop — "4,9 av 5" är ETT
+                      påstående. Stjärnorna är beviset och kommer efter, källan
+                      sist. Samma ordning som i sidfoten. */}
                   <span className="ht-score">{proof.rating}</span>
+                  <span className="ht-sub">av 5</span>
                   <Stars rating={Number(proof.rating.replace(",", ".")) || 5} className="ht-stars" aria-hidden />
-                  <span className="ht-sub">Google · {proof.label}</span>
+                  <span className="ht-sub">på Google</span>
                 </a>
               </div>
             </div>
@@ -357,7 +361,7 @@ export default async function Home() {
           {/* Stjärnan som SVG, inte som ⭐-emoji: de tre andra märkena är
               enfärgade streckikoner i accentfärgen, och en gul färgemoji bredvid
               dem läser som ett främmande element i raden. */}
-          <a className="uspitem" href="/omdomen"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.2l2.7 5.5 6 .9-4.35 4.24 1.03 6-5.38-2.83L6.62 19.84l1.03-6L3.3 9.6l6-.9L12 3.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>Google {proof.rating} ({proof.label})</a>
+          <a className="uspitem" href="/omdomen"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.2l2.7 5.5 6 .9-4.35 4.24 1.03 6-5.38-2.83L6.62 19.84l1.03-6L3.3 9.6l6-.9L12 3.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>{proof.rating} av 5 på Google</a>
         </div>
       </div>
 

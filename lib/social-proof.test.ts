@@ -3,28 +3,19 @@ import assert from "node:assert/strict";
 import {
   FALLBACK_SOCIAL_PROOF,
   GOOGLE_RATING,
-  GOOGLE_REVIEW_COUNT,
   formatRating,
   resolveSocialProof,
-  reviewsLabel,
 } from "./social-proof.ts";
 
 // Bakgrund (2026-08-19): live-datan från Business Profile-API:t nådde bara
-// recensionskorten på /omdomen. Antalet i sidfoten, på startsidan och i
+// recensionskorten på /omdomen. Betyget i sidfoten, på startsidan och i
 // /omdomen-rubriken satt kvar på det handavlästa värdet i den här filen — att
 // sätta credentials hade alltså sett ut att fungera medan tre av fyra ytor
 // visade en frusen siffra. resolveSocialProof är den grind som fixar det.
-
-describe("reviewsLabel", () => {
-  it("böjer svenskan rätt i singular", () => {
-    assert.equal(reviewsLabel(1), "1 omdöme");
-  });
-
-  it("plural för allt annat", () => {
-    assert.equal(reviewsLabel(0), "0 omdömen");
-    assert.equal(reviewsLabel(33), "33 omdömen");
-  });
-});
+//
+// Antalet omdömen visas inte längre någonstans (2026-09-05, se noten överst i
+// social-proof.ts), men count läses fortfarande som GRIND — därav att fallen
+// nedan fortsätter mata in det.
 
 describe("formatRating", () => {
   it("svensk decimalkomma med exakt en decimal", () => {
@@ -44,18 +35,15 @@ describe("resolveSocialProof", () => {
     assert.deepEqual(p, {
       rating: "4,8",
       ratingValue: 4.8,
-      count: 41,
-      label: "41 omdömen",
       live: true,
     });
   });
 
   it("faller tillbaka när env saknas — getGoogleReviews svarar då EMPTY", () => {
-    // Exakt formen på EMPTY i lib/google-reviews.ts. Det får ALDRIG bli
-    // "0 omdömen" på sidan; det ser ut som att butiken inte har några.
+    // Exakt formen på EMPTY i lib/google-reviews.ts. Det får ALDRIG ge ett
+    // tomt eller nollställt betyg på sidan.
     assert.deepEqual(resolveSocialProof({ count: 0, average: null }), FALLBACK_SOCIAL_PROOF);
     assert.equal(FALLBACK_SOCIAL_PROOF.live, false);
-    assert.equal(FALLBACK_SOCIAL_PROOF.count, GOOGLE_REVIEW_COUNT);
     assert.equal(FALLBACK_SOCIAL_PROOF.rating, GOOGLE_RATING);
   });
 
@@ -66,8 +54,8 @@ describe("resolveSocialProof", () => {
   });
 
   it("allt-eller-inget: ett halvt svar blandas aldrig med reserven", () => {
-    // Ett live-ANTAL ihop med ett handavläst SNITT vore en siffra som inte
-    // finns någonstans — varken hos oss eller hos Google.
+    // count är grinden: ett snittbetyg utan ett enda omdöme bakom sig, eller
+    // omdömen utan snitt, är inget svar — då gäller reserven.
     assert.deepEqual(resolveSocialProof({ count: 41, average: null }), FALLBACK_SOCIAL_PROOF);
     assert.deepEqual(resolveSocialProof({ count: 0, average: 4.8 }), FALLBACK_SOCIAL_PROOF);
   });
@@ -85,8 +73,22 @@ describe("resolveSocialProof", () => {
     );
   });
 
-  it("ett enda live-omdöme böjs rätt", () => {
-    assert.equal(resolveSocialProof({ count: 1, average: 5 }).label, "1 omdöme");
+  it("ett enda omdöme räcker som grind", () => {
+    assert.deepEqual(resolveSocialProof({ count: 1, average: 5 }), {
+      rating: "5,0",
+      ratingValue: 5,
+      live: true,
+    });
+  });
+
+  it("resultatet bär inget antal — det ska inte gå att visa av misstag", () => {
+    // Skyddar det som den här ändringen handlar om: ett handavläst antal som
+    // stod kvar medan Google tog bort nio omdömen ur profilen.
+    assert.deepEqual(Object.keys(FALLBACK_SOCIAL_PROOF).sort(), ["live", "rating", "ratingValue"]);
+    assert.deepEqual(
+      Object.keys(resolveSocialProof({ count: 41, average: 4.8 })).sort(),
+      ["live", "rating", "ratingValue"],
+    );
   });
 
   it("reserven är intern konsistent — rating och ratingValue säger samma sak", () => {
@@ -94,6 +96,5 @@ describe("resolveSocialProof", () => {
       FALLBACK_SOCIAL_PROOF.rating,
       formatRating(FALLBACK_SOCIAL_PROOF.ratingValue),
     );
-    assert.equal(FALLBACK_SOCIAL_PROOF.label, reviewsLabel(FALLBACK_SOCIAL_PROOF.count));
   });
 });
