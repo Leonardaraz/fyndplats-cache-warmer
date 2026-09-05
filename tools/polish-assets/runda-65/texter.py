@@ -40,7 +40,7 @@ KONSTLADER = (
 )
 BOJTRA = (
     "Ramen är böjd träfanér: tunna skikt trä limmade och formade under tryck. "
-    "Det är inte massivt trä, och det är avsikten — fanéren fjädrar lätt när "
+    "Det är inte massivt trä, och det är avsikten — fanéret fjädrar lätt när "
     "du sätter dig, vilket ger stolen dess mjuka rörelse."
 )
 SKOTSEL_TYG = (
@@ -125,7 +125,7 @@ PRODUKTER = [
             ("Hur många ryggvinklar har den?",
              "Tretton fasta lägen, från nästan upprätt till helt platt."),
             ("Hur mycket väger den?",
-             "7 kg. Det är rundans lättaste möbel och den flyttas med en hand."),
+             "7 kg. Den lyfts och flyttas med en hand."),
             ("Behöver den monteras?",
              "Nej, den kommer färdig i ett paket på 112 × 14 × 51 cm."),
             ("Vill du hellre sitta högre?",

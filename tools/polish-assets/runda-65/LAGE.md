@@ -152,3 +152,83 @@ så syskonets länk pekade på en slug som inte längre fanns och jobbet föll p
 länkgrinden i stället. Ett prov som fäller på fel grind ser ut som ett prov.
 
 **34 av 34 nu**, alla på rätt grind, noll tomma mutationer.
+
+## Publicerad 2026-09-05 — åtta sidor live, live-grinden ren
+
+| id8 | slug | SKU | pris |
+|---|---|---|--:|
+| `db645ff8` | golvfatolj-fallbar-13-lagen | FP-golvfatolj-fallbar-13 | 899 |
+| `88425b27` | fatolj-fotpall-bojtra-linnelook | FP-fatolj-fotpall-bojtra | 1 249 |
+| `03c9d570` | liten-fatolj-60-cm-chenille | FP-liten-fatolj-60-cm | 1 279 |
+| `bb7b7bd4` | loungefatolj-bjorkfaner-vippande | FP-loungefatolj-bjorkfaner | 1 399 |
+| `89c89322` | snurrfatolj-armlos-35-cm-dyna | FP-snurrfatolj-armlos-35-cm | 2 049 |
+| `3dab61f0` | konstladerfatolj-med-fotpall-svart | FP-konstladerfatolj-fotpall | 2 199 |
+| `eb400961` | fatolj-pa-medar-konstlader-22-cm | FP-fatolj-medar-konstlader | 2 699 |
+| `2823c605` | reclinerfatolj-snurrfot-130-grader | FP-reclinerfatolj-snurrfot | 4 279 |
+
+Kvitton, i den ordning de togs:
+
+| grind | utfall |
+|---|---|
+| lint mot texter.py | 0 fel i 8 produkter |
+| mutationstest | **34 av 34** på rätt grind, noll tomma |
+| ordgrind mot `skrivning.json` | 0 fel — och den hittade två riktiga (nedan) |
+| facit mot Wix efter Steg 7 | **8 av 8 `lika`** — samma längd OCH hash |
+| bilder efter Steg 9 | 39 bilder, 39 svenska alt-texter, alla olika |
+| kategori | 8 av 8 i BÅDE Alla produkter och Hem & Inredning |
+| SKU mot HELA katalogen | 5 499 produkter, 55 sidor, markören slut → **noll krockar** |
+| prisgrinden (Steg 4) | 8 av 8 `stammer: true`, x1,2 charm99 |
+| Steg 8 + 13 | `visible: true` på produkt OCH variant, priset oförändrat |
+| mappningsstämpeln | `needsAiPolish: false`, `draftStatus: published` |
+| **live-grinden (Steg 12/14)** | **8 av 8 `200` och `lika` mot facit** |
+
+### ☠️ Ordgrinden fångade två fel som inline-skrivning hade publicerat
+
+Batch 64 mätte att fem inline-skrivna produkter gav nio fel mot noll för tre som
+gick via fil. Den här rundan är kvittot på VARFÖR — filen gick att `grep`:a, och
+utan svensk stavningskontroll i miljön blev korpusen alla tidigare rundors
+texter: **ett stavfel är per konstruktion ett ord som ingen tidigare runda har
+använt**, så listan över osedda ord är kort nog att läsas med ögonen.
+
+| fynd | vad det var |
+|---|---|
+| ☠️ `rundans` | *"Det är rundans lättaste möbel"* i ett FAQ-svar — poleringens eget processpråk, i kundtext. Klart-kriteriet förbjuder uttryckligen jämförelser som syftar på omgången: den är sann om just de åtta och blir tyst falsk vid nästa runda. |
+| `fanéren` | `faner` är ett ETT-ord — bestämd form är `fanéret`. Stod i det DELADE böjträ-blocket, alltså på två produkter. |
+
+### ☠️ `wix.request` tar kroppen i `body`, inte i `data` — och felet pekar åt fel håll
+
+Första Steg 7-försöket skickade `data: {product: {...}}`. Wix svarade:
+
+```
+400  product is invalid:
+     `-- revision must not be empty
+```
+
+Revisionen var satt (en guard i koden bevisade det — den fyrade aldrig). Hela
+KROPPEN slukades, och Wix rapporterade då den första saknade obligatoriska
+fältet i en tom produkt. **Felmeddelandet namngav alltså ett fält som var rätt.**
+`data` är svarets nyckel (`response.data`), inte förfrågans.
+
+Husets regel speglad en gång till: ett svar utan fel är inget kvitto — och ett
+svar MED fel är inte heller alltid en dom över det fältet det pekar på.
+
+### ⚠️ Två saker att inte tolka som fel nästa gång
+
+1. **PATCH-svaret på en media-skrivning säger `items: []`.** Det ser ut som att
+   galleriet tömdes. Det är samma projektionsfälla som `getProductMedia`: utan
+   `fields=MEDIA_ITEMS_INFO` är listan tom, inte fel. En separat GET visade
+   5, 5, 5, 5, 5, 5, 5 och 4.
+2. **Kategorikopplingen svarar `totalSuccesses: 1, totalFailures: 1` på varje
+   produkt.** Miss:en är *Alla produkter* med `MANAGED_CATEGORY_OPERATION_NOT_ALLOWED`
+   — en Wix-hanterad kategori som importen redan lagt produkten i. Läsningen
+   (`fields=ALL_CATEGORIES_INFO`) visar båda kategorierna på alla åtta. Samma
+   fynd som runda 64; det står här igen för att det ser ut som ett halvfel.
+
+### ⚠️ Vad rundan INTE gjorde: inget eget Fyndplats-kort
+
+Klart-kriteriet kräver **minst ett eget kort** i galleriet. Rundorna 62, 63 och
+64 har inget heller — alla åtta sidor per runda bär exakt leverantörens fem
+bilder. Det är alltså ingen avvikelse den här rundan inför, utan en stående
+lucka över fyra rundor och ~32 publicerade sidor. Den är medvetet lämnad
+oåtgärdad här (kortbygge är ett eget arbetspass, inte en detalj i slutet av en
+runda) och flaggad som eget ärende i stället för att tigas ihjäl.
