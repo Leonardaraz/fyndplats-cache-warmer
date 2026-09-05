@@ -55,7 +55,10 @@ FARGORD = ["brun", "beige", "vit", "svart", "grå", "ljusgrå", "mörkgrå",
            # grinden inte pröva — den är en uppräkning, inte en härledning.
            "stålgrå", "gråbrun", "mörkblå",
            # runda 67: de mörka träfötterna på fåtöljerna B och E.
-           "mörkbrun"]
+           "mörkbrun",
+           # runda 68: en blek varm neutral (L 90 %) som källan kallar "Beige".
+           # Ordet måste stå här för att grinden ska kunna pröva det alls.
+           "ljusbeige"]
 
 
 # ------------------------------------------------ påstående vs förnekande ---
@@ -108,15 +111,57 @@ def meningar(text):
         yield m, (m + " " + nasta).strip()
 
 
+def _ar_pastaende(m, m_med_nasta):
+    """Är meningen ett PÅSTÅENDE, eller ett förnekande?
+
+    ☠️ EN FRÅGA UTAN SITT SVAR ÄR INGET PÅSTÅENDE. Uppmätt i runda 68:
+       `dela_pa_ankare` lägger en FAQ-fråga i `egna` men dess SVAR i `kors`
+       när svaret bär länken — och då står frågan ensam sist i listan utan
+       nästa mening. "Finns det en med lös fotpall?" lästes som att den här
+       produkten HAR en fotpall, och grinden fällde en text vars enda fel var
+       att den hänvisade vidare.
+
+       Påståendet bor alltid i svaret, och svaret granskas för sig (i `egna`
+       eller mot länkmålets facit i `kors`). En fråga som inte går att döma
+       ska därför inte dömas.
+    """
+    fraga = m.rstrip().endswith("?")
+    if fraga and m_med_nasta.strip() == m.strip():
+        return False
+    sammanhang = m_med_nasta if fraga else m
+    return not NEKORD.search(sammanhang.lower())
+
+
 def pastaenden(text, monster):
     """Träffar på monster som INTE ligger i ett förnekande."""
     ut = []
     for m, m_med_nasta in meningar(text):
         for tr in monster.finditer(m):
-            sammanhang = m_med_nasta if m.rstrip().endswith("?") else m
-            if not NEKORD.search(sammanhang.lower()):
+            if _ar_pastaende(m, m_med_nasta):
                 ut.append((tr.group(0), m))
     return ut
+
+
+def pastar_i_listan(rader, stam):
+    """Nämns `stam` som ett PÅSTÅENDE i någon av de färdigdelade meningarna?
+
+    ☠️ Runda 68: utrustningsgrinden kunde inte skilja ett påstående från ett
+       FÖRNEKANDE, medan materialgrinden kunde det hela tiden. Familj G har
+       inget löst fotstöd, och dess FAQ säger just det — "Ingår det en
+       fotpall?" / "Nej, och den behövs inte" — varpå grinden fällde en text
+       vars enda fel var att den svarade kunden på frågan.
+
+    ⚠️ Regeln om förnekande bor i `_ar_pastaende` och delas med `pastaenden`.
+       En egen kopia här hade blivit den tvilling huset alltid varnar för.
+    """
+    bitar = [x.strip() for x in rader if x and x.strip()]
+    for i, m in enumerate(bitar):
+        if stam not in m.lower():
+            continue
+        nasta = bitar[i + 1] if i + 1 < len(bitar) else ""
+        if _ar_pastaende(m, (m + " " + nasta).strip()):
+            return True
+    return False
 
 
 # ------------------------------------------------------------- SKU-regeln ---
