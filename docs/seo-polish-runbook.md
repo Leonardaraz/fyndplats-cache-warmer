@@ -2932,6 +2932,95 @@ konkatenerad Python-sträng är ett syntaxfel**, inte en radbrytning. Skriptet f
 på `"…" \n "…"` och skrev ingenting alls — vilket är rätt utfall, men bara för
 att skrivningen låg sist i filen.
 
+### ☠️ Kategorikopplingens kvitto är EVENTUELLT KONSISTENT — läs inte tillbaka direkt (2026-09-05)
+
+`bulk/categories/add-item` svarade utan fel på alla åtta produkterna, och
+återläsningen i nästa anrop visade **en enda kategori** — `05e96cd6`
+("All Products"), alltså den som importen själv satt. De två kökskategorier som
+just skrivits fanns inte där.
+
+Det ser exakt ut som en misslyckad koppling, och den frestande åtgärden är att
+skriva om — vilket hade blivit en loop som aldrig blir klar, eftersom
+skrivningen hela tiden fungerade.
+
+Facit blev en produkt från FÖRRA rundan, kopplad på samma sätt och sedan länge
+publicerad. Den bar alla tre. Alltså var det inte formen på anropet.
+
+Isolerat efteråt, och det är hela poängen med att mäta i stället för att gissa:
+
+| läsning | tidpunkt | kategorier |
+|---|---|---|
+| `GET /products/{id}?fields=DIRECT_CATEGORIES_INFO` | direkt efter skrivningen | **1** |
+| `POST /products/query` med samma projektion | någon minut senare | **3** |
+| `GET /products/{id}` med samma projektion | långt efteråt | **3** |
+
+Tredje raden är den som avgör saken: **skillnaden var TIDEN, inte endpointen.**
+Utan den hade lärdomen blivit "använd query i stället för GET" — en regel som
+är fel och som hade gömt den riktiga.
+
+Kvittot ska alltså tas efter propageringen, och en enda kategori i svaret
+strax efter en skrivning är inget bevis på något. Referenspunkten som gör det
+avgörbart på sekunder är en produkt från en tidigare runda: bär den sina
+kategorier är formen på anropet rätt.
+
+### ☠️ `MEDIA_ITEMS_INFO` gäller ÅTERLÄSNINGEN — en nolla där ser ut som raderade bilder
+
+Runbokens projektionsfälla är gammal, men den bet på ett nytt ställe: i
+**verifieringen**, inte i läsningen.
+
+Publiceringens återläsning frågade efter `PLAIN_DESCRIPTION` och
+`VARIANT_OPTION_CHOICE_NAMES` — och rapporterade `antalBilder: 0` på alla åtta
+produkterna, minuter efter att galleriet skrivits och lästs tillbaka som
+komplett.
+
+Läst rakt av betyder den nollan "publiceringens `variantsInfo`-PATCH tömde
+galleriet", och den naturliga reaktionen är att skriva om bilderna. Det hade
+varit en riktig, förstörande skrivning mot ett korrekt tillstånd — utlöst av en
+projektion som utelämnade fältet.
+
+Mätt med `fields=MEDIA_ITEMS_INFO` i stället: 39 bilder, noll utan alt-text,
+exakt de tal galleriskrivningen lämnade. Ingenting hade hänt.
+
+**Regeln: en verifiering måste be om precis de fält den tänker döma på.** Ett
+utelämnat fält och ett tömt fält ser likadana ut i ett svar — och det är i en
+KONTROLL den förväxlingen kostar mest, för där leder den till en åtgärd.
+
+### ⚠️ Färgsyskonens kort går inte att kvittera med ögat — bara med filnamnet
+
+Sex av rundans åtta var färgsyskon till två modeller, fyra av dem samma
+21-litersugn i gräddvit, svart, silver och grå. Två av källbilderna är
+bevisligen **samma render omfärgad**.
+
+Ögongranskningen av kortarket gäller fortfarande och är obligatorisk — den
+fångar en rubrik som lovar något beskärningen tagit bort. Men den kan inte
+avgöra det här: fyra kort med rubrikerna "Gräddvit", "Svart", "Silver" och
+"Grå" ser rimliga ut i vilken ordning som helst, och ett förväxlat par är
+osynligt.
+
+Kvittot är mekaniskt i stället: varje korts foto är produktens EGEN huvudbild,
+kontrollerat i kod mot bild→produkt-listan (01/06/11/16/21/26/31/36 i
+`bilder.txt`). Samma grind fäller också om en bild hamnar i två gallerier.
+
+**De två kontrollerna svarar på olika frågor.** Ögat: *visar fotot det
+rubriken lovar?* Koden: *är det den här produktens foto?* Ingen av dem
+ersätter den andra, och på färgsyskon är den andra den som räddar dig.
+
+### ⚠️ Dubblett INOM ett galleri är inte dubblett MELLAN syskon
+
+Bildplanen ville först stryka den grå ugnens närbild på den tända luckan, med
+motiveringen att den är en omfärgad kopia av silverugnens.
+
+Det är fel jämförelse. En kund ser **en** sida i taget, och den grå ugnens
+interiörbild är en korrekt bild av den grå ugnen. Att stryka den hade gjort
+sidan magrare än sitt syskon utan att göra den sannare.
+
+Det som däremot ska strykas är en bild som dubblerar en ANNAN bild i SAMMA
+galleri — här en miljöbild i samma kök, samma vinkel, som en annan redan
+visade. Den ger kunden ingenting nytt att titta på.
+
+Regeln: **avdubblera inom galleriet, inte mellan syskonen.** Syskonen ska se
+lika kompletta ut, och de gör det just genom att var och en visa sin egen färg.
+
 ### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
 
 Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i
