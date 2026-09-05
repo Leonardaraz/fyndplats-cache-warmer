@@ -10,6 +10,7 @@ import {
 import type { RecoProduct } from "../lib/products";
 import { tightFillUrl } from "../lib/wix-image";
 import { EU_STOCK_NOTE_SHORT } from "../lib/shipping";
+import { normaliseraKundvagn } from "../lib/cart-shape";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -31,19 +32,32 @@ let clientPromise: Promise<{ client: any; currentCart: any }> | null = null;
 function getClient() {
   if (!clientPromise) {
     clientPromise = (async () => {
+      // Cart API v2 för vagnen, @wix/redirects kvar för kassa-adressen.
+      //
+      // Jag tog först bort redirects helt och byggde tacksides-returen på en
+      // egen ?origin=-parameter. Det var fel: Redirects-API:t är INTE med i
+      // det som tas bort 1 februari 2027 (bara Cart V1 och Checkout V1 är),
+      // och createRedirectSession med callbacks är Wix DOKUMENTERADE sätt att
+      // få tillbaka kunden till en egen tacksida. Min parameter var en gissning
+      // som ersatte något som redan fungerade i produktion.
       const [sdk, ecom, redir] = await Promise.all([
         import("@wix/sdk"),
         import("@wix/ecom"),
         import("@wix/redirects"),
       ]);
+      // redir.redirects, INTE redir: paketets toppnivå är ett hölje runt
+      // namnrymden. Skickar man in modulen rakt av blir
+      // client.redirects.createRedirectSession undefined, anropet kastar, och
+      // catch:en nedan sväljer det tyst — varje köp hade tagit reservvägen
+      // utan att någon märkt det. Samma uppackning som produktionen gör.
       const client = sdk.createClient({
-        modules: { currentCart: ecom.currentCart, redirects: redir.redirects },
+        modules: { currentCart: ecom.currentCartV2, cart: ecom.cartV2, redirects: redir.redirects },
         auth: sdk.OAuthStrategy({
           clientId: HEADLESS_CLIENT_ID,
           tokens: JSON.parse(Cookies.get("session") || '{"accessToken":{},"refreshToken":{}}'),
         }),
       });
-      return { client, currentCart: ecom.currentCart };
+      return { client, currentCart: ecom.currentCartV2 };
     })();
   }
   return clientPromise;
@@ -92,7 +106,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const { client } = await getClient();
-      setCart(await client.currentCart.getCurrentCart());
+      setCart(normaliseraKundvagn(await client.currentCart.getCurrentCart()));
     } catch { setCart(null); Cookies.remove("fp_cart"); }
   }, []);
 
@@ -116,8 +130,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       const ref: any = { appId: STORES_APP_ID, catalogItemId: id };
       if (variantId) ref.options = { variantId };
-      const res: any = await client.currentCart.addToCurrentCart({ lineItems: [{ catalogReference: ref, quantity: Math.max(1, Math.floor(quantity)) }] });
-      setCart(res.cart); persistTokens(client); setOpen(true);
+      // v2: fältet heter catalogItems (v1 kallade det lineItems).
+      const res: any = await client.currentCart.addLineItemsToCurrentCart({
+        catalogItems: [{ catalogReference: ref, quantity: Math.max(1, Math.floor(quantity)) }],
+      });
+      setCart(normaliseraKundvagn(res)); persistTokens(client); setOpen(true);
       Cookies.set("fp_cart", "1", { expires: 30 });
     } finally { setBusy(false); }
   }, []);
@@ -125,7 +142,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const remove = useCallback(async (lineId: string) => {
     const { client } = await getClient();
     const res: any = await client.currentCart.removeLineItemsFromCurrentCart([lineId]);
-    setCart(res.cart);
+    setCart(normaliseraKundvagn(res));
   }, []);
 
   const updateQty = useCallback(async (lineId: string, quantity: number) => {
@@ -133,8 +150,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setBusy(true);
     try {
       const { client } = await getClient();
-      const res: any = await client.currentCart.updateCurrentCartLineItemQuantity([{ _id: lineId, quantity }]);
-      setCart(res.cart);
+      // v2: lineItemId (inte _id), och antalet ligger i { newQuantity }.
+      const res: any = await client.currentCart.updateLineItemsInCurrentCart({
+        lineItems: [{ lineItemId: lineId, quantity: { newQuantity: quantity } }],
+      });
+      setCart(normaliseraKundvagn(res));
     } finally { setBusy(false); }
   }, [remove]);
 
@@ -145,51 +165,85 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // routar tillbaka till /tack utan items — purchase-eventet behöver det.
       trackBeginCheckout(cart);
       stashPurchaseSnapshot(cart);
-      const { client, currentCart: cc } = await getClient();
-      const { checkoutId }: any = await client.currentCart.createCheckoutFromCurrentCart({ channelType: cc.ChannelType.WEB });
+      const { client } = await getClient();
+
+      // v2 slog ihop kundvagn och kassa till EN entitet: det finns ingen
+      // createCheckoutFromCurrentCart längre. Vagnens id ÄR kassans id, så
+      // det som förut krävde ett extra anrop är nu bara en uppslagning.
+      const aktuell: any = await client.currentCart.getCurrentCart();
+      const cartId: string = aktuell?.cart?._id || aktuell?._id || "";
+      if (!cartId) throw new Error("ingen kundvagn att gå till kassan med");
+
       const origin = window.location.origin;
       const thankYouUrl = `${origin}/tack`;
       const shopUrl = `${origin}/butik`;
 
-      // createRedirectSession bygger den kanoniska checkout-URL:en med rätt
-      // `headlessExternalUrls`. Callbacks → checkout-appens externa länkar:
-      //   thankYouPageUrl → `ecom-typ`  = dit kunden skickas EFTER lyckat köp
-      //                                   (med ?orderId — /tack spårar GA4 purchase)
-      //   postFlowUrl     → `home`      = loggans länk + dit vid avbrutet köp (startsidan)
-      //   cartPageUrl     → `ecom-cart` = dit "Fortsätt handla"-knappen går (butiken)
-      // Den returnerade fullUrl pekar på IAM-cookie-endpointen som 404:ar på
-      // primärdomänen — så vi plockar ut den INRE `redirectUrl` (den riktiga
-      // __ecom/checkout-länken) och navigerar dit direkt. Behåller IAM-bypassen
-      // men kopplar äntligen loggan + "Fortsätt handla" rätt (re-audit #2/#3).
+      // KASSA-ADRESSEN, i två steg med olika roller.
+      //
+      // FÖRST redirect-sessionen — exakt samma anrop som produktionen kör
+      // idag. Wix migreringsguide säger rakt ut att "the checkout ID is the
+      // cart ID in V2", så vagnens id går rakt in där checkoutId ska stå.
+      // Callbacks är hela poängen: thankYouPageUrl är det som gör att kunden
+      // kommer tillbaka till /tack MED ?orderId, och det är den mekanism som
+      // bevisligen fungerar i skarp drift.
+      //
+      // Den returnerade fullUrl pekar på en IAM-endpoint som 404:ar på
+      // primärdomänen, så vi plockar ut den inre riktiga checkout-länken —
+      // samma utplock som produktionen gör.
       let target = "";
+      let vag = "redirect-session";
       try {
         const redirect: any = await client.redirects.createRedirectSession({
-          ecomCheckout: { checkoutId },
+          ecomCheckout: { checkoutId: cartId },
           callbacks: { thankYouPageUrl: thankYouUrl, postFlowUrl: origin, cartPageUrl: shopUrl },
         });
         const fullUrl: string = redirect?.redirectSession?.fullUrl || "";
         const inner = fullUrl ? new URL(fullUrl).searchParams.get("redirectUrl") : null;
-        // Använd den inre URL:en bara om den faktiskt är checkout-appen (inte IAM).
         if (inner && inner.includes("/__ecom/checkout")) target = inner;
-      } catch { /* faller igenom till den manuella URL:en nedan */ }
-
-      // Fallback: den beprövade direkt-URL:en (utan continue-shopping-koppling) om
-      // redirect-sessionen strular — checkout fungerar fortfarande, oförändrat.
-      if (!target) {
-        target = `https://checkout.fyndplats.se/__ecom/checkout?checkoutId=${encodeURIComponent(checkoutId)}&origin=${encodeURIComponent(thankYouUrl)}&headlessClientId=${HEADLESS_CLIENT_ID}`;
+      } catch (e: any) {
+        // Aldrig tyst: faller sessionen ska det gå att se VARFÖR, annars
+        // används reservvägen i månader utan att någon märker det.
+        console.warn("[kassa] redirect-sessionen föll:", e?.message || e);
       }
 
-      // Dölj login/logout-baren på den Wix-hostade kassan så kunden alltid checkar
-      // ut som GÄST. Wix-supportens officiella headless-workaround (ticket juni 2026):
-      // ?hideLoginLogoutBar=true på checkout-URL:en. Login → logout-bytet gav annars
-      // en bugg. Läggs på BÅDA vägarna (redirect-session + fallback) via URL-API:t
-      // (idempotent — set() dubblerar inte param). Fail-safe: kan vi inte parsa
-      // URL:en navigerar vi oförändrat → kassan kan aldrig brytas av detta.
+      // SEDAN v2-adressen som reserv. getCheckoutUrl tar även ett
+      // `currencyCode` — hooken för flera valutor, oanvänd här.
+      //
+      // Den ger en naken ?checkoutId=-adress utan callbacks, så ?origin läggs
+      // på för hand. Den vägen är OPROVAD mot ett riktigt köp; den finns för
+      // att kassan ska öppnas även om redirect-sessionen strular, inte för att
+      // den är likvärdig.
+      if (!target) {
+        vag = "getCheckoutUrl (reserv)";
+        const svar: any = await client.cart.getCheckoutUrl(cartId);
+        target = svar?.checkoutUrl || "";
+        if (!target) throw new Error("kassan gav ingen adress");
+        try {
+          const u = new URL(target);
+          if (!u.searchParams.has("origin")) u.searchParams.set("origin", thankYouUrl);
+          target = u.toString();
+        } catch { /* oparsbar adress → navigera ändå */ }
+      }
+
+      // hideLoginLogoutBar döljer inloggningsraden på den Wix-hostade kassan så
+      // kunden alltid checkar ut som GÄST. Wix-supportens egen headless-
+      // workaround (ärende juni 2026); utan den gav login/logout-bytet en bugg.
+      // headlessClientId säger vilken headless-klient kassan öppnas för — v1
+      // hade den alltid med. Båda sätts bara om de saknas.
+      //
+      // Fail-safe: går adressen inte att parsa navigerar vi oförändrat.
       try {
         const u = new URL(target);
         u.searchParams.set("hideLoginLogoutBar", "true");
+        if (!u.searchParams.has("headlessClientId")) {
+          u.searchParams.set("headlessClientId", HEADLESS_CLIENT_ID);
+        }
         target = u.toString();
-      } catch { /* oparsbar target → navigera ändå */ }
+      } catch { /* oparsbar adress → navigera ändå */ }
+
+      // Vilken väg som användes går annars bara att se genom att slutföra ett
+      // köp. Raden gör det synligt i konsolen utan att någon betalar något.
+      console.info(`[kassa] adress via ${vag}`);
 
       window.location.href = target;
     } catch (e: any) {
@@ -252,6 +306,12 @@ export function CartDrawer({ recommendations = [] }: { recommendations?: RecoPro
   const recos = recommendations.filter((r) => !cartIds.has(r.id)).slice(0, 3);
   const subtotal = cart?.subtotal?.formattedAmount || cart?.priceSummary?.subtotal?.formattedAmount || "";
   const FREE_SHIP = 499;
+  // OBS INFÖR FLERA VALUTOR. Tröskeln är 499 KRONOR, så mätaren måste jämföra
+  // mot butikens valuta — därför `amount` och inte det formaterade beloppet,
+  // som visar KUNDENS valuta (v2 skiljer på de två; v1 gjorde det inte).
+  // Så länge butiken bara säljer i SEK är de identiska. Slås flera valutor på
+  // för merchen blir raden "Du är 200 kr från fri frakt" stående under en
+  // summa i euro. Då ska tröskeln räknas om, inte beloppet bytas ut.
   const subNum = parseFloat(cart?.priceSummary?.subtotal?.amount ?? cart?.subtotal?.amount ?? "0") || 0;
   const remaining = Math.max(0, FREE_SHIP - subNum);
   const shipPct = Math.min(100, Math.round((subNum / FREE_SHIP) * 100));
