@@ -106,9 +106,21 @@ detaljbild.
 | Prisgrind (workflow, åtta körningar) | stämmer |
 | Checksumma fil mot Wix | 8/8 identiska |
 | Alt-texter | 40 st, 0 tomma |
-| Live-grind | ⏳ körs efter ISR-fönstret |
+| Live-grind | **8/8 REN**, 0 orddiffar mot källfilerna |
 
 Filgrinden fällde en riktig sak: `0559bbb2`:s länk**text** lovar "90 cm bred
 bädd" om en systerprodukt, och 90 finns inte i den egna källan. Talet är
 dokumenterat som korsreferens i stället för struket — en länktext som
 beskriver en annan produkt är ett påstående som ska gå att belägga.
+
+## Live-grinden, körd efter ISR-fönstret
+
+Alla åtta sidor svarar 200 på sin nya slug, och orddiffen mot källfilerna är
+noll på var och en (294 / 294 / 294 / 355 / 352 / 352 / 363 / 312 ord).
+`age` låg på 53–79 sekunder, alltså nyrenderade sidor och inte cachat
+innehåll från före skrivningen.
+
+⚠️ En hämtning föll på en tillfällig anslutning (`000`, inte 404) och
+skrevs aldrig till disk — samma sak hände i runda C2. Omkörning gav 200 på
+första försöket. Ett `000` är inte ett fynd; kontrollera att filen finns
+innan grinden körs, annars ser en utebliven hämtning ut som en ren sida.
