@@ -108,7 +108,7 @@ miljöbilder, bild 5 en detalj- eller baksidesbild.
 | Prisgrind (workflow, åtta körningar) | stämmer |
 | Checksumma fil mot Wix | 8/8 identiska |
 | Alt-texter | 40 st, 0 tomma |
-| Live-grind | ⏳ körs — butikens ISR-fönster (300 s) inte utgånget än |
+| Live-grind | **8/8 REN**, 0 orddiffar mot källfilerna |
 
 ☠️ **Filgrinden fyrade på varje korslänk innan den lagades.** En slug bär
 produktens mått (`baddfatolj-190-cm`), och de siffrorna är en ADRESS, inte
@@ -121,3 +121,10 @@ förutspått: `96a6b909`/`c10d0b7e` gav båda 3962 och `79daabe1`/`f8c671b3`
 båda 3007. Färgordet och sluggen byts åt var sitt håll och tar ut varandra.
 Jämförelsen görs per produkt, så den biter ändå — men en summa är blind för
 omkastningar.
+
+## Live-grinden, körd efter ISR-fönstret
+
+Alla åtta sidor svarar 200 på sin nya slug, och orddiffen mot källfilerna är
+noll på var och en (456 / 456 / 456 / 456 / 456 / 358 / 358 / 404 ord).
+Hämtningen gjordes efter en varm träff så `age` låg på 52–60 sekunder — sidorna
+var alltså nyrenderade, inte serverade ur cachen från före skrivningen.
