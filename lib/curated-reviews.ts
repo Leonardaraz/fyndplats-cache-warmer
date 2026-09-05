@@ -9,11 +9,12 @@
 // expanderar resten. Datum är ungefärliga (Google visar bara "för X sedan");
 // de ersätts av exakta datum när API:t är på.
 //
-// Snittbetyg + TOTALantal kommer INTE härifrån utan från getSocialProof()
-// (lib/social-proof-live.ts): Googles egna siffror när API:t svarar, annars
-// reserven i lib/social-proof.ts. Korten nedan (23 st med text) är ett urval —
-// "Se alla på Google" länkar till samtliga. Resten av profilens omdömen är
-// stjärn-bara utan text och har inget att visa här; de räknas ändå in i totalen.
+// Snittbetyget kommer INTE härifrån utan från getSocialProof()
+// (lib/social-proof-live.ts): Googles eget när API:t svarar, annars reserven i
+// lib/social-proof.ts. Korten nedan (23 st med text) är ett urval — "Se alla på
+// Google" länkar till samtliga. Resten av profilens omdömen är stjärn-bara utan
+// text och har inget att visa här. Något TOTALANTAL visas inte längre någonstans;
+// se noten överst i lib/social-proof.ts för varför.
 //
 // KUNDBILDER (`photos`) ÄR OCKSÅ HANDPLOCKADE, OCH MÅSTE VARA DET.
 // Business Profile-API:ts reviews-endpoint returnerar ingen media alls —
@@ -47,7 +48,7 @@
 // bort i samma steg.
 
 import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
-import { GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "./social-proof";
+import { GOOGLE_RATING } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
   {
@@ -250,7 +251,11 @@ export const CURATED_REVIEWS: GoogleReview[] = [
 ];
 
 export const CURATED_RESULT: GoogleReviewsResult = {
-  count: GOOGLE_REVIEW_COUNT,
+  // `count` fyller bara typen. Ingen yta visar ett antal omdömen längre (se
+  // noten överst i lib/social-proof.ts), och den här listan vet ändå inte hur
+  // många profilen har — bara hur många kort som står här. Sätt den inte till
+  // ett påhittat profiltotal.
+  count: CURATED_REVIEWS.length,
   average: Number(GOOGLE_RATING.replace(",", ".")) || null,
   reviews: CURATED_REVIEWS,
 };

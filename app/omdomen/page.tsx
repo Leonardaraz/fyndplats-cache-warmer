@@ -8,17 +8,16 @@ import { AnimatedRating } from "../../components/AnimatedRating";
 
 // "Se alla på Google"-knappen → Fyndplats officiella Google-företagsprofil
 // (delningslänken från profilen). Verifierbart: besökaren klickar och ser alla
-// riktiga omdömen på Google (antalet: GOOGLE_REVIEW_COUNT i lib/social-proof).
+// riktiga omdömen på Google — och hur många de är, där siffran faktiskt är sann.
 // Kan överstyras via GOOGLE_REVIEW_URL.
 const GOOGLE_PROFILE_FALLBACK = "https://share.google/vFyQAMJtWN51kboYA";
 
 // generateMetadata (inte en statisk `metadata`): beskrivningen innehåller
-// betyget och antalet, och de kommer från Google när API:t svarar. En statisk
-// export hade frusit reservsiffrorna i sidans meta medan sidans egen text visade
-// de riktiga.
+// betyget, och det kommer från Google när API:t svarar. En statisk export hade
+// frusit reservsiffran i sidans meta medan sidans egen text visade den riktiga.
 export async function generateMetadata(): Promise<Metadata> {
   const proof = await getSocialProof();
-  const ratingDesc = `Fyndplats har ${proof.rating} av 5 i betyg på Google, baserat på ${proof.label}. Trygg svensk e-handel som kunderna rekommenderar.`;
+  const ratingDesc = `Fyndplats har ${proof.rating} av 5 i betyg på Google. Trygg svensk e-handel som kunderna rekommenderar.`;
   return {
   title: "Omdömen",
   description: ratingDesc,
@@ -33,8 +32,8 @@ export default async function Omdomen() {
   const google = await getGoogleReviews();
   const data = google.reviews.length > 0 ? google : CURATED_RESULT;
   const profileUrl = process.env.GOOGLE_REVIEW_URL || GOOGLE_PROFILE_FALLBACK;
-  // Rubriken och korten ska visa SAMMA siffror. proof är den enda källan:
-  // Googles egna när API:t svarar, annars de handavlästa.
+  // Rubriken och korten ska visa SAMMA betyg. proof är den enda källan:
+  // Googles eget när API:t svarar, annars det handavlästa.
   const proof = await getSocialProof();
 
   return (
@@ -45,7 +44,7 @@ export default async function Omdomen() {
     >
       <div className="ratinghero">
         <AnimatedRating rating={proof.ratingValue || 5} />
-        <div className="ratingsub">Genomsnittligt betyg på Google · baserat på {proof.label}</div>
+        <div className="ratingsub">Genomsnittligt betyg på Google</div>
       </div>
 
       <div className="callout" style={{ textAlign: "center" }}>
@@ -54,7 +53,6 @@ export default async function Omdomen() {
 
       <GoogleReviews
         reviews={data.reviews}
-        count={proof.count}
         average={proof.ratingValue}
         profileUrl={profileUrl}
       />

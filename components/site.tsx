@@ -115,7 +115,7 @@ export async function SiteFooter() {
               klicka på är ett belägg. Ärver sidfotens färg i stället för
               länkblått — betygsraden ska läsa som en uppgift, inte som en
               menypost bland de andra länkarna i footern. */}
-          <a className="grat" href="/omdomen"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">{proof.rating}</b> <span className="star">★★★★★</span> <span className="g-count">({proof.label})</span></a>
+          <a className="grat" href="/omdomen"><span className="g-badge"><GoogleG size={15} /> Google</span> <b className="g-score">{proof.rating}</b> <span className="star">★★★★★</span></a>
           {trustpilotBU && (
             <TrustBox
               businessUnitId={trustpilotBU}
