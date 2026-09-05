@@ -1,0 +1,8 @@
+4ac902ed FP-miniugn-30-liter
+0ceeb412 FP-torkapparat-fem-plan
+d8c2dec6 FP-vattenkokare-1-7-liter
+1121b59a FP-frukostset-svart
+b330de9c FP-frukostset-bikakemonster
+106eafc5 FP-frukostset-snabbkokande
+70b6bfe2 FP-frukostset-temperaturval
+6edbe425 FP-frukostset-fyra-skivor
