@@ -255,3 +255,64 @@ dokumentationen kallar "ett annat jobb". Frågan går till Leonard.
 
 Artikelnummer via `/api/admin/mapping` (workflowen), texter i FIL först,
 lint-grind, mutationstest, kort, kategori, publicering.
+
+-----
+
+## Steg 7/8 klara — och SKU-krocken kommer från IMPORTEN, inte poleringen
+
+Alla åtta bär nu svensk text, svensk slug, svensk seoData och en unik svensk
+SKU. Alla är fortfarande `visible: false`.
+
+| id8 | slug | SKU | rev |
+|---|---|---|--:|
+| 67bd3628 | `gungande-knastol-ljusgra` | `FP-gungande-knastol-ljusgra` | 4 |
+| b97ac1d8 | `gungande-knastol-gra` | `FP-gungande-knastol-gra` | 3 |
+| b5d8eb9c | `gungande-knastol-kram` | `FP-gungande-knastol-kram` | 4 |
+| 6d64de9b | `knastol-bjork-kram` | `FP-knastol-bjork-kram` | 5 |
+| 9d626528 | `knastol-bjork-morkgra` | `FP-knastol-bjork-morkgra` | 4 |
+| c3e0af3f | `knastol-bjork-bla` | `FP-knastol-bjork-bla` | 4 |
+| 05cc1f9c | `knastol-bjork-svart` | `FP-knastol-bjork-svart` | 3 |
+| 9e656e81 | `knastol-bjork-ljusgra` | `FP-knastol-bjork-ljusgra` | 3 |
+
+Verifierat i ett eget pass: texten stämmer mot facit på alla åtta (längd + hash),
+och ett fullständigt variantsvep (`search-variants`, 7 sidor, `avhuggen: false`)
+visar att var och en av de åtta SKU:erna bärs av **exakt en** variant i hela
+katalogen.
+
+### ☠️ Rättelse till uppgift #272: importen skapar krocken, inte poleringen
+
+Uppgift #272 lyder "poleringen skapar krockarna själv". Det är på sin höjd
+halva sanningen. **De åtta utkasten delade redan bara TVÅ SKU:er innan jag rörde
+dem**, och båda var tyska:
+
+| modell | SKU vid importen | produkter |
+|---|---|--:|
+| D | `FP-ergonomischer` | **3** |
+| G | `FP-kniestuhl-ergonomischer` | **5** |
+
+Mekanismen är densamma som fällan i Steg 8, fast tillämpad på den TYSKA titeln.
+`buildSku` tar 24 tecken av slugifierade tokens, och den tyska titeln lägger
+adjektiven först och färgen sist:
+
+```
+Ergonomischer, schaukelnder Kniehocker für Homeoffice, …, Hellgrau
+└ ergonomischer ┘└ schaukelnder ┘  = 26 tecken, alltså bryts det redan här
+```
+
+Färgen — det enda som skiljer syskonen åt — hamnar långt utanför fönstret.
+**Varje färgsyskon i en tysk familj får därför samma SKU vid importen.**
+
+Värre: modell A (`Ergonomischer Kniestuhl, Kniehocker mit Rückenlehne…`) och
+modell E (`Ergonomischer Kniestuhl, Kniehocker Gesundheitsstuhl…`) ger BÅDA
+`FP-ergonomischer-kniestuhl` — sex produkter över två olika modeller på en enda
+SKU.
+
+**Vad det betyder:** Steg 8 är inte kosmetik, det är steget som bryter krocken.
+Och de elva delade SKU:erna på tjugofyra publicerade produkter är sannolikt
+kvarvarande importvärden på sidor där Steg 8 hoppades över — inte något
+poleringen skapade.
+
+## Kvar i rundan
+
+Kort (Steg 9), kategori (Steg 10), läs som kund (Steg 12), stämpla mappningen
+och publicera (Steg 13), live-grind (Steg 14).
