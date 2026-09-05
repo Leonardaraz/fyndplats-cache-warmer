@@ -277,8 +277,9 @@ PRODUKTER = [
                     "smalbenen, så tyngden delas i stället för att samlas i "
                     "svanken. Stolen tål 120 kg och väger själv under åtta kilo, "
                     "vilket gör den lätt att flytta undan när skrivbordet ska "
-                    "användas på vanligt sätt. Den mörkgrå klädseln är den "
-                    "mörkaste av de ljusa tonerna i serien.</p>"),
+                    "användas på vanligt sätt. Den mörkgrå klädseln ligger "
+                    "nära seriens svarta i ton; den ljusgrå är märkbart "
+                    "ljusare.</p>"),
     },
     {
         "kort": "c3e0af3f",

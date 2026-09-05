@@ -16,6 +16,12 @@ import sys
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 import texter  # noqa: E402
 
+# Uppmätt ljushet på sittdynan i bild 1 (se LAGE.md, Steg 4/5). Facit för
+# grind 20 — ett jämförande färgpåstående ska stämma mot pixlarna.
+LJUSHET = {"b5d8eb9c": 227, "6d64de9b": 222, "67bd3628": 181, "9e656e81": 162,
+           "c3e0af3f": 126, "b97ac1d8": 114, "9d626528": 88, "05cc1f9c": 81}
+KROMATISKA = {"c3e0af3f"}   # RGB 97,134,163 — de sju andra är neutrala
+
 # --------------------------------------------------------------- ordlistor ---
 FRAMMANDE = [
     # tyska ur leverantörens text
@@ -203,6 +209,27 @@ def granska(p):
         fel.append("%s: namnet är %d tecken (max 80)" % (k, len(p["name"])))
     if len(p["title"]) > 60:
         fel.append("%s: titeln är %d tecken (max 60)" % (k, len(p["title"])))
+
+    # 20 ☠️ — JÄMFÖRANDE påståenden inom egen batch grindas mot den UPPMÄTTA
+    #     ljusheten (LAGE.md, Steg 4/5). Ett utkast sa "den mörkaste av de ljusa
+    #     tonerna" om en klädsel som mäter 88 och alltså är näst mörkast av fem.
+    #     Superlativ om färg är inte en smaksak — de går att räkna.
+    for m in re.finditer(r"[^.!?]*\b(ljusast\w*|mörkast\w*)\b[^.!?]*[.!?]", s):
+        mening = m.group(0)
+        if "ryggstöd" in mening:
+            continue                      # "enda stol vid ett heldagsarbete"
+        syskon = [LJUSHET[q["kort"]] for q in texter.PRODUKTER
+                  if q["modell"] == p["modell"]]
+        egen = LJUSHET[k]
+        if re.search(r"\bljusast", mening) and egen != max(syskon):
+            fel.append("%s: påstår ljusast men mäter %d, syskonens max är %d"
+                       % (k, egen, max(syskon)))
+        if re.search(r"\bmörkast", mening) and egen != min(syskon):
+            fel.append("%s: påstår mörkast men mäter %d, syskonens min är %d"
+                       % (k, egen, min(syskon)))
+    # 21 — "enda med kulör" får bara den kromatiska säga
+    if re.search(r"enda med kulör", s) and k not in KROMATISKA:
+        fel.append("%s: påstår sig vara enda med kulör men är neutral" % k)
 
     # 19 — färgen ska stå, och bara den egna
     if p["farg"].lower() not in allt.lower():
