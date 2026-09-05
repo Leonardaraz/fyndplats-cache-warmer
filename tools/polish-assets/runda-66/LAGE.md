@@ -33,10 +33,17 @@ spec-tabellen. Uppgift #289; de rörs inte förrän talet är avgjort.
 
 ## Steg 2 — laglighetsgrinden passerar
 
-Ingen stoppklass gäller. Två uppgifter är säkerhetsrelevanta och ska nå kunden:
-**maxlast** och **minsta väggavstånd** (50 cm på kluster A, 80 cm på trion).
+Ingen stoppklass gäller. Säkerhetsrelevanta uppgifter som ska nå kunden:
+**maxlast** på alla åtta, och **minsta väggavstånd 50 cm** på kluster A.
 Väggavståndet styr var möbeln får stå och skrivs som ett positivt villkor med
 egen rubrik, enligt husregeln — samma form som runda 65:s `2823c605`.
+
+⚠️ **RÄTTAT:** en tidigare version av den här raden sa "80 cm på trion". Det
+talet hör till Lederoptik-kvartetten som valdes bort (uppgift #289) — trion
+och `da6d086a` anger **inget väggavstånd alls**. Det djup de faktiskt behöver
+går ändå att ge kunden, för det är HÄRLETT ur två mått källan anger: trion går
+från 96 cm djup upprätt till 165 cm tillbakalutad, alltså 69 cm mer bakåt och
+framåt tillsammans.
 
 ## Steg 4/5 — sex fynd
 

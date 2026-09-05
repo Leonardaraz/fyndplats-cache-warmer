@@ -50,7 +50,10 @@ ANKARE = re.compile(r'<a href="([^"]*)"[^>]*>(.*?)</a>', re.S)
 #    Lägg till ordet samtidigt som du använder det.
 FARGORD = ["brun", "beige", "vit", "svart", "grå", "ljusgrå", "mörkgrå",
            "gräddvit", "gråbeige", "ljusbrun", "blå", "grön", "grågrön",
-           "röd", "gul", "rosa", "silverfärgad", "creme"]
+           "röd", "gul", "rosa", "silverfärgad", "creme",
+           # runda 66: två uppmätta toner. Ett färgord som inte står här kan
+           # grinden inte pröva — den är en uppräkning, inte en härledning.
+           "stålgrå", "gråbrun", "mörkblå"]
 
 
 # ------------------------------------------------ påstående vs förnekande ---
@@ -145,7 +148,21 @@ _ANKARE_MARK = re.compile(
 
 
 def dela_pa_ankare(html):
-    """(egna meningar, [(mål-slug, mening)]) — meningar med länk hör till målet."""
+    """(egna meningar, [(mål-sluggar, mening)]) — meningar med länk hör till målen.
+
+    ☠️ TVÅ FEL, båda uppmätta i runda 66, och tillsammans stängde de av
+       färggrinden på korshänvisningar HELT utan att någon grind blev röd:
+
+    1. Markörborttagningen `\x00[^\x01]*\x01` kunde korsa nästa markörs
+       `\x00` och åt därmed upp separatorn mellan två intilliggande länkar.
+       "stålgrå, gråbrun och mörkgrå" blev "stålgrågråbrunmörkgrå" — och då
+       misslyckas varje ordgränskoll, för orden sitter ihop. Mönstret får
+       inte kunna passera ett `\x00`.
+    2. Bara `mal[0]` tillskrevs meningen. En mening som länkar till tre
+       syskon granskades alltså mot ETT syskons facit, vilket antingen
+       missar fel eller fäller korrekt text. Alla mål returneras nu, och
+       anroparen får pröva mot unionen av deras facit.
+    """
     markerad = _ANKARE_MARK.sub(lambda m: "\x00%s\x01%s\x00" % (m.group(1), m.group(2)),
                                 html)
     text = _blockdela(markerad)      # ☠️ blockslut = meningsslut, se ovan
@@ -154,10 +171,12 @@ def dela_pa_ankare(html):
         mening = mening.strip()
         if not mening:
             continue
-        mal = re.findall(r"\x00([^\x01]+)\x01", mening)
-        ren = re.sub(r"\x00[^\x01]*\x01", "", mening).replace("\x00", "")
+        # Samma fälla som i `ren` nedan: utan `[^\x00…]` sträcker sig
+        # uttrycket in i NÄSTA markör och ger ", \x00slug2" som "slug".
+        mal = re.findall(r"\x00([^\x00\x01]+)\x01", mening)
+        ren = re.sub(r"\x00[^\x00\x01]*\x01", "", mening).replace("\x00", "")
         if mal:
-            kors.append((mal[0], ren))
+            kors.append((mal, ren))
         else:
             egna.append(ren)
     return egna, kors

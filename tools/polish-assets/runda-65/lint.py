@@ -114,14 +114,16 @@ def kor():
             for tal in re.findall(LAST_RE, mening.lower()):
                 if tal not in MAXLAST[k]:
                     fal(k, "maxlast %s finns inte i facit %s" % (tal, MAXLAST[k]))
-        for mal_slug, mening in kors:
-            mk = SLUG2KORT.get(mal_slug)
-            if mk is None:
+        for mal_sluggar, mening in kors:
+            mkn = [SLUG2KORT[s] for s in mal_sluggar if s in SLUG2KORT]
+            if not mkn:
                 continue
+            # ☠️ En mening som länkar till FLERA syskon får nämna allas tal.
+            facit = set().union(*(MAXLAST[m] for m in mkn))
             for tal in re.findall(LAST_RE, mening.lower()):
-                if tal not in MAXLAST[mk]:
+                if tal not in facit:
                     fal(k, "korshänvisning påstår %s om %s, vars facit är %s"
-                        % (tal, mk, MAXLAST[mk]))
+                        % (tal, "/".join(mkn), sorted(facit)))
 
         # ☠️ Vikten förbjuds bara som ETT TAL. Att uttryckligen avstå från att
         #    ange den är inte samma sak som att ange den.
@@ -163,10 +165,12 @@ def kor():
 
         for mening in egna + [rubrikfalt]:
             farggrind(mening, FARG[k], k, "")
-        for mal_slug, mening in kors:
-            mk = SLUG2KORT.get(mal_slug)
-            if mk is not None:
-                farggrind(mening, FARG[mk], mk, "korshänvisningens ")
+        for mal_sluggar, mening in kors:
+            mkn = [s2 for s2 in (SLUG2KORT.get(x) for x in mal_sluggar) if s2]
+            if mkn:
+                # En mening som länkar till flera syskon får nämna allas färger.
+                farggrind(mening, set().union(*(FARG[m] for m in mkn)),
+                          "/".join(mkn), "korshänvisningens ")
 
         # ☠️ Rundans egna materialfällor. Ett FÖRNEKANDE är tillåtet.
         for tr, mening in pastaenden(meningstext, re.compile(r"\bbomull\w*", re.I)):
