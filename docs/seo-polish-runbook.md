@@ -3168,6 +3168,130 @@ sidan.** Facit är butiken — `visible` och slugen i Wix — och grinden ska m�
 mot en FÄRSK rad. Det är samma familj som `jamforelsePris`: läs det kunden
 faktiskt får, men läs det när det faktiskt är byggt.
 
+☠️ **Och ORSAKEN mättes upp i runda 61: det var live-grindens EGEN förhandskörning
+som la 404:an i cachen.** Runda 60 körde `live.py` mot utkasten INNAN publiceringen
+för att bekräfta att de svarade 404 — en rimlig kontroll, och det var just den
+hämtningen som cachade svaret i en timme. Runda 61 hoppade över förhandskörningen
+och fick `200`, `x-vercel-cache: MISS`, `age: 0` på **alla sju sidor i första
+försöket**. Två rundor, två utfall, en enda skillnad.
+
+**Hämta alltså aldrig en produkt-URL medan produkten är utkast.** Att slugen
+svarar 404 som utkast är redan bevisat av `visible:false` i Wix — kontrollen
+tillför ingenting och kostar en timmes felaktig cache. Väntemekaniken ovan står
+kvar som skyddsnät för de fall där någon annan hunnit begära adressen först.
+
+
+
+### ☠️ Artikelnumrets BAS är modellen, suffixet är färgen
+
+Runda 61, sju frukostset. Att avgöra vilka som är färgsyskon tog i runda 59 en
+jämförelse av tysk brödtext, mått och bilder — och bilderna ljuger, för
+syskonbilderna är samma render omfärgad.
+
+Aosoms artikelnummer avgör det gratis:
+
+| bas | suffix | produkt |
+|---|---|---|
+| `800-287V90` | **CW** / **BK** | gräddvitt och svart set, båda nya |
+| `800-286V90` | **CW** / **BK** | grädde och svart set, båda nya |
+| `800-181V90` | **BK** / **PK** | den PUBLICERADE svarta och det rosa utkastet |
+
+Suffixet matchade tyskans `Farbe`-fält i **sju fall av sju** (GY = Grau,
+CW = Cremeweiß, BK = Schwarz, PK = Rosa) — mätt, inte antaget. Måtten och
+effekterna bekräftade varje par oberoende.
+
+**Regeln: läs basnumret först.** Det svarar på syskonfrågan innan en enda bild
+öppnas, och det är den enda källan som inte kan omfärgas.
+
+⚠️ **En NAMNKROCK bevisar däremot ingenting.** Två av utkasten bar identiskt
+tyskt namn — Wix la på `-2` i den andra sluggen — och var ändå helt olika
+produkter: 5,3 kg fyrskivsrost mot 3 kg tvåskivsrost.
+
+### ☠️ Importen skapar SKU-krockarna själv — sju utkast bar EN SKU
+
+Före publiceringen bar alla sju utkasten samma SKU:
+
+```
+FP-wasserkocher-und-toaster
+```
+
+Det är inte ett poleringsfel. Alla sju hette `Wasserkocher- und Toaster-Set …`
+på tyska, och SKU-regeln kapar produktdelen vid 24 tecken på hel ordsgräns —
+alltså blir varje set i familjen samma sträng. Uppgift #272 mätte elva SKU:er
+delade av 24 PUBLICERADE produkter och läste det som något poleringen orsakar.
+Det stämmer bara till hälften: **poleringen ÄRVER en krock som importen redan
+skapat**, och rättar den bara om den nya sluggen är tillräckligt särskiljande
+inom de 24 tecknen.
+
+**Följden: en opolerad familj är per definition en SKU-krock.** Katalogsvepet
+(`search-variants`, 7 sidor, 6 441 varianter, 4 915 distinkta SKU:er) är därför
+inte en lyx utan det enda som skiljer "unik" från "unik just idag".
+
+### ☠️ Skräpet i bilderna är ENGELSKT lika ofta som tyskt
+
+`CLAUDE.md` mätte 46 % tysk text inbränd i Aosom-bilderna, och grinden har sedan
+dess letat efter tyska ord. I runda 61 var fem av tretton spärrade bilder
+**engelska**: `Family-size`, `3.5CM WIDE SLOT`, `Crumb Tray`, `7 Cups`,
+`Limescale Filter`. En grind som bara känner tyska hade släppt igenom dem alla.
+
+**Regeln är UTLÄNDSK text, inte tysk text.**
+
+⚠️ Två gränsdragningar som håller:
+
+- En **måttritning utan ord** behålls (bara siffror). Samma ritning med
+  `Family-size` eller `7 Cups` på gör den obrukbar.
+- **Text som sitter FYSISKT på varan** — knapparna `CANCEL` / `REHEAT` /
+  `DEFROST` på brödrosten — är varan, inte pålagd grafik. Den bilden behålls;
+  det är bakgrunden bildpoleringen rör, aldrig varan.
+
+### ☠️ Ordlistan fällde fyra korrekta texter — på ett svenskt ord
+
+`Kalkfilter` lades in bland de tyska orden. Det är också ett fullkomligt vanligt
+svenskt ord, så linten fällde fyra egna, korrekta texter.
+
+Kommentaren överst i `lint.py` varnar uttryckligen för precis det (Grill, Timer,
+Metall, Glas, Rost, Filter, Tablett, Dörr) — och listan ÄRVS och VÄXER varje
+runda. **Varje nytt ord måste prövas mot svenskan innan det läggs in**, annars
+blir grinden en falsklarmsmaskin och nästa runda lär sig att stryka rader ur
+den i stället för att läsa dem.
+
+### ☠️ En antalsgrind behöver BÅDA halvorna
+
+Rostlägena hade två regler — rätt tal måste stå där, fel tal får inte stå där.
+Fackantalet hade bara den första. Mutationstestet bytte `fyra separata fack` mot
+`två separata fack` och grinden **fällde inte**: ingressen sa fortfarande
+"fyra fack", så kravet var uppfyllt medan texten motsade sig själv.
+
+En text som säger fyra på ett ställe och två på ett annat är värre än en som
+säger fel överallt — den ser granskad ut. **Kräv rätt tal OCH förbjud fel tal.**
+Testet gick från 24/25 till 26/26 när den negativa halvan kom på plats.
+
+⚠️ Och mutationen var för svag från början. **En mutation som inte tar bort
+påståendet prövar ingenting** — samma fälla som runda 59:s "fem" som stod tre
+gånger till.
+
+### ⚠️ Ett tal som är identiskt över flera artikelnummer mäter ingen av dem
+
+`3 Min. 15 Sek. bis zum Sieden` står på en marknadsföringsbild som dök upp på
+`800-287V90CW` och `800-286V90BK` — två olika modeller med olika kokare — och
+som runda 60 mötte på en tredje. Samma bild, samma tal, olika produkter.
+
+Det är alltså en mall, inte en mätning, och får inte lyftas in i någon text.
+Grinden fäller på den.
+
+### ⚠️ Ett bulk-anrop som "lyckas" kan ha misslyckats med allt
+
+Kategorikopplingen kördes först med UUID:n som gissats ur åttateckensprefix.
+Anropet **kastade inte** — det svarade 200 med
+
+```
+bulkActionMetadata: { totalSuccesses: 0, totalFailures: 2 }
+```
+
+sju gånger i rad. Utan att läsa räknarna hade sju produkter publicerats
+okategoriserade med grönt kvitto. Slå upp kategori-id:na med
+`categories/query` och **läs alltid `totalSuccesses`**.
+
 ### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
 
 Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i

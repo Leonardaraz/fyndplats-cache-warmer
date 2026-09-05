@@ -1,4 +1,4 @@
-# Runda 61 — sju frukostset, läge efter Steg 8
+# Runda 61 — sju frukostset, klara och live
 
 De sju vattenkokar/brödrost-set som inte fick plats i runda 60.
 
@@ -111,7 +111,46 @@ svenskt ord. Exakt den fällan som kommentaren överst i `lint.py` varnar för
 (Grill, Timer, Filter, Dörr) — och listan VÄXER varje runda, så varje nytt
 ord måste prövas mot svenskan innan det läggs in.
 
-## Kvar
+## Steg 9–14 — kvittona
 
-Steg 9 (kort, galleri, alt-texter) · Steg 10 (kategorier) · Steg 11–13
-(publicering + stämpling) · Steg 14 (live-kontroll).
+| steg | vad | kvitto |
+|---|---|---|
+| 9 | nio kort | alla under 215 kB vid q ≥ 85, attributionen okulärt verifierad |
+| 9 | galleriet | 31 bilder, alla med svensk alt-text, proveniens per bild |
+| 10 | kategorier | 2/2 per produkt (Kök & Husgeråd + Köksmaskiner & Apparater) |
+| 7 | texten | återläst mot facit: längd OCH hash stämmer 7/7 |
+| 13 | publicering | `visible:true` på både produkt och variant, SKU skriven |
+| 13 | stämplingen | körningarna 1047–1053, 7/7 gröna |
+| 14 | live-kontroll | `live.py` → alla 7 sidor rena i FÖRSTA försöket |
+
+## ☠️ Live-grinden var ren direkt — och det förklarar runda 60
+
+Runda 60 fick `404 x-vercel-cache: STALE age: 1410` på åtta korrekt
+publicerade sidor. Runda 61 fick `200 MISS age: 0` på alla sju i första
+försöket. Skillnaden är EN sak: runda 60 körde live-grinden mot utkasten
+**innan** publiceringen, och just den hämtningen la 404:an i cachen.
+
+**Hämta aldrig en produkt-URL medan produkten är utkast.** Att den svarar 404
+är redan bevisat av `visible:false` i Wix.
+
+## ☠️ Importen skapade SKU-krocken, inte poleringen
+
+Alla sju utkasten bar SAMMA SKU före publiceringen:
+`FP-wasserkocher-und-toaster`. Alla sju hette `Wasserkocher- und Toaster-Set …`
+och SKU-regeln kapar vid 24 tecken på ordsgräns. Uppgift #272 läste elva delade
+SKU:er som något poleringen orsakar; det stämmer bara till hälften — poleringen
+ÄRVER en krock importen redan skapat.
+
+## Resultat
+
+| id8 | slug | SKU | bilder |
+|---|---|---|--:|
+| f523b18d | frukostset-gratt-fyrskivig | FP-frukostset-gratt | 4 |
+| 83d2db1a | frukostset-graddvitt-termometer | FP-frukostset-graddvitt | 4 |
+| e7f69e8a | frukostset-termometer-svart | FP-frukostset-termometer | 5 |
+| 375bb3c8 | frukostset-led-display-gradde | FP-frukostset-led-display | 6 |
+| 7805b8bc | frukostset-varmhallning-svart | FP-frukostset-varmhallning | 4 |
+| 2f2c1c88 | frukostset-rostfritt-fyra-skivor | FP-frukostset-rostfritt | 4 |
+| 0ab3483a | frukostset-rosa-bikakemonster | FP-frukostset-rosa | 4 |
+
+Textens facit (längd + hash på den SYNLIGA texten) ligger i `facit.json`.
