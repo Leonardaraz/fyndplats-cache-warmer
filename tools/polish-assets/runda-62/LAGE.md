@@ -337,3 +337,56 @@ visar den färgade stolen.
 ⚠️ **Inga egna kort behövdes.** Alla 40 leverantörsbilder är rena från inbränd
 text, vilket är ovanligt för Aosom (46 % bär normalt tysk text). Galleriet
 behölls intakt; ingen bild togs bort och ingen laddades upp.
+
+## Steg 10, 12, 13 klara — publicerade och stämplade
+
+Kategori: `05e96cd6` (Alla produkter) + `3ed832b7` (Hem & Inredning) på alla
+åtta — samma par som den redan publicerade knästolen bär. ⚠️ Katalogens
+54-kategoriträd har **ingen kategori för inomhusmöbler**; paret ovan är det
+närmaste som finns och är därför konsekvent, inte träffsäkert.
+
+☠️ **Bulk-tillägget svarar 200 med `totalFailures: 1` och det betyder inte att
+det gick fel.** Alla åtta rapporterade ett fel; återläsningen visade alla åtta
+korrekt kopplade. Felet var den redundanta `Alla produkter`-kopplingen, som
+redan fanns. Läs tillbaka — svaret räcker inte, nionde gången.
+
+☠️ **Facit-kontrollen DIREKT efter en PATCH läser förra skrivningen.**
+`c3e0af3f` föll på exakt föregående produkts längd och hash; ett separat anrop
+en minut senare visade rätt text. Läs aldrig tillbaka i samma loop som
+skrivningen.
+
+Publicering: alla åtta `visible: true`, revision 5–7. Stämpling: åtta
+`polish-mapping.yml`-körningar i läget `stampla` (`needsAiPolish: false`,
+`draftStatus: published`, `variantSkus`), körningarna 1062–1069, alla
+`success`. Rutten läser tillbaka sin egen skrivning och svarar 500 om den inte
+tog, så `success` är ett kvitto här och inte en tolkning.
+
+## Steg 14 klart — och live-grinden fick en grind som bär
+
+| id8 | slug | kod | cache | bilder | text | mot facit |
+|---|---|--:|---|--:|--:|---|
+| 67bd3628 | gungande-knastol-ljusgra | 200 | MISS | 5/5 | 2466 | lika |
+| b97ac1d8 | gungande-knastol-gra | 200 | MISS | 5/5 | 2436 | lika |
+| b5d8eb9c | gungande-knastol-kram | 200 | MISS | 5/5 | 2392 | lika |
+| 6d64de9b | knastol-bjork-kram | 200 | MISS | 5/5 | 2153 | lika |
+| 9d626528 | knastol-bjork-morkgra | 200 | MISS | 5/5 | 2208 | lika |
+| c3e0af3f | knastol-bjork-bla | 200 | MISS | 5/5 | 2130 | lika |
+| 05cc1f9c | knastol-bjork-svart | 200 | MISS | 5/5 | 2107 | lika |
+| 9e656e81 | knastol-bjork-ljusgra | 200 | MISS | 5/5 | 2137 | lika |
+
+✅ **`cache: MISS` på alla åtta, ingen väntan alls.** Runda 60 fick `404 STALE
+age: 1410` på samtliga och krävde en utväntad omvalidering. Skillnaden är
+runda 61:s lärdom, tillämpad: **ingen av de åtta slugarna hämtades medan
+produkten var utkast**, så cachen bar ingen förgiftad 404 att vänta ut.
+Regeln är alltså inte "vänta ut cachen" utan "förgifta den aldrig" — väntan är
+bara reparationen.
+
+✅ **Ny grind: FACIT PÅ LIVE-SIDAN.** Ordlistorna i live-grinden räknar upp fel
+någon kommit på. Den utskurna textregionen jämförd mot `facit.json` bevisar i
+stället att texten kunden ser är identisk med den lint godkände — och då gäller
+**varje** regel lint körde, per konstruktion i stället för per uppräkning.
+
+Mätt först, grind sedan: `lika` på alla åtta, alltså samma längd OCH samma hash.
+Butiken renderar beskrivningen ordagrant. Verifierad genom att mutera en siffra
+i den hämtade sidkällan — `120 kg` → `130 kg`, alltså **samma längd** — och
+grinden fäller. En ren längdjämförelse hade släppt igenom den.

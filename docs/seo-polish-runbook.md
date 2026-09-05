@@ -3322,6 +3322,62 @@ svarar 404 som utkast är redan bevisat av `visible:false` i Wix — kontrollen
 tillför ingenting och kostar en timmes felaktig cache. Väntemekaniken ovan står
 kvar som skyddsnät för de fall där någon annan hunnit begära adressen först.
 
+### ✅ Live-grindens grind: FACIT PÅ LIVE-SIDAN, inte en längre ordlista
+
+Runda 62, Steg 14. Live-grinden hade vuxit till fjorton ordlistor och regex —
+tyska ord, medicinska påståenden, superlativ, husmärken, landsnamn, artikel-
+nummer. Var och en fångar ett fel någon en gång kom på. Ingen av dem svarar på
+den fråga steget faktiskt ställer: **är texten kunden ser den text som passerade
+lint?**
+
+Det går att svara exakt, och det kostar ingenting. `facit.json` bär redan längd
+och hash av den synliga texten. Skär ut samma region ur den hämtade sidan —
+bunden i BÅDA ändar av beskrivningens första och sista sjuttio tecken — och
+jämför. Stämmer båda talen håller **varje** regel lint körde, per konstruktion
+i stället för per uppräkning.
+
+Mätt först, grind sedan. Alla åtta gav `lika`:
+
+| id8 | slug | kod | cache | bilder | text | mot facit |
+|---|---|--:|---|--:|--:|---|
+| 67bd3628 | gungande-knastol-ljusgra | 200 | MISS | 5/5 | 2466 | lika |
+| b97ac1d8 | gungande-knastol-gra | 200 | MISS | 5/5 | 2436 | lika |
+| b5d8eb9c | gungande-knastol-kram | 200 | MISS | 5/5 | 2392 | lika |
+| 6d64de9b | knastol-bjork-kram | 200 | MISS | 5/5 | 2153 | lika |
+| 9d626528 | knastol-bjork-morkgra | 200 | MISS | 5/5 | 2208 | lika |
+| c3e0af3f | knastol-bjork-bla | 200 | MISS | 5/5 | 2130 | lika |
+| 05cc1f9c | knastol-bjork-svart | 200 | MISS | 5/5 | 2107 | lika |
+| 9e656e81 | knastol-bjork-ljusgra | 200 | MISS | 5/5 | 2137 | lika |
+
+Butiken renderar alltså beskrivningen ordagrant: ingen "Läs mer"-avkortning,
+ingen omskrivning utöver den blankteckenkollaps facit redan gör.
+
+☠️ **Längden ensam duger inte — hashen är det som biter.** Verifierat genom att
+mutera den HÄMTADE sidkällan: `120 kg` → `130 kg` är **samma antal tecken**, och
+en längdjämförelse släpper igenom den. Hashen fäller. Det är precis den sorts
+fel poleringen producerar (en siffra som glidit), inte den sort som ändrar
+textmassan.
+
+⚠️ **Ordlistorna tas ändå INTE bort.** De läser det som ligger UTANFÖR regionen
+— produktnamnet, avsnittsrubrikerna, artikelnumret var som helst på sidan — och
+där finns inget facit att jämföra mot. Facit bevisar beskrivningen; listorna
+bevakar resten.
+
+☠️ **Och landgrinden måste delas, annars fäller butikens egen chrome.** `LANDER`
+i lint innehåller både landsnamn och lagerfraser. Butikens sidhuvud säger
+"Skickas från EU-lager" — butikens text, inte vår. Delningen härleds ur listan i
+stället för att skrivas om (`"lager" in l.lower()`), så ett land som läggs till i
+lint hamnar automatiskt i rätt hink. Att kopiera regeln i stället är runda 57:s
+fel: en live-grind med en egen kopia av en regel utan dess undantag fällde åtta
+korrekta sidor.
+
+✅ **Kvitto på cache-regeln, andra gången.** Alla åtta gav `MISS`, `age: 0`,
+ingen väntan alls — därför att ingen av slugarna hämtades medan produkten var
+utkast. Runda 60 (som förhandskörde grinden mot utkasten) fick `404 STALE` på
+alla åtta; runda 61 och 62 (som inte gjorde det) fick rent på första försöket.
+**Regeln är alltså inte "vänta ut cachen" utan "förgifta den aldrig"** — väntan
+är reparationen, inte skyddet.
+
 
 
 ### ☠️ Artikelnumrets BAS är modellen, suffixet är färgen

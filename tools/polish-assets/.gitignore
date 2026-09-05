@@ -1,0 +1,10 @@
+# Hämtade LIVE-sidor från Steg 14. Re-fetchbara, ~1,2 MB per runda, och de
+# bevisar ingenting i efterhand — grinden skriver ut sitt utfall.
+#
+# ☠️ Regeln ligger HÄR och inte i rotens .gitignore med flit. Rotfiler är
+# UTANFÖR byggfiltrets undantag (`':!docs' ':!tools' ':!*.md'`), så en rad i
+# rotens .gitignore hade kostat ett Vercel-bygge — uppmätt 2026-09-05:
+# dpl_55GKnt9rztTGCywNaXUgVcR79GS4, READY på 41 sekunder, för en push som i
+# övrigt bara rörde docs/ och tools/. Den här filen ligger under tools/ och
+# kostar noll.
+*/live/
