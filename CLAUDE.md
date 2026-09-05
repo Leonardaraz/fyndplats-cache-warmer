@@ -61,19 +61,30 @@ uteslutande `docs/` och `tools/polish-assets/` — texter, kort och runbok.
 Ingenting som appen bygger eller serverar. Build CPU är 49 % av fakturan, och
 tre fjärdedelar av byggvolymen den dagen nådde aldrig en kund.
 
-**Regeln: en commit som bara rör `docs/`, `tools/` eller `scripts/` ska bära
-`[skip ci]` i ämnesraden.** Vercel hoppar då över deployen helt. Våra
-GitHub Actions-workflows är `workflow_dispatch` och påverkas inte, och
-`raw.githubusercontent.com` serverar kortbilderna direkt vid pushen — så
-uppladdningen till Wix fungerar oförändrat.
+☠️ **`[skip ci]` FUNGERAR INTE här — provat och mätt.** Den självklara fixen
+är Vercels dokumenterade markör i ämnesraden. Commiten `177c55d` bar
+`[skip ci]` först i ämnesraden och byggdes ändå:
+`dpl_GXiYPfKUfRBTf3J6Xyi7tVf7SjAp`, `state: READY`, `target: null`. Skriv
+alltså inte in markören i tron att den hjälper — den ger ett bygge OCH en
+felaktig känsla av att vara sparsam.
 
-☠️ **`[skip ci]` får ALDRIG sättas på en commit som rör app-kod.** Då blir
-produktionen inte ombyggd, och en deploy som inte blev av ser exakt likadan ut
-som en som blev det — samma fälla som miljövariabeln i Aosom-avsnittet.
+**Det som återstår och faktiskt biter: PUSHA FÄRRE GÅNGER.** En poleringsrunda
+behöver som mest **två** pushar — korten (som måste ligga i grenen innan Wix
+hämtar dem från `raw.githubusercontent.com`) och allt annat vid rundans slut.
+Runda 60 och 61 kostade åtta byggen; samma arbete ryms i två. Committa fritt
+under vägen, pusha sällan.
 
-Och pusha färre gånger: en poleringsrunda behöver som mest **två** pushar —
-korten (som måste ligga i grenen innan Wix hämtar dem) och allt annat vid
-rundans slut.
+⚠️ **Den enda riktiga lösningen är en projektinställning, och den är Leonards.**
+Vercel → projektet → Settings → Git → *Ignored Build Step*:
+
+```
+git diff --quiet HEAD^ HEAD -- . ':!docs' ':!tools' ':!scripts'
+```
+
+Exit 0 (inget utanför de mapparna ändrades) = hoppa över bygget. Den täcker
+alla sessioner automatiskt, även den andra agentens gren, och skyddar dessutom
+`main` mot en dokumentationsmerge. Sätt den fel och produktionen slutar
+byggas — därför ändras den av Leonard, inte av en session.
 
 ⚠️ Projektet `fyndplats-headless` är kopplat till SAMMA repo och startar också
 ett bygge per push, men de avbryts allihop. Kostnaden dubbleras alltså inte —
