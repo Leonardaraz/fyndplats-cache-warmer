@@ -73,3 +73,82 @@ mäter någon av dem. Måtten skiljer tydligt.
 
 Steg 2 (laglighetsgrind), Steg 4 (bilderna — inklusive hörnkontrollen som
 runda 64 lade till), Steg 5 (leverantörens påståenden), sedan text.
+
+## ☠️ Steg 4: två färger var FEL — bilden är facit, inte feedens Farbe-kolumn
+
+Runda 64 skrev ned regeln; runda 65 är första gången den faktiskt fällde något.
+Båda felen hade nått kunden i en spec-tabell:
+
+| id8 | stod i texten | vad fotot visar |
+|---|---|---|
+| `89c89322` | Färg: **grå** | ☠️ salviagrön melerad bouclé — tydligt GRÖN |
+| `03c9d570` | Färg: **ljusbrun** | gråbeige/taupe, inte brun |
+
+`89c89322` bar dessutom den delade chenille-texten *"kort, tät lugg som ger en
+matt yta"*. Fotot visar en nopprig, melerad väv — motsatsen. Den produkten har
+nu en egen materialtext (`CHENILLE_MELERAD`); leverantörens fiberuppgift
+(100 % polyester) står kvar, det är YTBESKRIVNINGEN som rättats mot bilden.
+
+☠️ **Och färggrinden kunde inte ha sagt ifrån.** Två hål, båda lagade:
+
+1. **`grågrön` fanns inte i `FARGORD`.** En färg som inte står i listan är
+   osynlig för grinden — den kan varken godkänna eller fälla den.
+2. ☠️ **Tolerансregeln var för snäll.** Den släppte igenom varje färgord som är
+   en DELSTRÄNG av facit: `grå` finns i `grågrön`, alltså hade den salviagröna
+   stolen fått kallas grå utan protest. En sammansatt färgs SISTA led ÄR färgen,
+   det första modifierar — regeln läser därför `endswith` nu. `ljusgrå` får
+   kallas grå, `gråbeige` får kallas beige, `grågrön` får inte kallas grå.
+   Två mutationer låser båda riktningarna.
+
+## Steg 4: en bild med tysk text inbränd — `2823c605` bild 4
+
+`ROBUSTES GEBÄUDE`, `Gebogener Holzsockel`, `Fußpads zum Schutz`. Går inte att
+polera bort, plockas ur galleriet i Steg 9. Övriga 39 bilder är rena —
+måttritningarna bär bara siffror och `120 KG`-märket är språkneutralt.
+
+## ☠️ Grindhålet mutationstestet hittade: ett `<li>` saknar skiljetecken
+
+Påstående-grindarna (`bomull`, `massivt trä`, `sovplats`) läste den strippade
+texten och delade den på `.!?`. Ett `<li>` slutar inte med punkt — alltså
+klistrades **hela `<ul>`-listan ihop till EN mening**, och då räckte ETT
+förnekande var som helst i listan för att skugga varje påstående i den.
+
+Uppmätt: ett påhittat *"Blir en säng på 108 cm"* i en egenskapspunkt gick rakt
+igenom sovplats-grinden, eftersom en annan punkt i samma lista sa *"ingen
+montering"*. Grinden var grön på en text som påstod motsatsen till sanningen.
+
+`synlig_meningstext()` i `../grindar.py` gör blockslut till meningsslut FÖRE
+taggarna strippas. `dela_pa_ankare` fick samma behandling — låg en länk i ett
+`<li>` hade hela listan tillskrivits länkmålet, och då slutar produktens egna
+punkter granskas. Det är exakt det upplägg runda 63 redan förkastade en gång.
+
+⚠️ Fixen avslöjade direkt en riktig träff som legat gömd i samma klump:
+placeringsförslaget *"intill sängen"* i `db645ff8`. Det är ingen sängpåstående
+— men ordet står borta ändå (*"i sovrummet"*), för ett undantag i grinden är
+dyrare än en omformulering. Runda 57:s lärdom: undantaget är det som släpper
+igenom det äkta felet.
+
+## ☠️ Fyra "missade grindar" var i själva verket fyra dåliga mutationer
+
+Första körningen gav 24 av 32. Fyra av de åtta missarna var provet, inte
+grinden: mutationen tog bort faktumet på **ETT** ställe medan tre eller fyra
+andra fortfarande bar det.
+
+| mutation | tog bort | bar det fortfarande |
+|---|---|---|
+| vikten försvinner | `Vikt: 10 kg` i spec | meta, ingress, egenskapspunkt, FAQ |
+| sovplatsförnekandet | FAQ-svaret | skötseltexten |
+| 72-timmarsnotisen | skötseltexten | FAQ-svaret |
+| väggavståndet | spec-raden | ingress, egenskap, skötsel, FAQ |
+
+Runda 63:s regel i sin exakta form: **en mutation måste ta bort VARJE bärare av
+faktumet.** `falt="*"` finns nu för det.
+
+☠️ **Och den femte var tom i sak.** *"slug byts utan att SKU följer med"* bytte
+`reclinerfatolj-snurrfot-130-grader` mot `reclinerfatolj-med-snurrfot-grader` —
+som ger **samma** `sku_bas` (fogeordet faller bort, `grader` ryms inte ändå), så
+SKU-grinden hade ingenting att invända. Den byttes dessutom bara i EN produkt,
+så syskonets länk pekade på en slug som inte längre fanns och jobbet föll på
+länkgrinden i stället. Ett prov som fäller på fel grind ser ut som ett prov.
+
+**34 av 34 nu**, alla på rätt grind, noll tomma mutationer.
