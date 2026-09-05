@@ -1,0 +1,7 @@
+f523b18d FP-frukostset-gratt
+83d2db1a FP-frukostset-graddvitt
+e7f69e8a FP-frukostset-termometer
+375bb3c8 FP-frukostset-led-display
+7805b8bc FP-frukostset-varmhallning
+2f2c1c88 FP-frukostset-rostfritt
+0ab3483a FP-frukostset-rosa
