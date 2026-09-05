@@ -22,6 +22,26 @@
   `Product`-JSON-LD och OpenGraph **genereras automatiskt** ur produktfälten; du behöver inte
   sätta `og:`-taggar.
 
+### ☠️ Katalogen nås BARA via Wix-kopplingen — det finns ingen nyckel i miljön (2026-09-05)
+
+Anropen går genom kopplingens `wix.request`. Det finns **ingen `WIX_API_TOKEN` i
+sessionens skal** — nycklarna bor i Vercel-produktionen. Ett rakt anrop mot
+`www.wixapis.com` svarar därför `403` med kroppen `{"message":"","details":{}}`, och
+**exakt samma svar kommer utan `Authorization`-huvud**. Felet avslöjar alltså inte att
+nyckeln SAKNAS snarare än är fel — det ser ut som ett behörighetsproblem hos Wix.
+
+☠️ **Och `ListConnectors` kan ljuga i den riktning som kostar mest tid.** Uppmätt
+samma dag: kopplingen svarade `connected: true, enabledInChat: true` medan **inga
+`wix`-verktyg alls fanns laddade** i sessionen. Kontrollen som faktiskt biter är att
+söka efter verktygen, inte att fråga om kopplingens status.
+
+⚠️ **Är verktygen borta går INGET steg att köra.** Steg 1, 3, 5, 6, 7, 8, 9, 10, 11,
+12 och 13 rör alla katalogen. Någon nyckel-lös omväg finns inte: `CRON_SECRET` är märkt
+Sensitive och `EXTENSION_API_TOKEN` bor bara i Vercel, så workflow-vägen når enbart de
+rutter som redan är byggda (mappningsraden, prisreparationen) — aldrig produkt-API:t.
+Rätt åtgärd är att be Leonard slå på Wix-kopplingen för chatten igen, inte att leta
+efter en nyckel att klistra in. Poleringen väntar; en halvfärdig runda skadar ingen.
+
 ### Märken: strippa husmärken, behåll etablerade
 
 *(Leonards beslut 2026-06-21.)* Råimporten lägger märkesnamnet först i titeln.
