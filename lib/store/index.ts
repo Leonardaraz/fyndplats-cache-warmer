@@ -186,6 +186,24 @@ export interface ProductMappingRecord {
    * normalt AI-berikad import (back-compat med äldre rader).
    */
   needsAiPolish?: boolean;
+
+  /**
+   * Lås priset: Aosom-synken räknar om och skriver ALDRIG priset på den här
+   * raden. Lagret synkas som vanligt.
+   *
+   * ☠️ ETT LÅS ÄR INTE ETT PRIS. Husets regel är `1,20 × landedCostSek`, och
+   * synken tillämpar den på varje Aosom-rad var sjätte timme. Vill man hålla
+   * ett pris ÖVER regeln — t.ex. en vara som redan säljer bra dyrare — finns
+   * ingen annan väg än att säga åt synken att låta bli. Utan låset skriver
+   * nästa körning tillbaka regelpriset, och det ser ut som om ändringen "inte
+   * tog".
+   *
+   * ⚠️ PRISET SLUTAR DÅ OCKSÅ FÖLJA KOSTNADEN. Stiger Aosoms frakt äts
+   * marginalen tyst. Därför räknas låsta rader i synkens summering
+   * (`prisLasta`) i stället för att bara hoppas över — ett lås som ingen ser
+   * är ett lås som glöms bort.
+   */
+  prisLast?: boolean;
   /**
    * Satt när variantpriserna inte gick att bekräfta vid import: alla varianter
    * delade inköpspris utan per-SKU-täckning (lib/import/price-trust.ts).

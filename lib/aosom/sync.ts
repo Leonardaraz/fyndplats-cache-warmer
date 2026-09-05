@@ -149,6 +149,8 @@ export interface AosomSyncSummary {
    * vad som gjorde att de tjugo drivande raderna kunde ligga osedda i en månad.
    */
   utanWixPris: number;
+  /** Rader vars pris är låst (`prisLast`) och därför medvetet inte rörs. */
+  prisLasta: number;
   /**
    * Varför butikens prislista inte gick att läsa, eller null när den gjorde det.
    *
@@ -313,6 +315,7 @@ export interface Produktplan {
   urFeeden: boolean;
   slutsald: boolean;
   utanWixPris: boolean;
+  prisLast: boolean;
   varning: { sku: string; fran: number; till: number; andringPct: number } | null;
 }
 
@@ -353,6 +356,7 @@ export function planeraProdukt(
     urFeeden: !row,
     slutsald: !!row && onskatSaldo === 0,
     utanWixPris: false,
+    prisLast: false,
     varning: null,
   };
 
@@ -360,6 +364,15 @@ export function planeraProdukt(
   // Bara när raden finns: utan rad finns inget nytt pris att räkna på, och ett
   // gammalt pris på en slutsåld vara skadar ingen.
   if (!row || opts.skipPrices || !variant) return plan;
+
+  // ☠️ LÅST PRIS RÖRS INTE. Leonards beslut per rad — se `prisLast` i
+  // ProductMappingRecord. Ligger FÖRE uträkningen: en rad som ändå inte får
+  // skrivas ska inte heller kunna hamna i `varningar` för ett hopp vi aldrig
+  // tänkte göra. Lagret ovan är redan planerat och berörs inte.
+  if (m.prisLast) {
+    plan.prisLast = true;
+    return plan;
+  }
 
   const nyLandad = landadKostnadSek(row, deps.fx.eurToSek);
   const costUsd = nyLandad / deps.fx.usdToSek;
@@ -490,6 +503,7 @@ export async function runAosomSync(
     slutsalda: 0,
     oforandrade: 0,
     utanWixPris: 0,
+    prisLasta: 0,
     prislistaFel,
     utanLagerrader: 0,
     lagerDrift: 0,
@@ -547,6 +561,7 @@ export async function runAosomSync(
       if (p.urFeeden) summary.urFeeden++;
       if (p.slutsald) summary.slutsalda++;
       if (p.utanWixPris) summary.utanWixPris++;
+      if (p.prisLast) summary.prisLasta++;
       if (p.varning) summary.varningar.push(p.varning);
     }
 

@@ -1,0 +1,103 @@
+name: Pris — lås eller lås upp ett pris
+
+# Aosom-synken räknar om priset ur kostnaden var sjätte timme och skriver
+# husets regel (1,20 × landedCostSek, charm99). Det är rätt för sortimentet i
+# stort — men inte för varje rad.
+#
+# Fallet som byggde den här workflowen (2026-09-05): kontorsstolen
+# f13cd415 var köpt via AliExpress och stod på 1 299 kr. Efter ommappningen
+# till Aosom gäller Aosom-regeln på den, och nästa synk hade skrivit 1 099 kr —
+# en sänkning på 200 kr av ett pris kunderna redan betalar, orsakad av att vi
+# BYTTE LEVERANTÖR och inte av att marknaden rört sig.
+#
+# Utan låset finns ingen väg dit: nästa synk skriver tillbaka regelpriset, och
+# det ser ut som om ändringen "inte tog".
+#
+# ☠️ LÅSET RÖR BARA PRISET. Lagret synkas som vanligt — att sälja något vi inte
+# har är ett kundfel, ett oförändrat pris är det inte.
+#
+# ⚠️ ETT LÅST PRIS SLUTAR FÖLJA KOSTNADEN. Stiger Aosoms frakt äts marginalen
+# tyst. Låsta rader räknas därför i synkens `prisLasta` i stället för att bara
+# hoppas över — och ett lås ska låsas upp igen när skälet är borta.
+#
+# Samma nyckel-lösa upplägg som prisreparationen: produktionen har Wix-nycklarna
+# och DATABASE_URL, Actions har CRON_SECRET. Ingen hemlighet passerar chatten,
+# och därför går jobbet att starta från en telefon.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        # Ett `choice` med required:true kan inte bli tomt, så GitHubs
+        # default-substitution (som publicerade utkast i tolv timmar via
+        # polish-mapping.yml) har inget att fylla i här.
+        description: "las = synken rör inte priset · las-upp = synken äger priset igen"
+        required: true
+        default: "las"
+        type: choice
+        options:
+          - las
+          - las-upp
+      wix_product_id:
+        description: "Wix-produktens id"
+        required: true
+        type: string
+
+jobs:
+  prislas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          PRODUCT_ID: ${{ inputs.wix_product_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR. En ::error::-rad pa stdout slukas av
+            # kommandosubstitutionen nedan (workflow-larden 2026-08-28).
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/prislas"
+
+          if [ "${MODE}" = "las" ]; then
+            last=true
+          elif [ "${MODE}" = "las-upp" ]; then
+            last=false
+          else
+            echo "::error::Okant lage: ${MODE}" >&2
+            exit 1
+          fi
+
+          echo "Satter prisLast=${last} pa ${PRODUCT_ID}"
+
+          svar=$(curl -sS --max-time 60 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg id "${PRODUCT_ID}" --argjson l "${last}" '{wixProductId: $id, last: $l}')" \
+            "${url}")
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okant fel"')" >&2
+            exit 1
+          fi
+
+          # ☠️ HARIFRAN AR SKRIVNINGEN GJORD OCH ATERLAST AV RUTTEN.
+          # Rapporteringen far darfor aldrig falla jobbet — ett falsklarm som
+          # alltid fyrar lar mottagaren att sluta lasa aven de akta.
+          # (polish-mapping.yml mejlade "Run failed" for sexton lyckade
+          # korningar pa tolv timmar innan den regeln skrevs ned.)
+          echo "OK: prisLast $(echo "$svar" | jq -r '.tidigare' || echo "?") -> $(echo "$svar" | jq -r '.prisLast' || echo "?")" || true
+
+          if [ "${MODE}" = "las" ]; then
+            echo "Aosom-synken raknar nu om men SKRIVER INTE priset pa den har raden." || true
+            echo "Lagret synkas som vanligt. Raden syns som 'prisLasta' i synkens summering." || true
+            echo "Kom ihag att lasa upp den nar skalet ar borta — ett last pris foljer inte kostnaden." || true
+          else
+            echo "Aosom-synken ager priset igen och skriver husets regel vid nasta korning (20 */6 * * *)." || true
+          fi
