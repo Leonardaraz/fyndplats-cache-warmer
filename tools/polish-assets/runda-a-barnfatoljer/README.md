@@ -70,3 +70,30 @@ V3:s läsning efter skrivning är alltså inte omedelbart konsistent. Riktningen
 ofarlig: en gammal kopia kan bara ge falskt LARM, aldrig falskt godkänt. Men
 drar man slutsatsen "skrivningen tog inte" av en enda läsning skriver man om i
 onödan — läs om innan du kör om.
+
+## ☠️ Wix normaliserar ankare — 15 tecken
+
+En länk skriven som
+
+    <a href="https://www.fyndplats.se/produkt/...">grått</a>
+
+lagras av Wix som
+
+    <a href="https://www.fyndplats.se/produkt/..." target="_self">grått</a>
+
+`target="_self"` är exakt 15 tecken, och det räckte för att checksummegrinden
+skulle rapportera avvikelse på färgsyskonen. Det är en normalisering, inte en
+trasig skrivning — men jämförelsen fil mot butik går bara ihop om källfilen bär
+attributet. Den gör den nu.
+
+## ⚠️ Och jag gick i husets egen cache-fälla
+
+Live-grinden rapporterade fem fel på vardera färgsyskon efter att korslänkarna
+lagts in: `ORDDIFF + grått.` och `KORSLANK SAKNAS`. Ingenting var fel. Jag hade
+väntat 90 sekunder mot ett `x-nextjs-stale-time: 300`, så sidorna jag hämtade var
+den version som låg ute FÖRE länken.
+
+CLAUDE.md varnar ordagrant för det här, och varningen är värd att skärpa: det
+räcker inte att hämta två gånger. Fönstret måste ha PASSERAT sedan den senaste
+renderingen — och min egen tidigare hämtning hade just renderat om sidorna, så
+klockan startade om. Efter drygt 300 sekunder: 8/8 rena, noll orddiffar.

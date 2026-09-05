@@ -109,9 +109,16 @@ for rad in open("slugs.txt", encoding="utf-8"):
             problem.append(f"ALT/ARTIKELNUMMER {m}: {alt[:90]}")
 
     # --- 4. Korslanken ska ha overlevt ---
-    mal = re.search(r'href="(https://www\.fyndplats\.se/produkt/[^"]+)"', fil).group(1)
-    if mal.split("/produkt/")[1] not in live:
-        problem.append(f"KORSLANK SAKNAS: {mal}")
+    #
+    # ☠️ INGEN KRASCH NAR KALLAN SAKNAR LANK. Forr gjorde raden .group(1) rakt
+    # pa ett sokresultat som kan vara None: en batch utan korslankar fallde
+    # grinden med AttributeError i stallet for att rapportera. En grind som
+    # kraschar ar en grind man slutar kora — och da ar aven de tre ovanstaende
+    # kontrollerna borta. Saknad lank i KALLAN ar inget fel; en lank som INTE
+    # overlevt till live ar det.
+    _m = re.search(r'href="(https://www\.fyndplats\.se/produkt/[^"]+)"', fil)
+    if _m and _m.group(1).split("/produkt/")[1] not in live:
+        problem.append(f"KORSLANK SAKNAS: {_m.group(1)}")
 
     print(f"{p} {slug}: ord={len(a)} diff={len([x for x in problem if x.startswith('ORDDIFF')])} "
           f"-> {'REN' if not problem else str(len(problem)) + ' FEL'}")
