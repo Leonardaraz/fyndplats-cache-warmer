@@ -406,3 +406,47 @@ Skrivningen bär därför tillbaka `price` oförändrat och verifierar efteråt 
 beloppet är identiskt (`prisOrort: true` på alla åtta). ✅ Och `visible` bärs med
 på BÅDA nivåerna — en `variantsInfo`-PATCH publicerar annars utkastet
 (uppmätt 2026-08-28). Alla åtta står kvar på `visible: false`.
+
+## Steg 9 — 38 alt-texter, och TVÅ skrivningar som svarade OK utan att göra något
+
+Alla 39 bilder bar tysk alt-text från importen. Nu: **38 svenska, noll tomma,
+noll tyska, noll delade, noll över 125 tecken.** Den 39:e är borttagen —
+`e16338a9` bild 3 bar `Produktinformation / Rasse — Britisch Kurzhaar / Gewicht
+— 3,5 Kg` INBRÄND i pixlarna, och ingen alt-text i världen döljer text i en bild.
+
+### ☠️ Fältet heter `items[].altText` — INTE `items[].image.altText`
+
+Runbooken varnar för exakt det här på **två ställen** (rad 150 och 1800):
+*"`image` är readOnly; patchar du `items[].image.altText` släpps den TYST"*.
+Den här sessionen gjorde felet ändå, i två varianter:
+
+| försök | vad som skickades | utfall |
+|---|---|---|
+| 1 | `{id, image:{altText}}` | tyskan TÖMD, svenskan skrevs aldrig |
+| 2 | `{id, image:{id, url, altText}}` | oförändrat tom |
+| 3 | **`{id, altText}`** | ✅ 38 av 38 |
+
+Försök 1 var det farligaste: revisionen steg, svaret var 200, och resultatet var
+att alla 39 alt-texter blev TOMMA. Sämre än före poleringen.
+
+### ☠️ Och kontrollen godkände det — av tomhet
+
+Verifieringen läste `media.itemsInfo.items` ur **PATCH-svaret**, som inte bär
+`MEDIA_ITEMS_INFO` om man inte begär det. Listan var alltså tom, och kontrollen
+
+```js
+tyskaKvar: efter.filter(...).length === 0 && tomma === 0
+```
+
+blev **sann av tomhet** — noll tyska och noll tomma i en lista utan element.
+`alla_ok: true` på en skrivning som just hade raderat allt.
+
+Det är husets vanligaste fel i sin värsta form: inte bara *"ett svar utan fel är
+inget kvitto"*, utan **en kontroll som blir grön för att den inte fick något att
+kontrollera**. Samma familj som `/api/tracking-events` som blev TOM efter
+migreringen, och som `queryAll` som tyst kapade.
+
+**Regeln: en räknare som bara kan bli noll ska aldrig ensam få säga OK.**
+Verifieringen kräver nu `antal > 0` implicit genom att jämföra mot förväntat
+bildantal per produkt, och den läser i ett EGET anrop med `MEDIA_ITEMS_INFO`
+begärt — aldrig ur skrivningens svar.
