@@ -44,7 +44,7 @@ export default async function Omdomen() {
     >
       <div className="ratinghero">
         <AnimatedRating rating={proof.ratingValue || 5} />
-        <div className="ratingsub">Genomsnittligt betyg på Google</div>
+        <div className="ratingsub">av 5 i genomsnittligt betyg på Google</div>
       </div>
 
       <div className="callout" style={{ textAlign: "center" }}>

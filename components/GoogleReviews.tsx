@@ -306,6 +306,7 @@ export function GoogleReviews({
               fälla som ratingSummary() redan stängt på produktsidan. */}
           <Stars rating={average ?? 0} />
           <strong className="greviews-avg">{avg}</strong>
+          <span className="greviews-of">av 5</span>
           <span className="greviews-verified">Publika på Google</span>
         </div>
       </div>
