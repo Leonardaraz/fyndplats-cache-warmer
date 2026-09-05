@@ -48,7 +48,7 @@ Vår [paviljong 3×3 m](/produkt/paviljong-3x3) är det prisvärda arbetshäst-a
 
 ### Myggfria kvällar: 6-sidig pop up med nät
 
-[![Pop up-paviljong med myggnät, 6-sidig](https://static.wixstatic.com/media/b379ce_96e99e5a9bcc4d8baf3284a8025c0306~mv2.jpg)](/produkt/pop-up-paviljong-myggnat-6-sidig "Pop up-paviljong med myggnät")
+[![Pop up-paviljong med myggnät, 6-sidig](https://static.wixstatic.com/media/b379ce_e6081090b9244b448b0943760dc3c1dc~mv2.jpeg)](/produkt/pop-up-paviljong-myggnat-6-sidig "Pop up-paviljong med myggnät")
 
 Vår [6-sidiga pop up-paviljong med myggnät](/produkt/pop-up-paviljong-myggnat-6-sidig) reses på minuter och finns i två storlekar. Den sexkantiga formen ger rymd på mitten och näten runt om gör den till kvällens bästa plats när myggen vaknar.
 

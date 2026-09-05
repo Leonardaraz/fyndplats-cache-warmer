@@ -15,13 +15,13 @@ Sommaren är här och vi har fyllt på med smarta nyheter för altanen, campinge
 
 ## Pop up-paviljong med myggnät
 
-[![Pop up-paviljong, 6-sidig med myggnät](https://static.wixstatic.com/media/b379ce_96e99e5a9bcc4d8baf3284a8025c0306~mv2.jpg)](/produkt/pop-up-paviljong-myggnat-6-sidig "Pop up-paviljong med myggnät, 6-sidig")
+[![Pop up-paviljong, 6-sidig med myggnät](https://static.wixstatic.com/media/b379ce_e6081090b9244b448b0943760dc3c1dc~mv2.jpeg)](/produkt/pop-up-paviljong-myggnat-6-sidig "Pop up-paviljong med myggnät, 6-sidig")
 
 En rymlig 6-sidig paviljong (10×10 och 12×12 ft) med integrerat myggnät – res den på minuter och få skugga på dagen och myggfritt på kvällen. Perfekt över matbordet på altanen, vid stugan eller på campingen. **Från 3 749 kr.**
 
 ## Monokristallin solpanel 12V
 
-[![Monokristallin solpanel 12V för husbil, båt och fritidshus](https://static.wixstatic.com/media/b379ce_0eb8a49667254eff90beea020e5e0921~mv2.png)](/produkt/solpanel-12v-monokristallin "Monokristallin solpanel 12V, 10–260 W")
+[![Monokristallin solpanel 12V för husbil, båt och fritidshus](https://static.wixstatic.com/media/b379ce_74fd4432c143424ea3c1eb3fea311480~mv2.jpg)](/produkt/solpanel-12v-monokristallin "Monokristallin solpanel 12V, 10–260 W")
 
 Effektiv monokristallin solpanel (10–260 W) för husbil, båt och fritidshus. Ladda fritidsbatteriet utan landström och håll kylboxen, belysningen och laddarna igång även långt från elnätet. **Från 369 kr.**
 
@@ -33,7 +33,7 @@ En portabel allt-i-ett-värmare (8 kW, 12V/24V) med fjärrkontroll och LCD – h
 
 ## Kopplingsdosa utomhus IP67
 
-[![Vattentät kopplingsdosa IP67 för utomhusbruk](https://static.wixstatic.com/media/b379ce_20a8e7c23d004fa5befcf28fb8d454e0~mv2.jpg)](/produkt/kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling "Kopplingsdosa utomhus IP67, vattentät")
+[![Vattentät kopplingsdosa IP67 för utomhusbruk](https://static.wixstatic.com/media/b379ce_19b2d3bf2ef648088a8ee8ca1e56de72~mv2.jpg)](/produkt/kopplingsdosa-utomhus-ip67-vattentat-abs-kapsling "Kopplingsdosa utomhus IP67, vattentät")
 
 En vattentät kopplingsdosa (IP67) i ABS med gångjärnslock – skydda kopplingar och elektronik mot regn och damm i trädgården, på altanen eller i båten. **Från 659 kr.**
 

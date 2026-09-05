@@ -33,7 +33,7 @@ Innan vi går in på rutinen — det är bra att veta att "torr hud" kan betyda 
 
 De flesta svenskar har en blandning under vintern: tillfälligt uttorkad hud överlagrad på en kanske helt normal sommarhud. Båda gynnas av samma typ av rutin: mild rengöring, mycket återfuktning, och en barriär som håller fukten kvar.
 
-[![Återfuktande hudvårdsset i 5 delar med rengöring, toner, serum, ögonkräm och kräm](https://static.wixstatic.com/media/b379ce_5f0cabc6cc3940beab825d595f032adb~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/aterfuktande-hudvardsset "Se i butiken →")
+[![Återfuktande hudvårdsset i 5 delar med rengöring, toner, serum, ögonkräm och kräm](https://static.wixstatic.com/media/b379ce_702b042f37454e2b8b730109699c0a03~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/aterfuktande-hudvardsset "Se i butiken →")
 
 ## Morgonrutinen (4 steg, 3–4 minuter)
 
