@@ -128,7 +128,7 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
-          utanrader=0; drift=0
+          utanrader=0; drift=0; prislasta=0
           after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
@@ -150,6 +150,7 @@ jobs:
             va=$(printf '%s' "$svar" | jq -r '.varningar | length')
             ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
             dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
+            pl=$(printf '%s' "$svar" | jq -r '.prisLasta // 0')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar')
 
             granskade=$(( granskade + g )); lager=$(( lager + l ))
@@ -157,6 +158,7 @@ jobs:
             urfeeden=$(( urfeeden + uf ));  slutsalda=$(( slutsalda + sl ))
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
             utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
+            prislasta=$(( prislasta + pl ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -168,7 +170,8 @@ jobs:
             # syns bara i webb-UI:t; loggen är det som går att greppa, citera i
             # en rapport och läsa från en telefon.
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
-                 "${ul} utan lagerrader, ${dr} lagerdrift, ${mi} misslyckade, ${kvar} kvar"
+                 "${pl} prislåsta, ${ul} utan lagerrader, ${dr} lagerdrift, ${mi} misslyckade," \
+                 "${kvar} kvar"
 
             # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
             printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.sku): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
@@ -206,6 +209,7 @@ jobs:
             echo "| Lagersaldon | **${lager}** |"
             echo "| Priser | **${priser}** |"
             echo "| Utan butikspris | ${utan} |"
+            echo "| Prislåsta (rörs aldrig) | ${prislasta} |"
             echo "| Ur feeden (saldo nollat) | ${urfeeden} |"
             echo "| Slutsålda | ${slutsalda} |"
             echo "| Blockerade prishopp | ${varningar} |"
@@ -224,6 +228,12 @@ jobs:
               echo "⚠️ **${utan} produkter saknade ett entydigt pris i butiken** och fick därför"
               echo "inget pris skrivet. Det är avsiktligt — vi gissar aldrig fram ett facit — men"
               echo "talet ska vara noll i normal drift. Se \`jamforelsePris\` i lib/aosom/sync.ts."
+            fi
+            if [ "$prislasta" -gt 0 ]; then
+              echo "🔒 **${prislasta} rader har låst pris** (\`prisLast\`) och fick därför inget"
+              echo "pris skrivet. Lagret synkades som vanligt. Ett låst pris slutar följa"
+              echo "kostnaden — stiger Aosoms frakt äts marginalen tyst, så lås upp raden när"
+              echo "skälet är borta (workflowen \"Pris — lås eller lås upp ett pris\")."
             fi
             if [ -n "${after}" ]; then
               echo "⚠️ Katalogen tog inte slut inom ${MAX_ROUNDS} varv. Kör igen — synken"

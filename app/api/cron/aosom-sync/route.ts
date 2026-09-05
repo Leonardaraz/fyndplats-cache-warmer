@@ -98,7 +98,8 @@ async function handle(req: NextRequest) {
         `${summary.lagerUppdaterade} lagersaldon och ${summary.prisUppdaterade} priser uppdaterade, `
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
           + `${summary.varningar.length} blockerade prishopp, `
-          + `${summary.utanWixPris} utan butikspris, ${summary.utanLagerrader} utan lagerrader, `
+          + `${summary.utanWixPris} utan butikspris, ${summary.prisLasta} prislåsta, `
+          + `${summary.utanLagerrader} utan lagerrader, `
           + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} MISSLYCKADE, `
           + `${summary.kvar} kvar`
           + (summary.errors[0] ? ` — första felet: ${summary.errors[0].error.slice(0, 160)}` : "")
@@ -113,6 +114,7 @@ async function handle(req: NextRequest) {
     console.log(
       `[aosom-sync] ${summary.granskade} granskade, ${summary.lagerUppdaterade} lager, `
         + `${summary.prisUppdaterade} priser, ${summary.utanWixPris} utan butikspris, `
+        + `${summary.prisLasta} prislåsta, `
         + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
         + `${summary.varningar.length} varningar, ${summary.utanLagerrader} utan lagerrader, `
         + `${summary.lagerDrift} lagerdrift, ${summary.misslyckade} misslyckade, `

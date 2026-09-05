@@ -547,6 +547,52 @@ summeringsrad sedan samma dag — Vercel visade annars bara `GET … 200`.
 Svepet loopar markören som importen gör, men sparar den INTE i grenen: synken
 konvergerar utan sparad markör (punkt 4 ovan). `misslyckade > 0` fäller jobbet.
 
+### `prisLast`: en rad där synken räknar om men INTE skriver (2026-09-05)
+
+Synken tillämpar husets regel (`1,20 × landedCostSek`, charm99) på varje
+Aosom-rad var sjätte timme. Det är rätt för sortimentet i stort — men en rad kan
+ha ett pris som satts av något annat än kostnaden.
+
+Fallet som byggde låset: kontorsstolen `f13cd415` såldes som AliExpress-vara på
+**1 299 kr**. Leonards regel 2026-09-05 (*"alla ska peka om mot Aosom DE oavsett
+om de är billigare eller inte"*) mappade om den till `921-672V00BG`, och därmed
+gäller Aosom-regeln på raden: nästa synk hade skrivit **1 099 kr**. Sänkningen
+kom av att vi bytte LEVERANTÖR, inte av att marknaden rört sig — och kunderna
+betalar redan 1 299.
+
+Utan låset finns ingen väg dit. Skriver man priset för hand räknar nästa körning
+fram regelpriset igen, ser en skillnad mot butiken och skriver tillbaka. Det ser
+ut som om ändringen "inte tog".
+
+`prisLast: true` på mappningsraden. Sätts via `/api/admin/prislas` och
+workflowen **"Pris — lås eller lås upp ett pris"** (lägen `las` · `las-upp`) —
+samma nyckel-lösa upplägg som resten, alltså körbar från en telefon.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Låset rör BARA priset.** Lagret synkas som vanligt. Att sluta spegla
+   saldot hade betytt att vi säljer något vi inte har, och det är ett kundfel
+   medan ett oförändrat pris inte är det.
+2. ☠️ **Grinden ligger FÖRE uträkningen.** En rad vi ändå inte tänker skriva ska
+   inte kunna hamna i `varningar` för ett hopp som aldrig skulle blivit av. Ett
+   falsklarm som alltid fyrar lär mottagaren att sluta läsa — samma argument som
+   mot att varna vid 48 h på token-förnyelsen.
+3. ⚠️ **Låsta rader RÄKNAS, de hoppas inte tyst över.** `prisLasta` står i
+   loggraden, audit-raden, svaret och workflow-summeringen. Ett låst pris slutar
+   följa kostnaden: stiger Aosoms frakt äts marginalen tyst, så ett lås som
+   ingen ser är ett lås som glöms bort. Lås upp när skälet är borta.
+4. ☠️ **Rutten skapar ALDRIG en rad** (404 på saknad mappning) och **läser
+   tillbaka efter skrivningen** (500 om värdet inte sitter). Nionde gången samma
+   lärdom: ett svar utan fel är inget kvitto.
+5. ☠️ **`last` har ingen default** — ett utelämnat fält avvisas med 400. Samma
+   fälla som GitHubs tomma workflow-input, som publicerade utkast i tolv timmar;
+   låset finns just för att någon medvetet sagt att priset ska stå still, och
+   att tyst tolka tystnad som "lås upp" är fel riktning att fela åt.
+
+Sexton tester, verifierade genom att återinföra buggarna: grinden borta fäller
+fyra synk-tester, defaulten tillbaka fäller två, 404-grinden borta fäller ett
+och återläsningen borta fäller ett — rätt test för rätt bugg.
+
 ### ☠️ Prissynken skrev aldrig ett enda pris till Wix (2026-08-29)
 
 Hittad under den FÖRSTA poleringen, inte av ett larm: bäddsoffan `efaa0c7b` hade
