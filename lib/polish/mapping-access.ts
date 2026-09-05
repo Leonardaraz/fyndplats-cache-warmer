@@ -157,6 +157,19 @@ export type Prisgrind = {
    * för hand, men ett fall bevisar ingen drift.
    */
   regelGäller: boolean;
+  /**
+   * ☠️ Raden har LÅST PRIS (`prisLast`) och är därför medvetet frikopplad från
+   * regeln — se CLAUDE.md, "`prisLast`: en rad där synken räknar om men INTE
+   * skriver".
+   *
+   * Utan det här fältet fäller grinden varje låst rad som "kostnaden har
+   * ändrats och priset i Wix är gammalt". Det är fel SKÄL: priset är inte
+   * gammalt, det är valt. Rådet är detsamma ("rör inte priset"), men ett rött
+   * jobb på ett medvetet beslut är ett falsklarm — och ett falsklarm som alltid
+   * fyrar lär mottagaren att sluta läsa, precis som "EJ AVGÖRBAR" på varje
+   * AE-rad hade gjort innan `regelGäller` fanns.
+   */
+  prisLast: boolean;
 };
 
 /**
@@ -190,5 +203,6 @@ export function prisgrind(
     landedCostSek: v.landedCostSek,
     stämmer: förväntatSek === v.grossSek,
     regelGäller: rad.supplier === "aosom",
+    prisLast: rad.prisLast === true,
   };
 }
