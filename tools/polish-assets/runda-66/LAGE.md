@@ -135,6 +135,57 @@ ryggstöd 91 × 64 cm, **maxlast 120 kg**, **passar 155–185 cm**. Sammetslook
 (100 % polyester), skum, plywood, metall. 135° rygg, fotstöd som dras ut,
 360° snurr och gungning, fjäderkärna. Montering krävs.
 
-## Nästa steg
+## ☠️ JavaScripts `\b` är ASCII-only — publiceringsgrinden falsklarmade
 
-Steg 6 är no-op (Aosom). Steg 7: texterna, med grindar och mutationstest.
+Klart-kriteriet höll tillbaka de fyra konstläderfåtöljerna med `tyska: JA`.
+Ingen av dem hade ett tyskt ord. Det som matchade var `\bder\b` **inuti
+`konstläder`**: i JS räknas `ä` som ett icke-ordtecken, så det uppstår en
+ordgräns mellan `konstl ä` och `der`.
+
+⚠️ **Python-grindarna är oskadda.** `re` med `\b` på en `str` är
+Unicode-medveten som standard, så lint.py och mutationstestet mäter rätt.
+Felet gäller bara kod som körs i Wix-kopplingens JS-sandlåda.
+
+✅ **Lagningen är uttryckliga lookarounds med det svenska alfabetet**, precis
+som `farggrind` i lint.py redan gör:
+
+```js
+const SV = "a-zåäöA-ZÅÄÖ";
+const ordgrans = (o) => new RegExp("(?<![" + SV + "])" + o + "(?![" + SV + "])");
+```
+
+☠️ **Och grinden provades innan den användes skarpt** — två prov i samma
+anrop: noll träffar på en korrekt svensk mening, fyra träffar på en tysk.
+En grind som "inte fäller" bevisar ingenting förrän man vet att den KAN.
+
+⚠️ Grinden gjorde ändå sitt jobb: den vägrade publicera. Ett falsklarm som
+håller tillbaka fyra sidor är billigare än en tyst publicering — men det är
+samma familj som allt annat huset skrivit ned, sett från andra hållet: ett
+larm som fyrar på korrekt text lär mottagaren att slå av det.
+
+## Steg 7–14 klara — alla åtta publicerade
+
+| id8 | slug | SKU | pris |
+|---|---|---|--:|
+| 77a79db3 | gungande-tv-fatolj-beige | FP-gungande-tv-fatolj-beige | 5 079 |
+| c1f860c1 | gungande-tv-fatolj-gra | FP-gungande-tv-fatolj-gra | 4 999 |
+| 5b16fea8 | gungande-tv-fatolj-morkbla | FP-gungande-tv-fatolj | 4 699 |
+| e11ad5cc | reclinerfatolj-graddvit-konstlader | FP-reclinerfatolj-graddvit | 4 319 |
+| 74f261ea | reclinerfatolj-stalgra-konstlader | FP-reclinerfatolj-stalgra | 4 299 |
+| da6d086a | reclinerfatolj-beige-sammet | FP-reclinerfatolj-beige | 4 219 |
+| 824301a4 | reclinerfatolj-grabrun-konstlader | FP-reclinerfatolj-grabrun | 3 899 |
+| 12e50842 | reclinerfatolj-morkgra-konstlader | FP-reclinerfatolj-morkgra | 3 869 |
+
+- **Åtta olika SKU:er.** Importen hade gett `FP-relaxsessel-mit` till fyra och
+  `FP-relaxsessel-mit-fu` till tre. Sluggarna är designade så att `sku_bas`
+  brytpunkt vid 24 tecken landar efter färgordet.
+- **Priserna orörda** — burna tillbaka verbatim i varje `variantsInfo`-PATCH.
+- **Bild 4 borta** på alla fyra konstläderfåtöljer (`ROBUSTES GEBÄUDE`).
+- **Eget kort på plats 3, måttritning sist**, noll tomma alt-texter.
+- **Kategori** på alla åtta: `05e96cd6` + `3ed832b7`.
+- **Live: alla åtta `lika` mot facit** — kundens text är byte för byte den
+  lint godkände, alltså gäller varje lint-regel på live-sidan per konstruktion.
+
+⚠️ Live-grinden fällde först alla åtta på "det egna kortet syns inte". Det var
+grinden som var fel: alt-texten bor i ett ATTRIBUT och `sidtext()` strippar
+taggarna. Nålen är filens hex-del i SIDKÄLLAN.
