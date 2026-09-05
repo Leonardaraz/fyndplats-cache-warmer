@@ -2762,6 +2762,176 @@ utan att något bevisats. Regeln blir: *ett grönt jobb är ett kvitto när jobb
 är byggt att fela på exakt det du kontrollerar, och du har verifierat att det
 är byggt så.* I alla andra lägen står husets regel oförändrad.
 
+### ☠️ En landgrind är TVÅ regler — den samlade fällde åtta korrekta sidor (2026-09-05)
+
+Live-kontrollen i runda 58 rapporterade **avsändarland på 8 av 8** minugnssidor.
+Ingen av texterna nämner något land. Träffen var butikens EGEN stående rad, som
+ligger på varenda produktsida:
+
+> Skickas från EU-lager – ingen importtull eller förtullningsavgift.
+
+Den är husets godkända formulering och namnger ingenting. Grinden var skriven
+mot **min källtext**, där `skickas från` är ett varningstecken, och sedan
+applicerad på **den renderade sidan**, där samma ord tillhör någon annan.
+
+Regeln bor nu i två mönster i stället för ett:
+
+| | gäller | var |
+|---|---|---|
+| `LAND_NAMN` | Tyskland, tysk, Kina, Polen, Spanien … | HELA sidan — ett landsnamn är fel var som helst |
+| `LAND_FRAS` | EU-lager, skickas från, fraktas från | bara i text VI äger |
+
+**Regeln bakom:** en grind ärver inte automatiskt sin giltighet när ytan byts.
+Samma familj som runda 57:s kopierade rostfri-regel, men spegelvänd — där gled
+två kopior isär, här flyttades EN regel till en yta den inte var skriven för.
+
+### ☠️ Att avgränsa "vår text" med bara en STARTmarkör räcker inte
+
+Första fixen ovan tog `sidan.split("Beskrivning")[-1]` som "vår region". Den
+fällde fortfarande 8 av 8 — butikens **sidfot** har navlänken *"EU-lager & tull"*,
+och sidfoten ligger efter beskrivningen.
+
+Regionen bindes nu i BÅDA ändar av vår egen text: första 70 tecknen och sista 70
+tecknen av det vi skrev, hämtade ur `texter.py`. Det är dessutom ett **starkare
+kvitto än grinden var tänkt att vara**: står både första och sista meningen på
+sidan har kunden fått exakt det lintet godkände, inte bara "något som inte
+innehåller fel ord".
+
+### ☠️ SKU:n RENDERAS INTE — en live-grind på den fäller varje korrekt sida
+
+Samma körning rapporterade *"SKU:n syns inte i sidkällan"* på alla åtta. Mätt på
+en sida som polerats i en TIDIGARE runda (`miniugn-32-liter`): **noll träffar på
+`FP-`** i hela HTML:en. Butiken publicerar alltså inte artikelnumret alls.
+
+Kvittot på SKU:n är API-återläsningen (`skuOk`), inte den renderade sidan. Det
+som DÄREMOT går att mäta live är att **vårt eget faktakort ligger i galleriet** —
+filens id ska stå i sidkällan. Den grinden ersatte SKU-grinden.
+
+⚠️ Följdsatsen är värd att notera för de kvarvarande oöversatta SKU:erna: de är
+osynliga för kunden. Det gör dem mindre brådskande, inte mindre fel — de går ut
+i flöden och kvitton.
+
+### ☠️ `fit_pane` beskär bort precis det kortets RUBRIK lovar
+
+Tre av nio kort i runda 58 fick fel rubrik, och alla tre av samma orsak.
+Källbilderna är **kvadratiska** (420 × 420); spec-panelen är 1416 × 776, alltså
+1,8:1. `fit_pane` beskär källan till panelens proportion — och tar därmed bort
+**45 % av höjden**. Det som låg i den bortskurna delen var kokplattorna på
+topplattan och frityrkorgen bakom luckan, alltså exakt vad rubrikerna
+*"36 liter, två plattor och grillspett"* och *"24 liter med frityrkorg"* pekade på.
+
+Runbokens regel fanns hela tiden och lyder *"`fit=True` (`contain`) för
+produktbilder så hela varan syns, `fit=False` (`cover`) bara för kontextfoton"*.
+Felet var att köra `fit_pane` FÖRE den: en förbeskärning gör `contain`
+meningslös, eftersom det som ska rymmas redan är bortkapat.
+
+**Skicka kvadraten rakt in i `card_spec(..., fit=True)`.** Panelen brevlådar då
+bilden i stället för att zooma in i den. `fit_pane` hör hemma på kontextfoton
+som ska täcka panelen.
+
+Ögongranskningen av kortarket är det enda som hittar det här — talen var gröna
+i alla tre fallen.
+
+### ⚠️ Två produkter i katalogen BAR redan samma SKU
+
+Runda 57 härledde ur `lib/import/sku.ts` att färgsyskon kan få samma SKU. Runda
+58 mätte det i drift: `2be44ec2` och `fc9c6885` — en 24-liters och en 10-liters
+varmluftsfritös, olika produkter i olika prisklass — bar båda
+`FP-minibackofen-mit-umluft`. Produktdelen kapas vid 24 tecken på hel ordgräns,
+och de tyska sluggarna var identiska ända dit.
+
+Grinden är `skugrind.py`: en Python-port av `buildVariantSkus` som räknar varje
+planerad slug FÖRE den låses, och jämför mot både batchens övriga och de redan
+publicerade syskonens SKU:er.
+
+### ⚠️ En jämförelse mot en produktkategori vi inte MÄTER är ett påhittat tal
+
+Två av åtta texter påstod *"36 liter är samma volym som en liten
+inbyggnadsugn"* respektive samma sak om 32 liter. En liten inbyggnadsugn är
+45–65 liter; påståendet var alltså fel, och det var fel i den riktning som
+smickrar varan. Ingen mekanisk grind kunde se det — talet stod i spec-tabellen,
+ordet var svenskt, meningen var välformad.
+
+Grinden `JAMFOR_OMATT` fäller nu *"samma volym som"*, *"lika stor som"*,
+*"samma storlek som"* och *"motsvarar en"*. Skriv i stället ut måttet:
+*"Ugnsrymden är 38 × 31,5 × 31 centimeter"* säger mer och är sant.
+
+Samma runda gav två grindar till av samma familj:
+
+- `SORTIMENT` — *"den minsta varmluftsfritösen i sortimentet"* var sann när den
+  skrevs och upphör att vara det nästa gång något mindre poleras.
+- `MATTETIKETT` — se nästa avsnitt.
+
+### ⚠️ Tyskans L/B/H är inkonsekvent i SAMMA dokument — etikettera inte ett ensamt mått
+
+Pizzaugnens underlag skriver måtten två gånger, med olika bokstäver på samma tal:
+
+```
+✔ Kompakte Maße von 46B x 49,7T x 28H cm     (säljpunkten)
+✔ Gesamtabmessungen: 46L x 49,7B x 28H cm     (Technische Daten)
+```
+
+Vilket tal som är BREDDEN går alltså inte att veta ur underlaget. Fyra texter
+skrev ändå *"44 centimeter bred"*, *"35 centimeter bred"* och liknande.
+
+`MATTETIKETT` fäller nu `<tal> cm bred|brett|djup|hög`. Skriv hela trippeln —
+*"kåpan mäter 35 × 24,6 × 20 centimeter"* — som varken gissar eller döljer.
+Undantaget är **diameter**, som bara har ett mått och därför inte kan förväxlas.
+
+### ⚠️ Leverantörens ingress kan beskriva en ANNAN produkt
+
+Niolitersugnens tyska ingress inleds *"Der Elektro-Minibackofen **mit
+Kochplatten** ist die Antwort…"*. Ugnen har inga kokplattor: `Lieferumfang` är
+ugn, grillgaller, bakplåt och anvisning, och effekten anges som ett enda tal
+(750 W) utan plattornas watt. Meningen är klippt från ett syskon i samma serie.
+
+Det är samma klass som `Lieferumfang` är kontraktet: **ingressen är
+marknadsföring och kan vara någon annans.** Kontrollera varje funktionspåstående
+i ingressen mot spec-blocket och paketinnehållet innan det översätts.
+
+Sidan har nu en FAQ som förnekar plattorna rakt ut, och `lint.py` har en
+negationsmedveten grind: ordet *kokplattor* får stå på den sidan bara i
+förnekandet, aldrig i ett påstående.
+
+### ⚠️ `bulk/categories/add-item` tar ETT item och MÅNGA kategorier
+
+Inte tvärtom. En kropp med `categoryId` + `items[]` avvisas med 400 och en
+felrad som namnger de riktiga fälten:
+
+```
+categoryIds has size 0, expected 1 or more · item must not be empty
+```
+
+Rätt form är `{ treeReference, item: { catalogItemId, appId }, categoryIds: [...] }`,
+alltså en loop över PRODUKTER med båda kategorierna i varje anrop.
+
+### ☠️ Ett ankare som korsar en radbrytning i en Python-sträng matchas inte
+
+Korrekturskriptet i runda 58 dog tre rättelser in, på ett ankare som i
+`texter.py` står som
+
+```python
+    "Torka av utsidan med fuktad trasa. Silverkåpan är lackerad metall och tar "
+    "märken av skursvamp."
+```
+
+— alltså med `" \n    "` mitt i meningen. Ett rakt `s.count(ankare) == 1` ser
+noll träffar, och assertionen sköt ner skriptet innan något skrevs. (Att den
+sköt ner det är rätt; att den behövde göra det är slöseri.)
+
+Fixen är generell och hör hemma i varje rättelseskript: bygg ankaret till ett
+mönster där varje mellanslag också får matcha en strängbrytning.
+
+```python
+GRANS = r'(?:\s|"\s*\n\s*")+'
+rx = re.compile(GRANS.join(re.escape(w) for w in ankare.split(" ")))
+```
+
+Samma runda gav också om den gamla lärdomen gratis: **ett `\n` i en vanlig
+konkatenerad Python-sträng är ett syntaxfel**, inte en radbrytning. Skriptet föll
+på `"…" \n "…"` och skrev ingenting alls — vilket är rätt utfall, men bara för
+att skrivningen låg sist i filen.
+
 ### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
 
 Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i
