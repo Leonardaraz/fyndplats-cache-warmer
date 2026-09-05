@@ -9,8 +9,13 @@ huvudena parsas ur en egen fil och SISTA HTTP/-raden är sidans.
 Det som går att mäta är att vårt eget kort ligger i sidkällan.
 ☠️ Landgrinden är TVÅ regler: LAND_NAMN läses på hela sidan, LAND_FRAS bara
 inuti VÅR text, eftersom butikens egen chrome-rad säger "Skickas från EU-lager".
+☠️ EN 404 DIREKT EFTER PUBLICERINGEN ÄR CACHEN, INTE SIDAN. Slugen svarade 404
+medan produkten var utkast, och det svaret ligger kvar i ISR-cachen. Runda 60:
+alla åtta gav `404 x-vercel-cache: STALE age: 1410` medan Wix samtidigt sa
+`visible: true` på rätt slug. Två hämtningar i rad räcker inte — omvalideringen
+är ASYNKRON och hann inte klart mellan dem. Grinden väntar därför ut den.
 """
-import subprocess, re, sys, os
+import subprocess, re, sys, os, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from texter import P
 from lint import (TYSKA, ICKESVENSKT, SUPERLATIV, DEFENSIV, LEVERANTOR, SPEC_LISTA,
@@ -28,7 +33,7 @@ if os.path.exists("uppladdat.txt"):
             k, f = l.split()
             KORT[k] = f.split("_")[-1].split("~")[0]   # hex-delen räcker som nål
 
-def hamta(slug, n):
+def en_hamtning(slug, n):
     h, b = "live/%s.%d.h" % (slug, n), "live/%s.%d.html" % (slug, n)
     for _ in range(4):                     # övergående TLS-fel via proxyn
         r = subprocess.run(["curl", "-sS", "--retry", "2", "--retry-all-errors",
@@ -46,6 +51,25 @@ def hamta(slug, n):
     return status, hitta("age"), hitta("x-vercel-cache"), \
            open(b, encoding="utf-8", errors="replace").read()
 
+
+# ☠️ FÄRSK betyder att raden INTE är STALE. En STALE-rad är per definition det
+#    gamla svaret medan omvalideringen pågår i bakgrunden — och för en nyss
+#    publicerad produkt är det gamla svaret en 404.
+#    ⚠️ `?cb=` löser det INTE på den här rutten. Uppmätt runda 60: en unik
+#    cb-parameter svarade `HIT age: 44`, alltså samma cache-rad. Frågesträngen
+#    ingår inte i nyckeln — det som hjälpte var att omvalideringen hunnit klart.
+#    Cache-bust-regeln i CLAUDE.md gäller butikens API-rutter, inte produktsidan.
+VANTAN = [0, 10, 20, 30, 60, 60, 120]
+
+def hamta(slug):
+    for i, paus in enumerate(VANTAN):
+        if paus:
+            time.sleep(paus)
+        status, age, cache, html = en_hamtning(slug, i)
+        if cache.upper() != "STALE":
+            return status, age, cache, html
+    return status, age, cache, html
+
 def synlig(html):
     html = re.sub(r"(?is)<script.*?</script>", " ", html)
     html = re.sub(r"(?is)<style.*?</style>", " ", html)
@@ -54,8 +78,7 @@ def synlig(html):
 fel, rader = [], []
 for id8, v in P.items():
     slug = v["slug"]
-    hamta(slug, 1)                              # bestaller ombyggnaden
-    status, age, cache, html = hamta(slug, 2)   # DETTA är mätningen
+    status, age, cache, html = hamta(slug)      # väntar ut omvalideringen
     s = synlig(html)
     rader.append((id8, slug, status, age, cache, len(html)))
     if status != "200":

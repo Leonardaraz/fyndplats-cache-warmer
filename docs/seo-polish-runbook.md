@@ -3118,6 +3118,56 @@ redirect.
 en produktKATEGORI i stället för en produkt är inte färdig, hur unik den än är
 i dag.
 
+### ☠️ Live-grinden fällde åtta korrekta sidor — cachen svarade som utkastet
+
+Runda 60, Steg 14. Alla åtta nyss publicerade sidor gav **404**. Wix sa
+samtidigt `visible: true` på exakt de slugarna, med rätt revision.
+
+Svaret stod i huvudena, och det gick att läsa direkt:
+
+```
+HTTP/2 404
+x-vercel-cache: STALE
+age: 1410
+```
+
+Slugen svarade 404 medan produkten var **utkast** — det är rätt svar då — och
+det svaret ligger kvar i ISR-cachen efter publiceringen. `STALE` betyder per
+definition *det gamla svaret, medan omvalideringen pågår i bakgrunden*, och det
+gamla svaret var alltså den 404 sidan hade i tjugotre minuter.
+
+☠️ **Grindens gamla mönster kunde inte se det.** Den hämtade en gång "för att
+beställa ombyggnaden" och mätte på den andra hämtningen. Omvalideringen är
+ASYNKRON: den var inte klar mellan två curl-anrop i följd, så andra hämtningen
+gav samma STALE-404 som den första. Mönstret hade fungerat i tidigare rundor
+bara för att sidan då redan var byggd.
+
+⚠️ **Och `?cb=` löser det INTE på produktsidan.** Det var den självklara fixen
+och den fel. Uppmätt samma minut: en unik cb-parameter svarade `HIT age: 44` —
+samma cache-rad, alltså ingår frågesträngen inte i nyckeln. Det som hjälpte var
+att omvalideringen hunnit klart under tiden. Cache-bust-regeln i `CLAUDE.md`
+gäller butikens API-rutter (`x-vercel-cache: MISS`), inte produktsidan, och att
+läsa den som generell hade gett ett falskt kvitto: en 200:a som man tror kommer
+förbi cachen men som kommer UR den.
+
+`hamta()` väntar nu ut en STALE-rad (0/10/20/30/60/60/120 s) i stället för att
+rapportera den. Tre grenar, och alla tre behövs:
+
+| fall | vad som händer |
+|---|---|
+| STALE | hämtas om tills raden är färsk |
+| färsk sida | exakt **en** hämtning, ingen väntan |
+| ÄKTA 404 | fälls direkt, väntas inte ut i fem minuter per produkt |
+
+`vantetest.py` bevisar dem med en stubbad hämtare — grinden kunde annars ha
+"lagats" till att bara sova längre, vilket hade gjort en riktig 404 till fem
+minuters tystnad per produkt.
+
+**Regeln: en 404 direkt efter publiceringen är ett påstående om CACHEN, inte om
+sidan.** Facit är butiken — `visible` och slugen i Wix — och grinden ska mäta
+mot en FÄRSK rad. Det är samma familj som `jamforelsePris`: läs det kunden
+faktiskt får, men läs det när det faktiskt är byggt.
+
 ### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
 
 Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i

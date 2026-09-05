@@ -1,47 +1,60 @@
-# Runda 60 — läge när Wix-anslutningen föll
+# Runda 60 — klar och live
 
-Rundan är gjord till och med Steg 9:s förarbete. Det som återstår kräver
-skrivningar mot Wix, och MCP-anslutningen dit låg nere när arbetet stannade.
+Åtta produkter: en miniugn, en torkapparat, en vattenkokare och fem
+frukostset (vattenkokare + brödrost). Alla publicerade, alla verifierade.
 
-## Klart och verifierat
+| id8 | slug | SKU | bilder |
+|---|---|---|---:|
+| 4ac902ed | miniugn-30-liter-varmluftsfritos | FP-miniugn-30-liter | 5 |
+| 0ceeb412 | torkapparat-fem-plan-frukt-gronsaker | FP-torkapparat-fem-plan | 5 |
+| d8c2dec6 | vattenkokare-1-7-liter-gra-koppar | FP-vattenkokare-1-7-liter | 6 |
+| 1121b59a | frukostset-svart-vattenkokare-brodrost | FP-frukostset-svart | 4 |
+| b330de9c | frukostset-bikakemonster-vattenkokare | FP-frukostset-bikakemonster | 6 |
+| 106eafc5 | frukostset-snabbkokande-vattenkokare-brodrost | FP-frukostset-snabbkokande | 4 |
+| 70b6bfe2 | frukostset-temperaturval-vattenkokare | FP-frukostset-temperaturval | 4 |
+| 6edbe425 | frukostset-fyra-skivor-brodrost | FP-frukostset-fyra-skivor | 4 |
+
+## Kvitton, i den ordning de togs
 
 | steg | vad | kvitto |
 |---|---|---|
 | 1 | urval + dubblettgrind | fullt svep, 55 sidor, `cursor === null` |
-| 2/5 | laglighets- och påståendegrind | se uppgift #271 |
+| 2/5 | laglighets- och påståendegrind | uppgift #271 — tre omöjliga påståenden strukna |
 | 3 | produkterna lästa | tysk brödtext + spec per produkt |
 | 4 | bildgenomgång | fyra kontaktark, 40 bilder granskade |
 | 7 | texterna skrivna | `lint.py` → 8/8 rena |
 | — | grindarna bevisade | `mutationstest.py` → 16/16 |
-| 8 | SKU:erna framräknade | `skugrind.py` → 8 distinkta |
-| 9 | korten renderade + exporterade | 11 kort, alla under 215 kB vid q >= 84 |
-| 9 | galleriplanen + alt-texter | `bildplan.py` — proveniens per bild, spärr mot de 13 tyska |
-| 12 | live-grinden | `live.py` körd mot skarpa sajten: 8 × 404, alltså rätt svar för utkast |
+| 8 | SKU:erna | `skugrind.py` → 8 distinkta, noll krock i katalogen |
+| 9 | korten | 11 kort, alla under 215 kB vid q ≥ 84 |
+| 9 | galleriet + alt-texter | `bildplan.py`, proveniens per bild |
+| 10 | kategorier | `dd650fed` + `ed3d8796`, 8/8 |
+| 4 | prisgrinden | körningarna 1014–1021, 8/8 gröna |
+| 11 | publicering + återläsning | 8/8: SKU, text ordagrant, bildantal, kategorier |
+| 13 | stämplingen | körningarna 1027–1034, 8/8 gröna |
+| 14 | live-kontroll | `live.py` → alla 8 sidor rena |
 
-⚠️ `bildplan.py` och `live.py` läser båda `uppladdat.txt` (kort-id → wixfil).
-Den filen skrivs först vid uppladdningen, och tills dess FÄLLER bildplanen
-med "kortet är inte uppladdat än" — vilket är rätt beteende, inte ett fel.
+Textens facit ligger i `facit_synlig.json` (längd + hash på den SYNLIGA
+texten, inte på HTML:en — Wix normaliserar taggarna).
 
-## Kvar att göra
+## ☠️ Live-grinden fällde åtta korrekta sidor
 
-1. **Kontrollera SKU:erna mot HELA katalogen.** Runda 58 hittade två
-   publicerade produkter som redan bar samma SKU. Grinden här är bara
-   intern — den kan inte se katalogen utan Wix.
-2. Steg 7-PATCH: `name`, `slug`, `seoData`, `plainDescription` per produkt.
-3. Ladda upp de elva korten, verifiera attributionen visuellt.
-4. Steg 9: galleriet + svenska alt-texter. Rena bilder per produkt:
-   `4ac902ed` 01,02,03,05 · `0ceeb412` 06,07,08,10 · `d8c2dec6` 11–15 ·
-   `1121b59a` 16,17 · `b330de9c` 21–25 · `106eafc5` 26,27 ·
-   `70b6bfe2` 31,32,35 · `6edbe425` 36,37.
-   Övriga bär tysk text inbränd och ska INTE med.
-5. Steg 10: koppla till `dd650fed` (Kök & Husgeråd) + `ed3d8796`
-   (Köksmaskiner & Apparater).
-6. Steg 8+13: publicera med `visible:true` på BÅDE produkt och variant,
-   sätt SKU:erna, stämpla via `polish-mapping.yml`.
-7. Live-kontroll och runbokspost.
+Första körningen efter publiceringen gav `404` på alla åtta. Sidorna var
+riktiga: Wix svarade samtidigt `visible: true` på exakt de slugarna.
 
-⚠️ Prisgrinden är redan körd och grön 8/8 (körningarna 1014–1021). Den
-behöver inte köras om.
+Svaret stod i huvudena — `x-vercel-cache: STALE`, `age: 1410`. Slugen svarade
+404 medan produkten var utkast, och det svaret låg kvar i ISR-cachen.
+Omvalideringen är ASYNKRON, så grindens gamla mönster (hämta en gång för att
+beställa ombyggnaden, mät på den andra) hann aldrig se den nya sidan.
+
+⚠️ `?cb=` löser det INTE på produktsidan. Uppmätt: en unik cb-parameter svarade
+`HIT age: 44` — samma cache-rad. Frågesträngen ingår inte i nyckeln. Det som
+hjälpte var att omvalideringen hunnit klart. Cache-bust-regeln i `CLAUDE.md`
+gäller butikens API-rutter, inte produktsidan.
+
+`hamta()` väntar nu ut en STALE-rad (0/10/20/30/60/60/120 s). En färsk sida
+kostar fortfarande exakt en hämtning, och en ÄKTA 404 fälls direkt i stället
+för att väntas ut i fem minuter per produkt. `vantetest.py` bevisar alla tre
+grenarna.
 
 ## Kvar till runda 61
 
