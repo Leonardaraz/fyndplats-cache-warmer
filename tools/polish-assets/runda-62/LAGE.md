@@ -189,3 +189,69 @@ i galleriet.
 De är git-ignorerade: tidigare rundor har alltid burit bara text och skript,
 och 4 MB leverantörsfoton i en publik repo tillför ingenting som id:na inte
 redan gör.
+
+-----
+
+## Steg 1 låst — sökord och slugar
+
+Krockkontrollen är körd över hela katalogen (`avhuggen: false`) och validerad
+mot en känd publicerad sida. `$in` på alla åtta kandidatslugar: **noll exakta
+träffar**. Svepet efter `knastol|knahocker|knabank`: **en enda granne i hela
+katalogen**, `knastol-ryggstod-manchester`.
+
+De två modellerna får varsitt huvudord, färgen skiljer sidorna inom familjen:
+
+| id8 | slug | huvudord |
+|---|---|---|
+| 67bd3628 | `gungande-knastol-ljusgra` | gungande knästol |
+| b97ac1d8 | `gungande-knastol-gra` | gungande knästol |
+| b5d8eb9c | `gungande-knastol-graddvit` | gungande knästol |
+| 6d64de9b | `knastol-bjork-graddvit` | knästol björk |
+| 9d626528 | `knastol-bjork-morkgra` | knästol björk |
+| c3e0af3f | `knastol-bjork-bla` | knästol björk |
+| 05cc1f9c | `knastol-bjork-svart` | knästol björk |
+| 9e656e81 | `knastol-bjork-ljusgra` | knästol björk |
+
+☠️ **"Höjdjusterbar" var på väg in i modell G:s huvudord och är FEL.** Den
+tyska specen säger `Sitzhöhe: 51-58 cm`, vilket ser ut som ett justerintervall.
+Men ordet `verstellbar` står ingenstans i modell G:s text — och modell F i
+samma familj heter uttryckligen `mit 6 verstellbaren`, alltså säger
+leverantören det när det är sant. Bilderna visar inget justerreglage. Talet är
+sitsens lutande yta, inte en inställning.
+
+**Regeln: ett INTERVALL i en spec är inget bevis för justerbarhet. Ordet
+"verstellbar" är beviset, och frånvaron av det i en familj där ett syskon HAR
+ordet är ett starkt nej.**
+
+## ☠️ Modell A är en dubblett av en redan publicerad sida — och den går inte att ommappa
+
+Den enda grannen i katalogen, `knastol-ryggstod-manchester` (`2326c742`,
+publicerad, rev 8, 1 319 kr), är **modell A**:
+
+| | publicerad sida | modell A:s utkast |
+|---|---|---|
+| mått | 54 × 98 × 86 cm | 54 × 98 × 86 cm |
+| maxlast | 120 kg | 120 kg |
+| konstruktion | vaggande medar, björk, manchester | Kniehocker mit Rückenlehne, Cord-Optik |
+| färger | Kräm + Grå | Cremeweiß (`7d4d1b9d`) + Dunkelgrau (`6e358326`) |
+
+Alla fyra talen stämmer. Det är exakt den interna dubbletten CLAUDE.md
+beskriver: sidan köptes via AliExpress, bär ett AE-listnings-id, och
+feed-importen kan omöjligt se den.
+
+**Modell A ska alltså INTE poleras i runda 63.** De två utkasten hör till
+poleringens dubbletthantering, inte till nästa batch.
+
+☠️ **Men Leonards ommappningsregel går inte att köra på den här.** Sidan har en
+riktig `Färg`-option med två synliga varianter och egna SKU:er
+(`FP-knastol-ryggstod-kram`, `FP-knastol-ryggstod-gra`). `lib/aosom/remap.ts`
+vägrar flervariantssidor med flit — en Aosom-rad ÄR en artikel, så båda
+varianterna hade pekat på samma artikelnummer och kunden som väljer den andra
+färgen får fel vara hem. Det här är första gången den spärren möter ett
+verkligt fall: rätt åtgärd är två artikelnummer, ett per variant, vilket
+dokumentationen kallar "ett annat jobb". Frågan går till Leonard.
+
+## Nästa steg i rundan
+
+Artikelnummer via `/api/admin/mapping` (workflowen), texter i FIL först,
+lint-grind, mutationstest, kort, kategori, publicering.
