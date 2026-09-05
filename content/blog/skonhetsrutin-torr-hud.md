@@ -12,7 +12,7 @@ secondary_keywords:
   - torr hud ansikte
 category: Skönhet & hälsa
 publish_date: 2026-05-30
-cover: https://static.wixstatic.com/media/b379ce_b66f206810e54f1a84579df0f42921ef~mv2.jpg/v1/fit/w_1600,h_1600,q_85/file.jpg
+cover: /blog-skonhetsrutin-torr-hud.jpg
 cover_alt: Hudvårdsset för ansikte i 5 delar med återfuktande och uppljusande produkter
 ---
 

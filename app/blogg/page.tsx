@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { getPosts, fmtDate } from "../../lib/blog";
+import { getPosts, fmtDate, absolutCover } from "../../lib/blog";
 import { pageMeta, jsonLdString } from "../../lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,7 +50,7 @@ export default async function Blogg() {
       url: `https://www.fyndplats.se/blogg/${p.slug}`,
       ...(p.date && { datePublished: p.date }),
       ...(p.excerpt && { description: p.excerpt.slice(0, 200) }),
-      ...(p.cover && { image: p.cover }),
+      ...(p.cover && { image: absolutCover(p.cover) }),
     })),
   };
 

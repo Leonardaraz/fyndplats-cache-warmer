@@ -5,7 +5,7 @@ slug: paviljong-kopguide-2026
 meta_description: "Pop up-paviljong eller stålstomme? Vi går igenom storlek, myggnät, UV-skydd och förankring – och jämför tre modeller ur vårt eget sortiment."
 category: Köpguider
 publish_date: 2026-07-02
-cover: https://static.wixstatic.com/media/b379ce_96e99e5a9bcc4d8baf3284a8025c0306~mv2.jpg
+cover: /blog-paviljong.jpg
 alt: "Paviljong – köpguide 2026: pop up eller stålstomme?"
 ---
 

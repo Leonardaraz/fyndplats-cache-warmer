@@ -8,7 +8,7 @@ publish_date: 2026-07-11
 # 1200×900 med allt innehåll i mittkvadraten: bloggkortens 1:1-beskärning
 # (aspect-ratio:1 + cover) kapade 1200×630-delningsbilden mitt i rubriken.
 # OG-bilden för /fyndauktion-SIDAN är fortsatt og-fyndauktion.jpg (1,91:1).
-cover: https://www.fyndplats.se/blog-fyndauktion.jpg
+cover: /blog-fyndauktion.jpg
 alt: "Fyndauktionen på Fyndplats – priset sjunker varje timme tills någon köper"
 ---
 

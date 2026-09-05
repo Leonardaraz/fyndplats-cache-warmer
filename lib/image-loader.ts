@@ -26,7 +26,9 @@
 //      CDN via query-params (w/q/auto=format), drop fast höjd så den skalar på
 //      bredd och bevarar aspect (container-CSS:ens object-fit ramar in).
 //   3. Lokala /public-assets + okända externa värdar → serveras orörda (kan inte
-//      transformeras säkert). Inga lokala <Image> finns idag; ren skyddsnät.
+//      transformeras säkert). Den här grenen ÄR i bruk: bloggomslagen som bor i
+//      /public (blog-*.jpg) pekas ut med absolut fyndplats.se-adress och faller
+//      hit. Ta inte bort den som död kod.
 
 import type { ImageLoaderProps } from "next/image";
 import { wixMediaKey } from "./wix-image";

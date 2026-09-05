@@ -3,7 +3,7 @@ import { jsonLdString } from "../../../lib/seo";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ContentPage } from "../../../components/content";
-import { getPost, fmtDate } from "../../../lib/blog";
+import { getPost, fmtDate, absolutCover } from "../../../lib/blog";
 import { getLocalPosts } from "../../../lib/local-blog";
 
 // Lokala markdown-inlägg statisk-genereras vid build. Wix-inlägg fallback-renderas
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       url: `https://www.fyndplats.se/blogg/${p.slug}`,
       title: p.title,
       description: p.excerpt || p.title,
-      images: p.cover ? [p.cover] : undefined,
+      images: p.cover ? [absolutCover(p.cover)] : undefined,
     },
   };
 }
@@ -51,7 +51,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     description: p.excerpt || p.title,
     // Fallback = riktig 1200×630-foto (samma som OG-standarden) — en logo-SVG
     // uppfyller inte Googles Article-bildkrav (foto, rätt bildförhållanden).
-    image: p.cover || "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg",
+    image: absolutCover(p.cover) || "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg",
     author: { "@type": "Organization", name: "Fyndplats" },
     publisher: {
       "@type": "Organization",
