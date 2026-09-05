@@ -25,6 +25,11 @@ GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
            ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("STAVNING", STAV), ("HOMOGLYF", HOMO)]
 
 def kropp(html):
+    # ☠️ HREF MASTE BORT FORE SIFFERGRINDEN. En slug bar produktens matt
+    # ("baddfatolj-190-cm"), och de siffrorna ar en ADRESS, inte ett
+    # pastaende om varan. Utan det har fyrar grinden pa varje korslank och
+    # man lar sig klicka forbi den — och da ar aven det akta fyndet borta.
+    html = re.sub(r'href="[^"]*"', 'href=""', html)
     return re.sub(r"<[^>]+>", " ", html)
 
 def tal(text):

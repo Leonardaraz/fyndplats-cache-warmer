@@ -1,0 +1,40 @@
+# KALLA e4e62a4f — 2059 kr — farg (tyskt underlag): Blau
+Sofa Groesse: 63B x 73T x 81H cm
+Bett Groesse: 185B x 63T x 26H cm
+Bett Liegeflaeche Groesse: 185B x 60T x 9H cm
+Sofa Sitz Groesse: 56B x 57T x 37H cm
+Sitzdicke: 20 cm
+Rueckenlehne Groesse: 48B x 58T x 9H cm
+Kissen Groesse: 61B x 40T x 11H cm
+Armlehne Groesse: 36B x 4T cm
+Hoehe der Armlehne (vom Sitz aus): 15 cm
+Rueckenlehne in 5 Stufen verstellbar (100, 120, 140, 160, 180 Grad)
+Belastbarkeit: 120 kg
+Material: Stahl, Schaumstoff, Stoff mit Samtoptik, Kautschukbaumholz
+Armlehnen aus Kautschukbaumholz
+Pflegeleichter Bezug des Kissens ist abnehmbar und waschbar
+Montage des Produkts erforderlich
+Lieferumfang: 1 x Schlafsofa, 1 x Kopfkissen, 1 x Anleitung
+Vikt: 17,5 kg  Paketmatt: 125 x 20 x 61 cm
+
+# KORSREFERENS — verifierad ur den PUBLICERADE systerprodukten
+# baddfatolj-med-armstod (graddvit, 2 129 kr), inte ur den har produktens
+# underlag. Samma mobel: 17,5 kg och paket 125 x 20 x 61 cm pa bada.
+Publicerad graddvit systerprodukt: samma stol, 2 129 kr
+
+# ☠️ STEG 2-FYND: BADDMATTET SKILJER MELLAN SYSKONEN — OCH DET AR AKTA.
+# Det HAR underlaget sager Bett Groesse 185 cm. Tre fargsyskon och den
+# publicerade graddvita systern sager 183 cm.
+# Forsta slutsatsen var att en av siffrorna maste vara ett skrivfel och att
+# 183 skulle skrivas overallt (majoritet + konservativt). DEN VAR FEL.
+# MATT PA MATTRITNINGEN, bild 3 pa respektive produkt:
+#   den har produkten          -> ritningen sager 185 cm x 56 cm
+#   publicerade baddfatolj-med-armstod -> ritningen sager 183 cm x 63 cm
+# Tva OLIKA ritningar med olika tal, alltsa inget skrivfel. Kalla och ritning
+# stammer overens per produkt. Varje sida far darfor SITT EGET tal.
+# Lardomen: ett familjebeslut far inte overrida data som finns per produkt.
+Valt baddmatt: 185 cm (produktens eget underlag OCH dess egen mattritning)
+
+# KORSREFERENS 2 — verifierad ur den PUBLICERADE baddfatolj-190-cm
+# (667ca8f9), inte ur det har underlaget. Dess badd mater 72 x 190 x 25 cm.
+Publicerad baddfatolj utan armstod: 190 x 72 cm liggyta
