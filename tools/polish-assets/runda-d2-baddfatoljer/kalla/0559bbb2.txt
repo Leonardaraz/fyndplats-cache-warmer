@@ -1,0 +1,27 @@
+# KALLA 0559bbb2 — 2619 kr — farg: Beige — tyg: Samt
+Abmessung Sofa: 72L x 78B x 79H cm
+Abmessung Bett: 72L x 190B x 25H cm
+Sitzgroesse: 72B x 62T cm
+Dicke der Sitzflaeche: 11 cm
+Groesse Rueckenlehne: 72B x 41H cm
+Groesse Kissen: 60B x 34T cm
+Belastbarkeit: 120 kg
+6-stufig verstellbare Rueckenlehne: 100, 115, 125, 140, 160, 180 Grad
+Material: Samt (100 % Polyester), Schaumstoff, Metall, Kautschukbaumholz
+Atmungsaktiver Bezug in Samtoptik, knitterfrei und verschleissfest
+Zusaetzliches Kissen und gepolsterter Sitz
+Knopfheftung und verzierte Seitenraender
+Metallrahmen fuer Stabilitaet und Langlebigkeit
+Einfache Montage erforderlich
+Lieferumfang: 1 x Schlafsofa, 1 x Kopfkissen, 1 x Anleitung
+Vikt: 21,3 kg  Paketmatt: 74 x 39 x 72 cm
+
+# KORSREFERENS — den PUBLICERADE systerprodukten baddfatolj-190-cm
+# (667ca8f9, morkgron). Mattritningen ar identisk i varje tal, och
+# sitthojden 38 cm star pa den. Vikten skiljer 21,3 mot 21,5 kg.
+Publicerad systerprodukt i morkgront: samma mobel, sitthojd 38 cm
+
+# KORSREFERENS 2 — lanktexten pekar pa systerprodukten i manchester
+# (82798d95 / dd2f1769), vars badd ar 90 x 190 cm. Talet 90 kommer alltsa
+# fran DEN produktens underlag, inte fran den har.
+Systerprodukt i manchester: 90 cm bred badd
