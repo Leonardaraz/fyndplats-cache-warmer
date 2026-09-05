@@ -252,3 +252,25 @@ Skriv en rad när du tar en familj, och stryk den när den är klar. En familj u
 | `^Ohrensessel` | — | fri |
 | `^Hängesessel` + `^Bodensessel` | — | fri |
 | `^Schlafsessel` + `^Klappsessel` + de fyra Skandidesign | — | fri |
+
+## ☠️ Familjen grupperas på MÅTT, inte på namn — J var en kvartett (2026-09-05)
+
+Runda 69 tog `37e5dfcf` och `dd5553fa` som ett par. Runda 70 hittade två till
+med **exakt samma mått och ordagrant samma tyska brödtext** — `73112149` och
+`5c0e83d1` — plus `84e3794d`, som är familj L:s tredje syskon på samma sätt.
+
+Namnen döljer det, för leverantören namnger samma modell olika:
+
+| id8 | tyskt namn (början) |
+|---|---|
+| `37e5dfcf` | Relaxsessel, 145° neigbar, verstellbare Fußstütze… |
+| `73112149` | Relaxsessel, verstellbar, Liegefunktion, bis 120 kg… |
+| `5c0e83d1` | Relaxsessel, 145° neigbar, verstellbare Fußstütze… |
+
+Alla fyra: 78 × 87 × 100 cm, liggande 78 × 151 × 89, 145°, 360°, 120 kg,
+21,5 kg, paket 79 × 64 × 52, `Kunstleder, Holz`.
+
+**Gruppera på `Gesamtmaße` + `Belastbarkeit` + paketmått innan en runda väljs
+ut.** Ett halvt syskonskap ger en publicerad sida vars "finns i fler färger"
+är ofullständig så fort resten poleras — och den bristen syns inte förrän
+familjen är klar.
