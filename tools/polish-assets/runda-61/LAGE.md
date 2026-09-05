@@ -154,3 +154,10 @@ SKU:er som något poleringen orsakar; det stämmer bara till hälften — poleri
 | 0ab3483a | frukostset-rosa-bikakemonster | FP-frukostset-rosa | 4 |
 
 Textens facit (längd + hash på den SYNLIGA texten) ligger i `facit.json`.
+
+## Pushpolicy från och med runda 62
+
+Varje push till grenen byggde tidigare en Vercel-preview; runda 60 och 61
+kostade åtta byggen som alla rörde bara `docs/` och `tools/`. Sedan
+2026-09-05 filtrerar `vercel.json`s `ignoreCommand` bort dem, och
+poleringsrundor batchas dessutom fem åt gången i en push.
