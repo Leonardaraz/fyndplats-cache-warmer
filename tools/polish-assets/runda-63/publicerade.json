@@ -1,0 +1,251 @@
+{
+ "hogt-katthus-88-cm-tva-plan": {
+  "klass": "ute-hus",
+  "pris": 1479,
+  "tal": [
+   "88",
+   "5",
+   "60",
+   "29",
+   "77",
+   "19",
+   "18",
+   "80",
+   "14",
+   "12",
+   "7",
+   "40",
+   "14,5"
+  ]
+ },
+ "kattbo-filt-sisalplatta-40-cm": {
+  "klass": "inne-badd",
+  "pris": 559,
+  "tal": [
+   "30",
+   "22",
+   "17",
+   "39",
+   "2",
+   "21",
+   "42"
+  ]
+ },
+ "katthus-med-balkong-87-cm": {
+  "klass": "ute-hus",
+  "pris": 1699,
+  "tal": [
+   "76",
+   "27",
+   "6",
+   "35,5",
+   "17",
+   "15",
+   "9",
+   "191",
+   "67",
+   "18"
+  ]
+ },
+ "katthus-tv-design-med-kudde": {
+  "klass": "inne-badd",
+  "pris": 799,
+  "tal": [
+   "43",
+   "30,5",
+   "20",
+   "4"
+  ]
+ },
+ "katthus-tva-katter-85-cm": {
+  "klass": "ute-hus",
+  "pris": 1399,
+  "tal": [
+   "70",
+   "20",
+   "23",
+   "18",
+   "45",
+   "87"
+  ]
+ },
+ "katthus-uppfallbart-tak-87-cm": {
+  "klass": "ute-hus",
+  "pris": 1229,
+  "tal": [
+   "44",
+   "3",
+   "34",
+   "70",
+   "45,5",
+   "20",
+   "15",
+   "17"
+  ]
+ },
+ "katthus-utomhus-96-cm-tva-rum-blomlada": {
+  "klass": "ute-hus",
+  "pris": 2319,
+  "tal": [
+   "50",
+   "25",
+   "8",
+   "85,5",
+   "34",
+   "35",
+   "16",
+   "11,5"
+  ]
+ },
+ "katthus-utomhus-tra-3-vaningar": {
+  "klass": "ute-hus",
+  "pris": 2589,
+  "tal": [
+   "140",
+   "25",
+   "40"
+  ]
+ },
+ "kattstuga-utomhus-77-cm": {
+  "klass": "ute-hus",
+  "pris": 1199,
+  "tal": [
+   "68",
+   "22",
+   "15",
+   "21",
+   "3,5",
+   "11",
+   "21,5",
+   "57"
+  ]
+ },
+ "kattunnel-hopfallbar-i-plysch": {
+  "klass": "inne-ovrigt",
+  "pris": 599,
+  "tal": [
+   "170",
+   "27",
+   "45",
+   "3",
+   "17",
+   "10"
+  ]
+ },
+ "klostrad-53-cm-tradstam-med-hala": {
+  "klass": "klostrad",
+  "pris": 739,
+  "tal": [
+   "53",
+   "30",
+   "15",
+   "6,5",
+   "31"
+  ]
+ },
+ "klostrad-53-cm-tradstamsform": {
+  "klass": "klostrad",
+  "pris": 519,
+  "tal": [
+   "53",
+   "30",
+   "6,5",
+   "13",
+   "15"
+  ]
+ },
+ "klostrad-med-koja": {
+  "klass": "klostrad",
+  "pris": 649,
+  "tal": [
+   "104",
+   "24",
+   "16,5",
+   "10",
+   "12",
+   "6,9",
+   "30"
+  ]
+ },
+ "klostrad-naturfiber-grotta-mysbadd-stege": {
+  "klass": "klostrad",
+  "pris": 1259,
+  "tal": [
+   "100,5",
+   "37",
+   "29,5",
+   "17",
+   "12,5",
+   "30",
+   "19",
+   "9"
+  ]
+ },
+ "klostrad-rotting-95-cm": {
+  "klass": "klostrad",
+  "pris": 1169,
+  "tal": [
+   "95",
+   "39",
+   "26,5",
+   "20",
+   "35",
+   "10",
+   "47",
+   "8,3",
+   "40"
+  ]
+ },
+ "klostunna-70-cm-tre-plan": {
+  "klass": "klostrad",
+  "pris": 929,
+  "tal": [
+   "70",
+   "37,5",
+   "18",
+   "72",
+   "15,5"
+  ]
+ },
+ "litet-katthus-utomhus-57-cm": {
+  "klass": "ute-hus",
+  "pris": 859,
+  "tal": [
+   "43",
+   "5",
+   "15,5",
+   "20,5",
+   "34",
+   "31,5",
+   "77"
+  ]
+ },
+ "litet-klostrad-46-cm-klosbrada-liggplats": {
+  "klass": "klostrad",
+  "pris": 519,
+  "tal": [
+   "46",
+   "28",
+   "37",
+   "15",
+   "8"
+  ]
+ },
+ "upphojt-katthus-hopfallbart": {
+  "klass": "ute-hus",
+  "pris": 1079,
+  "tal": [
+   "18,5",
+   "60",
+   "56",
+   "22",
+   "1",
+   "40",
+   "39,5",
+   "18",
+   "46",
+   "49",
+   "16,5"
+  ]
+ }
+}

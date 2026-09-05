@@ -8,3 +8,9 @@
 # övrigt bara rörde docs/ och tools/. Den här filen ligger under tools/ och
 # kostar noll.
 */live/
+
+# Kontaktark och nedladdade leverantörsbilder (Steg 4/9). Rotens .gitignore
+# täcker `kontaktark-*.jpg` men INTE `kontaktark.jpg` utan suffix — och en rad i
+# roten kostar ett bygge, så mönstret kompletteras här i stället.
+*/kontaktark.jpg
+*/rawbilder/
