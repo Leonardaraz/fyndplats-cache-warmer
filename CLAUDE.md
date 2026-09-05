@@ -44,6 +44,41 @@ en PR per produkt.
 - Poleringen är sällan brådskande. Ingen kund väntar på en omskriven
   produkttitel — det är precis den sortens arbete som ska samlas ihop.
 
+### ☠️ En PUSH till grenen bygger också — inte bara en merge (2026-09-05)
+
+Regeln ovan vaktade merges till `main`. Den missade hälften av notan: **Vercel
+bygger varje push till varje gren** som en preview. Uppmätt på ett dygns
+byggen i projektet `fyndplats-cache-warmer`:
+
+| gren | byggen | typ |
+|---|--:|---|
+| `claude/…-bz3j9l` | **8** | preview, alla READY |
+| `claude/…-uq6fwl` | 4 | preview |
+| `main` | 4 | production |
+
+**Tolv av sexton byggen var previews**, och de åtta från poleringsgrenen rörde
+uteslutande `docs/` och `tools/polish-assets/` — texter, kort och runbok.
+Ingenting som appen bygger eller serverar. Build CPU är 49 % av fakturan, och
+tre fjärdedelar av byggvolymen den dagen nådde aldrig en kund.
+
+**Regeln: en commit som bara rör `docs/`, `tools/` eller `scripts/` ska bära
+`[skip ci]` i ämnesraden.** Vercel hoppar då över deployen helt. Våra
+GitHub Actions-workflows är `workflow_dispatch` och påverkas inte, och
+`raw.githubusercontent.com` serverar kortbilderna direkt vid pushen — så
+uppladdningen till Wix fungerar oförändrat.
+
+☠️ **`[skip ci]` får ALDRIG sättas på en commit som rör app-kod.** Då blir
+produktionen inte ombyggd, och en deploy som inte blev av ser exakt likadan ut
+som en som blev det — samma fälla som miljövariabeln i Aosom-avsnittet.
+
+Och pusha färre gånger: en poleringsrunda behöver som mest **två** pushar —
+korten (som måste ligga i grenen innan Wix hämtar dem) och allt annat vid
+rundans slut.
+
+⚠️ Projektet `fyndplats-headless` är kopplat till SAMMA repo och startar också
+ett bygge per push, men de avbryts allihop. Kostnaden dubbleras alltså inte —
+kontrollmätt samma dag, alla `CANCELED`.
+
 ### Undantaget
 
 En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
