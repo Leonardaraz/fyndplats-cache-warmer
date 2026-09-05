@@ -316,3 +316,24 @@ poleringen skapade.
 
 Kort (Steg 9), kategori (Steg 10), läs som kund (Steg 12), stämpla mappningen
 och publicera (Steg 13), live-grind (Steg 14).
+
+## Steg 9 klart — 40 svenska alt-texter
+
+Alla 40 bilder bar tysk alt-text från importen ("Ergonomischer, schaukelnder
+Kniehocker für Homeoffice, zur Verbesserung der Körperhaltung, Hellgrau"). De är
+utbytta mot svenska som beskriver vad bilden VISAR.
+
+Verifierat i ett eget pass: **noll tyska kvar, noll tomma, noll delade, 40 av 40
+bilder oförändrade i antal och ordning**, alla åtta fortfarande utkast.
+
+☠️ **Måttritningarna fällde grinden mot delad alt-text — med rätta.** De fem
+björksyskonen har identiska mått, så en text som bara räknar upp måtten blir
+identisk på fem produkter. Ögat kan inte skilja fem knästolar åt, och en delad
+alt-text betyder att fel bild kan hamna på fel sida utan att någon märker det.
+Löst genom att namnge färgen i ritningens text ("Måttritning av den mörkgrå
+knästolen: 51 cm bred…") — unik OCH mer informativ, eftersom ritningen faktiskt
+visar den färgade stolen.
+
+⚠️ **Inga egna kort behövdes.** Alla 40 leverantörsbilder är rena från inbränd
+text, vilket är ovanligt för Aosom (46 % bär normalt tysk text). Galleriet
+behölls intakt; ingen bild togs bort och ingen laddades upp.
