@@ -31,7 +31,7 @@ Två saker gör hemmaträning *bättre* än ett gym för många nybörjare:
 
 Nackdelen är att utvecklingen i ren styrka stannar av efter några månader om du bara använder kroppsvikten. Men för de första 4–6 månaderna är det inte ett problem — då bygger kroppen muskler från i princip nollnivå.
 
-[![Sissy squat-bänk 3-i-1, justerbar bräda för squats och armhävningar](https://static.wixstatic.com/media/b379ce_5c62a68da17e4a8091c4932d1ad9bf35~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/sissy-squat-bank-3-i-1 "Se i butiken →")
+[![Sissy squat-bänk 3-i-1, justerbar bräda för squats och armhävningar](https://static.wixstatic.com/media/b379ce_8b88efb461b242ea83c20b783b21f9b8~mv2.jpg/v1/fit/w_1200,h_1200,q_85/file.jpg)](/produkt/sissy-squat-bank-3-i-1 "Se i butiken →")
 
 ## De tio basövningarna du behöver kunna
 

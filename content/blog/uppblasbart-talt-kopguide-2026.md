@@ -45,7 +45,7 @@ Vårt [uppblåsbara tält för 2–3 personer](/produkt/uppblasbart-talt) har tv
 
 ### För familjen och året-runt-campingen: 3–5 personer med kaminhål
 
-[![Uppblåsbart campingtält 3–5 personer – lufttält med pump och kaminhål](https://static.wixstatic.com/media/b379ce_7be26b2dbe8d4551a338e9661ca4401a~mv2.jpg)](/produkt/uppblasbart-campingtalt "Uppblåsbart campingtält 3–5 personer")
+[![Uppblåsbart campingtält 3–5 personer – lufttält med pump och kaminhål](https://static.wixstatic.com/media/b379ce_1ae7bee54ed84349815c7a20f2199140~mv2.jpg)](/produkt/uppblasbart-campingtalt "Uppblåsbart campingtält 3–5 personer")
 
 Vårt [uppblåsbara campingtält för 3–5 personer](/produkt/uppblasbart-campingtalt) tar familjeformatet – och kaminhålet gör det till ett äkta fyrsäsongstält: höstfisket, jaktlaget och vinterglampingen får värme utan kondensproblem. Pump ingår här också.
 
