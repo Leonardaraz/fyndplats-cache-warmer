@@ -2488,6 +2488,24 @@ s.count(chr(8))   # → 4. Skriv grindar i r"..." — eller räkna backspace eft
 Samma familj som *"en grind mot osynliga tecken får inte SKRIVAS med osynliga tecken"*
 (runda 46) — och nu med ett tecken som inte ens går att se i en diff.
 
+### ☠️ En mutation måste ta bort VARJE bärare av faktumet (2026-09-05)
+
+Besläktad med regeln nedan, men den slår tidigare och tystare. En grind läser
+oftast **fyra** bärare: `name`, `title`, `meta` och brödtexten. En mutation som
+bara rör HTML:en lämnar faktumet kvar i de tre andra — grinden tiger med rätta,
+och testet rapporterar en miss som ser ut som ett hål i grinden.
+
+Fyra av runda 62:s tjugonio mutationer föll på just det: `120 kg` stod kvar i
+namnet, `björk` i titeln, `15–30 minuter` i FAQ-svaret. Alla fyra grindarna var
+korrekta hela tiden.
+
+☠️ **Och en färgmutation får aldrig gå via produktens eget färgfält.**
+Spec-tabellen BYGGS ur det fältet, så en ändring där följer med in i texten och
+grinden jämför fältet med sig självt — den kan inte fälla. Defekten den vaktar
+är att TEXTEN säger en annan färg än produkten, alltså ska texten muteras och
+fältet lämnas orört. Samma form som varje annan självuppfyllande kontroll:
+**om mutationen ändrar både facit och det som mäts, mäter testet ingenting.**
+
 ### ⚠️ En mutation som pekar på en mening du skrivit om testar ingenting
 
 Steg 12 skrev om öppningsmeningen i `b4b1c099a`. Mutationen för *"mellanslag före
