@@ -170,3 +170,33 @@ konsumenterna verifieras är hur tvillingar glider isär.
 Åtta egna Fyndplats-kort, alla under 215 kB vid q ≥ 85 **utan mjukning** —
 till skillnad från runda 67, där den grå chenillen krävde 2,0 px. Här är
 chenillen ljusare och väven finare.
+
+## Steg 7–14 — utfallet
+
+| id8 | slug | SKU | pris | text | kort |
+|---|---|---|--:|--:|---|
+| 8ca7b3c3 | `loungefatolj-ljusgra-med-fotpall` | `FP-loungefatolj-ljusgra` | 3 229 | 2 690 | ✓ |
+| 79797c9a | `loungefatolj-bla-med-fotpall` | `FP-loungefatolj-bla-fotpall` | 3 279 | 2 683 | ✓ |
+| 9a2f6417 | `lasfatolj-gra-160-grader` | `FP-lasfatolj-gra-160-grader` | 4 139 | 2 917 | ✓ |
+| dfb7fcbe | `lasfatolj-ljusbeige-160-grader` | `FP-lasfatolj-ljusbeige-160` | 3 999 | 2 926 | ✓ |
+| fbba0de8 | `gungfatolj-graddvit-med-fotpall` | `FP-gungfatolj-graddvit` | 2 449 | 2 708 | ✓ |
+| 99e2d675 | `gungfatolj-svart-med-fotpall` | `FP-gungfatolj-svart-fotpall` | 2 549 | 2 703 | ✓ |
+| 07d52f21 | `biofatolj-svart-med-fotpall` | `FP-biofatolj-svart-fotpall` | 3 119 | 2 683 | ✓ |
+| ed930c42 | `biofatolj-grabrun-med-fotpall` | `FP-biofatolj-grabrun` | 3 499 | 2 692 | ✓ |
+
+**Priserna är orörda.** Kolumnen står här som facit för prisgrinden, inte som
+något rundan skrivit — importen satte dem, och alla åtta `las`-körningar av
+`polish-mapping.yml` gick gröna (läget avslutar med `exit 1` när grinden faller
+eller underlaget saknas, så en grön körning ÄR kvittot).
+
+Steg 9: sex bilder per produkt, kortet på **position 3**, måttritningen sist —
+läst tillbaka med `fields=MEDIA_ITEMS_INFO`, eftersom media-PATCHens eget svar
+bär tom `itemsInfo`. Steg 10: alla åtta i `Hem & Inredning` (`All Products` är
+externt förvaltad och skrivs aldrig till — se runda 67). Steg 13: publicerade,
+åtta stämplingar via `polish-mapping.yml`, alla `success`.
+
+Steg 14: alla åtta svarar `200` med `x-vercel-cache: MISS` — en färsk rendering,
+inte ett cachat gammalt svar — och den synliga texten är **byte-identisk mot
+facit** på alla åtta (längd och hash). Kortets hex står i sidkällan, inga tyska
+ord, inga husmärken, inget land, inget artikelnummer, och varje `MASTE_STA`-post
+nådde kunden.
