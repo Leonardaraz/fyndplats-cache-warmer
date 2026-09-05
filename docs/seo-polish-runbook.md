@@ -2073,6 +2073,22 @@ POST https://www.wixapis.com/categories/v1/bulk/categories/remove-item
 > `kategorier: 1` i GET:en mikrosekunder senare. Grinda på `totalSuccesses`, eller läs om i
 > ett SENARE anrop.
 >
+> ☠️ **`All Products` går INTE att skriva till.** Uppmätt i runda 67: kategorin
+> `05e96cd6-e4bc-4f55-b31c-6062ede453ff` svarar
+> `MANAGED_CATEGORY_OPERATION_NOT_ALLOWED` — *"externally managed by app"*. Stores-appen
+> äger den och produkter hamnar där av sig själva. Ta aldrig med den i `categoryIds`.
+>
+> ⚠️ **Och `totalSuccesses` ensamt räcker inte som kvitto när du skickar FLERA kategorier.**
+> Svaret räknar hur många som lyckades men säger inte VILKA: `[true, false]` per produkt ser
+> likadant ut vare sig det var lövet eller föräldern som föll. Runda 67 skickade två
+> kategorier till åtta produkter och fick `lyckade: 1, misslyckade: 1` på var och en — utan
+> namn hade det kunnat rapporteras som "kategorier satta". Läs `results[].itemMetadata.error`
+> och matcha mot `originalIndex`, eller kör om mot BARA den kategori du tror är satt och
+> kräv `ALREADY_EXISTS` — ett omvänt bevis som inte går att missförstå.
+>
+> ⚠️ **Endpointen tar ETT `item` och FLERA `categoryIds`**, aldrig en lista med `items`.
+> En items-lista ger `400 categoryIds has size 0, expected 1 or more`.
+>
 > ⚠️ **Och det gäller inte bara kategorierna — hela produkten kan läsas inaktuell.** En
 > `plainDescription`-PATCH följd av en verifierings-GET i samma anrop gav oförändrad text
 > och oförändrad revision, fast skrivningen hade gått fram: nästa anrop visade rätt text och
