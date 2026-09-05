@@ -179,6 +179,59 @@ Batchningsregeln ovan gäller fortfarande MERGES till `main` (de bygger, och de
 tömmer butikens ISR-cache), men pushar till poleringsgrenen behöver inte längre
 sparas ihop.
 
+### ☠️ Filtret FÖRGIFTAR SIG SJÄLVT — och slutade fungera efter sju hoppade byggen (2026-09-05)
+
+Sex pushar i rad gav `state: ERROR` och ett "Preview deployment failed"-mejl var.
+Ingen av dem rörde en kodrad. Felet står ordagrant i deployment-svaret:
+
+```
+errorStep:    ignoreStep
+errorMessage: Command failed with exit code 128
+              fatal: bad object 3e072fa96aab30d1f58d748f88eca717f3ef6014
+buildingAt → ready: 11 sekunder
+```
+
+☠️ **`VERCEL_GIT_PREVIOUS_SHA` är förra LYCKADE deployens SHA — och ett hoppat
+bygge är `CANCELED`, alltså inte lyckat.** Pekaren står därför still så länge
+filtret biter. Ju bättre filtret fungerar, desto längre bak hamnar referensen,
+tills den ligger utanför Vercels **grunda klon** — och då failar `git diff` med
+`exit 128` vid varje push, för alltid.
+
+Uppmätt på ett dygns byggen i grenen:
+
+| tid | utfall | antal |
+|---|---|--:|
+| 10:00–11:42 | `READY` (före/vid filtret) | 7 |
+| 11:16–12:31 | **`CANCELED`** — filtret bet | 7 |
+| 12:55–13:53 | ☠️ **`ERROR`** — pekaren utanför klonen | 6 |
+
+Raden `[ -z "$VERCEL_GIT_PREVIOUS_SHA" ] && exit 1` fångade bara det TOMMA
+fallet. Den täckte inte "satt men oåtkomlig", och det är just det fallet filtrets
+egen framgång skapar.
+
+Lagat: SHA:n kontrolleras med `git cat-file -e`, klonen fördjupas vid behov, och
+går den ändå inte att nå blir det ett medvetet `exit 1` (bygg) i stället för
+`exit 128` (fel). Provkört mot repots verkliga historik:
+
+| fall | gammal | ny |
+|---|--:|--:|
+| dagens spann, bara `docs/` + `tools/` | 0 | **0** |
+| spann med kod | 1 | **1** |
+| SHA utanför klonen | **128** | **1** |
+| tomt `VERCEL_GIT_PREVIOUS_SHA` | 1 | **1** |
+
+⚠️ **Kostnaden var liten, larmet var inte det.** Ett `ERROR` dör i ignore-steget
+efter elva sekunder och kör aldrig `next build` — ungefär samma CPU som ett
+hoppat bygge. Men det skickar ett mejl varje gång, och ett larm som fyrar på
+varje korrekt push lär mottagaren att sluta läsa. Samma regel som mot ett rött
+synk-jobb vid varje svep.
+
+☠️ **Och rapporteringen var fel innan den var mätt.** Den här sessionen sa
+"noll byggen idag" om femton commits, räknat på att spannet bara rörde `docs/`
+och `tools/`. Det var rätt om FILTRETS AVSIKT och fel om UTFALLET. **Räkna
+byggen i Vercels deployment-lista, inte i `git diff`** — filtret kan vara ur
+funktion utan att spannet ändras.
+
 ### Undantaget
 
 En bugg som skadar kunder just nu får sin egen deploy direkt. Det är

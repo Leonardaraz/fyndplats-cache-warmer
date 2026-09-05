@@ -58,5 +58,5 @@
       "schedule": "50 3 * * *"
     }
   ],
-  "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_CEca1mZt6bjVcL4FqUWxCshYUvNL\" ] && exit 0; [ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ] && exit 1; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . ':!docs' ':!tools' ':!*.md'"
+  "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_CEca1mZt6bjVcL4FqUWxCshYUvNL\" ] && exit 0; [ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ] && exit 1; git cat-file -e \"$VERCEL_GIT_PREVIOUS_SHA^{commit}\" 2>/dev/null || git fetch --deepen=500 origin \"$VERCEL_GIT_COMMIT_REF\" >/dev/null 2>&1; git cat-file -e \"$VERCEL_GIT_PREVIOUS_SHA^{commit}\" 2>/dev/null || exit 1; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . ':!docs' ':!tools' ':!*.md'"
 }
