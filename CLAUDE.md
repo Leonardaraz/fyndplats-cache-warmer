@@ -209,16 +209,28 @@ Raden `[ -z "$VERCEL_GIT_PREVIOUS_SHA" ] && exit 1` fångade bara det TOMMA
 fallet. Den täckte inte "satt men oåtkomlig", och det är just det fallet filtrets
 egen framgång skapar.
 
-Lagat: SHA:n kontrolleras med `git cat-file -e`, klonen fördjupas vid behov, och
-går den ändå inte att nå blir det ett medvetet `exit 1` (bygg) i stället för
-`exit 128` (fel). Provkört mot repots verkliga historik:
+☠️ **Och `ignoreCommand` får vara HÖGST 256 TECKEN.** Första lagningen försökte
+fördjupa klonen med `git fetch --deepen=500` och blev 430 tecken. Vercel svarade
+`The vercel.json schema validation failed: ignoreCommand should NOT be longer
+than 256 characters` — och den deployen blev ERROR den också. Gränsen står inte i
+den dokumentation raden hänvisar till; den syns bara i felmeddelandet.
+
+✅ **Den korta lagningen är dessutom den BÄTTRE.** `git cat-file -e` avgör om
+SHA:n går att nå; går den inte det blir det `exit 1`, alltså BYGG. Det bygget
+lyckas → `READY` → `VERCEL_GIT_PREVIOUS_SHA` flyttas fram till en nåbar commit →
+filtret fungerar igen. **Felet läker alltså ut sig självt med ett enda bygge**,
+medan `--deepen` bara hade skjutit upp samma problem till nästa 500 commits.
+
+Raden är 213 tecken och `[ -z … ]`-vakten behövs inte längre: `cat-file` på en
+tom sträng failar av sig själv. Provkört mot repots verkliga historik:
 
 | fall | gammal | ny |
 |---|--:|--:|
 | dagens spann, bara `docs/` + `tools/` | 0 | **0** |
 | spann med kod | 1 | **1** |
-| SHA utanför klonen | **128** | **1** |
+| SHA utanför klonen | **128** | **1** (bygger, läker) |
 | tomt `VERCEL_GIT_PREVIOUS_SHA` | 1 | **1** |
+| butiksprojektet `prj_CEca…` | 0 | **0** |
 
 ⚠️ **Kostnaden var liten, larmet var inte det.** Ett `ERROR` dör i ignore-steget
 efter elva sekunder och kör aldrig `next build` — ungefär samma CPU som ett
