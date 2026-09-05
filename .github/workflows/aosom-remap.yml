@@ -41,6 +41,11 @@ on:
         required: false
         default: ""
         type: string
+      min_margin_pct:
+        description: "Sank marginalgolvet (default 5). Leonards regel: Aosom vinner aven dyrare. TOMT = golvet gäller."
+        required: false
+        default: ""
+        type: string
 
 jobs:
   remap:
@@ -54,6 +59,7 @@ jobs:
           PRODUCT_ID: ${{ inputs.wix_product_id }}
           SKU: ${{ inputs.sku }}
           DUPLICATE: ${{ inputs.duplicate_wix_product_id }}
+          MIN_MARGIN: ${{ inputs.min_margin_pct }}
         run: |
           set -euo pipefail
 
@@ -73,9 +79,11 @@ jobs:
             --arg id "${PRODUCT_ID}" \
             --arg sku "${SKU}" \
             --arg dup "${DUPLICATE}" \
+            --arg mm "${MIN_MARGIN}" \
             --argjson apply "${apply}" \
             '{wixProductId: $id, sku: $sku, apply: $apply}
-             + (if $dup == "" then {} else {duplicateWixProductId: $dup} end)')
+             + (if $dup == "" then {} else {duplicateWixProductId: $dup} end)
+             + (if $mm == "" then {} else {minMarginPct: ($mm | tonumber)} end)')
 
           echo "Läge: ${MODE} (apply=${apply})"
           svar=$(curl -sS --max-time 120 -X POST \
@@ -89,7 +97,7 @@ jobs:
           # blocket avslutar YAML:ens `run: |` och gor filen olasbar for
           # GitHub. Den har workflowen gick aldrig att starta fran att den
           # skapades tills det upptacktes 2026-09-03.
-          echo "$svar" | jq -r '.plan // {} | "  artikelnummer   \(.sku)\n  fran            \(.["frånLeverantör"])\n  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)\n  kundpris        \(.prisSek) kr (ORORT)\n  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %\n  fraktandel      \(.fraktandel)"'
+          echo "$svar" | jq -r '.plan // {} | "  artikelnummer   \(.sku)\n  fran            \(.["frånLeverantör"])\n  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)\n  kundpris        \(.prisSek) kr ur \(.["prisKalla"]) (ORORT)\n  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %\n  fraktandel      \(.fraktandel)"'
 
           if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
             echo "::error::$(echo "$svar" | jq -r '.error // "hinder — se listan nedan"')" >&2

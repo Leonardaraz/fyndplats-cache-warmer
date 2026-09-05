@@ -26,6 +26,7 @@ import { getStore } from "@/lib/store/factory";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { eurToSekFromEnv } from "@/lib/config";
 import { fetchAosomFeed } from "@/lib/aosom/feed";
+import { getV3ProductPris } from "@/lib/wix/v3-products";
 import {
   pensioneraDubblett,
   planeraOmmappning,
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
     sku?: string;
     duplicateWixProductId?: string;
     apply?: boolean;
+    minMarginPct?: number;
   } = {};
   try {
     body = await req.json();
@@ -63,6 +65,15 @@ export async function POST(req: NextRequest) {
   const sku = body.sku?.trim();
   const dubblett = body.duplicateWixProductId?.trim() || undefined;
   const apply = body.apply === true;
+  // ☠️ MARGINALGOLVET GAR ATT SANKA, MEN BARA MEDVETET OCH PER ANROP.
+  // Leonards beslut 2026-09-05: alla Aosom-varor kopta via AliExpress ska peka
+  // om till Aosoms feed "oavsett om de ar billigare eller inte". Golvet finns
+  // anda kvar som DEFAULT — en ommappning som gar med forlust ska krava att
+  // nagon skriver ner siffran, och den hamnar i audit-raden. Ett tyst
+  // bortkopplat golv hade varit samma sak som inget golv.
+  const minMarginPct = Number.isFinite(body.minMarginPct as number)
+    ? (body.minMarginPct as number)
+    : undefined;
 
   if (!wixProductId || !sku) {
     return NextResponse.json(
@@ -79,16 +90,25 @@ export async function POST(req: NextRequest) {
 
   try {
     const store = getStore();
-    const [rader, alla, mappning, regler] = await Promise.all([
+    // ☠️ BUTIKENS PRIS AR FACIT. Mappningens `grossSek` ar vad vi TROR att
+    // kunden ser. Glider de isar raknar marginalgrinden pa fel underlag och
+    // faller en lonsam ommappning — uppmatt pa kontorsstolen f13cd415
+    // 2026-09-05. Ett LASFEL far dock inte se ut som "inget pris": da faller vi
+    // tillbaka pa mappningen och sager det i `prisKalla`, i stallet for att
+    // avbryta hela ommappningen for en prisfraga.
+    const [rader, alla, mappning, regler, butikensPrisSek] = await Promise.all([
       fetchAosomFeed(),
       store.listMappings(),
       store.getMappingByWixProductId(wixProductId),
       getPricingRules(),
+      getV3ProductPris(wixProductId)
+        .then((p) => p.priceSek)
+        .catch(() => null),
     ]);
 
     const rad = rader.find((r) => r.sku === sku);
     const fx = { eurToSek: eurToSekFromEnv(), usdToSek: regler.usdToSek };
-    const plan = planeraOmmappning({ mappning, rad, alla, fx, dubblett });
+    const plan = planeraOmmappning({ mappning, rad, alla, fx, dubblett, butikensPrisSek, minMarginPct });
 
     if (plan.hinder.length > 0) {
       return NextResponse.json({ ok: false, torrkörning: !apply, plan }, { status: 422 });
@@ -139,6 +159,8 @@ export async function POST(req: NextRequest) {
       detail: `${plan.frånLeverantör} → aosom:${sku} `
         + `landat ${plan.gammalLandadSek ?? "?"} → ${plan.nyLandadSek} kr `
         + `marginal ${plan.gammalMarginalPct ?? "?"} → ${plan.nyMarginalPct} % `
+        + `(pris ${plan.prisSek} kr ur ${plan.prisKalla}`
+        + (minMarginPct == null ? "" : `, golv ${minMarginPct} %`) + ") "
         + (dubblettPensionerad ? `dubblett ${dubblettPensionerad} pensionerad` : "utan dubblett"),
     });
 

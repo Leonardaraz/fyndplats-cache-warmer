@@ -271,4 +271,94 @@ describe("pensioneraDubblett", () => {
     );
     expect(mappingSupplier(d)).toBe("aosom");
   });
+
+  // ☠️ BUTIKEN AR FACIT, INTE MAPPNINGEN.
+  //
+  // Uppmatt 2026-09-05 pa kontorsstolen f13cd415: mappningen bar grossSek 879
+  // medan kunden precis hade betalat 1 299 i butiken. Marginalgrinden raknade
+  // pa 879, fick -2,41 % och fallde en ommappning som i verkligheten gav
+  // +30,7 %. Exakt samma forvaxling som `jamforelsePris` byggdes for i synken
+  // 2026-09-02, pa ett annat stalle.
+  describe("butikens pris vinner over mappningens", () => {
+    it("anvander butikens pris nar det lasts, och sager varifran det kom", () => {
+      const p = planeraOmmappning({
+        mappning: mappning(),
+        rad: rad(),
+        alla: INGA_ANDRA,
+        fx: FX,
+        butikensPrisSek: 2999,
+      });
+      expect(p.prisSek).toBe(2999);
+      expect(p.prisKalla).toBe("butik");
+      // Hogre pris an mappningens 1999 ⇒ battre marginal an de 17,46 % ovan.
+      expect(p.nyMarginalPct).toBeGreaterThan(17.46);
+    });
+
+    it("faller tillbaka pa mappningen nar butiken inte lastes", () => {
+      const p = planeraOmmappning({ mappning: mappning(), rad: rad(), alla: INGA_ANDRA, fx: FX });
+      expect(p.prisSek).toBe(1999);
+      expect(p.prisKalla).toBe("mappning");
+    });
+
+    it("ett noll- eller negativt butikspris ar inget pris — mappningen galler", () => {
+      for (const dumt of [0, -1, null]) {
+        const p = planeraOmmappning({
+          mappning: mappning(),
+          rad: rad(),
+          alla: INGA_ANDRA,
+          fx: FX,
+          butikensPrisSek: dumt,
+        });
+        expect(p.prisSek).toBe(1999);
+        expect(p.prisKalla).toBe("mappning");
+      }
+    });
+
+    it("☠️ ett gammalt mappningspris far inte falla en lonsam ommappning", () => {
+      // Kontorsstolen, med riktiga tal: landat 900,21 mot butikens 1 299.
+      const stol = mappning({
+        variants: [
+          {
+            supplierVariantId: "14:771",
+            sku: "FP-kontorsstol-mesh-beige",
+            wixVariantId: "wv1",
+            choices: {},
+            costUsd: 63.7,
+            landedCostSek: 668.8,
+            grossSek: 879, // GAMMALT — kunden betalade 1 299
+            shippableToSe: true,
+            shippabilityManual: true,
+          },
+        ],
+      } as never);
+      // 900,21 = (wholesale + frakt) × 11 × 1,25 ⇒ 65,47 EUR
+      const stolrad = rad({ sku: "921-672V00BG", wholesaleEur: 45.47, seFreightEur: 20 });
+
+      const paMappningen = planeraOmmappning({
+        mappning: stol, rad: stolrad, alla: INGA_ANDRA, fx: FX,
+      });
+      expect(paMappningen.hinder).toContain("marginal_under_golv");
+
+      const paButiken = planeraOmmappning({
+        mappning: stol, rad: stolrad, alla: INGA_ANDRA, fx: FX, butikensPrisSek: 1299,
+      });
+      expect(paButiken.hinder).not.toContain("marginal_under_golv");
+      expect(paButiken.nyMarginalPct).toBeGreaterThan(MIN_REMAP_MARGIN_PCT);
+    });
+  });
+
+  // Leonards beslut 2026-09-05: alla Aosom-varor kopta via AliExpress ska peka
+  // om "oavsett om de ar billigare eller inte". Golvet ar darfor sankbart —
+  // men bara medvetet, per anrop, och det hamnar i audit-raden.
+  it("minMarginPct sanker golvet, och default ligger kvar", () => {
+    const tunn = rad({ wholesaleEur: 100, seFreightEur: 60 });
+    const utan = planeraOmmappning({ mappning: mappning(), rad: tunn, alla: INGA_ANDRA, fx: FX });
+    expect(utan.hinder).toContain("marginal_under_golv");
+
+    const med = planeraOmmappning({
+      mappning: mappning(), rad: tunn, alla: INGA_ANDRA, fx: FX, minMarginPct: -100,
+    });
+    expect(med.hinder).not.toContain("marginal_under_golv");
+  });
+
 });

@@ -677,6 +677,52 @@ function arOvergaende(status: number): boolean {
  * som ser komplett ut hade fått synken att tro att de saknade produkterna inte
  * finns i butiken — och de raderna hade då aldrig prisjämförts.
  */
+/**
+ * Tolkar V3:s prisspann till ETT pris, eller null.
+ *
+ * ☠️ EN ENDA DEFINITION. `listV3ProductPrices` (hela katalogen) och
+ * `getV3ProductPris` (en produkt) svarar pa samma fraga och maste svara
+ * likadant. Huset har betalat for tvillingar som gled isar tre ganger —
+ * SHIP_AXIS_RE, EU_TULL_CODES och mapWithConcurrency. Inte en fjarde.
+ */
+export function tolkaProduktPris(p: {
+  actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+  variantSummary?: { variantCount?: number };
+}): WixProduktPris {
+  const min = Number(p.actualPriceRange?.minValue?.amount);
+  const max = Number(p.actualPriceRange?.maxValue?.amount);
+  const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
+  return {
+    priceSek: entydigt ? min : null,
+    variantCount: p.variantSummary?.variantCount ?? 0,
+  };
+}
+
+/**
+ * Vad butiken tar for EN produkt just nu.
+ *
+ * ☠️ BUTIKEN AR FACIT, INTE MAPPNINGEN. Samma regel som `jamforelsePris` i
+ * Aosom-synken (2026-09-02): mappningens `grossSek` ar vad vi TROR att kunden
+ * ser, Wix ar vad kunden faktiskt ser, och de glider isar sa fort en skrivning
+ * faller. Den forvaxlingen kostade en manad och tjugo rader pa prissidan.
+ *
+ * Enskild lasning i stallet for `listV3ProductPrices` for att den senare gar
+ * igenom 54 sidor — for en rutt som ror EN produkt ar det fel storleksordning.
+ */
+export async function getV3ProductPris(productId: string): Promise<WixProduktPris> {
+  const res = await fetch(
+    `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`,
+    { method: "GET", headers: headers() },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`getV3ProductPris(${productId}) ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { product?: Parameters<typeof tolkaProduktPris>[0] };
+  if (!data.product) throw new Error(`getV3ProductPris(${productId}): tom payload`);
+  return tolkaProduktPris(data.product);
+}
+
 export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>> {
   const priser = new Map<string, WixProduktPris>();
   let cursor: string | undefined;
@@ -732,13 +778,7 @@ export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>
 
     for (const p of data.products ?? []) {
       if (!p.id) continue;
-      const min = Number(p.actualPriceRange?.minValue?.amount);
-      const max = Number(p.actualPriceRange?.maxValue?.amount);
-      const entydigt = Number.isFinite(min) && Number.isFinite(max) && min === max;
-      priser.set(p.id, {
-        priceSek: entydigt ? min : null,
-        variantCount: p.variantSummary?.variantCount ?? 0,
-      });
+      priser.set(p.id, tolkaProduktPris(p));
     }
 
     cursor = data.pagingMetadata?.cursors?.next;
