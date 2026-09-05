@@ -105,8 +105,12 @@ MUTATIONER = [
     ("fel maxlast",
      lambda: med_text(D_PROD, [("Bruksanvisning ingår.", "Tål 150 kg.")]),
      "fel maxlast '150 kg'"),
+    # ⚠️ Pekade tidigare på "en djup koladton", en formulering som ströks när
+    #    artikelnumrets CG-suffix visade att koladgrått hör till SYSKONET
+    #    9d626528. Mutationen testade då ingenting. Den pekar nu på texten som
+    #    faktiskt står där.
     ("överdriven svärta",
-     lambda: med_text(SVART, [("en djup koladton", "djupsvart")]),
+     lambda: med_text(SVART, [("seriens mörkaste", "djupsvart")]),
      "överdriver svärtan"),
     ("artikelnummer i texten",
      lambda: med_text(D_PROD, [("Bruksanvisning ingår.", "Artikelnummer 800-288V90GY.")]),

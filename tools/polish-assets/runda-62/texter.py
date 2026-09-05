@@ -313,7 +313,7 @@ PRODUKTER = [
         "ingress": ("<p>Knädynorna är två separata kuddar i stället för en genomgående "
                     "list, så benen står i sin naturliga bredd och inte pressade mot "
                     "varandra. Sittytan mäter 39 × 30 cm och lutar framåt. Klädseln "
-                    "är den mörkaste i serien — en djup koladton mot den ljusa "
+                    "är seriens mörkaste mot den ljusa "
                     "björkstommen.</p>"),
     },
     {
