@@ -362,3 +362,47 @@ titel, meta och brödtext. Då såg två ÄKTA mutationer (slug-krock och tappat
 sökord i sluggen) ut som tomma — fältet de rörde ingick inte i avtrycket.
 Avtrycket måste täcka exakt de fält grinderna läser, annars blir kontrollen
 själv ett falsklarm.
+
+## Steg 7 skrivet och verifierat — 8 av 8 mot facit
+
+Alla åtta texter skrivna till Wix och återlästa i ett EGET anrop (runda 62:
+en återläsning i samma loop som skrivningen läser förra produktens värden).
+
+| id | revision | slug | text mot facit |
+|---|--:|---|---|
+| `b3672df6` | 2 | `kattbadd-med-kattoron-50-cm` | lika |
+| `165471af` | 3 | `kattsang-pa-ben-56-cm` | lika |
+| `ad90a1cc` | 2 | `kattigloo-flatad-50-cm` | lika |
+| `f6e3098e` | 3 | `kattkorg-i-tva-plan-40-cm` | lika |
+| `1ed0d9cb` | 2 | `kattgrotta-upphojd-58-cm` | lika |
+| `e16338a9` | 2 | `kattkoja-vattenhyacint-tva-plan` | lika |
+| `73cb432c` | 2 | `sittpuff-vattenhyacint-katt` | lika |
+| `d82950a3` | 3 | `fotpall-katt-sammet-60-cm` | lika |
+
+Alla åtta: titel satt och SKILD från namnet, meta satt, huvudsökord satt, och
+`visible: false` — ingen har publicerats av misstag.
+
+## Steg 8 — SKU:erna skrivna, och en obligatorisk fälla i vägen
+
+| id | wixVariantId | SKU | pris |
+|---|---|---|--:|
+| `b3672df6` | `5126e722-e0ff-4a01-8279-d52f938a10ea` | `FP-kattbadd-kattoron-50-cm` | 799 |
+| `165471af` | `777fbabd-eb5f-4423-a765-7ac2600c8b05` | `FP-kattsang-ben-56-cm` | 799 |
+| `ad90a1cc` | `a4f83862-e4e5-45cd-88a7-220d651e648c` | `FP-kattigloo-flatad-50-cm` | 779 |
+| `f6e3098e` | `94a882d7-4b2f-4307-ae45-69af76360e83` | `FP-kattkorg-tva-plan-40-cm` | 899 |
+| `1ed0d9cb` | `20877791-a175-4f10-8061-ed0c761bf018` | `FP-kattgrotta-upphojd-58-cm` | 929 |
+| `e16338a9` | `67e20eb8-24d7-492d-830f-4e883158c2b6` | `FP-kattkoja-vattenhyacint` | 839 |
+| `73cb432c` | `68043e06-5688-492d-9498-322ceed5a1dd` | `FP-sittpuff-vattenhyacint` | 1039 |
+| `d82950a3` | `35ce6c16-8b52-4f03-9169-cd726693b0aa` | `FP-fotpall-katt-sammet-60` | 799 |
+
+☠️ **`price` är OBLIGATORISK i en `variantsInfo`-PATCH.** Första försöket föll på
+`400: product.variantsInfo.variants[0].price must not be empty` — och det är en
+farligare fälla än ett vanligt valideringsfel, för poleringens hårdaste regel är
+att ALDRIG röra priset. Fältet måste alltså skickas med, och det enda rätta
+värdet är det som redan står där, ordagrant. Ett omräknat pris hade blivit en
+tyst prisändring på en produkt som är på väg att publiceras.
+
+Skrivningen bär därför tillbaka `price` oförändrat och verifierar efteråt att
+beloppet är identiskt (`prisOrort: true` på alla åtta). ✅ Och `visible` bärs med
+på BÅDA nivåerna — en `variantsInfo`-PATCH publicerar annars utkastet
+(uppmätt 2026-08-28). Alla åtta står kvar på `visible: false`.
