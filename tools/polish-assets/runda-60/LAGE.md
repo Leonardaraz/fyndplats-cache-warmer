@@ -15,6 +15,12 @@ skrivningar mot Wix, och MCP-anslutningen dit låg nere när arbetet stannade.
 | — | grindarna bevisade | `mutationstest.py` → 16/16 |
 | 8 | SKU:erna framräknade | `skugrind.py` → 8 distinkta |
 | 9 | korten renderade + exporterade | 11 kort, alla under 215 kB vid q >= 84 |
+| 9 | galleriplanen + alt-texter | `bildplan.py` — proveniens per bild, spärr mot de 13 tyska |
+| 12 | live-grinden | `live.py` körd mot skarpa sajten: 8 × 404, alltså rätt svar för utkast |
+
+⚠️ `bildplan.py` och `live.py` läser båda `uppladdat.txt` (kort-id → wixfil).
+Den filen skrivs först vid uppladdningen, och tills dess FÄLLER bildplanen
+med "kortet är inte uppladdat än" — vilket är rätt beteende, inte ett fel.
 
 ## Kvar att göra
 
