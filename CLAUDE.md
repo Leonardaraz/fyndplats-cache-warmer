@@ -589,6 +589,18 @@ Fem egenskaper som inte ska tas bort:
    låset finns just för att någon medvetet sagt att priset ska stå still, och
    att tyst tolka tystnad som "lås upp" är fel riktning att fela åt.
 
+⚠️ **Poleringens prisgrind känner till låset.** Utan det hade den fällt varje
+låst Aosom-rad med *"PRISGRINDEN FALLER — kostnaden har ändrats och priset i Wix
+är gammalt"*. Rätt RÅD (rör inte priset), fel SKÄL: priset är inte gammalt, det
+är valt — och ett rött jobb på ett medvetet beslut är samma falsklarm som
+`regelGäller` byggdes för att ta bort. `prisgrind` bär därför `prisLast`, och
+workflowen svarar `LÅST PRIS` och går grön. Resten av poleringen (text, bilder,
+SKU) är opåverkad.
+
+Verifierat i drift 2026-09-05, samma dag: torrkörning över hela katalogen gav
+`4 548 granskade, 1 prislåsta`, och kontorsstolen finns varken bland de
+planerade prisskrivningarna eller bland varningarna.
+
 Sexton tester, verifierade genom att återinföra buggarna: grinden borta fäller
 fyra synk-tester, defaulten tillbaka fäller två, 404-grinden borta fäller ett
 och återläsningen borta fäller ett — rätt test för rätt bugg.

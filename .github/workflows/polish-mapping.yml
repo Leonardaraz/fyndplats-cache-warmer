@@ -103,9 +103,21 @@ jobs:
 
             galler=$(echo "$svar" | jq -r '.prisgrind.["regelGäller"]')
             stammer=$(echo "$svar" | jq -r '.prisgrind.["stämmer"]')
+            last=$(echo "$svar" | jq -r '.prisgrind.prisLast')
 
             if [ "$stammer" = "true" ]; then
               echo "OK: priset stammer mot regeln."
+            elif [ "$last" = "true" ]; then
+              # ☠️ LAST PRIS AR ETT BESLUT, INTE DRIFT. Raden bar prisLast, alltsa
+              # har nagon medvetet frikopplat den fran regeln och Aosom-synken
+              # skriver aldrig priset har. Att da fella jobbet med "kostnaden har
+              # andrats" ar ratt RAD men fel SKAL — och ett rott jobb pa varje
+              # last rad ar samma falsklarm som "EJ AVGORBAR" hade varit pa varje
+              # AE-rad. Radet ar identiskt: ror inte priset.
+              echo "LAST PRIS: raden bar prisLast, alltsa ar priset medvetet frikopplat fran regeln."
+              echo "Skillnaden mot regeln nedan ar VALD, inte drift. ROR INTE PRISET — men det ar"
+              echo "inget fel, och resten av poleringen (text, bilder, SKU) gar att gora som vanligt."
+              echo "Ska raden folja regeln igen: workflowen \"Pris — las eller las upp ett pris\", lage las-upp."
             elif [ "$galler" = "true" ]; then
               # Aosom-rad: sortimentet importerades 2026-08-27, samma dag regeln
               # sattes, sa den galler. Ett fall ar da verklig drift.
