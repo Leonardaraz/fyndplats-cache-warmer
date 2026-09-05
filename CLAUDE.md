@@ -74,17 +74,49 @@ hämtar dem från `raw.githubusercontent.com`) och allt annat vid rundans slut.
 Runda 60 och 61 kostade åtta byggen; samma arbete ryms i två. Committa fritt
 under vägen, pusha sällan.
 
-⚠️ **Den enda riktiga lösningen är en projektinställning, och den är Leonards.**
-Vercel → projektet → Settings → Git → *Ignored Build Step*:
+### ✅ Löst i `vercel.json` — dokumentation utlöser inget bygge (Leonards ja 2026-09-05)
+
+☠️ **Panelens *Ignored Build Step* är en återvändsgränd här.** `vercel.json`s
+`ignoreCommand` ÖVERRIDER den, och filen har burit en sedan tidigare. Att
+klicka i panelen hade alltså inte gjort någonting alls — och sett ut som att
+det gjorde det.
+
+Raden fanns redan och skiljde de två projekten åt; den har nu ett villkor till:
 
 ```
-git diff --quiet HEAD^ HEAD -- . ':!docs' ':!tools' ':!scripts'
+[ "$VERCEL_PROJECT_ID" = "prj_CEca…" ] && exit 0;
+[ -z "$VERCEL_GIT_PREVIOUS_SHA" ] && exit 1;
+git diff --quiet "$VERCEL_GIT_PREVIOUS_SHA" HEAD -- . ':!docs' ':!tools' ':!*.md'
 ```
 
-Exit 0 (inget utanför de mapparna ändrades) = hoppa över bygget. Den täcker
-alla sessioner automatiskt, även den andra agentens gren, och skyddar dessutom
-`main` mot en dokumentationsmerge. Sätt den fel och produktionen slutar
-byggas — därför ändras den av Leonard, inte av en session.
+Vercels egen dokumentation, ordagrant: *"Exiting with code 0 ignores the build,
+while code 1 continues it."*
+
+☠️ **Varje felläge bygger.** Saknas `VERCEL_GIT_PREVIOUS_SHA`, ligger den
+utanför den grunda klonen, eller failar git av något annat skäl — alla ger
+nollskilt slut. Den enda vägen till "hoppa över" är att git uttryckligen säger
+att ingenting utanför `docs/`, `tools/` och markdown ändrades.
+
+Provkört mot repots verkliga historik före ändringen:
+
+| spann | rörde | exit | utfall |
+|---|---|--:|---|
+| `7210d94~1..7210d94` | bara `CLAUDE.md` | 0 | hoppas över |
+| `300f49f~1..300f49f` | `docs/` + `tools/` | 0 | hoppas över |
+| `04142e7~1..04142e7` | `lib/`, workflows, `CLAUDE.md` | 1 | **bygger** |
+| kod…dokumentation i ETT spann | blandat | 1 | **bygger** |
+| SHA utanför klonen | — | 128 | **bygger** |
+
+⚠️ **Jämförelsen går mot `VERCEL_GIT_PREVIOUS_SHA`, inte mot `HEAD^`.** Det är
+skillnaden som gör batchade pushar säkra: `HEAD^ HEAD` ser bara den SISTA
+commiten, så fem rundor där en bär kodändring och den sista bara rör runboken
+hade hoppat över bygget. Mot förra deployade SHA:n täcks hela spannet — mätt
+i tabellens fjärde rad.
+
+⚠️ **Utesluter markdown ÖVERALLT**, inte bara i `docs/`. Kontrollerat samma
+dag: ingen `.md` importeras av `app/`, `lib/` eller `middleware.ts`, och
+byggkommandot är rena `next build`. Börjar någon rendera markdown måste raden
+snävas in.
 
 ⚠️ Projektet `fyndplats-headless` är kopplat till SAMMA repo och startar också
 ett bygge per push, men de avbryts allihop. Kostnaden dubbleras alltså inte —
