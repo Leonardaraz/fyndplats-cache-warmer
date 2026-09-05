@@ -49,7 +49,7 @@ PLAN = {
     # ☠️ Ordningen är vald FÖR SKU:n. "sittpuff-katt-…" kapar till
     # FP-sittpuff-katt — ett kategorinamn som vilken framtida kattpuff som
     # helst återskapar. Med materialet före katten ryms det som skiljer.
-    "73cb432c": "sittpuff-vattenhyacint-katt-44-cm",
+    "73cb432c": "sittpuff-vattenhyacint-katt",
     "d82950a3": "fotpall-katt-sammet-60-cm",
 }
 

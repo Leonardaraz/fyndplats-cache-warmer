@@ -275,7 +275,7 @@ två av åtta är inte grottor, och de hade fått fel huvudord annars.
 | `f6e3098e` | sluten tunna med övre plan, Ø40 × 30 | **kattkorg** | `kattkorg-i-tva-plan-40-cm` | `FP-kattkorg-tva-plan-40-cm` |
 | `1ed0d9cb` | slutet klot på ben, Ø52 × 58 | **kattgrotta** | `kattgrotta-upphojd-58-cm` | `FP-kattgrotta-upphojd-58-cm` |
 | `e16338a9` | fyrkantig låda i vattenhyacint, 37,5 × 37,5 × 41,5 | **kattkoja** | `kattkoja-vattenhyacint-tva-plan` | `FP-kattkoja-vattenhyacint` |
-| `73cb432c` | rund pall med trälock, 44 × 43 × 42 | **sittpuff** | `sittpuff-vattenhyacint-katt-44-cm` | `FP-sittpuff-vattenhyacint` |
+| `73cb432c` | rund pall med trälock, 44 × 43 × 42 | **sittpuff** | `sittpuff-vattenhyacint-katt` | `FP-sittpuff-vattenhyacint` |
 | `d82950a3` | rektangulär fotpall i sammet, 60 × 45 × 44,5 | **fotpall** | `fotpall-katt-sammet-60-cm` | `FP-fotpall-katt-sammet-60` |
 
 ⚠️ **`katthus` är MEDVETET inte använt.** Sju publicerade sidor bär det ordet och
@@ -288,3 +288,77 @@ säger att vi ska hålla isär.
 — ett kategorinamn som vilken framtida kattpuff som helst återskapar, alltså
 exakt runda 60:s `FP-vattenkokare`. Med materialet före katten ryms det som
 skiljer: `FP-sittpuff-vattenhyacint`. SKU:n avgörs när sluggen väljs.
+
+## Steg 4 (prisgrinden) — åtta av åtta gröna
+
+`polish-mapping.yml` i läget `las`, körningarna **1070–1077, alla `success`**.
+Workflowen avslutar med `exit 1` på `PRISGRINDEN FALLER`, så ett grönt jobb är
+här ett kvitto och inte en tolkning: priset stämmer mot `1,20 × landedCostSek`
+avrundat med `charm99` på alla åtta.
+
+## Steg 7 — texterna skrivna, 17 grindar
+
+`texter.py` → `lint.py`. Tre saker är MEDVETET utelämnade, och grinden fäller om
+de smyger tillbaka:
+
+1. Ordet **rotting** om de fem som är PE- eller PVC-plast.
+2. **Lasttalet** på `f6e3098e`, vars källa säger både 3,5 och 10 kg.
+3. **Utomhusbruk** på de två i vattenhyacint.
+
+### ☠️ Grinderna fällde tjugo gånger, och NITTON av dem var grindens fel
+
+Första körningen gav 20 fel på texter som var korrekta. Det är inte ett tecken
+på att grinderna är för hårda utan på att de läste fel SORTS mening. Tre
+mönster, och alla tre är generella:
+
+| mönster | exempel | vad grinden gjorde fel |
+|---|---|---|
+| **Frågan bär ordet, svaret bär påståendet** | `Går kudden att tvätta?` → `Nej.` | läste frågan ensam |
+| **Liknelsen är motsatsen till påståendet** | `Den ser ut som rotting men…` | läste den som materialpåstående |
+| **Korshänvisningen handlar om ETT ANNAT föremål** | `…finns en sittpuff som bär 80 kg` | prövade talet mot fel produkt |
+
+Och ett fjärde, som är husets vanligaste: **`Polen` matchade inuti `kupolen`.**
+Runda 61 fällde fyra texter på `Kalkfilter`; ordgränsen saknades här också.
+
+### ☠️ Enheten är MENINGEN, inte blocket — två utkast fick det fel åt varsitt håll
+
+1. Första utkastet **lyfte bort** korshänvisningsblocket ur texten. Då tappade
+   FAQ-frågan sitt svar: `Går det att sitta på den?` stod kvar medan `Nej.` —
+   som ligger i samma stycke som länken — försvann. Grinden läste frågan som ett
+   påstående och fällde en korrekt text.
+2. Andra utkastet **märkte hela blocket** som korshänvisning. Men ett stycke bär
+   ofta båda sorterna: *"Nej. Ovansidan bär 30 kg … Vill du ha en möbel att
+   sitta på finns en sittpuff som bär 80 kg."* Då blev det EGNA talet oprövat
+   och det LÅNADE prövat mot fel produkt.
+
+Länken markeras nu i den SYNLIGA texten före taggarna strippas, och meningen som
+bär markören är korshänvisningen. ☠️ Ett tredje utkast satte markören i
+`href`-attributet — och `synlig_text()` strippar hela taggen, så markören var
+borta innan meningarna delades. Grinden hittade noll korshänvisningar och fällde
+fyra korrekta meningar.
+
+### ✅ Ny grind: en korshänvisning prövas mot den LÄNKADE produktens fakta
+
+De egna grindarna hoppar över korshänvisningarnas meningar — annars fäller de
+på sanna uppgifter om syskonet. Men då står de oprövade, och *"en sittpuff som
+bär 80 kg"* är precis lika fel som ett eget felaktigt tal om syskonet bär 30.
+`korsgrind()` byter därför FACIT i stället för att sluta läsa: lasttal,
+material och slug prövas mot den produkt länken pekar på.
+
+Mätt: mutationen `som bär 80 kg` → `som bär 30 kg` fälls, och den fälls med
+rätt meddelande.
+
+## Steg 12 — mutationstestet: 33 av 33, noll tomma
+
+☠️ **Två av mutationerna prövade ingenting, och det syntes inte.** En mutation
+som inte ändrar texten ser ut exakt som en missad grind. Runda 62 hade fyra
+sådana och letade efter hål i grinderna som inte fanns.
+
+`avtryck()` jämför nu batchen före och efter, och en oförändrad batch rapporteras
+som **TOM MUTATION** med sitt eget namn i stället för att räknas som en miss.
+
+⚠️ **Och tomhetskontrollen hade själv ett hål.** Första versionen tog bara namn,
+titel, meta och brödtext. Då såg två ÄKTA mutationer (slug-krock och tappat
+sökord i sluggen) ut som tomma — fältet de rörde ingick inte i avtrycket.
+Avtrycket måste täcka exakt de fält grinderna läser, annars blir kontrollen
+själv ett falsklarm.
