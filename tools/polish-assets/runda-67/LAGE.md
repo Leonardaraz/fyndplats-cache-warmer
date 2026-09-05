@@ -170,3 +170,66 @@ Stammen måste tåla böjning (`sidofick`).
 FOTO mjukat 2,0 px. Den gräddvita systerbilden rymdes med marginal — ljusare tyg
 ger mindre kontrast per trådkorsning, alltså färre bitar. Mjuka per KORT, inte
 per familj.
+
+---
+
+## Utfallet — åtta publicerade sidor, alla lika mot facit
+
+| id8 | slug | SKU | pris |
+|---|---|---|--:|
+| `04feb176` | `reclinerfatolj-svart-med-fotpall` | `FP-reclinerfatolj-svart` | 4 299 |
+| `6a4e92c4` | `reclinerfatolj-graddvit-med-fotpall` | `FP-reclinerfatolj-graddvit` | 3 729 |
+| `ceae31c1` | `tv-fatolj-gra-med-inbyggt-fotstod` | `FP-tv-fatolj-gra-inbyggt` | 4 719 |
+| `1b39b14e` | `tv-fatolj-beige-med-inbyggt-fotstod` | `FP-tv-fatolj-beige-inbyggt` | 4 699 |
+| `7f437bac` | `vilfatolj-morkgra-med-fotpall` | `FP-vilfatolj-morkgra` | 2 449 |
+| `87262869` | `vilfatolj-graddvit-med-fotpall` | `FP-vilfatolj-graddvit` | 2 299 |
+| `9794b6df` | `relaxfatolj-svart-med-fotpall` | `FP-relaxfatolj-svart` | 4 259 |
+| `9946e1eb` | `relaxfatolj-graddvit-med-fotpall` | `FP-relaxfatolj-graddvit` | 3 859 |
+
+**Priserna är oförändrade** — exakt de tal som stod i Wix före poleringen.
+Prisgrinden kördes på alla åtta FÖRE publiceringen och gav grönt på var och en
+(`las`-läget avslutar med `exit 1` när grinden faller, så en grön körning ÄR
+kvittot).
+
+Steg 14: alla åtta svarar `200` med `x-vercel-cache: MISS` — alltså en färsk
+rendering, inte ett cachat gammalt svar — och den synliga texten är
+**byte-identisk mot facit** på alla åtta (längd och hash). Kortet finns i
+sidkällan, inga tyska ord, inga husmärken, inget land, inget artikelnummer, och
+varje `MASTE_STA`-post nådde kunden.
+
+## ☠️ Två fynd i Steg 10 som inte var kända
+
+### "All Products" går INTE att skriva till
+
+`POST /categories/v1/bulk/categories/add-item` mot `05e96cd6…` svarar
+**`MANAGED_CATEGORY_OPERATION_NOT_ALLOWED`** — *"Caller is not allowed to
+perform this operation on a category that is externally managed by app"*.
+Kategorin sköts av Stores-appen; produkter hamnar där av sig själva.
+
+⚠️ **Och felet var nästan osynligt.** Anropet svarade `[true, false]` för varje
+produkt utan att namnge vilken kategori som var vilken. Ett svar som räknar
+LYCKADE utan att säga VAD som lyckades låter en runda rapportera "två
+kategorier satta" när den satt en. Rätt kvitto var att köra om mot bara
+`Hem & Inredning` och få **`ALREADY_EXISTS` på alla åtta** — ett omvänt bevis
+som inte går att missförstå.
+
+☠️ Endpointen tar dessutom **ETT `item` och FLERA `categoryIds`**, inte tvärtom.
+En lista med `items` ger `400 categoryIds has size 0`.
+
+### Kategoriträdet har ingen möbelkategori
+
+Under `Hem & Inredning` finns Förvaring, Kalas, Verktyg, Dekoration, Badrum,
+Belysning och Hushållsapparater — men ingenting för möbler. Rundans åtta
+fåtöljer ligger därför direkt i föräldern. Det är underlag till ärende #283
+(kategoriträdet byggs om efter poleringen), inte något att laga här.
+
+## ⚠️ Media-PATCHens svar bär inte bildlistan
+
+`PATCH …/products/<id>` med `fieldMask: ["media"]` svarade med `itemsInfo`
+TOM — samma tystare projektion som `getProductMedia` har utan
+`fields=MEDIA_ITEMS_INFO`. Skrivningen hade gått igenom (revisionen steg), men
+svaret kunde varken bekräfta eller dementera det. Läsningen tillbaka är kvittot:
+sex bilder, kortet på position 3 med alt-text, måttritningen sist, på alla åtta.
+
+Tionde gången samma familj: **ett svar utan fel är inget kvitto** — och den här
+gången inte ens ett svar MED innehåll.
