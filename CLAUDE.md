@@ -244,6 +244,22 @@ och `tools/`. Det var rätt om FILTRETS AVSIKT och fel om UTFALLET. **Räkna
 byggen i Vercels deployment-lista, inte i `git diff`** — filtret kan vara ur
 funktion utan att spannet ändras.
 
+✅ **Läkningen är mätt, inte utlovad.** Lagningens egen push rör `vercel.json` i
+roten och bygger alltså med flit — och det är precis det bygget som ger filtret
+en ny nåbar referenspunkt:
+
+```
+14:08:51  READY   055653d   ← lagningen; pekaren står här nu
+14:04:13  ERROR   765996d     fatal: bad object 3e072fa…
+13:23–13:53  ERROR × 4       samma sak, en push var
+11:42:23  READY   3e072fa   ← pekaren satt fast här i två och en halv timme
+```
+
+Hela förloppet syns i EN tabell om man läser deployment-listan i tidsordning:
+sju `READY`, sju `CANCELED`, sex `ERROR`, en `READY`. De sju `CANCELED` är inte
+oskyldiga i den kedjan — **de är orsaken**, för varje hoppat bygge lämnade
+pekaren still en runda till.
+
 ### Undantaget
 
 En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
