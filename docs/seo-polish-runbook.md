@@ -3021,6 +3021,103 @@ visade. Den ger kunden ingenting nytt att titta på.
 Regeln: **avdubblera inom galleriet, inte mellan syskonen.** Syskonen ska se
 lika kompletta ut, och de gör det just genom att var och en visa sin egen färg.
 
+### ☠️ En kategorimätning på TYSKA huvudord kan inte se de publicerade sidorna (2026-09-05)
+
+Urvalet till runda 60 räknade utkast per produkttyp med husets huvudordsregel
+och fick fram en till synes tom kategori:
+
+```
+Wasserkocher: {utkast: 13, publicerade: 0}
+```
+
+Tretton utkast och noll publicerade — alltså fri bana. Det var fel, och felet
+satt i mätningen, inte i katalogen.
+
+**Regexen letade tyska huvudord. Publicerade sidor bär SVENSKA namn.** En
+publicerad vattenkokare heter `Brödrost och vattenkokare i set – 4 skivor,
+1,7 liter, grön` och kan per definition aldrig matcha `/^Wasserkocher/`.
+Nollan mätte alltså ingenting: den var en garanterad nolla, inte ett fynd.
+
+En andra sökning på det SVENSKA ordet hittade sidan direkt. Tolv av de tretton
+utkasten visade sig dessutom vara samma produkttyp som den — brödrost- och
+vattenkokarset, inte fristående kokare.
+
+**Regeln: en kategorimätning är TVÅ sökningar, inte en.** Utkasten räknas på
+det tyska huvudordet, de publicerade på det svenska. Ett tal som bara kan bli
+noll är inget mått.
+
+⚠️ Utfallet blev ändå att alla tretton fick poleras: den publicerade sidan är
+en feed-import (`aosom:800-162V90GN`), och dubblettspärren nycklar på
+artikelnumret — alltså kan ingen av de tretton vara samma artikel. Den är ett
+FÄRGSYSKON, vilket är en länkmöjlighet och inte ett hinder. Men det visste jag
+först efter att ha letat, och hade nollan fått stå oemotsagd hade tolv sidor
+skrivits utan att någon jämfört dem med det som redan låg ute.
+
+### ☠️ En grind kan uppfyllas av ett ord som betyder MOTSATSEN
+
+Rundans farligaste påstående är koktiden. Leverantören skriver att kokaren
+"bringt Wasser in nur 42 Sekunden zum Kochen" — utan att säga att det gäller
+en kopp. 1,7 liter från 20 °C kräver ~569 kJ; vid 2200 W är det 259 sekunder.
+42 sekunder kan alltså bara gälla en kopp, och utan det ordet är talet en lögn.
+
+Grinden skrevs därefter:
+
+```python
+if "kopp" not in omkring.lower():
+    fel.append("… '42 sekunder' utan att säga EN KOPP")
+```
+
+Den fällde aldrig. Mutationstestet visade varför: när "en enskild kopp" byttes
+mot "vattnet" stod meningen **"sex till åtta koppar"** kvar i fönstret — och
+`"kopp" in "koppar"` är sant. Grinden godkändes alltså av precis den mening som
+säger raka motsatsen: att talet gäller hela kannan.
+
+Lagningen är en ordgräns, `\bkopp\b`, som inte matchar "koppar". Testet gick
+från 14/16 till 16/16.
+
+**Regeln, i sin skarpaste form hittills: en delsträngsmatchning är ingen grind.**
+Huset har lärt sig den två gånger förut — `Gelb` inne i "regelbundet" (runda 56),
+ordet "fem" som stod tre gånger till (runda 59) — men det här är värre än båda,
+för här var ordet som räddade grinden inte bara ovidkommande utan direkt
+motsägande.
+
+☠️ Och den hittades av mutationstestet, inte av att läsa koden. Grinden såg
+riktig ut. **En grind som aldrig fällt är obevisad**, och det enda som skiljer
+en obevisad grind från en trasig är att man kört mutationen.
+
+### ⚠️ Ett kortvärde som FÖRKORTAR tabellen är en andra sanning
+
+Kortgrinden fällde `3 min 15 s` mot spec-radens `3 minuter 15 sekunder`.
+Ingen av dem är fel, och det är hela poängen: kortet hade blivit en andra
+formulering av samma tal, som ingen grind jämför framåt. Nästa gång någon
+rättar tabellen följer kortet inte med.
+
+Regeln stod redan — *ett kortvärde ska citera den rad tabellen FAKTISKT har* —
+men den var skriven mot PÅHITTADE värden. Det här är den tystare formen:
+värdet är sant, bara omskrivet. RUBRIKEN får förkorta; VÄRDET ska citera.
+
+### ⚠️ En SKU som är unik idag kan vara en framtida krock
+
+SKU-regeln kapar produktdelen vid 24 tecken på hel ordsgräns. Sluggen
+`vattenkokare-temperaturval-…` gav därför
+
+```
+FP-vattenkokare
+```
+
+— unik i katalogen just nu, och exakt den sträng vilken framtida runda som
+helst med en vattenkokare återskapar. Runda 58 mätte upp två redan publicerade
+produkter som bar samma SKU; det här är hur en tredje uppstår.
+
+Sluggen lades om så att särskiljaren ryms inom 24 tecken
+(`frukostset-temperaturval-…` → `FP-frukostset-temperaturval`). Det kostade
+ingenting att göra före publicering och går inte att göra efteråt utan en
+redirect.
+
+**Regeln: läs SKU:n som en framtida granne skulle göra.** En SKU som beskriver
+en produktKATEGORI i stället för en produkt är inte färdig, hur unik den än är
+i dag.
+
 ### ☠️ Kortgrinden läser tal, inte pixlar — så FOTOT måste läsas av ögon
 
 Två faktakort i runda 55 bar **läsbar kyrillisk läkemedelsförpackning** ("Ферталь") mitt i
