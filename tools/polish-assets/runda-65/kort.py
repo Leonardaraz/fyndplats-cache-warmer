@@ -10,18 +10,18 @@ andra sanning när ett kort skrev "3 min 15 s" där tabellen sa "3 minuter
 bild 1 (produkten på vit botten) och beskriver något som syns i den — aldrig
 en egenskap man måste läsa sig till.
 """
+
+import io
+import json
 import os
 import sys
 
-from PIL import Image, ImageFilter
-
 HAR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HAR)
-sys.path.insert(0, "/home/user/fyndplats-cache-warmer/scripts")
-import cardkit as ck                                              # noqa: E402
+sys.path.insert(0, os.path.dirname(HAR))
+import kortbygge                                                  # noqa: E402
 from texter import PRODUKTER                                      # noqa: E402
 
-# kort -> (kicker, rubrik buren av foto 1, [(kort etikett, spec-radindex)])
 KORT = {
     "db645ff8": ("Golvfåtölj i blått", "Sitter direkt på golvet", [
         ("Mått uppställd", 0), ("Helt utfälld", 1), ("Stoppning", 2),
@@ -50,75 +50,13 @@ KORT = {
 }
 
 
-def varde(specrad, etikett):
-    """Det som står efter kolonet — ordagrant ur spec-tabellen.
-
-    ☠️ ETIKETTEN MÅSTE HÖRA IHOP MED RADEN. Härledningen garanterar att
-    VÄRDET är ordagrant, men inte att jag pekat på rätt rad: runda 65:s
-    2823c605 fick först ("Vikt", 9) där rad 9 är `Färg: grå`, och kortet
-    skrev "Vikt: grå". Värdet var ordagrant och påståendet nonsens.
-    Kortets första ord måste därför finnas i radens egen etikett.
-    """
-    if ": " not in specrad:
-        raise ValueError("spec-raden saknar kolon: %r" % specrad)
-    radetikett, v = specrad.split(": ", 1)
-    forsta = etikett.split()[0].lower()
-    if forsta not in radetikett.lower():
-        raise ValueError("etiketten %r hör inte till raden %r" % (etikett, specrad))
-    return v
-
-
-# ☠️ Mjuka upp FOTOT, aldrig kortet. 89c89322:s bouclé är högfrekvent brus
-#    som JPEG inte kan komprimera: kortet landade på 215 107 byte vid q=85,
-#    över husets tak. En hårsmal oskärpa på FOTOT tar bort bruset utan att
-#    röra texten eller varans form, och kortet klarar 215 kB vid q=88.
+# ☠️ Bouclén är högfrekvent brus som JPEG inte komprimerar; kortet låg 107
+#    byte över taket vid q=85. Uppmjukningen träffar FOTOT, aldrig kortet.
 MJUKA = {"89c89322": 0.6}
 
 
-def kalla(k):
-    foto = os.path.join(HAR, "rawbilder", "%s-1.jpg" % k)
-    if not os.path.exists(foto):
-        raise SystemExit("saknar foto: %s" % foto)
-    if k not in MJUKA:
-        return foto
-    ut = os.path.abspath("%s-1-mjuk.jpg" % k)
-    Image.open(foto).filter(ImageFilter.GaussianBlur(MJUKA[k])).save(
-        ut, "JPEG", quality=95)
-    return ut
-
-
-def bygg():
-    namn, facit = [], {}
-    for p in PRODUKTER:
-        k = p["kort"]
-        kicker, rubrik, rader = KORT[k]
-        specrader = [(etikett, varde(p["spec"][i], etikett)) for etikett, i in rader]
-        foto = kalla(k)
-        ck.card_spec(k + "_spec", foto, kicker, rubrik, specrader, fit=True)
-        namn.append(k + "_spec")
-        facit[k] = {"kicker": kicker, "rubrik": rubrik,
-                    "rader": [{"etikett": e, "varde": v} for e, v in specrader]}
-    ck.render(namn)
-    # ☠️ Husets tak: under 215 kB vid q >= 85. Sjunk aldrig under 85 —
-    #    mjuka upp FOTOT i stället (se MJUKA ovan).
-    os.makedirs("jpg", exist_ok=True)
-    for n in namn:
-        im = Image.open("cards/%s.png" % n).convert("RGB").resize(
-            (1600, 1600), Image.LANCZOS)
-        for q in (92, 90, 88, 86, 85):
-            im.save("jpg/%s.jpg" % n, "JPEG", quality=q, optimize=True,
-                    subsampling=0)
-            if os.path.getsize("jpg/%s.jpg" % n) <= 215000:
-                break
-        else:
-            raise SystemExit("%s klarar inte 215 kB vid q=85 — mjuka upp fotot" % n)
-    return namn, facit
-
-
 if __name__ == "__main__":
-    import json
-    import io
-    namn, facit = bygg()
+    namn, facit = kortbygge.bygg(HAR, PRODUKTER, KORT, MJUKA)
     io.open(os.path.join(HAR, "kort-facit.json"), "w", encoding="utf-8").write(
         json.dumps(facit, ensure_ascii=False, indent=1))
     for n in namn:
