@@ -122,6 +122,29 @@ snävas in.
 ett bygge per push, men de avbryts allihop. Kostnaden dubbleras alltså inte —
 kontrollmätt samma dag, alla `CANCELED`.
 
+⚠️ **Kvittot är ännu inte taget — och första mätningen SÅG UT som ett
+misslyckande.** Commiten som införde raden (`c0bdbcc`) byggdes, vilket är rätt:
+den rör `vercel.json`. Men den efterföljande RENA dokumentationscommiten
+(`79718d9`, bara `tools/polish-assets/`) byggdes också —
+`dpl_7yFr3c1jKqMJza9DjvvcmjejCt6P`, `READY`, preview.
+
+Den troliga förklaringen är tidsgapet, inte filtret. De två pusharna låg **26
+sekunder** isär, alltså långt innan `c0bdbcc`:s bygge hunnit bli `READY`.
+`VERCEL_GIT_PREVIOUS_SHA` är förra **lyckade** deployens SHA — den pekade
+alltså fortfarande på `7210d94`, och spannet `7210d94..79718d9` innehåller
+`vercel.json`. Filtret gjorde i så fall exakt vad det ska.
+
+☠️ **Men det är en hypotes tills en dokumentationscommit pushats UTAN att ge ett
+bygge.** Skriv inte om den här raden till "verifierad" på ett resonemang som
+låter rimligt — det var precis så `[skip ci]`-regeln kom in i filen. Den här
+commiten är själv nästa mätning: den rör bara `CLAUDE.md`.
+
+⚠️ **Följden för arbetssättet, oavsett utfall:** pusha inte två gånger inom
+samma byggfönster och räkna med att den andra hoppas över. Gapet måste vara
+långt nog att föregående bygge hunnit bli `READY`, annars jämförs det nya
+spannet mot en äldre SHA än man tror — och en batchad poleringspush som råkar
+ligga tätt efter en kodpush bygger då i onödan.
+
 ### Undantaget
 
 En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
