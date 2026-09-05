@@ -141,8 +141,14 @@ inte bita. Tre fält skiljer, och det är dem man ska titta på:
 | `state` | `READY` | **`CANCELED`** |
 | `bundler` | `turbopack` | **saknas** |
 | `lambdaRuntimeStats` | `{"nodejs":10}` | **saknas** |
-| tid `buildingAt`→`ready` | minuter | **9 s** |
+| tid `buildingAt`→`ready` | minuter | **9–10 s** |
 | `errorLink` | — | **`#ignored-build-step`** |
+
+☠️ **`BUILDING` är INGEN dom — ett hoppat bygge passerar också `buildingAt`.**
+Uppmätt på båda utfallen: det hoppade `dpl_FcyV49nTCqAXdp9aSpSAbdjA4Bgs` stod
+som `BUILDING` fyra sekunder efter pushen och blev `CANCELED` tio sekunder in.
+Den självklara kontrollen — "startade ett bygge?" — svarar alltså JA i båda
+fallen. Vänta ut sluttillståndet, och läs det, inte starten.
 
 `errorLink` är det som gör det till ett kvitto i stället för en tolkning: Vercel
 namnger själv ignore-steget som orsak.
@@ -154,7 +160,8 @@ poleringspush som utöver `docs/` och `tools/` också rörde **`.gitignore`** ga
 som tror sig pusha "bara dokumentation" ska titta efter rotfiler först
 (`.gitignore`, `package.json`, konfig). Kolla med
 `git diff --name-only <förra deployade SHA> HEAD -- . ':!docs' ':!tools' ':!*.md'`;
-är den tom hoppas bygget över.
+är den tom hoppas bygget över — verifierat båda vägarna samma dag: `.gitignore`
+i spannet gav `READY` på 41 sekunder, ren markdown gav `CANCELED` på tio.
 
 ⚠️ **Följdregel, mätt på vägen dit: pusha inte två gånger inom samma
 byggfönster.** Första försöket misslyckades — den rena dokumentationscommiten
