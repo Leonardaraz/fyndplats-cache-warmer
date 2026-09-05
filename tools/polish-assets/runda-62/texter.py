@@ -228,18 +228,18 @@ PRODUKTER = [
         "kort": "b5d8eb9c",
         "id": "b5d8eb9c-1cb9-4259-841a-71503e09111f",
         "modell": "D",
-        "farg": "Gräddvit",
+        "farg": "Kräm",
         "vikt": "8,5 kg",
-        "name": "Gungande knästol gräddvit – 7,5 cm dynor, ljus plywoodram",
-        "slug": "gungande-knastol-graddvit",
-        "title": "Gungande knästol i gräddvitt | Fyndplats",
+        "name": "Gungande knästol i kräm – 7,5 cm dynor, ljus plywoodram",
+        "slug": "gungande-knastol-kram",
+        "title": "Gungande knästol i krämvitt | Fyndplats",
         "sokord": "gungande knästol",
-        "meta": ("Gräddvit knästol med 7,5 cm dynor och ram i ljus formpressad "
+        "meta": ("Knästol i kräm med 7,5 cm dynor och ram i ljus formpressad "
                  "plywood. Böjda medar, sits 54 cm, knädyna 48 cm, maxlast 120 kg."),
         "ingress": ("<p>Dynorna är 7,5 cm tjocka på både sits och knädyna, och det "
                     "är det måttet som avgör om en knästol går att sitta på längre "
                     "än en kvart. Ramen är formpressad plywood i ljust trä, och "
-                    "med gräddvit klädsel blir stolen den ljusaste av de tre — "
+                    "med krämfärgad klädsel blir stolen den ljusaste av de tre — "
                     "den syns, men tar inte över ett rum som redan är mörkt.</p>"),
     },
     # ---- modell G: knästol i björk -------------------------------------------
@@ -247,11 +247,11 @@ PRODUKTER = [
         "kort": "6d64de9b",
         "id": "6d64de9b-0933-4dde-9137-3b6b66b46465",
         "modell": "G",
-        "farg": "Gräddvit",
+        "farg": "Kräm",
         "vikt": "7,68 kg",
-        "name": "Knästol björk gräddvit – 10 cm dynor på sits och knädynor",
-        "slug": "knastol-bjork-graddvit",
-        "title": "Knästol i björk, gräddvit | Fyndplats",
+        "name": "Knästol björk kräm – 10 cm dynor på sits och knädynor",
+        "slug": "knastol-bjork-kram",
+        "title": "Knästol i björk, krämvit | Fyndplats",
         "sokord": "knästol björk",
         "meta": ("Knästol i björk med 10 cm tjocka dynor på både sits och knädynor. "
                  "Framåtlutande sits, sittyta 39 × 30 cm, maxlast 120 kg."),
@@ -259,7 +259,7 @@ PRODUKTER = [
                     "knädynorna är ovanligt mycket för en knästol, och det märks "
                     "framför allt på knädynorna — det är där en tunn stol låter "
                     "träet gå igenom efter en kvart. Stommen är björkplywood och "
-                    "klädseln gräddvit, så stolen blir ljus rakt igenom.</p>"),
+                    "klädseln krämfärgad, så stolen blir ljus rakt igenom.</p>"),
     },
     {
         "kort": "9d626528",
@@ -296,7 +296,7 @@ PRODUKTER = [
                     "kontorsstol och utan hjulkryss som sticker ut åt sidorna, "
                     "vilket gör skillnad i ett arbetshörn där bordet redan står "
                     "tätt mot väggen. Den blå klädseln är seriens enda med "
-                    "kulör; de övriga är gråskala och gräddvitt.</p>"),
+                    "kulör; de övriga är gråskala och kräm.</p>"),
     },
     {
         "kort": "05cc1f9c",

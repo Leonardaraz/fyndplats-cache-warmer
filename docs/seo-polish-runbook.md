@@ -1410,6 +1410,29 @@ PATCH-body: `{ product: { id, revision, name, slug, seoData, plainDescription: "
 > en fällbar fåtölj, luggriktning på manchester, bryt strömmen vid proppskåpet före
 > lampbyte. Generiska rader som "torka av vid behov" bär ingenting.
 
+### ☠️ Läs ALDRIG tillbaka i samma loop som skrivningen — GET:en kan svara med tillståndet FÖRE (2026-09-05)
+
+Facit-kontrollen kördes inne i skrivloopen: `GET revision → PATCH → GET
+återläsning`, per produkt. Två av tre produkter kom tillbaka gröna. Den tredje
+(`c3e0af3f`) rapporterades som **misslyckad** — och läste tillbaka exakt den
+längd och den hash som den FÖREGÅENDE skrivningen hade lagt där, alltså inte
+skräp utan ett äldre giltigt tillstånd.
+
+En separat läsning en minut senare gav `revision 3`, rätt längd, rätt hash och
+rätt text. **Skrivningen hade tagit hela tiden.** Det var läsningen som var för
+tidig.
+
+☠️ **Och den farliga riktningen är den motsatta.** Här gjorde det stale svaret
+en LYCKAD skrivning till ett falsklarm, vilket är ofarligt — man kör om. Men om
+man kör om samma text efter en skrivning som INTE tog, returnerar en stale
+läsning det gamla innehållet — som är identiskt med det man just skickade — och
+grinden går grön på en skrivning som aldrig hände. Facit skulle då bekräfta
+exakt ingenting.
+
+**Regeln: skrivning och verifiering är TVÅ pass.** Skriv alla produkter, gör
+sedan återläsningen i ett eget anrop. Samma familj som ISR-cachen i Steg 14:
+det första svaret efter en ändring beställer den, det visar den inte.
+
 ### ☠️ En relativ länk i beskrivningen blir `https:/produkt/…` och går sönder
 
 Färgsyskon korslänkas i ingressen. Skriver du länken **rotrelativt** skriver Wix om
@@ -1468,6 +1491,35 @@ curl -s -o /dev/null -w '%{http_code}\n' "$adress"    # ska vara 200, inte 308
 
 
 -----
+
+### ☠️ SKU:n avgörs när du väljer SLUGGEN — räkna den i Steg 1, inte här (2026-09-05)
+
+`buildSku` fogar ihop slugens tokens upp till **`PRODUCT_PART_MAX = 24`** tecken
+och bryter på hel-ordsgräns. En slug som är ETT tecken för lång tappar därför
+hela sista token — tyst, och utan att något fel visas någonstans.
+
+Uppmätt i runda 62:
+
+| slug | tecken | SKU |
+|---|--:|---|
+| `gungande-knastol-ljusgra` | 24 | `FP-gungande-knastol-ljusgra` |
+| `gungande-knastol-gra` | 20 | `FP-gungande-knastol-gra` |
+| **`gungande-knastol-graddvit`** | **25** | **`FP-gungande-knastol`** ☠️ |
+
+Den sista är en av TRE färgsyskon, och dess SKU är den enda utan färg. Två
+konsekvenser: etiketten slutar skilja syskonen åt i flöden och på kvitton, och
+nästa produkt vars slug trunkeras likadant får samma SKU. **Det är precis så
+katalogen fick elva SKU:er delade av tjugofyra publicerade produkter.**
+
+**Regeln: räkna fram SKU:n i samma stund du låser sluggen (Steg 1).** Blir
+färgen — eller vilken kvalificerare som helst — borta, korta sluggen i stället
+för att acceptera SKU:n. I runda 62 löstes det genom att byta `gräddvit` mot
+`kräm`, som dessutom är katalogens egen term för färgen: den publicerade
+knästolssidans `Färg`-val heter `Kräm`. Sluggen gick från 25 till 21 tecken och
+alla åtta SKU:er behöll sin färg.
+
+⚠️ **Att korta sluggen är gratis bara på ett utkast.** På en publicerad sida
+gäller redirect-regeln nedan. Ännu ett skäl att räkna SKU:n före publicering.
 
 ## Steg 8 – Re-synka SKU till den nya sluggen (1 anrop, mutation)
 
