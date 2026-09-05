@@ -337,6 +337,36 @@ räknar upp egenskaperna efter — den ordningen är det som gör huvudordskrave
 **Och läs alltid ut kandidaterna innan du bestämmer dig.** Felet syntes inte i siffran; det
 syntes när de 40 dyraste skrevs ut med namn. En kategorimätning utan namnlista är en gissning.
 
+### ☠️ …men huvudordsregeln har en blind fläck: ett LEDANDE ADJEKTIV (2026-09-05)
+
+Regeln ovan skyddar mot att `Regal` räknas när ordet står som egenskap. Den skyddar
+inte åt andra hållet, och det felet är dyrare: **ett adjektiv före produkttypen gör
+familjen osynlig för mätningen.**
+
+Uppmätt vid urvalet till runda 62:
+
+| mätning | träffar |
+|---|--:|
+| `^Kniestuhl` (huvudord) | **7** |
+| `/Kniestuhl\|Kniehocker/` var som helst i namnet | **17** |
+
+De tio som föll bort heter `Ergonomischer Kniestuhl…`, `Ergonomischer, schaukelnder
+Kniehocker…`. Familjen är alltså mer än dubbelt så stor som huvudordsräkningen sa —
+och hade den fått avgöra hade knästolarna sorterats bort som en småfamilj.
+
+⚠️ **Ledande adjektiv är sällsynta i katalogen men KONCENTRERADE till vissa
+familjer.** Mätt över 1 029 utkast: 3,7 % börjar med ett adjektiv ur listan
+`Ergonomischer · Klappbarer · Runder · Moderner · Drehbarer · Künstlicher ·
+Verstellbarer · Faltbarer · Elektrischer · Kleiner`. I knästolsfamiljen var andelen
+**59 %**. Det är ingen slump: adjektivet står först just när det ÄR säljargumentet —
+ergonomisk, hopfällbar, roterande — och då är hela familjen drabbad samtidigt.
+
+**Regeln: mät med BÅDA.** Huvudordet avgör vad som får RÄKNAS (det stänger ute
+`Regal` som egenskap), delsträngen avgör vad som får HITTAS. Kör delsträngen först,
+skriv ut namnen, och stryk de träffar där ordet står som egenskap i stället för som
+produkttyp. Ordningen spelar roll: en familj som aldrig hittades kan ingen namnlista
+rädda.
+
 ⚠️ **Räkna med att en dryg fjärdedel av utkasten redan finns publicerade.** Matstolarna i
 batch 53 gav den hittills högsta uppmätta andelen: **4 av 14** var identiska på alla tre
 axlar med sidor som redan låg ute (`matstol-i-bojtra-75-cm`, `matstol-i-manchester-armstod`,
@@ -1035,6 +1065,48 @@ ur brödtexten och ur spec-tabellen — och flagga klustret. Det är samma regel
 
 Att gissa åt något håll är sämre än att tiga: en kund som beställer "gul" och får naturträ
 returnerar varan, och en kund som ser fotot får ändå veta hur den ser ut.
+
+### ☠️ Spec-tabellen är feedens KOLUMNER — inte den tyska texten. De kan säga emot varandra (2026-09-05)
+
+De två reglerna ovan säger vad man gör när två källor är oense. Den här säger varför
+de kan bli det, och den gör en del av fallen AVGÖRBARA i stället för utelämnade.
+
+`buildSpecifications` i `lib/aosom/to-product.ts` gör bokstavligen:
+
+```ts
+add("Mått",  row.size);    // feedens size-kolumn, ordagrant
+add("Färg",  row.color);   // feedens color-kolumn, ordagrant
+```
+
+Spec-tabellen är alltså **inte** härledd ur den tyska beskrivningen. De två är
+OBEROENDE källor ur samma feedrad, och Aosom fyller dem var för sig. Den svenska
+tabellen — det kunden faktiskt ser — är den som bär kolumnvärdet.
+
+Två fall uppmätta i samma familj (runda 62, knästolarna):
+
+| | spec-tabellen (`row.color`/`row.size`) | tyska Technische Daten | alt-texten |
+|---|---|---|---|
+| `9d626528` färg | `Grau` | **`Dunkelgrau`** | **`Dunkelgrau`** |
+| modell D mått | `55L x 85B x 55H` | **`55B x 85T x 55H`** | — |
+
+Måttfallet är det farligaste av de två, för det ser inte ut som ett fel: kolumnen
+säger att stolen är **85 cm bred** när den är 85 cm DJUP och 55 cm bred. En kund som
+mäter en nisch får fel svar av en tabell som är helt korrekt formaterad. Och ett av de
+fem syskonen (`c3e0af3f`) bär dessutom talen i en annan ordning än de fyra andra —
+samma produkt, transponerad.
+
+☠️ **Färgfallet hade blivit ett DUBBLETTBESLUT.** Två av fem syskon stod som `Grau` i
+spec-tabellen med samma mått och samma paketmått — alltså exakt signaturen för en
+intern dubblett, och regeln säger att en av dem ska pensioneras. Den tyska texten och
+alt-texten sa `Dunkelgrau` på den ena. **Ett fel i ett strukturerat fält kan dölja en
+verklig skillnad, inte bara hitta på en.**
+
+**Regeln, som skiljer sig från de två ovan:** när spec-tabellen och den tyska texten
+är oense är det inte automatiskt "utelämna". Räkna källorna först — den tyska
+brödtexten och alt-texten (som importen byggde ur den tyska titeln) är TVÅ oberoende
+vittnen mot kolumnens ett — och läs syskonuppsättningen: **en färg som skulle
+DUBBLERA ett syskons färg är i sig ett bevis att fältet är fel.** Håller inte den
+prövningen, då gäller utelämnanderegeln.
 
 ## Steg 6 – Variantsanering (bara flervariantprodukter)
 
