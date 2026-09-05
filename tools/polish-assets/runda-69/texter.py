@@ -316,7 +316,7 @@ def l_spec(k):
         "Ryggvinkel: upp till 160°",
         "Maxlast: 120 kg",
         "Passar kroppslängd: upp till 185 cm",
-        "Fritt bakom stolen: 80 cm",
+        "Väggavstånd bakom stolen: 80 cm",
         "Sits: fjäderkärna med fickfjädrar",
         "Klädsel: linnelook, 100 % polyester",
         "Stomme: lamellträ och formskum",
@@ -431,7 +431,7 @@ def n_produkt(kort, pris, syskon, lS, lF):
             "<p>En vilfåtölj i %s linnelook med 18 cm stoppning över en "
             "fjäderkärna, byggd för att bära 150 kg och passa kroppslängder "
             "upp till 195 cm. Ryggen lutas bakåt med kroppsvikten till 155° "
-            "och fotstödet fälls ut ur framkanten — utfälld är hon 158 cm "
+            "och fotstödet fälls ut ur framkanten — utfälld är den 158 cm "
             "djup.</p>" % f),
         "eg": [
             "Ryggen fälls till 155° med kroppsvikten",
