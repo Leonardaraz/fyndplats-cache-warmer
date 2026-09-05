@@ -94,6 +94,15 @@ jobs:
           # korningar pa tolv timmar innan den regeln skrevs ned.)
           echo "OK: prisLast $(echo "$svar" | jq -r '.tidigare' || echo "?") -> $(echo "$svar" | jq -r '.prisLast' || echo "?")" || true
 
+          # ☠️ BOKFORINGEN SKA SYNAS. En utebliven avstamning far aldrig se ut
+          # som en gjord — och den enda platsen den kan ses ar har.
+          if [ "$(echo "$svar" | jq -r '.bokforing.skrivet')" = "true" ]; then
+            echo "Bokforingen rattad mot butiken: $(echo "$svar" | jq -r '.bokforing.fran') -> $(echo "$svar" | jq -r '.bokforing.till') kr (grossSek)." || true
+            echo "Kundens pris ar ORORT — det har ar bara mappningens bild av vad kunden ser." || true
+          else
+            echo "Bokforingen orord: $(echo "$svar" | jq -r '.bokforing.skal')" || true
+          fi
+
           if [ "${MODE}" = "las" ]; then
             echo "Aosom-synken raknar nu om men SKRIVER INTE priset pa den har raden." || true
             echo "Lagret synkas som vanligt. Raden syns som 'prisLasta' i synkens summering." || true
