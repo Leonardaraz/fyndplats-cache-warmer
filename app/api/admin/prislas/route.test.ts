@@ -16,6 +16,17 @@ vi.mock("@/lib/store/factory", () => ({ getStore: () => store }));
 let auktoriserad = true;
 vi.mock("@/lib/auth", () => ({ isAuthorized: () => auktoriserad }));
 
+// Butikens pris. `null` = inget entydigt pris (olika variantpriser); `kastar`
+// simulerar en Wix-läsning som faller.
+let butikensPris: number | null = 1299;
+let butikenKastar = false;
+vi.mock("@/lib/wix/v3-products", () => ({
+  getV3ProductPris: async () => {
+    if (butikenKastar) throw new Error("Wix svarade 503");
+    return { priceSek: butikensPris, variantCount: 1 };
+  },
+}));
+
 import { POST } from "./route";
 
 function rad(över: Partial<ProductMappingRecord> = {}): ProductMappingRecord {
@@ -31,7 +42,10 @@ function rad(över: Partial<ProductMappingRecord> = {}): ProductMappingRecord {
         choices: {},
         costUsd: 85.73,
         landedCostSek: 900.21,
-        grossSek: 1299,
+        // ☠️ 879 med flit: det är AliExpress-tidens pris som ommappningen lämnade
+        // kvar (den rör aldrig priset). Butiken tar 1 299. Fixturen ska alltså
+        // ha den drift avstämningen finns för att rätta.
+        grossSek: 879,
       },
     ],
     ...över,
@@ -45,6 +59,8 @@ function req(kropp: unknown) {
 beforeEach(async () => {
   store = new MemoryStore();
   auktoriserad = true;
+  butikensPris = 1299;
+  butikenKastar = false;
   await store.saveMapping(rad());
 });
 
@@ -66,11 +82,11 @@ describe("POST /api/admin/prislas", () => {
     expect((await store.getMappingByWixProductId("p1"))?.prisLast).toBe(false);
   });
 
-  it("☠️ rör inga andra fält — priset och kostnaden är oförändrade", async () => {
+  it("☠️ rör inte KOSTNADSSIDAN — landedCostSek och leverantören är orörda", async () => {
     await POST(req({ wixProductId: "p1", last: true }));
     const efter = await store.getMappingByWixProductId("p1");
-    expect(efter?.variants?.[0]?.grossSek).toBe(1299);
     expect(efter?.variants?.[0]?.landedCostSek).toBe(900.21);
+    expect(efter?.variants?.[0]?.costUsd).toBe(85.73);
     expect(efter?.supplierProductId).toBe("aosom:921-672V00BG");
   });
 
@@ -132,5 +148,93 @@ describe("POST /api/admin/prislas", () => {
     const res = await POST(req({ wixProductId: "p1", last: true }));
     expect(res.status).toBe(401);
     expect((await store.getMappingByWixProductId("p1"))?.prisLast).toBeUndefined();
+  });
+});
+
+describe("☠️ bokföringen stäms av mot butiken vid låsning", () => {
+  // I den sekund låset sätts slutar synken hålla mappningen i fas med Wix, så
+  // en skillnad som finns då blir PERMANENT. Kontorsstolen f13cd415 bar 879 kr
+  // (AliExpress-tiden, som ommappningen lämnar orörd) medan butiken tog 1 299 —
+  // lönsamhetsöversikten hade för alltid räknat 879 mot 900,21 i landad kostnad
+  // och rapporterat en vara som säljs med förlust.
+
+  it("rättar grossSek till butikens pris", async () => {
+    const res = await POST(req({ wixProductId: "p1", last: true }));
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      bokforing: { skrivet: true, fran: 879, till: 1299 },
+    });
+    expect((await store.getMappingByWixProductId("p1"))?.variants?.[0]?.grossSek).toBe(1299);
+  });
+
+  it("skriver ändå inte om raden redan är i fas", async () => {
+    butikensPris = 879;
+    const res = await POST(req({ wixProductId: "p1", last: true }));
+    const kropp = await res.json();
+    expect(kropp.bokforing.skrivet).toBe(false);
+    expect(kropp.bokforing.skal).toMatch(/redan i fas/);
+    expect((await store.getMappingByWixProductId("p1"))?.variants?.[0]?.grossSek).toBe(879);
+  });
+
+  it("☠️ tvetydigt butikspris skriver INGENTING — gissar aldrig", async () => {
+    // `tolkaProduktPris` svarar null när varianterna har olika pris. Att då
+    // falla tillbaka på mappningen hade varit exakt buggen `utanWixPris` finns
+    // för att undvika.
+    butikensPris = null;
+    const res = await POST(req({ wixProductId: "p1", last: true }));
+    const kropp = await res.json();
+    expect(kropp.ok).toBe(true);
+    expect(kropp.bokforing.skrivet).toBe(false);
+    expect(kropp.bokforing.skal).toMatch(/entydigt/);
+    expect((await store.getMappingByWixProductId("p1"))?.variants?.[0]?.grossSek).toBe(879);
+  });
+
+  it("☠️ en fallen Wix-läsning stoppar inte låset — men syns i svaret", async () => {
+    // Låset är den brådskande halvan; nästa synk är sex timmar bort. Men en
+    // utebliven avstämning får ALDRIG se ut som en gjord — nionde gången.
+    butikenKastar = true;
+    const res = await POST(req({ wixProductId: "p1", last: true }));
+    expect(res.status).toBe(200);
+    const kropp = await res.json();
+    expect(kropp.prisLast).toBe(true);
+    expect(kropp.bokforing.skrivet).toBe(false);
+    expect(kropp.bokforing.skal).toMatch(/gick inte att läsa.*503/);
+
+    // Låset SITTER, och priset lämnades orört.
+    const efter = await store.getMappingByWixProductId("p1");
+    expect(efter?.prisLast).toBe(true);
+    expect(efter?.variants?.[0]?.grossSek).toBe(879);
+
+    // Och skälet står i audit-raden, inte bara i svaret.
+    expect((await store.listAudit(10))[0].detail).toMatch(/bokföringen orörd/);
+  });
+
+  it("☠️ UPPLÅSNING läser inte butiken alls — synken äger raden igen", async () => {
+    // En avstämning vid upplåsning hade varit meningslös och dessutom farlig:
+    // nästa synk räknar ändå fram regelpriset och skriver båda sidor.
+    await store.saveMapping(rad({ prisLast: true }));
+    butikenKastar = true; // skulle kasta OM den lästes
+
+    const res = await POST(req({ wixProductId: "p1", last: false }));
+    expect(res.status).toBe(200);
+    const kropp = await res.json();
+    expect(kropp.bokforing.skrivet).toBe(false);
+    expect(kropp.bokforing.skal).toMatch(/upplåsning/);
+    expect((await store.getMappingByWixProductId("p1"))?.variants?.[0]?.grossSek).toBe(879);
+  });
+
+  it("rättar ALLA varianter — butikens pris är entydigt, alltså gäller det var och en", async () => {
+    const v = rad().variants[0];
+    await store.saveMapping(rad({
+      variants: [v, { ...v, supplierVariantId: "sv2", wixVariantId: "wv2", sku: "FP-b" }],
+    }));
+    await POST(req({ wixProductId: "p1", last: true }));
+    const efter = await store.getMappingByWixProductId("p1");
+    expect(efter?.variants?.map((x) => x.grossSek)).toEqual([1299, 1299]);
+  });
+
+  it("bokför rättelsen i audit-raden", async () => {
+    await POST(req({ wixProductId: "p1", last: true }));
+    expect((await store.listAudit(10))[0].detail).toMatch(/bokföringen rättad 879 → 1299 kr mot butiken/);
   });
 });

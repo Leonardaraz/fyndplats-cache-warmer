@@ -589,6 +589,32 @@ Fem egenskaper som inte ska tas bort:
    låset finns just för att någon medvetet sagt att priset ska stå still, och
    att tyst tolka tystnad som "lås upp" är fel riktning att fela åt.
 
+☠️ **Vid låsning stäms böckerna av mot butiken.** Mappningens `grossSek` är vad
+vi TROR att kunden ser; Wix är vad kunden faktiskt ser. Synken håller normalt de
+två i fas — och i exakt den sekund låset sätts slutar den göra det, så en
+skillnad som finns då blir PERMANENT. Samma förväxling som `jamforelsePris`
+byggdes för, i ett nytt hörn.
+
+Konkret på kontorsstolen: ommappningen till Aosom rör aldrig priset (Leonards
+beslut), så mappningen bar kvar AliExpress-tidens **879 kr** medan butiken tog
+**1 299**. Med ett lås ovanpå det hade lönsamhetsöversikten
+(`lib/analytics/profit.ts`) och marginalbanden för alltid räknat 879 mot en
+landad kostnad på 900,21 — alltså rapporterat en vara som säljs **med förlust**
+när den ger 30 % marginal. Det är en BOKFÖRINGSRÄTTELSE: kundens pris rörs inte,
+och `landedCostSek`/`costUsd` rörs inte heller.
+
+Fyra egenskaper i avstämningen:
+
+- **Bara vid LÅSNING.** Vid upplåsning tar synken över och rättar raden själv.
+- ☠️ **Tvetydigt butikspris skriver ingenting.** `tolkaProduktPris` svarar `null`
+  när varianterna har olika pris; att då falla tillbaka på mappningen hade varit
+  exakt buggen `utanWixPris` finns för att undvika.
+- ☠️ **En fallen Wix-läsning stoppar inte låset — men syns.** Låset är den
+  brådskande halvan; skälet går ut i svaret, audit-raden och workflow-loggen, så
+  en utebliven avstämning aldrig kan se ut som en gjord.
+- **Alla varianter rättas.** Priset är entydigt i butiken, alltså gäller det var
+  och en.
+
 ⚠️ **Poleringens prisgrind känner till låset.** Utan det hade den fällt varje
 låst Aosom-rad med *"PRISGRINDEN FALLER — kostnaden har ändrats och priset i Wix
 är gammalt"*. Rätt RÅD (rör inte priset), fel SKÄL: priset är inte gammalt, det
@@ -601,9 +627,10 @@ Verifierat i drift 2026-09-05, samma dag: torrkörning över hela katalogen gav
 `4 548 granskade, 1 prislåsta`, och kontorsstolen finns varken bland de
 planerade prisskrivningarna eller bland varningarna.
 
-Sexton tester, verifierade genom att återinföra buggarna: grinden borta fäller
-fyra synk-tester, defaulten tillbaka fäller två, 404-grinden borta fäller ett
-och återläsningen borta fäller ett — rätt test för rätt bugg.
+Tjugotre tester, verifierade genom att återinföra buggarna en i taget: synk-
+grinden borta fäller fyra, defaulten tillbaka fäller två, 404-grinden borta
+fäller ett, återläsningen borta ett, en gissande avstämning ett, en tyst fallen
+Wix-läsning ett och en avstämning vid upplåsning ett — rätt test för rätt bugg.
 
 ### ☠️ Prissynken skrev aldrig ett enda pris till Wix (2026-08-29)
 

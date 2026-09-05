@@ -19,12 +19,30 @@
 // Aosoms frakt äts marginalen tyst. Därför räknar synken låsta rader i
 // `prisLasta` i stället för att bara hoppa över dem.
 //
+// ☠️ VID LÅSNING STÄMS BÖCKERNA AV MOT BUTIKEN. Mappningens `grossSek` är vad
+// vi TROR att kunden ser; Wix är vad kunden faktiskt ser. Synken håller normalt
+// de två i fas — och i exakt den sekund låset sätts slutar den göra det, så en
+// skillnad som finns då blir PERMANENT. Det är samma förväxling som
+// `jamforelsePris` byggdes för, och den kostade en månad och tjugo rader.
+//
+// Konkret på kontorsstolen f13cd415: ommappningen till Aosom rör aldrig priset
+// (Leonards beslut), så mappningen bar kvar AliExpress-tidens 879 kr medan
+// butiken tog 1 299. Med ett lås ovanpå det hade lönsamhetsöversikten
+// (lib/analytics/profit.ts) och marginalbanden för alltid räknat 879 mot en
+// landad kostnad på 900,21 — alltså rapporterat en vara som säljs med förlust
+// när den i själva verket ger 30 % marginal.
+//
+// Det är en BOKFÖRINGSRÄTTELSE, inte en prisändring: kundens pris rörs inte,
+// och `landedCostSek`/`costUsd` rörs inte heller.
+//
 // Auth följer huset: CRON_SECRET (så en GitHub-workflow kan möta rutten utan
 // att hemligheten passerar chatten) eller EXTENSION_API_TOKEN.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
+import type { ProductMappingRecord } from "@/lib/store";
+import { getV3ProductPris } from "@/lib/wix/v3-products";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -34,6 +52,61 @@ function auktoriserad(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
   return (req.headers.get("authorization") ?? "") === `Bearer ${secret}`;
+}
+
+type Bokforing =
+  | { skrivet: false; skal: string }
+  | { skrivet: true; fran: number | null; till: number; skal: string; variants: ProductMappingRecord["variants"] };
+
+/**
+ * Rättar mappningens `grossSek` till det butiken faktiskt tar.
+ *
+ * ☠️ FAIL-OPEN PÅ LÄSNINGEN, MEN ALDRIG TYST. Går Wix inte att läsa ska låset
+ * ändå sättas — det är den brådskande halvan, och nästa synk är sex timmar
+ * bort. Men skälet går ut i svaret, audit-raden och workflow-loggen, så en
+ * utebliven avstämning inte kan se ut som en gjord.
+ *
+ * ☠️ OKÄNT ELLER TVETYDIGT BUTIKSPRIS SKRIVER INGENTING. `tolkaProduktPris`
+ * svarar `null` när varianterna har OLIKA pris — då finns inget entydigt facit,
+ * och att gissa hade varit exakt buggen `utanWixPris` finns för att undvika.
+ *
+ * Rör bara `grossSek`. `landedCostSek` och `costUsd` är kostnadssidan och sätts
+ * av importen/ommappningen — de har inget med butikens pris att göra.
+ */
+async function stamAvMotButiken(
+  rad: ProductMappingRecord,
+  wixProductId: string,
+): Promise<Bokforing> {
+  let butiken: number | null;
+  try {
+    butiken = (await getV3ProductPris(wixProductId)).priceSek;
+  } catch (e) {
+    return {
+      skrivet: false,
+      skal: `butikens pris gick inte att läsa (${e instanceof Error ? e.message : String(e)})`,
+    };
+  }
+
+  if (butiken == null || !Number.isFinite(butiken) || butiken <= 0) {
+    return { skrivet: false, skal: "butiken saknar ett entydigt pris (flera olika variantpriser?)" };
+  }
+
+  const varianter = rad.variants ?? [];
+  if (varianter.length === 0) return { skrivet: false, skal: "raden har inga varianter" };
+
+  const fran = varianter[0]?.grossSek ?? null;
+  if (varianter.every((v) => v.grossSek === butiken)) {
+    return { skrivet: false, skal: "mappningen är redan i fas med butiken" };
+  }
+
+  return {
+    skrivet: true,
+    fran,
+    till: butiken,
+    skal: "butiken är facit",
+    // Priset är entydigt i butiken (min === max), alltså gäller det varje variant.
+    variants: varianter.map((v) => ({ ...v, grossSek: butiken })),
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -77,7 +150,18 @@ export async function POST(req: NextRequest) {
     }
 
     const fore = rad.prisLast === true;
-    await store.saveMapping({ ...rad, prisLast: last });
+
+    // Stäm av böckerna mot butiken — men BARA vid låsning. Vid upplåsning tar
+    // synken över igen och rättar raden av sig själv vid nästa körning.
+    const bokforing: Bokforing = last
+      ? await stamAvMotButiken(rad, wixProductId)
+      : { skrivet: false, skal: "läses inte vid upplåsning — synken äger raden igen" };
+
+    await store.saveMapping({
+      ...rad,
+      prisLast: last,
+      ...(bokforing.skrivet ? { variants: bokforing.variants } : {}),
+    });
 
     // ☠️ LÄS TILLBAKA. Ett svar utan fel är inget kvitto — `saveMapping` är en
     // tyst no-op på en saknad rad i alla tre backends.
@@ -100,10 +184,24 @@ export async function POST(req: NextRequest) {
       ref: wixProductId,
       detail: `prisLast ${fore} → ${last}`
         + ` (pris ${rad.variants?.[0]?.grossSek ?? "?"} kr,`
-        + ` landat ${rad.variants?.[0]?.landedCostSek ?? "?"} kr)`,
+        + ` landat ${rad.variants?.[0]?.landedCostSek ?? "?"} kr)`
+        + (bokforing.skrivet
+          ? ` — bokföringen rättad ${bokforing.fran ?? "?"} → ${bokforing.till} kr mot butiken`
+          : ` — bokföringen orörd: ${bokforing.skal}`),
     });
 
-    return NextResponse.json({ ok: true, wixProductId, prisLast: last, tidigare: fore });
+    return NextResponse.json({
+      ok: true,
+      wixProductId,
+      prisLast: last,
+      tidigare: fore,
+      bokforing: {
+        skrivet: bokforing.skrivet,
+        fran: bokforing.skrivet ? bokforing.fran : null,
+        till: bokforing.skrivet ? bokforing.till : null,
+        skal: bokforing.skal,
+      },
+    });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : String(e) },
