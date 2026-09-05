@@ -147,6 +147,15 @@ inte bita. Tre fält skiljer, och det är dem man ska titta på:
 `errorLink` är det som gör det till ett kvitto i stället för en tolkning: Vercel
 namnger själv ignore-steget som orsak.
 
+⚠️ **Undantagen är `docs/`, `tools/` och markdown — INGET annat.** En fil i
+ROTEN bygger, hur dokumentationsartad den än är. Uppmätt samma dag: en
+poleringspush som utöver `docs/` och `tools/` också rörde **`.gitignore`** gav
+`dpl_55GKnt9rztTGCywNaXUgVcR79GS4`, `BUILDING`. Filtret gjorde rätt — men den
+som tror sig pusha "bara dokumentation" ska titta efter rotfiler först
+(`.gitignore`, `package.json`, konfig). Kolla med
+`git diff --name-only <förra deployade SHA> HEAD -- . ':!docs' ':!tools' ':!*.md'`;
+är den tom hoppas bygget över.
+
 ⚠️ **Följdregel, mätt på vägen dit: pusha inte två gånger inom samma
 byggfönster.** Första försöket misslyckades — den rena dokumentationscommiten
 `79718d9` byggdes (`dpl_7yFr3c1jKqMJza9DjvvcmjejCt6P`, `READY`). Orsaken var
