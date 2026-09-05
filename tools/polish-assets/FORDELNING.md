@@ -190,6 +190,39 @@ Dubblettkolla mot: `baddfatolj-190-cm` (2 519), `baddfatolj-med-armstod` (2 129)
 
 -----
 
+## ☠️ Två `^Relaxsessel`-utkast är BODENSESSEL — familjeregeln räcker inte (2026-09-05)
+
+Runda 69:s Steg 1 tog upp paret `64856235` och `4f6bef7d` (1 299 kr, "Relaxsessel
+Lesesessel, drehbar, Leinenoptik, 62 cm x 70 cm x 95 cm"). Namnet börjar på
+`Relaxsessel`, alltså mitt enligt tabellen ovan. **Produkten är det inte.**
+Brödtexten säger `Bodenstuhl`, `Bodensessel` och `Bodensofa`, och `Lieferumfang`
+är `1 x Bodensofa`. Ryggen har fem lägen (3 bakåt + 2 framåt) och foten snurrar
+360° — samma beskrivning som familj C:s `Bodensessel … 5-fach verstellbarer
+Rückenlehne, drehbar`.
+
+Och de tre i den familjen är **redan publicerade** av den andra sessionen, med
+exakt måtten ovan:
+
+| publicerad | pris | mått | vikt |
+|---|--:|---|--:|
+| `db34f7d5` golvfåtölj, grön | 1 299 | 62 × 70 × 95 cm | 11 kg |
+| `87717be0` golvfåtölj, mörkgrå | 1 299 | 62 × 70 × 95 cm | 11 kg |
+| `90529d40` golvfåtölj, beige | 1 319 | 62 × 70 × 95 cm | 11 kg |
+| `c458fc66` golvfåtölj, fem ryggvinklar, **15 cm** sits | 1 229 | — | — |
+
+Utkastens sits är **15 cm** tjock och de publicerade tres är **17 cm**, så
+`c458fc66` är troligen samma modell som utkasten och de tre andra en syskonmodell.
+Det är inte avgjort här — och det ska inte avgöras av mig: **produkten hör till
+familj C, som ägs av den andra sessionen.** Runda 69 lämnade dem orörda.
+
+⚠️ **Lärdomen för den här filens egen regel:** familjeindelningen går på NAMNETS
+första ord, och leverantörens namn beskriver inte alltid produkten. Samma fälla
+som runda D:s Skandidesign-kvartett, en familj bort. Kör måttjämförelsen mot de
+publicerade sidorna innan du polerar ett utkast vars brödtext talar om något
+annat än namnet.
+
+-----
+
 ## Familjer som är kvar men INTE redo
 
 - **`^Massagesessel` (28) + `^Aufstehsessel` (9) + el-Relaxsessel (27).** Egen

@@ -139,6 +139,30 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   läser tillbaka och verifierar att skrivningen faktiskt tog.
 - En PATCH är partiell **på fältnivå i produkten** — men skicka alltid `visible` explicit
   (Steg 13), och rör aldrig `options`/`variantsInfo` om du inte menar att ändra varianterna.
+- ☠️ **`wix.request` skickar request-bodyn under `body` — `data` slukas TYST (2026-09-05).**
+  Fällan är att SVARET läses som `r.data`, så `data:` ser ut att vara nyckeln åt båda
+  hållen. Det är den inte: bodyn under `data` når aldrig API:t, och V3 svarar då med
+  sin DEFAULTSIDA — inget fel, ingen varning. Uppmätt samma anrop, tre nycklar:
+
+  | nyckel | rader | träffar på filtret |
+  |---|--:|--:|
+  | `data` | 100 | 2 |
+  | **`body`** | **5** | **5** |
+  | `json` | 100 | 2 |
+
+  Symtomen är exakt de två som redan står ovan, och det är därför de är lätta att
+  feldiagnosticera: **filtret verkar ignoreras** (98 av 100 namn matchade inte
+  `$startsWith`, och 38 av 100 var `visible:true` trots `visible:false`) OCH
+  **markören står stilla** (`cursors.next` kom tillbaka IDENTISK med den som
+  skickades in, i alla fyra kroppsformer). En hel förmiddag kan gå åt till att
+  prova om paginering som aldrig var problemet. **Kontrollen är densamma: räkna
+  unika id och jämför den returnerade markören mot den du skickade — men leta
+  efter `data:` i anropet innan du felsöker paginering.**
+
+  ⚠️ `$contains` finns inte på `name` i `/products/search` (`400 … non allowed
+  operator`). `$startsWith` fungerar. Är operatorn fel svarar API:t alltså
+  ordentligt — det är bara den tysta bodyn som inte gör det.
+
 - ☠️ **`products/query` svarar 200 med SAMMA 50 rader i all evighet om bodyn inte är
   `query`-wrappad.** Rätt form är `{query: {filter, sort, cursorPaging}}`. Skickar du
   fälten på toppnivå — vilket ser rimligt ut och är vad varje annan V3-rutt tar — så
