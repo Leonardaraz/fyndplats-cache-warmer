@@ -1,0 +1,221 @@
+# Fördelning av poleringsfamiljer mellan två sessioner
+
+Skriven 2026-09-05 av sessionen som kör runda 62–66. Syftet är att två chattar ska
+kunna polera samtidigt utan att skriva till samma produkt.
+
+☠️ **Krocken är inte teoretisk.** Två sessioner har redan polerat samma katalog
+samtidigt (uppgift #262). En produkt som två sessioner skriver till samtidigt får
+`revision`-konflikt i bästa fall och en halvt applicerad patch i sämsta.
+
+## Regeln: ägandet går på FAMILJ, inte på produkt
+
+En id-lista blir gammal. En familjeregel gör det inte, och den täcker även de utkast
+som importeras i natt.
+
+| Familj | Regel mot produktnamnet | Ägare |
+|---|---|---|
+| Manuella reclinerfåtöljer | `^Relaxsessel` UTAN `Elektrisch\|Massage\|Aufstehhilfe\|beheizb\|Heiz\|USB\|Motor` | **Runda 62–66-sessionen** |
+| Allt annat nedan | se tabellen | **Den andra sessionen** |
+
+Rör inte den andres familj ens för en liten rättelse. Skriv i stället en rad här.
+
+-----
+
+## Mätningen som ligger till grund (2026-09-05)
+
+Läst i ETT svep: **5 499 produkter**, varav **3 618 utkast** och 1 881 publicerade.
+`unika == lästa rader`, alltså ingen markör som snurrar på stället.
+
+⚠️ **Två mätfällor, båda uppmätta — gör inte om dem.**
+
+1. **Ledande adjektiv gömmer familjen.** Delsträngen `Sessel` ger **356** utkast,
+   huvudordet bara **126**. Skillnaden är namn som `Drehbarer …`, `Elektrischer …`.
+   Runbokens regel gäller: kör delsträngen för att HITTA, huvudordet för att RÄKNA.
+2. **`Sessel` är inte en familj utan ett dussin.** Histogram över första ordet:
+
+   | | | | |
+   |---|--:|---|--:|
+   | Relaxsessel | 96 | Kindersessel | 8 |
+   | Massagesessel | 28 | Bodensessel | 7 |
+   | Schlafsessel | 14 | Fernsehsessel | 7 |
+   | Sessel | 14 | Ohrensessel | 6 |
+   | Polstersessel | 14 | Klappsessel | 6 |
+   | Bürostuhl | 13 | Chefsessel | 5 |
+   | Schaukelstuhl | 13 | Gaming(-)Sessel | 8 |
+   | Akzentsessel | 10 | Hängesessel | 4 |
+   | Aufstehsessel | 9 | | |
+
+-----
+
+## Fyra rundor som är redo att köras
+
+Alla åtta-listor nedan är **utkast (`visible:false`) 2026-09-05**. Läs om produkten
+precis innan du börjar — kön ljuger, och en annan session kan ha hunnit före.
+
+⚠️ **Dubblettkollen är INTE gjord för någon av dem.** Jag har bara tagit fram vilka
+publicerade sidor de ska jämföras mot. Gör Steg 1-jämförelsen på MÅTT, inte på namn —
+se fyndet under runda D för varför.
+
+### Runda A — Barnfåtöljer (`^Kindersessel`), exakt 8
+
+```
+4791575c 1399  Kindersessel mit neigbarer Rücklehne 62 x 52 x 69cm Massivholz
+1a73ab8d 1159  Kindersessel mit Hocker, Rückenlehne Diamantmuster
+188a80b4 1129  Kindersessel mit Ottomane für Kinder von 3 bis 5 Jahren
+31710969 1119  Kindersessel Sessel für Kinder mit massiven Holzfüßen
+8f150623 1099  Kindersessel, Kindersofa mit Holzrahmen, Samtoptik
+b24ce3da 1079  Kindersessel, Kindersofa mit Holzrahmen, Samtoptik
+4e92e841 1079  Kindersessel Kindersofa mit Leinen-Optik, massiven Holzfüßen
+37d254ee  999  Kindersessel Kindersofa mit Kord-Optik, massiven Holzfüßen
+```
+
+- **Steg 2-grinden är verklig här.** Barnmöbel: åldersintervallet i namnet
+  ("3 bis 5 Jahren") är ett påstående som måste stämma mot måtten, och ingen
+  EN-norm får skrivas ut utan källa. Se uppgift #252 — en husdjursprodukt fick
+  barnnormer påklistrade.
+- Dubblettkolla mot: `barnfatolj-teddyfleece-bjornoron` (1 029),
+  `barnfatolj-med-fotpall` (1 379).
+- `8f150623`/`b24ce3da` och `4e92e841`/`37d254ee` ser ut som färgsyskon —
+  verifiera på måtten, inte på namnet.
+
+### Runda B — Öronlappsfåtöljer (`^Ohrensessel`), 6 st
+
+```
+c0e67ea5 3369  Ohrensessel mit Fußhocker, Polstersessel mit Kautschukholzbeinen
+16f36d37 2599  Ohrensessel Relaxsessel Sessel, Vintage-Design, Knopfheftung
+7b98c4c1 2599  Ohrensessel im Vintage-Design, Lesesessel, Akzentsessel, Holzbeine
+80e4ed24 2329  Ohrensessel Sessel mit Tufting, hoher Rückenlehne, Gepolstert
+72f30eb9 2199  Ohrensessel Relaxsessel Sessel, Vintage-Design, Knopfheftung
+121ce68f 2159  Ohrensessel Sessel mit Tufting, hoher Rückenlehne, Gepolstert
+```
+
+☠️ **Högst dubblettrisk av alla fyra rundorna.** Tre öronlappsfåtöljer ligger redan
+publicerade i samma prisband: `oronlappsfatolj-beige-110-cm` (2 969),
+`oronlappsfatolj-med-fotpall-gul` (3 199), `oronlappsfatolj-blatt-knappad-rygg`
+(2 299). Gör måttjämförelsen FÖRST — det kan visa sig att bara två eller tre av de
+sex är nya, och då är rundan en annan.
+
+Fyll på till åtta ur `^Akzentsessel` (10 st) om det behövs.
+
+### Runda C — Hängfåtöljer och golvfåtöljer, 11 st
+
+```
+648a9257 4899  Hängesessel mit Gestell, Eiförmiger Hängeschaukel mit abnehmbarem…
+814b4e85 4399  Hängesessel mit Gestell für 2 Personen faltbar Hängekorb
+ebec4bc1 2529  Hängesessel Outdoor Hängesessel Egg Chair, wetterbeständig
+6681ae28 1769  Hängesessel mit Gestell faltbar Polyrattan Hängekorb mit Kissen
+666ce96b 2419  Bodensessel mit Rückenlehne, rahmenloser Gaming-Sessel für Erwachsene
+724cc4b5 1559  Bodensessel Klappmatratze Schlafmatte, 2-in-1-Design
+a8d37d72 1539  Bodensessel Klappmatratze Schlafmatte, 2-in-1-Design
+9c71885a 1499  Bodensessel Klappmatratze Schlafmatte, 2-in-1-Design
+90529d40 1319  Bodensessel mit 5-fach verstellbarer Rückenlehne, drehbar
+db34f7d5 1299  Bodensessel mit 5-fach verstellbarer Rückenlehne, drehbar
+87717be0 1299  Bodensessel mit 5-fach verstellbarer Rückenlehne, drehbar
+```
+
+- **Två produkttyper — dela på två rundor** om det blir rörigt. Hängfåtöljerna är
+  utomhus och har egen Steg 2-grind (upphängning, maxlast, väder).
+- Dubblettkolla mot: `hangstol-med-stativ-fristaende-morkgra` (2 199),
+  `golvfatolj-fallbar-13-lagen` (899), `golvfatolj-360-grader-fem-lagen` (1 229).
+  ⚠️ `golvfatolj-fallbar-13-lagen` polerades i runda 65 — de tre `5-fach
+  verstellbarer`-utkasten är exakt den produktklassen.
+- `724cc4b5`/`a8d37d72`/`9c71885a` och `90529d40`/`db34f7d5`/`87717be0` ser ut som
+  två tripplar färgsyskon.
+
+### Runda D — Bäddfåtöljer, 24 st (blir tre rundor)
+
+`^Schlafsessel` (14) + `^Klappsessel … mit Bettfunktion` (6) + de fyra under.
+
+```
+Schlafsessel
+dd2f1769 3229  Schlafsessel 3-in-1, ausklappbarer Sessel aus Cord
+6a204d58 3199  Schlafsessel 3 in 1 Umwandelbarer Sessel mit Bettfunktion
+57ba0224 3199  Schlafsessel, 6-stufig verstellbare Lehne, Leinenoptik
+82798d95 3149  Schlafsessel 3-in-1, ausklappbarer Sessel aus Cord
+583577bc 2959  Schlafsessel, 6-stufig verstellbare Lehne, Leinenoptik
+0317a03e 2749  Schlafsessel, 3-in-1 Klappbarer Leinen-Schlafsessel
+0761c9d0 2659  Schlafsessel 2-in-1 mit Bettfunktion, Schlafsofa
+6efbe712 2639  Schlafsessel, Gästebett, Holz-Armlehnen, metallrahmen
+1df737ee 2399  Schlafsessel, Gästebett, verstellbare Rückenlehne, bis 120 kg
+02925ee6 2239  Schlafsessel 3 in 1 Klappbar Sessel mit Schlaffunktion, 186 cm
+c46bda54 1969  Schlafsessel, Gästematratze, 3-fach faltbar, kompakt
+1706c47d 1899  Schlafsessel, Polstersessel, zum Gästebett umwandelbar
+79daabe1 1549  Schlafsessel Relaxsessel Gästebett, abnehmbarer Bezug, 70 cm
+f8c671b3 1499  Schlafsessel Relaxsessel Gästebett, abnehmbarer Bezug, 70 cm
+
+Klappsessel
+0f6ea98d 2969  Klappsessel mit Bettfunktion, klappbarer Relaxsessel in Leinenoptik
+1663062d 2829  Klappsessel mit Bettfunktion, klappbarer Relaxsessel in Leinenoptik
+8800a1b5 2759  Klappsessel mit Bettfunktion, klappbarer Relaxsessel in Samtoptik
+0559bbb2 2619  Klappsessel mit Bettfunktion, Klappbarer Relaxsessel in Samtoptik
+3c81a3a6 2569  Klappsessel mit Bettfunktion, Gästebett, faltbar, bis 250 kg
+a6eb718c 2499  Klappsessel mit Bettfunktion, Klappbarer Relaxsessel in Samtoptik
+```
+
+☠️ **Fyra till, och de heter något helt annat.** De här bär `Relaxsessel im
+Skandidesign, Liegesessel, Lesesessel` i namnet:
+
+```
+96a6b909 2359  (Beige)      286f4e14 2199  (Dunkelgrau)
+c10d0b7e 2079  (Schwarz)    e4e62a4f 2059  (Blau)
+```
+
+**De är inte läsfåtöljer.** Tekniska data säger `Bett Größe 185 × 63 × 26 cm`,
+`Bett Liegefläche 185 × 60 × 9 cm`, `Lieferumfang: 1 x Schlafsofa`. Ordet "Bett"
+står inte i namnet någonstans. Hade de polerats på namnet hade fyra sidor sålt en
+säng som en läsfåtölj.
+
+**Och de finns redan publicerade.** Varje mått är identiskt med
+`baddfatolj-med-armstod` (eb1e475e, 2 129 kr, gräddvit):
+
+| | utkastet | den publicerade |
+|---|---|---|
+| Som fåtölj | 63 × 73 × 81 cm | 63 × 73 × 81 cm |
+| Sittyta | 56 × 57 × 37 cm | 56 × 57 × 37 cm |
+| Sitstjocklek | 20 cm | 20 cm |
+| Ryggstöd | 48 × 58 × 9 cm | 48 × 58 × 9 cm |
+| Armstöd | 36 × 4 cm, 15 cm över sits | 36 × 4 cm, 15 cm över sits |
+| Kudde | 61 × 40 × 11 cm | 61 × 40 × 11 cm |
+| Vikt | 17,5 kg | 17,5 kg |
+
+De är alltså **färgsyskon** till en sida vi säljer. Det är inte skäl att välja bort
+dem — butiken publicerar färgsyskon — men de ska poleras SOM bäddfåtöljer med
+`baddfatolj-med-armstod`:s svenska text som mall.
+
+**Lärdomen för hela runda D: jämför på MÅTT, aldrig på namn.** Leverantörens namn
+beskrev fel produkt, och en namnjämförelse hade svarat "ingen dubblett".
+
+Dubblettkolla mot: `baddfatolj-190-cm` (2 519), `baddfatolj-med-armstod` (2 129),
+`baddfatolj-gastsang-180-cm` (3 119), `vikbar-baddmadrass-174-cm` (1 499).
+
+-----
+
+## Familjer som är kvar men INTE redo
+
+- **`^Massagesessel` (28) + `^Aufstehsessel` (9) + el-Relaxsessel (27).** Egen
+  Steg 2-grind: elsäkerhet, hälsopåståenden, och gränsen mot medicinteknisk
+  produkt (uppresningshjälp). ☠️ Dessutom **högst dubblettrisk i hela katalogen** —
+  cirka tjugo massage- och uppresningsfåtöljer ligger redan publicerade
+  (`uppresningsfatolj-*`, `massagefatolj-*`, `reclinerfatolj-*-massage-*`).
+  Mät innan du planerar en runda; det kan vara nästan tomt.
+- **`^Bürostuhl` (13) + `^Chefsessel` (5).** Kontorsstolar, inte fåtöljer.
+  Se uppgift #123: en skrivbordsstol får inte säljas som arbetsstol utan grund.
+- **`^Schaukelstuhl` (13).** Gungstolar — runda 26 polerade åtta. Dubblettrisken
+  är hög.
+- **`^Polstersessel` (14), `^Akzentsessel` (10), `^Fernsehsessel` (7),
+  `^Sessel` (14).** Omätta.
+
+-----
+
+## Hur den här filen hålls levande
+
+Skriv en rad när du tar en familj, och stryk den när den är klar. En familj utan
+ägare är fri; en familj med ägare rör man inte.
+
+| Familj | Ägare | Status |
+|---|---|---|
+| Manuella `^Relaxsessel` | runda 62–66-sessionen | pågår (runda 66) |
+| `^Kindersessel` | — | fri |
+| `^Ohrensessel` | — | fri |
+| `^Hängesessel` + `^Bodensessel` | — | fri |
+| `^Schlafsessel` + `^Klappsessel` + de fyra Skandidesign | — | fri |
