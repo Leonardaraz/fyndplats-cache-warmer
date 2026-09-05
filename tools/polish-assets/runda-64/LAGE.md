@@ -193,3 +193,62 @@ bryter på hela ord i den latiniserade sluggen, och `fu` ÄR ett helt ord där �
 
 **Rundan lagade åtta av dem på köpet.** Men svepet i punkt #272 står kvar: den
 här familjen har 106 utkast, och kapningen träffar dem alla lika.
+
+## ☠️ Steg 4: leverantörens namn låg i PIXLARNA, inte i HTML:en
+
+Fyrtio bilder granskade i två kontaktark. Fyra måste bort, och en av dem är en
+ny felklass för huset.
+
+| id8 | bild | vad |
+|---|--:|---|
+| `e76002c1` | 2 | ☠️ **`HOMCOM by Aosom` inbränt uppe till vänster** |
+| `5e2dee74` | 4 | tysk text: *Gepolsterte Armlehnen · Breite und weiche Rückenlehne · Seitentaschen* |
+| `beacff5a` | 4 | tysk text: *Abnehmbarer Bezug…* |
+| `beacff5a` | 5 | tysk text: *Hochdichter Schaumstoff…* |
+
+☠️ **Husets kontroll kan strukturellt inte se det här.** `CLAUDE.md` slår fast
+att vi inte läcker leverantörsspår, mätt som *"noll träffar på `aliexpress`,
+`alicdn`, `aosom` eller något husmärke i HTML:en"*. Den mätningen är riktig och
+värdelös mot en logotyp: text i en bild finns inte i HTML:en. En `grep` över
+källkoden svarar grönt medan kundens öga läser leverantörens namn.
+
+Och det är BÅDA namnen på en gång — husmärket `HOMCOM` och leverantören
+`Aosom`, i samma logotyp. Artikelnumret leder till dealproffsens sida; en
+logotyp leder till leverantörens hela katalog.
+
+⚠️ **Öppen fråga för Leonard: hur många av de 1 865 publicerade sidorna bär en
+inbränd logotyp?** Den här rundan mätte 16 hörn och hittade en. Det är inget
+underlag för en skattning, men det är tillräckligt för att frågan ska ställas.
+Ett svep går att bygga — det är en bildmätning, inte en textmätning.
+
+De tre tyska bilderna kostar ingenting att stryka: allt de påstår
+(*stoppade armstöd · bred mjuk rygg · sidofickor · avtagbar tvättbar dyna ·
+högdensitetsskum*) står redan i den svenska texten.
+
+⚠️ `beacff5a` går därmed från fem bilder till tre, och `e76002c1` förlorar sin
+delningsbild (position 2). Det är rätt pris.
+
+## ☠️ Steg 4: feedens färgkolumn ljuger — fotot är facit
+
+`e76002c1` står som `Farbe: Braun` i den tyska specen. Fotot är **grått**:
+uppmätt RGB `156,151,141`, `162,159,149` och `150,149,140` på rygg, sits och
+armstöd. Det är en varmgrå ton, inte brun i någon mening.
+
+Texten säger `gråbeige` nu. Grinden `FARG` i `lint.py` låser färgorden per
+produkt till det som är AVLÄST UR FOTOT, och två mutationer bevisar att den
+fäller när feedens `brun` återinförs.
+
+Samma familj som huset redan mätt på ett scramblat färgfält — men den här
+gången ÄR färgen entydig i bilden, så produkten är publicerbar; det är bara
+kolumnen som är fel.
+
+## Steg 9: verifierat i en separat läsning
+
+| | |
+|---|--:|
+| Texter som stämmer mot facit | **8 av 8** |
+| Produkter med rätt antal bilder | **8 av 8** |
+| Bilder totalt efter gallring | 36 |
+| **Tomma alt-texter** | **0** |
+
+Alla åtta är fortfarande `visible: false`.

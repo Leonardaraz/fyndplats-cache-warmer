@@ -143,7 +143,7 @@ PRODUKTER = [
         "sku": "FP-tv-fatolj-mugghallare",
         "name": "Tv-fåtölj med två mugghållare – 135° liggläge och 360° snurrfot",
         "title": "Tv-fåtölj med mugghållare, 135° | Fyndplats",
-        "meta": ("Tv-fåtölj i brun mikrofiber med två mugghållare i armstöden. "
+        "meta": ("Tv-fåtölj i gråbeige mikrofiber med två mugghållare i armstöden. "
                  "Ryggen fälls till 135° med en sidospak. Bär 150 kg."),
         "ingress": (
             "<p>Två mugghållare på Ø 7,5 cm sitter infällda i armstöden, så "
@@ -169,7 +169,7 @@ PRODUKTER = [
             "Maxlast: 150 kg",
             "Passar kroppslängd upp till 185 cm",
             "Material: mikrofiber, skum",
-            "Färg: brun",
+            "Färg: gråbeige",
             "Vikt: 49,8 kg",
             "Paketmått: 77 × 70 × 45 cm",
         ],

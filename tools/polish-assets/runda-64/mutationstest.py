@@ -126,6 +126,12 @@ MUTATIONER = [
     ("slug byts utan att SKU följer med", "b01d8af2", "slug",
      "sammetsfatolj-fotpall-33-cm-ben", "sammetsfatolj-med-lös-pall", "SKU"),
 
+    # --- färgen: specen sa Braun, fotot säger grått ---
+    ("brun återinförs från feedens färgkolumn", "e76002c1", "spec",
+     "Färg: gråbeige", "Färg: brun", "färgord"),
+    ("fel färg i meta", "b01d8af2", "meta",
+     "i ljusgrått", "i beige", "färgord"),
+
     # --- SEO-fälten ---
     ("fokusordet lämnar titeln", "e76002c1", "title",
      "Tv-fåtölj med mugghållare, 135°", "Bekväm stol med hållare, 135°",

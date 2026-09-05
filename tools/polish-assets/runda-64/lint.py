@@ -37,6 +37,21 @@ VIKT = {
 UTAN_LIGG = {"b09d20b7", "b01d8af2", "ca92e3ce", "90caeb9d"}
 # Produkter som levereras färdigmonterade.
 FARDIGMONTERAD = {"90caeb9d"}
+# ☠️ Färgen är avläst ur FOTOT, inte ur feedens Farbe-kolumn. e76002c1 står som
+# `Braun` i specen men är mätt gråbeige i bild 1 (RGB 156,151,141 på tre
+# punkter). Ett färgord utanför den här listan är ett påstående vi inte mätt.
+FARG = {
+    "5e2dee74": {"gräddvit", "svart"},
+    "e76002c1": {"gråbeige"},
+    "17620f5b": {"mörkgrå", "svart"},
+    "b09d20b7": {"grå", "svart"},
+    "b01d8af2": {"ljusgrå"},
+    "ca92e3ce": {"ljusgrå"},
+    "90caeb9d": {"gräddvit"},
+    "beacff5a": {"svart"},
+}
+FARGORD = ["brun", "beige", "vit", "svart", "grå", "ljusgrå", "mörkgrå",
+           "gräddvit", "gråbeige", "blå", "grön", "röd", "gul", "rosa"]
 
 # ------------------------------------------------------------- ordlistor ---
 # Tyska ord som INTE också är svenska ord. Ordgräns i båda ändar.
@@ -177,6 +192,16 @@ def kor():
         else:
             if not re.search(r"monter", pastar):
                 fal(k, "monteringen nämns inte i egenskaper eller spec")
+
+        # 10b. färgord som inte är avläst ur fotot
+        for ord in FARGORD:
+            if ord in FARG[k]:
+                continue
+            # längre färgord innehåller kortare: "gräddvit" innehåller "vit"
+            if any(ord in b and ord != b for b in FARG[k]):
+                continue
+            if re.search(r"(?<![a-zåäö])%s(?![a-zåäö])" % ord, allt):
+                fal(k, "färgord '%s' är inte avläst ur fotot %s" % (ord, sorted(FARG[k])))
 
         # 11. bomull får inte PÅSTÅS — ett förnekande är tillåtet
         for tr, mening in pastaenden(synlig, re.compile(r"\bbomull\w*", re.I)):
