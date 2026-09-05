@@ -122,28 +122,46 @@ snävas in.
 ett bygge per push, men de avbryts allihop. Kostnaden dubbleras alltså inte —
 kontrollmätt samma dag, alla `CANCELED`.
 
-⚠️ **Kvittot är ännu inte taget — och första mätningen SÅG UT som ett
-misslyckande.** Commiten som införde raden (`c0bdbcc`) byggdes, vilket är rätt:
-den rör `vercel.json`. Men den efterföljande RENA dokumentationscommiten
-(`79718d9`, bara `tools/polish-assets/`) byggdes också —
-`dpl_7yFr3c1jKqMJza9DjvvcmjejCt6P`, `READY`, preview.
+### ✅ Kvitterat i drift — och så här SER ett hoppat bygge ut
 
-Den troliga förklaringen är tidsgapet, inte filtret. De två pusharna låg **26
-sekunder** isär, alltså långt innan `c0bdbcc`:s bygge hunnit bli `READY`.
-`VERCEL_GIT_PREVIOUS_SHA` är förra **lyckade** deployens SHA — den pekade
-alltså fortfarande på `7210d94`, och spannet `7210d94..79718d9` innehåller
-`vercel.json`. Filtret gjorde i så fall exakt vad det ska.
+Commiten `1e092da` rörde bara `CLAUDE.md` och pushades ensam. Utfallet:
 
-☠️ **Men det är en hypotes tills en dokumentationscommit pushats UTAN att ge ett
-bygge.** Skriv inte om den här raden till "verifierad" på ett resonemang som
-låter rimligt — det var precis så `[skip ci]`-regeln kom in i filen. Den här
-commiten är själv nästa mätning: den rör bara `CLAUDE.md`.
+```
+dpl_AuG4gebWgTksRNhxJXxYPEJ4o2tC   state: CANCELED   target: null
+buildingAt 1788606981214 → ready 1788606990281        (9 sekunder)
+errorLink: https://vercel.com/docs/platform/projects#ignored-build-step
+```
 
-⚠️ **Följden för arbetssättet, oavsett utfall:** pusha inte två gånger inom
-samma byggfönster och räkna med att den andra hoppas över. Gapet måste vara
-långt nog att föregående bygge hunnit bli `READY`, annars jämförs det nya
-spannet mot en äldre SHA än man tror — och en batchad poleringspush som råkar
-ligga tätt efter en kodpush bygger då i onödan.
+☠️ **Ett hoppat bygge heter `CANCELED`, inte `SKIPPED`** — och en deployment-rad
+skapas ändå. Läser man bara "kom det en deployment?" ser filtret alltså ut att
+inte bita. Tre fält skiljer, och det är dem man ska titta på:
+
+| | byggt | hoppat |
+|---|---|---|
+| `state` | `READY` | **`CANCELED`** |
+| `bundler` | `turbopack` | **saknas** |
+| `lambdaRuntimeStats` | `{"nodejs":10}` | **saknas** |
+| tid `buildingAt`→`ready` | minuter | **9 s** |
+| `errorLink` | — | **`#ignored-build-step`** |
+
+`errorLink` är det som gör det till ett kvitto i stället för en tolkning: Vercel
+namnger själv ignore-steget som orsak.
+
+⚠️ **Följdregel, mätt på vägen dit: pusha inte två gånger inom samma
+byggfönster.** Första försöket misslyckades — den rena dokumentationscommiten
+`79718d9` byggdes (`dpl_7yFr3c1jKqMJza9DjvvcmjejCt6P`, `READY`). Orsaken var
+inte filtret utan gapet: de två pusharna låg **26 sekunder** isär, alltså långt
+innan `c0bdbcc`:s bygge hunnit bli `READY`. `VERCEL_GIT_PREVIOUS_SHA` är förra
+**lyckade** deployens SHA och pekade därför fortfarande på `7210d94` — och det
+spannet innehåller `vercel.json`. Filtret gjorde rätt; mätningen var fel
+uppställd. Ligger en poleringspush tätt efter en kodpush bygger den alltså i
+onödan.
+
+✅ **Vad det betyder för poleringen: en runda kostar noll byggen.** Allt en
+poleringsrunda skriver till grenen ligger i `docs/` och `tools/polish-assets/`.
+Batchningsregeln ovan gäller fortfarande MERGES till `main` (de bygger, och de
+tömmer butikens ISR-cache), men pushar till poleringsgrenen behöver inte längre
+sparas ihop.
 
 ### Undantaget
 
