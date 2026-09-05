@@ -53,7 +53,9 @@ FARGORD = ["brun", "beige", "vit", "svart", "grå", "ljusgrå", "mörkgrå",
            "röd", "gul", "rosa", "silverfärgad", "creme",
            # runda 66: två uppmätta toner. Ett färgord som inte står här kan
            # grinden inte pröva — den är en uppräkning, inte en härledning.
-           "stålgrå", "gråbrun", "mörkblå"]
+           "stålgrå", "gråbrun", "mörkblå",
+           # runda 67: de mörka träfötterna på fåtöljerna B och E.
+           "mörkbrun"]
 
 
 # ------------------------------------------------ påstående vs förnekande ---
