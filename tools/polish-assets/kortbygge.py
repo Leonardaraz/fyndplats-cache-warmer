@@ -49,10 +49,19 @@ def varde(specrad, etikett):
 
 
 def kalla(har, kort, mjuka):
-    """Hjältebilden, mjukad om kortet annars spränger takgränsen."""
-    foto = os.path.join(har, "rawbilder", "%s-1.jpg" % kort)
-    if not os.path.exists(foto):
-        raise SystemExit("saknar foto: %s" % foto)
+    """Hjältebilden, mjukad om kortet annars spränger takgränsen.
+
+    ⚠️ Skiljetecknet mellan id och nummer är INTE samma i alla rundor:
+       runda 62, 64 och 65 skriver `<id>-1.jpg`, runda 63 `<id>_1.jpg`.
+       En hårdkodad separator hade fällt bygget på en runda där allt annat
+       stämde — och felmeddelandet hade pekat på en saknad bild.
+    """
+    for sep in ("-", "_"):
+        foto = os.path.join(har, "rawbilder", "%s%s1.jpg" % (kort, sep))
+        if os.path.exists(foto):
+            break
+    else:
+        raise SystemExit("saknar foto: %s/rawbilder/%s{-,_}1.jpg" % (har, kort))
     if kort not in mjuka:
         return foto
     ut = os.path.abspath("%s-1-mjuk.jpg" % kort)
@@ -77,6 +86,10 @@ def bygg(har, produkter, kortdata, mjuka=None):
     ck.render(namn)
 
     os.makedirs("jpg", exist_ok=True)
+    # ⚠️ ALLA kort mäts innan något kastas. Att dö på det första kostar ett
+    #    varv per kort, och en runda vävda korgar spränger taket på flera —
+    #    runda 63 hade behövt fyra byggen för att få veta fyra tal.
+    forstora = []
     for n in namn:
         im = Image.open("cards/%s.png" % n).convert("RGB").resize(
             (1600, 1600), Image.LANCZOS)
@@ -86,6 +99,9 @@ def bygg(har, produkter, kortdata, mjuka=None):
             if os.path.getsize("jpg/%s.jpg" % n) <= TAK_BYTE:
                 break
         else:
-            raise SystemExit("%s klarar inte %d byte vid q=85 — mjuka upp FOTOT"
-                             % (n, TAK_BYTE))
+            forstora.append((n, os.path.getsize("jpg/%s.jpg" % n)))
+    if forstora:
+        raise SystemExit("MJUKA UPP FOTOT på %d kort (aldrig kortet):\n" % len(forstora)
+                         + "\n".join("  %-20s %7d byte vid q=85, %+d över taket"
+                                     % (n, b, b - TAK_BYTE) for n, b in forstora))
     return namn, facit
