@@ -334,9 +334,25 @@ Löst genom att namnge färgen i ritningens text ("Måttritning av den mörkgrå
 knästolen: 51 cm bred…") — unik OCH mer informativ, eftersom ritningen faktiskt
 visar den färgade stolen.
 
-⚠️ **Inga egna kort behövdes.** Alla 40 leverantörsbilder är rena från inbränd
-text, vilket är ovanligt för Aosom (46 % bär normalt tysk text). Galleriet
-behölls intakt; ingen bild togs bort och ingen laddades upp.
+☠️ **RÄTTAT 2026-09-05: den här raden var fel, och felet ärvdes tre rundor
+framåt.** Den löd *"Inga egna kort behövdes"* och motiverade det med att alla
+40 leverantörsbilder var rena från inbränd text — vilket stämmer, och är
+ovanligt för Aosom (46 % bär normalt tysk text).
+
+Men kortet är inte en REPARATION av smutsiga bilder. Klart-kriteriet är
+ovillkorligt: *varje polerad produkt ska ha MINST ett eget kort* (Leonards
+regel 2026-08-26). Kortet är det enda i galleriet som är VÅRT; utan det är
+produktsidan en vidarebefordran av leverantörens marknadsföring, hur ren den
+än är.
+
+⚠️ **Mekanismen är värd mer än felet.** Nästa runda byggs som en kopia av den
+förra, så raden ovan blev en tyst instruktion: runda 63, 64 och 65 hoppade
+över korten utan att någon beslutade det. **Varje regel med en grind höll;
+varje regel utan en drev.** Korten hade ingen grind.
+
+✅ Åtgärdat: alla åtta har nu ett eget kort på plats 3 och måttritningen sist,
+kvitterat mot live-sidan (`x-vercel-cache: HIT`, kortets fil-id i HTML:en).
+Se `kort.py` i den här mappen.
 
 ## Steg 10, 12, 13 klara — publicerade och stämplade
 
