@@ -41,3 +41,8 @@ scratchpad/
 # till scripts/ och missade scripts/hero/ som tillkom i #389.
 __pycache__/
 tools/aosom/sweep-log.jsonl
+
+# Poleringens råa leverantörsbilder och kontaktark: härledbara ur bilder.json,
+# och tidigare rundor har alltid bara burit text och skript.
+tools/polish-assets/*/rawbilder/
+tools/polish-assets/*/kontaktark-*.jpg
