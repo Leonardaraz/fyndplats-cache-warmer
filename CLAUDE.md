@@ -260,6 +260,30 @@ sju `READY`, sju `CANCELED`, sex `ERROR`, en `READY`. De sju `CANCELED` är inte
 oskyldiga i den kedjan — **de är orsaken**, för varje hoppat bygge lämnade
 pekaren still en runda till.
 
+### ✅ Läkningen är inte engångs — den upprepas, och det är meningen (2026-09-05)
+
+Runda 65:s poleringspush byggde: `dpl_Gczypgrm8LLYUxWewH2jd4AcyFhA`, `READY`,
+`bundler: turbopack`, `lambdaRuntimeStats {"nodejs":10}`. Den rörde bara
+`tools/polish-assets/`.
+
+Det är INTE filtret som slutat fungera. Diffen mättes lokalt mot varenda
+tänkbar referenspunkt i spannet — `055653d`, `fad67cd`, `9030055`, `6d49b02`,
+`9e62165` — och alla ger **noll** filer utanför `docs/`, `tools/` och markdown.
+Kvar står bara `git cat-file`-vakten: pekaren låg utanför den grunda klonen
+igen, och då är `exit 1` det RÄTTA svaret.
+
+☠️ **Orsaken är den som avsnittet ovan redan beskriver, och den återkommer med
+varje lyckad filtrering.** Ett hoppat bygge är `CANCELED`, alltså inte lyckat,
+så `VERCEL_GIT_PREVIOUS_SHA` står still. Efter tio hoppade pushar ligger den tio
+commits bak — och Vercels klon är grund. Läkningsbygget flyttar fram pekaren och
+allt fungerar igen tills nästa svit hoppade byggen hunnit dra iväg den.
+
+**Räkna alltså med ETT bygge per svit hoppade pushar, inte noll.** Det är
+priset för att inte fördjupa klonen (`--deepen` sprängde 256-teckengränsen), och
+det är billigt: tio hoppade byggen och ett riktigt slår elva riktiga. Men skriv
+inte "noll byggen" om en runda utan att ha läst deployment-listan — filtret kan
+göra exakt rätt och ändå bygga.
+
 ### Undantaget
 
 En bugg som skadar kunder just nu får sin egen deploy direkt. Det är
