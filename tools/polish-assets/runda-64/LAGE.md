@@ -252,3 +252,62 @@ kolumnen som är fel.
 | **Tomma alt-texter** | **0** |
 
 Alla åtta är fortfarande `visible: false`.
+
+## Steg 10, 13 och 14 — klar
+
+### ☠️ Kategoriträdet har ingen möbelgren
+
+54 kategorier lästa. Under **Hem & Inredning** finns Förvaring & Organisering,
+Kalas & Fest, Verktyg & Hemmafix, Dekoration & Prydnad, Hushållsapparater,
+Badrum & Hemtextil och Belysning. **Ingen möbelkategori alls** — inga
+"Möbler", inget "Vardagsrum", inga "Fåtöljer & Stolar".
+
+De redan publicerade fåtöljerna lästes för att inte gissa: `990b4da7`,
+`9e924d08` och `62161510` sitter alla i **All Products + Hem & Inredning**.
+Rundans åtta kopplades likadant. (`62161510` bär dessutom *Dekoration &
+Prydnad*, vilket är fel för en fåtölj med fotpall — noterat, inte rättat.)
+
+⚠️ **Öppen fråga för Leonard.** Katalogen har vid det här laget publicerade
+bokhyllor, skoskåp, köksskåp, gungstolar, hallmöbler, bänkar, matgrupper,
+skrivbord och fyrtiotalet fåtöljer — alla i en kategori som heter "Hem &
+Inredning" tillsammans med lampor och handdukar. Att skapa en möbelgren är en
+strukturändring i butiken och därmed ditt beslut, inte poleringens.
+
+### ☠️ Ett bulk-svar MED fel är inte heller en dom
+
+Kopplingen svarade `totalSuccesses: 1, totalFailures: 1` på **alla åtta**. Det
+såg ut som ett halvt misslyckande. Återläsningen visar att båda kategorierna
+sitter på alla åtta: **All Products fanns redan** från importen, så den andra
+skrivningen avvisades som dubblett.
+
+Huset har regeln *"ett svar utan fel är inget kvitto"*. Det här är spegelbilden:
+**ett svar MED fel är inte heller ett besked.** Enda kvittot är återläsningen.
+
+### Steg 14: live-grinden ren på alla åtta
+
+| id8 | slug | kod | cache | bilder | text | mot facit |
+|---|---|---|---|---|--:|---|
+| `5e2dee74` | reclinerfatolj-gungande-chenille | 200 | HIT | 4/4 | 2 668 | **lika** |
+| `e76002c1` | tv-fatolj-mugghallare-135 | 200 | HIT | 4/4 | 2 075 | **lika** |
+| `17620f5b` | reclinerfatolj-fotpall-130-grader | 200 | HIT | 5/5 | 2 137 | **lika** |
+| `b09d20b7` | snurrfatolj-fotpall-hojdjusterbar | 200 | HIT | 5/5 | 2 164 | **lika** |
+| `b01d8af2` | sammetsfatolj-fotpall-33-cm-ben | 200 | HIT | 5/5 | 1 968 | **lika** |
+| `ca92e3ce` | fatolj-skandinavisk-stil-gummitra | 200 | HIT | 5/5 | 2 040 | **lika** |
+| `90caeb9d` | djup-fatolj-250-kg-manchesterlook | 200 | HIT | 5/5 | 2 162 | **lika** |
+| `beacff5a` | vilstol-bjork-femstegs-fotstod | 200 | HIT | 3/3 | 1 693 | **lika** |
+
+`lika` betyder samma längd OCH samma hash som `facit.json`. Texten kunden ser är
+alltså byte för byte den text grindarna godkände — varje lint-regel håller på
+live-sidan per konstruktion, inte per uppräkning.
+
+⚠️ **Bildnämnaren var missvisande i första körningen.** Den läste `bilder.json`,
+som håller alla fem ursprungliga id, så gallringen såg ut som ett fel (`4/5`).
+Nämnaren är nu det vi FAKTISKT lämnade kvar, och grinden vändes samtidigt om:
+varje kvarvarande bild MÅSTE synas, och varje BORTTAGEN får inte ha kommit
+tillbaka. Båda gröna.
+
+### Åtta stämplingar, gröna
+
+Workflow-körning 1086–1093, alla `success`. Rutten läser tillbaka raden och
+verifierar skrivningen — det är husets enda dokumenterade undantag från
+"ett grönt jobb är inget kvitto".
