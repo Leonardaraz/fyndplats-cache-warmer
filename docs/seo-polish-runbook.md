@@ -828,6 +828,28 @@ dubbletter, och om bild 1 inte är den renaste produktbilden.
 
 -----
 
+### ☠️ Titta i bildernas ÖVRE VÄNSTRA HÖRN — leverantörens logotyp bor där
+
+Runda 64: `e76002c1` bild 2 bar **`HOMCOM by Aosom`** inbränt i hörnet. Både
+husmärket och leverantören, i samma logotyp, på en bild som var på väg till en
+kundsida.
+
+☠️ **Husets kontroll kan inte se det.** `CLAUDE.md` slår fast att vi inte
+läcker leverantörsspår, mätt som noll träffar på `aosom` eller ett husmärke i
+HTML:en. Den mätningen är korrekt och verkningslös mot en logotyp: text i en
+bild finns inte i källkoden. Ingen `grep`, ingen live-grind och ingen
+alt-textkontroll fångar den — bara ögon.
+
+**Så här görs det billigt:** klipp ut övre vänstra 45 × 17 % ur bild 1 och 2 för
+alla åtta, klistra ihop till en remsa och titta en gång. Sexton hörn på ett
+uppslag. Det tog en minut i runda 64 och hittade en.
+
+⚠️ Position 1 och 2 räcker inte alltid — men de är de enda som blir huvudbild
+och delningsbild, alltså de som följer med till Google och sociala medier.
+Måttritningen (position 3) och detaljfotona granskas ändå för tysk text.
+
+-----
+
 ## Steg 5 – Verifiera leverantörens påståenden
 
 **Det mest värdefulla steget i hela flödet.** Under en session 2026-08-22/23 bar **fem av
