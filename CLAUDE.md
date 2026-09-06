@@ -1362,6 +1362,32 @@ ekas tillbaka ordagrant, så en felstavning bekräftas som "sparad". Det som
 faktiskt fångar den är en grind före skrivningen — eller ögon efter, på en
 återläsning. Nionde gången samma familj: **ett svar utan fel är inget kvitto.**
 
+#### ☠️ Och filen är inte det som skickas — `fontagen-weight` (2026-09-06)
+
+Regeln ovan säger *skriv i en fil först*. Den räcker inte, för filen skickas
+inte: den TRANSKRIBERAS in i API-anropets kropp, och det är i den kopieringen
+felet uppstår. Uppmätt samma dag, på en rättelse av tre klösträd där källfilen
+var invändningsfri:
+
+```
+i filen:   <span style="font-weight: 700">Finns det något att klösa på?</span>
+i anropet: <span style="fontagen-weight: 700">Finns det något att klösa på?</span>
+```
+
+☠️ **Wix STRÖP spannet tyst i stället för att avvisa det.** Ett okänt
+CSS-egenskapsnamn ger inget fel — `bulkActionMetadata` svarade
+`3 totalSuccesses, 0 totalFailures`, och den lagrade texten blev
+`<p>Finns det något att klösa på? Ja, …</p>` med fetstilen borta. Ett ogiltigt
+attribut är alltså inte ett fel utan en tomt bortstädad tagg.
+
+Det som fångade det var **återläsningen diffad mot filen** — inte skrivsvaret,
+inte ögonen. Och det gäller starkare sedan kodvägen föll: med `ExecuteWixAPI`
+kunde texten läsas ur en fil server-side, med `CallWixSiteAPI` går varje byte
+genom chatten en gång till.
+
+**Regeln: filen är källan, men bara en diff mot den lagrade texten bevisar att
+källan kom fram.** Tionde gången samma familj.
+
 #### ☠️ Filgrinden täcker bara halva vägen — grinda den PUBLICERADE texten
 
 Raden ovan sa "ögon efter". Ögon räcker inte: batch 65:s två fel stod kvar i
