@@ -1,12 +1,48 @@
 # Runda E3 — tio Akzentsessel
 
-⏸ **FÖRBEREDD, INTE PUBLICERAD.** Texterna är skrivna och filgrindade, Wix är
-orört. Prisgrinden går genom GitHub-workflowen och servern är fortfarande
-nere — samma läge och samma beslut som D3 och E2: **en grind man inte kan
-köra är en grind som inte har godkänt.**
+⚠️ **DELVIS PUBLICERAD 2026-09-06, och rundan slutade i en KOLLISION.**
 
-Med den här rundan är `^Akzentsessel` slut (10 av 10) — men **A3:s två
-produkter hålls**, se stoppet nedan. Åtta går ut, två väntar.
+| grupp | vad som hände |
+|---|---|
+| **A1** (6 manchesterfåtöljer) | publicerade — men med **den andra sessionens** text, namn, slug, alt och kort. Mitt arbete på dem är överskrivet och kastat. Se nedan. |
+| **A2** (2 hopfällbara bokfåtöljer) | publicerade med MIN text, checksummeverifierad, stämplade och live-grindade |
+| **A3** (2 björkvilstolar) | stoppade sedan tidigare — dubbletter av publicerad sida (#140) |
+
+## ☠️ Två sessioner skrev till samma sex produkter inom två minuter
+
+Uppmätt på revisionerna och tidsstämplarna, inte gissat:
+
+```
+10:52–10:56  jag: text (checksummeverifierad), 30 alt-texter, 6 unika SKU:er, publicering
+10:58:02     den andra sessionen: text, namn, slug, alt-texter + ett Fyndplats-kort som bild 3
+```
+
+Det som ligger på sidorna nu är **deras** — 4 415 tecken mot mina 2 955–2 982,
+namnen `Manchesterfåtölj med fotpall i ‹färg› – vingrygg 101 cm, 150 kg`,
+slugarna `fatolj-‹färg›-manchester-fotpall`. Det enda som är mitt är SKU:erna
+(`FP-manchesterfatolj-‹färg›`), som de inte rörde.
+
+**Jag har medvetet INTE skrivit tillbaka min text.** Deras är nyare och
+komplett; två konkurrerande texter är sämre än en, och att skriva över dem
+hade varit samma misstag en tredje gång. Tillståndet är sammanhängande, inte
+halvt: priserna är orörda (2 499 / 2 329 / 2 319 / 2 269 / 2 199 / 2 059) och
+sidorna är hela.
+
+☠️ **Fördelningen säger att de sex är MINA.** `FORDELNING.md` rad 17 ger den
+andra sessionen `^Relaxsessel` — ankrad i början. Rad 98 säger uttryckligen
+*"Fyll på till åtta ur `^Akzentsessel` (10 st) om det behövs"*, i min del av
+dokumentet. De sex heter `Akzentsessel mit Hocker, Relaxsessel in Cord-Optik…`
+och matchar alltså inte `^Relaxsessel`.
+
+Antingen lästes regeln som "innehåller Relaxsessel" i stället för "börjar
+med", eller så är dokumentet otydligt. **En regel som går att läsa på två sätt
+är ingen fördelning** — och en markering på mappningsraden medan en session
+arbetar hade gjort kollisionen omöjlig i stället för olycklig. Se #144.
+
+⚠️ Klockan 11:00:53 stod `needsAiPolish: true` kvar på `e1c41327` trots att
+sidan var publicerad. Jag stämplade den INTE: att lägga en tredje skrivare på
+samma rader är precis det som orsakade kollisionen. Blir de sex inte stämplade
+står de kvar i poleringskön fast de ligger ute.
 
 ## ☠️ Åtta av tio är färgsyskon till sidor vi redan säljer
 
@@ -120,15 +156,16 @@ Texten anger nu båda talen och drar inte ifrån.
 
 | grind | utfall |
 |---|---|
-| Prisgrind | ⏸ **går inte att köra — GitHub nere** |
+| Prisgrind (körning 1372–1379) | **8 gröna** |
+| Saldokoll i Wix | **8 köpbara** (197, 197, 169, 39, 197, 14, 14, 54) |
 | Filgrind (mönster + tal) | **0 fynd i 10 filer** |
 | Mutationstest av grinden | 4 injicerade fel → 5 fynd, 0 falska |
 | Egen granskning (ögon, inte grind) | 1 härlett tal i bokstäver + 3 obelagda formuleringar → alla borttagna |
 | Bildgranskning | 50 bilder, **noll tyska grafiker** |
 | Färgmätning | 10 mätta, 4 etiketter motbevisade, 1 gränsfall avgjort med ögon |
-| Checksumma, alt-texter, live-grind | ⏸ väntar på publicering |
+| Checksumma efter skrivning | **8/8 identiska** mot filerna |
+| Alt-texter | **40 skrivna**, 0 tomma, 0 tyska, 5 unika per produkt |
+| SKU:er | 8 delade TVÅ SKU:er → 8 unika skrivna, priser orörda |
+| Stämpling | **2 gröna** (mina A2). De sex A1 lämnades till den andra sessionen |
+| Live-grind | **2/2 REN**, 0 orddiffar (bara A2 — A1 bär inte min text) |
 
-## Kvar när GitHub är uppe
-
-Prisgrind ×10 → skriv texterna → checksumma → alt-texter → SKU + publicera →
-stämpla → live-grinda. Underlaget ligger här; inget behöver göras om.
