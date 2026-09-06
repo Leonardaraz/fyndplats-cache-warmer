@@ -427,5 +427,27 @@ inte ett facit, det är en gissning gjord i ett annat land.
 före Steg 8. Runda 75 fann fem av sju; den här åtta av åtta. Krocken skapas av
 importen, och den syns bara för att Steg 8 läser butiken innan den skriver.
 
-**Kontorsstolsfamiljen har ~171 utkast kvar.**
+### Runda 77 tog sju — fem ritstolar och ett hjärtryggat färgpar
 
+Publicerade 2026-09-06: `ritstol-uppfallbara-armstod`, `ritstol-utan-armstod`,
+`ritstol-med-svankstod`, `ritstol-95-115-cm`, `ritstol-sitthojd-87-cm`,
+`skrivbordsstol-vit-hjartrygg`, `skrivbordsstol-rosa-hjartrygg`.
+Hela rundan ligger i `runda-77/LAGE.md`.
+
+☠️ **Sökordskrocken låg på sida 31 av 56.** Fem ritstolar i EN runda skulle ha
+konkurrerat med varandra OCH med en redan publicerad sjätte,
+`ritstol-fotring-natrygg-55-76-cm`. Ett svep som stannat vid sveptakets trettio
+sidor hade aldrig sett den. Varje sida bär nu sin egen särskiljare i namn, slug
+och title, och de fem korslänkar varandra och den publicerade.
+
+☠️ **`sku_bas` inverterade betydelsen.** `utan` är ett fogeord, så ritstolen
+UTAN armstöd fick `FP-ritstol-armstod`. Fogeordet är behållet med flit
+(`FP-ritstol-utan-armstod`) — runda 58:s precedens, men första gången
+avvikelsen handlar om BETYDELSE och inte om längd.
+
+☠️ **Ny grind i Steg 14: korslänkarnas MÅL.** Faciten hashar den synliga texten,
+alltså ankartexten — men `href` bor i ett attribut och stryks av strip. En länk
+kan alltså peka i tomma luften med grön textgrind. `live.py` kräver nu `200`
+på varje länkmål: rundans sjutton länkar mot åtta mål, alla gröna.
+
+**Kontorsstolsfamiljen har ~164 utkast kvar.**
