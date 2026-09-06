@@ -254,6 +254,7 @@ Skriv en rad när du tar en familj, och stryk den när den är klar. En familj u
 | `^Schlafsessel` + de fyra Skandidesign | den andra sessionen | ✅ klar (0 utkast) |
 | **Fåtöljresten** — se nästa avsnitt | **runda 62–73-sessionen** | ☠️ **BÅDA sessionerna skriver här — se sista avsnittet** |
 | El-/massage-/uppresningsfåtöljer | — | fri, men INTE redo (egen Steg 2-grind) |
+| **Kontorsstolar** (`Bürostuhl`/`Chefsessel`/`Drehstuhl`/`Schreibtischstuhl`) | **runda 62–75-sessionen** | **pågår (runda 75)** — 186 utkast, mätt 2026-09-06 |
 
 -----
 
@@ -366,3 +367,28 @@ Vid krock: **butiken vinner, inte den egna filen.** Runda 74 behöll de sex
 SKU:er som redan låg i butiken och stämplade mappningen med DEM — en
 mappning som bär ett annat SKU än butiken är samma klass av lögn som den som
 lät prissynken skriva till ingenting i en månad.
+
+-----
+
+## Kontorsstolarna är katalogens största oägda familj — 186 utkast (2026-09-06)
+
+Tagen av runda 62–75-sessionen efter kollisionen i Fåtöljresten. Mätt i samma
+svep som ovan (5 502 produkter, `unika == lästa`, `avhuggen: false`):
+
+| mätning | träffar |
+|---|--:|
+| Delsträng `bürostuhl\|chefsessel\|drehstuhl\|schreibtischstuhl\|gaming.?stuhl\|arbeitsstuhl` | **186** |
+| Huvudord (`^Bürostuhl` m.fl.) | 125 |
+| **Osynliga för huvudordsmätningen** (ledande adjektiv) | **24** |
+| Publicerade sidor med kontorsstols-slug | **37** |
+
+⚠️ **Den gamla siffran i den här filen var `^Bürostuhl` (13)** — den räknades i
+fåtöljsvepets scope, inte som en egen mätning. Verkliga talet är fjorton gånger
+så stort. En familj mätt "på vägen förbi" är ingen mätning.
+
+☠️ **Trettiosju publicerade kontorsstolar är den högsta dubblettrisken någon
+runda mött.** Jämför måtten, inte namnen, innan något poleras.
+
+⚠️ **Massage- och värmemodellerna kräver egen Steg 2-grind** (el, och
+hälsopåståenden om massage). De ligger kvar i familjen men poleras inte förrän
+grinden är körd — samma hållning som el-/uppresningsfåtöljerna.
