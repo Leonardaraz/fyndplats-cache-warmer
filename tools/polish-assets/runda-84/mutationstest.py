@@ -64,8 +64,8 @@ MUTATIONER = [
      "Skickas från Tyskland. Samma ovala form som", "landsnamn"),
     ("aabcd677", "ingress", "En <strong>smal 45-litare</strong>",
      "En <strong>smal Outsunny-45-litare</strong>", "outsunny"),
-    ("7846d05f", "ingress", "Den <strong>enda runda tunnan</strong>",
-     "Den <strong>enda runda tunnan (art.nr 845-030CG)</strong>",
+    ("7846d05f", "ingress", "En <strong>rund tunna</strong>",
+     "En <strong>rund tunna (art.nr 845-030CG)</strong>",
      "artikelnummer"),
     ("96beca79", "ingress", "Ett lager <strong>aktivt kolfiber</strong>",
      "Leverantören anger att ett lager <strong>aktivt kolfiber</strong>",
@@ -74,6 +74,16 @@ MUTATIONER = [
      "Soptunna med sensor 55 liter med fjärilslock i stål | Fyndplats",
      "titeln är"),
     ("0cc5c634", "meta", None, "Oval soptunna.", "metan är"),
+    # ── ☠️ INTERN JARGONG (grind 5c) ─────────────────────────────────────
+    #    Alla tre är RUNDANS EGNA FEL, ordagrant som de stod i Wix innan
+    #    grinden byggdes: brödtext, punktlista och meta-beskrivning.
+    ("466e799a", "ingress", "<p><strong>Bara 20 liter",
+     "<p><strong>Rundans minsta tunna: 20 liter", "intern jargong"),
+    ("dcd756bd", "eg", "58 liter", "58 liter — rundans näst största",
+     "intern jargong"),
+    ("96beca79", "meta", None,
+     "Soptunna med rörelsesensor och 60 liters volym, rundans största.",
+     "intern jargong"),
 ]
 
 

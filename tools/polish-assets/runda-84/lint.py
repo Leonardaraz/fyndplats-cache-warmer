@@ -237,6 +237,26 @@ def kor():
           fal(k, "enhetslöst jämförelsetal %r — andra produkters siffror hör "
                  "hemma i en LÄNK till de sidorna" % m)
 
+      # 5c. ☠️ INTERN JARGONG I KUNDTEXT. Poleringen arbetar i "rundor",
+      #     och ordet gled ut i BRÖDTEXTEN på fyra sidor och i EN
+      #     META-BESKRIVNING innan den här grinden fanns: "Rundans minsta
+      #     tunna", "den enda runda tunnan i rundan", "rundans största".
+      #     För kunden betyder "rundan" ingenting alls — det är vårt eget
+      #     ord för ett arbetspass, och det säger inte vilket sortiment
+      #     jämförelsen gäller. Uppmätt i runda 84: sju förekomster, alla
+      #     gröna genom varenda annan grind, och en av dem i just det fält
+      #     Google visar i träfflistan.
+      #
+      #     ⚠️ Grinden granskar `allt`, inte `utan_lankar`: jargongen är
+      #     lika fel i `name`, `title` och `meta` som i brödtexten, och
+      #     meta-fältet är det som kostar mest.
+      for m in re.finditer(r"\brundan\b|\brundans\b|\bi rundan\b|"
+                           r"\bpolering(?:en|ar)?\b|\butkast(?:et|en)?\b|"
+                           r"\bmappning(?:en|ar)?\b|\bpoleringskön\b", allt, re.I):
+          fal(k, "intern jargong i kundtext: %r — kunden vet inte vad en "
+                 "polerings-runda är, och ordet säger inte vilket sortiment "
+                 "jämförelsen gäller" % m.group(0))
+
       # 6. ☠️ Tal som är utelämnade MED FLIT.
       for t in UTELAMNAT.get(k, []):
           if t in tal_i(utan_lankar) | tal_i(spectext) | tal_i(p["meta"]) \

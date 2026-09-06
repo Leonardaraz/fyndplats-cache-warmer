@@ -1,0 +1,212 @@
+{
+ "466e799a": {
+  "kicker": "Soptunna med sensor, 20 liter",
+  "rubrik": "Låg och kompakt — 42,5 cm hög",
+  "rader": [
+   {
+    "etikett": "Volym",
+    "varde": "20 liter"
+   },
+   {
+    "etikett": "Mått",
+    "varde": "33 × 25 × 42,5 cm"
+   },
+   {
+    "etikett": "Innerhinkens mått",
+    "varde": "29 × 19 × 29,5 cm"
+   },
+   {
+    "etikett": "Sensoravstånd",
+    "varde": "15–20 cm"
+   },
+   {
+    "etikett": "Batterier",
+    "varde": "4 × AA, ingår inte"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "3,3 kg"
+   }
+  ]
+ },
+ "7846d05f": {
+  "kicker": "Soptunna med sensor, 42 liter",
+  "rubrik": "Rund form som tar hörnet",
+  "rader": [
+   {
+    "etikett": "Volym",
+    "varde": "42 liter"
+   },
+   {
+    "etikett": "Mått",
+    "varde": "30,5 × 30,5 × 68 cm"
+   },
+   {
+    "etikett": "Form",
+    "varde": "rund"
+   },
+   {
+    "etikett": "Öppningstid",
+    "varde": "0,5 sekunder"
+   },
+   {
+    "etikett": "Batterier",
+    "varde": "4 × AA, ingår inte"
+   },
+   {
+    "etikett": "Påshållare",
+    "varde": "ingår"
+   }
+  ]
+ },
+ "aabcd677": {
+  "kicker": "Soptunna med sensor, 45 liter",
+  "rubrik": "Smal och hög — 38 cm bred",
+  "rader": [
+   {
+    "etikett": "Volym",
+    "varde": "45 liter"
+   },
+   {
+    "etikett": "Mått",
+    "varde": "38 × 25,5 × 67,5 cm"
+   },
+   {
+    "etikett": "Höjd med locket uppfällt",
+    "varde": "88 cm"
+   },
+   {
+    "etikett": "Innerhinkens mått",
+    "varde": "25 × 37,5 × 62 cm"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "7,8 kg"
+   },
+   {
+    "etikett": "Montering",
+    "varde": "krävs inte"
+   }
+  ]
+ },
+ "0cc5c634": {
+  "kicker": "Soptunna med sensor, 48 liter",
+  "rubrik": "Låg oval — 48 liter på 57 cm",
+  "rader": [
+   {
+    "etikett": "Volym",
+    "varde": "48 liter"
+   },
+   {
+    "etikett": "Mått",
+    "varde": "40,5 × 29,5 × 57 cm"
+   },
+   {
+    "etikett": "Form",
+    "varde": "oval"
+   },
+   {
+    "etikett": "Innerhink",
+    "varde": "nej, påsen sitter i stommen"
+   },
+   {
+    "etikett": "Batterier",
+    "varde": "4 × D (1,5 V), ingår inte"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "3,8 kg"
+   }
+  ]
+ },
+ "4ef74d40": {
+  "kicker": "Soptunna med sensor, 55 liter",
+  "rubrik": "Fjärilslock som öppnas från mitten",
+  "rader": [
+   {
+    "etikett": "Volym",
+    "varde": "55 liter"
+   },
+   {
+    "etikett": "Mått",
+    "varde": "41 × 26,5 × 59 cm"
+   },
+   {
+    "etikett": "Locktyp",
+    "varde": "fjärilslock, öppnas från mitten"
+   },
+   {
+    "etikett": "Batterier",
+    "varde": "4 × AA, ingår inte"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "5,3 kg"
+   },
+   {
+    "etikett": "Montering",
+    "varde": "krävs, verktygsfri"
+   }
+  ]
+ },
+ "dcd756bd": {
+  "kicker": "Soptunna med sensor, 58 liter",
+  "rubrik": "Oval form, lock som lyfts av",
+  "rader": [
+   {
+    "etikett": "Volym",
+    "varde": "58 liter"
+   },
+   {
+    "etikett": "Mått",
+    "varde": "40,9 × 28,9 × 68 cm"
+   },
+   {
+    "etikett": "Form",
+    "varde": "oval"
+   },
+   {
+    "etikett": "Innerhink",
+    "varde": "nej, påsen sitter i stommen"
+   },
+   {
+    "etikett": "Batterier",
+    "varde": "4 × D (1,5 V), ingår inte"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "4,3 kg"
+   }
+  ]
+ },
+ "96beca79": {
+  "kicker": "Soptunna med sensor, 60 liter",
+  "rubrik": "Borstat stål, 66 cm högt",
+  "rader": [
+   {
+    "etikett": "Volym",
+    "varde": "60 liter"
+   },
+   {
+    "etikett": "Mått",
+    "varde": "39 × 27 × 66 cm"
+   },
+   {
+    "etikett": "Lockets öppning",
+    "varde": "34,8 × 17,7 cm"
+   },
+   {
+    "etikett": "Luktfilter",
+    "varde": "aktivt kolfiber, ingår"
+   },
+   {
+    "etikett": "Batterier",
+    "varde": "4 × AA, ingår inte"
+   },
+   {
+    "etikett": "Montering",
+    "varde": "krävs, verktygsfri"
+   }
+  ]
+ }
+}

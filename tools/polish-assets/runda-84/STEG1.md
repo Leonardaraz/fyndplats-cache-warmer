@@ -158,3 +158,42 @@ Inget övre vänsterhörn bär en leverantörslogotyp.
 Fyndplats-kortet. Det är tunt, men de två som stryks är just de som bär
 rundans två viktigaste fynd — och de fynden flyttar in i TEXTEN i stället,
 där de går att läsa på svenska.
+
+---
+
+## ☠️ Steg 3: leverantörens EGEN URL bär FÖRÅLDRADE mått — och de såg ut som ett fel i texten
+
+Mappningsraden bär `sourceUrl`, och Aosom bakar in måtten i sin egen
+produktslug. På de två ovala tunnorna säger sluggen något annat än sidan den
+pekar på:
+
+| id8 | artikelnr | sluggen i `sourceUrl` | `Technische Daten` på SAMMA sida | vår text |
+|---|---|---|---|---|
+| `0cc5c634` | 851-011V01 | `l40-9 x b28-9 x h64-3` | **L40,5 × B29,5 × H57 cm** | 40,5 × 29,5 × 57 ✅ |
+| `dcd756bd` | 851-011 | `l40-9 x b28-9 x h75` | **L40,9 × B28,9 × H68 cm** | 40,9 × 28,9 × 68 ✅ |
+
+Båda sluggarna är alltså fel, och på olika sätt: den ena har den ANDRA
+tunnans bredd och en tredje höjd, den andra bara fel höjd. Sidans egen
+jämförelsetabell längre ned (`SKU · Farbe · Maße`) säger samma sak som
+spec-blocket — `40,5cm x 29,5cm x 57cm` respektive `L40,9 x B28,9 x H68 cm`
+— så sluggen står ensam mot två ställen på leverantörens egen sida.
+
+⚠️ **Det här är runda 83:s lärdom spegelvänd, och därför värd att skriva
+ned.** Där utgick jag från en ritning och ändrade en text som var rätt. Här
+utgick jag från URL:en, som ser auktoritativ ut för att den är
+leverantörens, och var nära att "rätta" två korrekta mått. **En URL-slug är
+inget facit — den är ett filnamn, och filnamn uppdateras inte när produkten
+gör det.** Kolla alltid `Technische Daten` på sidan, inte adressen till den.
+
+## ⚠️ `4ef74d40` är SLUT i lager — `aosomSyncedQty: 0`
+
+55-litersmodellen har noll i saldo, och dess `aosomSyncedAt` är
+2026-09-02 medan de andra sex synkades 09-05/09-06. Mönstret stämmer med
+Aosoms egen B2B-guide, som CLAUDE.md citerar: *"Items with low stock may be
+temporarily removed to avoid overselling"* — raden försvann ur feeden och
+synken nollade saldot, precis som den ska.
+
+Sidan publiceras ändå. Ett tomt saldo är ett lagerbesked, inte ett
+utgånget sortiment: nästa körning där raden är tillbaka återställer saldot
+av sig själv, och en opublicerad sida svarar 404 under tiden. Butiken har
+sedan tidigare publicerade produkter i samma läge.

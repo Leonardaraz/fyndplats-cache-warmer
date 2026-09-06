@@ -137,7 +137,7 @@ PRODUKTER = [
                  "Uttagbar innerhink med handtag, manuell knapp på locket och "
                  "strömbrytare på baksidan. 33 × 25 × 42,5 cm."),
         "ingress": (
-            "<p><strong>Rundans minsta tunna: 20 liter och 42,5 cm hög.</strong> "
+            "<p><strong>Bara 20 liter och 42,5 cm hög.</strong> "
             "Den är gjord för de platser där en kökstunna inte får plats — "
             "under ett skrivbord, bredvid en toalett, i ett sovrum.</p>"
             "<p>Locket öppnas av en infraröd sensor när handen närmar sig och "
@@ -150,7 +150,7 @@ PRODUKTER = [
             ", och i den publicerade delen av sortimentet " +
             lank("soptunna-med-sensor", "en sensortunna på 30 liter") + ".</p>"),
         "eg": [
-            "20 liter — rundans minsta",
+            "20 liter — för trånga platser",
             "42,5 cm hög, 33 × 25 cm på golvet",
             "Infraröd sensor öppnar locket beröringsfritt",
             "Knapp på locket för manuell öppning",
@@ -199,8 +199,8 @@ PRODUKTER = [
                  "Locket öppnas på 0,5 sekunder, står öppet i fem sekunder "
                  "och stängs mjukt. Påshållare ingår."),
         "ingress": (
-            "<p>Den <strong>enda runda tunnan</strong> i rundan, 30,5 cm i "
-            "fyrkant och 68 cm hög. En cylinder tar mindre plats i ett hörn "
+            "<p>En <strong>rund tunna</strong> på 42 liter, 30,5 cm i diameter "
+            "och 68 cm hög. En cylinder tar mindre plats i ett hörn "
             "än en rektangulär tunna med samma volym, och den har inga kanter "
             "att slå i.</p>"
             "<p>Sensorn öppnar locket på 0,5 sekunder, det står öppet i fem "
@@ -466,7 +466,7 @@ PRODUKTER = [
                  "hög. Avtagbart lock i plast, manuell knapp och "
                  "strömbrytare. Drivs av fyra D-batterier."),
         "ingress": (
-            "<p><strong>Rundans näst största: 58 liter.</strong> Samma ovala "
+            "<p><strong>58 liter i oval form.</strong> Samma ovala "
             "form som " + lank("soptunna-sensor-48-liter-oval",
                                "48-litersmodellen") + ", men elva centimeter "
             "högre och tio liter rymligare — samma golvyta, mer volym.</p>"
@@ -478,7 +478,7 @@ PRODUKTER = [
             lank("soptunna-sensor-60-liter-kolfilter",
                  "60-litersmodellen med kolfilter") + ".</p>"),
         "eg": [
-            "58 liter — rundans näst största",
+            "58 liter",
             "68 cm hög, 40,9 × 28,9 cm på golvet",
             "Oval form",
             "Ingen innerhink: påsen sitter direkt i stommen",
@@ -525,11 +525,11 @@ PRODUKTER = [
         "name": "Soptunna med sensor 60 liter – kolfilter mot lukt",
         "slug": "soptunna-sensor-60-liter-kolfilter",
         "title": "Soptunna med sensor 60 liter, kolfilter | Fyndplats",
-        "meta": ("Soptunna med rörelsesensor och 60 liters volym, rundans "
-                 "största. Aktivt kolfiber i locket binder lukt. Monteras "
+        "meta": ("Soptunna med rörelsesensor och 60 liters volym. Aktivt "
+                 "kolfiber i locket binder lukt. Monteras "
                  "verktygsfritt av lösa paneler."),
         "ingress": (
-            "<p><strong>Rundans största: 60 liter</strong> på 39 × 27 cm "
+            "<p><strong>60 liter</strong> på 39 × 27 cm "
             "golvyta och 66 cm höjd. Locköppningen är 34,8 × 17,7 cm, alltså "
             "bred nog för en matkasse som ska ner på höjden.</p>"
             "<p>Ett lager <strong>aktivt kolfiber</strong> sitter i locket och "
@@ -545,7 +545,7 @@ PRODUKTER = [
             lank("soptunna-med-sensor-68-liter", "en sensortunna på 68 liter") +
             ".</p>"),
         "eg": [
-            "60 liter — rundans största",
+            "60 liter",
             "66 cm hög, 39 × 27 cm på golvet",
             "Aktivt kolfiber i locket binder lukt (ingår)",
             "Hållare för doftblock — blocket ingår inte",
