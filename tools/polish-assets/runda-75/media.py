@@ -90,13 +90,13 @@ MOTIV = {
         3: "måttskiss med mått i centimeter, upprätt och nedfälld",
         5: "vid ett skrivbord med en person som sträcker på sig"},
     "348ee535": {
-        1: "sedd snett framifrån, fast fyrstjärnig fot utan hjul",
+        1: "sedd snett framifrån mot vit bakgrund",
         2: "framför en bokhylla med en filt över ryggen",
         3: "måttskiss med mått i centimeter och maxlast 120 kg",
         4: "framför en bokhylla med krukväxt och bordslampa",
         5: "vid ett skrivbord med en läsande person"},
     "4d83eca6": {
-        1: "sedd snett framifrån, fast fyrstjärnig fot utan hjul",
+        1: "sedd snett framifrån mot vit bakgrund",
         2: "vid en hylla med kaffekopp och böcker",
         3: "måttskiss med mått i centimeter och maxlast 120 kg",
         4: "framför en gardin med krukväxt bredvid",
@@ -118,9 +118,13 @@ FORBJUDET = re.compile(
     r"tyskland|kina|spanien|polen|homcom|outsunny|pawhut|aiyaplay|aosom|"
     r"aliexpress|artikelnummer|modellreferens|\b\d{3}-\d{3}", re.I)
 
+# ⚠️ Bara kosmetisk: skrivvägen tar kortets Wix-id ur `kort-ids.json`
+#    (`mediagen.py`), aldrig den här adressen. Den stod på "runda-74"
+#    i hela rundan utan att något gick sönder — en död sträng som ljuger
+#    är ändå en lögn nästa läsare tror på.
 RAW = ("https://raw.githubusercontent.com/Leonardaraz/fyndplats-cache-warmer/"
        "claude/seo-polering-runbook-review-bz3j9l/tools/polish-assets/"
-       "runda-74/kort/%s_spec.jpg")
+       "runda-75/kort/%s_spec.jpg")
 
 if __name__ == "__main__":
     plan, fel = {}, []
