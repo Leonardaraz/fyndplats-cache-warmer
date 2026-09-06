@@ -211,3 +211,36 @@ rätt, och dubbletten ska få `draftStatus: "rejected"`.
 - Klösträdsfamiljen har **32 utkast kvar** av 40.
 - Spec-ordlistan (#146) är fortfarande osammanhängande på de 28 äldre sidorna;
   den här rundans åtta bär `Mått (B × D × H)`, `Vikt` och `Paketmått`.
+
+## Egna Fyndplats-kort (Steg 9) — och vad kontaktarket fällde
+
+Åtta spec-kort, ett per produkt, byggda av `bygg-kort.py` ur produktens EGEN
+huvudbild (`live/<id>.html` → `og:image`) och familjens verifierade mått.
+
+☠️ **Kontaktarket fällde de tre första rubrikerna, och det var rätt.**
+Rubriken löd *"Fyra plan, 43 × 27 cm golvyta"* — men fotot visar **tre**
+plattformar över golvplattan. Runbookens regel är att rubriken ska bäras av
+FOTOT under den, och en rubrik som bjuder in till att räkna måste tåla att
+räknas.
+
+Talet är ändå inte fel: leverantören räknar golvplattan som ett plan. Det
+går att BEVISA ur familj B:s egen spec, som räknar upp planen ett och ett och
+låter *"Plan 1 (nederst)"* mäta 40 × 34 cm — exakt hela möbelns golvyta.
+Golvplattan ÄR plan 1 hos dem.
+
+Så rubriken byttes i stället för siffran:
+
+| | före | efter |
+|---|---|---|
+| Familj A | Fyra plan, 43 × 27 cm golvyta | **Golv till tak på 43 × 27 cm golvyta** |
+| Familj B | Fem plan, sisalstam och tippskydd | **Fem plan mellan golv och tak** |
+| spec-raden | `Plattformar 4 st` | **`Plan, inkl. golvplattan 4 st`** |
+
+Fotot bär båda de nya rubrikerna utan att någon behöver räkna rätt på
+leverantörens vis. Familj C (`Två grottor och en bädd överst`) klarade sig —
+två grottöppningar och en rund bädd syns direkt i bilden.
+
+⚠️ **Och samma överkomplettering står i den PUBLICERADE texten på familj A:**
+*"Fyra plattformar sitter fördelade längs stolpen."* Golvplattan sitter inte
+längs stolpen, den ligger på golvet. Meningen ska rättas — det är den enda
+formuleringen i rundan som påstår mer än bilden visar.
