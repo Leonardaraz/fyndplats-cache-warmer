@@ -103,13 +103,19 @@ KONSTLADER_SKOTSEL = ("Konstlädret torkas av med en fuktig trasa och lite "
 
 # Trion delar allt utom kulören. Specen byggs EN gång och färgas per stol, så
 # två syskon inte kan glida isär på ett mått.
+# ☠️ ARMSTÖDSHÖJDEN ÄR MEDVETET UTELÄMNAD. Leverantörens EGNA måttritningar
+#    ger två olika tal för samma stol: 65–77 cm på den ljusgrå (bild 3) och
+#    64–75 cm på den mörkgrå (bild 3). Allt annat på de två ritningarna är
+#    identiskt (60 × 60 × 79–91, sits 47 × 46, sitthöjd 45–57), och den svarta
+#    ritningen anger ingen armstödshöjd alls. Ett tal källan motsäger sig själv
+#    om är ingen mätning — samma skäl som vikten utelämnas (10,4 / 10,7 /
+#    12,9 kg för samma stol). Snittet 65–75 vore lika påhittat.
 def trio_spec(farg):
     return [
         "Mått (B × D × H): 60 × 60 × 79–91 cm",
         "Sits (B × D): 47 × 46 cm",
         "Sitthöjd: 45–57 cm",
         "Ryggstöd (B × H): 46 × 35,5 cm",
-        "Armstödshöjd från golv: 65–77 cm",
         "Vridning: 360°",
         "Maxlast: 136 kg",
         "Klädsel: linnelookat polyester",
