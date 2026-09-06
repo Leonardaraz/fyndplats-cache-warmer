@@ -20,6 +20,7 @@
 #   2. HOMOGLYFER i live-texten -> kyrilliskt/grekiskt som slunkit in
 #   3. SIDSVEP + ALT-SVEP       -> husmarke, artikelnummer, fraktland, tyska
 #   4. SEO-SVEP                 -> <title> och meta description
+#   5. FLIKAR + KATEGORI        -> Klart-kriteriets tva renderade krav
 #
 # ☠️ SEO-FALTEN AR EN EGEN BLIND FLACK, och den var oupptackt till 2026-09-06.
 # Poleringen ror `name` och beskrivningen men ALDRIG `seoData` — importen
@@ -181,6 +182,31 @@ for rad in open("slugs.txt", encoding="utf-8"):
                 problem.append(f"SEO/{falt} LAND {l}: {varde[:90]}")
         for m in KOD.findall(varde):
             problem.append(f"SEO/{falt} ARTIKELNUMMER {m}: {varde[:90]}")
+
+    # --- 3d. FLIKRADEN och KATEGORIN (Klart-kriteriet, runbookens checklista) ---
+    #
+    # ☠️ BADA MATS I DEN RENDERADE SIDAN, for det ar dar de gar sonder. Runbooken
+    # sager det uttryckligen om flikarna: strangen maste stamma ORDAGRANT, annars
+    # matchar splittern inte och spec-tabellen renderas inline mitt i brodtexten —
+    # "det ser inte trasigt ut, bara som en rubrik till, och darfor upptacks det
+    # inte". Fyra produkter gick live sa 2026-08-26/27.
+    #
+    # `Anvandning och skotsel` ar OBLIGATORISK sedan Leonards instruktion
+    # 2026-08-30. Uppmatt 2026-09-06 over 57 av mina egna publicerade sidor:
+    # 41 saknade den, och 41 saknade kategori. Bada stod i Klart-kriteriet hela
+    # tiden; ingen grind tittade efter dem, sa de foll tyst runda efter runda.
+    for flik in ("Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor"):
+        if f"<summary>{flik}</summary>" not in live:
+            problem.append(f"FLIK SAKNAS: <summary>{flik}</summary>")
+
+    # Kategorin syns som andra ledet i brodsmulan. "Butik" ar butikens rot, alltsa
+    # ingen kategori alls — en okategoriserad produkt natt bara via sok och sitemap.
+    _b = re.search(r'"@type":"BreadcrumbList".*?\]', live, re.S)
+    _led = re.findall(r'"name":"([^"]+)"', _b.group(0)) if _b else []
+    if len(_led) < 2:
+        problem.append("KATEGORI: ingen brödsmula på sidan")
+    elif _led[1] == "Butik":
+        problem.append("KATEGORI SAKNAS: brödsmulan går Hem / Butik / produkt")
 
     # --- 4. Korslanken ska ha overlevt ---
     #

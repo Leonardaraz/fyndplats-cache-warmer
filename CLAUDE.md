@@ -1397,6 +1397,32 @@ produkt, och bara den, med både orddiffen och homoglyfsvepet.
 
 **Regeln: en grind på det du SKICKAR är inte en grind på det som LIGGER UTE.**
 
+#### ☠️ Och en fjärde: checklistan som ingen mätte (2026-09-06)
+
+Runbookens Klart-kriterium har punkterna. Det som saknades var en KONTROLL av
+att de gjorts. Uppmätt över 57 publicerade sidor ur rundorna A–F1, noll
+hämtningsfel:
+
+| krav som stod i Klart-kriteriet | föll på |
+|---|--:|
+| Kategori kopplad (brödsmulan ≠ *Hem / Butik / produkt*) | **41 av 57** |
+| Fliken `Användning och skötsel` (obligatorisk sedan 2026-08-30) | **41 av 57** |
+
+Båda syns i den RENDERADE sidan, och båda är nu maskinellt grindade i
+`livegrind.py`. Verifierad åt båda hållen: den fäller på alla åtta F1-sidor och
+går REN på referenssidor ur andra rundor, som klarar kraven.
+
+☠️ **Lärdomen är inte "läs checklistan noggrannare".** Den lästes — punkterna
+citerades till och med i rundornas README-filer. En checklista som bara hjälper
+den som redan kommer ihåg punkten är ingen spärr, det är en påminnelse. Samma
+klass som `SHIP_AXIS_RE` och `EU_TULL_CODES`: **en regel utan grind glider.**
+
+⚠️ Och en regel till som gäller den som skriver flikarna: strängen måste stämma
+ORDAGRANT (`Tekniska specifikationer` · `Användning och skötsel` ·
+`Vanliga frågor`). Skriver du `Specifikationer` matchar splittern inte och
+spec-tabellen renderas inline mitt i brödtexten — det ser inte trasigt ut, bara
+som en rubrik till.
+
 #### ☠️ Och en TREDJE blind fläck: `<title>` och metabeskrivningen (2026-09-06)
 
 Poleringen skriver `name` och beskrivningen. Den rör **aldrig `seoData`** —

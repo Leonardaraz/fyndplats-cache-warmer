@@ -2722,6 +2722,19 @@ PATCH /wix-data/v2/items/{id}
 Gå igenom listan **innan** Steg 13. Faller något: fixa först, publicera sedan. Steg 12
 (kundläsningen) ersätts inte av den här listan — de fångar olika fel.
 
+☠️ **Fyra av punkterna nedan är MASKINELLT kontrollerade sedan 2026-09-06** —
+kör `tools/polish-gates/livegrind.py` från rundans katalog efter publicering:
+flikraden (alla tre `<summary>`-strängarna ordagrant), kategorin (brödsmulan får
+inte gå *Hem / Butik / produkt*), SEO-titeln och metabeskrivningen mot `seo.tsv`,
+samt husmärke/artikelnummer/fraktland/tyska rester i sidan OCH i alt-texterna.
+
+Skälet att de blev grindade: en genomgång av **57 publicerade sidor ur rundorna
+A–F1** visade att **41 saknade kategori** och **41 saknade fliken `Användning och
+skötsel`**. Båda punkterna stod i den här listan hela tiden. Ingen kontroll tittade
+efter dem, så de föll tyst runda efter runda — och en checklista som bara läses av
+den som redan kommer ihåg punkten är ingen checklista. Referenssidor ur andra
+rundor klarar båda, så grinden går grön när arbetet är gjort.
+
 **Text**
 
 - Namn, slug, SEO-titel och meta är på **svenska** och innehåller fokussökordet inklusive
