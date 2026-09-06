@@ -51,7 +51,7 @@
 # GAMLA sidan, och den ser ut precis som en fungerande ny. Forsta traffen efter
 # fonstret triggar en bakgrundsrendering; NASTA hamtning far den farska sidan.
 
-import re, sys, unicodedata, html, difflib
+import os, re, sys, unicodedata, html, difflib
 
 BRANDS = ["homcom","outsunny","pawhut","aiyaplay","aosom","sportnow","vinsetto",
           "kleankin","zonekiz","durhand"]
@@ -81,20 +81,28 @@ fel = 0
 for rad in open("slugs.txt", encoding="utf-8"):
     if not rad.strip(): continue
     p, slug = rad.split()
-    fil  = open(f"{p}.html", encoding="utf-8").read()
     live = open(f"live/{p}.html", encoding="utf-8").read()
     problem = []
 
+    # ☠️ EN BACKFILL-RUNDA HAR INGEN KALLFIL. Da ar brodtexten inte skriven i
+    # den har rundan — bara SEO-faltet ar det — och orddiffen har ingenting att
+    # jamfora mot. Den hoppas over, men TYST far den inte goras: raden skriver
+    # ut "utan kallfil" sa ingen tror att den starkaste kontrollen kordes.
+    har_kalla = os.path.exists(f"{p}.html")
+    fil = open(f"{p}.html", encoding="utf-8").read() if har_kalla else ""
+
     # --- 1. ORDDIFF mot kallfilen ---
-    a = brodtext(fil).split()
-    start = live.find(fil[:60])
-    if start < 0:
-        problem.append("HITTAR INTE TEXTEN PA SIDAN")
-        b = []
-    else:
-        b = brodtext(live[start:start+len(fil)+6000]).split()[:len(a)]
-    for d in [x for x in difflib.ndiff(a, b) if x[0] in "+-"][:12]:
-        problem.append(f"ORDDIFF {d}")
+    a, start = [], -1
+    if har_kalla:
+        a = brodtext(fil).split()
+        start = live.find(fil[:60])
+        if start < 0:
+            problem.append("HITTAR INTE TEXTEN PA SIDAN")
+            b = []
+        else:
+            b = brodtext(live[start:start+len(fil)+6000]).split()[:len(a)]
+        for d in [x for x in difflib.ndiff(a, b) if x[0] in "+-"][:12]:
+            problem.append(f"ORDDIFF {d}")
 
     # --- 2. HOMOGLYFER i live-texten ---
     txt = brodtext(live[start:start+len(fil)+200]) if start >= 0 else ""
@@ -186,7 +194,9 @@ for rad in open("slugs.txt", encoding="utf-8"):
     if _m and _m.group(1).split("/produkt/")[1] not in live:
         problem.append(f"KORSLANK SAKNAS: {_m.group(1)}")
 
-    print(f"{p} {slug}: ord={len(a)} diff={len([x for x in problem if x.startswith('ORDDIFF')])} "
+    diffrad = (f"ord={len(a)} diff={len([x for x in problem if x.startswith('ORDDIFF')])}"
+               if har_kalla else "utan kallfil (ingen orddiff)")
+    print(f"{p} {slug}: {diffrad} "
           f"-> {'REN' if not problem else str(len(problem)) + ' FEL'}")
     for x in problem:
         print(f"    ! {x}")

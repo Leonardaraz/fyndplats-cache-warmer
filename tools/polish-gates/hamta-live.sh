@@ -26,11 +26,31 @@ set -u
 paus="${1:-60}"
 mkdir -p live
 
+# ☠️ EN VARM TRAFF TRIGGAR BARA OMRENDERING OM SIDAN REDAN AR INAKTUELL.
+# Det har var skriptets tysta bugg fram till 2026-09-06: en sida som renderats
+# for 130 sekunder sedan ar FARSK (stale-time 300), sa traffen serverade den
+# rakt av och startade ingenting. Pausen gick, den skarpa hamtningen fick samma
+# gamla sida — och grinden jamforde mot en rendering som var aldre an
+# skrivningen. Uppmatt: age 281 pa alla atta sidor efter en 150-sekunders paus.
+#
+# Ratt ordning ar darfor: vanta tills sidan HUNNIT bli inaktuell, traffa den DA
+# (det ar traffen som startar omrenderingen), och las forst efter pausen.
+STALE=300
 echo "== varm traff (triggar bakgrundsrendering) =="
 while read -r pid slug; do
   [ -z "${pid:-}" ] && continue
-  code=$(curl -s -o /dev/null -w "%{http_code}" "https://www.fyndplats.se/produkt/$slug")
-  echo "  $pid $slug  $code"
+  hdr=$(curl -s -D - -o /dev/null "https://www.fyndplats.se/produkt/$slug")
+  code=$(printf '%s' "$hdr" | grep -iE '^HTTP/' | tail -1 | awk '{print $2}')
+  age=$(printf '%s' "$hdr" | grep -i '^age:' | tr -d '\r' | tr -dc '0-9')
+  age=${age:-0}
+  if [ "$age" -lt "$STALE" ]; then
+    kvar=$((STALE - age + 5))
+    echo "  $pid $slug  $code  age=$age — annu farsk, vantar ${kvar}s och traffar igen"
+    sleep "$kvar"
+    curl -s -o /dev/null "https://www.fyndplats.se/produkt/$slug"
+  else
+    echo "  $pid $slug  $code  age=$age — inaktuell, omrendering startad"
+  fi
 done < slugs.txt
 
 sleep "$paus"
