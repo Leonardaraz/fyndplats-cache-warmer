@@ -28,16 +28,29 @@ hade varit samma misstag en tredje gång. Tillståndet är sammanhängande, inte
 halvt: priserna är orörda (2 499 / 2 329 / 2 319 / 2 269 / 2 199 / 2 059) och
 sidorna är hela.
 
-☠️ **Fördelningen säger att de sex är MINA.** `FORDELNING.md` rad 17 ger den
-andra sessionen `^Relaxsessel` — ankrad i början. Rad 98 säger uttryckligen
-*"Fyll på till åtta ur `^Akzentsessel` (10 st) om det behövs"*, i min del av
-dokumentet. De sex heter `Akzentsessel mit Hocker, Relaxsessel in Cord-Optik…`
-och matchar alltså inte `^Relaxsessel`.
+### ☠️ RÄTTELSE: de sex var INTE mina, och jag läste ägarfilen fel
 
-Antingen lästes regeln som "innehåller Relaxsessel" i stället för "börjar
-med", eller så är dokumentet otydligt. **En regel som går att läsa på två sätt
-är ingen fördelning** — och en markering på mappningsraden medan en session
-arbetar hade gjort kollisionen omöjlig i stället för olycklig. Se #144.
+Den här rubriken sa först att fördelningen gav mig de sex, med rad 98 som
+belägg: *"Fyll på till åtta ur `^Akzentsessel` (10 st) om det behövs"*. **Det
+var fel.** Den raden står i det gamla Runda B-avsnittet och är ett FÖRSLAG.
+Den levande ägartabellen ger **"Fåtöljresten" till runda 62–73-sessionen** med
+status *"pågår (runda 74)"*, och avsnittet under den namnger just de sex id:na
+som en av fyra syskongrupper.
+
+De skrev det i `072f212` **kl 10:20** — trettiotvå minuter innan jag började
+skriva. De hade alltså rätt, och de hade sagt det i förväg.
+
+Felet var mitt: jag läste inte om filen före rundan, och när jag läste den
+efter kollisionen läste jag fel rad.
+
+☠️ **Men mekanismen går att laga, och den är värd mer än skulden.**
+`FORDELNING.md` ligger **bara på den andra sessionens gren**. Den finns inte i
+mitt arbetsträd, går inte att `grep`:a lokalt, och kräver att man vet att den
+ska hämtas med `git show origin/<deras gren>:tools/polish-assets/FORDELNING.md`.
+**En koordineringsfil som bara den ena parten kan se koordinerar ingenting.**
+
+Fixen är att lägga den på `main`, så att den finns i båda arbetsträden. Tills
+dess gäller: läs om den FÖRE varje runda, inte efter. Se #144.
 
 ⚠️ Klockan 11:00:53 stod `needsAiPolish: true` kvar på `e1c41327` trots att
 sidan var publicerad. Jag stämplade den INTE: att lägga en tredje skrivare på
