@@ -1,0 +1,50 @@
+{
+ "6307893c": {
+  "sku": "FP-campingstolar-2-pack-gra",
+  "slug": "campingstolar-2-pack-gra-fotstod",
+  "name": "Campingstolar 2-pack grå med fotstöd – fyra rygglägen",
+  "pris": 1079
+ },
+ "46d2c85a": {
+  "sku": "FP-campingstolar-2-pack",
+  "slug": "campingstolar-2-pack-nackstod-kylficka",
+  "name": "Campingstolar 2-pack med nackstöd och kylficka – bär 120 kg",
+  "pris": 1099
+ },
+ "4401be4f": {
+  "sku": "FP-dubbel-campingstol-bla",
+  "slug": "dubbel-campingstol-bla-tva-sitsar",
+  "name": "Dubbel campingstol blå – två sitsar i en stol, 143 cm bred",
+  "pris": 999
+ },
+ "8b66533f": {
+  "sku": "FP-dubbel-campingstol-khaki",
+  "slug": "dubbel-campingstol-khaki-tva-sitsar",
+  "name": "Dubbel campingstol khaki – två sitsar i en stol, 143 cm bred",
+  "pris": 999
+ },
+ "65c84a9b": {
+  "sku": "FP-dubbel-campingstol-gron",
+  "slug": "dubbel-campingstol-gron-tva-sitsar",
+  "name": "Dubbel campingstol grön – två sitsar i en stol, 143 cm bred",
+  "pris": 999
+ },
+ "bdb600fe": {
+  "sku": "FP-fallstolar-2-pack-lag",
+  "slug": "fallstolar-2-pack-lag-sits-37-cm",
+  "name": "Fällstolar 2-pack i textilen – låg sitthöjd 37 cm, bär 110 kg",
+  "pris": 1059
+ },
+ "cce86277": {
+  "sku": "FP-tradgardsstolar-hog-rygg",
+  "slug": "tradgardsstolar-hog-rygg-2-pack",
+  "name": "Trädgårdsstolar 2-pack, hopfällbara med hög rygg – sitthöjd 44 cm",
+  "pris": 1099
+ },
+ "e39db7dd": {
+  "sku": "FP-tradgardsstolar-akacia",
+  "slug": "tradgardsstolar-akacia-rotting-2-pack",
+  "name": "Trädgårdsstolar 2-pack i akacia och konstrotting – bär 160 kg",
+  "pris": 1549
+ }
+}
