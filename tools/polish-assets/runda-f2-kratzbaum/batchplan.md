@@ -101,3 +101,34 @@ källtext.
 publicering SIST och i samma skrivning, eftersom en `variantsInfo`-PATCH
 publicerar ett utkast och en sen text-PATCH utan `variantsInfo` speglar ner
 variantens `visible` till false — det var så 31 sidor blev oköpbara.
+
+## ☠️ `variantsInfo.variants[].media` går INTE att sätta efter skapandet (mätt 2026-09-06)
+
+Steg 8 skriver `variantsInfo` för att byta SKU. Varje sådan skrivning **nollar
+variantens `media`**, och fältet går inte att skriva tillbaka. Fem former
+provade mot skarpa V3, alla på `ab6c0b93`:
+
+| form som skickades | utfall |
+|---|---|
+| variantobjekt utan `media` | fältet borta |
+| `media: {id}` | fältet borta |
+| `media: {id, altText, mediaType}` | fältet borta |
+| `media: {…hela blobben verbatim…}` via `bulk/products/update` | fältet borta |
+| samma blobb via `PATCH /products/{id}` + `fieldMask` | fältet borta |
+
+☠️ **Alla fem svarade 200 med `totalSuccesses: 1`.** Wix avvisar inte fältet,
+den släpper det. Tionde gången samma familj: ett svar utan fel är inget kvitto.
+
+Runda F1:s publicerade sidor BÄR fältet, så det sätts vid `createProduct` (som
+`lib/wix/client.ts` gör) — eller så återhärleds det av Wix senare. Vilket av
+dem är inte mätt.
+
+⚠️ **Konsekvensen är inert HÄR men inte i allmänhet.** Dessa produkter har EN
+variant och `choices: []`: det finns ingen variantväljare, galleriet kommer ur
+`media.itemsInfo` och huvudbilden ur `media.main` — båda orörda. På en
+FLERVARIANTSPRODUKT är samma skrivning en tyst förlust av varje variantbild.
+Den som någon gång skriver `variantsInfo` över en sådan katalog ska mäta först.
+
+**Vad som INTE ska göras:** skicka med blobben ändå "för säkerhets skull".
+Fem mätningar säger att den ignoreras, och en cargo-cult-rad i kroppen är en
+rad nästa läsare tror betyder något.
