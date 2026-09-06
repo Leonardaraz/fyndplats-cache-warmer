@@ -1,9 +1,10 @@
-# Runda D3 — sju bäddfåtöljer, FÖRBEREDD men inte publicerad
+# Runda D3 — sju bäddfåtöljer
 
-Sista rundan i familj D. **Texterna är skrivna och filgrindade, men
-ingenting är skrivet till Wix** — GitHubs MCP-server låg nere när rundan
-gjordes, och utan den går varken prisgrinden (`las`) eller stämplingen
-(`stampla`) att köra.
+Sista rundan i familj D. Alla sju är publicerade och stämplade.
+
+⏸ Rundan skrevs i två pass: texterna gjordes medan GitHubs MCP-server låg
+nere, och ingenting skrevs till Wix förrän prisgrinden gick att köra igen.
+Grinden godkände alla sju.
 
 | id | slug | pris | vad det är |
 |---|---|---:|---|
@@ -15,7 +16,7 @@ gjordes, och utan den går varken prisgrinden (`las`) eller stämplingen
 | `02925ee6` | baddfatolj-186-cm-armstod-gra | 2 239 kr | armstöd, 10 min montering |
 | `c46bda54` | golvmadrass-203-cm | 1 969 kr | trefaldig, 240 kg |
 
-## ☠️ Varför inget är skrivet till Wix
+## Varför texterna låg och väntade ett pass
 
 Prisgrinden är inte valfri. Den läser mappningsradens `landedCostSek` och
 kontrollerar att butikens pris är `1,20 × kostnaden` avrundat `charm99`;
@@ -28,7 +29,9 @@ och **inte får poleras** förrän frakten är kollad. Vilka tre står inte
 skrivet. Att skriva text till en av dem vore att gå emot en stående
 instruktion på en gissning.
 
-**En grind man inte kan köra är en grind som inte har godkänt.**
+**En grind man inte kan köra är en grind som inte har godkänt.** Texterna
+skrevs klart och filgrindades, men Wix rördes inte. När servern kom
+tillbaka godkände grinden alla sju och rundan gick färdigt utan omtag.
 
 ## Dubblettkollen — och ett fynd som växte
 
@@ -102,13 +105,37 @@ namngiven. Skriven ordagrant som källan anger den.
 |---|---|
 | Filgrind (mönster + tal) | **0 fynd i 7 filer** |
 | Mutationstest av grinden | 3 injicerade fel → 3 fynd, 0 falska |
-| Prisgrind | ⏸ **går inte att köra — GitHub nere** |
-| Skrivning till Wix | ⏸ **hålls tills prisgrinden godkänt** |
+| Prisgrind (workflow, sju körningar) | **stämmer på alla sju** |
+| Checksumma fil mot Wix | **7/7 identiska** |
+| Alt-texter | 34 st, 0 tomma |
+| Live-grind (7 hämtade sidor) | **7/7 REN, 0 orddiffar** |
 
-## Vad som återstår när GitHub är uppe
+⚠️ En varm träff svarade `000` — ett anslutningsfel, inte en 404. Den
+skarpa hämtningen gick igenom ändå och blev då själv sidans första
+begäran, alltså `age: 0` i stället för de ~55 sekunder de andra sex
+visade. Båda utfallen är en färsk rendering. Ett `000` är inget fynd —
+men om ingen kollar att filen finns ser en utebliven hämtning ut som en
+ren sida i grinden.
 
-1. Prisgrind (`las`) på alla sju — sju körningar.
-2. Skriv text + namn + slug till Wix med `visible:false`, checksumma mot filerna.
-3. Alt-texter (35 bilder) efter granskning av kontaktark.
-4. Egna svenska SKU:er — kolla först vilka som delas.
-5. Publicera, stämpla, live-grinda.
+## ☠️ En tysk bild som importfiltret släppte igenom
+
+`6a204d58` bild 4 var en **grafik med tysk text inbränd i pixlarna**:
+*"SEITENTASCHEN — Schneller Zugriff auf Fernbedienungen, Bücher oder
+Zeitschriften"*. Den går inte att polera bort och togs bort. Produkten har
+fyra bilder i stället för fem.
+
+Det är värt att notera att den kom igenom `RENA_BILDPOSITIONER`. Regeln
+tar position 1, 2, 3, 8 och 9 därför att 4–7 mätts upp som nästan alltid
+tyska — men den är en mätning på 30 produkter, inte en garanti. Räkna med
+att granska bilderna även när filtret gjort sitt.
+
+## SKU:er — fem av sju delade
+
+| gammal SKU | delades av |
+|---|---|
+| `FP-schlafsessel-3-in-1` | **tre** produkter |
+| `FP-schlafsessel-6-stufig` | två |
+| `FP-schlafsessel` | en (tysk) |
+| `FP-schlafsessel-gastebett` | en (tysk) |
+
+Alla sju har nu en egen svensk SKU på båda sidorna.
