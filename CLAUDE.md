@@ -913,6 +913,45 @@ de 33 i leverantörsjämförelsen 2026-08-27); en automatisk gissning skulle sl�
 ihop varor som inte är samma. De dubbletterna hanteras i poleringen, där en
 människa ändå läser varje produkt.
 
+#### ☠️ Men AE-listningen bär Aosoms artikelnummer i klartext (2026-09-06)
+
+Raden ovan säger att hopparningen kräver mått, produkttyp och bildjämförelse.
+Det stämmer för BILDEN och måtten — men det finns en exakt nyckel som ingen
+letat efter, och den ligger i AliExpress egen produktbeskrivning:
+
+```
+● material: pu (60% polyurethane, 40% base fabric), foam, mdf, metal
+● total measurements: 41x47x92 cm (wxdxh)
+● maximum load: 130 kg
+● reference: 83a-526v00rb          ← Aosoms artikelnummer
+```
+
+Uppmätt på `1005012777765014` (`ae_item_base_info_dto.detail`, via
+`debugRawProductGet`). Aosom skriver alltså sitt eget artikelnummer i den text
+de laddar upp till AliExpress. Går fältet att läsa på fler rader blir
+ommappningen ett EXAKT uppslag mot feeden i stället för en bildjämförelse —
+och `/api/admin/aosom-remap` tar redan emot paret (wix-id, artikelnummer).
+
+⚠️ **Det är EN mätning, inte en regel än.** Nästa steg är billigt och namnges
+här så det inte behöver återupptäckas: `freight-check`-workflowen med
+`raw=true` tar ett AE-produkt-id och dumpar hela `ds.product.get`; sök
+`reference:` i svaret. Håller mönstret över ett tiotal Aosom-ES-listningar är
+det värt en grep-baserad extraktion. Håller det inte, är fältet en
+bekvämlighet och inte en nyckel — och en ommappning som gissar är precis vad
+`MIN_REMAP_MARGIN_PCT` och de sex hindren finns för att stoppa.
+
+☠️ **Numret får ALDRIG följa med in i produkttexten.** Det är samma sträng
+dealproffsen.se publicerar som `sku`/`mpn` — se poleringsavsnittet. Det hör
+hemma på `supplierProductId` och ingen annanstans.
+
+⚠️ **Och en träff i beskrivningen är inte en träff i feeden.** Barstolen
+`83A-526V00RB` finns hos aosom.de som KONSUMENTvara (77,90 € inkl. MwSt) men
+har **noll träffar i B2B-feedens 6 067 rader** — varken den färgen eller någon
+annan `83A-526`. Aosoms egen guide säger att artiklar med lågt saldo plockas
+bort tillfälligt, så frånvaron är ett lagerbesked lika gärna som ett
+sortimentsbesked: sök om senare (`aosom-feed-search`, feeden uppdateras 3
+ggr/dygn) innan slutsatsen dras.
+
 ### Äkta dubbletter mappas om till Aosom (Leonards regel 2026-09-03)
 
 Hittas en äkta dubblett under poleringen — samma fysiska vara som både en
@@ -1731,6 +1770,43 @@ delar med 1,25 blir felet synligt åt andra hållet — vinsten ser för hög ut
 Aosom-raderna bruttas upp korrekt vid import (`1287a0a`); AE-raderna gör det
 inte, och det går inte att laga i kod utan att veta vilka köp som gjordes på
 Business Purpose.
+
+### ☠️ Och AE-radernas kostnad FRYSER vid importen (2026-09-06)
+
+Aosom-halvan räknas om var sjätte timme. AE-halvan räknas aldrig om: synken
+LARMAR på en prishöjning (`price_increase` i `decideSyncOutcome`, med
+`recommendedPriceSek`) men skriver aldrig tillbaka `costUsd` eller
+`landedCostSek` på mappningen. Det nya talet bor i synkens eget tillstånd
+(`currentCostUsd`), som varken lönsamhetsöversikten, auktionens golvbud eller
+poleringens prisgrind läser.
+
+Uppmätt på barstolarna `a260b888` (order 10030), samma fält som pipelinen
+själv läser (`offer_sale_price`):
+
+| | |
+|---|---:|
+| Mappningens `costUsd` (importtillfället) | 48,98 USD |
+| AliExpress `offer_sale_price` idag | **80,07 USD** |
+| Skillnad | **+63 %** |
+
+Sidan står på 679 kr. Med `USD_TO_SEK` 10,5 är landat pris 840,74 kr, alltså
+**−129 kr netto per såld enhet**; med marknadskursen kunden ser (~750 kr på
+AE-sidan) −59 kr. Regelpriset på dagens kostnad hade varit 899–999 kr.
+
+Tre saker att inte missförstå:
+
+1. ⚠️ **Larmet är designen, inte skrivningen.** Att synken låter kundpriset
+   stå är rätt — ett automatiskt omprissatt sortiment är en beteendeändring
+   med hela katalogen som blast-radie. Felet är att det LAGRADE talet blir
+   osant under tiden, och att tre läsare tror på det.
+2. ☠️ **Ett svar utan fel är inget kvitto, tionde gången.** Prisgrinden i
+   `/api/admin/mapping` svarar `EJ AVGÖRBAR` på AE-rader (`regelGäller` är
+   bara sann för `supplier === "aosom"`), så en polering av en AE-produkt vars
+   inköp sprungit iväg passerar utan invändning.
+3. **Kollen är billig.** `freight-check`-workflowen med `raw=true` ger
+   `offer_sale_price` per SKU för en produkt. En katalogomfattande jämförelse
+   mot mappningens `costUsd` är däremot ett AE-anrop per produkt och lever
+   under `maxApiCalls` — den hör hemma i synken, inte i chatten.
 
 ## Dubblett-spärr vid import
 
