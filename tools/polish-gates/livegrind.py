@@ -208,6 +208,24 @@ for rad in open("slugs.txt", encoding="utf-8"):
     elif _led[1] == "Butik":
         problem.append("KATEGORI SAKNAS: brödsmulan går Hem / Butik / produkt")
 
+    # --- 3e. KOPBARHETEN (#148) ---
+    #
+    # ☠️ EN PUBLICERAD SIDA SOM INTE GAR ATT KOPA. Produkten kan vara
+    # `visible: true` medan dess enda VARIANT bar `visible: false` — da renderar
+    # butiken "Slutsald" och JSON-LD `OutOfStock` fast Wix-lagret ar fullt.
+    # Uppmatt 2026-09-06 over hela den publicerade katalogen: 31 sidor, alla
+    # ur poleringsrundor, alla med saldo i Wix. Produktnivans
+    # `inventory.availabilityStatus` sa `IN_STOCK` hela tiden, sa varken ett
+    # API-svar eller en katalogskanning avslojade det.
+    #
+    # Defekten uppstar i poleringens SKU-steg, som PATCHar `variantsInfo` med
+    # ett handbyggt variantobjekt och da tappar `visible`. Regeln fanns nedskriven
+    # samma dag; det som saknades var en matning. Den ligger har for att sidan ar
+    # enda stallet dar bade produktens och variantens synlighet syns samtidigt.
+    if re.search(r'"availability"\s*:\s*"(?:https?://schema\.org/)?OutOfStock"', live):
+        problem.append("SLUTSALD: sidan ar publicerad men renderar OutOfStock "
+                       "— kolla variantsInfo.variants[].visible, inte bara produktens")
+
     # --- 4. Korslanken ska ha overlevt ---
     #
     # ☠️ INGEN KRASCH NAR KALLAN SAKNAR LANK. Forr gjorde raden .group(1) rakt
