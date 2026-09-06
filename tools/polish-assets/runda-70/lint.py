@@ -169,6 +169,14 @@ def kanda_sluggar():
     ut = {}
     for f in sorted(glob.glob(os.path.join(os.path.dirname(HAR),
                                            "runda-*", "skrivning.json"))):
+        # ☠️ Hoppa över DEN EGNA rundan. `skrivning.py` skriver hit, så en
+        #    andra körning fäller annars varenda slug som "redan skriven i
+        #    runda-70" — grinden förgiftar sig själv precis som byggfiltret i
+        #    vercel.json gjorde. Lagningen kom i runda 71 och saknades här;
+        #    grinden stod röd på korrekt, publicerat arbete, och ett larm som
+        #    alltid fyrar lär läsaren att sluta läsa det.
+        if os.path.dirname(os.path.abspath(f)) == HAR:
+            continue
         try:
             d = json.load(open(f, encoding="utf-8"))
         except Exception:

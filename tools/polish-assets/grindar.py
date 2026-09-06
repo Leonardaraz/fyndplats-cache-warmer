@@ -51,6 +51,10 @@ ANKARE = re.compile(r'<a href="([^"]*)"[^>]*>(.*?)</a>', re.S)
 FARGORD = ["brun", "beige", "vit", "svart", "grå", "ljusgrå", "mörkgrå",
            "gräddvit", "gråbeige", "ljusbrun", "blå", "grön", "grågrön",
            "röd", "gul", "rosa", "silverfärgad", "creme",
+           # ☠️ Här stod tidigare "Beige" med VERSAL — en död post. Grinden
+           #    söker i `text.lower()` utan att lowercasea mönstret, så den
+           #    kunde aldrig matcha. En rad som ser ut som täckning men inte är
+           #    det är sämre än ingen rad: den får listan att verka längre.
            # runda 66: två uppmätta toner. Ett färgord som inte står här kan
            # grinden inte pröva — den är en uppräkning, inte en härledning.
            "stålgrå", "gråbrun", "mörkblå",
@@ -58,7 +62,18 @@ FARGORD = ["brun", "beige", "vit", "svart", "grå", "ljusgrå", "mörkgrå",
            "mörkbrun",
            # runda 68: en blek varm neutral (L 90 %) som källan kallar "Beige".
            # Ordet måste stå här för att grinden ska kunna pröva det alls.
-           "ljusbeige"]
+           "ljusbeige",
+           # ☠️ runda 74: `petrolblå` SAKNADES trots att runda 72 publicerade
+           #    ordet på en sida och lade det i sin `MASTE_STA`. Grinden kunde
+           #    alltså aldrig pröva det — den kontrollerade att ordet FANNS på
+           #    rätt produkt, men inte att det saknades på de sju andra. Ett
+           #    färgord som används utan att stå här passerar genom att vara
+           #    OSYNLIGT, inte genom att vara rätt. Raden ovan säger det redan;
+           #    den följdes inte.
+           "petrolblå",
+           # runda 74: rundans första KULÖRTA familj. Sex mättade toner där
+           #    nyansen (H) avgör ordet och ljusheten bara kvalificerar.
+           "orange", "senapsgul"]
 
 
 # ------------------------------------------------ påstående vs förnekande ---
