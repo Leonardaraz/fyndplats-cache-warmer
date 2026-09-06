@@ -89,3 +89,45 @@ variantobjekt.
 Hela katalogen skannad (2 032 publicerade, fyra slices): **31 helt dolda, noll
 delvis**. Alla 31 lagade och live-verifierade `InStock`. Listan i `lagade.txt`,
 detaljerna i CLAUDE.md och #148.
+
+## Nyckelorden: 57 av 57 — och en behörighet som föll mitt i
+
+Runbookens Steg 7 vill ha ett huvudnyckelord plus två relaterade i
+`seoData.settings.keywords` med `origin: "USER"`. Alla 57 sidor jag publicerat
+saknade dem; importens tyska huvudnyckelord låg kvar.
+
+Källan är `nyckelord.tsv` (29 familjer — färgsyskon säljer på samma sökning),
+grindad mot husmärken, artikelnummer, tyska ord och versaler: 0 fynd.
+
+☠️ **Mitt i skrivningen tappade `ExecuteWixAPI` sin Stores-behörighet.** Efter
+40 skrivna rader svarade varje Stores-anrop **tom `403`** — `{"message":"",
+"details":{}}`, utan felkod. Det såg först ut som ett trasigt filter: min
+slug-sökning rapporterade "hittades inte" på alla 17, eftersom jag läste
+`products` men aldrig `status`.
+
+Mätningen som skilde felen åt:
+
+| API-familj | svar | betyder |
+|---|---|---|
+| `stores/v3` (search + get) | **403, tom kropp** | behörigheten borta |
+| `site-media/v1` | 403 `PERMISSION_DENIED` | behörigheten borta |
+| `categories/v1` | 400 `treeReference must not be empty` | **nåbar** — mitt anrop var fel |
+| `wix-data/v2` | 400 `WDE0117: MetaSite not found` | annan felväg |
+
+Alltså ingen driftstörning: kodvägens token hade tappat Stores- och
+Media-scope medan resten stod kvar. **`CallWixSiteAPI` hade kvar den** och
+gick igenom på första försöket — samma site, samma endpoint, annan
+auth-väg.
+
+⚠️ **Lärdomen är inte "byt verktyg", den är `status`.** En loop som läser
+`(await r.json()).products` och inte `r.status` rapporterar en behörighets-
+förlust som sjutton saknade produkter. Femtonde gången samma familj i det
+här huset: ett svar utan fel är inget kvitto — och ett svar med fel är
+inget kvitto heller, om ingen läser koden.
+
+Utan kodvägen finns ingen serverside-loop, så skrivningen lades om till
+**`POST /stores/v3/bulk/products/update`**: en läsning (17 rader), en
+skrivning (17 produkter), en återläsning. `17/17 totalSuccesses, 0
+totalFailures, 0 undetailedFailures` — och återläsningen visar tre
+nyckelord per rad, `isMain` på den första, titeltaggen och
+metabeskrivningen kvar, `visible` och priset orörda.
