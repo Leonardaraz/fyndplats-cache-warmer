@@ -244,3 +244,25 @@ två grottöppningar och en rund bädd syns direkt i bilden.
 *"Fyra plattformar sitter fördelade längs stolpen."* Golvplattan sitter inte
 längs stolpen, den ligger på golvet. Meningen ska rättas — det är den enda
 formuleringen i rundan som påstår mer än bilden visar.
+
+### Uppladdningen och galleriordningen
+
+Korten är uppe: åtta filer i Media Manager, ett per produkt, inlagda på
+**plats 3** enligt Steg 9. Måttritningen låg på plats 3 i alla åtta och är
+flyttad **sist**, dit den hör.
+
+`8/8 totalSuccesses, 0 totalFailures` — och hela `itemsInfo.items` skickades
+tillbaka med varje alt-text, eftersom arrayen ersätts i sin helhet.
+
+Vägen in är husets dokumenterade: en isolerad `git worktree` med en
+orphan-gren `claude/f1-kortbilder`, pushad, och sedan
+`UploadImageToWixSite` med `imageUrls` mot `raw.githubusercontent.com` —
+alla åtta i ETT anrop. Base64 var inte möjligt: korten är 1,4–2,4 MB styck.
+
+⚠️ **`imageUrls`, inte `image`.** Verktygets `image`-array kräver både
+`download_url` OCH `file_id`; en rå GitHub-URL har inget `file_id`.
+`imageUrls` finns just för adresser utan bifogning.
+
+Passade på i samma skrivning: familj A:s huvudbild hade alt-texten *"med
+fyra plattformar"* på en bild som visar tre. Rättad till *"med tre
+plattformar på stolpen"* på alla tre.
