@@ -5,7 +5,8 @@ orört. Prisgrinden går genom GitHub-workflowen och servern är fortfarande
 nere — samma läge och samma beslut som D3 och E2: **en grind man inte kan
 köra är en grind som inte har godkänt.**
 
-Med den här rundan är `^Akzentsessel` slut (10 av 10).
+Med den här rundan är `^Akzentsessel` slut (10 av 10) — men **A3:s två
+produkter hålls**, se stoppet nedan. Åtta går ut, två väntar.
 
 ## ☠️ Åtta av tio är färgsyskon till sidor vi redan säljer
 
@@ -58,6 +59,32 @@ publicerade beigens (222,204,188) — 14–43 mörkare per kanal över tre
 beskärningar, alltså en verklig men NÄRLIGGANDE färg. Sida vid sida är den
 publicerade varmt gräddbeige och utkastet svalt gråbeige. Den heter därför
 **gråbeige**, inte beige, så att de två går att skilja på ett produktkort.
+
+## ☠️ STOPP FÖR A3 — stolen ligger redan ute TVÅ gånger
+
+Upptäckt efter att rundan förberetts, i måttsvepet inför nästa familj.
+
+`vilstol-bjork-femstegs-fotstod` (1 169 kr) är inte den enda publicerade
+sidan för den stolen. Det finns en till:
+
+| publicerad sida | pris | mått |
+|---|---:|---|
+| `fatolj-fotstod-5-lagen-bjork` | **1 729 kr** | 66,5 × 94 × 100, sits 55,5 × 51,5 × 40, ryggstöd 75 × 55 × 71, fotstöd 55,5 × 33 i fem lägen, stomme 60 × 22 mm, 120 kg |
+| `vilstol-bjork-femstegs-fotstod` | **1 169 kr** | identiskt på varje tal |
+
+**Samma stol, två av våra egna sidor, 560 kronor isär — 48 %.** Den dyrare
+anger dessutom *"Färg: svart eller grå"*, alltså täcker den båda kulörerna.
+
+☠️ **`7e00970f` (grå) ska därför INTE publiceras.** Grått är redan sålt på
+`fatolj-fotstod-5-lagen-bjork`. Att lägga till en tredje grå sida för samma
+stol är att göra ett befintligt problem värre.
+
+⚠️ `84082d41` (brun) är en färg ingen av de två publicerade har, men den bör
+inte heller gå ut förrän de två existerande sidorna är avgjorda — annars blir
+det tre sidor för en stol som redan har två för många.
+
+**A3 hålls alltså i sin helhet.** Rundan är 8 produkter, inte 10, tills
+dubbletten är löst. Se uppgift #140.
 
 ## ⚠️ En divergens mot en publicerad sida som bör stämmas av
 
