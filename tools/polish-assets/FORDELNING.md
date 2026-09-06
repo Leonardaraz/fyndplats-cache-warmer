@@ -247,11 +247,68 @@ Skriv en rad när du tar en familj, och stryk den när den är klar. En familj u
 
 | Familj | Ägare | Status |
 |---|---|---|
-| Manuella `^Relaxsessel` | runda 62–66-sessionen | pågår (runda 66) |
-| `^Kindersessel` | — | fri |
-| `^Ohrensessel` | — | fri |
-| `^Hängesessel` + `^Bodensessel` | — | fri |
-| `^Schlafsessel` + `^Klappsessel` + de fyra Skandidesign | — | fri |
+| Manuella `^Relaxsessel` | runda 62–73-sessionen | ✅ **KLAR** (0 utkast kvar) |
+| `^Kindersessel` | den andra sessionen | ✅ klar (0 utkast) |
+| `^Ohrensessel` | den andra sessionen | ✅ klar (0 utkast) |
+| `^Hängesessel` + `^Bodensessel` | den andra sessionen | ✅ klar (0 utkast) |
+| `^Schlafsessel` + de fyra Skandidesign | den andra sessionen | ✅ klar (0 utkast) |
+| **Fåtöljresten** — se nästa avsnitt | **runda 62–73-sessionen** | **pågår (runda 74)** |
+| El-/massage-/uppresningsfåtöljer | — | fri, men INTE redo (egen Steg 2-grind) |
+
+-----
+
+## ✅ Fåtöljfamiljen är i praktiken färdig — 30 utkast kvar av 356 (2026-09-06)
+
+Uppmätt i ETT svep efter runda 73: **5 502 produkter, `unika == lästa`,
+`avhuggen: false`**, 3 500 utkast och 2 002 publicerade.
+
+| familj | utkast kvar |
+|---|--:|
+| Manuella `^Relaxsessel` | **0** |
+| `^Kindersessel`, `^Ohrensessel`, `^Hängesessel`, `^Bodensessel`, `^Schlafsessel` | **0** |
+| `^Sessel`, `^Akzentsessel`, `^Fernsehsessel`, `^Polstersessel`, `^Klappsessel` | 38 |
+| …varav el/massage/uppresning (se nedan) | −8 |
+| **Äkta manuella fåtöljer kvar** | **30** |
+
+De 174 publicerade fåtöljsidorna är vad Steg 1:s dubblettgrind ska mäta mot.
+
+### ☠️ Uteslutningsregeln måste köras på HELA namnet, inte på första ordet
+
+Åtta av de 38 är el-, massage- eller uppresningsfåtöljer — men de bär
+`Fernsehsessel` eller `Sessel` som FÖRSTA ord och avslöjar sig först senare:
+
+```
+485cf3e8 6399  Fernsehsessel Relaxsessel mit Aufstehhilfe, Elektrisch TV-Sessel
+56ea6bb7 6279  Sessel mit Aufstehhilfe, Massagesessel, Relaxsessel mit
+4635adcb 5669  Fernsehsessel mit Aufstehhilfe Elektrisch, Massagesessel mit
+d3ee8cea 5599  Fernsehsessel Relaxsessel mit Aufstehhilfe für Senioren
+4e619979 5549  Fernsehsessel mit Aufstehhilfe, Wärme- und Massagefunktion
+fbe9eb37 5519  Fernsehsessel mit Massage- und Wärmefunktion, Elektrischer
+c9944061 5499  Fernsehsessel mit Massage- und Wärmefunktion, Elektrischer
+8151ce59 5169  Fernsehsessel mit Aufstehhilfe Elektrisch, Massagesessel mit
+```
+
+Filens ägarregel går på namnets första ord — men UNDANTAGSregeln får inte göra
+det, för då hamnar åtta elprodukter i en manuell runda. Samma fälla som runda
+D:s Skandidesign-kvartett och de två `^Relaxsessel` som var `Bodensessel`:
+**leverantörens namn beskriver inte produkten, och det som avgör står inte
+först.** De åtta hör till familjen "kvar men INTE redo" längre ned.
+
+### De 30 som är kvar, grupperade på namnmönster
+
+Fyra tydliga syskongrupper — polera hela gruppen i samma runda, annars blir
+"finns i fler färger" ofullständig på varje sida som publiceras först:
+
+| grupp | antal | id8 | prisband |
+|---|--:|---|---|
+| `Akzentsessel mit Hocker … Cord-Optik` | **6** | e1c41327 · 58fb3025 · 66adcdff · 4a9c33d2 · 791e7292 · bc220489 | 2 059–2 499 |
+| `Sessel Drehbar Loungesessel … wasserabweisend` | 3 | 2fb3f782 · 3bb43b68 · 5896ed65 | 2 279–2 719 |
+| `Sessel, Polsterstuhl mit bequemer Sitzschale` | 3 | 6ec4b0fb · 2b2f7349 · cec69b8f | 1 529–1 669 |
+| `Sessel Wohnzimmer Relaxsessel Loungesessel` | 2 | 41395340 · e93fab42 | 1 529 |
+
+⚠️ Grupperingen ovan är gjord på NAMN och är därför bara en HYPOTES. Runda 70
+och 72 mätte båda att namnet döljer familjen — kör `Gesamtmaße` +
+`Belastbarkeit` + paketmått innan rundan låses.
 
 ## ☠️ Familjen grupperas på MÅTT, inte på namn — J var en kvartett (2026-09-05)
 
