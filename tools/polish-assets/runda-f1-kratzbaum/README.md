@@ -64,9 +64,43 @@ färger" ofullständig på varje sida som publiceras först. Det är INTE bevisa
 ännu: färg är omätt, och feedens färgetikett är enligt E3 fel i 4 fall av 10.
 **Mät på pixlar innan rundan låses.**
 
+## ☠️ Dubblettmätningen gick INTE att köra — och det är fyndet
+
+Resultatet blev `kollisioner: []`. **Det betyder inte "inga dubbletter".** Det
+betyder att jämförelsen inte kunde göras:
+
+| | |
+|---|--:|
+| Utkast med läsbart trippelmått | **5 av 40** |
+| Publicerade med läsbart trippelmått | **4 av 28** |
+
+Skälet är att **varje poleringsrunda har hittat på sin egen spec-etikett**.
+Alla 40 utkast bär `Mått` — importens fem svenska etiketter är fasta. De 28
+publicerade bär sex olika ord för samma sak, vart och ett på exakt EN sida:
+
+```
+Yttermått · Totalmått · Totala mått · Mått totalt · Basmått · Basens mått
+```
+
+Och `Vikt` finns på 7 av 28, `Paketmått` på **1 av 28** — trots att båda är
+importens egna etiketter och står på alla utkast. Poleringen har alltså
+konsekvent kastat bort det bästa dubblett-fingeravtrycket huset har.
+
+☠️ **Följden: dubblettdetektering mellan rundor är mekaniskt omöjlig.**
+Runbookens egen regel säger att vikt plus kartongens tre sidor är det som
+skiljer två möbler åt — men den uppgiften finns inte på sidorna. Varje
+framtida dubblettkoll måste läsas för hand, precis som den här.
+
+Det är samma klass som `SHIP_AXIS_RE` och `EU_TULL_CODES`: **en uppgift utan
+en enda definition glider isär.** Här har den glidit isär i sex riktningar.
+
+⚠️ Mina egna rundor (D, E) skriver konsekvent `Mått (B × D × H)`, `Vikt` och
+`Paketmått`. Klösträden är äldre rundor. Se #146.
+
 ## Kvar att göra
 
-1. Dubblettmätning mot de 28 publicerade — på mått, inte namn.
+1. ~~Dubblettmätning mot de 28 publicerade~~ — **går inte** förrän spec-orden
+   är enhetliga, se ovan. Måste läsas för hand för den här rundan.
 2. Färgmätning på klustrens bild 1 (pixlar, inte etiketter).
 3. Välj åtta, med hela kluster hållna ihop.
 4. Saldokoll i Wix FÖRE texten — E2:s lärdom, kostar ett anrop för hela rundan.
