@@ -71,3 +71,33 @@ klösträd ligger redan publicerade i samma kategori.
 husmärket **PawHut** (står i leverantörens URL) och artikelnumret
 (`D30-907V00LG` på 68f7d530). Numret hör hemma på `supplierProductId` och
 ingen annanstans.
+
+## Läget: texterna skrivna och grindade, två av åtta i Wix
+
+Alla åtta svenska texter är skrivna till fil och maskinellt grindade — noll
+avvikelser på husmärken, artikelnummer, tyska rester, homoglyfer, ogiltiga
+fetstilsspann och de tre obligatoriska flikarna. `seo.tsv`, `namn.tsv`,
+`nyckelord.tsv` och SKU:erna är grindade mot Steg 8:s längdtak och en
+siffergrind som kräver att varje tal i SEO-texten finns i produktens egen
+källtext.
+
+`68f7d530` och `a65a39f1` är skrivna till Wix (text, namn, slug, seoData) och
+**återlästa mot källfilen** — identiska. Båda står kvar som `visible: false`.
+
+`patch-B.json`, `patch-C.json` och `patch-D.json` ligger färdiga för de sex
+återstående.
+
+### Kvar i rundan
+
+1. Sex textskrivningar (B, C, D) med återläsning.
+2. Bilderna: ta bort de två tyska PawHut-grafikerna på `d82beee4` och
+   `70f4481a`, skriv svenska alt-texter på alla, lägg måttritningen sist.
+3. ☠️ **SKU:erna är fortfarande tyska** — `68f7d530` bär `FP-kratzbaum-192-cm`.
+   Steg 8 skriver dem på BÅDA sidorna.
+4. Kategori (`Husdjur` + `Lek & Tillbehör för husdjur`, samma som F1).
+5. Egna kort, publicering, stämpling, live-grind.
+
+☠️ **Ordningen är inte valfri.** Text medan produkten är utkast; SKU och
+publicering SIST och i samma skrivning, eftersom en `variantsInfo`-PATCH
+publicerar ett utkast och en sen text-PATCH utan `variantsInfo` speglar ner
+variantens `visible` till false — det var så 31 sidor blev oköpbara.
