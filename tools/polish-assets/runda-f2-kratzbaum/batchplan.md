@@ -38,3 +38,36 @@ homoglyfer, husmärke/artikelnummer/fraktland/tyska rester i sida OCH
 alt-texter, SEO-taggarna mot `seo.tsv`, de tre flikarna ordagrant, kategorin
 i brödsmulan — och sedan 2026-09-06 **köpbarheten** (`OutOfStock` på en
 publicerad sida).
+
+## Förkontrollerna är körda — 8 av 8 klara
+
+| kontroll | utfall |
+|---|---|
+| Prisgrind (workflow `las`, en körning per produkt) | **8/8 gröna** |
+| Saldo | **8/8 `IN_STOCK`** |
+| Fortfarande utkast (`visible:false`) | **8/8** |
+| En variant per produkt | **8/8** |
+
+☠️ **Grönt jobb = grön grind, och det är verifierat i workflow-filen, inte
+antaget.** `polish-mapping.yml` gör `exit 1` på `EJ AVGORBAR` (rad 99) och på
+de fallerande grenarna (149, 154); `stammer: true` är enda vägen till
+"OK: priset stammer mot regeln". Alltså är **ingen av de åtta** en av
+uppgift #107:s tre felprissatta utkast.
+
+⚠️ **Men slutsåld FÄLLER INTE jobbet** — den är en `::warning::` (rad 121),
+precis som CLAUDE.md föreskriver. Saldot är därför kollat separat mot Wix,
+i ETT anrop för hela rundan.
+
+Uppmätt på 68f7d530: `landedCostSek 1284,13` → förväntat 1549 → faktiskt
+1549, `aosomFreightShare 0,31`, saldo 197.
+
+## Vad som återstår innan text
+
+**Dubblettkollen på måttritningen** (bild 3) mot publicerade sidor. Åtta
+torn i samma höjdspann är precis där en intern dubblett göms, och F1:s
+klösträd ligger redan publicerade i samma kategori.
+
+☠️ Två saker som ALDRIG får nå texten, båda syns i råmaterialet:
+husmärket **PawHut** (står i leverantörens URL) och artikelnumret
+(`D30-907V00LG` på 68f7d530). Numret hör hemma på `supplierProductId` och
+ingen annanstans.
