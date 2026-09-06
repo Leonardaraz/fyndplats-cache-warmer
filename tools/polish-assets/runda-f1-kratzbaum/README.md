@@ -266,3 +266,23 @@ alla åtta i ETT anrop. Base64 var inte möjligt: korten är 1,4–2,4 MB styck.
 Passade på i samma skrivning: familj A:s huvudbild hade alt-texten *"med
 fyra plattformar"* på en bild som visar tre. Rättad till *"med tre
 plattformar på stolpen"* på alla tre.
+
+### Live-verifierat — och ISR-fällan slog till en tredje gång
+
+Grinden: **8/8 REN**, orddiff 0 mot källfilerna. Korten: **8/8** ligger på
+plats 3 i den renderade sidan med rätt `Faktakort:`-alt.
+
+⚠️ Men svepet sa först 7 av 8. Den åttonde (`75391d11`) fick `HTTP 000`,
+gjorde ett omförsök — och omförsöket serverade en rendering med **`age: 495`**,
+alltså åtta minuter gammal och äldre än mediaskrivningen. Samma filstorlek
+som föregående cykel, 151 198 byte, ned till byten.
+
+En omläsning av den sidan ensam gav `age: 29`, 155 532 byte och kortet på
+plats. Ingenting var fel med skrivningen.
+
+☠️ **Tredje gången samma sak i den här rundan, och rundan hade redan skrivit
+ned regeln:** *en sida i taget är facit, ett svep är ett stickprov med
+tidsberoende.* Läs `age` innan du kallar en sida trasig. Det som gjorde det
+extra lömskt här är att felet kom via ett OMFÖRSÖK — `HTTP 000` gav en tom
+fil, och återförsöket hann inte in i samma renderingsfönster som de sju
+andra.
