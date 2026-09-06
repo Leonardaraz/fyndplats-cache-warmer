@@ -450,4 +450,42 @@ alltså ankartexten — men `href` bor i ett attribut och stryks av strip. En l�
 kan alltså peka i tomma luften med grön textgrind. `live.py` kräver nu `200`
 på varje länkmål: rundans sjutton länkar mot åtta mål, alla gröna.
 
-**Kontorsstolsfamiljen har ~164 utkast kvar.**
+### Runda 78 tog åtta — en NY familj: rullpallar och arbetspallar
+
+Publicerade 2026-09-06: `verkstadspall-med-lador-135-kg`,
+`pendelpall-vippande-sits`, `salongspall-utan-rygg-9-cm-skum`,
+`arbetspall-rygg-och-fotring`, `rullpall-svart-rygg-43-55-cm`,
+`rullpall-beige-rygg-43-55-cm`, `rullpall-ringrygg-bred-fot`,
+`rullpallar-2-pack-48-63-cm`. Hela rundan ligger i `runda-78/LAGE.md`.
+
+☠️ **De 33 "rullpallarna" var 16.** `Sitzhocker` betyder både *arbetspall på
+hjul* och *sittpuff med förvaring*, och sjutton av träffarna var puffar —
+en annan produkttyp, redan polerad i runda 24. Ett ord som bär två
+produkttyper är ett såll som släpper igenom fel vara; familjen avgjordes på
+SPECEN, inte på namnet.
+
+☠️ **Tvillinggrinden fällde `df3a97c6`** — 50 × 50 × 83–98 cm och 120 kg,
+exakt samma som den publicerade `arbetsstol-hjul-51-67-cm-avtagbar-rygg`. Och
+de TVÅ publicerade sidorna (`arbetsstol-hjul-…` och `sadelstol-med-ryggstod-vit`)
+delar redan samma fem tal med varandra — samma klass som #305, flaggat.
+
+☠️ **Två skrivformer där LÄSNINGEN visar fel form.** `slug` är ett objekt på
+GET men en NAKEN STRÄNG på PATCH (`400 "Unexpected value for StringValue"`),
+precis som bildposten är `{image:{id}}` på GET men `{id, altText}` på PATCH.
+Regeln är en, inte två: en skrivning byggd ur ett läst svar väljer fel gren så
+fort formerna skiljer sig. Kategorianropets fält heter dessutom `item`, inte
+`itemReference` — tredje formfelet i samma runda.
+
+☠️ **`Gesamtabmessungen` är SITSEN, inte fotavtrycket**, på två av åtta:
+`239e68b8` anger 39 cm mot ritningens fotkryss på 44, `28532aab` Ø35,5 mot
+48,5. Tretton centimeter fel för en kund som mäter sin plats.
+
+☠️ **`sku_bas` inverterade betydelsen andra rundan i rad.** `utan` är fogeord,
+så pallen UTAN rygg fick `FP-salongspall-rygg-9-cm`. Efter runda 77:s ritstol
+utan armstöd är det inte längre ett undantag utan ett mönster: varje produkt
+vars särskiljare är en NEKNING får fel SKU av regeln.
+
+☠️ **Importens SKU-krock mätt en fjärde gång:** `FP-rollhocker` bars av TRE
+produkter. Åtta produkter, sex distinkta SKU:er före Steg 8.
+
+**Rullpallsfamiljen har åtta utkast kvar. Kontorsstolsfamiljen ~164.**
