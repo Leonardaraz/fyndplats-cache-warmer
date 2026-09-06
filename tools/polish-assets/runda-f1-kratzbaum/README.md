@@ -1,7 +1,7 @@
-# Runda F1 — klösträd (`^Kratzbaum`), Steg 1 gjord
+# Runda F1 — klösträd (`^Kratzbaum`)
 
-⏸ **STEG 1 KLART, INGET SKRIVET.** Familjen är vald, mätt och grupperad. Inga
-texter är skrivna och Wix är orört.
+✅ **ÅTTA PUBLICERADE, STÄMPLADE OCH LIVE-VERIFIERADE.** Tre kluster hållna
+ihop: tre takhöga, tre i fem plan, två klöstunnor. Priserna orörda.
 
 ## Varför just den här familjen
 
@@ -97,13 +97,117 @@ en enda definition glider isär.** Här har den glidit isär i sex riktningar.
 ⚠️ Mina egna rundor (D, E) skriver konsekvent `Mått (B × D × H)`, `Vikt` och
 `Paketmått`. Klösträden är äldre rundor. Se #146.
 
-## Kvar att göra
+## Utfallet
 
-1. ~~Dubblettmätning mot de 28 publicerade~~ — **går inte** förrän spec-orden
-   är enhetliga, se ovan. Måste läsas för hand för den här rundan.
-2. Färgmätning på klustrens bild 1 (pixlar, inte etiketter).
-3. Välj åtta, med hela kluster hållna ihop.
-4. Saldokoll i Wix FÖRE texten — E2:s lärdom, kostar ett anrop för hela rundan.
-5. Prisgrind ×8 genom workflowen.
-6. Texter → filgrind → checksumma → alt-texter → SKU → publicera → stämpla →
-   live-grind.
+| | |
+|---|--:|
+| Publicerade | **8** |
+| Filgrindens fynd | **0** (7/7 mutationer fångade) |
+| Checksummor som stämde | **8 / 8** |
+| Alt-texter skrivna | **37** |
+| Tyska jämförelsegrafiker bortplockade | 3 produkter |
+| Unika SKU:er | **8 / 8** |
+| Prisändringar | **0** |
+| Stämplingar bekräftade i loggen | **8 / 8** |
+| SEO-titel + metabeskrivning omskrivna | **8 / 8** |
+
+| kluster | id | pris | SKU |
+|---|---|--:|---|
+| A takhögt 228–260 | `75391d11` beige | 899 | `FP-klostrad-takhogt-228-beige` |
+| | `8db487c1` grå | 839 | `FP-klostrad-takhogt-228-gra` |
+| | `6f0b43f0` ljusbrun | 799 | `FP-klostrad-takhogt-228-ljusbrun` |
+| B fem plan 230–260 | `62f7cf98` beige | 899 | `FP-klostrad-fem-plan-beige` |
+| | `75293096` grå | 849 | `FP-klostrad-fem-plan-gra` |
+| | `8ab169e8` mörkbrun | 839 | `FP-klostrad-fem-plan-morkbrun` |
+| C klöstunna 100 | `c802ac19` cremevit | 1099 | `FP-klostunna-100-cremevit` |
+| | `cc31a73b` grå | 1079 | `FP-klostunna-100-gra` |
+
+☠️ **Materialpåståendet i kluster A var fel, och bara bilderna visade det.**
+Min första text sa att stolpen är plyschklädd — det är vad den tyska
+materiallistan räknar upp. En zoomad beskärning av bild 4–5 visar tätlindat
+naturfiberrep, alltså **sisal**, på en sektion av stolpen. Listan nämner det
+inte. Alla tre A-texterna säger nu *"en sektion av stolpen är lindad med sisal
+att klösa på"*, en `Klösyta`-rad är tillagd i specen, och fotobevisningen står
+i `kallor.json`. **En specifikationslista är inte en produktbeskrivning** —
+den räknar upp vad som finns, inte vad kunden ser.
+
+⚠️ **"Tillverkaren rekommenderar" ströks ur C-texten.** Samma klass som
+"leverantören anger": mot kunden är **vi** leverantören. Står nu som
+*"Klöstunnan är gjord för katter under 5 kg."*
+
+## ☠️ Poleringen har ALDRIG rört SEO-titeln — åtta tyska sidor, och 49 i katalogen
+
+Live-grinden fällde de tre A-sidorna på `SIDA/ARTIKELNUMMER 228-260`. Det såg ut
+som ett falskt larm — `228–260 cm` är ju en takhöjd. Det var det inte. Träffen
+låg i sidans **`<title>`**, och titeln var tysk:
+
+```
+<title>Kratzbaum Deckenhoch, 228-260 cm Höhenverstellbarer Katzenbaum</title>
+<meta name="description" content="Verwandeln Sie Ihr Zuhause in ein Paradies…">
+```
+
+Brödtexten var invändningsfri svenska — orddiffen mot källfilen var **0 på alla
+åtta**. Men `<title>` och metabeskrivningen är det Google VISAR i sökresultatet,
+och de var tyska på alla åtta. Uppmätt i Wix: `seoData.tags` bar tysk `title`,
+`og:title`, `description` och `og:description`, plus ett tyskt huvudnyckelord
+med `origin: "USER"`.
+
+**Orsaken är att poleringen inte har något SEO-steg.** Den skriver `name` och
+beskrivningen; `seoData` sattes vid importen från den tyska feeden och har
+aldrig skrivits över. Runbooken nämner det inte, och ingen rundas README gör det.
+
+### Två blinda fläckar som gjorde det osynligt
+
+1. ☠️ **Metabeskrivningen ligger i ett ATTRIBUT.** Sidsvepet kör `brodtext`,
+   som strippar taggar — attributinnehåll är därför osynligt för det. Exakt
+   samma blinda fläck som alt-texterna hade efter batch 66.
+2. ☠️ **`<title>` fastnade bara av en slump.** Texten syns i sidsvepet, men det
+   som fällde var artikelnummer-mönstret som råkade träffa `228-260`. Runda D1:s
+   *"Schlafsessel, Gästebett, verstellbare Rückenlehne"* hade gått rakt igenom:
+   inga siffror, och inget av orden fanns i den tyska ordlistan.
+
+### Åtgärdat
+
+- `gate-seo.py` — filgrind för titel och metabeskrivning, med siffergrind mot
+  produktens egen källtext, längdtak (60/160) och krav på `| Fyndplats`-suffix.
+  **8 av 8 mutationer fälls**, var och en av rätt regel.
+- `livegrind.py` fick ett **SEO-svep**: läser `<title>`, `description`,
+  `og:title` och `og:description` och jämför dem EXAKT mot `seo.tsv` när filen
+  finns. En mekanisk jämförelse bryr sig inte om vilket språk felet är på.
+- De åtta sidornas `seoData` omskriven till svenska, tyska nyckelord rensade,
+  `visible` oförändrad, varje rad återläst efter skrivningen.
+
+☠️ **Formen är TVÅ taggar, inte fem.** Runda A och C2 har den formen, och
+butiken härleder `og:title`, `og:description` och `twitter:title` ur den —
+uppmätt på båda. Importens fem taggar bar tyska og-värden som måste bort, inte
+skrivas om.
+
+### ⚠️ 49 publicerade sidor till bär tysk SEO-titel
+
+Mätt över hela katalogen (2 032 publicerade, 21 sidor, inte avhuggen):
+
+| | |
+|---|--:|
+| Publicerade | 2 032 |
+| **Tysk SEO-titel** | **49** |
+| Svensk titel med `\| Fyndplats` | 1 443 |
+| Svensk titel utan suffix (autohärledd) | 540 |
+
+De 49 ligger i mina egna rundor D1–E3 — bäddfåtöljer, Polstersessel,
+Relaxsessel. **Talet är ett GOLV, inte ett tak:** klassificeraren kräver ett
+tyskt funktionsord eller ett listat substantiv, så en tysk titel utan sådana
+räknas inte. Se #147.
+
+## ☠️ `0908bbf0` publicerades INTE — intern dubblett
+
+Tre delade måtttripplar mot den redan publicerade `klostrad-morkgra-173-cm`.
+Båda sidorna är **Aosom** (`aosom:D30-050V00CG`), så det här är inte ett
+ommappningsfall utan ett pensioneringsfall: den behållna sidan pekar redan
+rätt, och dubbletten ska få `draftStatus: "rejected"`.
+
+## Kvar
+
+- `0908bbf0` ska pensioneras (`draftStatus: "rejected"`, `needsAiPolish: false`).
+- Klösträdsfamiljen har **32 utkast kvar** av 40.
+- Spec-ordlistan (#146) är fortfarande osammanhängande på de 28 äldre sidorna;
+  den här rundans åtta bär `Mått (B × D × H)`, `Vikt` och `Paketmått`.

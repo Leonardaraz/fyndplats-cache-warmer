@@ -1345,6 +1345,48 @@ produkt, och bara den, med både orddiffen och homoglyfsvepet.
 
 **Regeln: en grind på det du SKICKAR är inte en grind på det som LIGGER UTE.**
 
+#### ☠️ Och en TREDJE blind fläck: `<title>` och metabeskrivningen (2026-09-06)
+
+Poleringen skriver `name` och beskrivningen. Den rör **aldrig `seoData`** —
+och det är `seoData` som blir sidans `<title>` och `<meta name="description">`,
+alltså precis det Google VISAR i sökresultatet. Aosom-importen sätter dem från
+den tyska feeden, och ingenting har någonsin skrivit över dem.
+
+Uppmätt på runda F1:s åtta klösträd, samtliga med **orddiff 0** mot källfilen:
+
+```
+<title>Kratzbaum Deckenhoch, 228-260 cm Höhenverstellbarer Katzenbaum</title>
+<meta name="description" content="Verwandeln Sie Ihr Zuhause in ein Paradies…">
+```
+
+Brödtexten var alltså invändningsfri svenska medan sökresultatet var tyskt.
+Över hela katalogen: **49 av 2 032 publicerade sidor** bär tysk SEO-titel
+(1 443 har svensk titel med `| Fyndplats`, 540 en autohärledd utan suffix).
+Talet är ett GOLV — klassificeraren kräver ett tyskt funktionsord.
+
+☠️ **Båda de gamla svepen missade det, av olika skäl.** Metabeskrivningen ligger
+i ett ATTRIBUT, och sidsvepet strippar taggar — samma blinda fläck som
+alt-texterna hade. `<title>` syns visserligen i sidsvepet, men det som fällde
+var artikelnummer-mönstret som råkade träffa `228-260`; runda D1:s
+*"Schlafsessel, Gästebett, verstellbare Rückenlehne"* hade gått rakt igenom.
+**Grinden fångade rätt fel av fel skäl, och bara på tre av åtta sidor.**
+
+Grindarna är därför två nu, och den andra är den som biter:
+
+- `gate-seo.py` i rundans katalog — filgrind på `seo.tsv` med siffergrind mot
+  produktens egen källtext, längdtak (60/160) och krav på `| Fyndplats`.
+- `livegrind.py` har ett **SEO-svep** som läser `<title>`, `description`,
+  `og:title` och `og:description` ur den publicerade sidan och jämför dem
+  EXAKT mot `seo.tsv` när filen finns. En mekanisk jämförelse behöver inte veta
+  vilket språk felet är på — mönstergrindar gör det.
+
+☠️ **Formen är TVÅ taggar, inte fem.** Uppmätt på runda A och C2: med bara
+`title` + `meta description` i `seoData.tags` härleder butiken `og:title`,
+`og:description` OCH `twitter:title` ur dem. Importens fem taggar bär tyska
+og-värden som ska BORT, inte skrivas om. Rensa även
+`seoData.settings.keywords` — importen lägger ett tyskt huvudnyckelord där med
+`origin: "USER"`.
+
 #### ☠️ Flera produkter kan dela EN SKU — kolla varje batch
 
 Importen härleder variant-SKU:n ur den tyska titelns första ord, så produkter

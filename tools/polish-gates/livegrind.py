@@ -19,6 +19,25 @@
 #   1. ORDDIFF mot kallfilen   -> fangar VARJE transkriberingsfel
 #   2. HOMOGLYFER i live-texten -> kyrilliskt/grekiskt som slunkit in
 #   3. SIDSVEP + ALT-SVEP       -> husmarke, artikelnummer, fraktland, tyska
+#   4. SEO-SVEP                 -> <title> och meta description
+#
+# ☠️ SEO-FALTEN AR EN EGEN BLIND FLACK, och den var oupptackt till 2026-09-06.
+# Poleringen ror `name` och beskrivningen men ALDRIG `seoData` — importen
+# skriver tysk titel och tysk metabeskrivning, och ingenting skrev over dem. Alla
+# atta sidor i runda F1 lag ute med `<title>Kratzbaum Deckenhoch...</title>`
+# medan brodtexten var invandningsfri svenska. Det ar det Google VISAR.
+#
+# Tva skal till att svepen ovan inte racker:
+#   * meta description ligger i ett ATTRIBUT. `brodtext` strippar taggar, sa
+#     attributinnehall ar osynligt for sidsvepet — exakt samma blinda flack som
+#     alt-texterna hade.
+#   * <title> syns visserligen i sidsvepet, men bara for att den GERMANSKA
+#     titeln rakade innehalla `228-260` och traffa artikelnummer-monstret.
+#     "Schlafsessel, Gastebett..." (runda D1) hade gatt rakt igenom.
+#
+# Finns `seo.tsv` i rundans katalog jamfors live-faltet EXAKT mot den — mekaniskt,
+# alltsa oberoende av vilka tyska ord nagon rakat tanka pa. Saknas filen faller
+# svepet tillbaka pa monstren, som ar battre an ingenting men inte ett kvitto.
 #
 # ⚠️ Butiken delar upp beskrivningen i flikar (pdp-flikar/details/summary), sa
 # HTML:en ar med flit INTE identisk med kallfilen. Jamfor BRODTEXT, inte markup.
@@ -46,6 +65,17 @@ def brodtext(s):
     s = re.sub(r"(?is)<(script|style)[^>]*>.*?</\1>", " ", s)
     s = re.sub(r"<[^>]+>", " ", s)
     return " ".join(html.unescape(s).split())
+
+# seo.tsv ar VALFRI: aldre rundor har ingen. Finns den blir SEO-svepet en exakt
+# jamforelse i stallet for en monstergissning.
+VANTAT_SEO = {}
+try:
+    for _r in open("seo.tsv", encoding="utf-8"):
+        if _r.strip():
+            _i, _t, _d = _r.rstrip("\n").split("\t")
+            VANTAT_SEO[_i] = (_t, _d)
+except FileNotFoundError:
+    pass
 
 fel = 0
 for rad in open("slugs.txt", encoding="utf-8"):
@@ -107,6 +137,42 @@ for rad in open("slugs.txt", encoding="utf-8"):
                 problem.append(f"ALT/LAND {l}: {alt[:90]}")
         for m in KOD.findall(alt):
             problem.append(f"ALT/ARTIKELNUMMER {m}: {alt[:90]}")
+
+    # --- 3c. SEO-SVEP: <title> och meta description ---
+    def _meta(namn, attr="name"):
+        m = re.search(rf'<meta {attr}="{namn}" content="(.*?)"', live, re.S)
+        return html.unescape(m.group(1)) if m else None
+
+    _t = re.search(r"<title>(.*?)</title>", live, re.S)
+    seo = {"title": html.unescape(_t.group(1)) if _t else None,
+           "description": _meta("description"),
+           "og:title": _meta("og:title", "property"),
+           "og:description": _meta("og:description", "property")}
+
+    if VANTAT_SEO.get(p):
+        # Exakt jamforelse mot seo.tsv. Den ar det enda riktiga kvittot:
+        # den bryr sig inte om vilket sprak felet rakar vara pa.
+        vt, vd = VANTAT_SEO[p]
+        if seo["title"] != vt:
+            problem.append(f"SEO/TITEL avviker fran seo.tsv\n        vantat: {vt}\n        live:   {seo['title']}")
+        if seo["description"] != vd:
+            problem.append(f"SEO/BESKRIVNING avviker fran seo.tsv\n        vantat: {vd}\n        live:   {seo['description']}")
+    for falt, varde in seo.items():
+        if not varde:
+            problem.append(f"SEO/{falt.upper()} SAKNAS PA SIDAN")
+            continue
+        vl = varde.lower()
+        for bm in BRANDS:
+            if re.search(r"(?<![a-zåäö])" + bm + r"(?![a-zåäö])", vl):
+                problem.append(f"SEO/{falt} HUSMARKE {bm}: {varde[:90]}")
+        for w in TYSKA:
+            if re.search(r"(?<![a-zåäöéü])" + re.escape(w) + r"(?![a-zåäöéü])", vl):
+                problem.append(f"SEO/{falt} TYSKT {w!r}: {varde[:90]}")
+        for l in LAND:
+            if l in vl:
+                problem.append(f"SEO/{falt} LAND {l}: {varde[:90]}")
+        for m in KOD.findall(varde):
+            problem.append(f"SEO/{falt} ARTIKELNUMMER {m}: {varde[:90]}")
 
     # --- 4. Korslanken ska ha overlevt ---
     #

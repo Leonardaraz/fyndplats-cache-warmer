@@ -41,3 +41,9 @@ scratchpad/
 # till scripts/ och missade scripts/hero/ som tillkom i #389.
 __pycache__/
 tools/aosom/sweep-log.jsonl
+
+# Live-hamtade produktsidor (tools/polish-gates/hamta-live.sh). Ett svep ar
+# ~850 kB HTML fran butiken, alltsa hamtad data och inget kallmaterial — och
+# fram till 2026-09-06 holls de utanfor commiten bara av att den som korde
+# `git add` kom ihag det. En sparr man maste komma ihag gloms bort.
+tools/polish-assets/*/live/

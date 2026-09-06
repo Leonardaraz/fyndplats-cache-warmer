@@ -39,10 +39,20 @@ echo "== skarp hamtning =="
 brist=0
 while read -r pid slug; do
   [ -z "${pid:-}" ] && continue
-  hdr=$(curl -s -D - -o "live/$pid.html" -w "%{http_code}" "https://www.fyndplats.se/produkt/$slug")
-  code=$(printf '%s' "$hdr" | tail -1)
-  age=$(printf '%s' "$hdr" | grep -i '^age:' | tr -d '\r' | head -1)
-  size=$(wc -c < "live/$pid.html")
+  # ETT omforsok, och bara ett. En hamtning som ger 000 (anslutningsfel) eller
+  # inte lyckas skriva sin fil ar det transienta fallet — 2026-09-06 kostade en
+  # sadan miss hela atta-siders cykeln, alltsa tva minuters paus till, for en
+  # sida som gick fram direkt nar den kordes om. Faller aven omforsoket star
+  # AVBRYT-et kvar: grinda aldrig pa en ofullstandig hamtning.
+  code=000; size=0; age=""
+  for forsok in 1 2; do
+    hdr=$(curl -s -D - -o "live/$pid.html" -w "%{http_code}" "https://www.fyndplats.se/produkt/$slug")
+    code=$(printf '%s' "$hdr" | tail -1)
+    age=$(printf '%s' "$hdr" | grep -i '^age:' | tr -d '\r' | head -1)
+    size=$([ -f "live/$pid.html" ] && wc -c < "live/$pid.html" || echo 0)
+    [ "$code" = "200" ] && [ "$size" -gt 1000 ] && break
+    [ "$forsok" = "1" ] && echo "  $pid $slug  HTTP $code ${size}B — gor ett omforsok" && sleep 3
+  done
   echo "  $pid $slug  HTTP $code  ${size}B  ${age:-age: -}"
   [ "$code" = "200" ] || brist=1
   [ "$size" -gt 1000 ] || brist=1
