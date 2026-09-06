@@ -407,6 +407,25 @@ samstämmiga MÅTT — inte paketmåttet, som varken duger som modellsignatur
 (runda 74) eller går att jämföra mot publicerade sidor, vilka listar
 produktmåttet.
 
-**Runda 76 börjar på grupp D:** `10235819` (Hellgrau) och `4fa0ae0a`
-(Dunkelgrau), 74 × 65 × 120–128 cm, 120 kg. Dubblettgrinden är ren på båda.
+**Runda 76 började på grupp D:** `10235819` (Hellgrau) och `4fa0ae0a`
+(Dunkelgrau), 74 × 65 × 120–128 cm, 120 kg. Dubblettgrinden var ren på båda.
+
+### Runda 76 tog åtta — två chefsstolar, tre nätryggar, tre sminkstolar
+
+Publicerade 2026-09-06: `chefsstol-ljusgra-fotstod`, `chefsstol-gra-fotstod`,
+`skrivbordsstol-turkos-natrygg`, `skrivbordsstol-rosa-natrygg`,
+`skrivbordsstol-ljusgra-natrygg`, `sminkstol-rosa-teddytyg`,
+`sminkstol-gra-teddytyg`, `sminkstol-graddvit-teddytyg`.
+Hela rundan ligger i `runda-76/LAGE.md`.
+
+☠️ **Fyra av åtta färgord är mätta fram, inte översatta.** Källan kallar en
+turkos stol `Grün`, en ljusgrå `Dunkelgrau` och en grå `Grau`. Det är samma
+skäl som gjorde färgmätningen till ett eget steg: leverantörens färgord är
+inte ett facit, det är en gissning gjord i ett annat land.
+
+☠️ **Importens SKU-krock mätt igen: åtta produkter bar TRE distinkta SKU:er**
+före Steg 8. Runda 75 fann fem av sju; den här åtta av åtta. Krocken skapas av
+importen, och den syns bara för att Steg 8 läser butiken innan den skriver.
+
+**Kontorsstolsfamiljen har ~171 utkast kvar.**
 
