@@ -1,0 +1,23 @@
+# Runda 76, Steg 1 — tjugo granskade utkast ur åtta syskongrupper.
+# Massage-/värmemodellerna är MEDVETET uteslutna: de kräver egen Steg 2-grind.
+# id8      mått (b x d x h)     sits      sitthöjd   vikt    källfärg     maxlast   pris
+10235819  74x65x120-128        53x52     46-54      23kg    Hellgrau     120kg     2039   D
+4fa0ae0a  74x65x120-128        53x52     46-54      23kg    Dunkelgrau   120kg     2039   D
+909b7596  64x63x115-125        51x50     45         12kg    Schwarz      120kg     1169   ?
+29549b48  64x63x115-125        51x50     45         12kg    Grau         120kg     1249   ?
+ac2fb38c  65x65x84-94          63x47     49-59      16kg    Grau         120kg     1559   ?
+2c905d9d  65x65x84-94          63x47     49-59      16kg    Cremeweiss   120kg     1669   ?
+df0d351f  45x56x78-88          -         44-54      8kg     Weiss        120kg     959    -
+cc0ec7ba  45x56x78-88          -         44-54      8kg     Rosa         120kg     1099   -
+143f9b2d  55x48x82,5-94,5      45x40     44-56      8,5kg   Gruen        120kg     899    E
+6e05f8b7  55x48x82,5-94,5      45x40     44-56      8,5kg   Rosa         120kg     899    E
+4293c5ce  55x48x82,5-94,5      45x40     44-56      8,5kg   Grau         120kg     919    E
+a5454821  56x61x76-86          45x47     46-56      9,5kg   Rosa         120kg     1269   F
+0f7021fb  56x61x76-86          45x47     46-56      9,5kg   Grau         120kg     1279   F
+ce10bfe8  56x61x76-86          45x47     46-56      9,5kg   Cremeweiss   120kg     1269   F
+93e3e975  53x59,5x81-89        44x44     43-51      8kg     Rosa         120kg     939    -
+ecd1373c  53x59,5x81-89        44x44     43-51      8kg     Blau         120kg     879    -
+4871d041  60x61x104,5-121,5    48x45     42-50      13kg    Schwarz      -         1099   ?
+66cf81fe  60x61x104,5-121,5    48x45     42-50      13kg    Beige        -         1099   ?
+c47838e6  52x59x75,5-84,5      49x46     48-57      9,7kg   Rosa         -         999    ?
+3c8fe7db  52x59x75,5-84,5      49x46     48-57      9,7kg   Cremeweiss   -         999    ?
