@@ -1,45 +1,33 @@
 #!/usr/bin/env python3
-"""Bygger media-skrivningen MEKANISKT ur media.tsv (fil-id per källposition)
-och alt.tsv (ordning + alt-text).
+"""Bygger bildnyttolasten och facit ur SAMMA källor (media.tsv + alt.tsv).
 
-☠️ HELA itemsInfo.items ERSÄTTS. En bild utan altText förlorar sin alt-text —
-det var så åtta sidor blev kvar med tysk alt efter en felfri textpolering.
+alt.tsv står i VISNINGSORDNING; kolumn 2 är bildens KÄLLPOSITION i media.tsv.
+Måttskissen ligger på källposition 3 i hela den här rundan och skrivs sist.
 """
-import json, sys, collections
+import sys, json, collections
 
-# media.tsv: kort + fil-id i KÄLLANS ordning (position 1..5)
-filer = {}
-for l in open("media.tsv"):
-    c = l.rstrip("\n").split("\t")
-    if len(c) >= 6:
-        filer[c[0]] = {str(i + 1): c[i + 1] for i in range(5)}
+fil = {}
+for r in open("media.tsv", encoding="utf-8"):
+    d = r.rstrip("\n").split("\t")
+    for i, f in enumerate(d[1:6], 1):
+        fil[(d[0], str(i))] = f
 
-# alt.tsv: raderna står i den ORDNING sidan ska visa dem
-ordning = collections.defaultdict(list)
-for l in open("alt.tsv"):
-    c = l.rstrip("\n").split("\t")
-    if len(c) == 3:
-        ordning[c[0]].append((c[1], c[2]))
+vis = collections.OrderedDict()
+for r in open("alt.tsv", encoding="utf-8"):
+    kort, pos, alt = r.rstrip("\n").split("\t")
+    vis.setdefault(kort, []).append((fil[(kort, pos)], alt))
 
-rev = json.load(open("rev-efter-text.json"))
-prods, fel = [], []
-for k, rader in ordning.items():
-    if len(rader) != 5: fel.append(f"{k}: {len(rader)} rader")
-    items = []
-    for pos, alt in rader:
-        fid = filer[k].get(pos)
-        if not fid: fel.append(f"{k}: saknar fil-id för källposition {pos}"); continue
-        if not fid.startswith("b379ce_"): fel.append(f"{k}: misstänkt fil-id {fid!r}")
-        if not alt.strip(): fel.append(f"{k}: tom alt-text på position {pos}")
-        items.append({"id": fid, "altText": alt, "mediaType": "IMAGE"})
-    if len({i["id"] for i in items}) != len(items): fel.append(f"{k}: dubblettbild i listan")
-    prods.append({"product": {"id": rev[k]["id"], "revision": rev[k]["rev"],
-                              "media": {"itemsInfo": {"items": items}}}})
-if fel:
-    print("GRIND FALLER:\n" + "\n".join(fel)); sys.exit(1)
+for k, v in vis.items():
+    assert len(v) == 5, f"{k}: {len(v)} bilder"
+    assert len({f for f, _ in v}) == 5, f"{k}: dubblettbild"
 
-par = int(sys.argv[1]) if len(sys.argv) > 1 else None
-if par is None:
-    print(f"GRIND REN: {len(prods)} produkter, {sum(len(p['product']['media']['itemsInfo']['items']) for p in prods)} bilder")
+if len(sys.argv) > 1 and sys.argv[1] == "facit":
+    with open("vantat-media.tsv", "w", encoding="utf-8") as f:
+        for k, rader in vis.items():
+            for fid, alt in rader:
+                f.write(f"{k}\t{fid}\t{alt}\n")
+    print(f"facit: {sum(len(v) for v in vis.values())} bilder, {len(vis)} produkter")
 else:
-    print(json.dumps({"products": prods[par*4:par*4+4]}, ensure_ascii=False, separators=(",", ":")))
+    h = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    ks = list(vis)[h*4:(h+1)*4]
+    print(json.dumps([[k, [[f, a] for f, a in vis[k]]] for k in ks], ensure_ascii=False))

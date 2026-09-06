@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Grindar runda G1:s åtta kort mot produktens EGEN källtext.
+"""Grindar runda G2:s åtta kort mot produktens EGEN källtext.
 
 Raderna byggs mekaniskt ur <kort>.html, så de kan inte drifta — grinden
 bevisar det i stället för att lita på det. Det som ÄR handskrivet är kickern
@@ -13,11 +13,14 @@ import re, sys, os
 
 src = open("bygg-kort.py", encoding="utf-8").read()
 ns = {"re": re, "os": os}
-exec(src.split("# kicker, titel")[0]
+# ⚠️ Grinden läser byggarens EGNA definitioner ur källan — allt före RUBRIK
+# (hjälparna, inklusive kort_rader) och sedan RUBRIK-tabellen. Delningen får
+# inte hänga på en kommentar: G2 tog bort den G1 delade på, och grinden dog med
+# ett AttributeError i stället för att gata.
+exec(src.split("RUBRIK = {")[0]
         .replace('import cardkit as ck', 'ck = None')
         .replace('sys.path.insert(0, "/home/user/fyndplats-cache-warmer/scripts")', ''), ns)
-exec("RUBRIK = " + src.split("RUBRIK = ")[1].split("\ndef kort_rader")[0], ns)
-exec("def kort_rader" + src.split("\ndef kort_rader")[1].split("\nnamn = []")[0], ns)
+exec("RUBRIK = {" + src.split("RUBRIK = {")[1].split("\nnamn = []")[0], ns)
 kort_rader, RUBRIK = ns["kort_rader"], ns["RUBRIK"]
 
 MARKEN = ("HOMCOM","Outsunny","PawHut","Aiyaplay","Aosom","SportNow","Vinsetto","Kleankin","Zonekiz","Durhand")

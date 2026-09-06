@@ -1,66 +1,59 @@
-# Bygger runda G1:s åtta egna Fyndplats-kort (Steg 9, ett spec-kort per produkt).
+# Bygger runda G2:s åtta egna Fyndplats-kort (Steg 9).
 #
-# ☠️ RADERNA LÄSES UR PRODUKTENS EGEN SPEC-TABELL i <kort>.html, och slås upp
-# på ETIKETT — aldrig på position. Två skäl, båda uppmätta i huset: en
-# hårdkodad rad kan bli fel när spec-listorna är olika långa (runda 82), och en
-# rad skriven för hand i kortet är ett värde till som kan säga emot sidan.
-#
-# ⚠️ RUNDANS SVÅRASTE DRAG: sex av åtta delar sina mått med ett syskon.
-#   · 25405611 / 3b5a67d9 / 3dbd4f08 / 48432e48 — IDENTISKA tal, fyra färger
-#   · dd4e1e06 / b4441140 — IDENTISKA tal, ljusgrå mot gräddvit
-# Ett kort som upprepar det som är lika gör ingen nytta. Rubrikerna säger
-# därför vad som SKILJER: tyget, ryggens behandling och färgen. Samma lärdom
-# som F2:s 140/160 cm-par.
+# ☠️ RADERNA LÄSES UR PRODUKTENS EGEN SPEC-LISTA i <kort>.html och slås upp på
+# ETIKETT, aldrig på position — och listorna är OLIKA långa i den här rundan:
+# chenillestolarna saknar gungvinkel, fotpallsmodellerna har en extra rad för
+# pallen, och den armlösa har "Tjocklek sits och rygg" där andra har sitstjocklek.
+# Kortet tar därför de åtta FÖRSTA raderna som produktens egen spec faktiskt har,
+# ur en önskeordning. Att tvinga in samma åtta etiketter på alla hade betytt ett
+# påhittat värde på minst tre av dem.
 import sys, re, os
 sys.path.insert(0, "/home/user/fyndplats-cache-warmer/scripts")
 import cardkit as ck
 
 U = lambda t, u: f'{t}&nbsp;<span class=u>{u}</span>'
 
+ONSKAD = ["Mått", ("Fotpall", "Pall"), "Sittyta", "Sitthöjd",
+          ("Gungvinkel", "Sitstjocklek", "Tjocklek sits och rygg"),
+          "Ryggstöd", "Maxlast", "Vikt", "Material"]
+
 def specrader(kort):
-    """Etikett -> värde ur produktens egen spec-tabell."""
     h = open(f"{kort}.html", encoding="utf-8").read()
     block = re.search(r"<h2>Tekniska specifikationer</h2>(.*?)(?=<h2>|\Z)", h, re.S).group(1)
     ut = {}
     for li in re.findall(r"<li>(.*?)</li>", block, re.S):
-        rent = re.sub(r"<[^>]+>", "\x00", li)
-        bitar = [b.strip() for b in rent.split("\x00") if b.strip()]
+        bitar = [b.strip() for b in re.sub(r"<[^>]+>", "\x00", li).split("\x00") if b.strip()]
         if len(bitar) == 2:
-            # Måttraden bär en parentes som förklarar axlarna — den hör hemma på
-            # sidan, inte på kortet, där utrymmet är åtta rader.
             ut[bitar[0].rstrip(":")] = re.sub(r"\s*\(.*?\)\s*$", "", bitar[1])
     return ut
 
-def rad(s, etikett, visa=None):
-    """Plocka en rad på etikett och dela av enheten så accenten kan sättas."""
-    v = s[etikett]                      # KeyError om etiketten inte finns — med flit
-    m = re.match(r"^(.*?)\s*(cm|kg|grader)$", v)
-    return (visa or etikett, U(m.group(1), m.group(2)) if m else v)
-
-# kicker, titel — det som SKILJER produkten från sina syskon.
-RUBRIK = {
- "25405611": ("GUNGSTOL I GUL MANCHESTER",   "Bokmedar och rak rygg i manchester"),
- "3b5a67d9": ("GUNGSTOL I LJUSGRÅ MANCHESTER","Bokmedar och rak rygg i manchester"),
- "3dbd4f08": ("GUNGSTOL I BEIGE MANCHESTER", "Bokmedar och rak rygg i manchester"),
- "48432e48": ("GUNGSTOL I MÖRKGRÅ SAMMETSLOOK","Rutstickad rygg — samma stomme som manchesterstolarna"),
- "bde44d3c": ("GUNGSTOL I GRÅTT TEDDYTYG",   "Sidoficka och stativ helt i metall"),
- "4f98b924": ("GUNGSTOL I GRÄDDVITT TEDDYTYG","Knappad rygg och medar i gummiträ"),
- "dd4e1e06": ("GUNGSTOL I LJUSGRÅTT TEDDYTYG","Rutstickad rygg och medar i gummiträ"),
- "b4441140": ("GUNGSTOL I GRÄDDVITT TEDDYTYG","Rutstickad rygg och medar i gummiträ"),
-}
+def rad(etikett, varde):
+    m = re.match(r"^(.*?)\s*(cm|kg|grader)$", varde)
+    return (etikett, U(m.group(1), m.group(2)) if m else varde)
 
 def kort_rader(kort):
-    """De ÅTTA rader kortet faktiskt renderar. Grinden anropar den här —
-    inte en egen kopia av listan, för då gatas inte det som byggs."""
+    """De ÅTTA rader kortet renderar. Grinden anropar den här — inte en kopia."""
     s = specrader(kort)
-    # ⚠️ Femte raden skiljer sig mellan de två familjerna, och det är RÄTT:
-    # manchesterstolarnas källa anger dyntjocklek men ingen gungvinkel,
-    # teddystolarnas tvärtom. Kortet tar den produktens egen källa har —
-    # att tvinga in samma etikett på båda hade betytt ett påhittat värde.
-    femte = "Gungvinkel" if "Gungvinkel" in s else "Dyntjocklek"
-    return [rad(s, "Mått"), rad(s, "Sittyta"), rad(s, "Sitthöjd"),
-            rad(s, "Ryggstöd"), rad(s, femte), rad(s, "Maxlast"),
-            rad(s, "Vikt"), ("Material", s["Material"])], s
+    rader = []
+    for post in ONSKAD:
+        for e in (post if isinstance(post, tuple) else (post,)):
+            if e in s:
+                rader.append(rad(e, s[e]))
+                break
+        if len(rader) == 8:
+            break
+    return rader, s
+
+RUBRIK = {
+ "30069c15": ("GUNGSTOL I BEIGE CHENILLE",     "Bokmedar och 53 cm bred sits"),
+ "081f82f1": ("GUNGSTOL I BRUN CHENILLE",      "Bokmedar och 53 cm bred sits"),
+ "ceb8d80c": ("GUNGSTOL I GRÄDDVITT TEDDYTYG", "Sidofickor och 21 cm tjock sits"),
+ "93144f85": ("GUNGSTOL MED FOTPALL, MÖRKGRÅ", "Öronlappsrygg, nackkudde och ben i bok"),
+ "2c0f466e": ("GUNGSTOL MED FOTPALL, BEIGE",   "Öronlappsrygg, nackkudde och ben i bok"),
+ "bbcb8f31": ("ARMLÖS GUNGSTOL I LJUSGRÅTT",   "72 cm bred sits och löstagbart överdrag"),
+ "f642ba45": ("GUNGSTOL MED FOTPALL, VIT",     "Gungar 90 till 130 grader"),
+ "3fb45f4f": ("GUNGSTOL MED PALL, GRÄDDVIT",   "Bär 150 kg och 18 cm tjock rygg"),
+}
 
 namn = []
 for kort, (kicker, titel) in RUBRIK.items():
