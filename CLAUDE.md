@@ -2329,6 +2329,58 @@ inte ska tas bort:
    underlaget svarar den `null` i stället för att gissa, och workflowen
    avslutar med `exit 1` på både `stammer: false` och `EJ AVGORBAR`.
 
+#### ☠️ Grinden säger numera VARFÖR den faller — `slutsald` (2026-09-06)
+
+Cordfåtöljen `1877cf83` fälldes med *"kostnaden har ändrats sedan importen och
+priset i Wix är gammalt"*. Talen sa något annat:
+
+```
+landedCostSek 2404,4
+forvantat     2899      ← 1,20 × 2404,4 = 2885,28 → charm99
+faktiskt      2889      ← samma tal      → charm9
+```
+
+Båda härleds ur SAMMA kostnad. Kostnaden hade inte rört sig — det var
+avrundningsstrategin som byttes 2026-09-03. Raden hade **saldo 0** och hade
+fallit ur feeden, och då räknas priset aldrig om:
+
+```ts
+// lib/aosom/sync.ts, planeraProdukt
+if (!row || opts.skipPrices || !variant) return plan;
+```
+
+`nyttSaldo` blir dessutom `null` när saldot redan är noll, så ingen skrivning
+sker och `aosomSyncedAt` fryser (här: åtta dygn). **Prisgrinden kunde alltså
+aldrig bli grön på den raden, hur länge man än väntade** — och felmeddelandet
+skickade felsökningen åt fel håll.
+
+`Prisgrind.slutsald` är tredje fältet i samma familj som `regelGäller` och
+`prisLast`: grinden faller, men skälet är ett annat och ska sägas rakt ut.
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Grenen ligger FÖRE `regelGäller`.** Annars vinner "kostnaden har
+   ändrats" över det sanna skälet, vilket är hela buggen.
+2. ☠️ **Bara ett uttryckligt `0` räknas.** `aosomSyncedQty` är optional och
+   saknas på en rad som aldrig synkats; `undefined` är ingen bevisning om
+   saldot, precis som en saknad hyllstatus blir `unknown` och aldrig
+   `offline`. Ett `!qty` hade fällt varje nyimporterad produkt.
+3. ⚠️ **Ett korrekt pris på en slutsåld rad fäller INTE jobbet** — bara en
+   varning. En rad som försvinner ur feeden är enligt Aosoms egen guide ett
+   lagerbesked, inte en utgången artikel, och sidan ska ligga kvar. Ett rött
+   jobb på det hade varit samma falsklarm som `regelGäller` byggdes för.
+4. ⚠️ **Fältet skiljer inte "borta ur feeden" från "finns kvar men slutsåld".**
+   Båda ger saldo 0 och båda fryser stämpeln, och mappningsraden bär inget
+   belägg för vilket det är. Meddelandet påstår därför bara det som går att
+   veta. En grind som påstår mer än den vet är precis felet den ersätter.
+
+⚠️ **Och saldot borde kollas FÖRE poleringen, inte fångas av en bieffekt.**
+Prisgrinden hittade `1877cf83` av en slump — ingenting i arbetsgången frågar
+"går varan att köpa?" innan en text skrivs. En sida för en vara ingen kan köpa
+är slöseri i båda ändar, och kollen kostar ett Wix-anrop för en hel runda.
+
+Fyra tester, verifierade genom att återinföra buggarna: `!qty` i stället för
+`=== 0` fäller ett, en hårdkodad `false` fäller tre.
+
 ### ☠️ Och två fällor till i samma block (2026-09-02)
 
 Hittade när ett e-postbrus skulle förklaras. Poleringsworkflowen mejlade

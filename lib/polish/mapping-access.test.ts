@@ -184,4 +184,48 @@ describe("regelGäller — skiljer drift från en äldre prisregel", () => {
     expect(prisgrind(rad(), cfg, 1.2)!.prisLast).toBe(false);
     expect(prisgrind(rad({ prisLast: false }), cfg, 1.2)!.prisLast).toBe(false);
   });
+
+  it("☠️ en SLUTSÅLD rad bär slutsald — prisfallet har ett annat skäl än drift", () => {
+    // Cordfåtöljen 1877cf83, 2026-09-06: landedCostSek 2404,4 ger 2889 med
+    // charm9 och 2899 med charm99 — SAMMA kostnad, bara den avrundning som
+    // byttes 2026-09-03. Grinden sa ändå "kostnaden har ändrats sedan
+    // importen". Rätt råd, fel skäl, och skälet skickade felsökningen åt fel
+    // håll: raden hade saldo 0 och hade fallit ur feeden, och `planeraProdukt`
+    // hoppar över hela prisdelen (`if (!row …) return plan`) på en sådan rad.
+    // Prisgrinden kan alltså aldrig bli grön där.
+    const slut = prisgrind(
+      rad({
+        aosomSyncedQty: 0,
+        variants: [{ ...rad().variants[0], landedCostSek: 2404.4, grossSek: 2889 }],
+      }),
+      { rounding: "charm99" },
+      1.2,
+    )!;
+    expect(slut.slutsald).toBe(true);
+    // Matten är oförändrad — fältet ändrar rapporteringen, inte uträkningen.
+    expect(slut.förväntatSek).toBe(2899);
+    expect(slut.faktisktSek).toBe(2889);
+    expect(slut.stämmer).toBe(false);
+    expect(slut.regelGäller).toBe(true);
+  });
+
+  it("☠️ BARA ett uttryckligt 0 räknas som slutsåld — undefined är ingen bevisning", () => {
+    // `aosomSyncedQty` är optional och saknas på en rad som aldrig synkats.
+    // Att läsa avsaknad som "slutsåld" hade fällt varje nyimporterad produkt —
+    // samma riktning som att en saknad hyllstatus blir `unknown`, aldrig
+    // `offline`.
+    expect(prisgrind(rad(), cfg, 1.2)!.slutsald).toBe(false);
+    expect(prisgrind(rad({ aosomSyncedQty: undefined }), cfg, 1.2)!.slutsald).toBe(false);
+    expect(prisgrind(rad({ aosomSyncedQty: 14 }), cfg, 1.2)!.slutsald).toBe(false);
+    expect(prisgrind(rad({ aosomSyncedQty: 0 }), cfg, 1.2)!.slutsald).toBe(true);
+  });
+
+  it("slutsald och stämmer är oberoende — en slutsåld rad med rätt pris är inget fel", () => {
+    // En rad som försvunnit ur feeden är enligt Aosoms egen guide ett
+    // lagerbesked, inte en utgången artikel: sidan ska ligga kvar. Att fälla
+    // jobbet på ett korrekt pris hade varit ett falsklarm.
+    const g = prisgrind(rad({ aosomSyncedQty: 0 }), cfg, 1.2)!;
+    expect(g.slutsald).toBe(true);
+    expect(g.stämmer).toBe(true);
+  });
 });
