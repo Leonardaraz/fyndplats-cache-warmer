@@ -1,0 +1,242 @@
+{
+ "5646a8ff": {
+  "kicker": "Verkstadspall med lådor",
+  "rubrik": "Fast sitthöjd 35 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "64,5 × 33 × 35 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "44 × 25 cm"
+   },
+   {
+    "etikett": "Verktygsfack",
+    "varde": "26 × 25 × 5 cm"
+   },
+   {
+    "etikett": "Låda",
+    "varde": "21 × 22,5 × 12,5 cm"
+   },
+   {
+    "etikett": "Hjul",
+    "varde": "10 cm, fyra stycken varav två med broms"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "135 kg"
+   }
+  ]
+ },
+ "f18dfc3b": {
+  "kicker": "Pendelpall med vippande sits",
+  "rubrik": "Vippar upp till 5°",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "42,5 × 35,5 × 56,5–71,5 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "41 × 35 cm"
+   },
+   {
+    "etikett": "Stoppningens tjocklek",
+    "varde": "4,5 cm"
+   },
+   {
+    "etikett": "Fotens diameter",
+    "varde": "38,5 cm"
+   },
+   {
+    "etikett": "Vippfunktion",
+    "varde": "upp till 5° åt alla håll"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "239e68b8": {
+  "kicker": "Salongspall utan rygg",
+  "rubrik": "9 cm formgjutet skum",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "44 cm × 52–67,5 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "39 × 34,5 cm"
+   },
+   {
+    "etikett": "Skummets tjocklek",
+    "varde": "9 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "52–67,5 cm"
+   },
+   {
+    "etikett": "Vridning",
+    "varde": "360°"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "15ff0d64": {
+  "kicker": "Arbetspall med rygg och fotring",
+  "rubrik": "Sitthöjd 49–65 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "43 × 43 × 59–75 cm"
+   },
+   {
+    "etikett": "Sits",
+    "varde": "37 × 33 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "49–65 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "35 × 10 cm"
+   },
+   {
+    "etikett": "Fotring",
+    "varde": "ja, runt pelaren"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg"
+   }
+  ]
+ },
+ "d348bf64": {
+  "kicker": "Rullpall med rygg, svart",
+  "rubrik": "Sitthöjd 43–55 cm",
+  "rader": [
+   {
+    "etikett": "Total höjd",
+    "varde": "72–84 cm"
+   },
+   {
+    "etikett": "Sitsens diameter",
+    "varde": "35 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "43–55 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "32 × 23 cm"
+   },
+   {
+    "etikett": "Vridning",
+    "varde": "360°"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "136 kg"
+   }
+  ]
+ },
+ "fa078e03": {
+  "kicker": "Rullpall med rygg, beige",
+  "rubrik": "Sitthöjd 43–55 cm",
+  "rader": [
+   {
+    "etikett": "Total höjd",
+    "varde": "72–84 cm"
+   },
+   {
+    "etikett": "Sitsens diameter",
+    "varde": "35 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "43–55 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "32 × 23 cm"
+   },
+   {
+    "etikett": "Fotens diameter",
+    "varde": "48 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "136 kg"
+   }
+  ]
+ },
+ "87de04ad": {
+  "kicker": "Rullpall med ringrygg",
+  "rubrik": "Bred fot 50 × 54 cm",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "50 × 54 × 66–78 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "45–57 cm"
+   },
+   {
+    "etikett": "Ryggstöd",
+    "varde": "ringformat, omsluter ryggen och sidorna"
+   },
+   {
+    "etikett": "Stativ",
+    "varde": "kromat stål"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "6 kg"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "136 kg"
+   }
+  ]
+ },
+ "28532aab": {
+  "kicker": "Rullpallar 2-pack",
+  "rubrik": "Sitthöjd 48–63 cm",
+  "rader": [
+   {
+    "etikett": "Antal",
+    "varde": "2 pallar"
+   },
+   {
+    "etikett": "Mått per pall",
+    "varde": "48,5 cm × 48–63 cm"
+   },
+   {
+    "etikett": "Sitsens diameter",
+    "varde": "35,5 cm"
+   },
+   {
+    "etikett": "Sitthöjd",
+    "varde": "48–63 cm"
+   },
+   {
+    "etikett": "Klädsel",
+    "varde": "konstläder, rutstickad"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "120 kg per pall"
+   }
+  ]
+ }
+}
