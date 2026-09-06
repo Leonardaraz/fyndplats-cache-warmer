@@ -252,7 +252,7 @@ Skriv en rad när du tar en familj, och stryk den när den är klar. En familj u
 | `^Ohrensessel` | den andra sessionen | ✅ klar (0 utkast) |
 | `^Hängesessel` + `^Bodensessel` | den andra sessionen | ✅ klar (0 utkast) |
 | `^Schlafsessel` + de fyra Skandidesign | den andra sessionen | ✅ klar (0 utkast) |
-| **Fåtöljresten** — se nästa avsnitt | **runda 62–73-sessionen** | **pågår (runda 74)** |
+| **Fåtöljresten** — se nästa avsnitt | **runda 62–73-sessionen** | ☠️ **BÅDA sessionerna skriver här — se sista avsnittet** |
 | El-/massage-/uppresningsfåtöljer | — | fri, men INTE redo (egen Steg 2-grind) |
 
 -----
@@ -331,3 +331,38 @@ Alla fyra: 78 × 87 × 100 cm, liggande 78 × 151 × 89, 145°, 360°, 120 kg,
 ut.** Ett halvt syskonskap ger en publicerad sida vars "finns i fler färger"
 är ofullständig så fort resten poleras — och den bristen syns inte förrän
 familjen är klar.
+
+---
+
+## ☠️ Fåtöljresten POLERAS AV BÅDA SESSIONERNA — mätt, inte anat (2026-09-06)
+
+Runda 74 tog åtta produkter ur "Fåtöljresten". Mitt i rundan, mellan
+media-skrivningen och publiceringen, hade **sex av de åtta fått SKU och
+blivit publicerade av någon annan.**
+
+Att det är den andra sessionen är mätt, inte gissat: SKU:n
+`FP-manchesterfatolj-petrolbla` har en produktdel på 26 tecken, medan både
+`PRODUCT_PART_MAX` i `lib/import/sku.ts` och `sku_bas` i `grindar.py` kapar
+vid **24**. Ingen kodväg i repot kan producera strängen — den är handskriven.
+
+**Skadan blev noll, och det var tur.** Inga dubblettsidor skapades (elva
+träffar i katalogsvepet: mina åtta plus två publicerade syskon plus en
+orelaterad), och min slug, mitt namn, min brödtext, min SEO och alla sex
+bilder överlevde på alla åtta. Men det hade lika gärna kunnat bli två sidor
+för samma möbel — precis den interna dubblett Google straffar, och som
+`CLAUDE.md` kallar "den farliga dubbletten".
+
+⚠️ **Den här filen räckte inte.** Fåtöljresten stod redan som upptagen av
+runda 62–73-sessionen när runda 74 började. Ägarskapet var alltså SKRIVET
+och ändå kolliderade vi — en fördelningsfil hjälper bara den som läser om
+den, och en session som redan valt sin familj läser den inte igen.
+
+**Praktisk regel tills något bättre finns: läs produktens `revision` FÖRE
+varje skrivsteg och jämför mot den du senast lämnade.** Runda 74 upptäckte
+kollisionen på exakt det sättet (rev 6 → rev 8 utan mina skrivningar
+emellan), och det var billigare än varje annan kontroll.
+
+Vid krock: **butiken vinner, inte den egna filen.** Runda 74 behöll de sex
+SKU:er som redan låg i butiken och stämplade mappningen med DEM — en
+mappning som bär ett annat SKU än butiken är samma klass av lögn som den som
+lät prissynken skriva till ingenting i en månad.
