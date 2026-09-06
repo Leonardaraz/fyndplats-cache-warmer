@@ -797,6 +797,58 @@ sajten. Funktionen skickar nu alltid tillbaka `visible` oförändrad; saknas
 fältet i svaret utelämnas det hellre än gissas. Fem tester i `v3-prices.test.ts`
 låser det.
 
+#### ☠️ VARIANTEN HAR ETT EGET `visible` — och 31 sidor gick inte att köpa (2026-09-06)
+
+Regeln ovan gäller PRODUKTEN. Varje variant i `variantsInfo.variants[]` bär ett
+eget `visible`, och en variantsInfo-PATCH som inte bär det nollställer det. Samma
+fälla, en nivå ner — och den här riktningen är dyrare, för den syns inte i något
+utkast: produkten ligger kvar publicerad.
+
+Uppmätt på hela den publicerade katalogen (2 032 produkter, fyra slices, 100 %
+täckning): **31 sidor var publicerade men oköpbara.** Noll delvis dolda.
+
+```
+produkt   visible: true            → sidan ligger ute, i sitemapen, indexerad
+variant   visible: false           → butiken visar "Slutsåld"
+Wix-lager quantity: 197, IN_STOCK  → varan finns
+```
+
+Butiken behandlar en produkt utan en enda synlig variant som slutsåld: sidan
+renderade *"Varan är tillfälligt slut hos oss"* och JSON-LD `OutOfStock` medan
+lagret var fullt. Alla 31 var fåtöljer och madrasser ur poleringsrundor.
+
+⚠️ **Och det är INTE repots kod som tappar fältet — båda skrivarna är
+kontrollerade och gör rätt.** `createProduct` sätter `visible: v.visible ?? true`,
+och `updateV3VariantPrices` muterar varianterna från sin EGEN GET, så fältet
+följer med. Defekten sitter i poleringens SKU-steg, som skrivs **för hand från
+chatten**: mappningsradens SKU går via `/api/admin/mapping`, men Wix-variantens
+SKU har ingen egen rutt, så den PATCHas med ett handbyggt variantobjekt. Utelämnar
+man `visible` där defaultar Wix det till `false`.
+
+☠️ **Regeln för den som skriver `variantsInfo` för hand: bygg aldrig
+variantobjektet från grunden.** Läs produkten, ta variantobjektet som det står
+och ändra bara fältet du menar — precis som `updateV3VariantPrices` gör. Ett
+handbyggt objekt tappar tyst varje fält du inte råkade tänka på, och `visible`
+är det dyraste av dem.
+
+☠️ **Och produktens `inventory.availabilityStatus` sa `IN_STOCK` hela tiden.**
+Wix egen produktnivå vet ingenting om det här; frågar man den ser katalogen
+frisk ut. Det enda som avslöjar det är `variantsInfo.variants[].visible` —
+och det fältet finns **inte i sökprojektionen**, så en katalogskanning kräver
+en GET per produkt. 2 032 GETs ryms inte i ExecuteWixAPI:s 60 sekunder; kör i
+slices om ~500.
+
+⚠️ **Två mätfällor på vägen dit, båda värda att komma ihåg.** Butikens ISR gör
+att en enstaka hämtning kan servera en gammal rendering — måttet blev
+trovärdigt först när `age` var 11 sekunder och sidan FORTFARANDE sa
+`OutOfStock`. Och `brodtext`-svepet strippar taggar, så texten "Slutsåld" syns
+även när den ligger i dold markup; det som faktiskt skiljer är JSON-LD:ns
+`availability`.
+
+Lagningen är att skriva tillbaka `visible: true` på varianten med produktens
+`visible` medskickad explicit. Verifierat per rad: 0 → 1 synlig variant,
+produktens synlighet oförändrad, **pris och SKU orörda på alla 31**.
+
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
 ☠️ **`place-order.ts` är HELT AliExpress och vägrar numera allt annat.** Den
