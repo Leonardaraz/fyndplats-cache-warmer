@@ -37,6 +37,15 @@ mkdir -p live
 # (det ar traffen som startar omrenderingen), och las forst efter pausen.
 STALE=300
 echo "== varm traff (triggar bakgrundsrendering) =="
+# ⚠️ VANTA EN GANG, INTE PER SIDA. Forsta versionen av det har vantade ut
+# stale-fonstret inuti loopen: en batch dar tva sidor var farska kostade 218 + 305
+# sekunder i rad, och under tiden hann de sex som redan var inaktuella bli
+# inaktuella IGEN — sa den skarpa hamtningen fick en gammal sida anda. Sidorna i
+# en batch skrivs i samma veva och blir darfor mogna ungefar samtidigt: matt
+# aldern pa alla forst, vanta en gang pa den yngsta, och traffa sedan om bara de
+# som annu inte hade hunnit bli inaktuella.
+farska=""
+langst=0
 while read -r pid slug; do
   [ -z "${pid:-}" ] && continue
   hdr=$(curl -s -D - -o /dev/null "https://www.fyndplats.se/produkt/$slug")
@@ -45,13 +54,22 @@ while read -r pid slug; do
   age=${age:-0}
   if [ "$age" -lt "$STALE" ]; then
     kvar=$((STALE - age + 5))
-    echo "  $pid $slug  $code  age=$age — annu farsk, vantar ${kvar}s och traffar igen"
-    sleep "$kvar"
-    curl -s -o /dev/null "https://www.fyndplats.se/produkt/$slug"
+    [ "$kvar" -gt "$langst" ] && langst=$kvar
+    farska="$farska$pid $slug\n"
+    echo "  $pid $slug  $code  age=$age — annu farsk"
   else
     echo "  $pid $slug  $code  age=$age — inaktuell, omrendering startad"
   fi
 done < slugs.txt
+
+if [ -n "$farska" ]; then
+  echo "  -- vantar ${langst}s en gang, traffar sedan om de farska --"
+  sleep "$langst"
+  printf '%b' "$farska" | while read -r pid slug; do
+    [ -z "${pid:-}" ] && continue
+    curl -s -o /dev/null "https://www.fyndplats.se/produkt/$slug"
+  done
+fi
 
 sleep "$paus"
 
