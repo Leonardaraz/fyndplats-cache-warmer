@@ -254,7 +254,7 @@ Skriv en rad när du tar en familj, och stryk den när den är klar. En familj u
 | `^Schlafsessel` + de fyra Skandidesign | den andra sessionen | ✅ klar (0 utkast) |
 | **Fåtöljresten** — se nästa avsnitt | **runda 62–73-sessionen** | ☠️ **BÅDA sessionerna skriver här — se sista avsnittet** |
 | El-/massage-/uppresningsfåtöljer | — | fri, men INTE redo (egen Steg 2-grind) |
-| **Kontorsstolar** (`Bürostuhl`/`Chefsessel`/`Drehstuhl`/`Schreibtischstuhl`) | **runda 62–75-sessionen** | **pågår (runda 75)** — 186 utkast, mätt 2026-09-06 |
+| **Kontorsstolar** (`Bürostuhl`/`Chefsessel`/`Drehstuhl`/`Schreibtischstuhl`) | **runda 62–76-sessionen** | **pågår (runda 76)** — 186 utkast mätt 2026-09-06, 7 publicerade i runda 75 |
 
 -----
 
@@ -392,3 +392,21 @@ runda mött.** Jämför måtten, inte namnen, innan något poleras.
 ⚠️ **Massage- och värmemodellerna kräver egen Steg 2-grind** (el, och
 hälsopåståenden om massage). De ligger kvar i familjen men poleras inte förrän
 grinden är körd — samma hållning som el-/uppresningsfåtöljerna.
+
+### Runda 75 tog sju av dem — och grupp D är nästa
+
+Publicerade 2026-09-06: `kontorsstol-benvit-boucle`, `kontorsstol-ljusgra-boucle`,
+`kontorsstol-ljusbrun-boucle`, `kontorsstol-graddvit-fotstod`,
+`kontorsstol-brun-fotstod`, `snurrstol-gra-fast-fot`, `snurrstol-benvit-fast-fot`.
+Hela rundan ligger i `runda-75/LAGE.md`.
+
+☠️ **Dubblettrisken var inte teoretisk.** Ett åttonde utkast (`501ba88f`) visade
+sig vara samma produkt i samma kulör som den publicerade
+`kontorsstol-fotstod-sammet` och plockades ur rundan. Bevisningen är åtta
+samstämmiga MÅTT — inte paketmåttet, som varken duger som modellsignatur
+(runda 74) eller går att jämföra mot publicerade sidor, vilka listar
+produktmåttet.
+
+**Runda 76 börjar på grupp D:** `10235819` (Hellgrau) och `4fa0ae0a`
+(Dunkelgrau), 74 × 65 × 120–128 cm, 120 kg. Dubblettgrinden är ren på båda.
+
