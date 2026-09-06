@@ -2663,3 +2663,215 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
    dominerar ett enda utförligt omdöme hela sektionen. */
 .rev-text-klamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 .rev-expand{background:none;border:0;padding:0;margin-top:4px;color:#b45309;font-size:var(--text-sm);text-decoration:underline;cursor:pointer}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   FUTDADDYH — officiell merch (scoped under .fd)
+
+   Samma grepp som .a-stage: en egen palett i EN klass i stället för
+   hundra överstyrningar. Allt här gäller bara /futdaddyh, och
+   sajtens tokens (radier, typskala, elevationer) återanvänds rakt av
+   så sidan känns som hans utan att bli ett andra designsystem.
+
+   PALETTEN ÄR HANS, INTE VÅR. Guld på nästsvart, avläst ur hans egen
+   banner: kronan och ordmärket i guld, stadionljus i bakgrunden.
+   Fyndplats orange förekommer inte här — det vore att sätta vårt
+   varumärke i hans butik.
+
+   OCH GULDET ÄR SPARSAMT. Det bär rubriken, kronan och en knapp.
+   Läggs det på allt slutar det vara accent och blir bakgrund — samma
+   läxa som omdömessidan gav 2026-09-04.
+   ═══════════════════════════════════════════════════════════════════ */
+/* Tokens sitter på BODY, inte på .fd. Headern och promoraden ligger utanför
+   .fd i DOM:en, och de ska bära samma palett — utan detta hade de fått läsa
+   färgerna ur en förälder som inte har dem. */
+body:has(.fd){
+  --fd-bg:#0B0B0C;
+  --fd-bg2:#121215;
+  --fd-panel:#17171B;
+  --fd-line:#2A2A31;
+  --fd-ink:#F5F3EF;
+  --fd-soft:#A5A099;
+  --fd-gold:#D9A441;
+  --fd-gold-hi:#F0CE7A;
+}
+.fd{
+  background:var(--fd-bg);
+  color:var(--fd-ink);
+  margin:0;
+}
+.fd ::selection{background:var(--fd-gold);color:#000}
+
+/* ── Hjälten ──────────────────────────────────────────────────────── */
+.fd-hero{position:relative;overflow:hidden;
+  background:radial-gradient(120% 90% at 70% 0%,#1E1A14 0%,var(--fd-bg) 64%)}
+/* Två spalter: ordmärket till vänster, han till höger — samma uppställning
+   som hans banner. text-align sätts i spalten, inte på hjälten, så bilden
+   aldrig ärver centreringen. */
+.fd-hero-inner{display:grid;grid-template-columns:1fr minmax(300px,46%);
+  align-items:center;gap:28px;padding-top:52px;padding-bottom:52px}
+.fd-hero-text{text-align:center}
+.fd-crown{width:74px;height:auto;margin:0 auto 18px;display:block}
+/* Strålkastarna. Två svaga koner, inte ett ljusshow: de ska antyda
+   arena utan att stjäla från ordmärket. */
+.fd-hero::before,.fd-hero::after{content:"";position:absolute;top:-30%;width:42%;height:120%;
+  background:radial-gradient(closest-side,rgba(217,164,65,.16),transparent 72%);
+  filter:blur(46px);pointer-events:none}
+.fd-hero::before{left:-8%}
+.fd-hero::after{right:-8%}
+.fd-hero>*{position:relative;z-index:1}
+.fd-wordmark{font-family:var(--font-display),Georgia,serif;font-weight:600;
+  font-size:clamp(38px,7vw,68px);letter-spacing:-.02em;line-height:1;margin:0;
+  background:linear-gradient(180deg,var(--fd-gold-hi),var(--fd-gold));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.fd-tagline{margin:16px auto 0;max-width:34ch;color:var(--fd-ink);
+  font-size:var(--text-sm);letter-spacing:.16em;text-transform:uppercase}
+.fd-tagline b{display:block;color:var(--fd-gold);font-weight:700;margin-top:4px}
+
+.fd-social{display:flex;justify-content:center;gap:10px;margin-top:26px;flex-wrap:wrap}
+.fd-social a{display:inline-flex;align-items:center;gap:8px;min-height:44px;
+  padding:10px 16px;border:1px solid var(--fd-line);border-radius:var(--r-pill);
+  color:var(--fd-ink);text-decoration:none;font-size:var(--text-xs);font-weight:600;
+  background:rgba(255,255,255,.03);transition:border-color .2s,background .2s}
+.fd-social a:hover{border-color:var(--fd-gold);background:rgba(217,164,65,.08)}
+.fd-social a:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
+
+/* Bilden tonar redan till svart i sin vänsterkant — den är beskuren ur
+   bannern, där han står mot mörker. Gradienten nedanför tar hand om resten
+   så kanten aldrig syns som en kant. */
+.fd-hero-img{position:relative}
+.fd-hero-img img{display:block;width:100%;height:auto;border-radius:var(--r-lg)}
+.fd-hero-img::after{content:"";position:absolute;inset:0;pointer-events:none;
+  border-radius:var(--r-lg);
+  background:linear-gradient(90deg,var(--fd-bg) 0%,rgba(11,11,12,0) 26%)}
+
+/* Telefon: en spalt. Han först — ett ansikte drar blicken bättre än ett
+   ordmärke — sedan namnet och länkarna. Strålkastarkonerna stängs av;
+   i en spalt lägger de bara dis över texten. */
+@media(max-width:860px){
+  .fd-hero-inner{grid-template-columns:1fr;gap:22px;padding-top:26px;padding-bottom:40px}
+  .fd-hero-img{order:-1;margin:0 -26px}
+  .fd-hero-img img{border-radius:0;aspect-ratio:16/11;object-fit:cover;object-position:32% center}
+  .fd-hero-img::after{border-radius:0;
+    background:linear-gradient(180deg,rgba(11,11,12,0) 62%,var(--fd-bg) 100%)}
+  .fd-hero::before,.fd-hero::after{display:none}
+}
+
+/* ── Sektioner ────────────────────────────────────────────────────── */
+.fd-sec{padding:56px 0}
+.fd-sec+.fd-sec{border-top:1px solid var(--fd-line)}
+.fd-h2{font-family:var(--font-display),Georgia,serif;font-weight:600;
+  font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;margin:0 0 8px;text-align:center}
+.fd-lead{margin:0 auto 30px;max-width:56ch;text-align:center;color:var(--fd-soft);
+  font-size:var(--text-base);line-height:1.6}
+
+/* ── Klippet ──────────────────────────────────────────────────────── */
+/* Filmen ligger till vänster och texten till höger — spegelvänt mot
+   hjälten ovanför, så sidan inte får två identiska uppställningar efter
+   varandra. Rutan är 576×516 (48:43), måtten som blev kvar när TikToks
+   textruta och vattenstämpel klipptes bort. aspect-ratio håller platsen
+   redan innan filmen finns, så ingenting hoppar när den dyker upp. */
+.fd-clip{display:grid;grid-template-columns:minmax(260px,40%) 1fr;gap:40px;align-items:center}
+.fd-clip-video{position:relative}
+.fd-clip-v{display:block;width:100%;height:auto;aspect-ratio:48/43;object-fit:cover;
+  background:#000;border:1px solid var(--fd-line);border-radius:var(--r-lg)}
+.fd-clip-text .fd-h2{text-align:left;margin-left:0;margin-bottom:22px}
+/* Ljudknappen ligger i rutans hörn, inte utanför: den hör till filmen, och
+   en kontroll som sitter bredvid sin film läses som en till länk. 44 px är
+   tryckytan, inte ikonen — ikonen är 20 och centrerad i den. */
+.fd-clip-ljud{position:absolute;right:10px;bottom:10px;width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.18);border-radius:50%;
+  background:rgba(0,0,0,.55);color:#fff;cursor:pointer;
+  transition:background .2s,border-color .2s,color .2s}
+.fd-clip-ljud svg{width:20px;height:20px}
+.fd-clip-ljud:hover{background:rgba(0,0,0,.75);border-color:var(--fd-gold);color:var(--fd-gold)}
+.fd-clip-ljud:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
+.fd-clip-link{display:inline-flex;align-items:center;min-height:44px;
+  padding:0 20px;border:1px solid var(--fd-line);border-radius:var(--r-pill);
+  color:var(--fd-ink);font-size:var(--text-sm);font-weight:600;text-decoration:none;
+  transition:border-color .2s,background .2s}
+.fd-clip-link:hover{border-color:var(--fd-gold);background:rgba(217,164,65,.08)}
+.fd-clip-link:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
+@media(max-width:860px){
+  .fd-clip{grid-template-columns:1fr;gap:22px}
+  .fd-clip-video{max-width:340px;margin:0 auto}
+  .fd-clip-text{text-align:center}
+  .fd-clip-text .fd-h2{text-align:center}
+}
+
+/* ── Droppet ──────────────────────────────────────────────────────── */
+/* Rutnätet är byggt för riktiga produkter. Tills Printful-artiklarna
+   finns visar det ÄRLIGA platshållare: plagget, inte ett påhittat
+   pris. Att sätta ut "399 kr" på något som inte går att köpa är att
+   ljuga i butik. */
+/* auto-FIT, inte auto-fill: fem plagg ska fylla raden jämnt i stället för
+   att lämna en ensam femma under fyra. minmax(190px) ger fem i bredd i
+   1180-containern. Telefonen får två explicit — ett kort per rad gjorde
+   sidan 10 000 px lång, och ingen scrollar så långt för fem plagg. */
+.fd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;
+  list-style:none;margin:0;padding:0}
+@media(max-width:620px){.fd-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .fd-item-body{padding:12px 12px 14px}}
+.fd-item{background:var(--fd-panel);border:1px solid var(--fd-line);border-radius:var(--r-lg);
+  overflow:hidden;display:flex;flex-direction:column}
+.fd-shot{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#1C1C21,#111114);color:var(--fd-line)}
+.fd-shot svg{width:44%;height:auto;color:#3A3A44}
+.fd-item-body{padding:16px 16px 18px}
+.fd-item h3{margin:0;font-size:var(--text-base);font-weight:700;color:var(--fd-ink)}
+.fd-item p{margin:6px 0 0;font-size:var(--text-xs);color:var(--fd-soft);line-height:1.5}
+.fd-soon{display:inline-block;margin-top:12px;font-size:var(--text-xs);font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--fd-gold)}
+
+/* ── Tillbaka till butiken ────────────────────────────────────────── */
+.fd-back{text-align:center;padding:34px 0 56px}
+.fd-back a{color:var(--fd-soft);font-size:var(--text-sm);text-decoration:none}
+.fd-back a:hover{color:var(--fd-gold)}
+
+/* footer{margin-top:64px} är en sajtövergripande regel. På ljus botten är
+   den luft; här blev den ett VITT BAND mellan sidans svarta slut och den
+   mörka footern. Nollas bara för den här sidan. Samma :has-grepp som
+   body:has(.sticky-buy-mobile) längre upp i filen. */
+body:has(.fd) footer{margin-top:0}
+
+/* HEADERN PÅ HANS SIDA: slutar följa med, och byter färg.
+   Två klagomål från Leonard, samma rot. Sajtens header är sticky med ljus
+   botten, så på en kolsvart sida seglade en vit sökrad in över innehållet
+   vid varje skrollning — och stod dessutom och lyste redan när man kom in.
+
+   position:static löser det första på riktigt: raden finns kvar högst upp
+   och stannar där. Ingen backdrop-filter kvar att rita om varje bildruta,
+   alltså inte heller något som kan halka efter på iOS — den tidigare
+   lagningen var rätt orsak men fel botemedel.
+
+   Resten är palettbytet. Loggan får behålla sitt orange: den ska fortsätta
+   säga Fyndplats, det är fortfarande vår butik han handlar i.
+
+   :not(.fd-hero) är inte kosmetik — sidans egen hjälte är också ett
+   <header>, och utan undantaget hade den blivit svart platta. */
+body:has(.fd) header:not(.fd-hero){
+  position:static;
+  background:var(--fd-bg);
+  border-bottom:1px solid var(--fd-line);
+  backdrop-filter:none;
+}
+body:has(.fd) .promo{background:#000;color:var(--fd-soft)}
+body:has(.fd) .brand{color:var(--fd-ink)}
+body:has(.fd) .cartbtn,
+body:has(.fd) .wl-btn,
+body:has(.fd) .hamburger,
+body:has(.fd) .meganav{color:var(--fd-soft)}
+body:has(.fd) .cartbtn:hover,
+body:has(.fd) .wl-btn:hover,
+body:has(.fd) .hamburger:hover,
+body:has(.fd) .meganav-shop:hover,
+body:has(.fd) .meganav-link:hover{color:var(--fd-gold);background:none}
+body:has(.fd) .search{background:var(--fd-panel);border-color:var(--fd-line)}
+body:has(.fd) .search input{color:var(--fd-ink)}
+body:has(.fd) .search input::placeholder{color:var(--fd-soft)}
+body:has(.fd) .search:focus-within{background:var(--fd-bg2);border-color:var(--fd-gold)}
+
+@media (prefers-reduced-motion:reduce){
+  .fd-hero::before,.fd-hero::after{animation:none}
+}
