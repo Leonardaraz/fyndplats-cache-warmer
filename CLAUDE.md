@@ -1412,6 +1412,22 @@ Båda syns i den RENDERADE sidan, och båda är nu maskinellt grindade i
 `livegrind.py`. Verifierad åt båda hållen: den fäller på alla åtta F1-sidor och
 går REN på referenssidor ur andra rundor, som klarar kraven.
 
+✅ **Alla 41 lagade samma dag: 57 av 57 klarar nu båda kraven.** Kategorin är
+`Husdjur` + löv för klösträden och `Hem & Inredning` utan löv för sittmöblerna —
+trädet har inget sittmöbel-löv, och runbooken säger att toppkategorin räcker då.
+Skötseltexten är skriven per materialgrupp och grindad före varje skrivning
+(`gate-skotsel.py`): manchester borstas i luggens riktning, teddyfleece dammsugs
+med lågt sug, gummiträ torkas torrt, snurrfoten rensas från hår, och golvsoffan
+har inga skruvar att efterdra. En mall hade varit snabbare och sagt fel om åtta
+av produkterna.
+
+⚠️ **Och ISR-fällan slog till en gång till, i mätningen av lagningen.** Ett svep
+med tre pass — varm träff, 310 s, varm träff, 90 s, mät — rapporterade två sidor
+som fortfarande trasiga. Wix hade dem rätt, och en omhämtning gav rätt svar
+direkt. Svepet läser 57 sidor sekventiellt, så de som lästes tidigt hann inte få
+sin omrendering klar. **En sida i taget är facit; ett svep är ett stickprov med
+tidsberoende.** Läs age, och läs om de som faller innan du kallar dem trasiga.
+
 ☠️ **Lärdomen är inte "läs checklistan noggrannare".** Den lästes — punkterna
 citerades till och med i rundornas README-filer. En checklista som bara hjälper
 den som redan kommer ihåg punkten är ingen spärr, det är en påminnelse. Samma
