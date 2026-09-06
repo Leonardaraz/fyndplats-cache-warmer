@@ -28,3 +28,6 @@
 # Per-produkt-remsor byggda för att skriva alt-texter. Steg 4:s bevis är
 # `kontaktark.jpg` — de här är bara ett sätt att titta på samma bilder.
 */ark-*.jpg
+
+# Färgmätningens beskurna rutor — mellanled, talet bor i farg.json
+*/beskuret/
