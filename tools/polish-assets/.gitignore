@@ -14,3 +14,17 @@
 # roten kostar ett bygge, så mönstret kompletteras här i stället.
 */kontaktark.jpg
 */rawbilder/
+
+# Kortbyggets mellanlägg (runda 73). `cards/` är cardkits PNG-renderingar —
+# 34 MB på en runda — och `jpg/` är JPEG:erna innan de kopieras till den
+# SPÅRADE `kort/`. Båda går att återskapa med `python3 kort.py`.
+*/cards/
+*/jpg/
+
+# Uppmjukade hjältebilder som kortbygget skapar när ett kort spränger 215 kB.
+# Härledda ur `rawbilder/`, som redan är ignorerad.
+*-mjuk.jpg
+
+# Per-produkt-remsor byggda för att skriva alt-texter. Steg 4:s bevis är
+# `kontaktark.jpg` — de här är bara ett sätt att titta på samma bilder.
+*/ark-*.jpg
