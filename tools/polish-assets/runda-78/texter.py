@@ -36,6 +36,22 @@ BAS = "https://www.fyndplats.se/produkt/"
 # sidan (`Sitthöjd: 51–67 cm`), inte gissad — därav EXTERN_TAL i linten.
 PUBL_ARBETSSTOL = ("arbetsstol-hjul-51-67-cm-avtagbar-rygg", "sitthöjd 51–67 cm")
 
+# ☠️ TVÅ PUBLICERADE PALLSIDOR SOM RUNDANS EGET SVEP MISSADE. Regexen var
+#    `(stol|sessel|stuhl|hocker|chair)` och matchar inte `pall`, så butikens
+#    egna pallsidor var osynliga för krockgrinden. Båda äger ett sökord den
+#    här rundan också använder, och saknade därför korslänk:
+#
+#    * `arbetspall-med-hjul` — 48–63 cm, sits ø35,5, bas ø48,5, 120 kg.
+#      SAMMA fyra tal som 2-packet; skillnaden är slät mot rutstickad sits
+#      och enstyck mot par.
+#    * `verkstadspall-med-verktygsbricka-37-cm` — 38 × 35 × 37 cm, sits
+#      36 × 19, 100 kg. Inga gemensamma tal, men samma sökord.
+#
+#    Regeln: sveptermen ska vara produkttypens SVENSKA ord, inte källans
+#    tyska. Familjen hette `Rollhocker` och blev `rullpall`.
+PUBL_ARBETSPALL = "arbetspall-med-hjul"
+PUBL_VERKSTADSPALL = ("verkstadspall-med-verktygsbricka-37-cm", "37 cm sitthöjd")
+
 
 def lank(slug, text):
     return '<a href="%s%s">%s</a>' % (BAS, slug, text)
@@ -119,7 +135,12 @@ PRODUKTER = [
             "är gjord för arbete nere vid golvet, inte vid ett bord. Behöver du "
             "en höjdbar pall att sitta vid en bänk med finns "
             + lank("arbetspall-rygg-och-fotring", "arbetspallen med rygg och fotring")
-            + " i stället.</p>",
+            + " i stället.</p>"
+            "<p>Vi säljer också en mindre verkstadspall: "
+            + lank(PUBL_VERKSTADSPALL[0],
+                   "verkstadspallen med verktygsbricka och " + PUBL_VERKSTADSPALL[1])
+            + " tar mindre plats och har en öppen bricka i stället för fack "
+            "och låda.</p>",
         "eg": [
             "Två öppna verktygsfack och en låda under sitsen",
             "Fyra gummihjul, varav två med broms",
@@ -561,7 +582,10 @@ PRODUKTER = [
             "<p>Sitsen är rund, Ø 35,5 cm, och går 48–63 cm. Behöver du bara en "
             "pall — och gärna en med tjockare sits — finns "
             + lank("salongspall-utan-rygg-9-cm-skum", "salongspallen med 9 cm skum")
-            + " som enstyck.</p>",
+            + " som enstyck.</p>"
+            "<p>Samma pall finns också som enstyck med slät sits: "
+            + lank(PUBL_ARBETSPALL, "arbetspallen med hjul")
+            + ", i vit eller svart.</p>",
         "eg": [
             "Två pallar ingår",
             "Rutstickad sits Ø 35,5 cm i konstläder",

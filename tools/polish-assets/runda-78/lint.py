@@ -34,7 +34,10 @@ KONTORSSTOL_RE = re.compile(r"\b(kontorsstol\w*|arbetsstol\w*|heldagsarbete)\b",
 HALSA_RE = re.compile(r"\b(hållning|kroppshållning|ryggrad\w*|koncentration|"
                       r"hälsosam\w*|avlastar rygg\w*|förebygger)\b", re.I)
 # Tal som är LÄSTA på den länkade PUBLICERADE sidan, inte på vår.
-EXTERN_TAL = {"51 cm", "67 cm"}
+# 37 cm är LÄST på `verkstadspall-med-verktygsbricka-37-cm`; 51 och 67 på
+# `arbetsstol-hjul-51-67-cm-avtagbar-rygg`. Länken till `arbetspall-med-hjul`
+# bär medvetet inga tal alls.
+EXTERN_TAL = {"51 cm", "67 cm", "37 cm"}
 # En nekad förekomst är inget påstående om utrustning.
 # ⚠️ Upp till tre ord får stå emellan: "det INTE finns något RYGGSTÖD" är
 #    lika nekande som "saknar ryggstöd", och en grind som bara klarar det
