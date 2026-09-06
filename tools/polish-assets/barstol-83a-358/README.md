@@ -55,3 +55,25 @@ den nu — grinden hade rätt, och det är precis den sortens fynd den finns fö
 
 Alla fem är rena — noll tysk text inbränd, kontrollerat okulärt. Position 3 är
 måttskissen och bär bara siffror.
+
+## Live-verifiering (2026-09-06)
+
+`hamta-live.sh 305` → `livegrind.py`:
+
+```
+557491d0 barstolar-2-pack-industristil-ryggstod: ord=621 diff=0 -> REN
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+```
+
+Oberoende kontroll av den hämtade sidan:
+
+| krav | utfall |
+|---|---|
+| Brödsmula | `Hem / Hem & Inredning / Barstolar 2-pack …` |
+| Flikarna | alla tre renderar |
+| Alt-texter | fem egna, alla svenska |
+| `<title>` | `Barstolar 2-pack med ryggstöd, 75,5 cm \| Fyndplats` |
+| JSON-LD | 899 SEK, `InStock`, `sku` = Wix-UUID, inget `mpn` |
+
+Mappningen stämplad: `needsAiPolish: false`, `draftStatus: published`,
+variantens SKU skriven på båda sidorna.
