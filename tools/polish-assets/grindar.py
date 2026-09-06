@@ -50,7 +50,12 @@ ANKARE = re.compile(r'<a href="([^"]*)"[^>]*>(.*?)</a>', re.S)
 #    Lägg till ordet samtidigt som du använder det.
 FARGORD = ["brun", "beige", "vit", "svart", "grå", "ljusgrå", "mörkgrå",
            "gräddvit", "gråbeige", "ljusbrun", "blå", "grön", "grågrön",
-           "röd", "gul", "rosa", "silverfärgad", "creme",
+           "röd", "gul", "rosa", "silverfärgad", "creme", "turkos", "lila",
+           # ⚠️ `turkos` lades till i runda 76, som var först att
+           #    använda ordet. Utan det kunde ankartext-grinden inte se
+           #    en syskonlänk som ljög om färgen — den letar bara efter
+           #    ord som STÅR i listan, så ett ord som saknas ger inte
+           #    ett fel utan TYSTNAD.
            # ☠️ Här stod tidigare "Beige" med VERSAL — en död post. Grinden
            #    söker i `text.lower()` utan att lowercasea mönstret, så den
            #    kunde aldrig matcha. En rad som ser ut som täckning men inte är
