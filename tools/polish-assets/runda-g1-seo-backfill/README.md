@@ -1,16 +1,74 @@
-# Runda G1 — SEO-backfill, som blev en lagerincident
+# Runda G1 — SEO-backfill: 49 sidor, och en lagerincident på vägen
 
-⏸ **SEO-BACKFILLEN ÄR INTE GJORD.** Rundan startade som första batchen av de 49
-sidor som bär tysk SEO-titel (#147). Innan en enda rad skrevs visade sidorna
-något annat, och det tog över: **31 publicerade sidor gick inte att köpa.**
+✅ **KLART. Noll av 2 040 publicerade sidor bär tysk SEO-titel.**
 
-## Så hittades det
+Rundan startade som första batchen av de 49 sidor som visade tysk titel i Google
+(#147). Innan en enda rad skrevs visade sidorna något annat, och det tog över
+först: 31 publicerade sidor gick inte att köpa (#148, avsnittet längst ner).
 
-Batchens åtta sidor hämtades som källmaterial — meningen var att skriva
-metabeskrivningen ur produktens egen publicerade svenska text. Alla åtta
-innehöll ordet **Slutsåld**.
+## Utfallet
 
-Fyra hypoteser föll i tur och ordning, och ordningen är poängen:
+| | före | efter |
+|---|--:|--:|
+| Publicerade sidor | 2 032 | 2 040 |
+| **Tysk SEO-titel** | **49** | **0** |
+| Svensk titel med `\| Fyndplats` | 1 443 | 1 500 |
+| Svensk titel utan suffix (autohärledd) | 540 | 540 |
+
+Sex batchar om 8 (den sista 9). Varje batch: hämta sidorna → läs ledstycket →
+skriv `seo.tsv` → filgrind → skriv `seoData` med återläsning → ISR-cykel →
+live-grind mot filen.
+
+| batch | produkter | filgrind | live |
+|--:|---|--:|--:|
+| 1 | bäddfåtölj med armstöd ×5, gästsäng 180 ×3 | 0 fynd | 8/8 REN |
+| 2 | snurrfåtölj 60 ×4, recliner ×2, biofåtölj ×2 | 0 fynd | 8/8 REN |
+| 3 | bäddfåtölj 190 ×3, 190×80 ×2, manchester ×2, 98 ×1 | 4 → 0 | 8/8 REN |
+| 4 | gungfåtölj ×4, relaxfåtölj ×2, vilfåtölj ×2 | 0 fynd | 8/8 REN |
+| 5 | loungefåtölj ×3, läsfåtölj ×2, tv-fåtölj ×2, furuben ×1 | 2 → 0 | 8/8 REN |
+| 6 | bäddfåtöljer ×5, golvsoffa, snurrfåtölj, hopfällbar ×2 | 1 → 0 | 9/9 REN |
+
+Filgrinden fällde **7 för långa titlar** över tre batchar. Alla kortades, och
+syskonen kortades med — en familj ska läsa lika även när en av dem råkar rymmas.
+
+☠️ **Texten skrivs ur produktens EGEN publicerade svenska text.** En backfill
+ska bara påstå det sidan redan säger, så `gate-seo.py` läser här `live/<id>.html`
+som källa för siffergrinden. Priset, brödtexten, bilderna och SKU:erna är orörda;
+**endast `seoData` skrivs**, och varje rad läses tillbaka.
+
+## ☠️ Hämtskriptet hade en tyst bugg, och grinden avslöjade den
+
+Batch 1 gick grön i filgrinden, skrevs, hämtades — och live-grinden fällde alla
+åtta med tysk titel. Skrivningen hade gått igenom; det var HÄMTNINGEN som ljög.
+
+En varm träff triggar bara omrendering om sidan **redan är inaktuell**. Sidorna
+var 130 sekunder gamla, alltså färska (`stale-time: 300`), så träffen serverade
+dem rakt av och startade ingenting. Pausen gick, den skarpa hämtningen fick
+samma gamla sida, och grinden jämförde mot en rendering **äldre än skrivningen**:
+
+```
+före fixen:  age 281 efter 150 s paus   → renderad före skrivningen
+efter fixen: age  92 efter  90 s paus   → renderingen träffen själv startade
+```
+
+`hamta-live.sh` väntar nu ut stale-fönstret innan den träffar.
+
+⚠️ Det är andra gången samma dag ISR-cachen förklär ett mätfel till ett fynd —
+och båda gångerna var det bara `age` som skilde. **Läs age. Alltid.**
+
+## Kvar
+
+- De **540** sidorna med autohärledd svensk titel utan `| Fyndplats` bär en
+  generisk metabeskrivning (*"… från Fyndplats. Fri frakt och 30 dagars öppet
+  köp."*). Inte fel språk, men inte skriven heller — ett eget jobb.
+- ⚠️ **Poleringens runbook har fortfarande inget SEO-steg.** Backfillen städar
+  det som fanns; nästa opolerade Aosom-produkt som publiceras får tysk titel
+  igen om steget inte skrivs in. F1 gjorde det för hand.
+
+## ☠️ Lagerincidenten: 31 sidor gick inte att köpa
+
+Batchens åtta sidor hämtades som källmaterial. Alla åtta innehöll ordet
+**Slutsåld** — medan Wix höll 197 i lager. Fyra hypoteser föll i tur och ordning:
 
 | hypotes | motbevis |
 |---|---|
@@ -19,53 +77,15 @@ Fyra hypoteser föll i tur och ordning, och ordningen är poängen:
 | Gammal ISR-rendering | En rendering **11 sekunder gammal** sa fortfarande `OutOfStock` |
 | Butiken läser ett annat Wix-konto | Mina SEO-skrivningar syntes på F1:s live-sidor samma timme |
 
-## ☠️ Orsaken: varianten har ett eget `visible`
+Orsaken: produkten var `visible: true` men dess enda VARIANT hade
+`variantsInfo.variants[0].visible = false`. Butiken behandlar en produkt utan
+synliga varianter som slutsåld.
 
-```
-produkt   visible: true    → sidan ligger ute, i sitemapen, indexerad
-variant   visible: false   → butiken visar "Slutsåld"
-lager     197, IN_STOCK    → varan finns
-```
+Huset kände till PRODUKTENS `visible` (CLAUDE.md 2026-08-28). Varianten har ett
+eget, och det stod ingenstans. ⚠️ Repots kod är oskyldig — defekten sitter i
+poleringens SKU-steg, som PATCHar `variantsInfo` med ett **handbyggt**
+variantobjekt.
 
-Huset kände till PRODUKTENS `visible` — CLAUDE.md 2026-08-28 dokumenterar att en
-`variantsInfo`-PATCH publicerar ett utkast, och regeln blev att alltid skicka
-tillbaka det. Varianten har ett eget, och det stod ingenstans.
-
-⚠️ **Repots kod är oskyldig.** `createProduct` sätter `visible: v.visible ?? true`
-och `updateV3VariantPrices` muterar varianterna från sin egen GET. Defekten
-sitter i poleringens SKU-steg, som skrivs **för hand från chatten** — Wix-variantens
-SKU har ingen egen rutt, så den PATCHas med ett handbyggt variantobjekt.
-
-☠️ **Regeln: bygg aldrig ett variantobjekt från grunden.** Läs produkten, ta
-objektet som det står, ändra bara fältet du menar.
-
-## Omfattning och åtgärd
-
-Hela den publicerade katalogen skannad — 2 032 produkter i fyra slices, 100 %
-täckning. `variantsInfo` finns **inte i sökprojektionen**, så det krävs en GET
-per produkt, och 2 032 GETs ryms inte i ExecuteWixAPI:s 60 sekunder.
-
-| | |
-|---|--:|
-| Publicerade | 2 032 |
-| **Helt dolda varianter (oköpbara)** | **31** |
-| Delvis dolda | 0 |
-| Lagade | **31** |
-| Live-verifierade `InStock` | **31 / 31** |
-
-Varje skrivning återläst i Wix: 0 → 1 synlig variant, produktens synlighet
-oförändrad, **pris och SKU orörda på alla 31**.
-
-⚠️ **Ett verifieringspass räcker inte.** Sex sidor såg först ut att vara kvar
-som slutsålda. Varje sida cachas för sig, så passets egen första hämtning
-serverade den gamla renderingen och triggade omrenderingen. Andra passet gav
-`age` 32–36 s och `InStock` på alla sex.
-
-Listan över de 31 ligger i `lagade.txt`.
-
-## Kvar
-
-- **SEO-backfillen** för de 49 (#147) är fortfarande ogjord. `slugs.txt` här är
-  de åtta som var tänkta som första batch.
-- En återkommande koll vore billig: *"publicerad produkt utan en enda synlig
-  variant"* är alltid ett fel.
+Hela katalogen skannad (2 032 publicerade, fyra slices): **31 helt dolda, noll
+delvis**. Alla 31 lagade och live-verifierade `InStock`. Listan i `lagade.txt`,
+detaljerna i CLAUDE.md och #148.

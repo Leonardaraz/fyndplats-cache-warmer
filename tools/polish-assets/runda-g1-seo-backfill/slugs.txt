@@ -1,8 +1,9 @@
-e4e62a4f baddfatolj-med-armstod-bla
-1df737ee baddfatolj-med-armstod-taupe
-286f4e14 baddfatolj-med-armstod-morkgra
-c10d0b7e baddfatolj-med-armstod-svart
-96a6b909 baddfatolj-med-armstod-beige
-8800a1b5 baddfatolj-gastsang-180-cm-morkgra
-1663062d baddfatolj-gastsang-180-cm-bla
-0f6ea98d baddfatolj-gastsang-180-cm-beige
+0761c9d0 baddfatolj-sidofickor-183-cm
+0317a03e baddfatolj-90-cm-oeko-tex
+02925ee6 baddfatolj-186-cm-armstod-gra
+6a204d58 baddfatolj-hjul-181-cm-cremevit
+1706c47d baddfatolj-188-cm-runda-armstod
+3c81a3a6 golvsoffa-2-sits-193-cm
+5d150926 snurrfatolj-svart-stalfot
+1e6872c7 hopfallbar-fatolj-bok-tre-lagen-grabla
+45512a52 hopfallbar-fatolj-bok-tre-lagen-khaki
