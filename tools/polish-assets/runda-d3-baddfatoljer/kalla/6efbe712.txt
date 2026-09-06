@@ -1,0 +1,28 @@
+# KALLA 6efbe712 — 2639 kr — farg: Hellbraun — tyg: Samtoptik
+Sofa Groesse: 102B x 73T x 81H cm
+Bett Groesse: 183B x 98,5T x 26H cm
+Sofa Sitz Groesse: 95B x 57T x 37H cm
+Bett Liegeflaeche Groesse: 183B x 98T x 9H cm
+Sitzdicke: 20 cm
+Rueckenlehne Groesse: 48B x 98T x 9H cm
+Kissen Groesse: 50B x 33T x 11H cm
+Armlehne Groesse: 36B x 3,5T cm
+Hoehe der Armlehne (vom Sitz aus): 15 cm
+Belastbarkeit: 120 kg
+Rueckenlehne in 5 Stufen verstellbar (100, 120, 140, 160, 180 Grad)
+Stabiler Stahlrahmen
+Pflegeleichter Bezug des Kissens ist abnehmbar und waschbar
+Elegante Armlehnen aus Kautschukbaumholz
+Material: Stahl, Schaumstoff, Polyester, Kautschukbaumholz
+Montage des Produkts erforderlich
+Lieferumfang: 1 x Schlafsofa, 1 x Kopfkissen, 1 x Anleitung
+Vikt: 27,8 kg  Paketmatt: 100 x 30 x 69 cm
+
+# ☠️ STEG 2-FYND: RYGGSTODETS MATT ar kastade om i underlaget.
+# "Rueckenlehne Groesse: 48B x 98T x 9H" pastar 48 cm BRED pa en mobel
+# vars badd och liggyta bada ar 98 cm breda, och vars sits ar 95 cm bred.
+# Ett ryggstod pa 48 cm bredd i en 102 cm bred soffa ar orimligt.
+# Talen ar desamma som pa syskonet i runda D1 (48 x 58 x 9) fast med 98
+# inskjutet — det ar ryggstodets BREDD 98 och HOJD 48.
+# VAL: skrivs som 98 cm brett och 48 cm hogt, 9 cm tjockt.
+Valt ryggstod: 98 cm brett, 48 cm hogt, 9 cm tjockt
