@@ -106,12 +106,32 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   precis som `updateV3VariantPrices` måste eka tillbaka `visible`. Priset är Leonards
   beslut, inte poleringens; jämför beloppet efteråt mot det du läste.
 
-  ⚠️ Variantens `media` går INTE att skriva tillbaka när den väl fallit bort: varken
-  `media: {id}` eller den fullständiga mediaformen fastnar. Båda svarar 200 och revisionen
-  stiger, men fältet förblir `null` — läst i ett EGET anrop efteråt. På en
-  envariantsprodukt utan val är kundeffekten noll (sidan renderar galleriet och
-  `media.main`), men skicka med den ändå så slipper du frågan.
-- **`VARIANTS_INFO` finns inte i enum:et** (varianterna kommer med ändå). Giltiga värden:
+  ☠️ **Variantens `media` FALLER BORT VID VARJE SÅDAN PATCH — även när du ekar tillbaka
+  den ordagrant** *(skärpt 2026-09-07, runda 99)*. Runda 98 mätte att den inte gick att
+  REPARERA i efterhand; runda 99 skickade med hela mediaobjektet — `id`, `altText`,
+  `mediaType` och `image` — på sju produkter som ALLA hade media kvar, och fick
+  `media: null` på alla sju. Det är alltså inte en reparationsbegränsning utan fältets
+  beteende: `variantsInfo` skriver aldrig `media`.
+
+  Sluta försöka. På en envariantsprodukt utan val är kundeffekten noll — sidan renderar
+  galleriet och `media.main`, och alla sju live-sidorna visar rätt bilder. Vill du ha
+  svensk alt-text på variantminiatyren är `variantsInfo` fel väg.
+
+  ☠️ **OCH DEN PUBLICERAR UTKASTET — även en ren SKU-skrivning** *(uppmätt 2026-09-07)*.
+  Sju utkast gick från `visible:false` till `visible:true` av en PATCH vars enda avsikt var
+  att byta SKU. Fällan är känd för prisreparationen (`CLAUDE.md`), men Steg 8 gör exakt
+  samma anrop och hade ingen vakt. Sidorna låg publicerade med rätt text men FEL galleri
+  (leverantörens tyska bildset) tills de sattes tillbaka.
+
+  🔒 **Skicka därför alltid `visible` uttryckligen i Steg 8:s PATCH** — produktens `false`
+  om du inte är klar, `true` om du är det. Och eftersom `visible` i masken KASKADERAR ner
+  till varianten (se avsnittet i Steg 4) måste variantens `visible: true` med i samma
+  anrop. Verifierat båda vägarna: mask `["visible","variantsInfo"]` med produkt `false` +
+  variant `true` ger en osynlig produkt med en köpbar variant.
+- **`VARIANTS_INFO` finns inte i enum:et** (varianterna kommer med ändå — bekräftat 2026-09-07:
+  en naken `GET /products/{id}` bär hela `variantsInfo` med `id`, `sku`, `price`, `media`,
+  `choices` och `inventoryStatus`, medan `?fields=VARIANTS_INFO` svarar
+  `400 Failed to parse JSON or deserialize protobuf message`). Giltiga värden:
   `PLAIN_DESCRIPTION` · `DESCRIPTION` · `MEDIA_ITEMS_INFO` · `DIRECT_CATEGORIES_INFO` ·
   `VARIANT_OPTION_CHOICE_NAMES` · `URL` · `INFO_SECTION` · `BREADCRUMBS_INFO` ·
   `INFO_SECTION_PLAIN_DESCRIPTION` · `CURRENCY` · `MERCHANT_DATA` ·
@@ -2143,6 +2163,16 @@ foton är just den dubblett Google straffar, och den uppstår av oss, inte av le
 `fields=MEDIA_ITEMS_INFO`, vilket PATCH inte tar. Svaret kan alltså inte skilja "sparat"
 från "raderat". **Verifiera alltid med en separat GET** och räkna bilderna.
 
+✅ **LADDA UPP VIA GRENEN, INTE VIA BASE64** *(runda 99)*. `UploadImageToWixSite` tar
+`imageUrls` med publika adresser, och repot ÄR publikt — så committa filerna till
+poleringsgrenen och skicka
+`https://raw.githubusercontent.com/<ägare>/<repo>/<gren>/<sökväg>`. Tolv filer gick i ETT
+anrop, och ingen bild passerade chatten som base64. Det är samma väg `CLAUDE.md` redan
+beskriver för korten ("måste ligga i grenen innan Wix hämtar dem"), och den är billigare i
+både tokens och risk: base64 kan kapas tyst, en URL kan det inte.
+
+⚠️ Pushen måste ligga FÖRE anropet — GitHub serverar bara det som finns i grenen.
+
 ☠️ **`UploadImageToWixSite` svarar `success: true` även när uppladdningen sedan
 MISSLYCKAS.** Svaret bär `operationStatus: "PENDING"` — Wix har tagit emot uppdraget, inte
 utfört det. Patchar du in ett `fileId` som hamnat i `FAILED` svarar V3 200 och **utelämnar
@@ -2164,6 +2194,31 @@ texten bor. ☠️ **`card_spec` bakar in fotot som data-URI i HTML:en, så en r
 renderas om — annars mäter du samma fil en gång till och tror att åtgärden inte biter.
 
 ### Bilden måste vara kvadratisk
+
+☠️ **OCH DET GÄLLER MÅTTRITNINGEN HÅRDAST — DÄR RYKER SIFFRORNA** *(uppmätt 2026-09-07)*.
+En ritning som kapats på sin tyska textruta blir liggande (900 × 632–669), och det PDP:n
+då beskär bort är vänster- och högerkanten — alltså exakt där måttetiketterna sitter.
+Mätt på runda 98:s publicerade `9cfc2f50-3` (900 × 642), hämtad i båda formerna:
+
+| hämtning | utfall |
+|---|---|
+| `fit/w_900,h_900` | hela ritningen: skål `24 cm` / `7 cm` / `≈2L`, djup `30 cm`, höjd `35,5 cm` |
+| `fill/w_600,h_600,al_c` | skålens `24 cm` och `≈2L` HALVA, **höjdmåttet `35,5 cm` helt borta** |
+
+Det är samma centrumbeskärning som gav runda 98:s falska "FEL PLATS"-larm — men här är
+den inte ett mätfel, den är det kunden ser.
+
+🔒 **Fyll ut till kvadrat med vitt i stället för att ladda upp den liggande.** Ritningarna
+ligger på vit botten, så utfyllnaden är osynlig, och den kostar ingenting:
+
+```python
+kv = Image.new("RGB", (w, w), (255, 255, 255))
+kv.paste(im, (0, (w - h) // 2))
+```
+
+⚠️ **Runda 98:s fem kapade ritningar ligger publicerade i liggande format** och tappar
+alltså sina sidoetiketter. Hur många fler rundor som gjort samma sak är inte mätt.
+
 
 PDP:n hämtar galleriet med `fill/w_N,h_N,al_c` och **centrumbeskär varje bild till kvadrat**.
 En liggande eller stående studiobild kapas därför i kanterna och kunden ser produkten
