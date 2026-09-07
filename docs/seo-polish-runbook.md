@@ -4778,6 +4778,123 @@ isolerad från sidans chrome. Samma familj som runda 95:s EU-lager-ribbon och
 betalikonernas alt-texter: en textgrind mot en renderad sida måste avgränsa
 sig till VÅR text, annars mäter den butiken.
 
+### ☠️ EN PRODUKTKATEGORIS STANDARDPÅSTÅENDE KAN VARA FEL ÅT ANDRA HÅLLET (runda 97)
+
+Foderstationsfamiljen säljs på ETT argument, och fem av sex utkast skriver ut
+det: den upphöjda skålen sägs skona nacke och rygg och ge bättre matsmältning.
+Det är inte bara ogrundat — det är **motsagt av den största studien som
+finns**.
+
+Glickman m.fl. (JAVMA 2000, Purdue) följde drygt 1 600 stora och jättestora
+hundar: att äta ur en upphöjd skål var förknippat med **förhöjd** risk för
+magomvridning (GDV). Ungefär **20 % av fallen hos stora raser och 52 % hos
+jätteraser** tillskrevs den upphöjda skålen. En senare studie (Pipan m.fl.
+2012) fann ingen signifikant effekt. Läget är alltså i bästa fall
+**motstridigt**, och ett motstridigt läge är aldrig ett säljargument.
+
+☠️ **Steg 2 ska därför fråga en fråga till på varje ny familj: vad SÄLJS den
+här produkttypen på, och håller det?** Ett påstående som står i nästan varje
+utkast i en familj känns som en produktegenskap. Det är precis då det är en
+kategoriklyscha, och kategoriklyschor är oftast obevisade — ibland motbevisade.
+
+⚠️ **Grinden ska vara en ORDLISTA, inte en bedömning.** En bedömning glider:
+nästa runda skriver "många väljer en upphöjd skål för att den är skonsammare"
+och en bedömande grind resonerar sig fram till att det ju bara är ett
+konstaterande om vad många gör. Ordlistan gör det inte. Runda 97:s lista:
+`magomvridn` · `uppblåsthet` · `matsmältn` · `nacke` · `rygg` · `leder` ·
+`artros` · `hållning` · `skonsam` · `skonar` · `avlastar` · `belastning` ·
+`veterinär` · `hälsosam` · `nyttigare` · `bättre för` · `ergonomisk`.
+
+✅ Det som är sant och räcker: skålarna står stadigt, maten hamnar inte på
+golvet, rostfritt går i diskmaskin, förvaringen tar ingen extra golvyta, och
+höjden går att välja efter hunden. Beskriv MEKANIKEN och låt kunden dra
+slutsatsen.
+
+### ☠️ PAKETMÅTTET ÄR FEL ÅT BÅDA HÅLLEN — inte bara otillräckligt
+
+#266 säger att vikt och paketmått inte BEVISAR två produkter. Runda 97 mätte
+upp att det är värre än så: paketmåttet ger både falska positiva och falska
+negativa.
+
+Regexen tog första `NN × NN × NN cm` i den tyska texten. Produktmåttet skrivs
+`60L x 30B x 35,5H cm` — med bokstäver emellan — så det matchade aldrig, och
+det som fastnade var `Paketmått`.
+
+| id | produktmått | paketmått |
+|---|---|---|
+| `79ccfef4` | **60 × 30 × 35,5** | 70 × 36 × 17 |
+| `9cfc2f50` | **60 × 30 × 35,5** | 70,5 × 38 × 15,5 |
+
+Två identiska produkter, två olika kartonger. `79ccfef4` låg i rundans första
+urval just för att paketet skilde. Åt andra hållet grupperade paketmåttet ihop
+produkter som bara råkar dela kartong.
+
+☠️ **Läs `Gesamtabmessungen` / `Gesamtmaße`, och räkna med att formen varierar:**
+
+```python
+m = re.search(r"Gesamt(?:abmessungen|maße|abmessung)\s*:?\s*([^✔]{0,48})", t, re.I)
+tal = m and re.search(r"(\d+(?:[,.]\d+)?)\s*[LlBbHhTt]?\s*[x×X]\s*"
+                      r"(\d+(?:[,.]\d+)?)\s*[LlBbHhTt]?\s*[x×X]\s*"
+                      r"(\d+(?:[,.]\d+)?)", m.group(1))
+```
+
+⚠️ Och i en familj med ett gemensamt fotavtryck räcker inte två tal.
+Foderstationerna delar 60 × 30 på fjorton av 26 utkast; det som skiljer
+modellerna är HÖJDEN, skåpsvolymen och skålarna. En måttjämförelse måste läsa
+alla tre talen.
+
+### ☠️ EN REGEL SOM MÄTER SIN EGEN NORMALISERING FÄLLER ALDRIG
+
+Runda 96 lärde att två läsformer som ser lika ut svarar på olika frågor.
+Runda 97 hittade nästa steg i samma familj, och det är farligare.
+
+Regeln "inga dubbla blanksteg" låg bland de förbjudna mönstren, och de körs på
+den taggstrippade texten — som normaliserar `\s+` till ETT blanksteg först.
+Regeln letade alltså efter något som borttagits en rad tidigare. Den kunde
+aldrig fälla, och självtestet visade det bara för att självtestet fanns.
+
+☠️ **Skillnaden mot runda 96:s fall:** där gav blandade läsformer FALSKA
+TRÄFFAR, som syns direkt. Här gav den TYSTA MISSAR, som inte syns alls.
+
+**Regeln: en kontroll som handlar om blanksteg, radbrytningar eller
+taggstruktur ska köras på den RÅA html:en.** Bara innehållsregler får läsa
+den normaliserade texten.
+
+### ⚠️ EN MUTATION SOM INTE MUTERAR RAPPORTERAS SOM ETT HÅL I GRINDEN
+
+Mutationstestet bytte `förvaring` mot `Stauraum` för att bevisa att
+tyska-regeln biter. Två av sex texter innehåller inte ordet — mutationen blev
+en no-op, texten var oförändrad och korrekt, och testet skrev ut
+`SLAPP IGENOM` om en grind som var helt frisk.
+
+Tio minuter gick åt att leta efter felet i regeln. Felet fanns i mutationen.
+
+**Regeln: en mutation ska bytas mot något som står i ALLA texter den körs på,
+och ett `SLAPP IGENOM` ska först misstänkas vara en trasig mutation.** Ett
+billigt skydd är att låta mutationen kräva att den ändrade något:
+`assert ny != h0`.
+
+### ✅ VÄLJ FAMILJ PÅ FÖRHÅLLANDET UTKAST/PUBLICERADE, inte på antal utkast
+
+Katalogen svept 2026-09-07: 5 527 produkter, 3 299 utkast, 2 228 publicerade.
+
+| familj | utkast | publicerade | vad talet betyder |
+|---|--:|--:|---|
+| växthus | 103 | 27 | mycket kvar, men tät |
+| sittbänk | 68 | 100 | fler publicerade än utkast — högsta krockrisk |
+| badrumsskåp | 68 | 51 | ser ut som en annan sessions område |
+| **foderstation** | **26** | **0** | orörd |
+
+Den största familjen är sällan den bästa. En familj med **noll publicerade
+sidor** ger noll sökordskrockar, noll måttvillingar mot katalogen — och,
+sedan runda 96, ingen möjlighet att ett redan publicerat färgsyskon räknas
+fel. Det är den billigaste rundan som finns.
+
+⚠️ Nio publicerade `badrumsspegel-led-*` och sju `spegelskap-*` är ett mönster,
+inte en slump: det är någon annans pågående arbete. #302 kostade en halv runda
+när den andra sessionen publicerade sex sidor mitt i.
+
+
 
 
 
