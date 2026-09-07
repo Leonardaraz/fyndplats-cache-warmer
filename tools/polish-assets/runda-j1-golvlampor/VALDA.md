@@ -67,3 +67,39 @@ fem. Antalet mäts ur `bilder.tsv` sedan dess.
 SEO gick från importens FEM tyska taggar till TVÅ på alla åtta, med
 nyckelordslistan tömd. Kategorierna är `Hem & Inredning` + `Belysning` — samma
 par som samtliga tio redan publicerade golvlampor bär.
+
+## ✅ SKU-krockarna i lampfamiljen är MÄTTA — och ingen är publicerad
+
+Hela lampfamiljen läst med GET per produkt (sökningen bär inte `variantsInfo`):
+
+| | |
+|---|--:|
+| Lampor lästa | 67 |
+| Utan varianter | 0 |
+| Unika SKU:er | 57 |
+| **Krockande SKU:er** | **6** |
+| **Produkter i en krock** | **16** |
+| Krockar som rör en PUBLICERAD sida | **0** |
+
+| SKU | antal | vad de är |
+|---|--:|---|
+| `FP-stehlampe-mit-regalen` | 4 | fyra utkast, samma modell i olika utförande |
+| `FP-stehlampe-mit` | 3 | tre utkast, "Stehlampe mit Fernbedienung…" |
+| `FP-led-stehlampe-5-stufige` | 3 | tre utkast, "LED Stehlampe 5-stufige…" |
+| `FP-stehlampe-mit-3-stufigem` | 2 | två utkast |
+| `FP-stehleuchte-im-modernen` | 2 | två utkast |
+| `FP-led-stehlampe-mit` | 2 | två OLIKA lampor (glashylla mot hyllor) |
+
+⚠️ **Alla sexton är opolerade tyska utkast.** Ingen kund kan träffa på dem, och
+ingen order kan hamna på fel rad. Krocken uppstår i importen — SKU:n härleds ur
+den tyska titelns första ord, och syskon som heter likadant får samma sträng.
+
+**Slutsatsen är att krockarna löser sig själva av poleringen.** Varje syskon som
+poleras får en egen svensk SKU, precis som `13a53d52` och `d2dfd1fa` fick i den
+här rundan. Något separat städjobb behövs alltså inte — bara att poleringen
+fortsätter, och att SKU-kollen faktiskt går via GET så att den kan falla.
+
+☠️ **Det sista är inte en detalj.** Den här mätningen var omöjlig med den kollen
+som kördes tre gånger tidigare samma dag: den läste `variantsInfo` ur en sökning
+som aldrig bär fältet, och hade svarat "noll krockar" på en familj med sexton
+produkter i krock.
