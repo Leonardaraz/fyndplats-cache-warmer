@@ -60,6 +60,12 @@ BAS = "https://www.fyndplats.se/produkt/"
 
 # Publicerade syskon i samma familj
 ROSTROD = "paviljongtak-3x3-dubbeltak-rostrod"          # samma duk, runda 95
+# ☠️ CREME ÄR SAMMA DUK OCH VAR REDAN PUBLICERAD. Rundan skrev först
+#    "tre färger"; sanningen är fyra. Sidan låg inte i poleringskön (den
+#    är publicerad sedan tidigare) och stod i runda 95:s källa under
+#    rubriken "Har du en annan storlek?" med texten "i SAMMA storlek" —
+#    en korslänk under fel rubrik läser som "redan avfärdad".
+CREME = "paviljongtak-3x3-dubbeltak-creme"              # samma duk, äldre runda
 TREFYRA = "paviljongtak-3x4-dubbeltak-rostrod"          # samma slags tak, 3 x 4 m
 INDRAGBART = "pergolatak-indragbart-250x255-beige"      # runda 93
 
@@ -77,7 +83,8 @@ SLUGG = {
 FARG = {"3f9fda98": "mörkgrå", "2bfaf6dd": "kaffebrun",
         "9a3600f8": "mörkgrå", "22dbd372": "mörkgrå"}
 
-FARG_I = {"mörkgrå": "mörkgrått", "kaffebrun": "kaffebrunt"}
+FARG_I = {"mörkgrå": "mörkgrått", "kaffebrun": "kaffebrunt",
+          "roströd": "rostrött", "creme": "creme"}
 
 SKU = {
     "3f9fda98": "FP-paviljongtak-3x3-morkgra",
@@ -232,21 +239,23 @@ def egenskaper(pid):
 
 
 def rubrik2(pid):
-    return ("Samma tak i tre färger" if GRUPP[pid] == "A"
+    return ("Samma tak i fyra färger" if GRUPP[pid] == "A"
             else "Andra tak till pergola")
 
 
 def stycken2(pid):
     if GRUPP[pid] == "A":
+        # ordningen är FAST och delas av alla fyra sidorna, så två syskon
+        # aldrig räknar upp familjen olika
+        alla = [(CREME, "creme"), (ROSTROD, "roströd"),
+                (SLUGG["3f9fda98"], "mörkgrå"), (SLUGG["2bfaf6dd"], "kaffebrun")]
         egen = FARG[pid]
-        andra = "kaffebrun" if pid == "3f9fda98" else "mörkgrå"
-        andra_slug = SLUGG["2bfaf6dd"] if pid == "3f9fda98" else SLUGG["3f9fda98"]
+        andra = [lank(sl, "reservduken i %s" % FARG_I[f])
+                 for sl, f in alla if f != egen]
         return [
-            "Duken är densamma i alla tre färgerna — samma mått, samma väv och "
-            "samma infästning. Den här är %s; de andra två är %s och %s."
-            % (egen,
-               lank(andra_slug, "reservduken i %s" % FARG_I[andra]),
-               lank(ROSTROD, "reservduken i rostrött")),
+            "Duken är densamma i alla fyra färgerna — samma mått, samma väv och "
+            "samma infästning. Den här är %s; de andra tre är %s, %s och %s."
+            % (egen, andra[0], andra[1], andra[2]),
             "Är din stomme 3 × 4 m i stället för 3 × 3 m är det en annan duk du "
             "behöver — se " + lank(TREFYRA, "reservduken till 3 × 4 m") + ".",
         ]
@@ -328,7 +337,7 @@ def faq(pid):
         ("Tål den snö?",
          "Nej. Duken är ett sommartak — ta ned den inför vintern."),
         ("Vilken färg är det?",
-         ("Den här duken är %s. Samma tak finns i tre färger." % f) if g == "A"
+         ("Den här duken är %s. Samma tak finns i fyra färger." % f) if g == "A"
          else "Den här duken är mörkgrå."),
     ]
     return ut

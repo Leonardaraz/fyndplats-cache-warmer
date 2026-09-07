@@ -86,7 +86,7 @@ ARTIKELNUMMER = re.compile(r"\b\d{2,3}[A-Za-z]?-\d{3,4}[A-Za-z]{0,3}\b")
 # ☠️ Runbookens egna markorer ar INTE kundtext.
 NOTATION = re.compile(r"[⚠☠✅❌✓✗️]|TODO|☠|⚠|✅")
 
-SLUGGAR = set(T.SLUGG.values()) | {T.ROSTROD, T.TREFYRA, T.INDRAGBART}
+SLUGGAR = set(T.SLUGG.values()) | {T.ROSTROD, T.TREFYRA, T.INDRAGBART, T.CREME}
 
 
 def synlig(h):

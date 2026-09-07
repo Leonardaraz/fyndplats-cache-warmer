@@ -4661,6 +4661,125 @@ enskild produkt, och flyttades hit 2026-08-29.
 > antalTräffar` och `ny.split(" ").join("") === gammal.split(" ").join("")`. Massrättning går via
 > `POST /stores/v3/bulk/products/update` (max **100** produkter per anrop, varje post
 
+### ☠️ UTKASTLISTAN ÄR INTE FAMILJEN — en publicerad färg räknas aldrig (runda 96)
+
+Steg 1 svepte poleringskön, hittade två färgsyskon till en nyss publicerad duk
+och skrev **"tre färger"** på båda de nya sidorna. Sanningen var **fyra**:
+`paviljongtak-3x3-dubbeltak-creme` var redan publicerad och är SAMMA duk —
+identisk på stordukens 300 × 300 cm, det lilla takets 86 × 86 cm, kanthöjdens
+18 cm, 180 g/m², åtta dräneringshål och kardborrefästet. Bara `Farbe` skiljer.
+
+Fem publicerade sidor räknade fel samtidigt, och ingen grind kunde se det:
+lint läser rundans EGNA texter, och där stämde "tre" mot rundans egen världsbild.
+
+☠️ **Frågan Steg 1 ställer är "vilka UTKAST hör ihop?" — inte "vilka SIDOR
+säljer den här varan?".** Ett färgsyskon som redan är publicerat ligger inte i
+kön och dyker aldrig upp. Sedan runda 96 gäller därför: när en runda påstår
+"finns i N färger", **fråga katalogen, inte kön**:
+
+```js
+POST /stores/v3/products/search
+{ "search": { "filter": { "slug": { "$in": [ ...alla tänkbara färgsluggar ] } } } }
+```
+
+⚠️ Och `$startsWith` på `name` är INTE en filtrerbar kombination här — den
+returnerade hela katalogen (3 000 rader) i stället för att fälla. Ett filter
+som inte stöds ger fel svar TYST. Filtrera på `slug` med `$in`, eller hämta en
+avgränsad mängd och filtrera i egen kod.
+
+☠️ **En korslänk under fel rubrik är SÄMRE än ingen korslänk.** Creme-sidan var
+inte osynlig — den stod i den föregående rundans egen källfil, under rubriken
+**"Har du en annan storlek?"**, med texten *"ett dubbeltak i creme **i samma
+storlek**"*. Rubriken motsäger sin egen mening, och den som läser källan ser en
+sida som redan är avfärdad som "annan storlek". En länk placerad fel svarar
+"redan kollat" på en fråga den aldrig ställde.
+
+### ☠️ Söksträngen får stavas fel — ersättningen får inte
+
+När en runda rättar REDAN PUBLICERAD text är kirurgi rätt verktyg: sidorna
+kommer ofta från olika rundors generatorer, och att bygga om dem ur en
+generator ändrar mer än defekten. Formen som håller:
+
+```python
+def byt(html, gammalt, nytt, vad):
+    n = html.count(gammalt)
+    if n != 1:
+        raise SystemExit("FÄLLER: %s gav %d träffar, förväntade 1" % (vad, n))
+    return html.replace(gammalt, nytt)
+```
+
+Asymmetrin är hela poängen och den är gratis:
+
+| | felstavad | vad som händer |
+|---|---|---|
+| **SÖKsträngen** | ja | **0 träffar → skriptet dör innan något skickas** |
+| **ERSÄTTNINGEN** | ja | **når kunden, och API-svaret ekar tillbaka felet som "sparat"** |
+
+Söksträngarna behöver därför ingen grind. Ersättningarna behöver en, och den
+ska vara den som redan finns: **skriv meningarna i en FIL, linta dem där, och
+hasha varje färdig mening.** Bär skrivningen sedan samma mening (t.ex.
+handkopierad in i ett API-anrop), assertar anropet hashen innan det rör något.
+
+Uppmätt i runda 96: den fjärde sidans gamla stycke räknade upp färgerna i en
+annan ordning än den jag härledde ur datan. `byt()` gav **0 träffar** och
+avbröt — tre sidor var redan korrekt skrivna, den fjärde rördes inte, och
+felet var en minuts rättning i stället för fel text hos kunden.
+
+### ☠️ Två läsformer som ser lika ut svarar på olika frågor
+
+Poleringen har numera TVÅ sätt att göra HTML till text, och de är inte
+utbytbara:
+
+| | taggen blir | svarar på |
+|---|---|---|
+| `synlig()` — hashen | **ett blanksteg** | "är detta samma text som jag skickade?" |
+| `lasform()` — linten | inline-taggen **ingenting**, blocktaggen ett blanksteg | "läser detta rätt för en människa?" |
+
+Blandas de går det åt båda hållen:
+
+- Linten körd med hashens regel gör `</a>, <a` till `" , "` och rapporterar
+  **hängande komman som inte finns på sidan** — fem falska brister på fem
+  korrekta stycken.
+- Verifieringen efter skrivningen körd med de två blandade sa **"förekommer
+  0 ggr"** om alla fem sidor — inklusive två som i samma svar just bevisats
+  korrekta med hash. Verifieringen var fel, inte datan.
+
+**Regeln: jämför alltid samma läsform på båda sidor**, och när en grind säger
+att en sida är trasig medan en hash säger att den är rätt — **misstro grinden
+först.** Hashen mäter det Wix lagrade; grinden mäter det jag skrev om grinden.
+
+### ⚠️ En PATCH syns inte direkt — och `?cb=` hjälper inte mot det
+
+Runda 60 lärde att ISR-cachen kan servera UTKASTET efter en publicering.
+Runda 96 mätte samma sak åt andra hållet: efter en PATCH svarade sidan **200
+med den FÖRRA versionen på en helt färsk cache-bust**, och med den nya
+trettio sekunder senare. Syskonsidan, skriven i samma anropskedja, var färsk
+direkt.
+
+Cache-busten kringgår cachen; den påskyndar inte propageringen. Live-grinden
+gör därför om **hela** kontrollen när bristerna är av färskhetstyp
+(`saknas ordagrant`, `saknar korslänk`, `HTTP`) och dömer först när de står
+kvar efter fyra försök med paus emellan.
+
+⚠️ **Butiken svarar dessutom ibland 403 på en giltig begäran.** Samma slug gav
+403 i ett svep och 200 sekunder senare, utan att något ändrats. Ett 403 är
+inget verdikt förrän det upprepats — annars fäller grinden korrekta sidor, och
+en grind som fyrar på korrekta sidor slutar bli läst.
+
+### ⚠️ Självlänkskontrollen går inte att göra mot den renderade sidan
+
+En grind som letar "länkar sidan till sig själv?" i hela HTML:en svarar **JA
+för varje korrekt sida**: canonical, `og:url` och JSON-LD bär alltid sidans
+egen adress. Uppmätt i runda 96 på två sidor som i samma timme bevisats
+självlänksfria mot API:t.
+
+Kontrollen hör hemma **mot API:t**, där beskrivningens egen HTML går att läsa
+isolerad från sidans chrome. Samma familj som runda 95:s EU-lager-ribbon och
+betalikonernas alt-texter: en textgrind mot en renderad sida måste avgränsa
+sig till VÅR text, annars mäter den butiken.
+
+
+
 
 -----
 
