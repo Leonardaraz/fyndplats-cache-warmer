@@ -52,3 +52,36 @@ sex gör det inte. Hanteras som grupp, inte styckvis — samma fråga som
 
 - Barhöjd (66–80 cm): 9 utkast, men 9 publicerade sidor redan. Mättat.
 - 15 utkast utan utläsbar sitthöjd — måste läsas innan de kan klassas.
+
+## Publicerade 2026-09-07 — de fyra i Ulriks spann
+
+| kort | sitthöjd | pris | SKU |
+|---|---|--:|---|
+| `29b8fb0c` | 60 cm fast | 1 699 kr | `FP-barstolar-gummitra-60` |
+| `313117c8` | 60–81 cm justerbar | 1 599 kr | `FP-barstolar-svarta-60-81` |
+| `a0c1af46` | 63 cm fast | 1 519 kr | `FP-barstolar-gra-63` |
+| `f61517b6` | 65 cm fast | 1 659 kr | `FP-barstolar-manchester-65` |
+
+☠️ **`29b8fb0c` och `f61517b6` delade SKU `FP-2er-set-barstuhle-mit`.** Importen
+härleder variant-SKU:n ur den tyska titelns första ord, och båda titlarna
+började `2er Set Barstühle mit …`. Två produkter på samma SKU går inte att
+skilja åt i en order — kollisionskollen mot hela barstolsfamiljen kördes därför
+FÖRE skrivningen och är en del av publiceringsanropet.
+
+⚠️ **`a0c1af46` fick fyra bilder, inte fem.** Källposition 4 var en
+konstruktionsgrafik med tysk text inbränd i pixlarna. Skälet står i
+`bilder-bort.tsv`; `gate-alt.py` läser den filen och kräver därför fyra
+alt-texter för just den produkten i stället för fem.
+
+**Måttskissen ligger sist i visningsordningen** (`bygg-media.py`). Bilderna
+skrevs som ett eget steg före publiceringen, och alt-texterna diffades mot
+`nyttolast-media.json` på den återlästa produkten — inte mot skrivsvaret.
+
+### Katalogen hade redan fyra sidor i samma spann
+
+Mätt vid publiceringen, på publicerade sidor: `a260b888` (sitthöjd 60 cm),
+`49c169d9` (59–79 cm), `8a11ee33` (62–83 cm) och `587c92f3` (höj- och sänkbar).
+De fyra nya är alltså inte katalogens enda svar på 60–65 cm — de är de som
+ANGER sitthöjden i namnet, vilket är skillnaden mot att kunden får gissa ur
+bänkhöjden. ☠️ `a260b888` är samtidigt produkten i #158 (AE-priset upp 63 %
+sedan importen), så den ska inte rekommenderas vidare förrän priset är omräknat.
