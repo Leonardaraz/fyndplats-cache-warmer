@@ -1593,6 +1593,41 @@ produkt, och bara den, med både orddiffen och homoglyfsvepet.
 
 **Regeln: en grind på det du SKICKAR är inte en grind på det som LIGGER UTE.**
 
+#### ☠️ Katalogsvepet: fem fel, och fyra av dem var osynliga (2026-09-07)
+
+Slutkontrollen av flikreparationen ställde ALLA runbook-krav mot hela den
+publicerade katalogen i stället för mot de trettio sidor den gällde. Den
+hittade fem fel, och bara ett av dem hade någon märkt av sig självt.
+
+| fel | omfattning | hur det syntes |
+| :-- | --: | :-- |
+| Spec-tabellen under fel rubrik → renderas INLINE | **128 sidor** | inte alls |
+| `Frågor och svar` i stället för `Vanliga frågor` | **56 sidor** | inte alls |
+| Leverantörens artikelnummer i kundtexten | 2 sidor | inte alls |
+| Tyskt `klappbar` där svenskan är `fällbar` | 4 sidor | inte alls |
+| Tyska SEO-titlar | 5 sidor | inte alls |
+
+☠️ **De 128 är den dyraste, och runbooken förutsade den exakt:** "det ser inte
+trasigt ut, bara som en rubrik till". Sidorna är välskrivna svenska sidor ur
+rundorna 19–33 — felet var behållaren, inte texten. Rubrikerna de använde:
+`Måtten` (59), `Mått och material` (54), `Mått och vad som ingår`,
+`Mått och utrustning`, `Mått och funktioner`.
+
+⚠️ **`klappbar` är tyska**, och det tog sig ända in i två PRODUKTNAMN. Svenskan
+är `fällbar`. Samma familj som `Kippskydd` och den danska `et plant gulv`: ett
+ord som ser svenskt ut och därför passerar varje grind som letar efter tyska
+meningar. Slugen lämnades orörd — en ändrad slug bryter varje befintlig länk.
+
+⚠️ **Och en femtaggars-SEO gömde det sista.** Två av sidorna bar importens FEM
+seoData-taggar, inte husets två, och `klappbar` levde kvar i `og:title` sedan
+titeln rättats. Regeln "TVÅ taggar, inte fem" är alltså inte kosmetik: en tredje
+tagg är ett gömställe. 598 publicerade produkter bär fortfarande fler än två —
+inga med tyska (mätt över alla fem taggtyperna), men formen är avvikande.
+
+**Regeln: en riktad kontroll hittar det den letar efter. Kör den breda ändå.**
+De fyra osynliga felen hade ingen anledning att dyka upp i någon av de
+mätningar de faktiskt hörde hemma i.
+
 #### ☠️ En backfill som rapporterar NOLL kan ha mätt fel sak (2026-09-07)
 
 SEO-backfillen 2026-09-06 tog 49 tyska titlar till 0 över hela katalogen.
