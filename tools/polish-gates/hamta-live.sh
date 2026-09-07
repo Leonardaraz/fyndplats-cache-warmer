@@ -45,11 +45,25 @@ STALE=300
 # Butiken svarade dessutom 200 pa vanlig curl och 403 pa en browser-UA i
 # samma minut — det ar tempo som utloser den, inte anropets form.
 #
-# Samma medicin som MEDIA_UPLOAD_DELAY_MS, FREIGHT_CALL_DELAY_MS och
-# AOSOM_WRITE_DELAY_MS: den billigaste kuren mot en strypning som utloses av
-# tempo ar att inte springa. Ett svep ar 16 hamtningar (varm + skarp) av
-# 150 kB var, sa en sekund mellan sidorna kostar 16 sekunder pa en cykel som
-# anda vantar ut ett femminutersfonster.
+# ⚠️ PAUSEN NEDAN AR INTE KUREN, och den forsta versionen av den har
+# kommentaren pastod fel. Den skrev att pacingen tog bort 403:orna, pa ett
+# enda svep: 2 av 8 pa varm traff utan paus, 0 av 8 med en sekund. Nasta
+# korning med TRE sekunder gav 3 av 8. Uppmatt samma kvall:
+#
+#   paus 0 s  ->  2 av 8 pa varm traff
+#   paus 1 s  ->  0 av 8
+#   paus 3 s  ->  3 av 8
+#
+# Mer paus gav alltsa FLER avvisningar, inte farre. Det som skilde korningarna
+# at var inte avstandet mellan anropen utan hur mycket trafik butiken nyss
+# tagit emot — den sista kordes direkt efter atta media-skrivningar och ett
+# helt foregaende svep. Sparren ar ett rullande fonster over nyligen trafik,
+# och en sekund hit eller dit inuti svepet syns inte i det.
+#
+# Pausen far sta kvar: den kostar 16 sekunder pa en cykel som anda vantar ut
+# ett femminutersfonster, och den kan inte gora skada. Men det som FAKTISKT ar
+# uppmatt att fungera ar backofftrappan langre ned — den raddade tre fallna
+# hamtningar i ett enda svep. Vanta ut spärren, spring inte om den.
 PAUS_MELLAN_SIDOR="${HAMTA_LIVE_DELAY:-1}"
 
 echo "== varm traff (triggar bakgrundsrendering) =="
