@@ -174,6 +174,10 @@ def granska(pid, h, namn, seo_t, seo_b, kort):
     if grupp == "C" and "180" not in material:
         f.append("grupp C:s spec-Material saknar 180 g/m²: %r" % material)
 
+    # 14a — ☠️ WIX TAR HOGST 80 TECKEN I product.name (uppmatt 2026-09-07)
+    if len(namn) > 80:
+        f.append("namnet är %d tecken — Wix tar högst 80" % len(namn))
+
     # 14 — kortets underrad måste vara sann om den här duken
     if egen_duk.split()[0][:4].lower() not in kort[1].lower():
         f.append("kortets underrad namnger inte dukens färg: %r" % kort[1])
@@ -254,6 +258,8 @@ def sjalvtest():
         ("okänd slug", "okänd slug", lambda: rakna(h=h0.replace(T.CREME, "hittepa-sida"))),
         ("ljusgrå", "MÄTT mörk", lambda: rakna(b=b0 + " Ljusgrå duk.")),
         ("kortets underrad", "kortets underrad", lambda: rakna(k=("Paviljongtak", "Blå duk"))),
+        ("namn över 80 tecken", "Wix tar högst 80",
+         lambda: rakna(n=n0 + " i tvåfärgat utförande med vågskuren kappa")),
         # ☠️ Skadan skrivs som KODPUNKT, aldrig som tecken. En grind mot
         #    osynliga tecken far inte provas med ett osynligt tecken i
         #    kallkoden — forsta forsoket har bar ETT, och gick inte att lasa.

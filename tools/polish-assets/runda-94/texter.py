@@ -317,11 +317,18 @@ def beskrivning(pid):
 
 
 def namn(pid):
+    """☠️ WIX TAR HOGST 80 TECKEN I `product.name`.
+
+    Uppmatt 2026-09-07: 400 INVALID_ARGUMENT, "has size 91, expected 80 or
+    less". Forsta namnet bar bada fargerna OCH "tvafargat" och sprangde taket.
+    Toppfargen bars nu av seo-titeln och kortet i stallet; "utan stomme" star
+    kvar, for det ar den dyraste missuppfattningen pa den har sidan.
+    """
     duk, topp = FARG[pid]
     if GRUPP[pid] == "C":
-        return ("Paviljongtak 3 × 3 m, tvåfärgat dubbeltak – reservduk i %s med "
-                "%s topp, utan stomme" % (FARG_I[duk], topp))
-    return ("Paviljongtak 3 × 3 m i Oxfordväv 370 g/m² – reservduk i %s, utan stomme"
+        return ("Paviljongtak 3 × 3 m dubbeltak – %s duk med %s topp, utan stomme"
+                % (duk, topp))
+    return ("Paviljongtak 3 × 3 m Oxfordväv 370 g/m² – reservduk i %s, utan stomme"
             % FARG_I[duk])
 
 

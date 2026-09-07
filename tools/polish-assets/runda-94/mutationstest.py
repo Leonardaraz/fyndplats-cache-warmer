@@ -89,8 +89,12 @@ FALL = [
     ("relativ lank",
      "df5a7190", lambda h, n, t, b, k: (byt(h, 'href="' + T.BAS, 'href="/'),
                                         n, t, b, k), True),
+    # ⚠️ Mutationen pekade forst pa "i grå" — en formulering namnet slutade bara
+    #    nar 80-teckentaket tvingade fram ett kortare namn. Traffkontrollen
+    #    fangade det: en replace som inte traffar ar en tyst godkand rad.
     ("ljusgra pa den MORKA duken",
-     "df5a7190", lambda h, n, t, b, k: (h, byt(n, "i grå", "i ljusgrå"), t, b, k), True),
+     "df5a7190", lambda h, n, t, b, k: (h, byt(n, "grå duk", "ljusgrå duk"),
+                                        t, b, k), True),
     ("kortets underrad far fel farg",
      "60eaf40e", lambda h, n, t, b, k: (h, n, t, b,
                                         (k[0], "Beige duk med mörkbrun topp")), True),

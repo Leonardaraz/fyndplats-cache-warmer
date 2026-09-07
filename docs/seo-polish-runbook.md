@@ -994,6 +994,60 @@ när du bara skriver text** — och när du MÅSTE ha med den (en
 `variantsInfo`-PATCH, som publicerar utan den), skicka variantens `visible`
 uttryckligen i samma anrop.
 
+### ☠️ `product.name` TAR HÖGST 80 TECKEN (2026-09-07)
+
+Uppmätt i runda 94. Ett namn som bar båda färgerna på ett tvåfärgat tak blev
+91 tecken och avvisades:
+
+```
+400  product is invalid:
+     `-- name has size 91, expected 80 or less
+     violatedRule: MAX_LENGTH, threshold: 80
+```
+
+Gränsen står inte i produktdokumentationen; den syns bara i felmeddelandet —
+samma sort som `ignoreCommand`-radens 256 tecken i `CLAUDE.md`.
+
+**Det är en riktig avvägning, inte en formalitet.** Ett reservtak vill bära fyra
+saker i namnet: produkttyp, storlek, färg och `utan stomme`. Något måste bort.
+Runda 94 flyttade den andra färgen (toppens) till seo-titeln och kortet och
+behöll `utan stomme` — den dyraste missuppfattningen kunden kan göra väger
+tyngre än en färgnyans.
+
+**Räkna namnet i grinden, inte i API-svaret.** En rad räcker:
+
+```python
+if len(namn) > 80:
+    f.append("namnet är %d tecken — Wix tar högst 80" % len(namn))
+```
+
+### ☠️ FIL-REGELN SKYDDAR FÖRFATTANDET — INTE TRANSKRIBERINGEN (2026-09-07)
+
+`CLAUDE.md` mätte batch 64: text skriven inline i API-anropet gav nio fel, text
+skriven i en fil och grep-grindad gav noll. Runda 94 följde regeln — och fick
+ändå in ett stavfel i två av fyra produkter:
+
+| var | vad |
+|---|---|
+| `html-d52c6d1d.html` (filen) | `samma yttermått` ✓ |
+| PATCH-kroppen (mitt anrop) | `samma yttterm\u00e5tt` ✗ |
+
+Anledningen är mekanisk och gäller varje runda: `ExecuteWixAPI` svarar 403, så
+kroppen kan inte byggas i kod ur filen — den skrivs **för hand** in i
+`CallWixSiteAPI`. Filen är alltså grindad, men det som faktiskt skickas är en
+KOPIA av filen, och kopieringen är oskyddad. API-svaret ekar dessutom tillbaka
+exakt det man skrev, så det ser rätt ut.
+
+☠️ **Det enda som fångar det är en ÅTERLÄSNING.** Läs tillbaka
+`plainDescription` i ett SEPARAT anrop efter skrivningen och leta efter de ord
+du själv skrev in för hand. Runda 94:s fel hittades så, och rättades innan
+sidan publicerades.
+
+⚠️ Bäst är den MEKANISKA varianten i Steg 14: hämta den publicerade sidan med
+`curl` och hasha den synliga texten mot `facit.json`. Den kan inte missa ett
+tecken, till skillnad från ögon. Men den går bara att köra efter publicering —
+och en felstavning som redan nått kund är dyrare än en som stoppas. Gör båda.
+
 ### ☠️ Wix SKRIVER OM din HTML — hasha synlig text, aldrig råmarkup
 
 Uppmätt vid återläsning: det som sparas är inte det som skickades.
