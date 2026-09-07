@@ -517,7 +517,7 @@ PRODUKTER = [
             "<p>Behöver du gå in stående finns "
             + lank("garagetalt-190x230-cm-220-cm-hogt",
                    "garagetältet på 190 × 230 cm med 220 cm i nock")
-            + ". Söker du något lättare och billigare för en enda cykel finns "
+            + ". Söker du något lättare för en enda cykel finns "
             + lank("cykeltalt-silverbelagd-oxford",
                    "cykeltältet i Oxfordduk på glasfiberstommar")
             + ", som packas i en bärväska mellan säsongerna.</p>",
@@ -578,7 +578,7 @@ PRODUKTER = [
             ("Är duken tät i taket?",
              "Duken är sydd i ett stycke, så det finns ingen söm i taket att "
              "läcka igenom. Den väger 200 g/m²."),
-            ("Kan jag gå in i det?",
+            ("Kan jag gå in i tältet?",
              "Invändiga höjden är 198 cm i bågens högsta punkt, men djupet är "
              "bara 115 cm — det är ett tält du går in i, inte ett du rör dig "
              "runt i."),
@@ -663,10 +663,10 @@ PRODUKTER = [
             "om det gör det helskinnat. Alternativet är att ta av duken och "
             "låta stommen stå — den tar ingen snölast alls när det inte sitter "
             "något tak på den.",
-            "Förankringen är den mest omfattande i familjen: 16 markankare, "
-            "12 expanderskruvar, 4 spännlinor och 12 gummispännare. "
-            "Expanderskruvarna är till för hårt underlag, alltså plattor eller "
-            "betong, där markankarna inte går ner.",
+            "Fästpunkterna är av tre slag med olika uppgift. Markankarna "
+            "går i jord, expanderskruvarna i hårt underlag som plattor "
+            "eller betong där ankarna inte går ner, och spännlinorna med "
+            "sina gummispännare håller duken mot stommen när det blåser.",
         ]),
         "skotsel": [DUK_SKOTSEL, STOMME_SKOTSEL, SPANN_SKOTSEL],
         "faq": [
@@ -708,8 +708,9 @@ PRODUKTER = [
             "hyllställ längs ena väggen och en åkgräsklippare bredvid, vilket "
             "är precis vad produktbilderna visar.</p>"
             "<p><strong>Stommen har extra stag.</strong> Det är den "
-            "förstärkning som gör en tre meter bred bärlina möjlig: ju bredare "
-            "spann, desto mer måste stommen hålla emot av sig själv.</p>"
+            "förstärkning som gör ett tre meter brett spann möjligt: ju "
+            "bredare tältet är, desto mer måste stommen hålla emot av sig "
+            "själv.</p>"
             "<p><strong>Duken väger 200 g/m² och är rivtålig.</strong> Kanten "
             "mot marken är 15 cm bred och avsedd att belastas, och fyra "
             "jordspett med spännlinor följer med.</p>"
@@ -722,7 +723,7 @@ PRODUKTER = [
             + ". Räcker hälften är "
             + lank("garagetalt-190x230-cm-220-cm-hogt",
                    "190 × 230 cm med 220 cm i nock")
-            + " billigare att ställa upp och lättare att flytta.</p>",
+            + " snabbare att ställa upp och lättare att flytta.</p>",
         "eg": [
             "300 × 300 cm på marken, 9 m² golvyta",
             "210 cm i nock",
@@ -816,8 +817,9 @@ PRODUKTER = [
             "öppningen blir 237 × 190 cm, så en motorcykel eller en "
             "trädgårdstraktor rullar in utan att du behöver rikta in den.</p>"
             "<p><strong>Nätfönstret på 47 × 56 cm släpper in ljus och "
-            "luft.</strong> Det syns på bilderna och står i måttritningen, "
-            "till skillnad från duken som är tät hela vägen runt i övrigt.</p>"
+            "luft.</strong> Duken är tät hela vägen runt i övrigt, så det är "
+            "fönstret som avgör om tältet är mörkt eller om du ser vad du "
+            "gör därinne.</p>"
             "<p><strong>Tjugo jordspett och 28 gummiband ingår.</strong> Det "
             "är den största mängd förankring i familjen, och den behövs över "
             "en så här stor duk.</p>"
@@ -854,7 +856,7 @@ PRODUKTER = [
             "Montering: krävs",
             "Ingår: tält, 20 jordspett, 28 gummiband, monteringsanvisning",
         ],
-        "villkor": ("Trettonhundra kvadratcentimeter tak per jordspett", [
+        "villkor": ("Tjugo jordspett över 13,4 kvadratmeter", [
             "Tjugo jordspett över 13,4 kvadratmeter är den tätaste "
             "förankringen i familjen, och den är dimensionerad för en duk som "
             "fångar mycket väder. Slå ner allihop, inte bara hörnen.",
