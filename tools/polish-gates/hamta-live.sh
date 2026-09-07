@@ -36,6 +36,22 @@ mkdir -p live
 # Ratt ordning ar darfor: vanta tills sidan HUNNIT bli inaktuell, traffa den DA
 # (det ar traffen som startar omrenderingen), och las forst efter pausen.
 STALE=300
+
+# ☠️ 403 FRAN VERCELS EDGE AR EN STRYPNING, INTE ETT TRASIGT SLUG. Uppmatt
+# 2026-09-07 pa runda J1: tva av atta sidor gav `403 Forbidden` med en
+# `iad1::`-request-id i kroppen — alltsa Vercels edge-brandvagg och inte
+# butikens app, som svarar 404 pa ett okant slug. Vilka sidor som faller
+# varierar mellan svepen, och samma slug gick fram nagra sekunder senare.
+# Butiken svarade dessutom 200 pa vanlig curl och 403 pa en browser-UA i
+# samma minut — det ar tempo som utloser den, inte anropets form.
+#
+# Samma medicin som MEDIA_UPLOAD_DELAY_MS, FREIGHT_CALL_DELAY_MS och
+# AOSOM_WRITE_DELAY_MS: den billigaste kuren mot en strypning som utloses av
+# tempo ar att inte springa. Ett svep ar 16 hamtningar (varm + skarp) av
+# 150 kB var, sa en sekund mellan sidorna kostar 16 sekunder pa en cykel som
+# anda vantar ut ett femminutersfonster.
+PAUS_MELLAN_SIDOR="${HAMTA_LIVE_DELAY:-1}"
+
 echo "== varm traff (triggar bakgrundsrendering) =="
 # ⚠️ VANTA EN GANG, INTE PER SIDA. Forsta versionen av det har vantade ut
 # stale-fonstret inuti loopen: en batch dar tva sidor var farska kostade 218 + 305
@@ -60,6 +76,7 @@ while read -r pid slug; do
   else
     echo "  $pid $slug  $code  age=$age — inaktuell, omrendering startad"
   fi
+  sleep "$PAUS_MELLAN_SIDOR"
 done < slugs.txt
 
 if [ -n "$farska" ]; then
@@ -68,6 +85,7 @@ if [ -n "$farska" ]; then
   printf '%b' "$farska" | while read -r pid slug; do
     [ -z "${pid:-}" ] && continue
     curl -s -o /dev/null "https://www.fyndplats.se/produkt/$slug"
+    sleep "$PAUS_MELLAN_SIDOR"
   done
 fi
 
@@ -77,27 +95,39 @@ echo "== skarp hamtning =="
 brist=0
 while read -r pid slug; do
   [ -z "${pid:-}" ] && continue
-  # ETT omforsok, och bara ett. En hamtning som ger 000 (anslutningsfel) eller
-  # inte lyckas skriva sin fil ar det transienta fallet — 2026-09-06 kostade en
+  # OMFORSOK MED BACKOFF. En hamtning som ger 000 (anslutningsfel) eller inte
+  # lyckas skriva sin fil ar det transienta fallet — 2026-09-06 kostade en
   # sadan miss hela atta-siders cykeln, alltsa tva minuters paus till, for en
-  # sida som gick fram direkt nar den kordes om. Faller aven omforsoket star
+  # sida som gick fram direkt nar den kordes om. Faller alla forsok star
   # AVBRYT-et kvar: grinda aldrig pa en ofullstandig hamtning.
+  #
+  # ☠️ TRAPPAN AR MATT, INTE VALD. Den var 3 s och ETT omforsok fram till
+  # 2026-09-07, och det racker inte mot edge-strypningen (se kommentaren vid
+  # PAUS_MELLAN_SIDOR): uppmatt pa runda J1 gav forsok 1 och 2 med 20 sekunders
+  # mellanrum bada 403, och forst det tredje gav 200. Ett for kort omforsok
+  # rapporterar en strypt sida som trasig, och da avbryts en cykel som bara
+  # behovde vanta.
   code=000; size=0; age=""
-  for forsok in 1 2; do
+  for paus in 5 20 45 0; do
     hdr=$(curl -s -D - -o "live/$pid.html" -w "%{http_code}" "https://www.fyndplats.se/produkt/$slug")
     code=$(printf '%s' "$hdr" | tail -1)
     age=$(printf '%s' "$hdr" | grep -i '^age:' | tr -d '\r' | head -1)
     size=$([ -f "live/$pid.html" ] && wc -c < "live/$pid.html" || echo 0)
     [ "$code" = "200" ] && [ "$size" -gt 1000 ] && break
-    [ "$forsok" = "1" ] && echo "  $pid $slug  HTTP $code ${size}B — gor ett omforsok" && sleep 3
+    [ "$paus" = "0" ] && break
+    echo "  $pid $slug  HTTP $code ${size}B — gor ett omforsok om ${paus}s"
+    sleep "$paus"
   done
   echo "  $pid $slug  HTTP $code  ${size}B  ${age:-age: -}"
+  sleep "$PAUS_MELLAN_SIDOR"
   [ "$code" = "200" ] || brist=1
   [ "$size" -gt 1000 ] || brist=1
 done < slugs.txt
 
 if [ "$brist" != "0" ]; then
   echo "AVBRYT: minst en sida gav inte 200 eller ar tom — grinda inte pa det har" >&2
+  echo "  403 = Vercels edge-strypning, inte ett trasigt slug. Hamta DEN sidan" >&2
+  echo "  ensam om en stund; en sida i taget ar facit, ett svep ar ett stickprov." >&2
   exit 1
 fi
 echo "KLART — kor nu: python3 ../../polish-gates/livegrind.py"
