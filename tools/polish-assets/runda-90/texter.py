@@ -217,7 +217,12 @@ P["5129f6b0"] = dict(
         "med en röd bromsvajer som löper längs röret, styret svart med vadderad "
         "tvärstång."),
     egenskaper=G_EGENSKAPER,
-    spec=G_SPEC_BAS + [("Färg", "vit ram, svart styre, silverfärgade fälgar")],
+    # ☠️ FÄLGEN ÄR VIT, inte silverfärgad. Zoomat på hjältebilden i Steg 9:
+    # fälgbandet är vitlackerat, ekrarna är silver. Ett första utkast skrev
+    # "silverfärgade fälgar" efter att ha läst kontaktarket i miniatyr — samma
+    # klass som runda 89:s "röda fälg", som också var silver och också togs
+    # från en för liten bild.
+    spec=G_SPEC_BAS + [("Färg", "vit ram, svart styre och framgaffel, vita fälgar")],
     skotsel=G_SKOTSEL,
     faq=G_FAQ_GEMENSAM,
     syskon=(
@@ -245,7 +250,10 @@ P["50b28808"] = dict(
         "att farten går att ta ner kontrollerat i en utförsbacke. Ramen är "
         "svart med röd framgaffel, och fotplattan lika bred som på den vita."),
     egenskaper=G_EGENSKAPER,
-    spec=G_SPEC_BAS + [("Färg", "svart ram, röd framgaffel, svarta fälgar")],
+    # ☠️ FÄLGEN ÄR VIT — samma hjul som på den vita modellen. Bara ramen och
+    # gaffeln skiljer de två åt. "Svarta fälgar" var läst ur miniatyren, där
+    # det svarta DÄCKET dominerar; fälgbandet under är vitt.
+    spec=G_SPEC_BAS + [("Färg", "svart ram, röd framgaffel, vita fälgar")],
     skotsel=G_SKOTSEL,
     faq=G_FAQ_GEMENSAM,
     syskon=(

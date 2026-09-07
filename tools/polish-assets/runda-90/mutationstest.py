@@ -18,7 +18,7 @@ HJUL = {p: ("luft" if p in lint.LUFTHJUL else "massiv") for p in texter.P}
 
 def kor_grind(pid, h):
     return lint.brister(pid, h, HJUL[pid], lint.TAL_OK[pid] | lint.TAL_LANK[pid],
-                        lint.FRAMMANDE[pid])
+                        lint.FRAMMANDE[pid], lint.FALG_OK[pid])
 
 
 MUTATIONER = [
@@ -36,6 +36,10 @@ MUTATIONER = [
      "mot kunden är VI leverantören"),
     ("5129f6b0", "139 × 58 × 90–96 cm", "118 × 52 × 90–96 cm",
      "lånat mått från modell B"),
+    ("5129f6b0", "vita fälgar", "silverfärgade fälgar",
+     "runda 89:s röda fälg, igen — färgen läst ur en miniatyr"),
+    ("50b28808", "vita fälgar", "svarta fälgar",
+     "svart DÄCK läst som svart fälg"),
     ("50b28808", "Maxlast", "Artikelnummer",
      "artikelnummer-etikett i spec-tabellen"),
     ("50b28808", "svart ram, röd framgaffel", "svart ram från Tyskland",

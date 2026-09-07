@@ -164,6 +164,25 @@ FRAMMANDE = {
     "eb4418ad": ["139", "115", "118", "120", "90–96", "80–88", "Ø40", "Ø30", "50 kg", "6,5 kg", "6,7 kg"],
 }
 
+# ── 4b. Fälgfärgen är MÄTT på hjältebilden, inte läst i källan ───────────
+# ☠️ Runda 89 skrev "röd fälg" om en fälg som var silver — bara gaffeln var
+# röd. Runda 90 skrev först "silverfärgade" och "svarta" om två fälgar som
+# båda är VITA. Båda felen kom av att läsa en miniatyr. Grinden kräver att
+# varje färgord framför "fälg" står i produktens egen, uppmätta lista.
+FALG_RE = re.compile(
+    r"(r[öo]d|bl[åa]|gr[öo]n|rosa|orange|turkos|svart|vit|lila|gul|silver)"
+    r"(?:a|t|e)?(?:f[äa]rgade?)?\s+f[äa]lg", re.I)
+
+FALG_OK = {
+    "5129f6b0": {"vita"},        # vitlackerat fälgband, silverekrar
+    "50b28808": {"vita"},        # SAMMA hjul som den vita modellen
+    "9518db1e": {"bl[åa]"},
+    "473084eb": {"rosa"},
+    "85be4535": {"svarta"},      # familjens enda modell C med svarta fälgar
+    "68f8f1a7": {"svarta"},
+    "eb4418ad": set(),           # nämner ingen fälgfärg
+}
+
 # ── 5. Svensk sifferstil ─────────────────────────────────────────────────
 SIFFERSTIL = [
     (r"\d+\.\d+\s*(?:cm|kg|m|mm)", "decimalpunkt i stället för komma"),
@@ -212,10 +231,16 @@ def sjalvtest():
     # Främmande mått
     if not brister("PROV", "<p>Ramen är 118 cm lång.</p>", hjul="massiv", tal=set(), frammande=["118"]):
         fel.append("lanat matt fangades inte")
+    if not brister("PROV", "<p>Silverfärgade fälgar.</p>", hjul="massiv", tal=set(),
+                   frammande=[], falgfarger={"vita"}):
+        fel.append("ogrundad falgfarg fangades inte")
+    if brister("PROV", "<p>Vita fälgar.</p>", hjul="massiv", tal=set(),
+               frammande=[], falgfarger={"vita"}):
+        fel.append("RATT falgfarg falldes felaktigt")
     return fel
 
 
-def brister(pid, h, hjul, tal, frammande):
+def brister(pid, h, hjul, tal, frammande, falgfarger=None):
     su = synlig(h)
     f = []
 
@@ -248,6 +273,13 @@ def brister(pid, h, hjul, tal, frammande):
                 f.append("luftdäcks-påstående UTAN kontrastmarkör på en produkt "
                          "med MASSIVA hjul: %r" % m.group(0))
 
+    # Fälgfärg mot den uppmätta listan
+    if falgfarger is not None:
+        for m in FALG_RE.finditer(su):
+            ord_ = m.group(0).lower()
+            if not any(re.search(g, ord_) for g in falgfarger):
+                f.append("ogrundad fälgfärg (mät hjältebilden): %r" % m.group(0))
+
     # Lånade mått från en annan modell i familjen
     for t in frammande:
         if re.search(ordgrans(re.escape(t)), su):
@@ -275,7 +307,8 @@ def kor():
     allt = 0
     for pid in texter.P:
         h = texter.html(pid)
-        f = brister(pid, h, HJUL[pid], TAL_OK[pid] | TAL_LANK[pid], FRAMMANDE[pid])
+        f = brister(pid, h, HJUL[pid], TAL_OK[pid] | TAL_LANK[pid], FRAMMANDE[pid],
+                    FALG_OK[pid])
         allt += len(f)
         print("%-9s %-6s %4d tecken  %s" % (pid, HJUL[pid], len(h),
                                             "OK" if not f else "%d BRISTER" % len(f)))
