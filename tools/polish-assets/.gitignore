@@ -39,3 +39,12 @@
 # redan är ignorerad — `kortbygge.kalla()` letar efter `<id>-1.jpg`, så en
 # runda som väljer en annan bild lägger sin kopia här.
 */kortkalla/
+
+# Steg 4:s förstoringar och jämförelseark (runda 89). Härledda ur
+# `rawbilder/`, som redan är ignorerad, och DOMEN står i STEG2-5.md — bilden
+# bevisar ingenting i efterhand som texten inte redan säger. Samma skäl som
+# `*/ark-*.jpg` ovan.
+*/zoom-*.jpg
+*/jamfor-*.jpg
+*/kort-hjaltar.jpg
+*/kort-prov.jpg
