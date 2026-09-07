@@ -138,8 +138,24 @@ FLIKAR = ("Tekniska specifikationer", "Användning och skötsel", "Vanliga fråg
 TILLATNA_TECKEN = "ÅÄÖåäöÉéÜü×—–…°§²Ø"
 
 
+# ☠️ TUSENTALSAVSKILJAREN ÄR EN FORMATERING, INTE ETT NYTT TAL. Källan skriver
+# tyskt "30.000 Stunden" och den svenska texten skriver "30 000 timmar" — samma
+# uppgift, men den naiva extraktionen gav {"30,000"} mot {"30", "000"} och fällde
+# en KORREKT text. Samma fälla på "1 100 lm" mot källans "1100 lm". Grinden ska
+# fånga påhittade tal, inte svensk sifferformatering.
+#
+# ⚠️ Sammanslagningen är SNÄV med flit: bara ett mellanslag (eller hårt
+# mellanslag, eller punkt) följt av EXAKT tre siffror som inte fortsätter i en
+# fjärde. "126 × 53" rörs inte (× emellan), "2 kg och 170 cm" rörs inte (170 är
+# tre siffror men föregås av ett ord). Ett för brett mönster hade slagit ihop två
+# oberoende mått till ett tal som inte finns i någon källa — och då fäller
+# grinden på fel ställe i stället för att inte fälla alls.
+_TUSENTAL = re.compile(r"(?<=\d)[ \u00a0.](\d{3})(?!\d)")
+
+
 def tal(text):
-    """Alla tal, normaliserade så 44,5 och 44.5 jämförs lika."""
+    """Alla tal, normaliserade så 44,5 och 44.5 — och 30 000 och 30.000 — jämförs lika."""
+    text = _TUSENTAL.sub(r"\1", text)
     return {t.replace(".", ",").rstrip(",") for t in re.findall(r"\d+(?:[.,]\d+)?", text)}
 
 

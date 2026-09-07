@@ -45,6 +45,18 @@ function grinda(text: string): string[] {
   return JSON.parse(ut) as string[];
 }
 
+/** Kör gatelib.tal() mot en text och returnerar talen sorterade. */
+function talen(text: string): string[] {
+  const program = [
+    "import sys, json",
+    `sys.path.insert(0, ${JSON.stringify(GRINDAR_DIR)})`,
+    "from gatelib import tal",
+    "print(json.dumps(sorted(tal(sys.stdin.read()))))",
+  ].join("\n");
+  const ut = execFileSync("python3", ["-c", program], { input: text, encoding: "utf-8" });
+  return JSON.parse(ut) as string[];
+}
+
 describe("gatelib fäller det den ska", () => {
   const FALLER: Array<[string, string, string]> = [
     ["HUSMÄRKE", "husmärke i brödtext", "En rymlig koja från PawHut med tak."],
@@ -92,5 +104,34 @@ describe("gatelib fyrar INTE på korrekt svenska", () => {
 
   it.each(RENA)("%s", (_vad, text) => {
     expect(grinda(text)).toEqual([]);
+  });
+});
+
+// ☠️ TUSENTALSAVSKILJAREN ÄR EN FORMATERING, INTE ETT NYTT TAL. Källan skriver
+// tyskt "30.000 Stunden"; den svenska texten skriver "30 000 timmar". Före
+// 2026-09-07 gav de {"30,000"} mot {"30", "000"}, och siffergrinden fällde en
+// KORREKT text för att den bytt notation. Samma fälla på "1 100 lm".
+//
+// ⚠️ Och andra hållet är minst lika viktigt: sammanslagningen får inte slå
+// ihop två OBEROENDE mått till ett tal som inte finns i någon källa. Då fäller
+// grinden på fel ställe i stället för att inte fälla alls — och en grind som
+// pekar åt fel håll kostar mer felsökning än en som är tyst.
+describe("gatelib.tal() jämför notation, inte formatering", () => {
+  const LIKA: Array<[string, string, string]> = [
+    ["tusental med mellanslag mot punkt", "livslängd 30 000 timmar", "Lebensdauer: 30.000 Stunden"],
+    ["ljusflöde med och utan mellanslag", "ger 1 100 lm", "Lichtleistung: 1100 lm"],
+    ["decimalkomma mot decimalpunkt", "44,5 cm djup", "44.5 cm tief"],
+  ];
+  it.each(LIKA)("%s", (_vad, svenska, tyska) => {
+    expect(talen(svenska)).toEqual(talen(tyska));
+  });
+
+  const SKILJS: Array<[string, string, string[]]> = [
+    ["paketmått slås inte ihop", "Paketmått: 126 × 53 × 16 cm", ["126", "16", "53"]],
+    ["tal med ord emellan slås inte ihop", "bär 2 kg och är 170 cm", ["170", "2"]],
+    ["fyrsiffrigt efterled är inte ett tusental", "3000 K till 6500 K", ["3000", "6500"]],
+  ];
+  it.each(SKILJS)("%s", (_vad, text, vantat) => {
+    expect(talen(text)).toEqual(vantat);
   });
 });
