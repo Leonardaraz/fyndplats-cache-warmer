@@ -25,6 +25,10 @@ därmed noll kvarvarande utkast av den här modelltypen.
 | Mappningsstämpel | grön |
 | Publicerad | `visible: true` |
 | Korslänk tillbaka på rosa syskonsidan | skriven, längd = gammal + tillägg, **1** länk |
+| Live-svep mot kontrollsida | **0 av 1 sidor med problem** |
+| Kort + alt-texter live | kortet renderat, **12 unika** alt-texter |
+| Båda korslänkarna live | 200 · 200, och länken tillbaka syns på rosa sidan |
+| Trasiga `https:/produkt`-länkar | **0** |
 
 ## Vad rundan lärde huset
 
@@ -44,10 +48,12 @@ dubblett tills måtten mättes: 143 cm-sidorna har lika stora hjul fram och bak
 och väger 10,6 kg, medan utkastet är 135 cm med 16"/12" och 9,8 kg. Utkastet är
 i stället färgsyskonet till den ROSA 135 cm-sidan — varje mått sammanfaller.
 
-⚠️ **En ny slug svarar 404 direkt efter publicering.** Sidan fanns aldrig förut,
-så ISR måste generera den; den första hämtningen beställer bygget. Runda 91:s
-sidor svarade 200 direkt bara för att tio minuter arbete låg mellan publicering
-och kontroll. Vänta ut den — ett 404 här är inte ett fel i sidan.
+⚠️ **En ny slug svarar 404 direkt efter publicering — mätt till ~4,5 minuter.**
+Sidan fanns aldrig förut, så ISR måste generera den; den första hämtningen
+beställer bygget. Pollning var 15:e sekund gav 200 på nittonde försöket.
+Runda 91:s sidor svarade 200 direkt bara för att tio minuters arbete låg mellan
+publicering och kontroll. Vänta ut den — ett 404 här är inte ett fel i sidan,
+och runbookens "hämta två gånger" räcker inte för en slug som aldrig funnits.
 
 ## ⚠️ Kvar att göra på syskonsidan
 
