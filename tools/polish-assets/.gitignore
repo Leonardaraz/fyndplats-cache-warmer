@@ -48,3 +48,9 @@
 */jamfor-*.jpg
 */kort-hjaltar.jpg
 */kort-prov.jpg
+
+# Runda 90:s referensbilder från PUBLICERADE sidor. Hämtade ur wixstatic
+# för dubblettgrinden och åter-hämtningsbara; domen står i STEG1.md.
+*/publbilder/
+*/dubblettpar.jpg
+*/modell-*.jpg
