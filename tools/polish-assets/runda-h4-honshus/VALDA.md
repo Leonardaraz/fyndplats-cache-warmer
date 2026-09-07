@@ -76,3 +76,22 @@ bär **`Husdjur` + `Burar, Kläder & Tillbehör`**. Runda H4 fick samma par.
 är publicerad men bar bara `All Products` — samma defekt som de 41 sidor som
 lagades 2026-09-06, alltså en som glidit in igen efter den städningen. Den har
 båda kategorierna nu.
+
+## Live-verifierad 2026-09-07 — 8 av 8 REN
+
+```
+3b8ab8da  ord=598  diff=0  -> REN
+c7763271  ord=598  diff=0  -> REN
+f55f89b3  ord=562  diff=0  -> REN
+2e0a7448  ord=549  diff=0  -> REN
+ef062897  ord=564  diff=0  -> REN
+c5f3914e  ord=559  diff=0  -> REN
+ac759277  ord=551  diff=0  -> REN
+ea02080f  ord=531  diff=0  -> REN
+
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+```
+
+Noll avvikelser rakt igenom: orddiff mot källfilerna, homoglyfsvep, sid- och
+alt-svep, SEO-jämförelse mot `seo.tsv`, kategori och skötselflik. Första
+rundan i sviten som går ren på alla åtta utan en enda anmärkning.
