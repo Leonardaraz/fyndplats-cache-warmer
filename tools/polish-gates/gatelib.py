@@ -51,6 +51,16 @@ TYSKA_ORD = [
     "Holz", "Stahl", "Innenraum", "Abmessungen", "Gesamtmaße", "Belastung",
     "Bedienungsanleitung", "Handbuch", "Anleitung", "Höhe", "Breite", "Tiefe",
     "Grau", "Weiß", "Schwarz", "Braun", "Grün", "Hellgrau", "Dunkelgrau",
+    # Fordon (rundorna H2–H3). Ord som stavas LIKA på svenska är medvetet
+    # utelämnade — "Musik", "Material", "Metall", "Motor" kan inte skilja
+    # språken åt och hade fällt varje polerad sida i katalogen.
+    "Rutschauto", "Rutscher", "Rutschfahrzeug", "Schiebestange", "Hupe",
+    "Verdeck", "Sonnendach", "Sicherheitsumrandung", "Sicherheitszaun",
+    "Lenker", "Lenkerhöhe", "Lenkrad", "Belastbarkeit", "Stauraum",
+    "Räder", "Reifen", "Bremse", "Sitzfläche", "Kinderauto", "Elektroauto",
+    "Motorrad", "Fernbedienung", "Akku", "Ladegerät", "Geschwindigkeit",
+    "Federung", "Sicherheitsgurt", "Scheinwerfer", "Spielzeug",
+    "Kleinkinder", "Monate", "Batterien", "Pedale", "Pedalen",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
@@ -90,6 +100,10 @@ STAV_ORD = [
     "dögnsvarv", "engangsjobb", "ihopsattningen", "for hard", "hallbar",
     "fatolj", "hojd", "langd", "sakerhet",
     "rundt", "hvid", "sort", "gulv", "blød", "hjørne", "stof", "læder",
+    # ☠️ Måste KONSUMERA hela ordet — STAV lindas i \b(...)\b, så ett
+    # lookahead ger ingen ordgräns efter sig och mönstret kan aldrig träffa.
+    # Samma klass som runda G:s döda `gungstol(?=en\b)(?!)`.
+    "[Kk]ippskydd", "[Kk]ippsäker", "[Kk]ippsäkert",
     "siddehøjde", "ryglæn", r"fod(?=en\b)",
 ]
 STAV = r"\b(" + "|".join(STAV_ORD) + r")\b"

@@ -38,10 +38,24 @@ def _las_facit():
             rå = json.load(open(namn, encoding="utf-8"))
             return {k: (v if isinstance(v, list) else sorted(tal(kropp(v))))
                     for k, v in rå.items()}, namn
-    raise SystemExit("[FACIT SAKNAS] varken kallor-tal.json eller kallor.json finns")
+    return None, None
 
+# ☠️ SAKNAT FACIT FÅR INTE STÄNGA AV MÖNSTERGRINDARNA. Fram till 2026-09-07
+# kastade `_las_facit` här, alltså INNAN en enda fil lästs — och elva av
+# sjutton rundor (A–E3, F2) har inget facit. För dem körde varken tyska
+# rester, husmärken, artikelnummer, stavning eller homoglyfer: grinden
+# rapporterade "[FACIT SAKNAS]" och såg ut att ha gjort sitt jobb.
+# Samma klass som runda G:s döda `gungstol(?=en\b)(?!)` — en grind som ser
+# komplett ut och kontrollerar ingenting är värre än ingen alls, för den
+# räknas som gjord. Mönstergrindarna behöver inget facit; bara siffergrinden
+# gör det, och det är BARA den som hoppas över.
 kallor, _facitfil = _las_facit()
-slug2kort = {l.split()[1]: l.split()[0] for l in open("slugs.txt", encoding="utf-8") if l.strip()}
+UTAN_FACIT = kallor is None
+if UTAN_FACIT:
+    kallor = {}
+    print("[FACIT SAKNAS] siffergrinden hoppas över — mönstergrindarna körs ändå")
+slug2kort = ({l.split()[1]: l.split()[0] for l in open("slugs.txt", encoding="utf-8") if l.strip()}
+             if os.path.exists("slugs.txt") else {})
 
 # 2. SYSKONETS TAL. En korslänk beskriver grannprodukten ("den andra har 50 cm
 #    bred sits"), och det talet står i GRANNENS källa. Grinden följer därför
@@ -72,6 +86,8 @@ for f in filer:
     for r in FLIKAR:
         if f"<h2>{r}</h2>" not in txt:
             print(f"  {kort}: [FLIK] saknar <h2>{r}</h2>"); fynd += 1
+    if UTAN_FACIT:
+        continue
     facit = set(kallor.get(kort, []))
     if not facit:
         print(f"  {kort}: [KÄLLA SAKNAS]"); fynd += 1; continue
@@ -79,5 +95,7 @@ for f in filer:
     for t in sorted(tal(k) - facit, key=lambda x: (len(x), x)):
         print(f"  {kort}: [SIFFRA UTAN KÄLLA] {t!r}"); fynd += 1
 
-print(f"\nGRIND: {fynd} fynd i {len(filer)} filer")
-sys.exit(1 if fynd else 0)
+sif = "utan siffergrind" if UTAN_FACIT else f"siffergrind mot {_facitfil}"
+print(f"\nGRIND: {fynd} fynd i {len(filer)} filer ({sif})")
+# Saknat facit fäller fortfarande — en runda utan siffergrind är inte klar.
+sys.exit(1 if (fynd or UTAN_FACIT) else 0)

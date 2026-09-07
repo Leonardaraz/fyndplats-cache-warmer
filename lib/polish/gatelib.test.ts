@@ -57,6 +57,14 @@ describe("gatelib fäller det den ska", () => {
     ["STAVNING", "dansk falsk vän", "Ställ den på et plant gulv."],
     ["HOMOGLYF", "kyrilliskt t i granträ", "Stommen är i massivt granтrä."],
     ["EN-NORM UTAN KÄLLA", "utskriven EN-norm", "Tyget är testat enligt EN 1021."],
+    // Runda H3: tyskans "kippen" läckte in i en rubrik ("Kippskydd") på en
+    // sida som var på väg att publiceras. Ordet såg svenskt ut och passerade
+    // varje grind — syskonprodukten i samma batch stavade det rätt.
+    ["STAVNING", "tyskans kipp- i stället för tipp-", "Kippskydd i fyrhjulsbasen."],
+    // Fordonsvokabulären lades till i H3. Utan den grindades rundorna H2–H3
+    // med gungstolarnas ordlista, precis som H1 grindades med F2:s.
+    ["TYSK REST", "fordonsord ur feeden", "Rutschauto mit Schiebestange und Hupe."],
+    ["TYSK REST", "tyska specetiketter för fordon", "Belastbarkeit 25 kg, Stauraum unter dem Sitz."],
   ];
 
   it.each(FALLER)("[%s] %s", (grind, _vad, text) => {
@@ -73,6 +81,13 @@ describe("gatelib fyrar INTE på korrekt svenska", () => {
     ["gult som färg", "Klösträdet är i grönt och gult med konstgjorda blad."],
     ["svenska ord som liknar tyska", "Metall och filter i botten, med hund och katt i rummet."],
     ["mått och vikt utan tyska rester", "Måtten är 48 x 48 x 192 cm och vikten 17,3 kg."],
+    // ☠️ De fyra sista är fordonsordlistans egen risk. Orden nedan stavas
+    // LIKA på svenska och tyska, så de får aldrig stå i listan — de kan inte
+    // skilja språken åt och hade fällt varje polerad sida i katalogen.
+    ["tippskydd stavat rätt", "Tippskydd i fyrhjulsbasen och breda hjul."],
+    ["svenska pedaler, inte tyska Pedale", "Pedaler och skyddsbåge lossas var för sig."],
+    ["ord som stavas lika på båda språken", "Material: plast och metall. Musik och ljus i ratten."],
+    ["svensk ålders- och batteriangivelse", "Rekommenderad ålder 18–36 månader, 2 AA-batterier."],
   ];
 
   it.each(RENA)("%s", (_vad, text) => {
