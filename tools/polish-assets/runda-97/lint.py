@@ -106,6 +106,34 @@ def granska(pid, h, namn, titel, meta):
     if re.search(r"(?<!>)  (?!<)", re.sub(r"<[^>]+>", "", h)):
         f.append("dubbelt blanksteg i brödtexten")
 
+    # ☠️ KOMMALISTA AV TAL MED ENHETEN SIST. Runbokens sifferstil förbjuder den
+    #    ordagrant, och regeln fanns INTE i den här rundans lint — den fångades
+    #    först av klart-kriteriet mot Wix, efter att texterna redan var skrivna.
+    #    Fjorton förekomster, varav en i META-BESKRIVNINGEN, som är just den yta
+    #    Google visar. En regel som bara står i runboken är ingen grind.
+    #
+    #    Skiljetecknet är MELLANSLAGET, inte kommat: listkommat har alltid ett
+    #    mellanslag efter sig, decimalkommat aldrig. "13,5 kg" får inte fällas.
+    #    Ytan är ALL text — namn, titel, meta och hela HTML:en — för regeln
+    #    säger "aldrig", och en grind som täcker mindre är ett påstående om att
+    #    resten är ren.
+    #    ⚠️ Loopvariabeln får INTE heta `txt` — den skuggade den yttre `txt`
+    #       (lasform(h)) och avväpnade material- och talgrinderna nedanför, som
+    #       då mätte meta-beskrivningen i stället för brödtexten. Fyra falska
+    #       brister på första körningen: en slarvigt tillagd regel kan tysta de
+    #       regler som står efter den.
+    #    ⚠️ Och den läser ARGUMENTEN, inte T.NAMN[pid] osv. Första versionen
+    #       läste modulen direkt — då kunde ingen mutation nå de tre ytorna,
+    #       och självtestet för meta rapporterade "FÄLLDE INTE" om en regel som
+    #       i drift fungerade. En regel som inte går att mutera är otestad.
+    for vad, yta in (("brödtext", re.sub(r"<[^>]+>", " ", h)),
+                     ("namn", namn),
+                     ("seo-titel", titel),
+                     ("meta", meta)):
+        tr = re.search(r"\d+(?:,\d+)?, \d", yta)
+        if tr:
+            f.append("kommalista av tal i %s: %r" % (vad, tr.group(0)))
+
     # 3 — ohärledda tal
     vit = vitlista(pid)
     for tal in tal_i(txt + " " + namn + " " + titel + " " + meta):
@@ -221,6 +249,15 @@ def sjalvtest():
          lambda: kor(h=h0.replace("<h2>Vanliga frågor</h2>", ""))),
         ("dubbelt blanksteg", "dubbelt blanksteg",
          lambda: kor(h=h0.replace("Kaffebrun", "Kaffe  brun"))),
+        # ☠️ Muteras genom att LÄGGA TILL, aldrig genom att byta ut ett uppmätt
+        #    värde — annars fäller talgrinden först och den här kan vara helt
+        #    avväpnad utan att testet märker något (runbokens m_kommalista).
+        ("kommalista i brödtext", "kommalista av tal i brödtext",
+         lambda: kor(h=h0 + "<p>Facken är 22, 22 och 16 cm.</p>")),
+        ("kommalista i meta", "kommalista av tal i meta",
+         lambda: kor(m="Matskåp för hund med fack på 22, 22 och 16 cm samt två "
+                       "rostfria skålar. Kaffebrun träfiberskiva, 9,8 kg och "
+                       "monteringsanvisning ingår i leveransen.")),
     ]
     ok = 0
     for namn_t, vantat, f in fall:
@@ -233,8 +270,20 @@ def sjalvtest():
     print("  %s %-24s %s" % ("✓" if not rent else "✗", "ren text passerar",
                              "" if not rent else rent[:2]))
     ok += not rent
-    print("\n%d/%d självtest" % (ok, len(fall) + 1))
-    return ok == len(fall) + 1
+
+    # ☠️ EN RIKTNING TILL: decimalkommat får ALDRIG fällas. Utan det här fallet
+    #    kunde mönstret skärpas till \d, \d och fälla varje decimaltal i
+    #    katalogen — och alla fällande självtest hade fortsatt vara gröna.
+    fria = [("decimaltal", h0 + "<p>Skåpet väger 13,5 kg.</p>"),
+            ("uppräkning utan tal", h0 + "<p>Foder, koppel och godis.</p>")]
+    for namn_t, h in fria:
+        b = [x for x in granska(pid, h, n0, t0, m0) if "kommalista" in x]
+        print("  %s %-24s %s" % ("✓" if not b else "✗", namn_t + " passerar",
+                                 "" if not b else b))
+        ok += not b
+    n_fall = len(fall) + 1 + len(fria)
+    print("\n%d/%d självtest" % (ok, n_fall))
+    return ok == n_fall
 
 
 if __name__ == "__main__":

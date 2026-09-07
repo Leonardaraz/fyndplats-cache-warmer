@@ -92,8 +92,8 @@ INGRESS = {
         "skålarna håller dem på plats."),
     "2e2b2366": (
         "En matplats i kaffebrun träfiberskiva med två rostfria skålar på "
-        "cirka 2 liter. Skålplanet flyttas mellan tre höjder — 16,9, 29,7 "
-        "och 42,5 cm — och under det finns ett öppet utrymme. Urtagna handtag "
+        "cirka 2 liter. Skålplanet flyttas mellan tre höjder — 16,9 / 29,7 "
+        "/ 42,5 cm — och under det finns ett öppet utrymme. Urtagna handtag "
         "i sidorna gör den lätt att flytta."),
     "868cc038": (
         "Ett lågt matskåp på 60 × 30 × 34 cm i kaffebrun träfiberskiva, med "
@@ -127,8 +127,8 @@ EGENSKAPER = {
     ],
     "1fc55b3d": [
         "Två rostfria skålar på 1,2 liter, Ø 20 cm och 6 cm djupa",
-        "Fyra höjder: 13, 19,5, 25,5 och 31,5 cm",
-        "Tre lutningar: 0, 7,5 och 15 grader",
+        "Fyra höjder: 13 / 19,5 / 25,5 / 31,5 cm",
+        "Tre lutningar: 0 / 7,5 / 15 grader",
         "Skiva 43,5 × 25,5 cm på stativ av stål",
         "Gummikuddar under skålarna håller dem stilla",
         "Brun skiva, svart stativ",
@@ -137,7 +137,7 @@ EGENSKAPER = {
     ],
     "2e2b2366": [
         "Två rostfria skålar på cirka 2 liter, Ø 24 cm och 7 cm djupa",
-        "Tre höjder på skålplanet: 16,9, 29,7 och 42,5 cm",
+        "Tre höjder på skålplanet: 16,9 / 29,7 / 42,5 cm",
         "Stomme i träfiberskiva, skålar i rostfritt stål",
         "Urtagna handtag i sidorna, 12,5 × 3 cm",
         "Skålarna lyfts ur för påfyllning och diskning",
@@ -196,8 +196,8 @@ SPEC = {
     "1fc55b3d": [
         ("Mått", "48 × 26 × 36,5 cm"),
         ("Skiva", "43,5 × 25,5 cm"),
-        ("Höjdlägen", "13, 19,5, 25,5 och 31,5 cm"),
-        ("Lutningslägen", "0, 7,5 och 15 grader"),
+        ("Höjdlägen", "13 / 19,5 / 25,5 / 31,5 cm"),
+        ("Lutningslägen", "0 / 7,5 / 15 grader"),
         ("Skålar", "2 st, 1,2 liter, Ø 20 × 6 cm"),
         ("Stomme", "stål med laminerad skiva"),
         ("Skålarnas material", "rostfritt stål"),
@@ -208,7 +208,7 @@ SPEC = {
     "2e2b2366": [
         ("Mått", "54 × 31,5 × 47 cm"),
         ("Skålplanets mått", "51 × 30 cm"),
-        ("Höjdlägen", "16,9, 29,7 och 42,5 cm"),
+        ("Höjdlägen", "16,9 / 29,7 / 42,5 cm"),
         ("Skålar", "2 st, cirka 2 liter, Ø 24 × 7 cm"),
         ("Stomme", "träfiberskiva"),
         ("Skålarnas material", "rostfritt stål"),
@@ -397,12 +397,12 @@ def faq(pid):
                    "golvet och låses i det läge du valt."))
     if pid == "1fc55b3d":
         ut.append(("Vad är lutningen till för?",
-                   "Skivan kan sättas i 0, 7,5 eller 15 grader. Vinkeln "
+                   "Skivan kan sättas i tre vinklar: 0 / 7,5 / 15 grader. Vinkeln "
                    "flyttar skålens öppning närmare hunden utan att hela "
                    "stället blir högre."))
     if pid == "2e2b2366":
         ut.append(("Går höjden att ändra i efterhand?",
-                   "Ja. Skålplanet sitter i tre lägen — 16,9, 29,7 och "
+                   "Ja. Skålplanet sitter i tre lägen — 16,9 / 29,7 / "
                    "42,5 cm — och flyttas mellan dem."))
     if g == "T":
         ut.append(("Hur mycket får plats inuti?",
@@ -485,7 +485,7 @@ SEO_BESKRIVNING = {
                  "31,5 cm och tre lutningslägen. Två rostfria skålar på "
                  "1,2 liter. Brun skiva på svart stativ, 2,8 kg."),
     "2e2b2366": ("Matplats för hund i kaffebrun träfiberskiva med tre "
-                 "höjdlägen — 16,9, 29,7 och 42,5 cm. Två rostfria skålar på "
+                 "höjdlägen — 16,9 / 29,7 / 42,5 cm. Två rostfria skålar på "
                  "cirka 2 liter och öppet utrymme under. 7 kg."),
     "868cc038": ("Matskåp för hund 60 × 30 × 34 cm med två dörrar på gångjärn "
                  "och "

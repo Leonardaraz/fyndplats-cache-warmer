@@ -23,11 +23,11 @@
   "rader": [
    {
     "etikett": "Höjdlägen",
-    "varde": "13, 19,5, 25,5 och 31,5 cm"
+    "varde": "13 / 19,5 / 25,5 / 31,5 cm"
    },
    {
     "etikett": "Lutningslägen",
-    "varde": "0, 7,5 och 15 grader"
+    "varde": "0 / 7,5 / 15 grader"
    },
    {
     "etikett": "Skålar",
@@ -41,7 +41,7 @@
   "rader": [
    {
     "etikett": "Höjdlägen",
-    "varde": "16,9, 29,7 och 42,5 cm"
+    "varde": "16,9 / 29,7 / 42,5 cm"
    },
    {
     "etikett": "Skålar",
