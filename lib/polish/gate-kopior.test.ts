@@ -38,19 +38,41 @@ const ROT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const RUNDOR = join(ROT, "tools", "polish-assets");
 const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "hasha.py", "gatelib.py"];
 
-function kataloger(rot: string): string[] {
+// ☠️ MÖNSTER, INTE EN NAMNLISTA. Den första versionen av det här testet letade
+// efter de fem filnamnen ovan i rundornas underkataloger. Den missade
+// `tools/polish-assets/gate-runda-a.py` — en TJUGONDE kopia, med runda A:s
+// smalare ordlista, som låg kvar i ROTEN under ett annat namn. Den escapade
+// på båda villkoren samtidigt, och en grind som bara ser de kopior man råkat
+// döpa rätt är precis den sortens grind som räknas som gjord utan att
+// kontrollera något.
+const KOPIA_RE = /^(gate.*\.py|gatelib\.py|hasha\.py|livegrind\.py)$/;
+
+// ⚠️ Undantagen är UTTRYCKLIGA och få. En rundespecifik grind kodar en enskild
+// rundas materialgrupper och har ingen delad sanning att glida ifrån — men den
+// ska vara ett medvetet tillägg här, inte något som slinker igenom ett mönster.
+const RUNDESPECIFIKA = new Set(["gate-skotsel.py", "gate-kort.py"]);
+
+/** Rundornas underkataloger PLUS roten själv — kopian låg i roten. */
+function platser(rot: string): string[] {
   if (!existsSync(rot)) return [];
-  return readdirSync(rot).filter((n) => statSync(join(rot, n)).isDirectory());
+  return ["", ...readdirSync(rot).filter((n) => statSync(join(rot, n)).isDirectory())];
+}
+
+function pyFiler(katalog: string): string[] {
+  if (!existsSync(katalog)) return [];
+  return readdirSync(katalog).filter(
+    (n) => n.endsWith(".py") && !statSync(join(katalog, n)).isDirectory(),
+  );
 }
 
 describe("poleringsgrindarna bor på ett ställe", () => {
   it("ingen runda har en egen kopia av de kanoniska grindarna", () => {
     const kopior: string[] = [];
-    for (const katalog of kataloger(RUNDOR)) {
-      for (const fil of KANONISKA) {
-        if (existsSync(join(RUNDOR, katalog, fil))) {
-          kopior.push(`tools/polish-assets/${katalog}/${fil}`);
-        }
+    for (const katalog of platser(RUNDOR)) {
+      for (const fil of pyFiler(join(RUNDOR, katalog))) {
+        if (!KOPIA_RE.test(fil)) continue;
+        if (RUNDESPECIFIKA.has(fil)) continue;
+        kopior.push(join("tools", "polish-assets", katalog, fil));
       }
     }
     expect(
