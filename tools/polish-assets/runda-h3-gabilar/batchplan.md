@@ -94,3 +94,54 @@ Tjugo utkast, alla mätta mekaniskt: **åtta valda**, **tolv stoppade** — fyra
 som dubbletter av publicerade sidor (`88140d98` `d55a25f4` `1a3ac422`
 `2b890006`) och åtta som färgsyskon (`7a595f49` `efd63441` `b34517e3`
 `b9f6dc30` `834cbe61` `58690dbb` `6152ca30` `8eaf3ecc`).
+
+## Grindar före skrivning
+
+| grind | utfall |
+|---|---|
+| `gate.py` (mönster, siffror, taggar, flikar) | **0 fynd i 8 filer** |
+| `gate-alt.py` (32 alt-texter) | **REN** |
+| `gate-seo.py` (namnlängd, titlar 37–50, beskrivningar 133–152) | **0 fynd** |
+
+☠️ **Siffergrinden fällde tre tal i Porsche-texten, och hade rätt på båda
+punkterna.** `2` kom från "2 AA-batterier" — källan skriver *zwei* med
+bokstäver, alltså finns siffran inte där. Och `20`/`25` kom från en mening jag
+själv hittat på: *"Maxlasten är 30 kg mot 20–25 kg som är vanligt i klassen."*
+Det är ett marknadspåstående utan källa, och det är precis den sortens
+påhitt siffergrinden finns för.
+
+⚠️ **SEO-grinden fällde `3-i-1` och `2-i-1`.** Titlarna påstod i siffror
+något brödtexten bara skrev med bokstäver ("växer i tre steg", "två bilar i
+en"). Rätt fångat — formen står nu i båda.
+
+## Bilderna: 8 av 40 bär inbränd text
+
+| kort | kvar | borttagna |
+|---|--:|---|
+| `a6b24d45` | 4 | 3 (Empfohlenes Alter · Gewichtslimit) |
+| `7d243274` | **5** | inga |
+| `f87c0ccb` | 4 | 3 (Empfohlenes Alter · Gewichtslimit) |
+| `5a4f16a3` | 4 | 4 (WEITERE DETAILS · Abnehmbarer Schiebegriff) |
+| `2e12de07` | 4 | 3 (Gewichtslimit · Empfohlenes Alter) |
+| `1e5eac85` | 4 | 3 (Empfohlenes Alter · Gewichtslimit) |
+| `41be5a7a` | **2** | 3, 4 (EIN WUNDERBARES GESCHENK) och 5 (ABNEHMBARE RÜCKENLEHNE) |
+| `382f99ee` | **5** | inga |
+
+⚠️ `41be5a7a` har bara två bilder kvar — samma läge som `7cdc167c` i runda H2
+och `79c3738c` i H1, och kandidat för ett eget Fyndplats-spec-kort.
+
+## ☠️ Två källfel till som bara ögon hittar
+
+1. **`41be5a7a`s egen marknadsbild säger "Keine Batterien"** medan den tyska
+   spec-tabellen säger *"Erforderlich 2 x AA Batterien nicht enthalten"*.
+   Källan motsäger sig själv. Texten följer spec-tabellen — bilden är dessutom
+   borttagen för sin tyska text. En siffergrind kan inte se det här: bilden
+   bär inga tal att jämföra.
+2. **`382f99ee`s färgfält är fel.** Feedens svenska `Färg` säger "Schwarz,
+   Beige, Braun"; den tyska specen säger *Weiß+Rot*, och bilderna visar vitt
+   och rött. Texten följer den tyska specen och bilderna.
+
+☠️ **`41be5a7a` heter "Bobby Car" i källtexten.** Det är BIG:s varumärke, inte
+en produkttyp, och följer inte med in i den svenska texten. Samma regel som
+för leverantörens husmärken — och den gäller även när ordet ser ut som ett
+vanligt substantiv.
