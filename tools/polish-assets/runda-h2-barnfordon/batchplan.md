@@ -154,3 +154,75 @@ måste granskas för sig.
    specen säger 12 V, fjärrkontroll och 3–6 km/h. Källan motsäger sig själv;
    den svenska texten följer specen. En siffergrind kan inte se det här —
    inledningen bär inga tal.
+
+## ☠️ Produktnamnet får vara högst 80 TECKEN
+
+Tre av åtta namn låg över och Wix avvisade hela PATCHen:
+
+```
+product is invalid: `-- name has size 81, expected 80 or less
+```
+
+Felet är dyrare än det ser ut. Namnet skrivs i samma anrop som beskrivningen
+och SEO-taggarna, så en enda för lång rubrik fäller ALLT för den produkten —
+och `240d5d8f` låg kvar med tysk text, fem tyska SEO-taggar och 20 tyska ord
+medan svaret på skrivningen såg normalt ut. Det var återläsningen som fångade
+det, inte anropet.
+
+⚠️ **Och min egen längdkontroll var värdelös.** Den kördes med `${#n}` i bash,
+som räknar BYTES: å/ä/ö är två och tankstreck tre. Ett namn på 78 tecken
+rapporterades som 85 och ett på 81 som 87 — fel åt båda hållen samtidigt.
+
+Grinden ligger nu i `gate-seo.py` (`_grinda_namn`, `MAX_NAMN = 80`) och läser
+rundans `namn.tsv`. Verifierad genom att förlänga ett namn: den fäller och
+namnger produkten.
+
+## ☠️ En 504 kan dölja en LYCKAD skrivning
+
+`3c13da94`:s PATCH svarade `504` och avbröt hela körningen. Skrivningen HADE
+gått igenom. Hade jag gjort om den hade nästa anrop fallit på en föråldrad
+revision — eller, värre, jag hade dragit slutsatsen att texten saknades.
+
+Både 504:an och namnfelet pekar åt samma håll: **skrivsvaret är inte kvittot,
+återläsningen är det.** Alla åtta texter är därför verifierade med en
+normaliserad FNV-hash mot källfilen, inte med anropets returkod.
+
+## Skrivningen, steg för steg
+
+| steg | utfall |
+|---|---|
+| Text, namn, slug, SEO | **8/8 hashar identiska** med källfilerna, 0 tyska ord |
+| SEO-taggar | 8/8 exakt TVÅ, `settings.keywords` tömda |
+| Bilder | 8/8 rätt antal (2,3,4,3,3,4,5,3), 27 alt-texter, 0 utan alt |
+| Kategori | 16/16 kopplingar (`Barn & Familj` + `Leksaker & Spel`) |
+| SKU + publicering | 8/8 i EN patch — produkt OCH variant `visible: true` |
+| Stämpling | körningarna 1690–1697 gröna |
+
+☠️ **Varje variant stod på `visible: false` före publiceringen.** Hade jag bara
+satt produktens synlighet vore alla åtta sidor publicerade och oköpbara —
+exakt de 31 sidorna i #148. Variantobjektet togs som det stod och bara `sku`
+och `visible` ändrades; ett handbyggt objekt tappar tyst allt annat.
+
+## Live-verifiering (2026-09-07, efter ISR-fönstret)
+
+Varm träff, 305 s väntan, skarp hämtning. Alla åtta `HTTP 200` med
+`age 302–303`, alltså den omrenderade sidan.
+
+```
+python3 ../../polish-gates/livegrind.py
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+```
+
+| grind | utfall |
+|---|---|
+| orddiff mot källfilen (489–600 ord) | **0** |
+| homoglyfsvep | rent |
+| alt-svep (27 alt-texter) | rent |
+| SEO-svep, exakt mot `seo.tsv` | rent |
+| flikar | 3/3 på alla åtta |
+| brödsmula | 8/8 `Hem / Barn & Familj / …` |
+| köpbarhet | 0 `OutOfStock` |
+
+JSON-LD per sida: pris 2 419–3 569 kr, `InStock`, och **inget `mpn`, inget
+`gtin`** — bara Wix eget `sku`. Aosoms artikelnummer finns kvar där det hör
+hemma: på `supplierProductId` i mappningen.

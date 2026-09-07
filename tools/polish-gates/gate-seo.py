@@ -58,8 +58,43 @@ def main(fil):
             print(f"  {i}: [BESKRIVNING FÖR LÅNG] {len(d)} tecken > {MAX_DESC}"); fynd += 1
         if not t.endswith(" | Fyndplats"):
             print(f"  {i}: [SAKNAR SUFFIX] titeln slutar inte på ' | Fyndplats'"); fynd += 1
+    fynd += _grinda_namn()
     print(f"\nGRIND: {fynd} fynd i {len(rader)} rader")
     return 1 if fynd else 0
+
+
+# ☠️ WIX KAPAR PRODUKTNAMNET VID 80 TECKEN — och avvisar hela PATCHen på 81:
+#
+#   product is invalid: `-- name has size 81, expected 80 or less
+#
+# Uppmätt i runda H2, där tre av åtta namn låg över. Felet är dyrare än det
+# ser ut: skrivningen görs i samma anrop som beskrivningen och SEO-taggarna, så
+# en enda för lång rubrik fäller ALLT för den produkten. Utan den här grinden
+# syns det först när återläsningen visar den tyska texten kvar.
+#
+# ⚠️ RÄKNA TECKEN, INTE BYTES. Kontrollen gjordes först med `${#n}` i bash,
+# som räknar bytes: å/ä/ö är två och tankstreck tre. Ett namn på 78 tecken
+# rapporterades som 85 och ett på 81 som 87 — talen var fel åt båda hållen
+# samtidigt, alltså oanvändbara.
+MAX_NAMN = 80
+
+
+def _grinda_namn(fil="namn.tsv"):
+    """Rundans namn.tsv är VALFRI: äldre rundor har ingen."""
+    if not os.path.exists(fil):
+        return 0
+    fynd = 0
+    for rad in open(fil, encoding="utf-8"):
+        rad = rad.rstrip("\n")
+        if not rad.strip():
+            continue
+        delar = rad.split("\t")
+        kort, namn = delar[0], delar[-1]
+        if len(namn) > MAX_NAMN:
+            print(f"  {kort}: [NAMN FÖR LÅNGT] {len(namn)} tecken > {MAX_NAMN} "
+                  f"— Wix avvisar hela skrivningen")
+            fynd += 1
+    return fynd
 
 
 if __name__ == "__main__":
