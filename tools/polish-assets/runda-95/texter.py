@@ -203,8 +203,7 @@ def egenskaper(pid):
             e += ["Sydd i polyester med PA-beläggning på baksidan",
                   "Stora duken mäter 300 × 300 cm, lilla taket 86 × 86 cm och "
                   "öppningen mellan dem 68 × 68 cm"]
-        e += ["Vattenavvisande, inte vattentät — det säger tillverkaren själv i "
-              "klartext",
+        e += ["Vattenavvisande, inte vattentät",
               "Färg: %s" % f,
               "Väger %s och kommer i en förpackning på %s"
               % (dict(spec(pid))["Vikt"], dict(spec(pid))["Paketmått"]),
@@ -225,9 +224,9 @@ def egenskaper(pid):
 
 def skotsel(pid):
     if GRUPP[pid] == "D":
-        matt = ("det lilla taket 88 × 88 cm och den snedställda kanten på stora "
-                "taket 174 cm" if pid == "b6ebc5ba" else
-                "stora duken 300 × 300 cm och det lilla taket 86 × 86 cm")
+        matt = ("det lilla taket mäter 88 × 88 cm och den snedställda kanten på "
+                "stora taket 174 cm" if pid == "b6ebc5ba" else
+                "stora duken mäter 300 × 300 cm och det lilla taket 86 × 86 cm")
         forsta = ("Mät stommen innan du beställer. Duken sitter på en paviljong på "
                   "3 × 3 m med tak i två nivåer, och %s — jämför med din egen "
                   "paviljong och med måttbilden här i galleriet, för utförandet "

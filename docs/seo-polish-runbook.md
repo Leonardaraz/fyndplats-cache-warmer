@@ -3766,6 +3766,116 @@ alla åtta; runda 61 och 62 (som inte gjorde det) fick rent på första försök
 är reparationen, inte skyddet.
 
 
+### ✅ ExecuteWixAPI svarar igen — och grinden mot handtranskriberingen finns nu (2026-09-07)
+
+Verktyget gav **403 på varje anrop** i flera rundor. Runda 95 provade om det, och
+det fungerar. Det är inte en bekvämlighet: 403:an VAR mekanismen bakom runda 94:s
+`yttterm ått`. Bara `CallWixSiteAPI` gick att använda, alltså skrevs JSON-kroppen
+för hand ur filen, och den kopieringen var ogrindad.
+
+Med kod tillbaka går hela skrivningen att grinda i **samma anrop**:
+
+```js
+const skickadHash = hasha(synlig(d.html));
+if (skickadHash !== d.facit) { avbryt(); }        // ← FÖRE skrivningen
+await wix.request({ method: "PATCH", ... });
+const r = await wix.request({ method: "GET", url: ".../products/" + id + "?fields=PLAIN_DESCRIPTION" });
+return { lastHash: hasha(synlig(r.product.plainDescription)), facit: d.facit };
+```
+
+☠️ **Grinden måste ligga FÖRE skrivningen, inte bara efter.** Bara en återläsning
+hade också fångat felet — men efter att sidan redan burit det. Före-hashen gör
+produkten till en no-op i stället: skiljer transkriberingen sig från filen skrivs
+ingenting alls för just den produkten, och de andra i samma anrop går igenom.
+
+Hashen är husets vanliga: taggbefriad, blanksteg-normaliserad synlig text, sedan
+`h = (h*31 + kodpunkt) % 1000000007`. Den fungerar identiskt i Python och JS för
+BMP-tecken (`×`, `²`, `—`, `å ä ö`) — och regel 18 i lintet garanterar att ingen
+emoji smiter in, vilket är det enda som hade fått `codePointAt` och Pythons
+`ord()` att glida isär.
+
+Runda 95: **fyra av fyra `stammer: true` på båda sidor om skrivningen.**
+
+### ☠️ `list-categories-for-item` har INGEN `categories`-array
+
+Svaret bär `directCategoryIds` och `allCategoryIds` — inget annat. En läsning av
+`r.categories` ger `[]`, och det ser ut som en produkt utan kategorier.
+
+Uppmätt 2026-09-07 på `df5a7190`, en sida som bevisligen ligger i två löv:
+
+| läst fält | svar |
+|---|---|
+| `r.categories` | `[]` |
+| `r.directCategoryIds` | `["5d75e733…", "05e96cd6…", "653ab052…"]` |
+
+Nionde gången samma familj som `MEDIA_ITEMS_INFO` och `PLAIN_DESCRIPTION`: **ett
+fält som inte finns syns som ett tomt värde, inte som ett fel.** Här hade det
+gjort Steg 10 blind — "noll kategorier" på en produkt som redan ligger rätt.
+
+⚠️ Och asymmetrin fortsätter: `?fields=VARIANTS_INFO` är INTE en giltig
+projektion. V3 svarar `400 Failed to parse JSON or deserialize protobuf message`.
+`variantsInfo` kommer i standardprojektionen och ska inte efterfrågas — tvärtemot
+`MEDIA_ITEMS_INFO`, som MÅSTE efterfrågas. Mät varje fält, härled inget.
+
+### ☠️ Leverantörens egen URL är en TREDJE källa om färgen
+
+Runda 95 hade två produkter där källan säger fel färg, och pixlarna sa emot:
+
+| id8 | tyska fältet | mätt RGB | HSL | `sourceUrl` säger |
+|---|---|---|---|---|
+| `b6ebc5ba` | **Kohlegrau** | 24, 72, 36 | H 135°, L 19 % | `…partyzelt-**grun**` |
+| `ef0a812d` | namnet **Kaffee** | 180, 36, 0 | H 12°, L 35 % | `…3x4m-**terra**` |
+
+Pixelmätningen ensam är ett omdöme ("är L 19 % mörkgrönt?"). URL:en är
+leverantörens EGEN klassificering, den ligger i mappningsraden, och den kommer
+gratis med `las`-läget i prisgrinden. **Läs `sourceUrl` i Steg 3, inte bara
+priset** — den avgör en färgtvist på en sekund, och den fällde två av fyra
+etiketter den här rundan.
+
+### ☠️ Två "färgsyskon" som inte delar EN enda mått-rad
+
+`b6ebc5ba` och `271327e1` är samma produkttyp, samma storleksklass, samma
+leverantör, importerade en minut isär. De ser ut som ett färgpar. De är det inte:
+
+| vad | `b6ebc5ba` | `271327e1` |
+|---|---|---|
+| lilla taket | **88 × 88 cm** | **86 × 86 cm** |
+| snedställd kant | 174 cm | — |
+| öppning | — | 68 × 68 cm |
+
+En talvitlista per GRUPP hade släppt igenom grannens mått i den egna
+spec-tabellen utan ett ljud — talet står ju på "sidan". **Vitlistan ska vara per
+PRODUKT**, och korslänken ska säga att måtten skiljer sig, inte att duken är
+densamma. Mutationstestet fick sex egna fall för just det bytet.
+
+### ☠️ Runbookens EGEN notation läckte in i en säljande mening
+
+Utkastet till syskonlänken bar `⚠️ Måtten på det lilla taket skiljer sig…` —
+varningstecknet kopierat rakt ur den här filen in i kundtexten. Ingen befintlig
+regel såg det: tecknet är varken tyskt, ett tal, en färg eller ett husmärke.
+
+Regel 18 i lintet fäller `[⚠☠✅❌✓✗️]` och `TODO` i namn, SEO, kort och HTML.
+Samma runda fick en tvilling: **"det säger tillverkaren själv i klartext"** —
+`leverantören` var grindat sedan länge, `tillverkaren` inte. Båda skjuter
+påståendet på en part kunden inte kan fråga. Grinden tar nu
+`leverantör|tillverkar|fabrikant|importör`.
+
+### ⚠️ Tysk text i bilden sitter inte alltid ÖVERST
+
+Runda 94 toppkapade måttritningen. Runda 95 hade fyra ritningar av samma slag och
+**en av dem var tvärtom**: ren ritning med cm-mått överst, tysk `HINWEIS`-ruta
+under. Den bottenkapades till 55 % i stället.
+
+| bild | vad | kapning |
+|--:|---|---|
+| 2 | banderoll över himlen/väggen | topp 15–25 %, hela paviljongen kvar |
+| 3 (tre av fyra) | tysk rubrik + tre rader, ritning under | topp 34–35 % |
+| 3 (`271327e1`) | ren ritning, tysk ruta under | **botten till 55 %** |
+
+**Titta på bilden innan du väljer riktning.** Ett toppkap på den fjärde hade
+kastat bort exakt de mått sidan bygger på och behållit den tyska rutan.
+
+
 
 ### ☠️ Artikelnumrets BAS är modellen, suffixet är färgen
 

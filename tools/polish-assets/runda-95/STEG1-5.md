@@ -109,10 +109,20 @@ egen uppmaning att jämföra med bilden.
 | grind | utfall |
 |---|---|
 | `lint.py` | **0 brister** på alla fyra |
-| `lint.py --sjalvtest` | **29/29** regler faller på SIN EGEN skada |
-| `mutationstest.py` | **31/31** mutationer gav rätt utfall |
+| `lint.py --sjalvtest` | **30/30** regler faller på SIN EGEN skada |
+| `mutationstest.py` | **32/32** mutationer gav rätt utfall |
 | dokumenterade blinda fläckar | 2 (kastad ordning i paketmått) |
 
 ☠️ **Grinden fällde ett fel i utkastet innan något skrevs:** syskonlänken bar
 runbookens egen varningsemoji (⚠️) mitt i en säljande mening. Regel 18 finns
 sedan dess, och en mutation återinför tecknet.
+
+☠️ **Och ett till, hittat vid Steg 7:s korrekturläsning:** punktlistan sa
+*"Vattenavvisande, inte vattentät — det säger tillverkaren själv i klartext"*.
+`leverantören` var grindat sedan länge; `tillverkaren` var det inte. Båda skjuter
+påståendet på en part kunden inte kan fråga. Regel 10 tar nu
+`leverantör|tillverkar|fabrikant|importör`, och satsen står för sig själv.
+
+Samma läsning fångade en grammatikmiss: grupp D:s skötselrad saknade verb
+(*"…, och det lilla taket 88 × 88 cm och den snedställda kanten…"*). Rättad till
+*"det lilla taket **mäter** 88 × 88 cm"*.

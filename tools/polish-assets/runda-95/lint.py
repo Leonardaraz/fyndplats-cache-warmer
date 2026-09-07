@@ -165,9 +165,13 @@ def granska(pid, h, namn, seo_t, seo_b, kort):
                 or re.search(r"(?:inte|aldrig) vattentät", s)):
             f.append("vattentät som PÅSTÅENDE: %r" % s[:60])
 
-    # 10 — mot kunden är VI leverantören
-    if re.search(r"leverantör", allt):
-        f.append("ordet leverantör i kundtext")
+    # 10 — ☠️ mot kunden är VI leverantören. "Tillverkaren" är samma fälla i
+    #      annan kostym: den skjuter påståendet på en part kunden inte kan
+    #      fråga, och den smög in i runda 95:s utkast ("det säger tillverkaren
+    #      själv i klartext") innan grinden såg den.
+    for ord in ("leverantör", "tillverkar", "fabrikant", "importör"):
+        if re.search(ord, allt):
+            f.append("ordet %s i kundtext — mot kunden är VI leverantören" % ord)
 
     # 11 — länkar: absoluta, kända sluggar, aldrig till sig själv
     for href in re.findall(r'href="([^"]+)"', h):
@@ -307,8 +311,11 @@ def sjalvtest():
          lambda: rakna(h=h0.replace("måttbilden", "bilden"))),
         ("vattentät som påstående", "vattentät som PÅSTÅENDE",
          lambda: rakna(h=h0 + "<p>Duken är vattentät och tål allt.</p>")),
-        ("leverantör", "ordet leverantör",
+        ("leverantör", "mot kunden är VI leverantören",
          lambda: rakna(h=h0.replace("Ta ned duken", "Leverantören anger att duken"))),
+        ("tillverkaren", "mot kunden är VI leverantören",
+         lambda: rakna(h=h0.replace("Vattenavvisande, inte vattentät",
+                                    "Vattenavvisande, säger tillverkaren"))),
         ("relativ länk", "icke-absolut länk",
          lambda: rakna(h=h0.replace('href="%s' % T.BAS, 'href="/'))),
         ("okänd slug", "okänd slug", lambda: rakna(h=h0.replace(T.CREME, "hittepa-sida"))),
