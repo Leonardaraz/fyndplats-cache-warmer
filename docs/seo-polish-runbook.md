@@ -3660,6 +3660,55 @@ svarar 404 som utkast är redan bevisat av `visible:false` i Wix — kontrollen
 tillför ingenting och kostar en timmes felaktig cache. Väntemekaniken ovan står
 kvar som skyddsnät för de fall där någon annan hunnit begära adressen först.
 
+### ✅ Live-grinden kan kontrollera VARJE MENING ordagrant — och den bet (2026-09-07)
+
+Tidigare rundor jämförde live-sidan påstående för påstående med ögon. Runda 94
+gjorde det mekaniskt i stället, och det är den kontroll som stänger hålet i
+avsnittet om transkriberingen ovan:
+
+```python
+kalla = synlig(T.beskrivning(pid))              # vår egen fil
+var   = var_del(synlig(live_html))              # sidans beskrivningsdel
+for mening in re.split(r"(?<=[.!?]) ", kalla):
+    if len(mening) >= 45 and mening not in var:
+        brister.append("saknas ordagrant: %r" % mening[:70])
+```
+
+Wix skriver om markupen men rör inte den synliga texten, så en jämförelse på
+tagg­strippad text stämmer exakt. Tröskeln 45 tecken hoppar över rubriker och
+korta etiketter, som återkommer i sidans chrome.
+
+☠️ **Grinden är MÄTT, inte skriven.** Den kördes mot samma sida två gånger: en
+gång mot källfilen (0 brister) och en gång mot källfilen med rundans faktiska
+felstavning återinförd. Den senare föll på rätt mening:
+
+```
+ratt text (som den ar nu)        0 brister
+med felstavningen ateriniford    FALLER: 'Duken är 298 × 298 cm och den
+                                          snedställda kanten 218 cm — mät båda…'
+```
+
+### ☠️ …men grinden fällde först alla fyra KORREKTA sidor
+
+Första versionen läste hela sidan och gav två brister per produkt. Båda var
+butikens egna:
+
+| grinden sa | vad det var |
+|---|---|
+| `avsandarland: 'skickas från'` | EU-lager-ribbonen: *"Skickas från EU-lager – ingen importtull eller förtullningsavgift"* — den enda sanktionerade platsen |
+| `dubblerade alt-texter (13/19)` | Klarna ×3, Mastercard ×2, Amex ×2, Apple Pay ×2, plus hjältebilden som står både som huvudbild och som galleripost |
+
+**Två avgränsningar räckte, och båda är principiella:**
+
+1. **Landgrinden läser bara BESKRIVNINGSDELEN** — från rubriken `Beskrivning`
+   till syskonkarusellen. Utanför den ägs texten av butiken, inte av poleringen.
+2. **Alt-grinden kräver att VÅRA FEM alt-texter finns och är inbördes olika** —
+   inte att sidans samtliga `alt`-attribut är unika. Betalningslogotyperna
+   kommer alltid att upprepas.
+
+Samma lärdom som runda 60 och som token-förnyelsens 48-timmarsvarning: **en
+grind som fyrar på varje korrekt sida lär mottagaren att sluta läsa.**
+
 ### ✅ Live-grindens grind: FACIT PÅ LIVE-SIDAN, inte en längre ordlista
 
 Runda 62, Steg 14. Live-grinden hade vuxit till fjorton ordlistor och regex —
