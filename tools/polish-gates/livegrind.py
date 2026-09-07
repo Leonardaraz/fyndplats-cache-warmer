@@ -53,6 +53,8 @@
 # fonstret triggar en bakgrundsrendering; NASTA hamtning far den farska sidan.
 
 import os, re, sys, unicodedata, html, difflib
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gatelib import TILLATNA_TECKEN
 
 BRANDS = ["homcom","outsunny","pawhut","aiyaplay","aosom","sportnow","vinsetto",
           "kleankin","zonekiz","durhand"]
@@ -108,7 +110,7 @@ for rad in open("slugs.txt", encoding="utf-8"):
     # --- 2. HOMOGLYFER i live-texten ---
     txt = brodtext(live[start:start+len(fil)+200]) if start >= 0 else ""
     for i, ch in enumerate(txt):
-        if ord(ch) > 127 and ch not in "ÅÄÖåäöÉéÜü×—–…§°":
+        if ord(ch) > 127 and ch not in TILLATNA_TECKEN:
             n = unicodedata.name(ch, "?")
             if "CYRILLIC" in n or "GREEK" in n:
                 problem.append(f"HOMOGLYF {ch!r} U+{ord(ch):04X}: ...{txt[max(0,i-30):i+30]}...")

@@ -114,6 +114,18 @@ GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
 
 FLIKAR = ("Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor")
 
+# ☠️ EN LISTA, INTE TVÅ. Teckenlistan fanns i BÅDE gate-seo.py och
+# livegrind.py och hade redan glidit isär: livegrind bar "§", gate-seo inte,
+# och ingen av dem bar "²" — som varenda brödtext i huset använder om ytor.
+# Följden var att en helt korrekt SEO-rad med "24 m²" fälldes medan samma
+# sträng i brödtexten passerade. Samma klass som SHIP_AXIS_RE och
+# EU_TULL_CODES: en tvilling glider isär, och den som glider tystast är den
+# som ser ut att fungera.
+#
+# Syftet är att fånga HOMOGLYFER (kyrilliskt/grekiskt) — inte att förbjuda
+# typografi vi själva skriver. Lägg bara till tecken som faktiskt används.
+TILLATNA_TECKEN = "ÅÄÖåäöÉéÜü×—–…°§²"
+
 
 def tal(text):
     """Alla tal, normaliserade så 44,5 och 44.5 jämförs lika."""

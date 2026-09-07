@@ -19,7 +19,7 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate-seo.py
 """
 import re, sys, os, unicodedata
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import MARKEN, ARTNR, LAND, LEV, TYSKA, HOMO, tal
+from gatelib import MARKEN, ARTNR, LAND, LEV, TYSKA, HOMO, tal, TILLATNA_TECKEN
 
 GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
            ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("HOMOGLYF", HOMO)]
@@ -49,7 +49,7 @@ def main(fil):
         for x in sorted(tal(text) - tal(kalltext)):
             print(f"  {i}: [SIFFRA UTAN KÄLLA] {x!r}"); fynd += 1
         for ch in sorted(set(text)):
-            if ord(ch) > 127 and ch not in "ÅÄÖåäöÉéÜü×—–…°":
+            if ord(ch) > 127 and ch not in TILLATNA_TECKEN:
                 print(f"  {i}: [OVÄNTAT TECKEN] {ch!r} U+{ord(ch):04X} "
                       f"{unicodedata.name(ch, '?')}"); fynd += 1
         if len(t) > MAX_TITEL:
