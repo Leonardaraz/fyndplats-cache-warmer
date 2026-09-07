@@ -85,3 +85,50 @@ De fyra nya är alltså inte katalogens enda svar på 60–65 cm — de är de s
 ANGER sitthöjden i namnet, vilket är skillnaden mot att kunden får gissa ur
 bänkhöjden. ☠️ `a260b888` är samtidigt produkten i #158 (AE-priset upp 63 %
 sedan importen), så den ska inte rekommenderas vidare förrän priset är omräknat.
+
+## ☠️ Lagret kollades EFTER publiceringen — två av åtta är slutsålda
+
+Mätt först när de fyra redan låg ute:
+
+| kort | saldo | |
+|---|--:|---|
+| `313117c8` | 128 | ✅ |
+| `a0c1af46` | 52 | ✅ |
+| `f61517b6` | 7 | ✅ |
+| `29b8fb0c` | **0** | ⚠️ publicerad men slutsåld |
+| `856d1d1d` | 63 | |
+| `032b6e93` | 67 | |
+| `709da650` | 51 | |
+| `239b20b7` | **0** | |
+
+CLAUDE.md säger redan ⚠️ *"saldot borde kollas FÖRE poleringen, inte fångas av
+en bieffekt"* — och den här rundan gjorde precis det den raden varnar för. Det
+som saknas är inte en mening till, det är en GRIND: kollen kostar ett Wix-anrop
+för en hel runda och hör hemma i urvalssteget, inte i efterhandskontrollen.
+
+`29b8fb0c` lämnas publicerad med flit. Ett nollsaldo hos Aosom är enligt deras
+egen guide ett LAGERbesked, inte ett sortimentsbesked, och sidan återställs av
+nästa synk som ser raden igen. En korrekt svensk sida som säger slutsåld är
+bättre än ett tyskt utkast. Den ska däremot inte rekommenderas till kunden i
+order 10030 — det var precis det felet han fick en ursäkt för.
+
+⚠️ **Och `livegrind.py`:s SLUTSALD-meddelande pekade åt fel håll.** Det namngav
+bara den dolda varianten (incidenten 2026-09-06, 31 oköpbara sidor). Här var
+orsaken den andra: `visible: true` och saldo 0, alltså en helt korrekt sida.
+Meddelandet namnger båda orsakerna sedan 2026-09-07. Samma klass som
+prisgrindens `slutsald`: ett symtom med två orsaker får inte ha ett
+felmeddelande med en.
+
+## Live-verifieringen av de fyra
+
+```
+29b8fb0c  ord=532  diff=0  -> slutsåld (saldo 0, korrekt)
+f61517b6  ord=554  diff=0  -> REN
+313117c8  ord=540  diff=0  -> REN
+a0c1af46  ord=525  diff=0  -> REN
+```
+
+Orddiff 0 på alla fyra: brödtexten som ligger ute är ordagrant källfilernas.
+SEO-svepet jämför `<title>` och metabeskrivningen EXAKT mot `seo.tsv` och gav
+noll avvikelser — de gick via fil, inte via avskrift. Kategori och
+skötselflik grindades på den renderade sidan.

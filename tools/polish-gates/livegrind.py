@@ -224,9 +224,20 @@ for rad in open("slugs.txt", encoding="utf-8"):
     # ett handbyggt variantobjekt och da tappar `visible`. Regeln fanns nedskriven
     # samma dag; det som saknades var en matning. Den ligger har for att sidan ar
     # enda stallet dar bade produktens och variantens synlighet syns samtidigt.
+    #
+    # ⚠️ SYMTOMET HAR TVA ORSAKER, och meddelandet maste namna bada. Fram till
+    # 2026-09-07 pekade det bara pa den dolda varianten — och nasta gang det
+    # smallde var orsaken den ANDRA: 29b8fb0c hade variant `visible: true` och
+    # `quantity: 0`, alltsa en HELT KORREKT slutsald sida. Ett meddelande som
+    # namner en orsak till ett symtom med tva skickar felsokningen at fel hall,
+    # precis som prisgrindens "kostnaden har andrats" gjorde innan `slutsald`
+    # byggdes. Grinden ser bara den renderade sidan och kan inte skilja fallen
+    # at; da ska den saga det i stallet for att gissa.
     if re.search(r'"availability"\s*:\s*"(?:https?://schema\.org/)?OutOfStock"', live):
-        problem.append("SLUTSALD: sidan ar publicerad men renderar OutOfStock "
-                       "— kolla variantsInfo.variants[].visible, inte bara produktens")
+        problem.append("SLUTSALD: sidan ar publicerad men renderar OutOfStock. "
+                       "Tva mojliga orsaker — (a) saldot ar 0, och da ar sidan "
+                       "korrekt; (b) variantens `visible` ar false trots saldo, "
+                       "och da ar den okopbar. Las lagret innan du lagar nagot.")
 
     # --- 4. Korslanken ska ha overlevt ---
     #
