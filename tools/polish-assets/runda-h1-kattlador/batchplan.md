@@ -133,3 +133,21 @@ Den är kandidat för ett eget Fyndplats-kort som ersätter måttskissen.
 ☠️ `gate-alt.py` krävde tidigare exakt 5 alt-texter per produkt. Med fem
 bilder borttagna hade den fällt en KORREKT fil, så den läser nu det väntade
 antalet ur `bilder-bort.tsv` i stället för att anta 5.
+
+## Grindarna flyttades mitt i rundan
+
+☠️ H1 gatades först med den kopia av `gate.py` som låg i G2:s katalog — alltså
+med **gungstolarnas** tyska ordlista mot kattlådor. `Katzen`, `Deckel`,
+`Schaufel` och `Edelstahl` kontrollerades aldrig.
+
+Grindarna bor nu i `tools/polish-gates/` och anropas därifrån:
+
+```
+python3 ../../polish-gates/gate.py
+python3 ../../polish-gates/gate-alt.py
+python3 ../../polish-gates/gate-seo.py
+python3 ../../polish-gates/hasha.py
+```
+
+Alla åtta texter kördes om mot unionens ordlista: **0 fynd**. Texterna var
+alltså rena — men nu av rätt skäl i stället för av tur.

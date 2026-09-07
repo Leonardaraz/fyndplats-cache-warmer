@@ -1504,6 +1504,59 @@ ORDAGRANT (`Tekniska specifikationer` · `Användning och skötsel` ·
 spec-tabellen renderas inline mitt i brödtexten — det ser inte trasigt ut, bara
 som en rubrik till.
 
+#### ☠️ Och GRINDARNA själva drev isär — 19 kopior i tre versioner (2026-09-06)
+
+Varje runda kopierade in `gate.py`, `gate-alt.py`, `gate-seo.py` och `hasha.py`
+i sin egen katalog. Vad som skilde var inte strukturen utan ORDLISTAN över
+tyska rester:
+
+```
+runda A/F1   …|Kinder|Sofa|Jahre|Maße|robust|niedlich|gemütlich|…
+runda F2     …|Kratzbaum|Katzen|Plüsch|…
+runda G1/G2  …|Stuhl|Bezug|Kufen|Polsterung|Schaukel|kuschelig|flauschig|…
+```
+
+Varje runda **ersatte** föregående rundas ord med sina egna, så unionen har
+aldrig körts. Runda H1 (kattlådor) gatades med gungstolarnas vokabulär —
+`Katzen`, `Deckel`, `Schaufel` och `Edelstahl` kontrollerades aldrig.
+
+☠️ **Och runda G:s stavningslista bar ett DÖTT mönster.**
+`gungstol(?=en\b)(?!)` — `(?!)` misslyckas alltid, så uttrycket kan aldrig
+träffa något. Det hade ersatt runda A:s fungerande `storlek(?!en|ar)`-koll. En
+grind som ser komplett ut och inte kontrollerar något är värre än ingen alls,
+för den räknas som gjord.
+
+✅ **Skadan är noll, och det är mätt.** Alla fyra tidigare rundor kördes om mot
+unionens ordlista: F1, G1, G2 och barstolen ger **0 fynd**. Hålet var latent,
+inte utfallet. Det som däremot är utfallet är att **runda F2 saknade
+textgrinden helt** — katalogen har varken `gate.py` eller facit-fil för den
+rundan, så dess åtta sidor har aldrig siffergrindats.
+
+Grindarna bor sedan dess i `tools/polish-gates/` med ordlistan i `gatelib.py`,
+och rundorna anropar dem därifrån — precis som `livegrind.py` redan gjorde:
+
+```
+python3 ../../polish-gates/gate.py
+```
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Orden får bara LÄGGAS TILL, aldrig bytas ut.** Att stryka ett ord för
+   att "det gäller inte den här rundan" är exakt hur listorna drev isär.
+2. ☠️ **`lib/polish/gate-kopior.test.ts` fäller om en kopia dyker upp** i en
+   rundas katalog, och namnger filen. Verifierad genom att återinföra buggen.
+   Rundespecifika grindar (`gate-skotsel.py`, `gate-kort.py`) är undantagna —
+   de kodar en enskild rundas materialgrupper och har ingen delad sanning att
+   glida ifrån.
+3. **Råd-tal ligger i rundans `rad-tal.txt`, inte i koden.** G1 hade `{"20"}`
+   hårdkodat i sin kopia; nästa runda ärvde talet utan att veta varför.
+4. **Grinden läser BÅDA facit-formaten** (`kallor-tal.json` med tal-listor,
+   `kallor.json` med hela källtexten). Annars går en äldre runda inte att
+   grinda om — och det är just omgrindningen som avslöjar att listan glidit.
+
+**Regeln, en gång till och nu om grindarna själva: en tvilling glider isär, och
+den som glider tystast är den som ser ut att fungera.**
+
 #### ☠️ Och en TREDJE blind fläck: `<title>` och metabeskrivningen (2026-09-06)
 
 Poleringen skriver `name` och beskrivningen. Den rör **aldrig `seoData`** —
