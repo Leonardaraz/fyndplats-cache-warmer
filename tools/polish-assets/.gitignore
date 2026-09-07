@@ -34,3 +34,8 @@
 
 # Runda 79:s jämförelseark — mellanled, domen står i STEG1.md
 */ark-dubblett.jpg
+
+# Kortbyggets valda hjältebilder (runda 88). Kopior ur `rawbilder/`, som
+# redan är ignorerad — `kortbygge.kalla()` letar efter `<id>-1.jpg`, så en
+# runda som väljer en annan bild lägger sin kopia här.
+*/kortkalla/
