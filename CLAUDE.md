@@ -1370,6 +1370,37 @@ importen; den är ett mekaniskt fel med ett mekaniskt svar och får inte lämnas
 frakt. Över 0,5 betyder att frakten kostar mer än varan — polera dem sist, eller
 kör svepet med `?skipFreightHeavy=1` och ta dem för sig.
 
+#### ☠️ TITTA PÅ BILDERNA FÖRE TEXTEN, inte efter (2026-09-07)
+
+Arbetsgången har varit: läs den tyska källtexten, skriv den svenska, och ta
+sedan fram kontaktarket för att skriva alt-texter. Det är fel ordning, och
+runda J1 visade varför.
+
+Källan för golvlampan `13a53d52` säger *"Doppellagiger Lampenschirm"* och
+listar **två skärmmått** — `Lampenschirmgröße: Ø24 x 13H cm` och
+`Papierseil-Lampenschirm: Ø33 x 16H cm`. Det läses rimligen som två skärmar,
+och texten beskrev följaktligen "en liten läsarm på Ø24 cm" och "en stor
+skärm på Ø33 cm".
+
+Produktbilden visar **en enda skärm**: en dubbellagrad drumskärm i pappersrep
+som hänger från en böjd stång. Det finns ingen arm och ingen andra skärm.
+Ø24-måttet är det INRE lagret, osynligt utifrån.
+
+⚠️ **Ingen grind kunde ha fångat det.** Båda talen står i källan, så
+siffergrinden var ren. Svenskan var korrekt, så mönstergrindarna var rena.
+Felet var en riktig utsaga om en produkt som inte finns — den sortens fel som
+bara ett öga på fotot ser.
+
+**Regeln: kontaktarket byggs FÖRE brödtexten.** Det kostar ingenting extra —
+bilderna ska ändå hämtas för alt-texterna — och det flyttar granskningen till
+innan felet är skrivet i stället för efter att det står i Wix. Titta särskilt
+på det källan beskriver med ord i stället för mått: konstruktion, antal delar,
+hur något sitter fast.
+
+Samma runda gav ett andra, mildare exempel: `d2dfd1fa` beskrevs som "tre
+hyllplan runt stången" när lampan i själva verket är en öppen fyrkantsstomme
+utan stång. Även det syns direkt i bilden och i ingen siffra.
+
 #### ☠️ Skriv texten i en FIL först — mätt 9 fel mot 0 (2026-09-04)
 
 Batch 64 skrev åtta produkttexter på två sätt, och skillnaden är inte en
