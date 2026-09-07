@@ -46,16 +46,26 @@ Tischlampe" men namnet, punktlistan OCH båda produktbilderna säger två — oc
 
 ## ⚠️ En syskonrelation som ska stå skriven, inte återupptäckas
 
-`53e66496` (849 kr, vit stomme, trähyllor, 159 cm) är **samma lampa som J1:s
-redan publicerade `d2dfd1fa`** (949 kr, svart stomme, 161 cm) i en annan färg:
-samma 26 × 26 fotavtryck, samma tre hyllplan, samma fyrkantiga tygskärm, samma
-dragkedja. Höjdskillnaden är skärmen (36 mot 36,5 cm).
+`53e66496` (849 kr) och J1:s redan publicerade `d2dfd1fa` (949 kr) är samma
+FORMAT: en 26 × 26 cm pelare med tre hyllplan, 39 cm mellan planen, fyrkantig
+tygskärm och drag­omkopplare. Det är nära nog att de hamnar bredvid varandra i
+en listning.
 
-Den publiceras ändå. Färgsyskon som egna sidor är husets etablerade linje
-(skjulfamiljen, hundvagnarna), och de 100 kronorna kommer ur Aosoms egen
-kostnad via husregeln — inte ur godtycke. Men namnen måste göra skillnaden
-synlig, annars ser det ut som två priser på samma vara. Därav "vit" respektive
-"svart" i båda titlarna.
+⚠️ **Men de är INTE färgsyskon, och den första versionen av det här stycket
+påstod det.** Specarna skiljer på mer än färgen:
+
+| | 53e66496 (849 kr) | d2dfd1fa (949 kr) |
+|---|---|---|
+| Uttag i sockeln | inga | USB-A, USB-C och eluttag |
+| Ljuskälla | E27, ingår inte | LED 6 W ingår, 700 lm, 5000 K |
+| Dimning | nej | ja, via kedjan |
+| Bärighet per plan | 2,5 kg | 2 kg |
+| Färg | vit med bruna hyllplan | svart med vit skärm |
+
+Hundralappen betalar alltså för uttagen och ljuskällan, inte för färgen. Det
+är ett verkligt val för kunden, och båda sidorna är därmed motiverade — men
+namnen måste bära skillnaden, annars ser paret ut som två priser på en vara.
+J1:s titel säger redan "USB-A"; den här säger "vit med bruna hyllor".
 
 Båglamporna är däremot INTE syskon, trots att båda är bågar: J1:s `9e81d573`
 är svart med tygtrumskärm, 190 cm hög och 105 cm räckvidd; `21c72bf0` är
