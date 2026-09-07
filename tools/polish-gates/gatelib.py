@@ -20,7 +20,7 @@ HÄR, en gång, och rundorna anropar dem — precis som livegrind.py redan gör.
 ☠️ ORDEN FÅR BARA LÄGGAS TILL, ALDRIG BYTAS UT. Att ta bort ett ord för att
 "det gäller inte den här rundan" är exakt hur listorna drev isär.
 """
-import re
+import os, re
 
 MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zonekiz|Durhand"
 ARTNR = r"\b\d{3}-\d{3}[A-Z0-9]*\b|\b\d{2}[A-Z]-\d{3}"
@@ -157,6 +157,28 @@ def tal(text):
     """Alla tal, normaliserade så 44,5 och 44.5 — och 30 000 och 30.000 — jämförs lika."""
     text = _TUSENTAL.sub(r"\1", text)
     return {t.replace(".", ",").rstrip(",") for t in re.findall(r"\d+(?:[.,]\d+)?", text)}
+
+
+def las_facit(katalog="."):
+    """Rundans facit som {kort: [tal]}, oavsett vilket av de två formaten som finns.
+
+    ☠️ DEN BOR HÄR FÖR ATT GRINDARNA VAR OENSE. gate.py läste båda formaten;
+    gate-alt.py läste bara `kallor-tal.json` och KRASCHADE på en runda med
+    `kallor.json` — alltså föll alt-grinden bort helt på just de rundor där
+    facit är hela källtexten. En grind som kraschar är en grind man kör förbi.
+
+    Returnerar (facit, filnamn) eller (None, None) när ingetdera finns; det är
+    anroparens sak att avgöra om det ska fälla eller bara hoppa över
+    siffergrinden.
+    """
+    import json as _json
+    for namn in ("kallor-tal.json", "kallor.json"):
+        sokvag = os.path.join(katalog, namn)
+        if os.path.exists(sokvag):
+            ra = _json.load(open(sokvag, encoding="utf-8"))
+            return {k: (v if isinstance(v, list) else sorted(tal(kropp(v))))
+                    for k, v in ra.items()}, namn
+    return None, None
 
 
 def kropp(html):

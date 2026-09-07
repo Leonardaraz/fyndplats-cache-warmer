@@ -19,9 +19,15 @@ huvudbild och delningsbild, så en runda som tappar sorteringen får måttskisse
 som produktens ansikte i sökresultat och kategorilistor — och ser ändå ut att
 fungera. Det är just den sortens tysta skillnad som gör en tvilling farlig.
 
-ANTALET är INTE hårdkodat till fem. `bilder-bort.tsv` (samma fil som
-gate-alt.py läser) säger hur många som medvetet tagits bort per produkt; en
-runda som strök en bild med tysk text i pixlarna ska inte fällas för det.
+☠️ ANTALET MÄTS UR `bilder.tsv`, det antas inte till fem. Först var det
+hårdkodat, sedan "fem minus bilder-bort.tsv" — båda utgår från att varje
+produkt HAR fem bilder. Runda J1:s båglampa har fyra i Wix, och bygget föll
+på en helt korrekt alt-fil. Facit är bilder.tsv, som listar produktens
+FAKTISKA bilder; bilder-bort.tsv drar ifrån dem vi medvetet strukit.
+
+⚠️ Exakt samma antagande satt i gate-alt.py och rättades i samma veva. Att
+två filer råkade dela ett fel är just varför den här bor i polish-gates och
+inte i rundans katalog.
 
 ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/bygg-media.py
   bilder.tsv       "kort  position  wix-fil-id"
@@ -62,8 +68,13 @@ for nr, r in enumerate(open("alt.tsv", encoding="utf-8"), 1):
         fel.append(f"alt.tsv:{nr}  {kort} position {pos}: misstänkt fil-id {fil[(kort, pos)]!r}")
     vis.setdefault(kort, []).append((pos, fil[(kort, pos)], alt))
 
+har = collections.Counter()
+for r in open("bilder.tsv", encoding="utf-8"):
+    if r.strip():
+        har[r.split("\t")[0]] += 1
+
 for kort, rader in vis.items():
-    vantat = 5 - bort[kort]
+    vantat = (har[kort] or 5) - bort[kort]
     if len(rader) != vantat:
         fel.append(f"ANTAL: {kort} har {len(rader)} bilder, väntade {vantat}")
     if len({f for _, f, _ in rader}) != len(rader):

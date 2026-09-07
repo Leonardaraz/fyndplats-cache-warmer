@@ -16,7 +16,7 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/gate.py
 """
 import re, sys, os, json, glob, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import GRINDAR, FLIKAR, tal, kropp
+from gatelib import las_facit, GRINDAR, FLIKAR, tal, kropp
 
 # ☠️ TVÅ LEGITIMA KÄLLOR UTÖVER PRODUKTENS EGEN SPEC — båda smala med flit.
 #
@@ -32,13 +32,6 @@ if os.path.exists("rad-tal.txt"):
 # Runda A–F1 sparade i stället HELA källtexten i `kallor.json`. Grinden läser
 # båda — annars går en äldre runda inte att grinda om, och det är just
 # omgrindningen som avslöjar att ordlistan drivit isär.
-def _las_facit():
-    for namn in ("kallor-tal.json", "kallor.json"):
-        if os.path.exists(namn):
-            rå = json.load(open(namn, encoding="utf-8"))
-            return {k: (v if isinstance(v, list) else sorted(tal(kropp(v))))
-                    for k, v in rå.items()}, namn
-    return None, None
 
 # ☠️ SAKNAT FACIT FÅR INTE STÄNGA AV MÖNSTERGRINDARNA. Fram till 2026-09-07
 # kastade `_las_facit` här, alltså INNAN en enda fil lästs — och elva av
@@ -49,7 +42,7 @@ def _las_facit():
 # komplett ut och kontrollerar ingenting är värre än ingen alls, för den
 # räknas som gjord. Mönstergrindarna behöver inget facit; bara siffergrinden
 # gör det, och det är BARA den som hoppas över.
-kallor, _facitfil = _las_facit()
+kallor, _facitfil = las_facit()
 UTAN_FACIT = kallor is None
 if UTAN_FACIT:
     kallor = {}
