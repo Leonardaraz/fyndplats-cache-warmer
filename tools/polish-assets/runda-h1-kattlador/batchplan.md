@@ -151,3 +151,68 @@ python3 ../../polish-gates/hasha.py
 
 Alla åtta texter kördes om mot unionens ordlista: **0 fynd**. Texterna var
 alltså rena — men nu av rätt skäl i stället för av tur.
+
+## Live-verifiering (2026-09-07, efter ISR-fönstret)
+
+`hamta-live.sh 305` → varm träff, 305 s väntan, skarp hämtning. Alla åtta svar
+`HTTP 200` med `age 302–303`, alltså den omrenderade sidan och inte den gamla.
+
+```
+python3 ../../polish-gates/livegrind.py
+TOTALT: 0 avvikelser i den PUBLICERADE texten
+```
+
+| grind i livegrind | utfall |
+|---|---|
+| orddiff mot källfilen (8 sidor, 501–689 ord) | **0** |
+| homoglyfsvep | rent |
+| alt-svep (35 alt-texter) | rent |
+| SEO-svep, exakt mot `seo.tsv` | rent |
+| flikar (`Tekniska specifikationer` · `Användning och skötsel` · `Vanliga frågor`) | 3/3 på alla åtta |
+| brödsmula ≠ `Hem / Butik / …` | 8/8 |
+| köpbarhet (`OutOfStock` i JSON-LD) | 0 |
+
+Brödsmulan, utläst ur `BreadcrumbList` på varje sida:
+
+```
+Hem / Husdjur / Kattlådsskåp 152 cm med tre hyllplan och klöspelare …
+Hem / Husdjur / Kattlådsskåp i ek och vitt med utdragbar låda …
+Hem / Husdjur / Kattlådsskåp i vitt 86 cm med mellanvägg och sidohyllor …
+Hem / Husdjur / Kattlåda i rostfritt med fram- och toppingång …
+Hem / Husdjur / Kattlåda i grönt med två utdragbara lådor …
+Hem / Husdjur / Kattlåda i vitt med rostfritt tråg och kolfilter …
+Hem / Husdjur / Kattlåda i stugform med siktmatta och skopa …
+Hem / Husdjur / Kattlåda med lock och smutsmatta 43 cm …
+```
+
+JSON-LD per sida, utläst ur `Product`-blocket:
+
+| kort | pris | tillgänglighet | märke | fält utöver `sku` |
+|---|--:|---|---|---|
+| 14cb2686 | 1 799 kr | InStock | Fyndplats | inga |
+| a2f82e08 | 1 439 kr | InStock | Fyndplats | inga |
+| 29bf0866 | 1 199 kr | InStock | Fyndplats | inga |
+| 79c3738c | 1 019 kr | InStock | Fyndplats | inga |
+| b44a18ff | 1 019 kr | InStock | Fyndplats | inga |
+| 5df0b431 | 999 kr | InStock | Fyndplats | inga |
+| 7162ea48 | 829 kr | InStock | Fyndplats | inga |
+| 72ac915f | 829 kr | InStock | Fyndplats | inga |
+
+☠️ Inget `mpn`, inget `gtin` — `sku` är Wix eget UUID. Aosoms artikelnummer
+finns bara på `supplierProductId` i mappningen, vilket är hela poängen.
+
+## Klart
+
+| steg | utfall |
+|---|---|
+| Bilder | 8/8 rätt antal (5,5,5,2,5,4,5,4), fem tyska/märkta borttagna |
+| Text | 8/8 FNV-hashar identiska med källfilerna vid återläsning |
+| SEO | 8/8 två taggar, `settings.keywords` tömd |
+| Kategori | 8/8 `Husdjur` |
+| SKU + publicering | 8/8 i EN patch, `visible` medskickad |
+| Stämpling | körningarna 1674–1681 gröna; 1673 föll 422 på min `__VAR__`-platshållare och skrev **ingenting** |
+| Live | 8/8 rena i `livegrind.py` |
+
+`79c3738c` har bara två bilder kvar — tre av fem var tyska funktionsgrafiker
+eller bar PawHut-logotypen i måttskissen. Den är kandidat för ett eget
+Fyndplats-spec-kort.
