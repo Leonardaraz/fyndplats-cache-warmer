@@ -27,7 +27,7 @@
 // glida ifrån. Det är de fyra generella som ska bo på ett ställe.
 
 import { describe, expect, it } from "vitest";
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -36,7 +36,8 @@ import { fileURLToPath } from "node:url";
 // katalog — samma sorts miljöberoende som grinden finns för att ta bort.
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const RUNDOR = join(ROT, "tools", "polish-assets");
-const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "hasha.py", "gatelib.py"];
+const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "hasha.py", "gatelib.py",
+                   "livegrind.py", "bygg-media.py"];
 
 // ☠️ MÖNSTER, INTE EN NAMNLISTA. Den första versionen av det här testet letade
 // efter de fem filnamnen ovan i rundornas underkataloger. Den missade
@@ -85,6 +86,31 @@ describe("poleringsgrindarna bor på ett ställe", () => {
       `Grindarna ska anropas från tools/polish-gates/, inte kopieras:\n` +
         kopior.map((k) => `  ${k}`).join("\n") +
         `\n\nKör i stället:  python3 ../../polish-gates/gate.py`,
+    ).toEqual([]);
+  });
+
+  // ☠️ EN KOPIA BEHOVER INTE VARA EN FIL. livegrind.py lag i tools/polish-gates/
+  // hela tiden och passerade testet ovan — men bar sin EGEN ordlista i koden:
+  // sexton tyska ord mot gatelibs dryga hundra, och de sexton var ett avtryck av
+  // en enda runda (hundehütte, kaninchenstall, fressnäpfen). Pa en lamprunda
+  // kontrollerade den alltsa ingenting, och den ar den SISTA sparren — efter den
+  // ligger sidan ute. Verifierad genom att aterinfora buggen.
+  it("ingen kanonisk grind bär en egen ordlista vid sidan av gatelib", () => {
+    const EGNA_LISTOR = /^\s*(BRANDS|MARKEN|LAND|LEV|TYSKA|ARTNR|KOD|HOMO)\s*=/m;
+    const fynd: string[] = [];
+    for (const fil of KANONISKA) {
+      if (fil === "gatelib.py") continue; // gatelib ÄR listan
+      const sokvag = join(ROT, "tools", "polish-gates", fil);
+      if (!existsSync(sokvag)) continue;
+      const kod = readFileSync(sokvag, "utf-8");
+      const m = kod.match(EGNA_LISTOR);
+      if (m) fynd.push(`${fil}: ${m[0].trim()}`);
+    }
+    expect(
+      fynd,
+      `Ordlistorna bor i gatelib.py och ska importeras darifran:\n` +
+        fynd.map((f) => `  ${f}`).join("\n") +
+        `\n\nSkriv i stallet:  from gatelib import MARKEN, ARTNR, LAND, LEV, TYSKA, HOMO`,
     ).toEqual([]);
   });
 

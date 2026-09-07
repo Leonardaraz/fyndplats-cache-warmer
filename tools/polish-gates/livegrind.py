@@ -54,15 +54,38 @@
 
 import os, re, sys, unicodedata, html, difflib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gatelib import TILLATNA_TECKEN
+from gatelib import TILLATNA_TECKEN, MARKEN, ARTNR, LAND, LEV, TYSKA, HOMO
 
-BRANDS = ["homcom","outsunny","pawhut","aiyaplay","aosom","sportnow","vinsetto",
-          "kleankin","zonekiz","durhand"]
-LAND   = ["tyskland","germany","deutschland","från polen","från spanien","made in china"]
-TYSKA  = ["hundehütte","kaninchenstall","hasenstall","kleintierstall","wetterfest",
-          "tannenholz","rädern","klappdach","lieferumfang","beschreibung",
-          "technische","größe","maße","fressnäpfen","dachterrasse","massivholz"]
-KOD    = re.compile(r"\b(?:[A-Z]?\d{2,3}-\d{3}[A-Z0-9]*)\b")
+# ☠️ ORDLISTORNA KOMMER FRAN gatelib — den har filen bar inga egna.
+#
+# Fram till 2026-09-07 gjorde den det, och det var husets vanligaste bugg en
+# gang till: en TREDJE ordlista, vid sidan av gatelib och de rundekopior som
+# stadades bort 2026-09-06. Den bar SEXTON tyska ord mot gatelibs dryga
+# hundra, och de sexton var ett avtryck av EN runda — `hundehutte`,
+# `kaninchenstall`, `hasenstall`, `fressnapfen`. Pa en lamprunda kontrollerade
+# live-grinden alltsa ingenting alls, och den ar den SISTA spärren: efter den
+# ligger sidan ute.
+#
+# Uppmatt pa J1:s atta redan verifierade sidor gav gatelibs monster mot HELA
+# den renderade sidan exakt EN traff: `EU-lager`. Den ar butikens egen ribbon
+# och det ENDA stalle dar leveranslandet far sta — darav undantaget nedan, och
+# det galler bara sidsvepet. I produktens egen text, i alt-texter och i
+# SEO-falten ar samma trafft fortfarande ett fel.
+RIBBON_UNDANTAG = {"EU-lager"}
+
+LIVE_GRINDAR = [("HUSMARKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("LAND", LAND),
+                ("LEVERANTOR", LEV), ("TYSKT", TYSKA), ("HOMOGLYF", HOMO)]
+
+
+def svep(prefix, text, klipp=90, undantag=frozenset()):
+    """Kor gatelibs monster over en text och returnerar problemrader."""
+    ut = []
+    for namn, m in LIVE_GRINDAR:
+        for hit in sorted({x.group(0) for x in re.finditer(m, text)}):
+            if hit in undantag:
+                continue
+            ut.append(f"{prefix}/{namn} {hit!r}: {text[:klipp]}")
+    return ut
 
 def brodtext(s):
     s = re.sub(r"(?is)<(script|style)[^>]*>.*?</\1>", " ", s)
@@ -117,37 +140,17 @@ for rad in open("slugs.txt", encoding="utf-8"):
 
     # --- 3. SIDSVEP: hela den publicerade sidan, inte bara beskrivningen ---
     hel = brodtext(live)
-    hel_low = hel.lower()
-    for bm in BRANDS:
-        if re.search(r"(?<![a-zåäö])" + bm + r"(?![a-zåäö])", hel_low):
-            j = hel_low.find(bm)
-            problem.append(f"SIDA/HUSMARKE {bm}: ...{hel[max(0,j-50):j+50]}...")
-    for l in LAND:
-        if l in hel_low:
-            j = hel_low.find(l)
-            problem.append(f"SIDA/LAND {l}: ...{hel[max(0,j-50):j+50]}...")
-    for w in TYSKA:
-        if re.search(r"(?<![a-zåäöéü])" + re.escape(w) + r"(?![a-zåäöéü])", hel_low):
-            j = hel_low.find(w)
-            problem.append(f"SIDA/TYSKT {w!r}: ...{hel[max(0,j-60):j+60]}...")
-    for m in set(KOD.findall(hel)):
-        problem.append(f"SIDA/ARTIKELNUMMER {m}")
+    for namn, m in LIVE_GRINDAR:
+        for hit in sorted({x.group(0) for x in re.finditer(m, hel)}):
+            if hit in RIBBON_UNDANTAG:
+                continue
+            j = hel.find(hit)
+            problem.append(f"SIDA/{namn} {hit!r}: ...{hel[max(0,j-60):j+60]}...")
 
     # --- 3b. ALT-TEXTER. Sidsvepet ovan strippar taggar, sa alt="" ar osynligt
     #     for det. Efter batch 66 ar det just dar de tyska resterna satt kvar.
     for alt in set(html.unescape(x) for x in re.findall(r'alt="([^"]{4,})"', live)):
-        al = alt.lower()
-        for bm in BRANDS:
-            if re.search(r"(?<![a-z\u00e5\u00e4\u00f6])" + bm + r"(?![a-z\u00e5\u00e4\u00f6])", al):
-                problem.append(f"ALT/HUSMARKE {bm}: {alt[:90]}")
-        for w in TYSKA:
-            if re.search(r"(?<![a-z\u00e5\u00e4\u00f6\u00e9\u00fc])" + re.escape(w) + r"(?![a-z\u00e5\u00e4\u00f6\u00e9\u00fc])", al):
-                problem.append(f"ALT/TYSKT {w!r}: {alt[:90]}")
-        for l in LAND:
-            if l in al:
-                problem.append(f"ALT/LAND {l}: {alt[:90]}")
-        for m in KOD.findall(alt):
-            problem.append(f"ALT/ARTIKELNUMMER {m}: {alt[:90]}")
+        problem += svep("ALT", alt)
 
     # --- 3c. SEO-SVEP: <title> och meta description ---
     def _meta(namn, attr="name"):
@@ -172,18 +175,7 @@ for rad in open("slugs.txt", encoding="utf-8"):
         if not varde:
             problem.append(f"SEO/{falt.upper()} SAKNAS PA SIDAN")
             continue
-        vl = varde.lower()
-        for bm in BRANDS:
-            if re.search(r"(?<![a-zåäö])" + bm + r"(?![a-zåäö])", vl):
-                problem.append(f"SEO/{falt} HUSMARKE {bm}: {varde[:90]}")
-        for w in TYSKA:
-            if re.search(r"(?<![a-zåäöéü])" + re.escape(w) + r"(?![a-zåäöéü])", vl):
-                problem.append(f"SEO/{falt} TYSKT {w!r}: {varde[:90]}")
-        for l in LAND:
-            if l in vl:
-                problem.append(f"SEO/{falt} LAND {l}: {varde[:90]}")
-        for m in KOD.findall(varde):
-            problem.append(f"SEO/{falt} ARTIKELNUMMER {m}: {varde[:90]}")
+        problem += svep(f"SEO/{falt}", varde)
 
     # --- 3d. FLIKRADEN och KATEGORIN (Klart-kriteriet, runbookens checklista) ---
     #
