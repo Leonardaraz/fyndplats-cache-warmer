@@ -944,6 +944,83 @@ den på en sekund; utan prov hade grinden legat där och tigit i rundor.
 
 -----
 
+### ☠️ När `ExecuteWixAPI` svarar 403 — runda 93 körde hela vägen på reservvägen
+
+Verktyget som alla rundor byggt på slutade svara mitt i en session: `403
+forbidden` på varje anrop, även en läsning av två rader. `GetSiteContext`
+fungerade, alltså inte site-bindningen. **`CallWixSiteAPI` fungerade hela
+tiden.** Fyra omförsök över ~15 minuter gav samma svar.
+
+Skillnaden är inte kosmetisk — den tar bort tre saker rundan lutar sig mot:
+
+| | `ExecuteWixAPI` | `CallWixSiteAPI` |
+|---|---|---|
+| Loopa 56 katalogsidor i ETT anrop | ja | **nej**, ett HTTP-anrop per verktygsanrop |
+| Bygga kroppen i kod | ja | **nej**, kroppen klistras in för hand |
+| Facit-grind FÖRE PATCHen | ja | **nej**, grinden flyttar till återläsningen |
+
+☠️ **Klistrad kropp är precis den risk hashen finns för.** Skriv i fil, linta
+filen, klistra, läs tillbaka, jämför. Ingen produkt räknas som skriven förrän
+återläsningen stämmer.
+
+✅ **De publicerade sidorna behöver inte API:t alls.** `https://www.fyndplats.se/sitemap.xml`
+gav 2 197 produktsidor gratis, och dubblettgrinden mot publicerade sidor kunde
+köras utan ett enda Wix-anrop. Använd den vägen även när API:t är friskt — den
+är billigare än ett katalogsvep.
+
+☠️ **En markör får inte skickas med sitt eget filter.** `cursor` tillsammans med
+`filter` eller `sort` ger `SE-1141: Search, filter and aggregations cannot be
+specified together with cursor` — filtret ligger inbakat i markören. Tidigare
+rundors svep såg aldrig det, för de svepte utan filter.
+
+☠️ **Det finns ingen fältmask.** `?fields=products.id,products.name` ger
+`400 Failed to parse JSON or deserialize protobuf message`. `fields` är en
+enum för TILLÄGG (`PLAIN_DESCRIPTION`, `MEDIA_ITEMS_INFO`), inte en trimning.
+Räkna med ~1,4 k tokens per produkt i varje svar och filtrera serversidan.
+
+### ☠️ `visible` i fieldMask KASKADERAR ner till varianten (2026-09-07)
+
+Spegelbilden av den kända fällan att en `variantsInfo`-PATCH publicerar ett
+utkast. Uppmätt på två produkter i samma runda, med och utan:
+
+| skickat | produktens `visible` | variantens `visible` |
+|---|---|---|
+| `fieldMask: [… , "visible"]`, `visible:false` | false (avsett) | **true → false** ☠️ |
+| samma PATCH UTAN `visible` i masken | false (oförändrad) | true (oförändrad) |
+
+En produkt vars enda variant är osynlig går inte att köpa ens efter
+publicering, och ingenting i svaret ser fel ut. **Utelämna `visible` ur masken
+när du bara skriver text** — och när du MÅSTE ha med den (en
+`variantsInfo`-PATCH, som publicerar utan den), skicka variantens `visible`
+uttryckligen i samma anrop.
+
+### ☠️ Wix SKRIVER OM din HTML — hasha synlig text, aldrig råmarkup
+
+Uppmätt vid återläsning: det som sparas är inte det som skickades.
+
+| skickat | lagrat |
+|---|---|
+| `<strong>Mått:</strong>` | `<span style="font-weight: 700">Mått:</span>` |
+| `<li>Passar …</li>` | `<li><p>Passar …</p></li>` |
+| `<a href="…">` | `<a href="…" target="_self">` |
+
+En hash över råmarkup kan alltså ALDRIG stämma, hur rätt texten än är. Facit
+räknas därför över **taggbefriad, mellanslagsnormaliserad synlig text** — vilket
+är precis vad `facitgen.py` alltid gjort, och skälet till att grinden hållit.
+Skriv inte om den till att hasha HTML:en.
+
+### ☠️ Ett färgsyskons bildset kan innehålla EN ANNAN färgvariant
+
+Runda 93, den bruna pergoladuken: bild 4 och 5 var **rena** från text och
+logotyp och hade passerat varje befintlig grind — men de visar en **khaki**
+duk, medan varan är varmbrun (mätt 146,122,99 i huvudbilden).
+
+Det är ett färgpåstående som ligger i PIXLARNA, alltså osynligt för både
+lint och muteringstest. Kontrollen är densamma som för randfärgerna i runda
+89–91, fast en nivå upp: **jämför varje behållen bilds dukfärg mot
+huvudbildens** innan galleriet skrivs. En median-RGB räcker inte när
+belysningen skiljer — titta i hög upplösning, sida vid sida.
+
 ## Steg 5 – Verifiera leverantörens påståenden
 
 **Det mest värdefulla steget i hela flödet.** Under en session 2026-08-22/23 bar **fem av
