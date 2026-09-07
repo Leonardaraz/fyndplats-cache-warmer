@@ -36,8 +36,8 @@ import { fileURLToPath } from "node:url";
 // katalog — samma sorts miljöberoende som grinden finns för att ta bort.
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const RUNDOR = join(ROT, "tools", "polish-assets");
-const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "hasha.py", "gatelib.py",
-                   "livegrind.py", "bygg-media.py"];
+const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "gate-lager.py",
+                   "hasha.py", "gatelib.py", "livegrind.py", "bygg-media.py"];
 
 // ☠️ MÖNSTER, INTE EN NAMNLISTA. Den första versionen av det här testet letade
 // efter de fem filnamnen ovan i rundornas underkataloger. Den missade
