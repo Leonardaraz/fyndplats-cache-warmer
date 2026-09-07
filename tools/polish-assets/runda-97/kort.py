@@ -72,4 +72,15 @@ if __name__ == "__main__":
     import json
     json.dump(facit, open("kort-facit.json", "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
-    print("\n%d kort byggda" % len(namn))
+
+    # ☠️ KOPIERINGEN LIGGER HÄR, INTE I HANDEN. kortbygge.bygg() skriver till
+    #    jpg/, och kort/ var en handgjord kopia — alltså två artefakter som
+    #    kan glida isär. De gjorde det: kontaktarket granskades på 19:00-korten
+    #    medan de rättade låg i jpg/ sedan 19:26, och "6 kort byggda" var sant
+    #    hela tiden. Ett bygge som rapporterar framgång utan att den granskade
+    #    filen ändras är samma familj som "ett svar utan fel är inget kvitto".
+    import shutil, os
+    os.makedirs("kort", exist_ok=True)
+    for n_ in namn:
+        shutil.copy2("jpg/%s.jpg" % n_, "kort/%s.jpg" % n_)
+    print("\n%d kort byggda och kopierade till kort/" % len(namn))
