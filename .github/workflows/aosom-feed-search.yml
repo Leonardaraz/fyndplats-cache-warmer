@@ -29,6 +29,12 @@ on:
         required: false
         default: false
         type: boolean
+      visa_pris:
+        # ☠️ Actions-loggar pa ett PUBLIKT repo gar att lasa utan inloggning.
+        description: "Skriv INKOPSPRIS och fraktandel till loggen. ⚠️ Loggen ar PUBLIK."
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   sok:
@@ -40,6 +46,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           Q: ${{ inputs.q }}
           ALLA: ${{ inputs.alla_rader }}
+          VISA_PRIS: ${{ inputs.visa_pris }}
         run: |
           set -euo pipefail
 
@@ -69,7 +76,27 @@ jobs:
           # läsa filen — workflowen registreras aldrig och går inte att starta.
           # Radbrytningar skrivs därför som \n, inte som verkliga rader.
           echo "$svar" | jq -r '"Fraga: \(.fraga)\nRader i feeden: \(.raderILista)\nTraffar: \(.traffar)\(if .kapad then " (kapad till \(.visade|length))" else "" end)\n"'
-          echo "$svar" | jq -r '.visade[] | "  \(.sku)  \(.landatSek) kr landat (inkl. moms)  saldo \(.saldo)  frakt \(.fraktandel*100|round)%\n    \(.namn)\n    \(.url)\n"'
+          # ☠️ INKOPSPRISET SKRIVS INTE TILL LOGGEN SOM DEFAULT (2026-09-07).
+          # Raden har skrev tidigare `<artikelnummer>  <landat pris>  saldo
+          # <n>  frakt <p>%` — alltsa artikelnumret bredvid exakt vad vi
+          # betalar, plus fraktandelen som later en lasare rakna ut grossist
+          # och frakt var for sig. Repot ar PUBLIKT och Actions-loggar gar att
+          # lasa utan inloggning, sa varje sokning publicerade upp till femtio
+          # sadana rader. Det ar ordagrant det som motiverar att feed-adressen
+          # ar hemlig: "detsamma som att publicera vad vi betalar for varje
+          # vara — for de svenska aterforsaljare vi konkurrerar med om exakt
+          # samma artikelnummer". Uppmatt i korning 34: atta rader.
+          #
+          # Artikelnummer, namn, saldo och Aosoms publika produkt-URL star
+          # kvar — de svarar pa "finns varan och finns saldo", vilket ar
+          # workflowens fraga. Priset ligger bakom `visa_pris`.
+          if [ "${VISA_PRIS}" = "true" ]; then
+            echo "⚠️ INKOPSPRIS SKRIVS TILL EN PUBLIK LOGG (visa_pris=true)"
+            echo "$svar" | jq -r '.visade[] | "  \(.sku)  \(.landatSek) kr landat (inkl. moms)  saldo \(.saldo)  frakt \(.fraktandel*100|round)%\n    \(.namn)\n    \(.url)\n"'
+          else
+            echo "$svar" | jq -r '.visade[] | "  \(.sku)  saldo \(.saldo)\n    \(.namn)\n    \(.url)\n"'
+            echo "(inkopspris utelamnat — loggen ar publik. Kor med visa_pris=true om du behover det.)"
+          fi
 
           if [ "$(echo "$svar" | jq -r '.traffar')" = "0" ]; then
             echo "Inga traffar. Prova farre eller bredare termer — sokningen kraver att ALLA ord finns."

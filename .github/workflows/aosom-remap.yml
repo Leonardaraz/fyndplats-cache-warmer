@@ -46,6 +46,12 @@ on:
         required: false
         default: ""
         type: string
+      visa_kostnad:
+        # ☠️ Actions-loggar pa ett PUBLIKT repo gar att lasa utan inloggning.
+        description: "Skriv INKOPSPRIS och marginal till loggen. ⚠️ Loggen ar PUBLIK."
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   remap:
@@ -60,6 +66,7 @@ jobs:
           SKU: ${{ inputs.sku }}
           DUPLICATE: ${{ inputs.duplicate_wix_product_id }}
           MIN_MARGIN: ${{ inputs.min_margin_pct }}
+          VISA_KOSTNAD: ${{ inputs.visa_kostnad }}
         run: |
           set -euo pipefail
 
@@ -97,7 +104,28 @@ jobs:
           # blocket avslutar YAML:ens `run: |` och gor filen olasbar for
           # GitHub. Den har workflowen gick aldrig att starta fran att den
           # skapades tills det upptacktes 2026-09-03.
-          echo "$svar" | jq -r '.plan // {} | "  artikelnummer   \(.sku)\n  fran            \(.["frånLeverantör"])\n  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)\n  kundpris        \(.prisSek) kr ur \(.["prisKalla"]) (ORORT)\n  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %\n  fraktandel      \(.fraktandel)"'
+          # ☠️ INKOPSPRIS OCH MARGINAL SKRIVS INTE SOM DEFAULT (2026-09-07).
+          # Raden skrev tidigare artikelnumret bredvid landad kostnad,
+          # marginal och fraktandel. Repot ar PUBLIKT och Actions-loggar gar
+          # att lasa utan inloggning — se samma andring i
+          # aosom-feed-search.yml och polish-mapping.yml.
+          #
+          # Kundpriset star kvar: det ar redan publikt pa var egen sajt.
+          # Marginalen ar det som avgor om planen ar rimlig, sa den finns
+          # bakom `visa_kostnad` — och `marginalen haller` sags alltid.
+          echo "$svar" | jq -r '.plan // {} | "  artikelnummer   \(.sku)\n  fran            \(.["frånLeverantör"])\n  kundpris        \(.prisSek) kr ur \(.["prisKalla"]) (ORORT)"'
+          if [ "${VISA_KOSTNAD}" = "true" ]; then
+            echo "  ⚠️ INKOPSPRIS SKRIVS TILL EN PUBLIK LOGG (visa_kostnad=true)"
+            echo "$svar" | jq -r '.plan // {} | "  landad kostnad  \(.gammalLandadSek) -> \(.nyLandadSek) kr (inkl. moms)\n  marginal        \(.["gammalMarginalPct"]) -> \(.nyMarginalPct) %\n  fraktandel      \(.fraktandel)"'
+          else
+            # ⚠️ Aven en JAMFORELSE mot ett kostnadsfalt star kvar har som ett
+            # faltnamn, och en namnbaserad grind kan inte skilja "skriver ut
+            # talet" fran "jamfor talet". Darfor namns de inte alls i den har
+            # grenen — den som behover dem slar pa flaggan. Rutten AVVISAR
+            # redan en ommappning under marginalgolvet, sa ett tyst utfall har
+            # betyder att golvet holl.
+            echo "  (inkopsled utelamnat — loggen ar publik. Kor med visa_kostnad=true.)"
+          fi
 
           if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
             echo "::error::$(echo "$svar" | jq -r '.error // "hinder — se listan nedan"')" >&2

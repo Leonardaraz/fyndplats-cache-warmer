@@ -33,6 +33,15 @@ on:
         description: "Wix-produktens id"
         required: true
         type: string
+      visa_kostnad:
+        # ☠️ Repot ar PUBLIKT och Actions-loggar gar att lasa utan inloggning.
+        # Ett paslaget flagga skriver alltsa vart inkopspris dar vem som helst
+        # kan lasa det — samma uppgift som feed-adressen ar hemlig for att
+        # skydda. Default av; sla pa medvetet och bara nar det behovs.
+        description: "Skriv INKOPSPRIS till loggen. ⚠️ Loggen ar PUBLIK — bara vid felsokning."
+        required: false
+        default: false
+        type: boolean
       needs_ai_polish:
         # ☠️ DEFAULTEN MÅSTE VARA TOM. GitHub ersätter ett tomt värde med
         # `default`, så "tomt = rör inte" var omöjligt att uppnå: en körning
@@ -65,6 +74,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           MODE: ${{ inputs.mode }}
           PRODUCT_ID: ${{ inputs.wix_product_id }}
+          VISA_KOSTNAD: ${{ inputs.visa_kostnad }}
           NEEDS_POLISH: ${{ inputs.needs_ai_polish }}
           DRAFT_STATUS: ${{ inputs.draft_status }}
           VARIANT_SKUS: ${{ inputs.variant_skus }}
@@ -89,8 +99,21 @@ jobs:
               exit 1
             fi
 
-            echo "=== Mappningsraden ==="
-            echo "$svar" | jq '.mappning'
+            # ☠️ ALLOWLIST, INTE HELA RADEN. Fram till 2026-09-07 stod har
+            # `jq '.mappning'`, som skriver ut HELA mappningsraden — och den bar
+            # `supplierProductId` (Aosoms artikelnummer), `costUsd`,
+            # `landedCostSek`, `aosomFreightShare` och `sourceUrl`.
+            #
+            # Repot ar PUBLIKT, och Actions-loggar pa ett publikt repo gar att
+            # lasa utan inloggning. Raden publicerade darmed exakt det par som
+            # feed-adressen ar hemlig for att skydda: artikelnumret bredvid vad
+            # vi betalar. Uppmatt: 1 689 korningar av den har workflowen.
+            #
+            # ⚠️ ALLOWLIST och inte denylist, av samma skal som skrivningens
+            # allowlist i /api/admin/mapping: ett NYTT kostnadsfalt ska inte
+            # laka for att ingen kom ihag att lagga till det i en forbudslista.
+            echo "=== Mappningsraden (kostnads- och leverantorsfalt utelamnade) ==="
+            echo "$svar" | jq '.mappning | {wixProductId, supplier, needsAiPolish, draftStatus, hasEuWarehouse, aosomSyncedQty, aosomSyncedAt, listingStatus, variants: [(.variants // [])[] | {wixVariantId, sku, grossSek}]}'
             echo
             echo "=== Steg 4: prisgrinden ==="
             if [ "$(echo "$svar" | jq -r '.prisgrind')" = "null" ]; then
@@ -98,7 +121,15 @@ jobs:
               echo "Polera INTE priset. Flagga raden till Leonard."
               exit 1
             fi
-            echo "$svar" | jq -r '.prisgrind | "  landedCostSek \(.landedCostSek)\n  forvantat     \(.["förväntatSek"])\n  faktiskt      \(.faktisktSek)\n  stammer       \(.["stämmer"])"'
+            # ☠️ `landedCostSek` ar INKOPSPRISET och skrivs inte till loggen.
+            # `forvantatSek` ar 1,20 x samma tal, alltsa lika avslojande — bada
+            # ligger bakom `visa_kostnad`, som namnger foljden i sin beskrivning.
+            # `faktisktSek` ar butikens pris och redan publikt pa var egen sajt.
+            if [ "${VISA_KOSTNAD}" = "true" ]; then
+              echo "  ⚠️ INKOPSPRIS SKRIVS TILL EN PUBLIK LOGG (visa_kostnad=true)"
+              echo "$svar" | jq -r '.prisgrind | "  landedCostSek \(.landedCostSek)\n  forvantat     \(.["förväntatSek"])"'
+            fi
+            echo "$svar" | jq -r '.prisgrind | "  faktiskt      \(.faktisktSek)\n  stammer       \(.["stämmer"])"'
             echo "$svar" | jq -r '.prisregel | "  regel: x\(.multiplikator), avrundning \(.rounding)"'
 
             galler=$(echo "$svar" | jq -r '.prisgrind.["regelGäller"]')
