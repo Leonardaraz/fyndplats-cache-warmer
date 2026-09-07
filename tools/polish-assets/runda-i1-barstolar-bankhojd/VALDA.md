@@ -132,3 +132,64 @@ Orddiff 0 på alla fyra: brödtexten som ligger ute är ordagrant källfilernas.
 SEO-svepet jämför `<title>` och metabeskrivningen EXAKT mot `seo.tsv` och gav
 noll avvikelser — de gick via fil, inte via avskrift. Kategori och
 skötselflik grindades på den renderade sidan.
+
+## Runda I1 klar — 8 av 8 publicerade och live-verifierade (2026-09-07)
+
+```
+29b8fb0c  ord=532  diff=0  -> slutsåld (saldo 0, korrekt)
+856d1d1d  ord=625  diff=0  -> REN
+f61517b6  ord=554  diff=0  -> REN
+313117c8  ord=540  diff=0  -> REN
+a0c1af46  ord=525  diff=0  -> REN
+032b6e93  ord=621  diff=0  -> REN
+709da650  ord=624  diff=0  -> REN
+239b20b7  ord=607  diff=0  -> slutsåld (saldo 0, korrekt)
+```
+
+Orddiff 0 på samtliga åtta: brödtexten som ligger ute är ordagrant
+källfilernas. SEO-svepet jämför `<title>`, metabeskrivningen och og-fälten
+exakt mot `seo.tsv` — noll avvikelser. Kategori och skötselflik grindade på
+den renderade sidan.
+
+De två fällda är de två med saldo 0. Bägge har `variant.visible: true`
+(verifierat i skrivsvaret), alltså orsak (a) i grindens nya meddelande — en
+korrekt slutsåld sida, inte incidenten där 31 sidor var oköpbara.
+
+### SKU:erna som delades
+
+| kort | tysk SKU | ny svensk |
+|---|---|---|
+| `29b8fb0c` | `FP-2er-set-barstuhle-mit` | `FP-barstolar-gummitra-60` |
+| `f61517b6` | `FP-2er-set-barstuhle-mit` | `FP-barstolar-manchester-65` |
+| `709da650` | `FP-2er-set-barstuhle-mit` | `FP-barstolar-fleece-68` |
+| `313117c8` | `FP-barhocker-2er-set` | `FP-barstolar-svarta-60-81` |
+| `a0c1af46` | `FP-barhocker-im-2er-set` | `FP-barstolar-gra-63` |
+| `856d1d1d` | `FP-2er-set-barhocker-mit` | `FP-barstolar-linnelook-68` |
+| `032b6e93` | `FP-2er-set-barhocker` | `FP-barstolar-tra-stal-66` |
+| `239b20b7` | `FP-barhocker-set-aus-2` | `FP-barstolar-sadelsits-61-82` |
+
+☠️ **TRE produkter delade `FP-2er-set-barstuhle-mit`**, inte två som första
+kollen antog. Importen härleder SKU:n ur den tyska titelns första ord, och
+tre av rundans åtta titlar började `2er Set Barstühle mit`. Kollisionskollen
+måste därför gå mot HELA familjen och mot båda namnformerna (`Barstol…`,
+`Barhocker…`, `2er…`) — en koll mot bara den ena hade missat halva rundan.
+
+### Två fel som grindarna inte kunde ta
+
+1. **`Ingen ryggstödsryggen`** — en trasig sammansättning, inte ett listat
+   stavfel. Fångad av att nyttolasten LÄSTES före skrivningen. En skanning
+   efter dubbelord och långa sammansättningar gav i övrigt bara äkta svenska
+   (`bänkhöjdsklassen`, `högdensitetsskum`); de två träffarna på dubbelord
+   var en klyvningskonstruktion (`är det det som skiljer`) och en
+   rubrikgräns.
+2. **`Ø` saknades i teckenlistan** — och grindarna var därför OENSE:
+   `gate.py` släppte igenom `Ø46 cm` i brödtexten (livegrind rapporterar bara
+   kyrilliskt och grekiskt) medan `gate-seo.py` fällde exakt samma sträng i
+   `seo.tsv`. Tillagt VERSALT och bara versalt; det gemena `ø` står kvar i
+   danska-listan och är fortfarande den mekaniska skillnaden mellan ett mått
+   och en dansk stavning.
+
+⚠️ **Två av fyra bar tysk alt-text rakt från importen** (`2er-Set Barstühle
+mit Polstersitz…`). Beskrivningen var oskriven-tysk, alt-texten också — men
+de två hade kunnat rättas var för sig, och ett sidsvep som strippar taggar
+ser inte in i `alt=""`.
