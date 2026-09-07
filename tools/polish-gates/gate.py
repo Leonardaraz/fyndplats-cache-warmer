@@ -79,6 +79,16 @@ for f in filer:
     for r in FLIKAR:
         if f"<h2>{r}</h2>" not in txt:
             print(f"  {kort}: [FLIK] saknar <h2>{r}</h2>"); fynd += 1
+    # ☠️ EN RELATIV KORSLÄNK BLIR EN DÖD LÄNK. Uppmätt 2026-09-07 på runda K1:
+    # `href="/produkt/x"` lagras av Wix som `href="https:/produkt/x"` — ett
+    # snedstreck, alltså en adress som inte går någonstans. Skrivningen svarar
+    # 200 och den lagrade texten ser rimlig ut i ett svar. Det som fångade det
+    # var transkriptionshashen, som inte stämde efteråt.
+    # Katalogen mättes samma dag: 1 778 av 1 779 korslänkar på publicerade
+    # sidor är absoluta. Formen är alltså husets, inte en smaksak.
+    for x in re.finditer(r'href="(?!https://www\.fyndplats\.se/)([^"]*)"', txt):
+        print(f"  {kort}: [RELATIV LÄNK] {x.group(1)!r} — Wix gör om den till https:/… (död länk)")
+        fynd += 1
     if UTAN_FACIT:
         continue
     facit = set(kallor.get(kort, []))
