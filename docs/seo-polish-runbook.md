@@ -874,6 +874,35 @@ Måttritningen (position 3) och detaljfotona granskas ändå för tysk text.
 
 -----
 
+### ☠️ EN FÄRG SKRIVS ALDRIG UR KONTAKTKARTAN — bara ur en ZOOM
+
+Kontaktkartan ovan är rätt verktyg för att förstå VAD bilderna visar. Den är
+fel verktyg för att avgöra vilken FÄRG en detalj har, och det har kostat två
+rundor i rad:
+
+| runda | skrivet | uppmätt i zoom |
+|---|---|---|
+| 89 | "röd fälg" på `479e9c2e` | fälgen är SILVER, bara gaffeln är röd |
+| 90 | "silverfärgade fälgar" på `5129f6b0` | fälgbandet är **VITT**, ekrarna silver |
+| 90 | "svarta fälgar" på `50b28808` | fälgen är **VIT** — det svarta är DÄCKET |
+
+Alla tre skrevs efter att ha tittat på en 320- eller 420-pixels miniatyr, och
+alla tre var fel om en liten men synlig del av varan. På den storleken är en
+fälg tjugo pixlar bred: däckets svarta ring dominerar, och fälgbandets färg
+finns knappt.
+
+**Regeln: varje färgpåstående om en DEL av varan — fälg, gaffel, beslag,
+sömmar, handtag — kräver en beskärning i minst 2× förstoring av just den
+delen.** Färgen på HELA varan går att läsa ur kontaktkartan; en detalj gör det
+inte.
+
+⚠️ Och gör grinden mekanisk, inte till en vana. Runda 90 la in `FALG_OK` —
+en lista per produkt med de färgord som är UPPMÄTTA, och ett fel om texten
+använder något annat framför ordet "fälg". Ett mutationstest som återinför
+båda felen fäller på rätt regel. En regel man ska komma ihåg glöms bort.
+
+-----
+
 ## Steg 5 – Verifiera leverantörens påståenden
 
 **Det mest värdefulla steget i hela flödet.** Under en session 2026-08-22/23 bar **fem av
@@ -2238,6 +2267,29 @@ hittade två fel i texten och ett i grinden själv.
    Kör språkkontrollen i Python, eller använd `(?<![A-Za-zÅÄÖåäö])…(?![A-Za-zÅÄÖåäö])` i
    JS. Ett falsklarm i grinden kostar dubbelt: det stjäl tiden från de fel som är äkta,
    och lär läsaren att avfärda utslagen.
+
+4. ☠️ **En LIVE-grind mot en ordlista mäter sajten, inte din text — mät mot en
+   KONTROLLSIDA.** Runda 90:s första live-svep fällde **7 av 7** korrekta sidor på
+   tre fynd som alla fanns ordagrant på en publicerad sida rundan aldrig rört:
+
+   | fynd | vad det var |
+   |---|---|
+   | `Skickas från` | sajtens **EU-lager-ribbon** — enligt husets egen regel den ENDA plats där avsändarlandet får synas |
+   | `688-5623` (och fyra tal till i formen `\d{3}-\d{3}\w`) | sajtens `Organization`-JSON-LD, en Maps-URL — inte ett artikelnummer |
+   | tom kropp på en sida | EN misslyckad huvud/kropp-delning; omhämtning gav 200 och 145 kB |
+
+   Produktsidan är inte bara din text: den bär header, ribbon, JSON-LD, footer och
+   skript. Varje förbudsord du söker efter finns med god sannolikhet någonstans i det.
+
+   **Grinden ska därför hämta en KONTROLLSIDA först** — en publicerad produkt i samma
+   familj som rundan inte rört — samla dess träffar, och bara rapportera det som finns
+   på din sida men INTE på kontrollens. Tre rader kod, och skillnaden mellan
+   "7 av 7 sidor med problem" och sanningen, som var noll.
+
+   ⚠️ Samma familj som fyndet ovan, och som husets regel mot att varna vid 48 h på
+   token-förnyelsen: **ett larm som fyrar på varje korrekt sida är lika illa som
+   inget larm alls** — mottagaren lär sig att sluta läsa, och då är även det äkta
+   larmet borta.
 
 **Regeln: en grön grind betyder att grinden är nöjd, inte att texten är rätt.** Två av de
 tre fynden ovan var osynliga för varje fält-kontroll, och det tredje låg i kontrollen själv.
