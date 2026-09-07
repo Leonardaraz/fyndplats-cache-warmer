@@ -901,6 +901,47 @@ en lista per produkt med de färgord som är UPPMÄTTA, och ett fel om texten
 använder något annat framför ordet "fälg". Ett mutationstest som återinför
 båda felen fäller på rätt regel. En regel man ska komma ihåg glöms bort.
 
+#### ☠️ EN GRIND TÄCKER BARA DEN DETALJ DEN NÄMNER — runda 91 fällde på nästa
+
+`FALG_OK` vaktade fälgen. `RAM_OK` (runda 91) vaktade ramen. **Ingen av dem
+tittade på RANDNINGEN**, och det var där felet satt: fyra sparkcyklar fick
+"guld- och svartrandning" om ett band som i 6× zoom är **guld, vitt OCH svart**.
+
+Tredje rundan i rad, samma familj, ny detalj varje gång. Slutsatsen är inte
+"lägg till en regel till" utan **räkna upp varje färgad DEL i produkten och ge
+var och en sin egen uppmätta lista** innan texten skrivs — fälg, ram, rand,
+gaffel, styre, beslag.
+
+☠️ **Och kravet ska vara LIKHET, inte delmängd, och gälla PER FRAS.** Båda de
+svagare varianterna provades mot mutationstestet och båda missade:
+
+| krav | vad som slapp igenom |
+|---|---|
+| delmängd (allt som nämns finns) | att UTELÄMNA vitbandet ur en tregfärgad rand |
+| union över hela sidan | en HALV rättning — ingressen ändrad, spec-raden inte |
+
+Ett utelämnande är inte en lögn, men det gör syskonen mer olika än de är: tre
+av fyra hade beskrivits som om de bar olika randband när alla fyra bär samma.
+
+⚠️ **Priset för per-fras-kravet:** texten får inte referera tillbaka till en
+enskild rand ("de svarta ränderna löper …") utan att räkna upp hela bandet.
+Det är billigare än en tyst halv sanning.
+
+#### ☠️ KORTETS RUBRIK ÄR OGRANSKAD om den bor i `kort.py`
+
+Runda 90 lintade bara produkttexten. Kortrubriken låg i kortbyggets egen
+`KORTPLAN` — och det är **exakt den plats där både runda 90 och 91 skrev fel
+färg**, eftersom rubriken är vald för att peka ut vad som skiljer syskonen åt.
+
+Lägg rubriken i `texter.py` (t.ex. som `KORT`), låt `kort.py` importera den, och
+kör den genom `brister()` som ett eget litet dokument. Ett kort är lika mycket
+ett påstående mot kunden som ett stycke brödtext.
+
+⚠️ **Och ge varje ny grind ett eget prov i självtestet.** Runda 91:s randgrind
+hade samma loopvariabel i den yttre loopen och den inre generatorn — kontrollen
+jämförde orden mot sig själva och svarade **grönt på allt**. Självtestet fällde
+den på en sekund; utan prov hade grinden legat där och tigit i rundor.
+
 -----
 
 ## Steg 5 – Verifiera leverantörens påståenden
