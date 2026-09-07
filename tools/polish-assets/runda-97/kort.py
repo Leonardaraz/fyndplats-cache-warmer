@@ -11,6 +11,21 @@ vidarebefordran av leverantörens marknadsföring.
 ⚠️ RUBRIKEN MÅSTE BÄRAS AV FOTOT. Den kontrollen är min, inte kodens: varje
    rubrik nedan pekar på något som SYNS i bild 1. "Fyra höjder" fungerar för
    att bild 1 på 1fc55b3d har de fyra lägena som småbilder under produkten.
+
+☠️ TRE RUBRIKER FÖLL PÅ EGEN GRIND I KONTAKTARKET, och alla tre åt SAMMA håll:
+   de skrev spec-tabellens starkaste tal i stället för fotots starkaste motiv.
+
+   | pid      | föll som                      | fotot visar        |
+   |----------|-------------------------------|--------------------|
+   | 2e2b2366 | "Tre höjdlägen i kaffebrunt"  | ETT höjdläge       |
+   | 7628983b | "42 cm högt, 30 liter förvar" | ett STÄNGT skåp    |
+   | 75556831 | "82 cm med matplats i låda"   | en STÄNGD låda     |
+
+   Ingen av dem är en LÖGN — talen står i tabellen och stämmer. Det är därför
+   de är svåra att se: en rubrik som är sann känns färdiggranskad. Men kortet
+   är ett bildlöfte, och ett löfte som fotot inte infriar kostar samma
+   förtroende som ett fel tal. Rubriken ska väljas ur BILDEN och talen bäras
+   av spec-raderna under den — de är två olika jobb i samma kort.
 """
 import sys
 
@@ -23,13 +38,13 @@ KORT = {
                  ["Skålhöjd över golv", "Skålar", "Vikt"]),
     "1fc55b3d": ("Matskålsställ", "Fyra höjder och tre lutningar",
                  ["Höjdlägen", "Lutningslägen", "Skålar"]),
-    "2e2b2366": ("Matplats för hund", "Tre höjdlägen i kaffebrunt",
+    "2e2b2366": ("Matplats för hund", "Kaffebrunt, med öppet fack under",
                  ["Höjdlägen", "Skålar", "Mått"]),
-    "868cc038": ("Matskåp för hund", "34 cm högt, med skjutdörrar",
+    "868cc038": ("Matskåp för hund", "34 cm högt, med två dörrar",
                  ["Mått", "Förvaring invändigt", "Skålar"]),
-    "7628983b": ("Matskåp för hund", "42 cm högt, 30 liter förvaring",
+    "7628983b": ("Matskåp för hund", "Skålarna infällda i grå skiva",
                  ["Mått", "Förvaring invändigt", "Skålar"]),
-    "75556831": ("Husdjursskåp", "82 cm med matplats i låda",
+    "75556831": ("Husdjursskåp", "82 cm med hyllfack, låda och krokar",
                  ["Mått", "Stängt skåp", "Skålar"]),
 }
 

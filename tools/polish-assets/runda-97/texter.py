@@ -40,7 +40,7 @@ SLUGG = {
     "e8102582": "upphojd-matskal-hund-hojdjusterbar-11-33-cm",
     "1fc55b3d": "matskalsstall-hund-fyra-hojder-lutbart",
     "2e2b2366": "matplats-hund-tre-hojder-kaffebrun",
-    "868cc038": "matskap-hund-34-cm-skjutdorrar",
+    "868cc038": "matskap-hund-34-cm-tva-dorrar",
     "7628983b": "matskap-hund-42-cm-30-liter",
     "75556831": "husdjursskap-82-cm-matplats-i-lada",
 }
@@ -58,7 +58,7 @@ SKU = {
     "e8102582": "FP-upphojd-matskal-11-33",
     "1fc55b3d": "FP-matskalsstall-fyra-hojder",
     "2e2b2366": "FP-matplats-tre-hojder-kaffebrun",
-    "868cc038": "FP-matskap-34-cm",
+    "868cc038": "FP-matskap-34-cm-tva-dorrar",
     "7628983b": "FP-matskap-42-cm",
     "75556831": "FP-husdjursskap-82-cm",
 }
@@ -67,7 +67,7 @@ NAMN = {
     "e8102582": "Upphöjd matskål för hund – höjdjusterbar 11–33 cm, två skålar 900 ml",
     "1fc55b3d": "Matskålsställ för hund – fyra höjder och tre lutningar, skålar 1,2 L",
     "2e2b2366": "Matplats för hund i kaffebrunt – tre höjder, skålar 2 L, med förvaring",
-    "868cc038": "Matskåp för hund 60 × 30 × 34 cm – skjutdörrar och två skålar 2 L",
+    "868cc038": "Matskåp för hund 60 × 30 × 34 cm – två dörrar och skålar 2 L",
     "7628983b": "Matskåp för hund 60 × 30 × 42 cm – 30 liter förvaring, skålar 2 L",
     "75556831": "Husdjursskåp 82 cm – matplats i utfällbar låda, hyllfack och krokar",
 }
@@ -98,13 +98,13 @@ INGRESS = {
     "868cc038": (
         "Ett lågt matskåp på 60 × 30 × 34 cm i kaffebrun träfiberskiva, med "
         "två rostfria skålar på 2 liter infällda i skivan. Bakom de två "
-        "skjutdörrarna finns ett utrymme på 55 × 25,5 × 21 cm för foder, "
+        "dörrarna finns ett utrymme på 55 × 25,5 × 21 cm för foder, "
         "koppel och godis."),
     "7628983b": (
         "Ett matskåp på 60 × 30 × 42 cm med vit stomme och grå skiva, där två "
-        "rostfria skålar på 2 liter är infällda i ovansidan. Inuti finns 30 "
-        "liter förvaring — fodret står där maten serveras, inte i ett annat "
-        "rum."),
+        "rostfria skålar på 2 liter är infällda i ovansidan. Förvaringen är en "
+        "låda på 30 liter som dras ut från kortsidan, så fodret står där "
+        "maten serveras i stället för i ett annat rum."),
     "75556831": (
         "Ett vitt förvaringsskåp på 82 cm för allt som hör husdjuret till: "
         "foder, koppel, leksaker och skålar. Matplatsen sitter i en låda "
@@ -147,7 +147,7 @@ EGENSKAPER = {
     "868cc038": [
         "Två rostfria skålar på 2 liter, Ø 24 cm och 7 cm djupa",
         "Skålarna är infällda i skivan och lyfts ur för diskning",
-        "Två skjutdörrar, dörröppning 25 × 24 cm",
+        "Två dörrar på gångjärn, dörröppning 25 × 24 cm",
         "Förvaring invändigt 55 × 25,5 × 21 cm",
         "Tål 15 kg på ovansidan och 15 kg inuti",
         "Stomme i träfiberskiva, skålar i rostfritt stål",
@@ -157,7 +157,7 @@ EGENSKAPER = {
     ],
     "7628983b": [
         "Två rostfria skålar på 2 liter, Ø 24 cm och 7 cm djupa",
-        "30 liter förvaring inuti, 50 × 21,5 × 28 cm",
+        "30 liter förvaring i en utdragbar låda, 50 × 21,5 × 28 cm",
         "Tål 20 kg på ovansidan och 10 kg inuti",
         "Stomme i träfiberskiva och stål, skålar i rostfritt stål",
         "Vit stomme med grå skiva",
@@ -354,13 +354,15 @@ SKOTSEL = {
         "innan det hinner ligga.",
         "Håll dig till maxlasten: 15 kg på ovansidan och 15 kg inuti. En "
         "fodersäck på 15 kg är alltså gränsen, inte en rekommendation.",
-        "Låt dörrarna löpa fritt. Skjutdörrar går trögt om spår och kanter "
-        "samlar damm och foderrester — dammsug spåret då och då.",
+        "Dörrarna sitter på gångjärn och slås ut åt sidorna, så skåpet "
+        "behöver fritt utrymme framför sig. Torka av gångjärnen när du "
+        "dammar — foderdamm som får ligga gör dem tröga.",
     ],
     "7628983b": [
         "Lyft ur skålarna vid diskning. De är infällda i skivan och tål "
         "maskindisk.",
-        "Fyll skåpet med fodret, inte med det tyngsta du har. Invändigt tål "
+        "Dra ut lådan och fyll den med fodret, inte med det tyngsta du har. "
+        "Invändigt tål "
         "det 10 kg, och ovansidan 20 kg — de två talen är olika av en "
         "anledning.",
         "Torka av med en väl urvriden trasa. Träfiberskiva tål avtorkning "
@@ -408,8 +410,9 @@ def faq(pid):
                                 "rymmer foderburkar och tillbehör.",
                     "868cc038": "Utrymmet är 55 × 25,5 × 21 cm och tål "
                                 "15 kg.",
-                    "7628983b": "30 liter, alltså 50 × 21,5 × 28 cm, och "
-                                "det tål 10 kg."}[pid]))
+                    "7628983b": "30 liter, alltså 50 × 21,5 × 28 cm, i en "
+                                "låda som dras ut från kortsidan. Den tål "
+                                "10 kg."}[pid]))
     if pid == "75556831":
         ut.append(("Står skålarna upphöjt?",
                    "Nej. Skålarna sitter i en låda nedtill som fälls ut, och "
@@ -469,7 +472,7 @@ SEO_TITEL = {
     "e8102582": "Upphöjd matskål hund – höjdjusterbar 11–33 cm, 900 ml",
     "1fc55b3d": "Matskålsställ hund – fyra höjder, lutbart, skålar 1,2 L",
     "2e2b2366": "Matplats för hund – tre höjder, kaffebrun, skålar 2 L",
-    "868cc038": "Matskåp hund 34 cm – skjutdörrar och två skålar 2 L",
+    "868cc038": "Matskåp hund 34 cm – två dörrar och två skålar 2 L",
     "7628983b": "Matskåp hund 42 cm – 30 liter förvaring, skålar 2 L",
     "75556831": "Husdjursskåp 82 cm – matplats i låda, hylla och krokar",
 }
@@ -484,7 +487,8 @@ SEO_BESKRIVNING = {
     "2e2b2366": ("Matplats för hund i kaffebrun träfiberskiva med tre "
                  "höjdlägen — 16,9, 29,7 och 42,5 cm. Två rostfria skålar på "
                  "cirka 2 liter och öppet utrymme under. 7 kg."),
-    "868cc038": ("Matskåp för hund 60 × 30 × 34 cm med två skjutdörrar och "
+    "868cc038": ("Matskåp för hund 60 × 30 × 34 cm med två dörrar på gångjärn "
+                 "och "
                  "55 × 25,5 × 21 cm förvaring. Två rostfria skålar på 2 liter "
                  "infällda i skivan. Kaffebrun, 9,8 kg."),
     "7628983b": ("Matskåp för hund 60 × 30 × 42 cm med 30 liter förvaring "
