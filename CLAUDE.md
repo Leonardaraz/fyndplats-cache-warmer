@@ -1427,6 +1427,62 @@ genom chatten en gång till.
 **Regeln: filen är källan, men bara en diff mot den lagrade texten bevisar att
 källan kom fram.** Tionde gången samma familj.
 
+##### ☠️ Och `seoData` glömdes bort av regeln — fem av åtta drev isär (2026-09-07)
+
+Regeln ovan säger *skriv i en fil först*, och runda H3 följde den för
+BRÖDTEXTEN. SEO-taggarna skrevs i stället av för hand in i API-anropet, från
+minnet av `seo.tsv` i stället för ur filen. Utfallet:
+
+| hur SEO-värdena kom in i anropet | produkter | drev isär |
+|---|---:|---:|
+| Lästa ur `seo.tsv` med ett skript | 3 | **0** |
+| Avskrivna för hand i anropet | 5 | **5** |
+
+Fem av fem. Det är inte slarv i enstaka fall — en avskrift ÄR mekanismen.
+Ingen av de fem hade heller passerat `gate-seo.py`, som grindar FILEN: en
+titel som aldrig stod i filen kan inte grindas av den. De var som tur var
+korrekta när de mättes i efterhand, men det var tur och inte en spärr.
+
+`livegrind.py`:s SEO-svep fångade alla tio avvikelserna. **Orddiffen på
+brödtexten var 0 på alla åtta** — alltså exakt den asymmetri regeln förutsäger:
+det som gick via fil kom fram, det som skrevs av gjorde det inte.
+
+**Regeln gäller varje fält som når kunden, inte bara brödtexten.** `seo.tsv`
+och `namn.tsv` är källor på samma sätt som `<kort>.html` — bygg nyttolasten ur
+dem med ett skript.
+
+##### ☠️ `variantsInfo.variants[].sku` ligger på TOPPNIVÅN — en skrivning under `physicalProperties` slukas tyst
+
+Uppmätt 2026-09-07 på alla åtta produkterna i runda H3. Variantobjektet har
+BÅDE `sku` och `physicalProperties`, och SKU:n bor i det första:
+
+```
+variantNycklar: ["id","visible","sku","choices","price","physicalProperties","inventoryStatus"]
+variant:        {"id":"47c9772b…","visible":true,"sku":"FP-laufrad-rutscher",
+                 "physicalProperties":{}}
+```
+
+En PATCH som lägger `sku` under `physicalProperties` svarar **200 utan fel** och
+ändrar ingenting: fältet försvinner, och `physicalProperties` står kvar som
+`{}`. Åtta produkter publicerades med sin gamla tyska SKU kvar, och svaret såg
+identiskt ut mot en lyckad skrivning.
+
+Tionde gången samma familj — och det som fångade det var återläsningen som
+jämför mot det FÖRVÄNTADE värdet. En återläsning som bara kollar att fältet
+finns hade sett den gamla SKU:n och sagt ja.
+
+##### ⚠️ Kategoriläsningen är eventuellt konsistent — bulk-svaret är kvittot
+
+`bulk/categories/{id}/add-items` följt av en omedelbar
+`GET …?fields=DIRECT_CATEGORIES_INFO` rapporterade 7 av 8 kopplade. Den
+åttonde var redan kopplad: nästa anrop svarade `ALREADY_EXISTS` på båda
+kategorierna, och en läsning en stund senare visade alla tre.
+
+Läsprojektionen släpar alltså efter skrivningen. **Facit är bulk-svarets
+`itemMetadata`/`bulkActionMetadata` per rad** — samma form som lagersynkens
+`tolkaBulkUtfall` redan bygger på. En snabb återläsning kan UNDERrapportera,
+och en omkörning på den signalen är ofarlig men vilseledande.
+
 #### ☠️ Filgrinden täcker bara halva vägen — grinda den PUBLICERADE texten
 
 Raden ovan sa "ögon efter". Ögon räcker inte: batch 65:s två fel stod kvar i
