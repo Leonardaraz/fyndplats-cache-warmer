@@ -1635,6 +1635,41 @@ ORDAGRANT (`Tekniska specifikationer` · `Användning och skötsel` ·
 spec-tabellen renderas inline mitt i brödtexten — det ser inte trasigt ut, bara
 som en rubrik till.
 
+#### ☠️ En grind kan vara PÅSLAGEN och ändå blind — alt-svepet var det (2026-09-07)
+
+Runda J2 publicerade åtta lampor med invändningsfri svensk brödtext
+(orddiff **0 på alla åtta**) och **fyrtio tyska alt-texter**. Alt-filen fanns,
+`gate-alt.py` gick ren på den — men ingenting skrev den till Wix. Steget
+saknades i rundan, och inget svar från något API sa emot: produkten sparades,
+bilderna satt kvar, allt rapporterade framgång.
+
+Det som fångade det var live-grindens alt-svep. Det svepet fanns sedan
+2026-09-06 — men bar då `livegrind.py`:s EGNA sextonordslista, ett avtryck av
+hundkojerundan. Inget av de fyrtio felen stod i den:
+
+```
+i alt-texten:  "Deckenlampe mit Acryllampenschirm, Metall, Halogen- und LED-kompatibel"
+gamla listan:  hundehütte · kaninchenstall · hasenstall · fressnäpfen · dachterrasse …
+gatelibs:      mit · und · für · Weiß · Braun · Stahl · Schwarz …
+```
+
+Grinden var alltså **påslagen, dokumenterad och räknad som gjord** — och kunde
+inte fälla någonting på en lamprunda. Den hittade felet först samma dag som
+ordlistan lades om till gatelibs (se avsnittet ovan), på den allra första
+rundan efter ändringen.
+
+☠️ **Regeln: att en grind FINNS säger ingenting om att den kan SE.** Samma
+klass som runda G:s döda `(?!)`-mönster, men värre — där var uttrycket trasigt,
+här var grinden felfri och underlaget för smalt. En grind vars ordlista är ett
+avtryck av en enskild runda mäter bara den rundan.
+
+⚠️ Och lagningen är verifierad åt båda hållen, för det är det enda som skiljer
+en levande grind från en död: 24 redan verifierade sidor ger fortsatt 0 fynd
+(enda undantaget är butikens egen `EU-lager`-ribbon), och tre planterade fel —
+`Gewicht` i `<title>`, `Kunststoff Rückenlehne` i en alt-text och
+"Leverantören anger" i brödtexten — ger sex träffar över sid-, alt- och
+SEO-svepet.
+
 #### ☠️ Och GRINDARNA själva drev isär — 19 kopior i tre versioner (2026-09-06)
 
 Varje runda kopierade in `gate.py`, `gate-alt.py`, `gate-seo.py` och `hasha.py`
