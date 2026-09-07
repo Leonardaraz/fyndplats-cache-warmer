@@ -1569,6 +1569,38 @@ exakt ingenting.
 sedan återläsningen i ett eget anrop. Samma familj som ISR-cachen i Steg 14:
 det första svaret efter en ändring beställer den, det visar den inte.
 
+### ☠️ ETT LÄNKAT TAL FÅR BARA STÅ I LÄNKENS EGET STYCKE
+
+Korslänken till ett syskon förklarar oftast SKILLNADEN, och då måste den bära
+syskonets mått: *"143 cm-versionen — den är åtta centimeter längre och väger
+10,6 kg"*. De talen tillhör inte den här produkten.
+
+En talgrind som listar dem som "tillåtna" släpper dem därmed lösa på HELA
+sidan — och den vanligaste förväxlingen i en färgfamilj är just att skriva
+syskonets mått i sin egen spec-tabell.
+
+Runda 91 byggde listan så och kom undan: den länkade modellens styrhöjd
+(75–80 cm) kunde aldrig rimligen skrivas som den egna. Runda 92 kunde det, och
+**båda** mutationerna gick rakt igenom en grind som annars fällde nitton av
+tjugoen:
+
+| mutation | grinden såg |
+|---|---|
+| `Mått: 135 × …` → `Mått: 143 × …` | inget — 143 stod i "tillåtna" |
+| `Väger 9,8 kg` → `Väger 10,6 kg` | inget — 10,6 stod i "tillåtna" |
+
+**Regeln: zonindela talgrinden.** Dela texten i stycken, och tillåt ett länkat
+tal bara i ett stycke som faktiskt innehåller `<a href`. Utanför det gäller
+produktens egen uppsättning ensam.
+
+```python
+for stycke in re.findall(r"<(?:p|li)\b[^>]*>.*?</(?:p|li)>", html, re.S):
+    tillatna = tal | tal_lank if "<a href" in stycke else tal
+```
+
+Samma tanke som randgrindens per-fras-krav i Steg 4: **en tillåtelse ska gälla
+där den är motiverad, inte på hela sidan.**
+
 ### ☠️ En relativ länk i beskrivningen blir `https:/produkt/…` och går sönder
 
 Färgsyskon korslänkas i ingressen. Skriver du länken **rotrelativt** skriver Wix om
