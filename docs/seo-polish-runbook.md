@@ -81,6 +81,36 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 - ⚠️ **`fields`-fällan:** på GET fungerar `?fields=X` och repeterade `?fields=A&fields=B`. En
   **kommaseparerad** lista 400:ar med det missvisande `Failed to parse JSON or deserialize
   protobuf message` — felet ser ut att gälla bodyn men sitter i URL:en.
+- ☠️ **Wix SKRIVER OM beskrivningens markup vid sparning** *(uppmätt 2026-09-07)*. Det du
+  skickar är inte det som lagras:
+
+  | skickat | lagrat |
+  |---|---|
+  | `<strong>X</strong>` | `<span style="font-weight: 700">X</span>` |
+  | `<li>text</li>` | `<li><p>text</p></li>` |
+  | `<a href="…">` | `<a href="…" target="_self">` |
+  | 4 605 tecken | 5 328 tecken |
+
+  Den SYNLIGA texten är oförändrad, så transkriptionshashen stämmer exakt — och det är
+  precis därför omskrivningen är osynlig i den vanliga verifieringen. Hashen är alltså
+  blind för **markup** på samma sätt som den är blind för **länkar**.
+
+  🔒 **Härled aldrig en syskonsidas text ur det Wix lagrat.** Ett substrängsbyte mot
+  `<strong>Färg:</strong> vit` matchar noll gånger i den lagrade texten. Härled ur den
+  LOKALA källan, där formen är den man själv skrev, och låt hashen grinda före skrivningen.
+- ☠️ **En `variantsInfo`-PATCH ERSÄTTER varianten** *(uppmätt 2026-09-07)*. `price` är
+  obligatoriskt — utan det svarar API:t `400 … price must not be empty` — och varje fält du
+  inte skickar med FÖRSVINNER.
+
+  🔒 **Läs varianten omedelbart före skrivningen och eka tillbaka `price` oförändrat**,
+  precis som `updateV3VariantPrices` måste eka tillbaka `visible`. Priset är Leonards
+  beslut, inte poleringens; jämför beloppet efteråt mot det du läste.
+
+  ⚠️ Variantens `media` går INTE att skriva tillbaka när den väl fallit bort: varken
+  `media: {id}` eller den fullständiga mediaformen fastnar. Båda svarar 200 och revisionen
+  stiger, men fältet förblir `null` — läst i ett EGET anrop efteråt. På en
+  envariantsprodukt utan val är kundeffekten noll (sidan renderar galleriet och
+  `media.main`), men skicka med den ändå så slipper du frågan.
 - **`VARIANTS_INFO` finns inte i enum:et** (varianterna kommer med ändå). Giltiga värden:
   `PLAIN_DESCRIPTION` · `DESCRIPTION` · `MEDIA_ITEMS_INFO` · `DIRECT_CATEGORIES_INFO` ·
   `VARIANT_OPTION_CHOICE_NAMES` · `URL` · `INFO_SECTION` · `BREADCRUMBS_INFO` ·
