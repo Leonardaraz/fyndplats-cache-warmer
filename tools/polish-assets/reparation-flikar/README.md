@@ -47,3 +47,36 @@ teddyfleece dammsugs med lågt sug, gummiträ torkas torrt, en snurrfot rensas
 från hår, och en golvsoffa har inga skruvar att efterdra.
 
 Materialet står i `BRISTER.tsv`, hämtat ur produktens egen spec-tabell.
+
+## Batch 1 — åtta barnfåtöljer och barnsoffor (klar)
+
+`188a80b4 1a73ab8d 31710969 37d254ee 4791575c 4e92e841 8f150623 b24ce3da`
+
+| kontroll | utfall |
+|---|---|
+| Fragmentgrind (`gate-fragment.py`) | 0 fynd i 8 filer |
+| Tre flikar i den sammanfogade texten | 8/8 |
+| Flikarna i rätt ordning | 8/8 |
+| Tillägget diffat mot filen (FNV) | **8/8 LIKA** |
+| `visible` efter skrivningen | 8/8 true |
+
+Texten är per material, inte mall:
+
+- **sammet** (`188a80b4`) borstas i luggens riktning, aldrig i cirklar
+- **polyester på träfiberskiva** (`1a73ab8d`) — skivan sväller av blötläggning
+  och går inte tillbaka
+- **konstläder** (`31710969`, `4791575c`) tål fuktig trasa men aldrig sprit
+  eller aceton, som löser ytskiktet
+- **manchester** (`37d254ee`) borstas i luggens riktning; mot luggen ger
+  strimmor som syns i sidoljus
+- **lös kudde** (`4e92e841`) vänds och luftas i stället för att rengöras
+- **kortluggat tyg på gummiträ** (`8f150623`, `b24ce3da`) — skummet under
+  suger vatten och torkar inifrån
+
+☠️ **Skrivningen sammanfogar SERVER-SIDE.** Den gamla texten läses och
+konkateneras inne i API-anropet, så den passerar aldrig chatten — och kan
+därför inte drabbas av transkriberingsfel av `fontagen-weight`-typen. Bara
+det nya fragmentet skrivs för hand, och det är just det som hashen verifierar.
+
+☠️ **Skrivningen hoppar över en produkt som redan har fliken.** Utan den
+grinden hade en omkörning lagt fliken två gånger.
