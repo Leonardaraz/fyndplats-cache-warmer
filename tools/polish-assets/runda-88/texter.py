@@ -191,7 +191,7 @@ PRODUKTER = [
         "eg": A_EG,
         "spec": A_SPEC + ["Färg: blå ram, svarta hjul"],
         "villkor": a_villkor(
-            lank("sparkcykel-barn-16-tum-korg-bla", "modellen med 16-tumshjul och korg")),
+            lank("sparkcykel-barn-bla-korg-stankskarmar", "modellen med korg och stänkskärmar")),
         "skotsel": A_SKOTSEL,
         "faq": A_FAQ_GEMENSAM + [
             ("Finns den i andra färger?",
@@ -225,7 +225,7 @@ PRODUKTER = [
         "eg": A_EG,
         "spec": A_SPEC + ["Färg: vinröd ram, svarta hjul"],
         "villkor": a_villkor(
-            lank("sparkcykel-barn-16-tum-korg-rosa", "modellen med 16-tumshjul och korg")),
+            lank("sparkcykel-barn-rosa-korg-stankskarmar", "modellen med korg och stänkskärmar")),
         "skotsel": A_SKOTSEL,
         "faq": A_FAQ_GEMENSAM + [
             ("Finns den i andra färger?",
@@ -259,7 +259,7 @@ PRODUKTER = [
         "eg": A_EG,
         "spec": A_SPEC + ["Färg: svart ram, svarta hjul"],
         "villkor": a_villkor(
-            lank("sparkcykel-barn-16-tum-korg-bla", "modellen med 16-tumshjul och korg")),
+            lank("sparkcykel-barn-bla-korg-stankskarmar", "modellen med korg och stänkskärmar")),
         "skotsel": A_SKOTSEL,
         "faq": A_FAQ_GEMENSAM + [
             ("Finns den i andra färger?",
@@ -358,7 +358,7 @@ PRODUKTER += [
         "eg": B_EG,
         "spec": B_SPEC + ["Färg: vinröd ram, röda hjul och handtag"],
         "villkor": b_villkor(
-            lank("sparkcykel-barn-16-tum-korg-bla", "modellen med 16-tumshjul och korg, som tar 100 kg")),
+            lank("sparkcykel-barn-bla-korg-stankskarmar", "modellen med korg och stänkskärmar, som tar 100 kg")),
         "skotsel": B_SKOTSEL,
         "faq": B_FAQ_GEMENSAM + [
             ("Finns den i andra färger?",
@@ -391,7 +391,7 @@ PRODUKTER += [
         "eg": B_EG,
         "spec": B_SPEC + ["Färg: mörkblå ram, blå hjul och handtag"],
         "villkor": b_villkor(
-            lank("sparkcykel-barn-16-tum-korg-bla", "modellen med 16-tumshjul och korg, som tar 100 kg")),
+            lank("sparkcykel-barn-bla-korg-stankskarmar", "modellen med korg och stänkskärmar, som tar 100 kg")),
         "skotsel": B_SKOTSEL,
         "faq": B_FAQ_GEMENSAM + [
             ("Finns den i andra färger?",
@@ -424,7 +424,7 @@ PRODUKTER += [
         "eg": B_EG,
         "spec": B_SPEC + ["Färg: mörkgrön ram, gröna hjul och handtag"],
         "villkor": b_villkor(
-            lank("sparkcykel-barn-16-tum-korg-bla", "modellen med 16-tumshjul och korg, som tar 100 kg")),
+            lank("sparkcykel-barn-bla-korg-stankskarmar", "modellen med korg och stänkskärmar, som tar 100 kg")),
         "skotsel": B_SKOTSEL,
         "faq": B_FAQ_GEMENSAM + [
             ("Finns den i andra färger?",
@@ -448,7 +448,7 @@ I_EG = [
     "Broms på både fram- och bakhjul, manövrerade från styret",
     "Avtagbar plastkorg fram och mugghållare i metall",
     "Stänkskärmar fram och bak",
-    "Stora gummidäck med mönstrat slitbana",
+    "Stora gummidäck med mönstrad slitbana",
     "Bred halkfri fotplatta, 37 cm lång och 12,5 cm över marken",
     "Höjdjusterbart styre, 90 till 96 cm över marken",
     "Stålram, maxlast 100 kg",
@@ -510,9 +510,9 @@ PRODUKTER += [
     # ══ 7. e4e5a8ef — modell I, blå ═══════════════════════════════════════
     {
         "kort": "e4e5a8ef",
-        "sku": "FP-sparkcykel-16-tum-korg-bla",
-        "name": "Sparkcykel barn 16 tum med korg och stänkskärmar, blå – 100 kg",
-        "slug": "sparkcykel-barn-16-tum-korg-bla",
+        "sku": "FP-sparkcykel-barn-bla-korg",
+        "name": "Sparkcykel barn 139 cm med korg och stänkskärmar, blå – 100 kg",
+        "slug": "sparkcykel-barn-bla-korg-stankskarmar",
         "title": "Sparkcykel barn med korg, blå | Fyndplats",
         "meta": ("Blå sparkcykel 139 cm med avtagbar korg, mugghållare, "
                  "stänkskärmar och broms på båda hjulen. Maxlast 100 kg, "
@@ -536,7 +536,7 @@ PRODUKTER += [
         "faq": I_FAQ_GEMENSAM + [
             ("Finns den i fler utföranden?",
              "Ja, samma sparkcykel finns i "
-             + lank("sparkcykel-barn-16-tum-korg-rosa", "rosa med vit korg")
+             + lank("sparkcykel-barn-rosa-korg-stankskarmar", "rosa med vit korg")
              + ". Utan korg och skärmar finns dessutom "
              + lank("sparkcykel-barn-luftdack-40-cm", "en modell med Ø40 cm luftdäck")
              + " och " + lank("sparkcykel-barn-rosa-16-tum-luftdack",
@@ -546,9 +546,9 @@ PRODUKTER += [
     # ══ 8. b03784dc — modell I, rosa/vit ══════════════════════════════════
     {
         "kort": "b03784dc",
-        "sku": "FP-sparkcykel-16-tum-korg-rosa",
-        "name": "Sparkcykel barn 16 tum med korg och stänkskärmar, rosa – 100 kg",
-        "slug": "sparkcykel-barn-16-tum-korg-rosa",
+        "sku": "FP-sparkcykel-barn-rosa",
+        "name": "Sparkcykel barn 139 cm med korg och stänkskärmar, rosa – 100 kg",
+        "slug": "sparkcykel-barn-rosa-korg-stankskarmar",
         "title": "Sparkcykel barn med korg, rosa | Fyndplats",
         "meta": ("Rosa sparkcykel 139 cm med avtagbar vit korg, mugghållare, "
                  "stänkskärmar och broms på båda hjulen. Maxlast 100 kg, "
@@ -572,7 +572,7 @@ PRODUKTER += [
         "faq": I_FAQ_GEMENSAM + [
             ("Finns den i fler utföranden?",
              "Ja, samma sparkcykel finns i "
-             + lank("sparkcykel-barn-16-tum-korg-bla", "blått med svart korg")
+             + lank("sparkcykel-barn-bla-korg-stankskarmar", "blått med svart korg")
              + ". Utan korg och skärmar finns dessutom "
              + lank("sparkcykel-barn-rosa-16-tum-luftdack",
                     "en rosa med 16 tum fram och 12 tum bak")

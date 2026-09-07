@@ -34,7 +34,7 @@ TAL_OK = {
           "30 cm", "7 kg", "101 cm", "14 cm", "45 cm", "6", "12", "100 cm",
           "150 cm", "12 tum", "120 cm", "88 cm"},
     "I": {"139 cm", "58 cm", "37 cm", "12,5 cm", "90 cm", "96 cm", "100 kg",
-          "120 cm", "170 cm", "16 tum", "5", "12", "50 kg", "118 cm",
+          "120 cm", "170 cm", "5", "12", "50 kg", "118 cm",
           "40 cm", "12 tum"},
 }
 
@@ -132,6 +132,21 @@ if _slapper:
 fel = []
 sedda_slug, sedda_sku, sedda_namn = {}, {}, {}
 
+# ☠️ Sluggens SÄRSKILJANDE del RÄKNAS FRAM, den antas inte ligga sist.
+#    Grinden tog tidigare `slug.split("-")[-1]`, vilket råkade stämma så länge
+#    varje slug slutade på färgen. Modell I:s sluggar slutar på
+#    `stankskarmar` — ett ord BÅDA bär — och den gamla grinden hade då krävt
+#    att SKU:n bar just det ord som inte skiljer dem åt, medan färgen (som
+#    gör det) hade fått falla bort. En SKU som saknar det särskiljande ordet
+#    är exakt hur katalogen fick elva SKU:er delade av tjugofyra produkter.
+_TOKENS = {p["kort"]: set(p["slug"].split("-")) for p in texter.PRODUKTER}
+SARSKILJANDE = {}
+for _p in texter.PRODUKTER:
+    _syskon = [q["kort"] for q in texter.PRODUKTER
+               if MODELL[q["kort"]] == MODELL[_p["kort"]] and q["kort"] != _p["kort"]]
+    _delade = set.intersection(*[_TOKENS[x] for x in _syskon]) if _syskon else set()
+    SARSKILJANDE[_p["kort"]] = _TOKENS[_p["kort"]] - _delade
+
 for p in texter.PRODUKTER:
     k = p["kort"]
     m = MODELL[k]
@@ -156,9 +171,16 @@ for p in texter.PRODUKTER:
         pass  # SKU-formen kontrolleras mot sluggen i grind 2 nedan
 
     # 2. SKU ska bära sluggens särskiljande del
-    stam = p["slug"].split("-")[-1]
-    if stam not in p["sku"]:
-        f("SKU %r bär inte sluggens särskiljande del %r" % (p["sku"], stam))
+    sar = SARSKILJANDE[k]
+    # Böjningen får skilja: `buildSku` bygger variantdelen ur optionsvärdet
+    # ("Röd") och sluggen ur adjektivet ("röda hjul"), så `rod` mot `roda` är
+    # samma ord och inte en tappad särskiljning. Kravet är att ett av orden
+    # är en början på det andra, med minst tre tecken gemensamt.
+    def _bar(t, u):
+        return len(t) >= 3 and len(u) >= 3 and (t.startswith(u) or u.startswith(t))
+    if sar and not any(_bar(t, u) for t in sar for u in p["sku"].split("-")):
+        f("SKU %r bär ingen av sluggens särskiljande delar %r"
+          % (p["sku"], sorted(sar)))
 
     # 3. Tyska ord, husmärken, landord, attribution, artikelnummer
     for o in TYSKA + TYSKA_BANK + HUSMARKEN + LANDORD + ATTRIBUTION:
@@ -279,6 +301,18 @@ for p in texter.PRODUKTER:
                    "Vanliga frågor"):
         if "<h2>%s</h2>" % rubrik not in h:
             f("flikrubriken %r saknas som ren h2" % rubrik)
+
+    # 16. ☠️ Modell I:s HJULSTORLEK ÄR INTE BELAGD. Måttritningen ger 139,
+    #     58, 90–96, 37 och 12,5 cm och INGEN hjuldiameter, och varken Steg 1,
+    #     2 eller 4–5 fann någon. Namnet bar först "16 tum", gissat ur den
+    #     publicerade syskonsidans spec. Talet får därför bara stå i en
+    #     ANKARTEXT, där det beskriver den andra produkten — aldrig i den här
+    #     produktens egna meningar och aldrig i namnet.
+    if m == "I":
+        for mt in re.finditer(r"\d+\s*tum", su, re.I):
+            f("ohärledd hjulstorlek i egen text: %r" % mt.group(0))
+        if re.search(r"\d+\s*tum", p["name"], re.I):
+            f("ohärledd hjulstorlek i namnet: %r" % p["name"])
 
     # 15. Ankartexterna ska vara meningsfulla, inte "klicka här"
     for mt in ANKARE.finditer(h):

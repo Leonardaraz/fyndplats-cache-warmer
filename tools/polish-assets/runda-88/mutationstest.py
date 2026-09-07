@@ -105,6 +105,25 @@ MUTATIONER = [
     ("en flikrubrik skrivs om till naturligare svenska",
      "<h2>Tekniska specifikationer</h2>", "<h2>Specifikationer</h2>",
      "flikrubriken 'Tekniska specifikationer' saknas"),
+    # ── Modell I:s ohärledda hjulstorlek ──────────────────────────────────
+    # Precis felet som stod i namnet till 2026-09-07: "16 tum" är gissat ur
+    # den PUBLICERADE syskonsidans spec. Måttritningen anger ingen
+    # hjuldiameter, och bilderna visar dessutom ett bakhjul som ser större
+    # ut än framhjulet — samma 16/12-uppdelning som syskonet.
+    ("modell I får tillbaka sin gissade hjulstorlek i namnet",
+     '"name": "Sparkcykel barn 139 cm med korg och stänkskärmar, blå',
+     '"name": "Sparkcykel barn 16 tum med korg och stänkskärmar, blå',
+     "ohärledd hjulstorlek i namnet"),
+    ("modell I påstår hjulstorleken i brödtexten",
+     "Hjul: stora gummidäck med mönstrad slitbana",
+     "Hjul: 16 tum, gummidäck med mönstrad slitbana",
+     "ohärledd hjulstorlek i egen text"),
+    # ── SKU:ns särskiljande del ───────────────────────────────────────────
+    # Den gamla grinden tog sluggens SISTA ord. Modell I:s sluggar slutar på
+    # `stankskarmar`, som BÅDA bär — så en SKU utan färg hade sluppit förbi.
+    ("modell I:s båda SKU:er tappar färgen och blir omöjliga att skilja åt",
+     '"sku": "FP-sparkcykel-barn-rosa"', '"sku": "FP-sparkcykel-barn-korg"',
+     "bär ingen av sluggens särskiljande delar"),
 ]
 
 
