@@ -45,7 +45,12 @@ const KANONISKA = ["gate.py", "gate-alt.py", "gate-seo.py", "hasha.py", "gatelib
 // på båda villkoren samtidigt, och en grind som bara ser de kopior man råkat
 // döpa rätt är precis den sortens grind som räknas som gjord utan att
 // kontrollera något.
-const KOPIA_RE = /^(gate.*\.py|gatelib\.py|hasha\.py|livegrind\.py)$/;
+// ⚠️ `bygg-media.py` är ingen GRIND men lyder under samma regel, och den låg
+// som en kopia i runda I1 tills 2026-09-07. Den bygger bildnyttolasten ur
+// bilder.tsv + alt.tsv och sorterar måttskissen sist; en runda som kopierar
+// den och tappar sorteringen får måttskissen som HUVUDBILD och ser ändå ut
+// att fungera. Delad sanning ska bo på ett ställe, grind eller inte.
+const KOPIA_RE = /^(gate.*\.py|gatelib\.py|hasha\.py|livegrind\.py|bygg-media\.py)$/;
 
 // ⚠️ Undantagen är UTTRYCKLIGA och få. En rundespecifik grind kodar en enskild
 // rundas materialgrupper och har ingen delad sanning att glida ifrån — men den
