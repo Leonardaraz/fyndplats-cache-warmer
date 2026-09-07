@@ -52,14 +52,44 @@ TYSKA_ORD = [
     "Bedienungsanleitung", "Handbuch", "Anleitung", "Höhe", "Breite", "Tiefe",
     "Grau", "Weiß", "Schwarz", "Braun", "Grün", "Hellgrau", "Dunkelgrau",
 ]
-TYSKA = r"(?<![a-zåäöéü])(" + "|".join(TYSKA_ORD) + r")(?![a-zåäöéü])"
+# ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
+# `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
+# versal som råkar bära ett tyskt bindeord inuti sig: "Rund bädd" träffade
+# `und`, för R:et blockerade inte. Felet fanns sedan runda A och överlevde
+# hela konsolideringen, eftersom det ser ut som en gräns.
+GRANS = r"A-Za-zÅÄÖÉÜåäöéü"
+TYSKA = r"(?<![" + GRANS + r"])(" + "|".join(TYSKA_ORD) + r")(?![" + GRANS + r"])"
 
 # UNIONEN av stavfel och danska/norska former. `gungstol(?=en\b)(?!)` från
 # runda G är BORTTAGET: `(?!)` misslyckas alltid, så mönstret var dött.
+# ☠️ TVÅ MÖNSTER ÄR BORTTAGNA 2026-09-07, OCH BORTTAGNINGEN ÄR INTE SAMMA SAK
+# SOM DEN ORDLISTEDRIFT SOM DOKUMENTERAS OVAN. Regeln "orden får bara läggas
+# till" finns för att hindra att någon stryker ett ord med motiveringen "det
+# gäller inte den här rundan". De här två ströks för att de MÄTT ALDRIG KAN
+# TRÄFFA NÅGOT ÄKTA — de fyrar bara på korrekt svenska.
+#
+# Uppmätt över samtliga 112 källfiler i 16 rundor: åtta träffar totalt, noll
+# äkta.
+#
+#   storlek(?!en|ar)   4 träffar, alla på "hålor i olika storlek" — obestämd
+#                      singular, som är korrekt svenska. Mönstret kom från
+#                      runda A och satt i en grupp som annars ENBART är
+#                      svenska ord utan diakriter (fatolj, hojd, langd,
+#                      sakerhet). "storlek" har inga diakriter att tappa och
+#                      hörde aldrig hemma där. Ingen stavning kan göra
+#                      mönstret sant — det är en grammatikbedömning.
+#   gul[vt]            3 träffar, alla på "i grönt och gult". Danska `gulv`
+#                      (golv) är den äkta falska vännen och står kvar; `gult`
+#                      betyder gul i BÅDA språken och kan aldrig avslöja
+#                      något. Kom från runda G:s danska/norska lista.
+#
+# Ett falsklarm som alltid fyrar är lika illa som ett fel ingen ser — huset
+# har skrivit ned det om token-förnyelsen, om synk-jobbet och om `regelGäller`.
+# Lägg inte tillbaka dem. Lägg gärna till nya ord.
 STAV_ORD = [
     "dögnsvarv", "engangsjobb", "ihopsattningen", "for hard", "hallbar",
-    "fatolj", "hojd", "langd", "sakerhet", r"storlek(?!en|ar)",
-    "rundt", "hvid", "sort", r"gul[vt]", "blød", "hjørne", "stof", "læder",
+    "fatolj", "hojd", "langd", "sakerhet",
+    "rundt", "hvid", "sort", "gulv", "blød", "hjørne", "stof", "læder",
     "siddehøjde", "ryglæn", r"fod(?=en\b)",
 ]
 STAV = r"\b(" + "|".join(STAV_ORD) + r")\b"
