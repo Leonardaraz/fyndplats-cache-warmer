@@ -1471,6 +1471,50 @@ Tionde gången samma familj — och det som fångade det var återläsningen som
 jämför mot det FÖRVÄNTADE värdet. En återläsning som bara kollar att fältet
 finns hade sett den gamla SKU:n och sagt ja.
 
+##### ☠️ `variantsInfo` finns ALDRIG i sökprojektionen — SKU-kollen kan passera tomt
+
+Uppmätt 2026-09-07, `stores/v3/products/search` utan `fields`, på fyra
+sidstorlekar och två olika filter:
+
+| sidstorlek | träffar | med `variantsInfo` | med `actualPriceRange` |
+|---|--:|--:|--:|
+| 5 | 5 | **0** | 5 |
+| 20 | 20 | **0** | 20 |
+| 50 | 20 | **0** | 20 |
+| 100 | 20 | **0** | 20 |
+
+Noll av tjugo, vid varje sidstorlek, och samma sak för ett annat filter.
+`variantsInfo` saknas HELT ur svaret — inte tomt, utan frånvarande (`nycklar:
+28`, `harVariantsInfo: false`). En `GET /stores/v3/products/{id}` bär det.
+
+☠️ **Och det gjorde SKU-kollisionskollen till en no-op.** Mönstret
+
+```js
+for (const p of sokträffar) for (const v of p.variantsInfo?.variants || []) …
+```
+
+itererar alltid en TOM lista, så `upptagna` blir `{}`, `krock` blir `[]` och
+kollen svarar "inga krockar" utan att ha jämfört någonting. Den kördes tre
+gånger på en dag och kunde inte falla en enda gång. Elfte gången samma familj:
+**ett svar utan fel är inget kvitto** — och en kontroll som inte KAN fälla är
+värre än ingen, för den räknas som gjord.
+
+Två regler följer:
+
+1. **Läs priset ur `actualPriceRange.minValue`**, aldrig ur
+   `variantsInfo.variants[].price`, när källan är en sökning. Det första
+   fältet finns i 100 % av svaren, det andra i 0 %.
+2. ☠️ **En koll som bygger på ett fält måste AVBRYTA när fältet saknas**, inte
+   rapportera noll fynd. Skillnaden mellan "inga krockar" och "kunde inte
+   jämföra" är hela skillnaden mellan en grind och en vana.
+
+⚠️ **Lagerposten bär inte heller SKU.** `inventory-items/query` returnerar
+`id, revision, createdDate, updatedDate, variantId, locationId, productId,
+quantity, trackQuantity, availabilityStatus, preorderInfo, product` — inget
+`sku`. Det finns alltså INGEN bulkväg till variant-SKU:erna, och en
+katalogomfattande dubblettrevision är 5 527 GET-anrop. Det är samma slutsats
+som redan står som en öppen punkt; nu är den mätt i stället för antagen.
+
 ##### ⚠️ Kategoriläsningen är eventuellt konsistent — bulk-svaret är kvittot
 
 `bulk/categories/{id}/add-items` följt av en omedelbar
