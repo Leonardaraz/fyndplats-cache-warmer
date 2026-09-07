@@ -1833,6 +1833,35 @@ og-värden som ska BORT, inte skrivas om. Rensa även
 `seoData.settings.keywords` — importen lägger ett tyskt huvudnyckelord där med
 `origin: "USER"`.
 
+#### ☠️ En OMERGAD gren skyddar ingenting — workflowen körs från `main` (2026-09-07)
+
+Allowlisten i `polish-mapping.yml` (som utelämnar `costUsd`, `landedCostSek`,
+`supplierProductId`, `sourceUrl` och `aosomFreightShare` ur den PUBLIKA
+Actions-loggen) skrevs samma dag och låg på en gren. Åtta `las`-körningar i
+runda K1 startades med `ref: main` — alltså mot den GAMLA versionen av
+workflowen, som skriver ut hela mappningsraden.
+
+Följden var exakt det par som feed-adressen är hemlig för att skydda:
+
+```
+"costUsd": 132.33,  "landedCostSek": 1389.47,
+"supplierProductId": "aosom:921-815V00CW",
+"sourceUrl": "https://www.aosom.de/item/…"
+```
+
+Loggarna för de åtta körningarna är raderade (`delete_workflow_run_logs`), och
+resten av rundan kördes mot grenen i stället. Skadan är därmed begränsad till
+det fönster de låg uppe — men den var **helt onödig**.
+
+☠️ **Regeln: en fix som inte är mergad finns inte för den som kör workflowen.**
+`workflow_dispatch` tar en `ref`, och default är `main`. Skriver du en spärr i
+en workflow måste du antingen merga den innan du kör, eller uttryckligen ange
+din gren som `ref` — varje gång, i varje körning. En halvvägs utrullad spärr är
+farligare än ingen, för den känns som ett skydd.
+
+⚠️ Och den gamla lärdomen gäller igen: **Actions-loggar på ett publikt repo går
+att läsa utan inloggning.** Det finns ingen "intern" logg här.
+
 #### ☠️ Flera produkter kan dela EN SKU — kolla varje batch
 
 Importen härleder variant-SKU:n ur den tyska titelns första ord, så produkter
