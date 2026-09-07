@@ -124,7 +124,18 @@ FLIKAR = ("Tekniska specifikationer", "Användning och skötsel", "Vanliga fråg
 #
 # Syftet är att fånga HOMOGLYFER (kyrilliskt/grekiskt) — inte att förbjuda
 # typografi vi själva skriver. Lägg bara till tecken som faktiskt används.
-TILLATNA_TECKEN = "ÅÄÖåäöÉéÜü×—–…°§²"
+# ☠️ Ø ÄR MEDVETET BARA VERSAL. Diametertecknet i "Ø41 cm" är U+00D8, alltid
+# versalt — medan danskans egna ord bär det GEMENA ø ("hjørne", "blød"), som
+# står i DANSKA nedan. Att släppa in båda hade tagit bort den enda mekaniska
+# skillnaden mellan ett mått och en dansk stavning, och det var just en dansk
+# stavning ("rundt bord") som en gång tog sig hela vägen till Wix.
+#
+# Tecknet lades till 2026-09-07 för att grindarna var OENSE om det: gate.py
+# släppte igenom "Ø46 cm" i brödtexten (livegrind rapporterar bara kyrilliskt
+# och grekiskt), medan gate-seo.py fällde exakt samma sträng i seo.tsv. Ett
+# tecken vi redan publicerar på flera sidor ska stå i listan — inte strykas ur
+# texten för att en av två grindar inte kände igen det.
+TILLATNA_TECKEN = "ÅÄÖåäöÉéÜü×—–…°§²Ø"
 
 
 def tal(text):
