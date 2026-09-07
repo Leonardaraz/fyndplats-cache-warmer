@@ -98,3 +98,38 @@ skrivning**, med variantens `visible` explicit medskickad.
 14cb2686 rev 2   a2f82e08 rev 1   29bf0866 rev 2   79c3738c rev 1
 b44a18ff rev 1   5df0b431 rev 1   7162ea48 rev 1   72ac915f rev 1
 ```
+
+## Bildgranskning: fem bilder bort
+
+Alla 40 bilder granskade på två kontaktark (`kontaktark-1.jpg`, `kontaktark-2.jpg`).
+
+| produkt | pos | vad |
+|---|--:|---|
+| `79c3738c` | 3 | husmärkets logotyp inlagd i måttskissen |
+| `79c3738c` | 4 | **FÜR IHREN KOMFORT · Klappdeckel · Schaufel** |
+| `79c3738c` | 5 | **VERRINGERN SIE DIE VERBREITUNG VON ABFÄLLEN** |
+| `5df0b431` | 3 | husmärkets logotyp inlagd i måttskissen |
+| `72ac915f` | 4 | närbild där ordmärket dominerar hela bilden |
+
+☠️ **Regeln som användes, och den är inte självklar:** ett märke som är
+INLAGT i grafiken tas bort, ett märke som sitter FYSISKT på varan står kvar.
+`72ac915f` och `7162ea48` bär båda ett tryckt märke på själva luckan — det
+syns i varenda bild och kan inte redigeras bort utan att produkten blir
+oigenkännlig. Samma bedömning som runda 62 gjorde om emblemplattan på
+tunnorna: den sitter på varan, den står kvar, och den nämns aldrig i text.
+
+⚠️ **`79c3738c` blir kvar med bara TVÅ bilder.** Hero på vit botten och en
+livsstilsbild med katt — båda rena, men tunt för en produktsida på 1 019 kr.
+Den är kandidat för ett eget Fyndplats-kort som ersätter måttskissen.
+
+## Grindar före skrivning
+
+| grind | utfall |
+|---|---|
+| `gate.py` (mönster, siffror, taggar, flikar) | **0 fynd i 8 filer** |
+| `gate-alt.py` (35 alt-texter) | **REN** |
+| `gate-seo.py` (titlar 43–51 tecken, beskrivningar 128–148) | **0 fynd** |
+
+☠️ `gate-alt.py` krävde tidigare exakt 5 alt-texter per produkt. Med fem
+bilder borttagna hade den fällt en KORREKT fil, så den läser nu det väntade
+antalet ur `bilder-bort.tsv` i stället för att anta 5.

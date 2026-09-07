@@ -53,9 +53,18 @@ for nr, r in enumerate(rader, 1):
     for t in tal(alt) - facit:
         print(f"alt.tsv:{nr}  SIFFRA UTAN KÄLLA: {t}  ({kort})"); fynd += 1
 
+# ☠️ Väntat antal läses ur bilder-bort.tsv, inte hårdkodat till 5. Runda H1 tog
+# bort fem bilder (husmärke i overlay, tysk marknadsföringstext), och en grind
+# som kräver exakt 5 hade då fällt en KORREKT alt-fil.
+import os
+bort = collections.Counter()
+if os.path.exists("bilder-bort.tsv"):
+    for rad in open("bilder-bort.tsv", encoding="utf-8"):
+        if rad.strip(): bort[rad.split("\t")[0]] += 1
 for kort, n in sorted(per.items()):
-    if n != 5:
-        print(f"ANTAL: {kort} har {n} alt-texter, väntade 5"); fynd += 1
+    vantat = 5 - bort[kort]
+    if n != vantat:
+        print(f"ANTAL: {kort} har {n} alt-texter, väntade {vantat}"); fynd += 1
 
 print(f"GRIND {'REN' if not fynd else 'FÄLLER'}: {len(per)} produkter, {len(rader)} alt-texter, {fynd} fynd")
 sys.exit(1 if fynd else 0)
