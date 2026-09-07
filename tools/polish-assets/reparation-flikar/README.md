@@ -48,35 +48,69 @@ från hår, och en golvsoffa har inga skruvar att efterdra.
 
 Materialet står i `BRISTER.tsv`, hämtat ur produktens egen spec-tabell.
 
-## Batch 1 — åtta barnfåtöljer och barnsoffor (klar)
-
-`188a80b4 1a73ab8d 31710969 37d254ee 4791575c 4e92e841 8f150623 b24ce3da`
+## Klar — alla 30 lagade och verifierade
 
 | kontroll | utfall |
 |---|---|
-| Fragmentgrind (`gate-fragment.py`) | 0 fynd i 8 filer |
-| Tre flikar i den sammanfogade texten | 8/8 |
-| Flikarna i rätt ordning | 8/8 |
-| Tillägget diffat mot filen (FNV) | **8/8 LIKA** |
-| `visible` efter skrivningen | 8/8 true |
+| Fragmentgrind (`gate-fragment.py`) | 0 fynd i 25 + 5 filer |
+| Tillägget diffat mot filen (FNV) | **30/30 LIKA** |
+| Tre flikar i rätt ordning | **30/30** |
+| Kategori utöver All Products | **30/30** |
+| `visible` efter skrivningen | **30/30** |
+| Tyska i brödtext | **0** |
+| Tyska i alt-texter | **0** |
 
-Texten är per material, inte mall:
+Skötseltexten är skriven per materialgrupp, aldrig som mall:
 
-- **sammet** (`188a80b4`) borstas i luggens riktning, aldrig i cirklar
-- **polyester på träfiberskiva** (`1a73ab8d`) — skivan sväller av blötläggning
-  och går inte tillbaka
-- **konstläder** (`31710969`, `4791575c`) tål fuktig trasa men aldrig sprit
-  eller aceton, som löser ytskiktet
-- **manchester** (`37d254ee`) borstas i luggens riktning; mot luggen ger
-  strimmor som syns i sidoljus
-- **lös kudde** (`4e92e841`) vänds och luftas i stället för att rengöras
-- **kortluggat tyg på gummiträ** (`8f150623`, `b24ce3da`) — skummet under
-  suger vatten och torkar inifrån
+| grupp | vad texten säger som en mall inte hade sagt |
+|---|---|
+| sammet, manchester, flanell | borstas i luggens riktning; flanell luddar och tar luddborste, inte tejp |
+| konstläder | tål fuktig trasa men aldrig sprit eller aceton |
+| avtagbar polyesterklädsel | lufttorkas — torktumling krymper och klädseln går inte tillbaka |
+| träfiberskiva, gummiträ | sväller respektive reser fibrer av blötläggning |
+| chenille | dammsugs utan borstmunstycke; utdragen fiber ger blank rand |
+| hängstolar | krok och kedja kontrolleras lika ofta som skruvarna |
+| konstrotting | fälls bara ihop rumsvarm — spröd i kyla |
+| vikbara madrasser | viks bara längs sina egna sömmar |
+| S-fjädrar i gummiträram | sätt dig ner, släpp dig inte ned |
+| golvsoffa | har inga skruvar att efterdra — bara gångjärnet |
 
-☠️ **Skrivningen sammanfogar SERVER-SIDE.** Den gamla texten läses och
-konkateneras inne i API-anropet, så den passerar aldrig chatten — och kan
-därför inte drabbas av transkriberingsfel av `fontagen-weight`-typen. Bara
-det nya fragmentet skrivs för hand, och det är just det som hashen verifierar.
+☠️ **Sammanfogningen sker SERVER-SIDE.** Den gamla texten läses och konkateneras
+inne i API-anropet och passerar aldrig chatten, så den kan inte drabbas av ett
+transkriberingsfel av `fontagen-weight`-typen. Bara det nya fragmentet skrivs
+för hand — och det är precis det hashen verifierar.
 
-☠️ **Skrivningen hoppar över en produkt som redan har fliken.** Utan den
-grinden hade en omkörning lagt fliken två gånger.
+☠️ **Skötselfliken sätts in FÖRE FAQ, inte sist.** De fem produkter som redan
+hade FAQ fick fragmentet inskjutet vid `<h2>Vanliga frågor</h2>`. Hade det lagts
+sist vore ordningen spec → FAQ → skötsel, och butiken renderar flikarna i
+dokumentordning.
+
+## Två fel till som verifieringen hittade
+
+Slutkontrollen ställde alla runbook-kraven, inte bara flikarna — och två av dem
+föll:
+
+1. **Alla 30 låg bara i All Products.** Ingen riktig kategori. Lagat: barnmöbler
+   till `Barn & Familj` + `Hem & Inredning`, hängstolar till `Trädgård &
+   Utemöbler` + `Utemöbler`, inomhus sittmöbler till `Hem & Inredning` —
+   trädet har inget sittmöbel-löv, och då räcker toppkategorin. 42 av 42
+   kopplingar lyckades.
+
+2. ☠️ **Fem tyska SEO-titlar levde kvar**, trots att backfillen 2026-09-06
+   rapporterade 49 → 0. Den siffran var korrekt för sin klassificerare, som
+   krävde ett tyskt FUNKTIONSORD i titeln — och de fem har inget:
+
+   ```
+   Schlafsessel Relaxsessel Gästebett. abnehmbarer Bezug
+   Polstersessel, Schaumstoff-Füllung, Kautschukholz
+   Polstersessel im Skandi-Design, Samtoptik, Massivholz
+   ```
+
+   Backfill-anteckningen sa själv att talet var ett GOLV. Det var det.
+   Hela den publicerade katalogen är nu svept med en bredare klassificerare
+   (tyska substantiv och sammansättningar, inte bara funktionsord):
+   **2 244 publicerade produkter, 0 utan SEO-titel, 0 tyska kvar.**
+
+⚠️ **Utkastet `1877cf83` lämnades med flit.** Det är cordfåtöljen som prisgrinden
+fällde som slutsåld, den enda av de 31 som inte är publicerad. En sida ingen kan
+köpa ska inte poleras — samma skäl som `gate-lager.py` finns för.
