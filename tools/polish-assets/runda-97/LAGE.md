@@ -5,12 +5,12 @@ Sex foderstationer för hund ur Aosom-familjen. Familjen valdes på mätning:
 
 | id8 | slug | mått | status |
 |---|---|---|---|
-| `e8102582` | `upphojd-matskal-hund-hojdjusterbar-11-33-cm` | 40,5 × 22 × 39 | klar, opublicerad |
-| `1fc55b3d` | `matskalsstall-hund-fyra-hojder-lutbart` | 48 × 26 × 36,5 | klar, opublicerad |
-| `2e2b2366` | `matplats-hund-tre-hojder-kaffebrun` | 54 × 31,5 × 47 | klar, opublicerad |
-| `868cc038` | `matskap-hund-34-cm-tva-dorrar` | 60 × 30 × 34 | klar, opublicerad |
-| `7628983b` | `matskap-hund-42-cm-30-liter` | 60 × 30 × 42 | klar, opublicerad |
-| `75556831` | `husdjursskap-82-cm-matplats-i-lada` | 61 × 35,5 × 82 | klar, opublicerad |
+| `e8102582` | `upphojd-matskal-hund-hojdjusterbar-11-33-cm` | 40,5 × 22 × 39 | **LIVE** |
+| `1fc55b3d` | `matskalsstall-hund-fyra-hojder-lutbart` | 48 × 26 × 36,5 | **LIVE** |
+| `2e2b2366` | `matplats-hund-tre-hojder-kaffebrun` | 54 × 31,5 × 47 | **LIVE** |
+| `868cc038` | `matskap-hund-34-cm-tva-dorrar` | 60 × 30 × 34 | **LIVE** |
+| `7628983b` | `matskap-hund-42-cm-30-liter` | 60 × 30 × 42 | **LIVE** |
+| `75556831` | `husdjursskap-82-cm-matplats-i-lada` | 61 × 35,5 × 82 | **LIVE** |
 
 ## Klart och verifierat mot Wix
 
@@ -26,26 +26,35 @@ sifferstil.
   bekräftat per kategori (inte bara `totalSuccesses`).
 * **Korslänkar** — fyra sidor länkar till 868cc038, som fick ny slug.
 
-## ☠️ KVAR: SKU + stämpling + publicering, och de hänger ihop
+## ✅ KLAR — publicerad 2026-09-07
 
-GitHub-kopplingen är borta i den här sessionen (ingen `mcp__github__*` finns,
-kontrollerat med riktad `ToolSearch`, inte antaget). `polish-mapping.yml` är
-enda vägen till mappningsraden, och `CRON_SECRET` är Sensitive i Vercel.
+GitHub-kopplingen kom tillbaka mitt i sessionen och de tre sista stegen kördes:
 
-De tre stegen är **ett paket**, inte tre valfria:
+| steg | vad | kvitto |
+|---|---|---|
+| 8 | Nya svenska SKU:er till Wix-varianterna | sex unika, `visible` explicit på produkt OCH variant |
+| 13 | Publicering | `visible: true` på båda nivåerna, alla sex |
+| — | Stämpling via `polish-mapping.yml` | `needsAiPolish:false`, `draftStatus:published`, `variantSkus` |
 
-1. **Steg 8 (SKU) är INTE gjord med flit.** Runbokens Steg 13 säger att
-   mappningens `variants[].sku` ska skrivas i samma veva, *"och Aosom-prissynken
-   matchar Wix-varianten på just det fältet"*. Skrivs Wix-sidan utan
-   stämplingen glider de två isär och prissynken slutar hitta varianten —
-   samma klass av fel som kostade en månad 2026-08-29. Wix och mappningen bär
-   nu **samma** (tyska) SKU, alltså i fas. Det som väntar är att byta båda.
-2. **Publiceringen väntar på stämplingen**, inte tvärtom. `needsAiPolish: false`
-   är det som tar produkten ur poleringskön. En publicerad sida som
-   fortfarande står som opolerad är ett halvtillstånd — och en ANNAN session
-   polerar samma kö (#262/#302) och kan plocka upp dem.
+`las` efteråt på `868cc038` läser tillbaka `sku: FP-matskap-34-cm-tva-dorrar`,
+`draftStatus: published`, `needsAiPolish: false` — och prisgrinden står kvar på
+`stammer: true` (781,62 → 939, charm99).
 
-**Att göra när GitHub är tillbaka**, i ordning:
+Live-kontroll: alla sex svarar 200 med rätt titel och faktakortet i galleriet.
+
+☠️ **Två fällor fångades i sista stund, båda av runbokens egna regler:**
+
+1. **`1fc55b3d` och `2e2b2366` hade `variant.visible: false`.** De två är
+   precis de som fick extra PATCHar under rundan (kortbytet), och produktens
+   `visible:false` hade speglats ned. Hade de publicerats rakt av vore sidan
+   live men varan omöjlig att lägga i varukorgen — och det syns inte i
+   produktvyn. Steg 8 och Steg 13 sätter nu `visible: true` på båda nivåerna.
+
+2. **Tre av sex delade SKU `FP-futterstation-erhohte`** — importens kända
+   krock (#272), där 24-teckenkapningen äter det som skiljer produkterna åt.
+   De nya svenska SKU:erna är unika, kontrollerat i skrivningen.
+
+De sex SKU:erna:
 
 ```
 FP-upphojd-matskal-11-33          e8102582
@@ -55,10 +64,6 @@ FP-matskap-34-cm-tva-dorrar       868cc038
 FP-matskap-42-cm                  7628983b
 FP-husdjursskap-82-cm             75556831
 ```
-
-Steg 8 mot Wix (`visible` MÅSTE med i bodyn) → `polish-mapping.yml` läge
-`stampla` med `needs_ai_polish=false`, `draft_status=published` och
-`variant_skus` → Steg 13 `visible: true` → `livegrind.py`.
 
 ## Fynden
 
