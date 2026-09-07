@@ -1,48 +1,54 @@
-# Runda 93 — läge
-
-## Klart och verifierat
+# Runda 93 — läge: KLAR och PUBLICERAD
 
 | | `8ea111a2` beige | `9304f8b8` mörkbrun | `bef14fba` brun |
 |---|---|---|---|
-| Text, namn, slug, SEO | ✅ | ✅ | ✅ |
-| Sökord satta | ✅ | ✅ | ✅ |
+| Text, namn, slug, SEO, sökord | ✅ | ✅ | ✅ |
 | SKU (unik) | `FP-pergolatak-250x255-beige` | `…-morkbrun` | `…-brun` |
-| Variant `visible` | true | true | true |
 | Kategorier (2 löv) | 2/2 | 2/2 | 2/2 |
-| Pris (orört) | 599 | 599 | 569 |
-| Lager | i lager | i lager | **slut** |
-| Publicerad | **NEJ** | **NEJ** | **NEJ** |
+| Galleri | 6 bilder | 6 bilder | 4 bilder |
+| Eget Fyndplats-kort | plats 3 | plats 3 | plats 3 |
+| Prisgrind | 484,24 → **599 = 599** | 498,23 → **599 = 599** | 467,04 → **569 = 569** |
+| Mappningen stämplad | ✅ | ✅ | ✅ |
+| Publicerad | ✅ | ✅ | ✅ |
+| Lager | i lager | i lager | **slut — visas slutsåld** |
 
 Grindar: lint 0 brister · självtest 12 regler · muteringstest 16/16 ·
-återläst text jämförd påstående för påstående mot filen.
+återläst text jämförd påstående för påstående · galleri återläst 6/6/4 ·
+prisgrind `stammer: true` på alla tre.
 
-## ☠️ VARFÖR DE INTE ÄR PUBLICERADE
+## Bilderna: åtta av femton bar leverantörsspår
 
-Åtta av femton bilder bär **tysk text inbränd i pixlarna**
-(*"Nur Dach (ohne Rahmen)"*), och fyra av dem bär dessutom logotypen
-**`Outsunny by Aosom`**. Att publicera nu vore att lägga ut leverantörens namn
-och ett främmande språk på kundens sida — husets hårdaste regel.
+| bild | beige | mörkbrun | brun |
+|---|---|---|---|
+| 1 render | ren, behållen | ren, behållen | ren, behållen |
+| 2 livsstil | tysk text → **beskuren** | tysk text → **beskuren** | tysk text → **beskuren** |
+| 3 måttritning | ren, behållen | ren, behållen | ren, behållen |
+| 4 livsstil | text + logotyp → **beskuren** | text + logotyp → **beskuren** | ☠️ **fel färg → borttagen** |
+| 5 livsstil | text + logotyp → **beskuren** | text + logotyp → **beskuren** | ☠️ **fel färg → borttagen** |
 
-Bilderna är **räddningsbara**: texten och logotypen ligger i himlen upptill,
-alltså i ett band som runbokens metodtabell säger ska beskäras bort, inte
-kastas. Kvar står också att `bef14fba`:s bild 4 och 5 visar en **khaki** duk,
-inte den bruna — de två ska bort oavsett beskärning.
+Bandet med *"Nur Dach (ohne Rahmen)"* och `Outsunny by Aosom` låg i himlen
+upptill och är bortbeskuret (17 % av höjden). Duken är orörd i samtliga,
+kontrollerad mot original i en faith-sheet före uppladdning.
 
-**Det som återstår innan publicering:**
+☠️ **Ingen fyllning läggs tillbaka, och det är ett MÄTT val.** Två försök
+gjordes först och båda gjorde bilden sämre: utsmetning nedtill gav synliga
+gröna streck, sträckt himmel upptill gav en utsmetad takås på bild 4.
+Runbokens metodtabell undantar miljöbilder från kvadratkravet, så bilderna
+ligger 2000 × 1660 och PDP:n centrumbeskär dem — vilket är normalt för en
+livsstilsbild.
 
-1. Beskär bort toppbandet på bild 2, 4 och 5 (beige + mörkbrun) och bild 2
-   (brun). Kontrollera att duken inte kapas.
-2. Ta bort `bef14fba` bild 4 och 5 — fel färgvariant.
-3. Ladda upp de beskurna bilderna och skriv om galleriet.
-4. Bygg tre Fyndplats-kort och pusha dem till grenen först.
-5. Alt-texter på svenska, unika per bild.
-6. Prisgrind + mappningsstämpel via `polish-mapping.yml`.
-7. Publicera, live-verifiera.
+☠️ **`bef14fba` bild 4 och 5 visade en KHAKI duk, inte den bruna.** De var
+rena från text och logotyp och hade passerat varje befintlig grind. Det är ett
+färgpåstående som bara finns i pixlarna.
 
-⚠️ `bef14fba` är **slut i lager**. Den blir "slutsåld" direkt vid publicering.
-Överväg att publicera de två andra först.
+## Kvar i familjen
 
-## Var facit ligger
+Tolv av femton reservtaksutkast är opolerade. Grupp C (`df5a7190` ljusgrå,
+`60eaf40e` khaki) ska INTE poleras som nya produkter — de ligger på samma pris
+och konstruktion som den publicerade `paviljongtak-3x3-dubbeltak-creme` och är
+med stor sannolikhet färgsyskon till den. Se uppgift #341.
 
-`facit.json` (hash över SYNLIG text), `html-<id>.html` (exakt kropp som
-skrevs), `texter.py` (källan), `lint.py`, `mutationstest.py`, `facitgen.py`.
+⚠️ `bef14fba` är slut i lager och visas som slutsåld. Den publicerades ändå,
+eftersom de två syskonsidorna korslänkar hit — en opublicerad sida hade gett
+404 från två live-sidor. Aosom-synken återställer saldot av sig själv när
+feed-raden är tillbaka.
