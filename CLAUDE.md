@@ -1593,6 +1593,39 @@ produkt, och bara den, med både orddiffen och homoglyfsvepet.
 
 **Regeln: en grind på det du SKICKAR är inte en grind på det som LIGGER UTE.**
 
+#### ☠️ En backfill som rapporterar NOLL kan ha mätt fel sak (2026-09-07)
+
+SEO-backfillen 2026-09-06 tog 49 tyska titlar till 0 över hela katalogen.
+Talet stämde — och fem tyska titlar levde ändå kvar, publicerade, i en månad.
+
+Klassificeraren krävde ett tyskt **funktionsord** (`und`, `mit`, `für`, `der`,
+`die`, `das`). De fem har inget:
+
+```
+Schlafsessel Relaxsessel Gästebett. abnehmbarer Bezug
+Polstersessel, Schaumstoff-Füllung, Kautschukholz
+Polstersessel im Skandi-Design, Samtoptik, Massivholz
+```
+
+Rent tyska titlar, byggda enbart av substantiv och sammansättningar. Anteckningen
+sa själv att talet var ett **GOLV** — och just därför var "0" inte samma sak som
+"inga". Ett golv som når noll är fortfarande ett golv.
+
+☠️ **Regeln: en nolla från en klassificerare mäter klassificeraren, inte
+verkligheten.** Ett svar utan fynd är inget kvitto, tolfte gången — och den här
+gången var det inte ens ett fel i koden, bara ett underlag som var smalare än
+frågan. Samma familj som livegrinds sextonordslista (avsnittet ovan): grinden
+var påslagen, dokumenterad, och kunde inte se.
+
+Bredare klassificerare (tyska substantiv och sammansättningar, inte bara
+funktionsord) över hela den publicerade katalogen 2026-09-07: **2 244 produkter,
+0 utan SEO-titel, 5 tyska — samma fem.** Efter lagningen 0.
+
+⚠️ Och de fem hittades inte av en SEO-mätning. De föll ut ur en helt annan
+kontroll: slutverifieringen av flikreparationen ställde ALLA runbook-kraven mot
+de trettio sidorna, inte bara det den var ute efter. En bred slutkontroll hittar
+det en riktad aldrig letar efter.
+
 #### ☠️ Och en fjärde: checklistan som ingen mätte (2026-09-06)
 
 Runbookens Klart-kriterium har punkterna. Det som saknades var en KONTROLL av
