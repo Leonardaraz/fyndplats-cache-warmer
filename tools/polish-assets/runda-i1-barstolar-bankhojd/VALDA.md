@@ -1,7 +1,34 @@
 # Runda I1 — barstolar i bänkhöjd
 
-Vald klass: sitthöjd omkring 60 cm / rekommenderad bänkhöjd 89–99 cm.
+Vald klass: rekommenderad bänkhöjd 89–99 cm.
 Publicerat idag: 3 sidor. Utkast i klassen: 12. Kund väntar (order 10030).
+
+## ☠️ URVALSANTAGANDET HÖLL INTE — mätt 2026-09-07
+
+Urvalet gjordes på premissen att "bänkhöjd 89–99 cm" motsvarar ~60 cm sits.
+Det gör det inte. Läst ur de åtta källtexterna:
+
+| kort | sitthöjd | bänkhöjd i källan |
+|---|---|---|
+| 29b8fb0c | 60 cm | 89–99 |
+| 313117c8 | 60–81 cm | (anges ej) |
+| 239b20b7 | 61–82 cm | (anges ej) |
+| a0c1af46 | 63 cm | 89–99 |
+| f61517b6 | 65 cm | 89–99 |
+| 032b6e93 | 66 cm | 89–99 |
+| 856d1d1d | 68 cm | 89–99 |
+| 709da650 | 68 cm | 89–99 |
+
+ÅTTA CENTIMETERS spridning under en identisk bänkhöjdsangivelse. En 68 cm
+sits under en 89 cm bänk lämnar 21 cm benutrymme. Tillverkarens
+bänkhöjdsrekommendation duger alltså inte som ersättning för sitthöjden,
+och den får inte användas som urvalskriterium i kommande rundor.
+
+Följden för produkttexterna: sitthöjden står FÖRST i varje namn och i
+varje ingress, och bänkhöjden anges som ett tillägg — aldrig tvärtom.
+
+Fem av åtta (60, 60–81, 61–82, 63, 65) ligger i 60–65 cm, alltså det
+spann kunden i order 10030 efterfrågade.
 
 ## Syskon som medvetet VÄLJS BORT (billigare tvillingen behålls)
 
