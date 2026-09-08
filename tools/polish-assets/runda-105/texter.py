@@ -279,7 +279,7 @@ def modell_c(nyckel):
                 "Bottenbrickan på 100 × 53 cm dras ut helt, töms och sköljs. Stommen "
                 "torkas av med en fuktig trasa.")
             + F("Vad väger det?",
-                "12,5 kg monterat. Två personen bär det enkelt, en person klarar det på "
+                "12,5 kg monterat. Två personer bär det enkelt, en person klarar det på "
                 "plant golv.")
             + F("Behövs montering?",
                 "Ja. Huset levereras i delar med beslag och anvisning.")
