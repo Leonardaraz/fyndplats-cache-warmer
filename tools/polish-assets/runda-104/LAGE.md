@@ -28,12 +28,18 @@ egen grind inte fångade det som runbooken redan bar.
 | id8 | vad | känt hinder |
 |---|---|---|
 | `60ab2042` | Kawasaki-UTV turkosblå | ✅ polerad, kort inlagt, SKU rättad — men `OUT_OF_STOCK`. ☠️ **Publiceringen måste sätta `visible: true` på BÅDE produkt och variant**: bild- och SKU-PATCH:arna bar `visible: false`, och Wix speglar ned det på varianten. En publicerad produkt vars variant är osynlig går inte att lägga i varukorgen. |
-| `5e9cc2d2` | Aprilia-motorcykel, 106,5 × 56 × 80 | varumärke |
-| `1e27f7e0` | samma modell | ⚠️ källan säger `Gelb`, bilden visar **svart** |
-| `883db249` | fyrhjuling, 100 × 65 × 73 | ⚠️ **ingen måttritning alls** |
 
-Alla sex är måttsvepta mot 54 publicerade barnfordonssidor — noll dubbletter
-(`STEG1-MATTSVEP.md`).
+Rundans övriga tre utkast är klara och publicerade — se `STEG-REST.md`:
+
+| id8 | sida | pris |
+|---|---|--:|
+| `5e9cc2d2` | `aprilia-elmotorcykel-barn-12v-vit` | 1 759 |
+| `1e27f7e0` | `aprilia-elmotorcykel-barn-12v-svart-gul` | 1 799 |
+| `883db249` | `elfyrhjuling-barn-12v-back-mp3-orange` | 3 079 |
+
+Alla sex var måttsvepta mot 54 publicerade barnfordonssidor — noll dubbletter
+(`STEG1-MATTSVEP.md`) — och de tre sista dessutom mot 18 sidor i sina egna
+familjer med sorterad nyckel, också noll.
 
 ## Öppet för Leonard
 

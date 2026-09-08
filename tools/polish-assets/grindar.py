@@ -297,7 +297,23 @@ def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60):
     """
     import urllib.request
 
-    def _hamta():
+    import time
+
+    def _hamta(forsok=3):
+        """⚠️ Ett övergående TLS-fel får inte döda ett helt svep. Uppmätt
+        2026-09-08: `SSL: UNEXPECTED_EOF_WHILE_READING` på tredje sidan av tre,
+        efter att de två första gått igenom. Utan återförsök kastas hela
+        körningen och de redan mätta sidorna måste mätas om. Att i stället
+        SVÄLJA felet vore värre — då räknas en ohämtad sida som ren."""
+        for i in range(forsok):
+            try:
+                return _en_hamtning()
+            except Exception:
+                if i == forsok - 1:
+                    raise
+                time.sleep(2 ** i)
+
+    def _en_hamtning():
         req = urllib.request.Request(url, headers={"User-Agent": ua})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             # ⚠️ Nycklarna GEMENAS. Vercel skickar `X-Vercel-Cache`, och en
