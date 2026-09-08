@@ -235,3 +235,27 @@ Lintet: **18 regler, 27/27 mutationer fångade, 0 brister i 13 texter.**
   Next.js ISR nycklar inte på okända parametrar, så `?cb=…` ger samma cachade
   404. Kontrollsidan (`nattduksbord-rgb-led-tva-lador`, orörd av rundan)
   svarade 200 i samma svep, alltså är det cachen och inte sajten.
+
+  Cachen släppte efter ~15 minuter: **12:19 → 0/5, 12:25 → 3/5, 12:27 → 5/5.**
+
+- **Steg 14 — GRÖN, 5/5** (`livegrind.py`). Kontrollsidan
+  `nattduksbord-rgb-led-tva-lador` gav **noll** fynd, alltså bar sajtens eget
+  ramverk inget att dra bort den här gången — men kontrollen kördes ändå, för
+  det är först när den är noll som man VET att fynden är textens.
+  Grinden söker familjens tyska ordförråd (ord utan svensk tvilling),
+  leverantörsattribution, Aosoms artikelnummerform, kommalistor av tal och
+  fyra osynliga tecken. Kört i Python, inte JS — `\b` är unicode-medveten här.
+
+- **Familjegrinden — GRÖN, 13/13** (`familjgrind.py`, uppgift #361). Varje sida
+  bär sin Färg-rad och sin färgade ingress, och **noll identiska kroppar** live.
+
+  ☠️ **Och den första körningen fällde ÅTTA av tretton — trettio sekunder innan
+  den andra gav noll.** Samma skript, samma sidor, ingen skrivning emellan. De
+  åtta var de REDAN PUBLICERADE, alltså de vars cache-post fanns kvar sedan före
+  textändringen; de fem nya hade fått sin post skapad efteråt och var färska.
+  Next.js serverar den gamla sidan och startar omvalideringen i bakgrunden.
+
+  **Regeln: en ISR-sida måste hämtas TVÅ gånger. Den första hämtningen är
+  väckningen, den andra är svaret.** En grind som läser den första gör exakt
+  runda 60:s misstag — den fäller korrekta sidor och lär läsaren att ignorera
+  utslagen.
