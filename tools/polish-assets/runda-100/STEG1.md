@@ -106,3 +106,117 @@ Sex bord är fria, plus `65a730a4` om artikelnumret bekräftar färgsyskonet.
 2. **En hjältebild svarade `bad file`** och såg raderad ut. Samma fil svarade
    `200` vid nästa försök och renderas på live-sidan. **Ett enda misslyckat
    bildanrop är inget bevis** — hämta två gånger, precis som mot ISR-cachen.
+
+---
+
+## ☠️ ANDRA DUBBLETTEN, OCH DEN VÄRRE SORTEN: samma bord, två leverantörer
+
+`65a730a4` såg ut som ett färgsyskon till den publicerade `fa683626` — samma
+mått, samma stomme, olika skivfärg i bilden. Artikelnumren avgjorde, och de
+säger något annat:
+
+| | utkastet `65a730a4` | publicerade `fa683626` |
+|---|---|---|
+| `supplierProductId` | **`aosom:84B-915ND`** | **`1005012416577337`** (AliExpress) |
+| skickas från | DE | ES |
+| bilder | aosom-renderingar | `alicdn.com` / `aliexpress-media.com` |
+| pris | 2 629 kr (utkast) | 2 429 kr (live) |
+| `landedCostSek` | 2 185,16 | 1 845,44 |
+
+**Och varenda specifikation är densamma:**
+
+| | båda |
+|---|---|
+| mått | 190 × 90 × 74 cm |
+| ribbtjocklek | 1,2 cm |
+| maxlast skiva | 50 kg |
+| sittplatser | 8 |
+| material | aluminium + plast med träimitation |
+
+Den publicerade sidans egen text säger *"bordsskiva i plast med träimitation
+och ådring"* och dess alt-text *"svart bordshörn i **träeffekt**"* — alltså
+samma trälika skiva som utkastets bild visar. Skillnaden i hjältebilden är
+ljussättning och vinkel, inte kulör. **Det är samma fysiska bord.**
+
+☠️ **Det här är precis den dubblett `CLAUDE.md` kallar den farliga**: en vara vi
+redan säljer som en AE-inköpt sida, som feed-importen inte kan se eftersom
+dubblettspärren nycklar på `supplierProductId` och AE-id:t ser ut som något
+helt annat. 595 av 1 004 mappningsrader är Aosom-varor köpta via AliExpress.
+
+**Leonards regel 2026-09-03 gäller:** sidan vi BEHÅLLER pekas om till Aosoms
+artikelnummer, den andra pensioneras. Här är den polerade, indexerade sidan
+`fa683626` den som behålls; utkastet `65a730a4` pensioneras.
+
+### ☠️ …men ommappningen GÅR INTE, och grinden sa varför
+
+`plan`-körningen vägrade:
+
+```
+artikelnummer
+fran            aliexpress
+landad kostnad  1845.44 -> 0 kr (inkl. moms)
+kundpris        2429 kr (ORORT)
+marginal        24.02 -> 100 %
+[hinder] saknas_i_feeden
+```
+
+**`84B-915ND` finns inte längre i Aosoms feed.** Landad kostnad skulle bli 0
+och marginalen 100 % — nonsens, och exakt det spärren finns för att stoppa.
+
+Utkastets egen mappningsrad säger samma sak från andra hållet:
+`aosomSyncedQty: 0`. Aosom har alltså slutat lista bordet, och lagersynken har
+redan nollat saldot (en rad som försvinner ur feeden är ett lagerbesked, inte
+en utgången produkt — `CLAUDE.md`).
+
+**Slutsatsen blir enklare och säkrare än väntat:** den publicerade
+AE-sidan `fa683626` står kvar orörd — den är den enda av de två som går att
+sälja — och utkastet `65a730a4` pensioneras (`draftStatus: "rejected"`,
+`needsAiPolish: false`). Ingen radering: ett osynligt utkast kostar ingenting
+medan det ligger, och en radering går inte att ångra.
+
+⚠️ **Bara halva Leonards regel gick att köra.** Ommappningen till Aosom är den
+andra halvan, och den är inte möjlig så länge artikelnumret saknas i feeden.
+Dyker raden upp igen är `plan`-körningen redan formulerad.
+
+Rundan går vidare med **sex** bord.
+
+## Rundans batch efter båda grindarna
+
+| id8 | vad | mått | pris | prisgrind |
+|---|---|---|--:|---|
+| `e71acc53` | aluminium med lamellskiva, 6 pers | 145 × 90 × 74 | 1 959 | ✅ |
+| `f806eebf` | WPC i teakton på metallram | 140 × 80 × 75 | 2 779 | ✅ |
+| `4249df4d` | säkerhetsglas med hylla under | 150 × 85 × 74 | 3 039 | ✅ |
+| `29c688dc` | utdragbart, plastskiva | 80/160 × 80 × 75 | 3 299 | ✅ |
+| `74d3c11c` | utdragbart, lamellskiva | 81/162 × 80 × 75 | 3 899 | ✅ |
+| `c71418ca` | utdragbart, fjärilsmekanism | 160/220 × 90 × 73 | 5 579 | ✅ |
+
+Sex av sex prisgrindar stämmer mot `×1,20` + `charm99`.
+
+## Steg 4: bilderna granskade
+
+Alla sex har fem bilder, och alla fem positionerna är användbara. **Ingen tysk
+text i pixlarna** — måttritningarna är rena siffror, och den enda texten är
+`50 kg` på `f806eebf-3`.
+
+☠️ **En bild plockas bort: `4249df4d-4`.** Den är en närbild vars hela motiv är
+leverantörens ovala **märkesdekal** på rottingväven — inte en produktdetalj
+utan en märkesbild.
+
+⚠️ **Samma dekal sitter FYSISKT på ramen** på `e71acc53` och `f806eebf`, liten
+och oläslig i galleriformat. Leonards regel: sitter märket på varan gör vi
+ingenting åt det, och det nämns aldrig i text eller alt-text.
+
+✅ **Måttritningarna bär båda lägena på de utdragbara.** `29c688dc-3` visar
+80 × 80 och 160 × 80; `74d3c11c-3` visar 81 × 80 och 162 × 80. Det är facit
+mot den tyska textens `80/160` respektive `81/162`.
+
+☠️ **`c71418ca-3` visar BARA 220 × 90 × 73** — det utdragna läget. Det
+hopskjutna måttet 160 finns bara i brödtexten. Måttritningen bekräftar alltså
+inte spec-radens fel, den upprepar det: raden säger `220L` som om bordet alltid
+vore 220 cm. Sidan ska skriva **160/220**.
+
+⚠️ **Varenda miljöbild visar bordet med STOLAR** som inte ingår. Fyra av de sex
+tyska texterna säger ingenting om det (`ef71bb42`, som inte är med i rundan,
+har ett uttryckligt `HINWEIS: Stühle nicht enthalten`). Varje sida måste säga
+att stolarna inte ingår.
