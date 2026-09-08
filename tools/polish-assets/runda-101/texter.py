@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Runda 101 — åtta massagefåtöljer i fyra modeller.
+"""Runda 101 – åtta massagefåtöljer i fyra modeller.
 
 Fakta kommer UTESLUTANDE ur STEG2-4-5.md, som i sin tur bara bär det
 leverantörens text, spec-kolumnerna eller måttritningen faktiskt säger.
@@ -29,7 +29,7 @@ FARG = {"cd7e9036": "brun", "7062dc79": "cremevit", "9c8a7a80": "svart",
         "54d25930": "cremevit", "c50fa916": "mörkgrå",
         "b8b6fee1": "svart"}
 
-# Klädsel — avgjord på ZOOM, inte på spec-kolumnen (se STEG2-4-5.md)
+# Klädsel – avgjord på ZOOM, inte på spec-kolumnen (se STEG2-4-5.md)
 KLADSEL = {"cd7e9036": "konstläder", "7062dc79": "konstläder", "9c8a7a80": "konstläder",
            "1932abe1": "konstläder", "89fead7d": "tyg",
            "54d25930": "konstläder", "c50fa916": "konstläder",
@@ -38,7 +38,7 @@ KLADSEL = {"cd7e9036": "konstläder", "7062dc79": "konstläder", "9c8a7a80": "ko
 # Fotpallens maxlast. None = leverantörens data anger ingen. Skriv då INGEN.
 PALLAST = {"A": None, "B": 100, "C": 20, "D": 60}
 
-# Mikrolåsningsnoten finns i A, B och C:s källor — INTE i D:s.
+# Mikrolåsningsnoten finns i A, B och C:s källor – INTE i D:s.
 MIKROLAS = {"A": True, "B": True, "C": True, "D": False}
 
 SLUGG = {
@@ -286,7 +286,7 @@ STYCKEN2 = {
     ],
     "D": [
         "Ryggen fälls till 135° och ottomanen står separat, så när du lägger ihop "
-        "dem blir liggytan 156 cm lång och 80 cm hög i ryggen — tillräckligt för en "
+        "dem blir liggytan 156 cm lång och 80 cm hög i ryggen – tillräckligt för en "
         "ordentlig eftermiddagslur utan att du behöver flytta dig till soffan.",
         "Uppfälld tar fåtöljen 78 × 95 × 88 cm. Sitsen är 50 × 52 cm och ligger "
         "lågt, 41 cm över golvet, med armstöden 19 cm ovanför sitsen. Ottomanen är "
