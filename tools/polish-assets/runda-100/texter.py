@@ -45,6 +45,12 @@
    varenda miljöbild visar bordet dukat med stolar. Varje sida säger det i
    klartext, både som egenskap och som fråga.
 
+☠️ `4249df4d`:s HYLLA ÄR 85 × 60 cm, INTE 85 × 50. Den tyska texten säger
+   "Maße der Ablageplatte: 85L x 50B cm"; måttritningen `4249df4d-3` säger
+   85 och 60. Runbokens regel gäller: MÅTTRITNINGEN är facit när två mått
+   motsäger varandra — och här väger den extra tungt, för ritningen ligger i
+   galleriet. En text som sagt 50 hade motsagt en bild kunden kan läsa.
+
 ⚠️ TRÄUTSEENDE ÄR INTE TRÄ. `f806eebf` är WPC (trämjöl + plast) och `29c688dc`
    är plast med tryckt ådring. Ingendera får kallas trä — samma regel som MDF
    aldrig är "massivt trä" (#259).
@@ -128,7 +134,7 @@ INGRESS = {
                  "fötterna går att justera, vilket är det som håller bordet "
                  "stilla på en ojämn altan."),
     "4249df4d": ("Ett trädgårdsbord med skiva i säkerhetsglas och en hylla på "
-                 "85 × 50 cm mitt under den. Hyllan tar det som annars ligger "
+                 "85 × 60 cm mitt under den. Hyllan tar det som annars ligger "
                  "på bordet – tidningen, brickan, tändaren till grillen – och "
                  "lämnar skivan fri att duka. Ram och hylla är klädda i "
                  "polyrotting i brunt, benen är pulverlackerad metall, och "
@@ -174,7 +180,7 @@ EGENSKAPER = {
     ],
     "4249df4d": [
         "Skiva i säkerhetsglas, 145 × 80 cm och 5 mm tjock",
-        "Hylla under skivan på 85 × 50 cm för det som inte ska ligga på bordet",
+        "Hylla under skivan på 85 × 60 cm för det som inte ska ligga på bordet",
         "Ram och hylla klädda i polyrotting, ben i pulverlackerad metall",
         "Bordet mäter 150 × 85 × 74 cm och väger 30 kg",
         "Maxlast 80 kg på skivan",
@@ -244,7 +250,7 @@ SPEC = {
     "4249df4d": [
         ("Mått", "150 × 85 × 74 cm"),
         ("Glasskiva", "145 × 80 cm, 5 mm säkerhetsglas"),
-        ("Hylla under skivan", "85 × 50 cm"),
+        ("Hylla under skivan", "85 × 60 cm"),
         ("Ram", "pulverlackerad metall klädd i polyrotting"),
         ("Färg", "brun och svart"),
         ("Fötter", "halkfria"),
@@ -345,7 +351,7 @@ _STYCKEN2 = {
     ],
     "4249df4d": [
         ("Glasskivan är 145 × 80 cm och 5 mm tjock, och bordet mäter 150 × 85 "
-         "cm ytterst. Under skivan sitter en hylla på 85 × 50 cm. Den är inte "
+         "cm ytterst. Under skivan sitter en hylla på 85 × 60 cm. Den är inte "
          "stor nog för en andra dukning men precis lagom för det som brukar "
          "ligga och skräpa på ett uteplatsbord: tidningen, brickan, "
          "solglasögonen och tändaren till grillen."),
@@ -515,7 +521,7 @@ _FAQ = {
     ],
     "4249df4d": [
         ("Hur stor är hyllan under skivan?",
-         "85 × 50 cm. Den sitter mitt under glasskivan och är tänkt för "
+         "85 × 60 cm. Den sitter mitt under glasskivan och är tänkt för "
          "tidningar, brickor och småsaker – inte för en andra dukning."),
         ("Är glaset härdat?",
          "Ja, skivan är säkerhetsglas och 5 mm tjock. Går den mot förmodan "
@@ -632,7 +638,7 @@ SEO_BESKRIVNING = {
                  "pulverlackerad metallram. Sex kuvert, 71 cm fri höjd, "
                  "justerbara fötter, 50 kg."),
     "4249df4d": ("Trädgårdsbord 150 × 85 × 74 cm med skiva i säkerhetsglas och "
-                 "hylla på 85 × 50 cm under. Ram i polyrotting, maxlast 80 kg, "
+                 "hylla på 85 × 60 cm under. Ram i polyrotting, maxlast 80 kg, "
                  "vikt 30 kg."),
     "29c688dc": ("Utdragbart trädgårdsbord som går från 80 till 160 cm på 80 cm "
                  "djup. Skiva i plast med träådring, aluminiumram, halkfria "

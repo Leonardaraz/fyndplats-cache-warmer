@@ -1,0 +1,110 @@
+{
+ "e71acc53": {
+  "kicker": "Trädgårdsbord",
+  "rubrik": "Lamellskiva i aluminium",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "145 × 90 × 74 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg"
+   },
+   {
+    "etikett": "Vikt",
+    "varde": "22 kg"
+   }
+  ]
+ },
+ "f806eebf": {
+  "kicker": "Trädgårdsbord",
+  "rubrik": "WPC-skiva i teakton på metallram",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "140 × 80 × 75 cm"
+   },
+   {
+    "etikett": "Fri höjd under skivan",
+    "varde": "71 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg"
+   }
+  ]
+ },
+ "4249df4d": {
+  "kicker": "Trädgårdsbord",
+  "rubrik": "Glasskiva med hylla under",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "150 × 85 × 74 cm"
+   },
+   {
+    "etikett": "Hylla under skivan",
+    "varde": "85 × 60 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "80 kg"
+   }
+  ]
+ },
+ "29c688dc": {
+  "kicker": "Utdragbart trädgårdsbord",
+  "rubrik": "Dras ut från 80 till 160 cm",
+  "rader": [
+   {
+    "etikett": "Mått hopskjutet",
+    "varde": "80 × 80 × 75 cm"
+   },
+   {
+    "etikett": "Mått utdraget",
+    "varde": "160 × 80 × 75 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "50 kg"
+   }
+  ]
+ },
+ "74d3c11c": {
+  "kicker": "Utdragbart trädgårdsbord",
+  "rubrik": "Dras ut från 81 till 162 cm",
+  "rader": [
+   {
+    "etikett": "Mått hopskjutet",
+    "varde": "81 × 80 × 75 cm"
+   },
+   {
+    "etikett": "Mått utdraget",
+    "varde": "162 × 80 × 75 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "70 kg"
+   }
+  ]
+ },
+ "c71418ca": {
+  "kicker": "Utdragbart trädgårdsbord",
+  "rubrik": "Dras ut från 160 till 220 cm",
+  "rader": [
+   {
+    "etikett": "Mått hopskjutet",
+    "varde": "160 × 90 × 73 cm"
+   },
+   {
+    "etikett": "Mått utdraget",
+    "varde": "220 × 90 × 73 cm"
+   },
+   {
+    "etikett": "Maxlast",
+    "varde": "70 kg"
+   }
+  ]
+ }
+}
