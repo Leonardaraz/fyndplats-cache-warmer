@@ -106,3 +106,28 @@ JS-spegling av `gatelib.tal()`, och de två implementationerna verifierades mot
 varandra på ett hårt fall (tusental med både mellanslag och punkt, decimalkomma
 och intervall) — identiskt utfall. Ingen siffra i facit har passerat en
 avskrift.
+
+## Live-verifierat 2026-09-08 — 8/8 REN
+
+Hämtat ISR-medvetet (varm träff, 305 s, skarp hämtning): alla åtta HTTP 200 med
+`age: 100–101`, alltså renderingar som den varma träffen utlöste.
+
+| kort | ord | orddiff |
+| :-- | --: | --: |
+| `e13dd23e` | 593 | 0 |
+| `108e1225` | 529 | 0 |
+| `75890fe3` | 500 | 0 |
+| `b1039e91` | 542 | 0 |
+| `e4a986ad` | 551 | 0 |
+| `4a1822e2` | 555 | 0 |
+| `ae9c9e69` | 497 | 0 |
+| `4871d041` | 562 | 0 |
+
+`livegrind.py` kör sju svep per sida och alla sju är rena: orddiff mot
+källfilen, homoglyfer, sidsvep, alt-svep, SEO-svep exakt mot `seo.tsv`, de tre
+obligatoriska flikarna, kategorins brödsmula, köpbarheten (ingen `OutOfStock`
+— värt att notera på en runda där två kandidater föll på saldo 0) och att
+korslänken överlevt.
+
+De åtta interna korslänkarna är därmed kontrollerade — `gate-lankar.py` kunde
+per konstruktion inte hämta dem före skrivningen.
