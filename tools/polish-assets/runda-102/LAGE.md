@@ -25,10 +25,31 @@ Fem färgsyskon som STÄNGER två modeller ur runda 101.
   nu **tretton** och bär **tolv absoluta länkar** var. 8/8 hashar stämmer mot
   filen, alla `visible:true`, noll trasiga länkar.
 
+- **Steg 7b** — de fem nya skrivna: namn, slug, seoData och brödtext.
+  **5/5 hashar stämmer mot `facit13.json`**, tolv absoluta länkar var, noll
+  trasiga (`https:/`), fyra sökord var, titeln skild från namnet, alla
+  fortfarande `visible:false`.
+
+  ⚠️ Grinden körde FÖRE skrivningen: hashen räknades på det som skulle
+  skickas och jämfördes mot facit LÄST ur filen. Hade JS-kompositionen driftat
+  från `texter.py` hade anropet avbrutit sig självt utan att röra Wix.
+
+- **Steg 8** — SKU re-synkad till den svenska sluggen på alla fem.
+  `FP-massagefatolj-cremevit-forvaring`, `-brun-forvaring`, `-morkgra-tyg`,
+  `-brun-160-kg`, `-svart-160-kg`. Alla distinkta, alla ≤ 40 tecken.
+
+  ☠️ Färgfamiljen spränger `PRODUCT_PART_MAX = 24` precis som hundvagnarna
+  gjorde: den särskiljande svansen behålls och mitten kapas. Den gamla
+  krocken `FP-relaxsessel-mit-fu` på två produkter är därmed borta.
+
+  ☠️ `variantsInfo`-PATCH:en bar uttryckligt `visible:false` på produkten och
+  `visible:true` per variant. Återläsning: 5/5 produkter fortfarande utkast,
+  5/5 varianter synliga. Utan det hade SKU-patchen publicerat fem tyska
+  bildgallerier.
+
 ## Kvar
 
-- Steg 7b: skriv texten på de fem nya
-- Steg 8: SKU (☠️ krock, se nedan) · Steg 9: alt-texter, galleri, kort
+- Steg 9: alt-texter, galleri, egna kort (☠️ ta bort bild 3 på `3b61e50c`)
 - Steg 10 kategorier · Steg 12 kundläsning · Steg 13 stämpling + publicering
 - Steg 14 live-grind (kontrollprov först)
 
