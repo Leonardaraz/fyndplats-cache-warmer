@@ -70,16 +70,28 @@ def kalla(har, kort, mjuka):
     return ut
 
 
-def bygg(har, produkter, kortdata, mjuka=None):
-    """produkter: [{kort, spec}]  kortdata: kort -> (kicker, rubrik, [(etikett, radindex)])"""
+def bygg(har, produkter, kortdata, mjuka=None, foton=None):
+    """produkter: [{kort, spec}]  kortdata: kort -> (kicker, rubrik, [(etikett, radindex)])
+
+    foton: kort -> färdig bildväg, för rundor där hjältebilden är förbehandlad.
+    Runda 104: panelen är 1,83 och `fit=True` ger `object-fit: contain`, så ett
+    KVADRATISKT foto krymper till ~55 % av panelens bredd och produkten i det
+    till ~45 %. Bilarna är högre än panelen, så en beskärning till 1,83 hade
+    kapat dem (runda 93:s regel: fyll ut med vitt, beskär aldrig varan). De
+    beskärs därför till produktens bbox och fylls ut i SIDLED till 1,83 —
+    63–77 % fyllnad, ingenting bortkapat. Utan den här kroken hade den
+    förbehandlade bilden fått ligga i `rawbilder/`, som då hade ljugit om vad
+    den innehåller.
+    """
     mjuka = mjuka or {}
+    foton = foton or {}
     namn, facit = [], {}
     for p in produkter:
         k = p["kort"]
         kicker, rubrik, rader = kortdata[k]
         specrader = [(e, varde(p["spec"][i], e)) for e, i in rader]
-        ck.card_spec(k + "_spec", kalla(har, k, mjuka), kicker, rubrik,
-                     specrader, fit=True)
+        ck.card_spec(k + "_spec", foton.get(k) or kalla(har, k, mjuka),
+                     kicker, rubrik, specrader, fit=True)
         namn.append(k + "_spec")
         facit[k] = {"kicker": kicker, "rubrik": rubrik,
                     "rader": [{"etikett": e, "varde": v} for e, v in specrader]}

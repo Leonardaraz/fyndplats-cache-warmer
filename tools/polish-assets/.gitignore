@@ -55,3 +55,9 @@
 */dubblettpar.jpg
 */modell-*.jpg
 */hornsvep.jpg
+
+# Runda 104:s förbehandlade panelfoton. Härledda ur `rawbilder/` av
+# `bygg-panelfoton.py`, som hämtar hjältebilden ur butiken på media-id — alltså
+# återskapbara med ett kommando, och 3,7 MB som inte bevisar något i efterhand.
+# Det FÄRDIGA kortet ligger spårat i `kort/`, som förr.
+*/panelfoton/
