@@ -59,3 +59,50 @@ liggvinkeln, inte vikten. En siffergrind som bara ser tal hade inte skilt dem.
 ## Sju tyska grafiker ur fem produkter
 
 Se `bilder-bort.tsv`. `297d8979`, `ed03b52f` och `e140f9ab` behåller alla fem.
+
+## ✅ Källtexterna avgjorde tre frågor
+
+### `c79c22f7` — 135 kg, inte 150. NAMNET är fel.
+
+Produktnamnet säger "bis 150kg". Både beskrivningens punktlista (*"Stabile
+Struktur trägt bis zu 135 kg"*) och tekniska data (*"Belastbarkeit: 135 kg"*)
+säger **135**, precis som måttritningen. Namnet är marknadsföring och ska inte
+användas som källa för ett tal. Texten skrivs på 135 kg.
+
+☠️ Samma familj som `b78d4cc6` (#210), men här är det inte två specfält som
+bråkar — det är NAMNET mot allt annat. Regeln blir skarpare: **hämta aldrig
+en siffra ur produktnamnet.**
+
+### ☠️ `522103fd` är LÄDERBLANDNING och KNÅDANDE massage — inget av det
+syns i spec-tabellen
+
+Två fynd som ändrar hela texten, båda ur beskrivningen och inte ur specen:
+
+```
+Material: Leder-Mischung (20 % Rindsleder, 80 % Polyurethan)
+knetende Massagefunktionen … drei Bereichen (Schulter, Lendenwirbel
+oder ganzer Rücken)
+```
+
+- Den svenska spec-tabellen säger bara `Material: Kunstleder, Stahl`. Att
+  skriva "konstläder" hade varit sant men fattigt — **20 % nötläder** är ett
+  säljargument OCH en skötselskillnad. Texten säger blandningen ordagrant;
+  att kalla den "läderfåtölj" hade varit vilseledande på 20 %.
+- **Massagen är knådande, inte vibrerande.** De sju andra i rundan vibrerar.
+  Det är den tydligaste skillnaden i hela gruppen och den stod ingenstans i
+  urvalsdatan.
+
+⚠️ Instruktionen om att ta bort ryggdynan under massagen finns BARA i den
+tyska bild vi raderar — inte i källtexten. Den skrivs ändå in i skötselfliken:
+en knådande mekanism arbetar bakom dynan, och att utelämna en
+användningsinstruktion är värre än att sakna källhänvisning för den.
+
+### ⚠️ `7a4ec9c6` bär ett förbehåll som MÅSTE stå i klartext
+
+> *"Hinweis: Liegefunktion nur manuell einstellbar und erfordert Kraft.
+> Nicht für Senioren geeignet"*
+
+Ryggen fälls för hand och kräver kraft. Källan säger själv att fåtöljen inte
+lämpar sig för äldre. Det ska stå rakt ut i brödtexten — inte gömmas bland
+massagelägena — särskilt när `ed03b52f` i samma runda är en uppresningsfåtölj
+byggd för precis den köparen.
