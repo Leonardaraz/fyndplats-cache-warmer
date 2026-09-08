@@ -48,3 +48,5 @@ tools/aosom/sweep-log.jsonl
 # `git add` kom ihag det. En sparr man maste komma ihag gloms bort.
 tools/polish-assets/*/live/
 tools/kategorifix/*/live/
+tools/polish-assets/*/img/
+tools/polish-assets/*/pub/
