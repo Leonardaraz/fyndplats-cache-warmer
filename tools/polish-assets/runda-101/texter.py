@@ -141,7 +141,8 @@ INGRESS = {
           "flyttas dit du vill ha den."),
     "D": ("Massagefåtölj i luftig linnelook på en kromad fot, med åtta "
           "vibrationspunkter i ryggen, ländryggen, sitsen och ottomanen. Fälld helt "
-          "bakåt blir ekipaget 156 cm långt, alltså nästan en hel liggplats. Sitsen "
+          "bakåt mäter fåtöljen och ottomanen 156 cm tillsammans, alltså nästan "
+          "en hel liggplats. Sitsen "
           "snurrar 360° och ottomanen står fritt på en egen kromad fot."),
 }
 
@@ -281,7 +282,7 @@ STYCKEN2 = {
         "den 81 cm bred, 112 cm djup och 91 cm hög. Sitsen snurrar 360° på foten.",
         "Fotpallen mäter 47 × 40 cm och är 43 cm hög. Den är gjord som fotstöd och "
         "bär 20 kg – lägg upp benen på den, men sätt dig inte på den. Behöver du en "
-        "pall som också tål att sitta på finns modellen med förvaringslock längre "
+        "pall som också tål att sitta på finns två modeller med förvaringslock längre "
         "ned på sidan.",
     ],
     "D": [
@@ -333,7 +334,7 @@ FAQ = {
          "djupet 105 cm, så drygt en meter från väggen räcker."),
         ("Låser ryggen i valfritt läge?",
          "Ryggen har en mikrolåsning och låser inte helt fast i varje vinkel – den "
-         "ger efter något när du lutar dig bakåt. Det är så konstruktionen är gjord."),
+         "ger efter något när du lutar dig bakåt."),
         ("Hur mycket bär den?",
          "Fåtöljen bär 120 kg."),
         ("Hur styrs massagen?",
@@ -352,7 +353,7 @@ FAQ = {
          "styrkor. Du kan också ställa in punkterna var för sig."),
         ("Låser ryggen i valfritt läge?",
          "Ryggen har en mikrolåsning och låser inte helt fast i varje vinkel – den "
-         "ger efter något när du lutar dig bakåt. Det är så konstruktionen är gjord."),
+         "ger efter något när du lutar dig bakåt."),
         ("Vad är stommen gjord av?",
          "Trä, med stoppning av högdensitetsskum."),
     ],
@@ -367,7 +368,7 @@ FAQ = {
          "Ja, 360° på foten."),
         ("Låser ryggen i valfritt läge?",
          "Ryggen har en mikrolåsning och låser inte helt fast i varje vinkel – den "
-         "ger efter något när du lutar dig bakåt. Det är så konstruktionen är gjord."),
+         "ger efter något när du lutar dig bakåt."),
         ("Var ligger fjärrkontrollen?",
          "I sidofickan på fåtöljens vänstra sida."),
     ],
