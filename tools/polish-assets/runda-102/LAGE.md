@@ -47,9 +47,30 @@ Fem färgsyskon som STÄNGER två modeller ur runda 101.
   5/5 varianter synliga. Utan det hade SKU-patchen publicerat fem tyska
   bildgallerier.
 
+- **Steg 9 (galleri + alt-texter)** — den främmande måttritningen är borta ur
+  `3b61e50c` (5 → 4 bilder), och alla 24 bilderna bär svensk alt-text.
+  5/5 stämmer ordagrant, noll tomma, noll tyska, alla fem fortfarande utkast.
+
+  ☠️ **Första skrivningen TÖMDE alt-texten i stället för att sätta den.** Jag
+  skickade `items[].image.altText` — där man LÄSER den — och Wix släppte den
+  tyst: fem bilder gick från tysk text till TOM. Rätt fält är
+  `items[].altText`; `image` är readOnly.
+
+  ⚠️ Och regeln stod redan i runbooken, på tre ställen (Fasta fakta rad 244,
+  Steg 9 rad 2149, katalogsvepet rad 4536). Jag läste Steg 9:s inledning men
+  inte punktlistan. **En regel som står nedskriven men inte läses är lika
+  verkningslös som en oskriven** — skillnaden är att den här kostade en
+  skrivning i stället för en runda.
+
+  ☠️ **Andra skrivningen bar ett GENUSFEL.** *Fåtölj* är ett en-ord medan
+  *konstläder* och *tyg* är ett-ord, så samma färgnamn böjs olika i samma
+  mening: "i cremevitt konstläder" men "Cremevit massagefåtölj". Fyra av fem
+  fick "Cremevitt/Brunt/Mörkgrått massagefåtölj". Rättat, och grinden i
+  anropet fäller nu på ett-ordsformen före "massagefåtölj".
+
 ## Kvar
 
-- Steg 9: alt-texter, galleri, egna kort (☠️ ta bort bild 3 på `3b61e50c`)
+- Steg 9 (kort): egna Fyndplats-kort som femte bild
 - Steg 10 kategorier · Steg 12 kundläsning · Steg 13 stämpling + publicering
 - Steg 14 live-grind (kontrollprov först)
 
