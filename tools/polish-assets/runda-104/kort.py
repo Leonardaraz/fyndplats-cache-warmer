@@ -70,6 +70,26 @@ KAWASAKI = [
     "Hastighet: 3–5 km/h",                                         # 7
 ]
 
+APRILIA = [
+    "Mått: 106,5 × 56 × 80 cm (L × B × H)",                        # 0
+    "Sits: 35 cm lång, 14 cm bred",                                # 1
+    "Sitthöjd: 48 cm över marken",                                 # 2
+    "Hjul: Ø 33,5 cm i plast",                                     # 3
+    "Platser: 1",                                                  # 4
+    "Rekommenderad ålder: 3–8 år",                                 # 5
+    "Maxvikt: 30 kg",                                              # 6
+    "Hastighet: 6 km/h",                                           # 7
+]
+QUAD = [
+    "Mått: 100 × 65 × 73 cm (L × B × H)",                          # 0
+    "Sits: 37 cm lång, 17 cm bred",                                # 1
+    "Hjul: Ø 36 cm, 15 cm breda",                                  # 2
+    "Platser: 1",                                                  # 3
+    "Rekommenderad ålder: 3–5 år",                                 # 4
+    "Maxvikt: 30 kg",                                              # 5
+    "Hastighet: 3–8 km/h",                                         # 6
+]
+
 R_UTV = [("Mått", 0), ("Sits", 1), ("Hjul", 2),
          ("Ålder", 3), ("Maxvikt", 4), ("Hastighet", 5)]
 R_MAS = [("Mått", 0), ("Sits", 1), ("Hjul", 3),
@@ -77,13 +97,25 @@ R_MAS = [("Mått", 0), ("Sits", 1), ("Hjul", 3),
 R_KAW = [("Mått", 0), ("Sits", 1), ("Hjul", 3),
          ("Ålder", 5), ("Maxvikt", 6), ("Hastighet", 7)]
 
+R_APR = [("Mått", 0), ("Sits", 1), ("Hjul", 3),
+         ("Ålder", 5), ("Maxvikt", 6), ("Hastighet", 7)]
+R_QUAD = [("Mått", 0), ("Sits", 1), ("Hjul", 2),
+          ("Ålder", 4), ("Maxvikt", 5), ("Hastighet", 6)]
+
 KICKER = "Elbil för barn 12 V"
+KICKER_MC = "Elmotorcykel för barn 12 V"
+KICKER_QUAD = "Fyrhjuling för barn 12 V"
+RUB_APR = "Avtagbara stödhjul och mönstrade däck"
+RUB_QUAD = "Fyra grova hjul och tända strålkastare"
 RUB_UTV = "Störtbåge, tända lyktor och grova däck"
 RUB_KAW = "Störtbåge och frontbygel i samma färg"
 RUB_MAS = "Treudden i grillen och tända strålkastare"
 
 # id8 -> (spec, rader, rubrik, panelfoto)
 PRODUKTER = {
+    "5e9cc2d2": (APRILIA,  R_APR,  RUB_APR,  "aprilia_vit"),
+    "1e27f7e0": (APRILIA,  R_APR,  RUB_APR,  "aprilia_svart"),
+    "883db249": (QUAD,     R_QUAD, RUB_QUAD, "quad_orange"),
     "f15febb2": (UTV,      R_UTV, RUB_UTV, "utv_rosa"),
     "3d9dff8a": (UTV,      R_UTV, RUB_UTV, "utv_orange"),
     "2f6ff71c": (UTV,      R_UTV, RUB_UTV, "utv_bla"),
@@ -94,7 +126,10 @@ PRODUKTER = {
 }
 
 if __name__ == "__main__":
-    kortdata = {k: (KICKER, v[2], v[1]) for k, v in PRODUKTER.items()}
+    KICKERS = {"5e9cc2d2": KICKER_MC, "1e27f7e0": KICKER_MC,
+               "883db249": KICKER_QUAD}
+    kortdata = {k: (KICKERS.get(k, KICKER), v[2], v[1])
+                for k, v in PRODUKTER.items()}
     produkter = [{"kort": k, "spec": v[0]} for k, v in PRODUKTER.items()]
     foton = {k: "%s/panelfoton/%s.jpg" % (HAR, v[3])
              for k, v in PRODUKTER.items()}

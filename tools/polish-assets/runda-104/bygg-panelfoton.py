@@ -31,10 +31,16 @@ from PIL import Image
 
 BREDD, HOJD = 2832, 1548          # panelens enhets-pixlar vid scale=2
 FYLL = 0.56                       # produktens andel av panelbredden
+
+# ⚠️ Per-produkt-undantag, alltid MÄTT. Fyrhjulingens kort landade på
+#    215 851 byte vid 0,56 — 851 byte över taket, alltså 0,4 %. Den har mer
+#    högfrekvent yta än de andra (fyra grovmönstrade däck i skarp studioljus),
+#    så den behöver ritas något mindre. Sänk aldrig kvaliteten i stället.
+FYLL_UNDANTAG = {"quad_orange": 0.52}
 TROSK = 246                       # ljusare än så räknas som studiovit
 
 
-def panel(kalla, ut):
+def panel(kalla, ut, fyll=None):
     im = Image.open(kalla).convert("RGB")
     mask = im.convert("L").point(lambda v: 255 if v < TROSK else 0)
     bb = mask.getbbox()
@@ -44,7 +50,7 @@ def panel(kalla, ut):
     pw, ph = prod.size
     if pw * ph < 0.02 * im.width * im.height:
         raise SystemExit("bbox misstänkt liten i %s: %r" % (kalla, bb))
-    s = min(FYLL * BREDD / pw, 0.94 * HOJD / ph)
+    s = min((fyll or FYLL) * BREDD / pw, 0.94 * HOJD / ph)
     prod = prod.resize((int(pw * s), int(ph * s)), Image.LANCZOS)
     duk = Image.new("RGB", (BREDD, HOJD), (255, 255, 255))
     duk.paste(prod, ((BREDD - prod.width) // 2, (HOJD - prod.height) // 2))
@@ -58,6 +64,10 @@ def panel(kalla, ut):
 # kunde ha hämtat fel syskons bild, och det syns inte på ett kontaktark när
 # sju bilar är samma modell i sju färger.
 HJALTAR = {
+    # rundans tre sista sidor (Aprilia-motorcyklarna och fyrhjulingen)
+    "aprilia_vit":   "b379ce_eec323f5c404430da960e5adb0cb5614~mv2.jpg",
+    "aprilia_svart": "b379ce_b6227b2846c74788916819a21e4f6f02~mv2.jpg",
+    "quad_orange":   "b379ce_7e83f4d3b47f43138b00025a0da6e58b~mv2.jpg",
     "utv_rosa":    "b379ce_cef3727b9930468094fb962f0ccf9fc0~mv2.jpg",
     "utv_orange":  "b379ce_3a79a0e44d204e81a0553cb768f40473~mv2.jpg",
     "utv_bla":     "b379ce_604bb4bae7594edba6609c08da669230~mv2.jpg",
@@ -85,5 +95,6 @@ def hamta(namn, mid):
 if __name__ == "__main__":
     os.makedirs("panelfoton", exist_ok=True)
     for namn, mid in HJALTAR.items():
-        b, h = panel(hamta(namn, mid), "panelfoton/%s.jpg" % namn)
+        b, h = panel(hamta(namn, mid), "panelfoton/%s.jpg" % namn,
+                     FYLL_UNDANTAG.get(namn))
         print("  %-12s bredd %.0f %%  höjd %.0f %%" % (namn, b * 100, h * 100))
