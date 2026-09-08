@@ -84,3 +84,50 @@ Alla sju gröna före första skrivningen: `gate.py` 0 fynd i 8 filer,
 `gate-alt.py` 8 produkter / 37 alt-texter, `gate-seo.py` 0 fynd,
 `gate-lager.py` 0 fynd (lägsta saldo 61), `gate-sku.py` 0 fynd (längsta 34),
 `gate-lankar.py` 0 fynd, `hasha.py` 8 hashar.
+
+## Live-verifierat 2026-09-08: 8/8 REN, orddiff 0 i första svepet
+
+513–544 ord per sida, noll avvikelser i den publicerade texten. Alla åtta
+hämtades med `age` 99–100, alltså renderingar som den varma träffen utlöste.
+Sid-, alt-, SEO- och homoglyfsvepen rena, de tre flikarna på plats på alla
+åtta, JSON-LD `InStock` på alla åtta, noll artikelnummer och noll husmärken.
+
+## ☠️ TVÅ TOPPKATEGORIER GÖR BRÖDSMULAN OFÖRUTSÄGBAR (nytt, 2026-09-08)
+
+Kategorierna sattes först till `Hem & Inredning` + `Skönhet & Hälsa` +
+`Massage & Återhämtning` — en spegling av runda 101, som mätte fram den
+uppsättningen för massageFÅTÖLJER. Bulk-svaret sa `8 lyckade, 0 misslyckade`
+per kategori, alltså rätt enligt varje kvitto vi hade.
+
+Den publicerade brödsmulan sa något annat:
+
+| brödsmulans nivå 2 | produkter |
+| :-- | --: |
+| `Skönhet & Hälsa` | **7** |
+| `Hem & Inredning` | **1** |
+
+☠️ **Samma kategoriuppsättning gav alltså olika brödsmula på olika produkter.**
+Butiken renderar tre nivåer — `Hem / <toppkategori> / produkt` — och plockar
+EN toppkategori. Med två toppkategorier kopplade är valet inte stabilt, och
+lövet (`Massage & Återhämtning`) visas aldrig.
+
+Följden är inte kosmetisk: sju kontorsstolar låg under `Skönhet & Hälsa` i
+Googles brödsmula, och den åttonde under `Hem & Inredning` — i samma runda,
+för åtta produkter av samma slag.
+
+`Skönhet & Hälsa` togs bort som DIREKT kategori
+(`bulk/categories/{id}/remove-items`, 8 lyckade, 0 misslyckade). Efteråt:
+**8 av 8 brödsmulor visar `Hem & Inredning`**, och `Massage & Återhämtning`
+sitter kvar så stolarna är sökbara i massagelistningen. Det speglar också de
+två redan publicerade massagekontorsstolarna, som båda ligger under
+`Hem & Inredning`.
+
+**Regeln: koppla EN toppkategori och så många löv du vill.** Ett löv ärver
+sin toppkategori i navigationen utan att konkurrera om brödsmulan.
+
+⚠️ Och ISR-fällan slog till i mätningen av lagningen, som den gjorde i #149:
+`924a6f45` kom tillbaka med `age 446` i omsvepet — en rendering ÄLDRE än
+kategoriändringen — och visade därför fortfarande `Skönhet & Hälsa`. En
+enskild omhämtning av just den sidan gav `age 21` och rätt brödsmula. **Ett
+svep är ett stickprov med tidsberoende; läs `age` innan du kallar en sida
+trasig.**
