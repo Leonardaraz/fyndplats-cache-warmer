@@ -199,6 +199,50 @@ def r15_faq_form(pid, h, *_):
     return None
 
 
+# ---------------------------------------------------- runda 102:s tre regler
+
+# ☠️ Byggd ur KODPUNKTER, inte ur klistrade tecken. Runda 46 skrev grinden med
+#    ett vanligt mellanslag som U+00A0-nyckel och frågade därmed "innehåller
+#    texten ett mellanslag?" — sant för varje text som finns.
+OSYNLIGT = {chr(c): "U+%04X" % c
+            for c in (0x00AD, 0x00A0, 0x200B, 0xFEFF, 0x200E, 0x200F)}
+assert all(ord(t) > 0x20 for t in OSYNLIGT), "grinden ar avvapnad"
+
+
+def r16_osynliga_tecken(pid, h, meta, namn, titel):
+    for yta, txt in (("html", h), ("meta", meta), ("namn", namn), ("titel", titel)):
+        for tecken, kod in OSYNLIGT.items():
+            if tecken in txt:
+                return f"{yta} bär {kod} — osynligt för varje annan grind"
+    return None
+
+
+def r17_syskonantalet(pid, h, *_):
+    """☠️ Talet i syskonlistan är ett påstående om den EGNA batchen."""
+    ord_ = T.RAKNEORD[len(T.PRODUKTER)]
+    if f"Vi säljer {ord_} massagefåtöljer" not in h:
+        return f"syskonlistan säger inte '{ord_}' fastän familjen är {len(T.PRODUKTER)}"
+    n = h.count('<li><a href')
+    if n != len(T.PRODUKTER) - 1:
+        return f"{n} syskonrader, väntade {len(T.PRODUKTER) - 1}"
+    return None
+
+
+def r18_unika_identiteter(pid, *_):
+    """☠️ Importen kapar den tyska sluggen vid 24 tecken, så flera produkter
+       får samma SKU. Runda 101: sex av åtta delade två strängar. Runda 102:
+       FP-relaxsessel-mit-fu bars av två. Grinden är per FAMILJ, inte per runda."""
+    for fält, d in (("slug", T.SLUGG), ("SKU", T.SKU), ("kortnamn", T.KORTNAMN)):
+        v = d[pid]
+        andra = [k for k in T.PRODUKTER if k != pid and d[k] == v]
+        if andra:
+            return f"{fält} {v!r} delas med {andra}"
+    # Titeln får ALDRIG vara identisk med namnet — då renderar butiken mallen.
+    if T.SEO_TITEL[pid] == T.NAMN[pid]:
+        return "seoTitel är identisk med name → butiken lägger på {name} | Fyndplats"
+    return None
+
+
 REGLER = [
     ("1 Lieferumfang: fjärrkontroll", r1_lieferumfang),
     ("2 mikrolåsningsnoten", r2_mikrolasning),
@@ -215,6 +259,9 @@ REGLER = [
     ("13 ingen tyska", r13_tyska),
     ("14 rena h2-rubriker", r14_h2_rena),
     ("15 FAQ-formen", r15_faq_form),
+    ("16 inga osynliga tecken", r16_osynliga_tecken),
+    ("17 syskonantalet", r17_syskonantalet),
+    ("18 unika identiteter", r18_unika_identiteter),
 ]
 
 
@@ -260,7 +307,30 @@ MUTATIONER = [
     ("14", "89fead7d", lambda h: h.replace("<h2>Vanliga frågor</h2>",
         '<h2><span style="font-weight: 700">Vanliga frågor</span></h2>')),
     ("15", "9c8a7a80", lambda h: h.replace("</strong></p><p>", "</strong><br>")),
+    ("16", "5a31b710", lambda h: h.replace("massagepunkter", "massage\u00adpunkter")),
+    ("17", "071cad5d", lambda h: h.replace("Vi säljer tretton", "Vi säljer åtta")),
+    ("17", "2de635c3", lambda h: re.sub(r"<li><a href[^<]*</a>[^<]*</li>", "", h, count=1)),
 ]
+
+
+def sjalvtest_regel18():
+    """☠️ Regel 18 läser DICTARNA, inte HTML:en, så mutationsramen når den
+       inte. Den provas därför separat — genom att återinföra exakt den
+       krock runda 102 hittade i Wix (FP-relaxsessel-mit-fu på två produkter)."""
+    ut = []
+    for falt, d in (("SKU", T.SKU), ("SLUGG", T.SLUGG), ("KORTNAMN", T.KORTNAMN)):
+        a, b = T.PRODUKTER[0], T.PRODUKTER[1]
+        spar = d[b]
+        d[b] = d[a]                                    # inför krocken
+        fangad = bool(r18_unika_identiteter(a)) and bool(r18_unika_identiteter(b))
+        d[b] = spar                                    # återställ
+        ut.append((falt, fangad))
+    # och åt andra hållet: identisk titel och namn
+    spar = T.SEO_TITEL[T.PRODUKTER[0]]
+    T.SEO_TITEL[T.PRODUKTER[0]] = T.NAMN[T.PRODUKTER[0]]
+    ut.append(("titel==namn", bool(r18_unika_identiteter(T.PRODUKTER[0]))))
+    T.SEO_TITEL[T.PRODUKTER[0]] = spar
+    return ut
 
 
 def sjalvtest():
@@ -283,6 +353,12 @@ def sjalvtest():
 if __name__ == "__main__":
     print("=== självtest: varje mutation ska fälla sin regel ===")
     ok, fel = sjalvtest()
+    for falt, fangad in sjalvtest_regel18():
+        if not fangad:
+            fel += 1
+            print(f"  ☠️ regel 18 fångade INTE en krock i {falt}")
+        else:
+            ok += 1
     print(f"  {ok}/{ok + fel} mutationer fångade\n")
 
     print("=== den riktiga texten ===")

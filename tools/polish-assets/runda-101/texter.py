@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Runda 101 – åtta massagefåtöljer i fyra modeller.
+"""Runda 101 + 102 – TRETTON massagefåtöljer i fyra modeller.
+
+☠️ EN fil för hela familjen, inte en per runda. Syskonlistan måste vara
+   IDENTISK på alla tretton sidor, och två filer som båda definierar den
+   är precis den tvilling huset lärt sig att inte bygga (SHIP_AXIS_RE,
+   EU_TULL_CODES, mapWithConcurrency). Runda 102 lade till fem färgsyskon
+   till modell B och C; de åtta från runda 101 fick sin syskonlista
+   omskriven i samma veva.
 
 Fakta kommer UTESLUTANDE ur STEG2-4-5.md, som i sin tur bara bär det
 leverantörens text, spec-kolumnerna eller måttritningen faktiskt säger.
@@ -7,6 +14,10 @@ Inget tal här är härlett, uppskattat eller lånat från ett syskon.
 """
 
 BAS = "https://www.fyndplats.se/produkt/"
+
+RAKNEORD = {1: "en", 2: "två", 3: "tre", 4: "fyra", 5: "fem", 6: "sex",
+            7: "sju", 8: "åtta", 9: "nio", 10: "tio", 11: "elva",
+            12: "tolv", 13: "tretton", 14: "fjorton", 15: "femton"}
 
 # modell -> gemensamma fakta
 # A = vridbar fåtölj + vridbar fotpall, svart rund stålfot, konstläder
@@ -18,22 +29,31 @@ PRODUKTER = ["cd7e9036", "7062dc79", "9c8a7a80",
              "1932abe1", "89fead7d",
              "54d25930", "c50fa916",
              "b8b6fee1"]
+PRODUKTER += ["5a31b710", "071cad5d", "2de635c3",   # runda 102, modell B
+              "3b61e50c", "70d0a9ea"]                 # runda 102, modell C
 
 MODELL = {"cd7e9036": "A", "7062dc79": "A", "9c8a7a80": "A",
           "1932abe1": "B", "89fead7d": "B",
           "54d25930": "C", "c50fa916": "C",
-          "b8b6fee1": "D"}
+          "b8b6fee1": "D",
+          "5a31b710": "B", "071cad5d": "B", "2de635c3": "B",
+          "3b61e50c": "C", "70d0a9ea": "C"}
 
 FARG = {"cd7e9036": "brun", "7062dc79": "cremevit", "9c8a7a80": "svart",
         "1932abe1": "svart", "89fead7d": "svart",
         "54d25930": "cremevit", "c50fa916": "mörkgrå",
-        "b8b6fee1": "svart"}
+        "b8b6fee1": "svart",
+        "5a31b710": "cremevit", "071cad5d": "brun", "2de635c3": "mörkgrå",
+        "3b61e50c": "brun", "70d0a9ea": "svart"}
 
 # Klädsel – avgjord på ZOOM, inte på spec-kolumnen (se STEG2-4-5.md)
 KLADSEL = {"cd7e9036": "konstläder", "7062dc79": "konstläder", "9c8a7a80": "konstläder",
            "1932abe1": "konstläder", "89fead7d": "tyg",
            "54d25930": "konstläder", "c50fa916": "konstläder",
-           "b8b6fee1": "tyg"}
+           "b8b6fee1": "tyg",
+           "5a31b710": "konstläder", "071cad5d": "konstläder",
+           "2de635c3": "tyg",
+           "3b61e50c": "konstläder", "70d0a9ea": "konstläder"}
 
 # Fotpallens maxlast. None = leverantörens data anger ingen. Skriv då INGEN.
 PALLAST = {"A": None, "B": 100, "C": 20, "D": 60}
@@ -50,6 +70,11 @@ SLUGG = {
     "54d25930": "massagefatolj-160-kg-cremevit",
     "c50fa916": "massagefatolj-morkgra-160-kg",
     "b8b6fee1": "massagefatolj-156-cm-utfalld-svart",
+    "5a31b710": "massagefatolj-cremevit-fotpall-forvaring",
+    "071cad5d": "massagefatolj-brun-fotpall-forvaring",
+    "2de635c3": "massagefatolj-morkgra-tyg-forvaring",
+    "3b61e50c": "massagefatolj-brun-160-kg",
+    "70d0a9ea": "massagefatolj-svart-160-kg"
 }
 
 SKU = {
@@ -61,6 +86,11 @@ SKU = {
     "54d25930": "FP-massagefatolj-160-kg",
     "c50fa916": "FP-massagefatolj-morkgra",
     "b8b6fee1": "FP-massagefatolj-156-cm",
+    "5a31b710": "FP-massagefatolj-cremevit-forvaring",
+    "071cad5d": "FP-massagefatolj-brun-forvaring",
+    "2de635c3": "FP-massagefatolj-morkgra-tyg",
+    "3b61e50c": "FP-massagefatolj-brun-160-kg",
+    "70d0a9ea": "FP-massagefatolj-svart-160-kg"
 }
 
 NAMN = {
@@ -72,6 +102,11 @@ NAMN = {
     "54d25930": "Massagefåtölj för 160 kg, cremevit – 105 cm hög rygg och fotpall",
     "c50fa916": "Massagefåtölj mörkgrå för 160 kg – 105 cm hög rygg och fotpall",
     "b8b6fee1": "Massagefåtölj i linnelook, svart – 156 cm utfälld med kromad fot",
+    "5a31b710": "Massagefåtölj cremevit – fotpall med förvaring som bär 100 kg",
+    "071cad5d": "Massagefåtölj brun – fotpall med förvaring som bär 100 kg",
+    "2de635c3": "Massagefåtölj i mörkgrått tyg – fotpall med förvaring som bär 100 kg",
+    "3b61e50c": "Massagefåtölj brun för 160 kg – 105 cm hög rygg och fotpall",
+    "70d0a9ea": "Massagefåtölj svart för 160 kg – 105 cm hög rygg och fotpall"
 }
 
 SEO_TITEL = {
@@ -83,6 +118,11 @@ SEO_TITEL = {
     "54d25930": "Massagefåtölj cremevit för 160 kg | Fyndplats",
     "c50fa916": "Massagefåtölj mörkgrå för 160 kg | Fyndplats",
     "b8b6fee1": "Massagefåtölj svart, 156 cm utfälld | Fyndplats",
+    "5a31b710": "Massagefåtölj cremevit med förvaringspall",
+    "071cad5d": "Massagefåtölj brun med förvaringspall",
+    "2de635c3": "Massagefåtölj mörkgrå i tyg med förvaringspall",
+    "3b61e50c": "Massagefåtölj brun för 160 kg | Fyndplats",
+    "70d0a9ea": "Massagefåtölj svart för 160 kg | Fyndplats"
 }
 
 SEO_BESKRIVNING = {
@@ -94,6 +134,11 @@ SEO_BESKRIVNING = {
     "54d25930": "Cremevit massagefåtölj som bär 160 kg, med 105 cm hög rygg och tio massagepunkter. Sitsen snurrar 360°, ryggen fälls till 145°, fotpall ingår.",
     "c50fa916": "Mörkgrå massagefåtölj som bär 160 kg, med 105 cm hög rygg och tio massagepunkter. Sitsen snurrar 360°, ryggen fälls till 145°, fotpall ingår.",
     "b8b6fee1": "Svart massagefåtölj i linnelook med kromad fot och åtta vibrationspunkter. Fälls ut till 156 cm, ottomanen bär 60 kg och sitsen snurrar 360°.",
+    "5a31b710": "Cremevit massagefåtölj i konstläder på träram, med tio massagepunkter i fem lägen. Fotpallen har förvaring under locket och bär 100 kg.",
+    "071cad5d": "Brun massagefåtölj i konstläder på träram, med tio massagepunkter i fem lägen. Fotpallen har förvaring under locket och bär 100 kg.",
+    "2de635c3": "Mörkgrå massagefåtölj i tyg på träram, med tio massagepunkter i fem lägen och två styrkor. Fotpallen har förvaring under locket och bär 100 kg.",
+    "3b61e50c": "Brun massagefåtölj som bär 160 kg, med 105 cm hög rygg och tio massagepunkter. Sitsen snurrar 360°, ryggen fälls till 145°, fotpall ingår.",
+    "70d0a9ea": "Svart massagefåtölj som bär 160 kg, med 105 cm hög rygg och tio massagepunkter. Sitsen snurrar 360°, ryggen fälls till 145°, fotpall ingår."
 }
 
 SOKORD = {
@@ -112,6 +157,11 @@ KORTNAMN = {
     "54d25930": "Massagefåtölj cremevit, 160 kg",
     "c50fa916": "Massagefåtölj mörkgrå, 160 kg",
     "b8b6fee1": "Massagefåtölj svart, 156 cm",
+    "5a31b710": "Massagefåtölj cremevit med förvaring",
+    "071cad5d": "Massagefåtölj brun med förvaring",
+    "2de635c3": "Massagefåtölj mörkgrå i tyg",
+    "3b61e50c": "Massagefåtölj brun, 160 kg",
+    "70d0a9ea": "Massagefåtölj svart, 160 kg"
 }
 
 SYSKONTEXT = {
@@ -123,6 +173,11 @@ SYSKONTEXT = {
     "54d25930": "cremevit, bär 160 kg",
     "c50fa916": "mörkgrå, bär 160 kg",
     "b8b6fee1": "linnelook, 156 cm utfälld",
+    "5a31b710": "cremevit, fotpall med förvaring",
+    "071cad5d": "brun, fotpall med förvaring",
+    "2de635c3": "mörkgrått tyg, fotpall med förvaring",
+    "3b61e50c": "brun, bär 160 kg",
+    "70d0a9ea": "svart, bär 160 kg"
 }
 
 INGRESS = {
@@ -282,8 +337,8 @@ STYCKEN2 = {
         "den 81 cm bred, 112 cm djup och 91 cm hög. Sitsen snurrar 360° på foten.",
         "Fotpallen mäter 47 × 40 cm och är 43 cm hög. Den är gjord som fotstöd och "
         "bär 20 kg – lägg upp benen på den, men sätt dig inte på den. Behöver du en "
-        "pall som också tål att sitta på finns två modeller med förvaringslock längre "
-        "ned på sidan.",
+        "pall som också tål att sitta på finns fåtöljen med förvaringslock i pallen "
+        "längre ned på sidan.",
     ],
     "D": [
         "Ryggen fälls till 135° och ottomanen står separat, så när du lägger ihop "
@@ -416,8 +471,14 @@ def _syskon(pid):
         rader.append(
             f'<li><a href="{BAS}{SLUGG[annan]}">{KORTNAMN[annan]}</a> '
             f"– {SYSKONTEXT[annan]}</li>")
-    return ("<h2>Fler massagefåtöljer hos oss</h2>"
-            "<p>Vi säljer åtta massagefåtöljer i fyra modeller. Så här skiljer de sig:</p>"
+    # ☠️ ANTALET HÄRLEDS, det skrivs aldrig. Runda 101 skrev "åtta" i klartext
+    #    och runda 102 gjorde talet fel på åtta publicerade sidor samma dag
+    #    som fem syskon tillkom. Ett tal om den egna batchen ska räknas.
+    antal = RAKNEORD[len(PRODUKTER)]
+    modeller = RAKNEORD[len(set(MODELL.values()))]
+    return (f"<h2>Fler massagefåtöljer hos oss</h2>"
+            f"<p>Vi säljer {antal} massagefåtöljer i {modeller} modeller. "
+            f"Så här skiljer de sig:</p>"
             + "<ul>" + "".join(rader) + "</ul>")
 
 
