@@ -175,3 +175,63 @@ sig att inte bygga. Antalet HÄRLEDS numera (`RAKNEORD[len(PRODUKTER)]`) — det
 skrivs aldrig i klartext igen.
 
 Lintet: **18 regler, 27/27 mutationer fångade, 0 brister i 13 texter.**
+
+- **Steg 12 (läs sidan som kund)** — ☠️ **fann ett verkligt fel, och det var
+  FAMILJEBRETT, inte rundans.** Kroppstexten (allt före syskonlistan) grupperade
+  sig i FYRA byte-identiska kluster över de tretton sidorna, och **färgen stod
+  inte i brödtexten på en enda av dem**:
+
+  | kluster | sidor | varav publicerade |
+  |---|--:|--:|
+  | A, vridbar fotpall | 3 | 3 |
+  | B, konstläder + förvaringspall | 3 | 1 |
+  | B, tyg + förvaringspall | 2 | 1 |
+  | C, 160 kg | 4 | 2 |
+
+  Åtta LIVE-sidor bar alltså en kropp som var identisk med ett syskons. Det är
+  precis Steg 12:s egen fälla (*"Läser sidan som en kopia av syskonproduktens?"*)
+  OCH `CLAUDE.md`:s interna dubblett — två egna URL:er med samma text och samma
+  foton är den dubblett Google faktiskt straffar.
+
+  Rättat på alla tretton med två ändringar per sida, båda rena fakta:
+  färgen in i ingressen (`Massagefåtölj i cremevitt konstläder …`) och en
+  **Färg-rad** i spec-tabellen, som saknades helt. Efter: **13 unika kroppar,
+  noll identiska kluster.**
+
+  ☠️ **Genusfällan igen, och den var förutsedd den här gången.** *Konstläder*
+  och *tyg* är ett-ord: `cremevitt konstläder`, `mörkgrått tyg`. Grinden i
+  anropet fällde på en-formen före båda substantiven, precis som Steg 9:s
+  grind gör före `massagefåtölj`.
+
+  ⚠️ Färgen på de två publicerade B-sidorna stod varken i namn, titel eller
+  spec — den fanns bara i ALT-TEXTERNA (`Svart massagefåtölj i konstläder…`).
+  Den lästes därför därifrån i stället för att gissas. Att sidorna heter
+  "i konstläder" och "i tyg" medan syskonen heter efter färgen är ett eget
+  fynd; det rör slug och SEO och lämnas till en egen runda.
+
+- **Steg 13** — de fem publicerade. `visible:true` på **både** produkt och
+  variant, 5/5. Mappningsraderna stämplade via workflowen
+  (`draftStatus: published`, `needsAiPolish: false`, SKU per `wixVariantId`).
+
+  ☠️ **Två 400:or före den lyckade skrivningen, båda av samma familj som husets
+  tystaste bugg — ett fält som saknas i svaret utan att vara ett fel:**
+
+  1. `SEARCH`-svaret bär `variantsInfo.variants` **TOMT**. Patchen byggd på det
+     avvisades med `variants has size 0`. Fjärde gången samma asymmetri:
+     `plainDescription`, `MEDIA_ITEMS_INFO`, `directCategoriesInfo` — och nu
+     den här. **GET ger varianterna, SEARCH gör det inte.**
+  2. `price` är OBLIGATORISKT i en variantskrivning. Det ekas därför tillbaka
+     ordagrant, och en grind i samma anrop jämför priset före och efter:
+     5/5 `prisÖrört: true`. Huset rör aldrig priset — men här måste det ändå
+     skickas med, och då ska det bevisas att det är oförändrat.
+
+  Kvitto ur `las` på `70d0a9ea` efteråt: `draftStatus published`,
+  `needsAiPolish false`, `sku FP-massagefatolj-svart-160-kg` på rätt
+  `wixVariantId`, prisgrinden `stämmer true` (2 118,17 → 2 549, charm99).
+
+- **Steg 14** — ⚠️ **ISR-cachen svarade 404 på alla fem direkt efter
+  publiceringen**, precis som i runda 60. `x-vercel-cache: HIT`,
+  `x-nextjs-stale-time: 300`. Cache-bust i query-strängen hjälper INTE —
+  Next.js ISR nycklar inte på okända parametrar, så `?cb=…` ger samma cachade
+  404. Kontrollsidan (`nattduksbord-rgb-led-tva-lador`, orörd av rundan)
+  svarade 200 i samma svep, alltså är det cachen och inte sajten.
