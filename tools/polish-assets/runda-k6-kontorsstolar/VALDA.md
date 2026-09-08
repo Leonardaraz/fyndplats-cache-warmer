@@ -128,3 +128,20 @@ Kategori: `Hem & Inredning`, **8 av 8** enligt bulk-svarets `bulkActionMetadata`
 
 Mappningsraderna stämplade i åtta `stampla`-körningar (1963–1970), alla med
 `ref: claude/seo-polering-runbook-review-uq6fwl` (#181) — **8/8 success**.
+
+## Live-verifieringen: 8/8 REN, orddiff 0
+
+Ett svep, ingen ISR-omhämtning behövdes: alla åtta hämtades med `age: 100–101`,
+alltså renderingar som skedde efter skrivningen.
+
+```
+501ba88f  ord=648  diff=0  REN     0776fa7c  ord=579  diff=0  REN
+f3f45d87  ord=587  diff=0  REN     1c635cfb  ord=582  diff=0  REN
+a3128b31  ord=596  diff=0  REN     2b8b7297  ord=580  diff=0  REN
+91f0f3f8  ord=544  diff=0  REN     62d67357  ord=613  diff=0  REN
+```
+
+`REN` är hela problemlistan tom: sidsvep, alt-svep, SEO-svep mot `seo.tsv`, de
+tre flikarna, kategorin i brödsmulan, köpbarheten (#148) och korslänkarna —
+inklusive de sex interna som `gate-lankar` per konstruktion inte kunde nå före
+skrivningen.
