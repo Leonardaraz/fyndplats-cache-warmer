@@ -87,3 +87,33 @@ lika illa som ett fel ingen ser.** Båda är lagade i `grind.py` och
 - **Dubblettsvepet mot publicerade sidor** — se `dubblettsvep.py`. Den andra
   sessionen mätte samma dag att en koll mot enbart `Mått:`-raden ger 0 träffar
   där en koll mot varje trippel ger 8.
+
+## ✅ Dubblettsvepet: 524 publicerade sidor, noll träffar
+
+Kört efter publiceringen, med den BREDA metod den andra sessionen mätte upp
+samma dag (varje `a × b × c cm`-trippel, inte bara `Mått:`-raden).
+
+| | |
+|---|---:|
+| publicerade produktsidor i sitemapen | **2 378** |
+| stol-liknande slugs (svepets urval) | 529 |
+| faktiskt lästa | **524** |
+| varav med NÅGON måtttrippel | **461 (87 %)** |
+| träffar på 82 × 99 × 103 | **0** |
+
+Rundans tre sidor dubblerar alltså ingen redan publicerad sida.
+
+⚠️ **Nollan är ett GOLV, inte ett bevis.** 63 av de lästa sidorna bär ingen
+trippel alls och kunde inte prövas — täckningen ska alltid stå bredvid antalet
+träffar, annars går en nolla inte att läsa. Och svepet är avgränsat till
+stol-liknande slugs; en dubblett som heter något helt annat syns inte.
+
+☠️ **Wix API kan inte göra den här kollen** — mätt samma dag:
+
+| försök | utfall |
+|---|---|
+| `filter: {plainDescription: {$contains: …}}` | **400** — "not declared as filterable" |
+| `search: {expression: "82 × 99 × 103"}` | tokeniserar talen, gav 17 orelaterade tyska utkast |
+
+Enda vägen är att läsa de LIVE-renderade sidorna. Svepet ligger i
+`dubblettsvep.py`, utfallet i `dubblettsvep-utfall.log`.
