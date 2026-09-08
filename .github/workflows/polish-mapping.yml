@@ -42,6 +42,32 @@ on:
         required: false
         default: false
         type: boolean
+      kuvert:
+        # ☠️ VARFÖR DET HÄR FINNS, OCH VARFÖR DET INTE ÄR EN BAKDÖRR.
+        #
+        # `supplierProductId` (Aosoms artikelnummer) och `sourceUrl` är de enda
+        # fälten på raden som varken får skrivas till en publik logg ELLER går
+        # att härleda ur något publikt. Artikelnumret är den sträng
+        # dealproffsen.se publicerar som sku/mpn — den joinar vår produktsida
+        # mot deras och därmed mot vårt inköpsled.
+        #
+        # Ägaren behöver ändå kunna läsa sitt eget artikelnummer, t.ex. för att
+        # lägga en Aosom-order för hand. Fram till nu fanns bara två vägar:
+        # skriva det till den publika loggen (det som gick fel i #181), eller
+        # logga in i /admin. Den här är den tredje.
+        #
+        # Anroparen skickar en ENGÅNGS PUBLIK nyckel. Workflowen krypterar
+        # fälten mot den och skriver bara chiffret. Att den publika nyckeln
+        # syns i loggen är hela poängen med asymmetrisk kryptering — bara den
+        # som har den PRIVATA nyckeln, som aldrig lämnar anroparens maskin,
+        # kan läsa värdet. Klartexten passerar aldrig loggen.
+        #
+        # ⚠️ Den flyttar alltså inte hemligheten någon annanstans än till den
+        # som redan äger den. Lämna tomt när du inte behöver den.
+        description: "Läs artikelnummer PRIVAT: base64 av en RSA-publik nyckel (PEM). TOMT = hoppa över."
+        required: false
+        default: ""
+        type: string
       needs_ai_polish:
         # ☠️ DEFAULTEN MÅSTE VARA TOM. GitHub ersätter ett tomt värde med
         # `default`, så "tomt = rör inte" var omöjligt att uppnå: en körning
@@ -75,6 +101,7 @@ jobs:
           MODE: ${{ inputs.mode }}
           PRODUCT_ID: ${{ inputs.wix_product_id }}
           VISA_KOSTNAD: ${{ inputs.visa_kostnad }}
+          KUVERT: ${{ inputs.kuvert }}
           NEEDS_POLISH: ${{ inputs.needs_ai_polish }}
           DRAFT_STATUS: ${{ inputs.draft_status }}
           VARIANT_SKUS: ${{ inputs.variant_skus }}
@@ -202,6 +229,45 @@ jobs:
             fi
             fs=$(echo "$svar" | jq -r '.aosomFreightShare // "null"')
             echo "  aosomFreightShare: ${fs} (over 0,5 = frakten kostar mer an varan, polera sist)"
+
+            # --- Kuvertet: de tva falt som varken far loggas eller gar att harleda ---
+            if [ -n "${KUVERT:-}" ]; then
+              echo
+              echo "=== Kuvert (RSA-OAEP/SHA-256, base64) ==="
+
+              # ☠️ Klartexten skrivs till en FIL, aldrig till en variabel som
+              # nagot senare kan `echo`:a av misstag, och filen ligger bara i
+              # runnerns eget flyktiga filsystem. `set -euo pipefail` galler,
+              # sa varje led nedan fars falla hogt.
+              umask 077
+              echo "$svar" | jq -j '{
+                artikelnummer: .mappning.supplierProductId,
+                sourceUrl:     .mappning.sourceUrl
+              } | tostring' > kuvert.klartext
+
+              if ! echo "${KUVERT}" | base64 -d > kuvert.pub 2>/dev/null; then
+                echo "::error::kuvert: inputet ar inte giltig base64" >&2
+                exit 1
+              fi
+
+              # ☠️ INGEN FALLBACK TILL KLARTEXT. Gar krypteringen fel ska
+              # jobbet FALLA, inte skriva ut vardet "sa att det atminstone
+              # syns". Ett misslyckande som raddar sig sjalv genom att gora
+              # exakt det man ville undvika ar samre an inget alls.
+              if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+                   -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+                   -in kuvert.klartext -out kuvert.bin 2>/dev/null; then
+                echo "::error::kuvert: krypteringen misslyckades — inget skrivs ut" >&2
+                rm -f kuvert.klartext kuvert.pub kuvert.bin
+                exit 1
+              fi
+              rm -f kuvert.klartext kuvert.pub
+
+              base64 -w0 kuvert.bin
+              echo
+              rm -f kuvert.bin
+              echo "(dekryptera med din privata nyckel: base64 -d | openssl pkeyutl -decrypt)"
+            fi
             exit 0
           fi
 
