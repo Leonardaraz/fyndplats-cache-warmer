@@ -236,18 +236,23 @@ UTKAST = {
                  "hasenstall-kaninchenstall-holz-kaninchenkafig-mit-aufklappbar",
                  1649, True, "FP-hasenstall", "cecfb9b3", "Grau+Grün",
                  (125.5, 100, 49),
-                 [("löpgård", 92, 78, 44.5)], [("hus", 88, 38.5, 37)], "stall",
-                 "☠️ Huset och löpgården FÅR INTE PLATS bredvid varandra: 92 + 88 = "
-                 "180 cm mot 125,5 cm längd, och 78 + 38,5 = 116,5 cm mot 100 cm "
-                 "bredd. De överlappar alltså, och bara löpgården räknas som "
-                 "bottenyta. Leverantörens 'Bodenfläche 1,1178 m², 121,5 × 92 cm' "
-                 "är bottenplattans YTTERMÅTT, inte fri golvyta."),
+                 [("löpgård", 92, 78, 44.5), ("hus", 88, 38.5, 37)], [], "stall",
+                 "⚠️ Husets '88L' mäts TVÄRS produktens längd: 38,5 + 92 = 130,5 cm "
+                 "mot yttermåttet 125,5, alltså ände mot ände med ~5 cm överlapp "
+                 "under takutsprånget. Måttritningen (bild 3) märker just 39 och 92 "
+                 "längs längden. Båda golven ligger på marken och räknas — men "
+                 "husets 38,5 cm är 1,5 cm under marsvinets kortaste sida (40 cm), "
+                 "så grinden godkänner bara löpgårdens 0,72 m². Leverantörens "
+                 "'Bodenfläche 1,1178 m², 121,5 × 92 cm' är bottenbrickans "
+                 "yttermått, inte fri golvyta."),
     "1f7ebf33": ("Kleintierstall mit Freigehege, herausnehmbare Bodenwanne",
                  "kleintierstall-mit-freigehege-herausnehmbare-bodenwanne",
                  1659, True, "FP-kleintierstall-mit", "cc70125c", "Orange+Grün",
                  (125.5, 100, 49),
-                 [("löpgård", 92, 78, 44.5)], [("hus", 88, 38.5, 37)], "stall",
-                 "Samma modell och samma överlappsproblem som b54e7a23, annan färg."),
+                 [("löpgård", 92, 78, 44.5), ("hus", 88, 38.5, 37)], [], "stall",
+                 "Samma modell som b54e7a23, annan färg. ☠️ Bär PawHut-loggan "
+                 "FYSISKT på husfronten (bild 1 och 4); den grå syskonsidan gör det "
+                 "inte. Loggan sitter på varan och rörs inte (Leonards regel)."),
 
     # ── modell O: 181 × 100 × 48, bottenlös markhage (färgpar) ────────────
     "a4c0595f": ("Hasenstall Kaninchenstall aus Holz Winterfest Kaninchenkäfig mit",
@@ -278,10 +283,10 @@ UTKAST = {
                  "kleintierstall-mit-freigehege-aufklappbares-dach-wetterbestandig",
                  1899, True, "FP-kleintierstall-mit", "a4e3fd8c", "Natur",
                  (123, 120, 52),
-                 [("hage", 123, 120, 52)], [("hus (inne i hagen)", 42.5, 42.5, 47)], "stall",
-                 "⚠️ 52 cm är YTTERhöjden på hagen. Huset står INNE i hagen — dess "
-                 "yta ligger därför i `ovan`, inte i `delar`, annars hade grinden "
-                 "räknat samma golv två gånger."),
+                 [("hage", 123, 120, 52)], [("hus (inne i hagens fotavtryck)", 42.5, 42.5, 47)], "stall",
+                 "⚠️ 52 cm är YTTERhöjden. Måttritningen (bild 3) märker 123 och 120 "
+                 "som de två markmåtten, alltså ligger huset INNE i det fotavtrycket "
+                 "— dess yta får inte adderas, annars räknas samma golv två gånger."),
 
     # ── modell R: 110 × 105 × 50, hopfällbar markhage ──────────────────────
     "117691b5": ("Kleintierkäfig, Kaninchenstall, aufklappbares Dach, Tannenholz, 110 x",
@@ -418,6 +423,15 @@ UTKAST = {
                  1529, True, "FP-kleintierkafig", "85961b7a", "Naturholz",
                  (115, 60, 55), [("botten", 75.5, 58, 0)], [], "burT", ""),
 }
+
+# ☠️ DE STALL VARS ENDA HÖJDMÅTT ÄR PRODUKTENS YTTERHÖJD.
+#    En grind som läser det här ur en kommentarstext driftar första gången någon
+#    skriver om kommentaren — det hände i den här rundan: `1f7ebf33` fick en ny
+#    `anm` om PawHut-loggan och tappade samtidigt sin yttermåttsflagga, medan
+#    färgsyskonet `b54e7a23` behöll sin. Två identiska produkter fick två domar.
+#    Listan är därför DATA, och `l80-grind.py` asserterar att den stämmer med den
+#    mekaniska kontrollen "någon delyta har exakt produktens ytterhöjd".
+BARA_YTTERHOJD = {"a4c0595f", "7eebd0eb", "edc81021", "117691b5"}
 
 # ── PUBLICERADE KONKURRENTER i samma domän (svepet 2026-09-08) ───────────────
 # 2 404 publicerade sidor lästa, 2 404 unika, `avhuggen: false`.
