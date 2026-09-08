@@ -295,3 +295,53 @@ andra siffror, ett annat produktsubstantiv OCH utan att nämna väggmontering.
 **Slutsatsen är alltså inte "det kan inte finnas en dubblett" utan "sex
 oberoende sätt att hitta en hittar ingen".** Det är så säkert katalogens egen
 data kan göra det.
+
+## Korsningen: matchade någon BÅDE måttet och typen? (Leonards fråga)
+
+De två svepen hade aldrig korsats mot varandra — det var frågan värd. Svaret är
+**ja, exakt en sida ligger i båda listorna**, och den är inte samma vara.
+
+⚠️ **Först en rättelse av mitt eget tal.** Jag skrev "elva rader föll ut på de
+svaga tvåtalsparen". Rätt tal, räknat ur alla fem passen, är **14**
+(4 + 1 + 3 + 5 + 1). Slutsatsen ändras inte, men siffran var fel och stod som
+mätt.
+
+### Den enda som ligger i båda listorna
+
+`084b987b` — **"Beistelltisch mit Stauraum, 2 offene Regale, 3-stufig
+verstellbar"**, tyskt utkast, 799 kr.
+
+Den föll ut i **måttsvepet** på paret 34/30, och i **typsvepet** på en enda
+mening i den tyska säljtexten:
+
+> *"…perfekt als modischer Beistelltisch oder schmaler **Nachttisch** in jedem
+> behaglichen Winkel"*
+
+Alltså: den kan ANVÄNDAS som nattduksbord, den är inte ett.
+
+| | beställd `51611305` | korsningen `084b987b` |
+|---|---|---|
+| Yttermått | 37 × 32 × **21** | 34 × 30 × **80** |
+| Antal | **2 st** | 1 st |
+| Montering | **vägghängd** | golvstående |
+| Belysning | **RGB-LED, app** | ingen |
+| Ström | USB 5 V / 2 A | ingen |
+| Maxlast | 15 kg per bord | 10 kg totalt |
+| Material | melaminbelagd träskiva | spånskiva + stål |
+
+Paret 34 × 30 är en vanlig möbelfotavtryck — det tredje talet är 80 mot 8,5.
+**Ingen produkt utom varan själv matchade en hel måttRIPPEL.**
+
+### Vad korsningen faktiskt visar
+
+Att de två svepen fångar olika saker, och att båda behövs: måttsvepet ensamt
+hade aldrig tittat på `084b987b` (bara ett tvåtalspar), och typsvepet ensamt
+hade begravt den bland 53 bordslampor. Det är först i korsningen den blir en
+kandidat värd att öppna — och först när den öppnas som den kan avfärdas på
+höjden.
+
+**De övriga tretton måtträffarna nämner inte produkttypen alls** (konsolbord,
+kattorn, hönsgård, fågelbur, balkongset, två badrumsskåp, två köksvagnar, två
+städvagnar, verkstadspall, hallbänk), och **de övriga 52 typträffarna matchar
+inget mått** — de flesta är bordslampor vars text säger "passar på
+nattduksbordet".
