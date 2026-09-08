@@ -20,8 +20,23 @@ import {
 } from "../components/deferred";
 import { MetaPixel } from "../components/metapixel";
 import { KlarnaSDK } from "../components/klarna-sdk";
+import { consentBootstrapScript } from "../lib/consent";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
+
+// GA4 skrivs bara ut i skarp drift. Preview-deploys körde tidigare samma
+// mät-ID mot samma egendom: GA4:s taggtäckning listade 8 sep 2026 hela 136
+// sidor från fyndplats-headless-*.vercel.app, och panelen föreslog löpande nya
+// preview-värdnamn som "nya domäner". Testtrafiken låg alltså i kundernas
+// siffror.
+//
+// VERCEL_ENV, inte NODE_ENV — Vercel bygger BÅDE preview och production med
+// NODE_ENV=production, så NODE_ENV kan inte skilja dem åt (samma resonemang som
+// i lib/meta-capi.ts). Fungerar bara för att den här filen är en
+// SERVERKOMPONENT: villkoret avgörs vid rendering och taggen utelämnas ur
+// HTML:en. Görs filen någon gång om till klientkomponent slutar grinden
+// fungera tyst, eftersom process.env inte finns i webbläsarbundlen.
+const IS_PRODUCTION = (process.env.VERCEL_ENV || process.env.NODE_ENV || "").trim() === "production";
 
 // Meta Pixel-ID läses server-side (icke-hemligt — syns ändå i sidans källkod).
 // Tomt → MetaPixel renderar inget och CAPI-routen svarar "not_configured", så
@@ -222,30 +237,34 @@ export default async function RootLayout({
         </CartProvider>
         <CookieConsent />
         {/*
-          GA4 stub måste vara definierad SYNKRONT så att klient-eventer (view_item,
-          add_to_cart, purchase) som fyras i React-useEffects hittar window.gtag.
-          next/script "afterInteractive" laddar efter hydration → eventer som
-          körs tidigare hamnar i tomma intet. Inline-stuben här pushar till
-          dataLayer; GTM-libben (lazy afterInteractive nedan) plockar upp kön
-          när den initierar.
+          GA4 + Consent Mode v2.
+
+          Rå <script>, inte next/script: raden MÅSTE köras synkront och före
+          gtag.js. Dels för att klient-eventer (view_item, add_to_cart,
+          purchase) som fyras i React-useEffects ska hitta window.gtag — de
+          köas i dataLayer och plockas upp när biblioteket anländer. Dels för
+          att en consent-default som anländer EFTER gtag.js är verkningslös.
+
+          Innehållet byggs i lib/consent.ts så att flaggnamnen har en enda
+          källa, delad med pushConsentUpdate() som körs vid klick i bannern.
         */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};gtag('js',new Date());gtag('config','${GA_MEASUREMENT_ID}');`,
-          }}
-        />
+        {IS_PRODUCTION && (
+          <script dangerouslySetInnerHTML={{ __html: consentBootstrapScript(GA_MEASUREMENT_ID) }} />
+        )}
         {/*
           lazyOnload (round-2 perf): GA4 doesn't need to load before user idle.
-          The inline gtag stub above already queues 'js' + 'config' onto
+          The inline stub above already queues 'consent', 'js' and 'config' onto
           window.dataLayer, so when gtag.js eventually arrives it processes
           the backlog — no pageview / event loss. Moving from afterInteractive
           to lazyOnload removes ~50KB of script execution from main-thread
           critical path and shrinks TBT.
         */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="lazyOnload"
-        />
+        {IS_PRODUCTION && (
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            strategy="lazyOnload"
+          />
+        )}
         {/*
           Vercel Web Analytics (cookie-free, privacy-friendly) — no consent gate
           needed, so it sits outside <CookieConsent />. Beacons to

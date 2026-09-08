@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { CONSENT_EVENT, CONSENT_KEY, writeConsentCookie } from "../lib/consent";
+import { CONSENT_EVENT, CONSENT_KEY, pushConsentUpdate, writeConsentCookie } from "../lib/consent";
 
 export function CookieConsent() {
   const [show, setShow] = useState(false);
@@ -31,6 +31,10 @@ export function CookieConsent() {
     // Spegla valet i en cookie så SERVERN kan se det. /tack behöver veta det
     // innan sidan renderas — se noten i lib/consent.ts.
     writeConsentCookie(v);
+    // Consent Mode v2 → Google. Måste ske här och inte via CONSENT_EVENT:
+    // gtag behöver beskedet även när ingen lyssnare hunnit monteras, och
+    // uppdateringen ska gå iväg i samma klick som valet görs.
+    pushConsentUpdate(v);
     // Notify marketing scripts (Meta Pixel + CAPI) so de kan starta/stoppa
     // direkt utan sidladdning. Gated on localStorage.fp_cookie_consent === "all".
     try { window.dispatchEvent(new Event(CONSENT_EVENT)); } catch {}

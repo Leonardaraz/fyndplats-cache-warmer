@@ -59,3 +59,93 @@ export function hasMarketingConsent(): boolean {
     return false;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Consent Mode v2
+// ---------------------------------------------------------------------------
+// Mätning 2026-09-08 (uppdrag 7): Google Ads-taggen AW-11073697020 fyrade
+// page_view mot google.com/ccm/collect OCH ga-audiences MED en beständig
+// annons-identifierare (auid=…) för en besökare som aktivt valt "Endast
+// nödvändiga". Orsaken: gtag.js laddades ogated och ingen samtyckessignal
+// skickades någonsin — parametern gcd var teckenidentisk i båda körningarna,
+// alltså nådde vårt val aldrig Google.
+//
+// npa=1 låg visserligen på, men den begränsar hur Google FÅR ANVÄNDA datan,
+// inte att den samlas in. Den är alltså inget försvar.
+//
+// Consent Mode v2 stänger det: alla fyra signalerna nekas som standard och
+// beviljas först när besökaren väljer "Godkänn alla".
+
+/** Signalerna vi styr. Ordningen är enbart kosmetisk. */
+export const CONSENT_SIGNALS = [
+  "ad_storage",
+  "ad_user_data",
+  "ad_personalization",
+  "analytics_storage",
+] as const;
+
+export type ConsentSignal = (typeof CONSENT_SIGNALS)[number];
+export type ConsentState = Record<ConsentSignal, "granted" | "denied">;
+
+/**
+ * Samtyckestillståndet för ett val.
+ *
+ * Beslut 2026-09-08 (Leonard): ALLA FYRA nekas för "necessary", inklusive
+ * analytics_storage. Bannern lovar besökaren "Endast nödvändiga" — att ändå
+ * köra analyscookies motsäger det vi säger. Priset är att GA4 mäter cookielöst
+ * för dem som tackar nej, så användar- och sessionssiffrorna sjunker jämfört
+ * med i dag. Det är väntat, inte ett fel.
+ */
+export function consentState(choice: "all" | "necessary" | null | undefined): ConsentState {
+  const v = choice === "all" ? "granted" : "denied";
+  return {
+    ad_storage: v,
+    ad_user_data: v,
+    ad_personalization: v,
+    analytics_storage: v,
+  };
+}
+
+function inlineState(value: "granted" | "denied"): string {
+  return CONSENT_SIGNALS.map((s) => `${s}:'${value}'`).join(",");
+}
+
+/**
+ * Den synkrona bootstrap-raden i <head>/<body>. Måste köras FÖRE gtag.js, för
+ * en default som anländer efter biblioteket är verkningslös — därför en rå
+ * <script> och inte next/script.
+ *
+ * Den läser dessutom localStorage direkt och beviljar på plats för en
+ * återvändande besökare som redan sagt ja. Utan den raden skulle varje
+ * sidladdning för en samtyckande kund börja i "denied" och uppgraderas först
+ * efter hydrering — och sidvisningen hinner då gå iväg utan samtycke.
+ *
+ * wait_for_update ger förstagångsbesökaren en kort stund att hinna klicka
+ * innan den cookielösa pingen skickas.
+ */
+export function consentBootstrapScript(measurementId: string): string {
+  return (
+    `window.dataLayer=window.dataLayer||[];` +
+    `window.gtag=function(){dataLayer.push(arguments);};` +
+    `gtag('consent','default',{${inlineState("denied")},wait_for_update:500});` +
+    `try{if(localStorage.getItem('${CONSENT_KEY}')==='all')` +
+    `gtag('consent','update',{${inlineState("granted")}});}catch(e){}` +
+    `gtag('js',new Date());` +
+    `gtag('config','${measurementId}');`
+  );
+}
+
+/**
+ * Skickar samtyckesuppdateringen när besökaren klickar. No-op om gtag saknas —
+ * vilket är normalfallet utanför produktion, där taggen inte skrivs ut alls.
+ */
+export function pushConsentUpdate(choice: "all" | "necessary"): void {
+  if (typeof window === "undefined") return;
+  const g = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof g !== "function") return;
+  try {
+    g("consent", "update", consentState(choice));
+  } catch {
+    /* GA4 ska aldrig krascha sidan */
+  }
+}
