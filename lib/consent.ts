@@ -59,3 +59,155 @@ export function hasMarketingConsent(): boolean {
     return false;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Consent Mode v2
+// ---------------------------------------------------------------------------
+// Mätning 2026-09-08 (uppdrag 7): Google Ads-taggen AW-11073697020 fyrade
+// page_view mot google.com/ccm/collect OCH ga-audiences MED en beständig
+// annons-identifierare (auid=…) för en besökare som aktivt valt "Endast
+// nödvändiga". Orsaken: gtag.js laddades ogated och ingen samtyckessignal
+// skickades någonsin — parametern gcd var teckenidentisk i båda körningarna,
+// alltså nådde vårt val aldrig Google.
+//
+// npa=1 låg visserligen på, men den begränsar hur Google FÅR ANVÄNDA datan,
+// inte att den samlas in. Den är alltså inget försvar.
+//
+// Consent Mode v2 stänger det: alla fyra signalerna nekas som standard och
+// beviljas först när besökaren väljer "Godkänn alla".
+
+/** Signalerna vi styr. Ordningen är enbart kosmetisk. */
+export const CONSENT_SIGNALS = [
+  "ad_storage",
+  "ad_user_data",
+  "ad_personalization",
+  "analytics_storage",
+] as const;
+
+export type ConsentSignal = (typeof CONSENT_SIGNALS)[number];
+export type ConsentState = Record<ConsentSignal, "granted" | "denied">;
+
+/**
+ * Samtyckestillståndet för ett val.
+ *
+ * Beslut 2026-09-08 (Leonard): ALLA FYRA nekas för "necessary", inklusive
+ * analytics_storage. Bannern lovar besökaren "Endast nödvändiga" — att ändå
+ * köra analyscookies motsäger det vi säger. Priset är att GA4 mäter cookielöst
+ * för dem som tackar nej, så användar- och sessionssiffrorna sjunker jämfört
+ * med i dag. Det är väntat, inte ett fel.
+ */
+export function consentState(choice: "all" | "necessary" | null | undefined): ConsentState {
+  const v = choice === "all" ? "granted" : "denied";
+  return {
+    ad_storage: v,
+    ad_user_data: v,
+    ad_personalization: v,
+    analytics_storage: v,
+  };
+}
+
+function inlineState(value: "granted" | "denied"): string {
+  return CONSENT_SIGNALS.map((s) => `${s}:'${value}'`).join(",");
+}
+
+/**
+ * Den synkrona bootstrap-raden i <head>/<body>. Måste köras FÖRE gtag.js, för
+ * en default som anländer efter biblioteket är verkningslös — därför en rå
+ * <script> och inte next/script.
+ *
+ * Den läser dessutom localStorage direkt och beviljar på plats för en
+ * återvändande besökare som redan sagt ja. Utan den raden skulle varje
+ * sidladdning för en samtyckande kund börja i "denied" och uppgraderas först
+ * efter hydrering — och sidvisningen hinner då gå iväg utan samtycke.
+ *
+ * wait_for_update ger förstagångsbesökaren en kort stund att hinna klicka
+ * innan den cookielösa pingen skickas.
+ *
+ * KASTAR på ett mät-ID som inte är rent alfanumeriskt. Strängen renderas via
+ * dangerouslySetInnerHTML, så ett citattecken i ID:t skulle bryta ut ur
+ * JS-literalen och köra godtycklig kod på VARJE sida. I dag matas alltid
+ * modulkonstanten G-W6NZ87CX2Q in och kontrollen kan aldrig falla — men
+ * signaturen tar en string, och flyttas ID:t någon gång till en env-variabel
+ * (NEXT_PUBLIC_GA_ID el. dyl.) är det precis så hålet uppstår.
+ *
+ * Att kasta är avsiktligt hellre än att tyst rendera ingenting: ett trasigt
+ * bygge lagas på minuter, en tyst bortfallen mätning upptäcks efter veckor.
+ */
+export function consentBootstrapScript(measurementId: string): string {
+  if (!/^[A-Za-z0-9_-]+$/.test(measurementId)) {
+    throw new Error(
+      `consentBootstrapScript: otillåtet mät-ID ${JSON.stringify(measurementId)} — ` +
+        "bara bokstäver, siffror, bindestreck och understreck får bäddas in i sidans script-tagg.",
+    );
+  }
+  return (
+    `window.dataLayer=window.dataLayer||[];` +
+    `window.gtag=function(){dataLayer.push(arguments);};` +
+    `gtag('consent','default',{${inlineState("denied")},wait_for_update:500});` +
+    `try{if(localStorage.getItem('${CONSENT_KEY}')==='all')` +
+    `gtag('consent','update',{${inlineState("granted")}});}catch(e){}` +
+    `gtag('js',new Date());` +
+    `gtag('config','${measurementId}');`
+  );
+}
+
+/**
+ * Skickar samtyckesuppdateringen när besökaren klickar. No-op om gtag saknas —
+ * vilket är normalfallet utanför produktion, där taggen inte skrivs ut alls.
+ */
+export function pushConsentUpdate(choice: "all" | "necessary"): void {
+  if (typeof window === "undefined") return;
+  const g = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof g !== "function") return;
+  try {
+    g("consent", "update", consentState(choice));
+  } catch {
+    /* GA4 ska aldrig krascha sidan */
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Öppna bannern igen
+// ---------------------------------------------------------------------------
+// Sekretesspolicyn lovar: "Du kan när som helst ändra eller återkalla ditt
+// samtycke." Bannern visar sig bara när localStorage saknar värde, så innan
+// den här vägen fanns gick löftet inte att hålla — den som valt en gång satt
+// fast i sitt val. Med Consent Mode blir valet dessutom bindande på riktigt.
+
+export const CONSENT_REOPEN_EVENT = "fp-consent-reopen";
+const REOPEN_KEY = "fp_consent_reopen";
+
+/** Begär att samtyckesbannern visas igen. Anropas från sidfotens knapp. */
+export function reopenConsentBanner(): void {
+  if (typeof window === "undefined") return;
+  // Flaggan sätts FÖRE eventet, och det är hela poängen: CookieConsent laddas
+  // med next/dynamic + ssr:false och monteras först när webbläsaren är idle.
+  // Hinner besökaren scrolla ner och trycka innan dess finns ingen lyssnare
+  // och eventet försvinner spårlöst — knappen ser trasig ut. Flaggan gör att
+  // bannern öppnas ändå, så fort komponenten monterar.
+  try {
+    window.sessionStorage.setItem(REOPEN_KEY, "1");
+  } catch {
+    /* sessionStorage avstängt → eventet nedan får räcka */
+  }
+  try {
+    window.dispatchEvent(new Event(CONSENT_REOPEN_EVENT));
+  } catch {
+    /* ignorera */
+  }
+}
+
+/**
+ * Läser en väntande begäran och nollställer den. Sessionsbunden med flit:
+ * en obesvarad begäran ska inte ligga kvar och öppna bannern vid nästa besök.
+ */
+export function takeReopenRequest(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    if (window.sessionStorage.getItem(REOPEN_KEY) !== "1") return false;
+    window.sessionStorage.removeItem(REOPEN_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
