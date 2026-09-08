@@ -1,0 +1,59 @@
+PRODUKT: 166fdb52-dbe0-4edd-93ab-dbf9158e80b2
+NAMN (källa): 3-Sitzer Sofa mit Cordbezug, Wohnzimmersofa mit Federkern, bis 400
+SLUG: 3-sitzer-sofa-mit-cordbezug-wohnzimmersofa-mit-federkern-bis-400
+VISIBLE: false
+PRIS: 5249
+
+--- plainDescription (ordagrant, taggar strippade) ---
+
+Erleben Sie unvergleichlichen Komfort mit dem 3-Sitzer Sofa von , wo Entspannung auf Stil trifft. Die angenehm gefederten Sitzkissen aus hochdichtem Schaumstoff bieten Ihnen eine optimale Unterstützung und verhindern Verformungen, sodass Ihre Couch über Jahre hinweg wie neu wirkt. Der weiche, atmungsaktive Cordbezug sorgt für ein gemütliches Ambiente in Ihrem Wohnzimmer.
+
+Beschreibung:
+✔ Sitzkissen mit Federkern und hochdichtem Schaumstoff behalten ihre Form über die Zeit
+✔ Weicher Cordstoff bietet Haltbarkeit und Komfort
+✔ 60 cm tiefe Sitzkissen des 3 Sitzer Sofas bieten eine große Sitzfläche
+✔ Rückenkissen mit weicher Füllung und Armlehnen bieten Entspannung und Unterstützung
+✔ Solider Mehrschichtplattenrahmen des Sofas mit acht Beinen trägt bis zu 400 kg
+✔ Vielseitig einsetzbar für Schlafzimmer, Wohnzimmer, Gästezimmer, Ersatzzimmer oder Homeoffice
+✔ Einfache Montage erforderlich
+
+ Technische Daten:
+✔ Farbe: Cremeweiß
+✔ Materialien: Cord (100% Polyester), Schaumstoff, Mehrschichtplatte
+✔ Gesamtabmessungen: 227B x 84T x 87H cm
+✔ Sitzgröße: 189B x 60T x 47H cm
+✔ Sitzdicke: 17 cm
+✔ Rückengröße: 189B x 43H cm
+✔ Rückendicke: 17 cm
+✔ Armlehnen Größe: 73L x 20B cm
+✔ Armlehnenhöhe zum Sitz: 15 cm
+✔ Beinhöhe: 10 cm
+✔ Belastbarkeit: 400 kg
+
+Lieferumfang:
+✔ 1 x 3-Sitzer Sofa
+✔ 1 x Bedienungsanleitung
+
+Tekniska specifikationer
+Mått: 227L x 84B x 87H cm
+Färg: Cremeweiß
+Material: Polyester
+Vikt: 56 kg
+Paketmått: 98 × 71 × 37 cm
+
+--- slut på källtext ---
+
+ANMÄRKNING: intromeningen lyder "Erleben Sie unvergleichlichen Komfort mit dem
+3-Sitzer Sofa von , wo Entspannung auf Stil trifft." — husmärket är redan struket
+vid importen och lämnade ett hängande "von ,". Ingen husmärkesrest, inget
+artikelnummer, ingen leveransklausul, inget fraktland och ingen EN-standard
+förekommer i källan. Färgvärdet "Cremeweiß" i den svenska spec-fliken är
+oöversatt tyska.
+
+ANMÄRKNING 2: bokstäverna för måtten skiljer sig mellan de två blocken — tyska
+"Gesamtabmessungen: 227B x 84T x 87H cm" (B=Breite, T=Tiefe, H=Höhe) mot svenska
+spec-flikens "Mått: 227L x 84B x 87H cm". Samma tre tal, olika axelbokstäver.
+
+ANMÄRKNING 3: antalet ben står som ORD, inte som siffra ("mit acht Beinen").
+Vikten (56 kg) och paketmåtten finns BARA i den svenska spec-fliken, inte i den
+tyska källtexten.
