@@ -131,3 +131,51 @@ kategoriändringen — och visade därför fortfarande `Skönhet & Hälsa`. En
 enskild omhämtning av just den sidan gav `age 21` och rätt brödsmula. **Ett
 svep är ett stickprov med tidsberoende; läs `age` innan du kallar en sida
 trasig.**
+
+### Och den mätta radien: 236 av 2 342 publicerade produkter (2026-09-08)
+
+Fyndet ovan gällde åtta produkter. Hela katalogen är nu räknad — items per
+toppkategori, korsade mot varandra:
+
+| | |
+|---|---:|
+| Publicerade produkter med minst en toppkategori | 2 342 |
+| **Med FLER ÄN EN toppkategori** | **236 (10 %)** |
+
+De största kombinationerna:
+
+| kombination | produkter |
+| :-- | --: |
+| Hem & Inredning + Trädgård & Utemöbler | **81** |
+| Hem & Inredning + Skönhet & Hälsa | 34 |
+| Elektronik & Tillbehör + Hem & Inredning | 26 |
+| Barn & Familj + Hem & Inredning | 20 |
+| Hem & Inredning + Kök & Husgeråd | 18 |
+| Barn & Familj + Trädgård & Utemöbler | 14 |
+| Sport & Fritid + Trädgård & Utemöbler | 12 |
+| Elektronik & Tillbehör + Sport & Fritid | 11 |
+| Hem & Inredning + Sport & Fritid | 9 |
+| övriga sju kombinationer | 11 |
+
+☠️ **Och splittringen är inte K10-specifik.** Tolv sidor ur den största
+gruppen (samma PAR av toppkategorier på alla tolv) hämtades och lästes:
+
+| brödsmulans nivå 2 | sidor |
+| :-- | --: |
+| `Trädgård & Utemöbler` | **8** |
+| `Hem & Inredning` | **4** |
+
+Renaste beviset är två växthusöverdrag med identisk kategoriuppsättning:
+`reservoverdrag-vaxthus-3x2x2` visar `Trädgård & Utemöbler`,
+`reservholje-vaxthus-overdrag-pe` visar `Hem & Inredning`. Samma sorts vara,
+samma par, olika brödsmula. En trädgårdsfontän (`tradgardsfontan-60-cm-fyra-
+skalar`) hamnar likaså under `Hem & Inredning`.
+
+⚠️ **Två av de tolv gav ingen brödsmula alls i första hämtningen** — och det
+var en hämtningsflukt, inte en trasig sida: en andra läsning gav HTTP 200 och
+korrekt brödsmula på båda. Samma klass som den dokumenterade edge-strypningen
+i `hamta-live.sh`. **Läs om innan du bokför en sida som trasig.**
+
+**De 228 utanför den här rundan är INTE ändrade.** Att ta bort en toppkategori
+från 10 % av katalogen ändrar navigationen brett och rör kategoriseringsbeslut
+som inte är mina — det är Leonards. Rundans egna åtta är lagade.
