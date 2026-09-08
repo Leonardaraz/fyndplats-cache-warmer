@@ -302,13 +302,13 @@ def modell_c():
                 ("smådjurshage kvadratisk", False), ("utomhushage marsvin", False)],
         html=(
             P("En nästan kvadratisk <strong>smådjurshage</strong> på 123 × 120 cm "
-              "med ett slutet hus i ena hörnet. Huset står inne i hagen, så djuren "
-              "rör sig fritt mellan skydd och öppen yta utan att någon lucka "
-              "behöver öppnas.")
+              "med ett slutet hus inbyggt i ena änden. Djuren går fritt mellan "
+              "huset och den öppna nätdelen utan att någon lucka behöver öppnas.")
             + H("120 cm i båda riktningarna")
             + P("Hagen är nästan lika djup som den är bred, vilket ger plats att "
-                "svänga av och att gömma sig bakom huset i stället för att bara "
-                "springa fram och tillbaka. Golvytan är 1,48 m².")
+                "svänga av i stället för att bara springa fram och tillbaka. "
+                "Golvytan är 1,48 m², och huset tar en del av den — det är "
+                "inbyggt i ena änden, inte ställt ovanpå.")
             + H("Taket fälls upp över hela hagen")
             + P("Ovansidan öppnas uppåt så att du kommer åt hela ytan ovanifrån. "
                 "Det gör den dagliga skötseln till en enkel rörelse: fyll på hö, "
@@ -327,7 +327,7 @@ def modell_c():
             + UL([
                 ("Yttermått", "123 × 120 × 52 cm (L × B × H)"),
                 ("Golvyta", "1,48 m²"),
-                ("Hus", "42,5 × 42,5 × 47 cm, står inne i hagen"),
+                ("Hus", "42,5 × 42,5 × 47 cm, inbyggt i ena änden"),
                 ("Öppning till huset", "16 × 22 cm"),
                 ("Dörr till hagen", "41 × 34 cm"),
                 ("Tak", "fälls upp"),
