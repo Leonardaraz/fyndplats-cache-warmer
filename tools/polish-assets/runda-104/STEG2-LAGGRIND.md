@@ -98,3 +98,101 @@ och utkasten går att förbättra medan de ligger `visible:false`; det är
 publiceringen som utlöser distributörsplikten.
 
 Beslutet om de 37 live-sidorna är Leonards, inte mitt.
+
+---
+
+# ⚠️ RÄTTELSER — den adversariella granskningen fällde tolv påståenden
+
+Två oberoende kritiker granskade de tre juridiska genomgångarna. Tolv
+påståenden föll. Fyra rör det jag skrev ovan.
+
+## ☠️ 1. GPSR-artiklarna var delvis fel åberopade
+
+Båda kritikerna läste EUR-Lex-texten och fann samma sak: **art. 2.1 b undantar
+kapitel III AVSNITT 1 för harmoniserade produkter**, och avsnitt 1 löper från
+art. 9 till art. 18.
+
+| påstående | håller? |
+|---|---|
+| GPSR **art. 19** kräver uppgifter i distansförsäljningserbjudandet | ✅ **står kvar** — art. 19 ligger i avsnitt 2 |
+| GPSR art. 12 (distributörens kontroll) | ❌ gäller inte leksaker — rätt grund är **leksaksdirektivet art. 7.2 / lag (2011:579) 22 §** |
+| GPSR art. 16 (EU-ansvarig aktör) | ❌ rätt grund är **förordning (EU) 2019/1020 art. 4** |
+
+Min egen slutsats ovan citerade RÄTT grund för distributörskontrollen
+(leksaksdirektivet art. 7, lagens 22 §). Men raden om EU-ansvarig ekonomisk
+aktör hängde på GPSR art. 16 och ska hänga på 2019/1020 art. 4. **Plikten
+finns kvar — bara paragrafen byts.**
+
+## ☠️ 2. "Får inte kallas fordon" var FEL, och omöjlig att följa
+
+Genomgången skrev att produkten inte får beskrivas som "fordon", "minibil"
+eller "elfordon". Kritikern slog ned det mot lagtexten: svensk rätt kallar
+produkten **lekfordon**, och lag (2001:559) definierar *fordon* som "en
+anordning på hjul, band, medar eller liknande".
+
+**Det som ska förbjudas är PÅSTÅENDET om vägbehörighet, inte substantivet.**
+`godkänd för trafik`, `vägtrafikgodkänd`, `får köras på trottoaren` — de är
+förbjudna. Kategoriorden är fria.
+
+✅ Rundans tre publicerade sidor är opåverkade: de skriver "eldriven barnbil"
+och "åkleksak", och säger uttryckligen att bilen inte är gjord för allmän väg.
+
+## ☠️ 3. Varningens ordalydelse kom från fel ställe
+
+`"Varning. Skyddsutrustning bör användas. Får ej användas i trafik."` är rätt
+lydelse — men den kommer ur **EN 71-1 punkt 7.10.3**, inte ur bilaga V del B
+punkt 5. Punkt 5 gäller vattenleksaker; punkt 4 gäller skateboards och
+sparkcyklar. Direktivgrunden för en åkleksak är **bilaga V del A**.
+
+## ☠️ 4. "Inte ett lekfordon över 6 km/h" var påhittat
+
+En genomgång föreslog att sidan skulle skriva att fordonet inte är ett
+lekfordon om det går över 6 km/h. **Lagen innehåller ingen hastighet.**
+Lag (2001:559): *"Lekfordon — Ett fordon som ska anses som leksak enligt lagen
+(2011:579) om leksakers säkerhet."* Produkten ÄR ett lekfordon, och barnet har
+gående-status enligt trafikförordningen 1 kap. 4 §.
+
+**Publicera aldrig den meningen** — ett felaktigt påstående om varans
+rättsliga status är i sig ett brott mot MFL 10 §.
+
+# Fyra luckor ingen av de tre ställde
+
+## ⚠️ 1. RETURKOSTNADEN — direkt tillämplig på rundans sidor
+
+Distansavtalslagen 2 kap. 2 § p. 11: för en vara som **inte normalt kan
+återsändas med post** ska kostnaden för återsändandet, eller en uppskattning,
+anges innan köpet. En barnbil på 15,6 kg i en kartong på 90 × 53 × 29 cm är
+exakt det.
+
+Anges den inte behöver kunden inte betala den. Det är en butiksövergripande
+fråga (fraktvillkor), inte en textfråga per produkt — men den träffar varje
+skrymmande vara vi säljer.
+
+## ⚠️ 2. PRODUKTANSVAR nämndes inte av någon
+
+Produktansvarslagen: **strikt ansvar** för personskada, utan krav på vårdslöshet.
+En 30 kg farkost som bär ett barn är den största enskilda exponeringen i hela
+sortimentet. Ingen av de tre genomgångarna nämnde det med ett ord.
+
+## ⚠️ 3. GPSR ARTIKEL 20 — olycksrapportering
+
+Ligger i **samma avsnitt 2** som art. 19 och gäller alltså av exakt samma skäl.
+Kräver att olyckor orsakade av produkten anmäls via Safety Business Gateway.
+
+## ⚠️ 4. FÖRPACKNINGSPRODUCENTANSVAR
+
+Förordning (2022:1274) kräver anmälan till Naturvårdsverket och anlitad
+producentansvarsorganisation. Genomgångarna räknade batterier och elutrustning
+men stannade där.
+
+## ⚠️ Och den största frågan: de ~946 redan publicerade sidorna
+
+GPSR har tillämpats sedan **13 december 2024** och styr ERBJUDANDET, inte bara
+nya varor. Kravet i art. 19 gäller alltså varje publicerad produktsida, inte
+bara de som publiceras härefter.
+
+# ✅ Syntesen rekommenderade samma batch som publicerades
+
+Oberoende av mitt eget urval landade syntesen på
+`f15febb2` · `3d9dff8a` · `2f6ff71c` **plus** `9308a7dc` (polisbilen).
+De tre första är publicerade; polisbilen står näst på tur.
