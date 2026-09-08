@@ -107,3 +107,22 @@ Kategori: `Hem & Inredning` + `Skönhet & Hälsa` + `Massage & Återhämtning` �
 samma tre som tre av de publicerade massagestolarna bär. **24 av 24** enligt
 bulk-svarets `bulkActionMetadata`, som är facit; läsprojektionen är eventuellt
 konsistent och kan underrapportera.
+
+## Live-verifieringen: 8/8 REN, orddiff 0
+
+`hamta-live.sh 90` följt av `livegrind.py`. Åtta sidor, 589–695 ord var,
+**orddiff 0 på samtliga** — det som gick via fil kom fram ordagrant.
+
+⚠️ **ISR-fällan slog till, precis som runbooken förutsäger.** Första svepet gav
+`60b827f8` som "KATEGORI SAKNAS: brödsmulan går Hem / Butik / produkt". Sidan
+var 108 810 B mot de andras ~140 000 och bar `age: 537` — alltså en rendering
+som var äldre än kategorikopplingen. Wix hade den rätt hela tiden (bulk-svaret
+sa 8/8 på alla tre kategorierna). En omhämtning av just den sidan gav 141 943 B
+och REN. **En sida i taget är facit; ett svep är ett stickprov med
+tidsberoende.**
+
+☠️ **Grinden är verifierad ÅT BÅDA HÅLLEN**, för det är det enda som skiljer en
+levande grind från en död. Tre planterade fel i en kopia av en sida —
+`mit Gewicht` i `<title>`, `Kunststoff Rückenlehne` i en alt-text och
+"Leverantören anger" i brödtexten — ger **15 fynd över orddiffen, sid-, alt-
+och SEO-svepet**, och bara på den planterade sidan. De riktiga sidorna ger 0.
