@@ -5075,6 +5075,86 @@ inte en slump: det är någon annans pågående arbete. #302 kostade en halv run
 när den andra sessionen publicerade sex sidor mitt i.
 
 
+### ☠️ `products/query`:s MARKÖR FLYTTAR SIG INTE — svep måste gå via `search` (2026-09-08)
+
+Runda 104 skulle hitta tre utkast på deras id-prefix och lät ett svep paginera
+`POST /stores/v3/products/query`. Svepet rapporterade **"2 000 rader lästa på
+40 sidor, noll träffar"**. Talen var påhittade av API:t: varje sida var samma
+50 rader.
+
+Kontrollmätningen, tre anropsformer mot samma första sida:
+
+| form | första id | sista id | ny markör |
+|---|---|---|---|
+| sida 1 (filter + limit) | `ca3d32d0` | `b8d21670` | = markören |
+| markör **+** filter + limit | `ca3d32d0` | `b8d21670` | = markören |
+| **BARA** markören | `ca3d32d0` | `b8d21670` | = markören |
+
+Ingen form flyttar den. ☠️ **`query` kapar dessutom `limit: 100` till 50** utan
+att säga något.
+
+✅ **`products/search` gör rätt — och den ERRAR HÖGT när anropet är fel:**
+
+```
+400 SE-1141  Invalid usage of cursor paging:
+             Search, filter and aggregations cannot be specified together with cursor
+```
+
+Alltså: skicka `filter` bara på FÖRSTA sidan, därefter **enbart**
+`cursorPaging.cursor`. Så gjort läste svepet **3 158 unika utkast på 32 sidor**
+— och `unika == lästa` är kontrollmätningen som skiljer ett svep från fyrtio
+kopior av sida ett. `search` respekterar också `limit: 100`.
+
+**Regeln, en variant på husets vanligaste: ett svar utan fel är inget kvitto —
+och ett svar med PLAUSIBLA TAL är det inte heller.** Ett svep måste räkna
+UNIKA rader, aldrig summan av sidornas längder.
+
+### ☠️ `bulk/categories/add-item` kräver `treeReference` (2026-09-08)
+
+Utan fältet svarar Wix `400 treeReference must not be empty`. Formen är
+`{ "appNamespace": "@wix/stores" }` och går att läsa ur vilken kategori som
+helst i `POST /categories/v1/categories/query`. Hela kroppen:
+
+```json
+{ "treeReference": { "appNamespace": "@wix/stores" },
+  "item": { "catalogItemId": "<produkt-id>",
+            "appId": "215238eb-22a5-4c36-9e7b-e7c08025e04e" },
+  "categoryIds": ["<kategori>", "<kategori>"] }
+```
+
+⚠️ Och `directCategoriesInfo` SLÄPAR: två av tre produkter visade bara
+`All Products` i en återläsning i SAMMA anrop som skrivningen, trots
+`totalSuccesses: 2`. En egen läsning en halv minut senare visade alla tre
+kompletta. Det är samma fälla som redan står som "en återläsning direkt efter
+en KATEGORI-skrivning kan ljuga NEGATIVT" — mätt igen, och den gäller.
+
+### ⚠️ Ritningen ska läsas av i FÖRSTORING, aldrig på ett kontaktark (2026-09-08)
+
+Runda 104:s Aprilia-ritning bär sitsens mått som en orange etikett. På ett
+kontaktark i 300 px gick den att läsa som **`36cm`**; en förstoring av samma
+ruta visar **`35cm`** — samma tal som spec-blocket. Talet hade annars stått
+fel på både sidan och spec-kortet, och kortets värde härleds ur sidans
+spec-tabell, så FELET HADE SETT KONSEKVENT UT.
+
+Kontaktarket duger för att se VAD en bild föreställer och om den bär tysk
+text. Det duger inte för att läsa en siffra.
+
+### ✅ Saknas ritningen: fotot duger som andra källa — för PROPORTIONER (2026-09-08)
+
+Runda 104:s fyrhjuling hade ingen måttritning alls, alltså exakt det läge där
+runda 103 hittade ett spec-block **kopierat från en annan modell**. Utan andra
+källa går det ändå att pröva blockets inre logik mot studiobilden:
+
+| | |
+|---|--:|
+| hjulets andel av produktens höjd i bilden | ~47 % |
+| specens 36 / 73 cm | 49 % |
+
+Talen hör ihop inom perspektivfelet, så blocket hör till den här modellen.
+⚠️ **Metoden ger bara ett FÖRHÅLLANDE.** Den kan avslöja ett block som gäller
+en annan modell; den kan aldrig bekräfta ett absolut mått.
+
+
 
 
 
