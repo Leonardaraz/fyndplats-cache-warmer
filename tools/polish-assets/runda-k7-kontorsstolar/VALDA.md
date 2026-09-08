@@ -114,3 +114,18 @@ namn      8/8      slug     8/8      seoTaggar       2 på alla åtta
 
 Mappningsraderna stämplade i åtta `stampla`-körningar (1979–1986), alla med
 `ref: claude/seo-polering-runbook-review-uq6fwl` (#181) — **8/8 success**.
+
+## Live-verifieringen: 8/8 REN, orddiff 0
+
+Ett svep, ingen ISR-omhämtning behövdes: alla åtta hämtades med `age: 99–100`.
+
+```
+bca22a86  ord=503  diff=0  REN     d8033343  ord=535  diff=0  REN
+ac2fb38c  ord=543  diff=0  REN     7ef22229  ord=555  diff=0  REN
+c0134bdf  ord=540  diff=0  REN     0064c439  ord=550  diff=0  REN
+ed9f6e73  ord=527  diff=0  REN     a4ea1b4d  ord=550  diff=0  REN
+```
+
+`REN` är hela problemlistan tom: sidsvep, alt-svep, SEO-svep, de tre flikarna,
+kategorin, köpbarheten och korslänkarna — inklusive de sju interna som
+`gate-lankar` per konstruktion inte kunde nå före skrivningen.
