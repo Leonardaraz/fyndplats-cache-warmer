@@ -8,6 +8,9 @@ import {
   consentState,
   marketingConsentFromCookie,
   pushConsentUpdate,
+  CONSENT_REOPEN_EVENT,
+  reopenConsentBanner,
+  takeReopenRequest,
 } from "./consent.ts";
 
 // Granskning 2026-08-19: samtycket låg bara i localStorage, som servern inte
@@ -174,5 +177,77 @@ describe("pushConsentUpdate", () => {
   it("sväljer ett gtag som kastar — mätning får aldrig fälla sidan", () => {
     medFonster(() => { throw new Error("gtag exploderade"); },
       () => assert.doesNotThrow(() => pushConsentUpdate("all")));
+  });
+});
+
+describe("reopenConsentBanner / takeReopenRequest", () => {
+  // Sekretesspolicyn lovar att samtycket går att ändra när som helst. Bannern
+  // visar sig bara när localStorage är tomt, så utan den här vägen satt den
+  // som valt en gång fast — och med Consent Mode blir valet bindande på riktigt.
+  const medSession = (kropp: (butik: Map<string, string>, event: string[]) => void) => {
+    const butik = new Map<string, string>();
+    const event: string[] = [];
+    const fanns = "window" in globalThis;
+    const original = (globalThis as Record<string, unknown>).window;
+    (globalThis as Record<string, unknown>).window = {
+      sessionStorage: {
+        getItem: (k: string) => butik.get(k) ?? null,
+        setItem: (k: string, v: string) => void butik.set(k, v),
+        removeItem: (k: string) => void butik.delete(k),
+      },
+      dispatchEvent: (e: { type: string }) => void event.push(e.type),
+    };
+    try {
+      kropp(butik, event);
+    } finally {
+      if (fanns) (globalThis as Record<string, unknown>).window = original;
+      else delete (globalThis as Record<string, unknown>).window;
+    }
+  };
+
+  it("dispatchar eventet för en banner som redan lyssnar", () => {
+    medSession((_butik, event) => {
+      reopenConsentBanner();
+      assert.deepEqual(event, [CONSENT_REOPEN_EVENT]);
+    });
+  });
+
+  it("lämnar en flagga så klicket överlever att bannern inte monterat än", () => {
+    // CookieConsent laddas ssr:false vid idle. Hinner besökaren scrolla till
+    // sidfoten och trycka innan dess finns ingen lyssnare, och utan flaggan
+    // hade knappen sett trasig ut.
+    medSession(() => {
+      reopenConsentBanner();
+      assert.equal(takeReopenRequest(), true);
+    });
+  });
+
+  it("begäran konsumeras EN gång — bannern ska inte öppnas om och om igen", () => {
+    medSession(() => {
+      reopenConsentBanner();
+      assert.equal(takeReopenRequest(), true);
+      assert.equal(takeReopenRequest(), false);
+    });
+  });
+
+  it("utan klick finns ingen begäran att hämta", () => {
+    medSession(() => assert.equal(takeReopenRequest(), false));
+  });
+
+  it("överlever att sessionStorage kastar — bannern får aldrig fälla sidfoten", () => {
+    const fanns = "window" in globalThis;
+    const original = (globalThis as Record<string, unknown>).window;
+    const kastar = () => { throw new Error("sessionStorage blockerad"); };
+    (globalThis as Record<string, unknown>).window = {
+      sessionStorage: { getItem: kastar, setItem: kastar, removeItem: kastar },
+      dispatchEvent: () => true,
+    };
+    try {
+      assert.doesNotThrow(() => reopenConsentBanner());
+      assert.equal(takeReopenRequest(), false);
+    } finally {
+      if (fanns) (globalThis as Record<string, unknown>).window = original;
+      else delete (globalThis as Record<string, unknown>).window;
+    }
   });
 });

@@ -1,6 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import { CONSENT_EVENT, CONSENT_KEY, pushConsentUpdate, writeConsentCookie } from "../lib/consent";
+import {
+  CONSENT_EVENT,
+  CONSENT_KEY,
+  CONSENT_REOPEN_EVENT,
+  pushConsentUpdate,
+  takeReopenRequest,
+  writeConsentCookie,
+} from "../lib/consent";
 
 export function CookieConsent() {
   const [show, setShow] = useState(false);
@@ -24,6 +31,17 @@ export function CookieConsent() {
       //     vecka. Omspeglingen sätter tillbaka den.
       if (val === "all" || val === "necessary") writeConsentCookie(val);
     } catch {}
+  }, []);
+
+  // Sidfotens "Cookie-inställningar". Lyssnaren fångar klick medan sidan står
+  // öppen; takeReopenRequest fångar det klick som hann ske INNAN den här
+  // komponenten monterade (den laddas ssr:false vid idle, och sidfoten går att
+  // nå långt innan dess).
+  useEffect(() => {
+    const oppna = () => setShow(true);
+    window.addEventListener(CONSENT_REOPEN_EVENT, oppna);
+    if (takeReopenRequest()) oppna();
+    return () => window.removeEventListener(CONSENT_REOPEN_EVENT, oppna);
   }, []);
 
   const choose = (v: "all" | "necessary") => {

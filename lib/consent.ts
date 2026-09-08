@@ -165,3 +165,49 @@ export function pushConsentUpdate(choice: "all" | "necessary"): void {
     /* GA4 ska aldrig krascha sidan */
   }
 }
+
+// ---------------------------------------------------------------------------
+// Öppna bannern igen
+// ---------------------------------------------------------------------------
+// Sekretesspolicyn lovar: "Du kan när som helst ändra eller återkalla ditt
+// samtycke." Bannern visar sig bara när localStorage saknar värde, så innan
+// den här vägen fanns gick löftet inte att hålla — den som valt en gång satt
+// fast i sitt val. Med Consent Mode blir valet dessutom bindande på riktigt.
+
+export const CONSENT_REOPEN_EVENT = "fp-consent-reopen";
+const REOPEN_KEY = "fp_consent_reopen";
+
+/** Begär att samtyckesbannern visas igen. Anropas från sidfotens knapp. */
+export function reopenConsentBanner(): void {
+  if (typeof window === "undefined") return;
+  // Flaggan sätts FÖRE eventet, och det är hela poängen: CookieConsent laddas
+  // med next/dynamic + ssr:false och monteras först när webbläsaren är idle.
+  // Hinner besökaren scrolla ner och trycka innan dess finns ingen lyssnare
+  // och eventet försvinner spårlöst — knappen ser trasig ut. Flaggan gör att
+  // bannern öppnas ändå, så fort komponenten monterar.
+  try {
+    window.sessionStorage.setItem(REOPEN_KEY, "1");
+  } catch {
+    /* sessionStorage avstängt → eventet nedan får räcka */
+  }
+  try {
+    window.dispatchEvent(new Event(CONSENT_REOPEN_EVENT));
+  } catch {
+    /* ignorera */
+  }
+}
+
+/**
+ * Läser en väntande begäran och nollställer den. Sessionsbunden med flit:
+ * en obesvarad begäran ska inte ligga kvar och öppna bannern vid nästa besök.
+ */
+export function takeReopenRequest(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    if (window.sessionStorage.getItem(REOPEN_KEY) !== "1") return false;
+    window.sessionStorage.removeItem(REOPEN_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
