@@ -223,3 +223,75 @@ Och den generella: **en grind som hittar sitt eget facit har bevisat att den
 fungerar; en grind som inte gör det har inte bevisat någonting.** Svep 2 hittade
 originalet — men bara för att originalet var polerat, vilket dolde att den var
 blind för resten.
+
+## Fjärde och femte svepet: produkttypen, och bilderna
+
+Två hål återstod efter måttsvepet, och båda är nu stängda.
+
+**Hål 1 — 427 produkter saknar måttrippel helt.** De är per definition osynliga
+för en måttgrind. **Hål 2 — en dubblett vars säljare skrivit ANDRA siffror**
+hade också missats.
+
+Båda stängs av att söka på PRODUKTTYPEN i brödtexten, på båda språken och
+oberoende av mått:
+
+```
+(nachttisch|nachtschrank|nachtkommode|nachtkonsole|nattduksbord|sängbord|nightstand|bedside)
+```
+
+plus ett skyddsnät för väggmonterad möbel UTAN mått, så inget faller mellan.
+
+### Nattduksbordsuniversumet är sex sidor
+
+Fem pass, `cursor: null`, 5 553 produkter. **53 sidor** nämner produkttypen —
+de flesta är bordslampor som säger "passar på nattduksbordet". Av dem är
+**exakt sex vägghängda eller svävande**, och alla sex är redan jämförda spec
+mot spec:
+
+| sida | mått per bord | LED | antal | dom |
+|---|---|---|--:|---|
+| `739d7601` tyskt utkast | 40 × 39,5 × 35 | nej | 1 | annan vara |
+| `1fe7b746` tyskt utkast | 40 × 30 × 14 | nej | 2 | annan vara |
+| `91c4388b` publicerad | 40 × 30 × 25 | nej | 2 | annan vara |
+| `c62d1496` publicerad | 40 × 30 × 15 | nej | 2 | annan vara |
+| `d51d6981` publicerad | 46 × 30 × 30 | nej | 2 | annan vara |
+| **`51611305`** | **37 × 32 × 21** | **RGB + app** | **2** | **den beställda** |
+
+Skyddsnätet (väggmonterat utan mått) gav nio rader: chinsstång, tre
+väggspeglar, boxningsdyna, skötbord, aktivitetstavla, torkställning,
+dipsställning. Inget nattduksbord.
+
+### Bilderna — den axel `CLAUDE.md` säger är den avgörande
+
+*"Det Google DÄREMOT ser är bilderna."* Två sidor som delar bildfil är samma
+fysiska vara oavsett vad texten säger. Jämfört mellan den beställda och de fem
+andra vägghängda:
+
+| | bilder | delade filer med den beställda |
+|---|--:|--:|
+| BESTÄLLD `51611305` | 8 | — |
+| `739d7601` · `1fe7b746` · `91c4388b` · `c62d1496` · `d51d6981` | 5–6 var | **0 · 0 · 0 · 0 · 0** |
+
+## Så säker är jag — och exakt vad det betyder
+
+**Sex oberoende mätningar, alla negativa:**
+
+| # | metod | täcker | utfall |
+|---|---|---|---|
+| 1 | namnsvep | 5 553 | fyra kandidater, alla annan vara |
+| 2 | måttsvep, svensk form | ☠️ blind för tyska | *kasserad* |
+| 3 | måttsvep, tolerant form | 5 553 | 1 träff = varan själv |
+| 4 | typsvep i brödtexten | 5 553 | 6 vägghängda, 5 avfärdade |
+| 5 | väggmonterat utan mått | 427 | inget nattduksbord |
+| 6 | delade bildfiler | de 6 | noll delade |
+| — | Aosoms feed | 6 087 rader | artikeln finns inte |
+
+⚠️ **Och det jag INTE har testat, sagt rakt ut:** jämförelsen i mätning 6 går på
+FIL-ID, inte på pixlar. Två sidor kan bära samma foto som två olika Wix-filer —
+det fångas bara av en hash- eller pHash-jämförelse, som inte är gjord. Kvar
+finns också det teoretiskt smala fallet: en sida som beskriver samma vara med
+andra siffror, ett annat produktsubstantiv OCH utan att nämna väggmontering.
+
+**Slutsatsen är alltså inte "det kan inte finnas en dubblett" utan "sex
+oberoende sätt att hitta en hittar ingen".** Det är så säkert katalogens egen
+data kan göra det.
