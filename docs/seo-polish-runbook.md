@@ -3811,6 +3811,35 @@ svarar 404 som utkast är redan bevisat av `visible:false` i Wix — kontrollen
 tillför ingenting och kostar en timmes felaktig cache. Väntemekaniken ovan står
 kvar som skyddsnät för de fall där någon annan hunnit begära adressen först.
 
+### ☠️ En ISR-sida måste hämtas TVÅ gånger — den första är väckningen (2026-09-08)
+
+Runda 102 rättade en text på alla tretton sidorna i massagefamiljen och körde
+familjegrinden direkt efteråt. Den fällde **åtta av tretton**. Trettio sekunder
+senare gav samma skript, mot samma sidor, utan en enda skrivning emellan,
+**noll**.
+
+De åtta var exakt de **redan publicerade**. Deras cache-post fanns kvar sedan
+före textändringen; de fem nya hade fått sin post skapad efteråt och var färska
+från start. Next.js svarar *stale-while-revalidate*: den första hämtningen får
+den GAMLA sidan och startar omvalideringen i bakgrunden, den andra får den nya.
+
+| hämtning | vad grinden såg |
+|---|--:|
+| första | 8 av 13 sidor "saknar" den nya texten |
+| andra, 30 s senare | **0 av 13** |
+
+**Regeln: läs aldrig utfallet av den första hämtningen efter en skrivning.**
+Hämta, kasta svaret, hämta igen — eller läs `age` och `x-vercel-cache` och
+förkasta allt som inte är färskt. En grind som dömer på första svaret gör
+precis runda 60:s misstag: den fäller korrekta sidor, och ett larm som fyrar
+på varje korrekt sida lär mottagaren att sluta läsa.
+
+⚠️ **Och cache-bust i query-strängen hjälper INTE.** `?cb=<tidsstämpel>` gav
+samma cachade svar: Next.js ISR nycklar på RUTTEN, inte på okända parametrar.
+Uppmätt samma dag på fem nypublicerade sidor — `x-vercel-cache: HIT` med
+cache-bust, och 404 i femton minuter tills posten gick ut av sig själv
+(12:19 → 0/5, 12:25 → 3/5, 12:27 → 5/5).
+
 ### ✅ Live-grinden kan kontrollera VARJE MENING ordagrant — och den bet (2026-09-07)
 
 Tidigare rundor jämförde live-sidan påstående för påstående med ögon. Runda 94
