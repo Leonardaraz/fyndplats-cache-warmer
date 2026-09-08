@@ -228,6 +228,23 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 
   **Kontrollen är en rad:** räkna unika id, inte rader. Är `unika < rader` paginerar du inte.
   Och när ett svep säger "noll träffar" i en kategori du vet finns — misstro svepet först.
+- ☠️ **`list-categories-for-items` svarar med `directCategoryIds` — INTE `categoryIds`.**
+  Läser du fel fältnamn får du `undefined`, `|| []` gör en tom lista av det, och
+  verifieringen rapporterar **"noll kategorier" på åtta produkter som alla har tre**.
+  Uppmätt 2026-09-08 i runda 105: skrivningen svarade `totalSuccesses: 2` per produkt,
+  och kontrollen sa ändå FEL på alla åtta. Det rätta svaret är
+  `{categoriesForItems: [{item: {catalogItemId, appId}, directCategoryIds: [...],
+  indirectCategoryIds: [...]}]}` — och `item`, inte `itemReference`.
+
+  ⚠️ Kroppen är dessutom `{treeReference, items: [...]}` med **`items`**, och
+  `bulk/categories/add-item` tar `{treeReference, item, categoryIds}` — alltså EN vara
+  till FLERA kategorier, inte tvärtom. Båda felformerna 400:ar tydligt, så de kostar en
+  runda men inget tyst.
+
+  **Regeln, samma familj som `MEDIA_ITEMS_INFO` och `PLAIN_DESCRIPTION`: ett fältnamn
+  som inte finns läses som TOMT, inte som fel** — och en tom lista ser i en grind exakt
+  ut som en misslyckad skrivning. Skriv ut det RÅA svaret innan du felsöker skrivningen.
+
 - ☠️ **Ett media-item tar `id` ELLER `url` — och `url` betyder EXTERN adress.** Skickar
   du `{image: {url: "https://static.wixstatic.com/..."}}` svarar V3 **400 `id or url must
   not be empty`**: fältet ligger på item-nivå, inte inuti `image`. Och hade det gått

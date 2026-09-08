@@ -110,3 +110,55 @@ kvar (Leonards regel 2026-08-06).
 
 De två slutsålda poleras men publiceras inte, och ingen publicerad sida
 korslänkar till dem — en korslänk till en opublicerad sida är en död intern länk.
+
+-----
+
+## ✅ Utfall — sex sidor live, två färdiga och tillbakahållna
+
+| id8 | slug | pris | läge |
+|---|---|--:|---|
+| `1f6de209` | `skoldpaddshus-120-oppet` | 1 619 | **LIVE** |
+| `609bec0f` | `skoldpaddshus-81-cm` | 1 099 | **LIVE** |
+| `f55d9635` | `skoldpaddshus-104-orange` | 1 459 | **LIVE** |
+| `a0bb5be8` | `skoldpaddshus-91-grabrun` | 1 059 | **LIVE** |
+| `4b089c02` | `skoldpaddshus-91-bla` | 1 059 | **LIVE** |
+| `27aa4c23` | `skoldpaddshus-91-gra` | 979 | **LIVE** |
+| `1f9fe2c2` | `skoldpaddshus-104-gra` | 1 629 | polerad, slutsåld |
+| `d4787641` | `skoldpaddshus-91-natur` | 1 019 | polerad, slutsåld |
+
+Alla åtta: text + slug + seoData + fyra sökord + SKU (Steg 7/8), galleri med eget
+kort på plats 3 och måttritningen SIST (Steg 9), `Husdjur` + `Burar, Kläder &
+Tillbehör` (Steg 10), mappningsraden stämplad `needsAiPolish:false` (Steg 13).
+
+**Kvitton, alla mätta i EGNA pass efter skrivningen:**
+
+| kontroll | utfall |
+|---|---|
+| lagrad text mot hash + längd | 8/8 |
+| galleri: antal, ordning, alt-text på varje bild | 8/8 |
+| kategori (`directCategoryIds`) | 8/8 |
+| prisgrind före skrivning (workflow `las`) | 8/8, `stammer true` |
+| live-sidan (Steg 14, tvåstegshämtning) | **6/6** |
+
+Live-grinden letar efter tyska ord, husmärken, lagerland, artikelnummer,
+`https:/produkt` och leverantörsattribution — och kontrollmäter att hjältebildens
+media-id finns i HTML:en, så ett "noll fel" inte kan vara en tom hämtning.
+
+## ☠️ `list-categories-for-items` svarar med `directCategoryIds`
+
+Verifieringen sa **FEL på alla åtta** medan skrivningen svarat `totalSuccesses: 2`
+per produkt. Felet låg i läsningen: fältet heter `directCategoryIds`, inte
+`categoryIds`, och `(x.categoryIds || [])` gör en tom lista av ett fält som inte
+finns. En tom lista ser i grinden exakt ut som en misslyckad skrivning.
+
+Samma familj som `MEDIA_ITEMS_INFO` och `PLAIN_DESCRIPTION`: **ett fältnamn som
+inte finns läses som TOMT, inte som fel.** Det som avgjorde var att skriva ut det
+RÅA svaret i stället för att felsöka skrivningen. Skrivet till runbooken.
+
+## Kvar i familjen
+
+| | utkast | varför |
+|---|--:|---|
+| B (116 × 70,5 × 69,5) | 2 | 24 cm fri höjd — Leonards beslut |
+| D (120 × 55, bottenlös) | 2 | nästa runda; lutningen ska räknas om innan den blir kundtext |
+| E `acbb7bad` | 1 | 16,5 cm fri höjd — under L80:s golv, poleras inte |
