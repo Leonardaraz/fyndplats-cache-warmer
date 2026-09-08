@@ -91,3 +91,13 @@ SKU och två SEO-taggar per produkt. 35 av 35 alt-texter skrivna och återlästa
 
 Kategori: `Hem & Inredning`, **8 av 8** enligt bulk-svarets
 `bulkActionMetadata` — trädet har inget möbellöv, samma som K1 och K2.
+
+## Live-verifieringen: 8/8 REN, orddiff 0
+
+`hamta-live.sh 90` följt av `livegrind.py`. Åtta sidor, 576–690 ord var,
+**orddiff 0 på samtliga** i FÖRSTA svepet — ingen ISR-omhämtning behövdes den
+här gången. En hämtning gav `HTTP 000` och togs av skriptets egna omförsök.
+
+Därmed är också de åtta korslänkarna kontrollerade: de går alla inåt i rundan
+och kunde inte hämtas av `gate-lankar` före skrivningen, men livegrind läser
+den publicerade sidan och skulle ha fällt en död länk.
