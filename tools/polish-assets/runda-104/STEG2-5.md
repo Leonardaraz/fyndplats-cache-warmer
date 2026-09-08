@@ -174,3 +174,80 @@ bara brödtext.
 Efter skrivningen kördes grindens regler om mot **Wix egen kopia** i stället
 för mot filen: 5 347 tecken, 15 obligatoriska tal på plats, 19 främmande tal
 frånvarande, noll otillåtna mönster. Det är kvittot — inte PATCH-svaret.
+
+-----
+
+## Kawasaki-trion (Steg 2/4/5) — ☠️ TVÅ AV TRE FÄRGNAMN ÄR FEL I KÄLLAN
+
+Måttritningen bekräftar hela spec-blocket: 100 × 64 × 56 cm, sits 31 × 19 cm,
+maxlast 30 kg, ålder 3–5 år. Färgerna gör det inte.
+
+| id8 | källan säger | bilden visar | pris |
+|---|---|---|--:|
+| `ed84746c` | `Grau+Schwarz` | ☠️ **VIT** störtbåge och frontbygel, gröna dekaler | 2 099 |
+| `60ab2042` | `Blau+Schwarz` | turkosblå — rimligt, men *turkos* är precisare | 1 999 |
+| `3b992525` | `Gelb+Schwarz` | ☠️ **BEIGE**, en sandton. Inte gul. | 2 019 |
+
+☠️ **Och felet sitter djupare än i texten.** `3b992525`:s artikelnummer slutar
+på **`YL`** och leverantörens egen produkt-URL slutar på `…-gelb`. Leverantören
+tror alltså själv att bilen är gul, hela vägen ner i sitt eget sortimentssystem.
+En polering som litet på källan hade sålt en färg vi inte kan skicka — exakt
+`#330`, som kostade en publicerad sida.
+
+**Bilden är facit.** Sidorna säger vit, turkosblå och beige. Grinden förbjuder
+dessutom ordet *gul* överallt, även i en negation: en text som skriver "inte
+gul" får läsaren att tänka på gult på en sida som aldrig påstått det.
+
+### ☠️ Källan saknar tre tal som rundans ANDRA modeller har
+
+Ingen batterikapacitet, ingen laddtid, ingen räckvidd för fjärrkontrollen. De
+talen står på polisbilen och Maseratin, och det är precis så ett främmande tal
+vandrar in i en text. Grinden förbjuder dem uttryckligen (`4,5 Ah`,
+`8–12 timmar`, `15 m`), och självtestet bekräftar att den fäller om de smyger
+in.
+
+### Tre andra saker som inte fick skrivas rakt av
+
+1. ☠️ **`Lieferumfang` listar bara UTV och handbok — ingen fjärrkontroll.**
+   Tredje produkten i rad med en trasig innehållsförteckning. Här är den
+   bevisligen ofullständig: produkten HETER "mit Fernbedienung" och en
+   säljpunkt beskriver föräldrafjärrkontrollen. Sidan listar därför bil,
+   fjärrkontroll och bruksanvisning — men säger fortfarande ingenting om
+   laddare.
+2. ⚠️ **Källan säger `Hinterradaufhängung`, bilden visar en fjäder vid
+   FRAMhjulet.** Texten säger bara "fjädring" och namnger ingen axel.
+3. ⚠️ **Leverantörens URL säger `3-8 jahren`, spec-blocket och ritningen säger
+   3–5 år.** Ritningen är facit, som i runda 103.
+
+### ☠️ Wix takar `product.name` på 80 TECKEN — uppmätt
+
+Det första namnförslaget var 84 tecken för turkosen och avvisades med
+`400 … name has size 84, expected 80 or less`. **De två kortare syskonen hade
+då redan skrivits** — en halvskriven familj där den tredje saknade allt.
+
+Gränsen står inte i något vi läst; den kom ut ur ett felmeddelande. Namnen är
+kortade till 69/71/75 tecken så hela familjen ryms med marginal.
+
+### ☠️ Och grindens egen NBSP-kontroll var ett falsklarm som alltid fyrade
+
+Regeln letade efter osynliga tecken skrivna som LITERALER i källkoden. Heredocen
+som skrev grinden normaliserade U+00A0 till ett vanligt mellanslag, så
+kontrollen jämförde ett vanligt mellanslag mot varje text — och fällde alla tre
+sidorna trots att ingen av dem bar tecknet.
+
+**Regeln: ett osynligt tecken får aldrig skrivas som en literal i en grind.**
+Explicita `\uXXXX`-escapes är det enda som överlever transporten. Båda
+grindarna är lagade, och `c0abfddd` står kvar grön med en kontroll som nu
+faktiskt kontrollerar något.
+
+### ⚠️ `60ab2042` är polerad men PUBLICERAS INTE
+
+`OUT_OF_STOCK` (mätt 2026-09-08). Texten är skriven, grindad och skriven till
+Wix — bara `visible` står kvar på `false`. En kund som landar på en sida hen
+inte kan köpa är ett sämre utfall än en sida som ännu inte finns.
+
+⚠️ Den kan publiceras direkt när synken fyller på. Då måste de två publicerade
+syskonens länklistor uppdateras — de säger i dag "två färger", inte "tre".
+Samma sak som `#295`.
+
+⚠️ `3b992525` har **1 i lager**.
