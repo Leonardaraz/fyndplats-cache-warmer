@@ -247,3 +247,71 @@ def dela_pa_ankare(html):
         else:
             egna.append(ren)
     return egna, kors
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# API- och cache-regler. Runbooken bar båda LÅNGT innan runda 104 bröt mot dem;
+# felet var att varje runda skrev sin EGEN grind och därför inte ärvde dem.
+# Det är samma tvillingproblem som modulens inledning beskriver, fast om
+# skrivgränser i stället för om ordlistor.
+# ─────────────────────────────────────────────────────────────────────────────
+
+NAMN_MAXLANGD = 80
+
+
+def granska_namn(namn):
+    """Wix takar `product.name` på 80 tecken. Returnerar en lista med problem.
+
+    ☠️ Gränsen stod redan i runbooken (runda 94, 2026-09-07) MED en färdig
+       kontroll. Runda 104 skrev ändå en egen grind utan den, och Wix avvisade
+       det 84 tecken långa turkosa namnet EFTER att de två kortare syskonen
+       redan var skrivna — alltså en halvskriven familj, som är svårare att
+       upptäcka än en helt misslyckad. Felet lyder:
+       `400 … name has size 84, expected 80 or less`.
+
+    ⚠️ Mät på TECKEN, inte byte. Namnen bär å/ä/ö och en byte-räkning hade
+       fällt korrekta namn.
+    """
+    problem = []
+    n = len(namn)
+    if n > NAMN_MAXLANGD:
+        problem.append("namnet är %d tecken, taket är %d: %r" % (n, NAMN_MAXLANGD, namn))
+    return problem
+
+
+def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60):
+    """Hämtar en ISR-sida SÅ ATT SVARET ÄR FÄRSKT — två gånger, med paus.
+
+    ☠️ Läs aldrig utfallet av den FÖRSTA hämtningen efter en skrivning. Next.js
+       svarar *stale-while-revalidate*: första hämtningen får den GAMLA sidan
+       och startar ombyggnaden, andra får den nya. Runda 102:s grind fällde
+       åtta av tretton korrekta sidor på exakt det.
+
+    ☠️ Och `?cb=<tidsstämpel>` hjälper INTE — ISR nycklar på RUTTEN, inte på
+       okända parametrar. Uppmätt igen 2026-09-08 när runda 104:s kort skulle
+       kvitteras: `x-vercel-cache: STALE`, `age: 2531`, och sidan bar de FEM
+       gamla bild-id:na. Andra hämtningen gav `HIT`, `age: 19` och kortet.
+
+    Returnerar (html, headers). Kastar hellre än att returnera en halv sida:
+    en tyst kapad hämtning såg i runda 104:s måttsvep ut som "noll träffar".
+    """
+    import urllib.request
+
+    def _hamta():
+        req = urllib.request.Request(url, headers={"User-Agent": ua})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            # ⚠️ Nycklarna GEMENAS. Vercel skickar `X-Vercel-Cache`, och en
+            #    grind som slår upp `x-vercel-cache` i en rå dict får None —
+            #    alltså en tyst tom läsare, husets dyraste felklass. Uppmätt i
+            #    runda 104: kolumnen skrev `?` på sex korrekta sidor.
+            return (r.read().decode("utf-8", "replace"),
+                    {k.lower(): v for k, v in r.headers.items()})
+
+    _hamta()                                   # väckningen — svaret kastas
+    import time
+    time.sleep(paus)
+    html, headers = _hamta()
+    if len(html) < 20000:
+        raise SystemExit("ISR-hämtningen gav bara %d tecken för %s — halv sida"
+                         % (len(html), url))
+    return html, headers
