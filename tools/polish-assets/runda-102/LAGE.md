@@ -68,9 +68,29 @@ Fem färgsyskon som STÄNGER två modeller ur runda 101.
   fick "Cremevitt/Brunt/Mörkgrått massagefåtölj". Rättat, och grinden i
   anropet fäller nu på ett-ordsformen före "massagefåtölj".
 
+- **Steg 10** — alla fem ligger nu i `Hem & Inredning`, `Massage & Återhämtning`
+  och `Skönhet & Hälsa`, exakt som de åtta publicerade syskonen.
+  15 skrivningar, 15 lyckade, noll misslyckade, verifierat efter paus.
+
+  ☠️ **`directCategoriesInfo` finns INTE i query-projektionen.** Ett svep över
+  hela katalogen gav `kat: []` för alla tretton — även för de åtta publicerade
+  som bevisligen ÄR kategoriserade. Samma tysta asymmetri som
+  `plainDescription` och `MEDIA_ITEMS_INFO`: fältet är med i typen men tomt i
+  svaret om man inte begär det. **Ett tomt fält är inget svar.** Rätt väg är
+  `POST /categories/v1/categories/list-categories-for-items`.
+
+  ☠️ Och `POST /categories/v1/bulk/categories/list-categories-for-items` finns
+  inte — den ger 404. Läsningen ligger under `/categories/`, skrivningen under
+  `/bulk/categories/add-item`. Sök upp endpointen, gissa den inte.
+
+- ✅ **Uppgift #358 är avförd som FELAKTIG.** Den påstod att två publicerade
+  `massagefatolj`-sidor saknade `Massage & Återhämtning`. Mätt med rätt
+  endpoint: **alla åtta har den.** Flaggan kom sannolikt från en återläsning
+  som ljög negativt (uppgift #357) — samma fälla, en runda senare.
+
 ## Kvar
 
-- Steg 9 (kort): egna Fyndplats-kort som femte bild
+- Steg 9 (kort): egna Fyndplats-kort som sista bild
 - Steg 10 kategorier · Steg 12 kundläsning · Steg 13 stämpling + publicering
 - Steg 14 live-grind (kontrollprov först)
 
