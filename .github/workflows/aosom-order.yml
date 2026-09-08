@@ -20,6 +20,13 @@ name: Aosom — bygg bulkorder-filen
 # vilka ordrar som inte gick att få med och varför. `csv` laddar ner en batch
 # som en artifact du kan hämta från telefonen.
 #
+# ☠️ ARTIFACTEN INNEHALLER KUNDUPPGIFTER, OCH REPOT AR PUBLIKT.
+# Filen bar namn, gatuadress, postnummer, ort och telefon per order, plus
+# Aosoms artikelnummer. En artifact pa ett publikt repo gar att ladda ner utan
+# inloggning. Loggen skriver darfor aldrig ut innehallet (bara formen), men
+# SJALVA ARTIFACTEN ar fortfarande oppen -- radera korningen nar filen ar
+# uppladdad hos Aosom, och lat den inte ligga kvar i 90 dagar.
+#
 # ⚠️ ADRESSKOLUMNERNAS RUBRIKER ÄR INTE VERIFIERADE mot Aosoms egen mall
 # (`CSV_KOLUMNER` i lib/aosom/bulk-order.ts). Guiden anger bara att kolumn A är
 # artikelnumren och kolumn B antalen. Datan i raderna är rätt oavsett — det är
@@ -81,20 +88,46 @@ jobs:
             if [ "$kod" != "200" ]; then
               echo "::error::HTTP ${kod} fran aosom-order" >&2
               # Kroppen är JSON vid fel — visa den, men fäll inte på jq.
-              jq -r '.error // .message // "okant fel"' aosom-bulkorder.csv >&2 || cat aosom-bulkorder.csv >&2
+              # Fallbacken kapas: gar jq bet vet vi inte VAD kroppen ar, och
+              # stderr gar till samma publika logg som stdout.
+              jq -r '.error // .message // "okant fel"' aosom-bulkorder.csv >&2 \
+                || head -c 200 aosom-bulkorder.csv >&2
               exit 1
             fi
 
             rader=$(wc -l < aosom-bulkorder.csv)
             if [ "$rader" -lt 2 ]; then
               echo "::error::CSV:n har bara ${rader} rad(er) — ingen order kom med" >&2
-              cat aosom-bulkorder.csv >&2
+              # ☠️ Inte `cat`. `wc -l` raknar radbrytningar, sa EN kundrad utan
+              # avslutande radbrytning ger ocksa "1" — och da hade den raden
+              # med namn, adress och telefon skrivits till den publika loggen
+              # av just den gren som finns for att rapportera att filen ar TOM.
+              head -1 aosom-bulkorder.csv >&2
               exit 1
             fi
 
             echo "Batch ${BATCH}: $((rader - 1)) order(rar), ${rader} rader inkl. rubrik."
             echo
-            cat aosom-bulkorder.csv
+
+            # ☠️ INNEHALLET SKRIVS ALDRIG UT. Filen bar bade kundens namn,
+            # gatuadress, postnummer, ort och telefonnummer OCH Aosoms
+            # artikelnummer -- och det har repot ar PUBLIKT, sa Actions-loggen
+            # gar att lasa utan inloggning. Ett `cat` har lackte alltsa var
+            # kunds adressuppgifter och vart inkopsled i samma rad.
+            # Artikelnumret ar dessutom exakt den strang dealproffsen.se
+            # publicerar som sku/mpn: en googling staller var sida bredvid
+            # deras med vart inkopspris harlett intill.
+            #
+            # Bara FORMEN redovisas: hur manga artikelnummer raden bar och
+            # vilket ordernummer den hor till. Det racker for att se att
+            # filen ar rimlig innan den laddas upp -- innehallet lases i
+            # artifacten.
+            awk -F'","' 'NR > 1 {
+              n = gsub(/,/, ",", $1) + 1
+              ref = $NF; gsub(/"/, "", ref)
+              print "    rad " NR - 1 ": " n " artikelnummer, referens " ref
+            }' aosom-bulkorder.csv || true
+
             echo
             echo "Ladda ner artifacten 'aosom-bulkorder' och ladda upp den pa"
             echo "https://www.aosom.de/bulkordering"

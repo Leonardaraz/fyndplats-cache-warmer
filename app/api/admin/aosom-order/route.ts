@@ -17,6 +17,17 @@
 // Query:
 //   ?format=csv&batch=1   ladda ner batch 1 som CSV (1-indexerat)
 //   ?status=pending       vilka orderstatusar som räknas (default: pending)
+//
+// Auth följer huset: CRON_SECRET (så en GitHub-workflow kan möta rutten utan att
+// hemligheten passerar chatten) eller EXTENSION_API_TOKEN.
+//
+// ☠️ Rutten gatades tidigare BARA av `isAuthorized`, alltså EXTENSION_API_TOKEN i
+// x-fyndplats-token. Workflowen `aosom-order.yml` skickar `Authorization: Bearer
+// $CRON_SECRET` som resten av huset — den kunde alltså aldrig komma in, och
+// svarade 401 "Otillåten" varje gång. Workflowen byggdes uttryckligen för att
+// order 10026 gick i väggen när ingen hade CRON_SECRET för handen; väggen stod
+// kvar eftersom rutten och workflowen aldrig kördes ihop. En workflow som inte
+// går att köra är samma klass som en grind som inte kan fälla.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -30,8 +41,15 @@ export const runtime = "nodejs";
 /** Statusar som betyder "väntar på att beställas hos leverantören". */
 const DEFAULT_STATUSAR = ["pending"];
 
+function auktoriserad(req: NextRequest): boolean {
+  if (isAuthorized(req)) return true;
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  return (req.headers.get("authorization") ?? "") === `Bearer ${secret}`;
+}
+
 export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) {
+  if (!auktoriserad(req)) {
     return NextResponse.json({ error: "Otillåten" }, { status: 401 });
   }
 
