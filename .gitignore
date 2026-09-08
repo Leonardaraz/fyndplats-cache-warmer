@@ -47,3 +47,4 @@ tools/aosom/sweep-log.jsonl
 # fram till 2026-09-06 holls de utanfor commiten bara av att den som korde
 # `git add` kom ihag det. En sparr man maste komma ihag gloms bort.
 tools/polish-assets/*/live/
+tools/kategorifix/*/live/
