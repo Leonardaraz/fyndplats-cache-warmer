@@ -85,3 +85,44 @@ visar exakt den kategori planen säger.**
 är regeln som gör det — deras löv ligger under hemmet — och brödsmulan är
 därmed förutsägbar. Om Leonard hellre vill ha dem i trädgården är det en rad
 att vända i `plan-2026-09-08.tsv`.
+
+## ☠️ Och en fjärde: toppen bär `parentCategory` — men UTAN `id` (2026-09-08)
+
+Punkt 2 ovan säger att en toppkategori "ligger utan förälder". Det är fel i
+bokstaven, och det kostade en runda till. `categories/v1/categories/search`
+svarar så här:
+
+```
+topp:  "parentCategory": {"index": 17}                                   ← inget id
+löv:   "parentCategory": {"id": "f6fac3c5-…", "index": 3}
+```
+
+Fältet FINNS alltså på båda, och `!c.parentCategory` är falskt för en topp.
+Predikatet som håller är **`!c.parentCategory?.id`**.
+
+Uppmätt när K12 skulle kategoriseras: `Hem & Inredning` rapporterades som
+`topp: false` och listan över rötter kom tillbaka **tom** — 54 kategorier,
+noll rötter. En tom rotlista är omöjlig i ett träd med löv, och det var det
+som avslöjade felet. Hade svaret i stället bara sett *litet* ut hade det gått
+obemärkt förbi, och kategoriseringen byggt på en topp som inte var en topp.
+
+Det är tredje gången samma fält läses fel i det här arbetet: först inverterat
+(löv togs för toppar), sedan `All Products` medräknad, nu predikatet självt.
+**Regeln: läs alltid ut trädet och räkna rötterna innan du litar på ett
+topp-predikat.** Noll rötter, eller lika många rötter som kategorier, är båda
+bevis på att predikatet är fel — inte på hur trädet ser ut.
+
+### Kopiera det här i stället för att skriva om predikatet
+
+```js
+const arToppkategori = c => !c.parentCategory?.id && c.name !== "All Products";
+const toppar = kat.filter(arToppkategori);
+// ☠️ Assertionen ÄR grinden — utan den ser ett trasigt predikat ut som en mätning.
+if (toppar.length === 0 || toppar.length === kat.length) {
+  throw new Error(`topp-predikatet ar trasigt: ${toppar.length} av ${kat.length}`);
+}
+```
+
+Kastet är inte försiktighet: båda utfallen är omöjliga i ett riktigt träd, och
+båda har inträffat här. Utan det svarar en trasig mätning med ett tal i stället
+för ett fel — och ett tal blir trott.
