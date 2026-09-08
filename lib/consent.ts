@@ -122,8 +122,24 @@ function inlineState(value: "granted" | "denied"): string {
  *
  * wait_for_update ger förstagångsbesökaren en kort stund att hinna klicka
  * innan den cookielösa pingen skickas.
+ *
+ * KASTAR på ett mät-ID som inte är rent alfanumeriskt. Strängen renderas via
+ * dangerouslySetInnerHTML, så ett citattecken i ID:t skulle bryta ut ur
+ * JS-literalen och köra godtycklig kod på VARJE sida. I dag matas alltid
+ * modulkonstanten G-W6NZ87CX2Q in och kontrollen kan aldrig falla — men
+ * signaturen tar en string, och flyttas ID:t någon gång till en env-variabel
+ * (NEXT_PUBLIC_GA_ID el. dyl.) är det precis så hålet uppstår.
+ *
+ * Att kasta är avsiktligt hellre än att tyst rendera ingenting: ett trasigt
+ * bygge lagas på minuter, en tyst bortfallen mätning upptäcks efter veckor.
  */
 export function consentBootstrapScript(measurementId: string): string {
+  if (!/^[A-Za-z0-9_-]+$/.test(measurementId)) {
+    throw new Error(
+      `consentBootstrapScript: otillåtet mät-ID ${JSON.stringify(measurementId)} — ` +
+        "bara bokstäver, siffror, bindestreck och understreck får bäddas in i sidans script-tagg.",
+    );
+  }
   return (
     `window.dataLayer=window.dataLayer||[];` +
     `window.gtag=function(){dataLayer.push(arguments);};` +

@@ -7,6 +7,7 @@ import {
   consentBootstrapScript,
   consentState,
   marketingConsentFromCookie,
+  pushConsentUpdate,
 } from "./consent.ts";
 
 // Granskning 2026-08-19: samtycket låg bara i localStorage, som servern inte
@@ -100,5 +101,78 @@ describe("consentBootstrapScript", () => {
 
   it("bäddar in mät-ID:t som gavs", () => {
     assert.ok(js.includes("G-TESTAR123"));
+  });
+});
+
+describe("consentBootstrapScript — härdning", () => {
+  it("kastar på ett mät-ID som kan bryta ut ur script-taggen", () => {
+    // Strängen renderas via dangerouslySetInnerHTML. Ett citattecken i ID:t
+    // kör godtycklig kod på VARJE sida. I dag matas alltid modulkonstanten in,
+    // men signaturen tar en string och ID:t kan flyttas till en env-variabel.
+    for (const ont of [
+      "G-X');alert(1);//",
+      "G-X'}",
+      "</script><script>alert(1)</script>",
+      "G X",
+      "",
+    ]) {
+      assert.throws(() => consentBootstrapScript(ont), /otillåtet mät-ID/);
+    }
+  });
+
+  it("släpper igenom formen vi faktiskt använder", () => {
+    assert.ok(consentBootstrapScript("G-W6NZ87CX2Q").includes("G-W6NZ87CX2Q"));
+    assert.ok(consentBootstrapScript("AW-11073697020").includes("AW-11073697020"));
+  });
+});
+
+describe("pushConsentUpdate", () => {
+  // Funktionen som körs vid klick i bannern — vägen som gör att en
+  // förstagångsbesökare någonsin uppgraderas från nekat till beviljat.
+  const medFonster = (gtag: unknown, kropp: () => void) => {
+    const fanns = "window" in globalThis;
+    const original = (globalThis as Record<string, unknown>).window;
+    (globalThis as Record<string, unknown>).window = { gtag };
+    try {
+      kropp();
+    } finally {
+      if (fanns) (globalThis as Record<string, unknown>).window = original;
+      else delete (globalThis as Record<string, unknown>).window;
+    }
+  };
+
+  it("skickar update med alla fyra beviljade vid \"all\"", () => {
+    const anrop: unknown[][] = [];
+    medFonster((...a: unknown[]) => anrop.push(a), () => pushConsentUpdate("all"));
+    assert.equal(anrop.length, 1);
+    assert.deepEqual(anrop[0]?.slice(0, 2), ["consent", "update"]);
+    assert.deepEqual(anrop[0]?.[2], {
+      ad_storage: "granted",
+      ad_user_data: "granted",
+      ad_personalization: "granted",
+      analytics_storage: "granted",
+    });
+  });
+
+  it("skickar update med alla fyra nekade vid \"necessary\"", () => {
+    const anrop: unknown[][] = [];
+    medFonster((...a: unknown[]) => anrop.push(a), () => pushConsentUpdate("necessary"));
+    assert.deepEqual(anrop[0]?.[2], {
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
+      analytics_storage: "denied",
+    });
+  });
+
+  it("är en no-op när gtag saknas — normalfallet utanför produktion", () => {
+    // Preview och lokalt skrivs taggen inte ut alls, så window.gtag finns inte.
+    // Bannern måste ändå fungera.
+    medFonster(undefined, () => assert.doesNotThrow(() => pushConsentUpdate("all")));
+  });
+
+  it("sväljer ett gtag som kastar — mätning får aldrig fälla sidan", () => {
+    medFonster(() => { throw new Error("gtag exploderade"); },
+      () => assert.doesNotThrow(() => pushConsentUpdate("all")));
   });
 });
