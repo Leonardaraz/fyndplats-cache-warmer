@@ -142,3 +142,45 @@ dessutom precis det kluster den andra sessionen medvetet lade undan.
 | `c396356f` | 3 813,71 | 4 579 | 4 579 | **stämmer** |
 
 Leverantörsartikel `aosom:700-050V94GY`, DE-lager, fraktandel 0,306.
+
+## ✅ `a0760ed1` är måttverifierad — den ÄR modell A (2026-09-08)
+
+Fullt id: **`a0760ed1-95c5-4e55-987b-f9e0d7886700`**, 4 419 kr, `visible:false`.
+
+Källan säger `Gesamtmaße: 82B x 99T x 103H cm` — exakt modell A:s måttrad. Och
+det är inte bara måttet som stämmer: hela det tekniska blocket är identiskt med
+de fyra andra syskonen.
+
+| | modell A (de fyra) | `a0760ed1` |
+|---|---|---|
+| Massagepunkter | 8 (rygg, ländrygg, lår, vader) | **8, samma fyra zoner** |
+| Lägen / timer | 3 lägen, 15/30/60 min | **3 lägen, 15/30/60 min** |
+| Ryggläge | manuellt till 145° | **manuellt till 145°** |
+| Stomme | fickfjädring | **fickfjädring** |
+| Mått | 82B x 99T x 103H | **82B x 99T x 103H** |
+| Nedfällt | 82B x 165T x 78H | **82B x 165T x 78H** |
+| Sitsdjup / -höjd / -bredd | 57 / 49 / 54 | **57 / 49 / 54** |
+| Sladd | 1,8 m | **1,8 m** |
+| Maxlast | 135 kg | **135 kg** |
+| Effekt / spänning | 12 W · AC100-240V | **12 W · AC100-240V** |
+| Vikt | 50 kg | **50 kg** |
+
+**Färgen är `Hellbraun` — ljusbrun.** Ingen krock: `a7f029bf` är `Dunkelbraun`
+(mörkbrun). Familjen blir alltså fem färger, inte fyra.
+
+⚠️ **Måttraden är omkastad i den svenska spec-tabellen.** Tyskan säger
+`82B x 99T x 103H`, importens `Mått:`-rad säger `99L x 82B x 103H`. Det är
+bredd och djup som bytt plats. Rättas i Steg 6/11 — och kontrollera de fyra
+andra syskonen på samma sak innan något skrivs.
+
+## Runda 103, slutgiltig batch
+
+| id8 | färg (tyska → svenska) | pris |
+|---|---|--:|
+| `c396356f` | Hellgrau → ljusgrå | 4 579 |
+| `a7f029bf` | Dunkelbraun → mörkbrun | 4 619 |
+| `7e84e482` | Cremeweiß → cremevit | 4 819 |
+| `297d8979` | Schwarz → svart | 4 979 |
+| `a0760ed1` | Hellbraun → ljusbrun | 4 419 |
+
+Fem produkter, en modell, fem färger.
