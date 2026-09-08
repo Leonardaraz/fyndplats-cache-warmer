@@ -164,3 +164,62 @@ Tre oberoende mätningar, alla körda till slutet:
 bevis.** Namnen är kapade, de tyska utkasten är kapade mitt i meningen, och det
 som skiljer två varor åt hamnar ofta efter kapningen. Ska en dubblett bevisas
 BORTA måste svepet gå på måtten.
+
+## ☠️ Tredje svepet — för det ANDRA hade ett hål jag inte såg
+
+Leonard bad om dubbelkollen en gång till. Det var befogat: mönstret i svep 2 var
+`37\s*x\s*32\s*x\s*21`, och **Aosom skriver måtten som `37B x 32T x 21H cm`.**
+Bokstaven sitter MELLAN talet och x:et, så mönstret kunde aldrig matcha en tysk
+måttrad. Varan hittades bara för att dess EGEN text är polerad svenska.
+
+Med andra ord: svep 2 sökte efter en dubblett i den enda form en dubblett
+troligen INTE har. Ett opolerat tyskt utkast — och 3 204 av katalogens sidor är
+utkast — hade varit osynligt.
+
+### Omgjort med tolerant sifferutvinning
+
+Talen plockas nu ut oavsett vad som står emellan, och jämförs som **mängd**,
+eftersom ordningen (B×D×H mot L×B×H) skiljer mellan språken:
+
+```
+TAL     (\d{1,4}(?:[.,]\d{1,2})?)
+MELLAN  \s*[a-zäöüß]{0,2}\s*[x*×]\s*      ← släpper igenom B, T, H, L, W
+```
+
+**Att grinden verkligen läser tyska bevisas av täckningen:** den hittade
+måttripplar i **5 126 av 5 553 produkter** (1 183 · 1 155 · 1 189 · 1 109 · 490
+per pass). De fyra första passen är nästan uteslutande tyska utkast.
+
+### Utfallet — fem pass, sista till `cursor: null`
+
+| | |
+|---|---:|
+| Produkter granskade | **5 553** (publicerade **och** utkast) |
+| Med minst en måttrippel | 5 126 |
+| Träffar på någon av de tre måtten | **1** |
+
+```
+51611305  Vägghängt sängbord 2-pack …   synlig: true
+          yttermått 37/32/21 ✔   låda 29/23,5/7 ✔   fack 34/30/8,5 ✔
+```
+
+**Varan hittade sig själv på alla tre måtten. Ingen annan produkt matchade ett
+enda av dem.**
+
+Elva rader föll ut på de svaga TVÅ-talsparen (37/32 respektive 34/30), och alla
+elva är en annan produkttyp: konsolbord, kattorn, hönsgård, fågelbur,
+balkongmöbelset, sidobord, två badrumsskåp, två köksvagnar, två städvagnar,
+verkstadspall och en hallbänk. Ingen av dem är ett nattduksbord.
+
+### Regeln, och den är dyrare än den ser ut
+
+☠️ **En måttgrind måste skrivas för leverantörens FORMAT, inte för vårt eget.**
+Vår polerade text skriver `37 × 32 × 21 cm`; Aosoms tyska källa skriver
+`37B x 32T x 21H cm`. En grind byggd på den polerade formen letar bara bland de
+sidor som redan är polerade — alltså exakt den halva där en oupptäckt dubblett
+minst troligt sitter.
+
+Och den generella: **en grind som hittar sitt eget facit har bevisat att den
+fungerar; en grind som inte gör det har inte bevisat någonting.** Svep 2 hittade
+originalet — men bara för att originalet var polerat, vilket dolde att den var
+blind för resten.
