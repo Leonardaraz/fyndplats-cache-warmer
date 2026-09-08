@@ -1,0 +1,7 @@
+# Kvitterade sortimentsrankningar. Mätta 2026-09-08 mot ALLA publicerade
+# rundor med gate-superlativ.py:s underlag — inte mot minnet.
+#
+# ⚠️ ETT SUPERLATIV FÖRFALLER. Nästa runda kan göra raden falsk utan att
+# någon rör den här filen. Mät om vid varje ny runda i samma familj.
+31cbadae  62 cm smalast — delad lägsta bredd med b78d4cc6 (K11), ingen smalare
+820d5370  enda med "Färg: Mörkbrun" bland publicerade massagestolar

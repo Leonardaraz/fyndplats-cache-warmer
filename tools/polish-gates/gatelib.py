@@ -108,6 +108,48 @@ STAV_ORD = [
 ]
 STAV = r"\b(" + "|".join(STAV_ORD) + r")\b"
 
+# ☠️ SUPERLATIV OM VÅRT EGET SORTIMENT — grinden som saknades till 2026-09-08.
+# Runda K11 skrev "ställs mellan 45 och 53 cm — lägst i vårt massagesortiment"
+# om f809b33e. Det var FALSKT: b78d4cc6 i samma runda går ner till 44 cm.
+#
+# ⚠️ Ingen befintlig grind kunde se det, och det är hela poängen. Talen stod i
+# källan (siffergrinden ren), svenskan var korrekt (mönstergrindarna rena), och
+# påståendet handlade om ANDRA produkter — alltså om data som inte finns i den
+# här filen. Det hittades bara för att siffergrinden råkat fälla tre påhittade
+# jämförelsetal och jag därför sökte superlativen i ALLA åtta filerna.
+#
+# Grinden fäller BARA när ett superlativ står i samma mening som ett omfång som
+# syftar på vårt eget sortiment. "Konstläder är den klädsel som kräver minst av
+# dig" är ett påstående om materialet och rörs inte; "lägst i vårt sortiment"
+# och "den enda i serien" är rankningar av katalogen och måste kvitteras.
+#
+# ☠️ Kvitteringen är en FIL, inte en vana: `superlativ.txt` i rundans katalog,
+# en rad per godkänt påstående som "<kort> <valfri anteckning>". Samma form som
+# `rad-tal.txt`. Utan raden faller grinden. Att bara varna hade gjort den till
+# en påminnelse, och huset har redan skrivit ned att en checklista som bara
+# hjälper den som kommer ihåg punkten inte är en spärr.
+SUPERLATIV_ORD = [
+    "lägst", "högst", "störst", "minst", "bredast", "smalast", "djupast",
+    "grundast", "tyngst", "lättast", "billigast", "dyrast", "kraftigast",
+    "tystast", "snabbast", "enda", "ende", "enastående", "oöverträffad",
+]
+OMFANG_ORD = [
+    "vårt sortiment", "vår katalog", "vårt utbud", "i serien", "i den här serien",
+    "av våra", "bland våra", "hos oss", "vi säljer", "vi har", "vårt massagesortiment",
+    "i vårt", "i vår", "på sidan", "andra stolarna", "övriga stolarna",
+]
+SUPERLATIV = r"(?<![A-Za-zÅÄÖÉÜåäöéü])(" + "|".join(SUPERLATIV_ORD) + r")(?![A-Za-zÅÄÖÉÜåäöéü])"
+OMFANG = r"(" + "|".join(OMFANG_ORD) + r")"
+
+
+def meningar(text):
+    """Grov meningsdelning. Punkt/utrops/frågetecken följt av blanksteg och
+    versal, plus radbrytning — nog för att avgöra om två träffar står i SAMMA
+    påstående. Ett tankstreck delar INTE: "45 cm — lägst i vårt sortiment" är
+    en mening, och det var precis den formen felet hade."""
+    return [m for m in re.split(r"(?<=[.!?])\s+(?=[A-ZÅÄÖ])|\n", text) if m.strip()]
+
+
 GRINDAR = [("HUSMÄRKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
            ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("STAVNING", STAV),
            ("HOMOGLYF", HOMO), ("EN-NORM UTAN KÄLLA", NORM)]
