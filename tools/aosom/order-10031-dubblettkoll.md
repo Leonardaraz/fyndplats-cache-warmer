@@ -97,3 +97,70 @@ vid nästa importrunda, inte här.
 kan bara svara "vi har ingen sådan sida" — det är feed-sökningen som svarar
 "Aosom har ingen sådan artikel". Frågan Leonard ställde krävde båda, och det
 är precis därför `aosom-feed-search` byggdes efter order 10027.
+
+## Dubbelkollen: samma fråga en gång till, men på MÅTTEN (Leonards begäran)
+
+⚠️ **Det första katalogsvepet var svagare än det såg ut.** Det matchade på
+PRODUKTNAMN — och Wix kapar namn vid ~80 tecken, så en sida vars särskiljande
+ord ligger efter kapningen är osynlig för ett namnsvep. Ett tyskt utkast som
+heter *"2er-Set schwebende Wandregale mit RGB-LED-Beleuchtung und App-Steuerung,
+Weiß…"* hade räknats bort på fel grund.
+
+Svepet är därför gjort om mot **brödtexten**, med varans egna mått som
+fingeravtryck. Fem pass, sista till `cursor: null`:
+
+| | |
+|---|---:|
+| Produkter granskade | **5 553** |
+| Varav utkast / publicerade | 3 204 / 2 349 (Steg 1-mätningen samma dag) |
+| Fält som lästes | `name` + `plainDescription` |
+
+Tre STARKA fingeravtryck (måtten är unika för varan) och en
+egenskapskombination som måste finnas i samma text:
+
+```
+37 x 32 x 21        yttermått per bord
+29 x 23,5 x 7       lådans innermått
+34 x 30 x 8,5       öppet fack
+kombo:  RGB  +  app/bluetooth  +  vägghängd/wandmontiert/schwebend
+```
+
+### Utfallet
+
+☠️ **Den beställda varan matchade sina EGNA tre fingeravtryck och kombon.** Det
+är kvittot att grinden fungerar — ett svep som inte hittar ens originalet bevisar
+ingenting alls:
+
+```
+51611305  Vägghängt sängbord 2-pack …   synlig: true
+          ytterm 37x32x21 · lada 29x23,5x7 · fack 34x30x8,5 · kombo ✔
+```
+
+**Ingen annan produkt i katalogen matchade ett enda av de tre måtten.** Fyra
+rader föll ut på det svaga halvmåttet eller på kombon, och alla fyra är
+uppenbart en annan vara:
+
+| id | vad det är | varför den föll ut |
+|---|---|---|
+| `c9ab8531` | solcellslykta 182 cm (utkast) | `37x32` i paketmåttet |
+| `b2a73ee9` | bänkdyna 150 × 100 × 10 cm (utkast) | `37x32` i en måttrad |
+| `3a42c047` | Hollywood-sminkspegel med LED (utkast) | RGB + app + hängande |
+| `912dca9f` | **sängbas** med RGB, 140 × 190 cm (publicerad) | RGB + app + svävande |
+
+Den sista är den enda som ens är i närheten av samma ordvärld — och en sängbas
+på 140 × 190 cm är inte ett nattduksbord på 37 × 32 cm.
+
+### Vad kollen nu vilar på
+
+Tre oberoende mätningar, alla körda till slutet:
+
+1. **Namnsvep** över 5 553 produkter — fyra kandidater jämförda spec mot spec.
+2. **Måttsvep** över samma 5 553 produkter, publicerade OCH utkast — noll
+   träffar utöver varan själv.
+3. **Feedsökning** över Aosoms 6 087 rader med `allaRader=1` — den vägghängda
+   2-packen med app-styrning finns inte i den tyska B2B-listan.
+
+**Regeln, och den är ny här: ett namnsvep i den här katalogen är ett SVAGT
+bevis.** Namnen är kapade, de tyska utkasten är kapade mitt i meningen, och det
+som skiljer två varor åt hamnar ofta efter kapningen. Ska en dubblett bevisas
+BORTA måste svepet gå på måtten.
