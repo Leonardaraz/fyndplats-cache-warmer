@@ -59,6 +59,12 @@ jobs:
   bulkorder:
     runs-on: ubuntu-latest
     steps:
+      # ☠️ BEHOVS FOR SAMMANFATTNINGSSKRIPTET. Jobbet hade ingen checkout alls
+      # forut — det anropade bara en rutt. Utan den finns
+      # tools/aosom/csv-sammanfattning.py inte pa runnern, och csv-laget dor
+      # pa "No such file or directory" i stallet for att sammanfatta filen.
+      - uses: actions/checkout@v4
+
       - name: Kör
         env:
           BASE: ${{ secrets.POLL_TRACKING_URL }}
@@ -109,24 +115,18 @@ jobs:
             echo "Batch ${BATCH}: $((rader - 1)) order(rar), ${rader} rader inkl. rubrik."
             echo
 
-            # ☠️ INNEHALLET SKRIVS ALDRIG UT. Filen bar bade kundens namn,
-            # gatuadress, postnummer, ort och telefonnummer OCH Aosoms
-            # artikelnummer -- och det har repot ar PUBLIKT, sa Actions-loggen
-            # gar att lasa utan inloggning. Ett `cat` har lackte alltsa var
-            # kunds adressuppgifter och vart inkopsled i samma rad.
-            # Artikelnumret ar dessutom exakt den strang dealproffsen.se
-            # publicerar som sku/mpn: en googling staller var sida bredvid
-            # deras med vart inkopspris harlett intill.
+            # ☠️ INNEHALLET SKRIVS ALDRIG UT. Filen bar kundens namn,
+            # gatuadress, postnummer, ort och telefon OCH Aosoms
+            # artikelnummer, och det har repot ar PUBLIKT.
             #
-            # Bara FORMEN redovisas: hur manga artikelnummer raden bar och
-            # vilket ordernummer den hor till. Det racker for att se att
-            # filen ar rimlig innan den laddas upp -- innehallet lases i
-            # artifacten.
-            awk -F'","' 'NR > 1 {
-              n = gsub(/,/, ",", $1) + 1
-              ref = $NF; gsub(/"/, "", ref)
-              print "    rad " NR - 1 ": " n " artikelnummer, referens " ref
-            }' aosom-bulkorder.csv || true
+            # Sammanfattningen ligger i ett EGET SKRIPT, inte pa en rad har.
+            # En rad i en workflow gar inte att testa, och det var
+            # oprovbarheten som lat tva forsok i rad ga igenom: forst ett
+            # `cat`, sedan en awk med `-F'\",\"'` som antog att varje falt ar
+            # citerat. Det ar det inte, sa awk hittade ingen avgransare och
+            # skrev ut hela raden. Skriptet ar last av ett test mot riktig
+            # byggCsv-utdata.
+            python3 tools/aosom/csv-sammanfattning.py aosom-bulkorder.csv
 
             echo
             echo "Ladda ner artifacten 'aosom-bulkorder' och ladda upp den pa"
