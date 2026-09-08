@@ -2953,6 +2953,39 @@ De två sista fångar en annan sak: *"trettioen centimeter … vilket är det no
 benutrymmet för en matplats"* är ett påstående om möbler i allmänhet som ingen mätt.
 Samma familj som superlativen — **det ser ut som en beskrivning men är en mätning.**
 
+### ✅ Katalogsvepet: 408 sidor → 0, och grinden var orsaken (2026-09-08)
+
+Leonard bad om det uttryckligen: *"vi ska va leverantören ingen annan."* Mätt
+över hela katalogen, 5 553 produkter:
+
+| | före | efter |
+|---|--:|--:|
+| Publicerade sidor med aktörsord i brödtexten | **408** | **0** |
+| Förekomster | **~754** | **0** |
+
+☠️ **Regel 8 i `lint.py` var orsaken, inte poleringen.** Den fångade
+`leverantör*` men INTE `tillverkaren anger`, inte `tillverkarens ritning`, inte
+`enligt tillverkaren`, inte `producenten`. Fyra av fem verkliga former passerade
+— varje runda rapporterade grön grind medan 17 % av sortimentet bar
+formuleringen. Regeln delar sedan dess aktörslista med
+`tools/leverantorssvep/grind.py`, och självtestet har en mutering per aktörsord
+som svepet faktiskt hittade på en publicerad sida.
+
+☠️ **En sök-och-ersätt hade gått sönder på svenskan.** Svansen var 213 olika
+formuleringar på 228 förekomster. `Leverantören anger att X` går inte att
+stryka mekaniskt: bisatsen har adverbet före verbet och huvudsatsen efter, så
+*"…att uppsättningen dessutom går att anpassa"* blir *"Uppsättningen dessutom
+går att anpassa."* Bara det rena ADVERBIALET (`enligt leverantören`) är
+mekaniskt säkert — resten skrevs om för hand i 470 grindade par.
+
+⚠️ **Ärlighetsmeningar stryks inte, de skrivs om.** *"Leverantörens egen sida
+uppger 1,76 kg på ett ställe och 1,9 kg på ett annat"* är information kunden
+har nytta av. Motsägelsen står kvar, aktören försvinner: *"Uppgifterna går
+isär: 1,76 kg på ett ställe och 1,9 kg på ett annat."*
+
+Hela mätningen och de fem lärdomarna står i `tools/leverantorssvep/MATNING.md`.
+
+
 ### ☠️ En påstående-grind måste kunna skilja ett påstående från ett FÖRNEKANDE
 
 Samma runda, direkt efter rättningen ovan: grinden fällde den nya, korrekta meningen

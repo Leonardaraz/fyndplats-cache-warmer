@@ -120,11 +120,25 @@ def r7_land(pid, h, meta, *_):
     return f"skriver ut avsändarland: {tr.group(0)!r}" if tr else None
 
 
-HUSET = re.compile(r"leverantör|tillverkaren uppger|vi vet inte|vi har inga uppgifter", re.I)
+# ☠️ Den här regeln var FÖR SMAL i månader, och det gick att mäta: den
+#    fångade "leverantör*" men inte "tillverkaren anger", inte "tillverkarens
+#    ritning", inte "enligt tillverkaren". Katalogsvepet 2026-09-08 hittade
+#    408 PUBLICERADE sidor med ~754 förekomster som alla passerade grinden.
+#    Aktörslistan är därför densamma som i tools/leverantorssvep/grind.py —
+#    en tvilling som glider isär är husets vanligaste bugg.
+AKTOR = re.compile(
+    r"(?<![A-Za-zÅÄÖåäö0-9])(leverantör\w*|tillverkar\w*|producent\w*|"
+    r"importör\w*|grossist\w*|fabrikant\w*|distributör\w*)"
+    r"(?![A-Za-zÅÄÖåäö0-9])", re.I)
+HUSET = re.compile(r"vi vet inte|vi har inga uppgifter", re.I)
 
 
 def r8_vi_ar_leverantoren(pid, h, meta, *_):
-    tr = HUSET.search(lasform(h) + " " + meta)
+    txt = lasform(h) + " " + meta
+    tr = AKTOR.search(txt)
+    if tr:
+        return f"mot kunden är VI leverantören: {tr.group(0)!r}"
+    tr = HUSET.search(txt)
     return f"husregelbrott: {tr.group(0)!r}" if tr else None
 
 
@@ -295,6 +309,16 @@ MUTATIONER = [
         " Varan skickas från Tyskland.</p><h2>Tekniska")),
     ("8", "c50fa916", lambda h: h.replace("</p><h2>Tekniska",
         " Leverantören anger 160 kg.</p><h2>Tekniska")),
+    # ☠️ De fyra nedan passerade den GAMLA regeln. Alla fyra stod på riktiga
+    #    publicerade sidor när svepet 2026-09-08 mätte katalogen.
+    ("8", "b8b6fee1", lambda h: h.replace("</p><h2>Tekniska",
+        " Tillverkaren anger 160 kg.</p><h2>Tekniska")),
+    ("8", "9c8a7a80", lambda h: h.replace("</p><h2>Tekniska",
+        " 160 kg enligt tillverkaren.</p><h2>Tekniska")),
+    ("8", "1932abe1", lambda h: h.replace("</p><h2>Tekniska",
+        " Tillverkarens ritning visar 160 kg.</p><h2>Tekniska")),
+    ("8", "54d25930", lambda h: h.replace("</p><h2>Tekniska",
+        " Producenten rekommenderar 160 kg.</p><h2>Tekniska")),
     ("9", "7062dc79", lambda h: h.replace("51,5 cm", "51.5 cm").replace("1,2 A", "1.2 A")),
     ("10", "cd7e9036", lambda h: h.replace('href="https://www.fyndplats.se/produkt/',
                                            'href="/produkt/')),
