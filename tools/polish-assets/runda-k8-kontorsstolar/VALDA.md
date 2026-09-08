@@ -119,3 +119,28 @@ kopplad 8/8 enligt bulk-svarets `itemMetadata`.
 ⚠️ `All Products` går inte att koppla för hand — den är app-styrd och svarar
 `403 MANAGED_CATEGORY_OPERATION_NOT_ALLOWED`. Produkterna hamnar där av sig
 själva. Bara `Hem & Inredning` ska kopplas.
+
+## Live-verifierat 2026-09-08 — 8/8 REN
+
+Hämtat ISR-medvetet (varm träff, 305 s, skarp hämtning): alla åtta HTTP 200 med
+`age: 100`, alltså renderingar som den varma träffen utlöste — inte cachade
+sidor från före skrivningen.
+
+| kort | ord | orddiff |
+| :-- | --: | --: |
+| `29549b48` | 568 | 0 |
+| `909b7596` | 509 | 0 |
+| `ad27954b` | 569 | 0 |
+| `c131b430` | 558 | 0 |
+| `ad3aa881` | 548 | 0 |
+| `82d5fa29` | 519 | 0 |
+| `cea5a0ce` | 570 | 0 |
+| `ace8d130` | 576 | 0 |
+
+`livegrind.py` kör sju svep per sida och alla sju är rena: orddiff mot
+källfilen, homoglyfer, sidsvep, **alt-svep**, **SEO-svep exakt mot `seo.tsv`**,
+de tre obligatoriska flikarna, kategorins brödsmula, köpbarheten
+(ingen `OutOfStock`) och att korslänken överlevt.
+
+De åtta interna korslänkarna är därmed kontrollerade — `gate-lankar.py` kunde
+per konstruktion inte hämta dem före skrivningen, eftersom målen då var utkast.
