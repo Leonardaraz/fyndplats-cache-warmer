@@ -132,6 +132,10 @@ SUPERLATIV_ORD = [
     "lägst", "högst", "störst", "minst", "bredast", "smalast", "djupast",
     "grundast", "tyngst", "lättast", "billigast", "dyrast", "kraftigast",
     "tystast", "snabbast", "enda", "ende", "enastående", "oöverträffad",
+    # Tillagda i K13 — ORD FÅR BARA LÄGGAS TILL, aldrig bytas ut (#154).
+    "brantast", "brantaste", "mjukast", "hårdast", "varmast", "kallast",
+    "starkast", "svagast", "längst", "kortast", "tjockast", "tunnast",
+    "rymligast", "stabilast", "främst", "bäst", "sämst",
 ]
 OMFANG_ORD = [
     "vårt sortiment", "vår katalog", "vårt utbud", "i serien", "i den här serien",
