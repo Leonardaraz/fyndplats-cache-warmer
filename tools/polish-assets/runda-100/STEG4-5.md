@@ -101,3 +101,60 @@ i klartext att bordet levereras ensamt.**
   användbart tal för den som mäter mot en stol med armstöd.
 - **`4249df4d`:s hylla under skivan är 85 × 50 cm** och syns på både foto och
   måttritning.
+
+---
+
+## ☠️ TVÅ RÄTTELSER AV DET HÄR DOKUMENTET, hittade när underlaget lästes rad för rad
+
+Avsnittet "Det som stämmer och bär texten" ovan skrevs ur en sammanfattning.
+Två av dess punkter höll inte när de sex tyska texterna lästes ordagrant.
+
+### 1. "Alla sex har justerbara eller halkfria fötter" — FEL
+
+| id8 | vad underlaget säger | vad sidan skriver |
+|---|---|---|
+| `e71acc53` | **ingenting om fötterna** | **ingenting** |
+| `f806eebf` | *"Verstellbare Füße"* | justerbara |
+| `4249df4d` | *"Mit rutschfesten Füßen"* | halkfria |
+| `29c688dc` | *"Rutschfeste Füße … schützen den Boden"* | halkfria |
+| `74d3c11c` | *"verstellbare Fußstützen"* | justerbara |
+| `c71418ca` | *"Verstellbare Füße"* | justerbara |
+
+Påståendet om `e71acc53` var ÄRVT: fotkonstruktionen syns på `65a730a4-4`,
+en närbild på ett helt annat bord. Det är precis den sortens ärvda detalj
+runbokens färgtvillingregel förbjuder — ett foto av ETT syskon bevisar
+ingenting om ett annat.
+
+**Och justerbar är inte halkfri.** En justerbar fot skruvas i höjdled mot ett
+ojämnt underlag; en halkfri fot står still och skyddar golvet. Grinden (regel 6)
+är därför trevägs: den fäller ett fotpåstående utan underlag, en saknad
+beskrivning, OCH en förväxling av de två sorterna.
+
+### 2. "Alla sex har anvisning i lådan" — FEL
+
+`4249df4d`:s `Lieferumfang` listar `1 x Gartentisch inkl` och
+`1 x Sicherheitsglasplatte`. **Ingen `Anleitung`.** De andra fem har alla ett
+`1 x Handbuch` / `1 x Anleitung` / `1 x Bedienungsanleitung`.
+
+Den sidan skriver därför "Montering krävs" utan att lova en anvisning.
+Regel 7 är tvåvägs och låser båda riktningarna.
+
+### 3. Och en tredje: `4249df4d` har lika lite sittplatsunderlag som `e71acc53`
+
+Avsnittet ovan sa att bara `e71acc53` saknar ett publicerbart tal. Det stämmer
+inte: `4249df4d`:s tyska text nämner **inget antal alls**. Skillnaden mellan de
+två är bara HUR underlaget saknas — den ena motsäger sig själv, den andra är
+tyst. Utfallet är detsamma, och båda sidorna skriver skivans mått i stället.
+
+**Regeln: en sammanfattning är inte ett underlag.** Alla tre felen kom av att
+den här filens första version generaliserade över sex produkter i stället för
+att lista dem en och en. Grinden listar dem nu en och en, i `texter.py`:s
+`FOTTER`, `ANVISNING` och `SITTPLATSER`.
+
+## ✅ Bilderna behöver ingen kvadrering — alla 30 är redan 900 × 900
+
+Uppmätt på filerna i `rawbilder/`: samtliga trettio är kvadratiska. PDP:ns
+centrumbeskärning (`fill/w_N,h_N,al_c`) kan alltså inte kapa något, och #354:s
+problem — liggande måttritningar som tappar sina måttetiketter — gäller inte
+den här rundan. Kontrollen är ändå värd att göra varje gång: runda 98:s
+ritningar var 900 × 642 och tappade sidmåtten.
