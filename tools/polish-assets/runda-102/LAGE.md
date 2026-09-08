@@ -88,9 +88,27 @@ Fem färgsyskon som STÄNGER två modeller ur runda 101.
   endpoint: **alla åtta har den.** Flaggan kom sannolikt från en återläsning
   som ljög negativt (uppgift #357) — samma fälla, en runda senare.
 
+- **Steg 9 (kort)** — fem egna Fyndplats-kort byggda, grindade och pålagda
+  som sista bild. Galleriet är nu 6 / 6 / 6 / **5** / 6 bilder (den fjärde är
+  `3b61e50c`, som blev av med den främmande ritningen). Noll tomma alt-texter,
+  alla fem fortfarande utkast.
+
+  Rubrikerna är valda mot bild 1 med ögon: modell B står på korsfot i trä,
+  modell C har en rygg som reser sig högt över armstöden. Alla värden är
+  härledda ur spec-tabellen — kortet kan inte skriva ett tal som inte står
+  i tabellen.
+
+  ☠️ Kortet läggs på med `url`, inte `id` — och det är korrekt HÄR och bara
+  här: `raw.githubusercontent.com` ÄR en extern adress. En wixstatic-adress i
+  samma fält hade fått Wix att importera om filen (husets omimport-bugg).
+
+  ⚠️ Fjärde produkten föll på en **504** mitt i loopen. Anropet har en
+  idempotensvakt ("kortet sitter redan"), så omkörningen skrev bara den femte
+  och lämnade de fyra i fred. Det är vad vakten finns till för.
+
 ## Kvar
 
-- Steg 9 (kort): egna Fyndplats-kort som sista bild
+- Steg 12 kundläsning · Steg 13 stämpling + publicering · Steg 14 live-grind
 - Steg 10 kategorier · Steg 12 kundläsning · Steg 13 stämpling + publicering
 - Steg 14 live-grind (kontrollprov först)
 
