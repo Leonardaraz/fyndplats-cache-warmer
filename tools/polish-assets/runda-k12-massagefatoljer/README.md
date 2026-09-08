@@ -76,3 +76,38 @@ mot Wix tak på 40.
 | Stämpling | 8/8, oberoende omläsning på två rader |
 
 Lägsta lagersaldo 13 (`522103fd`), högsta 197.
+
+## Live-verifierat 2026-09-08
+
+ISR-medveten hämtning: varm träff → 305 s tills sidorna hunnit bli inaktuella
+→ 310 s paus → skarp hämtning. `age` 320–679 s på alla åtta, alltså
+renderingar som startade EFTER skrivningarna. 8 × HTTP 200, 141–155 kB.
+
+```
+livegrind.py:  8/8 REN, orddiff 0 på varenda sida
+```
+
+Bredare svep över samma HTML, utöver grinden:
+
+| krav | 8/8 |
+|---|---|
+| Brödsmula `Hem / Hem & Inredning / <produkt>` | ✅ en toppkategori |
+| Fliken `Användning och skötsel` | ✅ |
+| Rubrikerna ordagrant (`Tekniska specifikationer`, `Vanliga frågor`) | ✅ |
+| JSON-LD `availability` | ✅ `InStock` |
+| Tyska alt-texter | **0** |
+| Fraktland i texten | **0** |
+
+⚠️ **Två sifferträffar som SER ut som leverantörskoder är det inte**, och de
+står här så nästa svep inte behöver reda ut dem igen: `736-630` är butikens
+eget telefonnummer (`+46-736-630-990` i Organization-JSON-LD) och `130-168`
+är höjdspannet i en ANNAN produkts slug (`provdocka-dam-hojdjusterbar-130-168-cm`)
+i listan över relaterade produkter. Båda finns identiskt på alla åtta sidorna
+— och det är just det som avslöjar dem: ett äkta artikelnummer är unikt per
+produkt, så en kod som står på varje sida i rundan kommer från sidmallen.
+
+## Kvar för sidan `522103fd`
+
+Två bilder är för lite på 3 829 kr, och måttritningen är en av de tre som
+ströks. Sidan behöver ett måttkort och ett funktionskort — samma åtgärd som
+`46f475c4` (#212) och `7cdc167c` (#166) väntar på.
