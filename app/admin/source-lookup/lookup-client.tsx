@@ -7,22 +7,22 @@ export function LookupClient() {
   const [input, setInput] = useState("");
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<LookupResult | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [kopierat, setKopierat] = useState<"nummer" | "lank" | null>(null);
 
   function run() {
     if (!input.trim() || pending) return;
     setResult(null);
-    setCopied(false);
+    setKopierat(null);
     startTransition(async () => {
       setResult(await lookupSourceAction(input));
     });
   }
 
-  function copyLink(url: string) {
-    navigator.clipboard?.writeText(url).then(
+  function kopiera(text: string, vad: "nummer" | "lank") {
+    navigator.clipboard?.writeText(text).then(
       () => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setKopierat(vad);
+        setTimeout(() => setKopierat(null), 2000);
       },
       () => {},
     );
@@ -62,26 +62,37 @@ export function LookupClient() {
           </div>
 
           <div style={{ marginTop: 10, fontSize: 14 }}>
-            <div>
-              AliExpress-produkt-id: <code>{result.aeProductId}</code>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <span>
+                {result.leverantor}-artikelnummer:{" "}
+                <code style={{ fontSize: 15, fontWeight: 600 }}>{result.artikelnummer}</code>
+              </span>
+              {/* Numret, inte länken, är det som klistras in i Aosoms
+                  bulkorderformulär — därför en egen knapp för just det. */}
+              <button onClick={() => kopiera(result.artikelnummer, "nummer")} style={btn}>
+                {kopierat === "nummer" ? "Kopierat ✓" : "Kopiera numret"}
+              </button>
             </div>
             {result.supplierName ? (
               <div style={{ color: "#444", marginTop: 2 }}>Säljare: {result.supplierName}</div>
             ) : null}
           </div>
 
-          {result.aeUrl ? (
+          {result.kallUrl ? (
             <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center", flexWrap: "wrap" }}>
-              <a href={result.aeUrl} target="_blank" rel="noopener noreferrer" style={btnPrimary}>
-                Öppna på AliExpress ↗
+              <a href={result.kallUrl} target="_blank" rel="noopener noreferrer" style={btnPrimary}>
+                Öppna hos {result.leverantor} ↗
               </a>
-              <button onClick={() => copyLink(result.aeUrl!)} style={btn}>
-                {copied ? "Kopierad ✓" : "Kopiera länk"}
+              <button onClick={() => kopiera(result.kallUrl!, "lank")} style={btn}>
+                {kopierat === "lank" ? "Kopierad ✓" : "Kopiera länk"}
               </button>
-              <span style={{ fontSize: 12, color: "#888", wordBreak: "break-all" }}>{result.aeUrl}</span>
+              <span style={{ fontSize: 12, color: "#888", wordBreak: "break-all" }}>{result.kallUrl}</span>
             </div>
           ) : (
-            <div style={boxError}>Mappningen saknar både sourceUrl och produkt-id — kan inte bygga länk.</div>
+            <div style={boxError}>
+              Mappningen saknar sourceUrl, så det går inte att bygga en länk till {result.leverantor}.
+              Artikelnumret ovan gäller ändå.
+            </div>
           )}
         </div>
       ) : null}

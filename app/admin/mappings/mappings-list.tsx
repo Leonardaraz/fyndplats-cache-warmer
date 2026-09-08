@@ -3,12 +3,13 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { WixV3ProductSummary } from "@/lib/wix/v3-products";
+import type { MappingSupplier } from "@/lib/store";
 import { MappingCard } from "./mapping-card";
 import { repairSyntheticMappingsAction, type RepairBatchResult } from "./actions";
 
-/** En redan mappad produkt + dess AliExpress-källa (för "Mappade"-fliken). */
+/** En redan mappad produkt + dess leverantörskälla (för "Mappade"-fliken). */
 export type MappedProduct = WixV3ProductSummary & {
-  mapping: { supplierProductId: string; variantCount: number; broken?: boolean };
+  mapping: { supplierProductId: string; supplier?: MappingSupplier; sourceUrl?: string; variantCount: number; broken?: boolean };
 };
 
 interface Props {

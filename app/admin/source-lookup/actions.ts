@@ -2,15 +2,18 @@
 
 import { getStore } from "@/lib/store/factory";
 import { getV3ProductBySlug } from "@/lib/wix/v3-products";
-import { parseLookupInput, aliexpressUrlFor } from "@/lib/import/source-link";
+import { parseLookupInput, leverantorskallaFor } from "@/lib/import/source-link";
 
 export type LookupResult =
   | {
       ok: true;
       wixProductId: string;
       title?: string;
-      aeProductId: string;
-      aeUrl: string | null;
+      /** "AliExpress" · "Aosom" — vyn ska aldrig gissa. */
+      leverantor: string;
+      /** Artikelnumret som det klistras in hos leverantören (utan aosom:-prefix). */
+      artikelnummer: string;
+      kallUrl: string | null;
       sourceUrl?: string;
       supplierName?: string;
       variantCount: number;
@@ -19,9 +22,12 @@ export type LookupResult =
   | { ok: false; error: string };
 
 /**
- * Slår upp vilken AliExpress-produkt en importerad Wix-produkt är länkad till.
+ * Slår upp vilken LEVERANTÖRSPRODUKT en importerad Wix-produkt är länkad till.
  * Tar ett Wix-produkt-id, en slug eller en storefront-URL och returnerar
- * AE-länken (från FyndplatsMappings). Inga skrivningar.
+ * leverantör, artikelnummer och länk (från mappningen). Inga skrivningar.
+ *
+ * Fungerar för båda leverantörerna. Den skrevs för AliExpress och märkte varje
+ * rad så — även Aosoms, som är merparten av katalogen.
  */
 export async function lookupSourceAction(input: string): Promise<LookupResult> {
   const target = parseLookupInput(input);
@@ -49,17 +55,20 @@ export async function lookupSourceAction(input: string): Promise<LookupResult> {
       return {
         ok: false,
         error:
-          `Produkten (${wixProductId.slice(0, 8)}…) saknar AliExpress-mappning i FyndplatsMappings. ` +
+          `Produkten (${wixProductId.slice(0, 8)}…) saknar leverantörsmappning i FyndplatsMappings. ` +
           "Importerades den inte via verktyget? Mappa den i så fall via /admin/mappning.",
       };
     }
+
+    const kalla = leverantorskallaFor(mapping);
 
     return {
       ok: true,
       wixProductId,
       title: mapping.seoTitle,
-      aeProductId: mapping.supplierProductId,
-      aeUrl: aliexpressUrlFor(mapping),
+      leverantor: kalla.namn,
+      artikelnummer: kalla.artikelnummer,
+      kallUrl: kalla.url,
       sourceUrl: mapping.sourceUrl,
       supplierName: mapping.supplierName,
       variantCount: mapping.variants?.length ?? 0,

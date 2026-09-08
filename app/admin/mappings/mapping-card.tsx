@@ -4,11 +4,13 @@ import { useState, useTransition } from "react";
 import { createMappingAction, searchAliExpressAction } from "./actions";
 import type { AliExpressSearchResult } from "@/lib/aliexpress/client";
 import type { WixV3ProductSummary } from "@/lib/wix/v3-products";
+import type { MappingSupplier } from "@/lib/store";
+import { leverantorskallaFor } from "@/lib/import/source-link";
 
 interface Props {
   product: WixV3ProductSummary;
   /** Satt när produkten REDAN är mappad (Mappade-fliken) — visar källa + "Ändra mappning". */
-  mapping?: { supplierProductId: string; variantCount: number };
+  mapping?: { supplierProductId: string; supplier?: MappingSupplier; sourceUrl?: string; variantCount: number };
   /** Orsakstext när produkten TAPPAT SYNK — röd badge + varningskant på kortet. */
   syncIssue?: string;
   /** Orsakstext när produkten är SLUT HOS LEVERANTÖREN — gul badge + kant. */
@@ -40,9 +42,12 @@ export function MappingCard({
   const [justMapped, setJustMapped] = useState(false);
 
   const alreadyMapped = Boolean(mapping);
-  const aeUrl = mapping
-    ? `https://www.aliexpress.com/item/${mapping.supplierProductId}.html`
-    : undefined;
+  // ☠️ Byggde tidigare alltid en aliexpress.com-URL av supplierProductId. För
+  // en Aosom-rad gav det `.../item/aosom:000-000V00XX.html` — en död länk under
+  // etiketten "AliExpress", på merparten av katalogen. Samma familj som resten
+  // av isAliExpressMapping-spärrarna: fältet heter likadant för båda
+  // leverantörerna och betyder olika saker.
+  const kalla = mapping ? leverantorskallaFor(mapping) : undefined;
 
   function clearMessages() {
     setError(null);
@@ -105,12 +110,12 @@ export function MappingCard({
             {product.variantCount} varianter · <code>{product.id.slice(0, 8)}</code>
           </div>
           {/* ALLA TRE STÄLLENA PÅ SAMMA RAD (Leonard 2026-08-21): kundens vy,
-              redigeringsvyn och leverantörens listning. AliExpress-länken låg
+              redigeringsvyn och leverantörens listning. Leverantörslänken låg
               tidigare på en egen rad under — de hör ihop och letas efter
               tillsammans. Baserna kommer som props: de byggs på servern
               (lib/admin-links.ts) eftersom site-id och bas-URL är env-styrda
               och inte finns i webbläsaren. */}
-          {(storeUrl || wixEditUrl || aeUrl) && !justMapped ? (
+          {(storeUrl || wixEditUrl || kalla) && !justMapped ? (
             <div style={{ fontSize: 12, marginTop: 3, display: "flex", gap: 10, flexWrap: "wrap" }}>
               {storeUrl ? (
                 <a href={storeUrl} target="_blank" rel="noreferrer" style={{ color: "#2563eb" }}>
@@ -122,10 +127,14 @@ export function MappingCard({
                   ✏️ Redigera i Wix ↗
                 </a>
               ) : null}
-              {aeUrl ? (
-                <a href={aeUrl} target="_blank" rel="noreferrer" style={{ color: "#0a6" }}>
-                  🔗 AliExpress {mapping!.supplierProductId} ↗
+              {kalla?.url ? (
+                <a href={kalla.url} target="_blank" rel="noreferrer" style={{ color: "#0a6" }}>
+                  🔗 {kalla.namn} {kalla.artikelnummer} ↗
                 </a>
+              ) : kalla ? (
+                <span style={{ color: "#666" }}>
+                  🔗 {kalla.namn} {kalla.artikelnummer}
+                </span>
               ) : null}
             </div>
           ) : null}

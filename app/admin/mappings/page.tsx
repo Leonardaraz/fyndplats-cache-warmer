@@ -9,6 +9,7 @@
 
 import { listAllV3Products, type WixV3ProductSummary } from "@/lib/wix/v3-products";
 import { getStore } from "@/lib/store/factory";
+import type { MappingSupplier } from "@/lib/store";
 import { getSyncStore, type SyncStateEntry } from "@/lib/sync/sync-log";
 import { isSyntheticMappingId } from "@/lib/sync/mapping-repair";
 import { MappingsList, type MappedProduct } from "./mappings-list";
@@ -49,7 +50,7 @@ function oosLabel(s: SyncStateEntry): string | null {
 
 export default async function MappingsAdminPage() {
   let allProducts: WixV3ProductSummary[];
-  let mappingByProductId: Map<string, { supplierProductId: string; variantCount: number; broken: boolean }>;
+  let mappingByProductId: Map<string, { supplierProductId: string; supplier?: MappingSupplier; sourceUrl?: string; variantCount: number; broken: boolean }>;
   let totalMappingRows = 0;
   let loadError: string | null = null;
   // wixProductId → orsakstext för produkter som tappat synk. Best-effort:
@@ -70,6 +71,12 @@ export default async function MappingsAdminPage() {
         m.wixProductId,
         {
           supplierProductId: m.supplierProductId,
+          // ☠️ Leverantör och sourceUrl MÅSTE följa med. Kortet byggde annars
+          // en aliexpress.com-länk av varje id — och för Aosoms rader blev
+          // det `.../item/aosom:000-000V00XX.html`, en länk som ser giltig
+          // ut och alltid är död.
+          supplier: m.supplier,
+          sourceUrl: m.sourceUrl,
           variantCount: m.variants?.length ?? 0,
           // Trasig = minst ett syntetiskt variant-id (dom-/idx-/default/tomt) →
           // kan varken auto-beställas eller lagermatchas per variant.

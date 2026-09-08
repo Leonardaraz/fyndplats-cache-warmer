@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseLookupInput, aliexpressUrlFor } from "./source-link";
+import { parseLookupInput, aliexpressUrlFor, leverantorskallaFor } from "./source-link";
 
 describe("parseLookupInput", () => {
   it("känner igen ett rent Wix-produkt-id (GUID)", () => {
@@ -80,5 +80,56 @@ describe("aliexpressUrlFor", () => {
   it("returnerar null när varken sourceUrl eller id finns", () => {
     expect(aliexpressUrlFor({})).toBeNull();
     expect(aliexpressUrlFor({ sourceUrl: "", supplierProductId: "" })).toBeNull();
+  });
+});
+
+describe("leverantorskallaFor", () => {
+  // ☠️ ARTIKELNUMRET ÄR PÅHITTAT, OCH SKA FÖRBLI DET. Repot är publikt, och
+  // ett Aosom-artikelnummer är exakt den sträng dealproffsen.se publicerar
+  // som sku/mpn — den joinar vår produktsida mot deras och därmed mot vårt
+  // inköpsled. Ett riktigt nummer i en fixtur är lika publicerat som ett i
+  // en produkttext. Byt inte till ett "verkligare" exempel.
+  const AOSOM = {
+    supplier: "aosom" as const,
+    supplierProductId: "aosom:000-000V00XX",
+    sourceUrl: "https://www.aosom.de/item/pawhut-hamsterkafig~22LO1SFHI6801.html",
+  };
+
+  it("ger Aosoms namn, nummer utan prefix och deras egen länk", () => {
+    expect(leverantorskallaFor(AOSOM)).toEqual({
+      leverantor: "aosom",
+      namn: "Aosom",
+      // ☠️ `aosom:` är vår interna diskriminator och betyder ingenting i Aosoms
+      // bulkorderfil. Klistras prefixet in där avvisas raden.
+      artikelnummer: "000-000V00XX",
+      url: AOSOM.sourceUrl,
+    });
+  });
+
+  it("klassar en rad UTAN supplier-fält på id-prefixet", () => {
+    // Rader skrivna innan `supplier` fanns, eller som tappat det i en partiell
+    // uppdatering, ska ändå inte märkas AliExpress.
+    const utanFalt = { supplierProductId: "aosom:000-000V00XX" };
+    expect(leverantorskallaFor(utanFalt).namn).toBe("Aosom");
+    expect(leverantorskallaFor(utanFalt).artikelnummer).toBe("000-000V00XX");
+  });
+
+  it("bygger ALDRIG en aliexpress.com-länk av ett Aosom-artikelnummer", () => {
+    // Det här är buggen: utan sourceUrl föll koden tillbaka på den kanoniska
+    // AE-item-URL:en och gav `.../item/aosom:000-000V00XX.html` — en länk som
+    // ser giltig ut och alltid är död. Hellre ingen länk än en falsk.
+    const utanKalla = { supplier: "aosom" as const, supplierProductId: "aosom:000-000V00XX" };
+    expect(leverantorskallaFor(utanKalla).url).toBeNull();
+    expect(aliexpressUrlFor(utanKalla)).toBeNull();
+  });
+
+  it("lämnar AE-rader oförändrade", () => {
+    const ae = { supplierProductId: "1005006123456789" };
+    expect(leverantorskallaFor(ae)).toEqual({
+      leverantor: "aliexpress",
+      namn: "AliExpress",
+      artikelnummer: "1005006123456789",
+      url: "https://www.aliexpress.com/item/1005006123456789.html",
+    });
   });
 });
