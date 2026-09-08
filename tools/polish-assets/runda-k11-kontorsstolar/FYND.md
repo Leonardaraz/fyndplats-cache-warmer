@@ -55,3 +55,26 @@ går inte att läsa ur ett foto.**
 
 Se `bilder-bort.tsv`. `46f475c4` förlorar TVÅ och har bara **tre bilder kvar**
 — samma klass som `7cdc167c` (#166) och en kandidat för ett eget spec-kort.
+
+## ✅ Live-verifierat 2026-09-08
+
+| kontroll | utfall |
+| :-- | :-- |
+| Orddiff mot källfilen | **0 på alla åtta** |
+| FNV-1a-hash före/efter skrivning | **8/8 identiska** |
+| Wix-revision (synlighet, variant, SKU, pris, bilder, alt, kategori, SEO, lager) | **8 granskade, 0 avvikelser** |
+| Bilder | 40 → **33**, alla med svensk alt-text |
+| Kategori | Hem & Inredning 8/8, massagelövet 7/7 |
+
+☠️ **Och grinden är verifierad åt BÅDA hållen** — J2:s läxa är att ett svep kan
+vara påslaget och blint. Tre fel planterades i de hämtade sidorna och alla tre
+fälldes på rätt produkt:
+
+```
+alt-svepet   "Massagesessel mit Fußhocker…"        -> ALT/TYSKT 'mit'
+SEO-svepet   fel <title> mot seo.tsv               -> SEO/TITEL avviker + SEO/title/TYSKT
+sidsvepet    "Leverantören anger att sitsen…"      -> ORDDIFF ×8 + SIDA/LEVERANTOR
+```
+
+Återställt underlag ger 0 igen. En grind som inte KAN fälla räknas annars som
+gjord.
