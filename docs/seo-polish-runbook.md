@@ -2850,6 +2850,39 @@ fel** — men här är det värre, för en tom array får ett `some()`-villkor a
 `some()`/`every()` — eller läs varianterna med en egen `GET` per produkt, vilket är
 vad Steg 13 gör ändå.
 
+### ☠️ En live-grind som mäter HELA sidan fäller på butikens EGET chrome (2026-09-08)
+
+Runda 100:s Steg 14-grind läste den renderade HTML:en och fällde **alla sex**
+sidorna på två träffar. Att de var IDENTISKA på varenda sida var i sig
+beviset att de inte kom från texten:
+
+| träff | vad det faktiskt var |
+|---|---|
+| `46-736` mot artikelnummermönstret `\d{2,3}-\d{3,4}` | butikens kundtjänstnummer **+46-736-630-990** i JSON-LD:ns `ContactPoint` |
+| `fri frakt` mot leveranslöftesmönstret | butikens EGEN utfästelse **"🚚 Fri frakt över 499 kr"** i banner och köpblock |
+
+Båda är Leonards egna beslut och står på varenda sida i butiken — kontrollmätt
+samma dag på startsidan och på två sidor från tidigare rundor: 1 träff var,
+överallt. Ingendera kommer från poleringen.
+
+⚠️ **Att snäva in till "produkttextens yta" räcker INTE.** Nästa försök klippte
+från ingressens början till sista korslänkens namn — och fick 58 000 tecken,
+för sidan bär texten TVÅ gånger: en gång renderad och en gång i Next.js
+flight-payloaden. `rfind` landade i den andra kopian och svepte in hela chromet
+igen.
+
+✅ **Det som avgör frågan är ett KONTROLLPROV, inte en bättre slice.** Hämta en
+sida grinden aldrig rört — startsidan, eller en sida från en tidigare runda —
+och sök samma sträng. Finns den där är den chrome, och grinden ska sluta leta
+efter den i den renderade sidan. Textens egen renhet är redan bevisad av
+`lint.py` på filen, före skrivningen; live-grindens jobb är att bevisa att
+texten NÅDDE fram och att inget nytt tillkommit.
+
+**Regeln: en grind byggd för produkttexten får inte köras mot sidans ram.**
+Samma familj som runda 99:s lärdom att regel 4 och 6 måste mätas på PROSAN och
+inte på listorna de själva genererar — en grind som mäter fel yta ger ett
+svar som ser ut som ett fynd.
+
 ### ☠️ Ett köpavgörande tal kan finnas BARA i pixlarna
 
 Samma runda. Leverantörens egen infografik för planchan `f02917da` hade en panel med
