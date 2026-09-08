@@ -250,23 +250,51 @@ jobs:
                 exit 1
               fi
 
-              # ☠️ INGEN FALLBACK TILL KLARTEXT. Gar krypteringen fel ska
-              # jobbet FALLA, inte skriva ut vardet "sa att det atminstone
-              # syns". Ett misslyckande som raddar sig sjalv genom att gora
-              # exakt det man ville undvika ar samre an inget alls.
-              if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
-                   -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
-                   -in kuvert.klartext -out kuvert.bin 2>/dev/null; then
-                echo "::error::kuvert: krypteringen misslyckades — inget skrivs ut" >&2
-                rm -f kuvert.klartext kuvert.pub kuvert.bin
+              # ☠️ HYBRID, INTE RAK RSA. En 2048-bitars nyckel rymmer 190 byte
+              # med OAEP/SHA-256, och nyttolasten ar storre an sa: en
+              # aosom.de-URL med tysk slug ar ensam over 150 tecken. Forsta
+              # versionen krypterade rakt mot RSA och foll pa "data too large
+              # for key size" — pa en kort test-URL gick den igenom, pa en
+              # riktig gjorde den det inte. Langden far inte avgora om
+              # kuvertet fungerar.
+              #
+              # Losenordet ligger i en FIL och aldrig i argv eller en variabel:
+              # kommandoraden ar last av vem som helst som kan lista processer.
+              openssl rand -base64 32 > kuvert.losen
+
+              # ☠️ OCH OPENSSL:S FEL SYNS. Forsta versionen hade `2>/dev/null`
+              # pa krypteringen, sa nar den foll stod det bara "krypteringen
+              # misslyckades" — orsaken var borta. Huset har en regel mot exakt
+              # det: ett misslyckande som ingen kan se ar varre an ett som
+              # skriker. openssl:s felrader beskriver nycklar och padding, aldrig
+              # innehallet, sa de ar ofarliga att visa.
+              if ! openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:kuvert.losen \
+                   -in kuvert.klartext -out kuvert.data 2>kuvert.fel; then
+                echo "::error::kuvert: AES-steget misslyckades — inget skrivs ut" >&2
+                cat kuvert.fel >&2
+                rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.data kuvert.fel
                 exit 1
               fi
-              rm -f kuvert.klartext kuvert.pub
 
-              base64 -w0 kuvert.bin
-              echo
-              rm -f kuvert.bin
-              echo "(dekryptera med din privata nyckel: base64 -d | openssl pkeyutl -decrypt)"
+              # ☠️ INGEN FALLBACK TILL KLARTEXT. Gar nagot fel ska jobbet FALLA,
+              # inte skriva ut vardet "sa att det atminstone syns". Ett
+              # misslyckande som raddar sig sjalv genom att gora exakt det man
+              # ville undvika ar samre an inget alls.
+              if ! openssl pkeyutl -encrypt -pubin -inkey kuvert.pub \
+                   -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
+                   -in kuvert.losen -out kuvert.losen.enc 2>kuvert.fel; then
+                echo "::error::kuvert: RSA-steget misslyckades — inget skrivs ut" >&2
+                cat kuvert.fel >&2
+                rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.losen.enc kuvert.data kuvert.fel
+                exit 1
+              fi
+              rm -f kuvert.klartext kuvert.pub kuvert.losen kuvert.fel
+
+              echo "losen: $(base64 -w0 kuvert.losen.enc)"
+              echo "data:  $(base64 -w0 kuvert.data)"
+              rm -f kuvert.losen.enc kuvert.data
+              echo "(dekryptera: RSA-oppna losen med din privata nyckel, sedan"
+              echo " openssl enc -d -aes-256-cbc -pbkdf2 -pass file:<losen> pa data)"
             fi
             exit 0
           fi
