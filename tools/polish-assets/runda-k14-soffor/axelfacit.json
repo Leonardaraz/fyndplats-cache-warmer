@@ -1,0 +1,11 @@
+{
+  "_om": "Genererat server-side ur Wix plainDescription, aldrig transkriberat av en modell. Tyska blocket är FACIT: B=Breite(bredd) T=Tiefe(djup) H=Höhe(höjd) L=Länge. Den svenska spec-flikens Mått-rad använder L=Längd B=Bredd på SAMMA tal och betyder alltså något annat.",
+  "34341c4f": {"tyska": "242B x 87/156T x 87H", "svenska": "242L x 87-156B x 87H", "bredd": 242, "djup": 87, "djupMax": 156, "hojd": 87},
+  "ced08fe0": {"tyska": "197B x 129T x 85H", "svenska": "197L x 129B x 85H", "bredd": 197, "djup": 129, "hojd": 85},
+  "2571c73a": {"tyska": "196B x 140T x 88H", "svenska": "196L x 140B x 88H", "bredd": 196, "djup": 140, "hojd": 88},
+  "dfcef1e9": {"tyska": "260B x 92T x 80H", "svenska": "260 x 92 x 80", "bredd": 260, "djup": 92, "hojd": 80},
+  "94d330fb": {"tyska": "186B x 130T x 84H", "svenska": "186L x 130B x 84H", "bredd": 186, "djup": 130, "hojd": 84},
+  "5531de28": {"tyska": "212B x 80T x 88H", "svenska": "212L x 80B x 88H", "bredd": 212, "djup": 80, "hojd": 88},
+  "166fdb52": {"tyska": "227B x 84T x 87H", "svenska": "227L x 84B x 87H", "bredd": 227, "djup": 84, "hojd": 87},
+  "d2f7876e": {"tyska": "248B x 104T x 87H", "svenska": "248 x 104 x 87", "bredd": 248, "djup": 104, "hojd": 87}
+}
