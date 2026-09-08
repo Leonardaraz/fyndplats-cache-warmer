@@ -108,3 +108,69 @@ Bara `5e9cc2d2` och `1e27f7e0` (motorcyklarna) är fria från tysk text i bild.
 | `2f6ff71c` | blå | 2 159 |
 
 De sex märkesbärande väntar på den juridiska genomgången.
+
+-----
+
+## c0abfddd — Maserati GranTurismo Folgore, grå (Steg 2/4/5)
+
+Måttritningen (bild 3) bekräftar HELA spec-blocket: 98 × 59 × 43 cm, sits
+32 × 19 cm, maxlast 25 kg, ålder 3–5 år. Ingen avvikelse — till skillnad från
+runda 103:s `a0760ed1`, där ritningen fällde texten.
+
+**Varumärket sitter FYSISKT på varan.** Maseratis treudd i grillen och på
+huven, Folgore-emblemet på framskärmen. Leonards regel gäller: *"om märket
+sitter fysiskt på varan så gör vi inget åt det"* — och han har uttryckligen
+sagt att licenserna är äkta. Sidan skriver därför *"i Maserati GranTurismo
+Folgore-design"*, vilket är exakt vad källan säger (`Folgore-Design`).
+
+**Färgen stämmer med bilden** — grå kaross, svarta fälgar. Det gjorde den inte
+för `3b992525` ("Gelb" är beige) eller `1e27f7e0` ("Gelb" är svart).
+
+### Fyra saker källan säger som INTE fick skrivas rakt av
+
+1. ☠️ **Ingen laddare i `Lieferumfang`.** Listan är bil, fjärrkontroll och
+   bruksanvisning — punkt. Samma sak på polisbilen `9308a7dc`. En 12 V-bil med
+   8–12 timmars laddtid är obrukbar utan laddare, så det är sannolikt en lucka
+   i leverantörens lista snarare än verkligheten — men vi kan inte veta det.
+   Sidan listar därför exakt de tre posterna och **påstår ingenting** om en
+   laddare. En grindregel fäller varje formulering som lovar en.
+   ⚠️ **Fråga att ställa till Aosom.** Om bilen faktiskt skickas utan laddare
+   måste det stå på sidan, inte upptäckas på julafton.
+2. ⚠️ **Materialet motsäger sig självt.** Det tyska spec-blocket säger
+   `Kunststoff, Metall`; importens svenska rad säger bara `Kunststoff`. Sidan
+   följer det utförligare blocket ("Plast och metall"). Skillnaden är liten men
+   den är en gissning, inte en mätning.
+3. **2 × AAA till fjärrkontrollen ingår inte** — det står i källan och har fått
+   en egen `Ingår inte`-rad plus en FAQ-fråga. Ett batteri som saknas när
+   paketet öppnas är exakt den sortens sak som blir ett supportärende.
+4. **Montering krävs.** Står i källan, saknas i importens svenska tabell.
+
+### Talen som skiljer den från rundans övriga
+
+Värt att notera för nästa grind: den här bilen är LÅNGSAMMARE och bär MINDRE
+än modell B. Sådana skillnader är precis vad som slinker igenom om grinden
+bär grannmodellens siffror.
+
+| | modell B (publicerad) | `c0abfddd` |
+|---|---|---|
+| Hastighet | 3–7 km/h | **3–5 km/h** |
+| Maxvikt | 30 kg | **25 kg** |
+| Körtid | 45 min | **50 min** |
+| Hjul | Ø 24 cm | **Ø 19 cm** |
+| Sitthöjd | — | **14 cm** |
+
+### Grinden
+
+Egen grind med den här modellens tal (`grind_c0.py`), självtestad genom att
+återinföra tre farliga fel: grannmodellens maxlast, ett laddarlöfte och ett
+CE-påstående. **Alla tre fälls av rätt regel.**
+
+☠️ **Och grindens första version gav 22 falsklarm.** Regeln "stycke utan
+punkt" träffade varenda `<li><p>`-rad i spec-tabellen, som med flit saknar
+punkt. En grind som skriker på en korrekt text lär läsaren att sluta läsa —
+samma regel som mot ett rött synk-jobb vid varje svep. Kontrollen gäller nu
+bara brödtext.
+
+Efter skrivningen kördes grindens regler om mot **Wix egen kopia** i stället
+för mot filen: 5 347 tecken, 15 obligatoriska tal på plats, 19 främmande tal
+frånvarande, noll otillåtna mönster. Det är kvittot — inte PATCH-svaret.
