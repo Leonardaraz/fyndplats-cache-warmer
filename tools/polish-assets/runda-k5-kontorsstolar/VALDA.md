@@ -92,3 +92,19 @@ Kategori: `Hem & Inredning`, **8 av 8** enligt bulk-svarets
 
 Mappningsraderna stämplade i åtta `stampla`-körningar (1947–1954), alla med
 `ref: claude/seo-polering-runbook-review-uq6fwl` (#181) — **8/8 success**.
+
+## Live-verifieringen: 8/8 REN, orddiff 0
+
+Ett svep, ingen ISR-omhämtning behövdes: alla åtta hämtades med `age: 100`,
+alltså en rendering som skedde efter skrivningen.
+
+```
+b452bfe0  ord=537  diff=0  REN     e134f532  ord=579  diff=0  REN
+d710da91  ord=589  diff=0  REN     cdc03206  ord=615  diff=0  REN
+3b9124cb  ord=570  diff=0  REN     1c6759a8  ord=547  diff=0  REN
+d894f76e  ord=546  diff=0  REN     e6236dd0  ord=572  diff=0  REN
+```
+
+`REN` är hela problemlistan tom, inte bara orddiffen: sidsvep, alt-svep,
+SEO-svep mot `seo.tsv`, de tre flikarna, kategorin i brödsmulan, köpbarheten
+(#148) och korslänken.
