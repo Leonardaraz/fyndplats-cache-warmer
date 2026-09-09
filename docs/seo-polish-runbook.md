@@ -1903,6 +1903,34 @@ gäller redirect-regeln nedan. Ännu ett skäl att räkna SKU:n före publicerin
 
 ## Steg 8 – Re-synka SKU till den nya sluggen (1 anrop, mutation)
 
+> ☠️ **STEGET HAR TVÅ HALVOR, OCH BARA DEN ENA GÅR VIA WORKFLOWEN.** Uppmätt i
+> runda 108. `polish-mapping.yml` (läge `stampla`, `variant_skus`) skriver
+> **mappningsradens** `variants[].sku`. Wix EGEN variant-SKU rörs inte av den,
+> och den är den kunden och feeden ser.
+>
+> Alla sex sidorna i rundan gick igenom mappningsstämplingen med grönt och bar
+> ändå kvar leverantörens tyska sträng i Wix — dessutom identisk inom varje
+> storlekspar, alltså en krock:
+>
+> | Wix-SKU efter mappningsstämplingen | satt på |
+> |---|---|
+> | `FP-4-teiliger-raumtrenner` | två produkter |
+> | `FP-6-teiliger-raumtrenner` | två produkter |
+> | `FP-8-teiliger-raumtrenner` | två produkter |
+>
+> Wix-halvan är en **`variantsInfo`-PATCH**: läs varianterna, byt bara `sku`,
+> skicka tillbaka dem verbatim. ☠️ Matcha på `wixVariantId`, aldrig på position
+> — två fält heter `sku` och betyder olika saker, och positionsmatchning
+> återinför precis den förväxling som gjorde att prissynken skrev till
+> ingenting i en månad. ☠️ Och skicka `visible` explicit i BÅDA leden: en
+> `variantsInfo`-PATCH publicerar annars ett utkast, och produktens `false`
+> speglas ned på varianten.
+>
+> ⚠️ **Det som hittade felet var KVITTOT, inte en grind.** Publiceringens egen
+> GET jämför SKU:n mot den förväntade strängen. Hade den bara räknat "finns en
+> SKU" hade sex sidor gått live med tyska, krockande artikelnummer. Kontrollera
+> alltså strängen, inte förekomsten.
+
 Importen byggde SKU:n ur den **råa** (engelska, märkesledda) sluggen, t.ex. `FP-2-4g-remote-control-1-st`. När du bytt slug i Steg 7 stämmer den inte längre — re-synka den så den matchar den **polerade svenska** sluggen, t.ex. `FP-radiostyrd-gravmaskin-1-st`. Ofarligt: synk/fulfillment nycklar på `wixVariantId`, inte på SKU-strängen (se SKU-noten i *Fasta fakta*).
 
 **SKU-format** (= `lib/import/sku.ts`): `FP-<produkt>-<variant>` ur den **polerade sluggen** + variantens optionsvärde. ASCII (å/ä→a, ö→o), ledande **dropship-märke strippat** (etablerade märken som Pagani Design/LAIKOU behålls), produkt-delen **≤24 tecken** (kapa på bindestreck), variant-delen **≤12 tecken**, hela **≤40 tecken**, **unikt inom produkten**. Saknar produkten optionsvärden → bara `FP-<produkt>`.
@@ -2254,6 +2282,33 @@ texten bor. ☠️ **`card_spec` bakar in fotot som data-URI i HTML:en, så en r
 återanvänder det GAMLA fotot.** Ändrar du beskärningen måste kortet BYGGAS om, inte bara
 renderas om — annars mäter du samma fil en gång till och tror att åtgärden inte biter.
 
+> ☠️ **OSKÄRPA ÄR DEN STARKASTE KNAPPEN AV DE TRE — och den var avskriven.**
+> Uppmätt i runda 108 på en väv (polypropenband över tallspjälor), där fem av
+> sex kort sprängde taket. På det värsta, 397 197 byte:
+>
+> | knapp | bästa utfall |
+> |---|---|
+> | krympa varan | 213 440 vid 42 % fyllnad av 79 % geometriskt möjliga |
+> | nedsampla panelfotot | 269 710 vid 4× — **räckte inte** |
+> | **gaussisk oskärpa** | **197 470 vid r=3 och varan i FULL storlek** |
+>
+> ⚠️ Runda 104 mätte r=1,3 till ~9 % och drog slutsatsen "oskärpa är fel
+> medicin på nät". Slutsatsen är sann om RADIEN och falsk om METODEN: r=1 ger
+> 14–23 %, r=2 ger 27–41 %, r=3 ger 43–50 %. **Kurvan är brant strax förbi
+> r=1** — alltså precis där runda 104 slutade mäta. Mät hela kurvan innan du
+> avskriver en metod.
+>
+> ☠️ **Lägg oskärpan på den BESKURNA varan, inte på den färdiga panelen.**
+> Läggs den efter inklistringen suddas produktens kant mot det vita fältet
+> till en grå gloria.
+>
+> ⚠️ **Och fyllnadsknappen kan vara helt overksam utan att se ut så.** När
+> varan är HÖGRE än panelens 1,83 styr höjden, och `fyll` ignoreras. Runda 108
+> fick byte för byte identiskt utfall vid 0,85 och 0,60 på ett sådant kort —
+> en sökning över fyllnadsvärden ser ut som en skala och är det inte. Räkna
+> först ut varans geometriska maxfyllnad (`bredd ÷ höjd ÷ 1,83`); ligger
+> sökningens svar nära det talet har knappen aldrig bitit.
+
 ### Bilden måste vara kvadratisk
 
 ☠️ **OCH DET GÄLLER MÅTTRITNINGEN HÅRDAST — DÄR RYKER SIFFRORNA** *(uppmätt 2026-09-07)*.
@@ -2438,6 +2493,21 @@ Ingen sida länkar till dem, men adressen svarar fortfarande. Att radera dem per
 ## Steg 10 – Koppla rätt kategori
 
 ### 10A – Läs ALLTID hela trädet först (read-only, 1 anrop)
+
+> ☠️ **SVARSNYCKELN HETER `categoriesForItems` — och fel nyckel ger NOLL RADER
+> UTAN FEL.** Uppmätt i runda 108: ett anrop mot
+> `POST /categories/v1/categories/list-categories-for-items` som letade efter
+> `itemsWithCategories` returnerade en tom lista och såg ut att bevisa att
+> ingen produkt låg i någon kategori — inklusive en publicerad sida som
+> faktiskt gjorde det. Samma familj som `/api/tracking-events` 2026-09-01:
+> **en läsare som blir TOM ser i koden likadan ut som en frisk.** Det som
+> avslöjade den var att skriva ut RÅSVARET i stället för att tolka ett tomt
+> resultat.
+>
+> ⚠️ Båda kategori-anropen — läsningen och `bulk/categories/add-item` — kräver
+> `treeReference: {"appNamespace": "@wix/stores"}` i kroppen. Utan den svarar
+> API:t 400 och namnger fältet, vilket är det snälla felet; det tysta är det
+> ovan.
 
 ⚠️ **Gissa aldrig på en kategori ur minnet, och nöj dig aldrig med en toppkategori.** Trädet har **53 kategorier i två nivåer** — 12 toppkategorier och 41 löv (uppmätt 2026-08-23; siffran stod tidigare som "46 i tre nivåer") — och de flesta produkter hör hemma i ett *löv*, inte i roten. Detta gick fel 2026-08-09: hamsterburen hamnade i "Hem & Inredning" och torkhuven i "Elektronik & Tillbehör" trots att **Husdjur → Burar, Kläder & Tillbehör** och **Skönhet & Hälsa → Hår & Rakning** fanns hela tiden — en kortlista från tidigare i sessionen användes i stället för trädet.
 
