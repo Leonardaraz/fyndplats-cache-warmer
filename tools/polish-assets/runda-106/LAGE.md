@@ -111,3 +111,57 @@ verdikten är entydig, och två färgpar som ger naturliga korslänkar.
 | `b54e7a23` | 1 649 | 125,5 × 100 × 49 | 0,72 m² | marsvin (4), degu (4) |
 | `1f7ebf33` | 1 659 | 125,5 × 100 × 49 | 0,72 m² | marsvin (4), degu (4) |
 | `117691b5` | 1 259 | 110 × 105 × 50 | 1,16 m² | dvärgkanin (3), marsvin (7) |
+
+## Steg 13 — publicerat
+
+Prisgrinden lästes för alla sex (`polish-mapping.yml`, läge `las`) och alla sex
+gav `stammer: true` mot `x1.2 · charm99`. Därefter stämpel (`needsAiPolish:
+false`, `draftStatus: published`, SKU per `wixVariantId`) och en avslutande
+PATCH med `visible: true` på **både** produkt och variant i samma anrop.
+
+| id | slug | pris | SKU | mappningens variant |
+|---|---|---:|---|---|
+| `a4c0595f` | `smadjurshage-181-natur` | 1 499 | `FP-smadjurshage-181-natur` | `676a8c71…` |
+| `7eebd0eb` | `smadjurshage-181-gra` | 1 339 | `FP-smadjurshage-181-gra` | `ee59caf6…` |
+| `b54e7a23` | `smadjurshage-125-gra` | 1 649 | `FP-smadjurshage-125-gra` | `cecfb9b3…` |
+| `1f7ebf33` | `smadjurshage-125-natur` | 1 659 | `FP-smadjurshage-125-natur` | `cc70125c…` |
+| `edc81021` | `smadjurshage-123-cm-hus` | 1 899 | `FP-smadjurshage-123-cm-hus` | `a4e3fd8c…` |
+| `117691b5` | `hopfallbar-hage-110-cm` | 1 259 | `FP-hopfallbar-hage-110-cm` | `f0c7d1a6…` |
+
+## ☠️ Steg 14 — ALT-TEXTEN ligger utanför varje grind, och fem av sex lovade kanin
+
+Live-grinden gav **1 av 6** på första körningen. Inte på brödtexten, som är
+grindad — på **alt-texterna**, som `grind.py` aldrig ser. Den läser `html`,
+`namn`, `titel` och `meta` ur `texter.py`; alt-texterna skrivs i Steg 9 rakt in
+i Wix media och passerar därför ingen grind alls.
+
+Vad som stod på fem av sex sidor, i samma andetag som brödtexten säger att hagen
+inte säljs som kaninbostad:
+
+| id | bild | alt-texten löd |
+|---|---:|---|
+| `7eebd0eb` | 2 | "…i en trädgård **med två kaniner inuti**" |
+| `b54e7a23` | 2 | "…**med kaniner i löpgården** och huset öppet mot dem" |
+| `1f7ebf33` | 2 | "…framför ett trästaket **med kaniner i löpgården**" |
+| `edc81021` | 2 | "…i en trädgård **med kaniner inuti** och husets lucka öppen" |
+| `117691b5` | 2 | "…där ett barn sitter bredvid och **håller en kanin**" |
+
+☠️ **Det är det farligaste stället att skriva det på.** Alt-texten är vad Google
+och skärmläsaren läser, alltså exakt den yta där ett löfte vi inte kan hålla
+väger tyngst — och den enda kundtext ingen grind i huset granskar. Runbookens
+regel om att en grind ska täcka HELA ytan regeln gäller (Steg 13, sifferstilen)
+träffar alltså här också: `grind.py` påstod "ren sida" om en sida vars
+tillgänglighetslager sa motsatsen.
+
+Rättat på alla fem: djuret är borttaget, varje verifierad detalj om VARAN står
+kvar ("locken nedfällda", "löpgården vänd mot kameran", "husets lucka öppen").
+Skrivningen skickar `id` och aldrig `url` — en wixstatic-adress hade fått Wix att
+importera om filen till en ny kopia — och läses tillbaka med en EGEN GET,
+eftersom PATCH-svaret utelämnar `media.itemsInfo`. Kvitto: `kvarKanin: 0` på alla
+fem, oförändrat bildantal, `visible: true` kvar.
+
+⚠️ **Kvar och inte rundans att avgöra: FOTOT visar fortfarande kaniner.** Det är
+leverantörens egen livsstilsbild, och den ligger på position 2 på fem av de sex
+sidorna. Våra ord säger inte längre kanin; bilden gör det. Att plocka bort
+bilden är ett beslut om vilka foton en sida får sakna — samma klass som
+logotypsvepet Leonard sekvenserade till städningen, inte till poleringen.

@@ -2125,6 +2125,36 @@ Rå-importen ger fem bilder med leverantörens egen titel som alt-text på allih
 till svenska som beskriver **det som faktiskt syns** — motiv, färg, vinkel, miljö — med
 fokussökordet naturligt invävt. Inte samma mall × 5.
 
+### ☠️ Alt-texten passerar INGEN grind — den är kundtext utan skydd
+
+Steg-grinden läser `html`, `namn`, `titel` och `meta` ur rundans `texter.py`. Alt-texterna
+skrivs här, rakt in i Wix media, och finns aldrig i den filen. **Varje regel grinden vaktar
+är alltså oskyddad i alt-texten** — och det är det sämsta stället att ha ett hål, för
+alt-texten är vad Google och skärmläsaren läser.
+
+Uppmätt i runda 106: sex sidor vars brödtext säger ordagrant att hagen *"säljs inte som
+kaninbostad"*. Grinden var grön på alla sex. **Fem av dem hade "kaniner" i en alt-text** —
+*"…i en trädgård med två kaniner inuti"* — alltså precis det löfte rundans egen KANINLÖFTE-
+regel fanns för att stoppa, en nivå under där regeln letade.
+
+Två sätt att stänga det, och gör båda:
+
+1. **Kör rundans förbjudna-ord-lista mot alt-texterna innan du skriver dem** — samma lista,
+   samma mönster, inte en omskriven variant.
+2. **Låt live-grinden i Steg 14 läsa hela HTML:en**, inte bara brödtexten. Det var den som
+   hittade fallet ovan: alt-texten står i `<img alt="…">` i den renderade sidan, så en grind
+   som söker i hela svaret ser den. En som klipper ut beskrivningen först gör det inte.
+
+Regeln bakom är runbokens egen, från sifferstilen i Steg 13: **en grind skriven mot PLATSEN
+där felet hittades täcker inte REGELN.** Säger regeln "aldrig", är ytan all kundtext — och
+alt-texten är kundtext.
+
+⚠️ **Beskriv VARAN, inte stajlingen.** Leverantörens miljöbild är iscensatt, och djuret,
+barnet eller kaffekoppen i bilden är inte produktinformation. Tas de med blir alt-texten ett
+påstående om användningen; utelämnas de är den fortfarande sann och fullständig för sitt
+syfte. Runda 106:s rättning behöll varje verifierad detalj om varan (*"locken nedfällda"*,
+*"husets lucka öppen"*) och tog bort djuret.
+
 ### Galleriets ordning är fast
 
 | plats | vad |
