@@ -2944,6 +2944,73 @@ Samma familj som runda 99:s lärdom att regel 4 och 6 måste mätas på PROSAN o
 inte på listorna de själva genererar — en grind som mäter fel yta ger ett
 svar som ser ut som ett fynd.
 
+### ☠️ En grind som STRYKER innan den söker beskriver SIG SJÄLV i felmeddelandet (2026-09-09)
+
+Runda 107:s live-grind måste släppa igenom ordet "kanin" på två sanktionerade
+ställen — den rättsliga upplysningen och nej-svaret i FAQ — och gjorde det genom
+att stryka dem ur en arbetskopia före sökningen. Första körningen rapporterade:
+
+```
+KANINLÖFTE: …"name":"Går det att hålla kanin i stallet?",
+             "acceptedAnswer":{"@type":"Answer","text":""}…
+```
+
+Det ser ut som ett riktigt fynd, och ett allvarligt: ett FAQPage-JSON-LD där
+frågan står men **svaret är tomt**, på just den fråga sidan finns för att
+besvara. Det hade blivit en felanmälan mot butiksrepots strukturerade data.
+
+**Svaret var inte tomt.** `"text":""` är vad som blev kvar EFTER grindens egen
+strykning — den skrev ut sammanhanget ur den STRUKNA kopian. Kontrollmätt mot
+skarpa sidan samma minut: alla sju FAQ-svaren är ifyllda ordagrant.
+
+**Regeln: skriv ut sammanhanget ur ORÖRD text, aldrig ur arbetskopian.** Sök i
+den strukna, citera ur den hela — annars beskriver felmeddelandet grinden i
+stället för sidan. Samma familj som runda 61:s *"orsaken var live-grindens EGEN
+förhandskörning"*, och den är dyrare än den ser ut: ett artefakt som bokförs som
+fynd skickar nästa session att felsöka något som aldrig gick sönder.
+
+⚠️ **Och en sanktionerad FAQ-fråga måste strykas TILLSAMMANS med sitt svar.**
+Källtextgrinden (`grind.py`) strök hela nej-svarsparet; live-grinden strök bara
+svaret, och föll på frågans rubrik i JSON-LD:n. Härled frågan ur texten — den
+`<strong>…?</strong>` som står närmast före svaret — i stället för att skriva om
+den i grinden.
+
+### ☠️ Butikens "liknande produkter"-rad finns i TVÅ serialiseringar (2026-09-09)
+
+Samma runda, samma grind, nästa lager. Efter att de sanktionerade meningarna
+strukits föll två sidor fortfarande — på butikens rekommendationsrad, som
+länkade till `kaninhus-utomhus-122-cm-rastgard` och `kaninbur-inomhus-…`.
+Det är ANDRA produkters namn, alt-texter och länkar, alltså inget påstående om
+varan sidan säljer.
+
+☠️ **Första strykningen tog `<a class="prod">…</a>` och SÅG UT ATT BITA.** Den
+gjorde det inte: raden ligger också i Next.js **Flight-nyttolast**, som inte är
+HTML alls —
+
+```
+["$","$L40","kaninhus-utomhus-122-cm-rastgard",{"className":"prod","href":"/produkt/…
+```
+
+— och en strykning som bara känner den ena formen tar bort hälften av
+förekomsterna och lämnar resten. Det är runda 100:s lärdom om att sidan bär
+texten två gånger, fast åt andra hållet: där svepte en slice in för mycket, här
+tog en regex bort för lite.
+
+✅ **Stryk IDENTITETER, inte markup.** Andra produkters slug och namn är samma
+literal i båda serialiseringarna:
+
+```python
+andras  = set(re.findall(r"/produkt/([a-z0-9-]+)", norm)) - {egen_slug}
+andras |= set(re.findall(r'"pname">([^<]+)<', norm))
+```
+
+☠️ **Och varje strykning behöver en KONTROLLMÄTNING på sig själv:** sidans EGNA
+alt-texter måste finnas kvar efteråt. Hela poängen med att live-grinden läser
+hela HTML:en är att den ser alt-texterna (Steg 9), och en strykning som råkat
+svälja galleriet hade gjort "noll fel" precis lika meningslöst som en tom
+hämtning. Samma form som hjältebildens kontrollmätning, fast riktad mot grindens
+eget filter i stället för mot nätverket.
+
 ### ☠️ Ett köpavgörande tal kan finnas BARA i pixlarna
 
 Samma runda. Leverantörens egen infografik för planchan `f02917da` hade en panel med
