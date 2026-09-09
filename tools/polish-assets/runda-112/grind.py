@@ -170,10 +170,19 @@ def granska(nyckel, d):
         kanda.add(T.tal(matt.SVARTKANT[nyckel]))
     if nyckel in matt.RAMOPPNING:
         kanda |= {T.tal(x) for x in matt.RAMOPPNING[nyckel]}
-    # Tal som får stå fritt: format, årtal-lösa småtal, och yttermåttets tal.
     kanda |= set(re.findall(r"\d+(?:,\d+)?", matt.YTTRE[nyckel]))
-    kanda |= {"1", "2", "3", "4", "8", "5", "30", "2,03", "2,1"}
-    for m in re.finditer(r"(\d+(?:,\d+)?)\s*(cm|kg|tum|m\b|V\b|W\b|Hz)", utan_syskon):
+    # ☠️ OCH UR `UNIKT`, produktens egna mätta leverantörsuppgifter. Ett första
+    #    utkast lät `30` och `2,1` stå i en FRI LISTA i stället — och en fri
+    #    lista är precis vad grinden finns för att slippa: talet såg härlett ut
+    #    för att det stod i grindens undantag, inte för att det stod i mätningen.
+    kanda |= set(re.findall(r"\d+(?:,\d+)?", matt.UNIKT[nyckel]))
+    # Format och rena räkneord får stå fritt.
+    kanda |= {"1", "2", "3", "4"}
+    # ☠️ ENHETEN KAN VARA UTSKRIVEN. Uppmätt i Steg 12: `upp till 30 meter` och
+    #    `kabeln 2,1 meter` gick genom grinden helt OGRANSKADE, eftersom
+    #    alternationen bara tog `m\b`. Två tal i kundtexten som ingen regel såg.
+    for m in re.finditer(r"(\d+(?:,\d+)?)\s*(cm|mm|kg|tum|meter\b|m\b|V\b|W\b|Hz)",
+                         utan_syskon):
         if m.group(1) not in kanda:
             i = max(0, m.start() - 40)
             fel.append(f"OHÄRLETT TAL {m.group(0)!r}: …{utan_syskon[i:m.end() + 30]}…")
