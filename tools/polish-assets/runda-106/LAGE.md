@@ -165,3 +165,28 @@ leverantörens egen livsstilsbild, och den ligger på position 2 på fem av de s
 sidorna. Våra ord säger inte längre kanin; bilden gör det. Att plocka bort
 bilden är ett beslut om vilka foton en sida får sakna — samma klass som
 logotypsvepet Leonard sekvenserade till städningen, inte till poleringen.
+
+### ✅ Live-grinden grön — och cachen krävde tre körningar
+
+| körning | utfall | vad cachen svarade |
+|---|---|---|
+| 1 | **1 av 6** | `HIT age=20` — sidorna som de såg ut FÖRE alt-textfixen |
+| 2 | 1 av 6 | `STALE age=300` + `HIT age≈297` — **samma HTML, byte för byte** |
+| 3 | **6 av 6** | `HIT age=19` på fyra, `age=141/171` på två |
+
+☠️ **Körning 2 är den lärorika.** Alt-texterna var redan rättade i Wix och
+verifierade med en egen GET, men sidorna svarade IDENTISKT — samma teckenantal
+som körning 1. `hamta_isr` hämtar två gånger just för att beställa ombyggnaden,
+men **ombyggnaden är asynkron**: den andra hämtningen kan mycket väl serveras ur
+den gamla cachen medan bygget pågår. Runda 60 lärde exakt det här och den här
+rundan mötte det igen.
+
+Kvittot att körning 3 läser den NYA sidan är inte bara att grinden är grön —
+det är att teckenantalet flyttade sig på precis de fem rättade sidorna
+(153 702 → 162 408, 150 203 → 158 879, 153 321 → 162 011, 147 468 → 156 094,
+152 791 → 161 469) medan den orörda `smadjurshage-181-natur` står kvar på
+154 060. En grön grind mot oförändrad HTML hade varit samma falska kvitto som
+körning 2 gav rött.
+
+**Regeln: läs `age`, och jämför längden mot förra körningen.** En `HIT` med hög
+`age` är förra bygget, hur färsk skrivningen än var.
