@@ -1,15 +1,15 @@
 ---
-title: "Vi kan inte vara billigast"
-seo_title: "Vi kan inte vara billigast – därför gör vi annat"
-slug: vi-kan-inte-vara-billigast
-meta_description: "Varje webbutik skriver att den har personlig service. Vi tänkte visa vad det betyder hos oss i stället: timmarna på ett förvaringsskåp, samtalet till PostNord, och varför vi hellre vill att du köper rätt än att du köper nu."
+title: "Timmarna vi la på ett förvaringsskåp"
+seo_title: "Vad personlig service faktiskt betyder"
+slug: timmarna-pa-ett-forvaringsskap
+meta_description: "Varje webbutik skriver att den har personlig service. Vi visar vad det betyder hos oss i stället: timmarna på ett förvaringsskåp med exakt rätt mått, samtalet till PostNord, och varför vi hellre vill att du köper rätt än att du köper nu."
 category: Krönika
 publish_date: 2026-09-09
 cover: ""
 alt: ""
 ---
 
-# Vi kan inte vara billigast
+# Timmarna vi la på ett förvaringsskåp
 
 Vi läste igenom våra omdömen häromdagen. Inte för att klappa oss själva på axeln, utan för att se vad folk faktiskt skriver när de får bestämma orden själva.
 
@@ -18,7 +18,7 @@ Vi läste igenom våra omdömen häromdagen. Inte för att klappa oss själva p�
 *"Tack för hjälpen! Otroligt bra bemötande"*
 *"Toppen Service, håller vad dem lovar!"*
 
-Det slog oss att nästan ingen skriver om priset. Nästan ingen skriver om produkten heller. De skriver om hur de blev bemötta.
+Det slog oss att när folk får välja orden helt fritt, väljer de nästan alltid att skriva om bemötandet. Inte om priset, inte om produkten — om hur de blev behandlade.
 
 Det är värt att stanna vid, för det är inte vad vi hade gissat om oss själva.
 
@@ -76,8 +76,10 @@ Numret är **073-663 09 90**, vardagar 09–17.
 
 Vi svarar oftast på mejl snabbare än inom ett dygn, och inte sällan på kvällen efter stängning. Det är inget vi skryter med — det är bara så det ser ut när butiken drivs av någon som bryr sig om att den fungerar.
 
-Vi kan inte lova att vi är billigast. Det finns jättar som alltid kommer underbjuda oss, och vi tänker inte låtsas något annat.
+Vi heter Fyndplats för att vi menar allvar med priserna. Det är hela idén: noga utvalda saker som inte kostar mer än de behöver.
 
-Det vi kan lova är att det sitter en människa i andra änden, i Södertälje, som svarar när du hör av dig — och som hellre lägger tre timmar på att hitta rätt skåp åt dig än säljer dig fel skåp på tre minuter.
+Men ett bra pris på fel vara är fortfarande fel vara. Det är därför vi lägger timmar på att hitta rätt skåp åt dig i stället för att sälja dig fel skåp på tre minuter — och därför det sitter en människa i Södertälje som svarar när du hör av dig.
+
+Du ska inte behöva välja mellan bra pris och någon som bryr sig. Hos oss får du båda.
 
 Det är hela affärsidén.
