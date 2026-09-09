@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Runda 112 Steg 4/9 — vilka bilder som behålls, i vilken ordning, och varför.
 
-☠️ SEX AV 45 BILDER BÄR TEXT I PIXLARNA, och en av dem är en HJÄLTEBILD.
+☠️ SJU AV 45 BILDER BÄR TEXT I PIXLARNA, och en av dem är en HJÄLTEBILD.
 
      1b87909f-4   EIN BILDSCHIRM, UNENDLICHE EINSATZMÖGLICHKEITEN + fyra
                   tyska bildtexter (Bürobesprechung, Hinterhofkino, …)
@@ -10,8 +10,22 @@
      77e4a558-4   ZWEI MONTAGEOPTIONEN / Wandmontage / Deckenmontage
      77e4a558-5   EIN BILDSCHIRM UNENDLICHE EINSATZMÖGLICHKEITEN
      77e4a558-1   FULL HD 1080 · 4K ULTRAHD · 8K ULTRAHD · HD READY · 4:3
+     1b87909f-3   2 x Stative · 8 x Bodenpfähle · 2 x 5 m Seile   ← MÅTTRITNINGEN
 
-☠️ DEN SISTA ÄR VÄRST, av två skäl. Den är produktens FÖRSTA bild — alltså
+☠️ DEN SJUNDE HITTADES FÖRST I STEG 9, inte i Steg 4 — och det är lärdomen.
+   Steg 4 läser bilderna som BILDER och frågar "bär den text?". Måttritningarna
+   lästes samma dag, men i ett eget zoomark och med en annan fråga: "vilket
+   tumtal står det?". Den tyska packlistan låg i ett mörkt band ÖVANFÖR duken,
+   den lästes som en del av ritningen, och båda genomgångarna gick vidare.
+   **En bild som granskas för en fråga är inte granskad för den andra.**
+
+   Här går den DÄREMOT att beskära bort, tvärtemot 77e4a558-1: bandet ligger
+   helt ovanför ramens överkant, alltså på bakgrunden och inte på varan, och
+   varje mått överlever kapningen — 309, 263×148, 120", 159, 217, 275, 62 och
+   180 cm står alla kvar. Uppmätt: den tyska texten slutar vid y≈203 av 1400,
+   måttpilen `309 cm` börjar vid y≈259. Snittet läggs på **y = 212**.
+
+☠️ DEN FEMTE ÄR VÄRST, av två skäl. Den är produktens FÖRSTA bild — alltså
    huvudbild och delningsbild — och den påstår något som inte är sant om en
    duk: en duk har ingen upplösning. `8K ULTRAHD` är ett påstående om
    PROJEKTORN kunden redan äger. Texten går inte att alt-sätta bort; den
@@ -67,9 +81,19 @@ BORTTAGNA = {
                  5: "EIN BILDSCHIRM UNENDLICHE EINSATZMÖGLICHKEITEN inbränt"},
 }
 
-# Ingen beskärning i rundan. Se docstringen: den enda kandidaten föll på att
-# emblemen låg på varan och inte på bakgrunden.
-BESKARNING = {}
+# nyckel -> {råbildsindex: (box, skäl)} — beskärningar som görs på en bild som
+# BEHÅLLS i galleriet. Boxen är (vänster, övre, höger, undre) i råbildens egna
+# pixlar.
+#
+# ☠️ Bara EN av rundans två beskärningskandidater fick göras, och skillnaden
+#    är var pixlarna satt: 1b87909f-3:s tyska packlista ligger på BAKGRUNDEN
+#    ovanför ramen, 77e4a558-1:s emblem ligger på den projicerade bilden, på
+#    VARAN. Den första kapas, den andra ströks.
+BESKARNING = {
+    "1b87909f": {3: ((0, 212, 1400, 1400),
+                     "tysk packlista `2 x Stative / 8 x Bodenpfähle / "
+                     "2 x 5 m Seile` i bandet ovanför ramen")},
+}
 
 
 def kontroll():
@@ -94,10 +118,18 @@ def kontroll():
         # Måttritningen (3) sist — utom där den beskurna hjälten byter form.
         if 3 in index and ordning[-1] != 3:
             fel.append(f"{k}: måttritningen ligger inte sist")
-        kvar = len(index) + (1 if k in BESKARNING else 0)
+        kvar = len(index)
         borta = len(BORTTAGNA.get(k, {}))
         if kvar + borta != 5:
             fel.append(f"{k}: {kvar} behållna + {borta} borttagna != 5 råbilder")
+        # ☠️ En beskärning som pekar på en bild galleriet inte visar är en
+        #    beskärning ingen gör — och den ser i koden ut som en åtgärdad
+        #    bild. Samma familj som "ett svar utan fel är inget kvitto".
+        for i in BESKARNING.get(k, {}):
+            if i not in index:
+                fel.append(f"{k}: bild {i} ska beskäras men ligger inte i galleriet")
+            if i in BORTTAGNA.get(k, {}):
+                fel.append(f"{k}: bild {i} är både borttagen och beskuren")
     return fel
 
 

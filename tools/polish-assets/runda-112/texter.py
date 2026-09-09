@@ -210,7 +210,7 @@ YTA = {
 # Korshänvisningar: storlekssyskon, färgsyskon eller samma storlek i en annan
 # konstruktion. ⚠️ En länk per sida — inte en lista.
 SYSKON = {
-    "1b87909f": ("0370673c", "vår trebenta stativduk på 84 tum för inomhusbruk"),
+    "1b87909f": ("0370673c", "vår trebenta stativduk på 84 tum utan markankare"),
     "422ab1bd": ("a8c82049", "samma motorduk i 85 tum"),
     "a8c82049": ("422ab1bd", "samma motorduk i 92 tum"),
     "ddca577d": ("77d2b35c", "samma manuella duk i 99 tum och kvadratiskt format"),
@@ -249,8 +249,14 @@ def spec(k):
                  "D": "ingen — står på stativ",
                  "E": "skruvas i vägg eller tak"}[matt.GRUPPER[k]]
     r.append(LI("Montering", montering))
-    r.append(LI("Användning", "utomhus och inomhus" if matt.GRUPPER[k] == "A"
-                else "inomhus"))
+    # ☠️ RADEN FÅR INTE SÄGA EMOT SIDANS EGEN BILD. `0370673c-5` visar
+    #    golvstativet på en gräsmatta under ljusslingor — leverantörens egen
+    #    bild — medan ett tidigare utkast av den här raden skrev `inomhus` på
+    #    alla utom A. Det som SKILJER A från D är mätt och står i A:s egen
+    #    ritning: åtta markankare och två stormlinor ingår där, D får inga.
+    r.append(LI("Användning", {"A": "utomhus och inomhus",
+                               "D": "inomhus, och utomhus i uppehållsväder"}
+                .get(matt.GRUPPER[k], "inomhus")))
     return H("Tekniska specifikationer") + "<ul>" + "".join(r) + "</ul>"
 
 
@@ -295,10 +301,18 @@ def faq(k):
                   "ingår och förankrar stativen i gräs. Den ska ändå tas in efter "
                   "kvällen — ram och tyg är inte gjorda för att stå ute i väder "
                   "över tid."))
+    elif g == "D":
+        f.append(("Kan den stå utomhus?",
+                  "Den går att bära ut en torr kväll — den står på sitt eget "
+                  "stativ och behöver ingen ström. Men den har inga markankare "
+                  "och inga linor, till skillnad från %s, så den ska inte "
+                  "användas i blåst och inte lämnas ute. Regn och fukt tål "
+                  "varken duk eller stativ."
+                  % lank("1b87909f", "vår 120-tumsduk med ram och två stativ")))
     else:
         f.append(("Kan den stå utomhus?",
-                  "Nej. Den är gjord för inomhusbruk och tål varken regn eller "
-                  "fukt."))
+                  "Nej. Den skruvas i vägg eller tak och är gjord för "
+                  "inomhusbruk — den tål varken regn eller fukt."))
     if k in matt.NAT:
         v, hz, w, _ = matt.NAT[k]
         f.append(("Behöver den ström?",
