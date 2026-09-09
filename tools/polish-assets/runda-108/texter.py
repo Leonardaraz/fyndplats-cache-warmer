@@ -79,8 +79,8 @@ STADIGT = (
     H("Den står genom att vinklas")
     + P("En fristående skärm bär sig själv på formen, inte på tyngden. Vecklas "
         "panelerna ut i en mjuk sicksack står den stadigt på egen hand; dras de "
-        "ut spikrakt har den ingenting att stödja sig mot. Det är så alla "
-        "vikskärmar fungerar, och det avgör var den kan stå.")
+        "ut spikrakt har den ingenting att stödja sig mot. Så fungerar en "
+        "fristående vikskärm, och det avgör var den kan stå.")
     + P("Foten är 6,5 cm hög och vilar på golvet utan att skruvas fast. Det finns "
         "ingen väggförankring, och därför hör skärmen hemma där den får stå "
         "ifred — utmed en vägg, runt ett hörn av rummet, bakom en soffa. Den är "
@@ -90,21 +90,24 @@ STADIGT = (
 
 VAVEN = (
     H("Skymmer insyn, mörklägger inte")
-    + P("Väven är gjord av polypropen som flätats över en ram i massiv tall. "
+    + P("Väven är gjord av polypropen som flätats över en ram i tall. "
         "Mönstret är tätt nog att bryta blicken men inte tätt nog att stänga "
         "ute ljus — sett rakt framifrån är den en vägg, sett i motljus anas "
         "konturer igenom. Det gör den till en bra avdelare framför en "
         "arbetsplats eller en säng, och till ett dåligt mörkläggningsdraperi.")
     + P("Polypropen är samma sorts plastfiber som i utemattor. Den tål att "
-        "torkas av, gulnar inte som pappersfiber och tappar inte formen om "
-        "någon lutar sig mot den.")
+        "torkas av och tappar inte formen om någon lutar sig mot den.")
+    + P("Träet är inte bara en ram runt kanten. Panelen är byggd av stående "
+        "spjälor i tall, och plastbanden är flätade tvärs över dem — det är "
+        "spjälorna som syns som ljusa streck i mellanrummen mellan raderna, "
+        "tydligast på de ljusa modellerna och som svaga glimtar på de bruna.")
 )
 
 SKOTSEL = (
     H("Användning och skötsel")
     + P("Torka av väven med en fuktig trasa och torka efter med en torr. "
         "Polypropen tål vatten, men tallramen ska inte bli stående blöt — "
-        "dammsug hellre med möbelmunstycke i vecken än att skölja.")
+        "dammsug hellre med möbelmunstycke än att skölja.")
     + P("Fäll ihop den när den inte används. Hopfälld blir den en smal packe på "
         "40 cm bredd som får plats bakom en dörr eller under en säng, och "
         "gångjärnen mår bättre av att stå avlastade än utfällda i månader.")
@@ -134,7 +137,7 @@ def bygg(nyckel):
         html=(
             P(f"En <strong>rumsavdelare</strong> med {panelord} paneler som mäter "
               f"{bredd} × 1,6 × 170 cm utfälld. Varje panel är 40 cm bred och 170 cm "
-              f"hög, och väven är {farg} polypropen på en ram av massiv tall. Den "
+              f"hög, och väven är {farg} polypropen på en tallram. Den "
               "kommer färdigmonterad — vik ut den och ställ den där du vill ha den.")
             + H("Så mycket den delar av")
             + P(f"Utfälld i rak linje täcker de {panelord} panelerna {bredd} cm. I "
@@ -142,9 +145,10 @@ def bygg(nyckel):
                 "stadigare: en mjuk sicksack över en bit av rummet räcker för att "
                 "skilja en arbetsplats från en soffa eller dölja en säng i ett "
                 "enrumsboende.")
-            + P(f"Höjden är 170 cm rakt igenom. Den är alltså högre än sittande "
-                f"ögonhöjd men lägre än de flesta vuxna står — man ser över den om "
-                f"man vill, och inte om man sitter ner.")
+            + P(f"Höjden är 170 cm mätt till bågens topp. Panelernas ovankant är "
+                f"nämligen inte rak utan svängd, så kanten dippar en aning vid varje "
+                f"skarv och stiger igen mitt på panelen. Sittande ser man ingenting "
+                f"över kanten; stående beror det på hur lång du är.")
             + STADIGT
             + VAVEN
             + P(f"Skärmen väger {vikt} och fälls ihop till 40 × {hopfallt} × 170 cm. "
@@ -161,7 +165,7 @@ def bygg(nyckel):
                 ("Antal paneler", str(pan)),
                 ("Gångjärn", f"{gangjarn} i metall, tre per skarv"),
                 ("Fothöjd", "6,5 cm"),
-                ("Material", "polypropenväv på ram i massiv tall"),
+                ("Material", "polypropenväv på tallram"),
                 ("Färg", kf),
                 ("Vikt", vikt),
                 ("Paketmått", paketmatt),
@@ -172,7 +176,7 @@ def bygg(nyckel):
             + H("Vanliga frågor")
             + F("Står den stadigt?",
                 "Ja, så länge panelerna vinklas. Rakt utfälld har den inget stöd i "
-                "sidled — det gäller alla vikskärmar. Ställ den i en mjuk sicksack, "
+                "sidled — så är en fristående vikskärm byggd. Ställ den i en mjuk sicksack, "
                 "gärna med en av ändarna mot en vägg.")
             + F("Går det att se igenom den?",
                 "Väven bryter blicken rakt framifrån men släpper igenom ljus. I "

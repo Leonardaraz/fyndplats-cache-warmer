@@ -1,0 +1,9 @@
+{
+  "_": "Steg 3 + 6: mappningsraden per produkt, läst 2026-09-09 via workflowen 'Polering — läs och stämpla mappningsraden' (läge las). Prisgrinden grön på alla sex. En variant per rad — Steg 6 är ett no-op, men supplierVariantId och inStock är kontrollerade.",
+  "5f14c112": {"artnr": "830-814V00WT", "wixVariantId": "64ef4bdc-25c4-4022-9f1f-360ba9052853", "sku": "FP-rumsavdelare-160-vit",   "grossSek": 1069, "landedCostSek": 888.09,  "prisgrind": true, "lager": 82,  "eu": true, "freightShare": 0.491},
+  "957b042d": {"artnr": "830-814V00BN", "wixVariantId": "5b3b55c3-f355-4be9-815d-3a53afcd27ab", "sku": "FP-rumsavdelare-160-brun",  "grossSek": 1139, "landedCostSek": 942.80,  "prisgrind": true, "lager": 14,  "eu": true, "freightShare": 0.463},
+  "6649471e": {"artnr": "830-814V01ND", "wixVariantId": "7cec46a3-5051-4c41-a5ca-74a663496746", "sku": "FP-rumsavdelare-240-natur", "grossSek": 1329, "landedCostSek": 1104.29, "prisgrind": true, "lager": 197, "eu": true, "freightShare": 0.395},
+  "854371fe": {"artnr": "830-814V01BN", "wixVariantId": "fdc4485a-4ca9-45ac-814f-49f5364e1d5a", "sku": "FP-rumsavdelare-240-brun",  "grossSek": 1179, "landedCostSek": 976.08,  "prisgrind": true, "lager": 17,  "eu": true, "freightShare": 0.447},
+  "da1a8a75": {"artnr": "830-814V02WT", "wixVariantId": "cb0adf01-3b12-406e-9f23-d8ba685ab663", "sku": "FP-rumsavdelare-320-vit",   "grossSek": 1499, "landedCostSek": 1251.66, "prisgrind": true, "lager": 29,  "eu": true, "freightShare": 0.369},
+  "64c0809d": {"artnr": "830-814V02ND", "wixVariantId": "407919be-6e9a-48d8-850b-7ea86e2e0fd3", "sku": "FP-rumsavdelare-320-natur", "grossSek": 1429, "landedCostSek": 1187.55, "prisgrind": true, "lager": 63,  "eu": true, "freightShare": 0.367}
+}
