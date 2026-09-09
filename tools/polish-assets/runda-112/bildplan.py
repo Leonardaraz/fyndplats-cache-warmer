@@ -19,6 +19,13 @@
    den lästes som en del av ritningen, och båda genomgångarna gick vidare.
    **En bild som granskas för en fråga är inte granskad för den andra.**
 
+   ☠️ OCH DEN BESKURNA RITNINGEN MÅSTE FYLLAS UT TILL KVADRAT IGEN. En kapad
+   ritning blir LIGGANDE, och PDP:n hämtar galleriet med `fill/…,al_c` — den
+   centrumbeskär alltså bort vänster- och högerkanten, där måttetiketterna
+   sitter. Runbooken mätte det på runda 98:s `9cfc2f50-3`: höjdmåttet `35,5 cm`
+   försvann HELT i `fill`-hämtningen. Beskärningen hade alltså tagit bort tyskan
+   och måtten på en gång. 1400 × 1188 fylls därför ut till 1400 × 1400 med vitt.
+
    Här går den DÄREMOT att beskära bort, tvärtemot 77e4a558-1: bandet ligger
    helt ovanför ramens överkant, alltså på bakgrunden och inte på varan, och
    varje mått överlever kapningen — 309, 263×148, 120", 159, 217, 275, 62 och
