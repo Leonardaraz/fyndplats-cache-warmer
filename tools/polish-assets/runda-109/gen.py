@@ -1,8 +1,23 @@
 # -*- coding: utf-8 -*-
 """Bygger JS-anropen för Steg 7 och facit för verifieringen.
 
+☠️ SEX AV ÅTTA SIDOR ÄR LIVE. Runda 108:s PATCH satte `visible: false` fast —
+   rätt när alla åtta var utkast, och en AVPUBLICERING av sex säljande sidor
+   här. `visible` sätts därför per produkt ur matt.RUNDAN, och verifieringen
+   prövar mot samma värde i stället för mot en konstant. Runbookens regel är
+   att varje PATCH ska BÄRA `visible` uttryckligen; den säger inget om vilket
+   värde, och det är precis den halvan som är lätt att missa i en blandad
+   batch.
+
 ☠️ Kvittot är normalisering + EXAKT hash, inte en längdformel. Runbookens
    formel saknade `<li>`-termen och gav +105 till +140 tecken fel i runda 47.
+
+☠️ KROPPEN HETER `body`, INTE `data` — uppmätt 2026-09-09 med A/B i samma
+   anrop. `data:` skickas inte alls, och felet syns bara om anropet HAR en
+   kropp: en PATCH svarar `revision must not be empty` (kroppen försvann), men
+   en `products/query` svarar **200 med femtio orelaterade rader** — filtret
+   föll bort och frågan blev ett osorterat helsvep. En sluggkrockskoll hade
+   alltså sagt "ingen krock" och sett bemängd ut medan den inte frågat något.
 
 ☠️ Hashen räknas med `h*31 % 1e9+7` — exakt i BÅDA språken. FNV-1a:s
    `h*16777619` överstiger 2^53 i JavaScripts float64 och gav åtta avvikelser
@@ -17,7 +32,9 @@ import grindar as G                                       # noqa: E402
 
 # Fulla id ur matt.py, så de inte kan glida isär.
 import matt                                               # noqa: E402
-FULLA = {k: v[6] for k, v in matt.UTKAST.items()}
+FULLA = {k: v[6] for k, v in matt.ALLA.items()}
+# Rundans två är utkast; runda 108:s sex är publicerade och ska FÖRBLI det.
+SYNLIG = {k: (k not in matt.RUNDAN) for k in matt.ALLA}
 
 
 def normalisera(h):
@@ -45,7 +62,7 @@ if __name__ == "__main__":
             "k": k, "id": FULLA[k], "namn": d["namn"], "slug": d["slug"],
             "titel": d["titel"], "meta": d["meta"],
             "sokord": [{"term": t, "isMain": m} for t, m in d["sokord"]],
-            "html": d["html"],
+            "html": d["html"], "synlig": SYNLIG[k],
             "langd": facit[k]["langd"], "hash": facit[k]["hash"],
         })
     json.dump(facit, open("facit.json", "w"), ensure_ascii=False, indent=1)
@@ -56,12 +73,13 @@ if __name__ == "__main__":
   const P = %s;
   const ut = [];
   for (const p of P) {
-    const g = await wix.request({ method: "GET", url: `/stores/v3/products/${p.id}` });
+    const g = await wix.request({ scope: "site", method: "GET", url: `https://www.wixapis.com/stores/v3/products/${p.id}` });
     const gp = (g.data && g.data.product) || g.product || g;\n    const rev = gp.revision;
     await wix.request({
-      method: "PATCH", url: `/stores/v3/products/${p.id}`,
+      scope: "site", method: "PATCH",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}`,
       body: { product: {
-        id: p.id, revision: rev, name: p.namn, slug: p.slug, visible: false,
+        id: p.id, revision: rev, name: p.namn, slug: p.slug, visible: p.synlig,
         plainDescription: p.html,
         seoData: { tags: [
           { type: "title", children: p.titel, custom: false, disabled: false },
@@ -72,7 +90,8 @@ if __name__ == "__main__":
       } },
     });
     const r = await wix.request({
-      method: "GET", url: `/stores/v3/products/${p.id}?fields=PLAIN_DESCRIPTION` });
+      scope: "site", method: "GET",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=PLAIN_DESCRIPTION` });
     const q = (r.data && r.data.product) || r.product || r;
     const lagrad = q.plainDescription || "";
     const hasha = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) %% 1000000007; return String(h); };
@@ -85,7 +104,7 @@ if __name__ == "__main__":
       (typeof q.slug === "string" ? q.slug : q.slug && q.slug.name) === p.slug ? "slug ok" : "slug FEL",
       (tagg("title") || {}).children === p.titel ? "titel ok" : "titel FEL",
       (mt && mt.props.content) === p.meta ? "meta ok" : "meta FEL",
-      q.visible === false ? "utkast ok" : `visible=${q.visible}`,
+      q.visible === p.synlig ? (p.synlig ? "live ok" : "utkast ok") : `visible=${q.visible} != ${p.synlig}`,
     ].join(" | "));
   }
   return ut;
