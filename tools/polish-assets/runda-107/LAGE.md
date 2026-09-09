@@ -100,3 +100,46 @@ dessutom fel: L80-grinden ger noll kaniner, och höns och ankor är en annan
 storleksklass.
 
 De tre produkterna får sitt eget Fyndplats-kort på platsen i stället.
+
+## ☠️ Steg 7 — verdikten räknades, motiveringen skrevs för hand, och tre av fyra fick fel skäl
+
+Texterna passerade grinden. Läsningen av dem gjorde det inte.
+
+L80-grinden avgör OM en modell duger för en dvärgkanin. Motiveringen i
+kundtexten skrev jag för hand — och tre av fyra modeller fick ett skäl som
+motsäger sig själv i samma mening:
+
+| modell | vad texten sa | vad som är sant |
+|---|---|---|
+| P `41 cm` | "måttet nås inte" | ✅ rätt — 41 < 50 |
+| Q `54,5 cm` | "måttet nås inte" | ❌ 54,5 **är** över 50 |
+| R `50 cm` | "måttet nås inte" | ❌ 50 **är** precis kravet |
+| S `53 cm` | "måttet nås inte" | ❌ 53 **är** över 50 |
+
+Slutsatsen var rätt i alla fyra fallen; det verkliga skälet för Q, R och S är
+ett annat. Bara löpgården **på sidan** är hög nog för en kanin — den under
+huset är 26,5 till 40 cm — och den ensam ger 0,32 till 0,40 m² mot kravets
+0,5 m². Det är YTAN som fäller dem, inte bredden.
+
+En kund som mäter efter hade läst "54,5 cm, alltså för smalt mot 50 cm" och
+dragit slutsatsen att vi räknar fel.
+
+**Både upplysningen och FAQ-svaret räknas nu ur samma funktion som domen**
+(`kaninraden` och `kaninfaq` anropar `l80-grind.py`), med två grenar: klarar
+ingen delyta bredd- och höjdkravet är det BREDDEN som fäller, klarar någon det
+men ytan är för liten är det YTAN. Samma princip som prisgrinden i Steg 4 —
+den som räknar domen ska räkna skälet.
+
+☠️ **Talgrinden kunde inte se felet, och det är inte dess fel.** Den frågar
+var ett tal KOMMER IFRÅN, inte om påståendet om talet är sant. "54,5" var
+härlett ur spec-blocket och passerade — i en mening som sa motsatsen om det.
+Det som fångade det var att läsa texten.
+
+Samma läsning fångade två fel till, båda i den räknade versionen:
+
+- `yta()` returnerar redan m². Ett `* 100` gav *"Kvar blir 37,6 m²"* — fysiskt
+  orimligt, och ändå grönt i talgrinden, eftersom talet var korrekt HÄRLETT.
+- `f"…för en kanin. Kvar blir {y:.2f}".replace(".", ",")` bytte också punkten
+  som avslutade föregående mening: *"…för en kanin, Kvar blir 0,38"*.
+
+Grinden fäller nu 14 mutationer, och alla sju texterna är gröna.
