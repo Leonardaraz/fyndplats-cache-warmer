@@ -111,18 +111,36 @@ DORRVINKEL = {
     "8cfe5171": 135, "a33ece7a": 135, "9a33e15f": 180, "b2c76518": 180,
 }
 
+# ☠️ `480849a7` ÄR 43 dB, INTE 41. Tre källor från samma leverantör, två tal:
+#    EU-energietiketten (bild 5) säger 43 dB och ljudklass D, spec-blocket
+#    säger 41, och marknadsbilden säger "41dB Unser Weinkühlschrank".
+#    Etiketten vinner — den är den deklaration som lämnas under (EU) 2019/2016
+#    och den enda av de tre som är ett rättsligt dokument.
+#
+# ⚠️ De sex utan etikettbild har bara spec-blocket som källa, alltså samma
+#    källa som här visade sig vara två decibel fel. Talen skrivs som de står.
 LJUD = {                        # dB
     "8cfe5171": 41, "a33ece7a": 41, "9a33e15f": 41, "b2c76518": 41,
-    "47a91a17": 37, "15d30e23": 41, "480849a7": 41, "fdbfcea0": 39,
+    "47a91a17": 37, "15d30e23": 41, "480849a7": 43, "fdbfcea0": 39,
 }
+
+# Ljudklass finns bara där en etikettbild finns att läsa den ur.
+LJUDKLASS = {"b2c76518": "C", "480849a7": "D"}
 
 ENERGIKLASS = {
     "8cfe5171": "E", "a33ece7a": "E", "9a33e15f": "E", "b2c76518": "E",
     "47a91a17": "E", "15d30e23": "G", "480849a7": "G", "fdbfcea0": "G",
 }
 
-# kWh per år. Frysarna saknar talet i leverantörens spec — det får INTE fyllas i.
+# kWh per år.
+#
+# ☠️ FRYSARNAS TAL FINNS INTE I SPEC-BLOCKET — men `b2c76518` bär den riktiga
+#    EU-etiketten som bild 5, och den säger 148 kWh/annum. Det är alltså mätt
+#    för EN av de fyra och får därför bara skrivas på den. De tre andra saknar
+#    etikettbild; att anta att silverversionen drar lika mycket som den svarta
+#    vore rimligt och ändå ett påhitt.
 ARSFORBRUKNING = {
+    "b2c76518": 148,
     "47a91a17": 75, "15d30e23": 133, "480849a7": 120, "fdbfcea0": 132,
 }
 
@@ -239,8 +257,15 @@ def kontroll():
     vin = {k for k, g in GRUPPER.items() if g == "C"}
     if set(DORRVINKEL) != frys or set(INNERFACK) != frys or set(INGAR) != frys:
         raise SystemExit("☠️ frysspecifika tabeller täcker inte grupp A+B")
-    if set(FLASKOR) != vin or set(ARSFORBRUKNING) != vin:
-        raise SystemExit("☠️ vinkylsspecifika tabeller täcker inte grupp C")
+    if set(FLASKOR) != vin:
+        raise SystemExit("☠️ FLASKOR täcker inte grupp C")
+    if not vin <= set(ARSFORBRUKNING):
+        raise SystemExit("☠️ alla vinkylar ska ha en årsförbrukning")
+    # ☠️ Etikettburna tal får bara stå där en etikett faktiskt lästs.
+    if set(LJUDKLASS) != {"b2c76518", "480849a7"}:
+        raise SystemExit("☠️ ljudklass utan etikettbild — talet har ingen källa")
+    if LJUD["480849a7"] != 43:
+        raise SystemExit("☠️ 480849a7 tillbaka på spec-blockets 41 dB — etiketten säger 43")
     # de två utelämnade fälten får inte smyga tillbaka via en annan tabell
     if "47a91a17" in SPANNING:
         raise SystemExit("☠️ 47a91a17 har fått en spänningsrad — 60 Hz-felet är tillbaka")

@@ -175,9 +175,9 @@ def energistycke(k):
                 "och hur ofta dörren öppnas."
                 % tal(matt.ARSFORBRUKNING[k]))
     else:
-        rad += (" Årsförbrukningen i kWh finns inte i underlaget för den här "
-                "modellen, så vi skriver ingen — effekten är %s W när kompressorn "
-                "går." % tal(matt.EFFEKT[k]))
+        rad += (" Årsförbrukningen i kWh finns inte i underlaget för just den "
+                "här modellen, så vi skriver ingen — effekten är %s W när "
+                "kompressorn går." % tal(matt.EFFEKT[k]))
     return P(rad)
 
 
@@ -317,7 +317,8 @@ def spec(k):
     # ☠️ 47a91a17 saknar spänningsrad med flit — leverantören anger 60 Hz.
     if k in matt.SPANNING:
         r.append(LI("Spänning", matt.SPANNING[k]))
-    r.append(LI("Ljudnivå", "%s dB" % tal(matt.LJUD[k])))
+    r.append(LI("Ljudnivå", "%s dB%s" % (tal(matt.LJUD[k]),
+                ", ljudklass %s" % matt.LJUDKLASS[k] if k in matt.LJUDKLASS else "")))
     # ☠️ fdbfcea0 saknar köldmedierad med flit — leverantören anger R600.
     if k in matt.KOLDMEDIUM:
         r.append(LI("Köldmedium", matt.KOLDMEDIUM[k]))
