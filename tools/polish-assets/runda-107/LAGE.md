@@ -288,3 +288,92 @@ av sju identiska — så attributionen vilar inte på ordningen i
 runda 106. Bilderna ligger kvar och alt-texterna nämner dem inte; frågan om de
 ska bort är Leonards och ligger i uppgift #382 för hela familjen, inte bara
 runda 106. Sekvenseringen är hans: polera färdigt först.
+
+## Steg 10 + 13 — kategori, prisgrind, stämpel, publicering
+
+Kategori: **Husdjur → Burar, Kläder & Tillbehör**, förälder + löv, `lyckade 2 / 2`
+på alla sju. Alla sju låg innan bara i den appstyrda `All Products`.
+
+Prisgrinden (`las`) — sju av sju `stammer true`, priserna exakt rundans tabell:
+
+| id | landedCostSek | förväntat | faktiskt | fraktandel |
+|---|---:|---:|---:|---:|
+| `a75fcfde` | 2 641,49 | 3 179 | 3 179 | 0,303 |
+| `c0770388` | 2 593,29 | 3 119 | 3 119 | 0,309 |
+| `2253c509` | 1 617,84 | 1 949 | 1 949 | 0,268 |
+| `2435c4d1` | 1 367,42 | 1 649 | 1 649 | 0,317 |
+| `dcdf889d` | 1 265,77 | 1 519 | 1 519 | 0,343 |
+| `525e6acf` | 1 382,64 | 1 669 | 1 669 | 0,314 |
+| `079f2901` | 1 372,35 | 1 649 | 1 649 | 0,316 |
+
+Ingen ligger över 0,5 i fraktandel, så ingen behövde skjutas till sist.
+
+☠️ **Mappningens SKU bar samma tyska sträng som Wix.** Läsningen visade
+`"sku": "FP-kleintierstall-mit"` på `a75fcfde` — Steg 8 hoppas alltså över på
+BÅDA sidorna samtidigt, precis som runbooken varnar. Stämplingen skrev därför
+`variantSkus` tillsammans med flaggorna: `needsAiPolish, draftStatus,
+variantSkus` på alla sju.
+
+Publiceringen, med en EGEN GET som kvitto:
+
+```
+a75fcfde | LIVE | variant synlig | sku ok | 6 bilder | alla har url | alla har alt | sökord svenska
+c0770388 | LIVE | variant synlig | sku ok | 6 bilder | alla har url | alla har alt | sökord svenska
+2253c509 | LIVE | variant synlig | sku ok | 5 bilder | alla har url | alla har alt | sökord svenska
+2435c4d1 | LIVE | variant synlig | sku ok | 6 bilder | alla har url | alla har alt | sökord svenska
+dcdf889d | LIVE | variant synlig | sku ok | 5 bilder | alla har url | alla har alt | sökord svenska
+525e6acf | LIVE | variant synlig | sku ok | 5 bilder | alla har url | alla har alt | sökord svenska
+079f2901 | LIVE | variant synlig | sku ok | 5 bilder | alla har url | alla har alt | sökord svenska
+```
+
+## Steg 14 — live-grinden, och tre lärdomar om grindar
+
+**7 av 7 sidor gröna.** Men den behövde tre omgångar, och alla tre är värda att
+skriva ned — ingen av dem var ett fel på sidorna.
+
+### 1. ☠️ Det "tomma FAQ-svaret" var grindens eget artefakt
+
+Första körningen rapporterade
+
+```
+KANINLÖFTE: …"name":"Går det att hålla kanin i stallet?","acceptedAnswer":{"@type":"Answer","text":""}…
+```
+
+och det såg ut som ett verkligt fynd: ett FAQPage-JSON-LD där frågan står men
+svaret är tomt, på just den fråga sidan finns för att besvara. **Det var fel.**
+Grinden hade själv strukit svarstexten ur sin arbetskopia innan den skrev ut
+sammanhanget — `"text":""` är vad som blev kvar EFTER strykningen. Kontrollmätt
+mot skarpa sidan: alla sju svaren är ifyllda, ordagrant.
+
+**Läs meddelandet, och kontrollera påståendet innan du bokför ett fynd.** Det
+här hade blivit en uppgift om en bugg i butiksrepot som inte finns.
+
+### 2. FAQ-frågans rubrik måste också vara sanktionerad, inte bara svaret
+
+`grind.py` stryker hela nej-svarsparet; live-grinden ströks bara svaret. En
+fråga som nämner kanin är ingen utfästelse — svaret är "Nej." Frågan HÄRLEDS nu
+ur texten (den `<strong>…?</strong>` som står närmast före svaret) i stället för
+att skrivas om i grinden.
+
+### 3. ☠️ Butikens "liknande produkter"-rad finns i TVÅ serialiseringar
+
+Efter fix 2 föll de två 230-sidorna fortfarande, på butikens egen
+rekommendationsrad — den länkar till `kaninhus-utomhus-122-cm-rastgard` och
+`kaninbur-inomhus-…`, alltså riktiga kaninbostäder. Det är inget påstående om
+DEN HÄR varan, och rekommendationen är dessutom rimlig.
+
+Första strykningen tog `<a class="prod">…</a>` och **såg ut att bita**. Den
+gjorde det inte: raden ligger också i Next.js **Flight-nyttolast**
+(`["$","$L40","kaninhus-…",{"className":"prod",…`), som inte är HTML alls.
+
+Grinden stryker därför andra produkters **identiteter** — sluggen och namnet —
+som är samma literal i båda formerna.
+
+☠️ **Och den fick en kontrollmätning på strykningen själv:** sidans EGNA
+alt-texter måste finnas kvar efteråt. Hela poängen med grinden är att den läser
+dem (runda 106:s lärdom), och en strykning som råkat svälja galleriet hade gjort
+"noll fel" lika meningslöst som en tom hämtning.
+
+⚠️ **En observation, inte ett fel:** rekommendationsraden på de två 230-sidorna
+leder till två publicerade kaninbostäder. Om de i sin tur klarar L80 är uppgift
+#379:s fråga, inte den här rundans.
