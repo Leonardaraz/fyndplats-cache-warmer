@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Runda 108 — förbehandlar hjältebilderna till kortpanelens 1,83.
+"""Runda 109 — förbehandlar de två nya färgernas hjältebilder till 1,83.
+
+Samma metod som runda 108, som mätte fram den: rita vid varans GEOMETRISKA
+maxstorlek och klara byte-taket med OSKÄRPA, inte med krympning. Radien mäts
+per kort med `sok-oskarpa.py` — den ärvs INTE från syskonet, för det är vävens
+mönster som kostar byte och svart väv mot ljust trä har annan struktur än vit
+väv mot ljust trä.
 
 Skärmarna går från nästan kvadratiska (4 paneler, 0,68 efter beskärning) till
 bredare än panelen (8 paneler, 1,44). ☠️ Runda 93:s regel gäller: fyll ut med
@@ -41,10 +47,14 @@ FYLL = 1.0          # alla kort ritas vid varans maxstorlek
 FYLL_UNDANTAG = {}
 # ☠️ MÄTT med `sok-oskarpa.py` vid maxfyllnad, inte gissat. Den minsta radie
 #    som håller kortet under 215 kB vid q >= 85. Noll = behövs inte.
-MJUKA = {
-    "957b042d": 2.0, "854371fe": 2.0, "da1a8a75": 2.0,
-    "6649471e": 3.0, "64c0809d": 3.0,
-}
+# ☠️ MÄTT med `sok-oskarpa.py` vid maxfyllnad, inte ärvt från runda 108.
+#    Utfallet vid varans maxstorlek:
+#      r=0  ffb5239f 238 078   7bd4f691 275 070   — båda över taket
+#      r=1  ffb5239f 215 924   7bd4f691 230 138   — vita missar med 924 byte
+#      r=2  ffb5239f 186 107   7bd4f691 192 061   — båda under
+#    Att vita ligger 924 byte över vid r=1 är just varför radien mäts och inte
+#    avrundas: "nästan" är över taket.
+MJUKA = {"ffb5239f": 2.0, "7bd4f691": 2.0}
 HAR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -83,7 +93,7 @@ def panel(kort, fyll=None):
 if __name__ == "__main__":
     import sys
     sys.path.insert(0, HAR)
-    import texter as T
-    for k in T.PRODUKTER:
+    import matt
+    for k in matt.RUNDAN:
         s, storlek, andel = panel(k)
         print("%-10s %-12s fyllnad %.0f %%" % (k, "%d×%d" % storlek, andel * 100))
