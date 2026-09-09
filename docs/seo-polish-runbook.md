@@ -241,6 +241,20 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
   till FLERA kategorier, inte tvärtom. Båda felformerna 400:ar tydligt, så de kostar en
   runda men inget tyst.
 
+  ☠️ **OCH ADRESSERNA ÄR OSYMMETRISKA — läsningen har INGET `bulk/`.** Rätt par:
+
+  | | adress |
+  |---|---|
+  | skriva | `POST /categories/v1/**bulk**/categories/add-item` |
+  | läsa | `POST /categories/v1/categories/list-categories-for-items` |
+
+  Runda 106 antog att läsningen låg under `bulk/` som skrivningen och fick **404** två
+  gånger i rad. En 404 säger "either the URL did not match an API route, or … a resource
+  referenced in your request does not exist" — alltså precis det som gör den lätt att
+  feldiagnosticera som ett felaktigt produkt-id. Det var adressen. Facit står i
+  API-spec:en (`SearchWixAPISpec` på Stores Categories listar alla 22 metoderna med
+  publika adresser); gissa inte utifrån syskonmetodens form.
+
   **Regeln, samma familj som `MEDIA_ITEMS_INFO` och `PLAIN_DESCRIPTION`: ett fältnamn
   som inte finns läses som TOMT, inte som fel** — och en tom lista ser i en grind exakt
   ut som en misslyckad skrivning. Skriv ut det RÅA svaret innan du felsöker skrivningen.
