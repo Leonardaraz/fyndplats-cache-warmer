@@ -14,6 +14,21 @@ familjen och inte en batch ur den.
    hållen: en sida som TAPPAT sitt eget materialord kan godkännas av att en
    granne bär ordet.
 
+☠️ LÖFTESGRINDARNA LÄSER SIDAN UTAN BILDADRESSER — och det var rundans sista
+   fynd. Första körningen fällde ALLA NIO på `UPPLÖSNINGSLÖFTE`, och träffen
+   var `1080w` i Wix EGEN `srcset`:
+
+     …/v1/fill/w_1080,h_1080,al_c,q_72/file.webp 1080w, …
+
+   Alltså bildens bredd i pixlar, inte ett påstående om duken. Ett larm som
+   fyrar på varje korrekt sida lär mottagaren att sluta läsa — samma regel som
+   mot ett rött synk-jobb vid varje svep. Adresserna stryks därför före
+   löftesgrindarna; alt-texterna är attributvärden och står kvar.
+
+   ⚠️ Uppmjukningen prövas ÅT BÅDA HÅLLEN i självtestet: ett äkta `4K`- och
+   `1080p`-löfte i brödtexten måste fortfarande fälla. Utan det hade fixen
+   kunnat vara `return []` och sett lika grön ut.
+
 ☠️ RUNDANS EGNA LÖFTEN prövas med SAMMA mönster som textgrinden
    (`MORKLAGGNING`, `UPPLOSNING`, `VINKELLOFTE`, `TONGRINDAR`,
    `MATERIALORD`, `FORBJUDET_ORD` ur `grind.py`) — inte med omskrivna kopior.
@@ -102,6 +117,10 @@ def granska(nyckel, html):
     if f"{_m.RUNDAN[nyckel][0]} tum" not in rensad:
         fel.append(f"tumtalet {_m.RUNDAN[nyckel][0]} står inte på sidan")
 
+    # ☠️ Bildadresserna bort FÖRE löftesgrindarna. `https:/produkt` (en snedstreck)
+    #    matchas inte av mönstret och överlever, så den trasiga länken kan
+    #    fortfarande fångas — men den kontrollen läser `rensad` med flit.
+    utan_url = re.sub(r"https?://[^\s\"'<>\\]+", " ", rensad)
     syn = G.synlig_meningstext(rensad)
     for ord_ in MATERIALORD[nyckel]:
         if ord_ not in rensad.lower():
@@ -114,13 +133,13 @@ def granska(nyckel, html):
     for etikett, monster in (("MÖRKLÄGGNINGSLÖFTE", MORKLAGGNING),
                              ("UPPLÖSNINGSLÖFTE", UPPLOSNING),
                              ("VINKELLÖFTE", VINKELLOFTE)) + TONGRINDAR:
-        m = monster.search(rensad)
+        m = monster.search(utan_url)
         if m:
             i = max(0, m.start() - 70)
-            fel.append(f"{etikett} på sidan: …{rensad[i:m.end() + 70]}…")
+            fel.append(f"{etikett} på sidan: …{utan_url[i:m.end() + 70]}…")
 
     for etikett, monster in FORBJUDET:
-        t = monster.search(rensad)
+        t = monster.search(rensad if etikett == "trasig relativ länk" else utan_url)
         if t:
             fel.append(f"{etikett}: {t.group(0)!r}")
     return fel
@@ -147,15 +166,23 @@ def _sjalvtest():
                 '<summary>Vanliga frågor</summary>'
                 '<a class="prod" href="/produkt/' + granne[0] + '">'
                 '<div class="pname">' + granne[1] + '</div></a></html>')
+    srcset = ('<img srcset="https://static.wixstatic.com/media/'
+              + f["hjalte"] + '/v1/fill/w_1080,h_1080,al_c,q_72/file.webp 1080w, '
+              'https://static.wixstatic.com/media/' + f["hjalte"]
+              + '/v1/fill/w_4000,h_4000,al_c,q_85/file.webp 4000w">')
     fall = [
-        ("A polyester i egen text", sida("Duken är av polyester.",
-                                         ("duk-x", "Projektorduk i väv")), True),
-        ("B polyester hos grannen", sida("", ("projektorduk-polyester-120",
-                                              "Projektorduk i polyester, 120 tum")), False),
+        ("A polyester i egen text ", "FEL MATERIAL",
+         sida("Duken är av polyester.", ("duk-x", "Projektorduk i väv")), True),
+        ("B polyester hos grannen ", "FEL MATERIAL",
+         sida("", ("projektorduk-polyester-120", "Projektorduk i polyester, 120 tum")), False),
+        ("C 1080p i egen brödtext ", "UPPLÖSNINGSLÖFTE",
+         sida("Duken klarar 1080p och 4K.", ("duk-y", "Projektorduk i väv")), True),
+        ("D 1080w i Wix srcset   ", "UPPLÖSNINGSLÖFTE",
+         sida("", ("duk-y", "Projektorduk i väv")) + srcset, False),
     ]
     fel = 0
-    for etikett, html, ska in fall:
-        traff = [x for x in granska(n, html) if "FEL MATERIAL" in x]
+    for etikett, sok, html, ska in fall:
+        traff = [x for x in granska(n, html) if sok in x]
         if bool(traff) != ska:
             print(f"  SJÄLVTEST FEL {etikett}: {'inget larm' if ska else 'falsklarm'}")
             fel += 1
