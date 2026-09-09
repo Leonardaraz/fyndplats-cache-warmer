@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Runda 108 Steg 14 — läs de sex publicerade sidorna som kunden ser dem.
+"""Runda 109 Steg 14 — läs familjens ÅTTA publicerade sidor som kunden ser dem.
+
+Rundan rörde alla åtta: två nya färgsidor och sex vars text fick ny syskonlista
+och rättad träformulering. Grinden körs därför på hela familjen, inte på
+rundans två — en ändrad live-sida är lika mycket en publicering som en ny.
+
+☠️ FACIT HÄMTAS UR `facit-live.json`, som LÄSTES UR KATALOGEN — inte kopierat
+   från runda 108:s `hamta-bilder.py` och `gen-media.py`. Två rundors filer som
+   bär samma tal är just den tvilling huset förlorat tid på fyra gånger
+   (`SHIP_AXIS_RE`, `EU_TULL_CODES`, `mapWithConcurrency`, kortfilerna).
 
 ☠️ `?cb=` BUSTAR INTE ISR-cachen. Next.js nycklar på RUTTEN, inte på query.
    `grindar.hamta_isr` hämtar därför TVÅ gånger: den första beställer
@@ -28,13 +37,9 @@ sys.path.insert(0, os.path.join(HAR, ".."))
 import grindar as G                                              # noqa: E402
 sys.path.insert(0, HAR)
 import texter as T                                               # noqa: E402
-import alt as A                                                  # noqa: E402
 from grind import BARRIAR, UTOMHUSLOFTE, morklaggningslofte      # noqa: E402
-import importlib.util
-_s = importlib.util.spec_from_file_location("hb", HAR + "/hamta-bilder.py")
-HB = importlib.util.module_from_spec(_s); _s.loader.exec_module(HB)
-_s2 = importlib.util.spec_from_file_location("gm", HAR + "/gen-media.py")
-GM = importlib.util.module_from_spec(_s2); _s2.loader.exec_module(GM)
+import json
+FACIT = json.load(open(os.path.join(HAR, "facit-live.json"), encoding="utf-8"))
 
 BAS = "https://www.fyndplats.se/produkt/"
 
@@ -63,8 +68,8 @@ FLIKAR = ["Tekniska specifikationer", "Användning och skötsel", "Vanliga fråg
 def granska(nyckel, html):
     fel = []
     slug, matt = SIDOR[nyckel]
-    hjalte = HB.GALLERIER[nyckel][0].replace(".jpg", "")
-    kort = GM.KORTFIL[nyckel].replace(".jpg", "")
+    hjalte = FACIT[nyckel]["hjalte"].replace(".jpg", "")
+    kort = FACIT[nyckel]["kort"].replace(".jpg", "")
     if hjalte not in html:
         fel.append("KONTROLLMÄTNINGEN FALLER — hjältebilden finns inte i HTML:en")
     if kort not in html:
@@ -97,7 +102,7 @@ def granska(nyckel, html):
     # ☠️ KONTROLLMÄTNING på strykningen själv: sidans EGNA alt-texter måste
     #    finnas kvar. En strykning som svalde galleriet hade gjort "noll fel"
     #    meningslöst — samma klass som en tom hämtning.
-    egen_alt = A.galleri(nyckel)[0]
+    egen_alt = FACIT[nyckel]["alt1"]
     if egen_alt not in rensad:
         fel.append("KONTROLLMÄTNINGEN FALLER — strykningen åt sidans egen alt-text")
 

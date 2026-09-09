@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Runda 107 Steg 9 — bygger media-nyttolasten.
+"""Runda 109 Steg 9 — bygger media-nyttolasten för de två nya färgerna.
+
+☠️ KROPPEN HETER `body`, INTE `data` (uppmätt 2026-09-09). Den här filen hade
+   redan `body` och var därför oskadd; det var mina egna handskrivna anrop som
+   inte var det.
 
 ☠️ ORDNINGEN VERIFIERAS, DEN ANTAS INTE. Rundan flyttar måttritningen sist och
    tar bort fyra bilder — allt uttryckt som ORIGINALPOSITIONER. Skulle Wix
@@ -22,31 +26,32 @@ import matt                                              # noqa: E402
 _s = importlib.util.spec_from_file_location("hb", HAR + "/hamta-bilder.py")
 HB = importlib.util.module_from_spec(_s); _s.loader.exec_module(HB)
 
+# Uppladdade 2026-09-09. ☠️ `operationStatus: PENDING` är INGET kvitto —
+# båda kontrollerades med en transform-URL som svarade 200 (403 = inte klar).
 KORTFIL = {
- "5f14c112": "b379ce_1129d0582fe74c56a04919ab962b06f1~mv2.jpg",
- "957b042d": "b379ce_b2246903a3b2447485dcba526e8bc2af~mv2.jpg",
- "6649471e": "b379ce_3c7046716a8148ee93df12a9ad1ce1c7~mv2.jpg",
- "854371fe": "b379ce_2f25222840af4e6e840af049ca8e9245~mv2.jpg",
- "da1a8a75": "b379ce_0f1f42dd6f8e47c4a3ee00761e0370b1~mv2.jpg",
- "64c0809d": "b379ce_329bd8e76c7e4507acbc80b1a886790b~mv2.jpg",
+ "ffb5239f": "b379ce_6be66c46946d4f15a8b584227ca6343a~mv2.jpg",
+ "7bd4f691": "b379ce_8e1368d165394ee3be868680e31150cb~mv2.jpg",
 }
 
 # Galleriordningen som ORIGINALPOSITION (1-baserad), "K" = vårt eget kort.
 # Runbookens ordning: 1 hjälte, 2 verklighet, 3+ egna kort, SIST måttritning.
 #
-# ⚠️ ALLA SEX HAR IDENTISK STRUKTUR — 1 studio, 2 miljö, 3 måttritning, 4 väv,
-#    5 fot — och därför samma rad. Den skrivs ändå ut sex gånger: ordningen är
-#    en MÄTNING per produkt (Steg 4), inte en familjeregel, och en delad rad
-#    hade tystnat den dag en sida får ett galleri till.
+# ⚠️ DE TVÅ ÄR INTE LIKA I INNEHÅLL men lika i STRUKTUR: båda har måttritningen
+#    på plats 3, så samma omflyttning gäller. Vit har tre miljöbilder där svart
+#    har två närbilder — det syns i alt-texterna, inte i ordningen. Raden skrivs
+#    ändå ut per produkt: ordningen är en MÄTNING (Steg 4), inte en familjeregel.
 #
-# ☠️ INGEN BILD TAS BORT den här rundan. Steg 4 granskade alla trettio: noll
-#    tysk text i pixlarna, noll logotyper, och måttritningarna bär bara siffror.
-ORDNING = {k: [1, 2, "K", 4, 5, 3] for k in matt.UTKAST}
+# ☠️ INGEN BILD TAS BORT. Steg 4 granskade alla tio: noll tysk text i pixlarna,
+#    noll logotyper i övre vänstra hörnet, och måttritningarna bär bara siffror.
+ORDNING = {
+ "ffb5239f": [1, 2, "K", 4, 5, 3],
+ "7bd4f691": [1, 2, "K", 4, 5, 3],
+}
 
 
 def poster():
     ut = []
-    for k in matt.UTKAST:
+    for k in matt.RUNDAN:
         alt = A.galleri(k)
         ordning = ORDNING[k]
         assert len(alt) == len(ordning), (k, len(alt), len(ordning))
@@ -57,7 +62,7 @@ def poster():
             else:
                 rader.append({"fil": HB.GALLERIER[k][plats - 1], "alt": a,
                               "kalla": "orig %d" % plats})
-        ut.append({"k": k, "id": matt.UTKAST[k][6],
+        ut.append({"k": k, "id": matt.RUNDAN[k][6],
                    "vantade": HB.GALLERIER[k], "rader": rader})
     return ut
 
@@ -73,7 +78,7 @@ if __name__ == "__main__":
   const ut = [];
   for (const p of P) {
     const g = await wix.request({ method: "GET",
-      url: `/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
+      scope: "site", url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
     const gp = (g.data && g.data.product) || g.product || g;
     const items = ((gp.media || {}).itemsInfo || {}).items || [];
     const filnamn = items.map((it) => {
@@ -86,11 +91,11 @@ if __name__ == "__main__":
       continue;
     }
     const nya = p.rader.map((r) => ({ id: r.fil, altText: r.alt }));
-    await wix.request({ method: "PATCH", url: `/stores/v3/products/${p.id}`,
+    await wix.request({ scope: "site", method: "PATCH", url: `https://www.wixapis.com/stores/v3/products/${p.id}`,
       body: { product: { id: p.id, revision: gp.revision, visible: false,
                          media: { itemsInfo: { items: nya } } } } });
     const r2 = await wix.request({ method: "GET",
-      url: `/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
+      scope: "site", url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
     const q = (r2.data && r2.data.product) || r2.product || r2;
     const ef = (((q.media || {}).itemsInfo || {}).items) || [];
     const efFil = ef.map((it) => {
