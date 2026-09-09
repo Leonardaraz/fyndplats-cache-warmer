@@ -443,10 +443,22 @@ SKOTSEL = {
     "B": P("Dra ur adaptern och torka ur skåpet med en fuktig trasa. Handtaget i "
            "konstläder torkas av torrt. Kör inte kyla och värme växelvis flera gånger "
            "i rad — låt skåpet komma i kapp mellan lägena. Baksidan behöver luft."),
-    "E": P("Frosta av när islagret i frysfacket börjar ta plats: stäng av, ställ ett "
-           "kärl under och låt isen smälta av sig själv — skrapa aldrig med något "
-           "vasst. Torka ur med ljummet vatten och lite diskmedel. Låt skåpet stå "
-           "upprätt i några timmar efter en transport innan du sätter i sladden."),
+    # ☠️ GRUPP E RYMMER TVÅ OLIKA SKÅP, och skötseln skiljer sig. Ett första
+    #    utkast gav BÅDA kylskåpets avfrostningstext — men dryckeskylen har
+    #    inget frysfack att frosta av. Det är samma klass som runda 103:s
+    #    spec-block kopierat från en annan modell, och det hade nått kunden
+    #    som en instruktion att göra något som inte går. Skötseln är därför
+    #    per PRODUKT här, inte per grupp.
+    "e6d2e70b": P("Frosta av när islagret i frysfacket börjar ta plats: stäng av, "
+                  "ställ ett kärl under och låt isen smälta av sig själv — skrapa "
+                  "aldrig med något vasst. Torka ur med ljummet vatten och lite "
+                  "diskmedel. Låt skåpet stå upprätt i några timmar efter en "
+                  "transport innan du sätter i sladden."),
+    "ef0fa603": P("Torka ur skåpet med ljummet vatten och lite diskmedel några "
+                  "gånger per år, och damma av gallret på sidan — en kompressor "
+                  "som inte får bort sin värme arbetar hårdare. Låt skåpet stå "
+                  "upprätt i några timmar efter en transport innan du sätter i "
+                  "sladden, så att oljan hinner tillbaka i kompressorn."),
 }
 
 
@@ -514,9 +526,8 @@ def faq(k):
         f = [("Kan jag förvara färskvaror i den?",
               "Nej. Termostaten går mellan 4 och 18 °C, alltså dryckestemperatur "
               "— det är inte kallt nog för mat som måste hållas kall."),
-             ("Hur många burkar får plats?",
-              "Volymen är 44 liter fördelat på två uttagbara hyllplan och fack i "
-              "dörren."),
+             ("Hur mycket får plats?",
+              "44 liter fördelat på två uttagbara hyllplan och fack i dörren."),
              ("Hörs den?",
               "35 dB. Skåpet har en kompressor som slår till och från."),
              ("Vad drar den?",
@@ -536,7 +547,7 @@ def bygg(k):
             + P("Finns också som %s." % lank(mal, syskontext))
             + spec(k)
             + H("Användning och skötsel")
-            + SKOTSEL[g]
+            + SKOTSEL.get(k, SKOTSEL.get(g, ""))
             + faq(k))
     return {"k": k, "id": matt.WIX[k], "namn": NAMN[k], "slug": SLUG[k],
             "titel": TITEL[k], "meta": META[k], "sku": SKU[k],

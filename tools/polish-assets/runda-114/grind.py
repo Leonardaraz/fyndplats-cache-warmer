@@ -247,6 +247,18 @@ def granska(nyckel, d):
         if re.search(r"\b" + re.escape(ord_), allt, re.I):
             fel.append("UTELÄMNAT FÄLT tillbaka på sidan: %r" % ord_)
 
+    # ── ☠️ SKÖTSELN MÅSTE HANDLA OM DEN HÄR PRODUKTEN ────────────────────────
+    #    Skötseltexten var gruppvis, och grupp E rymmer BÅDE ett kylskåp med
+    #    frysfack och en dryckeskyl utan. Dryckeskylen fick därför en
+    #    instruktion om att frosta av ett fack den inte har. Grinden fäller nu
+    #    på ordet, och självtestet prövar båda hållen.
+    # ⚠️ Läser `egen`, inte `txt`. Syskonlänken heter "ett kylskåp på 91 liter
+    #    med frysfack" — grannens ord, inte vårt påstående. Tredje gången den
+    #    strykningen behövs i samma grind.
+    if nyckel != "e6d2e70b" and re.search(r"\b(frysfack\w*|frosta\w*|avfrostning\w*)\b",
+                                          egen, re.I):
+        fel.append("SKÖTSEL OM ETT FRYSFACK SOM PRODUKTEN INTE HAR")
+
     # ── Material ─────────────────────────────────────────────────────────────
     for ord_ in MATERIALORD[nyckel]:
         if ord_ not in txt.lower():
@@ -340,6 +352,10 @@ def _sjalvtest():
              "Det finns ingen anledning att tveka."), True),
         ("N  skalan i ett vanligt ord      ", "ENERGIKLASS PÅ EN PRODUKT",
          med("Vi har en hylla till glasen."), False),
+        ("O  avfrostning på fel skåp      ", "FRYSFACK SOM PRODUKTEN INTE HAR",
+         med("Frosta av frysfacket när islagret tar plats.", "ef0fa603"), True),
+        ("P  avfrostning på RÄTT skåp     ", "FRYSFACK SOM PRODUKTEN INTE HAR",
+         T.bygg("e6d2e70b"), False),
         ("K  orörd sida                  ", "", bas, False),
     ]
     fel = 0
