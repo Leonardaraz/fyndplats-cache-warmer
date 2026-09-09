@@ -212,8 +212,8 @@ E1_SKOTSEL = (
     + P("Damma med torr trasa eller dammsug flätningen på lägsta effekt. "
         "Pappersrep tål inte väta — torka aldrig av den med en blöt trasa och "
         "ställ den inte i badrum eller tvättstuga. Bär den i ramen, inte i "
-        "flätningen. Med 4,3 kg är den rundans lättaste skärm och går att "
-        "flytta med en hand.")
+        "flätningen. Med 4,3 kg går den att lyfta och flytta med "
+        "en hand.")
 )
 
 # ── E2 · flätad pappersfiber med två hyllplan ────────────────────────────────
@@ -254,8 +254,8 @@ F1_MATERIAL = (
         "Duken väger 160 g/m² och är tät — du ser inte igenom den. Panelerna "
         "sitter fast med clips, så du kan ta bort en panel för att korta "
         "skärmen eller sätta tillbaka den när du vill ha hela bredden.")
-    + P("Skärmen är gjord för inomhusbruk. Leverantören anger uttryckligen att "
-        "den inte ska stå ute i blåst, regn eller snö.")
+    + P("Skärmen är gjord för inomhusbruk och ska inte stå ute i "
+        "blåst, regn eller snö.")
 )
 F1_SKOTSEL = (
     H("Användning och skötsel")
@@ -366,9 +366,8 @@ FAQ_UTE = {
                 "starkt solljus bleker trycket.",
     "23d20823": "Nej. Pappersrep tål varken regn eller fukt.",
     "db70e38c": "Nej. Flätad pappersfiber tål varken regn eller fukt.",
-    "79b349f7": "Nej. Leverantören anger uttryckligen att skärmen bara är "
-                "avsedd för inomhusbruk och inte ska stå ute i blåst, regn "
-                "eller snö.",
+    "79b349f7": "Nej. Skärmen är bara avsedd för inomhusbruk och ska "
+                "inte stå ute i blåst, regn eller snö.",
     "99040238": "Nej, den är gjord för inomhusbruk.",
 }
 
@@ -447,7 +446,7 @@ def bygg(nyckel):
         faq.insert(4, ("Hur mycket plats tar den hopfälld?", svar))
     if nyckel == "db70e38c":
         faq.insert(3, ("Hur mycket tål hyllplanen?",
-                       "5 kg per hylla enligt leverantören. Fördela vikten över "
+                       "5 kg per hylla. Fördela vikten över "
                        "hela hyllan i stället för att lasta ena änden tung."))
     if nyckel == "79b349f7":
         faq.insert(3, ("Går det att göra skärmen smalare?",

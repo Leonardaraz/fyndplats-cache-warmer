@@ -190,6 +190,29 @@ def granska(nyckel, d):
     if G.ARTNR.search(allt):
         fel.append(f"artikelnummer: {G.ARTNR.search(allt).group(0)}")
 
+    # ☠️ TONGRINDEN — Steg 12:s två fynd, båda på texter som redan var skrivna.
+    #    Ingen av dem är ett sakfel: varje mening var SANN. Det som fällde dem
+    #    var VEM som talar och till VEM.
+    #
+    #    1. "enligt leverantören" / "Leverantören anger" — mot kunden är VI
+    #       leverantören. Runbookens Steg 12 namnger frasen ordagrant, och
+    #       runda 110:s LIVE-grind bar den redan (`leverantörsattribution`);
+    #       textgrinden gjorde det inte. Grinden fanns alltså, en runda för
+    #       sent i kedjan: den hade fällt sidan EFTER publicering i stället
+    #       för före skrivningen.
+    #    2. "rundans lättaste skärm" — `runda` är VÅRT ord för en
+    #       arbetsomgång, inte kundens. Uppgift #318 mätte upp samma ord i
+    #       publicerad text från runda 68, 77 och 83; det tog sig hit igen
+    #       för att ingen grind bar det.
+    for etikett, monster in (("LEVERANTÖRSATTRIBUTION",
+                              re.compile(r"\bleverant[öo]r(?:en|ens|er|ers)?\b", re.I)),
+                             ("INTERN JARGONG",
+                              re.compile(r"\brundan?s?\b", re.I))):
+        m = monster.search(txt)
+        if m:
+            i = max(0, m.start() - 45)
+            fel.append(f"{etikett}: …{txt[i:m.end() + 45]}…")
+
     # Löften
     for etikett, sok in (("BARRIÄRLÖFTE", BARRIAR.search),
                          ("MÖRKLÄGGNINGSLÖFTE", morklaggningslofte),
