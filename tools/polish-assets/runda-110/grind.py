@@ -151,6 +151,12 @@ UTOMHUSLOFTE = re.compile(
 # ── Rundans egna ─────────────────────────────────────────────────────────────
 MATERIALORD = {"A": ["polypropen"], "B": ["bambu", "tall"], "C": ["bambu"]}
 
+# ☠️ GRUPP C HAR INGEN TALL. Leverantören listar `Bambus, Metall` och inget
+#    annat; ramen är av samma bambu som väven. Ordet "trä" i ett DELAT
+#    FAQ-svar var därför sant på fyra sidor av sex och falskt på två — precis
+#    den sortens fel som ett delat block gör osynligt.
+FORBJUDET_ORD = {"C": re.compile(r"\b(trä|träet|träts|tall|tallram)\b", re.I)}
+
 # ☠️ Grupp A:s väv ÄR plast. Mönstret fäller ett PÅSTÅENDE om vad den är
 #    gjord av, inte ordet — "Banden är plast, inte papper eller natursnöre"
 #    ska släppas igenom, för materialordet står inte efter är/av/i.
@@ -231,9 +237,39 @@ def granska(nyckel, d):
         if m:
             i = max(0, m.start() - 70)
             fel.append(f"{etikett}: …{txt[i:m.end() + 70]}…")
+    if g in FORBJUDET_ORD:
+        m = FORBJUDET_ORD[g].search(txt)
+        if m:
+            i = max(0, m.start() - 60)
+            fel.append(f"TRÄ PÅ EN BAMBUPRODUKT: …{txt[i:m.end() + 60]}…")
     for ord_ in MATERIALORD[g]:
         if ord_ not in txt.lower():
             fel.append(f"materialet nämner inte {ord_!r} — importfelet lever kvar")
+
+    # ☠️ ETT SPEC-VÄRDE SOM BÄR EN ANNAN RADS ETIKETT. "Material: flätad bambu,
+    #    gångjärn i metall" står bredvid "Gångjärn: metall" — samma uppgift två
+    #    gånger i samma tabell, och osynlig för varje faktagrind eftersom båda
+    #    är sanna. Samma klass som den upprepade meningen nedan.
+    rader = re.findall(r"<li><strong>([^<]+):</strong>\s*([^<]*)</li>", html)
+    etiketter = {e.strip().lower() for e, _v in rader}
+    for etikett, varde in rader:
+        for annan in etiketter:
+            if annan != etikett.strip().lower() and annan in varde.lower():
+                fel.append(f"spec-raden {etikett!r} bär etiketten {annan!r}: {varde}")
+
+    # ☠️ UPPREPADE MENINGAR. En dubblerad sats är osynlig för varje faktagrind
+    #    — båda förekomsterna är sanna — och den uppstår mekaniskt så fort ett
+    #    VALFRITT block upprepar innehåll i nästa block. Precis det hände i
+    #    rundans första utkast: fothöjdsraden och friståenderaden bar båda
+    #    "vilar på golvet utan att skruvas fast", två meningar i rad.
+    sedda = {}
+    for mening in re.split(r"(?<=[.!?])\s+", txt):
+        m = re.sub(r"\s+", " ", mening).strip().lower()
+        if len(m) >= 40:
+            sedda[m] = sedda.get(m, 0) + 1
+    for m, n in sedda.items():
+        if n > 1:
+            fel.append(f"upprepad mening {n} gånger: {m[:80]}")
 
     # ── Zonindelad talgrind ──────────────────────────────────────────────────
     egna, kors = G.dela_pa_ankare(html)
@@ -284,19 +320,36 @@ def sjalvtest():
         ("ljudlöfte",     "<p>Skärmen dämpar ljud från rummet bredvid.</p>", "LJUDLÖFTE"),
         ("ljuddämpande",  "<p>En ljuddämpande vikskärm för kontoret.</p>", "LJUDLÖFTE"),
         ("naturväv på A", "<p>Väven är rotting och åldras vackert.</p>", "NATURVÄV"),
+        # ☠️ Det här fallet MÅSTE köras mot en grupp C-sida. Kört mot grupp A
+        # släpps det igenom helt korrekt — A HAR en tallram — och självtestet
+        # hade då rapporterat en grind som inte finns. Runda 107:s lärdom en
+        # gång till: läs meddelandet, inte bara utfallet.
+        ("trä på bambusida",
+         "<p>Träet är obehandlat och tål inte väder.</p>", "TRÄ PÅ EN BAMBU",
+         "f8fd1b62"),
+        ("spec bär etikett",
+         "<ul><li><strong>Material:</strong> bambu, gångjärn i metall</li>"
+         "<li><strong>Gångjärn:</strong> metall</li></ul>", "bär etiketten"),
+        ("upprepad mening",
+         "<p>Fötterna vilar på golvet utan att skruvas fast i väggen. "
+         "Fötterna vilar på golvet utan att skruvas fast i väggen.</p>",
+         "upprepad mening"),
         ("husmärke",      "<p>En rumsavdelare från Outsunny.</p>", "husmärke"),
         ("artikelnummer", "<p>Rumsavdelare 845-030CG i väv.</p>", "artikelnummer"),
         ("ohärlett tal",  "<p>Skärmen är 999 cm bred.</p>", "ohärlett tal"),
         ("tyskt ord",     "<p>En Sichtschutz för vardagsrummet.</p>", "tyskt ord"),
         ("punktdecimal",  "<p>Panelen är 1.6 cm djup.</p>", "punktdecimal"),
     ]
-    nyckel = "a999f2b1"                      # grupp A — bär alla grindar
+    nyckel = "a999f2b1"                      # grupp A — bär alla grindar utom C:s
     original = T.PRODUKTER[nyckel]["html"]
     ok = True
-    for namn, tillagg, vantat in prov:
-        T.PRODUKTER[nyckel]["html"] = original + tillagg
-        traff = [f for f in granska(nyckel, T.PRODUKTER[nyckel]) if vantat in f]
-        T.PRODUKTER[nyckel]["html"] = original
+    for rad in prov:
+        namn, tillagg, vantat = rad[:3]
+        k = rad[3] if len(rad) > 3 else nyckel
+        orig_k = T.PRODUKTER[k]["html"]
+        T.PRODUKTER[k]["html"] = orig_k + tillagg
+        traff = [f for f in granska(k, T.PRODUKTER[k]) if vantat in f]
+        T.PRODUKTER[k]["html"] = orig_k
         print("  %-16s %s" % (namn, "fälls ✓" if traff else "SLÄPPS IGENOM ✗"))
         ok = ok and bool(traff)
 
@@ -311,7 +364,9 @@ def sjalvtest():
             ("a999f2b1", "nekat utomhus", "UTOMHUS"),
             ("a999f2b1", "plast, inte papper", "NATURVÄV"),
             ("d72bde5e", "grupp B ren", "LÖFTE"),
-            ("309076e2", "grupp C ren", "LÖFTE")):
+            ("309076e2", "grupp C ren", "LÖFTE"),
+            ("f8fd1b62", "grupp C utan trä", "TRÄ PÅ EN BAMBU"),
+            ("309076e2", "grupp C utan trä", "TRÄ PÅ EN BAMBU")):
         traff = [f for f in granska(kontroll_nyckel, T.PRODUKTER[kontroll_nyckel])
                  if vantat in f]
         print("  %-20s %s" % (etikett, "släpps ✓" if not traff

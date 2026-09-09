@@ -44,10 +44,12 @@ STIL = {
               "bambuväv på tallram"),
  "316f9945": ("brun och svart", "svart", "bambuväv på svart tallram",
               "bambuväv på tallram"),
- "f8fd1b62": ("naturfärgad",  "bambu",   "flätad bambu",
-              "flätad bambu, gångjärn i metall"),
- "309076e2": ("naturfärgad",  "bambu",   "flätad bambu",
-              "flätad bambu, gångjärn i metall"),
+ "f8fd1b62": ("naturfärgad",  "bambu",   "flätad bambu", "flätad bambu"),
+ # ☠️ INTE "flätad bambu, gångjärn i metall". Gångjärnsmaterialet har en EGEN
+ # spec-rad; att bära det i Material-raden också gav samma uppgift två gånger
+ # i samma tabell. Grinden fäller nu ett spec-VÄRDE som innehåller en annan
+ # spec-RADS etikett.
+ "309076e2": ("naturfärgad",  "bambu",   "flätad bambu", "flätad bambu"),
 }
 
 # Runda 108:s två fyrpanelssidor, LIVE sedan 2026-09-08. Samma väv och samma
@@ -98,12 +100,22 @@ STADIGT = (
         "fristående vikskärm, och det avgör var den kan stå.")
 )
 
-FRISTAENDE = P(
-    "Fötterna vilar på golvet utan att skruvas fast. Det finns ingen "
-    "väggförankring, och därför hör skärmen hemma där den får stå ifred — "
-    "utmed en vägg, runt ett hörn av rummet, bakom en soffa. Den är en "
-    "avskärmning, inte en barriär, och ska inte användas för att stänga inne "
-    "barn eller djur.")
+def fristaende(fot):
+    """☠️ FOTHÖJDEN LIGGER I SAMMA MENING, inte i en egen mening före.
+
+    Första utkastet hade en separat `fotrad` med "Fötterna är 6,5 cm höga och
+    vilar på golvet utan att skruvas fast." följt av det här blockets
+    "Fötterna vilar på golvet utan att skruvas fast." — samma sats ordagrant
+    två meningar i rad. Ingen faktagrind kunde se det: båda meningarna är
+    sanna. Grinden har nu ett eget upprepningstest, för klassen återkommer
+    så fort ett block är valfritt och nästa block upprepar dess innehåll.
+    """
+    inled = (f"Fötterna är {fot} cm höga och vilar på golvet utan att skruvas "
+             "fast." if fot else "Fötterna vilar på golvet utan att skruvas fast.")
+    return P(inled + " Det finns ingen väggförankring, och därför hör skärmen "
+             "hemma där den får stå ifred — utmed en vägg, runt ett hörn av "
+             "rummet, bakom en soffa. Den är en avskärmning, inte en barriär, "
+             "och ska inte användas för att stänga inne barn eller djur.")
 
 # ── Grupp A: polypropenväv på tallram ────────────────────────────────────────
 VAV_A = (
@@ -155,9 +167,13 @@ VAV_B = {
         "spjälor, gräddvita band som löper i lodräta stråk och kopparbruna "
         "trådar som binder ihop dem. På avstånd smälter de tre till en mörk, "
         "varm yta med struktur i.")
-    + P("Fötterna är fyrkantiga och lyfter panelerna 5,5 cm från golvet, så att "
-        "skärmen står stabilt och underkanten inte skaver mot golvet när den "
-        "flyttas.")
+    # ☠️ INGET MÅTT HÄR. Fothöjden står redan i friståenderaden ovanför; att
+    #    upprepa den här gav "5,5 cm" två gånger inom fyra stycken. Inte samma
+    #    MENING, alltså osynlig för upprepningsgrinden — en redaktionell miss,
+    #    och den ska stå som en sådan och inte som en grind som hade fällt
+    #    varje legitim upprepning mellan brödtext, spec-tabell och FAQ.
+    + P("Fötterna är dessutom fyrkantiga och inte runda, vilket ger skärmen ett "
+        "bredare stöd nedtill.")
     + P("Tätheten räcker för att bryta blicken rakt framifrån. Den räcker inte "
         "för att mörklägga: i motljus anas ljuset mellan spjälorna.")),
 }
@@ -207,7 +223,11 @@ SKOTSEL = {"A": SKOTSEL_A, "B": SKOTSEL_B, "C": SKOTSEL_C}
 GANGJARN = {
  "a999f2b1": ("nio metallgångjärn, tre per skarv", "nio i metall, tre per skarv"),
  "c35f9d4f": ("nio metallgångjärn, tre per skarv", "nio i metall, tre per skarv"),
- "d72bde5e": ("gångjärn som viker åt båda hållen", "gångjärn"),
+ # ☠️ None = ingen spec-rad. Leverantören skriver bara "Durch Scharniere
+ # verbunden" — inget material, inget antal — och raden blev därför
+ # "Gångjärn: gångjärn". En spec-rad som upprepar sin egen etikett säger
+ # ingenting och ser ut som ett fel i en genererad text, vilket den är.
+ "d72bde5e": ("gångjärn som viker åt båda hållen", None),
  "316f9945": ("metallgångjärn som viker åt båda hållen", "metall"),
  "f8fd1b62": ("metallgångjärn som viker åt båda hållen", "metall"),
  "309076e2": ("metallgångjärn som viker åt båda hållen", "metall"),
@@ -259,6 +279,21 @@ FAQ_MATERIAL = {
        "Bambu, både i väven och i ramen. Flätningen går på båda sidor, så "
        "skärmen ser likadan ut framifrån och bakifrån. Gångjärnen är i metall."),
 }
+# ☠️ "Träet är obehandlat" är SANT för A och B (tallram) och FALSKT för C,
+# som leverantören listar som `Bambus, Metall` — ingen tall alls. Frasen låg i
+# ett DELAT FAQ-svar och var därför osynlig: den lästes rätt fyra gånger av
+# sex. Grinden har ett eget mönster för grupp C.
+FAQ_UTE = {
+ "A": ("Kan den stå ute?",
+       "Nej. Träet är obehandlat och skärmen är inte gjord för väder och sol "
+       "över tid. På en inglasad balkong fungerar den, i regn inte."),
+ "B": ("Kan den stå ute?",
+       "Nej. Träet är obehandlat och skärmen är inte gjord för väder och sol "
+       "över tid. På en inglasad balkong fungerar den, i regn inte."),
+ "C": ("Kan den stå ute?",
+       "Nej. Bambun är obehandlad och skärmen är inte gjord för väder och sol "
+       "över tid. På en inglasad balkong fungerar den, i regn inte."),
+}
 FAQ_TVATT = {
  "A": ("Går den att tvätta?",
        "Torka av med fuktig trasa och torka efter. Polypropen tål vatten, men "
@@ -282,8 +317,6 @@ def bygg(nyckel):
     panelord = ORD[pan]
     lankar = syskon(nyckel)
 
-    fotrad = (P(f"Fötterna är {fot} cm höga och vilar på golvet utan att skruvas "
-                "fast.") if fot else "")
     ocksa = P("Finns också som " + foga([L(s, t) for t, s in lankar]) + ".")
     if g == "A":
         ocksa += P("Samma polypropenväv på tallram finns också i en lägre serie, "
@@ -292,8 +325,9 @@ def bygg(nyckel):
     spec = [("Mått utfälld", f"{bredd} × {djup} × {hojd} cm (B × D × H)"),
             ("Mått hopfälld", f"{pb} × {hopf} × {hojd} cm"),
             ("Panel", f"{pb} × {djup} × {hojd} cm"),
-            ("Antal paneler", str(pan)),
-            ("Gångjärn", gj_spec)]
+            ("Antal paneler", str(pan))]
+    if gj_spec:
+        spec.append(("Gångjärn", gj_spec))
     if fot:
         spec.append(("Fothöjd", f"{fot} cm"))
     spec += [("Material", matspec), ("Färg", farg), ("Vikt", vikt),
@@ -323,7 +357,7 @@ def bygg(nyckel):
                 "skilja en arbetsplats från en soffa eller dölja en säng i ett "
                 "enrumsboende.")
             + P(OVANKANT[g].format(h=hojd))
-            + STADIGT + fotrad + FRISTAENDE
+            + STADIGT + fristaende(fot)
             + VAV_BLOCK[g](nyckel)
             + P(f"Skärmen väger {vikt} och fälls ihop till {pb} × {hopf} × {hojd} cm. "
                 f"Skarvarna hålls av {gj_text}, så att sicksacken kan gå i vilken "
@@ -343,9 +377,7 @@ def bygg(nyckel):
             + F("Behöver den monteras?",
                 "Nej. Den kommer hopfälld och färdig — du viker ut den och ställer "
                 "den på plats.")
-            + F("Kan den stå ute?",
-                "Nej. Träet är obehandlat och skärmen är inte gjord för väder och "
-                "sol över tid. På en inglasad balkong fungerar den, i regn inte.")
+            + F(*FAQ_UTE[g])
             + F("Hur mycket plats tar den hopfälld?",
                 f"{pb} × {hopf} × {hojd} cm — en smal packe som ryms bakom en dörr "
                 "eller under en säng.")
