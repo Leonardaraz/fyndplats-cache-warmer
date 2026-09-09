@@ -84,3 +84,81 @@ rundor och behöver var sin egen Steg 2.
 240×170 cm – vit skärmvägg i vävt pappersrep"* (1 049 kr), är INTE samma
 modell: 240 × **1,5** × 170, hopfälld 39,5 × 12 × 170, och materialet är vävt
 pappersrep på furu och bambu. Nära, men mätbart en annan vara.
+
+## ✅ Ommappningsfallet är BEVISAT — `d4118d39` är en AliExpress-import
+
+Mappningsläsningen avgör frågan:
+
+```
+supplierProductId:  1005008518824783        ← AE-listnings-id, inte "aosom:…"
+bilder:             ae-pic-a1.aliexpress-media.com … ae01.alicdn.com
+shipsFromCountries: ["ES"]                  ← "byaosom ES (EU) Store"
+prisgrinden:        EJ AVGÖRBAR — raden är inte en Aosom-import
+```
+
+Det är ordagrant Leonards fall (regeln 2026-09-03): **samma fysiska vara som
+både en AE-inköpt sida och en feed-importerad.** Sidan vi behåller pekas om
+till Aosoms artikelnummer, den andra pensioneras.
+
+☠️ **Men det är TVÅ feed-utkast mot EN publicerad sida, och det är inte en
+detalj.** AE-listningen buntar vit och svart på samma sida — kontaktarket visar
+det: `d4118d39`:s bild 1 är SVART, bild 2 är VIT. Aosom säljer dem som två
+artikelnummer. Ommappningen tar ETT artikelnummer per produkt
+(`lib/aosom/remap.ts` vägrar en flervariantssida), så en ommappning tvingar
+fram ett val av färg.
+
+Det är samtidigt lösningen på "vit eller svart"-defekten: en sida som pekar på
+ett artikelnummer kan bara skeppa den färgen, och då blir texten sann.
+
+**Förslaget, för Leonards ja:** mappa om `d4118d39` till EN av färgerna, döp om
+sidan efter den, och behåll den ANDRA färgens utkast som en egen sida — då är
+det inte längre en dubblett utan ett färgsyskon. Priset rörs inte.
+
+⚠️ Prisgrinden på `d4118d39` säger `landedCostSek 1161,93 → förväntat 1399,
+faktiskt 1529`. Den är EJ AVGÖRBAR eftersom raden är AE, inte Aosom — det
+bevisar ingen drift. Men den som mappar om raden flyttar den in i Aosom-synkens
+räckvidd, och då börjar priset räknas om. Värt att veta innan bytet.
+
+## Steg 4 — kontaktarket
+
+Alla sex har identisk galleristruktur: 1 studiobild, 2 miljöbild, 3 måttritning,
+4 närbild på väven, 5 närbild på foten. **Måttritningen ligger på plats 3 på
+alla sex** och flyttas sist, som runbooken säger.
+
+| kontroll | utfall |
+|---|---|
+| Färgen i spec stämmer mot fotot | ✅ alla sex |
+| Tysk text i pixlarna | ✅ ingen — ritningarna bär bara `170cm`, `40cm`, `160/240/320cm` |
+| Leverantörens logotyp i pixlarna | ✅ ingen |
+| Måttritningen språkneutral | ✅ bara siffror |
+
+⚠️ **`6649471e` och `64c0809d` delar miljöscen** — samma svarta lampa, samma
+puff, samma pläd över kanten. De är olika foton av olika produkter i samma rum,
+inte samma fil, så det är inte den dubblett Google straffar. Noterat, inte
+åtgärdat: att slänga en bra miljöbild för att scenen återkommer vore att göra
+sidan sämre av en regel som finns för att skydda den.
+
+⚠️ **Detaljbilderna 4 och 5 återkommer inom varje färg** — vit 4-panel och vit
+8-panel har samma närbild på väven och på foten. Samma sak för natur och brun.
+Väven ÄR identisk mellan storlekarna, så bilden är sann för båda.
+
+## Steg 5 — två fel i importens svenska spec-block, i alla sex
+
+1. ☠️ **`Material: Kiefernholz`** — polypropenet har fallit bort. Tyskan säger
+   `Materialien: Polypropylen, Kiefernholz`. Väven är det man ser och det man
+   köper; att skriva bara tall beskriver ramen och kallar det varan.
+2. ☠️ **`Mått: 320L x 1,6B x 170H`** — importen döpte om tyskans `B`(reite)
+   till `L` och `T`(iefe) till `B`. Talet 1,6 cm är DJUPET på en panel, inte en
+   bredd. Måttet skrivs `320 × 1,6 × 170 cm (B × D × H)`.
+
+Inget av felen är poleringens; båda kommer från `to-product.ts`. De rättas i
+texten, och att de finns i alla sex är skälet att skriva dem här.
+
+## ☠️ En UA-lärdom: samma bildadress ger 200 via curl och 400 via urllib
+
+Bildhämtningen föll på `HTTP Error 400`. Alla 34 adresserna svarade `200` när
+de kontrollerades med `curl` — felet var att `urllib` skickar
+`User-Agent: Python-urllib/3.11`, och wixstatic avvisar den.
+
+Det ser ut som en trasig bildlänk och är en avvisad klient. `grindar.hamta_isr`
+sätter redan en UA av samma skäl; bildhämtaren gjorde det inte. Nu gör den det.
