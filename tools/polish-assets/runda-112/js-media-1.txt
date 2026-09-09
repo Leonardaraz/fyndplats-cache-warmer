@@ -1,0 +1,28 @@
+async function() {
+  const P = [{"k": "1b87909f", "id": "1b87909f-5e53-4ec8-8218-27ecaae9f5b4", "items": [{"id": "b379ce_63d5bb13abaa468eaf387c325a4a3a6e~mv2.jpg", "altText": "Projektorduk spänd i en svart ram som bärs upp av två stativ, sedd rakt framifrån"}, {"id": "b379ce_254d0075388741198a858a400f86862b~mv2.jpg", "altText": "Duken uppställd på en gräsmatta en kväll, med en fotbollsmatch projicerad på den"}, {"id": "b379ce_bf21946c975247539502c996f6e64010~mv2.jpg", "altText": "Faktakort: projektorduk 263 × 148 cm i 16:9, ramöppning 275 × 159 cm, 4 kg"}, {"id": "b379ce_09621a0243154794a7fbdb8a6cdc1331~mv2.jpg", "altText": "Duken uppställd på en takterrass om kvällen med projektorn på bordet framför"}, {"id": "b379ce_8fd42aabf24f4357aa512e9c55216f75~mv2.jpg", "altText": "Måttritning: duk 263 × 148 cm, 120 tum, uppställd 309 cm bred och 217 cm hög"}]}, {"k": "422ab1bd", "id": "422ab1bd-fb44-4856-8c7e-e4562ae8f97e", "items": [{"id": "b379ce_e8664fef306142a3a735330d24e9aeb7~mv2.jpg", "altText": "Motoriserad projektorduk i vit kassett med kvadratisk duk, väggpanel och fjärrkontroll"}, {"id": "b379ce_80263a7edc0342ffa7e4ed7b35f894db~mv2.jpg", "altText": "Duken nedkörd på en mörk vägg i ett vardagsrum medan två personer ser på från soffan"}, {"id": "b379ce_9d2eab4e13aa4cc5b46616a14eb8d2d3~mv2.jpg", "altText": "Faktakort: motoriserad projektorduk 165 × 165 cm i 1:1, bildyta 162 × 162 cm, 8,5 kg"}, {"id": "b379ce_46ee670413d3479c988598ce759a7168~mv2.jpg", "altText": "Duken nedkörd över en mediabänk med ett vinterlandskap projicerat"}, {"id": "b379ce_10286c6cd73a49f0b94d21a99e8f8c45~mv2.jpg", "altText": "Duken nedkörd i ett mötesrum med diagram projicerade och projektorn på bordet"}, {"id": "b379ce_dd0d9fda9ff84194a36169e7771ff022~mv2.jpg", "altText": "Måttritning: kassett 189,5 cm bred, duk 92 tum, bildyta 162 × 162 cm"}]}, {"k": "a8c82049", "id": "a8c82049-04b2-47a8-87a0-35174c553654", "items": [{"id": "b379ce_c91c9790829f4d498e6ad9fabcd4c849~mv2.jpg", "altText": "Motoriserad projektorduk i vit kassett med kvadratisk duk, väggpanel och fjärrkontroll"}, {"id": "b379ce_3442c02a8c43445ead84d896c7155a17~mv2.jpg", "altText": "Duken nedkörd på en mörk vägg i ett vardagsrum medan två personer ser på från soffan"}, {"id": "b379ce_1c56905a993d451a8ae368aa4f0c79be~mv2.jpg", "altText": "Faktakort: motoriserad projektorduk 152 × 152 cm i 1:1, bildyta 149 × 149 cm, 8 kg"}, {"id": "b379ce_c05094f82310440c82ffec1ee326d239~mv2.jpg", "altText": "Duken nedkörd i ett vardagsrum med en surfare projicerad och soffa framför"}, {"id": "b379ce_9507dc5bfb6241f3a3dfaa8f5f415dbc~mv2.jpg", "altText": "Duken nedkörd över en mediabänk med ett vinterlandskap projicerat"}, {"id": "b379ce_bdf84f1e84d24f578358816046e21f14~mv2.jpg", "altText": "Måttritning: kassett 176,5 cm bred, duk 85 tum, bildyta 149 × 149 cm"}]}];
+  const ut = [];
+  for (const p of P) {
+    const g0 = await wix.request({ scope: "site", method: "GET",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}` });
+    const gp = (g0.data && g0.data.product) || g0.product || g0;
+    await wix.request({ scope: "site", method: "PATCH",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}`,
+      body: { product: { id: p.id, revision: gp.revision, visible: gp.visible,
+        media: { itemsInfo: { items: p.items } } } } });
+    const r = await wix.request({ scope: "site", method: "GET",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
+    const q = (r.data && r.data.product) || r.product || r;
+    const it = (((q.media || {}).itemsInfo || {}).items) || [];
+    const ordning = it.map(x => x.id).join("|") === p.items.map(x => x.id).join("|");
+    const alt = it.every((x, n) => x.altText === p.items[n].altText);
+    const utanAlt = it.filter(x => !x.altText).length;
+    ut.push([p.k,
+      it.length === p.items.length ? `${it.length} bilder ok` : `ANTAL ${it.length} != ${p.items.length}`,
+      ordning ? "ordning ok" : "ORDNING FEL",
+      alt ? "alt ok" : "ALT FEL",
+      utanAlt === 0 ? "inga tomma alt" : `${utanAlt} UTAN ALT`,
+      q.visible === false ? "utkast ok" : `PUBLICERAD: ${q.visible}`,
+    ].join(" | "));
+  }
+  return ut;
+}

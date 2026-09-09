@@ -1,0 +1,28 @@
+async function() {
+  const P = [{"k": "ddca577d", "id": "ddca577d-d0c0-4112-87d8-31fa9a2530a1", "items": [{"id": "b379ce_022c67b758874df890d233a7e197d4cd~mv2.jpg", "altText": "Manuell projektorduk i svart kassett med draghandtag i nederkant, sedd rakt framifrån"}, {"id": "b379ce_7b786c024f5a41e1830b678b3865293d~mv2.jpg", "altText": "Duken nedkörd i ett vardagsrum med indirekt ljus bakom och två personer framför"}, {"id": "b379ce_9b9b173c96384066a3f6d93a8c08a034~mv2.jpg", "altText": "Faktakort: manuell projektorduk 171 × 128 cm i 4:3, bildyta 165 × 124 cm, 7,5 kg"}, {"id": "b379ce_1286ae60f1334f7aad000f233f47f2a0~mv2.jpg", "altText": "Duken nedkörd i ett mötesrum med diagram projicerade och två personer vid bordet"}, {"id": "b379ce_8222dda6205744388dd41bfeca38c419~mv2.jpg", "altText": "Måttritning: kassett 181 cm bred, duk 84 tum, bildyta 165 × 124 cm"}]}, {"k": "77d2b35c", "id": "77d2b35c-46d2-45e5-8ef4-a5504a2d6ad5", "items": [{"id": "b379ce_915a2b65ec174d8ebe6db2538be0e994~mv2.jpg", "altText": "Manuell projektorduk i svart kassett med kvadratisk duk och draghandtag i nederkant"}, {"id": "b379ce_0b51f00d15804b60854a5fdc0b11f8ac~mv2.jpg", "altText": "Duken nedkörd i ett vardagsrum med indirekt ljus bakom och två personer framför"}, {"id": "b379ce_eaca2a111a4d41ad8138edc4c8ad2cf0~mv2.jpg", "altText": "Faktakort: manuell projektorduk 178 × 178 cm i 1:1, bildyta 172 × 172 cm, 8 kg"}, {"id": "b379ce_cbb45fa0378449e686f4621442851036~mv2.jpg", "altText": "Duken nedkörd i ett mötesrum med diagram projicerade och två personer vid bordet"}, {"id": "b379ce_28e9420f3e2c4e9ea1bc1c04315be9f9~mv2.jpg", "altText": "Närbild på den svarta kassettens gavel och väggfästet"}, {"id": "b379ce_26f714a277c34fa89e2d21e0ad9692f7~mv2.jpg", "altText": "Måttritning: kassett 189 cm bred, duk 99 tum, bildyta 172 × 172 cm"}]}, {"k": "0370673c", "id": "0370673c-1d60-492c-b88c-83fc2ac1a85e", "items": [{"id": "b379ce_3e393edb6c4b44bbab303a13d25c76f2~mv2.jpg", "altText": "Projektorduk på trebent stativ med svart hölje, uppfälld och sedd rakt framifrån"}, {"id": "b379ce_e7127e1f08554af1a3283abdf07facae~mv2.jpg", "altText": "Stativduken uppställd i ett vardagsrum med projektorn på bordet framför"}, {"id": "b379ce_fa368d85e58d42ada7c4873d517c3206~mv2.jpg", "altText": "Faktakort: projektorduk på stativ 171 × 131 cm i 4:3, bildyta 165 × 125 cm, svart"}, {"id": "b379ce_c64c3b4758cb4928a1d5abb2a286046b~mv2.jpg", "altText": "Stativduken uppställd i ett mötesrum med diagram projicerade och två personer vid bordet"}, {"id": "b379ce_0b9599fef1b041d6bc28380b3d3a0adc~mv2.jpg", "altText": "Stativduken uppställd på en gräsmatta i skymningen med en ljusslinga över"}, {"id": "b379ce_18f26b5ddebb484d9fd58b794da9d600~mv2.jpg", "altText": "Måttritning: hölje 180 cm brett, duk 84 tum, bildyta 165 × 125 cm"}]}];
+  const ut = [];
+  for (const p of P) {
+    const g0 = await wix.request({ scope: "site", method: "GET",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}` });
+    const gp = (g0.data && g0.data.product) || g0.product || g0;
+    await wix.request({ scope: "site", method: "PATCH",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}`,
+      body: { product: { id: p.id, revision: gp.revision, visible: gp.visible,
+        media: { itemsInfo: { items: p.items } } } } });
+    const r = await wix.request({ scope: "site", method: "GET",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=MEDIA_ITEMS_INFO` });
+    const q = (r.data && r.data.product) || r.product || r;
+    const it = (((q.media || {}).itemsInfo || {}).items) || [];
+    const ordning = it.map(x => x.id).join("|") === p.items.map(x => x.id).join("|");
+    const alt = it.every((x, n) => x.altText === p.items[n].altText);
+    const utanAlt = it.filter(x => !x.altText).length;
+    ut.push([p.k,
+      it.length === p.items.length ? `${it.length} bilder ok` : `ANTAL ${it.length} != ${p.items.length}`,
+      ordning ? "ordning ok" : "ORDNING FEL",
+      alt ? "alt ok" : "ALT FEL",
+      utanAlt === 0 ? "inga tomma alt" : `${utanAlt} UTAN ALT`,
+      q.visible === false ? "utkast ok" : `PUBLICERAD: ${q.visible}`,
+    ].join(" | "));
+  }
+  return ut;
+}
