@@ -165,3 +165,126 @@ utkast, och Steg 8 är just en sådan — därför läses fältet både före oc
 
 Slugar: `smadjursstall-230-natur`, `-230-gra`, `-141-natur`, `-156-gra`,
 `-156-natur`, `-123-natur`, `-123-gra`.
+
+## Steg 8 — SKU:erna var TYSKA, och tre av dem dubbletter
+
+Sju sidor, sju gamla SKU:er — men bara **fyra unika strängar**:
+
+| gammal SKU | satt på |
+|---|---|
+| `FP-kleintierstall-mit` | `a75fcfde`, `2253c509` |
+| `FP-hasenstall-2-etagen` | `c0770388`, `525e6acf`, `079f2901` |
+| `FP-kaninchenstall-aus` | `2435c4d1` |
+| `FP-kleintierstall` | `dcdf889d` |
+
+Det är exakt defekten runbookens Steg 8 beskriver: syskon vars RÅA slugg börjar
+likadant kapas till samma 24 tecken, och dedup-suffixet räknas bara inom EN
+produkt. Två av strängarna satt alltså på flera produkter samtidigt.
+
+De nya räknades ur husregeln — inte ur minnet — och sluggen bär redan det som
+skiljer, så den mekaniska kapningen ger sju distinkta utan handpåläggning:
+
+```
+smadjursstall-230-natur (23)  ->  FP-smadjursstall-230-natur (26)
+smadjursstall-230-gra   (21)  ->  FP-smadjursstall-230-gra   (24)
+… sju av sju, alla ≤ 24 respektive ≤ 40 tecken
+```
+
+Kontrollerat mot HELA katalogen, inte bara batchen: 5 580 produkter lästa,
+`avhuggen: false`, fjorton sluggar börjar på `smadjur` och sju av dem är
+rundans egna. Ingen publicerad sida börjar på `smadjursstall-`.
+
+Alla sju står kvar som `visible: false` efter PATCH:en, och varianten fick
+`visible: true` explicit — produktens `false` speglas annars ned och varan går
+inte att lägga i varukorgen.
+
+## Steg 9 — galleriet: fyra bilder bort, sju egna kort in
+
+Ordningen är runbookens: 1 hjälte, 2 verklighet, 3 vårt kort, sedan detaljer,
+**måttritningen sist**. Den låg på plats 3 på alla sju.
+
+☠️ **En fjärde bild togs bort, och den var inte planerad.** `079f2901`:s
+måttritning säger emot sin egen produkt:
+
+| | ritningen på `079f2901` | ritningen på syskonet `525e6acf` | spec-texten |
+|---|---|---|---|
+| bredd | **122 cm** | 123,5 cm | 123,5 cm |
+| djup | **53 cm** | 61 cm kropp / 62,6 vid taket | 62,6 cm |
+| höjd | **92 cm** | 92,5 cm | 92,5 cm |
+| under huset | **48,5 cm** | 54,5 cm | 54,5 cm |
+
+Djupet och löpgårdens bredd är dessutom OMKASTADE mellan de två ritningarna —
+53 och 61 byter plats. Avgörandet står i leverantörens EGEN tyska titel för
+just den artikeln: *"Hasenstall 2 Etagen Kaninchenstall aus Holz
+**123,5x62,6x92,5 cm**"*. Texten gäller, ritningen är fel, och en kund som
+mäter sin balkong mot 53 cm får en vara som är 62,6. Kortet bär måtten i
+stället — sidan är den enda i rundan utan måttritning, med flit.
+
+De tre andra borttagningarna står i Steg 4-avsnittet ovan och gjordes som
+planerat.
+
+### Korten
+
+Rubriken per modell valdes mot hjältebilden i ett kontaktark, och **två fick
+bytas efter granskningen** — se `kort.py`. Kort sagt: R:s ramp finns men syns
+edge-on som en tunn stång, och S:s bottenlöshet är en FRÅNVARO, det svåraste
+ett foto kan bevisa. Båda modellerna fick i stället en kortrad som bär sitt
+eget löfte.
+
+Fyllnaden är mätt, inte vald. Vid husets normala 0,90 sprängde **alla sju**
+215 kB-taket:
+
+| kort | vid 0,90 | över taket | landade på |
+|---|---:|---:|---:|
+| `dcdf889d` | 328 485 | +113 485 | 0,50 |
+| `525e6acf` | 294 419 | +79 419 | 0,50 |
+| `2253c509` | 291 743 | +76 743 | 0,50 |
+| `2435c4d1` | 262 470 | +47 470 | 0,60 |
+| `c0770388` | 249 311 | +34 311 | 0,70 |
+| `a75fcfde` | 233 552 | +18 552 | 0,70 |
+| `079f2901` | 224 475 | +9 475 | 0,70 |
+
+Galvat nät i studioljus komprimeras inte, precis som runda 106 mätte.
+
+⚠️ **`525e6acf` och `079f2901` gav IDENTISK filstorlek vid 0,90 och 0,80.**
+Modell S är högre än panelen, så `bygg-panelfoton` går in i höjd-grenen och
+fyllnaden biter först under 0,80. Ett sökspann som stannat vid 0,80 hade
+rapporterat "fyllnaden hjälper inte".
+
+### Alt-texterna fick sin första grind
+
+`alt.py` kör rundans EGNA listor — samma `grindar`-listor som `grind.py`, inte
+omskrivna. Den hittade två saker i sitt eget självtest:
+
+1. ☠️ **`auslauf` saknades i den tyska listan.** `auslaufbox` fanns, och
+   matchningen går på PREFIX — så det längre ordet fångar aldrig det kortare.
+   Familjens vanligaste tyska ord. Nu i `TYSKA_HAR`, alltså i BÅDA grindarna.
+2. **Sju närbilder saknade sökordet.** Texterna skrevs om ("Närbild på stallets
+   takkant…"), regeln mjukades inte upp.
+
+Kvittot är en EGEN GET per produkt — PATCH-svaret bär inte `media.itemsInfo`
+— och den jämför antal, FILORDNING och varje alt-text:
+
+```
+a75fcfde | 6 bilder ok | ordning ok | alt ok | utkast ok
+c0770388 | 6 bilder ok | ordning ok | alt ok | utkast ok
+2253c509 | 5 bilder ok | ordning ok | alt ok | utkast ok
+2435c4d1 | 6 bilder ok | ordning ok | alt ok | utkast ok
+dcdf889d | 5 bilder ok | ordning ok | alt ok | utkast ok
+525e6acf | 5 bilder ok | ordning ok | alt ok | utkast ok
+079f2901 | 5 bilder ok | ordning ok | alt ok | utkast ok
+```
+
+☠️ **Omflyttningen uttrycks i ORIGINALPOSITIONER, så den kontrollerar sin egen
+premiss.** Skriptet skickar med de fem filnamn Steg 4 hämtade och avbryter
+produkten om Wix galleri ser annorlunda ut. Utan den kontrollen hade en
+ändring gjord av den andra sessionen tyst satt fel alt-text på fel bild.
+
+Korten är dessutom md5-jämförda mot sina egna filer efter uppladdningen — sju
+av sju identiska — så attributionen vilar inte på ordningen i
+`UploadImageToWixSite`-svaret.
+
+⚠️ **Leverantörens miljöbild visar kaniner på fem av de sju sidorna**, som i
+runda 106. Bilderna ligger kvar och alt-texterna nämner dem inte; frågan om de
+ska bort är Leonards och ligger i uppgift #382 för hela familjen, inte bara
+runda 106. Sekvenseringen är hans: polera färdigt först.
