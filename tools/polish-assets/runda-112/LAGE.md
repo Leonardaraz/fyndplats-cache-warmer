@@ -136,4 +136,70 @@ Utöver runda 111:s kontroller prövar den rundans egen signatur: BÅDA måtten 
 duken och den synliga bildytan — plus tumtalet måste stå ordagrant på varje
 sida, och skiljer de sig åt ska raden `Synlig bildyta` finnas.
 
-**Verdiktet fylls i här när körningen är klar.**
+### ☠️ Första körningen: 0 av 9 gröna — och alla nio var FALSKLARM
+
+Träffen var `1080w` i Wix EGEN `srcset`:
+
+```
+…/v1/fill/w_1080,h_1080,al_c,q_72/file.webp 1080w, …
+```
+
+Alltså bildens bredd i pixlar, inte ett påstående om duken. `UPPLOSNING`s
+`\b1080p?\b` skiljer inte på de två. Ett larm som fyrar på varje korrekt sida
+lär mottagaren att sluta läsa — samma regel som mot ett rött synk-jobb vid
+varje svep.
+
+Bildadresserna stryks därför före löftesgrindarna och den förbjudna ordlistan;
+`trasig relativ länk` läser fortfarande hela `rensad`, eftersom `https:/produkt`
+med EN snedstreck överlever strykningen. Alt-texterna är attributvärden och
+står kvar.
+
+⚠️ Uppmjukningen prövas ÅT BÅDA HÅLLEN — utan det hade fixen kunnat vara
+`return []` och sett lika grön ut:
+
+| fall | ska |
+|---|---|
+| `1080p och 4K` i egen brödtext | **fälla** |
+| `1080w` i Wix srcset | släppa igenom |
+| materialordet i egen text | **fälla** |
+| materialordet hos grannen | släppa igenom |
+
+⚠️ **Öppen fråga för mallen:** varje live-grind som söker rena TAL i hela
+HTML:en har samma hål. Bildadresserna bär `w_1080`, `h_2000`, `q_85` och fil-id
+fulla av siffror. URL-strykningen hör hemma i mallen, inte bara i den här
+rundan.
+
+### ✅ Andra körningen: 9 av 9 gröna
+
+```
+självtest: 4 fall, 0 fel
+
+OK  projektorduk-120-tum-stativ         154 748 tecken   cache=HIT age=20
+OK  projektorduk-92-tum-motor           157 598
+OK  projektorduk-85-tum-motor           157 560
+OK  projektorduk-84-tum-manuell         154 714
+OK  projektorduk-99-tum-manuell         158 002
+OK  projektorduk-84-tum-stativ-svart    159 929
+OK  projektorduk-84-tum-stativ-vit      158 460
+OK  projektorduk-84-tum-motor-svart     155 197
+OK  projektorduk-84-tum-motor-vit       144 288
+
+9 av 9 sidor gröna
+```
+
+Varje sida bär hjältebilden, vårt eget kort, alla tre flikarna, sitt eget
+materialord, BÅDA måtten och tumtalet — och noll tyska ord, noll husmärken,
+noll artikelnummer, noll leverantörsattribution, noll intern jargong.
+
+## Klart
+
+| steg | utfall |
+|---|---|
+| 7 text | 9/9 — LEN, HASH, namn, slug, titel, meta, pris orört |
+| 8 SKU | 9/9 — strängen läst tillbaka, inte förekomsten |
+| 9 bilder | 9/9 — 48 alt-texter, nio kort, noll tomma alt |
+| 10 kategori | 9/9 — `totalSuccesses: 1` var, en kategori per anrop |
+| 13 publicering | 9/9 LIVE, variant synlig, klart-kriteriet kört FÖRE |
+| mappningsstämpel | 9/9 workflow-körningar `success` |
+| 14 live-grind | **9/9 gröna** |
+
