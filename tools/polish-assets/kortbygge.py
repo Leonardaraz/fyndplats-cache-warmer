@@ -18,7 +18,16 @@ Tre regler koden GARANTERAR, så de inte kan glömmas bort:
       och kortet skrev "Vikt: grå" — värdet ordagrant, påståendet nonsens.
       Kortets första ord måste finnas i radens egen etikett.
 
-☠️ 3. TAKET ÄR 215 kB VID q >= 85. Klarar kortet inte det ska FOTOT mjukas
+☠️ 3. KORTEN KOPIERAS TILL `kort/`, och koden gör det — inte handen.
+      `jpg/` är IGNORERAD i `tools/polish-assets/.gitignore`; `kort/` är den
+      spårade platsen. Runda 97 lärde sig det, runda 100 skrev copy-raden i SIN
+      `kort.py`, och runda 104, 105 och 106 ärvde en mall utan den. Runda 106
+      laddade därför upp sex kort från raw.githubusercontent-adresser som
+      svarade **404** — och Wix svarade `success: true, PENDING` på varenda en.
+      Ett steg som varje runda måste minnas glöms bort; ett steg i den DELADE
+      modulen kan inte glömmas.
+
+☠️ 4. TAKET ÄR 215 kB VID q >= 85. Klarar kortet inte det ska FOTOT mjukas
       upp, aldrig kortet — högfrekvent tygtextur är det som inte komprimeras.
       Bygget kastar hellre än sänker kvaliteten under 85.
 
@@ -26,6 +35,7 @@ Tre regler koden GARANTERAR, så de inte kan glömmas bort:
    måste väljas mot bild 1 med ögon, och kontrolleras på kontaktarket efteråt.
 """
 import os
+import shutil
 import sys
 
 from PIL import Image, ImageFilter
@@ -116,4 +126,11 @@ def bygg(har, produkter, kortdata, mjuka=None, foton=None):
         raise SystemExit("MJUKA UPP FOTOT på %d kort (aldrig kortet):\n" % len(forstora)
                          + "\n".join("  %-20s %7d byte vid q=85, %+d över taket"
                                      % (n, b, b - TAK_BYTE) for n, b in forstora))
+
+    # ☠️ Kopian till den SPÅRADE mappen, se regel 3. Utan den finns kortet bara
+    #    i `jpg/`, som är ignorerad — och uppladdningen hämtar då en 404.
+    mal = os.path.join(har, "kort")
+    os.makedirs(mal, exist_ok=True)
+    for n in namn:
+        shutil.copy2("jpg/%s.jpg" % n, os.path.join(mal, "%s.jpg" % n))
     return namn, facit
