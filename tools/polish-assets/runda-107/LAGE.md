@@ -143,3 +143,25 @@ Samma läsning fångade två fel till, båda i den räknade versionen:
   som avslutade föregående mening: *"…för en kanin, Kvar blir 0,38"*.
 
 Grinden fäller nu 14 mutationer, och alla sju texterna är gröna.
+
+## Steg 7 skrivet — sju texter, sju kvitton
+
+Fyra `ExecuteWixAPI`-anrop, vart och ett GET → PATCH → GET med längd- OCH
+hash-jämförelse mot `facit.json`:
+
+```
+a75fcfde | LEN ok | HASH ok | namn ok | slug ok | titel ok | meta ok | utkast ok
+c0770388 | LEN ok | HASH ok | namn ok | slug ok | titel ok | meta ok | utkast ok
+2253c509 | LEN ok | HASH ok | namn ok | slug ok | titel ok | meta ok | utkast ok
+2435c4d1 | LEN ok | HASH ok | namn ok | slug ok | titel ok | meta ok | utkast ok
+dcdf889d | LEN ok | HASH ok | namn ok | slug ok | titel ok | meta ok | utkast ok
+525e6acf | LEN ok | HASH ok | namn ok | slug ok | titel ok | meta ok | utkast ok
+079f2901 | LEN ok | HASH ok | namn ok | slug ok | titel ok | meta ok | utkast ok
+```
+
+`utkast ok` är kolumnen som betyder något här: alla sju står kvar på
+`visible: false` efter skrivningen. En `variantsInfo`-PATCH publicerar ett
+utkast, och Steg 8 är just en sådan — därför läses fältet både före och efter.
+
+Slugar: `smadjursstall-230-natur`, `-230-gra`, `-141-natur`, `-156-gra`,
+`-156-natur`, `-123-natur`, `-123-gra`.
