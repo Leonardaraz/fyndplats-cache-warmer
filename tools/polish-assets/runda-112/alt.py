@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 """Runda 112 Steg 9 — alt-texter för 48 bilder, med egen grind.
 
+☠️ RUNDANS EGNA FÖRBJUDNA ORD KÖRS MOT ALT-TEXTEN, och listorna IMPORTERAS
+   ur `grind.py` — de skrivs aldrig av. Runbookens Steg 9 säger det rakt ut:
+   alt-texten passerar ingen textgrind, så varje regel textgrinden vaktar är
+   oskyddad där, en nivå under där regeln letar. Runda 106 mätte upp vad det
+   kostar: sex sidor vars brödtext sa att hagen inte säljs som kaninbostad,
+   grinden grön på alla sex, och fem av dem hade "kaniner" i en alt-text.
+   Här gäller det mörkläggnings-, upplösnings- och vinkellöftena samt varje
+   produkts EGET materialord — en kopia av dem hade glidit isär på första
+   ändringen.
+
 ☠️ TALEN GRINDAS MOT SIDANS EGEN TEXT, inte mot en handskriven lista. Regeln
    är mekanisk och strängare än runda 111:s: ett tal får stå i alt-texten bara
    om det redan står i produktens FÄRDIGA HTML. Då kan en alt-text aldrig bli
@@ -32,6 +42,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import matt                                                       # noqa: E402
 import texter as T                                                # noqa: E402
 import bildplan                                                   # noqa: E402
+import grind                                                      # noqa: E402
 
 MAX = 125
 
@@ -143,6 +154,17 @@ def granska():
                 t = m.search(txt)
                 if t:
                     fel.append(f"{märke}: {namn} {t.group(0)!r}")
+            # ☠️ Rundans egna löftesgrindar, importerade ur grind.py.
+            for etikett, monster in (("MÖRKLÄGGNINGSLÖFTE", grind.MORKLAGGNING),
+                                     ("UPPLÖSNINGSLÖFTE", grind.UPPLOSNING),
+                                     ("VINKELLÖFTE", grind.VINKELLOFTE)) + grind.TONGRINDAR:
+                t = monster.search(txt)
+                if t:
+                    fel.append(f"{märke}: {etikett} {t.group(0)!r}")
+            if k in grind.FORBJUDET_ORD:
+                t = grind.FORBJUDET_ORD[k].search(txt)
+                if t:
+                    fel.append(f"{märke}: FEL MATERIAL {t.group(0)!r}")
             if not PRODUKTORD.search(txt):
                 fel.append(f"{märke}: namnger varken produkten eller bildtypen")
             for tal_ in re.findall(r"\d+(?:,\d+)?", txt):
@@ -171,6 +193,9 @@ SJALVTEST = [
     ("tal som inte står på sidan", "Projektorduk med 999 cm bred duk", True),
     ("för lång", "Projektorduk " + "x" * 130, True),
     ("utan produktord", "Fyra personer i en soffa en kväll", True),
+    ("upplösningslöfte", "Projektorduk för 4K och 8K i svart kassett", True),
+    ("mörkläggningslöfte", "Projektorduk som blockerar ljus, i svart kassett", True),
+    ("leverantörsattribution", "Projektorduk som leverantören anger som matt", True),
     ("korrekt rad", "Manuell projektorduk i svart kassett med draghandtag", False),
 ]
 
@@ -182,6 +207,9 @@ def _sjalvtest():
         traff = bool(len(txt) > MAX or TYSKT.search(txt) or HUSMARKE.search(txt)
                      or LAND.search(txt) or ARTNR.search(txt)
                      or not PRODUKTORD.search(txt)
+                     or grind.MORKLAGGNING.search(txt) or grind.UPPLOSNING.search(txt)
+                     or grind.VINKELLOFTE.search(txt)
+                     or any(m.search(txt) for _, m in grind.TONGRINDAR)
                      or any(t not in tillatna
                             for t in re.findall(r"\d+(?:,\d+)?", txt)))
         if traff != ska:
