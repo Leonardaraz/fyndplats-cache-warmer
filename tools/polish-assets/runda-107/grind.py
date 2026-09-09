@@ -55,6 +55,10 @@ TYSKA_HAR = [
     "hasenstall", "kaninchenstall", "kaninchenkäfig", "kaninchenkafig",
     "zwergkaninchen", "kleintierstall", "kleintierkäfig", "kleintierkafig",
     "freigehege", "bodenwanne", "meerschweinchen", "laufbox", "auslaufbox",
+    # ☠️ "auslauf" saknades och "auslaufbox" täcker den inte — grinden matchar
+    #    på PREFIX, så det längre ordet fångar aldrig det kortare. Familjens
+    #    vanligaste tyska ord, hittat av alt-grindens självtest.
+    "auslauf",
     "haupthaus", "hauptgehäuse", "tannenholz", "asphaltdach", "bitumendach",
     "abmessungen", "lieferumfang", "geeignet", "montage", "winterfest",
     "herausnehmbare", "aufklappbar", "futtertrog", "rampengröße", "gehege",

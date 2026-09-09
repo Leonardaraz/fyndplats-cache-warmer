@@ -69,3 +69,15 @@
 */rawbilder/
 */kontaktark-kort.jpg
 */kontroll-kort.jpg
+
+# Runda 107:s granskningsark — mellanled för att välja kortrubriker och avgöra
+# om leverantörens måttritning stämmer. Domen står i LAGE.md, och bilderna är
+# återskapbara ur `rawbilder/`. Samma skäl som `*/zoom-*.jpg`.
+*/granska-*.jpg
+*/hjaltar.jpg
+
+# Samma mellanlägg som `*/cards/` och `*/jpg/`, men i MODULENS egen katalog:
+# `kortbygge.bygg` skriver relativt cwd, och en runda som kör `python3 kort.py`
+# från `tools/polish-assets/` lägger dem här i stället för i rundans mapp.
+cards/
+jpg/
