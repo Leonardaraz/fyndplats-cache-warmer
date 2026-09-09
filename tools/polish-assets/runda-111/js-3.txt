@@ -1,0 +1,45 @@
+async function() {
+  const P = [{"k": "99040238", "id": "99040238-a522-40ef-b90d-94ea036316c8", "namn": "Rumsavdelare 253 × 182 cm – 3 paneler i svart polyester", "slug": "rumsavdelare-253-svart", "titel": "Rumsavdelare 253 cm i svart polyester", "meta": "Rumsavdelare 253 × 50 × 182 cm med tre paneler i svart polyester på metallstomme. Monteras med medföljande anvisning.", "sokord": [{"term": "rumsavdelare", "isMain": true}, {"term": "rumsavdelare 3 paneler", "isMain": false}, {"term": "skärmvägg", "isMain": false}, {"term": "svart rumsavdelare", "isMain": false}], "html": "<p>En <strong>rumsavdelare</strong> med tre paneler som mäter 253 × 50 × 182 cm utfälld. Varje panel är 84 cm bred och 182 cm hög, i svart polyester på metallstomme. Den levereras i delar och skruvas ihop — stolparna kommer i sektioner, vilket är varför hela skärmen ryms i ett paket på 94 × 13 × 11 cm.</p><h2>Så mycket den delar av</h2><p>Utfälld i rak linje täcker de tre panelerna 253 cm. I praktiken ställer man den i vinkel, och då blir den kortare men stadigare: en böj över en bit av rummet räcker för att skilja en arbetsplats från en soffa eller dölja en säng i ett enrumsboende.</p><h2>Den står på egna fötter</h2><p>Varje stolpe har en egen bågformad fot, så skärmen står rakt upp utan att behöva vinklas mot något. Fötterna sticker ut åt sidan och tar plats på golvet — räkna med det djupet när du väljer var den ska stå.</p><p>Den är en avskärmning, inte en barriär: den skymmer insyn och delar av en yta, men den ska inte användas för att stänga inne barn eller djur.</p><h2>Tät svart duk på metallstomme</h2><p>Tre paneler i svart polyester sitter på en stomme av pulverlackerad metall. Duken är tätt vävd och svart rakt igenom, så du ser inte igenom skärmen ens i motljus. Gångjärnen går åt båda hållen, vilket gör att panelerna kan vinklas fram och tillbaka och skärmen ställas i en sicksack eller en böj.</p><p>Finns också som <a href=\"https://www.fyndplats.se/produkt/rumsavdelare-pa-hjul-252\">samma slags tygskärm med fem paneler, på hjul</a>.</p><h2>Tekniska specifikationer</h2><ul><li><strong>Mått utfälld:</strong> 253 × 50 × 182 cm (B × D × H)</li><li><strong>Panel:</strong> 84 × 182 cm</li><li><strong>Antal paneler:</strong> 3</li><li><strong>Fotdjup:</strong> 50 cm</li><li><strong>Material:</strong> polyesterduk på pulverlackerad metallstomme</li><li><strong>Färg:</strong> svart</li><li><strong>Vikt:</strong> 6,8 kg</li><li><strong>Paketmått:</strong> 94 × 13 × 11 cm</li><li><strong>Montering:</strong> krävs – skruvas ihop</li><li><strong>Användning:</strong> inomhus</li></ul><h2>Användning och skötsel</h2><p>Torka duken med fuktig trasa och stommen torrt. Låt duken torka innan skärmen ställs undan. Med 6,8 kg är den lätt att flytta trots bredden — lyft i stolparna. Den levereras i delar och skruvas ihop efter medföljande anvisning.</p><h2>Vanliga frågor</h2><p><strong>Står den stadigt?</strong></p><p>Ja. Varje stolpe står på en egen fot, så skärmen behöver inte vinklas för att stå upp. Vinkla den ändå gärna något — då tar den mindre plats på längden och står stadigare mot en knuff.</p><p><strong>Går det att se igenom den?</strong></p><p>Nej, den svarta duken är tät rakt igenom. Den mörklägger ändå inte ett rum: ljus tar sig runt kanterna och över överkanten.</p><p><strong>Vad är panelerna gjorda av?</strong></p><p>Svart polyesterduk på en stomme av pulverlackerad metall.</p><p><strong>Behöver den monteras?</strong></p><p>Ja. Den kommer i delar med anvisning och skruvas ihop.</p><p><strong>Kan den stå utomhus?</strong></p><p>Nej, den är gjord för inomhusbruk.</p><p><strong>Vad väger den?</strong></p><p>6,8 kg. Lyft i stolparna, inte i duken.</p>", "langd": 3545, "hash": "210538513"}];
+  const ut = [];
+  for (const p of P) {
+    const g = await wix.request({ scope: "site", method: "GET", url: `https://www.wixapis.com/stores/v3/products/${p.id}` });
+    const gp = (g.data && g.data.product) || g.product || g;
+    const rev = gp.revision;
+    const varForeVisible = gp.visible;
+    const prisFore = ((gp.actualPriceRange || {}).minValue || {}).amount;
+    await wix.request({
+      scope: "site", method: "PATCH",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}`,
+      body: { product: {
+        id: p.id, revision: rev, name: p.namn, slug: p.slug, visible: varForeVisible,
+        plainDescription: p.html,
+        seoData: { tags: [
+          { type: "title", children: p.titel, custom: false, disabled: false },
+          { type: "meta", props: { name: "description", content: p.meta },
+            children: "", custom: true, disabled: false } ],
+          settings: { preventAutoRedirect: false,
+            keywords: p.sokord.map((s) => ({ term: s.term, isMain: s.isMain, origin: "USER" })) } },
+      } },
+    });
+    const r = await wix.request({
+      scope: "site", method: "GET",
+      url: `https://www.wixapis.com/stores/v3/products/${p.id}?fields=PLAIN_DESCRIPTION` });
+    const q = (r.data && r.data.product) || r.product || r;
+    const lagrad = q.plainDescription || "";
+    const hasha = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 1000000007; return String(h); };
+    const tagg = (t) => ((q.seoData && q.seoData.tags) || []).find((x) => x.type === t);
+    const mt = ((q.seoData && q.seoData.tags) || []).find((x) => x.props && x.props.name === "description");
+    const prisEfter = ((q.actualPriceRange || {}).minValue || {}).amount;
+    ut.push([p.k,
+      lagrad.length === p.langd ? "LEN ok" : `LEN ${lagrad.length} != ${p.langd}`,
+      hasha(lagrad) === p.hash ? "HASH ok" : `HASH ${hasha(lagrad)} != ${p.hash}`,
+      q.name === p.namn ? "namn ok" : `namn FEL: ${q.name}`,
+      (typeof q.slug === "string" ? q.slug : q.slug && q.slug.name) === p.slug ? "slug ok" : "slug FEL",
+      (tagg("title") || {}).children === p.titel ? "titel ok" : "titel FEL",
+      (mt && mt.props.content) === p.meta ? "meta ok" : "meta FEL",
+      q.visible === varForeVisible ? (q.visible ? "live ok" : "utkast ok") : `visible ANDRAD: ${q.visible}`,
+      prisEfter === prisFore ? "pris orort" : `PRIS ANDRAT ${prisFore} -> ${prisEfter}`,
+    ].join(" | "));
+  }
+  return ut;
+}
