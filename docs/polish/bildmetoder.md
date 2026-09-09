@@ -400,6 +400,33 @@ Vissa produkter (särskilt verktyg/elektronik) har feature-bilder som är **mör
 >
 > Anvand `cardkit.fit_pane(src, dst, "photo"|"spec"|"grid2x2"|…)` som beskar kallan till ratt proportion innan den matas in — den skalar aldrig upp och lagger aldrig till vit yta. Racker inte kallan till (ett smalt staende motiv i en liggande panel) ar `fit=True` ratt val i stallet: den letterboxar men zoomar aldrig. *(Leonards rapport 2026-08-26: "bilderna ska inte vara for inzoomade".)*
 >
+> 📐 **Ett STÅENDE motiv i en liggande panel: bygg panelen av TVÅ stående rutor.**
+> Raden ovan ger `fit=True` som utväg — den letterboxar och zoomar aldrig, men den
+> löser bara halva problemet: varan blir liten och panelen mest vit. Uppmätt
+> 2026-09-09 på två massagestolar med bbox 1178 × 1975 (0,60:1) och 1776 × 1969
+> (0,90:1) mot `card_spec`-panelens 1,83:1 — varan fyllde 94 % av HÖJDEN men bara
+> **31 %** respektive **46 %** av bredden.
+>
+> Bygg i stället panelbilden själv, som två stående rutor med en vit ränna emellan:
+> vit studiobild till vänster, verklighetsbild till höger. Varje halva blir då
+> ~0,90:1, alltså nära produktens egen proportion, och varan behöver aldrig beskäras.
+>
+> ```python
+> BREDD, HOJD = 1416 * 2, 776 * 2        # panelens proportion, 2x for skarpa
+> RANNA = 52
+> HALVA = (BREDD - RANNA) // 2           # 1390 x 1552  ->  0,90:1
+> ```
+>
+> Två spärrar gör det bevisbart i stället för trevligt att titta på:
+> `assert ny_bredd <= HALVA` (varan får aldrig skalas bredare än sin ruta) och
+> `assert bh <= h` på scenfönstret (utsnittet måste rymmas i källan). Faller den
+> första är motivet för brett för metoden och `fit=True` är kvar som utväg.
+>
+> ☠️ **Och mät panelen med en sondrendering, ta den inte ur tabellen.** Radantalet
+> styr höjden: `card_spec` med 8 rader är 1416 × 776, med 4 rader blir panelen
+> märkbart högre. Rendera kortet med en enfärgad platshållare och läs av färgens
+> bbox — det är två sekunder och det är skillnaden mellan ett mått och ett minne.
+>
 > 📐 **`card_spec`-fotot: samma sak, aldrig 1:1.** Panelen renderas med `object-fit: contain`, så ett kvadratiskt foto skalas efter höjden och krymper. Lasertag-setets kort matades med den kvadratiska hjältebilden, där pistolerna upptar 88 % av bredden men bara 31 % av höjden — resultatet blev att de fyllde **51,6 %** av panelen och såg små ut. Inget fel på kortmotorn, felet låg i indata. Beskär fotot till panelens proportion först: samma bild fyllde då **87,5 %** (1 398 → 2 373 px). Mät före och efter i stället för att titta — skillnaden är lätt att underskatta i miniatyr.
 
 > 📐 **Andra orsaken till samma symtom: KÄLLBILDENS egna vita marginaler.** Proportionsregeln ovan räcker inte. `contain` respekterar allt som ligger i filen — även tom vit yta runt varan — så marginalerna adderas i stället för att beskäras bort. Naturehikes vandringsstavar och dunsovsäck (2026-08-26) hade variantkort där produkten upptog **31–38 %** av kortets bredd och dessutom satt ur centrum (stavarna x 888–1466 i en 2000 px-ruta). Leverantörsfotot var korrekt placerat i panelen; fotot hade bara en tom halva.
