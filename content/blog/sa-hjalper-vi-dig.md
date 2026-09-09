@@ -5,8 +5,8 @@ slug: sa-hjalper-vi-dig
 meta_description: "Hittar du inte produkten? Krånglar frakten? Vill du hellre ringa än klicka? Hos Fyndplats behöver du inte lista ut något själv. Här är allt du kan be oss om hjälp med – och hur du når oss."
 category: Guider
 publish_date: 2026-09-09
-cover: ""
-alt: ""
+cover: "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg"
+alt: "Fyndplats – svensk e-handel med personlig service"
 ---
 
 # Fråga oss – vi hjälper till med allt
@@ -33,7 +33,7 @@ Vet du inte hur man lägger en beställning ringer du oss, så guidar vi dig ste
 
 Vi älskar att hjälpa våra kunder. Hör av dig, så löser vi det.
 
-**073-663 09 90**, vardagar 09–17.
+**[073-663 09 90](tel:+46736630990)**, vardagar 09–17.
 
 ## Krånglar det med frakten? Vi tar kontakten
 
@@ -67,11 +67,9 @@ Vi vill hellre att du köper rätt än att du köper nu.
 
 ## Så når du oss
 
-| | |
-| :-- | :-- |
-| **Telefon** | 073-663 09 90, vardagar 09–17 |
-| **Mejl** | info@fyndplats.com |
-| **Formulär** | [Kontakta oss](/kontaktaoss) |
+> **Telefon** — [073-663 09 90](tel:+46736630990), vardagar 09–17
+> **Mejl** — [info@fyndplats.com](mailto:info@fyndplats.com)
+> **Formulär** — [Kontakta oss](/kontaktaoss)
 
 Vi svarar oftast på mejl inom några timmar, inte sällan på kvällen efter stängning.
 
