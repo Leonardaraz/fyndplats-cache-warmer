@@ -1,0 +1,156 @@
+{
+ "cc6b56f9": {
+  "kicker": "GRÄVMASKIN ATT SITTA PÅ",
+  "rubrik": "Skopan styrs med två spakar",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "85 × 27,5 × 47,5 cm"
+   },
+   {
+    "etikett": "Bär",
+    "varde": "25 kg"
+   },
+   {
+    "etikett": "Ålder",
+    "varde": "12–36 månader"
+   },
+   {
+    "etikett": "Sitshöjd",
+    "varde": "24,5 cm över golvet"
+   }
+  ]
+ },
+ "fb142c5c": {
+  "kicker": "HJULLASTARE ATT SITTA PÅ",
+  "rubrik": "Skopan sitter framtill",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "78 × 29,5 × 54 cm"
+   },
+   {
+    "etikett": "Bär",
+    "varde": "25 kg"
+   },
+   {
+    "etikett": "Ålder",
+    "varde": "18–36 månader"
+   },
+   {
+    "etikett": "Sitshöjd",
+    "varde": "24,5 cm över golvet"
+   }
+  ]
+ },
+ "738ca991": {
+  "kicker": "BANDGRÄVARE ATT SITTA PÅ",
+  "rubrik": "Larvband och grävarm med spärr",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "78 × 24 × 58,5 cm"
+   },
+   {
+    "etikett": "Bär",
+    "varde": "30 kg"
+   },
+   {
+    "etikett": "Ålder",
+    "varde": "18–48 månader"
+   },
+   {
+    "etikett": "Sitshöjd",
+    "varde": "22 cm över golvet"
+   }
+  ]
+ },
+ "0c05c1a0": {
+  "kicker": "FRONTLASTARE ATT SITTA PÅ",
+  "rubrik": "Stor skopa och växelspak",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "80 × 26,5 × 39 cm"
+   },
+   {
+    "etikett": "Bär",
+    "varde": "30 kg"
+   },
+   {
+    "etikett": "Ålder",
+    "varde": "18–48 månader"
+   },
+   {
+    "etikett": "Sitshöjd",
+    "varde": "22,5 cm över golvet"
+   }
+  ]
+ },
+ "23ba27a5": {
+  "kicker": "SPARKTRAKTOR MED SLÄP",
+  "rubrik": "Skopa och grep i lådan",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "91 × 29 × 44 cm"
+   },
+   {
+    "etikett": "Bär",
+    "varde": "25 kg"
+   },
+   {
+    "etikett": "Ålder",
+    "varde": "18–36 månader"
+   },
+   {
+    "etikett": "Sitshöjd",
+    "varde": "25 cm över golvet"
+   }
+  ]
+ },
+ "39d85f18": {
+  "kicker": "SPARKTRAKTOR MED SLÄP",
+  "rubrik": "Sandskyffel och kratta, gul",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "91 × 29 × 44 cm"
+   },
+   {
+    "etikett": "Bär",
+    "varde": "25 kg"
+   },
+   {
+    "etikett": "Ålder",
+    "varde": "12–36 månader"
+   },
+   {
+    "etikett": "Sitshöjd",
+    "varde": "25 cm över golvet"
+   }
+  ]
+ },
+ "389ac5ac": {
+  "kicker": "SPARKTRAKTOR MED SLÄP",
+  "rubrik": "Sandskyffel och kratta, blå",
+  "rader": [
+   {
+    "etikett": "Mått",
+    "varde": "91 × 29 × 44 cm"
+   },
+   {
+    "etikett": "Bär",
+    "varde": "25 kg"
+   },
+   {
+    "etikett": "Ålder",
+    "varde": "12–36 månader"
+   },
+   {
+    "etikett": "Sitshöjd",
+    "varde": "25 cm över golvet"
+   }
+  ]
+ }
+}
