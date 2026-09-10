@@ -1,0 +1,13 @@
+{
+ "vald": {"id": "3ed832b7-213f-4bd8-bbc4-e95744a9b316", "namn": "Hem & Inredning"},
+ "lov": null,
+ "matning": {
+  "fraga": "var ligger husets publicerade matgrupper inomhus?",
+  "f8a5196f matgrupp-ovalt-bord-80-cm-hylla": ["Hem & Inredning", "All Products"],
+  "0058ad50 matgrupp-bord-80-cm-stoppade-stolar": ["Hem & Inredning", "All Products"],
+  "slutsats": "trädet har inget möbellöv. Bada publicerade matgrupperna ligger pa toppkategorin ensam, och den ena har till och med en hylla utan att hamna i Forvaring & Organisering. Runbokens regel: finns inget lov som passar racker toppkategorin.",
+  "avvisat": "Forvaring & Organisering (1632eeea) — dit gick runda 119:s koksoar, men de ar forvaringsmobler. Ett barbord med hyllplan ar det inte."
+ },
+ "skrivna": 8,
+ "kvitto": "totalSuccesses 1 / totalFailures 0 pa alla atta"
+}

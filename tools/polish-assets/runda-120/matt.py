@@ -66,7 +66,7 @@ M = {
         bordlast="70 kg", sitslast="100 kg",
         hylla="64 × 34 cm",
         material="MDF och metall", yta="vit ram med skiva i ekoptik",
-        farg="vit", farg_lang="vit ram med skiva i ekoptik",
+        farg="vit", farg_lang="vit ram med ekfärgad skiva",
         fotter="fotskydd under benen", montering="Setet levereras omonterat med monteringsanvisning.",
         vikt="15,5 kg", paket="101 × 58 × 17 cm",
         ingar="1 bord, 2 pallar och en monteringsanvisning"),

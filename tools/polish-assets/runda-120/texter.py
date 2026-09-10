@@ -317,8 +317,8 @@ SKOTSEL = {
         "vickar, och efterdra skruvarna när setet varit i bruk en tid."),
     "394de213": (
         "{montering} Torka av skivan med en lätt fuktad trasa och torka efter. Den vita "
-        "ramen tål samma behandling; undvik skurmedel som repar lacken. Hyllan lyfter "
-        "av damm snabbt — dammtorka den när du torkar skivan. Efterdra skruvarna efter "
+        "ramen tål samma behandling; undvik skurmedel som repar lacken. Hyllan samlar "
+        "damm snabbt — dammtorka den när du torkar skivan. Efterdra skruvarna efter "
         "en tids användning."),
     "f4ed1264": (
         "{montering} Marmoroptiken är en melaminyta, inte sten: den torkas av med en "
