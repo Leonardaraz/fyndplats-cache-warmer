@@ -79,47 +79,25 @@ FORBJUDET = [
     ("trasig relativ länk", re.compile(r"https:/produkt")),
 ]
 
-# ☠️ PLURALFORMEN SAKNADES. Ett första utkast hade `ingen|inget` men INTE
-#    `inga`, så meningen "Den har inga pedaler alls" lästes som ett LÖFTE om
-#    pedaler. Samma klass som `nej` som saknades i runda 114:s grind — en
-#    ofullständig negationslista ger falsklarm, aldrig falsk godkännande, men
-#    ett falsklarm som fyrar på korrekt text lär mottagaren att sluta läsa.
-#    Böjningarna skrivs därför som ETT mönster, inte som en uppräkning som kan
-#    tappa en form.
-NEGATION = re.compile(r"\b(inte|aldrig|ing(?:en|et|a)|nej|utan|varken"
-                      r"|behöver du|snarare än|i stället för)\b", re.I)
+# ☠️ NEGATIONEN, MENINGSHJÄLPARNA OCH LÖFTESSTRAFFET BOR I `grindar.py`
+#    SEDAN RUNDA 116. De låg som en kopia här, och kopian hann bli fel inom EN
+#    session: livegrind.py skrev en egen `leveransloften` vars FAQ-undantag
+#    testade `mening.endswith("?")` medan `_mening_kring` klipper FÖRE
+#    frågetecknet — och läste därför JSON-LD:ns "Ingår batterier?" som ett
+#    löfte på fyra av sex KORREKTA sidor. Husets vanligaste bugg.
+#    Namnen behålls här så modulens anropare (livegrind.py) inte ändras.
+NEGATION = G.NEGATION
+_slut = G.meningsslut
+_mening_kring = G.mening_kring
+_nasta_mening = G.nasta_mening
+loftestraff = G.loftestraff
+LEVERANS = G.LEVERANS
+TILLBEHOR = G.TILLBEHOR
 
 
-def _slut(txt, i):
-    k = [j for j in (txt.find(".", i), txt.find("?", i)) if j >= 0]
-    return min(k) if k else -1
-
-
-def _mening_kring(txt, i):
-    a = max(txt.rfind(".", 0, i), txt.rfind("?", 0, i), txt.rfind(">", 0, i))
-    b = _slut(txt, i)
-    return txt[a + 1: b if b >= 0 else len(txt)]
-
-
-def _nasta_mening(txt, i):
-    s = _slut(txt, i)
-    if s < 0:
-        return ""
-    b = _slut(txt, s + 1)
-    return txt[s + 1: b if b >= 0 else len(txt)]
-
-
-def loftestraff(monster, txt):
-    for m in monster.finditer(txt):
-        omkring = _mening_kring(txt, m.start())
-        if NEGATION.search(omkring):
-            continue
-        slut = _slut(txt, m.start())
-        if slut >= 0 and txt[slut] == "?" and NEGATION.search(
-                _nasta_mening(txt, m.start())):
-            continue
-        return m
-    return None
+def leveransloften(nyckel, syn):
+    """Rundans signatur — leveransomfattningen slås upp i matt.INGAR."""
+    return G.leveransloften(syn, M.INGAR[nyckel], nyckel)
 
 
 def sidans_tal(k):
@@ -141,65 +119,6 @@ def sidans_tal(k):
 
 
 TAL = re.compile(r"(?<![\w,.])(\d+(?:,\d+)?)(?![\w])")
-
-
-
-# ── ☠️ LEVERANSLÖFTE: ett TILLBEHÖR som sägs ingå måste stå i matt.INGAR ────
-# Runda 115 skrev "en hink följer med i lådan" på fb142c5c i FYRA fält — namn,
-# ingress, brödtext och metabeskrivning. `INGAR` för den produkten är
-# `fordonet, bruksanvisning`, och bild 4 visar maskinens EGEN frontskopa, inte
-# en separat hink. Ingen befintlig grind kunde se det: det är varken ett tal,
-# ett märke, ett tonfel eller ett förbjudet ord — det är ett SUBSTANTIV som
-# ingen mätning stöder. Ett leveranslöfte är den dyraste sortens fel på en
-# produktsida, för kunden kan räkna det i lådan.
-#
-# ☠️ FÖRSTA UTKASTET GRINDADE VARJE SUBSTANTIV i meningen och fyrade på
-#    `ratten`, `skopan` och på verbet `ingår` självt — sju träffar varav sex
-#    brus. Ett falsklarm som alltid fyrar lär mottagaren att sluta läsa, och
-#    då är även det äkta larmet borta (husregeln, sjunde gången).
-#
-# Grinden tittar därför bara på TILLBEHÖR — lösa saker som KAN ligga i en
-# låda. En fast del (ratt, sits, hjul, arm, skopa på arm) hör aldrig hemma i
-# listan och kan alltså inte ge falsklarm. Är ordet ett tillbehör OCH står i
-# en leveransmening OCH saknas i INGAR → fäll.
-LEVERANS = re.compile(r"(ing[åa]r|f[öo]ljer\s+med|medf[öo]ljer|"
-                      r"med\s+i\s+l[åa]dan|i\s+l[åa]dan\s+f[öo]ljer)", re.I)
-TILLBEHOR = (
-    "hink", "spann", "skopa", "grep", "kratta", "sandskyffel", "skyffel",
-    "spade", "hjälm", "laddare", "batteri", "batterier", "verktyg", "nyckel",
-    "nycklar", "insexnyckel", "dyna", "kudde", "väska", "pump", "sugkopp",
-    "fjärrkontroll", "reservdel", "klistermärke", "dekal", "bruksanvisning",
-    "manual", "monteringsanvisning", "släp", "vagn", "flagga", "vimpel",
-)
-
-
-def leveransloften(nyckel, syn):
-    """Ett tillbehör får bara sägas ingå om det står i produktens INGAR."""
-    fel, har = [], " ".join(M.INGAR[nyckel]).lower()
-    for m in LEVERANS.finditer(syn):
-        mening = _mening_kring(syn, m.start())
-        if NEGATION.search(mening):
-            continue                       # "ingår INTE" är ett besked, inte ett löfte
-        # ☠️ FAQ-rubriken "Ingår batterier?" är en FRÅGA, inte ett löfte — och
-        #    svaret står i NÄSTA mening. SAMMA regel som `loftestraff` redan
-        #    bär, ordagrant: en fråga ursäktas BARA av att dess EGET svar
-        #    negerar. Runda 114:s falska godkännande (uppgift #415) kom av att
-        #    negationen fick hämtas från en ANNAN fråga; `_nasta_mening` är
-        #    svaret på just den här.
-        slut = _slut(syn, m.start())
-        if slut >= 0 and syn[slut] == "?" and NEGATION.search(
-                _nasta_mening(syn, m.start())):
-            continue
-        lag = mening.lower()
-        for ord_ in TILLBEHOR:
-            if not re.search(r"\b%ss?(?:n|en|et|na|erna|arna)?\b" % ord_, lag):
-                continue
-            if ord_[:5] in har or any(p.startswith(ord_[:5]) for p in har.split()):
-                continue
-            fel.append(f"LEVERANSLÖFTE UTAN TÄCKNING: {ord_!r} sägs ingå, men "
-                       f"INGAR[{nyckel}] är {M.INGAR[nyckel]} — "
-                       f"…{mening.strip()[:120]}…")
-    return fel
 
 
 

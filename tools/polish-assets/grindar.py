@@ -331,3 +331,124 @@ def hamta_isr(url, paus=20, ua="Mozilla/5.0", timeout=60):
         raise SystemExit("ISR-hämtningen gav bara %d tecken för %s — halv sida"
                          % (len(html), url))
     return html, headers
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LÖFTESGRINDAR — delade sedan runda 116 (uppgift #423)
+#
+# ☠️ DE LÅG SOM EN KOPIA I VARJE RUNDAS grind.py, och kopian hann bli fel
+#    inom EN session: runda 115:s livegrind.py skrev en egen `leveransloften`
+#    där FAQ-undantaget testade `mening.endswith("?")` medan `_mening_kring`
+#    klipper FÖRE frågetecknet. Tvillingen läste därför JSON-LD:ns rubrik
+#    "Ingår batterier?" som ett löfte på fyra av sex korrekta sidor.
+#
+#    Husets vanligaste bugg, sjätte gången: SHIP_AXIS_RE, EU_TULL_CODES,
+#    mapWithConcurrency, STORE_BACKEND, normaliseraFörSkrivning — och nu den
+#    här. En regel om SVENSK TEXT hör hemma på ETT ställe.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ☠️ BÖJNINGARNA SKRIVS SOM ETT MÖNSTER, inte som en uppräkning som kan tappa
+#    en form. Ett utkast i runda 115 hade `ingen|inget` men inte `inga`, så
+#    "Den har inga pedaler alls" lästes som ett LÖFTE om pedaler.
+NEGATION = re.compile(r"\b(inte|aldrig|ing(?:en|et|a)|nej|utan|varken"
+                      r"|behöver du|snarare än|i stället för)\b", re.I)
+
+
+def meningsslut(txt, i):
+    """Index för närmaste `.` eller `?` från och med i, annars -1."""
+    k = [j for j in (txt.find(".", i), txt.find("?", i)) if j >= 0]
+    return min(k) if k else -1
+
+
+def mening_kring(txt, i):
+    """Meningen som omsluter position i. Klipper FÖRE skiljetecknet."""
+    a = max(txt.rfind(".", 0, i), txt.rfind("?", 0, i), txt.rfind(">", 0, i))
+    b = meningsslut(txt, i)
+    return txt[a + 1: b if b >= 0 else len(txt)]
+
+
+def nasta_mening(txt, i):
+    """Meningen EFTER den som omsluter i. Tom sträng om ingen finns."""
+    s = meningsslut(txt, i)
+    if s < 0:
+        return ""
+    b = meningsslut(txt, s + 1)
+    return txt[s + 1: b if b >= 0 else len(txt)]
+
+
+def _urskuldad(txt, i):
+    """Sant om träffen på position i är negerad — i sin egen mening, eller,
+    när den står i en FRÅGA, av frågans EGET svar i nästa mening.
+
+    ☠️ Negationen får ALDRIG hämtas från en annan fråga. Runda 114 fick en
+       falsk godkännande när ett `ingen` 120 tecken bort i en ANNAN FAQ-fråga
+       ursäktade ett löfte (uppgift #415).
+    """
+    if NEGATION.search(mening_kring(txt, i)):
+        return True
+    s = meningsslut(txt, i)
+    return s >= 0 and txt[s] == "?" and bool(NEGATION.search(nasta_mening(txt, i)))
+
+
+def loftestraff(monster, txt):
+    """Första icke-negerade träffen på `monster`, annars None."""
+    for m in monster.finditer(txt):
+        if not _urskuldad(txt, m.start()):
+            return m
+    return None
+
+
+# ── ☠️ LEVERANSLÖFTE: ett TILLBEHÖR som sägs ingå måste stå i INGAR ─────────
+# Runda 115 skrev "en hink följer med i lådan" på fb142c5c i FYRA fält — namn,
+# ingress, brödtext och metabeskrivning — mot en INGAR som säger
+# `fordonet, bruksanvisning`. Ingen dåvarande grind kunde se det: det är
+# varken ett tal, ett märke, ett tonfel eller ett förbjudet ord, utan ett
+# SUBSTANTIV som ingen mätning stöder. Ett leveranslöfte är den dyraste sortens
+# fel på en produktsida — kunden kan räkna det i lådan.
+#
+# ☠️ FÖRSTA UTKASTET GRINDADE VARJE SUBSTANTIV och fyrade på `ratten`,
+#    `skopan` och på verbet `ingår` självt: sju träffar varav sex brus. Ett
+#    falsklarm som alltid fyrar lär mottagaren att sluta läsa.
+#
+# Grinden tittar därför bara på TILLBEHÖR — lösa saker som KAN ligga i en låda.
+# En fast del (ratt, sits, hjul, korg, sufflett) hör aldrig hemma i listan och
+# kan alltså inte ge falsklarm.
+# ☠️ ORDGRÄNSERNA ÄR INTE KOSMETIK. Utan dem matchar `ing[åa]r` inuti
+#    **"kopplingar"**, och runda 116:s mening "två kopplingar att fästa i
+#    hundens sele" lästes som ett leveranslöfte om en SELE — på alla sju
+#    korrekta sidor. Runda 115:s ordförråd råkade inte innehålla ett sådant
+#    ord, så kopian levde ett helt varv utan att felet syntes. Ett falsklarm
+#    som fyrar på korrekt text lär mottagaren att sluta läsa.
+LEVERANS = re.compile(r"\b(ing[åa]r|f[öo]ljer\s+med|medf[öo]ljer|"
+                      r"med\s+i\s+l[åa]dan|i\s+l[åa]dan\s+f[öo]ljer)\b", re.I)
+TILLBEHOR = (
+    "hink", "spann", "skopa", "grep", "kratta", "sandskyffel", "skyffel",
+    "spade", "hjälm", "laddare", "batteri", "batterier", "verktyg", "nyckel",
+    "nycklar", "insexnyckel", "dyna", "kudde", "väska", "pump", "sugkopp",
+    "fjärrkontroll", "reservdel", "klistermärke", "dekal", "bruksanvisning",
+    "manual", "monteringsanvisning", "anvisning", "släp", "vagn", "flagga",
+    "vimpel", "regnskydd", "myggnät", "koppel", "sele", "filt", "mugg",
+    "vattenflaska", "skål", "matskål",
+)
+
+
+def leveransloften(syn, ingar, nyckel=""):
+    """Fäller när ett TILLBEHÖR sägs ingå utan att stå i `ingar`.
+
+    `ingar` är produktens leveransomfattning som en lista av strängar.
+    """
+    fel, har = [], " ".join(ingar).lower()
+    for m in LEVERANS.finditer(syn):
+        if _urskuldad(syn, m.start()):
+            continue
+        mening = mening_kring(syn, m.start())
+        lag = mening.lower()
+        for ord_ in TILLBEHOR:
+            if not re.search(r"\b%ss?(?:n|en|et|na|erna|arna)?\b" % ord_, lag):
+                continue
+            if ord_[:5] in har or any(p.startswith(ord_[:5]) for p in har.split()):
+                continue
+            fel.append(f"LEVERANSLÖFTE UTAN TÄCKNING: {ord_!r} sägs ingå, men "
+                       f"INGAR{'[' + nyckel + ']' if nyckel else ''} är "
+                       f"{list(ingar)} — …{mening.strip()[:120]}…")
+    return fel

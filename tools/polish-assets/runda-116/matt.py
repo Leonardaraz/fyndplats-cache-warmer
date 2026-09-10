@@ -40,6 +40,21 @@ FARG = {
     "0fdf9aba": "ljusgrå",
 }
 
+# ☠️ BESTÄMD FORM ÄR EN TABELL, INTE ETT PÅHÄNGT "a". `FARG[k] + "a"` gav
+#    **"den dammrosaa hundvagnen"** i alt-texten — och textgrinden såg
+#    ingenting, för ett böjningsfel är varken ett tal, ett märke eller ett
+#    förbjudet ord. Det som fångade det var att texten låg i en FIL och lästes
+#    med ögon; `dammrosa` är dessutom oböjligt, vilket ingen regel kan gissa.
+FARG_BEST = {
+    "40f46441": "röda",
+    "adc81917": "grå",
+    "cbb38884": "blå",
+    "eb02039b": "röda",
+    "3b0aca0a": "blå",
+    "1f311250": "dammrosa",
+    "0fdf9aba": "ljusgrå",
+}
+
 # Måtten per grupp. Alla tal kommer ur produktens egen spec ELLER ur
 # måttritningen; ingenting är räknat fram eller avrundat.
 MATT = {
@@ -67,6 +82,20 @@ MATT = {
         "maxvikt_hund": "10 kg",
         "vikt": "5,9 kg",
     },
+}
+
+# Paketmått per produkt. ⚠️ Grupp B levereras i TVÅ olika kartonger trots att
+# produktmåtten är identiska på sex axlar — röd och dammrosa i den ena, blå och
+# ljusgrå i den andra. Det är en packningsdetalj hos leverantören, inte ett
+# tecken på två modeller: måttritningen är densamma för alla fyra.
+PAKET = {
+    "40f46441": "38 × 18,5 × 84 cm",
+    "adc81917": "38 × 18,5 × 84 cm",
+    "cbb38884": "38 × 18,5 × 84 cm",
+    "eb02039b": "38 × 19 × 82 cm",
+    "1f311250": "38 × 19 × 82 cm",
+    "3b0aca0a": "39 × 17 × 75,5 cm",
+    "0fdf9aba": "39 × 17 × 75,5 cm",
 }
 
 # Konstruktion — det som skiljer grupperna åt för kunden.
@@ -133,6 +162,14 @@ def kontroll():
                          "att raderna inte kopierats")
     if not MONTERING["B"] or MONTERING["A"]:
         raise SystemExit("☠️ MONTERING är omkastad mot leverantörens text")
+    if sorted(FARG_BEST) != sorted(ALLA):
+        raise SystemExit("☠️ FARG_BEST täcker inte exakt rundans sju produkter")
+    for k, v in FARG_BEST.items():
+        if v.endswith("aa") or not v.startswith(FARG[k][:3]):
+            raise SystemExit(f"☠️ {k}: bestämd form {v!r} ser ut som ett "
+                             f"påhängt 'a' på {FARG[k]!r}")
+    if sorted(PAKET) != sorted(ALLA):
+        raise SystemExit("☠️ PAKET täcker inte exakt rundans sju produkter")
     print(f"matt.kontroll: {len(A)} i grupp A, {len(B)} i grupp B, "
           f"{len(set(FARG.values()))} distinkta färgnamn   OK")
 
