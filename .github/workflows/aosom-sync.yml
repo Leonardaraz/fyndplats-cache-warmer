@@ -62,6 +62,17 @@ on:
         # hur många rader i katalogen som vill skrivas.
         #
         # ☠️ Talen som kommer ut är RÄKNARE, aldrig belopp. Loggen är publik.
+        #
+        # ☠️ MEN ARTIKELNUMRET SJÄLVT BLIR PUBLIKT, och det går inte att undvika.
+        # GitHub visar ett `workflow_dispatch`-inputs värde i körningsvyn och i
+        # env-blocket i loggen, oavsett vad skriptet skriver ut. Ett artikelnummer
+        # som skickas hit är alltså publicerat i samma sekund körningen startar.
+        # Det är samma hållning som aosom-feed-search.yml redan valt (artikelnummer,
+        # namn och Aosoms publika URL står kvar; priset ligger bakom en flagga) —
+        # men det är ett val, inte en bieffekt, och det ska inte upptäckas i
+        # efterhand av någon som antog att inputet var privat. Behöver du ställa
+        # en fråga om en rad UTAN att namnge den publikt: kör hela katalogen och
+        # läs räknarna, eller gå via kuvertet i polish-mapping.yml.
         description: "Bara dessa artikelnummer, kommaseparerat. Tomt = hela katalogen."
         required: false
         default: ""
