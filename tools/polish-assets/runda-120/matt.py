@@ -240,6 +240,16 @@ def kontroll():
 
 
 if __name__ == "__main__":
+    import sys
+    if "--lasttabell" in sys.argv:
+        # Loggens lasttabell GENERERAS härifrån. Handskriven gav den två fel
+        # på sexton tal; en logg som avviker från talkällan är en andra sanning.
+        print("| set | bordslast | sitslast |")
+        print("|---|--:|--:|")
+        for last, pid in sorted(((M[p]["bordlast"], p) for p in ALLA),
+                                key=lambda t: int(t[0].split()[0])):
+            print(f"| `{pid}` | {last} | {M[pid]['sitslast']} |")
+        raise SystemExit(0)
     f = kontroll()
     print(f"matt.kontroll(): {len(M)} produkter, {len(f)} fel")
     for x in f:

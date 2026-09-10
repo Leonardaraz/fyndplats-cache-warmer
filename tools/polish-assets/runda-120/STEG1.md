@@ -110,12 +110,20 @@ och den spretar så mycket att den inte kan skrivas som en gemensam mening:
 | set | bordslast | sitslast |
 |---|--:|--:|
 | `441d2209` | **20 kg** | 120 kg |
-| `c88b5bbb` / `63a37524` | 25 kg | 100 kg |
+| `c88b5bbb` | 25 kg | 100 kg |
+| `63a37524` | 25 kg | 100 kg |
 | `51c43e67` | 50 kg | 130 kg |
 | `f4ed1264` | 60 kg | 120 kg |
+| `3b38e191` | 60 kg | 100 kg |
 | `394de213` | 70 kg | 100 kg |
-| `3b38e191` | 80 kg | 120 kg |
 | `c3bda64a` | **170 kg** | 140 kg |
+
+⚠️ **Tabellen är GENERERAD ur `matt.py`, inte skriven för hand** — och det är
+inte pedanteri: första versionen av den här raden var handskriven och gav
+`3b38e191` **80 kg** där filen säger 60, och `120 kg` på sitsen där filen säger
+100. Två fel i en tabell med sexton tal. En logg som avviker från talkällan är
+en andra sanning, och det är precis den sortens andra sanning som `c3bda64a`s
+vikt kom ifrån. `python3 matt.py --lasttabell` skriver ut den.
 
 ☠️ **20 kg är två matkassar.** Det är den uppgift kunden märker först av alla
 och det som gör hela batchen till ett Steg 2-ärende: åtta bord som SER likadana
@@ -241,3 +249,96 @@ neutrala och därmed oproblematiska. Det är skillnaden mot `c3bda64a`s `lbs`.
    att kopiera texten mellan dem är precis vad `matt.kontroll()` regel 4
    omöjliggör: den FÄLLER om de två materialsträngarna blir lika.
 3. ⚠️ **`c3bda64a`s viktuppgift** — se Steg 3. Overifierad, utelämnas.
+
+-----
+
+# Steg 6-7 — texterna och textgrinden
+
+Åtta texter, **0 fel**. Grinden har 37 självtestfall och 9 fältfall, alla
+utlösta. Fyra fynd på vägen dit, och tre av dem är GRINDFEL, inte textfel.
+
+## ☠️ `runda` är ett vanligt svenskt ADJEKTIV
+
+Jargonggrinden ärvdes som `\brundan?\b` och fällde **två korrekta sidor**:
+`394de213` och `f4ed1264` säljer **runda pallar**. Grinden byggdes för att
+fånga "den här rundan" — husets interna ord för ett poleringspass, som stod i
+publicerad kundtext tre rundor i rad (uppgift #318) — och den fångade i stället
+formen på en möbeldel.
+
+Jargongen har exakt två former och båda går att söka precist:
+
+```
+(re.compile(r"\brundan\b|\brunda\s+\d+", re.I), "INTERN JARGONG")
+```
+
+Samma regel som mot `ing[åa]r` inuti **"kopplingar"** (runda 116): ett
+falsklarm som fyrar på korrekt text lär mottagaren att sluta läsa, och då är
+även det äkta larmet borta.
+
+## ☠️ Korslänksgrinden var INTE negationsmedveten
+
+Två sidor föll på sina egna korrekta länktexter:
+
+| sida | länktext | grindens dom |
+|---|---|---|
+| `394de213` | "samma bredd **utan hylla**, i grått" | KORSLÄNK påstår FÖRVARING |
+| `3b38e191` | "pallar **utan rygg**" | KORSLÄNK påstår RYGGSTÖD |
+
+Brödtexten har gått genom `loftestraff` sedan runda 117 — den ursäktar en
+träff som är negerad i sin egen mening. **Länkmeningarna gick genom en naken
+`search`.** Samma familj som runda 114:s falska godkännande, fast åt andra
+hållet: där ursäktade en negation ett löfte som borde fällts, här fällde en
+negation ett korrekt nekande.
+
+## ☠️ `höj- och sänkbar` kunde aldrig utlösa sin egen grind
+
+Mönstret var `höj\w*\s*(och|-)?\s*sänkbar\w*` — det tillåter bindestreck
+ELLER "och", inte båda. Den vanligaste svenska formen bär BÅDA
+(`höj- och sänkbara`), så grinden var stum mot precis det den fanns för.
+Hittat av självtestet, inte av ögat.
+
+⚠️ Det är runbookens byggartest-lärdom en gång till: **en grind som inte går
+att utlösa ser riktig ut i källkoden och tiger för alltid.**
+
+## ⚠️ En PRISJÄMFÖRELSE i en korslänk
+
+`3b38e191`s länk till `441d2209` löd *"samma prisklass med pallar utan rygg"*.
+Leonards regel är att poleringen aldrig rör priset — och **en jämförelse ÄR att
+röra det**: priserna synkas var sjätte timme, så meningen kan bli osann utan
+att någon skriver om sidan. Omskriven till *"barbord med pallar i stället för
+stolar"*, som beskriver varan i stället för hyllan den står på.
+
+Ingen grind fångade den. Den hittades av att jag läste länktexterna medan jag
+lagade de två negationsfallen ovan.
+
+## Rundans egna grindar
+
+| grind | ägare | varför |
+|---|--:|---|
+| **UTOMHUSBRUK** | **0 av 8** | ☠️ leverantören säljer `3b38e191` som *"Geeignet für den Außen- oder Innenbereich"* — på en skiva i MDF |
+| **HJUL** | **0 av 8** | familjen före den här (runda 117–119) hade hjul på varenda produkt |
+| **HÖJDJUSTERING** | **0 av 8** | barstolar är ofta höj- och sänkbara; inget av seten är det |
+| **MASSIVT TRÄ** | **0 av 8** | varje materialrad säger `Spanplatte` eller `MDF` — träet är ett TRYCK |
+| RYGGSTÖD | 2 av 8 | `3b38e191`, `51c43e67` |
+| FÖRVARING | 2 av 8 | `394de213`, `c3bda64a` |
+| STOPPAD SITS | 1 av 8 | `51c43e67` |
+| MARMOROPTIK | 1 av 8 | `f4ed1264` |
+| FOTSTÖD | 1 av 8 | `c3bda64a` |
+| SÄKERHETSSIFFRAN | 8 av 8 | fäller om rubriken, bordslasten ELLER sitslasten saknas |
+
+☠️ **Fyra av grindarna har NOLL ägare, och de är skrivna med tom mängd i
+stället för att utelämnas.** En grind som finns men aldrig ägs går att läsa i
+källkoden; en som saknas är osynlig. `FAR_SAGA_UTOMHUS = set()` är rundans
+viktigaste rad — den står emot en text leverantören själv skriver.
+
+## Steg 4:s prisgrind: 8 av 8 `stämmer: true`
+
+Kört via workflowen `polish-mapping.yml` i läget `las`, runs 2400–2407.
+Lagersaldon 5 till 197, fraktandel 0,356–0,459 — alla under 0,5, så ingen
+behöver skjutas till sist.
+
+☠️ **TRE av åtta bär EXAKT samma rå-SKU**: `FP-bartisch-set-bartisch` på
+`441d2209`, `394de213` och `3b38e191`. Det är uppgift #272 mätt en gång till,
+med ett större tal: SKU-krocken skapas av IMPORTEN, som bygger strängen ur de
+första orden i den tyska titeln. Steg 8 skriver om dem till de polerade
+sluggarna och löser krocken på köpet.
