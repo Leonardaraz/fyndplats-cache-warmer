@@ -1,0 +1,11 @@
+{
+  "ad390a36": {"id": "ad390a36-1ca9-40da-9fcb-bc15ee2f6f5d", "variant": "6c8ed03a-cdfb-40d6-bffb-bae2531b6614", "pris": 1379, "saldo": 197, "synk": "2026-09-01", "frakt": 0.335},
+  "dac7a904": {"id": "dac7a904-c056-4c00-a030-fb75b68ee3b6", "variant": "e6caf229-5d86-44ab-ae69-89c292c9e098", "pris": 1459, "saldo": 197, "synk": "2026-08-31", "frakt": 0.396},
+  "c86ff1a6": {"id": "c86ff1a6-2ce3-47b0-9524-256d434b5ca1", "variant": "286b794b-1e94-4855-b386-ebb061105fdc", "pris": 1459, "saldo": 23, "synk": "2026-09-04", "frakt": 0.397},
+  "5d1696db": {"id": "5d1696db-50b4-48ab-b32a-c08afbb48e85", "variant": "5188383e-4321-4529-b856-3a3dfc73a662", "pris": 1499, "saldo": 12, "synk": "2026-09-08", "frakt": 0.332},
+  "6cf7cfcf": {"id": "6cf7cfcf-b68b-4e04-8be3-0c7c2317343e", "variant": "d1a10f9b-8f7a-41bb-a182-2eb210756ef1", "pris": 1569, "saldo": 27, "synk": "2026-09-09", "frakt": 0.334},
+  "36526a8d": {"id": "36526a8d-76a6-4d40-9e9d-410cbaac149b", "variant": "72353215-d9e6-47a7-9419-fc2ba3820326", "pris": 2039, "saldo": 35, "synk": "2026-09-10", "frakt": 0.256},
+  "9e5e788c": {"id": "9e5e788c-11b8-40d4-b733-a2dd8b682860", "variant": "76368082-1e45-43c3-941d-8771d61a6035", "pris": 2629, "saldo": 85, "synk": "2026-09-09", "frakt": 0.397},
+  "d8bbbdde": {"id": "d8bbbdde-5e56-49cd-86ea-a7d5aed8e1fc", "variant": "f62031ec-1af9-46cc-8e6f-9ac953178ca8", "pris": 2639, "saldo": 40, "synk": "2026-08-31", "frakt": 0.396},
+  "e0fed2c9": {"id": "e0fed2c9-5682-4da1-99e5-9a322e92756b", "variant": "35da04ba-b2be-4f18-96e9-f641c48cdd9b", "pris": 3679, "saldo": 85, "synk": "2026-09-10", "frakt": 0.376}
+}
