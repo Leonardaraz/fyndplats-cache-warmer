@@ -90,3 +90,48 @@ test("ingen yta bär en egen tröskelsiffra", () => {
   }
   assert.deepEqual(bad, []);
 });
+
+test("båda navigationsbyggarna räknar huvud + underkategorier", () => {
+  // DET HÄR ÄR FELET JAG GJORDE. Tröskelfiltret läste counts.get(id) — antalet
+  // produkter som ligger DIREKT i huvud-kollektionen — medan siffran som visas
+  // räknar huvudkategorin PLUS dess underkategorier. En huvudkategori med två
+  // produkter direkt och tvåhundra i sina underkategorier hade försvunnit ur
+  // navigationen.
+  //
+  // Repot hade redan lärt sig det här. buildGroupCards bär en kommentar från
+  // re-auditen 2026-05-31: "Huvudkategorins antal MÅSTE räknas på samma sätt
+  // som buildCategoryTree ... inte bara de som ligger direkt i huvud-
+  // kollektionen. Annars driftar siffran." Jag gick rakt in i den ändå.
+  //
+  // Provet är på källnivå: lib/category-groups.ts importerar Wix-SDK:n via
+  // ./products och går inte att ladda i node-testköraren. Ett beteendeprov
+  // skulle kräva att urvalsregeln bryts ut till en beroendefri modul, som
+  // programmatic-select.ts. Det är rätt nästa steg, men inte en audit-fix.
+  const src = readFileSync("lib/category-groups.ts", "utf8");
+  const anrop = src.match(/categoryInMainNav\([^)]*\)/g) || [];
+  assert.equal(anrop.length, 2, `förväntade två anrop (mega-nav + /butik-rutnät), fann ${anrop.length}`);
+  for (const a of anrop) {
+    assert.equal(
+      /counts\.get/.test(a),
+      false,
+      `${a} läser den DIREKTA siffran; den ska läsa huvud+sub (totalt()/mainCount())`,
+    );
+    assert.equal(
+      /totalt\(|mainCount\(/.test(a),
+      true,
+      `${a} måste räkna huvudkategorin plus dess underkategorier`,
+    );
+  }
+});
+
+test("tröskeln gäller all huvudnavigation, inte bara mega-menyn", () => {
+  // Mitt första försök ändrade bara buildCategoryTree. /butik-rutnätet och
+  // startsidans kategorirad byggs av buildGroupCards, som jag inte rörde — så
+  // "Mode & Accessoarer" stod kvar som huvudkort med tre produkter bakom sig,
+  // och min verifiering påstod motsatsen.
+  const src = readFileSync("lib/category-groups.ts", "utf8");
+  const tree = src.slice(src.indexOf("export function buildCategoryTree"), src.indexOf("export function buildGroupCards"));
+  const cards = src.slice(src.indexOf("export function buildGroupCards"));
+  assert.ok(/categoryInMainNav\(/.test(tree), "buildCategoryTree (mega-nav) saknar tröskeln");
+  assert.ok(/categoryInMainNav\(/.test(cards), "buildGroupCards (/butik + startsida) saknar tröskeln");
+});
