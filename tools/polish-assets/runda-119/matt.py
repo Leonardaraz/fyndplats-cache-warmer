@@ -184,6 +184,24 @@ M = {
 # Tal som får stå i texten utan att komma ur en produktrad ovan.
 HARLEDDA = ["1", "2", "3", "4", "5", "6", "100", "45", "60", "30", "24"]
 
+# ☠️ RUBRIKTAL. Talgrinden täckte länge bara BRÖDTEXTEN — namn, titel, meta och
+#    slug gick fria, och det var precis där uppgift #326 hittade ett ohärlett
+#    tal i TVÅ produktnamn. Runda 119 utökade grinden till alla fyra fälten och
+#    fick en enda träff: `dac7a904` heter "101 cm arbetsyta" medan ytan är
+#    uppmätt till 101,5.
+#
+#    Avrundningen är RÄTT — "101,5 cm" i en slug blir `101-5`, som läses som ett
+#    intervall — men den var OSKRIVEN, och en oskriven avrundning är hur ett
+#    tal driver. Den bor här i stället, med två krav som grinden kontrollerar:
+#
+#    1. Rubriktalet måste vara avrundat NEDÅT från ett tal som står i raden.
+#       Uppåt vore ett löfte varan inte håller; nedåt understryker den.
+#    2. Skillnaden får vara högst 1, alltså en verklig avrundning och inte ett
+#       nytt tal med ett gammalt i närheten.
+RUBRIKTAL = {
+    "dac7a904": {"101": "101,5"},   # arbetsytans längd, avrundad ned i rubriken
+}
+
 # ☠️ FÄRGADE DELAR. Runda 89–91 skrev fel färg tre rundor i rad. Listan säger
 #    vilket färgord som får stå omedelbart före varje vaktad del.
 DEL_OK = {
@@ -202,6 +220,22 @@ DEL_OK = {
 def kontroll():
     """Fäller på det som gick fel i tidigare rundor."""
     fel = []
+    # 0. RUBRIKTAL: avrundat NEDÅT, och högst 1 ifrån — annars är det inget
+    #    rubriktal utan ett nytt tal med ett gammalt i närheten.
+    for pid, par in RUBRIKTAL.items():
+        rad = " ".join(str(v) for v in M[pid].values())
+        for rubrik, kalla in par.items():
+            if kalla not in rad:
+                fel.append(f"{pid}: RUBRIKTAL {rubrik!r} pekar på {kalla!r} som "
+                           f"inte står i raden")
+                continue
+            a, b = float(rubrik.replace(",", ".")), float(kalla.replace(",", "."))
+            if a > b:
+                fel.append(f"{pid}: RUBRIKTAL {rubrik!r} är avrundat UPPÅT från "
+                           f"{kalla!r} — ett löfte varan inte håller")
+            elif b - a > 1:
+                fel.append(f"{pid}: RUBRIKTAL {rubrik!r} ligger {b - a:.1f} från "
+                           f"{kalla!r} — det är inte en avrundning")
     for pid, d in M.items():
         # 1. Varje produkt måste ha de fält texten och kortet läser.
         for f in ("matt", "vikt", "material", "farg", "maxlast", "maxlast_kort",

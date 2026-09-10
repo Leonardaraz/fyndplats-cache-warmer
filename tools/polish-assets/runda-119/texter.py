@@ -160,13 +160,13 @@ INGRESS = {
         "dubbelt så djup. Runt om finns två skåp med hyllplan i tre lägen, två lådor, "
         "{antal_fack} och {kryddplan} kryddhyllor på gaveln."),
     "d8bbbdde": (
-        "Det här är köksön för dig som vill ha ETT stort skåp i stället för många små. "
+        "Det här är köksön för dig som vill ha ett enda stort skåp i stället för många små. "
         "Skåpet mäter {skap} invändigt med ett hyllplan som flyttas i tre lägen, så en "
         "matberedare får plats stående. Skivan är {skiva} och klaffen lägger till "
         "{skiva_klaff} när du behöver den."),
     "e0fed2c9": (
-        "Den största köksön i sortimentet, och den enda med utdragsbrickor. Skivan går "
-        "från {skiva_ned} till {skiva} när klaffen fälls upp, och den bärs av en "
+        "Med {bredd} cm i bredd är det här köksön för dig som lagar mat mitt i rummet. "
+        "Skivan går från {skiva_ned} till {skiva} när klaffen fälls upp, och bärs av en "
         "{skivtjocklek} tjock stomme som tål {maxlast_kort}. Innanför dörrarna sitter "
         "{antal_fack} för burkar och flaskor, och tre brickor dras ut som lådor."),
 }
@@ -406,7 +406,7 @@ FAQ = {
         ("Är hela vagnen i bambu?",
          "Ja, stommen är {material}. Dörren är handflätad rotting och överst ligger en "
          "infälld glasyta på {glasskiva}."),
-        ("Tål glasytan varma kastruller?",
+        ("Vad tål glasytan?",
          "Ställ alltid ett underlägg under varmt gods. Undvik slag och punktlast på "
          "ytan — glaset är en avlastningsyta, inte en arbetsbänk."),
         ("Vad får plats i skåpet?",

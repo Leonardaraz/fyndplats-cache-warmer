@@ -54,6 +54,18 @@ TONGRINDAR = [
      "OGRUNDAD CERTIFIERING"),
     # ⚠️ `5d1696db` har en glasyta som leverantören INTE anger som härdad.
     (re.compile(r"\bhärdat?\s+glas\b", re.I), "OGRUNDAD HÄRDNING"),
+    # ☠️ PÅSTÅENDE OM VÅRT EGET SORTIMENT (runda 119, Steg 12). `e0fed2c9`s
+    #    ingress sa "Den största köksön i sortimentet, och den enda med
+    #    utdragsbrickor". Båda var sanna den dagen och båda blir osanna av
+    #    nästa import — utan att någon rör sidan. Det är en annan defekt än
+    #    OGRUNDAD SUPERLATIV: den mäter inte varan mot marknaden utan mot en
+    #    katalog vi själva ändrar varje natt, och den går inte att verifiera
+    #    från produktdata. Skriv om varan, inte om hyllan den står på.
+    (re.compile(r"\b(störst\w*|minst\w*|enda|bredast\w*|dyrast\w*|billigast\w*)\b"
+                r"[^.!?]{0,40}\b(i\s+)?(sortimentet|katalogen|butiken|hos\s+oss)\b",
+                re.I), "PÅSTÅENDE OM VÅRT EGET SORTIMENT"),
+    (re.compile(r"\b(den|det)\s+enda\s+med\b", re.I),
+     "PÅSTÅENDE OM VÅRT EGET SORTIMENT"),
 ]
 
 NEGERANDE_GRINDAR = [
@@ -231,11 +243,21 @@ def granska(pid):
         fel.append("'x' som multiplikationstecken i stället för '×'")
 
     # 11. Talgrinden: varje tal måste gå att spåra till matt.py
+    #
+    # ☠️ DEN KÖRDE LÄNGE BARA PÅ BRÖDTEXTEN. Namn, titel, meta och slug gick
+    #    fria — och det är just i ett NAMN uppgift #326 hittade ett ohärlett
+    #    tal på två publicerade sidor. En grind skriven mot PLATSEN där felet
+    #    hittades täcker inte REGELN; regeln säger "varje tal kunden ser", och
+    #    namnet är det första kunden ser. Utökad i runda 119, som fick en
+    #    enda träff: `dac7a904`s "101 cm" mot uppmätta 101,5.
     kallor = " ".join(str(v) for v in d.values()) + " " + " ".join(M.HARLEDDA)
-    tillatna = set(_tal(kallor))
-    for t in _tal(egna):
-        if t not in tillatna:
-            fel.append(f"OSPÅRAT TAL {t!r} — står inte i matt.py['{pid}']")
+    tillatna = set(_tal(kallor)) | set(M.RUBRIKTAL.get(pid, {}))
+    for falt, text in (("brödtexten", egna), ("namnet", namn), ("titeln", titel),
+                       ("metan", meta), ("sluggen", slug.replace("-", " "))):
+        for t in _tal(text):
+            if t not in tillatna:
+                fel.append(f"OSPÅRAT TAL {t!r} i {falt} — står inte i "
+                           f"matt.py['{pid}']")
 
     # 12. ☠️ DUBBLERAD ENHET (runda 118): `matt.py` bär enheten, mallen får
     #     inte lägga på en till.
@@ -325,6 +347,12 @@ FALL = [
     ("tyskt ord", "ad390a36", lambda h: h + "<p>En Küchenwagen.</p>", "TYSKT ORD"),
     ("superlativ", "ad390a36", lambda h: h + "<p>Marknadens bästa vagn.</p>", "SUPERLATIV"),
     ("härdat glas", "5d1696db", lambda h: h + "<p>Skivan är i härdat glas.</p>", "HÄRDNING"),
+    ("störst i sortimentet", "e0fed2c9",
+     lambda h: h + "<p>Den största köksön i sortimentet.</p>", "VÅRT EGET SORTIMENT"),
+    ("den enda med", "e0fed2c9",
+     lambda h: h + "<p>Den enda med utdragsbrickor.</p>", "VÅRT EGET SORTIMENT"),
+    ("billigast hos oss", "ad390a36",
+     lambda h: h + "<p>Billigaste vagnen hos oss.</p>", "VÅRT EGET SORTIMENT"),
     ("massivt trä", "6cf7cfcf", lambda h: h + "<p>Skivan är massivt furu.</p>", "MASSIVT TRÄ"),
     ("utomhus på fel produkt", "ad390a36",
      lambda h: h + "<p>Vagnen tål att stå utomhus.</p>", "UTOMHUSBRUK"),
@@ -369,6 +397,53 @@ FALL = [
 ]
 
 
+# ☠️ FÄLTFALL. Den gamla självtestriggen skadar bara `html` — och de två nya
+#    grinderna (talgrinden på namn/titel/meta/slug, och sortimentspåståendet)
+#    sitter i fält den riggen aldrig kunde nå. Ett självtest som inte kan skada
+#    fältet BEVISAR ingenting om grinden som vaktar det: det var precis så det
+#    ohärledda talet i uppgift #326 kunde ligga i två publicerade PRODUKTNAMN
+#    medan grinden stod grön.
+#
+#    Index i tupeln texter.bygg returnerar: 0 namn, 1 slug, 2 titel, 3 meta.
+FALTFALL = [
+    ("ospårat tal i namnet", "ad390a36", 0,
+     lambda v: v.replace("53 cm", "62 cm"), "OSPÅRAT TAL '62' i namnet"),
+    ("ospårat tal i titeln", "ad390a36", 2,
+     lambda v: v.replace("53 cm", "62 cm"), "OSPÅRAT TAL '62' i titeln"),
+    ("ospårat tal i metan", "ad390a36", 3,
+     lambda v: v.replace("30 kg", "62 kg"), "OSPÅRAT TAL '62' i metan"),
+    ("ospårat tal i sluggen", "ad390a36", 1,
+     lambda v: v.replace("53-cm", "62-cm"), "OSPÅRAT TAL '62' i sluggen"),
+    ("rubriktalet 101 är TILLÅTET på dac7a904", "dac7a904", 0,
+     lambda v: v, None),
+    ("men bara på den produkt som har det", "ad390a36", 0,
+     lambda v: v.replace("53 cm", "101 cm"), "OSPÅRAT TAL '101' i namnet"),
+]
+
+
+def faltsjalvtest():
+    """Varje fall MÅSTE fällas — utom det som uttryckligen ska släppas igenom."""
+    fel = []
+    import texter
+    original = texter.bygg
+    for namn, pid, idx, skada, vantat in FALTFALL:
+        def trasig(p, _i=idx, _s=skada, _o=original):
+            rad = list(_o(p))
+            rad[_i] = _s(rad[_i])
+            return tuple(rad)
+        texter.bygg = trasig
+        try:
+            ut = granska(pid)
+        finally:
+            texter.bygg = original
+        traff = any(vantat in x for x in ut) if vantat else False
+        if vantat and not traff:
+            fel.append(f"{namn}: grinden SÅG DET INTE (fick {ut[:2]})")
+        if vantat is None and ut:
+            fel.append(f"{namn}: grinden FÄLLDE ett korrekt fall ({ut[:2]})")
+    return fel
+
+
 def sjalvtest():
     fel = []
     import texter
@@ -401,6 +476,10 @@ if __name__ == "__main__":
     for x in bt:
         print("  ☠️", x)
     print(f"självtest: {len(FALL)} fall, {len(st)} fel")
+    ft = faltsjalvtest()
+    for f in ft:
+        print("  ✗", f)
+    print(f"fältsjälvtest: {len(FALTFALL)} fall, {len(ft)} fel")
     for x in st:
         print("  ☠️", x)
     print(f"\n{len(M.ALLA)} produkter, {tot} fel")
