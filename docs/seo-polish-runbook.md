@@ -895,6 +895,48 @@ Steg 4 inte behöver göra aritmetiken för hand. Ingen hemlighet passerar chatt
 
 -----
 
+### ☠️ EN LÄSNING AV EN LEVERANTÖRSRAD ÄR ETT ANTAGANDE — läs TRE gånger
+
+Runda 120 hittade **tre tal som såg fullkomligt rimliga ut och kom från fel
+fält**. Inget av dem var uppenbart; alla tre hade nått kund utan grinden.
+
+| produkt | fältet | vad som stod | var det kom ifrån |
+|---|---|---|---|
+| `c3bda64a` | vikt | 29,4 kg | vikten på ett set **utanför batchen** |
+| `3b38e191` | stolens djup | 45 cm | **bordets** djup på samma produkt |
+| `f4ed1264` | sitsens diameter | Ø30 cm | ingen källa alls |
+
+Rundans `matt.py` har därför **tre källor**, och de fångar olika fel:
+
+1. **Steg 1:s katalogsvep** — den råa raden som den lästes när familjen
+   grupperades.
+2. **Steg 3:s spec-block** — den läsning som normalt fyller `matt.py`.
+3. **MÅTTRITNINGEN** (bild 3), inlagd som `RITNING` i `matt.py`.
+
+**Regel 7:** stämmer inte (1) och (2) om ett fält är fältet `None` tills det
+gått att läsa om — aldrig det tal som råkade skrivas sist. Sju av åtta rader
+stämde exakt; den åttonde bar ett tal som hörde till någon annan.
+
+☠️ **Regel 7 räckte inte.** `3b38e191`s stolsdjup stod fel i BÅDA
+textläsningarna, för båda kom ur samma rad. Det som skiljer måttritningen är
+att den inte är text: den är ortografisk, och regel 9 nedan är entydig — *står
+etiketten mot ritningen, mät ritningen.*
+
+**Regel 8:** varje bord- och sitsmått i `matt.py` måste stämma med `RITNING`.
+
+⚠️ **Bara geometri.** En LASTSIFFRA i en ritning är text som råkat ritas och
+vinner ingenting över spec-raden. Det är samma gräns regel 9 redan drar.
+
+⚠️ **Ett `None`-fält får aldrig nå ett kort eller en text.** `format()`
+renderar `None` som strängen `"None"`, som på ett spec-kort ser ut som en
+produktuppgift bland andra. `kort.kontroll()` fäller på det.
+
+**Fingeravtrycket att leta efter: ett tal som är IDENTISKT med grannfältets.**
+En stols djup som råkar vara exakt bordets, en vikt som råkar vara exakt
+syskonets. Det är sällan ett sammanträffande.
+
+-----
+
 ## Steg 4 – Titta på bilderna FÖRST (innan du skriver något)
 
 Den visuella förståelsen styr **allt nedströms** — sökordet (bilderna avslöjar produktens
@@ -3496,6 +3538,67 @@ Fixen är husets vanligaste: **importera regeln, kopiera den inte.** Live-grinde
 gör nu `from lint import ROSTFRI, ROSTFRI_OK`. Samma familj som `SHIP_AXIS_RE`,
 `EU_TULL_CODES` och `mapWithConcurrency` — och den dyraste varianten, för en
 grind som fäller allt lär läsaren att kvittera bort den.
+
+#### ☠️ …och en kopia kan ligga FEL I TRE RUNDOR utan att någon märker det
+
+Runda 120 mätte samma sak igen, med datum. Jargonggrinden — husets ord för ett
+poleringspass, som läckt till publicerad kundtext tre gånger (uppgift #318) —
+kopierades in i varje rundas `grind.py`:
+
+| runda | mönster | |
+|---|---|---|
+| 115, 116 | `\brundans?\b\|\brunda\s+\d` | rätt |
+| **117–119** | `\brundan?\b` | ☠️ **matchar ADJEKTIVET** |
+| 120 | `\brundan\b\|\brunda\s+\d+` | rätt igen |
+
+Den breda formen fäller *"två **runda** pallar"*. Att den kunde ligga fel i tre
+rundor beror på att **ingen produkt i 117, 118 eller 119 var RUND** — runda 120
+sålde runda pallar och blev det första underlag som nådde grinden. Sju
+förekomster, två fällda korrekta sidor.
+
+☠️ **En trasig grind som aldrig får ett indata som utlöser den ser korrekt ut i
+källkoden hur länge som helst.** Samma runda hittade ett andra fall i samma
+familj: mönstret mot höjdjustering var `höj\w*\s*(och\|-)?\s*sänkbar\w*` —
+det tillåter bindestreck ELLER "och", medan den vanligaste svenska formen
+(`höj- och sänkbara`) bär BÅDA. Grinden var stum mot precis det den fanns för,
+och självtestet var det enda som kunde säga det.
+
+**Reglerna bor i `tools/polish-assets/grindar.py` sedan runda 120** — `JARGONG`,
+`TILLATNA_TECKEN` + `homoglyfer()`, `DELORD` + `fargfel()` — och
+`tvillingsvep()` i samma fil är källkodstestet som fäller om en runda från 120
+och framåt definierar om dem i stället för att importera. Samma mekanism som
+`store-access-audit.test.ts`.
+
+⚠️ **Svepets EGET första utkast släppte igenom noll och fällde varje alias.**
+Mönstret var `^NAMN\s*=\s*(?!G\.)`, och `\s*` backtrackar till noll tecken —
+lookaheaden hamnade på MELLANSLAGET i stället för på `G`, så `NAMN = G.NAMN`
+lästes som en egen definition. Negationen måste sitta EFTER likhetstecknet och
+själv äta blanktecknen: `=(?!\s*G\.)`. Grinden mot trasiga grindar var alltså
+själv ett exempel på det den vaktar.
+
+#### ☠️ En NEGATION i en korslänk är inte ett påstående om grannen
+
+Brödtexten har gått genom `loftestraff` sedan runda 117 — den ursäktar en träff
+som är negerad i sin egen mening. **Länkmeningarna gick genom en naken
+`search`** ända till runda 120, som fälldes på sina egna korrekta länktexter:
+
+| länktext | grindens dom |
+|---|---|
+| "samma bredd **utan hylla**, i grått" | KORSLÄNK påstår FÖRVARING |
+| "pallar **utan rygg**" | KORSLÄNK påstår RYGGSTÖD |
+
+Samma familj som runda 114:s falska godkännande, fast åt andra hållet: där
+ursäktade en negation ett löfte som borde fällts, här fällde en negation ett
+korrekt nekande. Kör `G.loftestraff(monster, mening)` också på länkmeningarna.
+
+#### ⚠️ Ett FÄRGORD i en alt-text beskriver ofta SCENEN, inte varan
+
+Färggrinden byggdes i runda 89–91 efter tre rundor med fel färg, och letade
+färgord var som helst. Runda 120 mätte priset: den fällde *"Fristående mot vit
+bakgrund"* — husets vanligaste alt-textformulering, och en beskrivning av
+fotostudion. `G.fargfel()` tittar därför bara på färg som sitter på en DEL av
+varan, i båda svenska ordföljderna (`röd skiva`, `skivan är röd`). En bakgrund,
+en vägg eller en matta är ingen del.
 
 ### ☠️ En borttagningsmutation som tar FÖRSTA förekomsten bevisar ingenting
 
