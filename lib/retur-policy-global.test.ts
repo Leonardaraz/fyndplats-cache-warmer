@@ -177,3 +177,24 @@ test("ingen text lovar frakten tillbaka utan att säga när", () => {
   }
   assert.deepEqual(bad, []);
 });
+
+test("ingen yta lovar en annan återbetalningstid än den delade", () => {
+  // "5–10 bankdagar" stod på sju ytor och var fel — vi är klara på 2–3
+  // arbetsdagar. Ett prov behövs eftersom siffran är den sorts uppgift som
+  // ändras i verkligheten och glöms i texten.
+  //
+  // Bankens clearingtid är något annat och får ha egna tal: mejlen om att
+  // pengarna SYNS på kontot talar om kundens bank, inte om oss.
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    const chunks = t.split(/(?<=[.!?])\s+/);
+    chunks.forEach((s) => {
+      if (!/(vi )?(åter)?betalar (tillbaka )?inom|återbetalning (sker )?(till[^.]*)?inom|Återbetalning inom/i.test(s)) return;
+      if (/syns på (ditt )?konto|beror.{0,20}(på )?din bank/i.test(s)) return; // bankens tid
+      if (/2–3 arbetsdagar|REFUND_TIME|REFUND_SENTENCE/.test(s)) return;
+      if (/lagens|14 § |distansavtalslagen/i.test(s)) return; // lagens yttersta frist
+      bad.push(`${p}: ${s.trim().replace(/\s+/g, " ").slice(0, 100)}`);
+    });
+  }
+  assert.deepEqual(bad, []);
+});

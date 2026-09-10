@@ -117,6 +117,30 @@ export const TRIGGER =
 export const SHIPPING_REFUND =
   "Anmälde du inom den lagstadgade ångerfristen på 14 dagar återbetalas även vad du betalat för vår billigaste standardleverans. Anmälde du under det frivilliga öppna köpet dag 15–30 återbetalas produktens pris, men inte frakten till dig.";
 
+/**
+ * Hur lång tid VÅR hantering tar — inte hur lång tid bankens clearing tar.
+ *
+ * Sajten sa "5–10 bankdagar" på sju ställen. Leonard 2026-09-10: det stämmer
+ * inte, ni är klara på 2–3 arbetsdagar. Aosom lovar 2–3 Werktage mot er, så
+ * siffran är rimlig hela kedjan igenom.
+ *
+ * VIKTIG GRÄNS: det här är tiden från att returen är mottagen och kontrollerad
+ * till att vi skickar pengarna. Sedan tillkommer kundens banks clearing, som vi
+ * inte råder över (emails/refund-confirmation.tsx och order-cancellation.tsx
+ * talar om DEN tiden och ska fortsätta säga 3–10 bankdagar "beroende på din
+ * bank"). Slår man ihop dem till ett enda löfte om 2–3 dagar ljuger man för var
+ * och en vars kortutgivare tar en vecka.
+ *
+ * Lagens tak ligger kvar oavsett: 2 kap. 14 § distansavtalslagen ger senast 14
+ * dagar från vårt mottagande av meddelandet. Vi lovar alltså snabbare än lagen
+ * kräver, vilket är tillåtet — men löftet är bindande när det väl står där.
+ */
+export const REFUND_TIME = "2–3 arbetsdagar";
+
+/** Hel mening, för de ytor som skriver ut den. */
+export const REFUND_SENTENCE =
+  "Vi betalar tillbaka inom 2–3 arbetsdagar efter att vi tagit emot och kontrollerat returen. Pengarna går till ditt ursprungliga betalmedel; hur snabbt de syns på kontot beror sedan på din bank.";
+
 /** Gäller båda perioderna. */
 export const COMMON: string[] = [
   "Returfrakten betalas av dig som kund. Välj valfri leveranstjänst — vi rekommenderar spårbar leverans så du har bevis på avsändning.",

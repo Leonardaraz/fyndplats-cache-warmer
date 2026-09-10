@@ -12,7 +12,7 @@
 import { Column, Img, Row, Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
 import { RETURN_ADDRESS } from "../lib/return-address";
-import { SHIPPING_REFUND } from "../lib/retur-policy";
+import { SHIPPING_REFUND, REFUND_TIME } from "../lib/retur-policy";
 
 export interface WithdrawalReceiptItem {
   name: string;
@@ -153,8 +153,9 @@ export default function WithdrawalReceiptEmail({
 
       <Text style={text.h2}>Återbetalning</Text>
       <Text style={text.body}>
-        Vi återbetalar inom <strong>5–10 bankdagar</strong> efter att vi tagit emot och
-        kontrollerat returen, till ditt ursprungliga betalmedel (kort, Klarna, Swish).
+        Vi betalar tillbaka inom <strong>{REFUND_TIME}</strong> efter att vi tagit emot och
+        kontrollerat returen, till ditt ursprungliga betalmedel (kort, Klarna, Swish). Hur
+        snabbt pengarna syns på kontot beror sedan på din bank.
       </Text>
       <Text style={text.body}>{SHIPPING_REFUND}</Text>
 

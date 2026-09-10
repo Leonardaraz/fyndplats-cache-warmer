@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ContentPage } from "../../components/content";
 import AngraForm from "../../components/angra-form";
-import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT } from "../../lib/retur-policy";
+import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT, REFUND_TIME } from "../../lib/retur-policy";
 
 export const metadata: Metadata = {
   title: "Ångra köp",
@@ -71,8 +71,9 @@ export default function AngraKop() {
           <li key={p}>{p}</li>
         ))}
         <li>
-          <strong>Återbetalning inom 5–10 bankdagar</strong> efter att vi tagit emot och
-          kontrollerat returen, till ditt ursprungliga betalmedel.
+          <strong>Återbetalning inom {REFUND_TIME}</strong> efter att vi tagit emot och
+          kontrollerat returen, till ditt ursprungliga betalmedel. Hur snabbt pengarna syns
+          på kontot beror sedan på din bank.
         </li>
       </ul>
 

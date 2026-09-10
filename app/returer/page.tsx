@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ContentPage } from "../../components/content";
-import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT } from "../../lib/retur-policy";
+import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT, REFUND_SENTENCE } from "../../lib/retur-policy";
 
 export const metadata: Metadata = {
   title: "Returer & ångerrätt",
@@ -33,7 +33,7 @@ export default function Returer() {
       <p>Svara på bekräftelsemejlet med ditt spårningsnummer så håller vi koll på returen.</p>
 
       <h2>5. Återbetalning</h2>
-      <p>Vi återbetalar inom 5–10 bankdagar efter att vi tagit emot och kontrollerat produkten. Pengarna går till ursprungligt betalmedel (kort, Klarna, Swish).</p>
+      <p>{REFUND_SENTENCE} Betalmedlet är detsamma som vid köpet (kort, Klarna, Swish).</p>
 
       <h2>Returvillkor</h2>
 

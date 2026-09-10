@@ -5,20 +5,18 @@
 import { Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
 import { RETURN_ADDRESS } from "../lib/return-address";
-import { COMPLAINT_SHORT } from "../lib/retur-policy";
+import { COMPLAINT_SHORT, REFUND_TIME } from "../lib/retur-policy";
 
 export interface ReturnConfirmationProps {
   firstName: string;
   orderNumber: string;
   productName?: string;
-  expectedRefundDays?: number; // typiskt 5–10 bankdagar efter mottagen retur
 }
 
 export default function ReturnConfirmationEmail({
   firstName,
   orderNumber,
   productName,
-  expectedRefundDays = 10,
 }: ReturnConfirmationProps) {
   return (
     <EmailShell preview={`Vi har tagit emot din returanmälan för order ${orderNumber}`}>
@@ -64,9 +62,9 @@ export default function ReturnConfirmationEmail({
 
       <Text style={text.h2}>Återbetalning</Text>
       <Text style={text.body}>
-        Vi återbetalar inom <strong>{expectedRefundDays} bankdagar</strong> efter att vi
-        tagit emot och kontrollerat produkten. Pengarna går till ursprungligt betalmedel
-        (kort, Klarna, Swish).
+        Vi betalar tillbaka inom <strong>{REFUND_TIME}</strong> efter att vi tagit emot och
+        kontrollerat produkten, till ursprungligt betalmedel (kort, Klarna, Swish). Hur snabbt
+        pengarna syns på kontot beror sedan på din bank.
       </Text>
 
       <Text style={{ ...text.muted, marginTop: "16px" }}>
