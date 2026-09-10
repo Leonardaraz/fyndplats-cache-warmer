@@ -26,7 +26,22 @@ publiceringssvaret för varenda en.
 | 10 | kategorier | 8/8 i Hem & Inredning + Förvaring & Organisering |
 | 13 | publicering | 8/8 `visible: true`, även varianten |
 | 13 | mappningsraden | 8/8 workflow-körningar `success` |
-| 14 | live-grind | se nedan |
+| 14 | live-grind | **8/8 gröna**, 12 självtestfall, 0 fel — efter tre lagningar i grinden själv |
+
+## ☠️ Live-grinden fällde nio gånger, och alla nio var fel i GRINDEN
+
+Ingen av träffarna var ett fel i texten. De tre orsakerna står i
+commit-meddelandet och i `grindar.py`:s kommentarer, men kort:
+
+1. Grannstrykningen kände fyra kanaler av sex — `<img alt>` och
+   `<div class="pname">` saknades, så en GRANNES namn ("Träbänk 175 cm i
+   massiv furu") fällde materialgrinden på en korrekt köksvagnssida.
+2. Ordningen mellan två strykningar: `BILDADRESS` matchar `\S+` och åt halva
+   grannens namn när den kördes först. Grannarna stryks nu ur RÅ HTML.
+3. Butikens egen EU-lager-ribbon — på TVÅ ställen, produktsidan och sidfoten.
+
+Rutinerna bor i `grindar.py` sedan dess, och runda 116:s live-grind delegerar
+dit i stället för att bära en kopia som redan var föråldrad.
 
 ## Kvar för Leonard
 
