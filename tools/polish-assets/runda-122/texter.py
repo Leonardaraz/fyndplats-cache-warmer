@@ -174,14 +174,14 @@ FAQ = {
         ("Går den att använda hemma?", "Ja. Den är 73 cm lång och 45 cm bred, alltså smalare än de flesta dörrar, och 9,7 kg är lätt nog att lyfta över en tröskel."),
     ],
     "0cbffcd9": [
-        ("Ingår moppen?", "Nej. Vagnen kommer med två hinkar, press, sopsäck och monteringsanvisning. Moppen och moppskaftet köper du separat."),
+        ("Ingår moppen?", "Nej. Vagnen kommer med två hinkar, press, sopsäck och monteringsanvisning. Moppen, moppskaftet, trasorna och flaskorna som syns på bilderna köper du separat."),
         ("Vad skiljer den här från syskonmodellen?", "Bara ramens färg. Måtten, hinkarna, pressen, sopsäcken och vikten är identiska."),
         ("Hur stora är hinkarna?", "18 liter var, två stycken. Pressen sitter i den ena."),
         ("Varför fem hjul och inte fyra?", "Det femte hjulet sitter mitt under vagnen och tar upp last när den är full, så att de fyra yttre inte snedbelastas."),
         ("Går sopsäcken att ta av?", "Ja, den hänger i en egen ram med lock och kan lyftas ur för att tömmas och sköljas."),
     ],
     "740fa6d0": [
-        ("Ingår moppen?", "Nej. Vagnen kommer med två hinkar, press, sopsäck och monteringsanvisning. Moppen och moppskaftet köper du separat."),
+        ("Ingår moppen?", "Nej. Vagnen kommer med två hinkar, press, sopsäck och monteringsanvisning. Moppen, moppskaftet, trasorna och flaskorna som syns på bilderna köper du separat."),
         ("Vad skiljer den här från syskonmodellen?", "Bara ramens färg. Måtten, hinkarna, pressen, sopsäcken och vikten är identiska."),
         ("Hur stora är hinkarna?", "18 liter var, två stycken. Pressen sitter i den ena."),
         ("Varför fem hjul och inte fyra?", "Det femte hjulet sitter mitt under vagnen och tar upp last när den är full, så att de fyra yttre inte snedbelastas."),
