@@ -46,7 +46,7 @@
       "schedule": "20 */6 * * *"
     },
     {
-      "path": "/api/cron/aosom-sync?dryRun=false",
+      "path": "/api/cron/aosom-sync?dryRun=false&limit=1200",
       "schedule": "20 3 * * *"
     },
     {

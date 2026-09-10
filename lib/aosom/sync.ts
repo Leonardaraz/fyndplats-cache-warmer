@@ -25,7 +25,7 @@
 // Synlighet, texter, bilder, kategorier. Bara lagersaldo, pris och de tre
 // kostnadsfälten på mappningen.
 
-import { fetchAosomFeed, landedCostEur, type AosomRow } from "./feed";
+import { fetchAosomFeed, harVerkligSeFrakt, landedCostEur, type AosomRow } from "./feed";
 import { aosomSupplierProductId, type AosomFx } from "./to-product";
 import { SUPPLIER_VAT_RATE } from "../auction/seed";
 import { computePriceWithRules } from "../import/pricing";
@@ -139,6 +139,16 @@ export interface AosomSyncSummary {
   urFeeden: number;
   /** Nollade för att saldot låg på eller under bufferten. */
   slutsalda: number;
+  /**
+   * Nollade för att Aosom inte skickar dem till Sverige (fraktsentinel).
+   *
+   * ☠️ EGEN RÄKNARE, inte hopslagen med `slutsalda`. "Aosom har slut" och
+   * "Aosom skickar den inte hit" kräver olika åtgärd: det första löser sig
+   * självt, det andra kan betyda att en publicerad sida tar emot en order vi
+   * inte kan expediera. Talet ska stå i loggraden — går det upp är det ett
+   * besked, inte brus.
+   */
+  ejSkeppbara: number;
   /** Ingen förändring — varken lager eller pris. */
   oforandrade: number;
   /**
@@ -314,6 +324,8 @@ export interface Produktplan {
   nyLandad: number | null;
   urFeeden: boolean;
   slutsald: boolean;
+  /** Raden finns, men Aosom skickar den inte till Sverige (fraktsentinel). */
+  ejSkeppbar: boolean;
   utanWixPris: boolean;
   prisLast: boolean;
   varning: { sku: string; fran: number; till: number; andringPct: number } | null;
@@ -343,7 +355,23 @@ export function planeraProdukt(
   // ── LAGER ──────────────────────────────────────────────────────────────
   // Saknad rad = tillfälligt bortplockad hos Aosom, inte utgången. Nolla
   // saldot, lämna sidan. Se filhuvudet.
-  const onskatSaldo = row ? synligtSaldo(row.qty) : 0;
+  const feedSaldo = row ? synligtSaldo(row.qty) : 0;
+
+  // ☠️ SKEPPBARHETEN GATAS HÄR, INTE BARA VID IMPORTEN (2026-09-10).
+  //
+  // `isShippableToSe` hade fem anropare — importen, ommappningen, bildfixen och
+  // feed-sökningen — och synken var inte en av dem. En rad som blir oskeppbar
+  // EFTER importen fortsatte därför få sitt saldo speglat, och massagebänken
+  // 503-001V00CW låg publicerad och köpbar med Aosoms "skickas inte hit"-frakt
+  // (999,90 €) i feeden. Mappningens egen fraktandel var 0,292 vid importen —
+  // frakten var alltså normal då. Exakt samma mönster som den döda
+  // AE-listningen: importen gatade, synken gjorde det inte, och felet nådde kund.
+  //
+  // Svaret är detsamma som där: NOLLA SALDOT, AVPUBLICERA INTE. Sidan ligger
+  // kvar (SEO-beslutet från 2026-08-09) och en senare körning där frakten är
+  // normal igen återställer saldot av sig själv.
+  const ejSkeppbar = !!row && !harVerkligSeFrakt(row);
+  const onskatSaldo = ejSkeppbar ? 0 : feedSaldo;
 
   const plan: Produktplan = {
     sku,
@@ -354,7 +382,12 @@ export function planeraProdukt(
     nyttPris: null,
     nyLandad: null,
     urFeeden: !row,
-    slutsald: !!row && onskatSaldo === 0,
+    // ☠️ `slutsald` räknas ur FEEDENS saldo, inte ur det nollade. Annars hade
+    // varje ej skeppbar rad också bokförts som slutsåld, och de två är olika
+    // besked: "Aosom har slut" mot "Aosom skickar den inte hit". Att slå ihop
+    // dem hade gjort räknaren oanvändbar precis när den behövs.
+    slutsald: !!row && !ejSkeppbar && feedSaldo === 0,
+    ejSkeppbar,
     utanWixPris: false,
     prisLast: false,
     varning: null,
@@ -363,7 +396,14 @@ export function planeraProdukt(
   // ── PRIS ───────────────────────────────────────────────────────────────
   // Bara när raden finns: utan rad finns inget nytt pris att räkna på, och ett
   // gammalt pris på en slutsåld vara skadar ingen.
-  if (!row || opts.skipPrices || !variant) return plan;
+  //
+  // ☠️ OCH EJ SKEPPBAR RAD PRISSÄTTS INTE. `landedCostEur` adderar
+  // sentinelfrakten rakt av, så regelpriset blir 17 619 kr på en vara som
+  // kostar 58 € — ett tal som bara MAX_PRISANDRING_PCT hindrar från att nå
+  // kund. Det taket är en spärr mot trasiga feed-rader, inte en prissättare,
+  // och en varning som fyrar varje natt på ett känt tillstånd är samma
+  // falsklarm som `regelGäller` byggdes för att ta bort.
+  if (!row || ejSkeppbar || opts.skipPrices || !variant) return plan;
 
   // ☠️ LÅST PRIS RÖRS INTE. Leonards beslut per rad — se `prisLast` i
   // ProductMappingRecord. Ligger FÖRE uträkningen: en rad som ändå inte får
@@ -501,6 +541,7 @@ export async function runAosomSync(
     prisUppdaterade: 0,
     urFeeden: 0,
     slutsalda: 0,
+    ejSkeppbara: 0,
     oforandrade: 0,
     utanWixPris: 0,
     prisLasta: 0,
@@ -560,6 +601,7 @@ export async function runAosomSync(
     for (const p of planer) {
       if (p.urFeeden) summary.urFeeden++;
       if (p.slutsald) summary.slutsalda++;
+      if (p.ejSkeppbar) summary.ejSkeppbara++;
       if (p.utanWixPris) summary.utanWixPris++;
       if (p.prisLast) summary.prisLasta++;
       if (p.varning) summary.varningar.push(p.varning);

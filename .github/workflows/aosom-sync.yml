@@ -53,6 +53,30 @@ on:
         required: false
         default: "20"
         type: string
+      sku:
+        # Rutten har haft ?sku= hela tiden (riktad omkörning efter ett fel),
+        # men workflowen exponerade den inte — och CRON_SECRET är Sensitive i
+        # Vercel, så rutten var i praktiken oanropbar utan den här vägen.
+        # Frågan som byggde inputen (2026-09-10): stämmer feedens pris med
+        # Aosoms B2B-kassa? Ett helt svep svarar inte på det — det säger bara
+        # hur många rader i katalogen som vill skrivas.
+        #
+        # ☠️ Talen som kommer ut är RÄKNARE, aldrig belopp. Loggen är publik.
+        #
+        # ☠️ MEN ARTIKELNUMRET SJÄLVT BLIR PUBLIKT, och det går inte att undvika.
+        # GitHub visar ett `workflow_dispatch`-inputs värde i körningsvyn och i
+        # env-blocket i loggen, oavsett vad skriptet skriver ut. Ett artikelnummer
+        # som skickas hit är alltså publicerat i samma sekund körningen startar.
+        # Det är samma hållning som aosom-feed-search.yml redan valt (artikelnummer,
+        # namn och Aosoms publika URL står kvar; priset ligger bakom en flagga) —
+        # men det är ett val, inte en bieffekt, och det ska inte upptäckas i
+        # efterhand av någon som antog att inputet var privat. Behöver du ställa
+        # en fråga om en rad UTAN att namnge den publikt: kör hela katalogen och
+        # läs räknarna, eller gå via kuvertet i polish-mapping.yml.
+        description: "Bara dessa artikelnummer, kommaseparerat. Tomt = hela katalogen."
+        required: false
+        default: ""
+        type: string
 
 jobs:
   synka:
@@ -67,6 +91,7 @@ jobs:
           MODE: ${{ inputs.mode }}
           LIMIT: ${{ inputs.limit }}
           MAX_ROUNDS: ${{ inputs.max_rounds }}
+          SKU: ${{ inputs.sku }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           BASE_SECRET: ${{ secrets.POLL_TRACKING_URL }}
         run: |
@@ -128,12 +153,17 @@ jobs:
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
-          utanrader=0; drift=0; prislasta=0
+          utanrader=0; drift=0; prislasta=0; ejskeppbara=0
           after=""; varv=0; prislistefel=
 
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
             varv=$(( varv + 1 ))
             url="${base}?${args}&limit=${LIMIT}"
+            # ☠️ URL-KODAT. Ett artikelnummer är visserligen bara [A-Z0-9-],
+            # men en felskriven input får inte kunna bryta ut ur query-strängen.
+            if [ -n "${SKU:-}" ]; then
+              url="${url}&sku=$(printf '%s' "$SKU" | jq -sRr @uri)"
+            fi
             if [ -n "$after" ]; then
               url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
             fi
@@ -151,6 +181,8 @@ jobs:
             ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
             dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
             pl=$(printf '%s' "$svar" | jq -r '.prisLasta // 0')
+            ejs=$(printf '%s' "$svar" | jq -r '.ejSkeppbara // 0')
+            stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "okant"')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar')
 
             granskade=$(( granskade + g )); lager=$(( lager + l ))
@@ -159,6 +191,7 @@ jobs:
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
             utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
             prislasta=$(( prislasta + pl ))
+            ejskeppbara=$(( ejskeppbara + ejs ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -169,9 +202,21 @@ jobs:
             # ☠️ Talen ska stå i LOGGEN, inte bara i jobbsummeringen. Summeringen
             # syns bara i webb-UI:t; loggen är det som går att greppa, citera i
             # en rapport och läsa från en telefon.
+            # ☠️ `stoppade på` ÄR DEN VIKTIGA DELEN. Utan den går det inte att se om
+            # varvet tog slut för att BUDGETEN (`limit`) tog slut eller för att TIDEN
+            # gjorde det — och det är exakt den frågan som avgör om taket ska höjas
+            # eller om prisskrivningarna måste batchas. Priscronen stannade på `limit`
+            # fyra nätter i rad och lämnade 2 607 rader ogranskade utan att någon såg det.
             echo "varv ${varv}: ${g} granskade, ${l} lager, ${p} priser, ${u} utan butikspris," \
-                 "${pl} prislåsta, ${ul} utan lagerrader, ${dr} lagerdrift, ${mi} misslyckade," \
-                 "${kvar} kvar"
+                 "${pl} prislåsta, ${ejs} ej skeppbara, ${ul} utan lagerrader, ${dr} lagerdrift," \
+                 "${mi} misslyckade, stoppade på ${stopp}, ${kvar} kvar"
+
+            # En rad Aosom slutat skicka till Sverige är ett LAGERBESKED, inte ett fel:
+            # saldot nollas, sidan ligger kvar. Men den ska SYNAS — en publicerad sida
+            # vars vara inte går att skicka tar emot order vi inte kan expediera.
+            if [ "${ejs}" -gt 0 ]; then
+              echo "::warning::${ejs} rader kan inte skickas till Sverige (fraktsentinel) — saldot nollat, sidorna ligger kvar. Kontrollera att ingen av dem är publicerad."
+            fi
 
             # Varningar är blockerade prishopp — de ska synas, inte summeras bort.
             printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.sku): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
