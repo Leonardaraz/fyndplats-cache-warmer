@@ -50,15 +50,20 @@ hade en riktig produkt flaggats som datafel.
 Undergruppen utan publicerad motsvarighet, och en egen sökordsnisch (ingen av
 de elva levande sidorna är ett arbetsfordon):
 
-| nyckel | vad bilden visar | mått · vikt |
-|---|---|---|
-| `cc6b56f9` | CAT-grävmaskin att sitta på, manövrerbar arm | 54×38×30 · 3,6 |
-| `fb142c5c` | CAT-hjullastare med skopa fram | 54×35×30 · 3,6 |
-| `738ca991` | CAT-bandgrävare på larvband | 78×24×58,5 · 3,1 |
-| `0c05c1a0` | CAT-frontlastare med stor skopa | 62×30×36 · 3,1 |
-| `23ba27a5` | CAT-traktor med ratt och släp | 60,5×32×28 · 3,8 |
-| `39d85f18` | traktor med släp, gul | 60,5×32×28 · 3,8 |
-| `389ac5ac` | traktor med släp, blå | 60,5×32×28 · 3,8 |
+⚠️ **Talen nedan är RÄTTADE i Steg 2.** Tabellen bar först paketmåtten,
+eftersom extraktionen matchade den svenska raden `54 × 38 × 30` men inte den
+tyska `85L x 27,5B x 47,5H` — bokstäverna L/B/H står mellan talen. Se STEG2.md
+punkt 2; yttermått och paketmått bor nu i två skilda tabeller i `matt.py`.
+
+| nyckel | vad bilden visar | yttermått | paket | vikt |
+|---|---|---|---|---|
+| `cc6b56f9` | grävmaskin att sitta på, manövrerbar arm | 85×27,5×47,5 | 54×38×30 | 3,6 |
+| `fb142c5c` | hjullastare med skopa fram | 78×29,5×54 | 54×35×30 | 3,6 |
+| `738ca991` | bandgrävare på larvband | 78×24×58,5 | 52,5×29×37 | 3,1 |
+| `0c05c1a0` | frontlastare med stor skopa | 80×26,5×39 | 62×30×36 | 3,1 |
+| `23ba27a5` | traktor med ratt och släp, Caterpillar-licens | 91×29×44 | 60,5×32×28 | 3,8 |
+| `39d85f18` | traktor med släp, gul | 91×29×44 | 60,5×32×28 | 3,8 |
+| `389ac5ac` | traktor med släp, blå | 91×29×44 | 60,5×32×28 | 3,8 |
 
 ## Vad som lämnas kvar i högen — och varför det INTE är skräp
 
