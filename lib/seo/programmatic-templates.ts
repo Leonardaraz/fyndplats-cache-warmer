@@ -114,7 +114,7 @@ function returnAnswer(seed: number, salt: number): string {
 
 export function bestInTestH1(label: string, seed: number): string {
   const v = [
-    `Bäst i test: ${label} ${YEAR} — vi har testat och jämfört`,
+    `Bäst i test: ${label} ${YEAR} — utvalda och jämförda`,
     `${cap(label)} ${YEAR}: bäst i test enligt oss`,
     `Bäst i test ${label} ${YEAR} — vår stora jämförelse`,
     `Vi har jämfört ${label} — här är bäst i test ${YEAR}`,
@@ -140,7 +140,7 @@ export function bestInTestMetaDesc(label: string, count: number, priceRange: str
     `Vi har jämfört ${count} ${label} till bra pris. Se vår topplista med betyg, pris (${priceRange}) och köpguide — hitta bäst i test ${YEAR} hos Fyndplats.`,
     `Bäst i test ${label} ${YEAR}: ${count} noga utvalda fynd jämförda sida vid sida. Pris från ${priceRange}, fri frakt över 499 kr. Hitta ditt val hos Fyndplats.`,
     `Letar du efter ${label}? Vår jämförelse av ${count} modeller (${priceRange}) hjälper dig välja rätt. Bäst i test, mest prisvärt och budgetval — allt samlat.`,
-    `${count} ${label} testade och rankade ${YEAR}. Pris ${priceRange}, betyg och köpguide i ett — plus fri frakt över 499 kr. Se topplistan hos Fyndplats.`,
+    `${count} ${label} utvalda och rankade ${YEAR}. Pris ${priceRange}, omdömen och köpguide i ett — plus fri frakt över 499 kr. Se topplistan hos Fyndplats.`,
     // Plural ("Vilka X är bäst…") — den gamla naiva singulariseringen
     // (label.replace(/r$/,"")) gav trasig svenska ("massagepistole").
     `Vilka ${label.toLowerCase()} är bäst i test ${YEAR}? Vi jämför ${count} favoriter (${priceRange}) med betyg och tips. Allt samlat hos Fyndplats.`,
@@ -199,6 +199,32 @@ export function bestInTestIntro(p: {
   ];
 }
 
+// Varför-meningar per roll. Rollerna sätts av assignRoles() efter prisranking,
+// så formuleringarna får bara påstå sådant som prisordningen faktiskt visar.
+const WHY: Record<string, string[]> = {
+  "budget-val": [
+    "Billigast i vårt urval — börja här om du vill komma igång utan att lägga mer än nödvändigt.",
+    "Det här är golvet i prisspannet, och för många är golvet precis vad som behövs.",
+    "Lägsta priset av dem vi valt ut, utan att vi behövde tumma på kraven för att komma med.",
+  ],
+  "bra köp": [
+    "Ligger i mitten av prisspannet: mer än instegsmodellen, utan toppens prislapp.",
+    "Ett mellanläge — du betalar för lite mer utrustning än längst ned i listan.",
+    "Varken billigast eller dyrast här, vilket för de flesta är precis rätt läge.",
+  ],
+  "mest för pengarna": [
+    "Den vi själva hade valt: mest funktion per krona av dem vi jämfört.",
+    "Här tycker vi att kurvan planar ut — mer pengar ger inte särskilt mycket mer produkt.",
+    "Bäst balans mellan pris och innehåll sett över hela urvalet.",
+  ],
+  "premium-val": [
+    "Dyrast i urvalet, och den med mest utrustning av dem vi jämfört.",
+    "Toppen av listan — välj den om du vill ha allt som finns att få här.",
+    "Det här är taket i prisspannet, och den mest utrustade av våra val.",
+  ],
+};
+const WHY_FALLBACK = ["Den kom med i urvalet för att den håller vad beskrivningen lovar."];
+
 // Per-produkt-text 80–100 ord. Vävs av produktens egna blurb + roll + pris.
 export function productParagraph(p: {
   name: string;
@@ -216,19 +242,18 @@ export function productParagraph(p: {
     `${p.name} tar hem rollen som ${role} i vår jämförelse.`,
     `När det gäller ${role} är ${p.name} vår klara rekommendation.`,
   ];
-  const body = p.blurb && p.blurb.length > 20
-    ? p.blurb.replace(/\s+$/, "")
-    : `En genomtänkt favorit som gör jobbet utan krångel`;
-  const why = [
-    `Det vi gillar mest är att den känns genomtänkt rakt igenom och håller vad den lovar i vardagen.`,
-    `Den träffar den där balansen mellan kvalitet och pris som gör att den passar de flesta.`,
-    `Enkel att använda, snygg att ha framme och prisvärd för vad du får — en trygg rekommendation.`,
-    `Idealisk för dig som vill ha något som bara funkar, utan krångel och utan att kosta för mycket.`,
-    `Ett populärt val hos våra kunder, och det är inte svårt att förstå varför — den gör jobbet med råge.`,
-    `Passar perfekt för vardagsbruk: pålitlig, lätt att leva med och prisvärd på riktigt.`,
-  ];
+  // Blurben slutar ofta redan med punkt — att alltid lägga på en till gav
+  // "…40,5 centimeter.." på skarpa sidor.
+  const raw = p.blurb && p.blurb.length > 20 ? p.blurb.trim() : "En genomtänkt favorit som gör jobbet utan krångel";
+  const body = /[.!?…]$/.test(raw) ? raw : `${raw}.`;
+  // Rollen härleds ur prisordningen inom urvalet och är, vid sidan av produktens
+  // egen beskrivning, det enda vi faktiskt vet om den. Meningarna säger därför
+  // bara det: var i spannet den ligger. De gamla ("Passar perfekt för vardags-
+  // bruk: pålitlig, lätt att leva med och prisvärd på riktigt") stod ordagrant
+  // på tre av fem produkter och gick att sätta på vilken vara som helst.
+  const why = WHY[role] || WHY_FALLBACK;
   const priceLine = p.price ? ` Pris: ${p.price}.` : "";
-  return `${pick(lead, p.seed)} ${body}. ${pick(why, p.seed, 4)}${priceLine}`;
+  return `${pick(lead, p.seed)} ${body} ${pick(why, p.seed, 4)}${priceLine}`;
 }
 
 // Roll-badges fördelas efter prisranking inom urvalet.
