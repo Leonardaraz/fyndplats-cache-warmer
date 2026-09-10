@@ -7,6 +7,7 @@
 import { cache } from "react";
 import { getProducts, getCollections, forListings } from "./products";
 import type { Product, Collection } from "./products";
+import { categoryInMainNav } from "./category-threshold";
 
 export type MainGroup = {
   main: string;          // Wix-katalogens kategorinamn
@@ -290,7 +291,11 @@ export function buildCategoryTree(products: Product[], collections: Collection[]
   }
 
   const roots = collections
-    .filter((c) => !c.parentId && !NAV_EXCLUDED.has(c.name) && (counts.get(c.id) || 0) > 0)
+    // > 0 räckte förr. Punkt 17: en huvudkategori med 1–4 produkter ska inte
+    // stå i navigationen — "Mode & Accessoarer" hade tre. Underkategorierna
+    // filtreras fortsatt bara på > 0; de är inte huvudkategorier och kravet
+    // gäller uttryckligen huvudnavigationen.
+    .filter((c) => !c.parentId && !NAV_EXCLUDED.has(c.name) && categoryInMainNav(counts.get(c.id) || 0))
     .map((mainCol) => {
       const children = childrenByParent.get(mainCol.id) || [];
       const subs = children
