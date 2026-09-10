@@ -24,15 +24,51 @@ ETIKETT = {m: e for m, e in GR.FORBJUDET}
 
 
 def _tvatta(html):
-    """Stryker bildadresser, srcset-bredder och butikens ribbon.
+    """Stryker bildadresser, srcset-bredder och butikens chrome — men ALDRIG href.
+
+    ☠️ ETT BRETT `https?://\\S+` DÖDAR KORSLÄNKARNA. `egna_meningar` kör
+       tvätten FÖRE `dela_pa_ankare`, och ankarmönstret kräver ett intakt
+       `href="…"`. Stryks adressen först slutar länken vara en länk, och
+       ankartexten — som NAMNGER grannens färg — faller ner i sidans EGNA
+       meningar. Uppmätt i runda 121:s första Steg 14: fyra korrekta
+       färgsyskonsidor fälldes för sina egna korslänkar, och en mätning med
+       `lambda h: h` visade att `blå` inte fanns i `egna` alls.
+
+       `egna_meningar`:s docstring varnar för precis det här om SLUGGEN. Ett
+       adressmönster gör samma sak en nivå bredare. Strykningen är därför
+       riktad mot `src` och `srcset`, aldrig mot `href`.
 
     ⚠️ `1080w` i en srcset är en BILDBREDD, inte ett tal i vår text
-       (uppgift #403). Och `Skickas från EU-lager` är butikens chrome-rad,
-       inte vår mening (uppgift #434)."""
-    html = re.sub(r"https?://\S+", " ", html)
+       (uppgift #403).
+
+    ☠️ Butikens chrome har TVÅ rader med `EU-lager`, inte en: leveransraden
+       över beskrivningen OCH en länk i sidfoten (`EU-lager & tull`). Den
+       andra fälldes på alla åtta korrekta sidor. En grind som fyrar på varje
+       riktig sida lär mottagaren att sluta läsa — samma regel som mot ett
+       rött synk-jobb vid varje svep.
+    """
+    html = re.sub(r'\ssrcset="[^"]*"', " ", html)
+    html = re.sub(r'\ssrc="[^"]*"', " ", html)
     html = re.sub(r"\b\d{2,4}w\b", " ", html)
-    html = re.sub(r"Skickas från[^<.,]{0,20}", " ", html, flags=re.I)
+    html = re.sub(r"Skickas från EU-lager[^<]*", " ", html, flags=re.I)
+    html = re.sub(r"EU-lager\s*(&amp;|&)\s*tull", " ", html, flags=re.I)
     return html
+
+
+def _tvattsjalvtest():
+    """☠️ Tvätten går inte att pröva mot en levande sida — den måste ha egna
+    fall, för dess två fel såg ut som produktfel på åtta korrekta sidor."""
+    fel = []
+    lank = '<a href="https://www.fyndplats.se/produkt/x-bla">Samma i blått</a>'
+    if 'href="https://www.fyndplats.se/produkt/x-bla"' not in _tvatta(lank):
+        fel.append("TVÄTTEN DÖDAR href — korslänken blir anonym")
+    if "srcset" in _tvatta('<img srcset="https://a.jpg 1080w" src="https://a.jpg">'):
+        fel.append("srcset stryks inte")
+    for chrome in ("Skickas från EU-lager – ingen importtull.",
+                   "Ångra köp EU-lager &amp; tull Köpvillkor"):
+        if "EU-lager" in _tvatta(chrome):
+            fel.append(f"butikens chrome står kvar: {chrome[:40]!r}")
+    return fel
 
 
 def granska(pid, html, slug):
@@ -70,6 +106,9 @@ if __name__ == "__main__":
     import json
     d = json.load(open("skrivning.json"))
     totalt = 0
+    for f in _tvattsjalvtest():
+        print("  ☠️ TVÄTT:", f)
+        totalt += 1
     for pid, v in d.items():
         url = f"https://www.fyndplats.se/produkt/{v['slug']}"
         try:
