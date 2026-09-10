@@ -101,6 +101,22 @@ SYSKON = {
                  ("barvagn-konstrotting-rund-50-cm", "rund barvagn i konstrotting")],
 }
 
+# ☠️ KORTETS RUBRIK BOR HÄR, INTE I kort.py. Runda 90 och 91 skrev fel färg
+#    två rundor i rad, och båda gångerna satt felet i KORTRUBRIKEN — den är
+#    vald just för att peka ut vad som skiljer syskonen åt, och den lintades
+#    inte. Grinden läser den härifrån.
+KORT = {
+    "764a3efc": ("RULLVAGN MED FYRA LÅDOR", "Bara 24 cm djup"),
+    "820d076b": ("HOPFÄLLBAR BARVAGN I BAMBU", "Viks ihop efter kvällen"),
+    "15d6fcef": ("KÖKSVAGN MED FYRA KORGAR", "Skiva i ljus stenlook"),
+    "0fd65541": ("KÖKSVAGN MED FYRA KORGAR", "Skiva i ekfärgad träeffekt"),
+    "2e292a70": ("GRÖNSAKSVAGN, VRIDBARA KORGAR", "Kommer färdigmonterad"),
+    "a4ee97c1": ("RULLBORD MED LÅDA OCH HYLLA", "Krokar på valfri sida"),
+    "8a73caf4": ("BARVAGN FÖR UTEPLATSEN", "Fyra flaskhållare i gran"),
+    "fcb86875": ("RUND BARVAGN I KONSTROTTING", "Avtagbar bricka överst"),
+    "ca20d60e": ("SERVERINGSVAGN FÖR UTEPLATSEN", "Lamellplan som dränerar"),
+}
+
 INGRESS = {
     "764a3efc": (
         "Springan mellan kylen och skåpet är oftast den sista lediga ytan i köket, "
@@ -110,7 +126,7 @@ INGRESS = {
         "lök och potatis som till burkar och putsmedel."),
     "820d076b": (
         "En barvagn är fantastisk medan gästerna är kvar och i vägen dagen efter. "
-        "Den här viks ihop. Två brickor på {bredd} × {djup} cm bär glas och tilltugg "
+        "Den här viks ihop. Två brickor på {skiva} bär glas och tilltugg "
         "under kvällen, tre flaskplatser håller vinet stående, och när det är över "
         "fälls hela vagnen ihop och ställs undan."),
     "15d6fcef": (
@@ -202,8 +218,8 @@ EGENSKAPER = {
         "{hjul_punkt}",
     ],
     "fcb86875": [
-        "Avtagbar metallbricka överst, Ø {skiva}",
-        "Öppet plan under, Ø {fack}",
+        "Avtagbar metallbricka överst, {skiva}",
+        "Öppet plan under, {fack}",
         "{handtag} handtag att rulla i",
         "{hjul_punkt}",
         "Ram i pulverlackat stål med flätad konstrotting",
@@ -302,8 +318,8 @@ SPEC = {
     ],
     "fcb86875": [
         ("Yttermått", "{matt} (diameter × höjd)"),
-        ("Övre planet", "Ø {skiva}, {ovre_kant} cm kant"),
-        ("Undre planet", "Ø {fack}, {undre_kant} cm kant"),
+        ("Övre planet", "{skiva}, {ovre_kant} cm kant"),
+        ("Undre planet", "{fack}, {undre_kant} cm kant"),
         ("Handtag", "{handtag}"),
         ("Maxlast", "{maxlast}"),
         ("Vikt", "{vikt}"),
@@ -457,7 +473,7 @@ FAQ = {
          "Ställ den under tak över vintern så håller ytan längre."),
         ("Kan hjulen låsas?", "{hjul_svar}"),
         ("Hur stor är den?",
-         "{matt}. Det undre planet är Ø {fack} och tar flaskorna stående."),
+         "{matt}. Det undre planet är {fack} och tar flaskorna stående."),
     ],
     "ca20d60e": [
         ("Blir det vatten stående på hyllorna?",
@@ -482,7 +498,10 @@ def bygg(pid):
 
     ut.append("<h2>Det här är vagnen</h2><ul>")
     for rad in EGENSKAPER[pid]:
-        ut.append(f"<li>{_f(rad, pid)}</li>")
+        # ☠️ Versal först. Flera punkter börjar med `{antal_fack}`, som är
+        #    gement i matt.py eftersom det också används mitt i meningar.
+        text = _f(rad, pid)
+        ut.append(f"<li>{text[:1].upper()}{text[1:]}</li>")
     ut.append("</ul>")
 
     ut.append("<h2>Tekniska specifikationer</h2><ul>")
@@ -505,7 +524,10 @@ def bygg(pid):
         # ☠️ FRÅGA och SVAR som TVÅ <p>. Wix strippar <br>, och en fråga som
         #    sitter ihop med sitt svar renderas som en enda klump.
         ut.append(f"<p><strong>{fraga}</strong></p>")
-        ut.append(f"<p>{_f(svar, pid)}</p>")
+        # ☠️ Samma normalisering som punktlistan: `{flaskor}` och `{krokar}`
+        #    är gemena räkneord i matt.py, och två FAQ-svar började med dem.
+        s = _f(svar, pid)
+        ut.append(f"<p>{s[:1].upper()}{s[1:]}</p>")
 
     return (NAMN[pid], SLUG[pid], TITEL[pid], META[pid], SOKORD[pid], "".join(ut))
 

@@ -212,9 +212,48 @@ def granska(pid):
         if t not in tillatna:
             fel.append(f"OSPÅRAT TAL {t!r} — står inte i matt.py['{pid}']")
 
+    # 11c. ☠️ DUBBLERAD ENHET. `matt.py['fcb86875']['skiva']` är "Ø 45 cm" och
+    #      mallen skrev "Ø {skiva}" — resultatet blev "Ø Ø 45 cm" på fem ställen.
+    #      Datan äger enheten; mallen får inte lägga på en till.
+    m = re.search(r"(Ø|cm|kg|×)\s+\1\b", syn)
+    if m:
+        fel.append(f"DUBBLERAD ENHET: {m.group(0)!r} — datan bär den redan")
+
+    # 11a. ☠️ ETT SPÅRBART TAL KAN VARA FEL TAL. Ingressen på 820d076b sa
+    #      "Två brickor på 66 × 40 cm" — det är VAGNENS fotavtryck, inte
+    #      brickans (54 × 33). Båda talen står i matt.py, så talgrinden i
+    #      punkt 10 släppte igenom det utan en invändning. Grinden här nedan
+    #      säger vad talgrinden inte kan: en DEL får inte bära vagnens egna
+    #      yttermått.
+    fotavtryck = rf"{re.escape(d['bredd'])}\s*×\s*{re.escape(d['djup'])}"
+    delord = (r"brick\w*|skiv\w*|korg\w*|hyll\w*|plan\w*|låd\w*|"
+              r"arbetsyt\w*|yta|ytan")
+    m = re.search(rf"\b({delord})\s+(?:på|om)\s+{fotavtryck}", egna, re.I)
+    if m:
+        fel.append(f"DELEN BÄR VAGNENS YTTERMÅTT: …{m.group(0)}… — "
+                   f"{d['bredd']} × {d['djup']} är hela vagnen")
+
     # 11. FAQ-formen: fråga och svar som TVÅ <p>
     if re.search(r"<strong>[^<]*\?</strong>(?!</p>)", html):
         fel.append("FAQ-FRÅGA sitter ihop med svaret — skriv två <p>")
+
+    # 11d. ☠️ KORTETS RUBRIK ÄR OGRANSKAD om den bor i kort.py. Runda 90 och
+    #      91 skrev fel färg två rundor i rad, och båda gångerna satt felet
+    #      just där. Rubriken lintas som ett eget litet dokument.
+    kicker, rubrik = T.KORT[pid]
+    korttext = f"{kicker}. {rubrik}."
+    for monster, etikett in FORBJUDET + TONGRINDAR:
+        m = monster.search(korttext)
+        if m:
+            fel.append(f"KORTET, {etikett}: {m.group(0)!r}")
+    for monster, agare, etikett in ENSKILDA:
+        if monster.search(korttext) and pid not in agare:
+            fel.append(f"KORTET, {etikett} på en produkt som inte har det: {korttext!r}")
+    for t_ in _tal(korttext):
+        if t_ not in tillatna:
+            fel.append(f"KORTET, OSPÅRAT TAL {t_!r}")
+    if pid in TVA_HJUL and FYRA_HJUL.search(korttext):
+        fel.append("KORTET påstår fyra hjul på en tvåhjuling")
 
     # 12. Stavfel
     for ord_ in STAVFEL:
@@ -318,6 +357,18 @@ FALL = [
      "SIG SJÄLV"),
     ("okänd korslänk", "fcb86875",
      lambda: T.SYSKON["fcb86875"].append(("finns-inte-alls", "här")), "okänd slug"),
+    ("fel i KORTRUBRIKEN", "15d6fcef",
+     lambda: T.KORT.__setitem__("15d6fcef", ("KÖKSVAGN", "Viks ihop efter kvällen")),
+     "KORTET, HOPFÄLLNING"),
+    ("ospårat tal i KORTRUBRIKEN", "fcb86875",
+     lambda: T.KORT.__setitem__("fcb86875", ("BARVAGN", "Tål 999 kg")),
+     "KORTET, OSPÅRAT TAL"),
+    ("dubblerad enhet", "fcb86875",
+     lambda: T.EGENSKAPER["fcb86875"].insert(0, "Bricka på Ø Ø 45 cm"),
+     "DUBBLERAD ENHET"),
+    ("delen bär vagnens yttermått", "820d076b",
+     lambda: T.EGENSKAPER["820d076b"].insert(0, "Två brickor på 66 × 40 cm"),
+     "DELEN BÄR VAGNENS YTTERMÅTT"),
     # Falsklarmsprov — dessa MÅSTE gå fria.
     ("negationen räddar superlativen", "2e292a70",
      lambda: T.FAQ["2e292a70"].append(
@@ -332,16 +383,58 @@ FALL = [
 ]
 
 
-def sjalvtest():
+def byggartest():
+    """☠️ EN NORMALISERING GÖR SIN EGEN GRIND OMÖJLIG ATT UTLÖSA.
+
+    Flera punkter börjar med `{antal_fack}`, som är gement i matt.py eftersom
+    samma fält också används mitt i meningar — så listorna renderades med liten
+    bokstav. Den självklara lagningen var en grind i `granska`: fäll på
+    `<li>` följt av gemen.
+
+    Den grinden är omöjlig att pröva. `bygg()` versaliserar första tecknet, så
+    ingen mutation av EGENSKAPER kan någonsin producera en gemen punkt — och
+    en grind som inte går att utlösa är exakt det runda 117 mätte upp om
+    `vi vet inte`: den ser riktig ut i källkoden och tiger för alltid.
+
+    Rätt form är därför att pröva NORMALISERINGEN i stället för utfallet: mata
+    in en gemen punkt och kräv att bygg() versaliserade den.
+    """
+    spar = copy.deepcopy(T.EGENSKAPER)
+    T.EGENSKAPER["2e292a70"].insert(0, "gemen punkt som ska versaliseras")
+    try:
+        html = T.bygg("2e292a70")[5]
+    finally:
+        T.EGENSKAPER.clear(); T.EGENSKAPER.update(spar)
     fel = []
+    if "<li>Gemen punkt" not in html:
+        fel.append("bygg() versaliserade INTE punktlistans första tecken")
+    if re.search(r"<li>(?!<strong>)[a-zåäö]", html):
+        fel.append("bygg() lämnade en gemen punkt kvar")
+
+    # Samma kontrakt för FAQ-SVAREN. Två svar började med ett gement räkneord
+    # ur matt.py innan normaliseringen fanns.
+    spar = copy.deepcopy(T.FAQ)
+    T.FAQ["2e292a70"].append(("Prov?", "gement svar som ska versaliseras"))
+    try:
+        html2 = T.bygg("2e292a70")[5]
+    finally:
+        T.FAQ.clear(); T.FAQ.update(spar)
+    if "<p>Gement svar" not in html2:
+        fel.append("bygg() versaliserade INTE FAQ-svarets första tecken")
+    return fel
+
+
+def sjalvtest():
+    fel = byggartest()
     for namn, pid, skada, vantat in FALL:
         spar = (copy.deepcopy(T.EGENSKAPER), copy.deepcopy(T.FAQ),
-                copy.deepcopy(T.SPEC), copy.deepcopy(T.SYSKON))
+                copy.deepcopy(T.SPEC), copy.deepcopy(T.SYSKON),
+                copy.deepcopy(T.KORT))
         skada()
         try:
             traffar = granska(pid)
         finally:
-            T.EGENSKAPER, T.FAQ, T.SPEC, T.SYSKON = spar
+            T.EGENSKAPER, T.FAQ, T.SPEC, T.SYSKON, T.KORT = spar
         if vantat and not any(vantat in f for f in traffar):
             fel.append(f"{namn}: grinden såg det INTE ({traffar or 'inga fel'})")
         if vantat is None and traffar:
