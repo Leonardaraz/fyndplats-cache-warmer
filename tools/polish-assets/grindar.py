@@ -524,6 +524,53 @@ def strak_grannar(text, html, slug, eget_namn=None):
     return text
 
 
+# ☠️ EN RENDERAD SIDAS EGNA PÅSTÅENDEN ÄR INTE HELA SIDANS TEXT. Runda 118:
+#    `fcb86875` fälldes för "Hopfällbar barvagn i bambu" — sant om `820d076b`
+#    och skrivet i `fcb86875`:s text som en LÄNK dit. Sidan hänvisar; den
+#    påstår inte. `grind.py` delar redan på ankare av precis det skälet, men
+#    på KÄLLAN; live-grinden ärvde ordlistorna utan delningen.
+#
+# ☠️ SIDAN BÄR SIN EGEN BRÖDTEXT TVÅ GÅNGER. Uppmätt: ordet stod på sex
+#    ställen — fyra i en GRANNES namn (strukna sedan runda 117) och två i vår
+#    EGEN länk, en i renderad DOM och en i RSC-payloadens `<script>`, där
+#    markupen är escapad (`\u003ca href=\"…\"`). `dela_pa_ankare` känner bara
+#    den första formen.
+#
+# ☠️ ATT AVKODA PAYLOADEN VAR DEN UPPENBARA FIXEN OCH DEN FEL. Provkörd:
+#    delningen såg då båda formerna, men grannstrykningens två halvor kan inte
+#    längre köras i samma ordning — och sex av åtta korrekta sidor föll på
+#    grannen "Uppvärmt torkställ … hopfällbart". Payloaden droppas i stället:
+#    den är en KOPIA av DOM:en, och DOM:en är det kunden läser. Samma
+#    iakttagelse som uppgift #413.
+SKRIPT = re.compile(r"<script\b[^>]*>.*?</script>", re.S | re.I)
+
+
+def egna_meningar(html, slug, eget_namn=None, tvatta=None):
+    """(sidans EGNA meningar som text, [(mål-sluggar, mening)]) ur RENDERAD HTML.
+
+    ⚠️ DE TVÅ HALVORNA AV `strak_grannar` MÅSTE LIGGA PÅ VAR SIN SIDA OM
+       DELNINGEN, och det är hela skälet till att den inte går att återanvända
+       rakt av här:
+
+       * NAMNEN stryks FÖRE `tvatta` — bildadress-mönstret matchar `\S+` och
+         äter annars halva grannens namn ur ett `src`-attribut (runda 117).
+       * SLUGGEN stryks EFTER delningen — den står i href:en och ÄR länkens
+         mål. Stryks den före blir varje korslänk anonym, och då går den inte
+         att pröva mot MÅLETS facit.
+
+    `tvatta` är anroparens egen strykning av bildadresser, SVG-geometri och
+    butikens ribbon; den körs på HTML:en efter namnstrykningen.
+    """
+    text = SKRIPT.sub(" ", html)
+    for namn in sorted(grannar(html, slug, eget_namn), key=len, reverse=True):
+        text = text.replace(namn, " ")
+    egna_rader, kors = dela_pa_ankare(tvatta(text) if tvatta else text)
+    egna = " ".join(egna_rader)
+    for sl in grannslugs(html, slug):
+        egna = egna.replace(sl, " ")
+    return egna, kors
+
+
 # ☠️ BUTIKENS EGEN EU-LAGER-RIBBON ÄR SANKTIONERAD. CLAUDE.md pekar ut den som
 #    det ENDA stället där leveransursprunget får nämnas. En live-grind som ärver
 #    källtextens `skickas från`-mönster fyrar därför på VARJE korrekt publicerad
