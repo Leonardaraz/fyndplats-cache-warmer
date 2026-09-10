@@ -62,6 +62,7 @@ MATT = {
         "yttermatt": "67 × 45 × 96 cm",
         "hopfalld": "86 × 45 × 24 cm",
         "invandigt": "52 × 32 × 48 cm med sufflett, 52 × 32 × 22 cm utan",
+        "innerhojd": "48 cm med suffletten uppe, 22 cm nedfälld",
         "liggdel": "52 × 32 cm",
         "natfonster": "26 × 17 cm fram och bak",
         "korg": "36 × 25 × 12 cm",
@@ -74,6 +75,7 @@ MATT = {
         "yttermatt": "77 × 44 × 102 cm",
         "hopfalld": "87 × 44 × 30 cm",
         "invandigt": "55 × 35 × 50 cm med sufflett, 55 × 35 × 25 cm utan",
+        "innerhojd": "50 cm med suffletten uppe, 25 cm nedfälld",
         "liggdel": "55 × 35 cm",
         "natfonster": "20 × 18 cm fram, 19 × 26 cm bak",
         "korg": "47 × 30 × 20 cm",
@@ -149,14 +151,23 @@ def kontroll():
     if len(set(FARG[k] for k in B)) != len(B):
         raise SystemExit("☠️ TVÅ PRODUKTER I GRUPP B DELAR FÄRGNAMN")
     for g in ("A", "B"):
-        for f in ("yttermatt", "hopfalld", "invandigt", "korg", "hjul",
-                  "maxvikt_hund", "vikt"):
+        for f in ("yttermatt", "hopfalld", "invandigt", "innerhojd", "korg",
+                  "hjul", "maxvikt_hund", "vikt"):
             if not MATT[g].get(f):
                 raise SystemExit(f"☠️ MATT[{g}] saknar {f}")
     # ☠️ Den farliga förväxlingen: 4 kg får inte finnas som tal i grupp B.
     if "4 kg" in " ".join(MATT["B"].values()):
         raise SystemExit("☠️ TALET 4 KG STÅR I GRUPP B — det är grupp A:s "
                          "hundvikt och leverantörens felaktiga vagnvikt")
+        # ☠️ EN HÖJD ÄR ETT TAL, INTE EN VOLYM. Ett första utkast skrev
+        #    "höjden inuti är 52 × 32 × 48 cm" i brödtexten och satte
+        #    etiketten "Invändig höjd" på hela tremåttssträngen. Ingen grind
+        #    såg det — det är ett predikat på fel subjekt, samma klass som
+        #    runda 115:s strålkastare som gav LJUD. Det som fångade det var
+        #    att texten låg i en FIL och lästes med ögon före skrivningen.
+        if "×" in MATT[g]["innerhojd"]:
+            raise SystemExit(f"☠️ MATT[{g}]['innerhojd'] är en volym, inte en "
+                             f"höjd: {MATT[g]['innerhojd']!r}")
     if MATT["A"]["hjul"] == MATT["B"]["hjul"]:
         raise SystemExit("☠️ GRUPPERNA HAR SAMMA HJULSTORLEK — kontrollera "
                          "att raderna inte kopierats")

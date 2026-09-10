@@ -164,15 +164,15 @@ def kropp(k):
     d.append(H(f"Hunden ligger på {m(k, 'liggdel')}"))
     if grp == "A":
         d.append(P(
-            f"Liggytan mäter {m(k, 'liggdel')} och höjden inuti är "
-            f"{m(k, 'invandigt')}. Vagnen är avsedd för hundar upp till "
+            f"Liggytan mäter {m(k, 'liggdel')} och takhöjden inuti är "
+            f"{m(k, 'innerhojd')}. Vagnen är avsedd för hundar upp till "
             f"{m(k, 'maxvikt_hund')} med en kroppslängd på högst "
             f"{m(k, 'kroppslangd')} — mät gärna hunden från bringa till "
             "svansrot innan du beställer."))
     else:
         d.append(P(
-            f"Liggytan mäter {m(k, 'liggdel')} och är vadderad. Höjden inuti "
-            f"är {m(k, 'invandigt')}. Konstruktionen bär hundar upp till "
+            f"Liggytan mäter {m(k, 'liggdel')} och är vadderad. Takhöjden "
+            f"inuti är {m(k, 'innerhojd')}. Konstruktionen bär hundar upp till "
             f"{m(k, 'maxvikt_hund')}."))
         d.append(H("Bakdörr med dragkedja"))
         d.append(P(
@@ -233,7 +233,8 @@ def spec(k):
     r = [LI("Yttermått", f"{m(k, 'yttermatt')} (L × B × H)"),
          LI("Hopfälld", m(k, "hopfalld")),
          LI("Liggyta", m(k, "liggdel")),
-         LI("Invändig höjd", m(k, "invandigt")),
+         LI("Invändigt", m(k, "invandigt")),
+         LI("Takhöjd inuti", m(k, "innerhojd")),
          LI("Nätfönster", m(k, "natfonster"))]
     if grp == "B":
         r.append(LI("Bakdörr", m(k, "bakdorr")))
