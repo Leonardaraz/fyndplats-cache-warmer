@@ -58,9 +58,66 @@ HJUL = {  # diameter i cm
     "0c05c1a0": {"fram": 12, "bak": 15.5},
     "23ba27a5": {"fram": 15, "bak": 20},
 }
-FORVARING = {  # innermått på facket under sitsen
-    "738ca991": (20, 15, 9), "0c05c1a0": (25, 15, 9),
+# ☠️ FÖRVARINGSMÅTTEN MOTSÄGS AV MÅTTRITNINGEN — därför skrivs de INTE ut.
+#    Leverantörens text och leverantörens EGEN bild 3 ger olika tal för samma
+#    fack. Yttermåtten stämmer på alla sju; bara det här fältet spretar.
+#      738ca991: text 20 × 15 × 9   ritning 22 × 16
+#      0c05c1a0: text 25 × 15 × 9   ritning 22,5 × 15
+#    Facket är verkligt och nämns — måttet gissas inte. Samma riktning som
+#    batterifrågan på 23ba27a5: ett okänt är inget nej, men det är inget tal.
+FORVARING_MOTSAGT = {
+    "738ca991": {"text": (20, 15, 9), "ritning": (22, 16)},
+    "0c05c1a0": {"text": (25, 15, 9), "ritning": (22.5, 15)},
 }
+FORVARING = {}          # tomt med flit — se FORVARING_MOTSAGT
+
+# ── Steg 3: läst ur mappningsraden via polish-mapping.yml (läge `las`) ──────
+# ☠️ PRISET RÖRS ALDRIG. Talen står här bara för att prisgrinden ska kunna
+#    kontrollmätas, och för att lagret avgör om sidan får publiceras.
+PRIS = {"cc6b56f9": 949, "fb142c5c": 839, "738ca991": 799, "0c05c1a0": 779,
+        "23ba27a5": 929, "39d85f18": 799, "389ac5ac": 879}
+PRISGRIND_STAMMER = {k: True for k in PRIS}
+LAGER = {"cc6b56f9": 197, "fb142c5c": 22, "738ca991": 197, "0c05c1a0": 197,
+         "23ba27a5": 197, "39d85f18": 46, "389ac5ac": 25}
+EU_LAGER = {k: True for k in PRIS}
+FRAKTANDEL = {"cc6b56f9": 0.381, "fb142c5c": 0.430, "738ca991": 0.443,
+              "0c05c1a0": 0.461, "23ba27a5": 0.353, "39d85f18": 0.446,
+              "389ac5ac": 0.408}
+
+# ☠️ IMPORTENS SKU-KROCK ÄR TRE-VÄGS. Sju produkter delar bara TRE SKU:er.
+#    Det är importen som skapar det (uppgift #272), inte poleringen — men det
+#    ligger LIVE i mappningen just nu, och Steg 8 måste ge alla sju var sin.
+IMPORT_SKU = {
+    "cc6b56f9": "FP-kinderbagger-rutscher",
+    "fb142c5c": "FP-kinderbagger-rutscher",
+    "738ca991": "FP-sitzbagger-aufsitzbagger",
+    "0c05c1a0": "FP-sitzbagger-aufsitzbagger",
+    "23ba27a5": "FP-sitzbagger-aufsitzbagger",
+    "39d85f18": "FP-rutsch-traktor-mit",
+    "389ac5ac": "FP-rutsch-traktor-mit",
+}
+WIX_VARIANT = {
+    "cc6b56f9": "90717640-45ae-433a-be5d-ce9890d2987a",
+    "fb142c5c": "0cb65928-9f02-4487-b140-ee954d7b3240",
+    "738ca991": "dd75f102-7390-432c-ac6d-cfbf5dce0333",
+    "0c05c1a0": "870a2990-b9c9-4159-8154-8d8ce9377f10",
+    "23ba27a5": "26f1dd4f-0a1d-4ce1-9ebe-2eb7621ec6ed",
+    "39d85f18": "12f3db52-94cc-4a88-bf0b-fe8330139756",
+    "389ac5ac": "23a350a2-1884-4a6d-bcfc-91b07bcc0672",
+}
+
+# ── Steg 4: bildgranskningen, mätt på alla 35 bilder ────────────────────────
+# ✅ NOLL tyska ord i pixlarna. Måttritningen (bild 3) bär rena siffror + "cm".
+# ☠️ Tre olika VARUMÄRKEN sitter fysiskt på varorna. Leonards linje: rör dem
+#    inte. Men bara det som leverantören UTTRYCKLIGEN licensierat får skrivas.
+MARKE_I_BILD = {
+    "cc6b56f9": "CAT", "fb142c5c": "CAT", "23ba27a5": "CAT",
+    "39d85f18": "New Holland", "389ac5ac": "New Holland",
+    "738ca991": None,      # generiskt "TRUCK"-tryck, inget märke
+    "0c05c1a0": None,      # generiskt "TRUCK / NOTICE SAFETY"-tryck
+}
+# ⚠️ Kontaktarkets etiketter kallade 738ca991 och 0c05c1a0 "CAT-" — fel.
+#    Zoomen visar generiska tryck. Rättat här.
 SLAP = {"23ba27a5": None, "39d85f18": (23, 18, 14), "389ac5ac": (23, 18, 14)}
 
 MATERIAL = {
@@ -139,8 +196,27 @@ def kontroll():
         raise SystemExit("☠️ två traktorer bär samma färg — granska om de är EN vara")
     if any(PEDALER.values()):
         raise SystemExit("☠️ PEDALER påstår pedaler som bilden inte visar")
+    if FORVARING:
+        raise SystemExit("☠️ FORVARING fylldes trots att ritningen motsäger texten")
+    for d in (PRIS, LAGER, FRAKTANDEL, IMPORT_SKU, WIX_VARIANT, MARKE_I_BILD):
+        if set(d) != n:
+            raise SystemExit("☠️ ett Steg 3/4-fält täcker inte samma sju nycklar")
+    # ☠️ SKU-KROCKEN SKA SYNAS, INTE TIGAS IHJÄL.
+    krockar = {v for v in IMPORT_SKU.values()
+               if list(IMPORT_SKU.values()).count(v) > 1}
+    if len(set(IMPORT_SKU.values())) == len(n):
+        raise SystemExit("☠️ SKU-krocken är borta ur tabellen — mät om innan du "
+                         "tror att importen lagat sig")
+    # Ett märke får bara skrivas ut där LICENS namnger det.
+    for k, m in MARKE_I_BILD.items():
+        if m and k not in LICENS:
+            pass  # tillåtet i BILDEN, förbjudet i texten — grinden sitter i grind.py
+    if len(set(WIX_VARIANT.values())) != len(n):
+        raise SystemExit("☠️ två produkter delar wixVariantId — det kan inte stämma")
     print(f"matt.kontroll: {len(n)} produkter, tabellerna i fas, "
-          f"traktorchassit enhetligt, noll pedaler")
+          f"traktorchassit enhetligt, noll pedaler, "
+          f"{len(set(IMPORT_SKU.values()))} SKU på {len(n)} produkter "
+          f"({len(krockar)} krockande)")
 
 
 if __name__ == "__main__":
