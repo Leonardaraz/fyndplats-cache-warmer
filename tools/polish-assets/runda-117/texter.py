@@ -142,7 +142,7 @@ EGENSKAPER = {
         "Levereras omonterad med anvisning",
     ],
     "D": [
-        "Kryddhylla i tre plan på sidan, {kryddhylla}",
+        "Kryddhylla i tre plan på sidan, {kryddhylla} per plan",
         "Handduksstång som samtidigt är skjuthandtag",
         "Låda invändigt {lada_inuti}",
         "Skåp med två dörrar och hyllplan i tre höjdlägen, invändigt {skap_inuti}",
@@ -171,7 +171,7 @@ SPEC = {
           ("Vikt", "{vikt}"), ("Montering", "Krävs")],
     "D": [("Yttermått", "{yttermatt}"), ("Arbetsskiva", "{skiva}"),
           ("Låda invändigt", "{lada_inuti}"), ("Skåp invändigt", "{skap_inuti}"),
-          ("Kryddhylla", "{kryddhylla}"), ("Maxlast", "{maxlast}"),
+          ("Kryddhylla", "{kryddhylla_spec}"), ("Maxlast", "{maxlast}"),
           ("Material", "{material}"), ("Färg", "{farg}"), ("Hjul", "{hjul}"),
           ("Vikt", "{vikt}"), ("Montering", "Krävs")],
 }
@@ -236,9 +236,8 @@ FAQ = {
           ("Vad ligger i kartongen?",
            "Köksvagnen i delar och en monteringsanvisning.")],
     "D": [("Hur många kryddburkar får plats i hyllan?",
-           "Hyllan är {kryddhylla} och sitter på vagnens sida. Hur många "
-           "burkar det blir beror på deras storlek — planen är 34 cm breda "
-           "och 12 cm djupa."),
+           "Hyllan sitter på vagnens sida och har tre plan, vart och ett "
+           "{kryddhylla}. Hur många burkar som får plats beror på deras storlek."),
           ("Vad är handduksstången till för?",
            "Två saker: att hänga handduken på, och att hålla i när du skjuter "
            "vagnen."),

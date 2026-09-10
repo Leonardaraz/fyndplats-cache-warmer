@@ -1,122 +1,146 @@
 {
- "63235957": {
-  "namn": "Köksvagn 106 cm med utfällbar skiva – vit, låda och skåp, 50 kg",
-  "slug": "koksvagn-106-cm-utfallbar-skiva-vit",
-  "titel": "Köksvagn 106 cm med utfällbar skiva, vit | Fyndplats",
-  "meta": "Köksvagn 106 × 42 × 87 cm i vitt med ekfärgad skiva som fälls ut till 68 cm djup. Låda, skåp, kryddhylla och 50 kg maxlast.",
-  "sokord": [
-   "köksvagn",
-   "köksvagn med utfällbar skiva",
-   "rullbar köksvagn"
-  ],
-  "html": "<p>Köksvagnen ger dig en extra arbetsyta där den behövs, och tar bort den när den inte gör det. Skivan mäter 80 × 39 cm ihopfälld och fälls ut till 80 × 68 cm på metallkonsoler under kanten. Under skivan sitter en låda på utdragsskenor och ett skåp med två dörrar, och på gaveln en kryddhylla och en handduksstång. Fyra hjul gör att vagnen följer med dit du lagar mat; två av dem har broms.</p><p><strong>Egenskaper</strong></p><ul><li>Skivan fälls ut från 80 × 39 cm till 80 × 68 cm på metallkonsoler</li><li>Låda på utdragsskenor, invändigt 69 × 28 × 9 cm</li><li>Skåp med två dörrar och ett hyllplan i tre höjdlägen, invändigt 73 × 28 × 60 cm</li><li>Kryddhylla 31 × 16 × 10 cm och handduksstång på gaveln</li><li>Dörrarna hålls stängda av magneter</li><li>Fyra hjul, varav två med broms</li><li>Melaminbelagd yta som torkas av med en fuktig trasa</li><li>Bär 50 kg totalt</li><li>Levereras omonterad med anvisning</li></ul><p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-gra\">grå</a> och <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-svart\">svart</a>.</p><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 106 × 42 × 87 cm</li><li><strong>Arbetsskiva:</strong> 80 × 39 cm ihopfälld, 80 × 68 cm utfälld</li><li><strong>Låda invändigt:</strong> 69 × 28 × 9 cm</li><li><strong>Skåp invändigt:</strong> 73 × 28 × 60 cm</li><li><strong>Kryddhylla:</strong> 31 × 16 × 10 cm</li><li><strong>Maxlast:</strong> 50 kg totalt</li><li><strong>Material:</strong> spånskiva, MDF och stål</li><li><strong>Färg:</strong> vit med ekfärgad skiva</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 29 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar skivan eller fäller ut klaffen, och fäll ned den igen när vagnen ska genom en dörr. Melaminytan torkas av med en fuktig trasa och lite diskmedel; skurpulver och stålull repar den. Dra åt skruvarna en gång efter de första veckornas användning — en möbel som rullar arbetar mer än en som står stilla.</p><h2>Vanliga frågor</h2><p><strong>Hur mycket större blir arbetsytan när klaffen är uppe?</strong></p><p>Skivan går från 80 × 39 cm till 80 × 68 cm. Djupet ökar alltså med 29 cm, vilket räcker för en skärbräda och en skål bredvid varandra.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 73 × 28 × 60 cm invändigt.</p><p><strong>Står vagnen stilla när jag arbetar på den?</strong></p><p>Ja. Två av de fyra hjulen har broms. Lås dem innan du lastar skivan.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>50 kg totalt.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
-  "hash": "798047436",
-  "langd": 2827,
-  "revLast": "1"
+ "mallar": {
+  "A": "<p>Köksvagnen ger dig en extra arbetsyta där den behövs, och tar bort den när den inte gör det. Skivan mäter 80 × 39 cm ihopfälld och fälls ut till 80 × 68 cm på metallkonsoler under kanten. Under skivan sitter en låda på utdragsskenor och ett skåp med två dörrar, och på gaveln en kryddhylla och en handduksstång. Fyra hjul gör att vagnen följer med dit du lagar mat; två av dem har broms.</p><p><strong>Egenskaper</strong></p><ul><li>Skivan fälls ut från 80 × 39 cm till 80 × 68 cm på metallkonsoler</li><li>Låda på utdragsskenor, invändigt 69 × 28 × 9 cm</li><li>Skåp med två dörrar och ett hyllplan i tre höjdlägen, invändigt 73 × 28 × 60 cm</li><li>Kryddhylla 31 × 16 × 10 cm och handduksstång på gaveln</li><li>Dörrarna hålls stängda av magneter</li><li>Fyra hjul, varav två med broms</li><li>Melaminbelagd yta som torkas av med en fuktig trasa</li><li>Bär 50 kg totalt</li><li>Levereras omonterad med anvisning</li></ul>@@SYSKON@@<h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 106 × 42 × 87 cm</li><li><strong>Arbetsskiva:</strong> 80 × 39 cm ihopfälld, 80 × 68 cm utfälld</li><li><strong>Låda invändigt:</strong> 69 × 28 × 9 cm</li><li><strong>Skåp invändigt:</strong> 73 × 28 × 60 cm</li><li><strong>Kryddhylla:</strong> 31 × 16 × 10 cm</li><li><strong>Maxlast:</strong> 50 kg totalt</li><li><strong>Material:</strong> spånskiva, MDF och stål</li><li><strong>Färg:</strong> @@FARG@@</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 29 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar skivan eller fäller ut klaffen, och fäll ned den igen när vagnen ska genom en dörr. Melaminytan torkas av med en fuktig trasa och lite diskmedel; skurpulver och stålull repar den. Dra åt skruvarna en gång efter de första veckornas användning — en möbel som rullar arbetar mer än en som står stilla.</p><h2>Vanliga frågor</h2><p><strong>Hur mycket större blir arbetsytan när klaffen är uppe?</strong></p><p>Skivan går från 80 × 39 cm till 80 × 68 cm. Djupet ökar alltså med 29 cm, vilket räcker för en skärbräda och en skål bredvid varandra.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 73 × 28 × 60 cm invändigt.</p><p><strong>Står vagnen stilla när jag arbetar på den?</strong></p><p>Ja. Två av de fyra hjulen har broms. Lås dem innan du lastar skivan.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>50 kg totalt.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
+  "B": "<p>En köksvagn på 80 × 40 × 82 cm som samlar fyra sorters förvaring i en möbel: arbetsskivan högst upp, ett utdragsfack för skärbrädor och folie, två öppna hyllplan på sidan och ett stängt skåp längst ned. Skåpets hyllplan sitter i tre höjdlägen, så en hög gryta får plats lika bra som två låga formar. Dörrarna öppnas i urskurna grepp och har alltså inga handtag som fastnar i förklädet.</p><p><strong>Egenskaper</strong></p><ul><li>Utdragsfack för skärbrädor, bakplåtspapper och folie</li><li>Två öppna hyllplan på sidan, 52,3 × 35 cm och 20,5 × 38 cm</li><li>Skåp med två dörrar och hyllplan i tre höjdlägen, invändigt 54,5 × 36,5 cm</li><li>Urskurna grepp i dörrarna i stället för utstickande handtag</li><li>Fyra hjul, varav två med broms</li><li>Bär 40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta</li><li>Levereras omonterad med anvisning</li></ul>@@SYSKON@@<h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 80 × 40 × 82 cm</li><li><strong>Hyllplan:</strong> 52,3 × 35 cm och 20,5 × 38 cm</li><li><strong>Skåp invändigt:</strong> 54,5 × 36,5 cm</li><li><strong>Maxlast:</strong> 40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta</li><li><strong>Material:</strong> MDF</li><li><strong>Färg:</strong> @@FARG@@</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 28 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar vagnen. Fördela vikten så att det tyngsta står i skåpet längst ned — där sitter tyngdpunkten lägst och vagnen står stadigast. Torka av ytorna med en fuktig trasa och lite diskmedel. Dra åt skruvarna en gång efter de första veckornas användning.</p><h2>Vanliga frågor</h2><p><strong>Vad är utdragsfacket till?</strong></p><p>Det är ett grunt fack som dras ut under skivan, gjort för skärbrädor, bakplåtspapper och folierullar — sådant som är för platt för att stå i ett skåp och för långt för en låda.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 54,5 × 36,5 cm invändigt.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta.</p><p><strong>Står vagnen stilla när jag arbetar på den?</strong></p><p>Ja. Två av de fyra hjulen har broms. Lås dem innan du lastar skivan.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
+  "C": "<p>Skivan är massivt gummiträ, 85 × 40 cm stor, och tål att du skär och knådar direkt på den. Resten av köksvagnen är byggd runt den: en bred låda, ett skåp med två dörrar och höjdjusterbart hyllplan, en kryddhylla på ena gaveln och en handduksstång på den andra. Stålhandtagen och de fyra länkhjulen gör den lika hemma vid spisen som intill matbordet.</p><p><strong>Egenskaper</strong></p><ul><li>Arbetsskiva i massivt gummiträ, 85 × 40 cm</li><li>Bred låda, invändigt 73,5 × 29,5 × 8 cm</li><li>Skåp med två dörrar och höjdjusterbart hyllplan, invändigt 78 × 35 × 60,5 cm</li><li>Kryddhylla på ena gaveln och handduksstång på den andra</li><li>Stålhandtag på båda dörrarna</li><li>Fyra länkhjul, varav två med broms</li><li>9,5 cm fri höjd under vagnen, så golvmoppen kommer under</li><li>Bär 40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet</li><li>Levereras omonterad med anvisning</li></ul>@@SYSKON@@<h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 109 × 40 × 89 cm</li><li><strong>Arbetsskiva:</strong> 85 × 40 cm</li><li><strong>Låda invändigt:</strong> 73,5 × 29,5 × 8 cm</li><li><strong>Skåp invändigt:</strong> 78 × 35 × 60,5 cm</li><li><strong>Fri höjd under vagnen:</strong> 9,5 cm</li><li><strong>Maxlast:</strong> 40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet</li><li><strong>Material:</strong> gummiträ och MDF</li><li><strong>Färg:</strong> @@FARG@@</li><li><strong>Hjul:</strong> fyra länkhjul, varav två med broms</li><li><strong>Vikt:</strong> 29,5 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Träskivan mår bäst av att torkas av och torkas torr direkt — låt inte vatten bli stående på den, och ställ inte blöta kastruller att rinna av där. Lås bromsarna innan du skär eller knådar på skivan. Skåp och dörrar torkas av med en fuktig trasa och lite diskmedel. Dra åt skruvarna en gång efter de första veckornas användning.</p><h2>Vanliga frågor</h2><p><strong>Går det att skära direkt på skivan?</strong></p><p>Ja, den är massivt gummiträ och 85 × 40 cm stor. Torka av den och torka den torr efteråt så håller ytan sig jämn.</p><p><strong>Hur stort är skåpet invändigt?</strong></p><p>78 × 35 × 60,5 cm, och hyllplanet är höjdjusterbart.</p><p><strong>Kommer man åt att göra rent under vagnen?</strong></p><p>Det är 9,5 cm fritt mellan golvet och underkanten, så en vanlig golvmopp går under.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
+  "D": "<p>En smal köksvagn på 82 × 38 × 86,5 cm för kök där bänkytan tagit slut men golvytan inte har det. Arbetsskivan mäter 60 × 38 cm, och på sidan sitter en kryddhylla i tre plan där burkarna står synliga i stället för att gömmas längst in i ett skåp. Handduksstången är samtidigt det handtag du skjuter vagnen med. Under skivan finns en låda och ett skåp med hyllplan i tre höjdlägen.</p><p><strong>Egenskaper</strong></p><ul><li>Kryddhylla i tre plan på sidan, 34 × 12 cm per plan</li><li>Handduksstång som samtidigt är skjuthandtag</li><li>Låda invändigt 51 × 23,5 × 8,5 cm</li><li>Skåp med två dörrar och hyllplan i tre höjdlägen, invändigt 56 × 32,5 × 64 cm</li><li>Dörrarna hålls stängda av magneter</li><li>Fyra hjul, varav två med broms</li><li>Melaminbelagd yta som torkas av med en fuktig trasa</li><li>Bär 35 kg totalt</li><li>Levereras omonterad med anvisning</li></ul><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 82 × 38 × 86,5 cm</li><li><strong>Arbetsskiva:</strong> 60 × 38 cm</li><li><strong>Låda invändigt:</strong> 51 × 23,5 × 8,5 cm</li><li><strong>Skåp invändigt:</strong> 56 × 32,5 × 64 cm</li><li><strong>Kryddhylla:</strong> 34 × 12 cm, tre plan</li><li><strong>Maxlast:</strong> 35 kg totalt</li><li><strong>Material:</strong> spånskiva och MDF</li><li><strong>Färg:</strong> @@FARG@@</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 21 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar skivan. Kryddhyllan sitter på utsidan, så torka av den lika ofta som bänken bredvid. Melaminytan tål fuktig trasa och diskmedel men inte skurpulver. Dra åt skruvarna en gång efter de första veckornas användning.</p><h2>Vanliga frågor</h2><p><strong>Hur många kryddburkar får plats i hyllan?</strong></p><p>Hyllan sitter på vagnens sida och har tre plan, vart och ett 34 × 12 cm. Hur många burkar som får plats beror på deras storlek.</p><p><strong>Vad är handduksstången till för?</strong></p><p>Två saker: att hänga handduken på, och att hålla i när du skjuter vagnen.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 56 × 32,5 × 64 cm invändigt.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>35 kg totalt.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>"
  },
- "37fb1ce1": {
-  "namn": "Köksvagn 106 cm med utfällbar skiva – grå, låda och skåp, 50 kg",
-  "slug": "koksvagn-106-cm-utfallbar-skiva-gra",
-  "titel": "Köksvagn 106 cm med utfällbar skiva, grå | Fyndplats",
-  "meta": "Köksvagn 106 × 42 × 87 cm i grått med ekfärgad skiva som fälls ut till 68 cm djup. Låda, skåp, kryddhylla och 50 kg maxlast.",
-  "sokord": [
-   "köksvagn",
-   "köksvagn med utfällbar skiva",
-   "rullbar köksvagn"
-  ],
-  "html": "<p>Köksvagnen ger dig en extra arbetsyta där den behövs, och tar bort den när den inte gör det. Skivan mäter 80 × 39 cm ihopfälld och fälls ut till 80 × 68 cm på metallkonsoler under kanten. Under skivan sitter en låda på utdragsskenor och ett skåp med två dörrar, och på gaveln en kryddhylla och en handduksstång. Fyra hjul gör att vagnen följer med dit du lagar mat; två av dem har broms.</p><p><strong>Egenskaper</strong></p><ul><li>Skivan fälls ut från 80 × 39 cm till 80 × 68 cm på metallkonsoler</li><li>Låda på utdragsskenor, invändigt 69 × 28 × 9 cm</li><li>Skåp med två dörrar och ett hyllplan i tre höjdlägen, invändigt 73 × 28 × 60 cm</li><li>Kryddhylla 31 × 16 × 10 cm och handduksstång på gaveln</li><li>Dörrarna hålls stängda av magneter</li><li>Fyra hjul, varav två med broms</li><li>Melaminbelagd yta som torkas av med en fuktig trasa</li><li>Bär 50 kg totalt</li><li>Levereras omonterad med anvisning</li></ul><p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-vit\">vit</a> och <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-svart\">svart</a>.</p><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 106 × 42 × 87 cm</li><li><strong>Arbetsskiva:</strong> 80 × 39 cm ihopfälld, 80 × 68 cm utfälld</li><li><strong>Låda invändigt:</strong> 69 × 28 × 9 cm</li><li><strong>Skåp invändigt:</strong> 73 × 28 × 60 cm</li><li><strong>Kryddhylla:</strong> 31 × 16 × 10 cm</li><li><strong>Maxlast:</strong> 50 kg totalt</li><li><strong>Material:</strong> spånskiva, MDF och stål</li><li><strong>Färg:</strong> grå med ekfärgad skiva</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 29 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar skivan eller fäller ut klaffen, och fäll ned den igen när vagnen ska genom en dörr. Melaminytan torkas av med en fuktig trasa och lite diskmedel; skurpulver och stålull repar den. Dra åt skruvarna en gång efter de första veckornas användning — en möbel som rullar arbetar mer än en som står stilla.</p><h2>Vanliga frågor</h2><p><strong>Hur mycket större blir arbetsytan när klaffen är uppe?</strong></p><p>Skivan går från 80 × 39 cm till 80 × 68 cm. Djupet ökar alltså med 29 cm, vilket räcker för en skärbräda och en skål bredvid varandra.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 73 × 28 × 60 cm invändigt.</p><p><strong>Står vagnen stilla när jag arbetar på den?</strong></p><p>Ja. Två av de fyra hjulen har broms. Lås dem innan du lastar skivan.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>50 kg totalt.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
-  "hash": "863176496",
-  "langd": 2827,
-  "revLast": "3"
- },
- "4d044b44": {
-  "namn": "Köksvagn 106 cm med utfällbar skiva – svart, låda och skåp, 50 kg",
-  "slug": "koksvagn-106-cm-utfallbar-skiva-svart",
-  "titel": "Köksvagn 106 cm med utfällbar skiva, svart | Fyndplats",
-  "meta": "Köksvagn 106 × 42 × 87 cm i svart med ekfärgad skiva som fälls ut till 68 cm djup. Låda, skåp, kryddhylla och 50 kg maxlast.",
-  "sokord": [
-   "köksvagn",
-   "köksvagn med utfällbar skiva",
-   "rullbar köksvagn"
-  ],
-  "html": "<p>Köksvagnen ger dig en extra arbetsyta där den behövs, och tar bort den när den inte gör det. Skivan mäter 80 × 39 cm ihopfälld och fälls ut till 80 × 68 cm på metallkonsoler under kanten. Under skivan sitter en låda på utdragsskenor och ett skåp med två dörrar, och på gaveln en kryddhylla och en handduksstång. Fyra hjul gör att vagnen följer med dit du lagar mat; två av dem har broms.</p><p><strong>Egenskaper</strong></p><ul><li>Skivan fälls ut från 80 × 39 cm till 80 × 68 cm på metallkonsoler</li><li>Låda på utdragsskenor, invändigt 69 × 28 × 9 cm</li><li>Skåp med två dörrar och ett hyllplan i tre höjdlägen, invändigt 73 × 28 × 60 cm</li><li>Kryddhylla 31 × 16 × 10 cm och handduksstång på gaveln</li><li>Dörrarna hålls stängda av magneter</li><li>Fyra hjul, varav två med broms</li><li>Melaminbelagd yta som torkas av med en fuktig trasa</li><li>Bär 50 kg totalt</li><li>Levereras omonterad med anvisning</li></ul><p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-vit\">vit</a> och <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-gra\">grå</a>.</p><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 106 × 42 × 87 cm</li><li><strong>Arbetsskiva:</strong> 80 × 39 cm ihopfälld, 80 × 68 cm utfälld</li><li><strong>Låda invändigt:</strong> 69 × 28 × 9 cm</li><li><strong>Skåp invändigt:</strong> 73 × 28 × 60 cm</li><li><strong>Kryddhylla:</strong> 31 × 16 × 10 cm</li><li><strong>Maxlast:</strong> 50 kg totalt</li><li><strong>Material:</strong> spånskiva, MDF och stål</li><li><strong>Färg:</strong> svart med ekfärgad skiva</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 29 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar skivan eller fäller ut klaffen, och fäll ned den igen när vagnen ska genom en dörr. Melaminytan torkas av med en fuktig trasa och lite diskmedel; skurpulver och stålull repar den. Dra åt skruvarna en gång efter de första veckornas användning — en möbel som rullar arbetar mer än en som står stilla.</p><h2>Vanliga frågor</h2><p><strong>Hur mycket större blir arbetsytan när klaffen är uppe?</strong></p><p>Skivan går från 80 × 39 cm till 80 × 68 cm. Djupet ökar alltså med 29 cm, vilket räcker för en skärbräda och en skål bredvid varandra.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 73 × 28 × 60 cm invändigt.</p><p><strong>Står vagnen stilla när jag arbetar på den?</strong></p><p>Ja. Två av de fyra hjulen har broms. Lås dem innan du lastar skivan.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>50 kg totalt.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
-  "hash": "611608748",
-  "langd": 2825,
-  "revLast": "3"
- },
- "e16c1515": {
-  "namn": "Köksvagn 80 cm med utdragsfack och öppna hyllor – vit, 40 kg",
-  "slug": "koksvagn-80-cm-utdragsfack-oppna-hyllor-vit",
-  "titel": "Köksvagn 80 cm med utdragsfack, vit | Fyndplats",
-  "meta": "Köksvagn 80 × 40 × 82 cm i vitt med utdragsfack, två öppna hyllplan och skåp med justerbar hylla. Bär 40 kg totalt.",
-  "sokord": [
-   "köksvagn",
-   "köksvagn med hyllor",
-   "köksvagn på hjul"
-  ],
-  "html": "<p>En köksvagn på 80 × 40 × 82 cm som samlar fyra sorters förvaring i en möbel: arbetsskivan högst upp, ett utdragsfack för skärbrädor och folie, två öppna hyllplan på sidan och ett stängt skåp längst ned. Skåpets hyllplan sitter i tre höjdlägen, så en hög gryta får plats lika bra som två låga formar. Dörrarna öppnas i urskurna grepp och har alltså inga handtag som fastnar i förklädet.</p><p><strong>Egenskaper</strong></p><ul><li>Utdragsfack för skärbrädor, bakplåtspapper och folie</li><li>Två öppna hyllplan på sidan, 52,3 × 35 cm och 20,5 × 38 cm</li><li>Skåp med två dörrar och hyllplan i tre höjdlägen, invändigt 54,5 × 36,5 cm</li><li>Urskurna grepp i dörrarna i stället för utstickande handtag</li><li>Fyra hjul, varav två med broms</li><li>Bär 40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta</li><li>Levereras omonterad med anvisning</li></ul><p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-80-cm-utdragsfack-oppna-hyllor-svart\">svart</a>.</p><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 80 × 40 × 82 cm</li><li><strong>Hyllplan:</strong> 52,3 × 35 cm och 20,5 × 38 cm</li><li><strong>Skåp invändigt:</strong> 54,5 × 36,5 cm</li><li><strong>Maxlast:</strong> 40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta</li><li><strong>Material:</strong> MDF</li><li><strong>Färg:</strong> vit med ljus träfärgad skiva</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 28 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar vagnen. Fördela vikten så att det tyngsta står i skåpet längst ned — där sitter tyngdpunkten lägst och vagnen står stadigast. Torka av ytorna med en fuktig trasa och lite diskmedel. Dra åt skruvarna en gång efter de första veckornas användning.</p><h2>Vanliga frågor</h2><p><strong>Vad är utdragsfacket till?</strong></p><p>Det är ett grunt fack som dras ut under skivan, gjort för skärbrädor, bakplåtspapper och folierullar — sådant som är för platt för att stå i ett skåp och för långt för en låda.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 54,5 × 36,5 cm invändigt.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta.</p><p><strong>Står vagnen stilla när jag arbetar på den?</strong></p><p>Ja. Två av de fyra hjulen har broms. Lås dem innan du lastar skivan.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
-  "hash": "715028818",
-  "langd": 2664,
-  "revLast": "2"
- },
- "d4db4bbc": {
-  "namn": "Köksvagn 80 cm med utdragsfack och öppna hyllor – svart, 40 kg",
-  "slug": "koksvagn-80-cm-utdragsfack-oppna-hyllor-svart",
-  "titel": "Köksvagn 80 cm med utdragsfack, svart | Fyndplats",
-  "meta": "Köksvagn 80 × 40 × 82 cm i svart med utdragsfack, två öppna hyllplan och skåp med justerbar hylla. Bär 40 kg totalt.",
-  "sokord": [
-   "köksvagn",
-   "köksvagn med hyllor",
-   "köksvagn på hjul"
-  ],
-  "html": "<p>En köksvagn på 80 × 40 × 82 cm som samlar fyra sorters förvaring i en möbel: arbetsskivan högst upp, ett utdragsfack för skärbrädor och folie, två öppna hyllplan på sidan och ett stängt skåp längst ned. Skåpets hyllplan sitter i tre höjdlägen, så en hög gryta får plats lika bra som två låga formar. Dörrarna öppnas i urskurna grepp och har alltså inga handtag som fastnar i förklädet.</p><p><strong>Egenskaper</strong></p><ul><li>Utdragsfack för skärbrädor, bakplåtspapper och folie</li><li>Två öppna hyllplan på sidan, 52,3 × 35 cm och 20,5 × 38 cm</li><li>Skåp med två dörrar och hyllplan i tre höjdlägen, invändigt 54,5 × 36,5 cm</li><li>Urskurna grepp i dörrarna i stället för utstickande handtag</li><li>Fyra hjul, varav två med broms</li><li>Bär 40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta</li><li>Levereras omonterad med anvisning</li></ul><p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-80-cm-utdragsfack-oppna-hyllor-vit\">vit</a>.</p><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 80 × 40 × 82 cm</li><li><strong>Hyllplan:</strong> 52,3 × 35 cm och 20,5 × 38 cm</li><li><strong>Skåp invändigt:</strong> 54,5 × 36,5 cm</li><li><strong>Maxlast:</strong> 40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta</li><li><strong>Material:</strong> MDF</li><li><strong>Färg:</strong> svart med ekfärgad skiva</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 28 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar vagnen. Fördela vikten så att det tyngsta står i skåpet längst ned — där sitter tyngdpunkten lägst och vagnen står stadigast. Torka av ytorna med en fuktig trasa och lite diskmedel. Dra åt skruvarna en gång efter de första veckornas användning.</p><h2>Vanliga frågor</h2><p><strong>Vad är utdragsfacket till?</strong></p><p>Det är ett grunt fack som dras ut under skivan, gjort för skärbrädor, bakplåtspapper och folierullar — sådant som är för platt för att stå i ett skåp och för långt för en låda.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 54,5 × 36,5 cm invändigt.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan och 5 kg på den mellersta.</p><p><strong>Står vagnen stilla när jag arbetar på den?</strong></p><p>Ja. Två av de fyra hjulen har broms. Lås dem innan du lastar skivan.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
-  "hash": "573151653",
-  "langd": 2656,
-  "revLast": "1"
- },
- "4ab392f7": {
-  "namn": "Köksvagn 109 cm med massiv gummiträskiva – vit, låda och skåp",
-  "slug": "koksvagn-109-cm-gummitraskiva-vit",
-  "titel": "Köksvagn 109 cm i gummiträ, vit | Fyndplats",
-  "meta": "Köksvagn 109 × 40 × 89 cm i vitt med skiva i massivt gummiträ, låda, skåp, kryddhylla och handduksstång. Bär 40 kg.",
-  "sokord": [
-   "köksvagn",
-   "köksvagn i massivt trä",
-   "köksvagn med skåp"
-  ],
-  "html": "<p>Skivan är massivt gummiträ, 85 × 40 cm stor, och tål att du skär och knådar direkt på den. Resten av köksvagnen är byggd runt den: en bred låda, ett skåp med två dörrar och höjdjusterbart hyllplan, en kryddhylla på ena gaveln och en handduksstång på den andra. Stålhandtagen och de fyra länkhjulen gör den lika hemma vid spisen som intill matbordet.</p><p><strong>Egenskaper</strong></p><ul><li>Arbetsskiva i massivt gummiträ, 85 × 40 cm</li><li>Bred låda, invändigt 73,5 × 29,5 × 8 cm</li><li>Skåp med två dörrar och höjdjusterbart hyllplan, invändigt 78 × 35 × 60,5 cm</li><li>Kryddhylla på ena gaveln och handduksstång på den andra</li><li>Stålhandtag på båda dörrarna</li><li>Fyra länkhjul, varav två med broms</li><li>9,5 cm fri höjd under vagnen, så golvmoppen kommer under</li><li>Bär 40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet</li><li>Levereras omonterad med anvisning</li></ul><p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-109-cm-gummitraskiva-svart\">svart</a>.</p><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 109 × 40 × 89 cm</li><li><strong>Arbetsskiva:</strong> 85 × 40 cm</li><li><strong>Låda invändigt:</strong> 73,5 × 29,5 × 8 cm</li><li><strong>Skåp invändigt:</strong> 78 × 35 × 60,5 cm</li><li><strong>Fri höjd under vagnen:</strong> 9,5 cm</li><li><strong>Maxlast:</strong> 40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet</li><li><strong>Material:</strong> gummiträ och MDF</li><li><strong>Färg:</strong> vit med gummiträskiva</li><li><strong>Hjul:</strong> fyra länkhjul, varav två med broms</li><li><strong>Vikt:</strong> 29,5 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Träskivan mår bäst av att torkas av och torkas torr direkt — låt inte vatten bli stående på den, och ställ inte blöta kastruller att rinna av där. Lås bromsarna innan du skär eller knådar på skivan. Skåp och dörrar torkas av med en fuktig trasa och lite diskmedel. Dra åt skruvarna en gång efter de första veckornas användning.</p><h2>Vanliga frågor</h2><p><strong>Går det att skära direkt på skivan?</strong></p><p>Ja, den är massivt gummiträ och 85 × 40 cm stor. Torka av den och torka den torr efteråt så håller ytan sig jämn.</p><p><strong>Hur stort är skåpet invändigt?</strong></p><p>78 × 35 × 60,5 cm, och hyllplanet är höjdjusterbart.</p><p><strong>Kommer man åt att göra rent under vagnen?</strong></p><p>Det är 9,5 cm fritt mellan golvet och underkanten, så en vanlig golvmopp går under.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
-  "hash": "840973543",
-  "langd": 2764,
-  "revLast": "1"
- },
- "0af14e23": {
-  "namn": "Köksvagn 109 cm med massiv gummiträskiva – svart, låda och skåp",
-  "slug": "koksvagn-109-cm-gummitraskiva-svart",
-  "titel": "Köksvagn 109 cm i gummiträ, svart | Fyndplats",
-  "meta": "Köksvagn 109 × 40 × 89 cm i svart med skiva i massivt gummiträ, låda, skåp, kryddhylla och handduksstång. Bär 40 kg.",
-  "sokord": [
-   "köksvagn",
-   "köksvagn i massivt trä",
-   "köksvagn med skåp"
-  ],
-  "html": "<p>Skivan är massivt gummiträ, 85 × 40 cm stor, och tål att du skär och knådar direkt på den. Resten av köksvagnen är byggd runt den: en bred låda, ett skåp med två dörrar och höjdjusterbart hyllplan, en kryddhylla på ena gaveln och en handduksstång på den andra. Stålhandtagen och de fyra länkhjulen gör den lika hemma vid spisen som intill matbordet.</p><p><strong>Egenskaper</strong></p><ul><li>Arbetsskiva i massivt gummiträ, 85 × 40 cm</li><li>Bred låda, invändigt 73,5 × 29,5 × 8 cm</li><li>Skåp med två dörrar och höjdjusterbart hyllplan, invändigt 78 × 35 × 60,5 cm</li><li>Kryddhylla på ena gaveln och handduksstång på den andra</li><li>Stålhandtag på båda dörrarna</li><li>Fyra länkhjul, varav två med broms</li><li>9,5 cm fri höjd under vagnen, så golvmoppen kommer under</li><li>Bär 40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet</li><li>Levereras omonterad med anvisning</li></ul><p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-109-cm-gummitraskiva-vit\">vit</a>.</p><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 109 × 40 × 89 cm</li><li><strong>Arbetsskiva:</strong> 85 × 40 cm</li><li><strong>Låda invändigt:</strong> 73,5 × 29,5 × 8 cm</li><li><strong>Skåp invändigt:</strong> 78 × 35 × 60,5 cm</li><li><strong>Fri höjd under vagnen:</strong> 9,5 cm</li><li><strong>Maxlast:</strong> 40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet</li><li><strong>Material:</strong> gummiträ och MDF</li><li><strong>Färg:</strong> svart med gummiträskiva</li><li><strong>Hjul:</strong> fyra länkhjul, varav två med broms</li><li><strong>Vikt:</strong> 29,5 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Träskivan mår bäst av att torkas av och torkas torr direkt — låt inte vatten bli stående på den, och ställ inte blöta kastruller att rinna av där. Lås bromsarna innan du skär eller knådar på skivan. Skåp och dörrar torkas av med en fuktig trasa och lite diskmedel. Dra åt skruvarna en gång efter de första veckornas användning.</p><h2>Vanliga frågor</h2><p><strong>Går det att skära direkt på skivan?</strong></p><p>Ja, den är massivt gummiträ och 85 × 40 cm stor. Torka av den och torka den torr efteråt så håller ytan sig jämn.</p><p><strong>Hur stort är skåpet invändigt?</strong></p><p>78 × 35 × 60,5 cm, och hyllplanet är höjdjusterbart.</p><p><strong>Kommer man åt att göra rent under vagnen?</strong></p><p>Det är 9,5 cm fritt mellan golvet och underkanten, så en vanlig golvmopp går under.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>40 kg totalt, 20 kg på skivan, 8 kg i lådan och 8 kg på hyllplanet.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
-  "hash": "145144800",
-  "langd": 2762,
-  "revLast": "2"
- },
- "41d31478": {
-  "namn": "Köksvagn 82 cm med kryddhylla i tre plan – vit, låda och skåp",
-  "slug": "koksvagn-82-cm-kryddhylla-tre-plan-vit",
-  "titel": "Köksvagn 82 cm med kryddhylla, vit | Fyndplats",
-  "meta": "Köksvagn 82 × 38 × 86,5 cm i vitt med kryddhylla i tre plan, låda och skåp med justerbar hylla. Bär 35 kg totalt.",
-  "sokord": [
-   "köksvagn",
-   "köksvagn med kryddhylla",
-   "smal köksvagn"
-  ],
-  "html": "<p>En smal köksvagn på 82 × 38 × 86,5 cm för kök där bänkytan tagit slut men golvytan inte har det. Arbetsskivan mäter 60 × 38 cm, och på sidan sitter en kryddhylla i tre plan där burkarna står synliga i stället för att gömmas längst in i ett skåp. Handduksstången är samtidigt det handtag du skjuter vagnen med. Under skivan finns en låda och ett skåp med hyllplan i tre höjdlägen.</p><p><strong>Egenskaper</strong></p><ul><li>Kryddhylla i tre plan på sidan, 34 × 12 cm, tre plan</li><li>Handduksstång som samtidigt är skjuthandtag</li><li>Låda invändigt 51 × 23,5 × 8,5 cm</li><li>Skåp med två dörrar och hyllplan i tre höjdlägen, invändigt 56 × 32,5 × 64 cm</li><li>Dörrarna hålls stängda av magneter</li><li>Fyra hjul, varav två med broms</li><li>Melaminbelagd yta som torkas av med en fuktig trasa</li><li>Bär 35 kg totalt</li><li>Levereras omonterad med anvisning</li></ul><h2>Tekniska specifikationer</h2><ul><li><strong>Yttermått:</strong> 82 × 38 × 86,5 cm</li><li><strong>Arbetsskiva:</strong> 60 × 38 cm</li><li><strong>Låda invändigt:</strong> 51 × 23,5 × 8,5 cm</li><li><strong>Skåp invändigt:</strong> 56 × 32,5 × 64 cm</li><li><strong>Kryddhylla:</strong> 34 × 12 cm, tre plan</li><li><strong>Maxlast:</strong> 35 kg totalt</li><li><strong>Material:</strong> spånskiva och MDF</li><li><strong>Färg:</strong> vit med ekfärgad skiva</li><li><strong>Hjul:</strong> fyra, varav två med broms</li><li><strong>Vikt:</strong> 21 kg</li><li><strong>Montering:</strong> Krävs</li></ul><h2>Användning och skötsel</h2><p>Lås bromsarna innan du lastar skivan. Kryddhyllan sitter på utsidan, så torka av den lika ofta som bänken bredvid. Melaminytan tål fuktig trasa och diskmedel men inte skurpulver. Dra åt skruvarna en gång efter de första veckornas användning.</p><h2>Vanliga frågor</h2><p><strong>Hur många kryddburkar får plats i hyllan?</strong></p><p>Hyllan är 34 × 12 cm, tre plan och sitter på vagnens sida. Hur många burkar det blir beror på deras storlek — planen är 34 cm breda och 12 cm djupa.</p><p><strong>Vad är handduksstången till för?</strong></p><p>Två saker: att hänga handduken på, och att hålla i när du skjuter vagnen.</p><p><strong>Går skåpets hyllplan att flytta?</strong></p><p>Ja, det sitter i tre höjdlägen. Skåpet är 56 × 32,5 × 64 cm invändigt.</p><p><strong>Hur mycket tål vagnen?</strong></p><p>35 kg totalt.</p><p><strong>Vad ligger i kartongen?</strong></p><p>Köksvagnen i delar och en monteringsanvisning.</p>",
-  "hash": "321054124",
-  "langd": 2448,
-  "revLast": "2"
+ "prod": {
+  "63235957": {
+   "g": "A",
+   "farg": "vit med ekfärgad skiva",
+   "syskon": "<p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-gra\">grå</a> och <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-svart\">svart</a>.</p>",
+   "rev": "1",
+   "namn": "Köksvagn 106 cm med utfällbar skiva – vit, låda och skåp, 50 kg",
+   "slug": "koksvagn-106-cm-utfallbar-skiva-vit",
+   "titel": "Köksvagn 106 cm med utfällbar skiva, vit | Fyndplats",
+   "meta": "Köksvagn 106 × 42 × 87 cm i vitt med ekfärgad skiva som fälls ut till 68 cm djup. Låda, skåp, kryddhylla och 50 kg maxlast.",
+   "sokord": [
+    "köksvagn",
+    "köksvagn med utfällbar skiva",
+    "rullbar köksvagn"
+   ],
+   "ordhash": "305189751",
+   "langd": 2827
+  },
+  "37fb1ce1": {
+   "g": "A",
+   "farg": "grå med ekfärgad skiva",
+   "syskon": "<p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-vit\">vit</a> och <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-svart\">svart</a>.</p>",
+   "rev": "3",
+   "namn": "Köksvagn 106 cm med utfällbar skiva – grå, låda och skåp, 50 kg",
+   "slug": "koksvagn-106-cm-utfallbar-skiva-gra",
+   "titel": "Köksvagn 106 cm med utfällbar skiva, grå | Fyndplats",
+   "meta": "Köksvagn 106 × 42 × 87 cm i grått med ekfärgad skiva som fälls ut till 68 cm djup. Låda, skåp, kryddhylla och 50 kg maxlast.",
+   "sokord": [
+    "köksvagn",
+    "köksvagn med utfällbar skiva",
+    "rullbar köksvagn"
+   ],
+   "ordhash": "138191914",
+   "langd": 2827
+  },
+  "4d044b44": {
+   "g": "A",
+   "farg": "svart med ekfärgad skiva",
+   "syskon": "<p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-vit\">vit</a> och <a href=\"https://www.fyndplats.se/produkt/koksvagn-106-cm-utfallbar-skiva-gra\">grå</a>.</p>",
+   "rev": "3",
+   "namn": "Köksvagn 106 cm med utfällbar skiva – svart, låda och skåp, 50 kg",
+   "slug": "koksvagn-106-cm-utfallbar-skiva-svart",
+   "titel": "Köksvagn 106 cm med utfällbar skiva, svart | Fyndplats",
+   "meta": "Köksvagn 106 × 42 × 87 cm i svart med ekfärgad skiva som fälls ut till 68 cm djup. Låda, skåp, kryddhylla och 50 kg maxlast.",
+   "sokord": [
+    "köksvagn",
+    "köksvagn med utfällbar skiva",
+    "rullbar köksvagn"
+   ],
+   "ordhash": "485940363",
+   "langd": 2825
+  },
+  "e16c1515": {
+   "g": "B",
+   "farg": "vit med ljus träfärgad skiva",
+   "syskon": "<p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-80-cm-utdragsfack-oppna-hyllor-svart\">svart</a>.</p>",
+   "rev": "2",
+   "namn": "Köksvagn 80 cm med utdragsfack och öppna hyllor – vit, 40 kg",
+   "slug": "koksvagn-80-cm-utdragsfack-oppna-hyllor-vit",
+   "titel": "Köksvagn 80 cm med utdragsfack, vit | Fyndplats",
+   "meta": "Köksvagn 80 × 40 × 82 cm i vitt med utdragsfack, två öppna hyllplan och skåp med justerbar hylla. Bär 40 kg totalt.",
+   "sokord": [
+    "köksvagn",
+    "köksvagn med hyllor",
+    "köksvagn på hjul"
+   ],
+   "ordhash": "973930723",
+   "langd": 2664
+  },
+  "d4db4bbc": {
+   "g": "B",
+   "farg": "svart med ekfärgad skiva",
+   "syskon": "<p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-80-cm-utdragsfack-oppna-hyllor-vit\">vit</a>.</p>",
+   "rev": "1",
+   "namn": "Köksvagn 80 cm med utdragsfack och öppna hyllor – svart, 40 kg",
+   "slug": "koksvagn-80-cm-utdragsfack-oppna-hyllor-svart",
+   "titel": "Köksvagn 80 cm med utdragsfack, svart | Fyndplats",
+   "meta": "Köksvagn 80 × 40 × 82 cm i svart med utdragsfack, två öppna hyllplan och skåp med justerbar hylla. Bär 40 kg totalt.",
+   "sokord": [
+    "köksvagn",
+    "köksvagn med hyllor",
+    "köksvagn på hjul"
+   ],
+   "ordhash": "532301108",
+   "langd": 2656
+  },
+  "4ab392f7": {
+   "g": "C",
+   "farg": "vit med gummiträskiva",
+   "syskon": "<p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-109-cm-gummitraskiva-svart\">svart</a>.</p>",
+   "rev": "1",
+   "namn": "Köksvagn 109 cm med massiv gummiträskiva – vit, låda och skåp",
+   "slug": "koksvagn-109-cm-gummitraskiva-vit",
+   "titel": "Köksvagn 109 cm i gummiträ, vit | Fyndplats",
+   "meta": "Köksvagn 109 × 40 × 89 cm i vitt med skiva i massivt gummiträ, låda, skåp, kryddhylla och handduksstång. Bär 40 kg.",
+   "sokord": [
+    "köksvagn",
+    "köksvagn i massivt trä",
+    "köksvagn med skåp"
+   ],
+   "ordhash": "471135508",
+   "langd": 2764
+  },
+  "0af14e23": {
+   "g": "C",
+   "farg": "svart med gummiträskiva",
+   "syskon": "<p>Samma köksvagn finns också i <a href=\"https://www.fyndplats.se/produkt/koksvagn-109-cm-gummitraskiva-vit\">vit</a>.</p>",
+   "rev": "2",
+   "namn": "Köksvagn 109 cm med massiv gummiträskiva – svart, låda och skåp",
+   "slug": "koksvagn-109-cm-gummitraskiva-svart",
+   "titel": "Köksvagn 109 cm i gummiträ, svart | Fyndplats",
+   "meta": "Köksvagn 109 × 40 × 89 cm i svart med skiva i massivt gummiträ, låda, skåp, kryddhylla och handduksstång. Bär 40 kg.",
+   "sokord": [
+    "köksvagn",
+    "köksvagn i massivt trä",
+    "köksvagn med skåp"
+   ],
+   "ordhash": "345483222",
+   "langd": 2762
+  },
+  "41d31478": {
+   "g": "D",
+   "farg": "vit med ekfärgad skiva",
+   "syskon": "",
+   "rev": "2",
+   "namn": "Köksvagn 82 cm med kryddhylla i tre plan – vit, låda och skåp",
+   "slug": "koksvagn-82-cm-kryddhylla-tre-plan-vit",
+   "titel": "Köksvagn 82 cm med kryddhylla, vit | Fyndplats",
+   "meta": "Köksvagn 82 × 38 × 86,5 cm i vitt med kryddhylla i tre plan, låda och skåp med justerbar hylla. Bär 35 kg totalt.",
+   "sokord": [
+    "köksvagn",
+    "köksvagn med kryddhylla",
+    "smal köksvagn"
+   ],
+   "ordhash": "94919359",
+   "langd": 2426
+  }
  }
 }
