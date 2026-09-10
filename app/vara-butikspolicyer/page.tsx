@@ -37,7 +37,9 @@ export default function Butikspolicyer() {
 
       <h2>Tvistelösning</h2>
       <p>Vid en tvist som vi inte lyckas lösa följer vi <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Du kan kostnadsfritt vända dig till ARN för opartisk prövning: <a href="https://www.arn.se" target="_blank" rel="noopener noreferrer">www.arn.se</a> (Box 174, 101 23 Stockholm).</p>
-      <p>Som konsument i EU har du också rätt att använda EU-kommissionens onlineplattform för tvistelösning (ODR) vid köp gjorda online: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>.</p>
+      {/* EU:s ODR-plattform stängde 20 juli 2025 (förordning (EU) 2024/3228). Se
+          kommentaren i app/kopvillkor/page.tsx för hela bakgrunden. */}
+      <p>Har du handlat gränsöverskridande inom EU, Norge eller Island kan du också få kostnadsfri rådgivning och hjälp med medling av <strong>Konsument Europa (ECC Sverige)</strong>, som drivs av Konsumentverket: <a href="https://www.konsumenteuropa.se" target="_blank" rel="noopener noreferrer">www.konsumenteuropa.se</a>.</p>
 
       <h2>Relaterade sidor</h2>
       <ul>

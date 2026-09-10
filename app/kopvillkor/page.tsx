@@ -90,8 +90,16 @@ export default function Kopvillkor() {
           Webbplats: <a href="https://www.arn.se" target="_blank" rel="noopener noreferrer">www.arn.se</a>
         </p>
       </div>
-      <p>Du kan också använda EU-kommissionens onlineplattform för tvistelösning (ODR-plattformen) för köp gjorda online:</p>
-      <p><a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr</a></p>
+      {/* EU:s ODR-plattform låg här till 2026-09-10. Den stängde 20 juli 2025
+          (förordning (EU) 2024/3228 upphävde 524/2013), och ec.europa.eu/consumers/odr
+          omdirigerar numera till kommissionens egen nedläggningsnotis — vi skickade
+          alltså en kund med en tvist till en sida som säger att vägen inte finns.
+          Skyldigheten att länka dit föll med samma förordning. ARN ligger kvar; den
+          följer av 5 § lagen (2015:671) om alternativ tvistlösning i konsument-
+          förhållanden och är oförändrad. För gränsöverskridande köp pekar vi nu på
+          ECC-nätverkets svenska kontor i stället. */}
+      <p>Har du handlat från ett annat EU-land, Norge eller Island kan du få kostnadsfri rådgivning och hjälp med medling av <strong>Konsument Europa (ECC Sverige)</strong>, som drivs av Konsumentverket:</p>
+      <p><a href="https://www.konsumenteuropa.se" target="_blank" rel="noopener noreferrer">www.konsumenteuropa.se</a></p>
       <p>Vid eventuell domstolsprövning tillämpas svensk lag och tvisten avgörs av svensk allmän domstol.</p>
 
       <h2>12. Ändring av villkor</h2>

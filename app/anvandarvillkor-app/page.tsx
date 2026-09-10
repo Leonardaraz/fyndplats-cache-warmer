@@ -57,7 +57,7 @@ export default function AnvandarvillkorApp() {
       <p>Appen tillhandahålls "i befintligt skick". Fyndplats ansvarar inte för indirekta skador, utebliven vinst eller förluster till följd av avbrott, fel eller otillgänglighet i appen, i den utsträckning lagen tillåter. Inget i dessa villkor inskränker dina tvingande rättigheter som konsument enligt svensk lag. Fyndplats är befriat från ansvar vid force majeure (omständigheter utanför vår rimliga kontroll).</p>
 
       <h2>10. Tillämplig lag och tvistelösning</h2>
-      <p>Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd; vi följer <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Kan tvisten inte lösas avgörs den av svensk allmän domstol med <strong>Stockholms tingsrätt</strong> som första instans. Du kan även använda EU:s onlineplattform för tvistelösning: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>.</p>
+      <p>Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd; vi följer <strong>Allmänna reklamationsnämndens (ARN)</strong> rekommendationer. Kan tvisten inte lösas avgörs den av svensk allmän domstol med <strong>Stockholms tingsrätt</strong> som första instans. Har du handlat gränsöverskridande inom EU, Norge eller Island kan du vända dig till <strong>Konsument Europa (ECC Sverige)</strong>: <a href="https://www.konsumenteuropa.se" target="_blank" rel="noopener noreferrer">www.konsumenteuropa.se</a>.</p>
 
       <h2>11. Ändring av villkor</h2>
       <p>Fyndplats förbehåller sig rätten att uppdatera dessa villkor. Den senaste versionen finns alltid publicerad på denna sida. Vid väsentliga ändringar informerar vi i appen.</p>

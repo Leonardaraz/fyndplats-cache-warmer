@@ -100,8 +100,9 @@ kontroll).
 Svensk lag tillämpas på dessa villkor. Tvist ska i första hand lösas i samförstånd;
 vi följer **Allmänna reklamationsnämndens (ARN)** rekommendationer. Kan tvisten
 inte lösas avgörs den av svensk allmän domstol med **Stockholms tingsrätt** som
-första instans. Du kan även använda EU:s onlineplattform för tvistelösning:
-<https://ec.europa.eu/consumers/odr>.
+första instans. Har du handlat gränsöverskridande inom EU, Norge eller Island kan
+du vända dig till **Konsument Europa (ECC Sverige)**, som drivs av Konsumentverket:
+<https://www.konsumenteuropa.se>.
 
 ## 11. Ändring av villkor
 
