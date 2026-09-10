@@ -724,12 +724,80 @@ def fargfel(txt, tillatna, facit):
     return ut
 
 
+# ── Flikraden ──────────────────────────────────────────────────────────────
+# ☠️ BUTIKENS FLIKDELARE ÄR EN ALLOWLIST PÅ FYRA STRÄNGAR, inte en rubrikläsare.
+#    `components/productview.tsx` → `FLIK_TITLE_PATTERNS`. `splitFlikar` lägger
+#    allt FÖRE första träffen i brödtexten och allt EFTER en träff i den fliken
+#    tills nästa träff. Två följder som runda 118–120 betalade för:
+#
+#      1. En rubrik som inte står i listan blir INGEN flik. `Montering och
+#         skötsel` gav 26 publicerade sidor där skötseltexten låg gömd inne i
+#         spec-fliken och den obligatoriska tredje fliken saknades helt.
+#      2. BLOCKORDNINGEN i HTML:en är därmed inte fri. Ett korslänksblock efter
+#         `<h2>Tekniska specifikationer</h2>` hamnar inne i spec-fliken.
+#
+# ☠️ Och grinden räknar FÖREKOMSTER, inte närvaro. En beskrivning som råkat bli
+#    skriven två gånger ger TVÅ `<summary>Tekniska specifikationer</summary>`,
+#    för delaren öppnar en ny flik vid varje träff. Dubblettkontrollen är alltså
+#    gratis i samma hämtning — och den behövdes: runda 119:s `5d1696db` fick sin
+#    text dubblerad i avskrivningen till PATCH-kroppen.
+_SUMMARY = re.compile(r"<summary[^>]*>\s*(.*?)\s*</summary>", re.S)
+FLIKAR_SOM_KRAVS = ("Tekniska specifikationer", "Användning och skötsel",
+                    "Vanliga frågor")
+
+
+def flikrad(html):
+    """Flikrubrikerna sidan FAKTISKT renderar, i ordning."""
+    return [re.sub(r"<[^>]+>", "", m).strip() for m in _SUMMARY.findall(html)]
+
+
+def flikfel(html, kravs=FLIKAR_SOM_KRAVS):
+    """Fel i flikraden: saknad flik, dubblerad flik, eller en död rubrik kvar.
+
+    ⚠️ Läs ett rött utfall mot WIX innan du tror det om sidan. `hamta_isr`:s
+       paus räcker inte alltid direkt efter en skrivning — uppmätt 2026-09-10
+       på `ad390a36`, som föll som SAKNAS medan Wix bar rätt text och samma URL
+       svarade korrekt 25 sekunder senare.
+    """
+    flikar = flikrad(html)
+    fel = []
+    for f in kravs:
+        n = flikar.count(f)
+        if n == 0:
+            fel.append(f"FLIKEN {f!r} är ingen <summary> — sidan har {flikar}")
+        elif n > 1:
+            fel.append(f"FLIKEN {f!r} förekommer {n} gånger — dubblerad text?")
+    if "Montering och skötsel" in html:
+        fel.append("DÖD RUBRIK: 'Montering och skötsel' matchar ingen flik")
+    return fel
+
+
 # ── Självtest ──────────────────────────────────────────────────────────────
 # ☠️ `grindar.py` hade inget självtest alls fram till runda 120, trots att den
 #    är den fil ALLA rundor delar. Ett fel här slår mot varje kommande runda
 #    samtidigt, och de tre nyaste reglerna är alla skrivna EFTER ett falsklarm.
 def _sjalvtest():
     fall = [
+        ("flik: alla tre finns", lambda: bool(flikfel(
+            "<summary>Tekniska specifikationer</summary>"
+            "<summary>Användning och skötsel</summary>"
+            "<summary>Vanliga frågor</summary>")), False),
+        ("flik: död rubrik fälls", lambda: bool(flikfel(
+            "<summary>Tekniska specifikationer</summary>"
+            "<h2>Montering och skötsel</h2>"
+            "<summary>Vanliga frågor</summary>")), True),
+        ("flik: DUBBLERAD text fälls", lambda: bool(flikfel(
+            "<summary>Tekniska specifikationer</summary>"
+            "<summary>Användning och skötsel</summary>"
+            "<summary>Vanliga frågor</summary>"
+            "<summary>Tekniska specifikationer</summary>"
+            "<summary>Användning och skötsel</summary>"
+            "<summary>Vanliga frågor</summary>")), True),
+        ("flik: butikens egen fjärde flik stör inte", lambda: bool(flikfel(
+            "<summary>Tekniska specifikationer</summary>"
+            "<summary>Användning och skötsel</summary>"
+            "<summary>Vanliga frågor</summary>"
+            "<summary>Kontakta oss</summary>")), False),
         ("jargong: bestämd form", lambda: JARGONG.search("Den här rundan blev bra"), True),
         ("jargong: numret", lambda: JARGONG.search("Runda 120 polerades"), True),
         ("jargong: ADJEKTIVET går fritt", lambda: JARGONG.search("två runda pallar"), False),
@@ -763,7 +831,12 @@ def _sjalvtest():
     ]
     fel = []
     for namn, kor, ska_falla in fall:
-        traff = bool(kor())
+        # ☠️ `bool()` på BÅDA sidor. Ett fall som skrev `[]` i stället för
+        #    `False` gav `False != []` → fel, med meddelandet "fick ingen
+        #    träff, väntade ingen träff". Ett larm som beskriver två identiska
+        #    utfall går inte att handla på — samma familj som ett falsklarm
+        #    som alltid fyrar.
+        traff, ska_falla = bool(kor()), bool(ska_falla)
         if traff != ska_falla:
             fel.append(f"{namn}: fick {'träff' if traff else 'ingen träff'}, "
                        f"väntade {'träff' if ska_falla else 'ingen träff'}")

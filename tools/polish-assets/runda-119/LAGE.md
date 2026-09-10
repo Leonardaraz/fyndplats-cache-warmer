@@ -227,3 +227,47 @@ och en lista över kända klassnamn är samma sorts fälla som en svartlista
 fortsätter ändra sig efter publiceringen medan butikens egna cachar
 konvergerar. Kusinen är uppgift #273, där cachen svarade som utkastet — här
 svarade den korrekt, men på en sida som ännu inte var färdigbyggd.
+
+## ☠️ Efterrättelse 2026-09-10: flikrubriken matchade ingenting (uppgift #449)
+
+Samma defekt som runda 118 och 120, och hela historien står i
+`runda-118/LAGE.md`: `Montering och skötsel` finns inte i butikens
+`FLIK_TITLE_PATTERNS`, alltså blev den ingen flik — skötseltexten och
+korslänkarna hamnade inne i **Tekniska specifikationer** och den tredje fliken
+saknades på alla nio sidor.
+
+Rättat på samma sätt: rubriken heter `Användning och skötsel` och korslänkarna
+ligger FÖRE `<h2>Tekniska specifikationer</h2>`. Sökorden var redan svenska i
+den här rundan, så bara beskrivningen skrevs om.
+
+**Kvitto: 9 av 9 live-sidor bär de tre `<summary>`-flikarna.**
+
+### ☠️ Och kontrollen fångade MITT EGET fel, inte bara butikens
+
+`5d1696db` fick sin beskrivning **två gånger** i PATCH-kroppen. Generatorn
+skrev ut en kopia; jag dubblerade den när jag skrev av den i anropet. Exakt
+den lärdom husets `CLAUDE.md` redan bär — *skriv texten i en FIL först* —
+och den gången var filen rätt och avskrivningen fel.
+
+Rättad på revision 8 och verifierad med en egen `GET ?fields=PLAIN_DESCRIPTION`.
+
+✅ **Dubblettkontrollen är gratis om man räknar rätt sak.** En dubblerad
+beskrivning ger **två** `<summary>Tekniska specifikationer</summary>` på
+sidan, för delaren öppnar en ny flik vid varje träff. Grinden räknar därför
+förekomster per flikrubrik och kräver exakt en — samma hämtning, ingen extra
+kostnad, och den mäter STRUKTUR i stället för närvaro.
+
+⚠️ **`hamta_isr`:s 20-sekunderspaus räcker inte alltid efter en skrivning.**
+`ad390a36` föll som "SAKNAS" medan Wix redan bar rätt text (revision 8,
+`updatedDate 18:18:55`). Uppmätt på samma URL direkt efteråt:
+
+| tid | cache | age | `Användning och skötsel` |
+|---|---|--:|--:|
+| 18:31 (grindens andra hämtning) | HIT | 130 | 0 |
+| 18:34 | HIT | 155 | **1** |
+| 18:35 | HIT | 216 | 1 |
+
+Ombyggnaden var alltså igång men inte klar när pausen tog slut. Kusin till
+uppgift #273 och till runda 119:s egen ögonblicksbilds-varning ovan:
+**ett rött utfall i Steg 14 ska verifieras mot Wix innan det tros om sidan.**
+Datan var rätt; det var mätningen som var för otålig.

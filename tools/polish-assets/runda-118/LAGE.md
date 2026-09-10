@@ -135,3 +135,50 @@ skriven vid funktionen.
   ihop och ska poleras tillsammans mot de två publicerade sidorna
   `kokso-pa-hjul-fallbar-bankskiva-kryddhyllor` (2 919) och
   `kokso-pa-hjul-glasdorrar-fallbar-bankskiva` (2 069).
+
+## ☠️ Efterrättelse 2026-09-10: flikrubriken matchade ingenting (uppgift #449)
+
+Hittad mitt i runda 120:s Steg 14, inte av en grind här. Butikens flikdelare
+(`components/productview.tsx` → `FLIK_TITLE_PATTERNS`) är en **allowlist på
+exakt fyra strängar**. `Montering och skötsel` står inte i den. Rubriken blev
+alltså ingen flik alls: `splitFlikar` lägger allt EFTER en träff i den fliken
+tills nästa träff, så skötseltexten och korslänkarna hamnade inne i
+**Tekniska specifikationer**, och den obligatoriska tredje fliken saknades på
+alla nio sidor.
+
+☠️ **Textgrinden kunde inte se det, och det är hela lärdomen.** Den mätte att
+skötselstycket FANNS. Frågan sidan ställer är var det HAMNAR. En grind som
+mäter närvaro svarar inte på en fråga om struktur (uppgift #450).
+
+Två ändringar i `texter.py`, och båda behövs:
+
+1. Rubriken heter **`Användning och skötsel`** — ordagrant, en av de fyra.
+2. **Korslänkarna flyttades FÖRE `<h2>Tekniska specifikationer</h2>`.** Efter
+   den hade de legat inne i spec-fliken. Blockordningen i HTML:en är alltså
+   inte fri när delaren är en allowlist.
+
+⚠️ **Sökorden var tyska på alla nio.** Uppmätt i samma svep: `seoData.settings
+.keywords` bar leverantörens tyska termer. De skrevs om i samma PATCH — och
+`seoData` som skickas med BARA `settings` **bevarar `tags`**, alltså överlever
+`seoTitle`/`seoDescription`. Mätt på `ca20d60e` innan de åtta live-sidorna
+rördes.
+
+☠️ **`omgenerera.py` skriver inte över `skrivning.json` utan bevis.** Den
+räknar om `ordsumma`, `ord` och `synliga_tecken` ur den GAMLA lagrade texten
+först och kastar om något tal inte reproduceras. Utan den hade en tyst drift
+mellan `texter.py` och `skrivning.json` blivit en tyst omskrivning av en
+publicerad sida. Den fällde också ett verkligt fall i runda 119.
+
+⚠️ **`ordsumma` går INTE att jämföra mellan rundor.** Runda 118/119 stryker
+taggar med `re.sub(r"<[^>]+>", " ", html)` (mellanslag), runda 120 med `""`.
+Ett tecken, och checksummorna blir oförenliga. Inom en runda är de giltiga.
+
+**Kvitto:** 8 av 8 live-sidor bär nu de tre `<summary>`-flikarna. `ca20d60e`
+är fortfarande utkast och rättades i samma svep, så den publiceras med rätt
+flikrad när varan är tillbaka.
+
+⚠️ **Två fynd på vägen, båda lämnade:** tre av sidorna bär tyska
+leverantörsfilnamn i sina bilder (`servierwagen-…`, `mehrzweckwagen-…`,
+`outdoor-servierwagen-…` — uppgift #340), och `8a73caf4`:s korslänk pekar på
+`serveringsvagn-utomhus-107-cm-gran`, som är `visible:false`. Den länken är
+alltså en live-länk till en 404 tills `ca20d60e` publiceras.

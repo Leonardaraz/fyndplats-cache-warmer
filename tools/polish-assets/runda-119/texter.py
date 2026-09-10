@@ -498,20 +498,31 @@ def bygg(pid):
         ut.append(f"<li>{text[:1].upper()}{text[1:]}</li>")
     ut.append("</ul>")
 
-    ut.append("<h2>Tekniska specifikationer</h2><ul>")
-    for etikett, varde in SPEC[pid]:
-        ut.append(f"<li><strong>{etikett}:</strong> {_f(varde, pid)}</li>")
-    ut.append("</ul>")
-
-    ut.append("<h2>Montering och skötsel</h2>")
-    ut.append(f"<p>{_f(SKOTSEL[pid], pid)}</p>")
-
+    # ☠️ KORSLÄNKARNA LIGGER FÖRE FÖRSTA FLIKRUBRIKEN, med flit.
+    #    Butikens `splitFlikar` (butiksrepot, `components/productview.tsx`)
+    #    lägger ALLT före första matchande <h2> i brödtexten och allt
+    #    därefter i flikar. Ett block mellan två flikrubriker hamnar alltså
+    #    INUTI den föregående fliken — här låg både skötseltexten och
+    #    korslänkarna inne i spec-tabellen. Uppmätt live 2026-09-10 i
+    #    runda 120 och rättat här i samma svep.
     if SYSKON.get(pid):
         lankar = " ".join(
             f'<a href="https://www.fyndplats.se/produkt/{s}">{t.capitalize()}</a>.'
             for s, t in SYSKON[pid])
         ut.append("<h2>Passar inte den här?</h2>")
         ut.append(f"<p>{lankar}</p>")
+
+    ut.append("<h2>Tekniska specifikationer</h2><ul>")
+    for etikett, varde in SPEC[pid]:
+        ut.append(f"<li><strong>{etikett}:</strong> {_f(varde, pid)}</li>")
+    ut.append("</ul>")
+
+    # ☠️ RUBRIKEN MÅSTE HETA "Användning och skötsel" — ORDAGRANT.
+    #    `FLIK_TITLE_PATTERNS` känner exakt fyra strängar, och
+    #    "Montering och skötsel" är ingen av dem. Sidan såg hel ut: ordet
+    #    stod där, som <h2>, mitt i spec-fliken.
+    ut.append("<h2>Användning och skötsel</h2>")
+    ut.append(f"<p>{_f(SKOTSEL[pid], pid)}</p>")
 
     ut.append("<h2>Vanliga frågor</h2>")
     for fraga, svar in FAQ[pid]:

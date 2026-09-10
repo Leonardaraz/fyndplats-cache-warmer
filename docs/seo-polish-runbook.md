@@ -3491,8 +3491,32 @@ Tre självtestfall låser den: bytt skötselrubrik, `Specifikationer` i stället
 `Tekniska specifikationer`, och en flikrubrik nedgraderad till `<h2>`.
 
 ⚠️ **Blast-radien är mätt, inte gissad.** En grep över `tools/polish-assets/`
-ger tre rundor som skrivit `Montering och skötsel`: **118, 119 och 120**. Runda
-120 är rättad; **18 publicerade sidor i runda 118 och 119 bär felet kvar.**
+ger tre rundor som skrivit `Montering och skötsel`: **118, 119 och 120**.
+
+✅ **Alla tre är rättade 2026-09-10.** 17 live-sidor omskrivna och verifierade
+(8 i runda 118 + 9 i runda 119; runda 118:s nionde är fortfarande utkast och
+rättades i samma svep). Kvitto: `3 sidor, 0 fel` × flera pass — varje sida bär
+`Tekniska specifikationer`, `Användning och skötsel`, `Vanliga frågor` och
+butikens egen `Kontakta oss`.
+
+✅ **Regeln bor sedan dess i `grindar.flikfel`, inte i rundans egen fil**, och
+körs med `python3 flikkoll.py <pid>=<slug> …`. Fyra självtestfall i
+`grindar._sjalvtest()`.
+
+☠️ **Och den räknar FÖREKOMSTER, inte närvaro — det är dubblettkontrollen.**
+En beskrivning som råkat bli skriven två gånger ger **två**
+`<summary>Tekniska specifikationer</summary>`, för delaren öppnar en ny flik
+vid varje träff. Den kontrollen behövdes: runda 119:s `5d1696db` fick sin text
+dubblerad när PATCH-kroppen skrevs av för hand. Filen var rätt, avskriften
+fel — samma lärdom som husets *"skriv texten i en FIL först"*, ett steg senare
+i kedjan.
+
+⚠️ **Ett rött utfall ska verifieras mot Wix innan det tros om sidan.**
+`hamta_isr`:s 20-sekunderspaus räcker inte alltid direkt efter en skrivning.
+Uppmätt på `ad390a36`: grinden sa SAKNAS medan Wix bar rätt text
+(revision 8), och samma URL svarade korrekt 25 sekunder senare —
+`age 130 → 0 träffar`, `age 155 → 1 träff`. Datan var rätt; mätningen var för
+otålig. Kusin till runda 60:s cachegåta.
 
 **Regeln: en grind som mäter NÄRVARO svarar inte på en fråga om STRUKTUR.**
 
