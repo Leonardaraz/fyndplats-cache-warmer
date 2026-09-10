@@ -81,6 +81,28 @@ den råa spec-listan användes som mall. **Sök på `Skickas från` i slutkollen
 - ⚠️ **`fields`-fällan:** på GET fungerar `?fields=X` och repeterade `?fields=A&fields=B`. En
   **kommaseparerad** lista 400:ar med det missvisande `Failed to parse JSON or deserialize
   protobuf message` — felet ser ut att gälla bodyn men sitter i URL:en.
+- ☠️ **`wix.request` tar kroppen i `body` — `data` SLUKAS TYST** *(uppmätt 2026-09-10)*.
+  Med `data` lyckas anropet, Wix svarar 200 med standardprojektionen, och allt du
+  skickade — markör, filter, `limit` — fanns aldrig i förfrågan. Uppmätt på `limit: 5`:
+
+  | kroppsfält | rader tillbaka |
+  |---|--:|
+  | `data` · `json` · `payload` | 100 |
+  | **`body`** | **5** |
+  | `body` som JSON-STRÄNG | `400 Expected an object` |
+
+  Det förklarar uppgift #404:s "svepet läste samma sida 30 gånger": markören låg i
+  en kropp som aldrig skickades, inte på fel nivå i den. Och det gjorde felet omöjligt
+  att felsöka — `search.cursorPaging`, toppnivå och `search.paging` gav alla 100 rader,
+  eftersom ingen av dem nådde fram.
+
+  🔒 **Pröva att kroppen biter innan du mäter något med den.** `limit: 5` mot ett API
+  som svarar 100 är den billigaste kontrollen som finns. Samma familj som en läsare
+  som blir TOM: ett fel fältnamn ger ett friskt svar, inte ett fel.
+- ✅ **`fields: ["PLAIN_DESCRIPTION"]` ligger på KROPPENS TOPPNIVÅ i `products/search`**,
+  bredvid `search`, inte inuti den. Uppmätt samma dag: 5 623 av 5 623 produkter kom
+  tillbaka med `plainDescription` ifylld. (`VARIANTS_INFO` finns däremot inte som enum
+  — en enskild GET ger `variantsInfo` i standardprojektionen ändå.)
 - ☠️ **Wix SKRIVER OM beskrivningens markup vid sparning** *(uppmätt 2026-09-07)*. Det du
   skickar är inte det som lagras:
 
