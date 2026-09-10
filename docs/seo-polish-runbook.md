@@ -3693,10 +3693,56 @@ det tillåter bindestreck ELLER "och", medan den vanligaste svenska formen
 och självtestet var det enda som kunde säga det.
 
 **Reglerna bor i `tools/polish-assets/grindar.py` sedan runda 120** — `JARGONG`,
-`TILLATNA_TECKEN` + `homoglyfer()`, `DELORD` + `fargfel()` — och
-`tvillingsvep()` i samma fil är källkodstestet som fäller om en runda från 120
-och framåt definierar om dem i stället för att importera. Samma mekanism som
+`TILLATNA_TECKEN` + `homoglyfer()`, `DELORD` + `fargfel()`, `flikfel()` (runda
+121) och `butikstvatt()` med `EU_RIBBON`/`BILDADRESS`/`SVG_GEOMETRI` (runda 121)
+— och `tvillingsvep()` i samma fil är källkodstestet som fäller om en runda från
+120 och framåt definierar om dem i stället för att importera. Samma mekanism som
 `store-access-audit.test.ts`.
+
+#### ☠️ LIVE-GRINDENS TVÄTT ÄR DEN FARLIGASTE TVILLINGEN — den ser ut som ett produktfel
+
+`egna_meningar` tar tvätten som ARGUMENT, så den har skrivits om i varje runda.
+Runda 121 mätte vad det kostar: **12 fel på 8 KORREKTA sidor**, i två klasser
+som båda läste som defekter på sidan.
+
+| klass | träffar | vad som faktiskt hände |
+|---|--:|---|
+| `LEVERANSLAND` | 8 | chromets ANDRA `EU-lager`-rad var otäckt |
+| `FÄRGORD` | 4 | tvätten dödade `href` → korslänken lästes som egen text |
+
+☠️ **Ett brett `https?://\S+` DÖDAR KORSLÄNKARNA.** Tvätten körs FÖRE
+`dela_pa_ankare`, och ankarmönstret kräver ett intakt `href="…"`. Utan adress
+är ankaret inget ankare, och länktexten — som NAMNGER grannens färg, med flit —
+faller ned bland sidans egna meningar. Grinden fyrar då på precis det
+korslänkarna finns för att säga. Mönstret ska vara wixstatic-SPECIFIKT, och
+attributstrykningen får bara röra `src`/`srcset`. Aldrig `href`.
+
+☠️ **`EU-lager & tull` har TRE former, och mönstret kände två.** `&` i DOM-texten
+och `\u0026` i payloadens JSON var täckta; `&amp;` — den form den renderade
+HTML:en faktiskt serverar — var det inte. Ett mönster som täcker två av tre ser
+fullständigt ut i källkoden.
+
+☠️ **Och SVG-heuristiken åt VÅR EGEN TEXT.** Runda 117–119 bar
+`\b[Mm]\s*[\d.]+[,\s][\d.]+` för att fånga rå banadata. Uppmätt på vanlig
+svenska:
+
+| mening | efter tvätten |
+|---|---|
+| `Bredd 0,9 m 1,2 m djup.` | `Bredd 0,9 «» m djup.` |
+| `…tar 1,8 m 20 30 skaft.` | `…tar 1,8 «» skaft.` |
+
+Ett metermått skrivet på det vanligaste sättet försvinner alltså UR grinden,
+och då kan ingen kontroll längre se det — uppgift #384:s klass åt andra hållet:
+en strykning som DÖLJER ett fynd i stället för att skapa ett. Heuristiken är
+borttagen; kvar står bara de två entydiga attributformerna. *(Kontrollmätt på
+runda 117–121:s texter: noll träffar, alltså maskerades ingenting.)*
+
+✅ **Tvätten prövas mot STRÄNGAR, inte mot en sida.** Den går inte att felsöka
+mot live-HTML — dess fel ser ut som produktfel — så den har åtta egna fall i
+`grindar._sjalvtest()`, inklusive ett som kräver att `href` ÖVERLEVER och ett
+som kräver att vår egen text om EU-lagret INTE stryks. Live-grinden kör
+`G._sjalvtest()` + `G.tvillingsvep()` FÖRE sidorna: en grind som prövar sig
+själv först är skillnaden mellan "sidan är trasig" och "grinden är trasig".
 
 ⚠️ **Svepets EGET första utkast släppte igenom noll och fällde varje alias.**
 Mönstret var `^NAMN\s*=\s*(?!G\.)`, och `\s*` backtrackar till noll tecken —

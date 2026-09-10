@@ -84,6 +84,55 @@ härledd ur den nya sluggen. Priset lästes omedelbart före varje
 `variantsInfo`-skrivning, ekades tillbaka och jämfördes efteråt: **8 av 8
 orörda**.
 
+## Steg 14: 8 av 8 gröna — men grinden fälldes tolv gånger först
+
+Första körningen gav **12 fel på 8 sidor**. Alla tolv var GRINDFEL, och båda
+klasserna mättes fram i stället för att gissas — en kontrollkörning med
+`lambda h: h` i stället för tvätten visade att `blå` inte fanns i `egna`
+ÖVERHUVUDTAGET, alltså kunde träffen inte komma från sidans egen text.
+
+| klass | träffar | vad som faktiskt hände |
+|---|--:|---|
+| `LEVERANSLAND` | 8 | butikens chrome har **två** rader med `EU-lager` |
+| `FÄRGORD` | 4 | tvätten dödade `href` → korslänken lästes som sidans egen mening |
+
+☠️ **Ett brett `https?://\S+` i tvätten dödar korslänkarna.** `egna_meningar`
+kör tvätten FÖRE `dela_pa_ankare`, och ankarmönstret kräver ett intakt
+`href="…"`. Med adressen struken är ankaret inte längre ett ankare, och
+länktexten — som NAMNGER syskonets färg, med flit — faller ned bland sidans
+egna meningar. Grinden fyrade alltså på exakt det korslänkarna finns för att
+säga. `egna_meningar`s egen docstring varnar för samma sak för SLUGGEN;
+ett URL-mönster gör det en nivå bredare.
+
+☠️ **Och chromet har TVÅ `EU-lager`-rader, inte en.** Fraktraden
+(`Skickas från EU-lager – ingen importtull…`) var täckt sedan runda 117.
+Sidfotslänken `Ångra köp EU-lager &amp; tull Köpvillkor` var det inte — och
+den fyrade på alla åtta korrekta sidor.
+
+Tvätten stryker nu bara `src`/`srcset`/`\d{2,4}w` och båda chrome-raderna, och
+har ett **eget fyrfallssjälvtest** — den går inte att pröva mot en levande
+sida utan att först ha en levande sida, så den prövas mot strängar i stället.
+
+Efter lagningen:
+
+```
+OK  45bac2cb  mopphink-hjul-26-liter-press-gul
+OK  731c8bfc  mopphink-hjul-26-liter-press-bla
+OK  74ea10dc  mopphink-tva-hinkar-78-cm
+OK  e526fd01  mopphink-36-liter-press-innerhink
+OK  da0f30b2  moppvagn-25-liter-korg-hylla-gul
+OK  d8ebb279  moppvagn-25-liter-korg-hylla-bla
+OK  9aa46e31  stadvagn-121-cm-tre-hyllplan-sopsack
+OK  75fcdcfb  stadvagn-122-cm-mopphink-sopsack
+
+8 sidor, 0 fel
+```
+
+Flikraden är grön på alla åtta (`grindar.flikfel`), stämplingen kvitterad i
+`polish-mapping.yml`-körningarna **2424–2431, alla `success`**.
+
+**Runda 121 är därmed klar i alla fjorton steg.**
+
 ## Kvar för Leonard
 
 - **Fyra utkast i familjen** går till runda 122: `6490e360` (1 299),

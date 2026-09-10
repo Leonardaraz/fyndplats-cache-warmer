@@ -49,9 +49,6 @@ FACIT = json.load(open(os.path.join(HAR, "facit-live.json"), encoding="utf-8"))
 BAS = "https://www.fyndplats.se/produkt/"
 FLIKAR = ["Tekniska specifikationer", "Användning och skötsel", "Vanliga frågor"]
 
-SVG_GEOMETRI = re.compile(r'\b(?:d|points|viewBox|transform)="[^"]*"'
-                          r'|"(?:d|points|viewBox|transform)":"[^"]*"')
-BILDADRESS = re.compile(r"https?://static\.wixstatic\.com/\S+|\b\d+w\b")
 SUMMARY = re.compile(r"<summary[^>]*>\s*(.*?)\s*</summary>", re.S)
 
 # ⚠️ UTOMHUS kan inte prövas på den renderade sidan: butikens egna
@@ -61,8 +58,11 @@ SUMMARY = re.compile(r"<summary[^>]*>\s*(.*?)\s*</summary>", re.S)
 LIVE_UNDANTAG = {"UTOMHUSBRUK", "FÖRVARING"}
 
 
-def _tvatta(t):
-    return SVG_GEOMETRI.sub(" ", BILDADRESS.sub(" ", G.EU_RIBBON.sub(" ", t)))
+# ☠️ TVÄTTEN ÄGS AV `grindar.butikstvatt` sedan runda 121. Den här rundans
+#    egen kopia var en av fyra tvillingar som `tvillingsvep` fällde: rundans
+#    version saknade `&amp;`-formen av sidfotslänken och bar en SVG-heuristik
+#    som åt vår egen text ("Bredd 0,9 m 1,2 m djup" tappade måttet).
+_tvatta = G.butikstvatt
 
 
 def granska(nyckel, html):

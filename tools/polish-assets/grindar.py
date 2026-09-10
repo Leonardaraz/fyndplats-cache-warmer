@@ -630,13 +630,66 @@ def egna_meningar(html, slug, eget_namn=None, tvatta=None):
 #    den andra är SIDFOTENS navigationslänk "EU-lager & tull", som ligger på
 #    varje sida butiken renderar. Att bara stryka ribbonen lämnade alltså
 #    larmet kvar på alla åtta — uppmätt, inte antaget.
+# ☠️ OCH TECKNET MELLAN ORDEN HAR TRE FORMER. Mönstret kände `&` (i DOM-texten)
+#    och `\u0026` (i den JSON-serialiserade payloaden) men INTE `&amp;` — och
+#    det är just den formen den renderade HTML:en serverar. Runda 121 mätte
+#    kostnaden: sidfotslänken stod kvar i tvätten och fällde alla åtta korrekta
+#    sidor med raden `Ångra köp EU-lager &amp; tull Köpvillkor`. Ett mönster som
+#    täcker två av tre former ser fullständigt ut i källkoden.
 EU_RIBBON = re.compile(
     r'<a[^>]*href="/eu-lager-garanti"[^>]*>.*?</a>'
     r'|Skickas från EU-lager[^<]*'
     r'|\\?"href\\?":\\?"/eu-lager-garanti\\?"[^}]*?\\?"children\\?":\\?"[^"\\\\]*'
     r'|/eu-lager-garanti'
-    r'|EU-lager \\u0026 tull|EU-lager & tull', re.S)
+    r'|EU-lager\s*(?:&amp;|\\u0026|&)\s*tull', re.S)
 
+
+# ── ☠️ BUTIKENS CHROME OCH BILDADRESSER: EN TVÄTT, INTE EN PER RUNDA ───────
+# `egna_meningar` tar anroparens tvätt som argument, och den har därför
+# skrivits om i varje runda. Runda 121 mätte vad det kostar: rundans egen
+# omskrivning tappade `EU_RIBBON` till förmån för två handskrivna mönster
+# (som bara täckte HALVA chromet) och breddade bildadressen från
+# wixstatic-specifik till `https?://\S+`. Utfallet var **12 fel på 8 korrekta
+# sidor**, i två klasser som båda såg ut som produktfel.
+#
+# ☠️ ETT BRETT `https?://\S+` DÖDAR KORSLÄNKARNA. Tvätten körs FÖRE
+#    `dela_pa_ankare`, och ankarmönstret kräver ett intakt `href="…"`. Stryks
+#    adressen slutar länken vara en länk — och ankartexten, som NAMNGER
+#    grannens färg med flit, faller ned bland sidans EGNA meningar. Fyra
+#    färgsyskonsidor fälldes för sina egna korslänkar. `egna_meningar`:s
+#    docstring varnar för exakt det här om SLUGGEN; ett adressmönster gör
+#    samma sak en nivå bredare. Mönstret är därför wixstatic-SPECIFIKT, och
+#    attributstrykningen träffar bara `src`/`srcset` — aldrig `href`.
+#
+# ☠️ OCH CHROMET HAR TVÅ `EU-lager`-RADER. `EU_RIBBON` täckte båda sedan
+#    runda 117; den handskrivna ersättaren täckte bara leveransraden och
+#    missade sidfotslänken `EU-lager & tull`, som ligger på varje sida
+#    butiken renderar. Den fyrade på alla åtta.
+#
+# ⚠️ `1080w` i en srcset är en BILDBREDD, inte ett tal i vår text (#403).
+BILDADRESS = re.compile(r"https?://static\.wixstatic\.com/\S+|\b\d+w\b")
+# ☠️ PATH-DATA-HEURISTIKEN ÄR BORTTAGEN — den åt vår EGEN text. Runda 117–119
+#    bar `\b[Mm]\s*[\d.]+[,\s][\d.]+` för att fånga rå SVG-bana (`M 12,4 …`).
+#    Uppmätt 2026-09-10 på vanliga svenska meningar:
+#
+#      "Bredd 0,9 m 1,2 m djup."            → "Bredd 0,9 «» m djup."
+#      "…tar 1,8 m 20 30 skaft."            → "…tar 1,8 «» skaft."
+#
+#    Ett metermått skrivet på det vanligaste sättet försvinner alltså UR
+#    grinden — och då kan ingen kontroll längre se det. Det är uppgift #384:s
+#    klass åt andra hållet: en strykning som DÖLJER ett fynd i stället för att
+#    skapa ett. Runda 120 valde bort den; det var rätt. Kvar står bara de två
+#    ENTYDIGA formerna — attributet i HTML och samma attribut i payloadens JSON.
+SVG_GEOMETRI = re.compile(r'\b(?:d|points|viewBox|transform)="[^"]*"'
+                          r'|"(?:d|points|viewBox|transform)":"[^"]*"')
+BILDATTRIBUT = re.compile(r'\s(?:src|srcset)="[^"]*"')
+
+
+def butikstvatt(html):
+    """Stryker butikens chrome, bildadresser och SVG-geometri — ALDRIG href."""
+    return SVG_GEOMETRI.sub(
+        " ", BILDADRESS.sub(
+            " ", BILDATTRIBUT.sub(" ", EU_RIBBON.sub(" ", html))))
 
 # ── ☠️ INTERN JARGONG: `rundan`, INTE `runda` ──────────────────────────────
 # Husets ord för ett poleringspass har läckt till PUBLICERAD kundtext tre
@@ -828,6 +881,38 @@ def _sjalvtest():
          lambda: definierar_om("homoglyfer = G.homoglyfer\n"), False),
         ("svep: indragen definition är inte en modulnivå-definition",
          lambda: definierar_om("    DELORD = 1\n"), False),
+        # ── butikstvatt: fallen är runda 121:s tolv fällda korrekta sidor ──
+        # ☠️ Tvätten går inte att pröva mot en levande sida — dess fel SER UT
+        #    som produktfel. Den måste därför ha egna strängfall.
+        ("tvatt: href ÖVERLEVER — korslänken får inte bli anonym", lambda:
+         'href="https://www.fyndplats.se/produkt/x-bla"' not in butikstvatt(
+             '<a href="https://www.fyndplats.se/produkt/x-bla">Samma i blått</a>'),
+         False),
+        ("tvatt: srcset och src stryks", lambda: "wixstatic" in butikstvatt(
+            '<img srcset="https://static.wixstatic.com/a.jpg 1080w" '
+            'src="https://static.wixstatic.com/a.jpg">'), False),
+        ("tvatt: bildbredden 1080w räknas inte som vårt tal", lambda:
+         "1080w" in butikstvatt('<img srcset="https://x/a.jpg 1080w">'), False),
+        ("tvatt: chromets leveransrad stryks", lambda: "EU-lager" in butikstvatt(
+            "Skickas från EU-lager – ingen importtull."), False),
+        ("tvatt: chromets SIDFOTSLÄNK stryks — &amp;-formen", lambda:
+         "EU-lager" in butikstvatt("Ångra köp EU-lager &amp; tull Köpvillkor"),
+         False),
+        ("tvatt: sidfotslänken i ren &-form stryks", lambda:
+         "EU-lager" in butikstvatt("Ångra köp EU-lager & tull Köpvillkor"),
+         False),
+        ("tvatt: sidfotslänken i JSON-payloaden stryks", lambda:
+         "EU-lager" in butikstvatt(r"x EU-lager \u0026 tull y"), False),
+        ("tvatt: vår EGEN text om EU-lager står kvar (ingen övertvätt)", lambda:
+         "EU-lagret" in butikstvatt("Varan ligger i EU-lagret."), True),
+        ("tvatt: ett METERMÅTT överlever — path-heuristiken åt det förr",
+         lambda: "1,2" not in butikstvatt("Bredd 0,9 m 1,2 m djup."), False),
+        ("tvatt: SVG-attributet stryks (HTML-formen)", lambda:
+         "12,4" in butikstvatt('<path d="M 12,4 L 30,8"/>'), False),
+        ("tvatt: SVG-attributet stryks (payloadens JSON-form)", lambda:
+         "12,4" in butikstvatt('{"d":"M 12,4 L 30,8"}'), False),
+        ("tvatt: id=\"…\" är INTE ett SVG-attribut", lambda:
+         "abc" not in butikstvatt('<div id="abc">Text</div>'), False),
     ]
     fel = []
     for namn, kor, ska_falla in fall:
@@ -856,8 +941,11 @@ def _sjalvtest():
 #    filer lämnas orörda av samma skäl som `runda-64/lint.py` gjorde 2026.
 #    Att fälla på dem hade gett ett larm som fyrar varje körning utan att
 #    någon tänker laga det — och ett sådant larm lär mottagaren att sluta läsa.
-ADE_HAR = ["JARGONG", "TILLATNA_TECKEN", "DELORD"]
-ADE_FUNKTIONER = ["homoglyfer", "fargfel"]
+ADE_HAR = ["JARGONG", "TILLATNA_TECKEN", "DELORD",
+           "EU_RIBBON", "BILDADRESS", "SVG_GEOMETRI"]
+# `_tvatta` står med under sitt gamla namn: runda 120 och 121 döpte den
+# så, och det är just den funktionen som gled isär.
+ADE_FUNKTIONER = ["homoglyfer", "fargfel", "butikstvatt", "_tvatta"]
 FORSTA_GRINDADE_RUNDAN = 120
 
 
