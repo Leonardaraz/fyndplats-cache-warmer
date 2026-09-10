@@ -484,6 +484,17 @@ def _bojningar(ord_):
     formar = [re.escape(ord_) + r"(?:s|n|en|et|na|ar|or|er|arna|orna|erna)?"]
     if ord_[-1] in "ae":
         formar.append(re.escape(ord_[:-1]) + r"(?:ar|or|er|arna|orna|erna)")
+    # ☠️ SYNKOPEKLASSEN saknades — och listan bar dess fingeravtryck.
+    #    Obetonat `-el`, `-en`, `-er` TAPPAR sin vokal i plural: nyckel →
+    #    nycklar, cykel → cyklar, axel → axlar, segel → seglar. Docstringen
+    #    ovan pekade ut att `"nycklar"` stod listat BREDVID `"nyckel"` som
+    #    beviset på en enordslagning — och lagade sedan inte klassen.
+    #    Uppmätt i runda 125: `nyckel` matchade inte `nycklar` i vare sig
+    #    meningen eller i `ingar`, så en korrekt levererad nyckel fälldes
+    #    som ett löfte utan täckning.
+    if len(ord_) > 3 and ord_[-2:] in ("el", "er", "en") and ord_[-3] not in "aeiouyåäö":
+        formar.append(re.escape(ord_[:-2] + ord_[-1])
+                      + r"(?:ar|or|er|arna|orna|erna|na)")
     return r"\b(?:%s)\b" % "|".join(formar)
 
 
@@ -500,6 +511,12 @@ def leveransloften(syn, ingar, nyckel=""):
         lag = mening.lower()
         for ord_ in TILLBEHOR:
             if not re.search(_bojningar(ord_), lag):
+                continue
+            # ☠️ TÄCKNINGSSIDAN MÅSTE BÖJAS OCKSÅ. En femteckensprefix bryts av
+            #    exakt samma synkope: `nyckel`[:5] är `nycke`, och det står
+            #    inte i `nycklar`. Prefixet ligger kvar som komplement — det
+            #    fångar sammansättningar som `insexnyckelsats`.
+            if re.search(_bojningar(ord_), har):
                 continue
             if ord_[:5] in har or any(p.startswith(ord_[:5]) for p in har.split()):
                 continue
@@ -766,6 +783,36 @@ def homoglyfer(text):
 DELORD = (r"skiv\w*|ram\w*|ben\w*|sits\w*|pall\w*|stol\w*|yta|ytan|stomm\w*|"
           r"bord\w*|hyll\w*|dyn\w*|ryggstöd\w*|fotstöd\w*|set\w*|lucka|luckor|"
           r"dörr\w*|låd\w*|klädsel|tyg\w*|kudd\w*|hjul\w*|handtag\w*")
+
+
+VOKALER = "aeiouyåäö"
+
+
+def fargformer(f):
+    """Färgordets svenska ADJEKTIVFORMER: grund, neutrum och plural.
+
+    ☠️ FÄRGGRINDEN HAR VARIT HALVBLIND I VARJE RUNDA. Anropen skrev
+    `rf"\b{f}\w*"`, och `röd\w*` matchar inte `rött` — d:et byts mot tt.
+    Uppmätt i runda 125: sidan `5910cd6f` heter "Rött verktygsskåp 131 cm"
+    och grinden rapporterade att den EGNA färgen saknades. Åt andra hållet
+    är felet dyrare: en FRÄMMANDE färg i neutrum hade passerat obemärkt.
+
+    Samma familj som synkopen i `_bojningar` — ett mönster som bara känner
+    den form texten råkade välja är inget mönster.
+    """
+    ut = {f, f + "a"}
+    if f.endswith("ad"):                       # silverfärgad → -at, -ade
+        ut |= {f[:-1] + "t", f + "e"}
+    elif f.endswith("d") and f[-2] in VOKALER:  # röd → rött
+        ut.add(f[:-1] + "tt")
+    elif f.endswith("t"):                       # vit → vitt, svart → svart
+        ut.add(f + "t" if f[-2] in VOKALER else f)
+    elif f[-1] in VOKALER:                      # blå → blått, grå → grått
+        ut.add(f + "tt")
+    else:                                       # gul → gult, brun → brunt
+        ut.add(f + "t")
+    return r"\b(?:%s)\b" % "|".join(sorted(map(re.escape, ut), key=len,
+                                            reverse=True))
 
 
 def fargfel(txt, tillatna, facit):
