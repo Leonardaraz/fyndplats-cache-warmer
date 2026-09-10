@@ -436,6 +436,12 @@ TILLBEHOR = (
     # de kan alltså inte ge falsklarm, bara fånga det fel bilden inbjuder till.
     "bestickinsats", "bestickfack", "besticklåda", "mikrovågsugn", "brödrost",
     "kaffebryggare", "vattenkokare",
+    # Runda 118: serverings- och barvagnarnas STYLINGREKVISITA. Leverantörens
+    # bilder dukar upp glas, karaffer, tallrikar och kryddburkar på varenda
+    # vagn, och `Lieferumfang` är `1 x vagn` + `1 x anvisning`. Samma urval som
+    # ovan: orden kan inte stå i en korrekt vagntext utan att lova något.
+    "glas", "vinglas", "karaff", "tallrik", "bestick", "servett", "isspann",
+    "kryddburk", "skärbräda", "fat",
 )
 
 
