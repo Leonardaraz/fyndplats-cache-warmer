@@ -40,7 +40,14 @@ FARTLOFTE = re.compile(
 TONGRINDAR = (
     ("LEVERANTÖRSATTRIBUTION",
      re.compile(r"\bleverant[öo]r(?:en|ens|er|ers)?\b", re.I)),
-    ("INTERN JARGONG", re.compile(r"\brundan?s?\b", re.I)),
+    # ☠️ MÖNSTRET VAR FÖR BRETT — `\brundan?s?\b` fångade ADJEKTIVET i "den
+    #    runda logotypen" och fällde en korrekt alt-text (runda 115). Jargongen
+    #    är substantivet: "rundan", "rundans", "runda 115". Adjektivet "runda"
+    #    tar aldrig bestämd -n framför sitt huvudord, så de bestämda formerna
+    #    är entydiga; bara den NAKNA formen är tvetydig och den kräver därför
+    #    en siffra efter sig. Samma lärdom som uppgift #398: en grind skriven
+    #    mot den PLATS där felet hittades täcker inte REGELN.
+    ("INTERN JARGONG", re.compile(r"\brundans?\b|\brunda\s+\d", re.I)),
     # ☠️ OMVÄND ORDFÖLJD SLAPP IGENOM. Regexen fångade "vi har inte fått" men
     #    inte "har vi inte fått", och den formen stod kvar i en text som
     #    grinden godkände. Svensk huvudsatsinversion är regel, inte undantag —
@@ -129,6 +136,66 @@ def sidans_tal(k):
 TAL = re.compile(r"(?<![\w,.])(\d+(?:,\d+)?)(?![\w])")
 
 
+
+# ── ☠️ LEVERANSLÖFTE: ett TILLBEHÖR som sägs ingå måste stå i matt.INGAR ────
+# Runda 115 skrev "en hink följer med i lådan" på fb142c5c i FYRA fält — namn,
+# ingress, brödtext och metabeskrivning. `INGAR` för den produkten är
+# `fordonet, bruksanvisning`, och bild 4 visar maskinens EGEN frontskopa, inte
+# en separat hink. Ingen befintlig grind kunde se det: det är varken ett tal,
+# ett märke, ett tonfel eller ett förbjudet ord — det är ett SUBSTANTIV som
+# ingen mätning stöder. Ett leveranslöfte är den dyraste sortens fel på en
+# produktsida, för kunden kan räkna det i lådan.
+#
+# ☠️ FÖRSTA UTKASTET GRINDADE VARJE SUBSTANTIV i meningen och fyrade på
+#    `ratten`, `skopan` och på verbet `ingår` självt — sju träffar varav sex
+#    brus. Ett falsklarm som alltid fyrar lär mottagaren att sluta läsa, och
+#    då är även det äkta larmet borta (husregeln, sjunde gången).
+#
+# Grinden tittar därför bara på TILLBEHÖR — lösa saker som KAN ligga i en
+# låda. En fast del (ratt, sits, hjul, arm, skopa på arm) hör aldrig hemma i
+# listan och kan alltså inte ge falsklarm. Är ordet ett tillbehör OCH står i
+# en leveransmening OCH saknas i INGAR → fäll.
+LEVERANS = re.compile(r"(ing[åa]r|f[öo]ljer\s+med|medf[öo]ljer|"
+                      r"med\s+i\s+l[åa]dan|i\s+l[åa]dan\s+f[öo]ljer)", re.I)
+TILLBEHOR = (
+    "hink", "spann", "skopa", "grep", "kratta", "sandskyffel", "skyffel",
+    "spade", "hjälm", "laddare", "batteri", "batterier", "verktyg", "nyckel",
+    "nycklar", "insexnyckel", "dyna", "kudde", "väska", "pump", "sugkopp",
+    "fjärrkontroll", "reservdel", "klistermärke", "dekal", "bruksanvisning",
+    "manual", "monteringsanvisning", "släp", "vagn", "flagga", "vimpel",
+)
+
+
+def leveransloften(nyckel, syn):
+    """Ett tillbehör får bara sägas ingå om det står i produktens INGAR."""
+    fel, har = [], " ".join(M.INGAR[nyckel]).lower()
+    for m in LEVERANS.finditer(syn):
+        mening = _mening_kring(syn, m.start())
+        if NEGATION.search(mening):
+            continue                       # "ingår INTE" är ett besked, inte ett löfte
+        # ☠️ FAQ-rubriken "Ingår batterier?" är en FRÅGA, inte ett löfte — och
+        #    svaret står i NÄSTA mening. SAMMA regel som `loftestraff` redan
+        #    bär, ordagrant: en fråga ursäktas BARA av att dess EGET svar
+        #    negerar. Runda 114:s falska godkännande (uppgift #415) kom av att
+        #    negationen fick hämtas från en ANNAN fråga; `_nasta_mening` är
+        #    svaret på just den här.
+        slut = _slut(syn, m.start())
+        if slut >= 0 and syn[slut] == "?" and NEGATION.search(
+                _nasta_mening(syn, m.start())):
+            continue
+        lag = mening.lower()
+        for ord_ in TILLBEHOR:
+            if not re.search(r"\b%ss?(?:n|en|et|na|erna|arna)?\b" % ord_, lag):
+                continue
+            if ord_[:5] in har or any(p.startswith(ord_[:5]) for p in har.split()):
+                continue
+            fel.append(f"LEVERANSLÖFTE UTAN TÄCKNING: {ord_!r} sägs ingå, men "
+                       f"INGAR[{nyckel}] är {M.INGAR[nyckel]} — "
+                       f"…{mening.strip()[:120]}…")
+    return fel
+
+
+
 def granska(nyckel, d):
     fel = []
     txt = d["plainDescription"]
@@ -164,6 +231,8 @@ def granska(nyckel, d):
         if m:
             fel.append(f"{etikett}: {m.group(0)!r}")
 
+    fel += leveransloften(nyckel, syn)
+
     # ── Talgrinden, ZONINDELAD ──────────────────────────────────────────────
     # ☠️ Ett LÄNKAT tal får bara stå i länkens EGET stycke. Utanför det gäller
     #    produktens egen uppsättning ensam — runda 92:s lärdom.
@@ -192,8 +261,15 @@ def granska(nyckel, d):
 
 
 def SYSKONTAL(k):
+    """Talen syskonets EGET stycke får bära.
+
+    ⚠️ Ett syskon UTANFÖR rundan har inga mätta tal här — då är den tillåtna
+       mängden TOM, alltså strängare än för ett syskon i rundan. Det är rätt
+       håll: ett tal vi inte mätt får inte stå i texten bara för att det
+       nämns i en länk.
+    """
     m = T.SYSKON[k][0]
-    return sidans_tal(m)
+    return sidans_tal(m) if m in T.SLUG else set()
 
 
 def _sjalvtest():
@@ -236,6 +312,26 @@ def _sjalvtest():
          med("<p>Den kör fort på asfalt.</p>"), True),
         ("O omvänd ordföljd: har vi fått", "VI HAR FÅTT",
          med("<p>Det måttet har vi inte fått.</p>"), True),
+        # ☠️ Q–S: leveranslöftet. Runda 115 lovade en leksakshink i FYRA fält
+        #    på fb142c5c; INGAR säger `fordonet, bruksanvisning` och bild 4
+        #    visar maskinens EGEN frontskopa. Ingen dåvarande grind såg det.
+        ("Q otäckt leveranslöfte       ", "LEVERANSLÖFTE",
+         med("<p>En hink följer med i lådan.</p>"), True),
+        ("R täckt leveranslöfte        ", "LEVERANSLÖFTE",
+         med("<p>En kratta följer med i lådan.</p>"), False),
+        # ☠️ S är den som gör grinden användbar: FAQ:ns "Ingår batterier?" är
+        #    en fråga, och svaret negerar den i NÄSTA mening. Utan regeln
+        #    fyrade grinden på alla sju KORREKTA sidor — och ett falsklarm som
+        #    alltid fyrar lär mottagaren att sluta läsa.
+        ("S fråga med negerande svar   ", "LEVERANSLÖFTE",
+         med("<p><strong>Ingår verktyg?</strong></p><p>Nej.</p>"), False),
+        ("T jargong: substantivet      ", "INTERN JARGONG",
+         med("<p>Vi tog den i rundan innan jul.</p>"), True),
+        ("U jargong: numrerad runda     ", "INTERN JARGONG",
+         med("<p>Se runda 115 för syskonen.</p>"), True),
+        # ☠️ V är falsklarmet som mönstret FAKTISKT gav: "runda" som ADJEKTIV.
+        ("V adjektivet runda            ", "INTERN JARGONG",
+         med("<p>Den runda logotypen i rattnavet.</p>"), False),
         ("P ren text                   ", "", bas, False),
     ]
     fel = 0

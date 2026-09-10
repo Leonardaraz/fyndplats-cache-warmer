@@ -22,7 +22,7 @@ SLUG = {
 }
 NAMN = {
     "cc6b56f9": "Grävmaskin att sitta på 85 cm – manövrerbar skopa och tippskydd",
-    "fb142c5c": "Hjullastare att sitta på 78 cm – skopa fram och leksakshink",
+    "fb142c5c": "Hjullastare att sitta på 78 cm – skopa fram och tippskydd",
     "738ca991": "Bandgrävare att sitta på 78 cm – larvband och grävarm",
     "0c05c1a0": "Frontlastare att sitta på 80 cm – stor skopa och växelspak",
     "23ba27a5": "Sparktraktor med släp, skopa och grep – ljus och musik",
@@ -41,7 +41,13 @@ TITEL = {
 # Korslänkar: arbetsfordonen inom sin grupp, traktorerna inom sin.
 SYSKON = {
     "cc6b56f9": ("fb142c5c", "en hjullastare med skopa fram"),
-    "fb142c5c": ("cc6b56f9", "en grävmaskin med arm bakom sitsen"),
+    # ☠️ KORSLÄNKEN FLYTTAD. `cc6b56f9` visade sig vara en BEVISAD DUBBLETT av
+    #    den redan publicerade `akgravmaskin-barn` (8dd0fb8f) — samma render,
+    #    och livsstilsbilden är samma foto av samma barn på samma gång.
+    #    Utkastet publiceras därför inte, och en länk dit hade blivit en 404.
+    #    Länken går i stället till den LEVANDE sidan, vilket dessutom är bättre
+    #    för kunden.
+    "fb142c5c": ("__akgravmaskin", "en grävmaskin med arm bakom sitsen"),
     "738ca991": ("0c05c1a0", "en frontlastare med stor skopa"),
     "0c05c1a0": ("738ca991", "en bandgrävare på larvband"),
     "23ba27a5": ("39d85f18", "samma traktor i gult med sandskyffel och kratta"),
@@ -69,6 +75,12 @@ def alder(k):
     return f"{a}–{b} månader"
 
 
+def ratten(k):
+    """☠️ EN formulering, läst av både brödtexten och FAQ:n — se matt.RATTEN."""
+    v = M.RATTEN[k]
+    return " och ".join([", ".join(v[:-1]), v[-1]]) if len(v) > 1 else v[0]
+
+
 def P(s):
     return f"<p>{s}</p>"
 
@@ -81,9 +93,14 @@ def LI(e, v):
     return f"<li><strong>{e}:</strong> {v}</li>"
 
 
+# Syskon som INTE ligger i rundan — en publicerad sida med känd slug.
+UTANFOR = {"__akgravmaskin": "akgravmaskin-barn"}
+
+
 def lank(k):
     m, txt = SYSKON[k]
-    return P(f'Finns också som <a href="{BAS}{SLUG[m]}">{txt}</a>.')
+    slug = UTANFOR.get(m) or SLUG[m]
+    return P(f'Finns också som <a href="{BAS}{slug}">{txt}</a>.')
 
 
 # ── Ingresser ───────────────────────────────────────────────────────────────
@@ -94,8 +111,8 @@ INGRESS = {
    "fack för det som ska följa med ut.",
  "fb142c5c":
    "En hjullastare barnet sitter på och skjuter fram med fötterna. Skopan sitter "
-   "framtill och lyfts med spakarna på sidorna — sand in, sand ut, och en hink "
-   "med i lådan för resten av lasten.",
+   "framtill där barnet ser den och lyfts med spakarna på sidorna — sand in, "
+   "sand ut, och lasten hela tiden i blickfånget.",
  "738ca991":
    "En bandgrävare på larvband, byggd att sitta grensle på och skjuta fram med "
    "fötterna. Grävarmen har en spärr som måste vridas innan skopan går att röra, "
@@ -141,8 +158,8 @@ def kropp(k):
         d.append(H("Skopan sitter framtill"))
         d.append(P(
             "Lastaren har skopan rakt fram där barnet ser den, och spakarna på "
-            "sidorna lyfter och sänker den. En hink följer med i lådan för det "
-            "som inte får plats i skopan."))
+            "sidorna lyfter och sänker den. Skopan är djup nog för riktig sand "
+            "och tippar av lasten där barnet vill ha den."))
     elif k == "738ca991":
         d.append(H("Grävarmen har en spärr"))
         d.append(P(
@@ -176,14 +193,14 @@ def kropp(k):
     if k == "23ba27a5":
         d.append(H("Tuta, ljus och musik i ratten"))
         d.append(P(
-            "Ratten har tuta, strålkastare och musik. Underlaget säger inte "
-            "hur den strömförsörjs, så vi anger varken att batterier ingår "
-            "eller att de inte gör det."))
+            f"Ratten har {ratten(k)}. Underlaget säger inte hur den "
+            "strömförsörjs, så vi anger varken att batterier ingår eller att "
+            "de inte gör det."))
     elif k in ("39d85f18", "389ac5ac"):
         d.append(H("Tuta och strålkastare"))
         d.append(P(
-            "Tutan och strålkastarna ger ljud när barnet trycker. Sitsen är "
-            "bred och går att lyfta av."))
+            f"Ratten har {ratten(k)}, och de ger ljud när barnet trycker. "
+            "Sitsen är bred och går att lyfta av."))
     elif M.BATTERI[k] and "ingår inte" in M.BATTERI[k]:
         d.append(H("Tutan går på batteri"))
         d.append(P(
@@ -198,15 +215,18 @@ def kropp(k):
     # ── Säkerhet och bärighet ───────────────────────────────────────────────
     d.append(H(f"Bär {tal(M.MAXLAST[k])} kg, {alder(k)}"))
     sak = []
+    # ⚠️ EN post per sak — inte "a och b" i ett element. Slås de ihop i förväg
+    #    blir uppräkningen "ryggstöd och tippskydd och halkmönstrade däck".
     if k in ("cc6b56f9", "fb142c5c"):
-        sak.append("ryggstöd och tippskydd")
-    if k in ("738ca991", "0c05c1a0"):
-        sak.append("dubbelt skydd mot att tippa bakåt")
-    sak.append(f"halkmönstrade däck" if k in ("cc6b56f9", "fb142c5c")
-               else "brett underrede")
+        sak += ["ryggstöd", "tippskydd", "halkmönstrade däck"]
+    elif k in ("738ca991", "0c05c1a0"):
+        sak += ["dubbelt skydd mot att tippa bakåt", "brett underrede"]
+    else:
+        sak.append("brett underrede")
     d.append(P(
         f"Konstruktionen bär {tal(M.MAXLAST[k])} kg, och åldern som anges är "
-        f"{alder(k)}. Den har " + " och ".join(sak) + ". "
+        f"{alder(k)}. Den har " + (", ".join(sak[:-1]) + " och " + sak[-1]
+                                   if len(sak) > 1 else sak[0]) + ". "
         "Fordonet är byggt för hårt, jämnt underlag — asfalt, plattor eller "
         "ett golv inomhus."))
     if k == "23ba27a5":
@@ -305,10 +325,13 @@ def faq(k):
                   "Nej. Tutan låter utan batteri, och ingenting annat på "
                   "fordonet behöver ström."))
     else:
+        # ☠️ FORMULERINGEN HÄRLEDS, den skrivs inte om. Stod den två gånger
+        #    hamnade 23ba27a5:s "ljus och musik" på traktorer som bara har
+        #    strålkastare — och det gjorde den, i sexton timmar.
         q.append(("Ingår batterier?",
-                  "Det vet vi inte. Ratten har tuta, ljus och musik, men "
-                  "underlaget säger inget om strömförsörjningen — så vi "
-                  "påstår varken det ena eller det andra."))
+                  f"Det vet vi inte. Ratten har {ratten(k)}, men underlaget "
+                  "säger inget om strömförsörjningen — så vi påstår varken "
+                  "det ena eller det andra."))
     if M.MONTERING[k]:
         q.append(("Kommer den färdigmonterad?",
                   "Nej, den skruvas ihop hemma. Bruksanvisningen följer med."
@@ -329,7 +352,7 @@ META = {
  "cc6b56f9": "Grävmaskin att sitta på, 85 × 27,5 × 47,5 cm. Skopan styrs med två "
              "spakar, ryggstöd och tippskydd, fack under sitsen. Bär 25 kg.",
  "fb142c5c": "Hjullastare att sitta på, 78 × 29,5 × 54 cm. Skopa framtill, "
-             "ryggstöd och tippskydd, leksakshink ingår. Bär 25 kg.",
+             "ryggstöd och tippskydd, fack under sitsen. Bär 25 kg.",
  "738ca991": "Bandgrävare att sitta på med larvband och grävarm med spärr. "
              "78 × 24 × 58,5 cm, sits 22 cm över golvet. Bär 30 kg.",
  "0c05c1a0": "Frontlastare att sitta på, 80 × 26,5 × 39 cm. Stor skopa, "

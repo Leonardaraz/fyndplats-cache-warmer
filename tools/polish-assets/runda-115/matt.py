@@ -142,6 +142,21 @@ BATTERI = {
     "39d85f18": None, "389ac5ac": None,
 }
 
+# ☠️ RATTENS FUNKTIONER — EN tabell, läst av BÅDE brödtext och FAQ.
+#    Runda 115:s FAQ påstod "ljus och musik" på ALLA tre traktorerna, för att
+#    else-grenen bar `23ba27a5`:s formulering. Brödtexten på samma sida sa
+#    "tuta och strålkastare". Två motstridiga påståenden på EN produktsida,
+#    och grinden såg ingenting — den vaktade tal, märken och ton, inte
+#    FUNKTIONER. Samma klass som uppgift #416: gruppdelad text på fel produkt.
+#    Med en tabell kan de två ställena inte glida isär.
+RATTEN = {
+    "cc6b56f9": ["tuta"], "fb142c5c": ["tuta"],
+    "738ca991": ["tuta"], "0c05c1a0": ["tuta"],
+    "23ba27a5": ["tuta", "ljus", "musik"],
+    "39d85f18": ["tuta", "strålkastare"],
+    "389ac5ac": ["tuta", "strålkastare"],
+}
+
 MONTERING = {"cc6b56f9": True, "fb142c5c": True, "23ba27a5": True,
              "738ca991": False, "0c05c1a0": False,
              "39d85f18": False, "389ac5ac": False}
@@ -198,6 +213,11 @@ def kontroll():
         raise SystemExit("☠️ PEDALER påstår pedaler som bilden inte visar")
     if FORVARING:
         raise SystemExit("☠️ FORVARING fylldes trots att ritningen motsäger texten")
+    if set(RATTEN) != n:
+        raise SystemExit("☠️ RATTEN täcker inte samma sju nycklar som YTTRE")
+    # Bara den med NAMNGIVEN licens bär musik i underlaget.
+    if [k for k, v in RATTEN.items() if "musik" in v] != ["23ba27a5"]:
+        raise SystemExit("☠️ musikpåståendet har spritt sig till fler än 23ba27a5")
     for d in (PRIS, LAGER, FRAKTANDEL, IMPORT_SKU, WIX_VARIANT, MARKE_I_BILD):
         if set(d) != n:
             raise SystemExit("☠️ ett Steg 3/4-fält täcker inte samma sju nycklar")
