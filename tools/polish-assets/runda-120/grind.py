@@ -42,13 +42,11 @@ FORBJUDET = [
     (re.compile(r"\b(tyskland|kina|polen|spanien|eu-lager|skickas\s+från)\b", re.I),
      "LEVERANSLAND"),
     (re.compile(r"\bleverantör\w*\b", re.I), "ATTRIBUTION — mot kunden är VI leverantören"),
-    # ☠️ MÖNSTRET VAR `\brundan?\b` OCH FÄLLDE TVÅ KORREKTA SIDOR. "runda
-    #    pallar" är vanlig svenska; "rundan" är husets interna jargong. Ett
-    #    falsklarm som fyrar på korrekt text lär mottagaren att sluta läsa —
-    #    samma regel som mot `ing[åa]r` inuti "kopplingar" (runda 116).
-    #    Jargongen har två former och båda går att söka exakt: den bestämda
-    #    `rundan` och numret `runda 120`.
-    (re.compile(r"\brundan\b|\brunda\s+\d+", re.I), "INTERN JARGONG"),
+    # ☠️ MÖNSTRET VAR `\brundan?\b` OCH FÄLLDE TVÅ KORREKTA SIDOR — "runda
+    #    pallar" är vanlig svenska. Definitionen bor sedan dess i `grindar.py`
+    #    med mätningen som köpte den: den breda formen var trasig i runda
+    #    117–119 utan att någon märkte det, för ingen produkt var rund.
+    (G.JARGONG, "INTERN JARGONG"),
     (re.compile(r"<br\s*/?>", re.I), "WIX STRIPPAR <br>"),
     (re.compile(r'href="(?!https://www\.fyndplats\.se/)', re.I),
      "RELATIV LÄNK — Wix skriver om den till https:/ med ETT snedstreck"),
@@ -129,24 +127,14 @@ STAVFEL = ["dögn", "engangs", "ihopsatt", "för hard", "hopfälbar", "barbor ",
            "sitthöj ", "ryggsöd", "ryggstöt", "melamin belagd", "stoppad sist",
            "fotstö ", "hyllpan", "träopik", "ekopik", "pallr ", "stolr "]
 
-# ☠️ HOMOGLYFER — vitlista, aldrig svartlista. Se runda 119.
-TILLATNA_TECKEN = set(
-    "abcdefghijklmnopqrstuvwxyzåäöéü"
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖÉÜ"
-    "0123456789"
-    " \t\n\r"
-    ".,;:!?-–—()[]{}<>/\\\"'’”“…&%+=*#@_|~^$"
-    "×Ø°"
-)
-
-
-def homoglyfer(text):
-    ut = []
-    for i, ch in enumerate(text):
-        if ch in TILLATNA_TECKEN:
-            continue
-        ut.append((ch, unicodedata.name(ch, "?"), text[max(0, i - 25):i + 15]))
-    return ut
+# ☠️ HOMOGLYFER, DELORD och färgkontrollen bor i `grindar.py`. De låg som
+#    LOKALA KOPIOR i runda 119 och i det här filens första utkast — och en
+#    lokal kopia är exakt den form husets vanligaste bugg tar. Namnen behålls
+#    här som alias så att `alt.py` och självtesten kan nå dem via `grind.`.
+TILLATNA_TECKEN = G.TILLATNA_TECKEN
+homoglyfer = G.homoglyfer
+DELORD = G.DELORD
+fargfel = G.fargfel
 
 
 def _tal(txt):
@@ -161,33 +149,6 @@ def _tillatna_farger(pid):
     return {f for f in G.FARGORD if f in kalla}
 
 
-# ☠️ ETT FÄRGORD I EN ALT-TEXT BESKRIVER OFTA SCENEN, INTE VARAN.
-#    Första utkastet fällde `vit bakgrund` på produktfotot — och en grind som
-#    fyrar på den vanligaste alt-textformuleringen i huset lär mottagaren att
-#    sluta läsa. Grinden tittar därför bara på färg som sitter på en DEL av
-#    möbeln, i båda svenska ordföljderna:
-#        "röd skiva"      → färg före del
-#        "skivan är röd"  → del före färg
-#    En bakgrund, en vägg, ett golv eller en matta är ingen del och kan alltså
-#    inte ge falsklarm. Regeln är ärvd från runda 89–91, som skrev fel färg
-#    tre rundor i rad.
-DELORD = (r"skiv\w*|ram\w*|ben\w*|sits\w*|pall\w*|stol\w*|yta|ytan|stomm\w*|"
-          r"bord\w*|hyll\w*|dyn\w*|ryggstöd\w*|fotstöd\w*|set\w*")
-
-
-def fargfel(txt, tillatna, farg_lang):
-    """Färgord som sitter på en DEL av möbeln utan att vara belagt."""
-    ut = []
-    for rx in (rf"\b([a-zåäö]+)\s+(?:{DELORD})\b",
-               rf"\b(?:{DELORD})\s+(?:är|i)\s+([a-zåäö]+)\b"):
-        for m in re.finditer(rx, txt, re.I):
-            ordet = m.group(1).lower()
-            stam = next((f for f in G.FARGORD
-                         if ordet == f or ordet.startswith(f)), None)
-            if stam and stam not in tillatna:
-                ut.append(f"FÄRGORD {ordet!r} på en del av möbeln — uppmätt är "
-                          f"{farg_lang}")
-    return ut
 
 
 def granska(pid):

@@ -636,3 +636,207 @@ EU_RIBBON = re.compile(
     r'|\\?"href\\?":\\?"/eu-lager-garanti\\?"[^}]*?\\?"children\\?":\\?"[^"\\\\]*'
     r'|/eu-lager-garanti'
     r'|EU-lager \\u0026 tull|EU-lager & tull', re.S)
+
+
+# ── ☠️ INTERN JARGONG: `rundan`, INTE `runda` ──────────────────────────────
+# Husets ord för ett poleringspass har läckt till PUBLICERAD kundtext tre
+# gånger (uppgift #318: runda 68, 77 och 83). Grinden som byggdes mot det såg
+# olika ut i olika rundor, och skillnaden är mätbar:
+#
+#   runda 115, 116   `\brundans?\b|\brunda\s+\d`     ← rätt
+#   runda 117–119    `\brundan?\b`                   ← ☠️ matchar ADJEKTIVET
+#   runda 120        `\brundan\b|\brunda\s+\d+`      ← rätt igen
+#
+# ☠️ DEN BREDA FORMEN VAR TRASIG I TRE RUNDOR UTAN ATT NÅGON MÄRKTE DET, för
+#    ingen produkt i 117, 118 eller 119 var RUND. Runda 120 sålde runda pallar
+#    och blev det första underlag som nådde grinden — sju förekomster, två
+#    fällda sidor. En trasig grind som aldrig får ett indata som utlöser den
+#    ser korrekt ut i källkoden hur länge som helst; det är samma familj som
+#    `höj- och sänkbar`-mönstret, som inte kunde fyra på sin egen vanligaste
+#    form.
+#
+# Definitionen bor HÄR sedan runda 120, av samma skäl som `SHIP_AXIS_RE` och
+# `EU_TULL_CODES`: en regel som kopieras in i varje runda glider isär.
+JARGONG = re.compile(r"\brundan\b|\brunda\s+\d+", re.I)
+
+
+# ── ☠️ HOMOGLYFER: en VITLISTA, aldrig en svartlista ───────────────────────
+# Ett kyrilliskt `а`, `е`, `о`, `с`, `р` eller ett grekiskt `ο` ser ut som sin
+# latinska tvilling, renderas likadant och passerar varje ordbaserad grind.
+# Runda 119:s egen ingress bar ett; det hittades av ett svep över teckenkoder,
+# inte av ögat. En sådan text går inte att söka i och matchar inte kundens
+# sökning.
+#
+# ⚠️ Listan över kända homoglyfer är oändlig. Grinden är därför en VITLISTA:
+#    allt utanför latin-1 plus de skiljetecken huset faktiskt använder fälls,
+#    och en ny tecken-önskan läggs till här med flit i stället för att smyga in.
+TILLATNA_TECKEN = set(
+    "abcdefghijklmnopqrstuvwxyzåäöéü"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖÉÜ"
+    "0123456789"
+    " \t\n\r"
+    ".,;:!?-–—()[]{}<>/\\\"'’”“…&%+=*#@_|~^$"
+    "×Ø°"
+)
+
+
+def homoglyfer(text):
+    """(tecken, unicode-namn, sammanhang) för varje tecken utanför vitlistan."""
+    import unicodedata
+    ut = []
+    for i, ch in enumerate(text):
+        if ch in TILLATNA_TECKEN:
+            continue
+        ut.append((ch, unicodedata.name(ch, "?"), text[max(0, i - 25):i + 15]))
+    return ut
+
+
+# ── ☠️ FÄRG PÅ EN DEL AV VARAN, inte färg var som helst ────────────────────
+# Runda 89–91 skrev fel färg tre rundor i rad, och grinden som byggdes mot det
+# letade färgord VAR SOM HELST i texten. Runda 120 mätte priset: den fällde
+# `Fristående mot vit bakgrund` — husets vanligaste alt-textformulering, och
+# en beskrivning av fotostudion snarare än av varan.
+#
+# Grinden tittar därför bara på färg som sitter på en DEL, i båda svenska
+# ordföljderna:
+#     "röd skiva"      → färg före del
+#     "skivan är röd"  → del före färg
+# En bakgrund, en vägg, ett golv eller en matta är ingen del och kan alltså
+# inte ge falsklarm. Ett falsklarm som fyrar på korrekt text lär mottagaren
+# att sluta läsa — samma regel som mot `ing[åa]r` inuti "kopplingar".
+DELORD = (r"skiv\w*|ram\w*|ben\w*|sits\w*|pall\w*|stol\w*|yta|ytan|stomm\w*|"
+          r"bord\w*|hyll\w*|dyn\w*|ryggstöd\w*|fotstöd\w*|set\w*|lucka|luckor|"
+          r"dörr\w*|låd\w*|klädsel|tyg\w*|kudd\w*|hjul\w*|handtag\w*")
+
+
+def fargfel(txt, tillatna, facit):
+    """Färgord som sitter på en DEL av varan utan att vara belagt av datan."""
+    ut = []
+    for rx in (rf"\b([a-zåäö]+)\s+(?:{DELORD})\b",
+               rf"\b(?:{DELORD})\s+(?:är|i)\s+([a-zåäö]+)\b"):
+        for m in re.finditer(rx, txt, re.I):
+            ordet = m.group(1).lower()
+            stam = next((f for f in FARGORD
+                         if ordet == f or ordet.startswith(f)), None)
+            if stam and stam not in tillatna:
+                ut.append(f"FÄRGORD {ordet!r} på en del av varan — uppmätt är "
+                          f"{facit}")
+    return ut
+
+
+# ── Självtest ──────────────────────────────────────────────────────────────
+# ☠️ `grindar.py` hade inget självtest alls fram till runda 120, trots att den
+#    är den fil ALLA rundor delar. Ett fel här slår mot varje kommande runda
+#    samtidigt, och de tre nyaste reglerna är alla skrivna EFTER ett falsklarm.
+def _sjalvtest():
+    fall = [
+        ("jargong: bestämd form", lambda: JARGONG.search("Den här rundan blev bra"), True),
+        ("jargong: numret", lambda: JARGONG.search("Runda 120 polerades"), True),
+        ("jargong: ADJEKTIVET går fritt", lambda: JARGONG.search("två runda pallar"), False),
+        ("jargong: rundade hörn går fritt", lambda: JARGONG.search("rundade hörn"), False),
+        ("homoglyf: kyrilliskt a", lambda: homoglyfer("Bordet är brа"), True),
+        ("homoglyf: grekiskt o", lambda: homoglyfer("Bordet är stοrt"), True),
+        ("homoglyf: ren svenska", lambda: homoglyfer("Skivan är grå, Ø36 cm, 90,5 × 40"), False),
+        ("färg före del", lambda: fargfel("En röd skiva", {"grå"}, "grå"), True),
+        ("färg efter del", lambda: fargfel("Skivan är röd", {"grå"}, "grå"), True),
+        ("belagd färg går fritt", lambda: fargfel("En grå skiva", {"grå"}, "grå"), False),
+        ("SCENEN går fritt", lambda: fargfel("mot vit bakgrund", {"grå"}, "grå"), False),
+        ("väggen går fritt", lambda: fargfel("mot en vit vägg i köket", {"grå"}, "grå"), False),
+        # ☠️ Svepet mot tvillingar måste själv gå att pröva — dess första
+        #    utkast fällde varje ALIAS och hittade noll äkta kopior.
+        ("svep: alias går fritt",
+         lambda: definierar_om("TILLATNA_TECKEN = G.TILLATNA_TECKEN\n"), False),
+        ("svep: alias utan mellanslag går fritt",
+         lambda: definierar_om("DELORD=G.DELORD\n"), False),
+        ("svep: egen konstant fälls",
+         lambda: definierar_om('DELORD = (r"skiv\\w*")\n'), True),
+        ("svep: egen mängd fälls",
+         lambda: definierar_om('TILLATNA_TECKEN = set("abc")\n'), True),
+        ("svep: egen regex fälls",
+         lambda: definierar_om('JARGONG = re.compile(r"x")\n'), True),
+        ("svep: egen funktion fälls",
+         lambda: definierar_om("def homoglyfer(text):\n    return []\n"), True),
+        ("svep: funktionsalias går fritt",
+         lambda: definierar_om("homoglyfer = G.homoglyfer\n"), False),
+        ("svep: indragen definition är inte en modulnivå-definition",
+         lambda: definierar_om("    DELORD = 1\n"), False),
+    ]
+    fel = []
+    for namn, kor, ska_falla in fall:
+        traff = bool(kor())
+        if traff != ska_falla:
+            fel.append(f"{namn}: fick {'träff' if traff else 'ingen träff'}, "
+                       f"väntade {'träff' if ska_falla else 'ingen träff'}")
+    return fel, len(fall)
+
+
+# ── ☠️ GRINDEN MOT TVILLINGAR ──────────────────────────────────────────────
+# Husets vanligaste bugg är att en kopierad regel glider isär, och den här
+# filens egen docstring säger det sedan runda 65. Det hindrade ändå inte att
+# jargongmönstret kopierades in i sex rundors `grind.py` och blev fel i tre.
+#
+# Ett källkodstest är det som faktiskt biter — samma mekanism som
+# `store-access-audit.test.ts` och `backend.test.ts` i motorn: leta efter
+# DEFINITIONEN utanför den fil som äger den.
+#
+# ⚠️ BARA RUNDA 120 OCH FRAMÅT. Runda 115–119 är klara och publicerade; deras
+#    filer lämnas orörda av samma skäl som `runda-64/lint.py` gjorde 2026.
+#    Att fälla på dem hade gett ett larm som fyrar varje körning utan att
+#    någon tänker laga det — och ett sådant larm lär mottagaren att sluta läsa.
+ADE_HAR = ["JARGONG", "TILLATNA_TECKEN", "DELORD"]
+ADE_FUNKTIONER = ["homoglyfer", "fargfel"]
+FORSTA_GRINDADE_RUNDAN = 120
+
+
+def definierar_om(kod):
+    """Namn som källkoden DEFINIERAR i stället för att importera.
+
+    ☠️ FÖRSTA UTKASTET SLÄPPTE IGENOM NOLL OCH FÄLLDE ALIASEN. Mönstret var
+       `^NAMN\s*=\s*(?!G\.)` — och `\s*` backtrackar till noll tecken, så
+       lookaheaden hamnade på MELLANSLAGET i stället för på `G`. `NAMN = G.NAMN`
+       lästes därmed som en egen definition. Negationen måste sitta EFTER
+       likhetstecknet och själv äta blanktecknen: `=(?!\s*G\.)`.
+
+       Det är samma familj som `höj- och sänkbar`-mönstret och den breda
+       jargongregexen: en grind vars egen form aldrig prövats.
+    """
+    ut = []
+    for namn in ADE_HAR:
+        # `X = G.X` är ett ALIAS och helt i sin ordning; `X = re.compile(`
+        # eller `X = set(` är en egen definition.
+        if re.search(rf"^{namn}\s*=(?!\s*G\.)", kod, re.M):
+            ut.append(namn)
+    for namn in ADE_FUNKTIONER:
+        if re.search(rf"^def {namn}\s*\(", kod, re.M):
+            ut.append(namn + "()")
+    return ut
+
+
+def tvillingsvep(rot=None):
+    """Rundor som DEFINIERAR om något `grindar.py` äger."""
+    import glob
+    import os
+    rot = rot or os.path.dirname(os.path.abspath(__file__))
+    fel = []
+    for fil in sorted(glob.glob(os.path.join(rot, "runda-*", "*.py"))):
+        rnr = os.path.basename(os.path.dirname(fil)).replace("runda-", "")
+        if not rnr.isdigit() or int(rnr) < FORSTA_GRINDADE_RUNDAN:
+            continue
+        for namn in definierar_om(open(fil, encoding="utf-8").read()):
+            fel.append(f"{os.path.relpath(fil, rot)}: definierar om {namn} "
+                       f"— den ägs av grindar.py")
+    return fel
+
+
+if __name__ == "__main__":
+    import sys
+    fel, antal = _sjalvtest()
+    print(f"grindar._sjalvtest(): {antal} fall, {len(fel)} fel")
+    for x in fel:
+        print("  ☠️", x)
+    tv = tvillingsvep()
+    print(f"tvillingsvep(): {len(tv)} egna kopior i runda "
+          f"{FORSTA_GRINDADE_RUNDAN}+")
+    for x in tv:
+        print("  ☠️", x)
+    sys.exit(1 if (fel or tv) else 0)
