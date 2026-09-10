@@ -11,6 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
+import { COMPLAINT_SHORT } from "../lib/retur-policy";
 import { delsummaInklMoms, momsetikett } from "../lib/vat";
 
 export interface OrderLineItem {
@@ -252,6 +253,12 @@ export default function OrderConfirmationEmail({
           fyndplats.se/angra-kop
         </Link>
         .
+      </Text>
+      {/* Reklamationsrätten hör hemma just här. Det här är mejlet kunden gräver
+          fram när något går sönder långt efter att de 30 dagarna löpt ut. Utan
+          den här raden säger vårt enda kvarvarande spår av köpet "30 dagar". */}
+      <Text style={{ ...text.muted, marginTop: "4px" }}>
+        {COMPLAINT_SHORT}
       </Text>
     </EmailShell>
   );

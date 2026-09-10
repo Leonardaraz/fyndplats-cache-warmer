@@ -108,6 +108,46 @@ export const COMMON: string[] = [
   "Ta emot paketet även om du redan bestämt dig för att ångra köpet, och anmäl returen till oss. Ett paket som vägras i dörren eller lämnas outhämtat blir dyrare att hantera och tar längre tid innan pengarna är tillbaka hos dig.",
 ];
 
+/**
+ * REKLAMATION — en helt annan rättighet än ångerrätten, och den enda som
+ * fortfarande gäller efter dag 30.
+ *
+ * Åtgärdslistan pekade på en mening som sa att fel måste anmälas inom 14 dagar.
+ * Den var redan borta när jag kom hit. Men en genomsökning visade något värre:
+ * treårsrätten stod på EXAKT EN sida i hela repot — köpvillkoren § 8. Inte på
+ * /returer, inte i FAQ:n, inte i app-villkoren, inte i något mejl.
+ *
+ * Det är de sidorna en kund med en trasig produkt faktiskt läser, och där stod
+ * bara "30 dagar". Den som får ett fel efter ett halvår läser alltså sajten och
+ * drar slutsatsen att hen är för sen. Villkoret behövde inte vara felskrivet
+ * för att vilseleda — det räckte att det saknades där frågan ställs.
+ *
+ * KONSUMENTKÖPLAGEN (2022:260):
+ *   5 kap. 4 § — meddelande inom skälig tid efter att felet märkts. Ett
+ *   meddelande inom TVÅ MÅNADER ska ALLTID anses ha lämnats i rätt tid. Lagen
+ *   säger "ska alltid", inte "normalt"; § 8 skrev det svagare än lagen är.
+ *   4 kap. 6 § — fel som visar sig inom två år antas ha funnits vid leverans.
+ *   Reklamationsfristen är tre år.
+ *
+ * Reklamationsrätten är dessutom oberoende av våra 30 dagar: den gäller vare sig
+ * ångerfristen löpt ut eller inte, och den kan vi inte förkorta genom avtal.
+ */
+export const COMPLAINT = {
+  label: "Reklamation vid fel på varan",
+  lead: "Är varan trasig, felaktig eller inte som utlovat är det en reklamation — inte en ångran. Reklamationsrätten är en egen rättighet och har ingenting med 30-dagarsfristen att göra: den gäller långt efter att ångerrätten och det öppna köpet har löpt ut.",
+  points: [
+    "Du har enligt konsumentköplagen (2022:260) tre års reklamationsrätt på fel som fanns vid leveransen.",
+    "Fel som visar sig inom de första två åren antas ha funnits redan vid leveransen, om inte annat kan visas.",
+    "Reklamera inom skälig tid efter att du upptäckt felet. Ett meddelande inom två månader räknas alltid som i rätt tid.",
+    "Vid godkänd reklamation står Fyndplats för returkostnaden — den betalar du aldrig själv.",
+    "Mejla info@fyndplats.com med ordernummer, en beskrivning av felet och foton. Skicka inte tillbaka varan innan vi bett dig om det, så slipper du lägga ut för en frakt i onödan.",
+  ],
+};
+
+/** Kort variant där en hel lista inte får plats — mejl, FAQ-svar, korta villkor. */
+export const COMPLAINT_SHORT =
+  "Är varan trasig eller felaktig är det en reklamation, inte en ångran. Då har du tre års reklamationsrätt enligt konsumentköplagen — oberoende av 30-dagarsfristen — och Fyndplats står för returkostnaden.";
+
 /** En rad per period, för den visuella uppdelningen sidorna visar. */
 export const TIMELINE: { range: string; label: string }[] = [
   { range: STATUTORY.range, label: STATUTORY.label },

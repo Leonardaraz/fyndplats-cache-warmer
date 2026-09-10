@@ -5,7 +5,7 @@
 // smyga tillbaka nästa gång någon skriver om en sida.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TOTAL_SUMMARY, TOTAL_SHORT, STATUTORY, VOLUNTARY, COMMON, TIMELINE } from "./retur-policy.ts";
+import { TOTAL_SUMMARY, TOTAL_SHORT, STATUTORY, VOLUNTARY, COMMON, TIMELINE, COMPLAINT, COMPLAINT_SHORT } from "./retur-policy.ts";
 
 const statutoryText = [STATUTORY.lead, ...STATUTORY.points].join(" ").toLowerCase();
 const voluntaryText = [VOLUNTARY.lead, ...VOLUNTARY.points].join(" ").toLowerCase();
@@ -66,4 +66,35 @@ test("ingen period utlovar något utan innehåll", () => {
     assert.ok(p.points.length >= 2, p.label);
     assert.ok(p.points.every((x) => x.trim().endsWith(".")), `${p.label}: varje punkt ska vara en hel mening`);
   }
+});
+
+const complaintText = [COMPLAINT.lead, ...COMPLAINT.points].join(" ").toLowerCase();
+
+test("reklamationsrätten anges med sin verkliga längd", () => {
+  // Treårsrätten stod på exakt en sida i hela repot. Den som fick ett fel efter
+  // ett halvår läste "30 dagar" överallt annars och drog fel slutsats.
+  assert.equal(/tre års reklamationsrätt|tre år/.test(complaintText), true);
+  assert.equal(complaintText.includes("konsumentköplagen"), true);
+  assert.equal(/tre år/.test(COMPLAINT_SHORT.toLowerCase()), true);
+});
+
+test("reklamationen hålls fristående från 30-dagarsfristen", () => {
+  // Det är hela poängen: rättigheten gäller vare sig ångerfristen löpt ut eller
+  // inte. Står det inte utskrivet läser kunden in vår 30-dagarsgräns i den.
+  for (const t of [complaintText, COMPLAINT_SHORT.toLowerCase()]) {
+    assert.equal(/oberoende|fristående|löpt ut/.test(t), true);
+  }
+});
+
+test("tvåmånadersregeln skrivs som lagen skriver den", () => {
+  // 5 kap. 4 § konsumentköplagen: ett meddelande inom två månader ska ALLTID
+  // anses ha lämnats i rätt tid. Köpvillkoren § 8 skrev "normalt" — svagare än
+  // lagen, till kundens nackdel.
+  assert.equal(/två månader/.test(complaintText), true);
+  assert.equal(/alltid/.test(complaintText), true);
+  assert.equal(/normalt anses/.test(complaintText), false);
+});
+
+test("vi står för returkostnaden vid godkänd reklamation", () => {
+  assert.equal(/returkostnaden|returfrakten/.test(complaintText), true);
 });

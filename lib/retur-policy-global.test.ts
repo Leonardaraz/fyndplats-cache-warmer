@@ -36,6 +36,11 @@ function files(dir: string, out: string[] = []): string[] {
 const prose = (t: string) =>
   t.replace(/\/\*[\s\S]*?\*\//g, " ")
     .replace(/(^|[^:])\/\/.*$/gm, "$1 ")
+    // Import-raden räknas inte. Ett mutationstest avslöjade varför: jag tog bort
+    // hela reklamationsavsnittet ur /returer och provet förblev grönt, eftersom
+    // ett kvarlämnat `import { COMPLAINT }` såg ut som att sidan sa något. En
+    // oanvänd import är inte kundtext.
+    .replace(/^\s*import\s[\s\S]*?from\s+["'][^"']+["'];?\s*$/gm, " ")
     .replace(/\{TOTAL_SUMMARY\}|TOTAL_SUMMARY/g, " totalt 30 dagar dag 15–30 ")
     .replace(/\{TOTAL_SHORT\}|TOTAL_SHORT/g, " totalt 30 dagar ");
 
@@ -118,6 +123,24 @@ test("ingen yta låter paketets ankomstdag avgöra vilken period som gäller", (
     const trigger = /(dagen du anmäl|när du anmäl|dagen du anmälde|anmäler returen)/i.test(t);
     const pointer = /\/returer|fyndplats\.se\/returer/i.test(t);
     if (!trigger && !pointer) bad.push(p);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("den som talar om reklamation säger också hur länge rätten gäller", () => {
+  // Treårsrätten stod på EXAKT EN sida i repot: köpvillkoren § 8. Inte på
+  // /returer, inte i FAQ:n, inte i app-villkoren, inte i ett enda mejl — alltså
+  // ingenstans där en kund med en trasig produkt faktiskt letar. Där stod bara
+  // "30 dagar", och den som fick ett fel efter ett halvår drog slutsatsen att
+  // hen var för sen. Villkoret behövde inte vara felskrivet för att vilseleda;
+  // det räckte att det saknades där frågan ställs.
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    // Bara ytor som erbjuder reklamation som väg till kunden. ARN-stycket i
+    // tvistelösning nämner "reklamationsnämnden" och är något annat.
+    if (!/(är|blir) det (i stället |istället )?en \*?\*?reklamation|gör en reklamation|reklamera /i.test(t)) continue;
+    const term = /tre års? reklamationsrätt|tre år|konsumentköplagen|COMPLAINT/i.test(t);
+    if (!term) bad.push(p);
   }
   assert.deepEqual(bad, []);
 });

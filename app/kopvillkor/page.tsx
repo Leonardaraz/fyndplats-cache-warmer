@@ -72,7 +72,7 @@ export default function Kopvillkor() {
 
       <h2>8. Reklamation och garanti</h2>
       <p>Enligt <strong>konsumentköplagen (2022:260)</strong> har du tre (3) års reklamationsrätt på fel som fanns vid leverans. Fel som visar sig inom de första två åren antas ha funnits vid leverans, om inte annat kan bevisas.</p>
-      <p>Reklamationen ska göras inom <strong>skälig tid</strong> efter att felet upptäckts – normalt anses två månader vara skälig tid. Vid godkänd reklamation åtgärdar vi felet i första hand genom reparation eller utbyte. Är det inte möjligt erbjuder vi prisavdrag eller hävning av köpet.</p>
+      <p>Reklamationen ska göras inom <strong>skälig tid</strong> efter att felet upptäckts – ett meddelande inom <strong>två månader</strong> räknas alltid som i rätt tid. Reklamationsrätten är fristående från ångerrätten och det öppna köpet, och gäller långt efter att de 30 dagarna löpt ut. Vid godkänd reklamation åtgärdar vi felet i första hand genom reparation eller utbyte. Är det inte möjligt erbjuder vi prisavdrag eller hävning av köpet.</p>
       <p>Reklamera genom att skicka ett e-postmeddelande till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med ordernummer, beskrivning av felet samt foton. <strong>Skicka inte tillbaka en felaktig eller skadad vara innan vi bett dig om det</strong> — vi återkommer med hur returen ska gå till, och du slipper lägga ut för en frakt i onödan. Vid godkänd reklamation står Fyndplats för returkostnaden.</p>
 
       <h2>9. Force majeure</h2>

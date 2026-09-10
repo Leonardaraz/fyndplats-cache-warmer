@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ContentPage } from "../../components/content";
 import AngraForm from "../../components/angra-form";
-import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON } from "../../lib/retur-policy";
+import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON, COMPLAINT } from "../../lib/retur-policy";
 
 export const metadata: Metadata = {
   title: "Ångra köp",
@@ -76,13 +76,16 @@ export default function AngraKop() {
         </li>
       </ul>
 
-      <h2>Trasig eller felaktig vara?</h2>
+      <h2>{COMPLAINT.label}</h2>
+      <p>{COMPLAINT.lead}</p>
+      <ul>
+        {COMPLAINT.points.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
+      </ul>
       <p>
-        Då är det en <strong>reklamation</strong>, inte en ångran. Vid fel på varan eller skada
-        vid leverans står <strong>Fyndplats för returkostnaden</strong> – mejla{" "}
-        <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> med ditt ordernummer och{" "}
-        <strong>foton</strong> på felet, så löser vi det. Läs mer på{" "}
-        <a href="/returer">Returer &amp; ångerrätt</a>.
+        Läs mer på <a href="/returer">Returer &amp; ångerrätt</a> och i{" "}
+        <a href="/kopvillkor">köpvillkoren</a>.
       </p>
 
       <h2>Mottagningskvitto</h2>

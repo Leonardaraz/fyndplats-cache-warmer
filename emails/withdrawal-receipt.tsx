@@ -165,7 +165,10 @@ export default function WithdrawalReceiptEmail({
         <Text style={{ ...text.body, margin: 0 }}>
           Då är det en <strong>reklamation</strong>, inte en ångran — och då står{" "}
           <strong>Fyndplats för returfrakten</strong>. Svara på det här mejlet med en kort
-          beskrivning och <strong>foton</strong> på felet, så löser vi det.
+          beskrivning och <strong>foton</strong> på felet, så löser vi det. Reklamationsrätten
+          är fristående från de 30 dagarna: du har <strong>tre år</strong> på dig enligt
+          konsumentköplagen, och fel som visar sig inom två år antas ha funnits vid
+          leveransen.
         </Text>
       </Section>
 

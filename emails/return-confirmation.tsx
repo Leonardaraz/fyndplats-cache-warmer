@@ -5,6 +5,7 @@
 import { Section, Text } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
 import { RETURN_ADDRESS } from "../lib/return-address";
+import { COMPLAINT_SHORT } from "../lib/retur-policy";
 
 export interface ReturnConfirmationProps {
   firstName: string;
@@ -74,7 +75,7 @@ export default function ReturnConfirmationEmail({
         under dag 15–30 gäller vårt frivilliga öppna köp, och då ska produkten vara oanvänd,
         komplett och i säljbart skick — då återbetalas produktens pris men inte frakten till
         dig. Det är dagen du anmälde returen som avgör vilken period som gäller, inte dagen
-        paketet är tillbaka hos oss. Vid
+        paketet är tillbaka hos oss. {COMPLAINT_SHORT} Vid
         frågor — svara på det här mejlet eller mejla{" "}
         <a href={`mailto:${BRAND.supportEmail}`} style={{ color: BRAND.orange2 }}>
           {BRAND.supportEmail}

@@ -57,6 +57,22 @@ rätten att när som helst ändra, pausa eller avsluta hela eller delar av tjän
 - Returfrakten betalas av kunden, utom vid felaktig eller skadad vara.
   Fullständiga villkor finns på <https://www.fyndplats.se/returer>.
 
+### Reklamation vid fel på varan
+
+Är varan trasig, felaktig eller inte som utlovat är det en **reklamation**, inte
+en ångran — en egen rättighet som är fristående från de 30 dagarna och gäller
+långt efter att de löpt ut.
+
+- Enligt **konsumentköplagen (2022:260)** har du **tre års reklamationsrätt** på
+  fel som fanns vid leveransen.
+- Fel som visar sig inom de första två åren antas ha funnits redan vid
+  leveransen, om inte annat kan visas.
+- Reklamera inom skälig tid efter att du upptäckt felet. Ett meddelande inom
+  **två månader** räknas alltid som i rätt tid.
+- Vid godkänd reklamation står **Fyndplats för returkostnaden**.
+- Mejla <info@fyndplats.com> med ordernummer, beskrivning av felet och foton.
+  Skicka inte tillbaka varan innan vi bett dig om det.
+
 ## 6. Användarens skyldigheter
 
 Du förbinder dig att:
