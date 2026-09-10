@@ -89,3 +89,35 @@ test("ingen text utlovar bara 14 dagar när butiken ger 30", () => {
   }
   assert.deepEqual(bad, []);
 });
+
+test("den som ställer villkor för dag 15–30 säger också vad de kostar", () => {
+  // Villkoren och prislappen hör ihop. Sex ytor spelade upp "oanvänd, komplett
+  // och i säljbart skick" men teg om att utgående frakt INTE återbetalas dag
+  // 15–30 — den enda punkt där vårt erbjudande är sämre än lagens. Ett villkor
+  // utan sin motprestation är halva avtalet. Antingen står hela regeln, eller
+  // också pekar texten vidare till /returer där den står.
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    if (!/oanvänd(,| och) komplett|oanvänd och komplett|oanvänd vara/i.test(t)) continue;
+    const refund = /(frakten till dig|leveransen till sig|leveransen till dig|inte frakten till)/i.test(t);
+    const pointer = /\/returer|fyndplats\.se\/returer/i.test(t);
+    if (!refund && !pointer) bad.push(p);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("ingen yta låter paketets ankomstdag avgöra vilken period som gäller", () => {
+  // "Dag 15–30" utan utpekad utlösare kan läsas som att perioden bestäms av när
+  // returen kommer fram. Den läsningen är fel och dyr: en kund som anmäler dag
+  // 12 och postar dag 20 står under lagens regler, med standardfrakten
+  // återbetald. Varje yta som skriver ut dag 15–30-villkoren ska därför säga
+  // att det är ANMÄLAN som räknas — eller peka vidare till den som gör det.
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    if (!/oanvänd(,| och) komplett|oanvänd och komplett|oanvänd vara/i.test(t)) continue;
+    const trigger = /(dagen du anmäl|när du anmäl|dagen du anmälde|anmäler returen)/i.test(t);
+    const pointer = /\/returer|fyndplats\.se\/returer/i.test(t);
+    if (!trigger && !pointer) bad.push(p);
+  }
+  assert.deepEqual(bad, []);
+});

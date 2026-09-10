@@ -72,7 +72,9 @@ export default function ReturnConfirmationEmail({
         Under de första 14 dagarna får du undersöka produkten som du hade gjort i en butik;
         har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. Ångrar du
         under dag 15–30 gäller vårt frivilliga öppna köp, och då ska produkten vara oanvänd,
-        komplett och i säljbart skick. Vid
+        komplett och i säljbart skick — då återbetalas produktens pris men inte frakten till
+        dig. Det är dagen du anmälde returen som avgör vilken period som gäller, inte dagen
+        paketet är tillbaka hos oss. Vid
         frågor — svara på det här mejlet eller mejla{" "}
         <a href={`mailto:${BRAND.supportEmail}`} style={{ color: BRAND.orange2 }}>
           {BRAND.supportEmail}

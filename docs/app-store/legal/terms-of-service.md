@@ -48,7 +48,12 @@ rätten att när som helst ändra, pausa eller avsluta hela eller delar av tjän
   motsvarande sätt som i en fysisk butik; har den hanterats mer än så kan ett
   skäligt värdeminskningsavdrag göras.
 - **Dag 15–30** är Fyndplats **frivilliga öppna köp**. Då ska produkten vara
-  oanvänd, komplett och i säljbart skick.
+  oanvänd, komplett och i säljbart skick, returen anmälas skriftligt med
+  ordernummer innan den skickas, och paketet skickas spårbart. Under dag 15–30
+  återbetalas produktens pris men inte vad du betalat för leveransen till dig;
+  det återbetalas bara under den lagstadgade ångerfristen.
+- Vilken period som gäller avgörs av **när du anmäler returen**, inte av när
+  paketet är tillbaka hos oss.
 - Returfrakten betalas av kunden, utom vid felaktig eller skadad vara.
   Fullständiga villkor finns på <https://www.fyndplats.se/returer>.
 

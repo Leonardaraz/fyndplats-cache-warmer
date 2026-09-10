@@ -105,10 +105,10 @@ function returnAnswer(seed: number, salt: number): string {
   const v = [
     `Ja. Du har totalt 30 dagar på dig: 14 dagars lagstadgad ångerrätt, därefter vårt frivilliga öppna köp till och med dag 30. Mejla info@fyndplats.com med ditt ordernummer så hjälper vi dig vidare.`,
     `Absolut. Totalt 30 dagar gäller — de första 14 enligt lag, resten som vårt eget öppna köp. Skicka ordernumret till info@fyndplats.com, så löser vi returen.`,
-    `Självklart. Inom de 14 lagstadgade dagarna får du undersöka varan som du hade gjort i en butik. Därefter, till och med dag 30, gäller vårt frivilliga öppna köp för oanvänd och komplett vara. Hör av dig till info@fyndplats.com med ordernumret.`,
-    `Det går bra — 30 dagar på allt. Under de första 14 dagarna gäller ångerrätten enligt lag; dag 15–30 är vårt öppna köp, och då ska varan vara oanvänd och komplett. Mejla info@fyndplats.com med ordernumret.`,
+    `Självklart. Inom de 14 lagstadgade dagarna får du undersöka varan som du hade gjort i en butik. Därefter, till och med dag 30, gäller vårt frivilliga öppna köp för oanvänd och komplett vara. Hör av dig till info@fyndplats.com med ordernumret — fullständiga villkor finns på fyndplats.se/returer.`,
+    `Det går bra — 30 dagar på allt. Under de första 14 dagarna gäller ångerrätten enligt lag; dag 15–30 är vårt öppna köp, och då ska varan vara oanvänd och komplett. Mejla info@fyndplats.com med ordernumret; fullständiga villkor finns på fyndplats.se/returer.`,
     `Ja. Passar något inte har du 30 dagar på dig att ångra köpet: lagens 14 dagar plus vårt frivilliga öppna köp fram till dag 30. Kontakta oss på info@fyndplats.com med ordernumret.`,
-    `Returer är inga problem inom 30 dagar. De första 14 dagarna är lagstadgad ångerrätt, dag 15–30 vårt eget öppna köp för oanvänd vara. Skicka ordernumret till info@fyndplats.com så guidar vi dig.`,
+    `Returer är inga problem inom 30 dagar. De första 14 dagarna är lagstadgad ångerrätt, dag 15–30 vårt eget öppna köp för oanvänd vara. Skicka ordernumret till info@fyndplats.com så guidar vi dig — fullständiga villkor står på fyndplats.se/returer.`,
   ];
   return pick(v, seed, salt);
 }

@@ -61,7 +61,7 @@ export type Period = {
 export const STATUTORY: Period = {
   label: "Lagstadgad ångerrätt",
   range: "Dag 1–14",
-  lead: "Du har enligt lag 14 dagars ångerrätt när du handlar online. Fristen räknas från den dag du, eller någon du utsett, tog emot varan.",
+  lead: "Du har enligt lag 14 dagars ångerrätt när du handlar online. Fristen räknas från den dag du, eller någon du utsett, tog emot varan. Det är ditt meddelande till oss som ska ske inom de 14 dagarna — varan får du sedan skicka tillbaka inom ytterligare 14 dagar.",
   points: [
     "Under ångerfristen har du rätt att undersöka produktens egenskaper och funktion på motsvarande sätt som du skulle kunna göra i en fysisk butik.",
     "Har produkten hanterats mer än vad som är nödvändigt för att fastställa dess egenskaper och funktion kan ett skäligt värdeminskningsavdrag göras på återbetalningen.",
@@ -76,7 +76,7 @@ export const STATUTORY: Period = {
 export const VOLUNTARY: Period = {
   label: "Fyndplats frivilliga öppna köp",
   range: "Dag 15–30",
-  lead: "Utöver den lagstadgade ångerrätten erbjuder Fyndplats frivilligt öppet köp till och med dag 30 från att du tog emot produkten.",
+  lead: "Utöver den lagstadgade ångerrätten erbjuder Fyndplats frivilligt öppet köp till och med dag 30 från att du tog emot produkten. Även här är det din anmälan som ska komma in i tid.",
   points: [
     "För öppet köp under dag 15–30 ska produkten vara oanvänd, komplett och i säljbart skick.",
     "Originalförpackningen ska finnas kvar när den utgör en del av produkten eller behövs för säker retur.",
@@ -86,6 +86,19 @@ export const VOLUNTARY: Period = {
     "Är produkten ofullständig eller inte längre i säljbart skick kan vi behöva göra ett avdrag på återbetalningen.",
   ],
 };
+
+/**
+ * Vilken av de två perioderna som gäller avgörs av ANMÄLNINGSDAGEN.
+ *
+ * Utan den här meningen kunde "Dag 15–30" läsas som att perioden bestäms av när
+ * paketet är tillbaka hos oss. Den läsningen vore fel: 2 kap. 10 § distansavtals-
+ * lagen knyter ångerrätten till att konsumenten lämnar meddelande inom fristen,
+ * och 15 § ger därefter ytterligare 14 dagar att skicka varan. En kund som
+ * anmäler dag 12 och postar dag 20 står alltså under lagens regler — inklusive
+ * återbetald standardfrakt — även om varan kommer fram långt efter dag 14.
+ */
+export const TRIGGER =
+  "Det är dagen du anmäler returen till oss som avgör vilken period som gäller, inte dagen paketet är tillbaka hos oss. Anmäler du inom 14 dagar gäller den lagstadgade ångerrätten även om varan skickas tillbaka senare.";
 
 /** Gäller båda perioderna. */
 export const COMMON: string[] = [

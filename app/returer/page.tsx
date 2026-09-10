@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ContentPage } from "../../components/content";
-import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, STATUTORY, VOLUNTARY, COMMON } from "../../lib/retur-policy";
+import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, TRIGGER, STATUTORY, VOLUNTARY, COMMON } from "../../lib/retur-policy";
 
 export const metadata: Metadata = {
   title: "Returer & ångerrätt",
@@ -45,6 +45,8 @@ export default function Returer() {
           </li>
         ))}
       </ul>
+
+      <p>{TRIGGER}</p>
 
       <h3>{STATUTORY.range} — {STATUTORY.label}</h3>
       <p>{STATUTORY.lead}</p>
