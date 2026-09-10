@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { ContentPage } from "../../components/content";
 import AngraForm from "../../components/angra-form";
+import { TOTAL_SUMMARY, TOTAL_SHORT, TIMELINE, STATUTORY, VOLUNTARY, COMMON } from "../../lib/retur-policy";
 
 export const metadata: Metadata = {
   title: "Ångra köp",
   description:
-    "Ångra ditt köp hos Fyndplats direkt på sajten. 14 dagars ångerrätt enligt lag — välj order och artiklar, så får du mottagningskvitto med returadress.",
+    `Ångra ditt köp hos Fyndplats direkt på sajten. ${TOTAL_SHORT} Välj order och artiklar, så får du mottagningskvitto med returadress.`,
   alternates: { canonical: "https://www.fyndplats.se/angra-kop" },
   openGraph: {
     type: "website",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     url: "https://www.fyndplats.se/angra-kop",
     title: "Ångra köp",
     description:
-      "Ångra ditt köp hos Fyndplats direkt på sajten. 14 dagars ångerrätt enligt lag — enkelt och tydligt.",
+      TOTAL_SHORT,
     images: [
       "https://static.wixstatic.com/media/b379ce_0e6a6260c9f243b3afd79cbaf147b67b~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85/file.jpg",
     ],
@@ -31,33 +32,45 @@ export default function AngraKop() {
       <AngraForm />
 
       <h2>Så fungerar ångerrätten</h2>
+      <p>{TOTAL_SUMMARY}</p>
+
+      <ul className="retur-tidslinje">
+        {TIMELINE.map((t) => (
+          <li key={t.range}>
+            <strong>{t.range}</strong>
+            <span>{t.label}</span>
+          </li>
+        ))}
+      </ul>
+
+      <h3>
+        {STATUTORY.range} — {STATUTORY.label}
+      </h3>
+      <p>{STATUTORY.lead}</p>
       <ul>
-        <li>
-          <strong>14 dagars ångerrätt enligt lag.</strong> Fristen räknas från den dag du
-          (eller någon du utsett) tog emot varan. Utöver detta har du{" "}
-          <strong>30 dagars öppet köp</strong> hos oss.
-        </li>
-        <li>
-          <strong>Gäller även innan paketet kommit fram.</strong> Du kan ångra dig så snart du
-          lagt din order – även medan paketet är på väg. Ångerfristen börjar faktiskt löpa
-          först när du fått varan.
-        </li>
-        <li>
-          <strong>Returfrakten betalas av dig som kund</strong> vid ångrat köp. Välj valfri
-          spårbar leveranstjänst. (Är varan trasig eller fel är det en reklamation – då står{" "}
-          <strong>Fyndplats för returfrakten</strong>, se nedan.)
-        </li>
-        <li>
-          <strong>Varan ska vara oanvänd</strong> och i originalförpackning med alla tillbehör.
-        </li>
+        {STATUTORY.points.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
+      </ul>
+
+      <h3>
+        {VOLUNTARY.range} — {VOLUNTARY.label}
+      </h3>
+      <p>{VOLUNTARY.lead}</p>
+      <ul>
+        {VOLUNTARY.points.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
+      </ul>
+
+      <h3>Gäller under hela perioden</h3>
+      <ul>
+        {COMMON.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
         <li>
           <strong>Återbetalning inom 5–10 bankdagar</strong> efter att vi tagit emot och
-          kontrollerat returen, till ditt ursprungliga betalmedel. Har du betalat frakt
-          återbetalas även standardfrakten.
-        </li>
-        <li>
-          <strong>Vissa varor är undantagna</strong> ångerrätt enligt lag, t.ex. förseglade
-          hygienartiklar där förseglingen brutits eller specialtillverkade produkter.
+          kontrollerat returen, till ditt ursprungliga betalmedel.
         </li>
       </ul>
 

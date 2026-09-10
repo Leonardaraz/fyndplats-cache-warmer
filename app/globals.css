@@ -1483,6 +1483,18 @@ a.grat:hover .g-badge,a.grat:focus-visible .g-badge{box-shadow:var(--e2)}
 .callout{background:var(--warm);border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:var(--r-md);padding:18px 20px;margin:22px 0}
 .callout p:last-child{margin:0}
 
+/* Returperioderna visuellt åtskilda. Kunden ska kunna se med ögat att de 30
+   dagarna är EN period i två delar — inte 14 plus 30. Två kort sida vid sida
+   säger det innan någon läst en mening; på telefon staplas de. */
+/* Specificiteten är avsiktlig: ".prose ul" (0,1,1) sätter display:flex och slår
+   en ensam klass, så listan hamnade i en kolumn på desktop. */
+.prose ul.retur-tidslinje{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0;padding:0;list-style:none}
+.prose ul.retur-tidslinje li{display:flex;flex-direction:column;gap:4px;background:var(--warm);border:1px solid var(--line);border-top:3px solid var(--orange);border-radius:var(--r-md);padding:14px 16px;margin:0}
+.prose ul.retur-tidslinje li::before{content:none}
+.prose ul.retur-tidslinje strong{font-size:var(--text-sm);letter-spacing:.04em;text-transform:uppercase;color:var(--orange)}
+.prose ul.retur-tidslinje span{font-weight:600;line-height:1.35}
+@media (max-width:560px){.prose ul.retur-tidslinje{grid-template-columns:1fr}}
+
 /* ── Ångerfunktion (/angra-kop) ─────────────────────────────────────────── */
 .angra-card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:26px 24px;margin:8px 0 28px;box-shadow:var(--e2)}
 .angra-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}
