@@ -51,6 +51,13 @@ on:
         # dealproffsen.se publicerar som sku/mpn — den joinar vår produktsida
         # mot deras och därmed mot vårt inköpsled.
         #
+        # ☠️ KOSTNADEN GÅR OCKSÅ HÄR (2026-09-10). `visa_kostnad` skriver
+        # inköpspriset till den PUBLIKA loggen och är alltså inget alternativ
+        # när man bara vill VETA vad en vara kostar oss. Kuvertet bär därför
+        # `costUsd`, `landedCostSek` och fraktandelen — samma fält, privat
+        # kanal. Använd `visa_kostnad` bara när loggen måste kunna läsas av
+        # någon annan, och vet då att den kan läsas av vem som helst.
+        #
         # Ägaren behöver ändå kunna läsa sitt eget artikelnummer, t.ex. för att
         # lägga en Aosom-order för hand. Fram till nu fanns bara två vägar:
         # skriva det till den publika loggen (det som gick fel i #181), eller
@@ -64,7 +71,7 @@ on:
         #
         # ⚠️ Den flyttar alltså inte hemligheten någon annanstans än till den
         # som redan äger den. Lämna tomt när du inte behöver den.
-        description: "Läs artikelnummer PRIVAT: base64 av en RSA-publik nyckel (PEM). TOMT = hoppa över."
+        description: "Läs artikelnummer OCH INKÖPSPRIS privat: base64 av en RSA-publik nyckel (PEM). TOMT = hoppa över."
         required: false
         default: ""
         type: string
@@ -241,8 +248,12 @@ jobs:
               # sa varje led nedan fars falla hogt.
               umask 077
               echo "$svar" | jq -j '{
-                artikelnummer: .mappning.supplierProductId,
-                sourceUrl:     .mappning.sourceUrl
+                artikelnummer:  .mappning.supplierProductId,
+                sourceUrl:      .mappning.sourceUrl,
+                costUsd:        [(.mappning.variants // [])[] | {sku, costUsd, landedCostSek, grossSek}],
+                fraktandel:     .aosomFreightShare,
+                landedCostSek:  .prisgrind.landedCostSek,
+                forvantatSek:   .prisgrind["förväntatSek"]
               } | tostring' > kuvert.klartext
 
               if ! echo "${KUVERT}" | base64 -d > kuvert.pub 2>/dev/null; then
