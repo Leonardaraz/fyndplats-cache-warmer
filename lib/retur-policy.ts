@@ -32,6 +32,15 @@
 //
 // Det frivilliga öppna köpet dag 15–30 är vårt eget erbjudande. DÄR får vi
 // ställa egna villkor, för det finns ingen lagstadgad rätt att villkora.
+//
+// LEVERANTÖRSLEDET: nästan hela sortimentet kommer från Aosom (MH Handel GmbH).
+// Deras B2B-villkor tar emot en felfri retur inom 30 dagar men drar 10 % i
+// bearbetningsavgift, betalar inte tillbaka ursprunglig frakt, och kräver
+// "vollständig, im Originalkarton und ohne Gebrauchsspuren". Dag 15–30 speglar
+// de villkoren så långt lagen tillåter — skriftlig anmälan med ordernummer,
+// spårbar retur, ingen återbetalning av utgående frakt, avdrag när varan inte
+// är säljbar. Vad som INTE går att spegla: 10 %-avgiften (mot konsument får bara
+// värdeminskning dras), och något av det här får aldrig gälla dag 1–14.
 
 /** Totalen, formulerad så att den inte kan läsas som 14 + 30 = 44 dagar. */
 export const TOTAL_SUMMARY =
@@ -71,6 +80,10 @@ export const VOLUNTARY: Period = {
   points: [
     "För öppet köp under dag 15–30 ska produkten vara oanvänd, komplett och i säljbart skick.",
     "Originalförpackningen ska finnas kvar när den utgör en del av produkten eller behövs för säker retur.",
+    "Anmäl returen skriftligt med ditt ordernummer innan du skickar tillbaka, via vår ångerfunktion eller på info@fyndplats.com.",
+    "Skicka spårbart och meddela oss spårningsnumret — vi behöver det för att kunna behandla återbetalningen.",
+    "Under dag 15–30 återbetalas produktens pris. Vad du betalat för frakten till dig återbetalas inte, till skillnad från under den lagstadgade ångerfristen.",
+    "Är produkten ofullständig eller inte längre i säljbart skick kan vi behöva göra ett avdrag på återbetalningen.",
   ],
 };
 
@@ -78,6 +91,8 @@ export const VOLUNTARY: Period = {
 export const COMMON: string[] = [
   "Returfrakten betalas av dig som kund. Välj valfri leveranstjänst — vi rekommenderar spårbar leverans så du har bevis på avsändning.",
   "Är varan trasig eller felaktig är det en reklamation, inte en ångran. Då står Fyndplats för returkostnaden.",
+  "Vid fel eller transportskada: mejla oss först med ordernummer och foton, och vänta med att skicka tillbaka tills vi hört av oss. Då slipper du lägga ut för en frakt i onödan, och vi kan ofta lösa det snabbare på annat sätt.",
+  "Ta emot paketet även om du redan bestämt dig för att ångra köpet, och anmäl returen till oss. Ett paket som vägras i dörren eller lämnas outhämtat blir dyrare att hantera och tar längre tid innan pengarna är tillbaka hos dig.",
 ];
 
 /** En rad per period, för den visuella uppdelningen sidorna visar. */
