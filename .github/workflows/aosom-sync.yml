@@ -53,6 +53,19 @@ on:
         required: false
         default: "20"
         type: string
+      sku:
+        # Rutten har haft ?sku= hela tiden (riktad omkörning efter ett fel),
+        # men workflowen exponerade den inte — och CRON_SECRET är Sensitive i
+        # Vercel, så rutten var i praktiken oanropbar utan den här vägen.
+        # Frågan som byggde inputen (2026-09-10): stämmer feedens pris med
+        # Aosoms B2B-kassa? Ett helt svep svarar inte på det — det säger bara
+        # hur många rader i katalogen som vill skrivas.
+        #
+        # ☠️ Talen som kommer ut är RÄKNARE, aldrig belopp. Loggen är publik.
+        description: "Bara dessa artikelnummer, kommaseparerat. Tomt = hela katalogen."
+        required: false
+        default: ""
+        type: string
 
 jobs:
   synka:
@@ -67,6 +80,7 @@ jobs:
           MODE: ${{ inputs.mode }}
           LIMIT: ${{ inputs.limit }}
           MAX_ROUNDS: ${{ inputs.max_rounds }}
+          SKU: ${{ inputs.sku }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           BASE_SECRET: ${{ secrets.POLL_TRACKING_URL }}
         run: |
@@ -134,6 +148,11 @@ jobs:
           while [ "$varv" -lt "$MAX_ROUNDS" ]; do
             varv=$(( varv + 1 ))
             url="${base}?${args}&limit=${LIMIT}"
+            # ☠️ URL-KODAT. Ett artikelnummer är visserligen bara [A-Z0-9-],
+            # men en felskriven input får inte kunna bryta ut ur query-strängen.
+            if [ -n "${SKU:-}" ]; then
+              url="${url}&sku=$(printf '%s' "$SKU" | jq -sRr @uri)"
+            fi
             if [ -n "$after" ]; then
               url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
             fi
