@@ -442,7 +442,43 @@ TILLBEHOR = (
     # ovan: orden kan inte stå i en korrekt vagntext utan att lova något.
     "glas", "vinglas", "karaff", "tallrik", "bestick", "servett", "isspann",
     "kryddburk", "skärbräda", "fat",
+    # Runda 119: köksöarnas och köksvagnarnas STYLINGREKVISITA. Bilderna visar
+    # glasburkar med torrvaror i lådan, vinflaskor i vinstället och barstolar
+    # inskjutna under klaffen — inget av det står i `Lieferumfang`.
+    #
+    # ☠️ `glas` fångar INTE `glasburkar`: mönstret slutar i en ordgräns, och
+    #    efter `glas` står ett `b`. Den saknade träffen hittades av rundans
+    #    EGET självtest, som injicerade ordet i tron att det redan täcktes —
+    #    ett ord som ligger nära ett listat ord är inte listat.
+    "glasburk", "vinflaska", "barstol", "fruktkorg",
 )
+
+
+def _bojningar(ord_):
+    """Regex som matchar ordets svenska böjningsformer.
+
+    ☠️ SVENSK INDEFINIT PLURAL SAKNADES HELT. Mönstret var
+    `\b<ord>s?(?:n|en|et|na|erna|arna)?\b` — bestämd form och
+    genitiv, men varken `-ar`, `-or` eller `-er`. Uppmätt i runda 119
+    på tretton ord ur listans egen mitt: **tolv tappade sin
+    pluralform.** `tallrikar`, `skålar`, `hinkar`, `dynor`, `väskor`,
+    `flaggor`, `karaffer`, `servetter`, `skärbrädor` — alltså precis
+    den form ett leveranslöfte skrivs i ("fyra tallrikar ingår").
+
+    Att `"nycklar"` står listat BREDVID `"nyckel"` är fingeravtrycket:
+    någon gick i fällan tidigare och lagade ETT ORD i stället för
+    MÖNSTRET. Samma familj som "en grind skriven mot platsen där felet
+    hittades täcker inte regeln".
+
+    ⚠️ Stammar på `-a` och `-e` tappar sin vokal i plural (dyna →
+    dynor, kudde → kuddar). Den trunkerade stammen får därför BARA
+    pluraländelser — annars hade `dyna` matchat ordet `dyn`, som är
+    svenska för något helt annat.
+    """
+    formar = [re.escape(ord_) + r"(?:s|n|en|et|na|ar|or|er|arna|orna|erna)?"]
+    if ord_[-1] in "ae":
+        formar.append(re.escape(ord_[:-1]) + r"(?:ar|or|er|arna|orna|erna)")
+    return r"\b(?:%s)\b" % "|".join(formar)
 
 
 def leveransloften(syn, ingar, nyckel=""):
@@ -457,7 +493,7 @@ def leveransloften(syn, ingar, nyckel=""):
         mening = mening_kring(syn, m.start())
         lag = mening.lower()
         for ord_ in TILLBEHOR:
-            if not re.search(r"\b%ss?(?:n|en|et|na|erna|arna)?\b" % ord_, lag):
+            if not re.search(_bojningar(ord_), lag):
                 continue
             if ord_[:5] in har or any(p.startswith(ord_[:5]) for p in har.split()):
                 continue
@@ -486,13 +522,26 @@ def leveransloften(syn, ingar, nyckel=""):
 # ☠️ EN FRÅGA ÄR INGEN GRANNE. JSON-LD:s FAQ använder `"name"` för FRÅGAN, så
 #    sidans egna frågor hamnade i grannlistan och ströks ur texten — varefter
 #    grinden rapporterade att frågan SAKNADES (runda 116, uppgift #430).
+#   7-8. ☠️ BUTIKENS FÖREGÅENDE/NÄSTA-NAVIGERING, `<span class="pbrowse-namn">`
+#        och dess payload-tvilling. Uppmätt i runda 119, och kanalen är
+#        SJÄLVFÖRVÅLLAD: raden visar grannarna INOM KATEGORIN, så den fanns
+#        inte förrän rundans eget Steg 10 gav produkterna en. Live-grinden
+#        var grön före kategoriskrivningen och röd efter — samma sidor, samma
+#        text, 7 kB större HTML.
+#
+#        Klassnamnet matchas därför som ett MÖNSTER (`pname` eller något som
+#        slutar på `namn`) i stället för som en uppräkning: nästa modul huset
+#        lägger till kommer att heta något tredje, och en lista över kända
+#        klassnamn är samma sorts fälla som en svartlista över homoglyfer.
+_KLASSNAMN = r"(?:pname|[a-z-]*namn)"
 _GRANNKANALER = [
     r'"name"\s*:\s*"([^"]{6,90})"',
     r'\\"name\\":\\"([^"]{6,90})\\"',
-    r'<div class="pname">([^<]{6,90})</div>',
+    r'<(?:div|span|a|p)[^>]*class="[^"]*\b%s\b[^"]*"[^>]*>([^<]{6,90})</' % _KLASSNAMN,
     r'\balt="([^"]{6,90})"',
     r'\\"alt\\":\\"([^"]{6,90})\\"',
-    r'\\"className\\":\\"pname\\",\\"children\\":\\"([^"]{6,90})\\"',
+    r'\\"className\\":\\"[^"]*%s[^"]*\\",\\"children\\":\\"([^"]{6,90})\\"'
+    % _KLASSNAMN,
 ]
 
 
