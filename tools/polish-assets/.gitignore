@@ -81,3 +81,14 @@
 # från `tools/polish-assets/` lägger dem här i stället för i rundans mapp.
 cards/
 jpg/
+
+# Runda 116:s bildcache. `hjaltar/` är hela familjens 253 bilder i 320 px (8 MB)
+# och `stora/` är samma bilder i granskningsstorlek — båda hämtas om av
+# `familj.py` på ett kommando, och DOMEN står i STEG1.md med avstånd och
+# positioner. Jämförelsearken (`kontroll-*.jpg`) är samma sak: mellanled för
+# ögat, inte bevis i efterhand. Samma skäl som `*/zoom-*.jpg` och `*/publbilder/`.
+*/hjaltar/
+*/stora/
+*/kontroll-*.jpg
+*/kluster.jpg
+__pycache__/
