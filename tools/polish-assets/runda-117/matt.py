@@ -58,6 +58,8 @@ MATT = {
         "material": "spånskiva, MDF och stål",
         "yta": "melaminbelagd",
         "hjul": "fyra, varav två med broms",
+        "hjul_punkt": "Fyra hjul, varav två med broms",
+        "hjul_svar": "Två av de fyra hjulen har broms.",
         "hyllplan": "ett, i tre höjdlägen",
         "dorrar": "två, med magnetstängning",
         "vikt": "29 kg",
@@ -68,9 +70,11 @@ MATT = {
         "hylla_vanster": "20,5 × 38 cm",
         "skap_inuti": "54,5 × 36,5 cm",
         "maxlast": "40 kg totalt, 10 kg på skivan, 10 kg på understa hyllan "
-                   "och 5 kg på mellersta",
+                   "och 5 kg på den mellersta",
         "material": "MDF",
         "hjul": "fyra, varav två med broms",
+        "hjul_punkt": "Fyra hjul, varav två med broms",
+        "hjul_svar": "Två av de fyra hjulen har broms.",
         "hyllplan": "ett i skåpet, i tre höjdlägen",
         "dorrar": "två, med urskurna grepp",
         "vikt": "28 kg",
@@ -85,6 +89,8 @@ MATT = {
                    "och 8 kg på hyllplanet",
         "material": "gummiträ och MDF",
         "hjul": "fyra länkhjul, varav två med broms",
+        "hjul_punkt": "Fyra länkhjul, varav två med broms",
+        "hjul_svar": "Två av de fyra länkhjulen har broms.",
         "hyllplan": "ett, höjdjusterbart",
         "dorrar": "två, med stålhandtag",
         "vikt": "29,5 kg",
@@ -99,10 +105,26 @@ MATT = {
         "material": "spånskiva och MDF",
         "yta": "melaminbelagd",
         "hjul": "fyra, varav två med broms",
+        "hjul_punkt": "Fyra hjul, varav två med broms",
+        "hjul_svar": "Två av de fyra hjulen har broms.",
         "hyllplan": "ett, i tre höjdlägen",
         "dorrar": "två, med magnetstängning",
         "vikt": "21 kg",
     },
+}
+
+
+# ── Härledda tal ───────────────────────────────────────────────────────────
+# ☠️ Ett tal som INTE står i leverantörens underlag får bara stå i texten om
+#    det är ren aritmetik ur två tal som gör det, och då ska räkningen skrivas
+#    ned här. Runda 88 lät ett ohärlett tal stå i två produktnamn (uppgift
+#    #326); grinden nedan känner bara igen tal den kan spåra hit.
+HARLEDDA = {
+    "A": {"29": "68 − 39 cm, hur mycket djupare skivan blir när klaffen fälls ut"},
+    "B": {},
+    "C": {},
+    "D": {"34": "kryddhyllans bredd, samma tal som i kryddhylla",
+          "12": "kryddhyllans djup, samma tal som i kryddhylla"},
 }
 
 

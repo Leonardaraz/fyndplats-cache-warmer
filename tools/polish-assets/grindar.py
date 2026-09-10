@@ -429,6 +429,13 @@ TILLBEHOR = (
     "manual", "monteringsanvisning", "anvisning", "släp", "vagn", "flagga",
     "vimpel", "regnskydd", "myggnät", "koppel", "sele", "filt", "mugg",
     "vattenflaska", "skål", "matskål",
+    # Runda 117: köksvagnarnas STYLINGREKVISITA. Leverantörens bilder visar en
+    # bestickinsats i lådan, en mikrovågsugn och en brödrost på skivan — inget
+    # av det står i `Lieferumfang`, som är `1 x Küchenwagen` + `1 x Anleitung`.
+    # Orden är valda för att de aldrig förekommer i en korrekt köksvagnstext:
+    # de kan alltså inte ge falsklarm, bara fånga det fel bilden inbjuder till.
+    "bestickinsats", "bestickfack", "besticklåda", "mikrovågsugn", "brödrost",
+    "kaffebryggare", "vattenkokare",
 )
 
 
